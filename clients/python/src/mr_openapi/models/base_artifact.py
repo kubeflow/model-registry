@@ -18,12 +18,11 @@ from typing import Any, ClassVar
 from pydantic import BaseModel, ConfigDict, Field, StrictStr
 from typing_extensions import Self
 
-from mr_openapi.models.artifact_state import ArtifactState
 from mr_openapi.models.metadata_value import MetadataValue
 
 
-class DataSet(BaseModel):
-    """A dataset artifact representing training or test data."""  # noqa: E501
+class BaseArtifact(BaseModel):
+    """Base schema for all artifact types with common server generated properties."""  # noqa: E501
 
     custom_properties: dict[str, MetadataValue] | None = Field(
         default=None,
@@ -59,25 +58,6 @@ class DataSet(BaseModel):
         description="Optional id of the experiment run that produced this artifact.",
         alias="experimentRunId",
     )
-    artifact_type: StrictStr | None = Field(default="dataset-artifact", alias="artifactType")
-    digest: StrictStr | None = Field(default=None, description="A unique hash or identifier for the dataset content.")
-    source_type: StrictStr | None = Field(
-        default=None,
-        description='The type of data source (e.g., "s3", "hdfs", "local", "database").',
-        alias="sourceType",
-    )
-    source: StrictStr | None = Field(
-        default=None, description="The location or connection string for the dataset source."
-    )
-    var_schema: StrictStr | None = Field(
-        default=None, description="JSON schema or description of the dataset structure.", alias="schema"
-    )
-    profile: StrictStr | None = Field(default=None, description="Statistical profile or summary of the dataset.")
-    uri: StrictStr | None = Field(
-        default=None,
-        description="The uniform resource identifier of the physical dataset. May be empty if there is no physical dataset.",
-    )
-    state: ArtifactState | None = None
     __properties: ClassVar[list[str]] = [
         "customProperties",
         "description",
@@ -88,14 +68,6 @@ class DataSet(BaseModel):
         "lastUpdateTimeSinceEpoch",
         "experimentId",
         "experimentRunId",
-        "artifactType",
-        "digest",
-        "sourceType",
-        "source",
-        "schema",
-        "profile",
-        "uri",
-        "state",
     ]
 
     model_config = ConfigDict(
@@ -115,7 +87,7 @@ class DataSet(BaseModel):
 
     @classmethod
     def from_json(cls, json_str: str) -> Self | None:
-        """Create an instance of DataSet from a JSON string."""
+        """Create an instance of BaseArtifact from a JSON string."""
         return cls.from_dict(json.loads(json_str))
 
     def to_dict(self) -> dict[str, Any]:
@@ -151,7 +123,7 @@ class DataSet(BaseModel):
 
     @classmethod
     def from_dict(cls, obj: dict[str, Any] | None) -> Self | None:
-        """Create an instance of DataSet from a dict."""
+        """Create an instance of BaseArtifact from a dict."""
         if obj is None:
             return None
 
@@ -173,13 +145,5 @@ class DataSet(BaseModel):
                 "lastUpdateTimeSinceEpoch": obj.get("lastUpdateTimeSinceEpoch"),
                 "experimentId": obj.get("experimentId"),
                 "experimentRunId": obj.get("experimentRunId"),
-                "artifactType": obj.get("artifactType") if obj.get("artifactType") is not None else "dataset-artifact",
-                "digest": obj.get("digest"),
-                "sourceType": obj.get("sourceType"),
-                "source": obj.get("source"),
-                "schema": obj.get("schema"),
-                "profile": obj.get("profile"),
-                "uri": obj.get("uri"),
-                "state": obj.get("state"),
             }
         )

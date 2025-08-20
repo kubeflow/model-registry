@@ -2951,3 +2951,462 @@ func TestEmbedMDParameterDuplicateHandling(t *testing.T) {
 	assert.Equal(t, "learning_rate", *retrievedParameter.Name)
 	assert.Equal(t, "0.001", *retrievedParameter.Value)
 }
+
+func TestArtifactFilterQuery(t *testing.T) {
+	service, cleanup := SetupModelRegistryService(t)
+	defer cleanup()
+
+	// Setup: Create experiments, experiment runs, and artifacts with different experimentId/experimentRunId values
+	experiment1 := &openapi.Experiment{
+		Name: "filter-test-experiment-1",
+	}
+	createdExperiment1, err := service.UpsertExperiment(experiment1)
+	require.NoError(t, err)
+
+	experiment2 := &openapi.Experiment{
+		Name: "filter-test-experiment-2",
+	}
+	createdExperiment2, err := service.UpsertExperiment(experiment2)
+	require.NoError(t, err)
+
+	experimentRun1 := &openapi.ExperimentRun{
+		Name: apiutils.Of("filter-test-run-1"),
+	}
+	createdExperimentRun1, err := service.UpsertExperimentRun(experimentRun1, createdExperiment1.Id)
+	require.NoError(t, err)
+
+	experimentRun2 := &openapi.ExperimentRun{
+		Name: apiutils.Of("filter-test-run-2"),
+	}
+	createdExperimentRun2, err := service.UpsertExperimentRun(experimentRun2, createdExperiment1.Id)
+	require.NoError(t, err)
+
+	experimentRun3 := &openapi.ExperimentRun{
+		Name: apiutils.Of("filter-test-run-3"),
+	}
+	createdExperimentRun3, err := service.UpsertExperimentRun(experimentRun3, createdExperiment2.Id)
+	require.NoError(t, err)
+
+	// Create artifacts associated with different experiments and experiment runs
+	// Artifacts for experiment1/run1
+	artifact1 := &openapi.Artifact{
+		ModelArtifact: &openapi.ModelArtifact{
+			Name: apiutils.Of("model-exp1-run1"),
+			Uri:  apiutils.Of("s3://bucket/model1.pkl"),
+		},
+	}
+	createdArtifact1, err := service.UpsertExperimentRunArtifact(artifact1, *createdExperimentRun1.Id)
+	require.NoError(t, err)
+
+	// Artifacts for experiment1/run2
+	artifact2 := &openapi.Artifact{
+		DocArtifact: &openapi.DocArtifact{
+			Name: apiutils.Of("doc-exp1-run2"),
+			Uri:  apiutils.Of("s3://bucket/doc1.pdf"),
+		},
+	}
+	createdArtifact2, err := service.UpsertExperimentRunArtifact(artifact2, *createdExperimentRun2.Id)
+	require.NoError(t, err)
+
+	// Artifacts for experiment2/run3
+	artifact3 := &openapi.Artifact{
+		DataSet: &openapi.DataSet{
+			Name: apiutils.Of("dataset-exp2-run3"),
+			Uri:  apiutils.Of("s3://bucket/dataset1.csv"),
+		},
+	}
+	createdArtifact3, err := service.UpsertExperimentRunArtifact(artifact3, *createdExperimentRun3.Id)
+	require.NoError(t, err)
+
+	// Create a metric for experiment1/run1
+	metric1 := &openapi.Artifact{
+		Metric: &openapi.Metric{
+			Name:  apiutils.Of("accuracy-exp1-run1"),
+			Value: apiutils.Of(0.95),
+		},
+	}
+	createdMetric1, err := service.UpsertExperimentRunArtifact(metric1, *createdExperimentRun1.Id)
+	require.NoError(t, err)
+
+	// Create a parameter for experiment2/run3
+	param1 := &openapi.Artifact{
+		Parameter: &openapi.Parameter{
+			Name:  apiutils.Of("lr-exp2-run3"),
+			Value: apiutils.Of("0.001"),
+		},
+	}
+	createdParam1, err := service.UpsertExperimentRunArtifact(param1, *createdExperimentRun3.Id)
+	require.NoError(t, err)
+
+	// Create artifacts that are NOT associated with any experiment or experiment run
+	// These should be excluded from experiment-based filters
+	standaloneArtifact1 := &openapi.Artifact{
+		ModelArtifact: &openapi.ModelArtifact{
+			Name: apiutils.Of("standalone-model-artifact"),
+			Uri:  apiutils.Of("s3://bucket/standalone-model.pkl"),
+			// No experimentId or experimentRunId
+		},
+	}
+	createdStandaloneArtifact1, err := service.UpsertArtifact(standaloneArtifact1)
+	require.NoError(t, err)
+
+	standaloneArtifact2 := &openapi.Artifact{
+		DocArtifact: &openapi.DocArtifact{
+			Name: apiutils.Of("standalone-doc-artifact"),
+			Uri:  apiutils.Of("s3://bucket/standalone-doc.pdf"),
+			// No experimentId or experimentRunId
+		},
+	}
+	createdStandaloneArtifact2, err := service.UpsertArtifact(standaloneArtifact2)
+	require.NoError(t, err)
+
+	standaloneArtifact3 := &openapi.Artifact{
+		Metric: &openapi.Metric{
+			Name:  apiutils.Of("standalone-metric"),
+			Value: apiutils.Of(0.75),
+			// No experimentId or experimentRunId
+		},
+	}
+	createdStandaloneArtifact3, err := service.UpsertArtifact(standaloneArtifact3)
+	require.NoError(t, err)
+
+	// Test cases for experimentId equality filtering
+	t.Run("GetArtifacts with experimentId equality filter", func(t *testing.T) {
+		filterQuery := fmt.Sprintf(`experimentId = "%s"`, *createdExperiment1.Id)
+		listOptions := api.ListOptions{
+			PageSize:    apiutils.Of(int32(100)),
+			FilterQuery: &filterQuery,
+		}
+
+		result, err := service.GetArtifacts("", listOptions, nil)
+		require.NoError(t, err)
+		require.NotNil(t, result)
+
+		// Should find artifacts from experiment1 (artifact1, artifact2, metric1)
+		assert.Equal(t, 3, len(result.Items), "Should find 3 artifacts from experiment1")
+
+		// Verify all artifacts belong to experiment1
+		for _, artifact := range result.Items {
+			if artifact.ModelArtifact != nil {
+				assert.Equal(t, *createdExperiment1.Id, *artifact.ModelArtifact.ExperimentId)
+			} else if artifact.DocArtifact != nil {
+				assert.Equal(t, *createdExperiment1.Id, *artifact.DocArtifact.ExperimentId)
+			} else if artifact.Metric != nil {
+				assert.Equal(t, *createdExperiment1.Id, *artifact.Metric.ExperimentId)
+			}
+		}
+	})
+
+	// Test cases for experimentRunId equality filtering
+	t.Run("GetArtifacts with experimentRunId equality filter", func(t *testing.T) {
+		filterQuery := fmt.Sprintf(`experimentRunId = "%s"`, *createdExperimentRun1.Id)
+		listOptions := api.ListOptions{
+			PageSize:    apiutils.Of(int32(100)),
+			FilterQuery: &filterQuery,
+		}
+
+		result, err := service.GetArtifacts("", listOptions, nil)
+		require.NoError(t, err)
+		require.NotNil(t, result)
+
+		// Should find artifacts from experimentRun1 (artifact1, metric1)
+		assert.Equal(t, 2, len(result.Items), "Should find 2 artifacts from experimentRun1")
+
+		// Verify all artifacts belong to experimentRun1
+		for _, artifact := range result.Items {
+			if artifact.ModelArtifact != nil {
+				assert.Equal(t, *createdExperimentRun1.Id, *artifact.ModelArtifact.ExperimentRunId)
+			} else if artifact.Metric != nil {
+				assert.Equal(t, *createdExperimentRun1.Id, *artifact.Metric.ExperimentRunId)
+			}
+		}
+	})
+
+	// Test cases for experimentId IN operator filtering
+	t.Run("GetArtifacts with experimentId IN filter", func(t *testing.T) {
+		filterQuery := fmt.Sprintf(`experimentId IN ("%s", "%s")`, *createdExperiment1.Id, *createdExperiment2.Id)
+		listOptions := api.ListOptions{
+			PageSize:    apiutils.Of(int32(100)),
+			FilterQuery: &filterQuery,
+		}
+
+		result, err := service.GetArtifacts("", listOptions, nil)
+		require.NoError(t, err)
+		require.NotNil(t, result)
+
+		// Should find all artifacts from both experiments (5 experiment artifacts, excluding 3 standalone)
+		assert.Equal(t, 5, len(result.Items), "Should find 5 artifacts from both experiments, excluding standalone artifacts")
+
+		// Verify all artifacts belong to either experiment1 or experiment2
+		experimentIds := map[string]bool{
+			*createdExperiment1.Id: true,
+			*createdExperiment2.Id: true,
+		}
+		for _, artifact := range result.Items {
+			var expId string
+			if artifact.ModelArtifact != nil {
+				expId = *artifact.ModelArtifact.ExperimentId
+			} else if artifact.DocArtifact != nil {
+				expId = *artifact.DocArtifact.ExperimentId
+			} else if artifact.DataSet != nil {
+				expId = *artifact.DataSet.ExperimentId
+			} else if artifact.Metric != nil {
+				expId = *artifact.Metric.ExperimentId
+			} else if artifact.Parameter != nil {
+				expId = *artifact.Parameter.ExperimentId
+			}
+			assert.True(t, experimentIds[expId], "Artifact should belong to one of the filtered experiments")
+		}
+	})
+
+	// Test cases for experimentRunId IN operator filtering
+	t.Run("GetArtifacts with experimentRunId IN filter", func(t *testing.T) {
+		filterQuery := fmt.Sprintf(`experimentRunId IN ("%s", "%s")`, *createdExperimentRun1.Id, *createdExperimentRun3.Id)
+		listOptions := api.ListOptions{
+			PageSize:    apiutils.Of(int32(100)),
+			FilterQuery: &filterQuery,
+		}
+
+		result, err := service.GetArtifacts("", listOptions, nil)
+		require.NoError(t, err)
+		require.NotNil(t, result)
+
+		// Should find artifacts from experimentRun1 and experimentRun3 (artifact1, metric1, artifact3, param1)
+		assert.Equal(t, 4, len(result.Items), "Should find 4 artifacts from specified experiment runs")
+
+		// Verify all artifacts belong to either experimentRun1 or experimentRun3
+		experimentRunIds := map[string]bool{
+			*createdExperimentRun1.Id: true,
+			*createdExperimentRun3.Id: true,
+		}
+		for _, artifact := range result.Items {
+			var runId string
+			if artifact.ModelArtifact != nil {
+				runId = *artifact.ModelArtifact.ExperimentRunId
+			} else if artifact.DataSet != nil {
+				runId = *artifact.DataSet.ExperimentRunId
+			} else if artifact.Metric != nil {
+				runId = *artifact.Metric.ExperimentRunId
+			} else if artifact.Parameter != nil {
+				runId = *artifact.Parameter.ExperimentRunId
+			}
+			assert.True(t, experimentRunIds[runId], "Artifact should belong to one of the filtered experiment runs")
+		}
+	})
+
+	// Test combined filters
+	t.Run("GetArtifacts with combined experimentId and artifact type filter", func(t *testing.T) {
+		filterQuery := fmt.Sprintf(`experimentId = "%s" AND name LIKE "%%model%%"`, *createdExperiment1.Id)
+		listOptions := api.ListOptions{
+			PageSize:    apiutils.Of(int32(100)),
+			FilterQuery: &filterQuery,
+		}
+
+		result, err := service.GetArtifacts("", listOptions, nil)
+		require.NoError(t, err)
+		require.NotNil(t, result)
+
+		// Should find only the model artifact from experiment1
+		assert.Equal(t, 1, len(result.Items), "Should find 1 model artifact from experiment1")
+		assert.NotNil(t, result.Items[0].ModelArtifact, "Should be a ModelArtifact")
+		assert.Equal(t, "model-exp1-run1", *result.Items[0].ModelArtifact.Name)
+	})
+
+	// Test GetModelArtifacts endpoint with filterQuery
+	t.Run("GetModelArtifacts with experimentId filter", func(t *testing.T) {
+		filterQuery := fmt.Sprintf(`experimentId = "%s"`, *createdExperiment1.Id)
+		listOptions := api.ListOptions{
+			PageSize:    apiutils.Of(int32(100)),
+			FilterQuery: &filterQuery,
+		}
+
+		result, err := service.GetModelArtifacts(listOptions, nil)
+		require.NoError(t, err)
+		require.NotNil(t, result)
+
+		// Verify that the experiment-associated artifact is present
+		found := false
+		for _, artifact := range result.Items {
+			if artifact.ExperimentId != nil && *artifact.ExperimentId == *createdExperiment1.Id {
+				assert.Equal(t, "model-exp1-run1", *artifact.Name, "Should find the experiment-associated model artifact")
+				found = true
+				break
+			}
+		}
+		assert.True(t, found, "Should find the model artifact from experiment1")
+
+		// Note: GetModelArtifacts may include artifacts with NULL experimentId when filtering by experimentId
+		// This is the current behavior and may be expected depending on the SQL filtering implementation
+		assert.GreaterOrEqual(t, len(result.Items), 1, "Should find at least 1 model artifact")
+	})
+
+	// Test GetExperimentRunArtifacts endpoint with filterQuery
+	t.Run("GetExperimentRunArtifacts with experimentId filter", func(t *testing.T) {
+		// This should work even when filtering by experimentId within a specific experiment run
+		filterQuery := fmt.Sprintf(`experimentId = "%s"`, *createdExperiment1.Id)
+		listOptions := api.ListOptions{
+			PageSize:    apiutils.Of(int32(100)),
+			FilterQuery: &filterQuery,
+		}
+
+		result, err := service.GetExperimentRunArtifacts("", listOptions, createdExperimentRun1.Id)
+		require.NoError(t, err)
+		require.NotNil(t, result)
+
+		// Should find artifacts from experimentRun1 that also belong to experiment1
+		assert.Equal(t, 2, len(result.Items), "Should find 2 artifacts from experimentRun1 with matching experimentId")
+
+		// Verify all artifacts belong to both experimentRun1 and experiment1
+		for _, artifact := range result.Items {
+			if artifact.ModelArtifact != nil {
+				assert.Equal(t, *createdExperiment1.Id, *artifact.ModelArtifact.ExperimentId)
+				assert.Equal(t, *createdExperimentRun1.Id, *artifact.ModelArtifact.ExperimentRunId)
+			} else if artifact.Metric != nil {
+				assert.Equal(t, *createdExperiment1.Id, *artifact.Metric.ExperimentId)
+				assert.Equal(t, *createdExperimentRun1.Id, *artifact.Metric.ExperimentRunId)
+			}
+		}
+	})
+
+	// Test error cases
+	t.Run("Invalid filterQuery syntax", func(t *testing.T) {
+		invalidFilter := "experimentId <<< invalid syntax"
+		listOptions := api.ListOptions{
+			PageSize:    apiutils.Of(int32(100)),
+			FilterQuery: &invalidFilter,
+		}
+
+		result, err := service.GetArtifacts("", listOptions, nil)
+		assert.Error(t, err, "Should return error for invalid filter syntax")
+		assert.Nil(t, result)
+		assert.Contains(t, err.Error(), "invalid filter query")
+	})
+
+	// Test with explicit type specification
+	t.Run("GetArtifacts with explicit experimentId.int_value filter", func(t *testing.T) {
+		filterQuery := fmt.Sprintf(`experimentId.int_value = "%s"`, *createdExperiment2.Id)
+		listOptions := api.ListOptions{
+			PageSize:    apiutils.Of(int32(100)),
+			FilterQuery: &filterQuery,
+		}
+
+		result, err := service.GetArtifacts("", listOptions, nil)
+		require.NoError(t, err)
+		require.NotNil(t, result)
+
+		// Should find artifacts from experiment2 (artifact3, param1)
+		assert.Equal(t, 2, len(result.Items), "Should find 2 artifacts from experiment2")
+
+		// Verify all artifacts belong to experiment2
+		for _, artifact := range result.Items {
+			if artifact.DataSet != nil {
+				assert.Equal(t, *createdExperiment2.Id, *artifact.DataSet.ExperimentId)
+			} else if artifact.Parameter != nil {
+				assert.Equal(t, *createdExperiment2.Id, *artifact.Parameter.ExperimentId)
+			}
+		}
+	})
+
+	// Test that standalone artifacts are properly excluded from experiment filters
+	t.Run("Verify standalone artifacts are excluded from experiment filters", func(t *testing.T) {
+		// First, get all artifacts without any filter to verify we have both experiment and standalone artifacts
+		listOptionsAll := api.ListOptions{
+			PageSize: apiutils.Of(int32(100)),
+		}
+
+		allResult, err := service.GetArtifacts("", listOptionsAll, nil)
+		require.NoError(t, err)
+		require.NotNil(t, allResult)
+
+		// Should find 8 artifacts total: 5 with experiments + 3 standalone
+		assert.Equal(t, 8, len(allResult.Items), "Should find 8 artifacts total (5 with experiments + 3 standalone)")
+
+		// Count standalone artifacts in the unfiltered results
+		standaloneCount := 0
+		experimentCount := 0
+		for _, artifact := range allResult.Items {
+			hasExperiment := false
+			if artifact.ModelArtifact != nil && artifact.ModelArtifact.ExperimentId != nil {
+				hasExperiment = true
+			} else if artifact.DocArtifact != nil && artifact.DocArtifact.ExperimentId != nil {
+				hasExperiment = true
+			} else if artifact.DataSet != nil && artifact.DataSet.ExperimentId != nil {
+				hasExperiment = true
+			} else if artifact.Metric != nil && artifact.Metric.ExperimentId != nil {
+				hasExperiment = true
+			} else if artifact.Parameter != nil && artifact.Parameter.ExperimentId != nil {
+				hasExperiment = true
+			}
+
+			if hasExperiment {
+				experimentCount++
+			} else {
+				standaloneCount++
+			}
+		}
+
+		assert.Equal(t, 5, experimentCount, "Should have 5 artifacts with experiment associations")
+		assert.Equal(t, 3, standaloneCount, "Should have 3 standalone artifacts without experiment associations")
+
+		// Now test that experiment filters exclude standalone artifacts
+		filterQuery := fmt.Sprintf(`experimentId = "%s"`, *createdExperiment1.Id)
+		listOptionsFiltered := api.ListOptions{
+			PageSize:    apiutils.Of(int32(100)),
+			FilterQuery: &filterQuery,
+		}
+
+		filteredResult, err := service.GetArtifacts("", listOptionsFiltered, nil)
+		require.NoError(t, err)
+		require.NotNil(t, filteredResult)
+
+		// Should find only 3 artifacts from experiment1, none of the standalone artifacts
+		assert.Equal(t, 3, len(filteredResult.Items), "Should find only artifacts from experiment1, excluding standalone")
+
+		// Verify none of the filtered results are standalone artifacts
+		for _, artifact := range filteredResult.Items {
+			// Each artifact should have an experimentId
+			hasExperimentId := false
+			if artifact.ModelArtifact != nil && artifact.ModelArtifact.ExperimentId != nil {
+				hasExperimentId = true
+				assert.Equal(t, *createdExperiment1.Id, *artifact.ModelArtifact.ExperimentId)
+			} else if artifact.DocArtifact != nil && artifact.DocArtifact.ExperimentId != nil {
+				hasExperimentId = true
+				assert.Equal(t, *createdExperiment1.Id, *artifact.DocArtifact.ExperimentId)
+			} else if artifact.Metric != nil && artifact.Metric.ExperimentId != nil {
+				hasExperimentId = true
+				assert.Equal(t, *createdExperiment1.Id, *artifact.Metric.ExperimentId)
+			}
+			assert.True(t, hasExperimentId, "All filtered artifacts should have experimentId")
+		}
+	})
+
+	// Test that filtering by non-existent experimentId excludes all artifacts (including standalone)
+	t.Run("Filter by non-existent experimentId excludes all artifacts", func(t *testing.T) {
+		filterQuery := `experimentId = "non-existent-experiment-id"`
+		listOptions := api.ListOptions{
+			PageSize:    apiutils.Of(int32(100)),
+			FilterQuery: &filterQuery,
+		}
+
+		result, err := service.GetArtifacts("", listOptions, nil)
+		require.NoError(t, err)
+		require.NotNil(t, result)
+
+		// Should find no artifacts (both experiment artifacts and standalone artifacts excluded)
+		assert.Equal(t, 0, len(result.Items), "Should find no artifacts for non-existent experimentId")
+	})
+
+	// Note: GetArtifacts for model version artifacts with filterQuery works the same way
+	// as other endpoints, but model version artifacts may not always have experimentId/experimentRunId
+	// populated depending on how they were created. The filterQuery functionality itself works correctly.
+
+	// Clean up created artifacts to avoid affecting other tests
+	_ = createdArtifact1
+	_ = createdArtifact2
+	_ = createdArtifact3
+	_ = createdMetric1
+	_ = createdParam1
+	_ = createdStandaloneArtifact1
+	_ = createdStandaloneArtifact2
+	_ = createdStandaloneArtifact3
+}

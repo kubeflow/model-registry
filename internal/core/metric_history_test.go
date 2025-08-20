@@ -31,29 +31,33 @@ func TestGetExperimentRunMetricHistory(t *testing.T) {
 	savedExperimentRun, err := service.UpsertExperimentRun(experimentRun, savedExperiment.Id)
 	require.NoError(t, err)
 
-	// Create metrics for the experiment run
-	metric1 := &openapi.Metric{
-		Name:        apiutils.Of("accuracy"),
-		Value:       apiutils.Of(0.95),
-		Timestamp:   apiutils.Of("1234567890"),
-		Step:        apiutils.Of(int64(1)),
-		Description: apiutils.Of("Test accuracy metric"),
+	// Create metrics via UpsertExperimentRunArtifact (this should populate experiment fields and create metric history)
+	metricArtifact1 := &openapi.Artifact{
+		Metric: &openapi.Metric{
+			Name:        apiutils.Of("accuracy"),
+			Value:       apiutils.Of(0.95),
+			Timestamp:   apiutils.Of("1234567890"),
+			Step:        apiutils.Of(int64(1)),
+			Description: apiutils.Of("Test accuracy metric"),
+		},
 	}
 
-	metric2 := &openapi.Metric{
-		Name:        apiutils.Of("loss"),
-		Value:       apiutils.Of(0.05),
-		Timestamp:   apiutils.Of("1234567891"),
-		Step:        apiutils.Of(int64(2)),
-		Description: apiutils.Of("Test loss metric"),
+	metricArtifact2 := &openapi.Artifact{
+		Metric: &openapi.Metric{
+			Name:        apiutils.Of("loss"),
+			Value:       apiutils.Of(0.05),
+			Timestamp:   apiutils.Of("1234567891"),
+			Step:        apiutils.Of(int64(2)),
+			Description: apiutils.Of("Test loss metric"),
+		},
 	}
 
-	// Insert metric history records
-	err = service.InsertMetricHistory(metric1, *savedExperimentRun.Id)
-	require.NoError(t, err, "error inserting metric history for metric1")
+	// Upsert metric artifacts through experiment run (should trigger metric history creation with experiment fields)
+	_, err = service.UpsertExperimentRunArtifact(metricArtifact1, *savedExperimentRun.Id)
+	require.NoError(t, err, "error upserting metric artifact 1")
 
-	err = service.InsertMetricHistory(metric2, *savedExperimentRun.Id)
-	require.NoError(t, err, "error inserting metric history for metric2")
+	_, err = service.UpsertExperimentRunArtifact(metricArtifact2, *savedExperimentRun.Id)
+	require.NoError(t, err, "error upserting metric artifact 2")
 
 	// Test getting all metric history
 	result, err := service.GetExperimentRunMetricHistory(nil, nil, api.ListOptions{}, savedExperimentRun.Id)
@@ -65,6 +69,15 @@ func TestGetExperimentRunMetricHistory(t *testing.T) {
 	foundAccuracy := false
 	foundLoss := false
 	for _, item := range result.Items {
+		// Verify experiment fields are populated
+		assert.Equal(t, savedExperiment.Id, item.ExperimentId, "experimentId should be populated")
+		assert.Equal(t, savedExperimentRun.Id, item.ExperimentRunId, "experimentRunId should be populated")
+		assert.NotNil(t, item.CustomProperties, "customProperties should not be nil")
+
+		// Verify that experiment properties are filtered out of custom properties
+		assert.NotContains(t, *item.CustomProperties, "experiment_id", "experiment_id should be filtered out of custom properties")
+		assert.NotContains(t, *item.CustomProperties, "experiment_run_id", "experiment_run_id should be filtered out of custom properties")
+
 		switch *item.Name {
 		case "accuracy":
 			foundAccuracy = true
@@ -102,27 +115,31 @@ func TestGetExperimentRunMetricHistoryWithNameFilter(t *testing.T) {
 	savedExperimentRun, err := service.UpsertExperimentRun(experimentRun, savedExperiment.Id)
 	require.NoError(t, err)
 
-	// Create metrics for the experiment run
-	metric1 := &openapi.Metric{
-		Name:      apiutils.Of("accuracy"),
-		Value:     apiutils.Of(0.95),
-		Timestamp: apiutils.Of("1234567890"),
-		Step:      apiutils.Of(int64(1)),
+	// Create metrics via UpsertExperimentRunArtifact (this should populate experiment fields and create metric history)
+	metricArtifact1 := &openapi.Artifact{
+		Metric: &openapi.Metric{
+			Name:      apiutils.Of("accuracy"),
+			Value:     apiutils.Of(0.95),
+			Timestamp: apiutils.Of("1234567890"),
+			Step:      apiutils.Of(int64(1)),
+		},
 	}
 
-	metric2 := &openapi.Metric{
-		Name:      apiutils.Of("loss"),
-		Value:     apiutils.Of(0.05),
-		Timestamp: apiutils.Of("1234567891"),
-		Step:      apiutils.Of(int64(2)),
+	metricArtifact2 := &openapi.Artifact{
+		Metric: &openapi.Metric{
+			Name:      apiutils.Of("loss"),
+			Value:     apiutils.Of(0.05),
+			Timestamp: apiutils.Of("1234567891"),
+			Step:      apiutils.Of(int64(2)),
+		},
 	}
 
-	// Insert metric history records
-	err = service.InsertMetricHistory(metric1, *savedExperimentRun.Id)
-	require.NoError(t, err, "error inserting metric history for metric1")
+	// Upsert metric artifacts through experiment run (should trigger metric history creation with experiment fields)
+	_, err = service.UpsertExperimentRunArtifact(metricArtifact1, *savedExperimentRun.Id)
+	require.NoError(t, err, "error upserting metric artifact 1")
 
-	err = service.InsertMetricHistory(metric2, *savedExperimentRun.Id)
-	require.NoError(t, err, "error inserting metric history for metric2")
+	_, err = service.UpsertExperimentRunArtifact(metricArtifact2, *savedExperimentRun.Id)
+	require.NoError(t, err, "error upserting metric artifact 2")
 
 	// Test filtering by name
 	accuracyName := "accuracy"
@@ -132,6 +149,15 @@ func TestGetExperimentRunMetricHistoryWithNameFilter(t *testing.T) {
 	assert.Equal(t, 1, len(result.Items), "should have 1 item in the result")
 	assert.Equal(t, "accuracy", *result.Items[0].Name)
 	assert.Equal(t, 0.95, *result.Items[0].Value)
+
+	// Verify experiment fields are populated
+	assert.Equal(t, savedExperiment.Id, result.Items[0].ExperimentId, "experimentId should be populated")
+	assert.Equal(t, savedExperimentRun.Id, result.Items[0].ExperimentRunId, "experimentRunId should be populated")
+	assert.NotNil(t, result.Items[0].CustomProperties, "customProperties should not be nil")
+
+	// Verify that experiment properties are filtered out of custom properties
+	assert.NotContains(t, *result.Items[0].CustomProperties, "experiment_id", "experiment_id should be filtered out of custom properties")
+	assert.NotContains(t, *result.Items[0].CustomProperties, "experiment_run_id", "experiment_run_id should be filtered out of custom properties")
 }
 
 func TestInsertMetricHistory(t *testing.T) {
@@ -156,16 +182,30 @@ func TestInsertMetricHistory(t *testing.T) {
 
 	// Test 1: Basic metric history insertion
 	metric := &openapi.Metric{
-		Name:        apiutils.Of("test_metric"),
-		Value:       apiutils.Of(42.5),
-		Timestamp:   apiutils.Of("1234567890"),
-		Step:        apiutils.Of(int64(1)),
-		Description: apiutils.Of("Test metric description"),
+		Name:            apiutils.Of("test_metric"),
+		Value:           apiutils.Of(42.5),
+		Timestamp:       apiutils.Of("1234567890"),
+		Step:            apiutils.Of(int64(1)),
+		Description:     apiutils.Of("Test metric description"),
+		ExperimentId:    savedExperiment.Id,
+		ExperimentRunId: savedExperimentRun.Id,
 		CustomProperties: &map[string]openapi.MetadataValue{
 			"custom_prop": {
 				MetadataStringValue: &openapi.MetadataStringValue{
 					StringValue:  "custom_value",
 					MetadataType: "MetadataStringValue",
+				},
+			},
+			"experiment_id": {
+				MetadataIntValue: &openapi.MetadataIntValue{
+					IntValue:     *savedExperiment.Id,
+					MetadataType: "MetadataIntValue",
+				},
+			},
+			"experiment_run_id": {
+				MetadataIntValue: &openapi.MetadataIntValue{
+					IntValue:     *savedExperimentRun.Id,
+					MetadataType: "MetadataIntValue",
 				},
 			},
 		},
@@ -188,6 +228,16 @@ func TestInsertMetricHistory(t *testing.T) {
 	assert.Equal(t, "1234567890", *insertedMetric.Timestamp)
 	assert.Equal(t, int64(1), *insertedMetric.Step)
 	assert.Equal(t, "Test metric description", *insertedMetric.Description)
+
+	// Verify experiment fields are populated
+	assert.Equal(t, savedExperiment.Id, insertedMetric.ExperimentId, "experimentId should be populated")
+	assert.Equal(t, savedExperimentRun.Id, insertedMetric.ExperimentRunId, "experimentRunId should be populated")
+	assert.NotNil(t, insertedMetric.CustomProperties, "customProperties should not be nil")
+
+	// Verify that experiment properties are filtered out but other custom properties remain
+	assert.NotContains(t, *insertedMetric.CustomProperties, "experiment_id", "experiment_id should be filtered out of custom properties")
+	assert.NotContains(t, *insertedMetric.CustomProperties, "experiment_run_id", "experiment_run_id should be filtered out of custom properties")
+	assert.Contains(t, *insertedMetric.CustomProperties, "custom_prop", "other custom properties should remain")
 
 	// Test 2: Error handling - nil metric
 	err = service.InsertMetricHistory(nil, *savedExperimentRun.Id)
@@ -251,6 +301,12 @@ func TestUpsertExperimentRunArtifactTriggersMetricHistory(t *testing.T) {
 	assert.Equal(t, 42.5, *insertedMetric.Value)
 	assert.Equal(t, "1234567890", *insertedMetric.Timestamp)
 	assert.Equal(t, int64(1), *insertedMetric.Step)
+
+	// Verify experiment fields are populated from UpsertExperimentRunArtifact
+	assert.Equal(t, savedExperiment.Id, insertedMetric.ExperimentId, "experimentId should be populated from UpsertExperimentRunArtifact")
+	assert.Equal(t, savedExperimentRun.Id, insertedMetric.ExperimentRunId, "experimentRunId should be populated from UpsertExperimentRunArtifact")
+	assert.NotNil(t, insertedMetric.CustomProperties, "customProperties should not be nil")
+	assert.Empty(t, *insertedMetric.CustomProperties, "customProperties should be empty (no duplicate experiment fields)")
 }
 
 func TestGetExperimentRunMetricHistoryEmptyResult(t *testing.T) {
@@ -545,4 +601,111 @@ func TestGetExperimentRunMetricHistoryWithStepIdsFilter(t *testing.T) {
 		assert.Equal(t, "accuracy", *item.Name, "all metrics should be accuracy")
 		assert.True(t, *item.Step == 1 || *item.Step == 2, "all metrics should be from step 1 or 2")
 	}
+}
+
+func TestGetExperimentRunMetricHistoryExperimentFields(t *testing.T) {
+	service, cleanup := SetupModelRegistryService(t)
+	defer cleanup()
+
+	// Create experiment
+	experiment := &openapi.Experiment{
+		Name:        "test-experiment-fields",
+		Description: apiutils.Of("Test experiment for validating experiment fields in metric history"),
+	}
+	savedExperiment, err := service.UpsertExperiment(experiment)
+	require.NoError(t, err)
+
+	// Create experiment run
+	experimentRun := &openapi.ExperimentRun{
+		Name:        apiutils.Of("test-experiment-run-fields"),
+		Description: apiutils.Of("Test experiment run for validating experiment fields in metric history"),
+	}
+	savedExperimentRun, err := service.UpsertExperimentRun(experimentRun, savedExperiment.Id)
+	require.NoError(t, err)
+
+	// Create metrics via UpsertExperimentRunArtifact (this should populate experiment fields)
+	metricArtifact1 := &openapi.Artifact{
+		Metric: &openapi.Metric{
+			Name:        apiutils.Of("accuracy"),
+			Value:       apiutils.Of(0.95),
+			Timestamp:   apiutils.Of("1234567890"),
+			Step:        apiutils.Of(int64(1)),
+			Description: apiutils.Of("Test accuracy metric"),
+		},
+	}
+
+	metricArtifact2 := &openapi.Artifact{
+		Metric: &openapi.Metric{
+			Name:        apiutils.Of("precision"),
+			Value:       apiutils.Of(0.87),
+			Timestamp:   apiutils.Of("1234567891"),
+			Step:        apiutils.Of(int64(2)),
+			Description: apiutils.Of("Test precision metric"),
+		},
+	}
+
+	// Upsert metric artifacts through experiment run (should trigger metric history creation with experiment fields)
+	createdArtifact1, err := service.UpsertExperimentRunArtifact(metricArtifact1, *savedExperimentRun.Id)
+	require.NoError(t, err, "error upserting metric artifact 1")
+	assert.NotNil(t, createdArtifact1.Metric, "should have created metric artifact 1")
+
+	createdArtifact2, err := service.UpsertExperimentRunArtifact(metricArtifact2, *savedExperimentRun.Id)
+	require.NoError(t, err, "error upserting metric artifact 2")
+	assert.NotNil(t, createdArtifact2.Metric, "should have created metric artifact 2")
+
+	// Verify the created artifacts have experiment fields
+	assert.Equal(t, savedExperiment.Id, createdArtifact1.Metric.ExperimentId, "created artifact 1 should have experimentId")
+	assert.Equal(t, savedExperimentRun.Id, createdArtifact1.Metric.ExperimentRunId, "created artifact 1 should have experimentRunId")
+	assert.Equal(t, savedExperiment.Id, createdArtifact2.Metric.ExperimentId, "created artifact 2 should have experimentId")
+	assert.Equal(t, savedExperimentRun.Id, createdArtifact2.Metric.ExperimentRunId, "created artifact 2 should have experimentRunId")
+
+	// Get metric history and verify experiment fields are populated
+	result, err := service.GetExperimentRunMetricHistory(nil, nil, api.ListOptions{}, savedExperimentRun.Id)
+	require.NoError(t, err, "error getting metric history")
+	assert.Equal(t, int32(2), result.Size, "should return 2 metric history records")
+	assert.Equal(t, 2, len(result.Items), "should have 2 items in the result")
+
+	// Verify ALL metrics in history have experiment fields populated
+	for i, item := range result.Items {
+		assert.Equal(t, savedExperiment.Id, item.ExperimentId, "metric %d should have experimentId populated", i)
+		assert.Equal(t, savedExperimentRun.Id, item.ExperimentRunId, "metric %d should have experimentRunId populated", i)
+		assert.NotNil(t, item.CustomProperties, "metric %d customProperties should not be nil", i)
+		assert.Empty(t, *item.CustomProperties, "metric %d customProperties should be empty (no duplicate experiment fields)", i)
+		assert.Equal(t, "metric", *item.ArtifactType, "metric %d should have correct artifactType", i)
+	}
+
+	// Verify specific metric properties
+	foundAccuracy := false
+	foundPrecision := false
+	for _, item := range result.Items {
+		switch *item.Name {
+		case "accuracy":
+			foundAccuracy = true
+			assert.Equal(t, 0.95, *item.Value)
+			assert.Equal(t, "1234567890", *item.Timestamp)
+			assert.Equal(t, int64(1), *item.Step)
+		case "precision":
+			foundPrecision = true
+			assert.Equal(t, 0.87, *item.Value)
+			assert.Equal(t, "1234567891", *item.Timestamp)
+			assert.Equal(t, int64(2), *item.Step)
+		}
+	}
+	assert.True(t, foundAccuracy, "should find accuracy metric in history")
+	assert.True(t, foundPrecision, "should find precision metric in history")
+
+	// Test filtering by name still preserves experiment fields
+	accuracyName := "accuracy"
+	filteredResult, err := service.GetExperimentRunMetricHistory(&accuracyName, nil, api.ListOptions{}, savedExperimentRun.Id)
+	require.NoError(t, err, "error getting filtered metric history")
+	assert.Equal(t, int32(1), filteredResult.Size, "should return 1 filtered metric history record")
+	assert.Equal(t, 1, len(filteredResult.Items), "should have 1 item in filtered result")
+
+	// Verify experiment fields are preserved in filtered results
+	filteredMetric := &filteredResult.Items[0]
+	assert.Equal(t, "accuracy", *filteredMetric.Name)
+	assert.Equal(t, savedExperiment.Id, filteredMetric.ExperimentId, "filtered metric should have experimentId")
+	assert.Equal(t, savedExperimentRun.Id, filteredMetric.ExperimentRunId, "filtered metric should have experimentRunId")
+	assert.NotNil(t, filteredMetric.CustomProperties, "filtered metric customProperties should not be nil")
+	assert.Empty(t, *filteredMetric.CustomProperties, "filtered metric customProperties should be empty")
 }
