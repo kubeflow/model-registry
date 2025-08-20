@@ -14,22 +14,13 @@ RUN microdnf update -y && \
 # security/env hardening
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
-    POETRY_VERSION=2.1.3 \
-    POETRY_HOME="/opt/poetry" \
     PIP_NO_CACHE_DIR=off \
     PIP_DISABLE_PIP_VERSION_CHECK=on
 
-RUN python -m pip install pipx
-RUN pipx install poetry
-ENV PATH="/root/.local/bin:$PATH"
-RUN poetry --version
-
 WORKDIR /app
-COPY ./poetry.lock ./pyproject.toml ./
+COPY ./poetry.lock ./pyproject.toml ./requirements.txt ./
 
-RUN poetry self add poetry-plugin-export \
-    && poetry export --format requirements.txt --output requirements.txt --without-hashes \
-    && python -m pip install -r requirements.txt \
+RUN python -m pip install -r requirements.txt \
     && echo "Installation completed" \
     && echo "Python path:" && python -c "import sys; print('\\n'.join(sys.path))" \
     && echo "Installed packages:" \
