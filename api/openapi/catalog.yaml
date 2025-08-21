@@ -310,6 +310,17 @@ components:
           description: Whether the catalog source is enabled.
           type: boolean
           default: true
+        status:
+          description: Indicates if the source is available.
+          type: string
+          default: UNKNOWN
+          enum:
+            - UNKNOWN
+            - AVAILABLE
+            - FAILED
+        error:
+          description: An error message that will be populated if the status is `FAILED`
+          type: string
     CatalogSourceList:
       description: List of CatalogSource entities.
       allOf:

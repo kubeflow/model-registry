@@ -25,6 +25,10 @@ type CatalogSource struct {
 	Name string `json:"name"`
 	// Whether the catalog source is enabled.
 	Enabled *bool `json:"enabled,omitempty"`
+	// Indicates if the source is available.
+	Status *string `json:"status,omitempty"`
+	// An error message that will be populated if the status is `FAILED`
+	Error *string `json:"error,omitempty"`
 }
 
 // NewCatalogSource instantiates a new CatalogSource object
@@ -37,6 +41,8 @@ func NewCatalogSource(id string, name string) *CatalogSource {
 	this.Name = name
 	var enabled bool = true
 	this.Enabled = &enabled
+	var status string = "UNKNOWN"
+	this.Status = &status
 	return &this
 }
 
@@ -47,6 +53,8 @@ func NewCatalogSourceWithDefaults() *CatalogSource {
 	this := CatalogSource{}
 	var enabled bool = true
 	this.Enabled = &enabled
+	var status string = "UNKNOWN"
+	this.Status = &status
 	return &this
 }
 
@@ -130,6 +138,70 @@ func (o *CatalogSource) SetEnabled(v bool) {
 	o.Enabled = &v
 }
 
+// GetStatus returns the Status field value if set, zero value otherwise.
+func (o *CatalogSource) GetStatus() string {
+	if o == nil || IsNil(o.Status) {
+		var ret string
+		return ret
+	}
+	return *o.Status
+}
+
+// GetStatusOk returns a tuple with the Status field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+func (o *CatalogSource) GetStatusOk() (*string, bool) {
+	if o == nil || IsNil(o.Status) {
+		return nil, false
+	}
+	return o.Status, true
+}
+
+// HasStatus returns a boolean if a field has been set.
+func (o *CatalogSource) HasStatus() bool {
+	if o != nil && !IsNil(o.Status) {
+		return true
+	}
+
+	return false
+}
+
+// SetStatus gets a reference to the given string and assigns it to the Status field.
+func (o *CatalogSource) SetStatus(v string) {
+	o.Status = &v
+}
+
+// GetError returns the Error field value if set, zero value otherwise.
+func (o *CatalogSource) GetError() string {
+	if o == nil || IsNil(o.Error) {
+		var ret string
+		return ret
+	}
+	return *o.Error
+}
+
+// GetErrorOk returns a tuple with the Error field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+func (o *CatalogSource) GetErrorOk() (*string, bool) {
+	if o == nil || IsNil(o.Error) {
+		return nil, false
+	}
+	return o.Error, true
+}
+
+// HasError returns a boolean if a field has been set.
+func (o *CatalogSource) HasError() bool {
+	if o != nil && !IsNil(o.Error) {
+		return true
+	}
+
+	return false
+}
+
+// SetError gets a reference to the given string and assigns it to the Error field.
+func (o *CatalogSource) SetError(v string) {
+	o.Error = &v
+}
+
 func (o CatalogSource) MarshalJSON() ([]byte, error) {
 	toSerialize, err := o.ToMap()
 	if err != nil {
@@ -144,6 +216,12 @@ func (o CatalogSource) ToMap() (map[string]interface{}, error) {
 	toSerialize["name"] = o.Name
 	if !IsNil(o.Enabled) {
 		toSerialize["enabled"] = o.Enabled
+	}
+	if !IsNil(o.Status) {
+		toSerialize["status"] = o.Status
+	}
+	if !IsNil(o.Error) {
+		toSerialize["error"] = o.Error
 	}
 	return toSerialize, nil
 }
