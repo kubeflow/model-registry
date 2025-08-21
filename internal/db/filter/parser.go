@@ -98,6 +98,20 @@ type PropertyRef struct {
 
 //nolint:govet
 type Value struct {
+	String    *string    `@String`
+	Integer   *int64     `| @Int`
+	Float     *float64   `| @Float`
+	Boolean   *string    `| @("true" | "false" | "TRUE" | "FALSE")`
+	ValueList *ValueList `| @@`
+}
+
+//nolint:govet
+type ValueList struct {
+	Values []*SingleValue `"(" (@@  ("," @@)*)? ")"`
+}
+
+//nolint:govet
+type SingleValue struct {
 	String  *string  `@String`
 	Integer *int64   `| @Int`
 	Float   *float64 `| @Float`
@@ -243,14 +257,36 @@ func convertPropertyRef(prop *PropertyRef, value *Value) *PropertyReference {
 
 func convertValue(val *Value) interface{} {
 	if val.String != nil {
-		// Remove quotes from string
-		str := *val.String
-		str = strings.Trim(str, `"'`)
-		// Handle escape sequences
-		str = strings.ReplaceAll(str, `\"`, `"`)
-		str = strings.ReplaceAll(str, `\'`, `'`)
-		str = strings.ReplaceAll(str, `\\`, `\`)
-		return str
+		return unquoteStringValue(*val.String)
+	}
+
+	if val.Integer != nil {
+		return *val.Integer
+	}
+
+	if val.Float != nil {
+		return *val.Float
+	}
+
+	if val.Boolean != nil {
+		return strings.ToLower(*val.Boolean) == "true"
+	}
+
+	if val.ValueList != nil {
+		// Convert list of values to slice
+		var values []any
+		for _, singleVal := range val.ValueList.Values {
+			values = append(values, convertSingleValue(singleVal))
+		}
+		return values
+	}
+
+	return nil
+}
+
+func convertSingleValue(val *SingleValue) interface{} {
+	if val.String != nil {
+		return unquoteStringValue(*val.String)
 	}
 
 	if val.Integer != nil {
@@ -268,8 +304,35 @@ func convertValue(val *Value) interface{} {
 	return nil
 }
 
+// unquoteStringValue removes quotes and handles escape sequences
+func unquoteStringValue(str string) string {
+	// Remove quotes from string
+	result := strings.Trim(str, `"'`)
+	// Handle escape sequences
+	result = strings.ReplaceAll(result, `\"`, `"`)
+	result = strings.ReplaceAll(result, `\'`, `'`)
+	result = strings.ReplaceAll(result, `\\`, `\`)
+	return result
+}
+
 // inferValueType determines the appropriate value type based on the actual value
 func inferValueType(val *Value) string {
+	if val.ValueList != nil && len(val.ValueList.Values) > 0 {
+		// For lists, infer type from the first value
+		return inferSingleValueType(val.ValueList.Values[0])
+	}
+	// Convert Value to SingleValue for type inference
+	singleVal := &SingleValue{
+		String:  val.String,
+		Integer: val.Integer,
+		Float:   val.Float,
+		Boolean: val.Boolean,
+	}
+	return inferSingleValueType(singleVal)
+}
+
+// inferSingleValueType determines the appropriate value type for a SingleValue
+func inferSingleValueType(val *SingleValue) string {
 	if val.String != nil {
 		return StringValueType
 	}
