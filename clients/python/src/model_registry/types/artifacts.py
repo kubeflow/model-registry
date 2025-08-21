@@ -129,7 +129,7 @@ class DocArtifact(Artifact):
         return DocArtifactCreate(
             customProperties=self._map_custom_properties(),
             **self._props_as_dict(exclude=("id", "custom_properties")),
-            artifactType="model-artifact",
+            artifactType="doc-artifact",
             **kwargs,
         )
 
