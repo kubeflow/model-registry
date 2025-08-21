@@ -36,7 +36,6 @@ class ModelRegistryAPIClient:
     """Model registry API."""
 
     config: Configuration
-    # experiments: dict[str, Experiment] = field(default_factory=dict)
 
     @classmethod
     def secure_connection(
@@ -82,8 +81,8 @@ class ModelRegistryAPIClient:
         config = Configuration(
             host=f"{server_address}:{port}",
             access_token=user_token,
+            verify_ssl=False,
         )
-        config.verify_ssl = False
         return cls(config)
 
     @asynccontextmanager
