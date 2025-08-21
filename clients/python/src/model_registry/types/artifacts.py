@@ -139,7 +139,7 @@ class DocArtifact(Artifact):
         return DocArtifactUpdate(
             customProperties=self._map_custom_properties(),
             **self._props_as_dict(exclude=("id", "name", "custom_properties")),
-            artifactType="model-artifact",
+            artifactType="doc-artifact",
             **kwargs,
         )
 
