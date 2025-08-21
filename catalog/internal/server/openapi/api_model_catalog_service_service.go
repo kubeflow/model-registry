@@ -81,7 +81,7 @@ func (m *ModelCatalogServiceAPIService) GetModel(ctx context.Context, sourceID s
 		return Response(http.StatusInternalServerError, err), err
 	}
 	if model == nil {
-		return notFound("Unknown model"), nil
+		return notFound("Unknown model or version"), nil
 	}
 
 	return Response(http.StatusOK, model), nil
