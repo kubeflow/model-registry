@@ -51,6 +51,14 @@ class Parameter(BaseModel):
         description="Output only. Last update time of the resource since epoch in millisecond since epoch.",
         alias="lastUpdateTimeSinceEpoch",
     )
+    experiment_id: StrictStr | None = Field(
+        default=None, description="Optional id of the experiment that produced this artifact.", alias="experimentId"
+    )
+    experiment_run_id: StrictStr | None = Field(
+        default=None,
+        description="Optional id of the experiment run that produced this artifact.",
+        alias="experimentRunId",
+    )
     artifact_type: StrictStr | None = Field(default="parameter", alias="artifactType")
     value: StrictStr | None = Field(default=None, description="The value of the parameter.")
     parameter_type: ParameterType | None = Field(default=None, alias="parameterType")
@@ -63,6 +71,8 @@ class Parameter(BaseModel):
         "id",
         "createTimeSinceEpoch",
         "lastUpdateTimeSinceEpoch",
+        "experimentId",
+        "experimentRunId",
         "artifactType",
         "value",
         "parameterType",
@@ -142,6 +152,8 @@ class Parameter(BaseModel):
                 "id": obj.get("id"),
                 "createTimeSinceEpoch": obj.get("createTimeSinceEpoch"),
                 "lastUpdateTimeSinceEpoch": obj.get("lastUpdateTimeSinceEpoch"),
+                "experimentId": obj.get("experimentId"),
+                "experimentRunId": obj.get("experimentRunId"),
                 "artifactType": obj.get("artifactType") if obj.get("artifactType") is not None else "parameter",
                 "value": obj.get("value"),
                 "parameterType": obj.get("parameterType"),

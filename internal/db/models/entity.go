@@ -35,3 +35,17 @@ func (r *BaseEntity[T]) GetProperties() *[]Properties {
 func (r *BaseEntity[T]) GetCustomProperties() *[]Properties {
 	return r.CustomProperties
 }
+
+// GetCustomProperty returns the value of a custom property by name
+func (r *BaseEntity[T]) GetCustomProperty(name string) *string {
+	if r.CustomProperties == nil {
+		return nil
+	}
+
+	for _, prop := range *r.CustomProperties {
+		if prop.Name == name && prop.StringValue != nil {
+			return prop.StringValue
+		}
+	}
+	return nil
+}

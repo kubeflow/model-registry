@@ -51,6 +51,14 @@ class DocArtifact(BaseModel):
         description="Output only. Last update time of the resource since epoch in millisecond since epoch.",
         alias="lastUpdateTimeSinceEpoch",
     )
+    experiment_id: StrictStr | None = Field(
+        default=None, description="Optional id of the experiment that produced this artifact.", alias="experimentId"
+    )
+    experiment_run_id: StrictStr | None = Field(
+        default=None,
+        description="Optional id of the experiment run that produced this artifact.",
+        alias="experimentRunId",
+    )
     artifact_type: StrictStr | None = Field(default="doc-artifact", alias="artifactType")
     uri: StrictStr | None = Field(
         default=None,
@@ -65,6 +73,8 @@ class DocArtifact(BaseModel):
         "id",
         "createTimeSinceEpoch",
         "lastUpdateTimeSinceEpoch",
+        "experimentId",
+        "experimentRunId",
         "artifactType",
         "uri",
         "state",
@@ -144,6 +154,8 @@ class DocArtifact(BaseModel):
                 "id": obj.get("id"),
                 "createTimeSinceEpoch": obj.get("createTimeSinceEpoch"),
                 "lastUpdateTimeSinceEpoch": obj.get("lastUpdateTimeSinceEpoch"),
+                "experimentId": obj.get("experimentId"),
+                "experimentRunId": obj.get("experimentRunId"),
                 "artifactType": obj.get("artifactType") if obj.get("artifactType") is not None else "doc-artifact",
                 "uri": obj.get("uri"),
                 "state": obj.get("state"),

@@ -51,34 +51,34 @@ type OpenAPIConverter interface {
 	// goverter:map ParameterUpdate Parameter
 	ConvertArtifactUpdate(source *openapi.ArtifactUpdate) (*openapi.Artifact, error)
 
-	// goverter:ignore Id CreateTimeSinceEpoch LastUpdateTimeSinceEpoch ArtifactType
+	// goverter:ignore Id CreateTimeSinceEpoch LastUpdateTimeSinceEpoch ArtifactType ExperimentId ExperimentRunId
 	ConvertDocArtifactCreate(source *openapi.DocArtifactCreate) (*openapi.DocArtifact, error)
 
-	// goverter:ignore Id CreateTimeSinceEpoch LastUpdateTimeSinceEpoch ArtifactType Name
+	// goverter:ignore Id CreateTimeSinceEpoch LastUpdateTimeSinceEpoch ArtifactType Name ExperimentId ExperimentRunId
 	ConvertDocArtifactUpdate(source *openapi.DocArtifactUpdate) (*openapi.DocArtifact, error)
 
-	// goverter:ignore Id CreateTimeSinceEpoch LastUpdateTimeSinceEpoch ArtifactType
+	// goverter:ignore Id CreateTimeSinceEpoch LastUpdateTimeSinceEpoch ArtifactType ExperimentId ExperimentRunId
 	ConvertModelArtifactCreate(source *openapi.ModelArtifactCreate) (*openapi.ModelArtifact, error)
 
-	// goverter:ignore Id CreateTimeSinceEpoch LastUpdateTimeSinceEpoch ArtifactType Name
+	// goverter:ignore Id CreateTimeSinceEpoch LastUpdateTimeSinceEpoch ArtifactType Name ExperimentId ExperimentRunId
 	ConvertModelArtifactUpdate(source *openapi.ModelArtifactUpdate) (*openapi.ModelArtifact, error)
 
-	// goverter:ignore Id CreateTimeSinceEpoch LastUpdateTimeSinceEpoch ArtifactType
+	// goverter:ignore Id CreateTimeSinceEpoch LastUpdateTimeSinceEpoch ArtifactType ExperimentId ExperimentRunId
 	ConvertDataSetCreate(source *openapi.DataSetCreate) (*openapi.DataSet, error)
 
-	// goverter:ignore Id CreateTimeSinceEpoch LastUpdateTimeSinceEpoch ArtifactType Name
+	// goverter:ignore Id CreateTimeSinceEpoch LastUpdateTimeSinceEpoch ArtifactType Name ExperimentId ExperimentRunId
 	ConvertDataSetUpdate(source *openapi.DataSetUpdate) (*openapi.DataSet, error)
 
-	// goverter:ignore Id CreateTimeSinceEpoch LastUpdateTimeSinceEpoch ArtifactType
+	// goverter:ignore Id CreateTimeSinceEpoch LastUpdateTimeSinceEpoch ArtifactType ExperimentId ExperimentRunId
 	ConvertMetricCreate(source *openapi.MetricCreate) (*openapi.Metric, error)
 
-	// goverter:ignore Id CreateTimeSinceEpoch LastUpdateTimeSinceEpoch ArtifactType Name
+	// goverter:ignore Id CreateTimeSinceEpoch LastUpdateTimeSinceEpoch ArtifactType Name ExperimentId ExperimentRunId
 	ConvertMetricUpdate(source *openapi.MetricUpdate) (*openapi.Metric, error)
 
-	// goverter:ignore Id CreateTimeSinceEpoch LastUpdateTimeSinceEpoch ArtifactType
+	// goverter:ignore Id CreateTimeSinceEpoch LastUpdateTimeSinceEpoch ArtifactType ExperimentId ExperimentRunId
 	ConvertParameterCreate(source *openapi.ParameterCreate) (*openapi.Parameter, error)
 
-	// goverter:ignore Id CreateTimeSinceEpoch LastUpdateTimeSinceEpoch ArtifactType Name
+	// goverter:ignore Id CreateTimeSinceEpoch LastUpdateTimeSinceEpoch ArtifactType Name ExperimentId ExperimentRunId
 	ConvertParameterUpdate(source *openapi.ParameterUpdate) (*openapi.Parameter, error)
 
 	// goverter:ignore Id CreateTimeSinceEpoch LastUpdateTimeSinceEpoch

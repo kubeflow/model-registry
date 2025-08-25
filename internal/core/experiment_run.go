@@ -210,7 +210,19 @@ func (b *ModelRegistryService) UpsertExperimentRunArtifact(artifact *openapi.Art
 
 	// Only create metric history for experiment runs, and only if it's a metric
 	if result.Metric != nil {
-		err = b.InsertMetricHistory(result.Metric, experimentRunId)
+		// Ensure the metric has experiment custom properties for metric history
+		metricForHistory := *result.Metric
+
+		// Get the experiment run to extract experiment ID
+		experimentRun, err := b.GetExperimentRunById(experimentRunId)
+		if err == nil {
+			// Set experiment fields as both direct fields (for API) and custom properties (for database/filterQuery)
+			metricForHistory.ExperimentId = &experimentRun.ExperimentId
+			metricForHistory.ExperimentRunId = &experimentRunId
+			setExperimentPropertiesOnCustomProperties(&metricForHistory.CustomProperties, experimentRun.ExperimentId, experimentRunId)
+		}
+
+		err = b.InsertMetricHistory(&metricForHistory, experimentRunId)
 		if err != nil {
 			return nil, fmt.Errorf("failed to insert metric history for metric %s: %w", *result.Metric.Name, err)
 		}
@@ -250,6 +262,7 @@ func (b *ModelRegistryService) GetExperimentRunMetricHistory(name *string, stepI
 			OrderBy:       listOptions.OrderBy,
 			SortOrder:     listOptions.SortOrder,
 			NextPageToken: listOptions.NextPageToken,
+			FilterQuery:   listOptions.FilterQuery,
 		},
 		ExperimentRunID: &experimentRunIdInt32,
 	}
@@ -327,6 +340,19 @@ func (b *ModelRegistryService) InsertMetricHistory(metric *openapi.Metric, exper
 
 	// Create a copy of the metric for history
 	metricHistory := *metric
+
+	// Ensure the metric has experiment fields for metric history
+	// If the metric doesn't already have experiment fields, populate them
+	if metricHistory.ExperimentId == nil || metricHistory.ExperimentRunId == nil {
+		// Get the experiment run to extract experiment ID
+		experimentRun, err := b.GetExperimentRunById(experimentRunId)
+		if err == nil {
+			// Set experiment fields as both direct fields (for API) and custom properties (for database/filterQuery)
+			metricHistory.ExperimentId = &experimentRun.ExperimentId
+			metricHistory.ExperimentRunId = &experimentRunId
+			setExperimentPropertiesOnCustomProperties(&metricHistory.CustomProperties, experimentRun.ExperimentId, experimentRunId)
+		}
+	}
 
 	// Generate a unique name with the metric last update time since epoch to avoid duplicates
 	timestamp := metric.LastUpdateTimeSinceEpoch

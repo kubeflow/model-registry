@@ -93,6 +93,16 @@ func AssertArtifactUpdateRequired(obj model.ArtifactUpdate) error {
 	return nil
 }
 
+// AssertBaseArtifactConstraints checks if the values respects the defined constraints
+func AssertBaseArtifactConstraints(obj model.BaseArtifact) error {
+	return nil
+}
+
+// AssertBaseArtifactRequired checks if the required fields are not zero-ed
+func AssertBaseArtifactRequired(obj model.BaseArtifact) error {
+	return nil
+}
+
 // AssertBaseModelConstraints checks if the values respects the defined constraints
 func AssertBaseModelConstraints(obj model.BaseModel) error {
 	return nil

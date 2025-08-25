@@ -95,6 +95,13 @@ func (r *ArtifactRepositoryImpl) List(listOptions models.ArtifactListOptions) (*
 		query = query.Where("Artifact.type_id = ?", typeID)
 	}
 
+	// Apply advanced filter query if supported (using shared function)
+	var err error
+	query, err = applyFilterQuery(query, &listOptions)
+	if err != nil {
+		return nil, err
+	}
+
 	if listOptions.ParentResourceID != nil {
 		query = query.Joins("JOIN Attribution ON Attribution.artifact_id = Artifact.id").
 			Where("Attribution.context_id = ?", listOptions.ParentResourceID).

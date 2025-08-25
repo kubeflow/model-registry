@@ -22,6 +22,11 @@ func MapEmbedMDCustomProperties(source []models.Properties) (map[string]openapi.
 	data := make(map[string]openapi.MetadataValue)
 
 	for _, v := range source {
+		// Skip experiment properties as they are now available as top-level fields
+		if v.Name == "experiment_id" || v.Name == "experiment_run_id" {
+			continue
+		}
+
 		customValue := openapi.MetadataValue{}
 
 		if v.IntValue != nil {
@@ -142,34 +147,18 @@ func MapEmbedMDPropertyLanguage(source *[]models.Properties) []string {
 	return nil
 }
 
-func MapEmbedMDPropertyLibraryName(source *[]models.Properties) *string {
-	for _, v := range *source {
-		if v.Name == "library_name" {
-			return v.StringValue
-		}
-	}
+// Note: mapPropertyByName is defined in openapi_embedmd_converter_util.go to avoid duplication
 
-	return nil
+func MapEmbedMDPropertyLibraryName(source *[]models.Properties) *string {
+	return mapPropertyByName(source, "library_name", func(p models.Properties) *string { return p.StringValue })
 }
 
 func MapEmbedMDPropertyLicenseLink(source *[]models.Properties) *string {
-	for _, v := range *source {
-		if v.Name == "license_link" {
-			return v.StringValue
-		}
-	}
-
-	return nil
+	return mapPropertyByName(source, "license_link", func(p models.Properties) *string { return p.StringValue })
 }
 
 func MapEmbedMDPropertyLicense(source *[]models.Properties) *string {
-	for _, v := range *source {
-		if v.Name == "license" {
-			return v.StringValue
-		}
-	}
-
-	return nil
+	return mapPropertyByName(source, "license", func(p models.Properties) *string { return p.StringValue })
 }
 
 func MapEmbedMDPropertyLogo(source *[]models.Properties) *string {
@@ -849,23 +838,11 @@ func MapEmbedMDStateMetric(source *models.MetricAttributes) (*openapi.ArtifactSt
 
 // Metric property mapping functions
 func MapEmbedMDPropertyValueMetric(source *[]models.Properties) *float64 {
-	for _, v := range *source {
-		if v.Name == "value" {
-			return v.DoubleValue
-		}
-	}
-
-	return nil
+	return mapPropertyByName(source, "value", func(p models.Properties) *float64 { return p.DoubleValue })
 }
 
 func MapEmbedMDPropertyTimestampMetric(source *[]models.Properties) *string {
-	for _, v := range *source {
-		if v.Name == "timestamp" {
-			return v.StringValue
-		}
-	}
-
-	return nil
+	return mapPropertyByName(source, "timestamp", func(p models.Properties) *string { return p.StringValue })
 }
 
 func MapEmbedMDPropertyStepMetric(source *[]models.Properties) *int64 {
@@ -883,13 +860,7 @@ func MapEmbedMDPropertyStepMetric(source *[]models.Properties) *int64 {
 
 // Parameter property mapping functions
 func MapEmbedMDPropertyValueParameter(source *[]models.Properties) *string {
-	for _, v := range *source {
-		if v.Name == "value" {
-			return v.StringValue
-		}
-	}
-
-	return nil
+	return mapPropertyByName(source, "value", func(p models.Properties) *string { return p.StringValue })
 }
 
 func MapEmbedMDPropertyParameterTypeParameter(source *[]models.Properties) (*openapi.ParameterType, error) {
@@ -938,4 +909,54 @@ func MapEmbedMDStateParameter(source *models.ParameterAttributes) (*openapi.Arti
 	}
 
 	return openapi.NewArtifactStateFromValue(*source.State)
+}
+
+// getCustomPropertyGeneric is a generic helper that works with BaseEntity values
+// by taking their address to call the pointer receiver method
+func getCustomPropertyGeneric[T any](source T, propertyName string) *string {
+	// Get a pointer to the source and try the interface assertion
+	sourcePtr := &source
+	if entity, ok := any(sourcePtr).(interface{ GetCustomProperty(string) *string }); ok {
+		return entity.GetCustomProperty(propertyName)
+	}
+	return nil
+}
+
+// MapEmbedMDExperimentIdFromEntity is a cleaner version that works with the interface directly
+func MapEmbedMDExperimentIdFromEntity(source interface{ GetCustomProperty(string) *string }) *string {
+	return source.GetCustomProperty("experiment_id")
+}
+
+func MapEmbedMDExperimentId(source any) *string {
+	// Handle each specific BaseEntity type that goverter passes (always as values, not pointers)
+	switch v := source.(type) {
+	case models.BaseEntity[models.ModelArtifactAttributes]:
+		return getCustomPropertyGeneric(v, "experiment_id")
+	case models.BaseEntity[models.DocArtifactAttributes]:
+		return getCustomPropertyGeneric(v, "experiment_id")
+	case models.BaseEntity[models.DataSetAttributes]:
+		return getCustomPropertyGeneric(v, "experiment_id")
+	case models.BaseEntity[models.MetricAttributes]:
+		return getCustomPropertyGeneric(v, "experiment_id")
+	case models.BaseEntity[models.ParameterAttributes]:
+		return getCustomPropertyGeneric(v, "experiment_id")
+	}
+	return nil
+}
+
+func MapEmbedMDExperimentRunId(source any) *string {
+	// Handle each specific BaseEntity type that goverter passes (always as values, not pointers)
+	switch v := source.(type) {
+	case models.BaseEntity[models.ModelArtifactAttributes]:
+		return getCustomPropertyGeneric(v, "experiment_run_id")
+	case models.BaseEntity[models.DocArtifactAttributes]:
+		return getCustomPropertyGeneric(v, "experiment_run_id")
+	case models.BaseEntity[models.DataSetAttributes]:
+		return getCustomPropertyGeneric(v, "experiment_run_id")
+	case models.BaseEntity[models.MetricAttributes]:
+		return getCustomPropertyGeneric(v, "experiment_run_id")
+	case models.BaseEntity[models.ParameterAttributes]:
+		return getCustomPropertyGeneric(v, "experiment_run_id")
+	}
+	return nil
 }

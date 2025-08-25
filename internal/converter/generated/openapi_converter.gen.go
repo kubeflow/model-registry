@@ -1257,17 +1257,48 @@ func (c *OpenAPIConverterImpl) OverrideNotEditableForDataSet(source converter.Op
 	}
 	var pString2 *string
 	if source.Existing != nil {
-		pString2 = source.Existing.ArtifactType
+		pString2 = source.Existing.ExperimentId
 	}
 	if pString2 != nil {
 		xstring2 := *pString2
-		openapiDataSet.ArtifactType = &xstring2
+		openapiDataSet.ExperimentId = &xstring2
+	}
+	var pString3 *string
+	if source.Existing != nil {
+		pString3 = source.Existing.ExperimentRunId
+	}
+	if pString3 != nil {
+		xstring3 := *pString3
+		openapiDataSet.ExperimentRunId = &xstring3
+	}
+	var pString4 *string
+	if source.Existing != nil {
+		pString4 = source.Existing.ArtifactType
+	}
+	if pString4 != nil {
+		xstring4 := *pString4
+		openapiDataSet.ArtifactType = &xstring4
 	}
 	return openapiDataSet, nil
 }
 func (c *OpenAPIConverterImpl) OverrideNotEditableForDocArtifact(source converter.OpenapiUpdateWrapper[openapi.DocArtifact]) (openapi.DocArtifact, error) {
 	openapiDocArtifact := converter.InitWithUpdate(source)
-	_ = source
+	var pString *string
+	if source.Existing != nil {
+		pString = source.Existing.ExperimentId
+	}
+	if pString != nil {
+		xstring := *pString
+		openapiDocArtifact.ExperimentId = &xstring
+	}
+	var pString2 *string
+	if source.Existing != nil {
+		pString2 = source.Existing.ExperimentRunId
+	}
+	if pString2 != nil {
+		xstring2 := *pString2
+		openapiDocArtifact.ExperimentRunId = &xstring2
+	}
 	return openapiDocArtifact, nil
 }
 func (c *OpenAPIConverterImpl) OverrideNotEditableForExperiment(source converter.OpenapiUpdateWrapper[openapi.Experiment]) (openapi.Experiment, error) {
@@ -1338,11 +1369,27 @@ func (c *OpenAPIConverterImpl) OverrideNotEditableForMetric(source converter.Ope
 	}
 	var pString2 *string
 	if source.Existing != nil {
-		pString2 = source.Existing.ArtifactType
+		pString2 = source.Existing.ExperimentId
 	}
 	if pString2 != nil {
 		xstring2 := *pString2
-		openapiMetric.ArtifactType = &xstring2
+		openapiMetric.ExperimentId = &xstring2
+	}
+	var pString3 *string
+	if source.Existing != nil {
+		pString3 = source.Existing.ExperimentRunId
+	}
+	if pString3 != nil {
+		xstring3 := *pString3
+		openapiMetric.ExperimentRunId = &xstring3
+	}
+	var pString4 *string
+	if source.Existing != nil {
+		pString4 = source.Existing.ArtifactType
+	}
+	if pString4 != nil {
+		xstring4 := *pString4
+		openapiMetric.ArtifactType = &xstring4
 	}
 	return openapiMetric, nil
 }
@@ -1358,11 +1405,27 @@ func (c *OpenAPIConverterImpl) OverrideNotEditableForModelArtifact(source conver
 	}
 	var pString2 *string
 	if source.Existing != nil {
-		pString2 = source.Existing.ArtifactType
+		pString2 = source.Existing.ExperimentId
 	}
 	if pString2 != nil {
 		xstring2 := *pString2
-		openapiModelArtifact.ArtifactType = &xstring2
+		openapiModelArtifact.ExperimentId = &xstring2
+	}
+	var pString3 *string
+	if source.Existing != nil {
+		pString3 = source.Existing.ExperimentRunId
+	}
+	if pString3 != nil {
+		xstring3 := *pString3
+		openapiModelArtifact.ExperimentRunId = &xstring3
+	}
+	var pString4 *string
+	if source.Existing != nil {
+		pString4 = source.Existing.ArtifactType
+	}
+	if pString4 != nil {
+		xstring4 := *pString4
+		openapiModelArtifact.ArtifactType = &xstring4
 	}
 	return openapiModelArtifact, nil
 }
@@ -1396,11 +1459,27 @@ func (c *OpenAPIConverterImpl) OverrideNotEditableForParameter(source converter.
 	}
 	var pString2 *string
 	if source.Existing != nil {
-		pString2 = source.Existing.ArtifactType
+		pString2 = source.Existing.ExperimentId
 	}
 	if pString2 != nil {
 		xstring2 := *pString2
-		openapiParameter.ArtifactType = &xstring2
+		openapiParameter.ExperimentId = &xstring2
+	}
+	var pString3 *string
+	if source.Existing != nil {
+		pString3 = source.Existing.ExperimentRunId
+	}
+	if pString3 != nil {
+		xstring3 := *pString3
+		openapiParameter.ExperimentRunId = &xstring3
+	}
+	var pString4 *string
+	if source.Existing != nil {
+		pString4 = source.Existing.ArtifactType
+	}
+	if pString4 != nil {
+		xstring4 := *pString4
+		openapiParameter.ArtifactType = &xstring4
 	}
 	return openapiParameter, nil
 }

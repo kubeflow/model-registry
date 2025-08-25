@@ -61,6 +61,19 @@ func (b *ModelRegistryService) upsertArtifact(artifact *openapi.Artifact, parent
 		}
 	}
 
+	// Set experiment properties if the artifact is being linked to an experiment run
+	if parentResourceId != nil {
+		// Try to get the experiment run to check if parentResourceId is an experiment run ID
+		experimentRun, err := b.GetExperimentRunById(*parentResourceId)
+		if err == nil {
+			// This is an experiment run, so set the experiment fields as custom properties
+			// on all artifact types so they get persisted to the database
+			b.setExperimentPropertiesOnArtifact(artifact, experimentRun.ExperimentId, *parentResourceId)
+		}
+		// If GetExperimentRunById fails, it means parentResourceId is not an experiment run ID
+		// (could be a model version ID or other parent), so we continue without setting experiment fields
+	}
+
 	if ma := artifact.ModelArtifact; ma != nil {
 		if ma.Id != nil {
 			existing, err := b.getArtifact(*ma.Id)
@@ -434,6 +447,7 @@ func (b *ModelRegistryService) GetArtifacts(artifactType openapi.ArtifactTypeQue
 			OrderBy:       listOptions.OrderBy,
 			SortOrder:     listOptions.SortOrder,
 			NextPageToken: listOptions.NextPageToken,
+			FilterQuery:   listOptions.FilterQuery,
 		},
 		ParentResourceID: parentResourceIDPtr,
 		ArtifactType:     artifactTypeStr,
@@ -565,4 +579,52 @@ func (b *ModelRegistryService) GetModelArtifacts(listOptions api.ListOptions, pa
 	modelArtifactList.Size = int32(modelArtifacts.Size)
 
 	return modelArtifactList, nil
+}
+
+// setExperimentPropertiesOnCustomProperties is a helper function that sets experiment_id and experiment_run_id
+// as custom properties on a custom properties map to eliminate code duplication
+func setExperimentPropertiesOnCustomProperties(customProps **map[string]openapi.MetadataValue, experimentId, experimentRunId string) {
+	if *customProps == nil {
+		*customProps = &map[string]openapi.MetadataValue{}
+	}
+	(**customProps)["experiment_id"] = openapi.MetadataValue{
+		MetadataStringValue: &openapi.MetadataStringValue{
+			StringValue:  experimentId,
+			MetadataType: "MetadataStringValue",
+		},
+	}
+	(**customProps)["experiment_run_id"] = openapi.MetadataValue{
+		MetadataStringValue: &openapi.MetadataStringValue{
+			StringValue:  experimentRunId,
+			MetadataType: "MetadataStringValue",
+		},
+	}
+}
+
+// setExperimentPropertiesOnArtifact is a helper function that sets experiment_id and experiment_run_id
+// both as direct fields (for API response) and as custom properties (for database storage and filterQuery)
+func (b *ModelRegistryService) setExperimentPropertiesOnArtifact(artifact *openapi.Artifact, experimentId, experimentRunId string) {
+	// Define a helper function to reduce repetition
+	setProperties := func(experimentIdPtr, experimentRunIdPtr **string, customProps **map[string]openapi.MetadataValue) {
+		*experimentIdPtr = &experimentId
+		*experimentRunIdPtr = &experimentRunId
+		setExperimentPropertiesOnCustomProperties(customProps, experimentId, experimentRunId)
+	}
+
+	// Apply to all artifact types - set both direct fields and custom properties
+	if artifact.ModelArtifact != nil {
+		setProperties(&artifact.ModelArtifact.ExperimentId, &artifact.ModelArtifact.ExperimentRunId, &artifact.ModelArtifact.CustomProperties)
+	}
+	if artifact.DocArtifact != nil {
+		setProperties(&artifact.DocArtifact.ExperimentId, &artifact.DocArtifact.ExperimentRunId, &artifact.DocArtifact.CustomProperties)
+	}
+	if artifact.DataSet != nil {
+		setProperties(&artifact.DataSet.ExperimentId, &artifact.DataSet.ExperimentRunId, &artifact.DataSet.CustomProperties)
+	}
+	if artifact.Metric != nil {
+		setProperties(&artifact.Metric.ExperimentId, &artifact.Metric.ExperimentRunId, &artifact.Metric.CustomProperties)
+	}
+	if artifact.Parameter != nil {
+		setProperties(&artifact.Parameter.ExperimentId, &artifact.Parameter.ExperimentRunId, &artifact.Parameter.CustomProperties)
+	}
 }

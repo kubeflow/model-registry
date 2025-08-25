@@ -499,6 +499,22 @@ func MapModelArtifactTypeIDEmbedMD(source *OpenAPIModelWrapper[openapi.ModelArti
 	return Int64ToInt32(&source.TypeId)
 }
 
+// mapPropertyByName is a generic function that extracts a property by name from a properties slice
+// and returns the value of the specified type
+func mapPropertyByName[T any](source *[]models.Properties, propertyName string, getValue func(models.Properties) *T) *T {
+	if source == nil {
+		return nil
+	}
+
+	for _, v := range *source {
+		if v.Name == propertyName {
+			return getValue(v)
+		}
+	}
+
+	return nil
+}
+
 func MapModelArtifactPropertiesEmbedMD(source *openapi.ModelArtifact) (*[]models.Properties, error) {
 	props := make([]models.Properties, 0)
 	if source != nil {
