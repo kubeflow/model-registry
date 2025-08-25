@@ -49,6 +49,7 @@ const ModelVersionSelector: React.FC<ModelVersionSelectorProps> = ({
 
   const menuListItems = liveModelVersions
     .filter((item) => input === '' || item.name.toLowerCase().includes(input.toLowerCase()))
+    .toSorted((a, b) => Number(b.createTimeSinceEpoch) - Number(a.createTimeSinceEpoch)) // Sort by creation time, newest first
     .map((mv, index) => (
       <MenuItem isSelected={mv.id === selection.id} itemId={mv.id} key={index}>
         <Flex spaceItems={{ default: 'spaceItemsSm' }}>

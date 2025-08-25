@@ -31,7 +31,7 @@ jobs:
       FORCE_COLOR: "1"
     steps:
       - name: Check out the repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
       - name: Set up Python ${{ matrix.python }}
         uses: actions/setup-python@v5
         with:
@@ -78,7 +78,7 @@ jobs:
         nodejs: ["20"]
     steps:
       - name: Check out the repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           fetch-depth: 0
       - name: Set up Python
@@ -144,7 +144,7 @@ jobs:
       MR_NAMESPACE: kubeflow # used for kind testing, align to /manifest
     steps:
       - name: Check out the repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
       - name: Set up Python ${{ matrix.python }}
         uses: actions/setup-python@v5
         with:
@@ -255,7 +255,7 @@ jobs:
       FORCE_COLOR: "1"
     steps:
       - name: Check out the repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
       - name: Set up Python ${{ matrix.python }}
         uses: actions/setup-python@v5
         with:

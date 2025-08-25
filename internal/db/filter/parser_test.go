@@ -12,6 +12,10 @@ func exprToString(expr *FilterExpression) string {
 	}
 
 	if expr.IsLeaf {
+		// Handle arrays for IN operator
+		if slice, ok := expr.Value.([]interface{}); ok {
+			return fmt.Sprintf("%s %s %v", expr.Property, expr.Operator, slice)
+		}
 		return fmt.Sprintf("%s %s %v", expr.Property, expr.Operator, expr.Value)
 	}
 
@@ -316,6 +320,59 @@ func TestParseILIKEOperator(t *testing.T) {
 			name:     "ILIKE in complex expression",
 			input:    `name ILIKE "%model%" AND version > 1.0`,
 			expected: "(name ILIKE %model% AND version > 1)",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			expr, err := Parse(tt.input)
+			if err != nil {
+				t.Fatalf("Parse() error = %v", err)
+			}
+
+			result := exprToString(expr)
+			if result != tt.expected {
+				t.Errorf("Parse() = %v, want %v", result, tt.expected)
+			}
+		})
+	}
+}
+
+func TestParseINOperator(t *testing.T) {
+	tests := []struct {
+		name     string
+		input    string
+		expected string
+	}{
+		{
+			name:     "IN with integers",
+			input:    `id IN (200, 201)`,
+			expected: "id IN [200 201]",
+		},
+		{
+			name:     "IN with strings",
+			input:    `name IN ("model-a", "model-b")`,
+			expected: "name IN [model-a model-b]",
+		},
+		{
+			name:     "IN with mixed types",
+			input:    `status IN ("active", "pending", "completed")`,
+			expected: "status IN [active pending completed]",
+		},
+		{
+			name:     "IN with single value",
+			input:    `id IN (42)`,
+			expected: "id IN [42]",
+		},
+		{
+			name:     "IN in complex expression",
+			input:    `id IN (200, 201) AND name = "test"`,
+			expected: "(id IN [200 201] AND name = test)",
+		},
+		{
+			name:     "IN with OR expression",
+			input:    `id IN (200, 201) OR status = "active"`,
+			expected: "(id IN [200 201] OR status = active)",
 		},
 	}
 

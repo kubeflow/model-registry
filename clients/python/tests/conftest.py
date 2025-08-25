@@ -1,5 +1,4 @@
 import base64
-import contextlib
 import inspect
 import json
 import os
@@ -8,24 +7,23 @@ import shutil
 import subprocess
 import tempfile
 import time
-from collections.abc import Generator
 from contextlib import asynccontextmanager
 from pathlib import Path
-from typing import Any
 from unittest.mock import Mock, patch
-from urllib.parse import urlparse
 
 import pytest
 import requests
-import schemathesis
-from schemathesis import Case, Response
-from schemathesis.generation.stateful.state_machine import APIStateMachine
-from schemathesis.specs.openapi.schemas import BaseOpenAPISchema
 
 from model_registry import ModelRegistry
 from model_registry.utils import BackendDefinition, _get_skopeo_backend
 
-from .constants import DEFAULT_API_TIMEOUT
+from .constants import (
+    MAX_POLL_TIME,
+    POLL_INTERVAL,
+    REGISTRY_HOST,
+    REGISTRY_PORT,
+    REGISTRY_URL,
+)
 
 
 def pytest_addoption(parser):
@@ -72,14 +70,6 @@ def pytest_report_teststatus(report, config):
             print(f"\nTEST: {test_name} STATUS: \033[0;31mFAILED\033[0m")
 
 
-REGISTRY_URL = os.environ.get("MR_URL", "http://localhost:8080")
-parsed = urlparse(REGISTRY_URL)
-host, port = parsed.netloc.split(":")
-REGISTRY_HOST = f"{parsed.scheme}://{host}"
-REGISTRY_PORT = int(port)
-
-MAX_POLL_TIME = 10
-POLL_INTERVAL = 1
 start_time = time.time()
 
 
@@ -319,85 +309,3 @@ def get_mock_skopeo_backend_for_auth(monkeypatch):
         skopeo_pull_mock.side_effect = mock_override
         skopeo_push_mock.side_effect = mock_override
         yield backend, skopeo_pull_mock, skopeo_push_mock, generic_auth_vars
-
-@pytest.fixture(scope="session")
-def generated_schema(pytestconfig: pytest.Config ) -> BaseOpenAPISchema:
-    """Generate the schema for the API"""
-
-    os.environ["API_HOST"] = REGISTRY_URL
-    config = schemathesis.config.SchemathesisConfig.from_path(f"{pytestconfig.rootpath}/schemathesis.toml")
-    local_schema_path = f"{pytestconfig.rootpath}/../../api/openapi/model-registry.yaml"
-    schema = schemathesis.openapi.from_path(
-        path=local_schema_path,
-        config=config,
-    )
-    schema.config.output.sanitization.update(enabled=False)
-    return schema
-
-@pytest.fixture
-def cleanup_artifacts(request: pytest.FixtureRequest, auth_headers: dict):
-    """Cleanup artifacts created during the test."""
-    created_ids = []
-    def register(artifact_id):
-        created_ids.append(artifact_id)
-
-    yield register
-
-    for artifact_id in created_ids:
-        del_url = f"{REGISTRY_URL}/api/model_registry/v1alpha3/artifacts/{artifact_id}"
-        try:
-            requests.delete(del_url, headers=auth_headers, timeout=DEFAULT_API_TIMEOUT)
-        except Exception as e:
-            print(f"Failed to delete artifact {artifact_id}: {e}")
-
-@pytest.fixture
-def artifact_resource():
-    """Create an artifact resource for the test."""
-    @contextlib.contextmanager
-    def _artifact_resource(auth_headers: dict, payload: dict) -> Generator[str, None, None]:
-        create_endpoint = f"{REGISTRY_URL}/api/model_registry/v1alpha3/artifacts"
-        resp = requests.post(create_endpoint, headers=auth_headers, json=payload, timeout=DEFAULT_API_TIMEOUT)
-        resp.raise_for_status()
-        artifact_id = resp.json()["id"]
-        try:
-            yield artifact_id
-        finally:
-            del_url = f"{REGISTRY_URL}/api/model_registry/v1alpha3/artifacts/{artifact_id}"
-            try:
-                requests.delete(del_url, headers=auth_headers, timeout=DEFAULT_API_TIMEOUT)
-            except Exception as e:
-                print(f"Failed to delete artifact {artifact_id}: {e}")
-    return _artifact_resource
-
-@pytest.fixture
-def auth_headers(setup_env_user_token):
-    """Provides authorization headers for API requests."""
-    return {
-        "Content-Type": "application/json",
-        "Authorization": f"Bearer {setup_env_user_token}"
-    }
-
-@pytest.fixture
-def state_machine(generated_schema: BaseOpenAPISchema, auth_headers: str) -> APIStateMachine:
-    BaseAPIWorkflow = generated_schema.as_state_machine()
-
-    class APIWorkflow(BaseAPIWorkflow):  # type: ignore
-        headers: dict[str, str]
-
-        def setup(self) -> None:
-            print("Cleaning up database")
-            subprocess.run(
-                ["../../scripts/cleanup.sh"],
-                capture_output=True,
-                check=True
-            )
-            self.headers = auth_headers
-
-        def before_call(self, case: Case) -> None:
-            print(f"Checking: {case.method} {case.path}")
-        def get_call_kwargs(self, case: Case) -> dict[str, Any]:
-            return {"verify": False, "headers": self.headers}
-
-        def after_call(self, response: Response, case: Case) -> None:
-            print(f"{case.method} {case.path} -> {response.status_code},")
-    return APIWorkflow

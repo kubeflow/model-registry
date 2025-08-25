@@ -21,7 +21,13 @@ import {
 import { ModelRegistry, ModelRegistryPayload } from '~/app/types';
 import { BFF_API_VERSION, URL_PREFIX } from '~/app/utilities/const';
 import { RoleBindingPermissionsRoleType } from '~/app/pages/settings/roleBinding/types';
-import { NamespaceKind } from '~/app/shared/components/types';
+import { ListConfigSecretsResponse, NamespaceKind } from '~/app/shared/components/types';
+
+export type ModelRegistryAndCredentials = {
+  modelRegistry: ModelRegistryKind;
+  databasePassword?: string;
+  newDatabaseCACertificate?: string;
+};
 
 export const getListModelRegistries =
   (hostPath: string, queryParams: Record<string, unknown> = {}) =>
@@ -102,7 +108,7 @@ export const getRoleBindings =
 
 export const getModelRegistrySettings =
   (hostPath: string, queryParams: Record<string, unknown> = {}) =>
-  (opts: APIOptions, modelRegistryId: string): Promise<ModelRegistryKind> =>
+  (opts: APIOptions, modelRegistryId: string): Promise<ModelRegistryAndCredentials> =>
     handleRestFailures(
       restGET(
         hostPath,
@@ -111,7 +117,7 @@ export const getModelRegistrySettings =
         opts,
       ),
     ).then((response) => {
-      if (isModArchResponse<ModelRegistryKind>(response)) {
+      if (isModArchResponse<ModelRegistryAndCredentials>(response)) {
         return response.data;
       }
       throw new Error('Invalid response format');
@@ -314,3 +320,20 @@ export const generateRoleBindingPermissions = (
   };
   return addOwnerReference(roleBindingObject, ownerReference);
 };
+
+export const listModelRegistryCertificateNames =
+  (hostPath: string, queryParams: Record<string, unknown> = {}) =>
+  (opts: APIOptions): Promise<ListConfigSecretsResponse> =>
+    handleRestFailures(
+      restGET(
+        hostPath,
+        `${URL_PREFIX}/api/${BFF_API_VERSION}/settings/certificates`,
+        queryParams,
+        opts,
+      ),
+    ).then((response) => {
+      if (isModArchResponse<{ items: ListConfigSecretsResponse }>(response)) {
+        return response.data.items;
+      }
+      throw new Error('Invalid response format');
+    });

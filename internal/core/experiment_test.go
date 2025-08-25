@@ -596,6 +596,42 @@ func TestGetExperimentsWithFilterQuery(t *testing.T) {
 			expectedCount: 2,
 			expectedNames: []string{"cv-experiment-2", "nlp-experiment-2"},
 		},
+		{
+			name:          "Filter using IN operator with string values",
+			filterQuery:   "project IN ('nlp', 'vision')",
+			expectedCount: 3,
+			expectedNames: []string{"nlp-experiment-1", "cv-experiment-2", "nlp-experiment-2"},
+		},
+		{
+			name:          "Filter using IN operator with integer values",
+			filterQuery:   "priority.int_value IN (1, 2)",
+			expectedCount: 2,
+			expectedNames: []string{"nlp-experiment-1", "cv-experiment-2"},
+		},
+		{
+			name:          "Filter using IN operator with double values",
+			filterQuery:   "budget.double_value IN (10000.0, 25000.0)",
+			expectedCount: 2,
+			expectedNames: []string{"nlp-experiment-1", "cv-experiment-2"},
+		},
+		{
+			name:          "Filter using IN operator with single value",
+			filterQuery:   "owner IN ('charlie')",
+			expectedCount: 1,
+			expectedNames: []string{"rl-experiment"},
+		},
+		{
+			name:          "Filter using IN operator with empty list",
+			filterQuery:   "project IN ()",
+			expectedCount: 0,
+			expectedNames: []string{},
+		},
+		{
+			name:          "Filter using IN operator with mixed quoted strings",
+			filterQuery:   "team IN ('research', \"engineering\")",
+			expectedCount: 4,
+			expectedNames: []string{"nlp-experiment-1", "cv-experiment-2", "nlp-experiment-2", "rl-experiment"},
+		},
 	}
 
 	for _, tc := range testCases {

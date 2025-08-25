@@ -18,6 +18,10 @@ env:
   PUSH_IMAGE: true
   DOCKER_USER: ${{ secrets.QUAY_USERNAME }}
   DOCKER_PWD: ${{ secrets.QUAY_PASSWORD }}
+
+permissions: # default workflow permission, overridden for specific job where required
+  contents: read
+
 jobs:
   prepare:
     uses: ./.github/workflows/prepare.yml
@@ -36,7 +40,7 @@ jobs:
         if: github.head_ref == '' && github.ref == 'refs/heads/main'
         run: echo "BUILD_CONTEXT=main" >> $GITHUB_ENV
       # checkout branch
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       # set image version
       - name: Set main-branch environment
         if: env.BUILD_CONTEXT == 'main'

@@ -8,7 +8,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Any
 
-from mr_openapi import OrderByField, SortOrder
+from mr_openapi import ArtifactTypeQueryParam, OrderByField, SortOrder
 
 
 @dataclass
@@ -20,12 +20,14 @@ class ListOptions:
         order_by: Field to order by.
         is_asc: Whether to order in ascending order. Defaults to True.
         next_page_token: Token to use to retrieve next page of results.
+        artifact_type: Type of artifact to filter by.
     """
 
     limit: int | None = None
     order_by: OrderByField | None = None
     is_asc: bool = True
     next_page_token: str | None = None
+    artifact_type_param: ArtifactTypeQueryParam | None = None
 
     @classmethod
     def order_by_creation_time(cls, **kwargs) -> ListOptions:
@@ -42,6 +44,13 @@ class ListOptions:
         """Return options to order by ID."""
         return cls(order_by=OrderByField.ID, **kwargs)
 
+    @classmethod
+    def artifact_type(
+        cls, artifact_type: ArtifactTypeQueryParam, **kwargs
+    ) -> ListOptions:
+        """Return options to filter by artifact type."""
+        return cls(artifact_type_param=artifact_type, **kwargs)
+
     def as_options(self) -> dict[str, Any]:
         """Convert to options dictionary."""
         options = {}
@@ -53,4 +62,6 @@ class ListOptions:
             options["sort_order"] = SortOrder.ASC if self.is_asc else SortOrder.DESC
         if self.next_page_token is not None:
             options["next_page_token"] = self.next_page_token
+        if self.artifact_type_param is not None:
+            options["artifact_type"] = self.artifact_type_param
         return options
