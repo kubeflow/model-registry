@@ -109,7 +109,7 @@ def s3_credentials_folder():
             f.write(credentials["secret_access_key"])
         with open(os.path.join(temp_dir, "AWS_REGION"), "w") as f:
             f.write(credentials["region"])
-        with open(os.path.join(temp_dir, "AWS_BUCKET"), "w") as f:
+        with open(os.path.join(temp_dir, "AWS_S3_BUCKET"), "w") as f:
             f.write(credentials["bucket"])
         with open(os.path.join(temp_dir, "AWS_KEY"), "w") as f:
             f.write(credentials["key"])

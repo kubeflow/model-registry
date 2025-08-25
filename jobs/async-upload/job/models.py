@@ -33,7 +33,7 @@ class S3Config(BaseModel):
     region: str | None = None
     access_key_id: str | None = None
     secret_access_key: str | None = None
-    endpoint_url: str | None = None
+    endpoint: str | None = None
 
 
 class OCIConfig(BaseModel):
