@@ -5,8 +5,7 @@ import { useModularArchContext, DeploymentMode } from 'mod-arch-core';
 import { NavDataItem } from '~/app/standalone/types';
 import ModelRegistrySettingsRoutes from './pages/settings/ModelRegistrySettingsRoutes';
 import ModelRegistryRoutes from './pages/modelRegistry/ModelRegistryRoutes';
-import ModelCatalogPage from './pages/modelCatalog/screens/ModelCatalogPage';
-import { ModelCatalogContextProvider } from './context/modelCatalog/ModelCatalogContext';
+import ModelCatalogRoutes from './pages/modelCatalog/ModelCatalogRoutes';
 import useUser from './hooks/useUser';
 
 export const useAdminSettings = (): NavDataItem[] => {
@@ -60,14 +59,7 @@ const AppRoutes: React.FC = () => {
       <Route path="/" element={<Navigate to="/model-registry" replace />} />
       <Route path="/model-registry/*" element={<ModelRegistryRoutes />} />
       {(isStandalone || isFederated) && (
-        <Route
-          path="/model-catalog"
-          element={
-            <ModelCatalogContextProvider>
-              <ModelCatalogPage />
-            </ModelCatalogContextProvider>
-          }
-        />
+        <Route path="/model-catalog/*" element={<ModelCatalogRoutes />} />
       )}
       <Route path="*" element={<NotFound />} />
       {/* TODO: [Conditional render] Follow up add testing and conditional rendering when in standalone mode */}

@@ -11,17 +11,19 @@ import {
   Alert,
 } from '@patternfly/react-core';
 import { CubesIcon } from '@patternfly/react-icons';
+import { useNavigate } from 'react-router-dom';
 import { useModelCatalogSources } from '~/app/hooks/modelCatalog/useModelCatalogSources';
 import { ModelCatalogItem } from '~/app/modelCatalogTypes';
 import ModelCatalogCard from '~/app/pages/modelCatalog/components/ModelCatalogCard';
 
 const ModelCatalogPage: React.FC = () => {
   const { sources, loading, error, refreshSources } = useModelCatalogSources();
+  const navigate = useNavigate();
 
   const handleModelSelect = (model: ModelCatalogItem) => {
-    // TODO: Implement model selection logic
-    // eslint-disable-next-line no-console
-    console.log('Selected model:', model);
+    if (model.id) {
+      navigate(`/model-catalog/${encodeURIComponent(model.id)}`);
+    }
   };
 
   if (loading) {

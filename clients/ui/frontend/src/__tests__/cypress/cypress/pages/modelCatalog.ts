@@ -12,7 +12,7 @@ class ModelCatalog {
   }
 
   findModelCatalogDetailLink() {
-    return cy.findByTestId('model-catalog-detail-link');
+    return cy.findAllByTestId('model-catalog-detail-link');
   }
 
   findModelCatalogDescription() {
@@ -57,6 +57,19 @@ class ModelCatalog {
 
   findPageDescription() {
     return cy.contains('Discover models that are available for your organization');
+  }
+
+  // Details page helpers
+  findBreadcrumb() {
+    return cy.contains('Model catalog');
+  }
+
+  findDetailsProviderText() {
+    return cy.contains('Provided by');
+  }
+
+  findDetailsDescription() {
+    return cy.findByTestId('model-long-description');
   }
 }
 
