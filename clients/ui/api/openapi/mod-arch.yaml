@@ -81,7 +81,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/CatalogSourcePayload" # New schema for update payload
+              $ref: "#/components/schemas/CatalogSourcePayload" 
         required: true
       tags:
         - K8SOperation
@@ -977,6 +977,177 @@ components:
         clusterAdmin:
           type: boolean
           example: true
+
+    BaseModel:
+      type: object
+      properties:
+        description:
+          type: string
+          description: Human-readable description of the model.
+        readme:
+          type: string
+          description: Model documentation in Markdown.
+        maturity:
+          type: string
+          description: Maturity level of the model.
+          example: Generally Available
+        language:
+          type: array
+          description: List of supported languages (https://en.wikipedia.org/wiki/List_of_ISO_639_language_codes).
+          items:
+            type: string
+          example:
+            - en
+            - es
+            - cz
+        tasks:
+          type: array
+          description: List of tasks the model is designed for.
+          items:
+            type: string
+          example:
+            - text-generation
+        provider:
+          type: string
+          description: Name of the organization or entity that provides the model.
+          example: IBM
+        logo:
+          type: string
+          format: uri
+          description: |-
+            URL to the model's logo. A [data
+            URL](https://developer.mozilla.org/en-US/docs/Web/URI/Schemes/data)
+            is recommended.
+        license:
+          type: string
+          description: Short name of the model's license.
+          example: apache-2.0
+        licenseLink:
+          type: string
+          format: uri
+          description: URL to the license text.
+        libraryName:
+          type: string
+          example: transformers
+        customProperties:
+          description: User provided custom properties which are not defined by its type.
+          type: object
+          additionalProperties:
+            $ref: "#/components/schemas/MetadataValue"
+    # catalog
+    ConfigMapKindList:
+      description: List of ConfigMapKind entities.
+      type: object
+      allOf:
+        - type: object
+          properties:
+            items:
+              description: Array of  `ConfigMapKind` entities.
+              type: array
+              items:
+                $ref: "#/components/schemas/ConfigMapKind"
+    ConfigMapKind: 
+      description: Kubernetes Custom Resource for Config map
+      type: object
+      properties:
+        apiVersion:
+          type: string
+          example: v1alpha1
+        kind:
+          type: string
+          example: ConfigMap
+        metadata:
+          type: object
+          properties:
+            name:
+              type: string
+              example: sample_catalog
+            namespace:
+              type: string
+              example: default
+            creationTimestamp:
+              type: string
+              example: 2024-03-14T08:01:42Z
+        data:
+          type: object
+          properties:
+            sample-catalog.yaml:
+              type: object
+              properties:
+                source:
+                  type: string
+                  description: Name of the catalog source
+                  example: "Hugging Face"
+                models:
+                  type: array
+                  items:
+                    $ref: "#/components/schemas/BaseModel"
+            sources.yaml:
+              type: object
+              properties:
+                catalogs: 
+                  type: array
+                  items:
+                    $ref: "#/components/schemas/CatalogSourcePayload"
+
+    
+    # scehma for model catalog source payload
+    CatalogSourcePayload:
+      description: Payload for creating the catalog source
+      type: object
+      required:
+        - name
+        - id
+        - type
+      properties:
+        name: 
+          type: string
+          description: The name of the catalog source.
+          example: Sample Catalog
+        id:
+          type: string
+          description: A unique identifier for a `CatalogSource`.
+          example: sample_custom_catalog
+        type:
+          type: string
+          example: yaml
+        enabled:
+          type: boolean
+          description: Whether the catalog source is enabled.
+          default: true
+          example: true
+        properties:
+          type: object
+          properties:
+            yamlCatalogPath: 
+              type: string
+              example: sample-catalog.yaml
+            models:
+              type: array
+              items:
+                type: object
+                properties:
+                  repository:
+                    type: string
+                    example: rhelai1/modelcar-granite-7b-starter
+            excludedModels:
+              type: array
+              items:
+                type: string
+                example: ["model-a:1.0", "model-b:*"]
+                description: list of models name, that will be excluded.
+            apiKey:
+              type: string
+              description: HuggingFace API key - should be stored in a Kubernetes secret and referenced here, or set via environment variable
+              example: "apikey"
+            url:
+              type: string
+              description: Custom HuggingFace URL (defaults to https://huggingface.co)
+              example: "https://huggingface.co"
+            modelLimit:
+              type: number
+              description: Limit the number of models to fetch (defaults to 100)
+              example: 200
     ModelRegistry:
       required:
         - name
@@ -2110,6 +2281,30 @@ components:
           schema:
             $ref: "#/components/schemas/Error"
       description: Unexpected internal server error
+    CatalogSourceListResponse:
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              metadata:
+                type: object
+                description: Metadata abput the response
+              data:
+                $ref: "#/components/schemas/ConfigMapKindList"
+      description: A response containing a `ConfigMapKindList` entity.
+    CatalogSourceResponse:
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              metadata: 
+                type: object
+                description: Metada about the response
+              data:
+                $ref: "#/components/schemas/ConfigMapKind"
+      description: A response containing a `ConfigMapKind` entity 
     ConfigResponse:
       content:
         application/json:
@@ -2433,6 +2628,14 @@ components:
       description: A response containing options for a `filterQuery` parameter.
 
   parameters:
+    sourceId:
+      name: sourceId
+      description: A unique identifier for catalog source.
+      schema:
+        type: string
+      in: path
+      required: true
+
     registeredmodelId:
       name: registeredmodelId
       description: A unique identifier for a `RegisteredModel`.
