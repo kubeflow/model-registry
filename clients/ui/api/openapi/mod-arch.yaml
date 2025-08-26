@@ -10,139 +10,6 @@ servers:
   - url: "https://localhost:8080"
   - url: "http://localhost:8080"
 paths:
-  # New Model catalog endpoints
-  /api/v1/model_catalog/models:
-    description: >-
-      The REST endpoint/path used to list zero or more `CatalogModel` entities from all `CatalogSources`.
-    get:
-      summary: Search catalog models across sources.
-      tags:
-        - ModelCatalogService
-      parameters:
-        - $ref: "#/components/parameters/kubeflowUserId"
-        - name: source
-          description: |-
-            Filter models by source. This parameter is currently required and
-            may only be specified once.
-          schema:
-            type: string
-          in: query
-          required: true
-        - name: q
-          description: Free-form keyword search used to filter the response.
-          schema:
-            type: string
-          in: query
-          required: false
-        - $ref: "#/components/parameters/pageSize"
-        - $ref: "#/components/parameters/orderBy"
-        - $ref: "#/components/parameters/sortOrder"
-        - $ref: "#/components/parameters/nextPageToken"
-      responses:
-        "200":
-          $ref: "#/components/responses/CatalogModelListResponse"
-        "400":
-          $ref: "#/components/responses/BadRequest"
-        "401":
-          $ref: "#/components/responses/Unauthorized"
-        "404":
-          $ref: "#/components/responses/NotFound"
-        "500":
-          $ref: "#/components/responses/InternalServerError"
-      operationId: findModels
-  /api/v1/model_catalog/sources:
-    summary: Path used to get the list of catalog sources.
-    description: >-
-      The REST endpoint/path used to list zero or more `CatalogSource` entities.
-    get:
-      summary: List All CatalogSources
-      tags:
-        - ModelCatalogService
-      parameters:
-        - $ref: "#/components/parameters/kubeflowUserId"
-        - $ref: "#/components/parameters/name"
-        - $ref: "#/components/parameters/pageSize"
-        - $ref: "#/components/parameters/orderBy"
-        - $ref: "#/components/parameters/sortOrder"
-        - $ref: "#/components/parameters/nextPageToken"
-      responses:
-        "200":
-          $ref: "#/components/responses/CatalogSourceListResponse"
-        "400":
-          $ref: "#/components/responses/BadRequest"
-        "401":
-          $ref: "#/components/responses/Unauthorized"
-        "404":
-          $ref: "#/components/responses/NotFound"
-        "500":
-          $ref: "#/components/responses/InternalServerError"
-      operationId: findSources
-      description: Gets a list of all `CatalogSource` entities.
-  /api/v1/model_catalog/sources/{sourceId}/models/{CatalogModelName+}:
-    description: >-
-      The REST endpoint/path used to get a `CatalogModel`.
-    get:
-      summary: Get a `CatalogModel`.
-      tags:
-        - ModelCatalogService
-      parameters:
-        - $ref: "#/components/parameters/kubeflowUserId"
-        - name: sourceId
-          description: A unique identifier for a `CatalogSource`.
-          schema:
-            type: string
-          in: path
-          required: true
-        - name: CatalogModelName+
-          description: A unique identifier for the model.
-          schema:
-            type: string
-          in: path
-          required: true
-      responses:
-        "200":
-          $ref: "#/components/responses/CatalogModelResponse"
-        "401":
-          $ref: "#/components/responses/Unauthorized"
-        "404":
-          $ref: "#/components/responses/NotFound"
-        "500":
-          $ref: "#/components/responses/InternalServerError"
-      operationId: getModel
-  /api/v1/model_catalog/sources/{sourceId}/models/{CatalogModelName}/artifacts:
-    description: >-
-      The REST endpoint/path used to list `CatalogModelArtifacts`.
-    get:
-      summary: List CatalogModelArtifacts.
-      tags:
-        - ModelCatalogService
-      parameters:
-        - $ref: "#/components/parameters/kubeflowUserId"
-        - name: sourceId
-          description: A unique identifier for a `CatalogSource`.
-          schema:
-            type: string
-          in: path
-          required: true
-        - name: CatalogModelName
-          description: A unique identifier for the model.
-          schema:
-            type: string
-          in: path
-          required: true
-      responses:
-        "200":
-          $ref: "#/components/responses/CatalogModelArtifactListResponse"
-        "401":
-          $ref: "#/components/responses/Unauthorized"
-        "404":
-          $ref: "#/components/responses/NotFound"
-        "500":
-          $ref: "#/components/responses/InternalServerError"
-      operationId: getAllModelArtifacts
-
-  # TODO: Admin endpoints for model catalog
-
   /healthcheck:
     summary: Path targeted for healthcheck purposes.
     description: >-
@@ -821,96 +688,141 @@ paths:
       - $ref: "#/components/parameters/modelRegistryName"
       - $ref: "#/components/parameters/kubeflowUserId"
       - $ref: "#/components/parameters/modelArtifactId"
+  
+  # New Model catalog endpoints
+  /api/v1/model_catalog/models:
+    description: >-
+      The REST endpoint/path used to list zero or more `CatalogModel` entities from all `CatalogSources`.
+    get:
+      summary: Search catalog models across sources.
+      tags:
+        - ModelCatalogService
+      parameters:
+        - $ref: "#/components/parameters/kubeflowUserId"
+        - name: source
+          description: |-
+            Filter models by source. This parameter is currently required and
+            may only be specified once.
+          schema:
+            type: string
+          in: query
+          required: true
+        - name: q
+          description: Free-form keyword search used to filter the response.
+          schema:
+            type: string
+          in: query
+          required: false
+        - $ref: "#/components/parameters/pageSize"
+        - $ref: "#/components/parameters/orderBy"
+        - $ref: "#/components/parameters/sortOrder"
+        - $ref: "#/components/parameters/nextPageToken"
+      responses:
+        "200":
+          $ref: "#/components/responses/CatalogModelListResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+      operationId: findModels
+  /api/v1/model_catalog/sources:
+    summary: Path used to get the list of catalog sources.
+    description: >-
+      The REST endpoint/path used to list zero or more `CatalogSource` entities.
+    get:
+      summary: List All CatalogSources
+      tags:
+        - ModelCatalogService
+      parameters:
+        - $ref: "#/components/parameters/kubeflowUserId"
+        - $ref: "#/components/parameters/name"
+        - $ref: "#/components/parameters/pageSize"
+        - $ref: "#/components/parameters/orderBy"
+        - $ref: "#/components/parameters/sortOrder"
+        - $ref: "#/components/parameters/nextPageToken"
+      responses:
+        "200":
+          $ref: "#/components/responses/CatalogSourceListResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+      operationId: findSources
+      description: Gets a list of all `CatalogSource` entities.
+  /api/v1/model_catalog/sources/{sourceId}/models/{CatalogModelName+}:
+    description: >-
+      The REST endpoint/path used to get a `CatalogModel`.
+    get:
+      summary: Get a `CatalogModel`.
+      tags:
+        - ModelCatalogService
+      parameters:
+        - $ref: "#/components/parameters/kubeflowUserId"
+        - name: sourceId
+          description: A unique identifier for a `CatalogSource`.
+          schema:
+            type: string
+          in: path
+          required: true
+        - name: CatalogModelName+
+          description: A unique identifier for the model.
+          schema:
+            type: string
+          in: path
+          required: true
+      responses:
+        "200":
+          $ref: "#/components/responses/CatalogModelResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+      operationId: getModel
+  /api/v1/model_catalog/sources/{sourceId}/models/{CatalogModelName}/artifacts:
+    description: >-
+      The REST endpoint/path used to list `CatalogModelArtifacts`.
+    get:
+      summary: List CatalogModelArtifacts.
+      tags:
+        - ModelCatalogService
+      parameters:
+        - $ref: "#/components/parameters/kubeflowUserId"
+        - name: sourceId
+          description: A unique identifier for a `CatalogSource`.
+          schema:
+            type: string
+          in: path
+          required: true
+        - name: CatalogModelName
+          description: A unique identifier for the model.
+          schema:
+            type: string
+          in: path
+          required: true
+      responses:
+        "200":
+          $ref: "#/components/responses/CatalogModelArtifactListResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+      operationId: getAllModelArtifacts
+  # TODO: Admin endpoints for model catalog
+
 components:
   schemas:
-    BaseModel:
-      type: object
-      properties:
-        description:
-          type: string
-          description: Human-readable description of the model.
-        readme:
-          type: string
-          description: Model documentation in Markdown.
-        maturity:
-          type: string
-          description: Maturity level of the model.
-          example: Generally Available
-        language:
-          type: array
-          description: List of supported languages (https://en.wikipedia.org/wiki/List_of_ISO_639_language_codes).
-          items:
-            type: string
-          example:
-            - en
-            - es
-            - cz
-        tasks:
-          type: array
-          description: List of tasks the model is designed for.
-          items:
-            type: string
-          example:
-            - text-generation
-        provider:
-          type: string
-          description: Name of the organization or entity that provides the model.
-          example: IBM
-        logo:
-          type: string
-          format: uri
-          description: |-
-            URL to the model's logo. A [data
-            URL](https://developer.mozilla.org/en-US/docs/Web/URI/Schemes/data)
-            is recommended.
-        license:
-          type: string
-          description: Short name of the model's license.
-          example: apache-2.0
-        licenseLink:
-          type: string
-          format: uri
-          description: URL to the license text.
-        libraryName:
-          type: string
-          example: transformers
-        customProperties:
-          description: User provided custom properties which are not defined by its type.
-          type: object
-          additionalProperties:
-            $ref: "#/components/schemas/MetadataValue"
-    BaseResourceDates:
-      description: Common timestamp fields for resources
-      type: object
-      properties:
-        createTimeSinceEpoch:
-          format: int64
-          description: Output only. Create time of the resource in millisecond since epoch.
-          type: string
-          readOnly: true
-        lastUpdateTimeSinceEpoch:
-          format: int64
-          description: Output only. Last update time of the resource since epoch in millisecond since epoch.
-          type: string
-          readOnly: true
-    BaseResourceList:
-      required:
-        - nextPageToken
-        - pageSize
-        - size
-      type: object
-      properties:
-        nextPageToken:
-          description: Token to use to retrieve next page of results.
-          type: string
-        pageSize:
-          format: int32
-          description: Maximum number of resources to return in the result.
-          type: integer
-        size:
-          format: int32
-          description: Number of items in result list.
-          type: integer
     Config:
       required:
         - userId
@@ -1779,6 +1691,96 @@ components:
           items:
             type: string
           example: ["dora-user@example.com", "dora-admin@example.com"]
+
+    # Model Catalog schema
+    CatalogBaseModel:
+      type: object
+      properties:
+        description:
+          type: string
+          description: Human-readable description of the model.
+        readme:
+          type: string
+          description: Model documentation in Markdown.
+        maturity:
+          type: string
+          description: Maturity level of the model.
+          example: Generally Available
+        language:
+          type: array
+          description: List of supported languages (https://en.wikipedia.org/wiki/List_of_ISO_639_language_codes).
+          items:
+            type: string
+          example:
+            - en
+            - es
+            - cz
+        tasks:
+          type: array
+          description: List of tasks the model is designed for.
+          items:
+            type: string
+          example:
+            - text-generation
+        provider:
+          type: string
+          description: Name of the organization or entity that provides the model.
+          example: IBM
+        logo:
+          type: string
+          format: uri
+          description: |-
+            URL to the model's logo. A [data
+            URL](https://developer.mozilla.org/en-US/docs/Web/URI/Schemes/data)
+            is recommended.
+        license:
+          type: string
+          description: Short name of the model's license.
+          example: apache-2.0
+        licenseLink:
+          type: string
+          format: uri
+          description: URL to the license text.
+        libraryName:
+          type: string
+          example: transformers
+        customProperties:
+          description: User provided custom properties which are not defined by its type.
+          type: object
+          additionalProperties:
+            $ref: "#/components/schemas/MetadataValue"
+    BaseResourceDates:
+      description: Common timestamp fields for resources
+      type: object
+      properties:
+        createTimeSinceEpoch:
+          format: int64
+          description: Output only. Create time of the resource in millisecond since epoch.
+          type: string
+          readOnly: true
+        lastUpdateTimeSinceEpoch:
+          format: int64
+          description: Output only. Last update time of the resource since epoch in millisecond since epoch.
+          type: string
+          readOnly: true
+    BaseResourceList:
+      required:
+        - nextPageToken
+        - pageSize
+        - size
+      type: object
+      properties:
+        nextPageToken:
+          description: Token to use to retrieve next page of results.
+          type: string
+        pageSize:
+          format: int32
+          description: Maximum number of resources to return in the result.
+          type: integer
+        size:
+          format: int32
+          description: Number of items in result list.
+          type: integer
     CatalogModel:
       description: A model in the model catalog.
       allOf:
@@ -1794,7 +1796,7 @@ components:
               type: string
               description: ID of the source this model belongs to.
         - $ref: "#/components/schemas/BaseResourceDates"
-        - $ref: "#/components/schemas/BaseModel"
+        - $ref: "#/components/schemas/CatalogBaseModel"
     CatalogModelArtifact:
       description: A single artifact for a catalog model.
       allOf:
@@ -1811,7 +1813,7 @@ components:
               type: object
               additionalProperties:
                 $ref: "#/components/schemas/MetadataValue"
-        # -       $ref: "#/components/schemas/BaseResourceDates"
+        - $ref: "#/components/schemas/BaseResourceDates"
     CatalogModelArtifactList:
       description: List of CatalogModel entities.
       allOf:
@@ -2172,7 +2174,7 @@ components:
                 $ref: "#/components/schemas/RoleBinding"
       description: A response containing a single `RoleBinding` entity.
 
-    # model catalog response
+    # Model Catalog response
     CatalogModelArtifactListResponse:
       content:
         application/json:
