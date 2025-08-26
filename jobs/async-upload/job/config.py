@@ -16,9 +16,10 @@ from .models import (
     RegistryConfig,
     S3Config,
     OCIConfig,
+    URISourceConfig,
     SourceType,
     DestinationType,
-    URISourceConfig
+    URISourceStorageConfig
 )
 
 logger = logging.getLogger(__name__)
@@ -105,6 +106,10 @@ def _parser() -> cap.ArgumentParser:
         "--destination-oci-credentials-path",
         metavar="PATH",
     )
+    p.add_argument(
+        "--source-uri-credentials-path",
+        metavar="PATH",
+    )
 
     return p
 
@@ -185,6 +190,39 @@ def _load_oci_credentials(
     store.email = docker_config["auths"][registry]["email"]
 
 
+def _load_uri_credentials(path: str | Path, store: URISourceConfig) -> None:
+    """
+    The path must be a folder containing a Secret mounted to a pod with a key "URI".
+
+    For example, a Secret like:
+    ```yaml
+    kind: Secret
+    apiVersion: v1
+    metadata:
+      name: my-uri-credential
+    stringData:
+      URI: hf:/some/repo
+    ```
+
+    This would be mounted as a file with name "URI" and whose contents are the URI value.
+
+    Mutates the `store` in-place
+    """
+    logger.info(f"🔍 Loading URI credentials from {path}")
+
+    # Validate the path is a directory
+    p = Path(path).expanduser()
+    if not p.is_dir():
+        raise FileNotFoundError(f"credentials folder not found: {p}")
+
+    # Load the URI from the file
+    uri_file = p / "URI"
+    if not uri_file.is_file():
+        raise FileNotFoundError(f"URI credential file not found: {uri_file}")
+
+    store.uri = uri_file.read_text().strip()
+
+
 def str2bool(x):
     """Convert a config string to boolean. This is needed because configargparse doesn't support boolean optional action as env vars"""
     if isinstance(x, bool):
@@ -241,9 +279,13 @@ def get_config(argv: list[str] | None = None) -> AsyncUploadConfig:
             _load_oci_credentials(args.source_oci_credentials_path, source_config)
 
     elif args.source_type == "uri":
-        source_config = URISourceConfig(
-            uri=args.source_uri,
-            credentials_path=None
+        uri_config = URISourceConfig(uri=args.source_uri)
+        # Load credentials from files, if provided
+        if args.source_uri_credentials_path:
+            _load_uri_credentials(args.source_uri_credentials_path, uri_config)
+        source_config = URISourceStorageConfig(
+            **uri_config.model_dump(),
+            credentials_path=args.source_uri_credentials_path
         )
     else:
         raise ValueError(f"Unsupported source type: {args.source_type}")
