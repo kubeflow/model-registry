@@ -20,12 +20,21 @@ paths:
       parameters:
         - name: source
           description: |-
-            Filter models by source. This parameter is currently required and
-            may only be specified once.
+            Filter models by source. This parameter may be included multiple
+            times to include models from multiple sources.
           schema:
             type: string
           in: query
-          required: true
+          required: false
+        - name: sourceLabel
+          description: |-
+            Filter models by the label associated with the source. This
+            parameter may be included multiple times to include models from
+            multiple sources.
+          schema:
+            type: string
+          in: query
+          required: false
         - name: q
           description: Free-form keyword search used to filter the response.
           schema:
@@ -36,6 +45,8 @@ paths:
         - $ref: "#/components/parameters/orderBy"
         - $ref: "#/components/parameters/sortOrder"
         - $ref: "#/components/parameters/nextPageToken"
+        - $ref: "#/components/parameters/filterQuery"
+        - $ref: "#/components/parameters/catalogArtifactType"
       responses:
         "200":
           $ref: "#/components/responses/CatalogModelListResponse"
@@ -48,6 +59,22 @@ paths:
         "500":
           $ref: "#/components/responses/InternalServerError"
       operationId: findModels
+  /api/model_catalog/v1alpha1/models/filter_options:
+    description: Lists options for `filterQuery` when listing models.
+    get:
+      summary: Lists fields and available options that can be used in `filterQuery` on the list models endpoint.
+      tags:
+        - ModelCatalogService
+      responses:
+        "200":
+          $ref: "#/components/responses/FilterOptionsResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+      operationId: findModelsFilterOptions
   /api/model_catalog/v1alpha1/sources:
     summary: Path used to get the list of catalog sources.
     description: >-
@@ -105,6 +132,7 @@ paths:
           type: string
         in: path
         required: true
+      - $ref: "#/components/parameters/catalogArtifactType"
   /api/model_catalog/v1alpha1/sources/{source_id}/models/{model_name}/artifacts:
     description: >-
       The REST endpoint/path used to list `CatalogModelArtifacts`.
@@ -135,6 +163,7 @@ paths:
           type: string
         in: path
         required: true
+      - $ref: "#/components/parameters/catalogArtifactType"
 components:
   schemas:
     CatalogModel:
@@ -151,6 +180,13 @@ components:
             source_id:
               type: string
               description: ID of the source this model belongs to.
+            artifacts:
+              type: array
+              description: |-
+                Artifacts attached to the model. This field is omitted unless
+                the `artifactType` query string parameter is specified.
+              items:
+                $ref: "#/components/schemas/CatalogModelArtifact"
         - $ref: "#/components/schemas/BaseResourceDates"
         - $ref: "#/components/schemas/BaseModel"
     CatalogModelArtifact:
@@ -158,12 +194,22 @@ components:
       allOf:
         - type: object
           required:
-            - uri
+            - artifactType
           properties:
+            artifactType:
+              type: string
+              default: model-artifact
+              enum:
+                - model-artifact
+                - doc-artifact
+                - performance-metric
+                - accuracy-metric
             uri:
               type: string
               format: uri
-              description: URI where the artifact can be retrieved.
+              description: |-
+                URI where the artifact can be retrieved. Omitted for artifact
+                types which don't have a URI.
             customProperties:
               description: User provided custom properties which are not defined by its type.
               type: object
@@ -213,6 +259,14 @@ components:
           description: Whether the catalog source is enabled.
           type: boolean
           default: true
+        labels:
+          description: |-
+            Labels associated with the source. The catalog source labels can be
+            used to filter models from sources with the same label (see
+            `sourceLabel` on `/api/model_catalog/v1alpha1/models`)
+          type: array
+          items:
+            type: string
     CatalogSourceList:
       description: List of CatalogSource entities.
       allOf:
@@ -224,6 +278,40 @@ components:
               items:
                 $ref: "#/components/schemas/CatalogSource"
         - $ref: "#/components/schemas/BaseResourceList"
+    FilterOption:
+      type: object
+      required:
+        - type
+      properties:
+        type:
+          type: string
+          description: The data type of the filter option
+          enum:
+            - string
+            - number
+        values:
+          type: array
+          description: |-
+            Known values of the property for string types with a small number of possible options.
+          items: {}
+        range:
+          type: object
+          description: Min and max values for number types.
+          properties:
+            min:
+              type: number
+            max:
+              type: number
+    FilterOptionsList:
+      description: List of FilterOptions
+      type: object
+      properties:
+        filters:
+          type: object
+          description: A single filter option.
+          additionalProperties:
+            $ref: "#/components/schemas/FilterOption"
+
     OrderByField:
       description: Supported fields for ordering result entities.
       enum:
@@ -264,6 +352,12 @@ components:
           schema:
             $ref: "#/components/schemas/CatalogSource"
       description: A response containing a `CatalogSource` entity.
+    FilterOptionsResponse:
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/FilterOptionsList"
+      description: A response containing options for a `filterQuery` parameter.
 
   parameters:
     orderBy:
@@ -276,6 +370,20 @@ components:
       description: Specifies the order by criteria for listing entities.
       schema:
         $ref: "#/components/schemas/OrderByField"
+      in: query
+      required: false
+    catalogArtifactType:
+      name: artifactType
+      description: |-
+        Specifies the artifact types to return. May be specified multiple
+        times to retrieve multiple artifact types.
+      schema:
+        type: string
+        enum:
+          - model-artifact
+          - doc-artifact
+          - performance-metric
+          - accuracy-metric
       in: query
       required: false
 tags: []
