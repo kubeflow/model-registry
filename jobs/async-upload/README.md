@@ -43,6 +43,8 @@ See asterisks below table for details
 | MODEL_SYNC_SOURCE_TYPE                       | --source-type                       | s3                | ✅       |                                                                                         |
 | MODEL_SYNC_SOURCE_S3_CREDENTIALS_PATH        | --source-s3-credentials-path        |                   |          |                                                                                         |
 | MODEL_SYNC_SOURCE_OCI_CREDENTIALS_PATH       | --source-oci-credentials-path       |                   |          |                                                                                         |
+| MODEL_SYNC_SOURCE_URI_CREDENTIALS_PATH       | --source-uri-credentials-path       |                   |          |                                                                                         |
+| MODEL_SYNC_SOURCE_URI                        | --source-uri                        |                   | ✅\#     | When --source-type is "uri". The URI to download from                                   |
 | MODEL_SYNC_SOURCE_AWS_BUCKET                 | --source-aws-bucket                 |                   | ✅\*     | When --source-type is "s3"                                                              |
 | MODEL_SYNC_SOURCE_AWS_KEY                    | --source-aws-key                    |                   | ✅\*     | "                                                                                       |
 | MODEL_SYNC_SOURCE_AWS_REGION                 | --source-aws-region                 |                   |          | "                                                                                       |
@@ -85,6 +87,8 @@ See asterisks below table for details
 ✅\*: Must be present in some form when the source/destination is `s3`. This might be from the parameter in the table, or from the credentials file(s) that was specified/provided.
 
 ✅\+: Must be present in some from when the source/destination is `oci`. This might be from the parameter in the table, or from the credentials file(s) that was specified/provided.
+
+✅\#: Must be present in some form when the source is `uri`. This might be from the parameter in the table, or from the credentials file(s) that was specified/provided.
 
 ## References
 
