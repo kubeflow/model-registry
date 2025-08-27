@@ -1,11 +1,11 @@
 -- Create Artifact table for SQLite
 CREATE TABLE IF NOT EXISTS "Artifact" (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    id INTEGER PRIMARY KEY,
     type_id INTEGER NOT NULL,
     uri TEXT,
     state INTEGER DEFAULT NULL,
-    name TEXT DEFAULT NULL,
-    external_id TEXT DEFAULT NULL,
+    name VARCHAR(255) DEFAULT NULL,
+    external_id VARCHAR(255) DEFAULT NULL,
     create_time_since_epoch BIGINT NOT NULL DEFAULT '0',
     last_update_time_since_epoch BIGINT NOT NULL DEFAULT '0',
     UNIQUE (external_id),
