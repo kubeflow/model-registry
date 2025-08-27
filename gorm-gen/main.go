@@ -21,7 +21,7 @@ var (
 )
 
 // genModels is gorm/gen generated models
-func genModels(g *gen.Generator, db *gorm.DB, tables []string, dbType string) (err error) {
+func genModels(g *gen.Generator, db *gorm.DB, tables []string) (err error) {
 	if len(tables) == 0 {
 		// Execute tasks for all tables in the database
 		tables, err = db.Migrator().GetTables()
@@ -40,18 +40,6 @@ func genModels(g *gen.Generator, db *gorm.DB, tables []string, dbType string) (e
 				}
 			}
 		}
-		
-		// SQLite-specific handling for primary keys
-		if dbType == "sqlite" {
-			// Check if this is a primary key field that should have autoIncrement
-			if tag.Get("primaryKey") != "" && !tag.Has("autoIncrement") {
-				// For single primary key fields (likely auto-increment), add autoIncrement tag
-				if columnName := tag.Get("column"); columnName == "id" || strings.HasSuffix(columnName, "_id") {
-					tag.Set("autoIncrement", "true")
-				}
-			}
-		}
-		
 		return tag
 	})
 
@@ -147,31 +135,13 @@ func runGenerate() error {
 		}
 		config.WithDataTypeMap(dataTypeMap)
 	}
-	
-	if dbType == "sqlite" {
-		dataTypeMap := map[string]func(gorm.ColumnType) string{
-			// Handle INTEGER PRIMARY KEY as non-pointer int32 with autoIncrement
-			"INTEGER": func(columnType gorm.ColumnType) string {
-				if columnType.PrimaryKey() {
-					return "int32"
-				}
-				// For non-primary key INTEGERs, check if nullable
-				if nullable, ok := columnType.Nullable(); ok && nullable {
-					return "*int32"
-				}
-				return "int32"
-			},
-		}
-		config.WithDataTypeMap(dataTypeMap)
-	}
 	g := gen.NewGenerator(config)
 
 	// Use the database connection
 	g.UseDB(db)
 
-
 	// Generate models for all tables using custom function
-	err = genModels(g, db, nil, dbType)
+	err = genModels(g, db, nil)
 	if err != nil {
 		return fmt.Errorf("failed to generate models: %w", err)
 	}
