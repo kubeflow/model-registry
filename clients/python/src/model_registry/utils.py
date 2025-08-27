@@ -3,11 +3,13 @@
 from __future__ import annotations
 
 import base64
+import copy
 import json
 import os
 import shutil
 import tempfile
-from dataclasses import dataclass
+import threading
+from dataclasses import asdict, dataclass
 from pathlib import Path
 from subprocess import CalledProcessError
 from typing import TYPE_CHECKING, Callable, Protocol, TypeVar
@@ -632,3 +634,77 @@ def _extract_auth_json(auth_data: str) -> str:
     except json.JSONDecodeError as e:
         invalid_json_msg = "Auth data does not contain valid JSON."
         raise ValueError(invalid_json_msg) from e
+
+
+def rand_suffix(size: int = 8) -> str:
+    """Generate a random suffix.
+
+    Returns:
+        A random suffix.
+    """
+    return os.urandom(size).hex()
+
+
+def generate_name(prefix: str) -> str:
+    """Generate a random name.
+
+    Returns:
+        A random name for experiments.
+    """
+    return f"{prefix}_{rand_suffix()}"
+
+
+def upload_to_s3(
+    s3_auth: S3Params,
+    path: str,
+    s3_client: BaseClient | None = None,
+    transfer_config: TransferConfig | None = None,
+) -> str:
+    """Upload to S3.
+
+    Args:
+        s3_auth: The S3 authentication parameters.
+        path: The path to the file or directory to upload.
+        s3_client: The S3 client to use. If not provided, a new client will be created.
+        transfer_config: The transfer config to use for the upload. If not provided, a new transfer config will be created.
+    """
+    if s3_client and not transfer_config:
+        msg = (
+            "Both `transfer_config` and `s3_client` must be provided if S3 is provided."
+        )
+        raise ValueError(msg)
+
+    if not s3_client:
+        s3_auth_dict = asdict(s3_auth)
+        s3_auth_dict.pop("bucket_name")
+        s3_auth_dict.pop("s3_prefix")
+        s3, transfer_config = _connect_to_s3(**s3_auth_dict)
+    else:
+        s3 = s3_client
+
+    return _upload_to_s3(
+        path=path,
+        bucket=s3_auth.bucket_name,
+        s3=s3,
+        path_prefix=s3_auth.s3_prefix,
+        transfer_config=transfer_config,
+    )
+
+
+class ThreadSafeVariable:
+    """Thread safe variable."""
+
+    def __init__(self, value: T):
+        """Initialize the thread safe variable."""
+        self.local = threading.local()
+        self._initial_value = value
+
+    def get(self) -> T:
+        """Get the value."""
+        if not hasattr(self.local, "value"):
+            self.local.value = self._initial_value
+        return copy.deepcopy(self.local.value)
+
+    def set(self, value: T) -> None:
+        """Set the value."""
+        self.local.value = value

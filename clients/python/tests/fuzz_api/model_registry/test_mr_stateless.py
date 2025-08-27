@@ -8,8 +8,12 @@ import requests
 import schemathesis
 from hypothesis import HealthCheck, settings
 
-from .conftest import REGISTRY_URL
-from .constants import ARTIFACT_STATES, ARTIFACT_TYPE_PARAMS, DEFAULT_API_TIMEOUT
+from tests.constants import (
+    ARTIFACT_STATES,
+    ARTIFACT_TYPE_PARAMS,
+    DEFAULT_API_TIMEOUT,
+    REGISTRY_URL,
+)
 
 
 # Helper functions for common operations
@@ -184,6 +188,7 @@ schema = (
         method="POST"
     )
 )
+@pytest.mark.parametrize("generated_schema", ["model-registry.yaml"], indirect=True)
 @schema.parametrize()
 @settings(
     max_examples=100,

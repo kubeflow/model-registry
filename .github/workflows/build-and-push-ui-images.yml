@@ -1,0 +1,79 @@
+name: Build and Push UI Image
+# this workflow builds an image to support local testing
+on:
+  push:
+    branches:
+      - 'main'
+    tags:
+      - 'v*'
+    paths:
+      - 'clients/ui/**'
+      - '!LICENSE*'
+      - '!DOCKERFILE*'
+      - '!**.gitignore'
+      - '!**.md'
+      - '!**.txt'
+env:
+  IMG_REGISTRY: ghcr.io
+  IMG_ORG: kubeflow
+  IMG_UI_REPO: model-registry/ui # this image is intended for local development, not production
+  DOCKER_USER: ${{ github.actor }}
+  DOCKER_PWD: ${{ secrets.GITHUB_TOKEN }}
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v5
+
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+
+    - name: Log in to the Container registry
+      uses: docker/login-action@v3
+      with:
+        registry: ${{ env.IMG_REGISTRY }}
+        username: ${{ env.DOCKER_USER }}
+        password: ${{ env.DOCKER_PWD }}
+
+    - name: Set main-branch environment
+      if: github.ref == 'refs/heads/main'
+      run: |
+        commit_sha=${{ github.sha }}
+        tag=main-${commit_sha:0:7}
+        echo "VERSION=${tag}" >> $GITHUB_ENV
+      
+    - name: Set tag environment
+      if: startsWith(github.ref, 'refs/tags/v')
+      run: |
+        echo "VERSION=${{ github.ref_name }}" >> $GITHUB_ENV
+
+    - name: Extract metadata (tags, labels) for Docker
+      id: meta
+      uses: docker/metadata-action@v5
+      with:
+        images: "${{ env.IMG_REGISTRY }}/${{ env.IMG_ORG }}/${{ env.IMG_UI_REPO }}"
+        tags: |
+          type=ref,event=branch
+          type=ref,event=pr
+          type=semver,pattern={{version}}
+          type=semver,pattern={{major}}.{{minor}}
+          type=sha
+          type=raw,value=${{ env.VERSION }},enable=${{ env.VERSION != '' }}
+          type=raw,value=latest,enable=${{ github.ref == 'refs/heads/main' }}
+
+    - name: Build and push Docker image
+      uses: docker/build-push-action@v6
+      with:
+        context: ./clients/ui
+        push: true
+        tags: ${{ steps.meta.outputs.tags }}
+        labels: ${{ steps.meta.outputs.labels }}
+        build-args: |
+          DEPLOYMENT_MODE=kubeflow
+          STYLE_THEME=mui-theme
+        cache-from: type=gha
+        cache-to: type=gha,mode=max

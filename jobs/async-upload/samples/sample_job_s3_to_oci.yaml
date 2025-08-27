@@ -51,6 +51,8 @@ spec:
         modelregistry.kubeflow.org/model-sync-model-version-id: "3"
         modelregistry.kubeflow.org/model-sync-model-artifact-id: "6"
     spec:
+      securityContext:
+        runAsNonRoot: true
       volumes:
         - name: source-credentials
           secret:
@@ -65,6 +67,19 @@ spec:
       containers:
         - name: async-upload
           image: quay.io/opendatahub/model-registry-job-async-upload
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: false
+            capabilities:
+              drop: ["ALL"]
+            seccompProfile:
+              type: RuntimeDefault
+          resources:
+            requests:
+              cpu: "100m"
+              memory: "128Mi"
+            limits:
+              memory: "512Mi"
           volumeMounts:
             - name: source-credentials
               readOnly: true

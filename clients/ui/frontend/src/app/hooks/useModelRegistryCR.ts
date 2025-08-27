@@ -20,7 +20,8 @@ const useModelRegistryCR = (
   );
 
   const callback = React.useCallback<FetchStateCallbackPromise<ModelRegistryKind | null>>(
-    (opts: APIOptions) => (name ? getModelRegistry(opts, name) : Promise.resolve(null)),
+    (opts: APIOptions) =>
+      name ? getModelRegistry(opts, name).then((res) => res.modelRegistry) : Promise.resolve(null),
     [getModelRegistry, name],
   );
 

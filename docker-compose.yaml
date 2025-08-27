@@ -6,6 +6,7 @@ version: '3'
 services:
   model-registry:
     image: quay.io/opendatahub/model-registry:latest
+    pull_policy: always
     command: ["proxy", "--hostname", "0.0.0.0", "--datastore-type", "embedmd", "--embedmd-database-dsn", "root:demo@tcp(mysql:3306)/model_registry?charset=utf8mb4"]
     container_name: model-registry
     ports:

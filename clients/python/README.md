@@ -193,7 +193,6 @@ By default, all queries will be `ascending`, but this method is also available f
 The pager will manage pages for you in order to prevent infinite looping.
 Currently, the Model Registry backend treats model lists as a circular buffer, and **will not end iteration** for you.
 
-
 ### Uploading local models to external storage and registering them
 
 To both upload and register a model, use the convenience method `upload_artifact_and_register_model`.
@@ -306,7 +305,6 @@ oci_upload_params = OCIParams(
 )
 ```
 
-
 ### Running ModelRegistry on Ray or Uvloop
 When running `ModelRegistry` on a platform that sets a custom event loop that cannot be nested, an error will occur.
 
@@ -326,6 +324,63 @@ registry = ModelRegistry("http://server-address", 8080, author="Ada Lovelace", a
 See also the [test case](tests/test_client.py#L854) in `test_custom_async_runner_with_ray`.
 
 Please keep in mind, the `AsyncTaskRunner` used here for testing does not ship within the library so you will need to copy it into your code directly or import from elsewhere.
+
+## Experiments Tracking
+
+### Basic usage
+
+```py
+with mr.start_experiment_run(experiment_name="Experiment1") as run:
+    run.log_metric(
+        key="rval",
+        value=10,
+        step=4,
+        description="This is a test metric",
+    )
+    run.log_dataset(
+        name="dataset_1",
+        source_type="local",
+        uri="s3://datasets/test",
+        schema=json.dumps({"epochs": {}}),
+        profile="random_profile",
+    )
+    run.log_param("input1", 5.75)
+```
+
+### Nested runs
+
+Set `nested=True` to allow for nested experiments runs.
+
+```py
+with mr.start_experiment_run(experiment_name="Experiment1") as run:
+    run.log_metric(
+        key="rval",
+        value=10,
+        step=4,
+        description="This is a test metric",
+    )
+    with mr.start_experiment_run(nested=True) as run2:
+        run2.log_metric(
+            key="rval",
+            value=50,
+            step=2,
+            description="This is a test metric for a nested run",
+        )
+```
+
+### Getting experiment run logs
+
+```py
+with mr.start_experiment_run(experiment_name="Experiment1") as run:
+    ...
+run.get_log("metrics", "rval")
+
+# or
+
+logs = mr.get_experiment_run_logs(run_id=run.info.id)
+assert logs.next_item()
+
+```
 
 ## Development
 
