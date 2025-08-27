@@ -6,6 +6,7 @@ import (
 
 	"github.com/kubeflow/model-registry/internal/datastore/embedmd/mysql"
 	"github.com/kubeflow/model-registry/internal/datastore/embedmd/postgres"
+	"github.com/kubeflow/model-registry/internal/datastore/embedmd/sqlite"
 	"github.com/kubeflow/model-registry/internal/db/types"
 	"github.com/kubeflow/model-registry/internal/tls"
 	"gorm.io/gorm"
@@ -34,8 +35,10 @@ func Init(dbType string, dsn string, tlsConfig *tls.TLSConfig) error {
 		_connectorInstance = mysql.NewMySQLDBConnector(dsn, tlsConfig)
 	case "postgres":
 		_connectorInstance = postgres.NewPostgresDBConnector(dsn, tlsConfig)
+	case "sqlite":
+		_connectorInstance = sqlite.NewSQLiteDBConnector(dsn, tlsConfig)
 	default:
-		return fmt.Errorf("unsupported database type: %s. Supported types: %s, %s", dbType, types.DatabaseTypeMySQL, types.DatabaseTypePostgres)
+		return fmt.Errorf("unsupported database type: %s. Supported types: %s, %s, %s", dbType, types.DatabaseTypeMySQL, types.DatabaseTypePostgres, types.DatabaseTypeSQLite)
 	}
 
 	return nil

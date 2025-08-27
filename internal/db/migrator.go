@@ -5,6 +5,7 @@ import (
 
 	"github.com/kubeflow/model-registry/internal/datastore/embedmd/mysql"
 	"github.com/kubeflow/model-registry/internal/datastore/embedmd/postgres"
+	"github.com/kubeflow/model-registry/internal/datastore/embedmd/sqlite"
 	"github.com/kubeflow/model-registry/internal/db/types"
 	"gorm.io/gorm"
 )
@@ -21,7 +22,9 @@ func NewDBMigrator(dbType string, db *gorm.DB) (DBMigrator, error) {
 		return mysql.NewMySQLMigrator(db)
 	case types.DatabaseTypePostgres:
 		return postgres.NewPostgresMigrator(db)
+	case types.DatabaseTypeSQLite:
+		return sqlite.NewSQLiteMigrator(db)
 	}
 
-	return nil, fmt.Errorf("unsupported database type: %s. Supported types: %s, %s", dbType, types.DatabaseTypeMySQL, types.DatabaseTypePostgres)
+	return nil, fmt.Errorf("unsupported database type: %s. Supported types: %s, %s, %s", dbType, types.DatabaseTypeMySQL, types.DatabaseTypePostgres, types.DatabaseTypeSQLite)
 }

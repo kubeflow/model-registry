@@ -20,8 +20,8 @@ type EmbedMDConfig struct {
 }
 
 func (c *EmbedMDConfig) Validate() error {
-	if c.DatabaseType != types.DatabaseTypeMySQL && c.DatabaseType != types.DatabaseTypePostgres {
-		return fmt.Errorf("unsupported database type: %s. Supported types: %s, %s", c.DatabaseType, types.DatabaseTypeMySQL, types.DatabaseTypePostgres)
+	if c.DatabaseType != types.DatabaseTypeMySQL && c.DatabaseType != types.DatabaseTypePostgres && c.DatabaseType != types.DatabaseTypeSQLite {
+		return fmt.Errorf("unsupported database type: %s. Supported types: %s, %s, %s", c.DatabaseType, types.DatabaseTypeMySQL, types.DatabaseTypePostgres, types.DatabaseTypeSQLite)
 	}
 
 	return nil

@@ -114,6 +114,16 @@ start/postgres:
 stop/postgres:
 	./scripts/teardown_postgres_db.sh
 
+# Start the SQLite database (file-based, minimal setup)
+.PHONY: start/sqlite
+start/sqlite:
+	./scripts/start_sqlite_db.sh
+
+# Stop the SQLite database (cleanup)
+.PHONY: stop/sqlite
+stop/sqlite:
+	./scripts/teardown_sqlite_db.sh
+
 # generate the gorm structs for MySQL
 .PHONY: gen/gorm/mysql
 gen/gorm/mysql: bin/golang-migrate start/mysql
@@ -129,12 +139,23 @@ gen/gorm/postgres: bin/golang-migrate start/postgres
 	cd gorm-gen && GOWORK=off go run main.go --db-type postgres --dsn 'postgres://postgres:postgres@localhost:5432/model-registry?sslmode=disable' && \
 	cd $(CURDIR) && ./scripts/remove_gorm_defaults.sh)
 
+# generate the gorm structs for SQLite
+.PHONY: gen/gorm/sqlite
+gen/gorm/sqlite: bin/golang-migrate start/sqlite
+	@(trap 'cd $(CURDIR) && $(MAKE) stop/sqlite' EXIT; \
+	$(GOLANG_MIGRATE) -path './internal/datastore/embedmd/sqlite/migrations' -database 'sqlite://./model-registry.db' up && \
+	cd gorm-gen && GOWORK=off go run main.go --db-type sqlite --dsn './model-registry.db' && \
+	cd $(CURDIR) && ./scripts/remove_gorm_defaults.sh)
+
 # generate the gorm structs (defaults to MySQL for backward compatibility)
 # Use GORM_DB_TYPE=postgres to generate for PostgreSQL instead
+# Use GORM_DB_TYPE=sqlite to generate for SQLite instead
 .PHONY: gen/gorm
 gen/gorm: bin/golang-migrate
 ifeq ($(GORM_DB_TYPE),postgres)
 	$(MAKE) gen/gorm/postgres
+else ifeq ($(GORM_DB_TYPE),sqlite)
+	$(MAKE) gen/gorm/sqlite
 else
 	$(MAKE) gen/gorm/mysql
 endif
@@ -185,7 +206,7 @@ bin/yq:
 
 GOLANG_MIGRATE ?= ${PROJECT_BIN}/migrate
 bin/golang-migrate:
-	GOBIN=$(PROJECT_PATH)/bin ${GO} install -tags 'mysql,postgres' github.com/golang-migrate/migrate/v4/cmd/migrate@v4.18.3
+	GOBIN=$(PROJECT_PATH)/bin ${GO} install -tags 'mysql,postgres,sqlite' github.com/golang-migrate/migrate/v4/cmd/migrate@v4.18.3
 
 GENQLIENT ?= ${PROJECT_BIN}/genqlient
 bin/genqlient:
