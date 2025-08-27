@@ -80,7 +80,7 @@ def root(request) -> Path:
 
 @pytest.fixture(scope="session")
 def user_token() -> str:
-    return os.environ.get("AUTH_TOKEN") if os.environ.get("AUTH_TOKEN") else None
+    return os.getenv("AUTH_TOKEN", None)
 
 
 @pytest.fixture(scope="session")
