@@ -1,13 +1,13 @@
 CREATE TABLE IF NOT EXISTS "ContextProperty" (
   "context_id" INTEGER NOT NULL,
   "name" TEXT NOT NULL,
-  "is_custom_property" INTEGER NOT NULL,
+  "is_custom_property" BOOLEAN NOT NULL,
   "int_value" INTEGER DEFAULT NULL,
   "double_value" REAL DEFAULT NULL,
   "string_value" TEXT,
   "byte_value" BLOB,
   "proto_value" BLOB,
-  "bool_value" INTEGER DEFAULT NULL,
+  "bool_value" BOOLEAN DEFAULT NULL,
   PRIMARY KEY ("context_id","name","is_custom_property")
 );
 

@@ -3,8 +3,8 @@ CREATE TABLE IF NOT EXISTS "Context" (
   "type_id" INTEGER NOT NULL,
   "name" TEXT NOT NULL,
   "external_id" TEXT DEFAULT NULL,
-  "create_time_since_epoch" INTEGER NOT NULL DEFAULT 0,
-  "last_update_time_since_epoch" INTEGER NOT NULL DEFAULT 0,
+  "create_time_since_epoch" BIGINT NOT NULL DEFAULT 0,
+  "last_update_time_since_epoch" BIGINT NOT NULL DEFAULT 0,
   UNIQUE ("type_id","name"),
   UNIQUE ("external_id")
 );

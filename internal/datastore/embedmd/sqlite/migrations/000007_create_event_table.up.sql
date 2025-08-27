@@ -3,7 +3,7 @@ CREATE TABLE IF NOT EXISTS "Event" (
   "artifact_id" INTEGER NOT NULL,
   "execution_id" INTEGER NOT NULL,
   "type" INTEGER NOT NULL,
-  "milliseconds_since_epoch" INTEGER DEFAULT NULL,
+  "milliseconds_since_epoch" BIGINT DEFAULT NULL,
   UNIQUE ("artifact_id","execution_id","type")
 );
 

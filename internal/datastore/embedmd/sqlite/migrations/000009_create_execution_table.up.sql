@@ -4,8 +4,8 @@ CREATE TABLE IF NOT EXISTS "Execution" (
   "last_known_state" INTEGER DEFAULT NULL,
   "name" TEXT DEFAULT NULL,
   "external_id" TEXT DEFAULT NULL,
-  "create_time_since_epoch" INTEGER NOT NULL DEFAULT 0,
-  "last_update_time_since_epoch" INTEGER NOT NULL DEFAULT 0,
+  "create_time_since_epoch" BIGINT NOT NULL DEFAULT 0,
+  "last_update_time_since_epoch" BIGINT NOT NULL DEFAULT 0,
   UNIQUE ("external_id"),
   UNIQUE ("type_id","name")
 );

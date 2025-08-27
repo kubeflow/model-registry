@@ -1,6 +1,6 @@
 CREATE TABLE IF NOT EXISTS "EventPath" (
   "event_id" INTEGER NOT NULL,
-  "is_index_step" INTEGER NOT NULL,
+  "is_index_step" BOOLEAN NOT NULL,
   "step_index" INTEGER DEFAULT NULL,
   "step_key" TEXT
 );
