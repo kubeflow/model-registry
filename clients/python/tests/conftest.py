@@ -112,7 +112,7 @@ def poll_for_ready(user_token, verify_ssl):
             break
         print(f"Attempt to connect to server {REGISTRY_URL}")
         try:
-            response = requests.get(**params, timeout=MAX_POLL_TIME, )
+            response = requests.get(**params, timeout=MAX_POLL_TIME)
             if response.status_code == 404:
                 print("Server is up!")
                 break
