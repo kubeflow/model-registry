@@ -180,6 +180,7 @@ paths:
       - $ref: "#/components/parameters/orderBy"
       - $ref: "#/components/parameters/sortOrder"
       - $ref: "#/components/parameters/nextPageToken"
+      - $ref: "#/components/parameters/catalogArtifactType"
 components:
   schemas:
     CatalogArtifact:
@@ -403,6 +404,18 @@ components:
       description: Specifies the order by criteria for listing entities.
       schema:
         $ref: "#/components/schemas/OrderByField"
+      in: query
+      required: false
+    catalogArtifactType:
+      name: artifactType
+      description: |-
+        Specifies the artifact types to return. May be specified multiple
+        times to retrieve multiple artifact types.
+      schema:
+        type: string
+        enum:
+          - model-artifact
+          - metrics-artifact
       in: query
       required: false
 tags: []
