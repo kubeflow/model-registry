@@ -20,8 +20,9 @@ from .conftest import REGISTRY_URL, cleanup
 
 @pytest.fixture
 @cleanup
-async def client() -> AsyncIterator[ModelRegistryServiceApi]:
-    config = mr_openapi.Configuration(REGISTRY_URL)
+async def client(user_token: str, verify_ssl: bool) -> AsyncIterator[ModelRegistryServiceApi]:
+    params = {"verify_ssl": verify_ssl, "access_token": user_token}
+    config = mr_openapi.Configuration(REGISTRY_URL, **params)
     api_client = mr_openapi.ApiClient(config)
     client = mr_openapi.ModelRegistryServiceApi(api_client)
     yield client

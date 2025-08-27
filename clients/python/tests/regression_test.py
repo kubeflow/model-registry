@@ -105,7 +105,8 @@ async def test_create_standalone_model_artifact(client: ModelRegistry):
 
 
 @pytest.mark.e2e
-async def test_patch_model_artifacts_artifact_type(client: ModelRegistry):
+async def test_patch_model_artifacts_artifact_type(client: ModelRegistry, request_headers: dict[str, str],
+                                                   verify_ssl: bool):
     """Patching Artifacts makes the model registry server panic.
 
     reported with https://issues.redhat.com/browse/RHOAIENG-16932
@@ -128,7 +129,9 @@ async def test_patch_model_artifacts_artifact_type(client: ModelRegistry):
     assert ma.id
 
     payload = { "modelFormatName": "foo", "artifactType": "model-artifact" }
-    response = requests.patch(url=f"{REGISTRY_HOST}:{REGISTRY_PORT}/api/model_registry/v1alpha3/artifacts/{ma.id}", json=payload, timeout=10, headers={"Content-Type": "application/json"})
+    response = requests.patch(url=f"{REGISTRY_HOST}:{REGISTRY_PORT}/api/model_registry/v1alpha3/artifacts/{ma.id}",
+                              json=payload, timeout=10,
+                              headers=request_headers, verify=verify_ssl)
     assert response.status_code == 200
     ma = client.get_model_artifact(name, version)
     assert ma
@@ -137,11 +140,14 @@ async def test_patch_model_artifacts_artifact_type(client: ModelRegistry):
 
 
 @pytest.mark.e2e
-async def test_as_mlops_engineer_i_would_like_to_store_a_malformed_registered_model_i_get_a_structured_error_message(client: ModelRegistry):
+async def test_as_mlops_engineer_i_would_like_to_store_a_malformed_registered_model_i_get_a_structured_error_message(
+        client: ModelRegistry, request_headers: dict[str, str], verify_ssl: bool):
     """As a MLOps engineer if I try to store a malformed RegisteredModel I get a structured error message
     """
     payload = { "name": "test_model", "ext_id": 123 }
-    response = requests.post(url=f"{REGISTRY_HOST}:{REGISTRY_PORT}/api/model_registry/v1alpha3/registered_models", json=payload, timeout=10, headers={"Content-Type": "application/json"})
+    response = requests.post(url=f"{REGISTRY_HOST}:{REGISTRY_PORT}/api/model_registry/v1alpha3/registered_models",
+                             json=payload, timeout=10, headers=request_headers, verify=verify_ssl
+                             )
     assert response.status_code == 400
     assert response.json() == {
         "code": "Bad Request",
@@ -150,7 +156,8 @@ async def test_as_mlops_engineer_i_would_like_to_store_a_malformed_registered_mo
 
 
 @pytest.mark.e2e
-async def test_as_mlops_engineer_i_would_like_to_store_a_malformed_model_version_i_get_a_structured_error_message(client: ModelRegistry):
+async def test_as_mlops_engineer_i_would_like_to_store_a_malformed_model_version_i_get_a_structured_error_message(
+        client: ModelRegistry, request_headers: dict[str, str], verify_ssl: bool):
     """As a MLOps engineer if I try to store a malformed ModelVersion I get a structured error message
     """
     name = "test_model"
@@ -165,7 +172,8 @@ async def test_as_mlops_engineer_i_would_like_to_store_a_malformed_model_version
     assert rm.id
 
     payload = { "registeredModelId": rm.id }
-    response = requests.post(url=f"{REGISTRY_HOST}:{REGISTRY_PORT}/api/model_registry/v1alpha3/model_versions", json=payload, timeout=10, headers={"Content-Type": "application/json"})
+    response = requests.post(url=f"{REGISTRY_HOST}:{REGISTRY_PORT}/api/model_registry/v1alpha3/model_versions",
+                             json=payload, timeout=10, headers=request_headers, verify=verify_ssl)
     assert response.status_code == 422
     assert response.json() == {
         "code": "Bad Request",

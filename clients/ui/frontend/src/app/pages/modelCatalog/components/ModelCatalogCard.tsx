@@ -77,7 +77,7 @@ const ModelCatalogCard: React.FC<ModelCatalogCardProps> = ({
                 if (onSelect) {
                   onSelect(model);
                 } else {
-                  navigate(`/model-catalog/${model.id}` || '#');
+                  navigate(`/model-catalog/${encodeURIComponent(model.id)}` || '#');
                 }
               }}
               style={{
