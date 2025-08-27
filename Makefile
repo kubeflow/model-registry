@@ -142,9 +142,9 @@ gen/gorm/postgres: bin/golang-migrate start/postgres
 # generate the gorm structs for SQLite
 .PHONY: gen/gorm/sqlite
 gen/gorm/sqlite: bin/golang-migrate start/sqlite
-	@(trap 'cd $(CURDIR) && $(MAKE) stop/sqlite' EXIT; \
-	$(GOLANG_MIGRATE) -path './internal/datastore/embedmd/sqlite/migrations' -database 'sqlite://./model-registry.db' up && \
-	cd gorm-gen && GOWORK=off go run main.go --db-type sqlite --dsn './model-registry.db' && \
+	@(trap 'cd $(CURDIR) && $(MAKE) stop/sqlite && rm -f /tmp/gorm-gen-sqlite.db' EXIT; \
+	$(GOLANG_MIGRATE) -path './internal/datastore/embedmd/sqlite/migrations' -database 'sqlite:///tmp/gorm-gen-sqlite.db' up && \
+	cd gorm-gen && GOWORK=off go run main.go --db-type sqlite --dsn '/tmp/gorm-gen-sqlite.db' && \
 	cd $(CURDIR) && ./scripts/remove_gorm_defaults.sh)
 
 # generate the gorm structs (defaults to MySQL for backward compatibility)

@@ -10,7 +10,12 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_DIR="$(dirname "${SCRIPT_DIR}")"
 
 # Default SQLite database path (can be overridden by environment variable)
-SQLITE_DB_PATH="${SQLITE_DB_PATH:-${PROJECT_DIR}/model-registry.db}"
+# Use temp directory for CI, project directory for local development
+if [ "${CI:-false}" = "true" ]; then
+    SQLITE_DB_PATH="${SQLITE_DB_PATH:-/tmp/model-registry.db}"
+else
+    SQLITE_DB_PATH="${SQLITE_DB_PATH:-${PROJECT_DIR}/model-registry.db}"
+fi
 
 echo "Starting SQLite database setup..."
 echo "Database file: ${SQLITE_DB_PATH}"
