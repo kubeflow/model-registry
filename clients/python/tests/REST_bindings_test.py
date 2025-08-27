@@ -21,11 +21,7 @@ from .conftest import REGISTRY_URL, cleanup
 @pytest.fixture
 @cleanup
 async def client(user_token: str, verify_ssl: bool) -> AsyncIterator[ModelRegistryServiceApi]:
-    params = {}
-    if user_token:
-        params["access_token"] = user_token
-    if verify_ssl is not None:
-        params["verify_ssl"] = verify_ssl
+params = {"verify_ssl": verify_ssl, "access_token": user_token}
     config = mr_openapi.Configuration(REGISTRY_URL, **params)
     api_client = mr_openapi.ApiClient(config)
     client = mr_openapi.ModelRegistryServiceApi(api_client)
