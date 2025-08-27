@@ -78,16 +78,41 @@ def root(request) -> Path:
     return (request.config.rootpath / "../..").resolve()  # resolves to absolute path
 
 
-def poll_for_ready():
+@pytest.fixture(scope="session")
+def user_token() -> str:
+    return os.getenv("AUTH_TOKEN", None)
+
+
+@pytest.fixture(scope="session")
+def request_headers(user_token: str) -> dict[str, str]:
+    headers = {"Content-Type": "application/json"}
+    if user_token:
+        headers["Authorization"] = f"Bearer {user_token}"
+    return headers
+
+
+@pytest.fixture(scope="session")
+def verify_ssl() -> bool:
+    verify_ssl_env = os.environ.get("VERIFY_SSL")
+    if verify_ssl_env is None:
+        return None
+    return verify_ssl_env.lower() == "true"
+
+
+def poll_for_ready(user_token, verify_ssl):
+    params = {
+        "url": REGISTRY_URL,
+        "headers": {"Authorization": f"Bearer {user_token}", } if user_token else None,
+        "verify": verify_ssl
+    }
     while True:
         elapsed_time = time.time() - start_time
         if elapsed_time >= MAX_POLL_TIME:
             print("Polling timed out.")
             break
-
-        print("Attempt to connect")
+        print(f"Attempt to connect to server {REGISTRY_URL}")
         try:
-            response = requests.get(REGISTRY_URL, timeout=MAX_POLL_TIME)
+            response = requests.get(**params, timeout=MAX_POLL_TIME)
             if response.status_code == 404:
                 print("Server is up!")
                 break
@@ -98,14 +123,29 @@ def poll_for_ready():
         time.sleep(POLL_INTERVAL)
 
 
-def cleanup(client):
-    async def yield_and_restart(root):
-        poll_for_ready()
-        if inspect.iscoroutinefunction(client) or inspect.isasyncgenfunction(client):
-            async with asynccontextmanager(client)() as async_client:
+def cleanup(fixture_func):
+    async def yield_and_restart(root, request):
+        # Access fixture values through request
+        try:
+            user_token = request.getfixturevalue("user_token")
+            verify_ssl = request.getfixturevalue("verify_ssl")
+        except pytest.FixtureLookupError:
+            user_token = None
+            verify_ssl = None
+
+        poll_for_ready(user_token=user_token, verify_ssl=verify_ssl)
+
+        if inspect.iscoroutinefunction(fixture_func) or inspect.isasyncgenfunction(fixture_func):
+            async with asynccontextmanager(fixture_func)(user_token=user_token, verify_ssl=verify_ssl) as async_client:
                 yield async_client
         else:
-            yield client()
+            # Check if fixture function expects parameters
+            sig = inspect.signature(fixture_func)
+            if "user_token" in sig.parameters:
+                yield fixture_func(user_token=user_token)
+            else:
+                # For fixtures that don't take parameters (like client_attrs)
+                yield fixture_func()
 
         print("Cleaning DB...")
         subprocess.call(  # noqa: S602
@@ -117,12 +157,10 @@ def cleanup(client):
     return yield_and_restart
 
 
-
-
 @pytest.fixture
 @cleanup
-def client() -> ModelRegistry:
-    return ModelRegistry(REGISTRY_HOST, REGISTRY_PORT, author="author", is_secure=False)
+def client(user_token: str) -> ModelRegistry:
+    return ModelRegistry(REGISTRY_HOST, REGISTRY_PORT, author="author", is_secure=False, user_token=user_token)
 
 
 @pytest.fixture

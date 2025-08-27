@@ -201,7 +201,8 @@ async def test_update_logical_model_with_labels(client: ModelRegistry):
 
 
 @pytest.mark.e2e
-async def test_patch_model_artifacts_artifact_type(client: ModelRegistry):
+async def test_patch_model_artifacts_artifact_type(client: ModelRegistry, request_headers: dict[str, str],
+                                                   verify_ssl: bool):
     """Patching ModelArtifact requires `artifactType` value which was previously not required
 
     reported with https://issues.redhat.com/browse/RHOAIENG-15326
@@ -230,7 +231,8 @@ async def test_patch_model_artifacts_artifact_type(client: ModelRegistry):
         url=f"{REGISTRY_HOST}:{REGISTRY_PORT}/api/model_registry/v1alpha3/model_artifacts/{ma.id}",
         json=payload,
         timeout=10,
-        headers={"Content-Type": "application/json"},
+        headers=request_headers,
+        verify=verify_ssl,
     )
     assert response.status_code == 200
     ma = client.get_model_artifact(name, version)
