@@ -20,7 +20,7 @@ paths:
         - $ref: "#/components/parameters/kubeflowUserId"
       responses:
         "200":
-          $ref: "#/components/responses/CatalogSourceListResponse"
+          $ref: "#/components/responses/CatalogSourceResponse"
         "401":
           $ref: "#/components/responses/Unauthorized"
         "500":
@@ -1035,17 +1035,6 @@ components:
           additionalProperties:
             $ref: "#/components/schemas/MetadataValue"
     # catalog
-    ConfigMapKindList:
-      description: List of ConfigMapKind entities.
-      type: object
-      allOf:
-        - type: object
-          properties:
-            items:
-              description: Array of  `ConfigMapKind` entities.
-              type: array
-              items:
-                $ref: "#/components/schemas/ConfigMapKind"
     ConfigMapKind: 
       description: Kubernetes Custom Resource for Config map
       type: object
@@ -1125,11 +1114,8 @@ components:
             models:
               type: array
               items:
-                type: object
-                properties:
-                  repository:
-                    type: string
-                    example: rhelai1/modelcar-granite-7b-starter
+                type: string
+                example: ["rhelai1/modelcar-granite-7b-starter"]
             excludedModels:
               type: array
               items:
@@ -2281,18 +2267,6 @@ components:
           schema:
             $ref: "#/components/schemas/Error"
       description: Unexpected internal server error
-    CatalogSourceListResponse:
-      content:
-        application/json:
-          schema:
-            type: object
-            properties:
-              metadata:
-                type: object
-                description: Metadata abput the response
-              data:
-                $ref: "#/components/schemas/ConfigMapKindList"
-      description: A response containing a `ConfigMapKindList` entity.
     CatalogSourceResponse:
       content:
         application/json:
