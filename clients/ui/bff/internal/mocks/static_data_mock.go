@@ -263,10 +263,10 @@ func GenerateMockArtifact() openapi.Artifact {
 }
 
 func GetCatalogModelMocks() []models.CatalogModel {
-	redHatModel1 := models.CatalogModel{
-		Name:        "rhelai1/granite-8b-code-instruct",
+	sampleModel1 := models.CatalogModel{
+		Name:        "repo1/granite-8b-code-instruct",
 		Description: stringToPointer("Granite-8B-Code-Instruct is a 8B parameter model fine tuned from\nGranite-8B-Code-Base on a combination of permissively licensed instruction\ndata to enhance instruction following capabilities including logical\nreasoning and problem-solving skills."),
-		Provider:    stringToPointer("IBM"),
+		Provider:    stringToPointer("provider1"),
 		Tasks:       []string{"text-generation"},
 		License:     stringToPointer("apache-2.0"),
 		LicenseLink: stringToPointer("https://www.apache.org/licenses/LICENSE-2.0.txt"),
@@ -282,7 +282,7 @@ func GetCatalogModelMocks() []models.CatalogModel {
     - language
     - granite-3.1
     base_model:
-    - ibm-granite/granite-3.1-8b-base
+    - provider1-granite/granite-3.1-8b-base
     ---
 
     # Granite-3.1-8B-Instruct
@@ -290,10 +290,10 @@ func GetCatalogModelMocks() []models.CatalogModel {
     **Model Summary:**
     Granite-3.1-8B-Instruct is a 8B parameter long-context instruct model finetuned from Granite-3.1-8B-Base using a combination of open source instruction datasets with permissive license and internally collected synthetic datasets tailored for solving long context problems. This model is developed using a diverse set of techniques with a structured chat format, including supervised finetuning, model alignment using reinforcement learning, and model merging.
 
-    - **Developers:** Granite Team, IBM
-    - **GitHub Repository:** [ibm-granite/granite-3.1-language-models](https://github.com/ibm-granite/granite-3.1-language-models)
-    - **Website**: [Granite Docs](https://www.ibm.com/granite/docs/)
-    - **Paper:** [Granite 3.1 Language Models (coming soon)](https://huggingface.co/collections/ibm-granite/granite-31-language-models-6751dbbf2f3389bec5c6f02d) 
+    - **Developers:** Granite Team, provider1
+    - **GitHub Repository:** [provider1-granite/granite-3.1-language-models](https://github.com/provider1-granite/granite-3.1-language-models)
+    - **Website**: [Granite Docs](https://www.provider1.com/granite/docs/)
+    - **Paper:** [Granite 3.1 Language Models (coming soon)](https://huggingface.co/collections/provider1-granite/granite-31-language-models-6751dbbf2f3389bec5c6f02d) 
     - **Release Date**: December 18th, 2024
     - **License:** [Apache 2.0](https://www.apache.org/licenses/LICENSE-2.0)
 
@@ -331,14 +331,14 @@ func GetCatalogModelMocks() []models.CatalogModel {
     from transformers import AutoModelForCausalLM, AutoTokenizer
 
     device = "auto"
-    model_path = "ibm-granite/granite-3.1-8b-instruct"
+    model_path = "provider1-granite/granite-3.1-8b-instruct"
     tokenizer = AutoTokenizer.from_pretrained(model_path)
     # drop device_map if running on CPU
     model = AutoModelForCausalLM.from_pretrained(model_path, device_map=device)
     model.eval()
     # change input text as desired
     chat = [
-        { "role": "user", "content": "Please list one IBM Research laboratory located in the United States. You should only output its name and location." },
+        { "role": "user", "content": "Please list one provider1 Research laboratory located in the United States. You should only output its name and location." },
     ]
     chat = tokenizer.apply_chat_template(chat, tokenize=False, add_generation_prompt=True)
     # tokenize the text
@@ -586,18 +586,18 @@ func GetCatalogModelMocks() []models.CatalogModel {
     </tbody></table>
 
     **Training Data:** 
-    Overall, our SFT data is largely comprised of three key sources: (1) publicly available datasets with permissive license, (2) internal synthetic data targeting specific capabilities including long-context tasks, and (3) very small amounts of human-curated data. A detailed attribution of datasets can be found in the [Granite 3.0 Technical Report](https://github.com/ibm-granite/granite-3.0-language-models/blob/main/paper.pdf), [Granite 3.1 Technical Report (coming soon)](https://huggingface.co/collections/ibm-granite/granite-31-language-models-6751dbbf2f3389bec5c6f02d), and [Accompanying Author List](https://github.com/ibm-granite/granite-3.0-language-models/blob/main/author-ack.pdf).
+    Overall, our SFT data is largely comprised of three key sources: (1) publicly available datasets with permissive license, (2) internal synthetic data targeting specific capabilities including long-context tasks, and (3) very small amounts of human-curated data. A detailed attribution of datasets can be found in the [Granite 3.0 Technical Report](https://github.com/provider1-granite/granite-3.0-language-models/blob/main/paper.pdf), [Granite 3.1 Technical Report (coming soon)](https://huggingface.co/collections/provider1-granite/granite-31-language-models-6751dbbf2f3389bec5c6f02d), and [Accompanying Author List](https://github.com/provider1-granite/granite-3.0-language-models/blob/main/author-ack.pdf).
 
     **Infrastructure:**
-    We train Granite 3.1 Language Models using IBM's super computing cluster, Blue Vela, which is outfitted with NVIDIA H100 GPUs. This cluster provides a scalable and efficient infrastructure for training our models over thousands of GPUs.
+    We train Granite 3.1 Language Models using provider1's super computing cluster, Blue Vela, which is outfitted with NVIDIA H100 GPUs. This cluster provides a scalable and efficient infrastructure for training our models over thousands of GPUs.
 
     **Ethical Considerations and Limitations:** 
     Granite 3.1 Instruct Models are primarily finetuned using instruction-response pairs mostly in English, but also multilingual data covering eleven languages. Although this model can handle multilingual dialog use cases, its performance might not be similar to English tasks. In such case, introducing a small number of examples (few-shot) can help the model in generating more accurate outputs. While this model has been aligned by keeping safety in consideration, the model may in some cases produce inaccurate, biased, or unsafe responses to user prompts. So we urge the community to use this model with proper safety testing and tuning tailored for their specific tasks.
 
     **Resources**
-    - ⭐️ Learn about the latest updates with Granite: https://www.ibm.com/granite
-    - 📄 Get started with tutorials, best practices, and prompt engineering advice: https://www.ibm.com/granite/docs/
-    - 💡 Learn about the latest Granite learning resources: https://ibm.biz/granite-learning-resources
+    - ⭐️ Learn about the latest updates with Granite: https://www.provider1.com/granite
+    - 📄 Get started with tutorials, best practices, and prompt engineering advice: https://www.provider1.com/granite/docs/
+    - 💡 Learn about the latest Granite learning resources: https://provider1.biz/granite-learning-resources
 
     <!-- ## Citation
     ` + "```" + `
@@ -610,7 +610,7 @@ func GetCatalogModelMocks() []models.CatalogModel {
       url = {https://arxiv.org/abs/0000.00000},
     }
       ` + "```" + ` -->`),
-		SourceId:                 stringToPointer("redhat"),
+		SourceId:                 stringToPointer("sample-source"),
 		LibraryName:              stringToPointer("transformers"),
 		CreateTimeSinceEpoch:     stringToPointer("1693526400000"),
 		LastUpdateTimeSinceEpoch: stringToPointer("1704067200000"),
@@ -624,32 +624,32 @@ func GetCatalogModelMocks() []models.CatalogModel {
 		},
 	}
 
-	redHatModel2 := models.CatalogModel{
-		Name:        "rhelai1/granite-7b-instruct",
-		Description: stringToPointer("IBM Granite 7B instruction-tuned model for enterprise applications"),
-		Provider:    stringToPointer("IBM"),
+	sampleModel2 := models.CatalogModel{
+		Name:        "repo1/granite-7b-instruct",
+		Description: stringToPointer("Granite 7B instruction-tuned model for enterprise applications"),
+		Provider:    stringToPointer("provider1"),
 		Tasks:       []string{"text-generation", "instruction-following"},
 		License:     stringToPointer("apache-2.0"),
 		Maturity:    stringToPointer("Generally Available"),
 		Language:    []string{"en"},
-		SourceId:    stringToPointer("redhat"),
+		SourceId:    stringToPointer("sample-source"),
 	}
 
-	redHatModel3 := models.CatalogModel{
-		Name:        "rhelai1/granite-3b-code-base",
+	sampleModel3 := models.CatalogModel{
+		Name:        "repo1/granite-3b-code-base",
 		Description: stringToPointer("Granite 3B code generation model for programming tasks"),
-		Provider:    stringToPointer("IBM"),
+		Provider:    stringToPointer("provider1"),
 		Tasks:       []string{"code-generation"},
 		License:     stringToPointer("apache-2.0"),
 		Maturity:    stringToPointer("Generally Available"),
 		Language:    []string{"en"},
-		SourceId:    stringToPointer("redhat"),
+		SourceId:    stringToPointer("sample-source"),
 	}
 
 	huggingFaceModel1 := models.CatalogModel{
-		Name:        "provider1/bert-base-uncased",
+		Name:        "provider2/bert-base-uncased",
 		Description: stringToPointer("BERT base model (uncased) - Pretrained model on English language"),
-		Provider:    stringToPointer("provider1"),
+		Provider:    stringToPointer("provider2"),
 		Tasks:       []string{"fill-mask", "feature-extraction"},
 		License:     stringToPointer("apache-2.0"),
 		Maturity:    stringToPointer("Generally Available"),
@@ -659,9 +659,9 @@ func GetCatalogModelMocks() []models.CatalogModel {
 	}
 
 	huggingFaceModel2 := models.CatalogModel{
-		Name:        "provider2/gpt2",
+		Name:        "provider3/gpt2",
 		Description: stringToPointer("GPT-2 is a transformers model pretrained on a very large corpus of English data"),
-		Provider:    stringToPointer("provider2"),
+		Provider:    stringToPointer("provider3"),
 		Tasks:       []string{"text-generation"},
 		License:     stringToPointer("mit"),
 		Maturity:    stringToPointer("Generally Available"),
@@ -705,7 +705,7 @@ func GetCatalogModelMocks() []models.CatalogModel {
 	}
 
 	return []models.CatalogModel{
-		redHatModel1, redHatModel2, redHatModel3,
+		sampleModel1, sampleModel2, sampleModel3,
 		huggingFaceModel1, huggingFaceModel2, huggingFaceModel3,
 		otherModel1, otherModel2,
 	}
@@ -725,8 +725,8 @@ func GetCatalogModelListMock() models.CatalogModelList {
 func GetCatalogSourceMocks() []models.CatalogSource {
 	return []models.CatalogSource{
 		{
-			Id:   "redhat",
-			Name: "Red Hat",
+			Id:   "sample-source",
+			Name: "Sample source",
 		},
 		{
 			Id:   "huggingface",
@@ -757,7 +757,7 @@ func GetCatalogSourceListMock() models.CatalogSourceList {
 func GetCatalogModelArtifactMock() []models.CatalogModelArtifact {
 	return []models.CatalogModelArtifact{
 		{
-			Uri:                      "oci://registry.redhat.io/rhelai1/modelcar-granite-7b-starter:1.4.0",
+			Uri:                      "oci://registry.sample.io/repo1/modelcar-granite-7b-starter:1.4.0",
 			CreateTimeSinceEpoch:     stringToPointer("1693526400000"),
 			LastUpdateTimeSinceEpoch: stringToPointer("1704067200000"),
 			CustomProperties:         newCustomProperties(),
