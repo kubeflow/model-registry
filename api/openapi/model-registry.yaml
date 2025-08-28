@@ -1656,6 +1656,20 @@ components:
           dataset-artifact: "#/components/schemas/DataSetUpdate"
           metric: "#/components/schemas/MetricUpdate"
           parameter: "#/components/schemas/ParameterUpdate"
+    BaseArtifact:
+      description: Base schema for all artifact types with common server generated properties.
+      allOf:
+        - $ref: "#/components/schemas/BaseResource"
+        - type: object
+          properties:
+            experimentId:
+              description: |-
+                Optional id of the experiment that produced this artifact.
+              type: string
+            experimentRunId:
+              description: |-
+                Optional id of the experiment run that produced this artifact.
+              type: string
     BaseModel:
       type: object
       properties:
@@ -1816,7 +1830,7 @@ components:
     DataSet:
       description: A dataset artifact representing training or test data.
       allOf:
-        - $ref: "#/components/schemas/BaseResource"
+        - $ref: "#/components/schemas/BaseArtifact"
         - $ref: "#/components/schemas/DataSetCreate"
         - type: object
           properties:
@@ -1867,7 +1881,7 @@ components:
     DocArtifact:
       description: A document.
       allOf:
-        - $ref: "#/components/schemas/BaseResource"
+        - $ref: "#/components/schemas/BaseArtifact"
         - $ref: "#/components/schemas/DocArtifactCreate"
         - type: object
           properties:
@@ -2246,7 +2260,7 @@ components:
     Metric:
       description: A metric representing a numerical measurement from model training or evaluation.
       allOf:
-        - $ref: "#/components/schemas/BaseResource"
+        - $ref: "#/components/schemas/BaseArtifact"
         - $ref: "#/components/schemas/MetricCreate"
         - type: object
           properties:
@@ -2305,7 +2319,7 @@ components:
     ModelArtifact:
       description: An ML model artifact.
       allOf:
-        - $ref: "#/components/schemas/BaseResource"
+        - $ref: "#/components/schemas/BaseArtifact"
         - $ref: "#/components/schemas/ModelArtifactCreate"
         - type: object
           properties:
@@ -2451,7 +2465,7 @@ components:
     Parameter:
       description: A parameter representing a configuration parameter used in model training or execution.
       allOf:
-        - $ref: "#/components/schemas/BaseResource"
+        - $ref: "#/components/schemas/BaseArtifact"
         - $ref: "#/components/schemas/ParameterCreate"
         - type: object
           properties:

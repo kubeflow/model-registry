@@ -14,6 +14,8 @@ import (
 // goverter:extend Int32ToString
 // goverter:extend StringToInt64
 // goverter:extend MapEmbedMDCustomProperties
+// goverter:extend MapEmbedMDExperimentId
+// goverter:extend MapEmbedMDExperimentRunId
 type EmbedMDToOpenAPIConverter interface {
 	// goverter:map Properties Description | MapEmbedMDDescription
 	// goverter:map Properties Owner | MapEmbedMDOwner
@@ -61,6 +63,8 @@ type EmbedMDToOpenAPIConverter interface {
 	// goverter:map Attributes ArtifactType | MapEmbedMDArtifactTypeModelArtifact
 	// goverter:map Attributes CreateTimeSinceEpoch | MapEmbedMDCreateTimeSinceEpochModelArtifact
 	// goverter:map Attributes LastUpdateTimeSinceEpoch | MapEmbedMDLastUpdateTimeSinceEpochModelArtifact
+	// goverter:map CustomProperties ExperimentId | MapEmbedMDExperimentId
+	// goverter:map CustomProperties ExperimentRunId | MapEmbedMDExperimentRunId
 	ConvertModelArtifact(source *models.ModelArtifactImpl) (*openapi.ModelArtifact, error)
 
 	// goverter:map Properties Description | MapEmbedMDDescription
@@ -71,6 +75,8 @@ type EmbedMDToOpenAPIConverter interface {
 	// goverter:map Attributes ArtifactType | MapEmbedMDArtifactTypeDocArtifact
 	// goverter:map Attributes CreateTimeSinceEpoch | MapEmbedMDCreateTimeSinceEpochDocArtifact
 	// goverter:map Attributes LastUpdateTimeSinceEpoch | MapEmbedMDLastUpdateTimeSinceEpochDocArtifact
+	// goverter:map CustomProperties ExperimentId | MapEmbedMDExperimentId
+	// goverter:map CustomProperties ExperimentRunId | MapEmbedMDExperimentRunId
 	ConvertDocArtifact(source *models.DocArtifactImpl) (*openapi.DocArtifact, error)
 
 	// goverter:map Properties Description | MapEmbedMDDescription
@@ -136,6 +142,8 @@ type EmbedMDToOpenAPIConverter interface {
 	// goverter:map Attributes ArtifactType | MapEmbedMDArtifactTypeDataSet
 	// goverter:map Attributes CreateTimeSinceEpoch | MapEmbedMDCreateTimeSinceEpochDataSet
 	// goverter:map Attributes LastUpdateTimeSinceEpoch | MapEmbedMDLastUpdateTimeSinceEpochDataSet
+	// goverter:map CustomProperties ExperimentId | MapEmbedMDExperimentId
+	// goverter:map CustomProperties ExperimentRunId | MapEmbedMDExperimentRunId
 	ConvertDataSet(source *models.DataSetImpl) (*openapi.DataSet, error)
 
 	// goverter:map Properties Description | MapEmbedMDDescription
@@ -148,6 +156,8 @@ type EmbedMDToOpenAPIConverter interface {
 	// goverter:map Attributes ArtifactType | MapEmbedMDArtifactTypeMetric
 	// goverter:map Attributes CreateTimeSinceEpoch | MapEmbedMDCreateTimeSinceEpochMetric
 	// goverter:map Attributes LastUpdateTimeSinceEpoch | MapEmbedMDLastUpdateTimeSinceEpochMetric
+	// goverter:map CustomProperties ExperimentId | MapEmbedMDExperimentId
+	// goverter:map CustomProperties ExperimentRunId | MapEmbedMDExperimentRunId
 	ConvertMetric(source *models.MetricImpl) (*openapi.Metric, error)
 
 	// goverter:map Properties Description | MapEmbedMDDescription
@@ -159,5 +169,7 @@ type EmbedMDToOpenAPIConverter interface {
 	// goverter:map Attributes ArtifactType | MapEmbedMDArtifactTypeParameter
 	// goverter:map Attributes CreateTimeSinceEpoch | MapEmbedMDCreateTimeSinceEpochParameter
 	// goverter:map Attributes LastUpdateTimeSinceEpoch | MapEmbedMDLastUpdateTimeSinceEpochParameter
+	// goverter:map CustomProperties ExperimentId | MapEmbedMDExperimentId
+	// goverter:map CustomProperties ExperimentRunId | MapEmbedMDExperimentRunId
 	ConvertParameter(source *models.ParameterImpl) (*openapi.Parameter, error)
 }

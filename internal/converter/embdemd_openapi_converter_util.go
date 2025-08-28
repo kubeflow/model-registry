@@ -22,6 +22,11 @@ func MapEmbedMDCustomProperties(source []models.Properties) (map[string]openapi.
 	data := make(map[string]openapi.MetadataValue)
 
 	for _, v := range source {
+		// Skip experiment properties as they are now available as top-level fields
+		if v.Name == "experiment_id" || v.Name == "experiment_run_id" {
+			continue
+		}
+
 		customValue := openapi.MetadataValue{}
 
 		if v.IntValue != nil {
@@ -142,33 +147,39 @@ func MapEmbedMDPropertyLanguage(source *[]models.Properties) []string {
 	return nil
 }
 
-func MapEmbedMDPropertyLibraryName(source *[]models.Properties) *string {
+// findPropertyByName returns the property with the given name, or nil if not found
+func findPropertyByName(source *[]models.Properties, propertyName string) *models.Properties {
+	if source == nil {
+		return nil
+	}
+
 	for _, v := range *source {
-		if v.Name == "library_name" {
-			return v.StringValue
+		if v.Name == propertyName {
+			return &v
 		}
 	}
 
+	return nil
+}
+
+func MapEmbedMDPropertyLibraryName(source *[]models.Properties) *string {
+	if v := findPropertyByName(source, "library_name"); v != nil {
+		return v.StringValue
+	}
 	return nil
 }
 
 func MapEmbedMDPropertyLicenseLink(source *[]models.Properties) *string {
-	for _, v := range *source {
-		if v.Name == "license_link" {
-			return v.StringValue
-		}
+	if v := findPropertyByName(source, "license_link"); v != nil {
+		return v.StringValue
 	}
-
 	return nil
 }
 
 func MapEmbedMDPropertyLicense(source *[]models.Properties) *string {
-	for _, v := range *source {
-		if v.Name == "license" {
-			return v.StringValue
-		}
+	if v := findPropertyByName(source, "license"); v != nil {
+		return v.StringValue
 	}
-
 	return nil
 }
 
@@ -849,22 +860,16 @@ func MapEmbedMDStateMetric(source *models.MetricAttributes) (*openapi.ArtifactSt
 
 // Metric property mapping functions
 func MapEmbedMDPropertyValueMetric(source *[]models.Properties) *float64 {
-	for _, v := range *source {
-		if v.Name == "value" {
-			return v.DoubleValue
-		}
+	if v := findPropertyByName(source, "value"); v != nil {
+		return v.DoubleValue
 	}
-
 	return nil
 }
 
 func MapEmbedMDPropertyTimestampMetric(source *[]models.Properties) *string {
-	for _, v := range *source {
-		if v.Name == "timestamp" {
-			return v.StringValue
-		}
+	if v := findPropertyByName(source, "timestamp"); v != nil {
+		return v.StringValue
 	}
-
 	return nil
 }
 
@@ -883,12 +888,9 @@ func MapEmbedMDPropertyStepMetric(source *[]models.Properties) *int64 {
 
 // Parameter property mapping functions
 func MapEmbedMDPropertyValueParameter(source *[]models.Properties) *string {
-	for _, v := range *source {
-		if v.Name == "value" {
-			return v.StringValue
-		}
+	if v := findPropertyByName(source, "value"); v != nil {
+		return v.StringValue
 	}
-
 	return nil
 }
 
@@ -938,4 +940,18 @@ func MapEmbedMDStateParameter(source *models.ParameterAttributes) (*openapi.Arti
 	}
 
 	return openapi.NewArtifactStateFromValue(*source.State)
+}
+
+func MapEmbedMDExperimentId(source *[]models.Properties) *string {
+	if v := findPropertyByName(source, "experiment_id"); v != nil {
+		return Int32ToString(v.IntValue)
+	}
+	return nil
+}
+
+func MapEmbedMDExperimentRunId(source *[]models.Properties) *string {
+	if v := findPropertyByName(source, "experiment_run_id"); v != nil {
+		return Int32ToString(v.IntValue)
+	}
+	return nil
 }
