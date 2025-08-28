@@ -13,6 +13,7 @@ import {
   Divider,
   Truncate,
 } from '@patternfly/react-core';
+import { Link } from 'react-router-dom';
 import { TruncatedText } from 'mod-arch-shared';
 import { RegisteredModel } from '~/app/types';
 import useModelVersionsByRegisteredModel from '~/app/hooks/useModelVersionsByRegisteredModel';
@@ -55,11 +56,8 @@ const ModelVersionsCard: React.FC<ModelVersionsCardProps> = ({ rm, isArchiveMode
               >
                 <Flex spaceItems={{ default: 'spaceItemsXs' }} direction={{ default: 'column' }}>
                   <FlexItem>
-                    <Button
-                      component="a"
-                      isInline
-                      data-testid={`model-version-${mv.id}-link`}
-                      href={
+                    <Link
+                      to={
                         isArchiveModel
                           ? archiveModelVersionDetailsUrl(
                               mv.id,
@@ -68,10 +66,12 @@ const ModelVersionsCard: React.FC<ModelVersionsCardProps> = ({ rm, isArchiveMode
                             )
                           : modelVersionUrl(mv.id, rm.id, preferredModelRegistry?.name)
                       }
-                      variant="link"
+                      style={{ textDecoration: 'none' }}
                     >
-                      <Truncate content={mv.name} />
-                    </Button>
+                      <Button isInline data-testid={`model-version-${mv.id}-link`} variant="link">
+                        <Truncate content={mv.name} />
+                      </Button>
+                    </Link>
                   </FlexItem>
                   <FlexItem>
                     <TruncatedText content={mv.description} maxLines={1} />

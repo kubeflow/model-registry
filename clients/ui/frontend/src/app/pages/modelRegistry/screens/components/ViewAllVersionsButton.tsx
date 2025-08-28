@@ -1,6 +1,7 @@
 import * as React from 'react';
 import { Button } from '@patternfly/react-core';
 import { ArrowRightIcon } from '@patternfly/react-icons';
+import { Link } from 'react-router-dom';
 import {
   modelVersionListUrl,
   archiveModelVersionListUrl,
@@ -23,21 +24,24 @@ const ViewAllVersionsButton: React.FC<ViewAllVersionsButtonProps> = ({
   const { preferredModelRegistry } = React.useContext(ModelRegistrySelectorContext);
 
   return (
-    <Button
-      component="a"
-      isInline
-      data-testid="versions-route-link"
-      href={
+    <Link
+      to={
         isArchiveModel
           ? archiveModelVersionListUrl(rmId, preferredModelRegistry?.name)
           : modelVersionListUrl(rmId, preferredModelRegistry?.name)
       }
-      variant="link"
-      icon={showIcon ? <ArrowRightIcon /> : undefined}
-      iconPosition={showIcon ? 'right' : undefined}
+      style={{ textDecoration: 'none' }}
     >
-      {`View all ${totalVersions} versions`}
-    </Button>
+      <Button
+        isInline
+        data-testid="versions-route-link"
+        variant="link"
+        icon={showIcon ? <ArrowRightIcon /> : undefined}
+        iconPosition={showIcon ? 'right' : undefined}
+      >
+        {`View all ${totalVersions} versions`}
+      </Button>
+    </Link>
   );
 };
 
