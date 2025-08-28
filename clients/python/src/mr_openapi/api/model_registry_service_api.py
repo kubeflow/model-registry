@@ -8252,6 +8252,383 @@ class ModelRegistryServiceApi:
         )
 
     @validate_call
+    async def get_experiment_runs_metric_history(
+        self,
+        filter_query: Annotated[
+            Optional[StrictStr],
+            Field(
+                description='A SQL-like query string to filter the list of entities. The query supports rich filtering capabilities with automatic type inference.  **Supported Operators:** - Comparison: `=`, `!=`, `<>`, `>`, `<`, `>=`, `<=` - Pattern matching: `LIKE`, `ILIKE` (case-insensitive) - Set membership: `IN` - Logical: `AND`, `OR` - Grouping: `()` for complex expressions  **Data Types:** - Strings: `"value"` or `\'value\'` - Numbers: `42`, `3.14`, `1e-5` - Booleans: `true`, `false` (case-insensitive)  **Property Access:** - Standard properties: `name`, `id`, `state`, `createTimeSinceEpoch` - Custom properties: Any user-defined property name - Escaped properties: Use backticks for special characters: `` `custom-property` `` - Type-specific access: `property.string_value`, `property.double_value`, `property.int_value`, `property.bool_value`  **Examples:** - Basic: `name = "my-model"` - Comparison: `accuracy > 0.95` - Pattern: `name LIKE "%tensorflow%"` - Complex: `(name = "model-a" OR name = "model-b") AND state = "LIVE"` - Custom property: `framework.string_value = "pytorch"` - Escaped property: `` `mlflow.source.type` = "notebook" `` '
+            ),
+        ] = None,
+        name: Annotated[Optional[StrictStr], Field(description="Name of entity to search.")] = None,
+        step_ids: Annotated[
+            Optional[StrictStr], Field(description="Comma-separated list of step IDs to filter metrics by.")
+        ] = None,
+        page_size: Annotated[Optional[StrictStr], Field(description="Number of entities in each page.")] = None,
+        order_by: Annotated[
+            Optional[OrderByField], Field(description="Specifies the order by criteria for listing entities.")
+        ] = None,
+        sort_order: Annotated[
+            Optional[SortOrder], Field(description="Specifies the sort order for listing entities, defaults to ASC.")
+        ] = None,
+        next_page_token: Annotated[
+            Optional[StrictStr], Field(description="Token to use to retrieve next page of results.")
+        ] = None,
+        _request_timeout: Union[
+            None,
+            Annotated[StrictFloat, Field(gt=0)],
+            tuple[Annotated[StrictFloat, Field(gt=0)], Annotated[StrictFloat, Field(gt=0)]],
+        ] = None,
+        _request_auth: Optional[dict[StrictStr, Any]] = None,
+        _content_type: Optional[StrictStr] = None,
+        _headers: Optional[dict[StrictStr, Any]] = None,
+        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
+    ) -> MetricList:
+        r"""Get metric history for multiple ExperimentRuns.
+
+        Gets the metric history for multiple `ExperimentRun` entities with optional filtering by metric name, step IDs, and experiment run IDs.
+
+        :param filter_query: A SQL-like query string to filter the list of entities. The query supports rich filtering capabilities with automatic type inference.  **Supported Operators:** - Comparison: `=`, `!=`, `<>`, `>`, `<`, `>=`, `<=` - Pattern matching: `LIKE`, `ILIKE` (case-insensitive) - Set membership: `IN` - Logical: `AND`, `OR` - Grouping: `()` for complex expressions  **Data Types:** - Strings: `\"value\"` or `'value'` - Numbers: `42`, `3.14`, `1e-5` - Booleans: `true`, `false` (case-insensitive)  **Property Access:** - Standard properties: `name`, `id`, `state`, `createTimeSinceEpoch` - Custom properties: Any user-defined property name - Escaped properties: Use backticks for special characters: `` `custom-property` `` - Type-specific access: `property.string_value`, `property.double_value`, `property.int_value`, `property.bool_value`  **Examples:** - Basic: `name = \"my-model\"` - Comparison: `accuracy > 0.95` - Pattern: `name LIKE \"%tensorflow%\"` - Complex: `(name = \"model-a\" OR name = \"model-b\") AND state = \"LIVE\"` - Custom property: `framework.string_value = \"pytorch\"` - Escaped property: `` `mlflow.source.type` = \"notebook\" ``
+        :type filter_query: str
+        :param name: Name of entity to search.
+        :type name: str
+        :param step_ids: Comma-separated list of step IDs to filter metrics by.
+        :type step_ids: str
+        :param page_size: Number of entities in each page.
+        :type page_size: str
+        :param order_by: Specifies the order by criteria for listing entities.
+        :type order_by: OrderByField
+        :param sort_order: Specifies the sort order for listing entities, defaults to ASC.
+        :type sort_order: SortOrder
+        :param next_page_token: Token to use to retrieve next page of results.
+        :type next_page_token: str
+        :param _request_timeout: timeout setting for this request. If one
+                                 number provided, it will be total request
+                                 timeout. It can also be a pair (tuple) of
+                                 (connection, read) timeouts.
+        :type _request_timeout: int, tuple(int, int), optional
+        :param _request_auth: set to override the auth_settings for an a single
+                              request; this effectively ignores the
+                              authentication in the spec for a single request.
+        :type _request_auth: dict, optional
+        :param _content_type: force content-type for the request.
+        :type _content_type: str, Optional
+        :param _headers: set to override the headers for a single
+                         request; this effectively ignores the headers
+                         in the spec for a single request.
+        :type _headers: dict, optional
+        :param _host_index: set to override the host_index for a single
+                            request; this effectively ignores the host_index
+                            in the spec for a single request.
+        :type _host_index: int, optional
+        :return: Returns the result object.
+        """  # noqa: E501
+        _param = self._get_experiment_runs_metric_history_serialize(
+            filter_query=filter_query,
+            name=name,
+            step_ids=step_ids,
+            page_size=page_size,
+            order_by=order_by,
+            sort_order=sort_order,
+            next_page_token=next_page_token,
+            _request_auth=_request_auth,
+            _content_type=_content_type,
+            _headers=_headers,
+            _host_index=_host_index,
+        )
+
+        _response_types_map: dict[str, Optional[str]] = {
+            "200": "MetricList",
+            "401": "Error",
+            "404": "Error",
+            "500": "Error",
+            "503": "Error",
+        }
+        response_data = await self.api_client.call_api(*_param, _request_timeout=_request_timeout)
+        await response_data.read()
+        return self.api_client.response_deserialize(
+            response_data=response_data,
+            response_types_map=_response_types_map,
+        ).data
+
+    @validate_call
+    async def get_experiment_runs_metric_history_with_http_info(
+        self,
+        filter_query: Annotated[
+            Optional[StrictStr],
+            Field(
+                description='A SQL-like query string to filter the list of entities. The query supports rich filtering capabilities with automatic type inference.  **Supported Operators:** - Comparison: `=`, `!=`, `<>`, `>`, `<`, `>=`, `<=` - Pattern matching: `LIKE`, `ILIKE` (case-insensitive) - Set membership: `IN` - Logical: `AND`, `OR` - Grouping: `()` for complex expressions  **Data Types:** - Strings: `"value"` or `\'value\'` - Numbers: `42`, `3.14`, `1e-5` - Booleans: `true`, `false` (case-insensitive)  **Property Access:** - Standard properties: `name`, `id`, `state`, `createTimeSinceEpoch` - Custom properties: Any user-defined property name - Escaped properties: Use backticks for special characters: `` `custom-property` `` - Type-specific access: `property.string_value`, `property.double_value`, `property.int_value`, `property.bool_value`  **Examples:** - Basic: `name = "my-model"` - Comparison: `accuracy > 0.95` - Pattern: `name LIKE "%tensorflow%"` - Complex: `(name = "model-a" OR name = "model-b") AND state = "LIVE"` - Custom property: `framework.string_value = "pytorch"` - Escaped property: `` `mlflow.source.type` = "notebook" `` '
+            ),
+        ] = None,
+        name: Annotated[Optional[StrictStr], Field(description="Name of entity to search.")] = None,
+        step_ids: Annotated[
+            Optional[StrictStr], Field(description="Comma-separated list of step IDs to filter metrics by.")
+        ] = None,
+        page_size: Annotated[Optional[StrictStr], Field(description="Number of entities in each page.")] = None,
+        order_by: Annotated[
+            Optional[OrderByField], Field(description="Specifies the order by criteria for listing entities.")
+        ] = None,
+        sort_order: Annotated[
+            Optional[SortOrder], Field(description="Specifies the sort order for listing entities, defaults to ASC.")
+        ] = None,
+        next_page_token: Annotated[
+            Optional[StrictStr], Field(description="Token to use to retrieve next page of results.")
+        ] = None,
+        _request_timeout: Union[
+            None,
+            Annotated[StrictFloat, Field(gt=0)],
+            tuple[Annotated[StrictFloat, Field(gt=0)], Annotated[StrictFloat, Field(gt=0)]],
+        ] = None,
+        _request_auth: Optional[dict[StrictStr, Any]] = None,
+        _content_type: Optional[StrictStr] = None,
+        _headers: Optional[dict[StrictStr, Any]] = None,
+        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
+    ) -> ApiResponse[MetricList]:
+        r"""Get metric history for multiple ExperimentRuns.
+
+        Gets the metric history for multiple `ExperimentRun` entities with optional filtering by metric name, step IDs, and experiment run IDs.
+
+        :param filter_query: A SQL-like query string to filter the list of entities. The query supports rich filtering capabilities with automatic type inference.  **Supported Operators:** - Comparison: `=`, `!=`, `<>`, `>`, `<`, `>=`, `<=` - Pattern matching: `LIKE`, `ILIKE` (case-insensitive) - Set membership: `IN` - Logical: `AND`, `OR` - Grouping: `()` for complex expressions  **Data Types:** - Strings: `\"value\"` or `'value'` - Numbers: `42`, `3.14`, `1e-5` - Booleans: `true`, `false` (case-insensitive)  **Property Access:** - Standard properties: `name`, `id`, `state`, `createTimeSinceEpoch` - Custom properties: Any user-defined property name - Escaped properties: Use backticks for special characters: `` `custom-property` `` - Type-specific access: `property.string_value`, `property.double_value`, `property.int_value`, `property.bool_value`  **Examples:** - Basic: `name = \"my-model\"` - Comparison: `accuracy > 0.95` - Pattern: `name LIKE \"%tensorflow%\"` - Complex: `(name = \"model-a\" OR name = \"model-b\") AND state = \"LIVE\"` - Custom property: `framework.string_value = \"pytorch\"` - Escaped property: `` `mlflow.source.type` = \"notebook\" ``
+        :type filter_query: str
+        :param name: Name of entity to search.
+        :type name: str
+        :param step_ids: Comma-separated list of step IDs to filter metrics by.
+        :type step_ids: str
+        :param page_size: Number of entities in each page.
+        :type page_size: str
+        :param order_by: Specifies the order by criteria for listing entities.
+        :type order_by: OrderByField
+        :param sort_order: Specifies the sort order for listing entities, defaults to ASC.
+        :type sort_order: SortOrder
+        :param next_page_token: Token to use to retrieve next page of results.
+        :type next_page_token: str
+        :param _request_timeout: timeout setting for this request. If one
+                                 number provided, it will be total request
+                                 timeout. It can also be a pair (tuple) of
+                                 (connection, read) timeouts.
+        :type _request_timeout: int, tuple(int, int), optional
+        :param _request_auth: set to override the auth_settings for an a single
+                              request; this effectively ignores the
+                              authentication in the spec for a single request.
+        :type _request_auth: dict, optional
+        :param _content_type: force content-type for the request.
+        :type _content_type: str, Optional
+        :param _headers: set to override the headers for a single
+                         request; this effectively ignores the headers
+                         in the spec for a single request.
+        :type _headers: dict, optional
+        :param _host_index: set to override the host_index for a single
+                            request; this effectively ignores the host_index
+                            in the spec for a single request.
+        :type _host_index: int, optional
+        :return: Returns the result object.
+        """  # noqa: E501
+        _param = self._get_experiment_runs_metric_history_serialize(
+            filter_query=filter_query,
+            name=name,
+            step_ids=step_ids,
+            page_size=page_size,
+            order_by=order_by,
+            sort_order=sort_order,
+            next_page_token=next_page_token,
+            _request_auth=_request_auth,
+            _content_type=_content_type,
+            _headers=_headers,
+            _host_index=_host_index,
+        )
+
+        _response_types_map: dict[str, Optional[str]] = {
+            "200": "MetricList",
+            "401": "Error",
+            "404": "Error",
+            "500": "Error",
+            "503": "Error",
+        }
+        response_data = await self.api_client.call_api(*_param, _request_timeout=_request_timeout)
+        await response_data.read()
+        return self.api_client.response_deserialize(
+            response_data=response_data,
+            response_types_map=_response_types_map,
+        )
+
+    @validate_call
+    async def get_experiment_runs_metric_history_without_preload_content(
+        self,
+        filter_query: Annotated[
+            Optional[StrictStr],
+            Field(
+                description='A SQL-like query string to filter the list of entities. The query supports rich filtering capabilities with automatic type inference.  **Supported Operators:** - Comparison: `=`, `!=`, `<>`, `>`, `<`, `>=`, `<=` - Pattern matching: `LIKE`, `ILIKE` (case-insensitive) - Set membership: `IN` - Logical: `AND`, `OR` - Grouping: `()` for complex expressions  **Data Types:** - Strings: `"value"` or `\'value\'` - Numbers: `42`, `3.14`, `1e-5` - Booleans: `true`, `false` (case-insensitive)  **Property Access:** - Standard properties: `name`, `id`, `state`, `createTimeSinceEpoch` - Custom properties: Any user-defined property name - Escaped properties: Use backticks for special characters: `` `custom-property` `` - Type-specific access: `property.string_value`, `property.double_value`, `property.int_value`, `property.bool_value`  **Examples:** - Basic: `name = "my-model"` - Comparison: `accuracy > 0.95` - Pattern: `name LIKE "%tensorflow%"` - Complex: `(name = "model-a" OR name = "model-b") AND state = "LIVE"` - Custom property: `framework.string_value = "pytorch"` - Escaped property: `` `mlflow.source.type` = "notebook" `` '
+            ),
+        ] = None,
+        name: Annotated[Optional[StrictStr], Field(description="Name of entity to search.")] = None,
+        step_ids: Annotated[
+            Optional[StrictStr], Field(description="Comma-separated list of step IDs to filter metrics by.")
+        ] = None,
+        page_size: Annotated[Optional[StrictStr], Field(description="Number of entities in each page.")] = None,
+        order_by: Annotated[
+            Optional[OrderByField], Field(description="Specifies the order by criteria for listing entities.")
+        ] = None,
+        sort_order: Annotated[
+            Optional[SortOrder], Field(description="Specifies the sort order for listing entities, defaults to ASC.")
+        ] = None,
+        next_page_token: Annotated[
+            Optional[StrictStr], Field(description="Token to use to retrieve next page of results.")
+        ] = None,
+        _request_timeout: Union[
+            None,
+            Annotated[StrictFloat, Field(gt=0)],
+            tuple[Annotated[StrictFloat, Field(gt=0)], Annotated[StrictFloat, Field(gt=0)]],
+        ] = None,
+        _request_auth: Optional[dict[StrictStr, Any]] = None,
+        _content_type: Optional[StrictStr] = None,
+        _headers: Optional[dict[StrictStr, Any]] = None,
+        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
+    ) -> RESTResponseType:
+        r"""Get metric history for multiple ExperimentRuns.
+
+        Gets the metric history for multiple `ExperimentRun` entities with optional filtering by metric name, step IDs, and experiment run IDs.
+
+        :param filter_query: A SQL-like query string to filter the list of entities. The query supports rich filtering capabilities with automatic type inference.  **Supported Operators:** - Comparison: `=`, `!=`, `<>`, `>`, `<`, `>=`, `<=` - Pattern matching: `LIKE`, `ILIKE` (case-insensitive) - Set membership: `IN` - Logical: `AND`, `OR` - Grouping: `()` for complex expressions  **Data Types:** - Strings: `\"value\"` or `'value'` - Numbers: `42`, `3.14`, `1e-5` - Booleans: `true`, `false` (case-insensitive)  **Property Access:** - Standard properties: `name`, `id`, `state`, `createTimeSinceEpoch` - Custom properties: Any user-defined property name - Escaped properties: Use backticks for special characters: `` `custom-property` `` - Type-specific access: `property.string_value`, `property.double_value`, `property.int_value`, `property.bool_value`  **Examples:** - Basic: `name = \"my-model\"` - Comparison: `accuracy > 0.95` - Pattern: `name LIKE \"%tensorflow%\"` - Complex: `(name = \"model-a\" OR name = \"model-b\") AND state = \"LIVE\"` - Custom property: `framework.string_value = \"pytorch\"` - Escaped property: `` `mlflow.source.type` = \"notebook\" ``
+        :type filter_query: str
+        :param name: Name of entity to search.
+        :type name: str
+        :param step_ids: Comma-separated list of step IDs to filter metrics by.
+        :type step_ids: str
+        :param page_size: Number of entities in each page.
+        :type page_size: str
+        :param order_by: Specifies the order by criteria for listing entities.
+        :type order_by: OrderByField
+        :param sort_order: Specifies the sort order for listing entities, defaults to ASC.
+        :type sort_order: SortOrder
+        :param next_page_token: Token to use to retrieve next page of results.
+        :type next_page_token: str
+        :param _request_timeout: timeout setting for this request. If one
+                                 number provided, it will be total request
+                                 timeout. It can also be a pair (tuple) of
+                                 (connection, read) timeouts.
+        :type _request_timeout: int, tuple(int, int), optional
+        :param _request_auth: set to override the auth_settings for an a single
+                              request; this effectively ignores the
+                              authentication in the spec for a single request.
+        :type _request_auth: dict, optional
+        :param _content_type: force content-type for the request.
+        :type _content_type: str, Optional
+        :param _headers: set to override the headers for a single
+                         request; this effectively ignores the headers
+                         in the spec for a single request.
+        :type _headers: dict, optional
+        :param _host_index: set to override the host_index for a single
+                            request; this effectively ignores the host_index
+                            in the spec for a single request.
+        :type _host_index: int, optional
+        :return: Returns the result object.
+        """  # noqa: E501
+        _param = self._get_experiment_runs_metric_history_serialize(
+            filter_query=filter_query,
+            name=name,
+            step_ids=step_ids,
+            page_size=page_size,
+            order_by=order_by,
+            sort_order=sort_order,
+            next_page_token=next_page_token,
+            _request_auth=_request_auth,
+            _content_type=_content_type,
+            _headers=_headers,
+            _host_index=_host_index,
+        )
+
+        _response_types_map: dict[str, Optional[str]] = {
+            "200": "MetricList",
+            "401": "Error",
+            "404": "Error",
+            "500": "Error",
+            "503": "Error",
+        }
+        response_data = await self.api_client.call_api(*_param, _request_timeout=_request_timeout)
+        return response_data.response
+
+    def _get_experiment_runs_metric_history_serialize(
+        self,
+        filter_query,
+        name,
+        step_ids,
+        page_size,
+        order_by,
+        sort_order,
+        next_page_token,
+        _request_auth,
+        _content_type,
+        _headers,
+        _host_index,
+    ) -> RequestSerialized:
+
+        _host = None
+
+        _collection_formats: dict[str, str] = {}
+
+        _path_params: dict[str, str] = {}
+        _query_params: list[tuple[str, str]] = []
+        _header_params: dict[str, Optional[str]] = _headers or {}
+        _form_params: list[tuple[str, str]] = []
+        _files: dict[str, Union[str, bytes]] = {}
+        _body_params: Optional[bytes] = None
+
+        # process the path parameters
+        # process the query parameters
+        if filter_query is not None:
+
+            _query_params.append(("filterQuery", filter_query))
+
+        if name is not None:
+
+            _query_params.append(("name", name))
+
+        if step_ids is not None:
+
+            _query_params.append(("stepIds", step_ids))
+
+        if page_size is not None:
+
+            _query_params.append(("pageSize", page_size))
+
+        if order_by is not None:
+
+            _query_params.append(("orderBy", order_by.value))
+
+        if sort_order is not None:
+
+            _query_params.append(("sortOrder", sort_order.value))
+
+        if next_page_token is not None:
+
+            _query_params.append(("nextPageToken", next_page_token))
+
+        # process the header parameters
+        # process the form parameters
+        # process the body parameter
+
+        # set the HTTP header `Accept`
+        _header_params["Accept"] = self.api_client.select_header_accept(["application/json"])
+
+        # authentication setting
+        _auth_settings: list[str] = ["Bearer"]
+
+        return self.api_client.param_serialize(
+            method="GET",
+            resource_path="/api/model_registry/v1alpha3/experiment_runs/metric_history",
+            path_params=_path_params,
+            query_params=_query_params,
+            header_params=_header_params,
+            body=_body_params,
+            post_params=_form_params,
+            files=_files,
+            auth_settings=_auth_settings,
+            collection_formats=_collection_formats,
+            _host=_host,
+            _request_auth=_request_auth,
+        )
+
+    @validate_call
     async def get_experiments(
         self,
         filter_query: Annotated[
