@@ -792,6 +792,19 @@ func (s *ModelRegistryServiceAPIService) UpsertExperimentRunArtifact(ctx context
 // GetExperimentRunMetricHistory - Get metric history for an ExperimentRun
 func (s *ModelRegistryServiceAPIService) GetExperimentRunMetricHistory(ctx context.Context, experimentrunId string,
 	filterQuery string, name string, stepIds string, pageSize string, orderBy model.OrderByField, sortOrder model.SortOrder, nextPageToken string) (ImplResponse, error) {
+	return s.getMetricHistoryHelper(ctx, apiutils.StrPtr(experimentrunId), filterQuery, name, stepIds, pageSize, orderBy, sortOrder, nextPageToken)
+}
+
+// GetExperimentRunsMetricHistory - Get metric history for multiple ExperimentRuns
+func (s *ModelRegistryServiceAPIService) GetExperimentRunsMetricHistory(ctx context.Context,
+	filterQuery string, name string, stepIds string, pageSize string, orderBy model.OrderByField, sortOrder model.SortOrder, nextPageToken string) (ImplResponse, error) {
+	// Pass nil for experimentRunId to get metrics for all experiment runs
+	return s.getMetricHistoryHelper(ctx, nil, filterQuery, name, stepIds, pageSize, orderBy, sortOrder, nextPageToken)
+}
+
+// getMetricHistoryHelper handles the common logic for getting metric history
+func (s *ModelRegistryServiceAPIService) getMetricHistoryHelper(ctx context.Context, experimentRunId *string,
+	filterQuery string, name string, stepIds string, pageSize string, orderBy model.OrderByField, sortOrder model.SortOrder, nextPageToken string) (ImplResponse, error) {
 	listOpts, err := s.buildListOption(filterQuery, pageSize, orderBy, sortOrder, nextPageToken)
 	if err != nil {
 		return ErrorResponse(api.ErrToStatus(err), err), err
@@ -807,7 +820,7 @@ func (s *ModelRegistryServiceAPIService) GetExperimentRunMetricHistory(ctx conte
 		stepIdsPtr = &stepIds
 	}
 
-	result, err := s.coreApi.GetExperimentRunMetricHistory(namePtr, stepIdsPtr, listOpts, apiutils.StrPtr(experimentrunId))
+	result, err := s.coreApi.GetExperimentRunMetricHistory(namePtr, stepIdsPtr, listOpts, experimentRunId)
 	if err != nil {
 		return ErrorResponse(api.ErrToStatus(err), err), err
 	}
