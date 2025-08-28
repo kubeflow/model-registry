@@ -1,4 +1,4 @@
-apiVersion: modelregistry.opendatahub.io/v1alpha1
+apiVersion: modelregistry.opendatahub.io/v1beta1
 kind: ModelRegistry
 metadata:
   name: model-registry
@@ -10,14 +10,9 @@ metadata:
 spec:
   grpc: {}
   rest: {}
-  istio:
-    gateway:
-      grpc:
-        tls: {}
-      rest:
-        tls: {}
+  oauthProxy: {}
   mysql:
-    host: model-registry-db.rhoai-model-registries.svc.cluster.local
+    host: model-registry-db.$MR_NAMESPACE.svc.cluster.local
     database: metadb
     passwordSecret:
       key: MYSQL_ROOT_PASSWORD

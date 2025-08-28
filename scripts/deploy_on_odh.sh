@@ -33,8 +33,6 @@ fi
 
 MYSQL_PORT_STR=$(kubectl get configmap model-registry-db-parameters -n "$MR_NAMESPACE" -o jsonpath='{.data.MYSQL_PORT}')
 
-sed "s/DB_PORT_PLACEHOLDER/$MYSQL_PORT_STR/" "${SCRIPT_DIR}/manifests/model_registry_resource/model_registry_resource.yaml" | kubectl apply -n "$MR_NAMESPACE" -f -
+sed -e "s/DB_PORT_PLACEHOLDER/$MYSQL_PORT_STR/" -e "s/\$MR_NAMESPACE/$MR_NAMESPACE/" "${SCRIPT_DIR}/manifests/model_registry_resource/model_registry_resource.yaml" | kubectl apply -n "$MR_NAMESPACE" -f -
 kubectl wait --for=create service/model-registry -n "$MR_NAMESPACE" --timeout=5m
 kubectl wait --for=condition=Available -n "$MR_NAMESPACE" deployment/model-registry --timeout=5m
-kubectl port-forward -n "$MR_NAMESPACE" services/model-registry 8080:8080 & echo $! >> "${SCRIPT_DIR}/manifests/model_registry_resource/.port-forwards.pid"
-
