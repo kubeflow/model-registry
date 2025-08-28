@@ -144,8 +144,7 @@ gen/gorm/postgres: bin/golang-migrate start/postgres
 gen/gorm/sqlite: bin/golang-migrate start/sqlite
 	@(trap 'cd $(CURDIR) && $(MAKE) stop/sqlite && rm -f /tmp/gorm-gen-sqlite.db' EXIT; \
 	$(GOLANG_MIGRATE) -path './internal/datastore/embedmd/sqlite/migrations' -database 'sqlite:///tmp/gorm-gen-sqlite.db' up && \
-	cd gorm-gen && GOWORK=off go run main.go --db-type sqlite --dsn '/tmp/gorm-gen-sqlite.db' && \
-	cd $(CURDIR) && ./scripts/remove_gorm_defaults.sh)
+	cd gorm-gen && GOWORK=off go run main.go --db-type sqlite --dsn '/tmp/gorm-gen-sqlite.db')
 
 # generate the gorm structs (defaults to MySQL for backward compatibility)
 # Use GORM_DB_TYPE=postgres to generate for PostgreSQL instead

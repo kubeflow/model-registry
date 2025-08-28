@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"log"
 	"os"
-	"strings"
 
 	"github.com/spf13/cobra"
 	"gorm.io/driver/mysql"
@@ -30,15 +29,11 @@ func genModels(g *gen.Generator, db *gorm.DB, tables []string) (err error) {
 		}
 	}
 
-	// Custom ModelOpt to remove default tag for nullable fields
+	// Custom ModelOpt to clean up primary key tags
 	modelOpt := gen.FieldGORMTag("*", func(tag field.GormTag) field.GormTag {
-		if vals, ok := tag["default"]; ok {
-			if len(vals) > 0 {
-				val := strings.Trim(strings.TrimSpace(vals[0]), `"'`)
-				if strings.ToUpper(val) == "NULL" || val == "0" || val == "" {
-					tag.Remove("default")
-				}
-			}
+		// Remove "not null" from primary key fields since it's redundant
+		if _, hasPrimaryKey := tag["primaryKey"]; hasPrimaryKey {
+			tag.Remove("not null")
 		}
 		return tag
 	})
@@ -46,13 +41,121 @@ func genModels(g *gen.Generator, db *gorm.DB, tables []string) (err error) {
 	// Execute some data table tasks
 	for _, tableName := range tables {
 		if tableName == "Type" {
-			// Special handling for Type table to set TypeKind as int32
-			g.GenerateModel(tableName, gen.FieldType("type_kind", "int32"), modelOpt)
+			// Special handling for Type table
+			if dbType == "sqlite" {
+				g.GenerateModel(tableName, 
+					gen.FieldType("type_kind", "int32"), 
+					gen.FieldType("id", "int32"),
+					gen.FieldGORMTag("id", func(tag field.GormTag) field.GormTag {
+						tag.Set("column", "id")
+						tag.Set("primaryKey", "")
+						tag.Set("autoIncrement", "true")
+						return tag
+					}),
+					modelOpt)
+			} else {
+				g.GenerateModel(tableName, 
+					gen.FieldType("type_kind", "int32"), 
+					gen.FieldGORMTag("id", func(tag field.GormTag) field.GormTag {
+						tag.Set("column", "id")
+						tag.Set("primaryKey", "")
+						tag.Set("autoIncrement", "true")
+						return tag
+					}),
+					modelOpt)
+			}
+		} else if tableName == "schema_migrations" && dbType == "sqlite" {
+			// Special handling for schema_migrations table in SQLite to match MySQL/PostgreSQL types
+			g.GenerateModel(tableName, 
+				gen.FieldType("version", "int64"),
+				gen.FieldType("dirty", "bool"), 
+				gen.FieldGORMTag("version", func(tag field.GormTag) field.GormTag {
+					tag.Set("column", "version")
+					tag.Set("primaryKey", "")
+					return tag
+				}),
+				gen.FieldGORMTag("dirty", func(tag field.GormTag) field.GormTag {
+					tag.Set("column", "dirty")
+					tag.Set("not null", "")
+					return tag
+				}),
+				modelOpt)
+		} else if isPropertyTable(tableName) {
+			// Special handling for property tables to ensure composite primary keys
+			var opts []gen.ModelOpt
+			if dbType == "sqlite" && hasIDField(tableName) {
+				opts = append(opts, gen.FieldType("id", "int32"))
+				opts = append(opts, gen.FieldGORMTag("id", func(tag field.GormTag) field.GormTag {
+					tag.Set("column", "id")
+					tag.Set("primaryKey", "")
+					tag.Set("autoIncrement", "true")
+					return tag
+				}))
+			}
+			
+			// Fix composite primary key fields
+			opts = append(opts, gen.FieldGORMTag("name", func(tag field.GormTag) field.GormTag {
+				tag.Set("column", "name")
+				tag.Set("primaryKey", "")
+				tag.Remove("not null") // Remove not null since primaryKey implies it
+				return tag
+			}))
+			opts = append(opts, gen.FieldGORMTag("is_custom_property", func(tag field.GormTag) field.GormTag {
+				tag.Set("column", "is_custom_property")
+				tag.Set("primaryKey", "")
+				tag.Remove("not null") // Remove not null since primaryKey implies it
+				return tag
+			}))
+			opts = append(opts, modelOpt)
+			g.GenerateModel(tableName, opts...)
+		} else if hasIDField(tableName) {
+			// Tables with ID fields - ensure autoIncrement is set
+			var opts []gen.ModelOpt
+			if dbType == "sqlite" {
+				opts = append(opts, gen.FieldType("id", "int32"))
+			}
+			opts = append(opts, gen.FieldGORMTag("id", func(tag field.GormTag) field.GormTag {
+				tag.Set("column", "id")
+				tag.Set("primaryKey", "")
+				tag.Set("autoIncrement", "true")
+				return tag
+			}))
+			opts = append(opts, modelOpt)
+			g.GenerateModel(tableName, opts...)
 		} else {
 			g.GenerateModel(tableName, modelOpt)
 		}
 	}
 	return nil
+}
+
+// hasIDField returns true if the table has an auto-increment ID primary key field
+func hasIDField(tableName string) bool {
+	tablesWithIDField := []string{
+		"Artifact", "Association", "Attribution", "Context", 
+		"Event", "Execution", "Type",
+	}
+	
+	for _, table := range tablesWithIDField {
+		if table == tableName {
+			return true
+		}
+	}
+	return false
+}
+
+// isPropertyTable returns true if the table is a property table with composite primary keys
+func isPropertyTable(tableName string) bool {
+	propertyTables := []string{
+		"ArtifactProperty", "ContextProperty", "ExecutionProperty", "TypeProperty",
+	}
+	
+	for _, table := range propertyTables {
+		if table == tableName {
+			return true
+		}
+	}
+	return false
 }
 
 // getDialector returns the appropriate GORM dialector based on database type and DSN
