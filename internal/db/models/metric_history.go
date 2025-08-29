@@ -1,5 +1,7 @@
 package models
 
+import "github.com/kubeflow/model-registry/internal/db/filter"
+
 const MetricHistoryType = "metric-history"
 
 type MetricHistoryListOptions struct {
@@ -8,6 +10,11 @@ type MetricHistoryListOptions struct {
 	ExternalID      *string
 	ExperimentRunID *int32
 	StepIds         *string
+}
+
+// GetRestEntityType implements the FilterApplier interface
+func (m *MetricHistoryListOptions) GetRestEntityType() filter.RestEntityType {
+	return filter.RestEntityMetric // Metric history uses the same filtering rules as metrics
 }
 
 type MetricHistoryAttributes struct {
