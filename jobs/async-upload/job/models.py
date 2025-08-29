@@ -29,11 +29,11 @@ class BaseStorageConfig(BaseModel):
 class S3Config(BaseModel):
     """Basic S3 storage configuration. To be used as an intermediary model for the S3StorageConfig, allowing for additional values to be overlaid until the final config is created and validated via the S3StorageConfig model."""
     bucket: str | None = None
-    key: str | None = None
+    key: str | None = None # 'path' in bucket
     region: str | None = None
     access_key_id: str | None = None
     secret_access_key: str | None = None
-    endpoint_url: str | None = None
+    endpoint: str | None = None
 
 
 class OCIConfig(BaseModel):
