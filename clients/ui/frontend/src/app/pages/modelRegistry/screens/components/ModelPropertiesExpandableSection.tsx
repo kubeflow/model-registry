@@ -14,6 +14,7 @@ type ModelPropertiesExpandableSectionProps = {
   saveEditedCustomProperties: (properties: ModelRegistryCustomProperties) => Promise<unknown>;
   isExpandedByDefault?: boolean;
   onEditingChange: (isEditing: boolean) => void;
+  modelName: string;
 };
 
 const ModelPropertiesExpandableSection: React.FC<ModelPropertiesExpandableSectionProps> = ({
@@ -22,6 +23,7 @@ const ModelPropertiesExpandableSection: React.FC<ModelPropertiesExpandableSectio
   saveEditedCustomProperties,
   isExpandedByDefault = false,
   onEditingChange,
+  modelName,
 }) => {
   const [editingPropertyKeys, setEditingPropertyKeys] = React.useState<string[]>([]);
   const setIsEditingKey = (key: string, isEditing: boolean) =>
@@ -77,6 +79,7 @@ const ModelPropertiesExpandableSection: React.FC<ModelPropertiesExpandableSectio
             {shownKeys.map((key) => (
               <ModelPropertiesTableRow
                 key={key}
+                modelName={modelName}
                 isArchive={isArchive}
                 keyValuePair={{ key, value: filteredProperties[key].string_value || '' }}
                 allExistingKeys={allExistingKeys}
@@ -103,7 +106,10 @@ const ModelPropertiesExpandableSection: React.FC<ModelPropertiesExpandableSectio
               <ModelPropertiesTableRow
                 isAddRow
                 allExistingKeys={allExistingKeys}
-                setIsEditing={setIsAdding}
+                setIsEditing={(isEditing) => {
+                  setIsAdding(isEditing);
+                  onEditingChange(isEditing);
+                }}
                 isSavingEdits={isSavingEdits}
                 setIsSavingEdits={setIsSavingEdits}
                 saveEditedProperty={(_oldKey, newPair) =>
@@ -125,6 +131,7 @@ const ModelPropertiesExpandableSection: React.FC<ModelPropertiesExpandableSectio
           onClick={() => {
             setIsShowingMoreProperties(true);
             setIsAdding(true);
+            onEditingChange(true);
           }}
         >
           Add property
