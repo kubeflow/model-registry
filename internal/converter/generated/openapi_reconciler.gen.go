@@ -45,51 +45,67 @@ func (c *OpenAPIReconcilerImpl) UpdateExistingDataSet(source converter.OpenapiUp
 	}
 	var pString3 *string
 	if source.Update != nil {
-		pString3 = source.Update.Digest
+		pString3 = source.Update.ExperimentId
 	}
 	if pString3 != nil {
 		xstring3 := *pString3
-		openapiDataSet.Digest = &xstring3
+		openapiDataSet.ExperimentId = &xstring3
 	}
 	var pString4 *string
 	if source.Update != nil {
-		pString4 = source.Update.SourceType
+		pString4 = source.Update.ExperimentRunId
 	}
 	if pString4 != nil {
 		xstring4 := *pString4
-		openapiDataSet.SourceType = &xstring4
+		openapiDataSet.ExperimentRunId = &xstring4
 	}
 	var pString5 *string
 	if source.Update != nil {
-		pString5 = source.Update.Source
+		pString5 = source.Update.Digest
 	}
 	if pString5 != nil {
 		xstring5 := *pString5
-		openapiDataSet.Source = &xstring5
+		openapiDataSet.Digest = &xstring5
 	}
 	var pString6 *string
 	if source.Update != nil {
-		pString6 = source.Update.Schema
+		pString6 = source.Update.SourceType
 	}
 	if pString6 != nil {
 		xstring6 := *pString6
-		openapiDataSet.Schema = &xstring6
+		openapiDataSet.SourceType = &xstring6
 	}
 	var pString7 *string
 	if source.Update != nil {
-		pString7 = source.Update.Profile
+		pString7 = source.Update.Source
 	}
 	if pString7 != nil {
 		xstring7 := *pString7
-		openapiDataSet.Profile = &xstring7
+		openapiDataSet.Source = &xstring7
 	}
 	var pString8 *string
 	if source.Update != nil {
-		pString8 = source.Update.Uri
+		pString8 = source.Update.Schema
 	}
 	if pString8 != nil {
 		xstring8 := *pString8
-		openapiDataSet.Uri = &xstring8
+		openapiDataSet.Schema = &xstring8
+	}
+	var pString9 *string
+	if source.Update != nil {
+		pString9 = source.Update.Profile
+	}
+	if pString9 != nil {
+		xstring9 := *pString9
+		openapiDataSet.Profile = &xstring9
+	}
+	var pString10 *string
+	if source.Update != nil {
+		pString10 = source.Update.Uri
+	}
+	if pString10 != nil {
+		xstring10 := *pString10
+		openapiDataSet.Uri = &xstring10
 	}
 	var pOpenapiArtifactState *openapi.ArtifactState
 	if source.Update != nil {
@@ -138,11 +154,27 @@ func (c *OpenAPIReconcilerImpl) UpdateExistingDocArtifact(source converter.Opena
 	}
 	var pString3 *string
 	if source.Update != nil {
-		pString3 = source.Update.Uri
+		pString3 = source.Update.ExperimentId
 	}
 	if pString3 != nil {
 		xstring3 := *pString3
-		openapiDocArtifact.Uri = &xstring3
+		openapiDocArtifact.ExperimentId = &xstring3
+	}
+	var pString4 *string
+	if source.Update != nil {
+		pString4 = source.Update.ExperimentRunId
+	}
+	if pString4 != nil {
+		xstring4 := *pString4
+		openapiDocArtifact.ExperimentRunId = &xstring4
+	}
+	var pString5 *string
+	if source.Update != nil {
+		pString5 = source.Update.Uri
+	}
+	if pString5 != nil {
+		xstring5 := *pString5
+		openapiDocArtifact.Uri = &xstring5
 	}
 	var pOpenapiArtifactState *openapi.ArtifactState
 	if source.Update != nil {
@@ -383,6 +415,22 @@ func (c *OpenAPIReconcilerImpl) UpdateExistingMetric(source converter.OpenapiUpd
 		xstring2 := *pString2
 		openapiMetric.ExternalId = &xstring2
 	}
+	var pString3 *string
+	if source.Update != nil {
+		pString3 = source.Update.ExperimentId
+	}
+	if pString3 != nil {
+		xstring3 := *pString3
+		openapiMetric.ExperimentId = &xstring3
+	}
+	var pString4 *string
+	if source.Update != nil {
+		pString4 = source.Update.ExperimentRunId
+	}
+	if pString4 != nil {
+		xstring4 := *pString4
+		openapiMetric.ExperimentRunId = &xstring4
+	}
 	var pFloat64 *float64
 	if source.Update != nil {
 		pFloat64 = source.Update.Value
@@ -391,13 +439,13 @@ func (c *OpenAPIReconcilerImpl) UpdateExistingMetric(source converter.OpenapiUpd
 		xfloat64 := *pFloat64
 		openapiMetric.Value = &xfloat64
 	}
-	var pString3 *string
+	var pString5 *string
 	if source.Update != nil {
-		pString3 = source.Update.Timestamp
+		pString5 = source.Update.Timestamp
 	}
-	if pString3 != nil {
-		xstring3 := *pString3
-		openapiMetric.Timestamp = &xstring3
+	if pString5 != nil {
+		xstring5 := *pString5
+		openapiMetric.Timestamp = &xstring5
 	}
 	var pInt64 *int64
 	if source.Update != nil {
@@ -454,91 +502,107 @@ func (c *OpenAPIReconcilerImpl) UpdateExistingModelArtifact(source converter.Ope
 	}
 	var pString3 *string
 	if source.Update != nil {
-		pString3 = source.Update.ModelFormatName
+		pString3 = source.Update.ExperimentId
 	}
 	if pString3 != nil {
 		xstring3 := *pString3
-		openapiModelArtifact.ModelFormatName = &xstring3
+		openapiModelArtifact.ExperimentId = &xstring3
 	}
 	var pString4 *string
 	if source.Update != nil {
-		pString4 = source.Update.StorageKey
+		pString4 = source.Update.ExperimentRunId
 	}
 	if pString4 != nil {
 		xstring4 := *pString4
-		openapiModelArtifact.StorageKey = &xstring4
+		openapiModelArtifact.ExperimentRunId = &xstring4
 	}
 	var pString5 *string
 	if source.Update != nil {
-		pString5 = source.Update.StoragePath
+		pString5 = source.Update.ModelFormatName
 	}
 	if pString5 != nil {
 		xstring5 := *pString5
-		openapiModelArtifact.StoragePath = &xstring5
+		openapiModelArtifact.ModelFormatName = &xstring5
 	}
 	var pString6 *string
 	if source.Update != nil {
-		pString6 = source.Update.ModelFormatVersion
+		pString6 = source.Update.StorageKey
 	}
 	if pString6 != nil {
 		xstring6 := *pString6
-		openapiModelArtifact.ModelFormatVersion = &xstring6
+		openapiModelArtifact.StorageKey = &xstring6
 	}
 	var pString7 *string
 	if source.Update != nil {
-		pString7 = source.Update.ServiceAccountName
+		pString7 = source.Update.StoragePath
 	}
 	if pString7 != nil {
 		xstring7 := *pString7
-		openapiModelArtifact.ServiceAccountName = &xstring7
+		openapiModelArtifact.StoragePath = &xstring7
 	}
 	var pString8 *string
 	if source.Update != nil {
-		pString8 = source.Update.ModelSourceKind
+		pString8 = source.Update.ModelFormatVersion
 	}
 	if pString8 != nil {
 		xstring8 := *pString8
-		openapiModelArtifact.ModelSourceKind = &xstring8
+		openapiModelArtifact.ModelFormatVersion = &xstring8
 	}
 	var pString9 *string
 	if source.Update != nil {
-		pString9 = source.Update.ModelSourceClass
+		pString9 = source.Update.ServiceAccountName
 	}
 	if pString9 != nil {
 		xstring9 := *pString9
-		openapiModelArtifact.ModelSourceClass = &xstring9
+		openapiModelArtifact.ServiceAccountName = &xstring9
 	}
 	var pString10 *string
 	if source.Update != nil {
-		pString10 = source.Update.ModelSourceGroup
+		pString10 = source.Update.ModelSourceKind
 	}
 	if pString10 != nil {
 		xstring10 := *pString10
-		openapiModelArtifact.ModelSourceGroup = &xstring10
+		openapiModelArtifact.ModelSourceKind = &xstring10
 	}
 	var pString11 *string
 	if source.Update != nil {
-		pString11 = source.Update.ModelSourceId
+		pString11 = source.Update.ModelSourceClass
 	}
 	if pString11 != nil {
 		xstring11 := *pString11
-		openapiModelArtifact.ModelSourceId = &xstring11
+		openapiModelArtifact.ModelSourceClass = &xstring11
 	}
 	var pString12 *string
 	if source.Update != nil {
-		pString12 = source.Update.ModelSourceName
+		pString12 = source.Update.ModelSourceGroup
 	}
 	if pString12 != nil {
 		xstring12 := *pString12
-		openapiModelArtifact.ModelSourceName = &xstring12
+		openapiModelArtifact.ModelSourceGroup = &xstring12
 	}
 	var pString13 *string
 	if source.Update != nil {
-		pString13 = source.Update.Uri
+		pString13 = source.Update.ModelSourceId
 	}
 	if pString13 != nil {
 		xstring13 := *pString13
-		openapiModelArtifact.Uri = &xstring13
+		openapiModelArtifact.ModelSourceId = &xstring13
+	}
+	var pString14 *string
+	if source.Update != nil {
+		pString14 = source.Update.ModelSourceName
+	}
+	if pString14 != nil {
+		xstring14 := *pString14
+		openapiModelArtifact.ModelSourceName = &xstring14
+	}
+	var pString15 *string
+	if source.Update != nil {
+		pString15 = source.Update.Uri
+	}
+	if pString15 != nil {
+		xstring15 := *pString15
+		openapiModelArtifact.Uri = &xstring15
 	}
 	var pOpenapiArtifactState *openapi.ArtifactState
 	if source.Update != nil {
@@ -640,11 +704,27 @@ func (c *OpenAPIReconcilerImpl) UpdateExistingParameter(source converter.Openapi
 	}
 	var pString3 *string
 	if source.Update != nil {
-		pString3 = source.Update.Value
+		pString3 = source.Update.ExperimentId
 	}
 	if pString3 != nil {
 		xstring3 := *pString3
-		openapiParameter.Value = &xstring3
+		openapiParameter.ExperimentId = &xstring3
+	}
+	var pString4 *string
+	if source.Update != nil {
+		pString4 = source.Update.ExperimentRunId
+	}
+	if pString4 != nil {
+		xstring4 := *pString4
+		openapiParameter.ExperimentRunId = &xstring4
+	}
+	var pString5 *string
+	if source.Update != nil {
+		pString5 = source.Update.Value
+	}
+	if pString5 != nil {
+		xstring5 := *pString5
+		openapiParameter.Value = &xstring5
 	}
 	var pOpenapiParameterType *openapi.ParameterType
 	if source.Update != nil {

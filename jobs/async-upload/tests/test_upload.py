@@ -28,7 +28,7 @@ class TestGetUploadParams:
             destination=S3StorageConfig(
                 bucket="test-bucket",
                 key="test-key",
-                endpoint_url="https://s3.amazonaws.com",
+                endpoint="https://s3.amazonaws.com",
                 access_key_id="test-access-key",
                 secret_access_key="test-secret-key",
                 region="us-east-1"

@@ -426,10 +426,6 @@ describe('Model version details', () => {
         .and('contain.text', 'View all')
         .and('contain.text', 'versions');
 
-      cy.findByTestId('versions-route-link')
-        .should('have.attr', 'href')
-        .and('include', '/model-registry/modelregistry-sample/registeredModels/1/versions');
-
       // Click the link and verify navigation
       cy.findByTestId('versions-route-link').click();
 

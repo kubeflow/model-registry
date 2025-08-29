@@ -42,6 +42,27 @@ type FilterApplier interface {
 	GetRestEntityType() filter.RestEntityType
 }
 
+// applyFilterQuery applies advanced filter query processing to a GORM query
+// This function encapsulates the common pattern used by both GenericRepository and custom repositories
+func applyFilterQuery(query *gorm.DB, listOptions any) (*gorm.DB, error) {
+	if filterQueryGetter, ok := listOptions.(interface{ GetFilterQuery() string }); ok {
+		if filterQuery := filterQueryGetter.GetFilterQuery(); filterQuery != "" {
+			if filterApplier, ok := listOptions.(FilterApplier); ok {
+				filterExpr, err := filter.Parse(filterQuery)
+				if err != nil {
+					return nil, fmt.Errorf("invalid filter query: %v: %w", err, api.ErrBadRequest)
+				}
+
+				if filterExpr != nil {
+					queryBuilder := filter.NewQueryBuilderForRestEntity(filterApplier.GetRestEntityType())
+					query = queryBuilder.BuildQuery(query, filterExpr)
+				}
+			}
+		}
+	}
+	return query, nil
+}
+
 // Generic repository configuration
 type GenericRepositoryConfig[TEntity any, TSchema SchemaEntity, TProp PropertyEntity, TListOpts BaseListOptions] struct {
 	DB                    *gorm.DB
@@ -113,18 +134,9 @@ func (r *GenericRepository[TEntity, TSchema, TProp, TListOpts]) List(listOptions
 	}
 
 	// Apply advanced filter query if supported
-	if filterQuery := listOptions.GetFilterQuery(); filterQuery != "" {
-		if filterApplier, ok := any(listOptions).(FilterApplier); ok {
-			filterExpr, err := filter.Parse(filterQuery)
-			if err != nil {
-				return nil, fmt.Errorf("invalid filter query: %v: %w", err, api.ErrBadRequest)
-			}
-
-			if filterExpr != nil {
-				queryBuilder := filter.NewQueryBuilderForRestEntity(filterApplier.GetRestEntityType())
-				query = queryBuilder.BuildQuery(query, filterExpr)
-			}
-		}
+	query, err := applyFilterQuery(query, listOptions)
+	if err != nil {
+		return nil, err
 	}
 
 	// Apply pagination

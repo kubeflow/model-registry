@@ -61,6 +61,14 @@ func (b *ModelRegistryService) upsertArtifact(artifact *openapi.Artifact, parent
 		}
 	}
 
+	// Set experiment properties if the artifact is being linked to an experiment run
+	if parentResourceId != nil {
+		experimentRun, err := b.GetExperimentRunById(*parentResourceId)
+		if err == nil {
+			b.setExperimentPropertiesOnArtifact(artifact, experimentRun.ExperimentId, *parentResourceId)
+		}
+	}
+
 	if ma := artifact.ModelArtifact; ma != nil {
 		if ma.Id != nil {
 			existing, err := b.getArtifact(*ma.Id)
@@ -434,6 +442,7 @@ func (b *ModelRegistryService) GetArtifacts(artifactType openapi.ArtifactTypeQue
 			OrderBy:       listOptions.OrderBy,
 			SortOrder:     listOptions.SortOrder,
 			NextPageToken: listOptions.NextPageToken,
+			FilterQuery:   listOptions.FilterQuery,
 		},
 		ParentResourceID: parentResourceIDPtr,
 		ArtifactType:     artifactTypeStr,
@@ -565,4 +574,51 @@ func (b *ModelRegistryService) GetModelArtifacts(listOptions api.ListOptions, pa
 	modelArtifactList.Size = int32(modelArtifacts.Size)
 
 	return modelArtifactList, nil
+}
+
+func setExperimentPropertiesOnCustomProperties(customProps **map[string]openapi.MetadataValue, experimentId, experimentRunId string) {
+	if *customProps == nil {
+		*customProps = &map[string]openapi.MetadataValue{}
+	}
+
+	props := *customProps
+	(*props)["experiment_id"] = openapi.MetadataValue{
+		MetadataIntValue: &openapi.MetadataIntValue{
+			IntValue:     experimentId,
+			MetadataType: "MetadataIntValue",
+		},
+	}
+	(*props)["experiment_run_id"] = openapi.MetadataValue{
+		MetadataIntValue: &openapi.MetadataIntValue{
+			IntValue:     experimentRunId,
+			MetadataType: "MetadataIntValue",
+		},
+	}
+}
+
+// setExperimentPropertiesOnArtifact is a helper function that sets experiment_id and experiment_run_id
+// both as direct fields (for API response) and as custom properties (for database storage and filterQuery)
+func (b *ModelRegistryService) setExperimentPropertiesOnArtifact(artifact *openapi.Artifact, experimentId, experimentRunId string) {
+	// Define a helper function to reduce repetition
+	setProperties := func(experimentIdPtr, experimentRunIdPtr **string, customProps **map[string]openapi.MetadataValue) {
+		*experimentIdPtr = &experimentId
+		*experimentRunIdPtr = &experimentRunId
+		setExperimentPropertiesOnCustomProperties(customProps, experimentId, experimentRunId)
+	}
+
+	if artifact.ModelArtifact != nil {
+		setProperties(&artifact.ModelArtifact.ExperimentId, &artifact.ModelArtifact.ExperimentRunId, &artifact.ModelArtifact.CustomProperties)
+	}
+	if artifact.DocArtifact != nil {
+		setProperties(&artifact.DocArtifact.ExperimentId, &artifact.DocArtifact.ExperimentRunId, &artifact.DocArtifact.CustomProperties)
+	}
+	if artifact.DataSet != nil {
+		setProperties(&artifact.DataSet.ExperimentId, &artifact.DataSet.ExperimentRunId, &artifact.DataSet.CustomProperties)
+	}
+	if artifact.Metric != nil {
+		setProperties(&artifact.Metric.ExperimentId, &artifact.Metric.ExperimentRunId, &artifact.Metric.CustomProperties)
+	}
+	if artifact.Parameter != nil {
+		setProperties(&artifact.Parameter.ExperimentId, &artifact.Parameter.ExperimentRunId, &artifact.Parameter.CustomProperties)
+	}
 }

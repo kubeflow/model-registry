@@ -104,6 +104,8 @@ var artifactPropertyMap = EntityPropertyMap{
 	"source":             {PropertyTable, StringValueType, "source"},         // For datasets
 	"schema":             {PropertyTable, StringValueType, "schema"},         // For datasets
 	"profile":            {PropertyTable, StringValueType, "profile"},        // For datasets
+	"experimentId":       {PropertyTable, IntValueType, "experiment_id"},     // For all artifacts
+	"experimentRunId":    {PropertyTable, IntValueType, "experiment_run_id"}, // For all artifacts
 }
 
 // executionPropertyMap defines properties for Execution entities
