@@ -206,10 +206,10 @@ func TestSQLiteSpecificFeatures(t *testing.T) {
 		require.NoError(t, err)
 
 		// Query back the boolean value
-		var boolValue int
+		var boolValue bool
 		err = db.Raw("SELECT bool_value FROM ArtifactProperty WHERE name = 'test_bool'").Scan(&boolValue).Error
 		require.NoError(t, err)
-		assert.Equal(t, 0, boolValue) // SQLite stores boolean as 0/1
+		assert.Equal(t, false, boolValue) // SQLite boolean handled correctly by GORM
 	})
 
 	t.Run("TestSQLiteTextHandling", func(t *testing.T) {
