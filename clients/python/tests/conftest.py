@@ -55,6 +55,9 @@ def pytest_collection_modifyitems(config, items):
 
 
 def pytest_report_teststatus(report, config):
+    if config.getoption("--quiet", default=False):
+        return
+
     test_name = report.head_line
     if report.passed:
         if report.when == "call":
