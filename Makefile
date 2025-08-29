@@ -425,6 +425,40 @@ controller/deploy: controller/manifests bin/kustomize ## Deploy controller to th
 controller/undeploy: bin/kustomize ## Undeploy controller from the K8s cluster specified in ~/.kube/config. Call with ignore-not-found=true to ignore resource not found errors during deletion.
 	$(KUSTOMIZE) build manifests/kustomize/options/controller/overlays/base | $(KUBECTL) delete --ignore-not-found=$(ignore-not-found) -f -
 
+##@ Docker Compose
+
+# Auto-detect compose command: prefer podman-compose if available, fallback to docker-compose
+COMPOSE_CMD ?= $(shell if command -v podman-compose >/dev/null 2>&1; then echo "podman-compose"; elif command -v docker-compose >/dev/null 2>&1; then echo "docker-compose"; else echo "docker compose"; fi)
+
+.PHONY: compose/up
+compose/up: ## Start services using docker-compose.yaml with MySQL
+	$(COMPOSE_CMD) --profile mysql up
+
+.PHONY: compose/up/postgres
+compose/up/postgres: ## Start services using docker-compose.yaml with PostgreSQL
+	DB_TYPE=postgres $(COMPOSE_CMD) --profile postgres up
+
+.PHONY: compose/down
+compose/down: ## Stop services using docker-compose.yaml
+	$(COMPOSE_CMD) down
+
+.PHONY: compose/local/up
+compose/local/up: ## Start services using docker-compose-local.yaml with MySQL (builds from source)
+	$(COMPOSE_CMD) -f docker-compose-local.yaml --profile mysql up
+
+.PHONY: compose/local/up/postgres
+compose/local/up/postgres: ## Start services using docker-compose-local.yaml with PostgreSQL (builds from source)
+	DB_TYPE=postgres $(COMPOSE_CMD) -f docker-compose-local.yaml --profile postgres up
+
+.PHONY: compose/local/down
+compose/local/down: ## Stop services using docker-compose-local.yaml
+	$(COMPOSE_CMD) -f docker-compose-local.yaml down
+
+.PHONY: compose/clean
+compose/clean: ## Remove all Docker Compose volumes and networks
+	$(COMPOSE_CMD) down -v --remove-orphans
+	$(COMPOSE_CMD) -f docker-compose-local.yaml down -v --remove-orphans
+
 ##@ Tools
 
 KUBECTL ?= kubectl

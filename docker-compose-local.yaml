@@ -1,21 +1,46 @@
 # Local development demo/example compose file
 # Composes:
 # - a MySQL database,
-# - a model-registry server built from source.
-version: '3.4'
+# - a model-registry server built from source connected to the MySQL database.
+# - a model-catalog server built from source.
+# or
+# - a PostgreSQL database,
+# - a model-registry server built from source connected to the PostgreSQL database.
+# - a model-catalog server built from source.
+version: '3.8'
 services:
+  model-catalog:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: ["catalog", "--listen", "0.0.0.0:8081", "--catalogs-path", "/testdata/test-catalog-sources.yaml"]
+    container_name: model-catalog
+    ports:
+      - "8081:8081"
+    volumes:
+      - ./catalog/internal/catalog/testdata:/testdata
+
   model-registry:
     build:
       context: .
       dockerfile: Dockerfile
-    command: ["proxy", "--hostname", "0.0.0.0", "--datastore-type", "embedmd", "--embedmd-database-dsn", "root:demo@tcp(mysql:3306)/model_registry?charset=utf8mb4"]
+    entrypoint: ["/bin/sh"]
+    command: 
+      - -c
+      - |
+        if [ "$$DB_TYPE" = "postgres" ]; then
+          exec /model-registry proxy --hostname 0.0.0.0 --datastore-type embedmd --embedmd-database-type postgres --embedmd-database-dsn "host=postgres port=5432 user=postgres password=demo dbname=model_registry sslmode=disable"
+        else
+          exec /model-registry proxy --hostname 0.0.0.0 --datastore-type embedmd --embedmd-database-dsn "root:demo@tcp(mysql:3306)/model_registry?charset=utf8mb4"
+        fi
     container_name: model-registry
     ports:
       - "8080:8080"
     depends_on:
-      mysql:
-        condition: service_healthy
-        required: true
+      - ${DB_TYPE:-mysql}
+    environment:
+      - DB_TYPE=${DB_TYPE:-mysql}
+
   mysql:
     image: mysql:8.3
     container_name: mysql
@@ -35,5 +60,29 @@ services:
       timeout: 5s
       retries: 5
       start_period: 20s
+    profiles:
+      - mysql
+
+  postgres:
+    image: postgres:15
+    container_name: postgres
+    environment:
+      - POSTGRES_DB=model_registry
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=demo
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d model_registry"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+    profiles:
+      - postgres
+
 volumes:
   mysql_data:
+  postgres_data:
