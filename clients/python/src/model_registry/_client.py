@@ -19,7 +19,7 @@ from typing import (
 )
 from warnings import warn
 
-from model_registry.types.artifacts import ExperimentRunArtifact
+from model_registry.types.artifacts import Artifact, ExperimentRunArtifact
 
 from ._experiments import ActiveExperimentRun, RunContext
 from .core import ModelRegistryAPIClient
@@ -950,3 +950,29 @@ class ModelRegistry:
             return None
 
         return Pager[ExperimentRunArtifact](exp_run_logs)
+
+    def get_artifacts(
+        self,
+        filter_query: str | None = None,
+        artifact_type: str | None = None,
+    ) -> Pager[Artifact]:
+        """Get artifacts with filtering capabilities.
+
+        Args:
+            filter_query: A SQL-like query string to filter the list of entities.
+            artifact_type: Specifies the artifact type for listing artifacts.
+
+        Returns:
+            Iterable pager for artifacts.
+        """
+
+        def artifacts_list(options: ListOptions) -> list[Artifact]:
+            return self.async_runner(
+                self._api.get_artifacts(
+                    filter_query=filter_query,
+                    artifact_type=artifact_type,
+                    options=options,
+                )
+            )
+
+        return Pager[Artifact](artifacts_list)
