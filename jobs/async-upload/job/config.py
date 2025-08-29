@@ -114,9 +114,9 @@ def _load_s3_credentials(path: str | Path, store: S3Config) -> None:
     The path must be a folder, with a number of files that match a typical AWS config, ie - a Secret mounted to a pod with keys:
     - AWS_ACCESS_KEY_ID
     - AWS_SECRET_ACCESS_KEY
-    - AWS_S3_BUCKET or AWS_BUCKET
-    - AWS_DEFAULT_REGION
-    - AWS_S3_ENDPOINT
+    - AWS_REGION, or AWS_DEFAULT_REGION, see: https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-envvars.html#envvars-list:~:text=command%20line%20parameter.-,AWS_DEFAULT_REGION,-The%20Default%20region
+    - AWS_ENDPOINT_URL, or AWS_S3_ENDPOINT
+    - AWS_BUCKET, or AWS_S3_BUCKET
 
     These would be mounted as files with the names above and whose contents are the secret values.
 
@@ -133,18 +133,43 @@ def _load_s3_credentials(path: str | Path, store: S3Config) -> None:
         raise FileNotFoundError(f"credentials folder not found: {p}")
 
     # Load the credentials from the files
-    for file in p.glob("*"):
-        if file.is_file():
-            if file.name.startswith("AWS_S3_"):
-                # e.g. AWS_S3_BUCKET to bucket
-                key_name = file.name.lower().replace("aws_s3_", "")
-                setattr(store, key_name, file.read_text())
-            elif file.name.startswith("AWS_"):
-                # e.g. AWS_ACCESS_KEY_ID to access_key_id
-                key_name = file.name.lower().replace("aws_", "")
-                setattr(store, key_name, file.read_text())
-            else:
-                raise ValueError(f"Invalid credential file name: {file.name}")
+    aws_access_key_file = p / "AWS_ACCESS_KEY_ID"
+    if aws_access_key_file.exists():
+        store.access_key_id = aws_access_key_file.read_text()
+
+    aws_secret_key_file = p / "AWS_SECRET_ACCESS_KEY"
+    if aws_secret_key_file.exists():
+        store.secret_access_key = aws_secret_key_file.read_text()
+
+    aws_region_file = p / "AWS_REGION"
+    if aws_region_file.exists():
+        store.region = aws_region_file.read_text()
+    else:
+        aws_region_file = p / "AWS_DEFAULT_REGION"
+        if aws_region_file.exists():
+            store.region = aws_region_file.read_text()
+        else:
+            logger.warning("AWS_REGION, or AWS_DEFAULT_REGION not found in %s", p)
+
+    aws_endpoint_file = p / "AWS_ENDPOINT_URL"
+    if aws_endpoint_file.exists():
+        store.endpoint = aws_endpoint_file.read_text()
+    else:
+        aws_endpoint_file = p / "AWS_S3_ENDPOINT"
+        if aws_endpoint_file.exists():
+            store.endpoint = aws_endpoint_file.read_text()
+        else:
+            logger.warning("AWS_ENDPOINT_URL, or AWS_S3_ENDPOINT not found in %s", p)
+
+    aws_bucket_file = p / "AWS_BUCKET"
+    if aws_bucket_file.exists():
+        store.bucket = aws_bucket_file.read_text()
+    else:
+        aws_bucket_file = p / "AWS_S3_BUCKET"
+        if aws_bucket_file.exists():
+            store.bucket = aws_bucket_file.read_text()
+        else:
+            logger.warning("AWS_BUCKET, or AWS_S3_BUCKET not found in %s", p)
 
 
 def _load_oci_credentials(
