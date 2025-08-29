@@ -136,10 +136,14 @@ def _load_s3_credentials(path: str | Path, store: S3Config) -> None:
     aws_access_key_file = p / "AWS_ACCESS_KEY_ID"
     if aws_access_key_file.exists():
         store.access_key_id = aws_access_key_file.read_text()
+    else:
+        logger.warning("AWS_ACCESS_KEY_ID not found in %s", p)
 
     aws_secret_key_file = p / "AWS_SECRET_ACCESS_KEY"
     if aws_secret_key_file.exists():
         store.secret_access_key = aws_secret_key_file.read_text()
+    else:
+        logger.warning("AWS_SECRET_ACCESS_KEY not found in %s", p)
 
     aws_region_file = p / "AWS_REGION"
     if aws_region_file.exists():
