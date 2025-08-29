@@ -198,6 +198,11 @@ func (c *ModelRegistryServiceAPIController) Routes() Routes {
 			"/api/model_registry/v1alpha3/experiment_runs",
 			c.GetExperimentRuns,
 		},
+		"GetExperimentRunsMetricHistory": Route{
+			strings.ToUpper("Get"),
+			"/api/model_registry/v1alpha3/experiment_runs/metric_history",
+			c.GetExperimentRunsMetricHistory,
+		},
 		"GetExperiments": Route{
 			strings.ToUpper("Get"),
 			"/api/model_registry/v1alpha3/experiments",
@@ -936,6 +941,26 @@ func (c *ModelRegistryServiceAPIController) GetExperimentRuns(w http.ResponseWri
 	sortOrderParam := query.Get("sortOrder")
 	nextPageTokenParam := query.Get("nextPageToken")
 	result, err := c.service.GetExperimentRuns(r.Context(), filterQueryParam, pageSizeParam, model.OrderByField(orderByParam), model.SortOrder(sortOrderParam), nextPageTokenParam)
+	// If an error occurred, encode the error with the status code
+	if err != nil {
+		c.errorHandler(w, r, err, &result)
+		return
+	}
+	// If no error, encode the body and the result code
+	EncodeJSONResponse(result.Body, &result.Code, w)
+}
+
+// GetExperimentRunsMetricHistory - Get metric history for multiple ExperimentRuns
+func (c *ModelRegistryServiceAPIController) GetExperimentRunsMetricHistory(w http.ResponseWriter, r *http.Request) {
+	query := r.URL.Query()
+	filterQueryParam := query.Get("filterQuery")
+	nameParam := query.Get("name")
+	stepIdsParam := query.Get("stepIds")
+	pageSizeParam := query.Get("pageSize")
+	orderByParam := query.Get("orderBy")
+	sortOrderParam := query.Get("sortOrder")
+	nextPageTokenParam := query.Get("nextPageToken")
+	result, err := c.service.GetExperimentRunsMetricHistory(r.Context(), filterQueryParam, nameParam, stepIdsParam, pageSizeParam, model.OrderByField(orderByParam), model.SortOrder(sortOrderParam), nextPageTokenParam)
 	// If an error occurred, encode the error with the status code
 	if err != nil {
 		c.errorHandler(w, r, err, &result)
