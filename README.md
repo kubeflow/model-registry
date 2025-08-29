@@ -55,7 +55,7 @@ Model registry provides a central repository for model developers to store and m
 
 The model registry proxy server implementation follows a contract-first approach, where the contract is identified by [model-registry.yaml](api/openapi/model-registry.yaml) OpenAPI specification.
 
-You can also easily display the latest OpenAPI contract for model-registry in a Swagger-like editor directly from this repository; for example, [here](https://editor.swagger.io/?url=https://raw.githubusercontent.com/kubeflow/model-registry/main/api/openapi/model-registry.yaml).
+You can also easily display the latest OpenAPI contract for model-registry in a Swagger-like editor directly from the documentation site, [here](https://www.kubeflow.org/docs/components/model-registry/reference/rest-api/#swagger-ui).
 ### Starting the OpenAPI Proxy Server
 Run the following command to start the OpenAPI proxy server from source:
 
