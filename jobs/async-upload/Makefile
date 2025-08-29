@@ -1,4 +1,4 @@
-JOB_IMG_VERSION ?= latest
+JOB_IMG_VERSION ?= latest # when testing locally with KinD, override default to a tag of choice and you can opt-in to BUILD_IMAGE=false below.
 JOB_IMG_REGISTRY ?= quay.io
 JOB_IMG_ORG ?= opendatahub
 JOB_IMG_NAME ?= model-registry-job-async-upload

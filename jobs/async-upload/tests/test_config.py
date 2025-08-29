@@ -99,7 +99,7 @@ def s3_credentials_folder():
             "secret_access_key": f"file_secret_{random.randint(1000, 9999)}",
             "region": f"eu-west-1_{random.randint(1000, 9999)}",
             "bucket": f"file-bucket_{random.randint(1000, 9999)}",
-            "key": f"file-key_{random.randint(1000, 9999)}",
+            "endpoint": f"file-endpoint_{random.randint(1000, 9999)}",
         }
 
         # Write the credentials to files
@@ -109,10 +109,10 @@ def s3_credentials_folder():
             f.write(credentials["secret_access_key"])
         with open(os.path.join(temp_dir, "AWS_REGION"), "w") as f:
             f.write(credentials["region"])
-        with open(os.path.join(temp_dir, "AWS_BUCKET"), "w") as f:
+        with open(os.path.join(temp_dir, "AWS_S3_BUCKET"), "w") as f:
             f.write(credentials["bucket"])
-        with open(os.path.join(temp_dir, "AWS_KEY"), "w") as f:
-            f.write(credentials["key"])
+        with open(os.path.join(temp_dir, "AWS_S3_ENDPOINT"), "w") as f:
+            f.write(credentials["endpoint"])
 
         yield Path(temp_dir), credentials
 
@@ -148,6 +148,8 @@ def test_s3_file_to_oci_env_config(
             "s3",
             "--source-s3-credentials-path",
             str(folder_location),
+            "--source-aws-key",
+            "my-key", # see samples/sample_job_s3_to_oci.yaml, as 'key' is not provided in the Secret (#1256)
             "--registry-server-address",
             "https://registry.example.com",
         ]
@@ -159,6 +161,8 @@ def test_s3_file_to_oci_env_config(
     assert config.source.secret_access_key == expected_credentials["secret_access_key"]
     assert config.source.region == expected_credentials["region"]
     assert config.source.bucket == expected_credentials["bucket"]
+    assert config.source.endpoint == expected_credentials["endpoint"]
+    assert config.source.key == "my-key" # see samples/sample_job_s3_to_oci.yaml, as 'key' is not provided in the Secret (#1256)
 
     assert isinstance(config.destination, OCIStorageConfig)
     assert config.destination.uri == destination_oci_env_vars["oci_uri"]

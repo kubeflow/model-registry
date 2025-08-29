@@ -1,6 +1,7 @@
 package filter
 
 import (
+	"fmt"
 	"testing"
 )
 
@@ -74,6 +75,34 @@ func TestQueryBuilderEntityTypes(t *testing.T) {
 			query:         `name = "serve-model-1" AND replicas = 3`,
 			expectedJoins: 1,
 			description:   "Mixed Execution properties should require selective joins",
+		},
+		{
+			name:          "Artifact experimentId property",
+			entityType:    EntityTypeArtifact,
+			query:         `experimentId = "exp-123"`,
+			expectedJoins: 1,
+			description:   "Artifact experimentId should require ArtifactProperty join",
+		},
+		{
+			name:          "Artifact experimentRunId property",
+			entityType:    EntityTypeArtifact,
+			query:         `experimentRunId = "run-456"`,
+			expectedJoins: 1,
+			description:   "Artifact experimentRunId should require ArtifactProperty join",
+		},
+		{
+			name:          "Artifact both experiment properties",
+			entityType:    EntityTypeArtifact,
+			query:         `experimentId = "exp-123" AND experimentRunId = "run-456"`,
+			expectedJoins: 2,
+			description:   "Both experiment properties should require separate joins",
+		},
+		{
+			name:          "Artifact mixed core and experiment properties",
+			entityType:    EntityTypeArtifact,
+			query:         `name = "my-model" AND experimentId = "exp-123"`,
+			expectedJoins: 1,
+			description:   "Mixed core and experiment properties should require selective joins",
 		},
 	}
 
@@ -165,6 +194,24 @@ func TestQueryBuilderPropertyTypes(t *testing.T) {
 			entityType:  EntityTypeExecution,
 			query:       `name ILIKE "%serve%" AND status = "running"`,
 			description: "Execution with case-insensitive LIKE operator",
+		},
+		{
+			name:        "Artifact with experimentId filter",
+			entityType:  EntityTypeArtifact,
+			query:       `experimentId = "exp-123" AND name LIKE "%model%"`,
+			description: "Artifact filtering by experimentId and name",
+		},
+		{
+			name:        "Artifact with experimentRunId filter",
+			entityType:  EntityTypeArtifact,
+			query:       `experimentRunId = "run-456" AND state = "LIVE"`,
+			description: "Artifact filtering by experimentRunId and state",
+		},
+		{
+			name:        "Artifact with both experiment properties",
+			entityType:  EntityTypeArtifact,
+			query:       `experimentId = "exp-123" AND experimentRunId = "run-456" AND uri LIKE "s3://%"`,
+			description: "Artifact filtering by both experiment properties and URI",
 		},
 	}
 
@@ -291,6 +338,33 @@ func TestQueryBuilderPropertyTypeSuffix(t *testing.T) {
 			expectedValueType: DoubleValueType,
 			description:       "Should handle mixed explicit and inferred types",
 		},
+		{
+			name:              "Artifact experimentId property",
+			entityType:        EntityTypeArtifact,
+			restEntityType:    RestEntityModelArtifact,
+			query:             `experimentId = "exp-123"`,
+			expectedSQL:       "experiment_id",
+			expectedValueType: IntValueType,
+			description:       "Should handle experimentId as int property",
+		},
+		{
+			name:              "Artifact experimentRunId property",
+			entityType:        EntityTypeArtifact,
+			restEntityType:    RestEntityModelArtifact,
+			query:             `experimentRunId = "run-456"`,
+			expectedSQL:       "experiment_run_id",
+			expectedValueType: IntValueType,
+			description:       "Should handle experimentRunId as int property",
+		},
+		{
+			name:              "Artifact experimentId with explicit type",
+			entityType:        EntityTypeArtifact,
+			restEntityType:    RestEntityModelArtifact,
+			query:             `experimentId.int_value = "exp-123"`,
+			expectedSQL:       "experiment_id",
+			expectedValueType: IntValueType,
+			description:       "Should handle experimentId with explicit int_value type",
+		},
 	}
 
 	for _, tt := range tests {
@@ -322,6 +396,83 @@ func TestQueryBuilderPropertyTypeSuffix(t *testing.T) {
 				t.Errorf("Expected value type %s, got %s", tt.expectedValueType, propRef.ValueType)
 			}
 		})
+	}
+}
+
+// TestExperimentPropertiesInArtifacts tests that experimentId and experimentRunId
+// properties are properly handled for all artifact types
+func TestExperimentPropertiesInArtifacts(t *testing.T) {
+	artifactTypes := []struct {
+		name           string
+		restEntityType RestEntityType
+	}{
+		{"ModelArtifact", RestEntityModelArtifact},
+		{"DocArtifact", RestEntityDocArtifact},
+		{"DataSet", RestEntityDataSet},
+		{"Metric", RestEntityMetric},
+		{"Parameter", RestEntityParameter},
+	}
+
+	properties := []struct {
+		name         string
+		propertyName string
+		dbColumn     string
+	}{
+		{"experimentId", "experimentId", "experiment_id"},
+		{"experimentRunId", "experimentRunId", "experiment_run_id"},
+	}
+
+	for _, artifactType := range artifactTypes {
+		for _, prop := range properties {
+			t.Run(fmt.Sprintf("%s_%s", artifactType.name, prop.name), func(t *testing.T) {
+				// Test basic property definition
+				propDef := GetPropertyDefinition(EntityTypeArtifact, prop.propertyName)
+
+				if propDef.Location != PropertyTable {
+					t.Errorf("Expected %s to be in PropertyTable, got %v", prop.propertyName, propDef.Location)
+				}
+
+				if propDef.ValueType != IntValueType {
+					t.Errorf("Expected %s to be IntValueType, got %s", prop.propertyName, propDef.ValueType)
+				}
+
+				if propDef.Column != prop.dbColumn {
+					t.Errorf("Expected %s column to be %s, got %s", prop.propertyName, prop.dbColumn, propDef.Column)
+				}
+
+				// Test query parsing and building
+				query := fmt.Sprintf(`%s = "test-value"`, prop.propertyName)
+				filterExpr, err := Parse(query)
+				if err != nil {
+					t.Fatalf("Failed to parse query %s: %v", query, err)
+				}
+
+				// Create query builder for this artifact type
+				queryBuilder := NewQueryBuilderForRestEntity(artifactType.restEntityType)
+
+				if queryBuilder.entityType != EntityTypeArtifact {
+					t.Errorf("Expected EntityTypeArtifact, got %s", queryBuilder.entityType)
+				}
+
+				// Build property reference
+				leafExpr := findFirstLeafExpression(filterExpr)
+				if leafExpr == nil {
+					t.Fatal("No leaf expression found")
+				}
+
+				propRef := queryBuilder.buildPropertyReference(leafExpr)
+
+				if propRef.Name != prop.dbColumn {
+					t.Errorf("Expected property reference name %s, got %s", prop.dbColumn, propRef.Name)
+				}
+
+				if propRef.ValueType != IntValueType {
+					t.Errorf("Expected property reference type %s, got %s", IntValueType, propRef.ValueType)
+				}
+
+				t.Logf("✅ %s.%s correctly mapped to %s (%s)", artifactType.name, prop.propertyName, prop.dbColumn, IntValueType)
+			})
+		}
 	}
 }
 

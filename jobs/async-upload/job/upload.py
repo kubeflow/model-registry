@@ -21,7 +21,7 @@ def _get_upload_params(config: AsyncUploadConfig) -> S3Params | OCIParams:
         return S3Params(
             bucket_name=config.destination.bucket,
             s3_prefix=config.destination.key,
-            endpoint_url=config.destination.endpoint_url,
+            endpoint_url=config.destination.endpoint,
             access_key_id=config.destination.access_key_id,
             secret_access_key=config.destination.secret_access_key,
             region=config.destination.region,

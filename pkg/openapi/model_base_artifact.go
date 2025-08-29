@@ -14,18 +14,18 @@ import (
 	"encoding/json"
 )
 
-// checks if the Parameter type satisfies the MappedNullable interface at compile time
-var _ MappedNullable = &Parameter{}
+// checks if the BaseArtifact type satisfies the MappedNullable interface at compile time
+var _ MappedNullable = &BaseArtifact{}
 
-// Parameter A parameter representing a configuration parameter used in model training or execution.
-type Parameter struct {
+// BaseArtifact Base schema for all artifact types with common server generated properties.
+type BaseArtifact struct {
 	// User provided custom properties which are not defined by its type.
 	CustomProperties *map[string]MetadataValue `json:"customProperties,omitempty"`
 	// An optional description about the resource.
 	Description *string `json:"description,omitempty"`
 	// The external id that come from the clients’ system. This field is optional. If set, it must be unique among all resources within a database instance.
 	ExternalId *string `json:"externalId,omitempty"`
-	// The name/key of the parameter (e.g., \"learning_rate\", \"batch_size\", \"epochs\").
+	// The client provided name of the artifact. This field is optional. If set, it must be unique among all the artifacts of the same artifact type within a database instance and cannot be changed once set.
 	Name *string `json:"name,omitempty"`
 	// The unique server generated id of the resource.
 	Id *string `json:"id,omitempty"`
@@ -37,40 +37,27 @@ type Parameter struct {
 	ExperimentId *string `json:"experimentId,omitempty"`
 	// Optional id of the experiment run that produced this artifact.
 	ExperimentRunId *string `json:"experimentRunId,omitempty"`
-	ArtifactType    *string `json:"artifactType,omitempty"`
-	// The value of the parameter.
-	Value         *string        `json:"value,omitempty"`
-	ParameterType *ParameterType `json:"parameterType,omitempty"`
-	State         *ArtifactState `json:"state,omitempty"`
 }
 
-// NewParameter instantiates a new Parameter object
+// NewBaseArtifact instantiates a new BaseArtifact object
 // This constructor will assign default values to properties that have it defined,
 // and makes sure properties required by API are set, but the set of arguments
 // will change when the set of required properties is changed
-func NewParameter() *Parameter {
-	this := Parameter{}
-	var artifactType string = "parameter"
-	this.ArtifactType = &artifactType
-	var state ArtifactState = ARTIFACTSTATE_UNKNOWN
-	this.State = &state
+func NewBaseArtifact() *BaseArtifact {
+	this := BaseArtifact{}
 	return &this
 }
 
-// NewParameterWithDefaults instantiates a new Parameter object
+// NewBaseArtifactWithDefaults instantiates a new BaseArtifact object
 // This constructor will only assign default values to properties that have it defined,
 // but it doesn't guarantee that properties required by API are set
-func NewParameterWithDefaults() *Parameter {
-	this := Parameter{}
-	var artifactType string = "parameter"
-	this.ArtifactType = &artifactType
-	var state ArtifactState = ARTIFACTSTATE_UNKNOWN
-	this.State = &state
+func NewBaseArtifactWithDefaults() *BaseArtifact {
+	this := BaseArtifact{}
 	return &this
 }
 
 // GetCustomProperties returns the CustomProperties field value if set, zero value otherwise.
-func (o *Parameter) GetCustomProperties() map[string]MetadataValue {
+func (o *BaseArtifact) GetCustomProperties() map[string]MetadataValue {
 	if o == nil || IsNil(o.CustomProperties) {
 		var ret map[string]MetadataValue
 		return ret
@@ -80,7 +67,7 @@ func (o *Parameter) GetCustomProperties() map[string]MetadataValue {
 
 // GetCustomPropertiesOk returns a tuple with the CustomProperties field value if set, nil otherwise
 // and a boolean to check if the value has been set.
-func (o *Parameter) GetCustomPropertiesOk() (*map[string]MetadataValue, bool) {
+func (o *BaseArtifact) GetCustomPropertiesOk() (*map[string]MetadataValue, bool) {
 	if o == nil || IsNil(o.CustomProperties) {
 		return nil, false
 	}
@@ -88,7 +75,7 @@ func (o *Parameter) GetCustomPropertiesOk() (*map[string]MetadataValue, bool) {
 }
 
 // HasCustomProperties returns a boolean if a field has been set.
-func (o *Parameter) HasCustomProperties() bool {
+func (o *BaseArtifact) HasCustomProperties() bool {
 	if o != nil && !IsNil(o.CustomProperties) {
 		return true
 	}
@@ -97,12 +84,12 @@ func (o *Parameter) HasCustomProperties() bool {
 }
 
 // SetCustomProperties gets a reference to the given map[string]MetadataValue and assigns it to the CustomProperties field.
-func (o *Parameter) SetCustomProperties(v map[string]MetadataValue) {
+func (o *BaseArtifact) SetCustomProperties(v map[string]MetadataValue) {
 	o.CustomProperties = &v
 }
 
 // GetDescription returns the Description field value if set, zero value otherwise.
-func (o *Parameter) GetDescription() string {
+func (o *BaseArtifact) GetDescription() string {
 	if o == nil || IsNil(o.Description) {
 		var ret string
 		return ret
@@ -112,7 +99,7 @@ func (o *Parameter) GetDescription() string {
 
 // GetDescriptionOk returns a tuple with the Description field value if set, nil otherwise
 // and a boolean to check if the value has been set.
-func (o *Parameter) GetDescriptionOk() (*string, bool) {
+func (o *BaseArtifact) GetDescriptionOk() (*string, bool) {
 	if o == nil || IsNil(o.Description) {
 		return nil, false
 	}
@@ -120,7 +107,7 @@ func (o *Parameter) GetDescriptionOk() (*string, bool) {
 }
 
 // HasDescription returns a boolean if a field has been set.
-func (o *Parameter) HasDescription() bool {
+func (o *BaseArtifact) HasDescription() bool {
 	if o != nil && !IsNil(o.Description) {
 		return true
 	}
@@ -129,12 +116,12 @@ func (o *Parameter) HasDescription() bool {
 }
 
 // SetDescription gets a reference to the given string and assigns it to the Description field.
-func (o *Parameter) SetDescription(v string) {
+func (o *BaseArtifact) SetDescription(v string) {
 	o.Description = &v
 }
 
 // GetExternalId returns the ExternalId field value if set, zero value otherwise.
-func (o *Parameter) GetExternalId() string {
+func (o *BaseArtifact) GetExternalId() string {
 	if o == nil || IsNil(o.ExternalId) {
 		var ret string
 		return ret
@@ -144,7 +131,7 @@ func (o *Parameter) GetExternalId() string {
 
 // GetExternalIdOk returns a tuple with the ExternalId field value if set, nil otherwise
 // and a boolean to check if the value has been set.
-func (o *Parameter) GetExternalIdOk() (*string, bool) {
+func (o *BaseArtifact) GetExternalIdOk() (*string, bool) {
 	if o == nil || IsNil(o.ExternalId) {
 		return nil, false
 	}
@@ -152,7 +139,7 @@ func (o *Parameter) GetExternalIdOk() (*string, bool) {
 }
 
 // HasExternalId returns a boolean if a field has been set.
-func (o *Parameter) HasExternalId() bool {
+func (o *BaseArtifact) HasExternalId() bool {
 	if o != nil && !IsNil(o.ExternalId) {
 		return true
 	}
@@ -161,12 +148,12 @@ func (o *Parameter) HasExternalId() bool {
 }
 
 // SetExternalId gets a reference to the given string and assigns it to the ExternalId field.
-func (o *Parameter) SetExternalId(v string) {
+func (o *BaseArtifact) SetExternalId(v string) {
 	o.ExternalId = &v
 }
 
 // GetName returns the Name field value if set, zero value otherwise.
-func (o *Parameter) GetName() string {
+func (o *BaseArtifact) GetName() string {
 	if o == nil || IsNil(o.Name) {
 		var ret string
 		return ret
@@ -176,7 +163,7 @@ func (o *Parameter) GetName() string {
 
 // GetNameOk returns a tuple with the Name field value if set, nil otherwise
 // and a boolean to check if the value has been set.
-func (o *Parameter) GetNameOk() (*string, bool) {
+func (o *BaseArtifact) GetNameOk() (*string, bool) {
 	if o == nil || IsNil(o.Name) {
 		return nil, false
 	}
@@ -184,7 +171,7 @@ func (o *Parameter) GetNameOk() (*string, bool) {
 }
 
 // HasName returns a boolean if a field has been set.
-func (o *Parameter) HasName() bool {
+func (o *BaseArtifact) HasName() bool {
 	if o != nil && !IsNil(o.Name) {
 		return true
 	}
@@ -193,12 +180,12 @@ func (o *Parameter) HasName() bool {
 }
 
 // SetName gets a reference to the given string and assigns it to the Name field.
-func (o *Parameter) SetName(v string) {
+func (o *BaseArtifact) SetName(v string) {
 	o.Name = &v
 }
 
 // GetId returns the Id field value if set, zero value otherwise.
-func (o *Parameter) GetId() string {
+func (o *BaseArtifact) GetId() string {
 	if o == nil || IsNil(o.Id) {
 		var ret string
 		return ret
@@ -208,7 +195,7 @@ func (o *Parameter) GetId() string {
 
 // GetIdOk returns a tuple with the Id field value if set, nil otherwise
 // and a boolean to check if the value has been set.
-func (o *Parameter) GetIdOk() (*string, bool) {
+func (o *BaseArtifact) GetIdOk() (*string, bool) {
 	if o == nil || IsNil(o.Id) {
 		return nil, false
 	}
@@ -216,7 +203,7 @@ func (o *Parameter) GetIdOk() (*string, bool) {
 }
 
 // HasId returns a boolean if a field has been set.
-func (o *Parameter) HasId() bool {
+func (o *BaseArtifact) HasId() bool {
 	if o != nil && !IsNil(o.Id) {
 		return true
 	}
@@ -225,12 +212,12 @@ func (o *Parameter) HasId() bool {
 }
 
 // SetId gets a reference to the given string and assigns it to the Id field.
-func (o *Parameter) SetId(v string) {
+func (o *BaseArtifact) SetId(v string) {
 	o.Id = &v
 }
 
 // GetCreateTimeSinceEpoch returns the CreateTimeSinceEpoch field value if set, zero value otherwise.
-func (o *Parameter) GetCreateTimeSinceEpoch() string {
+func (o *BaseArtifact) GetCreateTimeSinceEpoch() string {
 	if o == nil || IsNil(o.CreateTimeSinceEpoch) {
 		var ret string
 		return ret
@@ -240,7 +227,7 @@ func (o *Parameter) GetCreateTimeSinceEpoch() string {
 
 // GetCreateTimeSinceEpochOk returns a tuple with the CreateTimeSinceEpoch field value if set, nil otherwise
 // and a boolean to check if the value has been set.
-func (o *Parameter) GetCreateTimeSinceEpochOk() (*string, bool) {
+func (o *BaseArtifact) GetCreateTimeSinceEpochOk() (*string, bool) {
 	if o == nil || IsNil(o.CreateTimeSinceEpoch) {
 		return nil, false
 	}
@@ -248,7 +235,7 @@ func (o *Parameter) GetCreateTimeSinceEpochOk() (*string, bool) {
 }
 
 // HasCreateTimeSinceEpoch returns a boolean if a field has been set.
-func (o *Parameter) HasCreateTimeSinceEpoch() bool {
+func (o *BaseArtifact) HasCreateTimeSinceEpoch() bool {
 	if o != nil && !IsNil(o.CreateTimeSinceEpoch) {
 		return true
 	}
@@ -257,12 +244,12 @@ func (o *Parameter) HasCreateTimeSinceEpoch() bool {
 }
 
 // SetCreateTimeSinceEpoch gets a reference to the given string and assigns it to the CreateTimeSinceEpoch field.
-func (o *Parameter) SetCreateTimeSinceEpoch(v string) {
+func (o *BaseArtifact) SetCreateTimeSinceEpoch(v string) {
 	o.CreateTimeSinceEpoch = &v
 }
 
 // GetLastUpdateTimeSinceEpoch returns the LastUpdateTimeSinceEpoch field value if set, zero value otherwise.
-func (o *Parameter) GetLastUpdateTimeSinceEpoch() string {
+func (o *BaseArtifact) GetLastUpdateTimeSinceEpoch() string {
 	if o == nil || IsNil(o.LastUpdateTimeSinceEpoch) {
 		var ret string
 		return ret
@@ -272,7 +259,7 @@ func (o *Parameter) GetLastUpdateTimeSinceEpoch() string {
 
 // GetLastUpdateTimeSinceEpochOk returns a tuple with the LastUpdateTimeSinceEpoch field value if set, nil otherwise
 // and a boolean to check if the value has been set.
-func (o *Parameter) GetLastUpdateTimeSinceEpochOk() (*string, bool) {
+func (o *BaseArtifact) GetLastUpdateTimeSinceEpochOk() (*string, bool) {
 	if o == nil || IsNil(o.LastUpdateTimeSinceEpoch) {
 		return nil, false
 	}
@@ -280,7 +267,7 @@ func (o *Parameter) GetLastUpdateTimeSinceEpochOk() (*string, bool) {
 }
 
 // HasLastUpdateTimeSinceEpoch returns a boolean if a field has been set.
-func (o *Parameter) HasLastUpdateTimeSinceEpoch() bool {
+func (o *BaseArtifact) HasLastUpdateTimeSinceEpoch() bool {
 	if o != nil && !IsNil(o.LastUpdateTimeSinceEpoch) {
 		return true
 	}
@@ -289,12 +276,12 @@ func (o *Parameter) HasLastUpdateTimeSinceEpoch() bool {
 }
 
 // SetLastUpdateTimeSinceEpoch gets a reference to the given string and assigns it to the LastUpdateTimeSinceEpoch field.
-func (o *Parameter) SetLastUpdateTimeSinceEpoch(v string) {
+func (o *BaseArtifact) SetLastUpdateTimeSinceEpoch(v string) {
 	o.LastUpdateTimeSinceEpoch = &v
 }
 
 // GetExperimentId returns the ExperimentId field value if set, zero value otherwise.
-func (o *Parameter) GetExperimentId() string {
+func (o *BaseArtifact) GetExperimentId() string {
 	if o == nil || IsNil(o.ExperimentId) {
 		var ret string
 		return ret
@@ -304,7 +291,7 @@ func (o *Parameter) GetExperimentId() string {
 
 // GetExperimentIdOk returns a tuple with the ExperimentId field value if set, nil otherwise
 // and a boolean to check if the value has been set.
-func (o *Parameter) GetExperimentIdOk() (*string, bool) {
+func (o *BaseArtifact) GetExperimentIdOk() (*string, bool) {
 	if o == nil || IsNil(o.ExperimentId) {
 		return nil, false
 	}
@@ -312,7 +299,7 @@ func (o *Parameter) GetExperimentIdOk() (*string, bool) {
 }
 
 // HasExperimentId returns a boolean if a field has been set.
-func (o *Parameter) HasExperimentId() bool {
+func (o *BaseArtifact) HasExperimentId() bool {
 	if o != nil && !IsNil(o.ExperimentId) {
 		return true
 	}
@@ -321,12 +308,12 @@ func (o *Parameter) HasExperimentId() bool {
 }
 
 // SetExperimentId gets a reference to the given string and assigns it to the ExperimentId field.
-func (o *Parameter) SetExperimentId(v string) {
+func (o *BaseArtifact) SetExperimentId(v string) {
 	o.ExperimentId = &v
 }
 
 // GetExperimentRunId returns the ExperimentRunId field value if set, zero value otherwise.
-func (o *Parameter) GetExperimentRunId() string {
+func (o *BaseArtifact) GetExperimentRunId() string {
 	if o == nil || IsNil(o.ExperimentRunId) {
 		var ret string
 		return ret
@@ -336,7 +323,7 @@ func (o *Parameter) GetExperimentRunId() string {
 
 // GetExperimentRunIdOk returns a tuple with the ExperimentRunId field value if set, nil otherwise
 // and a boolean to check if the value has been set.
-func (o *Parameter) GetExperimentRunIdOk() (*string, bool) {
+func (o *BaseArtifact) GetExperimentRunIdOk() (*string, bool) {
 	if o == nil || IsNil(o.ExperimentRunId) {
 		return nil, false
 	}
@@ -344,7 +331,7 @@ func (o *Parameter) GetExperimentRunIdOk() (*string, bool) {
 }
 
 // HasExperimentRunId returns a boolean if a field has been set.
-func (o *Parameter) HasExperimentRunId() bool {
+func (o *BaseArtifact) HasExperimentRunId() bool {
 	if o != nil && !IsNil(o.ExperimentRunId) {
 		return true
 	}
@@ -353,139 +340,11 @@ func (o *Parameter) HasExperimentRunId() bool {
 }
 
 // SetExperimentRunId gets a reference to the given string and assigns it to the ExperimentRunId field.
-func (o *Parameter) SetExperimentRunId(v string) {
+func (o *BaseArtifact) SetExperimentRunId(v string) {
 	o.ExperimentRunId = &v
 }
 
-// GetArtifactType returns the ArtifactType field value if set, zero value otherwise.
-func (o *Parameter) GetArtifactType() string {
-	if o == nil || IsNil(o.ArtifactType) {
-		var ret string
-		return ret
-	}
-	return *o.ArtifactType
-}
-
-// GetArtifactTypeOk returns a tuple with the ArtifactType field value if set, nil otherwise
-// and a boolean to check if the value has been set.
-func (o *Parameter) GetArtifactTypeOk() (*string, bool) {
-	if o == nil || IsNil(o.ArtifactType) {
-		return nil, false
-	}
-	return o.ArtifactType, true
-}
-
-// HasArtifactType returns a boolean if a field has been set.
-func (o *Parameter) HasArtifactType() bool {
-	if o != nil && !IsNil(o.ArtifactType) {
-		return true
-	}
-
-	return false
-}
-
-// SetArtifactType gets a reference to the given string and assigns it to the ArtifactType field.
-func (o *Parameter) SetArtifactType(v string) {
-	o.ArtifactType = &v
-}
-
-// GetValue returns the Value field value if set, zero value otherwise.
-func (o *Parameter) GetValue() string {
-	if o == nil || IsNil(o.Value) {
-		var ret string
-		return ret
-	}
-	return *o.Value
-}
-
-// GetValueOk returns a tuple with the Value field value if set, nil otherwise
-// and a boolean to check if the value has been set.
-func (o *Parameter) GetValueOk() (*string, bool) {
-	if o == nil || IsNil(o.Value) {
-		return nil, false
-	}
-	return o.Value, true
-}
-
-// HasValue returns a boolean if a field has been set.
-func (o *Parameter) HasValue() bool {
-	if o != nil && !IsNil(o.Value) {
-		return true
-	}
-
-	return false
-}
-
-// SetValue gets a reference to the given string and assigns it to the Value field.
-func (o *Parameter) SetValue(v string) {
-	o.Value = &v
-}
-
-// GetParameterType returns the ParameterType field value if set, zero value otherwise.
-func (o *Parameter) GetParameterType() ParameterType {
-	if o == nil || IsNil(o.ParameterType) {
-		var ret ParameterType
-		return ret
-	}
-	return *o.ParameterType
-}
-
-// GetParameterTypeOk returns a tuple with the ParameterType field value if set, nil otherwise
-// and a boolean to check if the value has been set.
-func (o *Parameter) GetParameterTypeOk() (*ParameterType, bool) {
-	if o == nil || IsNil(o.ParameterType) {
-		return nil, false
-	}
-	return o.ParameterType, true
-}
-
-// HasParameterType returns a boolean if a field has been set.
-func (o *Parameter) HasParameterType() bool {
-	if o != nil && !IsNil(o.ParameterType) {
-		return true
-	}
-
-	return false
-}
-
-// SetParameterType gets a reference to the given ParameterType and assigns it to the ParameterType field.
-func (o *Parameter) SetParameterType(v ParameterType) {
-	o.ParameterType = &v
-}
-
-// GetState returns the State field value if set, zero value otherwise.
-func (o *Parameter) GetState() ArtifactState {
-	if o == nil || IsNil(o.State) {
-		var ret ArtifactState
-		return ret
-	}
-	return *o.State
-}
-
-// GetStateOk returns a tuple with the State field value if set, nil otherwise
-// and a boolean to check if the value has been set.
-func (o *Parameter) GetStateOk() (*ArtifactState, bool) {
-	if o == nil || IsNil(o.State) {
-		return nil, false
-	}
-	return o.State, true
-}
-
-// HasState returns a boolean if a field has been set.
-func (o *Parameter) HasState() bool {
-	if o != nil && !IsNil(o.State) {
-		return true
-	}
-
-	return false
-}
-
-// SetState gets a reference to the given ArtifactState and assigns it to the State field.
-func (o *Parameter) SetState(v ArtifactState) {
-	o.State = &v
-}
-
-func (o Parameter) MarshalJSON() ([]byte, error) {
+func (o BaseArtifact) MarshalJSON() ([]byte, error) {
 	toSerialize, err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
@@ -493,7 +352,7 @@ func (o Parameter) MarshalJSON() ([]byte, error) {
 	return json.Marshal(toSerialize)
 }
 
-func (o Parameter) ToMap() (map[string]interface{}, error) {
+func (o BaseArtifact) ToMap() (map[string]interface{}, error) {
 	toSerialize := map[string]interface{}{}
 	if !IsNil(o.CustomProperties) {
 		toSerialize["customProperties"] = o.CustomProperties
@@ -522,53 +381,41 @@ func (o Parameter) ToMap() (map[string]interface{}, error) {
 	if !IsNil(o.ExperimentRunId) {
 		toSerialize["experimentRunId"] = o.ExperimentRunId
 	}
-	if !IsNil(o.ArtifactType) {
-		toSerialize["artifactType"] = o.ArtifactType
-	}
-	if !IsNil(o.Value) {
-		toSerialize["value"] = o.Value
-	}
-	if !IsNil(o.ParameterType) {
-		toSerialize["parameterType"] = o.ParameterType
-	}
-	if !IsNil(o.State) {
-		toSerialize["state"] = o.State
-	}
 	return toSerialize, nil
 }
 
-type NullableParameter struct {
-	value *Parameter
+type NullableBaseArtifact struct {
+	value *BaseArtifact
 	isSet bool
 }
 
-func (v NullableParameter) Get() *Parameter {
+func (v NullableBaseArtifact) Get() *BaseArtifact {
 	return v.value
 }
 
-func (v *NullableParameter) Set(val *Parameter) {
+func (v *NullableBaseArtifact) Set(val *BaseArtifact) {
 	v.value = val
 	v.isSet = true
 }
 
-func (v NullableParameter) IsSet() bool {
+func (v NullableBaseArtifact) IsSet() bool {
 	return v.isSet
 }
 
-func (v *NullableParameter) Unset() {
+func (v *NullableBaseArtifact) Unset() {
 	v.value = nil
 	v.isSet = false
 }
 
-func NewNullableParameter(val *Parameter) *NullableParameter {
-	return &NullableParameter{value: val, isSet: true}
+func NewNullableBaseArtifact(val *BaseArtifact) *NullableBaseArtifact {
+	return &NullableBaseArtifact{value: val, isSet: true}
 }
 
-func (v NullableParameter) MarshalJSON() ([]byte, error) {
+func (v NullableBaseArtifact) MarshalJSON() ([]byte, error) {
 	return json.Marshal(v.value)
 }
 
-func (v *NullableParameter) UnmarshalJSON(src []byte) error {
+func (v *NullableBaseArtifact) UnmarshalJSON(src []byte) error {
 	v.isSet = true
 	return json.Unmarshal(src, &v.value)
 }
