@@ -87,6 +87,7 @@ const ModelPropertiesDescriptionListGroup: React.FC<ModelPropertiesDescriptionLi
               isArchive={isArchive}
               keyValuePair={{ key, value: filteredProperties[key].string_value }}
               allExistingKeys={allExistingKeys}
+              isVersionSection
               isEditing={editingPropertyKeys.includes(key)}
               setIsEditing={(isEditing) => setIsEditingKey(key, isEditing)}
               isSavingEdits={isSavingEdits}

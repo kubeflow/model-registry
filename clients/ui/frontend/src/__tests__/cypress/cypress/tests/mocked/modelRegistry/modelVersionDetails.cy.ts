@@ -8,7 +8,10 @@ import { mockModelVersion } from '~/__mocks__/mockModelVersion';
 import { mockModelArtifactList } from '~/__mocks__/mockModelArtifactList';
 import { ModelRegistryMetadataType, ModelState, type ModelRegistry } from '~/app/types';
 import { MODEL_REGISTRY_API_VERSION } from '~/__tests__/cypress/cypress/support/commands/api';
-import { modelVersionDetails } from '~/__tests__/cypress/cypress/pages/modelRegistryView/modelVersionDetails';
+import {
+  deletePropertyModal,
+  modelVersionDetails,
+} from '~/__tests__/cypress/cypress/pages/modelRegistryView/modelVersionDetails';
 
 const mockModelVersions = mockModelVersion({
   id: '1',
@@ -279,6 +282,7 @@ describe('Model version details', () => {
       const propertyRow = modelVersionDetails.getRow('a6');
       modelVersionDetails.findPropertiesTableRows().should('have.length', 7);
       propertyRow.find().findKebabAction('Delete').click();
+      deletePropertyModal.findConfirmButton().click();
       cy.wait('@UpdatePropertyRow').then((interception) => {
         expect(interception.request.body).to.eql(
           mockModArchResponse({
@@ -384,7 +388,15 @@ describe('Model version details', () => {
           cy.focused().type(`${longLabel}{enter}`);
         });
 
-      cy.findByTestId('label-error-alert')
+      cy.findAllByTestId('label-error-alert')
+        .eq(0)
+        .should('be.visible')
+        .within(() => {
+          cy.contains(`can't exceed 63 characters`).should('exist');
+        });
+
+      cy.findAllByTestId('label-error-alert')
+        .eq(1)
         .should('be.visible')
         .within(() => {
           cy.contains(`can't exceed 63 characters`).should('exist');
@@ -410,10 +422,18 @@ describe('Model version details', () => {
           cy.focused().type('{selectall}{backspace}Testing label{enter}');
         });
 
-      cy.findByTestId('label-error-alert')
+      cy.findAllByTestId('label-error-alert')
+        .eq(0)
         .should('be.visible')
         .within(() => {
-          cy.contains('Testing label already exists').should('exist');
+          cy.contains(/Testing label already exists|can't exceed 63 characters/g).should('exist');
+        });
+
+      cy.findAllByTestId('label-error-alert')
+        .eq(1)
+        .should('be.visible')
+        .within(() => {
+          cy.contains(/Testing label already exists|can't exceed 63 characters/g).should('exist');
         });
     });
 
