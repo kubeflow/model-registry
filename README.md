@@ -153,15 +153,55 @@ The server listens on `localhost` by default, hence the `-n 0.0.0.0` option allo
 
 #### Running model registry
 
-> **NOTE:** Docker compose must be installed in your environment.
+> **NOTE:** Docker Compose or Podman Compose must be installed in your environment.
 
-There are two `docker-compose` files that make the startup of both model registry and a MySQL database easier, by simply running:
+There are two `docker-compose` files that make the startup easier:
+
+- `docker-compose.yaml` - Uses pre-built images from registry
+- `docker-compose-local.yaml` - Builds model registry from source  
+
+Both files support MySQL and PostgreSQL databases using profiles.
+
+#### Using Makefile targets (recommended)
+
+The easiest way to run the services is using the provided Makefile targets:
 
 ```shell
-docker compose -f docker-compose[-local].yaml up
+# Start with MySQL (using pre-built images)
+make compose/up
+
+# Start with PostgreSQL (using pre-built images)  
+make compose/up/postgres
+
+# Start with MySQL (builds from source)
+make compose/local/up
+
+# Start with PostgreSQL (builds from source)
+make compose/local/up/postgres
+
+# Stop services
+make compose/down  # or compose/local/down
+
+# Clean up all volumes and networks
+make compose/clean
 ```
 
-The main difference between the two docker compose files is that `-local` one build the model registry from source, the other one, instead, download the `latest` pushed [quay.io](https://quay.io/repository/opendatahub/model-registry?tab=tags) image.
+#### Manual docker-compose usage
+
+Alternatively, you can run the compose files directly:
+
+```shell
+# Using pre-built images with MySQL
+docker-compose --profile mysql up
+
+# Using pre-built images with PostgreSQL  
+DB_TYPE=postgres docker-compose --profile postgres up
+
+# Building from source with PostgreSQL
+DB_TYPE=postgres docker-compose -f docker-compose-local.yaml --profile postgres up
+```
+
+The Makefile automatically detects whether to use `docker-compose`, `podman-compose`, or `docker compose` based on what's available on your system.
 
 ### Testing architecture
 
