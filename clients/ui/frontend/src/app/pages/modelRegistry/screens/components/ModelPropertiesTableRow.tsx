@@ -15,7 +15,7 @@ import { CheckIcon, ExternalLinkAltIcon, TimesIcon } from '@patternfly/react-ico
 import { KeyValuePair, EitherNotBoth } from 'mod-arch-core';
 import FormFieldset from '~/app/pages/modelRegistry/screens/components/FormFieldset';
 import { isValidHttpUrl } from '~/app/pages/modelRegistry/screens/utils';
-import useDeletePropertiesModalAvailability from '~/concepts/modelRegistry/useDeletePropertiesModalAvailability';
+import useDeletePropertiesModalAvailability from '~/app/hooks/useDeletePropertiesModalAvailability';
 import DeletePropertiesModal from './DeletePropertiesModal';
 
 type ModelPropertiesTableRowProps = {

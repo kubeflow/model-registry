@@ -10,7 +10,7 @@ import {
   StackItem,
 } from '@patternfly/react-core';
 import * as React from 'react';
-import useDeletePropertiesModalAvailability from '~/concepts/modelRegistry/useDeletePropertiesModalAvailability';
+import useDeletePropertiesModalAvailability from '~/app/hooks/useDeletePropertiesModalAvailability';
 
 type DeletePropertiesModalProps = {
   isOpen: boolean;
