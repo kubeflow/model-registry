@@ -52,6 +52,10 @@ const ModelPropertiesExpandableSection: React.FC<ModelPropertiesExpandableSectio
     </span>
   );
 
+  React.useEffect(() => {
+    onEditingChange(isEditingSomeRow);
+  }, [isEditingSomeRow, onEditingChange]);
+
   return (
     <ExpandableSection
       data-testid="properties-expandable-section"
@@ -79,10 +83,7 @@ const ModelPropertiesExpandableSection: React.FC<ModelPropertiesExpandableSectio
                 keyValuePair={{ key, value: filteredProperties[key].string_value || '' }}
                 allExistingKeys={allExistingKeys}
                 isEditing={editingPropertyKeys.includes(key)}
-                setIsEditing={(isEditing) => {
-                  setIsEditingKey(key, isEditing);
-                  onEditingChange(isEditing);
-                }}
+                setIsEditing={(isEditing) => setIsEditingKey(key, isEditing)}
                 isSavingEdits={isSavingEdits}
                 setIsSavingEdits={setIsSavingEdits}
                 saveEditedProperty={(oldKey, newPair) =>
@@ -101,10 +102,7 @@ const ModelPropertiesExpandableSection: React.FC<ModelPropertiesExpandableSectio
               <ModelPropertiesTableRow
                 isAddRow
                 allExistingKeys={allExistingKeys}
-                setIsEditing={(isEditing) => {
-                  setIsAdding(isEditing);
-                  onEditingChange(isEditing);
-                }}
+                setIsEditing={setIsAdding}
                 isSavingEdits={isSavingEdits}
                 setIsSavingEdits={setIsSavingEdits}
                 saveEditedProperty={(_oldKey, newPair) =>
@@ -126,7 +124,6 @@ const ModelPropertiesExpandableSection: React.FC<ModelPropertiesExpandableSectio
           onClick={() => {
             setIsShowingMoreProperties(true);
             setIsAdding(true);
-            onEditingChange(true);
           }}
         >
           Add property
