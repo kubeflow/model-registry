@@ -183,6 +183,8 @@ if [ ! "$res_one" = "{\"predictions\":[1,1]}" ]; then
     kubectl logs pod/$predictor_one -n $KSERVE_TEST_NAMESPACE -c kserve-container
     exit 1
 else
+    kubectl logs pod/$predictor_one -n $KSERVE_TEST_NAMESPACE -c storage-initializer
+    kubectl logs pod/$predictor_one -n $KSERVE_TEST_NAMESPACE -c kserve-container
     echo "Scenario 1 - Test succeeded!"
 fi
 
@@ -229,6 +231,8 @@ if [ ! "$res_two" = "{\"predictions\":[1,1]}" ]; then
     kubectl logs pod/$predictor_two -n $KSERVE_TEST_NAMESPACE -c kserve-container
     exit 1
 else
+    kubectl logs pod/$predictor_two -n $KSERVE_TEST_NAMESPACE -c storage-initializer
+    kubectl logs pod/$predictor_two -n $KSERVE_TEST_NAMESPACE -c kserve-container
     echo "Scenario 2 - Test succeeded!"
 fi
 
@@ -315,6 +319,8 @@ if [ ! "$res_three" = "{\"predictions\":[1,1]}" ]; then
     kubectl logs pod/$predictor_three -n $KSERVE_TEST_NAMESPACE -c kserve-container
     exit 1
 else
+    kubectl logs pod/$predictor_three -n $KSERVE_TEST_NAMESPACE -c storage-initializer
+    kubectl logs pod/$predictor_three -n $KSERVE_TEST_NAMESPACE -c kserve-container
     echo "Scenario 3 - Test succeeded!"
 fi
 
@@ -361,6 +367,8 @@ if [ ! "$res_four" = "{\"predictions\":[1,1]}" ]; then
     kubectl logs pod/$predictor_four -n $KSERVE_TEST_NAMESPACE -c kserve-container
     exit 1
 else
+    kubectl logs pod/$predictor_four -n $KSERVE_TEST_NAMESPACE -c storage-initializer
+    kubectl logs pod/$predictor_four -n $KSERVE_TEST_NAMESPACE -c kserve-container
     echo "Scenario 4 - Test succeeded!"
 fi
 

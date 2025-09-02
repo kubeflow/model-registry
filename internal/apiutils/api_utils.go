@@ -27,6 +27,16 @@ func StrPtr(notEmpty string) *string {
 	return &notEmpty
 }
 
+// SafeString returns a string representation of a string pointer.
+// Useful for logging or printing values that may be nil. For Zero values, you can refer to ZeroIfNil instead.
+// Returns "<nil>" if the input is nil
+func SafeString(s *string) string {
+	if s == nil {
+		return "<nil>"
+	}
+	return *s
+}
+
 // ValidateIDAsInt32 validates and converts a string ID to int32
 // Returns an error with api.ErrBadRequest if the ID is invalid
 func ValidateIDAsInt32(id string, entityName string) (int32, error) {
