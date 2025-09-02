@@ -158,7 +158,12 @@ const ModelDetailsCard: React.FC<ModelDetailsCardProps> = ({
     <>
       {isExpandable && showEditingAlert && (
         <CardBody>
-          <Alert variant="info" title="Changes affect all model versions" ouiaId="InfoAlert">
+          <Alert
+            variant="info"
+            title="Changes affect all model versions"
+            ouiaId="InfoAlert"
+            data-testid="edit-alert"
+          >
             <p>
               Editing the model details will apply changes to all versions of the <b>{rm.name}</b>{' '}
               model.
@@ -217,7 +222,9 @@ const ModelDetailsCard: React.FC<ModelDetailsCardProps> = ({
           >
             <CardTitle>Model details</CardTitle>
           </CardHeader>
-          <CardExpandableContent>{cardBody}</CardExpandableContent>
+          <CardExpandableContent data-testid="model-details-card-expandable-content">
+            {cardBody}
+          </CardExpandableContent>
         </>
       ) : (
         <>

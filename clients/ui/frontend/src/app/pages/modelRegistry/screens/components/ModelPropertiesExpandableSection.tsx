@@ -60,6 +60,7 @@ const ModelPropertiesExpandableSection: React.FC<ModelPropertiesExpandableSectio
     <ExpandableSection
       isExpanded={isExpanded}
       onToggle={() => setIsExpanded(!isExpanded)}
+      data-testid="properties-expandable-section"
       toggleContent={
         <>
           Properties <Badge isRead>{keys.length}</Badge>
