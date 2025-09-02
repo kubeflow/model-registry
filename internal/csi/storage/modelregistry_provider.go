@@ -112,7 +112,7 @@ func (p *ModelRegistryProvider) DownloadModel(modelDir string, modelName string,
 		return err
 	}
 
-	log.Printf("Delegating to KServe provider: %v to download model: modelDir=%s, modelArtifactURI=%s", provider, modelDir, apiutils.SafeString(modelArtifact.Uri))
+	log.Printf("Delegating to KServe provider to download model with: modelDir=%s, storageUri=%s", modelDir, apiutils.SafeString(modelArtifact.Uri))
 	return provider.DownloadModel(modelDir, "", *modelArtifact.Uri)
 }
 
