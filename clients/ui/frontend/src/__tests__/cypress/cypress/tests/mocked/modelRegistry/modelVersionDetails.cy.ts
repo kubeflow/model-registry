@@ -12,6 +12,36 @@ import {
   deletePropertyModal,
   modelVersionDetails,
 } from '~/__tests__/cypress/cypress/pages/modelRegistryView/modelVersionDetails';
+import { modelDetailsExpandedCard } from '~/__tests__/cypress/cypress/pages/modelRegistryView/modelDetailsCard';
+
+const mockRegisteredModelWithData = mockRegisteredModel({
+  id: '1',
+  name: 'Test Model',
+  description: 'Test model description',
+  owner: 'test-owner',
+  customProperties: {
+    label1: {
+      metadataType: ModelRegistryMetadataType.STRING,
+      string_value: '',
+    },
+    label2: {
+      metadataType: ModelRegistryMetadataType.STRING,
+      string_value: '',
+    },
+    property1: {
+      metadataType: ModelRegistryMetadataType.STRING,
+      string_value: 'value1',
+    },
+    property2: {
+      metadataType: ModelRegistryMetadataType.STRING,
+      string_value: 'value2',
+    },
+    'url-property': {
+      metadataType: ModelRegistryMetadataType.STRING,
+      string_value: 'https://example.com',
+    },
+  },
+});
 
 const mockModelVersions = mockModelVersion({
   id: '1',
@@ -112,18 +142,6 @@ const initIntercepts = ({
   );
 
   cy.interceptApi(
-    `GET /api/:apiVersion/model_registry/:modelRegistryName/registered_models/:registeredModelId`,
-    {
-      path: {
-        modelRegistryName: 'modelregistry-sample',
-        apiVersion: MODEL_REGISTRY_API_VERSION,
-        registeredModelId: 1,
-      },
-    },
-    mockRegisteredModel({}),
-  );
-
-  cy.interceptApi(
     `GET /api/:apiVersion/model_registry/:modelRegistryName/registered_models/:registeredModelId/versions`,
     {
       path: {
@@ -205,6 +223,18 @@ const initIntercepts = ({
     },
     mockModelArtifactList({}),
   );
+
+  cy.interceptApi(
+    `GET /api/:apiVersion/model_registry/:modelRegistryName/registered_models/:registeredModelId`,
+    {
+      path: {
+        modelRegistryName: 'modelregistry-sample',
+        apiVersion: MODEL_REGISTRY_API_VERSION,
+        registeredModelId: 1,
+      },
+    },
+    mockRegisteredModelWithData,
+  );
 };
 
 describe('Model version details', () => {
@@ -220,7 +250,36 @@ describe('Model version details', () => {
       );
       cy.findByTestId('app-page-title').should('contain.text', 'Version 1');
       cy.findByTestId('breadcrumb-version-name').should('have.text', 'Version 1');
-      cy.findByTestId('breadcrumb-model-version').should('contain.text', 'test');
+      cy.findByTestId('breadcrumb-model-version').should('contain.text', 'Test Model');
+    });
+
+    it('should show alerts for the expanded section', () => {
+      cy.interceptApi(
+        `PATCH /api/:apiVersion/model_registry/:modelRegistryName/registered_models/:registeredModelId`,
+        {
+          path: {
+            modelRegistryName: 'modelregistry-sample',
+            apiVersion: MODEL_REGISTRY_API_VERSION,
+            registeredModelId: 1,
+          },
+        },
+        mockRegisteredModelWithData,
+      ).as('patchRegisteredModel');
+      modelDetailsExpandedCard.findExpandedButton().click();
+      modelDetailsExpandedCard.find().should('be.visible');
+      modelDetailsExpandedCard.findLabelEditButton().click();
+      modelDetailsExpandedCard.findAlert().should('exist');
+      modelDetailsExpandedCard.findLabelSaveButton().click();
+      modelDetailsExpandedCard.findDescriptionEditButton().click();
+      modelDetailsExpandedCard.findAlert().should('exist');
+      modelDetailsExpandedCard.findDescriptionSaveButton().click();
+      modelDetailsExpandedCard.findPropertiesExpandableButton().click();
+      const propertyRow = modelDetailsExpandedCard.getRow('property1');
+      propertyRow.findKebabAction('Edit').click();
+      modelDetailsExpandedCard.findAlert().should('exist');
+      propertyRow.findSaveButton().click();
+      modelDetailsExpandedCard.findAddPropertyButton().click();
+      modelDetailsExpandedCard.findAlert().should('exist');
     });
 
     it('should add a property', () => {

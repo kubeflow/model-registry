@@ -1,3 +1,59 @@
+import { TableRow } from '~/__tests__/cypress/cypress/pages/components/table';
+
+class ExpandedModelDetailsCardPropertyRow extends TableRow {
+  findSaveButton() {
+    return cy.findByTestId('save-edit-button-property');
+  }
+}
+
+class ModelDetailsExpandedCard {
+  findExpandedButton() {
+    return cy.findByTestId('model-details-card-toggle-button');
+  }
+
+  find() {
+    return cy.findByTestId('model-details-card-expandable-content');
+  }
+
+  findLabelEditButton() {
+    return this.find().findByTestId('editable-labels-group-edit');
+  }
+
+  findLabelSaveButton() {
+    return this.find().findByTestId('editable-labels-group-save');
+  }
+
+  findDescriptionEditButton() {
+    return this.find().findByTestId('model-description-edit');
+  }
+
+  findDescriptionSaveButton() {
+    return this.find().findByTestId('model-description-save');
+  }
+
+  findAlert() {
+    return cy.findByTestId('edit-alert');
+  }
+
+  findAddPropertyButton() {
+    return this.find().findByTestId('add-property-button');
+  }
+
+  findTable() {
+    return this.find().findByTestId('properties-table');
+  }
+
+  findPropertiesExpandableButton() {
+    return this.find().findByTestId('properties-expandable-section').findByRole('button');
+  }
+
+  getRow(name: string) {
+    return new ExpandedModelDetailsCardPropertyRow(() =>
+      this.findTable().find(`[data-label=Key]`).contains(name).parents('tr'),
+    );
+  }
+}
+
 class ModelDetailsCard {
   // Model Details Card selectors and methods
   findOwner() {
@@ -48,3 +104,4 @@ class ModelDetailsCard {
 }
 
 export const modelDetailsCard = new ModelDetailsCard();
+export const modelDetailsExpandedCard = new ModelDetailsExpandedCard();

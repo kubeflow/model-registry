@@ -54,6 +54,7 @@ const ModelPropertiesExpandableSection: React.FC<ModelPropertiesExpandableSectio
 
   return (
     <ExpandableSection
+      data-testid="properties-expandable-section"
       toggleContent={
         <>
           Properties <Badge isRead>{keys.length}</Badge>
