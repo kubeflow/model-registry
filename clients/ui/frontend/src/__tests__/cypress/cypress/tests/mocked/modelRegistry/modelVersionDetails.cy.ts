@@ -8,11 +8,11 @@ import { mockModelVersion } from '~/__mocks__/mockModelVersion';
 import { mockModelArtifactList } from '~/__mocks__/mockModelArtifactList';
 import { ModelRegistryMetadataType, ModelState, type ModelRegistry } from '~/app/types';
 import { MODEL_REGISTRY_API_VERSION } from '~/__tests__/cypress/cypress/support/commands/api';
+import { modelVersionDetails } from '~/__tests__/cypress/cypress/pages/modelRegistryView/modelVersionDetails';
 import {
   deletePropertyModal,
-  modelVersionDetails,
-} from '~/__tests__/cypress/cypress/pages/modelRegistryView/modelVersionDetails';
-import { modelDetailsExpandedCard } from '~/__tests__/cypress/cypress/pages/modelRegistryView/modelDetailsCard';
+  modelDetailsExpandedCard,
+} from '~/__tests__/cypress/cypress/pages/modelRegistryView/modelDetailsCard';
 
 const mockRegisteredModelWithData = mockRegisteredModel({
   id: '1',
@@ -213,6 +213,18 @@ const initIntercepts = ({
   ).as('UpdatePropertyRow');
 
   cy.interceptApi(
+    `PATCH /api/:apiVersion/model_registry/:modelRegistryName/registered_models/:registeredModelId`,
+    {
+      path: {
+        modelRegistryName: 'modelregistry-sample',
+        apiVersion: MODEL_REGISTRY_API_VERSION,
+        registeredModelId: 1,
+      },
+    },
+    mockRegisteredModelWithData,
+  ).as('patchRegisteredModel');
+
+  cy.interceptApi(
     `GET /api/:apiVersion/model_registry/:modelRegistryName/model_versions/:modelVersionId/artifacts`,
     {
       path: {
@@ -282,6 +294,50 @@ describe('Model version details', () => {
       modelDetailsExpandedCard.findAlert().should('exist');
     });
 
+    it('should delete property for the expanded section and show modal', () => {
+      cy.interceptApi(
+        `PATCH /api/:apiVersion/model_registry/:modelRegistryName/registered_models/:registeredModelId`,
+        {
+          path: {
+            modelRegistryName: 'modelregistry-sample',
+            apiVersion: MODEL_REGISTRY_API_VERSION,
+            registeredModelId: 1,
+          },
+        },
+        mockRegisteredModelWithData,
+      ).as('patchRegisteredModel');
+      modelDetailsExpandedCard.findExpandedButton().click();
+      modelDetailsExpandedCard.find().should('be.visible');
+      modelDetailsExpandedCard.findPropertiesExpandableButton().click();
+      const propertyRow = modelDetailsExpandedCard.getRow('property1');
+      propertyRow.findKebabAction('Delete').click();
+      deletePropertyModal.findConfirmButton().click();
+      cy.wait('@patchRegisteredModel').then((interception) => {
+        expect(interception.request.body).to.eql(
+          mockModArchResponse({
+            customProperties: {
+              label1: {
+                metadataType: ModelRegistryMetadataType.STRING,
+                string_value: '',
+              },
+              label2: {
+                metadataType: ModelRegistryMetadataType.STRING,
+                string_value: '',
+              },
+              property2: {
+                metadataType: ModelRegistryMetadataType.STRING,
+                string_value: 'value2',
+              },
+              'url-property': {
+                metadataType: ModelRegistryMetadataType.STRING,
+                string_value: 'https://example.com',
+              },
+            },
+          }),
+        );
+      });
+    });
+
     it('should add a property', () => {
       modelVersionDetails.findAddPropertyButton().click();
       modelVersionDetails.findAddKeyInput().type('new_key');
@@ -341,7 +397,6 @@ describe('Model version details', () => {
       const propertyRow = modelVersionDetails.getRow('a6');
       modelVersionDetails.findPropertiesTableRows().should('have.length', 7);
       propertyRow.find().findKebabAction('Delete').click();
-      deletePropertyModal.findConfirmButton().click();
       cy.wait('@UpdatePropertyRow').then((interception) => {
         expect(interception.request.body).to.eql(
           mockModArchResponse({

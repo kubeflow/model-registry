@@ -1,19 +1,4 @@
 import { TableRow } from '~/__tests__/cypress/cypress/pages/components/table';
-import { Modal } from '../components/Modal';
-
-class DeletePropertyModal extends Modal {
-  constructor() {
-    super('Delete property from all model versions?');
-  }
-
-  find() {
-    return cy.findByTestId('delete-property-modal');
-  }
-
-  findConfirmButton() {
-    return this.findFooter().findByTestId('delete-property-modal-confirm');
-  }
-}
 
 class ModelVersionDetails {
   visit() {
@@ -168,4 +153,3 @@ class ModelVersionDetails {
 class PropertyRow extends TableRow {}
 
 export const modelVersionDetails = new ModelVersionDetails();
-export const deletePropertyModal = new DeletePropertyModal();

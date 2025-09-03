@@ -92,6 +92,7 @@ const ModelPropertiesExpandableSection: React.FC<ModelPropertiesExpandableSectio
                 setIsEditing={(isEditing) => setIsEditingKey(key, isEditing)}
                 isSavingEdits={isSavingEdits}
                 setIsSavingEdits={setIsSavingEdits}
+                isModelSection
                 saveEditedProperty={(oldKey, newPair) =>
                   saveEditedCustomProperties(
                     mergeUpdatedProperty({ customProperties, op: 'update', oldKey, newPair }),
