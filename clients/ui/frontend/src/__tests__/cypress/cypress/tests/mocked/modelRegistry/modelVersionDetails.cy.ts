@@ -8,11 +8,19 @@ import { mockModelVersion } from '~/__mocks__/mockModelVersion';
 import { mockModelArtifactList } from '~/__mocks__/mockModelArtifactList';
 import { ModelRegistryMetadataType, ModelState, type ModelRegistry } from '~/app/types';
 import { MODEL_REGISTRY_API_VERSION } from '~/__tests__/cypress/cypress/support/commands/api';
+<<<<<<< HEAD
 import { modelVersionDetails } from '~/__tests__/cypress/cypress/pages/modelRegistryView/modelVersionDetails';
 import {
   deletePropertyModal,
   modelDetailsExpandedCard,
 } from '~/__tests__/cypress/cypress/pages/modelRegistryView/modelDetailsCard';
+=======
+import {
+  deletePropertyModal,
+  modelVersionDetails,
+} from '~/__tests__/cypress/cypress/pages/modelRegistryView/modelVersionDetails';
+import { modelDetailsExpandedCard } from '~/__tests__/cypress/cypress/pages/modelRegistryView/modelDetailsCard';
+>>>>>>> eb449f061b75e1c45533eea7731cc4a389609500
 
 const mockRegisteredModelWithData = mockRegisteredModel({
   id: '1',
@@ -292,6 +300,7 @@ describe('Model version details', () => {
       propertyRow.findSaveButton().click();
       modelDetailsExpandedCard.findAddPropertyButton().click();
       modelDetailsExpandedCard.findAlert().should('exist');
+<<<<<<< HEAD
     });
 
     it('should delete property for the expanded section and show modal', () => {
@@ -336,6 +345,8 @@ describe('Model version details', () => {
           }),
         );
       });
+=======
+>>>>>>> eb449f061b75e1c45533eea7731cc4a389609500
     });
 
     it('should add a property', () => {
@@ -397,6 +408,7 @@ describe('Model version details', () => {
       const propertyRow = modelVersionDetails.getRow('a6');
       modelVersionDetails.findPropertiesTableRows().should('have.length', 7);
       propertyRow.find().findKebabAction('Delete').click();
+      deletePropertyModal.findConfirmButton().click();
       cy.wait('@UpdatePropertyRow').then((interception) => {
         expect(interception.request.body).to.eql(
           mockModArchResponse({
