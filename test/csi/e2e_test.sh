@@ -184,11 +184,18 @@ if [ ! "$res_one" = "{\"predictions\":[1,1]}" ]; then
     exit 1
 else
     echo "Scenario 1 - Test succeeded!"
+    kubectl logs pod/$predictor_one -n $KSERVE_TEST_NAMESPACE -c storage-initializer
+    kubectl logs pod/$predictor_one -n $KSERVE_TEST_NAMESPACE -c kserve-container
 fi
 
 echo "Cleaning up inferenceservice sklearn-iris-scenario-one ..."
-
 kubectl delete inferenceservice sklearn-iris-scenario-one -n $KSERVE_TEST_NAMESPACE
+
+sleep 5
+kubectl get pod -n $KSERVE_TEST_NAMESPACE --selector='component=predictor'
+echo "Checking that no predictor pods remain after cleanup..."
+repeat_cmd_until "kubectl get pod -n $KSERVE_TEST_NAMESPACE --selector='component=predictor' --output jsonpath='{.items[*].metadata.name}' | wc -w" "= 0" 60
+echo "No predictor pods remaining - cleanup successful"
 
 echo "======== Finished Scenario 1 ========"
 
@@ -211,7 +218,7 @@ EOF
 
 # wait for pod predictor to be initialized
 repeat_cmd_until "kubectl get pod -n $KSERVE_TEST_NAMESPACE --selector='component=predictor' --output jsonpath='{.items[*].metadata.name}' | grep sklearn-iris-scenario-two | wc -l" "-gt 0" 60
-predictor_two=$(kubectl get pod -n $KSERVE_TEST_NAMESPACE --selector="component=predictor" --output jsonpath='{.items[1].metadata.name}')
+predictor_two=$(kubectl get pod -n $KSERVE_TEST_NAMESPACE --selector="component=predictor" --output jsonpath='{.items[0].metadata.name}')
 
 kubectl wait --for=condition=Ready pod/$predictor_two -n $KSERVE_TEST_NAMESPACE --timeout=5m
 
@@ -230,11 +237,18 @@ if [ ! "$res_two" = "{\"predictions\":[1,1]}" ]; then
     exit 1
 else
     echo "Scenario 2 - Test succeeded!"
+    kubectl logs pod/$predictor_two -n $KSERVE_TEST_NAMESPACE -c storage-initializer
+    kubectl logs pod/$predictor_two -n $KSERVE_TEST_NAMESPACE -c kserve-container
 fi
 
 echo "Cleaning up inferenceservice sklearn-iris-scenario-two ..."
-
 kubectl delete inferenceservice sklearn-iris-scenario-two -n $KSERVE_TEST_NAMESPACE
+
+sleep 5
+kubectl get pod -n $KSERVE_TEST_NAMESPACE --selector='component=predictor'
+echo "Checking that no predictor pods remain after cleanup..."
+repeat_cmd_until "kubectl get pod -n $KSERVE_TEST_NAMESPACE --selector='component=predictor' --output jsonpath='{.items[*].metadata.name}' | wc -w" "= 0" 60
+echo "No predictor pods remaining - cleanup successful"
 
 echo "======== Finished Scenario 2 ========"
 
@@ -297,7 +311,7 @@ EOF
 
 # wait for pod predictor to be initialized
 repeat_cmd_until "kubectl get pod -n $KSERVE_TEST_NAMESPACE --selector='component=predictor' --output jsonpath='{.items[*].metadata.name}' | grep sklearn-iris-scenario-three-predictor | wc -l" "-gt 0" 60
-predictor_three=$(kubectl get pod -n $KSERVE_TEST_NAMESPACE --selector="component=predictor" --output jsonpath='{.items[1].metadata.name}')
+predictor_three=$(kubectl get pod -n $KSERVE_TEST_NAMESPACE --selector="component=predictor" --output jsonpath='{.items[0].metadata.name}')
 
 kubectl wait --for=condition=Ready pod/$predictor_three -n $KSERVE_TEST_NAMESPACE --timeout=5m
 
@@ -316,11 +330,18 @@ if [ ! "$res_three" = "{\"predictions\":[1,1]}" ]; then
     exit 1
 else
     echo "Scenario 3 - Test succeeded!"
+    kubectl logs pod/$predictor_three -n $KSERVE_TEST_NAMESPACE -c storage-initializer
+    kubectl logs pod/$predictor_three -n $KSERVE_TEST_NAMESPACE -c kserve-container
 fi
 
 echo "Cleaning up inferenceservice sklearn-iris-scenario-three ..."
-
 kubectl delete inferenceservice sklearn-iris-scenario-three -n $KSERVE_TEST_NAMESPACE
+
+sleep 5
+kubectl get pod -n $KSERVE_TEST_NAMESPACE --selector='component=predictor'
+echo "Checking that no predictor pods remain after cleanup..."
+repeat_cmd_until "kubectl get pod -n $KSERVE_TEST_NAMESPACE --selector='component=predictor' --output jsonpath='{.items[*].metadata.name}' | wc -w" "= 0" 60
+echo "No predictor pods remaining - cleanup successful"
 
 echo "======== Finished Scenario 3 ========"
 
@@ -343,7 +364,7 @@ EOF
 
 # wait for pod predictor to be initialized
 repeat_cmd_until "kubectl get pod -n $KSERVE_TEST_NAMESPACE --selector='component=predictor' --output jsonpath='{.items[*].metadata.name}' | grep sklearn-iris-scenario-four-predictor | wc -l" "-gt 0" 60
-predictor_four=$(kubectl get pod -n $KSERVE_TEST_NAMESPACE --selector="component=predictor" --output jsonpath='{.items[1].metadata.name}')
+predictor_four=$(kubectl get pod -n $KSERVE_TEST_NAMESPACE --selector="component=predictor" --output jsonpath='{.items[0].metadata.name}')
 
 kubectl wait --for=condition=Ready pod/$predictor_four -n $KSERVE_TEST_NAMESPACE --timeout=5m
 
@@ -362,11 +383,18 @@ if [ ! "$res_four" = "{\"predictions\":[1,1]}" ]; then
     exit 1
 else
     echo "Scenario 4 - Test succeeded!"
+    kubectl logs pod/$predictor_four -n $KSERVE_TEST_NAMESPACE -c storage-initializer
+    kubectl logs pod/$predictor_four -n $KSERVE_TEST_NAMESPACE -c kserve-container
 fi
 
 echo "Cleaning up inferenceservice sklearn-iris-scenario-four ..."
-
 kubectl delete inferenceservice sklearn-iris-scenario-four -n $KSERVE_TEST_NAMESPACE
+
+sleep 5
+kubectl get pod -n $KSERVE_TEST_NAMESPACE --selector='component=predictor'
+echo "Checking that no predictor pods remain after cleanup..."
+repeat_cmd_until "kubectl get pod -n $KSERVE_TEST_NAMESPACE --selector='component=predictor' --output jsonpath='{.items[*].metadata.name}' | wc -w" "= 0" 60
+echo "No predictor pods remaining - cleanup successful"
 
 echo "======== Finished Scenario 4 ========"
 
