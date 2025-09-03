@@ -125,7 +125,7 @@
     "cypress": "^14.4.1",
     "cypress-axe": "^1.5.0",
     "cypress-high-resolution": "^1.0.0",
-    "cypress-mochawesome-reporter": "^3.8.2",
+    "cypress-mochawesome-reporter": "^4.0.2",
     "cypress-multi-reporters": "^2.0.5",
     "eslint": "^8.57.0",
     "eslint-config-prettier": "^9.1.0",
