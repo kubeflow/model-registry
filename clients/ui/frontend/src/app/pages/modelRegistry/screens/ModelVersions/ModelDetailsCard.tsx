@@ -148,6 +148,7 @@ const ModelDetailsCard: React.FC<ModelDetailsCardProps> = ({
           .patchRegisteredModel({}, { customProperties: editedProperties }, rm.id)
           .then(refresh)
       }
+      isModelSection
       onEditingChange={(isEditing) =>
         setIsEditingProperties({ ...isEditingProperties, properties: isEditing })
       }
