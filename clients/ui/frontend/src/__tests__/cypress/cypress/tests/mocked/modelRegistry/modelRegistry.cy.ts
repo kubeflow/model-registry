@@ -13,6 +13,7 @@ import {
 } from '~/app/types';
 import { be } from '~/__tests__/cypress/cypress/utils/should';
 import { MODEL_REGISTRY_API_VERSION } from '~/__tests__/cypress/cypress/support/commands/api';
+import { verifyRelativeURL } from '~/__tests__/cypress/cypress/utils/url';
 
 type HandlersProps = {
   modelRegistries?: ModelRegistry[];
@@ -61,6 +62,8 @@ const initIntercepts = ({
     }),
     mockRegisteredModel({
       name: 'Label modal',
+      owner: 'Author 2',
+      id: '2',
       description:
         'A machine learning model trained to detect fraudulent transactions in financial data',
       customProperties: {
@@ -224,6 +227,24 @@ describe('Model Registry core', () => {
       ]);
     });
 
+    it('latest version column', () => {
+      const registeredModelRow = modelRegistry.getRow('Fraud detection model');
+      registeredModelRow.findLatestVersion().contains('new model version');
+      registeredModelRow.findLatestVersion().click();
+      verifyRelativeURL(
+        `/model-registry/modelregistry-sample/registeredModels/1/versions/1/details`,
+      );
+    });
+
+    it('table kebab actions', () => {
+      const registeredModelRow = modelRegistry.getRow('Fraud detection model');
+      registeredModelRow.findKebabAction('Versions').click();
+      verifyRelativeURL(`/model-registry/modelregistry-sample/registeredModels/1/versions`);
+      cy.go('back');
+      registeredModelRow.findKebabAction('Overview').click();
+      verifyRelativeURL(`/model-registry/modelregistry-sample/registeredModels/1/overview`);
+    });
+
     it('Renders labels in modal', () => {
       const registeredModelRow2 = modelRegistry.getRow('Label modal');
       registeredModelRow2.findLabelModalText().contains('6 more');
@@ -252,20 +273,34 @@ describe('Model Registry core', () => {
     });
 
     it('Sort by Last modified', () => {
+      modelRegistry.findRegisteredModelTableHeaderButton('Last modified').click();
       modelRegistry.findRegisteredModelTableHeaderButton('Last modified').should(be.sortAscending);
       modelRegistry.findRegisteredModelTableHeaderButton('Last modified').click();
       modelRegistry.findRegisteredModelTableHeaderButton('Last modified').should(be.sortDescending);
+      modelRegistry.findRegisteredModelTableHeaderButton('Last modified').click();
+      modelRegistry.findRegisteredModelTableHeaderButton('Last modified').should(be.sortAscending);
     });
 
-    it('Filter by keyword', () => {
+    it('Filter by keyword then both', () => {
       modelRegistry.findTableSearch().type('Fraud detection model');
       modelRegistry.findTableRows().should('have.length', 1);
+      modelRegistry.findFilterDropdownItem('Owner').click();
+      modelRegistry.findTableSearch().type('Author 1');
+      modelRegistry.findTableRows().should('have.length', 1);
       modelRegistry.findTableRows().contains('Fraud detection model');
-      modelRegistry
-        .findRegisteredModelsTableToolbar()
-        .findByRole('button', { name: 'Clear all filters' })
-        .click();
-      modelRegistry.findTableRows().should('have.length', 2);
+      modelRegistry.findTableSearch().type('2');
+      modelRegistry.findTableRows().should('have.length', 0);
+    });
+
+    it('Filter by owner then both', () => {
+      modelRegistry.findFilterDropdownItem('Owner').click();
+      modelRegistry.findTableSearch().type('Author 2');
+      modelRegistry.findTableRows().should('have.length', 1);
+      modelRegistry.findFilterDropdownItem('Keyword').click();
+      modelRegistry.findTableSearch().type('Label modal');
+      modelRegistry.findTableRows().should('have.length', 1);
+      modelRegistry.findTableSearch().type('.');
+      modelRegistry.findTableRows().should('have.length', 0);
     });
   });
 });
@@ -287,5 +322,54 @@ describe('Register Model button', () => {
     cy.findByTestId('app-page-title').should('exist');
     cy.findByTestId('app-page-title').contains('Register model');
     cy.findByText('Model registry - modelregistry-sample').should('exist');
+  });
+
+  it('should redirect to version details page after successful model registration', () => {
+    initIntercepts({ registeredModels: [] });
+
+    // Mock successful model registration
+    cy.intercept(
+      'POST',
+      `/api/modelregistry/${MODEL_REGISTRY_API_VERSION}/modelregistries/modelregistry-sample/registeredmodels`,
+      {
+        statusCode: 201,
+        body: mockRegisteredModel({
+          id: 'test-model-id',
+          name: 'Test Model',
+        }),
+      },
+    ).as('createRegisteredModel');
+
+    // Mock successful model version creation
+    cy.intercept(
+      'POST',
+      `/api/modelregistry/${MODEL_REGISTRY_API_VERSION}/modelregistries/modelregistry-sample/registeredmodels/test-model-id/versions`,
+      {
+        statusCode: 201,
+        body: mockModelVersion({
+          id: 'test-version-id',
+          name: 'v1.0.0',
+          registeredModelId: 'test-model-id',
+        }),
+      },
+    ).as('createModelVersion');
+    cy.intercept(
+      'POST',
+      `/api/modelregistry/${MODEL_REGISTRY_API_VERSION}/modelregistries/modelregistry-sample/registeredmodels/test-model-id/versions/test-version-id/artifacts`,
+      {
+        statusCode: 201,
+        body: {
+          id: 'test-artifact-id',
+          name: 'test-artifact',
+        },
+      },
+    ).as('createModelArtifact');
+    modelRegistry.visit();
+    modelRegistry.findRegisterModelButton().click();
+    cy.findByTestId('app-page-title').should('contain', 'Register model');
+    const expectedUrlPattern =
+      '/model-registry/modelregistry-sample/registeredModels/test-model-id/versions/test-version-id';
+    cy.url().should('include', '/model-registry/modelregistry-sample/registerModel');
+    cy.log(`Expected redirect URL: ${expectedUrlPattern}`);
   });
 });

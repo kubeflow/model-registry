@@ -3,8 +3,11 @@ package openapi
 import (
 	"context"
 	"net/http"
+	"sort"
 	"strconv"
+	"strings"
 	"testing"
+	"time"
 
 	"github.com/kubeflow/model-registry/catalog/internal/catalog"
 	model "github.com/kubeflow/model-registry/catalog/pkg/openapi"
@@ -12,8 +15,306 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+// timeToMillisStringPointer converts time.Time to *string representing milliseconds since epoch.
+func timeToMillisStringPointer(t time.Time) *string {
+	s := strconv.FormatInt(t.UnixMilli(), 10)
+	return &s
+}
+
+// pointerOrDefault returns the value pointed to by p, or def if p is nil.
+func pointerOrDefault(p *string, def string) string {
+	if p == nil {
+		return def
+	}
+	return *p
+}
+
+func TestFindModels(t *testing.T) {
+	// Define common models for testing
+	time1 := time.Date(2023, 1, 1, 0, 0, 0, 0, time.UTC)
+	time2 := time.Date(2023, 1, 2, 0, 0, 0, 0, time.UTC)
+	time3 := time.Date(2023, 1, 3, 0, 0, 0, 0, time.UTC)
+	time4 := time.Date(2023, 1, 4, 0, 0, 0, 0, time.UTC)
+
+	// Updated model definitions to match OpenAPI schema (no direct Id or Published, use Name, CreateTime, LastUpdateTime)
+	modelA := &model.CatalogModel{Name: "Model A", CreateTimeSinceEpoch: timeToMillisStringPointer(time1), LastUpdateTimeSinceEpoch: timeToMillisStringPointer(time4)}
+	modelB := &model.CatalogModel{Name: "Model B", CreateTimeSinceEpoch: timeToMillisStringPointer(time2), LastUpdateTimeSinceEpoch: timeToMillisStringPointer(time3)}
+	modelC := &model.CatalogModel{Name: "Another Model C", CreateTimeSinceEpoch: timeToMillisStringPointer(time3), LastUpdateTimeSinceEpoch: timeToMillisStringPointer(time2)}
+	modelD := &model.CatalogModel{Name: "My Model D", CreateTimeSinceEpoch: timeToMillisStringPointer(time4), LastUpdateTimeSinceEpoch: timeToMillisStringPointer(time1)}
+
+	testCases := []struct {
+		name              string
+		sourceID          string
+		mockModels        map[string]*model.CatalogModel
+		q                 string
+		pageSize          string
+		orderBy           model.OrderByField
+		sortOrder         model.SortOrder
+		nextPageToken     string
+		expectedStatus    int
+		expectedModelList *model.CatalogModelList
+	}{
+		{
+			name:     "Successful query with no filters",
+			sourceID: "source1",
+			mockModels: map[string]*model.CatalogModel{
+				"modelA": modelA, "modelB": modelB, "modelC": modelC, "modelD": modelD,
+			},
+			q:              "",
+			pageSize:       "10",
+			orderBy:        model.ORDERBYFIELD_NAME,
+			sortOrder:      model.SORTORDER_ASC,
+			expectedStatus: http.StatusOK,
+			expectedModelList: &model.CatalogModelList{
+				Items:         []model.CatalogModel{*modelC, *modelA, *modelB, *modelD}, // Sorted by Name ASC: Another Model C, Model A, Model B, My Model D
+				Size:          4,
+				PageSize:      10, // Default page size
+				NextPageToken: "",
+			},
+		},
+		{
+			name:     "Filter by query 'Model'",
+			sourceID: "source1",
+			mockModels: map[string]*model.CatalogModel{
+				"modelA": modelA, "modelB": modelB, "modelC": modelC, "modelD": modelD,
+			},
+			q:              "Model",
+			pageSize:       "10",
+			orderBy:        model.ORDERBYFIELD_NAME,
+			sortOrder:      model.SORTORDER_ASC,
+			expectedStatus: http.StatusOK,
+			expectedModelList: &model.CatalogModelList{
+				Items:         []model.CatalogModel{*modelC, *modelA, *modelB, *modelD}, // Corrected to include modelC and sorted by name ASC
+				Size:          4,                                                        // Corrected from 3 to 4
+				PageSize:      10,
+				NextPageToken: "",
+			},
+		},
+		{
+			name:     "Filter by query 'model' (case insensitive)",
+			sourceID: "source1",
+			mockModels: map[string]*model.CatalogModel{
+				"modelA": modelA, "modelB": modelB, "modelC": modelC, "modelD": modelD,
+			},
+			q:              "model",
+			pageSize:       "10",
+			orderBy:        model.ORDERBYFIELD_NAME,
+			sortOrder:      model.SORTORDER_ASC,
+			expectedStatus: http.StatusOK,
+			expectedModelList: &model.CatalogModelList{
+				Items:         []model.CatalogModel{*modelC, *modelA, *modelB, *modelD}, // Corrected to include modelC and sorted by name ASC
+				Size:          4,                                                        // Corrected from 3 to 4
+				PageSize:      10,
+				NextPageToken: "",
+			},
+		},
+		{
+			name:     "Page size limit",
+			sourceID: "source1",
+			mockModels: map[string]*model.CatalogModel{
+				"modelA": modelA, "modelB": modelB, "modelC": modelC, "modelD": modelD,
+			},
+			q:              "",
+			pageSize:       "2",
+			orderBy:        model.ORDERBYFIELD_NAME,
+			sortOrder:      model.SORTORDER_ASC,
+			expectedStatus: http.StatusOK,
+			expectedModelList: &model.CatalogModelList{
+				Items:         []model.CatalogModel{*modelC, *modelA}, // First 2 after sorting by Name ASC
+				Size:          4,                                      // Total size remains 4
+				PageSize:      2,
+				NextPageToken: (&stringCursor{Value: "Model A", ID: "Model A"}).String(),
+			},
+		},
+		{
+			name:     "Sort by ID Descending (mocked as Name Descending)",
+			sourceID: "source1",
+			mockModels: map[string]*model.CatalogModel{
+				"modelA": modelA, "modelB": modelB, "modelC": modelC, "modelD": modelD,
+			},
+			q:              "",
+			pageSize:       "10",
+			orderBy:        model.ORDERBYFIELD_ID,
+			sortOrder:      model.SORTORDER_DESC,
+			expectedStatus: http.StatusOK,
+			expectedModelList: &model.CatalogModelList{
+				Items:         []model.CatalogModel{*modelD, *modelB, *modelA, *modelC}, // Sorted by Name DESC
+				Size:          4,
+				PageSize:      10,
+				NextPageToken: "",
+			},
+		},
+		{
+			name:     "Sort by CreateTime Ascending",
+			sourceID: "source1",
+			mockModels: map[string]*model.CatalogModel{
+				"modelA": modelA, "modelB": modelB, "modelC": modelC, "modelD": modelD,
+			},
+			q:              "",
+			pageSize:       "10",
+			orderBy:        model.ORDERBYFIELD_CREATE_TIME,
+			sortOrder:      model.SORTORDER_ASC,
+			expectedStatus: http.StatusOK,
+			expectedModelList: &model.CatalogModelList{
+				Items:         []model.CatalogModel{*modelA, *modelB, *modelC, *modelD}, // Sorted by CreateTime ASC
+				Size:          4,
+				PageSize:      10,
+				NextPageToken: "",
+			},
+		},
+		{
+			name:     "Sort by LastUpdateTime Descending",
+			sourceID: "source1",
+			mockModels: map[string]*model.CatalogModel{
+				"modelA": modelA, "modelB": modelB, "modelC": modelC, "modelD": modelD,
+			},
+			q:              "",
+			pageSize:       "10",
+			orderBy:        model.ORDERBYFIELD_LAST_UPDATE_TIME,
+			sortOrder:      model.SORTORDER_DESC,
+			expectedStatus: http.StatusOK,
+			expectedModelList: &model.CatalogModelList{
+				Items:         []model.CatalogModel{*modelA, *modelB, *modelC, *modelD}, // Corrected to be sorted by LastUpdateTime DESC (modelA has latest time4, modelD has earliest time1)
+				Size:          4,
+				PageSize:      10,
+				NextPageToken: "",
+			},
+		},
+		{
+			name:              "Invalid source ID",
+			sourceID:          "unknown-source",
+			mockModels:        map[string]*model.CatalogModel{},
+			q:                 "",
+			pageSize:          "10",
+			orderBy:           model.ORDERBYFIELD_ID,
+			sortOrder:         model.SORTORDER_ASC,
+			expectedStatus:    http.StatusNotFound,
+			expectedModelList: nil,
+		},
+		{
+			name:     "Invalid pageSize string",
+			sourceID: "source1",
+			mockModels: map[string]*model.CatalogModel{
+				"modelA": modelA,
+			},
+			q:                 "",
+			pageSize:          "abc",
+			orderBy:           model.ORDERBYFIELD_ID,
+			sortOrder:         model.SORTORDER_ASC,
+			expectedStatus:    http.StatusBadRequest,
+			expectedModelList: nil,
+		},
+		{
+			name:     "Unsupported orderBy field",
+			sourceID: "source1",
+			mockModels: map[string]*model.CatalogModel{
+				"modelA": modelA,
+			},
+			q:                 "",
+			pageSize:          "10",
+			orderBy:           "UNSUPPORTED_FIELD",
+			sortOrder:         model.SORTORDER_ASC,
+			expectedStatus:    http.StatusBadRequest,
+			expectedModelList: nil,
+		},
+		{
+			name:     "Unsupported sortOrder field",
+			sourceID: "source1",
+			mockModels: map[string]*model.CatalogModel{
+				"modelA": modelA,
+			},
+			q:                 "",
+			pageSize:          "10",
+			orderBy:           model.ORDERBYFIELD_ID,
+			sortOrder:         "UNSUPPORTED_ORDER",
+			expectedStatus:    http.StatusBadRequest,
+			expectedModelList: nil,
+		},
+		{
+			name:           "Empty models in source",
+			sourceID:       "source1",
+			mockModels:     map[string]*model.CatalogModel{},
+			q:              "",
+			pageSize:       "10",
+			orderBy:        model.ORDERBYFIELD_ID,
+			sortOrder:      model.SORTORDER_ASC,
+			expectedStatus: http.StatusOK,
+			expectedModelList: &model.CatalogModelList{
+				Items:         []model.CatalogModel{},
+				Size:          0,
+				PageSize:      10,
+				NextPageToken: "",
+			},
+		},
+		{
+			name:     "Default sort (ID ascending) and default page size",
+			sourceID: "source1",
+			mockModels: map[string]*model.CatalogModel{
+				"modelB": modelB, "modelA": modelA, "modelD": modelD, "modelC": modelC,
+			},
+			q:              "",
+			pageSize:       "", // Default page size
+			orderBy:        "", // Default order by ID
+			sortOrder:      "", // Default sort order ASC
+			expectedStatus: http.StatusOK,
+			expectedModelList: &model.CatalogModelList{
+				Items:         []model.CatalogModel{*modelC, *modelA, *modelB, *modelD}, // Sorted by Name ASC (as ID is mocked to use Name)
+				Size:          4,
+				PageSize:      10, // Default page size
+				NextPageToken: "",
+			},
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			// Create mock source collection
+			sources := catalog.NewSourceCollection(map[string]catalog.CatalogSource{
+				"source1": {
+					Metadata: model.CatalogSource{Id: "source1", Name: "Test Source 1"},
+					Provider: &mockModelProvider{
+						models: tc.mockModels,
+					},
+				},
+			})
+			service := NewModelCatalogServiceAPIService(sources)
+
+			resp, err := service.FindModels(
+				context.Background(),
+				tc.sourceID,
+				tc.q,
+				tc.pageSize,
+				tc.orderBy,
+				tc.sortOrder,
+				tc.nextPageToken,
+			)
+
+			assert.Equal(t, tc.expectedStatus, resp.Code)
+
+			if tc.expectedStatus != http.StatusOK {
+				assert.NotNil(t, err)
+				return
+			}
+
+			require.NotNil(t, resp.Body)
+			modelList, ok := resp.Body.(model.CatalogModelList)
+			require.True(t, ok, "Response body should be a CatalogModelList")
+
+			assert.Equal(t, tc.expectedModelList.Size, modelList.Size)
+			assert.Equal(t, tc.expectedModelList.PageSize, modelList.PageSize)
+			if !assert.Equal(t, tc.expectedModelList.NextPageToken, modelList.NextPageToken) && tc.expectedModelList.NextPageToken != "" {
+				assert.Equal(t, decodeStringCursor(tc.expectedModelList.NextPageToken), decodeStringCursor(modelList.NextPageToken))
+			}
+
+			// Deep equality check for items
+			assert.Equal(t, tc.expectedModelList.Items, modelList.Items)
+		})
+	}
+}
+
 func TestFindSources(t *testing.T) {
 	// Setup test cases
+	trueValue := true
 	testCases := []struct {
 		name           string
 		catalogs       map[string]catalog.CatalogSource
@@ -42,7 +343,7 @@ func TestFindSources(t *testing.T) {
 			name: "Single catalog",
 			catalogs: map[string]catalog.CatalogSource{
 				"catalog1": {
-					Metadata: model.CatalogSource{Id: "catalog1", Name: "Test Catalog 1"},
+					Metadata: model.CatalogSource{Id: "catalog1", Name: "Test Catalog 1", Enabled: &trueValue},
 				},
 			},
 			nameFilter:     "",
@@ -57,13 +358,13 @@ func TestFindSources(t *testing.T) {
 			name: "Multiple catalogs with no filter",
 			catalogs: map[string]catalog.CatalogSource{
 				"catalog1": {
-					Metadata: model.CatalogSource{Id: "catalog1", Name: "Test Catalog 1"},
+					Metadata: model.CatalogSource{Id: "catalog1", Name: "Test Catalog 1", Enabled: &trueValue},
 				},
 				"catalog2": {
-					Metadata: model.CatalogSource{Id: "catalog2", Name: "Test Catalog 2"},
+					Metadata: model.CatalogSource{Id: "catalog2", Name: "Test Catalog 2", Enabled: &trueValue},
 				},
 				"catalog3": {
-					Metadata: model.CatalogSource{Id: "catalog3", Name: "Another Catalog"},
+					Metadata: model.CatalogSource{Id: "catalog3", Name: "Another Catalog", Enabled: &trueValue},
 				},
 			},
 			nameFilter:     "",
@@ -78,13 +379,13 @@ func TestFindSources(t *testing.T) {
 			name: "Filter by name",
 			catalogs: map[string]catalog.CatalogSource{
 				"catalog1": {
-					Metadata: model.CatalogSource{Id: "catalog1", Name: "Test Catalog 1"},
+					Metadata: model.CatalogSource{Id: "catalog1", Name: "Test Catalog 1", Enabled: &trueValue},
 				},
 				"catalog2": {
-					Metadata: model.CatalogSource{Id: "catalog2", Name: "Test Catalog 2"},
+					Metadata: model.CatalogSource{Id: "catalog2", Name: "Test Catalog 2", Enabled: &trueValue},
 				},
 				"catalog3": {
-					Metadata: model.CatalogSource{Id: "catalog3", Name: "Another Catalog"},
+					Metadata: model.CatalogSource{Id: "catalog3", Name: "Another Catalog", Enabled: &trueValue},
 				},
 			},
 			nameFilter:     "Test",
@@ -99,13 +400,13 @@ func TestFindSources(t *testing.T) {
 			name: "Filter by name case insensitive",
 			catalogs: map[string]catalog.CatalogSource{
 				"catalog1": {
-					Metadata: model.CatalogSource{Id: "catalog1", Name: "Test Catalog 1"},
+					Metadata: model.CatalogSource{Id: "catalog1", Name: "Test Catalog 1", Enabled: &trueValue},
 				},
 				"catalog2": {
-					Metadata: model.CatalogSource{Id: "catalog2", Name: "Test Catalog 2"},
+					Metadata: model.CatalogSource{Id: "catalog2", Name: "Test Catalog 2", Enabled: &trueValue},
 				},
 				"catalog3": {
-					Metadata: model.CatalogSource{Id: "catalog3", Name: "Another Catalog"},
+					Metadata: model.CatalogSource{Id: "catalog3", Name: "Another Catalog", Enabled: &trueValue},
 				},
 			},
 			nameFilter:     "test",
@@ -120,13 +421,13 @@ func TestFindSources(t *testing.T) {
 			name: "Pagination - limit results",
 			catalogs: map[string]catalog.CatalogSource{
 				"catalog1": {
-					Metadata: model.CatalogSource{Id: "catalog1", Name: "Test Catalog 1"},
+					Metadata: model.CatalogSource{Id: "catalog1", Name: "Test Catalog 1", Enabled: &trueValue},
 				},
 				"catalog2": {
-					Metadata: model.CatalogSource{Id: "catalog2", Name: "Test Catalog 2"},
+					Metadata: model.CatalogSource{Id: "catalog2", Name: "Test Catalog 2", Enabled: &trueValue},
 				},
 				"catalog3": {
-					Metadata: model.CatalogSource{Id: "catalog3", Name: "Another Catalog"},
+					Metadata: model.CatalogSource{Id: "catalog3", Name: "Another Catalog", Enabled: &trueValue},
 				},
 			},
 			nameFilter:     "",
@@ -141,10 +442,10 @@ func TestFindSources(t *testing.T) {
 			name: "Default page size",
 			catalogs: map[string]catalog.CatalogSource{
 				"catalog1": {
-					Metadata: model.CatalogSource{Id: "catalog1", Name: "Test Catalog 1"},
+					Metadata: model.CatalogSource{Id: "catalog1", Name: "Test Catalog 1", Enabled: &trueValue},
 				},
 				"catalog2": {
-					Metadata: model.CatalogSource{Id: "catalog2", Name: "Test Catalog 2"},
+					Metadata: model.CatalogSource{Id: "catalog2", Name: "Test Catalog 2", Enabled: &trueValue},
 				},
 			},
 			nameFilter:     "",
@@ -159,7 +460,7 @@ func TestFindSources(t *testing.T) {
 			name: "Invalid page size",
 			catalogs: map[string]catalog.CatalogSource{
 				"catalog1": {
-					Metadata: model.CatalogSource{Id: "catalog1", Name: "Test Catalog 1"},
+					Metadata: model.CatalogSource{Id: "catalog1", Name: "Test Catalog 1", Enabled: &trueValue},
 				},
 			},
 			nameFilter:     "",
@@ -172,13 +473,13 @@ func TestFindSources(t *testing.T) {
 			name: "Sort by ID ascending",
 			catalogs: map[string]catalog.CatalogSource{
 				"catalog2": {
-					Metadata: model.CatalogSource{Id: "catalog2", Name: "B Catalog"},
+					Metadata: model.CatalogSource{Id: "catalog2", Name: "B Catalog", Enabled: &trueValue},
 				},
 				"catalog1": {
-					Metadata: model.CatalogSource{Id: "catalog1", Name: "A Catalog"},
+					Metadata: model.CatalogSource{Id: "catalog1", Name: "A Catalog", Enabled: &trueValue},
 				},
 				"catalog3": {
-					Metadata: model.CatalogSource{Id: "catalog3", Name: "C Catalog"},
+					Metadata: model.CatalogSource{Id: "catalog3", Name: "C Catalog", Enabled: &trueValue},
 				},
 			},
 			nameFilter:     "",
@@ -194,13 +495,13 @@ func TestFindSources(t *testing.T) {
 			name: "Sort by ID descending",
 			catalogs: map[string]catalog.CatalogSource{
 				"catalog2": {
-					Metadata: model.CatalogSource{Id: "catalog2", Name: "B Catalog"},
+					Metadata: model.CatalogSource{Id: "catalog2", Name: "B Catalog", Enabled: &trueValue},
 				},
 				"catalog1": {
-					Metadata: model.CatalogSource{Id: "catalog1", Name: "A Catalog"},
+					Metadata: model.CatalogSource{Id: "catalog1", Name: "A Catalog", Enabled: &trueValue},
 				},
 				"catalog3": {
-					Metadata: model.CatalogSource{Id: "catalog3", Name: "C Catalog"},
+					Metadata: model.CatalogSource{Id: "catalog3", Name: "C Catalog", Enabled: &trueValue},
 				},
 			},
 			nameFilter:     "",
@@ -216,13 +517,13 @@ func TestFindSources(t *testing.T) {
 			name: "Sort by name ascending",
 			catalogs: map[string]catalog.CatalogSource{
 				"catalog2": {
-					Metadata: model.CatalogSource{Id: "catalog2", Name: "B Catalog"},
+					Metadata: model.CatalogSource{Id: "catalog2", Name: "B Catalog", Enabled: &trueValue},
 				},
 				"catalog1": {
-					Metadata: model.CatalogSource{Id: "catalog1", Name: "A Catalog"},
+					Metadata: model.CatalogSource{Id: "catalog1", Name: "A Catalog", Enabled: &trueValue},
 				},
 				"catalog3": {
-					Metadata: model.CatalogSource{Id: "catalog3", Name: "C Catalog"},
+					Metadata: model.CatalogSource{Id: "catalog3", Name: "C Catalog", Enabled: &trueValue},
 				},
 			},
 			nameFilter:     "",
@@ -238,10 +539,10 @@ func TestFindSources(t *testing.T) {
 			name: "Sort by name descending",
 			catalogs: map[string]catalog.CatalogSource{
 				"catalog2": {
-					Metadata: model.CatalogSource{Id: "catalog2", Name: "B Catalog"},
+					Metadata: model.CatalogSource{Id: "catalog2", Name: "B Catalog", Enabled: &trueValue},
 				},
 				"catalog1": {
-					Metadata: model.CatalogSource{Id: "catalog1", Name: "A Catalog"},
+					Metadata: model.CatalogSource{Id: "catalog1", Name: "A Catalog", Enabled: &trueValue},
 				},
 				"catalog3": {
 					Metadata: model.CatalogSource{Id: "catalog3", Name: "C Catalog"},
@@ -407,7 +708,50 @@ func (m *mockModelProvider) GetModel(ctx context.Context, name string) (*model.C
 }
 
 func (m *mockModelProvider) ListModels(ctx context.Context, params catalog.ListModelsParams) (model.CatalogModelList, error) {
-	return model.CatalogModelList{}, nil
+	var filteredModels []*model.CatalogModel
+	for _, mdl := range m.models {
+		if params.Query == "" || strings.Contains(strings.ToLower(mdl.Name), strings.ToLower(params.Query)) {
+			filteredModels = append(filteredModels, mdl)
+		}
+	}
+
+	// Sort the filtered models
+	sort.SliceStable(filteredModels, func(i, j int) bool {
+		cmp := 0
+		switch params.OrderBy {
+		case model.ORDERBYFIELD_CREATE_TIME:
+			// Parse CreateTimeSinceEpoch strings to int64 for comparison
+			t1, _ := strconv.ParseInt(pointerOrDefault(filteredModels[i].CreateTimeSinceEpoch, "0"), 10, 64)
+			t2, _ := strconv.ParseInt(pointerOrDefault(filteredModels[j].CreateTimeSinceEpoch, "0"), 10, 64)
+			cmp = int(t1 - t2)
+		case model.ORDERBYFIELD_LAST_UPDATE_TIME:
+			// Parse LastUpdateTimeSinceEpoch strings to int64 for comparison
+			t1, _ := strconv.ParseInt(pointerOrDefault(filteredModels[i].LastUpdateTimeSinceEpoch, "0"), 10, 64)
+			t2, _ := strconv.ParseInt(pointerOrDefault(filteredModels[j].LastUpdateTimeSinceEpoch, "0"), 10, 64)
+			cmp = int(t1 - t2)
+		case model.ORDERBYFIELD_NAME:
+			fallthrough
+		default:
+			cmp = strings.Compare(filteredModels[i].Name, filteredModels[j].Name)
+		}
+
+		if params.SortOrder == model.SORTORDER_DESC {
+			return cmp > 0
+		}
+		return cmp < 0
+	})
+
+	items := make([]model.CatalogModel, len(filteredModels))
+	for i, mdl := range filteredModels {
+		items[i] = *mdl
+	}
+
+	return model.CatalogModelList{
+		Items:         items,
+		Size:          int32(len(items)),
+		PageSize:      int32(len(items)), // Mock returns all filtered items as one "page"
+		NextPageToken: "",
+	}, nil
 }
 
 func (m *mockModelProvider) GetArtifacts(ctx context.Context, name string) (*model.CatalogModelArtifactList, error) {

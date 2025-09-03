@@ -12,6 +12,7 @@ import (
 	"github.com/kubeflow/model-registry/internal/proxy"
 	"github.com/kubeflow/model-registry/internal/server/openapi"
 	"github.com/kubeflow/model-registry/internal/tls"
+	"github.com/kubeflow/model-registry/pkg/api"
 	"github.com/spf13/cobra"
 )
 
@@ -40,11 +41,51 @@ var (
 		Short: "Starts the go OpenAPI proxy server to connect to a metadata store",
 		Long: `This command launches the go OpenAPI proxy server.
 
-The server connects to a metadata store, currently only MLMD is supported. It supports options to customize the
+The server connects to a metadata store, currently only the internal store is supported. It supports options to customize the
 hostname and port where it listens.`,
 		RunE: runProxyServer,
 	}
 )
+
+// ModelRegistryServiceHolder safely holds the model registry service
+type ModelRegistryServiceHolder struct {
+	mu      sync.RWMutex
+	service api.ModelRegistryApi
+}
+
+func (h *ModelRegistryServiceHolder) Set(service api.ModelRegistryApi) {
+	h.mu.Lock()
+	defer h.mu.Unlock()
+	h.service = service
+}
+
+func (h *ModelRegistryServiceHolder) Get() api.ModelRegistryApi {
+	h.mu.RLock()
+	defer h.mu.RUnlock()
+	return h.service
+}
+
+// ConditionalModelRegistryHealthChecker checks model registry health only if service is available
+type ConditionalModelRegistryHealthChecker struct {
+	holder *ModelRegistryServiceHolder
+}
+
+func (c *ConditionalModelRegistryHealthChecker) Check() proxy.HealthCheck {
+	service := c.holder.Get()
+	if service == nil {
+		return proxy.HealthCheck{
+			Name:    proxy.HealthCheckModelRegistry,
+			Status:  proxy.StatusFail,
+			Message: "model registry service not yet initialized",
+			Details: map[string]interface{}{
+				"service_ready": false,
+			},
+		}
+	}
+
+	checker := proxy.NewModelRegistryHealthChecker(service)
+	return checker.Check()
+}
 
 func runProxyServer(cmd *cobra.Command, args []string) error {
 	var (
@@ -52,20 +93,29 @@ func runProxyServer(cmd *cobra.Command, args []string) error {
 		wg sync.WaitGroup
 	)
 
+	serviceHolder := &ModelRegistryServiceHolder{}
+
 	router := proxy.NewDynamicRouter()
 
 	router.SetRouter(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, datastoreUnavailableMessage, http.StatusServiceUnavailable)
 	}))
 
-	// readiness probe requires schema_migrations.dirty to be false before allowing traffic
-	readinessHandler := proxy.ReadinessHandler(proxyCfg.Datastore)
+	mrHealthChecker := &ConditionalModelRegistryHealthChecker{holder: serviceHolder}
+	dbHealthChecker := proxy.NewDatabaseHealthChecker(proxyCfg.Datastore)
+	generalReadinessHandler := proxy.GeneralReadinessHandler(proxyCfg.Datastore, dbHealthChecker, mrHealthChecker)
+	readinessHandler := proxy.GeneralReadinessHandler(proxyCfg.Datastore, dbHealthChecker)
 
-	// route /readyz/isDirty to readinessHandler, all other paths to the dynamic router
+	// route health endpoints appropriately
 	mainHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 
 		if strings.HasSuffix(r.URL.Path, "/readyz/isDirty") {
 			readinessHandler.ServeHTTP(w, r)
+			return
+		}
+
+		if strings.HasSuffix(r.URL.Path, "/readyz/health") {
+			generalReadinessHandler.ServeHTTP(w, r)
 			return
 		}
 
@@ -104,6 +154,9 @@ func runProxyServer(cmd *cobra.Command, args []string) error {
 			return
 		}
 
+		// Set the model registry service in the holder for health checks
+		serviceHolder.Set(conn)
+
 		ModelRegistryServiceAPIService := openapi.NewModelRegistryServiceAPIService(conn)
 		ModelRegistryServiceAPIController := openapi.NewModelRegistryServiceAPIController(ModelRegistryServiceAPIService)
 
@@ -140,9 +193,6 @@ func init() {
 
 	proxyCmd.Flags().StringVarP(&cfg.Hostname, "hostname", "n", cfg.Hostname, "Proxy server listen hostname")
 	proxyCmd.Flags().IntVarP(&cfg.Port, "port", "p", cfg.Port, "Proxy server listen port")
-
-	proxyCmd.Flags().StringVar(&proxyCfg.Datastore.MLMD.Hostname, "mlmd-hostname", proxyCfg.Datastore.MLMD.Hostname, "MLMD hostname")
-	proxyCmd.Flags().IntVar(&proxyCfg.Datastore.MLMD.Port, "mlmd-port", proxyCfg.Datastore.MLMD.Port, "MLMD port")
 
 	proxyCmd.Flags().StringVar(&proxyCfg.Datastore.EmbedMD.DatabaseType, "embedmd-database-type", "mysql", "EmbedMD database type")
 	proxyCmd.Flags().StringVar(&proxyCfg.Datastore.EmbedMD.DatabaseDSN, "embedmd-database-dsn", "", "EmbedMD database DSN")

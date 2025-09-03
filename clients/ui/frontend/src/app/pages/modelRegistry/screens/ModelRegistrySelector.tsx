@@ -17,13 +17,13 @@ import text from '@patternfly/react-styles/css/utilities/Text/text';
 import truncateStyles from '@patternfly/react-styles/css/components/Truncate/truncate';
 import { InfoCircleIcon, BlueprintIcon } from '@patternfly/react-icons';
 import {
-  useBrowserStorage,
   WhosMyAdministrator,
   KubeflowDocs,
-  useThemeContext,
   SimpleSelect,
   InlineTruncatedClipboardCopy,
 } from 'mod-arch-shared';
+import { useBrowserStorage } from 'mod-arch-core';
+import { useThemeContext } from 'mod-arch-kubeflow';
 import { SimpleSelectOption } from 'mod-arch-shared/dist/components/SimpleSelect';
 import { ModelRegistrySelectorContext } from '~/app/context/ModelRegistrySelectorContext';
 import { ModelRegistry } from '~/app/types';
@@ -36,6 +36,7 @@ type ModelRegistrySelectorProps = {
   onSelection: (modelRegistry: string) => void;
   primary?: boolean;
   isFullWidth?: boolean;
+  hasError?: boolean;
 };
 
 const ModelRegistrySelector: React.FC<ModelRegistrySelectorProps> = ({
@@ -43,6 +44,7 @@ const ModelRegistrySelector: React.FC<ModelRegistrySelectorProps> = ({
   onSelection,
   primary,
   isFullWidth,
+  hasError,
 }) => {
   const { modelRegistries, updatePreferredModelRegistry } = React.useContext(
     ModelRegistrySelectorContext,
@@ -97,7 +99,7 @@ const ModelRegistrySelector: React.FC<ModelRegistrySelectorProps> = ({
       isScrollable
       placeholder="Select a model registry"
       dataTestId="model-registry-selector-dropdown"
-      toggleProps={{ id: 'download-steps-logs-toggle' }}
+      toggleProps={{ id: 'download-steps-logs-toggle', status: hasError ? 'danger' : undefined }}
       toggleLabel={toggleLabel}
       aria-label="Model registry toggle"
       previewDescription={false}

@@ -49,7 +49,7 @@ const RegisterModelDetailsFormSection = <D extends RegisterModelFormData>({
   return (
     <FormSection
       title="Model details"
-      description="Provide general details that apply to all versions of this model."
+      description="Provide model details that apply to every version of this model."
     >
       <FormGroup label="Model name" isRequired fieldId="model-name">
         <FormFieldset component={modelNameInput} />
@@ -67,6 +67,11 @@ const RegisterModelDetailsFormSection = <D extends RegisterModelFormData>({
       </FormGroup>
       <FormGroup label="Model description" fieldId="model-description">
         <FormFieldset component={modelDescriptionInput} field="Model Description" />
+        <FormHelperText>
+          <HelperText>
+            <HelperTextItem>Enter a brief summary of the model&apos;s key details.</HelperTextItem>
+          </HelperText>
+        </FormHelperText>
       </FormGroup>
     </FormSection>
   );

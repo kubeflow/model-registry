@@ -6,38 +6,29 @@ import (
 
 	"github.com/kubeflow/model-registry/internal/apiutils"
 	"github.com/kubeflow/model-registry/internal/db/models"
-	"github.com/kubeflow/model-registry/internal/db/schema"
 	"github.com/kubeflow/model-registry/internal/db/service"
-	"github.com/kubeflow/model-registry/internal/defaults"
+	"github.com/kubeflow/model-registry/internal/testutils"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"gorm.io/gorm"
 )
 
-func getInferenceServiceTypeID(t *testing.T, db *gorm.DB) int64 {
-	var typeRecord schema.Type
-	err := db.Where("name = ?", defaults.InferenceServiceTypeName).First(&typeRecord).Error
-	require.NoError(t, err, "Failed to find InferenceService type")
-	return int64(typeRecord.ID)
-}
-
 func TestInferenceServiceRepository(t *testing.T) {
-	db, cleanup := setupTestDB(t)
+	sharedDB, cleanup := testutils.SetupMySQLWithMigrations(t)
 	defer cleanup()
 
 	// Get the actual InferenceService type ID from the database
-	typeID := getInferenceServiceTypeID(t, db)
-	repo := service.NewInferenceServiceRepository(db, typeID)
+	typeID := getInferenceServiceTypeID(t, sharedDB)
+	repo := service.NewInferenceServiceRepository(sharedDB, typeID)
 
 	// Also get other type IDs for creating parent and related entities
-	servingEnvironmentTypeID := getServingEnvironmentTypeID(t, db)
-	servingEnvironmentRepo := service.NewServingEnvironmentRepository(db, servingEnvironmentTypeID)
+	servingEnvironmentTypeID := getServingEnvironmentTypeID(t, sharedDB)
+	servingEnvironmentRepo := service.NewServingEnvironmentRepository(sharedDB, servingEnvironmentTypeID)
 
-	registeredModelTypeID := getRegisteredModelTypeID(t, db)
-	registeredModelRepo := service.NewRegisteredModelRepository(db, registeredModelTypeID)
+	registeredModelTypeID := getRegisteredModelTypeID(t, sharedDB)
+	registeredModelRepo := service.NewRegisteredModelRepository(sharedDB, registeredModelTypeID)
 
-	modelVersionTypeID := getModelVersionTypeID(t, db)
-	modelVersionRepo := service.NewModelVersionRepository(db, modelVersionTypeID)
+	modelVersionTypeID := getModelVersionTypeID(t, sharedDB)
+	modelVersionRepo := service.NewModelVersionRepository(sharedDB, modelVersionTypeID)
 
 	t.Run("TestSave", func(t *testing.T) {
 		// First create a parent serving environment
@@ -103,6 +94,8 @@ func TestInferenceServiceRepository(t *testing.T) {
 		// Test updating the same inference service
 		inferenceService.ID = saved.GetID()
 		inferenceService.GetAttributes().Name = apiutils.Of("updated-inference-service")
+		// Preserve CreateTimeSinceEpoch from the saved entity (simulating what OpenAPI converter would do)
+		inferenceService.GetAttributes().CreateTimeSinceEpoch = saved.GetAttributes().CreateTimeSinceEpoch
 
 		updated, err := repo.Save(inferenceService)
 		require.NoError(t, err)

@@ -96,6 +96,12 @@ type EnvConfig struct {
 	// Default is "Bearer ", can be set to empty if the token is sent without a prefix.
 	AuthTokenPrefix string
 
+	// ─── TLS ────────────────────────────────────────────────────
+	// TLS verification settings for HTTP client connections to Model Registry
+	// InsecureSkipVerify when true, skips TLS certificate verification (useful for development/local setups)
+	// Default is false (secure) for production environments
+	InsecureSkipVerify bool
+
 	// ─── DEPRECATED ─────────────────────────────────────────────
 	// The following fields are deprecated and maintained for backward compatibility
 	// Use DeploymentMode instead

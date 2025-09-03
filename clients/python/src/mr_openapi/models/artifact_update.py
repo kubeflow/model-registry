@@ -22,10 +22,19 @@ from pydantic import (
 )
 from typing_extensions import Self
 
+from mr_openapi.models.data_set_update import DataSetUpdate
 from mr_openapi.models.doc_artifact_update import DocArtifactUpdate
+from mr_openapi.models.metric_update import MetricUpdate
 from mr_openapi.models.model_artifact_update import ModelArtifactUpdate
+from mr_openapi.models.parameter_update import ParameterUpdate
 
-ARTIFACTUPDATE_ONE_OF_SCHEMAS = ["DocArtifactUpdate", "ModelArtifactUpdate"]
+ARTIFACTUPDATE_ONE_OF_SCHEMAS = [
+    "DataSetUpdate",
+    "DocArtifactUpdate",
+    "MetricUpdate",
+    "ModelArtifactUpdate",
+    "ParameterUpdate",
+]
 
 
 class ArtifactUpdate(BaseModel):
@@ -35,8 +44,22 @@ class ArtifactUpdate(BaseModel):
     oneof_schema_1_validator: ModelArtifactUpdate | None = None
     # data type: DocArtifactUpdate
     oneof_schema_2_validator: DocArtifactUpdate | None = None
-    actual_instance: DocArtifactUpdate | ModelArtifactUpdate | None = None
-    one_of_schemas: set[str] = {"DocArtifactUpdate", "ModelArtifactUpdate"}
+    # data type: DataSetUpdate
+    oneof_schema_3_validator: DataSetUpdate | None = None
+    # data type: MetricUpdate
+    oneof_schema_4_validator: MetricUpdate | None = None
+    # data type: ParameterUpdate
+    oneof_schema_5_validator: ParameterUpdate | None = None
+    actual_instance: (
+        DataSetUpdate | DocArtifactUpdate | MetricUpdate | ModelArtifactUpdate | ParameterUpdate | None
+    ) = None
+    one_of_schemas: set[str] = {
+        "DataSetUpdate",
+        "DocArtifactUpdate",
+        "MetricUpdate",
+        "ModelArtifactUpdate",
+        "ParameterUpdate",
+    }
 
     model_config = ConfigDict(
         validate_assignment=True,
@@ -72,16 +95,31 @@ class ArtifactUpdate(BaseModel):
             error_messages.append(f"Error! Input type `{type(v)}` is not `DocArtifactUpdate`")
         else:
             match += 1
+        # validate data type: DataSetUpdate
+        if not isinstance(v, DataSetUpdate):
+            error_messages.append(f"Error! Input type `{type(v)}` is not `DataSetUpdate`")
+        else:
+            match += 1
+        # validate data type: MetricUpdate
+        if not isinstance(v, MetricUpdate):
+            error_messages.append(f"Error! Input type `{type(v)}` is not `MetricUpdate`")
+        else:
+            match += 1
+        # validate data type: ParameterUpdate
+        if not isinstance(v, ParameterUpdate):
+            error_messages.append(f"Error! Input type `{type(v)}` is not `ParameterUpdate`")
+        else:
+            match += 1
         if match > 1:
             # more than 1 match
             raise ValueError(
-                "Multiple matches found when setting `actual_instance` in ArtifactUpdate with oneOf schemas: DocArtifactUpdate, ModelArtifactUpdate. Details: "
+                "Multiple matches found when setting `actual_instance` in ArtifactUpdate with oneOf schemas: DataSetUpdate, DocArtifactUpdate, MetricUpdate, ModelArtifactUpdate, ParameterUpdate. Details: "
                 + ", ".join(error_messages)
             )
         if match == 0:
             # no match
             raise ValueError(
-                "No match found when setting `actual_instance` in ArtifactUpdate with oneOf schemas: DocArtifactUpdate, ModelArtifactUpdate. Details: "
+                "No match found when setting `actual_instance` in ArtifactUpdate with oneOf schemas: DataSetUpdate, DocArtifactUpdate, MetricUpdate, ModelArtifactUpdate, ParameterUpdate. Details: "
                 + ", ".join(error_messages)
             )
         return v
@@ -103,9 +141,19 @@ class ArtifactUpdate(BaseModel):
             msg = "Failed to lookup data type from the field `artifactType` in the input."
             raise ValueError(msg)
 
+        # check if data type is `DataSetUpdate`
+        if _data_type == "dataset-artifact":
+            instance.actual_instance = DataSetUpdate.from_json(json_str)
+            return instance
+
         # check if data type is `DocArtifactUpdate`
         if _data_type == "doc-artifact":
             instance.actual_instance = DocArtifactUpdate.from_json(json_str)
+            return instance
+
+        # check if data type is `MetricUpdate`
+        if _data_type == "metric":
+            instance.actual_instance = MetricUpdate.from_json(json_str)
             return instance
 
         # check if data type is `ModelArtifactUpdate`
@@ -113,14 +161,34 @@ class ArtifactUpdate(BaseModel):
             instance.actual_instance = ModelArtifactUpdate.from_json(json_str)
             return instance
 
+        # check if data type is `ParameterUpdate`
+        if _data_type == "parameter":
+            instance.actual_instance = ParameterUpdate.from_json(json_str)
+            return instance
+
+        # check if data type is `DataSetUpdate`
+        if _data_type == "DataSetUpdate":
+            instance.actual_instance = DataSetUpdate.from_json(json_str)
+            return instance
+
         # check if data type is `DocArtifactUpdate`
         if _data_type == "DocArtifactUpdate":
             instance.actual_instance = DocArtifactUpdate.from_json(json_str)
             return instance
 
+        # check if data type is `MetricUpdate`
+        if _data_type == "MetricUpdate":
+            instance.actual_instance = MetricUpdate.from_json(json_str)
+            return instance
+
         # check if data type is `ModelArtifactUpdate`
         if _data_type == "ModelArtifactUpdate":
             instance.actual_instance = ModelArtifactUpdate.from_json(json_str)
+            return instance
+
+        # check if data type is `ParameterUpdate`
+        if _data_type == "ParameterUpdate":
+            instance.actual_instance = ParameterUpdate.from_json(json_str)
             return instance
 
         # deserialize data into ModelArtifactUpdate
@@ -135,17 +203,35 @@ class ArtifactUpdate(BaseModel):
             match += 1
         except (ValidationError, ValueError) as e:
             error_messages.append(str(e))
+        # deserialize data into DataSetUpdate
+        try:
+            instance.actual_instance = DataSetUpdate.from_json(json_str)
+            match += 1
+        except (ValidationError, ValueError) as e:
+            error_messages.append(str(e))
+        # deserialize data into MetricUpdate
+        try:
+            instance.actual_instance = MetricUpdate.from_json(json_str)
+            match += 1
+        except (ValidationError, ValueError) as e:
+            error_messages.append(str(e))
+        # deserialize data into ParameterUpdate
+        try:
+            instance.actual_instance = ParameterUpdate.from_json(json_str)
+            match += 1
+        except (ValidationError, ValueError) as e:
+            error_messages.append(str(e))
 
         if match > 1:
             # more than 1 match
             raise ValueError(
-                "Multiple matches found when deserializing the JSON string into ArtifactUpdate with oneOf schemas: DocArtifactUpdate, ModelArtifactUpdate. Details: "
+                "Multiple matches found when deserializing the JSON string into ArtifactUpdate with oneOf schemas: DataSetUpdate, DocArtifactUpdate, MetricUpdate, ModelArtifactUpdate, ParameterUpdate. Details: "
                 + ", ".join(error_messages)
             )
         if match == 0:
             # no match
             raise ValueError(
-                "No match found when deserializing the JSON string into ArtifactUpdate with oneOf schemas: DocArtifactUpdate, ModelArtifactUpdate. Details: "
+                "No match found when deserializing the JSON string into ArtifactUpdate with oneOf schemas: DataSetUpdate, DocArtifactUpdate, MetricUpdate, ModelArtifactUpdate, ParameterUpdate. Details: "
                 + ", ".join(error_messages)
             )
         return instance
@@ -159,7 +245,17 @@ class ArtifactUpdate(BaseModel):
             return self.actual_instance.to_json()
         return json.dumps(self.actual_instance)
 
-    def to_dict(self) -> dict[str, Any] | DocArtifactUpdate | ModelArtifactUpdate | None:
+    def to_dict(
+        self,
+    ) -> (
+        dict[str, Any]
+        | DataSetUpdate
+        | DocArtifactUpdate
+        | MetricUpdate
+        | ModelArtifactUpdate
+        | ParameterUpdate
+        | None
+    ):
         """Returns the dict representation of the actual instance."""
         if self.actual_instance is None:
             return None

@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { UserSettings, ConfigSettings } from 'mod-arch-shared';
+import { UserSettings, ConfigSettings } from 'mod-arch-core';
 
 type AppContextProps = {
   config: ConfigSettings;

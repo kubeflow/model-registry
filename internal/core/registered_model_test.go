@@ -5,7 +5,6 @@ import (
 	"testing"
 
 	"github.com/kubeflow/model-registry/internal/apiutils"
-	"github.com/kubeflow/model-registry/internal/core"
 	"github.com/kubeflow/model-registry/pkg/api"
 	"github.com/kubeflow/model-registry/pkg/openapi"
 	"github.com/stretchr/testify/assert"
@@ -13,7 +12,7 @@ import (
 )
 
 func TestUpsertRegisteredModel(t *testing.T) {
-	service, cleanup := core.SetupModelRegistryService(t)
+	_service, cleanup := SetupModelRegistryService(t)
 	defer cleanup()
 
 	t.Run("successful create", func(t *testing.T) {
@@ -25,7 +24,7 @@ func TestUpsertRegisteredModel(t *testing.T) {
 			State:       apiutils.Of(openapi.REGISTEREDMODELSTATE_LIVE),
 		}
 
-		result, err := service.UpsertRegisteredModel(input)
+		result, err := _service.UpsertRegisteredModel(input)
 
 		require.NoError(t, err)
 		require.NotNil(t, result)
@@ -46,7 +45,7 @@ func TestUpsertRegisteredModel(t *testing.T) {
 			Description: apiutils.Of("Original description"),
 		}
 
-		created, err := service.UpsertRegisteredModel(input)
+		created, err := _service.UpsertRegisteredModel(input)
 		require.NoError(t, err)
 		require.NotNil(t, created.Id)
 
@@ -59,7 +58,7 @@ func TestUpsertRegisteredModel(t *testing.T) {
 			State:       apiutils.Of(openapi.REGISTEREDMODELSTATE_ARCHIVED),
 		}
 
-		updated, err := service.UpsertRegisteredModel(update)
+		updated, err := _service.UpsertRegisteredModel(update)
 		require.NoError(t, err)
 		require.NotNil(t, updated)
 		assert.Equal(t, *created.Id, *updated.Id)
@@ -98,7 +97,7 @@ func TestUpsertRegisteredModel(t *testing.T) {
 			CustomProperties: &customProps,
 		}
 
-		result, err := service.UpsertRegisteredModel(input)
+		result, err := _service.UpsertRegisteredModel(input)
 
 		require.NoError(t, err)
 		require.NotNil(t, result)
@@ -122,7 +121,7 @@ func TestUpsertRegisteredModel(t *testing.T) {
 			Name: "minimal-model",
 		}
 
-		result, err := service.UpsertRegisteredModel(input)
+		result, err := _service.UpsertRegisteredModel(input)
 
 		require.NoError(t, err)
 		require.NotNil(t, result)
@@ -131,7 +130,7 @@ func TestUpsertRegisteredModel(t *testing.T) {
 	})
 
 	t.Run("nil model error", func(t *testing.T) {
-		result, err := service.UpsertRegisteredModel(nil)
+		result, err := _service.UpsertRegisteredModel(nil)
 
 		assert.Error(t, err)
 		assert.Nil(t, result)
@@ -148,7 +147,7 @@ func TestUpsertRegisteredModel(t *testing.T) {
 			State:       nil, // Explicitly set to nil
 		}
 
-		result, err := service.UpsertRegisteredModel(input)
+		result, err := _service.UpsertRegisteredModel(input)
 
 		require.NoError(t, err)
 		require.NotNil(t, result)
@@ -170,7 +169,7 @@ func TestUpsertRegisteredModel(t *testing.T) {
 			Owner:       apiutils.Of("用户-пользователь-ユーザー"),
 		}
 
-		result, err := service.UpsertRegisteredModel(input)
+		result, err := _service.UpsertRegisteredModel(input)
 
 		require.NoError(t, err)
 		require.NotNil(t, result)
@@ -188,7 +187,7 @@ func TestUpsertRegisteredModel(t *testing.T) {
 			ExternalId:  apiutils.Of("ext-id-with-special-chars_123!@#"),
 		}
 
-		result, err := service.UpsertRegisteredModel(input)
+		result, err := _service.UpsertRegisteredModel(input)
 
 		require.NoError(t, err)
 		require.NotNil(t, result)
@@ -207,7 +206,7 @@ func TestUpsertRegisteredModel(t *testing.T) {
 			ExternalId:  apiutils.Of("ext-混合_test!@#-123"),
 		}
 
-		result, err := service.UpsertRegisteredModel(input)
+		result, err := _service.UpsertRegisteredModel(input)
 
 		require.NoError(t, err)
 		require.NotNil(t, result)
@@ -228,7 +227,7 @@ func TestUpsertRegisteredModel(t *testing.T) {
 				ExternalId:  apiutils.Of(fmt.Sprintf("paging-ext-%02d", i)),
 			}
 
-			result, err := service.UpsertRegisteredModel(input)
+			result, err := _service.UpsertRegisteredModel(input)
 			require.NoError(t, err)
 			require.NotNil(t, result.Id)
 			createdModels = append(createdModels, *result.Id)
@@ -236,7 +235,7 @@ func TestUpsertRegisteredModel(t *testing.T) {
 
 		// Test first page with page size 5
 		pageSize := int32(5)
-		firstPageResult, err := service.GetRegisteredModels(api.ListOptions{
+		firstPageResult, err := _service.GetRegisteredModels(api.ListOptions{
 			PageSize: &pageSize,
 		})
 
@@ -247,7 +246,7 @@ func TestUpsertRegisteredModel(t *testing.T) {
 
 		// Test second page if there's a next page token
 		if firstPageResult.NextPageToken != "" {
-			secondPageResult, err := service.GetRegisteredModels(api.ListOptions{
+			secondPageResult, err := _service.GetRegisteredModels(api.ListOptions{
 				PageSize:      &pageSize,
 				NextPageToken: &firstPageResult.NextPageToken,
 			})
@@ -270,7 +269,7 @@ func TestUpsertRegisteredModel(t *testing.T) {
 
 		// Test larger page size to get more models
 		largePageSize := int32(100)
-		largePageResult, err := service.GetRegisteredModels(api.ListOptions{
+		largePageResult, err := _service.GetRegisteredModels(api.ListOptions{
 			PageSize: &largePageSize,
 		})
 
@@ -296,7 +295,7 @@ func TestUpsertRegisteredModel(t *testing.T) {
 		// Test ordering by name
 		orderBy := "name"
 		sortOrder := "ASC"
-		orderedResult, err := service.GetRegisteredModels(api.ListOptions{
+		orderedResult, err := _service.GetRegisteredModels(api.ListOptions{
 			PageSize:  &largePageSize,
 			OrderBy:   &orderBy,
 			SortOrder: &sortOrder,
@@ -310,7 +309,7 @@ func TestUpsertRegisteredModel(t *testing.T) {
 
 		// Test descending order
 		sortOrderDesc := "DESC"
-		orderedDescResult, err := service.GetRegisteredModels(api.ListOptions{
+		orderedDescResult, err := _service.GetRegisteredModels(api.ListOptions{
 			PageSize:  &largePageSize,
 			OrderBy:   &orderBy,
 			SortOrder: &sortOrderDesc,
@@ -323,7 +322,7 @@ func TestUpsertRegisteredModel(t *testing.T) {
 }
 
 func TestGetRegisteredModelById(t *testing.T) {
-	service, cleanup := core.SetupModelRegistryService(t)
+	_service, cleanup := SetupModelRegistryService(t)
 	defer cleanup()
 
 	t.Run("successful get", func(t *testing.T) {
@@ -335,12 +334,12 @@ func TestGetRegisteredModelById(t *testing.T) {
 			State:       apiutils.Of(openapi.REGISTEREDMODELSTATE_LIVE),
 		}
 
-		created, err := service.UpsertRegisteredModel(input)
+		created, err := _service.UpsertRegisteredModel(input)
 		require.NoError(t, err)
 		require.NotNil(t, created.Id)
 
 		// Get the model by ID
-		result, err := service.GetRegisteredModelById(*created.Id)
+		result, err := _service.GetRegisteredModelById(*created.Id)
 
 		require.NoError(t, err)
 		require.NotNil(t, result)
@@ -352,7 +351,7 @@ func TestGetRegisteredModelById(t *testing.T) {
 	})
 
 	t.Run("invalid id", func(t *testing.T) {
-		result, err := service.GetRegisteredModelById("invalid")
+		result, err := _service.GetRegisteredModelById("invalid")
 
 		assert.Error(t, err)
 		assert.Nil(t, result)
@@ -360,7 +359,7 @@ func TestGetRegisteredModelById(t *testing.T) {
 	})
 
 	t.Run("non-existent id", func(t *testing.T) {
-		result, err := service.GetRegisteredModelById("99999")
+		result, err := _service.GetRegisteredModelById("99999")
 
 		assert.Error(t, err)
 		assert.Nil(t, result)
@@ -369,7 +368,7 @@ func TestGetRegisteredModelById(t *testing.T) {
 }
 
 func TestGetRegisteredModelByInferenceService(t *testing.T) {
-	service, cleanup := core.SetupModelRegistryService(t)
+	_service, cleanup := SetupModelRegistryService(t)
 	defer cleanup()
 
 	t.Run("successful get", func(t *testing.T) {
@@ -377,14 +376,14 @@ func TestGetRegisteredModelByInferenceService(t *testing.T) {
 		registeredModel := &openapi.RegisteredModel{
 			Name: "inference-test-model",
 		}
-		createdModel, err := service.UpsertRegisteredModel(registeredModel)
+		createdModel, err := _service.UpsertRegisteredModel(registeredModel)
 		require.NoError(t, err)
 
 		// Create a serving environment
 		servingEnv := &openapi.ServingEnvironment{
 			Name: "test-env",
 		}
-		createdEnv, err := service.UpsertServingEnvironment(servingEnv)
+		createdEnv, err := _service.UpsertServingEnvironment(servingEnv)
 		require.NoError(t, err)
 
 		// Create an inference service
@@ -393,11 +392,11 @@ func TestGetRegisteredModelByInferenceService(t *testing.T) {
 			ServingEnvironmentId: *createdEnv.Id,
 			RegisteredModelId:    *createdModel.Id,
 		}
-		createdInference, err := service.UpsertInferenceService(inferenceService)
+		createdInference, err := _service.UpsertInferenceService(inferenceService)
 		require.NoError(t, err)
 
 		// Get registered model by inference service
-		result, err := service.GetRegisteredModelByInferenceService(*createdInference.Id)
+		result, err := _service.GetRegisteredModelByInferenceService(*createdInference.Id)
 
 		require.NoError(t, err)
 		require.NotNil(t, result)
@@ -406,7 +405,7 @@ func TestGetRegisteredModelByInferenceService(t *testing.T) {
 	})
 
 	t.Run("invalid inference service id", func(t *testing.T) {
-		result, err := service.GetRegisteredModelByInferenceService("invalid")
+		result, err := _service.GetRegisteredModelByInferenceService("invalid")
 
 		assert.Error(t, err)
 		assert.Nil(t, result)
@@ -414,7 +413,7 @@ func TestGetRegisteredModelByInferenceService(t *testing.T) {
 	})
 
 	t.Run("non-existent inference service", func(t *testing.T) {
-		result, err := service.GetRegisteredModelByInferenceService("99999")
+		result, err := _service.GetRegisteredModelByInferenceService("99999")
 
 		assert.Error(t, err)
 		assert.Nil(t, result)
@@ -422,7 +421,7 @@ func TestGetRegisteredModelByInferenceService(t *testing.T) {
 }
 
 func TestGetRegisteredModelByParams(t *testing.T) {
-	service, cleanup := core.SetupModelRegistryService(t)
+	_service, cleanup := SetupModelRegistryService(t)
 	defer cleanup()
 
 	t.Run("successful get by name", func(t *testing.T) {
@@ -430,12 +429,12 @@ func TestGetRegisteredModelByParams(t *testing.T) {
 			Name:       "params-test-model",
 			ExternalId: apiutils.Of("params-ext-123"),
 		}
-		created, err := service.UpsertRegisteredModel(input)
+		created, err := _service.UpsertRegisteredModel(input)
 		require.NoError(t, err)
 
 		// Get by name
 		modelName := "params-test-model"
-		result, err := service.GetRegisteredModelByParams(&modelName, nil)
+		result, err := _service.GetRegisteredModelByParams(&modelName, nil)
 
 		require.NoError(t, err)
 		require.NotNil(t, result)
@@ -448,12 +447,12 @@ func TestGetRegisteredModelByParams(t *testing.T) {
 			Name:       "params-ext-test-model",
 			ExternalId: apiutils.Of("params-unique-ext-456"),
 		}
-		created, err := service.UpsertRegisteredModel(input)
+		created, err := _service.UpsertRegisteredModel(input)
 		require.NoError(t, err)
 
 		// Get by external ID
 		externalId := "params-unique-ext-456"
-		result, err := service.GetRegisteredModelByParams(nil, &externalId)
+		result, err := _service.GetRegisteredModelByParams(nil, &externalId)
 
 		require.NoError(t, err)
 		require.NotNil(t, result)
@@ -462,7 +461,7 @@ func TestGetRegisteredModelByParams(t *testing.T) {
 	})
 
 	t.Run("invalid parameters", func(t *testing.T) {
-		result, err := service.GetRegisteredModelByParams(nil, nil)
+		result, err := _service.GetRegisteredModelByParams(nil, nil)
 
 		assert.Error(t, err)
 		assert.Nil(t, result)
@@ -471,7 +470,7 @@ func TestGetRegisteredModelByParams(t *testing.T) {
 
 	t.Run("no model found", func(t *testing.T) {
 		modelName := "nonexistent-model"
-		result, err := service.GetRegisteredModelByParams(&modelName, nil)
+		result, err := _service.GetRegisteredModelByParams(&modelName, nil)
 
 		assert.Error(t, err)
 		assert.Nil(t, result)
@@ -483,10 +482,10 @@ func TestGetRegisteredModelByParams(t *testing.T) {
 		input := &openapi.RegisteredModel{
 			Name: modelName,
 		}
-		created, err := service.UpsertRegisteredModel(input)
+		created, err := _service.UpsertRegisteredModel(input)
 		require.NoError(t, err)
 
-		result, err := service.GetRegisteredModelByParams(&modelName, nil)
+		result, err := _service.GetRegisteredModelByParams(&modelName, nil)
 
 		require.NoError(t, err)
 		require.NotNil(t, result)
@@ -496,7 +495,7 @@ func TestGetRegisteredModelByParams(t *testing.T) {
 }
 
 func TestGetRegisteredModels(t *testing.T) {
-	service, cleanup := core.SetupModelRegistryService(t)
+	_service, cleanup := SetupModelRegistryService(t)
 	defer cleanup()
 
 	t.Run("successful list", func(t *testing.T) {
@@ -509,7 +508,7 @@ func TestGetRegisteredModels(t *testing.T) {
 
 		var createdIds []string
 		for _, model := range testModels {
-			created, err := service.UpsertRegisteredModel(model)
+			created, err := _service.UpsertRegisteredModel(model)
 			require.NoError(t, err)
 			createdIds = append(createdIds, *created.Id)
 		}
@@ -520,7 +519,7 @@ func TestGetRegisteredModels(t *testing.T) {
 			PageSize: &pageSize,
 		}
 
-		result, err := service.GetRegisteredModels(listOptions)
+		result, err := _service.GetRegisteredModels(listOptions)
 
 		require.NoError(t, err)
 		require.NotNil(t, result)
@@ -547,7 +546,7 @@ func TestGetRegisteredModels(t *testing.T) {
 				Name:       "pagination-model-" + string(rune('A'+i)),
 				ExternalId: apiutils.Of("pagination-ext-" + string(rune('A'+i))),
 			}
-			_, err := service.UpsertRegisteredModel(model)
+			_, err := _service.UpsertRegisteredModel(model)
 			require.NoError(t, err)
 		}
 
@@ -561,7 +560,7 @@ func TestGetRegisteredModels(t *testing.T) {
 			SortOrder: &sortOrder,
 		}
 
-		result, err := service.GetRegisteredModels(listOptions)
+		result, err := _service.GetRegisteredModels(listOptions)
 
 		require.NoError(t, err)
 		require.NotNil(t, result)
@@ -571,7 +570,7 @@ func TestGetRegisteredModels(t *testing.T) {
 }
 
 func TestRegisteredModelRoundTrip(t *testing.T) {
-	service, cleanup := core.SetupModelRegistryService(t)
+	_service, cleanup := SetupModelRegistryService(t)
 	defer cleanup()
 
 	t.Run("complete roundtrip", func(t *testing.T) {
@@ -585,12 +584,12 @@ func TestRegisteredModelRoundTrip(t *testing.T) {
 		}
 
 		// Create
-		created, err := service.UpsertRegisteredModel(original)
+		created, err := _service.UpsertRegisteredModel(original)
 		require.NoError(t, err)
 		require.NotNil(t, created.Id)
 
 		// Get by ID
-		retrieved, err := service.GetRegisteredModelById(*created.Id)
+		retrieved, err := _service.GetRegisteredModelById(*created.Id)
 		require.NoError(t, err)
 
 		// Verify all fields match
@@ -605,7 +604,7 @@ func TestRegisteredModelRoundTrip(t *testing.T) {
 		retrieved.Description = apiutils.Of("Updated description")
 		retrieved.State = apiutils.Of(openapi.REGISTEREDMODELSTATE_ARCHIVED)
 
-		updated, err := service.UpsertRegisteredModel(retrieved)
+		updated, err := _service.UpsertRegisteredModel(retrieved)
 		require.NoError(t, err)
 
 		// Verify update
@@ -614,9 +613,310 @@ func TestRegisteredModelRoundTrip(t *testing.T) {
 		assert.Equal(t, openapi.REGISTEREDMODELSTATE_ARCHIVED, *updated.State)
 
 		// Get again to verify persistence
-		final, err := service.GetRegisteredModelById(*created.Id)
+		final, err := _service.GetRegisteredModelById(*created.Id)
 		require.NoError(t, err)
 		assert.Equal(t, "Updated description", *final.Description)
 		assert.Equal(t, openapi.REGISTEREDMODELSTATE_ARCHIVED, *final.State)
+	})
+}
+
+func TestGetRegisteredModelsWithFilterQuery(t *testing.T) {
+	_service, cleanup := SetupModelRegistryService(t)
+	defer cleanup()
+
+	// Create test models with various properties for filtering
+	testModels := []struct {
+		model *openapi.RegisteredModel
+	}{
+		{
+			model: &openapi.RegisteredModel{
+				Name:        "pytorch-model-v1",
+				Description: apiutils.Of("PyTorch model for image classification"),
+				ExternalId:  apiutils.Of("ext-pytorch-001"),
+				State:       (*openapi.RegisteredModelState)(apiutils.Of("LIVE")),
+				CustomProperties: &map[string]openapi.MetadataValue{
+					"framework": {
+						MetadataStringValue: &openapi.MetadataStringValue{
+							StringValue:  "pytorch",
+							MetadataType: "MetadataStringValue",
+						},
+					},
+					"accuracy": {
+						MetadataDoubleValue: &openapi.MetadataDoubleValue{
+							DoubleValue:  0.95,
+							MetadataType: "MetadataDoubleValue",
+						},
+					},
+					"version": {
+						MetadataIntValue: &openapi.MetadataIntValue{
+							IntValue:     "1",
+							MetadataType: "MetadataIntValue",
+						},
+					},
+				},
+			},
+		},
+		{
+			model: &openapi.RegisteredModel{
+				Name:        "tensorflow-model-v2",
+				Description: apiutils.Of("TensorFlow model for NLP"),
+				ExternalId:  apiutils.Of("ext-tf-002"),
+				State:       (*openapi.RegisteredModelState)(apiutils.Of("ARCHIVED")),
+				CustomProperties: &map[string]openapi.MetadataValue{
+					"framework": {
+						MetadataStringValue: &openapi.MetadataStringValue{
+							StringValue:  "tensorflow",
+							MetadataType: "MetadataStringValue",
+						},
+					},
+					"accuracy": {
+						MetadataDoubleValue: &openapi.MetadataDoubleValue{
+							DoubleValue:  0.87,
+							MetadataType: "MetadataDoubleValue",
+						},
+					},
+					"version": {
+						MetadataIntValue: &openapi.MetadataIntValue{
+							IntValue:     "2",
+							MetadataType: "MetadataIntValue",
+						},
+					},
+				},
+			},
+		},
+		{
+			model: &openapi.RegisteredModel{
+				Name:        "pytorch-model-v2",
+				Description: apiutils.Of("PyTorch model for object detection"),
+				ExternalId:  apiutils.Of("ext-pytorch-003"),
+				CustomProperties: &map[string]openapi.MetadataValue{
+					"framework": {
+						MetadataStringValue: &openapi.MetadataStringValue{
+							StringValue:  "pytorch",
+							MetadataType: "MetadataStringValue",
+						},
+					},
+					"accuracy": {
+						MetadataDoubleValue: &openapi.MetadataDoubleValue{
+							DoubleValue:  0.92,
+							MetadataType: "MetadataDoubleValue",
+						},
+					},
+					"version": {
+						MetadataIntValue: &openapi.MetadataIntValue{
+							IntValue:     "2",
+							MetadataType: "MetadataIntValue",
+						},
+					},
+				},
+			},
+		},
+		{
+			model: &openapi.RegisteredModel{
+				Name:        "sklearn-model",
+				Description: apiutils.Of("Scikit-learn model for regression"),
+				ExternalId:  apiutils.Of("ext-sklearn-004"),
+				CustomProperties: &map[string]openapi.MetadataValue{
+					"framework": {
+						MetadataStringValue: &openapi.MetadataStringValue{
+							StringValue:  "sklearn",
+							MetadataType: "MetadataStringValue",
+						},
+					},
+					"accuracy": {
+						MetadataDoubleValue: &openapi.MetadataDoubleValue{
+							DoubleValue:  0.89,
+							MetadataType: "MetadataDoubleValue",
+						},
+					},
+				},
+			},
+		},
+	}
+
+	// Create all test models
+	for _, tm := range testModels {
+		_, err := _service.UpsertRegisteredModel(tm.model)
+		require.NoError(t, err)
+	}
+
+	testCases := []struct {
+		name          string
+		filterQuery   string
+		expectedCount int
+		expectedNames []string
+	}{
+		{
+			name:          "Filter by exact name",
+			filterQuery:   "name = 'pytorch-model-v1'",
+			expectedCount: 1,
+			expectedNames: []string{"pytorch-model-v1"},
+		},
+		{
+			name:          "Filter by name pattern",
+			filterQuery:   "name LIKE 'pytorch-%'",
+			expectedCount: 2,
+			expectedNames: []string{"pytorch-model-v1", "pytorch-model-v2"},
+		},
+		{
+			name:          "Filter by description",
+			filterQuery:   "description LIKE '%NLP%'",
+			expectedCount: 1,
+			expectedNames: []string{"tensorflow-model-v2"},
+		},
+		{
+			name:          "Filter by external ID",
+			filterQuery:   "externalId = 'ext-pytorch-001'",
+			expectedCount: 1,
+			expectedNames: []string{"pytorch-model-v1"},
+		},
+		{
+			name:          "Filter by state",
+			filterQuery:   "state = 'ARCHIVED'",
+			expectedCount: 1,
+			expectedNames: []string{"tensorflow-model-v2"},
+		},
+		{
+			name:          "Filter by custom property - string",
+			filterQuery:   "framework = 'pytorch'",
+			expectedCount: 2,
+			expectedNames: []string{"pytorch-model-v1", "pytorch-model-v2"},
+		},
+		{
+			name:          "Filter by custom property - numeric comparison",
+			filterQuery:   "accuracy > 0.9",
+			expectedCount: 2,
+			expectedNames: []string{"pytorch-model-v1", "pytorch-model-v2"},
+		},
+		{
+			name:          "Filter by custom property - integer",
+			filterQuery:   "version = 2",
+			expectedCount: 2,
+			expectedNames: []string{"tensorflow-model-v2", "pytorch-model-v2"},
+		},
+		{
+			name:          "Complex filter with AND",
+			filterQuery:   "framework = 'pytorch' AND accuracy > 0.93",
+			expectedCount: 1,
+			expectedNames: []string{"pytorch-model-v1"},
+		},
+		{
+			name:          "Complex filter with OR",
+			filterQuery:   "framework = 'tensorflow' OR framework = 'sklearn'",
+			expectedCount: 2,
+			expectedNames: []string{"tensorflow-model-v2", "sklearn-model"},
+		},
+		{
+			name:          "Complex filter with parentheses",
+			filterQuery:   "(framework = 'pytorch' OR framework = 'tensorflow') AND accuracy < 0.9",
+			expectedCount: 1,
+			expectedNames: []string{"tensorflow-model-v2"},
+		},
+		{
+			name:          "Case insensitive pattern matching",
+			filterQuery:   "name ILIKE '%PYTORCH%'",
+			expectedCount: 2,
+			expectedNames: []string{"pytorch-model-v1", "pytorch-model-v2"},
+		},
+		{
+			name:          "Filter with NOT condition",
+			filterQuery:   "framework != 'sklearn'",
+			expectedCount: 3,
+			expectedNames: []string{"pytorch-model-v1", "tensorflow-model-v2", "pytorch-model-v2"},
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			pageSize := int32(10)
+			listOptions := api.ListOptions{
+				PageSize:    &pageSize,
+				FilterQuery: &tc.filterQuery,
+			}
+
+			result, err := _service.GetRegisteredModels(listOptions)
+
+			require.NoError(t, err)
+			require.NotNil(t, result)
+
+			// Extract names from results
+			var actualNames []string
+			for _, item := range result.Items {
+				for _, expectedName := range tc.expectedNames {
+					if item.Name == expectedName {
+						actualNames = append(actualNames, item.Name)
+						break
+					}
+				}
+			}
+
+			assert.Equal(t, tc.expectedCount, len(actualNames),
+				"Expected %d models for filter '%s', but got %d",
+				tc.expectedCount, tc.filterQuery, len(actualNames))
+
+			// Verify the expected models are present
+			assert.ElementsMatch(t, tc.expectedNames, actualNames,
+				"Expected models %v for filter '%s', but got %v",
+				tc.expectedNames, tc.filterQuery, actualNames)
+		})
+	}
+
+	// Test error cases
+	t.Run("Invalid filter syntax", func(t *testing.T) {
+		pageSize := int32(10)
+		invalidFilter := "invalid <<< syntax"
+		listOptions := api.ListOptions{
+			PageSize:    &pageSize,
+			FilterQuery: &invalidFilter,
+		}
+
+		result, err := _service.GetRegisteredModels(listOptions)
+
+		if assert.Error(t, err) {
+			assert.Nil(t, result)
+			assert.Contains(t, err.Error(), "invalid filter query")
+		}
+	})
+
+	// Test combining filterQuery with pagination
+	t.Run("Filter with pagination", func(t *testing.T) {
+		pageSize := int32(1)
+		filterQuery := "framework = 'pytorch'"
+		listOptions := api.ListOptions{
+			PageSize:    &pageSize,
+			FilterQuery: &filterQuery,
+		}
+
+		// Get first page
+		firstPage, err := _service.GetRegisteredModels(listOptions)
+		require.NoError(t, err)
+		assert.Equal(t, 1, len(firstPage.Items))
+		assert.NotEmpty(t, firstPage.NextPageToken)
+
+		// Get second page
+		listOptions.NextPageToken = &firstPage.NextPageToken
+		secondPage, err := _service.GetRegisteredModels(listOptions)
+		require.NoError(t, err)
+		assert.Equal(t, 1, len(secondPage.Items))
+
+		// Ensure different items on each page
+		assert.NotEqual(t, firstPage.Items[0].Id, secondPage.Items[0].Id)
+	})
+
+	// Test empty results
+	t.Run("Filter with no matches", func(t *testing.T) {
+		pageSize := int32(10)
+		filterQuery := "framework = 'nonexistent'"
+		listOptions := api.ListOptions{
+			PageSize:    &pageSize,
+			FilterQuery: &filterQuery,
+		}
+
+		result, err := _service.GetRegisteredModels(listOptions)
+
+		require.NoError(t, err)
+		require.NotNil(t, result)
+		assert.Equal(t, 0, len(result.Items))
+		assert.Equal(t, int32(0), result.Size)
 	})
 }

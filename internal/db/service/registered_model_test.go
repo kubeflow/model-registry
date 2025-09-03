@@ -1,76 +1,24 @@
 package service_test
 
 import (
-	"context"
-	"path/filepath"
 	"testing"
 	"time"
 
 	"github.com/kubeflow/model-registry/internal/apiutils"
-	"github.com/kubeflow/model-registry/internal/datastore/embedmd/mysql"
 	"github.com/kubeflow/model-registry/internal/db/models"
-	"github.com/kubeflow/model-registry/internal/db/schema"
 	"github.com/kubeflow/model-registry/internal/db/service"
-	"github.com/kubeflow/model-registry/internal/defaults"
-	"github.com/kubeflow/model-registry/internal/tls"
+	"github.com/kubeflow/model-registry/internal/testutils"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"github.com/testcontainers/testcontainers-go"
-	cont_mysql "github.com/testcontainers/testcontainers-go/modules/mysql"
-	"gorm.io/gorm"
 )
 
-func setupTestDB(t *testing.T) (*gorm.DB, func()) {
-	ctx := context.Background()
-
-	mysqlContainer, err := cont_mysql.Run(
-		ctx,
-		"mysql:5.7",
-		cont_mysql.WithUsername("root"),
-		cont_mysql.WithPassword("root"),
-		cont_mysql.WithDatabase("test"),
-		cont_mysql.WithConfigFile(filepath.Join("testdata", "testdb.cnf")),
-	)
-	require.NoError(t, err)
-
-	dbConnector := mysql.NewMySQLDBConnector(mysqlContainer.MustConnectionString(ctx), &tls.TLSConfig{})
-	require.NoError(t, err)
-
-	db, err := dbConnector.Connect()
-	require.NoError(t, err)
-
-	// Run migrations
-	migrator, err := mysql.NewMySQLMigrator(db)
-	require.NoError(t, err)
-	err = migrator.Migrate()
-	require.NoError(t, err)
-
-	// Return cleanup function
-	cleanup := func() {
-		sqlDB, err := db.DB()
-		require.NoError(t, err)
-		sqlDB.Close() //nolint:errcheck
-		err = testcontainers.TerminateContainer(mysqlContainer)
-		require.NoError(t, err)
-	}
-
-	return db, cleanup
-}
-
-func getRegisteredModelTypeID(t *testing.T, db *gorm.DB) int64 {
-	var typeRecord schema.Type
-	err := db.Where("name = ?", defaults.RegisteredModelTypeName).First(&typeRecord).Error
-	require.NoError(t, err, "Failed to find RegisteredModel type")
-	return int64(typeRecord.ID)
-}
-
 func TestRegisteredModelRepository(t *testing.T) {
-	db, cleanup := setupTestDB(t)
+	sharedDB, cleanup := testutils.SetupMySQLWithMigrations(t)
 	defer cleanup()
 
 	// Get the actual RegisteredModel type ID from the database
-	typeID := getRegisteredModelTypeID(t, db)
-	repo := service.NewRegisteredModelRepository(db, typeID)
+	typeID := getRegisteredModelTypeID(t, sharedDB)
+	repo := service.NewRegisteredModelRepository(sharedDB, typeID)
 
 	t.Run("TestSave", func(t *testing.T) {
 		// Test creating a new registered model
@@ -104,6 +52,8 @@ func TestRegisteredModelRepository(t *testing.T) {
 		// Test updating the same model
 		registeredModel.ID = saved.GetID()
 		registeredModel.GetAttributes().Name = apiutils.Of("updated-model")
+		// Preserve CreateTimeSinceEpoch from the saved entity (simulating what OpenAPI converter would do)
+		registeredModel.GetAttributes().CreateTimeSinceEpoch = saved.GetAttributes().CreateTimeSinceEpoch
 
 		updated, err := repo.Save(registeredModel)
 		require.NoError(t, err)

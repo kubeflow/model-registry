@@ -17,8 +17,18 @@ import (
 
 // ArtifactUpdate - An Artifact to be updated.
 type ArtifactUpdate struct {
+	DataSetUpdate       *DataSetUpdate
 	DocArtifactUpdate   *DocArtifactUpdate
+	MetricUpdate        *MetricUpdate
 	ModelArtifactUpdate *ModelArtifactUpdate
+	ParameterUpdate     *ParameterUpdate
+}
+
+// DataSetUpdateAsArtifactUpdate is a convenience function that returns DataSetUpdate wrapped in ArtifactUpdate
+func DataSetUpdateAsArtifactUpdate(v *DataSetUpdate) ArtifactUpdate {
+	return ArtifactUpdate{
+		DataSetUpdate: v,
+	}
 }
 
 // DocArtifactUpdateAsArtifactUpdate is a convenience function that returns DocArtifactUpdate wrapped in ArtifactUpdate
@@ -28,10 +38,24 @@ func DocArtifactUpdateAsArtifactUpdate(v *DocArtifactUpdate) ArtifactUpdate {
 	}
 }
 
+// MetricUpdateAsArtifactUpdate is a convenience function that returns MetricUpdate wrapped in ArtifactUpdate
+func MetricUpdateAsArtifactUpdate(v *MetricUpdate) ArtifactUpdate {
+	return ArtifactUpdate{
+		MetricUpdate: v,
+	}
+}
+
 // ModelArtifactUpdateAsArtifactUpdate is a convenience function that returns ModelArtifactUpdate wrapped in ArtifactUpdate
 func ModelArtifactUpdateAsArtifactUpdate(v *ModelArtifactUpdate) ArtifactUpdate {
 	return ArtifactUpdate{
 		ModelArtifactUpdate: v,
+	}
+}
+
+// ParameterUpdateAsArtifactUpdate is a convenience function that returns ParameterUpdate wrapped in ArtifactUpdate
+func ParameterUpdateAsArtifactUpdate(v *ParameterUpdate) ArtifactUpdate {
+	return ArtifactUpdate{
+		ParameterUpdate: v,
 	}
 }
 
@@ -45,6 +69,18 @@ func (dst *ArtifactUpdate) UnmarshalJSON(data []byte) error {
 		return fmt.Errorf("failed to unmarshal JSON into map for the discriminator lookup")
 	}
 
+	// check if the discriminator value is 'DataSetUpdate'
+	if jsonDict["artifactType"] == "DataSetUpdate" {
+		// try to unmarshal JSON data into DataSetUpdate
+		err = json.Unmarshal(data, &dst.DataSetUpdate)
+		if err == nil {
+			return nil // data stored in dst.DataSetUpdate, return on the first match
+		} else {
+			dst.DataSetUpdate = nil
+			return fmt.Errorf("failed to unmarshal ArtifactUpdate as DataSetUpdate: %s", err.Error())
+		}
+	}
+
 	// check if the discriminator value is 'DocArtifactUpdate'
 	if jsonDict["artifactType"] == "DocArtifactUpdate" {
 		// try to unmarshal JSON data into DocArtifactUpdate
@@ -54,6 +90,18 @@ func (dst *ArtifactUpdate) UnmarshalJSON(data []byte) error {
 		} else {
 			dst.DocArtifactUpdate = nil
 			return fmt.Errorf("failed to unmarshal ArtifactUpdate as DocArtifactUpdate: %s", err.Error())
+		}
+	}
+
+	// check if the discriminator value is 'MetricUpdate'
+	if jsonDict["artifactType"] == "MetricUpdate" {
+		// try to unmarshal JSON data into MetricUpdate
+		err = json.Unmarshal(data, &dst.MetricUpdate)
+		if err == nil {
+			return nil // data stored in dst.MetricUpdate, return on the first match
+		} else {
+			dst.MetricUpdate = nil
+			return fmt.Errorf("failed to unmarshal ArtifactUpdate as MetricUpdate: %s", err.Error())
 		}
 	}
 
@@ -69,6 +117,30 @@ func (dst *ArtifactUpdate) UnmarshalJSON(data []byte) error {
 		}
 	}
 
+	// check if the discriminator value is 'ParameterUpdate'
+	if jsonDict["artifactType"] == "ParameterUpdate" {
+		// try to unmarshal JSON data into ParameterUpdate
+		err = json.Unmarshal(data, &dst.ParameterUpdate)
+		if err == nil {
+			return nil // data stored in dst.ParameterUpdate, return on the first match
+		} else {
+			dst.ParameterUpdate = nil
+			return fmt.Errorf("failed to unmarshal ArtifactUpdate as ParameterUpdate: %s", err.Error())
+		}
+	}
+
+	// check if the discriminator value is 'dataset-artifact'
+	if jsonDict["artifactType"] == "dataset-artifact" {
+		// try to unmarshal JSON data into DataSetUpdate
+		err = json.Unmarshal(data, &dst.DataSetUpdate)
+		if err == nil {
+			return nil // data stored in dst.DataSetUpdate, return on the first match
+		} else {
+			dst.DataSetUpdate = nil
+			return fmt.Errorf("failed to unmarshal ArtifactUpdate as DataSetUpdate: %s", err.Error())
+		}
+	}
+
 	// check if the discriminator value is 'doc-artifact'
 	if jsonDict["artifactType"] == "doc-artifact" {
 		// try to unmarshal JSON data into DocArtifactUpdate
@@ -78,6 +150,18 @@ func (dst *ArtifactUpdate) UnmarshalJSON(data []byte) error {
 		} else {
 			dst.DocArtifactUpdate = nil
 			return fmt.Errorf("failed to unmarshal ArtifactUpdate as DocArtifactUpdate: %s", err.Error())
+		}
+	}
+
+	// check if the discriminator value is 'metric'
+	if jsonDict["artifactType"] == "metric" {
+		// try to unmarshal JSON data into MetricUpdate
+		err = json.Unmarshal(data, &dst.MetricUpdate)
+		if err == nil {
+			return nil // data stored in dst.MetricUpdate, return on the first match
+		} else {
+			dst.MetricUpdate = nil
+			return fmt.Errorf("failed to unmarshal ArtifactUpdate as MetricUpdate: %s", err.Error())
 		}
 	}
 
@@ -93,17 +177,41 @@ func (dst *ArtifactUpdate) UnmarshalJSON(data []byte) error {
 		}
 	}
 
+	// check if the discriminator value is 'parameter'
+	if jsonDict["artifactType"] == "parameter" {
+		// try to unmarshal JSON data into ParameterUpdate
+		err = json.Unmarshal(data, &dst.ParameterUpdate)
+		if err == nil {
+			return nil // data stored in dst.ParameterUpdate, return on the first match
+		} else {
+			dst.ParameterUpdate = nil
+			return fmt.Errorf("failed to unmarshal ArtifactUpdate as ParameterUpdate: %s", err.Error())
+		}
+	}
+
 	return nil
 }
 
 // Marshal data from the first non-nil pointers in the struct to JSON
 func (src ArtifactUpdate) MarshalJSON() ([]byte, error) {
+	if src.DataSetUpdate != nil {
+		return json.Marshal(&src.DataSetUpdate)
+	}
+
 	if src.DocArtifactUpdate != nil {
 		return json.Marshal(&src.DocArtifactUpdate)
 	}
 
+	if src.MetricUpdate != nil {
+		return json.Marshal(&src.MetricUpdate)
+	}
+
 	if src.ModelArtifactUpdate != nil {
 		return json.Marshal(&src.ModelArtifactUpdate)
+	}
+
+	if src.ParameterUpdate != nil {
+		return json.Marshal(&src.ParameterUpdate)
 	}
 
 	return nil, nil // no data in oneOf schemas
@@ -114,12 +222,24 @@ func (obj *ArtifactUpdate) GetActualInstance() interface{} {
 	if obj == nil {
 		return nil
 	}
+	if obj.DataSetUpdate != nil {
+		return obj.DataSetUpdate
+	}
+
 	if obj.DocArtifactUpdate != nil {
 		return obj.DocArtifactUpdate
 	}
 
+	if obj.MetricUpdate != nil {
+		return obj.MetricUpdate
+	}
+
 	if obj.ModelArtifactUpdate != nil {
 		return obj.ModelArtifactUpdate
+	}
+
+	if obj.ParameterUpdate != nil {
+		return obj.ParameterUpdate
 	}
 
 	// all schemas are nil

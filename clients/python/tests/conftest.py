@@ -1,6 +1,4 @@
-import asyncio
 import base64
-import contextlib
 import inspect
 import json
 import os
@@ -9,25 +7,23 @@ import shutil
 import subprocess
 import tempfile
 import time
-from collections.abc import Generator
 from contextlib import asynccontextmanager
 from pathlib import Path
-from typing import Any
 from unittest.mock import Mock, patch
-from urllib.parse import urlparse
 
 import pytest
 import requests
-import schemathesis
-import uvloop
-from schemathesis import Case, Response
-from schemathesis.generation.stateful.state_machine import APIStateMachine
-from schemathesis.specs.openapi.schemas import BaseOpenAPISchema
 
 from model_registry import ModelRegistry
 from model_registry.utils import BackendDefinition, _get_skopeo_backend
 
-from .constants import DEFAULT_API_TIMEOUT
+from .constants import (
+    MAX_POLL_TIME,
+    POLL_INTERVAL,
+    REGISTRY_HOST,
+    REGISTRY_PORT,
+    REGISTRY_URL,
+)
 
 
 def pytest_addoption(parser):
@@ -74,14 +70,6 @@ def pytest_report_teststatus(report, config):
             print(f"\nTEST: {test_name} STATUS: \033[0;31mFAILED\033[0m")
 
 
-REGISTRY_URL = os.environ.get("MR_URL", "http://localhost:8080")
-parsed = urlparse(REGISTRY_URL)
-host, port = parsed.netloc.split(":")
-REGISTRY_HOST = f"{parsed.scheme}://{host}"
-REGISTRY_PORT = int(port)
-
-MAX_POLL_TIME = 10
-POLL_INTERVAL = 1
 start_time = time.time()
 
 
@@ -90,16 +78,41 @@ def root(request) -> Path:
     return (request.config.rootpath / "../..").resolve()  # resolves to absolute path
 
 
-def poll_for_ready():
+@pytest.fixture(scope="session")
+def user_token() -> str:
+    return os.getenv("AUTH_TOKEN", None)
+
+
+@pytest.fixture(scope="session")
+def request_headers(user_token: str) -> dict[str, str]:
+    headers = {"Content-Type": "application/json"}
+    if user_token:
+        headers["Authorization"] = f"Bearer {user_token}"
+    return headers
+
+
+@pytest.fixture(scope="session")
+def verify_ssl() -> bool:
+    verify_ssl_env = os.environ.get("VERIFY_SSL")
+    if verify_ssl_env is None:
+        return None
+    return verify_ssl_env.lower() == "true"
+
+
+def poll_for_ready(user_token, verify_ssl):
+    params = {
+        "url": REGISTRY_URL,
+        "headers": {"Authorization": f"Bearer {user_token}", } if user_token else None,
+        "verify": verify_ssl
+    }
     while True:
         elapsed_time = time.time() - start_time
         if elapsed_time >= MAX_POLL_TIME:
             print("Polling timed out.")
             break
-
-        print("Attempt to connect")
+        print(f"Attempt to connect to server {REGISTRY_URL}")
         try:
-            response = requests.get(REGISTRY_URL, timeout=MAX_POLL_TIME)
+            response = requests.get(**params, timeout=MAX_POLL_TIME)
             if response.status_code == 404:
                 print("Server is up!")
                 break
@@ -110,14 +123,29 @@ def poll_for_ready():
         time.sleep(POLL_INTERVAL)
 
 
-def cleanup(client):
-    async def yield_and_restart(root):
-        poll_for_ready()
-        if inspect.iscoroutinefunction(client) or inspect.isasyncgenfunction(client):
-            async with asynccontextmanager(client)() as async_client:
+def cleanup(fixture_func):
+    async def yield_and_restart(root, request):
+        # Access fixture values through request
+        try:
+            user_token = request.getfixturevalue("user_token")
+            verify_ssl = request.getfixturevalue("verify_ssl")
+        except pytest.FixtureLookupError:
+            user_token = None
+            verify_ssl = None
+
+        poll_for_ready(user_token=user_token, verify_ssl=verify_ssl)
+
+        if inspect.iscoroutinefunction(fixture_func) or inspect.isasyncgenfunction(fixture_func):
+            async with asynccontextmanager(fixture_func)(user_token=user_token, verify_ssl=verify_ssl) as async_client:
                 yield async_client
         else:
-            yield client()
+            # Check if fixture function expects parameters
+            sig = inspect.signature(fixture_func)
+            if "user_token" in sig.parameters:
+                yield fixture_func(user_token=user_token)
+            else:
+                # For fixtures that don't take parameters (like client_attrs)
+                yield fixture_func()
 
         print("Cleaning DB...")
         subprocess.call(  # noqa: S602
@@ -129,30 +157,10 @@ def cleanup(client):
     return yield_and_restart
 
 
-# workaround: https://github.com/pytest-dev/pytest-asyncio/issues/706#issuecomment-2147044022
-@pytest.fixture(scope="session", autouse=True)
-def event_loop():
-    loop = asyncio.get_event_loop_policy().get_event_loop()
-    yield loop
-    loop.close()
-
-
-@pytest.fixture
-def uv_event_loop():
-    old_policy = asyncio.get_event_loop_policy()
-    policy = uvloop.EventLoopPolicy()
-    asyncio.set_event_loop_policy(policy)
-    loop = uvloop.new_event_loop()
-    asyncio.set_event_loop(loop)
-    yield loop
-    loop.close()
-    asyncio.set_event_loop_policy(old_policy)
-
-
 @pytest.fixture
 @cleanup
-def client() -> ModelRegistry:
-    return ModelRegistry(REGISTRY_HOST, REGISTRY_PORT, author="author", is_secure=False)
+def client(user_token: str) -> ModelRegistry:
+    return ModelRegistry(REGISTRY_HOST, REGISTRY_PORT, author="author", is_secure=False, user_token=user_token)
 
 
 @pytest.fixture
@@ -339,85 +347,3 @@ def get_mock_skopeo_backend_for_auth(monkeypatch):
         skopeo_pull_mock.side_effect = mock_override
         skopeo_push_mock.side_effect = mock_override
         yield backend, skopeo_pull_mock, skopeo_push_mock, generic_auth_vars
-
-@pytest.fixture(scope="session")
-def generated_schema(pytestconfig: pytest.Config ) -> BaseOpenAPISchema:
-    """Generate the schema for the API"""
-
-    os.environ["API_HOST"] = REGISTRY_URL
-    config = schemathesis.config.SchemathesisConfig.from_path(f"{pytestconfig.rootpath}/schemathesis.toml")
-    local_schema_path = f"{pytestconfig.rootpath}/../../api/openapi/model-registry.yaml"
-    schema = schemathesis.openapi.from_path(
-        path=local_schema_path,
-        config=config,
-    )
-    schema.config.output.sanitization.update(enabled=False)
-    return schema
-
-@pytest.fixture
-def cleanup_artifacts(request: pytest.FixtureRequest, auth_headers: dict):
-    """Cleanup artifacts created during the test."""
-    created_ids = []
-    def register(artifact_id):
-        created_ids.append(artifact_id)
-
-    yield register
-
-    for artifact_id in created_ids:
-        del_url = f"{REGISTRY_URL}/api/model_registry/v1alpha3/artifacts/{artifact_id}"
-        try:
-            requests.delete(del_url, headers=auth_headers, timeout=DEFAULT_API_TIMEOUT)
-        except Exception as e:
-            print(f"Failed to delete artifact {artifact_id}: {e}")
-
-@pytest.fixture
-def artifact_resource():
-    """Create an artifact resource for the test."""
-    @contextlib.contextmanager
-    def _artifact_resource(auth_headers: dict, payload: dict) -> Generator[str, None, None]:
-        create_endpoint = f"{REGISTRY_URL}/api/model_registry/v1alpha3/artifacts"
-        resp = requests.post(create_endpoint, headers=auth_headers, json=payload, timeout=DEFAULT_API_TIMEOUT)
-        resp.raise_for_status()
-        artifact_id = resp.json()["id"]
-        try:
-            yield artifact_id
-        finally:
-            del_url = f"{REGISTRY_URL}/api/model_registry/v1alpha3/artifacts/{artifact_id}"
-            try:
-                requests.delete(del_url, headers=auth_headers, timeout=DEFAULT_API_TIMEOUT)
-            except Exception as e:
-                print(f"Failed to delete artifact {artifact_id}: {e}")
-    return _artifact_resource
-
-@pytest.fixture
-def auth_headers(setup_env_user_token):
-    """Provides authorization headers for API requests."""
-    return {
-        "Content-Type": "application/json",
-        "Authorization": f"Bearer {setup_env_user_token}"
-    }
-
-@pytest.fixture
-def state_machine(generated_schema: BaseOpenAPISchema, auth_headers: str) -> APIStateMachine:
-    BaseAPIWorkflow = generated_schema.as_state_machine()
-
-    class APIWorkflow(BaseAPIWorkflow):  # type: ignore
-        headers: dict[str, str]
-
-        def setup(self) -> None:
-            print("Cleaning up database")
-            subprocess.run(
-                ["../../scripts/cleanup.sh"],
-                capture_output=True,
-                check=True
-            )
-            self.headers = auth_headers
-
-        def before_call(self, case: Case) -> None:
-            print(f"Checking: {case.method} {case.path}")
-        def get_call_kwargs(self, case: Case) -> dict[str, Any]:
-            return {"verify": False, "headers": self.headers}
-
-        def after_call(self, response: Response, case: Case) -> None:
-            print(f"{case.method} {case.path} -> {response.status_code},")
-    return APIWorkflow

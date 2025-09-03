@@ -1,16 +1,20 @@
 name: Check DB schema structs
 on:
   pull_request:
-    paths:
-      - ".github/workflows/**"
-      - "internal/db/schema/**"
-      - "internal/datastore/embedmd/mysql/migrations/**"
-      - "internal/datastore/embedmd/postgres/migrations/**"
+  push:
+    branches:
+      - 'main'
+    tags:
+      - 'v*'
+
+permissions:
+  contents: read
+
 jobs:
   check-mysql-schema-structs:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - name: Setup Go
         uses: actions/setup-go@v5
         with:
@@ -30,7 +34,7 @@ jobs:
   check-postgres-schema-structs:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - name: Setup Go
         uses: actions/setup-go@v5
         with:

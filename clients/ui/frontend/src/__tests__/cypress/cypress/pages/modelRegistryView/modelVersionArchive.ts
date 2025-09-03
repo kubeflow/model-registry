@@ -97,10 +97,6 @@ class ModelVersionArchive {
     return cy.findByTestId('model-versions-archive-table-toolbar');
   }
 
-  findArchivedVersionTableSearch() {
-    return cy.findByTestId('model-versions-archive-table-search');
-  }
-
   findArchiveVersionBreadcrumbItem() {
     return cy.findByTestId('archive-version-page-breadcrumb');
   }
@@ -109,16 +105,20 @@ class ModelVersionArchive {
     return cy.findByTestId('model-versions-details-tab');
   }
 
-  findVersionDeploymentTab() {
-    return cy.findByTestId('deployments-tab');
-  }
-
   findArchiveVersionTable() {
     return cy.findByTestId('model-versions-archive-table');
   }
 
   findArchiveVersionsTableRows() {
     return this.findArchiveVersionTable().find('tbody tr');
+  }
+
+  findArchiveVersionTableSearch() {
+    return cy.findByTestId('filter-toolbar-text-field');
+  }
+
+  findArchiveVersionTableFilterOption(name: string) {
+    return cy.findByTestId('filter-toolbar-dropdown').findDropdownItem(name);
   }
 
   findRestoreButton() {

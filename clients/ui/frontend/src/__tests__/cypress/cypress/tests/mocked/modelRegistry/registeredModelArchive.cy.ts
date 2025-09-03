@@ -1,5 +1,5 @@
 /* eslint-disable camelcase */
-import { mockModArchResponse } from 'mod-arch-shared';
+import { mockModArchResponse } from 'mod-arch-core';
 import { mockRegisteredModelList } from '~/__mocks__/mockRegisteredModelsList';
 import { mockModelVersion } from '~/__mocks__/mockModelVersion';
 import { mockRegisteredModel } from '~/__mocks__/mockRegisteredModel';
@@ -65,7 +65,12 @@ const initIntercepts = ({
       },
       state: ModelState.ARCHIVED,
     }),
-    mockRegisteredModel({ id: '2', name: 'model 2', state: ModelState.ARCHIVED }),
+    mockRegisteredModel({
+      id: '2',
+      owner: 'Author 2',
+      name: 'model 2',
+      state: ModelState.ARCHIVED,
+    }),
     mockRegisteredModel({ id: '3', name: 'model 3' }),
     mockRegisteredModel({ id: '4', name: 'model 4' }),
   ],
@@ -176,7 +181,7 @@ describe('Model archive list', () => {
     registeredModelArchive.findArchiveModelBreadcrumbItem().contains('Archived models');
     const archiveModelRow = registeredModelArchive.getRow('model 2');
     archiveModelRow.findName().contains('model 2').click();
-    verifyRelativeURL('/model-registry/modelregistry-sample/registeredModels/archive/2/versions');
+    verifyRelativeURL('/model-registry/modelregistry-sample/registeredModels/archive/2/overview');
     cy.findByTestId('app-page-title').should('have.text', 'model 2Archived');
     cy.go('back');
     verifyRelativeURL('/model-registry/modelregistry-sample/registeredModels/archive');
@@ -219,7 +224,7 @@ describe('Model archive list', () => {
 
     // name, last modified, owner, labels modal
     registeredModelArchive.findArchiveModelTable().should('be.visible');
-    registeredModelArchive.findArchiveModelsTableSearch().type('model 1');
+    registeredModelArchive.findTableSearch().type('model 1');
     registeredModelArchive.findArchiveModelsTableRows().should('have.length', 1);
     registeredModelArchive
       .findArchiveModelsTableToolbar()
@@ -245,6 +250,7 @@ describe('Model archive list', () => {
     labelModal.findCloseModal().click();
 
     // sort by Last modified
+    registeredModelArchive.findRegisteredModelsArchiveTableHeaderButton('Last modified').click();
     registeredModelArchive
       .findRegisteredModelsArchiveTableHeaderButton('Last modified')
       .should(be.sortAscending);
@@ -264,15 +270,55 @@ describe('Model archive list', () => {
       .should(be.sortDescending);
   });
 
-  it('Opens the detail page when we select "View Details" from action menu', () => {
+  it('Filter by keyword then both', () => {
+    initIntercepts({});
+    registeredModelArchive.visit();
+    registeredModelArchive.findTableSearch().type('model 1');
+    registeredModelArchive.findArchiveModelsTableRows().should('have.length', 1);
+    registeredModelArchive.findFilterDropdownItem('Owner').click();
+    registeredModelArchive.findTableSearch().type('Author 1');
+    registeredModelArchive.findArchiveModelsTableRows().should('have.length', 1);
+    registeredModelArchive.findArchiveModelsTableRows().contains('model 1');
+    registeredModelArchive.findTableSearch().type('2');
+    registeredModelArchive.findArchiveModelsTableRows().should('have.length', 0);
+  });
+
+  it('Filter by owner then both', () => {
+    initIntercepts({});
+    registeredModelArchive.visit();
+    registeredModelArchive.findFilterDropdownItem('Owner').click();
+    registeredModelArchive.findTableSearch().type('Author 2');
+    registeredModelArchive.findArchiveModelsTableRows().should('have.length', 1);
+    registeredModelArchive.findFilterDropdownItem('Keyword').click();
+    registeredModelArchive.findTableSearch().type('model 2');
+    registeredModelArchive.findArchiveModelsTableRows().should('have.length', 1);
+    registeredModelArchive.findTableSearch().type('.');
+    registeredModelArchive.findArchiveModelsTableRows().should('have.length', 0);
+  });
+
+  it('latest version column', () => {
     initIntercepts({});
     registeredModelArchive.visit();
     const archiveModelRow = registeredModelArchive.getRow('model 2');
-    archiveModelRow.findKebabAction('View details').click();
+    archiveModelRow.findLatestVersion().contains('new model version');
+    archiveModelRow.findLatestVersion().click();
+    verifyRelativeURL(
+      `/model-registry/modelregistry-sample/registeredModels/archive/2/versions/1/details`,
+    );
+  });
+
+  it('Opens the detail page when we select "Overview" from action menu and verison list when we select "Versions', () => {
+    initIntercepts({});
+    registeredModelArchive.visit();
+    const archiveModelRow = registeredModelArchive.getRow('model 2');
+    archiveModelRow.findKebabAction('Overview').click();
     cy.location('pathname').should(
       'be.equals',
-      '/model-registry/modelregistry-sample/registeredModels/archive/2/details',
+      '/model-registry/modelregistry-sample/registeredModels/archive/2/overview',
     );
+    cy.go('back');
+    archiveModelRow.findKebabAction('Versions').click();
+    verifyRelativeURL(`/model-registry/modelregistry-sample/registeredModels/archive/2/versions`);
   });
 });
 

@@ -1,17 +1,13 @@
 package mysql_test
 
 import (
-	"context"
-	"path/filepath"
+	"os"
 	"testing"
 
 	"github.com/kubeflow/model-registry/internal/datastore/embedmd/mysql"
-	_tls "github.com/kubeflow/model-registry/internal/tls"
+	"github.com/kubeflow/model-registry/internal/testutils"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"github.com/testcontainers/testcontainers-go"
-	cont_mysql "github.com/testcontainers/testcontainers-go/modules/mysql"
-	"gorm.io/gorm"
 )
 
 // Type represents the Type table structure
@@ -40,45 +36,16 @@ func (TypeProperty) TableName() string {
 	return "TypeProperty"
 }
 
-func setupTestDB(t *testing.T) (*gorm.DB, func()) {
-	ctx := context.Background()
-
-	mysqlContainer, err := cont_mysql.Run(
-		ctx,
-		"mysql:5.7",
-		cont_mysql.WithUsername("root"),
-		cont_mysql.WithPassword("root"),
-		cont_mysql.WithDatabase("test"),
-		cont_mysql.WithConfigFile(filepath.Join("testdata", "testdb.cnf")),
-	)
-	require.NoError(t, err)
-
-	dbConnector := mysql.NewMySQLDBConnector(mysqlContainer.MustConnectionString(ctx), &_tls.TLSConfig{})
-	require.NoError(t, err)
-
-	db, err := dbConnector.Connect()
-	require.NoError(t, err)
-
-	// Return cleanup function
-	cleanup := func() {
-		sqlDB, err := db.DB()
-		require.NoError(t, err)
-		sqlDB.Close() //nolint:errcheck
-		err = testcontainers.TerminateContainer(
-			mysqlContainer,
-		)
-		require.NoError(t, err)
-	}
-
-	return db, cleanup
+func TestMain(m *testing.M) {
+	os.Exit(testutils.TestMainHelper(m))
 }
 
 func TestMigrations(t *testing.T) {
-	db, cleanup := setupTestDB(t)
+	sharedDB, cleanup := testutils.GetSharedMySQLDB(t)
 	defer cleanup()
 
 	// Create migrator
-	migrator, err := mysql.NewMySQLMigrator(db)
+	migrator, err := mysql.NewMySQLMigrator(sharedDB)
 	require.NoError(t, err)
 
 	// Run migrations
@@ -87,30 +54,31 @@ func TestMigrations(t *testing.T) {
 
 	// Verify MLMDEnv table
 	var schemaVersion int
-	err = db.Raw("SELECT schema_version FROM MLMDEnv LIMIT 1").Scan(&schemaVersion).Error
+	err = sharedDB.Raw("SELECT schema_version FROM MLMDEnv LIMIT 1").Scan(&schemaVersion).Error
 	require.NoError(t, err)
 	assert.Equal(t, 10, schemaVersion)
 
 	// Verify Type table has expected entries
 	var count int64
-	err = db.Model(&Type{}).Count(&count).Error
+	err = sharedDB.Model(&Type{}).Count(&count).Error
 	require.NoError(t, err)
 	assert.Greater(t, count, int64(0))
 
 	// Verify TypeProperty table has expected entries
-	err = db.Model(&TypeProperty{}).Count(&count).Error
+	err = sharedDB.Model(&TypeProperty{}).Count(&count).Error
 	require.NoError(t, err)
 	assert.Greater(t, count, int64(0))
 }
 
 func TestDownMigrations(t *testing.T) {
-	db, cleanup := setupTestDB(t)
+	// Clean up any existing data
+	sharedDB, cleanup := testutils.GetSharedMySQLDB(t)
 	defer cleanup()
 
-	migrator, err := mysql.NewMySQLMigrator(db)
+	migrator, err := mysql.NewMySQLMigrator(sharedDB)
 	require.NoError(t, err)
 
-	// Run migrations
+	// Run migrations first
 	err = migrator.Migrate()
 	require.NoError(t, err)
 
@@ -120,7 +88,7 @@ func TestDownMigrations(t *testing.T) {
 
 	// Verify tables don't exist (except schema_migrations)
 	var count int64
-	err = db.Raw("SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = DATABASE() AND table_name != 'schema_migrations'").Scan(&count).Error
+	err = sharedDB.Raw("SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = DATABASE() AND table_name != 'schema_migrations'").Scan(&count).Error
 	require.NoError(t, err)
 	assert.Equal(t, int64(0), count)
 }

@@ -20,13 +20,12 @@ paths:
       parameters:
         - name: source
           description: |-
-            Filter models by source. If not provided, models from all sources
-            are returned. If multiple sources are provided, models from any of
-            the sources are returned.
+            Filter models by source. This parameter is currently required and
+            may only be specified once.
           schema:
             type: string
           in: query
-          required: false
+          required: true
         - name: q
           description: Free-form keyword search used to filter the response.
           schema:
@@ -210,6 +209,10 @@ components:
         name:
           description: The name of the catalog source.
           type: string
+        enabled:
+          description: Whether the catalog source is enabled.
+          type: boolean
+          default: true
     CatalogSourceList:
       description: List of CatalogSource entities.
       allOf:

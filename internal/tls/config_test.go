@@ -352,10 +352,9 @@ func TestParseCipherSuites(t *testing.T) {
 		},
 		{
 			name:        "comprehensive cipher list",
-			cipherStr:   "TLS_RSA_WITH_AES_128_CBC_SHA:TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384:TLS_CHACHA20_POLY1305_SHA256",
-			expectedLen: 3,
+			cipherStr:   "TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384:TLS_CHACHA20_POLY1305_SHA256",
+			expectedLen: 2,
 			expected: []uint16{
-				tls.TLS_RSA_WITH_AES_128_CBC_SHA,
 				tls.TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384,
 				tls.TLS_CHACHA20_POLY1305_SHA256,
 			},

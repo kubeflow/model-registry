@@ -1,9 +1,10 @@
 # Build the model-registry binary
-FROM registry.access.redhat.com/ubi8/go-toolset:1.24.4 AS builder
+FROM registry.access.redhat.com/ubi9/go-toolset:1.24 AS builder
 
 WORKDIR /workspace
-# Copy the Go Modules manifests
-COPY ["go.mod", "go.sum", "./"]
+# Copy the Go Modules manifests and workspace file
+COPY ["go.mod", "go.sum", "go.work", "./"]
+COPY ["pkg/openapi/go.mod", "pkg/openapi/"]
 # cache deps before building and copying source so that we don't need to re-download as much
 # and so that source changes don't invalidate our downloaded layer
 RUN go mod download
@@ -25,7 +26,7 @@ RUN CGO_ENABLED=1 GOOS=linux GOARCH=amd64 make clean/odh build/odh
 
 # Use distroless as minimal base image to package the model-registry binary
 # Refer to https://github.com/GoogleContainerTools/distroless for more details
-FROM registry.access.redhat.com/ubi8/ubi-minimal:latest
+FROM registry.access.redhat.com/ubi9/ubi-minimal:latest
 WORKDIR /
 # copy the registry binary
 COPY --from=builder /workspace/model-registry .

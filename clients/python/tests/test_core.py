@@ -16,8 +16,8 @@ from .conftest import REGISTRY_HOST, REGISTRY_PORT, cleanup
 
 @pytest.fixture
 @cleanup
-def client() -> ModelRegistryAPIClient:
-    return ModelRegistryAPIClient.insecure_connection(REGISTRY_HOST, REGISTRY_PORT)
+def client(user_token) -> ModelRegistryAPIClient:
+    return ModelRegistryAPIClient.insecure_connection(REGISTRY_HOST, REGISTRY_PORT, user_token=user_token)
 
 
 @pytest.mark.e2e

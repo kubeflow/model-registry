@@ -25,7 +25,7 @@ func (b *ModelRegistryService) UpsertModelVersion(modelVersion *openapi.ModelVer
 			return nil, err
 		}
 
-		withNotEditable, err := b.mapper.OverrideNotEditableForModelVersion(converter.NewOpenapiUpdateWrapper(existing, modelVersion))
+		withNotEditable, err := b.mapper.UpdateExistingModelVersion(converter.NewOpenapiUpdateWrapper(existing, modelVersion))
 		if err != nil {
 			return nil, fmt.Errorf("%v: %w", err, api.ErrBadRequest)
 		}
@@ -36,12 +36,10 @@ func (b *ModelRegistryService) UpsertModelVersion(modelVersion *openapi.ModelVer
 		modelVersion.RegisteredModelId = *registeredModelId
 	}
 
-	model, err := b.mapper.MapFromModelVersion(modelVersion)
+	model, err := b.mapper.MapFromModelVersion(modelVersion, registeredModelId)
 	if err != nil {
 		return nil, fmt.Errorf("%v: %w", err, api.ErrBadRequest)
 	}
-
-	modelVersion.Name = converter.PrefixWhenOwned(&modelVersion.RegisteredModelId, modelVersion.Name)
 
 	savedModel, err := b.modelVersionRepository.Save(model)
 	if err != nil {
@@ -63,12 +61,12 @@ func (b *ModelRegistryService) UpsertModelVersion(modelVersion *openapi.ModelVer
 func (b *ModelRegistryService) GetModelVersionById(id string) (*openapi.ModelVersion, error) {
 	glog.Infof("Getting ModelVersion by id %s", id)
 
-	convertedId, err := strconv.ParseInt(id, 10, 32)
+	convertedId, err := apiutils.ValidateIDAsInt32(id, "model version")
 	if err != nil {
-		return nil, fmt.Errorf("%v: %w", err, api.ErrBadRequest)
+		return nil, err
 	}
 
-	model, err := b.modelVersionRepository.GetByID(int32(convertedId))
+	model, err := b.modelVersionRepository.GetByID(convertedId)
 	if err != nil {
 		return nil, fmt.Errorf("no model version found for id %s: %w", id, api.ErrNotFound)
 	}
@@ -82,12 +80,12 @@ func (b *ModelRegistryService) GetModelVersionById(id string) (*openapi.ModelVer
 }
 
 func (b *ModelRegistryService) GetModelVersionByInferenceService(inferenceServiceId string) (*openapi.ModelVersion, error) {
-	convertedId, err := strconv.ParseInt(inferenceServiceId, 10, 32)
+	convertedId, err := apiutils.ValidateIDAsInt32(inferenceServiceId, "inference service")
 	if err != nil {
-		return nil, fmt.Errorf("%v: %w", err, api.ErrBadRequest)
+		return nil, err
 	}
 
-	infSvc, err := b.inferenceServiceRepository.GetByID(int32(convertedId))
+	infSvc, err := b.inferenceServiceRepository.GetByID(convertedId)
 	if err != nil {
 		return nil, fmt.Errorf("no inference service found for id %s: %w", inferenceServiceId, api.ErrNotFound)
 	}
@@ -135,18 +133,23 @@ func (b *ModelRegistryService) GetModelVersionByInferenceService(inferenceServic
 }
 
 func (b *ModelRegistryService) GetModelVersionByParams(versionName *string, registeredModelId *string, externalId *string) (*openapi.ModelVersion, error) {
-	var combinedName *string
-
-	if versionName != nil && registeredModelId != nil {
-		n := converter.PrefixWhenOwned(registeredModelId, *versionName)
-		combinedName = &n
-	} else if externalId == nil {
+	if (versionName == nil || registeredModelId == nil) && externalId == nil {
 		return nil, fmt.Errorf("invalid parameters call, supply either (versionName and registeredModelId), or externalId: %w", api.ErrBadRequest)
 	}
 
+	var parentResourceID *int32
+	if registeredModelId != nil {
+		var err error
+		parentResourceID, err = apiutils.ValidateIDAsInt32Ptr(registeredModelId, "registered model")
+		if err != nil {
+			return nil, err
+		}
+	}
+
 	versionsList, err := b.modelVersionRepository.List(models.ModelVersionListOptions{
-		Name:       combinedName,
-		ExternalID: externalId,
+		Name:             versionName,
+		ExternalID:       externalId,
+		ParentResourceID: parentResourceID,
 	})
 	if err != nil {
 		return nil, err
@@ -172,13 +175,11 @@ func (b *ModelRegistryService) GetModelVersions(listOptions api.ListOptions, reg
 	var parentResourceID *int32
 
 	if registeredModelId != nil {
-		convertedId, err := strconv.ParseInt(*registeredModelId, 10, 32)
+		var err error
+		parentResourceID, err = apiutils.ValidateIDAsInt32Ptr(registeredModelId, "registered model")
 		if err != nil {
-			return nil, fmt.Errorf("%v: %w", err, api.ErrBadRequest)
+			return nil, err
 		}
-
-		id := int32(convertedId)
-		parentResourceID = &id
 	}
 
 	versionsList, err := b.modelVersionRepository.List(models.ModelVersionListOptions{
@@ -187,6 +188,7 @@ func (b *ModelRegistryService) GetModelVersions(listOptions api.ListOptions, reg
 			OrderBy:       listOptions.OrderBy,
 			SortOrder:     listOptions.SortOrder,
 			NextPageToken: listOptions.NextPageToken,
+			FilterQuery:   listOptions.FilterQuery,
 		},
 		ParentResourceID: parentResourceID,
 	})

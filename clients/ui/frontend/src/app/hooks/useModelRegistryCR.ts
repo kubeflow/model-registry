@@ -1,12 +1,12 @@
 import React from 'react';
 import {
-  ModelRegistryKind,
   APIOptions,
   useFetchState,
   useDeepCompareMemoize,
   FetchState,
   FetchStateCallbackPromise,
-} from 'mod-arch-shared';
+} from 'mod-arch-core';
+import { ModelRegistryKind } from 'mod-arch-shared';
 import { getModelRegistrySettings } from '~/app/api/k8s';
 
 const useModelRegistryCR = (
@@ -20,7 +20,8 @@ const useModelRegistryCR = (
   );
 
   const callback = React.useCallback<FetchStateCallbackPromise<ModelRegistryKind | null>>(
-    (opts: APIOptions) => (name ? getModelRegistry(opts, name) : Promise.resolve(null)),
+    (opts: APIOptions) =>
+      name ? getModelRegistry(opts, name).then((res) => res.modelRegistry) : Promise.resolve(null),
     [getModelRegistry, name],
   );
 

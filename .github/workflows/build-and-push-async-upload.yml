@@ -15,7 +15,7 @@ on:
 env:
   IMG_REGISTRY: quay.io
   IMG_ORG: opendatahub
-  IMG_NAME: model-registry/job/async-upload
+  IMG_NAME: model-registry-job-async-upload
   REGISTRY_USER: ${{ secrets.QUAY_USERNAME }}
   REGISTRY_PWD: ${{ secrets.QUAY_PASSWORD }}
 
@@ -27,7 +27,7 @@ jobs:
       packages: write
     steps:
     - name: Checkout repository
-      uses: actions/checkout@v4
+      uses: actions/checkout@v5
 
     - name: Set up Docker Buildx
       uses: docker/setup-buildx-action@v3
@@ -52,7 +52,7 @@ jobs:
         echo "VERSION=${{ github.ref_name }}" >> $GITHUB_ENV
 
     - name: Build and push Docker image
-      uses: docker/build-push-action@v5
+      uses: docker/build-push-action@v6
       with:
         context: ./jobs/async-upload
         push: true

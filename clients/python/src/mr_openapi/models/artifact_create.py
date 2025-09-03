@@ -22,10 +22,19 @@ from pydantic import (
 )
 from typing_extensions import Self
 
+from mr_openapi.models.data_set_create import DataSetCreate
 from mr_openapi.models.doc_artifact_create import DocArtifactCreate
+from mr_openapi.models.metric_create import MetricCreate
 from mr_openapi.models.model_artifact_create import ModelArtifactCreate
+from mr_openapi.models.parameter_create import ParameterCreate
 
-ARTIFACTCREATE_ONE_OF_SCHEMAS = ["DocArtifactCreate", "ModelArtifactCreate"]
+ARTIFACTCREATE_ONE_OF_SCHEMAS = [
+    "DataSetCreate",
+    "DocArtifactCreate",
+    "MetricCreate",
+    "ModelArtifactCreate",
+    "ParameterCreate",
+]
 
 
 class ArtifactCreate(BaseModel):
@@ -35,8 +44,22 @@ class ArtifactCreate(BaseModel):
     oneof_schema_1_validator: ModelArtifactCreate | None = None
     # data type: DocArtifactCreate
     oneof_schema_2_validator: DocArtifactCreate | None = None
-    actual_instance: DocArtifactCreate | ModelArtifactCreate | None = None
-    one_of_schemas: set[str] = {"DocArtifactCreate", "ModelArtifactCreate"}
+    # data type: DataSetCreate
+    oneof_schema_3_validator: DataSetCreate | None = None
+    # data type: MetricCreate
+    oneof_schema_4_validator: MetricCreate | None = None
+    # data type: ParameterCreate
+    oneof_schema_5_validator: ParameterCreate | None = None
+    actual_instance: (
+        DataSetCreate | DocArtifactCreate | MetricCreate | ModelArtifactCreate | ParameterCreate | None
+    ) = None
+    one_of_schemas: set[str] = {
+        "DataSetCreate",
+        "DocArtifactCreate",
+        "MetricCreate",
+        "ModelArtifactCreate",
+        "ParameterCreate",
+    }
 
     model_config = ConfigDict(
         validate_assignment=True,
@@ -72,16 +95,31 @@ class ArtifactCreate(BaseModel):
             error_messages.append(f"Error! Input type `{type(v)}` is not `DocArtifactCreate`")
         else:
             match += 1
+        # validate data type: DataSetCreate
+        if not isinstance(v, DataSetCreate):
+            error_messages.append(f"Error! Input type `{type(v)}` is not `DataSetCreate`")
+        else:
+            match += 1
+        # validate data type: MetricCreate
+        if not isinstance(v, MetricCreate):
+            error_messages.append(f"Error! Input type `{type(v)}` is not `MetricCreate`")
+        else:
+            match += 1
+        # validate data type: ParameterCreate
+        if not isinstance(v, ParameterCreate):
+            error_messages.append(f"Error! Input type `{type(v)}` is not `ParameterCreate`")
+        else:
+            match += 1
         if match > 1:
             # more than 1 match
             raise ValueError(
-                "Multiple matches found when setting `actual_instance` in ArtifactCreate with oneOf schemas: DocArtifactCreate, ModelArtifactCreate. Details: "
+                "Multiple matches found when setting `actual_instance` in ArtifactCreate with oneOf schemas: DataSetCreate, DocArtifactCreate, MetricCreate, ModelArtifactCreate, ParameterCreate. Details: "
                 + ", ".join(error_messages)
             )
         if match == 0:
             # no match
             raise ValueError(
-                "No match found when setting `actual_instance` in ArtifactCreate with oneOf schemas: DocArtifactCreate, ModelArtifactCreate. Details: "
+                "No match found when setting `actual_instance` in ArtifactCreate with oneOf schemas: DataSetCreate, DocArtifactCreate, MetricCreate, ModelArtifactCreate, ParameterCreate. Details: "
                 + ", ".join(error_messages)
             )
         return v
@@ -103,9 +141,19 @@ class ArtifactCreate(BaseModel):
             msg = "Failed to lookup data type from the field `artifactType` in the input."
             raise ValueError(msg)
 
+        # check if data type is `DataSetCreate`
+        if _data_type == "dataset-artifact":
+            instance.actual_instance = DataSetCreate.from_json(json_str)
+            return instance
+
         # check if data type is `DocArtifactCreate`
         if _data_type == "doc-artifact":
             instance.actual_instance = DocArtifactCreate.from_json(json_str)
+            return instance
+
+        # check if data type is `MetricCreate`
+        if _data_type == "metric":
+            instance.actual_instance = MetricCreate.from_json(json_str)
             return instance
 
         # check if data type is `ModelArtifactCreate`
@@ -113,14 +161,34 @@ class ArtifactCreate(BaseModel):
             instance.actual_instance = ModelArtifactCreate.from_json(json_str)
             return instance
 
+        # check if data type is `ParameterCreate`
+        if _data_type == "parameter":
+            instance.actual_instance = ParameterCreate.from_json(json_str)
+            return instance
+
+        # check if data type is `DataSetCreate`
+        if _data_type == "DataSetCreate":
+            instance.actual_instance = DataSetCreate.from_json(json_str)
+            return instance
+
         # check if data type is `DocArtifactCreate`
         if _data_type == "DocArtifactCreate":
             instance.actual_instance = DocArtifactCreate.from_json(json_str)
             return instance
 
+        # check if data type is `MetricCreate`
+        if _data_type == "MetricCreate":
+            instance.actual_instance = MetricCreate.from_json(json_str)
+            return instance
+
         # check if data type is `ModelArtifactCreate`
         if _data_type == "ModelArtifactCreate":
             instance.actual_instance = ModelArtifactCreate.from_json(json_str)
+            return instance
+
+        # check if data type is `ParameterCreate`
+        if _data_type == "ParameterCreate":
+            instance.actual_instance = ParameterCreate.from_json(json_str)
             return instance
 
         # deserialize data into ModelArtifactCreate
@@ -135,17 +203,35 @@ class ArtifactCreate(BaseModel):
             match += 1
         except (ValidationError, ValueError) as e:
             error_messages.append(str(e))
+        # deserialize data into DataSetCreate
+        try:
+            instance.actual_instance = DataSetCreate.from_json(json_str)
+            match += 1
+        except (ValidationError, ValueError) as e:
+            error_messages.append(str(e))
+        # deserialize data into MetricCreate
+        try:
+            instance.actual_instance = MetricCreate.from_json(json_str)
+            match += 1
+        except (ValidationError, ValueError) as e:
+            error_messages.append(str(e))
+        # deserialize data into ParameterCreate
+        try:
+            instance.actual_instance = ParameterCreate.from_json(json_str)
+            match += 1
+        except (ValidationError, ValueError) as e:
+            error_messages.append(str(e))
 
         if match > 1:
             # more than 1 match
             raise ValueError(
-                "Multiple matches found when deserializing the JSON string into ArtifactCreate with oneOf schemas: DocArtifactCreate, ModelArtifactCreate. Details: "
+                "Multiple matches found when deserializing the JSON string into ArtifactCreate with oneOf schemas: DataSetCreate, DocArtifactCreate, MetricCreate, ModelArtifactCreate, ParameterCreate. Details: "
                 + ", ".join(error_messages)
             )
         if match == 0:
             # no match
             raise ValueError(
-                "No match found when deserializing the JSON string into ArtifactCreate with oneOf schemas: DocArtifactCreate, ModelArtifactCreate. Details: "
+                "No match found when deserializing the JSON string into ArtifactCreate with oneOf schemas: DataSetCreate, DocArtifactCreate, MetricCreate, ModelArtifactCreate, ParameterCreate. Details: "
                 + ", ".join(error_messages)
             )
         return instance
@@ -159,7 +245,17 @@ class ArtifactCreate(BaseModel):
             return self.actual_instance.to_json()
         return json.dumps(self.actual_instance)
 
-    def to_dict(self) -> dict[str, Any] | DocArtifactCreate | ModelArtifactCreate | None:
+    def to_dict(
+        self,
+    ) -> (
+        dict[str, Any]
+        | DataSetCreate
+        | DocArtifactCreate
+        | MetricCreate
+        | ModelArtifactCreate
+        | ParameterCreate
+        | None
+    ):
         """Returns the dict representation of the actual instance."""
         if self.actual_instance is None:
             return None

@@ -14,8 +14,6 @@ ENVTEST ?= $(PROJECT_BIN)/setup-envtest
 # add tools bin directory
 PATH := $(PROJECT_BIN):$(PATH)
 
-MLMD_VERSION ?= 1.14.0
-
 # docker executable
 DOCKER ?= docker
 # default Dockerfile
@@ -31,7 +29,9 @@ IMG_REPO ?= model-registry
 # container image build path
 BUILD_PATH ?= .
 # container image
-ifdef IMG_REGISTRY
+ifdef IMG
+	IMG := ${IMG}
+else ifdef IMG_REGISTRY
     IMG := ${IMG_REGISTRY}/${IMG_ORG}/${IMG_REPO}
 else
     IMG := ${IMG_ORG}/${IMG_REPO}
@@ -55,44 +55,11 @@ endif
 
 model-registry: build
 
-# clean the ml-metadata protos and trigger a fresh new build which downloads
-# ml-metadata protos based on specified MLMD_VERSION
-.PHONY: update/ml_metadata
-update/ml_metadata: clean/ml_metadata clean build
-
-clean/ml_metadata:
-	rm -rf api/grpc/ml_metadata/proto/*.proto
-
-api/grpc/ml_metadata/proto/metadata_source.proto:
-	mkdir -p api/grpc/ml_metadata/proto/
-	cd api/grpc/ml_metadata/proto/ && \
-		curl -LO "https://raw.githubusercontent.com/google/ml-metadata/v${MLMD_VERSION}/ml_metadata/proto/metadata_source.proto" && \
-		sed -i 's#syntax = "proto[23]";#&\noption go_package = "github.com/kubeflow/model-registry/internal/ml_metadata/proto";#' metadata_source.proto
-
-api/grpc/ml_metadata/proto/metadata_store.proto:
-	mkdir -p api/grpc/ml_metadata/proto/
-	cd api/grpc/ml_metadata/proto/ && \
-		curl -LO "https://raw.githubusercontent.com/google/ml-metadata/v${MLMD_VERSION}/ml_metadata/proto/metadata_store.proto" && \
-		sed -i 's#syntax = "proto[23]";#&\noption go_package = "github.com/kubeflow/model-registry/internal/ml_metadata/proto";#' metadata_store.proto
-
-api/grpc/ml_metadata/proto/metadata_store_service.proto:
-	mkdir -p api/grpc/ml_metadata/proto/
-	cd api/grpc/ml_metadata/proto/ && \
-		curl -LO "https://raw.githubusercontent.com/google/ml-metadata/v${MLMD_VERSION}/ml_metadata/proto/metadata_store_service.proto" && \
-		sed -i 's#syntax = "proto[23]";#&\noption go_package = "github.com/kubeflow/model-registry/internal/ml_metadata/proto";#' metadata_store_service.proto
-
-internal/ml_metadata/proto/%.pb.go: api/grpc/ml_metadata/proto/%.proto
-	bin/protoc -I./api/grpc --go_out=./internal --go_opt=paths=source_relative \
-		--go-grpc_out=./internal --go-grpc_opt=paths=source_relative $<
-
-.PHONY: gen/grpc
-gen/grpc: internal/ml_metadata/proto/metadata_store.pb.go internal/ml_metadata/proto/metadata_store_service.pb.go
-
 internal/converter/generated/converter.go: internal/converter/*.go
 	${GOVERTER} gen github.com/kubeflow/model-registry/internal/converter/
 
 .PHONY: gen/converter
-gen/converter: gen/grpc internal/converter/generated/converter.go
+gen/converter: internal/converter/generated/converter.go
 
 api/openapi/model-registry.yaml: api/openapi/src/model-registry.yaml api/openapi/src/lib/*.yaml bin/yq
 	scripts/merge_openapi.sh model-registry.yaml
@@ -152,14 +119,14 @@ stop/postgres:
 gen/gorm/mysql: bin/golang-migrate start/mysql
 	@(trap 'cd $(CURDIR) && $(MAKE) stop/mysql' EXIT; \
 	$(GOLANG_MIGRATE) -path './internal/datastore/embedmd/mysql/migrations' -database 'mysql://root:root@tcp(localhost:3306)/model-registry' up && \
-	cd gorm-gen && go run main.go --db-type mysql --dsn 'root:root@tcp(localhost:3306)/model-registry?charset=utf8mb4&parseTime=True&loc=Local')
+	cd gorm-gen && GOWORK=off go run main.go --db-type mysql --dsn 'root:root@tcp(localhost:3306)/model-registry?charset=utf8mb4&parseTime=True&loc=Local')
 
 # generate the gorm structs for PostgreSQL
 .PHONY: gen/gorm/postgres
 gen/gorm/postgres: bin/golang-migrate start/postgres
 	@(trap 'cd $(CURDIR) && $(MAKE) stop/postgres' EXIT; \
 	$(GOLANG_MIGRATE) -path './internal/datastore/embedmd/postgres/migrations' -database 'postgres://postgres:postgres@localhost:5432/model-registry?sslmode=disable' up && \
-	cd gorm-gen && go run main.go --db-type postgres --dsn 'postgres://postgres:postgres@localhost:5432/model-registry?sslmode=disable' && \
+	cd gorm-gen && GOWORK=off go run main.go --db-type postgres --dsn 'postgres://postgres:postgres@localhost:5432/model-registry?sslmode=disable' && \
 	cd $(CURDIR) && ./scripts/remove_gorm_defaults.sh)
 
 # generate the gorm structs (defaults to MySQL for backward compatibility)
@@ -174,7 +141,10 @@ endif
 
 .PHONY: vet
 vet:
-	${GO} vet ./...
+	@echo "Running go vet on all packages..."
+	@${GO} vet $$(${GO} list ./... | grep -vF github.com/kubeflow/model-registry/internal/db/filter) && \
+	echo "Checking filter package (parser.go excluded due to participle struct tags)..." && \
+	cd internal/db/filter && ${GO} build -o /dev/null . 2>&1 | grep -E "vet:|error:" || echo "✓ Filter package builds successfully"
 
 .PHONY: clean/csi
 clean/csi:
@@ -192,23 +162,11 @@ clean-internal-server-openapi:
 
 .PHONY: clean
 clean: clean-pkg-openapi clean-internal-server-openapi clean/csi
-	rm -Rf ./model-registry internal/ml_metadata/proto/*.go internal/converter/generated/*.go
+	rm -Rf ./model-registry internal/converter/generated/*.go
 
 .PHONY: clean/odh
 clean/odh:
 	rm -Rf ./model-registry
-
-bin/protoc:
-	./scripts/install_protoc.sh
-
-bin/go-enum:
-	GOBIN=$(PROJECT_BIN) ${GO} install github.com/searKing/golang/tools/go-enum@v1.2.97
-
-bin/protoc-gen-go:
-	GOBIN=$(PROJECT_BIN) ${GO} install google.golang.org/protobuf/cmd/protoc-gen-go@v1.31.0
-
-bin/protoc-gen-go-grpc:
-	GOBIN=$(PROJECT_BIN) ${GO} install google.golang.org/grpc/cmd/protoc-gen-go-grpc@v1.3.0
 
 bin/envtest:
 	GOBIN=$(PROJECT_BIN) ${GO} install sigs.k8s.io/controller-runtime/tools/setup-envtest@v0.0.0-20240320141353-395cfc7486e6
@@ -228,6 +186,10 @@ bin/yq:
 GOLANG_MIGRATE ?= ${PROJECT_BIN}/migrate
 bin/golang-migrate:
 	GOBIN=$(PROJECT_PATH)/bin ${GO} install -tags 'mysql,postgres' github.com/golang-migrate/migrate/v4/cmd/migrate@v4.18.3
+
+GENQLIENT ?= ${PROJECT_BIN}/genqlient
+bin/genqlient:
+	GOBIN=$(PROJECT_PATH)/bin ${GO} install github.com/Khan/genqlient@v0.7.0
 
 OPENAPI_GENERATOR ?= ${PROJECT_BIN}/openapi-generator-cli
 NPM ?= "$(shell which npm)"
@@ -252,7 +214,7 @@ clean/deps:
 	rm -Rf bin/*
 
 .PHONY: deps
-deps: bin/protoc bin/go-enum bin/protoc-gen-go bin/protoc-gen-go-grpc bin/golangci-lint bin/goverter bin/openapi-generator-cli bin/envtest
+deps: bin/golangci-lint bin/goverter bin/openapi-generator-cli bin/envtest
 
 .PHONY: vendor
 vendor:
@@ -289,7 +251,7 @@ build/compile/csi:
 build/csi: build/prepare/csi build/compile/csi
 
 .PHONY: gen
-gen: deps gen/grpc gen/openapi gen/openapi-server gen/converter
+gen: deps gen/openapi gen/openapi-server gen/converter
 	${GO} generate ./...
 
 .PHONY: lint
@@ -303,15 +265,15 @@ lint/csi: bin/golangci-lint
 	${GOLANGCI_LINT} run internal/csi/...
 
 .PHONY: test
-test: gen bin/envtest
+test: bin/envtest
 	KUBEBUILDER_ASSETS="$(shell $(ENVTEST) use $(ENVTEST_K8S_VERSION) -p path)" ${GO} test ./internal/... ./pkg/...
 
 .PHONY: test-nocache
-test-nocache: gen bin/envtest
+test-nocache: bin/envtest
 	KUBEBUILDER_ASSETS="$(shell $(ENVTEST) use $(ENVTEST_K8S_VERSION) -p path)" ${GO} test ./internal/... ./pkg/... -count=1
 
 .PHONY: test-cover
-test-cover: gen bin/envtest
+test-cover: bin/envtest
 	KUBEBUILDER_ASSETS="$(shell $(ENVTEST) use $(ENVTEST_K8S_VERSION) -p path)" ${GO} test ./internal/... ./pkg/... -coverprofile=coverage.txt
 	${GO} tool cover -html=coverage.txt -o coverage.html
 
@@ -394,7 +356,7 @@ controller/vet: ## Run go vet against code.
 
 .PHONY: controller/test
 controller/test: controller/manifests controller/generate controller/fmt controller/vet bin/envtest ## Run tests.
-	KUBEBUILDER_ASSETS="$(shell $(ENVTEST) use $(ENVTEST_K8S_VERSION) --bin-dir $(PROJECT_BIN) -p path)" go test $$(go list ./internal/controller/... | grep -v /e2e) -coverprofile cover.out
+	KUBEBUILDER_ASSETS="$(shell $(ENVTEST) use $(ENVTEST_K8S_VERSION) --bin-dir $(PROJECT_BIN) -p path)" go test $$(go list ./internal/controller/... | grep -vF /e2e) -coverprofile cover.out
 
 ##@ Build
 

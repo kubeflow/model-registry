@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { SearchInput, SearchInputProps, TextInput } from '@patternfly/react-core';
-import { useThemeContext } from 'mod-arch-shared';
+import { useThemeContext } from 'mod-arch-kubeflow';
 import FormFieldset from '~/app/pages/modelRegistry/screens/components/FormFieldset';
 
 type ThemeAwareSearchInputProps = Omit<SearchInputProps, 'onChange' | 'onClear'> & {

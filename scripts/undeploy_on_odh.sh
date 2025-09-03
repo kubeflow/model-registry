@@ -24,9 +24,10 @@ else
   exit 1
 fi
 
-echo "Delete modelregistry resource"
 MR_NAMESPACE=$(kubectl get datasciencecluster "$DSC_NAME" -o jsonpath='{.spec.components.modelregistry.registriesNamespace}' 2>/dev/null)
-kubectl delete modelregistry.modelregistry.opendatahub.io model-registry -n "$MR_NAMESPACE"
+echo "Delete modelregistry resource in namespace '$MR_NAMESPACE'."
+
+kubectl delete modelregistry.modelregistry.opendatahub.io model-registry -n "$MR_NAMESPACE" || true
 echo "Update Data Science Cluster"
 kubectl patch datasciencecluster default-dsc -p '{"spec":{"components":{"modelregistry":{"managementState":"Removed"}}}}' --type=merge -o yaml
 

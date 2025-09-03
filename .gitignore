@@ -16,9 +16,6 @@ __debug*
 # Output of the go coverage tool, specifically when used with LiteIDE
 *.out
 
-# Go workspace file
-go.work
-
 # Idea files
 .idea
 
@@ -26,6 +23,9 @@ go.work
 .model-registry.yaml
 model-registry
 metadata.sqlite.db
+
+# Temporary files for running the project
+.port-forwards.pid
 
 # Ignore go vendor and code coverage files
 vendor
@@ -54,3 +54,7 @@ istio-*
 
 # VSCode files
 .vscode/
+
+# Python
+venv/
+.python-version

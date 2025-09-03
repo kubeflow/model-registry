@@ -116,3 +116,15 @@ class BaseResourceModel(BaseModel, ABC):
             for k in self.model_json_schema(alias).get("properties", {})
             if k not in exclude
         }
+
+    def __repr_str__(self, join_str: str) -> str:
+        """Represent the object as a string."""
+        result = []
+        for a, v in self.__repr_args__():
+            if a is None:
+                result.append(repr(v))
+            elif a == "name":
+                result.insert(0, f"{a}={v!r}")
+            else:
+                result.append(f"{a}={v!r}")
+        return join_str.join(result)

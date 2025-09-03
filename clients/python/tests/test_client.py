@@ -7,8 +7,7 @@ import requests
 from model_registry import ModelRegistry, utils
 from model_registry.exceptions import StoreError
 from model_registry.types import ModelArtifact
-
-from .extras.async_task_runner import AsyncTaskRunner
+from model_registry.types.artifacts import DocArtifact
 
 
 def test_secure_client():
@@ -22,23 +21,29 @@ def test_secure_client():
 
 @pytest.mark.e2e
 async def test_register_new(client: ModelRegistry):
+    """As a MLOps engineer I would like to store Model name"""
     name = "test_model"
     version = "1.0.0"
     rm = client.register_model(
         name,
-        "s3",
+        "https://acme.org/something",
         model_format_name="test_format",
         model_format_version="test_version",
         version=version,
     )
     assert rm.id
+    assert rm.name == name  # check the Model name
 
     mr_api = client._api
     mv = await mr_api.get_model_version_by_params(rm.id, version)
     assert mv
     assert mv.id
+    assert mv.name == version
+    assert mv.registered_model_id == rm.id
+
     ma = await mr_api.get_model_artifact_by_params(name, mv.id)
     assert ma
+    assert ma.uri == "https://acme.org/something"
 
 
 @pytest.mark.e2e
@@ -196,7 +201,8 @@ async def test_update_logical_model_with_labels(client: ModelRegistry):
 
 
 @pytest.mark.e2e
-async def test_patch_model_artifacts_artifact_type(client: ModelRegistry):
+async def test_patch_model_artifacts_artifact_type(client: ModelRegistry, request_headers: dict[str, str],
+                                                   verify_ssl: bool):
     """Patching ModelArtifact requires `artifactType` value which was previously not required
 
     reported with https://issues.redhat.com/browse/RHOAIENG-15326
@@ -225,7 +231,8 @@ async def test_patch_model_artifacts_artifact_type(client: ModelRegistry):
         url=f"{REGISTRY_HOST}:{REGISTRY_PORT}/api/model_registry/v1alpha3/model_artifacts/{ma.id}",
         json=payload,
         timeout=10,
-        headers={"Content-Type": "application/json"},
+        headers=request_headers,
+        verify=verify_ssl,
     )
     assert response.status_code == 200
     ma = client.get_model_artifact(name, version)
@@ -834,43 +841,68 @@ def test_nested_recursive_store_in_s3(
     assert "please ensure path is correct" in str(e.value).lower()
 
 
-@pytest.mark.usefixtures("uv_event_loop")
 @pytest.mark.e2e
-async def test_custom_async_runner_with_ray(
-    client_attrs: dict[str, any], client: ModelRegistry
+def test_custom_async_runner_with_ray(
+    client_attrs: dict[str, any], client: ModelRegistry, monkeypatch
 ):
+    """Test Ray integration with uvloop event loop policy"""
     import asyncio
 
     ray = pytest.importorskip("ray")
     import uvloop
 
-    # Check to make sure the uvloop event loop is running
-    loop = asyncio.get_event_loop()
-    assert isinstance(loop, uvloop.Loop)
+    def run_test_with_uvloop():
+        # Set up uvloop policy in this thread
+        asyncio.set_event_loop_policy(uvloop.EventLoopPolicy())
+        loop = uvloop.new_event_loop()
+        asyncio.set_event_loop(loop)
 
-    @ray.remote
-    def test_with_ray():
-        atr = AsyncTaskRunner()
-        # we have to construct a client from scratch due to serialization issues from Ray
-        client = ModelRegistry(
-            server_address=client_attrs["host"],
-            port=client_attrs["port"],
-            author=client_attrs["author"],
-            is_secure=client_attrs["ssl"],
-            async_runner=atr.run,
-        )
-        client.register_model(
-            name="test_model",
-            uri="https://acme.org/something",
-            version="v1",
-            model_format_version="random",
-            model_format_name="onnx",
-        )
-        ma = client.get_model_artifact(name="test_model", version="v1")
-        assert ma.uri == "https://acme.org/something"
-        assert ma.model_format_name == "onnx"
+        try:
+            # Start the loop and verify we're actually using uvloop
+            async def verify_uvloop():
+                current_loop = asyncio.get_running_loop()
+                assert isinstance(current_loop, uvloop.Loop), (
+                    f"Expected uvloop.Loop, got {type(current_loop)}"
+                )
 
-    ray.get(test_with_ray.remote())
+            loop.run_until_complete(verify_uvloop())
+
+            # Mock nest_asyncio.apply to prevent conflicts with uvloop
+            monkeypatch.setattr("nest_asyncio.apply", lambda *args, **kwargs: "patched")
+            # Import here to avoid the nest_asyncio.apply() call during module loading
+            from tests.extras.async_task_runner import AsyncTaskRunner
+
+            @ray.remote
+            def test_with_ray():
+                atr = AsyncTaskRunner()
+                # we have to construct a client from scratch due to serialization issues from Ray
+                client = ModelRegistry(
+                    server_address=client_attrs["host"],
+                    port=client_attrs["port"],
+                    author=client_attrs["author"],
+                    is_secure=client_attrs["ssl"],
+                    async_runner=atr.run,
+                )
+                client.register_model(
+                    name="test_model",
+                    uri="https://acme.org/something",
+                    version="v1",
+                    model_format_version="random",
+                    model_format_name="onnx",
+                )
+                ma = client.get_model_artifact(name="test_model", version="v1")
+                assert ma.uri == "https://acme.org/something"
+                assert ma.model_format_name == "onnx"
+
+            # Run the Ray test - ray.get is synchronous
+            ray.get(test_with_ray.remote())
+
+        finally:
+            if not loop.is_closed():
+                loop.close()
+
+    # Run the test - ray.get is synchronous and doesn't need the event loop
+    run_test_with_uvloop()
 
 
 @pytest.mark.e2e
@@ -1086,3 +1118,91 @@ def test_upload_large_model_file(
     mv = client.get_model_artifact(name="large_test_model", version=version)
     assert mv
     assert mv.name == "large_test_model"
+
+
+@pytest.mark.e2e
+async def test_as_mlops_engineer_i_would_like_to_update_a_description_of_the_model(
+    client: ModelRegistry,
+):
+    """As a MLOps engineer I would like to update a description of the model"""
+    name = "test_model"
+    version = "1.0.0"
+    rm = client.register_model(
+        name,
+        "https://acme.org/something",
+        model_format_name="test_format",
+        model_format_version="test_version",
+        version=version,
+        owner="me",
+        description="Lorem ipsum dolor sit amet",
+    )
+    assert rm.id
+
+    rm.description = "New description"
+    rm = client.update(rm)
+    assert rm.description == "New description"
+    assert rm.owner == "me"
+
+
+@pytest.mark.e2e
+async def test_as_mlops_engineer_i_would_like_to_store_a_description_of_the_model(
+    client: ModelRegistry,
+):
+    """As a MLOps engineer I would like to store a description of the model
+    Note: on Creation, the Description belongs to the Model Version; we could improve the logic to maintain it for the Registered Model if it's not already existing
+    """
+    name = "test_model"
+    version = "1.0.0"
+    rm = client.register_model(
+        name,
+        "https://acme.org/something",
+        model_format_name="test_format",
+        model_format_version="test_version",
+        version=version,
+        description="consectetur adipiscing elit",
+    )
+    assert rm.id
+
+    mr_api = client._api
+    mv = await mr_api.get_model_version_by_params(rm.id, version)
+    assert mv
+    assert mv.id
+    assert mv.description == "consectetur adipiscing elit"
+    ma = await mr_api.get_model_artifact_by_params(name, mv.id)
+    assert ma
+
+    rm.description = "Lorem ipsum dolor sit amet"
+    assert client.update(rm).description == "Lorem ipsum dolor sit amet"
+    mv.description = "consectetur adipiscing elit2"
+    assert client.update(mv).description == "consectetur adipiscing elit2"
+    ma.description = "sed do eiusmod tempor incididunt"
+    assert client.update(ma).description == "sed do eiusmod tempor incididunt"
+
+
+@pytest.mark.e2e
+async def test_as_mlops_engineer_i_would_like_to_store_a_longer_documentation_for_the_model(
+    client: ModelRegistry,
+):
+    """As a MLOps engineer I would like to store a longer documentation for the model"""
+    name = "test_model"
+    version = "1.0.0"
+    rm = client.register_model(
+        name,
+        "https://acme.org/something",
+        model_format_name="test_format",
+        model_format_version="test_version",
+        version=version,
+        description="consectetur adipiscing elit",
+    )
+    assert rm.id
+
+    mr_api = client._api
+    mv = await mr_api.get_model_version_by_params(rm.id, version)
+    assert mv
+    assert mv.id
+
+    da = await mr_api.upsert_model_version_artifact(
+        DocArtifact(uri="https://README.md"), mv.id
+    )
+    assert da
+    assert da.uri == "https://README.md"

@@ -1,15 +1,15 @@
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 import * as React from 'react';
 import { waitFor } from '@testing-library/react';
-import { useFetchState } from 'mod-arch-shared';
+import { useFetchState } from 'mod-arch-core';
 import useModelArtifactsByVersionId from '~/app/hooks/useModelArtifactsByVersionId';
 import { useModelRegistryAPI } from '~/app/hooks/useModelRegistryAPI';
 import { ModelRegistryAPIs } from '~/app/types';
 import { mockModelArtifact } from '~/__mocks__/mockModelArtifact';
 import { testHook } from '~/__tests__/unit/testUtils/hooks';
 
-// Mock mod-arch-shared to avoid React context issues
-jest.mock('mod-arch-shared', () => ({
+// Mock mod-arch-core to avoid React context issues
+jest.mock('mod-arch-core', () => ({
   useFetchState: jest.fn(),
   NotReadyError: class NotReadyError extends Error {
     constructor(message: string) {

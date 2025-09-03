@@ -142,8 +142,9 @@ describe('Model Versions', () => {
     modelRegistry.visit();
     const registeredModelRow = modelRegistry.getRow('Fraud detection model');
     registeredModelRow.findName().contains('Fraud detection model').click();
-    verifyRelativeURL(`/model-registry/modelregistry-sample/registeredModels/1/versions`);
-    modelRegistry.shouldmodelVersionsEmpty();
+    verifyRelativeURL(`/model-registry/modelregistry-sample/registeredModels/1/overview`);
+
+    modelRegistry.shouldModelVersionsEmpty();
   });
 
   it('Model versions table browser back button should lead to Registered models table', () => {
@@ -154,7 +155,7 @@ describe('Model Versions', () => {
     modelRegistry.visit();
     const registeredModelRow = modelRegistry.getRow('Fraud detection model');
     registeredModelRow.findName().contains('Fraud detection model').click();
-    verifyRelativeURL(`/model-registry/modelregistry-sample/registeredModels/1/versions`);
+    verifyRelativeURL(`/model-registry/modelregistry-sample/registeredModels/1/overview`);
     cy.go('back');
     verifyRelativeURL(`/model-registry/modelregistry-sample`);
     registeredModelRow.findName().contains('Fraud detection model').should('exist');
@@ -175,8 +176,11 @@ describe('Model Versions', () => {
     //cy.reload();
     const registeredModelRow = modelRegistry.getRow('Fraud detection model');
     registeredModelRow.findName().contains('Fraud detection model').click();
-    verifyRelativeURL(`/model-registry/modelregistry-sample/registeredModels/1/versions`);
+    verifyRelativeURL(`/model-registry/modelregistry-sample/registeredModels/1/overview`);
     modelRegistry.findModelBreadcrumbItem().contains('test');
+
+    // Navigate to versions tab
+    cy.findByTestId('model-versions-tab').click();
     //modelRegistry.findModelVersionsTableKebab().findDropdownItem('View archived versions');
     //modelRegistry.findModelVersionsHeaderAction().findDropdownItem('Archive model');
     modelRegistry.findModelVersionsTable().should('be.visible');
@@ -220,26 +224,34 @@ describe('Model Versions', () => {
     modelRegistry.findModelVersionsTableHeaderButton('Author').click();
     modelRegistry.findModelVersionsTableHeaderButton('Author').should(be.sortDescending);
 
-    // filtering by keyword
-    modelRegistry.findModelVersionsTableSearch().type('new model version');
+    // filtering by label then both
+    modelRegistry.findTableSearch().type('Financial');
     modelRegistry.findModelVersionsTableRows().should('have.length', 1);
     modelRegistry.findModelVersionsTableRows().contains('new model version');
-    modelRegistry
-      .findModelVersionsTableToolbar()
-      .findByRole('button', { name: 'Clear all filters' })
-      .click();
-    modelRegistry.findModelVersionsTableRows().should('have.length', 2);
+    modelRegistry.findModelVersionsTableFilterOption('Author').click();
+    modelRegistry.findTableSearch().type('Author 1');
+    modelRegistry.findModelVersionsTableRows().should('have.length', 1);
+    modelRegistry.findModelVersionsTableRows().contains('new model version');
+    modelRegistry.findTableSearch().type('2');
+    modelRegistry.findModelVersionsTableRows().should('have.length', 0);
+    modelRegistry.findTableSearch().focused().clear();
+    modelRegistry.findModelVersionsTableFilterOption('Keyword').click();
+    modelRegistry.findTableSearch().click();
+    modelRegistry.findTableSearch().focused().clear();
 
-    // filtering by model version author
-    modelRegistry.findModelVersionsTableFilter().findSelectOption('Author').click();
-    modelRegistry.findModelVersionsTableSearch().type('Test author');
+    // filtering by model version author then both
+    modelRegistry.findModelVersionsTableFilterOption('Author').click();
+    modelRegistry.findTableSearch().type('Test author');
     modelRegistry.findModelVersionsTableRows().should('have.length', 1);
     modelRegistry.findModelVersionsTableRows().contains('Test author');
-    modelRegistry
-      .findModelVersionsTableToolbar()
-      .findByRole('button', { name: 'Clear all filters' })
-      .click();
-    modelRegistry.findModelVersionsTableRows().should('have.length', 2);
+    modelRegistry.findModelVersionsTableFilterOption('Keyword').click();
+    modelRegistry.findTableSearch().type('model version');
+    modelRegistry.findModelVersionsTableRows().should('have.length', 1);
+    modelRegistry.findModelVersionsTableRows().contains('model version');
+    modelRegistry.findTableSearch().type('2');
+
+    // searching with no matches shows no results screen
+    modelRegistry.findModelVersionsTableRows().should('have.length', 0);
   });
 
   it('Model version details back button should lead to versions table', () => {
@@ -248,10 +260,12 @@ describe('Model Versions', () => {
     modelRegistry.visit();
     const registeredModelRow = modelRegistry.getRow('Fraud detection model');
     registeredModelRow.findName().contains('Fraud detection model').click();
+    // Navigate to versions tab
+    cy.findByTestId('model-versions-tab').click();
     const modelVersionRow = modelRegistry.getModelVersionRow('model version');
     modelVersionRow.findModelVersionName().contains('model version').click();
     verifyRelativeURL('/model-registry/modelregistry-sample/registeredModels/1/versions/1/details');
-    cy.findByTestId('app-page-title').should('have.text', 'model version');
+    cy.findByTestId('app-page-title').should('contain.text', 'test');
     cy.findByTestId('breadcrumb-version-name').should('have.text', 'model version');
     cy.go('back');
     verifyRelativeURL('/model-registry/modelregistry-sample/registeredModels/1/versions');

@@ -3,30 +3,56 @@ apiVersion: v1
 kind: Secret
 metadata:
   name: my-s3-credentials
+  namespace: default
 stringData:
   AWS_ACCESS_KEY_ID: minioadmin
   AWS_SECRET_ACCESS_KEY: minioadmin
-  AWS_BUCKET: default
-  AWS_REGION: us-east-1
-  AWS_ENDPOINT_URL: http://minio.minio.svc.cluster.local:9000
+  AWS_DEFAULT_REGION: us-east-1
+  AWS_S3_ENDPOINT: http://minio.minio.svc.cluster.local:9000
+  AWS_S3_BUCKET: default
 ---
 apiVersion: v1
 kind: Secret
 metadata:
   name: my-oci-credentials
+  namespace: default
 type: kubernetes.io/dockerconfigjson
 stringData:
-  .dockerconfigjson: '{"auths": {"distribution-registry-test-service.default.svc.cluster.local:5001": {"auth": "base64(username:password)","email": "user@example.com"}}}'
-  ACCESS_TYPE: ["Push", "Pull"]
+  .dockerconfigjson: '{"auths": {"distribution-registry-test-service.default.svc.cluster.local:5001": {"auth": "","email": "user@example.com"}}}'
+  ACCESS_TYPE: '["Push,Pull"]'
   OCI_HOST: distribution-registry-test-service.default.svc.cluster.local:5001
 ---
 apiVersion: batch/v1
 kind: Job
 metadata:
   name: my-async-upload-job
+  namespace: default
+  labels:
+    app.kubernetes.io/name: model-registry-async-job
+    app.kubernetes.io/component: async-job
+    app.kubernetes.io/part-of: model-registry
+    app.kubernetes.io/managed-by: kubectl
+    component: model-registry-job
+    modelregistry.kubeflow.org/job-type: async-upload
+    modelregistry.kubeflow.org/model-sync-model-id: "1"
+    modelregistry.kubeflow.org/model-sync-model-version-id: "3"
+    modelregistry.kubeflow.org/model-sync-model-artifact-id: "6"
+  annotations:
+    modelregistry.kubeflow.org/description: "Asynchronous job for uploading models to Model Registry"
 spec:
   template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: model-registry-async-job
+        app.kubernetes.io/component: async-job
+        component: model-registry-job
+        modelregistry.kubeflow.org/job-type: async-upload
+        modelregistry.kubeflow.org/model-sync-model-id: "1"
+        modelregistry.kubeflow.org/model-sync-model-version-id: "3"
+        modelregistry.kubeflow.org/model-sync-model-artifact-id: "6"
     spec:
+      securityContext:
+        runAsNonRoot: true
       volumes:
         - name: source-credentials
           secret:
@@ -34,10 +60,13 @@ spec:
         - name: destination-credentials
           secret:
             secretName: my-oci-credentials
+            items:
+              - key: .dockerconfigjson
+                path: .dockerconfigjson
       restartPolicy: Never
       containers:
         - name: async-upload
-          image: quay.io/opendatahub/model-registry-job-async-upload
+          image: kubeflow/model-registry-async-job:local
           volumeMounts:
             - name: source-credentials
               readOnly: true
@@ -64,9 +93,15 @@ spec:
             - name: MODEL_SYNC_DESTINATION_TYPE
               value: "oci"
             - name: MODEL_SYNC_DESTINATION_OCI_URI
-              value: "oci://distribution-registry-test-service.default.svc.cluster.local:5001/my-model:latest"
+              value: "distribution-registry-test-service.default.svc.cluster.local:5001/my-model:latest"
+            - name: MODEL_SYNC_DESTINATION_OCI_REGISTRY
+              value: "distribution-registry-test-service.default.svc.cluster.local:5001"
             - name: MODEL_SYNC_DESTINATION_OCI_CREDENTIALS_PATH
-              value: "/opt/creds/destination"
+              value: "/opt/creds/destination/.dockerconfigjson"
+            - name: MODEL_SYNC_DESTINATION_OCI_BASE_IMAGE
+              value: "busybox:latest"
+            - name: MODEL_SYNC_DESTINATION_OCI_ENABLE_TLS_VERIFY
+              value: "false"
 
             # ---- Model Params ----
             - name: MODEL_SYNC_MODEL_ID

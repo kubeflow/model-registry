@@ -9,6 +9,7 @@ type ListOptions struct {
 	OrderBy       *string // The field by which entities are ordered.
 	SortOrder     *string // The sorting order, which can be "ASC" (ascending) or "DESC" (descending).
 	NextPageToken *string // A token to retrieve the next page of entities in a paginated result set.
+	FilterQuery   *string // A filter query to restrict results based on entity properties.
 }
 
 // ModelRegistryApi defines the external API for the Model Registry library
@@ -52,15 +53,23 @@ type ModelRegistryApi interface {
 
 	// ARTIFACT
 
+	// UpsertModelVersionArtifact create or update an Artifact for a specific ModelVersion, the behavior follows the same
+	// approach used by MLMD gRPC api. If Id is provided update the entity otherwise create a new one.
 	UpsertModelVersionArtifact(artifact *openapi.Artifact, modelVersionId string) (*openapi.Artifact, error)
 
+	// UpsertArtifact create or update an Artifact, the behavior follows the same
+	// approach used by MLMD gRPC api. If Id is provided update the entity otherwise create a new one.
 	UpsertArtifact(artifact *openapi.Artifact) (*openapi.Artifact, error)
 
+	// GetArtifactById retrieve Artifact by id
 	GetArtifactById(id string) (*openapi.Artifact, error)
 
-	GetArtifactByParams(artifactName *string, modelVersionId *string, externalId *string) (*openapi.Artifact, error)
+	// GetArtifactByParams find Artifact instances that match the provided optional params
+	GetArtifactByParams(artifactName *string, parentResourceId *string, externalId *string) (*openapi.Artifact, error)
 
-	GetArtifacts(listOptions ListOptions, modelVersionId *string) (*openapi.ArtifactList, error)
+	// GetArtifacts return all Artifact properly ordered and sized based on listOptions param.
+	// if parentResourceId is provided, return all Artifact instances belonging to a specific parent resource
+	GetArtifacts(artifactType openapi.ArtifactTypeQueryParam, listOptions ListOptions, parentResourceId *string) (*openapi.ArtifactList, error)
 
 	// MODEL ARTIFACT
 
@@ -74,11 +83,11 @@ type ModelRegistryApi interface {
 	GetModelArtifactByInferenceService(inferenceServiceId string) (*openapi.ModelArtifact, error)
 
 	// GetModelArtifactByParams find ModelArtifact instances that match the provided optional params
-	GetModelArtifactByParams(artifactName *string, modelVersionId *string, externalId *string) (*openapi.ModelArtifact, error)
+	GetModelArtifactByParams(artifactName *string, parentResourceId *string, externalId *string) (*openapi.ModelArtifact, error)
 
 	// GetModelArtifacts return all ModelArtifact properly ordered and sized based on listOptions param.
-	// if modelVersionId is provided, return all ModelArtifact instances belonging to a specific ModelVersion
-	GetModelArtifacts(listOptions ListOptions, modelVersionId *string) (*openapi.ModelArtifactList, error)
+	// if parentResourceId is provided, return all ModelArtifact instances belonging to a specific parent resource
+	GetModelArtifacts(listOptions ListOptions, parentResourceId *string) (*openapi.ModelArtifactList, error)
 
 	// SERVING ENVIRONMENT
 
@@ -127,4 +136,41 @@ type ModelRegistryApi interface {
 	// GetServeModels get all ServeModel objects properly ordered and sized based on listOptions param.
 	// if inferenceServiceId is provided, return all ServeModel instances belonging to a specific InferenceService
 	GetServeModels(listOptions ListOptions, inferenceServiceId *string) (*openapi.ServeModelList, error)
+
+	// EXPERIMENT
+	// UpsertExperiment create or update an experiment, the behavior follows the same
+	// approach used by MLMD gRPC api. If Id is provided update the entity otherwise create a new one.
+	UpsertExperiment(experiment *openapi.Experiment) (*openapi.Experiment, error)
+	// GetExperimentById retrieve Experiment by id
+	GetExperimentById(id string) (*openapi.Experiment, error)
+	// GetExperimentByParams find Experiment instances that match the provided optional params
+	GetExperimentByParams(name *string, externalId *string) (*openapi.Experiment, error)
+	// GetExperiments return all Experiment properly ordered and sized based on listOptions param
+	GetExperiments(listOptions ListOptions) (*openapi.ExperimentList, error)
+
+	// EXPERIMENT RUN
+	// UpsertExperimentRun create or update an experiment run, the behavior follows the same
+	// approach used by MLMD gRPC api. If Id is provided update the entity otherwise create a new one.
+	// experimentId defines the Experiment to be associated as parent ownership to the newly created ExperimentRun.
+	UpsertExperimentRun(experimentRun *openapi.ExperimentRun, experimentId *string) (*openapi.ExperimentRun, error)
+	// GetExperimentRunById retrieve ExperimentRun by id
+	GetExperimentRunById(id string) (*openapi.ExperimentRun, error)
+	// GetExperimentRunByParams find ExperimentRun instances that match the provided optional params
+	GetExperimentRunByParams(name *string, experimentId *string, externalId *string) (*openapi.ExperimentRun, error)
+	// GetExperimentRuns return all ExperimentRun properly ordered and sized based on listOptions param.
+	// if experimentId is provided, return all ExperimentRun instances belonging to a specific Experiment
+	GetExperimentRuns(listOptions ListOptions, experimentId *string) (*openapi.ExperimentRunList, error)
+
+	// EXPERIMENT RUN ARTIFACTS
+	// UpsertExperimentRunArtifact create or update an Artifact for a specific ExperimentRun, the behavior follows the same
+	// approach used by MLMD gRPC api. If Id is provided update the entity otherwise create a new one.
+	UpsertExperimentRunArtifact(artifact *openapi.Artifact, experimentRunId string) (*openapi.Artifact, error)
+	// GetExperimentRunArtifacts return all Artifact properly ordered and sized based on listOptions param.
+	// if experimentRunId is provided, return all Artifact instances belonging to a specific ExperimentRun
+	GetExperimentRunArtifacts(artifactType openapi.ArtifactTypeQueryParam, listOptions ListOptions, experimentRunId *string) (*openapi.ArtifactList, error)
+
+	// EXPERIMENT RUN METRIC HISTORY
+	// GetExperimentRunMetricHistory return metric history for a specific ExperimentRun properly ordered and sized based on listOptions param.
+	// if name is provided, filter metrics by name. if stepIds is provided, filter metrics by step ids
+	GetExperimentRunMetricHistory(name *string, stepIds *string, listOptions ListOptions, experimentRunId *string) (*openapi.MetricList, error)
 }

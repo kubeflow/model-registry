@@ -6,15 +6,16 @@ import (
 	"github.com/kubeflow/model-registry/internal/db/models"
 	"github.com/kubeflow/model-registry/internal/db/service"
 	"github.com/kubeflow/model-registry/internal/defaults"
+	"github.com/kubeflow/model-registry/internal/testutils"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
 func TestTypeRepository(t *testing.T) {
-	db, cleanup := setupTestDB(t)
+	sharedDB, cleanup := testutils.SetupMySQLWithMigrations(t)
 	defer cleanup()
 
-	repo := service.NewTypeRepository(db)
+	repo := service.NewTypeRepository(sharedDB)
 
 	t.Run("TestGetAll", func(t *testing.T) {
 		// Test retrieving all types
@@ -40,6 +41,12 @@ func TestTypeRepository(t *testing.T) {
 			defaults.ServeModelTypeName,
 			defaults.ModelArtifactTypeName,
 			defaults.DocArtifactTypeName,
+			defaults.ExperimentTypeName,
+			defaults.ExperimentRunTypeName,
+			defaults.DataSetTypeName,
+			defaults.MetricTypeName,
+			defaults.ParameterTypeName,
+			defaults.MetricHistoryTypeName,
 		}
 
 		for _, expectedType := range expectedTypes {

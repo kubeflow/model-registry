@@ -1,6 +1,7 @@
 catalogs:
 - name: Sample Catalog
-  id: sample_catalog
+  id: sample_custom_catalog
   type: yaml
+  enabled: true
   properties:
     yamlCatalogPath: sample-catalog.yaml

@@ -16,12 +16,21 @@ on:
       - "jobs/async-upload/**"
       - ".github/workflows/**"
 
+permissions:
+  contents: read
+
 env:
+  # Async Job
+  JOB_IMG_REGISTRY: quay.io
+  JOB_IMG_ORG: opendatahub
+  JOB_IMG_NAME: model-registry-job-async-upload
+  JOB_IMG_VERSION: cicd
+  # MR Server
   IMG_REGISTRY: quay.io
   IMG_ORG: opendatahub
-  IMG_NAME: model-registry/job/async-upload
+  IMG_REPO: model-registry
+  IMG_VERSION: cicd
   PUSH_IMAGE: false
-  BRANCH: ${{ github.base_ref }}
 
 jobs:
   py-test:
@@ -30,11 +39,11 @@ jobs:
       run:
         working-directory: jobs/async-upload
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: "3.10" # refers to the Container image
+          python-version: "3.11" # refers to the Container image
       - name: Install Poetry
         run: |
           pipx install poetry
@@ -57,11 +66,11 @@ jobs:
       run:
         working-directory: jobs/async-upload
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: "3.10" # refers to the Container image
+          python-version: "3.11" # refers to the Container image
       - name: Install Poetry
         run: |
           pipx install poetry
@@ -69,8 +78,37 @@ jobs:
         run: |
           set -x
           sudo apparmor_parser -R /etc/apparmor.d/usr.sbin.mysqld
-      - name: Start KinD cluster and load images
+      - name: Execute Sample Job E2E test
         run: |
-          make deploy-latest-mr # this also starts the KinD cluster
-          make dev-load-image
-      # TODO: to be continued here
+          make test-integration
+  check-autogen:
+    name: Check generated code or files are in sync
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: jobs/async-upload
+    steps:
+      - name: Check out the repository
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install Poetry
+        run: |
+          pipx install poetry
+      - name: Install dependencies
+        run: |
+          make install
+      - name: Check if there are uncommitted file changes
+        run: |
+          clean=$(git status --porcelain)
+          if [[ -z "$clean" ]]; then
+              echo "Empty git status --porcelain: $clean"
+          else
+              echo "Uncommitted file changes detected: $clean"
+              git diff
+              exit 1
+          fi

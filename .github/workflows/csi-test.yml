@@ -21,6 +21,9 @@ on:
       # csi build depends on base go.mod https://github.com/kubeflow/model-registry/issues/311
       - "go.mod"
 
+permissions:
+  contents: read
+
 env:
   IMG_REGISTRY: quay.io
   IMG_ORG: opendatahub
@@ -32,7 +35,7 @@ jobs:
   build-and-test-csi-image:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Generate tag
         shell: bash

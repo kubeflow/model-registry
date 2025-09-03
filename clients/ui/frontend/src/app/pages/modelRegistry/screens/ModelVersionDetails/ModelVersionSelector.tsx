@@ -1,7 +1,5 @@
 import * as React from 'react';
 import {
-  HelperText,
-  HelperTextItem,
   Menu,
   MenuContainer,
   MenuContent,
@@ -11,10 +9,15 @@ import {
   MenuSearchInput,
   MenuToggle,
   SearchInput,
+  Divider,
+  Badge,
+  Flex,
+  FlexItem,
 } from '@patternfly/react-core';
 import { ModelVersion } from '~/app/types';
 import useModelVersionsByRegisteredModel from '~/app/hooks/useModelVersionsByRegisteredModel';
 import { filterLiveVersions } from '~/app/utils';
+import ViewAllVersionsButton from '~/app/pages/modelRegistry/screens/components/ViewAllVersionsButton';
 
 type ModelVersionSelectorProps = {
   rmId?: string;
@@ -32,19 +35,33 @@ const ModelVersionSelector: React.FC<ModelVersionSelectorProps> = ({
 
   const toggleRef = React.useRef(null);
   const menuRef = React.useRef(null);
-
   const [modelVersions] = useModelVersionsByRegisteredModel(rmId);
   const liveModelVersions = filterLiveVersions(modelVersions.items);
+  const latestVersion = liveModelVersions.reduce<ModelVersion | null>((latest, current) => {
+    if (
+      latest === null ||
+      Number(current.createTimeSinceEpoch) > Number(latest.createTimeSinceEpoch)
+    ) {
+      return current;
+    }
+    return latest;
+  }, null);
 
   const menuListItems = liveModelVersions
-    .filter((item) => !input || item.name.toLowerCase().includes(input.toString().toLowerCase()))
+    .filter((item) => input === '' || item.name.toLowerCase().includes(input.toLowerCase()))
+    .toSorted((a, b) => Number(b.createTimeSinceEpoch) - Number(a.createTimeSinceEpoch)) // Sort by creation time, newest first
     .map((mv, index) => (
       <MenuItem isSelected={mv.id === selection.id} itemId={mv.id} key={index}>
-        {mv.name}
+        <Flex spaceItems={{ default: 'spaceItemsSm' }}>
+          <FlexItem>{mv.name}</FlexItem>
+          <FlexItem>
+            {latestVersion && mv.id === latestVersion.id && <Badge color="blue">Latest</Badge>}
+          </FlexItem>
+        </Flex>
       </MenuItem>
     ));
 
-  if (input && liveModelVersions.length === 0) {
+  if (input.length > 0 && liveModelVersions.length === 0) {
     menuListItems.push(
       <MenuItem isDisabled key="no result">
         No results found
@@ -65,23 +82,25 @@ const ModelVersionSelector: React.FC<ModelVersionSelectorProps> = ({
       isScrollable
       activeItemId={selection.id}
     >
+      <MenuSearch>
+        <MenuSearchInput>
+          <SearchInput
+            data-testid="search-input"
+            value={input}
+            aria-label="Filter menu items"
+            placeholder="Find by version name"
+            onChange={(_event, value) => setInput(value)}
+          />
+        </MenuSearchInput>
+      </MenuSearch>
+      <Divider />
       <MenuContent>
-        <MenuSearch>
-          <MenuSearchInput>
-            <SearchInput
-              data-testid="search-input"
-              value={input}
-              aria-label="Filter menu items"
-              onChange={(_event, value) => setInput(value)}
-            />
-          </MenuSearchInput>
-          <HelperText style={{ paddingTop: '0.5rem' }}>
-            <HelperTextItem>
-              {`Type a name to search your ${liveModelVersions.length} versions.`}
-            </HelperTextItem>
-          </HelperText>
-        </MenuSearch>
-        <MenuList data-testid="model-version-selector-list">{menuListItems}</MenuList>
+        <MenuList data-testid="model-version-selector-list">
+          {menuListItems}
+          <MenuItem>
+            <ViewAllVersionsButton rmId={rmId} totalVersions={modelVersions.items.length} />
+          </MenuItem>
+        </MenuList>
       </MenuContent>
     </Menu>
   );
@@ -99,12 +118,18 @@ const ModelVersionSelector: React.FC<ModelVersionSelectorProps> = ({
           isFullWidth
           data-testid="model-version-toggle-button"
         >
-          {selection.name}
+          <Flex spaceItems={{ default: 'spaceItemsSm' }}>
+            <FlexItem>{selection.name}</FlexItem>
+            <FlexItem>
+              {latestVersion && selection.id === latestVersion.id && (
+                <Badge color="blue">Latest</Badge>
+              )}
+            </FlexItem>
+          </Flex>
         </MenuToggle>
       }
       menu={menu}
       menuRef={menuRef}
-      popperProps={{ maxWidth: 'trigger' }}
       onOpenChange={(open) => setOpen(open)}
     />
   );

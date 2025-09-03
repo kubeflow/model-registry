@@ -1,13 +1,19 @@
-import { KeyValuePair } from 'mod-arch-shared';
-import { SearchType } from 'mod-arch-shared/dist/components/DashboardSearchField';
+import { KeyValuePair } from 'mod-arch-core';
 import {
   ModelRegistry,
   ModelRegistryCustomProperties,
+  ModelRegistryCustomProperty,
   ModelRegistryMetadataType,
   ModelRegistryStringCustomProperties,
   ModelVersion,
   RegisteredModel,
 } from '~/app/types';
+import { COMPANY_URI } from '~/app/utilities/const';
+import { getLastCreatedItem } from '~/app/utils';
+import {
+  ModelRegistryFilterDataType,
+  ModelRegistryVersionsFilterDataType,
+} from '~/app/pages/modelRegistry/screens/const';
 
 export type ObjectStorageFields = {
   endpoint: string;
@@ -45,7 +51,7 @@ export const mergeUpdatedLabels = (
   return customPropertiesCopy;
 };
 
-// Retrives the customProperties that are not labels (they have a defined string_value).
+// Retrieves the customProperties that are not special (_registeredFrom) or labels (they have a defined string_value).
 export const getProperties = <T extends ModelRegistryCustomProperties>(
   customProperties: T,
 ): ModelRegistryStringCustomProperties => {
@@ -53,7 +59,7 @@ export const getProperties = <T extends ModelRegistryCustomProperties>(
   return Object.keys(customProperties).reduce((acc, key) => {
     // _lastModified is a property that is required to update the timestamp on the backend and we have a workaround for it. It should be resolved by
     // backend team
-    if (key === '_lastModified') {
+    if (key === '_lastModified' || /^_registeredFrom/.test(key)) {
       return acc;
     }
 
@@ -89,33 +95,44 @@ export const mergeUpdatedProperty = (
   return customPropertiesCopy;
 };
 
+export const getCustomPropString = <
+  T extends Record<string, ModelRegistryCustomProperty | undefined>,
+>(
+  customProperties: T,
+  key: string,
+): string => {
+  const prop = customProperties[key];
+
+  if (prop?.metadataType === 'MetadataStringValue') {
+    return prop.string_value;
+  }
+  return '';
+};
+
+const isMatchVersionKeyword = (mv: ModelVersion, keywordFilter: string): boolean =>
+  mv.name.toLowerCase().includes(keywordFilter) ||
+  (mv.description && mv.description.toLowerCase().includes(keywordFilter)) ||
+  getLabels(mv.customProperties).some((label) => label.toLowerCase().includes(keywordFilter));
+
 export const filterModelVersions = (
   unfilteredModelVersions: ModelVersion[],
-  search: string,
-  searchType: SearchType,
+  filterData: ModelRegistryVersionsFilterDataType,
 ): ModelVersion[] => {
-  const searchLower = search.toLowerCase();
+  const keywordFilter = filterData.Keyword?.toLowerCase();
+  const authorFilter = filterData.Author?.toLowerCase();
 
   return unfilteredModelVersions.filter((mv: ModelVersion) => {
-    if (!search) {
+    if (!keywordFilter && !authorFilter) {
       return true;
     }
 
-    switch (searchType) {
-      case SearchType.KEYWORD:
-        return (
-          mv.name.toLowerCase().includes(searchLower) ||
-          (mv.description && mv.description.toLowerCase().includes(searchLower)) ||
-          getLabels(mv.customProperties).some((label) => label.toLowerCase().includes(searchLower))
-        );
+    const doesNotMatchVersion = keywordFilter && !isMatchVersionKeyword(mv, keywordFilter);
 
-      case SearchType.AUTHOR: {
-        return mv.author && mv.author.toLowerCase().includes(searchLower);
-      }
-
-      default:
-        return true;
+    if (doesNotMatchVersion) {
+      return false;
     }
+
+    return !authorFilter || mv.author?.toLowerCase().includes(authorFilter);
   });
 };
 
@@ -129,42 +146,33 @@ export const sortModelVersionsByCreateTime = (registeredModels: ModelVersion[]):
 export const filterRegisteredModels = (
   unfilteredRegisteredModels: RegisteredModel[],
   unfilteredModelVersions: ModelVersion[],
-  search: string,
-  searchType: SearchType,
+  filterData: ModelRegistryFilterDataType,
 ): RegisteredModel[] => {
-  const searchLower = search.toLowerCase();
+  const keywordFilter = filterData.Keyword?.toLowerCase();
+  const ownerFilter = filterData.Owner?.toLowerCase();
 
   return unfilteredRegisteredModels.filter((rm: RegisteredModel) => {
-    if (!search) {
+    if (!keywordFilter && !ownerFilter) {
       return true;
     }
     const modelVersions = unfilteredModelVersions.filter((mv) => mv.registeredModelId === rm.id);
+    const doesNotMatchModel =
+      keywordFilter &&
+      !(
+        rm.name.toLowerCase().includes(keywordFilter) ||
+        (rm.description && rm.description.toLowerCase().includes(keywordFilter)) ||
+        getLabels(rm.customProperties).some((label) => label.toLowerCase().includes(keywordFilter))
+      );
 
-    switch (searchType) {
-      case SearchType.KEYWORD: {
-        const matchesModel =
-          rm.name.toLowerCase().includes(searchLower) ||
-          (rm.description && rm.description.toLowerCase().includes(searchLower)) ||
-          getLabels(rm.customProperties).some((label) => label.toLowerCase().includes(searchLower));
+    const doesNotMatchVersions =
+      keywordFilter &&
+      !modelVersions.some((mv: ModelVersion) => isMatchVersionKeyword(mv, keywordFilter));
 
-        const matchesVersion = modelVersions.some(
-          (mv: ModelVersion) =>
-            mv.name.toLowerCase().includes(searchLower) ||
-            (mv.description && mv.description.toLowerCase().includes(searchLower)) ||
-            getLabels(mv.customProperties).some((label) =>
-              label.toLowerCase().includes(searchLower),
-            ),
-        );
-
-        return matchesModel || matchesVersion;
-      }
-      case SearchType.OWNER: {
-        return rm.owner && rm.owner.toLowerCase().includes(searchLower);
-      }
-
-      default:
-        return true;
+    if (doesNotMatchModel && doesNotMatchVersions) {
+      return false;
     }
+
+    return !ownerFilter || rm.owner?.toLowerCase().includes(ownerFilter);
   });
 };
 
@@ -183,21 +191,13 @@ export const isValidHttpUrl = (value: string): boolean => {
   }
 };
 
-export const filterCustomProperties = (
-  customProperties: ModelRegistryCustomProperties,
-  keys: string[],
-): ModelRegistryCustomProperties => {
-  const filteredCustomProperties: ModelRegistryCustomProperties = {};
-  Object.keys(customProperties).forEach((key) => {
-    if (!keys.includes(key)) {
-      filteredCustomProperties[key] = customProperties[key];
-    }
-  });
-  return filteredCustomProperties;
-};
+export const isCompanyUri = (uri: string): boolean => uri.startsWith(`${COMPANY_URI}/`);
 
-export const isPipelineRunExist = (
-  customProperties: ModelRegistryCustomProperties,
-  keys: string[],
-): boolean => keys.every((key) => key in customProperties);
-export const isRedHatRegistryUri = (uri: string): boolean => uri.startsWith('oci://example.io/'); // TODO: Change this to a proper check
+export const getLatestVersionForRegisteredModel = (
+  modelVersions: ModelVersion[],
+  rmId: string,
+): ModelVersion | undefined => {
+  const filteredVersions = modelVersions.filter((mv) => mv.registeredModelId === rmId);
+  const latestVersion = getLastCreatedItem(filteredVersions);
+  return latestVersion;
+};

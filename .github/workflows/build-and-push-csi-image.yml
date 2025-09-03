@@ -23,6 +23,9 @@ env:
 jobs:
   build-csi-image:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
     steps:
       # Assign context variable for various action contexts (tag, main, CI)
       - name: Assigning tag context
@@ -32,7 +35,7 @@ jobs:
         if: github.head_ref == '' && github.ref == 'refs/heads/main'
         run: echo "BUILD_CONTEXT=main" >> $GITHUB_ENV
       # checkout branch
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       # set image version
       - name: Set main-branch environment
         if: env.BUILD_CONTEXT == 'main'

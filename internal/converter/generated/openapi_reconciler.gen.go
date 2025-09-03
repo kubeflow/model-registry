@@ -11,6 +11,115 @@ import (
 
 type OpenAPIReconcilerImpl struct{}
 
+func (c *OpenAPIReconcilerImpl) UpdateExistingDataSet(source converter.OpenapiUpdateWrapper[openapi.DataSet]) (openapi.DataSet, error) {
+	openapiDataSet := converter.InitWithExisting(source)
+	var pMapStringOpenapiMetadataValue *map[string]openapi.MetadataValue
+	if source.Update != nil {
+		pMapStringOpenapiMetadataValue = source.Update.CustomProperties
+	}
+	if pMapStringOpenapiMetadataValue != nil {
+		var mapStringOpenapiMetadataValue map[string]openapi.MetadataValue
+		if (*pMapStringOpenapiMetadataValue) != nil {
+			mapStringOpenapiMetadataValue = make(map[string]openapi.MetadataValue, len((*pMapStringOpenapiMetadataValue)))
+			for key, value := range *pMapStringOpenapiMetadataValue {
+				mapStringOpenapiMetadataValue[key] = c.openapiMetadataValueToOpenapiMetadataValue(value)
+			}
+		}
+		openapiDataSet.CustomProperties = &mapStringOpenapiMetadataValue
+	}
+	var pString *string
+	if source.Update != nil {
+		pString = source.Update.Description
+	}
+	if pString != nil {
+		xstring := *pString
+		openapiDataSet.Description = &xstring
+	}
+	var pString2 *string
+	if source.Update != nil {
+		pString2 = source.Update.ExternalId
+	}
+	if pString2 != nil {
+		xstring2 := *pString2
+		openapiDataSet.ExternalId = &xstring2
+	}
+	var pString3 *string
+	if source.Update != nil {
+		pString3 = source.Update.ExperimentId
+	}
+	if pString3 != nil {
+		xstring3 := *pString3
+		openapiDataSet.ExperimentId = &xstring3
+	}
+	var pString4 *string
+	if source.Update != nil {
+		pString4 = source.Update.ExperimentRunId
+	}
+	if pString4 != nil {
+		xstring4 := *pString4
+		openapiDataSet.ExperimentRunId = &xstring4
+	}
+	var pString5 *string
+	if source.Update != nil {
+		pString5 = source.Update.Digest
+	}
+	if pString5 != nil {
+		xstring5 := *pString5
+		openapiDataSet.Digest = &xstring5
+	}
+	var pString6 *string
+	if source.Update != nil {
+		pString6 = source.Update.SourceType
+	}
+	if pString6 != nil {
+		xstring6 := *pString6
+		openapiDataSet.SourceType = &xstring6
+	}
+	var pString7 *string
+	if source.Update != nil {
+		pString7 = source.Update.Source
+	}
+	if pString7 != nil {
+		xstring7 := *pString7
+		openapiDataSet.Source = &xstring7
+	}
+	var pString8 *string
+	if source.Update != nil {
+		pString8 = source.Update.Schema
+	}
+	if pString8 != nil {
+		xstring8 := *pString8
+		openapiDataSet.Schema = &xstring8
+	}
+	var pString9 *string
+	if source.Update != nil {
+		pString9 = source.Update.Profile
+	}
+	if pString9 != nil {
+		xstring9 := *pString9
+		openapiDataSet.Profile = &xstring9
+	}
+	var pString10 *string
+	if source.Update != nil {
+		pString10 = source.Update.Uri
+	}
+	if pString10 != nil {
+		xstring10 := *pString10
+		openapiDataSet.Uri = &xstring10
+	}
+	var pOpenapiArtifactState *openapi.ArtifactState
+	if source.Update != nil {
+		pOpenapiArtifactState = source.Update.State
+	}
+	if pOpenapiArtifactState != nil {
+		openapiArtifactState, err := c.openapiArtifactStateToOpenapiArtifactState(*pOpenapiArtifactState)
+		if err != nil {
+			return openapiDataSet, fmt.Errorf("error setting field State: %w", err)
+		}
+		openapiDataSet.State = &openapiArtifactState
+	}
+	return openapiDataSet, nil
+}
 func (c *OpenAPIReconcilerImpl) UpdateExistingDocArtifact(source converter.OpenapiUpdateWrapper[openapi.DocArtifact]) (openapi.DocArtifact, error) {
 	openapiDocArtifact := converter.InitWithExisting(source)
 	var pMapStringOpenapiMetadataValue *map[string]openapi.MetadataValue
@@ -45,11 +154,27 @@ func (c *OpenAPIReconcilerImpl) UpdateExistingDocArtifact(source converter.Opena
 	}
 	var pString3 *string
 	if source.Update != nil {
-		pString3 = source.Update.Uri
+		pString3 = source.Update.ExperimentId
 	}
 	if pString3 != nil {
 		xstring3 := *pString3
-		openapiDocArtifact.Uri = &xstring3
+		openapiDocArtifact.ExperimentId = &xstring3
+	}
+	var pString4 *string
+	if source.Update != nil {
+		pString4 = source.Update.ExperimentRunId
+	}
+	if pString4 != nil {
+		xstring4 := *pString4
+		openapiDocArtifact.ExperimentRunId = &xstring4
+	}
+	var pString5 *string
+	if source.Update != nil {
+		pString5 = source.Update.Uri
+	}
+	if pString5 != nil {
+		xstring5 := *pString5
+		openapiDocArtifact.Uri = &xstring5
 	}
 	var pOpenapiArtifactState *openapi.ArtifactState
 	if source.Update != nil {
@@ -63,6 +188,139 @@ func (c *OpenAPIReconcilerImpl) UpdateExistingDocArtifact(source converter.Opena
 		openapiDocArtifact.State = &openapiArtifactState
 	}
 	return openapiDocArtifact, nil
+}
+func (c *OpenAPIReconcilerImpl) UpdateExistingExperiment(source converter.OpenapiUpdateWrapper[openapi.Experiment]) (openapi.Experiment, error) {
+	openapiExperiment := converter.InitWithExisting(source)
+	var pMapStringOpenapiMetadataValue *map[string]openapi.MetadataValue
+	if source.Update != nil {
+		pMapStringOpenapiMetadataValue = source.Update.CustomProperties
+	}
+	if pMapStringOpenapiMetadataValue != nil {
+		var mapStringOpenapiMetadataValue map[string]openapi.MetadataValue
+		if (*pMapStringOpenapiMetadataValue) != nil {
+			mapStringOpenapiMetadataValue = make(map[string]openapi.MetadataValue, len((*pMapStringOpenapiMetadataValue)))
+			for key, value := range *pMapStringOpenapiMetadataValue {
+				mapStringOpenapiMetadataValue[key] = c.openapiMetadataValueToOpenapiMetadataValue(value)
+			}
+		}
+		openapiExperiment.CustomProperties = &mapStringOpenapiMetadataValue
+	}
+	var pString *string
+	if source.Update != nil {
+		pString = source.Update.Description
+	}
+	if pString != nil {
+		xstring := *pString
+		openapiExperiment.Description = &xstring
+	}
+	var pString2 *string
+	if source.Update != nil {
+		pString2 = source.Update.ExternalId
+	}
+	if pString2 != nil {
+		xstring2 := *pString2
+		openapiExperiment.ExternalId = &xstring2
+	}
+	var pString3 *string
+	if source.Update != nil {
+		pString3 = source.Update.Owner
+	}
+	if pString3 != nil {
+		xstring3 := *pString3
+		openapiExperiment.Owner = &xstring3
+	}
+	var pOpenapiExperimentState *openapi.ExperimentState
+	if source.Update != nil {
+		pOpenapiExperimentState = source.Update.State
+	}
+	if pOpenapiExperimentState != nil {
+		openapiExperimentState, err := c.openapiExperimentStateToOpenapiExperimentState(*pOpenapiExperimentState)
+		if err != nil {
+			return openapiExperiment, fmt.Errorf("error setting field State: %w", err)
+		}
+		openapiExperiment.State = &openapiExperimentState
+	}
+	return openapiExperiment, nil
+}
+func (c *OpenAPIReconcilerImpl) UpdateExistingExperimentRun(source converter.OpenapiUpdateWrapper[openapi.ExperimentRun]) (openapi.ExperimentRun, error) {
+	openapiExperimentRun := converter.InitWithExisting(source)
+	var pMapStringOpenapiMetadataValue *map[string]openapi.MetadataValue
+	if source.Update != nil {
+		pMapStringOpenapiMetadataValue = source.Update.CustomProperties
+	}
+	if pMapStringOpenapiMetadataValue != nil {
+		var mapStringOpenapiMetadataValue map[string]openapi.MetadataValue
+		if (*pMapStringOpenapiMetadataValue) != nil {
+			mapStringOpenapiMetadataValue = make(map[string]openapi.MetadataValue, len((*pMapStringOpenapiMetadataValue)))
+			for key, value := range *pMapStringOpenapiMetadataValue {
+				mapStringOpenapiMetadataValue[key] = c.openapiMetadataValueToOpenapiMetadataValue(value)
+			}
+		}
+		openapiExperimentRun.CustomProperties = &mapStringOpenapiMetadataValue
+	}
+	var pString *string
+	if source.Update != nil {
+		pString = source.Update.Description
+	}
+	if pString != nil {
+		xstring := *pString
+		openapiExperimentRun.Description = &xstring
+	}
+	var pString2 *string
+	if source.Update != nil {
+		pString2 = source.Update.ExternalId
+	}
+	if pString2 != nil {
+		xstring2 := *pString2
+		openapiExperimentRun.ExternalId = &xstring2
+	}
+	var pString3 *string
+	if source.Update != nil {
+		pString3 = source.Update.EndTimeSinceEpoch
+	}
+	if pString3 != nil {
+		xstring3 := *pString3
+		openapiExperimentRun.EndTimeSinceEpoch = &xstring3
+	}
+	var pOpenapiExperimentRunStatus *openapi.ExperimentRunStatus
+	if source.Update != nil {
+		pOpenapiExperimentRunStatus = source.Update.Status
+	}
+	if pOpenapiExperimentRunStatus != nil {
+		openapiExperimentRunStatus, err := c.openapiExperimentRunStatusToOpenapiExperimentRunStatus(*pOpenapiExperimentRunStatus)
+		if err != nil {
+			return openapiExperimentRun, fmt.Errorf("error setting field Status: %w", err)
+		}
+		openapiExperimentRun.Status = &openapiExperimentRunStatus
+	}
+	var pOpenapiExperimentRunState *openapi.ExperimentRunState
+	if source.Update != nil {
+		pOpenapiExperimentRunState = source.Update.State
+	}
+	if pOpenapiExperimentRunState != nil {
+		openapiExperimentRunState, err := c.openapiExperimentRunStateToOpenapiExperimentRunState(*pOpenapiExperimentRunState)
+		if err != nil {
+			return openapiExperimentRun, fmt.Errorf("error setting field State: %w", err)
+		}
+		openapiExperimentRun.State = &openapiExperimentRunState
+	}
+	var pString4 *string
+	if source.Update != nil {
+		pString4 = source.Update.Owner
+	}
+	if pString4 != nil {
+		xstring4 := *pString4
+		openapiExperimentRun.Owner = &xstring4
+	}
+	var pString5 *string
+	if source.Update != nil {
+		pString5 = source.Update.StartTimeSinceEpoch
+	}
+	if pString5 != nil {
+		xstring5 := *pString5
+		openapiExperimentRun.StartTimeSinceEpoch = &xstring5
+	}
+	return openapiExperimentRun, nil
 }
 func (c *OpenAPIReconcilerImpl) UpdateExistingInferenceService(source converter.OpenapiUpdateWrapper[openapi.InferenceService]) (openapi.InferenceService, error) {
 	openapiInferenceService := converter.InitWithExisting(source)
@@ -125,6 +383,91 @@ func (c *OpenAPIReconcilerImpl) UpdateExistingInferenceService(source converter.
 	}
 	return openapiInferenceService, nil
 }
+func (c *OpenAPIReconcilerImpl) UpdateExistingMetric(source converter.OpenapiUpdateWrapper[openapi.Metric]) (openapi.Metric, error) {
+	openapiMetric := converter.InitWithExisting(source)
+	var pMapStringOpenapiMetadataValue *map[string]openapi.MetadataValue
+	if source.Update != nil {
+		pMapStringOpenapiMetadataValue = source.Update.CustomProperties
+	}
+	if pMapStringOpenapiMetadataValue != nil {
+		var mapStringOpenapiMetadataValue map[string]openapi.MetadataValue
+		if (*pMapStringOpenapiMetadataValue) != nil {
+			mapStringOpenapiMetadataValue = make(map[string]openapi.MetadataValue, len((*pMapStringOpenapiMetadataValue)))
+			for key, value := range *pMapStringOpenapiMetadataValue {
+				mapStringOpenapiMetadataValue[key] = c.openapiMetadataValueToOpenapiMetadataValue(value)
+			}
+		}
+		openapiMetric.CustomProperties = &mapStringOpenapiMetadataValue
+	}
+	var pString *string
+	if source.Update != nil {
+		pString = source.Update.Description
+	}
+	if pString != nil {
+		xstring := *pString
+		openapiMetric.Description = &xstring
+	}
+	var pString2 *string
+	if source.Update != nil {
+		pString2 = source.Update.ExternalId
+	}
+	if pString2 != nil {
+		xstring2 := *pString2
+		openapiMetric.ExternalId = &xstring2
+	}
+	var pString3 *string
+	if source.Update != nil {
+		pString3 = source.Update.ExperimentId
+	}
+	if pString3 != nil {
+		xstring3 := *pString3
+		openapiMetric.ExperimentId = &xstring3
+	}
+	var pString4 *string
+	if source.Update != nil {
+		pString4 = source.Update.ExperimentRunId
+	}
+	if pString4 != nil {
+		xstring4 := *pString4
+		openapiMetric.ExperimentRunId = &xstring4
+	}
+	var pFloat64 *float64
+	if source.Update != nil {
+		pFloat64 = source.Update.Value
+	}
+	if pFloat64 != nil {
+		xfloat64 := *pFloat64
+		openapiMetric.Value = &xfloat64
+	}
+	var pString5 *string
+	if source.Update != nil {
+		pString5 = source.Update.Timestamp
+	}
+	if pString5 != nil {
+		xstring5 := *pString5
+		openapiMetric.Timestamp = &xstring5
+	}
+	var pInt64 *int64
+	if source.Update != nil {
+		pInt64 = source.Update.Step
+	}
+	if pInt64 != nil {
+		xint64 := *pInt64
+		openapiMetric.Step = &xint64
+	}
+	var pOpenapiArtifactState *openapi.ArtifactState
+	if source.Update != nil {
+		pOpenapiArtifactState = source.Update.State
+	}
+	if pOpenapiArtifactState != nil {
+		openapiArtifactState, err := c.openapiArtifactStateToOpenapiArtifactState(*pOpenapiArtifactState)
+		if err != nil {
+			return openapiMetric, fmt.Errorf("error setting field State: %w", err)
+		}
+		openapiMetric.State = &openapiArtifactState
+	}
+	return openapiMetric, nil
+}
 func (c *OpenAPIReconcilerImpl) UpdateExistingModelArtifact(source converter.OpenapiUpdateWrapper[openapi.ModelArtifact]) (openapi.ModelArtifact, error) {
 	openapiModelArtifact := converter.InitWithExisting(source)
 	var pMapStringOpenapiMetadataValue *map[string]openapi.MetadataValue
@@ -159,91 +502,107 @@ func (c *OpenAPIReconcilerImpl) UpdateExistingModelArtifact(source converter.Ope
 	}
 	var pString3 *string
 	if source.Update != nil {
-		pString3 = source.Update.ModelFormatName
+		pString3 = source.Update.ExperimentId
 	}
 	if pString3 != nil {
 		xstring3 := *pString3
-		openapiModelArtifact.ModelFormatName = &xstring3
+		openapiModelArtifact.ExperimentId = &xstring3
 	}
 	var pString4 *string
 	if source.Update != nil {
-		pString4 = source.Update.StorageKey
+		pString4 = source.Update.ExperimentRunId
 	}
 	if pString4 != nil {
 		xstring4 := *pString4
-		openapiModelArtifact.StorageKey = &xstring4
+		openapiModelArtifact.ExperimentRunId = &xstring4
 	}
 	var pString5 *string
 	if source.Update != nil {
-		pString5 = source.Update.StoragePath
+		pString5 = source.Update.ModelFormatName
 	}
 	if pString5 != nil {
 		xstring5 := *pString5
-		openapiModelArtifact.StoragePath = &xstring5
+		openapiModelArtifact.ModelFormatName = &xstring5
 	}
 	var pString6 *string
 	if source.Update != nil {
-		pString6 = source.Update.ModelFormatVersion
+		pString6 = source.Update.StorageKey
 	}
 	if pString6 != nil {
 		xstring6 := *pString6
-		openapiModelArtifact.ModelFormatVersion = &xstring6
+		openapiModelArtifact.StorageKey = &xstring6
 	}
 	var pString7 *string
 	if source.Update != nil {
-		pString7 = source.Update.ServiceAccountName
+		pString7 = source.Update.StoragePath
 	}
 	if pString7 != nil {
 		xstring7 := *pString7
-		openapiModelArtifact.ServiceAccountName = &xstring7
+		openapiModelArtifact.StoragePath = &xstring7
 	}
 	var pString8 *string
 	if source.Update != nil {
-		pString8 = source.Update.ModelSourceKind
+		pString8 = source.Update.ModelFormatVersion
 	}
 	if pString8 != nil {
 		xstring8 := *pString8
-		openapiModelArtifact.ModelSourceKind = &xstring8
+		openapiModelArtifact.ModelFormatVersion = &xstring8
 	}
 	var pString9 *string
 	if source.Update != nil {
-		pString9 = source.Update.ModelSourceClass
+		pString9 = source.Update.ServiceAccountName
 	}
 	if pString9 != nil {
 		xstring9 := *pString9
-		openapiModelArtifact.ModelSourceClass = &xstring9
+		openapiModelArtifact.ServiceAccountName = &xstring9
 	}
 	var pString10 *string
 	if source.Update != nil {
-		pString10 = source.Update.ModelSourceGroup
+		pString10 = source.Update.ModelSourceKind
 	}
 	if pString10 != nil {
 		xstring10 := *pString10
-		openapiModelArtifact.ModelSourceGroup = &xstring10
+		openapiModelArtifact.ModelSourceKind = &xstring10
 	}
 	var pString11 *string
 	if source.Update != nil {
-		pString11 = source.Update.ModelSourceId
+		pString11 = source.Update.ModelSourceClass
 	}
 	if pString11 != nil {
 		xstring11 := *pString11
-		openapiModelArtifact.ModelSourceId = &xstring11
+		openapiModelArtifact.ModelSourceClass = &xstring11
 	}
 	var pString12 *string
 	if source.Update != nil {
-		pString12 = source.Update.ModelSourceName
+		pString12 = source.Update.ModelSourceGroup
 	}
 	if pString12 != nil {
 		xstring12 := *pString12
-		openapiModelArtifact.ModelSourceName = &xstring12
+		openapiModelArtifact.ModelSourceGroup = &xstring12
 	}
 	var pString13 *string
 	if source.Update != nil {
-		pString13 = source.Update.Uri
+		pString13 = source.Update.ModelSourceId
 	}
 	if pString13 != nil {
 		xstring13 := *pString13
-		openapiModelArtifact.Uri = &xstring13
+		openapiModelArtifact.ModelSourceId = &xstring13
+	}
+	var pString14 *string
+	if source.Update != nil {
+		pString14 = source.Update.ModelSourceName
+	}
+	if pString14 != nil {
+		xstring14 := *pString14
+		openapiModelArtifact.ModelSourceName = &xstring14
+	}
+	var pString15 *string
+	if source.Update != nil {
+		pString15 = source.Update.Uri
+	}
+	if pString15 != nil {
+		xstring15 := *pString15
+		openapiModelArtifact.Uri = &xstring15
 	}
 	var pOpenapiArtifactState *openapi.ArtifactState
 	if source.Update != nil {
@@ -310,6 +669,86 @@ func (c *OpenAPIReconcilerImpl) UpdateExistingModelVersion(source converter.Open
 		openapiModelVersion.Author = &xstring3
 	}
 	return openapiModelVersion, nil
+}
+func (c *OpenAPIReconcilerImpl) UpdateExistingParameter(source converter.OpenapiUpdateWrapper[openapi.Parameter]) (openapi.Parameter, error) {
+	openapiParameter := converter.InitWithExisting(source)
+	var pMapStringOpenapiMetadataValue *map[string]openapi.MetadataValue
+	if source.Update != nil {
+		pMapStringOpenapiMetadataValue = source.Update.CustomProperties
+	}
+	if pMapStringOpenapiMetadataValue != nil {
+		var mapStringOpenapiMetadataValue map[string]openapi.MetadataValue
+		if (*pMapStringOpenapiMetadataValue) != nil {
+			mapStringOpenapiMetadataValue = make(map[string]openapi.MetadataValue, len((*pMapStringOpenapiMetadataValue)))
+			for key, value := range *pMapStringOpenapiMetadataValue {
+				mapStringOpenapiMetadataValue[key] = c.openapiMetadataValueToOpenapiMetadataValue(value)
+			}
+		}
+		openapiParameter.CustomProperties = &mapStringOpenapiMetadataValue
+	}
+	var pString *string
+	if source.Update != nil {
+		pString = source.Update.Description
+	}
+	if pString != nil {
+		xstring := *pString
+		openapiParameter.Description = &xstring
+	}
+	var pString2 *string
+	if source.Update != nil {
+		pString2 = source.Update.ExternalId
+	}
+	if pString2 != nil {
+		xstring2 := *pString2
+		openapiParameter.ExternalId = &xstring2
+	}
+	var pString3 *string
+	if source.Update != nil {
+		pString3 = source.Update.ExperimentId
+	}
+	if pString3 != nil {
+		xstring3 := *pString3
+		openapiParameter.ExperimentId = &xstring3
+	}
+	var pString4 *string
+	if source.Update != nil {
+		pString4 = source.Update.ExperimentRunId
+	}
+	if pString4 != nil {
+		xstring4 := *pString4
+		openapiParameter.ExperimentRunId = &xstring4
+	}
+	var pString5 *string
+	if source.Update != nil {
+		pString5 = source.Update.Value
+	}
+	if pString5 != nil {
+		xstring5 := *pString5
+		openapiParameter.Value = &xstring5
+	}
+	var pOpenapiParameterType *openapi.ParameterType
+	if source.Update != nil {
+		pOpenapiParameterType = source.Update.ParameterType
+	}
+	if pOpenapiParameterType != nil {
+		openapiParameterType, err := c.openapiParameterTypeToOpenapiParameterType(*pOpenapiParameterType)
+		if err != nil {
+			return openapiParameter, fmt.Errorf("error setting field ParameterType: %w", err)
+		}
+		openapiParameter.ParameterType = &openapiParameterType
+	}
+	var pOpenapiArtifactState *openapi.ArtifactState
+	if source.Update != nil {
+		pOpenapiArtifactState = source.Update.State
+	}
+	if pOpenapiArtifactState != nil {
+		openapiArtifactState, err := c.openapiArtifactStateToOpenapiArtifactState(*pOpenapiArtifactState)
+		if err != nil {
+			return openapiParameter, fmt.Errorf("error setting field State: %w", err)
+		}
+		openapiParameter.State = &openapiArtifactState
+	}
+	return openapiParameter, nil
 }
 func (c *OpenAPIReconcilerImpl) UpdateExistingRegisteredModel(source converter.OpenapiUpdateWrapper[openapi.RegisteredModel]) (openapi.RegisteredModel, error) {
 	openapiRegisteredModel := converter.InitWithExisting(source)
@@ -571,6 +1010,48 @@ func (c *OpenAPIReconcilerImpl) openapiExecutionStateToOpenapiExecutionState(sou
 	}
 	return openapiExecutionState, nil
 }
+func (c *OpenAPIReconcilerImpl) openapiExperimentRunStateToOpenapiExperimentRunState(source openapi.ExperimentRunState) (openapi.ExperimentRunState, error) {
+	var openapiExperimentRunState openapi.ExperimentRunState
+	switch source {
+	case openapi.EXPERIMENTRUNSTATE_ARCHIVED:
+		openapiExperimentRunState = openapi.EXPERIMENTRUNSTATE_ARCHIVED
+	case openapi.EXPERIMENTRUNSTATE_LIVE:
+		openapiExperimentRunState = openapi.EXPERIMENTRUNSTATE_LIVE
+	default:
+		return openapiExperimentRunState, fmt.Errorf("unexpected enum element: %v", source)
+	}
+	return openapiExperimentRunState, nil
+}
+func (c *OpenAPIReconcilerImpl) openapiExperimentRunStatusToOpenapiExperimentRunStatus(source openapi.ExperimentRunStatus) (openapi.ExperimentRunStatus, error) {
+	var openapiExperimentRunStatus openapi.ExperimentRunStatus
+	switch source {
+	case openapi.EXPERIMENTRUNSTATUS_FAILED:
+		openapiExperimentRunStatus = openapi.EXPERIMENTRUNSTATUS_FAILED
+	case openapi.EXPERIMENTRUNSTATUS_FINISHED:
+		openapiExperimentRunStatus = openapi.EXPERIMENTRUNSTATUS_FINISHED
+	case openapi.EXPERIMENTRUNSTATUS_KILLED:
+		openapiExperimentRunStatus = openapi.EXPERIMENTRUNSTATUS_KILLED
+	case openapi.EXPERIMENTRUNSTATUS_RUNNING:
+		openapiExperimentRunStatus = openapi.EXPERIMENTRUNSTATUS_RUNNING
+	case openapi.EXPERIMENTRUNSTATUS_SCHEDULED:
+		openapiExperimentRunStatus = openapi.EXPERIMENTRUNSTATUS_SCHEDULED
+	default:
+		return openapiExperimentRunStatus, fmt.Errorf("unexpected enum element: %v", source)
+	}
+	return openapiExperimentRunStatus, nil
+}
+func (c *OpenAPIReconcilerImpl) openapiExperimentStateToOpenapiExperimentState(source openapi.ExperimentState) (openapi.ExperimentState, error) {
+	var openapiExperimentState openapi.ExperimentState
+	switch source {
+	case openapi.EXPERIMENTSTATE_ARCHIVED:
+		openapiExperimentState = openapi.EXPERIMENTSTATE_ARCHIVED
+	case openapi.EXPERIMENTSTATE_LIVE:
+		openapiExperimentState = openapi.EXPERIMENTSTATE_LIVE
+	default:
+		return openapiExperimentState, fmt.Errorf("unexpected enum element: %v", source)
+	}
+	return openapiExperimentState, nil
+}
 func (c *OpenAPIReconcilerImpl) openapiInferenceServiceStateToOpenapiInferenceServiceState(source openapi.InferenceServiceState) (openapi.InferenceServiceState, error) {
 	var openapiInferenceServiceState openapi.InferenceServiceState
 	switch source {
@@ -604,6 +1085,22 @@ func (c *OpenAPIReconcilerImpl) openapiModelVersionStateToOpenapiModelVersionSta
 		return openapiModelVersionState, fmt.Errorf("unexpected enum element: %v", source)
 	}
 	return openapiModelVersionState, nil
+}
+func (c *OpenAPIReconcilerImpl) openapiParameterTypeToOpenapiParameterType(source openapi.ParameterType) (openapi.ParameterType, error) {
+	var openapiParameterType openapi.ParameterType
+	switch source {
+	case openapi.PARAMETERTYPE_BOOLEAN:
+		openapiParameterType = openapi.PARAMETERTYPE_BOOLEAN
+	case openapi.PARAMETERTYPE_NUMBER:
+		openapiParameterType = openapi.PARAMETERTYPE_NUMBER
+	case openapi.PARAMETERTYPE_OBJECT:
+		openapiParameterType = openapi.PARAMETERTYPE_OBJECT
+	case openapi.PARAMETERTYPE_STRING:
+		openapiParameterType = openapi.PARAMETERTYPE_STRING
+	default:
+		return openapiParameterType, fmt.Errorf("unexpected enum element: %v", source)
+	}
+	return openapiParameterType, nil
 }
 func (c *OpenAPIReconcilerImpl) openapiRegisteredModelStateToOpenapiRegisteredModelState(source openapi.RegisteredModelState) (openapi.RegisteredModelState, error) {
 	var openapiRegisteredModelState openapi.RegisteredModelState

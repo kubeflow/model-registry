@@ -43,12 +43,12 @@ const RoleBindingPermissionsTable: React.FC<RoleBindingPermissionsTableProps> = 
   roleRefKind,
   roleRefName,
   labels,
+  isProjectSubject,
   defaultRoleBindingName,
   permissions,
   permissionOptions,
-  typeAhead,
-  isProjectSubject,
   isAdding,
+  typeAhead,
   createRoleBinding,
   deleteRoleBinding,
   onDismissNewRow,
@@ -125,7 +125,12 @@ const RoleBindingPermissionsTable: React.FC<RoleBindingPermissionsTableProps> = 
                 labels,
                 ownerReference,
               );
-              createProjectRoleBinding(newRBObject);
+              createRoleBinding(newRBObject)
+                .then(() => {
+                  onDismissNewRow();
+                  refresh();
+                })
+                .catch((e) => onError(e?.message || e || 'Unknown error'));
             }}
             onCancel={onDismissNewRow}
           />

@@ -13,25 +13,10 @@ import (
 	model "github.com/kubeflow/model-registry/catalog/pkg/openapi"
 )
 
-type SortDirection int
-
-const (
-	SortDirectionAscending SortDirection = iota
-	SortDirectionDescending
-)
-
-type SortField int
-
-const (
-	SortByUnspecified SortField = iota
-	SortByName
-	SortByPublished
-)
-
 type ListModelsParams struct {
-	Query         string
-	SortBy        SortField
-	SortDirection SortDirection
+	Query     string
+	OrderBy   model.OrderByField
+	SortOrder model.SortOrder
 }
 
 // CatalogSourceProvider is implemented by catalog source types, e.g. YamlCatalog
@@ -40,7 +25,14 @@ type CatalogSourceProvider interface {
 	// nothing is found with the name provided it returns nil, without an
 	// error.
 	GetModel(ctx context.Context, name string) (*model.CatalogModel, error)
+
+	// ListModels returns all models according to the parameters. If
+	// nothing suitable is found, it returns an empty list.
 	ListModels(ctx context.Context, params ListModelsParams) (model.CatalogModelList, error)
+
+	// GetArtifacts returns all artifacts for a particular model. If no
+	// model is found with that name, it returns nil. If the model is
+	// found, but has no artifacts, an empty list is returned.
 	GetArtifacts(ctx context.Context, name string) (*model.CatalogModelArtifactList, error)
 }
 
@@ -141,6 +133,17 @@ func (sc *SourceCollection) load(path string) error {
 
 	sources := make(map[string]CatalogSource, len(config.Catalogs))
 	for _, catalogConfig := range config.Catalogs {
+		// If enabled is explicitly set to false, skip
+		hasEnabled := catalogConfig.HasEnabled()
+		if hasEnabled && *catalogConfig.Enabled == false {
+			continue
+		}
+		// If not explicitly set, default to enabled
+		if !hasEnabled {
+			t := true
+			catalogConfig.CatalogSource.Enabled = &t
+		}
+
 		catalogType := catalogConfig.Type
 		glog.Infof("reading config type %s...", catalogType)
 		registerFunc, ok := registeredCatalogTypes[catalogType]

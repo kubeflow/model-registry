@@ -10,6 +10,11 @@ on:
       - "!**.gitignore"
       - "!**.md"
       - "!**.txt"
+
+permissions:
+  contents: read
+  packages: read
+
 env:
   IMG_ORG: kubeflow
   IMG_REPO: model-registry-ui
@@ -20,7 +25,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       # checkout branch
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - name: Build UI Image
         shell: bash
         run: ./scripts/build_deploy.sh

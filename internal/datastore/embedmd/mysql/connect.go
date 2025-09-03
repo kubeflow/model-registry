@@ -14,8 +14,8 @@ import (
 )
 
 const (
-	// mysqlMaxRetries is the maximum number of attempts to retry MySQL connection.
-	mysqlMaxRetries = 25 // 25 attempts with incremental backoff (1s, 2s, 3s, ..., 25s) it's ~5 minutes
+	// mysqlMaxRetriesDefault is the maximum number of attempts to retry MySQL connection.
+	mysqlMaxRetriesDefault = 25 // 25 attempts with incremental backoff (1s, 2s, 3s, ..., 25s) it's ~5 minutes
 )
 
 type MySQLDBConnector struct {
@@ -23,6 +23,7 @@ type MySQLDBConnector struct {
 	TLSConfig    *_tls.TLSConfig
 	db           *gorm.DB
 	connectMutex sync.Mutex
+	maxRetries   int
 }
 
 func NewMySQLDBConnector(
@@ -30,9 +31,16 @@ func NewMySQLDBConnector(
 	tlsConfig *_tls.TLSConfig,
 ) *MySQLDBConnector {
 	return &MySQLDBConnector{
-		DSN:       dsn,
-		TLSConfig: tlsConfig,
+		DSN:        dsn,
+		TLSConfig:  tlsConfig,
+		maxRetries: mysqlMaxRetriesDefault,
 	}
+}
+
+func (c *MySQLDBConnector) WithMaxRetries(maxRetries int) *MySQLDBConnector {
+	c.maxRetries = maxRetries
+
+	return c
 }
 
 func (c *MySQLDBConnector) Connect() (*gorm.DB, error) {
@@ -63,7 +71,7 @@ func (c *MySQLDBConnector) Connect() (*gorm.DB, error) {
 		c.DSN = cfg.FormatDSN()
 	}
 
-	for i := range mysqlMaxRetries {
+	for i := range c.maxRetries {
 		db, err = gorm.Open(gorm_mysql.Open(c.DSN), &gorm.Config{
 			Logger:         logger.Default.LogMode(logger.Silent),
 			TranslateError: true,
@@ -72,7 +80,7 @@ func (c *MySQLDBConnector) Connect() (*gorm.DB, error) {
 			break
 		}
 
-		glog.Warningf("Retrying connection to MySQL (attempt %d/%d): %v", i+1, mysqlMaxRetries, err)
+		glog.Warningf("Retrying connection to MySQL (attempt %d/%d): %v", i+1, c.maxRetries, err)
 
 		time.Sleep(time.Duration(i+1) * time.Second)
 	}

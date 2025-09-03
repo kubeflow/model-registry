@@ -14,6 +14,7 @@ def minimal_env_source_dest_vars():
     vars = {
         "type": "oci",
         "oci_uri": "quay.io/example/oci",
+        "oci_registry": "quay.io",
         "oci_username": "oci_username_env",
         "oci_password": "oci_password_env",
     }
@@ -50,7 +51,7 @@ def test_model_registry_config_throws_error_on_missing_user_token(
     """Test that the model registry config throws an error on missing user token because it's a secure connection"""
     sample_config = get_config([])
     with pytest.raises(StoreError) as e:
-        validate_and_get_model_registry_client(sample_config)
+        validate_and_get_model_registry_client(sample_config.registry)
     assert "user token must be provided for secure connection" in str(e.value)
 
 
@@ -59,7 +60,7 @@ def test_model_registry_config_correct(minimal_env_source_dest_vars):
     """Test that the model registry config is correct"""
     sample_config = get_config(["--registry-is-secure", False])
     # Note: Instantiating the client will ping the GET /.../registered_models endpoint, validating the connection
-    client = validate_and_get_model_registry_client(sample_config)
+    client = validate_and_get_model_registry_client(sample_config.registry)
     assert isinstance(client, ModelRegistry)
 
 
@@ -71,12 +72,12 @@ def test_model_registry_config_throws_when_mr_is_unreachable(
     sample_config = get_config(
         [
             "--registry-is-secure",
-            False,
+            "false",
             "--registry-port",
             "1337",  # Note: the E2E test should expose 8080, this is a purposely invalid port
         ]
     )
 
     with pytest.raises(aiohttp.client_exceptions.ClientConnectorError) as e:
-        validate_and_get_model_registry_client(sample_config)
+        validate_and_get_model_registry_client(sample_config.registry)
     assert "Cannot connect to host" in str(e.value)
