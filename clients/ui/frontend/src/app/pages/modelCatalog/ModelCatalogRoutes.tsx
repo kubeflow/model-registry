@@ -3,6 +3,7 @@ import { Navigate, Route, Routes } from 'react-router-dom';
 import ModelCatalogCoreLoader from './ModelCatalogCoreLoader';
 import ModelDetailsPage from './screens/ModelDetailsPage';
 import ModelCatalogPage from './screens/ModelCatalogPage';
+import RegisterCatalogModelPage from './screens/RegisterCatalogModelPage';
 
 const ModelCatalogRoutes: React.FC = () => (
   <Routes>
@@ -10,6 +11,7 @@ const ModelCatalogRoutes: React.FC = () => (
       <Route index element={<ModelCatalogPage />} />
       {/* TODO: keep simple modelId param for now */}
       <Route path=":modelId" element={<ModelDetailsPage />} />
+      <Route path=":modelId/register" element={<RegisterCatalogModelPage />} />
       <Route path="*" element={<Navigate to="." />} />
     </Route>
   </Routes>
