@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	kserve "github.com/kserve/kserve/pkg/agent/storage"
+	"github.com/kubeflow/model-registry/internal/apiutils"
 	"github.com/kubeflow/model-registry/internal/csi/constants"
 	"github.com/kubeflow/model-registry/pkg/openapi"
 )
@@ -56,10 +57,10 @@ func (p *ModelRegistryProvider) DownloadModel(modelDir string, modelName string,
 		storageUri,
 		p.Client.GetConfig().Host,
 		registeredModelName,
-		versionName,
+		apiutils.SafeString(versionName),
 	)
 
-	log.Printf("Fetching model: registeredModelName=%s, versionName=%v", registeredModelName, versionName)
+	log.Printf("Fetching model: registeredModelName=%s, versionName=%v", registeredModelName, apiutils.SafeString(versionName))
 
 	// Fetch the registered model
 	model, _, err := p.Client.ModelRegistryServiceAPI.FindRegisteredModel(context.Background()).Name(registeredModelName).Execute()
@@ -99,16 +100,19 @@ func (p *ModelRegistryProvider) DownloadModel(modelDir string, modelName string,
 		return fmt.Errorf("%w %s", ErrModelArtifactEmptyURI, *modelArtifact.Id)
 	}
 
+	log.Printf("Extracting protocol from model artifact URI: %s", apiutils.SafeString(modelArtifact.Uri))
 	protocol, err := p.extractProtocol(*modelArtifact.Uri)
 	if err != nil {
 		return err
 	}
 
+	log.Printf("Getting KServe provider for protocol: %s", protocol)
 	provider, err := kserve.GetProvider(p.Providers, protocol)
 	if err != nil {
 		return err
 	}
 
+	log.Printf("Delegating to KServe provider to download model with: modelDir=%s, storageUri=%s", modelDir, apiutils.SafeString(modelArtifact.Uri))
 	return provider.DownloadModel(modelDir, "", *modelArtifact.Uri)
 }
 

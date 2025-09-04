@@ -1,6 +1,6 @@
 module github.com/kubeflow/model-registry/ui/bff
 
-go 1.24.3
+go 1.24.6
 
 require (
 	github.com/brianvoe/gofakeit/v7 v7.3.0

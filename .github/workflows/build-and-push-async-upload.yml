@@ -59,3 +59,21 @@ jobs:
         tags: ${{ env.IMG_REGISTRY }}/${{ env.IMG_ORG }}/${{ env.IMG_NAME }}:${{ env.VERSION }}
         cache-from: type=gha
         cache-to: type=gha,mode=max
+
+    - name: Tag Latest
+      # this workflow works on main branch and tags, so we need to tag as 'latest' and 'main'
+      shell: bash
+      env:
+        IMG: "${{ env.IMG_REGISTRY }}/${{ env.IMG_ORG }}/${{ env.IMG_NAME }}"
+      run: |
+        docker tag ${{ env.IMG }}:$VERSION ${{ env.IMG }}:latest
+        docker push ${{ env.IMG }}:latest
+
+    - name: Tag Main
+      # this workflow works on main branch and tags, so we need to tag as 'latest' and 'main'
+      shell: bash
+      env:
+        IMG: "${{ env.IMG_REGISTRY }}/${{ env.IMG_ORG }}/${{ env.IMG_NAME }}"
+      run: |
+        docker tag ${{ env.IMG }}:$VERSION ${{ env.IMG }}:main
+        docker push ${{ env.IMG }}:main
