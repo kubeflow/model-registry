@@ -1219,7 +1219,7 @@ class TestHintServerAddressPort:
         mock_get_registered_models.return_value.page_size.return_value._next_page.return_value = None # Mock the method chain that's called in the constructor
 
         with caplog.at_level(logging.WARNING):
-            ModelRegistry(server_address="https://example.com", port=443, author="test", user_token="test")
+            ModelRegistry(server_address="https://example.com", port=443, author="test", user_token="test")  # noqa: S106
 
         assert len(caplog.records) == 0
 
@@ -1230,7 +1230,7 @@ class TestHintServerAddressPort:
         mock_get_registered_models.return_value.page_size.return_value._next_page.return_value = None # Mock the method chain that's called in the constructor
 
         with caplog.at_level(logging.WARNING):
-            ModelRegistry(server_address="https://example.com", port=8443, author="test", user_token="test")
+            ModelRegistry(server_address="https://example.com", port=8443, author="test", user_token="test") # noqa: S106
 
         assert len(caplog.records) == 0
 
@@ -1241,7 +1241,7 @@ class TestHintServerAddressPort:
         mock_get_registered_models.return_value.page_size.return_value._next_page.return_value = None # Mock the method chain that's called in the constructor
 
         with caplog.at_level(logging.WARNING):
-            ModelRegistry(server_address="https://example.com", port=8080, author="test", user_token="test")
+            ModelRegistry(server_address="https://example.com", port=8080, author="test", user_token="test") # noqa: S106
 
         assert len(caplog.records) == 1
         assert "Server address protocol is https://, but port is not 443 or ending with 443" in caplog.records[0].message
