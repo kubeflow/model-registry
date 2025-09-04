@@ -6,7 +6,7 @@ The Kubeflow Model Registry UI BFF is the _backend for frontend_ (BFF) used by t
 
 ### Dependencies
 
-- Go >= 1.24.3
+- Go >= 1.24.6
 
 ### Running model registry
 
