@@ -10,7 +10,7 @@
 version: '3.8'
 services:
   model-catalog:
-    image: ghcr.io/kubeflow/model-registry/server:latest
+    image: quay.io/opendatahub/model-registry/server:latest
     pull_policy: always
     command: ["catalog", "--listen", "0.0.0.0:8081", "--catalogs-path", "/testdata/test-catalog-sources.yaml"]
     container_name: model-catalog
