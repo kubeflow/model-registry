@@ -76,7 +76,7 @@ def _parser() -> cap.ArgumentParser:
     p.add_argument(
         "--model-upload-intent", 
         type=UploadIntent, 
-        choices=[UploadIntent.create_model, UploadIntent.create_version, UploadIntent.update_artifact], 
+        choices=tuple(UploadIntent), 
         default=UploadIntent.update_artifact
     )
     p.add_argument("--model-id")

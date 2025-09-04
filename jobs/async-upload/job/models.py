@@ -104,15 +104,17 @@ class UploadIntent(StrEnum):
 class ModelConfig(BaseModel):
     """Model registry model information."""
     upload_intent: UploadIntent = Field(UploadIntent.update_artifact, description="Model upload intent")
-    id: str | None = Field(..., description="Model ID")
-    version_id: str | None = Field(..., description="Model version ID")
-    artifact_id: str | None = Field(..., description="Model artifact ID")
+    id: str | None = Field(None, description="Model ID")
+    version_id: str | None = Field(None, description="Model version ID")
+    artifact_id: str | None = Field(None, description="Model artifact ID")
 
     @model_validator(mode='after')
     def validate_model_ids(self) -> 'ModelConfig':
         """Validate that all model IDs are provided."""
         if self.upload_intent == UploadIntent.create_model:
-            return self
+            # No ids should be set when intent is create_model
+            if any([self.id, self.version_id, self.artifact_id]):
+                raise ValueError("Model ID, Model Version ID and Model Artifact ID cannot be set when intent is create_model")
         elif self.upload_intent == UploadIntent.create_version:
             if not self.id:
                 raise ValueError("Model ID must be set when intent is create_version")
