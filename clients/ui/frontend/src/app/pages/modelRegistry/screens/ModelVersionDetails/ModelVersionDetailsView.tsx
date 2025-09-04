@@ -30,6 +30,7 @@ import { bumpBothTimestamps, bumpRegisteredModelTimestamp } from '~/app/api/upda
 import { uriToStorageFields } from '~/app/utils';
 import useRegisteredModelById from '~/app/hooks/useRegisteredModelById';
 import ModelDetailsCard from '~/app/pages/modelRegistry/screens/ModelVersions/ModelDetailsCard';
+import ModelVersionRegisteredFromLink from '~/app/pages/modelRegistry/screens/components/ModelVersionRegisteredFromLink';
 
 type ModelVersionDetailsViewProps = {
   modelVersion: ModelVersion;
@@ -85,7 +86,6 @@ const ModelVersionDetailsView: React.FC<ModelVersionDetailsViewProps> = ({
       );
     }
   };
-
   return (
     <Stack hasGutter>
       {registeredModel && (
@@ -144,6 +144,12 @@ const ModelVersionDetailsView: React.FC<ModelVersionDetailsViewProps> = ({
                       )
                     }
                   />
+                  {modelArtifact && (
+                    <ModelVersionRegisteredFromLink
+                      modelArtifact={modelArtifact}
+                      isModelCatalogAvailable
+                    />
+                  )}
                   <ModelPropertiesDescriptionListGroup
                     isArchive={isArchiveVersion}
                     customProperties={mv.customProperties}
