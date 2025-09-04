@@ -266,17 +266,6 @@ describe('Model version details', () => {
     });
 
     it('should show alerts for the expanded section', () => {
-      cy.interceptApi(
-        `PATCH /api/:apiVersion/model_registry/:modelRegistryName/registered_models/:registeredModelId`,
-        {
-          path: {
-            modelRegistryName: 'modelregistry-sample',
-            apiVersion: MODEL_REGISTRY_API_VERSION,
-            registeredModelId: 1,
-          },
-        },
-        mockRegisteredModelWithData,
-      ).as('patchRegisteredModel');
       modelDetailsExpandedCard.findExpandedButton().click();
       modelDetailsExpandedCard.find().should('be.visible');
       modelDetailsExpandedCard.findLabelEditButton().click();
@@ -292,6 +281,49 @@ describe('Model version details', () => {
       propertyRow.findSaveButton().click();
       modelDetailsExpandedCard.findAddPropertyButton().click();
       modelDetailsExpandedCard.findAlert().should('exist');
+    });
+
+    it('should delete a property row', () => {
+      cy.interceptApi(
+        `PATCH /api/:apiVersion/model_registry/:modelRegistryName/registered_models/:registeredModelId`,
+        {
+          path: {
+            modelRegistryName: 'modelregistry-sample',
+            apiVersion: MODEL_REGISTRY_API_VERSION,
+            registeredModelId: 1,
+          },
+        },
+        mockRegisteredModelWithData,
+      ).as('patchRegisteredModel');
+      modelDetailsExpandedCard.findExpandedButton().click();
+      modelDetailsExpandedCard.findPropertiesExpandableButton().click();
+      const propertyRow = modelDetailsExpandedCard.getRow('property1');
+      propertyRow.findKebabAction('Delete').click();
+      deletePropertyModal.findConfirmButton().click();
+      cy.wait('@patchRegisteredModel').then((interception) => {
+        expect(interception.request.body).to.eql(
+          mockModArchResponse({
+            customProperties: {
+              label1: {
+                metadataType: ModelRegistryMetadataType.STRING,
+                string_value: '',
+              },
+              label2: {
+                metadataType: ModelRegistryMetadataType.STRING,
+                string_value: '',
+              },
+              property2: {
+                metadataType: ModelRegistryMetadataType.STRING,
+                string_value: 'value2',
+              },
+              'url-property': {
+                metadataType: ModelRegistryMetadataType.STRING,
+                string_value: 'https://example.com',
+              },
+            },
+          }),
+        );
+      });
     });
 
     it('should add a property', () => {
@@ -353,7 +385,6 @@ describe('Model version details', () => {
       const propertyRow = modelVersionDetails.getRow('a6');
       modelVersionDetails.findPropertiesTableRows().should('have.length', 7);
       propertyRow.find().findKebabAction('Delete').click();
-      deletePropertyModal.findConfirmButton().click();
       cy.wait('@UpdatePropertyRow').then((interception) => {
         expect(interception.request.body).to.eql(
           mockModArchResponse({
