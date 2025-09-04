@@ -24,7 +24,7 @@ type ModelPropertiesTableRowProps = {
   isSavingEdits: boolean;
   modelName?: string;
   isArchive?: boolean;
-  isModelSection?: boolean;
+  showDeleteModal?: boolean;
   setIsSavingEdits: (isSaving: boolean) => void;
   saveEditedProperty: (oldKey: string, newPair: KeyValuePair) => Promise<unknown>;
 } & EitherNotBoth<
@@ -48,7 +48,7 @@ const ModelPropertiesTableRow: React.FC<ModelPropertiesTableRowProps> = ({
   isArchive,
   saveEditedProperty,
   modelName,
-  isModelSection = false,
+  showDeleteModal,
 }) => {
   const { key, value } = keyValuePair;
 
@@ -77,7 +77,7 @@ const ModelPropertiesTableRow: React.FC<ModelPropertiesTableRowProps> = ({
   };
 
   const onDeleteClick = async () => {
-    if (dontShowModalValue || !isModelSection) {
+    if (dontShowModalValue || !showDeleteModal) {
       await handleDeleteProperty();
     } else {
       setIsDeleteModalOpen(true);

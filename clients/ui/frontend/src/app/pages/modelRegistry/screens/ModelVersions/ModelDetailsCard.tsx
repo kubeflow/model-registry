@@ -81,7 +81,7 @@ const ModelDetailsCard: React.FC<ModelDetailsCardProps> = ({
       }
       isCollapsible={false}
       labelProps={{ variant: 'outline' }}
-      onEditingChange={handleLabelsEditingChange}
+      onEditingChange={isExpandable ? handleLabelsEditingChange : undefined}
     />
   );
 
@@ -105,7 +105,7 @@ const ModelDetailsCard: React.FC<ModelDetailsCardProps> = ({
           )
           .then(refresh)
       }
-      onEditingChange={handleDescriptionEditingChange}
+      onEditingChange={isExpandable ? handleDescriptionEditingChange : undefined}
     />
   );
 
@@ -156,8 +156,7 @@ const ModelDetailsCard: React.FC<ModelDetailsCardProps> = ({
           .patchRegisteredModel({}, { customProperties: editedProperties }, rm.id)
           .then(refresh)
       }
-      isModelSection
-      onEditingChange={handlePropertiesEditingChange}
+      onEditingChange={isExpandable ? handlePropertiesEditingChange : undefined}
     />
   );
 
