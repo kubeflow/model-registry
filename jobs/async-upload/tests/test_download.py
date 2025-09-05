@@ -19,7 +19,7 @@ DUMMY_FILE_DATA = {
 
 
 @pytest.fixture
-def minimal_env_source_dest_vars():
+def minimal_update_artifact_env_source_dest_vars():
     original_env = dict(os.environ)
 
     # Destination variables
@@ -49,8 +49,7 @@ def minimal_env_source_dest_vars():
 
     # Model and registry variables
     model_vars = {
-        "model_id": "abc",
-        "model_version_id": "def",
+        "model_upload_intent": "update_artifact",
         "model_artifact_id": "123",
         "registry_server_address": "http://localhost",
         "registry_port": "8080",
@@ -114,7 +113,7 @@ def test_unpack_archive_file(dummy_archive, tmp_path):
     assert result == DUMMY_FILE_DATA
 
 
-def test_download_from_s3(minimal_env_source_dest_vars):
+def test_download_from_s3(minimal_update_artifact_env_source_dest_vars):
     """Test download_from_s3 now that it pages through prefixes."""
 
     # load config from your fixture
@@ -202,7 +201,7 @@ def test_download_from_s3(minimal_env_source_dest_vars):
         )
 
 
-def test_download_from_s3_with_region(minimal_env_source_dest_vars):
+def test_download_from_s3_with_region(minimal_update_artifact_env_source_dest_vars):
     """Test download_from_s3 function with region specified"""
 
     # Set region in environment
@@ -250,7 +249,7 @@ def test_download_from_s3_with_region(minimal_env_source_dest_vars):
         )
 
 
-def test_download_from_s3_connection_error(minimal_env_source_dest_vars):
+def test_download_from_s3_connection_error(minimal_update_artifact_env_source_dest_vars):
     """Test download_from_s3 function when S3 connection fails"""
 
     config = get_config([])
@@ -270,7 +269,7 @@ def test_download_from_s3_connection_error(minimal_env_source_dest_vars):
                 download_from_s3(config.source, config.storage.path)
 
 
-def test_download_from_s3_download_error(minimal_env_source_dest_vars):
+def test_download_from_s3_download_error(minimal_update_artifact_env_source_dest_vars):
     """Test download_from_s3 function when file download fails"""
 
     config = get_config([])

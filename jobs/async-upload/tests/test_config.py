@@ -14,10 +14,8 @@ MR_DEST_PREFIX = "MODEL_SYNC_DESTINATION"
 
 
 @pytest.fixture
-def source_s3_env_vars():
+def source_s3_env_vars(monkeypatch):
     """Fixture to set up s3-specific source environment variables"""
-    # Save original environment
-    original_env = dict(os.environ)
 
     vars = {
         "type": "s3",
@@ -29,21 +27,14 @@ def source_s3_env_vars():
     }
 
     for key, value in vars.items():
-        os.environ[f"MODEL_SYNC_SOURCE_{key.upper()}"] = value
+        monkeypatch.setenv(f"MODEL_SYNC_SOURCE_{key.upper()}", value)
 
     yield vars
 
-    # Restore original environment
-    os.environ.clear()
-    os.environ.update(original_env)
-
 
 @pytest.fixture
-def destination_oci_env_vars():
+def destination_oci_env_vars(monkeypatch):
     """Fixture to set up oci-specific destination environment variables"""
-    # Save original environment
-    original_env = dict(os.environ)
-
     vars = {
         "type": "oci",
         "oci_uri": "quay.io/example/oci",
@@ -54,37 +45,44 @@ def destination_oci_env_vars():
 
     # Set up test environment variables
     for key, value in vars.items():
-        os.environ[f"MODEL_SYNC_DESTINATION_{key.upper()}"] = value
+        monkeypatch.setenv(f"MODEL_SYNC_DESTINATION_{key.upper()}", value)
 
     yield vars
-
-    # Restore original environment
-    os.environ.clear()
-    os.environ.update(original_env)
-
 
 @pytest.fixture
-def model_env_vars():
+def create_model_intent_env_vars(monkeypatch):
     """Fixture to set up environment variables for testing"""
-    # Save original environment
-    original_env = dict(os.environ)
-
     vars = {
-        "model_id": "1234",
-        "model_version_id": "0987",
-        "model_artifact_id": "5678",
         "registry_server_address": "https://registry.example.com",
     }
-
     for key, value in vars.items():
-        os.environ[f"MODEL_SYNC_{key.upper()}"] = value
+        monkeypatch.setenv(f"MODEL_SYNC_{key.upper()}", value)
 
     yield vars
 
-    # Restore original environment
-    os.environ.clear()
-    os.environ.update(original_env)
+@pytest.fixture
+def create_version_intent_env_vars(monkeypatch):
+    """Fixture to set up environment variables for testing"""
+    vars = {
+        "model_id": "1234",
+        "registry_server_address": "https://registry.example.com",
+    }
+    for key, value in vars.items():
+        monkeypatch.setenv(f"MODEL_SYNC_{key.upper()}", value)
 
+    yield vars
+
+@pytest.fixture
+def update_artifact_intent_env_vars(monkeypatch):
+    """Fixture to set up environment variables for testing"""
+    vars = {
+        "model_artifact_id": "1234",
+        "registry_server_address": "https://registry.example.com",
+    }
+    for key, value in vars.items():
+        monkeypatch.setenv(f"MODEL_SYNC_{key.upper()}", value)
+
+    yield vars
 
 @pytest.fixture
 def s3_credentials_folder():
@@ -136,7 +134,7 @@ def uri_credentials_folder(tmp_path):
 
 
 def test_s3_file_to_oci_env_config(
-    s3_credentials_folder, destination_oci_env_vars, model_env_vars
+    s3_credentials_folder, destination_oci_env_vars, update_artifact_intent_env_vars
 ):
     """Tests a configuration where the source is S3, using a credentials path, to a destination with OCI env vars"""
     folder_location, expected_credentials = s3_credentials_folder
@@ -171,7 +169,7 @@ def test_s3_file_to_oci_env_config(
 
 
 def test_env_based_s3_to_oci_config(
-    model_env_vars, source_s3_env_vars, destination_oci_env_vars
+    update_artifact_intent_env_vars, source_s3_env_vars, destination_oci_env_vars
 ):
     """Test configuration using environment variables"""
     config = get_config([])
@@ -190,10 +188,8 @@ def test_env_based_s3_to_oci_config(
     assert config.destination.username == destination_oci_env_vars["oci_username"]
     assert config.destination.password == destination_oci_env_vars["oci_password"]
 
-    assert config.model.id == model_env_vars["model_id"]
-    assert config.model.version_id == model_env_vars["model_version_id"]
-    assert config.model.artifact_id == model_env_vars["model_artifact_id"]
-    assert config.registry.server_address == model_env_vars["registry_server_address"]
+    assert config.model.artifact_id == update_artifact_intent_env_vars["model_artifact_id"]
+    assert config.registry.server_address == update_artifact_intent_env_vars["registry_server_address"]
 
 
 def test_params_based_config():
@@ -218,10 +214,8 @@ def test_params_based_config():
             "destination_key_params",
             "--destination-aws-secret-access-key",
             "destination_secret_params",
-            "--model-id",
-            "1234",
-            "--model-version-id",
-            "0987",
+            "--model-upload-intent",
+            "update_artifact",
             "--model-artifact-id",
             "5678",
             "--registry-server-address",
@@ -239,7 +233,7 @@ def test_params_based_config():
 
 
 def test_params_will_override_env_config(
-    model_env_vars, source_s3_env_vars, destination_oci_env_vars
+    update_artifact_intent_env_vars, source_s3_env_vars, destination_oci_env_vars
 ):
     """Test a configuration in which ENV vars are set, but override params are provided to the CLI"""
 
@@ -261,10 +255,8 @@ def test_params_will_override_env_config(
             override_vars["aws_access_key_id"],
             "--source-aws-secret-access-key",
             override_vars["aws_secret_access_key"],
-            "--model-id",
-            "1234",
-            "--model-version-id",
-            "0987",
+            "--model-upload-intent",
+            "update_artifact",
             "--model-artifact-id",
             "5678",
             "--registry-server-address",
@@ -279,7 +271,7 @@ def test_params_will_override_env_config(
     assert config.source.bucket == override_vars["aws_bucket"]
 
 
-def test_uri_file_to_oci_env_config(uri_credentials_folder, destination_oci_env_vars, model_env_vars):
+def test_uri_file_to_oci_env_config(uri_credentials_folder, destination_oci_env_vars, update_artifact_intent_env_vars):
     """Tests a configuration where the source is URI, using a credentials path, to a destination with OCI env vars"""
     folder_location, expected_credentials = uri_credentials_folder
 
@@ -305,7 +297,7 @@ def test_uri_file_to_oci_env_config(uri_credentials_folder, destination_oci_env_
     assert config.destination.password == destination_oci_env_vars["oci_password"]
 
 
-def test_uri_params_to_oci_config(model_env_vars, destination_oci_env_vars):
+def test_uri_params_to_oci_config(update_artifact_intent_env_vars, destination_oci_env_vars):
     """Test URI source configuration using CLI parameters"""
     uri_value = "hf://test/model/params"
 
@@ -328,7 +320,7 @@ def test_uri_params_to_oci_config(model_env_vars, destination_oci_env_vars):
     assert config.destination.uri == destination_oci_env_vars["oci_uri"]
 
 
-def test_uri_credentials_override_params(uri_credentials_folder, destination_oci_env_vars, model_env_vars):
+def test_uri_credentials_override_params(uri_credentials_folder, destination_oci_env_vars, update_artifact_intent_env_vars):
     """Test that URI credentials from file override CLI parameters"""
     folder_location, expected_credentials = uri_credentials_folder
     cli_uri = "hf://cli/model/override"
@@ -352,7 +344,7 @@ def test_uri_credentials_override_params(uri_credentials_folder, destination_oci
     assert config.source.credentials_path == str(folder_location)
 
 
-def test_uri_credentials_missing_folder_error(model_env_vars, destination_oci_env_vars):
+def test_uri_credentials_missing_folder_error(update_artifact_intent_env_vars, destination_oci_env_vars):
     """Test that missing credentials folder raises appropriate error"""
     with pytest.raises(FileNotFoundError, match="credentials folder not found"):
         get_config(
@@ -367,7 +359,7 @@ def test_uri_credentials_missing_folder_error(model_env_vars, destination_oci_en
         )
 
 
-def test_uri_credentials_missing_uri_file_error(model_env_vars, destination_oci_env_vars, tmp_path):
+def test_uri_credentials_missing_uri_file_error(update_artifact_intent_env_vars, destination_oci_env_vars, tmp_path):
     """Test that missing URI file in credentials folder raises appropriate error"""
     # Create empty directory without URI file
     with pytest.raises(FileNotFoundError, match="URI credential file not found"):
@@ -383,7 +375,7 @@ def test_uri_credentials_missing_uri_file_error(model_env_vars, destination_oci_
         )
 
 
-def test_uri_credentials_env_var_support(uri_credentials_folder, model_env_vars, destination_oci_env_vars, tmp_path, monkeypatch):
+def test_uri_credentials_env_var_support(uri_credentials_folder, update_artifact_intent_env_vars, destination_oci_env_vars, tmp_path, monkeypatch):
     """Test that URI credentials path can be set via environment variable"""
     # Create URI credential file
     folder_location, expected_credentials = uri_credentials_folder

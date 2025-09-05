@@ -81,8 +81,7 @@ def apply_job_with_strategic_merge(
     import time
 
     patch_env = {
-        "MODEL_SYNC_MODEL_ID": rm_id,
-        "MODEL_SYNC_MODEL_VERSION_ID": mv_id,
+        "MODEL_SYNC_UPLOAD_INTENT": "update_artifact",
         "MODEL_SYNC_MODEL_ARTIFACT_ID": ma_id,
         **env,
     }

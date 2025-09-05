@@ -117,10 +117,8 @@ spec:
               value: "false"
 
             # ---- Model Params ----
-            - name: MODEL_SYNC_MODEL_ID
-              value: "1"
-            - name: MODEL_SYNC_MODEL_VERSION_ID
-              value: "3"
+            - name: MODEL_SYNC_UPLOAD_INTENT
+              value: "update_artifact"
             - name: MODEL_SYNC_MODEL_ARTIFACT_ID
               value: "6"
 

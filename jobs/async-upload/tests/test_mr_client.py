@@ -26,8 +26,7 @@ def minimal_env_source_dest_vars():
         os.environ[f"MODEL_SYNC_SOURCE_{key.upper()}"] = value
 
     vars = {
-        "model_id": "abc",
-        "model_version_id": "def",
+        "model_upload_intent": "update_artifact",
         "model_artifact_id": "123",
         "registry_server_address": "http://localhost",
         "registry_port": "8080",
