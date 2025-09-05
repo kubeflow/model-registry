@@ -48,13 +48,14 @@ func applyMetricHistoryListFilters(query *gorm.DB, listOptions *models.MetricHis
 		query = query.Where("Artifact.external_id = ?", listOptions.ExternalID)
 	}
 
-	// Add step IDs filter if provided
+	// Add step IDs filter if provided - use unique alias to avoid conflicts with filterQuery joins
 	if listOptions.StepIds != nil && *listOptions.StepIds != "" {
-		query = query.Joins("JOIN ArtifactProperty ON ArtifactProperty.artifact_id = Artifact.id").
-			Where("ArtifactProperty.name = ? AND ArtifactProperty.int_value IN (?)",
+		query = query.Joins("JOIN ArtifactProperty AS step_props ON step_props.artifact_id = Artifact.id").
+			Where("step_props.name = ? AND step_props.int_value IN (?)",
 				"step", strings.Split(*listOptions.StepIds, ","))
 	}
 
+	// Join with Attribution table only when filtering by experiment run ID
 	if listOptions.ExperimentRunID != nil {
 		query = query.Joins("JOIN Attribution ON Attribution.artifact_id = Artifact.id").
 			Where("Attribution.context_id = ?", listOptions.ExperimentRunID)
