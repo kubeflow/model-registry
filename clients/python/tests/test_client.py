@@ -1,5 +1,7 @@
+import logging
 import os
 from itertools import islice
+from unittest.mock import patch
 
 import pytest
 import requests
@@ -1206,3 +1208,75 @@ async def test_as_mlops_engineer_i_would_like_to_store_a_longer_documentation_fo
     )
     assert da
     assert da.uri == "https://README.md"
+
+
+class TestHintServerAddressPort:
+    """Test cases for the hint_server_address_port method via ModelRegistry constructor."""
+
+    @patch.object(ModelRegistry, "get_registered_models")
+    def test_https_with_standard_port_no_warning(self, mock_get_registered_models, caplog):
+        """Test that no warning is issued when using HTTPS with port 443."""
+        mock_get_registered_models.return_value.page_size.return_value._next_page.return_value = None # Mock the method chain that's called in the constructor
+
+        with caplog.at_level(logging.WARNING):
+            ModelRegistry(server_address="https://example.com", port=443, author="test", user_token="test")  # noqa: S106
+
+        assert len(caplog.records) == 0
+
+
+    @patch.object(ModelRegistry, "get_registered_models")
+    def test_https_with_port_ending_443_no_warning(self, mock_get_registered_models, caplog):
+        """Test that no warning is issued when using HTTPS with port ending in 443."""
+        mock_get_registered_models.return_value.page_size.return_value._next_page.return_value = None # Mock the method chain that's called in the constructor
+
+        with caplog.at_level(logging.WARNING):
+            ModelRegistry(server_address="https://example.com", port=8443, author="test", user_token="test") # noqa: S106
+
+        assert len(caplog.records) == 0
+
+
+    @patch.object(ModelRegistry, "get_registered_models")
+    def test_https_with_non_443_port_warning(self, mock_get_registered_models, caplog):
+        """Test that a warning is issued when using HTTPS with non-443 port."""
+        mock_get_registered_models.return_value.page_size.return_value._next_page.return_value = None # Mock the method chain that's called in the constructor
+
+        with caplog.at_level(logging.WARNING):
+            ModelRegistry(server_address="https://example.com", port=8080, author="test", user_token="test") # noqa: S106
+
+        assert len(caplog.records) == 1
+        assert "Server address protocol is https://, but port is not 443 or ending with 443" in caplog.records[0].message
+
+
+    @patch.object(ModelRegistry, "get_registered_models")
+    def test_http_with_standard_port_no_warning(self, mock_get_registered_models, caplog):
+        """Test that no warning is issued when using HTTP with port 80."""
+        mock_get_registered_models.return_value.page_size.return_value._next_page.return_value = None # Mock the method chain that's called in the constructor
+
+        with caplog.at_level(logging.WARNING):
+            ModelRegistry(server_address="http://example.com", port=80, author="test", is_secure=False)
+
+        assert len(caplog.records) == 0
+
+
+    @patch.object(ModelRegistry, "get_registered_models")
+    def test_http_with_port_ending_80_no_warning(self, mock_get_registered_models, caplog):
+        """Test that no warning is issued when using HTTP with port ending in 80."""
+        mock_get_registered_models.return_value.page_size.return_value._next_page.return_value = None # Mock the method chain that's called in the constructor
+
+        with caplog.at_level(logging.WARNING):
+            ModelRegistry(server_address="http://example.com", port=8080, author="test", is_secure=False)
+
+        assert len(caplog.records) == 0
+
+
+    @patch.object(ModelRegistry, "get_registered_models")
+    def test_http_with_non_80_port_warning(self, mock_get_registered_models, caplog):
+        """Test that a warning is issued when using HTTP with non-80 port."""
+        mock_get_registered_models.return_value.page_size.return_value._next_page.return_value = None # Mock the method chain that's called in the constructor
+
+        with caplog.at_level(logging.WARNING):
+            ModelRegistry(server_address="http://example.com", port=8443, author="test", is_secure=False)
+
+        assert len(caplog.records) == 1
+        assert "Server address protocol is http://, but port is not 80 or ending with 80" in caplog.records[0].message
+
