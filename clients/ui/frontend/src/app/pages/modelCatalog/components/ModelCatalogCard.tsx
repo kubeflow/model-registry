@@ -19,30 +19,27 @@ import {
 } from '@patternfly/react-core';
 import { TagIcon } from '@patternfly/react-icons';
 import { useNavigate } from 'react-router-dom';
-import { ModelCatalogItem } from '~/app/modelCatalogTypes';
+import { CatalogModel } from '~/app/modelCatalogTypes';
 import {
   extractVersionTag,
   filterNonVersionTags,
+  getModelName,
 } from '~/app/pages/modelCatalog/utils/modelCatalogUtils';
 import ModelCatalogLabels from './ModelCatalogLabels';
+import { modelCatalogDetailsUrl } from '../routeUtils';
 
 type ModelCatalogCardProps = {
-  model: ModelCatalogItem;
+  model: CatalogModel;
   source: string;
   truncate?: boolean;
-  onSelect?: (model: ModelCatalogItem) => void;
 };
 
-const ModelCatalogCard: React.FC<ModelCatalogCardProps> = ({
-  model,
-  source,
-  truncate = false,
-  onSelect,
-}) => {
+const ModelCatalogCard: React.FC<ModelCatalogCardProps> = ({ model, source, truncate = false }) => {
   const navigate = useNavigate();
 
-  const versionTag = extractVersionTag(model.tags);
-  const nonVersionTags = filterNonVersionTags(model.tags);
+  // TODO: we don't have tags prop on models
+  // const versionTag = extractVersionTag(model.tags);
+  // const nonVersionTags = filterNonVersionTags(model.tags);
 
   return (
     <Card isFullHeight data-testid="model-catalog-card">
@@ -74,11 +71,7 @@ const ModelCatalogCard: React.FC<ModelCatalogCardProps> = ({
               isInline
               component="a"
               onClick={() => {
-                if (onSelect) {
-                  onSelect(model);
-                } else {
-                  navigate(`/model-catalog/${encodeURIComponent(model.id)}` || '#');
-                }
+                navigate(modelCatalogDetailsUrl(model));
               }}
               style={{
                 fontSize: 'var(--pf-t--global--font--size--body--default)',
@@ -94,7 +87,7 @@ const ModelCatalogCard: React.FC<ModelCatalogCardProps> = ({
                   style={{ textDecoration: 'underline' }}
                 />
               ) : (
-                <span>{model.name}</span>
+                <span>{getModelName(model.name)}</span>
               )}
             </Button>
             <Split hasGutter>
@@ -102,9 +95,10 @@ const ModelCatalogCard: React.FC<ModelCatalogCardProps> = ({
                 <Icon isInline>
                   <TagIcon />
                 </Icon>
-                <span style={{ marginLeft: 'var(--pf-t--global--spacer--sm)' }}>
+                {/* TODO: no tags prop on model */}
+                {/* <span style={{ marginLeft: 'var(--pf-t--global--spacer--sm)' }}>
                   {versionTag || 'No version'}
-                </span>
+                </span> */}
               </SplitItem>
             </Split>
           </StackItem>
@@ -129,10 +123,11 @@ const ModelCatalogCard: React.FC<ModelCatalogCardProps> = ({
       </CardBody>
       <CardFooter>
         <ModelCatalogLabels
-          tags={nonVersionTags}
-          framework={model.framework}
-          task={model.task}
+          // tags={model.tags}
+          // labels={model.labels}
+          tasks={model.tasks ?? []}
           license={model.license}
+          provider={model.provider}
         />
       </CardFooter>
     </Card>
