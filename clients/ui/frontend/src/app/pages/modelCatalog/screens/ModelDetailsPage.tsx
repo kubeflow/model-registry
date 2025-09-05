@@ -19,35 +19,37 @@ import {
 } from '@patternfly/react-core';
 import { TagIcon } from '@patternfly/react-icons';
 import { ApplicationsPage } from 'mod-arch-shared';
-import { useModelCatalogSources } from '~/app/hooks/modelCatalog/useModelCatalogSources';
-import { extractVersionTag } from '~/app/pages/modelCatalog/utils/modelCatalogUtils';
-import { ModelRegistrySelectorContext } from '~/app/context/ModelRegistrySelectorContext';
+import { useCatalogModelsbySources } from '~/app/hooks/modelCatalog/useCatalogModelsbySources';
+import {
+  extractVersionTag,
+  findCatalogModel,
+  getModelName,
+} from '~/app/pages/modelCatalog/utils/modelCatalogUtils';
+import ModelDetailsView from '~/app/pages/modelCatalog/screens/ModelDetailsView';
+import { CatalogModel } from '~/app/modelCatalogTypes';
 import { getRegisterCatalogModelRoute } from '~/app/routes/modelCatalog/catalogModelRegister';
-import ModelDetailsView from './ModelDetailsView';
+import { ModelRegistrySelectorContext } from '~/app/context/ModelRegistrySelectorContext';
 
 type RouteParams = {
-  modelId: string;
+  sourceId: string;
+  modelName: string;
 };
 
 const ModelDetailsPage: React.FC = () => {
-  const { modelId } = useParams<RouteParams>();
+  const { sourceId, modelName } = useParams<RouteParams>();
   const navigate = useNavigate();
-  const { sources, loading, error } = useModelCatalogSources();
+  const [catalogModels, loaded, loadError] = useCatalogModelsbySources(sourceId ?? '');
   const { modelRegistries, modelRegistriesLoadError, modelRegistriesLoaded } = React.useContext(
     ModelRegistrySelectorContext,
   );
 
-  const model = React.useMemo(() => {
-    for (const source of sources) {
-      const found = source.models?.find((m) => m.id === modelId);
-      if (found) {
-        return found;
-      }
-    }
-    return undefined;
-  }, [sources, modelId]);
+  const model: CatalogModel | null = React.useMemo(
+    () => findCatalogModel(catalogModels, sourceId || '', modelName || ''),
+    [sourceId, catalogModels],
+  );
 
-  const versionTag = extractVersionTag(model?.tags);
+  // TODO: we don't have tags prop on models
+  // const versionTag = extractVersionTag(model?.tags);
 
   const registerModelButton = () => {
     if (!modelRegistriesLoaded || modelRegistriesLoadError) {
@@ -75,8 +77,8 @@ const ModelDetailsPage: React.FC = () => {
         data-testid="register-model-button"
         variant="primary"
         onClick={() => {
-          if (modelId) {
-            navigate(getRegisterCatalogModelRoute(modelId));
+          if (sourceId) {
+            navigate(getRegisterCatalogModelRoute(sourceId));
           }
         }}
       >
@@ -92,7 +94,7 @@ const ModelDetailsPage: React.FC = () => {
           <BreadcrumbItem>
             <Link to="/model-catalog">Model catalog</Link>
           </BreadcrumbItem>
-          <BreadcrumbItem isActive>{model?.name || 'Details'}</BreadcrumbItem>
+          <BreadcrumbItem isActive>{getModelName(model?.name || '') || 'Details'}</BreadcrumbItem>
         </Breadcrumb>
       }
       title={
@@ -117,10 +119,11 @@ const ModelDetailsPage: React.FC = () => {
                   spaceItems={{ default: 'spaceItemsSm' }}
                   alignItems={{ default: 'alignItemsCenter' }}
                 >
-                  <FlexItem>{model.name}</FlexItem>
-                  <Label variant="outline" icon={<TagIcon />}>
+                  <FlexItem>{getModelName(model.name)}</FlexItem>
+                  {/* TODO: dont have tags */}
+                  {/* <Label variant="outline" icon={<TagIcon />}>
                     {versionTag || 'N/A'}
-                  </Label>
+                  </Label> */}
                 </Flex>
               </StackItem>
               <StackItem>
@@ -132,7 +135,7 @@ const ModelDetailsPage: React.FC = () => {
           'Model details'
         )
       }
-      empty={!loading && !error && !model}
+      empty={loaded && !loadError && !model}
       emptyStatePage={
         !model ? (
           <div>
@@ -140,13 +143,13 @@ const ModelDetailsPage: React.FC = () => {
           </div>
         ) : undefined
       }
-      loadError={error}
-      loaded={!loading}
+      loadError={loadError}
+      loaded={loaded}
       errorMessage="Unable to load model catalog"
       provideChildrenPadding
       headerAction={
-        !loading &&
-        !error &&
+        !loaded &&
+        !loadError &&
         model && (
           <ActionList>
             <ActionListGroup>{registerModelButton()}</ActionListGroup>
