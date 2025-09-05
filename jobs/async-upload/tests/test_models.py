@@ -70,8 +70,6 @@ class TestModelConfigValidateModelIds:
         """Test that update_artifact intent succeeds when artifact ID is provided"""
         config = ModelConfig(
             upload_intent=UploadIntent.update_artifact,
-            id="test-model-id",  # Can be provided but not required
-            version_id="test-version-id",  # Can be provided but not required
             artifact_id="test-artifact-id"
         )
         
