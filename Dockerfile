@@ -7,6 +7,7 @@ WORKDIR /workspace
 # Copy the Go Modules manifests and workspace file
 COPY ["go.mod", "go.sum", "go.work", "go.work.sum", "./"]
 COPY ["pkg/openapi/go.mod", "pkg/openapi/"]
+COPY ["catalog/pkg/openapi/go.mod", "catalog/pkg/openapi/"]
 # cache deps before building and copying source so that we don't need to re-download as much
 # and so that source changes don't invalidate our downloaded layer
 RUN go mod download

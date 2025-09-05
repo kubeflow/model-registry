@@ -829,6 +829,27 @@ func TestGetModel(t *testing.T) {
 			expectedStatus: http.StatusNotFound,
 			expectedModel:  nil,
 		},
+		{
+			name: "Model name with an escaped slash and version",
+			sources: map[string]catalog.CatalogSource{
+				"source1": {
+					Metadata: model.CatalogSource{Id: "source1", Name: "Test Source"},
+					Provider: &mockModelProvider{
+						models: map[string]*model.CatalogModel{
+							"some/model:v1.0.0": {
+								Name: "some/model:v1.0.0",
+							},
+						},
+					},
+				},
+			},
+			sourceID:       "source1",
+			modelName:      "some%2Fmodel%3Av1.0.0",
+			expectedStatus: http.StatusOK,
+			expectedModel: &model.CatalogModel{
+				Name: "some/model:v1.0.0",
+			},
+		},
 	}
 
 	for _, tc := range testCases {
