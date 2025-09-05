@@ -1,9 +1,29 @@
+from __future__ import annotations
+
 import json
 import threading
 
 import pytest
 
 from model_registry import ModelRegistry, utils
+from model_registry.types import Artifact, ListOptions, Pager
+
+
+def get_artifacts(
+    model_registry: ModelRegistry,
+    filter_query: str | None = None,
+    artifact_type: str | None = None,
+) -> Pager[Artifact]:
+    def artifacts_list(options: ListOptions) -> list[Artifact]:
+        return model_registry.async_runner(
+            model_registry._api.get_artifacts(
+                filter_query=filter_query,
+                artifact_type=artifact_type,
+                options=options,
+            )
+        )
+
+    return Pager[Artifact](artifacts_list)
 
 
 @pytest.fixture
@@ -295,3 +315,153 @@ async def test_start_experiment_run_nested_thread_safety(client: ModelRegistry):
             assert r.custom_properties is None
 
     assert ctr == 10
+
+
+@pytest.mark.e2e
+def test_bulk_metrics_and_params_retrieval(client: ModelRegistry):  # noqa: C901
+    """Test bulk retrieval of metrics and parameters for multiple experiment runs.
+
+    This test:
+    1. Creates multiple experiments with multiple runs each
+    2. Logs multiple metrics and parameters for each run
+    3. Selects a subset of runs from different experiments
+    4. Tests bulk retrieval of all metrics and parameters for the selected runs
+    """
+    # Create multiple experiments
+    experiments = []
+    for i in range(3):
+        exp_name = f"BulkTest_Experiment_{i}"
+        exp = client.create_experiment(exp_name)
+        experiments.append(exp)
+
+    # Create multiple runs per experiment and log metrics/params
+    all_runs = []
+    for exp_idx, exp in enumerate(experiments):
+        for run_idx in range(4):  # 4 runs per experiment
+            with client.start_experiment_run(experiment_name=exp.name) as run:
+                # Log multiple parameters
+                run.log_param("learning_rate", 0.001 * (run_idx + 1))
+                run.log_param("batch_size", 32 * (run_idx + 1))
+                run.log_param("epochs", 10 + run_idx)
+                run.log_param("optimizer", f"adam_{run_idx}")
+                run.log_param("model_type", f"resnet_{exp_idx}")
+
+                # Log multiple metrics
+                for metric_idx in range(3):
+                    run.log_metric(
+                        key=f"accuracy_epoch_{metric_idx}",
+                        value=0.8 + (run_idx * 0.05) + (metric_idx * 0.01),
+                        step=metric_idx,
+                        description=f"Accuracy at epoch {metric_idx}",
+                    )
+                    run.log_metric(
+                        key=f"loss_epoch_{metric_idx}",
+                        value=1.0 - (run_idx * 0.1) - (metric_idx * 0.05),
+                        step=metric_idx,
+                        description=f"Loss at epoch {metric_idx}",
+                    )
+
+                # Log some additional metrics
+                run.log_metric("final_accuracy", 0.95 + (run_idx * 0.01))
+                run.log_metric("training_time", 120 + (run_idx * 10))
+
+                all_runs.append(run.info)
+
+    # Select a subset of runs (some from each experiment)
+    selected_runs = []
+    # Take 2 runs from each experiment
+    for exp_idx in range(3):
+        exp_runs = [run for run in all_runs if run.experiment_id == experiments[exp_idx].id]
+        selected_runs.extend(exp_runs[:2])  # Take first 2 runs from each experiment
+
+    assert len(selected_runs) == 6  # 2 runs from each of 3 experiments
+
+    # Test bulk retrieval using the new get_artifacts method
+    # Get all artifacts for the selected runs
+    selected_run_ids = [run.id for run in selected_runs]
+    run_ids_list = ",".join([f'"{run_id}"' for run_id in selected_run_ids])
+    run_ids_filter = f"experimentRunId IN ({run_ids_list})"
+
+    # Get all artifacts for selected runs
+    all_artifacts = list(get_artifacts(client, filter_query=run_ids_filter))
+
+    # Filter by type in Python (since SQL filtering by artifact type doesn't work)
+    all_metrics = [a for a in all_artifacts if hasattr(a, "value") and hasattr(a, "step")]
+    all_params = [a for a in all_artifacts if hasattr(a, "parameter_type")]
+
+    # Verify we got metrics and parameters from all selected runs
+    unique_run_ids_metrics = set()
+    unique_run_ids_params = set()
+
+    for metric in all_metrics:
+        # Extract run_id from metric's custom properties or other fields
+        # Since we don't have direct run_id in the artifact, we'll verify by checking
+        # that we have the expected number of metrics
+        unique_run_ids_metrics.add(metric.name)
+
+    for param in all_params:
+        unique_run_ids_params.add(param.name)
+
+    # Verify we have the expected number of metrics and parameters
+    # Each run should have: 3 accuracy metrics + 3 loss metrics + 2 additional metrics = 8 metrics
+    # Each run should have: 5 parameters
+    expected_metrics_per_run = 8
+    expected_params_per_run = 5
+
+    assert len(all_metrics) == len(selected_runs) * expected_metrics_per_run, (
+        f"Expected {len(selected_runs) * expected_metrics_per_run} metrics, got {len(all_metrics)}"
+    )
+    assert len(all_params) == len(selected_runs) * expected_params_per_run, (
+        f"Expected {len(selected_runs) * expected_params_per_run} parameters, got {len(all_params)}"
+    )
+
+    # Verify specific metrics and parameters exist
+    metric_names = {metric.name for metric in all_metrics}
+    param_names = {param.name for param in all_params}
+
+    expected_metric_names = {
+        "accuracy_epoch_0",
+        "accuracy_epoch_1",
+        "accuracy_epoch_2",
+        "loss_epoch_0",
+        "loss_epoch_1",
+        "loss_epoch_2",
+        "final_accuracy",
+        "training_time",
+    }
+    expected_param_names = {"learning_rate", "batch_size", "epochs", "optimizer", "model_type"}
+
+    assert metric_names == expected_metric_names, f"Expected metrics {expected_metric_names}, got {metric_names}"
+    assert param_names == expected_param_names, f"Expected parameters {expected_param_names}, got {param_names}"
+
+    # Verify values are reasonable
+    for metric in all_metrics:
+        assert isinstance(metric.value, (int, float)), f"Metric {metric.name} should have numeric value"
+        assert metric.value > 0, f"Metric {metric.name} should have positive value"
+
+    for param in all_params:
+        assert param.value is not None, f"Parameter {param.name} should have a value"
+
+    # Test filtering by specific metric names using SQL
+    accuracy_artifacts = list(get_artifacts(client, filter_query=f'{run_ids_filter} AND name LIKE "%accuracy%"'))
+    accuracy_metrics = [a for a in accuracy_artifacts if hasattr(a, "value") and hasattr(a, "step")]
+
+    # Should have 4 accuracy metrics per run (3 epoch + 1 final)
+    expected_accuracy_metrics = len(selected_runs) * 4
+    assert len(accuracy_metrics) == expected_accuracy_metrics, (
+        f"Expected {expected_accuracy_metrics} accuracy metrics, got {len(accuracy_metrics)}"
+    )
+
+    # Test filtering by specific parameter names using SQL
+    learning_rate_artifacts = list(get_artifacts(client, filter_query=f'{run_ids_filter} AND name = "learning_rate"'))
+    learning_rate_params = [a for a in learning_rate_artifacts if hasattr(a, "parameter_type")]
+
+    # Should have 1 learning_rate parameter per run
+    assert len(learning_rate_params) == len(selected_runs), (
+        f"Expected {len(selected_runs)} learning_rate parameters, got {len(learning_rate_params)}"
+    )
+
+    print(
+        f"Successfully retrieved {len(all_metrics)} metrics and {len(all_params)} parameters from {len(selected_runs)} experiment runs"
+    )
+    print("Bulk retrieval test completed successfully!")
