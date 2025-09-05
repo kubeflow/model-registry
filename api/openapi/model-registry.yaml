@@ -253,6 +253,35 @@ paths:
       operationId: createExperimentRun
       summary: Create an ExperimentRun
       description: Creates a new instance of an `ExperimentRun`.
+  "/api/model_registry/v1alpha3/experiment_runs/metric_history":
+    summary: Path used to get metric history for multiple experiment runs.
+    description: >-
+      The REST endpoint/path used to get metric history for multiple `ExperimentRun` entities. This path contains a `GET` operation to retrieve metrics with optional filtering.
+    get:
+      tags:
+        - ModelRegistryService
+      parameters:
+        - $ref: "#/components/parameters/filterQuery"
+        - $ref: "#/components/parameters/name"
+        - $ref: "#/components/parameters/stepIds"
+        - $ref: "#/components/parameters/pageSize"
+        - $ref: "#/components/parameters/orderBy"
+        - $ref: "#/components/parameters/sortOrder"
+        - $ref: "#/components/parameters/nextPageToken"
+      responses:
+        "200":
+          $ref: "#/components/responses/MetricListResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+        "503":
+          $ref: "#/components/responses/ServiceUnavailable"
+      operationId: getExperimentRunsMetricHistory
+      summary: Get metric history for multiple ExperimentRuns
+      description: Gets the metric history for multiple `ExperimentRun` entities with optional filtering by metric name, step IDs, and experiment run IDs.
   "/api/model_registry/v1alpha3/experiment_runs/{experimentrunId}":
     summary: Path used to manage a single ExperimentRun.
     description: >-

@@ -381,18 +381,23 @@ func TestGetExperimentRunMetricHistoryWithPagination(t *testing.T) {
 	assert.Equal(t, pageSize, result.PageSize, "should have correct page size")
 }
 
+func TestGetExperimentRunMetricHistoryBulkQuery(t *testing.T) {
+	service, cleanup := SetupModelRegistryService(t)
+	defer cleanup()
+
+	// Test with nil experiment run ID should work (bulk query)
+	result, err := service.GetExperimentRunMetricHistory(nil, nil, api.ListOptions{}, nil)
+	assert.NoError(t, err, "should not return error for nil experiment run ID (bulk query)")
+	assert.NotNil(t, result, "should return result for bulk query")
+}
+
 func TestGetExperimentRunMetricHistoryWithInvalidExperimentRunId(t *testing.T) {
 	service, cleanup := SetupModelRegistryService(t)
 	defer cleanup()
 
-	// Test with nil experiment run ID
-	_, err := service.GetExperimentRunMetricHistory(nil, nil, api.ListOptions{}, nil)
-	assert.Error(t, err, "should return error for nil experiment run ID")
-	assert.Contains(t, err.Error(), "experiment run ID is required")
-
 	// Test with non-existent experiment run ID
 	nonExistentId := "999999"
-	_, err = service.GetExperimentRunMetricHistory(nil, nil, api.ListOptions{}, &nonExistentId)
+	_, err := service.GetExperimentRunMetricHistory(nil, nil, api.ListOptions{}, &nonExistentId)
 	assert.Error(t, err, "should return error for non-existent experiment run ID")
 	assert.Contains(t, err.Error(), "experiment run not found")
 }
@@ -600,6 +605,137 @@ func TestGetExperimentRunMetricHistoryWithStepIdsFilter(t *testing.T) {
 	for _, item := range result.Items {
 		assert.Equal(t, "accuracy", *item.Name, "all metrics should be accuracy")
 		assert.True(t, *item.Step == 1 || *item.Step == 2, "all metrics should be from step 1 or 2")
+	}
+}
+
+func TestGetExperimentRunsMetricHistoryBulk(t *testing.T) {
+	service, cleanup := SetupModelRegistryService(t)
+	defer cleanup()
+
+	// Create experiment
+	experiment := &openapi.Experiment{
+		Name:        "test-experiment-bulk",
+		Description: apiutils.Of("Test experiment for bulk metric history"),
+	}
+	savedExperiment, err := service.UpsertExperiment(experiment)
+	require.NoError(t, err)
+
+	// Create two experiment runs
+	experimentRun1 := &openapi.ExperimentRun{
+		Name:        apiutils.Of("test-experiment-run-1"),
+		Description: apiutils.Of("Test experiment run 1 for bulk metric history"),
+	}
+	savedExperimentRun1, err := service.UpsertExperimentRun(experimentRun1, savedExperiment.Id)
+	require.NoError(t, err)
+
+	experimentRun2 := &openapi.ExperimentRun{
+		Name:        apiutils.Of("test-experiment-run-2"),
+		Description: apiutils.Of("Test experiment run 2 for bulk metric history"),
+	}
+	savedExperimentRun2, err := service.UpsertExperimentRun(experimentRun2, savedExperiment.Id)
+	require.NoError(t, err)
+
+	// Create metrics for first experiment run
+	metric1Run1 := &openapi.Metric{
+		Name:      apiutils.Of("accuracy"),
+		Value:     apiutils.Of(0.85),
+		Timestamp: apiutils.Of("1234567890"),
+		Step:      apiutils.Of(int64(1)),
+	}
+	metric2Run1 := &openapi.Metric{
+		Name:      apiutils.Of("loss"),
+		Value:     apiutils.Of(0.15),
+		Timestamp: apiutils.Of("1234567891"),
+		Step:      apiutils.Of(int64(1)),
+	}
+
+	// Create metrics for second experiment run
+	metric1Run2 := &openapi.Metric{
+		Name:      apiutils.Of("accuracy"),
+		Value:     apiutils.Of(0.90),
+		Timestamp: apiutils.Of("1234567892"),
+		Step:      apiutils.Of(int64(2)),
+	}
+	metric2Run2 := &openapi.Metric{
+		Name:      apiutils.Of("loss"),
+		Value:     apiutils.Of(0.10),
+		Timestamp: apiutils.Of("1234567893"),
+		Step:      apiutils.Of(int64(2)),
+	}
+
+	// Insert metric history for both runs
+	err = service.InsertMetricHistory(metric1Run1, *savedExperimentRun1.Id)
+	require.NoError(t, err, "error inserting metric 1 for run 1")
+	err = service.InsertMetricHistory(metric2Run1, *savedExperimentRun1.Id)
+	require.NoError(t, err, "error inserting metric 2 for run 1")
+	err = service.InsertMetricHistory(metric1Run2, *savedExperimentRun2.Id)
+	require.NoError(t, err, "error inserting metric 1 for run 2")
+	err = service.InsertMetricHistory(metric2Run2, *savedExperimentRun2.Id)
+	require.NoError(t, err, "error inserting metric 2 for run 2")
+
+	// Test getting all metric history for all experiment runs (bulk endpoint)
+	result, err := service.GetExperimentRunMetricHistory(nil, nil, api.ListOptions{}, nil)
+	require.NoError(t, err, "error getting bulk metric history")
+	assert.GreaterOrEqual(t, int(result.Size), 4, "should return at least 4 metric history records")
+	assert.GreaterOrEqual(t, len(result.Items), 4, "should have at least 4 items in the result")
+
+	// Debug: print information about returned metrics
+	t.Logf("Found %d total metrics in bulk query", len(result.Items))
+	for i, item := range result.Items {
+		nameStr := "<nil>"
+		if item.Name != nil {
+			nameStr = *item.Name
+		}
+		expRunIdStr := "<nil>"
+		if item.ExperimentRunId != nil {
+			expRunIdStr = *item.ExperimentRunId
+		}
+		expIdStr := "<nil>"
+		if item.ExperimentId != nil {
+			expIdStr = *item.ExperimentId
+		}
+		t.Logf("Metric %d: name=%s, experimentRunId=%s, experimentId=%s",
+			i, nameStr, expRunIdStr, expIdStr)
+	}
+
+	// Verify we have metrics from both experiment runs
+	run1MetricsFound := 0
+	run2MetricsFound := 0
+	for _, item := range result.Items {
+		// For metrics we inserted, experiment fields should be populated
+		// But bulk query might return other metrics too, so we only check our specific ones
+		if item.ExperimentRunId != nil {
+			switch *item.ExperimentRunId {
+			case *savedExperimentRun1.Id:
+				run1MetricsFound++
+				// Verify experiment fields are populated for our metrics
+				assert.Equal(t, savedExperiment.Id, item.ExperimentId, "experimentId should be populated for run 1 metrics")
+			case *savedExperimentRun2.Id:
+				run2MetricsFound++
+				// Verify experiment fields are populated for our metrics
+				assert.Equal(t, savedExperiment.Id, item.ExperimentId, "experimentId should be populated for run 2 metrics")
+			}
+		}
+	}
+	assert.GreaterOrEqual(t, run1MetricsFound, 2, "should find at least 2 metrics from experiment run 1")
+	assert.GreaterOrEqual(t, run2MetricsFound, 2, "should find at least 2 metrics from experiment run 2")
+
+	// Test filtering by name in bulk mode
+	accuracyName := "accuracy"
+	result, err = service.GetExperimentRunMetricHistory(&accuracyName, nil, api.ListOptions{}, nil)
+	require.NoError(t, err, "error getting bulk metric history with name filter")
+	assert.GreaterOrEqual(t, int(result.Size), 2, "should return at least 2 accuracy metrics")
+	for _, item := range result.Items {
+		assert.Equal(t, "accuracy", *item.Name, "all returned metrics should be accuracy metrics")
+	}
+
+	// Test filtering by step IDs in bulk mode
+	stepIds := "1"
+	result, err = service.GetExperimentRunMetricHistory(nil, &stepIds, api.ListOptions{}, nil)
+	require.NoError(t, err, "error getting bulk metric history with step filter")
+	assert.GreaterOrEqual(t, int(result.Size), 2, "should return at least 2 metrics from step 1")
+	for _, item := range result.Items {
+		assert.Equal(t, int64(1), *item.Step, "all returned metrics should be from step 1")
 	}
 }
 
