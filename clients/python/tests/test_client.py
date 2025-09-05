@@ -1,5 +1,7 @@
 import os
+import tempfile
 from itertools import islice
+from unittest.mock import patch
 
 import pytest
 import requests
@@ -1206,3 +1208,129 @@ async def test_as_mlops_engineer_i_would_like_to_store_a_longer_documentation_fo
     )
     assert da
     assert da.uri == "https://README.md"
+
+
+class MockPath:
+    def __init__(self, path_arg, file_contents=None):
+        self.path_arg = str(path_arg)
+        self.file_contents = file_contents or {}
+
+    def exists(self):
+        print("exists", self.path_arg)
+        return self.path_arg in self.file_contents
+
+    def read_text(self):
+        return self.file_contents.get(self.path_arg, "<wrong, returning arbitrary string>")
+
+    def __str__(self):
+        return self.path_arg
+
+    def __repr__(self):
+        return f"MockPath('{self.path_arg}', file_contents={self.file_contents})"
+
+
+class TestUserToken:
+    @patch.object(ModelRegistry, "get_registered_models")
+    def test_user_token_from_envvar(self, mock_get_registered_models):
+        """Test for user not providing explicitly user_token,
+        reading user token from environment variable."""
+        test_token = "test-token-from-envvar"
+
+        with tempfile.NamedTemporaryFile(mode="w", delete=False) as token_file:
+            token_file.write(test_token)
+            token_file_path = token_file.name
+
+        try:
+            with patch.dict(os.environ, {"KF_PIPELINES_SA_TOKEN_PATH": token_file_path}):
+                client = ModelRegistry(
+                    server_address="http://localhost",
+                    port=8080,
+                    author="test_author",
+                    is_secure=False,
+                    # user_token=None -> ... Let it read from Env var
+                )
+                assert client is not None
+                assert client._api.config.access_token == test_token
+        finally:
+            os.unlink(token_file_path)
+
+    @patch.object(ModelRegistry, "get_registered_models")
+    def test_user_token_from_k8s_file(self, mock_get_registered_models):
+        """Test for user not providing explicitly user_token,
+        reading user token from Kubernetes service account token file."""
+        test_token = "test-token-from-k8s-file"
+        k8s_token_path = "/var/run/secrets/kubernetes.io/serviceaccount/token"
+
+        with patch("model_registry._client.Path") as mock_path_class, \
+                patch.dict(os.environ, {}, clear=True):  # Clear env vars to force K8s fallback
+            def path_side_effect(path_arg):
+                return MockPath(path_arg, file_contents={k8s_token_path: test_token})
+
+            mock_path_class.side_effect = path_side_effect
+
+            client = ModelRegistry(
+                server_address="http://localhost",
+                port=8080,
+                author="test_author",
+                is_secure=False,
+                # user_token=None -> ... Let it read from K8s file
+            )
+            assert client is not None
+            assert client._api.config.access_token == test_token
+
+    @patch.object(ModelRegistry, "get_registered_models")
+    def test_user_token_envvar_priority_over_k8s(self, mock_get_registered_models):
+        """Test for user not providing explicitly user_token,
+        reading user token from environment variable,
+        taking precedence over K8s file for Service Account token."""
+        env_token = "test-token-from-envvar"
+        k8s_token_path = "/var/run/secrets/kubernetes.io/serviceaccount/token"
+        k8s_token = "test-token-from-k8s-file"
+
+        with tempfile.NamedTemporaryFile(mode="w", delete=False) as env_token_file:
+            env_token_file.write(env_token)
+            env_token_path = env_token_file.name
+
+        try:
+            with patch("model_registry._client.Path") as mock_path_class, \
+                    patch.dict(os.environ, {"KF_PIPELINES_SA_TOKEN_PATH": env_token_path}):
+                def path_side_effect(path_arg):
+                    return MockPath(path_arg, file_contents={k8s_token_path: k8s_token, env_token_path: env_token})
+
+                mock_path_class.side_effect = path_side_effect
+
+                client = ModelRegistry(
+                    server_address="http://localhost",
+                    port=8080,
+                    author="test_author",
+                    is_secure=False,
+                    # user_token=None -> ... Let it read from Env var (and not from K8s file, given that Env var is set)
+                )
+                assert client is not None
+                assert client._api.config.access_token == env_token
+        finally:
+            os.unlink(env_token_path)
+
+    @patch.object(ModelRegistry, "get_registered_models")
+    def test_user_token_missing_warning(self, mock_get_registered_models):
+        """Test for user not providing explicitly user_token,
+        after trying to read from envvar and K8s file for Service Account token but both are missing,
+        it will emit a warning."""
+        with patch("model_registry._client.Path") as mock_path_class, \
+             patch("model_registry._client.warn") as mock_warn, \
+             patch.dict(os.environ, {}, clear=True):  # Clear env vars
+            def path_side_effect(path_arg):
+                return MockPath(path_arg, file_contents={})  # No files exist
+
+            mock_path_class.side_effect = path_side_effect
+
+            client = ModelRegistry(
+                server_address="http://localhost",
+                port=8080,
+                author="test_author",
+                is_secure=False,
+                # user_token=None -> ... Let it try to read, but missing Env var and K8s file, it will emit a warning
+            )
+            assert client is not None
+            mock_warn.assert_called_with("User access token is missing", stacklevel=2)
+

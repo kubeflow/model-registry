@@ -128,10 +128,13 @@ class ModelRegistry:
             # /var/run/secrets/kubernetes.io/serviceaccount/token
             if sa_token := os.environ.get(user_token_envvar):
                 if user_token_envvar == DEFAULT_USER_TOKEN_ENVVAR:
-                    logger.warning(
+                    logger.info(
                         f"Sourcing user token from default envvar: {DEFAULT_USER_TOKEN_ENVVAR}"
                     )
                 user_token = Path(sa_token).read_text()
+            elif Path("/var/run/secrets/kubernetes.io/serviceaccount/token").exists():
+                user_token = Path("/var/run/secrets/kubernetes.io/serviceaccount/token").read_text()
+                logger.info("Sourced user token from K8s default path: /var/run/secrets/kubernetes.io/serviceaccount/token.")
             else:
                 warn("User access token is missing", stacklevel=2)
 
