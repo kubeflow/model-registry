@@ -1234,7 +1234,7 @@ class TestUserToken:
     def test_user_token_from_envvar(self, mock_get_registered_models):
         """Test for user not providing explicitly user_token,
         reading user token from environment variable."""
-        test_token = "test-token-from-envvar"
+        test_token = "test-token-from-envvar" # noqa: S105
 
         with tempfile.NamedTemporaryFile(mode="w", delete=False) as token_file:
             token_file.write(test_token)
@@ -1258,8 +1258,8 @@ class TestUserToken:
     def test_user_token_from_k8s_file(self, mock_get_registered_models):
         """Test for user not providing explicitly user_token,
         reading user token from Kubernetes service account token file."""
-        test_token = "test-token-from-k8s-file"
-        k8s_token_path = "/var/run/secrets/kubernetes.io/serviceaccount/token"
+        test_token = "test-token-from-k8s-file" # noqa: S105
+        k8s_token_path = "/var/run/secrets/kubernetes.io/serviceaccount/token" # noqa: S105
 
         with patch("model_registry._client.Path") as mock_path_class, \
                 patch.dict(os.environ, {}, clear=True):  # Clear env vars to force K8s fallback
@@ -1283,9 +1283,9 @@ class TestUserToken:
         """Test for user not providing explicitly user_token,
         reading user token from environment variable,
         taking precedence over K8s file for Service Account token."""
-        env_token = "test-token-from-envvar"
-        k8s_token_path = "/var/run/secrets/kubernetes.io/serviceaccount/token"
-        k8s_token = "test-token-from-k8s-file"
+        env_token = "test-token-from-envvar" # noqa: S105
+        k8s_token_path = "/var/run/secrets/kubernetes.io/serviceaccount/token" # noqa: S105
+        k8s_token = "test-token-from-k8s-file" # noqa: S105
 
         with tempfile.NamedTemporaryFile(mode="w", delete=False) as env_token_file:
             env_token_file.write(env_token)
