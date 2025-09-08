@@ -59,7 +59,7 @@ export MODEL_REGISTRY_TOKEN="your-token"
 # Kubernetes service account token from `/var/run/secrets/kubernetes.io/serviceaccount/token`
 ```
 
-### SSL/TLS and CA Certificate Configuration
+### TLS and CA Certificate Configuration
 
 For secure HTTPS connections to Model Registry, the plugin supports custom CA certificate configuration. This is particularly useful when using self-signed certificates or custom certificate authorities.
 
