@@ -82,7 +82,7 @@ export MLFLOW_TRACKING_URI="modelregistry+https://registry.example.com:8080"
 export MLFLOW_TRACKING_URI="modelregistry+https://model-registry-service:8080"
 # Plugin automatically uses /run/secrets/kubernetes.io/serviceaccount/ca.crt
 
-# Option 3: HTTP (no SSL) - CA configuration is skipped
+# Option 3: HTTP (no TLS) - CA configuration is skipped
 export MLFLOW_TRACKING_URI="modelregistry://registry.example.com:8080"
 ```
 
