@@ -1248,8 +1248,6 @@ def test_user_token_from_envvar(monkeypatch, mock_get_registered_models):
         token_file_path = token_file.name
 
     monkeypatch.setenv("KF_PIPELINES_SA_TOKEN_PATH", token_file_path)
-    print(os.environ)
-    print(os.environ.get("KF_PIPELINES_SA_TOKEN_PATH"))
     client = ModelRegistry(
         server_address="http://localhost",
         port=8080,
@@ -1267,24 +1265,22 @@ def test_user_token_from_k8s_file(monkeypatch, mock_get_registered_models):
     """Test for user not providing explicitly user_token,
     reading user token from Kubernetes service account token file."""
     test_token = "test-token-from-k8s-file" # noqa: S105
-    k8s_token_path = "/var/run/secrets/kubernetes.io/serviceaccount/token" # noqa: S105
 
     monkeypatch.delenv("KF_PIPELINES_SA_TOKEN_PATH", raising=False)
-    with patch("model_registry._client.Path") as mock_path_class:
-        def path_side_effect(path_arg):
-            return MockPath(path_arg, file_contents={k8s_token_path: test_token})
-
-        mock_path_class.side_effect = path_side_effect
-
-        client = ModelRegistry(
-            server_address="http://localhost",
-            port=8080,
-            author="test_author",
-            is_secure=False,
-            # user_token=None -> ... Let it read from K8s file
-        )
-        assert client is not None
-        assert client._api.config.access_token == test_token
+    with tempfile.NamedTemporaryFile(mode="w", delete=False) as k8s_token_file:
+        k8s_token_file.write(test_token)
+        k8s_token_file_path = k8s_token_file.name
+    monkeypatch.setattr("model_registry._client.DEFAULT_K8S_SA_TOKEN_PATH", k8s_token_file_path)
+    client = ModelRegistry(
+        server_address="http://localhost",
+        port=8080,
+        author="test_author",
+        is_secure=False,
+        # user_token=None -> ... Let it read from K8s file
+    )
+    assert client is not None
+    assert client._api.config.access_token == test_token
+    os.unlink(k8s_token_file_path)
 
 
 def test_user_token_envvar_priority_over_k8s(monkeypatch, mock_get_registered_models):
@@ -1292,31 +1288,27 @@ def test_user_token_envvar_priority_over_k8s(monkeypatch, mock_get_registered_mo
     reading user token from environment variable,
     taking precedence over K8s file for Service Account token."""
     env_token = "test-token-from-envvar" # noqa: S105
-    k8s_token_path = "/var/run/secrets/kubernetes.io/serviceaccount/token" # noqa: S105
     k8s_token = "test-token-from-k8s-file" # noqa: S105
 
     with tempfile.NamedTemporaryFile(mode="w", delete=False) as env_token_file:
         env_token_file.write(env_token)
         env_token_path = env_token_file.name
-
     monkeypatch.setenv("KF_PIPELINES_SA_TOKEN_PATH", env_token_path)
-    with patch("model_registry._client.Path") as mock_path_class:
-        def path_side_effect(path_arg):
-            return MockPath(path_arg, file_contents={k8s_token_path: k8s_token, env_token_path: env_token})
-
-        mock_path_class.side_effect = path_side_effect
-
-        client = ModelRegistry(
-            server_address="http://localhost",
-            port=8080,
-            author="test_author",
-            is_secure=False,
-            # user_token=None -> ... Let it read from Env var (and not from K8s file, given that Env var is set)
-        )
-        assert client is not None
-        assert client._api.config.access_token == env_token
-
+    with tempfile.NamedTemporaryFile(mode="w", delete=False) as k8s_token_file:
+        k8s_token_file.write(k8s_token)
+        k8s_token_file_path = k8s_token_file.name
+    monkeypatch.setattr("model_registry._client.DEFAULT_K8S_SA_TOKEN_PATH", k8s_token_file_path)
+    client = ModelRegistry(
+        server_address="http://localhost",
+        port=8080,
+        author="test_author",
+        is_secure=False,
+        # user_token=None -> ... Let it read from Env var (and not from K8s file, given that Env var is set)
+    )
+    assert client is not None
+    assert client._api.config.access_token == env_token
     os.unlink(env_token_path)
+    os.unlink(k8s_token_file_path)
 
 
 def test_user_token_missing_warning(monkeypatch, mock_get_registered_models):
@@ -1324,20 +1316,14 @@ def test_user_token_missing_warning(monkeypatch, mock_get_registered_models):
     after trying to read from envvar and K8s file for Service Account token but both are missing,
     it will emit a warning."""
     monkeypatch.delenv("KF_PIPELINES_SA_TOKEN_PATH", raising=False)
-    with patch("model_registry._client.Path") as mock_path_class, \
-            patch("model_registry._client.warn") as mock_warn:
-        def path_side_effect(path_arg):
-            return MockPath(path_arg, file_contents={})  # No files exist
-
-        mock_path_class.side_effect = path_side_effect
-
-        client = ModelRegistry(
-            server_address="http://localhost",
-            port=8080,
-            author="test_author",
-            is_secure=False,
-            # user_token=None -> ... Let it try to read, but missing Env var and K8s file, it will emit a warning
-        )
-        assert client is not None
-        mock_warn.assert_called_with("User access token is missing", stacklevel=2)
-
+    mock_warn = MagicMock()
+    monkeypatch.setattr("model_registry._client.warn", mock_warn)
+    client = ModelRegistry(
+        server_address="http://localhost",
+        port=8080,
+        author="test_author",
+        is_secure=False,
+        # user_token=None -> ... Let it try to read, but missing Env var and K8s file, it will emit a warning
+    )
+    assert client is not None
+    mock_warn.assert_called_with("User access token is missing", stacklevel=2)
