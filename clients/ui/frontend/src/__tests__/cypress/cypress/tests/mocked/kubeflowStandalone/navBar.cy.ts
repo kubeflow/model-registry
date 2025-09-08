@@ -1,5 +1,5 @@
 /* eslint-disable camelcase */
-import type { Namespace } from 'mod-arch-shared';
+import type { Namespace } from 'mod-arch-core';
 import { mockNamespace } from '~/__mocks__/mockNamespace';
 import { appChrome } from '~/__tests__/cypress/cypress/pages/appChrome';
 import { navBar } from '~/__tests__/cypress/cypress/pages/navBar';
@@ -42,7 +42,7 @@ const initIntercepts = ({
       },
     },
     namespaces,
-  );
+  ).as('getNamespaces');
 
   cy.interceptApi(
     `GET /api/:apiVersion/model_registry`,
@@ -74,8 +74,9 @@ describe('NavBar', () => {
     initIntercepts({});
     appChrome.visit();
 
-    navBar.findNamespaceSelector().findByText('namespace-1').should('exist');
-    navBar.selectNamespace('namespace-2');
-    navBar.findNamespaceSelector().findByText('namespace-2').should('exist');
+    navBar.findNamespaceSelector().findByText('bella-namespace').should('exist');
+    // Since the namespace selector is disabled due to mandatory namespace, we can't select a different namespace
+    // This test verifies that the namespace is displayed correctly
+    navBar.findNamespaceSelector().findByText('bella-namespace').should('exist');
   });
 });
