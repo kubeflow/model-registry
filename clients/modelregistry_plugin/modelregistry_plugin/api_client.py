@@ -127,9 +127,9 @@ class ModelRegistryAPIClient:
             response.raise_for_status()
             response_json = response.json()
         except requests.exceptions.SSLError as e:
-            # Handle SSL certificate errors specifically
+            # Handle TLS certificate errors specifically
             msg = (
-                f"SSL certificate verification failed connecting to Model Registry: {e}"
+                f"TLS certificate verification failed connecting to Model Registry: {e}"
             )
             logger.error(msg)
             raise MlflowException(msg) from e
