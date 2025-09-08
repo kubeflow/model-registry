@@ -1,7 +1,7 @@
 import os
 import tempfile
 from itertools import islice
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock
 
 import pytest
 import requests
