@@ -72,6 +72,22 @@ async def test_register_new_using_s3_uri_builder(client: ModelRegistry):
 
 
 @pytest.mark.e2e
+def test_page_through_zero_models(client: ModelRegistry):
+    """Test that we can page through zero models (i.e. a Model Registry just created)"""
+    # leave with no models in the MR server
+    for _ in client.get_registered_models():
+        pytest.fail("should never enter here, there are no models in the MR server")
+
+
+@pytest.mark.e2e
+def test_page_through_one_models(client: ModelRegistry):
+    """Complementary of test_page_through_zero_models, check a simple pagination with 1 model on the Model Registry server"""
+    client.register_model("my-model", "some://uri", version="v1", model_format_name="vLLM", model_format_version="v1")
+    for registered_model in client.get_registered_models():
+        assert registered_model.name == "my-model" # there is only 1 specific model in the MR server.
+
+
+@pytest.mark.e2e
 def test_register_existing_version(client: ModelRegistry):
     params = {
         "name": "test_model",
