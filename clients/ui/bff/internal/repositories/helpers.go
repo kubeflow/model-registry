@@ -20,6 +20,15 @@ func FilterPageValues(values url.Values) url.Values {
 	if v := values.Get("nextPageToken"); v != "" {
 		result.Set("nextPageToken", v)
 	}
+	if v := values.Get("name"); v != "" {
+		result.Set("name", v)
+	}
+	if v := values.Get("q"); v != "" {
+		result.Set("q", v)
+	}
+	if v := values.Get("source"); v != "" {
+		result.Set("source", v)
+	}
 
 	return result
 }

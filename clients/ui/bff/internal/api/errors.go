@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/kubeflow/model-registry/ui/bff/internal/integrations/mrserver"
+	"github.com/kubeflow/model-registry/ui/bff/internal/integrations/httpclient"
 )
 
 type HTTPError struct {
@@ -20,7 +20,7 @@ type ErrorResponse struct {
 }
 
 type ErrorEnvelope struct {
-	Error *mrserver.HTTPError `json:"error"`
+	Error *httpclient.HTTPError `json:"error"`
 }
 
 func (app *App) LogError(r *http.Request, err error) {
@@ -33,9 +33,9 @@ func (app *App) LogError(r *http.Request, err error) {
 }
 
 func (app *App) badRequestResponse(w http.ResponseWriter, r *http.Request, err error) {
-	httpError := &mrserver.HTTPError{
+	httpError := &httpclient.HTTPError{
 		StatusCode: http.StatusBadRequest,
-		ErrorResponse: mrserver.ErrorResponse{
+		ErrorResponse: httpclient.ErrorResponse{
 			Code:    strconv.Itoa(http.StatusBadRequest),
 			Message: err.Error(),
 		},
@@ -47,9 +47,9 @@ func (app *App) forbiddenResponse(w http.ResponseWriter, r *http.Request, messag
 	// Log the detailed error message as a warning
 	app.logger.Warn("Access forbidden", "message", message, "method", r.Method, "uri", r.URL.RequestURI())
 
-	httpError := &mrserver.HTTPError{
+	httpError := &httpclient.HTTPError{
 		StatusCode: http.StatusForbidden,
-		ErrorResponse: mrserver.ErrorResponse{
+		ErrorResponse: httpclient.ErrorResponse{
 			Code:    strconv.Itoa(http.StatusForbidden),
 			Message: "Access forbidden",
 		},
@@ -57,7 +57,7 @@ func (app *App) forbiddenResponse(w http.ResponseWriter, r *http.Request, messag
 	app.errorResponse(w, r, httpError)
 }
 
-func (app *App) errorResponse(w http.ResponseWriter, r *http.Request, error *mrserver.HTTPError) {
+func (app *App) errorResponse(w http.ResponseWriter, r *http.Request, error *httpclient.HTTPError) {
 
 	env := ErrorEnvelope{Error: error}
 
@@ -72,9 +72,9 @@ func (app *App) errorResponse(w http.ResponseWriter, r *http.Request, error *mrs
 func (app *App) serverErrorResponse(w http.ResponseWriter, r *http.Request, err error) {
 	app.LogError(r, err)
 
-	httpError := &mrserver.HTTPError{
+	httpError := &httpclient.HTTPError{
 		StatusCode: http.StatusInternalServerError,
-		ErrorResponse: mrserver.ErrorResponse{
+		ErrorResponse: httpclient.ErrorResponse{
 			Code:    strconv.Itoa(http.StatusInternalServerError),
 			Message: "the server encountered a problem and could not process your request",
 		},
@@ -84,9 +84,9 @@ func (app *App) serverErrorResponse(w http.ResponseWriter, r *http.Request, err 
 
 func (app *App) notFoundResponse(w http.ResponseWriter, r *http.Request) {
 
-	httpError := &mrserver.HTTPError{
+	httpError := &httpclient.HTTPError{
 		StatusCode: http.StatusNotFound,
-		ErrorResponse: mrserver.ErrorResponse{
+		ErrorResponse: httpclient.ErrorResponse{
 			Code:    strconv.Itoa(http.StatusNotFound),
 			Message: "the requested resource could not be found",
 		},
@@ -96,9 +96,9 @@ func (app *App) notFoundResponse(w http.ResponseWriter, r *http.Request) {
 
 func (app *App) methodNotAllowedResponse(w http.ResponseWriter, r *http.Request) {
 
-	httpError := &mrserver.HTTPError{
+	httpError := &httpclient.HTTPError{
 		StatusCode: http.StatusMethodNotAllowed,
-		ErrorResponse: mrserver.ErrorResponse{
+		ErrorResponse: httpclient.ErrorResponse{
 			Code:    strconv.Itoa(http.StatusMethodNotAllowed),
 			Message: fmt.Sprintf("the %s method is not supported for this resource", r.Method),
 		},
@@ -113,9 +113,9 @@ func (app *App) failedValidationResponse(w http.ResponseWriter, r *http.Request,
 	if err != nil {
 		message = []byte("{}")
 	}
-	httpError := &mrserver.HTTPError{
+	httpError := &httpclient.HTTPError{
 		StatusCode: http.StatusUnprocessableEntity,
-		ErrorResponse: mrserver.ErrorResponse{
+		ErrorResponse: httpclient.ErrorResponse{
 			Code:    strconv.Itoa(http.StatusUnprocessableEntity),
 			Message: string(message),
 		},

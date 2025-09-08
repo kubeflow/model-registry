@@ -307,6 +307,30 @@ curl -i -H "kubeflow-userid: user@example.com" -X PATCH "http://localhost:4000/a
   "description": "New description 2"
 }}'
 ```
+```
+# GET /api/v1/model_catalog/models (source parameter is required)
+curl -i -H "kubeflow-userid: user@example.com" "http://localhost:4000/api/v1/model_catalog/models?namespace=kubeflow&source=sample-source"
+curl -i -H "Authorization: Bearer $TOKEN" "http://localhost:4000/api/v1/model_catalog/models?namespace=kubeflow&source=sample-source"
+```
+
+```
+# GET /api/v1/model_catalog/sources
+curl -i -H "kubeflow-userid: user@example.com" "http://localhost:4000/api/v1/model_catalog/sources?namespace=kubeflow"
+curl -i -H "Authorization: Bearer $TOKEN" "http://localhost:4000/api/v1/model_catalog/sources?namespace=kubeflow"
+```
+
+```
+# GET /api/v1/model_catalog/sources with name filter
+curl -i -H "kubeflow-userid: user@example.com" "http://localhost:4000/api/v1/model_catalog/sources?namespace=kubeflow&name=sample-source"
+curl -i -H "Authorization: Bearer $TOKEN" "http://localhost:4000/api/v1/model_catalog/sources?namespace=kubeflow&name=sample-source"
+```
+
+```
+# GET /api/v1/model_catalog/sources/{source_id}/models/{model_name}
+curl -i -H "kubeflow-userid: user@example.com" "http://localhost:4000/api/v1/model_catalog/sources/sample-source/models/model-name?namespace=kubeflow"
+curl -i -H "Authorization: Bearer $TOKEN" "http://localhost:4000/api/v1/model_catalog/sources/sample-source/models/model-name?namespace=kubeflow"
+```
+
 
 ### Pagination
 

@@ -3,15 +3,16 @@ package k8mocks
 import (
 	"context"
 	"fmt"
+	"log/slog"
+	"os"
+	"path/filepath"
+	"runtime"
+
 	kubernetes2 "github.com/kubeflow/model-registry/ui/bff/internal/integrations/kubernetes"
 	corev1 "k8s.io/api/core/v1"
 	rbacv1 "k8s.io/api/rbac/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
-	"log/slog"
-	"os"
-	"path/filepath"
-	"runtime"
 	"sigs.k8s.io/controller-runtime/pkg/envtest"
 )
 
@@ -122,6 +123,11 @@ func setupMock(mockK8sClient kubernetes.Interface, ctx context.Context) error {
 		return err
 	}
 	err = createService(mockK8sClient, ctx, "non-model-registry", "kubeflow", "Not a Model Registry", "Not a Model Registry Bella description", "10.0.0.14", "")
+	if err != nil {
+		return err
+	}
+
+	err = createModelCatalogService(mockK8sClient, ctx, "model-catalog-model-catalog-service", "kubeflow", "10.0.0.15")
 	if err != nil {
 		return err
 	}
@@ -387,6 +393,45 @@ func createService(k8sClient kubernetes.Interface, ctx context.Context, name str
 	_, err := k8sClient.CoreV1().Services(namespace).Create(ctx, service, metav1.CreateOptions{})
 	if err != nil {
 		return fmt.Errorf("failed to create service: %w", err)
+	}
+
+	return nil
+}
+
+func createModelCatalogService(k8sClient kubernetes.Interface, ctx context.Context, name, namespace, clusterIP string) error {
+	service := &corev1.Service{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      name,
+			Namespace: namespace,
+			Labels: map[string]string{
+				"app":                         "model-catalog-service",
+				"app.kubernetes.io/component": "model-catalog",
+				"app.kubernetes.io/instance":  "model-catalog-service",
+				"app.kubernetes.io/name":      "model-catalog-service",
+				"app.kubernetes.io/part-of":   "model-catalog",
+				"component":                   "model-catalog",
+			},
+		},
+		Spec: corev1.ServiceSpec{
+			Selector: map[string]string{
+				"component": "model-catalog-server",
+			},
+			Type:      corev1.ServiceTypeClusterIP,
+			ClusterIP: clusterIP,
+			Ports: []corev1.ServicePort{
+				{
+					Name:        "http-api",
+					Port:        8081,
+					Protocol:    corev1.ProtocolTCP,
+					AppProtocol: strPtr("http"),
+				},
+			},
+		},
+	}
+
+	_, err := k8sClient.CoreV1().Services(namespace).Create(ctx, service, metav1.CreateOptions{})
+	if err != nil {
+		return fmt.Errorf("failed to create model-catalog service: %w", err)
 	}
 
 	return nil

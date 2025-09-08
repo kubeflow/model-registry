@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/kubeflow/model-registry/ui/bff/internal/integrations/mrserver"
+	"github.com/kubeflow/model-registry/ui/bff/internal/integrations/httpclient"
 	"net/http"
 
 	"github.com/julienschmidt/httprouter"
@@ -15,7 +15,7 @@ import (
 type ModelArtifactUpdateEnvelope Envelope[*openapi.ModelArtifactUpdate, None]
 
 func (app *App) UpdateModelArtifactHandler(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
-	client, ok := r.Context().Value(constants.ModelRegistryHttpClientKey).(mrserver.HTTPClientInterface)
+	client, ok := r.Context().Value(constants.ModelRegistryHttpClientKey).(httpclient.HTTPClientInterface)
 	if !ok {
 		app.serverErrorResponse(w, r, errors.New("REST client not found"))
 		return
@@ -37,7 +37,7 @@ func (app *App) UpdateModelArtifactHandler(w http.ResponseWriter, r *http.Reques
 
 	patchedModelArtifact, err := app.repositories.ModelRegistryClient.UpdateModelArtifact(client, ps.ByName(ArtifactId), jsonData)
 	if err != nil {
-		var httpErr *mrserver.HTTPError
+		var httpErr *httpclient.HTTPError
 		if errors.As(err, &httpErr) {
 			app.errorResponse(w, r, httpErr)
 		} else {

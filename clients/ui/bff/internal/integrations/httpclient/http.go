@@ -1,4 +1,4 @@
-package mrserver
+package httpclient
 
 import (
 	"crypto/tls"
@@ -20,11 +20,10 @@ type HTTPClientInterface interface {
 }
 
 type HTTPClient struct {
-	client          *http.Client
-	baseURL         string
-	ModelRegistryID string
-	logger          *slog.Logger
-	Headers         http.Header
+	client  *http.Client
+	baseURL string
+	logger  *slog.Logger
+	Headers http.Header
 }
 
 type ErrorResponse struct {
@@ -41,20 +40,15 @@ func (e *HTTPError) Error() string {
 	return fmt.Sprintf("HTTP %d: %s - %s", e.StatusCode, e.Code, e.Message)
 }
 
-func NewHTTPClient(logger *slog.Logger, modelRegistryID string, baseURL string, headers http.Header, insecureSkipVerify bool) (HTTPClientInterface, error) {
+func NewHTTPClient(logger *slog.Logger, baseURL string, headers http.Header, insecureSkipVerify bool) (HTTPClientInterface, error) {
 	return &HTTPClient{
 		client: &http.Client{Transport: &http.Transport{
 			TLSClientConfig: &tls.Config{InsecureSkipVerify: insecureSkipVerify},
 		}},
-		baseURL:         baseURL,
-		ModelRegistryID: modelRegistryID,
-		logger:          logger,
-		Headers:         headers,
+		baseURL: baseURL,
+		logger:  logger,
+		Headers: headers,
 	}, nil
-}
-
-func (c *HTTPClient) GetModelRegistryID() string {
-	return c.ModelRegistryID
 }
 
 func (c *HTTPClient) GET(url string) ([]byte, error) {

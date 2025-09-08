@@ -21,14 +21,15 @@ func main() {
 	var cfg config.EnvConfig
 	var certFile, keyFile string
 
-	fmt.Println("Starting Model Registry UI BFF!")
 	flag.IntVar(&cfg.Port, "port", getEnvAsInt("PORT", 8080), "API server port")
 	flag.StringVar(&certFile, "cert-file", "", "Path to TLS certificate file")
 	flag.StringVar(&keyFile, "key-file", "", "Path to TLS key file")
 	flag.BoolVar(&cfg.MockK8Client, "mock-k8s-client", false, "Use mock Kubernetes client")
 	flag.BoolVar(&cfg.MockMRClient, "mock-mr-client", false, "Use mock Model Registry client")
+	flag.BoolVar(&cfg.MockMRCatalogClient, "mock-mr-catalog-client", false, "Use mock Model Registry Catalog client")
 	flag.BoolVar(&cfg.DevMode, "dev-mode", false, "Use development mode for access to local K8s cluster")
-	flag.IntVar(&cfg.DevModePort, "dev-mode-port", getEnvAsInt("DEV_MODE_PORT", 8080), "Use port when in development mode")
+	flag.IntVar(&cfg.DevModeModelRegistryPort, "dev-mode-model-registry-port", getEnvAsInt("DEV_MODE_MODEL_REGISTRY_PORT", 8080), "Use port when in development mode for model registry")
+	flag.IntVar(&cfg.DevModeCatalogPort, "dev-mode-catalog-port", getEnvAsInt("DEV_MODE_CATALOG_PORT", 8081), "Use port when in development mode for catalog")
 
 	// New deployment mode flag
 	flag.Var(&cfg.DeploymentMode, "deployment-mode", "Deployment mode (kubeflow, federated, or standalone)")
