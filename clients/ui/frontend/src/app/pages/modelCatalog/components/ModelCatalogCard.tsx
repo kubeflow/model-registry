@@ -20,13 +20,9 @@ import {
 import { TagIcon } from '@patternfly/react-icons';
 import { useNavigate } from 'react-router-dom';
 import { CatalogModel } from '~/app/modelCatalogTypes';
-import {
-  extractVersionTag,
-  filterNonVersionTags,
-  getModelName,
-} from '~/app/pages/modelCatalog/utils/modelCatalogUtils';
+import { getModelName } from '~/app/pages/modelCatalog/utils/modelCatalogUtils';
+import { modelCatalogDetailsUrl } from '~/app/pages/modelCatalog/routeUtils';
 import ModelCatalogLabels from './ModelCatalogLabels';
-import { modelCatalogDetailsUrl } from '../routeUtils';
 
 type ModelCatalogCardProps = {
   model: CatalogModel;
@@ -42,7 +38,7 @@ const ModelCatalogCard: React.FC<ModelCatalogCardProps> = ({ model, source, trun
   // const nonVersionTags = filterNonVersionTags(model.tags);
 
   return (
-    <Card isFullHeight data-testid="model-catalog-card">
+    <Card isFullHeight data-testid="model-catalog-card" key={`${model.name}/${model.sourceId}`}>
       <CardHeader>
         <CardTitle>
           <Flex alignItems={{ default: 'alignItemsCenter' }}>

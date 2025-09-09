@@ -6,7 +6,7 @@ import rehypeUnwrapImages from 'rehype-unwrap-images';
 import remarkGfm from 'remark-gfm';
 import rehypeSanitize from 'rehype-sanitize';
 import rehypeRaw from 'rehype-raw';
-import MarkdownComponent from '../MarkdownComponent';
+import MarkdownComponent from '~/app/shared/markdown/MarkdownComponent';
 
 jest.mock('react-markdown', () => ({
   __esModule: true,

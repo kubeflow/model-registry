@@ -14,7 +14,7 @@ export type CatalogModel = {
   provider?: string;
   readme?: string;
   maturity?: string;
-  language?: string;
+  language?: string[];
   logo?: string;
   tasks?: string[];
   libraryName?: string;
@@ -46,6 +46,12 @@ export type CatalogModelArtifactList = ModelCatalogListParams & { items: Catalog
 export type GetCatalogModelsBySource = (
   opts: APIOptions,
   sourceId: string,
+  paginationParams?: {
+    pageSize?: string;
+    nextPageToken?: string;
+    orderBy?: string;
+    sortOrder?: string;
+  },
 ) => Promise<CatalogModelList>;
 
 export type GetListSources = (opts: APIOptions) => Promise<CatalogSourceList>;

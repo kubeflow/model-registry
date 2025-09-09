@@ -1,7 +1,7 @@
 import { FetchState, FetchStateCallbackPromise, NotReadyError, useFetchState } from 'mod-arch-core';
-import { useModelCatalogAPI } from './useModelCatalogAPI';
 import React from 'react';
 import { CatalogModelArtifactList } from '~/app/modelCatalogTypes';
+import { useModelCatalogAPI } from './useModelCatalogAPI';
 
 export const useCatalogModelArtifacts = (
   sourceId: string,
@@ -22,7 +22,7 @@ export const useCatalogModelArtifacts = (
       }
       return api.getListCatalogModelArtifacts(opts, sourceId, modelName);
     },
-    [api, apiAvailable, sourceId],
+    [api, apiAvailable, sourceId, modelName],
   );
   return useFetchState(
     call,

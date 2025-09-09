@@ -1,6 +1,6 @@
+import React from 'react';
 import { ModelCatalogContext } from '~/app/context/modelCatalog/ModelCatalogContext';
 import { ModelCatalogAPIState } from './useModelCatalogAPIState';
-import React from 'react';
 
 type UseModelRegistryAPI = ModelCatalogAPIState & {
   refreshAllAPI: () => void;

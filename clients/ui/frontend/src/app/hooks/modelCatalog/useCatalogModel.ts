@@ -1,14 +1,14 @@
 import { FetchState, FetchStateCallbackPromise, NotReadyError, useFetchState } from 'mod-arch-core';
-import { useModelCatalogAPI } from './useModelCatalogAPI';
-import { CatalogModel } from '~/app/modelCatalogTypes';
 import React from 'react';
+import { CatalogModel } from '~/app/modelCatalogTypes';
+import { useModelCatalogAPI } from './useModelCatalogAPI';
 
-type state = CatalogModel | null;
+type State = CatalogModel | null;
 
-export const useCatalogModel = (sourceId: string, modelName: string): FetchState<state> | null => {
+export const useCatalogModel = (sourceId: string, modelName: string): FetchState<State> => {
   const { api, apiAvailable } = useModelCatalogAPI();
 
-  const call = React.useCallback<FetchStateCallbackPromise<state>>(
+  const call = React.useCallback<FetchStateCallbackPromise<State>>(
     (opts) => {
       if (!apiAvailable) {
         return Promise.reject(new Error('API not yet available'));
