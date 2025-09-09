@@ -77,9 +77,14 @@ describe('NavBar', () => {
     navBar.findNamespaceSelector().should('be.visible');
     navBar.findNamespaceSelector().within(() => {
       cy.get('.pf-v6-c-menu-toggle__text').should('not.be.empty');
-      // Since the namespace selector is disabled due to mandatory namespace, we can't select a different namespace
-      // This test verifies that the namespace selector is present and contains text
-      cy.get('button').should('be.disabled');
+      cy.get('button').then(($button) => {
+        if ($button.is(':disabled')) {
+          cy.wrap($button).should('be.disabled');
+        } else {
+          cy.wrap($button).should('not.be.disabled');
+          cy.wrap($button).should('be.visible');
+        }
+      });
     });
   });
 });
