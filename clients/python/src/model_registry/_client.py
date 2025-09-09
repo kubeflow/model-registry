@@ -72,6 +72,7 @@ logging.basicConfig(
 logger = logging.getLogger("model-registry")
 
 DEFAULT_USER_TOKEN_ENVVAR = "KF_PIPELINES_SA_TOKEN_PATH"  # noqa: S105
+DEFAULT_K8S_SA_TOKEN_PATH = "/var/run/secrets/kubernetes.io/serviceaccount/token" # noqa: S105
 
 
 class ModelRegistry:
@@ -128,10 +129,13 @@ class ModelRegistry:
             # /var/run/secrets/kubernetes.io/serviceaccount/token
             if sa_token := os.environ.get(user_token_envvar):
                 if user_token_envvar == DEFAULT_USER_TOKEN_ENVVAR:
-                    logger.warning(
+                    logger.info(
                         f"Sourcing user token from default envvar: {DEFAULT_USER_TOKEN_ENVVAR}"
                     )
                 user_token = Path(sa_token).read_text()
+            elif Path(DEFAULT_K8S_SA_TOKEN_PATH).exists():
+                user_token = Path(DEFAULT_K8S_SA_TOKEN_PATH).read_text()
+                logger.info("Sourced user token from K8s default path: %s.", DEFAULT_K8S_SA_TOKEN_PATH)
             else:
                 warn("User access token is missing", stacklevel=2)
 
