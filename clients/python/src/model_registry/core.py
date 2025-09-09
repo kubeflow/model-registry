@@ -783,3 +783,36 @@ class ModelRegistryAPIClient:
         if options:
             options.next_page_token = logs.next_page_token
         return [Artifact.validate_artifact(log) for log in logs.items or []]
+
+    async def get_artifacts(
+        self,
+        filter_query: str | None = None,
+        artifact_type: str | None = None,
+        options: ListOptions | None = None,
+    ) -> list[Artifact]:
+        """Get artifacts with filtering capabilities.
+
+        Args:
+            filter_query: A SQL-like query string to filter the list of entities.
+            artifact_type: Specifies the artifact type for listing artifacts.
+            options: Options for listing artifacts.
+
+        Returns:
+            List of artifacts matching the filter criteria.
+        """
+        # Create options dict with additional filters
+        options_dict = (options or ListOptions()).as_options()
+        if filter_query is not None:
+            options_dict["filter_query"] = filter_query
+        if artifact_type is not None:
+            options_dict["artifact_type"] = artifact_type
+
+        async with self.get_client() as client:
+            try:
+                response = await client.get_artifacts(**options_dict)
+            except mr_exceptions.NotFoundException:
+                return []
+
+        if options:
+            options.next_page_token = response.next_page_token
+        return [Artifact.validate_artifact(artifact) for artifact in response.items or []]

@@ -969,3 +969,6 @@ class ModelRegistry:
             return None
 
         return Pager[ExperimentRunArtifact](exp_run_logs)
+
+    # TODO: consider porting get_artifacts method here
+    # https://github.com/kubeflow/model-registry/pull/1536

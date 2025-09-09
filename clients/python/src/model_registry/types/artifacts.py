@@ -74,6 +74,8 @@ class Artifact(BaseResourceModel, ABC):
     state: ArtifactState = ArtifactState.UNKNOWN
     description: str | None = None
     external_id: str | None = None
+    experiment_id: str | None = None
+    experiment_run_id: str | None = None
 
     @classmethod
     def from_artifact(cls: type[A], source: ArtifactBaseModel) -> A:
@@ -163,6 +165,8 @@ class DocArtifact(Artifact):
             external_id=source.external_id,
             create_time_since_epoch=source.create_time_since_epoch,
             last_update_time_since_epoch=source.last_update_time_since_epoch,
+            experiment_id=source.experiment_id,
+            experiment_run_id=source.experiment_run_id,
             uri=source.uri,
             state=source.state,
             custom_properties=cls._unmap_custom_properties(source.custom_properties)
@@ -248,6 +252,8 @@ class ModelArtifact(Artifact):
             external_id=source.external_id,
             create_time_since_epoch=source.create_time_since_epoch,
             last_update_time_since_epoch=source.last_update_time_since_epoch,
+            experiment_id=source.experiment_id,
+            experiment_run_id=source.experiment_run_id,
             uri=source.uri,
             model_format_name=source.model_format_name,
             model_format_version=source.model_format_version,
@@ -328,6 +334,8 @@ class DataSet(Artifact):
             external_id=source.external_id,
             create_time_since_epoch=source.create_time_since_epoch,
             last_update_time_since_epoch=source.last_update_time_since_epoch,
+            experiment_id=source.experiment_id,
+            experiment_run_id=source.experiment_run_id,
             uri=source.uri,
             digest=source.digest,
             source_type=source.source_type,
@@ -402,6 +410,8 @@ class Metric(Artifact):
             external_id=source.external_id,
             create_time_since_epoch=source.create_time_since_epoch,
             last_update_time_since_epoch=source.last_update_time_since_epoch,
+            experiment_id=source.experiment_id,
+            experiment_run_id=source.experiment_run_id,
             value=source.value,
             timestamp=source.timestamp,
             step=source.step,
@@ -477,6 +487,8 @@ class Parameter(Artifact):
             external_id=source.external_id,
             create_time_since_epoch=source.create_time_since_epoch,
             last_update_time_since_epoch=source.last_update_time_since_epoch,
+            experiment_id=source.experiment_id,
+            experiment_run_id=source.experiment_run_id,
             value=value,
             parameter_type=source.parameter_type,
             state=source.state,
