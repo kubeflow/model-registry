@@ -1,6 +1,6 @@
-import { FetchState, FetchStateCallbackPromise, NotReadyError, useFetchState } from 'mod-arch-core';
-import { CatalogSourceList } from '~/app/modelCatalogTypes';
+import { FetchState, FetchStateCallbackPromise, useFetchState } from 'mod-arch-core';
 import React from 'react';
+import { CatalogSourceList } from '~/app/modelCatalogTypes';
 import { ModelCatalogAPIState } from './useModelCatalogAPIState';
 
 export const useCatalogSources = (

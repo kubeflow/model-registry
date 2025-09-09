@@ -45,14 +45,26 @@ const MarkdownComponent = ({
             (child) => !(React.isValidElement(child) && child.type === 'summary'),
           );
           return (
-            <DetailsComponent summary={summary ? String(summary) : 'Details'} {...props}>
+            <DetailsComponent
+              summary={
+                summary && React.isValidElement(summary)
+                  ? typeof summary.props.children === 'string'
+                    ? summary.props.children
+                    : 'Details'
+                  : 'Details'
+              }
+              {...props}
+            >
               {content}
             </DetailsComponent>
           );
         },
         summary: ({ children, ...props }) => <Content {...props}>{children}</Content>,
         code: ({ node, className, children, ...props }) => {
-          const code = String(children).replace(/\n$/, '');
+          const code = React.Children.toArray(children)
+            .map((child) => (typeof child === 'string' ? child : ''))
+            .join('')
+            .replace(/\n$/, '');
 
           if (!node) {
             return (

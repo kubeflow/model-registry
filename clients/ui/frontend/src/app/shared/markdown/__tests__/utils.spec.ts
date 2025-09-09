@@ -1,5 +1,5 @@
 import { ContentVariants } from '@patternfly/react-core';
-import { shiftHeadingLevel } from '../utils';
+import { shiftHeadingLevel } from '~/app/shared/markdown/utils';
 
 describe('shiftHeadingLevel', () => {
   it('returns correct heading when within range', () => {

@@ -9,7 +9,6 @@ import {
   ContentVariants,
   Flex,
   FlexItem,
-  Label,
   Stack,
   StackItem,
   Button,
@@ -17,35 +16,28 @@ import {
   ActionListGroup,
   Skeleton,
 } from '@patternfly/react-core';
-import { TagIcon } from '@patternfly/react-icons';
 import { ApplicationsPage } from 'mod-arch-shared';
-import { useCatalogModelsbySources } from '~/app/hooks/modelCatalog/useCatalogModelsbySources';
-import {
-  extractVersionTag,
-  findCatalogModel,
-  getModelName,
-} from '~/app/pages/modelCatalog/utils/modelCatalogUtils';
+import { getModelName } from '~/app/pages/modelCatalog/utils/modelCatalogUtils';
 import ModelDetailsView from '~/app/pages/modelCatalog/screens/ModelDetailsView';
-import { CatalogModel } from '~/app/modelCatalogTypes';
-import { getRegisterCatalogModelRoute } from '~/app/routes/modelCatalog/catalogModelRegister';
+
+import { useCatalogModel } from '~/app/hooks/modelCatalog/useCatalogModel';
 import { ModelRegistrySelectorContext } from '~/app/context/ModelRegistrySelectorContext';
+import { getRegisterCatalogModelRoute } from '~/app/routes/modelCatalog/catalogModelRegister';
 
 type RouteParams = {
   sourceId: string;
   modelName: string;
+  repositoryName: string;
 };
 
 const ModelDetailsPage: React.FC = () => {
-  const { sourceId, modelName } = useParams<RouteParams>();
+  const { sourceId, repositoryName, modelName } = useParams<RouteParams>();
   const navigate = useNavigate();
-  const [catalogModels, loaded, loadError] = useCatalogModelsbySources(sourceId ?? '');
+
+  const state = useCatalogModel(sourceId || '', `${repositoryName}/${modelName}` || '');
+  const [model, modelLoaded, modelLoadError] = state;
   const { modelRegistries, modelRegistriesLoadError, modelRegistriesLoaded } = React.useContext(
     ModelRegistrySelectorContext,
-  );
-
-  const model: CatalogModel | null = React.useMemo(
-    () => findCatalogModel(catalogModels, sourceId || '', modelName || ''),
-    [sourceId, catalogModels],
   );
 
   // TODO: we don't have tags prop on models
@@ -135,7 +127,7 @@ const ModelDetailsPage: React.FC = () => {
           'Model details'
         )
       }
-      empty={loaded && !loadError && !model}
+      empty={modelLoaded && !modelLoadError && !model}
       emptyStatePage={
         !model ? (
           <div>
@@ -143,13 +135,13 @@ const ModelDetailsPage: React.FC = () => {
           </div>
         ) : undefined
       }
-      loadError={loadError}
-      loaded={loaded}
+      loadError={modelLoadError}
+      loaded={modelLoaded}
       errorMessage="Unable to load model catalog"
       provideChildrenPadding
       headerAction={
-        !loaded &&
-        !loadError &&
+        !modelLoaded &&
+        !modelLoadError &&
         model && (
           <ActionList>
             <ActionListGroup>{registerModelButton()}</ActionListGroup>

@@ -10,11 +10,9 @@ import {
 } from 'mod-arch-shared';
 import * as React from 'react';
 import { Navigate, Outlet, useParams } from 'react-router-dom';
-import EmptyModelRegistryState from '../modelRegistry/screens/components/EmptyModelRegistryState';
-import InvalidModelRegistry from '../modelRegistry/screens/InvalidModelRegistry';
-import ModelRegistrySelectorNavigator from '../modelRegistry/screens/ModelRegistrySelectorNavigator';
 import { ModelCatalogContext } from '~/app/context/modelCatalog/ModelCatalogContext';
-import { modelCatalogUrl } from './routeUtils';
+import InvalidModelRegistry from '~/app/pages/modelRegistry/screens/InvalidModelRegistry';
+import EmptyModelCatalogState from './EmptyModelCatalogState';
 
 type ApplicationPageProps = React.ComponentProps<typeof ApplicationsPage>;
 
@@ -68,16 +66,17 @@ const ModelCatalogCoreLoader: React.FC<ModelCatalogCoreLoaderrProps> = ({
     renderStateProps = {
       empty: true,
       emptyStatePage: (
-        <EmptyModelRegistryState
-          testid="empty-model-registries-state"
-          title={isMUITheme ? 'Deploy a model registry' : 'Request access to model registries'}
+        <EmptyModelCatalogState
+          testid="empty-model-catalog-state"
+          title={isMUITheme ? 'Deploy a model catalog' : 'Request access to model catalog'}
           description={
             isMUITheme
-              ? 'To deploy a new model registry, follow the instructions in the docs below.'
-              : 'To request a new model registry, or to request permission to access an existing model registry, contact your administrator.'
+              ? 'To deploy model catalog, follow the instructions in the docs below.'
+              : 'To request model catalog, or to request permission to access model catalog, contact your administrator.'
           }
           headerIcon={() => (
-            <img src={typedEmptyImage(ProjectObjectType.registeredModels)} alt="" />
+            // for now, added the modelRegistrySettings for this - will remove once we update the shared library
+            <img src={typedEmptyImage(ProjectObjectType.modelRegistrySettings)} alt="" />
           )}
           customAction={isMUITheme ? <KubeflowDocs /> : <WhosMyAdministrator />}
         />
@@ -104,9 +103,9 @@ const ModelCatalogCoreLoader: React.FC<ModelCatalogCoreLoaderrProps> = ({
   return (
     <ApplicationsPage
       title={
-        <TitleWithIcon title="Model catalog" objectType={ProjectObjectType.modelRegistrySettings} />
+        <TitleWithIcon title="Model Catalog" objectType={ProjectObjectType.modelRegistrySettings} />
       }
-      description={''}
+      description=""
       {...renderStateProps}
       loaded
       provideChildrenPadding

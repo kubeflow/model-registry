@@ -10,21 +10,20 @@ import {
   Sidebar,
   SidebarContent,
   SidebarPanel,
-  Label,
   Bullseye,
   Spinner,
   Alert,
 } from '@patternfly/react-core';
 import { OutlinedClockIcon } from '@patternfly/react-icons';
-import { CatalogModel } from '~/app/modelCatalogTypes';
-import ModelTimestamp from '../../modelRegistry/screens/components/ModelTimestamp';
 import { useParams } from 'react-router';
-import { useCatalogModelArtifacts } from '~/app/hooks/modelCatalog/useCatalogModelArtifacts';
 import { InlineTruncatedClipboardCopy } from 'mod-arch-shared';
-import ModelCatalogLabels from '../components/ModelCatalogLabels';
+import text from '@patternfly/react-styles/css/utilities/Text/text';
+import { CatalogModel } from '~/app/modelCatalogTypes';
+import { useCatalogModelArtifacts } from '~/app/hooks/modelCatalog/useCatalogModelArtifacts';
+import ModelCatalogLabels from '~/app/pages/modelCatalog/components/ModelCatalogLabels';
 import ExternalLink from '~/app/shared/components/ExternalLink';
 import MarkdownComponent from '~/app/shared/markdown/MarkdownComponent';
-import text from '@patternfly/react-styles/css/utilities/Text/text';
+import ModelTimestamp from '~/app/pages/modelRegistry/screens/components/ModelTimestamp';
 
 type ModelDetailsViewProps = {
   model: CatalogModel;

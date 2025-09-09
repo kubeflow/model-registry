@@ -1,5 +1,11 @@
 import React from 'react';
-import { EmptyState, EmptyStateBody, EmptyStateVariant } from '@patternfly/react-core';
+import {
+  EmptyState,
+  EmptyStateActions,
+  EmptyStateBody,
+  EmptyStateFooter,
+  EmptyStateVariant,
+} from '@patternfly/react-core';
 import { PlusCircleIcon } from '@patternfly/react-icons';
 
 type EmptyModelCatalogStateType = {
@@ -8,6 +14,7 @@ type EmptyModelCatalogStateType = {
   description: string;
   headerIcon?: React.ComponentType;
   children?: React.ReactNode;
+  customAction?: React.ReactNode;
 };
 
 const EmptyModelCatalogState: React.FC<EmptyModelCatalogStateType> = ({
@@ -16,6 +23,7 @@ const EmptyModelCatalogState: React.FC<EmptyModelCatalogStateType> = ({
   description,
   headerIcon,
   children,
+  customAction,
 }) => (
   <EmptyState
     icon={headerIcon ?? PlusCircleIcon}
@@ -25,6 +33,9 @@ const EmptyModelCatalogState: React.FC<EmptyModelCatalogStateType> = ({
   >
     <EmptyStateBody>{description}</EmptyStateBody>
     {children}
+    <EmptyStateFooter>
+      {customAction && <EmptyStateActions>{customAction}</EmptyStateActions>}
+    </EmptyStateFooter>
   </EmptyState>
 );
 

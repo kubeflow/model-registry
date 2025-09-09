@@ -8,15 +8,28 @@ import {
 
 export const getCatalogModelsBySource =
   (hostPath: string, queryParams: Record<string, unknown> = {}) =>
-  (opts: APIOptions, sourceId: string): Promise<CatalogModelList> =>
-    handleRestFailures(
-      restGET(hostPath, '/models', { source: sourceId, ...queryParams }, opts),
-    ).then((response) => {
+  (
+    opts: APIOptions,
+    sourceId: string,
+    paginationParams?: {
+      pageSize?: string;
+      nextPageToken?: string;
+      orderBy?: string;
+      sortOrder?: string;
+    },
+  ): Promise<CatalogModelList> => {
+    const allParams = {
+      source: sourceId,
+      ...paginationParams,
+      ...queryParams,
+    };
+    return handleRestFailures(restGET(hostPath, '/models', allParams, opts)).then((response) => {
       if (isModArchResponse<CatalogModelList>(response)) {
         return response.data;
       }
       throw new Error('Invalid response format');
     });
+  };
 
 export const getListSources =
   (hostPath: string, queryParams: Record<string, unknown> = {}) =>
