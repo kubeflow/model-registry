@@ -2,7 +2,7 @@
 
 from unittest.mock import Mock
 
-from modelregistry_plugin.tracking_store import ModelRegistryTrackingStore
+from model_registry_mlflow.tracking_store import ModelRegistryTrackingStore
 from .conftest import get_testdata_dir
 
 

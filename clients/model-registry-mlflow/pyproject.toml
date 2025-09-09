@@ -1,5 +1,5 @@
 [project]
-name = "modelregistry_plugin"
+name = "model-registry-mlflow"
 version = "0.1.0"
 description = "Kubeflow Model Registry MLFlow Integration Plugin"
 readme = "README.md"
@@ -10,9 +10,9 @@ dependencies = [
 ]
 
 [project.entry-points."mlflow.tracking_store"]
-modelregistry = "modelregistry_plugin.tracking_store:ModelRegistryTrackingStore"
-"modelregistry+http" = "modelregistry_plugin.tracking_store:ModelRegistryTrackingStore"
-"modelregistry+https" = "modelregistry_plugin.tracking_store:ModelRegistryTrackingStore"
+modelregistry = "model_registry_mlflow.tracking_store:ModelRegistryTrackingStore"
+"modelregistry+http" = "model_registry_mlflow.tracking_store:ModelRegistryTrackingStore"
+"modelregistry+https" = "model_registry_mlflow.tracking_store:ModelRegistryTrackingStore"
 
 [build-system]
 requires = ["hatchling"]
@@ -33,3 +33,7 @@ log_cli = true
 log_cli_level = "INFO"
 log_cli_format = "%(asctime)s [%(levelname)8s] %(name)s: %(message)s"
 log_cli_date_format = "%Y-%m-%d %H:%M:%S"
+markers = [
+    "unit: marks tests as unit tests",
+    "e2e: marks tests as end-to-end tests",
+]

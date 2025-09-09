@@ -26,7 +26,7 @@ Thank you for your interest in contributing to the Model Registry MLflow Plugin!
 ```bash
 # Clone the repository
 git clone <repository-url>
-cd model-registry/clients/modelregistry_plugin
+cd model-registry/clients/model-registry-mlflow
 
 # Install dependencies
 uv sync
@@ -51,8 +51,8 @@ pre-commit install
 ## Project Structure
 
 ```
-clients/modelregistry_plugin/
-├── modelregistry_plugin/          # Main plugin package
+clients/model-registry-mlflow/
+├── model_registry_mlflow/          # Main plugin package
 │   ├── __init__.py
 │   ├── auth.py                   # Authentication handling
 │   ├── tracking_store.py         # Main ModelRegistryTrackingStore implementation
@@ -302,7 +302,7 @@ make format
 make lint
 
 # Type checking (if mypy is configured)
-uv run mypy modelregistry_plugin/
+uv run mypy model_registry_mlflow/
 ```
 
 ### Commit Message Format

@@ -4,7 +4,7 @@ from unittest.mock import Mock
 
 import pytest
 
-from modelregistry_plugin.operations.metric import MetricOperations
+from model_registry_mlflow.operations.metric import MetricOperations
 
 
 class TestMetricOperations:

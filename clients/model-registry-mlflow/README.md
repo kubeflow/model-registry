@@ -23,15 +23,15 @@ This plugin allows you to use MLflow's tracking API to log experiments, runs, me
 
 ```bash
 # Build from source
-cd clients/modelregistry_plugin
+cd clients/model-registry-mlflow
 uv build
-uv pip install dist/modelregistry_plugin-0.1.0-py3-none-any.whl
+uv pip install dist/model_registry_mlflow-0.1.0-py3-none-any.whl
 ```
 
 ### Using pip
 
 ```bash
-pip install modelregistry_plugin
+pip install model-registry-mlflow
 ```
 
 ## Configuration
@@ -181,7 +181,7 @@ with mlflow.start_run():
 
 ```python
 import mlflow
-from modelregistry_plugin import ModelRegistryStore
+from model_registry_mlflow import ModelRegistryStore
 
 # Configure with custom settings
 store = ModelRegistryStore(
@@ -298,7 +298,7 @@ The plugin registers itself as an MLflow tracking store via the entry point:
 
 ```toml
 [project.entry-points."mlflow.tracking_store"]
-modelregistry = "modelregistry_plugin.tracking_store:ModelRegistryStore"
+modelregistry = "model_registry_mlflow.tracking_store:ModelRegistryStore"
 ```
 
 This allows MLflow to automatically discover and use the plugin when the `modelregistry://` URI scheme is specified.
@@ -322,10 +322,10 @@ Enable debug logging to troubleshoot issues:
 
 ```python
 import logging
-logging.getLogger("modelregistry_plugin").setLevel(logging.DEBUG)
+logging.getLogger("model_registry_mlflow").setLevel(logging.DEBUG)
 
 # For detailed CA certificate configuration logging:
-logging.getLogger("modelregistry_plugin.api_client").setLevel(logging.INFO)
+logging.getLogger("model_registry_mlflow.api_client").setLevel(logging.INFO)
 ```
 
 **CA Certificate Log Messages:**
@@ -347,7 +347,7 @@ print('Store type:', type(store).__name__)
 
 # Test CA certificate configuration
 import logging
-logging.getLogger("modelregistry_plugin.api_client").setLevel(logging.INFO)
+logging.getLogger("model_registry_mlflow.api_client").setLevel(logging.INFO)
 
 # This will show CA certificate detection logs
 store = mlflow.tracking._tracking_service.utils._get_store('modelregistry+https://your-registry:8080')

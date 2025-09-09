@@ -128,7 +128,7 @@ operations/
 
 ### **Using the New Store**
 ```python
-from modelregistry_plugin import ModelRegistryStore
+from model_registry_mlflow import ModelRegistryStore
 
 # Initialize store
 store = ModelRegistryStore(
@@ -146,7 +146,7 @@ run = store.create_run(experiment_id, run_name="my-run")
 store.log_metric(run.info.run_id, Metric("accuracy", 0.95))
 ```### **Direct Operation Usage** (for advanced use cases)
 ```python
-from modelregistry_plugin.operations import ExperimentOperations
+from model_registry_mlflow.operations import ExperimentOperations
 
 # Use operations directly
 experiment_ops = ExperimentOperations(api_client, artifact_uri)

@@ -32,8 +32,8 @@ from mlflow.entities import (
 from testcontainers.mysql import MySqlContainer
 
 # Mock the API client to avoid actual HTTP requests
-with patch("modelregistry_plugin.api_client.requests.Session.request") as mock_request:
-    from modelregistry_plugin.tracking_store import ModelRegistryTrackingStore
+with patch("model_registry_mlflow.api_client.requests.Session.request") as mock_request:
+    from model_registry_mlflow.tracking_store import ModelRegistryTrackingStore
 
 # Set up logging
 logger = logging.getLogger(__name__)
@@ -245,6 +245,7 @@ class LocalModelRegistryServer:
         logger.info("✅ Local Model Registry test environment stopped.")
 
 
+@pytest.mark.e2e
 class TestModelRegistryTrackingStoreE2ELocal:
     """End-to-end tests for ModelRegistryTrackingStore with local Model Registry server."""
 
@@ -1551,8 +1552,3 @@ class TestModelRegistryTrackingStoreE2ELocal:
         finally:
             # Cleanup
             store.delete_run(run_id)
-
-
-if __name__ == "__main__":
-    # Allow running the tests directly
-    pytest.main([__file__, "-v"])

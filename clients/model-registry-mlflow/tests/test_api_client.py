@@ -7,7 +7,7 @@ import pytest
 import requests
 from mlflow.exceptions import MlflowException
 
-from modelregistry_plugin.api_client import ModelRegistryAPIClient
+from model_registry_mlflow.api_client import ModelRegistryAPIClient
 
 
 class TestModelRegistryAPIClient:
@@ -39,8 +39,8 @@ class TestModelRegistryAPIClient:
         client = ModelRegistryAPIClient("localhost:8080")
         assert client.base_url == "localhost:8080"
 
-    @patch("modelregistry_plugin.api_client.get_auth_headers")
-    @patch("modelregistry_plugin.api_client.requests.Session.request")
+    @patch("model_registry_mlflow.api_client.get_auth_headers")
+    @patch("model_registry_mlflow.api_client.requests.Session.request")
     def test_request_success(
         self, mock_session_request, mock_auth_headers, api_client, mock_response
     ):
@@ -57,8 +57,8 @@ class TestModelRegistryAPIClient:
         assert call_args[1]["headers"]["Authorization"] == "Bearer token"
         assert response_data == mock_response.json.return_value
 
-    @patch("modelregistry_plugin.api_client.get_auth_headers")
-    @patch("modelregistry_plugin.api_client.requests.Session.request")
+    @patch("model_registry_mlflow.api_client.get_auth_headers")
+    @patch("model_registry_mlflow.api_client.requests.Session.request")
     def test_request_with_json_data(
         self, mock_session_request, mock_auth_headers, api_client, mock_response
     ):
@@ -78,8 +78,8 @@ class TestModelRegistryAPIClient:
             == "MetadataStringValue"
         )
 
-    @patch("modelregistry_plugin.api_client.get_auth_headers")
-    @patch("modelregistry_plugin.api_client.requests.Session.request")
+    @patch("model_registry_mlflow.api_client.get_auth_headers")
+    @patch("model_registry_mlflow.api_client.requests.Session.request")
     def test_request_with_response_items(
         self, mock_session_request, mock_auth_headers, api_client
     ):
@@ -107,8 +107,8 @@ class TestModelRegistryAPIClient:
         # Check that customProperties were converted back to MLflow format
         assert response_data["items"][0]["customProperties"]["key1"] == "value1"
 
-    @patch("modelregistry_plugin.api_client.get_auth_headers")
-    @patch("modelregistry_plugin.api_client.requests.Session.request")
+    @patch("model_registry_mlflow.api_client.get_auth_headers")
+    @patch("model_registry_mlflow.api_client.requests.Session.request")
     def test_request_with_single_response(
         self, mock_session_request, mock_auth_headers, api_client
     ):
@@ -132,8 +132,8 @@ class TestModelRegistryAPIClient:
         # Check that customProperties were converted back to MLflow format
         assert response_data["customProperties"]["key1"] == "value1"
 
-    @patch("modelregistry_plugin.api_client.get_auth_headers")
-    @patch("modelregistry_plugin.api_client.requests.Session.request")
+    @patch("model_registry_mlflow.api_client.get_auth_headers")
+    @patch("model_registry_mlflow.api_client.requests.Session.request")
     def test_request_http_error(
         self, mock_session_request, mock_auth_headers, api_client
     ):
@@ -155,8 +155,8 @@ class TestModelRegistryAPIClient:
 
         assert "Model Registry API error: Not found" in str(exc_info.value)
 
-    @patch("modelregistry_plugin.api_client.get_auth_headers")
-    @patch("modelregistry_plugin.api_client.requests.Session.request")
+    @patch("model_registry_mlflow.api_client.get_auth_headers")
+    @patch("model_registry_mlflow.api_client.requests.Session.request")
     def test_request_network_error(
         self, mock_session_request, mock_auth_headers, api_client
     ):
@@ -174,8 +174,8 @@ class TestModelRegistryAPIClient:
             exc_info.value
         )
 
-    @patch("modelregistry_plugin.api_client.get_auth_headers")
-    @patch("modelregistry_plugin.api_client.requests.Session.request")
+    @patch("model_registry_mlflow.api_client.get_auth_headers")
+    @patch("model_registry_mlflow.api_client.requests.Session.request")
     def test_request_invalid_json_response(
         self, mock_session_request, mock_auth_headers, api_client
     ):
@@ -197,8 +197,8 @@ class TestModelRegistryAPIClient:
 
         assert "Model Registry API error: Invalid JSON" in str(exc_info.value)
 
-    @patch("modelregistry_plugin.api_client.get_auth_headers")
-    @patch("modelregistry_plugin.api_client.requests.Session.request")
+    @patch("model_registry_mlflow.api_client.get_auth_headers")
+    @patch("model_registry_mlflow.api_client.requests.Session.request")
     def test_get_method(
         self, mock_session_request, mock_auth_headers, api_client, mock_response
     ):
@@ -212,8 +212,8 @@ class TestModelRegistryAPIClient:
         assert call_args[0][0] == "GET"
         assert call_args[1]["params"]["key"] == "value"
 
-    @patch("modelregistry_plugin.api_client.get_auth_headers")
-    @patch("modelregistry_plugin.api_client.requests.Session.request")
+    @patch("model_registry_mlflow.api_client.get_auth_headers")
+    @patch("model_registry_mlflow.api_client.requests.Session.request")
     def test_post_method(
         self, mock_session_request, mock_auth_headers, api_client, mock_response
     ):
@@ -227,8 +227,8 @@ class TestModelRegistryAPIClient:
         assert call_args[0][0] == "POST"
         assert call_args[1]["json"]["data"] == "value"
 
-    @patch("modelregistry_plugin.api_client.get_auth_headers")
-    @patch("modelregistry_plugin.api_client.requests.Session.request")
+    @patch("model_registry_mlflow.api_client.get_auth_headers")
+    @patch("model_registry_mlflow.api_client.requests.Session.request")
     def test_patch_method(
         self, mock_session_request, mock_auth_headers, api_client, mock_response
     ):
@@ -242,8 +242,8 @@ class TestModelRegistryAPIClient:
         assert call_args[0][0] == "PATCH"
         assert call_args[1]["json"]["data"] == "value"
 
-    @patch("modelregistry_plugin.api_client.get_auth_headers")
-    @patch("modelregistry_plugin.api_client.requests.Session.request")
+    @patch("model_registry_mlflow.api_client.get_auth_headers")
+    @patch("model_registry_mlflow.api_client.requests.Session.request")
     def test_delete_method(
         self, mock_session_request, mock_auth_headers, api_client, mock_response
     ):
@@ -256,8 +256,8 @@ class TestModelRegistryAPIClient:
         call_args = mock_session_request.call_args
         assert call_args[0][0] == "DELETE"
 
-    @patch("modelregistry_plugin.api_client.get_auth_headers")
-    @patch("modelregistry_plugin.api_client.requests.Session.request")
+    @patch("model_registry_mlflow.api_client.get_auth_headers")
+    @patch("model_registry_mlflow.api_client.requests.Session.request")
     def test_request_with_custom_headers(
         self, mock_session_request, mock_auth_headers, api_client, mock_response
     ):
@@ -272,8 +272,8 @@ class TestModelRegistryAPIClient:
         assert headers["Authorization"] == "Bearer token"
         assert headers["Custom-Header"] == "value"
 
-    @patch("modelregistry_plugin.api_client.get_auth_headers")
-    @patch("modelregistry_plugin.api_client.requests.Session.request")
+    @patch("model_registry_mlflow.api_client.get_auth_headers")
+    @patch("model_registry_mlflow.api_client.requests.Session.request")
     def test_request_with_params(
         self, mock_session_request, mock_auth_headers, api_client, mock_response
     ):
@@ -301,7 +301,7 @@ class TestModelRegistryAPIClient:
 
     def test_ca_cert_configuration_http(self):
         """Test that CA certificate configuration is skipped for HTTP URLs."""
-        with patch("modelregistry_plugin.api_client.logger") as mock_logger:
+        with patch("model_registry_mlflow.api_client.logger") as mock_logger:
             client = ModelRegistryAPIClient("http://localhost:8080")
             assert client.session.verify is True  # Default requests behavior
             mock_logger.debug.assert_called_with(
@@ -311,7 +311,7 @@ class TestModelRegistryAPIClient:
     def test_ca_cert_configuration_explicit_path(self):
         """Test CA certificate configuration with explicit path."""
         with patch("pathlib.Path.exists", return_value=True):
-            with patch("modelregistry_plugin.api_client.logger") as mock_logger:
+            with patch("model_registry_mlflow.api_client.logger") as mock_logger:
                 client = ModelRegistryAPIClient(
                     "https://localhost:8080", ca_cert_path="/path/to/cert.pem"
                 )
@@ -323,7 +323,7 @@ class TestModelRegistryAPIClient:
     def test_ca_cert_configuration_explicit_path_not_found(self):
         """Test CA certificate configuration with explicit path that doesn't exist."""
         with patch("pathlib.Path.exists", return_value=False):
-            with patch("modelregistry_plugin.api_client.logger") as mock_logger:
+            with patch("model_registry_mlflow.api_client.logger") as mock_logger:
                 client = ModelRegistryAPIClient(
                     "https://localhost:8080", ca_cert_path="/path/to/nonexistent.pem"
                 )
@@ -336,7 +336,7 @@ class TestModelRegistryAPIClient:
     def test_ca_cert_configuration_env_var(self):
         """Test CA certificate configuration via environment variable."""
         with patch("pathlib.Path.exists", return_value=True):
-            with patch("modelregistry_plugin.api_client.logger") as mock_logger:
+            with patch("model_registry_mlflow.api_client.logger") as mock_logger:
                 client = ModelRegistryAPIClient("https://localhost:8080")
                 assert client.session.verify == "/env/path/to/cert.pem"
                 # Check that the environment variable message was logged (first call)
@@ -346,13 +346,13 @@ class TestModelRegistryAPIClient:
 
     def test_ca_cert_configuration_kubernetes_ca_file_exists(self):
         """Test CA certificate configuration when Kubernetes CA file exists."""
-        with patch("modelregistry_plugin.api_client.Path") as mock_path:
+        with patch("model_registry_mlflow.api_client.Path") as mock_path:
             # Mock the Path constructor and its exists method
             mock_path_instance = Mock()
             mock_path_instance.exists.return_value = True
             mock_path.return_value = mock_path_instance
 
-            with patch("modelregistry_plugin.api_client.logger") as mock_logger:
+            with patch("model_registry_mlflow.api_client.logger") as mock_logger:
                 client = ModelRegistryAPIClient("https://localhost:8080")
                 assert (
                     client.session.verify
@@ -365,25 +365,25 @@ class TestModelRegistryAPIClient:
     def test_ca_cert_configuration_default_system_ca(self):
         """Test CA certificate configuration falls back to system CA."""
         with patch("pathlib.Path.exists", return_value=False):
-            with patch("modelregistry_plugin.api_client.logger") as mock_logger:
+            with patch("model_registry_mlflow.api_client.logger") as mock_logger:
                 client = ModelRegistryAPIClient("https://localhost:8080")
                 assert client.session.verify is True  # System default
                 mock_logger.debug.assert_called_with("Using system default CA bundle")
 
-    @patch("modelregistry_plugin.api_client.get_auth_headers")
-    @patch("modelregistry_plugin.api_client.requests.Session.request")
+    @patch("model_registry_mlflow.api_client.get_auth_headers")
+    @patch("model_registry_mlflow.api_client.requests.Session.request")
     def test_request_ssl_error(
         self, mock_session_request, mock_auth_headers, api_client
     ):
-        """Test API request with SSL error."""
+        """Test API request with TLS error."""
         mock_auth_headers.return_value = {"Authorization": "Bearer token"}
-        mock_session_request.side_effect = requests.exceptions.SSLError("SSL Error")
+        mock_session_request.side_effect = requests.exceptions.SSLError("TLS Error")
 
         with pytest.raises(MlflowException) as exc_info:
             api_client.request("GET", "/test")
 
         assert (
-            "SSL certificate verification failed connecting to Model Registry: SSL Error"
+            "TLS certificate verification failed connecting to Model Registry: TLS Error"
             in str(exc_info.value)
         )
 

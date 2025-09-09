@@ -7,7 +7,7 @@ from unittest.mock import patch
 
 from mlflow.entities import LifecycleStage, LoggedModelStatus
 
-from modelregistry_plugin.utils import (
+from model_registry_mlflow.utils import (
     convert_modelregistry_state,
     convert_timestamp,
     convert_to_mlflow_logged_model_status,

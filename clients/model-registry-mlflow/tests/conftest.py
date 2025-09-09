@@ -1,5 +1,5 @@
 """
-Shared fixtures for modelregistry_plugin tests.
+Shared fixtures for model_registry_mlflow tests.
 """
 
 import uuid

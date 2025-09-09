@@ -12,7 +12,7 @@ from mlflow.entities import (
 from mlflow.models import Model
 from mlflow.store.entities.paged_list import PagedList
 
-from modelregistry_plugin.operations.model import ModelOperations
+from model_registry_mlflow.operations.model import ModelOperations
 
 
 class TestModelOperations:

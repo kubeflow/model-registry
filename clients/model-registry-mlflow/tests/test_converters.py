@@ -16,8 +16,8 @@ from mlflow.entities import (
 from mlflow.exceptions import MlflowException
 from mlflow.models import Model
 
-from modelregistry_plugin.converters import MLflowEntityConverter
-from modelregistry_plugin.utils import ModelIOType
+from model_registry_mlflow.converters import MLflowEntityConverter
+from model_registry_mlflow.utils import ModelIOType
 
 
 class TestMLflowEntityConverter:

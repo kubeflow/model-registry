@@ -6,7 +6,7 @@ import pytest
 from mlflow.entities import ViewType
 from mlflow.store.entities.paged_list import PagedList
 
-from modelregistry_plugin.operations.search import SearchOperations
+from model_registry_mlflow.operations.search import SearchOperations
 
 
 class TestSearchOperations:

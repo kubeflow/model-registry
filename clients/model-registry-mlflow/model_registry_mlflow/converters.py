@@ -16,7 +16,7 @@ if TYPE_CHECKING:
         RunInfo,
     )
 
-from modelregistry_plugin.utils import (
+from model_registry_mlflow.utils import (
     ModelIOType,
     convert_modelregistry_state,
     convert_timestamp,

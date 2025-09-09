@@ -5,7 +5,7 @@ Tests for authentication utilities
 import os
 from unittest.mock import mock_open, patch
 
-from modelregistry_plugin.auth import get_auth_headers
+from model_registry_mlflow.auth import get_auth_headers
 
 
 class TestAuth:

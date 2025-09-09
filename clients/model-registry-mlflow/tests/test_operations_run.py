@@ -16,7 +16,7 @@ from mlflow.entities import (
     RunTag,
 )
 
-from modelregistry_plugin.operations.run import RunOperations
+from model_registry_mlflow.operations.run import RunOperations
 
 
 class TestRunOperations:

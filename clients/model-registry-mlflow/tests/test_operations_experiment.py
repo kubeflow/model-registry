@@ -7,7 +7,7 @@ from mlflow.entities import Experiment, ExperimentTag, ViewType
 from mlflow.exceptions import MlflowException
 from mlflow.store.entities.paged_list import PagedList
 
-from modelregistry_plugin.operations.experiment import ExperimentOperations
+from model_registry_mlflow.operations.experiment import ExperimentOperations
 
 
 class TestExperimentOperations:

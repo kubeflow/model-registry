@@ -820,8 +820,3 @@ def test_mlflow_integration() -> None:
         # Cleanup
         with contextlib.suppress(MlflowException):
             mlflow.delete_experiment(experiment_id)
-
-
-if __name__ == "__main__":
-    # Allow running the tests directly
-    pytest.main([__file__, "-v"])

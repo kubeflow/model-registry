@@ -9,8 +9,8 @@ from typing import Any, Dict, Optional
 
 import requests
 
-from modelregistry_plugin.auth import get_auth_headers
-from modelregistry_plugin.utils import (
+from model_registry_mlflow.auth import get_auth_headers
+from model_registry_mlflow.utils import (
     fromModelRegistryCustomProperties,
     toModelRegistryCustomProperties,
 )

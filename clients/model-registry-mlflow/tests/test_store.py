@@ -14,9 +14,10 @@ from unittest.mock import patch
 
 import pytest
 
-from modelregistry_plugin.tracking_store import ModelRegistryTrackingStore
+from model_registry_mlflow.tracking_store import ModelRegistryTrackingStore
 
 
+@pytest.mark.unit
 class TestModelRegistryTrackingStore:
     def test_init_default(self):
         """Test store initialization with defaults."""
@@ -95,8 +96,3 @@ class TestModelRegistryTrackingStore:
         assert store.api_client.base_url == store.base_url
         assert hasattr(store.api_client, "session")
         assert hasattr(store.api_client, "request")
-
-
-if __name__ == "__main__":
-    # Allow running the tests directly
-    pytest.main([__file__, "-v"])
