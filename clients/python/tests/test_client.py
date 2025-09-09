@@ -1210,25 +1210,6 @@ async def test_as_mlops_engineer_i_would_like_to_store_a_longer_documentation_fo
     assert da.uri == "https://README.md"
 
 
-class MockPath:
-    def __init__(self, path_arg, file_contents=None):
-        self.path_arg = str(path_arg)
-        self.file_contents = file_contents or {}
-
-    def exists(self):
-        print("exists", self.path_arg)
-        return self.path_arg in self.file_contents
-
-    def read_text(self):
-        return self.file_contents.get(self.path_arg, "<wrong, returning arbitrary string>")
-
-    def __str__(self):
-        return self.path_arg
-
-    def __repr__(self):
-        return f"MockPath('{self.path_arg}', file_contents={self.file_contents})"
-
-
 @pytest.fixture
 def mock_get_registered_models(monkeypatch):
     """Mock the get_registered_models method to avoid server calls."""
