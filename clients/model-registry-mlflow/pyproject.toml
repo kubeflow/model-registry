@@ -15,8 +15,12 @@ modelregistry = "model_registry_mlflow.tracking_store:ModelRegistryTrackingStore
 "modelregistry+https" = "model_registry_mlflow.tracking_store:ModelRegistryTrackingStore"
 
 [build-system]
-requires = ["hatchling"]
-build-backend = "hatchling.build"
+requires = ["uv_build>=0.8.15,<0.9.0"]
+build-backend = "uv_build"
+
+[tool.uv.build-backend]
+module-name = "model_registry_mlflow"
+module-root = "src"
 
 [dependency-groups]
 dev = [
@@ -26,6 +30,20 @@ dev = [
     "pytest-dotenv>=0.5.2",
     "ruff>=0.12.0",
     "testcontainers>=3.7.0",
+]
+
+[tool.coverage.run]
+source = ["src"]
+omit = [
+    "*/tests/*",
+    "*/__pycache__/*",
+]
+
+[tool.coverage.paths]
+source = [
+    "src/",
+    "*/site-packages/",
+    "*/.venv/lib/python*/site-packages/",
 ]
 
 [tool.pytest.ini_options]

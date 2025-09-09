@@ -29,7 +29,7 @@ install-dev:
 
 # Run unit tests
 test:
-	uv run pytest tests/ -v --tb=short --cov=model_registry_mlflow --cov-report=term-missing -k "not e2e"
+	uv run pytest tests/ -v --tb=short --cov=model_registry_mlflow --cov-config=pyproject.toml --cov-report=term-missing -k "not e2e"
 
 # Run end-to-end tests (requires MLFLOW_TRACKING_URI)
 test-e2e:
