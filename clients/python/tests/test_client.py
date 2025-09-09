@@ -1,3 +1,4 @@
+import logging
 import os
 import tempfile
 from itertools import islice
@@ -1324,3 +1325,60 @@ def test_user_token_missing_warning(monkeypatch, mock_get_registered_models):
     )
     assert client is not None
     mock_warn.assert_called_with("User access token is missing", stacklevel=2)
+
+
+def test_hint_server_address_port_https_with_standard_port_no_warning(mock_get_registered_models, caplog):
+    """Test cases for the hint_server_address_port method via ModelRegistry constructor.
+    Test that no warning is issued when using HTTPS with port 443."""
+    with caplog.at_level(logging.WARNING):
+        ModelRegistry(server_address="https://example.com", port=443, author="test", user_token="test")  # noqa: S106
+
+    assert len(caplog.records) == 0
+
+
+def test_hint_server_address_port_https_with_port_ending_443_no_warning(mock_get_registered_models, caplog):
+    """Test cases for the hint_server_address_port method via ModelRegistry constructor.
+    Test that no warning is issued when using HTTPS with port ending in 443."""
+    with caplog.at_level(logging.WARNING):
+        ModelRegistry(server_address="https://example.com", port=8443, author="test", user_token="test") # noqa: S106
+
+    assert len(caplog.records) == 0
+
+
+def test_hint_server_address_port_https_with_non_443_port_warning(mock_get_registered_models, caplog):
+    """Test cases for the hint_server_address_port method via ModelRegistry constructor.
+    Test that a warning is issued when using HTTPS with non-443 port."""
+    with caplog.at_level(logging.WARNING):
+        ModelRegistry(server_address="https://example.com", port=8080, author="test", user_token="test") # noqa: S106
+
+    assert len(caplog.records) == 1
+    assert "Server address protocol is https://, but port is not 443 or ending with 443" in caplog.records[0].message
+
+
+def test_hint_server_address_port_http_with_standard_port_no_warning(mock_get_registered_models, caplog):
+    """Test cases for the hint_server_address_port method via ModelRegistry constructor.
+    Test that no warning is issued when using HTTP with port 80."""
+    with caplog.at_level(logging.WARNING):
+        ModelRegistry(server_address="http://example.com", port=80, author="test", is_secure=False)
+
+    assert len(caplog.records) == 0
+
+
+def test_hint_server_address_port_http_with_port_ending_80_no_warning(mock_get_registered_models, caplog):
+    """Test cases for the hint_server_address_port method via ModelRegistry constructor.
+    Test that no warning is issued when using HTTP with port ending in 80."""
+    with caplog.at_level(logging.WARNING):
+        ModelRegistry(server_address="http://example.com", port=8080, author="test", is_secure=False)
+
+    assert len(caplog.records) == 0
+
+
+def test_hint_server_address_port_http_with_non_80_port_warning(mock_get_registered_models, caplog):
+    """Test cases for the hint_server_address_port method via ModelRegistry constructor.
+    Test that a warning is issued when using HTTP with non-80 port."""
+    with caplog.at_level(logging.WARNING):
+        ModelRegistry(server_address="http://example.com", port=8443, author="test", is_secure=False)
+
+    assert len(caplog.records) == 1
+    assert "Server address protocol is http://, but port is not 80 or ending with 80" in caplog.records[0].message
+
