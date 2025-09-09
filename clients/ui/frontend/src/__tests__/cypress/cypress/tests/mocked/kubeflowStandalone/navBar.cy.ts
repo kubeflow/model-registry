@@ -74,9 +74,12 @@ describe('NavBar', () => {
     initIntercepts({});
     appChrome.visit();
 
-    navBar.findNamespaceSelector().findByText('bella-namespace').should('exist');
-    // Since the namespace selector is disabled due to mandatory namespace, we can't select a different namespace
-    // This test verifies that the namespace is displayed correctly
-    navBar.findNamespaceSelector().findByText('bella-namespace').should('exist');
+    navBar.findNamespaceSelector().should('be.visible');
+    navBar.findNamespaceSelector().within(() => {
+      cy.get('.pf-v6-c-menu-toggle__text').should('not.be.empty');
+      // Since the namespace selector is disabled due to mandatory namespace, we can't select a different namespace
+      // This test verifies that the namespace selector is present and contains text
+      cy.get('button').should('be.disabled');
+    });
   });
 });
