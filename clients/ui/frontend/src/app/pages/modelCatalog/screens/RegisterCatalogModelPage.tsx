@@ -5,6 +5,7 @@ import { ApplicationsPage } from 'mod-arch-shared';
 import { useModelCatalogSources } from '~/app/hooks/modelCatalog/useModelCatalogSources';
 import { ModelCatalogItem } from '~/app/modelCatalogTypes';
 import { ModelRegistryContextProvider } from '~/app/context/ModelRegistryContext';
+import { getCatalogModelDetailsRoute } from '~/app/routes/modelCatalog/catalogModelDetails';
 import {
   ModelRegistrySelectorContextProvider,
   ModelRegistrySelectorContext,
@@ -18,7 +19,7 @@ type RouteParams = {
 const RegisterCatalogModelPageInner: React.FC = () => {
   const { modelId } = useParams<RouteParams>();
   const { sources, loading, error } = useModelCatalogSources();
-  const { modelRegistries } = React.useContext(ModelRegistrySelectorContext);
+  const { modelRegistries, modelRegistriesLoaded } = React.useContext(ModelRegistrySelectorContext);
 
   const model: ModelCatalogItem | undefined = React.useMemo(() => {
     for (const source of sources) {
@@ -34,12 +35,17 @@ const RegisterCatalogModelPageInner: React.FC = () => {
   const preferredModelRegistry = modelRegistries.length > 0 ? modelRegistries[0] : null;
 
   // Check to see if data is loaded
-  const isDataReady = !loading && !error && model !== undefined;
+  const isDataReady =
+    !loading &&
+    !error &&
+    model !== undefined &&
+    modelRegistriesLoaded &&
+    modelRegistries.length > 0;
 
   return (
     <ApplicationsPage
       title={`Register ${model?.name || ''} model`}
-      description="Create a new model and register the first version of your new model."
+      description="Create and register the first version of a new model."
       breadcrumb={
         <Breadcrumb>
           <BreadcrumbItem render={() => <Link to="/model-catalog">Model catalog</Link>} />
@@ -49,7 +55,9 @@ const RegisterCatalogModelPageInner: React.FC = () => {
               !model?.name ? (
                 'Loading...'
               ) : (
-                <Link to={`/model-catalog/${modelId}`}>{model.name}</Link>
+                <Link to={getCatalogModelDetailsRoute({ modelName: model.name, tag: '' })}>
+                  {model.name}
+                </Link>
               )
             }
           />

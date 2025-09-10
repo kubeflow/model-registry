@@ -33,7 +33,7 @@ const ModelDetailsPage: React.FC = () => {
   const { modelId } = useParams<RouteParams>();
   const navigate = useNavigate();
   const { sources, loading, error } = useModelCatalogSources();
-  const { modelRegistries, modelRegistriesLoadError } = React.useContext(
+  const { modelRegistries, modelRegistriesLoadError, modelRegistriesLoaded } = React.useContext(
     ModelRegistrySelectorContext,
   );
 
@@ -50,7 +50,7 @@ const ModelDetailsPage: React.FC = () => {
   const versionTag = extractVersionTag(model?.tags);
 
   const registerModelButton = () => {
-    if (modelRegistriesLoadError) {
+    if (!modelRegistriesLoaded || modelRegistriesLoadError) {
       return null;
     }
 

@@ -23,16 +23,16 @@ import { ModelRegistryContext } from '~/app/context/ModelRegistryContext';
 import useRegisteredModels from '~/app/hooks/useRegisteredModels';
 import { extractVersionTag } from '~/app/pages/modelCatalog/utils/modelCatalogUtils';
 import ModelRegistrySelector from '~/app/pages/modelRegistry/screens/ModelRegistrySelector';
+import { registeredModelUrl } from '~/app/pages/modelRegistry/screens/routeUtils';
+import { getCatalogModelDetailsRoute } from '~/app/routes/modelCatalog/catalogModelDetails';
 
 interface RegisterCatalogModelFormProps {
   model: ModelCatalogItem;
-  modelId?: string;
   preferredModelRegistry: ModelRegistry;
 }
 
 const RegisterCatalogModelForm: React.FC<RegisterCatalogModelFormProps> = ({
   model,
-  modelId,
   preferredModelRegistry,
 }) => {
   const navigate = useNavigate();
@@ -44,65 +44,13 @@ const RegisterCatalogModelForm: React.FC<RegisterCatalogModelFormProps> = ({
 
   const versionTag = extractVersionTag(model.tags);
 
-  // Extract framework information from model tags or description
-  const getFrameworkFromModel = (catalogModel: ModelCatalogItem): string => {
-    if (catalogModel.framework) {
-      return catalogModel.framework;
-    }
-    // Try to extract from tags or description
-    const tags = catalogModel.tags || [];
-    const description = catalogModel.description || '';
-
-    // Common framework patterns
-    const frameworkPatterns = [
-      'pytorch',
-      'tensorflow',
-      'onnx',
-      'sklearn',
-      'xgboost',
-      'lightgbm',
-      'huggingface',
-      'transformers',
-      'torch',
-      'tf',
-      'keras',
-    ];
-
-    for (const pattern of frameworkPatterns) {
-      if (
-        tags.some((tag) => tag.toLowerCase().includes(pattern)) ||
-        description.toLowerCase().includes(pattern)
-      ) {
-        return pattern.charAt(0).toUpperCase() + pattern.slice(1);
-      }
-    }
-
-    return 'PyTorch'; // Default fallback
-  };
-
-  const getVersionFromModel = (catalogModel: ModelCatalogItem): string => {
-    if (catalogModel.framework) {
-      // Try to extract version from tags or use default
-      const tags = catalogModel.tags || [];
-      const versionPattern = /(\d+\.\d+\.\d+|\d+\.\d+|\d+)/;
-
-      for (const tag of tags) {
-        const match = tag.match(versionPattern);
-        if (match) {
-          return match[1];
-        }
-      }
-    }
-    return '1.0.0'; // Default fallback
-  };
-
   const initialFormData: RegisterCatalogModelFormData = {
     modelName: `${model.name}-${versionTag || ''}`,
     modelDescription: model.description || '',
     versionName: 'Version 1',
     versionDescription: '',
-    sourceModelFormat: getFrameworkFromModel(model),
-    sourceModelFormatVersion: getVersionFromModel(model),
+    sourceModelFormat: '',
+    sourceModelFormatVersion: '',
     modelLocationType: ModelLocationType.URI,
     modelLocationEndpoint: '',
     modelLocationBucket: '',
@@ -230,7 +178,7 @@ const RegisterCatalogModelForm: React.FC<RegisterCatalogModelFormProps> = ({
       } = await registerModel(apiState, formData, 'user'); // TODO: Get actual user
 
       if (registeredModel && modelVersion && modelArtifact) {
-        const navigationPath = `/model-registry/${encodeURIComponent(preferredModelRegistry.name)}/registeredModels/${registeredModel.id}`;
+        const navigationPath = registeredModelUrl(registeredModel.id, preferredModelRegistry.name);
         navigate(navigationPath);
       } else if (Object.keys(errors).length > 0) {
         setIsSubmitting(false);
@@ -247,7 +195,7 @@ const RegisterCatalogModelForm: React.FC<RegisterCatalogModelFormProps> = ({
   };
 
   const onCancel = () => {
-    navigate(`/model-catalog/${modelId || model.id}`);
+    navigate(getCatalogModelDetailsRoute({ modelName: model.name, tag: '' }));
   };
 
   return (
