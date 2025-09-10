@@ -35,8 +35,6 @@ type RouteParams = {
 
 const ModelDetailsView: React.FC<ModelDetailsViewProps> = ({ model }) => {
   const { sourceId = '' } = useParams<RouteParams>();
-  // const versionTag = extractVersionTag(model.tags);
-  // const nonVersionTags = filterNonVersionTags(model.tags) ?? [];
   const [artifacts, artifactLoaded, artifactsLoadError] = useCatalogModelArtifacts(
     sourceId,
     model.name,
@@ -70,23 +68,10 @@ const ModelDetailsView: React.FC<ModelDetailsViewProps> = ({ model }) => {
         </SidebarContent>
         <SidebarPanel>
           <DescriptionList isFillColumns>
-            {/* <DescriptionListGroup>
-              <DescriptionListTerm>Version</DescriptionListTerm>
-              <DescriptionListDescription>
-                <Label variant="outline" icon={<TagIcon />}>
-                  {versionTag || 'N/A'}
-                </Label>
-              </DescriptionListDescription>
-            </DescriptionListGroup> */}
             <DescriptionListGroup>
               <DescriptionListTerm>Labels</DescriptionListTerm>
               <DescriptionListDescription>
-                <ModelCatalogLabels
-                  // tags={nonVersionTags}
-                  // labels={model.labels ?? []}
-                  tasks={model.tasks ?? []}
-                  license={model.license}
-                />
+                <ModelCatalogLabels tasks={model.tasks ?? []} license={model.license} />
               </DescriptionListDescription>
             </DescriptionListGroup>
             <DescriptionListGroup>

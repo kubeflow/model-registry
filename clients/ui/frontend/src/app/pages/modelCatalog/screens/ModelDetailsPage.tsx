@@ -19,7 +19,6 @@ import {
 import { ApplicationsPage } from 'mod-arch-shared';
 import { getModelName } from '~/app/pages/modelCatalog/utils/modelCatalogUtils';
 import ModelDetailsView from '~/app/pages/modelCatalog/screens/ModelDetailsView';
-
 import { useCatalogModel } from '~/app/hooks/modelCatalog/useCatalogModel';
 import { ModelRegistrySelectorContext } from '~/app/context/ModelRegistrySelectorContext';
 import { getRegisterCatalogModelRoute } from '~/app/routes/modelCatalog/catalogModelRegister';
@@ -112,10 +111,6 @@ const ModelDetailsPage: React.FC = () => {
                   alignItems={{ default: 'alignItemsCenter' }}
                 >
                   <FlexItem>{getModelName(model.name)}</FlexItem>
-                  {/* TODO: dont have tags */}
-                  {/* <Label variant="outline" icon={<TagIcon />}>
-                    {versionTag || 'N/A'}
-                  </Label> */}
                 </Flex>
               </StackItem>
               <StackItem>
