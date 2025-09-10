@@ -3,7 +3,6 @@ import {
   FormHelperText,
   HelperText,
   HelperTextItem,
-  TextArea,
   TextInput,
 } from '@patternfly/react-core';
 import React from 'react';
@@ -39,7 +38,7 @@ const RegisterModelDetailsFormSection = <D extends RegisterModelFormData>({
   );
 
   const modelDescriptionInput = (
-    <TextArea
+    <TextInput
       id="model-description"
       name="model-description"
       value={formData.modelDescription}

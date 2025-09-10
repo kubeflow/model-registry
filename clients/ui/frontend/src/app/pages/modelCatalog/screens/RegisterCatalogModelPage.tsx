@@ -72,11 +72,7 @@ const RegisterCatalogModelPageInner: React.FC = () => {
     >
       {isDataReady && preferredModelRegistry ? (
         <ModelRegistryContextProvider modelRegistryName={preferredModelRegistry.name}>
-          <RegisterCatalogModelForm
-            model={model}
-            modelId={modelId}
-            preferredModelRegistry={preferredModelRegistry}
-          />
+          <RegisterCatalogModelForm model={model} preferredModelRegistry={preferredModelRegistry} />
         </ModelRegistryContextProvider>
       ) : (
         <div>Loading...</div>
