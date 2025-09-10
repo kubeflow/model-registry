@@ -4,7 +4,7 @@ This directory contains manifests for deploying the Model Catalog using Kustomiz
 
 ## Deployment
 
-To deploy the Model Catalog to your Kubernetes cluster, run the following command from this directory:
+To deploy the Model Catalog to your Kubernetes cluster, run the following command in the `base` directory:
 
 ```sh
 kubectl apply -k . -n <your-namespace>
@@ -16,6 +16,12 @@ This command will create:
 *   A `Deployment` to run the Model Catalog server.
 *   A `Service` to expose the Model Catalog server.
 *   A `ConfigMap` named `model-catalog-sources` containing the configuration for the catalog sources.
+
+For deployment in a Kubeflow environment with Istio support, use the overlay, running the following command in the `overlay` directory::
+
+```sh
+kubectl apply -k . -n <your-namespace>
+```
 
 ## Configuring Catalog Sources
 

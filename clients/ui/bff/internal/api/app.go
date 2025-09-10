@@ -181,7 +181,6 @@ func (app *App) Routes() http.Handler {
 	apiRouter.PATCH(ModelArtifactPath, app.AttachNamespace(app.RequireAccessToMRService(app.AttachModelRegistryRESTClient(app.UpdateModelArtifactHandler))))
 
 	// Model catalog HTTP client routes (requests that we forward to Model Catalog API)
-	//TODO eder: do we need to check SAR here? It's currently ready only
 	apiRouter.GET(CatalogModelListPath, app.AttachNamespace(app.AttachModelCatalogRESTClient(app.GetAllCatalogModelsAcrossSourcesHandler)))
 	apiRouter.GET(CatalogSourceListPath, app.AttachNamespace(app.AttachModelCatalogRESTClient(app.GetAllCatalogSourcesHandler)))
 	apiRouter.GET(CatalogSourceModelPath, app.AttachNamespace(app.AttachModelCatalogRESTClient(app.GetCatalogSourceModelHandler)))
