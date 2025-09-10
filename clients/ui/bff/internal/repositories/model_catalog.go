@@ -3,6 +3,7 @@ package repositories
 import (
 	"context"
 	"fmt"
+
 	k8s "github.com/kubeflow/model-registry/ui/bff/internal/integrations/kubernetes"
 	"github.com/kubeflow/model-registry/ui/bff/internal/models"
 )
@@ -10,7 +11,7 @@ import (
 type ModelCatalogRepository struct {
 }
 
-const ModelCatalogServiceName = "model-catalog-model-catalog-service"
+const ModelCatalogServiceName = "model-catalog-service"
 
 func NewCatalogRepository() *ModelCatalogRepository {
 	return &ModelCatalogRepository{}
