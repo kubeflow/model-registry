@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { DashboardDescriptionListGroup } from 'mod-arch-shared';
 import { ModelArtifact } from '~/app/types';
 import { getCatalogModelDetailsRoute } from '~/app/routes/modelCatalog/catalogModelDetails';
-import { modelSourcePropertiesToCatalogParams } from '~/app/concepts/modelRegistry/utils';
+import { modelSourcePropertiesToCatalogParams } from '~/concepts/modelRegistry/utils';
 
 type ModelVersionRegisteredFromLinkProps = {
   modelArtifact: ModelArtifact;
@@ -27,7 +27,12 @@ const ModelVersionRegisteredFromLink: React.FC<ModelVersionRegisteredFromLinkPro
   );
 
   const renderContent = () => {
-    const catalogModelUrl = getCatalogModelDetailsRoute(registeredFromCatalogDetails);
+    const catalogModelUrl = getCatalogModelDetailsRoute({
+      modelName: registeredFromCatalogDetails.modelName || '',
+      tag: registeredFromCatalogDetails.tag || '',
+      sourceName: registeredFromCatalogDetails.sourceName,
+      repositoryName: registeredFromCatalogDetails.repositoryName,
+    });
     return (
       <>
         {isModelCatalogAvailable ? (

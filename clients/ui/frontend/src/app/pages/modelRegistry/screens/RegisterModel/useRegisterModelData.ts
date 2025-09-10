@@ -20,6 +20,7 @@ export type RegistrationCommonFormData = {
   modelLocationURI: string;
   versionCustomProperties?: ModelRegistryCustomProperties;
   modelCustomProperties?: ModelRegistryCustomProperties;
+  additionalArtifactProperties?: ModelRegistryCustomProperties;
 };
 
 export type RegisterModelFormData = RegistrationCommonFormData & {

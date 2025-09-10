@@ -25,6 +25,10 @@ import { extractVersionTag } from '~/app/pages/modelCatalog/utils/modelCatalogUt
 import ModelRegistrySelector from '~/app/pages/modelRegistry/screens/ModelRegistrySelector';
 import { registeredModelUrl } from '~/app/pages/modelRegistry/screens/routeUtils';
 import { getCatalogModelDetailsRoute } from '~/app/routes/modelCatalog/catalogModelDetails';
+import {
+  catalogParamsToModelSourceProperties,
+  modelSourcePropertiesToCustomProperties,
+} from '~/concepts/modelRegistry/utils';
 
 interface RegisterCatalogModelFormProps {
   model: ModelCatalogItem;
@@ -43,6 +47,15 @@ const RegisterCatalogModelForm: React.FC<RegisterCatalogModelFormProps> = ({
   const [submitError, setSubmitError] = React.useState<Error | undefined>(undefined);
 
   const versionTag = extractVersionTag(model.tags);
+
+  const catalogParams = {
+    modelName: model.name,
+    tag: versionTag || '',
+    sourceName: model.provider || '',
+    repositoryName: model.id || '',
+  };
+  const sourceProperties = catalogParamsToModelSourceProperties(catalogParams);
+  const sourceCustomProperties = modelSourcePropertiesToCustomProperties(sourceProperties);
 
   const initialFormData: RegisterCatalogModelFormData = {
     modelName: `${model.name}-${versionTag || ''}`,
@@ -65,31 +78,6 @@ const RegisterCatalogModelForm: React.FC<RegisterCatalogModelFormProps> = ({
         string_value: model.license || '',
         metadataType: ModelRegistryMetadataType.STRING,
       },
-      Provider: {
-        // eslint-disable-next-line camelcase
-        string_value: model.provider || '',
-        metadataType: ModelRegistryMetadataType.STRING,
-      },
-      'Registered from': {
-        // eslint-disable-next-line camelcase
-        string_value: 'Model catalog',
-        metadataType: ModelRegistryMetadataType.STRING,
-      },
-      'Source model': {
-        // eslint-disable-next-line camelcase
-        string_value: model.name,
-        metadataType: ModelRegistryMetadataType.STRING,
-      },
-      'Source model version': {
-        // eslint-disable-next-line camelcase
-        string_value: versionTag || '',
-        metadataType: ModelRegistryMetadataType.STRING,
-      },
-      'Source model id': {
-        // eslint-disable-next-line camelcase
-        string_value: model.id || '',
-        metadataType: ModelRegistryMetadataType.STRING,
-      },
       Framework: {
         // eslint-disable-next-line camelcase
         string_value: model.framework || '',
@@ -101,6 +89,7 @@ const RegisterCatalogModelForm: React.FC<RegisterCatalogModelFormProps> = ({
         metadataType: ModelRegistryMetadataType.STRING,
       },
     },
+    additionalArtifactProperties: sourceCustomProperties,
   };
 
   const [formData, setData] = useRegisterCatalogModelData();
@@ -122,6 +111,7 @@ const RegisterCatalogModelForm: React.FC<RegisterCatalogModelFormProps> = ({
     setData('modelRegistry', initialFormData.modelRegistry);
     setData('modelCustomProperties', initialFormData.modelCustomProperties);
     setData('versionCustomProperties', initialFormData.versionCustomProperties);
+    setData('additionalArtifactProperties', initialFormData.additionalArtifactProperties);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [model.id, preferredModelRegistry.name, versionTag]);
 
@@ -225,7 +215,6 @@ const RegisterCatalogModelForm: React.FC<RegisterCatalogModelFormProps> = ({
                 setData={setData}
                 hasModelNameError={hasModelNameError}
                 isModelNameDuplicate={isModelNameDuplicate}
-                isCatalogModel
               />
               <RegistrationCommonFormSections
                 formData={formData}

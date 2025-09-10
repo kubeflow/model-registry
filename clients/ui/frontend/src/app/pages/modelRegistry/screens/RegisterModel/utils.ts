@@ -103,7 +103,9 @@ export const registerVersion = async (
     modelArtifact = await apiState.api.createModelArtifactForModelVersion({}, modelVersion.id, {
       name: `${formData.versionName}`,
       description: formData.versionDescription,
-      customProperties: {},
+      customProperties: {
+        ...formData.additionalArtifactProperties,
+      },
       state: ModelArtifactState.LIVE,
       author,
       modelFormatName: formData.sourceModelFormat,

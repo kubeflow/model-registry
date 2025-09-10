@@ -16,14 +16,12 @@ type RegisterModelDetailsFormSectionProp<D extends RegisterModelFormData> = {
   setData: UpdateObjectAtPropAndValue<D>;
   hasModelNameError: boolean;
   isModelNameDuplicate?: boolean;
-  isCatalogModel?: boolean;
 };
 const RegisterModelDetailsFormSection = <D extends RegisterModelFormData>({
   formData,
   setData,
   hasModelNameError,
   isModelNameDuplicate,
-  isCatalogModel = false,
 }: RegisterModelDetailsFormSectionProp<D>): React.ReactNode => {
   const modelNameInput = (
     <TextInput
@@ -69,11 +67,7 @@ const RegisterModelDetailsFormSection = <D extends RegisterModelFormData>({
         <FormFieldset component={modelDescriptionInput} field="Model Description" />
         <FormHelperText>
           <HelperText>
-            <HelperTextItem>
-              {isCatalogModel
-                ? 'Once your model is registered, you can create a model card to include more details'
-                : "Enter a brief summary of the model's key details."}
-            </HelperTextItem>
+            <HelperTextItem>Enter a brief summary of the model&apos;s key details.</HelperTextItem>
           </HelperText>
         </FormHelperText>
       </FormGroup>
