@@ -127,7 +127,7 @@ func setupMock(mockK8sClient kubernetes.Interface, ctx context.Context) error {
 		return err
 	}
 
-	err = createModelCatalogService(mockK8sClient, ctx, "model-catalog-model-catalog-service", "kubeflow", "10.0.0.15")
+	err = createModelCatalogService(mockK8sClient, ctx, "model-catalog-service", "kubeflow", "10.0.0.15")
 	if err != nil {
 		return err
 	}
