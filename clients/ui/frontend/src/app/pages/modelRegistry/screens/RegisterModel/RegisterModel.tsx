@@ -31,6 +31,8 @@ import RegisterModelDetailsFormSection from './RegisterModelDetailsFormSection';
 const RegisterModel: React.FC = () => {
   const { modelRegistry: mrName } = useParams();
   const navigate = useNavigate();
+  const searchParams = new URLSearchParams(window.location.search);
+  const isTriggeredFromCatalog = searchParams.get('fromCatalog') === 'true';
   const { apiState } = React.useContext(ModelRegistryContext);
   const { user } = React.useContext(AppContext);
   const author = user.userId || '';
@@ -95,7 +97,10 @@ const RegisterModel: React.FC = () => {
         <Form isWidthLimited>
           <Stack hasGutter>
             <StackItem className={spacing.mbLg}>
-              <PrefilledModelRegistryField mrName={mrName} />
+              <PrefilledModelRegistryField
+                mrName={mrName}
+                isTriggeredFromCatalog={isTriggeredFromCatalog}
+              />
             </StackItem>
             <StackItem>
               <RegisterModelDetailsFormSection

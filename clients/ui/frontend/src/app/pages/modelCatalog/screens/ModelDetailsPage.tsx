@@ -102,12 +102,12 @@ const ModelDetailsPage: React.FC = () => {
             alignItems={{ default: 'alignItemsCenter' }}
           >
             {model.logo ? (
-              <img src={model.logo} alt="model logo" style={{ height: '40px', width: '40px' }} />
+              <img src={model.logo} alt="model logo" style={{ height: '56px', width: '56px' }} />
             ) : (
               <Skeleton
                 shape="square"
-                width="40px"
-                height="40px"
+                width="56px"
+                height="56px"
                 screenreaderText="Brand image loading"
               />
             )}

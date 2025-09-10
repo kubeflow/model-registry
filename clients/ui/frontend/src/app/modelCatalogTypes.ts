@@ -12,6 +12,7 @@ export type ModelCatalogItem = {
   name: string;
   displayName: string;
   description?: string;
+  longDescription?: string;
   provider?: string;
   url?: string;
   logo?: string;
