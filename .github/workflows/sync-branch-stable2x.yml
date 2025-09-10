@@ -8,6 +8,10 @@ jobs:
   sync-branches:
     runs-on: ubuntu-latest
     name: Syncing branch stable-2.x
+    permissions:
+      contents: read
+      pull-requests: write
+      issues: write
     steps:
       - name: Checkout
         uses: actions/checkout@v2
@@ -20,7 +24,17 @@ jobs:
         uses: tretuna/sync-branches@1.4.0
         with:
           TEAM_REVIEWERS: '["model-registry-maintainers"]'
-          LABELS: '["Area/Jobs/Sync-stable2x", "tide/merge-method-merge"]'
           GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
           FROM_BRANCH: "main"
           TO_BRANCH: "stable-2.x"
+      - name: Add labels
+        if: ${{ steps.pull.outputs.PULL_REQUEST_NUMBER != '' }}
+        uses: actions/github-script@v7
+        with:
+          script: |
+            github.rest.issues.addLabels({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: ${{steps.pull.outputs.PULL_REQUEST_NUMBER}},
+              labels: ['Area/Jobs/Sync-stable2x', 'tide/merge-method-merge']
+            });
