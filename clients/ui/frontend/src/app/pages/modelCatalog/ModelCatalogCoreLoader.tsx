@@ -11,8 +11,8 @@ import {
 import * as React from 'react';
 import { Navigate, Outlet, useParams } from 'react-router-dom';
 import { ModelCatalogContext } from '~/app/context/modelCatalog/ModelCatalogContext';
-import InvalidModelRegistry from '~/app/pages/modelRegistry/screens/InvalidModelRegistry';
 import EmptyModelCatalogState from './EmptyModelCatalogState';
+import InvalidCatalogSource from './screens/InvalidCatalogSource';
 
 type ApplicationPageProps = React.ComponentProps<typeof ApplicationsPage>;
 
@@ -22,7 +22,7 @@ type ApplicationPageRenderState = Pick<
 >;
 
 type ModelCatalogCoreLoaderrProps = {
-  getInvalidRedirectPath: (modelRegistry: string) => string;
+  getInvalidRedirectPath: (sourceId: string) => string;
 };
 
 const ModelCatalogCoreLoader: React.FC<ModelCatalogCoreLoaderrProps> = ({
@@ -92,7 +92,7 @@ const ModelCatalogCoreLoader: React.FC<ModelCatalogCoreLoaderrProps> = ({
     // They ended up on a non-valid project path
     renderStateProps = {
       empty: true,
-      emptyStatePage: <InvalidModelRegistry modelRegistry={sourceId} />,
+      emptyStatePage: <InvalidCatalogSource sourceId={sourceId} />,
     };
   } else {
     // Redirect the namespace suffix into the URL

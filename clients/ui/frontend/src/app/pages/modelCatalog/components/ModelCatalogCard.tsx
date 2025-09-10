@@ -8,16 +8,12 @@ import {
   CardTitle,
   Flex,
   FlexItem,
-  Icon,
   Label,
   Skeleton,
-  Split,
-  SplitItem,
   Stack,
   StackItem,
   Truncate,
 } from '@patternfly/react-core';
-import { TagIcon } from '@patternfly/react-icons';
 import { useNavigate } from 'react-router-dom';
 import { CatalogModel } from '~/app/modelCatalogTypes';
 import { getModelName } from '~/app/pages/modelCatalog/utils/modelCatalogUtils';
@@ -32,10 +28,6 @@ type ModelCatalogCardProps = {
 
 const ModelCatalogCard: React.FC<ModelCatalogCardProps> = ({ model, source, truncate = false }) => {
   const navigate = useNavigate();
-
-  // TODO: we don't have tags prop on models
-  // const versionTag = extractVersionTag(model.tags);
-  // const nonVersionTags = filterNonVersionTags(model.tags);
 
   return (
     <Card isFullHeight data-testid="model-catalog-card" key={`${model.name}/${model.sourceId}`}>
@@ -86,17 +78,6 @@ const ModelCatalogCard: React.FC<ModelCatalogCardProps> = ({ model, source, trun
                 <span>{getModelName(model.name)}</span>
               )}
             </Button>
-            <Split hasGutter>
-              <SplitItem>
-                <Icon isInline>
-                  <TagIcon />
-                </Icon>
-                {/* TODO: no tags prop on model */}
-                {/* <span style={{ marginLeft: 'var(--pf-t--global--spacer--sm)' }}>
-                  {versionTag || 'No version'}
-                </span> */}
-              </SplitItem>
-            </Split>
           </StackItem>
           <StackItem isFilled data-testid="model-catalog-card-description">
             {truncate ? (
@@ -119,8 +100,6 @@ const ModelCatalogCard: React.FC<ModelCatalogCardProps> = ({ model, source, trun
       </CardBody>
       <CardFooter>
         <ModelCatalogLabels
-          // tags={model.tags}
-          // labels={model.labels}
           tasks={model.tasks ?? []}
           license={model.license}
           provider={model.provider}

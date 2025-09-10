@@ -65,15 +65,6 @@ describe('ModelCatalogCard Component', () => {
     });
   });
 
-  describe('Version Tag Display', () => {
-    it('should extract and display version tags correctly', () => {
-      modelCatalog.findFirstModelCatalogCard().within(() => {
-        modelCatalog.findVersionIcon().should('exist');
-        // cy.contains('1.4.0').should('exist');
-      });
-    });
-  });
-
   describe('Description Handling', () => {
     it('should display model descriptions', () => {
       modelCatalog.findFirstModelCatalogCard().within(() => {
