@@ -33,7 +33,10 @@ const ModelDetailsPage: React.FC = () => {
   const { sourceId, repositoryName, modelName } = useParams<RouteParams>();
   const navigate = useNavigate();
 
-  const state = useCatalogModel(sourceId || '', `${repositoryName}/${modelName}` || '');
+  const state = useCatalogModel(
+    sourceId || '',
+    encodeURIComponent(`${repositoryName}/${modelName}`) || '',
+  );
   const [model, modelLoaded, modelLoadError] = state;
   const { modelRegistries, modelRegistriesLoadError, modelRegistriesLoaded } = React.useContext(
     ModelRegistrySelectorContext,

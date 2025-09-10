@@ -37,7 +37,7 @@ const ModelDetailsView: React.FC<ModelDetailsViewProps> = ({ model }) => {
   const { sourceId = '' } = useParams<RouteParams>();
   const [artifacts, artifactLoaded, artifactsLoadError] = useCatalogModelArtifacts(
     sourceId,
-    model.name,
+    encodeURIComponent(model.name),
   );
 
   if (!artifactLoaded) {
