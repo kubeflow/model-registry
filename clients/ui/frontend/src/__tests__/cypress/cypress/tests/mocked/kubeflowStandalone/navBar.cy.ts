@@ -42,7 +42,7 @@ const initIntercepts = ({
       },
     },
     namespaces,
-  ).as('getNamespaces');
+  );
 
   cy.interceptApi(
     `GET /api/:apiVersion/model_registry`,
@@ -74,17 +74,8 @@ describe('NavBar', () => {
     initIntercepts({});
     appChrome.visit();
 
-    navBar.findNamespaceSelector().should('be.visible');
-    navBar.findNamespaceSelector().within(() => {
-      cy.get('.pf-v6-c-menu-toggle__text').should('not.be.empty');
-      cy.get('button').then(($button) => {
-        if ($button.is(':disabled')) {
-          cy.wrap($button).should('be.disabled');
-        } else {
-          cy.wrap($button).should('not.be.disabled');
-          cy.wrap($button).should('be.visible');
-        }
-      });
-    });
+    navBar.findNamespaceSelector().findByText('namespace-1').should('exist');
+    navBar.selectNamespace('namespace-2');
+    navBar.findNamespaceSelector().findByText('namespace-2').should('exist');
   });
 });
