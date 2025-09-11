@@ -50,12 +50,12 @@ const ModelCatalogCard: React.FC<ModelCatalogCardProps> = ({
         <CardTitle>
           <Flex alignItems={{ default: 'alignItemsCenter' }}>
             {model.logo ? (
-              <img src={model.logo} alt="model logo" style={{ height: '36px', width: '36px' }} />
+              <img src={model.logo} alt="model logo" style={{ height: '56px', width: '56px' }} />
             ) : (
               <Skeleton
                 shape="square"
-                width="36px"
-                height="36px"
+                width="56px"
+                height="56px"
                 screenreaderText="Brand image loading"
               />
             )}
@@ -114,15 +114,15 @@ const ModelCatalogCard: React.FC<ModelCatalogCardProps> = ({
                 style={{
                   overflow: 'hidden',
                   textOverflow: 'ellipsis',
-                  WebkitLineClamp: 2,
+                  WebkitLineClamp: 4,
                   WebkitBoxOrient: 'vertical',
                   display: '-webkit-box',
                 }}
               >
-                {model.description}
+                {model.longDescription}
               </div>
             ) : (
-              model.description
+              model.longDescription
             )}
           </StackItem>
         </Stack>

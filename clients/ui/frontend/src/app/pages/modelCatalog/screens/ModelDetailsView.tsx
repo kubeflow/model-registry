@@ -34,7 +34,7 @@ const ModelDetailsView: React.FC<ModelDetailsViewProps> = ({ model }) => {
         <SidebarContent>
           <Content>
             <h2>Description</h2>
-            <p data-testid="model-long-description">{model.description || 'No description'}</p>
+            <p data-testid="model-long-description">{model.longDescription || 'No description'}</p>
             <h2>Model card</h2>
             <p className="pf-v5-u-color-200">No model card</p>
           </Content>

@@ -1,4 +1,4 @@
-import { Form, FormGroup, PageSection, Stack, StackItem } from '@patternfly/react-core';
+import { Alert, Form, FormGroup, PageSection, Stack, StackItem } from '@patternfly/react-core';
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import spacing from '@patternfly/react-styles/css/utilities/Spacing/spacing';
@@ -176,6 +176,14 @@ const RegisterCatalogModelForm: React.FC<RegisterCatalogModelFormProps> = ({
                   hasError={false}
                 />
               </FormGroup>
+            </StackItem>
+            <StackItem>
+              <Alert
+                variant="info"
+                isInline
+                isPlain
+                title="Additional model metadata, such as labels, provider, and license, will be available to view and edit after registration is complete."
+              />
             </StackItem>
             <StackItem>
               <RegisterModelDetailsFormSection
