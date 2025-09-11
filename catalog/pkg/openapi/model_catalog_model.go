@@ -47,7 +47,7 @@ type CatalogModel struct {
 	// Name of the model. Must be unique within a source.
 	Name string `json:"name"`
 	// ID of the source this model belongs to.
-	SourceId *string `json:"sourceId,omitempty"`
+	SourceId *string `json:"source_id,omitempty"`
 }
 
 // NewCatalogModel instantiates a new CatalogModel object

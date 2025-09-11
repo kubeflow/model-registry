@@ -30,7 +30,7 @@ const ModelCatalogCard: React.FC<ModelCatalogCardProps> = ({ model, source, trun
   const navigate = useNavigate();
 
   return (
-    <Card isFullHeight data-testid="model-catalog-card" key={`${model.name}/${model.sourceId}`}>
+    <Card isFullHeight data-testid="model-catalog-card" key={`${model.name}/${model.source_id}`}>
       <CardHeader>
         <CardTitle>
           <Flex alignItems={{ default: 'alignItemsCenter' }}>

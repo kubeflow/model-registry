@@ -9,7 +9,7 @@ export type CatalogSource = {
 export type CatalogSourceList = ModelCatalogListParams & { items: CatalogSource[] };
 
 export type CatalogModel = {
-  sourceId: string;
+  source_id: string;
   name: string;
   provider?: string;
   readme?: string;

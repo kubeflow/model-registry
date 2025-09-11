@@ -44,7 +44,7 @@ const initIntercepts = ({
       path: {
         apiVersion: MODEL_CATALOG_API_VERSION,
         sourceId: 'sample-source',
-        modelName: 'repo1/model1',
+        modelName: 'repo1%2Fmodel1',
       },
     },
     mockCatalogModel({}),
@@ -56,7 +56,7 @@ const initIntercepts = ({
       path: {
         apiVersion: MODEL_CATALOG_API_VERSION,
         sourceId: 'sample-source',
-        modelName: 'repo1/model1',
+        modelName: 'repo1%2Fmodel1',
       },
     },
     mockCatalogModelArtifactList({}),
