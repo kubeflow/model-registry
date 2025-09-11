@@ -21,14 +21,12 @@ import { ModelCatalogItem } from '~/app/modelCatalogTypes';
 import { ModelRegistry, ModelRegistryMetadataType } from '~/app/types';
 import { ModelRegistryContext } from '~/app/context/ModelRegistryContext';
 import useRegisteredModels from '~/app/hooks/useRegisteredModels';
+import useUser from '~/app/hooks/useUser';
 import { extractVersionTag } from '~/app/pages/modelCatalog/utils/modelCatalogUtils';
 import ModelRegistrySelector from '~/app/pages/modelRegistry/screens/ModelRegistrySelector';
 import { registeredModelUrl } from '~/app/pages/modelRegistry/screens/routeUtils';
 import { getCatalogModelDetailsRoute } from '~/app/routes/modelCatalog/catalogModelDetails';
-import {
-  catalogParamsToModelSourceProperties,
-  modelSourcePropertiesToCustomProperties,
-} from '~/concepts/modelRegistry/utils';
+import { catalogParamsToModelSourceProperties } from '~/concepts/modelRegistry/utils';
 
 interface RegisterCatalogModelFormProps {
   model: ModelCatalogItem;
@@ -42,6 +40,7 @@ const RegisterCatalogModelForm: React.FC<RegisterCatalogModelFormProps> = ({
   const navigate = useNavigate();
   const { apiState } = React.useContext(ModelRegistryContext);
   const [registeredModels, registeredModelsLoaded] = useRegisteredModels();
+  const user = useUser();
 
   const [isSubmitting, setIsSubmitting] = React.useState(false);
   const [submitError, setSubmitError] = React.useState<Error | undefined>(undefined);
@@ -55,7 +54,6 @@ const RegisterCatalogModelForm: React.FC<RegisterCatalogModelFormProps> = ({
     repositoryName: model.id || '',
   };
   const sourceProperties = catalogParamsToModelSourceProperties(catalogParams);
-  const sourceCustomProperties = modelSourcePropertiesToCustomProperties(sourceProperties);
 
   const initialFormData: RegisterCatalogModelFormData = {
     modelName: `${model.name}-${versionTag || ''}`,
@@ -89,31 +87,10 @@ const RegisterCatalogModelForm: React.FC<RegisterCatalogModelFormProps> = ({
         metadataType: ModelRegistryMetadataType.STRING,
       },
     },
-    additionalArtifactProperties: sourceCustomProperties,
+    additionalArtifactProperties: sourceProperties,
   };
 
-  const [formData, setData] = useRegisterCatalogModelData();
-
-  // Initialize form data from the catalog model on mount/update
-  React.useEffect(() => {
-    setData('modelName', initialFormData.modelName);
-    setData('modelDescription', initialFormData.modelDescription);
-    setData('versionName', initialFormData.versionName);
-    setData('versionDescription', initialFormData.versionDescription);
-    setData('sourceModelFormat', initialFormData.sourceModelFormat);
-    setData('sourceModelFormatVersion', initialFormData.sourceModelFormatVersion);
-    setData('modelLocationType', initialFormData.modelLocationType);
-    setData('modelLocationEndpoint', initialFormData.modelLocationEndpoint);
-    setData('modelLocationBucket', initialFormData.modelLocationBucket);
-    setData('modelLocationRegion', initialFormData.modelLocationRegion);
-    setData('modelLocationPath', initialFormData.modelLocationPath);
-    setData('modelLocationURI', initialFormData.modelLocationURI);
-    setData('modelRegistry', initialFormData.modelRegistry);
-    setData('modelCustomProperties', initialFormData.modelCustomProperties);
-    setData('versionCustomProperties', initialFormData.versionCustomProperties);
-    setData('additionalArtifactProperties', initialFormData.additionalArtifactProperties);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [model.id, preferredModelRegistry.name, versionTag]);
+  const [formData, setData] = useRegisterCatalogModelData(initialFormData);
 
   const [submittedRegisteredModelName, setSubmittedRegisteredModelName] =
     React.useState<string>('');
@@ -136,18 +113,6 @@ const RegisterCatalogModelForm: React.FC<RegisterCatalogModelFormProps> = ({
     setSubmitError(undefined);
 
     // Additional validation before submission
-    if (!formData.sourceModelFormat || formData.sourceModelFormat.trim() === '') {
-      setSubmitError(new Error('Source model format is required'));
-      setIsSubmitting(false);
-      return;
-    }
-
-    if (!formData.sourceModelFormatVersion || formData.sourceModelFormatVersion.trim() === '') {
-      setSubmitError(new Error('Source model format version is required'));
-      setIsSubmitting(false);
-      return;
-    }
-
     if (!formData.modelLocationURI || formData.modelLocationURI.trim() === '') {
       setSubmitError(new Error('Model location URI is required'));
       setIsSubmitting(false);
@@ -165,7 +130,7 @@ const RegisterCatalogModelForm: React.FC<RegisterCatalogModelFormProps> = ({
       const {
         data: { registeredModel, modelVersion, modelArtifact },
         errors,
-      } = await registerModel(apiState, formData, 'user'); // TODO: Get actual user
+      } = await registerModel(apiState, formData, user.userId || 'user');
 
       if (registeredModel && modelVersion && modelArtifact) {
         const navigationPath = registeredModelUrl(registeredModel.id, preferredModelRegistry.name);

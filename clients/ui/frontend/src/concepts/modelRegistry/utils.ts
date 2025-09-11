@@ -1,5 +1,4 @@
 import { CatalogModelDetailsParams } from '~/app/pages/modelRegistry/screens/types';
-import { ModelRegistryCustomProperties, ModelRegistryMetadataType } from '~/app/types';
 import { ModelSourceKind, ModelSourceProperties } from './types';
 
 /**
@@ -37,51 +36,3 @@ export const catalogParamsToModelSourceProperties = (
   modelSourceName: params.modelName,
   modelSourceId: params.tag,
 });
-
-export const modelSourcePropertiesToCustomProperties = (
-  properties: ModelSourceProperties,
-): ModelRegistryCustomProperties => {
-  const customProperties: ModelRegistryCustomProperties = {};
-
-  if (properties.modelSourceKind === ModelSourceKind.CATALOG) {
-    customProperties['Registered from'] = {
-      // eslint-disable-next-line camelcase
-      string_value: 'Model catalog',
-      metadataType: ModelRegistryMetadataType.STRING,
-    };
-
-    if (properties.modelSourceName) {
-      customProperties['Source model'] = {
-        // eslint-disable-next-line camelcase
-        string_value: properties.modelSourceName,
-        metadataType: ModelRegistryMetadataType.STRING,
-      };
-    }
-
-    if (properties.modelSourceId) {
-      customProperties['Source model version'] = {
-        // eslint-disable-next-line camelcase
-        string_value: properties.modelSourceId,
-        metadataType: ModelRegistryMetadataType.STRING,
-      };
-    }
-
-    if (properties.modelSourceClass) {
-      customProperties.Provider = {
-        // eslint-disable-next-line camelcase
-        string_value: properties.modelSourceClass,
-        metadataType: ModelRegistryMetadataType.STRING,
-      };
-    }
-
-    if (properties.modelSourceGroup) {
-      customProperties['Source model id'] = {
-        // eslint-disable-next-line camelcase
-        string_value: properties.modelSourceGroup,
-        metadataType: ModelRegistryMetadataType.STRING,
-      };
-    }
-  }
-
-  return customProperties;
-};

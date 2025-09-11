@@ -103,13 +103,12 @@ export const registerVersion = async (
     modelArtifact = await apiState.api.createModelArtifactForModelVersion({}, modelVersion.id, {
       name: `${formData.versionName}`,
       description: formData.versionDescription,
-      customProperties: {
-        ...formData.additionalArtifactProperties,
-      },
+      customProperties: {},
       state: ModelArtifactState.LIVE,
       author,
       modelFormatName: formData.sourceModelFormat,
       modelFormatVersion: formData.sourceModelFormatVersion,
+      ...formData.additionalArtifactProperties,
       // storageKey: 'TODO',
       uri:
         formData.modelLocationType === ModelLocationType.ObjectStorage
