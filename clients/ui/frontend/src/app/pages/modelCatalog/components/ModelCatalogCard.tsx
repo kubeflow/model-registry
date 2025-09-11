@@ -15,14 +15,14 @@ import {
   Truncate,
 } from '@patternfly/react-core';
 import { useNavigate } from 'react-router-dom';
-import { CatalogModel } from '~/app/modelCatalogTypes';
+import { CatalogModel, CatalogSource } from '~/app/modelCatalogTypes';
 import { getModelName } from '~/app/pages/modelCatalog/utils/modelCatalogUtils';
 import { modelCatalogDetailsUrl } from '~/app/pages/modelCatalog/routeUtils';
 import ModelCatalogLabels from './ModelCatalogLabels';
 
 type ModelCatalogCardProps = {
   model: CatalogModel;
-  source: string;
+  source: CatalogSource | undefined;
   truncate?: boolean;
 };
 
@@ -45,7 +45,7 @@ const ModelCatalogCard: React.FC<ModelCatalogCardProps> = ({ model, source, trun
               />
             )}
             <FlexItem align={{ default: 'alignRight' }}>
-              <Label>{source}</Label>
+              {source && <Label>{source.name}</Label>}
             </FlexItem>
           </Flex>
         </CardTitle>
@@ -59,7 +59,7 @@ const ModelCatalogCard: React.FC<ModelCatalogCardProps> = ({ model, source, trun
               isInline
               component="a"
               onClick={() => {
-                navigate(modelCatalogDetailsUrl(model));
+                navigate(modelCatalogDetailsUrl(model.name, source?.id));
               }}
               style={{
                 fontSize: 'var(--pf-t--global--font--size--body--default)',

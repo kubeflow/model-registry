@@ -17,25 +17,21 @@ import {
   Skeleton,
 } from '@patternfly/react-core';
 import { ApplicationsPage } from 'mod-arch-shared';
-import { getModelName } from '~/app/pages/modelCatalog/utils/modelCatalogUtils';
+import { decodeParams, getModelName } from '~/app/pages/modelCatalog/utils/modelCatalogUtils';
 import ModelDetailsView from '~/app/pages/modelCatalog/screens/ModelDetailsView';
 import { useCatalogModel } from '~/app/hooks/modelCatalog/useCatalogModel';
 import { ModelRegistrySelectorContext } from '~/app/context/ModelRegistrySelectorContext';
 import { getRegisterCatalogModelRoute } from '~/app/routes/modelCatalog/catalogModelRegister';
-
-type RouteParams = {
-  sourceId: string;
-  modelName: string;
-  repositoryName: string;
-};
+import { CatalogModelDetailsParams } from '~/app/modelCatalogTypes';
 
 const ModelDetailsPage: React.FC = () => {
-  const { sourceId, repositoryName, modelName } = useParams<RouteParams>();
+  const params = useParams<CatalogModelDetailsParams>();
+  const decodedParams = decodeParams(params);
   const navigate = useNavigate();
 
   const state = useCatalogModel(
-    sourceId || '',
-    encodeURIComponent(`${repositoryName}/${modelName}`) || '',
+    decodedParams.sourceId || '',
+    encodeURIComponent(`${decodedParams.repositoryName}/${decodedParams.modelName}`) || '',
   );
   const [model, modelLoaded, modelLoadError] = state;
   const { modelRegistries, modelRegistriesLoadError, modelRegistriesLoaded } = React.useContext(
@@ -71,8 +67,8 @@ const ModelDetailsPage: React.FC = () => {
         data-testid="register-model-button"
         variant="primary"
         onClick={() => {
-          if (sourceId) {
-            navigate(getRegisterCatalogModelRoute(sourceId));
+          if (decodedParams.sourceId) {
+            navigate(getRegisterCatalogModelRoute(decodedParams.sourceId));
           }
         }}
       >

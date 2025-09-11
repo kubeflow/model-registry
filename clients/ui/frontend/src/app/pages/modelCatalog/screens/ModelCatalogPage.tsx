@@ -81,7 +81,7 @@ const ModelCatalogPage: React.FC = () => {
             {catalogModels.items.map((model) => (
               <ModelCatalogCard
                 model={model}
-                source={selectedSource?.name || ''}
+                source={selectedSource}
                 key={`${model.name}/${model.source_id}`}
               />
             ))}
