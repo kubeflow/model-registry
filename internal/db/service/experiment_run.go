@@ -6,6 +6,7 @@ import (
 
 	"github.com/kubeflow/model-registry/internal/db/models"
 	"github.com/kubeflow/model-registry/internal/db/schema"
+	"github.com/kubeflow/model-registry/internal/db/utils"
 	"gorm.io/gorm"
 )
 
@@ -55,8 +56,9 @@ func applyExperimentRunListFilters(query *gorm.DB, listOptions *models.Experimen
 	}
 
 	if listOptions.ExperimentID != nil {
-		query = query.Joins("JOIN ParentContext ON ParentContext.context_id = Context.id").
-			Where("ParentContext.parent_context_id = ?", listOptions.ExperimentID)
+		// Proper GORM JOIN: Use helper that respects naming strategy
+		query = query.Joins(utils.BuildParentContextJoin(query)).
+			Where(utils.GetColumnRef(query, &schema.ParentContext{}, "parent_context_id")+" = ?", listOptions.ExperimentID)
 	}
 
 	return query

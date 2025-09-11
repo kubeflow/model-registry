@@ -6,6 +6,7 @@ import (
 
 	"github.com/kubeflow/model-registry/internal/db/models"
 	"github.com/kubeflow/model-registry/internal/db/schema"
+	"github.com/kubeflow/model-registry/internal/db/utils"
 	"gorm.io/gorm"
 )
 
@@ -70,8 +71,9 @@ func applyInferenceServiceListFilters(query *gorm.DB, listOptions *models.Infere
 	}
 
 	if listOptions.Runtime != nil {
-		query = query.Joins("JOIN ContextProperty ON ContextProperty.context_id = Context.id AND ContextProperty.name = 'runtime'").
-			Where("ContextProperty.string_value = ?", listOptions.Runtime)
+		// Proper GORM JOIN: Use helper that respects naming strategy
+		query = query.Joins(utils.BuildContextPropertyJoin(query, "runtime")).
+			Where(utils.GetColumnRef(query, &schema.ContextProperty{}, "string_value")+" = ?", listOptions.Runtime)
 	}
 
 	return query

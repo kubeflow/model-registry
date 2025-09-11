@@ -7,6 +7,7 @@ import (
 	"github.com/kubeflow/model-registry/internal/db/models"
 	"github.com/kubeflow/model-registry/internal/db/schema"
 	"github.com/kubeflow/model-registry/internal/db/scopes"
+	"github.com/kubeflow/model-registry/internal/db/utils"
 	"github.com/kubeflow/model-registry/pkg/api"
 	"github.com/kubeflow/model-registry/pkg/openapi"
 	"gorm.io/gorm"
@@ -101,9 +102,10 @@ func (r *ArtifactRepositoryImpl) List(listOptions models.ArtifactListOptions) (*
 	}
 
 	if listOptions.ParentResourceID != nil {
-		query = query.Joins("JOIN Attribution ON Attribution.artifact_id = Artifact.id").
-			Where("Attribution.context_id = ?", listOptions.ParentResourceID).
-			Select("Artifact.*") // Explicitly select from Artifact table to avoid ambiguity
+		// Proper GORM JOIN: Use helper that respects naming strategy
+		query = query.Joins(utils.BuildAttributionJoin(query)).
+			Where(utils.GetColumnRef(query, &schema.Attribution{}, "context_id")+" = ?", listOptions.ParentResourceID).
+			Select(utils.GetTableName(query, &schema.Artifact{}) + ".*") // Explicitly select from Artifact table to avoid ambiguity
 		// Use table-prefixed pagination to avoid column ambiguity
 		query = query.Scopes(scopes.PaginateWithTablePrefix(artifacts, &listOptions.Pagination, r.db, "Artifact"))
 	} else {
