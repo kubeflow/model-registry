@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/kubeflow/model-registry/pkg/openapi"
-	"github.com/kubeflow/model-registry/ui/bff/internal/integrations/mrserver"
+	"github.com/kubeflow/model-registry/ui/bff/internal/integrations/httpclient"
 	"net/url"
 )
 
@@ -13,19 +13,19 @@ const registeredModelPath = "/registered_models"
 const versionsPath = "/versions"
 
 type RegisteredModelInterface interface {
-	GetAllRegisteredModels(client mrserver.HTTPClientInterface, pageValues url.Values) (*openapi.RegisteredModelList, error)
-	CreateRegisteredModel(client mrserver.HTTPClientInterface, jsonData []byte) (*openapi.RegisteredModel, error)
-	GetRegisteredModel(client mrserver.HTTPClientInterface, id string) (*openapi.RegisteredModel, error)
-	UpdateRegisteredModel(client mrserver.HTTPClientInterface, id string, jsonData []byte) (*openapi.RegisteredModel, error)
-	GetAllModelVersionsForRegisteredModel(client mrserver.HTTPClientInterface, id string, pageValues url.Values) (*openapi.ModelVersionList, error)
-	CreateModelVersionForRegisteredModel(client mrserver.HTTPClientInterface, id string, jsonData []byte) (*openapi.ModelVersion, error)
+	GetAllRegisteredModels(client httpclient.HTTPClientInterface, pageValues url.Values) (*openapi.RegisteredModelList, error)
+	CreateRegisteredModel(client httpclient.HTTPClientInterface, jsonData []byte) (*openapi.RegisteredModel, error)
+	GetRegisteredModel(client httpclient.HTTPClientInterface, id string) (*openapi.RegisteredModel, error)
+	UpdateRegisteredModel(client httpclient.HTTPClientInterface, id string, jsonData []byte) (*openapi.RegisteredModel, error)
+	GetAllModelVersionsForRegisteredModel(client httpclient.HTTPClientInterface, id string, pageValues url.Values) (*openapi.ModelVersionList, error)
+	CreateModelVersionForRegisteredModel(client httpclient.HTTPClientInterface, id string, jsonData []byte) (*openapi.ModelVersion, error)
 }
 
 type RegisteredModel struct {
 	RegisteredModelInterface
 }
 
-func (m RegisteredModel) GetAllRegisteredModels(client mrserver.HTTPClientInterface, pageValues url.Values) (*openapi.RegisteredModelList, error) {
+func (m RegisteredModel) GetAllRegisteredModels(client httpclient.HTTPClientInterface, pageValues url.Values) (*openapi.RegisteredModelList, error) {
 	responseData, err := client.GET(UrlWithPageParams(registeredModelPath, pageValues))
 
 	if err != nil {
@@ -40,7 +40,7 @@ func (m RegisteredModel) GetAllRegisteredModels(client mrserver.HTTPClientInterf
 	return &modelList, nil
 }
 
-func (m RegisteredModel) CreateRegisteredModel(client mrserver.HTTPClientInterface, jsonData []byte) (*openapi.RegisteredModel, error) {
+func (m RegisteredModel) CreateRegisteredModel(client httpclient.HTTPClientInterface, jsonData []byte) (*openapi.RegisteredModel, error) {
 	responseData, err := client.POST(registeredModelPath, bytes.NewBuffer(jsonData))
 
 	if err != nil {
@@ -55,7 +55,7 @@ func (m RegisteredModel) CreateRegisteredModel(client mrserver.HTTPClientInterfa
 	return &model, nil
 }
 
-func (m RegisteredModel) GetRegisteredModel(client mrserver.HTTPClientInterface, id string) (*openapi.RegisteredModel, error) {
+func (m RegisteredModel) GetRegisteredModel(client httpclient.HTTPClientInterface, id string) (*openapi.RegisteredModel, error) {
 	path, err := url.JoinPath(registeredModelPath, id)
 	if err != nil {
 		return nil, err
@@ -74,7 +74,7 @@ func (m RegisteredModel) GetRegisteredModel(client mrserver.HTTPClientInterface,
 	return &model, nil
 }
 
-func (m RegisteredModel) UpdateRegisteredModel(client mrserver.HTTPClientInterface, id string, jsonData []byte) (*openapi.RegisteredModel, error) {
+func (m RegisteredModel) UpdateRegisteredModel(client httpclient.HTTPClientInterface, id string, jsonData []byte) (*openapi.RegisteredModel, error) {
 	path, err := url.JoinPath(registeredModelPath, id)
 
 	if err != nil {
@@ -94,7 +94,7 @@ func (m RegisteredModel) UpdateRegisteredModel(client mrserver.HTTPClientInterfa
 	return &model, nil
 }
 
-func (m RegisteredModel) GetAllModelVersionsForRegisteredModel(client mrserver.HTTPClientInterface, id string, pageValues url.Values) (*openapi.ModelVersionList, error) {
+func (m RegisteredModel) GetAllModelVersionsForRegisteredModel(client httpclient.HTTPClientInterface, id string, pageValues url.Values) (*openapi.ModelVersionList, error) {
 	path, err := url.JoinPath(registeredModelPath, id, versionsPath)
 
 	if err != nil {
@@ -115,7 +115,7 @@ func (m RegisteredModel) GetAllModelVersionsForRegisteredModel(client mrserver.H
 	return &model, nil
 }
 
-func (m RegisteredModel) CreateModelVersionForRegisteredModel(client mrserver.HTTPClientInterface, id string, jsonData []byte) (*openapi.ModelVersion, error) {
+func (m RegisteredModel) CreateModelVersionForRegisteredModel(client httpclient.HTTPClientInterface, id string, jsonData []byte) (*openapi.ModelVersion, error) {
 	path, err := url.JoinPath(registeredModelPath, id, versionsPath)
 
 	if err != nil {

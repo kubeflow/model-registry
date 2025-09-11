@@ -8,7 +8,7 @@ metadata:
     app.kubernetes.io/name: model-catalog-service
     app.kubernetes.io/part-of: model-catalog
     component: model-catalog
-  name: model-catalog-service
+  name: service
 spec:
   selector:
     component: model-catalog-server

@@ -150,6 +150,19 @@ func (y *yamlCatalogImpl) GetArtifacts(ctx context.Context, name string) (*model
 	return &list, nil
 }
 
+func isModelExcluded(modelName string, patterns []string) bool {
+	for _, pattern := range patterns {
+		if strings.HasSuffix(pattern, "*") {
+			if strings.HasPrefix(modelName, strings.TrimSuffix(pattern, "*")) {
+				return true
+			}
+		} else if modelName == pattern {
+			return true
+		}
+	}
+	return false
+}
+
 func (y *yamlCatalogImpl) load(path string, excludedModelsList []string) error {
 	bytes, err := os.ReadFile(path)
 	if err != nil {

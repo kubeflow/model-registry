@@ -19,7 +19,8 @@ from .models import (
     URISourceConfig,
     SourceType,
     DestinationType,
-    URISourceStorageConfig
+    URISourceStorageConfig,
+    UploadIntent
 )
 
 logger = logging.getLogger(__name__)
@@ -71,6 +72,13 @@ def _parser() -> cap.ArgumentParser:
     p.add_argument("--destination-oci-enable-tls-verify", default=True, type=str2bool)
 
     # --- model-registry model data ---
+    # This intent determines the action to take once the model has been uploaded to the destination.
+    p.add_argument(
+        "--model-upload-intent", 
+        type=UploadIntent, 
+        choices=tuple(UploadIntent), 
+        default=UploadIntent.update_artifact
+    )
     p.add_argument("--model-id")
     p.add_argument("--model-version-id")
     p.add_argument("--model-artifact-id")
@@ -361,6 +369,7 @@ def get_config(argv: list[str] | None = None) -> AsyncUploadConfig:
             source=source_config,
             destination=destination_config,
             model=ModelConfig(
+                upload_intent=args.model_upload_intent,
                 id=args.model_id,
                 version_id=args.model_version_id,
                 artifact_id=args.model_artifact_id,

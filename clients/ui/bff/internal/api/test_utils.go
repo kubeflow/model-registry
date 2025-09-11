@@ -5,8 +5,8 @@ import (
 	"context"
 	"encoding/json"
 	"github.com/kubeflow/model-registry/ui/bff/internal/config"
+	k8s "github.com/kubeflow/model-registry/ui/bff/internal/integrations/httpclient"
 	"github.com/kubeflow/model-registry/ui/bff/internal/integrations/kubernetes"
-	k8s "github.com/kubeflow/model-registry/ui/bff/internal/integrations/mrserver"
 	"io"
 	"log/slog"
 	"net/http"
@@ -24,6 +24,10 @@ func setupApiTest[T any](method string, url string, body interface{}, k8Factory 
 	if err != nil {
 		return *new(T), nil, err
 	}
+	mockModelCatalogClient, err := mocks.NewModelCatalogClientMock(nil)
+	if err != nil {
+		return *new(T), nil, err
+	}
 
 	mockClient := new(mocks.MockHTTPClient)
 
@@ -35,7 +39,7 @@ func setupApiTest[T any](method string, url string, body interface{}, k8Factory 
 		cfg.AuthMethod = config.AuthMethodUser
 	}
 	testApp := App{
-		repositories:            repositories.NewRepositories(mockMRClient),
+		repositories:            repositories.NewRepositories(mockMRClient, mockModelCatalogClient),
 		kubernetesClientFactory: k8Factory,
 		logger:                  slog.Default(),
 		config:                  cfg,
@@ -69,10 +73,10 @@ func setupApiTest[T any](method string, url string, body interface{}, k8Factory 
 	ctx = context.WithValue(ctx, constants.ModelRegistryHttpClientKey, mockClient)
 	ctx = context.WithValue(ctx, constants.RequestIdentityKey, requestIdentity)
 	ctx = context.WithValue(ctx, constants.NamespaceHeaderParameterKey, namespace)
-	mrHttpClient := k8s.HTTPClient{
-		ModelRegistryID: "model-registry",
-	}
+	mrHttpClient := k8s.HTTPClient{}
+	modelCatalogHttpClient := k8s.HTTPClient{}
 	ctx = context.WithValue(ctx, constants.ModelRegistryHttpClientKey, mrHttpClient)
+	ctx = context.WithValue(ctx, constants.ModelCatalogHttpClientKey, modelCatalogHttpClient)
 	req = req.WithContext(ctx)
 
 	rr := httptest.NewRecorder()

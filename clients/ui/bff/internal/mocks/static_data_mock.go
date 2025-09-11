@@ -7,6 +7,7 @@ import (
 
 	"github.com/brianvoe/gofakeit/v7"
 	"github.com/google/uuid"
+	catalogOpenapi "github.com/kubeflow/model-registry/catalog/pkg/openapi"
 	"github.com/kubeflow/model-registry/pkg/openapi"
 	"github.com/kubeflow/model-registry/ui/bff/internal/constants"
 	"github.com/kubeflow/model-registry/ui/bff/internal/models"
@@ -262,8 +263,18 @@ func GenerateMockArtifact() openapi.Artifact {
 	return mockData
 }
 
-func GetCatalogModelMocks() []models.CatalogModel {
-	sampleModel1 := models.CatalogModel{
+func getAllCatalogModelMocks() catalogOpenapi.CatalogModelList {
+	allSources := GetCatalogModelMocks()
+
+	return catalogOpenapi.CatalogModelList{
+		Items:         allSources,
+		Size:          int32(len(allSources)),
+		PageSize:      int32(10),
+		NextPageToken: "",
+	}
+}
+func GetCatalogModelMocks() []catalogOpenapi.CatalogModel {
+	sampleModel1 := catalogOpenapi.CatalogModel{
 		Name:        "repo1/granite-8b-code-instruct",
 		Description: stringToPointer("Granite-8B-Code-Instruct is a 8B parameter model fine tuned from\nGranite-8B-Code-Base on a combination of permissively licensed instruction\ndata to enhance instruction following capabilities including logical\nreasoning and problem-solving skills."),
 		Provider:    stringToPointer("provider1"),
@@ -614,17 +625,9 @@ func GetCatalogModelMocks() []models.CatalogModel {
 		LibraryName:              stringToPointer("transformers"),
 		CreateTimeSinceEpoch:     stringToPointer("1693526400000"),
 		LastUpdateTimeSinceEpoch: stringToPointer("1704067200000"),
-		CustomProperties: &map[string]*openapi.MetadataValue{
-			"additionalProp1": {
-				MetadataStringValue: &openapi.MetadataStringValue{
-					StringValue:  "granite_model",
-					MetadataType: "MetadataStringValue",
-				},
-			},
-		},
 	}
 
-	sampleModel2 := models.CatalogModel{
+	sampleModel2 := catalogOpenapi.CatalogModel{
 		Name:        "repo1/granite-7b-instruct",
 		Description: stringToPointer("Granite 7B instruction-tuned model for enterprise applications"),
 		Provider:    stringToPointer("provider1"),
@@ -635,7 +638,7 @@ func GetCatalogModelMocks() []models.CatalogModel {
 		SourceId:    stringToPointer("sample-source"),
 	}
 
-	sampleModel3 := models.CatalogModel{
+	sampleModel3 := catalogOpenapi.CatalogModel{
 		Name:        "repo1/granite-3b-code-base",
 		Description: stringToPointer("Granite 3B code generation model for programming tasks"),
 		Provider:    stringToPointer("provider1"),
@@ -646,7 +649,7 @@ func GetCatalogModelMocks() []models.CatalogModel {
 		SourceId:    stringToPointer("sample-source"),
 	}
 
-	huggingFaceModel1 := models.CatalogModel{
+	huggingFaceModel1 := catalogOpenapi.CatalogModel{
 		Name:        "provider2/bert-base-uncased",
 		Description: stringToPointer("BERT base model (uncased) - Pretrained model on English language"),
 		Provider:    stringToPointer("provider2"),
@@ -658,7 +661,7 @@ func GetCatalogModelMocks() []models.CatalogModel {
 		LibraryName: stringToPointer("transformers"),
 	}
 
-	huggingFaceModel2 := models.CatalogModel{
+	huggingFaceModel2 := catalogOpenapi.CatalogModel{
 		Name:        "provider3/gpt2",
 		Description: stringToPointer("GPT-2 is a transformers model pretrained on a very large corpus of English data"),
 		Provider:    stringToPointer("provider3"),
@@ -670,7 +673,7 @@ func GetCatalogModelMocks() []models.CatalogModel {
 		LibraryName: stringToPointer("transformers"),
 	}
 
-	huggingFaceModel3 := models.CatalogModel{
+	huggingFaceModel3 := catalogOpenapi.CatalogModel{
 		Name:        "huggingface/distilbert-base-uncased",
 		Description: stringToPointer("DistilBERT base model (uncased) - A smaller, faster version of BERT"),
 		Provider:    stringToPointer("Hugging Face"),
@@ -682,7 +685,7 @@ func GetCatalogModelMocks() []models.CatalogModel {
 		LibraryName: stringToPointer("transformers"),
 	}
 
-	otherModel1 := models.CatalogModel{
+	otherModel1 := catalogOpenapi.CatalogModel{
 		Name:        "adminModel2/admin-model-2",
 		Description: stringToPointer("sample description"),
 		Provider:    stringToPointer("Admin model 1"),
@@ -693,7 +696,7 @@ func GetCatalogModelMocks() []models.CatalogModel {
 		SourceId:    stringToPointer("adminModel2"),
 	}
 
-	otherModel2 := models.CatalogModel{
+	otherModel2 := catalogOpenapi.CatalogModel{
 		Name:        "adminModel1/admin-model-1",
 		Description: stringToPointer("sample description"),
 		Provider:    stringToPointer("Admin model 1"),
@@ -704,17 +707,17 @@ func GetCatalogModelMocks() []models.CatalogModel {
 		SourceId:    stringToPointer("adminModel1"),
 	}
 
-	return []models.CatalogModel{
+	return []catalogOpenapi.CatalogModel{
 		sampleModel1, sampleModel2, sampleModel3,
 		huggingFaceModel1, huggingFaceModel2, huggingFaceModel3,
 		otherModel1, otherModel2,
 	}
 }
 
-func GetCatalogModelListMock() models.CatalogModelList {
+func GetCatalogModelListMock() catalogOpenapi.CatalogModelList {
 	allModels := GetCatalogModelMocks()
 
-	return models.CatalogModelList{
+	return catalogOpenapi.CatalogModelList{
 		Items:         allModels,
 		Size:          int32(len(allModels)),
 		PageSize:      int32(10),
@@ -722,11 +725,11 @@ func GetCatalogModelListMock() models.CatalogModelList {
 	}
 }
 
-func GetCatalogSourceMocks() []models.CatalogSource {
-	return []models.CatalogSource{
+func GetCatalogSourceMocks() []catalogOpenapi.CatalogSource {
+	return []catalogOpenapi.CatalogSource{
 		{
 			Id:   "sample-source",
-			Name: "Sample source",
+			Name: "Sample mocked source",
 		},
 		{
 			Id:   "huggingface",
@@ -740,13 +743,17 @@ func GetCatalogSourceMocks() []models.CatalogSource {
 			Id:   "adminModel2",
 			Name: "Admin model 2",
 		},
+		{
+			Id:   "dora",
+			Name: "Dora source",
+		},
 	}
 }
 
-func GetCatalogSourceListMock() models.CatalogSourceList {
+func GetCatalogSourceListMock() catalogOpenapi.CatalogSourceList {
 	allSources := GetCatalogSourceMocks()
 
-	return models.CatalogSourceList{
+	return catalogOpenapi.CatalogSourceList{
 		Items:         allSources,
 		Size:          int32(len(allSources)),
 		PageSize:      int32(10),

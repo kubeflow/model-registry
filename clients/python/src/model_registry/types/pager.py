@@ -130,7 +130,8 @@ class Pager(Generic[T], Iterator[T], AsyncIterator[T]):
         if self._needs_fetch():
             self._current_page = self._next_page()
             self._i = 0
-        assert self._current_page
+        if self._current_page is None: # for example when the MR server is empty
+            raise StopIteration
         if self._i >= len(self._current_page):
             raise StopIteration
 
@@ -149,9 +150,10 @@ class Pager(Generic[T], Iterator[T], AsyncIterator[T]):
         if self._needs_fetch():
             self._current_page = await self._anext_page()
             self._i = 0
-        assert self._current_page
+        if self._current_page is None: # for example when the MR server is empty
+            raise StopAsyncIteration
         if self._i >= len(self._current_page):
-            raise StopIteration
+            raise StopAsyncIteration
 
         item = self._current_page[self._i]
         self._i += 1

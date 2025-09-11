@@ -7,7 +7,7 @@ import (
 	"github.com/julienschmidt/httprouter"
 	"github.com/kubeflow/model-registry/pkg/openapi"
 	"github.com/kubeflow/model-registry/ui/bff/internal/constants"
-	"github.com/kubeflow/model-registry/ui/bff/internal/integrations/mrserver"
+	"github.com/kubeflow/model-registry/ui/bff/internal/integrations/httpclient"
 	"github.com/kubeflow/model-registry/ui/bff/internal/validation"
 	"net/http"
 )
@@ -17,7 +17,7 @@ type RegisteredModelListEnvelope Envelope[*openapi.RegisteredModelList, None]
 type RegisteredModelUpdateEnvelope Envelope[*openapi.RegisteredModelUpdate, None]
 
 func (app *App) GetAllRegisteredModelsHandler(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
-	client, ok := r.Context().Value(constants.ModelRegistryHttpClientKey).(mrserver.HTTPClientInterface)
+	client, ok := r.Context().Value(constants.ModelRegistryHttpClientKey).(httpclient.HTTPClientInterface)
 	if !ok {
 		app.serverErrorResponse(w, r, errors.New("REST client not found"))
 		return
@@ -40,7 +40,7 @@ func (app *App) GetAllRegisteredModelsHandler(w http.ResponseWriter, r *http.Req
 }
 
 func (app *App) CreateRegisteredModelHandler(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
-	client, ok := r.Context().Value(constants.ModelRegistryHttpClientKey).(mrserver.HTTPClientInterface)
+	client, ok := r.Context().Value(constants.ModelRegistryHttpClientKey).(httpclient.HTTPClientInterface)
 	if !ok {
 		app.serverErrorResponse(w, r, errors.New("REST client not found"))
 		return
@@ -67,7 +67,7 @@ func (app *App) CreateRegisteredModelHandler(w http.ResponseWriter, r *http.Requ
 
 	createdModel, err := app.repositories.ModelRegistryClient.CreateRegisteredModel(client, jsonData)
 	if err != nil {
-		var httpErr *mrserver.HTTPError
+		var httpErr *httpclient.HTTPError
 		if errors.As(err, &httpErr) {
 			app.errorResponse(w, r, httpErr)
 		} else {
@@ -94,7 +94,7 @@ func (app *App) CreateRegisteredModelHandler(w http.ResponseWriter, r *http.Requ
 }
 
 func (app *App) GetRegisteredModelHandler(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
-	client, ok := r.Context().Value(constants.ModelRegistryHttpClientKey).(mrserver.HTTPClientInterface)
+	client, ok := r.Context().Value(constants.ModelRegistryHttpClientKey).(httpclient.HTTPClientInterface)
 	if !ok {
 		app.serverErrorResponse(w, r, errors.New("REST client not found"))
 		return
@@ -122,7 +122,7 @@ func (app *App) GetRegisteredModelHandler(w http.ResponseWriter, r *http.Request
 }
 
 func (app *App) UpdateRegisteredModelHandler(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
-	client, ok := r.Context().Value(constants.ModelRegistryHttpClientKey).(mrserver.HTTPClientInterface)
+	client, ok := r.Context().Value(constants.ModelRegistryHttpClientKey).(httpclient.HTTPClientInterface)
 	if !ok {
 		app.serverErrorResponse(w, r, errors.New("REST client not found"))
 		return
@@ -146,7 +146,7 @@ func (app *App) UpdateRegisteredModelHandler(w http.ResponseWriter, r *http.Requ
 
 	patchedModel, err := app.repositories.ModelRegistryClient.UpdateRegisteredModel(client, ps.ByName(RegisteredModelId), jsonData)
 	if err != nil {
-		var httpErr *mrserver.HTTPError
+		var httpErr *httpclient.HTTPError
 		if errors.As(err, &httpErr) {
 			app.errorResponse(w, r, httpErr)
 		} else {
@@ -172,7 +172,7 @@ func (app *App) UpdateRegisteredModelHandler(w http.ResponseWriter, r *http.Requ
 }
 
 func (app *App) GetAllModelVersionsForRegisteredModelHandler(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
-	client, ok := r.Context().Value(constants.ModelRegistryHttpClientKey).(mrserver.HTTPClientInterface)
+	client, ok := r.Context().Value(constants.ModelRegistryHttpClientKey).(httpclient.HTTPClientInterface)
 	if !ok {
 		app.serverErrorResponse(w, r, errors.New("REST client not found"))
 		return
@@ -196,7 +196,7 @@ func (app *App) GetAllModelVersionsForRegisteredModelHandler(w http.ResponseWrit
 }
 
 func (app *App) CreateModelVersionForRegisteredModelHandler(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
-	client, ok := r.Context().Value(constants.ModelRegistryHttpClientKey).(mrserver.HTTPClientInterface)
+	client, ok := r.Context().Value(constants.ModelRegistryHttpClientKey).(httpclient.HTTPClientInterface)
 	if !ok {
 		app.serverErrorResponse(w, r, errors.New("REST client not found"))
 		return
@@ -221,7 +221,7 @@ func (app *App) CreateModelVersionForRegisteredModelHandler(w http.ResponseWrite
 
 	createdVersion, err := app.repositories.ModelRegistryClient.CreateModelVersionForRegisteredModel(client, ps.ByName(RegisteredModelId), jsonData)
 	if err != nil {
-		var httpErr *mrserver.HTTPError
+		var httpErr *httpclient.HTTPError
 		if errors.As(err, &httpErr) {
 			app.errorResponse(w, r, httpErr)
 		} else {

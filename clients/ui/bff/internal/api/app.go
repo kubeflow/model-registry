@@ -57,12 +57,14 @@ const (
 	ArtifactPath                 = ArtifactListPath + "/:" + ArtifactId
 
 	// model catalog
-	SourceId              = "source_id"
-	CatalogModelName      = "model_name"
-	CatalogPathPrefix     = ApiPathPrefix + "/model_catalog"
-	CatalogModelListPath  = CatalogPathPrefix + "/models"
-	CatalogSourceListPath = CatalogPathPrefix + "/sources"
-	CatalogModelPath      = CatalogPathPrefix + "/sources" + "/:" + SourceId + "/models" + "/*model_name"
+	CatalogSourceId        = "source_id"
+	CatalogModelName       = "model_name"
+	CatalogPathPrefix      = ApiPathPrefix + "/model_catalog"
+	CatalogModelListPath   = CatalogPathPrefix + "/models"
+	CatalogSourceListPath  = CatalogPathPrefix + "/sources"
+	CatalogSourceModelPath = CatalogPathPrefix + "/sources" + "/:" + CatalogSourceId + "/models" + "/*" + CatalogModelName
+	//This need to wait until we get the model catalog model path accepting escaped model names (instead of paths)
+	CatalogSourceModelArtifactPath = CatalogPathPrefix + "/sources" + "/:" + CatalogSourceId + "/models" + "/*model_name" + "/artifacts"
 )
 
 type App struct {
@@ -115,14 +117,27 @@ func NewApp(cfg config.EnvConfig, logger *slog.Logger) (*App, error) {
 	}
 
 	if err != nil {
-		return nil, fmt.Errorf("failed to create ModelRegistryListPath client: %w", err)
+		return nil, fmt.Errorf("failed to create ModelRegistry client: %w", err)
+	}
+
+	var modelCatalogClient repositories.ModelCatalogClientInterface
+
+	if cfg.MockMRCatalogClient {
+		//mock all model registry catalog calls
+		modelCatalogClient, err = mocks.NewModelCatalogClientMock(logger)
+	} else {
+		modelCatalogClient, err = repositories.NewModelCatalogClient(logger)
+	}
+
+	if err != nil {
+		return nil, fmt.Errorf("failed to create ModelRegistry Catalog client: %w", err)
 	}
 
 	app := &App{
 		config:                  cfg,
 		logger:                  logger,
 		kubernetesClientFactory: k8sFactory,
-		repositories:            repositories.NewRepositories(mrClient),
+		repositories:            repositories.NewRepositories(mrClient, modelCatalogClient),
 		testEnv:                 testEnv,
 	}
 	return app, nil
@@ -145,25 +160,32 @@ func (app *App) Routes() http.Handler {
 	apiRouter.NotFound = http.HandlerFunc(app.notFoundResponse)
 	apiRouter.MethodNotAllowed = http.HandlerFunc(app.methodNotAllowedResponse)
 
-	// HTTP client routes (requests that we forward to Model Registry API)
+	// Model Registry HTTP client routes (requests that we forward to Model Registry API)
 	// on those, we perform SAR or SSAR on Specific Service on a given namespace
-	apiRouter.GET(RegisteredModelListPath, app.AttachNamespace(app.RequireAccessToService(app.AttachRESTClient(app.GetAllRegisteredModelsHandler))))
-	apiRouter.GET(RegisteredModelPath, app.AttachNamespace(app.RequireAccessToService(app.AttachRESTClient(app.GetRegisteredModelHandler))))
-	apiRouter.POST(RegisteredModelListPath, app.AttachNamespace(app.RequireAccessToService(app.AttachRESTClient(app.CreateRegisteredModelHandler))))
-	apiRouter.PATCH(RegisteredModelPath, app.AttachNamespace(app.RequireAccessToService(app.AttachRESTClient(app.UpdateRegisteredModelHandler))))
-	apiRouter.GET(RegisteredModelVersionsPath, app.AttachNamespace(app.RequireAccessToService(app.AttachRESTClient(app.GetAllModelVersionsForRegisteredModelHandler))))
-	apiRouter.POST(RegisteredModelVersionsPath, app.AttachNamespace(app.RequireAccessToService(app.AttachRESTClient(app.CreateModelVersionForRegisteredModelHandler))))
-	apiRouter.POST(ModelVersionListPath, app.AttachNamespace(app.RequireAccessToService(app.AttachRESTClient(app.CreateModelVersionHandler))))
-	apiRouter.GET(ModelVersionListPath, app.AttachNamespace(app.RequireAccessToService(app.AttachRESTClient(app.GetAllModelVersionHandler))))
-	apiRouter.GET(ModelVersionPath, app.AttachNamespace(app.RequireAccessToService(app.AttachRESTClient(app.GetModelVersionHandler))))
-	apiRouter.PATCH(ModelVersionPath, app.AttachNamespace(app.RequireAccessToService(app.AttachRESTClient(app.UpdateModelVersionHandler))))
-	apiRouter.GET(ArtifactListPath, app.AttachNamespace(app.RequireAccessToService(app.AttachRESTClient(app.GetAllArtifactsHandler))))
-	apiRouter.GET(ArtifactPath, app.AttachNamespace(app.RequireAccessToService(app.AttachRESTClient(app.GetArtifactHandler))))
-	apiRouter.POST(ArtifactListPath, app.AttachNamespace(app.RequireAccessToService(app.AttachRESTClient(app.CreateArtifactHandler))))
-	apiRouter.GET(ModelVersionArtifactListPath, app.AttachNamespace(app.RequireAccessToService(app.AttachRESTClient(app.GetAllModelArtifactsByModelVersionHandler))))
-	apiRouter.POST(ModelVersionArtifactListPath, app.AttachNamespace(app.RequireAccessToService(app.AttachRESTClient(app.CreateModelArtifactByModelVersionHandler))))
-	apiRouter.PATCH(ModelRegistryPath, app.AttachNamespace(app.RequireAccessToService(app.AttachRESTClient(app.UpdateModelVersionHandler))))
-	apiRouter.PATCH(ModelArtifactPath, app.AttachNamespace(app.RequireAccessToService(app.AttachRESTClient(app.UpdateModelArtifactHandler))))
+	apiRouter.GET(RegisteredModelListPath, app.AttachNamespace(app.RequireAccessToMRService(app.AttachModelRegistryRESTClient(app.GetAllRegisteredModelsHandler))))
+	apiRouter.GET(RegisteredModelPath, app.AttachNamespace(app.RequireAccessToMRService(app.AttachModelRegistryRESTClient(app.GetRegisteredModelHandler))))
+	apiRouter.POST(RegisteredModelListPath, app.AttachNamespace(app.RequireAccessToMRService(app.AttachModelRegistryRESTClient(app.CreateRegisteredModelHandler))))
+	apiRouter.PATCH(RegisteredModelPath, app.AttachNamespace(app.RequireAccessToMRService(app.AttachModelRegistryRESTClient(app.UpdateRegisteredModelHandler))))
+	apiRouter.GET(RegisteredModelVersionsPath, app.AttachNamespace(app.RequireAccessToMRService(app.AttachModelRegistryRESTClient(app.GetAllModelVersionsForRegisteredModelHandler))))
+	apiRouter.POST(RegisteredModelVersionsPath, app.AttachNamespace(app.RequireAccessToMRService(app.AttachModelRegistryRESTClient(app.CreateModelVersionForRegisteredModelHandler))))
+	apiRouter.POST(ModelVersionListPath, app.AttachNamespace(app.RequireAccessToMRService(app.AttachModelRegistryRESTClient(app.CreateModelVersionHandler))))
+	apiRouter.GET(ModelVersionListPath, app.AttachNamespace(app.RequireAccessToMRService(app.AttachModelRegistryRESTClient(app.GetAllModelVersionHandler))))
+	apiRouter.GET(ModelVersionPath, app.AttachNamespace(app.RequireAccessToMRService(app.AttachModelRegistryRESTClient(app.GetModelVersionHandler))))
+	apiRouter.PATCH(ModelVersionPath, app.AttachNamespace(app.RequireAccessToMRService(app.AttachModelRegistryRESTClient(app.UpdateModelVersionHandler))))
+	apiRouter.GET(ArtifactListPath, app.AttachNamespace(app.RequireAccessToMRService(app.AttachModelRegistryRESTClient(app.GetAllArtifactsHandler))))
+	apiRouter.GET(ArtifactPath, app.AttachNamespace(app.RequireAccessToMRService(app.AttachModelRegistryRESTClient(app.GetArtifactHandler))))
+	apiRouter.POST(ArtifactListPath, app.AttachNamespace(app.RequireAccessToMRService(app.AttachModelRegistryRESTClient(app.CreateArtifactHandler))))
+	apiRouter.GET(ModelVersionArtifactListPath, app.AttachNamespace(app.RequireAccessToMRService(app.AttachModelRegistryRESTClient(app.GetAllModelArtifactsByModelVersionHandler))))
+	apiRouter.POST(ModelVersionArtifactListPath, app.AttachNamespace(app.RequireAccessToMRService(app.AttachModelRegistryRESTClient(app.CreateModelArtifactByModelVersionHandler))))
+	apiRouter.PATCH(ModelRegistryPath, app.AttachNamespace(app.RequireAccessToMRService(app.AttachModelRegistryRESTClient(app.UpdateModelVersionHandler))))
+	apiRouter.PATCH(ModelArtifactPath, app.AttachNamespace(app.RequireAccessToMRService(app.AttachModelRegistryRESTClient(app.UpdateModelArtifactHandler))))
+
+	// Model catalog HTTP client routes (requests that we forward to Model Catalog API)
+	apiRouter.GET(CatalogModelListPath, app.AttachNamespace(app.AttachModelCatalogRESTClient(app.GetAllCatalogModelsAcrossSourcesHandler)))
+	apiRouter.GET(CatalogSourceListPath, app.AttachNamespace(app.AttachModelCatalogRESTClient(app.GetAllCatalogSourcesHandler)))
+	apiRouter.GET(CatalogSourceModelPath, app.AttachNamespace(app.AttachModelCatalogRESTClient(app.GetCatalogSourceModelHandler)))
+	//This need to wait until we get the model catalog model path accepting escaped model names (instead of paths)
+	//apiRouter.GET(CatalogSourceModelArtifactPath, app.AttachNamespace(app.AttachModelCatalogRESTClient(app.GetCatalogSourceModelArtifactHandler)))
 
 	// Kubernetes routes
 	apiRouter.GET(UserPath, app.UserHandler)
@@ -201,11 +223,6 @@ func (app *App) Routes() http.Handler {
 		//SettingsPath Namespace endpoints
 		//This namespace endpoint is used to get the namespaces for the current user inside the model registry settings
 		apiRouter.GET(SettingsNamespacePath, app.GetNamespacesHandler)
-
-		// Model catalog endpoints
-		apiRouter.GET(CatalogModelListPath, app.AttachNamespace((app.GetAllCatalogModelsHandler)))
-		apiRouter.GET(CatalogSourceListPath, app.AttachNamespace((app.GetAllCatalogSourcesHandler)))
-		apiRouter.GET(CatalogModelPath, app.AttachNamespace((app.GetCatalogModelHandler)))
 
 	}
 

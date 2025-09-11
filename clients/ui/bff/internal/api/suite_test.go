@@ -26,6 +26,7 @@ import (
 var (
 	kubernetesMockedStaticClientFactory k8s.KubernetesClientFactory
 	mockMRClient                        *mocks.ModelRegistryClientMock
+	mockModelCatalogClient              *mocks.ModelCatalogClientMock
 	ctx                                 context.Context
 	cancel                              context.CancelFunc
 	logger                              *slog.Logger
@@ -62,6 +63,9 @@ var _ = BeforeSuite(func() {
 	Expect(err).NotTo(HaveOccurred())
 
 	mockMRClient, err = mocks.NewModelRegistryClient(nil)
+	Expect(err).NotTo(HaveOccurred())
+
+	mockModelCatalogClient, err = mocks.NewModelCatalogClientMock(nil)
 	Expect(err).NotTo(HaveOccurred())
 })
 

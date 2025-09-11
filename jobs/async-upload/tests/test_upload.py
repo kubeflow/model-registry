@@ -34,8 +34,7 @@ class TestGetUploadParams:
                 region="us-east-1"
             ),
             model=ModelConfig(
-                id="test-model",
-                version_id="test-version", 
+                upload_intent="update_artifact",
                 artifact_id="test-artifact"
             ),
             storage=StorageConfig(path="/tmp/test"),
@@ -72,8 +71,7 @@ class TestGetUploadParams:
                 credentials_path="/tmp/test-creds"
             ),
             model=ModelConfig(
-                id="abc",
-                version_id="def",
+                upload_intent="update_artifact",
                 artifact_id="123"
             ),
             storage=StorageConfig(path="/tmp/test-model"),
@@ -119,8 +117,7 @@ class TestGetUploadParams:
                 credentials_path=None
             ),
             model=ModelConfig(
-                id="abc",
-                version_id="def",
+                upload_intent="update_artifact",
                 artifact_id="123"
             ),
             storage=StorageConfig(path="/tmp/test-model"),
@@ -166,8 +163,7 @@ class TestPerformUpload:
                 credentials_path="/tmp/test-creds"
             ),
             model=ModelConfig(
-                id="abc",
-                version_id="def",
+                upload_intent="update_artifact",
                 artifact_id="123"
             ),
             storage=StorageConfig(path="/tmp/test-model"),
@@ -205,8 +201,7 @@ class TestPerformUpload:
                 region="us-east-1"
             ),
             model=ModelConfig(
-                id="test-model",
-                version_id="1.0.0",
+                upload_intent="update_artifact",
                 artifact_id="test-artifact"
             ),
             storage=StorageConfig(path="/tmp/test-model"),
@@ -248,8 +243,7 @@ class TestPerformUpload:
                 credentials_path="/tmp/test-creds"
             ),
             model=ModelConfig(
-                id="abc",
-                version_id="def",
+                upload_intent="update_artifact",
                 artifact_id="123"
             ),
             storage=StorageConfig(path="/tmp/test-model"),

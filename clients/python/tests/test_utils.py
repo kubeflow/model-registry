@@ -1,4 +1,7 @@
+import json
 import os
+from contextlib import contextmanager
+from pathlib import Path
 
 import pytest
 
@@ -8,6 +11,7 @@ from model_registry.utils import (
     _get_files_from_path,
     s3_uri_from,
     save_to_oci_registry,
+    temp_auth_file,
 )
 
 
@@ -122,6 +126,44 @@ def test_save_to_oci_registry_with_custom_backend(
     get_mock_custom_oci_backend.pull.assert_called_once()
     get_mock_custom_oci_backend.push.assert_called_once()
     assert uri == f"oci://{oci_ref}"
+
+
+def test_save_to_oci_registry_with_username_password(mocker, tmp_path):
+    model_files_path = tmp_path / "model-files"
+    model_files_path.mkdir()
+    (model_files_path / "model.bin").touch()
+    dest_dir = tmp_path / "dest"
+
+    temp_auth_file_info = {}
+
+    @contextmanager
+    def temp_auth_file_wrapper(auth):
+        with temp_auth_file(auth) as f:
+            temp_auth_file_info["path"] = f.name
+            temp_auth_file_info["contents"] = Path(f.name).read_text()
+            yield f
+
+    mock_skopeo_pull = mocker.patch("olot.backend.skopeo.skopeo_pull")
+    mock_skopeo_push = mocker.patch("olot.backend.skopeo.skopeo_push")
+    mocker.patch("olot.basics.oci_layers_on_top")
+    mocker.patch("model_registry.utils.temp_auth_file", side_effect=temp_auth_file_wrapper)
+
+    save_to_oci_registry(
+        base_image="busybox",
+        oci_ref="quay.io/example/example:latest",
+        model_files_path=model_files_path,
+        dest_dir=dest_dir,
+        backend="skopeo",
+        oci_username="user32",
+        oci_password="zi3327",  # noqa: S106
+    )
+
+    assert mock_skopeo_pull.call_args.args == ("busybox", dest_dir, ["--src-authfile", mocker.ANY])
+    assert mock_skopeo_pull.call_args.kwargs == {}
+    assert mock_skopeo_push.call_args.args == (dest_dir, "quay.io/example/example:latest", ["--dest-authfile", mocker.ANY])
+    assert mock_skopeo_push.call_args.kwargs == {}
+    assert json.loads(temp_auth_file_info["contents"]) == {"auths": {"quay.io/example/example": {"auth": "dXNlcjMyOnppMzMyNw=="}}}
+    assert not Path(temp_auth_file_info["path"]).exists()
 
 
 @pytest.mark.e2e(type="oci")

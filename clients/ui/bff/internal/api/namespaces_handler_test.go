@@ -26,7 +26,7 @@ var _ = Describe("TestNamespacesHandler", func() {
 			testApp = App{
 				config:                  config.EnvConfig{DevMode: true},
 				kubernetesClientFactory: kubernetesMockedStaticClientFactory,
-				repositories:            repositories.NewRepositories(mockMRClient),
+				repositories:            repositories.NewRepositories(mockMRClient, mockModelCatalogClient),
 				logger:                  logger,
 			}
 		})
@@ -136,7 +136,7 @@ var _ = Describe("TestNamespacesHandler", func() {
 			testApp = App{
 				config:                  config.EnvConfig{DevMode: true},
 				kubernetesClientFactory: kubernetesMockedTokenClientFactory,
-				repositories:            repositories.NewRepositories(mockMRClient),
+				repositories:            repositories.NewRepositories(mockMRClient, mockModelCatalogClient),
 				logger:                  logger,
 			}
 		})

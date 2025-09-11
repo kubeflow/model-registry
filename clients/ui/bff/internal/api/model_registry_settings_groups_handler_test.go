@@ -23,7 +23,7 @@ var _ = Describe("TestGroupsHandler", func() {
 			testApp = App{
 				config:                  config.EnvConfig{DeploymentMode: config.DeploymentModeStandalone},
 				kubernetesClientFactory: kubernetesMockedStaticClientFactory,
-				repositories:            repositories.NewRepositories(mockMRClient),
+				repositories:            repositories.NewRepositories(mockMRClient, mockModelCatalogClient),
 				logger:                  logger,
 			}
 		})

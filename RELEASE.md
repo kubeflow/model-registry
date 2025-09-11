@@ -108,6 +108,15 @@ git tag py-$VVERSION
 git push upstream py-$VVERSION
 ```
 
+- add a Tag for the pkg/openapi
+
+```
+git checkout release/$VVERSION
+git pull upstream release/$VVERSION
+git tag pkg/openapi/$VVERSION
+git push upstream pkg/openapi/$VVERSION
+```
+
 At this point, a release as been created, both the container images and the Python client on pypi.
 
 ## KF/manifests
