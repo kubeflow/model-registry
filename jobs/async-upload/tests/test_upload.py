@@ -9,7 +9,8 @@ from job.models import (
     OCIStorageConfig,
     ModelConfig,
     StorageConfig,
-    RegistryConfig
+    RegistryConfig,
+    UpdateArtifactIntent
 )
 
 class TestGetUploadParams:
@@ -34,8 +35,7 @@ class TestGetUploadParams:
                 region="us-east-1"
             ),
             model=ModelConfig(
-                upload_intent="update_artifact",
-                artifact_id="test-artifact"
+                intent=UpdateArtifactIntent(artifact_id="test-artifact")
             ),
             storage=StorageConfig(path="/tmp/test"),
             registry=RegistryConfig(server_address="test-server")
@@ -71,8 +71,7 @@ class TestGetUploadParams:
                 credentials_path="/tmp/test-creds"
             ),
             model=ModelConfig(
-                upload_intent="update_artifact",
-                artifact_id="123"
+                intent=UpdateArtifactIntent(artifact_id="123")
             ),
             storage=StorageConfig(path="/tmp/test-model"),
             registry=RegistryConfig(server_address="test-server")
@@ -117,8 +116,7 @@ class TestGetUploadParams:
                 credentials_path=None
             ),
             model=ModelConfig(
-                upload_intent="update_artifact",
-                artifact_id="123"
+                intent=UpdateArtifactIntent(artifact_id="123")
             ),
             storage=StorageConfig(path="/tmp/test-model"),
             registry=RegistryConfig(server_address="test-server")
@@ -163,8 +161,7 @@ class TestPerformUpload:
                 credentials_path="/tmp/test-creds"
             ),
             model=ModelConfig(
-                upload_intent="update_artifact",
-                artifact_id="123"
+                intent=UpdateArtifactIntent(artifact_id="123")
             ),
             storage=StorageConfig(path="/tmp/test-model"),
             registry=RegistryConfig(server_address="test-server")
@@ -201,8 +198,7 @@ class TestPerformUpload:
                 region="us-east-1"
             ),
             model=ModelConfig(
-                upload_intent="update_artifact",
-                artifact_id="test-artifact"
+                intent=UpdateArtifactIntent(artifact_id="test-artifact")
             ),
             storage=StorageConfig(path="/tmp/test-model"),
             registry=RegistryConfig(server_address="test-server")
@@ -243,8 +239,7 @@ class TestPerformUpload:
                 credentials_path="/tmp/test-creds"
             ),
             model=ModelConfig(
-                upload_intent="update_artifact",
-                artifact_id="123"
+                intent=UpdateArtifactIntent(artifact_id="123")
             ),
             storage=StorageConfig(path="/tmp/test-model"),
             registry=RegistryConfig(server_address="test-server")

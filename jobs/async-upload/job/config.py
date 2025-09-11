@@ -8,11 +8,12 @@ from pathlib import Path
 from .models import (
     AsyncUploadConfig,
     OCIStorageConfig,
-    S3StorageConfig, 
-    SourceConfig, 
-    DestinationConfig, 
-    ModelConfig, 
-    StorageConfig, 
+    S3StorageConfig,
+    SourceConfig,
+    DestinationConfig,
+    ModelConfig,
+    ModelInputArgs,
+    StorageConfig,
     RegistryConfig,
     S3Config,
     OCIConfig,
@@ -20,7 +21,10 @@ from .models import (
     SourceType,
     DestinationType,
     URISourceStorageConfig,
-    UploadIntent
+    UploadIntent,
+    CreateModelIntent,
+    CreateVersionIntent,
+    UpdateArtifactIntent,
 )
 
 logger = logging.getLogger(__name__)
@@ -363,16 +367,18 @@ def get_config(argv: list[str] | None = None) -> AsyncUploadConfig:
     else:
         raise ValueError(f"Unsupported destination type: {args.destination_type}")
 
-    # Create model instances
+    model_args = ModelInputArgs(
+        intent_type=args.model_upload_intent,
+        id=args.model_id,
+        version_id=args.model_version_id,
+        artifact_id=args.model_artifact_id,
+    )
     try:
         config = AsyncUploadConfig(
             source=source_config,
             destination=destination_config,
             model=ModelConfig(
-                upload_intent=args.model_upload_intent,
-                id=args.model_id,
-                version_id=args.model_version_id,
-                artifact_id=args.model_artifact_id,
+                intent=model_args.model_dump(exclude_none=True),
             ),
             storage=StorageConfig(
                 path=args.storage_path,
