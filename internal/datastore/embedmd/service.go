@@ -4,14 +4,28 @@ import (
 	"fmt"
 
 	"github.com/golang/glog"
-	"github.com/kubeflow/model-registry/internal/core"
+	"github.com/kubeflow/model-registry/internal/datastore"
 	"github.com/kubeflow/model-registry/internal/db"
-	"github.com/kubeflow/model-registry/internal/db/service"
 	"github.com/kubeflow/model-registry/internal/db/types"
-	"github.com/kubeflow/model-registry/internal/defaults"
 	"github.com/kubeflow/model-registry/internal/tls"
-	"github.com/kubeflow/model-registry/pkg/api"
 )
+
+const connectorType = "embedmd"
+
+func init() {
+	datastore.Register(connectorType, func(cfg any) (datastore.Connector, error) {
+		emdbCfg, ok := cfg.(*EmbedMDConfig)
+		if !ok {
+			return nil, fmt.Errorf("invalid EmbedMD config type (%T)", cfg)
+		}
+
+		if err := emdbCfg.Validate(); err != nil {
+			return nil, fmt.Errorf("invalid EmbedMD config: %w", err)
+		}
+
+		return NewEmbedMDService(cfg.(*EmbedMDConfig))
+	})
+}
 
 type EmbedMDConfig struct {
 	DatabaseType string
@@ -49,7 +63,7 @@ func NewEmbedMDService(cfg *EmbedMDConfig) (*EmbedMDService, error) {
 	}, nil
 }
 
-func (s *EmbedMDService) Connect() (api.ModelRegistryApi, error) {
+func (s *EmbedMDService) Connect(spec datastore.RepoSetSpec) (datastore.RepoSet, error) {
 	glog.Infof("Connecting to EmbedMD service...")
 
 	connectedDB, err := s.dbConnector.Connect()
@@ -73,93 +87,9 @@ func (s *EmbedMDService) Connect() (api.ModelRegistryApi, error) {
 
 	glog.Infof("Migrations completed")
 
-	typeRepository := service.NewTypeRepository(connectedDB)
-
-	glog.Infof("Getting types...")
-
-	types, err := typeRepository.GetAll()
-	if err != nil {
-		return nil, err
-	}
-
-	typesMap := make(map[string]int64)
-
-	for _, t := range types {
-		typesMap[*t.GetAttributes().Name] = int64(*t.GetID())
-	}
-
-	glog.Infof("Types retrieved")
-
-	// Add debug logging to see what types are actually available
-	glog.V(2).Infof("DEBUG: Available types in typesMap:")
-	for typeName, typeID := range typesMap {
-		glog.V(2).Infof("  %s = %d", typeName, typeID)
-	}
-
-	// Validate that all required types are registered
-	requiredTypes := []string{
-		defaults.ModelArtifactTypeName,
-		defaults.DocArtifactTypeName,
-		defaults.DataSetTypeName,
-		defaults.MetricTypeName,
-		defaults.ParameterTypeName,
-		defaults.MetricHistoryTypeName,
-		defaults.RegisteredModelTypeName,
-		defaults.ModelVersionTypeName,
-		defaults.ServingEnvironmentTypeName,
-		defaults.InferenceServiceTypeName,
-		defaults.ServeModelTypeName,
-		defaults.ExperimentTypeName,
-		defaults.ExperimentRunTypeName,
-	}
-
-	for _, requiredType := range requiredTypes {
-		if _, exists := typesMap[requiredType]; !exists {
-			return nil, fmt.Errorf("required type '%s' not found in database. Please ensure all migrations have been applied", requiredType)
-		}
-	}
-
-	glog.Infof("All required types validated successfully")
-
-	artifactRepository := service.NewArtifactRepository(connectedDB, typesMap[defaults.ModelArtifactTypeName], typesMap[defaults.DocArtifactTypeName], typesMap[defaults.DataSetTypeName], typesMap[defaults.MetricTypeName], typesMap[defaults.ParameterTypeName], typesMap[defaults.MetricHistoryTypeName])
-	modelArtifactRepository := service.NewModelArtifactRepository(connectedDB, typesMap[defaults.ModelArtifactTypeName])
-	docArtifactRepository := service.NewDocArtifactRepository(connectedDB, typesMap[defaults.DocArtifactTypeName])
-	registeredModelRepository := service.NewRegisteredModelRepository(connectedDB, typesMap[defaults.RegisteredModelTypeName])
-	modelVersionRepository := service.NewModelVersionRepository(connectedDB, typesMap[defaults.ModelVersionTypeName])
-	servingEnvironmentRepository := service.NewServingEnvironmentRepository(connectedDB, typesMap[defaults.ServingEnvironmentTypeName])
-	inferenceServiceRepository := service.NewInferenceServiceRepository(connectedDB, typesMap[defaults.InferenceServiceTypeName])
-	serveModelRepository := service.NewServeModelRepository(connectedDB, typesMap[defaults.ServeModelTypeName])
-	experimentRepository := service.NewExperimentRepository(connectedDB, typesMap[defaults.ExperimentTypeName])
-	experimentRunRepository := service.NewExperimentRunRepository(connectedDB, typesMap[defaults.ExperimentRunTypeName])
-
-	dataSetRepository := service.NewDataSetRepository(connectedDB, typesMap[defaults.DataSetTypeName])
-	metricRepository := service.NewMetricRepository(connectedDB, typesMap[defaults.MetricTypeName])
-	parameterRepository := service.NewParameterRepository(connectedDB, typesMap[defaults.ParameterTypeName])
-	metricHistoryRepository := service.NewMetricHistoryRepository(connectedDB, typesMap[defaults.MetricHistoryTypeName])
-
-	modelRegistryService := core.NewModelRegistryService(
-		artifactRepository,
-		modelArtifactRepository,
-		docArtifactRepository,
-		registeredModelRepository,
-		modelVersionRepository,
-		servingEnvironmentRepository,
-		inferenceServiceRepository,
-		serveModelRepository,
-		experimentRepository,
-		experimentRunRepository,
-		dataSetRepository,
-		metricRepository,
-		parameterRepository,
-		metricHistoryRepository,
-		typesMap,
-	)
-
-	glog.Infof("EmbedMD service connected")
-
-	return modelRegistryService, nil
+	return newRepoSet(connectedDB, spec)
 }
 
-func (s *EmbedMDService) Teardown() error {
-	return nil
+func (s EmbedMDService) Type() string {
+	return connectorType
 }
