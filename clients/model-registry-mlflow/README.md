@@ -1,6 +1,6 @@
 # Kubeflow Model Registry MLflow Plugin
 
-A MLflow tracking plugin that integrates with Kubeflow Model Registry, enabling seamless experiment tracking and model management through MLflow's familiar API while storing metadata in the Kubeflow Model Registry backend.
+An MLflow tracking plugin that integrates with Kubeflow Model Registry, enabling seamless experiment tracking and model management through MLflow's familiar API while storing metadata in the Kubeflow Model Registry backend.
 
 ## Overview
 
