@@ -13,56 +13,51 @@ _TOKEN_PATH: Final[str] = "/var/run/secrets/kubernetes.io/serviceaccount/token"
 class K8sTokenCache:
     """Thread-safe caching for Kubernetes service account tokens."""
 
-    def __init__(self):
-        self._token: Optional[str] = None
-        self._token_mtime: Optional[float] = None
-        self._lock = threading.Lock()
+    _token: Optional[str] = None
+    _token_mtime: Optional[float] = None
+    _lock = threading.Lock()
 
-    def get_token(self) -> Optional[str]:
+    @classmethod
+    def get_token(cls) -> Optional[str]:
         """Get the Kubernetes token with caching."""
-        with self._lock:
+        with cls._lock:
             try:
                 mtime = os.path.getmtime(_TOKEN_PATH)
-                if self._token_mtime == mtime and self._token is not None:
-                    return self._token
+                if cls._token_mtime == mtime and cls._token is not None:
+                    return cls._token
 
                 # Need to refresh token - read file with mtime consistency check
-                self._token_mtime = mtime
+                cls._token_mtime = mtime
                 while True:
                     try:
                         with open(_TOKEN_PATH, "r") as f:
-                            self._token = f.read().strip()
+                            cls._token = f.read().strip()
                         # Check if file was modified during read
-                        if os.path.getmtime(_TOKEN_PATH) == self._token_mtime:
-                            return self._token
+                        if os.path.getmtime(_TOKEN_PATH) == cls._token_mtime:
+                            return cls._token
                         # File was modified during read, try again
-                        self._token_mtime = os.path.getmtime(_TOKEN_PATH)
+                        cls._token_mtime = os.path.getmtime(_TOKEN_PATH)
                     except OSError:
                         # File temporarily unavailable (e.g., during atomic replacement)
                         # Update mtime and retry
                         try:
-                            self._token_mtime = os.path.getmtime(_TOKEN_PATH)
+                            cls._token_mtime = os.path.getmtime(_TOKEN_PATH)
                         except OSError:
                             # File doesn't exist, let outer exception handler deal with it
                             raise
 
             except (OSError, UnicodeDecodeError) as e:
                 # Clear cache on any error to prevent stale data
-                self._token = None
-                self._token_mtime = None
+                cls._token = None
+                cls._token_mtime = None
                 raise RuntimeError(
                     f"Error accessing Kubernetes token file {_TOKEN_PATH}: {e}"
                 ) from e
 
 
-# Global token cache instance
-_token_cache = K8sTokenCache()
-
-
 def _get_k8s_token() -> Optional[str]:
     """Get Kubernetes service account token with caching."""
-    global _token_cache
-    return _token_cache.get_token()
+    return K8sTokenCache.get_token()
 
 
 def get_auth_headers(headers: dict[str, str] = None) -> None:

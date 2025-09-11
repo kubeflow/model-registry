@@ -6,15 +6,15 @@ import os
 import pytest
 from unittest.mock import mock_open, patch
 
-from model_registry_mlflow.auth import get_auth_headers, _get_k8s_token, _token_cache
+from model_registry_mlflow.auth import get_auth_headers, _get_k8s_token, K8sTokenCache
 
 
 class TestAuth:
     def setup_method(self):
         """Reset token cache before each test."""
         # Reset the cache state for testing
-        _token_cache._token = None
-        _token_cache._token_mtime = None
+        K8sTokenCache._token = None
+        K8sTokenCache._token_mtime = None
 
     def test_get_auth_headers_env_token_success(self):
         """Test successful authentication with environment token."""
@@ -115,7 +115,9 @@ class TestAuth:
         token2 = _get_k8s_token()
         assert token2 == "cached-token"
         assert mock_file.call_count == 1  # File should not be read again
-        assert mock_getmtime.call_count == 2  # mtime checked both times
+        assert (
+            mock_getmtime.call_count == 3
+        )  # Initial + post-read check for first call + mtime check for second call
 
     def test_get_auth_headers_modifies_existing_headers(self):
         """Test that get_auth_headers modifies existing headers dictionary."""
@@ -144,7 +146,9 @@ class TestAuth:
         token1 = _get_k8s_token()
         assert token1 == "new-token"
         assert mock_file.call_count == 1
-        assert mock_getmtime.call_count == 1  # Only checked once before read
+        assert (
+            mock_getmtime.call_count == 2
+        )  # Initial check + post-read consistency check
 
         # Second call - same mtime, should use cache
         mock_getmtime.reset_mock()
@@ -154,23 +158,27 @@ class TestAuth:
         token2 = _get_k8s_token()
         assert token2 == "new-token"
         assert mock_file.call_count == 0  # File not read
-        assert mock_getmtime.call_count == 1  # Only checked mtime once
+        assert mock_getmtime.call_count == 1  # Only checked mtime once for cache hit
 
         # Third call - different mtime, should refresh
-        mock_file.return_value.read.return_value = "updated-token"
+        mock_getmtime.reset_mock()
+        mock_file.reset_mock()
         mock_getmtime.return_value = 2000.0
+        mock_file.return_value.read.return_value = "updated-token"
 
         token3 = _get_k8s_token()
         assert token3 == "updated-token"
         assert mock_file.call_count == 1  # File read again
-        assert mock_getmtime.call_count == 2  # Checked once more
+        assert (
+            mock_getmtime.call_count == 2
+        )  # Initial check + post-read consistency check
 
     @patch("os.path.getmtime", side_effect=OSError("File not found"))
     def test_k8s_token_mtime_error_clears_cache(self, mock_getmtime):
         """Test that mtime errors clear the cache properly."""
         # Set up initial cache state
-        _token_cache._token = "old-token"
-        _token_cache._token_mtime = 1000.0
+        K8sTokenCache._token = "old-token"
+        K8sTokenCache._token_mtime = 1000.0
 
         # Call should clear cache and raise error
         with pytest.raises(
@@ -179,8 +187,8 @@ class TestAuth:
             _get_k8s_token()
 
         # Verify cache was cleared
-        assert _token_cache._token is None
-        assert _token_cache._token_mtime is None
+        assert K8sTokenCache._token is None
+        assert K8sTokenCache._token_mtime is None
 
     @patch("os.path.getmtime")
     @patch(
@@ -192,8 +200,8 @@ class TestAuth:
         mock_getmtime.return_value = 1000.0
 
         # Set up initial cache state
-        _token_cache._token = "old-token"
-        _token_cache._token_mtime = 500.0
+        K8sTokenCache._token = "old-token"
+        K8sTokenCache._token_mtime = 500.0
 
         # Call should clear cache and raise error
         with pytest.raises(
@@ -202,8 +210,8 @@ class TestAuth:
             _get_k8s_token()
 
         # Verify cache was cleared
-        assert _token_cache._token is None
-        assert _token_cache._token_mtime is None
+        assert K8sTokenCache._token is None
+        assert K8sTokenCache._token_mtime is None
 
     @patch("os.path.getmtime")
     @patch("builtins.open", new_callable=mock_open)
@@ -217,8 +225,8 @@ class TestAuth:
         assert token == "token-content"
 
         # Cache should store the initial mtime
-        assert _token_cache._token_mtime == 1000.0
-        assert _token_cache._token == "token-content"
+        assert K8sTokenCache._token_mtime == 1000.0
+        assert K8sTokenCache._token == "token-content"
 
-        # Verify only one mtime check was made
-        assert mock_getmtime.call_count == 1
+        # Verify mtime checks: initial + post-read consistency check
+        assert mock_getmtime.call_count == 2
