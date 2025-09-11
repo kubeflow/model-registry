@@ -4,10 +4,16 @@ This directory contains manifests for deploying the Model Catalog using Kustomiz
 
 ## Deployment
 
-To deploy the Model Catalog to your Kubernetes cluster, run the following command in the `base` directory:
+The model catalog manifests deploy a PostgreSQL database, set `POSTGRES_PASSWORD` in `postgres.env` before deploying the manifests. On Linux, you can generate a random password with:
 
 ```sh
-kubectl apply -k . -n <your-namespace>
+(echo POSTGRES_USER=postgres ; echo -n POSTGRES_PASSWORD=; dd if=/dev/random of=/dev/stdout bs=15 count=1 status=none | base64) >base/postgres.env
+```
+
+To deploy the Model Catalog to your Kubernetes cluster (without Kubeflow--see below for Istio support), run the following command from this directory:
+
+```sh
+kubectl apply -k base -n <your-namespace>
 ```
 
 Replace `<your-namespace>` with the Kubernetes namespace where you want to deploy the catalog.
@@ -16,11 +22,13 @@ This command will create:
 *   A `Deployment` to run the Model Catalog server.
 *   A `Service` to expose the Model Catalog server.
 *   A `ConfigMap` named `model-catalog-sources` containing the configuration for the catalog sources.
+*   A `StatefulSet` with a PostgreSQL database
+*   A `PersistentVolumeClaim` for PostgreSQL
 
-For deployment in a Kubeflow environment with Istio support, use the overlay, running the following command in the `overlay` directory::
+For deployment in a Kubeflow environment with Istio support, use the `overlay` directory instead:
 
 ```sh
-kubectl apply -k . -n <your-namespace>
+kubectl apply -k overlay -n <your-namespace>
 ```
 
 ## Configuring Catalog Sources

@@ -177,29 +177,32 @@ func (sc *SourceCollection) load(path string) error {
 	return nil
 }
 
-func LoadCatalogSources(path string) (*SourceCollection, error) {
+func LoadCatalogSources(paths []string) (*SourceCollection, error) {
 	sc := &SourceCollection{}
-	err := sc.load(path)
-	if err != nil {
-		return nil, err
-	}
 
-	go func() {
-		changes, err := getMonitor().Path(path)
+	for _, path := range paths {
+		err := sc.load(path)
 		if err != nil {
-			glog.Errorf("unable to watch sources file: %v", err)
-			// Not fatal, we just won't get automatic updates.
+			return nil, err
 		}
 
-		for range changes {
-			glog.Infof("Reloading sources %s", path)
-
-			err = sc.load(path)
+		go func() {
+			changes, err := getMonitor().Path(path)
 			if err != nil {
-				glog.Errorf("unable to load sources: %v", err)
+				glog.Errorf("unable to watch sources file (%s): %v", path, err)
+				// Not fatal, we just won't get automatic updates.
 			}
-		}
-	}()
+
+			for range changes {
+				glog.Infof("Reloading sources %s", path)
+
+				err = sc.load(path)
+				if err != nil {
+					glog.Errorf("unable to load sources: %v", err)
+				}
+			}
+		}()
+	}
 
 	return sc, nil
 }

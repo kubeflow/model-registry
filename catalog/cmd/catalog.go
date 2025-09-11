@@ -7,15 +7,19 @@ import (
 	"github.com/golang/glog"
 	"github.com/kubeflow/model-registry/catalog/internal/catalog"
 	"github.com/kubeflow/model-registry/catalog/internal/server/openapi"
+	"github.com/kubeflow/model-registry/internal/datastore"
+	"github.com/kubeflow/model-registry/internal/datastore/embedmd"
+	"github.com/kubeflow/model-registry/internal/db/service"
+	"github.com/kubeflow/model-registry/internal/defaults"
 	"github.com/spf13/cobra"
 )
 
 var catalogCfg = struct {
 	ListenAddress string
-	ConfigPath    string
+	ConfigPath    []string
 }{
 	ListenAddress: "0.0.0.0:8080",
-	ConfigPath:    "sources.yaml",
+	ConfigPath:    []string{"sources.yaml"},
 }
 
 var CatalogCmd = &cobra.Command{
@@ -26,11 +30,32 @@ var CatalogCmd = &cobra.Command{
 }
 
 func init() {
-	CatalogCmd.Flags().StringVarP(&catalogCfg.ListenAddress, "listen", "l", catalogCfg.ListenAddress, "Address to listen on")
-	CatalogCmd.Flags().StringVar(&catalogCfg.ConfigPath, "catalogs-path", catalogCfg.ConfigPath, "Path to catalog source configuration file")
+	fs := CatalogCmd.Flags()
+	fs.StringVarP(&catalogCfg.ListenAddress, "listen", "l", catalogCfg.ListenAddress, "Address to listen on")
+	fs.StringSliceVar(&catalogCfg.ConfigPath, "catalogs-path", catalogCfg.ConfigPath, "Path to catalog source configuration file")
 }
 
 func runCatalogServer(cmd *cobra.Command, args []string) error {
+	ds, err := datastore.NewConnector("embedmd", &embedmd.EmbedMDConfig{
+		DatabaseType: "postgres", // We only support postgres right now
+		DatabaseDSN:  "",
+	})
+	if err != nil {
+		return fmt.Errorf("error creating datastore: %w", err)
+	}
+
+	_, err = ds.Connect(datastore.RepoSetSpec{
+		ArtifactTypes: map[string]any{
+			defaults.ModelArtifactTypeName: service.NewModelArtifactRepository,
+			defaults.DocArtifactTypeName:   service.NewDocArtifactRepository,
+		},
+		ContextTypes:   map[string]any{},
+		ExecutionTypes: map[string]any{},
+	})
+	if err != nil {
+		return fmt.Errorf("error initializing datastore: %v", err)
+	}
+
 	sources, err := catalog.LoadCatalogSources(catalogCfg.ConfigPath)
 	if err != nil {
 		return fmt.Errorf("error loading catalog sources: %v", err)
