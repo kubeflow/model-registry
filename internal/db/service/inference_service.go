@@ -66,8 +66,8 @@ func applyInferenceServiceListFilters(query *gorm.DB, listOptions *models.Infere
 	}
 
 	if listOptions.ParentResourceID != nil {
-		query = query.Joins("JOIN ParentContext ON ParentContext.context_id = Context.id").
-			Where("ParentContext.parent_context_id = ?", listOptions.ParentResourceID)
+		query = query.Joins(utils.BuildParentContextJoin(query)).
+			Where(utils.GetColumnRef(query, &schema.ParentContext{}, "parent_context_id")+" = ?", listOptions.ParentResourceID)
 	}
 
 	if listOptions.Runtime != nil {
