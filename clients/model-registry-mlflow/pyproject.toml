@@ -2,7 +2,9 @@
 name = "model-registry-mlflow"
 version = "0.1.0"
 description = "Kubeflow Model Registry MLflow Integration Plugin"
-authors = ["Dhiraj Bokde <dhirajsb@users.noreply.github.com>"]
+authors = [
+    {name= "Dhiraj Bokde", email= "<dhirajsb@users.noreply.github.com>"},
+]
 license = "Apache-2.0"
 readme = "README.md"
 requires-python = ">=3.9"
