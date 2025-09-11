@@ -12,9 +12,9 @@ import (
 
 type CatalogSourceListEnvelope Envelope[*openapi.CatalogSourceList, None]
 type CatalogModelEnvelope Envelope[*openapi.CatalogModel, None]
+type catalogModelArtifactsListEnvelope Envelope[*openapi.CatalogModelArtifactList, None]
 
 func (app *App) GetAllCatalogSourcesHandler(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
-
 	client, ok := r.Context().Value(constants.ModelCatalogHttpClientKey).(httpclient.HTTPClientInterface)
 	if !ok {
 		app.serverErrorResponse(w, r, errors.New("catalog REST client not found"))
@@ -66,5 +66,27 @@ func (app *App) GetCatalogSourceModelHandler(w http.ResponseWriter, r *http.Requ
 }
 
 func (app *App) GetCatalogSourceModelArtifactHandler(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
-	// TODO: Implement catalog model artifact retrieval logic
+	client, ok := r.Context().Value(constants.ModelCatalogHttpClientKey).(httpclient.HTTPClientInterface)
+	if !ok {
+		app.serverErrorResponse(w, r, errors.New("catalog REST client not found"))
+		return
+	}
+	ps.ByName(CatalogSourceId)
+	ps.ByName(CatalogModelName)
+
+	catalogModelArtifacts, err := app.repositories.ModelCatalogClient.GetCatalogModelArtifacts(client, ps.ByName(CatalogSourceId), ps.ByName(CatalogModelName))
+
+	if err != nil {
+		app.serverErrorResponse(w, r, err)
+		return
+	}
+
+	catalogModelArtifactList := catalogModelArtifactsListEnvelope{
+		Data: catalogModelArtifacts,
+	}
+
+	err = app.WriteJSON(w, http.StatusOK, catalogModelArtifactList, nil)
+	if err != nil {
+		app.serverErrorResponse(w, r, err)
+	}
 }

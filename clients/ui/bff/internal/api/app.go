@@ -57,14 +57,13 @@ const (
 	ArtifactPath                 = ArtifactListPath + "/:" + ArtifactId
 
 	// model catalog
-	CatalogSourceId        = "source_id"
-	CatalogModelName       = "model_name"
-	CatalogPathPrefix      = ApiPathPrefix + "/model_catalog"
-	CatalogModelListPath   = CatalogPathPrefix + "/models"
-	CatalogSourceListPath  = CatalogPathPrefix + "/sources"
-	CatalogSourceModelPath = CatalogPathPrefix + "/sources" + "/:" + CatalogSourceId + "/models" + "/*" + CatalogModelName
-	//This need to wait until we get the model catalog model path accepting escaped model names (instead of paths)
-	CatalogSourceModelArtifactPath = CatalogPathPrefix + "/sources" + "/:" + CatalogSourceId + "/models" + "/*model_name" + "/artifacts"
+	CatalogSourceId                = "source_id"
+	CatalogModelName               = "model_name"
+	CatalogPathPrefix              = ApiPathPrefix + "/model_catalog"
+	CatalogModelListPath           = CatalogPathPrefix + "/models"
+	CatalogSourceListPath          = CatalogPathPrefix + "/sources"
+	CatalogSourceModelPath         = CatalogPathPrefix + "/sources" + "/:" + CatalogSourceId + "/models" + "/:" + CatalogModelName
+	CatalogSourceModelArtifactPath = CatalogPathPrefix + "/sources" + "/:" + CatalogSourceId + "/models" + "/:" + CatalogModelName + "/artifacts"
 )
 
 type App struct {
@@ -184,8 +183,7 @@ func (app *App) Routes() http.Handler {
 	apiRouter.GET(CatalogModelListPath, app.AttachNamespace(app.AttachModelCatalogRESTClient(app.GetAllCatalogModelsAcrossSourcesHandler)))
 	apiRouter.GET(CatalogSourceListPath, app.AttachNamespace(app.AttachModelCatalogRESTClient(app.GetAllCatalogSourcesHandler)))
 	apiRouter.GET(CatalogSourceModelPath, app.AttachNamespace(app.AttachModelCatalogRESTClient(app.GetCatalogSourceModelHandler)))
-	//This need to wait until we get the model catalog model path accepting escaped model names (instead of paths)
-	//apiRouter.GET(CatalogSourceModelArtifactPath, app.AttachNamespace(app.AttachModelCatalogRESTClient(app.GetCatalogSourceModelArtifactHandler)))
+	apiRouter.GET(CatalogSourceModelArtifactPath, app.AttachNamespace(app.AttachModelCatalogRESTClient(app.GetCatalogSourceModelArtifactHandler)))
 
 	// Kubernetes routes
 	apiRouter.GET(UserPath, app.UserHandler)

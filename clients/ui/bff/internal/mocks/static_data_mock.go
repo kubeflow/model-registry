@@ -10,7 +10,6 @@ import (
 	catalogOpenapi "github.com/kubeflow/model-registry/catalog/pkg/openapi"
 	"github.com/kubeflow/model-registry/pkg/openapi"
 	"github.com/kubeflow/model-registry/ui/bff/internal/constants"
-	"github.com/kubeflow/model-registry/ui/bff/internal/models"
 )
 
 func GetRegisteredModelMocks() []openapi.RegisteredModel {
@@ -263,6 +262,49 @@ func GenerateMockArtifact() openapi.Artifact {
 	return mockData
 }
 
+func catalogCustomProperties() *map[string]catalogOpenapi.MetadataValue {
+	result := map[string]catalogOpenapi.MetadataValue{
+		"tensorflow": {
+			MetadataStringValue: &catalogOpenapi.MetadataStringValue{
+				StringValue:  "",
+				MetadataType: "MetadataStringValue",
+			},
+		},
+		"pytorch": {
+			MetadataStringValue: &catalogOpenapi.MetadataStringValue{
+				StringValue:  "",
+				MetadataType: "MetadataStringValue",
+			},
+		},
+		"mll": {
+			MetadataStringValue: &catalogOpenapi.MetadataStringValue{
+				StringValue:  "",
+				MetadataType: "MetadataStringValue",
+			},
+		},
+		"rnn": {
+			MetadataStringValue: &catalogOpenapi.MetadataStringValue{
+				StringValue:  "",
+				MetadataType: "MetadataStringValue",
+			},
+		},
+		"AWS_KEY": {
+			MetadataStringValue: &catalogOpenapi.MetadataStringValue{
+				StringValue:  "asdf89asdf098asdfa",
+				MetadataType: "MetadataStringValue",
+			},
+		},
+		"AWS_PASSWORD": {
+			MetadataStringValue: &catalogOpenapi.MetadataStringValue{
+				StringValue:  "*AadfeDs34adf",
+				MetadataType: "MetadataStringValue",
+			},
+		},
+	}
+
+	return &result
+}
+
 func getAllCatalogModelMocks() catalogOpenapi.CatalogModelList {
 	allSources := GetCatalogModelMocks()
 
@@ -273,6 +315,7 @@ func getAllCatalogModelMocks() catalogOpenapi.CatalogModelList {
 		NextPageToken: "",
 	}
 }
+
 func GetCatalogModelMocks() []catalogOpenapi.CatalogModel {
 	sampleModel1 := catalogOpenapi.CatalogModel{
 		Name:        "repo1/granite-8b-code-instruct",
@@ -625,6 +668,7 @@ func GetCatalogModelMocks() []catalogOpenapi.CatalogModel {
 		LibraryName:              stringToPointer("transformers"),
 		CreateTimeSinceEpoch:     stringToPointer("1693526400000"),
 		LastUpdateTimeSinceEpoch: stringToPointer("1704067200000"),
+		CustomProperties:         catalogCustomProperties(),
 	}
 
 	sampleModel2 := catalogOpenapi.CatalogModel{
@@ -761,23 +805,23 @@ func GetCatalogSourceListMock() catalogOpenapi.CatalogSourceList {
 	}
 }
 
-func GetCatalogModelArtifactMock() []models.CatalogModelArtifact {
-	return []models.CatalogModelArtifact{
+func GetCatalogModelArtifactMock() []catalogOpenapi.CatalogModelArtifact {
+	return []catalogOpenapi.CatalogModelArtifact{
 		{
 			Uri:                      "oci://registry.sample.io/repo1/modelcar-granite-7b-starter:1.4.0",
 			CreateTimeSinceEpoch:     stringToPointer("1693526400000"),
 			LastUpdateTimeSinceEpoch: stringToPointer("1704067200000"),
-			CustomProperties:         newCustomProperties(),
+			CustomProperties:         catalogCustomProperties(),
 		},
 	}
 }
 
-func GetCatalogModelArtifactListMock() models.CatalogModelArtifactList {
-	artifactMock := GetCatalogModelArtifactMock()
+func GetCatalogModelArtifactListMock() catalogOpenapi.CatalogModelArtifactList {
+	allArtifactMock := GetCatalogModelArtifactMock()
 
-	return models.CatalogModelArtifactList{
-		Items:         artifactMock,
-		Size:          int32(len(artifactMock)),
+	return catalogOpenapi.CatalogModelArtifactList{
+		Items:         allArtifactMock,
+		Size:          int32(len(allArtifactMock)),
 		PageSize:      int32(10),
 		NextPageToken: "",
 	}
