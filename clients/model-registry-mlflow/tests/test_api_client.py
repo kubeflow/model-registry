@@ -14,7 +14,7 @@ class TestModelRegistryAPIClient:
     @pytest.fixture
     def api_client(self):
         """Create a ModelRegistryAPIClient instance for testing."""
-        return ModelRegistryAPIClient("http://localhost:8080")
+        return ModelRegistryAPIClient("https://localhost:8080")
 
     @pytest.fixture
     def mock_response(self):
@@ -24,9 +24,24 @@ class TestModelRegistryAPIClient:
         response.json.return_value = {}
         return response
 
+    @pytest.fixture
+    def mock_auth_headers(self):
+        """Fixture that patches get_auth_headers with Bearer token."""
+        with patch("model_registry_mlflow.api_client.get_auth_headers") as mock:
+            mock.side_effect = lambda headers: headers.update(
+                {"Authorization": "Bearer token"}
+            )
+            yield mock
+
+    @pytest.fixture
+    def mock_session_request(self):
+        """Fixture that patches requests.Session.request."""
+        with patch("model_registry_mlflow.api_client.requests.Session.request") as mock:
+            yield mock
+
     def test_init(self, api_client):
         """Test API client initialization."""
-        assert api_client.base_url == "http://localhost:8080"
+        assert api_client.base_url == "https://localhost:8080"
         assert isinstance(api_client.session, requests.Session)
 
     def test_init_with_trailing_slash(self):
@@ -39,13 +54,10 @@ class TestModelRegistryAPIClient:
         client = ModelRegistryAPIClient("localhost:8080")
         assert client.base_url == "localhost:8080"
 
-    @patch("model_registry_mlflow.api_client.get_auth_headers")
-    @patch("model_registry_mlflow.api_client.requests.Session.request")
     def test_request_success(
         self, mock_session_request, mock_auth_headers, api_client, mock_response
     ):
         """Test successful API request."""
-        mock_auth_headers.return_value = {"Authorization": "Bearer token"}
         mock_session_request.return_value = mock_response
 
         response_data = api_client.request("GET", "/test")
@@ -53,17 +65,14 @@ class TestModelRegistryAPIClient:
         mock_session_request.assert_called_once()
         call_args = mock_session_request.call_args
         assert call_args[0][0] == "GET"  # method
-        assert call_args[0][1] == "http://localhost:8080/test"  # url
+        assert call_args[0][1] == "https://localhost:8080/test"  # url
         assert call_args[1]["headers"]["Authorization"] == "Bearer token"
         assert response_data == mock_response.json.return_value
 
-    @patch("model_registry_mlflow.api_client.get_auth_headers")
-    @patch("model_registry_mlflow.api_client.requests.Session.request")
     def test_request_with_json_data(
         self, mock_session_request, mock_auth_headers, api_client, mock_response
     ):
         """Test API request with JSON data."""
-        mock_auth_headers.return_value = {"Authorization": "Bearer token"}
         mock_session_request.return_value = mock_response
 
         json_data = {"customProperties": {"key1": "value1"}}
@@ -78,14 +87,10 @@ class TestModelRegistryAPIClient:
             == "MetadataStringValue"
         )
 
-    @patch("model_registry_mlflow.api_client.get_auth_headers")
-    @patch("model_registry_mlflow.api_client.requests.Session.request")
     def test_request_with_response_items(
         self, mock_session_request, mock_auth_headers, api_client
     ):
         """Test API request with response containing items."""
-        mock_auth_headers.return_value = {"Authorization": "Bearer token"}
-
         mock_response = Mock(spec=requests.Response)
         mock_response.ok = True
         mock_response.json.return_value = {
@@ -107,14 +112,10 @@ class TestModelRegistryAPIClient:
         # Check that customProperties were converted back to MLflow format
         assert response_data["items"][0]["customProperties"]["key1"] == "value1"
 
-    @patch("model_registry_mlflow.api_client.get_auth_headers")
-    @patch("model_registry_mlflow.api_client.requests.Session.request")
     def test_request_with_single_response(
         self, mock_session_request, mock_auth_headers, api_client
     ):
         """Test API request with single response object."""
-        mock_auth_headers.return_value = {"Authorization": "Bearer token"}
-
         mock_response = Mock(spec=requests.Response)
         mock_response.ok = True
         mock_response.json.return_value = {
@@ -132,14 +133,10 @@ class TestModelRegistryAPIClient:
         # Check that customProperties were converted back to MLflow format
         assert response_data["customProperties"]["key1"] == "value1"
 
-    @patch("model_registry_mlflow.api_client.get_auth_headers")
-    @patch("model_registry_mlflow.api_client.requests.Session.request")
     def test_request_http_error(
         self, mock_session_request, mock_auth_headers, api_client
     ):
         """Test API request with HTTP error."""
-        mock_auth_headers.return_value = {"Authorization": "Bearer token"}
-
         mock_response = Mock(spec=requests.Response)
         mock_response.ok = False
         mock_response.status_code = 404
@@ -155,14 +152,10 @@ class TestModelRegistryAPIClient:
 
         assert "Model Registry API error: Not found" in str(exc_info.value)
 
-    @patch("model_registry_mlflow.api_client.get_auth_headers")
-    @patch("model_registry_mlflow.api_client.requests.Session.request")
     def test_request_network_error(
         self, mock_session_request, mock_auth_headers, api_client
     ):
         """Test API request with network error."""
-        mock_auth_headers.return_value = {"Authorization": "Bearer token"}
-
         mock_session_request.side_effect = requests.exceptions.ConnectionError(
             "Connection failed"
         )
@@ -174,14 +167,10 @@ class TestModelRegistryAPIClient:
             exc_info.value
         )
 
-    @patch("model_registry_mlflow.api_client.get_auth_headers")
-    @patch("model_registry_mlflow.api_client.requests.Session.request")
     def test_request_invalid_json_response(
         self, mock_session_request, mock_auth_headers, api_client
     ):
         """Test API request with invalid JSON response."""
-        mock_auth_headers.return_value = {"Authorization": "Bearer token"}
-
         mock_response = Mock(spec=requests.Response)
         mock_response.ok = False
         mock_response.status_code = 400
@@ -197,13 +186,10 @@ class TestModelRegistryAPIClient:
 
         assert "Model Registry API error: Invalid JSON" in str(exc_info.value)
 
-    @patch("model_registry_mlflow.api_client.get_auth_headers")
-    @patch("model_registry_mlflow.api_client.requests.Session.request")
     def test_get_method(
         self, mock_session_request, mock_auth_headers, api_client, mock_response
     ):
         """Test GET method."""
-        mock_auth_headers.return_value = {"Authorization": "Bearer token"}
         mock_session_request.return_value = mock_response
 
         api_client.get("/test", params={"key": "value"})
@@ -212,13 +198,10 @@ class TestModelRegistryAPIClient:
         assert call_args[0][0] == "GET"
         assert call_args[1]["params"]["key"] == "value"
 
-    @patch("model_registry_mlflow.api_client.get_auth_headers")
-    @patch("model_registry_mlflow.api_client.requests.Session.request")
     def test_post_method(
         self, mock_session_request, mock_auth_headers, api_client, mock_response
     ):
         """Test POST method."""
-        mock_auth_headers.return_value = {"Authorization": "Bearer token"}
         mock_session_request.return_value = mock_response
 
         api_client.post("/test", json={"data": "value"})
@@ -227,13 +210,10 @@ class TestModelRegistryAPIClient:
         assert call_args[0][0] == "POST"
         assert call_args[1]["json"]["data"] == "value"
 
-    @patch("model_registry_mlflow.api_client.get_auth_headers")
-    @patch("model_registry_mlflow.api_client.requests.Session.request")
     def test_patch_method(
         self, mock_session_request, mock_auth_headers, api_client, mock_response
     ):
         """Test PATCH method."""
-        mock_auth_headers.return_value = {"Authorization": "Bearer token"}
         mock_session_request.return_value = mock_response
 
         api_client.patch("/test", json={"data": "value"})
@@ -242,13 +222,10 @@ class TestModelRegistryAPIClient:
         assert call_args[0][0] == "PATCH"
         assert call_args[1]["json"]["data"] == "value"
 
-    @patch("model_registry_mlflow.api_client.get_auth_headers")
-    @patch("model_registry_mlflow.api_client.requests.Session.request")
     def test_delete_method(
         self, mock_session_request, mock_auth_headers, api_client, mock_response
     ):
         """Test DELETE method."""
-        mock_auth_headers.return_value = {"Authorization": "Bearer token"}
         mock_session_request.return_value = mock_response
 
         api_client.delete("/test")
@@ -256,13 +233,10 @@ class TestModelRegistryAPIClient:
         call_args = mock_session_request.call_args
         assert call_args[0][0] == "DELETE"
 
-    @patch("model_registry_mlflow.api_client.get_auth_headers")
-    @patch("model_registry_mlflow.api_client.requests.Session.request")
     def test_request_with_custom_headers(
         self, mock_session_request, mock_auth_headers, api_client, mock_response
     ):
         """Test API request with custom headers."""
-        mock_auth_headers.return_value = {"Authorization": "Bearer token"}
         mock_session_request.return_value = mock_response
 
         api_client.request("GET", "/test", headers={"Custom-Header": "value"})
@@ -272,13 +246,10 @@ class TestModelRegistryAPIClient:
         assert headers["Authorization"] == "Bearer token"
         assert headers["Custom-Header"] == "value"
 
-    @patch("model_registry_mlflow.api_client.get_auth_headers")
-    @patch("model_registry_mlflow.api_client.requests.Session.request")
     def test_request_with_params(
         self, mock_session_request, mock_auth_headers, api_client, mock_response
     ):
         """Test API request with query parameters."""
-        mock_auth_headers.return_value = {"Authorization": "Bearer token"}
         mock_session_request.return_value = mock_response
 
         api_client.request("GET", "/test", params={"key": "value"})
@@ -370,13 +341,10 @@ class TestModelRegistryAPIClient:
                 assert client.session.verify is True  # System default
                 mock_logger.debug.assert_called_with("Using system default CA bundle")
 
-    @patch("model_registry_mlflow.api_client.get_auth_headers")
-    @patch("model_registry_mlflow.api_client.requests.Session.request")
     def test_request_ssl_error(
         self, mock_session_request, mock_auth_headers, api_client
     ):
         """Test API request with TLS error."""
-        mock_auth_headers.return_value = {"Authorization": "Bearer token"}
         mock_session_request.side_effect = requests.exceptions.SSLError("TLS Error")
 
         with pytest.raises(MlflowException) as exc_info:

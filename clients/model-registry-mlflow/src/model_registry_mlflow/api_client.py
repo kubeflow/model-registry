@@ -97,6 +97,23 @@ class ModelRegistryAPIClient:
             logger.debug("Using system default CA bundle")
             # Let requests use system CA bundle (default behavior)
 
+    def _get_request_headers(self) -> Dict[str, str]:
+        """Get request headers."""
+
+        from mlflow.exceptions import MlflowException
+
+        headers = {"Content-Type": "application/json", "Accept": "application/json"}
+
+        if self.base_url.startswith("https://"):
+            try:
+                get_auth_headers(headers)
+            except RuntimeError as e:
+                logger.error(f"Error getting authentication headers: {e}")
+                raise MlflowException(
+                    f"Error getting authentication headers: {e}"
+                ) from e
+        return headers
+
     def request(self, method: str, endpoint: str, **kwargs) -> Dict[str, Any]:
         """Make authenticated request to Model Registry API.
 
@@ -114,7 +131,7 @@ class ModelRegistryAPIClient:
         from mlflow.exceptions import MlflowException, get_error_code
 
         url = f"{self.base_url}/{endpoint.lstrip('/')}"
-        headers = get_auth_headers()
+        headers = self._get_request_headers()
         headers.update(kwargs.pop("headers", {}))
 
         # Convert customProperties to ModelRegistry format for outgoing requests
