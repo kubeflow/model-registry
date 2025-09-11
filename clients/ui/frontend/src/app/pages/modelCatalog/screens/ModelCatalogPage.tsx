@@ -82,7 +82,7 @@ const ModelCatalogPage: React.FC = () => {
               <ModelCatalogCard
                 model={model}
                 source={selectedSource?.name || ''}
-                key={`${model.name}/${model.sourceId}`}
+                key={`${model.name}/${model.source_id}`}
               />
             ))}
           </Gallery>

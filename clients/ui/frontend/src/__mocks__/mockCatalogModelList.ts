@@ -1,7 +1,8 @@
 import { CatalogModel, CatalogModelList } from '~/app/modelCatalogTypes';
 
 export const mockCatalogModel = (partial?: Partial<CatalogModel>): CatalogModel => ({
-  sourceId: 'sample-source',
+  // eslint-disable-next-line camelcase
+  source_id: 'sample-source',
   name: 'repo1/model1',
   description:
     'Granite-8B-Code-Instruct is a 8B parameter model fine tuned from\nGranite-8B-Code-Base on a combination of permissively licensed instruction\ndata to enhance instruction following capabilities including logical\nreasoning and problem-solving skills.',
