@@ -53,7 +53,6 @@ const EMPTY_CUSTOM_PROPERTY_STRING = {
 export const createCustomPropertiesFromModel = (
   model: ModelCatalogItem,
 ): ModelRegistryCustomProperties => {
-  // Add labels from model tags (equivalent to ODH's model.labels)
   const labels = (model.tags || []).reduce<ModelRegistryCustomProperties>((acc, cur) => {
     acc[cur] = EMPTY_CUSTOM_PROPERTY_STRING;
     return acc;
