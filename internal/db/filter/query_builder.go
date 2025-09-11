@@ -70,7 +70,7 @@ func (qb *QueryBuilder) applyDatabaseQuoting() {
 	if qb.db == nil {
 		return
 	}
-	switch qb.db.Dialector.Name() {
+	switch qb.db.Name() {
 	case "mysql":
 		qb.tablePrefix = "`" + qb.tablePrefix + "`"
 	case "postgres":
@@ -85,7 +85,7 @@ func (qb *QueryBuilder) quoteTableName(tableName string) string {
 	if qb.db == nil {
 		return tableName
 	}
-	switch qb.db.Dialector.Name() {
+	switch qb.db.Name() {
 	case "mysql":
 		return "`" + tableName + "`"
 	case "postgres":
