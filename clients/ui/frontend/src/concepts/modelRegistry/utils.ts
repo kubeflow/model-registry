@@ -1,4 +1,6 @@
 import { CatalogModelDetailsParams } from '~/app/pages/modelRegistry/screens/types';
+import { ModelRegistryCustomProperties, ModelRegistryMetadataType } from '~/app/types';
+import { ModelCatalogItem } from '~/app/modelCatalogTypes';
 import { ModelSourceKind, ModelSourceProperties } from './types';
 
 /**
@@ -25,4 +27,46 @@ export const modelSourcePropertiesToCatalogParams = (
     modelName: properties.modelSourceName,
     tag: properties.modelSourceId,
   };
+};
+
+export const catalogParamsToModelSourceProperties = (
+  params: CatalogModelDetailsParams,
+): ModelSourceProperties => ({
+  modelSourceKind: ModelSourceKind.CATALOG,
+  modelSourceClass: params.sourceName || '',
+  modelSourceGroup: params.repositoryName || '',
+  modelSourceName: params.modelName,
+  modelSourceId: params.tag,
+});
+
+const EMPTY_CUSTOM_PROPERTY_STRING = {
+  // eslint-disable-next-line camelcase
+  string_value: '',
+  metadataType: ModelRegistryMetadataType.STRING,
+} as const;
+
+/**
+ * Creates custom properties from a catalog model
+ * @param model - The catalog model item
+ * @returns ModelRegistryCustomProperties object with labels and tasks
+ */
+export const createCustomPropertiesFromModel = (
+  model: ModelCatalogItem,
+): ModelRegistryCustomProperties => {
+  const labels = (model.tags || []).reduce<ModelRegistryCustomProperties>((acc, cur) => {
+    acc[cur] = EMPTY_CUSTOM_PROPERTY_STRING;
+    return acc;
+  }, {});
+
+  // Add single Task property from model.task (like versionCustomProperties)
+  const taskProperty: ModelRegistryCustomProperties = {};
+  if (model.task) {
+    taskProperty.Task = {
+      // eslint-disable-next-line camelcase
+      string_value: model.task,
+      metadataType: ModelRegistryMetadataType.STRING,
+    };
+  }
+
+  return { ...labels, ...taskProperty };
 };
