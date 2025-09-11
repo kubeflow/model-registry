@@ -65,8 +65,8 @@ clean:
 	rm -rf dist/
 	rm -rf build/
 	rm -rf *.egg-info/
-	find . -type d -name __pycache__ -delete
-	find . -type f -name "*.pyc" -delete
+	find . -type d -name __pycache__ -exec rm -rf {} +
+	find . -type f -name "*.pyc" -exec rm -rf {} +
 
 # Run linting (includes type checking)
 lint:
