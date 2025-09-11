@@ -26,11 +26,25 @@ class K8sTokenCache:
                 if self._token_mtime == mtime and self._token is not None:
                     return self._token
 
-                # Need to refresh token - read file
-                with open(_TOKEN_PATH, "r") as f:
-                    self._token = f.read().strip()
+                # Need to refresh token - read file with mtime consistency check
                 self._token_mtime = mtime
-                return self._token
+                while True:
+                    try:
+                        with open(_TOKEN_PATH, "r") as f:
+                            self._token = f.read().strip()
+                        # Check if file was modified during read
+                        if os.path.getmtime(_TOKEN_PATH) == self._token_mtime:
+                            return self._token
+                        # File was modified during read, try again
+                        self._token_mtime = os.path.getmtime(_TOKEN_PATH)
+                    except OSError:
+                        # File temporarily unavailable (e.g., during atomic replacement)
+                        # Update mtime and retry
+                        try:
+                            self._token_mtime = os.path.getmtime(_TOKEN_PATH)
+                        except OSError:
+                            # File doesn't exist, let outer exception handler deal with it
+                            raise
 
             except (OSError, UnicodeDecodeError) as e:
                 # Clear cache on any error to prevent stale data
