@@ -182,7 +182,7 @@ const RegisterCatalogModelForm: React.FC<RegisterCatalogModelFormProps> = ({
                 variant="info"
                 isInline
                 isPlain
-                title="Additional model metadata, such as its model card details, labels, provider, and license, will be available to view and edit after registration is complete."
+                title="Additional model metadata, such as labels, provider, and license, will be available to view and edit after registration is complete."
               />
             </StackItem>
             <StackItem>

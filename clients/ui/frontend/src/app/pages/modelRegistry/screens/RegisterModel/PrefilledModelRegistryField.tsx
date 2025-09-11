@@ -1,5 +1,5 @@
 import React from 'react';
-import { FormGroup, TextInput, Stack, StackItem } from '@patternfly/react-core';
+import { FormGroup, TextInput } from '@patternfly/react-core';
 import FormFieldset from '~/app/pages/modelRegistry/screens/components/FormFieldset';
 
 type PrefilledModelRegistryFieldProps = {
@@ -12,18 +12,9 @@ const PrefilledModelRegistryField: React.FC<PrefilledModelRegistryFieldProps> = 
   );
 
   return (
-    <Stack hasGutter>
-      <StackItem>
-        <FormGroup
-          className="form-group-disabled"
-          label="Model registry"
-          isRequired
-          fieldId="mr-name"
-        >
-          <FormFieldset component={mrNameInput} field="Model Registry" />
-        </FormGroup>
-      </StackItem>
-    </Stack>
+    <FormGroup className="form-group-disabled" label="Model registry" isRequired fieldId="mr-name">
+      <FormFieldset component={mrNameInput} field="Model Registry" />
+    </FormGroup>
   );
 };
 
