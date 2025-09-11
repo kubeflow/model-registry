@@ -1,9 +1,12 @@
 [project]
 name = "model-registry-mlflow"
 version = "0.1.0"
-description = "Kubeflow Model Registry MLFlow Integration Plugin"
+description = "Kubeflow Model Registry MLflow Integration Plugin"
+authors = ["Dhiraj Bokde <dhirajsb@users.noreply.github.com>"]
+license = "Apache-2.0"
 readme = "README.md"
 requires-python = ">=3.9"
+homepage = "https://github.com/kubeflow/model-registry"
 dependencies = [
     "mlflow>=2.0.0",
     "requests>=2.25.0",
