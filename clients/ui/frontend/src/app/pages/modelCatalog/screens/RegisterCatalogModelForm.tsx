@@ -26,7 +26,10 @@ import { extractVersionTag } from '~/app/pages/modelCatalog/utils/modelCatalogUt
 import ModelRegistrySelector from '~/app/pages/modelRegistry/screens/ModelRegistrySelector';
 import { registeredModelUrl } from '~/app/pages/modelRegistry/screens/routeUtils';
 import { getCatalogModelDetailsRoute } from '~/app/routes/modelCatalog/catalogModelDetails';
-import { catalogParamsToModelSourceProperties } from '~/concepts/modelRegistry/utils';
+import {
+  catalogParamsToModelSourceProperties,
+  createCustomPropertiesFromModel,
+} from '~/concepts/modelRegistry/utils';
 
 interface RegisterCatalogModelFormProps {
   model: ModelCatalogItem;
@@ -69,7 +72,7 @@ const RegisterCatalogModelForm: React.FC<RegisterCatalogModelFormProps> = ({
     modelLocationPath: '',
     modelLocationURI: model.url || '',
     modelRegistry: preferredModelRegistry.name,
-    modelCustomProperties: {},
+    modelCustomProperties: createCustomPropertiesFromModel(model),
     versionCustomProperties: {
       License: {
         // eslint-disable-next-line camelcase
@@ -185,6 +188,7 @@ const RegisterCatalogModelForm: React.FC<RegisterCatalogModelFormProps> = ({
                 formData={formData}
                 setData={setData}
                 isFirstVersion={false}
+                isCatalogModel
               />
             </StackItem>
           </Stack>
