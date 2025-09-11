@@ -9,7 +9,7 @@ export type CatalogSource = {
 export type CatalogSourceList = ModelCatalogListParams & { items: CatalogSource[] };
 
 export type CatalogModel = {
-  source_id: string;
+  source_id?: string;
   name: string;
   provider?: string;
   readme?: string;
@@ -73,4 +73,10 @@ export type ModelCatalogAPIs = {
   getListSources: GetListSources;
   getCatalogModel: GetCatalogModel;
   getListCatalogModelArtifacts: GetListCatalogModelArtifacts;
+};
+
+export type CatalogModelDetailsParams = {
+  sourceId?: string;
+  repositoryName?: string;
+  modelName?: string;
 };
