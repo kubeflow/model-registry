@@ -23,7 +23,7 @@ export type CatalogModel = {
   description?: string;
   createTimeSinceEpoch?: string;
   lastUpdateTimeSinceEpoch?: string;
-  CustomProperties?: ModelRegistryCustomProperties;
+  customProperties?: ModelRegistryCustomProperties;
 };
 
 export type ModelCatalogListParams = {

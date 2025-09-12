@@ -67,9 +67,13 @@ const ModelDetailsPage: React.FC = () => {
         data-testid="register-model-button"
         variant="primary"
         onClick={() => {
-          if (decodedParams.sourceId) {
-            navigate(getRegisterCatalogModelRoute(decodedParams.sourceId));
-          }
+          navigate(
+            getRegisterCatalogModelRoute(
+              decodedParams.sourceId,
+              decodedParams.modelName,
+              decodedParams.repositoryName,
+            ),
+          );
         }}
       >
         Register model
@@ -134,7 +138,7 @@ const ModelDetailsPage: React.FC = () => {
       errorMessage="Unable to load model catalog"
       provideChildrenPadding
       headerAction={
-        !modelLoaded &&
+        modelLoaded &&
         !modelLoadError &&
         model && (
           <ActionList>

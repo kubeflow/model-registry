@@ -1,6 +1,15 @@
-import { CatalogModelDetailsParams } from '~/app/pages/modelRegistry/screens/types';
+import { CatalogModelDetailsParams } from '~/app/modelCatalogTypes';
+import { encodeParams } from '~/app/pages/modelCatalog/utils/modelCatalogUtils';
 
-export const getCatalogModelDetailsRoute = (params: CatalogModelDetailsParams): string =>
-  // For now, we'll use a simple modelName-based route
-  // This should be updated to match the actual routing structure
-  `/model-catalog/${encodeURIComponent(params.modelName || '')}`;
+export const getCatalogModelDetailsRoute = (params: CatalogModelDetailsParams): string => {
+  const {
+    sourceId = '',
+    repositoryName = '',
+    modelName = '',
+  } = encodeParams({
+    sourceId: params.sourceId,
+    repositoryName: params.repositoryName,
+    modelName: params.modelName,
+  });
+  return `/model-catalog/${sourceId}/${repositoryName}/${modelName}` || '#';
+};
