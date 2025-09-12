@@ -93,7 +93,7 @@ func (r *ArtifactRepositoryImpl) List(listOptions models.ArtifactListOptions) (*
 		if err != nil {
 			return nil, fmt.Errorf("invalid artifact type %s: %w", *listOptions.ArtifactType, api.ErrBadRequest)
 		}
-		query = query.Where("Artifact.type_id = ?", typeID)
+		query = query.Where(utils.GetTableName(r.db, &schema.Artifact{})+".type_id = ?", typeID)
 	}
 
 	query, err := applyFilterQuery(query, &listOptions)
