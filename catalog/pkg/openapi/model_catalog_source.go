@@ -25,18 +25,21 @@ type CatalogSource struct {
 	Name string `json:"name"`
 	// Whether the catalog source is enabled.
 	Enabled *bool `json:"enabled,omitempty"`
+	// Labels for the catalog source.
+	Labels []string `json:"labels"`
 }
 
 // NewCatalogSource instantiates a new CatalogSource object
 // This constructor will assign default values to properties that have it defined,
 // and makes sure properties required by API are set, but the set of arguments
 // will change when the set of required properties is changed
-func NewCatalogSource(id string, name string) *CatalogSource {
+func NewCatalogSource(id string, name string, labels []string) *CatalogSource {
 	this := CatalogSource{}
 	this.Id = id
 	this.Name = name
 	var enabled bool = true
 	this.Enabled = &enabled
+	this.Labels = labels
 	return &this
 }
 
@@ -130,6 +133,30 @@ func (o *CatalogSource) SetEnabled(v bool) {
 	o.Enabled = &v
 }
 
+// GetLabels returns the Labels field value
+func (o *CatalogSource) GetLabels() []string {
+	if o == nil {
+		var ret []string
+		return ret
+	}
+
+	return o.Labels
+}
+
+// GetLabelsOk returns a tuple with the Labels field value
+// and a boolean to check if the value has been set.
+func (o *CatalogSource) GetLabelsOk() ([]string, bool) {
+	if o == nil {
+		return nil, false
+	}
+	return o.Labels, true
+}
+
+// SetLabels sets field value
+func (o *CatalogSource) SetLabels(v []string) {
+	o.Labels = v
+}
+
 func (o CatalogSource) MarshalJSON() ([]byte, error) {
 	toSerialize, err := o.ToMap()
 	if err != nil {
@@ -145,6 +172,7 @@ func (o CatalogSource) ToMap() (map[string]interface{}, error) {
 	if !IsNil(o.Enabled) {
 		toSerialize["enabled"] = o.Enabled
 	}
+	toSerialize["labels"] = o.Labels
 	return toSerialize, nil
 }
 

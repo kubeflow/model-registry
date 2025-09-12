@@ -201,6 +201,7 @@ components:
       required:
         - id
         - name
+        - labels
       type: object
       properties:
         id:
@@ -213,6 +214,11 @@ components:
           description: Whether the catalog source is enabled.
           type: boolean
           default: true
+        labels:
+          description: Labels for the catalog source.
+          type: array
+          items:
+            type: string
     CatalogSourceList:
       description: List of CatalogSource entities.
       allOf:

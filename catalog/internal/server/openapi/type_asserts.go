@@ -193,8 +193,9 @@ func AssertCatalogSourceListRequired(obj model.CatalogSourceList) error {
 // AssertCatalogSourceRequired checks if the required fields are not zero-ed
 func AssertCatalogSourceRequired(obj model.CatalogSource) error {
 	elements := map[string]interface{}{
-		"id":   obj.Id,
-		"name": obj.Name,
+		"id":     obj.Id,
+		"name":   obj.Name,
+		"labels": obj.Labels,
 	}
 	for name, el := range elements {
 		if isZero := IsZeroValue(el); isZero {

@@ -327,6 +327,7 @@ func TestFindSources(t *testing.T) {
 		expectedSize   int32
 		expectedItems  int
 		checkSorting   bool
+		expectedLabels int
 	}{
 		{
 			name:           "Empty catalog list",
@@ -605,6 +606,29 @@ func TestFindSources(t *testing.T) {
 			expectedItems:  3,
 			checkSorting:   true,
 		},
+		{
+			name: "Labels should be returned if set",
+			catalogs: map[string]catalog.CatalogSource{
+				"catalog1": {
+					Metadata: model.CatalogSource{Id: "catalog1", Name: "Test Catalog 1", Labels: []string{"label1", "label2"}},
+				},
+				"catalog2": {
+					Metadata: model.CatalogSource{Id: "catalog2", Name: "Test Catalog 2", Labels: []string{"label3", "label4"}},
+				},
+				"catalog3": {
+					Metadata: model.CatalogSource{Id: "catalog3", Name: "Test Catalog 3", Labels: []string{"label5", "label6"}},
+				},
+			},
+			nameFilter:     "",
+			pageSize:       "10",
+			orderBy:        model.ORDERBYFIELD_ID,
+			sortOrder:      model.SORTORDER_ASC,
+			expectedStatus: http.StatusOK,
+			expectedSize:   1,
+			expectedItems:  1,
+			checkSorting:   true,
+			expectedLabels: 6,
+		},
 	}
 
 	// Run test cases
@@ -688,6 +712,12 @@ func TestFindSources(t *testing.T) {
 					}
 				}
 			}
+
+			labels := make([]string, 0)
+			for _, item := range sourceList.Items {
+				labels = append(labels, item.Labels...)
+			}
+			assert.Equal(t, tc.expectedLabels, len(labels))
 		})
 	}
 }

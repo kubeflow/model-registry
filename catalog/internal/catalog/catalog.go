@@ -157,6 +157,11 @@ func (sc *SourceCollection) load(path string) error {
 		if _, exists := sources[id]; exists {
 			return fmt.Errorf("duplicate catalog id %s", id)
 		}
+		labels := make([]string, 0)
+		if catalogConfig.GetLabels() != nil {
+			labels = catalogConfig.GetLabels()
+		}
+		catalogConfig.CatalogSource.Labels = labels
 		provider, err := registerFunc(&catalogConfig)
 		if err != nil {
 			return fmt.Errorf("error reading catalog type %s with id %s: %v", catalogType, id, err)
