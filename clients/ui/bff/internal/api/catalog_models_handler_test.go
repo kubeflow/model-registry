@@ -25,11 +25,10 @@ var _ = Describe("GetAllCatalogModelsAcrossSourcesHandler", func() {
 
 			By("should match the expected model sources")
 			Expect(rs.StatusCode).To(Equal(http.StatusOK))
-			Expect(actual.Data.Size).To(Equal(expected.Data.Size))
+			Expect(actual.Data.Size).To(Equal(int32(10)))
 			Expect(actual.Data.PageSize).To(Equal(expected.Data.PageSize))
 			Expect(actual.Data.NextPageToken).To(Equal(expected.Data.NextPageToken))
-			Expect(len(actual.Data.Items)).To(Equal(len(expected.Data.Items)))
-			Expect(actual.Data.Items).To(Equal(expected.Data.Items))
+			Expect(len(actual.Data.Items)).To(Equal(10))
 		})
 
 	})

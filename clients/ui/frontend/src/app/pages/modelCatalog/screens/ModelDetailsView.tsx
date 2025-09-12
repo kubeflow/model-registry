@@ -10,91 +10,111 @@ import {
   Sidebar,
   SidebarContent,
   SidebarPanel,
-  Label,
+  // Bullseye,
+  // Spinner,
+  // Alert,
 } from '@patternfly/react-core';
-import { TagIcon, OutlinedClockIcon } from '@patternfly/react-icons';
-import { ModelCatalogItem } from '~/app/modelCatalogTypes';
-import {
-  extractVersionTag,
-  filterNonVersionTags,
-} from '~/app/pages/modelCatalog/utils/modelCatalogUtils';
+import { OutlinedClockIcon } from '@patternfly/react-icons';
+// import { useParams } from 'react-router';
+// import { InlineTruncatedClipboardCopy } from 'mod-arch-shared';
+import text from '@patternfly/react-styles/css/utilities/Text/text';
+import { CatalogModel } from '~/app/modelCatalogTypes';
+// import { useCatalogModelArtifacts } from '~/app/hooks/modelCatalog/useCatalogModelArtifacts';
 import ModelCatalogLabels from '~/app/pages/modelCatalog/components/ModelCatalogLabels';
+import ExternalLink from '~/app/shared/components/ExternalLink';
+import MarkdownComponent from '~/app/shared/markdown/MarkdownComponent';
+import ModelTimestamp from '~/app/pages/modelRegistry/screens/components/ModelTimestamp';
 
 type ModelDetailsViewProps = {
-  model: ModelCatalogItem;
+  model: CatalogModel;
 };
 
-const ModelDetailsView: React.FC<ModelDetailsViewProps> = ({ model }) => {
-  const versionTag = extractVersionTag(model.tags);
-  const nonVersionTags = filterNonVersionTags(model.tags) ?? [];
+// type RouteParams = {
+//   sourceId: string;
+// };
 
-  return (
-    <PageSection hasBodyWrapper={false} isFilled>
-      <Sidebar hasBorder hasGutter isPanelRight>
-        <SidebarContent>
-          <Content>
-            <h2>Description</h2>
-            <p data-testid="model-long-description">{model.longDescription || 'No description'}</p>
-            <h2>Model card</h2>
-            <p className="pf-v5-u-color-200">No model card</p>
-          </Content>
-        </SidebarContent>
-        <SidebarPanel>
-          <DescriptionList isFillColumns>
-            <DescriptionListGroup>
-              <DescriptionListTerm>Version</DescriptionListTerm>
-              <DescriptionListDescription>
-                <Label variant="outline" icon={<TagIcon />}>
-                  {versionTag || 'N/A'}
-                </Label>
-              </DescriptionListDescription>
-            </DescriptionListGroup>
-            <DescriptionListGroup>
-              <DescriptionListTerm>Labels</DescriptionListTerm>
-              <DescriptionListDescription>
-                <ModelCatalogLabels
-                  tags={nonVersionTags}
-                  framework={model.framework}
-                  task={model.task}
-                  license={model.license}
-                />
-              </DescriptionListDescription>
-            </DescriptionListGroup>
-            <DescriptionListGroup>
-              <DescriptionListTerm>License</DescriptionListTerm>
-              <DescriptionListDescription>{model.license || 'N/A'}</DescriptionListDescription>
-            </DescriptionListGroup>
-            <DescriptionListGroup>
-              <DescriptionListTerm>Provider</DescriptionListTerm>
-              <DescriptionListDescription>{model.provider || 'N/A'}</DescriptionListDescription>
-            </DescriptionListGroup>
-            <DescriptionListGroup>
+const ModelDetailsView: React.FC<ModelDetailsViewProps> = ({ model }) => (
+  // const { sourceId = '' } = useParams<RouteParams>();
+  // const [artifacts, artifactLoaded, artifactsLoadError] = useCatalogModelArtifacts(
+  //   sourceId,
+  //   encodeURIComponent(model.name),
+  // );
+
+  // if (!artifactLoaded) {
+  //   return (
+  //     <Bullseye>
+  //       <Spinner size="xl" />
+  //     </Bullseye>
+  //   );
+  // }
+
+  <PageSection hasBodyWrapper={false} isFilled>
+    <Sidebar hasBorder hasGutter isPanelRight>
+      <SidebarContent>
+        <Content>
+          <h2>Description</h2>
+          <p data-testid="model-long-description">{model.description || 'No description'}</p>
+          <h2>Model card</h2>
+          {!model.readme && <p className={text.textColorDisabled}>No model card</p>}
+        </Content>
+        {model.readme && (
+          <MarkdownComponent data={model.readme} dataTestId="model-card-markdown" maxHeading={3} />
+        )}
+      </SidebarContent>
+      <SidebarPanel>
+        <DescriptionList isFillColumns>
+          <DescriptionListGroup>
+            <DescriptionListTerm>Labels</DescriptionListTerm>
+            <DescriptionListDescription>
+              <ModelCatalogLabels tasks={model.tasks ?? []} license={model.license} />
+            </DescriptionListDescription>
+          </DescriptionListGroup>
+          <DescriptionListGroup>
+            <DescriptionListTerm>License</DescriptionListTerm>
+            <ExternalLink
+              text="Agreement"
+              to={model.licenseLink || ''}
+              testId="model-license-link"
+            />
+          </DescriptionListGroup>
+          <DescriptionListGroup>
+            <DescriptionListTerm>Provider</DescriptionListTerm>
+            <DescriptionListDescription>{model.provider || 'N/A'}</DescriptionListDescription>
+          </DescriptionListGroup>
+          {/* <DescriptionListGroup>
               <DescriptionListTerm>Model location</DescriptionListTerm>
-              <DescriptionListDescription>{model.url || 'N/A'}</DescriptionListDescription>
-            </DescriptionListGroup>
-            <DescriptionListGroup>
-              <DescriptionListTerm>Last modified</DescriptionListTerm>
-              <DescriptionListDescription>
-                <Icon isInline style={{ marginRight: 4 }}>
-                  <OutlinedClockIcon />
-                </Icon>
-                {model.updatedAt || 'N/A'}
-              </DescriptionListDescription>
-            </DescriptionListGroup>
-            <DescriptionListGroup>
-              <DescriptionListTerm>Published</DescriptionListTerm>
-              <DescriptionListDescription>
-                <Icon isInline style={{ marginRight: 4 }}>
-                  <OutlinedClockIcon />
-                </Icon>
-                {model.createdAt || 'N/A'}
-              </DescriptionListDescription>
-            </DescriptionListGroup>
-          </DescriptionList>
-        </SidebarPanel>
-      </Sidebar>
-    </PageSection>
-  );
-};
-
+              {artifactsLoadError ? (
+                <Alert variant="danger" isInline title={artifactsLoadError.name}>
+                  {artifactsLoadError.message}
+                </Alert>
+              ) : (
+                <InlineTruncatedClipboardCopy
+                  testId="source-image-location"
+                  textToCopy={artifacts.items.map((artifact) => artifact.uri)[0] || ''}
+                />
+              )}
+            </DescriptionListGroup> */}
+          <DescriptionListGroup>
+            <DescriptionListTerm>Last modified</DescriptionListTerm>
+            <DescriptionListDescription>
+              <Icon isInline style={{ marginRight: 4 }}>
+                <OutlinedClockIcon />
+              </Icon>
+              <ModelTimestamp timeSinceEpoch={model.lastUpdateTimeSinceEpoch} />
+            </DescriptionListDescription>
+          </DescriptionListGroup>
+          <DescriptionListGroup>
+            <DescriptionListTerm>Published</DescriptionListTerm>
+            <DescriptionListDescription>
+              <Icon isInline style={{ marginRight: 4 }}>
+                <OutlinedClockIcon />
+              </Icon>
+              <ModelTimestamp timeSinceEpoch={model.createTimeSinceEpoch} />
+            </DescriptionListDescription>
+          </DescriptionListGroup>
+        </DescriptionList>
+      </SidebarPanel>
+    </Sidebar>
+  </PageSection>
+);
 export default ModelDetailsView;

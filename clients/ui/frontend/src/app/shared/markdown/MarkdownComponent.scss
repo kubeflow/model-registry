@@ -1,0 +1,48 @@
+.markdown-content {
+  // Paragraphs
+  p {
+    margin-bottom: var(--pf-t--global--spacer--md);
+  }
+
+  // Lists
+  ul,
+  ol {
+    margin: var(--pf-t--global--spacer--md) 0;
+  }
+
+  li {
+    margin-bottom: var(--pf-t--global--spacer--sm);
+  }
+
+  // Blockquotes
+  blockquote {
+    margin: var(--pf-t--global--spacer--md) 0;
+    padding: 0 var(--pf-t--global--spacer--md);
+
+    p {
+      margin: 0;
+    }
+  }
+
+  // Code blocks
+  pre {
+    margin: var(--pf-t--global--spacer--sm) 0;
+    padding: var(--pf-t--global--spacer--sm);
+    background-color: var(--pf-t--global--background--color--secondary--default);
+    overflow-x: auto;
+
+    code {
+      font-family: var(--pf-t--global--font--family--mono);
+      font-size: var(--pf-t--global--font--size--body--sm);
+      white-space: pre-wrap;
+    }
+  }
+
+  // Images
+  img {
+    display: block;
+    margin: var(--pf-t--global--spacer--md) auto;
+    max-width: 100%;
+    height: auto;
+  }
+}

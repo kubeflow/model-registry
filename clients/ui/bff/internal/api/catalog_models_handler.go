@@ -2,11 +2,12 @@ package api
 
 import (
 	"errors"
+	"net/http"
+
 	"github.com/julienschmidt/httprouter"
 	"github.com/kubeflow/model-registry/catalog/pkg/openapi"
 	"github.com/kubeflow/model-registry/ui/bff/internal/constants"
 	"github.com/kubeflow/model-registry/ui/bff/internal/integrations/httpclient"
-	"net/http"
 )
 
 type CatalogModelListEnvelope Envelope[*openapi.CatalogModelList, None]
