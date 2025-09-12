@@ -27,6 +27,22 @@ DELETE FROM ParentContext;
 COMMIT;
 EOF
 )
+POSTGRES_PARTIAL_SQL_CMD=$(
+    cat <<EOF
+DELETE FROM "Artifact";
+DELETE FROM "ArtifactProperty";
+DELETE FROM "Association";
+DELETE FROM "Attribution";
+DELETE FROM "Context";
+DELETE FROM "ContextProperty";
+DELETE FROM "Event";
+DELETE FROM "EventPath";
+DELETE FROM "Execution";
+DELETE FROM "ExecutionProperty";
+DELETE FROM "ParentContext";
+COMMIT;
+EOF
+)
 
 if [[ -n "$LOCAL" ]]; then
     echo 'Cleaning up local sqlite DB'
@@ -37,7 +53,7 @@ elif [[ "$DEPLOY_MANIFEST_DB" == "postgres" ]]; then
 
     kubectl exec -n "$MR_NAMESPACE" \
         "$(kubectl get pods -l component=db -o jsonpath="{.items[0].metadata.name}" -n "$MR_NAMESPACE")" \
-        -- psql -U "$POSTGRES_USER" -d "$TEST_DB_NAME" -c "BEGIN; $PARTIAL_SQL_CMD"
+        -- psql -U "$POSTGRES_USER" -d "$TEST_DB_NAME" -c "BEGIN; $POSTGRES_PARTIAL_SQL_CMD"
 
     echo -n 'Done cleaning up kubernetes PostgreSQL DB'
 else
