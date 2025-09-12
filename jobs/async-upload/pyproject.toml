@@ -33,8 +33,6 @@ markers = [
     "integration: marks tests as integration tests"
 ]
 
-[tool.poetry.scripts]
-debug-test = "debugpy:main --listen 5678 --wait-for-client -m pytest jobs/async-upload/tests/test_config.py -v"
 
 [tool.ruff]
 line-length = 119

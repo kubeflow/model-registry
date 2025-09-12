@@ -4,7 +4,7 @@ Configuration models for the async upload job using Pydantic for type safety and
 from __future__ import annotations
 from enum import StrEnum
 import logging
-from typing import Union
+from typing import Union, Annotated, Literal
 from pydantic import BaseModel, Field, model_validator, ConfigDict
 
 
@@ -101,31 +101,36 @@ class UploadIntent(StrEnum):
     create_version = "create_version"
     update_artifact = "update_artifact"
 
-class ModelConfig(BaseModel):
-    """Model registry model information."""
-    upload_intent: UploadIntent = Field(UploadIntent.update_artifact, description="Model upload intent")
-    id: str | None = Field(None, description="Model ID")
-    version_id: str | None = Field(None, description="Model version ID")
-    artifact_id: str | None = Field(None, description="Model artifact ID")
 
-    @model_validator(mode='after')
-    def validate_model_ids(self) -> 'ModelConfig':
-        """Validate that all model IDs are provided."""
-        if self.upload_intent == UploadIntent.create_model:
-            # No ids should be set when intent is create_model
-            if any([self.id, self.version_id, self.artifact_id]):
-                raise ValueError("Model ID, Model Version ID and Model Artifact ID cannot be set when intent is create_model")
-        elif self.upload_intent == UploadIntent.create_version:
-            if not self.id:
-                raise ValueError("Model ID must be set when intent is create_version")
-            elif any([self.version_id, self.artifact_id]):
-                raise ValueError("Model Version ID and Model Artifact ID cannot be set when intent is create_version")
-        elif self.upload_intent == UploadIntent.update_artifact:
-            if not self.artifact_id:
-                raise ValueError("Model Artifact ID must be set when intent is update_artifact")
-            elif any([self.id, self.version_id]):
-                raise ValueError("Model ID and Model Version ID cannot be set when intent is update_artifact")
-        return self
+class ModelInputArgs(BaseModel):
+    model_config = ConfigDict(frozen=True)
+
+    intent_type: UploadIntent = Field(description="Upload intent type")
+    id: str | None = Field(description="Registered model ID")
+    version_id: str | None = Field(description="Model version ID")
+    artifact_id: str | None = Field(description="Model artifact ID")
+
+
+class CreateModelIntent(BaseModel):
+    intent_type: Literal[UploadIntent.create_model] = UploadIntent.create_model
+
+
+class CreateVersionIntent(BaseModel):
+    intent_type: Literal[UploadIntent.create_version] = UploadIntent.create_version
+    model_id: str = Field(..., description="Registered model ID for the existing model")
+
+
+class UpdateArtifactIntent(BaseModel):
+    intent_type: Literal[UploadIntent.update_artifact] = UploadIntent.update_artifact
+    artifact_id: str = Field(..., description="Model artifact ID to update")
+
+
+IntentConfig = Union[CreateModelIntent, CreateVersionIntent, UpdateArtifactIntent]
+
+
+class ModelConfig(BaseModel):
+    """Model registry model information with intent-specific configuration."""
+    intent: IntentConfig = Field(..., description="Model upload intent configuration", discriminator='intent_type')
 
 
 class StorageConfig(BaseModel):

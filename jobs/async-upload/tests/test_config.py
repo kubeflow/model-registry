@@ -188,7 +188,7 @@ def test_env_based_s3_to_oci_config(
     assert config.destination.username == destination_oci_env_vars["oci_username"]
     assert config.destination.password == destination_oci_env_vars["oci_password"]
 
-    assert config.model.artifact_id == update_artifact_intent_env_vars["model_artifact_id"]
+    assert config.model.intent.artifact_id == update_artifact_intent_env_vars["model_artifact_id"]
     assert config.registry.server_address == update_artifact_intent_env_vars["registry_server_address"]
 
 
