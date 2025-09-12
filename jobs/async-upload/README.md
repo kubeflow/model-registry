@@ -93,6 +93,84 @@ See asterisks below table for details
 
 ✅\%: Must be present in some form depending on what the `model-upload-intent` is set to.
 
+## Upload Intent Types
+
+The job supports different intent types that determine how it interacts with the Model Registry:
+
+### `update_artifact`
+
+(Default)
+
+Updates an existing ModelArtifact's URI and sets it to LIVE state.
+- **Required**: `MODEL_SYNC_MODEL_ARTIFACT_ID`
+- **ConfigMap**: Not required
+
+### `create_model`
+
+Creates a new RegisteredModel, ModelVersion, and ModelArtifact.
+- **Required**: `MODEL_SYNC_METADATA_CONFIGMAP_PATH` with complete model metadata
+- **ConfigMap**: Must contain RegisteredModel, ModelVersion, and ModelArtifact metadata
+
+### `create_version`
+
+Creates a new ModelVersion and ModelArtifact under an existing RegisteredModel.
+- **Required**: `MODEL_SYNC_MODEL_ID` and `MODEL_SYNC_METADATA_CONFIGMAP_PATH`
+- **ConfigMap**: Must contain ModelVersion and ModelArtifact metadata
+
+## ConfigMap Usage
+
+For `create_model` and `create_version` intents, provide metadata via a mounted ConfigMap:
+
+```yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: model-metadata
+data:
+  # RegisteredModel fields (create_model only)
+  RegisteredModel.name: "my-model"
+  RegisteredModel.description: "Model description"
+  RegisteredModel.owner: "data-science-team"
+  RegisteredModel.custom_properties: |
+    {"project": "sentiment-analysis", "team": "nlp"}
+  # ModelVersion fields
+  ModelVersion.name: "1.0.0"
+  ModelVersion.description: "Initial release"
+  ModelVersion.author: "Jane Doe"
+  ModelVersion.custom_properties: |
+    {"accuracy": 0.95, "f1_score": 0.93}
+  # ModelArtifact fields
+  ModelArtifact.name: "sentiment-analyzer"
+  ModelArtifact.model_format_name: "tensorflow"
+  ModelArtifact.model_format_version: "2.8"
+  ModelArtifact.storage_key: "s3-connection"
+  ModelArtifact.custom_properties: |
+    {"model_size_mb": 438, "inference_time_ms": 120}
+```
+
+Mount the ConfigMap in your Job:
+
+```yaml
+spec:
+  template:
+    spec:
+      containers:
+      - name: async-upload
+        env:
+        - name: MODEL_SYNC_MODEL_UPLOAD_INTENT
+          value: "create_model"
+        - name: MODEL_SYNC_METADATA_CONFIGMAP_PATH
+          value: "/etc/model-metadata"
+        volumeMounts:
+        - name: metadata
+          mountPath: /etc/model-metadata
+          readOnly: true
+      volumes:
+      - name: metadata
+        configMap:
+          name: model-metadata
+```
+
 ## References
 
 - Issue thread : [https://github.com/kubeflow/model-registry/issues/1108](https://github.com/kubeflow/model-registry/issues/1108)
