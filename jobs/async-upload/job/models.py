@@ -158,6 +158,61 @@ class RegistryConfig(BaseModel):
         return self
 
 
+class RegisteredModelMetadata(BaseModel):
+    """Metadata for creating a RegisteredModel."""
+    name: str | None = None
+    id: str | None = None  # Alternative to name for existing models
+    description: str | None = None
+    owner: str | None = None
+    custom_properties: dict | None = None
+
+    @model_validator(mode='after')
+    def validate_name_or_id(self) -> 'RegisteredModelMetadata':
+        """Validate that either name or id is provided, but not both."""
+        if self.name and self.id:
+            raise ValueError("Cannot provide both name and id for RegisteredModel")
+        if not self.name and not self.id:
+            raise ValueError("Must provide either name or id for RegisteredModel")
+        return self
+
+
+class ModelVersionMetadata(BaseModel):
+    """Metadata for creating a ModelVersion."""
+    name: str | None = None
+    description: str | None = None
+    author: str | None = None
+    custom_properties: dict | None = None
+
+
+class ModelArtifactMetadata(BaseModel):
+    """Metadata for creating a ModelArtifact."""
+    name: str | None = None
+    model_format_name: str | None = None
+    model_format_version: str | None = None
+    storage_key: str | None = None
+    storage_path: str | None = None
+    service_account_name: str | None = None
+    model_source_kind: str | None = None
+    model_source_class: str | None = None
+    model_source_group: str | None = None
+    model_source_id: str | None = None
+    model_source_name: str | None = None
+    custom_properties: dict | None = None
+
+
+class ConfigMapMetadata(BaseModel):
+    """Metadata from ConfigMap for creating model registry entries."""
+    registered_model: RegisteredModelMetadata | None = None
+    model_version: ModelVersionMetadata | None = None
+    model_artifact: ModelArtifactMetadata | None = None
+
+    @model_validator(mode='after')
+    def validate_metadata_for_intent(self) -> 'ConfigMapMetadata':
+        """Validate that metadata is compatible with the intent."""
+        # This validation will be enhanced when we know the intent type
+        return self
+
+
 class AsyncUploadConfig(BaseModel):
     """Main configuration for the async upload job."""
     model_config = ConfigDict(
@@ -174,3 +229,4 @@ class AsyncUploadConfig(BaseModel):
     model: ModelConfig
     storage: StorageConfig = Field(default_factory=StorageConfig)
     registry: RegistryConfig
+    metadata: ConfigMapMetadata | None = None  # Optional ConfigMap metadata

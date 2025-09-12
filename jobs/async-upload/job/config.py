@@ -25,6 +25,10 @@ from .models import (
     CreateModelIntent,
     CreateVersionIntent,
     UpdateArtifactIntent,
+    ConfigMapMetadata,
+    RegisteredModelMetadata,
+    ModelVersionMetadata,
+    ModelArtifactMetadata,
 )
 
 logger = logging.getLogger(__name__)
@@ -100,6 +104,9 @@ def _parser() -> cap.ArgumentParser:
     p.add_argument("--registry-custom-ca", default=None)
     p.add_argument("--registry-custom-ca-envvar", default=None)
     p.add_argument("--registry-log-level", default=logging.WARNING)
+
+    # --- ConfigMap metadata ---
+    p.add_argument("--metadata-configmap-path", default=None, help="Path to mounted ConfigMap with model metadata")
 
     # TODO: The type of credential should be inferrable from the `type` specified in the source/destination
     p.add_argument(
@@ -268,6 +275,76 @@ def _load_uri_credentials(path: str | Path, store: URISourceConfig) -> None:
     store.uri = uri_file.read_text().strip()
 
 
+def _load_configmap_metadata(path: str | Path) -> ConfigMapMetadata:
+    """
+    Load ConfigMap metadata from a mounted ConfigMap directory.
+    
+    The ConfigMap should contain keys using dot notation, which are parsed into a nested structure:
+    - RegisteredModel.name -> nested_data["RegisteredModel"]["name"]
+    - ModelVersion.description -> nested_data["ModelVersion"]["description"] 
+    - ModelArtifact.model_format_name -> nested_data["ModelArtifact"]["model_format_name"]
+    - RegisteredModel.abc.def -> nested_data["RegisteredModel"]["abc"]["def"] (supports arbitrary nesting)
+    
+    JSON values are automatically parsed for keys ending with .custom_properties.
+    """
+    logger.info(f"🔍 Loading ConfigMap metadata from {path}")
+    
+    # Validate the path is a directory
+    p = Path(path).expanduser()
+    if not p.is_dir():
+        raise FileNotFoundError(f"ConfigMap directory not found: {p}")
+    
+    # Initialize nested structure
+    nested_data = {}
+    
+    # Load all files in the ConfigMap directory
+    for file_path in p.iterdir():
+        if file_path.is_file():
+            key = file_path.name
+            value = file_path.read_text().strip()
+            
+            # Parse JSON values for custom_properties
+            if key.endswith(".custom_properties") and value:
+                try:
+                    value = json.loads(value)
+                except json.JSONDecodeError as e:
+                    logger.warning(f"Failed to parse JSON for {key}: {e}")
+                    continue
+            
+            # Split key into parts and create nested structure
+            parts = key.split(".")
+            current = nested_data
+            
+            # Navigate/create nested structure
+            for part in parts[:-1]:
+                if part not in current:
+                    current[part] = {}
+                current = current[part]
+            
+            # Set the final value
+            current[parts[-1]] = value
+    
+    # Extract metadata objects from nested structure
+    rm_data = nested_data.get("RegisteredModel", {})
+    mv_data = nested_data.get("ModelVersion", {})
+    ma_data = nested_data.get("ModelArtifact", {})
+    
+    # Create metadata objects if they have data
+    registered_model = RegisteredModelMetadata(**rm_data) if rm_data else None
+    model_version = ModelVersionMetadata(**mv_data) if mv_data else None
+    model_artifact = ModelArtifactMetadata(**ma_data) if ma_data else None
+    
+    logger.debug(f"📝 Loaded RegisteredModel metadata: {registered_model}")
+    logger.debug(f"📝 Loaded ModelVersion metadata: {model_version}")
+    logger.debug(f"📝 Loaded ModelArtifact metadata: {model_artifact}")
+    
+    return ConfigMapMetadata(
+        registered_model=registered_model,
+        model_version=model_version,
+        model_artifact=model_artifact
+    )
+
+
 def str2bool(x):
     """Convert a config string to boolean. This is needed because configargparse doesn't support boolean optional action as env vars"""
     if isinstance(x, bool):
@@ -373,6 +450,27 @@ def get_config(argv: list[str] | None = None) -> AsyncUploadConfig:
         version_id=args.model_version_id,
         artifact_id=args.model_artifact_id,
     )
+    
+    # Load ConfigMap metadata if provided
+    metadata = None
+    if args.metadata_configmap_path:
+        try:
+            metadata = _load_configmap_metadata(args.metadata_configmap_path)
+        except Exception as e:
+            logger.error("❌ Failed to load ConfigMap metadata: %s", e)
+            raise
+    
+    # Validate metadata compatibility with intent
+    if metadata and args.model_upload_intent in [UploadIntent.create_model, UploadIntent.create_version]:
+        if args.model_upload_intent == UploadIntent.create_model:
+            if not metadata.registered_model or not metadata.model_version or not metadata.model_artifact:
+                raise ValueError("create_model intent requires RegisteredModel, ModelVersion, and ModelArtifact metadata")
+        elif args.model_upload_intent == UploadIntent.create_version:
+            if not metadata.model_version or not metadata.model_artifact:
+                raise ValueError("create_version intent requires ModelVersion and ModelArtifact metadata")
+    elif args.model_upload_intent in [UploadIntent.create_model, UploadIntent.create_version] and not metadata:
+        raise ValueError(f"Intent '{args.model_upload_intent}' requires ConfigMap metadata but none provided")
+
     try:
         config = AsyncUploadConfig(
             source=source_config,
@@ -394,6 +492,7 @@ def get_config(argv: list[str] | None = None) -> AsyncUploadConfig:
                 custom_ca_envvar=args.registry_custom_ca_envvar,
                 log_level=args.registry_log_level,
             ),
+            metadata=metadata,
         )
     except Exception as e:
         logger.error("❌ Configuration validation failed: %s", e)

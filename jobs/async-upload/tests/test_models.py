@@ -4,7 +4,17 @@ Unit tests for models.py - specifically testing model validation logic.
 import pytest
 from pydantic import ValidationError
 
-from job.models import ModelConfig, UploadIntent, CreateModelIntent, CreateVersionIntent, UpdateArtifactIntent
+from job.models import (
+    ModelConfig, 
+    UploadIntent, 
+    CreateModelIntent, 
+    CreateVersionIntent, 
+    UpdateArtifactIntent,
+    ConfigMapMetadata,
+    RegisteredModelMetadata,
+    ModelVersionMetadata,
+    ModelArtifactMetadata,
+)
 
 
 class TestModelConfigIntentTypes:
@@ -98,3 +108,47 @@ class TestModelConfigIntentTypes:
         serialized = config.model_dump()
         assert serialized['intent']['intent_type'] == 'update_artifact'
         assert serialized['intent']['artifact_id'] == 'artifact-id'
+
+
+class TestMetadataModels:
+
+    def test_configmap_metadata_structure(self):
+        metadata = ConfigMapMetadata(
+            registered_model=RegisteredModelMetadata(
+                name="test-model",
+                description="A test model", 
+                owner="test-user"
+            ),
+            model_version=ModelVersionMetadata(
+                name="1.0.0",
+                description="Initial version",
+                author="test-user"
+            ),
+            model_artifact=ModelArtifactMetadata(
+                name="test-model-artifact",
+                model_format_name="tensorflow",
+                model_format_version="2.8"
+            ),
+        )
+
+        assert metadata.registered_model.name == "test-model"
+        assert metadata.model_version.name == "1.0.0"
+        assert metadata.model_artifact.model_format_name == "tensorflow"
+
+    def test_registered_model_metadata_requires_name_or_id(self):
+        with pytest.raises(ValidationError, match="Must provide either name or id"):
+            RegisteredModelMetadata()
+
+    def test_registered_model_metadata_cannot_have_both_name_and_id(self):
+        with pytest.raises(ValidationError, match="Cannot provide both name and id"):
+            RegisteredModelMetadata(name="test", id="123")
+
+    def test_registered_model_metadata_accepts_name_only(self):
+        rm = RegisteredModelMetadata(name="test")
+        assert rm.name == "test"
+        assert rm.id is None
+
+    def test_registered_model_metadata_accepts_id_only(self):
+        rm = RegisteredModelMetadata(id="123")
+        assert rm.id == "123"
+        assert rm.name is None
