@@ -8,6 +8,7 @@ import (
 	"github.com/kubeflow/model-registry/internal/apiutils"
 	"github.com/kubeflow/model-registry/internal/db/models"
 	"github.com/kubeflow/model-registry/internal/db/schema"
+	"github.com/kubeflow/model-registry/internal/db/utils"
 	"gorm.io/gorm"
 )
 
@@ -50,15 +51,19 @@ func applyMetricHistoryListFilters(query *gorm.DB, listOptions *models.MetricHis
 
 	// Add step IDs filter if provided - use unique alias to avoid conflicts with filterQuery joins
 	if listOptions.StepIds != nil && *listOptions.StepIds != "" {
-		query = query.Joins("JOIN ArtifactProperty AS step_props ON step_props.artifact_id = Artifact.id").
+		// Proper GORM JOIN: Use properly quoted table and column names
+		stepPropsTable := utils.GetTableName(query, &schema.ArtifactProperty{}) + " AS step_props"
+		artifactTable := utils.GetTableName(query, &schema.Artifact{})
+		query = query.Joins(fmt.Sprintf("JOIN %s ON step_props.artifact_id = %s.id", stepPropsTable, artifactTable)).
 			Where("step_props.name = ? AND step_props.int_value IN (?)",
 				"step", strings.Split(*listOptions.StepIds, ","))
 	}
 
 	// Join with Attribution table only when filtering by experiment run ID
 	if listOptions.ExperimentRunID != nil {
-		query = query.Joins("JOIN Attribution ON Attribution.artifact_id = Artifact.id").
-			Where("Attribution.context_id = ?", listOptions.ExperimentRunID)
+		// Proper GORM JOIN: Use helper that respects naming strategy
+		query = query.Joins(utils.BuildAttributionJoin(query)).
+			Where(utils.GetColumnRef(query, &schema.Attribution{}, "context_id")+" = ?", listOptions.ExperimentRunID)
 	}
 
 	return query

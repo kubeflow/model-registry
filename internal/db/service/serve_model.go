@@ -6,6 +6,7 @@ import (
 
 	"github.com/kubeflow/model-registry/internal/db/models"
 	"github.com/kubeflow/model-registry/internal/db/schema"
+	"github.com/kubeflow/model-registry/internal/db/utils"
 	"gorm.io/gorm"
 )
 
@@ -51,8 +52,9 @@ func applyServeModelListFilters(query *gorm.DB, listOptions *models.ServeModelLi
 	}
 
 	if listOptions.InferenceServiceID != nil {
-		query = query.Joins("JOIN Association ON Association.execution_id = Execution.id").
-			Where("Association.context_id = ?", listOptions.InferenceServiceID)
+		// Proper GORM JOIN: Use helper that respects naming strategy
+		query = query.Joins(utils.BuildAssociationJoin(query)).
+			Where(utils.GetColumnRef(query, &schema.Association{}, "context_id")+" = ?", listOptions.InferenceServiceID)
 	}
 
 	return query
