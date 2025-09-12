@@ -17,7 +17,7 @@ import {
 import { useNavigate } from 'react-router-dom';
 import { CatalogModel, CatalogSource } from '~/app/modelCatalogTypes';
 import { getModelName } from '~/app/pages/modelCatalog/utils/modelCatalogUtils';
-import { modelCatalogDetailsUrl } from '~/app/pages/modelCatalog/routeUtils';
+import { catalogModelDetailsFromModel } from '~/app/routes/modelCatalog/catalogModel';
 import ModelCatalogLabels from './ModelCatalogLabels';
 
 type ModelCatalogCardProps = {
@@ -59,7 +59,7 @@ const ModelCatalogCard: React.FC<ModelCatalogCardProps> = ({ model, source, trun
               isInline
               component="a"
               onClick={() => {
-                navigate(modelCatalogDetailsUrl(model.name, source?.id));
+                navigate(catalogModelDetailsFromModel(model.name, source?.id));
               }}
               style={{
                 fontSize: 'var(--pf-t--global--font--size--body--default)',
@@ -90,10 +90,10 @@ const ModelCatalogCard: React.FC<ModelCatalogCardProps> = ({ model, source, trun
                   display: '-webkit-box',
                 }}
               >
-                {model.longDescription}
+                {model.description}
               </div>
             ) : (
-              model.longDescription
+              model.description
             )}
           </StackItem>
         </Stack>

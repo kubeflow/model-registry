@@ -2,43 +2,42 @@ import * as React from 'react';
 import { Breadcrumb, BreadcrumbItem } from '@patternfly/react-core';
 import { Link, useParams } from 'react-router-dom';
 import { ApplicationsPage } from 'mod-arch-shared';
-import { useModelCatalogSources } from '~/app/hooks/modelCatalog/useModelCatalogSources';
-import { ModelCatalogItem } from '~/app/modelCatalogTypes';
 import { ModelRegistryContextProvider } from '~/app/context/ModelRegistryContext';
-import { getCatalogModelDetailsRoute } from '~/app/routes/modelCatalog/catalogModelDetails';
 import {
   ModelRegistrySelectorContextProvider,
   ModelRegistrySelectorContext,
 } from '~/app/context/ModelRegistrySelectorContext';
+import { useCatalogModel } from '~/app/hooks/modelCatalog/useCatalogModel';
+import { CatalogModelDetailsParams } from '~/app/modelCatalogTypes';
+// import { useCatalogModelArtifacts } from '~/app/hooks/modelCatalog/useCatalogModelArtifacts';
+import { getCatalogModelDetailsRoute } from '~/app/routes/modelCatalog/catalogModelDetails';
+import { decodeParams } from '~/app/pages/modelCatalog/utils/modelCatalogUtils';
 import RegisterCatalogModelForm from './RegisterCatalogModelForm';
 
-type RouteParams = {
-  modelId: string;
-};
-
 const RegisterCatalogModelPageInner: React.FC = () => {
-  const { modelId } = useParams<RouteParams>();
-  const { sources, loading, error } = useModelCatalogSources();
+  const params = useParams<CatalogModelDetailsParams>();
+  const decodedParams = decodeParams(params);
   const { modelRegistries, modelRegistriesLoaded } = React.useContext(ModelRegistrySelectorContext);
 
-  const model: ModelCatalogItem | undefined = React.useMemo(() => {
-    for (const source of sources) {
-      const found = source.models?.find((m) => m.id === modelId);
-      if (found) {
-        return found;
-      }
-    }
-    return undefined;
-  }, [sources, modelId]);
+  const state = useCatalogModel(
+    decodedParams.sourceId || '',
+    encodeURIComponent(`${decodedParams.repositoryName}/${decodedParams.modelName}`) || '',
+  );
+  const [model, modelLoaded, modelLoadError] = state;
+  // const [artifacts, artifactLoaded, artifactsLoadError] = useCatalogModelArtifacts(
+  //   decodedParams.sourceId || '',
+  //   encodeURIComponent(`${decodedParams.repositoryName}/${decodedParams.modelName}`) || '',
+  // );
 
-  // Get the first available model registry from the context
   const preferredModelRegistry = modelRegistries.length > 0 ? modelRegistries[0] : null;
 
   // Check to see if data is loaded
   const isDataReady =
-    !loading &&
-    !error &&
-    model !== undefined &&
+    modelLoaded &&
+    // !artifactLoaded &&
+    // !artifactsLoadError &&
+    !modelLoadError &&
+    model &&
     modelRegistriesLoaded &&
     modelRegistries.length > 0;
 
@@ -55,7 +54,13 @@ const RegisterCatalogModelPageInner: React.FC = () => {
               !model?.name ? (
                 'Loading...'
               ) : (
-                <Link to={getCatalogModelDetailsRoute({ modelName: model.name, tag: '' })}>
+                <Link
+                  to={getCatalogModelDetailsRoute({
+                    sourceId: decodedParams.sourceId,
+                    repositoryName: decodedParams.repositoryName,
+                    modelName: decodedParams.modelName,
+                  })}
+                >
                   {model.name}
                 </Link>
               )
@@ -66,13 +71,21 @@ const RegisterCatalogModelPageInner: React.FC = () => {
           </BreadcrumbItem>
         </Breadcrumb>
       }
-      loaded={!loading}
-      loadError={error}
+      loaded={modelLoaded}
+      loadError={modelLoadError}
       empty={false}
     >
       {isDataReady && preferredModelRegistry ? (
         <ModelRegistryContextProvider modelRegistryName={preferredModelRegistry.name}>
-          <RegisterCatalogModelForm model={model} preferredModelRegistry={preferredModelRegistry} />
+          <RegisterCatalogModelForm
+            model={model}
+            preferredModelRegistry={preferredModelRegistry}
+            // TODO: uncomment this code and remove the hard-code part, once the artifacts route is available
+            // uri={artifacts.items[0].uri}
+            uri="uri"
+            decodedParams={decodedParams}
+            removeChildrenTopPadding
+          />
         </ModelRegistryContextProvider>
       ) : (
         <div>Loading...</div>

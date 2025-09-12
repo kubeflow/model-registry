@@ -203,14 +203,12 @@ describe('getCatalogModelDetailsProps', () => {
       modelSourceClass: 'sourceClass',
       modelSourceGroup: 'sourceGroup',
       modelSourceName: 'sourceName',
-      modelSourceId: 'sourceId',
     });
     const result = modelSourcePropertiesToCatalogParams(modelArtifact);
     expect(result).toEqual({
-      sourceName: 'sourceClass',
+      sourceId: 'sourceClass',
       repositoryName: 'sourceGroup',
       modelName: 'sourceName',
-      tag: 'sourceId',
     });
   });
 });
