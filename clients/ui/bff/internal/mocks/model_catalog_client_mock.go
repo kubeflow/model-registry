@@ -25,7 +25,6 @@ func (m *ModelCatalogClientMock) GetAllCatalogModelsAcrossSources(client httpcli
 }
 
 func (m *ModelCatalogClientMock) GetCatalogSourceModel(client httpclient.HTTPClientInterface, sourceId string, modelName string) (*openapi.CatalogModel, error) {
-
 	catalogModel := GetCatalogModelMocks()[0]
 
 	return &catalogModel, nil
@@ -55,4 +54,9 @@ func (m *ModelCatalogClientMock) GetAllCatalogSources(client httpclient.HTTPClie
 	}
 
 	return &catalogSourceList, nil
+}
+
+func (m *ModelCatalogClientMock) GetCatalogModelArtifacts(client httpclient.HTTPClientInterface, sourceId string, modelName string) (*openapi.CatalogModelArtifactList, error) {
+	allMockModelArtifacts := GetCatalogModelArtifactListMock()
+	return &allMockModelArtifacts, nil
 }
