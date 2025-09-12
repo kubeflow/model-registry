@@ -13,7 +13,7 @@ on:
       - '.github/ISSUE_TEMPLATE/**'
       - '.github/dependabot.yml'
       - 'docs/**'
-permissions: # set contents: read at top-level, per OpenSSF ScoreCard rule TokenPermissionsID
+permissions: # set contents: read at top-level, per OpenSSF ScoreCard rule TokenPermissionsID\
   contents: read
 env:
   IMG_REGISTRY: ghcr.io
@@ -26,7 +26,8 @@ jobs:
   build-csi-image:
     runs-on: ubuntu-latest
     permissions:
-      contents: read
+      actions: read # anchore/sbom-action for syft
+      contents: write # anchore/sbom-action for syft
       packages: write
     steps:
       # Assign context variable for various action contexts (tag, main, CI)
@@ -68,6 +69,18 @@ jobs:
         env:
           IMG: "${{ env.IMG_REGISTRY }}/${{ env.IMG_ORG }}/${{ env.IMG_REPO }}"
         run: IMG=${{ env.IMG }} IMG_VERSION=${{ env.VERSION }} make image/push
+      - name: Generate SBOM
+        uses: anchore/sbom-action@v0
+        with:
+          image: "${{ env.IMG_REGISTRY }}/${{ env.IMG_ORG }}/${{ env.IMG_REPO }}:${{ env.VERSION }}"
+          format: spdx-json # default, but making sure of the format
+          artifact-name: "model-registry-server-${{ env.VERSION }}-sbom.spdx.json"
+          output-file: "model-registry-server-${{ env.VERSION }}-sbom.spdx.json" # pin the file to use it later below
+      - name: Install Cosign
+        uses: sigstore/cosign-installer@v3
+      - name: Attach SBOM to Image
+        run: |
+          cosign attach sbom --sbom model-registry-server-${{ env.VERSION }}-sbom.spdx.json "${{ env.IMG_REGISTRY }}/${{ env.IMG_ORG }}/${{ env.IMG_REPO }}:${{ env.VERSION }}"
       # Tag latest and main
       - name: Tag Latest
         if: env.BUILD_CONTEXT == 'main' && env.PUSH_IMAGE == 'true'
