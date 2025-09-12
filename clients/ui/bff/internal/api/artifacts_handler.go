@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/kubeflow/model-registry/ui/bff/internal/integrations/mrserver"
+	"github.com/kubeflow/model-registry/ui/bff/internal/integrations/httpclient"
 	"net/http"
 
 	"github.com/julienschmidt/httprouter"
@@ -16,7 +16,7 @@ type ArtifactListEnvelope Envelope[*openapi.ArtifactList, None]
 type ArtifactEnvelope Envelope[*openapi.Artifact, None]
 
 func (app *App) CreateArtifactHandler(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
-	client, ok := r.Context().Value(constants.ModelRegistryHttpClientKey).(mrserver.HTTPClientInterface)
+	client, ok := r.Context().Value(constants.ModelRegistryHttpClientKey).(httpclient.HTTPClientInterface)
 	if !ok {
 		app.serverErrorResponse(w, r, errors.New("REST client not found"))
 		return
@@ -38,7 +38,7 @@ func (app *App) CreateArtifactHandler(w http.ResponseWriter, r *http.Request, _ 
 
 	createdArtifact, err := app.repositories.ModelRegistryClient.CreateArtifact(client, jsonData)
 	if err != nil {
-		var httpErr *mrserver.HTTPError
+		var httpErr *httpclient.HTTPError
 		if errors.As(err, &httpErr) {
 			app.errorResponse(w, r, httpErr)
 		} else {
@@ -72,7 +72,7 @@ func (app *App) CreateArtifactHandler(w http.ResponseWriter, r *http.Request, _ 
 }
 
 func (app *App) GetArtifactHandler(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
-	client, ok := r.Context().Value(constants.ModelRegistryHttpClientKey).(mrserver.HTTPClientInterface)
+	client, ok := r.Context().Value(constants.ModelRegistryHttpClientKey).(httpclient.HTTPClientInterface)
 	if !ok {
 		app.serverErrorResponse(w, r, errors.New("REST client not found"))
 		return
@@ -95,7 +95,7 @@ func (app *App) GetArtifactHandler(w http.ResponseWriter, r *http.Request, ps ht
 }
 
 func (app *App) GetAllArtifactsHandler(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
-	client, ok := r.Context().Value(constants.ModelRegistryHttpClientKey).(mrserver.HTTPClientInterface)
+	client, ok := r.Context().Value(constants.ModelRegistryHttpClientKey).(httpclient.HTTPClientInterface)
 
 	if !ok {
 		app.serverErrorResponse(w, r, errors.New("REST client not found"))

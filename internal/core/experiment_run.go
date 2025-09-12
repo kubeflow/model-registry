@@ -239,22 +239,24 @@ func (b *ModelRegistryService) GetExperimentRunArtifacts(artifactType openapi.Ar
 
 func (b *ModelRegistryService) GetExperimentRunMetricHistory(name *string, stepIds *string, listOptions api.ListOptions, experimentRunId *string) (*openapi.MetricList, error) {
 
-	// Validate experiment run exists
-	if experimentRunId == nil {
-		return nil, fmt.Errorf("experiment run ID is required: %w", api.ErrBadRequest)
-	}
+	var experimentRunIdInt32Ptr *int32
 
-	// Validate experiment run exists
-	_, err := b.GetExperimentRunById(*experimentRunId)
-	if err != nil {
-		return nil, fmt.Errorf("experiment run not found: %w", err)
-	}
+	// If experimentRunId is provided, validate it exists and convert to int32
+	if experimentRunId != nil {
+		// Validate experiment run exists
+		_, err := b.GetExperimentRunById(*experimentRunId)
+		if err != nil {
+			return nil, fmt.Errorf("experiment run not found: %w", err)
+		}
 
-	// Convert experiment run ID to int32 for repository queries
-	experimentRunIdInt32, err := apiutils.ValidateIDAsInt32(*experimentRunId, "experiment run")
-	if err != nil {
-		return nil, err
+		// Convert experiment run ID to int32 for repository queries
+		experimentRunIdInt32, err := apiutils.ValidateIDAsInt32(*experimentRunId, "experiment run")
+		if err != nil {
+			return nil, err
+		}
+		experimentRunIdInt32Ptr = &experimentRunIdInt32
 	}
+	// If experimentRunId is nil, experimentRunIdInt32Ptr remains nil for bulk query
 
 	listOptsCopy := models.MetricHistoryListOptions{
 		Pagination: models.Pagination{
@@ -264,7 +266,7 @@ func (b *ModelRegistryService) GetExperimentRunMetricHistory(name *string, stepI
 			NextPageToken: listOptions.NextPageToken,
 			FilterQuery:   listOptions.FilterQuery,
 		},
-		ExperimentRunID: &experimentRunIdInt32,
+		ExperimentRunID: experimentRunIdInt32Ptr,
 	}
 
 	// Add name filter if provided
@@ -354,6 +356,17 @@ func (b *ModelRegistryService) InsertMetricHistory(metric *openapi.Metric, exper
 	// Clear the external ID to avoid duplicate key error
 	metricHistory.ExternalId = nil
 
+	// Set experiment properties on the metric before converting
+	// This ensures the experiment context is available as custom properties for the converter
+	experimentRun, err := b.GetExperimentRunById(experimentRunId)
+	if err != nil {
+		return fmt.Errorf("failed to get experiment run: %w", err)
+	}
+	
+	// Create a temporary artifact to use the existing helper function
+	tempArtifact := &openapi.Artifact{Metric: &metricHistory}
+	b.setExperimentPropertiesOnArtifact(tempArtifact, experimentRun.ExperimentId, experimentRunId)
+
 	// Create the MetricHistory entity with the correct TypeID
 	// Get the metric history type ID from the types map
 	metricHistoryTypeID, exists := b.typesMap[defaults.MetricHistoryTypeName]
@@ -373,15 +386,15 @@ func (b *ModelRegistryService) InsertMetricHistory(metric *openapi.Metric, exper
 	}
 
 	// Map properties from metric to metric history using the converter
-	metricProperties, err := converter.MapMetricPropertiesEmbedMD(metric)
+	metricProperties, err := converter.MapMetricPropertiesEmbedMD(&metricHistory)
 	if err != nil {
 		return fmt.Errorf("failed to map metric properties: %w", err)
 	}
 	metricHistoryEntity.Properties = metricProperties
 
-	// Handle custom properties using the converter
-	if metric.CustomProperties != nil {
-		customProps, err := converter.MapOpenAPICustomPropertiesEmbedMD(metric.CustomProperties)
+	// Handle custom properties using the converter - use the updated custom properties from tempArtifact
+	if tempArtifact.Metric.CustomProperties != nil {
+		customProps, err := converter.MapOpenAPICustomPropertiesEmbedMD(tempArtifact.Metric.CustomProperties)
 		if err != nil {
 			return fmt.Errorf("failed to map custom properties: %w", err)
 		}

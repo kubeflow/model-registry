@@ -10,17 +10,23 @@ jobs:
     name: Syncing branch stable-2.x
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
-      - name: Set up Node
-        uses: actions/setup-node@v1
-        with:
-          node-version: 12
+        uses: actions/checkout@v5
       - name: Opening pull request
         id: pull
         uses: tretuna/sync-branches@1.4.0
         with:
           TEAM_REVIEWERS: '["model-registry-maintainers"]'
-          LABELS: '["Area/Jobs/Sync-stable2x", "tide/merge-method-merge"]'
           GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
           FROM_BRANCH: "main"
           TO_BRANCH: "stable-2.x"
+      - name: Add labels
+        if: ${{ steps.pull.outputs.PULL_REQUEST_NUMBER != '' }}
+        uses: actions/github-script@v7
+        with:
+          script: |
+            github.rest.issues.addLabels({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: ${{steps.pull.outputs.PULL_REQUEST_NUMBER}},
+              labels: ['Area/Jobs/Sync-stable2x', 'tide/merge-method-merge']
+            });

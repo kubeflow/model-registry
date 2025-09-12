@@ -9,8 +9,8 @@ import (
 	"strings"
 
 	"github.com/kubeflow/model-registry/ui/bff/internal/config"
+	"github.com/kubeflow/model-registry/ui/bff/internal/integrations/httpclient"
 	"github.com/kubeflow/model-registry/ui/bff/internal/integrations/kubernetes"
-	"github.com/kubeflow/model-registry/ui/bff/internal/integrations/mrserver"
 
 	"github.com/google/uuid"
 	"github.com/julienschmidt/httprouter"
@@ -87,10 +87,8 @@ func (app *App) EnableTelemetry(next http.Handler) http.Handler {
 	})
 }
 
-func (app *App) AttachRESTClient(next func(http.ResponseWriter, *http.Request, httprouter.Params)) httprouter.Handle {
+func (app *App) AttachModelCatalogRESTClient(next func(http.ResponseWriter, *http.Request, httprouter.Params)) httprouter.Handle {
 	return func(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
-
-		modelRegistryID := ps.ByName(ModelRegistryId)
 
 		namespace, ok := r.Context().Value(constants.NamespaceHeaderParameterKey).(string)
 		if !ok || namespace == "" {
@@ -103,18 +101,18 @@ func (app *App) AttachRESTClient(next func(http.ResponseWriter, *http.Request, h
 			return
 		}
 
-		modelRegistry, err := app.repositories.ModelRegistry.GetModelRegistryWithMode(r.Context(), client, namespace, modelRegistryID, app.config.DeploymentMode.IsFederatedMode())
+		modelCatalog, err := app.repositories.ModelCatalog.GetModelCatalogWithMode(r.Context(), client, namespace, app.config.DeploymentMode.IsFederatedMode())
 		if err != nil {
 			app.notFoundResponse(w, r)
 			return
 		}
-		modelRegistryBaseURL := modelRegistry.ServerAddress
+		modelCatalogBaseURL := modelCatalog.ServerAddress
 
 		// If we are in dev mode, we need to resolve the server address to the local host
 		// to allow the client to connect to the model registry via port forwarded from the cluster to the local machine.
 		// If you are in federated mode, we do not want to override the server address.
 		if app.config.DevMode && !app.config.DeploymentMode.IsFederatedMode() {
-			modelRegistryBaseURL = app.repositories.ModelRegistry.ResolveServerAddress("localhost", int32(app.config.DevModePort), modelRegistry.IsHTTPS, "", app.config.DeploymentMode.IsFederatedMode())
+			modelCatalogBaseURL = app.repositories.ModelCatalog.ResolveServerAddress("localhost", int32(app.config.DevModeCatalogPort), modelCatalog.IsHTTPS, "", app.config.DeploymentMode.IsFederatedMode())
 		}
 
 		// Set up a child logger for the rest client that automatically adds the request id to all statements for
@@ -143,7 +141,73 @@ func (app *App) AttachRESTClient(next func(http.ResponseWriter, *http.Request, h
 			}
 		}
 
-		restHttpClient, err := mrserver.NewHTTPClient(restClientLogger, modelRegistryID, modelRegistryBaseURL, headers, app.config.InsecureSkipVerify)
+		restHttpClient, err := httpclient.NewHTTPClient(restClientLogger, modelCatalogBaseURL, headers, app.config.InsecureSkipVerify)
+		if err != nil {
+			app.serverErrorResponse(w, r, fmt.Errorf("failed to create HTTP client: %v", err))
+			return
+		}
+		ctx := context.WithValue(r.Context(), constants.ModelCatalogHttpClientKey, restHttpClient)
+		next(w, r.WithContext(ctx), ps)
+	}
+}
+
+func (app *App) AttachModelRegistryRESTClient(next func(http.ResponseWriter, *http.Request, httprouter.Params)) httprouter.Handle {
+	return func(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+
+		modelRegistryID := ps.ByName(ModelRegistryId)
+
+		namespace, ok := r.Context().Value(constants.NamespaceHeaderParameterKey).(string)
+		if !ok || namespace == "" {
+			app.badRequestResponse(w, r, fmt.Errorf("missing namespace in the context"))
+		}
+
+		client, err := app.kubernetesClientFactory.GetClient(r.Context())
+		if err != nil {
+			app.serverErrorResponse(w, r, fmt.Errorf("failed to get Kubernetes client: %w", err))
+			return
+		}
+
+		modelRegistry, err := app.repositories.ModelRegistry.GetModelRegistryWithMode(r.Context(), client, namespace, modelRegistryID, app.config.DeploymentMode.IsFederatedMode())
+		if err != nil {
+			app.notFoundResponse(w, r)
+			return
+		}
+		modelRegistryBaseURL := modelRegistry.ServerAddress
+
+		// If we are in dev mode, we need to resolve the server address to the local host
+		// to allow the client to connect to the model registry via port forwarded from the cluster to the local machine.
+		// If you are in federated mode, we do not want to override the server address.
+		if app.config.DevMode && !app.config.DeploymentMode.IsFederatedMode() {
+			modelRegistryBaseURL = app.repositories.ModelRegistry.ResolveServerAddress("localhost", int32(app.config.DevModeModelRegistryPort), modelRegistry.IsHTTPS, "", app.config.DeploymentMode.IsFederatedMode())
+		}
+
+		// Set up a child logger for the rest client that automatically adds the request id to all statements for
+		// tracing.
+		restClientLogger := app.logger
+		traceId, ok := r.Context().Value(constants.TraceIdKey).(string)
+		if app.logger != nil {
+			if ok {
+				restClientLogger = app.logger.With(slog.String("trace_id", traceId))
+			} else {
+				app.logger.Warn("Failed to set trace_id for tracing")
+			}
+		}
+
+		// Prepare headers for the REST client
+		headers := http.Header{}
+
+		// If using user token authentication, extract and forward the authorization header
+		if app.config.AuthMethod == config.AuthMethodUser {
+			identity, ok := r.Context().Value(constants.RequestIdentityKey).(*kubernetes.RequestIdentity)
+			if ok && identity != nil && identity.Token != "" {
+				// Always send as "Authorization: Bearer <token>" regardless of incoming header format
+				// The identity.Token already has any prefix removed by ExtractRequestIdentity
+				authHeaderValue := "Bearer " + identity.Token
+				headers.Set("Authorization", authHeaderValue)
+			}
+		}
+
+		restHttpClient, err := httpclient.NewHTTPClient(restClientLogger, modelRegistryBaseURL, headers, app.config.InsecureSkipVerify)
 		if err != nil {
 			app.serverErrorResponse(w, r, fmt.Errorf("failed to create HTTP client: %v", err))
 			return
@@ -209,7 +273,7 @@ func (app *App) RequireListServiceAccessInNamespace(next func(http.ResponseWrite
 	}
 }
 
-func (app *App) RequireAccessToService(next func(http.ResponseWriter, *http.Request, httprouter.Params)) httprouter.Handle {
+func (app *App) RequireAccessToMRService(next func(http.ResponseWriter, *http.Request, httprouter.Params)) httprouter.Handle {
 	return func(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 
 		ctx := r.Context()

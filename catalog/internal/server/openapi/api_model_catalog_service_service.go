@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"math"
 	"net/http"
+	"net/url"
 	"slices"
 	"strings"
 
@@ -25,6 +26,10 @@ func (m *ModelCatalogServiceAPIService) GetAllModelArtifacts(ctx context.Context
 	source, ok := m.sources.Get(sourceID)
 	if !ok {
 		return notFound("Unknown source"), nil
+	}
+
+	if newName, err := url.PathUnescape(name); err == nil {
+		name = newName
 	}
 
 	artifacts, err := source.Provider.GetArtifacts(ctx, name)
@@ -74,6 +79,10 @@ func (m *ModelCatalogServiceAPIService) GetModel(ctx context.Context, sourceID s
 	source, ok := m.sources.Get(sourceID)
 	if !ok {
 		return notFound("Unknown source"), nil
+	}
+
+	if newName, err := url.PathUnescape(name); err == nil {
+		name = newName
 	}
 
 	model, err := source.Provider.GetModel(ctx, name)

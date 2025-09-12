@@ -1,0 +1,48 @@
+name: Trivy image scanning
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 0 * * 1' # Every Monday at 00:00
+
+permissions:
+  contents: read
+  security-events: write
+
+jobs:
+  image-scanning:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        IMAGE: [
+          'ghcr.io/kubeflow/model-registry/server:latest',
+          'ghcr.io/kubeflow/model-registry/ui:latest',
+          'ghcr.io/kubeflow/model-registry/storage-initializer:latest',
+          'ghcr.io/kubeflow/model-registry/ui-standalone:latest'
+        ]
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+
+      - name: Sanitize image name for SARIF filename
+        run: |
+          # Replace special characters with hyphens and convert to lowercase
+          SANITIZED_NAME=$(echo "${{ matrix.IMAGE }}" | sed 's/[^a-zA-Z0-9._-]/-/g' | tr '[:upper:]' '[:lower:]')
+          echo "SANITIZED_IMAGE_NAME=${SANITIZED_NAME}" >> $GITHUB_ENV
+          echo "Sanitized image name: ${SANITIZED_NAME}"
+
+      - name: trivy scan for github security tab
+        uses: aquasecurity/trivy-action@0.33.1
+        with:
+          image-ref: '${{ matrix.IMAGE }}'
+          format: 'sarif'
+          ignore-unfixed: true
+          vuln-type: 'os,library'
+          severity: 'CRITICAL,HIGH'
+          output: 'trivy-results-${{ env.SANITIZED_IMAGE_NAME }}.sarif'
+          timeout: 30m0s
+
+      - name: Upload Trivy scan results to GitHub Security tab
+        uses: github/codeql-action/upload-sarif@v3
+        if: always()
+        with:
+          sarif_file: 'trivy-results-${{ env.SANITIZED_IMAGE_NAME }}.sarif'

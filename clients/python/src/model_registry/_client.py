@@ -72,6 +72,7 @@ logging.basicConfig(
 logger = logging.getLogger("model-registry")
 
 DEFAULT_USER_TOKEN_ENVVAR = "KF_PIPELINES_SA_TOKEN_PATH"  # noqa: S105
+DEFAULT_K8S_SA_TOKEN_PATH = "/var/run/secrets/kubernetes.io/serviceaccount/token" # noqa: S105
 
 
 class ModelRegistry:
@@ -128,13 +129,17 @@ class ModelRegistry:
             # /var/run/secrets/kubernetes.io/serviceaccount/token
             if sa_token := os.environ.get(user_token_envvar):
                 if user_token_envvar == DEFAULT_USER_TOKEN_ENVVAR:
-                    logger.warning(
+                    logger.info(
                         f"Sourcing user token from default envvar: {DEFAULT_USER_TOKEN_ENVVAR}"
                     )
                 user_token = Path(sa_token).read_text()
+            elif Path(DEFAULT_K8S_SA_TOKEN_PATH).exists():
+                user_token = Path(DEFAULT_K8S_SA_TOKEN_PATH).read_text()
+                logger.info("Sourced user token from K8s default path: %s.", DEFAULT_K8S_SA_TOKEN_PATH)
             else:
                 warn("User access token is missing", stacklevel=2)
 
+        self.hint_server_address_port(server_address, port)
         if is_secure:
             if (
                 not custom_ca
@@ -161,6 +166,20 @@ class ModelRegistry:
             )
         self._active_experiment_context = ThreadSafeVariable(value=RunContext())
         self.get_registered_models().page_size(1)._next_page()
+
+
+    @staticmethod
+    def hint_server_address_port(server_address: str, port: int) -> None:
+        """Hint based on server_address protocol if the port may not be the correct one."""
+        if server_address.startswith("https://") and not str(port).endswith("443"):
+            logger.warning(
+                "Server address protocol is https://, but port is not 443 or ending with 443. You may want to verify the configuration is correct."
+            )
+        if server_address.startswith("http://") and not str(port).endswith("80"):
+            logger.warning(
+                "Server address protocol is http://, but port is not 80 or ending with 80. You may want to verify the configuration is correct."
+            )
+
 
     def async_runner(self, coro: Awaitable[TModel]) -> TModel:
         if hasattr(self, "_user_async_runner"):
@@ -950,3 +969,6 @@ class ModelRegistry:
             return None
 
         return Pager[ExperimentRunArtifact](exp_run_logs)
+
+    # TODO: consider porting get_artifacts method here
+    # https://github.com/kubeflow/model-registry/pull/1536

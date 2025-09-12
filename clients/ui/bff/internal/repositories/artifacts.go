@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"github.com/kubeflow/model-registry/ui/bff/internal/integrations/mrserver"
+	"github.com/kubeflow/model-registry/ui/bff/internal/integrations/httpclient"
 	"net/url"
 
 	"github.com/kubeflow/model-registry/pkg/openapi"
@@ -13,16 +13,16 @@ import (
 const artifactPath = "/artifacts"
 
 type ArtifactInterface interface {
-	GetAllArtifacts(client mrserver.HTTPClientInterface, pageValues url.Values) (*openapi.ArtifactList, error)
-	GetArtifact(client mrserver.HTTPClientInterface, id string) (*openapi.Artifact, error)
-	CreateArtifact(client mrserver.HTTPClientInterface, jsonData []byte) (*openapi.Artifact, error)
+	GetAllArtifacts(client httpclient.HTTPClientInterface, pageValues url.Values) (*openapi.ArtifactList, error)
+	GetArtifact(client httpclient.HTTPClientInterface, id string) (*openapi.Artifact, error)
+	CreateArtifact(client httpclient.HTTPClientInterface, jsonData []byte) (*openapi.Artifact, error)
 }
 
 type Artifact struct {
 	ArtifactInterface
 }
 
-func (a Artifact) GetAllArtifacts(client mrserver.HTTPClientInterface, pageValues url.Values) (*openapi.ArtifactList, error) {
+func (a Artifact) GetAllArtifacts(client httpclient.HTTPClientInterface, pageValues url.Values) (*openapi.ArtifactList, error) {
 	responseData, err := client.GET(UrlWithPageParams(artifactPath, pageValues))
 	if err != nil {
 		return nil, fmt.Errorf("error fetching artifacts: %w", err)
@@ -36,7 +36,7 @@ func (a Artifact) GetAllArtifacts(client mrserver.HTTPClientInterface, pageValue
 	return &artifacts, nil
 }
 
-func (a Artifact) GetArtifact(client mrserver.HTTPClientInterface, id string) (*openapi.Artifact, error) {
+func (a Artifact) GetArtifact(client httpclient.HTTPClientInterface, id string) (*openapi.Artifact, error) {
 	path, err := url.JoinPath(artifactPath, id)
 	if err != nil {
 		return nil, err
@@ -55,7 +55,7 @@ func (a Artifact) GetArtifact(client mrserver.HTTPClientInterface, id string) (*
 	return &artifact, nil
 }
 
-func (a Artifact) CreateArtifact(client mrserver.HTTPClientInterface, jsonData []byte) (*openapi.Artifact, error) {
+func (a Artifact) CreateArtifact(client httpclient.HTTPClientInterface, jsonData []byte) (*openapi.Artifact, error) {
 	responseData, err := client.POST(artifactPath, bytes.NewBuffer(jsonData))
 
 	if err != nil {

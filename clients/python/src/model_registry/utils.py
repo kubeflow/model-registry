@@ -9,10 +9,11 @@ import os
 import shutil
 import tempfile
 import threading
+from contextlib import AbstractContextManager, contextmanager, suppress
 from dataclasses import asdict, dataclass
 from pathlib import Path
 from subprocess import CalledProcessError
-from typing import TYPE_CHECKING, Callable, Protocol, TypeVar
+from typing import TYPE_CHECKING, Callable, Protocol, TextIO, TypeVar
 
 from typing_extensions import Literal, overload
 
@@ -219,19 +220,31 @@ def _backend_specific_params(
     Keyword Args:
         username: the usrername of the registry.
         password: the password of the registry.
+
+    See documention:
+      skopeo-copy(1): https://github.com/containers/skopeo/blob/main/docs/skopeo-copy.1.md
+      oras cp: https://oras.land/docs/commands/oras_cp
+
+    Example resulting commands:
+      skopeo copy --src-authfile /tmp/tmp-123.json
+      skopeo copy --dest-authfile /tmp/tmp-123.json
+      oras cp --from-registry-config /tmp/tmp-123.json
+      oras cp --to-registry-config /tmp/tmp-123.json
     """
     # Determine backend
     if backend == "skopeo":
         prefix = "--src" if type == "pull" else "--dest"
+        auth_suffix = "authfile"
     elif backend == "oras":
         prefix = "--from" if type == "pull" else "--to"
+        auth_suffix = "registry-config"
+    else:
+        msg = f"invalid backend: {backend!r}"
+        raise ValueError(msg)
 
     # Actual param specifications
-    if username := kwargs.pop("username", None):
-        kwargs[f"{prefix}-username"] = username
-
-    if password := kwargs.pop("password", None):
-        kwargs[f"{prefix}-password"] = password
+    if authfile := kwargs.pop("authfile", None):
+        kwargs[f"{prefix}-{auth_suffix}"] = authfile
 
     return kwargs
 
@@ -344,16 +357,14 @@ or
         raise StoreError(msg) from e
 
     # Check for OCI Auth Env and a default
-    auth: str = None
+    auth: str | None = None
     if oci_auth_env_var:
-        env_value = _validate_env_var(oci_auth_env_var)
-        auth = _extract_auth_json(env_value)
-    else:
-        try:
-            env_value = _validate_env_var(".dockerconfigjson")
-            auth = _extract_auth_json(env_value)
-        except ValueError:
-            pass
+        auth = _validate_env_var(oci_auth_env_var)
+    elif ".dockerconfigjson" in os.environ:
+        auth = os.environ[".dockerconfigjson"] # noqa: SIM112
+
+    elif oci_username and oci_password:
+        auth = json.dumps(create_auth_object(oci_ref, oci_username, oci_password))
 
     # If a custom backend is provided, use it, else fetch the backend out of the registry
     if custom_oci_backend:
@@ -374,28 +385,56 @@ or
         dest_dir_cleanup = True
     local_image_path = Path(dest_dir)
 
-    # Set params
     params = {}
-
-    # User/pass
-    if auth:
-        usr_pass = auth.split(":")
-        params["username"] = usr_pass[0]
-        params["password"] = usr_pass[-1]
-    elif oci_username and oci_password:
-        params["username"] = oci_username
-        params["password"] = oci_password
-
-    backend_def.pull(base_image, local_image_path, **params)
-    # Extract the absolute path from the files found in the path
-    files = [file[0] for file in _get_files_from_path(model_files_path)]
-    oci_layers_on_top(local_image_path, files, modelcard)
-    backend_def.push(local_image_path, oci_ref, **params)
+    with temp_auth_file(auth) as auth_file:
+        if auth_file is not None:
+            params["authfile"] = auth_file.name
+        backend_def.pull(base_image, local_image_path, **params)
+        # Extract the absolute path from the files found in the path
+        files = [file[0] for file in _get_files_from_path(model_files_path)]
+        oci_layers_on_top(local_image_path, files, modelcard)
+        backend_def.push(local_image_path, oci_ref, **params)
 
     # Return the OCI URI
     if dest_dir_cleanup:
         shutil.rmtree(dest_dir)
     return f"oci://{oci_ref}"
+
+
+@overload
+def temp_auth_file(auth: str) -> AbstractContextManager[TextIO]:
+    ...
+
+
+@overload
+def temp_auth_file(auth: None) -> AbstractContextManager[None]:
+    ...
+
+
+@contextmanager
+def temp_auth_file(auth: str | None) -> AbstractContextManager[TextIO | None]:
+    """Create a temporary auth file with optional auth data.
+
+    If auth is None, yields None. Otherwise creates a temporary JSON file
+    containing the auth string and yields the file handle.
+    """
+    if auth is None:
+        yield None
+    else:
+        # Yield the file after closing so it can be read by another process,
+        # and use delete=False so closing doesn't delete the file. We add our
+        # own cleanup code to achieve an effect similar to using
+        # delete=True, delete_on_close=False with Python 3.12 or later.
+        path: str | None = None
+        try:
+            with tempfile.NamedTemporaryFile(mode="w+", encoding="utf-8", suffix=".json", delete=False) as temp_auth_file:
+                path = temp_auth_file.name
+                temp_auth_file.write(auth)
+            yield temp_auth_file
+        finally:
+            if path is not None:
+                with suppress(OSError):
+                    os.unlink(path)
 
 
 def _s3_creds(
@@ -634,6 +673,66 @@ def _extract_auth_json(auth_data: str) -> str:
     except json.JSONDecodeError as e:
         invalid_json_msg = "Auth data does not contain valid JSON."
         raise ValueError(invalid_json_msg) from e
+
+
+def get_auth_reference(image_path: str) -> str:
+    """Parses an arbitrary container image path to extract a valid reference.
+
+    for use as a key in a container registry auth.json file.
+
+    Examples:
+        'quay.io/my-org/my-registry:1.0.0' -> 'quay.io/my-org/my-registry'
+        'my-private-registry:5000/team/app:latest' -> 'my-private-registry:5000/team/app'
+        'ubuntu' -> 'docker.io'
+        'ubuntu:22.04' -> 'docker.io'
+        'my-user/my-app' -> 'docker.io'
+        'my-user/my-app:v2' -> 'docker.io'
+        'quay.io/my-org/my-registry@sha256:f1b3f5a2d...' -> 'quay.io/my-org/my-registry'
+        'localhost:5000/my-local-image' -> 'localhost:5000/my-local-image'
+        'localhost:5000/my-local-image:test-tag' -> 'localhost:5000/my-local-image'
+    """
+    repo_path = image_path
+
+    # Remove digest if it exists
+    if "@" in repo_path:
+        repo_path = repo_path.split("@", 1)[0]
+
+    # Separate the tag from the repository path.
+    # The tag is what comes after the last colon, but only if that colon
+    # is not part of the hostname/port. A colon indicates a tag if it
+    # appears after the last slash in the path.
+    last_colon = repo_path.rfind(":")
+    last_slash = repo_path.rfind("/")
+
+    if last_colon > last_slash:
+        # This is a tag, not a port, so we strip it.
+        repo_path = repo_path[:last_colon]
+
+    # Handle default Docker Hub images (e.g., 'ubuntu', 'user/repo').
+    # The hostname is the part of the path before the first slash.
+    first_slash_index = repo_path.find("/")
+    hostname = repo_path
+    if first_slash_index != -1:
+        hostname = repo_path[:first_slash_index]
+
+    # If the hostname part doesn't contain a '.' (like quay.io) or a ':' (like localhost:5000),
+    # it's a short name for an image on Docker Hub.
+    if "." not in hostname and ":" not in hostname:
+        return "docker.io"
+
+    # For all other images, the full repository path is the reference.
+    return repo_path
+
+
+def create_auth_object(oci_ref: str, username: str, password: str) -> dict[str: dict[str, dict[str, str]]]:
+    """Create an auth object for container registry authentication.
+
+    This object can be encoded as json with json.dumps() producing the
+    contents for valid authfile.
+    """
+    auth_ref = get_auth_reference(oci_ref)
+    auth_value = base64.b64encode(f"{username}:{password}".encode()).decode("utf-8")
+    return {"auths": {auth_ref: {"auth": auth_value}}}
 
 
 def rand_suffix(size: int = 8) -> str:

@@ -20,7 +20,7 @@ func TestHealthCheckHandler(t *testing.T) {
 	app := App{config: config.EnvConfig{
 		Port: 4000,
 	},
-		repositories: repositories.NewRepositories(mockMRClient),
+		repositories: repositories.NewRepositories(mockMRClient, mockModelCatalogClient),
 	}
 
 	rr := httptest.NewRecorder()

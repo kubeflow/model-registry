@@ -91,14 +91,16 @@ class ActiveExperimentRun(AbstractContextManager):
         Keyword Args:
             description: Description of the parameter.
         """
-        param_type = ParameterType.STRING
+        param_type = ParameterType.STRING  # consistent with param_type default init
         if isinstance(value, bool):
             param_type = ParameterType.BOOLEAN
         elif isinstance(value, (int, float)):
             # TODO: ensure for numpy and other numeric types
             param_type = ParameterType.NUMBER
-        else:
+        elif isinstance(value, dict):
             param_type = ParameterType.OBJECT
+        else:
+            param_type = ParameterType.STRING
         self._logs.params[key] = Parameter(
             name=key,
             value=value,

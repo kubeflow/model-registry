@@ -1,0 +1,32 @@
+name: Sync Branch stable
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  sync-branches:
+    runs-on: ubuntu-latest
+    name: Syncing branch stable
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+      - name: Opening pull request
+        id: pull
+        uses: tretuna/sync-branches@1.4.0
+        with:
+          TEAM_REVIEWERS: '["model-registry-maintainers"]'
+          GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
+          FROM_BRANCH: "main"
+          TO_BRANCH: "stable"
+      - name: Add labels
+        if: ${{ steps.pull.outputs.PULL_REQUEST_NUMBER != '' }}
+        uses: actions/github-script@v7
+        with:
+          script: |
+            github.rest.issues.addLabels({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: ${{steps.pull.outputs.PULL_REQUEST_NUMBER}},
+              labels: ['Area/Jobs/Sync-stable', 'tide/merge-method-merge']
+            });
