@@ -44,9 +44,9 @@ func (r *MetricHistoryRepositoryImpl) List(listOptions models.MetricHistoryListO
 
 func applyMetricHistoryListFilters(query *gorm.DB, listOptions *models.MetricHistoryListOptions) *gorm.DB {
 	if listOptions.Name != nil {
-		query = query.Where("Artifact.name LIKE ?", fmt.Sprintf("%%%s%%", *listOptions.Name))
+		query = query.Where(utils.GetTableName(query, &schema.Artifact{})+".name LIKE ?", fmt.Sprintf("%%%s%%", *listOptions.Name))
 	} else if listOptions.ExternalID != nil {
-		query = query.Where("Artifact.external_id = ?", listOptions.ExternalID)
+		query = query.Where(utils.GetTableName(query, &schema.Artifact{})+".external_id = ?", listOptions.ExternalID)
 	}
 
 	// Add step IDs filter if provided - use unique alias to avoid conflicts with filterQuery joins
