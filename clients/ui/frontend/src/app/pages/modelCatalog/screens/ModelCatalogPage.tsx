@@ -10,16 +10,16 @@ import {
   Bullseye,
 } from '@patternfly/react-core';
 import { ApplicationsPage, ProjectObjectType, TitleWithIcon } from 'mod-arch-shared';
-import { useCatalogModelsbySources } from '~/app/hooks/modelCatalog/useCatalogModelsbySources';
 import ModelCatalogCard from '~/app/pages/modelCatalog/components/ModelCatalogCard';
 import { ModelCatalogContext } from '~/app/context/modelCatalog/ModelCatalogContext';
 import ScrollViewOnMount from '~/app/shared/components/ScrollViewOnMount';
 import EmptyModelCatalogState from '~/app/pages/modelCatalog/EmptyModelCatalogState';
+import { useCatalogModelsBySources } from '~/app/hooks/modelCatalog/useCatalogModelsBySources';
 
 const ModelCatalogPage: React.FC = () => {
   const { selectedSource } = React.useContext(ModelCatalogContext);
   const [catalogModels, catalogModelsLoaded, catalogModelsLoadError, refresh] =
-    useCatalogModelsbySources(selectedSource?.id || '', 10);
+    useCatalogModelsBySources(selectedSource?.id || '', 10);
 
   if (!catalogModelsLoaded) {
     return (

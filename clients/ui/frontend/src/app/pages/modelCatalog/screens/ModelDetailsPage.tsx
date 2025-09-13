@@ -38,9 +38,6 @@ const ModelDetailsPage: React.FC = () => {
     ModelRegistrySelectorContext,
   );
 
-  // TODO: we don't have tags prop on models
-  // const versionTag = extractVersionTag(model?.tags);
-
   const registerModelButton = () => {
     if (!modelRegistriesLoaded || modelRegistriesLoadError) {
       return null;

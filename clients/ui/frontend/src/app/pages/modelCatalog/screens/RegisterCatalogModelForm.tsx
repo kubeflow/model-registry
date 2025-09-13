@@ -24,7 +24,7 @@ import ModelRegistrySelector from '~/app/pages/modelRegistry/screens/ModelRegist
 import { registeredModelUrl } from '~/app/pages/modelRegistry/screens/routeUtils';
 import {
   catalogParamsToModelSourceProperties,
-  createCustomPropertiesFromModel,
+  getLabelsFromModelTasks,
   getLabelsFromCustomProperties,
 } from '~/concepts/modelRegistry/utils';
 import { CatalogModel, CatalogModelDetailsParams } from '~/app/modelCatalogTypes';
@@ -54,7 +54,7 @@ const RegisterCatalogModelForm: React.FC<RegisterCatalogModelFormProps> = ({
   const [submitError, setSubmitError] = React.useState<Error | undefined>(undefined);
 
   const sourceProperties = catalogParamsToModelSourceProperties(decodedParams);
-  const tasks = createCustomPropertiesFromModel(model);
+  const tasks = getLabelsFromModelTasks(model);
 
   const initialFormData: RegisterCatalogModelFormData = {
     modelName: `${decodedParams.modelName || ''}`,
@@ -70,7 +70,7 @@ const RegisterCatalogModelForm: React.FC<RegisterCatalogModelFormProps> = ({
     modelLocationPath: '',
     modelLocationURI: uri || '',
     modelRegistry: preferredModelRegistry.name,
-    modelCustomProperties: getLabelsFromCustomProperties(model?.customProperties),
+    modelCustomProperties: { ...getLabelsFromCustomProperties(model?.customProperties), ...tasks },
     versionCustomProperties: {
       ...model?.customProperties,
       License: {

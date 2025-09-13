@@ -51,7 +51,7 @@ const EMPTY_CUSTOM_PROPERTY_STRING = {
  * @param model - The catalog model item
  * @returns ModelRegistryCustomProperties object with labels and tasks
  */
-export const createCustomPropertiesFromModel = (
+export const getLabelsFromModelTasks = (
   model: CatalogModel | null,
 ): ModelRegistryCustomProperties => {
   const tasks = model?.tasks?.reduce<ModelRegistryCustomProperties>((acc, cur) => {
