@@ -1,5 +1,7 @@
 import logging
 
+from model_registry import ModelRegistry
+from model_registry.types import ArtifactState
 from job.models import (
     ModelConfig,
     RegistryConfig,
@@ -8,8 +10,6 @@ from job.models import (
     CreateVersionIntent,
     ConfigMapMetadata,
 )
-from model_registry import ModelRegistry
-from mr_openapi import ArtifactState
 
 logger = logging.getLogger(__name__)
 
@@ -136,3 +136,7 @@ async def _create_version_and_artifact_for_model(
         custom_properties=ma_metadata.custom_properties or {},
     )
     logger.debug("✅ Created ModelArtifact: %s (ID: %s) with URI: %s", artifact.name, artifact.id, uri)
+    # Set the artifact state to LIVE since it has a valid URI
+    artifact.state = ArtifactState.LIVE
+    await client._api.upsert_model_artifact(artifact)
+    logger.debug("✅ Updated ModelArtifact state to LIVE: %s", artifact.id)

@@ -88,7 +88,7 @@ def apply_job_with_strategic_merge(
         "image": container_image_uri,
         "env": patch_env_list,
     }
-    
+
     # Add volume mount for ConfigMap if provided
     if configmap_data:
         container_patch["volumeMounts"] = [{
@@ -96,7 +96,7 @@ def apply_job_with_strategic_merge(
             "mountPath": "/etc/model-metadata",
             "readOnly": True
         }]
-    
+
     patch_obj = {
         "apiVersion": "batch/v1",
         "kind": "Job",
@@ -109,7 +109,7 @@ def apply_job_with_strategic_merge(
             }
         },
     }
-    
+
     # Add ConfigMap volume if provided
     if configmap_data:
         patch_obj["spec"]["template"]["spec"]["volumes"] = [{
@@ -152,7 +152,7 @@ def apply_job_with_strategic_merge(
     if configmap_data:
         configmap_obj = {
             "apiVersion": "v1",
-            "kind": "ConfigMap", 
+            "kind": "ConfigMap",
             "metadata": {"name": "model-metadata-configmap"},
             "data": configmap_data
         }
@@ -290,20 +290,20 @@ def _setup_s3(tmp_path):
     upload_to_minio(str(model_filepath), bucket, key)
 
 
-def _create_configmap_data(intent_type: str, model_name: str = None):
+def _create_configmap_data(intent_type: str, model_name: str):
     """Create ConfigMap data for create_model and create_version intents."""
     data = {}
-    
+
     if intent_type == "create_model":
         # RegisteredModel metadata
-        data["RegisteredModel.name"] = model_name or f"integration-test-model-{uuid.uuid4().hex[:8]}"
+        data["RegisteredModel.name"] = model_name
         data["RegisteredModel.description"] = "Integration test model"
         data["RegisteredModel.owner"] = "integration-test"
         data["RegisteredModel.custom_properties"] = json.dumps({
             "test_type": "integration",
             "created_by": "async-upload-job"
         })
-    
+
     # ModelVersion metadata (both create_model and create_version need this)
     data["ModelVersion.name"] = "v1.0.0"
     data["ModelVersion.description"] = "Integration test version"
@@ -312,9 +312,9 @@ def _create_configmap_data(intent_type: str, model_name: str = None):
         "test_run": "integration",
         "model_type": "onnx"
     })
-    
+
     # ModelArtifact metadata (both create_model and create_version need this)
-    data["ModelArtifact.name"] = "mnist-integration-test"
+    data["ModelArtifact.name"] = model_name
     data["ModelArtifact.model_format_name"] = "onnx"
     data["ModelArtifact.model_format_version"] = "1.0"
     data["ModelArtifact.storage_key"] = "integration-test-storage"
@@ -322,7 +322,7 @@ def _create_configmap_data(intent_type: str, model_name: str = None):
         "source": "integration-test",
         "validated": True
     })
-    
+
     return data
 
 
@@ -339,7 +339,7 @@ def _create_configmap_data(intent_type: str, model_name: str = None):
                 "MODEL_SYNC_MODEL_UPLOAD_INTENT": "update_artifact",
             },
         ),
-        # Test create_model intent  
+        # Test create_model intent
         (
             "create_model",
             None,
@@ -352,7 +352,7 @@ def _create_configmap_data(intent_type: str, model_name: str = None):
         ),
         # Test create_version intent
         (
-            "create_version", 
+            "create_version",
             None,
             {
                 "MODEL_SYNC_SOURCE_TYPE": "uri",
@@ -379,7 +379,7 @@ def test_async_upload_integration(
     This test:
     1. For update_artifact: Creates a RegisteredModel, ModelVersion, and placeholder ModelArtifact
     2. For create_model: Creates ConfigMap with complete model metadata
-    3. For create_version: Creates existing RegisteredModel + ConfigMap with version metadata  
+    3. For create_version: Creates existing RegisteredModel + ConfigMap with version metadata
     4. Creates and applies a Kubernetes job using kustomize
     5. Waits for job completion
     6. Validates the final result based on intent type
@@ -404,7 +404,7 @@ def test_async_upload_integration(
     # Setup based on intent type
     configmap_data = None
     model_name = f"test-model-{uuid.uuid4().hex[:8]}"
-    
+
     if intent == "update_artifact":
         # Create RegisteredModel, ModelVersion, and ModelArtifact for update_artifact intent
         print("Creating RegisteredModel for update_artifact intent...")
@@ -434,31 +434,31 @@ def test_async_upload_integration(
         # Verify initial state
         assert ma.uri == "PLACEHOLDER"
         assert ma.state == ArtifactState.UNKNOWN
-        
+
     elif intent == "create_model":
         # Create ConfigMap data for create_model intent
         print("Creating ConfigMap for create_model intent...")
         configmap_data = _create_configmap_data("create_model", model_name)
-        
+
     elif intent == "create_version":
         # Create existing RegisteredModel and ConfigMap for create_version intent
         print("Creating existing RegisteredModel for create_version intent...")
         existing_rm = model_registry_client.register_model(
             name=model_name,
             uri="http://example.com/existing-model",
-            version="v0.1.0", 
+            version="v0.1.0",
             model_format_name="onnx",
             model_format_version="1.0",
             description="Existing model for create_version test",
         )
         assert existing_rm.id
         print(f"  Created existing RegisteredModel with ID: {existing_rm.id}")
-        
+
         # Add model ID to env for create_version intent
         env["MODEL_SYNC_MODEL_ID"] = existing_rm.id
-        
+
         # Create ConfigMap data for create_version intent
-        configmap_data = _create_configmap_data("create_version")
+        configmap_data = _create_configmap_data("create_version", model_name)
 
     # Apply the job with patches
     print(f"Applying resources for {intent} intent...")
@@ -493,7 +493,7 @@ def test_async_upload_integration(
 
     # Validate the final result based on intent type
     print(f"Validating final result for {intent} intent...")
-    
+
     # Wait a bit for changes to propagate
     time.sleep(2)
 
@@ -505,30 +505,28 @@ def test_async_upload_integration(
         assert updated_ma.state == ArtifactState.LIVE, f"State was not updated to LIVE: {updated_ma.state}"
         print(f"✅ Artifact URI updated to: {updated_ma.uri}")
         print(f"✅ Artifact state updated to: {updated_ma.state}")
-        
+
     elif intent == "create_model":
         # For create_model: validate new model, version, and artifact were created
-        config_model_name = configmap_data["RegisteredModel.name"] 
+        config_model_name = configmap_data["RegisteredModel.name"]
         created_rm = model_registry_client.get_registered_model(config_model_name)
         assert created_rm, f"RegisteredModel '{config_model_name}' was not created"
         print(f"✅ RegisteredModel created: {created_rm.name} (ID: {created_rm.id})")
-        
         created_mv = model_registry_client.get_model_version(config_model_name, "v1.0.0")
         assert created_mv, "ModelVersion 'v1.0.0' was not created"
         print(f"✅ ModelVersion created: {created_mv.name} (ID: {created_mv.id})")
-        
         created_ma = model_registry_client.get_model_artifact(config_model_name, "v1.0.0")
         assert created_ma, "ModelArtifact was not created"
         assert created_ma.state == ArtifactState.LIVE, f"Artifact state should be LIVE: {created_ma.state}"
         print(f"✅ ModelArtifact created: {created_ma.name} (ID: {created_ma.id})")
         print(f"✅ Artifact URI: {created_ma.uri}")
-        
+
     elif intent == "create_version":
         # For create_version: validate new version and artifact were created under existing model
         created_mv = model_registry_client.get_model_version(model_name, "v1.0.0")
         assert created_mv, "ModelVersion 'v1.0.0' was not created"
         print(f"✅ ModelVersion created: {created_mv.name} (ID: {created_mv.id})")
-        
+
         created_ma = model_registry_client.get_model_artifact(model_name, "v1.0.0")
         assert created_ma, "ModelArtifact was not created"
         assert created_ma.state == ArtifactState.LIVE, f"Artifact state should be LIVE: {created_ma.state}"

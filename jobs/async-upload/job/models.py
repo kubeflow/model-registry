@@ -56,7 +56,7 @@ class OCIConfig(BaseModel):
 
 class S3StorageConfig(BaseStorageConfig, S3Config):
     """S3 storage configuration with validation - can be used for both source and destination."""
-    
+
     @model_validator(mode='after')
     def validate_s3_storage(self) -> 'S3StorageConfig':
         """Validate that required S3 fields are present."""
@@ -67,7 +67,7 @@ class S3StorageConfig(BaseStorageConfig, S3Config):
 
 class OCIStorageConfig(BaseStorageConfig, OCIConfig):
     """OCI storage configuration with validation - can be used for both source and destination."""
-    
+
     @model_validator(mode='after')
     def validate_oci_storage(self) -> 'OCIStorageConfig':
         """Validate that required OCI fields are present."""
@@ -83,7 +83,7 @@ class URISourceConfig(BaseModel):
 
 class URISourceStorageConfig(BaseStorageConfig, URISourceConfig):
     """URI source storage configuration with validation - only used for sources, not destinations."""
-    
+
     @model_validator(mode='after')
     def validate_uri_storage(self) -> 'URISourceStorageConfig':
         """Validate that required URI field is present."""
@@ -106,7 +106,7 @@ class ModelInputArgs(BaseModel):
     model_config = ConfigDict(frozen=True)
 
     intent_type: UploadIntent = Field(description="Upload intent type")
-    id: str | None = Field(description="Registered model ID")
+    model_id: str | None = Field(description="Registered model ID")
     version_id: str | None = Field(description="Model version ID")
     artifact_id: str | None = Field(description="Model artifact ID")
 

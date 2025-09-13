@@ -5,10 +5,10 @@ import pytest
 from pydantic import ValidationError
 
 from job.models import (
-    ModelConfig, 
-    UploadIntent, 
-    CreateModelIntent, 
-    CreateVersionIntent, 
+    ModelConfig,
+    UploadIntent,
+    CreateModelIntent,
+    CreateVersionIntent,
     UpdateArtifactIntent,
     ConfigMapMetadata,
     RegisteredModelMetadata,
@@ -24,7 +24,7 @@ class TestModelConfigIntentTypes:
         """Test that create_model intent succeeds when no ids are provided"""
         intent = CreateModelIntent()
         config = ModelConfig(intent=intent)
-        
+
         # Should not raise any validation errors
         assert config.intent.intent_type == UploadIntent.create_model
         assert isinstance(config.intent, CreateModelIntent)
@@ -33,7 +33,7 @@ class TestModelConfigIntentTypes:
         """Test that CreateModelIntent only has the intent_type field"""
         intent = CreateModelIntent()
         config = ModelConfig(intent=intent)
-        
+
         # CreateModelIntent should only have intent_type field
         assert config.intent.intent_type == UploadIntent.create_model
         assert not hasattr(config.intent, 'model_id')
@@ -43,7 +43,7 @@ class TestModelConfigIntentTypes:
         """Test that create_version intent succeeds when model ID is provided"""
         intent = CreateVersionIntent(model_id="test-model-id")
         config = ModelConfig(intent=intent)
-        
+
         # Should not raise any validation errors
         assert config.intent.intent_type == UploadIntent.create_version
         assert isinstance(config.intent, CreateVersionIntent)
@@ -54,7 +54,7 @@ class TestModelConfigIntentTypes:
         with pytest.raises(ValidationError) as exc_info:
             CreateVersionIntent()
             # model_id is a required field
-        
+
         error_message = str(exc_info.value)
         assert "Field required" in error_message
 
@@ -62,7 +62,7 @@ class TestModelConfigIntentTypes:
         """Test that update_artifact intent succeeds when artifact ID is provided"""
         intent = UpdateArtifactIntent(artifact_id="test-artifact-id")
         config = ModelConfig(intent=intent)
-        
+
         # Should not raise any validation errors
         assert config.intent.intent_type == UploadIntent.update_artifact
         assert isinstance(config.intent, UpdateArtifactIntent)
@@ -72,7 +72,7 @@ class TestModelConfigIntentTypes:
         """Test that UpdateArtifactIntent only has the required fields"""
         intent = UpdateArtifactIntent(artifact_id="test-artifact-id")
         config = ModelConfig(intent=intent)
-        
+
         # UpdateArtifactIntent should only have intent_type and artifact_id fields
         assert config.intent.intent_type == UploadIntent.update_artifact
         assert config.intent.artifact_id == "test-artifact-id"
@@ -83,7 +83,7 @@ class TestModelConfigIntentTypes:
         with pytest.raises(ValidationError) as exc_info:
             UpdateArtifactIntent()
             # artifact_id is a required field
-        
+
         error_message = str(exc_info.value)
         assert "Field required" in error_message
 
@@ -94,14 +94,14 @@ class TestModelConfigIntentTypes:
         config = ModelConfig(intent=create_intent)
         serialized = config.model_dump()
         assert serialized['intent']['intent_type'] == 'create_model'
-        
+
         # Test CreateVersionIntent
         version_intent = CreateVersionIntent(model_id="test-id")
         config = ModelConfig(intent=version_intent)
         serialized = config.model_dump()
         assert serialized['intent']['intent_type'] == 'create_version'
         assert serialized['intent']['model_id'] == 'test-id'
-        
+
         # Test UpdateArtifactIntent
         artifact_intent = UpdateArtifactIntent(artifact_id="artifact-id")
         config = ModelConfig(intent=artifact_intent)
@@ -116,7 +116,7 @@ class TestMetadataModels:
         metadata = ConfigMapMetadata(
             registered_model=RegisteredModelMetadata(
                 name="test-model",
-                description="A test model", 
+                description="A test model",
                 owner="test-user"
             ),
             model_version=ModelVersionMetadata(

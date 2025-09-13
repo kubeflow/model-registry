@@ -7,8 +7,8 @@ metadata:
 data:
   # RegisteredModel reference (use id of existing model)
   RegisteredModel.id: "12345"
-  
-  # ModelVersion metadata  
+
+  # ModelVersion metadata
   ModelVersion.name: "2.0.0"
   ModelVersion.description: "Improved model with better accuracy and faster inference"
   ModelVersion.author: "John Doe"
@@ -19,7 +19,7 @@ data:
       "f1_score": 0.95,
       "improvement_over_v1": "2% accuracy increase, 30% faster inference"
     }
-  
+
   # ModelArtifact metadata
   ModelArtifact.name: "sentiment-analyzer-v2"
   ModelArtifact.model_format_name: "tensorflow"
@@ -55,15 +55,15 @@ spec:
         # Intent specification
         - name: MODEL_SYNC_MODEL_UPLOAD_INTENT
           value: "create_version"
-        
+
         # Model ID for the existing RegisteredModel
         - name: MODEL_SYNC_MODEL_ID
           value: "12345"
-        
+
         # ConfigMap metadata path
         - name: MODEL_SYNC_METADATA_CONFIGMAP_PATH
           value: "/etc/model-metadata"
-        
+
         # Source configuration (e.g., S3)
         - name: MODEL_SYNC_SOURCE_TYPE
           value: "s3"
@@ -71,7 +71,7 @@ spec:
           value: "my-models-bucket"
         - name: MODEL_SYNC_SOURCE_AWS_KEY
           value: "models/sentiment-analyzer/v2.0.0/"
-        
+
         # Destination configuration (e.g., OCI)
         - name: MODEL_SYNC_DESTINATION_TYPE
           value: "oci"
@@ -79,7 +79,7 @@ spec:
           value: "registry.example.com"
         - name: MODEL_SYNC_DESTINATION_OCI_URI
           value: "registry.example.com/models/sentiment-analyzer:2.0.0"
-        
+
         # Model Registry configuration
         - name: MODEL_SYNC_REGISTRY_SERVER_ADDRESS
           value: "model-registry-service.default.svc.cluster.local"
@@ -89,7 +89,7 @@ spec:
           value: "false"
         - name: MODEL_SYNC_REGISTRY_AUTHOR
           value: "data-science-team"
-        
+
         volumeMounts:
         - name: model-metadata
           mountPath: /etc/model-metadata
@@ -100,7 +100,7 @@ spec:
         - name: oci-credentials
           mountPath: /etc/oci-credentials
           readOnly: true
-      
+
       volumes:
       - name: model-metadata
         configMap:
@@ -111,5 +111,5 @@ spec:
       - name: oci-credentials
         secret:
           secretName: oci-credentials-secret
-      
+
       restartPolicy: OnFailure
