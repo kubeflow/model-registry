@@ -56,7 +56,7 @@ var _ = Describe("TestGetAllCatalogSourcesHandler", func() {
 				UserID: "user@example.com",
 			}
 
-			actual, rs, err := setupApiTest[CatalogModelEnvelope](http.MethodGet, "/api/v1/model_catalog/sources/sample-source/models/repo1/granite-8b-code-instruct?namespace=kubeflow&name=dora", nil, kubernetesMockedStaticClientFactory, requestIdentity, "kubeflow")
+			actual, rs, err := setupApiTest[CatalogModelEnvelope](http.MethodGet, "/api/v1/model_catalog/sources/sample-source/models/repo1%252Fgranite-8b-code-instruct?namespace=kubeflow&name=dora", nil, kubernetesMockedStaticClientFactory, requestIdentity, "kubeflow")
 			Expect(err).NotTo(HaveOccurred())
 
 			By("should match the expected model")

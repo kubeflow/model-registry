@@ -38,6 +38,7 @@ const RegisterModelDetailsFormSection = <D extends RegisterModelFormData>({
 
   const modelDescriptionInput = (
     <TextArea
+      type="text"
       id="model-description"
       name="model-description"
       value={formData.modelDescription}

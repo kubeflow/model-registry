@@ -9,9 +9,9 @@ import {
 } from '~/app/context/ModelRegistrySelectorContext';
 import { useCatalogModel } from '~/app/hooks/modelCatalog/useCatalogModel';
 import { CatalogModelDetailsParams } from '~/app/modelCatalogTypes';
-// import { useCatalogModelArtifacts } from '~/app/hooks/modelCatalog/useCatalogModelArtifacts';
+import { useCatalogModelArtifacts } from '~/app/hooks/modelCatalog/useCatalogModelArtifacts';
 import { getCatalogModelDetailsRoute } from '~/app/routes/modelCatalog/catalogModelDetails';
-import { decodeParams } from '~/app/pages/modelCatalog/utils/modelCatalogUtils';
+import { decodeParams, getModelName } from '~/app/pages/modelCatalog/utils/modelCatalogUtils';
 import RegisterCatalogModelForm from './RegisterCatalogModelForm';
 
 const RegisterCatalogModelPageInner: React.FC = () => {
@@ -21,21 +21,25 @@ const RegisterCatalogModelPageInner: React.FC = () => {
 
   const state = useCatalogModel(
     decodedParams.sourceId || '',
-    encodeURIComponent(`${decodedParams.repositoryName}/${decodedParams.modelName}`) || '',
+    encodeURIComponent(
+      encodeURIComponent(`${decodedParams.repositoryName}/${decodedParams.modelName}`),
+    ) || '',
   );
   const [model, modelLoaded, modelLoadError] = state;
-  // const [artifacts, artifactLoaded, artifactsLoadError] = useCatalogModelArtifacts(
-  //   decodedParams.sourceId || '',
-  //   encodeURIComponent(`${decodedParams.repositoryName}/${decodedParams.modelName}`) || '',
-  // );
+  const [artifacts, artifactLoaded, artifactsLoadError] = useCatalogModelArtifacts(
+    decodedParams.sourceId || '',
+    encodeURIComponent(
+      encodeURIComponent(`${decodedParams.repositoryName}/${decodedParams.modelName}`),
+    ) || '',
+  );
 
   const preferredModelRegistry = modelRegistries.length > 0 ? modelRegistries[0] : null;
 
   // Check to see if data is loaded
   const isDataReady =
     modelLoaded &&
-    // !artifactLoaded &&
-    // !artifactsLoadError &&
+    artifactLoaded &&
+    !artifactsLoadError &&
     !modelLoadError &&
     model &&
     modelRegistriesLoaded &&
@@ -43,7 +47,7 @@ const RegisterCatalogModelPageInner: React.FC = () => {
 
   return (
     <ApplicationsPage
-      title={`Register ${model?.name || ''} model`}
+      title={`Register ${getModelName(model?.name || '') || ''} model`}
       description="Create and register the first version of a new model."
       breadcrumb={
         <Breadcrumb>
@@ -80,9 +84,7 @@ const RegisterCatalogModelPageInner: React.FC = () => {
           <RegisterCatalogModelForm
             model={model}
             preferredModelRegistry={preferredModelRegistry}
-            // TODO: uncomment this code and remove the hard-code part, once the artifacts route is available
-            // uri={artifacts.items[0].uri}
-            uri="uri"
+            uri={artifacts.items[0].uri}
             decodedParams={decodedParams}
             removeChildrenTopPadding
           />
