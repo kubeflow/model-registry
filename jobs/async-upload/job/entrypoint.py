@@ -10,6 +10,8 @@ from .mr_client import (
     update_model_artifact_uri,
     create_model_and_artifact,
     create_version_and_artifact,
+    validate_create_model_intent,
+    validate_create_version_intent,
 )
 from .models import CreateModelIntent, CreateVersionIntent, UpdateArtifactIntent
 from .download import perform_download
@@ -67,6 +69,9 @@ async def main() -> None:
             logger.info("📋 Processing create_model intent")
             if not config.metadata:
                 raise ValueError("create_model intent requires ConfigMap metadata")
+            # Fast-fail validation before any expensive operations
+            logger.info("🔍 Validating create_model intent...")
+            await validate_create_model_intent(client, config.metadata)
             perform_download(config)
             uri = perform_upload(config)
             await create_model_and_artifact(client, config.metadata, uri)
@@ -74,6 +79,9 @@ async def main() -> None:
             logger.info("📋 Processing create_version intent")
             if not config.metadata:
                 raise ValueError("create_version intent requires ConfigMap metadata")
+            # Fast-fail validation before any expensive operations
+            logger.info("🔍 Validating create_version intent...")
+            await validate_create_version_intent(client, intent.model_id, config.metadata)
             perform_download(config)
             uri = perform_upload(config)
             await create_version_and_artifact(client, intent.model_id, config.metadata, uri)

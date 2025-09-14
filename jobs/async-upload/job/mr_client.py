@@ -37,8 +37,8 @@ async def set_artifact_pending(client: ModelRegistry, artifact_id: str) -> None:
     logger.debug("✅ Artifact set to pending: %s", artifact_id)
 
 
-async def create_model_and_artifact(client: ModelRegistry, metadata: ConfigMapMetadata, uri: str) -> None:
-    """Creates a new registered model, model version, and model artifact."""
+async def validate_create_model_intent(client: ModelRegistry, metadata: ConfigMapMetadata) -> None:
+    """Fast-fail validation for create_model intent."""
     if not metadata or not metadata.registered_model or not metadata.model_version or not metadata.model_artifact:
         raise ValueError(
             "create_model intent requires complete metadata for registered_model, model_version, and model_artifact"
@@ -47,6 +47,55 @@ async def create_model_and_artifact(client: ModelRegistry, metadata: ConfigMapMe
     if not metadata.registered_model.name:
         raise ValueError("RegisteredModel name is required for create_model intent")
 
+    # Fast-fail check: ensure RegisteredModel doesn't already exist
+    existing_rm = await client._api.get_registered_model_by_params(metadata.registered_model.name)
+    if existing_rm:
+        raise ValueError(
+            f"Cannot create model: RegisteredModel with name '{metadata.registered_model.name}' already exists. "
+            f"Use 'create_version' intent to add a new version to this existing model."
+        )
+
+    logger.debug("✅ create_model intent validation passed")
+
+
+async def validate_create_version_intent(client: ModelRegistry, model_id: str, metadata: ConfigMapMetadata) -> None:
+    """Fast-fail validation for create_version intent."""
+    if not metadata or not metadata.model_version or not metadata.model_artifact:
+        raise ValueError("create_version intent requires metadata for model_version and model_artifact")
+
+    if not metadata.model_version.name:
+        raise ValueError("ModelVersion name is required for create_version intent")
+
+    # Fast-fail check: ensure RegisteredModel exists
+    rm = await client._api.get_registered_model_by_id(model_id)
+    if not rm:
+        raise ValueError(
+            f"Cannot create version: RegisteredModel with ID '{model_id}' not found. "
+            f"Use 'create_model' intent to create a new model first."
+        )
+
+    # Fast-fail check: ensure ModelVersion doesn't already exist
+    try:
+        existing_mv = await client._api.get_model_version_by_params(
+            registered_model_id=model_id, 
+            name=metadata.model_version.name
+        )
+        if existing_mv:
+            raise ValueError(
+                f"Cannot create version: ModelVersion with name '{metadata.model_version.name}' already exists "
+                f"under RegisteredModel '{rm.name}' (ID: {model_id}). "
+                f"Use 'update_artifact' intent to update an existing version's artifact."
+            )
+    except Exception as e:
+        # If the API call fails for reasons other than "not found", we should still fail
+        if "not found" not in str(e).lower():
+            raise ValueError(f"Failed to check if ModelVersion exists: {e}") from e
+
+    logger.debug("✅ create_version intent validation passed")
+
+
+async def create_model_and_artifact(client: ModelRegistry, metadata: ConfigMapMetadata, uri: str) -> None:
+    """Creates a new registered model, model version, and model artifact."""
     logger.debug("🔍 Creating new registered model, version, and artifact")
     rm = await _create_registered_model(client, metadata.registered_model)
     await _create_version_and_artifact_for_model(client, rm, uri, metadata)
@@ -56,9 +105,6 @@ async def create_version_and_artifact(
     client: ModelRegistry, model_id: str, metadata: ConfigMapMetadata, uri: str
 ) -> None:
     """Creates a new model version and model artifact under an existing registered model."""
-    if not metadata or not metadata.model_version or not metadata.model_artifact:
-        raise ValueError("create_version intent requires metadata for model_version and model_artifact")
-
     logger.debug("🔍 Creating new version and artifact for model ID: %s", model_id)
 
     rm = await client._api.get_registered_model_by_id(model_id)
@@ -84,11 +130,6 @@ async def update_model_artifact_uri(client: ModelRegistry, artifact_id: str, uri
 
 async def _create_registered_model(client: ModelRegistry, rm_metadata):
     """Creates a new registered model and returns it."""
-    # Check if model already exists
-    existing_rm = await client._api.get_registered_model_by_params(rm_metadata.name)
-    if existing_rm:
-        raise ValueError(f"RegisteredModel with name '{rm_metadata.name}' already exists")
-
     rm = await client._register_model(
         name=rm_metadata.name,
         owner=rm_metadata.owner,
