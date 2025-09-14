@@ -49,7 +49,6 @@ async def main() -> None:
     """
     logger.info("🚀 Starting async upload job...")
     try:
-        # Get complete configuration
         try:
             config = get_config()
         except Exception as e:
@@ -57,59 +56,29 @@ async def main() -> None:
 
         client = validate_and_get_model_registry_client(config.registry)
 
-        # Handle different intents
         intent = config.model.intent
-
         if isinstance(intent, UpdateArtifactIntent):
-            # Original "Option 2" flow - update existing artifact
             logger.info("📋 Processing update_artifact intent")
-
-            # Queue up model registration
             await set_artifact_pending(client, intent.artifact_id)
-
-            # Download the model from the defined source
             perform_download(config)
-
-            # Upload the model to the destination
             uri = perform_upload(config)
-
             await update_model_artifact_uri(client, intent.artifact_id, uri)
-
         elif isinstance(intent, CreateModelIntent):
-            # "Option 1" flow - create new model, version, and artifact
             logger.info("📋 Processing create_model intent")
-
             if not config.metadata:
                 raise ValueError("create_model intent requires ConfigMap metadata")
-
-            # Download the model from the defined source
             perform_download(config)
-
-            # Upload the model to the destination
             uri = perform_upload(config)
-
-            # Create the complete model registry entry
             await create_model_and_artifact(client, config.metadata, uri)
-
         elif isinstance(intent, CreateVersionIntent):
-            # "Option 1" flow - create new version and artifact under existing model
             logger.info("📋 Processing create_version intent")
-
             if not config.metadata:
                 raise ValueError("create_version intent requires ConfigMap metadata")
-
-            # Download the model from the defined source
             perform_download(config)
-
-            # Upload the model to the destination
             uri = perform_upload(config)
-
-            # Create the version and artifact under existing model
             await create_version_and_artifact(client, intent.model_id, config.metadata, uri)
-
         else:
             raise ValueError(f"Unknown intent type: {type(intent)}")
-
     except BaseException as e:
         record_error(e)
         raise
