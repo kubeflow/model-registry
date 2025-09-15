@@ -151,10 +151,12 @@ func TestBuildTLSConfig_Basic(t *testing.T) {
 
 	if err != nil {
 		t.Fatalf("BuildTLSConfig() error = %v", err)
+		return
 	}
 
 	if tlsConf == nil {
 		t.Fatal("BuildTLSConfig() returned nil config")
+		return
 	}
 
 	if !tlsConf.InsecureSkipVerify {
