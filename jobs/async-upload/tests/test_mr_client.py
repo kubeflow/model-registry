@@ -247,10 +247,10 @@ async def test_validate_create_version_intent_version_already_exists(mr_client, 
     )
     
     existing_version = await mr_client._register_new_version(
-        name=version_only_metadata.model_version.name,
-        registered_model_id=parent_model.id,
-        description="Existing version for conflict test",
-        author="test-user"
+        parent_model,
+        version_only_metadata.model_version.name,
+        "test-user",
+        description="Existing version for conflict test"
     )
     
     try:
