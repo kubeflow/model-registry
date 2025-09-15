@@ -1,26 +1,14 @@
 package models
 
-import "github.com/kubeflow/model-registry/internal/db/filter"
+import (
+	"github.com/kubeflow/model-registry/internal/db/constants"
+	"github.com/kubeflow/model-registry/internal/db/filter"
+)
 
 var (
-	Artifact_State_name = map[int32]string{
-		0: "UNKNOWN",
-		1: "PENDING",
-		2: "LIVE",
-		3: "MARKED_FOR_DELETION",
-		4: "DELETED",
-		5: "ABANDONED",
-		6: "REFERENCE",
-	}
-	Artifact_State_value = map[string]int32{
-		"UNKNOWN":             0,
-		"PENDING":             1,
-		"LIVE":                2,
-		"MARKED_FOR_DELETION": 3,
-		"DELETED":             4,
-		"ABANDONED":           5,
-		"REFERENCE":           6,
-	}
+	// Use centralized state mappings from constants package
+	Artifact_State_name  = constants.ArtifactStateNames
+	Artifact_State_value = constants.ArtifactStateMapping
 )
 
 type ArtifactListOptions struct {
