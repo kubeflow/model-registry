@@ -56,7 +56,7 @@ class OCIConfig(BaseModel):
 
 class S3StorageConfig(BaseStorageConfig, S3Config):
     """S3 storage configuration with validation - can be used for both source and destination."""
-    
+
     @model_validator(mode='after')
     def validate_s3_storage(self) -> 'S3StorageConfig':
         """Validate that required S3 fields are present."""
@@ -67,7 +67,7 @@ class S3StorageConfig(BaseStorageConfig, S3Config):
 
 class OCIStorageConfig(BaseStorageConfig, OCIConfig):
     """OCI storage configuration with validation - can be used for both source and destination."""
-    
+
     @model_validator(mode='after')
     def validate_oci_storage(self) -> 'OCIStorageConfig':
         """Validate that required OCI fields are present."""
@@ -83,7 +83,7 @@ class URISourceConfig(BaseModel):
 
 class URISourceStorageConfig(BaseStorageConfig, URISourceConfig):
     """URI source storage configuration with validation - only used for sources, not destinations."""
-    
+
     @model_validator(mode='after')
     def validate_uri_storage(self) -> 'URISourceStorageConfig':
         """Validate that required URI field is present."""
@@ -106,7 +106,7 @@ class ModelInputArgs(BaseModel):
     model_config = ConfigDict(frozen=True)
 
     intent_type: UploadIntent = Field(description="Upload intent type")
-    id: str | None = Field(description="Registered model ID")
+    model_id: str | None = Field(description="Registered model ID")
     version_id: str | None = Field(description="Model version ID")
     artifact_id: str | None = Field(description="Model artifact ID")
 
@@ -158,6 +158,61 @@ class RegistryConfig(BaseModel):
         return self
 
 
+class RegisteredModelMetadata(BaseModel):
+    """Metadata for creating a RegisteredModel."""
+    name: str | None = None
+    id: str | None = None  # Alternative to name for existing models
+    description: str | None = None
+    owner: str | None = None
+    custom_properties: dict | None = None
+
+    @model_validator(mode='after')
+    def validate_name_or_id(self) -> 'RegisteredModelMetadata':
+        """Validate that either name or id is provided, but not both."""
+        if self.name and self.id:
+            raise ValueError("Cannot provide both name and id for RegisteredModel")
+        if not self.name and not self.id:
+            raise ValueError("Must provide either name or id for RegisteredModel")
+        return self
+
+
+class ModelVersionMetadata(BaseModel):
+    """Metadata for creating a ModelVersion."""
+    name: str | None = None
+    description: str | None = None
+    author: str | None = None
+    custom_properties: dict | None = None
+
+
+class ModelArtifactMetadata(BaseModel):
+    """Metadata for creating a ModelArtifact."""
+    name: str | None = None
+    model_format_name: str | None = None
+    model_format_version: str | None = None
+    storage_key: str | None = None
+    storage_path: str | None = None
+    service_account_name: str | None = None
+    model_source_kind: str | None = None
+    model_source_class: str | None = None
+    model_source_group: str | None = None
+    model_source_id: str | None = None
+    model_source_name: str | None = None
+    custom_properties: dict | None = None
+
+
+class ConfigMapMetadata(BaseModel):
+    """Metadata from ConfigMap for creating model registry entries."""
+    registered_model: RegisteredModelMetadata | None = None
+    model_version: ModelVersionMetadata | None = None
+    model_artifact: ModelArtifactMetadata | None = None
+
+    @model_validator(mode='after')
+    def validate_metadata_for_intent(self) -> 'ConfigMapMetadata':
+        """Validate that metadata is compatible with the intent."""
+        # This validation will be enhanced when we know the intent type
+        return self
+
+
 class AsyncUploadConfig(BaseModel):
     """Main configuration for the async upload job."""
     model_config = ConfigDict(
@@ -174,3 +229,4 @@ class AsyncUploadConfig(BaseModel):
     model: ModelConfig
     storage: StorageConfig = Field(default_factory=StorageConfig)
     registry: RegistryConfig
+    metadata: ConfigMapMetadata | None = None  # Optional ConfigMap metadata

@@ -1,0 +1,115 @@
+# Example ConfigMap for create_version intent
+# This creates a new version under an existing RegisteredModel
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: model-version-metadata-configmap
+data:
+  # RegisteredModel reference (use id of existing model)
+  RegisteredModel.id: "12345"
+
+  # ModelVersion metadata
+  ModelVersion.name: "2.0.0"
+  ModelVersion.description: "Improved model with better accuracy and faster inference"
+  ModelVersion.author: "John Doe"
+  ModelVersion.custom_properties: |
+    {
+      "training_dataset": "sentiment-corpus-v2.1",
+      "accuracy": 0.97,
+      "f1_score": 0.95,
+      "improvement_over_v1": "2% accuracy increase, 30% faster inference"
+    }
+
+  # ModelArtifact metadata
+  ModelArtifact.name: "sentiment-analyzer-v2"
+  ModelArtifact.model_format_name: "tensorflow"
+  ModelArtifact.model_format_version: "2.11"
+  ModelArtifact.storage_key: "s3-connection"
+  ModelArtifact.storage_path: "models/sentiment/v2/"
+  ModelArtifact.service_account_name: "model-registry-sa"
+  ModelArtifact.model_source_kind: "HuggingFace"
+  ModelArtifact.model_source_class: "transformer"
+  ModelArtifact.model_source_group: "distilbert-models"
+  ModelArtifact.model_source_id: "distilbert-base-uncased"
+  ModelArtifact.model_source_name: "DistilBERT Base Uncased"
+  ModelArtifact.custom_properties: |
+    {
+      "model_size_mb": 265,
+      "inference_time_ms": 85,
+      "supported_languages": ["en", "es", "fr", "de", "it"],
+      "compression_ratio": 0.6
+    }
+---
+# Job definition using create_version intent
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: create-version-job
+spec:
+  template:
+    spec:
+      containers:
+      - name: model-sync
+        image: model-registry/async-upload:latest
+        env:
+        # Intent specification
+        - name: MODEL_SYNC_MODEL_UPLOAD_INTENT
+          value: "create_version"
+
+        # Model ID for the existing RegisteredModel
+        - name: MODEL_SYNC_MODEL_ID
+          value: "12345"
+
+        # ConfigMap metadata path
+        - name: MODEL_SYNC_METADATA_CONFIGMAP_PATH
+          value: "/etc/model-metadata"
+
+        # Source configuration (e.g., S3)
+        - name: MODEL_SYNC_SOURCE_TYPE
+          value: "s3"
+        - name: MODEL_SYNC_SOURCE_AWS_BUCKET
+          value: "my-models-bucket"
+        - name: MODEL_SYNC_SOURCE_AWS_KEY
+          value: "models/sentiment-analyzer/v2.0.0/"
+
+        # Destination configuration (e.g., OCI)
+        - name: MODEL_SYNC_DESTINATION_TYPE
+          value: "oci"
+        - name: MODEL_SYNC_DESTINATION_OCI_REGISTRY
+          value: "registry.example.com"
+        - name: MODEL_SYNC_DESTINATION_OCI_URI
+          value: "registry.example.com/models/sentiment-analyzer:2.0.0"
+
+        # Model Registry configuration
+        - name: MODEL_SYNC_REGISTRY_SERVER_ADDRESS
+          value: "model-registry-service.default.svc.cluster.local"
+        - name: MODEL_SYNC_REGISTRY_PORT
+          value: "8080"
+        - name: MODEL_SYNC_REGISTRY_IS_SECURE
+          value: "false"
+        - name: MODEL_SYNC_REGISTRY_AUTHOR
+          value: "data-science-team"
+
+        volumeMounts:
+        - name: model-metadata
+          mountPath: /etc/model-metadata
+          readOnly: true
+        - name: s3-credentials
+          mountPath: /etc/s3-credentials
+          readOnly: true
+        - name: oci-credentials
+          mountPath: /etc/oci-credentials
+          readOnly: true
+
+      volumes:
+      - name: model-metadata
+        configMap:
+          name: model-version-metadata-configmap
+      - name: s3-credentials
+        secret:
+          secretName: s3-credentials-secret
+      - name: oci-credentials
+        secret:
+          secretName: oci-credentials-secret
+
+      restartPolicy: OnFailure
