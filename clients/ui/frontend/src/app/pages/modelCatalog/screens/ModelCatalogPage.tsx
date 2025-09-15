@@ -14,12 +14,13 @@ import ModelCatalogCard from '~/app/pages/modelCatalog/components/ModelCatalogCa
 import { ModelCatalogContext } from '~/app/context/modelCatalog/ModelCatalogContext';
 import ScrollViewOnMount from '~/app/shared/components/ScrollViewOnMount';
 import EmptyModelCatalogState from '~/app/pages/modelCatalog/EmptyModelCatalogState';
-import { useCatalogModelsBySources } from '~/app/hooks/modelCatalog/useCatalogModelsBySources';
+import { CatalogModel } from '~/app/modelCatalogTypes';
+import { useCatalogModelsBySource } from '~/app/hooks/modelCatalog/useCatalogModelsBySource';
 
 const ModelCatalogPage: React.FC = () => {
   const { selectedSource } = React.useContext(ModelCatalogContext);
   const [catalogModels, catalogModelsLoaded, catalogModelsLoadError, refresh] =
-    useCatalogModelsBySources(selectedSource?.id || '', 10);
+    useCatalogModelsBySource(selectedSource?.id || '', 10);
 
   if (!catalogModelsLoaded) {
     return (
@@ -78,7 +79,7 @@ const ModelCatalogPage: React.FC = () => {
       >
         <PageSection isFilled>
           <Gallery hasGutter minWidths={{ default: '300px' }}>
-            {catalogModels.items.map((model) => (
+            {catalogModels.items.map((model: CatalogModel) => (
               <ModelCatalogCard
                 model={model}
                 source={selectedSource}

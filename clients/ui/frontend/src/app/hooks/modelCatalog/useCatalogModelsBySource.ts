@@ -30,7 +30,7 @@ type CatalogModelList = [
   refresh: () => void,
 ];
 
-export const useCatalogModelsBySources = (sourceId: string, pageSize = 10): CatalogModelList => {
+export const useCatalogModelsBySource = (sourceId: string, pageSize = 10): CatalogModelList => {
   const { api, apiAvailable } = useModelCatalogAPI();
 
   const [state, setState] = React.useState<CatalogModelsState>({
