@@ -48,9 +48,11 @@ func (app *App) GetCatalogSourceModelHandler(w http.ResponseWriter, r *http.Requ
 	}
 
 	ps.ByName(CatalogSourceId)
-	ps.ByName(CatalogModelName)
+	modelName := strings.TrimPrefix(ps.ByName(CatalogModelName), "/")
 
-	catalogModel, err := app.repositories.ModelCatalogClient.GetCatalogSourceModel(client, ps.ByName(CatalogSourceId), ps.ByName(CatalogModelName))
+	newModelName := url.PathEscape(modelName)
+
+	catalogModel, err := app.repositories.ModelCatalogClient.GetCatalogSourceModel(client, ps.ByName(CatalogSourceId), newModelName)
 
 	if err != nil {
 		app.serverErrorResponse(w, r, err)
