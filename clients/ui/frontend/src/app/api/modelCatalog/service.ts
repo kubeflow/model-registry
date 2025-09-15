@@ -57,7 +57,7 @@ export const getListCatalogModelArtifacts =
   (hostPath: string, queryParams: Record<string, unknown> = {}) =>
   (opts: APIOptions, sourceId: string, modelName: string): Promise<CatalogModelArtifactList> =>
     handleRestFailures(
-      restGET(hostPath, `/sources/${sourceId}/models/${modelName}/artifacts`, queryParams, opts),
+      restGET(hostPath, `/sources/${sourceId}/artifacts/${modelName}`, queryParams, opts),
     ).then((response) => {
       if (isModArchResponse<CatalogModelArtifactList>(response)) {
         return response.data;

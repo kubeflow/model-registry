@@ -51,7 +51,7 @@ const initIntercepts = ({
   );
 
   cy.interceptApi(
-    `GET /api/:apiVersion/model_catalog/sources/:sourceId/models/:modelName/artifacts`,
+    `GET /api/:apiVersion/model_catalog/sources/:sourceId/artifacts/:modelName`,
     {
       path: {
         apiVersion: MODEL_CATALOG_API_VERSION,

@@ -61,7 +61,7 @@ const RegisterCatalogModelPageInner: React.FC = () => {
                     modelName: decodedParams.modelName,
                   })}
                 >
-                  {model.name}
+                  {getModelName(model.name)}
                 </Link>
               )
             }
