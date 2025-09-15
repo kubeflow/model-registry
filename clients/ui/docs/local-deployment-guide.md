@@ -128,5 +128,5 @@ make run DEV_MODE=true
 You can also specify the port you are forwarding to if it is something other than 8080:
 
 ```shell
-make run DEV_MODE=true DEV_MODE_PORT=8081
+make run DEV_MODE=true DEV_MODE_MODEL_REGISTRY_PORT=8081
 ```
