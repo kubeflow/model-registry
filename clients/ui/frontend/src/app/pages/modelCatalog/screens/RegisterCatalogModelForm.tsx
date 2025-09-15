@@ -1,7 +1,6 @@
 import { Alert, Form, FormGroup, PageSection, Stack, StackItem } from '@patternfly/react-core';
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import spacing from '@patternfly/react-styles/css/utilities/Spacing/spacing';
 import {
   ModelLocationType,
   RegisterCatalogModelFormData,
@@ -17,28 +16,34 @@ import {
 import { SubmitLabel } from '~/app/pages/modelRegistry/screens/RegisterModel/const';
 import RegisterModelDetailsFormSection from '~/app/pages/modelRegistry/screens/RegisterModel/RegisterModelDetailsFormSection';
 import RegistrationFormFooter from '~/app/pages/modelRegistry/screens/RegisterModel/RegistrationFormFooter';
-import { ModelCatalogItem } from '~/app/modelCatalogTypes';
 import { ModelRegistry, ModelRegistryMetadataType } from '~/app/types';
 import { ModelRegistryContext } from '~/app/context/ModelRegistryContext';
 import useRegisteredModels from '~/app/hooks/useRegisteredModels';
 import useUser from '~/app/hooks/useUser';
-import { extractVersionTag } from '~/app/pages/modelCatalog/utils/modelCatalogUtils';
 import ModelRegistrySelector from '~/app/pages/modelRegistry/screens/ModelRegistrySelector';
 import { registeredModelUrl } from '~/app/pages/modelRegistry/screens/routeUtils';
-import { getCatalogModelDetailsRoute } from '~/app/routes/modelCatalog/catalogModelDetails';
 import {
   catalogParamsToModelSourceProperties,
-  createCustomPropertiesFromModel,
+  getLabelsFromModelTasks,
+  getLabelsFromCustomProperties,
 } from '~/concepts/modelRegistry/utils';
+import { CatalogModel, CatalogModelDetailsParams } from '~/app/modelCatalogTypes';
+import { getCatalogModelDetailsRoute } from '~/app/routes/modelCatalog/catalogModelDetails';
 
 interface RegisterCatalogModelFormProps {
-  model: ModelCatalogItem;
+  model: CatalogModel | null;
   preferredModelRegistry: ModelRegistry;
+  uri: string;
+  decodedParams: CatalogModelDetailsParams;
+  removeChildrenTopPadding?: boolean;
 }
 
 const RegisterCatalogModelForm: React.FC<RegisterCatalogModelFormProps> = ({
   model,
   preferredModelRegistry,
+  uri,
+  decodedParams,
+  removeChildrenTopPadding,
 }) => {
   const navigate = useNavigate();
   const { apiState } = React.useContext(ModelRegistryContext);
@@ -48,19 +53,12 @@ const RegisterCatalogModelForm: React.FC<RegisterCatalogModelFormProps> = ({
   const [isSubmitting, setIsSubmitting] = React.useState(false);
   const [submitError, setSubmitError] = React.useState<Error | undefined>(undefined);
 
-  const versionTag = extractVersionTag(model.tags);
-
-  const catalogParams = {
-    modelName: model.name,
-    tag: versionTag || '',
-    sourceName: model.provider || '',
-    repositoryName: model.id || '',
-  };
-  const sourceProperties = catalogParamsToModelSourceProperties(catalogParams);
+  const sourceProperties = catalogParamsToModelSourceProperties(decodedParams);
+  const tasks = getLabelsFromModelTasks(model);
 
   const initialFormData: RegisterCatalogModelFormData = {
-    modelName: `${model.name}-${versionTag || ''}`,
-    modelDescription: model.description || '',
+    modelName: `${decodedParams.modelName || ''}`,
+    modelDescription: model?.description || '',
     versionName: 'Version 1',
     versionDescription: '',
     sourceModelFormat: '',
@@ -70,25 +68,22 @@ const RegisterCatalogModelForm: React.FC<RegisterCatalogModelFormProps> = ({
     modelLocationBucket: '',
     modelLocationRegion: '',
     modelLocationPath: '',
-    modelLocationURI: model.url || '',
+    modelLocationURI: uri || '',
     modelRegistry: preferredModelRegistry.name,
-    modelCustomProperties: createCustomPropertiesFromModel(model),
+    modelCustomProperties: { ...getLabelsFromCustomProperties(model?.customProperties), ...tasks },
     versionCustomProperties: {
+      ...model?.customProperties,
       License: {
         // eslint-disable-next-line camelcase
-        string_value: model.license || '',
+        string_value: model?.licenseLink || '',
         metadataType: ModelRegistryMetadataType.STRING,
       },
-      Framework: {
+      Provider: {
         // eslint-disable-next-line camelcase
-        string_value: model.framework || '',
+        string_value: model?.provider ?? '',
         metadataType: ModelRegistryMetadataType.STRING,
       },
-      Task: {
-        // eslint-disable-next-line camelcase
-        string_value: model.task || '',
-        metadataType: ModelRegistryMetadataType.STRING,
-      },
+      ...tasks,
     },
     additionalArtifactProperties: sourceProperties,
   };
@@ -153,15 +148,25 @@ const RegisterCatalogModelForm: React.FC<RegisterCatalogModelFormProps> = ({
   };
 
   const onCancel = () => {
-    navigate(getCatalogModelDetailsRoute({ modelName: model.name, tag: '' }));
+    navigate(
+      getCatalogModelDetailsRoute({
+        sourceId: decodedParams.sourceId,
+        repositoryName: decodedParams.repositoryName,
+        modelName: decodedParams.modelName,
+      }),
+    );
   };
 
   return (
     <>
-      <PageSection hasBodyWrapper={false} isFilled>
+      <PageSection
+        hasBodyWrapper={false}
+        style={removeChildrenTopPadding ? { paddingTop: 0 } : undefined}
+        isFilled
+      >
         <Form isWidthLimited>
           <Stack hasGutter>
-            <StackItem className={spacing.mbLg}>
+            <StackItem>
               <FormGroup
                 id="model-registry-container"
                 label="Model registry"

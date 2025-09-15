@@ -11,9 +11,16 @@ import type {
   RegisteredModel,
   RegisteredModelList,
 } from '~/app/types';
+import type {
+  CatalogModel,
+  CatalogModelArtifactList,
+  CatalogModelList,
+  CatalogSourceList,
+} from '~/app/modelCatalogTypes';
 
 const MODEL_REGISTRY_API_VERSION = 'v1';
 export { MODEL_REGISTRY_API_VERSION };
+export const MODEL_CATALOG_API_VERSION = 'v1';
 
 type SuccessErrorResponse = {
   success: boolean;
@@ -131,6 +138,26 @@ declare global {
           type: 'GET /api/:apiVersion/settings/role_bindings',
           options: { path: { apiVersion: string } },
           response: ApiResponse<RoleBindingKind[]>,
+        ) => Cypress.Chainable<null>) &
+        ((
+          type: 'GET /api/:apiVersion/model_catalog/models',
+          options: { path: { apiVersion: string }; query: { source: string } },
+          response: ApiResponse<CatalogModelList>,
+        ) => Cypress.Chainable<null>) &
+        ((
+          type: 'GET /api/:apiVersion/model_catalog/sources',
+          options: { path: { apiVersion: string } },
+          response: ApiResponse<CatalogSourceList>,
+        ) => Cypress.Chainable<null>) &
+        ((
+          type: 'GET /api/:apiVersion/model_catalog/sources/:sourceId/models/:modelName',
+          options: { path: { apiVersion: string; sourceId: string; modelName: string } },
+          response: ApiResponse<CatalogModel>,
+        ) => Cypress.Chainable<null>) &
+        ((
+          type: 'GET /api/:apiVersion/model_catalog/sources/:sourceId/artifacts/:modelName',
+          options: { path: { apiVersion: string; sourceId: string; modelName: string } },
+          response: ApiResponse<CatalogModelArtifactList>,
         ) => Cypress.Chainable<null>);
     }
   }
@@ -166,7 +193,7 @@ Cypress.Commands.add(
     return cy.intercept(
       {
         method,
-        pathname: `/model-registry/${pathname}`,
+        pathname: pathname.includes('model_catalog') ? pathname : `/model-registry/${pathname}`,
         query: options?.query,
         ...(options?.times && { times: options.times }),
       },

@@ -32,7 +32,7 @@ dev-install-dependencies:
 
 .PHONY: dev-bff
 dev-bff:
-	cd bff && make run PORT=4000 MOCK_K8S_CLIENT=true MOCK_MR_CLIENT=true DEV_MODE=true DEPLOYMENT_MODE=standalone
+	cd bff && make run PORT=4000 MOCK_K8S_CLIENT=true MOCK_MR_CLIENT=true MOCK_MR_CATALOG_CLIENT=true DEV_MODE=true DEPLOYMENT_MODE=standalone 
 
 .PHONY: dev-frontend
 dev-frontend:
