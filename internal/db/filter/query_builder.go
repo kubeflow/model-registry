@@ -267,10 +267,14 @@ func (qb *QueryBuilder) ConvertStateValue(propertyName string, value any) any {
 				if intValue, exists := constants.ArtifactStateMapping[strValue]; exists {
 					return int32(intValue)
 				}
+				// Invalid artifact state - return value that matches no records
+				return int32(-1) // No artifact has state=-1, so this returns empty results
 			case EntityTypeExecution:
 				if intValue, exists := constants.ExecutionStateMapping[strValue]; exists {
 					return int32(intValue)
 				}
+				// Invalid execution state - return value that matches no records
+				return int32(-1) // No execution has state=-1, so this returns empty results
 			case EntityTypeContext:
 				// Context entities (RegisteredModel, ModelVersion, etc.) use string states
 				// These are stored as string properties, so no conversion needed
