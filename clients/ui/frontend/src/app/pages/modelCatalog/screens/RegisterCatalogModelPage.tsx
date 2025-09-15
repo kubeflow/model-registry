@@ -21,16 +21,12 @@ const RegisterCatalogModelPageInner: React.FC = () => {
 
   const state = useCatalogModel(
     decodedParams.sourceId || '',
-    encodeURIComponent(
-      encodeURIComponent(`${decodedParams.repositoryName}/${decodedParams.modelName}`),
-    ) || '',
+    encodeURIComponent(`${decodedParams.repositoryName}/${decodedParams.modelName}`),
   );
   const [model, modelLoaded, modelLoadError] = state;
   const [artifacts, artifactLoaded, artifactsLoadError] = useCatalogModelArtifacts(
     decodedParams.sourceId || '',
-    encodeURIComponent(
-      encodeURIComponent(`${decodedParams.repositoryName}/${decodedParams.modelName}`),
-    ) || '',
+    encodeURIComponent(`${decodedParams.repositoryName}/${decodedParams.modelName}`),
   );
 
   const preferredModelRegistry = modelRegistries.length > 0 ? modelRegistries[0] : null;

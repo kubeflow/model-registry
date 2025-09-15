@@ -31,9 +31,7 @@ const ModelDetailsPage: React.FC = () => {
 
   const state = useCatalogModel(
     decodedParams.sourceId || '',
-    encodeURIComponent(
-      encodeURIComponent(`${decodedParams.repositoryName}/${decodedParams.modelName}`),
-    ) || '',
+    encodeURIComponent(`${decodedParams.repositoryName}/${decodedParams.modelName}`),
   );
   const [model, modelLoaded, modelLoadError] = state;
   const { modelRegistries, modelRegistriesLoadError, modelRegistriesLoaded } = React.useContext(

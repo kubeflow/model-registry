@@ -32,9 +32,7 @@ type ModelDetailsViewProps = {
 const ModelDetailsView: React.FC<ModelDetailsViewProps> = ({ model, decodedParams }) => {
   const [artifacts, artifactLoaded, artifactsLoadError] = useCatalogModelArtifacts(
     decodedParams.sourceId || '',
-    encodeURIComponent(
-      encodeURIComponent(`${decodedParams.repositoryName}/${decodedParams.modelName}`),
-    ) || '',
+    encodeURIComponent(`${decodedParams.repositoryName}/${decodedParams.modelName}`),
   );
 
   if (!artifactLoaded) {
