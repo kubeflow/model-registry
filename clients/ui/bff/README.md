@@ -333,9 +333,9 @@ curl -i -H "Authorization: Bearer $TOKEN" "http://localhost:4000/api/v1/model_ca
 ```
 
 ```
-# GET /api/v1/model_catalog/sources/{source_id}/models/{model_name}/artifacts
-curl -i -H "kubeflow-userid: user@example.com" "http://localhost:4000/api/v1/model_catalog/sources/sample-source/models/model-name/artifacts?namespace=kubeflow"
-curl -i -H "Authorization: Bearer $TOKEN" "http://localhost:4000/api/v1/model_catalog/sources/sample-source/models/model-name/artifacts?namespace=kubeflow"
+# GET /api/v1/model_catalog/sources/{source_id}/artifacts/{model_name}
+curl -i -H "kubeflow-userid: user@example.com" "http://localhost:4000/api/v1/model_catalog/sources/sample-source/artifacts/model-name?namespace=kubeflow"
+curl -i -H "Authorization: Bearer $TOKEN" "http://localhost:4000/api/v1/model_catalog/sources/sample-source/artifacts/model-name?namespace=kubeflow"
 ```
 
 ### Pagination

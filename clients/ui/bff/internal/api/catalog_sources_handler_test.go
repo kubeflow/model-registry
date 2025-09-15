@@ -73,7 +73,7 @@ var _ = Describe("TestGetAllCatalogSourcesHandler", func() {
 			}
 
 			expected := catalogModelArtifactsListEnvelope{Data: &data}
-			actual, rs, err := setupApiTest[catalogModelArtifactsListEnvelope](http.MethodGet, "/api/v1/model_catalog/sources/source/models/model-name/artifacts?namespace=kubeflow&name=dora", nil, kubernetesMockedStaticClientFactory, requestIdentity, "kubeflow")
+			actual, rs, err := setupApiTest[catalogModelArtifactsListEnvelope](http.MethodGet, "/api/v1/model_catalog/sources/source/artifacts/model-name?namespace=kubeflow&name=dora", nil, kubernetesMockedStaticClientFactory, requestIdentity, "kubeflow")
 			Expect(err).NotTo(HaveOccurred())
 
 			By("should match the expected model artifacts")
