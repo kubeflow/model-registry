@@ -33,7 +33,7 @@ jobs:
       - name: Check out the repository
         uses: actions/checkout@v5
       - name: Set up Python ${{ matrix.python }}
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: ${{ matrix.python }}
       - name: Upgrade pip
@@ -82,7 +82,7 @@ jobs:
         with:
           fetch-depth: 0
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: ${{ matrix.python }}
       - name: Set up Node.js
@@ -145,7 +145,7 @@ jobs:
       - name: Check out the repository
         uses: actions/checkout@v5
       - name: Set up Python ${{ matrix.python }}
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: ${{ matrix.python }}
       - name: Upgrade pip
@@ -249,7 +249,7 @@ jobs:
       - name: Check out the repository
         uses: actions/checkout@v5
       - name: Set up Python ${{ matrix.python }}
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: ${{ matrix.python }}
       - name: Upgrade pip
