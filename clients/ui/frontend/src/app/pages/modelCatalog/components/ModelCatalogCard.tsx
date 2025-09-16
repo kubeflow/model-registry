@@ -8,59 +8,44 @@ import {
   CardTitle,
   Flex,
   FlexItem,
-  Icon,
   Label,
   Skeleton,
-  Split,
-  SplitItem,
   Stack,
   StackItem,
   Truncate,
 } from '@patternfly/react-core';
-import { TagIcon } from '@patternfly/react-icons';
 import { useNavigate } from 'react-router-dom';
-import { ModelCatalogItem } from '~/app/modelCatalogTypes';
-import {
-  extractVersionTag,
-  filterNonVersionTags,
-} from '~/app/pages/modelCatalog/utils/modelCatalogUtils';
+import { CatalogModel, CatalogSource } from '~/app/modelCatalogTypes';
+import { getModelName } from '~/app/pages/modelCatalog/utils/modelCatalogUtils';
+import { catalogModelDetailsFromModel } from '~/app/routes/modelCatalog/catalogModel';
 import ModelCatalogLabels from './ModelCatalogLabels';
 
 type ModelCatalogCardProps = {
-  model: ModelCatalogItem;
-  source: string;
+  model: CatalogModel;
+  source: CatalogSource | undefined;
   truncate?: boolean;
-  onSelect?: (model: ModelCatalogItem) => void;
 };
 
-const ModelCatalogCard: React.FC<ModelCatalogCardProps> = ({
-  model,
-  source,
-  truncate = false,
-  onSelect,
-}) => {
+const ModelCatalogCard: React.FC<ModelCatalogCardProps> = ({ model, source, truncate = false }) => {
   const navigate = useNavigate();
 
-  const versionTag = extractVersionTag(model.tags);
-  const nonVersionTags = filterNonVersionTags(model.tags);
-
   return (
-    <Card isFullHeight data-testid="model-catalog-card">
+    <Card isFullHeight data-testid="model-catalog-card" key={`${model.name}/${model.source_id}`}>
       <CardHeader>
         <CardTitle>
           <Flex alignItems={{ default: 'alignItemsCenter' }}>
             {model.logo ? (
-              <img src={model.logo} alt="model logo" style={{ height: '36px', width: '36px' }} />
+              <img src={model.logo} alt="model logo" style={{ height: '56px', width: '56px' }} />
             ) : (
               <Skeleton
                 shape="square"
-                width="36px"
-                height="36px"
+                width="56px"
+                height="56px"
                 screenreaderText="Brand image loading"
               />
             )}
             <FlexItem align={{ default: 'alignRight' }}>
-              <Label>{source}</Label>
+              {source && <Label>{source.name}</Label>}
             </FlexItem>
           </Flex>
         </CardTitle>
@@ -74,11 +59,7 @@ const ModelCatalogCard: React.FC<ModelCatalogCardProps> = ({
               isInline
               component="a"
               onClick={() => {
-                if (onSelect) {
-                  onSelect(model);
-                } else {
-                  navigate(`/model-catalog/${encodeURIComponent(model.id)}` || '#');
-                }
+                navigate(catalogModelDetailsFromModel(model.name, source?.id));
               }}
               style={{
                 fontSize: 'var(--pf-t--global--font--size--body--default)',
@@ -94,19 +75,9 @@ const ModelCatalogCard: React.FC<ModelCatalogCardProps> = ({
                   style={{ textDecoration: 'underline' }}
                 />
               ) : (
-                <span>{model.name}</span>
+                <span>{getModelName(model.name)}</span>
               )}
             </Button>
-            <Split hasGutter>
-              <SplitItem>
-                <Icon isInline>
-                  <TagIcon />
-                </Icon>
-                <span style={{ marginLeft: 'var(--pf-t--global--spacer--sm)' }}>
-                  {versionTag || 'No version'}
-                </span>
-              </SplitItem>
-            </Split>
           </StackItem>
           <StackItem isFilled data-testid="model-catalog-card-description">
             {truncate ? (
@@ -114,7 +85,7 @@ const ModelCatalogCard: React.FC<ModelCatalogCardProps> = ({
                 style={{
                   overflow: 'hidden',
                   textOverflow: 'ellipsis',
-                  WebkitLineClamp: 2,
+                  WebkitLineClamp: 4,
                   WebkitBoxOrient: 'vertical',
                   display: '-webkit-box',
                 }}
@@ -129,10 +100,9 @@ const ModelCatalogCard: React.FC<ModelCatalogCardProps> = ({
       </CardBody>
       <CardFooter>
         <ModelCatalogLabels
-          tags={nonVersionTags}
-          framework={model.framework}
-          task={model.task}
+          tasks={model.tasks ?? []}
           license={model.license}
+          provider={model.provider}
         />
       </CardFooter>
     </Card>

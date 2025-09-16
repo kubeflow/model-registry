@@ -69,7 +69,7 @@ jobs:
           kubectl get deployments -o wide
           kubectl get pods -o wide
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: "3.10"
       - name: Upgrade pip

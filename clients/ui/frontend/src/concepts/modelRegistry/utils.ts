@@ -1,4 +1,10 @@
-import { CatalogModelDetailsParams } from '~/app/pages/modelRegistry/screens/types';
+import {
+  ModelRegistryCustomProperties,
+  ModelRegistryCustomProperty,
+  ModelRegistryCustomPropertyString,
+  ModelRegistryMetadataType,
+} from '~/app/types';
+import { CatalogModel, CatalogModelDetailsParams } from '~/app/modelCatalogTypes';
 import { ModelSourceKind, ModelSourceProperties } from './types';
 
 /**
@@ -13,16 +19,69 @@ export const modelSourcePropertiesToCatalogParams = (
     properties.modelSourceKind !== ModelSourceKind.CATALOG ||
     !properties.modelSourceClass ||
     !properties.modelSourceGroup ||
-    !properties.modelSourceName ||
-    !properties.modelSourceId
+    !properties.modelSourceName
   ) {
     return null;
   }
 
   return {
-    sourceName: properties.modelSourceClass,
+    sourceId: properties.modelSourceClass,
     repositoryName: properties.modelSourceGroup,
     modelName: properties.modelSourceName,
-    tag: properties.modelSourceId,
   };
+};
+
+export const catalogParamsToModelSourceProperties = (
+  params: CatalogModelDetailsParams,
+): ModelSourceProperties => ({
+  modelSourceKind: ModelSourceKind.CATALOG,
+  modelSourceClass: params.sourceId,
+  modelSourceGroup: params.repositoryName,
+  modelSourceName: params.modelName,
+});
+
+const EMPTY_CUSTOM_PROPERTY_STRING = {
+  // eslint-disable-next-line camelcase
+  string_value: '',
+  metadataType: ModelRegistryMetadataType.STRING,
+} as const;
+
+/**
+ * Creates custom properties from a catalog model
+ * @param model - The catalog model item
+ * @returns ModelRegistryCustomProperties object with labels and tasks
+ */
+export const getLabelsFromModelTasks = (
+  model: CatalogModel | null,
+): ModelRegistryCustomProperties => {
+  const tasks = model?.tasks?.reduce<ModelRegistryCustomProperties>((acc, cur) => {
+    acc[cur] = EMPTY_CUSTOM_PROPERTY_STRING;
+    return acc;
+  }, {});
+
+  return { ...tasks };
+};
+
+const isStringProperty = (
+  prop: ModelRegistryCustomProperty,
+): prop is ModelRegistryCustomPropertyString =>
+  prop.metadataType === ModelRegistryMetadataType.STRING && prop.string_value === '';
+
+export const getLabelsFromCustomProperties = (
+  customProperties?: ModelRegistryCustomProperties,
+): Record<string, ModelRegistryCustomPropertyString> => {
+  const filteredProperties: Record<string, ModelRegistryCustomPropertyString> = {};
+
+  if (!customProperties) {
+    return filteredProperties;
+  }
+
+  Object.keys(customProperties).forEach((key) => {
+    const prop = customProperties[key];
+    if (isStringProperty(prop)) {
+      filteredProperties[key] = prop;
+    }
+  });
+
+  return filteredProperties;
 };

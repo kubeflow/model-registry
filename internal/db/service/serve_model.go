@@ -6,6 +6,7 @@ import (
 
 	"github.com/kubeflow/model-registry/internal/db/models"
 	"github.com/kubeflow/model-registry/internal/db/schema"
+	"github.com/kubeflow/model-registry/internal/db/utils"
 	"gorm.io/gorm"
 )
 
@@ -45,14 +46,15 @@ func (r *ServeModelRepositoryImpl) List(listOptions models.ServeModelListOptions
 
 func applyServeModelListFilters(query *gorm.DB, listOptions *models.ServeModelListOptions) *gorm.DB {
 	if listOptions.Name != nil {
-		query = query.Where("Execution.name LIKE ?", fmt.Sprintf("%%:%s", *listOptions.Name))
+		query = query.Where(utils.GetTableName(query, &schema.Execution{})+".name LIKE ?", fmt.Sprintf("%%:%s", *listOptions.Name))
 	} else if listOptions.ExternalID != nil {
-		query = query.Where("Execution.external_id = ?", listOptions.ExternalID)
+		query = query.Where(utils.GetTableName(query, &schema.Execution{})+".external_id = ?", listOptions.ExternalID)
 	}
 
 	if listOptions.InferenceServiceID != nil {
-		query = query.Joins("JOIN Association ON Association.execution_id = Execution.id").
-			Where("Association.context_id = ?", listOptions.InferenceServiceID)
+		// Proper GORM JOIN: Use helper that respects naming strategy
+		query = query.Joins(utils.BuildAssociationJoin(query)).
+			Where(utils.GetColumnRef(query, &schema.Association{}, "context_id")+" = ?", listOptions.InferenceServiceID)
 	}
 
 	return query

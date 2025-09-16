@@ -5,6 +5,7 @@ set -e
 DIR="$(dirname "$0")"
 MR_NAMESPACE="${MR_NAMESPACE:-kubeflow}"
 IMG="${IMG:-quay.io/opendatahub/model-registry:latest}"
+DEPLOY_MANIFEST_DB="${DEPLOY_MANIFEST_DB:-db}" # subdirectory of manifests/kustomize/overlays to select which database: 'db' (MySQL) or 'postgres'
 
 source ./${DIR}/utils.sh
 
@@ -35,7 +36,7 @@ else
     kubectl create namespace "$MR_NAMESPACE"
 fi
 
-kubectl apply -k manifests/kustomize/overlays/db -n "$MR_NAMESPACE"
+kubectl apply -k manifests/kustomize/overlays/$DEPLOY_MANIFEST_DB -n "$MR_NAMESPACE"
 kubectl patch deployment -n "$MR_NAMESPACE" model-registry-deployment \
 --patch '{"spec": {"template": {"spec": {"containers": [{"name": "rest-container", "image": "'$IMG'", "imagePullPolicy": "IfNotPresent"}]}}}}'
 
@@ -51,4 +52,9 @@ kubectl delete pod -n "$MR_NAMESPACE" --selector='component=model-registry-serve
 repeat_cmd_until "kubectl get pod -n "$MR_NAMESPACE" --selector='component=model-registry-server' \
 -o jsonpath=\"{.items[*].spec.containers[?(@.name=='rest-container')].image}\" | tr ' ' '\n' | sort -u" "= $IMG" 500 "kubectl describe pod -n $MR_NAMESPACE --selector='component=model-registry-server'"
 
-kubectl wait --for=condition=available -n "$MR_NAMESPACE" deployment/model-registry-deployment --timeout=5m
+if ! kubectl wait --for=condition=available -n "$MR_NAMESPACE" deployment/model-registry-deployment --timeout=5m ; then
+    kubectl events -A
+    kubectl describe deployment/model-registry-deployment -n "$MR_NAMESPACE"
+    kubectl logs deployment/model-registry-deployment -n "$MR_NAMESPACE"
+    exit 1
+fi

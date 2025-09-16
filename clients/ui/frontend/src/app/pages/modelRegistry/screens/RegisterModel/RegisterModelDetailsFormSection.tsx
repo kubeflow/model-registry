@@ -52,7 +52,7 @@ const RegisterModelDetailsFormSection = <D extends RegisterModelFormData>({
       description="Provide model details that apply to every version of this model."
     >
       <FormGroup label="Model name" isRequired fieldId="model-name">
-        <FormFieldset component={modelNameInput} />
+        <FormFieldset component={modelNameInput} field="model-name" />
         {hasModelNameError && (
           <FormHelperText>
             <HelperText>

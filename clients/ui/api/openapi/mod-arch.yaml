@@ -149,7 +149,7 @@ paths:
       responses:
         "200":
           # Define a response that might include credentials
-          $ref: "#/components/responses/ModelRegistryAndCredentialsResponse" 
+          $ref: "#/components/responses/ModelRegistryAndCredentialsResponse"
         "401":
           $ref: "#/components/responses/Unauthorized"
         "404":
@@ -688,7 +688,7 @@ paths:
       - $ref: "#/components/parameters/modelRegistryName"
       - $ref: "#/components/parameters/kubeflowUserId"
       - $ref: "#/components/parameters/modelArtifactId"
-  
+
   # New Model catalog endpoints
   /api/v1/model_catalog/models:
     description: >-
@@ -788,7 +788,7 @@ paths:
         "500":
           $ref: "#/components/responses/InternalServerError"
       operationId: getModel
-  /api/v1/model_catalog/sources/{sourceId}/models/{CatalogModelName}/artifacts:
+  /api/v1/model_catalog/sources/{sourceId}/artifacts/{CatalogModelName+}:
     description: >-
       The REST endpoint/path used to list `CatalogModelArtifacts`.
     get:

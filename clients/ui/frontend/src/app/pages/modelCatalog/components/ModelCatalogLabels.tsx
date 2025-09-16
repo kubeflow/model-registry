@@ -2,39 +2,28 @@ import * as React from 'react';
 import { Label, LabelGroup } from '@patternfly/react-core';
 
 type ModelCatalogLabelsProps = {
-  tags?: string[];
-  framework?: string;
-  task?: string;
+  tasks?: string[];
   license?: string;
+  provider?: string;
 };
 
 const ModelCatalogLabels: React.FC<ModelCatalogLabelsProps> = ({
-  tags,
-  framework,
-  task,
+  tasks = [],
   license,
+  provider,
 }) => (
   <LabelGroup numLabels={5} isCompact>
-    {framework && (
-      <Label color="blue" isCompact>
-        {framework}
-      </Label>
-    )}
-    {task && (
-      <Label color="green" isCompact>
+    {tasks.map((task) => (
+      <Label data-testid="model-catalog-label" key={task} variant="outline">
         {task}
       </Label>
-    )}
+    ))}
     {license && (
       <Label color="purple" isCompact>
         {license}
       </Label>
     )}
-    {tags?.map((tag) => (
-      <Label key={tag} color="grey" isCompact>
-        {tag}
-      </Label>
-    ))}
+    {provider && <Label isCompact>{provider}</Label>}
   </LabelGroup>
 );
 

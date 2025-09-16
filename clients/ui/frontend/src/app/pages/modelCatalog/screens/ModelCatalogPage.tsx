@@ -3,30 +3,26 @@ import {
   PageSection,
   Title,
   Gallery,
-  GalleryItem,
   EmptyState,
-  EmptyStateBody,
   Button,
   Spinner,
   Alert,
+  Bullseye,
 } from '@patternfly/react-core';
-import { CubesIcon } from '@patternfly/react-icons';
-import { useNavigate } from 'react-router-dom';
-import { useModelCatalogSources } from '~/app/hooks/modelCatalog/useModelCatalogSources';
-import { ModelCatalogItem } from '~/app/modelCatalogTypes';
+import { ApplicationsPage, ProjectObjectType, TitleWithIcon } from 'mod-arch-shared';
 import ModelCatalogCard from '~/app/pages/modelCatalog/components/ModelCatalogCard';
+import { ModelCatalogContext } from '~/app/context/modelCatalog/ModelCatalogContext';
+import ScrollViewOnMount from '~/app/shared/components/ScrollViewOnMount';
+import EmptyModelCatalogState from '~/app/pages/modelCatalog/EmptyModelCatalogState';
+import { CatalogModel } from '~/app/modelCatalogTypes';
+import { useCatalogModelsBySource } from '~/app/hooks/modelCatalog/useCatalogModelsBySource';
 
 const ModelCatalogPage: React.FC = () => {
-  const { sources, loading, error, refreshSources } = useModelCatalogSources();
-  const navigate = useNavigate();
+  const { selectedSource } = React.useContext(ModelCatalogContext);
+  const [catalogModels, catalogModelsLoaded, catalogModelsLoadError, refresh] =
+    useCatalogModelsBySource(selectedSource?.id || '', 10);
 
-  const handleModelSelect = (model: ModelCatalogItem) => {
-    if (model.id) {
-      navigate(`/model-catalog/${encodeURIComponent(model.id)}`);
-    }
-  };
-
-  if (loading) {
+  if (!catalogModelsLoaded) {
     return (
       <PageSection>
         <EmptyState>
@@ -39,12 +35,12 @@ const ModelCatalogPage: React.FC = () => {
     );
   }
 
-  if (error) {
+  if (catalogModelsLoadError) {
     return (
       <PageSection>
         <Alert variant="danger" title="Failed to load model catalog" isInline>
-          {error.message}
-          <Button variant="link" onClick={refreshSources}>
+          {catalogModelsLoadError.message}
+          <Button variant="link" onClick={refresh}>
             Try again
           </Button>
         </Alert>
@@ -52,48 +48,66 @@ const ModelCatalogPage: React.FC = () => {
     );
   }
 
-  if (sources.length === 0) {
-    return (
-      <PageSection>
-        <EmptyState>
-          <CubesIcon />
-          <Title headingLevel="h4" size="lg">
-            No models available
-          </Title>
-          <EmptyStateBody>
-            There are no models available in the catalog. Try refreshing or contact your
-            administrator.
-          </EmptyStateBody>
-          <Button variant="primary" onClick={refreshSources}>
-            Refresh
-          </Button>
-        </EmptyState>
-      </PageSection>
-    );
-  }
-
   return (
-    <PageSection>
-      <Title headingLevel="h1" size="2xl" className="pf-v5-u-mb-md">
-        Model Catalog
-      </Title>
-      <p className="pf-v5-u-mb-lg">
-        Discover models that are available for your organization to register, deploy, and customize.
-      </p>
-      <Gallery hasGutter minWidths={{ default: '300px' }}>
-        {sources.map((source) =>
-          (source.models || []).map((model) => (
-            <GalleryItem key={model.id}>
+    <>
+      <ScrollViewOnMount shouldScroll />
+      <ApplicationsPage
+        title={
+          <TitleWithIcon
+            title="Model Catalog"
+            // for now, added the modelRegistrySettings for this - will remove once we update the shared library
+            objectType={ProjectObjectType.modelRegistrySettings}
+          />
+        }
+        description="Discover models that are available for your organization to register, deploy, and customize."
+        empty={catalogModels.items.length === 0}
+        emptyStatePage={
+          <EmptyModelCatalogState
+            testid="empty-model-catalog-state"
+            title="No models available"
+            description="There are no models available in the catalog. Try refreshing or to request access to model catalog, contact your administrator."
+          >
+            <Button variant="primary" onClick={refresh}>
+              Refresh
+            </Button>
+          </EmptyModelCatalogState>
+        }
+        headerContent={null}
+        loaded
+        errorMessage="Unable to load model catalog"
+        provideChildrenPadding
+      >
+        <PageSection isFilled>
+          <Gallery hasGutter minWidths={{ default: '300px' }}>
+            {catalogModels.items.map((model: CatalogModel) => (
               <ModelCatalogCard
                 model={model}
-                source={source.displayName}
-                onSelect={handleModelSelect}
+                source={selectedSource}
+                key={`${model.name}/${model.source_id}`}
               />
-            </GalleryItem>
-          )),
-        )}
-      </Gallery>
-    </PageSection>
+            ))}
+          </Gallery>
+          {catalogModels.hasMore && (
+            <div style={{ marginTop: '2rem' }}>
+              <Bullseye>
+                {catalogModels.isLoadingMore ? (
+                  <>
+                    <Spinner size="lg" className="pf-v5-u-mb-md" />
+                    <Title size="lg" headingLevel="h5">
+                      Loading more catalog models...
+                    </Title>
+                  </>
+                ) : (
+                  <Button variant="tertiary" onClick={catalogModels.loadMore} size="lg">
+                    Load more models
+                  </Button>
+                )}
+              </Bullseye>
+            </div>
+          )}
+        </PageSection>
+      </ApplicationsPage>
+    </>
   );
 };
 

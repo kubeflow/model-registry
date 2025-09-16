@@ -1,8 +1,10 @@
 package mocks
 
 import (
+	"fmt"
 	"log/slog"
 	"net/url"
+	"strconv"
 	"strings"
 
 	"github.com/kubeflow/model-registry/catalog/pkg/openapi"
@@ -19,16 +21,86 @@ func NewModelCatalogClientMock(logger *slog.Logger) (*ModelCatalogClientMock, er
 }
 
 func (m *ModelCatalogClientMock) GetAllCatalogModelsAcrossSources(client httpclient.HTTPClientInterface, pageValues url.Values) (*openapi.CatalogModelList, error) {
-	allMockSources := getAllCatalogModelMocks()
+	allModels := GetCatalogModelMocks()
+	var filteredModels []openapi.CatalogModel
 
-	return &allMockSources, nil
+	sourceId := pageValues.Get("source")
+
+	if sourceId != "" {
+
+		for _, model := range allModels {
+			if model.SourceId != nil && *model.SourceId == sourceId {
+				filteredModels = append(filteredModels, model)
+			}
+		}
+	} else {
+		filteredModels = allModels
+	}
+
+	pageSizeStr := pageValues.Get("pageSize")
+	pageSize := 10 // default
+	if pageSizeStr != "" {
+		if parsed, err := strconv.Atoi(pageSizeStr); err == nil && parsed > 0 {
+			pageSize = parsed
+		}
+	}
+
+	pageTokenStr := pageValues.Get("nextPageToken")
+	startIndex := 0
+	if pageTokenStr != "" {
+		if parsed, err := strconv.Atoi(pageTokenStr); err == nil && parsed > 0 {
+			startIndex = parsed
+		}
+	}
+
+	totalSize := len(filteredModels)
+	endIndex := startIndex + pageSize
+	if endIndex > totalSize {
+		endIndex = totalSize
+	}
+
+	var pagedModels []openapi.CatalogModel
+	if startIndex < totalSize {
+		pagedModels = filteredModels[startIndex:endIndex]
+	}
+
+	var nextPageToken string
+	if endIndex < totalSize {
+		nextPageToken = strconv.Itoa(endIndex)
+	}
+
+	catalogModelList := openapi.CatalogModelList{
+		Items:         pagedModels,
+		Size:          int32(len(pagedModels)),
+		PageSize:      int32(pageSize),
+		NextPageToken: nextPageToken,
+	}
+
+	return &catalogModelList, nil
+
 }
 
 func (m *ModelCatalogClientMock) GetCatalogSourceModel(client httpclient.HTTPClientInterface, sourceId string, modelName string) (*openapi.CatalogModel, error) {
+	allModels := GetCatalogModelMocks()
 
-	catalogModel := GetCatalogModelMocks()[0]
+	// Decode the modelName in case it's URL-encoded
+	decodedModelName, err := url.QueryUnescape(modelName)
+	if err != nil {
+		return nil, fmt.Errorf("failed to decode modelName: %w", err)
+	}
 
-	return &catalogModel, nil
+	// Remove leading slash if present
+	decodedModelName = strings.TrimPrefix(decodedModelName, "/")
+
+	for _, model := range allModels {
+		// Check if both sourceId and modelName match
+		if model.SourceId != nil && *model.SourceId == sourceId && model.Name == decodedModelName {
+			return &model, nil
+		}
+	}
+
+	// Return an error if no matching model is found
+	return nil, fmt.Errorf("catalog model not found for sourceId: %s, modelName: %s", sourceId, decodedModelName)
 }
 
 func (m *ModelCatalogClientMock) GetAllCatalogSources(client httpclient.HTTPClientInterface, pageValues url.Values) (*openapi.CatalogSourceList, error) {
@@ -55,4 +127,9 @@ func (m *ModelCatalogClientMock) GetAllCatalogSources(client httpclient.HTTPClie
 	}
 
 	return &catalogSourceList, nil
+}
+
+func (m *ModelCatalogClientMock) GetCatalogModelArtifacts(client httpclient.HTTPClientInterface, sourceId string, modelName string) (*openapi.CatalogModelArtifactList, error) {
+	allMockModelArtifacts := GetCatalogModelArtifactListMock()
+	return &allMockModelArtifacts, nil
 }

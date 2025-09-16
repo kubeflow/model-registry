@@ -24,6 +24,7 @@ type QueryBuilder struct {
 	restEntityType RestEntityType
 	tablePrefix    string
 	joinCounter    int
+	db             *gorm.DB // Added to access naming strategy
 }
 
 // NewQueryBuilderForRestEntity creates a new query builder for the specified REST entity type
@@ -57,7 +58,41 @@ func (qb *QueryBuilder) BuildQuery(db *gorm.DB, expr *FilterExpression) *gorm.DB
 		return db
 	}
 
+	// Store db reference for table name quoting
+	qb.db = db
+	qb.applyDatabaseQuoting()
+
 	return qb.buildExpression(db, expr)
+}
+
+// applyDatabaseQuoting updates tablePrefix with proper quoting based on database dialect
+func (qb *QueryBuilder) applyDatabaseQuoting() {
+	if qb.db == nil {
+		return
+	}
+	switch qb.db.Name() {
+	case "mysql":
+		qb.tablePrefix = "`" + qb.tablePrefix + "`"
+	case "postgres":
+		qb.tablePrefix = `"` + qb.tablePrefix + `"`
+	default:
+		// Keep unquoted for other databases
+	}
+}
+
+// quoteTableName quotes a table name based on database dialect
+func (qb *QueryBuilder) quoteTableName(tableName string) string {
+	if qb.db == nil {
+		return tableName
+	}
+	switch qb.db.Name() {
+	case "mysql":
+		return "`" + tableName + "`"
+	case "postgres":
+		return `"` + tableName + `"`
+	default:
+		return tableName
+	}
 }
 
 // buildExpression recursively builds query conditions from filter expressions
@@ -294,13 +329,13 @@ func (qb *QueryBuilder) buildPropertyTableCondition(db *gorm.DB, propRef *Proper
 
 	switch qb.entityType {
 	case EntityTypeContext:
-		propertyTable = "ContextProperty"
+		propertyTable = qb.quoteTableName("ContextProperty")
 		joinCondition = fmt.Sprintf("%s.context_id = %s.id", alias, qb.tablePrefix)
 	case EntityTypeArtifact:
-		propertyTable = "ArtifactProperty"
+		propertyTable = qb.quoteTableName("ArtifactProperty")
 		joinCondition = fmt.Sprintf("%s.artifact_id = %s.id", alias, qb.tablePrefix)
 	case EntityTypeExecution:
-		propertyTable = "ExecutionProperty"
+		propertyTable = qb.quoteTableName("ExecutionProperty")
 		joinCondition = fmt.Sprintf("%s.execution_id = %s.id", alias, qb.tablePrefix)
 	}
 
@@ -333,13 +368,13 @@ func (qb *QueryBuilder) buildPropertyTableConditionString(propRef *PropertyRefer
 
 	switch qb.entityType {
 	case EntityTypeContext:
-		propertyTable = "ContextProperty"
+		propertyTable = qb.quoteTableName("ContextProperty")
 		joinColumn = "context_id"
 	case EntityTypeArtifact:
-		propertyTable = "ArtifactProperty"
+		propertyTable = qb.quoteTableName("ArtifactProperty")
 		joinColumn = "artifact_id"
 	case EntityTypeExecution:
-		propertyTable = "ExecutionProperty"
+		propertyTable = qb.quoteTableName("ExecutionProperty")
 		joinColumn = "execution_id"
 	}
 
