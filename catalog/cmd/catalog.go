@@ -25,8 +25,11 @@ var catalogCfg = struct {
 var CatalogCmd = &cobra.Command{
 	Use:   "catalog",
 	Short: "Catalog API server",
-	Long:  `Launch the API server for the model catalog`,
-	RunE:  runCatalogServer,
+	Long: `Launch the API server for the model catalog. Use PostgreSQL's
+	environment variables
+	(https://www.postgresql.org/docs/current/libpq-envars.html) to
+	configure the database connection.`,
+	RunE: runCatalogServer,
 }
 
 func init() {
@@ -38,7 +41,7 @@ func init() {
 func runCatalogServer(cmd *cobra.Command, args []string) error {
 	ds, err := datastore.NewConnector("embedmd", &embedmd.EmbedMDConfig{
 		DatabaseType: "postgres", // We only support postgres right now
-		DatabaseDSN:  "",
+		DatabaseDSN:  "",         // Empty DSN, see https://www.postgresql.org/docs/current/libpq-envars.html
 	})
 	if err != nil {
 		return fmt.Errorf("error creating datastore: %w", err)
