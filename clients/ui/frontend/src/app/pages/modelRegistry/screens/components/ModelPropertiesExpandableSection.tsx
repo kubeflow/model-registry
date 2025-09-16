@@ -13,6 +13,8 @@ type ModelPropertiesExpandableSectionProps = {
   isArchive?: boolean;
   saveEditedCustomProperties: (properties: ModelRegistryCustomProperties) => Promise<unknown>;
   isExpandedByDefault?: boolean;
+  onEditingChange?: (isEditing: boolean) => void;
+  modelName?: string;
 };
 
 const ModelPropertiesExpandableSection: React.FC<ModelPropertiesExpandableSectionProps> = ({
@@ -20,6 +22,8 @@ const ModelPropertiesExpandableSection: React.FC<ModelPropertiesExpandableSectio
   isArchive,
   saveEditedCustomProperties,
   isExpandedByDefault = false,
+  onEditingChange,
+  modelName,
 }) => {
   const [editingPropertyKeys, setEditingPropertyKeys] = React.useState<string[]>([]);
   const setIsEditingKey = (key: string, isEditing: boolean) =>
@@ -52,10 +56,15 @@ const ModelPropertiesExpandableSection: React.FC<ModelPropertiesExpandableSectio
 
   const [isExpanded, setIsExpanded] = React.useState(isExpandedByDefault);
 
+  React.useEffect(() => {
+    onEditingChange?.(isEditingSomeRow);
+  }, [isEditingSomeRow, onEditingChange]);
+
   return (
     <ExpandableSection
       isExpanded={isExpanded}
       onToggle={() => setIsExpanded(!isExpanded)}
+      data-testid="properties-expandable-section"
       toggleContent={
         <>
           Properties <Badge isRead>{keys.length}</Badge>
@@ -75,6 +84,7 @@ const ModelPropertiesExpandableSection: React.FC<ModelPropertiesExpandableSectio
             {shownKeys.map((key) => (
               <ModelPropertiesTableRow
                 key={key}
+                modelName={modelName}
                 isArchive={isArchive}
                 keyValuePair={{ key, value: filteredProperties[key].string_value || '' }}
                 allExistingKeys={allExistingKeys}
@@ -82,6 +92,7 @@ const ModelPropertiesExpandableSection: React.FC<ModelPropertiesExpandableSectio
                 setIsEditing={(isEditing) => setIsEditingKey(key, isEditing)}
                 isSavingEdits={isSavingEdits}
                 setIsSavingEdits={setIsSavingEdits}
+                showDeleteModal={!!onEditingChange}
                 saveEditedProperty={(oldKey, newPair) =>
                   saveEditedCustomProperties(
                     mergeUpdatedProperty({ customProperties, op: 'update', oldKey, newPair }),

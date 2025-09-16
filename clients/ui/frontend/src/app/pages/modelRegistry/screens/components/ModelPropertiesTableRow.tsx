@@ -15,12 +15,16 @@ import { CheckIcon, ExternalLinkAltIcon, TimesIcon } from '@patternfly/react-ico
 import { KeyValuePair, EitherNotBoth } from 'mod-arch-core';
 import FormFieldset from '~/app/pages/modelRegistry/screens/components/FormFieldset';
 import { isValidHttpUrl } from '~/app/pages/modelRegistry/screens/utils';
+import useDeletePropertiesModalAvailability from '~/app/hooks/useDeletePropertiesModalAvailability';
+import DeletePropertiesModal from './DeletePropertiesModal';
 
 type ModelPropertiesTableRowProps = {
   allExistingKeys: string[];
   setIsEditing: (isEditing: boolean) => void;
   isSavingEdits: boolean;
+  modelName?: string;
   isArchive?: boolean;
+  showDeleteModal?: boolean;
   setIsSavingEdits: (isSaving: boolean) => void;
   saveEditedProperty: (oldKey: string, newPair: KeyValuePair) => Promise<unknown>;
 } & EitherNotBoth<
@@ -43,6 +47,8 @@ const ModelPropertiesTableRow: React.FC<ModelPropertiesTableRowProps> = ({
   setIsSavingEdits,
   isArchive,
   saveEditedProperty,
+  modelName,
+  showDeleteModal,
 }) => {
   const { key, value } = keyValuePair;
 
@@ -50,6 +56,8 @@ const ModelPropertiesTableRow: React.FC<ModelPropertiesTableRowProps> = ({
   const [unsavedValue, setUnsavedValue] = React.useState(value);
 
   const [isValueExpanded, setIsValueExpanded] = React.useState(true);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = React.useState(false);
+  const [dontShowModalValue] = useDeletePropertiesModalAvailability();
 
   let keyValidationError: string | null = null;
   if (unsavedKey !== key && allExistingKeys.includes(unsavedKey)) {
@@ -69,6 +77,14 @@ const ModelPropertiesTableRow: React.FC<ModelPropertiesTableRowProps> = ({
   };
 
   const onDeleteClick = async () => {
+    if (dontShowModalValue || !showDeleteModal) {
+      await handleDeleteProperty();
+    } else {
+      setIsDeleteModalOpen(true);
+    }
+  };
+
+  const handleDeleteProperty = async () => {
     setIsSavingEdits(true);
     try {
       await deleteProperty(key);
@@ -208,6 +224,12 @@ const ModelPropertiesTableRow: React.FC<ModelPropertiesTableRowProps> = ({
           )}
         </Td>
       )}
+      <DeletePropertiesModal
+        modelName={modelName}
+        isOpen={isDeleteModalOpen}
+        setIsOpen={setIsDeleteModalOpen}
+        deleteProperty={handleDeleteProperty}
+      />
     </Tr>
   );
 };

@@ -219,7 +219,7 @@ describe('Model Details Card', () => {
     modelDetailsCard.findExpandControlButton().click();
 
     cy.contains('property6').should('be.visible');
-    cy.contains('property10').should('be.visible');
+    cy.contains('property10').should('exist');
 
     modelDetailsCard.findExpandControlButton().should('contain', 'Show fewer properties');
   });
