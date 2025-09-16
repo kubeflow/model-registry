@@ -127,12 +127,12 @@ func setupMock(mockK8sClient kubernetes.Interface, ctx context.Context) error {
 		return err
 	}
 
-	err = createModelCatalogService(mockK8sClient, ctx, "model-catalog-service", "kubeflow", "10.0.0.15")
+	err = createModelCatalogService(mockK8sClient, ctx, "model-catalog", "kubeflow", "10.0.0.15")
 	if err != nil {
 		return err
 	}
 
-	err = createModelCatalogService(mockK8sClient, ctx, "model-catalog-service", "bella-namespace", "10.0.0.16")
+	err = createModelCatalogService(mockK8sClient, ctx, "model-catalog", "bella-namespace", "10.0.0.16")
 	if err != nil {
 		return err
 	}
@@ -409,10 +409,10 @@ func createModelCatalogService(k8sClient kubernetes.Interface, ctx context.Conte
 			Name:      name,
 			Namespace: namespace,
 			Labels: map[string]string{
-				"app":                         "model-catalog-service",
+				"app":                         "model-catalog",
 				"app.kubernetes.io/component": "model-catalog",
-				"app.kubernetes.io/instance":  "model-catalog-service",
-				"app.kubernetes.io/name":      "model-catalog-service",
+				"app.kubernetes.io/instance":  "model-catalog",
+				"app.kubernetes.io/name":      "model-catalog",
 				"app.kubernetes.io/part-of":   "model-catalog",
 				"component":                   "model-catalog",
 			},

@@ -1,9 +1,9 @@
 apiVersion: networking.istio.io/v1alpha3
 kind: DestinationRule
 metadata:
-  name: model-catalog-service
+  name: model-catalog
 spec:
-  host: model-catalog-service.kubeflow.svc.cluster.local
+  host: model-catalog.kubeflow.svc.cluster.local
   trafficPolicy:
     tls:
       mode: ISTIO_MUTUAL
