@@ -145,6 +145,7 @@ jobs:
       IMG_REGISTRY: quay.io
       IMG_ORG: opendatahub
       IMG_REPO: model-registry
+      MR_NAMESPACE: kubeflow # used for kind testing, align to /manifest
       DEPLOY_MANIFEST_DB: "${{ matrix.manifest-db }}"
     steps:
       - name: Check out the repository
