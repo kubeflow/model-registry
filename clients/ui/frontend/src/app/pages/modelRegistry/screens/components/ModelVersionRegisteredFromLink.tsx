@@ -29,7 +29,6 @@ const ModelVersionRegisteredFromLink: React.FC<ModelVersionRegisteredFromLinkPro
     const catalogModelUrl = getCatalogModelDetailsRoute({
       modelName: registeredFromCatalogDetails.modelName,
       sourceId: registeredFromCatalogDetails.sourceId,
-      repositoryName: registeredFromCatalogDetails.repositoryName,
     });
     return (
       <>

@@ -1,14 +1,9 @@
 import { encodeParams } from '~/app/pages/modelCatalog/utils/modelCatalogUtils';
 
-export const getRegisterCatalogModelRoute = (id = '', name = '', repository = ''): string => {
-  const {
-    sourceId = '',
-    repositoryName = '',
-    modelName = '',
-  } = encodeParams({
+export const getRegisterCatalogModelRoute = (id = '', name = ''): string => {
+  const { sourceId = '', modelName = '' } = encodeParams({
     sourceId: id,
-    repositoryName: repository,
     modelName: name,
   });
-  return `/model-catalog/${sourceId}/${repositoryName}/${modelName}/register` || '#';
+  return `/model-catalog/${sourceId}/${modelName}/register` || '#';
 };

@@ -52,13 +52,7 @@ const ModelCatalogPage: React.FC = () => {
     <>
       <ScrollViewOnMount shouldScroll />
       <ApplicationsPage
-        title={
-          <TitleWithIcon
-            title="Model Catalog"
-            // for now, added the modelRegistrySettings for this - will remove once we update the shared library
-            objectType={ProjectObjectType.modelRegistrySettings}
-          />
-        }
+        title={<TitleWithIcon title="Model Catalog" objectType={ProjectObjectType.modelCatalog} />}
         description="Discover models that are available for your organization to register, deploy, and customize."
         empty={catalogModels.items.length === 0}
         emptyStatePage={
