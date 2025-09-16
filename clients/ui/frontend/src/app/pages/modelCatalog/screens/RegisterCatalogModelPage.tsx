@@ -21,12 +21,12 @@ const RegisterCatalogModelPageInner: React.FC = () => {
 
   const state = useCatalogModel(
     decodedParams.sourceId || '',
-    encodeURIComponent(`${decodedParams.repositoryName}/${decodedParams.modelName}`),
+    encodeURIComponent(`${decodedParams.modelName}`),
   );
   const [model, modelLoaded, modelLoadError] = state;
   const [artifacts, artifactLoaded, artifactsLoadError] = useCatalogModelArtifacts(
     decodedParams.sourceId || '',
-    encodeURIComponent(`${decodedParams.repositoryName}/${decodedParams.modelName}`),
+    encodeURIComponent(`${decodedParams.modelName}`),
   );
 
   const preferredModelRegistry = modelRegistries.length > 0 ? modelRegistries[0] : null;
@@ -57,7 +57,6 @@ const RegisterCatalogModelPageInner: React.FC = () => {
                 <Link
                   to={getCatalogModelDetailsRoute({
                     sourceId: decodedParams.sourceId,
-                    repositoryName: decodedParams.repositoryName,
                     modelName: decodedParams.modelName,
                   })}
                 >
@@ -80,7 +79,7 @@ const RegisterCatalogModelPageInner: React.FC = () => {
           <RegisterCatalogModelForm
             model={model}
             preferredModelRegistry={preferredModelRegistry}
-            uri={artifacts.items[0].uri}
+            artifacts={artifacts.items}
             decodedParams={decodedParams}
             removeChildrenTopPadding
           />

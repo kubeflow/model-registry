@@ -384,7 +384,8 @@ describe('Model version details', () => {
           cy.focused().type(`${longLabel}{enter}`);
         });
 
-      cy.findByTestId('label-error-alert')
+      cy.findAllByTestId('label-error-alert')
+        .eq(1)
         .should('be.visible')
         .within(() => {
           cy.contains(`can't exceed 63 characters`).should('exist');
@@ -410,7 +411,8 @@ describe('Model version details', () => {
           cy.focused().type('{selectall}{backspace}Testing label{enter}');
         });
 
-      cy.findByTestId('label-error-alert')
+      cy.findAllByTestId('label-error-alert')
+        .eq(0)
         .should('be.visible')
         .within(() => {
           cy.contains('Testing label already exists').should('exist');

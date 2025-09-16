@@ -18,7 +18,6 @@ export const modelSourcePropertiesToCatalogParams = (
   if (
     properties.modelSourceKind !== ModelSourceKind.CATALOG ||
     !properties.modelSourceClass ||
-    !properties.modelSourceGroup ||
     !properties.modelSourceName
   ) {
     return null;
@@ -26,7 +25,6 @@ export const modelSourcePropertiesToCatalogParams = (
 
   return {
     sourceId: properties.modelSourceClass,
-    repositoryName: properties.modelSourceGroup,
     modelName: properties.modelSourceName,
   };
 };
@@ -35,8 +33,6 @@ export const catalogParamsToModelSourceProperties = (
   params: CatalogModelDetailsParams,
 ): ModelSourceProperties => ({
   modelSourceKind: ModelSourceKind.CATALOG,
-  modelSourceClass: params.sourceId,
-  modelSourceGroup: params.repositoryName,
   modelSourceName: params.modelName,
 });
 

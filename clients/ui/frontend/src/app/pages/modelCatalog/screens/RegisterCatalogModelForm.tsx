@@ -27,13 +27,18 @@ import {
   getLabelsFromModelTasks,
   getLabelsFromCustomProperties,
 } from '~/concepts/modelRegistry/utils';
-import { CatalogModel, CatalogModelDetailsParams } from '~/app/modelCatalogTypes';
+import {
+  CatalogModel,
+  CatalogModelArtifact,
+  CatalogModelDetailsParams,
+} from '~/app/modelCatalogTypes';
 import { getCatalogModelDetailsRoute } from '~/app/routes/modelCatalog/catalogModelDetails';
+import { getModelName } from '~/app/pages/modelCatalog/utils/modelCatalogUtils';
 
 interface RegisterCatalogModelFormProps {
   model: CatalogModel | null;
   preferredModelRegistry: ModelRegistry;
-  uri: string;
+  artifacts: CatalogModelArtifact[];
   decodedParams: CatalogModelDetailsParams;
   removeChildrenTopPadding?: boolean;
 }
@@ -41,7 +46,7 @@ interface RegisterCatalogModelFormProps {
 const RegisterCatalogModelForm: React.FC<RegisterCatalogModelFormProps> = ({
   model,
   preferredModelRegistry,
-  uri,
+  artifacts,
   decodedParams,
   removeChildrenTopPadding,
 }) => {
@@ -55,9 +60,10 @@ const RegisterCatalogModelForm: React.FC<RegisterCatalogModelFormProps> = ({
 
   const sourceProperties = catalogParamsToModelSourceProperties(decodedParams);
   const tasks = getLabelsFromModelTasks(model);
+  const uri = artifacts[0] ? artifacts[0].uri : '';
 
   const initialFormData: RegisterCatalogModelFormData = {
-    modelName: `${decodedParams.modelName || ''}`,
+    modelName: getModelName(decodedParams.modelName || ''),
     modelDescription: model?.description || '',
     versionName: 'Version 1',
     versionDescription: '',
@@ -151,7 +157,6 @@ const RegisterCatalogModelForm: React.FC<RegisterCatalogModelFormProps> = ({
     navigate(
       getCatalogModelDetailsRoute({
         sourceId: decodedParams.sourceId,
-        repositoryName: decodedParams.repositoryName,
         modelName: decodedParams.modelName,
       }),
     );

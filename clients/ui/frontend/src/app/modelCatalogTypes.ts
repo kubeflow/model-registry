@@ -77,6 +77,5 @@ export type ModelCatalogAPIs = {
 
 export type CatalogModelDetailsParams = {
   sourceId?: string;
-  repositoryName?: string;
   modelName?: string;
 };

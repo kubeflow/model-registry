@@ -31,7 +31,7 @@ const ModelDetailsPage: React.FC = () => {
 
   const state = useCatalogModel(
     decodedParams.sourceId || '',
-    encodeURIComponent(`${decodedParams.repositoryName}/${decodedParams.modelName}`),
+    encodeURIComponent(`${decodedParams.modelName}`),
   );
   const [model, modelLoaded, modelLoadError] = state;
   const { modelRegistries, modelRegistriesLoadError, modelRegistriesLoaded } = React.useContext(
@@ -64,13 +64,7 @@ const ModelDetailsPage: React.FC = () => {
         data-testid="register-model-button"
         variant="primary"
         onClick={() => {
-          navigate(
-            getRegisterCatalogModelRoute(
-              decodedParams.sourceId,
-              decodedParams.modelName,
-              decodedParams.repositoryName,
-            ),
-          );
+          navigate(getRegisterCatalogModelRoute(decodedParams.sourceId, decodedParams.modelName));
         }}
       >
         Register model

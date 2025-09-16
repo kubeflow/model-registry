@@ -19,7 +19,7 @@ const ModelCatalogRoutes: React.FC = () => (
         }
       >
         <Route index element={<ModelCatalogPage />} />
-        <Route path=":repositoryName/:modelName">
+        <Route path=":modelName">
           <Route index element={<ModelDetailsPage />} />
           <Route path="register" element={<RegisterCatalogModelPage />} />
           <Route path="*" element={<Navigate to="." />} />

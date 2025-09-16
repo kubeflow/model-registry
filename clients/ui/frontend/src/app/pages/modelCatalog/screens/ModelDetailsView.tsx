@@ -10,7 +10,6 @@ import {
   Sidebar,
   SidebarContent,
   SidebarPanel,
-  Bullseye,
   Spinner,
   Alert,
 } from '@patternfly/react-core';
@@ -32,16 +31,8 @@ type ModelDetailsViewProps = {
 const ModelDetailsView: React.FC<ModelDetailsViewProps> = ({ model, decodedParams }) => {
   const [artifacts, artifactLoaded, artifactsLoadError] = useCatalogModelArtifacts(
     decodedParams.sourceId || '',
-    encodeURIComponent(`${decodedParams.repositoryName}/${decodedParams.modelName}`),
+    encodeURIComponent(`${decodedParams.modelName}`),
   );
-
-  if (!artifactLoaded) {
-    return (
-      <Bullseye>
-        <Spinner size="xl" />
-      </Bullseye>
-    );
-  }
 
   return (
     <PageSection hasBodyWrapper={false} isFilled>
@@ -87,11 +78,15 @@ const ModelDetailsView: React.FC<ModelDetailsViewProps> = ({ model, decodedParam
                 <Alert variant="danger" isInline title={artifactsLoadError.name}>
                   {artifactsLoadError.message}
                 </Alert>
-              ) : (
+              ) : !artifactLoaded ? (
+                <Spinner size="sm" />
+              ) : artifacts.items.length > 0 ? (
                 <InlineTruncatedClipboardCopy
                   testId="source-image-location"
                   textToCopy={artifacts.items.map((artifact) => artifact.uri)[0] || ''}
                 />
+              ) : (
+                <p className={text.textColorDisabled}>No artifacts available</p>
               )}
             </DescriptionListGroup>
             <DescriptionListGroup>

@@ -102,9 +102,7 @@ const ModelCatalogCoreLoader: React.FC<ModelCatalogCoreLoaderrProps> = ({
 
   return (
     <ApplicationsPage
-      title={
-        <TitleWithIcon title="Model Catalog" objectType={ProjectObjectType.modelRegistrySettings} />
-      }
+      title={<TitleWithIcon title="Model Catalog" objectType={ProjectObjectType.modelCatalog} />}
       description=""
       {...renderStateProps}
       loaded
