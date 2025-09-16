@@ -16,6 +16,7 @@ jobs:
         IMAGE: [
           'ghcr.io/kubeflow/model-registry/server:latest',
           'ghcr.io/kubeflow/model-registry/ui:latest',
+          'ghcr.io/kubeflow/model-registry/job/async-upload:latest',
           'ghcr.io/kubeflow/model-registry/storage-initializer:latest',
           'ghcr.io/kubeflow/model-registry/ui-standalone:latest'
         ]
