@@ -132,6 +132,11 @@ func setupMock(mockK8sClient kubernetes.Interface, ctx context.Context) error {
 		return err
 	}
 
+	err = createModelCatalogService(mockK8sClient, ctx, "model-catalog-service", "bella-namespace", "10.0.0.16")
+	if err != nil {
+		return err
+	}
+
 	err = createClusterAdminRBAC(mockK8sClient, ctx, DefaultTestUsers[0].UserName)
 	if err != nil {
 		return fmt.Errorf("failed to create cluster admin RBAC: %w", err)

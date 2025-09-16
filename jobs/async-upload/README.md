@@ -70,10 +70,10 @@ See asterisks below table for details
 | MODEL_SYNC_DESTINATION_OCI_PASSWORD          | --destination-oci-password          |                   | ✅\+     | "                                                                                                      |
 | MODEL_SYNC_DESTINATION_OCI_BASE_IMAGE        | --destination-oci-base-image        | busybox:latest    |          | When --destination-type is "oci". The image to use when pushing to an OCI registry                     |
 | MODEL_SYNC_DESTINATION_OCI_ENABLE_TLS_VERIFY | --destination-oci-enable-tls-verify | true              |          | When --destination-type is "oci". Specifies whether to use TLS when pushing to registry                |
-| MODEL_SYNC_UPLOAD_INTENT                     | --model-upload-intent               | update_artifact   |          | The intent of the upload job. Options include `["create_model", "create_version", "update_artifact"]`. |
+| MODEL_SYNC_MODEL_UPLOAD_INTENT               | --model-upload-intent               | update_artifact   |          | The intent of the upload job. Options include `["create_model", "create_version", "update_artifact"]`. |
 | MODEL_SYNC_MODEL_ID                          | --model-id                          |                   | ✅\%     | The `RegisteredModel.id`                                                                               |
-| MODEL_SYNC_VERSION_ID                        | --model-version-id                  |                   | ✅\%     | The `ModelVersion.id`                                                                                  |
-| MODEL_SYNC_ARTIFACT_ID                       | --model-artifact-id                 |                   | ✅\%     | The `ModelArtifact.id`                                                                                 |
+| MODEL_SYNC_MODEL_VERSION_ID                  | --model-version-id                  |                   | ✅\%     | The `ModelVersion.id`                                                                                  |
+| MODEL_SYNC_MODEL_ARTIFACT_ID                 | --model-artifact-id                 |                   | ✅\%     | The `ModelArtifact.id`                                                                                 |
 | MODEL_SYNC_STORAGE_PATH                      | --storage-path                      | `/tmp/model-sync` | ✅       | Temporary storage, must be large enough to hold the entire model                                       |
 | MODEL_SYNC_REGISTRY_SERVER_ADDRESS           | --registry-server-address           |                   | ✅       | Server address for the model-registry client to connect to                                             |
 | MODEL_SYNC_REGISTRY_PORT                     | --registry-port                     | 443               |          |                                                                                                        |
@@ -92,6 +92,84 @@ See asterisks below table for details
 ✅\#: Must be present in some form when the source is `uri`. This might be from the parameter in the table, or from the credentials file(s) that was specified/provided.
 
 ✅\%: Must be present in some form depending on what the `model-upload-intent` is set to.
+
+## Upload Intent Types
+
+The job supports different intent types that determine how it interacts with the Model Registry:
+
+### `update_artifact`
+
+(Default)
+
+Updates an existing ModelArtifact's URI and sets it to LIVE state.
+- **Required**: `MODEL_SYNC_MODEL_ARTIFACT_ID`
+- **ConfigMap**: Not required
+
+### `create_model`
+
+Creates a new RegisteredModel, ModelVersion, and ModelArtifact.
+- **Required**: `MODEL_SYNC_METADATA_CONFIGMAP_PATH` with complete model metadata
+- **ConfigMap**: Must contain RegisteredModel, ModelVersion, and ModelArtifact metadata
+
+### `create_version`
+
+Creates a new ModelVersion and ModelArtifact under an existing RegisteredModel.
+- **Required**: `MODEL_SYNC_MODEL_ID` and `MODEL_SYNC_METADATA_CONFIGMAP_PATH`
+- **ConfigMap**: Must contain ModelVersion and ModelArtifact metadata
+
+## ConfigMap Usage
+
+For `create_model` and `create_version` intents, provide metadata via a mounted ConfigMap:
+
+```yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: model-metadata
+data:
+  # RegisteredModel fields (create_model only)
+  RegisteredModel.name: "my-model"
+  RegisteredModel.description: "Model description"
+  RegisteredModel.owner: "data-science-team"
+  RegisteredModel.custom_properties: |
+    {"project": "sentiment-analysis", "team": "nlp"}
+  # ModelVersion fields
+  ModelVersion.name: "1.0.0"
+  ModelVersion.description: "Initial release"
+  ModelVersion.author: "Jane Doe"
+  ModelVersion.custom_properties: |
+    {"accuracy": 0.95, "f1_score": 0.93}
+  # ModelArtifact fields
+  ModelArtifact.name: "sentiment-analyzer"
+  ModelArtifact.model_format_name: "tensorflow"
+  ModelArtifact.model_format_version: "2.8"
+  ModelArtifact.storage_key: "s3-connection"
+  ModelArtifact.custom_properties: |
+    {"model_size_mb": 438, "inference_time_ms": 120}
+```
+
+Mount the ConfigMap in your Job:
+
+```yaml
+spec:
+  template:
+    spec:
+      containers:
+      - name: async-upload
+        env:
+        - name: MODEL_SYNC_MODEL_UPLOAD_INTENT
+          value: "create_model"
+        - name: MODEL_SYNC_METADATA_CONFIGMAP_PATH
+          value: "/etc/model-metadata"
+        volumeMounts:
+        - name: metadata
+          mountPath: /etc/model-metadata
+          readOnly: true
+      volumes:
+      - name: metadata
+        configMap:
+          name: model-metadata
+```
 
 ## References
 

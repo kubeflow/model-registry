@@ -12,6 +12,8 @@ import (
 
 const (
 	// Test certificate and key (self-signed, for testing only)
+	// the following keys do not correspond to any system or live system
+	// and has been generated with self-signature locally
 	testCert = `-----BEGIN CERTIFICATE-----
 MIIDczCCAlugAwIBAgIUMF77xY8/4njgitPJbFfCpfdDYvYwDQYJKoZIhvcNAQEL
 BQAwSTELMAkGA1UEBhMCVVMxDTALBgNVBAgMBFRlc3QxDTALBgNVBAcMBFRlc3Qx
@@ -32,7 +34,7 @@ f2c5eSbc8n/IGvbiHPGmq/iHtZyDSKw83GQyRxSsXdgM7ru7N0YcP7qAkA6aqjYq
 3/LbAvJOrPUMYlbpG7/+ZKareiMDy/1z8bWVFd3LiT12RhSJuqsCwMa3KePNAjaq
 QTYxfer470vq8Y9cBwlMid0+RNGOcuQxbr20QeexEpGN8wHyxC4sO5ByBbpnPUsN
 lcYEIoSHV3P8mTOqEVmCzBnDerbQfis=
------END CERTIFICATE-----`
+-----END CERTIFICATE-----` // notsecret
 
 	testKey = `-----BEGIN PRIVATE KEY-----
 MIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQCzQdrfRQE7lmrl
@@ -61,7 +63,7 @@ mfAmq5zkixlBvq7+FwZ8BUTyviKEnaJZPCKQnIECgYEAt26lsdwbUtistx9isZ8/
 /NB4rd/GPQnBCyiQZy2mftYROuEonOHZq0XmuGhoU/Vvv0/9149eDCOED0BllBRy
 qaXDpxpd8DoJVEvJDXAQVPu9WqcrYieJDc9a40tBMaf3YvcaCuHPj6LywzXlH45f
 COUgUAV+r5AGr5R23tHluuQ=
------END PRIVATE KEY-----`
+-----END PRIVATE KEY-----` // notsecret
 
 	testRootCA = `-----BEGIN CERTIFICATE-----
 MIIDczCCAlugAwIBAgIUMF77xY8/4njgitPJbFfCpfdDYvYwDQYJKoZIhvcNAQEL
@@ -83,7 +85,7 @@ f2c5eSbc8n/IGvbiHPGmq/iHtZyDSKw83GQyRxSsXdgM7ru7N0YcP7qAkA6aqjYq
 3/LbAvJOrPUMYlbpG7/+ZKareiMDy/1z8bWVFd3LiT12RhSJuqsCwMa3KePNAjaq
 QTYxfer470vq8Y9cBwlMid0+RNGOcuQxbr20QeexEpGN8wHyxC4sO5ByBbpnPUsN
 lcYEIoSHV3P8mTOqEVmCzBnDerbQfis=
------END CERTIFICATE-----`
+-----END CERTIFICATE-----` // notsecret
 )
 
 func TestNewTLSConfig(t *testing.T) {
@@ -149,10 +151,12 @@ func TestBuildTLSConfig_Basic(t *testing.T) {
 
 	if err != nil {
 		t.Fatalf("BuildTLSConfig() error = %v", err)
+		return
 	}
 
 	if tlsConf == nil {
 		t.Fatal("BuildTLSConfig() returned nil config")
+		return
 	}
 
 	if !tlsConf.InsecureSkipVerify {

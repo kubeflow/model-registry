@@ -4,7 +4,7 @@ Configuration models for the async upload job using Pydantic for type safety and
 from __future__ import annotations
 from enum import StrEnum
 import logging
-from typing import Union
+from typing import Union, Annotated, Literal
 from pydantic import BaseModel, Field, model_validator, ConfigDict
 
 
@@ -56,7 +56,7 @@ class OCIConfig(BaseModel):
 
 class S3StorageConfig(BaseStorageConfig, S3Config):
     """S3 storage configuration with validation - can be used for both source and destination."""
-    
+
     @model_validator(mode='after')
     def validate_s3_storage(self) -> 'S3StorageConfig':
         """Validate that required S3 fields are present."""
@@ -67,7 +67,7 @@ class S3StorageConfig(BaseStorageConfig, S3Config):
 
 class OCIStorageConfig(BaseStorageConfig, OCIConfig):
     """OCI storage configuration with validation - can be used for both source and destination."""
-    
+
     @model_validator(mode='after')
     def validate_oci_storage(self) -> 'OCIStorageConfig':
         """Validate that required OCI fields are present."""
@@ -83,7 +83,7 @@ class URISourceConfig(BaseModel):
 
 class URISourceStorageConfig(BaseStorageConfig, URISourceConfig):
     """URI source storage configuration with validation - only used for sources, not destinations."""
-    
+
     @model_validator(mode='after')
     def validate_uri_storage(self) -> 'URISourceStorageConfig':
         """Validate that required URI field is present."""
@@ -101,31 +101,36 @@ class UploadIntent(StrEnum):
     create_version = "create_version"
     update_artifact = "update_artifact"
 
-class ModelConfig(BaseModel):
-    """Model registry model information."""
-    upload_intent: UploadIntent = Field(UploadIntent.update_artifact, description="Model upload intent")
-    id: str | None = Field(None, description="Model ID")
-    version_id: str | None = Field(None, description="Model version ID")
-    artifact_id: str | None = Field(None, description="Model artifact ID")
 
-    @model_validator(mode='after')
-    def validate_model_ids(self) -> 'ModelConfig':
-        """Validate that all model IDs are provided."""
-        if self.upload_intent == UploadIntent.create_model:
-            # No ids should be set when intent is create_model
-            if any([self.id, self.version_id, self.artifact_id]):
-                raise ValueError("Model ID, Model Version ID and Model Artifact ID cannot be set when intent is create_model")
-        elif self.upload_intent == UploadIntent.create_version:
-            if not self.id:
-                raise ValueError("Model ID must be set when intent is create_version")
-            elif any([self.version_id, self.artifact_id]):
-                raise ValueError("Model Version ID and Model Artifact ID cannot be set when intent is create_version")
-        elif self.upload_intent == UploadIntent.update_artifact:
-            if not self.artifact_id:
-                raise ValueError("Model Artifact ID must be set when intent is update_artifact")
-            elif any([self.id, self.version_id]):
-                raise ValueError("Model ID and Model Version ID cannot be set when intent is update_artifact")
-        return self
+class ModelInputArgs(BaseModel):
+    model_config = ConfigDict(frozen=True)
+
+    intent_type: UploadIntent = Field(description="Upload intent type")
+    model_id: str | None = Field(description="Registered model ID")
+    version_id: str | None = Field(description="Model version ID")
+    artifact_id: str | None = Field(description="Model artifact ID")
+
+
+class CreateModelIntent(BaseModel):
+    intent_type: Literal[UploadIntent.create_model] = UploadIntent.create_model
+
+
+class CreateVersionIntent(BaseModel):
+    intent_type: Literal[UploadIntent.create_version] = UploadIntent.create_version
+    model_id: str = Field(..., description="Registered model ID for the existing model")
+
+
+class UpdateArtifactIntent(BaseModel):
+    intent_type: Literal[UploadIntent.update_artifact] = UploadIntent.update_artifact
+    artifact_id: str = Field(..., description="Model artifact ID to update")
+
+
+IntentConfig = Union[CreateModelIntent, CreateVersionIntent, UpdateArtifactIntent]
+
+
+class ModelConfig(BaseModel):
+    """Model registry model information with intent-specific configuration."""
+    intent: IntentConfig = Field(..., description="Model upload intent configuration", discriminator='intent_type')
 
 
 class StorageConfig(BaseModel):
@@ -153,6 +158,61 @@ class RegistryConfig(BaseModel):
         return self
 
 
+class RegisteredModelMetadata(BaseModel):
+    """Metadata for creating a RegisteredModel."""
+    name: str | None = None
+    id: str | None = None  # Alternative to name for existing models
+    description: str | None = None
+    owner: str | None = None
+    custom_properties: dict | None = None
+
+    @model_validator(mode='after')
+    def validate_name_or_id(self) -> 'RegisteredModelMetadata':
+        """Validate that either name or id is provided, but not both."""
+        if self.name and self.id:
+            raise ValueError("Cannot provide both name and id for RegisteredModel")
+        if not self.name and not self.id:
+            raise ValueError("Must provide either name or id for RegisteredModel")
+        return self
+
+
+class ModelVersionMetadata(BaseModel):
+    """Metadata for creating a ModelVersion."""
+    name: str | None = None
+    description: str | None = None
+    author: str | None = None
+    custom_properties: dict | None = None
+
+
+class ModelArtifactMetadata(BaseModel):
+    """Metadata for creating a ModelArtifact."""
+    name: str | None = None
+    model_format_name: str | None = None
+    model_format_version: str | None = None
+    storage_key: str | None = None
+    storage_path: str | None = None
+    service_account_name: str | None = None
+    model_source_kind: str | None = None
+    model_source_class: str | None = None
+    model_source_group: str | None = None
+    model_source_id: str | None = None
+    model_source_name: str | None = None
+    custom_properties: dict | None = None
+
+
+class ConfigMapMetadata(BaseModel):
+    """Metadata from ConfigMap for creating model registry entries."""
+    registered_model: RegisteredModelMetadata | None = None
+    model_version: ModelVersionMetadata | None = None
+    model_artifact: ModelArtifactMetadata | None = None
+
+    @model_validator(mode='after')
+    def validate_metadata_for_intent(self) -> 'ConfigMapMetadata':
+        """Validate that metadata is compatible with the intent."""
+        # This validation will be enhanced when we know the intent type
+        return self
+
+
 class AsyncUploadConfig(BaseModel):
     """Main configuration for the async upload job."""
     model_config = ConfigDict(
@@ -169,3 +229,4 @@ class AsyncUploadConfig(BaseModel):
     model: ModelConfig
     storage: StorageConfig = Field(default_factory=StorageConfig)
     registry: RegistryConfig
+    metadata: ConfigMapMetadata | None = None  # Optional ConfigMap metadata

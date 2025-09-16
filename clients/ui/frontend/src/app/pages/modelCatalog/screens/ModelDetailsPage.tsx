@@ -1,42 +1,82 @@
-import * as React from 'react';
-import { useParams, Link } from 'react-router-dom';
+import React from 'react';
+import { useParams, useNavigate } from 'react-router';
+import { Link } from 'react-router-dom';
 import {
+  ActionList,
   Breadcrumb,
   BreadcrumbItem,
   Content,
   ContentVariants,
   Flex,
   FlexItem,
-  Label,
-  Skeleton,
   Stack,
   StackItem,
+  Button,
+  Popover,
+  ActionListGroup,
+  Skeleton,
 } from '@patternfly/react-core';
-import { TagIcon } from '@patternfly/react-icons';
 import { ApplicationsPage } from 'mod-arch-shared';
-import { useModelCatalogSources } from '~/app/hooks/modelCatalog/useModelCatalogSources';
-import { extractVersionTag } from '~/app/pages/modelCatalog/utils/modelCatalogUtils';
+import { decodeParams, getModelName } from '~/app/pages/modelCatalog/utils/modelCatalogUtils';
 import ModelDetailsView from '~/app/pages/modelCatalog/screens/ModelDetailsView';
+import { useCatalogModel } from '~/app/hooks/modelCatalog/useCatalogModel';
+import { ModelRegistrySelectorContext } from '~/app/context/ModelRegistrySelectorContext';
+import { getRegisterCatalogModelRoute } from '~/app/routes/modelCatalog/catalogModelRegister';
+import { CatalogModelDetailsParams } from '~/app/modelCatalogTypes';
 
-type RouteParams = {
-  modelId: string;
-};
+const ModelDetailsPage: React.FC = () => {
+  const params = useParams<CatalogModelDetailsParams>();
+  const decodedParams = decodeParams(params);
+  const navigate = useNavigate();
 
-const ModelDetailsRoute: React.FC = () => {
-  const { modelId } = useParams<RouteParams>();
-  const { sources, loading, error } = useModelCatalogSources();
+  const state = useCatalogModel(
+    decodedParams.sourceId || '',
+    encodeURIComponent(`${decodedParams.repositoryName}/${decodedParams.modelName}`),
+  );
+  const [model, modelLoaded, modelLoadError] = state;
+  const { modelRegistries, modelRegistriesLoadError, modelRegistriesLoaded } = React.useContext(
+    ModelRegistrySelectorContext,
+  );
 
-  const model = React.useMemo(() => {
-    for (const source of sources) {
-      const found = source.models?.find((m) => m.id === modelId);
-      if (found) {
-        return found;
-      }
+  const registerModelButton = () => {
+    if (!modelRegistriesLoaded || modelRegistriesLoadError) {
+      return null;
     }
-    return undefined;
-  }, [sources, modelId]);
 
-  const versionTag = extractVersionTag(model?.tags);
+    return modelRegistries.length === 0 ? (
+      <Popover
+        headerContent="Request access to a model registry"
+        triggerAction="hover"
+        data-testid="register-catalog-model-popover"
+        bodyContent={
+          <div>
+            To request a new model registry, or to request permission to access an existing model
+            registry, contact your administrator.
+          </div>
+        }
+      >
+        <Button variant="primary" isAriaDisabled data-testid="register-model-button">
+          Register model
+        </Button>
+      </Popover>
+    ) : (
+      <Button
+        data-testid="register-model-button"
+        variant="primary"
+        onClick={() => {
+          navigate(
+            getRegisterCatalogModelRoute(
+              decodedParams.sourceId,
+              decodedParams.modelName,
+              decodedParams.repositoryName,
+            ),
+          );
+        }}
+      >
+        Register model
+      </Button>
+    );
+  };
 
   return (
     <ApplicationsPage
@@ -45,7 +85,7 @@ const ModelDetailsRoute: React.FC = () => {
           <BreadcrumbItem>
             <Link to="/model-catalog">Model catalog</Link>
           </BreadcrumbItem>
-          <BreadcrumbItem isActive>{model?.name || 'Details'}</BreadcrumbItem>
+          <BreadcrumbItem isActive>{getModelName(model?.name || '') || 'Details'}</BreadcrumbItem>
         </Breadcrumb>
       }
       title={
@@ -55,12 +95,12 @@ const ModelDetailsRoute: React.FC = () => {
             alignItems={{ default: 'alignItemsCenter' }}
           >
             {model.logo ? (
-              <img src={model.logo} alt="model logo" style={{ height: '40px', width: '40px' }} />
+              <img src={model.logo} alt="model logo" style={{ height: '56px', width: '56px' }} />
             ) : (
               <Skeleton
                 shape="square"
-                width="40px"
-                height="40px"
+                width="56px"
+                height="56px"
                 screenreaderText="Brand image loading"
               />
             )}
@@ -70,10 +110,7 @@ const ModelDetailsRoute: React.FC = () => {
                   spaceItems={{ default: 'spaceItemsSm' }}
                   alignItems={{ default: 'alignItemsCenter' }}
                 >
-                  <FlexItem>{model.name}</FlexItem>
-                  <Label variant="outline" icon={<TagIcon />}>
-                    {versionTag || 'N/A'}
-                  </Label>
+                  <FlexItem>{getModelName(model.name)}</FlexItem>
                 </Flex>
               </StackItem>
               <StackItem>
@@ -85,7 +122,7 @@ const ModelDetailsRoute: React.FC = () => {
           'Model details'
         )
       }
-      empty={!loading && !error && !model}
+      empty={modelLoaded && !modelLoadError && !model}
       emptyStatePage={
         !model ? (
           <div>
@@ -93,14 +130,23 @@ const ModelDetailsRoute: React.FC = () => {
           </div>
         ) : undefined
       }
-      loadError={error}
-      loaded={!loading}
+      loadError={modelLoadError}
+      loaded={modelLoaded}
       errorMessage="Unable to load model catalog"
       provideChildrenPadding
+      headerAction={
+        modelLoaded &&
+        !modelLoadError &&
+        model && (
+          <ActionList>
+            <ActionListGroup>{registerModelButton()}</ActionListGroup>
+          </ActionList>
+        )
+      }
     >
-      {model && <ModelDetailsView model={model} />}
+      {model && <ModelDetailsView model={model} decodedParams={decodedParams} />}
     </ApplicationsPage>
   );
 };
 
-export default ModelDetailsRoute;
+export default ModelDetailsPage;

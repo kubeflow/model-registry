@@ -108,6 +108,7 @@ export const registerVersion = async (
       author,
       modelFormatName: formData.sourceModelFormat,
       modelFormatVersion: formData.sourceModelFormatVersion,
+      ...formData.additionalArtifactProperties,
       // storageKey: 'TODO',
       uri:
         formData.modelLocationType === ModelLocationType.ObjectStorage

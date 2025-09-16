@@ -6,6 +6,7 @@ import (
 
 	"github.com/kubeflow/model-registry/internal/db/models"
 	"github.com/kubeflow/model-registry/internal/db/schema"
+	"github.com/kubeflow/model-registry/internal/db/utils"
 	"gorm.io/gorm"
 )
 
@@ -65,8 +66,9 @@ func applyModelVersionListFilters(query *gorm.DB, listOptions *models.ModelVersi
 	}
 
 	if listOptions.ParentResourceID != nil {
-		query = query.Joins("JOIN ParentContext ON ParentContext.context_id = Context.id").
-			Where("ParentContext.parent_context_id = ?", listOptions.ParentResourceID)
+		// Proper GORM JOIN: Use helper that respects naming strategy
+		query = query.Joins(utils.BuildParentContextJoin(query)).
+			Where(utils.GetColumnRef(query, &schema.ParentContext{}, "parent_context_id")+" = ?", listOptions.ParentResourceID)
 	}
 
 	return query

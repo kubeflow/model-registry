@@ -8,11 +8,12 @@ from pathlib import Path
 from .models import (
     AsyncUploadConfig,
     OCIStorageConfig,
-    S3StorageConfig, 
-    SourceConfig, 
-    DestinationConfig, 
-    ModelConfig, 
-    StorageConfig, 
+    S3StorageConfig,
+    SourceConfig,
+    DestinationConfig,
+    ModelConfig,
+    ModelInputArgs,
+    StorageConfig,
     RegistryConfig,
     S3Config,
     OCIConfig,
@@ -20,10 +21,19 @@ from .models import (
     SourceType,
     DestinationType,
     URISourceStorageConfig,
-    UploadIntent
+    UploadIntent,
+    CreateModelIntent,
+    CreateVersionIntent,
+    UpdateArtifactIntent,
+    ConfigMapMetadata,
+    RegisteredModelMetadata,
+    ModelVersionMetadata,
+    ModelArtifactMetadata,
 )
 
 logger = logging.getLogger(__name__)
+
+DEFAULT_METADATA_CONFIGMAP_PATH: Final[str] = "/etc/model-metadata"
 
 
 def _parser() -> cap.ArgumentParser:
@@ -74,9 +84,9 @@ def _parser() -> cap.ArgumentParser:
     # --- model-registry model data ---
     # This intent determines the action to take once the model has been uploaded to the destination.
     p.add_argument(
-        "--model-upload-intent", 
-        type=UploadIntent, 
-        choices=tuple(UploadIntent), 
+        "--model-upload-intent",
+        type=UploadIntent,
+        choices=tuple(UploadIntent),
         default=UploadIntent.update_artifact
     )
     p.add_argument("--model-id")
@@ -96,6 +106,9 @@ def _parser() -> cap.ArgumentParser:
     p.add_argument("--registry-custom-ca", default=None)
     p.add_argument("--registry-custom-ca-envvar", default=None)
     p.add_argument("--registry-log-level", default=logging.WARNING)
+
+    # --- ConfigMap metadata ---
+    p.add_argument("--metadata-configmap-path", default=None, help="Path to mounted ConfigMap with model metadata")
 
     # TODO: The type of credential should be inferrable from the `type` specified in the source/destination
     p.add_argument(
@@ -264,6 +277,61 @@ def _load_uri_credentials(path: str | Path, store: URISourceConfig) -> None:
     store.uri = uri_file.read_text().strip()
 
 
+def _load_configmap_metadata(path: str | Path) -> ConfigMapMetadata:
+    """
+    Load ConfigMap metadata from a mounted ConfigMap directory.
+
+    The ConfigMap should contain keys using dot notation, which are parsed into a nested structure:
+    - RegisteredModel.name -> nested_data["RegisteredModel"]["name"]
+    - ModelVersion.description -> nested_data["ModelVersion"]["description"]
+    - ModelArtifact.model_format_name -> nested_data["ModelArtifact"]["model_format_name"]
+    - RegisteredModel.abc.def -> nested_data["RegisteredModel"]["abc"]["def"] (supports arbitrary nesting)
+
+    JSON values are automatically parsed for keys ending with .custom_properties.
+    """
+    logger.info(f"🔍 Loading ConfigMap metadata from {path}")
+
+    nested_data = {}
+    for file_path in Path(path).iterdir():
+        if file_path.is_file():
+            key = file_path.name
+            value = file_path.read_text().strip()
+            parts = key.split(".")
+            current = nested_data
+
+            for part in parts[:-1]:
+                if part not in current:
+                    current[part] = {}
+                current = current[part]
+
+            part = parts[-1]
+            if part == "custom_properties" and value:
+                try:
+                    value = json.loads(value)
+                except json.JSONDecodeError as e:
+                    logger.warning(f"Failed to parse JSON for {key}: {e}")
+                    continue
+            current[part] = value
+
+    rm_data = nested_data.get("RegisteredModel")
+    mv_data = nested_data.get("ModelVersion")
+    ma_data = nested_data.get("ModelArtifact")
+
+    registered_model = RegisteredModelMetadata(**rm_data) if rm_data else None
+    model_version = ModelVersionMetadata(**mv_data) if mv_data else None
+    model_artifact = ModelArtifactMetadata(**ma_data) if ma_data else None
+
+    logger.debug(f"📝 Loaded RegisteredModel metadata: {registered_model}")
+    logger.debug(f"📝 Loaded ModelVersion metadata: {model_version}")
+    logger.debug(f"📝 Loaded ModelArtifact metadata: {model_artifact}")
+
+    return ConfigMapMetadata(
+        registered_model=registered_model,
+        model_version=model_version,
+        model_artifact=model_artifact
+    )
+
+
 def str2bool(x):
     """Convert a config string to boolean. This is needed because configargparse doesn't support boolean optional action as env vars"""
     if isinstance(x, bool):
@@ -288,7 +356,7 @@ def get_config(argv: list[str] | None = None) -> AsyncUploadConfig:
     """
     args = _parser().parse_args(argv)
     logger.debug("🔍 Command-line arguments: %s", args)
- 
+
     # Create source config based on type
     if args.source_type == "s3":
         s3_config = S3Config(
@@ -363,16 +431,43 @@ def get_config(argv: list[str] | None = None) -> AsyncUploadConfig:
     else:
         raise ValueError(f"Unsupported destination type: {args.destination_type}")
 
-    # Create model instances
+    model_args = ModelInputArgs(
+        intent_type=args.model_upload_intent,
+        model_id=args.model_id,
+        version_id=args.model_version_id,
+        artifact_id=args.model_artifact_id,
+    )
+
+    metadata_configmap_path = args.metadata_configmap_path
+    if metadata_configmap_path is None:
+        if Path(DEFAULT_METADATA_CONFIGMAP_PATH).exists():
+            metadata_configmap_path = DEFAULT_METADATA_CONFIGMAP_PATH
+
+    metadata = None
+    if metadata_configmap_path is not None:
+        try:
+            metadata = _load_configmap_metadata(metadata_configmap_path)
+        except Exception as e:
+            logger.error("❌ Failed to load ConfigMap metadata: %s", e)
+            raise
+
+    intent_type = model_args.intent_type
+    if intent_type in (UploadIntent.create_model, UploadIntent.create_version):
+        if metadata is None:
+            raise ValueError(f"Intent {intent_type} requires ConfigMap metadata but none provided")
+        elif intent_type == UploadIntent.create_model:
+            if not (metadata.registered_model and metadata.model_version and metadata.model_artifact):
+                raise ValueError("create_model intent requires RegisteredModel, ModelVersion, and ModelArtifact metadata")
+        elif intent_type == UploadIntent.create_version:
+            if not metadata.model_version or not metadata.model_artifact:
+                raise ValueError("create_version intent requires ModelVersion and ModelArtifact metadata")
+
     try:
         config = AsyncUploadConfig(
             source=source_config,
             destination=destination_config,
             model=ModelConfig(
-                upload_intent=args.model_upload_intent,
-                id=args.model_id,
-                version_id=args.model_version_id,
-                artifact_id=args.model_artifact_id,
+                intent=model_args.model_dump(exclude_none=True),
             ),
             storage=StorageConfig(
                 path=args.storage_path,
@@ -388,6 +483,7 @@ def get_config(argv: list[str] | None = None) -> AsyncUploadConfig:
                 custom_ca_envvar=args.registry_custom_ca_envvar,
                 log_level=args.registry_log_level,
             ),
+            metadata=metadata,
         )
     except Exception as e:
         logger.error("❌ Configuration validation failed: %s", e)
@@ -420,7 +516,7 @@ def _sanitize_config_for_logging(cfg: Dict[str, Any]) -> Dict[str, Any]:
         if "password" in source and source["password"]:
             source["password"] = "***"
 
-    # Mask sensitive credentials in destination  
+    # Mask sensitive credentials in destination
     if "destination" in sanitized:
         destination = sanitized["destination"]
         if "secret_access_key" in destination and destination["secret_access_key"]:
