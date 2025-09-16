@@ -109,8 +109,9 @@ func (app *App) AttachModelCatalogRESTClient(next func(http.ResponseWriter, *htt
 		modelCatalogBaseURL := modelCatalog.ServerAddress
 
 		// If we are in dev mode, we need to resolve the server address to the local host
-		// to allow the client to connect to the model catalog via port forwarded from the cluster to the local machine.
-		if app.config.DevMode {
+		// to allow the client to connect to the model registry via port forwarded from the cluster to the local machine.
+		// If you are in federated mode, we do not want to override the server address.
+		if app.config.DevMode && !app.config.DeploymentMode.IsFederatedMode() {
 			modelCatalogBaseURL = app.repositories.ModelCatalog.ResolveServerAddress("localhost", int32(app.config.DevModeCatalogPort), modelCatalog.IsHTTPS, "", app.config.DeploymentMode.IsFederatedMode())
 		}
 
