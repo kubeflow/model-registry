@@ -95,7 +95,7 @@ const ModelCatalogSourceSelector: React.FC<ModelCatalogSourceSelectorProps> = ({
             onClick={() => {
               setOpen(false);
               const catalogSource = enabledCatalogSources.items.find(
-                (enaabledSource) => enaabledSource.id === source.id,
+                (enabledSource) => enabledSource.id === source.id,
               );
               updateSelectedSource(catalogSource);
               onSelection(source.id);
