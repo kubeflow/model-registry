@@ -192,16 +192,13 @@ func (y *yamlCatalogImpl) load(path string, excludedModelsList []string) error {
 
 const yamlCatalogPath = "yamlCatalogPath"
 
-func newYamlCatalog(source *CatalogSourceConfig) (CatalogSourceProvider, error) {
+func newYamlCatalog(source *CatalogSourceConfig, reldir string) (CatalogSourceProvider, error) {
 	yamlModelFile, exists := source.Properties[yamlCatalogPath].(string)
 	if !exists || yamlModelFile == "" {
 		return nil, fmt.Errorf("missing %s string property", yamlCatalogPath)
 	}
 
-	yamlModelFile, err := filepath.Abs(yamlModelFile)
-	if err != nil {
-		return nil, fmt.Errorf("abs: %w", err)
-	}
+	yamlModelFile = filepath.Join(reldir, yamlModelFile)
 
 	// Excluded models is an optional source property.
 	var excludedModels []string
@@ -222,7 +219,7 @@ func newYamlCatalog(source *CatalogSourceConfig) (CatalogSourceProvider, error) 
 	p := &yamlCatalogImpl{
 		models: make(map[string]*yamlModel),
 	}
-	err = p.load(yamlModelFile, excludedModels)
+	err := p.load(yamlModelFile, excludedModels)
 	if err != nil {
 		return nil, err
 	}

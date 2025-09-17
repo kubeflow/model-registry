@@ -21,13 +21,13 @@ func TestLoadCatalogSources(t *testing.T) {
 		{
 			name:    "test-catalog-sources",
 			args:    args{catalogsPath: "testdata/test-catalog-sources.yaml"},
-			want:    []string{"catalog1", "catalog3", "catalog4"},
+			want:    []string{"catalog1"},
 			wantErr: false,
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := LoadCatalogSources(tt.args.catalogsPath)
+			got, err := LoadCatalogSources([]string{tt.args.catalogsPath})
 			if (err != nil) != tt.wantErr {
 				t.Errorf("LoadCatalogSources() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -64,23 +64,13 @@ func TestLoadCatalogSourcesEnabledDisabled(t *testing.T) {
 					Name:    "Catalog 1",
 					Enabled: &trueValue,
 				},
-				"catalog3": {
-					Id:      "catalog3",
-					Name:    "Catalog 3",
-					Enabled: &trueValue,
-				},
-				"catalog4": {
-					Id:      "catalog4",
-					Name:    "Catalog 4",
-					Enabled: &trueValue,
-				},
 			},
 			wantErr: false,
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := LoadCatalogSources(tt.args.catalogsPath)
+			got, err := LoadCatalogSources([]string{tt.args.catalogsPath})
 			if (err != nil) != tt.wantErr {
 				t.Errorf("LoadCatalogSources() error = %v, wantErr %v", err, tt.wantErr)
 				return

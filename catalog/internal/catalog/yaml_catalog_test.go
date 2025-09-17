@@ -199,7 +199,7 @@ func testYAMLProviderWithExclusions(t *testing.T, path string, excludedModels []
 	}
 	provider, err := newYamlCatalog(&CatalogSourceConfig{
 		Properties: properties,
-	})
+	}, "")
 	if err != nil {
 		t.Fatalf("newYamlCatalog(%s) with exclusions failed: %v", path, err)
 	}

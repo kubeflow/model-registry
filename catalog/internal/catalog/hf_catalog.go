@@ -82,7 +82,7 @@ func (h *hfCatalogImpl) validateCredentials(ctx context.Context) error {
 }
 
 // newHfCatalog creates a new HuggingFace catalog source
-func newHfCatalog(source *CatalogSourceConfig) (CatalogSourceProvider, error) {
+func newHfCatalog(source *CatalogSourceConfig, reldir string) (CatalogSourceProvider, error) {
 	apiKey, ok := source.Properties["apiKey"].(string)
 	if !ok || apiKey == "" {
 		return nil, fmt.Errorf("missing or invalid 'apiKey' property for HuggingFace catalog")
