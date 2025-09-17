@@ -1,26 +1,14 @@
 package models
 
-import "github.com/kubeflow/model-registry/internal/db/filter"
+import (
+	"github.com/kubeflow/model-registry/internal/db/constants"
+	"github.com/kubeflow/model-registry/internal/db/filter"
+)
 
 var (
-	Execution_State_name = map[int32]string{
-		0: "UNKNOWN",
-		1: "NEW",
-		2: "RUNNING",
-		3: "COMPLETE",
-		4: "FAILED",
-		5: "CACHED",
-		6: "CANCELED",
-	}
-	Execution_State_value = map[string]int32{
-		"UNKNOWN":  0,
-		"NEW":      1,
-		"RUNNING":  2,
-		"COMPLETE": 3,
-		"FAILED":   4,
-		"CACHED":   5,
-		"CANCELED": 6,
-	}
+	// Use centralized state mappings from constants package
+	Execution_State_name  = constants.ExecutionStateNames
+	Execution_State_value = constants.ExecutionStateMapping
 )
 
 type ServeModelListOptions struct {
