@@ -37,7 +37,8 @@ const ModelCatalogSourceSelector: React.FC<ModelCatalogSourceSelectorProps> = ({
 }) => {
   const [open, setOpen] = React.useState(false);
   const [inputValue, setInputValue] = React.useState(searchTerm || '');
-  const { catalogSources, updateSelectedSource } = React.useContext(ModelCatalogContext);
+  const { catalogSources, updateSelectedSource, selectedSource } =
+    React.useContext(ModelCatalogContext);
   const selection = catalogSources?.items.find((source) => source.id === sourceId);
   const { isMUITheme } = useThemeContext();
 
@@ -88,6 +89,7 @@ const ModelCatalogSourceSelector: React.FC<ModelCatalogSourceSelectorProps> = ({
       <DropdownList>
         {enabledCatalogSources?.items.map((source) => (
           <DropdownItem
+            isSelected={source.id === selectedSource?.id}
             key={source.id}
             id={source.id}
             onClick={() => {
