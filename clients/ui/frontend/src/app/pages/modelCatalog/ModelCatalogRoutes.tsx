@@ -4,8 +4,8 @@ import { ModelCatalogContextProvider } from '~/app/context/modelCatalog/ModelCat
 import { modelCatalogUrl } from '~/app/routes/modelCatalog/catalogModel';
 import ModelCatalogCoreLoader from './ModelCatalogCoreLoader';
 import ModelDetailsPage from './screens/ModelDetailsPage';
-import ModelCatalogPage from './screens/ModelCatalogPage';
 import RegisterCatalogModelPage from './screens/RegisterCatalogModelPage';
+import ModelCatalog from './screens/ModelCatalog';
 
 const ModelCatalogRoutes: React.FC = () => (
   <ModelCatalogContextProvider>
@@ -18,7 +18,7 @@ const ModelCatalogRoutes: React.FC = () => (
           />
         }
       >
-        <Route index element={<ModelCatalogPage />} />
+        <Route index element={<ModelCatalog />} />
         <Route path=":modelName">
           <Route index element={<ModelDetailsPage />} />
           <Route path="register" element={<RegisterCatalogModelPage />} />

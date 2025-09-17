@@ -11,8 +11,10 @@ import {
 import * as React from 'react';
 import { Navigate, Outlet, useParams } from 'react-router-dom';
 import { ModelCatalogContext } from '~/app/context/modelCatalog/ModelCatalogContext';
+import { modelCatalogUrl } from '~/app/routes/modelCatalog/catalogModel';
 import EmptyModelCatalogState from './EmptyModelCatalogState';
 import InvalidCatalogSource from './screens/InvalidCatalogSource';
+import ModelCatalogSourceSelectorNavigator from './screens/ModelCatalogSourceSelectorNavigator';
 
 type ApplicationPageProps = React.ComponentProps<typeof ApplicationsPage>;
 
@@ -43,10 +45,10 @@ const ModelCatalogCoreLoader: React.FC<ModelCatalogCoreLoaderrProps> = ({
   const modelCatalogFromRoute = catalogSources?.items.find((source) => source.id === sourceId);
 
   React.useEffect(() => {
-    if (modelCatalogFromRoute && selectedSource?.name !== modelCatalogFromRoute.name) {
+    if (modelCatalogFromRoute && !selectedSource) {
       updateSelectedSource(modelCatalogFromRoute);
     }
-  }, [modelCatalogFromRoute, updateSelectedSource, selectedSource?.name]);
+  }, [modelCatalogFromRoute, updateSelectedSource, selectedSource]);
 
   if (catalogSourcesLoadError) {
     return (
@@ -59,8 +61,18 @@ const ModelCatalogCoreLoader: React.FC<ModelCatalogCoreLoaderrProps> = ({
   }
 
   if (!catalogSourcesLoaded) {
-    return <Bullseye>Loading catalog sources...</Bullseye>;
+    return (
+      <ApplicationsPage
+        title={<TitleWithIcon title="Model Catalog" objectType={ProjectObjectType.modelCatalog} />}
+        description="Discover models that are available for your organization to register, deploy, and customize."
+        headerContent={null}
+        empty
+        emptyStatePage={<Bullseye>Loading catalog sources...</Bullseye>}
+        loaded={false}
+      />
+    );
   }
+
   let renderStateProps: ApplicationPageRenderState & { children?: React.ReactNode };
   if (catalogSources?.items.length === 0) {
     renderStateProps = {
@@ -103,7 +115,10 @@ const ModelCatalogCoreLoader: React.FC<ModelCatalogCoreLoaderrProps> = ({
   return (
     <ApplicationsPage
       title={<TitleWithIcon title="Model Catalog" objectType={ProjectObjectType.modelCatalog} />}
-      description=""
+      description="Discover models that are available for your organization to register, deploy, and customize."
+      headerContent={
+        <ModelCatalogSourceSelectorNavigator getRedirectPath={(id) => modelCatalogUrl(id)} />
+      }
       {...renderStateProps}
       loaded
       provideChildrenPadding

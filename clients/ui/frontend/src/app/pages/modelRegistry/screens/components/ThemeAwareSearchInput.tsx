@@ -8,6 +8,7 @@ type ThemeAwareSearchInputProps = Omit<SearchInputProps, 'onChange' | 'onClear'>
   onClear?: () => void; // Simplified optional onClear signature
   fieldLabel?: string; // Additional prop for MUI FormFieldset label
   'data-testid'?: string;
+  onClick?: () => void;
 };
 
 const ThemeAwareSearchInput: React.FC<ThemeAwareSearchInputProps> = ({
@@ -21,6 +22,7 @@ const ThemeAwareSearchInput: React.FC<ThemeAwareSearchInputProps> = ({
   style,
   'aria-label': ariaLabel = 'Search',
   'data-testid': dataTestId,
+  onClick,
   ...rest
 }) => {
   const { isMUITheme } = useThemeContext();
@@ -40,6 +42,8 @@ const ThemeAwareSearchInput: React.FC<ThemeAwareSearchInputProps> = ({
             aria-label={ariaLabel}
             data-testid={dataTestId}
             style={style}
+            onClick={onClick}
+            placeholder={placeholder}
           />
         }
       />
@@ -57,6 +61,7 @@ const ThemeAwareSearchInput: React.FC<ThemeAwareSearchInputProps> = ({
       isDisabled={isDisabled}
       aria-label={ariaLabel}
       data-testid={dataTestId}
+      onClick={onClick}
       onChange={(_event, newValue) => onChange(newValue)} // Adapt signature
       onClear={(event) => {
         event.stopPropagation();

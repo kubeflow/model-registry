@@ -23,6 +23,7 @@ import { useCatalogModel } from '~/app/hooks/modelCatalog/useCatalogModel';
 import { ModelRegistrySelectorContext } from '~/app/context/ModelRegistrySelectorContext';
 import { getRegisterCatalogModelRoute } from '~/app/routes/modelCatalog/catalogModelRegister';
 import { CatalogModelDetailsParams } from '~/app/modelCatalogTypes';
+import { useCatalogModelArtifacts } from '~/app/hooks/modelCatalog/useCatalogModelArtifacts';
 
 const ModelDetailsPage: React.FC = () => {
   const params = useParams<CatalogModelDetailsParams>();
@@ -38,27 +39,41 @@ const ModelDetailsPage: React.FC = () => {
     ModelRegistrySelectorContext,
   );
 
+  const [artifacts, artifactLoaded, artifactsLoadError] = useCatalogModelArtifacts(
+    decodedParams.sourceId || '',
+    encodeURIComponent(encodeURIComponent(`${decodedParams.modelName}`)) || '',
+  );
+
+  const registerButtonPopover = (headerContent: string, bodyContent: string) => (
+    <Popover
+      headerContent={headerContent}
+      triggerAction="hover"
+      data-testid="register-catalog-model-popover"
+      bodyContent={<div>{bodyContent}</div>}
+    >
+      <Button variant="primary" isAriaDisabled data-testid="register-model-button">
+        Register model
+      </Button>
+    </Popover>
+  );
+
   const registerModelButton = () => {
-    if (!modelRegistriesLoaded || modelRegistriesLoadError) {
+    if (
+      !modelRegistriesLoaded ||
+      modelRegistriesLoadError ||
+      !artifactLoaded ||
+      artifactsLoadError
+    ) {
       return null;
     }
 
     return modelRegistries.length === 0 ? (
-      <Popover
-        headerContent="Request access to a model registry"
-        triggerAction="hover"
-        data-testid="register-catalog-model-popover"
-        bodyContent={
-          <div>
-            To request a new model registry, or to request permission to access an existing model
-            registry, contact your administrator.
-          </div>
-        }
-      >
-        <Button variant="primary" isAriaDisabled data-testid="register-model-button">
-          Register model
-        </Button>
-      </Popover>
+      registerButtonPopover(
+        'Request access to a model registry',
+        'To request a new model registry, or to request permission to access an existing model registry, contact your administrator.',
+      )
+    ) : artifacts.items.length === 0 ? (
+      registerButtonPopover('', 'Model location is unavailable')
     ) : (
       <Button
         data-testid="register-model-button"
@@ -116,7 +131,7 @@ const ModelDetailsPage: React.FC = () => {
           'Model details'
         )
       }
-      empty={modelLoaded && !modelLoadError && !model}
+      empty={!model}
       emptyStatePage={
         !model ? (
           <div>

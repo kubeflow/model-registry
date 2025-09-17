@@ -25,9 +25,9 @@ func (m *ModelCatalogClientMock) GetAllCatalogModelsAcrossSources(client httpcli
 	var filteredModels []openapi.CatalogModel
 
 	sourceId := pageValues.Get("source")
+	query := pageValues.Get("q")
 
 	if sourceId != "" {
-
 		for _, model := range allModels {
 			if model.SourceId != nil && *model.SourceId == sourceId {
 				filteredModels = append(filteredModels, model)
@@ -35,6 +35,36 @@ func (m *ModelCatalogClientMock) GetAllCatalogModelsAcrossSources(client httpcli
 		}
 	} else {
 		filteredModels = allModels
+	}
+
+	if query != "" {
+		var queryFilteredModels []openapi.CatalogModel
+		queryLower := strings.ToLower(query)
+
+		for _, model := range filteredModels {
+			matchFound := false
+
+			// Check name
+			if strings.Contains(strings.ToLower(model.Name), queryLower) {
+				matchFound = true
+			}
+
+			// Check description
+			if !matchFound && model.Description != nil && strings.Contains(strings.ToLower(*model.Description), queryLower) {
+				matchFound = true
+			}
+
+			// Check provider
+			if !matchFound && model.Provider != nil && strings.Contains(strings.ToLower(*model.Provider), queryLower) {
+				matchFound = true
+			}
+
+			if matchFound {
+				queryFilteredModels = append(queryFilteredModels, model)
+			}
+		}
+
+		filteredModels = queryFilteredModels
 	}
 
 	pageSizeStr := pageValues.Get("pageSize")
@@ -62,6 +92,8 @@ func (m *ModelCatalogClientMock) GetAllCatalogModelsAcrossSources(client httpcli
 	var pagedModels []openapi.CatalogModel
 	if startIndex < totalSize {
 		pagedModels = filteredModels[startIndex:endIndex]
+	} else {
+		pagedModels = []openapi.CatalogModel{}
 	}
 
 	var nextPageToken string
@@ -83,23 +115,19 @@ func (m *ModelCatalogClientMock) GetAllCatalogModelsAcrossSources(client httpcli
 func (m *ModelCatalogClientMock) GetCatalogSourceModel(client httpclient.HTTPClientInterface, sourceId string, modelName string) (*openapi.CatalogModel, error) {
 	allModels := GetCatalogModelMocks()
 
-	// Decode the modelName in case it's URL-encoded
 	decodedModelName, err := url.QueryUnescape(modelName)
 	if err != nil {
 		return nil, fmt.Errorf("failed to decode modelName: %w", err)
 	}
 
-	// Remove leading slash if present
 	decodedModelName = strings.TrimPrefix(decodedModelName, "/")
 
 	for _, model := range allModels {
-		// Check if both sourceId and modelName match
 		if model.SourceId != nil && *model.SourceId == sourceId && model.Name == decodedModelName {
 			return &model, nil
 		}
 	}
 
-	// Return an error if no matching model is found
 	return nil, fmt.Errorf("catalog model not found for sourceId: %s, modelName: %s", sourceId, decodedModelName)
 }
 
