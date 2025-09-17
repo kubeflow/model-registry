@@ -11,7 +11,7 @@ import { PlusCircleIcon } from '@patternfly/react-icons';
 type EmptyModelCatalogStateType = {
   testid?: string;
   title: string;
-  description: string;
+  description: React.ReactNode;
   headerIcon?: React.ComponentType;
   children?: React.ReactNode;
   customAction?: React.ReactNode;

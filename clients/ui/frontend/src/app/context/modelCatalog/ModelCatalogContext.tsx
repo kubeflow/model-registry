@@ -42,27 +42,17 @@ export const ModelCatalogContextProvider: React.FC<ModelCatalogContextProviderPr
   const [selectedSource, setSelectedSource] =
     React.useState<ModelCatalogContextType['selectedSource']>(undefined);
 
-  const firstCatalogSource = catalogSources.items.length > 0 ? catalogSources.items[0] : null;
-
   const contextValue = React.useMemo(
     () => ({
       catalogSourcesLoaded: isLoaded,
       catalogSourcesLoadError: error,
       catalogSources,
-      selectedSource: selectedSource ?? firstCatalogSource ?? undefined,
+      selectedSource: selectedSource ?? undefined,
       updateSelectedSource: setSelectedSource,
       apiState,
       refreshAPIState,
     }),
-    [
-      isLoaded,
-      error,
-      catalogSources,
-      selectedSource,
-      firstCatalogSource,
-      apiState,
-      refreshAPIState,
-    ],
+    [isLoaded, error, catalogSources, selectedSource, apiState, refreshAPIState],
   );
 
   return (

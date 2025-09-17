@@ -4,6 +4,7 @@ import { ModelRegistryCustomProperties } from './types';
 export type CatalogSource = {
   id: string;
   name: string;
+  enabled?: boolean;
 };
 
 export type CatalogSourceList = ModelCatalogListParams & { items: CatalogSource[] };
@@ -52,6 +53,7 @@ export type GetCatalogModelsBySource = (
     orderBy?: string;
     sortOrder?: string;
   },
+  searchKeyword?: string,
 ) => Promise<CatalogModelList>;
 
 export type GetListSources = (opts: APIOptions) => Promise<CatalogSourceList>;
