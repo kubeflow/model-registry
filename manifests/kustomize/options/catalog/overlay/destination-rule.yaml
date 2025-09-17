@@ -3,7 +3,7 @@ kind: DestinationRule
 metadata:
   name: model-catalog-service
 spec:
-  host: model-catalog-service.kubeflow.svc.cluster.local
+  host: model-catalog.kubeflow.svc.cluster.local
   trafficPolicy:
     tls:
       mode: ISTIO_MUTUAL

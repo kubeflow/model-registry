@@ -13,6 +13,6 @@ spec:
             prefix: /api/model_catalog/
       route:
         - destination:
-            host: model-catalog-service.kubeflow.svc.cluster.local
+            host: model-catalog.kubeflow.svc.cluster.local
             port:
               number: 8080
