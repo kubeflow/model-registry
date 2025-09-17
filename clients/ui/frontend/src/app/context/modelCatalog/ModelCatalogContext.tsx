@@ -5,7 +5,7 @@ import useModelCatalogAPIState, {
   ModelCatalogAPIState,
 } from '~/app/hooks/modelCatalog/useModelCatalogAPIState';
 import { CatalogSource, CatalogSourceList } from '~/app/modelCatalogTypes';
-import { BFF_API_VERSION } from '~/app/utilities/const';
+import { BFF_API_VERSION, URL_PREFIX } from '~/app/utilities/const';
 
 export type ModelCatalogContextType = {
   catalogSourcesLoaded: boolean;
@@ -35,7 +35,7 @@ export const ModelCatalogContext = React.createContext<ModelCatalogContextType>(
 export const ModelCatalogContextProvider: React.FC<ModelCatalogContextProviderProps> = ({
   children,
 }) => {
-  const hostPath = `/api/${BFF_API_VERSION}/model_catalog`;
+  const hostPath = `${URL_PREFIX}/api/${BFF_API_VERSION}/model_catalog`;
   const queryParams = useQueryParamNamespaces();
   const [apiState, refreshAPIState] = useModelCatalogAPIState(hostPath, queryParams);
   const [catalogSources, isLoaded, error] = useCatalogSources(apiState);

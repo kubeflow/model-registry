@@ -141,7 +141,7 @@ func (app *App) AttachModelCatalogRESTClient(next func(http.ResponseWriter, *htt
 			}
 		}
 
-		restHttpClient, err := httpclient.NewHTTPClient(restClientLogger, modelCatalogBaseURL, headers, app.config.InsecureSkipVerify)
+		restHttpClient, err := httpclient.NewHTTPClient(restClientLogger, modelCatalogBaseURL, headers, app.config.InsecureSkipVerify, app.rootCAs)
 		if err != nil {
 			app.serverErrorResponse(w, r, fmt.Errorf("failed to create HTTP client: %v", err))
 			return
@@ -207,7 +207,7 @@ func (app *App) AttachModelRegistryRESTClient(next func(http.ResponseWriter, *ht
 			}
 		}
 
-		restHttpClient, err := httpclient.NewHTTPClient(restClientLogger, modelRegistryBaseURL, headers, app.config.InsecureSkipVerify)
+		restHttpClient, err := httpclient.NewHTTPClient(restClientLogger, modelRegistryBaseURL, headers, app.config.InsecureSkipVerify, app.rootCAs)
 		if err != nil {
 			app.serverErrorResponse(w, r, fmt.Errorf("failed to create HTTP client: %v", err))
 			return

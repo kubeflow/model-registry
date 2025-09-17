@@ -2,10 +2,13 @@ package api
 
 import (
 	"context"
+	"crypto/x509"
 	"fmt"
 	"log/slog"
 	"net/http"
+	"os"
 	"path"
+	"strings"
 
 	k8s "github.com/kubeflow/model-registry/ui/bff/internal/integrations/kubernetes"
 	k8mocks "github.com/kubeflow/model-registry/ui/bff/internal/integrations/kubernetes/k8mocks"
@@ -73,6 +76,8 @@ type App struct {
 	repositories            *repositories.Repositories
 	//used only on mocked k8s client
 	testEnv *envtest.Environment
+	// rootCAs used for outbound TLS connections to Model Registry/Catalog
+	rootCAs *x509.CertPool
 }
 
 func NewApp(cfg config.EnvConfig, logger *slog.Logger) (*App, error) {
@@ -81,6 +86,41 @@ func NewApp(cfg config.EnvConfig, logger *slog.Logger) (*App, error) {
 	var err error
 	// used only on mocked k8s client
 	var testEnv *envtest.Environment
+	var rootCAs *x509.CertPool
+
+	// Initialize CA pool if bundle paths are provided
+	if len(cfg.BundlePaths) > 0 {
+		// Start with system certs if available
+		if pool, err := x509.SystemCertPool(); err == nil {
+			rootCAs = pool
+		} else {
+			rootCAs = x509.NewCertPool()
+		}
+		var loadedAny bool
+		for _, p := range cfg.BundlePaths {
+			p = strings.TrimSpace(p)
+			if p == "" {
+				continue
+			}
+			// Read and append each PEM bundle; ignore errors per file, log at debug
+			pemBytes, readErr := os.ReadFile(p)
+			if readErr != nil {
+				logger.Debug("CA bundle not readable, skipping", slog.String("path", p), slog.Any("error", readErr))
+				continue
+			}
+			if ok := rootCAs.AppendCertsFromPEM(pemBytes); !ok {
+				logger.Debug("No certs appended from PEM bundle", slog.String("path", p))
+				continue
+			}
+			loadedAny = true
+			logger.Info("Added CA bundle", slog.String("path", p))
+		}
+		if !loadedAny {
+			// If none were loaded successfully, keep rootCAs nil to fall back to default transport behavior
+			rootCAs = nil
+			logger.Warn("No CA certificates loaded from bundle-paths; falling back to system defaults")
+		}
+	}
 
 	if cfg.MockK8Client {
 		//mock all k8s calls with 'env test'
@@ -138,6 +178,7 @@ func NewApp(cfg config.EnvConfig, logger *slog.Logger) (*App, error) {
 		kubernetesClientFactory: k8sFactory,
 		repositories:            repositories.NewRepositories(mrClient, modelCatalogClient),
 		testEnv:                 testEnv,
+		rootCAs:                 rootCAs,
 	}
 	return app, nil
 }
