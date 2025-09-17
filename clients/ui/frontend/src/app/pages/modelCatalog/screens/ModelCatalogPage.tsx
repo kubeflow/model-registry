@@ -55,7 +55,7 @@ const ModelCatalogPage: React.FC<ModelCatalogPageProps> = ({ searchTerm }) => {
         description={
           <>
             No models from the <b>{selectedSource?.name}</b> source match the search criteria.
-            Adjust your seach, or select a differenct source
+            Adjust your search, or select a different source
           </>
         }
       />
