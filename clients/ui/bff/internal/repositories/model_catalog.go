@@ -11,7 +11,7 @@ import (
 type ModelCatalogRepository struct {
 }
 
-const ModelCatalogServiceName = "model-catalog-service"
+const ModelCatalogServiceName = "model-catalog"
 
 func NewCatalogRepository() *ModelCatalogRepository {
 	return &ModelCatalogRepository{}
