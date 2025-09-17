@@ -17,10 +17,12 @@ export const getCatalogModelsBySource =
       orderBy?: string;
       sortOrder?: string;
     },
+    searchKeyword?: string,
   ): Promise<CatalogModelList> => {
     const allParams = {
       source: sourceId,
       ...paginationParams,
+      ...(searchKeyword && { q: searchKeyword }),
       ...queryParams,
     };
     return handleRestFailures(restGET(hostPath, '/models', allParams, opts)).then((response) => {

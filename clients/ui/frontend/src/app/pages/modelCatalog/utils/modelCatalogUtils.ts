@@ -1,4 +1,4 @@
-import { CatalogModelDetailsParams } from '~/app/modelCatalogTypes';
+import { CatalogModelDetailsParams, CatalogSourceList } from '~/app/modelCatalogTypes';
 
 export const extractVersionTag = (tags?: string[]): string | undefined =>
   tags?.find((tag) => /^\d+\.\d+\.\d+$/.test(tag));
@@ -29,3 +29,19 @@ export const encodeParams = (params: CatalogModelDetailsParams): CatalogModelDet
       encodeURIComponent(value).replace(/\./g, '%252E'),
     ]),
   );
+
+export const filterEnabledCatalogSources = (
+  catalogSources: CatalogSourceList | null,
+): CatalogSourceList | null => {
+  if (!catalogSources) {
+    return null;
+  }
+
+  const filteredItems = catalogSources.items.filter((source) => source.enabled !== false);
+
+  return {
+    ...catalogSources,
+    items: filteredItems,
+    size: filteredItems.length,
+  };
+};

@@ -788,22 +788,27 @@ func GetCatalogModelListMock() catalogOpenapi.CatalogModelList {
 }
 
 func GetCatalogSourceMocks() []catalogOpenapi.CatalogSource {
+	enabled := true
+	disabled := false
 	return []catalogOpenapi.CatalogSource{
 		{
-			Id:   "sample-source",
-			Name: "Sample mocked source",
+			Id:      "sample-source",
+			Name:    "Sample mocked source",
+			Enabled: &enabled,
 		},
 		{
 			Id:   "huggingface",
 			Name: "Hugging Face",
 		},
 		{
-			Id:   "adminModel1",
-			Name: "Admin model 1",
+			Id:      "adminModel1",
+			Name:    "Admin model 1",
+			Enabled: &enabled,
 		},
 		{
-			Id:   "adminModel2",
-			Name: "Admin model 2",
+			Id:      "adminModel2",
+			Name:    "Admin model 2",
+			Enabled: &disabled,
 		},
 		{
 			Id:   "dora",

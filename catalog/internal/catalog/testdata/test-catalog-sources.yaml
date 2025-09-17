@@ -15,19 +15,3 @@ catalogs:
       privateProp21: 12345
       privateProp22: privateStringValue2
       yamlCatalogPath: test-yaml-catalog.yaml
-  - name: "Catalog 3"
-    id: catalog3
-    type: rhec
-    enabled: true
-    properties:
-      models:
-      - rhelai1/modelcar-granite-7b-starter
-  - name: "Catalog 4"
-    id: catalog4
-    type: rhec
-    enabled: true
-    properties:
-      models:
-      - rhelai1/modelcar-granite-7b-starter
-      excludedModels:
-      - rhelai1/modelcar-granite-7b-starter:latest

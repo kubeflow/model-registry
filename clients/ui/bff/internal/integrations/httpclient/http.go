@@ -2,6 +2,7 @@ package httpclient
 
 import (
 	"crypto/tls"
+	"crypto/x509"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -40,10 +41,14 @@ func (e *HTTPError) Error() string {
 	return fmt.Sprintf("HTTP %d: %s - %s", e.StatusCode, e.Code, e.Message)
 }
 
-func NewHTTPClient(logger *slog.Logger, baseURL string, headers http.Header, insecureSkipVerify bool) (HTTPClientInterface, error) {
+func NewHTTPClient(logger *slog.Logger, baseURL string, headers http.Header, insecureSkipVerify bool, rootCAs *x509.CertPool) (HTTPClientInterface, error) {
+	tlsCfg := &tls.Config{InsecureSkipVerify: insecureSkipVerify}
+	if rootCAs != nil {
+		tlsCfg.RootCAs = rootCAs
+	}
 	return &HTTPClient{
 		client: &http.Client{Transport: &http.Transport{
-			TLSClientConfig: &tls.Config{InsecureSkipVerify: insecureSkipVerify},
+			TLSClientConfig: tlsCfg,
 		}},
 		baseURL: baseURL,
 		logger:  logger,

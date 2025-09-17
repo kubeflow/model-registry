@@ -30,7 +30,11 @@ type CatalogModelList = [
   refresh: () => void,
 ];
 
-export const useCatalogModelsBySource = (sourceId: string, pageSize = 10): CatalogModelList => {
+export const useCatalogModelsBySources = (
+  sourceId: string,
+  pageSize = 10,
+  searchQuery = '',
+): CatalogModelList => {
   const { api, apiAvailable } = useModelCatalogAPI();
 
   const [state, setState] = React.useState<CatalogModelsState>({
@@ -60,10 +64,15 @@ export const useCatalogModelsBySource = (sourceId: string, pageSize = 10): Catal
         if (!sourceId) {
           return await Promise.reject(new NotReadyError('No source id'));
         }
-        const response = await api.getCatalogModelsBySource({}, sourceId, {
-          pageSize: pageSize.toString(),
-          ...(nextPageToken && { nextPageToken }),
-        });
+        const response = await api.getCatalogModelsBySource(
+          {},
+          sourceId,
+          {
+            pageSize: pageSize.toString(),
+            ...(nextPageToken && { nextPageToken }),
+          },
+          searchQuery && searchQuery.trim() ? searchQuery.trim() : undefined,
+        );
 
         setState((prev) => ({
           items: isLoadMore ? [...prev.items, ...response.items] : response.items,
@@ -86,7 +95,7 @@ export const useCatalogModelsBySource = (sourceId: string, pageSize = 10): Catal
         }));
       }
     },
-    [api, sourceId, pageSize, apiAvailable],
+    [api, sourceId, pageSize, apiAvailable, searchQuery],
   );
 
   React.useEffect(() => {
