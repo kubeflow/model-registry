@@ -20,12 +20,21 @@ paths:
       parameters:
         - name: source
           description: |-
-            Filter models by source. This parameter is currently required and
-            may only be specified once.
+            Filter models by source. This parameter may be included multiple
+            times to include models from multiple sources.
           schema:
             type: string
           in: query
-          required: true
+          required: false
+        - name: sourceLabel
+          description: |-
+            Filter models by the label associated with the source. This
+            parameter may be included multiple times to include models from
+            multiple sources.
+          schema:
+            type: string
+          in: query
+          required: false
         - name: q
           description: Free-form keyword search used to filter the response.
           schema:
@@ -36,6 +45,7 @@ paths:
         - $ref: "#/components/parameters/orderBy"
         - $ref: "#/components/parameters/sortOrder"
         - $ref: "#/components/parameters/nextPageToken"
+        - $ref: "#/components/parameters/filterQuery"
       responses:
         "200":
           $ref: "#/components/responses/CatalogModelListResponse"
@@ -48,6 +58,22 @@ paths:
         "500":
           $ref: "#/components/responses/InternalServerError"
       operationId: findModels
+  /api/model_catalog/v1alpha1/models/filter_options:
+    description: Lists options for `filterQuery` when listing models.
+    get:
+      summary: Lists fields and available options that can be used in `filterQuery` on the list models endpoint.
+      tags:
+        - ModelCatalogService
+      responses:
+        "200":
+          $ref: "#/components/responses/FilterOptionsResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+      operationId: findModelsFilterOptions
   /api/model_catalog/v1alpha1/sources:
     summary: Path used to get the list of catalog sources.
     description: >-
@@ -135,6 +161,7 @@ paths:
           type: string
         in: path
         required: true
+      - $ref: "#/components/parameters/catalogArtifactType"
 components:
   schemas:
     ArtifactTypeQueryParam:
@@ -234,6 +261,32 @@ components:
           format: int32
           description: Number of items in result list.
           type: integer
+    CatalogArtifact:
+      description: A single artifact in the catalog API.
+      oneOf:
+        - $ref: "#/components/schemas/CatalogModelArtifact"
+        - $ref: "#/components/schemas/CatalogMetricsArtifact"
+      discriminator:
+        propertyName: artifactType
+        mapping:
+          model-artifact: "#/components/schemas/CatalogModelArtifact"
+          metrics-artifact: "#/components/schemas/CatalogMetricsArtifact"
+    CatalogMetricsArtifact:
+      description: A metadata Artifact Entity.
+      allOf:
+        - type: object
+          required:
+            - artifactType
+          properties:
+            artifactType:
+              type: string
+              default: metrics-artifact
+            customProperties:
+              description: User provided custom properties which are not defined by its type.
+              type: object
+              additionalProperties:
+                $ref: "#/components/schemas/MetadataValue"
+        - $ref: "#/components/schemas/BaseResourceDates"
     CatalogModel:
       description: A model in the model catalog.
       allOf:
@@ -251,16 +304,19 @@ components:
         - $ref: "#/components/schemas/BaseResourceDates"
         - $ref: "#/components/schemas/BaseModel"
     CatalogModelArtifact:
-      description: A single artifact for a catalog model.
+      description: A metadata Artifact Entity.
       allOf:
         - type: object
           required:
-            - uri
+            - artifactType
           properties:
+            artifactType:
+              type: string
+              default: model-artifact
             uri:
               type: string
               format: uri
-              description: URI where the artifact can be retrieved.
+              description: URI where the model can be retrieved.
             customProperties:
               description: User provided custom properties which are not defined by its type.
               type: object
@@ -273,10 +329,10 @@ components:
         - type: object
           properties:
             items:
-              description: Array of `CatalogModelArtifact` entities.
+              description: Array of `CatalogArtifact` entities.
               type: array
               items:
-                $ref: "#/components/schemas/CatalogModelArtifact"
+                $ref: "#/components/schemas/CatalogArtifact"
           required:
             - items
         - $ref: "#/components/schemas/BaseResourceList"
@@ -310,6 +366,14 @@ components:
           description: Whether the catalog source is enabled.
           type: boolean
           default: true
+        labels:
+          description: |-
+            Labels associated with the source. The catalog source labels can be
+            used to filter models from sources with the same label (see
+            `sourceLabel` on `/api/model_catalog/v1alpha1/models`)
+          type: array
+          items:
+            type: string
     CatalogSourceList:
       description: List of CatalogSource entities.
       allOf:
@@ -334,6 +398,39 @@ components:
         message:
           description: Error message
           type: string
+    FilterOption:
+      type: object
+      required:
+        - type
+      properties:
+        type:
+          type: string
+          description: The data type of the filter option
+          enum:
+            - string
+            - number
+        values:
+          type: array
+          description: |-
+            Known values of the property for string types with a small number of possible options.
+          items: {}
+        range:
+          type: object
+          description: Min and max values for number types.
+          properties:
+            min:
+              type: number
+            max:
+              type: number
+    FilterOptionsList:
+      description: List of FilterOptions
+      type: object
+      properties:
+        filters:
+          type: object
+          description: A single filter option.
+          additionalProperties:
+            $ref: "#/components/schemas/FilterOption"
     MetadataBoolValue:
       description: A bool property value.
       type: object
@@ -467,7 +564,7 @@ components:
         application/json:
           schema:
             $ref: "#/components/schemas/CatalogModelArtifactList"
-      description: A response containing a list of CatalogModelArtifact entities.
+      description: A response containing a list of CatalogArtifact entities.
     CatalogModelListResponse:
       content:
         application/json:
@@ -498,6 +595,12 @@ components:
           schema:
             $ref: "#/components/schemas/Error"
       description: Conflict with current state of target resource
+    FilterOptionsResponse:
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/FilterOptionsList"
+      description: A response containing options for a `filterQuery` parameter.
     InternalServerError:
       content:
         application/json:
@@ -539,6 +642,19 @@ components:
       description: Specifies the order by criteria for listing entities.
       schema:
         $ref: "#/components/schemas/OrderByField"
+      in: query
+      required: false
+    catalogArtifactType:
+      name: artifactType
+      description: |-
+        Specifies the artifact types to return. May be specified multiple
+        times to retrieve multiple artifact types.
+      schema:
+        type: string
+        enum:
+          - model-artifact
+          - doc-artifact
+          - metrics-artifact
       in: query
       required: false
     id:
