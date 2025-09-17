@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/kubeflow/model-registry/internal/db/constants"
 	"gorm.io/gorm"
 )
 
@@ -256,10 +257,42 @@ func (qb *QueryBuilder) buildPropertyConditionString(propRef *PropertyReference,
 	}
 }
 
+// ConvertStateValue converts string state values to integers based on entity type
+func (qb *QueryBuilder) ConvertStateValue(propertyName string, value any) any {
+	// Only convert for state properties
+	if propertyName == "state" {
+		if strValue, ok := value.(string); ok {
+			switch qb.entityType {
+			case EntityTypeArtifact:
+				if intValue, exists := constants.ArtifactStateMapping[strValue]; exists {
+					return int32(intValue)
+				}
+				// Invalid artifact state - return value that matches no records
+				return int32(-1) // No artifact has state=-1, so this returns empty results
+			case EntityTypeExecution:
+				if intValue, exists := constants.ExecutionStateMapping[strValue]; exists {
+					return int32(intValue)
+				}
+				// Invalid execution state - return value that matches no records
+				return int32(-1) // No execution has state=-1, so this returns empty results
+			case EntityTypeContext:
+				// Context entities (RegisteredModel, ModelVersion, etc.) use string states
+				// These are stored as string properties, so no conversion needed
+				return value
+			}
+		}
+		// If conversion fails or value is not a string, return original value
+	}
+	return value
+}
+
 // buildEntityTablePropertyCondition builds a condition for properties stored in the entity table
 func (qb *QueryBuilder) buildEntityTablePropertyCondition(db *gorm.DB, propRef *PropertyReference, operator string, value any) *gorm.DB {
 	propDef := GetPropertyDefinition(qb.entityType, propRef.Name)
 	column := fmt.Sprintf("%s.%s", qb.tablePrefix, propDef.Column)
+
+	// Convert state string values to integers based on entity type
+	value = qb.ConvertStateValue(propRef.Name, value)
 
 	// Handle prefixed names for child entities
 	if qb.restEntityType != "" && propRef.Name == "name" && isChildEntity(qb.restEntityType) {
@@ -294,6 +327,9 @@ func (qb *QueryBuilder) buildEntityTablePropertyCondition(db *gorm.DB, propRef *
 func (qb *QueryBuilder) buildEntityTablePropertyConditionString(propRef *PropertyReference, operator string, value any) conditionResult {
 	propDef := GetPropertyDefinition(qb.entityType, propRef.Name)
 	column := fmt.Sprintf("%s.%s", qb.tablePrefix, propDef.Column)
+
+	// Convert state string values to integers based on entity type
+	value = qb.ConvertStateValue(propRef.Name, value)
 
 	// Handle prefixed names for child entities
 	if qb.restEntityType != "" && propRef.Name == "name" && isChildEntity(qb.restEntityType) {
