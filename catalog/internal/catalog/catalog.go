@@ -52,7 +52,7 @@ type sourceConfig struct {
 	Catalogs []CatalogSourceConfig `json:"catalogs"`
 }
 
-type CatalogTypeRegisterFunc func(source *CatalogSourceConfig) (CatalogSourceProvider, error)
+type CatalogTypeRegisterFunc func(source *CatalogSourceConfig, reldir string) (CatalogSourceProvider, error)
 
 var registeredCatalogTypes = make(map[string]CatalogTypeRegisterFunc, 0)
 
@@ -103,24 +103,6 @@ func (sc *SourceCollection) load(path string) error {
 	// Get the directory of the config file to resolve relative paths
 	configDir := filepath.Dir(absConfigPath)
 
-	// Save current working directory
-	originalWd, err := os.Getwd()
-	if err != nil {
-		return fmt.Errorf("failed to get current working directory: %v", err)
-	}
-
-	// Change to the config directory to make relative paths work
-	if err := os.Chdir(configDir); err != nil {
-		return fmt.Errorf("failed to change to config directory %s: %v", configDir, err)
-	}
-
-	// Ensure we restore the original working directory when we're done
-	defer func() {
-		if err := os.Chdir(originalWd); err != nil {
-			glog.Errorf("failed to restore original working directory %s: %v", originalWd, err)
-		}
-	}()
-
 	config := sourceConfig{}
 	bytes, err := os.ReadFile(absConfigPath)
 	if err != nil {
@@ -157,7 +139,7 @@ func (sc *SourceCollection) load(path string) error {
 		if _, exists := sources[id]; exists {
 			return fmt.Errorf("duplicate catalog id %s", id)
 		}
-		provider, err := registerFunc(&catalogConfig)
+		provider, err := registerFunc(&catalogConfig, configDir)
 		if err != nil {
 			return fmt.Errorf("error reading catalog type %s with id %s: %v", catalogType, id, err)
 		}
@@ -177,29 +159,32 @@ func (sc *SourceCollection) load(path string) error {
 	return nil
 }
 
-func LoadCatalogSources(path string) (*SourceCollection, error) {
+func LoadCatalogSources(paths []string) (*SourceCollection, error) {
 	sc := &SourceCollection{}
-	err := sc.load(path)
-	if err != nil {
-		return nil, err
-	}
 
-	go func() {
-		changes, err := getMonitor().Path(path)
+	for _, path := range paths {
+		err := sc.load(path)
 		if err != nil {
-			glog.Errorf("unable to watch sources file: %v", err)
-			// Not fatal, we just won't get automatic updates.
+			return nil, err
 		}
 
-		for range changes {
-			glog.Infof("Reloading sources %s", path)
-
-			err = sc.load(path)
+		go func(path string) {
+			changes, err := getMonitor().Path(path)
 			if err != nil {
-				glog.Errorf("unable to load sources: %v", err)
+				glog.Errorf("unable to watch sources file (%s): %v", path, err)
+				// Not fatal, we just won't get automatic updates.
 			}
-		}
-	}()
+
+			for range changes {
+				glog.Infof("Reloading sources %s", path)
+
+				err = sc.load(path)
+				if err != nil {
+					glog.Errorf("unable to load sources: %v", err)
+				}
+			}
+		}(path)
+	}
 
 	return sc, nil
 }
