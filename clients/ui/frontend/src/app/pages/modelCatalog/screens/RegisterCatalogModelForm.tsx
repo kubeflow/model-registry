@@ -39,6 +39,7 @@ interface RegisterCatalogModelFormProps {
   model: CatalogModel | null;
   preferredModelRegistry: ModelRegistry;
   artifacts: CatalogModelArtifact[];
+  artifactsLoadError?: Error;
   decodedParams: CatalogModelDetailsParams;
   removeChildrenTopPadding?: boolean;
 }
@@ -47,6 +48,7 @@ const RegisterCatalogModelForm: React.FC<RegisterCatalogModelFormProps> = ({
   model,
   preferredModelRegistry,
   artifacts,
+  artifactsLoadError,
   decodedParams,
   removeChildrenTopPadding,
 }) => {
@@ -60,7 +62,7 @@ const RegisterCatalogModelForm: React.FC<RegisterCatalogModelFormProps> = ({
 
   const sourceProperties = catalogParamsToModelSourceProperties(decodedParams);
   const tasks = getLabelsFromModelTasks(model);
-  const uri = artifacts[0] ? artifacts[0].uri : '';
+  const uri = artifacts.length > 0 ? artifacts[0].uri : '';
 
   const initialFormData: RegisterCatalogModelFormData = {
     modelName: getModelName(decodedParams.modelName || ''),
@@ -195,6 +197,14 @@ const RegisterCatalogModelForm: React.FC<RegisterCatalogModelFormProps> = ({
                 title="Additional model metadata, such as labels, provider, and license, will be available to view and edit after registration is complete."
               />
             </StackItem>
+            {artifactsLoadError && (
+              <StackItem>
+                <Alert variant="warning" isInline title="Unable to load model artifacts">
+                  {artifactsLoadError.message}. The model location field will be empty and must be
+                  filled manually.
+                </Alert>
+              </StackItem>
+            )}
             <StackItem>
               <RegisterModelDetailsFormSection
                 formData={formData}

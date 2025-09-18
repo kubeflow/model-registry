@@ -80,7 +80,7 @@ const ModelDetailsView: React.FC<ModelDetailsViewProps> = ({ model, decodedParam
                 </Alert>
               ) : !artifactLoaded ? (
                 <Spinner size="sm" />
-              ) : artifacts.items.length > 0 ? (
+              ) : artifacts.items && artifacts.items.length > 0 ? (
                 <InlineTruncatedClipboardCopy
                   testId="source-image-location"
                   textToCopy={artifacts.items.map((artifact) => artifact.uri)[0] || ''}

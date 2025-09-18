@@ -32,10 +32,10 @@ const RegisterCatalogModelPageInner: React.FC = () => {
   const preferredModelRegistry = modelRegistries.length > 0 ? modelRegistries[0] : null;
 
   // Check to see if data is loaded
+  // Note: We allow the form to render even if artifacts fail to load - the form will handle empty artifacts gracefully
   const isDataReady =
     modelLoaded &&
     artifactLoaded &&
-    !artifactsLoadError &&
     !modelLoadError &&
     model &&
     modelRegistriesLoaded &&
@@ -80,6 +80,7 @@ const RegisterCatalogModelPageInner: React.FC = () => {
             model={model}
             preferredModelRegistry={preferredModelRegistry}
             artifacts={artifacts.items}
+            artifactsLoadError={artifactsLoadError}
             decodedParams={decodedParams}
             removeChildrenTopPadding
           />

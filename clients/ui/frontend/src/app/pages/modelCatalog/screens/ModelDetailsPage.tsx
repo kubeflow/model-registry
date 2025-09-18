@@ -72,7 +72,7 @@ const ModelDetailsPage: React.FC = () => {
         'Request access to a model registry',
         'To request a new model registry, or to request permission to access an existing model registry, contact your administrator.',
       )
-    ) : artifacts.items.length === 0 ? (
+    ) : !artifacts.items || artifacts.items.length === 0 ? (
       registerButtonPopover('', 'Model location is unavailable')
     ) : (
       <Button
