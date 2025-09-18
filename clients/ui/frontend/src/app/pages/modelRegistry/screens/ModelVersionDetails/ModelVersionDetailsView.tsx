@@ -21,41 +21,40 @@ import {
   DashboardDescriptionListGroup,
   InlineTruncatedClipboardCopy,
 } from 'mod-arch-shared';
-import { ModelVersion, ModelArtifactList } from '~/app/types';
+import { ModelVersion, ModelArtifactList, RegisteredModel } from '~/app/types';
 import { ModelRegistryContext } from '~/app/context/ModelRegistryContext';
 import { getLabels, mergeUpdatedLabels } from '~/app/pages/modelRegistry/screens/utils';
 import ModelPropertiesDescriptionListGroup from '~/app/pages/modelRegistry/screens/ModelPropertiesDescriptionListGroup';
 import ModelTimestamp from '~/app/pages/modelRegistry/screens/components/ModelTimestamp';
 import { bumpBothTimestamps, bumpRegisteredModelTimestamp } from '~/app/api/updateTimestamps';
 import { uriToStorageFields } from '~/app/utils';
-import useRegisteredModelById from '~/app/hooks/useRegisteredModelById';
 import ModelDetailsCard from '~/app/pages/modelRegistry/screens/ModelVersions/ModelDetailsCard';
 import ModelVersionRegisteredFromLink from '~/app/pages/modelRegistry/screens/components/ModelVersionRegisteredFromLink';
 
 type ModelVersionDetailsViewProps = {
+  registeredModel: RegisteredModel | null;
   modelVersion: ModelVersion;
   isArchiveVersion?: boolean;
   refresh: () => void;
   modelArtifacts: ModelArtifactList;
+  modelArtifactsLoaded: boolean;
+  modelArtifactsLoadError: Error | undefined;
 };
 
 const ModelVersionDetailsView: React.FC<ModelVersionDetailsViewProps> = ({
+  registeredModel,
   modelVersion: mv,
   isArchiveVersion,
   refresh,
   modelArtifacts,
+  modelArtifactsLoaded,
+  modelArtifactsLoadError,
 }) => {
   const modelArtifact = modelArtifacts.items.length ? modelArtifacts.items[0] : null;
   const { apiState } = React.useContext(ModelRegistryContext);
   const storageFields = uriToStorageFields(modelArtifact?.uri || '');
-  const [registeredModel, registeredModelLoaded, registeredModelLoadError] = useRegisteredModelById(
-    mv.registeredModelId,
-  );
 
-  const loaded = registeredModelLoaded;
-  const loadError = registeredModelLoadError;
-
-  if (!loaded) {
+  if (!modelArtifactsLoaded) {
     return (
       <Bullseye>
         <Spinner size="xl" />
@@ -86,6 +85,7 @@ const ModelVersionDetailsView: React.FC<ModelVersionDetailsViewProps> = ({
       );
     }
   };
+
   return (
     <Stack hasGutter>
       {registeredModel && (
@@ -144,12 +144,6 @@ const ModelVersionDetailsView: React.FC<ModelVersionDetailsViewProps> = ({
                       )
                     }
                   />
-                  {modelArtifact && (
-                    <ModelVersionRegisteredFromLink
-                      modelArtifact={modelArtifact}
-                      isModelCatalogAvailable
-                    />
-                  )}
                   <ModelPropertiesDescriptionListGroup
                     isArchive={isArchiveVersion}
                     customProperties={mv.customProperties}
@@ -163,12 +157,18 @@ const ModelVersionDetailsView: React.FC<ModelVersionDetailsViewProps> = ({
               </FlexItem>
               <Divider orientation={{ default: 'vertical' }} />
               <FlexItem flex={{ default: 'flex_1' }}>
+                {modelArtifact && (
+                  <ModelVersionRegisteredFromLink
+                    modelArtifact={modelArtifact}
+                    isModelCatalogAvailable
+                  />
+                )}
                 <Title style={{ margin: '1em 0' }} headingLevel={ContentVariants.h3}>
                   Model location
                 </Title>
-                {loadError ? (
-                  <Alert variant="danger" isInline title={loadError.name}>
-                    {loadError.message}
+                {modelArtifactsLoadError ? (
+                  <Alert variant="danger" isInline title={modelArtifactsLoadError.name}>
+                    {modelArtifactsLoadError.message}
                   </Alert>
                 ) : (
                   <>

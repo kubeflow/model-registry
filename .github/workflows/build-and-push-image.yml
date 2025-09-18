@@ -19,7 +19,7 @@ env:
   DOCKER_USER: ${{ secrets.QUAY_USERNAME }}
   DOCKER_PWD: ${{ secrets.QUAY_PASSWORD }}
 
-permissions: # default workflow permission, overridden for specific job where required
+permissions: # set contents: read at top-level, per OpenSSF ScoreCard rule TokenPermissionsID
   contents: read
 
 jobs:

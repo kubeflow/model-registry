@@ -16,7 +16,7 @@ on:
       - "jobs/async-upload/**"
       - ".github/workflows/**"
 
-permissions:
+permissions: # set contents: read at top-level, per OpenSSF ScoreCard rule TokenPermissionsID
   contents: read
 
 env:

@@ -21,7 +21,7 @@ on:
       # csi build depends on base go.mod https://github.com/kubeflow/model-registry/issues/311
       - "go.mod"
 
-permissions:
+permissions: # set contents: read at top-level, per OpenSSF ScoreCard rule TokenPermissionsID
   contents: read
 
 env:

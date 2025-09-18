@@ -22,7 +22,6 @@ const ModelDetailsView: React.FC<ModelDetailsViewProps> = ({
     <GridItem span={12} lg={4}>
       <Stack hasGutter>
         <ModelVersionsCard rm={rm} isArchiveModel={isArchiveModel} />
-        {/* TODO: Add latest deployments card here (as an extension)*/}
       </Stack>
     </GridItem>
   </Grid>

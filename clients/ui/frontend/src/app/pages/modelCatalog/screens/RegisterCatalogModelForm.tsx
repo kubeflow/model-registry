@@ -60,7 +60,7 @@ const RegisterCatalogModelForm: React.FC<RegisterCatalogModelFormProps> = ({
 
   const sourceProperties = catalogParamsToModelSourceProperties(decodedParams);
   const tasks = getLabelsFromModelTasks(model);
-  const uri = artifacts[0] ? artifacts[0].uri : '';
+  const uri = artifacts.length > 0 ? artifacts[0].uri : '';
 
   const initialFormData: RegisterCatalogModelFormData = {
     modelName: getModelName(decodedParams.modelName || ''),

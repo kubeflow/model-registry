@@ -14,7 +14,7 @@ on:
       - ".github/dependabot.yml"
       - "docs/**"
 
-permissions:
+permissions: # set contents: read at top-level, per OpenSSF ScoreCard rule TokenPermissionsID
   contents: read
 
 jobs:

@@ -12,6 +12,9 @@ on:
       - '!**.md'
       - '!**.txt'
 
+permissions: # set contents: read at top-level, per OpenSSF ScoreCard rule TokenPermissionsID
+  contents: read
+
 env:
   IMG_REGISTRY: quay.io
   IMG_ORG: opendatahub

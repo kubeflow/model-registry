@@ -12,7 +12,7 @@ on:
       - "docs/**"
       - "clients/python/**"
 
-permissions:
+permissions: # set contents: read at top-level, per OpenSSF ScoreCard rule TokenPermissionsID
   contents: read
 
 env:

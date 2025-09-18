@@ -25,19 +25,20 @@ const ArchiveModelVersionDetails: React.FC<ArchiveModelVersionDetailsProps> = ({
 }) => {
   const { preferredModelRegistry } = React.useContext(ModelRegistrySelectorContext);
   const { modelVersionId: mvId, registeredModelId: rmId } = useParams();
-  const [rm] = useRegisteredModelById(rmId);
+  const [rm, rmLoaded, rmLoadError, rmRefresh] = useRegisteredModelById(rmId);
   const [mv, mvLoaded, mvLoadError, refreshModelVersion] = useModelVersionById(mvId);
   const [modelArtifacts, modelArtifactsLoaded, modelArtifactsLoadError, refreshModelArtifacts] =
     useModelArtifactsByVersionId(mvId);
   const navigate = useNavigate();
 
   const refresh = React.useCallback(() => {
+    rmRefresh();
     refreshModelVersion();
     refreshModelArtifacts();
-  }, [refreshModelVersion, refreshModelArtifacts]);
+  }, [refreshModelVersion, refreshModelArtifacts, rmRefresh]);
 
-  const loaded = mvLoaded && modelArtifactsLoaded;
-  const loadError = mvLoadError || modelArtifactsLoadError;
+  const loaded = mvLoaded && modelArtifactsLoaded && rmLoaded;
+  const loadError = mvLoadError || modelArtifactsLoadError || rmLoadError;
 
   useEffect(() => {
     if (rm?.state === ModelState.LIVE && mv?.id) {
@@ -83,9 +84,12 @@ const ArchiveModelVersionDetails: React.FC<ArchiveModelVersionDetailsProps> = ({
         <ModelVersionDetailsTabs
           isArchiveVersion
           tab={tab}
+          registeredModel={rm}
           modelVersion={mv}
           refresh={refresh}
           modelArtifacts={modelArtifacts}
+          modelArtifactsLoaded={modelArtifactsLoaded}
+          modelArtifactsLoadError={modelArtifactsLoadError}
         />
       )}
     </ApplicationsPage>

@@ -12,6 +12,8 @@ import {
   FlexItem,
   Divider,
   Truncate,
+  Alert,
+  Bullseye,
 } from '@patternfly/react-core';
 import { Link } from 'react-router-dom';
 import { TruncatedText } from 'mod-arch-shared';
@@ -32,7 +34,7 @@ type ModelVersionsCardProps = {
 };
 
 const ModelVersionsCard: React.FC<ModelVersionsCardProps> = ({ rm, isArchiveModel }) => {
-  const [modelVersions] = useModelVersionsByRegisteredModel(rm.id);
+  const [modelVersions, mvLoaded, mvLoadError] = useModelVersionsByRegisteredModel(rm.id);
   const { preferredModelRegistry } = React.useContext(ModelRegistrySelectorContext);
   const filteredVersions = isArchiveModel
     ? modelVersions.items
@@ -45,8 +47,14 @@ const ModelVersionsCard: React.FC<ModelVersionsCardProps> = ({ rm, isArchiveMode
     <Card>
       <CardTitle>Latest versions</CardTitle>
       <CardBody>
-        <Divider />
-        {latestModelVersions.length > 0 ? (
+        <Divider component="li" />
+        {mvLoadError ? (
+          <Alert variant="danger" isInline title={mvLoadError.name}>
+            {mvLoadError.message}
+          </Alert>
+        ) : !mvLoaded ? (
+          <Bullseye>Loading latest deployments...</Bullseye>
+        ) : latestModelVersions.length > 0 ? (
           <List isPlain isBordered>
             {latestModelVersions.map((mv) => (
               <ListItem

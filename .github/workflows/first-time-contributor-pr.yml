@@ -5,12 +5,14 @@ on:
   pull_request_target:
     types:
       - opened
-permissions:
-  pull-requests: write
+permissions: # set contents: read at top-level, per OpenSSF ScoreCard rule TokenPermissionsID
+  contents: read
 
 # do NOT: add actions/checkout to this flow, add-third party scripts, or auto-trigger CI jobs
 jobs:
   welcome:
+    permissions:
+      pull-requests: write
     runs-on: ubuntu-latest
     steps:
       - name: Check contributor status
