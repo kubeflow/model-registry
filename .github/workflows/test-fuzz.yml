@@ -19,10 +19,17 @@ env:
 
 jobs:
   test-fuzz:
+    name: Test Fuzz DB ${{ matrix.manifest-db }}
     runs-on: ubuntu-latest
     defaults:
       run:
         working-directory: clients/python
+    strategy:
+      fail-fast: false
+      matrix:
+        manifest-db: ["db", "postgres"] # subdirectory of manifests/kustomize/overlays to select which database: 'db' (MySQL) or 'postgres'
+    env:
+      DEPLOY_MANIFEST_DB: "${{ matrix.manifest-db }}"
     steps:
       - name: Get PR details
         id: pr
