@@ -29,8 +29,4 @@ echo "Delete modelregistry resource in namespace '$MR_NAMESPACE'."
 
 kubectl delete modelregistry.modelregistry.opendatahub.io model-registry -n "$MR_NAMESPACE" || true
 echo "Update Data Science Cluster"
-kubectl patch datasciencecluster default-dsc -p '{"spec":{"components":{"modelregistry":{"managementState":"Removed"}}}}' --type=merge -o yaml
-
-echo "Delete namespace '$MR_NAMESPACE'."
-kubectl delete namespace "$MR_NAMESPACE" --wait=False
-kubectl wait --for=delete namespace/"$MR_NAMESPACE" --timeout=10m
+kubectl delete -k manifests/kustomize/overlays/db-odh -n "$MR_NAMESPACE"

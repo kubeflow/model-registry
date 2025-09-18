@@ -1,0 +1,47 @@
+FROM registry.access.redhat.com/ubi9/python-312
+
+ARG TARGETARCH
+# Switch to root to install packages and create user
+USER 0
+
+# Install skopeo
+RUN dnf update -y && \
+    dnf install -y skopeo && \
+    dnf clean all
+
+# Create odh user
+RUN useradd -m -s /bin/bash odh
+
+# Set working directory
+WORKDIR /home/odh
+
+# Copy project files
+COPY clients/python clients/python
+COPY api/ api/
+COPY manifests/ manifests/
+COPY scripts/ scripts/
+
+# Download kubectl binary
+RUN ARCH="${TARGETARCH:-amd64}" && \
+    KUBECTL_VERSION=$(curl -L -s https://dl.k8s.io/release/stable.txt) && \
+    curl -fsSLO "https://dl.k8s.io/release/${KUBECTL_VERSION}/bin/linux/${ARCH}/kubectl" && \
+    curl -fsSLO "https://dl.k8s.io/release/${KUBECTL_VERSION}/bin/linux/${ARCH}/kubectl.sha256" && \
+    echo "$(<kubectl.sha256) kubectl" | sha256sum -c - && \
+    install -m 0755 kubectl /usr/local/bin/ && rm -f kubectl kubectl.sha256
+
+# Install poetry and pytest
+RUN pip install --no-cache-dir poetry pytest
+
+# Give write permissions to all copied folders and change ownership to odh user
+RUN chown -R odh:odh /home/odh && \
+    chmod -R 755 api/ manifests/ scripts/
+RUN chown -R odh:odh /opt/app-root/src/
+# Switch to odh user
+USER odh
+
+# Add user's pip bin to PATH
+ENV PATH="/home/odh/.local/bin:$PATH"
+
+# Set entrypoint to make command
+ENTRYPOINT ["make", "-C", "clients/python"]
+CMD ["deploy-mr-odh", "deploy-local-registry", "deploy-test-minio", "test-e2e-odh"]
