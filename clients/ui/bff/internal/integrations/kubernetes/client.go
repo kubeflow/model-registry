@@ -20,6 +20,7 @@ type KubernetesClientInterface interface {
 	// Permission checks (abstracted SAR/SelfSAR)
 	CanListServicesInNamespace(ctx context.Context, identity *RequestIdentity, namespace string) (bool, error)
 	CanAccessServiceInNamespace(ctx context.Context, identity *RequestIdentity, namespace, serviceName string) (bool, error)
+	GetSelfSubjectRulesReview(ctx context.Context, identity *RequestIdentity, namespace string) ([]string, error)
 
 	// Meta
 	IsClusterAdmin(identity *RequestIdentity) (bool, error)
