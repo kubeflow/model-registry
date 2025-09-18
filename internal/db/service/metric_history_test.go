@@ -730,5 +730,42 @@ func TestMetricHistoryRepository(t *testing.T) {
 		require.NoError(t, err)
 		require.NotNil(t, result)
 		assert.Equal(t, 0, len(result.Items), "should return 0 metric histories for non-existent step")
+
+		// Test with empty string
+		emptyStepIds := ""
+		listOptions = models.MetricHistoryListOptions{
+			StepIds: &emptyStepIds,
+		}
+		listOptions.PageSize = &pageSize
+
+		result, err = repo.List(listOptions)
+		require.NoError(t, err)
+		require.NotNil(t, result)
+		// Should return all metric histories since no filter is applied
+		assert.GreaterOrEqual(t, len(result.Items), 3)
+
+		// Test with whitespace-only values (should be ignored)
+		whitespaceStepIds := "1, ,3"
+		listOptions = models.MetricHistoryListOptions{
+			StepIds: &whitespaceStepIds,
+		}
+		listOptions.PageSize = &pageSize
+
+		result, err = repo.List(listOptions)
+		require.NoError(t, err)
+		require.NotNil(t, result)
+		assert.Equal(t, 2, len(result.Items), "should return 2 metric histories for steps 1 and 3, ignoring whitespace")
+
+		// Test with leading/trailing whitespace (should be trimmed)
+		trimStepIds := " 1 , 3 "
+		listOptions = models.MetricHistoryListOptions{
+			StepIds: &trimStepIds,
+		}
+		listOptions.PageSize = &pageSize
+
+		result, err = repo.List(listOptions)
+		require.NoError(t, err)
+		require.NotNil(t, result)
+		assert.Equal(t, 2, len(result.Items), "should return 2 metric histories for steps 1 and 3, trimming whitespace")
 	})
 }

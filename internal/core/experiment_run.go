@@ -276,6 +276,9 @@ func (b *ModelRegistryService) GetExperimentRunMetricHistory(name *string, stepI
 
 	// Add step IDs filter if provided
 	if stepIds != nil && *stepIds != "" {
+		if err := converter.ValidateStepIds(*stepIds); err != nil {
+			return nil, err
+		}
 		listOptsCopy.StepIds = stepIds
 	}
 
@@ -362,7 +365,7 @@ func (b *ModelRegistryService) InsertMetricHistory(metric *openapi.Metric, exper
 	if err != nil {
 		return fmt.Errorf("failed to get experiment run: %w", err)
 	}
-	
+
 	// Create a temporary artifact to use the existing helper function
 	tempArtifact := &openapi.Artifact{Metric: &metricHistory}
 	b.setExperimentPropertiesOnArtifact(tempArtifact, experimentRun.ExperimentId, experimentRunId)
