@@ -34,6 +34,7 @@ export const catalogParamsToModelSourceProperties = (
 ): ModelSourceProperties => ({
   modelSourceKind: ModelSourceKind.CATALOG,
   modelSourceName: params.modelName,
+  modelSourceClass: params.sourceId,
 });
 
 const EMPTY_CUSTOM_PROPERTY_STRING = {
