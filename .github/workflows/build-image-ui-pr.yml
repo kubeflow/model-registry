@@ -11,9 +11,8 @@ on:
       - "!**.md"
       - "!**.txt"
 
-permissions:
+permissions: # set contents: read at top-level, per OpenSSF ScoreCard rule TokenPermissionsID
   contents: read
-  packages: read
 
 env:
   IMG_ORG: kubeflow
@@ -22,6 +21,9 @@ env:
   BRANCH: ${{ github.base_ref }}
 jobs:
   build-image:
+    permissions:
+      contents: read
+      packages: read
     runs-on: ubuntu-latest
     steps:
       # checkout branch

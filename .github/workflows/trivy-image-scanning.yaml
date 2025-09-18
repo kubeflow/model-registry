@@ -4,13 +4,15 @@ on:
   schedule:
     - cron: '0 0 * * 1' # Every Monday at 00:00
 
-permissions:
+permissions: # set contents: read at top-level, per OpenSSF ScoreCard rule TokenPermissionsID
   contents: read
-  security-events: write
 
 jobs:
   image-scanning:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      security-events: write
     strategy:
       matrix:
         IMAGE: [

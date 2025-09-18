@@ -9,6 +9,9 @@ on:
   schedule:
     - cron: "04 4 * * *"
 
+permissions: # set contents: read at top-level, per OpenSSF ScoreCard rule TokenPermissionsID
+  contents: read
+
 jobs:
   stale:
     runs-on: ubuntu-22.04

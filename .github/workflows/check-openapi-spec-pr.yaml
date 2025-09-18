@@ -5,7 +5,7 @@ on:
       - ".github/workflows/**"
       - "api/openapi/model-registry.yaml"
 
-permissions:
+permissions: # set contents: read at top-level, per OpenSSF ScoreCard rule TokenPermissionsID
   contents: read
 
 jobs:

@@ -21,7 +21,7 @@ env:
   DOCKER_USER: ${{ github.actor }}
   DOCKER_PWD: ${{ secrets.GITHUB_TOKEN }}
 
-permissions: # default workflow permission, overridden for specific job where required
+permissions: # set contents: read at top-level, per OpenSSF ScoreCard rule TokenPermissionsID
   contents: read
 
 jobs:
