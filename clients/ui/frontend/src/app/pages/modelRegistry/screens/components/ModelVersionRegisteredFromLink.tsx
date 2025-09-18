@@ -1,9 +1,11 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { DashboardDescriptionListGroup } from 'mod-arch-shared';
+import { DescriptionList } from '@patternfly/react-core';
 import { ModelArtifact } from '~/app/types';
 import { modelSourcePropertiesToCatalogParams } from '~/concepts/modelRegistry/utils';
 import { getCatalogModelDetailsRoute } from '~/app/routes/modelCatalog/catalogModelDetails';
+import { getModelName } from '~/app/pages/modelCatalog/utils/modelCatalogUtils';
 
 type ModelVersionRegisteredFromLinkProps = {
   modelArtifact: ModelArtifact;
@@ -21,7 +23,7 @@ const ModelVersionRegisteredFromLink: React.FC<ModelVersionRegisteredFromLinkPro
 
   const registeredfromText = (
     <span className="pf-v6-u-font-weight-bold" data-testid="registered-from-catalog">
-      {registeredFromCatalogDetails.modelName}
+      {getModelName(registeredFromCatalogDetails.modelName || '')}
     </span>
   );
 
@@ -45,9 +47,11 @@ const ModelVersionRegisteredFromLink: React.FC<ModelVersionRegisteredFromLinkPro
   const content = renderContent();
 
   return (
-    <DashboardDescriptionListGroup title="Registered from" groupTestId="registered-from-title">
-      {content}
-    </DashboardDescriptionListGroup>
+    <DescriptionList>
+      <DashboardDescriptionListGroup title="Registered from" groupTestId="registered-from-title">
+        {content}
+      </DashboardDescriptionListGroup>
+    </DescriptionList>
   );
 };
 

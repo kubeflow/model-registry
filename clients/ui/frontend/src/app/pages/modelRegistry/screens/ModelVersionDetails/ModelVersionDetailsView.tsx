@@ -144,12 +144,6 @@ const ModelVersionDetailsView: React.FC<ModelVersionDetailsViewProps> = ({
                       )
                     }
                   />
-                  {modelArtifact && (
-                    <ModelVersionRegisteredFromLink
-                      modelArtifact={modelArtifact}
-                      isModelCatalogAvailable
-                    />
-                  )}
                   <ModelPropertiesDescriptionListGroup
                     isArchive={isArchiveVersion}
                     customProperties={mv.customProperties}
@@ -163,6 +157,12 @@ const ModelVersionDetailsView: React.FC<ModelVersionDetailsViewProps> = ({
               </FlexItem>
               <Divider orientation={{ default: 'vertical' }} />
               <FlexItem flex={{ default: 'flex_1' }}>
+                {modelArtifact && (
+                  <ModelVersionRegisteredFromLink
+                    modelArtifact={modelArtifact}
+                    isModelCatalogAvailable
+                  />
+                )}
                 <Title style={{ margin: '1em 0' }} headingLevel={ContentVariants.h3}>
                   Model location
                 </Title>
