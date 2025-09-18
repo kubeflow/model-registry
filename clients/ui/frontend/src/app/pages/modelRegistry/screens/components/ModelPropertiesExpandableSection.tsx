@@ -71,7 +71,7 @@ const ModelPropertiesExpandableSection: React.FC<ModelPropertiesExpandableSectio
         </>
       }
     >
-      {keys.length > 0 && (
+      {(keys.length > 0 || isAdding) && (
         <Table aria-label="Properties table" data-testid="properties-table" variant="compact">
           <Thead>
             <Tr>
