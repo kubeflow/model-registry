@@ -3,6 +3,7 @@ package mocks
 import (
 	"fmt"
 	"log/slog"
+	"math"
 	"net/url"
 	"strconv"
 	"strings"
@@ -101,10 +102,19 @@ func (m *ModelCatalogClientMock) GetAllCatalogModelsAcrossSources(client httpcli
 		nextPageToken = strconv.Itoa(endIndex)
 	}
 
+	size := len(pagedModels)
+	if size > math.MaxInt32 {
+		size = math.MaxInt32
+	}
+	ps := pageSize
+	if ps > math.MaxInt32 {
+		ps = math.MaxInt32
+	}
+
 	catalogModelList := openapi.CatalogModelList{
 		Items:         pagedModels,
-		Size:          int32(len(pagedModels)),
-		PageSize:      int32(pageSize),
+		Size:          int32(size),
+		PageSize:      int32(ps),
 		NextPageToken: nextPageToken,
 	}
 
