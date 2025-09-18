@@ -7,11 +7,12 @@ import (
 )
 
 const ComponentLabelValue = "model-registry"
+const ComponentLabelValueCatalog = "model-catalog"
 
 type KubernetesClientInterface interface {
 	// Service discovery
 	GetServiceNames(ctx context.Context, namespace string) ([]string, error)
-	GetServiceDetailsByName(ctx context.Context, namespace, serviceName string) (ServiceDetails, error)
+	GetServiceDetailsByName(ctx context.Context, namespace, serviceName string, serviceType string) (ServiceDetails, error)
 	GetServiceDetails(ctx context.Context, namespace string) ([]ServiceDetails, error)
 
 	// Namespace access

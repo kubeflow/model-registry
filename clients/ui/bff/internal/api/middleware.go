@@ -260,14 +260,14 @@ func (app *App) RequireListServiceAccessInNamespace(next func(http.ResponseWrite
 			return
 		}
 
-		// Check broad "list services" permission
+		// Validate if user can list services in namespace
 		allowList, err := client.CanListServicesInNamespace(ctx, identity, namespace)
 		if err != nil {
 			app.forbiddenResponse(w, r, fmt.Sprintf("SAR or SelfSAR failed for namespace %s: %v", namespace, err))
 			return
 		}
 
-		// If user can't list all services, get granular rules
+		// If user can't list all services, validate if user can access specific services
 		var allowedServiceNames []string
 		if !allowList {
 			// Use SelfSubjectRulesReview to get specific service names the user can access
@@ -284,7 +284,7 @@ func (app *App) RequireListServiceAccessInNamespace(next func(http.ResponseWrite
 			}
 		}
 
-		//Add authorization context for downstream handlers
+		//Add authorization context for passing to downstream handler GetAllModelRegistriesHandler
 		authCtx := &models.ServiceAuthorizationContext{
 			AllowList:           allowList,
 			AllowedServiceNames: allowedServiceNames,

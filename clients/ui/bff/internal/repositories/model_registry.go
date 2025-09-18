@@ -34,10 +34,10 @@ func (m *ModelRegistryRepository) GetAllModelRegistriesWithMode(sessionCtx conte
 	// Check if we have authorization context from the middleware
 	if authCtx, ok := sessionCtx.Value(constants.ServiceAuthorizationContextKey).(*models.ServiceAuthorizationContext); ok {
 		if authCtx.AllowList {
-			logger.Debug("User can list all services - using normal flow")
+			logger.Debug("User can get list services ")
 			resources, err = client.GetServiceDetails(sessionCtx, namespace)
 		} else {
-			logger.Debug("User has limited access - fetching specific services",
+			logger.Debug("User has limited access - we need use Rule base access",
 				"serviceCount", len(authCtx.AllowedServiceNames),
 				"services", authCtx.AllowedServiceNames)
 			resources, err = m.getSpecificServiceDetails(sessionCtx, client, namespace, authCtx.AllowedServiceNames)
@@ -77,7 +77,8 @@ func (m *ModelRegistryRepository) getSpecificServiceDetails(sessionCtx context.C
 
 	for _, serviceName := range serviceNames {
 		logger.Debug("Fetching service details", "serviceName", serviceName, "namespace", namespace)
-		serviceDetail, err := client.GetServiceDetailsByName(sessionCtx, namespace, serviceName)
+		// Validate if service is a model registry service by passing the component label value
+		serviceDetail, err := client.GetServiceDetailsByName(sessionCtx, namespace, serviceName, k8s.ComponentLabelValue)
 		if err != nil {
 			logger.Warn("Failed to get service details, skipping",
 				"serviceName", serviceName,
@@ -100,7 +101,7 @@ func (m *ModelRegistryRepository) GetModelRegistry(sessionCtx context.Context, c
 // GetModelRegistryWithMode fetches a specific model registry with support for federated mode
 func (m *ModelRegistryRepository) GetModelRegistryWithMode(sessionCtx context.Context, client k8s.KubernetesClientInterface, namespace string, modelRegistryID string, isFederatedMode bool) (models.ModelRegistryModel, error) {
 
-	s, err := client.GetServiceDetailsByName(sessionCtx, namespace, modelRegistryID)
+	s, err := client.GetServiceDetailsByName(sessionCtx, namespace, modelRegistryID, k8s.ComponentLabelValue)
 	if err != nil {
 		return models.ModelRegistryModel{}, fmt.Errorf("error fetching model registry: %w", err)
 	}
