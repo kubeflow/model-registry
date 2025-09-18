@@ -63,15 +63,15 @@ const ModelDetailsPage: React.FC = () => {
       return null;
     }
 
-    if (!artifactLoaded) {
-      return <Spinner size="xl" />; // Still loading artifacts
-    }
-
     if (artifactsLoadError) {
       return registerButtonPopover(
         'Unable to load model artifacts',
         'Model registration is unavailable due to an error loading model artifacts. Please try again later.',
       );
+    }
+
+    if (!artifactLoaded) {
+      return <Spinner size="xl" />; // Still loading artifacts
     }
 
     return modelRegistries.length === 0 ? (
