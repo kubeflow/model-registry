@@ -4,6 +4,8 @@ on:
     tags:
       - py-v*
   workflow_dispatch:
+permissions: # set contents: read at top-level, per OpenSSF ScoreCard rule TokenPermissionsID
+  contents: read
 jobs:
   release:
     name: Release

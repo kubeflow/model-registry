@@ -13,6 +13,8 @@ on:
       - '.github/ISSUE_TEMPLATE/**'
       - '.github/dependabot.yml'
       - 'docs/**'
+permissions: # set contents: read at top-level, per OpenSSF ScoreCard rule TokenPermissionsID
+  contents: read
 env:
   IMG_REGISTRY: ghcr.io
   IMG_ORG: kubeflow
