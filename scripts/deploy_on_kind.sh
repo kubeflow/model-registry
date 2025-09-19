@@ -4,7 +4,7 @@ set -e
 
 DIR="$(dirname "$0")"
 MR_NAMESPACE="${MR_NAMESPACE:-kubeflow}"
-IMG="${IMG:-ghcr.io/kubeflow/model-registry/server:latest}"
+IMG="${IMG:-ghcr.io/kubeflow/model-registry/server:latest}" # TODO RHOAIENG-30453 align consistency ./scripts/deploy_on_kind.sh uses IMG with :tag, Vs, Makefile(s) and ci/GHA we use IMG without trailing :tag
 DEPLOY_MANIFEST_DB="${DEPLOY_MANIFEST_DB:-db}" # subdirectory of manifests/kustomize/overlays to select which database: 'db' (MySQL) or 'postgres'
 
 source ./${DIR}/utils.sh
