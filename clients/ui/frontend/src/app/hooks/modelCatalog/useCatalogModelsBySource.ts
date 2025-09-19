@@ -14,11 +14,18 @@ type PaginatedCatalogModelList = {
   refresh: () => void;
 };
 
+type ModelList = [
+  models: PaginatedCatalogModelList,
+  catalogModelLoaded: boolean,
+  catalogModelLoadError: Error | undefined,
+  refresh: () => void,
+];
+
 export const useCatalogModelsBySources = (
   sourceId: string,
   pageSize = 10,
   searchQuery = '',
-): [PaginatedCatalogModelList, boolean, Error | undefined, () => void] => {
+): ModelList => {
   const { api, apiAvailable } = useModelCatalogAPI();
 
   const [allItems, setAllItems] = React.useState<CatalogModel[]>([]);
