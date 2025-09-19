@@ -56,3 +56,7 @@ istio-*
 # Python
 venv/
 .python-version
+
+# Claude code
+CLAUDE.md
+.claude/
