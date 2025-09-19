@@ -138,7 +138,7 @@ func (kc *SharedClientLogic) GetServiceDetailsByName(sessionCtx context.Context,
 	if err != nil {
 		return ServiceDetails{}, fmt.Errorf("failed to get service %q in namespace %q: %w", serviceName, namespace, err)
 	}
-	if serviceType != "" && service.ObjectMeta.Labels["component"] != serviceType {
+	if serviceType != "" && service.Labels["component"] != serviceType {
 		return ServiceDetails{}, fmt.Errorf("service %q in namespace %q is not a %s", serviceName, namespace, serviceType)
 	}
 
