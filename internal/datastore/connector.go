@@ -3,6 +3,8 @@ package datastore
 import (
 	"errors"
 	"fmt"
+	"maps"
+	"slices"
 )
 
 var (
@@ -12,7 +14,7 @@ var (
 
 type Connector interface {
 	Type() string
-	Connect(spec RepoSetSpec) (RepoSet, error)
+	Connect(spec *Spec) (RepoSet, error)
 }
 
 var connectorTypes map[string]func(any) (Connector, error)
@@ -34,5 +36,5 @@ func NewConnector(t string, config any) (Connector, error) {
 		return fn(config)
 	}
 
-	return nil, fmt.Errorf("%w: %s. Supported types: embedmd", ErrUnsupportedDatastore, t)
+	return nil, fmt.Errorf("%w: %s. Supported types: %v", ErrUnsupportedDatastore, t, slices.Sorted(maps.Keys(connectorTypes)))
 }
