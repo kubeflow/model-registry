@@ -104,7 +104,7 @@ export const useCatalogModelsBySources = (
     refetch();
   }, [refetch]);
 
-  const extendedData: PaginatedCatalogModelList = {
+  const paginatedData: PaginatedCatalogModelList = {
     items: allItems,
     size: totalSize,
     pageSize: firstPageData.pageSize,
@@ -115,5 +115,5 @@ export const useCatalogModelsBySources = (
     refresh,
   };
 
-  return [extendedData, loaded, error, refresh];
+  return [paginatedData, loaded, error, refresh];
 };
