@@ -8,7 +8,7 @@ DEV_MODE_CATALOG_PORT ?= 8081
 DEPLOYMENT_MODE ?= kubeflow
 AUTH_METHOD ?= internal
 AUTH_TOKEN_HEADER ?= Authorization
-AUTH_TOKEN_PREFIX ?= Bearer\
+AUTH_TOKEN_PREFIX ?= Bearer
 INSECURE_SKIP_VERIFY ?= false
 #frontend static assets root directory
 STATIC_ASSETS_DIR ?= ./static

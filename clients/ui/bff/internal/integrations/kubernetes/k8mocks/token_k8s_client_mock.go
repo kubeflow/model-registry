@@ -47,8 +47,8 @@ func (m *TokenKubernetesClientMock) GetServiceDetails(sessionCtx context.Context
 }
 
 // GetServiceDetailsByName overrides to simulate local service access
-func (m *TokenKubernetesClientMock) GetServiceDetailsByName(sessionCtx context.Context, namespace, serviceName string) (k8s.ServiceDetails, error) {
-	originalService, err := m.TokenKubernetesClient.GetServiceDetailsByName(sessionCtx, namespace, serviceName)
+func (m *TokenKubernetesClientMock) GetServiceDetailsByName(sessionCtx context.Context, namespace, serviceName string, serviceType string) (k8s.ServiceDetails, error) {
+	originalService, err := m.TokenKubernetesClient.GetServiceDetailsByName(sessionCtx, namespace, serviceName, serviceType)
 	if err != nil {
 		return k8s.ServiceDetails{}, fmt.Errorf("failed to get service details: %w", err)
 	}

@@ -673,8 +673,10 @@ models:
         customProperties:
           foo:
             string_value: bar
+            metadataType: MetadataStringValue
           baz:
             string_value: qux
+            metadataType: MetadataStringValue
   - name: model-with-no-artifacts
     provider: Test
     description: A model used for testing the GetArtifacts method when no artifacts are present.
