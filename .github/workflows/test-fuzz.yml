@@ -70,7 +70,17 @@ jobs:
           set -x
           sudo apparmor_parser -R /etc/apparmor.d/usr.sbin.mysqld
 
+      - name: Generate Tag
+        shell: bash
+        id: tags
+        run: |
+          commit_sha=${{ fromJson(steps.pr.outputs.result).sha }}
+          tag=fuzz-${commit_sha:0:7}
+          echo "tag=${tag}" | tee -a $GITHUB_OUTPUT
+
       - name: Run Fuzz Tests
+        env:
+          IMG_VERSION: ${{ steps.tags.outputs.tag }}
         run: |
           echo "Starting fuzz tests..."
           make test-fuzz

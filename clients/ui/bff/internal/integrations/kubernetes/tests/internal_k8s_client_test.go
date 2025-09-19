@@ -46,7 +46,7 @@ var _ = Describe("Kubernetes Internal Client Test", func() {
 			serviceAccountMockedK8client, err := kubernetesMockedStaticClientFactory.GetClient(mocks.NewMockSessionContextNoParent())
 			Expect(err).NotTo(HaveOccurred())
 
-			service, err := serviceAccountMockedK8client.GetServiceDetailsByName(mocks.NewMockSessionContextNoParent(), "dora-namespace", "model-registry-dora")
+			service, err := serviceAccountMockedK8client.GetServiceDetailsByName(mocks.NewMockSessionContextNoParent(), "dora-namespace", "model-registry-dora", kubernetes.ComponentLabelValue)
 			Expect(err).NotTo(HaveOccurred(), "Failed to create k8s request")
 
 			By("checking that service details are correct")

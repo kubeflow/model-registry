@@ -124,7 +124,7 @@ func buildServiceDetails(service *corev1.Service, logger *slog.Logger) (*Service
 	}, nil
 }
 
-func (kc *SharedClientLogic) GetServiceDetailsByName(sessionCtx context.Context, namespace string, serviceName string) (ServiceDetails, error) {
+func (kc *SharedClientLogic) GetServiceDetailsByName(sessionCtx context.Context, namespace string, serviceName string, serviceType string) (ServiceDetails, error) {
 	if namespace == "" || serviceName == "" {
 		return ServiceDetails{}, fmt.Errorf("namespace and serviceName cannot be empty")
 	}
@@ -137,6 +137,9 @@ func (kc *SharedClientLogic) GetServiceDetailsByName(sessionCtx context.Context,
 	service, err := kc.Client.CoreV1().Services(namespace).Get(ctx, serviceName, metav1.GetOptions{})
 	if err != nil {
 		return ServiceDetails{}, fmt.Errorf("failed to get service %q in namespace %q: %w", serviceName, namespace, err)
+	}
+	if serviceType != "" && service.Labels["component"] != serviceType {
+		return ServiceDetails{}, fmt.Errorf("service %q in namespace %q is not a %s", serviceName, namespace, serviceType)
 	}
 
 	details, err := buildServiceDetails(service, sessionLogger)

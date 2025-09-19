@@ -23,7 +23,8 @@ deploy-latest-mr:
 	$(if $(filter true,$(BUILD_IMAGE)),\
 		IMG_VERSION=${IMG_VERSION} IMG=${IMG} make image/build ARGS="--load$(if ${DEV_BUILD}, --target dev-build)" && \
 	) \
-	LOCAL=1 ./scripts/deploy_on_kind.sh
+	LOCAL=1 IMG=$(IMG):$(IMG_VERSION) ./scripts/deploy_on_kind.sh
+# TODO RHOAIENG-30453 align consistency ./scripts/deploy_on_kind.sh uses IMG with :tag, Vs, Makefile(s) and ci/GHA we use IMG without trailing :tag
 	kubectl port-forward -n kubeflow services/model-registry-service 8080:8080 & echo $$! >> .port-forwards.pid
 
 .PHONY: deploy-test-minio

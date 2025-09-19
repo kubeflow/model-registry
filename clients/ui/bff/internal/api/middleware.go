@@ -11,6 +11,7 @@ import (
 	"github.com/kubeflow/model-registry/ui/bff/internal/config"
 	"github.com/kubeflow/model-registry/ui/bff/internal/integrations/httpclient"
 	"github.com/kubeflow/model-registry/ui/bff/internal/integrations/kubernetes"
+	"github.com/kubeflow/model-registry/ui/bff/internal/models"
 
 	"github.com/google/uuid"
 	"github.com/julienschmidt/httprouter"
@@ -259,17 +260,39 @@ func (app *App) RequireListServiceAccessInNamespace(next func(http.ResponseWrite
 			return
 		}
 
-		allowed, err := client.CanListServicesInNamespace(ctx, identity, namespace)
+		// Validate if user can list services in namespace
+		allowList, err := client.CanListServicesInNamespace(ctx, identity, namespace)
 		if err != nil {
 			app.forbiddenResponse(w, r, fmt.Sprintf("SAR or SelfSAR failed for namespace %s: %v", namespace, err))
 			return
 		}
-		if !allowed {
-			app.forbiddenResponse(w, r, fmt.Sprintf("SAR or SelfSAR denied access to namespace %s", namespace))
-			return
+
+		// If user can't list all services, validate if user can access specific services
+		var allowedServiceNames []string
+		if !allowList {
+			// Use SelfSubjectRulesReview to get specific service names the user can access
+			allowedServiceNames, err = client.GetSelfSubjectRulesReview(ctx, identity, namespace)
+			if err != nil {
+				app.forbiddenResponse(w, r, fmt.Sprintf("Failed to get rules review for namespace %s: %v", namespace, err))
+				return
+			}
+
+			// If user has no specific service access and can't list all, deny access
+			if len(allowedServiceNames) == 0 {
+				app.forbiddenResponse(w, r, fmt.Sprintf("No service access granted in namespace %s", namespace))
+				return
+			}
 		}
 
-		next(w, r, ps)
+		//Add authorization context for passing to downstream handler GetAllModelRegistriesHandler
+		authCtx := &models.ServiceAuthorizationContext{
+			AllowList:           allowList,
+			AllowedServiceNames: allowedServiceNames,
+			Namespace:           namespace,
+		}
+
+		ctx = context.WithValue(ctx, constants.ServiceAuthorizationContextKey, authCtx)
+		next(w, r.WithContext(ctx), ps)
 	}
 }
 

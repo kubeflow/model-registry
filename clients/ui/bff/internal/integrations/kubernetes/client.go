@@ -7,11 +7,12 @@ import (
 )
 
 const ComponentLabelValue = "model-registry"
+const ComponentLabelValueCatalog = "model-catalog"
 
 type KubernetesClientInterface interface {
 	// Service discovery
 	GetServiceNames(ctx context.Context, namespace string) ([]string, error)
-	GetServiceDetailsByName(ctx context.Context, namespace, serviceName string) (ServiceDetails, error)
+	GetServiceDetailsByName(ctx context.Context, namespace, serviceName string, serviceType string) (ServiceDetails, error)
 	GetServiceDetails(ctx context.Context, namespace string) ([]ServiceDetails, error)
 
 	// Namespace access
@@ -20,6 +21,7 @@ type KubernetesClientInterface interface {
 	// Permission checks (abstracted SAR/SelfSAR)
 	CanListServicesInNamespace(ctx context.Context, identity *RequestIdentity, namespace string) (bool, error)
 	CanAccessServiceInNamespace(ctx context.Context, identity *RequestIdentity, namespace, serviceName string) (bool, error)
+	GetSelfSubjectRulesReview(ctx context.Context, identity *RequestIdentity, namespace string) ([]string, error)
 
 	// Meta
 	IsClusterAdmin(identity *RequestIdentity) (bool, error)

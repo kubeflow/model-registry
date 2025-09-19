@@ -3,6 +3,10 @@ package kubernetes
 import (
 	"context"
 	"fmt"
+	"log/slog"
+	"strings"
+	"time"
+
 	helper "github.com/kubeflow/model-registry/ui/bff/internal/helpers"
 	authnv1 "k8s.io/api/authentication/v1"
 	authv1 "k8s.io/api/authorization/v1"
@@ -10,9 +14,6 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
-	"log/slog"
-	"strings"
-	"time"
 )
 
 type TokenKubernetesClient struct {
@@ -120,6 +121,56 @@ func (kc *TokenKubernetesClient) CanListServicesInNamespace(ctx context.Context,
 	}
 
 	return true, nil
+}
+
+// GetSelfSubjectRulesReview gets the rules for what the user can access in a namespace
+func (kc *TokenKubernetesClient) GetSelfSubjectRulesReview(ctx context.Context, _ *RequestIdentity, namespace string) ([]string, error) {
+	ctx, cancel := context.WithTimeout(ctx, 30*time.Second)
+	defer cancel()
+
+	ssrr := &authv1.SelfSubjectRulesReview{
+		Spec: authv1.SelfSubjectRulesReviewSpec{
+			Namespace: namespace,
+		},
+	}
+
+	resp, err := kc.Client.AuthorizationV1().SelfSubjectRulesReviews().Create(ctx, ssrr, metav1.CreateOptions{})
+	if err != nil {
+		kc.Logger.Error("self-subject-rules-review failed", "namespace", namespace, "error", err)
+		return nil, err
+	}
+
+	var allowedServiceNames []string
+	for _, rule := range resp.Status.ResourceRules {
+		// Check if rule applies to 'services' resource and includes 'get' verb
+		if containsResource(rule.Resources, "services") && containsVerb(rule.Verbs, "get") {
+			// Add specific resource names if specified
+			if len(rule.ResourceNames) > 0 {
+				allowedServiceNames = append(allowedServiceNames, rule.ResourceNames...)
+			}
+		}
+	}
+
+	return allowedServiceNames, nil
+}
+
+// Helper functions for rule filtering
+func containsResource(resources []string, target string) bool {
+	for _, resource := range resources {
+		if resource == target {
+			return true
+		}
+	}
+	return false
+}
+
+func containsVerb(verbs []string, target string) bool {
+	for _, verb := range verbs {
+		if verb == target {
+			return true
+		}
+	}
+	return false
 }
 
 // RequestIdentity is unused because the token already represents the user identity.
