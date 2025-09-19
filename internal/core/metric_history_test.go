@@ -577,6 +577,27 @@ func TestGetExperimentRunMetricHistoryWithStepIdsFilter(t *testing.T) {
 	assert.Equal(t, int32(3), result.Size, "should return 3 metric history records for steps 1 and 3")
 	assert.Equal(t, 3, len(result.Items), "should have 3 items in the result")
 
+	// Test invalid step IDs are properly handled at service level
+	t.Run("InvalidStepIds", func(t *testing.T) {
+		// Test with invalid Unicode character
+		invalidStepIds := "耪"
+		_, err := service.GetExperimentRunMetricHistory(nil, &invalidStepIds, api.ListOptions{}, savedExperimentRun.Id)
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "invalid step ID '耪': must be a valid integer")
+
+		// Test with mixed valid and invalid step IDs
+		invalidStepIds = "1,invalid,3"
+		_, err = service.GetExperimentRunMetricHistory(nil, &invalidStepIds, api.ListOptions{}, savedExperimentRun.Id)
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "invalid step ID 'invalid': must be a valid integer")
+
+		// Test with non-numeric characters
+		invalidStepIds = "abc"
+		_, err = service.GetExperimentRunMetricHistory(nil, &invalidStepIds, api.ListOptions{}, savedExperimentRun.Id)
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "invalid step ID 'abc': must be a valid integer")
+	})
+
 	// Verify the returned metrics are from steps 1 and 3
 	stepValues := make(map[int64]bool)
 	for _, item := range result.Items {
