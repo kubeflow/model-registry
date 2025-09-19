@@ -13,7 +13,6 @@ import (
 	"github.com/kubeflow/model-registry/internal/datastore/embedmd"
 	"github.com/kubeflow/model-registry/internal/db/models"
 	"github.com/kubeflow/model-registry/internal/db/service"
-	"github.com/kubeflow/model-registry/internal/defaults"
 	"github.com/kubeflow/model-registry/internal/proxy"
 	"github.com/kubeflow/model-registry/internal/server/openapi"
 	"github.com/kubeflow/model-registry/internal/tls"
@@ -195,30 +194,7 @@ func runProxyServer(cmd *cobra.Command, args []string) error {
 }
 
 func newModelRegistryService(ds datastore.Connector) (api.ModelRegistryApi, error) {
-	repoSet, err := ds.Connect(datastore.RepoSetSpec{
-		ArtifactTypes: map[string]any{
-			defaults.ModelArtifactTypeName: service.NewModelArtifactRepository,
-			defaults.DocArtifactTypeName:   service.NewDocArtifactRepository,
-			defaults.DataSetTypeName:       service.NewDataSetRepository,
-			defaults.MetricTypeName:        service.NewMetricRepository,
-			defaults.ParameterTypeName:     service.NewParameterRepository,
-			defaults.MetricHistoryTypeName: service.NewMetricHistoryRepository,
-		},
-		ContextTypes: map[string]any{
-			defaults.RegisteredModelTypeName:    service.NewRegisteredModelRepository,
-			defaults.ModelVersionTypeName:       service.NewModelVersionRepository,
-			defaults.ServingEnvironmentTypeName: service.NewServingEnvironmentRepository,
-			defaults.InferenceServiceTypeName:   service.NewInferenceServiceRepository,
-			defaults.ExperimentTypeName:         service.NewExperimentRepository,
-			defaults.ExperimentRunTypeName:      service.NewExperimentRunRepository,
-		},
-		ExecutionTypes: map[string]any{
-			defaults.ServeModelTypeName: service.NewServeModelRepository,
-		},
-		Others: []any{
-			service.NewArtifactRepository,
-		},
-	})
+	repoSet, err := ds.Connect(service.DatastoreSpec())
 	if err != nil {
 		return nil, err
 	}

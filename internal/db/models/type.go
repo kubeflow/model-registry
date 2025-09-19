@@ -29,5 +29,9 @@ func (t *TypeImpl) GetAttributes() *TypeAttributes {
 }
 
 type TypeRepository interface {
+	// GetAll returns every registered type.
 	GetAll() ([]Type, error)
+
+	// Save updates a type, if the definition differs from what's stored.
+	Save(t Type) (Type, error)
 }

@@ -7,12 +7,5 @@ DELETE FROM "Type" WHERE name IN (
     'mlmd.Transform',
     'mlmd.Process',
     'mlmd.Evaluate',
-    'mlmd.Deploy',
-    'kf.RegisteredModel',
-    'kf.ModelVersion',
-    'kf.DocArtifact',
-    'kf.ModelArtifact',
-    'kf.ServingEnvironment',
-    'kf.InferenceService',
-    'kf.ServeModel'
-); 
+    'mlmd.Deploy'
+);
