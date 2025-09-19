@@ -14,12 +14,12 @@ var _ datastore.RepoSet = (*repoSetImpl)(nil)
 
 type repoSetImpl struct {
 	db        *gorm.DB
-	spec      datastore.RepoSetSpec
+	spec      *datastore.Spec
 	nameIDMap map[string]int64
 	repos     map[reflect.Type]any
 }
 
-func newRepoSet(db *gorm.DB, spec datastore.RepoSetSpec) (datastore.RepoSet, error) {
+func newRepoSet(db *gorm.DB, spec *datastore.Spec) (datastore.RepoSet, error) {
 	typeRepository := service.NewTypeRepository(db)
 
 	glog.Infof("Getting types...")
@@ -78,29 +78,29 @@ func newRepoSet(db *gorm.DB, spec datastore.RepoSetSpec) (datastore.RepoSet, err
 		rs.put(repo)
 	}
 
-	for name, fn := range spec.ArtifactTypes {
+	for name, specType := range spec.ArtifactTypes {
 		args[reflect.TypeOf(nameIDMap[name])] = nameIDMap[name]
 
-		repo, err := rs.call(fn, args)
+		repo, err := rs.call(specType.InitFn, args)
 		if err != nil {
 			return nil, fmt.Errorf("embedmd: %s: %w", name, err)
 		}
 		rs.put(repo)
 	}
 
-	for name, fn := range spec.ContextTypes {
+	for name, specType := range spec.ContextTypes {
 		args[reflect.TypeOf(nameIDMap[name])] = nameIDMap[name]
 
-		repo, err := rs.call(fn, args)
+		repo, err := rs.call(specType.InitFn, args)
 		if err != nil {
 			return nil, fmt.Errorf("embedmd: %s: %w", name, err)
 		}
 		rs.put(repo)
 	}
 
-	for name, fn := range spec.ExecutionTypes {
+	for name, specType := range spec.ExecutionTypes {
 		args[reflect.TypeOf(nameIDMap[name])] = nameIDMap[name]
-		repo, err := rs.call(fn, args)
+		repo, err := rs.call(specType.InitFn, args)
 		if err != nil {
 			return nil, fmt.Errorf("embedmd: %s: %w", name, err)
 		}
@@ -187,7 +187,7 @@ func (rs *repoSetImpl) TypeMap() map[string]int64 {
 	return clone
 }
 
-func makeTypeMap[T ~map[string]int64](specMap map[string]any, nameIDMap map[string]int64) T {
+func makeTypeMap[T ~map[string]int64](specMap map[string]*datastore.SpecType, nameIDMap map[string]int64) T {
 	returnMap := make(T, len(specMap))
 	for k := range specMap {
 		returnMap[k] = nameIDMap[k]

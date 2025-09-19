@@ -111,22 +111,13 @@ func TestNewRepoSet_Success(t *testing.T) {
 	db, cleanup := setupTestDB(t)
 	defer cleanup()
 
-	spec := datastore.RepoSetSpec{
-		ArtifactTypes: map[string]any{
-			"TestArtifact": newMockArtifactRepo,
-			"TestDoc":      newMockArtifactRepo,
-		},
-		ContextTypes: map[string]any{
-			"TestContext": newMockContextRepo,
-			"TestModel":   newMockContextRepo,
-		},
-		ExecutionTypes: map[string]any{
-			"TestExecution": newMockExecutionRepo,
-		},
-		Others: []any{
-			newMockOtherRepo,
-		},
-	}
+	spec := datastore.NewSpec().
+		AddArtifact("TestArtifact", datastore.NewSpecType(newMockArtifactRepo)).
+		AddArtifact("TestDoc", datastore.NewSpecType(newMockArtifactRepo)).
+		AddContext("TestContext", datastore.NewSpecType(newMockContextRepo)).
+		AddContext("TestModel", datastore.NewSpecType(newMockContextRepo)).
+		AddExecution("TestExecution", datastore.NewSpecType(newMockExecutionRepo)).
+		AddOther(newMockOtherRepo)
 
 	repoSet, err := newRepoSet(db, spec)
 	require.NoError(t, err)
@@ -162,11 +153,8 @@ func TestNewRepoSet_MissingType(t *testing.T) {
 	db, cleanup := setupTestDB(t)
 	defer cleanup()
 
-	spec := datastore.RepoSetSpec{
-		ArtifactTypes: map[string]any{
-			"NonExistentType": newMockArtifactRepo,
-		},
-	}
+	spec := datastore.NewSpec().
+		AddArtifact("NonExistentType", datastore.NewSpecType(newMockArtifactRepo))
 
 	repoSet, err := newRepoSet(db, spec)
 	assert.Error(t, err)
@@ -178,11 +166,7 @@ func TestNewRepoSet_InitializerError(t *testing.T) {
 	db, cleanup := setupTestDB(t)
 	defer cleanup()
 
-	spec := datastore.RepoSetSpec{
-		Others: []any{
-			newMockOtherRepoWithError,
-		},
-	}
+	spec := datastore.NewSpec().AddOther(newMockOtherRepoWithError)
 
 	repoSet, err := newRepoSet(db, spec)
 	assert.Error(t, err)
@@ -210,9 +194,7 @@ func TestRepoSetImpl_Repository_InterfaceMatch(t *testing.T) {
 		return &testImpl{}
 	}
 
-	spec := datastore.RepoSetSpec{
-		Others: []any{newTestImpl},
-	}
+	spec := datastore.NewSpec().AddOther(newTestImpl)
 
 	repoSet, err := newRepoSet(db, spec)
 	require.NoError(t, err)
@@ -232,11 +214,8 @@ func TestRepoSetImpl_Repository_UnknownType(t *testing.T) {
 	db, cleanup := setupTestDB(t)
 	defer cleanup()
 
-	spec := datastore.RepoSetSpec{
-		ArtifactTypes: map[string]any{
-			"TestArtifact": newMockArtifactRepo,
-		},
-	}
+	spec := datastore.NewSpec().
+		AddArtifact("TestArtifact", datastore.NewSpecType(newMockArtifactRepo))
 
 	repoSet, err := newRepoSet(db, spec)
 	require.NoError(t, err)
@@ -335,10 +314,10 @@ func TestRepoSetImpl_Call_ValidInitializers(t *testing.T) {
 }
 
 func TestMakeTypeMap(t *testing.T) {
-	specMap := map[string]any{
-		"type1": "func1",
-		"type2": "func2",
-		"type3": "func3",
+	specMap := map[string]*datastore.SpecType{
+		"type1": datastore.NewSpecType("func1"),
+		"type2": datastore.NewSpecType("func2"),
+		"type3": datastore.NewSpecType("func3"),
 	}
 
 	nameIDMap := map[string]int64{
@@ -364,11 +343,8 @@ func TestRepoSetImpl_TypeMapCloning(t *testing.T) {
 	db, cleanup := setupTestDB(t)
 	defer cleanup()
 
-	spec := datastore.RepoSetSpec{
-		ArtifactTypes: map[string]any{
-			"TestArtifact": newMockArtifactRepo,
-		},
-	}
+	spec := datastore.NewSpec().
+		AddArtifact("TestArtifact", datastore.NewSpecType(newMockArtifactRepo))
 
 	repoSet, err := newRepoSet(db, spec)
 	require.NoError(t, err)
@@ -403,15 +379,10 @@ func TestRepoSetImpl_WithRealRepositories(t *testing.T) {
 		require.NoError(t, db.Create(&at).Error)
 	}
 
-	spec := datastore.RepoSetSpec{
-		ArtifactTypes: map[string]any{
-			"model-artifact": service.NewModelArtifactRepository,
-			"doc-artifact":   service.NewDocArtifactRepository,
-		},
-		Others: []any{
-			service.NewArtifactRepository,
-		},
-	}
+	spec := datastore.NewSpec().
+		AddArtifact("model-artifact", datastore.NewSpecType(service.NewModelArtifactRepository)).
+		AddArtifact("doc-artifact", datastore.NewSpecType(service.NewDocArtifactRepository)).
+		AddOther(service.NewArtifactRepository)
 
 	repoSet, err := newRepoSet(db, spec)
 	require.NoError(t, err)
