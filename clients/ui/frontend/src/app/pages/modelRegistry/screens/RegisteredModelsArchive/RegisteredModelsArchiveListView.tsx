@@ -78,8 +78,8 @@ const RegisteredModelsArchiveListView: React.FC<RegisteredModelsArchiveListViewP
                     [ModelRegistryFilterOptions.keyword]: ({ onChange, ...props }) => (
                       <ThemeAwareSearchInput
                         {...props}
-                        fieldLabel="Filter by keyword"
-                        placeholder="Filter by keyword"
+                        fieldLabel="Filter by name, description or label"
+                        placeholder="Filter by name, description or label"
                         className="toolbar-fieldset-wrapper"
                         style={{ minWidth: '270px' }}
                         onChange={(value) => onChange(value)}

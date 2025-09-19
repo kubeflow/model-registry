@@ -15,7 +15,6 @@ import {
   Popover,
   ActionListGroup,
   Skeleton,
-  Spinner,
 } from '@patternfly/react-core';
 import { ApplicationsPage } from 'mod-arch-shared';
 import { decodeParams, getModelName } from '~/app/pages/modelCatalog/utils/modelCatalogUtils';
@@ -71,7 +70,11 @@ const ModelDetailsPage: React.FC = () => {
     }
 
     if (!artifactLoaded) {
-      return <Spinner size="xl" />; // Still loading artifacts
+      return (
+        <Button variant="primary" data-testid="register-model-button" isLoading>
+          Register model
+        </Button>
+      );
     }
 
     return modelRegistries.length === 0 ? (

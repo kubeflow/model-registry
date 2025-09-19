@@ -52,7 +52,7 @@ const ModelCatalogCard: React.FC<ModelCatalogCardProps> = ({ model, source, trun
       </CardHeader>
       <CardBody>
         <Stack hasGutter>
-          <StackItem isFilled>
+          <StackItem>
             <Button
               data-testid="model-catalog-detail-link"
               variant="link"
