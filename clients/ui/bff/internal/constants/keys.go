@@ -19,6 +19,7 @@ const (
 	KubeflowUserIDHeader       = "kubeflow-userid" // kubeflow-userid :contains the user's email address
 	KubeflowUserGroupsIdHeader = "kubeflow-groups" // kubeflow-groups : Holds a comma-separated list of user groups
 
-	TraceIdKey     contextKey = "TraceIdKey"
-	TraceLoggerKey contextKey = "TraceLoggerKey"
+	TraceIdKey                     contextKey = "TraceIdKey"
+	TraceLoggerKey                 contextKey = "TraceLoggerKey"
+	ServiceAuthorizationContextKey contextKey = "ServiceAuthorizationContextKey"
 )

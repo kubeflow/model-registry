@@ -7,3 +7,10 @@ type ModelRegistryModel struct {
 	ServerAddress string `json:"serverAddress"`
 	IsHTTPS       bool   `json:"isHttps"`
 }
+
+// ServiceAuthorizationContext holds the authorization decision context
+type ServiceAuthorizationContext struct {
+	AllowList           bool
+	AllowedServiceNames []string
+	Namespace           string
+}
