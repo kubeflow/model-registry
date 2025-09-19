@@ -695,7 +695,7 @@ func TestFindSources(t *testing.T) {
 // Define a mock model provider
 type mockModelProvider struct {
 	models    map[string]*model.CatalogModel
-	artifacts map[string][]model.CatalogModelArtifact
+	artifacts map[string][]model.CatalogArtifact
 }
 
 // Implement GetModel method for the mock provider
@@ -754,17 +754,17 @@ func (m *mockModelProvider) ListModels(ctx context.Context, params catalog.ListM
 	}, nil
 }
 
-func (m *mockModelProvider) GetArtifacts(ctx context.Context, name string) (*model.CatalogModelArtifactList, error) {
+func (m *mockModelProvider) GetArtifacts(ctx context.Context, name string) (*model.CatalogArtifactList, error) {
 	artifacts, exists := m.artifacts[name]
 	if !exists {
-		return &model.CatalogModelArtifactList{
-			Items:         []model.CatalogModelArtifact{},
+		return &model.CatalogArtifactList{
+			Items:         []model.CatalogArtifact{},
 			Size:          0,
 			PageSize:      0, // Or a default page size if applicable
 			NextPageToken: "",
 		}, nil
 	}
-	return &model.CatalogModelArtifactList{
+	return &model.CatalogArtifactList{
 		Items:         artifacts,
 		Size:          int32(len(artifacts)),
 		PageSize:      int32(len(artifacts)),
@@ -892,7 +892,7 @@ func TestGetAllModelArtifacts(t *testing.T) {
 		sourceID          string
 		modelName         string
 		expectedStatus    int
-		expectedArtifacts []model.CatalogModelArtifact
+		expectedArtifacts []model.CatalogArtifact
 	}{
 		{
 			name: "Existing artifacts for model in source",
@@ -900,13 +900,17 @@ func TestGetAllModelArtifacts(t *testing.T) {
 				"source1": {
 					Metadata: model.CatalogSource{Id: "source1", Name: "Test Source"},
 					Provider: &mockModelProvider{
-						artifacts: map[string][]model.CatalogModelArtifact{
+						artifacts: map[string][]model.CatalogArtifact{
 							"test-model": {
 								{
-									Uri: "s3://bucket/artifact1",
+									CatalogModelArtifact: &model.CatalogModelArtifact{
+										Uri: "s3://bucket/artifact1",
+									},
 								},
 								{
-									Uri: "s3://bucket/artifact2",
+									CatalogModelArtifact: &model.CatalogModelArtifact{
+										Uri: "s3://bucket/artifact2",
+									},
 								},
 							},
 						},
@@ -916,12 +920,16 @@ func TestGetAllModelArtifacts(t *testing.T) {
 			sourceID:       "source1",
 			modelName:      "test-model",
 			expectedStatus: http.StatusOK,
-			expectedArtifacts: []model.CatalogModelArtifact{
+			expectedArtifacts: []model.CatalogArtifact{
 				{
-					Uri: "s3://bucket/artifact1",
+					CatalogModelArtifact: &model.CatalogModelArtifact{
+						Uri: "s3://bucket/artifact1",
+					},
 				},
 				{
-					Uri: "s3://bucket/artifact2",
+					CatalogModelArtifact: &model.CatalogModelArtifact{
+						Uri: "s3://bucket/artifact2",
+					},
 				},
 			},
 		},
@@ -943,14 +951,14 @@ func TestGetAllModelArtifacts(t *testing.T) {
 				"source1": {
 					Metadata: model.CatalogSource{Id: "source1", Name: "Test Source"},
 					Provider: &mockModelProvider{
-						artifacts: map[string][]model.CatalogModelArtifact{},
+						artifacts: map[string][]model.CatalogArtifact{},
 					},
 				},
 			},
 			sourceID:          "source1",
 			modelName:         "test-model",
 			expectedStatus:    http.StatusOK,
-			expectedArtifacts: []model.CatalogModelArtifact{}, // Should be an empty slice, not nil
+			expectedArtifacts: []model.CatalogArtifact{}, // Should be an empty slice, not nil
 		},
 	}
 
@@ -978,8 +986,8 @@ func TestGetAllModelArtifacts(t *testing.T) {
 			require.NotNil(t, resp.Body)
 
 			// Type assertion to access the list of artifacts
-			artifactList, ok := resp.Body.(*model.CatalogModelArtifactList)
-			require.True(t, ok, "Response body should be a CatalogModelArtifactList")
+			artifactList, ok := resp.Body.(*model.CatalogArtifactList)
+			require.True(t, ok, "Response body should be a CatalogArtifactList")
 
 			// Check the artifacts
 			assert.Equal(t, tc.expectedArtifacts, artifactList.Items)
