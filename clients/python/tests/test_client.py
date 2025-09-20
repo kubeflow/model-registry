@@ -13,9 +13,9 @@ from model_registry.types import ModelArtifact
 from model_registry.types.artifacts import DocArtifact
 
 
-def test_secure_client():
-    os.environ["CERT"] = ""
-    os.environ["KF_PIPELINES_SA_TOKEN_PATH"] = ""
+def test_secure_client(monkeypatch):
+    monkeypatch.delenv("CERT", raising=False)
+    monkeypatch.delenv("KF_PIPELINES_SA_TOKEN_PATH", raising=False)
     with pytest.raises(StoreError) as e:
         ModelRegistry("anything", author="test_author")
 
