@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { Divider, Flex, FlexItem, PageSection } from '@patternfly/react-core';
+import { PageSection, Sidebar, SidebarContent, SidebarPanel } from '@patternfly/react-core';
 import { ApplicationsPage, ProjectObjectType, TitleWithIcon } from 'mod-arch-shared';
 import ScrollViewOnMount from '~/app/shared/components/ScrollViewOnMount';
 import { modelCatalogUrl } from '~/app/routes/modelCatalog/catalogModel';
@@ -28,12 +28,11 @@ const ModelCatalog: React.FC = () => {
         loaded
         provideChildrenPadding
       >
-        <Flex flexWrap={{ default: 'nowrap' }}>
-          <FlexItem style={{ minWidth: '280px' }}>
+        <Sidebar hasBorder hasGutter>
+          <SidebarPanel>
             <ModelCatalogFilters />
-          </FlexItem>
-          <Divider orientation={{ default: 'vertical' }} />
-          <FlexItem>
+          </SidebarPanel>
+          <SidebarContent>
             <ModelCatalogSourceSelectorNavigator
               getRedirectPath={(sourceId: string) => modelCatalogUrl(sourceId)}
               searchTerm={searchTerm}
@@ -43,8 +42,8 @@ const ModelCatalog: React.FC = () => {
             <PageSection isFilled>
               <ModelCatalogPage searchTerm={searchTerm} />
             </PageSection>
-          </FlexItem>
-        </Flex>
+          </SidebarContent>
+        </Sidebar>
       </ApplicationsPage>
     </>
   );
