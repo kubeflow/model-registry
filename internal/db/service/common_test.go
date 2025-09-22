@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/kubeflow/model-registry/internal/db/schema"
+	"github.com/kubeflow/model-registry/internal/db/service"
 	"github.com/kubeflow/model-registry/internal/defaults"
 	"github.com/kubeflow/model-registry/internal/testutils"
 	"github.com/stretchr/testify/require"
@@ -16,7 +17,7 @@ func TestMain(m *testing.M) {
 }
 
 func setupTestDB(t *testing.T) (*gorm.DB, func()) {
-	db, dbCleanup := testutils.SetupMySQLWithMigrations(t)
+	db, dbCleanup := testutils.SetupMySQLWithMigrations(t, service.DatastoreSpec())
 
 	// Clean up test data before each test
 	testutils.CleanupTestData(t, db)

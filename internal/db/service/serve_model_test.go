@@ -14,7 +14,7 @@ import (
 )
 
 func TestServeModelRepository(t *testing.T) {
-	sharedDB, cleanup := testutils.SetupMySQLWithMigrations(t)
+	sharedDB, cleanup := testutils.SetupMySQLWithMigrations(t, service.DatastoreSpec())
 	defer cleanup()
 
 	// Get the actual ServeModel type ID from the database
