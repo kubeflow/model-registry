@@ -190,6 +190,7 @@ func (s *ModelRegistryServiceAPIService) FindArtifact(ctx context.Context, name 
 
 // FindModelArtifact - Get a ModelArtifact that matches search parameters.
 func (s *ModelRegistryServiceAPIService) FindModelArtifact(ctx context.Context, name string, externalId string, parentResourceId string) (ImplResponse, error) {
+
 	result, err := s.coreApi.GetModelArtifactByParams(apiutils.StrPtr(name), apiutils.StrPtr(parentResourceId), apiutils.StrPtr(externalId))
 	if err != nil {
 		return ErrorResponse(api.ErrToStatus(err), err), err
@@ -817,6 +818,10 @@ func (s *ModelRegistryServiceAPIService) getMetricHistoryHelper(ctx context.Cont
 
 	var stepIdsPtr *string
 	if stepIds != "" {
+
+		if err := converter.ValidateStepIds(stepIds); err != nil {
+			return ErrorResponse(api.ErrToStatus(api.ErrBadRequest), fmt.Errorf("%v: %w", err, api.ErrBadRequest)), fmt.Errorf("%v: %w", err, api.ErrBadRequest)
+		}
 		stepIdsPtr = &stepIds
 	}
 

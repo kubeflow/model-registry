@@ -135,6 +135,29 @@ func StringToInt32(idString string) (int32, error) {
 	return int32(idAsInt32), nil
 }
 
+// ValidateStepIds validates and parses a comma-separated string of step IDs
+// Returns error if any step ID is not a valid integer
+func ValidateStepIds(stepIds string) error {
+	if stepIds == "" {
+		return nil
+	}
+
+	parts := strings.Split(stepIds, ",")
+	for _, part := range parts {
+		part = strings.TrimSpace(part)
+		if part == "" {
+			continue // skip empty parts
+		}
+
+		_, err := StringToInt32(part)
+		if err != nil {
+			return fmt.Errorf("invalid step ID '%s': must be a valid integer", part)
+		}
+	}
+
+	return nil
+}
+
 // MapNameFromOwned derive the entity name from the mlmd fullname
 // for owned entity such as ModelVersion
 // for potentially owned entity such as ModelArtifact
