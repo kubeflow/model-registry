@@ -92,10 +92,8 @@ class InferenceServiceList(BaseModel):
                 "nextPageToken": obj.get("nextPageToken"),
                 "pageSize": obj.get("pageSize"),
                 "size": obj.get("size"),
-                "items": (
-                    [InferenceService.from_dict(_item) for _item in obj["items"]]
-                    if obj.get("items") is not None
-                    else None
-                ),
+                "items": [InferenceService.from_dict(_item) for _item in obj["items"]]
+                if obj.get("items") is not None
+                else None,
             }
         )

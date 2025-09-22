@@ -22,10 +22,7 @@ def contains_null_bytes(data: Any) -> bool:
         return "\x00" in data
     if isinstance(data, dict):
         # Check both keys and values for null bytes
-        for key, value in data.items():
-            if contains_null_bytes(key) or contains_null_bytes(value):
-                return True
-        return False
+        return any(contains_null_bytes(key) or contains_null_bytes(value) for key, value in data.items())
     if isinstance(data, list):
         return any(contains_null_bytes(item) for item in data)
     return False

@@ -76,8 +76,8 @@ class MetadataBoolValue(BaseModel):
         return cls.model_validate(
             {
                 "bool_value": obj.get("bool_value"),
-                "metadataType": (
-                    obj.get("metadataType") if obj.get("metadataType") is not None else "MetadataBoolValue"
-                ),
+                "metadataType": obj.get("metadataType")
+                if obj.get("metadataType") is not None
+                else "MetadataBoolValue",
             }
         )

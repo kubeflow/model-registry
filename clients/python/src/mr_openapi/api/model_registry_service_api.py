@@ -264,7 +264,6 @@ class ModelRegistryServiceApi:
         _headers,
         _host_index,
     ) -> RequestSerialized:
-
         _host = None
 
         _collection_formats: dict[str, str] = {}
@@ -537,7 +536,6 @@ class ModelRegistryServiceApi:
         _headers,
         _host_index,
     ) -> RequestSerialized:
-
         _host = None
 
         _collection_formats: dict[str, str] = {}
@@ -784,7 +782,6 @@ class ModelRegistryServiceApi:
         _headers,
         _host_index,
     ) -> RequestSerialized:
-
         _host = None
 
         _collection_formats: dict[str, str] = {}
@@ -1045,7 +1042,6 @@ class ModelRegistryServiceApi:
         _headers,
         _host_index,
     ) -> RequestSerialized:
-
         _host = None
 
         _collection_formats: dict[str, str] = {}
@@ -1301,7 +1297,6 @@ class ModelRegistryServiceApi:
         _headers,
         _host_index,
     ) -> RequestSerialized:
-
         _host = None
 
         _collection_formats: dict[str, str] = {}
@@ -1552,7 +1547,6 @@ class ModelRegistryServiceApi:
         _headers,
         _host_index,
     ) -> RequestSerialized:
-
         _host = None
 
         _collection_formats: dict[str, str] = {}
@@ -1819,7 +1813,6 @@ class ModelRegistryServiceApi:
         _headers,
         _host_index,
     ) -> RequestSerialized:
-
         _host = None
 
         _collection_formats: dict[str, str] = {}
@@ -2072,7 +2065,6 @@ class ModelRegistryServiceApi:
         _headers,
         _host_index,
     ) -> RequestSerialized:
-
         _host = None
 
         _collection_formats: dict[str, str] = {}
@@ -2320,7 +2312,6 @@ class ModelRegistryServiceApi:
         _headers,
         _host_index,
     ) -> RequestSerialized:
-
         _host = None
 
         _collection_formats: dict[str, str] = {}
@@ -2571,7 +2562,6 @@ class ModelRegistryServiceApi:
         _headers,
         _host_index,
     ) -> RequestSerialized:
-
         _host = None
 
         _collection_formats: dict[str, str] = {}
@@ -2832,7 +2822,6 @@ class ModelRegistryServiceApi:
         _headers,
         _host_index,
     ) -> RequestSerialized:
-
         _host = None
 
         _collection_formats: dict[str, str] = {}
@@ -3085,7 +3074,6 @@ class ModelRegistryServiceApi:
         _headers,
         _host_index,
     ) -> RequestSerialized:
-
         _host = None
 
         _collection_formats: dict[str, str] = {}
@@ -3362,7 +3350,6 @@ class ModelRegistryServiceApi:
         _headers,
         _host_index,
     ) -> RequestSerialized:
-
         _host = None
 
         _collection_formats: dict[str, str] = {}
@@ -3377,15 +3364,12 @@ class ModelRegistryServiceApi:
         # process the path parameters
         # process the query parameters
         if name is not None:
-
             _query_params.append(("name", name))
 
         if external_id is not None:
-
             _query_params.append(("externalId", external_id))
 
         if parent_resource_id is not None:
-
             _query_params.append(("parentResourceId", parent_resource_id))
 
         # process the header parameters
@@ -3619,7 +3603,6 @@ class ModelRegistryServiceApi:
         _headers,
         _host_index,
     ) -> RequestSerialized:
-
         _host = None
 
         _collection_formats: dict[str, str] = {}
@@ -3634,11 +3617,9 @@ class ModelRegistryServiceApi:
         # process the path parameters
         # process the query parameters
         if name is not None:
-
             _query_params.append(("name", name))
 
         if external_id is not None:
-
             _query_params.append(("externalId", external_id))
 
         # process the header parameters
@@ -3894,7 +3875,6 @@ class ModelRegistryServiceApi:
         _headers,
         _host_index,
     ) -> RequestSerialized:
-
         _host = None
 
         _collection_formats: dict[str, str] = {}
@@ -3909,15 +3889,12 @@ class ModelRegistryServiceApi:
         # process the path parameters
         # process the query parameters
         if name is not None:
-
             _query_params.append(("name", name))
 
         if external_id is not None:
-
             _query_params.append(("externalId", external_id))
 
         if parent_resource_id is not None:
-
             _query_params.append(("parentResourceId", parent_resource_id))
 
         # process the header parameters
@@ -4173,7 +4150,6 @@ class ModelRegistryServiceApi:
         _headers,
         _host_index,
     ) -> RequestSerialized:
-
         _host = None
 
         _collection_formats: dict[str, str] = {}
@@ -4188,15 +4164,12 @@ class ModelRegistryServiceApi:
         # process the path parameters
         # process the query parameters
         if name is not None:
-
             _query_params.append(("name", name))
 
         if external_id is not None:
-
             _query_params.append(("externalId", external_id))
 
         if parent_resource_id is not None:
-
             _query_params.append(("parentResourceId", parent_resource_id))
 
         # process the header parameters
@@ -4452,7 +4425,6 @@ class ModelRegistryServiceApi:
         _headers,
         _host_index,
     ) -> RequestSerialized:
-
         _host = None
 
         _collection_formats: dict[str, str] = {}
@@ -4467,15 +4439,12 @@ class ModelRegistryServiceApi:
         # process the path parameters
         # process the query parameters
         if name is not None:
-
             _query_params.append(("name", name))
 
         if external_id is not None:
-
             _query_params.append(("externalId", external_id))
 
         if parent_resource_id is not None:
-
             _query_params.append(("parentResourceId", parent_resource_id))
 
         # process the header parameters
@@ -4731,7 +4700,6 @@ class ModelRegistryServiceApi:
         _headers,
         _host_index,
     ) -> RequestSerialized:
-
         _host = None
 
         _collection_formats: dict[str, str] = {}
@@ -4746,15 +4714,12 @@ class ModelRegistryServiceApi:
         # process the path parameters
         # process the query parameters
         if name is not None:
-
             _query_params.append(("name", name))
 
         if external_id is not None:
-
             _query_params.append(("externalId", external_id))
 
         if parent_resource_id is not None:
-
             _query_params.append(("parentResourceId", parent_resource_id))
 
         # process the header parameters
@@ -4988,7 +4953,6 @@ class ModelRegistryServiceApi:
         _headers,
         _host_index,
     ) -> RequestSerialized:
-
         _host = None
 
         _collection_formats: dict[str, str] = {}
@@ -5003,11 +4967,9 @@ class ModelRegistryServiceApi:
         # process the path parameters
         # process the query parameters
         if name is not None:
-
             _query_params.append(("name", name))
 
         if external_id is not None:
-
             _query_params.append(("externalId", external_id))
 
         # process the header parameters
@@ -5241,7 +5203,6 @@ class ModelRegistryServiceApi:
         _headers,
         _host_index,
     ) -> RequestSerialized:
-
         _host = None
 
         _collection_formats: dict[str, str] = {}
@@ -5256,11 +5217,9 @@ class ModelRegistryServiceApi:
         # process the path parameters
         # process the query parameters
         if name is not None:
-
             _query_params.append(("name", name))
 
         if external_id is not None:
-
             _query_params.append(("externalId", external_id))
 
         # process the header parameters
@@ -5472,7 +5431,6 @@ class ModelRegistryServiceApi:
         _headers,
         _host_index,
     ) -> RequestSerialized:
-
         _host = None
 
         _collection_formats: dict[str, str] = {}
@@ -5813,7 +5771,6 @@ class ModelRegistryServiceApi:
         _headers,
         _host_index,
     ) -> RequestSerialized:
-
         _host = None
 
         _collection_formats: dict[str, str] = {}
@@ -5828,27 +5785,21 @@ class ModelRegistryServiceApi:
         # process the path parameters
         # process the query parameters
         if filter_query is not None:
-
             _query_params.append(("filterQuery", filter_query))
 
         if artifact_type is not None:
-
             _query_params.append(("artifactType", artifact_type.value))
 
         if page_size is not None:
-
             _query_params.append(("pageSize", page_size))
 
         if order_by is not None:
-
             _query_params.append(("orderBy", order_by.value))
 
         if sort_order is not None:
-
             _query_params.append(("sortOrder", sort_order.value))
 
         if next_page_token is not None:
-
             _query_params.append(("nextPageToken", next_page_token))
 
         # process the header parameters
@@ -6199,7 +6150,6 @@ class ModelRegistryServiceApi:
         _headers,
         _host_index,
     ) -> RequestSerialized:
-
         _host = None
 
         _collection_formats: dict[str, str] = {}
@@ -6216,31 +6166,24 @@ class ModelRegistryServiceApi:
             _path_params["servingenvironmentId"] = servingenvironment_id
         # process the query parameters
         if filter_query is not None:
-
             _query_params.append(("filterQuery", filter_query))
 
         if name is not None:
-
             _query_params.append(("name", name))
 
         if external_id is not None:
-
             _query_params.append(("externalId", external_id))
 
         if page_size is not None:
-
             _query_params.append(("pageSize", page_size))
 
         if order_by is not None:
-
             _query_params.append(("orderBy", order_by.value))
 
         if sort_order is not None:
-
             _query_params.append(("sortOrder", sort_order.value))
 
         if next_page_token is not None:
-
             _query_params.append(("nextPageToken", next_page_token))
 
         # process the header parameters
@@ -6461,7 +6404,6 @@ class ModelRegistryServiceApi:
         _headers,
         _host_index,
     ) -> RequestSerialized:
-
         _host = None
 
         _collection_formats: dict[str, str] = {}
@@ -6819,7 +6761,6 @@ class ModelRegistryServiceApi:
         _headers,
         _host_index,
     ) -> RequestSerialized:
-
         _host = None
 
         _collection_formats: dict[str, str] = {}
@@ -6836,31 +6777,24 @@ class ModelRegistryServiceApi:
             _path_params["experimentId"] = experiment_id
         # process the query parameters
         if name is not None:
-
             _query_params.append(("name", name))
 
         if external_id is not None:
-
             _query_params.append(("externalId", external_id))
 
         if filter_query is not None:
-
             _query_params.append(("filterQuery", filter_query))
 
         if page_size is not None:
-
             _query_params.append(("pageSize", page_size))
 
         if order_by is not None:
-
             _query_params.append(("orderBy", order_by.value))
 
         if sort_order is not None:
-
             _query_params.append(("sortOrder", sort_order.value))
 
         if next_page_token is not None:
-
             _query_params.append(("nextPageToken", next_page_token))
 
         # process the header parameters
@@ -7081,7 +7015,6 @@ class ModelRegistryServiceApi:
         _headers,
         _host_index,
     ) -> RequestSerialized:
-
         _host = None
 
         _collection_formats: dict[str, str] = {}
@@ -7452,7 +7385,6 @@ class ModelRegistryServiceApi:
         _headers,
         _host_index,
     ) -> RequestSerialized:
-
         _host = None
 
         _collection_formats: dict[str, str] = {}
@@ -7469,35 +7401,27 @@ class ModelRegistryServiceApi:
             _path_params["experimentrunId"] = experimentrun_id
         # process the query parameters
         if filter_query is not None:
-
             _query_params.append(("filterQuery", filter_query))
 
         if name is not None:
-
             _query_params.append(("name", name))
 
         if external_id is not None:
-
             _query_params.append(("externalId", external_id))
 
         if artifact_type is not None:
-
             _query_params.append(("artifactType", artifact_type.value))
 
         if page_size is not None:
-
             _query_params.append(("pageSize", page_size))
 
         if order_by is not None:
-
             _query_params.append(("orderBy", order_by.value))
 
         if sort_order is not None:
-
             _query_params.append(("sortOrder", sort_order.value))
 
         if next_page_token is not None:
-
             _query_params.append(("nextPageToken", next_page_token))
 
         # process the header parameters
@@ -7848,7 +7772,6 @@ class ModelRegistryServiceApi:
         _headers,
         _host_index,
     ) -> RequestSerialized:
-
         _host = None
 
         _collection_formats: dict[str, str] = {}
@@ -7865,31 +7788,24 @@ class ModelRegistryServiceApi:
             _path_params["experimentrunId"] = experimentrun_id
         # process the query parameters
         if filter_query is not None:
-
             _query_params.append(("filterQuery", filter_query))
 
         if name is not None:
-
             _query_params.append(("name", name))
 
         if step_ids is not None:
-
             _query_params.append(("stepIds", step_ids))
 
         if page_size is not None:
-
             _query_params.append(("pageSize", page_size))
 
         if order_by is not None:
-
             _query_params.append(("orderBy", order_by.value))
 
         if sort_order is not None:
-
             _query_params.append(("sortOrder", sort_order.value))
 
         if next_page_token is not None:
-
             _query_params.append(("nextPageToken", next_page_token))
 
         # process the header parameters
@@ -8192,7 +8108,6 @@ class ModelRegistryServiceApi:
         _headers,
         _host_index,
     ) -> RequestSerialized:
-
         _host = None
 
         _collection_formats: dict[str, str] = {}
@@ -8207,23 +8122,18 @@ class ModelRegistryServiceApi:
         # process the path parameters
         # process the query parameters
         if filter_query is not None:
-
             _query_params.append(("filterQuery", filter_query))
 
         if page_size is not None:
-
             _query_params.append(("pageSize", page_size))
 
         if order_by is not None:
-
             _query_params.append(("orderBy", order_by.value))
 
         if sort_order is not None:
-
             _query_params.append(("sortOrder", sort_order.value))
 
         if next_page_token is not None:
-
             _query_params.append(("nextPageToken", next_page_token))
 
         # process the header parameters
@@ -8561,7 +8471,6 @@ class ModelRegistryServiceApi:
         _headers,
         _host_index,
     ) -> RequestSerialized:
-
         _host = None
 
         _collection_formats: dict[str, str] = {}
@@ -8576,31 +8485,24 @@ class ModelRegistryServiceApi:
         # process the path parameters
         # process the query parameters
         if filter_query is not None:
-
             _query_params.append(("filterQuery", filter_query))
 
         if name is not None:
-
             _query_params.append(("name", name))
 
         if step_ids is not None:
-
             _query_params.append(("stepIds", step_ids))
 
         if page_size is not None:
-
             _query_params.append(("pageSize", page_size))
 
         if order_by is not None:
-
             _query_params.append(("orderBy", order_by.value))
 
         if sort_order is not None:
-
             _query_params.append(("sortOrder", sort_order.value))
 
         if next_page_token is not None:
-
             _query_params.append(("nextPageToken", next_page_token))
 
         # process the header parameters
@@ -8903,7 +8805,6 @@ class ModelRegistryServiceApi:
         _headers,
         _host_index,
     ) -> RequestSerialized:
-
         _host = None
 
         _collection_formats: dict[str, str] = {}
@@ -8918,23 +8819,18 @@ class ModelRegistryServiceApi:
         # process the path parameters
         # process the query parameters
         if filter_query is not None:
-
             _query_params.append(("filterQuery", filter_query))
 
         if page_size is not None:
-
             _query_params.append(("pageSize", page_size))
 
         if order_by is not None:
-
             _query_params.append(("orderBy", order_by.value))
 
         if sort_order is not None:
-
             _query_params.append(("sortOrder", sort_order.value))
 
         if next_page_token is not None:
-
             _query_params.append(("nextPageToken", next_page_token))
 
         # process the header parameters
@@ -9155,7 +9051,6 @@ class ModelRegistryServiceApi:
         _headers,
         _host_index,
     ) -> RequestSerialized:
-
         _host = None
 
         _collection_formats: dict[str, str] = {}
@@ -9389,7 +9284,6 @@ class ModelRegistryServiceApi:
         _headers,
         _host_index,
     ) -> RequestSerialized:
-
         _host = None
 
         _collection_formats: dict[str, str] = {}
@@ -9747,7 +9641,6 @@ class ModelRegistryServiceApi:
         _headers,
         _host_index,
     ) -> RequestSerialized:
-
         _host = None
 
         _collection_formats: dict[str, str] = {}
@@ -9764,31 +9657,24 @@ class ModelRegistryServiceApi:
             _path_params["inferenceserviceId"] = inferenceservice_id
         # process the query parameters
         if filter_query is not None:
-
             _query_params.append(("filterQuery", filter_query))
 
         if name is not None:
-
             _query_params.append(("name", name))
 
         if external_id is not None:
-
             _query_params.append(("externalId", external_id))
 
         if page_size is not None:
-
             _query_params.append(("pageSize", page_size))
 
         if order_by is not None:
-
             _query_params.append(("orderBy", order_by.value))
 
         if sort_order is not None:
-
             _query_params.append(("sortOrder", sort_order.value))
 
         if next_page_token is not None:
-
             _query_params.append(("nextPageToken", next_page_token))
 
         # process the header parameters
@@ -10009,7 +9895,6 @@ class ModelRegistryServiceApi:
         _headers,
         _host_index,
     ) -> RequestSerialized:
-
         _host = None
 
         _collection_formats: dict[str, str] = {}
@@ -10331,7 +10216,6 @@ class ModelRegistryServiceApi:
         _headers,
         _host_index,
     ) -> RequestSerialized:
-
         _host = None
 
         _collection_formats: dict[str, str] = {}
@@ -10346,23 +10230,18 @@ class ModelRegistryServiceApi:
         # process the path parameters
         # process the query parameters
         if filter_query is not None:
-
             _query_params.append(("filterQuery", filter_query))
 
         if page_size is not None:
-
             _query_params.append(("pageSize", page_size))
 
         if order_by is not None:
-
             _query_params.append(("orderBy", order_by.value))
 
         if sort_order is not None:
-
             _query_params.append(("sortOrder", sort_order.value))
 
         if next_page_token is not None:
-
             _query_params.append(("nextPageToken", next_page_token))
 
         # process the header parameters
@@ -10583,7 +10462,6 @@ class ModelRegistryServiceApi:
         _headers,
         _host_index,
     ) -> RequestSerialized:
-
         _host = None
 
         _collection_formats: dict[str, str] = {}
@@ -10905,7 +10783,6 @@ class ModelRegistryServiceApi:
         _headers,
         _host_index,
     ) -> RequestSerialized:
-
         _host = None
 
         _collection_formats: dict[str, str] = {}
@@ -10920,23 +10797,18 @@ class ModelRegistryServiceApi:
         # process the path parameters
         # process the query parameters
         if filter_query is not None:
-
             _query_params.append(("filterQuery", filter_query))
 
         if page_size is not None:
-
             _query_params.append(("pageSize", page_size))
 
         if order_by is not None:
-
             _query_params.append(("orderBy", order_by.value))
 
         if sort_order is not None:
-
             _query_params.append(("sortOrder", sort_order.value))
 
         if next_page_token is not None:
-
             _query_params.append(("nextPageToken", next_page_token))
 
         # process the header parameters
@@ -11157,7 +11029,6 @@ class ModelRegistryServiceApi:
         _headers,
         _host_index,
     ) -> RequestSerialized:
-
         _host = None
 
         _collection_formats: dict[str, str] = {}
@@ -11528,7 +11399,6 @@ class ModelRegistryServiceApi:
         _headers,
         _host_index,
     ) -> RequestSerialized:
-
         _host = None
 
         _collection_formats: dict[str, str] = {}
@@ -11545,35 +11415,27 @@ class ModelRegistryServiceApi:
             _path_params["modelversionId"] = modelversion_id
         # process the query parameters
         if filter_query is not None:
-
             _query_params.append(("filterQuery", filter_query))
 
         if name is not None:
-
             _query_params.append(("name", name))
 
         if external_id is not None:
-
             _query_params.append(("externalId", external_id))
 
         if artifact_type is not None:
-
             _query_params.append(("artifactType", artifact_type.value))
 
         if page_size is not None:
-
             _query_params.append(("pageSize", page_size))
 
         if order_by is not None:
-
             _query_params.append(("orderBy", order_by.value))
 
         if sort_order is not None:
-
             _query_params.append(("sortOrder", sort_order.value))
 
         if next_page_token is not None:
-
             _query_params.append(("nextPageToken", next_page_token))
 
         # process the header parameters
@@ -11876,7 +11738,6 @@ class ModelRegistryServiceApi:
         _headers,
         _host_index,
     ) -> RequestSerialized:
-
         _host = None
 
         _collection_formats: dict[str, str] = {}
@@ -11891,23 +11752,18 @@ class ModelRegistryServiceApi:
         # process the path parameters
         # process the query parameters
         if filter_query is not None:
-
             _query_params.append(("filterQuery", filter_query))
 
         if page_size is not None:
-
             _query_params.append(("pageSize", page_size))
 
         if order_by is not None:
-
             _query_params.append(("orderBy", order_by.value))
 
         if sort_order is not None:
-
             _query_params.append(("sortOrder", sort_order.value))
 
         if next_page_token is not None:
-
             _query_params.append(("nextPageToken", next_page_token))
 
         # process the header parameters
@@ -12128,7 +11984,6 @@ class ModelRegistryServiceApi:
         _headers,
         _host_index,
     ) -> RequestSerialized:
-
         _host = None
 
         _collection_formats: dict[str, str] = {}
@@ -12486,7 +12341,6 @@ class ModelRegistryServiceApi:
         _headers,
         _host_index,
     ) -> RequestSerialized:
-
         _host = None
 
         _collection_formats: dict[str, str] = {}
@@ -12503,31 +12357,24 @@ class ModelRegistryServiceApi:
             _path_params["registeredmodelId"] = registeredmodel_id
         # process the query parameters
         if name is not None:
-
             _query_params.append(("name", name))
 
         if external_id is not None:
-
             _query_params.append(("externalId", external_id))
 
         if filter_query is not None:
-
             _query_params.append(("filterQuery", filter_query))
 
         if page_size is not None:
-
             _query_params.append(("pageSize", page_size))
 
         if order_by is not None:
-
             _query_params.append(("orderBy", order_by.value))
 
         if sort_order is not None:
-
             _query_params.append(("sortOrder", sort_order.value))
 
         if next_page_token is not None:
-
             _query_params.append(("nextPageToken", next_page_token))
 
         # process the header parameters
@@ -12830,7 +12677,6 @@ class ModelRegistryServiceApi:
         _headers,
         _host_index,
     ) -> RequestSerialized:
-
         _host = None
 
         _collection_formats: dict[str, str] = {}
@@ -12845,23 +12691,18 @@ class ModelRegistryServiceApi:
         # process the path parameters
         # process the query parameters
         if filter_query is not None:
-
             _query_params.append(("filterQuery", filter_query))
 
         if page_size is not None:
-
             _query_params.append(("pageSize", page_size))
 
         if order_by is not None:
-
             _query_params.append(("orderBy", order_by.value))
 
         if sort_order is not None:
-
             _query_params.append(("sortOrder", sort_order.value))
 
         if next_page_token is not None:
-
             _query_params.append(("nextPageToken", next_page_token))
 
         # process the header parameters
@@ -13088,7 +12929,6 @@ class ModelRegistryServiceApi:
         _headers,
         _host_index,
     ) -> RequestSerialized:
-
         _host = None
 
         _collection_formats: dict[str, str] = {}
@@ -13404,7 +13244,6 @@ class ModelRegistryServiceApi:
         _headers,
         _host_index,
     ) -> RequestSerialized:
-
         _host = None
 
         _collection_formats: dict[str, str] = {}
@@ -13419,23 +13258,18 @@ class ModelRegistryServiceApi:
         # process the path parameters
         # process the query parameters
         if filter_query is not None:
-
             _query_params.append(("filterQuery", filter_query))
 
         if page_size is not None:
-
             _query_params.append(("pageSize", page_size))
 
         if order_by is not None:
-
             _query_params.append(("orderBy", order_by.value))
 
         if sort_order is not None:
-
             _query_params.append(("sortOrder", sort_order.value))
 
         if next_page_token is not None:
-
             _query_params.append(("nextPageToken", next_page_token))
 
         # process the header parameters
@@ -13672,7 +13506,6 @@ class ModelRegistryServiceApi:
         _headers,
         _host_index,
     ) -> RequestSerialized:
-
         _host = None
 
         _collection_formats: dict[str, str] = {}
@@ -13932,7 +13765,6 @@ class ModelRegistryServiceApi:
         _headers,
         _host_index,
     ) -> RequestSerialized:
-
         _host = None
 
         _collection_formats: dict[str, str] = {}
@@ -14198,7 +14030,6 @@ class ModelRegistryServiceApi:
         _headers,
         _host_index,
     ) -> RequestSerialized:
-
         _host = None
 
         _collection_formats: dict[str, str] = {}
@@ -14464,7 +14295,6 @@ class ModelRegistryServiceApi:
         _headers,
         _host_index,
     ) -> RequestSerialized:
-
         _host = None
 
         _collection_formats: dict[str, str] = {}
@@ -14730,7 +14560,6 @@ class ModelRegistryServiceApi:
         _headers,
         _host_index,
     ) -> RequestSerialized:
-
         _host = None
 
         _collection_formats: dict[str, str] = {}
@@ -14990,7 +14819,6 @@ class ModelRegistryServiceApi:
         _headers,
         _host_index,
     ) -> RequestSerialized:
-
         _host = None
 
         _collection_formats: dict[str, str] = {}
@@ -15256,7 +15084,6 @@ class ModelRegistryServiceApi:
         _headers,
         _host_index,
     ) -> RequestSerialized:
-
         _host = None
 
         _collection_formats: dict[str, str] = {}
@@ -15528,7 +15355,6 @@ class ModelRegistryServiceApi:
         _headers,
         _host_index,
     ) -> RequestSerialized:
-
         _host = None
 
         _collection_formats: dict[str, str] = {}
@@ -15800,7 +15626,6 @@ class ModelRegistryServiceApi:
         _headers,
         _host_index,
     ) -> RequestSerialized:
-
         _host = None
 
         _collection_formats: dict[str, str] = {}
@@ -16072,7 +15897,6 @@ class ModelRegistryServiceApi:
         _headers,
         _host_index,
     ) -> RequestSerialized:
-
         _host = None
 
         _collection_formats: dict[str, str] = {}
