@@ -86,7 +86,7 @@ class ModelRegistry:
         author: str,
         is_secure: bool = True,
         user_token: str | None = None,
-        user_token_envvar: str = DEFAULT_USER_TOKEN_ENVVAR,
+        user_token_envvar: str | None = None,
         custom_ca: str | None = None,
         custom_ca_envvar: str | None = None,
         log_level: int = logging.WARNING,
@@ -124,19 +124,9 @@ class ModelRegistry:
             logger.debug("Setting up reentrant async event loop")
             nest_asyncio.apply()
 
-        if not user_token and user_token_envvar:
-            logger.info("Reading user token from %s", user_token_envvar)
-            # /var/run/secrets/kubernetes.io/serviceaccount/token
-            if sa_token := os.environ.get(user_token_envvar):
-                if user_token_envvar == DEFAULT_USER_TOKEN_ENVVAR:
-                    logger.info(
-                        f"Sourcing user token from default envvar: {DEFAULT_USER_TOKEN_ENVVAR}"
-                    )
-                user_token = Path(sa_token).read_text()
-            elif Path(DEFAULT_K8S_SA_TOKEN_PATH).exists():
-                user_token = Path(DEFAULT_K8S_SA_TOKEN_PATH).read_text()
-                logger.info("Sourced user token from K8s default path: %s.", DEFAULT_K8S_SA_TOKEN_PATH)
-            else:
+        if not user_token:
+            user_token = self._get_user_token(user_token_envvar)
+            if not user_token:
                 warn("User access token is missing", stacklevel=2)
 
         self.hint_server_address_port(server_address, port)
@@ -167,6 +157,43 @@ class ModelRegistry:
         self._active_experiment_context = ThreadSafeVariable(value=RunContext())
         self.get_registered_models().page_size(1)._next_page()
 
+    @staticmethod
+    def _get_user_token(user_token_envvar: str | None = None) -> str | None:
+        sa_token_path: str
+        user_provided: bool = True
+        if user_token_envvar:
+            try:
+                sa_token_path = os.environ[user_token_envvar]
+            except KeyError:
+                msg = f"user_token_envvar is {user_token_envvar!r} but no such env var is set"
+                raise ValueError(msg) from None
+            logger.info(
+                "Reading user token from path: user_token_envvar %r specifies path %r",
+                user_token_envvar,
+                sa_token_path,
+            )
+        elif DEFAULT_USER_TOKEN_ENVVAR in os.environ:
+            sa_token_path = os.environ[DEFAULT_USER_TOKEN_ENVVAR]
+            logger.info(
+                "Reading user token from path: The default user token env var value %r specifies path %r",
+                DEFAULT_USER_TOKEN_ENVVAR,
+                sa_token_path,
+            )
+        else:
+            sa_token_path = DEFAULT_K8S_SA_TOKEN_PATH
+            user_provided = False
+            logger.info(
+                "Reading user token from path: No user_token_envvar. Attempting to read from default K8s service account path %r",
+                DEFAULT_K8S_SA_TOKEN_PATH,
+            )
+        try:
+            return Path(sa_token_path).read_text()
+        except OSError as exc:
+            msg = f"Unable read user token from {sa_token_path!r}"
+            if user_provided:
+                raise StoreError(msg) from exc
+            logger.info(msg)
+        return None
 
     @staticmethod
     def hint_server_address_port(server_address: str, port: int) -> None:
