@@ -14,12 +14,12 @@ type PaginatedCatalogModelList = {
   refresh: () => void;
 };
 
-type ModelList = [
-  models: PaginatedCatalogModelList,
-  catalogModelLoaded: boolean,
-  catalogModelLoadError: Error | undefined,
-  refresh: () => void,
-];
+type ModelList = {
+  catalogModels: PaginatedCatalogModelList;
+  catalogModelsLoaded: boolean;
+  catalogModelsLoadError: Error | undefined;
+  refresh: () => void;
+};
 
 export const useCatalogModelsBySources = (
   sourceId: string,
@@ -122,5 +122,10 @@ export const useCatalogModelsBySources = (
     refresh,
   };
 
-  return [paginatedData, loaded, error, refresh];
+  return {
+    catalogModels: paginatedData,
+    catalogModelsLoaded: loaded,
+    catalogModelsLoadError: error,
+    refresh,
+  };
 };

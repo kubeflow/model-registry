@@ -21,7 +21,7 @@ type ModelCatalogPageProps = {
 
 const ModelCatalogPage: React.FC<ModelCatalogPageProps> = ({ searchTerm }) => {
   const { selectedSource } = React.useContext(ModelCatalogContext);
-  const [catalogModels, catalogModelsLoaded, catalogModelsLoadError] = useCatalogModelsBySources(
+  const { catalogModels, catalogModelsLoaded, catalogModelsLoadError } = useCatalogModelsBySources(
     selectedSource?.id || '',
     10,
     searchTerm,
