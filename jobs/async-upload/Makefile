@@ -106,4 +106,5 @@ install-poetry-export:
 
 .PHONY: check-pybuild-deps
 check-pybuild-deps:
-	command -v pybuild-deps >/dev/null 2>&1 || pipx install pybuild-deps
+# to use pybuild-deps with pip < 25.1 due to https://github.com/hermetoproject/pybuild-deps/issues/295
+	command -v pybuild-deps >/dev/null 2>&1 || (pipx install pybuild-deps && pipx runpip pybuild-deps install "pip<25.1")
