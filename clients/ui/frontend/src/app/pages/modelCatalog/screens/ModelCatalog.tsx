@@ -3,9 +3,9 @@ import { Divider, Flex, FlexItem, PageSection } from '@patternfly/react-core';
 import { ApplicationsPage, ProjectObjectType, TitleWithIcon } from 'mod-arch-shared';
 import ScrollViewOnMount from '~/app/shared/components/ScrollViewOnMount';
 import { modelCatalogUrl } from '~/app/routes/modelCatalog/catalogModel';
+import ModelCatalogFilters from '~/app/pages/modelCatalog/components/ModelCatalogFilters';
 import ModelCatalogPage from './ModelCatalogPage';
 import ModelCatalogSourceSelectorNavigator from './ModelCatalogSourceSelectorNavigator';
-import ModelCatalogFilters from '../components/ModelCatalogFilters';
 
 const ModelCatalog: React.FC = () => {
   const [searchTerm, setSearchTerm] = React.useState('');
