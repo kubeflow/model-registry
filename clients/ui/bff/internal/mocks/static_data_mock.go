@@ -251,7 +251,7 @@ func catalogCustomProperties() *map[string]catalogOpenapi.MetadataValue {
 		},
 		"validated": {
 			MetadataStringValue: &catalogOpenapi.MetadataStringValue{
-				StringValue:  "true",
+				StringValue:  "",
 				MetadataType: "MetadataStringValue",
 			},
 		},

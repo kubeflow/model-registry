@@ -1,15 +1,17 @@
 import * as React from 'react';
 import { Tabs, Tab, TabTitleText, PageSection } from '@patternfly/react-core';
 import { CatalogModel, CatalogModelDetailsParams } from '~/app/modelCatalogTypes';
+import { getLabels } from '~/app/pages/modelRegistry/screens/utils';
 import ModelDetailsView from './ModelDetailsView';
 import PerformanceInsightsView from './PerformanceInsightsView';
 
 // Utility function to check if a model is validated
 const isModelValidated = (model: CatalogModel): boolean => {
-  const validatedProp = model.customProperties?.validated;
-  return (
-    validatedProp?.metadataType === 'MetadataStringValue' && validatedProp.string_value === 'true'
-  );
+  if (!model.customProperties) {
+    return false;
+  }
+  const labels = getLabels(model.customProperties);
+  return labels.includes('validated');
 };
 
 export enum ModelDetailsTab {

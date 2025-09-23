@@ -19,7 +19,7 @@ const mockValidatedModel = mockCatalogModel({
     validated: {
       metadataType: ModelRegistryMetadataType.STRING,
       // eslint-disable-next-line camelcase
-      string_value: 'true',
+      string_value: '',
     },
   },
 });
