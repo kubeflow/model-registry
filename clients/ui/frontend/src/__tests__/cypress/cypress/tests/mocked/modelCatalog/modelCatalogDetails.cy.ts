@@ -82,4 +82,17 @@ describe('Model Catalog Details Page', () => {
     modelCatalog.findDetailsProviderText().should('be.visible');
     modelCatalog.findDetailsDescription().should('exist');
   });
+
+  it('should display tabs on model details page', () => {
+    modelCatalog.findLoadingState().should('not.exist');
+    modelCatalog.findModelCatalogDetailLink().first().click();
+
+    // Verify tabs are present
+    modelCatalog.findModelDetailsTabs().should('be.visible');
+    modelCatalog.findOverviewTab().should('be.visible');
+    modelCatalog.findPerformanceInsightsTab().should('be.visible');
+
+    // Verify Overview tab is active by default
+    modelCatalog.findOverviewTab().should('have.attr', 'aria-selected', 'true');
+  });
 });
