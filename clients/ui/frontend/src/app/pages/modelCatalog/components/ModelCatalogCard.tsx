@@ -60,6 +60,7 @@ const ModelCatalogCard: React.FC<ModelCatalogCardProps> = ({ model, source, trun
               <Button
                 data-testid="model-catalog-detail-link"
                 variant="link"
+                tabIndex={-1}
                 isInline
                 style={{
                   fontSize: 'var(--pf-t--global--font--size--body--default)',
