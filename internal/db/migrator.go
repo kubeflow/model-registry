@@ -15,13 +15,13 @@ type DBMigrator interface {
 	Down(steps *int) error
 }
 
-func NewDBMigrator(dbType string, db *gorm.DB) (DBMigrator, error) {
-	switch dbType {
+func NewDBMigrator(db *gorm.DB) (DBMigrator, error) {
+	switch db.Name() {
 	case types.DatabaseTypeMySQL:
 		return mysql.NewMySQLMigrator(db)
 	case types.DatabaseTypePostgres:
 		return postgres.NewPostgresMigrator(db)
 	}
 
-	return nil, fmt.Errorf("unsupported database type: %s. Supported types: %s, %s", dbType, types.DatabaseTypeMySQL, types.DatabaseTypePostgres)
+	return nil, fmt.Errorf("unsupported database type: %s. Supported types: %s, %s", db.Name(), types.DatabaseTypeMySQL, types.DatabaseTypePostgres)
 }
