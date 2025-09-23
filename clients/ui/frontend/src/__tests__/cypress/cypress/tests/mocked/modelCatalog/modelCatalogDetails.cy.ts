@@ -82,5 +82,4 @@ describe('Model Catalog Details Page', () => {
     modelCatalog.findDetailsProviderText().should('be.visible');
     modelCatalog.findDetailsDescription().should('exist');
   });
-
 });
