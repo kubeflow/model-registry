@@ -1,20 +1,16 @@
 import * as React from 'react';
-import {
-  Tabs,
-  Tab,
-  TabTitleText,
-  PageSection,
-  Flex,
-  FlexItem,
-  Content,
-  ContentVariants,
-} from '@patternfly/react-core';
+import { Tabs, Tab, TabTitleText, PageSection } from '@patternfly/react-core';
 import { CatalogModel, CatalogModelDetailsParams } from '~/app/modelCatalogTypes';
 import ModelDetailsView from './ModelDetailsView';
+import PerformanceInsightsView from './PerformanceInsightsView';
 
 // Utility function to check if a model is validated
-const isModelValidated = (model: CatalogModel): boolean =>
-  model.tasks?.includes('validated') ?? false;
+const isModelValidated = (model: CatalogModel): boolean => {
+  const validatedProp = model.customProperties?.validated;
+  return (
+    validatedProp?.metadataType === 'MetadataStringValue' && validatedProp.string_value === 'true'
+  );
+};
 
 export enum ModelDetailsTab {
   OVERVIEW = 'overview',
@@ -30,21 +26,6 @@ type ModelDetailsTabsProps = {
   model: CatalogModel;
   decodedParams: CatalogModelDetailsParams;
 };
-
-const PerformanceInsightsPlaceholder = () => (
-  <PageSection hasBodyWrapper={false} isFilled data-testid="performance-insights-tab-content">
-    <Flex
-      direction={{ default: 'column' }}
-      alignItems={{ default: 'alignItemsCenter' }}
-      justifyContent={{ default: 'justifyContentCenter' }}
-      style={{ minHeight: '400px' }}
-    >
-      <FlexItem>
-        <Content component={ContentVariants.p}>Performance Insights - Coming Soon</Content>
-      </FlexItem>
-    </Flex>
-  </PageSection>
-);
 
 const ModelDetailsTabs = ({ model, decodedParams }: ModelDetailsTabsProps): React.JSX.Element => {
   const [activeTabKey, setActiveTabKey] = React.useState<ModelDetailsTab>(ModelDetailsTab.OVERVIEW);
@@ -93,7 +74,9 @@ const ModelDetailsTabs = ({ model, decodedParams }: ModelDetailsTabsProps): Reac
         aria-label="Performance insights tab"
         data-testid="performance-insights-tab"
       >
-        <PerformanceInsightsPlaceholder />
+        <PageSection hasBodyWrapper={false} isFilled data-testid="performance-insights-tab-content">
+          <PerformanceInsightsView />
+        </PageSection>
       </Tab>
     </Tabs>
   );

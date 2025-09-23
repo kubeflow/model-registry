@@ -9,11 +9,19 @@ import { modelCatalog } from '~/__tests__/cypress/cypress/pages/modelCatalog';
 import { mockModelRegistry } from '~/__mocks__/mockModelRegistry';
 import type { CatalogSource } from '~/app/modelCatalogTypes';
 import { MODEL_CATALOG_API_VERSION } from '~/__tests__/cypress/cypress/support/commands/api';
+import { ModelRegistryMetadataType } from '~/app/types';
 
 // Mock models for testing
 const mockValidatedModel = mockCatalogModel({
   name: 'validated-model',
-  tasks: ['text-generation', 'validated'],
+  tasks: ['text-generation'],
+  customProperties: {
+    validated: {
+      metadataType: ModelRegistryMetadataType.STRING,
+      // eslint-disable-next-line camelcase
+      string_value: 'true',
+    },
+  },
 });
 
 const mockNonValidatedModel = mockCatalogModel({
