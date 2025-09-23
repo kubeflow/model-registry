@@ -6,11 +6,10 @@ import (
 
 	"github.com/golang/glog"
 	"github.com/kubeflow/model-registry/catalog/internal/catalog"
+	"github.com/kubeflow/model-registry/catalog/internal/db/service"
 	"github.com/kubeflow/model-registry/catalog/internal/server/openapi"
 	"github.com/kubeflow/model-registry/internal/datastore"
 	"github.com/kubeflow/model-registry/internal/datastore/embedmd"
-	"github.com/kubeflow/model-registry/internal/db/service"
-	"github.com/kubeflow/model-registry/internal/defaults"
 	"github.com/spf13/cobra"
 )
 
@@ -47,15 +46,7 @@ func runCatalogServer(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("error creating datastore: %w", err)
 	}
 
-	_, err = ds.Connect(
-		datastore.NewSpec().
-			AddArtifact(defaults.ModelArtifactTypeName, datastore.NewSpecType(service.NewModelArtifactRepository).
-				AddString("description"),
-			).
-			AddArtifact(defaults.DocArtifactTypeName, datastore.NewSpecType(service.NewDocArtifactRepository).
-				AddString("description"),
-			),
-	)
+	_, err = ds.Connect(service.DatastoreSpec())
 	if err != nil {
 		return fmt.Errorf("error initializing datastore: %v", err)
 	}

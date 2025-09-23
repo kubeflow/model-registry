@@ -18,7 +18,7 @@ func TestMain(m *testing.M) {
 }
 
 func setupTestDB(t *testing.T) (*gorm.DB, func()) {
-	db, dbCleanup := testutils.SetupMySQLWithMigrations(t)
+	db, dbCleanup := testutils.SetupMySQLWithMigrations(t, service.DatastoreSpec())
 
 	// Clean up test data before each test
 	testutils.CleanupTestData(t, db)

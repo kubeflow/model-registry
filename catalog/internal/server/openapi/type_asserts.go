@@ -67,18 +67,13 @@ func AssertBaseResourceListRequired(obj model.BaseResourceList) error {
 	return nil
 }
 
-// AssertCatalogModelArtifactConstraints checks if the values respects the defined constraints
-func AssertCatalogModelArtifactConstraints(obj model.CatalogModelArtifact) error {
+// AssertCatalogArtifactListConstraints checks if the values respects the defined constraints
+func AssertCatalogArtifactListConstraints(obj model.CatalogArtifactList) error {
 	return nil
 }
 
-// AssertCatalogModelArtifactListConstraints checks if the values respects the defined constraints
-func AssertCatalogModelArtifactListConstraints(obj model.CatalogModelArtifactList) error {
-	return nil
-}
-
-// AssertCatalogModelArtifactListRequired checks if the required fields are not zero-ed
-func AssertCatalogModelArtifactListRequired(obj model.CatalogModelArtifactList) error {
+// AssertCatalogArtifactListRequired checks if the required fields are not zero-ed
+func AssertCatalogArtifactListRequired(obj model.CatalogArtifactList) error {
 	elements := map[string]interface{}{
 		"nextPageToken": obj.NextPageToken,
 		"pageSize":      obj.PageSize,
@@ -92,17 +87,43 @@ func AssertCatalogModelArtifactListRequired(obj model.CatalogModelArtifactList) 
 	}
 
 	for _, el := range obj.Items {
-		if err := AssertCatalogModelArtifactRequired(el); err != nil {
+		if err := AssertCatalogArtifactRequired(el); err != nil {
 			return err
 		}
 	}
 	return nil
 }
 
+// AssertCatalogMetricsArtifactConstraints checks if the values respects the defined constraints
+func AssertCatalogMetricsArtifactConstraints(obj model.CatalogMetricsArtifact) error {
+	return nil
+}
+
+// AssertCatalogMetricsArtifactRequired checks if the required fields are not zero-ed
+func AssertCatalogMetricsArtifactRequired(obj model.CatalogMetricsArtifact) error {
+	elements := map[string]interface{}{
+		"artifactType": obj.ArtifactType,
+		"metricsType":  obj.MetricsType,
+	}
+	for name, el := range elements {
+		if isZero := IsZeroValue(el); isZero {
+			return &RequiredError{Field: name}
+		}
+	}
+
+	return nil
+}
+
+// AssertCatalogModelArtifactConstraints checks if the values respects the defined constraints
+func AssertCatalogModelArtifactConstraints(obj model.CatalogModelArtifact) error {
+	return nil
+}
+
 // AssertCatalogModelArtifactRequired checks if the required fields are not zero-ed
 func AssertCatalogModelArtifactRequired(obj model.CatalogModelArtifact) error {
 	elements := map[string]interface{}{
-		"uri": obj.Uri,
+		"artifactType": obj.ArtifactType,
+		"uri":          obj.Uri,
 	}
 	for name, el := range elements {
 		if isZero := IsZeroValue(el); isZero {

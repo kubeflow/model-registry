@@ -12,7 +12,7 @@ import (
 )
 
 func TestTypePropertyRepository(t *testing.T) {
-	sharedDB, cleanup := testutils.SetupMySQLWithMigrations(t)
+	sharedDB, cleanup := testutils.SetupMySQLWithMigrations(t, service.DatastoreSpec())
 	defer cleanup()
 
 	repo := service.NewTypePropertyRepository(sharedDB)

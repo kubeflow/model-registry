@@ -27,7 +27,7 @@ func TestMain(m *testing.M) {
 }
 
 func setupTestDB(t *testing.T) (*gorm.DB, string, api.ModelRegistryApi, func()) {
-	sharedDB, cleanup := testutils.SetupMySQLWithMigrations(t)
+	sharedDB, cleanup := testutils.SetupMySQLWithMigrations(t, service.DatastoreSpec())
 	dsn := testutils.GetSharedMySQLDSN(t)
 	svc := setupModelRegistryService(sharedDB)
 

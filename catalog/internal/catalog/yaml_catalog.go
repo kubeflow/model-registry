@@ -2,6 +2,7 @@ package catalog
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"math"
 	"os"
@@ -19,7 +20,40 @@ import (
 
 type yamlModel struct {
 	model.CatalogModel `yaml:",inline"`
-	Artifacts          []*model.CatalogModelArtifact `yaml:"artifacts"`
+	Artifacts          []*yamlArtifact `yaml:"artifacts"`
+}
+
+type yamlArtifact struct {
+	model.CatalogArtifact
+}
+
+func (a *yamlArtifact) UnmarshalJSON(buf []byte) error {
+	// This is very similar to generated code to unmarshal a
+	// CatalogArtifact, but this version properly handles artifacts without
+	// an artifactType, which is important for backwards compatibility.
+	var yat struct {
+		ArtifactType string `json:"artifactType"`
+	}
+
+	err := json.Unmarshal(buf, &yat)
+	if err != nil {
+		return err
+	}
+
+	switch yat.ArtifactType {
+	case "model-artifact", "":
+		err = json.Unmarshal(buf, &a.CatalogArtifact.CatalogModelArtifact)
+		if a.CatalogArtifact.CatalogModelArtifact != nil {
+			// Ensure artifactType is set even if it wasn't initially.
+			a.CatalogArtifact.CatalogModelArtifact.ArtifactType = "model-artifact"
+		}
+	case "metrics-artifact":
+		err = json.Unmarshal(buf, &a.CatalogArtifact.CatalogMetricsArtifact)
+	default:
+		return fmt.Errorf("unknown artifactType: %s", yat.ArtifactType)
+	}
+
+	return err
 }
 
 type yamlCatalog struct {
@@ -125,7 +159,7 @@ func (y *yamlCatalogImpl) ListModels(ctx context.Context, params ListModelsParam
 	return list, nil // Return the struct value directly
 }
 
-func (y *yamlCatalogImpl) GetArtifacts(ctx context.Context, name string) (*model.CatalogModelArtifactList, error) {
+func (y *yamlCatalogImpl) GetArtifacts(ctx context.Context, name string) (*model.CatalogArtifactList, error) {
 	y.modelsLock.RLock()
 	defer y.modelsLock.RUnlock()
 
@@ -139,13 +173,13 @@ func (y *yamlCatalogImpl) GetArtifacts(ctx context.Context, name string) (*model
 		count = math.MaxInt32
 	}
 
-	list := model.CatalogModelArtifactList{
-		Items:    make([]model.CatalogModelArtifact, count),
+	list := model.CatalogArtifactList{
+		Items:    make([]model.CatalogArtifact, count),
 		PageSize: int32(count),
 		Size:     int32(count),
 	}
 	for i := range list.Items {
-		list.Items[i] = *ym.Artifacts[i]
+		list.Items[i] = ym.Artifacts[i].CatalogArtifact
 	}
 	return &list, nil
 }

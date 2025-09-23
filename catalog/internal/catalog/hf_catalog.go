@@ -39,11 +39,11 @@ func (h *hfCatalogImpl) ListModels(ctx context.Context, params ListModelsParams)
 	}, nil
 }
 
-func (h *hfCatalogImpl) GetArtifacts(ctx context.Context, name string) (*openapi.CatalogModelArtifactList, error) {
+func (h *hfCatalogImpl) GetArtifacts(ctx context.Context, name string) (*openapi.CatalogArtifactList, error) {
 	// TODO: Implement HuggingFace model artifacts retrieval
 	// For now, return empty list to satisfy interface
-	return &openapi.CatalogModelArtifactList{
-		Items:    []openapi.CatalogModelArtifact{},
+	return &openapi.CatalogArtifactList{
+		Items:    []openapi.CatalogArtifact{},
 		PageSize: 0,
 		Size:     0,
 	}, nil

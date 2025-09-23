@@ -33,7 +33,7 @@ type CatalogSourceProvider interface {
 	// GetArtifacts returns all artifacts for a particular model. If no
 	// model is found with that name, it returns nil. If the model is
 	// found, but has no artifacts, an empty list is returned.
-	GetArtifacts(ctx context.Context, name string) (*model.CatalogModelArtifactList, error)
+	GetArtifacts(ctx context.Context, name string) (*model.CatalogArtifactList, error)
 }
 
 // CatalogSourceConfig is a single entry from the catalog sources YAML file.
