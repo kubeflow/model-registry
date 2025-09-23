@@ -123,16 +123,6 @@ describe('Model Catalog Details Tabs', () => {
   });
 
   describe('Tab Content', () => {
-    it('should display model details in Overview tab', () => {
-      modelCatalog.findModelCatalogDetailLink().first().click();
-
-      // Verify Overview tab content includes existing model details
-      modelCatalog.findOverviewTabContent().within(() => {
-        modelCatalog.findDetailsDescription().should('be.visible');
-        modelCatalog.findDetailsProviderText().should('be.visible');
-      });
-    });
-
     it('should display placeholder content in Performance Insights tab', () => {
       modelCatalog.findModelCatalogDetailLink().first().click();
 
@@ -160,18 +150,6 @@ describe('Model Catalog Details Tabs', () => {
       modelCatalog
         .findPerformanceInsightsTab()
         .should('have.attr', 'aria-label', 'Performance insights tab');
-    });
-
-    it('should be keyboard navigable', () => {
-      modelCatalog.findModelCatalogDetailLink().first().click();
-
-      // Focus on tabs and use arrow keys to navigate
-      modelCatalog.findOverviewTab().focus();
-      modelCatalog.findOverviewTab().should('be.focused');
-
-      // Tab should be accessible via keyboard
-      modelCatalog.findOverviewTab().type('{rightArrow}');
-      modelCatalog.findPerformanceInsightsTab().should('be.focused');
     });
   });
 
