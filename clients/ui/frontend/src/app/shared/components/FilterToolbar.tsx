@@ -74,6 +74,7 @@ function FilterToolbar<T extends string>({
                       setOpen(false);
                       setCurrentFilterType(filterKey);
                     }}
+                    isSelected={currentFilterType === filterKey}
                   >
                     {filterOptions[filterKey]}
                   </DropdownItem>

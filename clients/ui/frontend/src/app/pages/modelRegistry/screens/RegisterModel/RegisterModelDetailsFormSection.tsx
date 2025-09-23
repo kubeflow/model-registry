@@ -43,6 +43,7 @@ const RegisterModelDetailsFormSection = <D extends RegisterModelFormData>({
       name="model-description"
       value={formData.modelDescription}
       onChange={(_e, value) => setData('modelDescription', value)}
+      autoResize
     />
   );
 
@@ -52,7 +53,7 @@ const RegisterModelDetailsFormSection = <D extends RegisterModelFormData>({
       description="Provide model details that apply to every version of this model."
     >
       <FormGroup label="Model name" isRequired fieldId="model-name">
-        <FormFieldset component={modelNameInput} field="model-name" />
+        <FormFieldset component={modelNameInput} field="Model Name" />
         {hasModelNameError && (
           <FormHelperText>
             <HelperText>
