@@ -296,7 +296,7 @@ components:
         - $ref: "#/components/schemas/BaseResourceDates"
         - $ref: "#/components/schemas/BaseModel"
     CatalogModelArtifact:
-      description: A metadata Artifact Entity.
+      description: A Catalog Model Artifact Entity.
       allOf:
         - type: object
           required:

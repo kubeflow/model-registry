@@ -17,7 +17,7 @@ import (
 // checks if the CatalogModelArtifact type satisfies the MappedNullable interface at compile time
 var _ MappedNullable = &CatalogModelArtifact{}
 
-// CatalogModelArtifact A metadata Artifact Entity.
+// CatalogModelArtifact A Catalog Model Artifact Entity.
 type CatalogModelArtifact struct {
 	// Output only. Create time of the resource in millisecond since epoch.
 	CreateTimeSinceEpoch *string `json:"createTimeSinceEpoch,omitempty"`
