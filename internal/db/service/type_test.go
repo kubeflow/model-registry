@@ -13,7 +13,7 @@ import (
 )
 
 func TestTypeRepository(t *testing.T) {
-	sharedDB, cleanup := testutils.SetupMySQLWithMigrations(t)
+	sharedDB, cleanup := testutils.SetupMySQLWithMigrations(t, service.DatastoreSpec())
 	defer cleanup()
 
 	repo := service.NewTypeRepository(sharedDB)

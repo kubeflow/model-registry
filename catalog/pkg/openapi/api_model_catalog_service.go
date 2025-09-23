@@ -424,12 +424,12 @@ type ApiGetAllModelArtifactsRequest struct {
 	modelName  string
 }
 
-func (r ApiGetAllModelArtifactsRequest) Execute() (*CatalogModelArtifactList, *http.Response, error) {
+func (r ApiGetAllModelArtifactsRequest) Execute() (*CatalogArtifactList, *http.Response, error) {
 	return r.ApiService.GetAllModelArtifactsExecute(r)
 }
 
 /*
-GetAllModelArtifacts List CatalogModelArtifacts.
+GetAllModelArtifacts List CatalogArtifacts.
 
 	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
 	@param sourceId A unique identifier for a `CatalogSource`.
@@ -447,13 +447,13 @@ func (a *ModelCatalogServiceAPIService) GetAllModelArtifacts(ctx context.Context
 
 // Execute executes the request
 //
-//	@return CatalogModelArtifactList
-func (a *ModelCatalogServiceAPIService) GetAllModelArtifactsExecute(r ApiGetAllModelArtifactsRequest) (*CatalogModelArtifactList, *http.Response, error) {
+//	@return CatalogArtifactList
+func (a *ModelCatalogServiceAPIService) GetAllModelArtifactsExecute(r ApiGetAllModelArtifactsRequest) (*CatalogArtifactList, *http.Response, error) {
 	var (
 		localVarHTTPMethod  = http.MethodGet
 		localVarPostBody    interface{}
 		formFiles           []formFile
-		localVarReturnValue *CatalogModelArtifactList
+		localVarReturnValue *CatalogArtifactList
 	)
 
 	localBasePath, err := a.client.cfg.ServerURLWithContext(r.ctx, "ModelCatalogServiceAPIService.GetAllModelArtifacts")
