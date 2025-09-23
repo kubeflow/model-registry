@@ -7,7 +7,10 @@ import (
 	"sync"
 	"testing"
 
+	"github.com/kubeflow/model-registry/internal/datastore"
+	"github.com/kubeflow/model-registry/internal/datastore/embedmd"
 	"github.com/kubeflow/model-registry/internal/datastore/embedmd/mysql"
+	"github.com/kubeflow/model-registry/internal/db/service"
 	"github.com/kubeflow/model-registry/internal/tls"
 	"github.com/stretchr/testify/require"
 	testcontainers "github.com/testcontainers/testcontainers-go"
@@ -105,11 +108,14 @@ func CleanupSharedMySQL() {
 func SetupMySQLWithMigrations(t *testing.T) (*gorm.DB, func()) {
 	db, cleanup := GetSharedMySQLDB(t)
 
-	// Run migrations
-	migrator, err := mysql.NewMySQLMigrator(db)
-	require.NoError(t, err)
-	err = migrator.Migrate()
-	require.NoError(t, err)
+	ds, err := datastore.NewConnector("embedmd", &embedmd.EmbedMDConfig{DB: db})
+	if err != nil {
+		t.Fatalf("unable get datastore connector: %v", err)
+	}
+	_, err = ds.Connect(service.DatastoreSpec())
+	if err != nil {
+		t.Fatalf("unable to connect to datastore: %v", err)
+	}
 
 	return db, cleanup
 }

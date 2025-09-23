@@ -39,6 +39,7 @@ k8s_resource(
     new_name="db",
     labels="backend",
     resource_deps=["kubeflow-namespace"],
+    port_forwards="3306:3306",
 )
 
 k8s_resource(

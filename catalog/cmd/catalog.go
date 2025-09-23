@@ -47,14 +47,15 @@ func runCatalogServer(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("error creating datastore: %w", err)
 	}
 
-	_, err = ds.Connect(datastore.RepoSetSpec{
-		ArtifactTypes: map[string]any{
-			defaults.ModelArtifactTypeName: service.NewModelArtifactRepository,
-			defaults.DocArtifactTypeName:   service.NewDocArtifactRepository,
-		},
-		ContextTypes:   map[string]any{},
-		ExecutionTypes: map[string]any{},
-	})
+	_, err = ds.Connect(
+		datastore.NewSpec().
+			AddArtifact(defaults.ModelArtifactTypeName, datastore.NewSpecType(service.NewModelArtifactRepository).
+				AddString("description"),
+			).
+			AddArtifact(defaults.DocArtifactTypeName, datastore.NewSpecType(service.NewDocArtifactRepository).
+				AddString("description"),
+			),
+	)
 	if err != nil {
 		return fmt.Errorf("error initializing datastore: %v", err)
 	}
