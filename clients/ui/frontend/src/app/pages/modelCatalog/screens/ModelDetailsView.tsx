@@ -18,6 +18,7 @@ import { InlineTruncatedClipboardCopy } from 'mod-arch-shared';
 import text from '@patternfly/react-styles/css/utilities/Text/text';
 import { CatalogModel, CatalogModelDetailsParams } from '~/app/modelCatalogTypes';
 import { useCatalogModelArtifacts } from '~/app/hooks/modelCatalog/useCatalogModelArtifacts';
+import { getLabels } from '~/app/pages/modelRegistry/screens/utils';
 import ModelCatalogLabels from '~/app/pages/modelCatalog/components/ModelCatalogLabels';
 import ExternalLink from '~/app/shared/components/ExternalLink';
 import MarkdownComponent from '~/app/shared/markdown/MarkdownComponent';
@@ -33,6 +34,9 @@ const ModelDetailsView: React.FC<ModelDetailsViewProps> = ({ model, decodedParam
     decodedParams.sourceId || '',
     encodeURIComponent(`${decodedParams.modelName}`),
   );
+
+  // Extract all labels from customProperties
+  const allLabels = model.customProperties ? getLabels(model.customProperties) : [];
 
   return (
     <PageSection hasBodyWrapper={false} isFilled>
@@ -57,7 +61,11 @@ const ModelDetailsView: React.FC<ModelDetailsViewProps> = ({ model, decodedParam
             <DescriptionListGroup>
               <DescriptionListTerm>Labels</DescriptionListTerm>
               <DescriptionListDescription>
-                <ModelCatalogLabels tasks={model.tasks ?? []} license={model.license} />
+                <ModelCatalogLabels
+                  tasks={model.tasks ?? []}
+                  license={model.license}
+                  labels={allLabels}
+                />
               </DescriptionListDescription>
             </DescriptionListGroup>
             <DescriptionListGroup>

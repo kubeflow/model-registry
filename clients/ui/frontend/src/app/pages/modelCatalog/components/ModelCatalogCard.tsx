@@ -18,6 +18,7 @@ import { useNavigate } from 'react-router-dom';
 import { CatalogModel, CatalogSource } from '~/app/modelCatalogTypes';
 import { getModelName } from '~/app/pages/modelCatalog/utils/modelCatalogUtils';
 import { catalogModelDetailsFromModel } from '~/app/routes/modelCatalog/catalogModel';
+import { getLabels } from '~/app/pages/modelRegistry/screens/utils';
 import ModelCatalogLabels from './ModelCatalogLabels';
 
 type ModelCatalogCardProps = {
@@ -28,6 +29,10 @@ type ModelCatalogCardProps = {
 
 const ModelCatalogCard: React.FC<ModelCatalogCardProps> = ({ model, source, truncate = false }) => {
   const navigate = useNavigate();
+
+  // Extract labels from customProperties and check for validated label
+  const allLabels = model.customProperties ? getLabels(model.customProperties) : [];
+  const validatedLabels = allLabels.includes('validated') ? ['validated'] : [];
 
   return (
     <Card isFullHeight data-testid="model-catalog-card" key={`${model.name}/${model.source_id}`}>
@@ -103,6 +108,7 @@ const ModelCatalogCard: React.FC<ModelCatalogCardProps> = ({ model, source, trun
           tasks={model.tasks ?? []}
           license={model.license}
           provider={model.provider}
+          labels={validatedLabels}
         />
       </CardFooter>
     </Card>
