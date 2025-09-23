@@ -12,6 +12,10 @@ import {
 import { CatalogModel, CatalogModelDetailsParams } from '~/app/modelCatalogTypes';
 import ModelDetailsView from './ModelDetailsView';
 
+// Utility function to check if a model is validated
+const isModelValidated = (model: CatalogModel): boolean =>
+  model.tasks?.includes('validated') ?? false;
+
 export enum ModelDetailsTab {
   OVERVIEW = 'overview',
   PERFORMANCE_INSIGHTS = 'performance-insights',
@@ -44,6 +48,7 @@ const PerformanceInsightsPlaceholder = () => (
 
 const ModelDetailsTabs = ({ model, decodedParams }: ModelDetailsTabsProps): React.JSX.Element => {
   const [activeTabKey, setActiveTabKey] = React.useState<ModelDetailsTab>(ModelDetailsTab.OVERVIEW);
+  const isValidated = isModelValidated(model);
 
   const handleTabClick = (
     _event: React.MouseEvent<HTMLElement, MouseEvent>,
@@ -54,6 +59,15 @@ const ModelDetailsTabs = ({ model, decodedParams }: ModelDetailsTabsProps): Reac
       setActiveTabKey(validTab);
     }
   };
+
+  // If model is not validated, just show the overview content without tabs
+  if (!isValidated) {
+    return (
+      <PageSection hasBodyWrapper={false} isFilled data-testid="model-overview-tab-content">
+        <ModelDetailsView model={model} decodedParams={decodedParams} />
+      </PageSection>
+    );
+  }
 
   return (
     <Tabs
