@@ -13,6 +13,7 @@ on:
       - '!**.gitignore'
       - '!**.md'
       - '!**.txt'
+      - '.github/workflows/build-and-push-async-upload.yml' # self
 
 permissions: # set contents: read at top-level, per OpenSSF ScoreCard rule TokenPermissionsID
   contents: read
@@ -67,3 +68,5 @@ jobs:
           ${{ env.IMG_REGISTRY }}/${{ env.IMG_ORG }}/${{ env.IMG_NAME }}:main
         cache-from: type=gha
         cache-to: type=gha,mode=max
+        provenance: mode=max # pay attention no secrets are passed as build arguments: https://docs.docker.com/build/ci/github-actions/attestations/#default-provenance:~:text=don%27t%20support%20attestations.-,Warning,-If%20you%27re%20using
+        sbom: true

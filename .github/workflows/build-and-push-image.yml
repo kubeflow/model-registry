@@ -29,7 +29,8 @@ jobs:
     uses: ./.github/workflows/prepare.yml
   build-image:
     permissions:
-      contents: read
+      actions: read # anchore/sbom-action for syft
+      contents: write # anchore/sbom-action for syft
       packages: write
     runs-on: ubuntu-latest
     needs: prepare
@@ -57,6 +58,18 @@ jobs:
       - name: Build and Push Image
         shell: bash
         run: ./scripts/build_deploy.sh
+      - name: Generate SBOM
+        uses: anchore/sbom-action@v0
+        with:
+          image: "${{ env.IMG_REGISTRY }}/${{ env.IMG_ORG }}/${{ env.IMG_REPO }}:${{ env.VERSION }}"
+          format: spdx-json # default, but making sure of the format
+          artifact-name: "model-registry-server-${{ env.VERSION }}-sbom.spdx.json"
+          output-file: "model-registry-server-${{ env.VERSION }}-sbom.spdx.json" # pin the file to use it later below
+      - name: Install Cosign
+        uses: sigstore/cosign-installer@v3
+      - name: Attach SBOM to Image
+        run: |
+          cosign attach sbom --sbom model-registry-server-${{ env.VERSION }}-sbom.spdx.json "${{ env.IMG_REGISTRY }}/${{ env.IMG_ORG }}/${{ env.IMG_REPO }}:${{ env.VERSION }}"
       - name: Tag Latest
         if: env.BUILD_CONTEXT == 'main'
         shell: bash
