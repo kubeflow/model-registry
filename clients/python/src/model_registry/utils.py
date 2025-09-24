@@ -149,9 +149,7 @@ def _kwargs_to_params(kwargs: dict[str, str]) -> list[str]:
     return args
 
 
-def _get_skopeo_backend(
-    pull_args: list[str] | None = None, push_args: list[str] | None = None
-) -> BackendDefinition:
+def _get_skopeo_backend(pull_args: list[str] | None = None, push_args: list[str] | None = None) -> BackendDefinition:
     try:
         from olot.backend.skopeo import is_skopeo, skopeo_pull, skopeo_push
     except ImportError as e:
@@ -172,14 +170,10 @@ def _get_skopeo_backend(
 
         return _scrub_errors(lambda: skopeo_push(src, oci_ref, params))
 
-    return BackendDefinition(
-        is_available=is_skopeo, pull=wrapped_pull, push=wrapped_push
-    )
+    return BackendDefinition(is_available=is_skopeo, pull=wrapped_pull, push=wrapped_push)
 
 
-def _get_oras_backend(
-    pull_args: list[str] | None = None, push_args: list[str] | None = None
-) -> BackendDefinition:
+def _get_oras_backend(pull_args: list[str] | None = None, push_args: list[str] | None = None) -> BackendDefinition:
     try:
         from olot.backend.oras_cp import is_oras, oras_pull, oras_push
     except ImportError as e:
@@ -207,9 +201,7 @@ def _get_oras_backend(
     )
 
 
-def _backend_specific_params(
-    backend: Literal["skopeo", "oras"], type: Literal["push", "pull"], **kwargs
-) -> dict:
+def _backend_specific_params(backend: Literal["skopeo", "oras"], type: Literal["push", "pull"], **kwargs) -> dict:
     """Generate params based on the backend and action.
 
     Args:
@@ -361,7 +353,7 @@ or
     if oci_auth_env_var:
         auth = _validate_env_var(oci_auth_env_var)
     elif ".dockerconfigjson" in os.environ:
-        auth = os.environ[".dockerconfigjson"] # noqa: SIM112
+        auth = os.environ[".dockerconfigjson"]  # noqa: SIM112
 
     elif oci_username and oci_password:
         auth = json.dumps(create_auth_object(oci_ref, oci_username, oci_password))
@@ -402,13 +394,11 @@ or
 
 
 @overload
-def temp_auth_file(auth: str) -> AbstractContextManager[TextIO]:
-    ...
+def temp_auth_file(auth: str) -> AbstractContextManager[TextIO]: ...
 
 
 @overload
-def temp_auth_file(auth: None) -> AbstractContextManager[None]:
-    ...
+def temp_auth_file(auth: None) -> AbstractContextManager[None]: ...
 
 
 @contextmanager
@@ -427,7 +417,9 @@ def temp_auth_file(auth: str | None) -> AbstractContextManager[TextIO | None]:
         # delete=True, delete_on_close=False with Python 3.12 or later.
         path: str | None = None
         try:
-            with tempfile.NamedTemporaryFile(mode="w+", encoding="utf-8", suffix=".json", delete=False) as temp_auth_file:
+            with tempfile.NamedTemporaryFile(
+                mode="w+", encoding="utf-8", suffix=".json", delete=False
+            ) as temp_auth_file:
                 path = temp_auth_file.name
                 temp_auth_file.write(auth)
             yield temp_auth_file
@@ -724,7 +716,7 @@ def get_auth_reference(image_path: str) -> str:
     return repo_path
 
 
-def create_auth_object(oci_ref: str, username: str, password: str) -> dict[str: dict[str, dict[str, str]]]:
+def create_auth_object(oci_ref: str, username: str, password: str) -> dict[str, dict[str, dict[str, str]]]:
     """Create an auth object for container registry authentication.
 
     This object can be encoded as json with json.dumps() producing the
@@ -768,9 +760,7 @@ def upload_to_s3(
         transfer_config: The transfer config to use for the upload. If not provided, a new transfer config will be created.
     """
     if s3_client and not transfer_config:
-        msg = (
-            "Both `transfer_config` and `s3_client` must be provided if S3 is provided."
-        )
+        msg = "Both `transfer_config` and `s3_client` must be provided if S3 is provided."
         raise ValueError(msg)
 
     if not s3_client:

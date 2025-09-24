@@ -87,9 +87,7 @@ class BaseResourceModel(BaseModel, ABC):
         return dest
 
     @classmethod
-    def _unmap_custom_properties(
-        cls, custom_properties: dict[str, MetadataValue]
-    ) -> dict[str, SupportedTypes]:
+    def _unmap_custom_properties(cls, custom_properties: dict[str, MetadataValue]) -> dict[str, SupportedTypes]:
         def get_meta_value(meta: Any) -> SupportedTypes:
             type_name = meta.metadata_type[8:-5].lower()
             # Metadata type names are in the format Metadata<Type>Value
@@ -107,15 +105,9 @@ class BaseResourceModel(BaseModel, ABC):
             )
         }
 
-    def _props_as_dict(
-        self, exclude: Sequence[str] | None = None, alias: bool = False
-    ) -> dict[str, Any]:
+    def _props_as_dict(self, exclude: Sequence[str] | None = None, alias: bool = False) -> dict[str, Any]:
         exclude = exclude or []
-        return {
-            k: getattr(self, k)
-            for k in self.model_json_schema(alias).get("properties", {})
-            if k not in exclude
-        }
+        return {k: getattr(self, k) for k in self.model_json_schema(alias).get("properties", {}) if k not in exclude}
 
     def __repr_str__(self, join_str: str) -> str:
         """Represent the object as a string."""

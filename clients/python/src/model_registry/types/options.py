@@ -45,9 +45,7 @@ class ListOptions:
         return cls(order_by=OrderByField.ID, **kwargs)
 
     @classmethod
-    def artifact_type(
-        cls, artifact_type: ArtifactTypeQueryParam, **kwargs
-    ) -> ListOptions:
+    def artifact_type(cls, artifact_type: ArtifactTypeQueryParam, **kwargs) -> ListOptions:
         """Return options to filter by artifact type."""
         return cls(artifact_type_param=artifact_type, **kwargs)
 
