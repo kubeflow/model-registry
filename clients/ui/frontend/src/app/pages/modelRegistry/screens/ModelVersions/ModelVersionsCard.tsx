@@ -53,7 +53,7 @@ const ModelVersionsCard: React.FC<ModelVersionsCardProps> = ({ rm, isArchiveMode
             {mvLoadError.message}
           </Alert>
         ) : !mvLoaded ? (
-          <Bullseye>Loading latest deployments...</Bullseye>
+          <Bullseye>Loading latest versions...</Bullseye>
         ) : latestModelVersions.length > 0 ? (
           <List isPlain isBordered>
             {latestModelVersions.map((mv) => (

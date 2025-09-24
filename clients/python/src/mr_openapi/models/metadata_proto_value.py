@@ -78,8 +78,8 @@ class MetadataProtoValue(BaseModel):
             {
                 "type": obj.get("type"),
                 "proto_value": obj.get("proto_value"),
-                "metadataType": (
-                    obj.get("metadataType") if obj.get("metadataType") is not None else "MetadataProtoValue"
-                ),
+                "metadataType": obj.get("metadataType")
+                if obj.get("metadataType") is not None
+                else "MetadataProtoValue",
             }
         )

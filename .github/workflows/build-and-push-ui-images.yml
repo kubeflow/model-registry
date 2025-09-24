@@ -29,7 +29,7 @@ jobs:
       packages: write
     steps:
     - name: Checkout repository
-      uses: actions/checkout@v5
+      uses: actions/checkout@v5.0.0
 
     - name: Set up Docker Buildx
       uses: docker/setup-buildx-action@v3
@@ -79,3 +79,5 @@ jobs:
           STYLE_THEME=mui-theme
         cache-from: type=gha
         cache-to: type=gha,mode=max
+        provenance: mode=max # pay attention no secrets are passed as build arguments: https://docs.docker.com/build/ci/github-actions/attestations/#default-provenance:~:text=don%27t%20support%20attestations.-,Warning,-If%20you%27re%20using
+        sbom: true

@@ -21,8 +21,19 @@ type ModelCatalogPageProps = {
 
 const ModelCatalogPage: React.FC<ModelCatalogPageProps> = ({ searchTerm }) => {
   const { selectedSource } = React.useContext(ModelCatalogContext);
-  const [catalogModels, catalogModelsLoaded, catalogModelsLoadError, refresh] =
-    useCatalogModelsBySources(selectedSource?.id || '', 10, searchTerm);
+  const { catalogModels, catalogModelsLoaded, catalogModelsLoadError } = useCatalogModelsBySources(
+    selectedSource?.id || '',
+    10,
+    searchTerm,
+  );
+
+  if (catalogModelsLoadError) {
+    return (
+      <Alert variant="danger" title="Failed to load model catalog" isInline>
+        {catalogModelsLoadError.message}
+      </Alert>
+    );
+  }
 
   if (!catalogModelsLoaded) {
     return (
@@ -32,17 +43,6 @@ const ModelCatalogPage: React.FC<ModelCatalogPageProps> = ({ searchTerm }) => {
           Loading model catalog...
         </Title>
       </EmptyState>
-    );
-  }
-
-  if (catalogModelsLoadError) {
-    return (
-      <Alert variant="danger" title="Failed to load model catalog" isInline>
-        {catalogModelsLoadError.message}
-        <Button variant="link" onClick={refresh}>
-          Try again
-        </Button>
-      </Alert>
     );
   }
 

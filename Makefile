@@ -220,6 +220,11 @@ deps: bin/golangci-lint bin/goverter bin/openapi-generator-cli bin/envtest
 vendor:
 	${GO} mod vendor
 
+.PHONY: update/worksum
+update/worksum:
+	${GO} clean --modcache
+	${GO} mod download
+
 # WARNING: DO NOT DELETE THIS TARGET, USED BY Dockerfile!!!
 .PHONY: build/prepare
 build/prepare: gen vet lint

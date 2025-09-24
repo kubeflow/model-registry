@@ -97,7 +97,6 @@ class ApiKeyError(OpenApiException, KeyError):
 
 
 class ApiException(OpenApiException):
-
     def __init__(
         self,
         status=None,
@@ -149,7 +148,7 @@ class ApiException(OpenApiException):
 
     def __str__(self):
         """Custom error messages for exception."""
-        error_message = f"({self.status})\n" f"Reason: {self.reason}\n"
+        error_message = f"({self.status})\nReason: {self.reason}\n"
         if self.headers:
             error_message += f"HTTP response headers: {self.headers}\n"
 

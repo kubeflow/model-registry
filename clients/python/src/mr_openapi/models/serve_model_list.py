@@ -92,8 +92,8 @@ class ServeModelList(BaseModel):
                 "nextPageToken": obj.get("nextPageToken"),
                 "pageSize": obj.get("pageSize"),
                 "size": obj.get("size"),
-                "items": (
-                    [ServeModel.from_dict(_item) for _item in obj["items"]] if obj.get("items") is not None else None
-                ),
+                "items": [ServeModel.from_dict(_item) for _item in obj["items"]]
+                if obj.get("items") is not None
+                else None,
             }
         )

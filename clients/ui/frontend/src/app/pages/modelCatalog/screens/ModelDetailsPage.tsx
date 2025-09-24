@@ -15,11 +15,10 @@ import {
   Popover,
   ActionListGroup,
   Skeleton,
-  Spinner,
 } from '@patternfly/react-core';
 import { ApplicationsPage } from 'mod-arch-shared';
 import { decodeParams, getModelName } from '~/app/pages/modelCatalog/utils/modelCatalogUtils';
-import ModelDetailsView from '~/app/pages/modelCatalog/screens/ModelDetailsView';
+import ModelDetailsTabs from '~/app/pages/modelCatalog/screens/ModelDetailsTabs';
 import { useCatalogModel } from '~/app/hooks/modelCatalog/useCatalogModel';
 import { ModelRegistrySelectorContext } from '~/app/context/ModelRegistrySelectorContext';
 import { getRegisterCatalogModelRoute } from '~/app/routes/modelCatalog/catalogModelRegister';
@@ -71,7 +70,11 @@ const ModelDetailsPage: React.FC = () => {
     }
 
     if (!artifactLoaded) {
-      return <Spinner size="xl" />; // Still loading artifacts
+      return (
+        <Button variant="primary" data-testid="register-model-button" isLoading>
+          Register model
+        </Button>
+      );
     }
 
     return modelRegistries.length === 0 ? (
@@ -160,7 +163,7 @@ const ModelDetailsPage: React.FC = () => {
         )
       }
     >
-      {model && <ModelDetailsView model={model} decodedParams={decodedParams} />}
+      {model && <ModelDetailsTabs model={model} decodedParams={decodedParams} />}
     </ApplicationsPage>
   );
 };

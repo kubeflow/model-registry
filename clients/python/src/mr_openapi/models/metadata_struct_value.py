@@ -76,8 +76,8 @@ class MetadataStructValue(BaseModel):
         return cls.model_validate(
             {
                 "struct_value": obj.get("struct_value"),
-                "metadataType": (
-                    obj.get("metadataType") if obj.get("metadataType") is not None else "MetadataStructValue"
-                ),
+                "metadataType": obj.get("metadataType")
+                if obj.get("metadataType") is not None
+                else "MetadataStructValue",
             }
         )

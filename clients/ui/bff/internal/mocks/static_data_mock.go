@@ -249,6 +249,12 @@ func catalogCustomProperties() *map[string]catalogOpenapi.MetadataValue {
 				MetadataType: "MetadataStringValue",
 			},
 		},
+		"validated": {
+			MetadataStringValue: &catalogOpenapi.MetadataStringValue{
+				StringValue:  "",
+				MetadataType: "MetadataStringValue",
+			},
+		},
 		"AWS_KEY": {
 			MetadataStringValue: &catalogOpenapi.MetadataStringValue{
 				StringValue:  "asdf89asdf098asdfa",

@@ -1,8 +1,9 @@
 import * as React from 'react';
-import { PageSection } from '@patternfly/react-core';
+import { PageSection, Sidebar, SidebarContent, SidebarPanel } from '@patternfly/react-core';
 import { ApplicationsPage, ProjectObjectType, TitleWithIcon } from 'mod-arch-shared';
 import ScrollViewOnMount from '~/app/shared/components/ScrollViewOnMount';
 import { modelCatalogUrl } from '~/app/routes/modelCatalog/catalogModel';
+import ModelCatalogFilters from '~/app/pages/modelCatalog/components/ModelCatalogFilters';
 import ModelCatalogPage from './ModelCatalogPage';
 import ModelCatalogSourceSelectorNavigator from './ModelCatalogSourceSelectorNavigator';
 
@@ -24,20 +25,25 @@ const ModelCatalog: React.FC = () => {
         title={<TitleWithIcon title="Model Catalog" objectType={ProjectObjectType.modelCatalog} />}
         description="Discover models that are available for your organization to register, deploy, and customize."
         empty={false}
-        headerContent={
-          <ModelCatalogSourceSelectorNavigator
-            getRedirectPath={(sourceId: string) => modelCatalogUrl(sourceId)}
-            searchTerm={searchTerm}
-            onSearch={handleSearch}
-            onClearSearch={handleClearSearch}
-          />
-        }
         loaded
         provideChildrenPadding
       >
-        <PageSection isFilled>
-          <ModelCatalogPage searchTerm={searchTerm} />
-        </PageSection>
+        <Sidebar hasBorder hasGutter>
+          <SidebarPanel>
+            <ModelCatalogFilters />
+          </SidebarPanel>
+          <SidebarContent>
+            <ModelCatalogSourceSelectorNavigator
+              getRedirectPath={(sourceId: string) => modelCatalogUrl(sourceId)}
+              searchTerm={searchTerm}
+              onSearch={handleSearch}
+              onClearSearch={handleClearSearch}
+            />
+            <PageSection isFilled>
+              <ModelCatalogPage searchTerm={searchTerm} />
+            </PageSection>
+          </SidebarContent>
+        </Sidebar>
       </ApplicationsPage>
     </>
   );

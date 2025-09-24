@@ -94,6 +94,37 @@ class ModelCatalog {
   findDetailsDescription() {
     return cy.findByTestId('model-long-description');
   }
+
+  // Tabs functionality
+  findModelDetailsTabs() {
+    return cy.findByTestId('model-details-page-tabs');
+  }
+
+  findOverviewTab() {
+    return cy.findByTestId('model-overview-tab');
+  }
+
+  findPerformanceInsightsTab() {
+    return cy.findByTestId('performance-insights-tab');
+  }
+
+  findOverviewTabContent() {
+    return cy.findByTestId('model-overview-tab-content');
+  }
+
+  findPerformanceInsightsTabContent() {
+    return cy.findByTestId('performance-insights-tab-content');
+  }
+
+  clickOverviewTab() {
+    this.findOverviewTab().click();
+    return this;
+  }
+
+  clickPerformanceInsightsTab() {
+    this.findPerformanceInsightsTab().click();
+    return this;
+  }
 }
 
 export const modelCatalog = new ModelCatalog();
