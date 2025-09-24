@@ -143,11 +143,9 @@ class DocArtifact(BaseModel):
         return cls.model_validate(
             {
                 "artifactType": "doc-artifact",
-                "customProperties": (
-                    {_k: MetadataValue.from_dict(_v) for _k, _v in obj["customProperties"].items()}
-                    if obj.get("customProperties") is not None
-                    else None
-                ),
+                "customProperties": {_k: MetadataValue.from_dict(_v) for _k, _v in obj["customProperties"].items()}
+                if obj.get("customProperties") is not None
+                else None,
                 "description": obj.get("description"),
                 "externalId": obj.get("externalId"),
                 "name": obj.get("name"),

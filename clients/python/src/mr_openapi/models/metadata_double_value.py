@@ -76,8 +76,8 @@ class MetadataDoubleValue(BaseModel):
         return cls.model_validate(
             {
                 "double_value": obj.get("double_value"),
-                "metadataType": (
-                    obj.get("metadataType") if obj.get("metadataType") is not None else "MetadataDoubleValue"
-                ),
+                "metadataType": obj.get("metadataType")
+                if obj.get("metadataType") is not None
+                else "MetadataDoubleValue",
             }
         )

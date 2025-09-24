@@ -14,12 +14,7 @@ import json
 import pprint
 from typing import Any
 
-from pydantic import (
-    BaseModel,
-    ConfigDict,
-    ValidationError,
-    field_validator,
-)
+from pydantic import BaseModel, ConfigDict, ValidationError, field_validator
 from typing_extensions import Self
 
 from mr_openapi.models.data_set_update import DataSetUpdate

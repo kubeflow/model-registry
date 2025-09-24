@@ -76,8 +76,8 @@ class MetadataStringValue(BaseModel):
         return cls.model_validate(
             {
                 "string_value": obj.get("string_value"),
-                "metadataType": (
-                    obj.get("metadataType") if obj.get("metadataType") is not None else "MetadataStringValue"
-                ),
+                "metadataType": obj.get("metadataType")
+                if obj.get("metadataType") is not None
+                else "MetadataStringValue",
             }
         )

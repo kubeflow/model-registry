@@ -369,10 +369,7 @@ async def test_page_through_model_version_artifacts(
     _ = registered_model
     models = 6
     for i in range(models):
-        if i % 2 == 0:
-            art = ModelArtifact(name=f"ma{i}", uri="uri")
-        else:
-            art = DocArtifact(name=f"ma{i}", uri="uri")
+        art = ModelArtifact(name=f"ma{i}", uri="uri") if i % 2 == 0 else DocArtifact(name=f"ma{i}", uri="uri")
         await client.upsert_model_version_artifact(art, str(model_version.id))
     pager = Pager(
         lambda o: client.get_model_version_artifacts(str(model_version.id), o)
