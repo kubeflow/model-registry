@@ -28,16 +28,9 @@ def generated_schema(request: pytest.FixtureRequest, pytestconfig: pytest.Config
     schema.config.output.sanitization.update(enabled=False)
     return schema
 
-@pytest.fixture
-def auth_headers(setup_env_user_token):
-    """Provides authorization headers for API requests."""
-    return {
-        "Content-Type": "application/json",
-        "Authorization": f"Bearer {setup_env_user_token}"
-    }
 
 @pytest.fixture
-def state_machine(generated_schema: BaseOpenAPISchema, auth_headers: str, pytestconfig: pytest.Config) -> APIStateMachine:
+def state_machine(generated_schema: BaseOpenAPISchema, request_headers: dict[str, str], pytestconfig: pytest.Config) -> APIStateMachine:
     BaseAPIWorkflow = generated_schema.as_state_machine()
 
     class APIWorkflow(BaseAPIWorkflow):  # type: ignore
@@ -52,7 +45,7 @@ def state_machine(generated_schema: BaseOpenAPISchema, auth_headers: str, pytest
                 capture_output=True,
                 check=True
             )
-            self.headers = auth_headers
+            self.headers = request_headers
 
         def before_call(self, case: Case) -> None:
             print(f"Checking: {case.method} {case.path}")
@@ -65,7 +58,7 @@ def state_machine(generated_schema: BaseOpenAPISchema, auth_headers: str, pytest
 
 
 @pytest.fixture
-def cleanup_artifacts(request: pytest.FixtureRequest, auth_headers: dict):
+def cleanup_artifacts(request: pytest.FixtureRequest, request_headers: dict[str, str]):
     """Cleanup artifacts created during the test."""
     created_ids = []
     def register(artifact_id):
@@ -76,7 +69,7 @@ def cleanup_artifacts(request: pytest.FixtureRequest, auth_headers: dict):
     for artifact_id in created_ids:
         del_url = f"{REGISTRY_URL}/api/model_registry/v1alpha3/artifacts/{artifact_id}"
         try:
-            requests.delete(del_url, headers=auth_headers, timeout=DEFAULT_API_TIMEOUT)
+            requests.delete(del_url, headers=request_headers, timeout=DEFAULT_API_TIMEOUT)
         except Exception as e:
             print(f"Failed to delete artifact {artifact_id}: {e}")
 
@@ -84,9 +77,9 @@ def cleanup_artifacts(request: pytest.FixtureRequest, auth_headers: dict):
 def artifact_resource():
     """Create an artifact resource for the test."""
     @contextlib.contextmanager
-    def _artifact_resource(auth_headers: dict, payload: dict) -> Generator[str, None, None]:
+    def _artifact_resource(request_headers: dict, payload: dict) -> Generator[str, None, None]:
         create_endpoint = f"{REGISTRY_URL}/api/model_registry/v1alpha3/artifacts"
-        resp = requests.post(create_endpoint, headers=auth_headers, json=payload, timeout=DEFAULT_API_TIMEOUT)
+        resp = requests.post(create_endpoint, headers=request_headers, json=payload, timeout=DEFAULT_API_TIMEOUT)
         resp.raise_for_status()
         artifact_id = resp.json()["id"]
         try:
@@ -94,7 +87,7 @@ def artifact_resource():
         finally:
             del_url = f"{REGISTRY_URL}/api/model_registry/v1alpha3/artifacts/{artifact_id}"
             try:
-                requests.delete(del_url, headers=auth_headers, timeout=DEFAULT_API_TIMEOUT)
+                requests.delete(del_url, headers=request_headers, timeout=DEFAULT_API_TIMEOUT)
             except Exception as e:
                 print(f"Failed to delete artifact {artifact_id}: {e}")
     return _artifact_resource

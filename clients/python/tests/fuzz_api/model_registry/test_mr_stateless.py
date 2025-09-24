@@ -116,11 +116,11 @@ def validate_artifact_response(response: requests.Response, expected_payload: di
     return response_json["id"]
 
 
-def create_experiment_and_run(auth_headers: dict[str, str]) -> tuple[str, str]:
+def create_experiment_and_run(request_headers: dict[str, str]) -> tuple[str, str]:
     """Create an experiment and an experiment run.
 
     Args:
-        auth_headers: Authentication headers for the API
+        request_headers: Authentication headers for the API
 
     Returns:
         Tuple of (experiment_id, experiment_run_id)
@@ -136,7 +136,7 @@ def create_experiment_and_run(auth_headers: dict[str, str]) -> tuple[str, str]:
     }
     exp_response = requests.post(
         f"{REGISTRY_URL}/api/model_registry/v1alpha3/experiments",
-        headers=auth_headers,
+        headers=request_headers,
         json=experiment_payload,
         timeout=DEFAULT_API_TIMEOUT
     )
@@ -152,7 +152,7 @@ def create_experiment_and_run(auth_headers: dict[str, str]) -> tuple[str, str]:
     }
     run_response = requests.post(
         f"{REGISTRY_URL}/api/model_registry/v1alpha3/experiment_runs",
-        headers=auth_headers,
+        headers=request_headers,
         json=experiment_run_payload,
         timeout=DEFAULT_API_TIMEOUT
     )
@@ -162,23 +162,23 @@ def create_experiment_and_run(auth_headers: dict[str, str]) -> tuple[str, str]:
     return experiment_id, experiment_run_id
 
 
-def cleanup_experiment_and_run(auth_headers: dict[str, str], experiment_id: str, experiment_run_id: str) -> None:
+def cleanup_experiment_and_run(request_headers: dict[str, str], experiment_id: str, experiment_run_id: str) -> None:
     """Best effort cleanup of experiment run and experiment.
 
     Args:
-        auth_headers: Authentication headers for the API
+        request_headers: Authentication headers for the API
         experiment_id: ID of the experiment to delete
         experiment_run_id: ID of the experiment run to delete
     """
     try:
         requests.delete(
             f"{REGISTRY_URL}/api/model_registry/v1alpha3/experiment_runs/{experiment_run_id}",
-            headers=auth_headers,
+            headers=request_headers,
             timeout=DEFAULT_API_TIMEOUT
         )
         requests.delete(
             f"{REGISTRY_URL}/api/model_registry/v1alpha3/experiments/{experiment_id}",
-            headers=auth_headers,
+            headers=request_headers,
             timeout=DEFAULT_API_TIMEOUT
         )
     except Exception as e:
@@ -225,14 +225,14 @@ schema = (
     ],
 )
 @pytest.mark.fuzz
-def test_mr_api_stateless(auth_headers: dict, case: schemathesis.Case):
+def test_mr_api_stateless(request_headers: dict[str, str], case: schemathesis.Case):
     """Test the Model Registry API endpoints.
 
     This test uses schemathesis to generate and validate API requests.
     Expects 400 Bad Request for any requests containing null bytes.
     """
     try:
-        case.call_and_validate(headers=auth_headers)
+        case.call_and_validate(headers=request_headers)
     except Exception as e:
         # Check if this is a null byte validation error that we expect
         request_has_null_bytes = False
@@ -262,7 +262,7 @@ def test_mr_api_stateless(auth_headers: dict, case: schemathesis.Case):
 @pytest.mark.fuzz
 @pytest.mark.parametrize(("artifact_type", "uri_prefix"), ARTIFACT_TYPE_PARAMS)
 @pytest.mark.parametrize("state", ARTIFACT_STATES)
-def test_post_model_version_artifacts(auth_headers: dict, artifact_type: str, uri_prefix: str, state: str, cleanup_artifacts: Callable):
+def test_post_model_version_artifacts(request_headers: dict[str, str], artifact_type: str, uri_prefix: str, state: str, cleanup_artifacts: Callable):
     """
     Direct test for POST /api/model_registry/v1alpha3/model_versions/{modelversionId}/artifacts.
     """
@@ -279,7 +279,7 @@ def test_post_model_version_artifacts(auth_headers: dict, artifact_type: str, ur
     )
 
     # Make the API request
-    response = requests.post(endpoint, headers=auth_headers, json=payload, timeout=DEFAULT_API_TIMEOUT)
+    response = requests.post(endpoint, headers=request_headers, json=payload, timeout=DEFAULT_API_TIMEOUT)
 
     # Validate response and get artifact ID
     artifact_id = validate_artifact_response(response, payload)
@@ -291,12 +291,12 @@ def test_post_model_version_artifacts(auth_headers: dict, artifact_type: str, ur
 @pytest.mark.fuzz
 @pytest.mark.parametrize(("artifact_type", "uri_prefix"), ARTIFACT_TYPE_PARAMS)
 @pytest.mark.parametrize("state", ARTIFACT_STATES)
-def test_post_experiment_run_artifacts(auth_headers: dict, artifact_type: str, uri_prefix: str, state: str, cleanup_artifacts: Callable):
+def test_post_experiment_run_artifacts(request_headers: dict[str, str], artifact_type: str, uri_prefix: str, state: str, cleanup_artifacts: Callable):
     """
     Direct test for POST /api/model_registry/v1alpha3/experiment_runs/{experimentrunId}/artifacts.
     """
     # Create experiment and experiment run using helper
-    experiment_id, experiment_run_id = create_experiment_and_run(auth_headers)
+    experiment_id, experiment_run_id = create_experiment_and_run(request_headers)
 
     endpoint = f"{REGISTRY_URL}/api/model_registry/v1alpha3/experiment_runs/{experiment_run_id}/artifacts"
 
@@ -310,7 +310,7 @@ def test_post_experiment_run_artifacts(auth_headers: dict, artifact_type: str, u
     )
 
     # Make the API request
-    response = requests.post(endpoint, headers=auth_headers, json=payload, timeout=DEFAULT_API_TIMEOUT)
+    response = requests.post(endpoint, headers=request_headers, json=payload, timeout=DEFAULT_API_TIMEOUT)
 
     # Validate response and get artifact ID
     artifact_id = validate_artifact_response(response, payload)
@@ -319,12 +319,12 @@ def test_post_experiment_run_artifacts(auth_headers: dict, artifact_type: str, u
     cleanup_artifacts(artifact_id)
 
     # Cleanup experiment and run
-    cleanup_experiment_and_run(auth_headers, experiment_id, experiment_run_id)
+    cleanup_experiment_and_run(request_headers, experiment_id, experiment_run_id)
 
 
 @pytest.mark.fuzz
 @pytest.mark.parametrize(("artifact_type", "uri_prefix"), ARTIFACT_TYPE_PARAMS)
-def test_patch_artifact(auth_headers: dict, artifact_resource: Callable, artifact_type: str, uri_prefix: str):
+def test_patch_artifact(request_headers: dict[str, str], artifact_resource: Callable, artifact_type: str, uri_prefix: str):
     """
     Direct test for PATCH /api/model_registry/v1alpha3/artifacts/{id}.
     """
@@ -364,7 +364,7 @@ def test_patch_artifact(auth_headers: dict, artifact_resource: Callable, artifac
         create_payload["value"] = "0.01"
         create_payload["parameterType"] = "string"
 
-    with artifact_resource(auth_headers, create_payload) as artifact_id:
+    with artifact_resource(request_headers, create_payload) as artifact_id:
         patch_endpoint = f"{REGISTRY_URL}/api/model_registry/v1alpha3/artifacts/{artifact_id}"
         patch_payload = {
             "artifactType": artifact_type,
@@ -378,7 +378,7 @@ def test_patch_artifact(auth_headers: dict, artifact_resource: Callable, artifac
         elif artifact_type == "parameter":
             patch_payload["value"] = "0.001"  # Updated parameter value
 
-        patch_response = requests.patch(patch_endpoint, headers=auth_headers, json=patch_payload, timeout=DEFAULT_API_TIMEOUT)
+        patch_response = requests.patch(patch_endpoint, headers=request_headers, json=patch_payload, timeout=DEFAULT_API_TIMEOUT)
         assert patch_response.status_code == 200
         patch_response_json = patch_response.json()
         assert patch_response_json.get("id") == artifact_id
