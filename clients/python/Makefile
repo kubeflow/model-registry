@@ -93,8 +93,8 @@ lint:
 
 .PHONY: tidy
 tidy:
-	poetry run ruff check --fix --unsafe-fixes --fix-only || true
-	poetry run ruff format src/mr_openapi
+	poetry run ruff check --fix-only --unsafe-fixes
+	poetry run ruff format src
 
 .PHONY: build
 build: install tidy

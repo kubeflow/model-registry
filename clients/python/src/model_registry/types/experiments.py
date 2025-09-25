@@ -44,7 +44,7 @@ class Experiment(BaseResourceModel):
     owner: str | None = None
     description: str | None = None
     external_id: str | None = None
-    state: ExperimentState | None= None
+    state: ExperimentState | None = None
     custom_properties: dict[str, Any] | None = None
 
     @override

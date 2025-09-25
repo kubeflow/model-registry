@@ -20,9 +20,7 @@ class Pager(Generic[T], Iterator[T], AsyncIterator[T]):
     Assumes that page_fn is a paged function that takes ListOptions and returns a list of items.
     """
 
-    page_fn: (
-        Callable[[ListOptions], list[T]] | Callable[[ListOptions], Awaitable[list[T]]]
-    )
+    page_fn: Callable[[ListOptions], list[T]] | Callable[[ListOptions], Awaitable[list[T]]]
     options: ListOptions = field(default_factory=ListOptions)
 
     def __post_init__(self):
@@ -115,9 +113,7 @@ class Pager(Generic[T], Iterator[T], AsyncIterator[T]):
         return await cast(Awaitable[list[T]], self.page_fn(self.options))
 
     def _needs_fetch(self) -> bool:
-        return not self._current_page or (
-            self._i >= len(self._current_page) and self._start is not None
-        )
+        return not self._current_page or (self._i >= len(self._current_page) and self._start is not None)
 
     def _next_item(self) -> T:
         """Get the next item in the pager.
@@ -130,7 +126,7 @@ class Pager(Generic[T], Iterator[T], AsyncIterator[T]):
         if self._needs_fetch():
             self._current_page = self._next_page()
             self._i = 0
-        if self._current_page is None: # for example when the MR server is empty
+        if self._current_page is None:  # for example when the MR server is empty
             raise StopIteration
         if self._i >= len(self._current_page):
             raise StopIteration
@@ -150,7 +146,7 @@ class Pager(Generic[T], Iterator[T], AsyncIterator[T]):
         if self._needs_fetch():
             self._current_page = await self._anext_page()
             self._i = 0
-        if self._current_page is None: # for example when the MR server is empty
+        if self._current_page is None:  # for example when the MR server is empty
             raise StopAsyncIteration
         if self._i >= len(self._current_page):
             raise StopAsyncIteration

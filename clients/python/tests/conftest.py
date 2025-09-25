@@ -178,9 +178,10 @@ def client_attrs() -> dict[str, any]:
 
 
 @pytest.fixture(scope="module")
-def setup_env_user_token():
+def setup_env_user_token(user_token: str) -> str:
+    token_bytes = (user_token or "Token").encode("utf-8")
     with tempfile.NamedTemporaryFile(delete=False) as token_file:
-        token_file.write(b"Token")
+        token_file.write(token_bytes)
     old_token_path = os.getenv("KF_PIPELINES_SA_TOKEN_PATH")
     os.environ["KF_PIPELINES_SA_TOKEN_PATH"] = token_file.name
 

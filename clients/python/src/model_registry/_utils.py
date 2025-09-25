@@ -93,12 +93,7 @@ def required_args(*variants: Sequence[str]) -> Callable[[CallableT], CallableT]:
             else:  # no break
                 if len(variants) > 1:
                     variations = human_join(
-                        [
-                            "("
-                            + human_join([quote(arg) for arg in variant], final="and")
-                            + ")"
-                            for variant in variants
-                        ]
+                        ["(" + human_join([quote(arg) for arg in variant], final="and") + ")" for variant in variants]
                     )
                     msg = f"Missing required arguments; Expected either {variations} arguments to be given"
                 else:

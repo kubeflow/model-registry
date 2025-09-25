@@ -862,7 +862,7 @@ def test_nested_recursive_store_in_s3(
 
 @pytest.mark.e2e
 def test_custom_async_runner_with_ray(
-    client_attrs: dict[str, any], client: ModelRegistry, monkeypatch
+    client_attrs: dict[str, any], client: ModelRegistry, user_token: str, monkeypatch
 ):
     """Test Ray integration with uvloop event loop policy"""
     import asyncio
@@ -901,6 +901,7 @@ def test_custom_async_runner_with_ray(
                     author=client_attrs["author"],
                     is_secure=client_attrs["ssl"],
                     async_runner=atr.run,
+                    user_token=user_token,
                 )
                 client.register_model(
                     name="test_model",
