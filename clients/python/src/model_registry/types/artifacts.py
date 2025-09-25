@@ -382,9 +382,7 @@ class Metric(Artifact):
         return MetricUpdate(
             customProperties=self._map_custom_properties(),
             timestamp=self.timestamp,
-            **self._props_as_dict(
-                exclude=("id", "name", "timestamp", "custom_properties")
-            ),
+            **self._props_as_dict(exclude=("id", "name", "timestamp", "custom_properties")),
             artifactType="metric",
             **kwargs,
         )

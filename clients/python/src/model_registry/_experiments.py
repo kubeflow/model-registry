@@ -65,9 +65,7 @@ class ActiveExperimentRun(AbstractContextManager):
         temp_artifacts: ExperimentRunArtifactTypes = ExperimentRunArtifactTypes()
         for log in self.get_logs():
             server_log = self.__async_runner(
-                self.__api.upsert_experiment_run_artifact(
-                    experiment_run_id=self.info.id, artifact=log
-                )
+                self.__api.upsert_experiment_run_artifact(experiment_run_id=self.info.id, artifact=log)
             )
             log_type = type(server_log)
             if log_type is Parameter:
