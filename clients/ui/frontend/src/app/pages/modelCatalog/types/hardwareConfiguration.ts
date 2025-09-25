@@ -20,31 +20,39 @@ export enum Precision {
 
 export type HardwareConfiguration = {
   id: string;
-  hardwareType: HardwareType;
-  hardwareCount: number;
-  latency: number;
-  throughput: number;
-  guideLLMVersion?: string;
-  rhaiisVersion?: string;
-  tps: number;
-  // Additional fields from the data structure
-  modelName?: string;
-  modelVersion?: string;
-  framework?: Framework;
-  precision?: Precision;
-  batchSize?: number;
-  sequenceLength?: number;
-  memoryUsage?: number;
-  powerConsumption?: number;
-  temperature?: number;
-  utilization?: number;
-  // Timestamps
-  lastUpdated?: string;
-  // Other performance metrics
-  accuracy?: number;
-  f1Score?: number;
-  bleuScore?: number;
-  perplexity?: number;
+  hardwareConfiguration: string; // e.g., "1 x A100-80"
+  totalHardware: number;
+  rpsPerReplica: number;
+  totalRps: number;
+  // TTFT latency metrics
+  ttftLatencyMean: number;
+  ttftLatencyP90: number;
+  ttftLatencyP95: number;
+  ttftLatencyP99: number;
+  // E2E latency metrics
+  e2eLatencyMean: number;
+  e2eLatencyP90: number;
+  e2eLatencyP95: number;
+  e2eLatencyP99: number;
+  // TPS latency metrics
+  tpsLatencyMean: number;
+  tpsLatencyP90: number;
+  tpsLatencyP95: number;
+  tpsLatencyP99: number;
+  // ITL latency metrics
+  itlLatencyMean: number;
+  itlLatencyP90: number;
+  itlLatencyP95: number;
+  itlLatencyP99: number;
+  // Token metrics
+  maxInputTokens: number;
+  maxOutputTokens: number;
+  meanInputTokens: number;
+  meanOutputTokens: number;
+  // Version information
+  vllmVersion: string;
+  guideLLMVersion: string;
+  rhaiisVersion: string;
 };
 
 export type HardwareConfigurationTableProps = {
