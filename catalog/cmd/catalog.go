@@ -17,11 +17,13 @@ import (
 )
 
 var catalogCfg = struct {
-	ListenAddress string
-	ConfigPath    []string
+	ListenAddress          string
+	ConfigPath             []string
+	PerformanceMetricsPath []string
 }{
-	ListenAddress: "0.0.0.0:8080",
-	ConfigPath:    []string{"sources.yaml"},
+	ListenAddress:          "0.0.0.0:8080",
+	ConfigPath:             []string{"sources.yaml"},
+	PerformanceMetricsPath: []string{},
 }
 
 var CatalogCmd = &cobra.Command{
@@ -38,6 +40,7 @@ func init() {
 	fs := CatalogCmd.Flags()
 	fs.StringVarP(&catalogCfg.ListenAddress, "listen", "l", catalogCfg.ListenAddress, "Address to listen on")
 	fs.StringSliceVar(&catalogCfg.ConfigPath, "catalogs-path", catalogCfg.ConfigPath, "Path to catalog source configuration file")
+	fs.StringSliceVar(&catalogCfg.PerformanceMetricsPath, "performance-metrics", catalogCfg.PerformanceMetricsPath, "Path to performance metrics data directory")
 }
 
 func runCatalogServer(cmd *cobra.Command, args []string) error {
@@ -66,11 +69,20 @@ func runCatalogServer(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("error loading catalog sources: %v", err)
 	}
 
+	modelRepo := getRepo[models.CatalogModelRepository](repoSet)
+	artifactRepo := getRepo[models.CatalogArtifactRepository](repoSet)
+	metricsArtifactRepo := getRepo[models.CatalogMetricsArtifactRepository](repoSet)
+
 	svc := openapi.NewModelCatalogServiceAPIService(catalog.NewDBCatalog(
-		getRepo[models.CatalogModelRepository](repoSet),
-		getRepo[models.CatalogArtifactRepository](repoSet),
+		modelRepo,
+		artifactRepo,
 	), sources)
 	ctrl := openapi.NewModelCatalogServiceAPIController(svc)
+
+	_, err = catalog.LoadPerformanceMetricsData(catalogCfg.PerformanceMetricsPath, modelRepo, metricsArtifactRepo, repoSet.TypeMap())
+	if err != nil {
+		return fmt.Errorf("error loading performance metrics data: %v", err)
+	}
 
 	glog.Infof("Catalog API server listening on %s", catalogCfg.ListenAddress)
 	return http.ListenAndServe(catalogCfg.ListenAddress, openapi.NewRouter(ctrl))
