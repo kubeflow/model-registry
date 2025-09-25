@@ -49,6 +49,8 @@ func applyCatalogModelListFilters(query *gorm.DB, listOptions *models.CatalogMod
 		query = query.Where("name LIKE ?", listOptions.Name)
 	} else if listOptions.ExternalID != nil {
 		query = query.Where("external_id = ?", listOptions.ExternalID)
+	} else if listOptions.SourceIDs != nil {
+		query = query.Where("source_id IN ?", listOptions.SourceIDs)
 	}
 	return query
 }

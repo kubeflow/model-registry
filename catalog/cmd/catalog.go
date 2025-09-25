@@ -3,9 +3,11 @@ package cmd
 import (
 	"fmt"
 	"net/http"
+	"reflect"
 
 	"github.com/golang/glog"
 	"github.com/kubeflow/model-registry/catalog/internal/catalog"
+	"github.com/kubeflow/model-registry/catalog/internal/db/models"
 	"github.com/kubeflow/model-registry/catalog/internal/db/service"
 	"github.com/kubeflow/model-registry/catalog/internal/server/openapi"
 	"github.com/kubeflow/model-registry/internal/datastore"
@@ -46,19 +48,33 @@ func runCatalogServer(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("error creating datastore: %w", err)
 	}
 
-	_, err = ds.Connect(service.DatastoreSpec())
+	repoSet, err := ds.Connect(service.DatastoreSpec())
 	if err != nil {
 		return fmt.Errorf("error initializing datastore: %v", err)
 	}
 
-	sources, err := catalog.LoadCatalogSources(catalogCfg.ConfigPath)
+	// Keeping this for now, as it could be useful to import data into the database
+	_, err = catalog.LoadCatalogSources(catalogCfg.ConfigPath)
 	if err != nil {
 		return fmt.Errorf("error loading catalog sources: %v", err)
 	}
 
-	svc := openapi.NewModelCatalogServiceAPIService(sources)
+	svc := openapi.NewModelCatalogServiceAPIService(catalog.NewDBCatalog(
+		getRepo[models.CatalogModelRepository](repoSet),
+		getRepo[models.CatalogModelArtifactRepository](repoSet),
+		getRepo[models.CatalogMetricsArtifactRepository](repoSet),
+	))
 	ctrl := openapi.NewModelCatalogServiceAPIController(svc)
 
 	glog.Infof("Catalog API server listening on %s", catalogCfg.ListenAddress)
 	return http.ListenAndServe(catalogCfg.ListenAddress, openapi.NewRouter(ctrl))
+}
+
+func getRepo[T any](repoSet datastore.RepoSet) T {
+	repo, err := repoSet.Repository(reflect.TypeFor[T]())
+	if err != nil {
+		panic(fmt.Sprintf("unable to get repository: %v", err))
+	}
+
+	return repo.(T)
 }

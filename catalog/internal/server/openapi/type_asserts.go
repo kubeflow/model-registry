@@ -36,6 +36,11 @@ func AssertBaseModelRequired(obj model.BaseModel) error {
 	return nil
 }
 
+// AssertBaseResourceConstraints checks if the values respects the defined constraints
+func AssertBaseResourceConstraints(obj model.BaseResource) error {
+	return nil
+}
+
 // AssertBaseResourceDatesConstraints checks if the values respects the defined constraints
 func AssertBaseResourceDatesConstraints(obj model.BaseResourceDates) error {
 	return nil
@@ -64,6 +69,11 @@ func AssertBaseResourceListRequired(obj model.BaseResourceList) error {
 		}
 	}
 
+	return nil
+}
+
+// AssertBaseResourceRequired checks if the required fields are not zero-ed
+func AssertBaseResourceRequired(obj model.BaseResource) error {
 	return nil
 }
 

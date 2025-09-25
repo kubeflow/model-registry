@@ -14,9 +14,19 @@ import (
 )
 
 type ListModelsParams struct {
-	Query     string
-	OrderBy   model.OrderByField
-	SortOrder model.SortOrder
+	Query         string
+	SourceIDs     []string
+	PageSize      int32
+	OrderBy       model.OrderByField
+	SortOrder     model.SortOrder
+	NextPageToken *string
+}
+
+type ListArtifactsParams struct {
+	PageSize      int32
+	OrderBy       model.OrderByField
+	SortOrder     model.SortOrder
+	NextPageToken *string
 }
 
 // CatalogSourceProvider is implemented by catalog source types, e.g. YamlCatalog
@@ -28,12 +38,13 @@ type CatalogSourceProvider interface {
 
 	// ListModels returns all models according to the parameters. If
 	// nothing suitable is found, it returns an empty list.
+	// If sourceIDs is provided, filter models by source IDs. If not provided, return all models.
 	ListModels(ctx context.Context, params ListModelsParams) (model.CatalogModelList, error)
 
 	// GetArtifacts returns all artifacts for a particular model. If no
 	// model is found with that name, it returns nil. If the model is
 	// found, but has no artifacts, an empty list is returned.
-	GetArtifacts(ctx context.Context, name string) (*model.CatalogArtifactList, error)
+	GetArtifacts(ctx context.Context, name string, params ListArtifactsParams) (model.CatalogArtifactList, error)
 }
 
 // CatalogSourceConfig is a single entry from the catalog sources YAML file.

@@ -3,11 +3,9 @@ package openapi
 import (
 	"context"
 	"errors"
-	"fmt"
-	"math"
 	"net/http"
 	"net/url"
-	"slices"
+	"strconv"
 	"strings"
 
 	"github.com/kubeflow/model-registry/catalog/internal/catalog"
@@ -18,21 +16,26 @@ import (
 // This service should implement the business logic for every endpoint for the ModelCatalogServiceAPI s.coreApi.
 // Include any external packages or services that will be required by this service.
 type ModelCatalogServiceAPIService struct {
-	sources *catalog.SourceCollection
+	provider catalog.CatalogSourceProvider
 }
 
 // GetAllModelArtifacts retrieves all model artifacts for a given model from the specified source.
-func (m *ModelCatalogServiceAPIService) GetAllModelArtifacts(ctx context.Context, sourceID string, name string) (ImplResponse, error) {
-	source, ok := m.sources.Get(sourceID)
-	if !ok {
-		return notFound("Unknown source"), nil
-	}
-
+func (m *ModelCatalogServiceAPIService) GetAllModelArtifacts(ctx context.Context, sourceID string, name string, pageSize string, orderBy model.OrderByField, sortOrder model.SortOrder, nextPageToken string) (ImplResponse, error) {
 	if newName, err := url.PathUnescape(name); err == nil {
 		name = newName
 	}
 
-	artifacts, err := source.Provider.GetArtifacts(ctx, name)
+	pageSizeInt, err := strconv.ParseInt(pageSize, 10, 32)
+	if err != nil {
+		return Response(http.StatusBadRequest, err), err
+	}
+
+	artifacts, err := m.provider.GetArtifacts(ctx, name, catalog.ListArtifactsParams{
+		PageSize:      int32(pageSizeInt),
+		OrderBy:       orderBy,
+		SortOrder:     sortOrder,
+		NextPageToken: &nextPageToken,
+	})
 	if err != nil {
 		return Response(http.StatusInternalServerError, err), err
 	}
@@ -40,52 +43,39 @@ func (m *ModelCatalogServiceAPIService) GetAllModelArtifacts(ctx context.Context
 	return Response(http.StatusOK, artifacts), nil
 }
 
-func (m *ModelCatalogServiceAPIService) FindModels(ctx context.Context, sourceID string, q string, pageSize string, orderBy model.OrderByField, sortOrder model.SortOrder, nextPageToken string) (ImplResponse, error) {
-	source, ok := m.sources.Get(sourceID)
-	if !ok {
-		return notFound("Unknown source"), errors.New("Unknown source")
-	}
-
-	p, err := newPaginator[model.CatalogModel](pageSize, orderBy, sortOrder, nextPageToken)
+func (m *ModelCatalogServiceAPIService) FindModels(ctx context.Context, sourceIDs []string, q string, pageSize string, orderBy model.OrderByField, sortOrder model.SortOrder, nextPageToken string) (ImplResponse, error) {
+	pageSizeInt, err := strconv.ParseInt(pageSize, 10, 32)
 	if err != nil {
-		return ErrorResponse(http.StatusBadRequest, err), err
+		return Response(http.StatusBadRequest, err), err
 	}
 
 	listModelsParams := catalog.ListModelsParams{
-		Query:     q,
-		OrderBy:   p.OrderBy,
-		SortOrder: p.SortOrder,
+		Query:         q,
+		SourceIDs:     sourceIDs,
+		PageSize:      int32(pageSizeInt),
+		OrderBy:       orderBy,
+		SortOrder:     sortOrder,
+		NextPageToken: &nextPageToken,
 	}
 
-	models, err := source.Provider.ListModels(ctx, listModelsParams)
+	models, err := m.provider.ListModels(ctx, listModelsParams)
 	if err != nil {
 		return ErrorResponse(http.StatusInternalServerError, err), err
 	}
-
-	page, next := p.Paginate(models.Items)
-
-	models.Items = page
-	models.PageSize = p.PageSize
-	models.NextPageToken = next.Token()
 
 	return Response(http.StatusOK, models), nil
 }
 
 func (m *ModelCatalogServiceAPIService) GetModel(ctx context.Context, sourceID string, name string) (ImplResponse, error) {
 	if name, ok := strings.CutSuffix(name, "/artifacts"); ok {
-		return m.GetAllModelArtifacts(ctx, sourceID, name)
-	}
-
-	source, ok := m.sources.Get(sourceID)
-	if !ok {
-		return notFound("Unknown source"), nil
+		return m.GetAllModelArtifacts(ctx, sourceID, name, "10", model.OrderByField(model.ORDERBYFIELD_CREATE_TIME), model.SortOrder(model.SORTORDER_ASC), "")
 	}
 
 	if newName, err := url.PathUnescape(name); err == nil {
 		name = newName
 	}
 
-	model, err := source.Provider.GetModel(ctx, name)
+	model, err := m.provider.GetModel(ctx, name)
 	if err != nil {
 		return Response(http.StatusInternalServerError, err), err
 	}
@@ -97,79 +87,54 @@ func (m *ModelCatalogServiceAPIService) GetModel(ctx context.Context, sourceID s
 }
 
 func (m *ModelCatalogServiceAPIService) FindSources(ctx context.Context, name string, strPageSize string, orderBy model.OrderByField, sortOrder model.SortOrder, nextPageToken string) (ImplResponse, error) {
-	sources := m.sources.All()
-	if len(sources) > math.MaxInt32 {
-		err := errors.New("too many registered models")
-		return ErrorResponse(http.StatusInternalServerError, err), err
-	}
+	// sources := m.sources.All()
+	// if len(sources) > math.MaxInt32 {
+	// 	err := errors.New("too many registered models")
+	// 	return ErrorResponse(http.StatusInternalServerError, err), err
+	// }
 
-	paginator, err := newPaginator[model.CatalogSource](strPageSize, orderBy, sortOrder, nextPageToken)
-	if err != nil {
-		return ErrorResponse(http.StatusBadRequest, err), err
-	}
+	// paginator, err := newPaginator[model.CatalogSource](strPageSize, orderBy, sortOrder, nextPageToken)
+	// if err != nil {
+	// 	return ErrorResponse(http.StatusBadRequest, err), err
+	// }
 
-	items := make([]model.CatalogSource, 0, len(sources))
+	// items := make([]model.CatalogSource, 0, len(sources))
 
-	name = strings.ToLower(name)
+	// name = strings.ToLower(name)
 
-	for _, v := range sources {
-		if !strings.Contains(strings.ToLower(v.Metadata.Name), name) {
-			continue
-		}
+	// for _, v := range sources {
+	// 	if !strings.Contains(strings.ToLower(v.Metadata.Name), name) {
+	// 		continue
+	// 	}
 
-		items = append(items, v.Metadata)
-	}
+	// 	items = append(items, v.Metadata)
+	// }
 
-	cmpFunc, err := genCatalogCmpFunc(orderBy, sortOrder)
-	if err != nil {
-		return ErrorResponse(http.StatusBadRequest, err), err
-	}
-	slices.SortStableFunc(items, cmpFunc)
+	// cmpFunc, err := genCatalogCmpFunc(orderBy, sortOrder)
+	// if err != nil {
+	// 	return ErrorResponse(http.StatusBadRequest, err), err
+	// }
+	// slices.SortStableFunc(items, cmpFunc)
 
-	total := int32(len(items))
+	// total := int32(len(items))
 
-	pagedItems, next := paginator.Paginate(items)
+	// pagedItems, next := paginator.Paginate(items)
 
-	res := model.CatalogSourceList{
-		PageSize:      paginator.PageSize,
-		Items:         pagedItems,
-		Size:          total,
-		NextPageToken: next.Token(),
-	}
-	return Response(http.StatusOK, res), nil
-}
-
-func genCatalogCmpFunc(orderBy model.OrderByField, sortOrder model.SortOrder) (func(model.CatalogSource, model.CatalogSource) int, error) {
-	multiplier := 1
-	switch model.SortOrder(strings.ToUpper(string(sortOrder))) {
-	case model.SORTORDER_DESC:
-		multiplier = -1
-	case model.SORTORDER_ASC, "":
-		multiplier = 1
-	default:
-		return nil, fmt.Errorf("unsupported sort order field")
-	}
-
-	switch model.OrderByField(strings.ToUpper(string(orderBy))) {
-	case model.ORDERBYFIELD_ID, "":
-		return func(a, b model.CatalogSource) int {
-			return multiplier * strings.Compare(a.Id, b.Id)
-		}, nil
-	case model.ORDERBYFIELD_NAME:
-		return func(a, b model.CatalogSource) int {
-			return multiplier * strings.Compare(a.Name, b.Name)
-		}, nil
-	default:
-		return nil, fmt.Errorf("unsupported order by field")
-	}
+	// res := model.CatalogSourceList{
+	// 	PageSize:      paginator.PageSize,
+	// 	Items:         pagedItems,
+	// 	Size:          total,
+	// 	NextPageToken: next.Token(),
+	// }
+	return Response(http.StatusOK, model.CatalogSourceList{}), nil
 }
 
 var _ ModelCatalogServiceAPIServicer = &ModelCatalogServiceAPIService{}
 
 // NewModelCatalogServiceAPIService creates a default api service
-func NewModelCatalogServiceAPIService(sources *catalog.SourceCollection) ModelCatalogServiceAPIServicer {
+func NewModelCatalogServiceAPIService(provider catalog.CatalogSourceProvider) ModelCatalogServiceAPIServicer {
 	return &ModelCatalogServiceAPIService{
-		sources: sources,
+		provider: provider,
 	}
 }
 
