@@ -35,7 +35,7 @@ func TestYAMLCatalogGetArtifacts(t *testing.T) {
 	provider := testYAMLProvider(t, "testdata/test-yaml-catalog.yaml")
 
 	// Test case 1: Model with artifacts
-	artifacts, err := provider.GetArtifacts(context.Background(), "rhelai1/granite-8b-code-base")
+	artifacts, err := provider.GetArtifacts(context.Background(), "rhelai1/granite-8b-code-base", ListArtifactsParams{})
 	if assert.NoError(err) {
 		assert.NotNil(artifacts)
 		assert.Equal(int32(2), artifacts.Size)
@@ -52,7 +52,7 @@ func TestYAMLCatalogGetArtifacts(t *testing.T) {
 	}
 
 	// Test case 2: Model with no artifacts
-	noArtifactsModel, err := provider.GetArtifacts(context.Background(), "model-with-no-artifacts")
+	noArtifactsModel, err := provider.GetArtifacts(context.Background(), "model-with-no-artifacts", ListArtifactsParams{})
 	if assert.NoError(err) {
 		assert.NotNil(noArtifactsModel)
 		assert.Equal(int32(0), noArtifactsModel.Size)
@@ -61,7 +61,7 @@ func TestYAMLCatalogGetArtifacts(t *testing.T) {
 	}
 
 	// Test case 3: Model not found
-	notFoundArtifacts, err := provider.GetArtifacts(context.Background(), "non-existent-model")
+	notFoundArtifacts, err := provider.GetArtifacts(context.Background(), "non-existent-model", ListArtifactsParams{})
 	assert.NoError(err)
 	assert.Nil(notFoundArtifacts)
 }

@@ -1676,35 +1676,6 @@ components:
           dataset-artifact: "#/components/schemas/DataSetUpdate"
           metric: "#/components/schemas/MetricUpdate"
           parameter: "#/components/schemas/ParameterUpdate"
-    BaseResource:
-      allOf:
-        - type: object
-          properties:
-            customProperties:
-              description: User provided custom properties which are not defined by its type.
-              type: object
-              additionalProperties:
-                $ref: "#/components/schemas/MetadataValue"
-            description:
-              description: |-
-                An optional description about the resource.
-              type: string
-            externalId:
-              description: |-
-                The external id that come from the clients’ system. This field is optional.
-                If set, it must be unique among all resources within a database instance.
-              type: string
-            name:
-              description: |-
-                The client provided name of the artifact. This field is optional. If set,
-                it must be unique among all the artifacts of the same artifact type within
-                a database instance and cannot be changed once set.
-              type: string
-            id:
-              format: int64
-              description: The unique server generated id of the resource.
-              type: string
-        - $ref: "#/components/schemas/BaseResourceDates"
     BaseResourceCreate:
       type: object
       properties:

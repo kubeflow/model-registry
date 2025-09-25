@@ -159,13 +159,13 @@ func (y *yamlCatalogImpl) ListModels(ctx context.Context, params ListModelsParam
 	return list, nil // Return the struct value directly
 }
 
-func (y *yamlCatalogImpl) GetArtifacts(ctx context.Context, name string) (*model.CatalogArtifactList, error) {
+func (y *yamlCatalogImpl) GetArtifacts(ctx context.Context, name string, params ListArtifactsParams) (model.CatalogArtifactList, error) {
 	y.modelsLock.RLock()
 	defer y.modelsLock.RUnlock()
 
 	ym := y.models[name]
 	if ym == nil {
-		return nil, nil
+		return model.CatalogArtifactList{}, nil
 	}
 
 	count := len(ym.Artifacts)
@@ -181,7 +181,7 @@ func (y *yamlCatalogImpl) GetArtifacts(ctx context.Context, name string) (*model
 	for i := range list.Items {
 		list.Items[i] = ym.Artifacts[i].CatalogArtifact
 	}
-	return &list, nil
+	return list, nil
 }
 
 func isModelExcluded(modelName string, patterns []string) bool {
