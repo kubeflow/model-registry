@@ -1,11 +1,13 @@
 package catalog
 
 import (
+	"bufio"
 	"encoding/json"
 	"fmt"
 	"math"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/golang/glog"
 	dbmodels "github.com/kubeflow/model-registry/catalog/internal/db/models"
@@ -79,6 +81,29 @@ func parseMetadataJSON(data []byte) (metadataJSON, error) {
 	metadata.CustomProperties = customProperties
 
 	return metadata, nil
+}
+
+// evaluationRecord represents a single evaluation result from evaluations.ndjson
+// Only minimal fields needed for association are explicitly defined
+// evaluationRecords will be merged into a single accuracy-metrics artifact
+type evaluationRecord struct {
+	// Core fields needed to associate evaluation with model
+	ModelID   string `json:"model_id"`
+	Benchmark string `json:"benchmark"`
+
+	// CustomProperties captures all other fields dynamically
+	CustomProperties map[string]interface{} `json:"-"`
+}
+
+// performanceRecord represents a single performance result from performance.ndjson
+// Only minimal fields needed for association are explicitly defined
+type performanceRecord struct {
+	// Core fields needed to associate performance data with model
+	ID      string `json:"id"`
+	ModelID string `json:"model_id"`
+
+	// CustomProperties captures all other fields dynamically
+	CustomProperties map[string]interface{} `json:"-"`
 }
 
 // LoadPerformanceMetricsData loads performance metrics data from the specified directory
@@ -181,9 +206,25 @@ func processModelDirectory(dirPath string, modelRepo dbmodels.CatalogModelReposi
 	}
 
 	// Create and save the catalog model
-	_, err = createAndSaveModel(metadata, dirPath, modelTypeID, modelRepo)
+	savedModel, err := createAndSaveModel(metadata, dirPath, modelTypeID, modelRepo)
 	if err != nil {
 		return fmt.Errorf("failed to create/save model: %v", err)
+	}
+
+	// Process evaluation metrics if evaluations.ndjson exists and create separate metric artifacts
+	evaluationsPath := filepath.Join(dirPath, "evaluations.ndjson")
+	if _, err := os.Stat(evaluationsPath); err == nil {
+		if err := processEvaluationArtifacts(evaluationsPath, *savedModel.GetID(), metricsArtifactRepo, metricsArtifactTypeID); err != nil {
+			glog.Errorf("Failed to process evaluation artifacts for %s: %v", metadata.ID, err)
+		}
+	}
+
+	// Process performance metrics if performance.ndjson exists
+	performancePath := filepath.Join(dirPath, "performance.ndjson")
+	if _, err := os.Stat(performancePath); err == nil {
+		if err := processPerformanceArtifacts(performancePath, *savedModel.GetID(), metricsArtifactRepo, metricsArtifactTypeID); err != nil {
+			glog.Errorf("Failed to process performance artifacts for %s: %v", metadata.ID, err)
+		}
 	}
 
 	return nil
@@ -385,6 +426,290 @@ func createDBModelFromMetadata(metadata metadataJSON, dirPath string, typeID int
 	}
 
 	return model
+}
+
+// processEvaluationArtifacts processes evaluation metrics from evaluations.ndjson and creates a single accuracy-metrics artifact
+func processEvaluationArtifacts(filePath string, modelID int32, metricsArtifactRepo dbmodels.CatalogMetricsArtifactRepository, metricsArtifactTypeID int32) error {
+	file, err := os.Open(filePath)
+	if err != nil {
+		return fmt.Errorf("failed to open evaluation file %s: %v", filePath, err)
+	}
+	defer file.Close()
+
+	scanner := bufio.NewScanner(file)
+	evaluationRecords := []evaluationRecord{}
+
+	// Read all evaluation records
+	for scanner.Scan() {
+		line := scanner.Text()
+		if strings.TrimSpace(line) == "" {
+			continue
+		}
+
+		var evalRecord evaluationRecord
+		if err := json.Unmarshal([]byte(line), &evalRecord); err != nil {
+			glog.Errorf("Failed to parse evaluation record: %v", err)
+			continue
+		}
+
+		evaluationRecords = append(evaluationRecords, evalRecord)
+	}
+
+	if err := scanner.Err(); err != nil {
+		return fmt.Errorf("error reading evaluation file: %v", err)
+	}
+
+	if len(evaluationRecords) == 0 {
+		glog.V(2).Infof("No evaluations found in %s", filePath)
+		return nil
+	}
+
+	// Use a consistent external_id for the accuracy metrics artifact
+	externalID := fmt.Sprintf("accuracy-metrics-model-%d", modelID)
+
+	// Check if artifact with this external_id already exists
+	existingArtifacts, err := metricsArtifactRepo.List(dbmodels.CatalogMetricsArtifactListOptions{
+		ExternalID: &externalID,
+	})
+	if err != nil {
+		return fmt.Errorf("failed to check for existing accuracy metrics artifact: %v", err)
+	}
+
+	// Pass existing artifact info to create function if it exists
+	var existingID *int32
+	var existingCreateTime *int64
+	if existingArtifacts.Size > 0 {
+		existingArtifact := existingArtifacts.Items[0]
+		existingID = existingArtifact.GetID()
+		if existingArtifact.GetAttributes().CreateTimeSinceEpoch != nil {
+			existingCreateTime = existingArtifact.GetAttributes().CreateTimeSinceEpoch
+		}
+		glog.V(2).Infof("Updating existing accuracy metrics artifact with ID %d", *existingID)
+	} else {
+		glog.V(2).Infof("Creating new accuracy metrics artifact")
+	}
+
+	// Create artifact with existing ID if updating
+	artifact := createAccuracyMetricsArtifact(evaluationRecords, modelID, metricsArtifactTypeID, existingID, existingCreateTime)
+
+	// Save artifact to database
+	if _, err := metricsArtifactRepo.Save(artifact, &modelID); err != nil {
+		return fmt.Errorf("failed to save accuracy metrics artifact: %v", err)
+	}
+
+	glog.V(2).Infof("Processed accuracy metrics artifact with %d evaluations from %s", len(evaluationRecords), filePath)
+	return nil
+}
+
+// processPerformanceArtifacts processes performance metrics from performance.ndjson
+func processPerformanceArtifacts(filePath string, modelID int32, metricsArtifactRepo dbmodels.CatalogMetricsArtifactRepository, metricsArtifactTypeID int32) error {
+	file, err := os.Open(filePath)
+	if err != nil {
+		return fmt.Errorf("failed to open performance file %s: %v", filePath, err)
+	}
+	defer file.Close()
+
+	scanner := bufio.NewScanner(file)
+	artifactCount := 0
+
+	for scanner.Scan() {
+		line := scanner.Text()
+		if strings.TrimSpace(line) == "" {
+			continue
+		}
+
+		var perfRecord performanceRecord
+		if err := json.Unmarshal([]byte(line), &perfRecord); err != nil {
+			glog.Errorf("Failed to parse performance record: %v", err)
+			continue
+		}
+
+		// Check if artifact with this external_id already exists
+		listOptions := dbmodels.CatalogMetricsArtifactListOptions{
+			ExternalID: &perfRecord.ID,
+		}
+		existingArtifacts, err := metricsArtifactRepo.List(listOptions)
+		if err != nil {
+			glog.Errorf("Failed to check for existing performance artifact: %v", err)
+			continue
+		}
+
+		// Pass existing artifact info to create function if it exists
+		var existingID *int32
+		var existingCreateTime *int64
+		if existingArtifacts.Size > 0 {
+			existingArtifact := existingArtifacts.Items[0]
+			existingID = existingArtifact.GetID()
+			if existingArtifact.GetAttributes().CreateTimeSinceEpoch != nil {
+				existingCreateTime = existingArtifact.GetAttributes().CreateTimeSinceEpoch
+			}
+			glog.V(2).Infof("Updating existing performance artifact %s with ID %d", perfRecord.ID, *existingID)
+		} else {
+			glog.V(2).Infof("Creating new performance artifact %s", perfRecord.ID)
+		}
+
+		// Create artifact with existing ID if updating
+		artifact := createPerformanceArtifact(perfRecord, modelID, metricsArtifactTypeID, existingID, existingCreateTime)
+
+		// Save artifact to database
+		if _, err := metricsArtifactRepo.Save(artifact, &modelID); err != nil {
+			glog.Errorf("Failed to save performance artifact: %v", err)
+			continue
+		}
+
+		artifactCount++
+	}
+
+	if err := scanner.Err(); err != nil {
+		return fmt.Errorf("error reading performance file: %v", err)
+	}
+
+	glog.V(2).Infof("Processed %d performance artifacts from %s", artifactCount, filePath)
+	return nil
+}
+
+// createAccuracyMetricsArtifact creates a single metrics artifact from all evaluation records
+func createAccuracyMetricsArtifact(evalRecords []evaluationRecord, modelID int32, typeID int32, existingID *int32, existingCreateTime *int64) *dbmodels.CatalogMetricsArtifactImpl {
+	artifactName := fmt.Sprintf("accuracy-metrics-model-%d", modelID)
+	externalID := fmt.Sprintf("accuracy-metrics-model-%d", modelID)
+
+	// Use existing create time if provided, otherwise find from evaluation records
+	createTime := existingCreateTime
+	var updateTime *int64
+
+	for _, evalRecord := range evalRecords {
+		if existingCreateTime == nil {
+			if createdAtFloat, ok := evalRecord.CustomProperties["created_at"].(float64); ok {
+				createdAt := int64(createdAtFloat)
+				if createTime == nil || createdAt < *createTime {
+					createTime = &createdAt
+				}
+			}
+		}
+		if updatedAtFloat, ok := evalRecord.CustomProperties["updated_at"].(float64); ok {
+			updatedAt := int64(updatedAtFloat)
+			if updateTime == nil || updatedAt > *updateTime {
+				updateTime = &updatedAt
+			}
+		}
+	}
+
+	// Properties can be empty or contain general metadata
+	properties := []models.Properties{}
+
+	// Create custom properties - simple mapping of benchmark_name to score_value
+	customProperties := []models.Properties{}
+
+	for _, evalRecord := range evalRecords {
+		// Add the benchmark score as a named property (e.g., "aime24": 63.3333)
+		if score, ok := evalRecord.CustomProperties["score"].(float64); ok {
+			customProperties = append(customProperties, models.Properties{
+				Name:        evalRecord.Benchmark,
+				DoubleValue: &score,
+			})
+		}
+	}
+
+	// Create the metrics artifact with metricsType set to accuracy-metrics
+	metricsArtifact := &dbmodels.CatalogMetricsArtifactImpl{
+		ID:     existingID, // Use existing ID if updating
+		TypeID: &typeID,
+		Attributes: &dbmodels.CatalogMetricsArtifactAttributes{
+			Name:                     &artifactName,
+			ExternalID:               &externalID,
+			CreateTimeSinceEpoch:     createTime,
+			LastUpdateTimeSinceEpoch: updateTime,
+			MetricsType:              dbmodels.MetricsTypeAccuracy,
+		},
+		Properties:       &properties,
+		CustomProperties: &customProperties,
+	}
+
+	return metricsArtifact
+}
+
+// createPerformanceArtifact creates a metrics artifact from performance record
+func createPerformanceArtifact(perfRecord performanceRecord, modelID int32, typeID int32, existingID *int32, existingCreateTime *int64) *dbmodels.CatalogMetricsArtifactImpl {
+	// Extract key values from custom properties for artifact naming
+	useCase, _ := perfRecord.CustomProperties["use_case"].(string)
+	hardwareType, _ := perfRecord.CustomProperties["hardware_type"].(string)
+	harwardCount, _ := perfRecord.CustomProperties["hardware_count"].(int64)
+	if useCase == "" {
+		useCase = "unknown"
+	}
+	if hardwareType == "" {
+		hardwareType = "unknown"
+	}
+	if harwardCount == 0 {
+		harwardCount = 1
+	}
+	// Create artifact name (must be unique per artifact)
+	artifactName := fmt.Sprintf("performance-%s-%s-%d-%s", useCase, hardwareType, harwardCount, perfRecord.ID)
+
+	// Use existing create time if provided, otherwise extract from custom properties
+	createTime := existingCreateTime
+	var updateTime *int64
+
+	if existingCreateTime == nil {
+		if createdAtFloat, ok := perfRecord.CustomProperties["created_at"].(float64); ok {
+			createdAt := int64(createdAtFloat)
+			createTime = &createdAt
+		}
+	}
+	if updatedAtFloat, ok := perfRecord.CustomProperties["updated_at"].(float64); ok {
+		updatedAt := int64(updatedAtFloat)
+		updateTime = &updatedAt
+	}
+
+	// Properties can be empty - all data goes in custom properties
+	properties := []models.Properties{}
+
+	// Create custom properties - simple mapping of all performance data
+	customProperties := []models.Properties{}
+
+	// Add all fields from the performance record as custom properties
+	for key, value := range perfRecord.CustomProperties {
+		prop := models.Properties{Name: key}
+
+		// Handle different value types
+		switch v := value.(type) {
+		case string:
+			prop.StringValue = &v
+		case float64:
+			prop.DoubleValue = &v
+		case int64:
+			intVal := int32(v)
+			prop.IntValue = &intVal
+		case int:
+			intVal := int32(v)
+			prop.IntValue = &intVal
+		case bool:
+			prop.BoolValue = &v
+		default:
+			// Convert other types to string representation
+			strVal := fmt.Sprintf("%v", v)
+			prop.StringValue = &strVal
+		}
+
+		customProperties = append(customProperties, prop)
+	}
+
+	// Create the metrics artifact with metricsType set to performance-metrics
+	metricsArtifact := &dbmodels.CatalogMetricsArtifactImpl{
+		ID:     existingID, // Use existing ID if updating
+		TypeID: &typeID,
+		Attributes: &dbmodels.CatalogMetricsArtifactAttributes{
+			Name:                     &artifactName,
+			ExternalID:               &perfRecord.ID,
+			CreateTimeSinceEpoch:     createTime,
+			LastUpdateTimeSinceEpoch: updateTime,
+			MetricsType:              dbmodels.MetricsTypePerformance,
+		},
+		Properties:       &properties,
+		CustomProperties: &customProperties,
+	}
+
+	return metricsArtifact
 }
 
 // stringPtr is a helper function to create a pointer to a string
