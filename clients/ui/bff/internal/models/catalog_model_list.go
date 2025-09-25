@@ -5,21 +5,21 @@ import (
 )
 
 type CatalogModel struct {
-	CreateTimeSinceEpoch     *string                            `json:"createTimeSinceEpoch,omitempty"`
-	CustomProperties         *map[string]*openapi.MetadataValue `json:"customProperties,omitempty"`
-	Description              *string                            `json:"description,omitempty"`
-	Language                 []string                           `json:"language,omitempty"`
-	LastUpdateTimeSinceEpoch *string                            `json:"lastUpdateTimeSinceEpoch,omitempty"`
-	LibraryName              *string                            `json:"libraryName,omitempty"`
-	License                  *string                            `json:"license,omitempty"`
-	LicenseLink              *string                            `json:"licenseLink,omitempty"`
-	Logo                     *string                            `json:"logo,omitempty"`
-	Maturity                 *string                            `json:"maturity,omitempty"`
-	Name                     string                             `json:"name"`
-	Provider                 *string                            `json:"provider,omitempty"`
-	Readme                   *string                            `json:"readme,omitempty"`
-	SourceId                 *string                            `json:"sourceId,omitempty"`
-	Tasks                    []string                           `json:"tasks,omitempty"`
+	CreateTimeSinceEpoch     *string                           `json:"createTimeSinceEpoch,omitempty"`
+	CustomProperties         *map[string]openapi.MetadataValue `json:"customProperties,omitempty"`
+	Description              *string                           `json:"description,omitempty"`
+	Language                 []string                          `json:"language,omitempty"`
+	LastUpdateTimeSinceEpoch *string                           `json:"lastUpdateTimeSinceEpoch,omitempty"`
+	LibraryName              *string                           `json:"libraryName,omitempty"`
+	License                  *string                           `json:"license,omitempty"`
+	LicenseLink              *string                           `json:"licenseLink,omitempty"`
+	Logo                     *string                           `json:"logo,omitempty"`
+	Maturity                 *string                           `json:"maturity,omitempty"`
+	Name                     string                            `json:"name"`
+	Provider                 *string                           `json:"provider,omitempty"`
+	Readme                   *string                           `json:"readme,omitempty"`
+	SourceId                 *string                           `json:"sourceId,omitempty"`
+	Tasks                    []string                          `json:"tasks,omitempty"`
 }
 
 type CatalogModelList struct {
@@ -27,4 +27,21 @@ type CatalogModelList struct {
 	PageSize      int32          `json:"pageSize"`
 	Size          int32          `json:"size"`
 	Items         []CatalogModel `json:"items"`
+}
+
+type FilterRange struct {
+	Max *int64 `json:"max,omitempty"`
+	Min *int64 `json:"min,omitempty"`
+}
+
+type FilterOption struct {
+	Range  *FilterRange     `json:"range,omitempty"`
+	Type   FilterOptionType `json:"type"`
+	Values *[]interface{}   `json:"values,omitempty"`
+}
+
+type FilterOptionType string
+
+type FilterOptionsList struct {
+	Filters *map[string]FilterOption `json:"filters,omitempty"`
 }

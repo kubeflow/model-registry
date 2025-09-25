@@ -16,25 +16,30 @@ import {
 import { OutlinedClockIcon } from '@patternfly/react-icons';
 import { InlineTruncatedClipboardCopy } from 'mod-arch-shared';
 import text from '@patternfly/react-styles/css/utilities/Text/text';
-import { CatalogModel, CatalogModelDetailsParams } from '~/app/modelCatalogTypes';
-import { useCatalogModelArtifacts } from '~/app/hooks/modelCatalog/useCatalogModelArtifacts';
+import { CatalogArtifactList, CatalogModel } from '~/app/modelCatalogTypes';
 import { getLabels } from '~/app/pages/modelRegistry/screens/utils';
 import ModelCatalogLabels from '~/app/pages/modelCatalog/components/ModelCatalogLabels';
 import ExternalLink from '~/app/shared/components/ExternalLink';
 import MarkdownComponent from '~/app/shared/markdown/MarkdownComponent';
 import ModelTimestamp from '~/app/pages/modelRegistry/screens/components/ModelTimestamp';
+import {
+  getModelArtifactUri,
+  hasModelArtifacts,
+} from '~/app/pages/modelCatalog/utils/modelCatalogUtils';
 
 type ModelDetailsViewProps = {
   model: CatalogModel;
-  decodedParams: CatalogModelDetailsParams;
+  artifacts: CatalogArtifactList;
+  artifactLoaded: boolean;
+  artifactsLoadError: Error | undefined;
 };
 
-const ModelDetailsView: React.FC<ModelDetailsViewProps> = ({ model, decodedParams }) => {
-  const [artifacts, artifactLoaded, artifactsLoadError] = useCatalogModelArtifacts(
-    decodedParams.sourceId || '',
-    encodeURIComponent(`${decodedParams.modelName}`),
-  );
-
+const ModelDetailsView: React.FC<ModelDetailsViewProps> = ({
+  model,
+  artifacts,
+  artifactLoaded,
+  artifactsLoadError,
+}) => {
   // Extract all labels from customProperties
   const allLabels = model.customProperties ? getLabels(model.customProperties) : [];
 
@@ -88,10 +93,10 @@ const ModelDetailsView: React.FC<ModelDetailsViewProps> = ({ model, decodedParam
                 </Alert>
               ) : !artifactLoaded ? (
                 <Spinner size="sm" />
-              ) : artifacts.items.length > 0 ? (
+              ) : artifacts.items.length > 0 && hasModelArtifacts(artifacts.items) ? (
                 <InlineTruncatedClipboardCopy
                   testId="source-image-location"
-                  textToCopy={artifacts.items.map((artifact) => artifact.uri)[0] || ''}
+                  textToCopy={getModelArtifactUri(artifacts.items) || ''}
                 />
               ) : (
                 <p className={text.textColorDisabled}>No artifacts available</p>

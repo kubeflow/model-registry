@@ -1,18 +1,9 @@
 import * as React from 'react';
 import { Tabs, Tab, TabTitleText, PageSection } from '@patternfly/react-core';
-import { CatalogModel, CatalogModelDetailsParams } from '~/app/modelCatalogTypes';
-import { getLabels } from '~/app/pages/modelRegistry/screens/utils';
+import { CatalogArtifactList, CatalogModel } from '~/app/modelCatalogTypes';
+import { isModelValidated } from '~/app/pages/modelCatalog/utils/modelCatalogUtils';
 import ModelDetailsView from './ModelDetailsView';
 import PerformanceInsightsView from './PerformanceInsightsView';
-
-// Utility function to check if a model is validated
-const isModelValidated = (model: CatalogModel): boolean => {
-  if (!model.customProperties) {
-    return false;
-  }
-  const labels = getLabels(model.customProperties);
-  return labels.includes('validated');
-};
 
 export enum ModelDetailsTab {
   OVERVIEW = 'overview',
@@ -26,10 +17,17 @@ export enum ModelDetailsTabTitle {
 
 type ModelDetailsTabsProps = {
   model: CatalogModel;
-  decodedParams: CatalogModelDetailsParams;
+  artifacts: CatalogArtifactList;
+  artifactLoaded: boolean;
+  artifactsLoadError: Error | undefined;
 };
 
-const ModelDetailsTabs = ({ model, decodedParams }: ModelDetailsTabsProps): React.JSX.Element => {
+const ModelDetailsTabs = ({
+  model,
+  artifacts,
+  artifactLoaded,
+  artifactsLoadError,
+}: ModelDetailsTabsProps): React.JSX.Element => {
   const [activeTabKey, setActiveTabKey] = React.useState<ModelDetailsTab>(ModelDetailsTab.OVERVIEW);
   const isValidated = isModelValidated(model);
 
@@ -47,7 +45,12 @@ const ModelDetailsTabs = ({ model, decodedParams }: ModelDetailsTabsProps): Reac
   if (!isValidated) {
     return (
       <PageSection hasBodyWrapper={false} isFilled data-testid="model-overview-tab-content">
-        <ModelDetailsView model={model} decodedParams={decodedParams} />
+        <ModelDetailsView
+          model={model}
+          artifacts={artifacts}
+          artifactLoaded={artifactLoaded}
+          artifactsLoadError={artifactsLoadError}
+        />
       </PageSection>
     );
   }
@@ -67,7 +70,12 @@ const ModelDetailsTabs = ({ model, decodedParams }: ModelDetailsTabsProps): Reac
         data-testid="model-overview-tab"
       >
         <PageSection hasBodyWrapper={false} isFilled data-testid="model-overview-tab-content">
-          <ModelDetailsView model={model} decodedParams={decodedParams} />
+          <ModelDetailsView
+            model={model}
+            artifacts={artifacts}
+            artifactLoaded={artifactLoaded}
+            artifactsLoadError={artifactsLoadError}
+          />
         </PageSection>
       </Tab>
       <Tab
