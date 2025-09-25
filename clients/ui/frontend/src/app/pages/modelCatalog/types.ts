@@ -1,15 +1,14 @@
 export type ModelCatalogFilterResponseType = {
-  filters: Record<string, ModelCatalogFilterCategoryResponseType>;
+  filters: Record<string, ModelCatalogFilterCategoryType | undefined>;
 };
 
-export type ModelCatalogFiltersType = Record<string, ModelCatalogFilterCategoryType>;
+export type ModelCatalogFilterCategoryType = ModelCatalogStringFilterType;
 
-export type ModelCatalogFilterCategoryResponseType = {
-  type: string;
+export type ModelCatalogFilterDataType = Record<string, ModelCatalogStringFilterStateType>;
+
+export type ModelCatalogStringFilterType = {
+  type: 'string';
   values: string[];
 };
 
-export type ModelCatalogFilterCategoryType = {
-  type: string;
-  values: Record<string, boolean>;
-};
+export type ModelCatalogStringFilterStateType = Record<string, boolean>;

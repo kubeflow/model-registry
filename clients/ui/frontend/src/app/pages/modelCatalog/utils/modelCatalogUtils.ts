@@ -6,11 +6,7 @@ import {
   CatalogSourceList,
 } from '~/app/modelCatalogTypes';
 import { getLabels } from '~/app/pages/modelRegistry/screens/utils';
-import {
-  ModelCatalogFilterCategoryResponseType,
-  ModelCatalogFilterCategoryType,
-  ModelCatalogFilterResponseType,
-} from '~/app/pages/modelCatalog/types';
+import { ModelCatalogFilterResponseType } from '~/app/pages/modelCatalog/types';
 
 export const extractVersionTag = (tags?: string[]): string | undefined =>
   tags?.find((tag) => /^\d+\.\d+\.\d+$/.test(tag));
@@ -84,6 +80,10 @@ export const isModelValidated = (model: CatalogModel): boolean => {
 
 export const getModelCatalogFilters = (): ModelCatalogFilterResponseType => ({
   filters: {
+    task: {
+      type: 'string',
+      values: ['task1', 'task2', 'task3'],
+    },
     license: {
       type: 'string',
       values: ['apache-2.0'],
@@ -96,18 +96,5 @@ export const getModelCatalogFilters = (): ModelCatalogFilterResponseType => ({
       type: 'string',
       values: ['ar', 'cs', 'de', 'en', 'es', 'fr', 'it', 'ja', 'ko', 'nl', 'pt', 'zh'],
     },
-  },
+  } satisfies ModelCatalogFilterResponseType['filters'],
 });
-
-export const processModelCatalogFilters = (
-  filters: Record<string, ModelCatalogFilterCategoryResponseType>,
-): Record<string, ModelCatalogFilterCategoryType> =>
-  Object.fromEntries(
-    Object.entries(filters).map(([key, value]) => [
-      key,
-      {
-        type: value.type,
-        values: Object.fromEntries(value.values.map((val) => [val, false])),
-      },
-    ]),
-  );

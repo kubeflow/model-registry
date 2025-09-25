@@ -1,27 +1,31 @@
 import * as React from 'react';
-import useGenericObjectState from 'mod-arch-core/dist/utilities/useGenericObjectState';
-import type { ModelCatalogFiltersType } from '~/app/pages/modelCatalog/types';
-import {
-  getModelCatalogFilters,
-  processModelCatalogFilters,
-} from '~/app/pages/modelCatalog/utils/modelCatalogUtils';
-import ModelCatalogFilterCategory from './ModelCatalogFilterCategory';
+import { Stack, StackItem, Divider } from '@patternfly/react-core';
+import { getModelCatalogFilters } from '~/app/pages/modelCatalog/utils/modelCatalogUtils';
+import TaskFilter from './globalFilters/TaskFilter';
+import ProviderFilter from './globalFilters/ProviderFilter';
+import LicenseFilter from './globalFilters/LicenseFilter';
+import LanguageFilter from './globalFilters/LanguageFilter';
 
 const ModelCatalogFilters: React.FC = () => {
   const { filters } = getModelCatalogFilters();
-  const [data, setData] = useGenericObjectState<ModelCatalogFiltersType>(
-    processModelCatalogFilters(filters),
-  );
   return (
-    <div data-testid="model-catalog-filters">
-      {Object.entries(data).map(([key, value]) => (
-        <ModelCatalogFilterCategory
-          key={key}
-          filters={value}
-          setData={(property, checked) => setData(key, { ...value, [property]: checked })}
-        />
-      ))}
-    </div>
+    <Stack hasGutter>
+      <StackItem>
+        <TaskFilter filters={filters} />
+      </StackItem>
+      <Divider />
+      <StackItem>
+        <ProviderFilter filters={filters} />
+      </StackItem>
+      <Divider />
+      <StackItem>
+        <LicenseFilter filters={filters} />
+      </StackItem>
+      <Divider />
+      <StackItem>
+        <LanguageFilter filters={filters} />
+      </StackItem>
+    </Stack>
   );
 };
 

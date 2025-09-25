@@ -1,10 +1,12 @@
-import { useQueryParamNamespaces } from 'mod-arch-core';
+import { useQueryParamNamespaces, UpdateObjectAtPropAndValue } from 'mod-arch-core';
+import useGenericObjectState from 'mod-arch-core/dist/utilities/useGenericObjectState';
 import * as React from 'react';
 import { useCatalogSources } from '~/app/hooks/modelCatalog/useCatalogSources';
 import useModelCatalogAPIState, {
   ModelCatalogAPIState,
 } from '~/app/hooks/modelCatalog/useModelCatalogAPIState';
 import { CatalogSource, CatalogSourceList } from '~/app/modelCatalogTypes';
+import { ModelCatalogFilterDataType } from '~/app/pages/modelCatalog/types';
 import { BFF_API_VERSION, URL_PREFIX } from '~/app/utilities/const';
 
 export type ModelCatalogContextType = {
@@ -15,6 +17,8 @@ export type ModelCatalogContextType = {
   updateSelectedSource: (modelRegistry: CatalogSource | undefined) => void;
   apiState: ModelCatalogAPIState;
   refreshAPIState: () => void;
+  filterData: ModelCatalogFilterDataType;
+  setFilterData: UpdateObjectAtPropAndValue<ModelCatalogFilterDataType>;
 };
 
 type ModelCatalogContextProviderProps = {
@@ -26,10 +30,12 @@ export const ModelCatalogContext = React.createContext<ModelCatalogContextType>(
   catalogSourcesLoadError: undefined,
   catalogSources: null,
   selectedSource: undefined,
+  filterData: {},
   updateSelectedSource: () => undefined,
   // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
   apiState: { apiAvailable: false, api: null as unknown as ModelCatalogAPIState['api'] },
   refreshAPIState: () => undefined,
+  setFilterData: () => undefined,
 });
 
 export const ModelCatalogContextProvider: React.FC<ModelCatalogContextProviderProps> = ({
@@ -41,6 +47,7 @@ export const ModelCatalogContextProvider: React.FC<ModelCatalogContextProviderPr
   const [catalogSources, isLoaded, error] = useCatalogSources(apiState);
   const [selectedSource, setSelectedSource] =
     React.useState<ModelCatalogContextType['selectedSource']>(undefined);
+  const [filterData, setFilterData] = useGenericObjectState<ModelCatalogFilterDataType>({});
 
   const contextValue = React.useMemo(
     () => ({
@@ -51,8 +58,19 @@ export const ModelCatalogContextProvider: React.FC<ModelCatalogContextProviderPr
       updateSelectedSource: setSelectedSource,
       apiState,
       refreshAPIState,
+      filterData,
+      setFilterData,
     }),
-    [isLoaded, error, catalogSources, selectedSource, apiState, refreshAPIState],
+    [
+      isLoaded,
+      error,
+      catalogSources,
+      selectedSource,
+      apiState,
+      refreshAPIState,
+      filterData,
+      setFilterData,
+    ],
   );
 
   return (
