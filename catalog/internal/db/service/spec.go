@@ -13,7 +13,7 @@ const (
 func DatastoreSpec() *datastore.Spec {
 	return datastore.NewSpec().
 		AddContext(CatalogModelTypeName, datastore.NewSpecType(NewCatalogModelRepository).
-			AddInt("source_id").
+			AddString("source_id").
 			AddString("description").
 			AddString("owner").
 			AddString("state").
