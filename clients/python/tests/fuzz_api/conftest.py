@@ -29,11 +29,11 @@ def generated_schema(request: pytest.FixtureRequest, pytestconfig: pytest.Config
     return schema
 
 @pytest.fixture
-def auth_headers(setup_env_user_token):
+def auth_headers(user_token: str) -> dict[str, str]:
     """Provides authorization headers for API requests."""
     return {
         "Content-Type": "application/json",
-        "Authorization": f"Bearer {setup_env_user_token}"
+        "Authorization": f"Bearer {user_token}",
     }
 
 @pytest.fixture
