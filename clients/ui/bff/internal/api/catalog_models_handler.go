@@ -5,12 +5,12 @@ import (
 	"net/http"
 
 	"github.com/julienschmidt/httprouter"
-	"github.com/kubeflow/model-registry/catalog/pkg/openapi"
 	"github.com/kubeflow/model-registry/ui/bff/internal/constants"
 	"github.com/kubeflow/model-registry/ui/bff/internal/integrations/httpclient"
+	"github.com/kubeflow/model-registry/ui/bff/internal/models"
 )
 
-type CatalogModelListEnvelope Envelope[*openapi.CatalogModelList, None]
+type CatalogModelListEnvelope Envelope[*models.CatalogModelList, None]
 
 func (app *App) GetAllCatalogModelsAcrossSourcesHandler(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 

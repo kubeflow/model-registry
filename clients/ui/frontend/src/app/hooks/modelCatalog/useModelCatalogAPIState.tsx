@@ -1,6 +1,7 @@
 import { APIState, useAPIState } from 'mod-arch-core';
 import React from 'react';
 import {
+  getCatalogFilterOptionList,
   getCatalogModel,
   getCatalogModelsBySource,
   getListCatalogModelArtifacts,
@@ -20,6 +21,7 @@ const useModelCatalogAPIState = (
       getListSources: getListSources(path, queryParameters),
       getCatalogModel: getCatalogModel(path, queryParameters),
       getListCatalogModelArtifacts: getListCatalogModelArtifacts(path, queryParameters),
+      getCatalogFilterOptionList: getCatalogFilterOptionList(path, queryParameters),
     }),
     [queryParameters],
   );

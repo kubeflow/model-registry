@@ -5,29 +5,29 @@ import (
 	"fmt"
 	"net/url"
 
-	"github.com/kubeflow/model-registry/catalog/pkg/openapi"
 	"github.com/kubeflow/model-registry/ui/bff/internal/integrations/httpclient"
+	"github.com/kubeflow/model-registry/ui/bff/internal/models"
 )
 
 const sourcesPath = "/sources"
 
 type CatalogSourcesInterface interface {
-	GetAllCatalogSources(client httpclient.HTTPClientInterface, pageValues url.Values) (*openapi.CatalogSourceList, error)
-	GetCatalogSourceModel(client httpclient.HTTPClientInterface, sourceId string, modelName string) (*openapi.CatalogModel, error)
-	GetCatalogModelArtifacts(client httpclient.HTTPClientInterface, sourceId string, modelName string) (*openapi.CatalogModelArtifactList, error)
+	GetAllCatalogSources(client httpclient.HTTPClientInterface, pageValues url.Values) (*models.CatalogSourceList, error)
+	GetCatalogSourceModel(client httpclient.HTTPClientInterface, sourceId string, modelName string) (*models.CatalogModel, error)
+	GetCatalogModelArtifacts(client httpclient.HTTPClientInterface, sourceId string, modelName string) (*models.CatalogModelArtifactList, error)
 }
 
 type CatalogSources struct {
 	CatalogSourcesInterface
 }
 
-func (a CatalogSources) GetAllCatalogSources(client httpclient.HTTPClientInterface, pageValues url.Values) (*openapi.CatalogSourceList, error) {
+func (a CatalogSources) GetAllCatalogSources(client httpclient.HTTPClientInterface, pageValues url.Values) (*models.CatalogSourceList, error) {
 	responseData, err := client.GET(UrlWithPageParams(sourcesPath, pageValues))
 	if err != nil {
 		return nil, fmt.Errorf("error fetching sourcesPath: %w", err)
 	}
 
-	var sources openapi.CatalogSourceList
+	var sources models.CatalogSourceList
 
 	if err := json.Unmarshal(responseData, &sources); err != nil {
 		return nil, fmt.Errorf("error decoding response data: %w", err)
@@ -36,7 +36,7 @@ func (a CatalogSources) GetAllCatalogSources(client httpclient.HTTPClientInterfa
 	return &sources, nil
 }
 
-func (a CatalogSources) GetCatalogSourceModel(client httpclient.HTTPClientInterface, sourceId string, modelName string) (*openapi.CatalogModel, error) {
+func (a CatalogSources) GetCatalogSourceModel(client httpclient.HTTPClientInterface, sourceId string, modelName string) (*models.CatalogModel, error) {
 	path, err := url.JoinPath(sourcesPath, sourceId, "models", modelName)
 
 	if err != nil {
@@ -47,7 +47,7 @@ func (a CatalogSources) GetCatalogSourceModel(client httpclient.HTTPClientInterf
 		return nil, fmt.Errorf("error fetching sourcesPath: %w", err)
 	}
 
-	var catalogModel openapi.CatalogModel
+	var catalogModel models.CatalogModel
 
 	if err := json.Unmarshal(responseData, &catalogModel); err != nil {
 		return nil, fmt.Errorf("error decoding response data: %w", err)
@@ -56,7 +56,7 @@ func (a CatalogSources) GetCatalogSourceModel(client httpclient.HTTPClientInterf
 	return &catalogModel, nil
 }
 
-func (a CatalogSources) GetCatalogModelArtifacts(client httpclient.HTTPClientInterface, sourceId string, modelName string) (*openapi.CatalogModelArtifactList, error) {
+func (a CatalogSources) GetCatalogModelArtifacts(client httpclient.HTTPClientInterface, sourceId string, modelName string) (*models.CatalogModelArtifactList, error) {
 	path, err := url.JoinPath(sourcesPath, sourceId, "models", modelName, "artifacts")
 	if err != nil {
 		return nil, err
@@ -66,7 +66,7 @@ func (a CatalogSources) GetCatalogModelArtifacts(client httpclient.HTTPClientInt
 		return nil, fmt.Errorf("error fetching sourcesPath: %w", err)
 	}
 
-	var catalogModelArtifacts openapi.CatalogModelArtifactList
+	var catalogModelArtifacts models.CatalogModelArtifactList
 
 	if err := json.Unmarshal(responseData, &catalogModelArtifacts); err != nil {
 		return nil, fmt.Errorf("error decoding response data: %w", err)
