@@ -5,6 +5,11 @@ import {
 } from '~/app/pages/modelCatalog/types';
 import ModelCatalogStringFilter from '~/app/pages/modelCatalog/components/ModelCatalogStringFilter';
 import { ModelCatalogContext } from '~/app/context/modelCatalog/ModelCatalogContext';
+import {
+  MODEL_CATALOG_ASIAN_LANGUAGES_DETAILS,
+  MODEL_CATALOG_EUROPEAN_LANGUAGES_DETAILS,
+  MODEL_CATALOG_MIDDLE_EASTERN_AND_OTHER_LANGUAGES_DETAILS,
+} from '~/concepts/modelCatalog/const';
 
 type LanguageFilterProps = {
   filters: ModelCatalogFilterResponseType['filters'];
@@ -32,6 +37,11 @@ const LanguageFilter: React.FC<LanguageFilterProps> = ({ filters }) => {
     <ModelCatalogStringFilter
       title="Language"
       filterKey="language"
+      filterToNameMapping={{
+        ...MODEL_CATALOG_EUROPEAN_LANGUAGES_DETAILS,
+        ...MODEL_CATALOG_ASIAN_LANGUAGES_DETAILS,
+        ...MODEL_CATALOG_MIDDLE_EASTERN_AND_OTHER_LANGUAGES_DETAILS,
+      }}
       filters={language}
       data={filterData}
       setData={(state: ModelCatalogStringFilterStateType) => setFilterData('language', state)}

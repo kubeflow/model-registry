@@ -14,6 +14,7 @@ import { useCatalogModelsBySources } from '~/app/hooks/modelCatalog/useCatalogMo
 import { CatalogModel } from '~/app/modelCatalogTypes';
 import ModelCatalogCard from '~/app/pages/modelCatalog/components/ModelCatalogCard';
 import EmptyModelCatalogState from '~/app/pages/modelCatalog/EmptyModelCatalogState';
+import { filterModelCatalogModels } from '../utils/modelCatalogUtils';
 
 type ModelCatalogPageProps = {
   searchTerm: string;
@@ -26,6 +27,9 @@ const ModelCatalogPage: React.FC<ModelCatalogPageProps> = ({ searchTerm }) => {
     10,
     searchTerm,
   );
+
+  const { filterData } = React.useContext(ModelCatalogContext);
+  const filteredModels = filterModelCatalogModels(catalogModels.items, filterData);
 
   if (catalogModelsLoadError) {
     return (
@@ -46,7 +50,7 @@ const ModelCatalogPage: React.FC<ModelCatalogPageProps> = ({ searchTerm }) => {
     );
   }
 
-  if (catalogModels.items.length === 0) {
+  if (filteredModels.length === 0) {
     return (
       <EmptyModelCatalogState
         testid="empty-model-catalog-state"
@@ -65,7 +69,7 @@ const ModelCatalogPage: React.FC<ModelCatalogPageProps> = ({ searchTerm }) => {
   return (
     <>
       <Gallery hasGutter minWidths={{ default: '300px' }}>
-        {catalogModels.items.map((model: CatalogModel) => (
+        {filteredModels.map((model: CatalogModel) => (
           <ModelCatalogCard
             model={model}
             source={selectedSource}

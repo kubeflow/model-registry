@@ -7,31 +7,22 @@ export enum ModelCatalogTasks {
   VIDEO_TO_TEXT = 'video-to-text',
 }
 
-export const MODEL_CATALOG_TASK_DETAILS = {
-  [ModelCatalogTasks.AUDIO_TO_TEXT]: {
-    name: 'Audio-to-Text',
-    description: 'Audio transcription and speech recognition models',
-  },
-  [ModelCatalogTasks.IMAGE_TEXT_TO_TEXT]: {
-    name: 'Image-Text-to-Text',
-    description: 'Multimodal models that process both images and text',
-  },
-  [ModelCatalogTasks.IMAGE_TO_TEXT]: {
-    name: 'Image-to-Text',
-    description: 'Image captioning and visual understanding models',
-  },
-  [ModelCatalogTasks.TEXT_GENERATION]: {
-    name: 'Text Generation',
-    description: 'Large language models for text generation',
-  },
-  [ModelCatalogTasks.TEXT_TO_TEXT]: {
-    name: 'Text-to-Text',
-    description: 'Text transformation and translation models',
-  },
-  [ModelCatalogTasks.VIDEO_TO_TEXT]: {
-    name: 'Video-to-Text',
-    description: 'Video analysis and description models',
-  },
+export const MODEL_CATALOG_TASK_NAME_MAPPING = {
+  [ModelCatalogTasks.AUDIO_TO_TEXT]: 'Audio-to-Text',
+  [ModelCatalogTasks.IMAGE_TEXT_TO_TEXT]: 'Image-Text-to-Text',
+  [ModelCatalogTasks.IMAGE_TO_TEXT]: 'Image-to-Text',
+  [ModelCatalogTasks.TEXT_GENERATION]: 'Text Generation',
+  [ModelCatalogTasks.TEXT_TO_TEXT]: 'Text-to-Text',
+  [ModelCatalogTasks.VIDEO_TO_TEXT]: 'Video-to-Text',
+};
+
+export const MODEL_CATALOG_TASK_DESCRIPTION = {
+  [ModelCatalogTasks.AUDIO_TO_TEXT]: 'Audio transcription and speech recognition models',
+  [ModelCatalogTasks.IMAGE_TEXT_TO_TEXT]: 'Multimodal models that process both images and text',
+  [ModelCatalogTasks.IMAGE_TO_TEXT]: 'Image captioning and visual understanding models',
+  [ModelCatalogTasks.TEXT_GENERATION]: 'Large language models for text generation',
+  [ModelCatalogTasks.TEXT_TO_TEXT]: 'Text transformation and translation models',
+  [ModelCatalogTasks.VIDEO_TO_TEXT]: 'Video analysis and description models',
 };
 
 export enum ModelCatalogProviders {
@@ -47,6 +38,20 @@ export enum ModelCatalogProviders {
   NVIDIA_ALTERNATE = 'Nvidia', // alternate casing
   RED_HAT = 'Red Hat',
 }
+
+export const MODEL_CATALOG_PROVIDER_NAME_MAPPING = {
+  [ModelCatalogProviders.ALIBABA_CLOUD]: 'Alibaba Cloud',
+  [ModelCatalogProviders.DEEPSEEK]: 'DeepSeek',
+  [ModelCatalogProviders.GOOGLE]: 'Google',
+  [ModelCatalogProviders.IBM]: 'IBM',
+  [ModelCatalogProviders.META]: 'Meta',
+  [ModelCatalogProviders.MISTRAL_AI]: 'Mistral AI',
+  [ModelCatalogProviders.MOONSHOT_AI]: 'Moonshot AI',
+  [ModelCatalogProviders.NEURAL_MAGIC]: 'Neural Magic',
+  [ModelCatalogProviders.NVIDIA]: 'NVIDIA',
+  [ModelCatalogProviders.NVIDIA_ALTERNATE]: 'NVIDIA',
+  [ModelCatalogProviders.RED_HAT]: 'Red Hat',
+};
 
 export const MODEL_CATALOG_PROVIDER_NOTABLE_MODELS = {
   [ModelCatalogProviders.ALIBABA_CLOUD]: 'Qwen series models',
@@ -72,6 +77,17 @@ export enum ModelCatalogLicenses {
   MIT = 'mit',
   MODIFIED_MIT = 'modified-mit',
 }
+
+export const MODEL_CATALOG_LICENSE_NAME_MAPPING = {
+  [ModelCatalogLicenses.APACHE_2_0]: 'Apache 2.0',
+  [ModelCatalogLicenses.GEMMA]: 'Gemma',
+  [ModelCatalogLicenses.LLLAMA_3_3]: 'Llama 3.3',
+  [ModelCatalogLicenses.LLLAMA_3_1]: 'Llama 3.1',
+  [ModelCatalogLicenses.LLLAMA_3_3_ALTERNATE]: 'Llama 3.3 (variant)',
+  [ModelCatalogLicenses.LLLAMA_4]: 'Llama 4',
+  [ModelCatalogLicenses.MIT]: 'MIT',
+  [ModelCatalogLicenses.MODIFIED_MIT]: 'Modified MIT',
+};
 
 export const MODEL_CATALOG_LICENSE_DETAILS = {
   [ModelCatalogLicenses.APACHE_2_0]: {

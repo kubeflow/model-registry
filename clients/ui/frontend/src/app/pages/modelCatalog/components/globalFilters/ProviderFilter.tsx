@@ -5,6 +5,7 @@ import {
 } from '~/app/pages/modelCatalog/types';
 import ModelCatalogStringFilter from '~/app/pages/modelCatalog/components/ModelCatalogStringFilter';
 import { ModelCatalogContext } from '~/app/context/modelCatalog/ModelCatalogContext';
+import { MODEL_CATALOG_PROVIDER_NAME_MAPPING } from '~/concepts/modelCatalog/const';
 
 type ProviderFilterProps = {
   filters: ModelCatalogFilterResponseType['filters'];
@@ -32,6 +33,7 @@ const ProviderFilter: React.FC<ProviderFilterProps> = ({ filters }) => {
     <ModelCatalogStringFilter
       title="Provider"
       filterKey="provider"
+      filterToNameMapping={MODEL_CATALOG_PROVIDER_NAME_MAPPING}
       filters={provider}
       data={filterData}
       setData={(state: ModelCatalogStringFilterStateType) => setFilterData('provider', state)}

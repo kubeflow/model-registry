@@ -5,6 +5,7 @@ import {
 } from '~/app/pages/modelCatalog/types';
 import ModelCatalogStringFilter from '~/app/pages/modelCatalog/components/ModelCatalogStringFilter';
 import { ModelCatalogContext } from '~/app/context/modelCatalog/ModelCatalogContext';
+import { MODEL_CATALOG_LICENSE_NAME_MAPPING } from '~/concepts/modelCatalog/const';
 
 type LicenseFilterProps = {
   filters: ModelCatalogFilterResponseType['filters'];
@@ -32,6 +33,7 @@ const LicenseFilter: React.FC<LicenseFilterProps> = ({ filters }) => {
     <ModelCatalogStringFilter
       title="License"
       filterKey="license"
+      filterToNameMapping={MODEL_CATALOG_LICENSE_NAME_MAPPING}
       filters={license}
       data={filterData}
       setData={(state: ModelCatalogStringFilterStateType) => setFilterData('license', state)}

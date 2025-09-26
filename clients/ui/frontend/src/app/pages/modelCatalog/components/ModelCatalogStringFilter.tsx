@@ -9,6 +9,7 @@ import {
 type ModelCatalogStringFilterProps = {
   title: string;
   filterKey: string;
+  filterToNameMapping: Record<string, string>;
   filters: ModelCatalogFilterCategoryType;
   data?: ModelCatalogFilterDataType;
   setData: (state: ModelCatalogStringFilterStateType) => void;
@@ -17,6 +18,7 @@ type ModelCatalogStringFilterProps = {
 const ModelCatalogStringFilter: React.FC<ModelCatalogStringFilterProps> = ({
   title,
   filterKey,
+  filterToNameMapping,
   data,
   filters,
   setData,
@@ -42,7 +44,7 @@ const ModelCatalogStringFilter: React.FC<ModelCatalogStringFilterProps> = ({
       )}
       {filteredValues.slice(0, 6).map((checkbox) => (
         <Checkbox
-          label={checkbox}
+          label={checkbox in filterToNameMapping ? filterToNameMapping[checkbox] : checkbox}
           id={checkbox}
           key={checkbox}
           isChecked={data?.[filterKey]?.[checkbox] || false}

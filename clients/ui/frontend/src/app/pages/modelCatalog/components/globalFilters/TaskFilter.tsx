@@ -5,6 +5,7 @@ import {
 } from '~/app/pages/modelCatalog/types';
 import ModelCatalogStringFilter from '~/app/pages/modelCatalog/components/ModelCatalogStringFilter';
 import { ModelCatalogContext } from '~/app/context/modelCatalog/ModelCatalogContext';
+import { MODEL_CATALOG_TASK_NAME_MAPPING } from '~/concepts/modelCatalog/const';
 
 type TaskFilterProps = {
   filters: ModelCatalogFilterResponseType['filters'];
@@ -32,6 +33,7 @@ const TaskFilter: React.FC<TaskFilterProps> = ({ filters }) => {
     <ModelCatalogStringFilter
       title="Task"
       filterKey="task"
+      filterToNameMapping={MODEL_CATALOG_TASK_NAME_MAPPING}
       filters={task}
       data={filterData}
       setData={(state: ModelCatalogStringFilterStateType) => setFilterData('task', state)}
