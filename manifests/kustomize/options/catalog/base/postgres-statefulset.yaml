@@ -1,7 +1,7 @@
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
-  name: postgres
+  name: model-catalog-postgres
   labels:
     component: model-catalog-server
 spec:
