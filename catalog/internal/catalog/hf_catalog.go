@@ -24,7 +24,7 @@ const (
 	defaultHuggingFaceURL = "https://huggingface.co"
 )
 
-func (h *hfCatalogImpl) GetModel(ctx context.Context, name string) (*openapi.CatalogModel, error) {
+func (h *hfCatalogImpl) GetModel(ctx context.Context, modelName string, sourceID string) (*openapi.CatalogModel, error) {
 	// TODO: Implement HuggingFace model retrieval
 	return nil, fmt.Errorf("HuggingFace model retrieval not yet implemented")
 }
@@ -39,10 +39,10 @@ func (h *hfCatalogImpl) ListModels(ctx context.Context, params ListModelsParams)
 	}, nil
 }
 
-func (h *hfCatalogImpl) GetArtifacts(ctx context.Context, name string) (*openapi.CatalogArtifactList, error) {
+func (h *hfCatalogImpl) GetArtifacts(ctx context.Context, modelName string, sourceID string, params ListArtifactsParams) (openapi.CatalogArtifactList, error) {
 	// TODO: Implement HuggingFace model artifacts retrieval
 	// For now, return empty list to satisfy interface
-	return &openapi.CatalogArtifactList{
+	return openapi.CatalogArtifactList{
 		Items:    []openapi.CatalogArtifact{},
 		PageSize: 0,
 		Size:     0,

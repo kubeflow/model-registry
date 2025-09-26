@@ -76,7 +76,7 @@ func TestNewHfCatalog_WithValidCredentials(t *testing.T) {
 	ctx := context.Background()
 
 	// Test GetModel - should return not implemented error
-	model, err := hfCatalog.GetModel(ctx, "test-model")
+	model, err := hfCatalog.GetModel(ctx, "test-model", "")
 	if err == nil {
 		t.Fatal("Expected not implemented error, got nil")
 	}
@@ -99,11 +99,11 @@ func TestNewHfCatalog_WithValidCredentials(t *testing.T) {
 	}
 
 	// Test GetArtifacts - should return empty list
-	artifacts, err := hfCatalog.GetArtifacts(ctx, "test-model")
+	artifacts, err := hfCatalog.GetArtifacts(ctx, "test-model", "", ListArtifactsParams{})
 	if err != nil {
 		t.Fatalf("Failed to get artifacts: %v", err)
 	}
-	if artifacts == nil {
+	if artifacts.Items == nil {
 		t.Fatal("Expected artifacts list, got nil")
 	}
 	if len(artifacts.Items) != 0 {
