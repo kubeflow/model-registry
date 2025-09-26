@@ -269,19 +269,15 @@ func TestFindModels(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			// Create mock source collection
-			sources := catalog.NewSourceCollection(map[string]catalog.CatalogSource{
-				"source1": {
-					Metadata: model.CatalogSource{Id: "source1", Name: "Test Source 1"},
-					Provider: &mockModelProvider{
-						models: tc.mockModels,
-					},
-				},
-			})
-			service := NewModelCatalogServiceAPIService(sources)
+			provider := &mockModelProvider{
+				models: tc.mockModels,
+			}
+
+			service := NewModelCatalogServiceAPIService(provider)
 
 			resp, err := service.FindModels(
 				context.Background(),
-				tc.sourceID,
+				[]string{tc.sourceID},
 				tc.q,
 				tc.pageSize,
 				tc.orderBy,
@@ -635,7 +631,7 @@ func TestFindSources(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			// Create service with test catalogs
-			service := NewModelCatalogServiceAPIService(catalog.NewSourceCollection(tc.catalogs))
+			service := NewModelCatalogServiceAPIService(&mockModelProvider{})
 
 			// Call FindSources
 			resp, err := service.FindSources(
@@ -776,25 +772,31 @@ func (m *mockModelProvider) ListModels(ctx context.Context, params catalog.ListM
 		items[i] = *mdl
 	}
 
+	nextPageToken := ""
+
+	if len(items) > int(params.PageSize) {
+		nextPageToken = (&stringCursor{Value: items[params.PageSize-1].Name, ID: items[params.PageSize-1].Name}).String()
+	}
+
 	return model.CatalogModelList{
 		Items:         items,
 		Size:          int32(len(items)),
-		PageSize:      int32(len(items)), // Mock returns all filtered items as one "page"
-		NextPageToken: "",
+		PageSize:      params.PageSize,
+		NextPageToken: nextPageToken,
 	}, nil
 }
 
-func (m *mockModelProvider) GetArtifacts(ctx context.Context, name string) (*model.CatalogArtifactList, error) {
+func (m *mockModelProvider) GetArtifacts(ctx context.Context, name string, params catalog.ListArtifactsParams) (model.CatalogArtifactList, error) {
 	artifacts, exists := m.artifacts[name]
 	if !exists {
-		return &model.CatalogArtifactList{
+		return model.CatalogArtifactList{
 			Items:         []model.CatalogArtifact{},
 			Size:          0,
 			PageSize:      0, // Or a default page size if applicable
 			NextPageToken: "",
 		}, nil
 	}
-	return &model.CatalogArtifactList{
+	return model.CatalogArtifactList{
 		Items:         artifacts,
 		Size:          int32(len(artifacts)),
 		PageSize:      int32(len(artifacts)),
@@ -810,6 +812,7 @@ func TestGetModel(t *testing.T) {
 		modelName      string
 		expectedStatus int
 		expectedModel  *model.CatalogModel
+		provider       catalog.CatalogSourceProvider
 	}{
 		{
 			name: "Existing model in source",
@@ -822,6 +825,13 @@ func TestGetModel(t *testing.T) {
 								Name: "test-model",
 							},
 						},
+					},
+				},
+			},
+			provider: &mockModelProvider{
+				models: map[string]*model.CatalogModel{
+					"test-model": {
+						Name: "test-model",
 					},
 				},
 			},
@@ -854,6 +864,9 @@ func TestGetModel(t *testing.T) {
 					},
 				},
 			},
+			provider: &mockModelProvider{
+				models: map[string]*model.CatalogModel{},
+			},
 			sourceID:       "source1",
 			modelName:      "test-model",
 			expectedStatus: http.StatusNotFound,
@@ -873,6 +886,13 @@ func TestGetModel(t *testing.T) {
 					},
 				},
 			},
+			provider: &mockModelProvider{
+				models: map[string]*model.CatalogModel{
+					"some/model:v1.0.0": {
+						Name: "some/model:v1.0.0",
+					},
+				},
+			},
 			sourceID:       "source1",
 			modelName:      "some%2Fmodel%3Av1.0.0",
 			expectedStatus: http.StatusOK,
@@ -885,7 +905,7 @@ func TestGetModel(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			// Create service with test sources
-			service := NewModelCatalogServiceAPIService(catalog.NewSourceCollection(tc.sources))
+			service := NewModelCatalogServiceAPIService(tc.provider)
 
 			// Call GetModel
 			resp, _ := service.GetModel(
@@ -923,6 +943,7 @@ func TestGetAllModelArtifacts(t *testing.T) {
 		modelName         string
 		expectedStatus    int
 		expectedArtifacts []model.CatalogArtifact
+		provider          catalog.CatalogSourceProvider
 	}{
 		{
 			name: "Existing artifacts for model in source",
@@ -942,6 +963,22 @@ func TestGetAllModelArtifacts(t *testing.T) {
 										Uri: "s3://bucket/artifact2",
 									},
 								},
+							},
+						},
+					},
+				},
+			},
+			provider: &mockModelProvider{
+				artifacts: map[string][]model.CatalogArtifact{
+					"test-model": {
+						{
+							CatalogModelArtifact: &model.CatalogModelArtifact{
+								Uri: "s3://bucket/artifact1",
+							},
+						},
+						{
+							CatalogModelArtifact: &model.CatalogModelArtifact{
+								Uri: "s3://bucket/artifact2",
 							},
 						},
 					},
@@ -985,6 +1022,9 @@ func TestGetAllModelArtifacts(t *testing.T) {
 					},
 				},
 			},
+			provider: &mockModelProvider{
+				artifacts: map[string][]model.CatalogArtifact{},
+			},
 			sourceID:          "source1",
 			modelName:         "test-model",
 			expectedStatus:    http.StatusOK,
@@ -995,13 +1035,17 @@ func TestGetAllModelArtifacts(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			// Create service with test sources
-			service := NewModelCatalogServiceAPIService(catalog.NewSourceCollection(tc.sources))
+			service := NewModelCatalogServiceAPIService(tc.provider)
 
 			// Call GetAllModelArtifacts
 			resp, _ := service.GetAllModelArtifacts(
 				context.Background(),
 				tc.sourceID,
 				tc.modelName,
+				"10",
+				model.ORDERBYFIELD_CREATE_TIME,
+				model.SORTORDER_ASC,
+				"",
 			)
 
 			// Check response status
