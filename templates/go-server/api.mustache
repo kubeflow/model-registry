@@ -3,8 +3,7 @@ package {{packageName}}
 
 import (
 	"context"
-	"net/http"{{#apiInfo}}{{#apis}}{{#imports}}
-	"{{import}}"{{/imports}}{{/apis}}{{/apiInfo}}
+	"net/http"
 
 	model "github.com/kubeflow/model-registry/pkg/openapi"
 )
@@ -30,5 +29,5 @@ type {{classname}}Servicer interface { {{#operations}}{{#operation}}
 	{{#isDeprecated}}
 	// Deprecated
 	{{/isDeprecated}}
-  {{operationId}}(context.Context{{#allParams}}, {{^isPrimitiveType}}model.{{/isPrimitiveType}}{{dataType}}{{/allParams}}) (ImplResponse, error){{/operation}}{{/operations}}
+  {{operationId}}(context.Context{{#allParams}}, {{^isPrimitiveType}}{{^isContainer}}model.{{/isContainer}}{{#isContainer}}{{^items.isPrimitiveType}}model.{{/items.isPrimitiveType}}{{/isContainer}}{{/isPrimitiveType}}{{dataType}}{{/allParams}}) (ImplResponse, error){{/operation}}{{/operations}}
 }{{/apis}}{{/apiInfo}}
