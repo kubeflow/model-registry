@@ -68,11 +68,11 @@ type yamlCatalogImpl struct {
 
 var _ CatalogSourceProvider = &yamlCatalogImpl{}
 
-func (y *yamlCatalogImpl) GetModel(ctx context.Context, name string) (*model.CatalogModel, error) {
+func (y *yamlCatalogImpl) GetModel(ctx context.Context, modelName string, sourceID string) (*model.CatalogModel, error) {
 	y.modelsLock.RLock()
 	defer y.modelsLock.RUnlock()
 
-	ym := y.models[name]
+	ym := y.models[modelName]
 	if ym == nil {
 		return nil, nil
 	}
@@ -159,11 +159,11 @@ func (y *yamlCatalogImpl) ListModels(ctx context.Context, params ListModelsParam
 	return list, nil // Return the struct value directly
 }
 
-func (y *yamlCatalogImpl) GetArtifacts(ctx context.Context, name string, params ListArtifactsParams) (model.CatalogArtifactList, error) {
+func (y *yamlCatalogImpl) GetArtifacts(ctx context.Context, modelName string, sourceID string, params ListArtifactsParams) (model.CatalogArtifactList, error) {
 	y.modelsLock.RLock()
 	defer y.modelsLock.RUnlock()
 
-	ym := y.models[name]
+	ym := y.models[modelName]
 	if ym == nil {
 		return model.CatalogArtifactList{}, nil
 	}
