@@ -23,19 +23,6 @@ func (Type) TableName() string {
 	return "Type"
 }
 
-// TypeProperty represents the TypeProperty table structure
-type TypeProperty struct {
-	ID          int64  `gorm:"primaryKey"`
-	TypeID      int64  `gorm:"column:type_id"`
-	Name        string `gorm:"column:name"`
-	DataType    string `gorm:"column:data_type"`
-	Description string `gorm:"column:description"`
-}
-
-func (TypeProperty) TableName() string {
-	return "TypeProperty"
-}
-
 func TestMain(m *testing.M) {
 	os.Exit(testutils.TestMainHelper(m))
 }
@@ -61,11 +48,6 @@ func TestMigrations(t *testing.T) {
 	// Verify Type table has expected entries
 	var count int64
 	err = sharedDB.Model(&Type{}).Count(&count).Error
-	require.NoError(t, err)
-	assert.Greater(t, count, int64(0))
-
-	// Verify TypeProperty table has expected entries
-	err = sharedDB.Model(&TypeProperty{}).Count(&count).Error
 	require.NoError(t, err)
 	assert.Greater(t, count, int64(0))
 }

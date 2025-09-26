@@ -18,7 +18,7 @@ func TestMain(m *testing.M) {
 }
 
 func setupTestDB(t *testing.T) (*gorm.DB, func()) {
-	db, dbCleanup := testutils.SetupMySQLWithMigrations(t)
+	db, dbCleanup := testutils.SetupMySQLWithMigrations(t, service.DatastoreSpec())
 
 	// Clean up test data before each test
 	testutils.CleanupTestData(t, db)
@@ -69,7 +69,14 @@ func createModelRegistryService(t *testing.T, db *gorm.DB) *core.ModelRegistrySe
 	typesMap := getTypeIDs(t, db)
 
 	// Create all repositories
-	artifactRepo := service.NewArtifactRepository(db, typesMap[defaults.ModelArtifactTypeName], typesMap[defaults.DocArtifactTypeName], typesMap[defaults.DataSetTypeName], typesMap[defaults.MetricTypeName], typesMap[defaults.ParameterTypeName], typesMap[defaults.MetricHistoryTypeName])
+	artifactRepo := service.NewArtifactRepository(db, map[string]int64{
+		defaults.ModelArtifactTypeName: typesMap[defaults.ModelArtifactTypeName],
+		defaults.DocArtifactTypeName:   typesMap[defaults.DocArtifactTypeName],
+		defaults.DataSetTypeName:       typesMap[defaults.DataSetTypeName],
+		defaults.MetricTypeName:        typesMap[defaults.MetricTypeName],
+		defaults.ParameterTypeName:     typesMap[defaults.ParameterTypeName],
+		defaults.MetricHistoryTypeName: typesMap[defaults.MetricHistoryTypeName],
+	})
 	modelArtifactRepo := service.NewModelArtifactRepository(db, typesMap[defaults.ModelArtifactTypeName])
 	docArtifactRepo := service.NewDocArtifactRepository(db, typesMap[defaults.DocArtifactTypeName])
 	registeredModelRepo := service.NewRegisteredModelRepository(db, typesMap[defaults.RegisteredModelTypeName])

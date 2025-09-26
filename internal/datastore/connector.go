@@ -3,9 +3,8 @@ package datastore
 import (
 	"errors"
 	"fmt"
-
-	"github.com/kubeflow/model-registry/internal/datastore/embedmd"
-	"github.com/kubeflow/model-registry/pkg/api"
+	"maps"
+	"slices"
 )
 
 var (
@@ -13,32 +12,29 @@ var (
 	ErrUnsupportedDatastore = errors.New("unsupported datastore type")
 )
 
-type TeardownFunc func() error
-
-type Datastore struct {
-	EmbedMD embedmd.EmbedMDConfig
-	Type    string
-}
-
 type Connector interface {
-	Connect() (api.ModelRegistryApi, error)
-	Teardown() error
+	Type() string
+	Connect(spec *Spec) (RepoSet, error)
 }
 
-func NewConnector(ds Datastore) (Connector, error) {
-	switch ds.Type {
-	case "embedmd":
-		if err := ds.EmbedMD.Validate(); err != nil {
-			return nil, fmt.Errorf("invalid EmbedMD config: %w", err)
-		}
+var connectorTypes map[string]func(any) (Connector, error)
 
-		embedmd, err := embedmd.NewEmbedMDService(&ds.EmbedMD)
-		if err != nil {
-			return nil, fmt.Errorf("error creating EmbedMD service: %w", err)
-		}
-
-		return embedmd, nil
-	default:
-		return nil, fmt.Errorf("%w: %s. Supported types: embedmd", ErrUnsupportedDatastore, ds.Type)
+func Register(t string, fn func(config any) (Connector, error)) {
+	if connectorTypes == nil {
+		connectorTypes = make(map[string]func(any) (Connector, error), 1)
 	}
+
+	if _, exists := connectorTypes[t]; exists {
+		panic(fmt.Sprintf("duplicate connector type: %s", t))
+	}
+
+	connectorTypes[t] = fn
+}
+
+func NewConnector(t string, config any) (Connector, error) {
+	if fn, ok := connectorTypes[t]; ok {
+		return fn(config)
+	}
+
+	return nil, fmt.Errorf("%w: %s. Supported types: %v", ErrUnsupportedDatastore, t, slices.Sorted(maps.Keys(connectorTypes)))
 }

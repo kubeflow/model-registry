@@ -14,27 +14,27 @@ import (
 	"encoding/json"
 )
 
-// checks if the CatalogModelArtifactList type satisfies the MappedNullable interface at compile time
-var _ MappedNullable = &CatalogModelArtifactList{}
+// checks if the CatalogArtifactList type satisfies the MappedNullable interface at compile time
+var _ MappedNullable = &CatalogArtifactList{}
 
-// CatalogModelArtifactList List of CatalogModel entities.
-type CatalogModelArtifactList struct {
+// CatalogArtifactList List of CatalogModel entities.
+type CatalogArtifactList struct {
 	// Token to use to retrieve next page of results.
 	NextPageToken string `json:"nextPageToken"`
 	// Maximum number of resources to return in the result.
 	PageSize int32 `json:"pageSize"`
 	// Number of items in result list.
 	Size int32 `json:"size"`
-	// Array of `CatalogModelArtifact` entities.
-	Items []CatalogModelArtifact `json:"items"`
+	// Array of `CatalogArtifact` entities.
+	Items []CatalogArtifact `json:"items"`
 }
 
-// NewCatalogModelArtifactList instantiates a new CatalogModelArtifactList object
+// NewCatalogArtifactList instantiates a new CatalogArtifactList object
 // This constructor will assign default values to properties that have it defined,
 // and makes sure properties required by API are set, but the set of arguments
 // will change when the set of required properties is changed
-func NewCatalogModelArtifactList(nextPageToken string, pageSize int32, size int32, items []CatalogModelArtifact) *CatalogModelArtifactList {
-	this := CatalogModelArtifactList{}
+func NewCatalogArtifactList(nextPageToken string, pageSize int32, size int32, items []CatalogArtifact) *CatalogArtifactList {
+	this := CatalogArtifactList{}
 	this.NextPageToken = nextPageToken
 	this.PageSize = pageSize
 	this.Size = size
@@ -42,16 +42,16 @@ func NewCatalogModelArtifactList(nextPageToken string, pageSize int32, size int3
 	return &this
 }
 
-// NewCatalogModelArtifactListWithDefaults instantiates a new CatalogModelArtifactList object
+// NewCatalogArtifactListWithDefaults instantiates a new CatalogArtifactList object
 // This constructor will only assign default values to properties that have it defined,
 // but it doesn't guarantee that properties required by API are set
-func NewCatalogModelArtifactListWithDefaults() *CatalogModelArtifactList {
-	this := CatalogModelArtifactList{}
+func NewCatalogArtifactListWithDefaults() *CatalogArtifactList {
+	this := CatalogArtifactList{}
 	return &this
 }
 
 // GetNextPageToken returns the NextPageToken field value
-func (o *CatalogModelArtifactList) GetNextPageToken() string {
+func (o *CatalogArtifactList) GetNextPageToken() string {
 	if o == nil {
 		var ret string
 		return ret
@@ -62,7 +62,7 @@ func (o *CatalogModelArtifactList) GetNextPageToken() string {
 
 // GetNextPageTokenOk returns a tuple with the NextPageToken field value
 // and a boolean to check if the value has been set.
-func (o *CatalogModelArtifactList) GetNextPageTokenOk() (*string, bool) {
+func (o *CatalogArtifactList) GetNextPageTokenOk() (*string, bool) {
 	if o == nil {
 		return nil, false
 	}
@@ -70,12 +70,12 @@ func (o *CatalogModelArtifactList) GetNextPageTokenOk() (*string, bool) {
 }
 
 // SetNextPageToken sets field value
-func (o *CatalogModelArtifactList) SetNextPageToken(v string) {
+func (o *CatalogArtifactList) SetNextPageToken(v string) {
 	o.NextPageToken = v
 }
 
 // GetPageSize returns the PageSize field value
-func (o *CatalogModelArtifactList) GetPageSize() int32 {
+func (o *CatalogArtifactList) GetPageSize() int32 {
 	if o == nil {
 		var ret int32
 		return ret
@@ -86,7 +86,7 @@ func (o *CatalogModelArtifactList) GetPageSize() int32 {
 
 // GetPageSizeOk returns a tuple with the PageSize field value
 // and a boolean to check if the value has been set.
-func (o *CatalogModelArtifactList) GetPageSizeOk() (*int32, bool) {
+func (o *CatalogArtifactList) GetPageSizeOk() (*int32, bool) {
 	if o == nil {
 		return nil, false
 	}
@@ -94,12 +94,12 @@ func (o *CatalogModelArtifactList) GetPageSizeOk() (*int32, bool) {
 }
 
 // SetPageSize sets field value
-func (o *CatalogModelArtifactList) SetPageSize(v int32) {
+func (o *CatalogArtifactList) SetPageSize(v int32) {
 	o.PageSize = v
 }
 
 // GetSize returns the Size field value
-func (o *CatalogModelArtifactList) GetSize() int32 {
+func (o *CatalogArtifactList) GetSize() int32 {
 	if o == nil {
 		var ret int32
 		return ret
@@ -110,7 +110,7 @@ func (o *CatalogModelArtifactList) GetSize() int32 {
 
 // GetSizeOk returns a tuple with the Size field value
 // and a boolean to check if the value has been set.
-func (o *CatalogModelArtifactList) GetSizeOk() (*int32, bool) {
+func (o *CatalogArtifactList) GetSizeOk() (*int32, bool) {
 	if o == nil {
 		return nil, false
 	}
@@ -118,14 +118,14 @@ func (o *CatalogModelArtifactList) GetSizeOk() (*int32, bool) {
 }
 
 // SetSize sets field value
-func (o *CatalogModelArtifactList) SetSize(v int32) {
+func (o *CatalogArtifactList) SetSize(v int32) {
 	o.Size = v
 }
 
 // GetItems returns the Items field value
-func (o *CatalogModelArtifactList) GetItems() []CatalogModelArtifact {
+func (o *CatalogArtifactList) GetItems() []CatalogArtifact {
 	if o == nil {
-		var ret []CatalogModelArtifact
+		var ret []CatalogArtifact
 		return ret
 	}
 
@@ -134,7 +134,7 @@ func (o *CatalogModelArtifactList) GetItems() []CatalogModelArtifact {
 
 // GetItemsOk returns a tuple with the Items field value
 // and a boolean to check if the value has been set.
-func (o *CatalogModelArtifactList) GetItemsOk() ([]CatalogModelArtifact, bool) {
+func (o *CatalogArtifactList) GetItemsOk() ([]CatalogArtifact, bool) {
 	if o == nil {
 		return nil, false
 	}
@@ -142,11 +142,11 @@ func (o *CatalogModelArtifactList) GetItemsOk() ([]CatalogModelArtifact, bool) {
 }
 
 // SetItems sets field value
-func (o *CatalogModelArtifactList) SetItems(v []CatalogModelArtifact) {
+func (o *CatalogArtifactList) SetItems(v []CatalogArtifact) {
 	o.Items = v
 }
 
-func (o CatalogModelArtifactList) MarshalJSON() ([]byte, error) {
+func (o CatalogArtifactList) MarshalJSON() ([]byte, error) {
 	toSerialize, err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
@@ -154,7 +154,7 @@ func (o CatalogModelArtifactList) MarshalJSON() ([]byte, error) {
 	return json.Marshal(toSerialize)
 }
 
-func (o CatalogModelArtifactList) ToMap() (map[string]interface{}, error) {
+func (o CatalogArtifactList) ToMap() (map[string]interface{}, error) {
 	toSerialize := map[string]interface{}{}
 	toSerialize["nextPageToken"] = o.NextPageToken
 	toSerialize["pageSize"] = o.PageSize
@@ -163,38 +163,38 @@ func (o CatalogModelArtifactList) ToMap() (map[string]interface{}, error) {
 	return toSerialize, nil
 }
 
-type NullableCatalogModelArtifactList struct {
-	value *CatalogModelArtifactList
+type NullableCatalogArtifactList struct {
+	value *CatalogArtifactList
 	isSet bool
 }
 
-func (v NullableCatalogModelArtifactList) Get() *CatalogModelArtifactList {
+func (v NullableCatalogArtifactList) Get() *CatalogArtifactList {
 	return v.value
 }
 
-func (v *NullableCatalogModelArtifactList) Set(val *CatalogModelArtifactList) {
+func (v *NullableCatalogArtifactList) Set(val *CatalogArtifactList) {
 	v.value = val
 	v.isSet = true
 }
 
-func (v NullableCatalogModelArtifactList) IsSet() bool {
+func (v NullableCatalogArtifactList) IsSet() bool {
 	return v.isSet
 }
 
-func (v *NullableCatalogModelArtifactList) Unset() {
+func (v *NullableCatalogArtifactList) Unset() {
 	v.value = nil
 	v.isSet = false
 }
 
-func NewNullableCatalogModelArtifactList(val *CatalogModelArtifactList) *NullableCatalogModelArtifactList {
-	return &NullableCatalogModelArtifactList{value: val, isSet: true}
+func NewNullableCatalogArtifactList(val *CatalogArtifactList) *NullableCatalogArtifactList {
+	return &NullableCatalogArtifactList{value: val, isSet: true}
 }
 
-func (v NullableCatalogModelArtifactList) MarshalJSON() ([]byte, error) {
+func (v NullableCatalogArtifactList) MarshalJSON() ([]byte, error) {
 	return json.Marshal(v.value)
 }
 
-func (v *NullableCatalogModelArtifactList) UnmarshalJSON(src []byte) error {
+func (v *NullableCatalogArtifactList) UnmarshalJSON(src []byte) error {
 	v.isSet = true
 	return json.Unmarshal(src, &v.value)
 }

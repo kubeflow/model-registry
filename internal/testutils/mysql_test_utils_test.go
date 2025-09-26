@@ -4,6 +4,7 @@ import (
 	"os"
 	"testing"
 
+	"github.com/kubeflow/model-registry/internal/db/service"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -32,7 +33,7 @@ func TestSharedMySQLUtility(t *testing.T) {
 	})
 
 	t.Run("SetupMySQLWithMigrations", func(t *testing.T) {
-		db, cleanup := SetupMySQLWithMigrations(t)
+		db, cleanup := SetupMySQLWithMigrations(t, service.DatastoreSpec())
 		defer cleanup()
 
 		// Test that migrations were applied
@@ -43,7 +44,7 @@ func TestSharedMySQLUtility(t *testing.T) {
 	})
 
 	t.Run("CleanupTestData", func(t *testing.T) {
-		db, cleanup := SetupMySQLWithMigrations(t)
+		db, cleanup := SetupMySQLWithMigrations(t, service.DatastoreSpec())
 		defer cleanup()
 
 		// Insert some test data

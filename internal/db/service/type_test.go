@@ -3,6 +3,7 @@ package service_test
 import (
 	"testing"
 
+	"github.com/kubeflow/model-registry/internal/apiutils"
 	"github.com/kubeflow/model-registry/internal/db/models"
 	"github.com/kubeflow/model-registry/internal/db/service"
 	"github.com/kubeflow/model-registry/internal/defaults"
@@ -12,7 +13,7 @@ import (
 )
 
 func TestTypeRepository(t *testing.T) {
-	sharedDB, cleanup := testutils.SetupMySQLWithMigrations(t)
+	sharedDB, cleanup := testutils.SetupMySQLWithMigrations(t, service.DatastoreSpec())
 	defer cleanup()
 
 	repo := service.NewTypeRepository(sharedDB)
@@ -187,5 +188,169 @@ func TestTypeRepository(t *testing.T) {
 		// Even with a "fresh" database, migrations should have created default types
 		assert.NotEmpty(t, types, "Migrated database should have default types")
 		assert.GreaterOrEqual(t, len(types), 1, "Should have at least one type after migration")
+	})
+
+	t.Run("TestSave", func(t *testing.T) {
+		// Test saving a new type
+		newTypeName := "test-custom-type"
+		newTypeKind := int32(1)
+		newVersion := "1.0.0"
+		newDescription := "Test custom type description"
+		newInputType := "application/json"
+		newOutputType := "application/json"
+		newExternalID := "external-123"
+
+		newType := &models.TypeImpl{
+			Attributes: &models.TypeAttributes{
+				Name:        &newTypeName,
+				TypeKind:    &newTypeKind,
+				Version:     &newVersion,
+				Description: &newDescription,
+				InputType:   &newInputType,
+				OutputType:  &newOutputType,
+				ExternalID:  &newExternalID,
+			},
+		}
+
+		savedType, err := repo.Save(newType)
+		require.NoError(t, err)
+		require.NotNil(t, savedType)
+
+		// Verify the saved type has an ID
+		assert.NotNil(t, savedType.GetID())
+		assert.Greater(t, *savedType.GetID(), int32(0))
+
+		// Verify all attributes are preserved
+		attrs := savedType.GetAttributes()
+		assert.Equal(t, newTypeName, *attrs.Name)
+		assert.Equal(t, newTypeKind, *attrs.TypeKind)
+		assert.Equal(t, newVersion, *attrs.Version)
+		assert.Equal(t, newDescription, *attrs.Description)
+		assert.Equal(t, newInputType, *attrs.InputType)
+		assert.Equal(t, newOutputType, *attrs.OutputType)
+		assert.Equal(t, newExternalID, *attrs.ExternalID)
+	})
+
+	t.Run("TestSaveExisting", func(t *testing.T) {
+		// Test saving a type that already exists
+		existingTypeName := "test-existing-type"
+		existingTypeKind := int32(2)
+
+		// First, save the type
+		firstType := &models.TypeImpl{
+			Attributes: &models.TypeAttributes{
+				Name:     &existingTypeName,
+				TypeKind: &existingTypeKind,
+			},
+		}
+
+		savedType1, err := repo.Save(firstType)
+		require.NoError(t, err)
+		require.NotNil(t, savedType1)
+
+		// Now try to save the same type again
+		secondType := &models.TypeImpl{
+			Attributes: &models.TypeAttributes{
+				Name:     &existingTypeName,
+				TypeKind: &existingTypeKind,
+			},
+		}
+
+		savedType2, err := repo.Save(secondType)
+		require.NoError(t, err)
+		require.NotNil(t, savedType2)
+
+		// Should return the existing type with same ID
+		assert.Equal(t, *savedType1.GetID(), *savedType2.GetID())
+		assert.Equal(t, *savedType1.GetAttributes().Name, *savedType2.GetAttributes().Name)
+		assert.Equal(t, *savedType1.GetAttributes().TypeKind, *savedType2.GetAttributes().TypeKind)
+	})
+
+	t.Run("TestSaveInvalidTypeKindChange", func(t *testing.T) {
+		// Test trying to save a type with different kind than existing
+		typeName := "test-kind-change-type"
+		originalKind := int32(1)
+		newKind := int32(2)
+
+		// First, save the type with original kind
+		originalType := &models.TypeImpl{
+			Attributes: &models.TypeAttributes{
+				Name:     &typeName,
+				TypeKind: &originalKind,
+			},
+		}
+
+		_, err := repo.Save(originalType)
+		require.NoError(t, err)
+
+		// Now try to save with different kind - should fail
+		changedType := &models.TypeImpl{
+			Attributes: &models.TypeAttributes{
+				Name:     &typeName,
+				TypeKind: &newKind,
+			},
+		}
+
+		_, err = repo.Save(changedType)
+		assert.Error(t, err)
+		assert.Contains(t, err.Error(), "cannot change to kind")
+	})
+
+	t.Run("TestSaveValidationErrors", func(t *testing.T) {
+		// Test saving type without attributes
+		emptyType := &models.TypeImpl{}
+		_, err := repo.Save(emptyType)
+		assert.Error(t, err)
+		assert.Contains(t, err.Error(), "missing attributes")
+
+		// Test saving type without name
+		noNameType := &models.TypeImpl{
+			Attributes: &models.TypeAttributes{
+				TypeKind: apiutils.Of(int32(1)),
+			},
+		}
+		_, err = repo.Save(noNameType)
+		assert.Error(t, err)
+		assert.Contains(t, err.Error(), "missing name")
+
+		// Test saving type without kind
+		noKindType := &models.TypeImpl{
+			Attributes: &models.TypeAttributes{
+				Name: apiutils.Of("test-no-kind"),
+			},
+		}
+		_, err = repo.Save(noKindType)
+		assert.Error(t, err)
+		assert.Contains(t, err.Error(), "missing kind")
+	})
+
+	t.Run("TestSaveMinimalType", func(t *testing.T) {
+		// Test saving type with only required fields
+		typeName := "test-minimal-type"
+		typeKind := int32(3)
+
+		minimalType := &models.TypeImpl{
+			Attributes: &models.TypeAttributes{
+				Name:     &typeName,
+				TypeKind: &typeKind,
+			},
+		}
+
+		savedType, err := repo.Save(minimalType)
+		require.NoError(t, err)
+		require.NotNil(t, savedType)
+
+		// Verify required fields
+		assert.NotNil(t, savedType.GetID())
+		assert.Equal(t, typeName, *savedType.GetAttributes().Name)
+		assert.Equal(t, typeKind, *savedType.GetAttributes().TypeKind)
+
+		// Optional fields should be nil
+		attrs := savedType.GetAttributes()
+		assert.Nil(t, attrs.Version)
+		assert.Nil(t, attrs.Description)
+		assert.Nil(t, attrs.InputType)
+		assert.Nil(t, attrs.OutputType)
+		assert.Nil(t, attrs.ExternalID)
 	})
 }

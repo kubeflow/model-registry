@@ -3,12 +3,16 @@ package cmd
 import (
 	"fmt"
 	"net/http"
+	"reflect"
 	"strings"
 	"sync"
 
 	"github.com/golang/glog"
+	"github.com/kubeflow/model-registry/internal/core"
 	"github.com/kubeflow/model-registry/internal/datastore"
 	"github.com/kubeflow/model-registry/internal/datastore/embedmd"
+	"github.com/kubeflow/model-registry/internal/db/models"
+	"github.com/kubeflow/model-registry/internal/db/service"
 	"github.com/kubeflow/model-registry/internal/proxy"
 	"github.com/kubeflow/model-registry/internal/server/middleware"
 	"github.com/kubeflow/model-registry/internal/server/openapi"
@@ -18,7 +22,8 @@ import (
 )
 
 type ProxyConfig struct {
-	Datastore datastore.Datastore
+	EmbedMD       embedmd.EmbedMDConfig
+	DatastoreType string
 }
 
 const (
@@ -28,11 +33,9 @@ const (
 
 var (
 	proxyCfg = ProxyConfig{
-		Datastore: datastore.Datastore{
-			Type: "embedmd",
-			EmbedMD: embedmd.EmbedMDConfig{
-				TLSConfig: &tls.TLSConfig{},
-			},
+		DatastoreType: "embedmd",
+		EmbedMD: embedmd.EmbedMDConfig{
+			TLSConfig: &tls.TLSConfig{},
 		},
 	}
 
@@ -102,10 +105,19 @@ func runProxyServer(cmd *cobra.Command, args []string) error {
 		http.Error(w, datastoreUnavailableMessage, http.StatusServiceUnavailable)
 	}))
 
-	mrHealthChecker := &ConditionalModelRegistryHealthChecker{holder: serviceHolder}
-	dbHealthChecker := proxy.NewDatabaseHealthChecker(proxyCfg.Datastore)
-	generalReadinessHandler := proxy.GeneralReadinessHandler(proxyCfg.Datastore, dbHealthChecker, mrHealthChecker)
-	readinessHandler := proxy.GeneralReadinessHandler(proxyCfg.Datastore, dbHealthChecker)
+	readyChecks := []proxy.HealthChecker{}
+	generalChecks := []proxy.HealthChecker{
+		&ConditionalModelRegistryHealthChecker{holder: serviceHolder},
+	}
+
+	if proxyCfg.DatastoreType == "embedmd" {
+		dbHealthChecker := proxy.NewDatabaseHealthChecker()
+		readyChecks = append(readyChecks, dbHealthChecker)
+		generalChecks = append(generalChecks, dbHealthChecker)
+	}
+
+	generalReadinessHandler := proxy.GeneralReadinessHandler(generalChecks...)
+	readinessHandler := proxy.GeneralReadinessHandler(readyChecks...)
 
 	// route health endpoints appropriately
 	mainHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -142,13 +154,13 @@ func runProxyServer(cmd *cobra.Command, args []string) error {
 
 		defer wg.Done()
 
-		ds, err = datastore.NewConnector(proxyCfg.Datastore)
+		ds, err = datastore.NewConnector(proxyCfg.DatastoreType, &proxyCfg.EmbedMD)
 		if err != nil {
 			errChan <- fmt.Errorf("error creating datastore: %w", err)
 			return
 		}
 
-		conn, err := ds.Connect()
+		conn, err := newModelRegistryService(ds)
 		if err != nil {
 			// {{ALERT}} is used to identify this error in pod logs, DO NOT REMOVE
 			errChan <- fmt.Errorf("{{ALERT}} error connecting to datastore: %w", err)
@@ -177,16 +189,47 @@ func runProxyServer(cmd *cobra.Command, args []string) error {
 		}
 	}()
 
-	defer func() {
-		if ds != nil {
-			//nolint:errcheck
-			ds.Teardown()
-		}
-	}()
-
 	// Wait for either the Datastore server connection or the proxy server to return an error
 	// or for both to finish successfully.
 	return <-errChan
+}
+
+func newModelRegistryService(ds datastore.Connector) (api.ModelRegistryApi, error) {
+	repoSet, err := ds.Connect(service.DatastoreSpec())
+	if err != nil {
+		return nil, err
+	}
+
+	modelRegistryService := core.NewModelRegistryService(
+		getRepo[models.ArtifactRepository](repoSet),
+		getRepo[models.ModelArtifactRepository](repoSet),
+		getRepo[models.DocArtifactRepository](repoSet),
+		getRepo[models.RegisteredModelRepository](repoSet),
+		getRepo[models.ModelVersionRepository](repoSet),
+		getRepo[models.ServingEnvironmentRepository](repoSet),
+		getRepo[models.InferenceServiceRepository](repoSet),
+		getRepo[models.ServeModelRepository](repoSet),
+		getRepo[models.ExperimentRepository](repoSet),
+		getRepo[models.ExperimentRunRepository](repoSet),
+		getRepo[models.DataSetRepository](repoSet),
+		getRepo[models.MetricRepository](repoSet),
+		getRepo[models.ParameterRepository](repoSet),
+		getRepo[models.MetricHistoryRepository](repoSet),
+		repoSet.TypeMap(),
+	)
+
+	glog.Infof("EmbedMD service connected")
+
+	return modelRegistryService, nil
+}
+
+func getRepo[T any](repoSet datastore.RepoSet) T {
+	repo, err := repoSet.Repository(reflect.TypeFor[T]())
+	if err != nil {
+		panic(fmt.Sprintf("unable to get repository: %v", err))
+	}
+
+	return repo.(T)
 }
 
 func init() {
@@ -195,14 +238,14 @@ func init() {
 	proxyCmd.Flags().StringVarP(&cfg.Hostname, "hostname", "n", cfg.Hostname, "Proxy server listen hostname")
 	proxyCmd.Flags().IntVarP(&cfg.Port, "port", "p", cfg.Port, "Proxy server listen port")
 
-	proxyCmd.Flags().StringVar(&proxyCfg.Datastore.EmbedMD.DatabaseType, "embedmd-database-type", "mysql", "EmbedMD database type")
-	proxyCmd.Flags().StringVar(&proxyCfg.Datastore.EmbedMD.DatabaseDSN, "embedmd-database-dsn", "", "EmbedMD database DSN")
-	proxyCmd.Flags().StringVar(&proxyCfg.Datastore.EmbedMD.TLSConfig.CertPath, "embedmd-database-ssl-cert", "", "EmbedMD SSL cert path")
-	proxyCmd.Flags().StringVar(&proxyCfg.Datastore.EmbedMD.TLSConfig.KeyPath, "embedmd-database-ssl-key", "", "EmbedMD SSL key path")
-	proxyCmd.Flags().StringVar(&proxyCfg.Datastore.EmbedMD.TLSConfig.RootCertPath, "embedmd-database-ssl-root-cert", "", "EmbedMD SSL root cert path")
-	proxyCmd.Flags().StringVar(&proxyCfg.Datastore.EmbedMD.TLSConfig.CAPath, "embedmd-database-ssl-ca", "", "EmbedMD SSL CA path")
-	proxyCmd.Flags().StringVar(&proxyCfg.Datastore.EmbedMD.TLSConfig.Cipher, "embedmd-database-ssl-cipher", "", "Colon-separated list of allowed TLS ciphers for the EmbedMD database connection. Values are from the list at https://pkg.go.dev/crypto/tls#pkg-constants e.g. 'TLS_AES_128_GCM_SHA256:TLS_CHACHA20_POLY1305_SHA256'")
-	proxyCmd.Flags().BoolVar(&proxyCfg.Datastore.EmbedMD.TLSConfig.VerifyServerCert, "embedmd-database-ssl-verify-server-cert", false, "EmbedMD SSL verify server cert")
+	proxyCmd.Flags().StringVar(&proxyCfg.EmbedMD.DatabaseType, "embedmd-database-type", "mysql", "EmbedMD database type")
+	proxyCmd.Flags().StringVar(&proxyCfg.EmbedMD.DatabaseDSN, "embedmd-database-dsn", "", "EmbedMD database DSN")
+	proxyCmd.Flags().StringVar(&proxyCfg.EmbedMD.TLSConfig.CertPath, "embedmd-database-ssl-cert", "", "EmbedMD SSL cert path")
+	proxyCmd.Flags().StringVar(&proxyCfg.EmbedMD.TLSConfig.KeyPath, "embedmd-database-ssl-key", "", "EmbedMD SSL key path")
+	proxyCmd.Flags().StringVar(&proxyCfg.EmbedMD.TLSConfig.RootCertPath, "embedmd-database-ssl-root-cert", "", "EmbedMD SSL root cert path")
+	proxyCmd.Flags().StringVar(&proxyCfg.EmbedMD.TLSConfig.CAPath, "embedmd-database-ssl-ca", "", "EmbedMD SSL CA path")
+	proxyCmd.Flags().StringVar(&proxyCfg.EmbedMD.TLSConfig.Cipher, "embedmd-database-ssl-cipher", "", "Colon-separated list of allowed TLS ciphers for the EmbedMD database connection. Values are from the list at https://pkg.go.dev/crypto/tls#pkg-constants e.g. 'TLS_AES_128_GCM_SHA256:TLS_CHACHA20_POLY1305_SHA256'")
+	proxyCmd.Flags().BoolVar(&proxyCfg.EmbedMD.TLSConfig.VerifyServerCert, "embedmd-database-ssl-verify-server-cert", false, "EmbedMD SSL verify server cert")
 
-	proxyCmd.Flags().StringVar(&proxyCfg.Datastore.Type, "datastore-type", proxyCfg.Datastore.Type, "Datastore type")
+	proxyCmd.Flags().StringVar(&proxyCfg.DatastoreType, "datastore-type", proxyCfg.DatastoreType, "Datastore type")
 }

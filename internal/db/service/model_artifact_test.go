@@ -14,7 +14,7 @@ import (
 )
 
 func TestModelArtifactRepository(t *testing.T) {
-	sharedDB, cleanup := testutils.SetupMySQLWithMigrations(t)
+	sharedDB, cleanup := testutils.SetupMySQLWithMigrations(t, service.DatastoreSpec())
 	defer cleanup()
 
 	// Get the actual ModelArtifact type ID from the database

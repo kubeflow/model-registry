@@ -10,8 +10,6 @@ import (
 	"time"
 
 	"github.com/kubeflow/model-registry/internal/core"
-	"github.com/kubeflow/model-registry/internal/datastore"
-	"github.com/kubeflow/model-registry/internal/datastore/embedmd"
 	"github.com/kubeflow/model-registry/internal/db"
 	"github.com/kubeflow/model-registry/internal/db/schema"
 	"github.com/kubeflow/model-registry/internal/db/service"
@@ -29,7 +27,7 @@ func TestMain(m *testing.M) {
 }
 
 func setupTestDB(t *testing.T) (*gorm.DB, string, api.ModelRegistryApi, func()) {
-	sharedDB, cleanup := testutils.SetupMySQLWithMigrations(t)
+	sharedDB, cleanup := testutils.SetupMySQLWithMigrations(t, service.DatastoreSpec())
 	dsn := testutils.GetSharedMySQLDSN(t)
 	svc := setupModelRegistryService(sharedDB)
 
@@ -78,7 +76,14 @@ func setupModelRegistryService(sharedDB *gorm.DB) api.ModelRegistryApi {
 	typesMap := getTypeIDs(sharedDB)
 
 	// Create all repositories
-	artifactRepo := service.NewArtifactRepository(sharedDB, typesMap[defaults.ModelArtifactTypeName], typesMap[defaults.DocArtifactTypeName], typesMap[defaults.DataSetTypeName], typesMap[defaults.MetricTypeName], typesMap[defaults.ParameterTypeName], typesMap[defaults.MetricHistoryTypeName])
+	artifactRepo := service.NewArtifactRepository(sharedDB, map[string]int64{
+		defaults.ModelArtifactTypeName: typesMap[defaults.ModelArtifactTypeName],
+		defaults.DocArtifactTypeName:   typesMap[defaults.DocArtifactTypeName],
+		defaults.DataSetTypeName:       typesMap[defaults.DataSetTypeName],
+		defaults.MetricTypeName:        typesMap[defaults.MetricTypeName],
+		defaults.ParameterTypeName:     typesMap[defaults.ParameterTypeName],
+		defaults.MetricHistoryTypeName: typesMap[defaults.MetricHistoryTypeName],
+	})
 	modelArtifactRepo := service.NewModelArtifactRepository(sharedDB, typesMap[defaults.ModelArtifactTypeName])
 	docArtifactRepo := service.NewDocArtifactRepository(sharedDB, typesMap[defaults.DocArtifactTypeName])
 	registeredModelRepo := service.NewRegisteredModelRepository(sharedDB, typesMap[defaults.RegisteredModelTypeName])
@@ -129,28 +134,15 @@ func setDirtySchemaState(t *testing.T, sharedDB *gorm.DB) {
 	require.NoError(t, err)
 }
 
-// createTestDatastore creates a datastore config for testing
-func createTestDatastore(sharedDSN string) datastore.Datastore {
-	return datastore.Datastore{
-		Type: "embedmd",
-		EmbedMD: embedmd.EmbedMDConfig{
-			DatabaseType: "mysql",
-			DatabaseDSN:  sharedDSN,
-		},
-	}
-}
-
 func TestReadinessHandler_EmbedMD_Success(t *testing.T) {
 	// Ensure clean state before test
-	sharedDB, sharedDSN, _, cleanup := setupTestDB(t)
+	sharedDB, _, _, cleanup := setupTestDB(t)
 	defer cleanup()
 
 	cleanupSchemaState(t, sharedDB)
 
-	ds := createTestDatastore(sharedDSN)
-
-	dbHealthChecker := NewDatabaseHealthChecker(ds)
-	handler := GeneralReadinessHandler(ds, dbHealthChecker)
+	dbHealthChecker := NewDatabaseHealthChecker()
+	handler := GeneralReadinessHandler(dbHealthChecker)
 	req, err := http.NewRequest("GET", "/readyz/isDirty", nil)
 	require.NoError(t, err)
 
@@ -163,16 +155,14 @@ func TestReadinessHandler_EmbedMD_Success(t *testing.T) {
 
 func TestReadinessHandler_EmbedMD_Dirty(t *testing.T) {
 	// Set dirty state for this test
-	sharedDB, sharedDSN, _, cleanup := setupTestDB(t)
+	sharedDB, _, _, cleanup := setupTestDB(t)
 	defer cleanup()
 
 	setDirtySchemaState(t, sharedDB)
 	defer cleanupSchemaState(t, sharedDB)
 
-	ds := createTestDatastore(sharedDSN)
-
-	dbHealthChecker := NewDatabaseHealthChecker(ds)
-	handler := GeneralReadinessHandler(ds, dbHealthChecker)
+	dbHealthChecker := NewDatabaseHealthChecker()
+	handler := GeneralReadinessHandler(dbHealthChecker)
 	req, err := http.NewRequest("GET", "/readyz/isDirty", nil)
 	require.NoError(t, err)
 
@@ -208,17 +198,15 @@ func TestReadinessHandler_EmbedMD_Dirty(t *testing.T) {
 
 func TestGeneralReadinessHandler_WithModelRegistry_Success(t *testing.T) {
 	// Ensure clean state before test
-	sharedDB, sharedDSN, sharedModelRegistryService, cleanup := setupTestDB(t)
+	sharedDB, _, sharedModelRegistryService, cleanup := setupTestDB(t)
 	defer cleanup()
 
 	cleanupSchemaState(t, sharedDB)
 
-	ds := createTestDatastore(sharedDSN)
-
 	// Create both health checkers
-	dbHealthChecker := NewDatabaseHealthChecker(ds)
+	dbHealthChecker := NewDatabaseHealthChecker()
 	mrHealthChecker := NewModelRegistryHealthChecker(sharedModelRegistryService)
-	handler := GeneralReadinessHandler(ds, dbHealthChecker, mrHealthChecker)
+	handler := GeneralReadinessHandler(dbHealthChecker, mrHealthChecker)
 
 	req, err := http.NewRequest("GET", "/readyz/health", nil)
 	require.NoError(t, err)
@@ -232,17 +220,15 @@ func TestGeneralReadinessHandler_WithModelRegistry_Success(t *testing.T) {
 
 func TestGeneralReadinessHandler_WithModelRegistry_JSONFormat(t *testing.T) {
 	// Ensure clean state before test
-	sharedDB, sharedDSN, sharedModelRegistryService, cleanup := setupTestDB(t)
+	sharedDB, _, sharedModelRegistryService, cleanup := setupTestDB(t)
 	defer cleanup()
 
 	cleanupSchemaState(t, sharedDB)
 
-	ds := createTestDatastore(sharedDSN)
-
 	// Create both health checkers
-	dbHealthChecker := NewDatabaseHealthChecker(ds)
+	dbHealthChecker := NewDatabaseHealthChecker()
 	mrHealthChecker := NewModelRegistryHealthChecker(sharedModelRegistryService)
-	handler := GeneralReadinessHandler(ds, dbHealthChecker, mrHealthChecker)
+	handler := GeneralReadinessHandler(dbHealthChecker, mrHealthChecker)
 
 	req, err := http.NewRequest("GET", "/readyz/health?format=json", nil)
 	require.NoError(t, err)
@@ -279,18 +265,16 @@ func TestGeneralReadinessHandler_WithModelRegistry_JSONFormat(t *testing.T) {
 
 func TestGeneralReadinessHandler_WithModelRegistry_DatabaseFail(t *testing.T) {
 	// Set dirty state to make database check fail
-	sharedDB, sharedDSN, sharedModelRegistryService, cleanup := setupTestDB(t)
+	sharedDB, _, sharedModelRegistryService, cleanup := setupTestDB(t)
 	defer cleanup()
 
 	setDirtySchemaState(t, sharedDB)
 	defer cleanupSchemaState(t, sharedDB)
 
-	ds := createTestDatastore(sharedDSN)
-
 	// Create both health checkers
-	dbHealthChecker := NewDatabaseHealthChecker(ds)
+	dbHealthChecker := NewDatabaseHealthChecker()
 	mrHealthChecker := NewModelRegistryHealthChecker(sharedModelRegistryService)
-	handler := GeneralReadinessHandler(ds, dbHealthChecker, mrHealthChecker)
+	handler := GeneralReadinessHandler(dbHealthChecker, mrHealthChecker)
 
 	req, err := http.NewRequest("GET", "/readyz/health?format=json", nil)
 	require.NoError(t, err)
@@ -319,17 +303,15 @@ func TestGeneralReadinessHandler_WithModelRegistry_DatabaseFail(t *testing.T) {
 
 func TestGeneralReadinessHandler_WithModelRegistry_ModelRegistryNil(t *testing.T) {
 	// Ensure clean state before test
-	sharedDB, sharedDSN, _, cleanup := setupTestDB(t)
+	sharedDB, _, _, cleanup := setupTestDB(t)
 	defer cleanup()
 
 	cleanupSchemaState(t, sharedDB)
 
-	ds := createTestDatastore(sharedDSN)
-
 	// Create health checkers - with nil model registry service
-	dbHealthChecker := NewDatabaseHealthChecker(ds)
+	dbHealthChecker := NewDatabaseHealthChecker()
 	mrHealthChecker := NewModelRegistryHealthChecker(nil)
-	handler := GeneralReadinessHandler(ds, dbHealthChecker, mrHealthChecker)
+	handler := GeneralReadinessHandler(dbHealthChecker, mrHealthChecker)
 
 	req, err := http.NewRequest("GET", "/readyz/health?format=json", nil)
 	require.NoError(t, err)
@@ -358,18 +340,16 @@ func TestGeneralReadinessHandler_WithModelRegistry_ModelRegistryNil(t *testing.T
 
 func TestGeneralReadinessHandler_SimpleTextResponse_Failure(t *testing.T) {
 	// Set dirty state to make database check fail
-	sharedDB, sharedDSN, sharedModelRegistryService, cleanup := setupTestDB(t)
+	sharedDB, _, sharedModelRegistryService, cleanup := setupTestDB(t)
 	defer cleanup()
 
 	setDirtySchemaState(t, sharedDB)
 	defer cleanupSchemaState(t, sharedDB)
 
-	ds := createTestDatastore(sharedDSN)
-
 	// Create both health checkers
-	dbHealthChecker := NewDatabaseHealthChecker(ds)
+	dbHealthChecker := NewDatabaseHealthChecker()
 	mrHealthChecker := NewModelRegistryHealthChecker(sharedModelRegistryService)
-	handler := GeneralReadinessHandler(ds, dbHealthChecker, mrHealthChecker)
+	handler := GeneralReadinessHandler(dbHealthChecker, mrHealthChecker)
 
 	req, err := http.NewRequest("GET", "/readyz/health", nil)
 	require.NoError(t, err)
@@ -382,36 +362,17 @@ func TestGeneralReadinessHandler_SimpleTextResponse_Failure(t *testing.T) {
 	assert.Contains(t, rr.Body.String(), "database schema is in dirty state")
 }
 
-func TestDatabaseHealthChecker_EmptyDSN(t *testing.T) {
-	ds := datastore.Datastore{
-		Type: "embedmd",
-		EmbedMD: embedmd.EmbedMDConfig{
-			DatabaseType: "mysql",
-			DatabaseDSN:  "", // Empty DSN
-		},
-	}
-
-	checker := NewDatabaseHealthChecker(ds)
-	result := checker.Check()
-
-	assert.Equal(t, HealthCheckDatabase, result.Name)
-	assert.Equal(t, StatusFail, result.Status)
-	assert.Equal(t, "database DSN not configured", result.Message)
-}
-
 func TestGeneralReadinessHandler_MultipleFailures(t *testing.T) {
 	// Test with both database and model registry failing
-	sharedDB, sharedDSN, _, cleanup := setupTestDB(t)
+	sharedDB, _, _, cleanup := setupTestDB(t)
 	defer cleanup()
 
 	setDirtySchemaState(t, sharedDB)
 	defer cleanupSchemaState(t, sharedDB)
 
-	ds := createTestDatastore(sharedDSN)
-
-	dbHealthChecker := NewDatabaseHealthChecker(ds)
+	dbHealthChecker := NewDatabaseHealthChecker()
 	mrHealthChecker := NewModelRegistryHealthChecker(nil) // Nil service to make it fail
-	handler := GeneralReadinessHandler(ds, dbHealthChecker, mrHealthChecker)
+	handler := GeneralReadinessHandler(dbHealthChecker, mrHealthChecker)
 
 	req, err := http.NewRequest("GET", "/readyz/health?format=json", nil)
 	require.NoError(t, err)

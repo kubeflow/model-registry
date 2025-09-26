@@ -14,7 +14,7 @@ import (
 )
 
 func TestDocArtifactRepository(t *testing.T) {
-	sharedDB, cleanup := testutils.SetupMySQLWithMigrations(t)
+	sharedDB, cleanup := testutils.SetupMySQLWithMigrations(t, service.DatastoreSpec())
 	defer cleanup()
 
 	// Get the actual DocArtifact type ID from the database

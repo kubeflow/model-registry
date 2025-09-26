@@ -17,13 +17,14 @@ import (
 // checks if the CatalogModelArtifact type satisfies the MappedNullable interface at compile time
 var _ MappedNullable = &CatalogModelArtifact{}
 
-// CatalogModelArtifact A single artifact for a catalog model.
+// CatalogModelArtifact A Catalog Model Artifact Entity.
 type CatalogModelArtifact struct {
 	// Output only. Create time of the resource in millisecond since epoch.
 	CreateTimeSinceEpoch *string `json:"createTimeSinceEpoch,omitempty"`
 	// Output only. Last update time of the resource since epoch in millisecond since epoch.
 	LastUpdateTimeSinceEpoch *string `json:"lastUpdateTimeSinceEpoch,omitempty"`
-	// URI where the artifact can be retrieved.
+	ArtifactType             string  `json:"artifactType"`
+	// URI where the model can be retrieved.
 	Uri string `json:"uri"`
 	// User provided custom properties which are not defined by its type.
 	CustomProperties *map[string]MetadataValue `json:"customProperties,omitempty"`
@@ -33,8 +34,9 @@ type CatalogModelArtifact struct {
 // This constructor will assign default values to properties that have it defined,
 // and makes sure properties required by API are set, but the set of arguments
 // will change when the set of required properties is changed
-func NewCatalogModelArtifact(uri string) *CatalogModelArtifact {
+func NewCatalogModelArtifact(artifactType string, uri string) *CatalogModelArtifact {
 	this := CatalogModelArtifact{}
+	this.ArtifactType = artifactType
 	this.Uri = uri
 	return &this
 }
@@ -44,6 +46,8 @@ func NewCatalogModelArtifact(uri string) *CatalogModelArtifact {
 // but it doesn't guarantee that properties required by API are set
 func NewCatalogModelArtifactWithDefaults() *CatalogModelArtifact {
 	this := CatalogModelArtifact{}
+	var artifactType string = "model-artifact"
+	this.ArtifactType = artifactType
 	return &this
 }
 
@@ -109,6 +113,30 @@ func (o *CatalogModelArtifact) HasLastUpdateTimeSinceEpoch() bool {
 // SetLastUpdateTimeSinceEpoch gets a reference to the given string and assigns it to the LastUpdateTimeSinceEpoch field.
 func (o *CatalogModelArtifact) SetLastUpdateTimeSinceEpoch(v string) {
 	o.LastUpdateTimeSinceEpoch = &v
+}
+
+// GetArtifactType returns the ArtifactType field value
+func (o *CatalogModelArtifact) GetArtifactType() string {
+	if o == nil {
+		var ret string
+		return ret
+	}
+
+	return o.ArtifactType
+}
+
+// GetArtifactTypeOk returns a tuple with the ArtifactType field value
+// and a boolean to check if the value has been set.
+func (o *CatalogModelArtifact) GetArtifactTypeOk() (*string, bool) {
+	if o == nil {
+		return nil, false
+	}
+	return &o.ArtifactType, true
+}
+
+// SetArtifactType sets field value
+func (o *CatalogModelArtifact) SetArtifactType(v string) {
+	o.ArtifactType = v
 }
 
 // GetUri returns the Uri field value
@@ -183,6 +211,7 @@ func (o CatalogModelArtifact) ToMap() (map[string]interface{}, error) {
 	if !IsNil(o.LastUpdateTimeSinceEpoch) {
 		toSerialize["lastUpdateTimeSinceEpoch"] = o.LastUpdateTimeSinceEpoch
 	}
+	toSerialize["artifactType"] = o.ArtifactType
 	toSerialize["uri"] = o.Uri
 	if !IsNil(o.CustomProperties) {
 		toSerialize["customProperties"] = o.CustomProperties

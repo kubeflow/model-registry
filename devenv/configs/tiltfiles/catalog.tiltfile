@@ -1,4 +1,4 @@
-manifests = kustomize("../../../manifests/kustomize/options/catalog")
+manifests = kustomize("../../../manifests/kustomize/options/catalog/base")
 
 objects = decode_yaml_stream(manifests)
 
@@ -18,5 +18,14 @@ k8s_resource(
     labels="backend",
     resource_deps=["kubeflow-namespace"],
     port_forwards="8082:8080",
+    trigger_mode=TRIGGER_MODE_AUTO
+)
+
+k8s_resource(
+    workload="model-catalog-postgres",
+    new_name="catalog-db",
+    labels="backend",
+    resource_deps=["kubeflow-namespace"],
+    port_forwards="5432:5432",
     trigger_mode=TRIGGER_MODE_AUTO
 )
