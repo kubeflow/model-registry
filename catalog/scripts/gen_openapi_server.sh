@@ -26,7 +26,6 @@ function sed_inplace() {
 
 sed_inplace 's/, orderByParam/, model.OrderByField(orderByParam)/g' "$PROJECT_ROOT"/internal/server/openapi/api_model_catalog_service.go
 sed_inplace 's/, sortOrderParam/, model.SortOrder(sortOrderParam)/g' "$PROJECT_ROOT"/internal/server/openapi/api_model_catalog_service.go
-sed_inplace 's/model\.\[\]string/[]string/g' "$PROJECT_ROOT"/internal/server/openapi/api.go
 
 sed_inplace 's/"encoding\/json"//' "$PROJECT_ROOT"/internal/server/openapi/api_model_catalog_service.go
 
