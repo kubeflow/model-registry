@@ -181,15 +181,20 @@ func TestFindModels(t *testing.T) {
 			},
 		},
 		{
-			name:              "Invalid source ID",
-			sourceID:          "unknown-source",
-			mockModels:        map[string]*model.CatalogModel{},
-			q:                 "",
-			pageSize:          "10",
-			orderBy:           model.ORDERBYFIELD_ID,
-			sortOrder:         model.SORTORDER_ASC,
-			expectedStatus:    http.StatusNotFound,
-			expectedModelList: nil,
+			name:           "Invalid source ID",
+			sourceID:       "unknown-source",
+			mockModels:     map[string]*model.CatalogModel{},
+			q:              "",
+			pageSize:       "10",
+			orderBy:        model.ORDERBYFIELD_ID,
+			sortOrder:      model.SORTORDER_ASC,
+			expectedStatus: http.StatusOK, // Changed from http.StatusNotFound to http.StatusOK with an empty list -- now the source ID is just a field in the CatalogModel
+			expectedModelList: &model.CatalogModelList{
+				Items:         []model.CatalogModel{},
+				Size:          0,
+				PageSize:      10,
+				NextPageToken: "",
+			},
 		},
 		{
 			name:     "Invalid pageSize string",
@@ -210,12 +215,19 @@ func TestFindModels(t *testing.T) {
 			mockModels: map[string]*model.CatalogModel{
 				"modelA": modelA,
 			},
-			q:                 "",
-			pageSize:          "10",
-			orderBy:           "UNSUPPORTED_FIELD",
-			sortOrder:         model.SORTORDER_ASC,
-			expectedStatus:    http.StatusBadRequest,
-			expectedModelList: nil,
+			q:              "",
+			pageSize:       "10",
+			orderBy:        "UNSUPPORTED_FIELD",
+			sortOrder:      model.SORTORDER_ASC,
+			expectedStatus: http.StatusOK, // Changed from http.StatusBadRequest to http.StatusOK -- in model registry we fallback to ID if the order by field is unsupported
+			expectedModelList: &model.CatalogModelList{
+				Items: []model.CatalogModel{
+					*modelA,
+				},
+				Size:          1,
+				PageSize:      10,
+				NextPageToken: "",
+			},
 		},
 		{
 			name:     "Unsupported sortOrder field",
@@ -223,12 +235,19 @@ func TestFindModels(t *testing.T) {
 			mockModels: map[string]*model.CatalogModel{
 				"modelA": modelA,
 			},
-			q:                 "",
-			pageSize:          "10",
-			orderBy:           model.ORDERBYFIELD_ID,
-			sortOrder:         "UNSUPPORTED_ORDER",
-			expectedStatus:    http.StatusBadRequest,
-			expectedModelList: nil,
+			q:              "",
+			pageSize:       "10",
+			orderBy:        model.ORDERBYFIELD_ID,
+			sortOrder:      "UNSUPPORTED_ORDER",
+			expectedStatus: http.StatusOK, // Changed from http.StatusBadRequest to http.StatusOK -- in model registry we fallback to ASC if the sort order field is unsupported
+			expectedModelList: &model.CatalogModelList{
+				Items: []model.CatalogModel{
+					*modelA,
+				},
+				Size:          1,
+				PageSize:      10,
+				NextPageToken: "",
+			},
 		},
 		{
 			name:           "Empty models in source",
@@ -269,11 +288,20 @@ func TestFindModels(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			// Create mock source collection
+			sources := catalog.NewSourceCollection(map[string]catalog.CatalogSource{
+				"source1": {
+					Metadata: model.CatalogSource{Id: "source1", Name: "Test Source 1"},
+					Provider: &mockModelProvider{
+						models: tc.mockModels,
+					},
+				},
+			})
+
 			provider := &mockModelProvider{
 				models: tc.mockModels,
 			}
 
-			service := NewModelCatalogServiceAPIService(provider)
+			service := NewModelCatalogServiceAPIService(provider, sources)
 
 			resp, err := service.FindModels(
 				context.Background(),
@@ -631,7 +659,7 @@ func TestFindSources(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			// Create service with test catalogs
-			service := NewModelCatalogServiceAPIService(&mockModelProvider{})
+			service := NewModelCatalogServiceAPIService(&mockModelProvider{}, catalog.NewSourceCollection(tc.catalogs))
 
 			// Call FindSources
 			resp, err := service.FindSources(
@@ -725,7 +753,7 @@ type mockModelProvider struct {
 }
 
 // Implement GetModel method for the mock provider
-func (m *mockModelProvider) GetModel(ctx context.Context, name string) (*model.CatalogModel, error) {
+func (m *mockModelProvider) GetModel(ctx context.Context, name string, sourceID string) (*model.CatalogModel, error) {
 	model, exists := m.models[name]
 	if !exists {
 		return nil, nil
@@ -767,26 +795,39 @@ func (m *mockModelProvider) ListModels(ctx context.Context, params catalog.ListM
 		return cmp < 0
 	})
 
-	items := make([]model.CatalogModel, len(filteredModels))
-	for i, mdl := range filteredModels {
+	totalSize := int32(len(filteredModels))
+	pageSize := params.PageSize
+	if pageSize <= 0 {
+		pageSize = 10
+	}
+
+	// Apply pagination - limit items to page size
+	endIndex := int(pageSize)
+	if endIndex > len(filteredModels) {
+		endIndex = len(filteredModels)
+	}
+
+	pagedModels := filteredModels[:endIndex]
+	items := make([]model.CatalogModel, len(pagedModels))
+	for i, mdl := range pagedModels {
 		items[i] = *mdl
 	}
 
 	nextPageToken := ""
-
-	if len(items) > int(params.PageSize) {
-		nextPageToken = (&stringCursor{Value: items[params.PageSize-1].Name, ID: items[params.PageSize-1].Name}).String()
+	if len(filteredModels) > int(pageSize) {
+		lastItem := pagedModels[len(pagedModels)-1]
+		nextPageToken = (&stringCursor{Value: lastItem.Name, ID: lastItem.Name}).String()
 	}
 
 	return model.CatalogModelList{
 		Items:         items,
-		Size:          int32(len(items)),
-		PageSize:      params.PageSize,
+		Size:          totalSize,
+		PageSize:      pageSize,
 		NextPageToken: nextPageToken,
 	}, nil
 }
 
-func (m *mockModelProvider) GetArtifacts(ctx context.Context, name string, params catalog.ListArtifactsParams) (model.CatalogArtifactList, error) {
+func (m *mockModelProvider) GetArtifacts(ctx context.Context, name string, sourceID string, params catalog.ListArtifactsParams) (model.CatalogArtifactList, error) {
 	artifacts, exists := m.artifacts[name]
 	if !exists {
 		return model.CatalogArtifactList{
@@ -849,6 +890,9 @@ func TestGetModel(t *testing.T) {
 					Metadata: model.CatalogSource{Id: "source1", Name: "Test Source"},
 				},
 			},
+			provider: &mockModelProvider{
+				models: map[string]*model.CatalogModel{},
+			},
 			sourceID:       "source2",
 			modelName:      "test-model",
 			expectedStatus: http.StatusNotFound,
@@ -905,7 +949,7 @@ func TestGetModel(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			// Create service with test sources
-			service := NewModelCatalogServiceAPIService(tc.provider)
+			service := NewModelCatalogServiceAPIService(tc.provider, catalog.NewSourceCollection(tc.sources))
 
 			// Call GetModel
 			resp, _ := service.GetModel(
@@ -1007,10 +1051,13 @@ func TestGetAllModelArtifacts(t *testing.T) {
 					Metadata: model.CatalogSource{Id: "source1", Name: "Test Source"},
 				},
 			},
+			provider: &mockModelProvider{
+				artifacts: map[string][]model.CatalogArtifact{},
+			},
 			sourceID:          "source2",
 			modelName:         "test-model",
-			expectedStatus:    http.StatusNotFound,
-			expectedArtifacts: nil,
+			expectedStatus:    http.StatusOK, // Changed from http.StatusNotFound to http.StatusOK -- having the same behavior as the model registry
+			expectedArtifacts: []model.CatalogArtifact{},
 		},
 		{
 			name: "Existing source, no artifacts for model",
@@ -1035,7 +1082,7 @@ func TestGetAllModelArtifacts(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			// Create service with test sources
-			service := NewModelCatalogServiceAPIService(tc.provider)
+			service := NewModelCatalogServiceAPIService(tc.provider, catalog.NewSourceCollection(tc.sources))
 
 			// Call GetAllModelArtifacts
 			resp, _ := service.GetAllModelArtifacts(
@@ -1060,7 +1107,7 @@ func TestGetAllModelArtifacts(t *testing.T) {
 			require.NotNil(t, resp.Body)
 
 			// Type assertion to access the list of artifacts
-			artifactList, ok := resp.Body.(*model.CatalogArtifactList)
+			artifactList, ok := resp.Body.(model.CatalogArtifactList)
 			require.True(t, ok, "Response body should be a CatalogArtifactList")
 
 			// Check the artifacts

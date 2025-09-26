@@ -29,20 +29,21 @@ func NewDBCatalog(
 	}
 }
 
-func (d *dbCatalogImpl) GetModel(ctx context.Context, name string) (*model.CatalogModel, error) {
+func (d *dbCatalogImpl) GetModel(ctx context.Context, modelName string, sourceID string) (*model.CatalogModel, error) {
 	modelsList, err := d.catalogModelRepository.List(models.CatalogModelListOptions{
-		Name: &name,
+		Name:      &modelName,
+		SourceIDs: &[]string{sourceID},
 	})
 	if err != nil {
 		return nil, err
 	}
 
 	if len(modelsList.Items) == 0 {
-		return nil, fmt.Errorf("no models found for name=%v: %w", name, api.ErrNotFound)
+		return nil, fmt.Errorf("no models found for name=%v: %w", modelName, api.ErrNotFound)
 	}
 
 	if len(modelsList.Items) > 1 {
-		return nil, fmt.Errorf("multiple models found for name=%v: %w", name, api.ErrNotFound)
+		return nil, fmt.Errorf("multiple models found for name=%v: %w", modelName, api.ErrNotFound)
 	}
 
 	model := mapCatalogModelToCatalogModel(modelsList.Items[0])
@@ -84,13 +85,13 @@ func (d *dbCatalogImpl) ListModels(ctx context.Context, params ListModelsParams)
 	return *modelList, nil
 }
 
-func (d *dbCatalogImpl) GetArtifacts(ctx context.Context, name string, params ListArtifactsParams) (model.CatalogArtifactList, error) {
+func (d *dbCatalogImpl) GetArtifacts(ctx context.Context, modelName string, sourceID string, params ListArtifactsParams) (model.CatalogArtifactList, error) {
 	pageSize := int32(params.PageSize)
 	orderBy := string(params.OrderBy)
 	sortOrder := string(params.SortOrder)
 	nextPageToken := params.NextPageToken
 
-	m, err := d.GetModel(ctx, name)
+	m, err := d.GetModel(ctx, modelName, sourceID)
 	if err != nil {
 		return model.CatalogArtifactList{}, err
 	}

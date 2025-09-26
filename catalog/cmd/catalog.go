@@ -53,8 +53,7 @@ func runCatalogServer(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("error initializing datastore: %v", err)
 	}
 
-	// Keeping this for now, as it could be useful to import data into the database
-	_, err = catalog.LoadCatalogSources(catalogCfg.ConfigPath)
+	sources, err := catalog.LoadCatalogSources(catalogCfg.ConfigPath)
 	if err != nil {
 		return fmt.Errorf("error loading catalog sources: %v", err)
 	}
@@ -63,7 +62,7 @@ func runCatalogServer(cmd *cobra.Command, args []string) error {
 		getRepo[models.CatalogModelRepository](repoSet),
 		getRepo[models.CatalogModelArtifactRepository](repoSet),
 		getRepo[models.CatalogMetricsArtifactRepository](repoSet),
-	))
+	), sources)
 	ctrl := openapi.NewModelCatalogServiceAPIController(svc)
 
 	glog.Infof("Catalog API server listening on %s", catalogCfg.ListenAddress)
