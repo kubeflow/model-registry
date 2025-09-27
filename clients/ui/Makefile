@@ -32,6 +32,7 @@ dev-install-dependencies:
 
 .PHONY: dev-bff
 dev-bff:
+	trap 'exit 0' INT; \
 	cd bff && make run PORT=4000 MOCK_K8S_CLIENT=true MOCK_MR_CLIENT=true MOCK_MR_CATALOG_CLIENT=true DEV_MODE=true DEPLOYMENT_MODE=standalone 
 
 .PHONY: dev-frontend
@@ -39,12 +40,14 @@ dev-frontend:
 	cd frontend && DEPLOYMENT_MODE=standalone STYLE_THEME=mui-theme npm run start:dev
 
 .PHONY: dev-start
-dev-start: 
+dev-start:
+	@trap 'exit 0' INT; \
 	make -j 2 dev-bff dev-frontend
 
 ########### Dev Kubeflow ############
 .PHONY: dev-start-kubeflow
-dev-start-kubeflow: 
+dev-start-kubeflow:
+	@trap 'exit 0' INT; \
 	make -j 2 dev-bff-kubeflow dev-frontend-kubeflow
 
 .PHONY: dev-frontend-kubeflow
@@ -57,7 +60,8 @@ dev-bff-kubeflow:
 
 ########### Dev Federated ###########
 .PHONY: dev-start-federated
-dev-start-federated: 
+dev-start-federated:
+	@trap 'exit 0' INT; \
 	make -j 2 dev-bff-federated dev-frontend-federated
 
 .PHONY: dev-frontend-federated
