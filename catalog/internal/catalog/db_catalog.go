@@ -53,8 +53,18 @@ func (d *dbCatalogImpl) GetModel(ctx context.Context, modelName string, sourceID
 
 func (d *dbCatalogImpl) ListModels(ctx context.Context, params ListModelsParams) (model.CatalogModelList, error) {
 	pageSize := int32(params.PageSize)
+
+	// Use consistent defaults to match pagination logic
 	orderBy := string(params.OrderBy)
+	if orderBy == "" {
+		orderBy = mr_models.DefaultOrderBy
+	}
+
 	sortOrder := string(params.SortOrder)
+	if sortOrder == "" {
+		sortOrder = mr_models.DefaultSortOrder
+	}
+
 	nextPageToken := params.NextPageToken
 
 	modelsList, err := d.catalogModelRepository.List(models.CatalogModelListOptions{
@@ -78,7 +88,7 @@ func (d *dbCatalogImpl) ListModels(ctx context.Context, params ListModelsParams)
 		modelList.Items = append(modelList.Items, mapCatalogModelToCatalogModel(model))
 	}
 
-	modelList.NextPageToken = *nextPageToken
+	modelList.NextPageToken = modelsList.NextPageToken
 	modelList.PageSize = pageSize
 	modelList.Size = int32(len(modelsList.Items))
 
@@ -87,8 +97,18 @@ func (d *dbCatalogImpl) ListModels(ctx context.Context, params ListModelsParams)
 
 func (d *dbCatalogImpl) GetArtifacts(ctx context.Context, modelName string, sourceID string, params ListArtifactsParams) (model.CatalogArtifactList, error) {
 	pageSize := int32(params.PageSize)
+
+	// Use consistent defaults to match pagination logic
 	orderBy := string(params.OrderBy)
+	if orderBy == "" {
+		orderBy = mr_models.DefaultOrderBy
+	}
+
 	sortOrder := string(params.SortOrder)
+	if sortOrder == "" {
+		sortOrder = mr_models.DefaultSortOrder
+	}
+
 	nextPageToken := params.NextPageToken
 
 	m, err := d.GetModel(ctx, modelName, sourceID)
@@ -128,7 +148,7 @@ func (d *dbCatalogImpl) GetArtifacts(ctx context.Context, modelName string, sour
 		artifactList.Items = append(artifactList.Items, mappedArtifact)
 	}
 
-	artifactList.NextPageToken = *nextPageToken
+	artifactList.NextPageToken = artifactsList.NextPageToken
 	artifactList.PageSize = pageSize
 	artifactList.Size = int32(len(artifactList.Items))
 

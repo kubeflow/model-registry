@@ -8,6 +8,7 @@ import (
 	"github.com/kubeflow/model-registry/internal/datastore"
 	dbmodels "github.com/kubeflow/model-registry/internal/db/models"
 	"github.com/kubeflow/model-registry/internal/db/schema"
+	"github.com/kubeflow/model-registry/internal/db/scopes"
 	"github.com/kubeflow/model-registry/internal/db/utils"
 	"gorm.io/gorm"
 )
@@ -100,22 +101,29 @@ func (r *CatalogArtifactRepositoryImpl) List(listOptions models.CatalogArtifactL
 			Select(utils.GetTableName(query, &schema.Artifact{}) + ".*") // Explicitly select from Artifact table to avoid ambiguity
 	}
 
-	// Apply pagination
+	orderBy := listOptions.GetOrderBy()
+	sortOrder := listOptions.GetSortOrder()
+	nextPageToken := listOptions.GetNextPageToken()
 	pageSize := listOptions.GetPageSize()
-	if pageSize > 0 {
-		query = query.Limit(int(pageSize + 1)) // +1 to check if there are more results
+
+	pagination := &dbmodels.Pagination{
+		PageSize:      &pageSize,
+		OrderBy:       &orderBy,
+		SortOrder:     &sortOrder,
+		NextPageToken: &nextPageToken,
 	}
+
+	query = query.Scopes(scopes.PaginateWithTablePrefix(artifactsArt, pagination, r.db, "Artifact"))
 
 	if err := query.Find(&artifactsArt).Error; err != nil {
 		return nil, fmt.Errorf("error listing catalog artifacts: %w", err)
 	}
 
-	// Check for pagination
 	hasMore := false
 	if pageSize > 0 {
 		hasMore = len(artifactsArt) > int(pageSize)
 		if hasMore {
-			artifactsArt = artifactsArt[:len(artifactsArt)-1]
+			artifactsArt = artifactsArt[:len(artifactsArt)-1] // Remove the extra item used for hasMore detection
 		}
 	}
 
@@ -133,10 +141,12 @@ func (r *CatalogArtifactRepositoryImpl) List(listOptions models.CatalogArtifactL
 		artifacts = append(artifacts, artifact)
 	}
 
-	// Handle pagination token
+	// Handle pagination token - generate token when there are more pages
 	if hasMore && len(artifactsArt) > 0 {
-		// For now, use a simple pagination approach
-		listOptions.NextPageToken = nil // Implementation can be enhanced later
+		// Use the last artifact to generate pagination token
+		lastArtifact := artifactsArt[len(artifactsArt)-1]
+		nextToken := r.createPaginationToken(lastArtifact, listOptions)
+		listOptions.NextPageToken = &nextToken
 	} else {
 		listOptions.NextPageToken = nil
 	}
@@ -177,4 +187,31 @@ func (r *CatalogArtifactRepositoryImpl) mapDataLayerToCatalogArtifact(artifact s
 	}
 
 	return artToReturn, nil
+}
+
+// createPaginationToken generates a pagination token based on the last artifact and ordering
+func (r *CatalogArtifactRepositoryImpl) createPaginationToken(artifact schema.Artifact, listOptions models.CatalogArtifactListOptions) string {
+	orderBy := listOptions.GetOrderBy()
+	value := ""
+
+	// Generate token value based on ordering field
+	switch orderBy {
+	case "ID":
+		value = fmt.Sprintf("%d", artifact.ID)
+	case "CREATE_TIME":
+		value = fmt.Sprintf("%d", artifact.CreateTimeSinceEpoch)
+	case "LAST_UPDATE_TIME":
+		value = fmt.Sprintf("%d", artifact.LastUpdateTimeSinceEpoch)
+	case "NAME":
+		if artifact.Name != nil {
+			value = *artifact.Name
+		} else {
+			value = fmt.Sprintf("%d", artifact.ID) // Fallback to ID if name is nil
+		}
+	default:
+		// Default to ID ordering
+		value = fmt.Sprintf("%d", artifact.ID)
+	}
+
+	return scopes.CreateNextPageToken(artifact.ID, value)
 }
