@@ -48,7 +48,16 @@ func (m *ModelCatalogServiceAPIService) GetAllModelArtifacts(ctx context.Context
 		NextPageToken: &nextPageToken,
 	})
 	if err != nil {
-		return Response(http.StatusInternalServerError, err), err
+		statusCode := api.ErrToStatus(err)
+		var errorMsg string
+		if errors.Is(err, api.ErrBadRequest) {
+			errorMsg = fmt.Sprintf("Invalid model name '%s' for source '%s'", modelName, sourceID)
+		} else if errors.Is(err, api.ErrNotFound) {
+			errorMsg = fmt.Sprintf("No model found '%s' in source '%s'", modelName, sourceID)
+		} else {
+			errorMsg = err.Error()
+		}
+		return ErrorResponse(statusCode, errors.New(errorMsg)), err
 	}
 
 	return Response(http.StatusOK, artifacts), nil
@@ -95,7 +104,13 @@ func (m *ModelCatalogServiceAPIService) GetModel(ctx context.Context, sourceID s
 	model, err := m.provider.GetModel(ctx, modelName, sourceID)
 	if err != nil {
 		statusCode := api.ErrToStatus(err)
-		return Response(statusCode, err), err
+		var errorMsg string
+		if errors.Is(err, api.ErrNotFound) {
+			errorMsg = fmt.Sprintf("No model found '%s' in source '%s'", modelName, sourceID)
+		} else {
+			errorMsg = err.Error()
+		}
+		return ErrorResponse(statusCode, errors.New(errorMsg)), err
 	}
 
 	if model == nil {

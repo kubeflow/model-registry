@@ -63,7 +63,7 @@ func TestYAMLCatalogGetArtifacts(t *testing.T) {
 	// Test case 3: Model not found
 	notFoundArtifacts, err := provider.GetArtifacts(context.Background(), "non-existent-model", "", ListArtifactsParams{})
 	assert.NoError(err)
-	assert.Nil(notFoundArtifacts)
+	assert.Equal(int32(0), notFoundArtifacts.Size)
 }
 
 func TestYAMLCatalogListModels(t *testing.T) {

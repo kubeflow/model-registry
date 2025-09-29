@@ -339,7 +339,7 @@ func TestDBCatalog(t *testing.T) {
 
 		_, err := dbCatalog.GetArtifacts(ctx, "non-existent-model", "test-source", params)
 		require.Error(t, err)
-		assert.Contains(t, err.Error(), "no models found")
+		assert.Contains(t, err.Error(), "invalid model name")
 	})
 
 	t.Run("TestGetArtifacts_WithCustomProperties", func(t *testing.T) {
@@ -530,8 +530,7 @@ func TestDBCatalog(t *testing.T) {
 
 			_, err := dbCatalog.GetArtifacts(ctx, "non-existent-model", "test-source", params)
 			require.Error(t, err)
-			// This should fail at the GetModel step
-			assert.Contains(t, err.Error(), "no models found")
+			assert.Contains(t, err.Error(), "invalid model name")
 		})
 	})
 }

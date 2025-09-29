@@ -3,6 +3,7 @@ package catalog
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"strconv"
 
@@ -113,6 +114,9 @@ func (d *dbCatalogImpl) GetArtifacts(ctx context.Context, modelName string, sour
 
 	m, err := d.GetModel(ctx, modelName, sourceID)
 	if err != nil {
+		if errors.Is(err, api.ErrNotFound) {
+			return model.CatalogArtifactList{}, fmt.Errorf("invalid model name '%s' for source '%s': %w", modelName, sourceID, api.ErrBadRequest)
+		}
 		return model.CatalogArtifactList{}, err
 	}
 
