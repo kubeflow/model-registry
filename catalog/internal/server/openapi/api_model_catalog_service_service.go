@@ -13,6 +13,7 @@ import (
 
 	"github.com/kubeflow/model-registry/catalog/internal/catalog"
 	model "github.com/kubeflow/model-registry/catalog/pkg/openapi"
+	"github.com/kubeflow/model-registry/pkg/api"
 )
 
 // ModelCatalogServiceAPIService is a service that implements the logic for the ModelCatalogServiceAPIServicer
@@ -93,7 +94,8 @@ func (m *ModelCatalogServiceAPIService) GetModel(ctx context.Context, sourceID s
 
 	model, err := m.provider.GetModel(ctx, modelName, sourceID)
 	if err != nil {
-		return Response(http.StatusInternalServerError, err), err
+		statusCode := api.ErrToStatus(err)
+		return Response(statusCode, err), err
 	}
 
 	if model == nil {
