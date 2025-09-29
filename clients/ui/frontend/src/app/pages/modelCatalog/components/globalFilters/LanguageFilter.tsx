@@ -1,15 +1,24 @@
 import * as React from 'react';
 import {
-  ModelCatalogStringFilterStateType,
   ModelCatalogFilterResponseType,
+  ModelCatalogFilterStatesByKey,
 } from '~/app/pages/modelCatalog/types';
 import ModelCatalogStringFilter from '~/app/pages/modelCatalog/components/ModelCatalogStringFilter';
 import { ModelCatalogContext } from '~/app/context/modelCatalog/ModelCatalogContext';
 import {
+  ModelCatalogFilterKeys,
   MODEL_CATALOG_ASIAN_LANGUAGES_DETAILS,
   MODEL_CATALOG_EUROPEAN_LANGUAGES_DETAILS,
   MODEL_CATALOG_MIDDLE_EASTERN_AND_OTHER_LANGUAGES_DETAILS,
 } from '~/concepts/modelCatalog/const';
+
+const filterKey = ModelCatalogFilterKeys.LANGUAGE;
+
+const LANGUAGE_NAME_MAPPING = {
+  ...MODEL_CATALOG_EUROPEAN_LANGUAGES_DETAILS,
+  ...MODEL_CATALOG_ASIAN_LANGUAGES_DETAILS,
+  ...MODEL_CATALOG_MIDDLE_EASTERN_AND_OTHER_LANGUAGES_DETAILS,
+};
 
 type LanguageFilterProps = {
   filters: ModelCatalogFilterResponseType['filters'];
@@ -17,15 +26,15 @@ type LanguageFilterProps = {
 
 const LanguageFilter: React.FC<LanguageFilterProps> = ({ filters }) => {
   const { filterData, setFilterData } = React.useContext(ModelCatalogContext);
-  const { language } = filters;
+  const language = filters[filterKey];
 
   React.useEffect(() => {
-    if (language && !('language' in filterData)) {
-      const state: Record<string, boolean> = {};
+    if (language && !(filterKey in filterData)) {
+      const state: ModelCatalogFilterStatesByKey[typeof filterKey] = {};
       language.values.forEach((key) => {
         state[key] = false;
       });
-      setFilterData('language', state);
+      setFilterData(filterKey, state);
     }
   }, [language, filterData, setFilterData]);
 
@@ -34,17 +43,12 @@ const LanguageFilter: React.FC<LanguageFilterProps> = ({ filters }) => {
   }
 
   return (
-    <ModelCatalogStringFilter
+    <ModelCatalogStringFilter<ModelCatalogFilterKeys.LANGUAGE>
       title="Language"
-      filterKey="language"
-      filterToNameMapping={{
-        ...MODEL_CATALOG_EUROPEAN_LANGUAGES_DETAILS,
-        ...MODEL_CATALOG_ASIAN_LANGUAGES_DETAILS,
-        ...MODEL_CATALOG_MIDDLE_EASTERN_AND_OTHER_LANGUAGES_DETAILS,
-      }}
+      filterToNameMapping={LANGUAGE_NAME_MAPPING}
       filters={language}
-      data={filterData}
-      setData={(state: ModelCatalogStringFilterStateType) => setFilterData('language', state)}
+      data={filterData[filterKey]}
+      setData={(state) => setFilterData(filterKey, state)}
     />
   );
 };

@@ -1,11 +1,16 @@
 import * as React from 'react';
 import {
-  ModelCatalogStringFilterStateType,
   ModelCatalogFilterResponseType,
+  ModelCatalogFilterStatesByKey,
 } from '~/app/pages/modelCatalog/types';
 import ModelCatalogStringFilter from '~/app/pages/modelCatalog/components/ModelCatalogStringFilter';
 import { ModelCatalogContext } from '~/app/context/modelCatalog/ModelCatalogContext';
-import { MODEL_CATALOG_LICENSE_NAME_MAPPING } from '~/concepts/modelCatalog/const';
+import {
+  ModelCatalogFilterKeys,
+  MODEL_CATALOG_LICENSE_NAME_MAPPING,
+} from '~/concepts/modelCatalog/const';
+
+const filterKey = ModelCatalogFilterKeys.LICENSE;
 
 type LicenseFilterProps = {
   filters: ModelCatalogFilterResponseType['filters'];
@@ -13,15 +18,15 @@ type LicenseFilterProps = {
 
 const LicenseFilter: React.FC<LicenseFilterProps> = ({ filters }) => {
   const { filterData, setFilterData } = React.useContext(ModelCatalogContext);
-  const { license } = filters;
+  const license = filters[filterKey];
 
   React.useEffect(() => {
-    if (license && !('license' in filterData)) {
-      const state: Record<string, boolean> = {};
+    if (license && !(filterKey in filterData)) {
+      const state: ModelCatalogFilterStatesByKey[typeof filterKey] = {};
       license.values.forEach((key) => {
         state[key] = false;
       });
-      setFilterData('license', state);
+      setFilterData(filterKey, state);
     }
   }, [license, filterData, setFilterData]);
 
@@ -30,13 +35,12 @@ const LicenseFilter: React.FC<LicenseFilterProps> = ({ filters }) => {
   }
 
   return (
-    <ModelCatalogStringFilter
+    <ModelCatalogStringFilter<ModelCatalogFilterKeys.LICENSE>
       title="License"
-      filterKey="license"
       filterToNameMapping={MODEL_CATALOG_LICENSE_NAME_MAPPING}
       filters={license}
-      data={filterData}
-      setData={(state: ModelCatalogStringFilterStateType) => setFilterData('license', state)}
+      data={filterData[filterKey]}
+      setData={(state) => setFilterData(filterKey, state)}
     />
   );
 };

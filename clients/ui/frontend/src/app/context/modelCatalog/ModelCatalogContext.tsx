@@ -6,7 +6,10 @@ import useModelCatalogAPIState, {
   ModelCatalogAPIState,
 } from '~/app/hooks/modelCatalog/useModelCatalogAPIState';
 import { CatalogSource, CatalogSourceList } from '~/app/modelCatalogTypes';
-import { ModelCatalogFilterDataType } from '~/app/pages/modelCatalog/types';
+import {
+  ModelCatalogFilterDataType,
+  ModelCatalogFilterStatesByKey,
+} from '~/app/pages/modelCatalog/types';
 import { BFF_API_VERSION, URL_PREFIX } from '~/app/utilities/const';
 
 export type ModelCatalogContextType = {
@@ -18,7 +21,10 @@ export type ModelCatalogContextType = {
   apiState: ModelCatalogAPIState;
   refreshAPIState: () => void;
   filterData: ModelCatalogFilterDataType;
-  setFilterData: UpdateObjectAtPropAndValue<ModelCatalogFilterDataType>;
+  setFilterData: <K extends keyof ModelCatalogFilterStatesByKey>(
+    key: K,
+    value: ModelCatalogFilterStatesByKey[K],
+  ) => void;
 };
 
 type ModelCatalogContextProviderProps = {
@@ -49,6 +55,16 @@ export const ModelCatalogContextProvider: React.FC<ModelCatalogContextProviderPr
     React.useState<ModelCatalogContextType['selectedSource']>(undefined);
   const [filterData, setFilterData] = useGenericObjectState<ModelCatalogFilterDataType>({});
 
+  const setTypedFilterData = React.useCallback(
+    <K extends keyof ModelCatalogFilterStatesByKey>(
+      key: K,
+      value: ModelCatalogFilterStatesByKey[K],
+    ) => {
+      setFilterData(key, value);
+    },
+    [setFilterData],
+  );
+
   const contextValue = React.useMemo(
     () => ({
       catalogSourcesLoaded: isLoaded,
@@ -59,7 +75,7 @@ export const ModelCatalogContextProvider: React.FC<ModelCatalogContextProviderPr
       apiState,
       refreshAPIState,
       filterData,
-      setFilterData,
+      setFilterData: setTypedFilterData,
     }),
     [
       isLoaded,
@@ -69,7 +85,7 @@ export const ModelCatalogContextProvider: React.FC<ModelCatalogContextProviderPr
       apiState,
       refreshAPIState,
       filterData,
-      setFilterData,
+      setTypedFilterData,
     ],
   );
 

@@ -10,6 +10,13 @@ import {
   ModelCatalogFilterDataType,
   ModelCatalogFilterResponseType,
 } from '~/app/pages/modelCatalog/types';
+import {
+  ModelCatalogFilterKeys,
+  ModelCatalogTasks,
+  ModelCatalogLicenses,
+  ModelCatalogProviders,
+  AllLanguageCodes,
+} from '~/concepts/modelCatalog/const';
 
 export const extractVersionTag = (tags?: string[]): string | undefined =>
   tags?.find((tag) => /^\d+\.\d+\.\d+$/.test(tag));
@@ -83,23 +90,27 @@ export const isModelValidated = (model: CatalogModel): boolean => {
 
 export const getModelCatalogFilters = (): ModelCatalogFilterResponseType => ({
   filters: {
-    task: {
+    [ModelCatalogFilterKeys.TASK]: {
       type: 'string',
-      values: ['task2', 'text-generation', 'instruction-following', 'code-generation'],
+      values: [
+        ModelCatalogTasks.TEXT_GENERATION,
+        ModelCatalogTasks.TEXT_TO_TEXT,
+        ModelCatalogTasks.IMAGE_TO_TEXT,
+      ],
     },
-    license: {
+    [ModelCatalogFilterKeys.LICENSE]: {
       type: 'string',
-      values: ['apache-2.0'],
+      values: [ModelCatalogLicenses.APACHE_2_0, ModelCatalogLicenses.MIT],
     },
-    provider: {
+    [ModelCatalogFilterKeys.PROVIDER]: {
       type: 'string',
-      values: ['provider1', 'provider2', 'provider3', 'Hugging Face', 'Admin model 1'],
+      values: [ModelCatalogProviders.GOOGLE, ModelCatalogProviders.META],
     },
-    language: {
+    [ModelCatalogFilterKeys.LANGUAGE]: {
       type: 'string',
-      values: ['ar', 'cs', 'de', 'en', 'es', 'fr', 'it', 'ja', 'ko', 'nl', 'pt', 'zh'],
+      values: [AllLanguageCodes.EN, AllLanguageCodes.ES, AllLanguageCodes.FR],
     },
-  } satisfies ModelCatalogFilterResponseType['filters'],
+  },
 });
 
 export const filterModelCatalogModels = (

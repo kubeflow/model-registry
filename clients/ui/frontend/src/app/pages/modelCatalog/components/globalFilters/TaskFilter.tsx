@@ -1,11 +1,16 @@
 import * as React from 'react';
 import {
-  ModelCatalogStringFilterStateType,
   ModelCatalogFilterResponseType,
+  ModelCatalogFilterStatesByKey,
 } from '~/app/pages/modelCatalog/types';
 import ModelCatalogStringFilter from '~/app/pages/modelCatalog/components/ModelCatalogStringFilter';
 import { ModelCatalogContext } from '~/app/context/modelCatalog/ModelCatalogContext';
-import { MODEL_CATALOG_TASK_NAME_MAPPING } from '~/concepts/modelCatalog/const';
+import {
+  ModelCatalogFilterKeys,
+  MODEL_CATALOG_TASK_NAME_MAPPING,
+} from '~/concepts/modelCatalog/const';
+
+const filterKey = ModelCatalogFilterKeys.TASK;
 
 type TaskFilterProps = {
   filters: ModelCatalogFilterResponseType['filters'];
@@ -13,15 +18,27 @@ type TaskFilterProps = {
 
 const TaskFilter: React.FC<TaskFilterProps> = ({ filters }) => {
   const { filterData, setFilterData } = React.useContext(ModelCatalogContext);
-  const { task } = filters;
+  const task = filters[filterKey];
 
   React.useEffect(() => {
-    if (task && !('task' in filterData)) {
-      const state: Record<string, boolean> = {};
+    const state: ModelCatalogFilterStatesByKey[typeof filterKey] = {};
       task.values.forEach((key) => {
         state[key] = false;
       });
-      setFilterData('task', state);
+    if (task && !(filterKey in filterData)) {
+      const state: ModelCatalogFilterStatesByKey[typeof filterKey] = {};
+      task.values.forEach((key) => {
+        state[key] = false;
+      });
+      setFilterData(filterKey, state);
+    } else if (task) {
+      setFilterData(filterKey, {
+        ...filterData,
+        [filterKey]: task.values.map((key) => ({
+          key,
+          value: false,
+        })),
+      });
     }
   }, [task, filterData, setFilterData]);
 
@@ -30,13 +47,12 @@ const TaskFilter: React.FC<TaskFilterProps> = ({ filters }) => {
   }
 
   return (
-    <ModelCatalogStringFilter
+    <ModelCatalogStringFilter<ModelCatalogFilterKeys.TASK>
       title="Task"
-      filterKey="task"
       filterToNameMapping={MODEL_CATALOG_TASK_NAME_MAPPING}
       filters={task}
-      data={filterData}
-      setData={(state: ModelCatalogStringFilterStateType) => setFilterData('task', state)}
+      data={filterData[filterKey]}
+      setData={(state) => setFilterData(filterKey, state)}
     />
   );
 };

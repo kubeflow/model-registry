@@ -1,11 +1,16 @@
 import * as React from 'react';
 import {
-  ModelCatalogStringFilterStateType,
   ModelCatalogFilterResponseType,
+  ModelCatalogFilterStatesByKey,
 } from '~/app/pages/modelCatalog/types';
 import ModelCatalogStringFilter from '~/app/pages/modelCatalog/components/ModelCatalogStringFilter';
 import { ModelCatalogContext } from '~/app/context/modelCatalog/ModelCatalogContext';
-import { MODEL_CATALOG_PROVIDER_NAME_MAPPING } from '~/concepts/modelCatalog/const';
+import {
+  ModelCatalogFilterKeys,
+  MODEL_CATALOG_PROVIDER_NAME_MAPPING,
+} from '~/concepts/modelCatalog/const';
+
+const filterKey = ModelCatalogFilterKeys.PROVIDER;
 
 type ProviderFilterProps = {
   filters: ModelCatalogFilterResponseType['filters'];
@@ -13,15 +18,15 @@ type ProviderFilterProps = {
 
 const ProviderFilter: React.FC<ProviderFilterProps> = ({ filters }) => {
   const { filterData, setFilterData } = React.useContext(ModelCatalogContext);
-  const { provider } = filters;
+  const provider = filters[filterKey];
 
   React.useEffect(() => {
-    if (provider && !('provider' in filterData)) {
-      const state: Record<string, boolean> = {};
+    if (provider && !(filterKey in filterData)) {
+      const state: ModelCatalogFilterStatesByKey[typeof filterKey] = {};
       provider.values.forEach((key) => {
         state[key] = false;
       });
-      setFilterData('provider', state);
+      setFilterData(filterKey, state);
     }
   }, [provider, filterData, setFilterData]);
 
@@ -30,13 +35,12 @@ const ProviderFilter: React.FC<ProviderFilterProps> = ({ filters }) => {
   }
 
   return (
-    <ModelCatalogStringFilter
+    <ModelCatalogStringFilter<ModelCatalogFilterKeys.PROVIDER>
       title="Provider"
-      filterKey="provider"
       filterToNameMapping={MODEL_CATALOG_PROVIDER_NAME_MAPPING}
       filters={provider}
-      data={filterData}
-      setData={(state: ModelCatalogStringFilterStateType) => setFilterData('provider', state)}
+      data={filterData[filterKey]}
+      setData={(state) => setFilterData(filterKey, state)}
     />
   );
 };

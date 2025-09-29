@@ -2,66 +2,83 @@ import { Button, Checkbox, Content, ContentVariants, SearchInput } from '@patter
 import * as React from 'react';
 import {
   ModelCatalogFilterDataType,
-  ModelCatalogFilterCategoryType,
-  ModelCatalogStringFilterStateType,
+  ModelCatalogFilterStatesByKey,
+  ModelCatalogFilterTypesByKey,
 } from '~/app/pages/modelCatalog/types';
+import { ModelCatalogFilterKeys } from '~/concepts/modelCatalog/const';
 
-type ModelCatalogStringFilterProps = {
+const MAX_VISIBLE_FILTERS = 5;
+
+type ModelCatalogStringFilterProps<K extends ModelCatalogFilterKeys> = {
   title: string;
-  filterKey: string;
-  filterToNameMapping: Record<string, string>;
-  filters: ModelCatalogFilterCategoryType;
-  data?: ModelCatalogFilterDataType;
-  setData: (state: ModelCatalogStringFilterStateType) => void;
+  filterToNameMapping: Record<ModelCatalogFilterTypesByKey[K]['values'][number], string>;
+  filters: ModelCatalogFilterTypesByKey[K];
+  data?: ModelCatalogFilterDataType[K];
+  setData: (state: ModelCatalogFilterStatesByKey[K]) => void;
 };
 
-const ModelCatalogStringFilter: React.FC<ModelCatalogStringFilterProps> = ({
+type FilterValue<K extends ModelCatalogFilterKeys> =
+  ModelCatalogFilterTypesByKey[K]['values'][number];
+
+const ModelCatalogStringFilter = <K extends ModelCatalogFilterKeys>({
   title,
-  filterKey,
   filterToNameMapping,
-  data,
   filters,
+  data,
   setData,
-}) => {
+}: ModelCatalogStringFilterProps<K>): JSX.Element => {
   const [showMore, setShowMore] = React.useState(false);
   const [searchValue, setSearchValue] = React.useState('');
-  const [filteredValues, setFilteredValues] = React.useState(filters.values);
+  const [filteredValues, setFilteredValues] = React.useState<FilterValue<K>[]>(filters.values);
+
+  React.useEffect(() => {
+    setFilteredValues(filters.values);
+  }, [filters.values]);
+
   const onSearchChange = (newValue: string) => {
     setSearchValue(newValue);
-    setFilteredValues(
-      filters.values.filter((value) => value.toLowerCase().includes(newValue.toLowerCase())),
-    );
+    const lowerValue = newValue.toLowerCase();
+    setFilteredValues(filters.values.filter((value) => value.toLowerCase().includes(lowerValue)));
   };
+
+  const onToggle = (checkbox: FilterValue<K>, checked: boolean) => {
+    const nextState: Partial<Record<FilterValue<K>, boolean>> = {
+      ...(data ?? {}),
+      [checkbox]: checked,
+    };
+    setData(nextState);
+  };
+
+  const isChecked = (value: FilterValue<K>) => Boolean(data?.[value]);
+
+  const visibleValues = showMore ? filteredValues : filteredValues.slice(0, MAX_VISIBLE_FILTERS);
 
   return (
     <Content>
       <Content component={ContentVariants.h6}>{title}</Content>
-      {filters.values.length > 5 && (
+      {filters.values.length > MAX_VISIBLE_FILTERS && (
         <SearchInput
           value={searchValue}
           onChange={(_event, newValue) => onSearchChange(newValue)}
         />
       )}
-      {filteredValues.slice(0, 6).map((checkbox) => (
+      {visibleValues.map((checkbox) => (
         <Checkbox
-          label={checkbox in filterToNameMapping ? filterToNameMapping[checkbox] : checkbox}
+          label={filterToNameMapping[checkbox]}
           id={checkbox}
           key={checkbox}
-          isChecked={data?.[filterKey]?.[checkbox] || false}
-          onChange={(_, checked) => {
-            if (data?.[filterKey]) {
-              setData({ ...data[filterKey], [checkbox]: checked });
-            }
-          }}
+          isChecked={isChecked(checkbox)}
+          onChange={(_, checked) => onToggle(checkbox, checked)}
         />
       ))}
-      {showMore &&
-        filteredValues
-          .slice(6)
-          .map((checkbox) => <Checkbox label={checkbox} id={checkbox} key={checkbox} />)}
-      {filteredValues.length > 5 && (
-        <Button variant="link" onClick={() => setShowMore(!showMore)}>
-          {showMore ? 'Show less' : 'Show more'}
+      {!showMore && filteredValues.length > MAX_VISIBLE_FILTERS && (
+        <Button variant="link" onClick={() => setShowMore(true)}>
+          Show more
+        </Button>
+      )}
+      {showMore && filteredValues.length > MAX_VISIBLE_FILTERS && (
+        <Button variant="link" onClick={() => setShowMore(false)}>
+          Show less
         </Button>
       )}
     </Content>
