@@ -47,10 +47,12 @@ func (r *CatalogModelRepositoryImpl) List(listOptions models.CatalogModelListOpt
 }
 
 func applyCatalogModelListFilters(query *gorm.DB, listOptions *models.CatalogModelListOptions) *gorm.DB {
+	contextTable := utils.GetTableName(query.Statement.DB, &schema.Context{})
+
 	if listOptions.Name != nil {
-		query = query.Where("name LIKE ?", listOptions.Name)
+		query = query.Where(fmt.Sprintf("%s.name LIKE ?", contextTable), listOptions.Name)
 	} else if listOptions.ExternalID != nil {
-		query = query.Where("external_id = ?", listOptions.ExternalID)
+		query = query.Where(fmt.Sprintf("%s.external_id = ?", contextTable), listOptions.ExternalID)
 	}
 
 	// Filter out empty strings from SourceIDs, for some reason it's passed if no sources are specified
@@ -65,7 +67,6 @@ func applyCatalogModelListFilters(query *gorm.DB, listOptions *models.CatalogMod
 
 	if len(nonEmptySourceIDs) > 0 {
 		propertyTable := utils.GetTableName(query.Statement.DB, &schema.ContextProperty{})
-		contextTable := utils.GetTableName(query.Statement.DB, &schema.Context{})
 
 		joinClause := fmt.Sprintf("JOIN %s cp ON cp.context_id = %s.id", propertyTable, contextTable)
 		query = query.Joins(joinClause).

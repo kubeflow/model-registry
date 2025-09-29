@@ -2,6 +2,7 @@ package catalog
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"strconv"
 
@@ -121,7 +122,8 @@ func (d *dbCatalogImpl) GetArtifacts(ctx context.Context, modelName string, sour
 	}
 
 	for _, artifact := range artifactsList.Items {
-		artifactList.Items = append(artifactList.Items, mapCatalogModelArtifactToCatalogArtifact(artifact))
+		mappedArtifact := mapCatalogModelArtifactToCatalogArtifact(artifact)
+		artifactList.Items = append(artifactList.Items, mappedArtifact)
 	}
 
 	artifactList.NextPageToken = *nextPageToken
@@ -139,6 +141,7 @@ func mapCatalogModelToCatalogModel(m models.CatalogModel) model.CatalogModel {
 
 	if m.GetAttributes() != nil {
 		res.Name = *m.GetAttributes().Name
+		res.ExternalId = m.GetAttributes().ExternalID
 
 		if m.GetAttributes().CreateTimeSinceEpoch != nil {
 			createTimeSinceEpoch := strconv.FormatInt(*m.GetAttributes().CreateTimeSinceEpoch, 10)
@@ -150,11 +153,101 @@ func mapCatalogModelToCatalogModel(m models.CatalogModel) model.CatalogModel {
 		}
 	}
 
+	if m.GetProperties() != nil {
+		for _, prop := range *m.GetProperties() {
+			switch prop.Name {
+			case "source_id":
+				if prop.StringValue != nil {
+					res.SourceId = prop.StringValue
+				}
+			case "description":
+				if prop.StringValue != nil {
+					res.Description = prop.StringValue
+				}
+			case "library_name":
+				if prop.StringValue != nil {
+					res.LibraryName = prop.StringValue
+				}
+			case "license_link":
+				if prop.StringValue != nil {
+					res.LicenseLink = prop.StringValue
+				}
+			case "license":
+				if prop.StringValue != nil {
+					res.License = prop.StringValue
+				}
+			case "logo":
+				if prop.StringValue != nil {
+					res.Logo = prop.StringValue
+				}
+			case "maturity":
+				if prop.StringValue != nil {
+					res.Maturity = prop.StringValue
+				}
+			case "provider":
+				if prop.StringValue != nil {
+					res.Provider = prop.StringValue
+				}
+			case "readme":
+				if prop.StringValue != nil {
+					res.Readme = prop.StringValue
+				}
+			case "language":
+				if prop.StringValue != nil {
+					var languages []string
+					if err := json.Unmarshal([]byte(*prop.StringValue), &languages); err == nil {
+						res.Language = languages
+					}
+				}
+			case "tasks":
+				if prop.StringValue != nil {
+					var tasks []string
+					if err := json.Unmarshal([]byte(*prop.StringValue), &tasks); err == nil {
+						res.Tasks = tasks
+					}
+				}
+			}
+		}
+	}
+
 	return res
 }
 
 func mapCatalogModelArtifactToCatalogArtifact(a models.CatalogModelArtifact) model.CatalogArtifact {
-	res := model.CatalogArtifact{}
+	// Create CatalogModelArtifact
+	catalogModelArtifact := &model.CatalogModelArtifact{
+		ArtifactType: "model-artifact", // Default artifact type
+		Uri:          "",               // Will be set from attributes below
+	}
 
-	return res
+	// Map basic fields
+	if a.GetID() != nil {
+		id := strconv.FormatInt(int64(*a.GetID()), 10)
+		catalogModelArtifact.Id = &id
+	}
+
+	if a.GetAttributes() != nil {
+		attrs := a.GetAttributes()
+
+		catalogModelArtifact.Name = attrs.Name
+		catalogModelArtifact.ExternalId = attrs.ExternalID
+
+		if attrs.URI != nil {
+			catalogModelArtifact.Uri = *attrs.URI
+		}
+
+		if attrs.CreateTimeSinceEpoch != nil {
+			createTime := strconv.FormatInt(*attrs.CreateTimeSinceEpoch, 10)
+			catalogModelArtifact.CreateTimeSinceEpoch = &createTime
+		}
+
+		if attrs.LastUpdateTimeSinceEpoch != nil {
+			updateTime := strconv.FormatInt(*attrs.LastUpdateTimeSinceEpoch, 10)
+			catalogModelArtifact.LastUpdateTimeSinceEpoch = &updateTime
+		}
+	}
+
+	return model.CatalogArtifact{
+		CatalogModelArtifact: catalogModelArtifact,
+	}
 }
