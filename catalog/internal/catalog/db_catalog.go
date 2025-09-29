@@ -8,8 +8,10 @@ import (
 
 	"github.com/kubeflow/model-registry/catalog/internal/db/models"
 	model "github.com/kubeflow/model-registry/catalog/pkg/openapi"
+	"github.com/kubeflow/model-registry/internal/converter"
 	mr_models "github.com/kubeflow/model-registry/internal/db/models"
 	"github.com/kubeflow/model-registry/pkg/api"
+	"github.com/kubeflow/model-registry/pkg/openapi"
 )
 
 type dbCatalogImpl struct {
@@ -215,16 +217,16 @@ func mapCatalogModelToCatalogModel(m models.CatalogModel) model.CatalogModel {
 
 func mapCatalogArtifactToCatalogArtifact(a models.CatalogArtifact) (model.CatalogArtifact, error) {
 	if a.CatalogModelArtifact != nil {
-		return mapToModelArtifact(*a.CatalogModelArtifact), nil
+		return mapToModelArtifact(*a.CatalogModelArtifact)
 	} else if a.CatalogMetricsArtifact != nil {
 		metricsTypeValue := string((*a.CatalogMetricsArtifact).GetAttributes().MetricsType)
-		return mapToMetricsArtifact(*a.CatalogMetricsArtifact, metricsTypeValue), nil
+		return mapToMetricsArtifact(*a.CatalogMetricsArtifact, metricsTypeValue)
 	}
 
 	return model.CatalogArtifact{}, fmt.Errorf("invalid catalog artifact type: %v", a)
 }
 
-func mapToModelArtifact(a models.CatalogModelArtifact) model.CatalogArtifact {
+func mapToModelArtifact(a models.CatalogModelArtifact) (model.CatalogArtifact, error) {
 	catalogModelArtifact := &model.CatalogModelArtifact{
 		ArtifactType: models.CatalogModelArtifactType,
 	}
@@ -270,14 +272,23 @@ func mapToModelArtifact(a models.CatalogModelArtifact) model.CatalogArtifact {
 		}
 	}
 
-	// TODO: Map custom properties (when MetadataValue issues are resolved)
+	// Map custom properties
+	if a.GetCustomProperties() != nil && len(*a.GetCustomProperties()) > 0 {
+		customPropsMap, err := converter.MapEmbedMDCustomProperties(*a.GetCustomProperties())
+		if err != nil {
+			return model.CatalogArtifact{}, fmt.Errorf("error mapping custom properties: %w", err)
+		}
+
+		catalogCustomProps := convertMetadataValueMap(customPropsMap)
+		catalogModelArtifact.CustomProperties = &catalogCustomProps
+	}
 
 	return model.CatalogArtifact{
 		CatalogModelArtifact: catalogModelArtifact,
-	}
+	}, nil
 }
 
-func mapToMetricsArtifact(a models.CatalogMetricsArtifact, metricsType string) model.CatalogArtifact {
+func mapToMetricsArtifact(a models.CatalogMetricsArtifact, metricsType string) (model.CatalogArtifact, error) {
 	catalogMetricsArtifact := &model.CatalogMetricsArtifact{
 		ArtifactType: models.CatalogMetricsArtifactType,
 		MetricsType:  metricsType,
@@ -316,9 +327,59 @@ func mapToMetricsArtifact(a models.CatalogMetricsArtifact, metricsType string) m
 		}
 	}
 
-	// TODO: Map custom properties (when MetadataValue issues are resolved)
+	// Map custom properties
+	if a.GetCustomProperties() != nil && len(*a.GetCustomProperties()) > 0 {
+		customPropsMap, err := converter.MapEmbedMDCustomProperties(*a.GetCustomProperties())
+		if err != nil {
+			return model.CatalogArtifact{}, fmt.Errorf("error mapping custom properties: %w", err)
+		}
+
+		catalogCustomProps := convertMetadataValueMap(customPropsMap)
+		catalogMetricsArtifact.CustomProperties = &catalogCustomProps
+
+	}
 
 	return model.CatalogArtifact{
 		CatalogMetricsArtifact: catalogMetricsArtifact,
+	}, nil
+}
+
+// convertMetadataValueMap converts from pkg/openapi.MetadataValue to catalog/pkg/openapi.MetadataValue
+func convertMetadataValueMap(source map[string]openapi.MetadataValue) map[string]model.MetadataValue {
+	result := make(map[string]model.MetadataValue)
+
+	for key, value := range source {
+		catalogValue := model.MetadataValue{}
+
+		if value.MetadataStringValue != nil {
+			catalogValue.MetadataStringValue = &model.MetadataStringValue{
+				StringValue:  value.MetadataStringValue.StringValue,
+				MetadataType: value.MetadataStringValue.MetadataType,
+			}
+		} else if value.MetadataIntValue != nil {
+			catalogValue.MetadataIntValue = &model.MetadataIntValue{
+				IntValue:     value.MetadataIntValue.IntValue,
+				MetadataType: value.MetadataIntValue.MetadataType,
+			}
+		} else if value.MetadataDoubleValue != nil {
+			catalogValue.MetadataDoubleValue = &model.MetadataDoubleValue{
+				DoubleValue:  value.MetadataDoubleValue.DoubleValue,
+				MetadataType: value.MetadataDoubleValue.MetadataType,
+			}
+		} else if value.MetadataBoolValue != nil {
+			catalogValue.MetadataBoolValue = &model.MetadataBoolValue{
+				BoolValue:    value.MetadataBoolValue.BoolValue,
+				MetadataType: value.MetadataBoolValue.MetadataType,
+			}
+		} else if value.MetadataStructValue != nil {
+			catalogValue.MetadataStructValue = &model.MetadataStructValue{
+				StructValue:  value.MetadataStructValue.StructValue,
+				MetadataType: value.MetadataStructValue.MetadataType,
+			}
+		}
+
+		result[key] = catalogValue
 	}
+
+	return result
 }
