@@ -5,7 +5,7 @@ import (
 	"github.com/kubeflow/model-registry/internal/db/models"
 )
 
-const CatalogModelArtifactType = "catalog-model-artifact"
+const CatalogModelArtifactType = "model-artifact"
 
 type CatalogModelArtifactListOptions struct {
 	models.Pagination
@@ -22,6 +22,7 @@ func (c *CatalogModelArtifactListOptions) GetRestEntityType() filter.RestEntityT
 type CatalogModelArtifactAttributes struct {
 	Name                     *string
 	URI                      *string
+	ArtifactType             *string
 	ExternalID               *string
 	CreateTimeSinceEpoch     *int64
 	LastUpdateTimeSinceEpoch *int64

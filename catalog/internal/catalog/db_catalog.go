@@ -13,20 +13,17 @@ import (
 )
 
 type dbCatalogImpl struct {
-	catalogModelRepository           models.CatalogModelRepository
-	catalogModelArtifactRepository   models.CatalogModelArtifactRepository
-	catalogMetricsArtifactRepository models.CatalogMetricsArtifactRepository
+	catalogModelRepository    models.CatalogModelRepository
+	catalogArtifactRepository models.CatalogArtifactRepository
 }
 
 func NewDBCatalog(
 	catalogModelRepository models.CatalogModelRepository,
-	catalogModelArtifactRepository models.CatalogModelArtifactRepository,
-	catalogMetricsArtifactRepository models.CatalogMetricsArtifactRepository,
+	catalogArtifactRepository models.CatalogArtifactRepository,
 ) CatalogSourceProvider {
 	return &dbCatalogImpl{
-		catalogModelRepository:           catalogModelRepository,
-		catalogModelArtifactRepository:   catalogModelArtifactRepository,
-		catalogMetricsArtifactRepository: catalogMetricsArtifactRepository,
+		catalogModelRepository:    catalogModelRepository,
+		catalogArtifactRepository: catalogArtifactRepository,
 	}
 }
 
@@ -104,7 +101,7 @@ func (d *dbCatalogImpl) GetArtifacts(ctx context.Context, modelName string, sour
 
 	parentResourceID32 := int32(parentResourceID)
 
-	artifactsList, err := d.catalogModelArtifactRepository.List(models.CatalogModelArtifactListOptions{
+	artifactsList, err := d.catalogArtifactRepository.List(models.CatalogArtifactListOptions{
 		ParentResourceID: &parentResourceID32,
 		Pagination: mr_models.Pagination{
 			PageSize:      &pageSize,
@@ -122,13 +119,16 @@ func (d *dbCatalogImpl) GetArtifacts(ctx context.Context, modelName string, sour
 	}
 
 	for _, artifact := range artifactsList.Items {
-		mappedArtifact := mapCatalogModelArtifactToCatalogArtifact(artifact)
+		mappedArtifact, err := mapCatalogArtifactToCatalogArtifact(artifact)
+		if err != nil {
+			return model.CatalogArtifactList{}, err
+		}
 		artifactList.Items = append(artifactList.Items, mappedArtifact)
 	}
 
 	artifactList.NextPageToken = *nextPageToken
 	artifactList.PageSize = pageSize
-	artifactList.Size = int32(len(artifactsList.Items))
+	artifactList.Size = int32(len(artifactList.Items))
 
 	return *artifactList, nil
 }
@@ -213,14 +213,22 @@ func mapCatalogModelToCatalogModel(m models.CatalogModel) model.CatalogModel {
 	return res
 }
 
-func mapCatalogModelArtifactToCatalogArtifact(a models.CatalogModelArtifact) model.CatalogArtifact {
-	// Create CatalogModelArtifact
-	catalogModelArtifact := &model.CatalogModelArtifact{
-		ArtifactType: "model-artifact", // Default artifact type
-		Uri:          "",               // Will be set from attributes below
+func mapCatalogArtifactToCatalogArtifact(a models.CatalogArtifact) (model.CatalogArtifact, error) {
+	if a.CatalogModelArtifact != nil {
+		return mapToModelArtifact(*a.CatalogModelArtifact), nil
+	} else if a.CatalogMetricsArtifact != nil {
+		metricsTypeValue := string((*a.CatalogMetricsArtifact).GetAttributes().MetricsType)
+		return mapToMetricsArtifact(*a.CatalogMetricsArtifact, metricsTypeValue), nil
 	}
 
-	// Map basic fields
+	return model.CatalogArtifact{}, fmt.Errorf("invalid catalog artifact type: %v", a)
+}
+
+func mapToModelArtifact(a models.CatalogModelArtifact) model.CatalogArtifact {
+	catalogModelArtifact := &model.CatalogModelArtifact{
+		ArtifactType: models.CatalogModelArtifactType,
+	}
+
 	if a.GetID() != nil {
 		id := strconv.FormatInt(int64(*a.GetID()), 10)
 		catalogModelArtifact.Id = &id
@@ -247,7 +255,70 @@ func mapCatalogModelArtifactToCatalogArtifact(a models.CatalogModelArtifact) mod
 		}
 	}
 
+	if a.GetProperties() != nil {
+		for _, prop := range *a.GetProperties() {
+			switch prop.Name {
+			case "description":
+				if prop.StringValue != nil {
+					catalogModelArtifact.Description = prop.StringValue
+				}
+			case "artifactType":
+				if prop.StringValue != nil {
+					catalogModelArtifact.ArtifactType = *prop.StringValue
+				}
+			}
+		}
+	}
+
+	// TODO: Map custom properties (when MetadataValue issues are resolved)
+
 	return model.CatalogArtifact{
 		CatalogModelArtifact: catalogModelArtifact,
+	}
+}
+
+func mapToMetricsArtifact(a models.CatalogMetricsArtifact, metricsType string) model.CatalogArtifact {
+	catalogMetricsArtifact := &model.CatalogMetricsArtifact{
+		ArtifactType: models.CatalogMetricsArtifactType,
+		MetricsType:  metricsType,
+	}
+
+	if a.GetID() != nil {
+		id := strconv.FormatInt(int64(*a.GetID()), 10)
+		catalogMetricsArtifact.Id = &id
+	}
+
+	if a.GetAttributes() != nil {
+		attrs := a.GetAttributes()
+
+		catalogMetricsArtifact.Name = attrs.Name
+		catalogMetricsArtifact.ExternalId = attrs.ExternalID
+
+		if attrs.CreateTimeSinceEpoch != nil {
+			createTime := strconv.FormatInt(*attrs.CreateTimeSinceEpoch, 10)
+			catalogMetricsArtifact.CreateTimeSinceEpoch = &createTime
+		}
+
+		if attrs.LastUpdateTimeSinceEpoch != nil {
+			updateTime := strconv.FormatInt(*attrs.LastUpdateTimeSinceEpoch, 10)
+			catalogMetricsArtifact.LastUpdateTimeSinceEpoch = &updateTime
+		}
+	}
+
+	if a.GetProperties() != nil {
+		for _, prop := range *a.GetProperties() {
+			switch prop.Name {
+			case "description":
+				if prop.StringValue != nil {
+					catalogMetricsArtifact.Description = prop.StringValue
+				}
+			}
+		}
+	}
+
+	// TODO: Map custom properties (when MetadataValue issues are resolved)
+
+	return model.CatalogArtifact{
+		CatalogMetricsArtifact: catalogMetricsArtifact,
 	}
 }

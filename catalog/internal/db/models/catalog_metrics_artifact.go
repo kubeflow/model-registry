@@ -8,8 +8,9 @@ import (
 type MetricsType string
 
 const (
-	MetricsTypePerformance MetricsType = "performance-metrics"
-	MetricsTypeAccuracy    MetricsType = "accuracy-metrics"
+	MetricsTypePerformance     MetricsType = "performance-metrics"
+	MetricsTypeAccuracy        MetricsType = "accuracy-metrics"
+	CatalogMetricsArtifactType             = "metrics-artifact"
 )
 
 type CatalogMetricsArtifactListOptions struct {
@@ -26,6 +27,7 @@ func (c *CatalogMetricsArtifactListOptions) GetRestEntityType() filter.RestEntit
 
 type CatalogMetricsArtifactAttributes struct {
 	Name                     *string
+	ArtifactType             *string
 	MetricsType              MetricsType
 	ExternalID               *string
 	CreateTimeSinceEpoch     *int64

@@ -32,5 +32,6 @@ func DatastoreSpec() *datastore.Spec {
 		).
 		AddArtifact(CatalogMetricsArtifactTypeName, datastore.NewSpecType(NewCatalogMetricsArtifactRepository).
 			AddString("metricsType"),
-		)
+		).
+		AddOther(NewCatalogArtifactRepository)
 }

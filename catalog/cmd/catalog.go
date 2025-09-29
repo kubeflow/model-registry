@@ -60,8 +60,7 @@ func runCatalogServer(cmd *cobra.Command, args []string) error {
 
 	svc := openapi.NewModelCatalogServiceAPIService(catalog.NewDBCatalog(
 		getRepo[models.CatalogModelRepository](repoSet),
-		getRepo[models.CatalogModelArtifactRepository](repoSet),
-		getRepo[models.CatalogMetricsArtifactRepository](repoSet),
+		getRepo[models.CatalogArtifactRepository](repoSet),
 	), sources)
 	ctrl := openapi.NewModelCatalogServiceAPIController(svc)
 
