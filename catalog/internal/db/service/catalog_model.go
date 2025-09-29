@@ -2,11 +2,13 @@ package service
 
 import (
 	"errors"
+	"fmt"
 
 	"github.com/kubeflow/model-registry/catalog/internal/db/models"
 	dbmodels "github.com/kubeflow/model-registry/internal/db/models"
 	"github.com/kubeflow/model-registry/internal/db/schema"
 	"github.com/kubeflow/model-registry/internal/db/service"
+	"github.com/kubeflow/model-registry/internal/db/utils"
 	"gorm.io/gorm"
 )
 
@@ -49,9 +51,27 @@ func applyCatalogModelListFilters(query *gorm.DB, listOptions *models.CatalogMod
 		query = query.Where("name LIKE ?", listOptions.Name)
 	} else if listOptions.ExternalID != nil {
 		query = query.Where("external_id = ?", listOptions.ExternalID)
-	} else if listOptions.SourceIDs != nil {
-		query = query.Where("source_id IN ?", listOptions.SourceIDs)
 	}
+
+	// Filter out empty strings from SourceIDs, for some reason it's passed if no sources are specified
+	var nonEmptySourceIDs []string
+	if listOptions.SourceIDs != nil {
+		for _, sourceID := range *listOptions.SourceIDs {
+			if sourceID != "" {
+				nonEmptySourceIDs = append(nonEmptySourceIDs, sourceID)
+			}
+		}
+	}
+
+	if len(nonEmptySourceIDs) > 0 {
+		propertyTable := utils.GetTableName(query.Statement.DB, &schema.ContextProperty{})
+		contextTable := utils.GetTableName(query.Statement.DB, &schema.Context{})
+
+		joinClause := fmt.Sprintf("JOIN %s cp ON cp.context_id = %s.id", propertyTable, contextTable)
+		query = query.Joins(joinClause).
+			Where("cp.name = ? AND cp.string_value IN ?", "source_id", nonEmptySourceIDs)
+	}
+
 	return query
 }
 
