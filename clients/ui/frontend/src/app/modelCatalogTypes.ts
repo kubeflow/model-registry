@@ -4,6 +4,7 @@ import { ModelRegistryCustomProperties } from './types';
 export type CatalogSource = {
   id: string;
   name: string;
+  labels: string[];
   enabled?: boolean;
 };
 
@@ -35,14 +36,48 @@ export type ModelCatalogListParams = {
 
 export type CatalogModelList = ModelCatalogListParams & { items: CatalogModel[] };
 
-export type CatalogModelArtifact = {
+export enum CatalogArtifactType {
+  modelArtifact = 'model-artifact',
+  metricsArtifact = 'metrics-artifact',
+}
+
+export enum MetricsType {
+  accuracyMetrics = 'accuracy-metrics',
+  performanceMetrics = 'performance-metrics',
+}
+
+export type CatalogArtifactBase = {
   createTimeSinceEpoch: string;
   lastUpdateTimeSinceEpoch: string;
-  uri: string;
   customProperties: ModelRegistryCustomProperties;
 };
 
-export type CatalogModelArtifactList = ModelCatalogListParams & { items: CatalogModelArtifact[] };
+export type CatalogModelArtifact = CatalogArtifactBase & {
+  artifactType: CatalogArtifactType.modelArtifact;
+  uri: string;
+};
+
+export type CatalogMetricsArtifact = CatalogArtifactBase & {
+  artifactType: CatalogArtifactType.metricsArtifact;
+  metricsType?: string;
+};
+
+export type CatalogArtifacts = CatalogModelArtifact | CatalogMetricsArtifact;
+
+export type CatalogArtifactList = ModelCatalogListParams & { items: CatalogArtifacts[] };
+
+export type CatalogFilterOption = {
+  type: string;
+  range?: {
+    max?: number;
+    min?: number;
+  };
+  Values?: string[];
+};
+
+export type CatalogFilterOptionsList = {
+  filters: CatalogFilterOption;
+};
 
 export type GetCatalogModelsBySource = (
   opts: APIOptions,
@@ -68,13 +103,16 @@ export type GetListCatalogModelArtifacts = (
   opts: APIOptions,
   sourceId: string,
   modelName: string,
-) => Promise<CatalogModelArtifactList>;
+) => Promise<CatalogArtifactList>;
+
+export type GetCatalogFilterOptionList = (opts: APIOptions) => Promise<CatalogFilterOptionsList>;
 
 export type ModelCatalogAPIs = {
   getCatalogModelsBySource: GetCatalogModelsBySource;
   getListSources: GetListSources;
   getCatalogModel: GetCatalogModel;
   getListCatalogModelArtifacts: GetListCatalogModelArtifacts;
+  getCatalogFilterOptionList: GetCatalogFilterOptionList;
 };
 
 export type CatalogModelDetailsParams = {
