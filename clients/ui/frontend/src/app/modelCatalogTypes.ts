@@ -66,17 +66,28 @@ export type CatalogArtifacts = CatalogModelArtifact | CatalogMetricsArtifact;
 
 export type CatalogArtifactList = ModelCatalogListParams & { items: CatalogArtifacts[] };
 
-export type CatalogFilterOption = {
-  type: string;
-  range?: {
-    max?: number;
-    min?: number;
+export type CatalogFilterNumberOption = {
+  type: 'number';
+  range: {
+    max: number;
+    min: number;
   };
-  Values?: string[];
 };
 
+export type CatalogFilterStringOption = {
+  type: 'string';
+  values: string[];
+};
+
+export type CatalogFilterOption = CatalogFilterNumberOption | CatalogFilterStringOption;
+
 export type CatalogFilterOptionsList = {
-  filters: CatalogFilterOption;
+  filters: {
+    task: CatalogFilterStringOption;
+    provider: CatalogFilterStringOption;
+    license: CatalogFilterStringOption;
+    language: CatalogFilterStringOption;
+  };
 };
 
 export type GetCatalogModelsBySource = (
