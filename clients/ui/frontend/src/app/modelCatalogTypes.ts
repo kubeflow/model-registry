@@ -41,7 +41,7 @@ export enum CatalogArtifactType {
   metricsArtifact = 'metrics-artifact',
 }
 
-export enum MerticsType {
+export enum MetricsType {
   accuracyMetrics = 'accuracy-metrics',
   performanceMetrics = 'performance-metrics',
 }
