@@ -51,70 +51,44 @@ const HardwareConfigurationTable = ({
   }
 
   return (
-    <div className="hardware-table-container">
-      <style>
-        {`
-          .hardware-table-container {
-            width: 100%;
-            max-width: 100%;
-            overflow-x: auto;
-          }
-          .hardware-table-container table {
-            width: max-content;
-            min-width: 100%;
-            table-layout: auto;
-          }
-        `}
-      </style>
-      <Table data-testid="hardware-configuration-table" variant="compact" isStickyHeader>
-        <Thead>
-          <Tr>
-            {hardwareConfigColumns.map((column, index) => {
-              const renderLabel = () => {
-                if (column.label.includes('\n')) {
-                  const parts = column.label.split('\n');
-                  return (
-                    <>
-                      {parts[0]}
-                      <br />
-                      {parts[1]}
-                    </>
-                  );
-                }
-                return column.label;
-              };
+    <Table data-testid="hardware-configuration-table" variant="compact" isStickyHeader>
+      <Thead>
+        <Tr>
+          {hardwareConfigColumns.map((column, index) => {
+            const renderLabel = () => {
+              if (column.label.includes('\n')) {
+                const parts = column.label.split('\n');
+                return (
+                  <>
+                    {parts[0]}
+                    <br />
+                    {parts[1]}
+                  </>
+                );
+              }
+              return column.label;
+            };
 
-              return (
-                <Th
-                  key={column.field}
-                  className={
-                    index < 2
-                      ? 'pf-v6-c-table__sticky-column pf-v6-c-table__sticky-column--left'
-                      : ''
-                  }
-                  style={{
-                    width: `${column.width}ch`,
-                    minWidth: `${column.width}ch`,
-                    verticalAlign: 'middle',
-                    height: 'auto',
-                    lineHeight: '1.2',
-                    textAlign: 'left',
-                  }}
-                  sort={column.sortable ? { onSort, columnIndex: index, sortBy } : undefined}
-                >
-                  {renderLabel()}
-                </Th>
-              );
-            })}
-          </Tr>
-        </Thead>
-        <Tbody>
-          {sortedConfigurations.map((config) => (
-            <HardwareConfigurationTableRow key={config.id} configuration={config} />
-          ))}
-        </Tbody>
-      </Table>
-    </div>
+            return (
+              <Th
+                key={column.field}
+                isStickyColumn={index < 2}
+                stickyMinWidth={index < 2 ? `${column.width}ch` : undefined}
+                modifier="fitContent"
+                sort={column.sortable ? { onSort, columnIndex: index, sortBy } : undefined}
+              >
+                {renderLabel()}
+              </Th>
+            );
+          })}
+        </Tr>
+      </Thead>
+      <Tbody>
+        {sortedConfigurations.map((config) => (
+          <HardwareConfigurationTableRow key={config.id} configuration={config} />
+        ))}
+      </Tbody>
+    </Table>
   );
 };
 

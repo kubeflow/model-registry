@@ -26,14 +26,9 @@ const HardwareConfigurationTableRow = ({
         <Td
           key={column.field}
           dataLabel={column.label.replace('\n', ' ')}
-          className={
-            index < 2 ? 'pf-v6-c-table__sticky-column pf-v6-c-table__sticky-column--left' : ''
-          }
-          style={{
-            width: `${column.width}ch`,
-            minWidth: `${column.width}ch`,
-            textAlign: 'left',
-          }}
+          isStickyColumn={index < 2}
+          stickyMinWidth={index < 2 ? `${column.width}ch` : undefined}
+          modifier="fitContent"
         >
           {getCellValue()}
         </Td>
