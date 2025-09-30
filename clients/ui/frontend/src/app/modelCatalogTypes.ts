@@ -1,5 +1,10 @@
 import { APIOptions } from 'mod-arch-core';
-import { ModelRegistryCustomProperties } from './types';
+import {
+  ModelRegistryCustomProperties,
+  ModelRegistryCustomPropertyString,
+  ModelRegistryCustomPropertyInt,
+  ModelRegistryCustomPropertyDouble,
+} from './types';
 
 export type CatalogSource = {
   id: string;
@@ -57,10 +62,69 @@ export type CatalogModelArtifact = CatalogArtifactBase & {
   uri: string;
 };
 
-export type CatalogMetricsArtifact = CatalogArtifactBase & {
-  artifactType: CatalogArtifactType.metricsArtifact;
-  metricsType?: string;
+export type PerformanceMetricsCustomProperties = {
+  config_id?: ModelRegistryCustomPropertyString;
+  hardware?: ModelRegistryCustomPropertyString;
+  hardware_count?: ModelRegistryCustomPropertyInt;
+  requests_per_second?: ModelRegistryCustomPropertyDouble;
+  // TTFT (Time To First Token) latency metrics
+  ttft_mean?: ModelRegistryCustomPropertyDouble;
+  ttft_p90?: ModelRegistryCustomPropertyDouble;
+  ttft_p95?: ModelRegistryCustomPropertyDouble;
+  ttft_p99?: ModelRegistryCustomPropertyDouble;
+  // E2E (End-to-End) latency metrics
+  e2e_mean?: ModelRegistryCustomPropertyDouble;
+  e2e_p90?: ModelRegistryCustomPropertyDouble;
+  e2e_p95?: ModelRegistryCustomPropertyDouble;
+  e2e_p99?: ModelRegistryCustomPropertyDouble;
+  // TPS (Tokens Per Second) latency metrics
+  tps_mean?: ModelRegistryCustomPropertyDouble;
+  tps_p90?: ModelRegistryCustomPropertyDouble;
+  tps_p95?: ModelRegistryCustomPropertyDouble;
+  tps_p99?: ModelRegistryCustomPropertyDouble;
+  // ITL (Inter-Token Latency) metrics
+  itl_mean?: ModelRegistryCustomPropertyDouble;
+  itl_p90?: ModelRegistryCustomPropertyDouble;
+  itl_p95?: ModelRegistryCustomPropertyDouble;
+  itl_p99?: ModelRegistryCustomPropertyDouble;
+  // Token metrics
+  max_input_tokens?: ModelRegistryCustomPropertyDouble;
+  max_output_tokens?: ModelRegistryCustomPropertyDouble;
+  mean_input_tokens?: ModelRegistryCustomPropertyDouble;
+  mean_output_tokens?: ModelRegistryCustomPropertyDouble;
+  // Framework information
+  framework?: ModelRegistryCustomPropertyString;
+  framework_version?: ModelRegistryCustomPropertyString;
+  // Additional fields from ADR (excluded from display per requirements)
+  docker_image?: ModelRegistryCustomPropertyString;
+  entrypoint?: ModelRegistryCustomPropertyString;
+  inserted_at?: ModelRegistryCustomPropertyString;
+  created_at?: ModelRegistryCustomPropertyString;
+  updated_at?: ModelRegistryCustomPropertyString;
+  model_hf_repo_name?: ModelRegistryCustomPropertyString;
+  scenario_id?: ModelRegistryCustomPropertyString;
 };
+
+export type AccuracyMetricsCustomProperties = {
+  overall_average?: ModelRegistryCustomPropertyDouble;
+  arc_v1?: ModelRegistryCustomPropertyDouble;
+} & Record<string, ModelRegistryCustomPropertyDouble>;
+
+export type CatalogPerformanceMetricsArtifact = Omit<CatalogArtifactBase, 'customProperties'> & {
+  artifactType: CatalogArtifactType.metricsArtifact;
+  metricsType: MetricsType.performanceMetrics;
+  customProperties: PerformanceMetricsCustomProperties;
+};
+
+export type CatalogAccuracyMetricsArtifact = Omit<CatalogArtifactBase, 'customProperties'> & {
+  artifactType: CatalogArtifactType.metricsArtifact;
+  metricsType: MetricsType.accuracyMetrics;
+  customProperties: AccuracyMetricsCustomProperties;
+};
+
+export type CatalogMetricsArtifact =
+  | CatalogPerformanceMetricsArtifact
+  | CatalogAccuracyMetricsArtifact;
 
 export type CatalogArtifacts = CatalogModelArtifact | CatalogMetricsArtifact;
 

@@ -2,10 +2,11 @@
 import {
   CatalogArtifacts,
   CatalogArtifactList,
-  CatalogMetricsArtifact,
   CatalogModelArtifact,
   CatalogArtifactType,
   MetricsType,
+  CatalogPerformanceMetricsArtifact,
+  CatalogAccuracyMetricsArtifact,
 } from '~/app/modelCatalogTypes';
 import { ModelRegistryMetadataType } from '~/app/types';
 
@@ -21,8 +22,8 @@ export const mockCatalogModelArtifact = (
 });
 
 export const mockCatalogAccuracyMetricsArtifact = (
-  partial?: Partial<CatalogMetricsArtifact>,
-): CatalogArtifacts => ({
+  partial?: Partial<CatalogAccuracyMetricsArtifact>,
+): CatalogAccuracyMetricsArtifact => ({
   artifactType: CatalogArtifactType.metricsArtifact,
   metricsType: MetricsType.accuracyMetrics,
   createTimeSinceEpoch: '1739210683000',
@@ -41,8 +42,8 @@ export const mockCatalogAccuracyMetricsArtifact = (
 });
 
 export const mockCatalogPerformanceMetricsArtifact = (
-  partial?: Partial<CatalogMetricsArtifact>,
-): CatalogArtifacts => ({
+  partial?: Partial<CatalogPerformanceMetricsArtifact>,
+): CatalogPerformanceMetricsArtifact => ({
   artifactType: CatalogArtifactType.metricsArtifact,
   metricsType: MetricsType.performanceMetrics,
   createTimeSinceEpoch: '1739210683000',
@@ -91,7 +92,7 @@ export const mockCatalogModelArtifactList = (
 });
 
 export const mockCatalogPerformanceMetricsArtifactList = (
-  partial?: Partial<CatalogMetricsArtifact>,
+  partial?: Partial<CatalogPerformanceMetricsArtifact>,
 ): CatalogArtifactList => ({
   items: [mockCatalogPerformanceMetricsArtifact({}), mockCatalogModelArtifact({})],
   pageSize: 10,
@@ -101,7 +102,7 @@ export const mockCatalogPerformanceMetricsArtifactList = (
 });
 
 export const mockCatalogAccuracyMetricsArtifactList = (
-  partial?: Partial<CatalogMetricsArtifact>,
+  partial?: Partial<CatalogAccuracyMetricsArtifact>,
 ): CatalogArtifactList => ({
   items: [mockCatalogAccuracyMetricsArtifact({}), mockCatalogModelArtifact({})],
   pageSize: 10,

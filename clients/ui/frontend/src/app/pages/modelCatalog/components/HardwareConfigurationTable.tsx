@@ -2,12 +2,14 @@
 import * as React from 'react';
 import { Table, Thead, Tbody, Tr, Th } from '@patternfly/react-table';
 import { Spinner } from '@patternfly/react-core';
-import {
-  HardwareConfiguration,
-  HardwareConfigurationTableProps,
-} from '~/app/pages/modelCatalog/types/hardwareConfiguration';
+import { CatalogPerformanceMetricsArtifact } from '~/app/modelCatalogTypes';
 import { hardwareConfigColumns } from './HardwareConfigurationTableColumns';
 import HardwareConfigurationTableRow from './HardwareConfigurationTableRow';
+
+type HardwareConfigurationTableProps = {
+  configurations: CatalogPerformanceMetricsArtifact[];
+  isLoading?: boolean;
+};
 
 const HardwareConfigurationTable = ({
   configurations,
@@ -26,8 +28,8 @@ const HardwareConfigurationTable = ({
       const sorted = [...configurations].toSorted((a, b) => {
         const result = (
           column.sortable as (
-            a: HardwareConfiguration,
-            b: HardwareConfiguration,
+            a: CatalogPerformanceMetricsArtifact,
+            b: CatalogPerformanceMetricsArtifact,
             keyField: string,
           ) => number
         )(a, b, column.field);
@@ -84,8 +86,8 @@ const HardwareConfigurationTable = ({
         </Tr>
       </Thead>
       <Tbody>
-        {sortedConfigurations.map((config) => (
-          <HardwareConfigurationTableRow key={config.id} configuration={config} />
+        {sortedConfigurations.map((config, index) => (
+          <HardwareConfigurationTableRow key={index} configuration={config} />
         ))}
       </Tbody>
     </Table>

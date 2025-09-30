@@ -1,10 +1,10 @@
 import * as React from 'react';
 import { PageSection, Card, CardBody, Title, Flex, FlexItem } from '@patternfly/react-core';
 import HardwareConfigurationTable from '~/app/pages/modelCatalog/components/HardwareConfigurationTable';
-import { mockHardwareConfigurations } from '~/app/pages/modelCatalog/mocks/hardwareConfigurationMock';
+import { mockPerformanceMetricsArtifacts } from '~/app/pages/modelCatalog/mocks/hardwareConfigurationMock';
 
 const PerformanceInsightsView = (): React.JSX.Element => {
-  const [configurations] = React.useState(mockHardwareConfigurations);
+  const [configurations] = React.useState(mockPerformanceMetricsArtifacts);
   const [isLoading] = React.useState(false);
 
   return (

@@ -1,194 +1,276 @@
 import { SortableData } from 'mod-arch-shared';
-import { HardwareConfiguration } from '~/app/pages/modelCatalog/types/hardwareConfiguration';
+import { CatalogPerformanceMetricsArtifact } from '~/app/modelCatalogTypes';
+import {
+  getDoubleValue,
+  getHardwareConfiguration,
+  getIntValue,
+  getStringValue,
+  getTotalRps,
+} from '~/app/pages/modelCatalog/utils/performanceMetricsUtils';
 
-export const hardwareConfigColumns: SortableData<HardwareConfiguration>[] = [
+export const hardwareConfigColumns: SortableData<CatalogPerformanceMetricsArtifact>[] = [
   {
-    field: 'hardwareConfiguration',
+    field: 'hardware',
     label: 'Hardware\nConfiguration',
-    sortable: (a: HardwareConfiguration, b: HardwareConfiguration): number =>
-      a.hardwareConfiguration.localeCompare(b.hardwareConfiguration),
+    sortable: (
+      a: CatalogPerformanceMetricsArtifact,
+      b: CatalogPerformanceMetricsArtifact,
+    ): number => getHardwareConfiguration(a).localeCompare(getHardwareConfiguration(b)),
     width: 25,
   },
   {
-    field: 'totalHardware',
+    field: 'hardware_count',
     label: 'Total\nHardware',
-    sortable: (a: HardwareConfiguration, b: HardwareConfiguration): number =>
-      a.totalHardware - b.totalHardware,
+    sortable: (
+      a: CatalogPerformanceMetricsArtifact,
+      b: CatalogPerformanceMetricsArtifact,
+    ): number =>
+      getIntValue(a.customProperties, 'hardware_count') -
+      getIntValue(b.customProperties, 'hardware_count'),
     width: 20,
   },
   {
-    field: 'rpsPerReplica',
+    field: 'requests_per_second',
     label: 'RPS per\nReplica',
-    sortable: (a: HardwareConfiguration, b: HardwareConfiguration): number =>
-      a.rpsPerReplica - b.rpsPerReplica,
+    sortable: (
+      a: CatalogPerformanceMetricsArtifact,
+      b: CatalogPerformanceMetricsArtifact,
+    ): number =>
+      getDoubleValue(a.customProperties, 'requests_per_second') -
+      getDoubleValue(b.customProperties, 'requests_per_second'),
     width: 20,
   },
   {
-    field: 'totalRps',
+    field: 'total_rps',
     label: 'Total\nRPS',
-    sortable: (a: HardwareConfiguration, b: HardwareConfiguration): number =>
-      a.totalRps - b.totalRps,
+    sortable: (
+      a: CatalogPerformanceMetricsArtifact,
+      b: CatalogPerformanceMetricsArtifact,
+    ): number => getTotalRps(a.customProperties) - getTotalRps(b.customProperties),
     width: 20,
   },
   {
-    field: 'ttftLatencyMean',
+    field: 'ttft_mean',
     label: 'TTFT Latency\nMean',
-    sortable: (a: HardwareConfiguration, b: HardwareConfiguration): number =>
-      a.ttftLatencyMean - b.ttftLatencyMean,
+    sortable: (
+      a: CatalogPerformanceMetricsArtifact,
+      b: CatalogPerformanceMetricsArtifact,
+    ): number =>
+      getDoubleValue(a.customProperties, 'ttft_mean') -
+      getDoubleValue(b.customProperties, 'ttft_mean'),
     width: 20,
   },
   {
-    field: 'ttftLatencyP90',
+    field: 'ttft_p90',
     label: 'TTFT Latency\nP90',
-    sortable: (a: HardwareConfiguration, b: HardwareConfiguration): number =>
-      a.ttftLatencyP90 - b.ttftLatencyP90,
+    sortable: (
+      a: CatalogPerformanceMetricsArtifact,
+      b: CatalogPerformanceMetricsArtifact,
+    ): number =>
+      getDoubleValue(a.customProperties, 'ttft_p90') -
+      getDoubleValue(b.customProperties, 'ttft_p90'),
     width: 20,
   },
   {
-    field: 'ttftLatencyP95',
+    field: 'ttft_p95',
     label: 'TTFT Latency\nP95',
-    sortable: (a: HardwareConfiguration, b: HardwareConfiguration): number =>
-      a.ttftLatencyP95 - b.ttftLatencyP95,
+    sortable: (
+      a: CatalogPerformanceMetricsArtifact,
+      b: CatalogPerformanceMetricsArtifact,
+    ): number =>
+      getDoubleValue(a.customProperties, 'ttft_p95') -
+      getDoubleValue(b.customProperties, 'ttft_p95'),
     width: 20,
   },
   {
-    field: 'ttftLatencyP99',
+    field: 'ttft_p99',
     label: 'TTFT Latency\nP99',
-    sortable: (a: HardwareConfiguration, b: HardwareConfiguration): number =>
-      a.ttftLatencyP99 - b.ttftLatencyP99,
+    sortable: (
+      a: CatalogPerformanceMetricsArtifact,
+      b: CatalogPerformanceMetricsArtifact,
+    ): number =>
+      getDoubleValue(a.customProperties, 'ttft_p99') -
+      getDoubleValue(b.customProperties, 'ttft_p99'),
     width: 20,
   },
   {
-    field: 'e2eLatencyMean',
+    field: 'e2e_mean',
     label: 'E2E Latency\nMean',
-    sortable: (a: HardwareConfiguration, b: HardwareConfiguration): number =>
-      a.e2eLatencyMean - b.e2eLatencyMean,
+    sortable: (
+      a: CatalogPerformanceMetricsArtifact,
+      b: CatalogPerformanceMetricsArtifact,
+    ): number =>
+      getDoubleValue(a.customProperties, 'e2e_mean') -
+      getDoubleValue(b.customProperties, 'e2e_mean'),
     width: 20,
   },
   {
-    field: 'e2eLatencyP90',
+    field: 'e2e_p90',
     label: 'E2E Latency\nP90',
-    sortable: (a: HardwareConfiguration, b: HardwareConfiguration): number =>
-      a.e2eLatencyP90 - b.e2eLatencyP90,
+    sortable: (
+      a: CatalogPerformanceMetricsArtifact,
+      b: CatalogPerformanceMetricsArtifact,
+    ): number =>
+      getDoubleValue(a.customProperties, 'e2e_p90') - getDoubleValue(b.customProperties, 'e2e_p90'),
     width: 20,
   },
   {
-    field: 'e2eLatencyP95',
+    field: 'e2e_p95',
     label: 'E2E Latency\nP95',
-    sortable: (a: HardwareConfiguration, b: HardwareConfiguration): number =>
-      a.e2eLatencyP95 - b.e2eLatencyP95,
+    sortable: (
+      a: CatalogPerformanceMetricsArtifact,
+      b: CatalogPerformanceMetricsArtifact,
+    ): number =>
+      getDoubleValue(a.customProperties, 'e2e_p95') - getDoubleValue(b.customProperties, 'e2e_p95'),
     width: 20,
   },
   {
-    field: 'e2eLatencyP99',
+    field: 'e2e_p99',
     label: 'E2E Latency\nP99',
-    sortable: (a: HardwareConfiguration, b: HardwareConfiguration): number =>
-      a.e2eLatencyP99 - b.e2eLatencyP99,
+    sortable: (
+      a: CatalogPerformanceMetricsArtifact,
+      b: CatalogPerformanceMetricsArtifact,
+    ): number =>
+      getDoubleValue(a.customProperties, 'e2e_p99') - getDoubleValue(b.customProperties, 'e2e_p99'),
     width: 20,
   },
   {
-    field: 'tpsLatencyMean',
+    field: 'tps_mean',
     label: 'TPS Latency\nMean',
-    sortable: (a: HardwareConfiguration, b: HardwareConfiguration): number =>
-      a.tpsLatencyMean - b.tpsLatencyMean,
+    sortable: (
+      a: CatalogPerformanceMetricsArtifact,
+      b: CatalogPerformanceMetricsArtifact,
+    ): number =>
+      getDoubleValue(a.customProperties, 'tps_mean') -
+      getDoubleValue(b.customProperties, 'tps_mean'),
     width: 20,
   },
   {
-    field: 'tpsLatencyP90',
+    field: 'tps_p90',
     label: 'TPS Latency\nP90',
-    sortable: (a: HardwareConfiguration, b: HardwareConfiguration): number =>
-      a.tpsLatencyP90 - b.tpsLatencyP90,
+    sortable: (
+      a: CatalogPerformanceMetricsArtifact,
+      b: CatalogPerformanceMetricsArtifact,
+    ): number =>
+      getDoubleValue(a.customProperties, 'tps_p90') - getDoubleValue(b.customProperties, 'tps_p90'),
     width: 20,
   },
   {
-    field: 'tpsLatencyP95',
+    field: 'tps_p95',
     label: 'TPS Latency\nP95',
-    sortable: (a: HardwareConfiguration, b: HardwareConfiguration): number =>
-      a.tpsLatencyP95 - b.tpsLatencyP95,
+    sortable: (
+      a: CatalogPerformanceMetricsArtifact,
+      b: CatalogPerformanceMetricsArtifact,
+    ): number =>
+      getDoubleValue(a.customProperties, 'tps_p95') - getDoubleValue(b.customProperties, 'tps_p95'),
     width: 20,
   },
   {
-    field: 'tpsLatencyP99',
+    field: 'tps_p99',
     label: 'TPS Latency\nP99',
-    sortable: (a: HardwareConfiguration, b: HardwareConfiguration): number =>
-      a.tpsLatencyP99 - b.tpsLatencyP99,
+    sortable: (
+      a: CatalogPerformanceMetricsArtifact,
+      b: CatalogPerformanceMetricsArtifact,
+    ): number =>
+      getDoubleValue(a.customProperties, 'tps_p99') - getDoubleValue(b.customProperties, 'tps_p99'),
     width: 20,
   },
   {
-    field: 'itlLatencyMean',
+    field: 'itl_mean',
     label: 'ITL Latency\nMean',
-    sortable: (a: HardwareConfiguration, b: HardwareConfiguration): number =>
-      a.itlLatencyMean - b.itlLatencyMean,
+    sortable: (
+      a: CatalogPerformanceMetricsArtifact,
+      b: CatalogPerformanceMetricsArtifact,
+    ): number =>
+      getDoubleValue(a.customProperties, 'itl_mean') -
+      getDoubleValue(b.customProperties, 'itl_mean'),
     width: 20,
   },
   {
-    field: 'itlLatencyP90',
+    field: 'itl_p90',
     label: 'ITL Latency\nP90',
-    sortable: (a: HardwareConfiguration, b: HardwareConfiguration): number =>
-      a.itlLatencyP90 - b.itlLatencyP90,
+    sortable: (
+      a: CatalogPerformanceMetricsArtifact,
+      b: CatalogPerformanceMetricsArtifact,
+    ): number =>
+      getDoubleValue(a.customProperties, 'itl_p90') - getDoubleValue(b.customProperties, 'itl_p90'),
     width: 20,
   },
   {
-    field: 'itlLatencyP95',
+    field: 'itl_p95',
     label: 'ITL Latency\nP95',
-    sortable: (a: HardwareConfiguration, b: HardwareConfiguration): number =>
-      a.itlLatencyP95 - b.itlLatencyP95,
+    sortable: (
+      a: CatalogPerformanceMetricsArtifact,
+      b: CatalogPerformanceMetricsArtifact,
+    ): number =>
+      getDoubleValue(a.customProperties, 'itl_p95') - getDoubleValue(b.customProperties, 'itl_p95'),
     width: 20,
   },
   {
-    field: 'itlLatencyP99',
+    field: 'itl_p99',
     label: 'ITL Latency\nP99',
-    sortable: (a: HardwareConfiguration, b: HardwareConfiguration): number =>
-      a.itlLatencyP99 - b.itlLatencyP99,
+    sortable: (
+      a: CatalogPerformanceMetricsArtifact,
+      b: CatalogPerformanceMetricsArtifact,
+    ): number =>
+      getDoubleValue(a.customProperties, 'itl_p99') - getDoubleValue(b.customProperties, 'itl_p99'),
     width: 20,
   },
   {
-    field: 'maxInputTokens',
+    field: 'max_input_tokens',
     label: 'Max Input\nTokens',
-    sortable: (a: HardwareConfiguration, b: HardwareConfiguration): number =>
-      a.maxInputTokens - b.maxInputTokens,
+    sortable: (
+      a: CatalogPerformanceMetricsArtifact,
+      b: CatalogPerformanceMetricsArtifact,
+    ): number =>
+      getDoubleValue(a.customProperties, 'max_input_tokens') -
+      getDoubleValue(b.customProperties, 'max_input_tokens'),
     width: 20,
   },
   {
-    field: 'maxOutputTokens',
+    field: 'max_output_tokens',
     label: 'Max Output\nTokens',
-    sortable: (a: HardwareConfiguration, b: HardwareConfiguration): number =>
-      a.maxOutputTokens - b.maxOutputTokens,
+    sortable: (
+      a: CatalogPerformanceMetricsArtifact,
+      b: CatalogPerformanceMetricsArtifact,
+    ): number =>
+      getDoubleValue(a.customProperties, 'max_output_tokens') -
+      getDoubleValue(b.customProperties, 'max_output_tokens'),
     width: 20,
   },
   {
-    field: 'meanInputTokens',
+    field: 'mean_input_tokens',
     label: 'Mean Input\nTokens',
-    sortable: (a: HardwareConfiguration, b: HardwareConfiguration): number =>
-      a.meanInputTokens - b.meanInputTokens,
+    sortable: (
+      a: CatalogPerformanceMetricsArtifact,
+      b: CatalogPerformanceMetricsArtifact,
+    ): number =>
+      getDoubleValue(a.customProperties, 'mean_input_tokens') -
+      getDoubleValue(b.customProperties, 'mean_input_tokens'),
     width: 20,
   },
   {
-    field: 'meanOutputTokens',
+    field: 'mean_output_tokens',
     label: 'Mean Output\nTokens',
-    sortable: (a: HardwareConfiguration, b: HardwareConfiguration): number =>
-      a.meanOutputTokens - b.meanOutputTokens,
+    sortable: (
+      a: CatalogPerformanceMetricsArtifact,
+      b: CatalogPerformanceMetricsArtifact,
+    ): number =>
+      getDoubleValue(a.customProperties, 'mean_output_tokens') -
+      getDoubleValue(b.customProperties, 'mean_output_tokens'),
     width: 20,
   },
   {
-    field: 'vllmVersion',
+    field: 'framework_version',
     label: 'vLLM\nVersion',
-    sortable: (a: HardwareConfiguration, b: HardwareConfiguration): number =>
-      a.vllmVersion.localeCompare(b.vllmVersion),
-    width: 20,
-  },
-  {
-    field: 'guideLLMVersion',
-    label: 'GuideLLM\nVersion',
-    sortable: (a: HardwareConfiguration, b: HardwareConfiguration): number =>
-      a.guideLLMVersion.localeCompare(b.guideLLMVersion),
-    width: 20,
-  },
-  {
-    field: 'rhaiisVersion',
-    label: 'RHAIIS\nVersion',
-    sortable: (a: HardwareConfiguration, b: HardwareConfiguration): number =>
-      a.rhaiisVersion.localeCompare(b.rhaiisVersion),
+    sortable: (
+      a: CatalogPerformanceMetricsArtifact,
+      b: CatalogPerformanceMetricsArtifact,
+    ): number => {
+      const versionA = getStringValue(a.customProperties, 'framework_version');
+      const versionB = getStringValue(b.customProperties, 'framework_version');
+      return versionA.localeCompare(versionB);
+    },
     width: 20,
   },
 ];
