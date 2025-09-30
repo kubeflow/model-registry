@@ -5,6 +5,7 @@ import {
   CatalogMetricsArtifact,
   CatalogModelArtifact,
   CatalogArtifactType,
+  MerticsType,
 } from '~/app/modelCatalogTypes';
 import { ModelRegistryMetadataType } from '~/app/types';
 
@@ -23,7 +24,7 @@ export const mockCatalogAccuracyMetricsArtifact = (
   partial?: Partial<CatalogMetricsArtifact>,
 ): CatalogArtifacts => ({
   artifactType: CatalogArtifactType.metricsArtifact,
-  metricsType: 'accuracy-metrics',
+  metricsType: MerticsType.accuracyMetrics,
   createTimeSinceEpoch: '1739210683000',
   lastUpdateTimeSinceEpoch: '1739210683000',
   customProperties: {
@@ -43,7 +44,7 @@ export const mockCatalogPerformanceMetricsArtifact = (
   partial?: Partial<CatalogMetricsArtifact>,
 ): CatalogArtifacts => ({
   artifactType: CatalogArtifactType.metricsArtifact,
-  metricsType: 'performance-metrics',
+  metricsType: MerticsType.performanceMetrics,
   createTimeSinceEpoch: '1739210683000',
   lastUpdateTimeSinceEpoch: '1739210683000',
   customProperties: {

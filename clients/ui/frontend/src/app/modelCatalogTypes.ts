@@ -41,20 +41,25 @@ export enum CatalogArtifactType {
   metricsArtifact = 'metrics-artifact',
 }
 
-export type CatalogModelArtifact = {
-  artifactType: CatalogArtifactType.modelArtifact;
+export enum MerticsType {
+  accuracyMetrics = 'accuracy-metrics',
+  performanceMetrics = 'performance-metrics',
+}
+
+export type CatalogArtifactBase = {
   createTimeSinceEpoch: string;
   lastUpdateTimeSinceEpoch: string;
-  uri: string;
   customProperties: ModelRegistryCustomProperties;
 };
 
-export type CatalogMetricsArtifact = {
+export type CatalogModelArtifact = CatalogArtifactBase & {
+  artifactType: CatalogArtifactType.modelArtifact;
+  uri: string;
+};
+
+export type CatalogMetricsArtifact = CatalogArtifactBase & {
   artifactType: CatalogArtifactType.metricsArtifact;
   metricsType?: string;
-  createTimeSinceEpoch: string;
-  lastUpdateTimeSinceEpoch: string;
-  customProperties: ModelRegistryCustomProperties;
 };
 
 export type CatalogArtifacts = CatalogModelArtifact | CatalogMetricsArtifact;
