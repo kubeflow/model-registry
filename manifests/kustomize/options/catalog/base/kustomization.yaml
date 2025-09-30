@@ -13,3 +13,7 @@ configMapGenerator:
   name: model-catalog-sources
   options:
     disableNameSuffixHash: true
+images:
+- name: ghcr.io/kubeflow/model-registry/server
+  newName: ghcr.io/kubeflow/model-registry/server
+  newTag: v0.3.1
