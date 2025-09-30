@@ -245,6 +245,145 @@ func TestDBCatalog(t *testing.T) {
 		assert.Equal(t, int32(3), result.PageSize)
 	})
 
+	t.Run("TestListModels_WithQuery", func(t *testing.T) {
+		// Create test models with different properties for query filtering
+		sourceIDs := []string{"query-test-source"}
+
+		model1 := &models.CatalogModelImpl{
+			TypeID: apiutils.Of(int32(catalogModelTypeID)),
+			Attributes: &models.CatalogModelAttributes{
+				Name:       apiutils.Of("BERT-base-model"),
+				ExternalID: apiutils.Of("bert-base-1"),
+			},
+			Properties: &[]mr_models.Properties{
+				{Name: "source_id", StringValue: apiutils.Of("query-test-source")},
+				{Name: "description", StringValue: apiutils.Of("BERT base model for NLP tasks")},
+				{Name: "provider", StringValue: apiutils.Of("Hugging Face")},
+				{Name: "tasks", StringValue: apiutils.Of(`["text-classification", "question-answering"]`)},
+			},
+		}
+
+		model2 := &models.CatalogModelImpl{
+			TypeID: apiutils.Of(int32(catalogModelTypeID)),
+			Attributes: &models.CatalogModelAttributes{
+				Name:       apiutils.Of("GPT-3.5-turbo"),
+				ExternalID: apiutils.Of("gpt-35-turbo-1"),
+			},
+			Properties: &[]mr_models.Properties{
+				{Name: "source_id", StringValue: apiutils.Of("query-test-source")},
+				{Name: "description", StringValue: apiutils.Of("OpenAI GPT model for text generation")},
+				{Name: "provider", StringValue: apiutils.Of("OpenAI")},
+				{Name: "tasks", StringValue: apiutils.Of(`["text-generation", "conversational"]`)},
+			},
+		}
+
+		model3 := &models.CatalogModelImpl{
+			TypeID: apiutils.Of(int32(catalogModelTypeID)),
+			Attributes: &models.CatalogModelAttributes{
+				Name:       apiutils.Of("ResNet-50-image"),
+				ExternalID: apiutils.Of("resnet-50-1"),
+			},
+			Properties: &[]mr_models.Properties{
+				{Name: "source_id", StringValue: apiutils.Of("query-test-source")},
+				{Name: "description", StringValue: apiutils.Of("Deep learning model for image classification")},
+				{Name: "provider", StringValue: apiutils.Of("PyTorch")},
+				{Name: "tasks", StringValue: apiutils.Of(`["image-classification", "computer-vision"]`)},
+			},
+		}
+
+		_, err := catalogModelRepo.Save(model1)
+		require.NoError(t, err)
+		_, err = catalogModelRepo.Save(model2)
+		require.NoError(t, err)
+		_, err = catalogModelRepo.Save(model3)
+		require.NoError(t, err)
+
+		// Test query filtering by name
+		params := ListModelsParams{
+			Query:         "BERT",
+			SourceIDs:     sourceIDs,
+			PageSize:      10,
+			OrderBy:       model.ORDERBYFIELD_CREATE_TIME,
+			SortOrder:     model.SORTORDER_ASC,
+			NextPageToken: apiutils.Of(""),
+		}
+
+		result, err := dbCatalog.ListModels(ctx, params)
+		require.NoError(t, err)
+
+		assert.Equal(t, int32(1), result.Size, "Should return 1 model matching 'BERT'")
+		assert.Contains(t, result.Items[0].Name, "BERT", "Should contain BERT model")
+
+		// Test query filtering by description
+		params.Query = "NLP"
+		result, err = dbCatalog.ListModels(ctx, params)
+		require.NoError(t, err)
+
+		assert.Equal(t, int32(1), result.Size, "Should return 1 model with 'NLP' in description")
+		assert.Contains(t, result.Items[0].Name, "BERT", "Should contain BERT model")
+
+		// Test query filtering by provider
+		params.Query = "OpenAI"
+		result, err = dbCatalog.ListModels(ctx, params)
+		require.NoError(t, err)
+
+		assert.Equal(t, int32(1), result.Size, "Should return 1 model from 'OpenAI' provider")
+		assert.Contains(t, result.Items[0].Name, "GPT", "Should contain GPT model")
+
+		// Test query filtering that should match multiple models
+		params.Query = "model"
+		result, err = dbCatalog.ListModels(ctx, params)
+		require.NoError(t, err)
+
+		assert.GreaterOrEqual(t, result.Size, int32(3), "Should return at least 3 models matching 'model'")
+
+		// Test query that should return no results
+		params.Query = "nonexistent"
+		result, err = dbCatalog.ListModels(ctx, params)
+		require.NoError(t, err)
+
+		assert.Equal(t, int32(0), result.Size, "Should return 0 models for nonexistent query")
+
+		// Test query filtering by tasks - text-classification
+		params.Query = "text-classification"
+		result, err = dbCatalog.ListModels(ctx, params)
+		require.NoError(t, err)
+
+		assert.Equal(t, int32(1), result.Size, "Should return 1 model with 'text-classification' task")
+		assert.Contains(t, result.Items[0].Name, "BERT", "Should contain BERT model")
+
+		// Test query filtering by tasks - image-classification
+		params.Query = "image-classification"
+		result, err = dbCatalog.ListModels(ctx, params)
+		require.NoError(t, err)
+
+		assert.Equal(t, int32(1), result.Size, "Should return 1 model with 'image-classification' task")
+		assert.Contains(t, result.Items[0].Name, "ResNet", "Should contain ResNet model")
+
+		// Test query filtering by tasks - conversational
+		params.Query = "conversational"
+		result, err = dbCatalog.ListModels(ctx, params)
+		require.NoError(t, err)
+
+		assert.Equal(t, int32(1), result.Size, "Should return 1 model with 'conversational' task")
+		assert.Contains(t, result.Items[0].Name, "GPT", "Should contain GPT model")
+
+		// Test query filtering by tasks - partial match on "classification"
+		params.Query = "classification"
+		result, err = dbCatalog.ListModels(ctx, params)
+		require.NoError(t, err)
+
+		assert.Equal(t, int32(2), result.Size, "Should return 2 models with 'classification' in their tasks")
+
+		// Test query filtering by tasks - computer-vision
+		params.Query = "computer-vision"
+		result, err = dbCatalog.ListModels(ctx, params)
+		require.NoError(t, err)
+
+		assert.Equal(t, int32(1), result.Size, "Should return 1 model with 'computer-vision' task")
+		assert.Contains(t, result.Items[0].Name, "ResNet", "Should contain ResNet model")
+	})
+
 	t.Run("TestGetArtifacts_Success", func(t *testing.T) {
 		// Create test model
 		testModel := &models.CatalogModelImpl{

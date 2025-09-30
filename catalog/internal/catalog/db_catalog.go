@@ -68,8 +68,14 @@ func (d *dbCatalogImpl) ListModels(ctx context.Context, params ListModelsParams)
 
 	nextPageToken := params.NextPageToken
 
+	var queryPtr *string
+	if params.Query != "" {
+		queryPtr = &params.Query
+	}
+
 	modelsList, err := d.catalogModelRepository.List(models.CatalogModelListOptions{
 		SourceIDs: &params.SourceIDs,
+		Query:     queryPtr,
 		Pagination: mr_models.Pagination{
 			PageSize:      &pageSize,
 			OrderBy:       &orderBy,

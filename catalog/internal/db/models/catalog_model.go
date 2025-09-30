@@ -10,6 +10,7 @@ type CatalogModelListOptions struct {
 	Name       *string
 	ExternalID *string
 	SourceIDs  *[]string
+	Query      *string
 }
 
 // GetRestEntityType implements the FilterApplier interface
