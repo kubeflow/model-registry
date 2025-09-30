@@ -1,5 +1,5 @@
 import { APIOptions } from 'mod-arch-core';
-import { ModelRegistryCustomProperties } from './types';
+import { ModelRegistryCustomProperties, ModelRegistryCustomProperty } from './types';
 
 export type CatalogSource = {
   id: string;
@@ -46,20 +46,70 @@ export enum MetricsType {
   performanceMetrics = 'performance-metrics',
 }
 
+type PerformanceMetricsCustomProperties = Record<string, ModelRegistryCustomProperty> & {
+  config_id?: ModelRegistryCustomProperty;
+
+  ttft_mean?: ModelRegistryCustomProperty;
+  ttft_p90?: ModelRegistryCustomProperty;
+  ttft_p95?: ModelRegistryCustomProperty;
+  ttft_p99?: ModelRegistryCustomProperty;
+
+  e2e_mean?: ModelRegistryCustomProperty;
+  e2e_p90?: ModelRegistryCustomProperty;
+  e2e_p95?: ModelRegistryCustomProperty;
+  e2e_p99?: ModelRegistryCustomProperty;
+
+  tps_mean?: ModelRegistryCustomProperty;
+  tps_p90?: ModelRegistryCustomProperty;
+  tps_p95?: ModelRegistryCustomProperty;
+  tps_p99?: ModelRegistryCustomProperty;
+
+  itl_mean?: ModelRegistryCustomProperty;
+  itl_p90?: ModelRegistryCustomProperty;
+  itl_p95?: ModelRegistryCustomProperty;
+  itl_p99?: ModelRegistryCustomProperty;
+
+  requests_per_second?: ModelRegistryCustomProperty;
+  max_input_tokens?: ModelRegistryCustomProperty;
+  max_output_tokens?: ModelRegistryCustomProperty;
+  mean_input_tokens?: ModelRegistryCustomProperty;
+  mean_output_tokens?: ModelRegistryCustomProperty;
+
+  hardware?: ModelRegistryCustomProperty;
+  hardware_count?: ModelRegistryCustomProperty;
+  framework?: ModelRegistryCustomProperty;
+  framework_version?: ModelRegistryCustomProperty;
+  docker_image?: ModelRegistryCustomProperty;
+  entrypoint?: ModelRegistryCustomProperty;
+  inserted_at?: ModelRegistryCustomProperty;
+  created_at?: ModelRegistryCustomProperty;
+  updated_at?: ModelRegistryCustomProperty;
+  model_hf_repo_name?: ModelRegistryCustomProperty;
+};
+
+export type CatalogMetricsArtifact = CatalogArtifactBase &
+  (
+    | {
+        artifactType: CatalogArtifactType.metricsArtifact;
+        metricsType?: MetricsType.performanceMetrics;
+        customProperties?: PerformanceMetricsCustomProperties;
+      }
+    | {
+        artifactType: CatalogArtifactType.metricsArtifact;
+        metricsType?: string;
+        customProperties?: ModelRegistryCustomProperties;
+      }
+  );
+
 export type CatalogArtifactBase = {
   createTimeSinceEpoch: string;
   lastUpdateTimeSinceEpoch: string;
-  customProperties: ModelRegistryCustomProperties;
 };
 
 export type CatalogModelArtifact = CatalogArtifactBase & {
   artifactType: CatalogArtifactType.modelArtifact;
   uri: string;
-};
-
-export type CatalogMetricsArtifact = CatalogArtifactBase & {
-  artifactType: CatalogArtifactType.metricsArtifact;
-  metricsType?: string;
+  customProperties?: ModelRegistryCustomProperties;
 };
 
 export type CatalogArtifacts = CatalogModelArtifact | CatalogMetricsArtifact;
@@ -72,7 +122,7 @@ export type CatalogFilterOption = {
     max?: number;
     min?: number;
   };
-  Values?: string[];
+  values?: string[];
 };
 
 export type CatalogFilterOptionsList = {
