@@ -72,7 +72,7 @@ git checkout -b mr_maintainer-$TDATE-upstreamSync
 pushd manifests/kustomize/base && kustomize edit set image ghcr.io/kubeflow/model-registry/server=ghcr.io/kubeflow/model-registry/server:$VVERSION && popd
 pushd manifests/kustomize/options/csi && kustomize edit set image ghcr.io/kubeflow/model-registry/storage-initializer=ghcr.io/kubeflow/model-registry/storage-initializer:$VVERSION && popd
 pushd manifests/kustomize/options/ui/base && kustomize edit set image model-registry-ui=ghcr.io/kubeflow/model-registry/ui:$VVERSION && popd
-pushd manifests/kustomize/options/catalog && kustomize edit set image ghcr.io/kubeflow/model-registry/server=ghcr.io/kubeflow/model-registry/server:$VVERSION && popd
+pushd manifests/kustomize/options/catalog/base && kustomize edit set image ghcr.io/kubeflow/model-registry/server=ghcr.io/kubeflow/model-registry/server:$VVERSION && popd
 git add .
 git commit -s
 
