@@ -19,16 +19,30 @@ type ProviderFilterProps = {
 const ProviderFilter: React.FC<ProviderFilterProps> = ({ filters }) => {
   const { filterData, setFilterData } = React.useContext(ModelCatalogContext);
   const provider = filters[filterKey];
+  const currentState = filterData[filterKey];
 
   React.useEffect(() => {
-    if (provider && !(filterKey in filterData)) {
-      const state: ModelCatalogFilterStatesByKey[typeof filterKey] = {};
-      provider.values.forEach((key) => {
-        state[key] = false;
-      });
-      setFilterData(filterKey, state);
+    if (!provider) {
+      return;
     }
-  }, [provider, filterData, setFilterData]);
+
+    const filterKeys = provider.values;
+    const hasMatchingKeys =
+      currentState !== undefined &&
+      filterKeys.length === Object.keys(currentState).length &&
+      filterKeys.every((key) => key in currentState);
+
+    if (hasMatchingKeys) {
+      return;
+    }
+
+    const nextState: ModelCatalogFilterStatesByKey[typeof filterKey] = {};
+    filterKeys.forEach((key) => {
+      nextState[key] = currentState?.[key] ?? false;
+    });
+
+    setFilterData(filterKey, nextState);
+  }, [provider, currentState, setFilterData]);
 
   if (!provider) {
     return null;

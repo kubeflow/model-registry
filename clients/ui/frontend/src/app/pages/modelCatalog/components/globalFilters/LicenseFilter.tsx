@@ -19,16 +19,30 @@ type LicenseFilterProps = {
 const LicenseFilter: React.FC<LicenseFilterProps> = ({ filters }) => {
   const { filterData, setFilterData } = React.useContext(ModelCatalogContext);
   const license = filters[filterKey];
+  const currentState = filterData[filterKey];
 
   React.useEffect(() => {
-    if (license && !(filterKey in filterData)) {
-      const state: ModelCatalogFilterStatesByKey[typeof filterKey] = {};
-      license.values.forEach((key) => {
-        state[key] = false;
-      });
-      setFilterData(filterKey, state);
+    if (!license) {
+      return;
     }
-  }, [license, filterData, setFilterData]);
+
+    const filterKeys = license.values;
+    const hasMatchingKeys =
+      currentState !== undefined &&
+      filterKeys.length === Object.keys(currentState).length &&
+      filterKeys.every((key) => key in currentState);
+
+    if (hasMatchingKeys) {
+      return;
+    }
+
+    const nextState: ModelCatalogFilterStatesByKey[typeof filterKey] = {};
+    filterKeys.forEach((key) => {
+      nextState[key] = currentState?.[key] ?? false;
+    });
+
+    setFilterData(filterKey, nextState);
+  }, [license, currentState, setFilterData]);
 
   if (!license) {
     return null;
