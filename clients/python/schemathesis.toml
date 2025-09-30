@@ -1,5 +1,5 @@
 base-url = "${API_HOST}"
-
+tls-verify = true
 [generation]
 # Don't shrink failing examples to save time
 no-shrink = true

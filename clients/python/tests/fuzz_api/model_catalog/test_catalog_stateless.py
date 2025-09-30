@@ -10,9 +10,9 @@ schema = schemathesis.pytest.from_fixture("generated_schema")
     deadline=None,
 )
 @pytest.mark.fuzz
-def test_catalog_api_stateless(auth_headers: dict, case: schemathesis.Case):
+def test_catalog_api_stateless(auth_headers: dict, case: schemathesis.Case, verify_ssl: bool) -> None:
     """Test the Model Catalog API endpoints.
 
     This test uses schemathesis to generate and validate API requests
     """
-    case.call_and_validate(headers=auth_headers)
+    case.call_and_validate(headers=auth_headers, verify=verify_ssl)
