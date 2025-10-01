@@ -57,12 +57,12 @@ export const ModelCatalogContextProvider: React.FC<ModelCatalogContextProviderPr
     React.useState<ModelCatalogContextType['selectedSource']>(undefined);
   const [filterData, setFilterData] = useGenericObjectState<ModelCatalogFilterDataType>({});
 
-  const setTypedFilterData = React.useCallback(
-    <K extends keyof ModelCatalogFilterStatesByKey>(key: K, value: ModelCatalogFilterState<K>) => {
-      setFilterData(key, value);
-    },
-    [setFilterData],
-  );
+  // const setTypedFilterData = React.useCallback(
+  //   <K extends keyof ModelCatalogFilterStatesByKey>(key: K, value: ModelCatalogFilterState<K>) => {
+  //     setFilterData(key, value);
+  //   },
+  //   [setFilterData],
+  // );
 
   const contextValue = React.useMemo(
     () => ({
@@ -74,7 +74,7 @@ export const ModelCatalogContextProvider: React.FC<ModelCatalogContextProviderPr
       apiState,
       refreshAPIState,
       filterData,
-      setFilterData: setTypedFilterData,
+      setFilterData,
     }),
     [
       isLoaded,
@@ -84,7 +84,7 @@ export const ModelCatalogContextProvider: React.FC<ModelCatalogContextProviderPr
       apiState,
       refreshAPIState,
       filterData,
-      setTypedFilterData,
+      setFilterData,
     ],
   );
 

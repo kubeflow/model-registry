@@ -1,15 +1,10 @@
 import * as React from 'react';
 import ModelCatalogStringFilter from '~/app/pages/modelCatalog/components/ModelCatalogStringFilter';
-import { ModelCatalogContext } from '~/app/context/modelCatalog/ModelCatalogContext';
 import {
   ModelCatalogFilterKeys,
   MODEL_CATALOG_TASK_NAME_MAPPING,
 } from '~/concepts/modelCatalog/const';
-import {
-  CatalogFilterOptionsList,
-  ModelCatalogFilterTypesByKey,
-  ModelCatalogTasksFilterStateType,
-} from '~/app/modelCatalogTypes';
+import { CatalogFilterOptionsList, ModelCatalogFilterTypesByKey } from '~/app/modelCatalogTypes';
 
 const filterKey = ModelCatalogFilterKeys.TASK;
 
@@ -18,33 +13,7 @@ type TaskFilterProps = {
 };
 
 const TaskFilter: React.FC<TaskFilterProps> = ({ filters }) => {
-  const { filterData, setFilterData } = React.useContext(ModelCatalogContext);
   const task = filters?.[filterKey];
-  const currentState = filterData[filterKey];
-
-  React.useEffect(() => {
-    if (!task) {
-      return;
-    }
-
-    const filterKeys = task.values;
-    const hasMatchingKeys =
-      currentState !== undefined &&
-      filterKeys.length === Object.keys(currentState).length &&
-      filterKeys.every((key) => key in currentState);
-
-    if (hasMatchingKeys) {
-      return;
-    }
-
-    const nextState: ModelCatalogTasksFilterStateType = {};
-    filterKeys.forEach((key) => {
-      nextState[key] = currentState?.[key] ?? false;
-    });
-
-    setFilterData(filterKey, nextState);
-  }, [task, currentState, setFilterData]);
-
   if (!task) {
     return null;
   }
@@ -52,10 +21,9 @@ const TaskFilter: React.FC<TaskFilterProps> = ({ filters }) => {
   return (
     <ModelCatalogStringFilter<ModelCatalogFilterKeys.TASK>
       title="Task"
+      filterKey={filterKey}
       filterToNameMapping={MODEL_CATALOG_TASK_NAME_MAPPING}
       filters={task}
-      data={filterData[filterKey]}
-      setData={(state) => setFilterData(filterKey, state)}
     />
   );
 };
