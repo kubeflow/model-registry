@@ -9,11 +9,12 @@ import {
   CardTitle,
   Flex,
   FlexItem,
-  Stack,
-  StackItem,
   Tooltip,
   Content,
   ContentVariants,
+  Label,
+  LabelGroup,
+  Skeleton,
 } from '@patternfly/react-core';
 import text from '@patternfly/react-styles/css/utilities/Text/text';
 import { ChartBarIcon, HelpIcon, ChevronLeftIcon, ChevronRightIcon } from '@patternfly/react-icons';
@@ -28,7 +29,6 @@ import { getModelName } from '~/app/pages/modelCatalog/utils/modelCatalogUtils';
 import { catalogModelDetailsFromModel } from '~/app/routes/modelCatalog/catalogModel';
 import { getLabels } from '~/app/pages/modelRegistry/screens/utils';
 import { extractValidatedModelMetrics } from '~/app/pages/modelCatalog/utils/validatedModelUtils';
-import ModelCatalogLabels from './ModelCatalogLabels';
 
 type ValidatedModelCardProps = {
   model: CatalogModel;
@@ -45,11 +45,9 @@ const ValidatedModelCard: React.FC<ValidatedModelCardProps> = ({
   accuracyMetrics,
   truncate = false,
 }) => {
-  // Extract labels from customProperties and check for validated label
   const allLabels = model.customProperties ? getLabels(model.customProperties) : [];
   const validatedLabels = allLabels.includes('validated') ? ['validated'] : [];
 
-  // Extract performance metrics data using utility function
   const metrics = extractValidatedModelMetrics(performanceMetrics, accuracyMetrics);
 
   return (
@@ -60,38 +58,24 @@ const ValidatedModelCard: React.FC<ValidatedModelCardProps> = ({
     >
       <CardHeader>
         <CardTitle>
-          <Flex alignItems={{ default: 'alignItemsCenter' }}>
-            {/* Model icon placeholder - 3x3 grid with X marks */}
-            <div
-              style={{
-                display: 'grid',
-                gridTemplateColumns: 'repeat(3, 1fr)',
-                gap: '2px',
-                width: '24px',
-                height: '24px',
-                marginRight: '8px',
-              }}
-            >
-              {Array.from({ length: 9 }, (_, i) => (
-                <div
-                  key={i}
-                  style={{
-                    width: '6px',
-                    height: '6px',
-                    backgroundColor: [0, 2, 4, 6, 8].includes(i) ? '#c9190b' : '#d2d2d2',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    fontSize: '4px',
-                    color: 'white',
-                  }}
-                >
-                  {[0, 2, 4, 6, 8].includes(i) && '✕'}
-                </div>
-              ))}
-            </div>
+          <Flex alignItems={{ default: 'alignItemsCenter' }} style={{ paddingLeft: '8px' }}>
+            {model.logo ? (
+              <img
+                src={model.logo}
+                alt="model logo"
+                style={{ height: '56px', width: '56px', marginRight: '8px' }}
+              />
+            ) : (
+              <Skeleton
+                shape="square"
+                width="56px"
+                height="56px"
+                screenreaderText="Brand image loading"
+                style={{ marginRight: '8px' }}
+              />
+            )}
             <FlexItem align={{ default: 'alignRight' }}>
-              <Badge>Validated</Badge>
+              <Badge className="pf-m-purple">Validated</Badge>
             </FlexItem>
           </Flex>
           <div style={{ marginTop: '8px' }}>
@@ -111,7 +95,13 @@ const ValidatedModelCard: React.FC<ValidatedModelCardProps> = ({
               </Content>
             </Flex>
             <Link to={catalogModelDetailsFromModel(model.name, source?.id)}>
-              <Button data-testid="model-catalog-detail-link" variant="link" tabIndex={-1} isInline>
+              <Button
+                data-testid="model-catalog-detail-link"
+                variant="link"
+                tabIndex={-1}
+                isInline
+                style={{ fontSize: '1.25rem', fontWeight: 'bold' }}
+              >
                 {truncate ? (
                   <span>{getModelName(model.name)}</span>
                 ) : (
@@ -123,9 +113,8 @@ const ValidatedModelCard: React.FC<ValidatedModelCardProps> = ({
         </CardTitle>
       </CardHeader>
       <CardBody>
-        <Stack hasGutter>
-          {/* Performance Metrics */}
-          <StackItem>
+        <div>
+          <div style={{ paddingLeft: '8px', marginBottom: '16px' }}>
             <Flex
               alignItems={{ default: 'alignItemsCenter' }}
               justifyContent={{ default: 'justifyContentSpaceBetween' }}
@@ -149,15 +138,21 @@ const ValidatedModelCard: React.FC<ValidatedModelCardProps> = ({
                 wrap="nowrap"
               >
                 <span className="pf-v5-c-content pf-m-small">Average accuracy</span>
-                <Tooltip content="Placeholder tooltip text for accuracy">
+                <Tooltip
+                  content="Average accuracy
+
+The weighted average of normalized scores from all benchmarks. Each benchmark is normalized to a 0-100 scale. All normalized benchmarks are then averaged together."
+                  position="top"
+                  className="pf-v6-c-tooltip"
+                >
                   <HelpIcon style={{ cursor: 'help' }} />
                 </Tooltip>
               </Flex>
             </Flex>
-          </StackItem>
+          </div>
 
           {/* Hardware Configuration and Latency */}
-          <StackItem>
+          <div style={{ paddingLeft: '8px', marginBottom: '16px' }}>
             <Flex justifyContent={{ default: 'justifyContentSpaceBetween' }}>
               <div>
                 <Content component={ContentVariants.small} style={{ color: '#6a6e73' }}>
@@ -185,22 +180,40 @@ const ValidatedModelCard: React.FC<ValidatedModelCardProps> = ({
                   wrap="nowrap"
                 >
                   <span data-testid="validated-model-ttft">{metrics.ttftMean} ms</span>
-                  <Tooltip content="Placeholder tooltip text for TTFT">
+                  <Tooltip
+                    content="Latency
+
+The delay (in milliseconds) between sending a request and receiving the first response.
+
+*TTFT (Time to First Token)
+The time between when a request is sent to a model and when the model begins streaming its first token in the response.
+
+*ITL (Inter-Token Latency)
+The average time between successive output tokens after the model has started generating.
+
+*E2E (End-to-End latency)
+The total time from when the request is sent until the last token is received."
+                    position="top"
+                    className="pf-v6-c-tooltip"
+                  >
                     <HelpIcon />
                   </Tooltip>
                 </Flex>
               </div>
             </Flex>
-          </StackItem>
+          </div>
 
           {/* Benchmarks */}
-          <StackItem>
+          <div style={{ paddingLeft: '8px' }}>
             <Flex
               alignItems={{ default: 'alignItemsCenter' }}
               justifyContent={{ default: 'justifyContentSpaceBetween' }}
             >
-              <Content component={ContentVariants.small} data-testid="validated-model-benchmarks">
-                1 of 3 benchmarks
+              <Content component={ContentVariants.p} data-testid="validated-model-benchmarks">
+                1 of 3{' '}
+                <Button variant="link" isInline style={{ padding: 0, fontSize: 'inherit' }}>
+                  benchmarks
+                </Button>
               </Content>
               <Flex gap={{ default: 'gapSm' }}>
                 <Button
@@ -217,16 +230,23 @@ const ValidatedModelCard: React.FC<ValidatedModelCardProps> = ({
                 />
               </Flex>
             </Flex>
-          </StackItem>
-        </Stack>
+          </div>
+        </div>
       </CardBody>
       <CardFooter>
-        <ModelCatalogLabels
-          tasks={model.tasks ?? []}
-          license={model.license}
-          provider={model.provider}
-          labels={validatedLabels}
-        />
+        <LabelGroup numLabels={2} isCompact>
+          {model.tasks?.map((task) => (
+            <Label data-testid="model-catalog-label" key={task} variant="outline">
+              {task}
+            </Label>
+          ))}
+          {validatedLabels.map((label) => (
+            <Label data-testid="model-catalog-label" key={label} variant="outline">
+              {label}
+            </Label>
+          ))}
+          {model.provider && <Label isCompact>{model.provider}</Label>}
+        </LabelGroup>
       </CardFooter>
     </Card>
   );
