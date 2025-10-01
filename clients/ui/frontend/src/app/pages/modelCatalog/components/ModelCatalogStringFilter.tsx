@@ -1,10 +1,10 @@
 import { Button, Checkbox, Content, ContentVariants, SearchInput } from '@patternfly/react-core';
 import * as React from 'react';
 import {
-  ModelCatalogFilterDataType,
-  ModelCatalogFilterStatesByKey,
   ModelCatalogFilterTypesByKey,
-} from '~/app/pages/modelCatalog/types';
+  ModelCatalogFilterDataType,
+  ModelCatalogFilterState,
+} from '~/app/modelCatalogTypes';
 import { ModelCatalogFilterKeys } from '~/concepts/modelCatalog/const';
 
 const MAX_VISIBLE_FILTERS = 5;
@@ -14,7 +14,7 @@ type ModelCatalogStringFilterProps<K extends ModelCatalogFilterKeys> = {
   filterToNameMapping: Record<ModelCatalogFilterTypesByKey[K]['values'][number], string>;
   filters: ModelCatalogFilterTypesByKey[K];
   data?: ModelCatalogFilterDataType[K];
-  setData: (state: ModelCatalogFilterStatesByKey[K]) => void;
+  setData: (state: ModelCatalogFilterState<K>) => void;
 };
 
 type FilterValue<K extends ModelCatalogFilterKeys> =

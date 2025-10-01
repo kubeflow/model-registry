@@ -4,19 +4,10 @@ import {
   CatalogModel,
   CatalogModelDetailsParams,
   CatalogSourceList,
+  ModelCatalogFilterDataType,
 } from '~/app/modelCatalogTypes';
 import { getLabels } from '~/app/pages/modelRegistry/screens/utils';
-import {
-  ModelCatalogFilterDataType,
-  ModelCatalogFilterResponseType,
-} from '~/app/pages/modelCatalog/types';
-import {
-  ModelCatalogFilterKeys,
-  ModelCatalogTasks,
-  ModelCatalogLicenses,
-  ModelCatalogProviders,
-  AllLanguageCodes,
-} from '~/concepts/modelCatalog/const';
+import { ModelCatalogFilterKeys } from '~/concepts/modelCatalog/const';
 
 export const extractVersionTag = (tags?: string[]): string | undefined =>
   tags?.find((tag) => /^\d+\.\d+\.\d+$/.test(tag));
@@ -88,31 +79,6 @@ export const isModelValidated = (model: CatalogModel): boolean => {
   return labels.includes('validated');
 };
 
-export const getModelCatalogFilters = (): ModelCatalogFilterResponseType => ({
-  filters: {
-    [ModelCatalogFilterKeys.TASK]: {
-      type: 'string',
-      values: [
-        ModelCatalogTasks.TEXT_GENERATION,
-        ModelCatalogTasks.TEXT_TO_TEXT,
-        ModelCatalogTasks.IMAGE_TO_TEXT,
-      ],
-    },
-    [ModelCatalogFilterKeys.LICENSE]: {
-      type: 'string',
-      values: [ModelCatalogLicenses.APACHE_2_0, ModelCatalogLicenses.MIT],
-    },
-    [ModelCatalogFilterKeys.PROVIDER]: {
-      type: 'string',
-      values: [ModelCatalogProviders.GOOGLE, ModelCatalogProviders.META],
-    },
-    [ModelCatalogFilterKeys.LANGUAGE]: {
-      type: 'string',
-      values: [AllLanguageCodes.EN, AllLanguageCodes.ES, AllLanguageCodes.FR],
-    },
-  },
-});
-
 export const filterModelCatalogModels = (
   models: CatalogModel[],
   filterData: ModelCatalogFilterDataType,
@@ -127,16 +93,16 @@ export const filterModelCatalogModels = (
 
       let modelValue: string | string[] | undefined;
       switch (filterKey) {
-        case 'task':
+        case ModelCatalogFilterKeys.TASK:
           modelValue = model.tasks;
           break;
-        case 'language':
+        case ModelCatalogFilterKeys.LANGUAGE:
           modelValue = model.language;
           break;
-        case 'provider':
+        case ModelCatalogFilterKeys.PROVIDER:
           modelValue = model.provider;
           break;
-        case 'license':
+        case ModelCatalogFilterKeys.LICENSE:
           modelValue = model.license;
           break;
         default:

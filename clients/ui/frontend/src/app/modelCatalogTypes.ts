@@ -1,5 +1,12 @@
 import { APIOptions } from 'mod-arch-core';
 import {
+  ModelCatalogTasks,
+  ModelCatalogProviders,
+  ModelCatalogLicenses,
+  AllLanguageCodes,
+  ModelCatalogFilterKeys,
+} from '~/concepts/modelCatalog/const';
+import {
   ModelRegistryCustomProperties,
   ModelRegistryCustomPropertyString,
   ModelRegistryCustomPropertyInt,
@@ -138,20 +145,13 @@ export type CatalogFilterNumberOption = {
   };
 };
 
-export type CatalogFilterStringOption = {
+export type CatalogFilterStringOption<T> = {
   type: 'string';
-  values: string[];
+  values: T[];
 };
 
-export type CatalogFilterOption = CatalogFilterNumberOption | CatalogFilterStringOption;
-
 export type CatalogFilterOptionsList = {
-  filters: {
-    task: CatalogFilterStringOption;
-    provider: CatalogFilterStringOption;
-    license: CatalogFilterStringOption;
-    language: CatalogFilterStringOption;
-  };
+  filters: Partial<ModelCatalogFilterTypesByKey>;
 };
 
 export type GetCatalogModelsBySource = (
@@ -194,3 +194,31 @@ export type CatalogModelDetailsParams = {
   sourceId?: string;
   modelName?: string;
 };
+
+export type ModelCatalogFilterTypesByKey = {
+  [ModelCatalogFilterKeys.TASK]: CatalogFilterStringOption<ModelCatalogTasks>;
+  [ModelCatalogFilterKeys.PROVIDER]: CatalogFilterStringOption<ModelCatalogProviders>;
+  [ModelCatalogFilterKeys.LICENSE]: CatalogFilterStringOption<ModelCatalogLicenses>;
+  [ModelCatalogFilterKeys.LANGUAGE]: CatalogFilterStringOption<AllLanguageCodes>;
+};
+
+export type ModelCatalogFilterState<K extends ModelCatalogFilterKeys> = Partial<
+  Record<ModelCatalogFilterTypesByKey[K]['values'][number], boolean>
+>;
+
+export type ModelCatalogTasksFilterStateType = ModelCatalogFilterState<ModelCatalogFilterKeys.TASK>;
+
+export type ModelCatalogProvidersFilterStateType =
+  ModelCatalogFilterState<ModelCatalogFilterKeys.PROVIDER>;
+
+export type ModelCatalogLicensesFilterStateType =
+  ModelCatalogFilterState<ModelCatalogFilterKeys.LICENSE>;
+
+export type ModelCatalogLanguagesFilterStateType =
+  ModelCatalogFilterState<ModelCatalogFilterKeys.LANGUAGE>;
+
+export type ModelCatalogFilterStatesByKey = {
+  [K in ModelCatalogFilterKeys]: ModelCatalogFilterState<K>;
+};
+
+export type ModelCatalogFilterDataType = Partial<ModelCatalogFilterStatesByKey>;

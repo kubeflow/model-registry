@@ -1,13 +1,16 @@
 import * as React from 'react';
 import { Stack, StackItem, Divider } from '@patternfly/react-core';
-import { getModelCatalogFilters } from '~/app/pages/modelCatalog/utils/modelCatalogUtils';
+import { useCatalogFilterOptionList } from '~/app/hooks/modelCatalog/useCatalogFilterOptionList';
+import { ModelCatalogContext } from '~/app/context/modelCatalog/ModelCatalogContext';
 import TaskFilter from './globalFilters/TaskFilter';
 import ProviderFilter from './globalFilters/ProviderFilter';
 import LicenseFilter from './globalFilters/LicenseFilter';
 import LanguageFilter from './globalFilters/LanguageFilter';
 
 const ModelCatalogFilters: React.FC = () => {
-  const { filters } = getModelCatalogFilters();
+  const { apiState } = React.useContext(ModelCatalogContext);
+  const [filterOptions] = useCatalogFilterOptionList(apiState);
+  const filters = filterOptions?.filters;
   return (
     <Stack hasGutter>
       <StackItem>

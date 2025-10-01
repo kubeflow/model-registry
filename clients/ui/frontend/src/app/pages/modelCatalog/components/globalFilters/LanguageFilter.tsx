@@ -1,8 +1,4 @@
 import * as React from 'react';
-import {
-  ModelCatalogFilterResponseType,
-  ModelCatalogFilterStatesByKey,
-} from '~/app/pages/modelCatalog/types';
 import ModelCatalogStringFilter from '~/app/pages/modelCatalog/components/ModelCatalogStringFilter';
 import { ModelCatalogContext } from '~/app/context/modelCatalog/ModelCatalogContext';
 import {
@@ -11,6 +7,10 @@ import {
   MODEL_CATALOG_EUROPEAN_LANGUAGES_DETAILS,
   MODEL_CATALOG_MIDDLE_EASTERN_AND_OTHER_LANGUAGES_DETAILS,
 } from '~/concepts/modelCatalog/const';
+import {
+  CatalogFilterOptionsList,
+  ModelCatalogLanguagesFilterStateType,
+} from '~/app/modelCatalogTypes';
 
 const filterKey = ModelCatalogFilterKeys.LANGUAGE;
 
@@ -21,12 +21,12 @@ const LANGUAGE_NAME_MAPPING = {
 };
 
 type LanguageFilterProps = {
-  filters: ModelCatalogFilterResponseType['filters'];
+  filters?: CatalogFilterOptionsList['filters'];
 };
 
 const LanguageFilter: React.FC<LanguageFilterProps> = ({ filters }) => {
   const { filterData, setFilterData } = React.useContext(ModelCatalogContext);
-  const language = filters[filterKey];
+  const language = filters?.[filterKey];
   const currentState = filterData[filterKey];
 
   React.useEffect(() => {
@@ -44,7 +44,7 @@ const LanguageFilter: React.FC<LanguageFilterProps> = ({ filters }) => {
       return;
     }
 
-    const nextState: ModelCatalogFilterStatesByKey[typeof filterKey] = {};
+    const nextState: ModelCatalogLanguagesFilterStateType = {};
     filterKeys.forEach((key) => {
       nextState[key] = currentState?.[key] ?? false;
     });

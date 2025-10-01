@@ -1,5 +1,5 @@
 export enum ModelCatalogFilterKeys {
-  TASK = 'task',
+  TASK = 'tasks',
   PROVIDER = 'provider',
   LICENSE = 'license',
   LANGUAGE = 'language',
@@ -15,12 +15,12 @@ export enum ModelCatalogTasks {
 }
 
 export const MODEL_CATALOG_TASK_NAME_MAPPING = {
-  [ModelCatalogTasks.AUDIO_TO_TEXT]: 'Audio-to-Text',
-  [ModelCatalogTasks.IMAGE_TEXT_TO_TEXT]: 'Image-Text-to-Text',
-  [ModelCatalogTasks.IMAGE_TO_TEXT]: 'Image-to-Text',
-  [ModelCatalogTasks.TEXT_GENERATION]: 'Text Generation',
-  [ModelCatalogTasks.TEXT_TO_TEXT]: 'Text-to-Text',
-  [ModelCatalogTasks.VIDEO_TO_TEXT]: 'Video-to-Text',
+  [ModelCatalogTasks.AUDIO_TO_TEXT]: 'Audio-to-text',
+  [ModelCatalogTasks.IMAGE_TEXT_TO_TEXT]: 'Image-text-to-text',
+  [ModelCatalogTasks.IMAGE_TO_TEXT]: 'Image-to-text',
+  [ModelCatalogTasks.TEXT_GENERATION]: 'Text generation',
+  [ModelCatalogTasks.TEXT_TO_TEXT]: 'Text-to-text',
+  [ModelCatalogTasks.VIDEO_TO_TEXT]: 'Video-to-text',
 };
 
 export const MODEL_CATALOG_TASK_DESCRIPTION = {
@@ -239,46 +239,10 @@ export const MODEL_CATALOG_MIDDLE_EASTERN_AND_OTHER_LANGUAGES_DETAILS = {
   [MiddleEasternAndOtherLanguagesCodes.TL]: 'Tagalog',
 };
 
-export enum AllLanguageCodes {
-  BG = 'bg',
-  CA = 'ca',
-  CS = 'cs',
-  DA = 'da',
-  DE = 'de',
-  EL = 'el',
-  EN = 'en',
-  ES = 'es',
-  FI = 'fi',
-  FR = 'fr',
-  HR = 'hr',
-  HU = 'hu',
-  IS = 'is',
-  IT = 'it',
-  NL = 'nl',
-  NLD = 'nld',
-  NO = 'no',
-  PL = 'pl',
-  PT = 'pt',
-  RO = 'ro',
-  RU = 'ru',
-  SK = 'sk',
-  SL = 'sl',
-  SR = 'sr',
-  SV = 'sv',
-  UK = 'uk',
-  JA = 'ja',
-  KO = 'ko',
-  ZH = 'zh',
-  HI = 'hi',
-  TH = 'th',
-  VI = 'vi',
-  ID = 'id',
-  MS = 'ms',
-  ZSM = 'zsm',
-  AR = 'ar',
-  FA = 'fa',
-  HE = 'he',
-  TR = 'tr',
-  UR = 'ur',
-  TL = 'tl',
-}
+export const AllLanguageCodesMap = {
+  ...MODEL_CATALOG_EUROPEAN_LANGUAGES_DETAILS,
+  ...MODEL_CATALOG_ASIAN_LANGUAGES_DETAILS,
+  ...MODEL_CATALOG_MIDDLE_EASTERN_AND_OTHER_LANGUAGES_DETAILS,
+};
+
+export type AllLanguageCodes = keyof typeof AllLanguageCodesMap;

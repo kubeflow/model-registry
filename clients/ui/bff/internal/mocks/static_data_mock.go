@@ -317,7 +317,7 @@ func GetCatalogModelMocks() []models.CatalogModel {
 		Name:             "repo1/granite-8b-code-instruct",
 		Description:      stringToPointer("Granite-8B-Code-Instruct is a 8B parameter model fine tuned from\nGranite-8B-Code-Base on a combination of permissively licensed instruction\ndata to enhance instruction following capabilities including logical\nreasoning and problem-solving skills."),
 		Provider:         stringToPointer("provider1"),
-		Tasks:            []string{"text-generation", "task2", "task3", "task4"},
+		Tasks:            []string{"text-generation", "image-to-text"},
 		License:          stringToPointer("apache-2.0"),
 		LicenseLink:      stringToPointer("https://www.apache.org/licenses/LICENSE-2.0.txt"),
 		Maturity:         stringToPointer("Technology preview"),
@@ -670,8 +670,8 @@ Granite 3.1 Instruct Models are primarily finetuned using instruction-response p
 	sampleModel2 := models.CatalogModel{
 		Name:             "repo1/granite-7b-instruct",
 		Description:      stringToPointer("Granite 7B instruction-tuned model for enterprise applications"),
-		Provider:         stringToPointer("provider1"),
-		Tasks:            []string{"text-generation", "instruction-following"},
+		Provider:         stringToPointer("Red Hat"),
+		Tasks:            []string{"text-generation", "image-text-to-text"},
 		License:          stringToPointer("apache-2.0"),
 		Maturity:         stringToPointer("Generally Available"),
 		Language:         []string{"en"},
@@ -683,9 +683,9 @@ Granite 3.1 Instruct Models are primarily finetuned using instruction-response p
 	sampleModel3 := models.CatalogModel{
 		Name:        "repo1/granite-3b-code-base",
 		Description: stringToPointer("Granite 3B code generation model for programming tasks"),
-		Provider:    stringToPointer("provider1"),
-		Tasks:       []string{"code-generation"},
-		License:     stringToPointer("apache-2.0"),
+		Provider:    stringToPointer("IBM"),
+		Tasks:       []string{"audio-to-text", "text-to-text", "video-to-text"},
+		License:     stringToPointer("mit"),
 		Maturity:    stringToPointer("Generally Available"),
 		Language:    []string{"en"},
 		SourceId:    stringToPointer("sample-source"),
@@ -695,8 +695,8 @@ Granite 3.1 Instruct Models are primarily finetuned using instruction-response p
 	huggingFaceModel1 := models.CatalogModel{
 		Name:        "provider2/bert-base-uncased",
 		Description: stringToPointer("BERT base model (uncased) - Pretrained model on English language"),
-		Provider:    stringToPointer("provider2"),
-		Tasks:       []string{"fill-mask", "feature-extraction"},
+		Provider:    stringToPointer("Google"),
+		Tasks:       []string{"audio-to-text", "text-to-text"},
 		License:     stringToPointer("apache-2.0"),
 		Maturity:    stringToPointer("Generally Available"),
 		Language:    []string{"en"},
@@ -708,7 +708,7 @@ Granite 3.1 Instruct Models are primarily finetuned using instruction-response p
 		Name:        "provider3/gpt2",
 		Description: stringToPointer("GPT-2 is a transformers model pretrained on a very large corpus of English data"),
 		Provider:    stringToPointer("provider3"),
-		Tasks:       []string{"text-generation"},
+		Tasks:       []string{"video-to-text"},
 		License:     stringToPointer("mit"),
 		Maturity:    stringToPointer("Generally Available"),
 		Language:    []string{"en"},
@@ -801,12 +801,12 @@ func GetCatalogSourceMocks() []models.CatalogSource {
 			Id:      "sample-source",
 			Name:    "Sample mocked source",
 			Enabled: &enabled,
-			Labels:  []string{"Sample category 1", "Sample categorey 2", "Community"},
+			Labels:  []string{"Sample category 1", "Sample category 2", "Community"},
 		},
 		{
 			Id:     "huggingface",
 			Name:   "Hugging Face",
-			Labels: []string{"Sample categorey 2", "Community"},
+			Labels: []string{"Sample category 2", "Community"},
 		},
 		{
 			Id:      "adminModel1",
@@ -818,7 +818,7 @@ func GetCatalogSourceMocks() []models.CatalogSource {
 			Id:      "adminModel2",
 			Name:    "Admin model 2",
 			Enabled: &enabled,
-			Labels:  []string{"Sample categorey 1"},
+			Labels:  []string{"Sample category 1"},
 		},
 		{
 			Id:     "dora",
@@ -1158,12 +1158,7 @@ func GetFilterOptionMocks() map[string]models.FilterOption {
 	filterOptions["provider"] = models.FilterOption{
 		Type: FilterOptionTypeString,
 		Values: &[]interface{}{
-			"provider1",
-			"provider2",
-			"provider3",
-			"Hugging Face",
-			"Admin model 1",
-			"Admin model 2",
+			"Red Hat", "IBM", "Google",
 		},
 	}
 
@@ -1172,29 +1167,13 @@ func GetFilterOptionMocks() map[string]models.FilterOption {
 		Values: &[]interface{}{
 			"apache-2.0",
 			"mit",
-			"gpl-3.0",
-			"bsd-3-clause",
-			"cc-by-4.0",
-			"proprietary",
 		},
 	}
 
 	filterOptions["tasks"] = models.FilterOption{
 		Type: FilterOptionTypeString,
 		Values: &[]interface{}{
-			"text-generation",
-			"task2",
-			"task3",
-			"task4",
-			"text-classification",
-			"fill-mask",
-			"question-answering",
-			"summarization",
-			"translation",
-			"code-generation",
-			"instruction-following",
-			"feature-extraction",
-			"conversational",
+			"audio-to-text", "image-to-text", "image-text-to-text", "text-generation", "text-to-text", "video-to-text",
 		},
 	}
 
@@ -1202,10 +1181,7 @@ func GetFilterOptionMocks() map[string]models.FilterOption {
 	filterOptions["language"] = models.FilterOption{
 		Type: FilterOptionTypeString,
 		Values: &[]interface{}{
-			"en",
-			"es",
-			"cz",
-			"zh",
+			"ar", "cs", "de", "en", "es", "fr", "it", "ja", "ko", "nl", "pt", "zh",
 		},
 	}
 

@@ -1,15 +1,17 @@
-import { useQueryParamNamespaces, UpdateObjectAtPropAndValue } from 'mod-arch-core';
+import { useQueryParamNamespaces } from 'mod-arch-core';
 import useGenericObjectState from 'mod-arch-core/dist/utilities/useGenericObjectState';
 import * as React from 'react';
 import { useCatalogSources } from '~/app/hooks/modelCatalog/useCatalogSources';
 import useModelCatalogAPIState, {
   ModelCatalogAPIState,
 } from '~/app/hooks/modelCatalog/useModelCatalogAPIState';
-import { CatalogSource, CatalogSourceList } from '~/app/modelCatalogTypes';
 import {
+  CatalogSource,
+  CatalogSourceList,
   ModelCatalogFilterDataType,
+  ModelCatalogFilterState,
   ModelCatalogFilterStatesByKey,
-} from '~/app/pages/modelCatalog/types';
+} from '~/app/modelCatalogTypes';
 import { BFF_API_VERSION, URL_PREFIX } from '~/app/utilities/const';
 
 export type ModelCatalogContextType = {
@@ -23,7 +25,7 @@ export type ModelCatalogContextType = {
   filterData: ModelCatalogFilterDataType;
   setFilterData: <K extends keyof ModelCatalogFilterStatesByKey>(
     key: K,
-    value: ModelCatalogFilterStatesByKey[K],
+    value: ModelCatalogFilterState<K>,
   ) => void;
 };
 
@@ -56,10 +58,7 @@ export const ModelCatalogContextProvider: React.FC<ModelCatalogContextProviderPr
   const [filterData, setFilterData] = useGenericObjectState<ModelCatalogFilterDataType>({});
 
   const setTypedFilterData = React.useCallback(
-    <K extends keyof ModelCatalogFilterStatesByKey>(
-      key: K,
-      value: ModelCatalogFilterStatesByKey[K],
-    ) => {
+    <K extends keyof ModelCatalogFilterStatesByKey>(key: K, value: ModelCatalogFilterState<K>) => {
       setFilterData(key, value);
     },
     [setFilterData],

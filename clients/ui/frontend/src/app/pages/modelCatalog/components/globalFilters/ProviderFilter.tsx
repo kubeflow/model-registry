@@ -1,24 +1,24 @@
 import * as React from 'react';
-import {
-  ModelCatalogFilterResponseType,
-  ModelCatalogFilterStatesByKey,
-} from '~/app/pages/modelCatalog/types';
 import ModelCatalogStringFilter from '~/app/pages/modelCatalog/components/ModelCatalogStringFilter';
 import { ModelCatalogContext } from '~/app/context/modelCatalog/ModelCatalogContext';
 import {
   ModelCatalogFilterKeys,
   MODEL_CATALOG_PROVIDER_NAME_MAPPING,
 } from '~/concepts/modelCatalog/const';
+import {
+  CatalogFilterOptionsList,
+  ModelCatalogProvidersFilterStateType,
+} from '~/app/modelCatalogTypes';
 
 const filterKey = ModelCatalogFilterKeys.PROVIDER;
 
 type ProviderFilterProps = {
-  filters: ModelCatalogFilterResponseType['filters'];
+  filters?: CatalogFilterOptionsList['filters'];
 };
 
 const ProviderFilter: React.FC<ProviderFilterProps> = ({ filters }) => {
   const { filterData, setFilterData } = React.useContext(ModelCatalogContext);
-  const provider = filters[filterKey];
+  const provider = filters?.[filterKey];
   const currentState = filterData[filterKey];
 
   React.useEffect(() => {
@@ -36,7 +36,7 @@ const ProviderFilter: React.FC<ProviderFilterProps> = ({ filters }) => {
       return;
     }
 
-    const nextState: ModelCatalogFilterStatesByKey[typeof filterKey] = {};
+    const nextState: ModelCatalogProvidersFilterStateType = {};
     filterKeys.forEach((key) => {
       nextState[key] = currentState?.[key] ?? false;
     });

@@ -1,24 +1,24 @@
 import * as React from 'react';
-import {
-  ModelCatalogFilterResponseType,
-  ModelCatalogFilterStatesByKey,
-} from '~/app/pages/modelCatalog/types';
 import ModelCatalogStringFilter from '~/app/pages/modelCatalog/components/ModelCatalogStringFilter';
 import { ModelCatalogContext } from '~/app/context/modelCatalog/ModelCatalogContext';
 import {
   ModelCatalogFilterKeys,
   MODEL_CATALOG_TASK_NAME_MAPPING,
 } from '~/concepts/modelCatalog/const';
+import {
+  CatalogFilterOptionsList,
+  ModelCatalogTasksFilterStateType,
+} from '~/app/modelCatalogTypes';
 
 const filterKey = ModelCatalogFilterKeys.TASK;
 
 type TaskFilterProps = {
-  filters: ModelCatalogFilterResponseType['filters'];
+  filters?: CatalogFilterOptionsList['filters'];
 };
 
 const TaskFilter: React.FC<TaskFilterProps> = ({ filters }) => {
   const { filterData, setFilterData } = React.useContext(ModelCatalogContext);
-  const task = filters[filterKey];
+  const task = filters?.[filterKey];
   const currentState = filterData[filterKey];
 
   React.useEffect(() => {
@@ -36,7 +36,7 @@ const TaskFilter: React.FC<TaskFilterProps> = ({ filters }) => {
       return;
     }
 
-    const nextState: ModelCatalogFilterStatesByKey[typeof filterKey] = {};
+    const nextState: ModelCatalogTasksFilterStateType = {};
     filterKeys.forEach((key) => {
       nextState[key] = currentState?.[key] ?? false;
     });

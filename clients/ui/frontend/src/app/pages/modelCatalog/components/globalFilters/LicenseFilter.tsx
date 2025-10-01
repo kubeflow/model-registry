@@ -1,24 +1,24 @@
 import * as React from 'react';
-import {
-  ModelCatalogFilterResponseType,
-  ModelCatalogFilterStatesByKey,
-} from '~/app/pages/modelCatalog/types';
 import ModelCatalogStringFilter from '~/app/pages/modelCatalog/components/ModelCatalogStringFilter';
 import { ModelCatalogContext } from '~/app/context/modelCatalog/ModelCatalogContext';
 import {
   ModelCatalogFilterKeys,
   MODEL_CATALOG_LICENSE_NAME_MAPPING,
 } from '~/concepts/modelCatalog/const';
+import {
+  CatalogFilterOptionsList,
+  ModelCatalogLicensesFilterStateType,
+} from '~/app/modelCatalogTypes';
 
 const filterKey = ModelCatalogFilterKeys.LICENSE;
 
 type LicenseFilterProps = {
-  filters: ModelCatalogFilterResponseType['filters'];
+  filters?: CatalogFilterOptionsList['filters'];
 };
 
 const LicenseFilter: React.FC<LicenseFilterProps> = ({ filters }) => {
   const { filterData, setFilterData } = React.useContext(ModelCatalogContext);
-  const license = filters[filterKey];
+  const license = filters?.[filterKey];
   const currentState = filterData[filterKey];
 
   React.useEffect(() => {
@@ -36,7 +36,7 @@ const LicenseFilter: React.FC<LicenseFilterProps> = ({ filters }) => {
       return;
     }
 
-    const nextState: ModelCatalogFilterStatesByKey[typeof filterKey] = {};
+    const nextState: ModelCatalogLicensesFilterStateType = {};
     filterKeys.forEach((key) => {
       nextState[key] = currentState?.[key] ?? false;
     });
