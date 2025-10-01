@@ -30,15 +30,21 @@ func Init(dbType string, dsn string, tlsConfig *tls.TLSConfig) error {
 	}
 
 	switch dbType {
-	case "mysql":
+	case types.DatabaseTypeMySQL:
 		_connectorInstance = mysql.NewMySQLDBConnector(dsn, tlsConfig)
-	case "postgres":
+	case types.DatabaseTypePostgres:
 		_connectorInstance = postgres.NewPostgresDBConnector(dsn, tlsConfig)
 	default:
 		return fmt.Errorf("unsupported database type: %s. Supported types: %s, %s", dbType, types.DatabaseTypeMySQL, types.DatabaseTypePostgres)
 	}
 
 	return nil
+}
+
+func SetDB(connectedDB *gorm.DB) {
+	connectorMutex.Lock()
+	defer connectorMutex.Unlock()
+	_connectorInstance = ConnectedConnector{ConnectedDB: connectedDB}
 }
 
 func GetConnector() (Connector, bool) {
@@ -53,4 +59,18 @@ func ClearConnector() {
 	defer connectorMutex.Unlock()
 
 	_connectorInstance = nil
+}
+
+// ConnectedConnector satifies the connector interface for an already connected
+// gorm.DB instance.
+type ConnectedConnector struct {
+	ConnectedDB *gorm.DB
+}
+
+func (c ConnectedConnector) Connect() (*gorm.DB, error) {
+	return c.ConnectedDB, nil
+}
+
+func (c ConnectedConnector) DB() *gorm.DB {
+	return c.ConnectedDB
 }

@@ -6,7 +6,6 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/kubeflow/model-registry/internal/datastore"
 	"github.com/kubeflow/model-registry/internal/db"
 	"github.com/kubeflow/model-registry/pkg/api"
 )
@@ -72,35 +71,16 @@ type HealthChecker interface {
 
 // DatabaseHealthChecker checks database connectivity and schema state
 type DatabaseHealthChecker struct {
-	datastore datastore.Datastore
 }
 
-func NewDatabaseHealthChecker(datastore datastore.Datastore) *DatabaseHealthChecker {
-	return &DatabaseHealthChecker{
-		datastore: datastore,
-	}
+func NewDatabaseHealthChecker() *DatabaseHealthChecker {
+	return &DatabaseHealthChecker{}
 }
 
 func (d *DatabaseHealthChecker) Check() HealthCheck {
 	check := HealthCheck{
 		Name:    HealthCheckDatabase,
 		Details: make(map[string]interface{}),
-	}
-
-	// Skip embedmd check for mlmd datastore
-	if d.datastore.Type != "embedmd" {
-		check.Status = StatusPass
-		check.Message = "MLMD datastore - skipping database check"
-		check.Details[detailDatastoreType] = d.datastore.Type
-		return check
-	}
-
-	// Check DSN configuration
-	dsn := d.datastore.EmbedMD.DatabaseDSN
-	if dsn == "" {
-		check.Status = StatusFail
-		check.Message = "database DSN not configured"
-		return check
 	}
 
 	// Check database connector
@@ -259,7 +239,7 @@ func (m *ModelRegistryHealthChecker) Check() HealthCheck {
 }
 
 // GeneralReadinessHandler creates a general readiness handler with configurable health checks
-func GeneralReadinessHandler(datastore datastore.Datastore, additionalCheckers ...HealthChecker) http.Handler {
+func GeneralReadinessHandler(additionalCheckers ...HealthChecker) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != http.MethodGet {
 			http.Error(w, "method not allowed", http.StatusMethodNotAllowed)

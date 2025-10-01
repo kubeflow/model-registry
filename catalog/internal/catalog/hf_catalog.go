@@ -39,11 +39,11 @@ func (h *hfCatalogImpl) ListModels(ctx context.Context, params ListModelsParams)
 	}, nil
 }
 
-func (h *hfCatalogImpl) GetArtifacts(ctx context.Context, name string) (*openapi.CatalogModelArtifactList, error) {
+func (h *hfCatalogImpl) GetArtifacts(ctx context.Context, name string) (*openapi.CatalogArtifactList, error) {
 	// TODO: Implement HuggingFace model artifacts retrieval
 	// For now, return empty list to satisfy interface
-	return &openapi.CatalogModelArtifactList{
-		Items:    []openapi.CatalogModelArtifact{},
+	return &openapi.CatalogArtifactList{
+		Items:    []openapi.CatalogArtifact{},
 		PageSize: 0,
 		Size:     0,
 	}, nil
@@ -82,7 +82,7 @@ func (h *hfCatalogImpl) validateCredentials(ctx context.Context) error {
 }
 
 // newHfCatalog creates a new HuggingFace catalog source
-func newHfCatalog(source *CatalogSourceConfig) (CatalogSourceProvider, error) {
+func newHfCatalog(source *CatalogSourceConfig, reldir string) (CatalogSourceProvider, error) {
 	apiKey, ok := source.Properties["apiKey"].(string)
 	if !ok || apiKey == "" {
 		return nil, fmt.Errorf("missing or invalid 'apiKey' property for HuggingFace catalog")

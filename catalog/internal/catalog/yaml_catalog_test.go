@@ -38,10 +38,17 @@ func TestYAMLCatalogGetArtifacts(t *testing.T) {
 	artifacts, err := provider.GetArtifacts(context.Background(), "rhelai1/granite-8b-code-base")
 	if assert.NoError(err) {
 		assert.NotNil(artifacts)
-		assert.Equal(int32(1), artifacts.Size)
-		assert.Equal(int32(1), artifacts.PageSize)
-		assert.Len(artifacts.Items, 1)
-		assert.Equal("oci://registry.redhat.io/rhelai1/granite-8b-code-base:1.3-1732870892", artifacts.Items[0].Uri)
+		assert.Equal(int32(2), artifacts.Size)
+		assert.Equal(int32(2), artifacts.PageSize)
+		assert.Len(artifacts.Items, 2)
+		if assert.NotNil(artifacts.Items[0].CatalogModelArtifact) {
+			assert.Equal("model-artifact", artifacts.Items[0].CatalogModelArtifact.ArtifactType)
+			assert.Equal("oci://registry.redhat.io/rhelai1/granite-8b-code-base:1.3-1732870892", artifacts.Items[0].CatalogModelArtifact.Uri)
+		}
+		if assert.NotNil(artifacts.Items[1].CatalogMetricsArtifact) {
+			assert.Equal("metrics-artifact", artifacts.Items[1].CatalogMetricsArtifact.ArtifactType)
+			assert.NotNil(artifacts.Items[1].CatalogMetricsArtifact.CustomProperties)
+		}
 	}
 
 	// Test case 2: Model with no artifacts
@@ -199,7 +206,7 @@ func testYAMLProviderWithExclusions(t *testing.T, path string, excludedModels []
 	}
 	provider, err := newYamlCatalog(&CatalogSourceConfig{
 		Properties: properties,
-	})
+	}, "")
 	if err != nil {
 		t.Fatalf("newYamlCatalog(%s) with exclusions failed: %v", path, err)
 	}

@@ -22,7 +22,7 @@ func TestNewHfCatalog_MissingAPIKey(t *testing.T) {
 		},
 	}
 
-	_, err := newHfCatalog(source)
+	_, err := newHfCatalog(source, "")
 	if err == nil {
 		t.Fatal("Expected error for missing API key, got nil")
 	}
@@ -65,7 +65,7 @@ func TestNewHfCatalog_WithValidCredentials(t *testing.T) {
 		},
 	}
 
-	catalog, err := newHfCatalog(source)
+	catalog, err := newHfCatalog(source, "")
 	if err != nil {
 		t.Fatalf("Failed to create HF catalog: %v", err)
 	}
@@ -130,7 +130,7 @@ func TestNewHfCatalog_InvalidCredentials(t *testing.T) {
 		},
 	}
 
-	_, err := newHfCatalog(source)
+	_, err := newHfCatalog(source, "")
 	if err == nil {
 		t.Fatal("Expected error for invalid credentials, got nil")
 	}
@@ -159,7 +159,7 @@ func TestNewHfCatalog_DefaultConfiguration(t *testing.T) {
 		},
 	}
 
-	catalog, err := newHfCatalog(source)
+	catalog, err := newHfCatalog(source, "")
 	if err != nil {
 		t.Fatalf("Failed to create HF catalog with defaults: %v", err)
 	}

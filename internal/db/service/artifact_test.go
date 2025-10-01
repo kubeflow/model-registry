@@ -8,13 +8,14 @@ import (
 	"github.com/kubeflow/model-registry/internal/apiutils"
 	"github.com/kubeflow/model-registry/internal/db/models"
 	"github.com/kubeflow/model-registry/internal/db/service"
+	"github.com/kubeflow/model-registry/internal/defaults"
 	"github.com/kubeflow/model-registry/internal/testutils"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
 func TestArtifactRepository(t *testing.T) {
-	sharedDB, cleanup := testutils.SetupMySQLWithMigrations(t)
+	sharedDB, cleanup := testutils.SetupMySQLWithMigrations(t, service.DatastoreSpec())
 	defer cleanup()
 
 	// Get the actual type IDs from the database
@@ -24,7 +25,14 @@ func TestArtifactRepository(t *testing.T) {
 	metricTypeID := getMetricTypeID(t, sharedDB)
 	parameterTypeID := getParameterTypeID(t, sharedDB)
 	metricHistoryTypeID := getMetricHistoryTypeID(t, sharedDB)
-	repo := service.NewArtifactRepository(sharedDB, modelArtifactTypeID, docArtifactTypeID, dataSetTypeID, metricTypeID, parameterTypeID, metricHistoryTypeID)
+	repo := service.NewArtifactRepository(sharedDB, map[string]int64{
+		defaults.ModelArtifactTypeName: modelArtifactTypeID,
+		defaults.DocArtifactTypeName:   docArtifactTypeID,
+		defaults.DataSetTypeName:       dataSetTypeID,
+		defaults.MetricTypeName:        metricTypeID,
+		defaults.ParameterTypeName:     parameterTypeID,
+		defaults.MetricHistoryTypeName: metricHistoryTypeID,
+	})
 
 	// Also get other type IDs for creating related entities
 	registeredModelTypeID := getRegisteredModelTypeID(t, sharedDB)
