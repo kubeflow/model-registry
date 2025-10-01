@@ -4,6 +4,7 @@ import {
   ModelCatalogFilterTypesByKey,
   ModelCatalogFilterDataType,
   ModelCatalogFilterState,
+  FilterValue,
 } from '~/app/modelCatalogTypes';
 import { ModelCatalogFilterKeys } from '~/concepts/modelCatalog/const';
 
@@ -11,14 +12,11 @@ const MAX_VISIBLE_FILTERS = 5;
 
 type ModelCatalogStringFilterProps<K extends ModelCatalogFilterKeys> = {
   title: string;
-  filterToNameMapping: Record<ModelCatalogFilterTypesByKey[K]['values'][number], string>;
+  filterToNameMapping: Partial<Record<FilterValue<K>, string>>;
   filters: ModelCatalogFilterTypesByKey[K];
   data?: ModelCatalogFilterDataType[K];
   setData: (state: ModelCatalogFilterState<K>) => void;
 };
-
-type FilterValue<K extends ModelCatalogFilterKeys> =
-  ModelCatalogFilterTypesByKey[K]['values'][number];
 
 const ModelCatalogStringFilter = <K extends ModelCatalogFilterKeys>({
   title,
@@ -31,14 +29,30 @@ const ModelCatalogStringFilter = <K extends ModelCatalogFilterKeys>({
   const [searchValue, setSearchValue] = React.useState('');
   const [filteredValues, setFilteredValues] = React.useState<FilterValue<K>[]>(filters.values);
 
+  const getLabel = React.useCallback(
+    (value: FilterValue<K>) => filterToNameMapping[value] ?? value,
+    [filterToNameMapping],
+  );
+
   React.useEffect(() => {
-    setFilteredValues(filters.values);
-  }, [filters.values]);
+    const lowerCaseValue = searchValue.trim().toLowerCase();
+
+    if (!lowerCaseValue) {
+      setFilteredValues(filters.values);
+      return;
+    }
+
+    setFilteredValues(
+      filters.values.filter((value) => {
+        const label = getLabel(value).toLowerCase();
+
+        return value.toLowerCase().includes(lowerCaseValue) || label.includes(lowerCaseValue);
+      }),
+    );
+  }, [filters.values, searchValue, getLabel]);
 
   const onSearchChange = (newValue: string) => {
     setSearchValue(newValue);
-    const lowerValue = newValue.toLowerCase();
-    setFilteredValues(filters.values.filter((value) => value.toLowerCase().includes(lowerValue)));
   };
 
   const onToggle = (checkbox: FilterValue<K>, checked: boolean) => {
@@ -64,7 +78,7 @@ const ModelCatalogStringFilter = <K extends ModelCatalogFilterKeys>({
       )}
       {visibleValues.map((checkbox) => (
         <Checkbox
-          label={filterToNameMapping[checkbox]}
+          label={getLabel(checkbox)}
           id={checkbox}
           key={checkbox}
           isChecked={isChecked(checkbox)}

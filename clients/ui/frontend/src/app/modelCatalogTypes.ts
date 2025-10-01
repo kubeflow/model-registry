@@ -222,3 +222,6 @@ export type ModelCatalogFilterStatesByKey = {
 };
 
 export type ModelCatalogFilterDataType = Partial<ModelCatalogFilterStatesByKey>;
+
+export type FilterValue<K extends ModelCatalogFilterKeys> =
+  ModelCatalogFilterTypesByKey[K]['values'][number];
