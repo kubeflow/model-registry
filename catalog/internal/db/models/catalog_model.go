@@ -9,6 +9,8 @@ type CatalogModelListOptions struct {
 	models.Pagination
 	Name       *string
 	ExternalID *string
+	SourceIDs  *[]string
+	Query      *string
 }
 
 // GetRestEntityType implements the FilterApplier interface

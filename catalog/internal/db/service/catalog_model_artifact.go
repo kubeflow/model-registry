@@ -108,6 +108,7 @@ func mapDataLayerToCatalogModelArtifact(artifact schema.Artifact, artProperties 
 		Attributes: &models.CatalogModelArtifactAttributes{
 			Name:                     artifact.Name,
 			URI:                      artifact.URI,
+			ArtifactType:             apiutils.Of(models.CatalogModelArtifactType),
 			ExternalID:               artifact.ExternalID,
 			CreateTimeSinceEpoch:     &artifact.CreateTimeSinceEpoch,
 			LastUpdateTimeSinceEpoch: &artifact.LastUpdateTimeSinceEpoch,

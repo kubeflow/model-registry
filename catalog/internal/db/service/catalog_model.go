@@ -2,11 +2,14 @@ package service
 
 import (
 	"errors"
+	"fmt"
+	"strings"
 
 	"github.com/kubeflow/model-registry/catalog/internal/db/models"
 	dbmodels "github.com/kubeflow/model-registry/internal/db/models"
 	"github.com/kubeflow/model-registry/internal/db/schema"
 	"github.com/kubeflow/model-registry/internal/db/service"
+	"github.com/kubeflow/model-registry/internal/db/utils"
 	"gorm.io/gorm"
 )
 
@@ -45,11 +48,54 @@ func (r *CatalogModelRepositoryImpl) List(listOptions models.CatalogModelListOpt
 }
 
 func applyCatalogModelListFilters(query *gorm.DB, listOptions *models.CatalogModelListOptions) *gorm.DB {
+	contextTable := utils.GetTableName(query.Statement.DB, &schema.Context{})
+
 	if listOptions.Name != nil {
-		query = query.Where("name LIKE ?", listOptions.Name)
+		query = query.Where(fmt.Sprintf("%s.name LIKE ?", contextTable), listOptions.Name)
 	} else if listOptions.ExternalID != nil {
-		query = query.Where("external_id = ?", listOptions.ExternalID)
+		query = query.Where(fmt.Sprintf("%s.external_id = ?", contextTable), listOptions.ExternalID)
 	}
+
+	if listOptions.Query != nil && *listOptions.Query != "" {
+		queryPattern := fmt.Sprintf("%%%s%%", strings.ToLower(*listOptions.Query))
+		propertyTable := utils.GetTableName(query.Statement.DB, &schema.ContextProperty{})
+
+		// Search in name (context table)
+		nameCondition := fmt.Sprintf("LOWER(%s.name) LIKE ?", contextTable)
+
+		// Search in description, provider, libraryName properties
+		propertyCondition := fmt.Sprintf("EXISTS (SELECT 1 FROM %s cp WHERE cp.context_id = %s.id AND cp.name IN (?, ?, ?) AND LOWER(cp.string_value) LIKE ?)",
+			propertyTable, contextTable)
+
+		// Search in tasks (assuming tasks are stored as comma-separated or multiple properties)
+		tasksCondition := fmt.Sprintf("EXISTS (SELECT 1 FROM %s cp WHERE cp.context_id = %s.id AND cp.name = ? AND LOWER(cp.string_value) LIKE ?)",
+			propertyTable, contextTable)
+
+		query = query.Where(fmt.Sprintf("(%s OR %s OR %s)", nameCondition, propertyCondition, tasksCondition),
+			queryPattern,                                           // for name
+			"description", "provider", "libraryName", queryPattern, // for properties
+			"tasks", queryPattern, // for tasks
+		)
+	}
+
+	// Filter out empty strings from SourceIDs, for some reason it's passed if no sources are specified
+	var nonEmptySourceIDs []string
+	if listOptions.SourceIDs != nil {
+		for _, sourceID := range *listOptions.SourceIDs {
+			if sourceID != "" {
+				nonEmptySourceIDs = append(nonEmptySourceIDs, sourceID)
+			}
+		}
+	}
+
+	if len(nonEmptySourceIDs) > 0 {
+		propertyTable := utils.GetTableName(query.Statement.DB, &schema.ContextProperty{})
+
+		joinClause := fmt.Sprintf("JOIN %s cp ON cp.context_id = %s.id", propertyTable, contextTable)
+		query = query.Joins(joinClause).
+			Where("cp.name = ? AND cp.string_value IN ?", "source_id", nonEmptySourceIDs)
+	}
+
 	return query
 }
 

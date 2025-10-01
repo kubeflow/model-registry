@@ -19,11 +19,7 @@ var _ MappedNullable = &CatalogModel{}
 
 // CatalogModel A model in the model catalog.
 type CatalogModel struct {
-	// Output only. Create time of the resource in millisecond since epoch.
-	CreateTimeSinceEpoch *string `json:"createTimeSinceEpoch,omitempty"`
-	// Output only. Last update time of the resource since epoch in millisecond since epoch.
-	LastUpdateTimeSinceEpoch *string `json:"lastUpdateTimeSinceEpoch,omitempty"`
-	// Human-readable description of the model.
+	// An optional description about the resource.
 	Description *string `json:"description,omitempty"`
 	// Model documentation in Markdown.
 	Readme *string `json:"readme,omitempty"`
@@ -44,8 +40,16 @@ type CatalogModel struct {
 	LibraryName *string `json:"libraryName,omitempty"`
 	// User provided custom properties which are not defined by its type.
 	CustomProperties *map[string]MetadataValue `json:"customProperties,omitempty"`
+	// The external id that come from the clients’ system. This field is optional. If set, it must be unique among all resources within a database instance.
+	ExternalId *string `json:"externalId,omitempty"`
 	// Name of the model. Must be unique within a source.
 	Name string `json:"name"`
+	// The unique server generated id of the resource.
+	Id *string `json:"id,omitempty"`
+	// Output only. Create time of the resource in millisecond since epoch.
+	CreateTimeSinceEpoch *string `json:"createTimeSinceEpoch,omitempty"`
+	// Output only. Last update time of the resource since epoch in millisecond since epoch.
+	LastUpdateTimeSinceEpoch *string `json:"lastUpdateTimeSinceEpoch,omitempty"`
 	// ID of the source this model belongs to.
 	SourceId *string `json:"source_id,omitempty"`
 }
@@ -66,70 +70,6 @@ func NewCatalogModel(name string) *CatalogModel {
 func NewCatalogModelWithDefaults() *CatalogModel {
 	this := CatalogModel{}
 	return &this
-}
-
-// GetCreateTimeSinceEpoch returns the CreateTimeSinceEpoch field value if set, zero value otherwise.
-func (o *CatalogModel) GetCreateTimeSinceEpoch() string {
-	if o == nil || IsNil(o.CreateTimeSinceEpoch) {
-		var ret string
-		return ret
-	}
-	return *o.CreateTimeSinceEpoch
-}
-
-// GetCreateTimeSinceEpochOk returns a tuple with the CreateTimeSinceEpoch field value if set, nil otherwise
-// and a boolean to check if the value has been set.
-func (o *CatalogModel) GetCreateTimeSinceEpochOk() (*string, bool) {
-	if o == nil || IsNil(o.CreateTimeSinceEpoch) {
-		return nil, false
-	}
-	return o.CreateTimeSinceEpoch, true
-}
-
-// HasCreateTimeSinceEpoch returns a boolean if a field has been set.
-func (o *CatalogModel) HasCreateTimeSinceEpoch() bool {
-	if o != nil && !IsNil(o.CreateTimeSinceEpoch) {
-		return true
-	}
-
-	return false
-}
-
-// SetCreateTimeSinceEpoch gets a reference to the given string and assigns it to the CreateTimeSinceEpoch field.
-func (o *CatalogModel) SetCreateTimeSinceEpoch(v string) {
-	o.CreateTimeSinceEpoch = &v
-}
-
-// GetLastUpdateTimeSinceEpoch returns the LastUpdateTimeSinceEpoch field value if set, zero value otherwise.
-func (o *CatalogModel) GetLastUpdateTimeSinceEpoch() string {
-	if o == nil || IsNil(o.LastUpdateTimeSinceEpoch) {
-		var ret string
-		return ret
-	}
-	return *o.LastUpdateTimeSinceEpoch
-}
-
-// GetLastUpdateTimeSinceEpochOk returns a tuple with the LastUpdateTimeSinceEpoch field value if set, nil otherwise
-// and a boolean to check if the value has been set.
-func (o *CatalogModel) GetLastUpdateTimeSinceEpochOk() (*string, bool) {
-	if o == nil || IsNil(o.LastUpdateTimeSinceEpoch) {
-		return nil, false
-	}
-	return o.LastUpdateTimeSinceEpoch, true
-}
-
-// HasLastUpdateTimeSinceEpoch returns a boolean if a field has been set.
-func (o *CatalogModel) HasLastUpdateTimeSinceEpoch() bool {
-	if o != nil && !IsNil(o.LastUpdateTimeSinceEpoch) {
-		return true
-	}
-
-	return false
-}
-
-// SetLastUpdateTimeSinceEpoch gets a reference to the given string and assigns it to the LastUpdateTimeSinceEpoch field.
-func (o *CatalogModel) SetLastUpdateTimeSinceEpoch(v string) {
-	o.LastUpdateTimeSinceEpoch = &v
 }
 
 // GetDescription returns the Description field value if set, zero value otherwise.
@@ -484,6 +424,38 @@ func (o *CatalogModel) SetCustomProperties(v map[string]MetadataValue) {
 	o.CustomProperties = &v
 }
 
+// GetExternalId returns the ExternalId field value if set, zero value otherwise.
+func (o *CatalogModel) GetExternalId() string {
+	if o == nil || IsNil(o.ExternalId) {
+		var ret string
+		return ret
+	}
+	return *o.ExternalId
+}
+
+// GetExternalIdOk returns a tuple with the ExternalId field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+func (o *CatalogModel) GetExternalIdOk() (*string, bool) {
+	if o == nil || IsNil(o.ExternalId) {
+		return nil, false
+	}
+	return o.ExternalId, true
+}
+
+// HasExternalId returns a boolean if a field has been set.
+func (o *CatalogModel) HasExternalId() bool {
+	if o != nil && !IsNil(o.ExternalId) {
+		return true
+	}
+
+	return false
+}
+
+// SetExternalId gets a reference to the given string and assigns it to the ExternalId field.
+func (o *CatalogModel) SetExternalId(v string) {
+	o.ExternalId = &v
+}
+
 // GetName returns the Name field value
 func (o *CatalogModel) GetName() string {
 	if o == nil {
@@ -506,6 +478,102 @@ func (o *CatalogModel) GetNameOk() (*string, bool) {
 // SetName sets field value
 func (o *CatalogModel) SetName(v string) {
 	o.Name = v
+}
+
+// GetId returns the Id field value if set, zero value otherwise.
+func (o *CatalogModel) GetId() string {
+	if o == nil || IsNil(o.Id) {
+		var ret string
+		return ret
+	}
+	return *o.Id
+}
+
+// GetIdOk returns a tuple with the Id field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+func (o *CatalogModel) GetIdOk() (*string, bool) {
+	if o == nil || IsNil(o.Id) {
+		return nil, false
+	}
+	return o.Id, true
+}
+
+// HasId returns a boolean if a field has been set.
+func (o *CatalogModel) HasId() bool {
+	if o != nil && !IsNil(o.Id) {
+		return true
+	}
+
+	return false
+}
+
+// SetId gets a reference to the given string and assigns it to the Id field.
+func (o *CatalogModel) SetId(v string) {
+	o.Id = &v
+}
+
+// GetCreateTimeSinceEpoch returns the CreateTimeSinceEpoch field value if set, zero value otherwise.
+func (o *CatalogModel) GetCreateTimeSinceEpoch() string {
+	if o == nil || IsNil(o.CreateTimeSinceEpoch) {
+		var ret string
+		return ret
+	}
+	return *o.CreateTimeSinceEpoch
+}
+
+// GetCreateTimeSinceEpochOk returns a tuple with the CreateTimeSinceEpoch field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+func (o *CatalogModel) GetCreateTimeSinceEpochOk() (*string, bool) {
+	if o == nil || IsNil(o.CreateTimeSinceEpoch) {
+		return nil, false
+	}
+	return o.CreateTimeSinceEpoch, true
+}
+
+// HasCreateTimeSinceEpoch returns a boolean if a field has been set.
+func (o *CatalogModel) HasCreateTimeSinceEpoch() bool {
+	if o != nil && !IsNil(o.CreateTimeSinceEpoch) {
+		return true
+	}
+
+	return false
+}
+
+// SetCreateTimeSinceEpoch gets a reference to the given string and assigns it to the CreateTimeSinceEpoch field.
+func (o *CatalogModel) SetCreateTimeSinceEpoch(v string) {
+	o.CreateTimeSinceEpoch = &v
+}
+
+// GetLastUpdateTimeSinceEpoch returns the LastUpdateTimeSinceEpoch field value if set, zero value otherwise.
+func (o *CatalogModel) GetLastUpdateTimeSinceEpoch() string {
+	if o == nil || IsNil(o.LastUpdateTimeSinceEpoch) {
+		var ret string
+		return ret
+	}
+	return *o.LastUpdateTimeSinceEpoch
+}
+
+// GetLastUpdateTimeSinceEpochOk returns a tuple with the LastUpdateTimeSinceEpoch field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+func (o *CatalogModel) GetLastUpdateTimeSinceEpochOk() (*string, bool) {
+	if o == nil || IsNil(o.LastUpdateTimeSinceEpoch) {
+		return nil, false
+	}
+	return o.LastUpdateTimeSinceEpoch, true
+}
+
+// HasLastUpdateTimeSinceEpoch returns a boolean if a field has been set.
+func (o *CatalogModel) HasLastUpdateTimeSinceEpoch() bool {
+	if o != nil && !IsNil(o.LastUpdateTimeSinceEpoch) {
+		return true
+	}
+
+	return false
+}
+
+// SetLastUpdateTimeSinceEpoch gets a reference to the given string and assigns it to the LastUpdateTimeSinceEpoch field.
+func (o *CatalogModel) SetLastUpdateTimeSinceEpoch(v string) {
+	o.LastUpdateTimeSinceEpoch = &v
 }
 
 // GetSourceId returns the SourceId field value if set, zero value otherwise.
@@ -550,12 +618,6 @@ func (o CatalogModel) MarshalJSON() ([]byte, error) {
 
 func (o CatalogModel) ToMap() (map[string]interface{}, error) {
 	toSerialize := map[string]interface{}{}
-	if !IsNil(o.CreateTimeSinceEpoch) {
-		toSerialize["createTimeSinceEpoch"] = o.CreateTimeSinceEpoch
-	}
-	if !IsNil(o.LastUpdateTimeSinceEpoch) {
-		toSerialize["lastUpdateTimeSinceEpoch"] = o.LastUpdateTimeSinceEpoch
-	}
 	if !IsNil(o.Description) {
 		toSerialize["description"] = o.Description
 	}
@@ -589,7 +651,19 @@ func (o CatalogModel) ToMap() (map[string]interface{}, error) {
 	if !IsNil(o.CustomProperties) {
 		toSerialize["customProperties"] = o.CustomProperties
 	}
+	if !IsNil(o.ExternalId) {
+		toSerialize["externalId"] = o.ExternalId
+	}
 	toSerialize["name"] = o.Name
+	if !IsNil(o.Id) {
+		toSerialize["id"] = o.Id
+	}
+	if !IsNil(o.CreateTimeSinceEpoch) {
+		toSerialize["createTimeSinceEpoch"] = o.CreateTimeSinceEpoch
+	}
+	if !IsNil(o.LastUpdateTimeSinceEpoch) {
+		toSerialize["lastUpdateTimeSinceEpoch"] = o.LastUpdateTimeSinceEpoch
+	}
 	if !IsNil(o.SourceId) {
 		toSerialize["source_id"] = o.SourceId
 	}

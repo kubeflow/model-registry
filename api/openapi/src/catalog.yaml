@@ -20,12 +20,18 @@ paths:
       parameters:
         - name: source
           description: |-
-            Filter models by source. This parameter is currently required and
-            may only be specified once.
+            Filter models by source. This parameter can be specified multiple times
+            to filter by multiple sources (OR logic). For example:
+            ?source=huggingface&source=local will return models from either
+            huggingface OR local sources.
           schema:
-            type: string
+            type: array
+            items:
+              type: string
+          style: form
+          explode: true
           in: query
-          required: true
+          required: false
         - name: q
           description: Free-form keyword search used to filter the response.
           schema:
@@ -135,6 +141,10 @@ paths:
           type: string
         in: path
         required: true
+      - $ref: "#/components/parameters/pageSize"
+      - $ref: "#/components/parameters/orderBy"
+      - $ref: "#/components/parameters/sortOrder"
+      - $ref: "#/components/parameters/nextPageToken"
 components:
   schemas:
     CatalogArtifact:
@@ -181,7 +191,7 @@ components:
               type: object
               additionalProperties:
                 $ref: "#/components/schemas/MetadataValue"
-        - $ref: "#/components/schemas/BaseResourceDates"
+        - $ref: "#/components/schemas/BaseResource"
     CatalogModel:
       description: A model in the model catalog.
       allOf:
@@ -196,8 +206,8 @@ components:
             source_id:
               type: string
               description: ID of the source this model belongs to.
-        - $ref: "#/components/schemas/BaseResourceDates"
         - $ref: "#/components/schemas/BaseModel"
+        - $ref: "#/components/schemas/BaseResource"
     CatalogModelArtifact:
       description: A Catalog Model Artifact Entity.
       allOf:
@@ -218,7 +228,7 @@ components:
               type: object
               additionalProperties:
                 $ref: "#/components/schemas/MetadataValue"
-        - $ref: "#/components/schemas/BaseResourceDates"
+        - $ref: "#/components/schemas/BaseResource"
     CatalogModelList:
       description: List of CatalogModel entities.
       allOf:
