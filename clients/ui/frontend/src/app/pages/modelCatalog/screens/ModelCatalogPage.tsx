@@ -13,6 +13,10 @@ import { ModelCatalogContext } from '~/app/context/modelCatalog/ModelCatalogCont
 import { useCatalogModelsBySources } from '~/app/hooks/modelCatalog/useCatalogModelsBySource';
 import { CatalogModel } from '~/app/modelCatalogTypes';
 import ModelCatalogCard from '~/app/pages/modelCatalog/components/ModelCatalogCard';
+import ValidatedModelCard from '~/app/pages/modelCatalog/components/ValidatedModelCard';
+import { isModelValidated } from '~/app/pages/modelCatalog/utils/modelCatalogUtils';
+import { mockPerformanceMetricsArtifacts } from '~/app/pages/modelCatalog/mocks/hardwareConfigurationMock';
+import { mockAccuracyMetricsArtifacts } from '~/app/pages/modelCatalog/mocks/accuracyMetricsMock';
 import EmptyModelCatalogState from '~/app/pages/modelCatalog/EmptyModelCatalogState';
 
 type ModelCatalogPageProps = {
@@ -63,16 +67,29 @@ const ModelCatalogPage: React.FC<ModelCatalogPageProps> = ({ searchTerm }) => {
   }
 
   return (
-    <>
-      <Gallery hasGutter minWidths={{ default: '300px' }}>
-        {catalogModels.items.map((model: CatalogModel) => (
+    <Gallery hasGutter minWidths={{ default: '300px' }}>
+      {catalogModels.items.map((model: CatalogModel) => {
+        // Show ValidatedModelCard for validated models, ModelCatalogCard for others. This will be take care of by Pushpa's PR
+        // that will implement sections for validated and non-validated models.
+        if (isModelValidated(model)) {
+          return (
+            <ValidatedModelCard
+              key={`${model.name}/${model.source_id}`}
+              model={model}
+              source={selectedSource}
+              performanceMetrics={mockPerformanceMetricsArtifacts[0]}
+              accuracyMetrics={mockAccuracyMetricsArtifacts[0]}
+            />
+          );
+        }
+        return (
           <ModelCatalogCard
             model={model}
             source={selectedSource}
             key={`${model.name}/${model.source_id}`}
           />
-        ))}
-      </Gallery>
+        );
+      })}
       {catalogModels.hasMore && (
         <div style={{ marginTop: '2rem' }}>
           <Bullseye>
@@ -91,7 +108,7 @@ const ModelCatalogPage: React.FC<ModelCatalogPageProps> = ({ searchTerm }) => {
           </Bullseye>
         </div>
       )}
-    </>
+    </Gallery>
   );
 };
 
