@@ -14,7 +14,7 @@ const ModelCatalogLabels: React.FC<ModelCatalogLabelsProps> = ({
   provider,
   labels = [],
 }) => (
-  <LabelGroup numLabels={5} isCompact>
+  <LabelGroup numLabels={2} isCompact>
     {tasks.map((task) => (
       <Label data-testid="model-catalog-label" key={task} variant="outline">
         {task}

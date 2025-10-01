@@ -12,8 +12,6 @@ import {
   Tooltip,
   Content,
   ContentVariants,
-  Label,
-  LabelGroup,
   Skeleton,
 } from '@patternfly/react-core';
 import text from '@patternfly/react-styles/css/utilities/Text/text';
@@ -29,6 +27,7 @@ import { getModelName } from '~/app/pages/modelCatalog/utils/modelCatalogUtils';
 import { catalogModelDetailsFromModel } from '~/app/routes/modelCatalog/catalogModel';
 import { getLabels } from '~/app/pages/modelRegistry/screens/utils';
 import { extractValidatedModelMetrics } from '~/app/pages/modelCatalog/utils/validatedModelUtils';
+import ModelCatalogLabels from '~/app/pages/modelCatalog/components/ModelCatalogLabels';
 
 type ValidatedModelCardProps = {
   model: CatalogModel;
@@ -234,19 +233,12 @@ The total time from when the request is sent until the last token is received."
         </div>
       </CardBody>
       <CardFooter>
-        <LabelGroup numLabels={2} isCompact>
-          {model.tasks?.map((task) => (
-            <Label data-testid="model-catalog-label" key={task} variant="outline">
-              {task}
-            </Label>
-          ))}
-          {validatedLabels.map((label) => (
-            <Label data-testid="model-catalog-label" key={label} variant="outline">
-              {label}
-            </Label>
-          ))}
-          {model.provider && <Label isCompact>{model.provider}</Label>}
-        </LabelGroup>
+        <ModelCatalogLabels
+          tasks={model.tasks ?? []}
+          license={model.license}
+          provider={model.provider}
+          labels={validatedLabels}
+        />
       </CardFooter>
     </Card>
   );
