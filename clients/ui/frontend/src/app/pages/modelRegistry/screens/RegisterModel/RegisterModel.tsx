@@ -7,7 +7,6 @@ import {
   Stack,
   StackItem,
 } from '@patternfly/react-core';
-import spacing from '@patternfly/react-styles/css/utilities/Spacing/spacing';
 import { useParams, useNavigate } from 'react-router';
 import { Link } from 'react-router-dom';
 import { ApplicationsPage, FormSection } from 'mod-arch-shared';
