@@ -7,22 +7,22 @@ import (
 	"fmt"
 	"strconv"
 
-	"github.com/kubeflow/model-registry/catalog/internal/db/models"
-	model "github.com/kubeflow/model-registry/catalog/pkg/openapi"
+	dbmodels "github.com/kubeflow/model-registry/catalog/internal/db/models"
+	apimodels "github.com/kubeflow/model-registry/catalog/pkg/openapi"
 	"github.com/kubeflow/model-registry/internal/converter"
-	mr_models "github.com/kubeflow/model-registry/internal/db/models"
+	mrmodels "github.com/kubeflow/model-registry/internal/db/models"
 	"github.com/kubeflow/model-registry/pkg/api"
 	"github.com/kubeflow/model-registry/pkg/openapi"
 )
 
 type dbCatalogImpl struct {
-	catalogModelRepository    models.CatalogModelRepository
-	catalogArtifactRepository models.CatalogArtifactRepository
+	catalogModelRepository    dbmodels.CatalogModelRepository
+	catalogArtifactRepository dbmodels.CatalogArtifactRepository
 }
 
 func NewDBCatalog(
-	catalogModelRepository models.CatalogModelRepository,
-	catalogArtifactRepository models.CatalogArtifactRepository,
+	catalogModelRepository dbmodels.CatalogModelRepository,
+	catalogArtifactRepository dbmodels.CatalogArtifactRepository,
 ) CatalogSourceProvider {
 	return &dbCatalogImpl{
 		catalogModelRepository:    catalogModelRepository,
@@ -30,8 +30,8 @@ func NewDBCatalog(
 	}
 }
 
-func (d *dbCatalogImpl) GetModel(ctx context.Context, modelName string, sourceID string) (*model.CatalogModel, error) {
-	modelsList, err := d.catalogModelRepository.List(models.CatalogModelListOptions{
+func (d *dbCatalogImpl) GetModel(ctx context.Context, modelName string, sourceID string) (*apimodels.CatalogModel, error) {
+	modelsList, err := d.catalogModelRepository.List(dbmodels.CatalogModelListOptions{
 		Name:      &modelName,
 		SourceIDs: &[]string{sourceID},
 	})
@@ -47,23 +47,23 @@ func (d *dbCatalogImpl) GetModel(ctx context.Context, modelName string, sourceID
 		return nil, fmt.Errorf("multiple models found for name=%v: %w", modelName, api.ErrNotFound)
 	}
 
-	model := mapCatalogModelToCatalogModel(modelsList.Items[0])
+	model := mapDBModelToAPIModel(modelsList.Items[0])
 
 	return &model, nil
 }
 
-func (d *dbCatalogImpl) ListModels(ctx context.Context, params ListModelsParams) (model.CatalogModelList, error) {
+func (d *dbCatalogImpl) ListModels(ctx context.Context, params ListModelsParams) (apimodels.CatalogModelList, error) {
 	pageSize := int32(params.PageSize)
 
 	// Use consistent defaults to match pagination logic
 	orderBy := string(params.OrderBy)
 	if orderBy == "" {
-		orderBy = mr_models.DefaultOrderBy
+		orderBy = mrmodels.DefaultOrderBy
 	}
 
 	sortOrder := string(params.SortOrder)
 	if sortOrder == "" {
-		sortOrder = mr_models.DefaultSortOrder
+		sortOrder = mrmodels.DefaultSortOrder
 	}
 
 	nextPageToken := params.NextPageToken
@@ -73,10 +73,10 @@ func (d *dbCatalogImpl) ListModels(ctx context.Context, params ListModelsParams)
 		queryPtr = &params.Query
 	}
 
-	modelsList, err := d.catalogModelRepository.List(models.CatalogModelListOptions{
+	modelsList, err := d.catalogModelRepository.List(dbmodels.CatalogModelListOptions{
 		SourceIDs: &params.SourceIDs,
 		Query:     queryPtr,
-		Pagination: mr_models.Pagination{
+		Pagination: mrmodels.Pagination{
 			PageSize:      &pageSize,
 			OrderBy:       &orderBy,
 			SortOrder:     &sortOrder,
@@ -84,15 +84,15 @@ func (d *dbCatalogImpl) ListModels(ctx context.Context, params ListModelsParams)
 		},
 	})
 	if err != nil {
-		return model.CatalogModelList{}, err
+		return apimodels.CatalogModelList{}, err
 	}
 
-	modelList := &model.CatalogModelList{
-		Items: make([]model.CatalogModel, 0),
+	modelList := &apimodels.CatalogModelList{
+		Items: make([]apimodels.CatalogModel, 0),
 	}
 
 	for _, model := range modelsList.Items {
-		modelList.Items = append(modelList.Items, mapCatalogModelToCatalogModel(model))
+		modelList.Items = append(modelList.Items, mapDBModelToAPIModel(model))
 	}
 
 	modelList.NextPageToken = modelsList.NextPageToken
@@ -102,18 +102,18 @@ func (d *dbCatalogImpl) ListModels(ctx context.Context, params ListModelsParams)
 	return *modelList, nil
 }
 
-func (d *dbCatalogImpl) GetArtifacts(ctx context.Context, modelName string, sourceID string, params ListArtifactsParams) (model.CatalogArtifactList, error) {
+func (d *dbCatalogImpl) GetArtifacts(ctx context.Context, modelName string, sourceID string, params ListArtifactsParams) (apimodels.CatalogArtifactList, error) {
 	pageSize := int32(params.PageSize)
 
 	// Use consistent defaults to match pagination logic
 	orderBy := string(params.OrderBy)
 	if orderBy == "" {
-		orderBy = mr_models.DefaultOrderBy
+		orderBy = mrmodels.DefaultOrderBy
 	}
 
 	sortOrder := string(params.SortOrder)
 	if sortOrder == "" {
-		sortOrder = mr_models.DefaultSortOrder
+		sortOrder = mrmodels.DefaultSortOrder
 	}
 
 	nextPageToken := params.NextPageToken
@@ -121,21 +121,21 @@ func (d *dbCatalogImpl) GetArtifacts(ctx context.Context, modelName string, sour
 	m, err := d.GetModel(ctx, modelName, sourceID)
 	if err != nil {
 		if errors.Is(err, api.ErrNotFound) {
-			return model.CatalogArtifactList{}, fmt.Errorf("invalid model name '%s' for source '%s': %w", modelName, sourceID, api.ErrBadRequest)
+			return apimodels.CatalogArtifactList{}, fmt.Errorf("invalid model name '%s' for source '%s': %w", modelName, sourceID, api.ErrBadRequest)
 		}
-		return model.CatalogArtifactList{}, err
+		return apimodels.CatalogArtifactList{}, err
 	}
 
 	parentResourceID, err := strconv.ParseInt(*m.Id, 10, 32)
 	if err != nil {
-		return model.CatalogArtifactList{}, err
+		return apimodels.CatalogArtifactList{}, err
 	}
 
 	parentResourceID32 := int32(parentResourceID)
 
-	artifactsList, err := d.catalogArtifactRepository.List(models.CatalogArtifactListOptions{
+	artifactsList, err := d.catalogArtifactRepository.List(dbmodels.CatalogArtifactListOptions{
 		ParentResourceID: &parentResourceID32,
-		Pagination: mr_models.Pagination{
+		Pagination: mrmodels.Pagination{
 			PageSize:      &pageSize,
 			OrderBy:       &orderBy,
 			SortOrder:     &sortOrder,
@@ -143,17 +143,17 @@ func (d *dbCatalogImpl) GetArtifacts(ctx context.Context, modelName string, sour
 		},
 	})
 	if err != nil {
-		return model.CatalogArtifactList{}, err
+		return apimodels.CatalogArtifactList{}, err
 	}
 
-	artifactList := &model.CatalogArtifactList{
-		Items: make([]model.CatalogArtifact, 0),
+	artifactList := &apimodels.CatalogArtifactList{
+		Items: make([]apimodels.CatalogArtifact, 0),
 	}
 
 	for _, artifact := range artifactsList.Items {
-		mappedArtifact, err := mapCatalogArtifactToCatalogArtifact(artifact)
+		mappedArtifact, err := mapDBArtifactToAPIArtifact(artifact)
 		if err != nil {
-			return model.CatalogArtifactList{}, err
+			return apimodels.CatalogArtifactList{}, err
 		}
 		artifactList.Items = append(artifactList.Items, mappedArtifact)
 	}
@@ -165,8 +165,8 @@ func (d *dbCatalogImpl) GetArtifacts(ctx context.Context, modelName string, sour
 	return *artifactList, nil
 }
 
-func mapCatalogModelToCatalogModel(m models.CatalogModel) model.CatalogModel {
-	res := model.CatalogModel{}
+func mapDBModelToAPIModel(m dbmodels.CatalogModel) apimodels.CatalogModel {
+	res := apimodels.CatalogModel{}
 
 	id := strconv.FormatInt(int64(*m.GetID()), 10)
 	res.Id = &id
@@ -245,7 +245,7 @@ func mapCatalogModelToCatalogModel(m models.CatalogModel) model.CatalogModel {
 	return res
 }
 
-func mapCatalogArtifactToCatalogArtifact(a models.CatalogArtifact) (model.CatalogArtifact, error) {
+func mapDBArtifactToAPIArtifact(a dbmodels.CatalogArtifact) (apimodels.CatalogArtifact, error) {
 	if a.CatalogModelArtifact != nil {
 		return mapToModelArtifact(*a.CatalogModelArtifact)
 	} else if a.CatalogMetricsArtifact != nil {
@@ -253,12 +253,12 @@ func mapCatalogArtifactToCatalogArtifact(a models.CatalogArtifact) (model.Catalo
 		return mapToMetricsArtifact(*a.CatalogMetricsArtifact, metricsTypeValue)
 	}
 
-	return model.CatalogArtifact{}, fmt.Errorf("invalid catalog artifact type: %v", a)
+	return apimodels.CatalogArtifact{}, fmt.Errorf("invalid catalog artifact type: %v", a)
 }
 
-func mapToModelArtifact(a models.CatalogModelArtifact) (model.CatalogArtifact, error) {
-	catalogModelArtifact := &model.CatalogModelArtifact{
-		ArtifactType: models.CatalogModelArtifactType,
+func mapToModelArtifact(a dbmodels.CatalogModelArtifact) (apimodels.CatalogArtifact, error) {
+	catalogModelArtifact := &apimodels.CatalogModelArtifact{
+		ArtifactType: dbmodels.CatalogModelArtifactType,
 	}
 
 	if a.GetID() != nil {
@@ -306,21 +306,21 @@ func mapToModelArtifact(a models.CatalogModelArtifact) (model.CatalogArtifact, e
 	if a.GetCustomProperties() != nil && len(*a.GetCustomProperties()) > 0 {
 		customPropsMap, err := converter.MapEmbedMDCustomProperties(*a.GetCustomProperties())
 		if err != nil {
-			return model.CatalogArtifact{}, fmt.Errorf("error mapping custom properties: %w", err)
+			return apimodels.CatalogArtifact{}, fmt.Errorf("error mapping custom properties: %w", err)
 		}
 
 		catalogCustomProps := convertMetadataValueMap(customPropsMap)
 		catalogModelArtifact.CustomProperties = &catalogCustomProps
 	}
 
-	return model.CatalogArtifact{
+	return apimodels.CatalogArtifact{
 		CatalogModelArtifact: catalogModelArtifact,
 	}, nil
 }
 
-func mapToMetricsArtifact(a models.CatalogMetricsArtifact, metricsType string) (model.CatalogArtifact, error) {
-	catalogMetricsArtifact := &model.CatalogMetricsArtifact{
-		ArtifactType: models.CatalogMetricsArtifactType,
+func mapToMetricsArtifact(a dbmodels.CatalogMetricsArtifact, metricsType string) (apimodels.CatalogArtifact, error) {
+	catalogMetricsArtifact := &apimodels.CatalogMetricsArtifact{
+		ArtifactType: dbmodels.CatalogMetricsArtifactType,
 		MetricsType:  metricsType,
 	}
 
@@ -361,7 +361,7 @@ func mapToMetricsArtifact(a models.CatalogMetricsArtifact, metricsType string) (
 	if a.GetCustomProperties() != nil && len(*a.GetCustomProperties()) > 0 {
 		customPropsMap, err := converter.MapEmbedMDCustomProperties(*a.GetCustomProperties())
 		if err != nil {
-			return model.CatalogArtifact{}, fmt.Errorf("error mapping custom properties: %w", err)
+			return apimodels.CatalogArtifact{}, fmt.Errorf("error mapping custom properties: %w", err)
 		}
 
 		catalogCustomProps := convertMetadataValueMap(customPropsMap)
@@ -369,40 +369,40 @@ func mapToMetricsArtifact(a models.CatalogMetricsArtifact, metricsType string) (
 
 	}
 
-	return model.CatalogArtifact{
+	return apimodels.CatalogArtifact{
 		CatalogMetricsArtifact: catalogMetricsArtifact,
 	}, nil
 }
 
 // convertMetadataValueMap converts from pkg/openapi.MetadataValue to catalog/pkg/openapi.MetadataValue
-func convertMetadataValueMap(source map[string]openapi.MetadataValue) map[string]model.MetadataValue {
-	result := make(map[string]model.MetadataValue)
+func convertMetadataValueMap(source map[string]openapi.MetadataValue) map[string]apimodels.MetadataValue {
+	result := make(map[string]apimodels.MetadataValue)
 
 	for key, value := range source {
-		catalogValue := model.MetadataValue{}
+		catalogValue := apimodels.MetadataValue{}
 
 		if value.MetadataStringValue != nil {
-			catalogValue.MetadataStringValue = &model.MetadataStringValue{
+			catalogValue.MetadataStringValue = &apimodels.MetadataStringValue{
 				StringValue:  value.MetadataStringValue.StringValue,
 				MetadataType: value.MetadataStringValue.MetadataType,
 			}
 		} else if value.MetadataIntValue != nil {
-			catalogValue.MetadataIntValue = &model.MetadataIntValue{
+			catalogValue.MetadataIntValue = &apimodels.MetadataIntValue{
 				IntValue:     value.MetadataIntValue.IntValue,
 				MetadataType: value.MetadataIntValue.MetadataType,
 			}
 		} else if value.MetadataDoubleValue != nil {
-			catalogValue.MetadataDoubleValue = &model.MetadataDoubleValue{
+			catalogValue.MetadataDoubleValue = &apimodels.MetadataDoubleValue{
 				DoubleValue:  value.MetadataDoubleValue.DoubleValue,
 				MetadataType: value.MetadataDoubleValue.MetadataType,
 			}
 		} else if value.MetadataBoolValue != nil {
-			catalogValue.MetadataBoolValue = &model.MetadataBoolValue{
+			catalogValue.MetadataBoolValue = &apimodels.MetadataBoolValue{
 				BoolValue:    value.MetadataBoolValue.BoolValue,
 				MetadataType: value.MetadataBoolValue.MetadataType,
 			}
 		} else if value.MetadataStructValue != nil {
-			catalogValue.MetadataStructValue = &model.MetadataStructValue{
+			catalogValue.MetadataStructValue = &apimodels.MetadataStructValue{
 				StructValue:  value.MetadataStructValue.StructValue,
 				MetadataType: value.MetadataStructValue.MetadataType,
 			}

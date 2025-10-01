@@ -575,7 +575,7 @@ func TestDBCatalog(t *testing.T) {
 				},
 			}
 
-			result := mapCatalogModelToCatalogModel(catalogModel)
+			result := mapDBModelToAPIModel(catalogModel)
 
 			assert.Equal(t, "123", *result.Id)
 			assert.Equal(t, "mapping-test-model", result.Name)
@@ -607,7 +607,7 @@ func TestDBCatalog(t *testing.T) {
 				CatalogModelArtifact: &catalogModelArtifact,
 			}
 
-			result, err := mapCatalogArtifactToCatalogArtifact(catalogArtifact)
+			result, err := mapDBArtifactToAPIArtifact(catalogArtifact)
 			require.NoError(t, err)
 
 			assert.NotNil(t, result.CatalogModelArtifact)
@@ -631,7 +631,7 @@ func TestDBCatalog(t *testing.T) {
 				CatalogMetricsArtifact: &catalogMetricsArtifact,
 			}
 
-			result2, err := mapCatalogArtifactToCatalogArtifact(catalogArtifact2)
+			result2, err := mapDBArtifactToAPIArtifact(catalogArtifact2)
 			require.NoError(t, err)
 
 			assert.Nil(t, result2.CatalogModelArtifact)
@@ -645,7 +645,7 @@ func TestDBCatalog(t *testing.T) {
 			// Test with empty catalog artifact
 			emptyCatalogArtifact := models.CatalogArtifact{}
 
-			_, err := mapCatalogArtifactToCatalogArtifact(emptyCatalogArtifact)
+			_, err := mapDBArtifactToAPIArtifact(emptyCatalogArtifact)
 			require.Error(t, err)
 			assert.Contains(t, err.Error(), "invalid catalog artifact type")
 		})
