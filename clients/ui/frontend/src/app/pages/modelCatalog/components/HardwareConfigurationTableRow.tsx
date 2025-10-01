@@ -4,12 +4,10 @@ import { CatalogPerformanceMetricsArtifact } from '~/app/modelCatalogTypes';
 import {
   formatLatency,
   formatTokenValue,
-  getDoubleValue,
   getHardwareConfiguration,
-  getIntValue,
-  getStringValue,
   getTotalRps,
 } from '~/app/pages/modelCatalog/utils/performanceMetricsUtils';
+import { getDoubleValue, getIntValue, getStringValue } from '~/app/utils';
 import {
   HardwareConfigColumnField,
   hardwareConfigColumns,

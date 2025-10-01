@@ -1,4 +1,10 @@
-import { ModelState, ModelVersion, RegisteredModel } from '~/app/types';
+import {
+  ModelRegistryCustomProperties,
+  ModelRegistryMetadataType,
+  ModelState,
+  ModelVersion,
+  RegisteredModel,
+} from '~/app/types';
 
 export type ObjectStorageFields = {
   endpoint: string;
@@ -79,3 +85,35 @@ export const filterArchiveModels = (registeredModels: RegisteredModel[]): Regist
 
 export const filterLiveModels = (registeredModels: RegisteredModel[]): RegisteredModel[] =>
   registeredModels.filter((rm) => rm.state === ModelState.LIVE);
+
+export const getStringValue = <T extends ModelRegistryCustomProperties>(
+  customProperties: T | undefined,
+  key: keyof T,
+): string => {
+  const prop = customProperties?.[key];
+  if (prop && prop.metadataType === ModelRegistryMetadataType.STRING) {
+    return prop.string_value;
+  }
+  return '-';
+};
+export const getIntValue = <T extends ModelRegistryCustomProperties>(
+  customProperties: T | undefined,
+  key: keyof T,
+): number => {
+  const prop = customProperties?.[key];
+  if (prop && prop.metadataType === ModelRegistryMetadataType.INT) {
+    const value = prop.int_value;
+    return value ? parseInt(value, 10) : 0;
+  }
+  return 0;
+};
+export const getDoubleValue = <T extends ModelRegistryCustomProperties>(
+  customProperties: T | undefined,
+  key: keyof T,
+): number => {
+  const prop = customProperties?.[key];
+  if (prop && prop.metadataType === ModelRegistryMetadataType.DOUBLE) {
+    return prop.double_value;
+  }
+  return 0;
+};
