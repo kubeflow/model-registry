@@ -4,12 +4,10 @@ import {
   PerformanceMetricsCustomProperties,
 } from '~/app/modelCatalogTypes';
 import {
-  getDoubleValue,
   getHardwareConfiguration,
-  getIntValue,
-  getStringValue,
   getTotalRps,
 } from '~/app/pages/modelCatalog/utils/performanceMetricsUtils';
+import { getDoubleValue, getIntValue, getStringValue } from '~/app/utils';
 
 export type HardwareConfigColumnField = keyof PerformanceMetricsCustomProperties | 'total_rps';
 
