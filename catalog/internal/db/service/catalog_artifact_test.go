@@ -66,9 +66,9 @@ func TestCatalogArtifactRepository(t *testing.T) {
 		// Verify it's a model artifact
 		assert.NotNil(t, retrieved.CatalogModelArtifact)
 		assert.Nil(t, retrieved.CatalogMetricsArtifact)
-		assert.Equal(t, "test-model-artifact-getbyid", *(*retrieved.CatalogModelArtifact).GetAttributes().Name)
-		assert.Equal(t, "model-art-getbyid-ext-123", *(*retrieved.CatalogModelArtifact).GetAttributes().ExternalID)
-		assert.Equal(t, "s3://test-bucket/model.bin", *(*retrieved.CatalogModelArtifact).GetAttributes().URI)
+		assert.Equal(t, "test-model-artifact-getbyid", *retrieved.CatalogModelArtifact.GetAttributes().Name)
+		assert.Equal(t, "model-art-getbyid-ext-123", *retrieved.CatalogModelArtifact.GetAttributes().ExternalID)
+		assert.Equal(t, "s3://test-bucket/model.bin", *retrieved.CatalogModelArtifact.GetAttributes().URI)
 	})
 
 	t.Run("GetByID_MetricsArtifact", func(t *testing.T) {
@@ -92,9 +92,9 @@ func TestCatalogArtifactRepository(t *testing.T) {
 		// Verify it's a metrics artifact
 		assert.Nil(t, retrieved.CatalogModelArtifact)
 		assert.NotNil(t, retrieved.CatalogMetricsArtifact)
-		assert.Equal(t, "test-metrics-artifact-getbyid", *(*retrieved.CatalogMetricsArtifact).GetAttributes().Name)
-		assert.Equal(t, "metrics-art-getbyid-ext-123", *(*retrieved.CatalogMetricsArtifact).GetAttributes().ExternalID)
-		assert.Equal(t, models.MetricsTypeAccuracy, (*retrieved.CatalogMetricsArtifact).GetAttributes().MetricsType)
+		assert.Equal(t, "test-metrics-artifact-getbyid", *retrieved.CatalogMetricsArtifact.GetAttributes().Name)
+		assert.Equal(t, "metrics-art-getbyid-ext-123", *retrieved.CatalogMetricsArtifact.GetAttributes().ExternalID)
+		assert.Equal(t, models.MetricsTypeAccuracy, retrieved.CatalogMetricsArtifact.GetAttributes().MetricsType)
 	})
 
 	t.Run("GetByID_NotFound", func(t *testing.T) {
@@ -163,10 +163,10 @@ func TestCatalogArtifactRepository(t *testing.T) {
 		for _, artifact := range result.Items {
 			if artifact.CatalogModelArtifact != nil {
 				modelArtifactCount++
-				artifactIDs[*(*artifact.CatalogModelArtifact).GetID()] = true
+				artifactIDs[*artifact.CatalogModelArtifact.GetID()] = true
 			} else if artifact.CatalogMetricsArtifact != nil {
 				metricsArtifactCount++
-				artifactIDs[*(*artifact.CatalogMetricsArtifact).GetID()] = true
+				artifactIDs[*artifact.CatalogMetricsArtifact.GetID()] = true
 			}
 		}
 
@@ -245,8 +245,8 @@ func TestCatalogArtifactRepository(t *testing.T) {
 		// Verify it's the correct artifact
 		artifact := result.Items[0]
 		assert.NotNil(t, artifact.CatalogMetricsArtifact)
-		assert.Equal(t, *savedArtifact.GetID(), *(*artifact.CatalogMetricsArtifact).GetID())
-		assert.Equal(t, "unique-external-id-123", *(*artifact.CatalogMetricsArtifact).GetAttributes().ExternalID)
+		assert.Equal(t, *savedArtifact.GetID(), *artifact.CatalogMetricsArtifact.GetID())
+		assert.Equal(t, "unique-external-id-123", *artifact.CatalogMetricsArtifact.GetAttributes().ExternalID)
 	})
 
 	t.Run("List_WithPagination", func(t *testing.T) {
@@ -328,11 +328,11 @@ func TestCatalogArtifactRepository(t *testing.T) {
 		require.NoError(t, err)
 
 		// Verify custom properties are preserved
-		assert.NotNil(t, retrieved.CatalogModelArtifact)
-		assert.NotNil(t, (*retrieved.CatalogModelArtifact).GetCustomProperties())
+		require.NotNil(t, retrieved.CatalogModelArtifact)
+		assert.NotNil(t, retrieved.CatalogModelArtifact.GetCustomProperties())
 
 		customPropsMap := make(map[string]string)
-		for _, prop := range *(*retrieved.CatalogModelArtifact).GetCustomProperties() {
+		for _, prop := range *retrieved.CatalogModelArtifact.GetCustomProperties() {
 			if prop.StringValue != nil {
 				customPropsMap[prop.Name] = *prop.StringValue
 			}

@@ -3,6 +3,7 @@ package service
 import (
 	"errors"
 	"fmt"
+	"math"
 
 	"github.com/kubeflow/model-registry/catalog/internal/db/models"
 	"github.com/kubeflow/model-registry/internal/apiutils"
@@ -39,8 +40,46 @@ func NewCatalogModelArtifactRepository(db *gorm.DB, typeID int64) models.Catalog
 	}
 }
 
+func (r *CatalogModelArtifactRepositoryImpl) Save(modelArtifact models.CatalogModelArtifact, parentResourceID *int32) (models.CatalogModelArtifact, error) {
+	config := r.GetConfig()
+	if modelArtifact.GetTypeID() == nil {
+		if config.TypeID > 0 && config.TypeID < math.MaxInt32 {
+			modelArtifact.SetTypeID(int32(config.TypeID))
+		}
+	}
+
+	attr := modelArtifact.GetAttributes()
+	if modelArtifact.GetID() == nil && attr != nil && attr.Name != nil {
+		existing, err := r.lookupModelArtifactByName(*attr.Name)
+		if err != nil {
+			if !errors.Is(err, ErrCatalogModelArtifactNotFound) {
+				return nil, fmt.Errorf("error finding existing model artifact named %s: %w", *attr.Name, err)
+			}
+		} else {
+			modelArtifact.SetID(existing.ID)
+		}
+	}
+
+	return r.GenericRepository.Save(modelArtifact, parentResourceID)
+}
+
 func (r *CatalogModelArtifactRepositoryImpl) List(listOptions models.CatalogModelArtifactListOptions) (*dbmodels.ListWrapper[models.CatalogModelArtifact], error) {
 	return r.GenericRepository.List(&listOptions)
+}
+
+func (r *CatalogModelArtifactRepositoryImpl) lookupModelArtifactByName(name string) (*schema.Artifact, error) {
+	var entity schema.Artifact
+
+	config := r.GetConfig()
+
+	if err := config.DB.Where("name = ? AND type_id = ?", name, config.TypeID).First(&entity).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, fmt.Errorf("%w: %v", config.NotFoundError, err)
+		}
+		return nil, fmt.Errorf("error getting %s by name: %w", config.EntityName, err)
+	}
+
+	return &entity, nil
 }
 
 func applyCatalogModelArtifactListFilters(query *gorm.DB, listOptions *models.CatalogModelArtifactListOptions) *gorm.DB {

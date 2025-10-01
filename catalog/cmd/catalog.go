@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 	"reflect"
@@ -53,7 +54,14 @@ func runCatalogServer(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("error initializing datastore: %v", err)
 	}
 
-	sources, err := catalog.LoadCatalogSources(catalogCfg.ConfigPath)
+	services := service.NewServices(
+		getRepo[models.CatalogModelRepository](repoSet),
+		getRepo[models.CatalogArtifactRepository](repoSet),
+		getRepo[models.CatalogModelArtifactRepository](repoSet),
+		getRepo[models.CatalogMetricsArtifactRepository](repoSet),
+	)
+
+	sources, err := catalog.LoadCatalogSources(context.Background(), services, catalogCfg.ConfigPath)
 	if err != nil {
 		return fmt.Errorf("error loading catalog sources: %v", err)
 	}

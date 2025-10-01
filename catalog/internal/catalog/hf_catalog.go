@@ -18,7 +18,7 @@ type hfCatalogImpl struct {
 	baseURL string
 }
 
-var _ CatalogSourceProvider = &hfCatalogImpl{}
+var _ APIProvider = &hfCatalogImpl{}
 
 const (
 	defaultHuggingFaceURL = "https://huggingface.co"
@@ -82,7 +82,7 @@ func (h *hfCatalogImpl) validateCredentials(ctx context.Context) error {
 }
 
 // newHfCatalog creates a new HuggingFace catalog source
-func newHfCatalog(source *CatalogSourceConfig, reldir string) (CatalogSourceProvider, error) {
+func newHfCatalog(source *Source, reldir string) (APIProvider, error) {
 	apiKey, ok := source.Properties["apiKey"].(string)
 	if !ok || apiKey == "" {
 		return nil, fmt.Errorf("missing or invalid 'apiKey' property for HuggingFace catalog")
@@ -116,10 +116,4 @@ func newHfCatalog(source *CatalogSourceConfig, reldir string) (CatalogSourceProv
 
 	glog.Infof("HuggingFace catalog source configured successfully")
 	return h, nil
-}
-
-func init() {
-	if err := RegisterCatalogType("hf", newHfCatalog); err != nil {
-		panic(err)
-	}
 }

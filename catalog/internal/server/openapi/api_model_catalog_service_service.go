@@ -20,7 +20,7 @@ import (
 // This service should implement the business logic for every endpoint for the ModelCatalogServiceAPI s.coreApi.
 // Include any external packages or services that will be required by this service.
 type ModelCatalogServiceAPIService struct {
-	provider catalog.CatalogSourceProvider
+	provider catalog.APIProvider
 	sources  *catalog.SourceCollection
 }
 
@@ -137,11 +137,11 @@ func (m *ModelCatalogServiceAPIService) FindSources(ctx context.Context, name st
 	name = strings.ToLower(name)
 
 	for _, v := range sources {
-		if !strings.Contains(strings.ToLower(v.Metadata.Name), name) {
+		if !strings.Contains(strings.ToLower(v.Name), name) {
 			continue
 		}
 
-		items = append(items, v.Metadata)
+		items = append(items, v)
 	}
 
 	cmpFunc, err := genCatalogCmpFunc(orderBy, sortOrder)
@@ -191,7 +191,7 @@ func genCatalogCmpFunc(orderBy model.OrderByField, sortOrder model.SortOrder) (f
 var _ ModelCatalogServiceAPIServicer = &ModelCatalogServiceAPIService{}
 
 // NewModelCatalogServiceAPIService creates a default api service
-func NewModelCatalogServiceAPIService(provider catalog.CatalogSourceProvider, sources *catalog.SourceCollection) ModelCatalogServiceAPIServicer {
+func NewModelCatalogServiceAPIService(provider catalog.APIProvider, sources *catalog.SourceCollection) ModelCatalogServiceAPIServicer {
 	return &ModelCatalogServiceAPIService{
 		provider: provider,
 		sources:  sources,

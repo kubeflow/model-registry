@@ -11,7 +11,7 @@ import (
 )
 
 func TestNewHfCatalog_MissingAPIKey(t *testing.T) {
-	source := &CatalogSourceConfig{
+	source := &Source{
 		CatalogSource: openapi.CatalogSource{
 			Id:   "test_hf",
 			Name: "Test HF",
@@ -52,7 +52,7 @@ func TestNewHfCatalog_WithValidCredentials(t *testing.T) {
 	}))
 	defer server.Close()
 
-	source := &CatalogSourceConfig{
+	source := &Source{
 		CatalogSource: openapi.CatalogSource{
 			Id:   "test_hf",
 			Name: "Test HF",
@@ -118,7 +118,7 @@ func TestNewHfCatalog_InvalidCredentials(t *testing.T) {
 	}))
 	defer server.Close()
 
-	source := &CatalogSourceConfig{
+	source := &Source{
 		CatalogSource: openapi.CatalogSource{
 			Id:   "test_hf",
 			Name: "Test HF",
@@ -147,7 +147,7 @@ func TestNewHfCatalog_DefaultConfiguration(t *testing.T) {
 	}))
 	defer server.Close()
 
-	source := &CatalogSourceConfig{
+	source := &Source{
 		CatalogSource: openapi.CatalogSource{
 			Id:   "test_hf",
 			Name: "Test HF",

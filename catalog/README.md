@@ -122,7 +122,7 @@ type CatalogSourceProvider interface {
 
 2. Register your provider:
 ```go
-catalog.RegisterCatalogType("my-catalog", func(source *CatalogSourceConfig) (CatalogSourceProvider, error) {
+catalog.RegisterCatalogType("my-catalog", func(source *Source) (CatalogSourceProvider, error) {
     return NewMyCatalogProvider(source)
 })
 ```

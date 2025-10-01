@@ -1,6 +1,7 @@
 package service
 
 import (
+	"github.com/kubeflow/model-registry/catalog/internal/db/models"
 	"github.com/kubeflow/model-registry/internal/datastore"
 )
 
@@ -21,10 +22,10 @@ func DatastoreSpec() *datastore.Spec {
 			AddString("library_name").
 			AddString("license_link").
 			AddString("license").
-			AddString("logo").
+			AddStruct("logo").
 			AddString("maturity").
 			AddString("provider").
-			AddString("readme").
+			AddStruct("readme").
 			AddStruct("tasks"),
 		).
 		AddArtifact(CatalogModelArtifactTypeName, datastore.NewSpecType(NewCatalogModelArtifactRepository).
@@ -34,4 +35,25 @@ func DatastoreSpec() *datastore.Spec {
 			AddString("metricsType"),
 		).
 		AddOther(NewCatalogArtifactRepository)
+}
+
+type Services struct {
+	CatalogModelRepository           models.CatalogModelRepository
+	CatalogArtifactRepository        models.CatalogArtifactRepository
+	CatalogModelArtifactRepository   models.CatalogModelArtifactRepository
+	CatalogMetricsArtifactRepository models.CatalogMetricsArtifactRepository
+}
+
+func NewServices(
+	catalogModelRepository models.CatalogModelRepository,
+	catalogArtifactRepository models.CatalogArtifactRepository,
+	catalogModelArtifactRepository models.CatalogModelArtifactRepository,
+	catalogMetricsArtifactRepository models.CatalogMetricsArtifactRepository,
+) Services {
+	return Services{
+		CatalogModelRepository:           catalogModelRepository,
+		CatalogArtifactRepository:        catalogArtifactRepository,
+		CatalogModelArtifactRepository:   catalogModelArtifactRepository,
+		CatalogMetricsArtifactRepository: catalogMetricsArtifactRepository,
+	}
 }
