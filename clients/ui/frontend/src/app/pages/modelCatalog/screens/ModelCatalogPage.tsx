@@ -14,7 +14,7 @@ import { useCatalogModelsBySources } from '~/app/hooks/modelCatalog/useCatalogMo
 import { CatalogModel } from '~/app/modelCatalogTypes';
 import ModelCatalogCard from '~/app/pages/modelCatalog/components/ModelCatalogCard';
 import EmptyModelCatalogState from '~/app/pages/modelCatalog/EmptyModelCatalogState';
-import { filterModelCatalogModels } from '../utils/modelCatalogUtils';
+import { filterModelCatalogModels } from '~/app/pages/modelCatalog/utils/modelCatalogUtils';
 
 type ModelCatalogPageProps = {
   searchTerm: string;
