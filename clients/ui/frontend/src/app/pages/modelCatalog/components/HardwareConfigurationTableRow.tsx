@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { Th, Td, Tr } from '@patternfly/react-table';
+import { Td, Tr } from '@patternfly/react-table';
 import { CatalogPerformanceMetricsArtifact } from '~/app/modelCatalogTypes';
 import {
   formatLatency,
