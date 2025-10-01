@@ -971,15 +971,15 @@ zstd = ["zstandard (>=0.18.0)"]
 
 [[package]]
 name = "huggingface-hub"
-version = "0.35.2"
+version = "0.35.3"
 description = "Client library to download and publish models, datasets and other repos on the huggingface.co hub"
 optional = true
 python-versions = ">=3.8.0"
 groups = ["main"]
 markers = "extra == \"hf\""
 files = [
-    {file = "huggingface_hub-0.35.2-py3-none-any.whl", hash = "sha256:dc6106e45b7744048d3bb315baa48f7b94b66167b2a5bb3175920038da2d5ca7"},
-    {file = "huggingface_hub-0.35.2.tar.gz", hash = "sha256:3a5c03aa272f267a6892e701e5ef1bb2d0d46a487550fda978b5255bcd52f376"},
+    {file = "huggingface_hub-0.35.3-py3-none-any.whl", hash = "sha256:0e3a01829c19d86d03793e4577816fe3bdfc1602ac62c7fb220d593d351224ba"},
+    {file = "huggingface_hub-0.35.3.tar.gz", hash = "sha256:350932eaa5cc6a4747efae85126ee220e4ef1b54e29d31c3b45c5612ddf0b32a"},
 ]
 
 [package.dependencies]
