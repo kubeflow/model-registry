@@ -177,11 +177,9 @@ func (r *CatalogArtifactRepositoryImpl) mapDataLayerToCatalogArtifact(artifact s
 
 	switch typeName {
 	case CatalogModelArtifactTypeName:
-		modelArtifact := mapDataLayerToCatalogModelArtifact(artifact, properties)
-		artToReturn.CatalogModelArtifact = &modelArtifact
+		artToReturn.CatalogModelArtifact = mapDataLayerToCatalogModelArtifact(artifact, properties)
 	case CatalogMetricsArtifactTypeName:
-		metricsArtifact := mapDataLayerToCatalogMetricsArtifact(artifact, properties)
-		artToReturn.CatalogMetricsArtifact = &metricsArtifact
+		artToReturn.CatalogMetricsArtifact = mapDataLayerToCatalogMetricsArtifact(artifact, properties)
 	default:
 		return models.CatalogArtifact{}, fmt.Errorf("invalid catalog artifact type: %s=%d (expected: %v)", typeName, artifact.TypeID, r.idToName)
 	}
@@ -214,4 +212,13 @@ func (r *CatalogArtifactRepositoryImpl) createPaginationToken(artifact schema.Ar
 	}
 
 	return scopes.CreateNextPageToken(artifact.ID, value)
+}
+
+func (r *CatalogArtifactRepositoryImpl) DeleteByParentID(artifactTypeName string, parentResourceID int32) error {
+	typeID, ok := r.nameToID[artifactTypeName]
+	if !ok {
+		return fmt.Errorf("unknown artifact type name: %s", artifactTypeName)
+	}
+
+	return r.db.Exec(`DELETE FROM "Artifact" WHERE id IN (SELECT artifact_id from "Attribution" INNER JOIN "Artifact" artifact ON artifact.id=artifact_id where context_id=? and type_id=?)`, parentResourceID, typeID).Error
 }
