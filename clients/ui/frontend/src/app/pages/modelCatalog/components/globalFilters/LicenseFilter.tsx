@@ -7,13 +7,14 @@ import {
 } from '~/concepts/modelCatalog/const';
 import {
   CatalogFilterOptionsList,
+  ModelCatalogFilterTypesByKey,
   ModelCatalogLicensesFilterStateType,
 } from '~/app/modelCatalogTypes';
 
 const filterKey = ModelCatalogFilterKeys.LICENSE;
 
 type LicenseFilterProps = {
-  filters?: CatalogFilterOptionsList['filters'];
+  filters?: Extract<CatalogFilterOptionsList['filters'], Partial<ModelCatalogFilterTypesByKey>>;
 };
 
 const LicenseFilter: React.FC<LicenseFilterProps> = ({ filters }) => {

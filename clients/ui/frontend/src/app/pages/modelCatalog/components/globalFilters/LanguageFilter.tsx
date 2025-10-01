@@ -9,6 +9,7 @@ import {
 } from '~/concepts/modelCatalog/const';
 import {
   CatalogFilterOptionsList,
+  ModelCatalogFilterTypesByKey,
   ModelCatalogLanguagesFilterStateType,
 } from '~/app/modelCatalogTypes';
 
@@ -21,7 +22,7 @@ const LANGUAGE_NAME_MAPPING = {
 };
 
 type LanguageFilterProps = {
-  filters?: CatalogFilterOptionsList['filters'];
+  filters?: Extract<CatalogFilterOptionsList['filters'], Partial<ModelCatalogFilterTypesByKey>>;
 };
 
 const LanguageFilter: React.FC<LanguageFilterProps> = ({ filters }) => {

@@ -150,8 +150,12 @@ export type CatalogFilterStringOption<T> = {
   values: T[];
 };
 
+export type CatalogFilterOptions =
+  | Partial<ModelCatalogFilterTypesByKey>
+  | CatalogFilterNumberOption;
+
 export type CatalogFilterOptionsList = {
-  filters: Partial<ModelCatalogFilterTypesByKey>;
+  filters: CatalogFilterOptions;
 };
 
 export type GetCatalogModelsBySource = (
@@ -203,7 +207,7 @@ export type ModelCatalogFilterTypesByKey = {
 };
 
 export type ModelCatalogFilterState<K extends ModelCatalogFilterKeys> = Partial<
-  Record<ModelCatalogFilterTypesByKey[K]['values'][number], boolean>
+  Record<FilterValue<K>, boolean>
 >;
 
 export type ModelCatalogTasksFilterStateType = ModelCatalogFilterState<ModelCatalogFilterKeys.TASK>;

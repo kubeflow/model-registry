@@ -7,13 +7,14 @@ import {
 } from '~/concepts/modelCatalog/const';
 import {
   CatalogFilterOptionsList,
+  ModelCatalogFilterTypesByKey,
   ModelCatalogProvidersFilterStateType,
 } from '~/app/modelCatalogTypes';
 
 const filterKey = ModelCatalogFilterKeys.PROVIDER;
 
 type ProviderFilterProps = {
-  filters?: CatalogFilterOptionsList['filters'];
+  filters?: Extract<CatalogFilterOptionsList['filters'], Partial<ModelCatalogFilterTypesByKey>>;
 };
 
 const ProviderFilter: React.FC<ProviderFilterProps> = ({ filters }) => {

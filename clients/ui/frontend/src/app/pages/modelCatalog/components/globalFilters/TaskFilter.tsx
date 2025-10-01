@@ -7,13 +7,14 @@ import {
 } from '~/concepts/modelCatalog/const';
 import {
   CatalogFilterOptionsList,
+  ModelCatalogFilterTypesByKey,
   ModelCatalogTasksFilterStateType,
 } from '~/app/modelCatalogTypes';
 
 const filterKey = ModelCatalogFilterKeys.TASK;
 
 type TaskFilterProps = {
-  filters?: CatalogFilterOptionsList['filters'];
+  filters?: Extract<CatalogFilterOptionsList['filters'], Partial<ModelCatalogFilterTypesByKey>>;
 };
 
 const TaskFilter: React.FC<TaskFilterProps> = ({ filters }) => {
