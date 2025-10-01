@@ -15,8 +15,6 @@ jobs:
           go-version: "1.24"
       - name: Prepare
         run: make clean build/prepare
-      - name: Update go.work.sum file
-        run: make update/worksum
       - name: Check if there are uncommitted file changes
         run: |
           clean=$(git status --porcelain)
