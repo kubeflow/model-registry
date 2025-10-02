@@ -28,6 +28,7 @@ const (
 	Version = "1.0.0"
 
 	PathPrefix                    = "/model-registry"
+	PathPrefixCatalog             = "/model-catalog"
 	ApiPathPrefix                 = "/api/v1"
 	ModelRegistryId               = "model_registry_id"
 	RegisteredModelId             = "registered_model_id"
@@ -272,23 +273,42 @@ func (app *App) Routes() http.Handler {
 	// handler for api calls
 	appMux.Handle(ApiPathPrefix+"/", apiRouter)
 	appMux.Handle(PathPrefix+ApiPathPrefix+"/", http.StripPrefix(PathPrefix, apiRouter))
+	appMux.Handle(PathPrefixCatalog+ApiPathPrefix+"/", http.StripPrefix(PathPrefixCatalog, apiRouter))
 
 	// file server for the frontend file and SPA routes
 	staticDir := http.Dir(app.config.StaticAssetsDir)
-	fileServer := http.FileServer(staticDir)
-	appMux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+
+	// Helper function to serve static files or fallback to index.html
+	serveStaticOrIndex := func(w http.ResponseWriter, r *http.Request, urlPath string) {
 		ctxLogger := helper.GetContextLoggerFromReq(r)
 		// Check if the requested file exists
-		if _, err := staticDir.Open(r.URL.Path); err == nil {
-			ctxLogger.Debug("Serving static file", slog.String("path", r.URL.Path))
+		if _, err := staticDir.Open(urlPath); err == nil {
+			ctxLogger.Debug("Serving static file", slog.String("path", urlPath))
 			// Serve the file if it exists
-			fileServer.ServeHTTP(w, r)
+			http.ServeFile(w, r, path.Join(app.config.StaticAssetsDir, urlPath))
 			return
 		}
 
 		// Fallback to index.html for SPA routes
-		ctxLogger.Debug("Static asset not found, serving index.html", slog.String("path", r.URL.Path))
+		ctxLogger.Debug("Static asset not found, serving index.html", slog.String("path", urlPath))
 		http.ServeFile(w, r, path.Join(app.config.StaticAssetsDir, "index.html"))
+	}
+
+	// Serve static files from /model-registry prefix
+	appMux.HandleFunc(PathPrefix+"/", func(w http.ResponseWriter, r *http.Request) {
+		urlPath := strings.TrimPrefix(r.URL.Path, PathPrefix)
+		serveStaticOrIndex(w, r, urlPath)
+	})
+
+	// Serve static files from /model-catalog prefix
+	appMux.HandleFunc(PathPrefixCatalog+"/", func(w http.ResponseWriter, r *http.Request) {
+		urlPath := strings.TrimPrefix(r.URL.Path, PathPrefixCatalog)
+		serveStaticOrIndex(w, r, urlPath)
+	})
+
+	// Serve static files from root (fallback for unprefixed access)
+	appMux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		serveStaticOrIndex(w, r, r.URL.Path)
 	})
 
 	// Create a mux for the healthcheck endpoint

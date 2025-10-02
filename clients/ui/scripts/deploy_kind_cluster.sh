@@ -26,7 +26,8 @@ else
 fi
 # Step 3: Deploy Model Registry to cluster
 echo "Deploying Model Registry to cluster..."
-kubectl apply -k "https://github.com/kubeflow/model-registry/manifests/kustomize/overlays/db"
+pushd  ../../manifests/kustomize/overlays/db
+kubectl apply -n kubeflow -k .
 
 # Wait for deployment to be available
 echo "Waiting for Model Registry deployment to be available..."
@@ -36,9 +37,22 @@ kubectl wait --for=condition=available -n kubeflow deployment/model-registry-dep
 echo "Verifying deployment..."
 kubectl get pods -n kubeflow
 
+# Step 3.5: Deploy Model Catalog to cluster
+echo "Deploying Model Registry Catalog to cluster..."
+pushd  ../../options/catalog/base
+kubectl apply -n kubeflow -k .
+
+# Wait for deployment to be available
+echo "Waiting for Model Registry Catalog deployment to be available..."
+kubectl wait --for=condition=available -n kubeflow deployment/model-registry-catalog-deployment --timeout=1m
+
+# Verify deployment
+echo "Verifying catalog deployment..."
+kubectl get pods -n kubeflow
+
 # Step 4: Deploy model registry UI
 echo "Editing kustomize image..."
-pushd  ../../manifests/kustomize/options/ui/base
+pushd  ../../ui/base
 kustomize edit set image model-registry-ui=${IMG_UI_STANDALONE}
 
 pushd  ../overlays/standalone
