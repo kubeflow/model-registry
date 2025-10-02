@@ -20,6 +20,7 @@ const ModelCatalogLabels: React.FC<ModelCatalogLabelsProps> = ({
         {task}
       </Label>
     ))}
+    {provider && <Label isCompact>{provider}</Label>}
     {labels.map((label) => (
       <Label data-testid="model-catalog-label" key={label} variant="outline">
         {label}
@@ -30,7 +31,6 @@ const ModelCatalogLabels: React.FC<ModelCatalogLabelsProps> = ({
         {license}
       </Label>
     )}
-    {provider && <Label isCompact>{provider}</Label>}
   </LabelGroup>
 );
 
