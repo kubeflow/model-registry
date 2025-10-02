@@ -22,7 +22,7 @@ type CatalogMetricsArtifact struct {
 
 type CatalogArtifact struct {
 	ArtifactType             string                            `json:"artifactType"`
-	MetricsType              *string                           `json:"metricsType"`
+	MetricsType              *string                           `json:"metricsType,omitempty"`
 	Uri                      *string                           `json:"uri,omitempty"`
 	CreateTimeSinceEpoch     *string                           `json:"createTimeSinceEpoch,omitempty"`
 	CustomProperties         *map[string]openapi.MetadataValue `json:"customProperties,omitempty"`

@@ -147,15 +147,17 @@ describe('Model Catalog Details Tabs', () => {
     });
 
     describe('Tab Content', () => {
-      it('should display placeholder content in Performance Insights tab', () => {
+      it('should display Hardware Configuration content in Performance Insights tab', () => {
         modelCatalog.findModelCatalogDetailLink().first().click();
 
         // Switch to Performance Insights tab
         modelCatalog.clickPerformanceInsightsTab();
 
-        // Verify placeholder content
+        // Verify Hardware Configuration content is displayed
         modelCatalog.findPerformanceInsightsTabContent().should('be.visible');
-        cy.contains('Performance Insights - Coming Soon').should('be.visible');
+        modelCatalog.findHardwareConfigurationTitle().should('be.visible');
+        modelCatalog.findHardwareConfigurationDescription().should('be.visible');
+        modelCatalog.findHardwareConfigurationTable().should('be.visible');
       });
     });
 

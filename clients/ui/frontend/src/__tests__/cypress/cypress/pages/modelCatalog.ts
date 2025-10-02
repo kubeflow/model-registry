@@ -125,6 +125,45 @@ class ModelCatalog {
     this.findPerformanceInsightsTab().click();
     return this;
   }
+
+  // Hardware Configuration functionality
+  findHardwareConfigurationTitle() {
+    return cy.contains('Hardware Configuration');
+  }
+
+  findHardwareConfigurationDescription() {
+    return cy.contains(
+      'Compare the performance metrics of hardware configuration to determine the most suitable option for deployment.',
+    );
+  }
+
+  findHardwareConfigurationTable() {
+    return cy.findByTestId('hardware-configuration-table');
+  }
+
+  findHardwareConfigurationTableHeaders() {
+    return cy.get('[data-testid="hardware-configuration-table"] thead th');
+  }
+
+  findHardwareConfigurationTableRows() {
+    return cy.get('[data-testid="hardware-configuration-table"] tbody tr');
+  }
+
+  findHardwareConfigurationTableData() {
+    return cy.get('[data-testid="hardware-configuration-table"] tbody td');
+  }
+
+  findHardwareConfigurationColumn(columnName: string) {
+    return cy.get(`[data-testid="hardware-configuration-table"] [data-label="${columnName}"]`);
+  }
+
+  findHardwareConfigurationSortButton(columnName: string) {
+    return cy.get(`[data-testid="hardware-configuration-table"] th`).contains(columnName);
+  }
+
+  findHardwareConfigurationPagination() {
+    return cy.get('[data-testid="hardware-configuration-table"] .pf-v6-c-pagination');
+  }
 }
 
 export const modelCatalog = new ModelCatalog();
