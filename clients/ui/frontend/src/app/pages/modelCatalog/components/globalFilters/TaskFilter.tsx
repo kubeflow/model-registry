@@ -1,15 +1,15 @@
 import * as React from 'react';
 import ModelCatalogStringFilter from '~/app/pages/modelCatalog/components/ModelCatalogStringFilter';
 import {
-  ModelCatalogFilterKeys,
+  ModelCatalogFilterKey,
   MODEL_CATALOG_TASK_NAME_MAPPING,
 } from '~/concepts/modelCatalog/const';
-import { CatalogFilterOptionsList, ModelCatalogFilterTypesByKey } from '~/app/modelCatalogTypes';
+import { CatalogFilterOptionsList, GlobalFilterTypes } from '~/app/modelCatalogTypes';
 
-const filterKey = ModelCatalogFilterKeys.TASK;
+const filterKey = ModelCatalogFilterKey.TASK;
 
 type TaskFilterProps = {
-  filters?: Extract<CatalogFilterOptionsList['filters'], Partial<ModelCatalogFilterTypesByKey>>;
+  filters?: Extract<CatalogFilterOptionsList['filters'], Partial<GlobalFilterTypes>>;
 };
 
 const TaskFilter: React.FC<TaskFilterProps> = ({ filters }) => {
@@ -19,7 +19,7 @@ const TaskFilter: React.FC<TaskFilterProps> = ({ filters }) => {
   }
 
   return (
-    <ModelCatalogStringFilter<ModelCatalogFilterKeys.TASK>
+    <ModelCatalogStringFilter<ModelCatalogFilterKey.TASK>
       title="Task"
       filterKey={filterKey}
       filterToNameMapping={MODEL_CATALOG_TASK_NAME_MAPPING}

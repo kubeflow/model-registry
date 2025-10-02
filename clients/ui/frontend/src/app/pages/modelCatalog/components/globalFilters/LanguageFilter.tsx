@@ -1,14 +1,14 @@
 import * as React from 'react';
 import ModelCatalogStringFilter from '~/app/pages/modelCatalog/components/ModelCatalogStringFilter';
 import {
-  ModelCatalogFilterKeys,
+  ModelCatalogFilterKey,
   MODEL_CATALOG_ASIAN_LANGUAGES_DETAILS,
   MODEL_CATALOG_EUROPEAN_LANGUAGES_DETAILS,
   MODEL_CATALOG_MIDDLE_EASTERN_AND_OTHER_LANGUAGES_DETAILS,
 } from '~/concepts/modelCatalog/const';
-import { CatalogFilterOptionsList, ModelCatalogFilterTypesByKey } from '~/app/modelCatalogTypes';
+import { CatalogFilterOptionsList, GlobalFilterTypes } from '~/app/modelCatalogTypes';
 
-const filterKey = ModelCatalogFilterKeys.LANGUAGE;
+const filterKey = ModelCatalogFilterKey.LANGUAGE;
 
 const LANGUAGE_NAME_MAPPING = {
   ...MODEL_CATALOG_EUROPEAN_LANGUAGES_DETAILS,
@@ -17,7 +17,7 @@ const LANGUAGE_NAME_MAPPING = {
 };
 
 type LanguageFilterProps = {
-  filters?: Extract<CatalogFilterOptionsList['filters'], Partial<ModelCatalogFilterTypesByKey>>;
+  filters?: Extract<CatalogFilterOptionsList['filters'], Partial<GlobalFilterTypes>>;
 };
 
 const LanguageFilter: React.FC<LanguageFilterProps> = ({ filters }) => {
@@ -28,7 +28,7 @@ const LanguageFilter: React.FC<LanguageFilterProps> = ({ filters }) => {
   }
 
   return (
-    <ModelCatalogStringFilter<ModelCatalogFilterKeys.LANGUAGE>
+    <ModelCatalogStringFilter<ModelCatalogFilterKey.LANGUAGE>
       title="Language"
       filterKey={filterKey}
       filterToNameMapping={LANGUAGE_NAME_MAPPING}

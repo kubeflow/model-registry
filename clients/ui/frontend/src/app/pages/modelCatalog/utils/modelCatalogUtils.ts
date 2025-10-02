@@ -4,10 +4,8 @@ import {
   CatalogModel,
   CatalogModelDetailsParams,
   CatalogSourceList,
-  ModelCatalogFilterDataType,
 } from '~/app/modelCatalogTypes';
 import { getLabels } from '~/app/pages/modelRegistry/screens/utils';
-import { ModelCatalogFilterKeys } from '~/concepts/modelCatalog/const';
 
 export const extractVersionTag = (tags?: string[]): string | undefined =>
   tags?.find((tag) => /^\d+\.\d+\.\d+$/.test(tag));
@@ -78,46 +76,3 @@ export const isModelValidated = (model: CatalogModel): boolean => {
   const labels = getLabels(model.customProperties);
   return labels.includes('validated');
 };
-
-export const filterModelCatalogModels = (
-  models: CatalogModel[],
-  filterData: ModelCatalogFilterDataType,
-): CatalogModel[] =>
-  models.filter((model) =>
-    Object.entries(filterData).every(([filterKey, filterState]) => {
-      const activeFilters = Object.entries(filterState).filter(([, isActive]) => isActive);
-
-      if (activeFilters.length === 0) {
-        return true;
-      }
-
-      let modelValue: string | string[] | undefined;
-      switch (filterKey) {
-        case ModelCatalogFilterKeys.TASK:
-          modelValue = model.tasks;
-          break;
-        case ModelCatalogFilterKeys.LANGUAGE:
-          modelValue = model.language;
-          break;
-        case ModelCatalogFilterKeys.PROVIDER:
-          modelValue = model.provider;
-          break;
-        case ModelCatalogFilterKeys.LICENSE:
-          modelValue = model.license;
-          break;
-        default:
-          return true;
-      }
-
-      if (!modelValue) {
-        return false;
-      }
-
-      return activeFilters.every(([filterValue]) => {
-        if (Array.isArray(modelValue)) {
-          return modelValue.includes(filterValue);
-        }
-        return modelValue === filterValue;
-      });
-    }),
-  );

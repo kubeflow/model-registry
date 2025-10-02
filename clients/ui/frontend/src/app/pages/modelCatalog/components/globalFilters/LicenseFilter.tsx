@@ -1,15 +1,15 @@
 import * as React from 'react';
 import ModelCatalogStringFilter from '~/app/pages/modelCatalog/components/ModelCatalogStringFilter';
 import {
-  ModelCatalogFilterKeys,
+  ModelCatalogFilterKey,
   MODEL_CATALOG_LICENSE_NAME_MAPPING,
 } from '~/concepts/modelCatalog/const';
-import { CatalogFilterOptionsList, ModelCatalogFilterTypesByKey } from '~/app/modelCatalogTypes';
+import { CatalogFilterOptionsList, GlobalFilterTypes } from '~/app/modelCatalogTypes';
 
-const filterKey = ModelCatalogFilterKeys.LICENSE;
+const filterKey = ModelCatalogFilterKey.LICENSE;
 
 type LicenseFilterProps = {
-  filters?: Extract<CatalogFilterOptionsList['filters'], Partial<ModelCatalogFilterTypesByKey>>;
+  filters?: Extract<CatalogFilterOptionsList['filters'], Partial<GlobalFilterTypes>>;
 };
 
 const LicenseFilter: React.FC<LicenseFilterProps> = ({ filters }) => {
@@ -20,7 +20,7 @@ const LicenseFilter: React.FC<LicenseFilterProps> = ({ filters }) => {
   }
 
   return (
-    <ModelCatalogStringFilter<ModelCatalogFilterKeys.LICENSE>
+    <ModelCatalogStringFilter<ModelCatalogFilterKey.LICENSE>
       title="License"
       filterKey={filterKey}
       filterToNameMapping={MODEL_CATALOG_LICENSE_NAME_MAPPING}

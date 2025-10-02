@@ -1,19 +1,23 @@
 import { Button, Checkbox, Content, ContentVariants, SearchInput } from '@patternfly/react-core';
 import * as React from 'react';
-import { ModelCatalogFilterTypesByKey, FilterValue } from '~/app/modelCatalogTypes';
-import { ModelCatalogFilterKeys } from '~/concepts/modelCatalog/const';
+import {
+  ModelCatalogFilterStates,
+  GlobalFilterTypes,
+  StringFilterValue,
+} from '~/app/modelCatalogTypes';
+import { ModelCatalogFilterKey } from '~/concepts/modelCatalog/const';
 import { ModelCatalogContext } from '~/app/context/modelCatalog/ModelCatalogContext';
 
 const MAX_VISIBLE_FILTERS = 5;
 
-type ModelCatalogStringFilterProps<K extends ModelCatalogFilterKeys> = {
+type ModelCatalogStringFilterProps<K extends ModelCatalogFilterKey> = {
   title: string;
   filterKey: K;
-  filterToNameMapping: Partial<Record<FilterValue<K>, string>>;
-  filters: ModelCatalogFilterTypesByKey[K];
+  filterToNameMapping: Partial<Record<StringFilterValue<K>, string>>;
+  filters: GlobalFilterTypes[K];
 };
 
-const ModelCatalogStringFilter = <K extends ModelCatalogFilterKeys>({
+const ModelCatalogStringFilter = <K extends ModelCatalogFilterKey>({
   title,
   filterKey,
   filterToNameMapping,
@@ -21,36 +25,47 @@ const ModelCatalogStringFilter = <K extends ModelCatalogFilterKeys>({
 }: ModelCatalogStringFilterProps<K>): JSX.Element => {
   const [showMore, setShowMore] = React.useState(false);
   const [searchValue, setSearchValue] = React.useState('');
-  const [filteredValues, setFilteredValues] = React.useState<FilterValue<K>[]>(filters.values);
   const { filterData, setFilterData } = React.useContext(ModelCatalogContext);
 
   const getLabel = React.useCallback(
-    (value: FilterValue<K>) => filterToNameMapping[value] ?? value,
+    (value: StringFilterValue<K>) => filterToNameMapping[value] ?? value,
     [filterToNameMapping],
+  );
+
+  const valuesMatchingSearch = React.useMemo(
+    () =>
+      filters.values.filter((value) => {
+        const label = getLabel(value).toLowerCase();
+        return (
+          value.toLowerCase().includes(searchValue.trim().toLowerCase()) ||
+          label.includes(searchValue.trim().toLowerCase())
+        );
+      }),
+    [filters.values, getLabel, searchValue],
   );
 
   const onSearchChange = (newValue: string) => {
     setSearchValue(newValue);
-    const lowerCaseValue = newValue.trim().toLowerCase();
-    setFilteredValues(
-      filters.values.filter((value) => {
-        const label = getLabel(value).toLowerCase();
-        return value.toLowerCase().includes(lowerCaseValue) || label.includes(lowerCaseValue);
-      }),
-    );
   };
 
-  const onToggle = (checkbox: FilterValue<K>, checked: boolean) => {
-    const nextState: Partial<Record<FilterValue<K>, boolean>> = {
-      ...(filterData[filterKey] ?? {}),
-      [checkbox]: checked,
-    };
-    setFilterData(filterKey, nextState);
+  const onToggle = (checkbox: StringFilterValue<K>, checked: boolean) => {
+    const currentState = filterData[filterKey];
+    const nextState: StringFilterValue<K>[] = checked
+      ? [...currentState, checkbox]
+      : currentState.filter((item) => item !== checkbox);
+    // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
+    setFilterData(filterKey, nextState as ModelCatalogFilterStates[K]);
   };
 
-  const isChecked = (value: FilterValue<K>) => filterData[filterKey]?.[value] || false;
+  const isChecked = (value: StringFilterValue<K>) => {
+    // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
+    const currentValues = filterData[filterKey] as StringFilterValue<K>[];
+    return currentValues.includes(value);
+  };
 
-  const visibleValues = showMore ? filteredValues : filteredValues.slice(0, MAX_VISIBLE_FILTERS);
+  const visibleValues = showMore
+    ? valuesMatchingSearch
+    : valuesMatchingSearch.slice(0, MAX_VISIBLE_FILTERS);
 
   return (
     <Content data-testid={`${title}-filter`}>
@@ -74,7 +89,7 @@ const ModelCatalogStringFilter = <K extends ModelCatalogFilterKeys>({
           onChange={(_, checked) => onToggle(checkbox, checked)}
         />
       ))}
-      {!showMore && filteredValues.length > MAX_VISIBLE_FILTERS && (
+      {!showMore && valuesMatchingSearch.length > MAX_VISIBLE_FILTERS && (
         <Button
           variant="link"
           onClick={() => setShowMore(true)}
@@ -83,7 +98,7 @@ const ModelCatalogStringFilter = <K extends ModelCatalogFilterKeys>({
           Show more
         </Button>
       )}
-      {showMore && filteredValues.length > MAX_VISIBLE_FILTERS && (
+      {showMore && valuesMatchingSearch.length > MAX_VISIBLE_FILTERS && (
         <Button
           variant="link"
           onClick={() => setShowMore(false)}

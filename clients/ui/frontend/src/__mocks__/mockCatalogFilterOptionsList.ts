@@ -1,54 +1,54 @@
 import { CatalogFilterOptionsList } from '~/app/modelCatalogTypes';
 import {
-  ModelCatalogFilterKeys,
-  ModelCatalogLicenses,
-  ModelCatalogProviders,
-  ModelCatalogTasks,
-  AllLanguageCodes,
+  ModelCatalogFilterKey,
+  ModelCatalogLicense,
+  ModelCatalogProvider,
+  ModelCatalogTask,
+  AllLanguageCode,
 } from '~/concepts/modelCatalog/const';
 
 export const mockCatalogFilterOptionsList = (
   partial?: Partial<CatalogFilterOptionsList>,
 ): CatalogFilterOptionsList => ({
   filters: {
-    [ModelCatalogFilterKeys.PROVIDER]: {
+    [ModelCatalogFilterKey.PROVIDER]: {
       type: 'string',
       values: [
-        ModelCatalogProviders.RED_HAT,
-        ModelCatalogProviders.IBM,
-        ModelCatalogProviders.GOOGLE,
+        ModelCatalogProvider.RED_HAT,
+        ModelCatalogProvider.IBM,
+        ModelCatalogProvider.GOOGLE,
       ],
     },
-    [ModelCatalogFilterKeys.LICENSE]: {
+    [ModelCatalogFilterKey.LICENSE]: {
       type: 'string',
-      values: [ModelCatalogLicenses.APACHE_2_0, ModelCatalogLicenses.MIT],
+      values: [ModelCatalogLicense.APACHE_2_0, ModelCatalogLicense.MIT],
     },
-    [ModelCatalogFilterKeys.TASK]: {
+    [ModelCatalogFilterKey.TASK]: {
       type: 'string',
       values: [
-        ModelCatalogTasks.TEXT_GENERATION,
-        ModelCatalogTasks.TEXT_TO_TEXT,
-        ModelCatalogTasks.IMAGE_TO_TEXT,
-        ModelCatalogTasks.IMAGE_TEXT_TO_TEXT,
-        ModelCatalogTasks.VIDEO_TO_TEXT,
-        ModelCatalogTasks.AUDIO_TO_TEXT,
+        ModelCatalogTask.TEXT_GENERATION,
+        ModelCatalogTask.TEXT_TO_TEXT,
+        ModelCatalogTask.IMAGE_TO_TEXT,
+        ModelCatalogTask.IMAGE_TEXT_TO_TEXT,
+        ModelCatalogTask.VIDEO_TO_TEXT,
+        ModelCatalogTask.AUDIO_TO_TEXT,
       ],
     },
-    [ModelCatalogFilterKeys.LANGUAGE]: {
+    [ModelCatalogFilterKey.LANGUAGE]: {
       type: 'string',
       values: [
-        AllLanguageCodes.AR,
-        AllLanguageCodes.CS,
-        AllLanguageCodes.DE,
-        AllLanguageCodes.EN,
-        AllLanguageCodes.ES,
-        AllLanguageCodes.FR,
-        AllLanguageCodes.IT,
-        AllLanguageCodes.JA,
-        AllLanguageCodes.KO,
-        AllLanguageCodes.NL,
-        AllLanguageCodes.PT,
-        AllLanguageCodes.ZH,
+        AllLanguageCode.AR,
+        AllLanguageCode.CS,
+        AllLanguageCode.DE,
+        AllLanguageCode.EN,
+        AllLanguageCode.ES,
+        AllLanguageCode.FR,
+        AllLanguageCode.IT,
+        AllLanguageCode.JA,
+        AllLanguageCode.KO,
+        AllLanguageCode.NL,
+        AllLanguageCode.PT,
+        AllLanguageCode.ZH,
       ],
     },
   },
