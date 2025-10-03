@@ -8,10 +8,11 @@ import useModelCatalogAPIState, {
 import {
   CatalogSource,
   CatalogSourceList,
+  ModelCatalogFilterKey,
   ModelCatalogFilterStates,
 } from '~/app/modelCatalogTypes';
 import { BFF_API_VERSION, URL_PREFIX } from '~/app/utilities/const';
-import { ModelCatalogFilterKey } from '~/concepts/modelCatalog/const';
+import { ModelCatalogStringFilterKey } from '~/concepts/modelCatalog/const';
 
 export type ModelCatalogContextType = {
   catalogSourcesLoaded: boolean;
@@ -38,10 +39,10 @@ export const ModelCatalogContext = React.createContext<ModelCatalogContextType>(
   catalogSources: null,
   selectedSource: undefined,
   filterData: {
-    [ModelCatalogFilterKey.TASK]: [],
-    [ModelCatalogFilterKey.PROVIDER]: [],
-    [ModelCatalogFilterKey.LICENSE]: [],
-    [ModelCatalogFilterKey.LANGUAGE]: [],
+    [ModelCatalogStringFilterKey.TASK]: [],
+    [ModelCatalogStringFilterKey.PROVIDER]: [],
+    [ModelCatalogStringFilterKey.LICENSE]: [],
+    [ModelCatalogStringFilterKey.LANGUAGE]: [],
   },
   updateSelectedSource: () => undefined,
   // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
@@ -60,10 +61,10 @@ export const ModelCatalogContextProvider: React.FC<ModelCatalogContextProviderPr
   const [selectedSource, setSelectedSource] =
     React.useState<ModelCatalogContextType['selectedSource']>(undefined);
   const [filterData, setFilterData] = useGenericObjectState<ModelCatalogFilterStates>({
-    [ModelCatalogFilterKey.TASK]: [],
-    [ModelCatalogFilterKey.PROVIDER]: [],
-    [ModelCatalogFilterKey.LICENSE]: [],
-    [ModelCatalogFilterKey.LANGUAGE]: [],
+    [ModelCatalogStringFilterKey.TASK]: [],
+    [ModelCatalogStringFilterKey.PROVIDER]: [],
+    [ModelCatalogStringFilterKey.LICENSE]: [],
+    [ModelCatalogStringFilterKey.LANGUAGE]: [],
   });
 
   const contextValue = React.useMemo(

@@ -1,11 +1,17 @@
+import { isEnumMember } from 'mod-arch-core';
+import React from 'react';
+import { ModelCatalogContext } from '~/app/context/modelCatalog/ModelCatalogContext';
 import {
   CatalogArtifacts,
   CatalogArtifactType,
   CatalogModel,
   CatalogModelDetailsParams,
   CatalogSourceList,
+  ModelCatalogFilterStates,
+  ModelCatalogStringFilterValueType,
 } from '~/app/modelCatalogTypes';
 import { getLabels } from '~/app/pages/modelRegistry/screens/utils';
+import { ModelCatalogStringFilterKey } from '~/concepts/modelCatalog/const';
 
 export const extractVersionTag = (tags?: string[]): string | undefined =>
   tags?.find((tag) => /^\d+\.\d+\.\d+$/.test(tag));
@@ -75,4 +81,33 @@ export const isModelValidated = (model: CatalogModel): boolean => {
   }
   const labels = getLabels(model.customProperties);
   return labels.includes('validated');
+};
+
+const isStringFilterValid = <K extends ModelCatalogStringFilterKey>(
+  filterKey: K,
+  value: ModelCatalogStringFilterValueType[ModelCatalogStringFilterKey][],
+): value is ModelCatalogFilterStates[K] => isEnumMember(filterKey, ModelCatalogStringFilterKey);
+
+export const useCatalogStringFilterState = (
+  filterKey: ModelCatalogStringFilterKey,
+): {
+  isSelected: (value: ModelCatalogStringFilterValueType[ModelCatalogStringFilterKey]) => boolean;
+  setSelected: (
+    value: ModelCatalogStringFilterValueType[ModelCatalogStringFilterKey],
+    selected: boolean,
+  ) => void;
+} => {
+  type Value = ModelCatalogStringFilterValueType[ModelCatalogStringFilterKey];
+  const { filterData, setFilterData } = React.useContext(ModelCatalogContext);
+  const selections: Value[] = filterData[filterKey];
+  const isSelected = React.useCallback((value: Value) => selections.includes(value), [selections]);
+  const setSelected = (value: Value, selected: boolean) => {
+    const nextState: Value[] = selected
+      ? [...selections, value]
+      : selections.filter((item) => item !== value);
+    if (isStringFilterValid(filterKey, nextState)) {
+      setFilterData(filterKey, nextState);
+    }
+  };
+  return { isSelected, setSelected };
 };

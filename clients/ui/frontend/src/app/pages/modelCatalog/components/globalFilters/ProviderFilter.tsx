@@ -1,15 +1,15 @@
 import * as React from 'react';
 import ModelCatalogStringFilter from '~/app/pages/modelCatalog/components/ModelCatalogStringFilter';
 import {
-  ModelCatalogFilterKey,
+  ModelCatalogStringFilterKey,
   MODEL_CATALOG_PROVIDER_NAME_MAPPING,
 } from '~/concepts/modelCatalog/const';
-import { CatalogFilterOptionsList, GlobalFilterTypes } from '~/app/modelCatalogTypes';
+import { CatalogFilterOptions, ModelCatalogStringFilterOptions } from '~/app/modelCatalogTypes';
 
-const filterKey = ModelCatalogFilterKey.PROVIDER;
+const filterKey = ModelCatalogStringFilterKey.PROVIDER;
 
 type ProviderFilterProps = {
-  filters?: Extract<CatalogFilterOptionsList['filters'], Partial<GlobalFilterTypes>>;
+  filters?: Extract<CatalogFilterOptions, Partial<ModelCatalogStringFilterOptions>>;
 };
 
 const ProviderFilter: React.FC<ProviderFilterProps> = ({ filters }) => {
@@ -20,7 +20,7 @@ const ProviderFilter: React.FC<ProviderFilterProps> = ({ filters }) => {
   }
 
   return (
-    <ModelCatalogStringFilter<ModelCatalogFilterKey.PROVIDER>
+    <ModelCatalogStringFilter<ModelCatalogStringFilterKey.PROVIDER>
       title="Provider"
       filterKey={filterKey}
       filterToNameMapping={MODEL_CATALOG_PROVIDER_NAME_MAPPING}

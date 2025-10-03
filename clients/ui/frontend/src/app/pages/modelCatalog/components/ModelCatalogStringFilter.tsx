@@ -1,23 +1,22 @@
 import { Button, Checkbox, Content, ContentVariants, SearchInput } from '@patternfly/react-core';
 import * as React from 'react';
 import {
-  ModelCatalogFilterStates,
-  GlobalFilterTypes,
-  StringFilterValue,
+  ModelCatalogStringFilterOptions,
+  ModelCatalogStringFilterValueType,
 } from '~/app/modelCatalogTypes';
-import { ModelCatalogFilterKey } from '~/concepts/modelCatalog/const';
-import { ModelCatalogContext } from '~/app/context/modelCatalog/ModelCatalogContext';
+import { ModelCatalogStringFilterKey } from '~/concepts/modelCatalog/const';
+import { useCatalogStringFilterState } from '../utils/modelCatalogUtils';
 
 const MAX_VISIBLE_FILTERS = 5;
 
-type ModelCatalogStringFilterProps<K extends ModelCatalogFilterKey> = {
+type ModelCatalogStringFilterProps<K extends ModelCatalogStringFilterKey> = {
   title: string;
   filterKey: K;
-  filterToNameMapping: Partial<Record<StringFilterValue<K>, string>>;
-  filters: GlobalFilterTypes[K];
+  filterToNameMapping: Partial<Record<ModelCatalogStringFilterValueType[K], string>>;
+  filters: ModelCatalogStringFilterOptions[K];
 };
 
-const ModelCatalogStringFilter = <K extends ModelCatalogFilterKey>({
+const ModelCatalogStringFilter = <K extends ModelCatalogStringFilterKey>({
   title,
   filterKey,
   filterToNameMapping,
@@ -25,10 +24,10 @@ const ModelCatalogStringFilter = <K extends ModelCatalogFilterKey>({
 }: ModelCatalogStringFilterProps<K>): JSX.Element => {
   const [showMore, setShowMore] = React.useState(false);
   const [searchValue, setSearchValue] = React.useState('');
-  const { filterData, setFilterData } = React.useContext(ModelCatalogContext);
+  const { isSelected, setSelected } = useCatalogStringFilterState(filterKey);
 
   const getLabel = React.useCallback(
-    (value: StringFilterValue<K>) => filterToNameMapping[value] ?? value,
+    (value: ModelCatalogStringFilterValueType[K]) => filterToNameMapping[value] ?? value,
     [filterToNameMapping],
   );
 
@@ -38,29 +37,15 @@ const ModelCatalogStringFilter = <K extends ModelCatalogFilterKey>({
         const label = getLabel(value).toLowerCase();
         return (
           value.toLowerCase().includes(searchValue.trim().toLowerCase()) ||
-          label.includes(searchValue.trim().toLowerCase())
+          label.includes(searchValue.trim().toLowerCase()) ||
+          isSelected(value)
         );
       }),
-    [filters.values, getLabel, searchValue],
+    [filters.values, getLabel, isSelected, searchValue],
   );
 
   const onSearchChange = (newValue: string) => {
     setSearchValue(newValue);
-  };
-
-  const onToggle = (checkbox: StringFilterValue<K>, checked: boolean) => {
-    const currentState = filterData[filterKey];
-    const nextState: StringFilterValue<K>[] = checked
-      ? [...currentState, checkbox]
-      : currentState.filter((item) => item !== checkbox);
-    // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
-    setFilterData(filterKey, nextState as ModelCatalogFilterStates[K]);
-  };
-
-  const isChecked = (value: StringFilterValue<K>) => {
-    // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
-    const currentValues = filterData[filterKey] as StringFilterValue<K>[];
-    return currentValues.includes(value);
   };
 
   const visibleValues = showMore
@@ -85,8 +70,8 @@ const ModelCatalogStringFilter = <K extends ModelCatalogFilterKey>({
           label={getLabel(checkbox)}
           id={checkbox}
           key={checkbox}
-          isChecked={isChecked(checkbox)}
-          onChange={(_, checked) => onToggle(checkbox, checked)}
+          isChecked={isSelected(checkbox)}
+          onChange={(_, checked) => setSelected(checkbox, checked)}
         />
       ))}
       {!showMore && valuesMatchingSearch.length > MAX_VISIBLE_FILTERS && (
