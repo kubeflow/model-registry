@@ -77,7 +77,6 @@ func TestLoadCatalogSourcesEnabledDisabled(t *testing.T) {
 					Id:      "catalog1",
 					Name:    "Catalog 1",
 					Enabled: &trueValue,
-					Labels:  []string{},
 				},
 			},
 			wantErr: false,

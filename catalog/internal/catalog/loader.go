@@ -51,7 +51,7 @@ func LoadCatalogSources(ctx context.Context, services service.Services, paths []
 		}
 
 		go func(path string) {
-			changes, err := getMonitor().Path(path)
+			changes, err := getMonitor().Path(ctx, path)
 			if err != nil {
 				glog.Errorf("unable to watch sources file (%s): %v", path, err)
 				// Not fatal, we just won't get automatic updates.
