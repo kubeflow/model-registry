@@ -5,7 +5,7 @@ ARG TARGETARCH
 
 WORKDIR /workspace
 # Copy the Go Modules manifests
-COPY ["go.mod", "go.sum", "go.work", "./"]
+COPY ["go.mod", "go.sum", "./"]
 COPY ["pkg/openapi/go.mod", "pkg/openapi/"]
 COPY ["catalog/pkg/openapi/go.mod", "catalog/pkg/openapi/"]
 # cache deps before building and copying source so that we don't need to re-download as much
