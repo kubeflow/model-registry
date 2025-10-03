@@ -34,6 +34,7 @@ export const useNavData = (): NavDataItem[] => {
   const baseNavItems = [
     {
       label: 'Model Registry',
+      // TODO: [BREAKING] Update Istio VirtualServices in manifests/ before deployment - old /model-registry paths will 404
       path: modelRegistryUrl(),
     },
   ];
@@ -42,6 +43,7 @@ export const useNavData = (): NavDataItem[] => {
   if (isStandalone || isFederated) {
     baseNavItems.push({
       label: 'Model Catalog',
+      // TODO: [BREAKING] Update Istio VirtualServices in manifests/ before deployment - old /model-registry paths will 404
       path: modelCatalogUrl(),
     });
   }
