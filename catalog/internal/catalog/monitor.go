@@ -217,22 +217,26 @@ type monitorRecord struct {
 
 // updateHash recalculates the hash and returns true if it has changed.
 func (mr *monitorRecord) updateHash(path string) bool {
-	newHash := mr.calculateHash(path)
+	newHash, err := mr.calculateHash(path)
+	if err != nil {
+		// If we can't read the file (e.g., broken symlink), don't trigger an event
+		return false
+	}
 	oldHash := atomic.SwapUint32(&mr.hash, newHash)
 	return oldHash != newHash
 }
 
-func (monitorRecord) calculateHash(path string) uint32 {
+func (monitorRecord) calculateHash(path string) (uint32, error) {
 	fh, err := os.Open(path)
 	if err != nil {
-		return 0
+		return 0, err
 	}
 	defer fh.Close()
 
 	h := crc32.NewIEEE()
 	_, err = io.Copy(h, fh)
 	if err != nil {
-		return 0
+		return 0, err
 	}
-	return h.Sum32()
+	return h.Sum32(), nil
 }
