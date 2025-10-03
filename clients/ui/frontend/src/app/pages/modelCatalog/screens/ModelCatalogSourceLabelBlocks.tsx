@@ -12,7 +12,7 @@ type SourceLabelBlock = {
   displayName: string;
 };
 
-const ModelCatalogSourceBlocks: React.FC = () => {
+const ModelCatalogSourceLabelBlocks: React.FC = () => {
   const { catalogSources, updateSelectedSourceLabel, selectedSourceLabel } =
     React.useContext(ModelCatalogContext);
 
@@ -26,7 +26,7 @@ const ModelCatalogSourceBlocks: React.FC = () => {
 
     const allBlock: SourceLabelBlock = {
       id: 'all',
-      label: '',
+      label: 'All models',
       displayName: 'All models',
     };
 
@@ -38,7 +38,7 @@ const ModelCatalogSourceBlocks: React.FC = () => {
 
     const noLabelsBlock: SourceLabelBlock = {
       id: 'no-labels',
-      label: '',
+      label: 'Other',
       displayName: 'Community and custom models',
     };
 
@@ -55,9 +55,9 @@ const ModelCatalogSourceBlocks: React.FC = () => {
         <ToggleGroupItem
           key={block.id}
           text={block.displayName}
-          isSelected={block.displayName === selectedSourceLabel}
+          isSelected={block.label === selectedSourceLabel}
           onChange={() => {
-            updateSelectedSourceLabel(block.displayName);
+            updateSelectedSourceLabel(block.label);
           }}
         />
       ))}
@@ -65,4 +65,4 @@ const ModelCatalogSourceBlocks: React.FC = () => {
   );
 };
 
-export default ModelCatalogSourceBlocks;
+export default ModelCatalogSourceLabelBlocks;

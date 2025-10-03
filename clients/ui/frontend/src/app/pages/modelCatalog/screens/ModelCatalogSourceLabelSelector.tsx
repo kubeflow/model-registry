@@ -13,7 +13,7 @@ import { ArrowRightIcon, FilterIcon } from '@patternfly/react-icons';
 import React from 'react';
 import { useThemeContext } from 'mod-arch-kubeflow';
 import ThemeAwareSearchInput from '~/app/pages/modelRegistry/screens/components/ThemeAwareSearchInput';
-import ModelCatalogSourceBlocks from './ModelCatalogSourceBlocks';
+import ModelCatalogSourceLabelBlocks from './ModelCatalogSourceLabelBlocks';
 
 type ModelCatalogSourceLabelSelectorProps = {
   searchTerm?: string;
@@ -31,6 +31,10 @@ const ModelCatalogSourceLabelSelector: React.FC<ModelCatalogSourceLabelSelectorP
   const [inputValue, setInputValue] = React.useState(searchTerm || '');
   const { isMUITheme } = useThemeContext();
 
+  React.useEffect(() => {
+    setInputValue(searchTerm || '');
+  }, [searchTerm]);
+
   const handleModelSearch = () => {
     if (onSearch && inputValue.trim() !== searchTerm) {
       onSearch(inputValue.trim());
@@ -38,7 +42,6 @@ const ModelCatalogSourceLabelSelector: React.FC<ModelCatalogSourceLabelSelectorP
   };
 
   const handleClear = () => {
-    setInputValue('');
     if (onClearSearch) {
       onClearSearch();
     }
@@ -55,7 +58,7 @@ const ModelCatalogSourceLabelSelector: React.FC<ModelCatalogSourceLabelSelectorP
   };
 
   if (primary) {
-    return <ModelCatalogSourceBlocks />;
+    return <ModelCatalogSourceLabelBlocks />;
   }
 
   return (
@@ -101,7 +104,7 @@ const ModelCatalogSourceLabelSelector: React.FC<ModelCatalogSourceLabelSelectorP
         </Toolbar>
       </StackItem>
       <StackItem>
-        <ModelCatalogSourceBlocks />
+        <ModelCatalogSourceLabelBlocks />
       </StackItem>
     </Stack>
   );

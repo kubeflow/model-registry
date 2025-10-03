@@ -13,7 +13,7 @@ import {
 } from '@patternfly/react-core';
 import { SearchIcon } from '@patternfly/react-icons';
 import {
-  CategoryData,
+  CategoryModels,
   useCatalogAllCategoriesModels,
 } from '~/app/hooks/modelCatalog/useAllCategoriesModels';
 import { ModelCatalogContext } from '~/app/context/modelCatalog/ModelCatalogContext';
@@ -28,6 +28,7 @@ type ModelCatalogAllModelsViewProps = {
 
 const ModelCatalogAllModelsView: React.FC<ModelCatalogAllModelsViewProps> = ({ searchTerm }) => {
   const { catalogSources, updateSelectedSourceLabel } = React.useContext(ModelCatalogContext);
+
   const { categoriesData, allCategoriesLoaded, isAnyLoading } = useCatalogAllCategoriesModels(
     searchTerm,
     4,
@@ -37,14 +38,11 @@ const ModelCatalogAllModelsView: React.FC<ModelCatalogAllModelsViewProps> = ({ s
     updateSelectedSourceLabel(categoryLabel);
   };
 
-  const hasMoreModels = (categoryData: CategoryData) => {
+  const hasMoreModels = (categoryData: CategoryModels) => {
     if (!categoryData.models) {
       return false;
     }
-    return (
-      categoryData.models.items.length >= 4 ||
-      (categoryData.models.nextPageToken && categoryData.models.nextPageToken !== '')
-    );
+    return categoryData.models.items.length >= 4;
   };
 
   return (
@@ -120,9 +118,7 @@ const ModelCatalogAllModelsView: React.FC<ModelCatalogAllModelsViewProps> = ({ s
 
       {!allCategoriesLoaded && isAnyLoading && (
         <StackItem>
-          <Bullseye>
-            <text className="pf-u-color-200">Loading more categories...</text>
-          </Bullseye>
+          <Bullseye>Loading more categories...</Bullseye>
         </StackItem>
       )}
     </Stack>
