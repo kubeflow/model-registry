@@ -33,6 +33,7 @@ type CatalogModelImpl = models.BaseEntity[CatalogModelAttributes]
 
 type CatalogModelRepository interface {
 	GetByID(id int32) (CatalogModel, error)
+	GetByName(name string) (CatalogModel, error)
 	List(listOptions CatalogModelListOptions) (*models.ListWrapper[CatalogModel], error)
 	Save(model CatalogModel) (CatalogModel, error)
 }

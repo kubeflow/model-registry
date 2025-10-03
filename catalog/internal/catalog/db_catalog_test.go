@@ -6,7 +6,6 @@ import (
 	"os"
 	"strconv"
 	"testing"
-	"time"
 
 	"github.com/kubeflow/model-registry/catalog/internal/db/models"
 	"github.com/kubeflow/model-registry/catalog/internal/db/service"
@@ -53,7 +52,7 @@ func TestDBCatalog(t *testing.T) {
 		require.NotNil(t, catalog)
 
 		// Verify it implements the interface
-		var _ CatalogSourceProvider = catalog
+		var _ APIProvider = catalog
 	})
 
 	t.Run("TestGetModel_Success", func(t *testing.T) {
@@ -91,54 +90,6 @@ func TestDBCatalog(t *testing.T) {
 		require.Error(t, err)
 		assert.Contains(t, err.Error(), "no models found")
 		assert.ErrorIs(t, err, api.ErrNotFound)
-	})
-
-	t.Run("TestGetModel_DatabaseConstraints", func(t *testing.T) {
-		// Test database constraint behavior - attempting to create duplicate models should fail
-		// Using timestamp to ensure uniqueness across test runs
-		timestamp := strconv.FormatInt(time.Now().UnixMilli(), 10)
-		modelName := "constraint-test-model-" + timestamp
-		sourceID := "constraint-test-source-" + timestamp
-
-		model1 := &models.CatalogModelImpl{
-			TypeID: apiutils.Of(int32(catalogModelTypeID)),
-			Attributes: &models.CatalogModelAttributes{
-				Name:       apiutils.Of(modelName),
-				ExternalID: apiutils.Of("constraint-test-1-" + timestamp),
-			},
-			Properties: &[]mr_models.Properties{
-				{Name: "source_id", StringValue: apiutils.Of(sourceID)},
-			},
-		}
-
-		// First model should save successfully
-		savedModel1, err := catalogModelRepo.Save(model1)
-		require.NoError(t, err)
-		require.NotNil(t, savedModel1)
-
-		// Now test that GetModel works correctly with the single saved model
-		retrievedModel, err := dbCatalog.GetModel(ctx, modelName, sourceID)
-		require.NoError(t, err)
-		require.NotNil(t, retrievedModel)
-		assert.Equal(t, modelName, retrievedModel.Name)
-
-		// Test attempting to create a duplicate with same name but different external ID
-		// This should fail due to database constraints (which is expected behavior)
-		model2 := &models.CatalogModelImpl{
-			TypeID: apiutils.Of(int32(catalogModelTypeID)),
-			Attributes: &models.CatalogModelAttributes{
-				Name:       apiutils.Of(modelName),                        // Same name
-				ExternalID: apiutils.Of("constraint-test-2-" + timestamp), // Different external ID
-			},
-			Properties: &[]mr_models.Properties{
-				{Name: "source_id", StringValue: apiutils.Of(sourceID)},
-			},
-		}
-
-		_, err = catalogModelRepo.Save(model2)
-		// This should fail due to database constraints preventing duplicate names
-		assert.Error(t, err)
-		assert.Contains(t, err.Error(), "duplicated key")
 	})
 
 	t.Run("TestListModels_Success", func(t *testing.T) {
@@ -604,7 +555,7 @@ func TestDBCatalog(t *testing.T) {
 			}
 
 			catalogArtifact := models.CatalogArtifact{
-				CatalogModelArtifact: &catalogModelArtifact,
+				CatalogModelArtifact: catalogModelArtifact,
 			}
 
 			result, err := mapDBArtifactToAPIArtifact(catalogArtifact)
@@ -628,7 +579,7 @@ func TestDBCatalog(t *testing.T) {
 			}
 
 			catalogArtifact2 := models.CatalogArtifact{
-				CatalogMetricsArtifact: &catalogMetricsArtifact,
+				CatalogMetricsArtifact: catalogMetricsArtifact,
 			}
 
 			result2, err := mapDBArtifactToAPIArtifact(catalogArtifact2)

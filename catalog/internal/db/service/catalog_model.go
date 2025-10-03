@@ -3,6 +3,7 @@ package service
 import (
 	"errors"
 	"fmt"
+	"math"
 	"strings"
 
 	"github.com/kubeflow/model-registry/catalog/internal/db/models"
@@ -20,7 +21,9 @@ type CatalogModelRepositoryImpl struct {
 }
 
 func NewCatalogModelRepository(db *gorm.DB, typeID int64) models.CatalogModelRepository {
-	config := service.GenericRepositoryConfig[models.CatalogModel, schema.Context, schema.ContextProperty, *models.CatalogModelListOptions]{
+	r := &CatalogModelRepositoryImpl{}
+
+	r.GenericRepository = service.NewGenericRepository(service.GenericRepositoryConfig[models.CatalogModel, schema.Context, schema.ContextProperty, *models.CatalogModelListOptions]{
 		DB:                  db,
 		TypeID:              typeID,
 		EntityToSchema:      mapCatalogModelToContext,
@@ -32,19 +35,70 @@ func NewCatalogModelRepository(db *gorm.DB, typeID int64) models.CatalogModelRep
 		ApplyListFilters:    applyCatalogModelListFilters,
 		IsNewEntity:         func(entity models.CatalogModel) bool { return entity.GetID() == nil },
 		HasCustomProperties: func(entity models.CatalogModel) bool { return entity.GetCustomProperties() != nil },
-	}
+	})
 
-	return &CatalogModelRepositoryImpl{
-		GenericRepository: service.NewGenericRepository(config),
-	}
+	return r
 }
 
 func (r *CatalogModelRepositoryImpl) Save(model models.CatalogModel) (models.CatalogModel, error) {
+	config := r.GetConfig()
+	if model.GetTypeID() == nil {
+		if config.TypeID > 0 && config.TypeID < math.MaxInt32 {
+			model.SetTypeID(int32(config.TypeID))
+		}
+	}
+
+	attr := model.GetAttributes()
+	if model.GetID() == nil && attr != nil && attr.Name != nil {
+		existing, err := r.lookupModelByName(*attr.Name)
+		if err != nil {
+			if !errors.Is(err, ErrCatalogModelNotFound) {
+				return nil, fmt.Errorf("error finding existing model named %s: %w", *attr.Name, err)
+			}
+		} else {
+			model.SetID(existing.ID)
+		}
+	}
+
 	return r.GenericRepository.Save(model, nil)
 }
 
 func (r *CatalogModelRepositoryImpl) List(listOptions models.CatalogModelListOptions) (*dbmodels.ListWrapper[models.CatalogModel], error) {
 	return r.GenericRepository.List(&listOptions)
+}
+
+func (r *CatalogModelRepositoryImpl) GetByName(name string) (models.CatalogModel, error) {
+	var zeroEntity models.CatalogModel
+	entity, err := r.lookupModelByName(name)
+	if err != nil {
+		return zeroEntity, err
+	}
+
+	config := r.GetConfig()
+
+	// Query properties
+	var properties []schema.ContextProperty
+	if err := config.DB.Where(config.PropertyFieldName+" = ?", entity.ID).Find(&properties).Error; err != nil {
+		return zeroEntity, fmt.Errorf("error getting properties by %s id: %w", config.EntityName, err)
+	}
+
+	// Map to domain model
+	return config.SchemaToEntity(*entity, properties), nil
+}
+
+func (r *CatalogModelRepositoryImpl) lookupModelByName(name string) (*schema.Context, error) {
+	var entity schema.Context
+
+	config := r.GetConfig()
+
+	if err := config.DB.Where("name = ? AND type_id = ?", name, config.TypeID).First(&entity).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, fmt.Errorf("%w: %v", config.NotFoundError, err)
+		}
+		return nil, fmt.Errorf("error getting %s by name: %w", config.EntityName, err)
+	}
+
+	return &entity, nil
 }
 
 func applyCatalogModelListFilters(query *gorm.DB, listOptions *models.CatalogModelListOptions) *gorm.DB {
@@ -101,8 +155,10 @@ func applyCatalogModelListFilters(query *gorm.DB, listOptions *models.CatalogMod
 
 func mapCatalogModelToContext(model models.CatalogModel) schema.Context {
 	attrs := model.GetAttributes()
-	context := schema.Context{
-		TypeID: *model.GetTypeID(),
+	context := schema.Context{}
+
+	if typeID := model.GetTypeID(); typeID != nil {
+		context.TypeID = *typeID
 	}
 
 	if model.GetID() != nil {

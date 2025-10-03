@@ -23,10 +23,10 @@ type dbCatalogImpl struct {
 func NewDBCatalog(
 	catalogModelRepository dbmodels.CatalogModelRepository,
 	catalogArtifactRepository dbmodels.CatalogArtifactRepository,
-) CatalogSourceProvider {
+) APIProvider {
 	return &dbCatalogImpl{
-		catalogModelRepository:    catalogModelRepository,
 		catalogArtifactRepository: catalogArtifactRepository,
+		catalogModelRepository:    catalogModelRepository,
 	}
 }
 
@@ -247,10 +247,10 @@ func mapDBModelToAPIModel(m dbmodels.CatalogModel) apimodels.CatalogModel {
 
 func mapDBArtifactToAPIArtifact(a dbmodels.CatalogArtifact) (apimodels.CatalogArtifact, error) {
 	if a.CatalogModelArtifact != nil {
-		return mapToModelArtifact(*a.CatalogModelArtifact)
+		return mapToModelArtifact(a.CatalogModelArtifact)
 	} else if a.CatalogMetricsArtifact != nil {
-		metricsTypeValue := string((*a.CatalogMetricsArtifact).GetAttributes().MetricsType)
-		return mapToMetricsArtifact(*a.CatalogMetricsArtifact, metricsTypeValue)
+		metricsTypeValue := string(a.CatalogMetricsArtifact.GetAttributes().MetricsType)
+		return mapToMetricsArtifact(a.CatalogMetricsArtifact, metricsTypeValue)
 	}
 
 	return apimodels.CatalogArtifact{}, fmt.Errorf("invalid catalog artifact type: %v", a)

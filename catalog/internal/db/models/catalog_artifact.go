@@ -31,11 +31,12 @@ func (c *CatalogArtifactListOptions) GetRestEntityType() filter.RestEntityType {
 
 // CatalogArtifact is a discriminated union that can hold different catalog artifact types
 type CatalogArtifact struct {
-	CatalogModelArtifact   *CatalogModelArtifact
-	CatalogMetricsArtifact *CatalogMetricsArtifact
+	CatalogModelArtifact   CatalogModelArtifact
+	CatalogMetricsArtifact CatalogMetricsArtifact
 }
 
 type CatalogArtifactRepository interface {
 	GetByID(id int32) (CatalogArtifact, error)
 	List(listOptions CatalogArtifactListOptions) (*models.ListWrapper[CatalogArtifact], error)
+	DeleteByParentID(artifactType string, parentResourceID int32) error
 }

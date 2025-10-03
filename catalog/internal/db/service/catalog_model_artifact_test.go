@@ -451,6 +451,183 @@ func TestCatalogModelArtifactRepository(t *testing.T) {
 		assert.LessOrEqual(t, len(result.Items), 2, "Should respect page size limit")
 		assert.GreaterOrEqual(t, len(result.Items), 1, "Should return at least one item")
 	})
+
+	t.Run("TestSaveWithTypeIDSetting", func(t *testing.T) {
+		// Create a catalog model
+		catalogModel := &models.CatalogModelImpl{
+			TypeID: apiutils.Of(int32(catalogModelTypeID)),
+			Attributes: &models.CatalogModelAttributes{
+				Name:       apiutils.Of("test-catalog-model-for-typeid"),
+				ExternalID: apiutils.Of("catalog-model-typeid-ext"),
+			},
+		}
+		savedCatalogModel, err := catalogModelRepo.Save(catalogModel)
+		require.NoError(t, err)
+
+		// Test creating artifact without explicit type_id (should be set automatically)
+		catalogModelArtifact := &models.CatalogModelArtifactImpl{
+			// Intentionally not setting TypeID to test auto-setting
+			Attributes: &models.CatalogModelArtifactAttributes{
+				Name:       apiutils.Of("typeid-test-artifact"),
+				ExternalID: apiutils.Of("typeid-artifact-ext-123"),
+				URI:        apiutils.Of("s3://catalog-bucket/typeid-model.pkl"),
+			},
+		}
+
+		saved, err := repo.Save(catalogModelArtifact, savedCatalogModel.GetID())
+		require.NoError(t, err)
+		require.NotNil(t, saved)
+		require.NotNil(t, saved.GetTypeID())
+		assert.Equal(t, int32(typeID), *saved.GetTypeID())
+		assert.Equal(t, "typeid-test-artifact", *saved.GetAttributes().Name)
+
+		// Test with explicitly set type_id (should not be overridden)
+		explicitTypeID := int32(typeID)
+		catalogModelArtifact2 := &models.CatalogModelArtifactImpl{
+			TypeID: &explicitTypeID,
+			Attributes: &models.CatalogModelArtifactAttributes{
+				Name:       apiutils.Of("explicit-typeid-artifact"),
+				ExternalID: apiutils.Of("explicit-typeid-ext-123"),
+				URI:        apiutils.Of("s3://catalog-bucket/explicit-model.pkl"),
+			},
+		}
+
+		saved2, err := repo.Save(catalogModelArtifact2, savedCatalogModel.GetID())
+		require.NoError(t, err)
+		require.NotNil(t, saved2)
+		require.NotNil(t, saved2.GetTypeID())
+		assert.Equal(t, explicitTypeID, *saved2.GetTypeID())
+	})
+
+	t.Run("TestSaveWithNameMatching", func(t *testing.T) {
+		// Create a catalog model
+		catalogModel := &models.CatalogModelImpl{
+			TypeID: apiutils.Of(int32(catalogModelTypeID)),
+			Attributes: &models.CatalogModelAttributes{
+				Name:       apiutils.Of("test-catalog-model-for-name-matching"),
+				ExternalID: apiutils.Of("catalog-model-name-match-ext"),
+			},
+		}
+		savedCatalogModel, err := catalogModelRepo.Save(catalogModel)
+		require.NoError(t, err)
+
+		// Create initial artifact
+		artifactName := "name-matching-artifact"
+		catalogModelArtifact1 := &models.CatalogModelArtifactImpl{
+			TypeID: apiutils.Of(int32(typeID)),
+			Attributes: &models.CatalogModelArtifactAttributes{
+				Name:       apiutils.Of(artifactName),
+				ExternalID: apiutils.Of("name-match-ext-123"),
+				URI:        apiutils.Of("s3://catalog-bucket/original.pkl"),
+			},
+			Properties: &[]dbmodels.Properties{
+				{
+					Name:        "version",
+					StringValue: apiutils.Of("1.0.0"),
+				},
+			},
+		}
+
+		saved1, err := repo.Save(catalogModelArtifact1, savedCatalogModel.GetID())
+		require.NoError(t, err)
+		require.NotNil(t, saved1)
+		originalID := *saved1.GetID()
+		assert.Equal(t, artifactName, *saved1.GetAttributes().Name)
+		assert.Equal(t, "s3://catalog-bucket/original.pkl", *saved1.GetAttributes().URI)
+
+		// Create second artifact with same name (should update existing)
+		catalogModelArtifact2 := &models.CatalogModelArtifactImpl{
+			TypeID: apiutils.Of(int32(typeID)),
+			Attributes: &models.CatalogModelArtifactAttributes{
+				Name:       apiutils.Of(artifactName), // Same name
+				ExternalID: apiutils.Of("name-match-ext-456"),
+				URI:        apiutils.Of("s3://catalog-bucket/updated.pkl"),
+			},
+			Properties: &[]dbmodels.Properties{
+				{
+					Name:        "version",
+					StringValue: apiutils.Of("2.0.0"),
+				},
+			},
+		}
+
+		saved2, err := repo.Save(catalogModelArtifact2, savedCatalogModel.GetID())
+		require.NoError(t, err)
+		require.NotNil(t, saved2)
+
+		// Should have same ID (updated existing)
+		assert.Equal(t, originalID, *saved2.GetID())
+		assert.Equal(t, artifactName, *saved2.GetAttributes().Name)
+		assert.Equal(t, "s3://catalog-bucket/updated.pkl", *saved2.GetAttributes().URI)
+		assert.Equal(t, "name-match-ext-456", *saved2.GetAttributes().ExternalID)
+
+		// Verify by retrieving from database
+		retrieved, err := repo.GetByID(originalID)
+		require.NoError(t, err)
+		assert.Equal(t, "s3://catalog-bucket/updated.pkl", *retrieved.GetAttributes().URI)
+		assert.Equal(t, "name-match-ext-456", *retrieved.GetAttributes().ExternalID)
+
+		// Verify properties were updated
+		require.NotNil(t, retrieved.GetProperties())
+		properties := *retrieved.GetProperties()
+		var foundVersion bool
+		for _, prop := range properties {
+			if prop.Name == "version" {
+				foundVersion = true
+				assert.Equal(t, "2.0.0", *prop.StringValue)
+				break
+			}
+		}
+		assert.True(t, foundVersion, "Should find updated version property")
+
+		// Test that artifact with different name creates new entity
+		catalogModelArtifact3 := &models.CatalogModelArtifactImpl{
+			TypeID: apiutils.Of(int32(typeID)),
+			Attributes: &models.CatalogModelArtifactAttributes{
+				Name:       apiutils.Of("different-name-artifact"),
+				ExternalID: apiutils.Of("different-name-ext-789"),
+				URI:        apiutils.Of("s3://catalog-bucket/different.pkl"),
+			},
+		}
+
+		saved3, err := repo.Save(catalogModelArtifact3, savedCatalogModel.GetID())
+		require.NoError(t, err)
+		require.NotNil(t, saved3)
+
+		// Should have different ID (new entity)
+		assert.NotEqual(t, originalID, *saved3.GetID())
+		assert.Equal(t, "different-name-artifact", *saved3.GetAttributes().Name)
+	})
+
+	t.Run("TestSaveWithNameMatchingNoExistingName", func(t *testing.T) {
+		// Create a catalog model
+		catalogModel := &models.CatalogModelImpl{
+			TypeID: apiutils.Of(int32(catalogModelTypeID)),
+			Attributes: &models.CatalogModelAttributes{
+				Name:       apiutils.Of("test-catalog-model-for-no-match"),
+				ExternalID: apiutils.Of("catalog-model-no-match-ext"),
+			},
+		}
+		savedCatalogModel, err := catalogModelRepo.Save(catalogModel)
+		require.NoError(t, err)
+
+		// Test saving artifact when no existing artifact with same name exists
+		catalogModelArtifact := &models.CatalogModelArtifactImpl{
+			TypeID: apiutils.Of(int32(typeID)),
+			Attributes: &models.CatalogModelArtifactAttributes{
+				Name:       apiutils.Of("unique-artifact-name"),
+				ExternalID: apiutils.Of("unique-ext-123"),
+				URI:        apiutils.Of("s3://catalog-bucket/unique.pkl"),
+			},
+		}
+
+		saved, err := repo.Save(catalogModelArtifact, savedCatalogModel.GetID())
+		require.NoError(t, err)
+		require.NotNil(t, saved)
+		require.NotNil(t, saved.GetID())
+		assert.Equal(t, "unique-artifact-name", *saved.GetAttributes().Name)
+		assert.Equal(t, "s3://catalog-bucket/unique.pkl", *saved.GetAttributes().URI)
+	})
 }
 
 // Helper function to get or create CatalogModelArtifact type ID

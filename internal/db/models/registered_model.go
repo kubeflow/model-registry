@@ -24,6 +24,53 @@ type Properties struct {
 	ProtoValue       *[]byte
 }
 
+// Constructor functions for Properties
+
+// NewStringProperty creates a string property
+func NewStringProperty(name string, value string, isCustom bool) Properties {
+	return Properties{
+		Name:             name,
+		IsCustomProperty: isCustom,
+		StringValue:      &value,
+	}
+}
+
+// NewIntProperty creates an int property
+func NewIntProperty(name string, value int32, isCustom bool) Properties {
+	return Properties{
+		Name:             name,
+		IsCustomProperty: isCustom,
+		IntValue:         &value,
+	}
+}
+
+// NewDoubleProperty creates a double property
+func NewDoubleProperty(name string, value float64, isCustom bool) Properties {
+	return Properties{
+		Name:             name,
+		IsCustomProperty: isCustom,
+		DoubleValue:      &value,
+	}
+}
+
+// NewBoolProperty creates a bool property
+func NewBoolProperty(name string, value bool, isCustom bool) Properties {
+	return Properties{
+		Name:             name,
+		IsCustomProperty: isCustom,
+		BoolValue:        &value,
+	}
+}
+
+// NewByteProperty creates a byte property
+func NewByteProperty(name string, value []byte, isCustom bool) Properties {
+	return Properties{
+		Name:             name,
+		IsCustomProperty: isCustom,
+		ByteValue:        &value,
+	}
+}
+
 type RegisteredModelAttributes struct {
 	Name                     *string
 	ExternalID               *string
