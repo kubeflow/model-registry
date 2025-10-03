@@ -2,6 +2,7 @@ package catalog
 
 import (
 	"encoding/json"
+	"slices"
 	"testing"
 
 	model "github.com/kubeflow/model-registry/catalog/pkg/openapi"
@@ -264,6 +265,13 @@ func TestYamlModelToModelProviderRecord(t *testing.T) {
 				// Should have no regular properties for minimal model
 				regularProps := record.Model.GetProperties()
 				if regularProps != nil {
+					*regularProps = slices.DeleteFunc(*regularProps, func(p models.Properties) bool {
+						switch p.Name {
+						case "language", "tasks":
+							return true
+						}
+						return false
+					})
 					assert.Empty(t, *regularProps)
 				}
 

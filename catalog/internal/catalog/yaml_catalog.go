@@ -135,15 +135,18 @@ func (ym *yamlModel) convertModelProperties() ([]models.Properties, []models.Pro
 	}
 
 	// Convert array properties as struct properties
-	if len(ym.Language) > 0 {
-		if languageJSON, err := json.Marshal(ym.Language); err == nil {
-			properties = append(properties, models.NewStringProperty("language", string(languageJSON), false))
-		}
+	if ym.Language == nil {
+		ym.Language = []string{}
 	}
-	if len(ym.Tasks) > 0 {
-		if tasksJSON, err := json.Marshal(ym.Tasks); err == nil {
-			properties = append(properties, models.NewStringProperty("tasks", string(tasksJSON), false))
-		}
+	if languageJSON, err := json.Marshal(ym.Language); err == nil {
+		properties = append(properties, models.NewStringProperty("language", string(languageJSON), false))
+	}
+
+	if ym.Tasks == nil {
+		ym.Tasks = []string{}
+	}
+	if tasksJSON, err := json.Marshal(ym.Tasks); err == nil {
+		properties = append(properties, models.NewStringProperty("tasks", string(tasksJSON), false))
 	}
 
 	// Convert custom properties from the YAML model
