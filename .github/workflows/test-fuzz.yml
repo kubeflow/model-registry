@@ -28,6 +28,7 @@ jobs:
       fail-fast: false
       matrix:
         manifest-db: ["db", "postgres"] # subdirectory of manifests/kustomize/overlays to select which database: 'db' (MySQL) or 'postgres'
+        kubernetes-version: ["v1.31.0"]
     env:
       DEPLOY_MANIFEST_DB: "${{ matrix.manifest-db }}"
     steps:
@@ -64,6 +65,12 @@ jobs:
       - name: Install Poetry
         run: |
           pipx install poetry
+      - name: Start Kind Cluster
+        uses: helm/kind-action@v1.12.0
+        with:
+          node_image: kindest/node:${{ matrix.kubernetes-version }}
+          cluster_name: py-fuzz-${{ matrix.kubernetes-version }}
+          kubectl_version: ${{ matrix.kubernetes-version }}
 
       - name: Remove AppArmor profile for mysql in KinD on GHA # https://github.com/kubeflow/manifests/issues/2507
         run: |
@@ -81,6 +88,7 @@ jobs:
       - name: Run Fuzz Tests
         env:
           IMG_VERSION: ${{ steps.tags.outputs.tag }}
+          CLUSTER_NAME: py-fuzz-${{ matrix.kubernetes-version }}
         run: |
           echo "Starting fuzz tests..."
           make test-fuzz
