@@ -6,15 +6,15 @@ import {
   getUniqueSourceLabels,
 } from '~/app/pages/modelCatalog/utils/modelCatalogUtils';
 
-export type CategoryData = {
+export type CategoryModels = {
   models: CatalogModelList | null;
   loading: boolean;
   loaded: boolean;
-  error: Error | undefined;
+  error: Error | null;
 };
 
 type CatalogAllModels = {
-  categoriesData: Record<string, CategoryData>;
+  categoriesData: Record<string, CategoryModels>;
   allCategoriesLoaded: boolean;
   isAnyLoading: boolean;
 };
@@ -24,27 +24,29 @@ export const useCatalogAllCategoriesModels = (
   initialPageSize = 4,
 ): CatalogAllModels => {
   const { catalogSources, apiState } = React.useContext(ModelCatalogContext);
-  const [categoriesData, setCategoriesData] = React.useState<Record<string, CategoryData>>({});
-
   const sourceLabels = React.useMemo(() => {
     const enabledSources = filterEnabledCatalogSources(catalogSources);
-    return getUniqueSourceLabels(enabledSources);
+    return [...getUniqueSourceLabels(enabledSources), 'Other'];
   }, [catalogSources]);
 
-  React.useEffect(() => {
-    if (sourceLabels.length > 0) {
-      const initialData: Record<string, CategoryData> = {};
-      sourceLabels.forEach((label) => {
-        initialData[label] = {
+  const [categoriesData, setCategoriesData] = React.useState<Record<string, CategoryModels>>(() => {
+    if (sourceLabels.length === 0) {
+      return {};
+    }
+
+    return sourceLabels.reduce(
+      (acc, label) => {
+        acc[label] = {
           models: null,
           loading: false,
           loaded: false,
-          error: undefined,
+          error: null,
         };
-      });
-      setCategoriesData(initialData);
-    }
-  }, [sourceLabels]);
+        return acc;
+      },
+      {} as Record<string, CategoryModels>,
+    );
+  });
 
   React.useEffect(() => {
     if (!apiState.apiAvailable || sourceLabels.length === 0) {
@@ -52,15 +54,18 @@ export const useCatalogAllCategoriesModels = (
     }
 
     const loadAllCategories = async () => {
-      const promises = sourceLabels.map(async (label) => {
-        setCategoriesData((prev) => ({
-          ...prev,
-          [label]: { ...prev[label], loading: true },
-        }));
+      setCategoriesData((prev) => {
+        const newData = { ...prev };
+        sourceLabels.forEach((label) => {
+          newData[label] = { ...newData[label], loading: true };
+        });
+        return newData;
+      });
 
+      const promises = sourceLabels.map(async (label) => {
         try {
           const data = await apiState.api.getCatalogModelsBySource(
-            { signal: new AbortController().signal },
+            {},
             undefined,
             label,
             {
@@ -70,29 +75,35 @@ export const useCatalogAllCategoriesModels = (
             searchTerm || undefined,
           );
 
-          setCategoriesData((prev) => ({
-            ...prev,
-            [label]: {
-              models: data,
-              loading: false,
-              loaded: true,
-              error: undefined,
-            },
-          }));
+          return { label, data, error: null };
         } catch (error) {
-          setCategoriesData((prev) => ({
-            ...prev,
-            [label]: {
-              ...prev[label],
-              loading: false,
-              loaded: true,
-              error: error instanceof Error ? error : new Error('fetching models failed'),
-            },
-          }));
+          return {
+            label,
+            data: null,
+            error: error instanceof Error ? error : new Error('fetching models failed'),
+          };
         }
       });
 
-      await Promise.allSettled(promises);
+      const results = await Promise.allSettled(promises);
+
+      setCategoriesData((prev) => {
+        const newData = { ...prev };
+
+        results.forEach((result) => {
+          if (result.status === 'fulfilled') {
+            const { label, data, error } = result.value;
+            newData[label] = {
+              models: data,
+              loading: false,
+              loaded: !error,
+              error,
+            };
+          }
+        });
+
+        return newData;
+      });
     };
 
     loadAllCategories();

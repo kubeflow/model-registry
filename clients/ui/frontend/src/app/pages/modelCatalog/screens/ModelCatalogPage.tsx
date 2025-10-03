@@ -23,9 +23,10 @@ import ModelCatalogAllModelsView from './ModelCatalogAllModelsView';
 
 type ModelCatalogPageProps = {
   searchTerm: string;
+  handleFilterReset?: () => void;
 };
 
-const ModelCatalogPage: React.FC<ModelCatalogPageProps> = ({ searchTerm }) => {
+const ModelCatalogPage: React.FC<ModelCatalogPageProps> = ({ searchTerm, handleFilterReset }) => {
   const {
     selectedSourceLabel,
     filterData,
@@ -36,7 +37,7 @@ const ModelCatalogPage: React.FC<ModelCatalogPageProps> = ({ searchTerm }) => {
   } = React.useContext(ModelCatalogContext);
   const { catalogModels, catalogModelsLoaded, catalogModelsLoadError } = useCatalogModelsBySources(
     '',
-    selectedSourceLabel === 'All models' ? undefined : selectedSourceLabel,
+    selectedSourceLabel,
     10,
     searchTerm,
     filterData,
@@ -78,7 +79,7 @@ const ModelCatalogPage: React.FC<ModelCatalogPageProps> = ({ searchTerm }) => {
         title="No result found"
         headerIcon={SearchIcon}
         description={<>Adjust your filters and try again</>}
-        customAction={<Button>Reset filters</Button>}
+        customAction={<Button onClick={handleFilterReset}>Reset filters</Button>}
       />
     );
   }
