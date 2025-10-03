@@ -37,10 +37,11 @@ const ModelCatalogStringFilter = <K extends ModelCatalogStringFilterKey>({
         const label = getLabel(value).toLowerCase();
         return (
           value.toLowerCase().includes(searchValue.trim().toLowerCase()) ||
-          label.includes(searchValue.trim().toLowerCase())
+          label.includes(searchValue.trim().toLowerCase()) ||
+          isSelected(value)
         );
       }),
-    [filters.values, getLabel, searchValue],
+    [filters.values, getLabel, isSelected, searchValue],
   );
 
   const onSearchChange = (newValue: string) => {
