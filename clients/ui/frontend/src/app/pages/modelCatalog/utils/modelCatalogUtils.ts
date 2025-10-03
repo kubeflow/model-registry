@@ -8,6 +8,7 @@ import {
   CatalogFilterOptionsList,
   CatalogModel,
   CatalogModelDetailsParams,
+  CatalogSource,
   CatalogSourceList,
   ModelCatalogFilterStates,
   ModelCatalogStringFilterValueType,
@@ -76,7 +77,6 @@ export const getModelArtifactUri = (artifacts: CatalogArtifacts[]): string => {
 export const hasModelArtifacts = (artifacts: CatalogArtifacts[]): boolean =>
   artifacts.some((artifact) => artifact.artifactType === CatalogArtifactType.modelArtifact);
 
-// Utility function to check if a model is validated
 export const isModelValidated = (model: CatalogModel): boolean => {
   if (!model.customProperties) {
     return false;
@@ -194,4 +194,35 @@ export const filtersToFilterQuery = (
 
   // eg. filterQuery=rps_mean+>1+AND+license+IN+('mit','apache-2.0')+AND+ttft_mean+<+10
   return nonEmptyFilters.length === 0 ? '' : `${nonEmptyFilters.join(' AND ')}`.replace(/\s/g, '+');
+};
+
+export const getUniqueSourceLabels = (catalogSources: CatalogSourceList | null): string[] => {
+  if (!catalogSources) {
+    return [];
+  }
+
+  const allLabels = new Set<string>();
+
+  catalogSources.items.forEach((source) => {
+    if (source.enabled && source.labels.length > 0) {
+      source.labels.forEach((label) => {
+        if (label.trim()) {
+          allLabels.add(label.trim());
+        }
+      });
+    }
+  });
+
+  return Array.from(allLabels).toSorted();
+};
+
+export const getSourceFromSourceId = (
+  sourceId: string,
+  catalogSources: CatalogSourceList | null,
+): CatalogSource | undefined => {
+  if (!catalogSources || !sourceId) {
+    return undefined;
+  }
+
+  return catalogSources.items.find((source) => source.id === sourceId);
 };

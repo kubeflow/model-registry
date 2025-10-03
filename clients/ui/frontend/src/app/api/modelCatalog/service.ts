@@ -13,7 +13,8 @@ export const getCatalogModelsBySource =
   (hostPath: string, queryParams: Record<string, unknown> = {}) =>
   (
     opts: APIOptions,
-    sourceId: string,
+    sourceId?: string,
+    sourceLabel?: string,
     paginationParams?: {
       pageSize?: string;
       nextPageToken?: string;
@@ -26,6 +27,7 @@ export const getCatalogModelsBySource =
   ): Promise<CatalogModelList> => {
     const allParams = {
       source: sourceId,
+      sourceLabel,
       ...paginationParams,
       ...(searchKeyword && { q: searchKeyword }),
       ...queryParams,
