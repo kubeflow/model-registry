@@ -58,7 +58,7 @@ class ModelVersionArchive {
     const rmId = '1';
     const preferredModelRegistry = 'modelregistry-sample';
     cy.visit(
-      `/ai-hub/registry/${preferredModelRegistry}/registeredModels/${rmId}/versions/archive`,
+      `/ai-hub/registry/${preferredModelRegistry}/registered-models/${rmId}/versions/archive`,
     );
     this.wait();
   }
@@ -68,14 +68,14 @@ class ModelVersionArchive {
     const rmId = '1';
     const preferredModelRegistry = 'modelregistry-sample';
     cy.visit(
-      `/ai-hub/registry/${preferredModelRegistry}/registeredModels/${rmId}/versions/archive/${mvId}`,
+      `/ai-hub/registry/${preferredModelRegistry}/registered-models/${rmId}/versions/archive/${mvId}`,
     );
   }
 
   visitModelVersionList() {
     const rmId = '1';
     const preferredModelRegistry = 'modelregistry-sample';
-    cy.visit(`/ai-hub/registry/${preferredModelRegistry}/registeredModels/${rmId}/versions`);
+    cy.visit(`/ai-hub/registry/${preferredModelRegistry}/registered-models/${rmId}/versions`);
     this.wait();
   }
 
@@ -84,7 +84,7 @@ class ModelVersionArchive {
     const rmId = '1';
     const preferredModelRegistry = 'modelregistry-sample';
     cy.visit(
-      `/ai-hub/registry/${preferredModelRegistry}/registeredModels/${rmId}/versions/${mvId}`,
+      `/ai-hub/registry/${preferredModelRegistry}/registered-models/${rmId}/versions/${mvId}`,
     );
     this.wait();
   }

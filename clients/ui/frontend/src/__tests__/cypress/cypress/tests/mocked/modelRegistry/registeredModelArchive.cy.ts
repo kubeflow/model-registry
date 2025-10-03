@@ -170,28 +170,28 @@ describe('Model archive list', () => {
       registeredModels: [],
     });
     registeredModelArchive.visit();
-    verifyRelativeURL('/ai-hub/registry/modelregistry-sample/registeredModels/archive');
+    verifyRelativeURL('/ai-hub/registry/modelregistry-sample/registered-models/archive');
     registeredModelArchive.shouldArchiveVersionsEmpty();
   });
 
   it('Archived model details browser back button should lead to archived models table', () => {
     initIntercepts({});
     registeredModelArchive.visit();
-    verifyRelativeURL('/ai-hub/registry/modelregistry-sample/registeredModels/archive');
+    verifyRelativeURL('/ai-hub/registry/modelregistry-sample/registered-models/archive');
     registeredModelArchive.findArchiveModelBreadcrumbItem().contains('Archived models');
     const archiveModelRow = registeredModelArchive.getRow('model 2');
     archiveModelRow.findName().contains('model 2').click();
-    verifyRelativeURL('/ai-hub/registry/modelregistry-sample/registeredModels/archive/2/overview');
+    verifyRelativeURL('/ai-hub/registry/modelregistry-sample/registered-models/archive/2/overview');
     cy.findByTestId('app-page-title').should('have.text', 'model 2Archived');
     cy.go('back');
-    verifyRelativeURL('/ai-hub/registry/modelregistry-sample/registeredModels/archive');
+    verifyRelativeURL('/ai-hub/registry/modelregistry-sample/registered-models/archive');
     registeredModelArchive.findArchiveModelTable().should('be.visible');
   });
 
   it('Archived model with no versions', () => {
     initIntercepts({ modelVersions: [] });
     registeredModelArchive.visit();
-    verifyRelativeURL('/ai-hub/registry/modelregistry-sample/registeredModels/archive');
+    verifyRelativeURL('/ai-hub/registry/modelregistry-sample/registered-models/archive');
     registeredModelArchive.findArchiveModelBreadcrumbItem().contains('Archived models');
     const archiveModelRow = registeredModelArchive.getRow('model 2');
     archiveModelRow.findName().contains('model 2').click();
@@ -201,23 +201,23 @@ describe('Model archive list', () => {
   it('Archived model flow', () => {
     initIntercepts({});
     registeredModelArchive.visitArchiveModelVersionList();
-    verifyRelativeURL('/ai-hub/registry/modelregistry-sample/registeredModels/archive/2/versions');
+    verifyRelativeURL('/ai-hub/registry/modelregistry-sample/registered-models/archive/2/versions');
 
     modelRegistry.findModelVersionsTable().should('be.visible');
     modelRegistry.findModelVersionsTableRows().should('have.length', 2);
     const version = modelRegistry.getModelVersionRow('model version');
     version.findModelVersionName().contains('model version').click();
     verifyRelativeURL(
-      '/ai-hub/registry/modelregistry-sample/registeredModels/archive/2/versions/1/details',
+      '/ai-hub/registry/modelregistry-sample/registered-models/archive/2/versions/1/details',
     );
     cy.go('back');
-    verifyRelativeURL('/ai-hub/registry/modelregistry-sample/registeredModels/archive/2/versions');
+    verifyRelativeURL('/ai-hub/registry/modelregistry-sample/registered-models/archive/2/versions');
   });
 
   it('Archive models list', () => {
     initIntercepts({});
     registeredModelArchive.visit();
-    verifyRelativeURL('/ai-hub/registry/modelregistry-sample/registeredModels/archive');
+    verifyRelativeURL('/ai-hub/registry/modelregistry-sample/registered-models/archive');
 
     //breadcrumb
     registeredModelArchive.findArchiveModelBreadcrumbItem().contains('Archived models');
@@ -303,7 +303,7 @@ describe('Model archive list', () => {
     archiveModelRow.findLatestVersion().contains('new model version');
     archiveModelRow.findLatestVersion().click();
     verifyRelativeURL(
-      `/ai-hub/registry/modelregistry-sample/registeredModels/archive/2/versions/1/details`,
+      `/ai-hub/registry/modelregistry-sample/registered-models/archive/2/versions/1/details`,
     );
   });
 
@@ -314,11 +314,11 @@ describe('Model archive list', () => {
     archiveModelRow.findKebabAction('Overview').click();
     cy.location('pathname').should(
       'be.equals',
-      '/ai-hub/registry/modelregistry-sample/registeredModels/archive/2/overview',
+      '/ai-hub/registry/modelregistry-sample/registered-models/archive/2/overview',
     );
     cy.go('back');
     archiveModelRow.findKebabAction('Versions').click();
-    verifyRelativeURL(`/ai-hub/registry/modelregistry-sample/registeredModels/archive/2/versions`);
+    verifyRelativeURL(`/ai-hub/registry/modelregistry-sample/registered-models/archive/2/versions`);
   });
 });
 
