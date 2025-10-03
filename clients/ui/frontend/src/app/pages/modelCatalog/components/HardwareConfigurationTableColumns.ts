@@ -1,55 +1,37 @@
 import { SortableData } from 'mod-arch-shared';
+import { CatalogPerformanceMetricsArtifact } from '~/app/modelCatalogTypes';
 import {
-  CatalogPerformanceMetricsArtifact,
-  PerformanceMetricsCustomProperties,
-} from '~/app/modelCatalogTypes';
-import {
+  getDoubleValue,
   getHardwareConfiguration,
+  getIntValue,
+  getStringValue,
   getTotalRps,
 } from '~/app/pages/modelCatalog/utils/performanceMetricsUtils';
-import { getDoubleValue, getIntValue, getStringValue } from '~/app/utils';
 
-export type HardwareConfigColumnField = keyof PerformanceMetricsCustomProperties | 'total_rps';
-
-export type HardwareConfigColumn = Omit<
-  SortableData<CatalogPerformanceMetricsArtifact>,
-  'field'
-> & { field: HardwareConfigColumnField };
-
-// Note: The labels of most columns here include a non-breaking space (U+00a0) to selectively control word wrap.
-// Your editor may highlight these and warn you that "The character U+00a0 is invisible."
-// This character is ideally represented by the HTML entity &nbsp; but these strings can't contain HTML entities.
-export const hardwareConfigColumns: HardwareConfigColumn[] = [
+export const hardwareConfigColumns: SortableData<CatalogPerformanceMetricsArtifact>[] = [
   {
     field: 'hardware',
-    label: 'Hardware Configuration',
+    label: 'Hardware\nConfiguration',
     sortable: (
       a: CatalogPerformanceMetricsArtifact,
       b: CatalogPerformanceMetricsArtifact,
     ): number => getHardwareConfiguration(a).localeCompare(getHardwareConfiguration(b)),
-    isStickyColumn: true,
-    stickyMinWidth: '162px',
-    stickyLeftOffset: '0',
-    modifier: 'wrap',
+    width: 25,
   },
   {
     field: 'hardware_count',
-    label: 'Total Hardware',
+    label: 'Total\nHardware',
     sortable: (
       a: CatalogPerformanceMetricsArtifact,
       b: CatalogPerformanceMetricsArtifact,
     ): number =>
       getIntValue(a.customProperties, 'hardware_count') -
       getIntValue(b.customProperties, 'hardware_count'),
-    isStickyColumn: true,
-    hasRightBorder: true,
-    stickyMinWidth: '130px',
-    stickyLeftOffset: '162px',
-    modifier: 'wrap',
+    width: 20,
   },
   {
     field: 'requests_per_second',
-    label: 'RPS per Replica',
+    label: 'RPS per\nReplica',
     sortable: (
       a: CatalogPerformanceMetricsArtifact,
       b: CatalogPerformanceMetricsArtifact,
@@ -57,21 +39,19 @@ export const hardwareConfigColumns: HardwareConfigColumn[] = [
       getDoubleValue(a.customProperties, 'requests_per_second') -
       getDoubleValue(b.customProperties, 'requests_per_second'),
     width: 20,
-    modifier: 'wrap',
   },
   {
     field: 'total_rps',
-    label: 'Total RPS',
+    label: 'Total\nRPS',
     sortable: (
       a: CatalogPerformanceMetricsArtifact,
       b: CatalogPerformanceMetricsArtifact,
     ): number => getTotalRps(a.customProperties) - getTotalRps(b.customProperties),
     width: 20,
-    modifier: 'wrap',
   },
   {
     field: 'ttft_mean',
-    label: 'TTFT Latency Mean',
+    label: 'TTFT Latency\nMean',
     sortable: (
       a: CatalogPerformanceMetricsArtifact,
       b: CatalogPerformanceMetricsArtifact,
@@ -79,11 +59,10 @@ export const hardwareConfigColumns: HardwareConfigColumn[] = [
       getDoubleValue(a.customProperties, 'ttft_mean') -
       getDoubleValue(b.customProperties, 'ttft_mean'),
     width: 20,
-    modifier: 'wrap',
   },
   {
     field: 'ttft_p90',
-    label: 'TTFT Latency P90',
+    label: 'TTFT Latency\nP90',
     sortable: (
       a: CatalogPerformanceMetricsArtifact,
       b: CatalogPerformanceMetricsArtifact,
@@ -91,11 +70,10 @@ export const hardwareConfigColumns: HardwareConfigColumn[] = [
       getDoubleValue(a.customProperties, 'ttft_p90') -
       getDoubleValue(b.customProperties, 'ttft_p90'),
     width: 20,
-    modifier: 'wrap',
   },
   {
     field: 'ttft_p95',
-    label: 'TTFT Latency P95',
+    label: 'TTFT Latency\nP95',
     sortable: (
       a: CatalogPerformanceMetricsArtifact,
       b: CatalogPerformanceMetricsArtifact,
@@ -103,11 +81,10 @@ export const hardwareConfigColumns: HardwareConfigColumn[] = [
       getDoubleValue(a.customProperties, 'ttft_p95') -
       getDoubleValue(b.customProperties, 'ttft_p95'),
     width: 20,
-    modifier: 'wrap',
   },
   {
     field: 'ttft_p99',
-    label: 'TTFT Latency P99',
+    label: 'TTFT Latency\nP99',
     sortable: (
       a: CatalogPerformanceMetricsArtifact,
       b: CatalogPerformanceMetricsArtifact,
@@ -115,11 +92,10 @@ export const hardwareConfigColumns: HardwareConfigColumn[] = [
       getDoubleValue(a.customProperties, 'ttft_p99') -
       getDoubleValue(b.customProperties, 'ttft_p99'),
     width: 20,
-    modifier: 'wrap',
   },
   {
     field: 'e2e_mean',
-    label: 'E2E Latency Mean',
+    label: 'E2E Latency\nMean',
     sortable: (
       a: CatalogPerformanceMetricsArtifact,
       b: CatalogPerformanceMetricsArtifact,
@@ -127,44 +103,40 @@ export const hardwareConfigColumns: HardwareConfigColumn[] = [
       getDoubleValue(a.customProperties, 'e2e_mean') -
       getDoubleValue(b.customProperties, 'e2e_mean'),
     width: 20,
-    modifier: 'wrap',
   },
   {
     field: 'e2e_p90',
-    label: 'E2E Latency P90',
+    label: 'E2E Latency\nP90',
     sortable: (
       a: CatalogPerformanceMetricsArtifact,
       b: CatalogPerformanceMetricsArtifact,
     ): number =>
       getDoubleValue(a.customProperties, 'e2e_p90') - getDoubleValue(b.customProperties, 'e2e_p90'),
     width: 20,
-    modifier: 'wrap',
   },
   {
     field: 'e2e_p95',
-    label: 'E2E Latency P95',
+    label: 'E2E Latency\nP95',
     sortable: (
       a: CatalogPerformanceMetricsArtifact,
       b: CatalogPerformanceMetricsArtifact,
     ): number =>
       getDoubleValue(a.customProperties, 'e2e_p95') - getDoubleValue(b.customProperties, 'e2e_p95'),
     width: 20,
-    modifier: 'wrap',
   },
   {
     field: 'e2e_p99',
-    label: 'E2E Latency P99',
+    label: 'E2E Latency\nP99',
     sortable: (
       a: CatalogPerformanceMetricsArtifact,
       b: CatalogPerformanceMetricsArtifact,
     ): number =>
       getDoubleValue(a.customProperties, 'e2e_p99') - getDoubleValue(b.customProperties, 'e2e_p99'),
     width: 20,
-    modifier: 'wrap',
   },
   {
     field: 'tps_mean',
-    label: 'TPS Latency Mean',
+    label: 'TPS Latency\nMean',
     sortable: (
       a: CatalogPerformanceMetricsArtifact,
       b: CatalogPerformanceMetricsArtifact,
@@ -172,44 +144,40 @@ export const hardwareConfigColumns: HardwareConfigColumn[] = [
       getDoubleValue(a.customProperties, 'tps_mean') -
       getDoubleValue(b.customProperties, 'tps_mean'),
     width: 20,
-    modifier: 'wrap',
   },
   {
     field: 'tps_p90',
-    label: 'TPS Latency P90',
+    label: 'TPS Latency\nP90',
     sortable: (
       a: CatalogPerformanceMetricsArtifact,
       b: CatalogPerformanceMetricsArtifact,
     ): number =>
       getDoubleValue(a.customProperties, 'tps_p90') - getDoubleValue(b.customProperties, 'tps_p90'),
     width: 20,
-    modifier: 'wrap',
   },
   {
     field: 'tps_p95',
-    label: 'TPS Latency P95',
+    label: 'TPS Latency\nP95',
     sortable: (
       a: CatalogPerformanceMetricsArtifact,
       b: CatalogPerformanceMetricsArtifact,
     ): number =>
       getDoubleValue(a.customProperties, 'tps_p95') - getDoubleValue(b.customProperties, 'tps_p95'),
     width: 20,
-    modifier: 'wrap',
   },
   {
     field: 'tps_p99',
-    label: 'TPS Latency P99',
+    label: 'TPS Latency\nP99',
     sortable: (
       a: CatalogPerformanceMetricsArtifact,
       b: CatalogPerformanceMetricsArtifact,
     ): number =>
       getDoubleValue(a.customProperties, 'tps_p99') - getDoubleValue(b.customProperties, 'tps_p99'),
     width: 20,
-    modifier: 'wrap',
   },
   {
     field: 'itl_mean',
-    label: 'ITL Latency Mean',
+    label: 'ITL Latency\nMean',
     sortable: (
       a: CatalogPerformanceMetricsArtifact,
       b: CatalogPerformanceMetricsArtifact,
@@ -217,44 +185,40 @@ export const hardwareConfigColumns: HardwareConfigColumn[] = [
       getDoubleValue(a.customProperties, 'itl_mean') -
       getDoubleValue(b.customProperties, 'itl_mean'),
     width: 20,
-    modifier: 'wrap',
   },
   {
     field: 'itl_p90',
-    label: 'ITL Latency P90',
+    label: 'ITL Latency\nP90',
     sortable: (
       a: CatalogPerformanceMetricsArtifact,
       b: CatalogPerformanceMetricsArtifact,
     ): number =>
       getDoubleValue(a.customProperties, 'itl_p90') - getDoubleValue(b.customProperties, 'itl_p90'),
     width: 20,
-    modifier: 'wrap',
   },
   {
     field: 'itl_p95',
-    label: 'ITL Latency P95',
+    label: 'ITL Latency\nP95',
     sortable: (
       a: CatalogPerformanceMetricsArtifact,
       b: CatalogPerformanceMetricsArtifact,
     ): number =>
       getDoubleValue(a.customProperties, 'itl_p95') - getDoubleValue(b.customProperties, 'itl_p95'),
     width: 20,
-    modifier: 'wrap',
   },
   {
     field: 'itl_p99',
-    label: 'ITL Latency P99',
+    label: 'ITL Latency\nP99',
     sortable: (
       a: CatalogPerformanceMetricsArtifact,
       b: CatalogPerformanceMetricsArtifact,
     ): number =>
       getDoubleValue(a.customProperties, 'itl_p99') - getDoubleValue(b.customProperties, 'itl_p99'),
     width: 20,
-    modifier: 'wrap',
   },
   {
     field: 'max_input_tokens',
-    label: 'Max Input Tokens',
+    label: 'Max Input\nTokens',
     sortable: (
       a: CatalogPerformanceMetricsArtifact,
       b: CatalogPerformanceMetricsArtifact,
@@ -262,11 +226,10 @@ export const hardwareConfigColumns: HardwareConfigColumn[] = [
       getDoubleValue(a.customProperties, 'max_input_tokens') -
       getDoubleValue(b.customProperties, 'max_input_tokens'),
     width: 20,
-    modifier: 'wrap',
   },
   {
     field: 'max_output_tokens',
-    label: 'Max Output Tokens',
+    label: 'Max Output\nTokens',
     sortable: (
       a: CatalogPerformanceMetricsArtifact,
       b: CatalogPerformanceMetricsArtifact,
@@ -274,11 +237,10 @@ export const hardwareConfigColumns: HardwareConfigColumn[] = [
       getDoubleValue(a.customProperties, 'max_output_tokens') -
       getDoubleValue(b.customProperties, 'max_output_tokens'),
     width: 20,
-    modifier: 'wrap',
   },
   {
     field: 'mean_input_tokens',
-    label: 'Mean Input Tokens',
+    label: 'Mean Input\nTokens',
     sortable: (
       a: CatalogPerformanceMetricsArtifact,
       b: CatalogPerformanceMetricsArtifact,
@@ -286,11 +248,10 @@ export const hardwareConfigColumns: HardwareConfigColumn[] = [
       getDoubleValue(a.customProperties, 'mean_input_tokens') -
       getDoubleValue(b.customProperties, 'mean_input_tokens'),
     width: 20,
-    modifier: 'wrap',
   },
   {
     field: 'mean_output_tokens',
-    label: 'Mean Output Tokens',
+    label: 'Mean Output\nTokens',
     sortable: (
       a: CatalogPerformanceMetricsArtifact,
       b: CatalogPerformanceMetricsArtifact,
@@ -298,11 +259,10 @@ export const hardwareConfigColumns: HardwareConfigColumn[] = [
       getDoubleValue(a.customProperties, 'mean_output_tokens') -
       getDoubleValue(b.customProperties, 'mean_output_tokens'),
     width: 20,
-    modifier: 'wrap',
   },
   {
     field: 'framework_version',
-    label: 'vLLM Version',
+    label: 'vLLM\nVersion',
     sortable: (
       a: CatalogPerformanceMetricsArtifact,
       b: CatalogPerformanceMetricsArtifact,
@@ -312,6 +272,5 @@ export const hardwareConfigColumns: HardwareConfigColumn[] = [
       return versionA.localeCompare(versionB);
     },
     width: 20,
-    modifier: 'wrap',
   },
 ];

@@ -4,28 +4,27 @@ import { CatalogPerformanceMetricsArtifact } from '~/app/modelCatalogTypes';
 import {
   formatLatency,
   formatTokenValue,
+  getDoubleValue,
   getHardwareConfiguration,
+  getIntValue,
+  getStringValue,
   getTotalRps,
 } from '~/app/pages/modelCatalog/utils/performanceMetricsUtils';
-import { getDoubleValue, getIntValue, getStringValue } from '~/app/utils';
-import {
-  HardwareConfigColumnField,
-  hardwareConfigColumns,
-} from './HardwareConfigurationTableColumns';
+import { hardwareConfigColumns } from './HardwareConfigurationTableColumns';
 
 type HardwareConfigurationTableRowProps = {
-  performanceArtifact: CatalogPerformanceMetricsArtifact;
+  configuration: CatalogPerformanceMetricsArtifact;
 };
 
-const HardwareConfigurationTableRow: React.FC<HardwareConfigurationTableRowProps> = ({
-  performanceArtifact,
-}) => {
-  const getCellValue = (field: HardwareConfigColumnField): string | number => {
-    const { customProperties } = performanceArtifact;
+const HardwareConfigurationTableRow = ({
+  configuration,
+}: HardwareConfigurationTableRowProps): React.JSX.Element => {
+  const getCellValue = (field: string): string | number => {
+    const { customProperties } = configuration;
 
     switch (field) {
       case 'hardware':
-        return getHardwareConfiguration(performanceArtifact);
+        return getHardwareConfiguration(configuration);
       case 'hardware_count':
         return getIntValue(customProperties, 'hardware_count');
       case 'requests_per_second':
@@ -61,18 +60,14 @@ const HardwareConfigurationTableRow: React.FC<HardwareConfigurationTableRowProps
     }
   };
 
-  // TODO sticky isn't quite working with both columns and the scroll container is weird. double check PF docs
-
   return (
     <Tr>
-      {hardwareConfigColumns.map((column) => (
+      {hardwareConfigColumns.map((column, index) => (
         <Td
           key={column.field}
           dataLabel={column.label.replace('\n', ' ')}
-          isStickyColumn={column.isStickyColumn}
-          stickyMinWidth={column.stickyMinWidth}
-          stickyLeftOffset={column.stickyLeftOffset}
-          hasRightBorder={column.hasRightBorder}
+          isStickyColumn={index < 2}
+          stickyMinWidth={index < 2 ? `${column.width}ch` : undefined}
           modifier="fitContent"
         >
           {getCellValue(column.field)}
