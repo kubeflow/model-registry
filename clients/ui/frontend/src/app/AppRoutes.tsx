@@ -5,6 +5,7 @@ import { useModularArchContext, DeploymentMode } from 'mod-arch-core';
 import { NavDataItem } from '~/app/standalone/types';
 import ModelRegistrySettingsRoutes from './pages/settings/ModelRegistrySettingsRoutes';
 import { modelRegistryUrl } from './pages/modelRegistry/screens/routeUtils';
+import { modelCatalogUrl } from './routes/modelCatalog/catalogModel';
 import ModelRegistryRoutes from './pages/modelRegistry/ModelRegistryRoutes';
 import ModelCatalogRoutes from './pages/modelCatalog/ModelCatalogRoutes';
 import useUser from './hooks/useUser';
@@ -33,7 +34,7 @@ export const useNavData = (): NavDataItem[] => {
   const baseNavItems = [
     {
       label: 'Model Registry',
-      path: '/ai-hub/registry',
+      path: modelRegistryUrl(),
     },
   ];
 
@@ -41,7 +42,7 @@ export const useNavData = (): NavDataItem[] => {
   if (isStandalone || isFederated) {
     baseNavItems.push({
       label: 'Model Catalog',
-      path: '/ai-hub/catalog',
+      path: modelCatalogUrl(),
     });
   }
 
