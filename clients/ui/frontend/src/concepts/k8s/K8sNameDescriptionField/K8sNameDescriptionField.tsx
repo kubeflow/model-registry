@@ -128,6 +128,7 @@ const K8sNameDescriptionField: React.FC<K8sNameDescriptionFieldProps> = ({
       value={data.description}
       onChange={(_e, value) => onDataChange({ ...data, description: value })}
       resizeOrientation="vertical"
+      autoResize
     />
   );
 
