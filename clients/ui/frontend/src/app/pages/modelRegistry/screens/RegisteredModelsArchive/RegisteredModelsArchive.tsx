@@ -6,8 +6,8 @@ import { ModelRegistrySelectorContext } from '~/app/context/ModelRegistrySelecto
 import { filterArchiveModels } from '~/app/utils';
 import useRegisteredModels from '~/app/hooks/useRegisteredModels';
 import useModelVersions from '~/app/hooks/useModelVersions';
+import { modelRegistryUrl } from '~/app/pages/modelRegistry/screens/routeUtils';
 import RegisteredModelsArchiveListView from './RegisteredModelsArchiveListView';
-import { modelRegistryUrl } from '../routeUtils';
 
 type RegisteredModelsArchiveProps = Omit<
   React.ComponentProps<typeof ApplicationsPage>,
