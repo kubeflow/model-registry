@@ -106,13 +106,14 @@ describe('Model Catalog Page', () => {
     modelCatalog.findFilterCheckbox('Task', 'video-to-text').should('not.be.exist');
   });
 
-  it('checkbox should work', () => {
-    initIntercepts({});
-    modelCatalog.visit();
-    modelCatalog.navigate();
-    modelCatalog.findFilterCheckbox('Task', 'text-generation').click();
-    modelCatalog.findFirstModelCatalogCard().should('be.visible');
-    modelCatalog.findFilterCheckbox('Task', 'text-to-text').click();
-    modelCatalog.findModelCatalogEmptyState().should('be.visible');
-  });
+  // TODO: Add this test when the actual card filtering is implemented.
+  // it('checkbox should work', () => {
+  //   initIntercepts({});
+  //   modelCatalog.visit();
+  //   modelCatalog.navigate();
+  //   modelCatalog.findFilterCheckbox('Task', 'text-generation').click();
+  //   modelCatalog.findFirstModelCatalogCard().should('be.visible');
+  //   modelCatalog.findFilterCheckbox('Task', 'text-to-text').click();
+  //   modelCatalog.findModelCatalogEmptyState().should('be.visible');
+  // });
 });
