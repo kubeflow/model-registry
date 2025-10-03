@@ -14,12 +14,13 @@ const ModelCatalogLabels: React.FC<ModelCatalogLabelsProps> = ({
   provider,
   labels = [],
 }) => (
-  <LabelGroup numLabels={5} isCompact>
+  <LabelGroup numLabels={2} isCompact>
     {tasks.map((task) => (
       <Label data-testid="model-catalog-label" key={task} variant="outline">
         {task}
       </Label>
     ))}
+    {provider && <Label isCompact>{provider}</Label>}
     {labels.map((label) => (
       <Label data-testid="model-catalog-label" key={label} variant="outline">
         {label}
@@ -30,7 +31,6 @@ const ModelCatalogLabels: React.FC<ModelCatalogLabelsProps> = ({
         {license}
       </Label>
     )}
-    {provider && <Label isCompact>{provider}</Label>}
   </LabelGroup>
 );
 
