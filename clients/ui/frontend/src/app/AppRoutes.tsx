@@ -4,6 +4,7 @@ import { NotFound } from 'mod-arch-shared';
 import { useModularArchContext, DeploymentMode } from 'mod-arch-core';
 import { NavDataItem } from '~/app/standalone/types';
 import ModelRegistrySettingsRoutes from './pages/settings/ModelRegistrySettingsRoutes';
+import { modelRegistryUrl } from './pages/modelRegistry/screens/routeUtils';
 import ModelRegistryRoutes from './pages/modelRegistry/ModelRegistryRoutes';
 import ModelCatalogRoutes from './pages/modelCatalog/ModelCatalogRoutes';
 import useUser from './hooks/useUser';
@@ -32,7 +33,7 @@ export const useNavData = (): NavDataItem[] => {
   const baseNavItems = [
     {
       label: 'Model Registry',
-      path: '/model-registry',
+      path: '/ai-hub/registry',
     },
   ];
 
@@ -40,7 +41,7 @@ export const useNavData = (): NavDataItem[] => {
   if (isStandalone || isFederated) {
     baseNavItems.push({
       label: 'Model Catalog',
-      path: '/model-catalog',
+      path: '/ai-hub/catalog',
     });
   }
 
@@ -56,10 +57,10 @@ const AppRoutes: React.FC = () => {
 
   return (
     <Routes>
-      <Route path="/" element={<Navigate to="/model-registry" replace />} />
-      <Route path="/model-registry/*" element={<ModelRegistryRoutes />} />
+      <Route path="/" element={<Navigate to={modelRegistryUrl()} replace />} />
+      <Route path="/ai-hub/registry/*" element={<ModelRegistryRoutes />} />
       {(isStandalone || isFederated) && (
-        <Route path="/model-catalog/*" element={<ModelCatalogRoutes />} />
+        <Route path="/ai-hub/catalog/*" element={<ModelCatalogRoutes />} />
       )}
       <Route path="*" element={<NotFound />} />
       {/* TODO: [Conditional render] Follow up add testing and conditional rendering when in standalone mode */}

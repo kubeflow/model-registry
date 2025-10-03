@@ -3,6 +3,7 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { RegisteredModel } from '~/app/types';
 import {
+  modelRegistryUrl,
   registeredModelArchiveDetailsUrl,
   registeredModelArchiveUrl,
 } from '~/app/pages/modelRegistry/screens/routeUtils';
@@ -20,7 +21,7 @@ const ArchiveModelVersionDetailsBreadcrumb: React.FC<ArchiveModelVersionDetailsB
 }) => (
   <Breadcrumb>
     <BreadcrumbItem
-      render={() => <Link to="/model-registry">Model registry - {preferredModelRegistry}</Link>}
+      render={() => <Link to={modelRegistryUrl()}>Model registry - {preferredModelRegistry}</Link>}
     />
     <BreadcrumbItem
       render={() => (
