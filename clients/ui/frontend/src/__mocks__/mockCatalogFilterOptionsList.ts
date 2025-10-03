@@ -13,11 +13,7 @@ export const mockCatalogFilterOptionsList = (
   filters: {
     [ModelCatalogFilterKey.PROVIDER]: {
       type: 'string',
-      values: [
-        ModelCatalogProvider.RED_HAT,
-        ModelCatalogProvider.IBM,
-        ModelCatalogProvider.GOOGLE,
-      ],
+      values: [ModelCatalogProvider.RED_HAT, ModelCatalogProvider.IBM, ModelCatalogProvider.GOOGLE],
     },
     [ModelCatalogFilterKey.LICENSE]: {
       type: 'string',
