@@ -1,6 +1,6 @@
 import { CatalogFilterOptionsList } from '~/app/modelCatalogTypes';
 import {
-  ModelCatalogFilterKey,
+  ModelCatalogStringFilterKey,
   ModelCatalogLicense,
   ModelCatalogProvider,
   ModelCatalogTask,
@@ -11,15 +11,15 @@ export const mockCatalogFilterOptionsList = (
   partial?: Partial<CatalogFilterOptionsList>,
 ): CatalogFilterOptionsList => ({
   filters: {
-    [ModelCatalogFilterKey.PROVIDER]: {
+    [ModelCatalogStringFilterKey.PROVIDER]: {
       type: 'string',
       values: [ModelCatalogProvider.RED_HAT, ModelCatalogProvider.IBM, ModelCatalogProvider.GOOGLE],
     },
-    [ModelCatalogFilterKey.LICENSE]: {
+    [ModelCatalogStringFilterKey.LICENSE]: {
       type: 'string',
       values: [ModelCatalogLicense.APACHE_2_0, ModelCatalogLicense.MIT],
     },
-    [ModelCatalogFilterKey.TASK]: {
+    [ModelCatalogStringFilterKey.TASK]: {
       type: 'string',
       values: [
         ModelCatalogTask.TEXT_GENERATION,
@@ -30,7 +30,7 @@ export const mockCatalogFilterOptionsList = (
         ModelCatalogTask.AUDIO_TO_TEXT,
       ],
     },
-    [ModelCatalogFilterKey.LANGUAGE]: {
+    [ModelCatalogStringFilterKey.LANGUAGE]: {
       type: 'string',
       values: [
         AllLanguageCode.AR,

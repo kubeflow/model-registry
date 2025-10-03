@@ -1,8 +1,12 @@
-export enum ModelCatalogFilterKey {
+export enum ModelCatalogStringFilterKey {
   TASK = 'tasks',
   PROVIDER = 'provider',
   LICENSE = 'license',
   LANGUAGE = 'language',
+}
+
+export enum ModelCatalogNumberFilterKey {
+  // TODO add number filters here
 }
 
 export enum ModelCatalogTask {
