@@ -6,5 +6,5 @@ export const getCatalogModelDetailsRoute = (params: CatalogModelDetailsParams): 
     sourceId: params.sourceId,
     modelName: params.modelName,
   });
-  return `/ai-hub/catalog/${sourceId}/${modelName}` || '#';
+  return `/model-catalog/${sourceId}/${modelName}` || '#';
 };

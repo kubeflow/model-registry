@@ -5,5 +5,5 @@ export const getRegisterCatalogModelRoute = (id = '', name = ''): string => {
     sourceId: id,
     modelName: name,
   });
-  return `/ai-hub/catalog/${sourceId}/${modelName}/register` || '#';
+  return `/model-catalog/${sourceId}/${modelName}/register` || '#';
 };
