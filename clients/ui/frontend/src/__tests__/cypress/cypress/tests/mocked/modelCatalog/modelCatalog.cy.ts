@@ -7,6 +7,7 @@ import {
 } from '~/__mocks__';
 import type { CatalogSource } from '~/app/modelCatalogTypes';
 import { MODEL_CATALOG_API_VERSION } from '~/__tests__/cypress/cypress/support/commands/api';
+import { mockCatalogFilterOptionsList } from '~/__mocks__/mockCatalogFilterOptionsList';
 
 type HandlersProps = {
   sources?: CatalogSource[];
@@ -33,6 +34,15 @@ const initIntercepts = ({
     mockCatalogModelList({
       items: [mockCatalogModel({})],
     }),
+  );
+
+  cy.interceptApi(
+    `GET /api/:apiVersion/model_catalog/models/filter_options`,
+    {
+      path: { apiVersion: MODEL_CATALOG_API_VERSION },
+      query: { namespace: 'kubeflow' },
+    },
+    mockCatalogFilterOptionsList(),
   );
 };
 
@@ -61,4 +71,49 @@ describe('Model Catalog Page', () => {
     modelCatalog.findPageDescription().should('be.visible');
     modelCatalog.findModelCatalogCards().should('have.length.at.least', 1);
   });
+
+  it('should display model catalog filters', () => {
+    initIntercepts({});
+    modelCatalog.visit();
+    modelCatalog.navigate();
+    modelCatalog.findFilter('Provider').should('be.visible');
+    modelCatalog.findFilter('License').should('be.visible');
+    modelCatalog.findFilter('Task').should('be.visible');
+    modelCatalog.findFilter('Language').should('be.visible');
+  });
+
+  it('filters show more and show less button should work', () => {
+    initIntercepts({});
+    modelCatalog.visit();
+    modelCatalog.navigate();
+    modelCatalog.findFilterShowMoreButton('Task').click();
+    modelCatalog.findFilterCheckbox('Task', 'text-generation').should('be.visible');
+    modelCatalog.findFilterCheckbox('Task', 'text-to-text').should('be.visible');
+    modelCatalog.findFilterCheckbox('Task', 'image-to-text').should('be.visible');
+    modelCatalog.findFilterCheckbox('Task', 'image-text-to-text').should('be.visible');
+    modelCatalog.findFilterCheckbox('Task', 'audio-to-text').should('be.visible');
+    modelCatalog.findFilterCheckbox('Task', 'video-to-text').should('be.visible');
+    modelCatalog.findFilterShowLessButton('Task').click();
+    modelCatalog.findFilterCheckbox('Task', 'audio-to-text').should('not.exist');
+  });
+
+  it('filters should be searchable', () => {
+    initIntercepts({});
+    modelCatalog.visit();
+    modelCatalog.navigate();
+    modelCatalog.findFilterSearch('Task').type('audio-to-text');
+    modelCatalog.findFilterCheckbox('Task', 'audio-to-text').should('be.visible');
+    modelCatalog.findFilterCheckbox('Task', 'video-to-text').should('not.be.exist');
+  });
+
+  // TODO: Add this test when the actual card filtering is implemented.
+  // it('checkbox should work', () => {
+  //   initIntercepts({});
+  //   modelCatalog.visit();
+  //   modelCatalog.navigate();
+  //   modelCatalog.findFilterCheckbox('Task', 'text-generation').click();
+  //   modelCatalog.findFirstModelCatalogCard().should('be.visible');
+  //   modelCatalog.findFilterCheckbox('Task', 'text-to-text').click();
+  //   modelCatalog.findModelCatalogEmptyState().should('be.visible');
+  // });
 });

@@ -1,5 +1,13 @@
 import { APIOptions } from 'mod-arch-core';
 import {
+  ModelCatalogTask,
+  ModelCatalogProvider,
+  ModelCatalogLicense,
+  AllLanguageCode,
+  ModelCatalogStringFilterKey,
+  ModelCatalogNumberFilterKey,
+} from '~/concepts/modelCatalog/const';
+import {
   ModelRegistryCustomProperties,
   ModelRegistryCustomPropertyString,
   ModelRegistryCustomPropertyInt,
@@ -138,20 +146,9 @@ export type CatalogFilterNumberOption = {
   };
 };
 
-export type CatalogFilterStringOption = {
+export type CatalogFilterStringOption<T extends string> = {
   type: 'string';
-  values: string[];
-};
-
-export type CatalogFilterOption = CatalogFilterNumberOption | CatalogFilterStringOption;
-
-export type CatalogFilterOptionsList = {
-  filters: {
-    task: CatalogFilterStringOption;
-    provider: CatalogFilterStringOption;
-    license: CatalogFilterStringOption;
-    language: CatalogFilterStringOption;
-  };
+  values: T[];
 };
 
 export type GetCatalogModelsBySource = (
@@ -193,4 +190,34 @@ export type ModelCatalogAPIs = {
 export type CatalogModelDetailsParams = {
   sourceId?: string;
   modelName?: string;
+};
+
+export type ModelCatalogFilterKey = ModelCatalogStringFilterKey | ModelCatalogNumberFilterKey;
+
+// Not used for a run time value, just for mapping other types
+export type ModelCatalogStringFilterValueType = {
+  [ModelCatalogStringFilterKey.TASK]: ModelCatalogTask;
+  [ModelCatalogStringFilterKey.PROVIDER]: ModelCatalogProvider;
+  [ModelCatalogStringFilterKey.LICENSE]: ModelCatalogLicense;
+  [ModelCatalogStringFilterKey.LANGUAGE]: AllLanguageCode;
+};
+
+export type ModelCatalogStringFilterOptions = {
+  [key in ModelCatalogStringFilterKey]: CatalogFilterStringOption<
+    ModelCatalogStringFilterValueType[key]
+  >;
+};
+
+export type CatalogFilterOptions = ModelCatalogStringFilterOptions & {
+  [key in ModelCatalogNumberFilterKey]: CatalogFilterNumberOption;
+};
+
+export type CatalogFilterOptionsList = {
+  filters: CatalogFilterOptions;
+};
+
+export type ModelCatalogFilterStates = {
+  [key in ModelCatalogStringFilterKey]: ModelCatalogStringFilterValueType[key][];
+} & {
+  [key in ModelCatalogNumberFilterKey]: number;
 };

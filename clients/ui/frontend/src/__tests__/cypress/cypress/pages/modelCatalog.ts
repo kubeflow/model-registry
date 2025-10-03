@@ -1,5 +1,31 @@
 import { appChrome } from './appChrome';
 
+class ModelCatalogFilter {
+  constructor(private title: string) {
+    this.title = title;
+  }
+
+  find() {
+    return cy.findByTestId(`${this.title}-filter`);
+  }
+
+  findCheckbox(value: string) {
+    return this.find().findByTestId(`${this.title}-${value}-checkbox`);
+  }
+
+  findShowMoreButton() {
+    return this.find().findByTestId(`${this.title}-filter-show-more`);
+  }
+
+  findShowLessButton() {
+    return this.find().findByTestId(`${this.title}-filter-show-less`);
+  }
+
+  findSearch() {
+    return this.find().findByTestId(`${this.title}-filter-search`);
+  }
+}
+
 class ModelCatalog {
   visit() {
     cy.visit('/model-catalog');
@@ -15,6 +41,26 @@ class ModelCatalog {
     cy.findByTestId('app-page-title').should('exist');
     cy.findByTestId('app-page-title').contains('Model Catalog');
     cy.testA11y();
+  }
+
+  findFilter(title: string) {
+    return new ModelCatalogFilter(title).find();
+  }
+
+  findFilterSearch(title: string) {
+    return new ModelCatalogFilter(title).findSearch();
+  }
+
+  findFilterShowMoreButton(title: string) {
+    return new ModelCatalogFilter(title).findShowMoreButton();
+  }
+
+  findFilterShowLessButton(title: string) {
+    return new ModelCatalogFilter(title).findShowLessButton();
+  }
+
+  findFilterCheckbox(title: string, value: string) {
+    return new ModelCatalogFilter(title).findCheckbox(value);
   }
 
   tabEnabled() {
