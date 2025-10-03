@@ -18,7 +18,7 @@ configMapGenerator:
     disableNameSuffixHash: true
 
 secretGenerator:
-- name: postgres
+- name: model-catalog-postgres
   envs:
   - postgres.env
   options:
