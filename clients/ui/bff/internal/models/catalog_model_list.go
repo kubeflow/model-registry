@@ -18,7 +18,7 @@ type CatalogModel struct {
 	Name                     string                            `json:"name"`
 	Provider                 *string                           `json:"provider,omitempty"`
 	Readme                   *string                           `json:"readme,omitempty"`
-	SourceId                 *string                           `json:"sourceId,omitempty"`
+	SourceId                 *string                           `json:"source_id,omitempty"`
 	Tasks                    []string                          `json:"tasks,omitempty"`
 }
 

@@ -29,7 +29,7 @@ const initIntercepts = ({
     `GET /api/:apiVersion/model_catalog/models`,
     {
       path: { apiVersion: MODEL_CATALOG_API_VERSION },
-      query: { source: 'sample-source' },
+      query: { sourceLabel: 'sample-source' },
     },
     mockCatalogModelList({
       items: [mockCatalogModel({})],

@@ -14,12 +14,6 @@ type CatalogModelListEnvelope Envelope[*models.CatalogModelList, None]
 
 func (app *App) GetAllCatalogModelsAcrossSourcesHandler(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 
-	source := r.URL.Query().Get("source")
-	if source == "" {
-		app.badRequestResponse(w, r, errors.New("source query parameter is required"))
-		return
-	}
-
 	client, ok := r.Context().Value(constants.ModelCatalogHttpClientKey).(httpclient.HTTPClientInterface)
 	if !ok {
 		app.serverErrorResponse(w, r, errors.New("catalog REST client not found"))

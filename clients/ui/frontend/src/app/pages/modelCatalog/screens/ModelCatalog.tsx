@@ -2,10 +2,9 @@ import * as React from 'react';
 import { PageSection, Sidebar, SidebarContent, SidebarPanel } from '@patternfly/react-core';
 import { ApplicationsPage, ProjectObjectType, TitleWithIcon } from 'mod-arch-shared';
 import ScrollViewOnMount from '~/app/shared/components/ScrollViewOnMount';
-import { modelCatalogUrl } from '~/app/routes/modelCatalog/catalogModel';
 import ModelCatalogFilters from '~/app/pages/modelCatalog/components/ModelCatalogFilters';
 import ModelCatalogPage from './ModelCatalogPage';
-import ModelCatalogSourceSelectorNavigator from './ModelCatalogSourceSelectorNavigator';
+import ModelCatalogSourceLabelSelectorNavigator from './ModelCatalogSourceLabelSelectorNavigator';
 
 const ModelCatalog: React.FC = () => {
   const [searchTerm, setSearchTerm] = React.useState('');
@@ -32,13 +31,12 @@ const ModelCatalog: React.FC = () => {
             <ModelCatalogFilters />
           </SidebarPanel>
           <SidebarContent>
-            <ModelCatalogSourceSelectorNavigator
-              getRedirectPath={(sourceId: string) => modelCatalogUrl(sourceId)}
+            <ModelCatalogSourceLabelSelectorNavigator
               searchTerm={searchTerm}
               onSearch={handleSearch}
               onClearSearch={handleClearSearch}
             />
-            <PageSection isFilled>
+            <PageSection isFilled style={{ paddingLeft: '0px', paddingTop: '25px' }}>
               <ModelCatalogPage searchTerm={searchTerm} />
             </PageSection>
           </SidebarContent>

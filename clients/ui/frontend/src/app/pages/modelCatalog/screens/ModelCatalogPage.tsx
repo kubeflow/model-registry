@@ -18,21 +18,36 @@ import { isModelValidated } from '~/app/pages/modelCatalog/utils/modelCatalogUti
 import { mockPerformanceMetricsArtifacts } from '~/app/pages/modelCatalog/mocks/hardwareConfigurationMock';
 import { mockAccuracyMetricsArtifacts } from '~/app/pages/modelCatalog/mocks/accuracyMetricsMock';
 import EmptyModelCatalogState from '~/app/pages/modelCatalog/EmptyModelCatalogState';
+import { getSourceFromSourceId } from '~/app/pages/modelCatalog/utils/modelCatalogUtils';
+import ModelCatalogAllModelsView from './ModelCatalogAllModelsView';
 
 type ModelCatalogPageProps = {
   searchTerm: string;
 };
 
 const ModelCatalogPage: React.FC<ModelCatalogPageProps> = ({ searchTerm }) => {
-  const { selectedSource, filterData, filterOptions, filterOptionsLoaded, filterOptionsLoadError } =
-    React.useContext(ModelCatalogContext);
+  const {
+    selectedSourceLabel,
+    filterData,
+    filterOptions,
+    filterOptionsLoaded,
+    filterOptionsLoadError,
+    catalogSources,
+  } = React.useContext(ModelCatalogContext);
   const { catalogModels, catalogModelsLoaded, catalogModelsLoadError } = useCatalogModelsBySources(
-    selectedSource?.id || '',
+    '',
+    selectedSourceLabel === 'All models' ? undefined : selectedSourceLabel,
     10,
     searchTerm,
     filterData,
     filterOptions,
   );
+
+  const isAllModelsView = selectedSourceLabel === 'All models';
+
+  if (isAllModelsView) {
+    return <ModelCatalogAllModelsView searchTerm={searchTerm} />;
+  }
 
   const loaded = catalogModelsLoaded && filterOptionsLoaded;
   const loadError = catalogModelsLoadError || filterOptionsLoadError;
@@ -62,12 +77,8 @@ const ModelCatalogPage: React.FC<ModelCatalogPageProps> = ({ searchTerm }) => {
         testid="empty-model-catalog-state"
         title="No result found"
         headerIcon={SearchIcon}
-        description={
-          <>
-            No models from the <b>{selectedSource?.name}</b> source match the search criteria.
-            Adjust your search, or select a different source
-          </>
-        }
+        description={<>Adjust your filters and try again</>}
+        customAction={<Button>Reset filters</Button>}
       />
     );
   }
@@ -79,7 +90,7 @@ const ModelCatalogPage: React.FC<ModelCatalogPageProps> = ({ searchTerm }) => {
           <ModelCatalogCard
             key={`${model.name}/${model.source_id}`}
             model={model}
-            source={selectedSource}
+            source={getSourceFromSourceId(model.source_id || '', catalogSources)}
             performanceMetrics={
               isModelValidated(model) ? mockPerformanceMetricsArtifacts : undefined
             }

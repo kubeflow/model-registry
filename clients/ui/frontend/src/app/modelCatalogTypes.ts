@@ -153,7 +153,8 @@ export type CatalogFilterStringOption<T extends string> = {
 
 export type GetCatalogModelsBySource = (
   opts: APIOptions,
-  sourceId: string,
+  sourceId?: string,
+  sourceLabel?: string,
   paginationParams?: {
     pageSize?: string;
     nextPageToken?: string;
