@@ -270,7 +270,7 @@ describe('Model Versions Card', () => {
   });
 
   it('does not display model versions list if there are no live model versions', () => {
-    cy.visit('/model-registry/modelregistry-sample/registeredModels/1/overview');
+    cy.visit('/model-registry/modelregistry-sample/registered-models/1/overview');
     cy.interceptApi(
       `GET /api/:apiVersion/model_registry/:modelRegistryName/registered_models/:registeredModelId/versions`,
       {
@@ -289,7 +289,7 @@ describe('Model Versions Card', () => {
   });
 
   it('does not display model versions list if there are no archived model versions', () => {
-    cy.visit('/model-registry/modelregistry-sample/registeredModels/archive/2/overview');
+    cy.visit('/model-registry/modelregistry-sample/registered-models/archive/2/overview');
     cy.interceptApi(
       `GET /api/:apiVersion/model_registry/:modelRegistryName/registered_models/:registeredModelId/versions`,
       {
@@ -308,7 +308,7 @@ describe('Model Versions Card', () => {
   });
 
   it('should display live model versions list correctly', () => {
-    cy.visit('/model-registry/modelregistry-sample/registeredModels/1/overview');
+    cy.visit('/model-registry/modelregistry-sample/registered-models/1/overview');
 
     modelVersionsCard.findModelVersion('1').should('exist');
 
@@ -322,11 +322,11 @@ describe('Model Versions Card', () => {
     modelVersionsCard.findModelVersion('4').should('exist');
 
     modelVersionsCard.findViewAllVersionsLink().click();
-    cy.url().should('include', '/model-registry/modelregistry-sample/registeredModels/1/versions');
+    cy.url().should('include', '/model-registry/modelregistry-sample/registered-models/1/versions');
   });
 
   it('should display archived model versions list correctly', () => {
-    cy.visit('/model-registry/modelregistry-sample/registeredModels/archive/2/overview');
+    cy.visit('/model-registry/modelregistry-sample/registered-models/archive/2/overview');
 
     modelVersionsCard.findModelVersion('5').should('exist');
 
@@ -342,30 +342,30 @@ describe('Model Versions Card', () => {
     modelVersionsCard.findViewAllVersionsLink().click();
     cy.url().should(
       'include',
-      '/model-registry/modelregistry-sample/registeredModels/archive/2/versions',
+      '/model-registry/modelregistry-sample/registered-models/archive/2/versions',
     );
   });
 
   it('should have the correct link to the live model version', () => {
     initInterceptsForVersion('4');
-    cy.visit('/model-registry/modelregistry-sample/registeredModels/1/overview');
+    cy.visit('/model-registry/modelregistry-sample/registered-models/1/overview');
 
     modelVersionsCard.findModelVersionLink('4').click();
     cy.url().should(
       'include',
-      '/model-registry/modelregistry-sample/registeredModels/1/versions/4/details',
+      '/model-registry/modelregistry-sample/registered-models/1/versions/4/details',
     );
     cy.contains('Version 4').should('be.visible');
   });
 
   it('should have the correct link to the archived model version', () => {
     initInterceptsForVersion('8');
-    cy.visit('/model-registry/modelregistry-sample/registeredModels/archive/2/overview');
+    cy.visit('/model-registry/modelregistry-sample/registered-models/archive/2/overview');
 
     modelVersionsCard.findModelVersionLink('8').click();
     cy.url().should(
       'include',
-      '/model-registry/modelregistry-sample/registeredModels/archive/2/versions/8/details',
+      '/model-registry/modelregistry-sample/registered-models/archive/2/versions/8/details',
     );
     cy.contains('Version 8').should('be.visible');
   });

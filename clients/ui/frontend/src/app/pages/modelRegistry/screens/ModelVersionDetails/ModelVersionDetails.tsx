@@ -10,6 +10,7 @@ import useModelArtifactsByVersionId from '~/app/hooks/useModelArtifactsByVersion
 import { ModelState } from '~/app/types';
 import {
   archiveModelVersionDetailsUrl,
+  modelRegistryUrl,
   modelVersionArchiveDetailsUrl,
   modelVersionUrl,
   registeredModelUrl,
@@ -65,7 +66,7 @@ const ModelVersionsDetails: React.FC<ModelVersionsDetailProps> = ({ tab, ...page
         <Breadcrumb>
           <BreadcrumbItem
             render={() => (
-              <Link to="/model-registry">Model registry - {preferredModelRegistry?.name}</Link>
+              <Link to={modelRegistryUrl()}>Model registry - {preferredModelRegistry?.name}</Link>
             )}
           />
           <BreadcrumbItem

@@ -232,17 +232,17 @@ describe('Model Registry core', () => {
       registeredModelRow.findLatestVersion().contains('new model version');
       registeredModelRow.findLatestVersion().click();
       verifyRelativeURL(
-        `/model-registry/modelregistry-sample/registeredModels/1/versions/1/details`,
+        `/model-registry/modelregistry-sample/registered-models/1/versions/1/details`,
       );
     });
 
     it('table kebab actions', () => {
       const registeredModelRow = modelRegistry.getRow('Fraud detection model');
       registeredModelRow.findKebabAction('Versions').click();
-      verifyRelativeURL(`/model-registry/modelregistry-sample/registeredModels/1/versions`);
+      verifyRelativeURL(`/model-registry/modelregistry-sample/registered-models/1/versions`);
       cy.go('back');
       registeredModelRow.findKebabAction('Overview').click();
-      verifyRelativeURL(`/model-registry/modelregistry-sample/registeredModels/1/overview`);
+      verifyRelativeURL(`/model-registry/modelregistry-sample/registered-models/1/overview`);
     });
 
     it('Renders labels in modal', () => {
@@ -368,8 +368,8 @@ describe('Register Model button', () => {
     modelRegistry.findRegisterModelButton().click();
     cy.findByTestId('app-page-title').should('contain', 'Register model');
     const expectedUrlPattern =
-      '/model-registry/modelregistry-sample/registeredModels/test-model-id/versions/test-version-id';
-    cy.url().should('include', '/model-registry/modelregistry-sample/registerModel');
+      '/model-registry/modelregistry-sample/registered-models/test-model-id/versions/test-version-id';
+    cy.url().should('include', '/model-registry/modelregistry-sample/register/model');
     cy.log(`Expected redirect URL: ${expectedUrlPattern}`);
   });
 });

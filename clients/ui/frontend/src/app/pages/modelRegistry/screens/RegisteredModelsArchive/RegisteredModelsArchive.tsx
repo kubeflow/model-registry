@@ -6,6 +6,7 @@ import { ModelRegistrySelectorContext } from '~/app/context/ModelRegistrySelecto
 import { filterArchiveModels } from '~/app/utils';
 import useRegisteredModels from '~/app/hooks/useRegisteredModels';
 import useModelVersions from '~/app/hooks/useModelVersions';
+import { modelRegistryUrl } from '~/app/pages/modelRegistry/screens/routeUtils';
 import RegisteredModelsArchiveListView from './RegisteredModelsArchiveListView';
 
 type RegisteredModelsArchiveProps = Omit<
@@ -33,7 +34,7 @@ const RegisteredModelsArchive: React.FC<RegisteredModelsArchiveProps> = ({ ...pa
         <Breadcrumb>
           <BreadcrumbItem
             render={() => (
-              <Link to="/model-registry">Model registry - {preferredModelRegistry?.name}</Link>
+              <Link to={modelRegistryUrl()}>Model registry - {preferredModelRegistry?.name}</Link>
             )}
           />
           <BreadcrumbItem data-testid="archive-model-page-breadcrumb" isActive>
