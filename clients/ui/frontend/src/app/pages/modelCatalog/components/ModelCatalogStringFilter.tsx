@@ -5,7 +5,7 @@ import {
   ModelCatalogStringFilterValueType,
 } from '~/app/modelCatalogTypes';
 import { ModelCatalogStringFilterKey } from '~/concepts/modelCatalog/const';
-import { useCatalogStringFilterState } from '../utils/modelCatalogUtils';
+import { useCatalogStringFilterState } from '~/app/pages/modelCatalog/utils/modelCatalogUtils';
 
 const MAX_VISIBLE_FILTERS = 5;
 
