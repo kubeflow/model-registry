@@ -84,7 +84,7 @@ export const isModelValidated = (model: CatalogModel): boolean => {
 };
 
 const isStringFilterValid = <K extends ModelCatalogStringFilterKey>(
-  filterKey: ModelCatalogStringFilterKey,
+  filterKey: K,
   value: ModelCatalogStringFilterValueType[ModelCatalogStringFilterKey][],
 ): value is ModelCatalogFilterStates[K] => isEnumMember(filterKey, ModelCatalogStringFilterKey);
 
