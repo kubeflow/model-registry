@@ -22,10 +22,10 @@ func DatastoreSpec() *datastore.Spec {
 			AddString("library_name").
 			AddString("license_link").
 			AddString("license").
-			AddStruct("logo").
+			AddString("logo").
 			AddString("maturity").
 			AddString("provider").
-			AddStruct("readme").
+			AddString("readme").
 			AddStruct("tasks"),
 		).
 		AddArtifact(CatalogModelArtifactTypeName, datastore.NewSpecType(NewCatalogModelArtifactRepository).
