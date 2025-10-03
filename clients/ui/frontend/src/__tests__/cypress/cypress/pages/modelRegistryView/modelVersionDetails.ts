@@ -21,7 +21,7 @@ class ModelVersionDetails {
     const rmId = '1';
     const mvId = '1';
     cy.visit(
-      `/ai-hub/registry/${preferredModelRegistry}/registered-models/${rmId}/versions/${mvId}`,
+      `/model-registry/${preferredModelRegistry}/registered-models/${rmId}/versions/${mvId}`,
     );
     this.wait();
   }

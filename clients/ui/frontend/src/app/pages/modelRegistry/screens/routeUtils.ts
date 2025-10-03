@@ -1,5 +1,5 @@
 export const modelRegistryUrl = (preferredModelRegistry = ''): string =>
-  `/ai-hub/registry/${preferredModelRegistry}`;
+  `/model-registry/${preferredModelRegistry}`;
 
 export const registeredModelsUrl = (preferredModelRegistry?: string): string =>
   `${modelRegistryUrl(preferredModelRegistry)}/registered-models`;
