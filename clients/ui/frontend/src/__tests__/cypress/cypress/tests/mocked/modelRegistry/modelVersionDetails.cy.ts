@@ -258,7 +258,7 @@ describe('Model version details', () => {
 
     it('Model version details page header', () => {
       verifyRelativeURL(
-        '/model-registry/modelregistry-sample/registeredModels/1/versions/1/details',
+        '/ai-hub/registry/modelregistry-sample/registeredModels/1/versions/1/details',
       );
       cy.findByTestId('app-page-title').should('contain.text', 'Version 1');
       cy.findByTestId('breadcrumb-version-name').should('have.text', 'Version 1');
@@ -554,7 +554,7 @@ describe('Model version details', () => {
       // Verify we navigated to the versions list page
       cy.url().should(
         'include',
-        '/model-registry/modelregistry-sample/registeredModels/1/versions',
+        '/ai-hub/registry/modelregistry-sample/registeredModels/1/versions',
       );
       cy.findByTestId('model-versions-tab-content').should('exist');
     });

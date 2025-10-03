@@ -2,7 +2,7 @@ import { appChrome } from './appChrome';
 
 class ModelCatalog {
   visit() {
-    cy.visit('/model-catalog');
+    cy.visit('/ai-hub/catalog');
     this.wait();
   }
 

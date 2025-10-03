@@ -20,7 +20,9 @@ class ModelVersionDetails {
     const preferredModelRegistry = 'modelregistry-sample';
     const rmId = '1';
     const mvId = '1';
-    cy.visit(`/model-registry/${preferredModelRegistry}/registeredModels/${rmId}/versions/${mvId}`);
+    cy.visit(
+      `/ai-hub/registry/${preferredModelRegistry}/registeredModels/${rmId}/versions/${mvId}`,
+    );
     this.wait();
   }
 
