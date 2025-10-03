@@ -31,8 +31,8 @@ func TestMonitor(t *testing.T) {
 		return watchMonitor(ch)
 	}
 
-	a := _watchMonitor(mon.Path(fileA))
-	b := _watchMonitor(mon.Path(fileB))
+	a := _watchMonitor(mon.Path(t.Context(), fileA))
+	b := _watchMonitor(mon.Path(t.Context(), fileB))
 
 	updateFile(t, fileA)
 	a.AssertCount(t, 1)
@@ -88,8 +88,8 @@ func TestMonitorSymlinks(t *testing.T) {
 		return watchMonitor(ch)
 	}
 
-	a := _watchMonitor(mon.Path(filepath.Join(tmpDir, "a")))
-	b := _watchMonitor(mon.Path(filepath.Join(tmpDir, "b")))
+	a := _watchMonitor(mon.Path(t.Context(), filepath.Join(tmpDir, "a")))
+	b := _watchMonitor(mon.Path(t.Context(), filepath.Join(tmpDir, "b")))
 
 	// Set up a directory structure with symlinks like k8s does for mounted
 	// configmaps.

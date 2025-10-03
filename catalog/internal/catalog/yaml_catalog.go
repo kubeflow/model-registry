@@ -329,7 +329,7 @@ func (p *yamlModelProvider) Models(ctx context.Context) (<-chan ModelProviderRec
 		p.emit(ctx, catalog, ch)
 
 		// Watch for changes
-		changes, err := getMonitor().Path(p.path)
+		changes, err := getMonitor().Path(ctx, p.path)
 		if err != nil {
 			// Not fatal, we still have the inital load, but there
 			// won't be any updates.

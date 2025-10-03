@@ -1,11 +1,13 @@
 package catalog
 
 import (
+	"context"
 	"fmt"
 	"hash/crc32"
 	"io"
 	"os"
 	"path/filepath"
+	"slices"
 	"sync"
 	"sync/atomic"
 
@@ -115,8 +117,8 @@ func (m *monitor) Close() {
 // change. The file does not need to exist before calling this method, however
 // the provided path should only be a file or a symlink (not a directory,
 // device, etc.). The returned channel will be closed when the monitor is
-// closed.
-func (m *monitor) Path(p string) (<-chan struct{}, error) {
+// closed or when the context is canceled.
+func (m *monitor) Path(ctx context.Context, p string) (<-chan struct{}, error) {
 	absPath, err := filepath.Abs(p)
 	if err != nil {
 		return nil, fmt.Errorf("abs: %w", err)
@@ -148,6 +150,24 @@ func (m *monitor) Path(p string) (<-chan struct{}, error) {
 		r.channels = append(r.channels, ch)
 	}
 	m.records[dir][base].updateHash(filepath.Join(dir, base))
+
+	go func() {
+		// Wait for the context to close, then clean up.
+		<-ctx.Done()
+
+		m.recordsMu.Lock()
+		defer m.recordsMu.Unlock()
+
+		if m.records == nil {
+			// Closed
+			return
+		}
+
+		if n := slices.Index(m.records[dir][base].channels, ch); n >= 0 {
+			m.records[dir][base].channels = slices.Delete(m.records[dir][base].channels, n, n+1)
+		}
+		close(ch)
+	}()
 
 	return ch, nil
 }
