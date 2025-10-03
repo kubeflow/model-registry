@@ -255,6 +255,12 @@ func catalogCustomProperties() *map[string]openapi.MetadataValue {
 				MetadataType: "MetadataStringValue",
 			},
 		},
+		"validated_on": {
+			MetadataStringValue: &openapi.MetadataStringValue{
+				StringValue:  "RHOAI 2.20,RHAIIS 3.0,RHELAI 1.5",
+				MetadataType: "MetadataStringValue",
+			},
+		},
 		"AWS_KEY": {
 			MetadataStringValue: &openapi.MetadataStringValue{
 				StringValue:  "asdf89asdf098asdfa",
