@@ -6,8 +6,7 @@ require (
 	github.com/brianvoe/gofakeit/v7 v7.3.0
 	github.com/google/uuid v1.6.0
 	github.com/julienschmidt/httprouter v1.3.0
-	github.com/kubeflow/model-registry v0.3.0
-	github.com/kubeflow/model-registry/pkg/openapi v0.3.0
+	github.com/kubeflow/model-registry/pkg/openapi v0.3.1
 	github.com/onsi/ginkgo/v2 v2.25.1
 	github.com/onsi/gomega v1.38.0
 	github.com/rs/cors v1.11.1
@@ -63,6 +62,7 @@ require (
 	golang.org/x/text v0.28.0 // indirect
 	golang.org/x/time v0.11.0 // indirect
 	golang.org/x/tools v0.36.0 // indirect
+	gomodules.xyz/jsonpatch/v2 v2.5.0 // indirect
 	google.golang.org/protobuf v1.36.8 // indirect
 	gopkg.in/evanphx/json-patch.v4 v4.12.0 // indirect
 	gopkg.in/inf.v0 v0.9.1 // indirect
