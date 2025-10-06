@@ -25,7 +25,6 @@ func TestCatalogModelRepository(t *testing.T) {
 	t.Run("TestSave", func(t *testing.T) {
 		// Test creating a new catalog model
 		catalogModel := &models.CatalogModelImpl{
-			TypeID: apiutils.Of(int32(typeID)),
 			Attributes: &models.CatalogModelAttributes{
 				Name:       apiutils.Of("test-catalog-model"),
 				ExternalID: apiutils.Of("catalog-ext-123"),
@@ -67,7 +66,6 @@ func TestCatalogModelRepository(t *testing.T) {
 	t.Run("TestGetByID", func(t *testing.T) {
 		// First create a model to retrieve
 		catalogModel := &models.CatalogModelImpl{
-			TypeID: apiutils.Of(int32(typeID)),
 			Attributes: &models.CatalogModelAttributes{
 				Name:       apiutils.Of("get-test-catalog-model"),
 				ExternalID: apiutils.Of("get-catalog-ext-123"),
@@ -95,14 +93,12 @@ func TestCatalogModelRepository(t *testing.T) {
 		// Create multiple models for listing
 		testModels := []*models.CatalogModelImpl{
 			{
-				TypeID: apiutils.Of(int32(typeID)),
 				Attributes: &models.CatalogModelAttributes{
 					Name:       apiutils.Of("list-catalog-model-1"),
 					ExternalID: apiutils.Of("list-catalog-ext-1"),
 				},
 			},
 			{
-				TypeID: apiutils.Of(int32(typeID)),
 				Attributes: &models.CatalogModelAttributes{
 					Name:       apiutils.Of("list-catalog-model-2"),
 					ExternalID: apiutils.Of("list-catalog-ext-2"),
@@ -148,10 +144,156 @@ func TestCatalogModelRepository(t *testing.T) {
 		assert.Equal(t, "list-catalog-ext-2", *result.Items[0].GetAttributes().ExternalID)
 	})
 
+	t.Run("TestGetByName", func(t *testing.T) {
+		// First create a model to retrieve by name
+		catalogModel := &models.CatalogModelImpl{
+			Attributes: &models.CatalogModelAttributes{
+				Name:       apiutils.Of("get-by-name-test-model"),
+				ExternalID: apiutils.Of("get-by-name-ext-123"),
+			},
+		}
+
+		saved, err := repo.Save(catalogModel)
+		require.NoError(t, err)
+		require.NotNil(t, saved.GetID())
+
+		// Test retrieving by name
+		retrieved, err := repo.GetByName("get-by-name-test-model")
+		require.NoError(t, err)
+		require.NotNil(t, retrieved)
+		assert.Equal(t, *saved.GetID(), *retrieved.GetID())
+		assert.Equal(t, "get-by-name-test-model", *retrieved.GetAttributes().Name)
+		assert.Equal(t, "get-by-name-ext-123", *retrieved.GetAttributes().ExternalID)
+
+		// Test retrieving non-existent name
+		_, err = repo.GetByName("non-existent-model")
+		assert.ErrorIs(t, err, service.ErrCatalogModelNotFound)
+	})
+
+	t.Run("TestUpdateWithID", func(t *testing.T) {
+		// First create a model
+		catalogModel := &models.CatalogModelImpl{
+			Attributes: &models.CatalogModelAttributes{
+				Name:       apiutils.Of("update-test-model"),
+				ExternalID: apiutils.Of("update-ext-123"),
+			},
+			Properties: &[]dbmodels.Properties{
+				{
+					Name:        "version",
+					StringValue: apiutils.Of("1.0.0"),
+				},
+			},
+			CustomProperties: &[]dbmodels.Properties{
+				{
+					Name:        "environment",
+					StringValue: apiutils.Of("dev"),
+				},
+			},
+		}
+
+		saved, err := repo.Save(catalogModel)
+		require.NoError(t, err)
+		require.NotNil(t, saved.GetID())
+
+		// Update the model with ID specified
+		updateModel := &models.CatalogModelImpl{
+			ID: saved.GetID(), // Specify the ID for update
+			Attributes: &models.CatalogModelAttributes{
+				Name:                     apiutils.Of("updated-test-model"),
+				ExternalID:               apiutils.Of("updated-ext-456"),
+				CreateTimeSinceEpoch:     saved.GetAttributes().CreateTimeSinceEpoch, // Preserve create time
+			},
+			Properties: &[]dbmodels.Properties{
+				{
+					Name:        "version",
+					StringValue: apiutils.Of("2.0.0"), // Updated version
+				},
+				{
+					Name:        "description",
+					StringValue: apiutils.Of("Updated description"), // New property
+				},
+			},
+			CustomProperties: &[]dbmodels.Properties{
+				{
+					Name:        "environment",
+					StringValue: apiutils.Of("prod"), // Updated environment
+				},
+			},
+		}
+
+		updated, err := repo.Save(updateModel)
+		require.NoError(t, err)
+		require.NotNil(t, updated)
+
+		// Verify the update
+		assert.Equal(t, *saved.GetID(), *updated.GetID()) // Same ID
+		assert.Equal(t, "updated-test-model", *updated.GetAttributes().Name)
+		assert.Equal(t, "updated-ext-456", *updated.GetAttributes().ExternalID)
+
+		// Verify properties were updated
+		require.NotNil(t, updated.GetProperties())
+		assert.Len(t, *updated.GetProperties(), 2)
+
+		// Verify custom properties were updated
+		require.NotNil(t, updated.GetCustomProperties())
+		assert.Len(t, *updated.GetCustomProperties(), 1)
+	})
+
+	t.Run("TestUpdateWithName", func(t *testing.T) {
+		// First create a model
+		catalogModel := &models.CatalogModelImpl{
+			Attributes: &models.CatalogModelAttributes{
+				Name:       apiutils.Of("update-by-name-model"),
+				ExternalID: apiutils.Of("update-by-name-ext-123"),
+			},
+			Properties: &[]dbmodels.Properties{
+				{
+					Name:        "status",
+					StringValue: apiutils.Of("draft"),
+				},
+			},
+		}
+
+		saved, err := repo.Save(catalogModel)
+		require.NoError(t, err)
+		require.NotNil(t, saved.GetID())
+
+		// Update the model without specifying ID (should lookup by name)
+		updateModel := &models.CatalogModelImpl{
+			// No ID specified - should trigger name lookup in Save method
+			Attributes: &models.CatalogModelAttributes{
+				Name:       apiutils.Of("update-by-name-model"), // Same name to trigger lookup
+				ExternalID: apiutils.Of("updated-by-name-ext-789"),
+			},
+			Properties: &[]dbmodels.Properties{
+				{
+					Name:        "status",
+					StringValue: apiutils.Of("published"), // Updated status
+				},
+				{
+					Name:        "category",
+					StringValue: apiutils.Of("ml-model"), // New property
+				},
+			},
+		}
+
+		updated, err := repo.Save(updateModel)
+		require.NoError(t, err)
+		require.NotNil(t, updated)
+
+		// Verify the update happened (same ID, updated fields)
+		assert.Equal(t, *saved.GetID(), *updated.GetID()) // Should have same ID from lookup
+		assert.Equal(t, "update-by-name-model", *updated.GetAttributes().Name)
+		assert.Equal(t, "updated-by-name-ext-789", *updated.GetAttributes().ExternalID)
+
+		// Verify properties were updated
+		require.NotNil(t, updated.GetProperties())
+		assert.Len(t, *updated.GetProperties(), 2)
+	})
+
 	t.Run("TestListWithPropertiesAndCustomProperties", func(t *testing.T) {
 		// Create a model with both properties and custom properties
 		catalogModel := &models.CatalogModelImpl{
-			TypeID: apiutils.Of(int32(typeID)),
 			Attributes: &models.CatalogModelAttributes{
 				Name:       apiutils.Of("props-test-catalog-model"),
 				ExternalID: apiutils.Of("props-catalog-ext-123"),

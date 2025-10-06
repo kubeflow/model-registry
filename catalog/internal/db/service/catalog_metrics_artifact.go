@@ -3,6 +3,7 @@ package service
 import (
 	"errors"
 	"fmt"
+	"math"
 
 	"github.com/kubeflow/model-registry/catalog/internal/db/models"
 	"github.com/kubeflow/model-registry/internal/apiutils"
@@ -44,9 +45,27 @@ func (r *CatalogMetricsArtifactRepositoryImpl) List(listOptions models.CatalogMe
 }
 
 func (r *CatalogMetricsArtifactRepositoryImpl) Save(ma models.CatalogMetricsArtifact, parentResourceID *int32) (models.CatalogMetricsArtifact, error) {
+	config := r.GetConfig()
+	if ma.GetTypeID() == nil {
+		if config.TypeID > 0 && config.TypeID < math.MaxInt32 {
+			ma.SetTypeID(int32(config.TypeID))
+		}
+	}
+
 	attr := ma.GetAttributes()
 	if attr == nil {
 		return ma, fmt.Errorf("invalid artifact: nil attributes")
+	}
+
+	if ma.GetID() == nil && attr.Name != nil {
+		existing, err := r.lookupMetricsArtifactByName(*attr.Name)
+		if err != nil {
+			if !errors.Is(err, ErrCatalogMetricsArtifactNotFound) {
+				return ma, fmt.Errorf("error finding existing metrics artifact named %s: %w", *attr.Name, err)
+			}
+		} else {
+			ma.SetID(existing.ID)
+		}
 	}
 
 	switch attr.MetricsType {
@@ -57,6 +76,21 @@ func (r *CatalogMetricsArtifactRepositoryImpl) Save(ma models.CatalogMetricsArti
 	}
 
 	return r.GenericRepository.Save(ma, parentResourceID)
+}
+
+func (r *CatalogMetricsArtifactRepositoryImpl) lookupMetricsArtifactByName(name string) (*schema.Artifact, error) {
+	var entity schema.Artifact
+
+	config := r.GetConfig()
+
+	if err := config.DB.Where("name = ? AND type_id = ?", name, config.TypeID).First(&entity).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, fmt.Errorf("%w: %v", config.NotFoundError, err)
+		}
+		return nil, fmt.Errorf("error getting %s by name: %w", config.EntityName, err)
+	}
+
+	return &entity, nil
 }
 
 func applyCatalogMetricsArtifactListFilters(query *gorm.DB, listOptions *models.CatalogMetricsArtifactListOptions) *gorm.DB {
