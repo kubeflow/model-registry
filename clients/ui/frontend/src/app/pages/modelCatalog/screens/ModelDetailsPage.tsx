@@ -142,9 +142,7 @@ const ModelDetailsPage: React.FC = () => {
               </StackItem>
             </Stack>
           </Flex>
-        ) : (
-          'Model details'
-        )
+        ) : null
       }
       empty={!model}
       emptyStatePage={

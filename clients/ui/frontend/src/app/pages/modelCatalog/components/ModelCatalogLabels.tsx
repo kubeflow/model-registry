@@ -25,12 +25,8 @@ const ModelCatalogLabels: React.FC<ModelCatalogLabelsProps> = ({
         {label}
       </Label>
     ))}
-    {license && (
-      <Label color="purple" isCompact>
-        {license}
-      </Label>
-    )}
-    {provider && <Label isCompact>{provider}</Label>}
+    {license && <Label color="purple">{license}</Label>}
+    {provider && <Label>{provider}</Label>}
   </LabelGroup>
 );
 

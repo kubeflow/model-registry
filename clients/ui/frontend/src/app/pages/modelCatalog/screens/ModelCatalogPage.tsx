@@ -69,6 +69,7 @@ const ModelCatalogPage: React.FC<ModelCatalogPageProps> = ({ searchTerm }) => {
           <ModelCatalogCard
             model={model}
             source={selectedSource}
+            truncate
             key={`${model.name}/${model.source_id}`}
           />
         ))}
