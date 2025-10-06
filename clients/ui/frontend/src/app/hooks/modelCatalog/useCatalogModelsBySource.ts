@@ -1,6 +1,11 @@
 import { useFetchState, FetchStateCallbackPromise, NotReadyError } from 'mod-arch-core';
 import React from 'react';
-import { CatalogModel, CatalogModelList } from '~/app/modelCatalogTypes';
+import {
+  CatalogFilterOptionsList,
+  CatalogModel,
+  CatalogModelList,
+  ModelCatalogFilterStates,
+} from '~/app/modelCatalogTypes';
 import { useModelCatalogAPI } from './useModelCatalogAPI';
 
 type PaginatedCatalogModelList = {
@@ -25,6 +30,8 @@ export const useCatalogModelsBySources = (
   sourceId: string,
   pageSize = 10,
   searchQuery = '',
+  filterData?: ModelCatalogFilterStates,
+  filterOptions?: CatalogFilterOptionsList | null,
 ): ModelList => {
   const { api, apiAvailable } = useModelCatalogAPI();
 
@@ -47,9 +54,11 @@ export const useCatalogModelsBySources = (
         sourceId,
         { pageSize: pageSize.toString() },
         searchQuery.trim() || undefined,
+        filterData,
+        filterOptions,
       );
     },
-    [api, apiAvailable, sourceId, pageSize, searchQuery],
+    [api, apiAvailable, sourceId, pageSize, searchQuery, filterData, filterOptions],
   );
 
   const [firstPageData, loaded, error, refetch] = useFetchState(

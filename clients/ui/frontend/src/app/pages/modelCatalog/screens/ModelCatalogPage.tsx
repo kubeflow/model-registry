@@ -10,6 +10,7 @@ import {
 import { SearchIcon } from '@patternfly/react-icons';
 import React from 'react';
 import { ModelCatalogContext } from '~/app/context/modelCatalog/ModelCatalogContext';
+import { useCatalogFilterOptionList } from '~/app/hooks/modelCatalog/useCatalogFilterOptionList';
 import { useCatalogModelsBySources } from '~/app/hooks/modelCatalog/useCatalogModelsBySource';
 import { CatalogModel } from '~/app/modelCatalogTypes';
 import ModelCatalogCard from '~/app/pages/modelCatalog/components/ModelCatalogCard';
@@ -20,11 +21,14 @@ type ModelCatalogPageProps = {
 };
 
 const ModelCatalogPage: React.FC<ModelCatalogPageProps> = ({ searchTerm }) => {
-  const { selectedSource } = React.useContext(ModelCatalogContext);
+  const { selectedSource, filterData, apiState } = React.useContext(ModelCatalogContext);
+  const [filterOptions] = useCatalogFilterOptionList(apiState);
   const { catalogModels, catalogModelsLoaded, catalogModelsLoadError } = useCatalogModelsBySources(
     selectedSource?.id || '',
     10,
     searchTerm,
+    filterData,
+    filterOptions,
   );
 
   if (catalogModelsLoadError) {
