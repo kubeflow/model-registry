@@ -7,7 +7,7 @@ import {
   ModelCatalogProvider,
   ModelCatalogTask,
 } from '~/concepts/modelCatalog/const';
-import { filtersToFilterQuery } from '../modelCatalogUtils';
+import { filtersToFilterQuery } from '~/app/pages/modelCatalog/utils/modelCatalogUtils';
 
 // TODO: Implement performance filters.
 describe('filtersToFilterQuery', () => {
