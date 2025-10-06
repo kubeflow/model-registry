@@ -46,6 +46,7 @@ func TestFindModels(t *testing.T) {
 		name              string
 		sourceID          string
 		mockModels        map[string]*model.CatalogModel
+		filterQuery       string
 		q                 string
 		pageSize          string
 		orderBy           model.OrderByField
@@ -305,6 +306,7 @@ func TestFindModels(t *testing.T) {
 				context.Background(),
 				[]string{tc.sourceID},
 				tc.q,
+				tc.filterQuery,
 				tc.pageSize,
 				tc.orderBy,
 				tc.sortOrder,
