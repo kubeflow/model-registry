@@ -10,6 +10,7 @@ import (
 	"slices"
 	"sync"
 	"sync/atomic"
+	"time"
 
 	"github.com/fsnotify/fsnotify"
 	"github.com/golang/glog"
@@ -39,6 +40,11 @@ type monitor struct {
 
 	recordsMu sync.RWMutex
 	records   map[string]map[string]*monitorRecord
+
+	// How long to wait after receiving an event before processing it (this
+	// exists to avoid processing partially written files). Defaults to 1
+	// second.
+	Pause time.Duration
 }
 
 var _monitor *monitor
@@ -71,6 +77,7 @@ func newMonitor() (*monitor, error) {
 	m := &monitor{
 		watcher: watcher,
 		records: map[string]map[string]*monitorRecord{},
+		Pause:   time.Second,
 	}
 
 	go m.monitor()
@@ -199,6 +206,9 @@ func (m *monitor) monitor() {
 				// Ignore fsnotify.Remove, fsnotify.Rename and fsnotify.Chmod
 				continue
 			}
+
+			// Pause briefly to avoid processing partially written files.
+			time.Sleep(m.Pause)
 
 			func() {
 				m.recordsMu.RLock()

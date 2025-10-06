@@ -18,6 +18,7 @@ func TestMonitor(t *testing.T) {
 	if !assert.NoError(err) {
 		return
 	}
+	mon.Pause = 0
 
 	tmpDir := t.TempDir()
 	fileA := filepath.Join(tmpDir, "a")
@@ -78,6 +79,7 @@ func TestMonitorSymlinks(t *testing.T) {
 	if !assert.NoError(err) {
 		return
 	}
+	mon.Pause = 0
 	defer mon.Close()
 
 	// Watch the files on the published path.
