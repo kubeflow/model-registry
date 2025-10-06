@@ -6,6 +6,8 @@ import { NavDataItem } from '~/app/standalone/types';
 import ModelRegistrySettingsRoutes from './pages/settings/ModelRegistrySettingsRoutes';
 import ModelRegistryRoutes from './pages/modelRegistry/ModelRegistryRoutes';
 import ModelCatalogRoutes from './pages/modelCatalog/ModelCatalogRoutes';
+import { modelCatalogUrl } from './routes/modelCatalog/catalogModel';
+import { modelRegistryUrl } from './pages/modelRegistry/screens/routeUtils';
 import useUser from './hooks/useUser';
 
 export const useAdminSettings = (): NavDataItem[] => {
@@ -32,7 +34,7 @@ export const useNavData = (): NavDataItem[] => {
   const baseNavItems = [
     {
       label: 'Model Registry',
-      path: '/model-registry',
+      path: modelRegistryUrl(),
     },
   ];
 
@@ -40,7 +42,7 @@ export const useNavData = (): NavDataItem[] => {
   if (isStandalone || isFederated) {
     baseNavItems.push({
       label: 'Model Catalog',
-      path: '/model-catalog',
+      path: modelCatalogUrl(),
     });
   }
 
@@ -56,10 +58,10 @@ const AppRoutes: React.FC = () => {
 
   return (
     <Routes>
-      <Route path="/" element={<Navigate to="/model-registry" replace />} />
-      <Route path="/model-registry/*" element={<ModelRegistryRoutes />} />
+      <Route path="/" element={<Navigate to={modelRegistryUrl()} replace />} />
+      <Route path={`${modelRegistryUrl()}/*`} element={<ModelRegistryRoutes />} />
       {(isStandalone || isFederated) && (
-        <Route path="/model-catalog/*" element={<ModelCatalogRoutes />} />
+        <Route path={`${modelCatalogUrl()}/*`} element={<ModelCatalogRoutes />} />
       )}
       <Route path="*" element={<NotFound />} />
       {/* TODO: [Conditional render] Follow up add testing and conditional rendering when in standalone mode */}

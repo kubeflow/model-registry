@@ -1,5 +1,5 @@
-export const modelRegistryUrl = (preferredModelRegistry = ''): string =>
-  `/model-registry/${preferredModelRegistry}`;
+export const modelRegistryUrl = (preferredModelRegistry?: string): string =>
+  `/model-registry${preferredModelRegistry ? `/${preferredModelRegistry}` : ''}`;
 
 export const registeredModelsUrl = (preferredModelRegistry?: string): string =>
   `${modelRegistryUrl(preferredModelRegistry)}/registered-models`;
