@@ -15,6 +15,7 @@ type ModelPropertiesExpandableSectionProps = {
   isExpandedByDefault?: boolean;
   onEditingChange?: (isEditing: boolean) => void;
   modelName?: string;
+  showInlineAlerts?: boolean;
 };
 
 const ModelPropertiesExpandableSection: React.FC<ModelPropertiesExpandableSectionProps> = ({
@@ -24,6 +25,7 @@ const ModelPropertiesExpandableSection: React.FC<ModelPropertiesExpandableSectio
   isExpandedByDefault = false,
   onEditingChange,
   modelName,
+  showInlineAlerts = false,
 }) => {
   const [editingPropertyKeys, setEditingPropertyKeys] = React.useState<string[]>([]);
   const setIsEditingKey = (key: string, isEditing: boolean) =>
@@ -93,6 +95,8 @@ const ModelPropertiesExpandableSection: React.FC<ModelPropertiesExpandableSectio
                 isSavingEdits={isSavingEdits}
                 setIsSavingEdits={setIsSavingEdits}
                 showDeleteModal={!!onEditingChange}
+                onKeyValidationChange={undefined}
+                showInlineAlerts={showInlineAlerts}
                 saveEditedProperty={(oldKey, newPair) =>
                   saveEditedCustomProperties(
                     mergeUpdatedProperty({ customProperties, op: 'update', oldKey, newPair }),
@@ -112,6 +116,8 @@ const ModelPropertiesExpandableSection: React.FC<ModelPropertiesExpandableSectio
                 setIsEditing={setIsAdding}
                 isSavingEdits={isSavingEdits}
                 setIsSavingEdits={setIsSavingEdits}
+                onKeyValidationChange={undefined}
+                showInlineAlerts={showInlineAlerts}
                 saveEditedProperty={(_oldKey, newPair) =>
                   saveEditedCustomProperties(
                     mergeUpdatedProperty({ customProperties, op: 'create', newPair }),
