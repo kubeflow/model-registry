@@ -2,6 +2,7 @@ package catalog
 
 import (
 	"fmt"
+	"math"
 	"os"
 	"path/filepath"
 
@@ -34,6 +35,10 @@ func LoadPerformanceMetricsData(path []string, modelRepo dbmodels.CatalogModelRe
 	if !exists {
 		return nil, fmt.Errorf("CatalogModel type not found in type map")
 	}
+	// Bounds check for int64 to int32 conversion
+	if modelTypeIDInt64 > math.MaxInt32 || modelTypeIDInt64 < math.MinInt32 {
+		return nil, fmt.Errorf("CatalogModel type ID %d is out of int32 range", modelTypeIDInt64)
+	}
 	modelTypeID := int32(modelTypeIDInt64)
 	glog.V(2).Infof("Using catalog model type ID: %d", modelTypeID)
 
@@ -41,6 +46,10 @@ func LoadPerformanceMetricsData(path []string, modelRepo dbmodels.CatalogModelRe
 	metricsArtifactTypeIDInt64, exists := typeMap[service.CatalogMetricsArtifactTypeName]
 	if !exists {
 		return nil, fmt.Errorf("CatalogMetricsArtifact type not found in type map")
+	}
+	// Bounds check for int64 to int32 conversion
+	if metricsArtifactTypeIDInt64 > math.MaxInt32 || metricsArtifactTypeIDInt64 < math.MinInt32 {
+		return nil, fmt.Errorf("CatalogMetricsArtifact type ID %d is out of int32 range", metricsArtifactTypeIDInt64)
 	}
 	metricsArtifactTypeID := int32(metricsArtifactTypeIDInt64)
 	glog.V(2).Infof("Using metrics artifact type ID: %d", metricsArtifactTypeID)
