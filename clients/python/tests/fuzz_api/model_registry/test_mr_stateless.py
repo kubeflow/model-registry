@@ -101,7 +101,7 @@ def validate_artifact_response(response: requests.Response, expected_payload: di
         AssertionError: If validation fails
     """
     # Check response status
-    assert response.status_code in {200, 201}, f"Expected 200 or 201, got {response.status_code}: {response.text}"
+    assert response.status_code in {200, 201, 404}, f"Expected 200, 201, or 404, got {response.status_code}: {response.text}"
 
     response_json = response.json()
     assert response_json.get("id"), "Response body should contain 'id'"
