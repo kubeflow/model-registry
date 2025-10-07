@@ -314,6 +314,12 @@ func (b *ModelRegistryService) upsertArtifact(artifact *openapi.Artifact, parent
 }
 
 func (b *ModelRegistryService) UpsertModelVersionArtifact(artifact *openapi.Artifact, parentResourceId string) (*openapi.Artifact, error) {
+	// Validate that the ModelVersion exists before creating the artifact
+	_, err := b.GetModelVersionById(parentResourceId)
+	if err != nil {
+		return nil, err
+	}
+
 	return b.upsertArtifact(artifact, &parentResourceId)
 }
 

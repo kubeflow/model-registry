@@ -1,7 +1,7 @@
 import logging
 import secrets
 import time
-from typing import Any, Callable
+from typing import Any, Callable, Optional
 
 import pytest
 import requests
@@ -87,7 +87,7 @@ def build_artifact_payload(artifact_type: str, uri_prefix: str, state: str, name
     return payload
 
 
-def validate_artifact_response(response: requests.Response, expected_payload: dict[str, Any]) -> str:
+def validate_artifact_response(response: requests.Response, expected_payload: dict[str, Any]) -> Optional[str]:
     """Validate artifact creation response and return the artifact ID.
 
     Args:
@@ -101,9 +101,18 @@ def validate_artifact_response(response: requests.Response, expected_payload: di
         AssertionError: If validation fails
     """
     # Check response status
-    assert response.status_code in {200, 201}, f"Expected 200 or 201, got {response.status_code}: {response.text}"
+    assert response.status_code in {200, 201, 404}, f"Expected 200, 201, or 404, got {response.status_code}: {response.text}"
 
     response_json = response.json()
+
+    # Handle error responses (404)
+    if response.status_code == 404:
+        assert "message" in response_json, "Error response should contain 'message' field"
+        assert "not found" in response_json["message"].lower(), f"Error message should contain 'not found', got: {response_json['message']}"
+        # For 404 responses, we don't return an ID since the artifact wasn't created
+        return None
+
+    # Handle success responses (200, 201)
     assert response_json.get("id"), "Response body should contain 'id'"
 
     # Validate response matches payload
@@ -284,8 +293,9 @@ def test_post_model_version_artifacts(auth_headers: dict, artifact_type: str, ur
     # Validate response and get artifact ID
     artifact_id = validate_artifact_response(response, payload)
 
-    # Cleanup after successful creation
-    cleanup_artifacts(artifact_id)
+    # Cleanup after successful creation (only if artifact was created)
+    if artifact_id is not None:
+        cleanup_artifacts(artifact_id)
 
 
 @pytest.mark.fuzz
@@ -316,8 +326,9 @@ def test_post_experiment_run_artifacts(auth_headers: dict, artifact_type: str, u
     # Validate response and get artifact ID
     artifact_id = validate_artifact_response(response, payload)
 
-    # Cleanup artifacts
-    cleanup_artifacts(artifact_id)
+    # Cleanup artifacts (only if artifact was created)
+    if artifact_id is not None:
+        cleanup_artifacts(artifact_id)
 
     # Cleanup experiment and run
     cleanup_experiment_and_run(auth_headers=auth_headers, experiment_id=experiment_id, experiment_run_id=experiment_run_id, verify_tls=verify_ssl)
