@@ -257,6 +257,48 @@ func AssertErrorRequired(obj model.Error) error {
 	return nil
 }
 
+// AssertFilterOptionConstraints checks if the values respects the defined constraints
+func AssertFilterOptionConstraints(obj model.FilterOption) error {
+	return nil
+}
+
+// AssertFilterOptionRangeConstraints checks if the values respects the defined constraints
+func AssertFilterOptionRangeConstraints(obj model.FilterOptionRange) error {
+	return nil
+}
+
+// AssertFilterOptionRangeRequired checks if the required fields are not zero-ed
+func AssertFilterOptionRangeRequired(obj model.FilterOptionRange) error {
+	return nil
+}
+
+// AssertFilterOptionRequired checks if the required fields are not zero-ed
+func AssertFilterOptionRequired(obj model.FilterOption) error {
+	elements := map[string]interface{}{
+		"type": obj.Type,
+	}
+	for name, el := range elements {
+		if isZero := IsZeroValue(el); isZero {
+			return &RequiredError{Field: name}
+		}
+	}
+
+	if err := AssertFilterOptionRangeRequired(obj.Range); err != nil {
+		return err
+	}
+	return nil
+}
+
+// AssertFilterOptionsListConstraints checks if the values respects the defined constraints
+func AssertFilterOptionsListConstraints(obj model.FilterOptionsList) error {
+	return nil
+}
+
+// AssertFilterOptionsListRequired checks if the required fields are not zero-ed
+func AssertFilterOptionsListRequired(obj model.FilterOptionsList) error {
+	return nil
+}
+
 // AssertMetadataBoolValueConstraints checks if the values respects the defined constraints
 func AssertMetadataBoolValueConstraints(obj model.MetadataBoolValue) error {
 	return nil
