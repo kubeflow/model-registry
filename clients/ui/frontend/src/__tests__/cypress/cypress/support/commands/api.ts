@@ -144,7 +144,12 @@ declare global {
           type: 'GET /api/:apiVersion/model_catalog/models',
           options: {
             path: { apiVersion: string };
-            query: { source?: string; filterQuery?: string; sourceLabel?: string };
+            query: {
+              source?: string;
+              filterQuery?: string;
+              sourceLabel?: string;
+              searchKeyword?: string;
+            };
           },
           response: ApiResponse<CatalogModelList>,
         ) => Cypress.Chainable<null>) &

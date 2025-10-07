@@ -11,10 +11,12 @@ import { mockCatalogFilterOptionsList } from '~/__mocks__/mockCatalogFilterOptio
 
 type HandlersProps = {
   sources?: CatalogSource[];
+  modelsPerCategory?: number;
 };
 
 const initIntercepts = ({
   sources = [mockCatalogSource({}), mockCatalogSource({ id: 'source-2', name: 'source 2' })],
+  modelsPerCategory = 4,
 }: HandlersProps) => {
   cy.interceptApi(
     `GET /api/:apiVersion/model_catalog/sources`,
@@ -26,16 +28,26 @@ const initIntercepts = ({
     }),
   );
 
-  cy.interceptApi(
-    `GET /api/:apiVersion/model_catalog/models`,
-    {
-      path: { apiVersion: MODEL_CATALOG_API_VERSION },
-      query: { source: 'sample-source' },
-    },
-    mockCatalogModelList({
-      items: [mockCatalogModel({})],
-    }),
-  );
+  sources.forEach((source) => {
+    source.labels.forEach((label) => {
+      cy.interceptApi(
+        `GET /api/:apiVersion/model_catalog/models`,
+        {
+          path: { apiVersion: MODEL_CATALOG_API_VERSION },
+          query: { sourceLabel: label },
+        },
+        mockCatalogModelList({
+          items: Array.from({ length: modelsPerCategory }, (_, i) =>
+            mockCatalogModel({
+              name: `${label.toLowerCase()}-model-${i + 1}`,
+              // eslint-disable-next-line camelcase
+              source_id: source.id,
+            }),
+          ),
+        }),
+      );
+    });
+  });
 
   cy.interceptApi(
     `GET /api/:apiVersion/model_catalog/models/filter_options`,
@@ -60,7 +72,9 @@ describe('ModelCatalogCard Component', () => {
 
     it('should display correct source labels', () => {
       modelCatalog.findFirstModelCatalogCard().within(() => {
-        modelCatalog.findSourceLabel().should('contain.text', 'sample source');
+        modelCatalog
+          .findSourceLabel()
+          .should('contain.text', 'source 2text-generationapache-2.0provider1');
       });
     });
 
@@ -91,7 +105,7 @@ describe('ModelCatalogCard Component', () => {
   describe('Navigation and Interaction', () => {
     it('should show model metadata correctly', () => {
       modelCatalog.findFirstModelCatalogCard().within(() => {
-        modelCatalog.findModelCatalogDetailLink().should('contain.text', 'model1');
+        modelCatalog.findModelCatalogDetailLink().should('contain.text', 'community-model-1');
         modelCatalog.findTaskLabel().should('exist');
         modelCatalog.findProviderLabel().should('exist');
       });

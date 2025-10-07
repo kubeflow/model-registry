@@ -38,7 +38,6 @@ class ModelCatalog {
 
   navigate() {
     appChrome.findNavItem('Model Catalog').click();
-    this.wait();
   }
 
   private wait() {

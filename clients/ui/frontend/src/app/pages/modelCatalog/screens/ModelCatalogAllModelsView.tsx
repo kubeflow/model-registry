@@ -1,6 +1,7 @@
 import React from 'react';
 import { Stack } from '@patternfly/react-core';
 
+import { useSearchParams } from 'react-router-dom';
 import { ModelCatalogContext } from '~/app/context/modelCatalog/ModelCatalogContext';
 
 import {
@@ -16,15 +17,22 @@ type ModelCatalogAllModelsViewProps = {
 
 const ModelCatalogAllModelsView: React.FC<ModelCatalogAllModelsViewProps> = ({ searchTerm }) => {
   const { catalogSources, updateSelectedSourceLabel } = React.useContext(ModelCatalogContext);
+  const [searchParams, setSearchParams] = useSearchParams();
 
   const sourceLabels = React.useMemo(() => {
     const enabledSources = filterEnabledCatalogSources(catalogSources);
-    return [...getUniqueSourceLabels(enabledSources), 'Other'];
+    return getUniqueSourceLabels(enabledSources);
   }, [catalogSources]);
 
-  const handleShowMoreCategory = (categoryLabel: string) => {
-    updateSelectedSourceLabel(categoryLabel);
-  };
+  const handleShowMoreCategory = React.useCallback(
+    (categoryLabel: string) => {
+      updateSelectedSourceLabel(categoryLabel);
+      const newSearchParams = new URLSearchParams(searchParams);
+      newSearchParams.set('category', categoryLabel);
+      setSearchParams(newSearchParams);
+    },
+    [searchParams, setSearchParams, updateSelectedSourceLabel],
+  );
 
   return (
     <Stack hasGutter>
@@ -38,6 +46,15 @@ const ModelCatalogAllModelsView: React.FC<ModelCatalogAllModelsViewProps> = ({ s
           onShowMore={handleShowMoreCategory}
         />
       ))}
+      <CatalogCategorySection
+        key="Other"
+        label="Other"
+        searchTerm={searchTerm}
+        pageSize={4}
+        catalogSources={catalogSources}
+        onShowMore={handleShowMoreCategory}
+        displayName="Community and custom models"
+      />
     </Stack>
   );
 };

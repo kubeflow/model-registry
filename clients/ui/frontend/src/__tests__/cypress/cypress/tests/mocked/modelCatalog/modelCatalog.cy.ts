@@ -11,9 +11,11 @@ import { mockCatalogFilterOptionsList } from '~/__mocks__/mockCatalogFilterOptio
 
 type HandlersProps = {
   sources?: CatalogSource[];
+  modelsPerCategory?: number;
 };
 const initIntercepts = ({
   sources = [mockCatalogSource({}), mockCatalogSource({ id: 'source-2', name: 'source 2' })],
+  modelsPerCategory = 4,
 }: HandlersProps) => {
   cy.interceptApi(
     `GET /api/:apiVersion/model_catalog/sources`,
@@ -25,25 +27,35 @@ const initIntercepts = ({
     }),
   );
 
-  cy.interceptApi(
-    `GET /api/:apiVersion/model_catalog/models`,
-    {
-      path: { apiVersion: MODEL_CATALOG_API_VERSION },
-      query: { sourceLabel: 'sample-source' },
-    },
-    mockCatalogModelList({
-      items: [mockCatalogModel({})],
-    }),
-  ).as('getCatalogModelsBySource');
+  sources.forEach((source) => {
+    source.labels.forEach((label) => {
+      cy.interceptApi(
+        `GET /api/:apiVersion/model_catalog/models`,
+        {
+          path: { apiVersion: MODEL_CATALOG_API_VERSION },
+          query: { sourceLabel: label },
+        },
+        mockCatalogModelList({
+          items: Array.from({ length: modelsPerCategory }, (_, i) =>
+            mockCatalogModel({
+              name: `${label.toLowerCase()}-model-${i + 1}`,
+              // eslint-disable-next-line camelcase
+              source_id: source.id,
+            }),
+          ),
+        }),
+      );
 
-  cy.interceptApi(
-    `GET /api/:apiVersion/model_catalog/models/filter_options`,
-    {
-      path: { apiVersion: MODEL_CATALOG_API_VERSION },
-      query: { namespace: 'kubeflow' },
-    },
-    mockCatalogFilterOptionsList(),
-  );
+      cy.interceptApi(
+        `GET /api/:apiVersion/model_catalog/models/filter_options`,
+        {
+          path: { apiVersion: MODEL_CATALOG_API_VERSION },
+          query: { namespace: 'kubeflow' },
+        },
+        mockCatalogFilterOptionsList(),
+      );
+    });
+  });
 };
 
 describe('Model Catalog Page', () => {

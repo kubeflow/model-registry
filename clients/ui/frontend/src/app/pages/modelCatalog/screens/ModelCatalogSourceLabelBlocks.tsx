@@ -1,5 +1,6 @@
 import { ToggleGroup, ToggleGroupItem } from '@patternfly/react-core';
 import React from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { ModelCatalogContext } from '~/app/context/modelCatalog/ModelCatalogContext';
 import {
   getUniqueSourceLabels,
@@ -15,6 +16,16 @@ type SourceLabelBlock = {
 const ModelCatalogSourceLabelBlocks: React.FC = () => {
   const { catalogSources, updateSelectedSourceLabel, selectedSourceLabel } =
     React.useContext(ModelCatalogContext);
+  const [searchParams, setSearchParams] = useSearchParams();
+
+  React.useEffect(() => {
+    const categoryFromURL = searchParams.get('category');
+    if (categoryFromURL && categoryFromURL !== selectedSourceLabel) {
+      updateSelectedSourceLabel(categoryFromURL);
+    } else if (!categoryFromURL && selectedSourceLabel !== 'All models') {
+      updateSelectedSourceLabel('All models');
+    }
+  }, [searchParams, selectedSourceLabel, updateSelectedSourceLabel]);
 
   const blocks: SourceLabelBlock[] = React.useMemo(() => {
     if (!catalogSources) {
@@ -49,6 +60,13 @@ const ModelCatalogSourceLabelBlocks: React.FC = () => {
     return null;
   }
 
+  const handleToggleClick = (label: string) => {
+    updateSelectedSourceLabel(label);
+    const newSearchParams = new URLSearchParams(searchParams);
+    newSearchParams.set('category', label);
+    setSearchParams(newSearchParams);
+  };
+
   return (
     <ToggleGroup aria-label="Source label selection">
       {blocks.map((block) => (
@@ -57,7 +75,7 @@ const ModelCatalogSourceLabelBlocks: React.FC = () => {
           text={block.displayName}
           isSelected={block.label === selectedSourceLabel}
           onChange={() => {
-            updateSelectedSourceLabel(block.label);
+            handleToggleClick(block.label);
           }}
         />
       ))}
