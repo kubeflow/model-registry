@@ -1,15 +1,18 @@
 package catalog
 
 import (
+	"encoding/json"
 	"fmt"
 	"math"
 	"os"
 	"path/filepath"
+	"strconv"
 
 	"github.com/golang/glog"
 	dbmodels "github.com/kubeflow/model-registry/catalog/internal/db/models"
 	"github.com/kubeflow/model-registry/catalog/internal/db/service"
 	model "github.com/kubeflow/model-registry/catalog/pkg/openapi"
+	"github.com/kubeflow/model-registry/internal/db/models"
 )
 
 // metadataJSON represents the structure of metadata.json files
@@ -75,6 +78,7 @@ func (m *metadataJSON) UnmarshalJSON(data []byte) error {
 
 	return nil
 }
+
 // LoadPerformanceMetricsData loads performance metrics data from the specified directory
 // into the database using the catalog model and artifact repositories.
 func LoadPerformanceMetricsData(path []string, modelRepo dbmodels.CatalogModelRepository, metricsArtifactRepo dbmodels.CatalogMetricsArtifactRepository, typeMap map[string]int64) (map[string]*model.CatalogModel, error) {
@@ -175,7 +179,7 @@ func processModelDirectory(dirPath string, modelRepo dbmodels.CatalogModelReposi
 	}
 
 	// Create and save the catalog model
-	savedModel, err := createAndSaveModel(metadata, dirPath, modelTypeID, modelRepo)
+	_, err = createAndSaveModel(metadata, dirPath, modelTypeID, modelRepo)
 	if err != nil {
 		return fmt.Errorf("failed to create/save model: %v", err)
 	}
