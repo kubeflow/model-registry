@@ -105,11 +105,8 @@ export const ModelCatalogContextProvider: React.FC<ModelCatalogContextProviderPr
       catalogSourcesLoaded,
       catalogSourcesLoadError,
       catalogSources,
-
       selectedSource,
-
       apiState,
-
       refreshAPIState,
       filterData,
       setFilterData,
