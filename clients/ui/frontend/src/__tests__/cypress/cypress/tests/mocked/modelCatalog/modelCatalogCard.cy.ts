@@ -8,14 +8,16 @@ import {
 import type { CatalogSource } from '~/app/modelCatalogTypes';
 import { MODEL_CATALOG_API_VERSION } from '~/__tests__/cypress/cypress/support/commands/api';
 import { mockCatalogFilterOptionsList } from '~/__mocks__/mockCatalogFilterOptionsList';
-import { ModelRegistryMetadataType } from '~/app/types';
+import { ModelRegistryCustomProperties, ModelRegistryMetadataType } from '~/app/types';
 
 type HandlersProps = {
   sources?: CatalogSource[];
+  modelsPerCategory?: number;
 };
 
 const initIntercepts = ({
   sources = [mockCatalogSource({}), mockCatalogSource({ id: 'source-2', name: 'source 2' })],
+  modelsPerCategory = 4,
 }: HandlersProps) => {
   cy.interceptApi(
     `GET /api/:apiVersion/model_catalog/sources`,
@@ -27,27 +29,38 @@ const initIntercepts = ({
     }),
   );
 
-  cy.interceptApi(
-    `GET /api/:apiVersion/model_catalog/models`,
-    {
-      path: { apiVersion: MODEL_CATALOG_API_VERSION },
-      query: { source: 'sample-source' },
-    },
-    mockCatalogModelList({
-      items: [
-        mockCatalogModel({}),
-        mockCatalogModel({
-          customProperties: {
-            validated: {
-              metadataType: ModelRegistryMetadataType.STRING,
+  sources.forEach((source, sourceIndex) => {
+    source.labels.forEach((label) => {
+      cy.interceptApi(
+        `GET /api/:apiVersion/model_catalog/models`,
+        {
+          path: { apiVersion: MODEL_CATALOG_API_VERSION },
+          query: { sourceLabel: label },
+        },
+        mockCatalogModelList({
+          items: Array.from({ length: modelsPerCategory }, (_, i) => {
+            const customProperties =
+              sourceIndex === 1
+                ? ({
+                    validated: {
+                      metadataType: ModelRegistryMetadataType.STRING,
+                      // eslint-disable-next-line camelcase
+                      string_value: '',
+                    },
+                  } as ModelRegistryCustomProperties)
+                : undefined;
+
+            return mockCatalogModel({
+              name: `${label.toLowerCase()}-model-${i + 1}`,
               // eslint-disable-next-line camelcase
-              string_value: '',
-            },
-          },
+              source_id: source.id,
+              customProperties,
+            });
+          }),
         }),
-      ],
-    }),
-  );
+      );
+    });
+  });
 
   cy.interceptApi(
     `GET /api/:apiVersion/model_catalog/models/filter_options`,
@@ -72,7 +85,9 @@ describe('ModelCatalogCard Component', () => {
 
     it('should display correct source labels', () => {
       modelCatalog.findFirstModelCatalogCard().within(() => {
-        modelCatalog.findSourceLabel().should('contain.text', 'sample source');
+        modelCatalog
+          .findSourceLabel()
+          .should('contain.text', 'source 2text-generationapache-2.0provider1');
       });
     });
 
@@ -103,7 +118,7 @@ describe('ModelCatalogCard Component', () => {
   describe('Navigation and Interaction', () => {
     it('should show model metadata correctly', () => {
       modelCatalog.findFirstModelCatalogCard().within(() => {
-        modelCatalog.findModelCatalogDetailLink().should('contain.text', 'model1');
+        modelCatalog.findModelCatalogDetailLink().should('contain.text', 'community-model-1');
         modelCatalog.findTaskLabel().should('exist');
         modelCatalog.findProviderLabel().should('exist');
       });

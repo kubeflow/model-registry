@@ -9,12 +9,13 @@ import { modelCatalog } from '~/__tests__/cypress/cypress/pages/modelCatalog';
 import { mockModelRegistry } from '~/__mocks__/mockModelRegistry';
 import type { CatalogSource } from '~/app/modelCatalogTypes';
 import { MODEL_CATALOG_API_VERSION } from '~/__tests__/cypress/cypress/support/commands/api';
+import type { ModelRegistryCustomProperties } from '~/app/types';
 import { ModelRegistryMetadataType } from '~/app/types';
 import { mockCatalogFilterOptionsList } from '~/__mocks__/mockCatalogFilterOptionsList';
 
 // Mock models for testing
 const mockValidatedModel = mockCatalogModel({
-  name: 'validated-model',
+  name: 'community-model-1',
   tasks: ['text-generation'],
   customProperties: {
     validated: {
@@ -26,18 +27,20 @@ const mockValidatedModel = mockCatalogModel({
 });
 
 const mockNonValidatedModel = mockCatalogModel({
-  name: 'non-validated-model',
+  name: 'community-model-1',
   tasks: ['text-generation'],
 });
 
 type HandlersProps = {
   sources?: CatalogSource[];
   useValidatedModel?: boolean;
+  modelsPerCategory?: number;
 };
 
 const initIntercepts = ({
   sources = [mockCatalogSource({}), mockCatalogSource({ id: 'source-2', name: 'source 2' })],
   useValidatedModel = true,
+  modelsPerCategory = 4,
 }: HandlersProps) => {
   const testModel = useValidatedModel ? mockValidatedModel : mockNonValidatedModel;
 
@@ -51,23 +54,45 @@ const initIntercepts = ({
     }),
   );
 
-  cy.interceptApi(
-    `GET /api/:apiVersion/model_catalog/models`,
-    {
-      path: { apiVersion: MODEL_CATALOG_API_VERSION },
-      query: { source: 'sample-source' },
-    },
-    mockCatalogModelList({
-      items: [testModel],
-    }),
-  );
+  sources.forEach((source, sourceIndex) => {
+    source.labels.forEach((label) => {
+      cy.interceptApi(
+        `GET /api/:apiVersion/model_catalog/models`,
+        {
+          path: { apiVersion: MODEL_CATALOG_API_VERSION },
+          query: { sourceLabel: label },
+        },
+        mockCatalogModelList({
+          items: Array.from({ length: modelsPerCategory }, (_, i) => {
+            const customProperties =
+              sourceIndex === 0
+                ? ({
+                    validated: {
+                      metadataType: ModelRegistryMetadataType.STRING,
+                      // eslint-disable-next-line camelcase
+                      string_value: '',
+                    },
+                  } as ModelRegistryCustomProperties)
+                : undefined;
+
+            return mockCatalogModel({
+              name: `${label.toLowerCase()}-model-${i + 1}`,
+              // eslint-disable-next-line camelcase
+              source_id: source.id,
+              customProperties,
+            });
+          }),
+        }),
+      );
+    });
+  });
 
   cy.interceptApi(
     `GET /api/:apiVersion/model_catalog/sources/:sourceId/models/:modelName`,
     {
       path: {
         apiVersion: MODEL_CATALOG_API_VERSION,
-        sourceId: 'sample-source',
+        sourceId: 'source-2',
         modelName: testModel.name.replace('/', '%2F'),
       },
     },
@@ -79,7 +104,7 @@ const initIntercepts = ({
     {
       path: {
         apiVersion: MODEL_CATALOG_API_VERSION,
-        sourceId: 'sample-source',
+        sourceId: 'source-2',
         modelName: testModel.name.replace('/', '%2F'),
       },
     },

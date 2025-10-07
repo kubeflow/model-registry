@@ -21,7 +21,8 @@ type CategorySectionProps = {
   searchTerm: string;
   pageSize: number;
   catalogSources: CatalogSourceList | null;
-  onShowMore: (label: string) => void;
+  onShowMore: (label: string, replace: boolean) => void;
+  displayName?: string;
 };
 
 const CatalogCategorySection: React.FC<CategorySectionProps> = ({
@@ -30,6 +31,7 @@ const CatalogCategorySection: React.FC<CategorySectionProps> = ({
   pageSize,
   catalogSources,
   onShowMore,
+  displayName,
 }) => {
   const { catalogModels, catalogModelsLoaded, catalogModelsLoadError } = useCatalogModelsBySources(
     undefined,
@@ -39,7 +41,7 @@ const CatalogCategorySection: React.FC<CategorySectionProps> = ({
   );
 
   const handleShowMoreCategory = (categoryLabel: string) => {
-    onShowMore(categoryLabel);
+    onShowMore(categoryLabel, true);
   };
 
   return (
@@ -50,8 +52,8 @@ const CatalogCategorySection: React.FC<CategorySectionProps> = ({
           justifyContent={{ default: 'justifyContentSpaceBetween' }}
         >
           <FlexItem>
-            <Title headingLevel="h3" size="lg">
-              {`${label} models`}
+            <Title headingLevel="h3" size="lg" data-testid={label}>
+              {`${displayName ?? label} models`}
             </Title>
           </FlexItem>
           {catalogModels.items.length >= 4 && (
@@ -62,9 +64,10 @@ const CatalogCategorySection: React.FC<CategorySectionProps> = ({
                 isInline
                 icon={<ArrowRightIcon />}
                 iconPosition="right"
+                data-testid={`show-more-button-${label.toLowerCase().replace(/\s+/g, '-')}`}
                 onClick={() => handleShowMoreCategory(label)}
               >
-                Show all {label} models
+                Show all {displayName ?? label} models
               </Button>
             </FlexItem>
           )}
@@ -83,6 +86,7 @@ const CatalogCategorySection: React.FC<CategorySectionProps> = ({
                 height="280px"
                 width="100%"
                 screenreaderText={`Loading ${label} models`}
+                data-testid={`category-skeleton-${label.toLowerCase().replace(/\s+/g, '-')}-${index}`}
               />
             ))}
           </Gallery>
