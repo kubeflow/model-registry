@@ -15,7 +15,7 @@ import { mockCatalogFilterOptionsList } from '~/__mocks__/mockCatalogFilterOptio
 
 // Mock models for testing
 const mockValidatedModel = mockCatalogModel({
-  name: 'community-model-1',
+  name: 'sample%20category%201-model-1',
   tasks: ['text-generation'],
   customProperties: {
     validated: {
@@ -27,7 +27,7 @@ const mockValidatedModel = mockCatalogModel({
 });
 
 const mockNonValidatedModel = mockCatalogModel({
-  name: 'community-model-1',
+  name: 'sample%20category%201-model-1',
   tasks: ['text-generation'],
 });
 
@@ -131,7 +131,6 @@ describe('Model Catalog Details Tabs', () => {
 
       initIntercepts({ useValidatedModel: true });
       modelCatalog.visit();
-      modelCatalog.navigate();
     });
 
     describe('Tab Navigation', () => {
@@ -248,7 +247,6 @@ describe('Model Catalog Details Tabs', () => {
 
       initIntercepts({ useValidatedModel: false });
       modelCatalog.visit();
-      modelCatalog.navigate();
     });
 
     it('should not display tabs for non-validated models', () => {

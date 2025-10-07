@@ -36,10 +36,6 @@ class ModelCatalog {
     this.wait();
   }
 
-  navigate() {
-    appChrome.findNavItem('Model Catalog').click();
-  }
-
   private wait() {
     cy.findByTestId('app-page-title').should('exist');
     cy.findByTestId('app-page-title').contains('Model Catalog');

@@ -76,7 +76,6 @@ describe('ModelCatalogCard Component', () => {
   beforeEach(() => {
     initIntercepts({});
     modelCatalog.visit();
-    modelCatalog.navigate();
   });
   describe('Card Layout and Content', () => {
     it('should render all cards from the mock data', () => {
@@ -118,7 +117,9 @@ describe('ModelCatalogCard Component', () => {
   describe('Navigation and Interaction', () => {
     it('should show model metadata correctly', () => {
       modelCatalog.findFirstModelCatalogCard().within(() => {
-        modelCatalog.findModelCatalogDetailLink().should('contain.text', 'community-model-1');
+        modelCatalog
+          .findModelCatalogDetailLink()
+          .should('contain.text', 'sample category 1-model-1');
         modelCatalog.findTaskLabel().should('exist');
         modelCatalog.findProviderLabel().should('exist');
       });
