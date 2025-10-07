@@ -25,7 +25,7 @@ type ModelCatalogServiceAPIService struct {
 }
 
 // GetAllModelArtifacts retrieves all model artifacts for a given model from the specified source.
-func (m *ModelCatalogServiceAPIService) GetAllModelArtifacts(ctx context.Context, sourceID string, modelName string, artifactType string, pageSize string, orderBy model.OrderByField, sortOrder model.SortOrder, nextPageToken string) (ImplResponse, error) {
+func (m *ModelCatalogServiceAPIService) GetAllModelArtifacts(ctx context.Context, sourceID string, modelName string, pageSize string, orderBy model.OrderByField, sortOrder model.SortOrder, nextPageToken string, artifactType string) (ImplResponse, error) {
 	if newName, err := url.PathUnescape(modelName); err == nil {
 		modelName = newName
 	}
@@ -64,7 +64,7 @@ func (m *ModelCatalogServiceAPIService) GetAllModelArtifacts(ctx context.Context
 	return Response(http.StatusOK, artifacts), nil
 }
 
-func (m *ModelCatalogServiceAPIService) FindModels(ctx context.Context, sourceIDs []string, q string, sourceLabels []string, filterQuery, pageSize string, orderBy model.OrderByField, sortOrder model.SortOrder, nextPageToken string) (ImplResponse, error) {
+func (m *ModelCatalogServiceAPIService) FindModels(ctx context.Context, sourceIDs []string, sourceLabel string, q string, pageSize string, orderBy model.OrderByField, sortOrder model.SortOrder, nextPageToken string, filterQuery string) (ImplResponse, error) {
 	var err error
 	pageSizeInt := int32(10)
 
@@ -76,27 +76,14 @@ func (m *ModelCatalogServiceAPIService) FindModels(ctx context.Context, sourceID
 		pageSizeInt = int32(parsed)
 	}
 
-	if len(sourceIDs) == 1 && sourceIDs[0] == "" {
-		sourceIDs = nil
-	}
-	if len(sourceLabels) == 1 && sourceLabels[0] == "" {
-		sourceLabels = nil
-	}
-
-	if len(sourceIDs) > 0 && len(sourceLabels) > 0 {
-		err := fmt.Errorf("source and sourceLabel cannot be used together")
-		return Response(http.StatusBadRequest, err), err
-	}
-
 	listModelsParams := catalog.ListModelsParams{
 		Query:         q,
-		FilterQuery:   filterQuery,
 		SourceIDs:     sourceIDs,
-		SourceLabels:  sourceLabels,
 		PageSize:      pageSizeInt,
 		OrderBy:       orderBy,
 		SortOrder:     sortOrder,
 		NextPageToken: &nextPageToken,
+		// TODO: Add support for sourceLabel and filterQuery
 	}
 
 	models, err := m.provider.ListModels(ctx, listModelsParams)
@@ -105,6 +92,15 @@ func (m *ModelCatalogServiceAPIService) FindModels(ctx context.Context, sourceID
 	}
 
 	return Response(http.StatusOK, models), nil
+}
+
+func (m *ModelCatalogServiceAPIService) FindModelsFilterOptions(ctx context.Context) (ImplResponse, error) {
+	filterOptions, err := m.provider.GetFilterOptions(ctx)
+	if err != nil {
+		return ErrorResponse(http.StatusInternalServerError, err), err
+	}
+
+	return Response(http.StatusOK, filterOptions), nil
 }
 
 func (m *ModelCatalogServiceAPIService) GetModel(ctx context.Context, sourceID, modelName string) (ImplResponse, error) {
