@@ -1,6 +1,7 @@
 package models
 
 import (
+	catalogfilter "github.com/kubeflow/model-registry/catalog/internal/db/filter"
 	"github.com/kubeflow/model-registry/internal/db/filter"
 	"github.com/kubeflow/model-registry/internal/db/models"
 )
@@ -15,7 +16,7 @@ type CatalogModelListOptions struct {
 
 // GetRestEntityType implements the FilterApplier interface
 func (c *CatalogModelListOptions) GetRestEntityType() filter.RestEntityType {
-	return "CatalogModel"
+	return filter.RestEntityType(catalogfilter.RestEntityCatalogModel)
 }
 
 type CatalogModelAttributes struct {
