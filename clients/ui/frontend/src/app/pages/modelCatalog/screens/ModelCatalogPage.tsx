@@ -78,7 +78,7 @@ const ModelCatalogPage: React.FC<ModelCatalogPageProps> = ({ searchTerm, handleF
         testid="empty-model-catalog-state"
         title="No result found"
         headerIcon={SearchIcon}
-        description={<>Adjust your filters and try again</>}
+        description="Adjust your filters and try again."
         customAction={<Button onClick={handleFilterReset}>Reset filters</Button>}
       />
     );
