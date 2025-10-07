@@ -1,7 +1,7 @@
 import logging
 import secrets
 import time
-from typing import Any, Callable
+from typing import Any, Callable, Optional
 
 import pytest
 import requests
@@ -87,7 +87,7 @@ def build_artifact_payload(artifact_type: str, uri_prefix: str, state: str, name
     return payload
 
 
-def validate_artifact_response(response: requests.Response, expected_payload: dict[str, Any]) -> str | None:
+def validate_artifact_response(response: requests.Response, expected_payload: dict[str, Any]) -> Optional[str]:
     """Validate artifact creation response and return the artifact ID.
 
     Args:
