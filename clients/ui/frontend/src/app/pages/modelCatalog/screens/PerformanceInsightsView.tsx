@@ -28,7 +28,10 @@ const PerformanceInsightsView = (): React.JSX.Element => {
               </Flex>
             </FlexItem>
             <FlexItem>
-              <HardwareConfigurationTable configurations={configurations} isLoading={isLoading} />
+              <HardwareConfigurationTable
+                performanceArtifacts={configurations}
+                isLoading={isLoading}
+              />
             </FlexItem>
           </Flex>
         </CardBody>
