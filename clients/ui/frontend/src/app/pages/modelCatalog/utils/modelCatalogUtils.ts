@@ -144,9 +144,8 @@ const isArrayOfSelections = (
 
 const isFilterIdInMap = (
   filterId: unknown,
-  filters: CatalogFilterOptionsList['filters'],
-): filterId is keyof CatalogFilterOptionsList['filters'] =>
-  typeof filterId === 'string' && filterId in filters;
+  filters: CatalogFilterOptions,
+): filterId is keyof CatalogFilterOptions => typeof filterId === 'string' && filterId in filters;
 
 const wrapInQuotes = (v: string): string => `'${v}'`;
 const inSpacer = `,`;
@@ -155,7 +154,7 @@ export const filtersToFilterQuery = (
   filterData: ModelCatalogFilterStates,
   options: CatalogFilterOptionsList,
 ): string => {
-  const filters = Object.entries(filterData).map(([filterId, data]) => {
+  const serializedFilters: string[] = Object.entries(filterData).map(([filterId, data]) => {
     if (!isFilterIdInMap(filterId, options.filters) || typeof data === 'undefined') {
       // Unhandled key or no data
       return '';
@@ -191,10 +190,8 @@ export const filtersToFilterQuery = (
     return '';
   });
 
-  const nonEmptyFilters = filters.filter((v) => !!v);
+  const nonEmptyFilters = serializedFilters.filter((v) => !!v);
 
   // eg. filterQuery=rps_mean+>1+AND+license+IN+('mit','apache-2.0')+AND+ttft_mean+<+10
-  return nonEmptyFilters.length === 0
-    ? ''
-    : `filterQuery=${nonEmptyFilters.join(' AND ')}`.replace(/\s/g, '+');
+  return nonEmptyFilters.length === 0 ? '' : `${nonEmptyFilters.join(' AND ')}`.replace(/\s/g, '+');
 };

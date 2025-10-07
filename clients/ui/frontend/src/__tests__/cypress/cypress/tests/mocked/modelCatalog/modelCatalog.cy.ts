@@ -119,12 +119,10 @@ describe('Model Catalog Page', () => {
       '@getCatalogModelsBySource',
       '@getCatalogModelsBySource',
       '@getCatalogModelsBySource',
-      '@getCatalogModelsBySource',
-      '@getCatalogModelsBySource',
     ]).then((interceptions) => {
       const lastInterception = interceptions[interceptions.length - 1];
       expect(lastInterception.request.url).to.include(
-        'filterQuery%3Dtasks%2BIN%2B%28%27text-generation%27%2C%27text-to-text%27%29%2BAND%2Bprovider%2B%3D%2B%27Google%27',
+        'tasks%2BIN%2B%28%27text-generation%27%2C%27text-to-text%27%29%2BAND%2Bprovider%2B%3D%2B%27Google%27',
       );
     });
   });
