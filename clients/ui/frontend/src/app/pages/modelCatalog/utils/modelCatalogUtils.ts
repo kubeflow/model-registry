@@ -213,7 +213,7 @@ export const getUniqueSourceLabels = (catalogSources: CatalogSourceList | null):
     }
   });
 
-  return Array.from(allLabels).toSorted();
+  return Array.from(allLabels);
 };
 
 export const getSourceFromSourceId = (
