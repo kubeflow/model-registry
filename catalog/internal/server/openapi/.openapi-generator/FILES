@@ -6,11 +6,14 @@ impl.go
 logger.go
 model_artifact_type_query_param.go
 model_base_model.go
+model_base_resource.go
 model_base_resource_dates.go
 model_base_resource_list.go
+model_catalog_artifact.go
+model_catalog_artifact_list.go
+model_catalog_metrics_artifact.go
 model_catalog_model.go
 model_catalog_model_artifact.go
-model_catalog_model_artifact_list.go
 model_catalog_model_list.go
 model_catalog_source.go
 model_catalog_source_list.go

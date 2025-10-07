@@ -9,7 +9,6 @@ import ModelCatalogSourceSelectorNavigator from './ModelCatalogSourceSelectorNav
 
 const ModelCatalog: React.FC = () => {
   const [searchTerm, setSearchTerm] = React.useState('');
-
   const handleSearch = React.useCallback((term: string) => {
     setSearchTerm(term);
   }, []);

@@ -32,8 +32,10 @@ jobs:
           go-version: "1.24"
       - name: Build
         run: make build/compile
-      - name: Unit tests
+      - name: Registry unit tests
         run: make test-cover
+      - name: Catalog unit tests
+        run: make -C catalog test-cover
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v4.5.0
         with:

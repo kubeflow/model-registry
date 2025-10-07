@@ -64,6 +64,7 @@ const (
 	CatalogModelName                    = "model_name"
 	CatalogPathPrefix                   = ApiPathPrefix + "/model_catalog"
 	CatalogModelListPath                = CatalogPathPrefix + "/models"
+	CatalogFilterOptionListPath         = CatalogPathPrefix + "/models/filter_options"
 	CatalogSourceListPath               = CatalogPathPrefix + "/sources"
 	CatalogSourceModelCatchAllPath      = CatalogPathPrefix + "/sources/:" + CatalogSourceId + "/models/*" + CatalogModelName
 	CatalogSourceModelArtifactsCatchAll = CatalogPathPrefix + "/sources/:" + CatalogSourceId + "/artifacts/*" + CatalogModelName
@@ -223,6 +224,7 @@ func (app *App) Routes() http.Handler {
 	// Model catalog HTTP client routes (requests that we forward to Model Catalog API)
 	apiRouter.GET(CatalogModelListPath, app.AttachNamespace(app.AttachModelCatalogRESTClient(app.GetAllCatalogModelsAcrossSourcesHandler)))
 	apiRouter.GET(CatalogSourceListPath, app.AttachNamespace(app.AttachModelCatalogRESTClient(app.GetAllCatalogSourcesHandler)))
+	apiRouter.GET(CatalogFilterOptionListPath, app.AttachNamespace(app.AttachModelCatalogRESTClient(app.GetCatalogFilterListHandler)))
 	apiRouter.GET(CatalogSourceModelCatchAllPath, app.AttachNamespace(app.AttachModelCatalogRESTClient(app.GetCatalogSourceModelHandler)))
 	apiRouter.GET(CatalogSourceModelArtifactsCatchAll, app.AttachNamespace(app.AttachModelCatalogRESTClient(app.GetCatalogSourceModelArtifactHandler)))
 	// Kubernetes routes

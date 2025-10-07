@@ -18,6 +18,15 @@ services:
       - "8081:8081"
     volumes:
       - ./catalog/internal/catalog/testdata:/testdata
+    depends_on:
+      - postgres
+    profiles:
+      - postgres
+    environment:
+      - PGHOST=postgres
+      - PGDATABASE=model_catalog
+      - PGUSER=postgres
+      - PGPASSWORD=demo
 
   model-registry:
     image: quay.io/opendatahub/model-registry:latest
@@ -80,7 +89,16 @@ services:
       start_period: 20s
     profiles:
       - postgres
+    configs:
+      - source: pginit
+        target: /docker-entrypoint-initdb.d/pginit.sql
 
 volumes:
   mysql_data:
   postgres_data:
+
+configs:
+  pginit:
+    content: |
+      CREATE DATABASE model_catalog;
+      GRANT ALL PRIVILEGES ON model_catalog TO postgres;

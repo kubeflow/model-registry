@@ -18,7 +18,7 @@ updates:
     schedule:
       interval: "weekly"
     exclude-paths:
-      - "/jobs/async-upload/requirements.txt"
+      - "jobs/async-upload/requirements.txt"
   - package-ecosystem: "docker"
     directory: "/"
     schedule:

@@ -6,7 +6,7 @@ import { ApplicationsPage } from 'mod-arch-shared';
 import { ModelRegistrySelectorContext } from '~/app/context/ModelRegistrySelectorContext';
 import useRegisteredModelById from '~/app/hooks/useRegisteredModelById';
 import useModelVersionsByRegisteredModel from '~/app/hooks/useModelVersionsByRegisteredModel';
-import { registeredModelUrl } from '~/app/pages/modelRegistry/screens/routeUtils';
+import { modelRegistryUrl, registeredModelUrl } from '~/app/pages/modelRegistry/screens/routeUtils';
 import { filterArchiveVersions } from '~/app/utils';
 import ModelVersionsArchiveListView from './ModelVersionsArchiveListView';
 
@@ -29,7 +29,7 @@ const ModelVersionsArchive: React.FC<ModelVersionsArchiveProps> = ({ ...pageProp
         <Breadcrumb>
           <BreadcrumbItem
             render={() => (
-              <Link to="/model-registry">Model registry - {preferredModelRegistry?.name}</Link>
+              <Link to={modelRegistryUrl()}>Model registry - {preferredModelRegistry?.name}</Link>
             )}
           />
           <BreadcrumbItem

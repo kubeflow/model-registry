@@ -62,3 +62,6 @@ venv/
 # Claude code
 CLAUDE.md
 .claude/
+
+**/go.work
+**/go.work.sum

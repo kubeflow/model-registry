@@ -16,6 +16,7 @@ import (
 	"io"
 	"net/http"
 	"net/url"
+	"reflect"
 	"strings"
 )
 
@@ -25,7 +26,7 @@ type ModelCatalogServiceAPIService service
 type ApiFindModelsRequest struct {
 	ctx           context.Context
 	ApiService    *ModelCatalogServiceAPIService
-	source        *string
+	source        *[]string
 	q             *string
 	pageSize      *string
 	orderBy       *OrderByField
@@ -33,8 +34,8 @@ type ApiFindModelsRequest struct {
 	nextPageToken *string
 }
 
-// Filter models by source. This parameter is currently required and may only be specified once.
-func (r ApiFindModelsRequest) Source(source string) ApiFindModelsRequest {
+// Filter models by source. This parameter can be specified multiple times to filter by multiple sources (OR logic). For example: ?source&#x3D;huggingface&amp;source&#x3D;local will return models from either huggingface OR local sources.
+func (r ApiFindModelsRequest) Source(source []string) ApiFindModelsRequest {
 	r.source = &source
 	return r
 }
@@ -107,11 +108,18 @@ func (a *ModelCatalogServiceAPIService) FindModelsExecute(r ApiFindModelsRequest
 	localVarHeaderParams := make(map[string]string)
 	localVarQueryParams := url.Values{}
 	localVarFormParams := url.Values{}
-	if r.source == nil {
-		return localVarReturnValue, nil, reportError("source is required and must be specified")
-	}
 
-	parameterAddToHeaderOrQuery(localVarQueryParams, "source", r.source, "")
+	if r.source != nil {
+		t := *r.source
+		if reflect.TypeOf(t).Kind() == reflect.Slice {
+			s := reflect.ValueOf(t)
+			for i := 0; i < s.Len(); i++ {
+				parameterAddToHeaderOrQuery(localVarQueryParams, "source", s.Index(i).Interface(), "multi")
+			}
+		} else {
+			parameterAddToHeaderOrQuery(localVarQueryParams, "source", t, "multi")
+		}
+	}
 	if r.q != nil {
 		parameterAddToHeaderOrQuery(localVarQueryParams, "q", r.q, "")
 	}
@@ -418,18 +426,46 @@ func (a *ModelCatalogServiceAPIService) FindSourcesExecute(r ApiFindSourcesReque
 }
 
 type ApiGetAllModelArtifactsRequest struct {
-	ctx        context.Context
-	ApiService *ModelCatalogServiceAPIService
-	sourceId   string
-	modelName  string
+	ctx           context.Context
+	ApiService    *ModelCatalogServiceAPIService
+	sourceId      string
+	modelName     string
+	pageSize      *string
+	orderBy       *OrderByField
+	sortOrder     *SortOrder
+	nextPageToken *string
 }
 
-func (r ApiGetAllModelArtifactsRequest) Execute() (*CatalogModelArtifactList, *http.Response, error) {
+// Number of entities in each page.
+func (r ApiGetAllModelArtifactsRequest) PageSize(pageSize string) ApiGetAllModelArtifactsRequest {
+	r.pageSize = &pageSize
+	return r
+}
+
+// Specifies the order by criteria for listing entities.
+func (r ApiGetAllModelArtifactsRequest) OrderBy(orderBy OrderByField) ApiGetAllModelArtifactsRequest {
+	r.orderBy = &orderBy
+	return r
+}
+
+// Specifies the sort order for listing entities, defaults to ASC.
+func (r ApiGetAllModelArtifactsRequest) SortOrder(sortOrder SortOrder) ApiGetAllModelArtifactsRequest {
+	r.sortOrder = &sortOrder
+	return r
+}
+
+// Token to use to retrieve next page of results.
+func (r ApiGetAllModelArtifactsRequest) NextPageToken(nextPageToken string) ApiGetAllModelArtifactsRequest {
+	r.nextPageToken = &nextPageToken
+	return r
+}
+
+func (r ApiGetAllModelArtifactsRequest) Execute() (*CatalogArtifactList, *http.Response, error) {
 	return r.ApiService.GetAllModelArtifactsExecute(r)
 }
 
 /*
-GetAllModelArtifacts List CatalogModelArtifacts.
+GetAllModelArtifacts List CatalogArtifacts.
 
 	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
 	@param sourceId A unique identifier for a `CatalogSource`.
@@ -447,13 +483,13 @@ func (a *ModelCatalogServiceAPIService) GetAllModelArtifacts(ctx context.Context
 
 // Execute executes the request
 //
-//	@return CatalogModelArtifactList
-func (a *ModelCatalogServiceAPIService) GetAllModelArtifactsExecute(r ApiGetAllModelArtifactsRequest) (*CatalogModelArtifactList, *http.Response, error) {
+//	@return CatalogArtifactList
+func (a *ModelCatalogServiceAPIService) GetAllModelArtifactsExecute(r ApiGetAllModelArtifactsRequest) (*CatalogArtifactList, *http.Response, error) {
 	var (
 		localVarHTTPMethod  = http.MethodGet
 		localVarPostBody    interface{}
 		formFiles           []formFile
-		localVarReturnValue *CatalogModelArtifactList
+		localVarReturnValue *CatalogArtifactList
 	)
 
 	localBasePath, err := a.client.cfg.ServerURLWithContext(r.ctx, "ModelCatalogServiceAPIService.GetAllModelArtifacts")
@@ -469,6 +505,18 @@ func (a *ModelCatalogServiceAPIService) GetAllModelArtifactsExecute(r ApiGetAllM
 	localVarQueryParams := url.Values{}
 	localVarFormParams := url.Values{}
 
+	if r.pageSize != nil {
+		parameterAddToHeaderOrQuery(localVarQueryParams, "pageSize", r.pageSize, "")
+	}
+	if r.orderBy != nil {
+		parameterAddToHeaderOrQuery(localVarQueryParams, "orderBy", r.orderBy, "")
+	}
+	if r.sortOrder != nil {
+		parameterAddToHeaderOrQuery(localVarQueryParams, "sortOrder", r.sortOrder, "")
+	}
+	if r.nextPageToken != nil {
+		parameterAddToHeaderOrQuery(localVarQueryParams, "nextPageToken", r.nextPageToken, "")
+	}
 	// to determine the Content-Type header
 	localVarHTTPContentTypes := []string{}
 

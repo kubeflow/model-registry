@@ -8,87 +8,111 @@ import (
 	"net/http"
 	"net/url"
 	"slices"
+	"strconv"
 	"strings"
 
 	"github.com/kubeflow/model-registry/catalog/internal/catalog"
 	model "github.com/kubeflow/model-registry/catalog/pkg/openapi"
+	"github.com/kubeflow/model-registry/pkg/api"
 )
 
 // ModelCatalogServiceAPIService is a service that implements the logic for the ModelCatalogServiceAPIServicer
 // This service should implement the business logic for every endpoint for the ModelCatalogServiceAPI s.coreApi.
 // Include any external packages or services that will be required by this service.
 type ModelCatalogServiceAPIService struct {
-	sources *catalog.SourceCollection
+	provider catalog.APIProvider
+	sources  *catalog.SourceCollection
 }
 
 // GetAllModelArtifacts retrieves all model artifacts for a given model from the specified source.
-func (m *ModelCatalogServiceAPIService) GetAllModelArtifacts(ctx context.Context, sourceID string, name string) (ImplResponse, error) {
-	source, ok := m.sources.Get(sourceID)
-	if !ok {
-		return notFound("Unknown source"), nil
+func (m *ModelCatalogServiceAPIService) GetAllModelArtifacts(ctx context.Context, sourceID string, modelName string, pageSize string, orderBy model.OrderByField, sortOrder model.SortOrder, nextPageToken string) (ImplResponse, error) {
+	if newName, err := url.PathUnescape(modelName); err == nil {
+		modelName = newName
 	}
 
-	if newName, err := url.PathUnescape(name); err == nil {
-		name = newName
+	var err error
+	pageSizeInt := int32(10)
+
+	if pageSize != "" {
+		parsed, err := strconv.ParseInt(pageSize, 10, 32)
+		if err != nil {
+			return Response(http.StatusBadRequest, err), err
+		}
+		pageSizeInt = int32(parsed)
 	}
 
-	artifacts, err := source.Provider.GetArtifacts(ctx, name)
+	artifacts, err := m.provider.GetArtifacts(ctx, modelName, sourceID, catalog.ListArtifactsParams{
+		PageSize:      pageSizeInt,
+		OrderBy:       orderBy,
+		SortOrder:     sortOrder,
+		NextPageToken: &nextPageToken,
+	})
 	if err != nil {
-		return Response(http.StatusInternalServerError, err), err
+		statusCode := api.ErrToStatus(err)
+		var errorMsg string
+		if errors.Is(err, api.ErrBadRequest) {
+			errorMsg = fmt.Sprintf("Invalid model name '%s' for source '%s'", modelName, sourceID)
+		} else if errors.Is(err, api.ErrNotFound) {
+			errorMsg = fmt.Sprintf("No model found '%s' in source '%s'", modelName, sourceID)
+		} else {
+			errorMsg = err.Error()
+		}
+		return ErrorResponse(statusCode, errors.New(errorMsg)), err
 	}
 
 	return Response(http.StatusOK, artifacts), nil
 }
 
-func (m *ModelCatalogServiceAPIService) FindModels(ctx context.Context, sourceID string, q string, pageSize string, orderBy model.OrderByField, sortOrder model.SortOrder, nextPageToken string) (ImplResponse, error) {
-	source, ok := m.sources.Get(sourceID)
-	if !ok {
-		return notFound("Unknown source"), errors.New("Unknown source")
-	}
+func (m *ModelCatalogServiceAPIService) FindModels(ctx context.Context, sourceIDs []string, q string, pageSize string, orderBy model.OrderByField, sortOrder model.SortOrder, nextPageToken string) (ImplResponse, error) {
+	var err error
+	pageSizeInt := int32(10)
 
-	p, err := newPaginator[model.CatalogModel](pageSize, orderBy, sortOrder, nextPageToken)
-	if err != nil {
-		return ErrorResponse(http.StatusBadRequest, err), err
+	if pageSize != "" {
+		parsed, err := strconv.ParseInt(pageSize, 10, 32)
+		if err != nil {
+			return Response(http.StatusBadRequest, err), err
+		}
+		pageSizeInt = int32(parsed)
 	}
 
 	listModelsParams := catalog.ListModelsParams{
-		Query:     q,
-		OrderBy:   p.OrderBy,
-		SortOrder: p.SortOrder,
+		Query:         q,
+		SourceIDs:     sourceIDs,
+		PageSize:      pageSizeInt,
+		OrderBy:       orderBy,
+		SortOrder:     sortOrder,
+		NextPageToken: &nextPageToken,
 	}
 
-	models, err := source.Provider.ListModels(ctx, listModelsParams)
+	models, err := m.provider.ListModels(ctx, listModelsParams)
 	if err != nil {
 		return ErrorResponse(http.StatusInternalServerError, err), err
 	}
 
-	page, next := p.Paginate(models.Items)
-
-	models.Items = page
-	models.PageSize = p.PageSize
-	models.NextPageToken = next.Token()
-
 	return Response(http.StatusOK, models), nil
 }
 
-func (m *ModelCatalogServiceAPIService) GetModel(ctx context.Context, sourceID string, name string) (ImplResponse, error) {
-	if name, ok := strings.CutSuffix(name, "/artifacts"); ok {
-		return m.GetAllModelArtifacts(ctx, sourceID, name)
+func (m *ModelCatalogServiceAPIService) GetModel(ctx context.Context, sourceID string, modelName string) (ImplResponse, error) {
+	if name, ok := strings.CutSuffix(modelName, "/artifacts"); ok {
+		return m.GetAllModelArtifacts(ctx, sourceID, name, "10", model.OrderByField(model.ORDERBYFIELD_CREATE_TIME), model.SortOrder(model.SORTORDER_ASC), "")
 	}
 
-	source, ok := m.sources.Get(sourceID)
-	if !ok {
-		return notFound("Unknown source"), nil
+	if newName, err := url.PathUnescape(modelName); err == nil {
+		modelName = newName
 	}
 
-	if newName, err := url.PathUnescape(name); err == nil {
-		name = newName
-	}
-
-	model, err := source.Provider.GetModel(ctx, name)
+	model, err := m.provider.GetModel(ctx, modelName, sourceID)
 	if err != nil {
-		return Response(http.StatusInternalServerError, err), err
+		statusCode := api.ErrToStatus(err)
+		var errorMsg string
+		if errors.Is(err, api.ErrNotFound) {
+			errorMsg = fmt.Sprintf("No model found '%s' in source '%s'", modelName, sourceID)
+		} else {
+			errorMsg = err.Error()
+		}
+		return ErrorResponse(statusCode, errors.New(errorMsg)), err
 	}
+
 	if model == nil {
 		return notFound("Unknown model or version"), nil
 	}
@@ -113,11 +137,11 @@ func (m *ModelCatalogServiceAPIService) FindSources(ctx context.Context, name st
 	name = strings.ToLower(name)
 
 	for _, v := range sources {
-		if !strings.Contains(strings.ToLower(v.Metadata.Name), name) {
+		if !strings.Contains(strings.ToLower(v.Name), name) {
 			continue
 		}
 
-		items = append(items, v.Metadata)
+		items = append(items, v)
 	}
 
 	cmpFunc, err := genCatalogCmpFunc(orderBy, sortOrder)
@@ -167,9 +191,10 @@ func genCatalogCmpFunc(orderBy model.OrderByField, sortOrder model.SortOrder) (f
 var _ ModelCatalogServiceAPIServicer = &ModelCatalogServiceAPIService{}
 
 // NewModelCatalogServiceAPIService creates a default api service
-func NewModelCatalogServiceAPIService(sources *catalog.SourceCollection) ModelCatalogServiceAPIServicer {
+func NewModelCatalogServiceAPIService(provider catalog.APIProvider, sources *catalog.SourceCollection) ModelCatalogServiceAPIServicer {
 	return &ModelCatalogServiceAPIService{
-		sources: sources,
+		provider: provider,
+		sources:  sources,
 	}
 }
 

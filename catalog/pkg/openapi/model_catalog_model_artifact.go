@@ -17,24 +17,34 @@ import (
 // checks if the CatalogModelArtifact type satisfies the MappedNullable interface at compile time
 var _ MappedNullable = &CatalogModelArtifact{}
 
-// CatalogModelArtifact A single artifact for a catalog model.
+// CatalogModelArtifact A Catalog Model Artifact Entity.
 type CatalogModelArtifact struct {
+	// User provided custom properties which are not defined by its type.
+	CustomProperties *map[string]MetadataValue `json:"customProperties,omitempty"`
+	// An optional description about the resource.
+	Description *string `json:"description,omitempty"`
+	// The external id that come from the clients’ system. This field is optional. If set, it must be unique among all resources within a database instance.
+	ExternalId *string `json:"externalId,omitempty"`
+	// The client provided name of the artifact. This field is optional. If set, it must be unique among all the artifacts of the same artifact type within a database instance and cannot be changed once set.
+	Name *string `json:"name,omitempty"`
+	// The unique server generated id of the resource.
+	Id *string `json:"id,omitempty"`
 	// Output only. Create time of the resource in millisecond since epoch.
 	CreateTimeSinceEpoch *string `json:"createTimeSinceEpoch,omitempty"`
 	// Output only. Last update time of the resource since epoch in millisecond since epoch.
 	LastUpdateTimeSinceEpoch *string `json:"lastUpdateTimeSinceEpoch,omitempty"`
-	// URI where the artifact can be retrieved.
+	ArtifactType             string  `json:"artifactType"`
+	// URI where the model can be retrieved.
 	Uri string `json:"uri"`
-	// User provided custom properties which are not defined by its type.
-	CustomProperties *map[string]MetadataValue `json:"customProperties,omitempty"`
 }
 
 // NewCatalogModelArtifact instantiates a new CatalogModelArtifact object
 // This constructor will assign default values to properties that have it defined,
 // and makes sure properties required by API are set, but the set of arguments
 // will change when the set of required properties is changed
-func NewCatalogModelArtifact(uri string) *CatalogModelArtifact {
+func NewCatalogModelArtifact(artifactType string, uri string) *CatalogModelArtifact {
 	this := CatalogModelArtifact{}
+	this.ArtifactType = artifactType
 	this.Uri = uri
 	return &this
 }
@@ -44,7 +54,169 @@ func NewCatalogModelArtifact(uri string) *CatalogModelArtifact {
 // but it doesn't guarantee that properties required by API are set
 func NewCatalogModelArtifactWithDefaults() *CatalogModelArtifact {
 	this := CatalogModelArtifact{}
+	var artifactType string = "model-artifact"
+	this.ArtifactType = artifactType
 	return &this
+}
+
+// GetCustomProperties returns the CustomProperties field value if set, zero value otherwise.
+func (o *CatalogModelArtifact) GetCustomProperties() map[string]MetadataValue {
+	if o == nil || IsNil(o.CustomProperties) {
+		var ret map[string]MetadataValue
+		return ret
+	}
+	return *o.CustomProperties
+}
+
+// GetCustomPropertiesOk returns a tuple with the CustomProperties field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+func (o *CatalogModelArtifact) GetCustomPropertiesOk() (*map[string]MetadataValue, bool) {
+	if o == nil || IsNil(o.CustomProperties) {
+		return nil, false
+	}
+	return o.CustomProperties, true
+}
+
+// HasCustomProperties returns a boolean if a field has been set.
+func (o *CatalogModelArtifact) HasCustomProperties() bool {
+	if o != nil && !IsNil(o.CustomProperties) {
+		return true
+	}
+
+	return false
+}
+
+// SetCustomProperties gets a reference to the given map[string]MetadataValue and assigns it to the CustomProperties field.
+func (o *CatalogModelArtifact) SetCustomProperties(v map[string]MetadataValue) {
+	o.CustomProperties = &v
+}
+
+// GetDescription returns the Description field value if set, zero value otherwise.
+func (o *CatalogModelArtifact) GetDescription() string {
+	if o == nil || IsNil(o.Description) {
+		var ret string
+		return ret
+	}
+	return *o.Description
+}
+
+// GetDescriptionOk returns a tuple with the Description field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+func (o *CatalogModelArtifact) GetDescriptionOk() (*string, bool) {
+	if o == nil || IsNil(o.Description) {
+		return nil, false
+	}
+	return o.Description, true
+}
+
+// HasDescription returns a boolean if a field has been set.
+func (o *CatalogModelArtifact) HasDescription() bool {
+	if o != nil && !IsNil(o.Description) {
+		return true
+	}
+
+	return false
+}
+
+// SetDescription gets a reference to the given string and assigns it to the Description field.
+func (o *CatalogModelArtifact) SetDescription(v string) {
+	o.Description = &v
+}
+
+// GetExternalId returns the ExternalId field value if set, zero value otherwise.
+func (o *CatalogModelArtifact) GetExternalId() string {
+	if o == nil || IsNil(o.ExternalId) {
+		var ret string
+		return ret
+	}
+	return *o.ExternalId
+}
+
+// GetExternalIdOk returns a tuple with the ExternalId field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+func (o *CatalogModelArtifact) GetExternalIdOk() (*string, bool) {
+	if o == nil || IsNil(o.ExternalId) {
+		return nil, false
+	}
+	return o.ExternalId, true
+}
+
+// HasExternalId returns a boolean if a field has been set.
+func (o *CatalogModelArtifact) HasExternalId() bool {
+	if o != nil && !IsNil(o.ExternalId) {
+		return true
+	}
+
+	return false
+}
+
+// SetExternalId gets a reference to the given string and assigns it to the ExternalId field.
+func (o *CatalogModelArtifact) SetExternalId(v string) {
+	o.ExternalId = &v
+}
+
+// GetName returns the Name field value if set, zero value otherwise.
+func (o *CatalogModelArtifact) GetName() string {
+	if o == nil || IsNil(o.Name) {
+		var ret string
+		return ret
+	}
+	return *o.Name
+}
+
+// GetNameOk returns a tuple with the Name field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+func (o *CatalogModelArtifact) GetNameOk() (*string, bool) {
+	if o == nil || IsNil(o.Name) {
+		return nil, false
+	}
+	return o.Name, true
+}
+
+// HasName returns a boolean if a field has been set.
+func (o *CatalogModelArtifact) HasName() bool {
+	if o != nil && !IsNil(o.Name) {
+		return true
+	}
+
+	return false
+}
+
+// SetName gets a reference to the given string and assigns it to the Name field.
+func (o *CatalogModelArtifact) SetName(v string) {
+	o.Name = &v
+}
+
+// GetId returns the Id field value if set, zero value otherwise.
+func (o *CatalogModelArtifact) GetId() string {
+	if o == nil || IsNil(o.Id) {
+		var ret string
+		return ret
+	}
+	return *o.Id
+}
+
+// GetIdOk returns a tuple with the Id field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+func (o *CatalogModelArtifact) GetIdOk() (*string, bool) {
+	if o == nil || IsNil(o.Id) {
+		return nil, false
+	}
+	return o.Id, true
+}
+
+// HasId returns a boolean if a field has been set.
+func (o *CatalogModelArtifact) HasId() bool {
+	if o != nil && !IsNil(o.Id) {
+		return true
+	}
+
+	return false
+}
+
+// SetId gets a reference to the given string and assigns it to the Id field.
+func (o *CatalogModelArtifact) SetId(v string) {
+	o.Id = &v
 }
 
 // GetCreateTimeSinceEpoch returns the CreateTimeSinceEpoch field value if set, zero value otherwise.
@@ -111,6 +283,30 @@ func (o *CatalogModelArtifact) SetLastUpdateTimeSinceEpoch(v string) {
 	o.LastUpdateTimeSinceEpoch = &v
 }
 
+// GetArtifactType returns the ArtifactType field value
+func (o *CatalogModelArtifact) GetArtifactType() string {
+	if o == nil {
+		var ret string
+		return ret
+	}
+
+	return o.ArtifactType
+}
+
+// GetArtifactTypeOk returns a tuple with the ArtifactType field value
+// and a boolean to check if the value has been set.
+func (o *CatalogModelArtifact) GetArtifactTypeOk() (*string, bool) {
+	if o == nil {
+		return nil, false
+	}
+	return &o.ArtifactType, true
+}
+
+// SetArtifactType sets field value
+func (o *CatalogModelArtifact) SetArtifactType(v string) {
+	o.ArtifactType = v
+}
+
 // GetUri returns the Uri field value
 func (o *CatalogModelArtifact) GetUri() string {
 	if o == nil {
@@ -135,38 +331,6 @@ func (o *CatalogModelArtifact) SetUri(v string) {
 	o.Uri = v
 }
 
-// GetCustomProperties returns the CustomProperties field value if set, zero value otherwise.
-func (o *CatalogModelArtifact) GetCustomProperties() map[string]MetadataValue {
-	if o == nil || IsNil(o.CustomProperties) {
-		var ret map[string]MetadataValue
-		return ret
-	}
-	return *o.CustomProperties
-}
-
-// GetCustomPropertiesOk returns a tuple with the CustomProperties field value if set, nil otherwise
-// and a boolean to check if the value has been set.
-func (o *CatalogModelArtifact) GetCustomPropertiesOk() (*map[string]MetadataValue, bool) {
-	if o == nil || IsNil(o.CustomProperties) {
-		return nil, false
-	}
-	return o.CustomProperties, true
-}
-
-// HasCustomProperties returns a boolean if a field has been set.
-func (o *CatalogModelArtifact) HasCustomProperties() bool {
-	if o != nil && !IsNil(o.CustomProperties) {
-		return true
-	}
-
-	return false
-}
-
-// SetCustomProperties gets a reference to the given map[string]MetadataValue and assigns it to the CustomProperties field.
-func (o *CatalogModelArtifact) SetCustomProperties(v map[string]MetadataValue) {
-	o.CustomProperties = &v
-}
-
 func (o CatalogModelArtifact) MarshalJSON() ([]byte, error) {
 	toSerialize, err := o.ToMap()
 	if err != nil {
@@ -177,16 +341,29 @@ func (o CatalogModelArtifact) MarshalJSON() ([]byte, error) {
 
 func (o CatalogModelArtifact) ToMap() (map[string]interface{}, error) {
 	toSerialize := map[string]interface{}{}
+	if !IsNil(o.CustomProperties) {
+		toSerialize["customProperties"] = o.CustomProperties
+	}
+	if !IsNil(o.Description) {
+		toSerialize["description"] = o.Description
+	}
+	if !IsNil(o.ExternalId) {
+		toSerialize["externalId"] = o.ExternalId
+	}
+	if !IsNil(o.Name) {
+		toSerialize["name"] = o.Name
+	}
+	if !IsNil(o.Id) {
+		toSerialize["id"] = o.Id
+	}
 	if !IsNil(o.CreateTimeSinceEpoch) {
 		toSerialize["createTimeSinceEpoch"] = o.CreateTimeSinceEpoch
 	}
 	if !IsNil(o.LastUpdateTimeSinceEpoch) {
 		toSerialize["lastUpdateTimeSinceEpoch"] = o.LastUpdateTimeSinceEpoch
 	}
+	toSerialize["artifactType"] = o.ArtifactType
 	toSerialize["uri"] = o.Uri
-	if !IsNil(o.CustomProperties) {
-		toSerialize["customProperties"] = o.CustomProperties
-	}
 	return toSerialize, nil
 }
 

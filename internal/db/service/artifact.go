@@ -4,10 +4,12 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/kubeflow/model-registry/internal/datastore"
 	"github.com/kubeflow/model-registry/internal/db/models"
 	"github.com/kubeflow/model-registry/internal/db/schema"
 	"github.com/kubeflow/model-registry/internal/db/scopes"
 	"github.com/kubeflow/model-registry/internal/db/utils"
+	"github.com/kubeflow/model-registry/internal/defaults"
 	"github.com/kubeflow/model-registry/pkg/api"
 	"github.com/kubeflow/model-registry/pkg/openapi"
 	"gorm.io/gorm"
@@ -16,24 +18,21 @@ import (
 var ErrArtifactNotFound = errors.New("artifact by id not found")
 
 type ArtifactRepositoryImpl struct {
-	db                  *gorm.DB
-	modelArtifactTypeID int64
-	docArtifactTypeID   int64
-	dataSetTypeID       int64
-	metricTypeID        int64
-	parameterTypeID     int64
-	metricHistoryTypeID int64
+	db       *gorm.DB
+	idToName map[int64]string
+	nameToID datastore.ArtifactTypeMap
 }
 
-func NewArtifactRepository(db *gorm.DB, modelArtifactTypeID int64, docArtifactTypeID int64, dataSetTypeID int64, metricTypeID int64, parameterTypeID int64, metricHistoryTypeID int64) models.ArtifactRepository {
+func NewArtifactRepository(db *gorm.DB, artifactTypes datastore.ArtifactTypeMap) models.ArtifactRepository {
+	idToName := make(map[int64]string, len(artifactTypes))
+	for name, id := range artifactTypes {
+		idToName[id] = name
+	}
+
 	return &ArtifactRepositoryImpl{
-		db:                  db,
-		modelArtifactTypeID: modelArtifactTypeID,
-		docArtifactTypeID:   docArtifactTypeID,
-		dataSetTypeID:       dataSetTypeID,
-		metricTypeID:        metricTypeID,
-		parameterTypeID:     parameterTypeID,
-		metricHistoryTypeID: metricHistoryTypeID,
+		db:       db,
+		nameToID: artifactTypes,
+		idToName: idToName,
 	}
 }
 
@@ -73,7 +72,9 @@ func (r *ArtifactRepositoryImpl) List(listOptions models.ArtifactListOptions) (*
 	query := r.db.Model(&schema.Artifact{})
 
 	// Exclude metric history records - they should only be returned via metric history endpoints
-	query = query.Where("type_id != ?", r.metricHistoryTypeID)
+	if metricHistoryTypeID, ok := r.nameToID[defaults.MetricHistoryTypeName]; ok {
+		query = query.Where("type_id != ?", metricHistoryTypeID)
+	}
 
 	if listOptions.Name != nil {
 		// Name is not prefixed with the parent resource id to allow for filtering by name only
@@ -170,17 +171,17 @@ func (r *ArtifactRepositoryImpl) List(listOptions models.ArtifactListOptions) (*
 
 // getTypeIDFromArtifactType maps artifact type strings to their corresponding type IDs
 func (r *ArtifactRepositoryImpl) getTypeIDFromArtifactType(artifactType string) (int64, error) {
-	switch artifactType {
-	case string(openapi.ARTIFACTTYPEQUERYPARAM_MODEL_ARTIFACT):
-		return r.modelArtifactTypeID, nil
-	case string(openapi.ARTIFACTTYPEQUERYPARAM_DOC_ARTIFACT):
-		return r.docArtifactTypeID, nil
-	case string(openapi.ARTIFACTTYPEQUERYPARAM_DATASET_ARTIFACT):
-		return r.dataSetTypeID, nil
-	case string(openapi.ARTIFACTTYPEQUERYPARAM_METRIC):
-		return r.metricTypeID, nil
-	case string(openapi.ARTIFACTTYPEQUERYPARAM_PARAMETER):
-		return r.parameterTypeID, nil
+	switch openapi.ArtifactTypeQueryParam(artifactType) {
+	case openapi.ARTIFACTTYPEQUERYPARAM_MODEL_ARTIFACT:
+		return r.nameToID[defaults.ModelArtifactTypeName], nil
+	case openapi.ARTIFACTTYPEQUERYPARAM_DOC_ARTIFACT:
+		return r.nameToID[defaults.DocArtifactTypeName], nil
+	case openapi.ARTIFACTTYPEQUERYPARAM_DATASET_ARTIFACT:
+		return r.nameToID[defaults.DataSetTypeName], nil
+	case openapi.ARTIFACTTYPEQUERYPARAM_METRIC:
+		return r.nameToID[defaults.MetricTypeName], nil
+	case openapi.ARTIFACTTYPEQUERYPARAM_PARAMETER:
+		return r.nameToID[defaults.ParameterTypeName], nil
 	default:
 		return 0, fmt.Errorf("unsupported artifact type: %s: %w", artifactType, api.ErrBadRequest)
 	}
@@ -189,25 +190,26 @@ func (r *ArtifactRepositoryImpl) getTypeIDFromArtifactType(artifactType string) 
 func (r *ArtifactRepositoryImpl) mapDataLayerToArtifact(artifact schema.Artifact, properties []schema.ArtifactProperty) (models.Artifact, error) {
 	artToReturn := models.Artifact{}
 
-	switch artifact.TypeID {
-	case int32(r.modelArtifactTypeID):
+	typeName := r.idToName[int64(artifact.TypeID)]
+
+	switch typeName {
+	case defaults.ModelArtifactTypeName:
 		modelArtifact := mapDataLayerToModelArtifact(artifact, properties)
 		artToReturn.ModelArtifact = &modelArtifact
-	case int32(r.docArtifactTypeID):
+	case defaults.DocArtifactTypeName:
 		docArtifact := mapDataLayerToDocArtifact(artifact, properties)
 		artToReturn.DocArtifact = &docArtifact
-	case int32(r.dataSetTypeID):
+	case defaults.DataSetTypeName:
 		dataSet := mapDataLayerToDataSet(artifact, properties)
 		artToReturn.DataSet = &dataSet
-	case int32(r.metricTypeID):
+	case defaults.MetricTypeName:
 		metric := mapDataLayerToMetric(artifact, properties)
 		artToReturn.Metric = &metric
-	case int32(r.parameterTypeID):
+	case defaults.ParameterTypeName:
 		parameter := mapDataLayerToParameter(artifact, properties)
 		artToReturn.Parameter = &parameter
 	default:
-		return models.Artifact{}, fmt.Errorf("invalid artifact type: %d (expected: modelArtifact=%d, docArtifact=%d, dataSet=%d, metric=%d, parameter=%d, metricHistory=%d [filtered])",
-			artifact.TypeID, r.modelArtifactTypeID, r.docArtifactTypeID, r.dataSetTypeID, r.metricTypeID, r.parameterTypeID, r.metricHistoryTypeID)
+		return models.Artifact{}, fmt.Errorf("invalid artifact type: %s=%d (expected: %v)", typeName, artifact.TypeID, r.idToName)
 	}
 
 	return artToReturn, nil

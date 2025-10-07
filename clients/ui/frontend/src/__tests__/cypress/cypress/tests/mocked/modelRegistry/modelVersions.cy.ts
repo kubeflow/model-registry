@@ -142,7 +142,7 @@ describe('Model Versions', () => {
     modelRegistry.visit();
     const registeredModelRow = modelRegistry.getRow('Fraud detection model');
     registeredModelRow.findName().contains('Fraud detection model').click();
-    verifyRelativeURL(`/model-registry/modelregistry-sample/registeredModels/1/overview`);
+    verifyRelativeURL(`/model-registry/modelregistry-sample/registered-models/1/overview`);
 
     modelRegistry.shouldModelVersionsEmpty();
   });
@@ -155,7 +155,7 @@ describe('Model Versions', () => {
     modelRegistry.visit();
     const registeredModelRow = modelRegistry.getRow('Fraud detection model');
     registeredModelRow.findName().contains('Fraud detection model').click();
-    verifyRelativeURL(`/model-registry/modelregistry-sample/registeredModels/1/overview`);
+    verifyRelativeURL(`/model-registry/modelregistry-sample/registered-models/1/overview`);
     cy.go('back');
     verifyRelativeURL(`/model-registry/modelregistry-sample`);
     registeredModelRow.findName().contains('Fraud detection model').should('exist');
@@ -176,7 +176,7 @@ describe('Model Versions', () => {
     //cy.reload();
     const registeredModelRow = modelRegistry.getRow('Fraud detection model');
     registeredModelRow.findName().contains('Fraud detection model').click();
-    verifyRelativeURL(`/model-registry/modelregistry-sample/registeredModels/1/overview`);
+    verifyRelativeURL(`/model-registry/modelregistry-sample/registered-models/1/overview`);
     modelRegistry.findModelBreadcrumbItem().contains('test');
 
     // Navigate to versions tab
@@ -264,10 +264,12 @@ describe('Model Versions', () => {
     cy.findByTestId('model-versions-tab').click();
     const modelVersionRow = modelRegistry.getModelVersionRow('model version');
     modelVersionRow.findModelVersionName().contains('model version').click();
-    verifyRelativeURL('/model-registry/modelregistry-sample/registeredModels/1/versions/1/details');
+    verifyRelativeURL(
+      '/model-registry/modelregistry-sample/registered-models/1/versions/1/details',
+    );
     cy.findByTestId('app-page-title').should('contain.text', 'test');
     cy.findByTestId('breadcrumb-version-name').should('have.text', 'model version');
     cy.go('back');
-    verifyRelativeURL('/model-registry/modelregistry-sample/registeredModels/1/versions');
+    verifyRelativeURL('/model-registry/modelregistry-sample/registered-models/1/versions');
   });
 });

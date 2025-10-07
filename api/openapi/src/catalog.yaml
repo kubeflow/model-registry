@@ -20,12 +20,18 @@ paths:
       parameters:
         - name: source
           description: |-
-            Filter models by source. This parameter is currently required and
-            may only be specified once.
+            Filter models by source. This parameter can be specified multiple times
+            to filter by multiple sources (OR logic). For example:
+            ?source=huggingface&source=local will return models from either
+            huggingface OR local sources.
           schema:
-            type: string
+            type: array
+            items:
+              type: string
+          style: form
+          explode: true
           in: query
-          required: true
+          required: false
         - name: q
           description: Free-form keyword search used to filter the response.
           schema:
@@ -107,14 +113,14 @@ paths:
         required: true
   /api/model_catalog/v1alpha1/sources/{source_id}/models/{model_name}/artifacts:
     description: >-
-      The REST endpoint/path used to list `CatalogModelArtifacts`.
+      The REST endpoint/path used to list `CatalogArtifacts`.
     get:
-      summary: List CatalogModelArtifacts.
+      summary: List CatalogArtifacts.
       tags:
         - ModelCatalogService
       responses:
         "200":
-          $ref: "#/components/responses/CatalogModelArtifactListResponse"
+          $ref: "#/components/responses/CatalogArtifactListResponse"
         "401":
           $ref: "#/components/responses/Unauthorized"
         "404":
@@ -135,8 +141,57 @@ paths:
           type: string
         in: path
         required: true
+      - $ref: "#/components/parameters/pageSize"
+      - $ref: "#/components/parameters/orderBy"
+      - $ref: "#/components/parameters/sortOrder"
+      - $ref: "#/components/parameters/nextPageToken"
 components:
   schemas:
+    CatalogArtifact:
+      description: A single artifact in the catalog API.
+      oneOf:
+        - $ref: "#/components/schemas/CatalogModelArtifact"
+        - $ref: "#/components/schemas/CatalogMetricsArtifact"
+      discriminator:
+        propertyName: artifactType
+        mapping:
+          model-artifact: "#/components/schemas/CatalogModelArtifact"
+          metrics-artifact: "#/components/schemas/CatalogMetricsArtifact"
+    CatalogArtifactList:
+      description: List of CatalogModel entities.
+      allOf:
+        - type: object
+          properties:
+            items:
+              description: Array of `CatalogArtifact` entities.
+              type: array
+              items:
+                $ref: "#/components/schemas/CatalogArtifact"
+          required:
+            - items
+        - $ref: "#/components/schemas/BaseResourceList"
+    CatalogMetricsArtifact:
+      description: A metadata Artifact Entity.
+      allOf:
+        - type: object
+          required:
+            - artifactType
+            - metricsType
+          properties:
+            artifactType:
+              type: string
+              default: metrics-artifact
+            metricsType:
+              type: string
+              enum:
+                - performance-metrics
+                - accuracy-metrics
+            customProperties:
+              description: User provided custom properties which are not defined by its type.
+              type: object
+              additionalProperties:
+                $ref: "#/components/schemas/MetadataValue"
+        - $ref: "#/components/schemas/BaseResource"
     CatalogModel:
       description: A model in the model catalog.
       allOf:
@@ -151,38 +206,29 @@ components:
             source_id:
               type: string
               description: ID of the source this model belongs to.
-        - $ref: "#/components/schemas/BaseResourceDates"
         - $ref: "#/components/schemas/BaseModel"
+        - $ref: "#/components/schemas/BaseResource"
     CatalogModelArtifact:
-      description: A single artifact for a catalog model.
+      description: A Catalog Model Artifact Entity.
       allOf:
         - type: object
           required:
+            - artifactType
             - uri
           properties:
+            artifactType:
+              type: string
+              default: model-artifact
             uri:
               type: string
               format: uri
-              description: URI where the artifact can be retrieved.
+              description: URI where the model can be retrieved.
             customProperties:
               description: User provided custom properties which are not defined by its type.
               type: object
               additionalProperties:
                 $ref: "#/components/schemas/MetadataValue"
-        - $ref: "#/components/schemas/BaseResourceDates"
-    CatalogModelArtifactList:
-      description: List of CatalogModel entities.
-      allOf:
-        - type: object
-          properties:
-            items:
-              description: Array of `CatalogModelArtifact` entities.
-              type: array
-              items:
-                $ref: "#/components/schemas/CatalogModelArtifact"
-          required:
-            - items
-        - $ref: "#/components/schemas/BaseResourceList"
+        - $ref: "#/components/schemas/BaseResource"
     CatalogModelList:
       description: List of CatalogModel entities.
       allOf:
@@ -240,12 +286,12 @@ components:
       type: string
 
   responses:
-    CatalogModelArtifactListResponse:
+    CatalogArtifactListResponse:
       content:
         application/json:
           schema:
-            $ref: "#/components/schemas/CatalogModelArtifactList"
-      description: A response containing a list of CatalogModelArtifact entities.
+            $ref: "#/components/schemas/CatalogArtifactList"
+      description: A response containing a list of CatalogArtifact entities.
     CatalogModelListResponse:
       content:
         application/json:

@@ -1,207 +1,439 @@
 package catalog
 
 import (
-	"context"
+	"encoding/json"
+	"slices"
 	"testing"
 
 	model "github.com/kubeflow/model-registry/catalog/pkg/openapi"
+	"github.com/kubeflow/model-registry/internal/apiutils"
+	"github.com/kubeflow/model-registry/internal/db/models"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
-func TestYAMLCatalogGetModel(t *testing.T) {
-	assert := assert.New(t)
-	provider := testYAMLProvider(t, "testdata/test-yaml-catalog.yaml")
+func TestYamlModelToModelProviderRecord(t *testing.T) {
+	tests := []struct {
+		name         string
+		yamlModel    yamlModel
+		expectError  bool
+		validateFunc func(t *testing.T, record ModelProviderRecord)
+	}{
+		{
+			name: "complete model with all properties",
+			yamlModel: yamlModel{
+				CatalogModel: model.CatalogModel{
+					Name:                     "test-model",
+					Description:              apiutils.Of("Test model description"),
+					Readme:                   apiutils.Of("# Test Model\nThis is a test model."),
+					Maturity:                 apiutils.Of("Generally Available"),
+					Language:                 []string{"en", "fr"},
+					Tasks:                    []string{"text-generation", "nlp"},
+					Provider:                 apiutils.Of("IBM"),
+					Logo:                     apiutils.Of("https://example.com/logo.png"),
+					License:                  apiutils.Of("apache-2.0"),
+					LicenseLink:              apiutils.Of("https://www.apache.org/licenses/LICENSE-2.0"),
+					LibraryName:              apiutils.Of("transformers"),
+					SourceId:                 apiutils.Of("test-source"),
+					CreateTimeSinceEpoch:     apiutils.Of("1678886400000"),
+					LastUpdateTimeSinceEpoch: apiutils.Of("1681564800000"),
+					CustomProperties: &map[string]model.MetadataValue{
+						"custom_key": {
+							MetadataStringValue: &model.MetadataStringValue{
+								StringValue:  "custom_value",
+								MetadataType: "MetadataStringValue",
+							},
+						},
+					},
+				},
+				Artifacts: []*yamlArtifact{
+					{
+						CatalogArtifact: model.CatalogArtifact{
+							CatalogModelArtifact: &model.CatalogModelArtifact{
+								ArtifactType:             "model-artifact",
+								Uri:                      "https://example.com/model.tar.gz",
+								CreateTimeSinceEpoch:     apiutils.Of("1678886400000"),
+								LastUpdateTimeSinceEpoch: apiutils.Of("1681564800000"),
+								CustomProperties: &map[string]model.MetadataValue{
+									"model_size": {
+										MetadataStringValue: &model.MetadataStringValue{
+											StringValue:  "2GB",
+											MetadataType: "MetadataStringValue",
+										},
+									},
+									"accuracy": {
+										MetadataDoubleValue: &model.MetadataDoubleValue{
+											DoubleValue:  0.95,
+											MetadataType: "MetadataDoubleValue",
+										},
+									},
+								},
+							},
+						},
+					},
+					{
+						CatalogArtifact: model.CatalogArtifact{
+							CatalogMetricsArtifact: &model.CatalogMetricsArtifact{
+								ArtifactType:             "metrics-artifact",
+								MetricsType:              "evaluation-metrics",
+								CreateTimeSinceEpoch:     apiutils.Of("1678886400000"),
+								LastUpdateTimeSinceEpoch: apiutils.Of("1681564800000"),
+								CustomProperties: &map[string]model.MetadataValue{
+									"framework": {
+										MetadataStringValue: &model.MetadataStringValue{
+											StringValue:  "scikit-learn",
+											MetadataType: "MetadataStringValue",
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+			validateFunc: func(t *testing.T, record ModelProviderRecord) {
+				require.NotNil(t, record.Model)
 
-	model, err := provider.GetModel(context.Background(), "rhelai1/granite-8b-code-base")
-	if assert.NoError(err) {
-		assert.Equal("rhelai1/granite-8b-code-base", model.Name)
+				attrs := record.Model.GetAttributes()
+				require.NotNil(t, attrs)
+				assert.Equal(t, int64(1678886400000), *attrs.CreateTimeSinceEpoch)
+				assert.Equal(t, int64(1681564800000), *attrs.LastUpdateTimeSinceEpoch)
 
-		newLogo := "foobar"
-		model.Logo = &newLogo
+				// Check regular properties (spec-defined properties)
+				regularProps := record.Model.GetProperties()
+				require.NotNil(t, regularProps)
 
-		model2, err := provider.GetModel(context.Background(), "rhelai1/granite-8b-code-base")
-		if assert.NoError(err) {
-			assert.NotEqual(model2.Logo, model.Logo, "changes to one returned object should not affect other return values")
-		}
+				regularPropMap := make(map[string]models.Properties)
+				for _, prop := range *regularProps {
+					regularPropMap[prop.Name] = prop
+				}
+
+				// Validate spec-defined properties are regular properties
+				assert.Contains(t, regularPropMap, "description")
+				assert.Equal(t, "Test model description", *regularPropMap["description"].StringValue)
+				assert.False(t, regularPropMap["description"].IsCustomProperty)
+
+				assert.Contains(t, regularPropMap, "readme")
+				assert.Equal(t, "# Test Model\nThis is a test model.", *regularPropMap["readme"].StringValue)
+				assert.False(t, regularPropMap["readme"].IsCustomProperty)
+
+				assert.Contains(t, regularPropMap, "maturity")
+				assert.Equal(t, "Generally Available", *regularPropMap["maturity"].StringValue)
+				assert.False(t, regularPropMap["maturity"].IsCustomProperty)
+
+				assert.Contains(t, regularPropMap, "provider")
+				assert.Equal(t, "IBM", *regularPropMap["provider"].StringValue)
+				assert.False(t, regularPropMap["provider"].IsCustomProperty)
+
+				assert.Contains(t, regularPropMap, "logo")
+				assert.Equal(t, "https://example.com/logo.png", *regularPropMap["logo"].StringValue)
+				assert.False(t, regularPropMap["logo"].IsCustomProperty)
+
+				assert.Contains(t, regularPropMap, "license")
+				assert.Equal(t, "apache-2.0", *regularPropMap["license"].StringValue)
+				assert.False(t, regularPropMap["license"].IsCustomProperty)
+
+				assert.Contains(t, regularPropMap, "license_link")
+				assert.Equal(t, "https://www.apache.org/licenses/LICENSE-2.0", *regularPropMap["license_link"].StringValue)
+				assert.False(t, regularPropMap["license_link"].IsCustomProperty)
+
+				assert.Contains(t, regularPropMap, "library_name")
+				assert.Equal(t, "transformers", *regularPropMap["library_name"].StringValue)
+				assert.False(t, regularPropMap["library_name"].IsCustomProperty)
+
+				assert.Contains(t, regularPropMap, "source_id")
+				assert.Equal(t, "test-source", *regularPropMap["source_id"].StringValue)
+				assert.False(t, regularPropMap["source_id"].IsCustomProperty)
+
+				// Validate array properties are JSON encoded as regular properties
+				assert.Contains(t, regularPropMap, "language")
+				var languages []string
+				err := json.Unmarshal([]byte(*regularPropMap["language"].StringValue), &languages)
+				require.NoError(t, err)
+				assert.Equal(t, []string{"en", "fr"}, languages)
+				assert.False(t, regularPropMap["language"].IsCustomProperty)
+
+				assert.Contains(t, regularPropMap, "tasks")
+				var tasks []string
+				err = json.Unmarshal([]byte(*regularPropMap["tasks"].StringValue), &tasks)
+				require.NoError(t, err)
+				assert.Equal(t, []string{"text-generation", "nlp"}, tasks)
+				assert.False(t, regularPropMap["tasks"].IsCustomProperty)
+
+				// Check custom properties
+				customProps := record.Model.GetCustomProperties()
+				require.NotNil(t, customProps)
+
+				customPropMap := make(map[string]models.Properties)
+				for _, prop := range *customProps {
+					customPropMap[prop.Name] = prop
+				}
+
+				// Validate truly custom properties
+				assert.Contains(t, customPropMap, "custom_key")
+				assert.Equal(t, "custom_value", *customPropMap["custom_key"].StringValue)
+				assert.True(t, customPropMap["custom_key"].IsCustomProperty)
+
+				// Validate artifacts
+				assert.Len(t, record.Artifacts, 2)
+
+				// Validate ModelArtifact
+				modelArtifact := record.Artifacts[0]
+				require.NotNil(t, modelArtifact.CatalogModelArtifact)
+				assert.Nil(t, modelArtifact.CatalogMetricsArtifact)
+
+				// Check CatalogModelArtifact attributes
+				modelAttrs := modelArtifact.CatalogModelArtifact.GetAttributes()
+				assert.Equal(t, "https://example.com/model.tar.gz", *modelAttrs.URI)
+				assert.Equal(t, int64(1678886400000), *modelAttrs.CreateTimeSinceEpoch)
+				assert.Equal(t, int64(1681564800000), *modelAttrs.LastUpdateTimeSinceEpoch)
+
+				// Check CatalogModelArtifact regular properties
+				modelArtifactProps := modelArtifact.CatalogModelArtifact.GetProperties()
+				require.NotNil(t, modelArtifactProps)
+				modelArtifactPropMap := make(map[string]models.Properties)
+				for _, prop := range *modelArtifactProps {
+					modelArtifactPropMap[prop.Name] = prop
+				}
+				assert.Contains(t, modelArtifactPropMap, "uri")
+				assert.Equal(t, "https://example.com/model.tar.gz", *modelArtifactPropMap["uri"].StringValue)
+				assert.False(t, modelArtifactPropMap["uri"].IsCustomProperty)
+
+				// Check CatalogModelArtifact custom properties
+				modelArtifactCustomProps := modelArtifact.CatalogModelArtifact.GetCustomProperties()
+				require.NotNil(t, modelArtifactCustomProps)
+				modelArtifactCustomPropMap := make(map[string]models.Properties)
+				for _, prop := range *modelArtifactCustomProps {
+					modelArtifactCustomPropMap[prop.Name] = prop
+				}
+				assert.Contains(t, modelArtifactCustomPropMap, "model_size")
+				assert.Equal(t, "2GB", *modelArtifactCustomPropMap["model_size"].StringValue)
+				assert.True(t, modelArtifactCustomPropMap["model_size"].IsCustomProperty)
+				assert.Contains(t, modelArtifactCustomPropMap, "accuracy")
+				assert.Equal(t, 0.95, *modelArtifactCustomPropMap["accuracy"].DoubleValue)
+				assert.True(t, modelArtifactCustomPropMap["accuracy"].IsCustomProperty)
+
+				// Validate CatalogMetricsArtifact
+				metricsArtifact := record.Artifacts[1]
+				require.NotNil(t, metricsArtifact.CatalogMetricsArtifact)
+				assert.Nil(t, metricsArtifact.CatalogModelArtifact)
+
+				// Check CatalogMetricsArtifact attributes
+				metricsAttrs := metricsArtifact.CatalogMetricsArtifact.GetAttributes()
+				assert.Equal(t, "evaluation-metrics", string(metricsAttrs.MetricsType))
+				assert.Equal(t, int64(1678886400000), *metricsAttrs.CreateTimeSinceEpoch)
+				assert.Equal(t, int64(1681564800000), *metricsAttrs.LastUpdateTimeSinceEpoch)
+
+				// Check CatalogMetricsArtifact regular properties
+				metricsArtifactProps := metricsArtifact.CatalogMetricsArtifact.GetProperties()
+				require.NotNil(t, metricsArtifactProps)
+				metricsArtifactPropMap := make(map[string]models.Properties)
+				for _, prop := range *metricsArtifactProps {
+					metricsArtifactPropMap[prop.Name] = prop
+				}
+				assert.Contains(t, metricsArtifactPropMap, "metricsType")
+				assert.Equal(t, "evaluation-metrics", *metricsArtifactPropMap["metricsType"].StringValue)
+				assert.False(t, metricsArtifactPropMap["metricsType"].IsCustomProperty)
+
+				// Check CatalogMetricsArtifact custom properties
+				metricsArtifactCustomProps := metricsArtifact.CatalogMetricsArtifact.GetCustomProperties()
+				require.NotNil(t, metricsArtifactCustomProps)
+				metricsArtifactCustomPropMap := make(map[string]models.Properties)
+				for _, prop := range *metricsArtifactCustomProps {
+					metricsArtifactCustomPropMap[prop.Name] = prop
+				}
+				assert.Contains(t, metricsArtifactCustomPropMap, "framework")
+				assert.Equal(t, "scikit-learn", *metricsArtifactCustomPropMap["framework"].StringValue)
+				assert.True(t, metricsArtifactCustomPropMap["framework"].IsCustomProperty)
+			},
+		},
+		{
+			name: "minimal model with only required fields",
+			yamlModel: yamlModel{
+				CatalogModel: model.CatalogModel{
+					Name: "minimal-model",
+				},
+			},
+			validateFunc: func(t *testing.T, record ModelProviderRecord) {
+				require.NotNil(t, record.Model)
+
+				attrs := record.Model.GetAttributes()
+				require.NotNil(t, attrs)
+				assert.Nil(t, attrs.CreateTimeSinceEpoch)
+				assert.Nil(t, attrs.LastUpdateTimeSinceEpoch)
+
+				// Should have no regular properties for minimal model
+				regularProps := record.Model.GetProperties()
+				if regularProps != nil {
+					*regularProps = slices.DeleteFunc(*regularProps, func(p models.Properties) bool {
+						switch p.Name {
+						case "language", "tasks":
+							return true
+						}
+						return false
+					})
+					assert.Empty(t, *regularProps)
+				}
+
+				// Should have no custom properties for minimal model
+				customProps := record.Model.GetCustomProperties()
+				if customProps != nil {
+					assert.Empty(t, *customProps)
+				}
+
+				// Should have no artifacts for minimal model
+				assert.Empty(t, record.Artifacts)
+			},
+		},
+		{
+			name: "model with only ModelArtifact",
+			yamlModel: yamlModel{
+				CatalogModel: model.CatalogModel{
+					Name: "model-with-artifact",
+				},
+				Artifacts: []*yamlArtifact{
+					{
+						CatalogArtifact: model.CatalogArtifact{
+							CatalogModelArtifact: &model.CatalogModelArtifact{
+								ArtifactType: "model-artifact",
+								Uri:          "s3://bucket/model.bin",
+							},
+						},
+					},
+				},
+			},
+			validateFunc: func(t *testing.T, record ModelProviderRecord) {
+				require.NotNil(t, record.Model)
+				assert.Len(t, record.Artifacts, 1)
+
+				artifact := record.Artifacts[0]
+				require.NotNil(t, artifact.CatalogModelArtifact)
+				assert.Nil(t, artifact.CatalogMetricsArtifact)
+
+				attrs := artifact.CatalogModelArtifact.GetAttributes()
+				assert.Equal(t, "s3://bucket/model.bin", *attrs.URI)
+				assert.Nil(t, attrs.CreateTimeSinceEpoch)
+				assert.Nil(t, attrs.LastUpdateTimeSinceEpoch)
+
+				// Check regular properties
+				props := artifact.CatalogModelArtifact.GetProperties()
+				require.NotNil(t, props)
+				assert.Len(t, *props, 1)
+				assert.Equal(t, "uri", (*props)[0].Name)
+				assert.Equal(t, "s3://bucket/model.bin", *(*props)[0].StringValue)
+				assert.False(t, (*props)[0].IsCustomProperty)
+
+				// Should have no custom properties
+				customProps := artifact.CatalogModelArtifact.GetCustomProperties()
+				if customProps != nil {
+					assert.Empty(t, *customProps)
+				}
+			},
+		},
+		{
+			name: "model with only MetricsArtifact",
+			yamlModel: yamlModel{
+				CatalogModel: model.CatalogModel{
+					Name: "model-with-metrics",
+				},
+				Artifacts: []*yamlArtifact{
+					{
+						CatalogArtifact: model.CatalogArtifact{
+							CatalogMetricsArtifact: &model.CatalogMetricsArtifact{
+								ArtifactType: "metrics-artifact",
+								MetricsType:  "performance-metrics",
+							},
+						},
+					},
+				},
+			},
+			validateFunc: func(t *testing.T, record ModelProviderRecord) {
+				require.NotNil(t, record.Model)
+				assert.Len(t, record.Artifacts, 1)
+
+				artifact := record.Artifacts[0]
+				assert.Nil(t, artifact.CatalogModelArtifact)
+				require.NotNil(t, artifact.CatalogMetricsArtifact)
+
+				attrs := artifact.CatalogMetricsArtifact.GetAttributes()
+				assert.Equal(t, "performance-metrics", string(attrs.MetricsType))
+				assert.Nil(t, attrs.CreateTimeSinceEpoch)
+				assert.Nil(t, attrs.LastUpdateTimeSinceEpoch)
+
+				// Check regular properties
+				props := artifact.CatalogMetricsArtifact.GetProperties()
+				require.NotNil(t, props)
+				assert.Len(t, *props, 1)
+				assert.Equal(t, "metricsType", (*props)[0].Name)
+				assert.Equal(t, "performance-metrics", *(*props)[0].StringValue)
+				assert.False(t, (*props)[0].IsCustomProperty)
+
+				// Should have no custom properties
+				customProps := artifact.CatalogMetricsArtifact.GetCustomProperties()
+				if customProps != nil {
+					assert.Empty(t, *customProps)
+				}
+			},
+		},
+		{
+			name: "artifacts with invalid timestamps",
+			yamlModel: yamlModel{
+				CatalogModel: model.CatalogModel{
+					Name: "model-with-invalid-artifact-timestamps",
+				},
+				Artifacts: []*yamlArtifact{
+					{
+						CatalogArtifact: model.CatalogArtifact{
+							CatalogModelArtifact: &model.CatalogModelArtifact{
+								ArtifactType:             "model-artifact",
+								Uri:                      "https://example.com/model.bin",
+								CreateTimeSinceEpoch:     apiutils.Of("invalid-timestamp"),
+								LastUpdateTimeSinceEpoch: apiutils.Of("also-invalid"),
+							},
+						},
+					},
+				},
+			},
+			validateFunc: func(t *testing.T, record ModelProviderRecord) {
+				require.NotNil(t, record.Model)
+				assert.Len(t, record.Artifacts, 1)
+
+				artifact := record.Artifacts[0]
+				require.NotNil(t, artifact.CatalogModelArtifact)
+
+				attrs := artifact.CatalogModelArtifact.GetAttributes()
+				assert.Equal(t, "https://example.com/model.bin", *attrs.URI)
+				// Invalid timestamps should be ignored (not set)
+				assert.Nil(t, attrs.CreateTimeSinceEpoch)
+				assert.Nil(t, attrs.LastUpdateTimeSinceEpoch)
+			},
+		},
+		{
+			name: "model with invalid timestamps",
+			yamlModel: yamlModel{
+				CatalogModel: model.CatalogModel{
+					Name:                     "invalid-timestamp-model",
+					CreateTimeSinceEpoch:     apiutils.Of("invalid-timestamp"),
+					LastUpdateTimeSinceEpoch: apiutils.Of("also-invalid"),
+				},
+			},
+			validateFunc: func(t *testing.T, record ModelProviderRecord) {
+				require.NotNil(t, record.Model)
+
+				attrs := record.Model.GetAttributes()
+				require.NotNil(t, attrs)
+				assert.Equal(t, "invalid-timestamp-model", *attrs.Name)
+				// Invalid timestamps should be ignored (not set)
+				assert.Nil(t, attrs.CreateTimeSinceEpoch)
+				assert.Nil(t, attrs.LastUpdateTimeSinceEpoch)
+			},
+		},
 	}
 
-	notFound, err := provider.GetModel(context.Background(), "foo")
-	assert.NoError(err)
-	assert.Nil(notFound)
-}
-
-func TestYAMLCatalogGetArtifacts(t *testing.T) {
-	assert := assert.New(t)
-	provider := testYAMLProvider(t, "testdata/test-yaml-catalog.yaml")
-
-	// Test case 1: Model with artifacts
-	artifacts, err := provider.GetArtifacts(context.Background(), "rhelai1/granite-8b-code-base")
-	if assert.NoError(err) {
-		assert.NotNil(artifacts)
-		assert.Equal(int32(1), artifacts.Size)
-		assert.Equal(int32(1), artifacts.PageSize)
-		assert.Len(artifacts.Items, 1)
-		assert.Equal("oci://registry.redhat.io/rhelai1/granite-8b-code-base:1.3-1732870892", artifacts.Items[0].Uri)
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			record := tt.yamlModel.ToModelProviderRecord()
+			tt.validateFunc(t, record)
+		})
 	}
-
-	// Test case 2: Model with no artifacts
-	noArtifactsModel, err := provider.GetArtifacts(context.Background(), "model-with-no-artifacts")
-	if assert.NoError(err) {
-		assert.NotNil(noArtifactsModel)
-		assert.Equal(int32(0), noArtifactsModel.Size)
-		assert.Equal(int32(0), noArtifactsModel.PageSize)
-		assert.Len(noArtifactsModel.Items, 0)
-	}
-
-	// Test case 3: Model not found
-	notFoundArtifacts, err := provider.GetArtifacts(context.Background(), "non-existent-model")
-	assert.NoError(err)
-	assert.Nil(notFoundArtifacts)
-}
-
-func TestYAMLCatalogListModels(t *testing.T) {
-	assert := assert.New(t)
-	provider := testYAMLProvider(t, "testdata/test-list-models-catalog.yaml")
-	ctx := context.Background()
-
-	// Test case 1: List all models, default sort (by name ascending)
-	models, err := provider.ListModels(ctx, ListModelsParams{})
-	if assert.NoError(err) {
-		assert.NotNil(models)
-		assert.Equal(int32(6), models.Size)
-		assert.Equal(int32(6), models.PageSize)
-		assert.Len(models.Items, 6)
-		assert.Equal("Z-model", models.Items[0].Name) // Z-model should be first due to string comparison for alphabetical sort
-		assert.Equal("another-model-alpha", models.Items[1].Name)
-		assert.Equal("model-alpha", models.Items[2].Name)
-		assert.Equal("model-beta", models.Items[3].Name)
-		assert.Equal("model-gamma", models.Items[4].Name)
-		assert.Equal("model-with-no-tasks", models.Items[5].Name)
-	}
-
-	// Test case 2: List all models, sort by name ascending
-	models, err = provider.ListModels(ctx, ListModelsParams{OrderBy: model.ORDERBYFIELD_NAME, SortOrder: model.SORTORDER_ASC})
-	if assert.NoError(err) {
-		assert.Equal(int32(6), models.Size)
-		assert.Equal("Z-model", models.Items[0].Name)
-		assert.Equal("another-model-alpha", models.Items[1].Name)
-	}
-
-	// Test case 3: List all models, sort by name descending
-	models, err = provider.ListModels(ctx, ListModelsParams{OrderBy: model.ORDERBYFIELD_NAME, SortOrder: model.SORTORDER_DESC})
-	if assert.NoError(err) {
-		assert.Equal(int32(6), models.Size)
-		assert.Equal("model-with-no-tasks", models.Items[0].Name)
-		assert.Equal("model-gamma", models.Items[1].Name)
-	}
-
-	// Test case 4: List all models, sort by created (CreateTimeSinceEpoch) ascending
-	models, err = provider.ListModels(ctx, ListModelsParams{OrderBy: model.ORDERBYFIELD_CREATE_TIME, SortOrder: model.SORTORDER_ASC})
-	if assert.NoError(err) {
-		assert.Equal(int32(6), models.Size)
-		assert.Equal("model-with-no-tasks", models.Items[0].Name) // Jan 1, 2023
-		assert.Equal("model-gamma", models.Items[1].Name)         // Feb 1, 2023
-	}
-
-	// Test case 5: List all models, sort by published (CreateTimeSinceEpoch) descending
-	models, err = provider.ListModels(ctx, ListModelsParams{OrderBy: model.ORDERBYFIELD_CREATE_TIME, SortOrder: model.SORTORDER_DESC})
-	if assert.NoError(err) {
-		assert.Equal(int32(6), models.Size)
-		assert.Equal("Z-model", models.Items[0].Name)             // Aug 2, 2023
-		assert.Equal("another-model-alpha", models.Items[1].Name) // May 16, 2023
-	}
-
-	// Test case 6: Filter by query "model" (should match all 6 models)
-	models, err = provider.ListModels(ctx, ListModelsParams{Query: "model"})
-	if assert.NoError(err) {
-		assert.Equal(int32(6), models.Size)
-		assert.Equal("Z-model", models.Items[0].Name)
-		assert.Equal("another-model-alpha", models.Items[1].Name)
-		assert.Equal("model-alpha", models.Items[2].Name)
-		assert.Equal("model-beta", models.Items[3].Name)
-		assert.Equal("model-gamma", models.Items[4].Name)
-		assert.Equal("model-with-no-tasks", models.Items[5].Name)
-	}
-
-	// Test case 7: Filter by query "text" (should match model-alpha, another-model-alpha)
-	models, err = provider.ListModels(ctx, ListModelsParams{Query: "text"})
-	if assert.NoError(err) {
-		assert.Equal(int32(2), models.Size)
-		assert.Equal("another-model-alpha", models.Items[0].Name) // Alphabetical order
-		assert.Equal("model-alpha", models.Items[1].Name)
-	}
-
-	// Test case 8: Filter by query "nlp" (should match model-alpha, model-gamma, another-model-alpha)
-	models, err = provider.ListModels(ctx, ListModelsParams{Query: "nlp"})
-	if assert.NoError(err) {
-		assert.Equal(int32(3), models.Size)
-		assert.Equal("another-model-alpha", models.Items[0].Name)
-		assert.Equal("model-alpha", models.Items[1].Name)
-		assert.Equal("model-gamma", models.Items[2].Name)
-	}
-
-	// Test case 9: Filter by query "IBM" (should match model-alpha, model-gamma)
-	models, err = provider.ListModels(ctx, ListModelsParams{Query: "IBM"})
-	if assert.NoError(err) {
-		assert.Equal(int32(2), models.Size)
-		assert.Equal("model-alpha", models.Items[0].Name)
-		assert.Equal("model-gamma", models.Items[1].Name)
-	}
-
-	// Test case 10: Filter by query "transformers" (should match model-alpha)
-	models, err = provider.ListModels(ctx, ListModelsParams{Query: "transformers"})
-	if assert.NoError(err) {
-		assert.Equal(int32(1), models.Size)
-		assert.Equal("model-alpha", models.Items[0].Name)
-	}
-
-	// Test case 11: Filter by query "nonexistent" (should return empty list)
-	models, err = provider.ListModels(ctx, ListModelsParams{Query: "nonexistent"})
-	assert.NoError(err)
-	assert.NotNil(models)
-	assert.Equal(int32(0), models.Size)
-	assert.Equal(int32(0), models.PageSize)
-	assert.Len(models.Items, 0)
-
-	// Test case 12: Empty catalog
-	emptyProvider := testYAMLProvider(t, "testdata/empty-catalog.yaml") // Assuming an empty-catalog.yaml exists or will be created
-	emptyModels, err := emptyProvider.ListModels(ctx, ListModelsParams{})
-	assert.NoError(err)
-	assert.NotNil(emptyModels)
-	assert.Equal(int32(0), emptyModels.Size)
-	assert.Equal(int32(0), emptyModels.PageSize)
-	assert.Len(emptyModels.Items, 0)
-
-	// Test case 13: Test with excluded models
-	excludedProvider := testYAMLProviderWithExclusions(t, "testdata/test-list-models-catalog.yaml", []any{
-		"model-alpha",
-	})
-	excludedModels, err := excludedProvider.ListModels(ctx, ListModelsParams{})
-	if assert.NoError(err) {
-		assert.NotNil(excludedModels)
-		assert.Equal(int32(5), excludedModels.Size)
-		for _, m := range excludedModels.Items {
-			assert.NotEqual("model-alpha", m.Name)
-		}
-	}
-}
-
-func testYAMLProvider(t *testing.T, path string) CatalogSourceProvider {
-	return testYAMLProviderWithExclusions(t, path, nil)
-}
-
-func testYAMLProviderWithExclusions(t *testing.T, path string, excludedModels []any) CatalogSourceProvider {
-	properties := map[string]any{
-		yamlCatalogPath: path,
-	}
-	if excludedModels != nil {
-		properties["excludedModels"] = excludedModels
-	}
-	provider, err := newYamlCatalog(&CatalogSourceConfig{
-		Properties: properties,
-	})
-	if err != nil {
-		t.Fatalf("newYamlCatalog(%s) with exclusions failed: %v", path, err)
-	}
-	return provider
 }

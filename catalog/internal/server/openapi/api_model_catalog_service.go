@@ -78,7 +78,7 @@ func (c *ModelCatalogServiceAPIController) Routes() Routes {
 // FindModels - Search catalog models across sources.
 func (c *ModelCatalogServiceAPIController) FindModels(w http.ResponseWriter, r *http.Request) {
 	query := r.URL.Query()
-	sourceParam := query.Get("source")
+	sourceParam := strings.Split(query.Get("source"), ",")
 	qParam := query.Get("q")
 	pageSizeParam := query.Get("pageSize")
 	orderByParam := query.Get("orderBy")
@@ -126,11 +126,16 @@ func (c *ModelCatalogServiceAPIController) GetModel(w http.ResponseWriter, r *ht
 	EncodeJSONResponse(result.Body, &result.Code, w)
 }
 
-// GetAllModelArtifacts - List CatalogModelArtifacts.
+// GetAllModelArtifacts - List CatalogArtifacts.
 func (c *ModelCatalogServiceAPIController) GetAllModelArtifacts(w http.ResponseWriter, r *http.Request) {
+	query := r.URL.Query()
 	sourceIdParam := chi.URLParam(r, "source_id")
 	modelNameParam := chi.URLParam(r, "model_name")
-	result, err := c.service.GetAllModelArtifacts(r.Context(), sourceIdParam, modelNameParam)
+	pageSizeParam := query.Get("pageSize")
+	orderByParam := query.Get("orderBy")
+	sortOrderParam := query.Get("sortOrder")
+	nextPageTokenParam := query.Get("nextPageToken")
+	result, err := c.service.GetAllModelArtifacts(r.Context(), sourceIdParam, modelNameParam, pageSizeParam, model.OrderByField(orderByParam), model.SortOrder(sortOrderParam), nextPageTokenParam)
 	// If an error occurred, encode the error with the status code
 	if err != nil {
 		c.errorHandler(w, r, err, &result)

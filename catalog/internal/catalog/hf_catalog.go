@@ -18,13 +18,13 @@ type hfCatalogImpl struct {
 	baseURL string
 }
 
-var _ CatalogSourceProvider = &hfCatalogImpl{}
+var _ APIProvider = &hfCatalogImpl{}
 
 const (
 	defaultHuggingFaceURL = "https://huggingface.co"
 )
 
-func (h *hfCatalogImpl) GetModel(ctx context.Context, name string) (*openapi.CatalogModel, error) {
+func (h *hfCatalogImpl) GetModel(ctx context.Context, modelName string, sourceID string) (*openapi.CatalogModel, error) {
 	// TODO: Implement HuggingFace model retrieval
 	return nil, fmt.Errorf("HuggingFace model retrieval not yet implemented")
 }
@@ -39,11 +39,11 @@ func (h *hfCatalogImpl) ListModels(ctx context.Context, params ListModelsParams)
 	}, nil
 }
 
-func (h *hfCatalogImpl) GetArtifacts(ctx context.Context, name string) (*openapi.CatalogModelArtifactList, error) {
+func (h *hfCatalogImpl) GetArtifacts(ctx context.Context, modelName string, sourceID string, params ListArtifactsParams) (openapi.CatalogArtifactList, error) {
 	// TODO: Implement HuggingFace model artifacts retrieval
 	// For now, return empty list to satisfy interface
-	return &openapi.CatalogModelArtifactList{
-		Items:    []openapi.CatalogModelArtifact{},
+	return openapi.CatalogArtifactList{
+		Items:    []openapi.CatalogArtifact{},
 		PageSize: 0,
 		Size:     0,
 	}, nil
@@ -82,7 +82,7 @@ func (h *hfCatalogImpl) validateCredentials(ctx context.Context) error {
 }
 
 // newHfCatalog creates a new HuggingFace catalog source
-func newHfCatalog(source *CatalogSourceConfig) (CatalogSourceProvider, error) {
+func newHfCatalog(source *Source, reldir string) (APIProvider, error) {
 	apiKey, ok := source.Properties["apiKey"].(string)
 	if !ok || apiKey == "" {
 		return nil, fmt.Errorf("missing or invalid 'apiKey' property for HuggingFace catalog")
@@ -116,10 +116,4 @@ func newHfCatalog(source *CatalogSourceConfig) (CatalogSourceProvider, error) {
 
 	glog.Infof("HuggingFace catalog source configured successfully")
 	return h, nil
-}
-
-func init() {
-	if err := RegisterCatalogType("hf", newHfCatalog); err != nil {
-		panic(err)
-	}
 }

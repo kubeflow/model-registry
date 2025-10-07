@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "model-registry"
-version = "0.3.1"
+version = "0.3.2"
 description = "Client for Kubeflow Model Registry"
 authors = ["Isabella Basso do Amaral <idoamara@redhat.com>"]
 license = "Apache-2.0"
@@ -50,7 +50,7 @@ pytest = ">=7.4.2,<9.0.0"
 coverage = { extras = ["toml"], version = "^7.3.2" }
 pytest-cov = ">=4.1,<8.0"
 pytest-mock = ">=3.7.0"
-ruff = ">=0.5.2,<0.13.0"
+ruff = ">=0.5.2,<0.14.0"
 mypy = "^1.7.0"
 # atm Ray is only available <3.13, so we will E2E test using Ray in compatible py environments.
 ray = [

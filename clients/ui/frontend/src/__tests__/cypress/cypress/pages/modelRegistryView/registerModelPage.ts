@@ -21,7 +21,7 @@ class RegisterModelPage {
 
   visit() {
     const preferredModelRegistry = 'modelregistry-sample';
-    cy.visit(`/model-registry/${preferredModelRegistry}/registerModel`);
+    cy.visit(`/model-registry/${preferredModelRegistry}/register/model`);
     this.wait();
   }
 

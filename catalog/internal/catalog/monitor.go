@@ -1,13 +1,16 @@
 package catalog
 
 import (
+	"context"
 	"fmt"
 	"hash/crc32"
 	"io"
 	"os"
 	"path/filepath"
+	"slices"
 	"sync"
 	"sync/atomic"
+	"time"
 
 	"github.com/fsnotify/fsnotify"
 	"github.com/golang/glog"
@@ -37,6 +40,11 @@ type monitor struct {
 
 	recordsMu sync.RWMutex
 	records   map[string]map[string]*monitorRecord
+
+	// How long to wait after receiving an event before processing it (this
+	// exists to avoid processing partially written files). Defaults to 1
+	// second.
+	Pause time.Duration
 }
 
 var _monitor *monitor
@@ -69,6 +77,7 @@ func newMonitor() (*monitor, error) {
 	m := &monitor{
 		watcher: watcher,
 		records: map[string]map[string]*monitorRecord{},
+		Pause:   time.Second,
 	}
 
 	go m.monitor()
@@ -115,8 +124,8 @@ func (m *monitor) Close() {
 // change. The file does not need to exist before calling this method, however
 // the provided path should only be a file or a symlink (not a directory,
 // device, etc.). The returned channel will be closed when the monitor is
-// closed.
-func (m *monitor) Path(p string) (<-chan struct{}, error) {
+// closed or when the context is canceled.
+func (m *monitor) Path(ctx context.Context, p string) (<-chan struct{}, error) {
 	absPath, err := filepath.Abs(p)
 	if err != nil {
 		return nil, fmt.Errorf("abs: %w", err)
@@ -149,6 +158,24 @@ func (m *monitor) Path(p string) (<-chan struct{}, error) {
 	}
 	m.records[dir][base].updateHash(filepath.Join(dir, base))
 
+	go func() {
+		// Wait for the context to close, then clean up.
+		<-ctx.Done()
+
+		m.recordsMu.Lock()
+		defer m.recordsMu.Unlock()
+
+		if m.records == nil {
+			// Closed
+			return
+		}
+
+		if n := slices.Index(m.records[dir][base].channels, ch); n >= 0 {
+			m.records[dir][base].channels = slices.Delete(m.records[dir][base].channels, n, n+1)
+		}
+		close(ch)
+	}()
+
 	return ch, nil
 }
 
@@ -179,6 +206,9 @@ func (m *monitor) monitor() {
 				// Ignore fsnotify.Remove, fsnotify.Rename and fsnotify.Chmod
 				continue
 			}
+
+			// Pause briefly to avoid processing partially written files.
+			time.Sleep(m.Pause)
 
 			func() {
 				m.recordsMu.RLock()
@@ -217,22 +247,26 @@ type monitorRecord struct {
 
 // updateHash recalculates the hash and returns true if it has changed.
 func (mr *monitorRecord) updateHash(path string) bool {
-	newHash := mr.calculateHash(path)
+	newHash, err := mr.calculateHash(path)
+	if err != nil {
+		// If we can't read the file (e.g., broken symlink), don't trigger an event
+		return false
+	}
 	oldHash := atomic.SwapUint32(&mr.hash, newHash)
 	return oldHash != newHash
 }
 
-func (monitorRecord) calculateHash(path string) uint32 {
+func (monitorRecord) calculateHash(path string) (uint32, error) {
 	fh, err := os.Open(path)
 	if err != nil {
-		return 0
+		return 0, err
 	}
 	defer fh.Close()
 
 	h := crc32.NewIEEE()
 	_, err = io.Copy(h, fh)
 	if err != nil {
-		return 0
+		return 0, err
 	}
-	return h.Sum32()
+	return h.Sum32(), nil
 }
