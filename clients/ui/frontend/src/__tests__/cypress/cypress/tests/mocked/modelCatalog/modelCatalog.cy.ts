@@ -62,14 +62,12 @@ describe('Model Catalog Page', () => {
   it('model catalog tab should be enabled', () => {
     initIntercepts({});
     modelCatalog.visit();
-    modelCatalog.navigate();
     modelCatalog.tabEnabled();
   });
 
   it('should show empty state when configmap has empty sources', () => {
     initIntercepts({ sources: [] });
     modelCatalog.visit();
-    modelCatalog.navigate();
     modelCatalog.visit();
     modelCatalog.findModelCatalogEmptyState().should('exist');
   });
@@ -77,7 +75,6 @@ describe('Model Catalog Page', () => {
   it('should display model catalog content when data is loaded', () => {
     initIntercepts({});
     modelCatalog.visit();
-    modelCatalog.navigate();
     modelCatalog.findLoadingState().should('not.exist');
     modelCatalog.findPageTitle().should('be.visible');
     modelCatalog.findPageDescription().should('be.visible');
@@ -87,7 +84,6 @@ describe('Model Catalog Page', () => {
   it('should display model catalog filters', () => {
     initIntercepts({});
     modelCatalog.visit();
-    modelCatalog.navigate();
     modelCatalog.findFilter('Provider').should('be.visible');
     modelCatalog.findFilter('License').should('be.visible');
     modelCatalog.findFilter('Task').should('be.visible');
@@ -97,7 +93,6 @@ describe('Model Catalog Page', () => {
   it('filters show more and show less button should work', () => {
     initIntercepts({});
     modelCatalog.visit();
-    modelCatalog.navigate();
     modelCatalog.findFilterShowMoreButton('Task').click();
     modelCatalog.findFilterCheckbox('Task', 'text-generation').should('be.visible');
     modelCatalog.findFilterCheckbox('Task', 'text-to-text').should('be.visible');
@@ -112,7 +107,6 @@ describe('Model Catalog Page', () => {
   it('filters should be searchable', () => {
     initIntercepts({});
     modelCatalog.visit();
-    modelCatalog.navigate();
     modelCatalog.findFilterSearch('Task').type('audio-to-text');
     modelCatalog.findFilterCheckbox('Task', 'audio-to-text').should('be.visible');
     modelCatalog.findFilterCheckbox('Task', 'video-to-text').should('not.be.exist');

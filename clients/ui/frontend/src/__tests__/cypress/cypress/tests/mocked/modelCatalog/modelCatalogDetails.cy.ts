@@ -57,7 +57,7 @@ const initIntercepts = ({
       path: {
         apiVersion: MODEL_CATALOG_API_VERSION,
         sourceId: 'source-2',
-        modelName: 'community-model-1',
+        modelName: 'sample%20category%201-model-1',
       },
     },
     mockCatalogModel({}),
@@ -69,7 +69,7 @@ const initIntercepts = ({
       path: {
         apiVersion: MODEL_CATALOG_API_VERSION,
         sourceId: 'source-2',
-        modelName: 'community-model-1',
+        modelName: 'sample%20category%201-model-1',
       },
     },
     mockCatalogModelArtifactList({}),
@@ -94,7 +94,6 @@ describe('Model Catalog Details Page', () => {
 
     initIntercepts({});
     modelCatalog.visit();
-    modelCatalog.navigate();
   });
 
   it('navigates to details and shows header, breadcrumb and description', () => {
