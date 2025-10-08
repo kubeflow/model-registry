@@ -193,7 +193,7 @@ func processModelDirectory(dirPath string, modelRepo dbmodels.CatalogModelReposi
 func createAndSaveModel(metadata metadataJSON, dirPath string, modelTypeID int32, modelRepo dbmodels.CatalogModelRepository) (dbmodels.CatalogModel, error) {
 	// Check if a model with this external_id already exists
 	existingModels, err := modelRepo.List(dbmodels.CatalogModelListOptions{
-		ExternalID: &metadata.ID,
+		Name: &metadata.ID,
 	})
 	if err != nil {
 		return nil, fmt.Errorf("failed to check for existing model: %v", err)
