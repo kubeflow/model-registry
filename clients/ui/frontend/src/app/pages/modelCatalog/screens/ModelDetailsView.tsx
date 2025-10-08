@@ -19,7 +19,7 @@ import { OutlinedClockIcon } from '@patternfly/react-icons';
 import { InlineTruncatedClipboardCopy } from 'mod-arch-shared';
 import text from '@patternfly/react-styles/css/utilities/Text/text';
 import { CatalogArtifactList, CatalogModel } from '~/app/modelCatalogTypes';
-import { getLabels, getCustomPropString } from '~/app/pages/modelRegistry/screens/utils';
+import { getLabels, getValidatedOnPlatforms } from '~/app/pages/modelRegistry/screens/utils';
 import ModelCatalogLabels from '~/app/pages/modelCatalog/components/ModelCatalogLabels';
 import ExternalLink from '~/app/shared/components/ExternalLink';
 import MarkdownComponent from '~/app/shared/markdown/MarkdownComponent';
@@ -45,16 +45,8 @@ const ModelDetailsView: React.FC<ModelDetailsViewProps> = ({
   // Extract all labels from customProperties
   const allLabels = model.customProperties ? getLabels(model.customProperties) : [];
 
-  // Extract validated_on property and split by commas
-  const validatedOnString = model.customProperties
-    ? getCustomPropString(model.customProperties, 'validated_on')
-    : '';
-  const validatedOnPlatforms = validatedOnString
-    ? validatedOnString
-        .split(',')
-        .map((platform) => platform.trim())
-        .filter((platform) => platform.length > 0)
-    : [];
+  // Extract validated_on platforms
+  const validatedOnPlatforms = getValidatedOnPlatforms(model.customProperties);
 
   return (
     <PageSection hasBodyWrapper={false} isFilled>
