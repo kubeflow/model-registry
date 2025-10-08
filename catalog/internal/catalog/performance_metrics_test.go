@@ -1,12 +1,11 @@
 package catalog
 
 import (
-	"encoding/json"
 	"reflect"
 	"testing"
 )
 
-func TestMetadataJSON_UnmarshalJSON(t *testing.T) {
+func TestParseMetadataJSON(t *testing.T) {
 	tests := []struct {
 		name     string
 		jsonData string
@@ -204,11 +203,10 @@ func TestMetadataJSON_UnmarshalJSON(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			var got metadataJSON
-			err := json.Unmarshal([]byte(tt.jsonData), &got)
+			got, err := parseMetadataJSON([]byte(tt.jsonData))
 
 			if (err != nil) != tt.wantErr {
-				t.Errorf("metadataJSON.UnmarshalJSON() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("parseMetadataJSON() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 
@@ -218,54 +216,54 @@ func TestMetadataJSON_UnmarshalJSON(t *testing.T) {
 
 			// Compare all fields
 			if got.ID != tt.want.ID {
-				t.Errorf("metadataJSON.UnmarshalJSON() ID = %v, want %v", got.ID, tt.want.ID)
+				t.Errorf("parseMetadataJSON() ID = %v, want %v", got.ID, tt.want.ID)
 			}
 			if got.Description != tt.want.Description {
-				t.Errorf("metadataJSON.UnmarshalJSON() Description = %v, want %v", got.Description, tt.want.Description)
+				t.Errorf("parseMetadataJSON() Description = %v, want %v", got.Description, tt.want.Description)
 			}
 			if got.Readme != tt.want.Readme {
-				t.Errorf("metadataJSON.UnmarshalJSON() Readme = %v, want %v", got.Readme, tt.want.Readme)
+				t.Errorf("parseMetadataJSON() Readme = %v, want %v", got.Readme, tt.want.Readme)
 			}
 			if got.Maturity != tt.want.Maturity {
-				t.Errorf("metadataJSON.UnmarshalJSON() Maturity = %v, want %v", got.Maturity, tt.want.Maturity)
+				t.Errorf("parseMetadataJSON() Maturity = %v, want %v", got.Maturity, tt.want.Maturity)
 			}
 			if !reflect.DeepEqual(got.Languages, tt.want.Languages) {
-				t.Errorf("metadataJSON.UnmarshalJSON() Languages = %v, want %v", got.Languages, tt.want.Languages)
+				t.Errorf("parseMetadataJSON() Languages = %v, want %v", got.Languages, tt.want.Languages)
 			}
 			if !reflect.DeepEqual(got.Tasks, tt.want.Tasks) {
-				t.Errorf("metadataJSON.UnmarshalJSON() Tasks = %v, want %v", got.Tasks, tt.want.Tasks)
+				t.Errorf("parseMetadataJSON() Tasks = %v, want %v", got.Tasks, tt.want.Tasks)
 			}
 			if got.Provider != tt.want.Provider {
-				t.Errorf("metadataJSON.UnmarshalJSON() Provider = %v, want %v", got.Provider, tt.want.Provider)
+				t.Errorf("parseMetadataJSON() Provider = %v, want %v", got.Provider, tt.want.Provider)
 			}
 			if got.Logo != tt.want.Logo {
-				t.Errorf("metadataJSON.UnmarshalJSON() Logo = %v, want %v", got.Logo, tt.want.Logo)
+				t.Errorf("parseMetadataJSON() Logo = %v, want %v", got.Logo, tt.want.Logo)
 			}
 			if got.License != tt.want.License {
-				t.Errorf("metadataJSON.UnmarshalJSON() License = %v, want %v", got.License, tt.want.License)
+				t.Errorf("parseMetadataJSON() License = %v, want %v", got.License, tt.want.License)
 			}
 			if got.LicenseLink != tt.want.LicenseLink {
-				t.Errorf("metadataJSON.UnmarshalJSON() LicenseLink = %v, want %v", got.LicenseLink, tt.want.LicenseLink)
+				t.Errorf("parseMetadataJSON() LicenseLink = %v, want %v", got.LicenseLink, tt.want.LicenseLink)
 			}
 			if got.LibraryName != tt.want.LibraryName {
-				t.Errorf("metadataJSON.UnmarshalJSON() LibraryName = %v, want %v", got.LibraryName, tt.want.LibraryName)
+				t.Errorf("parseMetadataJSON() LibraryName = %v, want %v", got.LibraryName, tt.want.LibraryName)
 			}
 			if got.CreatedAt != tt.want.CreatedAt {
-				t.Errorf("metadataJSON.UnmarshalJSON() CreatedAt = %v, want %v", got.CreatedAt, tt.want.CreatedAt)
+				t.Errorf("parseMetadataJSON() CreatedAt = %v, want %v", got.CreatedAt, tt.want.CreatedAt)
 			}
 			if got.UpdatedAt != tt.want.UpdatedAt {
-				t.Errorf("metadataJSON.UnmarshalJSON() UpdatedAt = %v, want %v", got.UpdatedAt, tt.want.UpdatedAt)
+				t.Errorf("parseMetadataJSON() UpdatedAt = %v, want %v", got.UpdatedAt, tt.want.UpdatedAt)
 			}
 
 			// Compare custom properties
 			if !reflect.DeepEqual(got.CustomProperties, tt.want.CustomProperties) {
-				t.Errorf("metadataJSON.UnmarshalJSON() CustomProperties = %v, want %v", got.CustomProperties, tt.want.CustomProperties)
+				t.Errorf("parseMetadataJSON() CustomProperties = %v, want %v", got.CustomProperties, tt.want.CustomProperties)
 			}
 		})
 	}
 }
 
-func TestMetadataJSON_UnmarshalJSON_EdgeCases(t *testing.T) {
+func TestParseMetadataJSON_EdgeCases(t *testing.T) {
 	tests := []struct {
 		name     string
 		jsonData string
@@ -305,17 +303,16 @@ func TestMetadataJSON_UnmarshalJSON_EdgeCases(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			var got metadataJSON
-			err := json.Unmarshal([]byte(tt.jsonData), &got)
+			_, err := parseMetadataJSON([]byte(tt.jsonData))
 
 			if (err != nil) != tt.wantErr {
-				t.Errorf("metadataJSON.UnmarshalJSON() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("parseMetadataJSON() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
 	}
 }
 
-func TestMetadataJSON_UnmarshalJSON_KnownFieldsExclusion(t *testing.T) {
+func TestParseMetadataJSON_KnownFieldsExclusion(t *testing.T) {
 	// Test that all known core fields are properly excluded from custom properties
 	jsonData := `{
 		"id": "test-id",
@@ -334,8 +331,7 @@ func TestMetadataJSON_UnmarshalJSON_KnownFieldsExclusion(t *testing.T) {
 		"custom_field": "should be in custom properties"
 	}`
 
-	var metadata metadataJSON
-	err := json.Unmarshal([]byte(jsonData), &metadata)
+	metadata, err := parseMetadataJSON([]byte(jsonData))
 	if err != nil {
 		t.Fatalf("Unexpected error: %v", err)
 	}
@@ -359,15 +355,14 @@ func TestMetadataJSON_UnmarshalJSON_KnownFieldsExclusion(t *testing.T) {
 	// Add more assertions for other core fields as needed
 }
 
-func TestMetadataJSON_UnmarshalJSON_CustomPropertiesInitialization(t *testing.T) {
+func TestParseMetadataJSON_CustomPropertiesInitialization(t *testing.T) {
 	// Test that CustomProperties map is always initialized, even with no custom fields
 	jsonData := `{
 		"id": "test-id",
 		"description": "only core fields"
 	}`
 
-	var metadata metadataJSON
-	err := json.Unmarshal([]byte(jsonData), &metadata)
+	metadata, err := parseMetadataJSON([]byte(jsonData))
 	if err != nil {
 		t.Fatalf("Unexpected error: %v", err)
 	}
