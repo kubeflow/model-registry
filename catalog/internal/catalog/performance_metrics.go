@@ -6,7 +6,6 @@ import (
 	"math"
 	"os"
 	"path/filepath"
-	"strconv"
 
 	"github.com/golang/glog"
 	dbmodels "github.com/kubeflow/model-registry/catalog/internal/db/models"
@@ -36,47 +35,6 @@ type metadataJSON struct {
 
 	// CustomProperties captures all non-core fields dynamically
 	CustomProperties map[string]interface{} `json:"-"`
-}
-
-// UnmarshalJSON implements custom JSON unmarshaling for metadataJSON
-func (m *metadataJSON) UnmarshalJSON(data []byte) error {
-	// Define a temporary struct with all the known core fields
-	type tempMetadata metadataJSON
-	temp := &tempMetadata{}
-
-	// Unmarshal into the temporary struct first
-	if err := json.Unmarshal(data, temp); err != nil {
-		return err
-	}
-
-	// Copy known fields
-	*m = metadataJSON(*temp)
-
-	// Now unmarshal into a map to capture all fields
-	var allFields map[string]interface{}
-	if err := json.Unmarshal(data, &allFields); err != nil {
-		return err
-	}
-
-	// Initialize custom properties map
-	m.CustomProperties = make(map[string]interface{})
-
-	// Define known core fields to exclude from custom properties
-	knownFields := map[string]bool{
-		"id": true, "description": true, "readme": true, "maturity": true,
-		"languages": true, "tasks": true, "provider_name": true, "logo": true,
-		"license": true, "license_link": true, "library_name": true,
-		"created_at": true, "updated_at": true,
-	}
-
-	// Add any unknown fields to custom properties
-	for key, value := range allFields {
-		if !knownFields[key] {
-			m.CustomProperties[key] = value
-		}
-	}
-
-	return nil
 }
 
 // LoadPerformanceMetricsData loads performance metrics data from the specified directory
@@ -407,115 +365,6 @@ func createDBModelFromMetadata(metadata metadataJSON, dirPath string, typeID int
 	}
 
 	return model
-}
-
-// createAPIModelFromMetadata converts metadata to API model for backward compatibility
-func createAPIModelFromMetadata(metadata metadataJSON, dirPath string) *model.CatalogModel {
-	// Convert timestamps to string format
-	var createTime, updateTime *string
-	if metadata.CreatedAt > 0 {
-		createTimeStr := strconv.FormatInt(metadata.CreatedAt, 10)
-		createTime = &createTimeStr
-	}
-	if metadata.UpdatedAt > 0 {
-		updateTimeStr := strconv.FormatInt(metadata.UpdatedAt, 10)
-		updateTime = &updateTimeStr
-	}
-
-	// Create custom properties from the dynamically captured fields
-	customProps := make(map[string]model.MetadataValue)
-
-	// Add all custom properties from the CustomProperties map
-	for key, value := range metadata.CustomProperties {
-		// Handle different value types
-		switch v := value.(type) {
-		case string:
-			if v != "" {
-				customProps[key] = model.MetadataStringValueAsMetadataValue(
-					model.NewMetadataStringValue(v, "MetadataStringValue"),
-				)
-			}
-		case []interface{}, map[string]interface{}:
-			// For arrays and objects, marshal to JSON string
-			jsonBytes, err := json.Marshal(v)
-			if err == nil {
-				customProps[key] = model.MetadataStringValueAsMetadataValue(
-					model.NewMetadataStringValue(string(jsonBytes), "MetadataStringValue"),
-				)
-			}
-		case float64:
-			// Numbers come as float64 from JSON
-			customProps[key] = model.MetadataDoubleValueAsMetadataValue(
-				model.NewMetadataDoubleValue(v, "MetadataDoubleValue"),
-			)
-		case int64:
-			intStr := strconv.FormatInt(v, 10)
-			customProps[key] = model.MetadataIntValueAsMetadataValue(
-				model.NewMetadataIntValue(intStr, "MetadataIntValue"),
-			)
-		case bool:
-			customProps[key] = model.MetadataBoolValueAsMetadataValue(
-				model.NewMetadataBoolValue(v, "MetadataBoolValue"),
-			)
-		default:
-			// For any other type, try to marshal to JSON string
-			jsonBytes, err := json.Marshal(v)
-			if err == nil {
-				customProps[key] = model.MetadataStringValueAsMetadataValue(
-					model.NewMetadataStringValue(string(jsonBytes), "MetadataStringValue"),
-				)
-			}
-		}
-	}
-
-	// Add file path for reference
-	metadataFilePath := filepath.Join(dirPath, "metadata.json")
-	customProps["metadata_file_path"] = model.MetadataStringValueAsMetadataValue(
-		model.NewMetadataStringValue(metadataFilePath, "MetadataStringValue"),
-	)
-
-	// Build the CatalogModel with core fields
-	catalogModel := &model.CatalogModel{
-		Name:                     metadata.ID,
-		CreateTimeSinceEpoch:     createTime,
-		LastUpdateTimeSinceEpoch: updateTime,
-		SourceId:                 stringPtr("performance-metrics"),
-		CustomProperties:         &customProps,
-	}
-
-	// Add optional core fields if present
-	if metadata.Description != "" {
-		catalogModel.Description = &metadata.Description
-	}
-	if metadata.Readme != "" {
-		catalogModel.Readme = &metadata.Readme
-	}
-	if metadata.Maturity != "" {
-		catalogModel.Maturity = &metadata.Maturity
-	}
-	if len(metadata.Languages) > 0 {
-		catalogModel.Language = metadata.Languages
-	}
-	if len(metadata.Tasks) > 0 {
-		catalogModel.Tasks = metadata.Tasks
-	}
-	if metadata.Provider != "" {
-		catalogModel.Provider = &metadata.Provider
-	}
-	if metadata.Logo != "" {
-		catalogModel.Logo = &metadata.Logo
-	}
-	if metadata.License != "" {
-		catalogModel.License = &metadata.License
-	}
-	if metadata.LicenseLink != "" {
-		catalogModel.LicenseLink = &metadata.LicenseLink
-	}
-	if metadata.LibraryName != "" {
-		catalogModel.LibraryName = &metadata.LibraryName
-	}
-
-	return catalogModel
 }
 
 // stringPtr is a helper function to create a pointer to a string
