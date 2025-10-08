@@ -10,7 +10,6 @@ import (
 	"github.com/golang/glog"
 	dbmodels "github.com/kubeflow/model-registry/catalog/internal/db/models"
 	"github.com/kubeflow/model-registry/catalog/internal/db/service"
-	model "github.com/kubeflow/model-registry/catalog/pkg/openapi"
 	"github.com/kubeflow/model-registry/internal/db/models"
 )
 
@@ -33,23 +32,68 @@ type metadataJSON struct {
 	CreatedAt   int64    `json:"created_at"`    // Maps to createTimeSinceEpoch from BaseResource
 	UpdatedAt   int64    `json:"updated_at"`    // Maps to lastUpdateTimeSinceEpoch from BaseResource
 
-	// CustomProperties captures all non-core fields dynamically
+	// CustomProperties captures any additional fields not defined above
 	CustomProperties map[string]interface{} `json:"-"`
+}
+
+// parseMetadataJSON parses JSON data into metadataJSON struct, capturing unknown fields as custom properties
+func parseMetadataJSON(data []byte) (metadataJSON, error) {
+	// First, unmarshal into a map to capture all fields
+	var allFields map[string]interface{}
+	if err := json.Unmarshal(data, &allFields); err != nil {
+		return metadataJSON{}, fmt.Errorf("failed to unmarshal JSON: %v", err)
+	}
+
+	// Define the known fields that should not be included in custom properties
+	knownFields := map[string]bool{
+		"id":            true,
+		"description":   true,
+		"readme":        true,
+		"maturity":      true,
+		"languages":     true,
+		"tasks":         true,
+		"provider_name": true,
+		"logo":          true,
+		"license":       true,
+		"license_link":  true,
+		"library_name":  true,
+		"created_at":    true,
+		"updated_at":    true,
+	}
+
+	// Extract custom properties (fields not in the known list)
+	customProperties := make(map[string]interface{})
+	for key, value := range allFields {
+		if !knownFields[key] {
+			customProperties[key] = value
+		}
+	}
+
+	// Now unmarshal into the structured type for the known fields
+	var metadata metadataJSON
+	if err := json.Unmarshal(data, &metadata); err != nil {
+		return metadataJSON{}, fmt.Errorf("failed to unmarshal into structured type: %v", err)
+	}
+
+	// Add the custom properties
+	metadata.CustomProperties = customProperties
+
+	return metadata, nil
 }
 
 // LoadPerformanceMetricsData loads performance metrics data from the specified directory
 // into the database using the catalog model and artifact repositories.
-func LoadPerformanceMetricsData(path []string, modelRepo dbmodels.CatalogModelRepository, metricsArtifactRepo dbmodels.CatalogMetricsArtifactRepository, typeMap map[string]int64) (map[string]*model.CatalogModel, error) {
+func LoadPerformanceMetricsData(path []string, modelRepo dbmodels.CatalogModelRepository, metricsArtifactRepo dbmodels.CatalogMetricsArtifactRepository, typeMap map[string]int64) error {
 	if len(path) == 0 {
 		glog.Info("No performance metrics path provided, skipping performance metrics loading")
-		return nil, nil
+		return nil
 	}
 
 	// Check if path exists
 	for _, p := range path {
 		if _, err := os.Stat(p); os.IsNotExist(err) {
 			glog.Warningf("Performance metrics path %s does not exist, skipping performance metrics loading", p)
-			return nil, nil
+			return nil
 		}
 	}
 
@@ -58,11 +102,11 @@ func LoadPerformanceMetricsData(path []string, modelRepo dbmodels.CatalogModelRe
 	// Get the TypeID for CatalogModel from the type map
 	modelTypeIDInt64, exists := typeMap[service.CatalogModelTypeName]
 	if !exists {
-		return nil, fmt.Errorf("CatalogModel type not found in type map")
+		return fmt.Errorf("CatalogModel type not found in type map")
 	}
 	// Bounds check for int64 to int32 conversion
 	if modelTypeIDInt64 > math.MaxInt32 || modelTypeIDInt64 < math.MinInt32 {
-		return nil, fmt.Errorf("CatalogModel type ID %d is out of int32 range", modelTypeIDInt64)
+		return fmt.Errorf("CatalogModel type ID %d is out of int32 range", modelTypeIDInt64)
 	}
 	modelTypeID := int32(modelTypeIDInt64)
 	glog.V(2).Infof("Using catalog model type ID: %d", modelTypeID)
@@ -70,16 +114,15 @@ func LoadPerformanceMetricsData(path []string, modelRepo dbmodels.CatalogModelRe
 	// Get the TypeID for CatalogMetricsArtifact from the type map
 	metricsArtifactTypeIDInt64, exists := typeMap[service.CatalogMetricsArtifactTypeName]
 	if !exists {
-		return nil, fmt.Errorf("CatalogMetricsArtifact type not found in type map")
+		return fmt.Errorf("CatalogMetricsArtifact type not found in type map")
 	}
 	// Bounds check for int64 to int32 conversion
 	if metricsArtifactTypeIDInt64 > math.MaxInt32 || metricsArtifactTypeIDInt64 < math.MinInt32 {
-		return nil, fmt.Errorf("CatalogMetricsArtifact type ID %d is out of int32 range", metricsArtifactTypeIDInt64)
+		return fmt.Errorf("CatalogMetricsArtifact type ID %d is out of int32 range", metricsArtifactTypeIDInt64)
 	}
 	metricsArtifactTypeID := int32(metricsArtifactTypeIDInt64)
 	glog.V(2).Infof("Using metrics artifact type ID: %d", metricsArtifactTypeID)
 
-	loadedModels := make(map[string]*model.CatalogModel)
 	processedCount := 0
 
 	// Walk through the directory structure to find model directories
@@ -103,7 +146,7 @@ func LoadPerformanceMetricsData(path []string, modelRepo dbmodels.CatalogModelRe
 			glog.Infof("Processing model directory: %s", dirPath)
 
 			// Process the model directory
-			if err := processModelDirectory(dirPath, modelRepo, metricsArtifactRepo, modelTypeID, metricsArtifactTypeID, loadedModels); err != nil {
+			if err := processModelDirectory(dirPath, modelRepo, metricsArtifactRepo, modelTypeID, metricsArtifactTypeID); err != nil {
 				glog.Errorf("Failed to process model directory %s: %v", dirPath, err)
 				// Continue processing other directories
 				return nil
@@ -114,16 +157,16 @@ func LoadPerformanceMetricsData(path []string, modelRepo dbmodels.CatalogModelRe
 		})
 
 		if err != nil {
-			return nil, fmt.Errorf("failed to walk performance metrics directory %s: %v", rootPath, err)
+			return fmt.Errorf("failed to walk performance metrics directory %s: %v", rootPath, err)
 		}
 	}
 
-	glog.Infof("Successfully processed %d model directories and loaded %d models into database", processedCount, len(loadedModels))
-	return loadedModels, nil
+	glog.Infof("Successfully processed %d model directories", processedCount)
+	return nil
 }
 
 // processModelDirectory processes a single model directory containing metadata.json and metric files
-func processModelDirectory(dirPath string, modelRepo dbmodels.CatalogModelRepository, metricsArtifactRepo dbmodels.CatalogMetricsArtifactRepository, modelTypeID int32, metricsArtifactTypeID int32, loadedModels map[string]*model.CatalogModel) error {
+func processModelDirectory(dirPath string, modelRepo dbmodels.CatalogModelRepository, metricsArtifactRepo dbmodels.CatalogMetricsArtifactRepository, modelTypeID int32, metricsArtifactTypeID int32) error {
 	// Read and parse metadata.json
 	metadataPath := filepath.Join(dirPath, "metadata.json")
 	metadataData, err := os.ReadFile(metadataPath)
@@ -131,8 +174,9 @@ func processModelDirectory(dirPath string, modelRepo dbmodels.CatalogModelReposi
 		return fmt.Errorf("failed to read metadata file %s: %v", metadataPath, err)
 	}
 
-	var metadata metadataJSON
-	if err := json.Unmarshal(metadataData, &metadata); err != nil {
+	// Parse metadata with dynamic field capture
+	metadata, err := parseMetadataJSON(metadataData)
+	if err != nil {
 		return fmt.Errorf("failed to parse metadata file %s: %v", metadataPath, err)
 	}
 
@@ -141,10 +185,6 @@ func processModelDirectory(dirPath string, modelRepo dbmodels.CatalogModelReposi
 	if err != nil {
 		return fmt.Errorf("failed to create/save model: %v", err)
 	}
-
-	// Create API model for backward compatibility
-	apiModel := createAPIModelFromMetadata(metadata, dirPath)
-	loadedModels[metadata.ID] = apiModel
 
 	return nil
 }
