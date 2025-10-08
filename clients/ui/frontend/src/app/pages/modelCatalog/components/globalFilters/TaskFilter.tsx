@@ -1,4 +1,5 @@
 import * as React from 'react';
+import { Divider, StackItem } from '@patternfly/react-core';
 import ModelCatalogStringFilter from '~/app/pages/modelCatalog/components/ModelCatalogStringFilter';
 import {
   ModelCatalogStringFilterKey,
@@ -19,12 +20,17 @@ const TaskFilter: React.FC<TaskFilterProps> = ({ filters }) => {
   }
 
   return (
-    <ModelCatalogStringFilter<ModelCatalogStringFilterKey.TASK>
-      title="Task"
-      filterKey={filterKey}
-      filterToNameMapping={MODEL_CATALOG_TASK_NAME_MAPPING}
-      filters={task}
-    />
+    <>
+      <StackItem>
+        <ModelCatalogStringFilter<ModelCatalogStringFilterKey.TASK>
+          title="Task"
+          filterKey={filterKey}
+          filterToNameMapping={MODEL_CATALOG_TASK_NAME_MAPPING}
+          filters={task}
+        />
+      </StackItem>
+      <Divider />
+    </>
   );
 };
 
