@@ -3,6 +3,7 @@ import {
   Bullseye,
   Button,
   EmptyState,
+  Flex,
   Gallery,
   Spinner,
   Title,
@@ -67,48 +68,54 @@ const ModelCatalogPage: React.FC<ModelCatalogPageProps> = ({ searchTerm }) => {
   }
 
   return (
-    <Gallery hasGutter minWidths={{ default: '300px' }}>
-      {catalogModels.items.map((model: CatalogModel) => {
-        // Show ValidatedModelCard for validated models, ModelCatalogCard for others. This will be take care of by Pushpa's PR
-        // that will implement sections for validated and non-validated models.
-        if (isModelValidated(model)) {
+    <>
+      <Gallery hasGutter minWidths={{ default: '300px' }}>
+        {catalogModels.items.map((model: CatalogModel) => {
+          // Show ValidatedModelCard for validated models, ModelCatalogCard for others. This will be take care of by Pushpa's PR
+          // that will implement sections for validated and non-validated models.
+          if (isModelValidated(model)) {
+            return (
+              <ValidatedModelCard
+                key={`${model.name}/${model.source_id}`}
+                model={model}
+                source={selectedSource}
+                performanceMetrics={mockPerformanceMetricsArtifacts}
+                accuracyMetrics={mockAccuracyMetricsArtifacts}
+              />
+            );
+          }
           return (
-            <ValidatedModelCard
-              key={`${model.name}/${model.source_id}`}
+            <ModelCatalogCard
               model={model}
               source={selectedSource}
-              performanceMetrics={mockPerformanceMetricsArtifacts[0]}
-              accuracyMetrics={mockAccuracyMetricsArtifacts[0]}
+              key={`${model.name}/${model.source_id}`}
             />
           );
-        }
-        return (
-          <ModelCatalogCard
-            model={model}
-            source={selectedSource}
-            key={`${model.name}/${model.source_id}`}
-          />
-        );
-      })}
+        })}
+      </Gallery>
       {catalogModels.hasMore && (
-        <div style={{ marginTop: '2rem' }}>
+        <Flex direction={{ default: 'column' }} gap={{ default: 'gapLg' }}>
           <Bullseye>
             {catalogModels.isLoadingMore ? (
-              <>
-                <Spinner size="lg" className="pf-v5-u-mb-md" />
+              <Flex
+                direction={{ default: 'column' }}
+                alignItems={{ default: 'alignItemsCenter' }}
+                gap={{ default: 'gapMd' }}
+              >
+                <Spinner size="lg" />
                 <Title size="lg" headingLevel="h5">
                   Loading more catalog models...
                 </Title>
-              </>
+              </Flex>
             ) : (
               <Button variant="tertiary" onClick={catalogModels.loadMore} size="lg">
                 Load more models
               </Button>
             )}
           </Bullseye>
-        </div>
+        </Flex>
       )}
-    </Gallery>
+    </>
   );
 };
 
