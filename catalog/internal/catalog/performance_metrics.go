@@ -191,7 +191,7 @@ func processModelDirectory(dirPath string, modelRepo dbmodels.CatalogModelReposi
 
 // createAndSaveModel creates and saves a catalog model from metadata, skipping if model already exists
 func createAndSaveModel(metadata metadataJSON, dirPath string, modelTypeID int32, modelRepo dbmodels.CatalogModelRepository) (dbmodels.CatalogModel, error) {
-	// Check if a model with this external_id already exists
+	// Check if a model with this Name already exists
 	existingModels, err := modelRepo.List(dbmodels.CatalogModelListOptions{
 		Name: &metadata.ID,
 	})
@@ -209,7 +209,7 @@ func createAndSaveModel(metadata metadataJSON, dirPath string, modelTypeID int32
 	glog.V(2).Infof("Creating new model %s", metadata.ID)
 
 	// Create the catalog model for new model (no existing ID)
-	dbModel := createDBModelFromMetadata(metadata, dirPath, modelTypeID, nil, nil)
+	dbModel := createDBModelFromMetadata(metadata, dirPath, modelTypeID)
 
 	// Save the model
 	savedModel, err := modelRepo.Save(dbModel)
@@ -222,18 +222,7 @@ func createAndSaveModel(metadata metadataJSON, dirPath string, modelTypeID int32
 }
 
 // createDBModelFromMetadata converts metadata to a database model, mapping properties and custom properties
-func createDBModelFromMetadata(metadata metadataJSON, dirPath string, typeID int32, existingID *int32, existingCreateTime *int64) *dbmodels.CatalogModelImpl {
-	// Use existing create time if provided, otherwise use from metadata
-	createTime := existingCreateTime
-	if createTime == nil && metadata.CreatedAt > 0 {
-		createTime = &metadata.CreatedAt
-	}
-
-	var updateTime *int64
-	if metadata.UpdatedAt > 0 {
-		updateTime = &metadata.UpdatedAt
-	}
-
+func createDBModelFromMetadata(metadata metadataJSON, dirPath string, typeID int32) *dbmodels.CatalogModelImpl {
 	// Create properties for core CatalogModel fields
 	properties := []models.Properties{
 		{
@@ -384,13 +373,12 @@ func createDBModelFromMetadata(metadata metadataJSON, dirPath string, typeID int
 
 	// Create the model with the provided TypeID from the type map
 	model := &dbmodels.CatalogModelImpl{
-		ID:     existingID, // Use existing ID if updating
 		TypeID: &typeID,
 		Attributes: &dbmodels.CatalogModelAttributes{
 			Name:                     &metadata.ID,
 			ExternalID:               &metadata.ID,
-			CreateTimeSinceEpoch:     createTime,
-			LastUpdateTimeSinceEpoch: updateTime,
+			CreateTimeSinceEpoch:     &metadata.CreatedAt,
+			LastUpdateTimeSinceEpoch: &metadata.UpdatedAt,
 		},
 		Properties:       &properties,
 		CustomProperties: &customProperties,
