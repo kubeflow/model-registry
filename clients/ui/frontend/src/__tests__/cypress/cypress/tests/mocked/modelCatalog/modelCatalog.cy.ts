@@ -104,6 +104,8 @@ describe('Model Catalog Page', () => {
     modelCatalog.findFilterSearch('Task').type('audio-to-text');
     modelCatalog.findFilterCheckbox('Task', 'audio-to-text').should('be.visible');
     modelCatalog.findFilterCheckbox('Task', 'video-to-text').should('not.be.exist');
+    modelCatalog.findFilterSearch('Task').type('test');
+    modelCatalog.findFilterEmpty('Task').should('be.visible');
   });
 
   it('checkbox should work', () => {

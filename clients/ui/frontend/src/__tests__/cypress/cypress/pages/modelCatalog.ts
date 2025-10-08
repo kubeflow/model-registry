@@ -24,6 +24,10 @@ class ModelCatalogFilter {
   findSearch() {
     return this.find().findByTestId(`${this.title}-filter-search`);
   }
+
+  findEmpty() {
+    return this.find().findByTestId(`${this.title}-filter-empty`);
+  }
 }
 
 class ModelCatalog {
@@ -49,6 +53,10 @@ class ModelCatalog {
 
   findFilterSearch(title: string) {
     return new ModelCatalogFilter(title).findSearch();
+  }
+
+  findFilterEmpty(title: string) {
+    return new ModelCatalogFilter(title).findEmpty();
   }
 
   findFilterShowMoreButton(title: string) {
