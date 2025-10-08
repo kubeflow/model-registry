@@ -34,7 +34,7 @@ const initIntercepts = ({
     mockCatalogModelList({
       items: [mockCatalogModel({})],
     }),
-  );
+  ).as('getCatalogModelsBySource');
 
   cy.interceptApi(
     `GET /api/:apiVersion/model_catalog/models/filter_options`,
@@ -104,16 +104,28 @@ describe('Model Catalog Page', () => {
     modelCatalog.findFilterSearch('Task').type('audio-to-text');
     modelCatalog.findFilterCheckbox('Task', 'audio-to-text').should('be.visible');
     modelCatalog.findFilterCheckbox('Task', 'video-to-text').should('not.be.exist');
+    modelCatalog.findFilterSearch('Task').type('test');
+    modelCatalog.findFilterEmpty('Task').should('be.visible');
   });
 
-  // TODO: Add this test when the actual card filtering is implemented.
-  // it('checkbox should work', () => {
-  //   initIntercepts({});
-  //   modelCatalog.visit();
-  //   modelCatalog.navigate();
-  //   modelCatalog.findFilterCheckbox('Task', 'text-generation').click();
-  //   modelCatalog.findFirstModelCatalogCard().should('be.visible');
-  //   modelCatalog.findFilterCheckbox('Task', 'text-to-text').click();
-  //   modelCatalog.findModelCatalogEmptyState().should('be.visible');
-  // });
+  it('checkbox should work', () => {
+    initIntercepts({});
+    modelCatalog.visit();
+    modelCatalog.navigate();
+    modelCatalog.findFilterCheckbox('Task', 'text-generation').click();
+    modelCatalog.findFilterCheckbox('Task', 'text-to-text').click();
+    modelCatalog.findFilterCheckbox('Provider', 'Google').click();
+    cy.wait([
+      '@getCatalogModelsBySource',
+      '@getCatalogModelsBySource',
+      '@getCatalogModelsBySource',
+      '@getCatalogModelsBySource',
+      '@getCatalogModelsBySource',
+    ]).then((interceptions) => {
+      const lastInterception = interceptions[interceptions.length - 1];
+      expect(lastInterception.request.url).to.include(
+        'tasks%2BIN%2B%28%27text-generation%27%2C%27text-to-text%27%29%2BAND%2Bprovider%2B%3D%2B%27Google%27',
+      );
+    });
+  });
 });

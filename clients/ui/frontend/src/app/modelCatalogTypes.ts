@@ -161,6 +161,8 @@ export type GetCatalogModelsBySource = (
     sortOrder?: string;
   },
   searchKeyword?: string,
+  filterData?: ModelCatalogFilterStates,
+  filterOptions?: CatalogFilterOptionsList | null,
 ) => Promise<CatalogModelList>;
 
 export type GetListSources = (opts: APIOptions) => Promise<CatalogSourceList>;
@@ -219,5 +221,5 @@ export type CatalogFilterOptionsList = {
 export type ModelCatalogFilterStates = {
   [key in ModelCatalogStringFilterKey]: ModelCatalogStringFilterValueType[key][];
 } & {
-  [key in ModelCatalogNumberFilterKey]: number;
+  [key in ModelCatalogNumberFilterKey]: number | undefined;
 };
