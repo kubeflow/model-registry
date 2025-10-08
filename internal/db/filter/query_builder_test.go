@@ -128,7 +128,7 @@ func TestQueryBuilderEntityTypes(t *testing.T) {
 			case EntityTypeExecution:
 				restEntityType = RestEntityServeModel
 			}
-			queryBuilder := NewQueryBuilderForRestEntity(restEntityType)
+			queryBuilder := NewQueryBuilderForRestEntity(restEntityType, nil)
 
 			// For testing, we'll analyze the filter expression to count expected joins
 			expectedJoins := countExpectedJoins(filterExpr, tt.entityType)
@@ -237,7 +237,7 @@ func TestQueryBuilderPropertyTypes(t *testing.T) {
 			case EntityTypeExecution:
 				restEntityType = RestEntityServeModel
 			}
-			queryBuilder := NewQueryBuilderForRestEntity(restEntityType)
+			queryBuilder := NewQueryBuilderForRestEntity(restEntityType, nil)
 
 			// Verify the query builder was created successfully
 			if queryBuilder.entityType != tt.entityType {
@@ -376,7 +376,7 @@ func TestQueryBuilderPropertyTypeSuffix(t *testing.T) {
 			}
 
 			// Create query builder
-			qb := NewQueryBuilderForRestEntity(tt.restEntityType)
+			qb := NewQueryBuilderForRestEntity(tt.restEntityType, nil)
 
 			// Build property reference from the first leaf expression
 			leafExpr := findFirstLeafExpression(expr)
@@ -448,7 +448,7 @@ func TestExperimentPropertiesInArtifacts(t *testing.T) {
 				}
 
 				// Create query builder for this artifact type
-				queryBuilder := NewQueryBuilderForRestEntity(artifactType.restEntityType)
+				queryBuilder := NewQueryBuilderForRestEntity(artifactType.restEntityType, nil)
 
 				if queryBuilder.entityType != EntityTypeArtifact {
 					t.Errorf("Expected EntityTypeArtifact, got %s", queryBuilder.entityType)

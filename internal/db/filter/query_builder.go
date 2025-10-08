@@ -17,6 +17,19 @@ const (
 	EntityTypeExecution EntityType = "execution"
 )
 
+// EntityMappingFunctions defines the interface for entity type mapping functions
+// This allows different packages (like catalog) to provide their own entity mappings
+type EntityMappingFunctions interface {
+	// GetMLMDEntityType maps a REST entity type to its underlying MLMD entity type
+	GetMLMDEntityType(restEntityType RestEntityType) EntityType
+
+	// GetPropertyDefinitionForRestEntity returns property definition for a REST entity type
+	GetPropertyDefinitionForRestEntity(restEntityType RestEntityType, propertyName string) PropertyDefinition
+
+	// IsChildEntity returns true if the REST entity type uses prefixed names (parentId:name)
+	IsChildEntity(entityType RestEntityType) bool
+}
+
 // QueryBuilder builds GORM queries from filter expressions
 // It handles special cases like prefixed names for child entities (e.g., ModelVersion, ExperimentRun)
 // where names are stored as "parentId:actualName" in the database
@@ -25,13 +38,20 @@ type QueryBuilder struct {
 	restEntityType RestEntityType
 	tablePrefix    string
 	joinCounter    int
-	db             *gorm.DB // Added to access naming strategy
+	db             *gorm.DB               // Added to access naming strategy
+	mappingFuncs   EntityMappingFunctions // Entity mapping functions
 }
 
 // NewQueryBuilderForRestEntity creates a new query builder for the specified REST entity type
-func NewQueryBuilderForRestEntity(restEntityType RestEntityType) *QueryBuilder {
+// If mappingFuncs is nil, it falls back to the global functions
+func NewQueryBuilderForRestEntity(restEntityType RestEntityType, mappingFuncs EntityMappingFunctions) *QueryBuilder {
+	// Use default mappings if none provided
+	if mappingFuncs == nil {
+		mappingFuncs = &defaultEntityMappings{}
+	}
+
 	// Get the underlying MLMD entity type
-	entityType := GetMLMDEntityType(restEntityType)
+	entityType := mappingFuncs.GetMLMDEntityType(restEntityType)
 
 	var tablePrefix string
 	switch entityType {
@@ -50,6 +70,7 @@ func NewQueryBuilderForRestEntity(restEntityType RestEntityType) *QueryBuilder {
 		restEntityType: restEntityType,
 		tablePrefix:    tablePrefix,
 		joinCounter:    0,
+		mappingFuncs:   mappingFuncs,
 	}
 }
 
@@ -172,7 +193,7 @@ func (qb *QueryBuilder) buildPropertyReference(expr *FilterExpression) *Property
 
 	// Use REST entity type-aware property mapping if available
 	if qb.restEntityType != "" {
-		propDef = GetPropertyDefinitionForRestEntity(qb.restEntityType, propertyName)
+		propDef = qb.mappingFuncs.GetPropertyDefinitionForRestEntity(qb.restEntityType, propertyName)
 	} else {
 		// Fallback to MLMD entity type only
 		propDef = GetPropertyDefinition(qb.entityType, propertyName)
@@ -295,7 +316,7 @@ func (qb *QueryBuilder) buildEntityTablePropertyCondition(db *gorm.DB, propRef *
 	value = qb.ConvertStateValue(propRef.Name, value)
 
 	// Handle prefixed names for child entities
-	if qb.restEntityType != "" && propRef.Name == "name" && isChildEntity(qb.restEntityType) {
+	if qb.restEntityType != "" && propRef.Name == "name" && qb.mappingFuncs.IsChildEntity(qb.restEntityType) {
 		if strValue, ok := value.(string); ok {
 			// For exact match, convert to LIKE pattern with prefix
 			if operator == "=" {
@@ -332,7 +353,7 @@ func (qb *QueryBuilder) buildEntityTablePropertyConditionString(propRef *Propert
 	value = qb.ConvertStateValue(propRef.Name, value)
 
 	// Handle prefixed names for child entities
-	if qb.restEntityType != "" && propRef.Name == "name" && isChildEntity(qb.restEntityType) {
+	if qb.restEntityType != "" && propRef.Name == "name" && qb.mappingFuncs.IsChildEntity(qb.restEntityType) {
 		if strValue, ok := value.(string); ok {
 			// For exact match, convert to LIKE pattern with prefix
 			if operator == "=" {
@@ -499,4 +520,19 @@ func (qb *QueryBuilder) buildCaseInsensitiveLikeCondition(db *gorm.DB, column st
 
 	// Fallback to regular LIKE if value is not a string
 	return db.Where(fmt.Sprintf("%s LIKE ?", column), value)
+}
+
+// defaultEntityMappings implements EntityMappingFunctions for the model registry
+type defaultEntityMappings struct{}
+
+func (d *defaultEntityMappings) GetMLMDEntityType(restEntityType RestEntityType) EntityType {
+	return GetMLMDEntityType(restEntityType)
+}
+
+func (d *defaultEntityMappings) GetPropertyDefinitionForRestEntity(restEntityType RestEntityType, propertyName string) PropertyDefinition {
+	return GetPropertyDefinitionForRestEntity(restEntityType, propertyName)
+}
+
+func (d *defaultEntityMappings) IsChildEntity(entityType RestEntityType) bool {
+	return isChildEntity(entityType)
 }

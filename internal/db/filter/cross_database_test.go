@@ -37,7 +37,7 @@ func TestCrossDatabaseILIKE(t *testing.T) {
 			}
 
 			// Create query builder
-			queryBuilder := NewQueryBuilderForRestEntity(RestEntityExperiment)
+			queryBuilder := NewQueryBuilderForRestEntity(RestEntityExperiment, nil)
 
 			// Generate condition string
 			conditionResult := queryBuilder.buildConditionString(filterExpr)

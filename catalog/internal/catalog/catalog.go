@@ -8,6 +8,7 @@ import (
 
 type ListModelsParams struct {
 	Query         string
+	FilterQuery   string
 	SourceIDs     []string
 	PageSize      int32
 	OrderBy       model.OrderByField

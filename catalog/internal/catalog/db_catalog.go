@@ -77,6 +77,7 @@ func (d *dbCatalogImpl) ListModels(ctx context.Context, params ListModelsParams)
 		SourceIDs: &params.SourceIDs,
 		Query:     queryPtr,
 		Pagination: mrmodels.Pagination{
+			FilterQuery:   &params.FilterQuery,
 			PageSize:      &pageSize,
 			OrderBy:       &orderBy,
 			SortOrder:     &sortOrder,

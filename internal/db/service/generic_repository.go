@@ -44,7 +44,7 @@ type FilterApplier interface {
 
 // applyFilterQuery applies advanced filter query processing to a GORM query
 // This function encapsulates the common pattern used by both GenericRepository and custom repositories
-func applyFilterQuery(query *gorm.DB, listOptions any) (*gorm.DB, error) {
+func applyFilterQuery(query *gorm.DB, listOptions any, mappingFuncs filter.EntityMappingFunctions) (*gorm.DB, error) {
 	if filterQueryGetter, ok := listOptions.(interface{ GetFilterQuery() string }); ok {
 		if filterQuery := filterQueryGetter.GetFilterQuery(); filterQuery != "" {
 			if filterApplier, ok := listOptions.(FilterApplier); ok {
@@ -54,7 +54,7 @@ func applyFilterQuery(query *gorm.DB, listOptions any) (*gorm.DB, error) {
 				}
 
 				if filterExpr != nil {
-					queryBuilder := filter.NewQueryBuilderForRestEntity(filterApplier.GetRestEntityType())
+					queryBuilder := filter.NewQueryBuilderForRestEntity(filterApplier.GetRestEntityType(), mappingFuncs)
 					query = queryBuilder.BuildQuery(query, filterExpr)
 				}
 			}
@@ -77,6 +77,7 @@ type GenericRepositoryConfig[TEntity any, TSchema SchemaEntity, TProp PropertyEn
 	CreatePaginationToken func(TSchema, TListOpts) string // Optional - defaults to standard implementation
 	IsNewEntity           func(TEntity) bool
 	HasCustomProperties   func(TEntity) bool
+	EntityMappingFuncs    filter.EntityMappingFunctions // Optional - custom entity mappings for filtering
 }
 
 // Generic repository implementation
@@ -157,7 +158,7 @@ func (r *GenericRepository[TEntity, TSchema, TProp, TListOpts]) List(listOptions
 	}
 
 	// Apply advanced filter query if supported
-	query, err := applyFilterQuery(query, listOptions)
+	query, err := applyFilterQuery(query, listOptions, r.config.EntityMappingFuncs)
 	if err != nil {
 		return nil, err
 	}

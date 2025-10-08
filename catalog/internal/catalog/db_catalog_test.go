@@ -335,6 +335,177 @@ func TestDBCatalog(t *testing.T) {
 		assert.Contains(t, result.Items[0].Name, "ResNet", "Should contain ResNet model")
 	})
 
+	t.Run("TestListModels_FilterQuery", func(t *testing.T) {
+		// Create test models with diverse properties for filterQuery testing
+		sourceIDs := []string{"filterquery-test-source"}
+
+		model1 := &models.CatalogModelImpl{
+			TypeID: apiutils.Of(int32(catalogModelTypeID)),
+			Attributes: &models.CatalogModelAttributes{
+				Name:       apiutils.Of("TensorFlow-ResNet50"),
+				ExternalID: apiutils.Of("tf-resnet50-1"),
+			},
+			Properties: &[]mr_models.Properties{
+				{Name: "source_id", StringValue: apiutils.Of("filterquery-test-source")},
+				{Name: "description", StringValue: apiutils.Of("Deep learning model for image classification using TensorFlow")},
+				{Name: "provider", StringValue: apiutils.Of("Google")},
+				{Name: "framework", StringValue: apiutils.Of("TensorFlow")},
+				{Name: "tasks", StringValue: apiutils.Of(`["image-classification", "computer-vision"]`)},
+				{Name: "accuracy", StringValue: apiutils.Of("0.95")},
+			},
+		}
+
+		model2 := &models.CatalogModelImpl{
+			TypeID: apiutils.Of(int32(catalogModelTypeID)),
+			Attributes: &models.CatalogModelAttributes{
+				Name:       apiutils.Of("PyTorch-BERT"),
+				ExternalID: apiutils.Of("pt-bert-1"),
+			},
+			Properties: &[]mr_models.Properties{
+				{Name: "source_id", StringValue: apiutils.Of("filterquery-test-source")},
+				{Name: "description", StringValue: apiutils.Of("BERT model for natural language processing using PyTorch")},
+				{Name: "provider", StringValue: apiutils.Of("Hugging Face")},
+				{Name: "framework", StringValue: apiutils.Of("PyTorch")},
+				{Name: "tasks", StringValue: apiutils.Of(`["text-classification", "question-answering"]`)},
+				{Name: "accuracy", StringValue: apiutils.Of("0.92")},
+			},
+		}
+
+		model3 := &models.CatalogModelImpl{
+			TypeID: apiutils.Of(int32(catalogModelTypeID)),
+			Attributes: &models.CatalogModelAttributes{
+				Name:       apiutils.Of("Scikit-learn-LogisticRegression"),
+				ExternalID: apiutils.Of("sk-lr-1"),
+			},
+			Properties: &[]mr_models.Properties{
+				{Name: "source_id", StringValue: apiutils.Of("filterquery-test-source")},
+				{Name: "description", StringValue: apiutils.Of("Traditional machine learning model for classification")},
+				{Name: "provider", StringValue: apiutils.Of("Scikit-learn")},
+				{Name: "framework", StringValue: apiutils.Of("Scikit-learn")},
+				{Name: "tasks", StringValue: apiutils.Of(`["classification", "regression"]`)},
+				{Name: "accuracy", StringValue: apiutils.Of("0.88")},
+			},
+		}
+
+		_, err := catalogModelRepo.Save(model1)
+		require.NoError(t, err)
+		_, err = catalogModelRepo.Save(model2)
+		require.NoError(t, err)
+		_, err = catalogModelRepo.Save(model3)
+		require.NoError(t, err)
+
+		// Test: Basic name filtering with exact match
+		params := ListModelsParams{
+			FilterQuery:   "name = \"TensorFlow-ResNet50\"",
+			SourceIDs:     sourceIDs,
+			PageSize:      10,
+			OrderBy:       model.ORDERBYFIELD_NAME,
+			SortOrder:     model.SORTORDER_ASC,
+			NextPageToken: apiutils.Of(""),
+		}
+
+		result, err := dbCatalog.ListModels(ctx, params)
+		require.NoError(t, err)
+		assert.Equal(t, int32(1), result.Size, "Should return 1 model with exact name match")
+		assert.Equal(t, "TensorFlow-ResNet50", result.Items[0].Name)
+
+		// Test: LIKE pattern matching
+		params.FilterQuery = "name LIKE \"%Tensor%\""
+		result, err = dbCatalog.ListModels(ctx, params)
+		require.NoError(t, err)
+		assert.Equal(t, int32(1), result.Size, "Should return 1 model with LIKE pattern match")
+		assert.Contains(t, result.Items[0].Name, "Tensor")
+
+		// Test: LIKE pattern matching with case sensitivity
+		params.FilterQuery = "name ILIKE \"%tensor%\""
+		result, err = dbCatalog.ListModels(ctx, params)
+		require.NoError(t, err)
+		assert.Equal(t, int32(1), result.Size, "Should return 1 model with case-insensitive ILIKE match")
+		assert.Contains(t, result.Items[0].Name, "Tensor")
+
+		// Test: OR logic
+		params.FilterQuery = "name = \"TensorFlow-ResNet50\" OR name = \"PyTorch-BERT\""
+		result, err = dbCatalog.ListModels(ctx, params)
+		require.NoError(t, err)
+		assert.Equal(t, int32(2), result.Size, "Should return 2 models with OR logic")
+
+		// Verify we got the expected models
+		modelNames := make(map[string]bool)
+		for _, item := range result.Items {
+			modelNames[item.Name] = true
+		}
+		assert.True(t, modelNames["TensorFlow-ResNet50"], "Should contain TensorFlow model")
+		assert.True(t, modelNames["PyTorch-BERT"], "Should contain PyTorch model")
+
+		// Test: AND logic
+		params.FilterQuery = "name LIKE \"%Tensor%\" AND name LIKE \"%ResNet%\""
+		result, err = dbCatalog.ListModels(ctx, params)
+		require.NoError(t, err)
+		assert.Equal(t, int32(1), result.Size, "Should return 1 model with AND logic")
+		assert.Equal(t, "TensorFlow-ResNet50", result.Items[0].Name)
+
+		// Test: Custom property filtering
+		params.FilterQuery = "framework.string_value = \"PyTorch\""
+		result, err = dbCatalog.ListModels(ctx, params)
+		require.NoError(t, err)
+		assert.Equal(t, int32(1), result.Size, "Should return 1 model with PyTorch framework")
+		assert.Equal(t, "PyTorch-BERT", result.Items[0].Name)
+
+		// Test: Custom property filtering with LIKE
+		params.FilterQuery = "provider.string_value LIKE \"%Google%\""
+		result, err = dbCatalog.ListModels(ctx, params)
+		require.NoError(t, err)
+		assert.Equal(t, int32(1), result.Size, "Should return 1 model with Google provider")
+		assert.Equal(t, "TensorFlow-ResNet50", result.Items[0].Name)
+
+		// Test: Numeric comparison
+		params.FilterQuery = "accuracy.string_value > \"0.90\""
+		result, err = dbCatalog.ListModels(ctx, params)
+		require.NoError(t, err)
+		assert.Equal(t, int32(2), result.Size, "Should return 2 models with accuracy > 0.90")
+
+		// Verify we got the expected models (TensorFlow and PyTorch)
+		modelNames = make(map[string]bool)
+		for _, item := range result.Items {
+			modelNames[item.Name] = true
+		}
+		assert.True(t, modelNames["TensorFlow-ResNet50"], "Should contain TensorFlow model")
+		assert.True(t, modelNames["PyTorch-BERT"], "Should contain PyTorch model")
+
+		// Test: Complex query with multiple conditions
+		params.FilterQuery = "(framework.string_value = \"TensorFlow\" OR framework.string_value = \"PyTorch\") AND accuracy.string_value > \"0.90\""
+		result, err = dbCatalog.ListModels(ctx, params)
+		require.NoError(t, err)
+		assert.Equal(t, int32(2), result.Size, "Should return 2 models with complex query")
+
+		// Test: No matches
+		params.FilterQuery = "name = \"NonExistentModel\""
+		result, err = dbCatalog.ListModels(ctx, params)
+		require.NoError(t, err)
+		assert.Equal(t, int32(0), result.Size, "Should return 0 models for non-existent name")
+
+		// Test: Empty filterQuery should return all models
+		params.FilterQuery = ""
+		result, err = dbCatalog.ListModels(ctx, params)
+		require.NoError(t, err)
+		assert.Equal(t, int32(3), result.Size, "Should return all 3 models with empty filterQuery")
+
+		// Test: Combined with regular query parameter
+		params.Query = "BERT"
+		params.FilterQuery = "framework.string_value = \"PyTorch\""
+		result, err = dbCatalog.ListModels(ctx, params)
+		require.NoError(t, err)
+		assert.Equal(t, int32(1), result.Size, "Should return 1 model matching both query and filterQuery")
+		assert.Equal(t, "PyTorch-BERT", result.Items[0].Name)
+
+		// Test: Invalid filterQuery syntax should return error
+		params.Query = ""
+		params.FilterQuery = "invalid syntax here"
+		_, err = dbCatalog.ListModels(ctx, params)
+		require.Error(t, err, "Should return error for invalid filterQuery syntax")
+		assert.Contains(t, err.Error(), "invalid filter query", "Error should mention invalid filter query")
+	})
+
 	t.Run("TestGetArtifacts_Success", func(t *testing.T) {
 		// Create test model
 		testModel := &models.CatalogModelImpl{
