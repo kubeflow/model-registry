@@ -6,6 +6,8 @@ import {
   DescriptionListGroup,
   DescriptionListTerm,
   Icon,
+  Label,
+  LabelGroup,
   PageSection,
   Sidebar,
   SidebarContent,
@@ -17,7 +19,7 @@ import { OutlinedClockIcon } from '@patternfly/react-icons';
 import { InlineTruncatedClipboardCopy } from 'mod-arch-shared';
 import text from '@patternfly/react-styles/css/utilities/Text/text';
 import { CatalogArtifactList, CatalogModel } from '~/app/modelCatalogTypes';
-import { getLabels } from '~/app/pages/modelRegistry/screens/utils';
+import { getLabels, getValidatedOnPlatforms } from '~/app/pages/modelRegistry/screens/utils';
 import ModelCatalogLabels from '~/app/pages/modelCatalog/components/ModelCatalogLabels';
 import ExternalLink from '~/app/shared/components/ExternalLink';
 import MarkdownComponent from '~/app/shared/markdown/MarkdownComponent';
@@ -42,6 +44,9 @@ const ModelDetailsView: React.FC<ModelDetailsViewProps> = ({
 }) => {
   // Extract all labels from customProperties
   const allLabels = model.customProperties ? getLabels(model.customProperties) : [];
+
+  // Extract validated_on platforms
+  const validatedOnPlatforms = getValidatedOnPlatforms(model.customProperties);
 
   return (
     <PageSection hasBodyWrapper={false} isFilled>
@@ -85,6 +90,20 @@ const ModelDetailsView: React.FC<ModelDetailsViewProps> = ({
               <DescriptionListTerm>Provider</DescriptionListTerm>
               <DescriptionListDescription>{model.provider || 'N/A'}</DescriptionListDescription>
             </DescriptionListGroup>
+            {validatedOnPlatforms.length > 0 && (
+              <DescriptionListGroup>
+                <DescriptionListTerm>Validated on</DescriptionListTerm>
+                <DescriptionListDescription>
+                  <LabelGroup numLabels={5} isCompact>
+                    {validatedOnPlatforms.map((platform) => (
+                      <Label data-testid="validated-on-label" key={platform} variant="outline">
+                        {platform}
+                      </Label>
+                    ))}
+                  </LabelGroup>
+                </DescriptionListDescription>
+              </DescriptionListGroup>
+            )}
             <DescriptionListGroup>
               <DescriptionListTerm>Model location</DescriptionListTerm>
               {artifactsLoadError ? (

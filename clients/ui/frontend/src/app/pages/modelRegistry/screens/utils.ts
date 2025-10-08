@@ -201,3 +201,22 @@ export const getLatestVersionForRegisteredModel = (
   const latestVersion = getLastCreatedItem(filteredVersions);
   return latestVersion;
 };
+
+export const getValidatedOnPlatforms = <T extends ModelRegistryCustomProperties>(
+  customProperties: T | undefined,
+): string[] => {
+  if (!customProperties) {
+    return [];
+  }
+
+  const validatedOnString = getCustomPropString(customProperties, 'validated_on');
+
+  if (!validatedOnString) {
+    return [];
+  }
+
+  return validatedOnString
+    .split(',')
+    .map((platform) => platform.trim())
+    .filter((platform) => platform.length > 0);
+};
