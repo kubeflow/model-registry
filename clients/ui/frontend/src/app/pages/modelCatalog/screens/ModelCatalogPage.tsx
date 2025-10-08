@@ -14,7 +14,6 @@ import { ModelCatalogContext } from '~/app/context/modelCatalog/ModelCatalogCont
 import { useCatalogModelsBySources } from '~/app/hooks/modelCatalog/useCatalogModelsBySource';
 import { CatalogModel } from '~/app/modelCatalogTypes';
 import ModelCatalogCard from '~/app/pages/modelCatalog/components/ModelCatalogCard';
-import ValidatedModelCard from '~/app/pages/modelCatalog/components/ValidatedModelCard';
 import { isModelValidated } from '~/app/pages/modelCatalog/utils/modelCatalogUtils';
 import { mockPerformanceMetricsArtifacts } from '~/app/pages/modelCatalog/mocks/hardwareConfigurationMock';
 import { mockAccuracyMetricsArtifacts } from '~/app/pages/modelCatalog/mocks/accuracyMetricsMock';
@@ -70,28 +69,17 @@ const ModelCatalogPage: React.FC<ModelCatalogPageProps> = ({ searchTerm }) => {
   return (
     <>
       <Gallery hasGutter minWidths={{ default: '300px' }}>
-        {catalogModels.items.map((model: CatalogModel) => {
-          // Show ValidatedModelCard for validated models, ModelCatalogCard for others. This will be take care of by Pushpa's PR
-          // that will implement sections for validated and non-validated models.
-          if (isModelValidated(model)) {
-            return (
-              <ValidatedModelCard
-                key={`${model.name}/${model.source_id}`}
-                model={model}
-                source={selectedSource}
-                performanceMetrics={mockPerformanceMetricsArtifacts}
-                accuracyMetrics={mockAccuracyMetricsArtifacts}
-              />
-            );
-          }
-          return (
-            <ModelCatalogCard
-              model={model}
-              source={selectedSource}
-              key={`${model.name}/${model.source_id}`}
-            />
-          );
-        })}
+        {catalogModels.items.map((model: CatalogModel) => (
+          <ModelCatalogCard
+            key={`${model.name}/${model.source_id}`}
+            model={model}
+            source={selectedSource}
+            performanceMetrics={
+              isModelValidated(model) ? mockPerformanceMetricsArtifacts : undefined
+            }
+            accuracyMetrics={isModelValidated(model) ? mockAccuracyMetricsArtifacts : undefined}
+          />
+        ))}
       </Gallery>
       {catalogModels.hasMore && (
         <Flex direction={{ default: 'column' }} gap={{ default: 'gapLg' }}>
