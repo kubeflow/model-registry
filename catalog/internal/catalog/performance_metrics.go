@@ -189,7 +189,7 @@ func processModelDirectory(dirPath string, modelRepo dbmodels.CatalogModelReposi
 	return nil
 }
 
-// createAndSaveModel creates and saves a catalog model from metadata, handling both new and existing models
+// createAndSaveModel creates and saves a catalog model from metadata, skipping if model already exists
 func createAndSaveModel(metadata metadataJSON, dirPath string, modelTypeID int32, modelRepo dbmodels.CatalogModelRepository) (dbmodels.CatalogModel, error) {
 	// Check if a model with this external_id already exists
 	existingModels, err := modelRepo.List(dbmodels.CatalogModelListOptions{
@@ -199,29 +199,21 @@ func createAndSaveModel(metadata metadataJSON, dirPath string, modelTypeID int32
 		return nil, fmt.Errorf("failed to check for existing model: %v", err)
 	}
 
-	// Pass existing model info to create function if it exists
-	var existingID *int32
-	var existingCreateTime *int64
+	// If model already exists, skip creating it
 	if existingModels.Size > 0 {
 		existingModel := existingModels.Items[0]
-		existingID = existingModel.GetID()
-		if existingModel.GetAttributes().CreateTimeSinceEpoch != nil {
-			existingCreateTime = existingModel.GetAttributes().CreateTimeSinceEpoch
-		}
-		glog.V(2).Infof("Updating existing model %s with ID %d", metadata.ID, *existingID)
-	} else {
-		glog.V(2).Infof("Creating new model %s", metadata.ID)
+		glog.V(2).Infof("Model %s already exists with ID %d, skipping", metadata.ID, *existingModel.GetID())
+		return existingModel, nil
 	}
 
-	// Create the catalog model with existing ID if updating
-	dbModel := createDBModelFromMetadata(metadata, dirPath, modelTypeID, existingID, existingCreateTime)
+	glog.V(2).Infof("Creating new model %s", metadata.ID)
+
+	// Create the catalog model for new model (no existing ID)
+	dbModel := createDBModelFromMetadata(metadata, dirPath, modelTypeID, nil, nil)
 
 	// Save the model
 	savedModel, err := modelRepo.Save(dbModel)
 	if err != nil {
-		if existingID != nil {
-			return nil, fmt.Errorf("failed to update existing model in database: %v", err)
-		}
 		return nil, fmt.Errorf("failed to save new model to database: %v", err)
 	}
 
