@@ -138,7 +138,6 @@ describe('Model Catalog Page', () => {
       '@getCatalogModelsBySource',
       '@getCatalogModelsBySource',
       '@getCatalogModelsBySource',
-      '@getCatalogModelsBySource',
     ]).then((interceptions) => {
       const lastInterception = interceptions[interceptions.length - 1];
       expect(lastInterception.request.url).to.include(

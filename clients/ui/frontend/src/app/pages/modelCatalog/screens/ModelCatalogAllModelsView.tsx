@@ -53,7 +53,7 @@ const ModelCatalogAllModelsView: React.FC<ModelCatalogAllModelsViewProps> = ({ s
         pageSize={4}
         catalogSources={catalogSources}
         onShowMore={handleShowMoreCategory}
-        displayName="Community and custom models"
+        displayName="Community and custom"
       />
     </Stack>
   );
