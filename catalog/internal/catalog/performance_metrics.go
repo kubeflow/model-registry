@@ -108,6 +108,8 @@ type performanceRecord struct {
 
 // LoadPerformanceMetricsData loads performance metrics data from the specified directory
 // into the database using the catalog model and artifact repositories.
+// Only loads metrics for models that already exist in the database and where
+// the metrics artifacts don't already exist.
 func LoadPerformanceMetricsData(path []string, modelRepo dbmodels.CatalogModelRepository, metricsArtifactRepo dbmodels.CatalogMetricsArtifactRepository, typeMap map[string]int64) error {
 	if len(path) == 0 {
 		glog.Info("No performance metrics path provided, skipping performance metrics loading")
@@ -191,6 +193,7 @@ func LoadPerformanceMetricsData(path []string, modelRepo dbmodels.CatalogModelRe
 }
 
 // processModelDirectory processes a single model directory containing metadata.json and metric files
+// Only processes metrics for models that already exist in the database
 func processModelDirectory(dirPath string, modelRepo dbmodels.CatalogModelRepository, metricsArtifactRepo dbmodels.CatalogMetricsArtifactRepository, modelTypeID int32, metricsArtifactTypeID int32) error {
 	// Read and parse metadata.json
 	metadataPath := filepath.Join(dirPath, "metadata.json")
@@ -205,16 +208,24 @@ func processModelDirectory(dirPath string, modelRepo dbmodels.CatalogModelReposi
 		return fmt.Errorf("failed to parse metadata file %s: %v", metadataPath, err)
 	}
 
-	// Create and save the catalog model
-	savedModel, err := createAndSaveModel(metadata, dirPath, modelTypeID, modelRepo)
+	// Check if the model already exists - only process metrics for existing models
+	existingModel, err := findExistingModel(metadata, modelRepo)
 	if err != nil {
-		return fmt.Errorf("failed to create/save model: %v", err)
+		return fmt.Errorf("failed to check for existing model: %v", err)
 	}
+
+	// Skip processing if model doesn't exist
+	if existingModel == nil {
+		glog.V(2).Infof("Model %s does not exist in database, skipping metrics processing", metadata.ID)
+		return nil
+	}
+
+	glog.V(2).Infof("Found existing model %s with ID %d, processing metrics", metadata.ID, *existingModel.GetID())
 
 	// Process evaluation metrics if evaluations.ndjson exists and create separate metric artifacts
 	evaluationsPath := filepath.Join(dirPath, "evaluations.ndjson")
 	if _, err := os.Stat(evaluationsPath); err == nil {
-		if err := processEvaluationArtifacts(evaluationsPath, *savedModel.GetID(), metricsArtifactRepo, metricsArtifactTypeID); err != nil {
+		if err := processEvaluationArtifacts(evaluationsPath, *existingModel.GetID(), metricsArtifactRepo, metricsArtifactTypeID); err != nil {
 			glog.Errorf("Failed to process evaluation artifacts for %s: %v", metadata.ID, err)
 		}
 	}
@@ -222,7 +233,7 @@ func processModelDirectory(dirPath string, modelRepo dbmodels.CatalogModelReposi
 	// Process performance metrics if performance.ndjson exists
 	performancePath := filepath.Join(dirPath, "performance.ndjson")
 	if _, err := os.Stat(performancePath); err == nil {
-		if err := processPerformanceArtifacts(performancePath, *savedModel.GetID(), metricsArtifactRepo, metricsArtifactTypeID); err != nil {
+		if err := processPerformanceArtifacts(performancePath, *existingModel.GetID(), metricsArtifactRepo, metricsArtifactTypeID); err != nil {
 			glog.Errorf("Failed to process performance artifacts for %s: %v", metadata.ID, err)
 		}
 	}
@@ -230,8 +241,8 @@ func processModelDirectory(dirPath string, modelRepo dbmodels.CatalogModelReposi
 	return nil
 }
 
-// createAndSaveModel creates and saves a catalog model from metadata, skipping if model already exists
-func createAndSaveModel(metadata metadataJSON, dirPath string, modelTypeID int32, modelRepo dbmodels.CatalogModelRepository) (dbmodels.CatalogModel, error) {
+// findExistingModel checks if a model with the given metadata already exists in the database
+func findExistingModel(metadata metadataJSON, modelRepo dbmodels.CatalogModelRepository) (dbmodels.CatalogModel, error) {
 	// Check if a model with this Name already exists
 	existingModels, err := modelRepo.List(dbmodels.CatalogModelListOptions{
 		Name: &metadata.ID,
@@ -240,195 +251,17 @@ func createAndSaveModel(metadata metadataJSON, dirPath string, modelTypeID int32
 		return nil, fmt.Errorf("failed to check for existing model: %v", err)
 	}
 
-	// If model already exists, skip creating it
+	// Return the existing model if found, nil otherwise
 	if existingModels.Size > 0 {
 		existingModel := existingModels.Items[0]
-		glog.V(2).Infof("Model %s already exists with ID %d, skipping", metadata.ID, *existingModel.GetID())
 		return existingModel, nil
 	}
 
-	glog.V(2).Infof("Creating new model %s", metadata.ID)
-
-	// Create the catalog model for new model (no existing ID)
-	dbModel := createDBModelFromMetadata(metadata, dirPath, modelTypeID)
-
-	// Save the model
-	savedModel, err := modelRepo.Save(dbModel)
-	if err != nil {
-		return nil, fmt.Errorf("failed to save new model to database: %v", err)
-	}
-
-	glog.V(2).Infof("Saved model %s with ID %d", metadata.ID, *savedModel.GetID())
-	return savedModel, nil
-}
-
-// createDBModelFromMetadata converts metadata to a database model, mapping properties and custom properties
-func createDBModelFromMetadata(metadata metadataJSON, dirPath string, typeID int32) *dbmodels.CatalogModelImpl {
-	// Create properties for core CatalogModel fields
-	properties := []models.Properties{
-		{
-			Name:        "source_id",
-			StringValue: stringPtr("performance-metrics"),
-		},
-	}
-
-	// Add core fields if they're not empty
-	if metadata.Description != "" {
-		properties = append(properties, models.Properties{
-			Name:        "description",
-			StringValue: &metadata.Description,
-		})
-	}
-
-	if metadata.Readme != "" {
-		properties = append(properties, models.Properties{
-			Name:        "readme",
-			StringValue: &metadata.Readme,
-		})
-	}
-
-	if metadata.Maturity != "" {
-		properties = append(properties, models.Properties{
-			Name:        "maturity",
-			StringValue: &metadata.Maturity,
-		})
-	}
-
-	if metadata.Provider != "" {
-		properties = append(properties, models.Properties{
-			Name:        "provider",
-			StringValue: &metadata.Provider,
-		})
-	}
-
-	if metadata.Logo != "" {
-		properties = append(properties, models.Properties{
-			Name:        "logo",
-			StringValue: &metadata.Logo,
-		})
-	}
-
-	if metadata.License != "" {
-		properties = append(properties, models.Properties{
-			Name:        "license",
-			StringValue: &metadata.License,
-		})
-	}
-
-	if metadata.LicenseLink != "" {
-		properties = append(properties, models.Properties{
-			Name:        "license_link",
-			StringValue: &metadata.LicenseLink,
-		})
-	}
-
-	if metadata.LibraryName != "" {
-		properties = append(properties, models.Properties{
-			Name:        "library_name",
-			StringValue: &metadata.LibraryName,
-		})
-	}
-
-	// Add language as JSON array
-	if len(metadata.Languages) > 0 {
-		languageJSON, _ := json.Marshal(metadata.Languages)
-		languageStr := string(languageJSON)
-		properties = append(properties, models.Properties{
-			Name:        "language",
-			StringValue: &languageStr,
-		})
-	}
-
-	// Add tasks as JSON array
-	if len(metadata.Tasks) > 0 {
-		tasksJSON, _ := json.Marshal(metadata.Tasks)
-		tasksStr := string(tasksJSON)
-		properties = append(properties, models.Properties{
-			Name:        "tasks",
-			StringValue: &tasksStr,
-		})
-	}
-
-	// Create custom properties from the dynamically captured fields
-	customProperties := []models.Properties{}
-
-	// Add all custom properties from the CustomProperties map
-	for key, value := range metadata.CustomProperties {
-		// Handle different value types
-		switch v := value.(type) {
-		case string:
-			if v != "" {
-				customProperties = append(customProperties, models.Properties{
-					Name:        key,
-					StringValue: &v,
-				})
-			}
-		case []interface{}, map[string]interface{}:
-			// For arrays and objects, marshal to JSON string
-			jsonBytes, err := json.Marshal(v)
-			if err == nil {
-				jsonStr := string(jsonBytes)
-				customProperties = append(customProperties, models.Properties{
-					Name:        key,
-					StringValue: &jsonStr,
-				})
-			}
-		case float64:
-			// Numbers come as float64 from JSON
-			strValue := fmt.Sprintf("%v", v)
-			customProperties = append(customProperties, models.Properties{
-				Name:        key,
-				StringValue: &strValue,
-			})
-		case int64:
-			strValue := fmt.Sprintf("%d", v)
-			customProperties = append(customProperties, models.Properties{
-				Name:        key,
-				StringValue: &strValue,
-			})
-		case bool:
-			strValue := fmt.Sprintf("%t", v)
-			customProperties = append(customProperties, models.Properties{
-				Name:        key,
-				StringValue: &strValue,
-			})
-		default:
-			// For any other type, try to marshal to JSON
-			jsonBytes, err := json.Marshal(v)
-			if err == nil {
-				jsonStr := string(jsonBytes)
-				customProperties = append(customProperties, models.Properties{
-					Name:        key,
-					StringValue: &jsonStr,
-				})
-			}
-		}
-	}
-
-	// Add metadata file path for reference
-	metadataFilePath := filepath.Join(dirPath, "metadata.json")
-	customProperties = append(customProperties, models.Properties{
-		Name:        "metadata_file_path",
-		StringValue: &metadataFilePath,
-	})
-
-	// Create the model with the provided TypeID from the type map
-	model := &dbmodels.CatalogModelImpl{
-		TypeID: &typeID,
-		Attributes: &dbmodels.CatalogModelAttributes{
-			Name:                     &metadata.ID,
-			ExternalID:               &metadata.ID,
-			CreateTimeSinceEpoch:     &metadata.CreatedAt,
-			LastUpdateTimeSinceEpoch: &metadata.UpdatedAt,
-		},
-		Properties:       &properties,
-		CustomProperties: &customProperties,
-	}
-
-	return model
+	return nil, nil
 }
 
 // processEvaluationArtifacts processes evaluation metrics from evaluations.ndjson and creates a single accuracy-metrics artifact
+// Only creates the artifact if it doesn't already exist in the database
 func processEvaluationArtifacts(filePath string, modelID int32, metricsArtifactRepo dbmodels.CatalogMetricsArtifactRepository, metricsArtifactTypeID int32) error {
 	file, err := os.Open(filePath)
 	if err != nil {
@@ -475,22 +308,17 @@ func processEvaluationArtifacts(filePath string, modelID int32, metricsArtifactR
 		return fmt.Errorf("failed to check for existing accuracy metrics artifact: %v", err)
 	}
 
-	// Pass existing artifact info to create function if it exists
-	var existingID *int32
-	var existingCreateTime *int64
+	// Skip creating artifact if it already exists
 	if existingArtifacts.Size > 0 {
 		existingArtifact := existingArtifacts.Items[0]
-		existingID = existingArtifact.GetID()
-		if existingArtifact.GetAttributes().CreateTimeSinceEpoch != nil {
-			existingCreateTime = existingArtifact.GetAttributes().CreateTimeSinceEpoch
-		}
-		glog.V(2).Infof("Updating existing accuracy metrics artifact with ID %d", *existingID)
-	} else {
-		glog.V(2).Infof("Creating new accuracy metrics artifact")
+		glog.V(2).Infof("Accuracy metrics artifact already exists with ID %d, skipping", *existingArtifact.GetID())
+		return nil
 	}
 
-	// Create artifact with existing ID if updating
-	artifact := createAccuracyMetricsArtifact(evaluationRecords, modelID, metricsArtifactTypeID, existingID, existingCreateTime)
+	glog.V(2).Infof("Creating new accuracy metrics artifact")
+
+	// Create artifact (no existing ID since we're only creating new ones)
+	artifact := createAccuracyMetricsArtifact(evaluationRecords, modelID, metricsArtifactTypeID, nil, nil)
 
 	// Save artifact to database
 	if _, err := metricsArtifactRepo.Save(artifact, &modelID); err != nil {
@@ -502,6 +330,7 @@ func processEvaluationArtifacts(filePath string, modelID int32, metricsArtifactR
 }
 
 // processPerformanceArtifacts processes performance metrics from performance.ndjson
+// Only creates artifacts that don't already exist in the database
 func processPerformanceArtifacts(filePath string, modelID int32, metricsArtifactRepo dbmodels.CatalogMetricsArtifactRepository, metricsArtifactTypeID int32) error {
 	file, err := os.Open(filePath)
 	if err != nil {
@@ -534,22 +363,17 @@ func processPerformanceArtifacts(filePath string, modelID int32, metricsArtifact
 			continue
 		}
 
-		// Pass existing artifact info to create function if it exists
-		var existingID *int32
-		var existingCreateTime *int64
+		// Skip creating artifact if it already exists
 		if existingArtifacts.Size > 0 {
 			existingArtifact := existingArtifacts.Items[0]
-			existingID = existingArtifact.GetID()
-			if existingArtifact.GetAttributes().CreateTimeSinceEpoch != nil {
-				existingCreateTime = existingArtifact.GetAttributes().CreateTimeSinceEpoch
-			}
-			glog.V(2).Infof("Updating existing performance artifact %s with ID %d", perfRecord.ID, *existingID)
-		} else {
-			glog.V(2).Infof("Creating new performance artifact %s", perfRecord.ID)
+			glog.V(2).Infof("Performance artifact %s already exists with ID %d, skipping", perfRecord.ID, *existingArtifact.GetID())
+			continue
 		}
 
-		// Create artifact with existing ID if updating
-		artifact := createPerformanceArtifact(perfRecord, modelID, metricsArtifactTypeID, existingID, existingCreateTime)
+		glog.V(2).Infof("Creating new performance artifact %s", perfRecord.ID)
+
+		// Create artifact (no existing ID since we're only creating new ones)
+		artifact := createPerformanceArtifact(perfRecord, modelID, metricsArtifactTypeID, nil, nil)
 
 		// Save artifact to database
 		if _, err := metricsArtifactRepo.Save(artifact, &modelID); err != nil {
