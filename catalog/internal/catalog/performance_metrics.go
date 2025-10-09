@@ -15,70 +15,22 @@ import (
 	"github.com/kubeflow/model-registry/internal/db/models"
 )
 
-// metadataJSON represents the structure of metadata.json files
-// Core fields are those defined by CatalogModel (BaseModel + BaseResource)
-// All other fields are captured dynamically in CustomProperties
+// metadataJSON represents the minimal structure needed from metadata.json files
+// Only the ID field is needed to look up existing models
 type metadataJSON struct {
-	// Core fields defined by CatalogModel/BaseResource
-	ID          string   `json:"id"`            // Maps to name and externalId
-	Description string   `json:"description"`   // From BaseModel
-	Readme      string   `json:"readme"`        // From BaseModel
-	Maturity    string   `json:"maturity"`      // From BaseModel
-	Languages   []string `json:"languages"`     // Maps to "language" from BaseModel
-	Tasks       []string `json:"tasks"`         // From BaseModel
-	Provider    string   `json:"provider_name"` // Maps to "provider" from BaseModel
-	Logo        string   `json:"logo"`          // From BaseModel
-	License     string   `json:"license"`       // From BaseModel
-	LicenseLink string   `json:"license_link"`  // Maps to "licenseLink" from BaseModel
-	LibraryName string   `json:"library_name"`  // Maps to "libraryName" from BaseModel
-	CreatedAt   int64    `json:"created_at"`    // Maps to createTimeSinceEpoch from BaseResource
-	UpdatedAt   int64    `json:"updated_at"`    // Maps to lastUpdateTimeSinceEpoch from BaseResource
-
-	// CustomProperties captures any additional fields not defined above
-	CustomProperties map[string]interface{} `json:"-"`
+	ID string `json:"id"` // Maps to model name for lookup
 }
 
-// parseMetadataJSON parses JSON data into metadataJSON struct, capturing unknown fields as custom properties
+// parseMetadataJSON parses JSON data into metadataJSON struct, extracting only the ID field
 func parseMetadataJSON(data []byte) (metadataJSON, error) {
-	// First, unmarshal into a map to capture all fields
-	var allFields map[string]interface{}
-	if err := json.Unmarshal(data, &allFields); err != nil {
+	var metadata metadataJSON
+	if err := json.Unmarshal(data, &metadata); err != nil {
 		return metadataJSON{}, fmt.Errorf("failed to unmarshal JSON: %v", err)
 	}
 
-	// Define the known fields that should not be included in custom properties
-	knownFields := map[string]bool{
-		"id":            true,
-		"description":   true,
-		"readme":        true,
-		"maturity":      true,
-		"languages":     true,
-		"tasks":         true,
-		"provider_name": true,
-		"logo":          true,
-		"license":       true,
-		"license_link":  true,
-		"library_name":  true,
-		"created_at":    true,
-		"updated_at":    true,
+	if metadata.ID == "" {
+		return metadataJSON{}, fmt.Errorf("missing required 'id' field in metadata")
 	}
-
-	// Extract custom properties (fields not in the known list)
-	customProperties := make(map[string]interface{})
-	for key, value := range allFields {
-		if !knownFields[key] {
-			customProperties[key] = value
-		}
-	}
-
-	// Now unmarshal into the structured type for the known fields
-	var metadata metadataJSON
-	if err := json.Unmarshal(data, &metadata); err != nil {
-		return metadataJSON{}, fmt.Errorf("failed to unmarshal into structured type: %v", err)
-	}
-
-	// Add the custom properties
-	metadata.CustomProperties = customProperties
 
 	return metadata, nil
 }
@@ -195,14 +147,14 @@ func LoadPerformanceMetricsData(path []string, modelRepo dbmodels.CatalogModelRe
 // processModelDirectory processes a single model directory containing metadata.json and metric files
 // Only processes metrics for models that already exist in the database
 func processModelDirectory(dirPath string, modelRepo dbmodels.CatalogModelRepository, metricsArtifactRepo dbmodels.CatalogMetricsArtifactRepository, modelTypeID int32, metricsArtifactTypeID int32) error {
-	// Read and parse metadata.json
+	// Read and parse metadata.json to extract the model ID
 	metadataPath := filepath.Join(dirPath, "metadata.json")
 	metadataData, err := os.ReadFile(metadataPath)
 	if err != nil {
 		return fmt.Errorf("failed to read metadata file %s: %v", metadataPath, err)
 	}
 
-	// Parse metadata with dynamic field capture
+	// Parse metadata to extract the model ID for lookup
 	metadata, err := parseMetadataJSON(metadataData)
 	if err != nil {
 		return fmt.Errorf("failed to parse metadata file %s: %v", metadataPath, err)
@@ -534,9 +486,4 @@ func createPerformanceArtifact(perfRecord performanceRecord, modelID int32, type
 	}
 
 	return metricsArtifact
-}
-
-// stringPtr is a helper function to create a pointer to a string
-func stringPtr(s string) *string {
-	return &s
 }
