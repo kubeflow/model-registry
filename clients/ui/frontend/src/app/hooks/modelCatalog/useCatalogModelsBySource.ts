@@ -91,6 +91,8 @@ export const useCatalogModelsBySources = (
           nextPageToken,
         },
         searchQuery.trim() || undefined,
+        filterData,
+        filterOptions,
       );
 
       setAllItems((prev) => [...prev, ...response.items]);
@@ -112,6 +114,8 @@ export const useCatalogModelsBySources = (
     nextPageToken,
     isLoadingMore,
     sourceLabel,
+    filterData,
+    filterOptions,
   ]);
 
   React.useEffect(() => {
@@ -119,7 +123,7 @@ export const useCatalogModelsBySources = (
     setTotalSize(0);
     setNextPageToken('');
     setIsLoadingMore(false);
-  }, [sourceId, searchQuery, sourceLabel]);
+  }, [sourceId, searchQuery, sourceLabel, filterData, filterOptions]);
 
   const refresh = React.useCallback(() => {
     setAllItems([]);

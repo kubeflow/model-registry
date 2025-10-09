@@ -113,7 +113,6 @@ export const ModelCatalogContextProvider: React.FC<ModelCatalogContextProviderPr
       filterOptions,
       filterOptionsLoaded,
       filterOptionsLoadError,
-      ,
       selectedSourceLabel,
     ],
   );
