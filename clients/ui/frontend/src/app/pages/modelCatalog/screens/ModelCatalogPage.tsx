@@ -82,7 +82,7 @@ const ModelCatalogPage: React.FC<ModelCatalogPageProps> = ({ searchTerm }) => {
         ))}
       </Gallery>
       {catalogModels.hasMore && (
-        <Bullseye className="pf-v6-m-mt-lg">
+        <Bullseye className="pf-v6-u-mt-lg">
           {catalogModels.isLoadingMore ? (
             <Flex
               direction={{ default: 'column' }}
