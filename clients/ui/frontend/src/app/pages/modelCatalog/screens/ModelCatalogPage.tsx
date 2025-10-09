@@ -18,7 +18,10 @@ import { isModelValidated } from '~/app/pages/modelCatalog/utils/modelCatalogUti
 import { mockPerformanceMetricsArtifacts } from '~/app/pages/modelCatalog/mocks/hardwareConfigurationMock';
 import { mockAccuracyMetricsArtifacts } from '~/app/pages/modelCatalog/mocks/accuracyMetricsMock';
 import EmptyModelCatalogState from '~/app/pages/modelCatalog/EmptyModelCatalogState';
-import { getSourceFromSourceId } from '~/app/pages/modelCatalog/utils/modelCatalogUtils';
+import {
+  getSourceFromSourceId,
+  hasFiltersApplied,
+} from '~/app/pages/modelCatalog/utils/modelCatalogUtils';
 
 type ModelCatalogPageProps = {
   searchTerm: string;
@@ -34,6 +37,7 @@ const ModelCatalogPage: React.FC<ModelCatalogPageProps> = ({ searchTerm, handleF
     filterOptionsLoadError,
     catalogSources,
   } = React.useContext(ModelCatalogContext);
+  const filtersApplied = hasFiltersApplied(filterData);
 
   const { catalogModels, catalogModelsLoaded, catalogModelsLoadError } = useCatalogModelsBySources(
     '',
@@ -66,7 +70,18 @@ const ModelCatalogPage: React.FC<ModelCatalogPageProps> = ({ searchTerm, handleF
     );
   }
 
-  if (catalogModels.items.length === 0) {
+  if (catalogModels.items.length === 0 && !searchTerm && !filtersApplied) {
+    return (
+      <EmptyModelCatalogState
+        testid="empty-model-catalog-state"
+        title="No result found"
+        headerIcon={SearchIcon}
+        description="Adjust your filters and try again."
+      />
+    );
+  }
+
+  if (catalogModels.items.length === 0 && (searchTerm || filtersApplied)) {
     return (
       <EmptyModelCatalogState
         testid="empty-model-catalog-state"

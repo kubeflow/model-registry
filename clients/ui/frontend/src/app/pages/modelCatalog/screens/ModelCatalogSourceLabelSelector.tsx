@@ -65,6 +65,7 @@ const ModelCatalogSourceLabelSelector: React.FC<ModelCatalogSourceLabelSelectorP
                 <ToolbarGroup variant="filter-group" gap={{ default: 'gapMd' }} alignItems="center">
                   <ToolbarItem>
                     <ThemeAwareSearchInput
+                      dara-testid="search-input"
                       fieldLabel="Filter by name, description and provider"
                       aria-label="Search with submit button"
                       className="toolbar-fieldset-wrapper"
@@ -83,7 +84,7 @@ const ModelCatalogSourceLabelSelector: React.FC<ModelCatalogSourceLabelSelectorP
                       <Button
                         isInline
                         aria-label="arrow-right-button"
-                        data-testid="versions-route-link"
+                        data-testid="search-button"
                         variant="link"
                         icon={<ArrowRightIcon />}
                         iconPosition="right"

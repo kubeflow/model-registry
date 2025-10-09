@@ -71,6 +71,30 @@ class ModelCatalog {
     return this;
   }
 
+  findAllModelsToggle() {
+    return cy.findByTestId('all');
+  }
+
+  findCategoryToggle(category: string) {
+    return cy.findByTestId(category);
+  }
+
+  findCategoryTitle(category: string) {
+    return cy.findByTestId(['title', category]);
+  }
+
+  findShowMoreModelsLink(category: string) {
+    return cy.findByTestId(['show-more-button', category]);
+  }
+
+  findErrorState(category: string) {
+    return cy.findByTestId(['error-state', category]);
+  }
+
+  findEmptyState(category: string) {
+    return cy.findByTestId(['empty-model-catalog-state', category]);
+  }
+
   findModelCatalogEmptyState() {
     return cy.findByTestId('empty-model-catalog-state');
   }

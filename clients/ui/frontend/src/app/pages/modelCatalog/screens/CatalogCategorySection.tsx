@@ -52,7 +52,7 @@ const CatalogCategorySection: React.FC<CategorySectionProps> = ({
           justifyContent={{ default: 'justifyContentSpaceBetween' }}
         >
           <FlexItem>
-            <Title headingLevel="h3" size="lg" data-testid={label}>
+            <Title headingLevel="h3" size="lg" data-testid={`title ${label}`}>
               {`${displayName ?? label} models`}
             </Title>
           </FlexItem>
@@ -64,7 +64,7 @@ const CatalogCategorySection: React.FC<CategorySectionProps> = ({
                 isInline
                 icon={<ArrowRightIcon />}
                 iconPosition="right"
-                data-testid={`show-more-button-${label.toLowerCase().replace(/\s+/g, '-')}`}
+                data-testid={`show-more-button ${label.toLowerCase().replace(/\s+/g, '-')}`}
                 onClick={() => handleShowMoreCategory(label)}
               >
                 Show all {displayName ?? label} models
@@ -75,7 +75,11 @@ const CatalogCategorySection: React.FC<CategorySectionProps> = ({
       </StackItem>
       <StackItem className="pf-v6-u-pb-xl">
         {catalogModelsLoadError ? (
-          <Alert variant="warning" title={`Failed to load ${label} models`}>
+          <Alert
+            variant="danger"
+            title={`Failed to load ${displayName ?? label} models`}
+            data-testid={`error-state ${label}`}
+          >
             {catalogModelsLoadError.message}
           </Alert>
         ) : !catalogModelsLoaded ? (
@@ -92,7 +96,7 @@ const CatalogCategorySection: React.FC<CategorySectionProps> = ({
           </Gallery>
         ) : catalogModels.items.length === 0 ? (
           <EmptyModelCatalogState
-            testid="empty-model-catalog-state"
+            testid={`empty-model-catalog-state ${label}`}
             title="No result found"
             headerIcon={SearchIcon}
             description="Adjust your filters and try again."
