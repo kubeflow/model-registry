@@ -102,7 +102,7 @@ func (m *ModelCatalogServiceAPIService) FindModelsFilterOptions(ctx context.Cont
 	return Response(http.StatusOK, filterOptions), nil
 }
 
-func (m *ModelCatalogServiceAPIService) GetModel(ctx context.Context, sourceID, modelName string) (ImplResponse, error) {
+func (m *ModelCatalogServiceAPIService) GetModel(ctx context.Context, sourceID string, modelName string) (ImplResponse, error) {
 	if name, ok := strings.CutSuffix(modelName, "/artifacts"); ok {
 		return m.GetAllModelArtifacts(ctx, sourceID, name, "10", model.OrderByField(model.ORDERBYFIELD_CREATE_TIME), model.SortOrder(model.SORTORDER_ASC), "", "")
 	}
