@@ -78,7 +78,7 @@ func (r *CatalogArtifactRepositoryImpl) List(listOptions models.CatalogArtifactL
 	}
 
 	// Filter by artifact type if specified
-	if listOptions.ArtifactType != nil {
+	if listOptions.ArtifactType != nil && *listOptions.ArtifactType != "" {
 		typeID, err := r.getTypeIDFromArtifactType(*listOptions.ArtifactType)
 		if err != nil {
 			return nil, fmt.Errorf("invalid catalog artifact type %s: %w", *listOptions.ArtifactType, err)

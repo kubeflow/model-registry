@@ -64,7 +64,7 @@ func (c *ModelCatalogServiceAPIController) Routes() Routes {
 		},
 		"GetModel": Route{
 			strings.ToUpper("Get"),
-			"/api/model_catalog/v1alpha1/sources/{source_id}/models/*",
+			"/api/model_catalog/v1alpha1/sources/{source_id}/models/{model_name+}",
 			c.GetModel,
 		},
 		"GetAllModelArtifacts": Route{
@@ -115,7 +115,7 @@ func (c *ModelCatalogServiceAPIController) FindSources(w http.ResponseWriter, r 
 // GetModel - Get a `CatalogModel`.
 func (c *ModelCatalogServiceAPIController) GetModel(w http.ResponseWriter, r *http.Request) {
 	sourceIdParam := chi.URLParam(r, "source_id")
-	modelNameParam := chi.URLParam(r, "*")
+	modelNameParam := chi.URLParam(r, "model_name+")
 	result, err := c.service.GetModel(r.Context(), sourceIdParam, modelNameParam)
 	// If an error occurred, encode the error with the status code
 	if err != nil {
@@ -131,11 +131,12 @@ func (c *ModelCatalogServiceAPIController) GetAllModelArtifacts(w http.ResponseW
 	query := r.URL.Query()
 	sourceIdParam := chi.URLParam(r, "source_id")
 	modelNameParam := chi.URLParam(r, "model_name")
+	artifactTypeParam := query.Get("artifact_type")
 	pageSizeParam := query.Get("pageSize")
 	orderByParam := query.Get("orderBy")
 	sortOrderParam := query.Get("sortOrder")
 	nextPageTokenParam := query.Get("nextPageToken")
-	result, err := c.service.GetAllModelArtifacts(r.Context(), sourceIdParam, modelNameParam, pageSizeParam, model.OrderByField(orderByParam), model.SortOrder(sortOrderParam), nextPageTokenParam)
+	result, err := c.service.GetAllModelArtifacts(r.Context(), sourceIdParam, modelNameParam, artifactTypeParam, pageSizeParam, model.OrderByField(orderByParam), model.SortOrder(sortOrderParam), nextPageTokenParam)
 	// If an error occurred, encode the error with the status code
 	if err != nil {
 		c.errorHandler(w, r, err, &result)

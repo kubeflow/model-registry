@@ -20,6 +20,7 @@ type ListArtifactsParams struct {
 	OrderBy       model.OrderByField
 	SortOrder     model.SortOrder
 	NextPageToken *string
+	ArtifactType  *string
 }
 
 // APIProvider implements the API endpoints.
