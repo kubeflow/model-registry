@@ -6,6 +6,7 @@ import (
 	"math"
 	"strings"
 
+	"github.com/kubeflow/model-registry/catalog/internal/db/filter"
 	"github.com/kubeflow/model-registry/catalog/internal/db/models"
 	dbmodels "github.com/kubeflow/model-registry/internal/db/models"
 	"github.com/kubeflow/model-registry/internal/db/schema"
@@ -35,6 +36,7 @@ func NewCatalogModelRepository(db *gorm.DB, typeID int64) models.CatalogModelRep
 		ApplyListFilters:    applyCatalogModelListFilters,
 		IsNewEntity:         func(entity models.CatalogModel) bool { return entity.GetID() == nil },
 		HasCustomProperties: func(entity models.CatalogModel) bool { return entity.GetCustomProperties() != nil },
+		EntityMappingFuncs:  filter.NewCatalogEntityMappings(),
 	})
 
 	return r

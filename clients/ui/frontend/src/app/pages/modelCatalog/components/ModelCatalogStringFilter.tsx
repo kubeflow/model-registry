@@ -64,6 +64,9 @@ const ModelCatalogStringFilter = <K extends ModelCatalogStringFilterKey>({
           onChange={(_event, newValue) => onSearchChange(newValue)}
         />
       )}
+      {visibleValues.length === 0 && (
+        <div data-testid={`${title}-filter-empty`}>No results found</div>
+      )}
       {visibleValues.map((checkbox) => (
         <Checkbox
           data-testid={`${title}-${checkbox}-checkbox`}

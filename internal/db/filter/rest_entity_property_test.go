@@ -182,7 +182,7 @@ func TestQueryBuilderWithPropertyTypeDistinction(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			// Create REST entity-aware query builder
-			qb := NewQueryBuilderForRestEntity(tt.restEntityType)
+			qb := NewQueryBuilderForRestEntity(tt.restEntityType, nil)
 
 			// Verify the query builder was created with correct types
 			if qb.restEntityType != tt.restEntityType {

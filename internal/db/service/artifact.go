@@ -97,7 +97,7 @@ func (r *ArtifactRepositoryImpl) List(listOptions models.ArtifactListOptions) (*
 		query = query.Where(utils.GetTableName(r.db, &schema.Artifact{})+".type_id = ?", typeID)
 	}
 
-	query, err := applyFilterQuery(query, &listOptions)
+	query, err := applyFilterQuery(query, &listOptions, nil)
 	if err != nil {
 		return nil, err
 	}
