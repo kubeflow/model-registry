@@ -79,7 +79,7 @@ func runCatalogServer(cmd *cobra.Command, args []string) error {
 	), sources)
 	ctrl := openapi.NewModelCatalogServiceAPIController(svc)
 
-	_, err = catalog.LoadPerformanceMetricsData(catalogCfg.PerformanceMetricsPath, modelRepo, metricsArtifactRepo, repoSet.TypeMap())
+	err = catalog.LoadPerformanceMetricsData(catalogCfg.PerformanceMetricsPath, modelRepo, metricsArtifactRepo, repoSet.TypeMap())
 	if err != nil {
 		return fmt.Errorf("error loading performance metrics data: %v", err)
 	}

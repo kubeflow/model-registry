@@ -243,6 +243,21 @@ func mapDBModelToAPIModel(m dbmodels.CatalogModel) apimodels.CatalogModel {
 		}
 	}
 
+	// Map custom properties
+	if m.GetCustomProperties() != nil && len(*m.GetCustomProperties()) > 0 {
+		customProps := make(map[string]apimodels.MetadataValue, len(*m.GetCustomProperties()))
+		for _, prop := range *m.GetCustomProperties() {
+			if prop.StringValue != nil {
+				customProps[prop.Name] = apimodels.MetadataStringValueAsMetadataValue(
+					apimodels.NewMetadataStringValue(*prop.StringValue, "MetadataStringValue"),
+				)
+			}
+		}
+		if len(customProps) > 0 {
+			res.CustomProperties = &customProps
+		}
+	}
+
 	return res
 }
 
