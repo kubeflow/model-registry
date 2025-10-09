@@ -73,7 +73,7 @@ const CatalogCategorySection: React.FC<CategorySectionProps> = ({
           )}
         </Flex>
       </StackItem>
-      <StackItem style={{ paddingBottom: '20px' }}>
+      <StackItem className="pf-v6-u-pb-xl">
         {catalogModelsLoadError ? (
           <Alert variant="warning" title={`Failed to load ${label} models`}>
             {catalogModelsLoadError.message}
