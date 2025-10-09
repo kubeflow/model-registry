@@ -184,6 +184,61 @@ func (d *dbCatalogImpl) GetArtifacts(ctx context.Context, modelName string, sour
 	return *artifactList, nil
 }
 
+func (d *dbCatalogImpl) GetFilterOptions(ctx context.Context) (*apimodels.FilterOptionsList, error) {
+	// Max length threshold for filter values (excludes verbose fields like readme, description)
+	const maxFilterValueLength = 100
+
+	// Query database for filterable properties
+	filterableProps, err := d.catalogModelRepository.GetFilterableProperties(maxFilterValueLength)
+	if err != nil {
+		return nil, err
+	}
+
+	// Build FilterOptionsList
+	options := make(map[string]apimodels.FilterOption)
+
+	// Process each property and its values
+	for fieldName, values := range filterableProps {
+		// Skip internal/technical fields that shouldn't be exposed as filters
+		if fieldName == "source_id" || fieldName == "logo" || fieldName == "license_link" {
+			continue
+		}
+
+		// Deduplicate values
+		uniqueValues := make(map[string]bool)
+
+		// Parse JSON arrays for fields like language and tasks
+		for _, value := range values {
+			var arrayValues []string
+			if err := json.Unmarshal([]byte(value), &arrayValues); err == nil {
+				// Successfully parsed as array, add individual values
+				for _, v := range arrayValues {
+					uniqueValues[v] = true
+				}
+			} else {
+				// Not a JSON array
+				uniqueValues[value] = true
+			}
+		}
+
+		if len(uniqueValues) > 0 {
+			expandedValues := make([]interface{}, 0, len(uniqueValues))
+			for v := range uniqueValues {
+				expandedValues = append(expandedValues, v)
+			}
+
+			options[fieldName] = apimodels.FilterOption{
+				Type:   "string",
+				Values: expandedValues,
+			}
+		}
+	}
+
+	return &apimodels.FilterOptionsList{
+		Filters: &options,
+	}, nil
+}
+
 func mapDBModelToAPIModel(m dbmodels.CatalogModel) apimodels.CatalogModel {
 	res := apimodels.CatalogModel{}
 

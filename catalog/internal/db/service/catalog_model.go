@@ -231,3 +231,53 @@ func mapDataLayerToCatalogModel(modelCtx schema.Context, propertiesCtx []schema.
 
 	return catalogModel
 }
+
+// GetFilterableProperties returns property names and their unique values
+// Only includes properties where ALL values are shorter than maxLength
+func (r *CatalogModelRepositoryImpl) GetFilterableProperties(maxLength int) (map[string][]string, error) {
+	config := r.GetConfig()
+
+	// Simplified query: get distinct property name/value pairs
+	query := `
+		SELECT DISTINCT cp.name, cp.string_value
+		FROM "ContextProperty" cp
+		WHERE cp.context_id IN (
+			SELECT id FROM "Context" WHERE type_id = ?
+		)
+		AND cp.name IN (
+			-- Only include property names where max length is within threshold
+			SELECT name FROM (
+				SELECT name, MAX(CHAR_LENGTH(string_value)) as max_len
+				FROM "ContextProperty"
+				WHERE context_id IN (
+					SELECT id FROM "Context" WHERE type_id = ?
+				)
+				AND string_value IS NOT NULL
+				AND string_value != ''
+				GROUP BY name
+			) AS field_lengths
+			WHERE max_len <= ?
+		)
+		AND cp.string_value IS NOT NULL
+		AND cp.string_value != ''
+		ORDER BY cp.name, cp.string_value
+	`
+
+	type propertyRow struct {
+		Name        string
+		StringValue string
+	}
+
+	var rows []propertyRow
+	if err := config.DB.Raw(query, config.TypeID, config.TypeID, maxLength).Scan(&rows).Error; err != nil {
+		return nil, fmt.Errorf("error querying filterable properties: %w", err)
+	}
+
+	// Aggregate values by property name in Go
+	result := make(map[string][]string)
+	for _, row := range rows {
+		result[row.Name] = append(result[row.Name], row.StringValue)
+	}
+
+	return result, nil
+}
