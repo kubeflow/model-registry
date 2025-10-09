@@ -283,10 +283,8 @@ func AssertFilterOptionRequired(obj model.FilterOption) error {
 		}
 	}
 
-	if obj.Range != nil {
-		if err := AssertFilterOptionRangeRequired(*obj.Range); err != nil {
-			return err
-		}
+	if err := AssertFilterOptionRangeRequired(obj.Range); err != nil {
+		return err
 	}
 	return nil
 }
