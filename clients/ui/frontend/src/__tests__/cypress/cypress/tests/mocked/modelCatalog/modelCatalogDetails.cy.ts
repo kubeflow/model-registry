@@ -9,6 +9,7 @@ import { modelCatalog } from '~/__tests__/cypress/cypress/pages/modelCatalog';
 import { mockModelRegistry } from '~/__mocks__/mockModelRegistry';
 import type { CatalogSource } from '~/app/modelCatalogTypes';
 import { MODEL_CATALOG_API_VERSION } from '~/__tests__/cypress/cypress/support/commands/api';
+import { mockCatalogFilterOptionsList } from '~/__mocks__/mockCatalogFilterOptionsList';
 
 type HandlersProps = {
   sources?: CatalogSource[];
@@ -60,6 +61,15 @@ const initIntercepts = ({
       },
     },
     mockCatalogModelArtifactList({}),
+  );
+
+  cy.interceptApi(
+    `GET /api/:apiVersion/model_catalog/models/filter_options`,
+    {
+      path: { apiVersion: MODEL_CATALOG_API_VERSION },
+      query: { namespace: 'kubeflow' },
+    },
+    mockCatalogFilterOptionsList(),
   );
 };
 

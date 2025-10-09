@@ -1,4 +1,5 @@
 import * as React from 'react';
+import { Divider, StackItem } from '@patternfly/react-core';
 import ModelCatalogStringFilter from '~/app/pages/modelCatalog/components/ModelCatalogStringFilter';
 import {
   ModelCatalogStringFilterKey,
@@ -20,12 +21,17 @@ const ProviderFilter: React.FC<ProviderFilterProps> = ({ filters }) => {
   }
 
   return (
-    <ModelCatalogStringFilter<ModelCatalogStringFilterKey.PROVIDER>
-      title="Provider"
-      filterKey={filterKey}
-      filterToNameMapping={MODEL_CATALOG_PROVIDER_NAME_MAPPING}
-      filters={provider}
-    />
+    <>
+      <StackItem>
+        <ModelCatalogStringFilter<ModelCatalogStringFilterKey.PROVIDER>
+          title="Provider"
+          filterKey={filterKey}
+          filterToNameMapping={MODEL_CATALOG_PROVIDER_NAME_MAPPING}
+          filters={provider}
+        />
+      </StackItem>
+      <Divider />
+    </>
   );
 };
 

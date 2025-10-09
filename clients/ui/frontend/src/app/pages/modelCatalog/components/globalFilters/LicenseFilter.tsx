@@ -1,4 +1,5 @@
 import * as React from 'react';
+import { Divider, StackItem } from '@patternfly/react-core';
 import ModelCatalogStringFilter from '~/app/pages/modelCatalog/components/ModelCatalogStringFilter';
 import {
   ModelCatalogStringFilterKey,
@@ -20,12 +21,17 @@ const LicenseFilter: React.FC<LicenseFilterProps> = ({ filters }) => {
   }
 
   return (
-    <ModelCatalogStringFilter<ModelCatalogStringFilterKey.LICENSE>
-      title="License"
-      filterKey={filterKey}
-      filterToNameMapping={MODEL_CATALOG_LICENSE_NAME_MAPPING}
-      filters={license}
-    />
+    <>
+      <StackItem>
+        <ModelCatalogStringFilter<ModelCatalogStringFilterKey.LICENSE>
+          title="License"
+          filterKey={filterKey}
+          filterToNameMapping={MODEL_CATALOG_LICENSE_NAME_MAPPING}
+          filters={license}
+        />
+      </StackItem>
+      <Divider />
+    </>
   );
 };
 
