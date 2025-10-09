@@ -398,7 +398,11 @@ func newYamlModelProvider(ctx context.Context, source *Source, reldir string) (<
 		return nil, fmt.Errorf("missing %s string property", yamlCatalogPathKey)
 	}
 
-	p.path = filepath.Join(reldir, path)
+	if filepath.IsAbs(path) {
+		p.path = path
+	} else {
+		p.path = filepath.Join(reldir, path)
+	}
 
 	// Excluded models is an optional source property.
 	if _, exists := source.Properties[excludedModelsKey]; exists {

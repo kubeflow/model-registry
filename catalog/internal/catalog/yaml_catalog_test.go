@@ -2,6 +2,8 @@ package catalog
 
 import (
 	"encoding/json"
+	"os"
+	"path/filepath"
 	"slices"
 	"testing"
 
@@ -436,4 +438,57 @@ func TestYamlModelToModelProviderRecord(t *testing.T) {
 			tt.validateFunc(t, record)
 		})
 	}
+}
+
+func TestNewYamlModelProviderAbsolutePath(t *testing.T) {
+	// Create a temporary YAML file
+	tempDir, err := os.MkdirTemp("", "yaml_catalog_test")
+	require.NoError(t, err)
+	defer os.RemoveAll(tempDir)
+
+	yamlContent := `
+source: test
+models:
+  - name: test-model
+    description: A test model
+`
+
+	absolutePath := filepath.Join(tempDir, "catalog.yaml")
+	err = os.WriteFile(absolutePath, []byte(yamlContent), 0644)
+	require.NoError(t, err)
+
+	// Test that absolute paths work correctly (bug fix)
+	t.Run("absolute path works correctly", func(t *testing.T) {
+		source := &Source{
+			Properties: map[string]interface{}{
+				yamlCatalogPathKey: absolutePath, // Use absolute path to existing file
+			},
+		}
+
+		// Use a different reldir - this shouldn't matter for absolute paths
+		reldir := "/some/other/directory"
+
+		_, err := newYamlModelProvider(t.Context(), source, reldir)
+
+		// This should succeed because we provided a valid absolute path
+		require.NoError(t, err, "Absolute path should work without reldir being prepended")
+	})
+
+	// Test that relative paths work correctly
+	t.Run("relative path works correctly", func(t *testing.T) {
+		// Create the expected structure for relative path
+		reldir := tempDir
+		relativePath := "catalog.yaml"
+
+		source := &Source{
+			Properties: map[string]interface{}{
+				yamlCatalogPathKey: relativePath,
+			},
+		}
+
+		_, err := newYamlModelProvider(t.Context(), source, reldir)
+
+		// This should work because filepath.Join(reldir, relativePath) points to our file
+		require.NoError(t, err, "Relative paths should work correctly")
+	})
 }
