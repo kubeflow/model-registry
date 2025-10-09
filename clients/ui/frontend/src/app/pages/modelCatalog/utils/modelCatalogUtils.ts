@@ -226,3 +226,6 @@ export const getSourceFromSourceId = (
 
   return catalogSources.items.find((source) => source.id === sourceId);
 };
+
+export const hasFiltersApplied = (filterData: ModelCatalogFilterStates): boolean =>
+  Object.values(filterData).some((value) => Array.isArray(value) && value.length > 0);

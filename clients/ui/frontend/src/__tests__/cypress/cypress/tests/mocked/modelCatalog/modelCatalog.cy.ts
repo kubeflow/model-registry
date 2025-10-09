@@ -33,7 +33,9 @@ const initIntercepts = ({
         `GET /api/:apiVersion/model_catalog/models`,
         {
           path: { apiVersion: MODEL_CATALOG_API_VERSION },
-          query: { sourceLabel: label },
+          query: {
+            sourceLabel: label,
+          },
         },
         mockCatalogModelList({
           items: Array.from({ length: modelsPerCategory }, (_, i) =>
@@ -115,9 +117,19 @@ describe('Model Catalog Page', () => {
   });
 
   it('checkbox should work', () => {
+    cy.interceptApi(
+      `GET /api/:apiVersion/model_catalog/models`,
+      {
+        path: { apiVersion: MODEL_CATALOG_API_VERSION },
+        query: { sourceLabel: '' },
+      },
+      mockCatalogModelList({
+        items: [mockCatalogModel({})],
+      }),
+    ).as('getCatalogModelsBySource');
+
     initIntercepts({});
     modelCatalog.visit();
-    modelCatalog.navigate();
     modelCatalog.findFilterCheckbox('Task', 'text-generation').click();
     modelCatalog.findFilterCheckbox('Task', 'text-to-text').click();
     modelCatalog.findFilterCheckbox('Provider', 'Google').click();

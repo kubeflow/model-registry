@@ -19,7 +19,6 @@ import { mockPerformanceMetricsArtifacts } from '~/app/pages/modelCatalog/mocks/
 import { mockAccuracyMetricsArtifacts } from '~/app/pages/modelCatalog/mocks/accuracyMetricsMock';
 import EmptyModelCatalogState from '~/app/pages/modelCatalog/EmptyModelCatalogState';
 import { getSourceFromSourceId } from '~/app/pages/modelCatalog/utils/modelCatalogUtils';
-import ModelCatalogAllModelsView from './ModelCatalogAllModelsView';
 
 type ModelCatalogPageProps = {
   searchTerm: string;
@@ -35,20 +34,15 @@ const ModelCatalogPage: React.FC<ModelCatalogPageProps> = ({ searchTerm, handleF
     filterOptionsLoadError,
     catalogSources,
   } = React.useContext(ModelCatalogContext);
+
   const { catalogModels, catalogModelsLoaded, catalogModelsLoadError } = useCatalogModelsBySources(
     '',
-    selectedSourceLabel,
+    selectedSourceLabel === 'All models' ? undefined : selectedSourceLabel,
     10,
     searchTerm,
     filterData,
     filterOptions,
   );
-
-  const isAllModelsView = selectedSourceLabel === 'All models';
-
-  if (isAllModelsView) {
-    return <ModelCatalogAllModelsView searchTerm={searchTerm} />;
-  }
 
   const loaded = catalogModelsLoaded && filterOptionsLoaded;
   const loadError = catalogModelsLoadError || filterOptionsLoadError;

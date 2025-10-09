@@ -14,18 +14,10 @@ type SourceLabelBlock = {
 };
 
 const ModelCatalogSourceLabelBlocks: React.FC = () => {
-  const { catalogSources, updateSelectedSourceLabel, selectedSourceLabel } =
-    React.useContext(ModelCatalogContext);
+  const { catalogSources, updateSelectedSourceLabel } = React.useContext(ModelCatalogContext);
   const [searchParams, setSearchParams] = useSearchParams();
 
-  React.useEffect(() => {
-    const categoryFromURL = searchParams.get('category');
-    if (categoryFromURL && categoryFromURL !== selectedSourceLabel) {
-      updateSelectedSourceLabel(categoryFromURL);
-    } else if (!categoryFromURL && selectedSourceLabel !== 'All models') {
-      updateSelectedSourceLabel('All models');
-    }
-  }, [searchParams, selectedSourceLabel, updateSelectedSourceLabel]);
+  const selectedSourceLabel = searchParams.get('category') || 'All models';
 
   const blocks: SourceLabelBlock[] = React.useMemo(() => {
     if (!catalogSources) {
