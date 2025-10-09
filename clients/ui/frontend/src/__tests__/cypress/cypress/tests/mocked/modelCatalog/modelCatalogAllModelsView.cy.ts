@@ -101,11 +101,11 @@ describe('Model Catalog All Models View', () => {
       modelCatalog.findShowMoreModelsLink('hugging-face').click();
       cy.url().should('include', 'model-catalog?category=Hugging+Face');
 
-      cy.findByTestId('all').click();
+      modelCatalog.findAllModelsToggle().click();
       modelCatalog.findShowMoreModelsLink('openvino').click();
       cy.url().should('include', 'model-catalog?category=OpenVINO');
 
-      cy.findByTestId('all').click();
+      modelCatalog.findAllModelsToggle().click();
       modelCatalog.findShowMoreModelsLink('community').click();
       cy.url().should('include', 'model-catalog?category=Community');
     });
