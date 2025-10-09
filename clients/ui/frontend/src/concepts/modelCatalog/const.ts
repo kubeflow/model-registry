@@ -6,7 +6,10 @@ export enum ModelCatalogStringFilterKey {
 }
 
 export enum ModelCatalogNumberFilterKey {
-  // TODO add number filters here
+  MIN_RPS = 'rps_mean',
+  MAX_LATENCY = 'ttft_mean',
+  WORKLOAD_TYPE = 'workload_type',
+  HARDWARE_TYPE = 'hardware',
 }
 
 export enum ModelCatalogTask {
