@@ -416,6 +416,10 @@ func (m *MockCatalogModelRepository) Save(model dbmodels.CatalogModel) (dbmodels
 	return savedModel, nil
 }
 
+func (m *MockCatalogModelRepository) GetFilterableProperties(maxLength int) (map[string][]string, error) {
+	return make(map[string][]string), nil
+}
+
 // MockCatalogModelArtifactRepository mocks the CatalogModelArtifactRepository interface.
 type MockCatalogModelArtifactRepository struct {
 	SavedArtifacts []dbmodels.CatalogModelArtifact
