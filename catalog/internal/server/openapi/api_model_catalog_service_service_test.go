@@ -307,11 +307,11 @@ func TestFindModels(t *testing.T) {
 				[]string{tc.sourceID},
 				"", // sourceLabel
 				tc.q,
+				tc.filterQuery,
 				tc.pageSize,
 				tc.orderBy,
 				tc.sortOrder,
 				tc.nextPageToken,
-				tc.filterQuery,
 			)
 
 			assert.Equal(t, tc.expectedStatus, resp.Code)

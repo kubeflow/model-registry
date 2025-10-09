@@ -34,7 +34,6 @@ type ApiFindModelsRequest struct {
 	orderBy       *OrderByField
 	sortOrder     *SortOrder
 	nextPageToken *string
-	filterQuery   *string
 }
 
 // Filter models by source. This parameter can be specified multiple times to filter by multiple sources (OR logic). For example: ?source&#x3D;huggingface&amp;source&#x3D;local will return models from either huggingface OR local sources.
@@ -82,12 +81,6 @@ func (r ApiFindModelsRequest) SortOrder(sortOrder SortOrder) ApiFindModelsReques
 // Token to use to retrieve next page of results.
 func (r ApiFindModelsRequest) NextPageToken(nextPageToken string) ApiFindModelsRequest {
 	r.nextPageToken = &nextPageToken
-	return r
-}
-
-// A SQL-like query string to filter the list of entities. The query supports rich filtering capabilities with automatic type inference.  **Supported Operators:** - Comparison: &#x60;&#x3D;&#x60;, &#x60;!&#x3D;&#x60;, &#x60;&lt;&gt;&#x60;, &#x60;&gt;&#x60;, &#x60;&lt;&#x60;, &#x60;&gt;&#x3D;&#x60;, &#x60;&lt;&#x3D;&#x60; - Pattern matching: &#x60;LIKE&#x60;, &#x60;ILIKE&#x60; (case-insensitive) - Set membership: &#x60;IN&#x60; - Logical: &#x60;AND&#x60;, &#x60;OR&#x60; - Grouping: &#x60;()&#x60; for complex expressions  **Data Types:** - Strings: &#x60;\&quot;value\&quot;&#x60; or &#x60;&#39;value&#39;&#x60; - Numbers: &#x60;42&#x60;, &#x60;3.14&#x60;, &#x60;1e-5&#x60; - Booleans: &#x60;true&#x60;, &#x60;false&#x60; (case-insensitive)  **Property Access:** - Standard properties: &#x60;name&#x60;, &#x60;id&#x60;, &#x60;state&#x60;, &#x60;createTimeSinceEpoch&#x60; - Custom properties: Any user-defined property name - Escaped properties: Use backticks for special characters: &#x60;&#x60; &#x60;custom-property&#x60; &#x60;&#x60; - Type-specific access: &#x60;property.string_value&#x60;, &#x60;property.double_value&#x60;, &#x60;property.int_value&#x60;, &#x60;property.bool_value&#x60;  **Examples:** - Basic: &#x60;name &#x3D; \&quot;my-model\&quot;&#x60; - Comparison: &#x60;accuracy &gt; 0.95&#x60; - Pattern: &#x60;name LIKE \&quot;%tensorflow%\&quot;&#x60; - Complex: &#x60;(name &#x3D; \&quot;model-a\&quot; OR name &#x3D; \&quot;model-b\&quot;) AND state &#x3D; \&quot;LIVE\&quot;&#x60; - Custom property: &#x60;framework.string_value &#x3D; \&quot;pytorch\&quot;&#x60; - Escaped property: &#x60;&#x60; &#x60;mlflow.source.type&#x60; &#x3D; \&quot;notebook\&quot; &#x60;&#x60;
-func (r ApiFindModelsRequest) FilterQuery(filterQuery string) ApiFindModelsRequest {
-	r.filterQuery = &filterQuery
 	return r
 }
 
@@ -161,9 +154,6 @@ func (a *ModelCatalogServiceAPIService) FindModelsExecute(r ApiFindModelsRequest
 	}
 	if r.nextPageToken != nil {
 		parameterAddToHeaderOrQuery(localVarQueryParams, "nextPageToken", r.nextPageToken, "")
-	}
-	if r.filterQuery != nil {
-		parameterAddToHeaderOrQuery(localVarQueryParams, "filterQuery", r.filterQuery, "")
 	}
 	// to determine the Content-Type header
 	localVarHTTPContentTypes := []string{}
