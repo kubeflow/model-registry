@@ -4,7 +4,9 @@ import { CatalogFilterOptionsList, ModelCatalogFilterStates } from '~/app/modelC
 import {
   AllLanguageCode,
   ModelCatalogLicense,
+  ModelCatalogNumberFilterKey,
   ModelCatalogProvider,
+  ModelCatalogStringFilterKey,
   ModelCatalogTask,
 } from '~/concepts/modelCatalog/const';
 import { filtersToFilterQuery } from '~/app/pages/modelCatalog/utils/modelCatalogUtils';
@@ -16,20 +18,26 @@ describe('filtersToFilterQuery', () => {
     license = [],
     provider = [],
     language = [],
+    hardware = [],
+    rps_mean = undefined,
     ttft_mean = undefined,
-    // rps_mean = undefined,
+    max_input_tokens = undefined,
+    max_output_tokens = undefined,
   }: Partial<ModelCatalogFilterStates>): ModelCatalogFilterStates => ({
-    tasks,
-    provider,
-    license,
-    language,
-    ttft_mean,
-    // rps_mean,
+    [ModelCatalogStringFilterKey.TASK]: tasks,
+    [ModelCatalogStringFilterKey.PROVIDER]: provider,
+    [ModelCatalogStringFilterKey.LICENSE]: license,
+    [ModelCatalogStringFilterKey.LANGUAGE]: language,
+    [ModelCatalogStringFilterKey.HARDWARE_TYPE]: hardware,
+    [ModelCatalogNumberFilterKey.MIN_RPS]: rps_mean,
+    [ModelCatalogNumberFilterKey.MAX_LATENCY]: ttft_mean,
+    [ModelCatalogNumberFilterKey.MAX_INPUT_TOKENS]: max_input_tokens,
+    [ModelCatalogNumberFilterKey.MAX_OUTPUT_TOKENS]: max_output_tokens,
   });
 
   const mockFilterOptions: CatalogFilterOptionsList = {
     filters: {
-      tasks: {
+      [ModelCatalogStringFilterKey.TASK]: {
         type: 'string',
         values: [
           ModelCatalogTask.AUDIO_TO_TEXT,
@@ -40,7 +48,7 @@ describe('filtersToFilterQuery', () => {
           ModelCatalogTask.VIDEO_TO_TEXT,
         ],
       },
-      provider: {
+      [ModelCatalogStringFilterKey.PROVIDER]: {
         type: 'string',
         values: [
           ModelCatalogProvider.ALIBABA_CLOUD,
@@ -56,7 +64,7 @@ describe('filtersToFilterQuery', () => {
           ModelCatalogProvider.RED_HAT,
         ],
       },
-      license: {
+      [ModelCatalogStringFilterKey.LICENSE]: {
         type: 'string',
         values: [
           ModelCatalogLicense.APACHE_2_0,
@@ -69,7 +77,7 @@ describe('filtersToFilterQuery', () => {
           ModelCatalogLicense.MODIFIED_MIT,
         ],
       },
-      language: {
+      [ModelCatalogStringFilterKey.LANGUAGE]: {
         type: 'string',
         values: [
           AllLanguageCode.BG,
@@ -115,22 +123,38 @@ describe('filtersToFilterQuery', () => {
           AllLanguageCode.TL,
         ],
       },
-      // TODO: Implement performance filters.
-      ttft_mean: {
+      [ModelCatalogStringFilterKey.HARDWARE_TYPE]: {
+        type: 'string',
+        values: ['GPU', 'CPU', 'TPU', 'FPGA'],
+      },
+      [ModelCatalogNumberFilterKey.MIN_RPS]: {
         type: 'number',
         range: {
           min: 0,
-          max: 100,
+          max: 300,
         },
       },
-      // TODO: Implement performance filters.
-      // rps_mean: {
-      //   type: 'number',
-      //   range: {
-      //     min: 0,
-      //     max: 10,
-      //   },
-      // },
+      [ModelCatalogNumberFilterKey.MAX_LATENCY]: {
+        type: 'number',
+        range: {
+          min: 0,
+          max: 1000,
+        },
+      },
+      [ModelCatalogNumberFilterKey.MAX_INPUT_TOKENS]: {
+        type: 'number',
+        range: {
+          min: 0,
+          max: 8192,
+        },
+      },
+      [ModelCatalogNumberFilterKey.MAX_OUTPUT_TOKENS]: {
+        type: 'number',
+        range: {
+          min: 0,
+          max: 4096,
+        },
+      },
     },
   };
   /* eslint-enable camelcase */
