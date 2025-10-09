@@ -19,14 +19,12 @@ type ModelCatalogSourceLabelSelectorProps = {
   searchTerm?: string;
   onSearch?: (term: string) => void;
   onClearSearch?: () => void;
-  primary?: boolean;
 };
 
 const ModelCatalogSourceLabelSelector: React.FC<ModelCatalogSourceLabelSelectorProps> = ({
   searchTerm,
   onSearch,
   onClearSearch,
-  primary,
 }) => {
   const [inputValue, setInputValue] = React.useState(searchTerm || '');
   const { isMUITheme } = useThemeContext();
@@ -56,10 +54,6 @@ const ModelCatalogSourceLabelSelector: React.FC<ModelCatalogSourceLabelSelectorP
       onSearch(value.trim());
     }
   };
-
-  if (primary) {
-    return <ModelCatalogSourceLabelBlocks />;
-  }
 
   return (
     <Stack>

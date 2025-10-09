@@ -47,17 +47,17 @@ const initIntercepts = ({
           ),
         }),
       );
-
-      cy.interceptApi(
-        `GET /api/:apiVersion/model_catalog/models/filter_options`,
-        {
-          path: { apiVersion: MODEL_CATALOG_API_VERSION },
-          query: { namespace: 'kubeflow' },
-        },
-        mockCatalogFilterOptionsList(),
-      );
     });
   });
+
+  cy.interceptApi(
+    `GET /api/:apiVersion/model_catalog/models/filter_options`,
+    {
+      path: { apiVersion: MODEL_CATALOG_API_VERSION },
+      query: { namespace: 'kubeflow' },
+    },
+    mockCatalogFilterOptionsList(),
+  );
 };
 
 describe('Model Catalog Page', () => {

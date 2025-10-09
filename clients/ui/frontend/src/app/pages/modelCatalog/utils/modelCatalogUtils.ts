@@ -77,6 +77,7 @@ export const getModelArtifactUri = (artifacts: CatalogArtifacts[]): string => {
 export const hasModelArtifacts = (artifacts: CatalogArtifacts[]): boolean =>
   artifacts.some((artifact) => artifact.artifactType === CatalogArtifactType.modelArtifact);
 
+// Utility function to check if a model is validated
 export const isModelValidated = (model: CatalogModel): boolean => {
   if (!model.customProperties) {
     return false;

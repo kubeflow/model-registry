@@ -95,7 +95,7 @@ const CatalogCategorySection: React.FC<CategorySectionProps> = ({
             testid="empty-model-catalog-state"
             title="No result found"
             headerIcon={SearchIcon}
-            description={<>Adjust your filters and try again.</>}
+            description="Adjust your filters and try again."
           />
         ) : (
           <>

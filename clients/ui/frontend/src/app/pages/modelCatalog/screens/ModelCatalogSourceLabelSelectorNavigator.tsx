@@ -5,17 +5,15 @@ type ModelCatalogSourceLabelSelectorNavigatorProps = {
   searchTerm?: string;
   onSearch?: (term: string) => void;
   onClearSearch?: () => void;
-  isPrimary?: boolean;
 };
 
 const ModelCatalogSourceLabelSelectorNavigator: React.FC<
   ModelCatalogSourceLabelSelectorNavigatorProps
-> = ({ searchTerm, onSearch, onClearSearch, isPrimary }) => (
+> = ({ searchTerm, onSearch, onClearSearch }) => (
   <ModelCatalogSourceLabelSelector
     searchTerm={searchTerm}
     onSearch={onSearch}
     onClearSearch={onClearSearch}
-    primary={isPrimary}
   />
 );
 export default ModelCatalogSourceLabelSelectorNavigator;
