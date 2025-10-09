@@ -25,7 +25,7 @@ import {
 
 type ModelCatalogPageProps = {
   searchTerm: string;
-  handleFilterReset?: () => void;
+  handleFilterReset: () => void;
 };
 
 const ModelCatalogPage: React.FC<ModelCatalogPageProps> = ({ searchTerm, handleFilterReset }) => {
