@@ -82,26 +82,24 @@ const ModelCatalogPage: React.FC<ModelCatalogPageProps> = ({ searchTerm }) => {
         ))}
       </Gallery>
       {catalogModels.hasMore && (
-        <Flex direction={{ default: 'column' }} gap={{ default: 'gapLg' }}>
-          <Bullseye>
-            {catalogModels.isLoadingMore ? (
-              <Flex
-                direction={{ default: 'column' }}
-                alignItems={{ default: 'alignItemsCenter' }}
-                gap={{ default: 'gapMd' }}
-              >
-                <Spinner size="lg" />
-                <Title size="lg" headingLevel="h5">
-                  Loading more catalog models...
-                </Title>
-              </Flex>
-            ) : (
-              <Button variant="tertiary" onClick={catalogModels.loadMore} size="lg">
-                Load more models
-              </Button>
-            )}
-          </Bullseye>
-        </Flex>
+        <Bullseye className="pf-v6-m-mt-lg">
+          {catalogModels.isLoadingMore ? (
+            <Flex
+              direction={{ default: 'column' }}
+              alignItems={{ default: 'alignItemsCenter' }}
+              gap={{ default: 'gapMd' }}
+            >
+              <Spinner size="lg" />
+              <Title size="lg" headingLevel="h5">
+                Loading more catalog models...
+              </Title>
+            </Flex>
+          ) : (
+            <Button variant="tertiary" onClick={catalogModels.loadMore} size="lg">
+              Load more models
+            </Button>
+          )}
+        </Bullseye>
       )}
     </>
   );
