@@ -21,7 +21,7 @@ import {
 } from '~/app/modelCatalogTypes';
 import { catalogModelDetailsFromModel } from '~/app/routes/modelCatalog/catalogModel';
 import { getLabels } from '~/app/pages/modelRegistry/screens/utils';
-import { isModelValidated } from '~/app/pages/modelCatalog/utils/modelCatalogUtils';
+import { isModelValidated, getModelName } from '~/app/pages/modelCatalog/utils/modelCatalogUtils';
 import ModelCatalogLabels from './ModelCatalogLabels';
 import ModelCatalogCardBody from './ModelCatalogCardBody';
 
@@ -50,7 +50,7 @@ const ModelCatalogCard: React.FC<ModelCatalogCardProps> = ({
     <Card isFullHeight data-testid="model-catalog-card" key={`${model.name}/${model.source_id}`}>
       <CardHeader>
         <CardTitle>
-          <Flex alignItems={{ default: 'alignItemsCenter' }} gap={{ default: 'gapSm' }}>
+          <Flex alignItems={{ default: 'alignItemsFlexStart' }} className="pf-v6-u-mb-md">
             {model.logo ? (
               <img src={model.logo} alt="model logo" style={{ height: '56px', width: '56px' }} />
             ) : (
@@ -83,13 +83,13 @@ const ModelCatalogCard: React.FC<ModelCatalogCardProps> = ({
               {truncate ? (
                 <Truncate
                   data-testid="model-catalog-card-name"
-                  content={model.name}
+                  content={getModelName(model.name)}
                   position="middle"
                   tooltipPosition="top"
                   style={{ textDecoration: 'underline' }}
                 />
               ) : (
-                <span data-testid="model-catalog-card-name">{model.name}</span>
+                <span data-testid="model-catalog-card-name">{getModelName(model.name)}</span>
               )}
             </Button>
           </Link>
@@ -98,9 +98,7 @@ const ModelCatalogCard: React.FC<ModelCatalogCardProps> = ({
       <CardBody>
         <ModelCatalogCardBody
           model={model}
-          source={source}
           isValidated={isValidated}
-          truncate={truncate}
           performanceMetrics={performanceMetrics}
           accuracyMetrics={accuracyMetrics}
         />
@@ -111,6 +109,7 @@ const ModelCatalogCard: React.FC<ModelCatalogCardProps> = ({
           license={model.license}
           provider={model.provider}
           labels={validatedLabels}
+          numLabels={isValidated ? 2 : 3}
         />
       </CardFooter>
     </Card>

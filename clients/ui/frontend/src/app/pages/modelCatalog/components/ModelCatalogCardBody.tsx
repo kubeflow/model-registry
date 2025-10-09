@@ -10,30 +10,18 @@ import {
   Popover,
   Stack,
   StackItem,
-  Truncate,
 } from '@patternfly/react-core';
-import {
-  MonitoringIcon,
-  HelpIcon,
-  ChevronLeftIcon,
-  ChevronRightIcon,
-} from '@patternfly/react-icons';
-import { Link } from 'react-router-dom';
+import { MonitoringIcon, HelpIcon, AngleLeftIcon, AngleRightIcon } from '@patternfly/react-icons';
 import {
   CatalogModel,
-  CatalogSource,
   CatalogPerformanceMetricsArtifact,
   CatalogAccuracyMetricsArtifact,
 } from '~/app/modelCatalogTypes';
-import { catalogModelDetailsFromModel } from '~/app/routes/modelCatalog/catalogModel';
-import { getModelName } from '~/app/pages/modelCatalog/utils/modelCatalogUtils';
 import { extractValidatedModelMetrics } from '~/app/pages/modelCatalog/utils/validatedModelUtils';
 
 type ModelCatalogCardBodyProps = {
   model: CatalogModel;
-  source: CatalogSource | undefined;
   isValidated: boolean;
-  truncate?: boolean;
   // TODO: Later these will be fetched based on the model, for now using props
   performanceMetrics?: CatalogPerformanceMetricsArtifact[];
   accuracyMetrics?: CatalogAccuracyMetricsArtifact[];
@@ -41,9 +29,7 @@ type ModelCatalogCardBodyProps = {
 
 const ModelCatalogCardBody: React.FC<ModelCatalogCardBodyProps> = ({
   model,
-  source,
   isValidated,
-  truncate = false,
   performanceMetrics = [],
   accuracyMetrics = [],
 }) => {
@@ -91,17 +77,12 @@ const ModelCatalogCardBody: React.FC<ModelCatalogCardBodyProps> = ({
                 headerContent="Average accuracy"
                 bodyContent="The weighted average of normalized scores from all benchmarks. Each benchmark is normalized to a 0-100 scale. All normalized benchmarks are then averaged together."
               >
-                <button
-                  type="button"
+                <Button
+                  icon={<HelpIcon />}
+                  hasNoPadding
                   aria-label="More info for average accuracy"
-                  style={{
-                    all: 'unset',
-                    cursor: 'pointer',
-                    display: 'inline-flex',
-                  }}
-                >
-                  <HelpIcon />
-                </button>
+                  variant="plain"
+                />
               </Popover>
             </Flex>
           </Flex>
@@ -157,17 +138,12 @@ const ModelCatalogCardBody: React.FC<ModelCatalogCardBodyProps> = ({
                     </div>
                   }
                 >
-                  <button
-                    type="button"
+                  <Button
+                    icon={<HelpIcon />}
+                    hasNoPadding
                     aria-label="More info for latency"
-                    style={{
-                      all: 'unset',
-                      cursor: 'pointer',
-                      display: 'inline-flex',
-                    }}
-                  >
-                    <HelpIcon />
-                  </button>
+                    variant="plain"
+                  />
                 </Popover>
               </Flex>
             </Flex>
@@ -179,16 +155,16 @@ const ModelCatalogCardBody: React.FC<ModelCatalogCardBodyProps> = ({
             alignItems={{ default: 'alignItemsCenter' }}
             justifyContent={{ default: 'justifyContentSpaceBetween' }}
           >
-            <Content component={ContentVariants.p} data-testid="validated-model-benchmarks">
+            <span data-testid="validated-model-benchmarks">
               {currentPerformanceIndex + 1} of {performanceMetrics.length}{' '}
               <Button variant="link" isInline style={{ padding: 0, fontSize: 'inherit' }}>
                 benchmarks
               </Button>
-            </Content>
+            </span>
             <Flex gap={{ default: 'gapSm' }} alignItems={{ default: 'alignItemsCenter' }}>
               <Button
                 variant="plain"
-                icon={<ChevronLeftIcon />}
+                icon={<AngleLeftIcon />}
                 aria-label="Previous benchmark"
                 data-testid="validated-model-benchmark-prev"
                 onClick={handlePreviousBenchmark}
@@ -196,7 +172,7 @@ const ModelCatalogCardBody: React.FC<ModelCatalogCardBodyProps> = ({
               />
               <Button
                 variant="plain"
-                icon={<ChevronRightIcon />}
+                icon={<AngleRightIcon />}
                 aria-label="Next benchmark"
                 data-testid="validated-model-benchmark-next"
                 onClick={handleNextBenchmark}
@@ -211,51 +187,18 @@ const ModelCatalogCardBody: React.FC<ModelCatalogCardBodyProps> = ({
 
   // Standard card body for non-validated models
   return (
-    <Stack hasGutter>
-      <StackItem>
-        <Link to={catalogModelDetailsFromModel(model.name, source?.id)}>
-          <Button
-            data-testid="model-catalog-detail-link"
-            variant="link"
-            tabIndex={-1}
-            isInline
-            style={{
-              fontSize: 'var(--pf-t--global--font--size--body--default)',
-              fontWeight: 'var(--pf-t--global--font--weight--body--bold)',
-            }}
-          >
-            {truncate ? (
-              <Truncate
-                data-testid="model-catalog-card-name"
-                content={model.name}
-                position="middle"
-                tooltipPosition="top"
-                style={{ textDecoration: 'underline' }}
-              />
-            ) : (
-              <span>{getModelName(model.name)}</span>
-            )}
-          </Button>
-        </Link>
-      </StackItem>
-      <StackItem isFilled data-testid="model-catalog-card-description">
-        {truncate ? (
-          <div
-            style={{
-              overflow: 'hidden',
-              textOverflow: 'ellipsis',
-              WebkitLineClamp: 4,
-              WebkitBoxOrient: 'vertical',
-              display: '-webkit-box',
-            }}
-          >
-            {model.description}
-          </div>
-        ) : (
-          model.description
-        )}
-      </StackItem>
-    </Stack>
+    <div
+      data-testid="model-catalog-card-description"
+      style={{
+        overflow: 'hidden',
+        textOverflow: 'ellipsis',
+        WebkitLineClamp: 4,
+        WebkitBoxOrient: 'vertical',
+        display: '-webkit-box',
+      }}
+    >
+      {model.description}
+    </div>
   );
 };
 

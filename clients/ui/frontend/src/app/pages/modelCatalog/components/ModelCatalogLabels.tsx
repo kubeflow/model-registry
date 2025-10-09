@@ -6,6 +6,7 @@ type ModelCatalogLabelsProps = {
   license?: string;
   provider?: string;
   labels?: string[];
+  numLabels: number;
 };
 
 const ModelCatalogLabels: React.FC<ModelCatalogLabelsProps> = ({
@@ -13,8 +14,9 @@ const ModelCatalogLabels: React.FC<ModelCatalogLabelsProps> = ({
   license,
   provider,
   labels = [],
+  numLabels,
 }) => (
-  <LabelGroup numLabels={2} isCompact>
+  <LabelGroup numLabels={numLabels} isCompact>
     {tasks.map((task) => (
       <Label data-testid="model-catalog-label" key={task} variant="outline">
         {task}
