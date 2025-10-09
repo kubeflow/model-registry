@@ -64,7 +64,7 @@ func (c *ModelCatalogServiceAPIController) Routes() Routes {
 		},
 		"GetModel": Route{
 			strings.ToUpper("Get"),
-			"/api/model_catalog/v1alpha1/sources/{source_id}/models/{model_name+}",
+			"/api/model_catalog/v1alpha1/sources/{source_id}/models/*",
 			c.GetModel,
 		},
 		"GetAllModelArtifacts": Route{
@@ -115,7 +115,7 @@ func (c *ModelCatalogServiceAPIController) FindSources(w http.ResponseWriter, r 
 // GetModel - Get a `CatalogModel`.
 func (c *ModelCatalogServiceAPIController) GetModel(w http.ResponseWriter, r *http.Request) {
 	sourceIdParam := chi.URLParam(r, "source_id")
-	modelNameParam := chi.URLParam(r, "model_name+")
+	modelNameParam := chi.URLParam(r, "*")
 	result, err := c.service.GetModel(r.Context(), sourceIdParam, modelNameParam)
 	// If an error occurred, encode the error with the status code
 	if err != nil {
