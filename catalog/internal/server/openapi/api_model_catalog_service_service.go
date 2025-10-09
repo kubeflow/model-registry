@@ -25,7 +25,7 @@ type ModelCatalogServiceAPIService struct {
 }
 
 // GetAllModelArtifacts retrieves all model artifacts for a given model from the specified source.
-func (m *ModelCatalogServiceAPIService) GetAllModelArtifacts(ctx context.Context, sourceID string, modelName string, pageSize string, orderBy model.OrderByField, sortOrder model.SortOrder, nextPageToken string) (ImplResponse, error) {
+func (m *ModelCatalogServiceAPIService) GetAllModelArtifacts(ctx context.Context, sourceID string, modelName string, artifactType string, pageSize string, orderBy model.OrderByField, sortOrder model.SortOrder, nextPageToken string) (ImplResponse, error) {
 	if newName, err := url.PathUnescape(modelName); err == nil {
 		modelName = newName
 	}
@@ -46,6 +46,7 @@ func (m *ModelCatalogServiceAPIService) GetAllModelArtifacts(ctx context.Context
 		OrderBy:       orderBy,
 		SortOrder:     sortOrder,
 		NextPageToken: &nextPageToken,
+		ArtifactType:  &artifactType,
 	})
 	if err != nil {
 		statusCode := api.ErrToStatus(err)
@@ -95,7 +96,7 @@ func (m *ModelCatalogServiceAPIService) FindModels(ctx context.Context, sourceID
 
 func (m *ModelCatalogServiceAPIService) GetModel(ctx context.Context, sourceID, modelName string) (ImplResponse, error) {
 	if name, ok := strings.CutSuffix(modelName, "/artifacts"); ok {
-		return m.GetAllModelArtifacts(ctx, sourceID, name, "10", model.OrderByField(model.ORDERBYFIELD_CREATE_TIME), model.SortOrder(model.SORTORDER_ASC), "")
+		return m.GetAllModelArtifacts(ctx, sourceID, name, "", "10", model.OrderByField(model.ORDERBYFIELD_CREATE_TIME), model.SortOrder(model.SORTORDER_ASC), "")
 	}
 
 	if newName, err := url.PathUnescape(modelName); err == nil {

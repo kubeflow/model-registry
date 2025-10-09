@@ -973,6 +973,7 @@ func TestGetAllModelArtifacts(t *testing.T) {
 				context.Background(),
 				tc.sourceID,
 				tc.modelName,
+				"",
 				"10",
 				model.ORDERBYFIELD_CREATE_TIME,
 				model.SORTORDER_ASC,

@@ -142,6 +142,12 @@ paths:
           type: string
         in: path
         required: true
+      - name: artifact_type
+        description: Filter artifacts by type.
+        schema:
+          type: string
+        in: query
+        required: false
       - $ref: "#/components/parameters/pageSize"
       - $ref: "#/components/parameters/orderBy"
       - $ref: "#/components/parameters/sortOrder"
