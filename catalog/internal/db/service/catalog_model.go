@@ -237,20 +237,23 @@ func mapDataLayerToCatalogModel(modelCtx schema.Context, propertiesCtx []schema.
 func (r *CatalogModelRepositoryImpl) GetFilterableProperties(maxLength int) (map[string][]string, error) {
 	config := r.GetConfig()
 
+	// Get table names using GORM utilities for database compatibility
+	contextTable := utils.GetTableName(config.DB, &schema.Context{})
+	propertyTable := utils.GetTableName(config.DB, &schema.ContextProperty{})
+
 	// Simplified query: get distinct property name/value pairs
-	query := `
+	query := fmt.Sprintf(`
 		SELECT DISTINCT cp.name, cp.string_value
-		FROM "ContextProperty" cp
+		FROM %s cp
 		WHERE cp.context_id IN (
-			SELECT id FROM "Context" WHERE type_id = ?
+			SELECT id FROM %s WHERE type_id = ?
 		)
 		AND cp.name IN (
-			-- Only include property names where max length is within threshold
 			SELECT name FROM (
 				SELECT name, MAX(CHAR_LENGTH(string_value)) as max_len
-				FROM "ContextProperty"
+				FROM %s
 				WHERE context_id IN (
-					SELECT id FROM "Context" WHERE type_id = ?
+					SELECT id FROM %s WHERE type_id = ?
 				)
 				AND string_value IS NOT NULL
 				AND string_value != ''
@@ -261,7 +264,7 @@ func (r *CatalogModelRepositoryImpl) GetFilterableProperties(maxLength int) (map
 		AND cp.string_value IS NOT NULL
 		AND cp.string_value != ''
 		ORDER BY cp.name, cp.string_value
-	`
+	`, propertyTable, contextTable, propertyTable, contextTable)
 
 	type propertyRow struct {
 		Name        string
