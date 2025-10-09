@@ -1,4 +1,5 @@
 import {
+  Content,
   FormGroup,
   FormHelperText,
   HelperText,
@@ -49,7 +50,11 @@ const RegisterModelDetailsFormSection = <D extends RegisterModelFormData>({
   return (
     <FormSection
       title="Model details"
-      description="Provide model details that apply to every version of this model."
+      description={
+        <Content component="p">
+          Provide model details that apply to every version of this model.
+        </Content>
+      }
     >
       <FormGroup label="Model name" isRequired fieldId="model-name">
         <FormFieldset component={modelNameInput} field="model-name" />

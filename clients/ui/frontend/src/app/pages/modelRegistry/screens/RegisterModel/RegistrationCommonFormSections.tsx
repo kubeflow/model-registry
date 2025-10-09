@@ -9,6 +9,7 @@ import {
   FormHelperText,
   TextInputGroupMain,
   TextInputGroup,
+  Content,
 } from '@patternfly/react-core';
 import spacing from '@patternfly/react-styles/css/utilities/Spacing/spacing';
 import { FormSection, UpdateObjectAtPropAndValue } from 'mod-arch-shared';
@@ -176,9 +177,11 @@ const RegistrationCommonFormSections = <D extends RegistrationCommonFormData>({
       <FormSection
         title="Version details"
         description={
-          isFirstVersion
-            ? 'Provide model details that apply to every version of this model.'
-            : 'Configure details for the version of this model.'
+          <Content component="p">
+            {isFirstVersion
+              ? 'Provide model details that apply to every version of this model.'
+              : 'Configure details for the version of this model.'}
+          </Content>
         }
       >
         <FormGroup label="Version name" isRequired fieldId="version-name">
@@ -213,7 +216,11 @@ const RegistrationCommonFormSections = <D extends RegistrationCommonFormData>({
       </FormSection>
       <FormSection
         title="Model location"
-        description="Specify the model location by providing either the object storage details or the URI."
+        description={
+          <Content component="p">
+            Specify the model location by providing either the object storage details or the URI.
+          </Content>
+        }
       >
         <Radio
           isChecked={modelLocationType === ModelLocationType.ObjectStorage}

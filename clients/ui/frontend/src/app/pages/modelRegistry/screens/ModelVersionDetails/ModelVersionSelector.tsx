@@ -98,7 +98,7 @@ const ModelVersionSelector: React.FC<ModelVersionSelectorProps> = ({
         <MenuList data-testid="model-version-selector-list">
           {menuListItems}
           <MenuItem>
-            <ViewAllVersionsButton rmId={rmId} totalVersions={modelVersions.items.length} />
+            <ViewAllVersionsButton rmId={rmId} totalVersions={liveModelVersions.length} />
           </MenuItem>
         </MenuList>
       </MenuContent>
