@@ -62,9 +62,9 @@ const ModelCatalogSourceLabelSelector: React.FC<ModelCatalogSourceLabelSelectorP
   }
 
   return (
-    <Stack hasGutter>
+    <Stack>
       <StackItem>
-        <Toolbar>
+        <Toolbar className="pf-v6-u-pb-0">
           <ToolbarContent>
             <Flex>
               <ToolbarToggleGroup breakpoint="md" toggleIcon={<FilterIcon />}>

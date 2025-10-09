@@ -45,7 +45,7 @@ const ModelCatalog: React.FC = () => {
               onSearch={handleSearch}
               onClearSearch={handleClearSearch}
             />
-            <PageSection isFilled style={{ paddingLeft: '0px', paddingTop: '25px' }}>
+            <PageSection isFilled padding={{ default: 'noPadding' }}>
               {isAllModelsView ? (
                 <ModelCatalogAllModelsView searchTerm={searchTerm} />
               ) : (
