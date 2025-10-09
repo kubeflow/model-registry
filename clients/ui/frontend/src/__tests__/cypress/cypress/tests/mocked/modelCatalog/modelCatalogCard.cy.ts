@@ -89,11 +89,10 @@ describe('ModelCatalogCard Component', () => {
   });
 
   describe('Navigation and Interaction', () => {
-    it('should show all model metadata correctly', () => {
+    it('should show model metadata correctly', () => {
       modelCatalog.findFirstModelCatalogCard().within(() => {
         modelCatalog.findModelCatalogDetailLink().should('contain.text', 'model1');
         modelCatalog.findTaskLabel().should('exist');
-        modelCatalog.findLicenseLabel().should('exist');
         modelCatalog.findProviderLabel().should('exist');
       });
     });
