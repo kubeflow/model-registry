@@ -2,11 +2,11 @@ import * as React from 'react';
 import { Toolbar, ToolbarContent, ToolbarGroup, ToolbarItem } from '@patternfly/react-core';
 import { ModelCatalogContext } from '~/app/context/modelCatalog/ModelCatalogContext';
 import { CatalogPerformanceMetricsArtifact } from '~/app/modelCatalogTypes';
+import { clearAllFilters } from '~/app/pages/modelCatalog/utils/hardwareConfigurationFilterUtils';
 import WorkloadTypeFilter from './globalFilters/WorkloadTypeFilter';
 import HardwareTypeFilter from './globalFilters/HardwareTypeFilter';
 import MinRpsFilter from './globalFilters/MinRpsFilter';
 import MaxLatencyFilter from './globalFilters/MaxLatencyFilter';
-import { clearAllFilters } from '../utils/hardwareConfigurationFilterUtils';
 
 type HardwareConfigurationFilterToolbarProps = {
   performanceArtifacts: CatalogPerformanceMetricsArtifact[];

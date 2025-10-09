@@ -1,18 +1,17 @@
-/* eslint-disable @typescript-eslint/consistent-type-assertions */
 import * as React from 'react';
 import { DashboardEmptyTableView, Table } from 'mod-arch-shared';
 import { Spinner } from '@patternfly/react-core';
 import { OuterScrollContainer } from '@patternfly/react-table';
 import { CatalogPerformanceMetricsArtifact } from '~/app/modelCatalogTypes';
 import { ModelCatalogContext } from '~/app/context/modelCatalog/ModelCatalogContext';
-import { hardwareConfigColumns } from './HardwareConfigurationTableColumns';
-import HardwareConfigurationTableRow from './HardwareConfigurationTableRow';
-import HardwareConfigurationFilterToolbar from './HardwareConfigurationFilterToolbar';
-import { useHardwareTypeFilterState } from '../utils/hardwareTypeFilterState';
+import { useHardwareTypeFilterState } from '~/app/pages/modelCatalog/utils/hardwareTypeFilterState';
 import {
   filterHardwareConfigurationArtifacts,
   clearAllFilters,
-} from '../utils/hardwareConfigurationFilterUtils';
+} from '~/app/pages/modelCatalog/utils/hardwareConfigurationFilterUtils';
+import { hardwareConfigColumns } from './HardwareConfigurationTableColumns';
+import HardwareConfigurationTableRow from './HardwareConfigurationTableRow';
+import HardwareConfigurationFilterToolbar from './HardwareConfigurationFilterToolbar';
 
 type HardwareConfigurationTableProps = {
   performanceArtifacts: CatalogPerformanceMetricsArtifact[];
