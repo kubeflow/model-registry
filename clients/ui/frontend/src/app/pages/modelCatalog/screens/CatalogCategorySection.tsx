@@ -13,15 +13,20 @@ import { ArrowRightIcon, SearchIcon } from '@patternfly/react-icons';
 import { CatalogSourceList } from '~/app/modelCatalogTypes';
 import { useCatalogModelsBySources } from '~/app/hooks/modelCatalog/useCatalogModelsBySource';
 import EmptyModelCatalogState from '~/app/pages/modelCatalog/EmptyModelCatalogState';
-import { getSourceFromSourceId } from '~/app/pages/modelCatalog/utils/modelCatalogUtils';
+import {
+  getSourceFromSourceId,
+  isModelValidated,
+} from '~/app/pages/modelCatalog/utils/modelCatalogUtils';
 import ModelCatalogCard from '~/app/pages/modelCatalog/components/ModelCatalogCard';
+import { mockPerformanceMetricsArtifacts } from '~/app/pages/modelCatalog/mocks/hardwareConfigurationMock';
+import { mockAccuracyMetricsArtifacts } from '~/app/pages/modelCatalog/mocks/accuracyMetricsMock';
 
 type CategorySectionProps = {
   label: string;
   searchTerm: string;
   pageSize: number;
   catalogSources: CatalogSourceList | null;
-  onShowMore: (label: string, replace: boolean) => void;
+  onShowMore: (label: string) => void;
   displayName?: string;
 };
 
@@ -41,21 +46,23 @@ const CatalogCategorySection: React.FC<CategorySectionProps> = ({
   );
 
   const handleShowMoreCategory = (categoryLabel: string) => {
-    onShowMore(categoryLabel, true);
+    onShowMore(categoryLabel);
   };
 
   return (
     <>
-      <StackItem>
+      <StackItem className="pf-v6-u-pb-xl" style={{ maxWidth: '1600px' }}>
         <Flex
           alignItems={{ default: 'alignItemsCenter' }}
           justifyContent={{ default: 'justifyContentSpaceBetween' }}
+          className="pf-v6-u-mb-md"
         >
           <FlexItem>
             <Title headingLevel="h3" size="lg" data-testid={`title ${label}`}>
               {`${displayName ?? label} models`}
             </Title>
           </FlexItem>
+
           {catalogModels.items.length >= 4 && (
             <FlexItem>
               <Button
@@ -72,8 +79,7 @@ const CatalogCategorySection: React.FC<CategorySectionProps> = ({
             </FlexItem>
           )}
         </Flex>
-      </StackItem>
-      <StackItem className="pf-v6-u-pb-xl">
+
         {catalogModelsLoadError ? (
           <Alert
             variant="danger"
@@ -102,17 +108,19 @@ const CatalogCategorySection: React.FC<CategorySectionProps> = ({
             description="Adjust your filters and try again."
           />
         ) : (
-          <>
-            <Gallery hasGutter minWidths={{ default: '300px' }}>
-              {catalogModels.items.slice(0, pageSize).map((model) => (
-                <ModelCatalogCard
-                  key={model.name}
-                  model={model}
-                  source={getSourceFromSourceId(model.source_id || '', catalogSources)}
-                />
-              ))}
-            </Gallery>
-          </>
+          <Gallery hasGutter minWidths={{ default: '300px' }}>
+            {catalogModels.items.slice(0, pageSize).map((model) => (
+              <ModelCatalogCard
+                key={`${model.name}/${model.source_id}`}
+                model={model}
+                source={getSourceFromSourceId(model.source_id || '', catalogSources)}
+                performanceMetrics={
+                  isModelValidated(model) ? mockPerformanceMetricsArtifacts : undefined
+                }
+                accuracyMetrics={isModelValidated(model) ? mockAccuracyMetricsArtifacts : undefined}
+              />
+            ))}
+          </Gallery>
         )}
       </StackItem>
     </>

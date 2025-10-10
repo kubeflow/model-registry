@@ -5,16 +5,21 @@ import ScrollViewOnMount from '~/app/shared/components/ScrollViewOnMount';
 import ModelCatalogFilters from '~/app/pages/modelCatalog/components/ModelCatalogFilters';
 import { ModelCatalogContext } from '~/app/context/modelCatalog/ModelCatalogContext';
 import { hasFiltersApplied } from '~/app/pages/modelCatalog/utils/modelCatalogUtils';
-import { ModelCatalogStringFilterKey } from '~/concepts/modelCatalog/const';
-import ModelCatalogPage from './ModelCatalogPage';
+import {
+  ModelCatalogNumberFilterKey,
+  ModelCatalogStringFilterKey,
+} from '~/concepts/modelCatalog/const';
+import { CategoryName } from '~/app/modelCatalogTypes';
 import ModelCatalogSourceLabelSelectorNavigator from './ModelCatalogSourceLabelSelectorNavigator';
 import ModelCatalogAllModelsView from './ModelCatalogAllModelsView';
+import ModelCatalogGalleryView from './ModelCatalogGalleryView';
 
 const ModelCatalog: React.FC = () => {
   const [searchTerm, setSearchTerm] = React.useState('');
   const { selectedSourceLabel, filterData, setFilterData } = React.useContext(ModelCatalogContext);
   const filtersApplied = hasFiltersApplied(filterData);
-  const isAllModelsView = selectedSourceLabel === 'All models' && !searchTerm && !filtersApplied;
+  const isAllModelsView =
+    selectedSourceLabel === CategoryName.allModels && !searchTerm && !filtersApplied;
 
   const handleSearch = React.useCallback((term: string) => {
     setSearchTerm(term);
@@ -25,10 +30,13 @@ const ModelCatalog: React.FC = () => {
   }, []);
 
   const resetAllFilters = React.useCallback(() => {
-    setFilterData(ModelCatalogStringFilterKey.TASK, []);
-    setFilterData(ModelCatalogStringFilterKey.PROVIDER, []);
-    setFilterData(ModelCatalogStringFilterKey.LICENSE, []);
-    setFilterData(ModelCatalogStringFilterKey.LANGUAGE, []);
+    Object.values(ModelCatalogStringFilterKey).forEach((filterKey) => {
+      setFilterData(filterKey, []);
+    });
+
+    Object.values(ModelCatalogNumberFilterKey).forEach((filterKey) => {
+      setFilterData(filterKey, undefined);
+    });
   }, [setFilterData]);
 
   const handleFilterReset = React.useCallback(() => {
@@ -60,7 +68,10 @@ const ModelCatalog: React.FC = () => {
               {isAllModelsView ? (
                 <ModelCatalogAllModelsView searchTerm={searchTerm} />
               ) : (
-                <ModelCatalogPage searchTerm={searchTerm} handleFilterReset={handleFilterReset} />
+                <ModelCatalogGalleryView
+                  searchTerm={searchTerm}
+                  handleFilterReset={handleFilterReset}
+                />
               )}
             </PageSection>
           </SidebarContent>

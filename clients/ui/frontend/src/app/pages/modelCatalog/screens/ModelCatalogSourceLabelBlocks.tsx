@@ -1,7 +1,7 @@
 import { ToggleGroup, ToggleGroupItem } from '@patternfly/react-core';
 import React from 'react';
-import { useSearchParams } from 'react-router-dom';
 import { ModelCatalogContext } from '~/app/context/modelCatalog/ModelCatalogContext';
+import { CategoryName, SourceLabel } from '~/app/modelCatalogTypes';
 import {
   getUniqueSourceLabels,
   filterEnabledCatalogSources,
@@ -14,10 +14,8 @@ type SourceLabelBlock = {
 };
 
 const ModelCatalogSourceLabelBlocks: React.FC = () => {
-  const { catalogSources, updateSelectedSourceLabel } = React.useContext(ModelCatalogContext);
-  const [searchParams, setSearchParams] = useSearchParams();
-
-  const selectedSourceLabel = searchParams.get('category') || 'All models';
+  const { catalogSources, updateSelectedSourceLabel, selectedSourceLabel } =
+    React.useContext(ModelCatalogContext);
 
   const blocks: SourceLabelBlock[] = React.useMemo(() => {
     if (!catalogSources) {
@@ -29,20 +27,20 @@ const ModelCatalogSourceLabelBlocks: React.FC = () => {
 
     const allBlock: SourceLabelBlock = {
       id: 'all',
-      label: 'All models',
-      displayName: 'All models',
+      label: CategoryName.allModels,
+      displayName: CategoryName.allModels,
     };
 
     const labelBlocks: SourceLabelBlock[] = uniqueLabels.map((label) => ({
       id: `label-${label}`,
       label,
-      displayName: label,
+      displayName: `${label} models`,
     }));
 
     const noLabelsBlock: SourceLabelBlock = {
       id: 'no-labels',
-      label: 'Other',
-      displayName: 'Community and custom models',
+      label: SourceLabel.other,
+      displayName: `${CategoryName.communityAndCustomModels} models`,
     };
 
     return [allBlock, ...labelBlocks, noLabelsBlock];
@@ -54,9 +52,6 @@ const ModelCatalogSourceLabelBlocks: React.FC = () => {
 
   const handleToggleClick = (label: string) => {
     updateSelectedSourceLabel(label);
-    const newSearchParams = new URLSearchParams(searchParams);
-    newSearchParams.set('category', label);
-    setSearchParams(newSearchParams);
   };
 
   return (

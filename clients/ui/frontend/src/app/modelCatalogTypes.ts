@@ -59,6 +59,15 @@ export enum MetricsType {
   performanceMetrics = 'performance-metrics',
 }
 
+export enum CategoryName {
+  allModels = 'All models',
+  communityAndCustomModels = 'Community and custom',
+}
+
+export enum SourceLabel {
+  other = 'null',
+}
+
 export type CatalogArtifactBase = {
   createTimeSinceEpoch: string;
   lastUpdateTimeSinceEpoch: string;

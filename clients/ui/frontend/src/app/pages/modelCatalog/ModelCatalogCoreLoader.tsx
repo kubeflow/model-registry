@@ -14,25 +14,10 @@ import { ModelCatalogContext } from '~/app/context/modelCatalog/ModelCatalogCont
 import EmptyModelCatalogState from './EmptyModelCatalogState';
 
 const ModelCatalogCoreLoader: React.FC = () => {
-  const {
-    catalogSources,
-    catalogSourcesLoaded,
-    catalogSourcesLoadError,
-    selectedSourceLabel,
-    updateSelectedSourceLabel,
-  } = React.useContext(ModelCatalogContext);
+  const { catalogSources, catalogSourcesLoaded, catalogSourcesLoadError } =
+    React.useContext(ModelCatalogContext);
 
   const { isMUITheme } = useThemeContext();
-  React.useEffect(() => {
-    if (
-      catalogSourcesLoaded &&
-      catalogSources?.items &&
-      catalogSources.items.length > 0 &&
-      !selectedSourceLabel
-    ) {
-      updateSelectedSourceLabel('All models');
-    }
-  }, [catalogSourcesLoaded, catalogSources, selectedSourceLabel, updateSelectedSourceLabel]);
 
   if (catalogSourcesLoadError) {
     return (
