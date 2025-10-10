@@ -41,18 +41,19 @@ func TestLoadCatalogSources(t *testing.T) {
 				&MockCatalogModelArtifactRepository{},
 				&MockCatalogMetricsArtifactRepository{},
 			)
-			got, err := LoadCatalogSources(t.Context(), services, []string{tt.args.catalogsPath})
+			loader := NewLoader(services, []string{tt.args.catalogsPath})
+			err := loader.Start(context.Background())
 			if (err != nil) != tt.wantErr {
-				t.Errorf("LoadCatalogSources() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("NewLoader().Start() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
-			gotKeys := make([]string, 0, len(got.All()))
-			for k := range got.All() {
+			gotKeys := make([]string, 0, len(loader.Sources.All()))
+			for k := range loader.Sources.All() {
 				gotKeys = append(gotKeys, k)
 			}
 			sort.Strings(gotKeys)
 			if !reflect.DeepEqual(gotKeys, tt.want) {
-				t.Errorf("LoadCatalogSources() got = %v, want %v", got, tt.want)
+				t.Errorf("NewLoader().Start() got = %v, want %v", gotKeys, tt.want)
 			}
 		})
 	}
@@ -91,17 +92,18 @@ func TestLoadCatalogSourcesEnabledDisabled(t *testing.T) {
 				&MockCatalogModelArtifactRepository{},
 				&MockCatalogMetricsArtifactRepository{},
 			)
-			got, err := LoadCatalogSources(t.Context(), services, []string{tt.args.catalogsPath})
+			loader := NewLoader(services, []string{tt.args.catalogsPath})
+			err := loader.Start(context.Background())
 			if (err != nil) != tt.wantErr {
-				t.Errorf("LoadCatalogSources() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("NewLoader().Start() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 			if err != nil {
 				return
 			}
 
-			if !reflect.DeepEqual(got.All(), tt.want) {
-				t.Errorf("LoadCatalogSources() got metadata = %#v, want %#v", got.All(), tt.want)
+			if !reflect.DeepEqual(loader.Sources.All(), tt.want) {
+				t.Errorf("NewLoader().Start() got metadata = %#v, want %#v", loader.Sources.All(), tt.want)
 			}
 		})
 	}
@@ -182,7 +184,7 @@ func TestLoadCatalogSourcesWithMockRepositories(t *testing.T) {
 	}
 
 	// Create a loader and test the database update directly
-	l := newLoader(services)
+	l := NewLoader(services, []string{})
 	ctx := context.Background()
 
 	err := l.updateDatabase(ctx, "test-path", testConfig)
@@ -267,7 +269,7 @@ func TestLoadCatalogSourcesWithRepositoryErrors(t *testing.T) {
 		},
 	}
 
-	l := newLoader(services)
+	l := NewLoader(services, []string{})
 	ctx := context.Background()
 
 	// This should not return an error even if repository operations fail
