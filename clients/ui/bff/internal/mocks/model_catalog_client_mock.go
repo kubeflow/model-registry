@@ -171,7 +171,15 @@ func (m *ModelCatalogClientMock) GetCatalogModelArtifacts(client httpclient.HTTP
 	var allMockModelArtifacts models.CatalogModelArtifactList
 
 	if sourceId == "sample-source" && modelName == "repo1%2Fgranite-8b-code-instruct" {
-		allMockModelArtifacts = GetCatalogPerformanceMetricsArtifactListMock()
+		performanceArtifacts := GetCatalogPerformanceMetricsArtifactListMock()
+		accuracyArtifacts := GetCatalogAccuracyMetricsArtifactListMock()
+		combinedItems := append(performanceArtifacts.Items, accuracyArtifacts.Items...)
+		allMockModelArtifacts = models.CatalogModelArtifactList{
+			Items:         combinedItems,
+			Size:          int32(len(combinedItems)),
+			PageSize:      performanceArtifacts.PageSize,
+			NextPageToken: "",
+		}
 	} else if sourceId == "sample-source" && modelName == "repo1%2Fgranite-7b-instruct" {
 		allMockModelArtifacts = GetCatalogAccuracyMetricsArtifactListMock()
 	} else if sourceId == "sample-source" && modelName == "repo1%2Fgranite-3b-code-base" {
