@@ -16,14 +16,14 @@ describe('filtersToFilterQuery', () => {
     license = [],
     provider = [],
     language = [],
-    // ttft_mean = undefined,
+    ttft_mean = undefined,
     // rps_mean = undefined,
   }: Partial<ModelCatalogFilterStates>): ModelCatalogFilterStates => ({
     tasks,
     provider,
     license,
     language,
-    // ttft_mean,
+    ttft_mean,
     // rps_mean,
   });
 
@@ -116,13 +116,13 @@ describe('filtersToFilterQuery', () => {
         ],
       },
       // TODO: Implement performance filters.
-      // ttft_mean: {
-      //   type: 'number',
-      //   range: {
-      //     min: 0,
-      //     max: 100,
-      //   },
-      // },
+      ttft_mean: {
+        type: 'number',
+        range: {
+          min: 0,
+          max: 100,
+        },
+      },
       // TODO: Implement performance filters.
       // rps_mean: {
       //   type: 'number',

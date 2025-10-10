@@ -1,14 +1,11 @@
 import React from 'react';
 import { Stack } from '@patternfly/react-core';
-
-import { useSearchParams } from 'react-router-dom';
 import { ModelCatalogContext } from '~/app/context/modelCatalog/ModelCatalogContext';
-
 import {
   filterEnabledCatalogSources,
   getUniqueSourceLabels,
 } from '~/app/pages/modelCatalog/utils/modelCatalogUtils';
-
+import { CategoryName, SourceLabel } from '~/app/modelCatalogTypes';
 import CatalogCategorySection from './CatalogCategorySection';
 
 type ModelCatalogAllModelsViewProps = {
@@ -17,7 +14,6 @@ type ModelCatalogAllModelsViewProps = {
 
 const ModelCatalogAllModelsView: React.FC<ModelCatalogAllModelsViewProps> = ({ searchTerm }) => {
   const { catalogSources, updateSelectedSourceLabel } = React.useContext(ModelCatalogContext);
-  const [searchParams, setSearchParams] = useSearchParams();
 
   const sourceLabels = React.useMemo(() => {
     const enabledSources = filterEnabledCatalogSources(catalogSources);
@@ -27,11 +23,8 @@ const ModelCatalogAllModelsView: React.FC<ModelCatalogAllModelsViewProps> = ({ s
   const handleShowMoreCategory = React.useCallback(
     (categoryLabel: string) => {
       updateSelectedSourceLabel(categoryLabel);
-      const newSearchParams = new URLSearchParams(searchParams);
-      newSearchParams.set('category', categoryLabel);
-      setSearchParams(newSearchParams);
     },
-    [searchParams, setSearchParams, updateSelectedSourceLabel],
+    [updateSelectedSourceLabel],
   );
 
   return (
@@ -47,13 +40,13 @@ const ModelCatalogAllModelsView: React.FC<ModelCatalogAllModelsViewProps> = ({ s
         />
       ))}
       <CatalogCategorySection
-        key="Other"
-        label="Other"
+        key={CategoryName.communityAndCustomModels}
+        label={SourceLabel.other}
         searchTerm={searchTerm}
         pageSize={4}
         catalogSources={catalogSources}
         onShowMore={handleShowMoreCategory}
-        displayName="Community and custom"
+        displayName={CategoryName.communityAndCustomModels}
       />
     </Stack>
   );

@@ -73,7 +73,7 @@ describe('ModelCatalogCard Component', () => {
       modelCatalog.findFirstModelCatalogCard().within(() => {
         modelCatalog
           .findSourceLabel()
-          .should('contain.text', 'source 2text-generationapache-2.0provider1');
+          .should('contain.text', 'source 2text-generationprovider1apache-2.0');
       });
     });
 

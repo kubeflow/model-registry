@@ -229,4 +229,9 @@ export const getSourceFromSourceId = (
 };
 
 export const hasFiltersApplied = (filterData: ModelCatalogFilterStates): boolean =>
-  Object.values(filterData).some((value) => Array.isArray(value) && value.length > 0);
+  Object.values(filterData).some((value) => {
+    if (Array.isArray(value)) {
+      return value.length > 0;
+    }
+    return value !== undefined;
+  });

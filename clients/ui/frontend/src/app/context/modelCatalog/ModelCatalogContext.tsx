@@ -10,11 +10,15 @@ import {
   CatalogFilterOptionsList,
   CatalogSource,
   CatalogSourceList,
+  CategoryName,
   ModelCatalogFilterKey,
   ModelCatalogFilterStates,
 } from '~/app/modelCatalogTypes';
 import { BFF_API_VERSION, URL_PREFIX } from '~/app/utilities/const';
-import { ModelCatalogStringFilterKey } from '~/concepts/modelCatalog/const';
+import {
+  ModelCatalogNumberFilterKey,
+  ModelCatalogStringFilterKey,
+} from '~/concepts/modelCatalog/const';
 
 export type ModelCatalogContextType = {
   catalogSourcesLoaded: boolean;
@@ -50,6 +54,7 @@ export const ModelCatalogContext = React.createContext<ModelCatalogContextType>(
     [ModelCatalogStringFilterKey.PROVIDER]: [],
     [ModelCatalogStringFilterKey.LICENSE]: [],
     [ModelCatalogStringFilterKey.LANGUAGE]: [],
+    [ModelCatalogNumberFilterKey.ttft_mean]: undefined,
   },
   updateSelectedSource: () => undefined,
   selectedSourceLabel: undefined,
@@ -78,11 +83,13 @@ export const ModelCatalogContextProvider: React.FC<ModelCatalogContextProviderPr
     [ModelCatalogStringFilterKey.PROVIDER]: [],
     [ModelCatalogStringFilterKey.LICENSE]: [],
     [ModelCatalogStringFilterKey.LANGUAGE]: [],
+    [ModelCatalogNumberFilterKey.ttft_mean]: undefined,
   });
   const [filterOptions, filterOptionsLoaded, filterOptionsLoadError] =
     useCatalogFilterOptionList(apiState);
-  const [selectedSourceLabel, setSelectedSourceLabel] =
-    React.useState<ModelCatalogContextType['selectedSourceLabel']>(undefined);
+  const [selectedSourceLabel, setSelectedSourceLabel] = React.useState<
+    ModelCatalogContextType['selectedSourceLabel']
+  >(CategoryName.allModels);
 
   const contextValue = React.useMemo(
     () => ({

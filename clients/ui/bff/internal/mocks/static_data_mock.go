@@ -807,12 +807,12 @@ func GetCatalogSourceMocks() []models.CatalogSource {
 			Id:      "sample-source",
 			Name:    "Sample mocked source",
 			Enabled: &enabled,
-			Labels:  []string{"Sample category 1", "Sample category 2", "Community"},
+			Labels:  []string{"Sample category 1", "Sample category 2", "Sample category"},
 		},
 		{
 			Id:     "huggingface",
 			Name:   "Hugging Face",
-			Labels: []string{"Sample category 2", "Community"},
+			Labels: []string{"Sample category 2", "Sample category"},
 		},
 		{
 			Id:      "adminModel1",

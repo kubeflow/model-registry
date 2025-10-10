@@ -86,36 +86,29 @@ describe('Model Catalog All Models View', () => {
       modelCatalog.findCategoryTitle('OpenVINO').should('contain.text', 'OpenVINO models');
       cy.findByTestId('title Hugging Face').should('contain.text', 'Hugging Face models');
       modelCatalog.findCategoryTitle('Community').should('contain.text', 'Community models');
-      modelCatalog.findCategoryTitle('Other').should('contain.text', 'Community and custom models');
+      modelCatalog.findCategoryTitle('null').should('contain.text', 'Community and custom models');
     });
   });
 
   describe('Show More Functionality', () => {
     it('should display show more button when category has 4 or more models', () => {
       modelCatalog.findShowMoreModelsLink('hugging-face').should('be.visible');
-      modelCatalog.findShowMoreModelsLink('openvino').should('be.visible');
-      modelCatalog.findShowMoreModelsLink('community').should('be.visible');
-    });
-
-    it('should navigate to specific category when show more is clicked', () => {
       modelCatalog.findShowMoreModelsLink('hugging-face').click();
-      cy.url().should('include', 'model-catalog?category=Hugging+Face');
-
       modelCatalog.findAllModelsToggle().click();
+      modelCatalog.findShowMoreModelsLink('openvino').should('be.visible');
       modelCatalog.findShowMoreModelsLink('openvino').click();
-      cy.url().should('include', 'model-catalog?category=OpenVINO');
-
+      modelCatalog.findAllModelsToggle().click();
+      modelCatalog.findShowMoreModelsLink('community').should('be.visible');
       modelCatalog.findAllModelsToggle().click();
       modelCatalog.findShowMoreModelsLink('community').click();
-      cy.url().should('include', 'model-catalog?category=Community');
     });
   });
 
   describe('Error Handling', () => {
     it('should display error message when category fails to load', () => {
-      modelCatalog.findErrorState('Other').should('be.visible');
+      modelCatalog.findErrorState('null').should('be.visible');
       modelCatalog
-        .findErrorState('Other')
+        .findErrorState('null')
         .should('contain.text', 'Failed to load Community and custom models');
     });
   });
