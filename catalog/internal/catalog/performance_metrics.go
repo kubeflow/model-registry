@@ -2,6 +2,7 @@ package catalog
 
 import (
 	"bufio"
+	"context"
 	"encoding/json"
 	"fmt"
 	"math"
@@ -56,6 +57,76 @@ type performanceRecord struct {
 
 	// CustomProperties captures all other fields dynamically
 	CustomProperties map[string]interface{} `json:"-"`
+}
+
+type PerformanceMetricsLoader struct {
+	path                  []string
+	modelRepo             dbmodels.CatalogModelRepository
+	metricsArtifactRepo   dbmodels.CatalogMetricsArtifactRepository
+	modelTypeID           int32
+	metricsArtifactTypeID int32
+}
+
+func NewPerformanceMetricsLoader(path []string, modelRepo dbmodels.CatalogModelRepository, metricsArtifactRepo dbmodels.CatalogMetricsArtifactRepository, typeMap map[string]int64) (*PerformanceMetricsLoader, error) {
+	if len(path) == 0 {
+		glog.Info("No performance metrics path provided, skipping performance metrics loading")
+		return nil, nil
+	}
+
+	// Check if path exists
+	for _, p := range path {
+		if _, err := os.Stat(p); os.IsNotExist(err) {
+			glog.Warningf("Performance metrics path %s does not exist, skipping performance metrics loading", p)
+			return nil, nil
+		}
+	}
+
+	glog.Infof("Loading performance metrics data from %s", path)
+
+	// Get the TypeID for CatalogModel from the type map
+	modelTypeIDInt64, exists := typeMap[service.CatalogModelTypeName]
+	if !exists {
+		return nil, fmt.Errorf("CatalogModel type not found in type map")
+	}
+	// Bounds check for int64 to int32 conversion
+	if modelTypeIDInt64 > math.MaxInt32 || modelTypeIDInt64 < math.MinInt32 {
+		return nil, fmt.Errorf("CatalogModel type ID %d is out of int32 range", modelTypeIDInt64)
+	}
+	modelTypeID := int32(modelTypeIDInt64)
+	glog.V(2).Infof("Using catalog model type ID: %d", modelTypeID)
+
+	// Get the TypeID for CatalogMetricsArtifact from the type map
+	metricsArtifactTypeIDInt64, exists := typeMap[service.CatalogMetricsArtifactTypeName]
+	if !exists {
+		return nil, fmt.Errorf("CatalogMetricsArtifact type not found in type map")
+	}
+	// Bounds check for int64 to int32 conversion
+	if metricsArtifactTypeIDInt64 > math.MaxInt32 || metricsArtifactTypeIDInt64 < math.MinInt32 {
+		return nil, fmt.Errorf("CatalogMetricsArtifact type ID %d is out of int32 range", metricsArtifactTypeIDInt64)
+	}
+	metricsArtifactTypeID := int32(metricsArtifactTypeIDInt64)
+	glog.V(2).Infof("Using metrics artifact type ID: %d", metricsArtifactTypeID)
+
+	return &PerformanceMetricsLoader{
+		path:                  path,
+		modelRepo:             modelRepo,
+		metricsArtifactRepo:   metricsArtifactRepo,
+		modelTypeID:           modelTypeID,
+		metricsArtifactTypeID: metricsArtifactTypeID,
+	}, nil
+}
+
+func (pml *PerformanceMetricsLoader) Load(ctx context.Context, record ModelProviderRecord) error {
+	if pml == nil {
+		return nil
+	}
+
+	attrs := record.Model.GetAttributes()
+	if attrs == nil || attrs.Name == nil {
+		return nil
+	}
+	glog.Infof("Loading performance metrics for %s", *attrs.Name)
+	return nil
 }
 
 // LoadPerformanceMetricsData loads performance metrics data from the specified directory
