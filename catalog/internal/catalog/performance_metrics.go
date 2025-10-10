@@ -48,6 +48,35 @@ type evaluationRecord struct {
 	CustomProperties map[string]interface{} `json:"-"`
 }
 
+// UnmarshalJSON implements custom JSON unmarshaling to capture all undefined fields as CustomProperties
+func (er *evaluationRecord) UnmarshalJSON(data []byte) error {
+	// First unmarshal into a generic map to get all fields
+	var raw map[string]interface{}
+	if err := json.Unmarshal(data, &raw); err != nil {
+		return err
+	}
+
+	// Extract the core fields
+	if modelID, ok := raw["model_id"].(string); ok {
+		er.ModelID = modelID
+	}
+	if benchmark, ok := raw["benchmark"].(string); ok {
+		er.Benchmark = benchmark
+	}
+
+	// Initialize CustomProperties if nil
+	if er.CustomProperties == nil {
+		er.CustomProperties = make(map[string]interface{})
+	}
+
+	// Copy all fields to CustomProperties, including the core ones
+	for key, value := range raw {
+		er.CustomProperties[key] = value
+	}
+
+	return nil
+}
+
 // performanceRecord represents a single performance result from performance.ndjson
 // Only minimal fields needed for association are explicitly defined
 type performanceRecord struct {
@@ -57,6 +86,35 @@ type performanceRecord struct {
 
 	// CustomProperties captures all other fields dynamically
 	CustomProperties map[string]interface{} `json:"-"`
+}
+
+// UnmarshalJSON implements custom JSON unmarshaling to capture all undefined fields as CustomProperties
+func (pr *performanceRecord) UnmarshalJSON(data []byte) error {
+	// First unmarshal into a generic map to get all fields
+	var raw map[string]interface{}
+	if err := json.Unmarshal(data, &raw); err != nil {
+		return err
+	}
+
+	// Extract the core fields
+	if id, ok := raw["id"].(string); ok {
+		pr.ID = id
+	}
+	if modelID, ok := raw["model_id"].(string); ok {
+		pr.ModelID = modelID
+	}
+
+	// Initialize CustomProperties if nil
+	if pr.CustomProperties == nil {
+		pr.CustomProperties = make(map[string]interface{})
+	}
+
+	// Copy all fields to CustomProperties, including the core ones
+	for key, value := range raw {
+		pr.CustomProperties[key] = value
+	}
+
+	return nil
 }
 
 type PerformanceMetricsLoader struct {
@@ -125,8 +183,17 @@ func (pml *PerformanceMetricsLoader) Load(ctx context.Context, record ModelProvi
 	if attrs == nil || attrs.Name == nil {
 		return nil
 	}
+
 	glog.Infof("Loading performance metrics for %s", *attrs.Name)
-	return nil
+
+	// Create a type map from the stored type IDs
+	typeMap := map[string]int64{
+		service.CatalogModelTypeName:           int64(pml.modelTypeID),
+		service.CatalogMetricsArtifactTypeName: int64(pml.metricsArtifactTypeID),
+	}
+
+	// Call the existing LoadPerformanceMetricsData function
+	return LoadPerformanceMetricsData(pml.path, pml.modelRepo, pml.metricsArtifactRepo, typeMap)
 }
 
 // LoadPerformanceMetricsData loads performance metrics data from the specified directory
@@ -480,7 +547,15 @@ func createPerformanceArtifact(perfRecord performanceRecord, modelID int32, type
 	// Extract key values from custom properties for artifact naming
 	useCase, _ := perfRecord.CustomProperties["use_case"].(string)
 	hardwareType, _ := perfRecord.CustomProperties["hardware_type"].(string)
-	harwardCount, _ := perfRecord.CustomProperties["hardware_count"].(int64)
+
+	// hardware_count might be float64 from JSON unmarshaling
+	var harwardCount int64 = 1 // default value
+	if count, ok := perfRecord.CustomProperties["hardware_count"].(float64); ok {
+		harwardCount = int64(count)
+	} else if count, ok := perfRecord.CustomProperties["hardware_count"].(int64); ok {
+		harwardCount = count
+	}
+
 	if useCase == "" {
 		useCase = "unknown"
 	}
