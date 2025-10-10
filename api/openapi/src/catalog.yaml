@@ -20,9 +20,9 @@ paths:
       parameters:
         - name: source
           description: |-
-            Filter models by source. This parameter can be specified multiple times
+            Filter models by source. Multiple values can be separated by commas
             to filter by multiple sources (OR logic). For example:
-            ?source=huggingface&source=local will return models from either
+            ?source=huggingface,local will return models from either
             huggingface OR local sources.
           schema:
             type: array
@@ -36,6 +36,18 @@ paths:
           description: Free-form keyword search used to filter the response.
           schema:
             type: string
+          in: query
+          required: false
+        - name: sourceLabel
+          description: |-
+            Filter models by the label associated with the source. Multiple
+            values can be separated by commas. If one of the values is the
+            string `null`, then models from every source without a label will
+            be returned.
+          schema:
+            type: array
+            items:
+              type: string
           in: query
           required: false
         - $ref: "#/components/parameters/filterQuery"
