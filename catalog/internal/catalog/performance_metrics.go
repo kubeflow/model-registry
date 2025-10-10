@@ -84,37 +84,8 @@ type performanceRecord struct {
 	ID      string `json:"id"`
 	ModelID string `json:"model_id"`
 
-	// CustomProperties captures all other fields dynamically
+	// CustomProperties captures remaining fields dynamically
 	CustomProperties map[string]interface{} `json:"-"`
-}
-
-// UnmarshalJSON implements custom JSON unmarshaling to capture all undefined fields as CustomProperties
-func (pr *performanceRecord) UnmarshalJSON(data []byte) error {
-	// First unmarshal into a generic map to get all fields
-	var raw map[string]interface{}
-	if err := json.Unmarshal(data, &raw); err != nil {
-		return err
-	}
-
-	// Extract the core fields
-	if id, ok := raw["id"].(string); ok {
-		pr.ID = id
-	}
-	if modelID, ok := raw["model_id"].(string); ok {
-		pr.ModelID = modelID
-	}
-
-	// Initialize CustomProperties if nil
-	if pr.CustomProperties == nil {
-		pr.CustomProperties = make(map[string]interface{})
-	}
-
-	// Copy all fields to CustomProperties, including the core ones
-	for key, value := range raw {
-		pr.CustomProperties[key] = value
-	}
-
-	return nil
 }
 
 type PerformanceMetricsLoader struct {
@@ -544,29 +515,8 @@ func createAccuracyMetricsArtifact(evalRecords []evaluationRecord, modelID int32
 
 // createPerformanceArtifact creates a metrics artifact from performance record
 func createPerformanceArtifact(perfRecord performanceRecord, modelID int32, typeID int32, existingID *int32, existingCreateTime *int64) *dbmodels.CatalogMetricsArtifactImpl {
-	// Extract key values from custom properties for artifact naming
-	useCase, _ := perfRecord.CustomProperties["use_case"].(string)
-	hardwareType, _ := perfRecord.CustomProperties["hardware_type"].(string)
-
-	// hardware_count might be float64 from JSON unmarshaling
-	var harwardCount int64 = 1 // default value
-	if count, ok := perfRecord.CustomProperties["hardware_count"].(float64); ok {
-		harwardCount = int64(count)
-	} else if count, ok := perfRecord.CustomProperties["hardware_count"].(int64); ok {
-		harwardCount = count
-	}
-
-	if useCase == "" {
-		useCase = "unknown"
-	}
-	if hardwareType == "" {
-		hardwareType = "unknown"
-	}
-	if harwardCount == 0 {
-		harwardCount = 1
-	}
 	// Create artifact name (must be unique per artifact)
-	artifactName := fmt.Sprintf("performance-%s-%s-%d-%s", useCase, hardwareType, harwardCount, perfRecord.ID)
+	artifactName := fmt.Sprintf("performance-%s", perfRecord.ID)
 
 	// Use existing create time if provided, otherwise extract from custom properties
 	createTime := existingCreateTime
