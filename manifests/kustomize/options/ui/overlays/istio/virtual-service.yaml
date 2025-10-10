@@ -24,3 +24,20 @@ spec:
         host: model-registry-ui-service.kubeflow.svc.cluster.local
         port:
           number: 80
+  - headers:
+      request:
+        add:
+          x-forwarded-prefix: /model-catalog
+    match:
+    - uri:
+        prefix: /model-catalog/
+    rewrite:
+      uri: /model-catalog/
+    route:
+    - destination:
+        host: model-registry-ui-service.kubeflow.svc.cluster.local
+        port:
+          number: 80
+
+
+
