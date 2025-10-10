@@ -8,6 +8,7 @@ import {
 import type { CatalogSource } from '~/app/modelCatalogTypes';
 import { MODEL_CATALOG_API_VERSION } from '~/__tests__/cypress/cypress/support/commands/api';
 import { mockCatalogFilterOptionsList } from '~/__mocks__/mockCatalogFilterOptionsList';
+import { ModelRegistryMetadataType } from '~/app/types';
 
 type HandlersProps = {
   sources?: CatalogSource[];
@@ -33,7 +34,18 @@ const initIntercepts = ({
       query: { source: 'sample-source' },
     },
     mockCatalogModelList({
-      items: [mockCatalogModel({})],
+      items: [
+        mockCatalogModel({}),
+        mockCatalogModel({
+          customProperties: {
+            validated: {
+              metadataType: ModelRegistryMetadataType.STRING,
+              // eslint-disable-next-line camelcase
+              string_value: '',
+            },
+          },
+        }),
+      ],
     }),
   );
 
@@ -94,6 +106,15 @@ describe('ModelCatalogCard Component', () => {
         modelCatalog.findModelCatalogDetailLink().should('contain.text', 'model1');
         modelCatalog.findTaskLabel().should('exist');
         modelCatalog.findProviderLabel().should('exist');
+      });
+    });
+  });
+
+  describe('Validated Model', () => {
+    it('should show validated model correctly', () => {
+      modelCatalog.findLastModelCatalogCard().within(() => {
+        modelCatalog.findValidatedModelBenchmarkLink().click();
+        cy.url().should('include', 'performance-insights');
       });
     });
   });

@@ -99,6 +99,7 @@ const ModelCatalogCard: React.FC<ModelCatalogCardProps> = ({
         <ModelCatalogCardBody
           model={model}
           isValidated={isValidated}
+          source={source}
           performanceMetrics={performanceMetrics}
           accuracyMetrics={accuracyMetrics}
         />
