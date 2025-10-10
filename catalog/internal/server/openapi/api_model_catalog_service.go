@@ -124,21 +124,11 @@ func (c *ModelCatalogServiceAPIController) GetModel(w http.ResponseWriter, r *ht
 		// Extract the model name by removing the /artifacts suffix
 		modelName := strings.TrimSuffix(modelNameParam, "/artifacts")
 
-		// Call the GetAllModelArtifacts service method directly
-		query := r.URL.Query()
-		artifactTypeParam := query.Get("artifact_type")
-		pageSizeParam := query.Get("pageSize")
-		orderByParam := query.Get("orderBy")
-		sortOrderParam := query.Get("sortOrder")
-		nextPageTokenParam := query.Get("nextPageToken")
-		result, err := c.service.GetAllModelArtifacts(r.Context(), sourceIdParam, modelName, artifactTypeParam, pageSizeParam, model.OrderByField(orderByParam), model.SortOrder(sortOrderParam), nextPageTokenParam)
-		// If an error occurred, encode the error with the status code
-		if err != nil {
-			c.errorHandler(w, r, err, &result)
-			return
-		}
-		// If no error, encode the body and the result code
-		EncodeJSONResponse(result.Body, &result.Code, w)
+		// Add the model_name parameter to the route context so GetAllModelArtifacts can access it
+		chi.RouteContext(r.Context()).URLParams.Add("model_name", modelName)
+
+		// Call the GetAllModelArtifacts handler directly
+		c.GetAllModelArtifacts(w, r)
 		return
 	}
 
