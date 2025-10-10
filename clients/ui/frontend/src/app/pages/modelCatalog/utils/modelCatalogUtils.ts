@@ -13,7 +13,10 @@ import {
   ModelCatalogStringFilterValueType,
 } from '~/app/modelCatalogTypes';
 import { getLabels } from '~/app/pages/modelRegistry/screens/utils';
-import { ModelCatalogStringFilterKey } from '~/concepts/modelCatalog/const';
+import {
+  ModelCatalogStringFilterKey,
+  ModelCatalogNumberFilterKey,
+} from '~/concepts/modelCatalog/const';
 
 export const extractVersionTag = (tags?: string[]): string | undefined =>
   tags?.find((tag) => /^\d+\.\d+\.\d+$/.test(tag));
@@ -112,6 +115,23 @@ export const useCatalogStringFilterState = (
     }
   };
   return { isSelected, setSelected };
+};
+
+export const useCatalogNumberFilterState = (
+  filterKey: ModelCatalogNumberFilterKey,
+): {
+  value: number | undefined;
+  setValue: (value: number | undefined) => void;
+} => {
+  const { filterData, setFilterData } = React.useContext(ModelCatalogContext);
+  const value = filterData[filterKey];
+  const setValue = React.useCallback(
+    (newValue: number | undefined) => {
+      setFilterData(filterKey, newValue);
+    },
+    [filterKey, setFilterData],
+  );
+  return { value, setValue };
 };
 
 const isArrayOfSelections = (

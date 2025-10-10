@@ -14,7 +14,10 @@ import {
   ModelCatalogFilterStates,
 } from '~/app/modelCatalogTypes';
 import { BFF_API_VERSION, URL_PREFIX } from '~/app/utilities/const';
-import { ModelCatalogStringFilterKey } from '~/concepts/modelCatalog/const';
+import {
+  ModelCatalogStringFilterKey,
+  ModelCatalogNumberFilterKey,
+} from '~/concepts/modelCatalog/const';
 
 export type ModelCatalogContextType = {
   catalogSourcesLoaded: boolean;
@@ -48,6 +51,10 @@ export const ModelCatalogContext = React.createContext<ModelCatalogContextType>(
     [ModelCatalogStringFilterKey.PROVIDER]: [],
     [ModelCatalogStringFilterKey.LICENSE]: [],
     [ModelCatalogStringFilterKey.LANGUAGE]: [],
+    [ModelCatalogNumberFilterKey.MIN_RPS]: undefined,
+    [ModelCatalogNumberFilterKey.MAX_LATENCY]: undefined,
+    [ModelCatalogNumberFilterKey.WORKLOAD_TYPE]: undefined,
+    [ModelCatalogNumberFilterKey.HARDWARE_TYPE]: undefined,
   },
   updateSelectedSource: () => undefined,
   // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
@@ -74,6 +81,10 @@ export const ModelCatalogContextProvider: React.FC<ModelCatalogContextProviderPr
     [ModelCatalogStringFilterKey.PROVIDER]: [],
     [ModelCatalogStringFilterKey.LICENSE]: [],
     [ModelCatalogStringFilterKey.LANGUAGE]: [],
+    [ModelCatalogNumberFilterKey.MIN_RPS]: undefined,
+    [ModelCatalogNumberFilterKey.MAX_LATENCY]: undefined,
+    [ModelCatalogNumberFilterKey.WORKLOAD_TYPE]: undefined,
+    [ModelCatalogNumberFilterKey.HARDWARE_TYPE]: undefined,
   });
   const [filterOptions, filterOptionsLoaded, filterOptionsLoadError] =
     useCatalogFilterOptionList(apiState);
