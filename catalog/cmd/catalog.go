@@ -64,25 +64,24 @@ func runCatalogServer(cmd *cobra.Command, args []string) error {
 		getRepo[models.CatalogMetricsArtifactRepository](repoSet),
 	)
 
-	sources, err := catalog.LoadCatalogSources(context.Background(), services, catalogCfg.ConfigPath)
+	loader := catalog.NewLoader(services, catalogCfg.ConfigPath)
+
+	perfLoader, err := catalog.NewPerformanceMetricsLoader(catalogCfg.PerformanceMetricsPath, services.CatalogModelRepository, services.CatalogMetricsArtifactRepository, repoSet.TypeMap())
+	if err != nil {
+		return fmt.Errorf("error initializing performance metrics: %v", err)
+	}
+	loader.RegisterEventHandler(perfLoader.Load)
+
+	err = loader.Start(context.Background())
 	if err != nil {
 		return fmt.Errorf("error loading catalog sources: %v", err)
 	}
 
-	modelRepo := getRepo[models.CatalogModelRepository](repoSet)
-	artifactRepo := getRepo[models.CatalogArtifactRepository](repoSet)
-	metricsArtifactRepo := getRepo[models.CatalogMetricsArtifactRepository](repoSet)
-
 	svc := openapi.NewModelCatalogServiceAPIService(catalog.NewDBCatalog(
-		modelRepo,
-		artifactRepo,
-	), sources)
+		services.CatalogModelRepository,
+		services.CatalogArtifactRepository,
+	), loader.Sources)
 	ctrl := openapi.NewModelCatalogServiceAPIController(svc)
-
-	err = catalog.LoadPerformanceMetricsData(catalogCfg.PerformanceMetricsPath, modelRepo, metricsArtifactRepo, repoSet.TypeMap())
-	if err != nil {
-		return fmt.Errorf("error loading performance metrics data: %v", err)
-	}
 
 	glog.Infof("Catalog API server listening on %s", catalogCfg.ListenAddress)
 	return http.ListenAndServe(catalogCfg.ListenAddress, openapi.NewRouter(ctrl))

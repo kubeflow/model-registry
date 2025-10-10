@@ -39,37 +39,8 @@ func RegisterModelProvider(name string, callback ModelProviderFunc) error {
 	return nil
 }
 
-// LoadCatalogSources processes sources YAML files, returning the source data,
-// and also loads models from those sources into the database.
-func LoadCatalogSources(ctx context.Context, services service.Services, paths []string) (*SourceCollection, error) {
-	l := newLoader(services)
-
-	for _, path := range paths {
-		err := l.Load(ctx, path)
-		if err != nil {
-			return nil, fmt.Errorf("%s: %w", path, err)
-		}
-
-		go func(path string) {
-			changes, err := getMonitor().Path(ctx, path)
-			if err != nil {
-				glog.Errorf("unable to watch sources file (%s): %v", path, err)
-				// Not fatal, we just won't get automatic updates.
-			}
-
-			for range changes {
-				glog.Infof("Reloading sources %s", path)
-
-				err = l.Load(ctx, path)
-				if err != nil {
-					glog.Errorf("unable to load sources: %v", err)
-				}
-			}
-		}(path)
-	}
-
-	return l.Sources, nil
-}
+// LoaderEventHandler is the definition of a function called after a model is loaded.
+type LoaderEventHandler func(ctx context.Context, record ModelProviderRecord) error
 
 // sourceConfig is the structure for the catalog sources YAML file.
 type sourceConfig struct {
@@ -87,23 +58,64 @@ type Source struct {
 	Properties map[string]any `json:"properties,omitempty"`
 }
 
-type loader struct {
-	Sources   *SourceCollection
+type Loader struct {
+	// Sources contains current source information loaded from the configuration files.
+	Sources *SourceCollection
+
+	paths     []string
 	services  service.Services
 	closersMu sync.Mutex
 	closers   map[string]func()
+	handlers  []LoaderEventHandler
 }
 
-func newLoader(services service.Services) *loader {
-	return &loader{
+func NewLoader(services service.Services, paths []string) *Loader {
+	return &Loader{
 		Sources:  NewSourceCollection(),
+		paths:    paths,
 		services: services,
 		closers:  map[string]func(){},
 	}
 }
 
-// Load processes (or re-processes) a sources config file.
-func (l *loader) Load(ctx context.Context, path string) error {
+// RegisterEventHandler adds a function that will be called for every
+// successfully processed record. This should be called before Start.
+func (l *Loader) RegisterEventHandler(fn LoaderEventHandler) {
+	l.handlers = append(l.handlers, fn)
+}
+
+// Start processes the sources YAML files. Background goroutines will be
+// stopped when the context is canceled.
+func (l *Loader) Start(ctx context.Context) error {
+	for _, path := range l.paths {
+		err := l.loadOne(ctx, path)
+		if err != nil {
+			return fmt.Errorf("%s: %w", path, err)
+		}
+
+		go func(path string) {
+			changes, err := getMonitor().Path(ctx, path)
+			if err != nil {
+				glog.Errorf("unable to watch sources file (%s): %v", path, err)
+				// Not fatal, we just won't get automatic updates.
+			}
+
+			for range changes {
+				glog.Infof("Reloading sources %s", path)
+
+				err = l.loadOne(ctx, path)
+				if err != nil {
+					glog.Errorf("unable to load sources: %v", err)
+				}
+			}
+		}(path)
+	}
+
+	return nil
+}
+
+// loadOne processes (or re-processes) a sources config file.
+func (l *Loader) loadOne(ctx context.Context, path string) error {
 	// Get absolute path of the catalog config file
 	path, err := filepath.Abs(path)
 	if err != nil {
@@ -123,7 +135,7 @@ func (l *loader) Load(ctx context.Context, path string) error {
 	return l.updateDatabase(ctx, path, config)
 }
 
-func (l *loader) read(path string) (*sourceConfig, error) {
+func (l *Loader) read(path string) (*sourceConfig, error) {
 	config := &sourceConfig{}
 	bytes, err := os.ReadFile(path)
 	if err != nil {
@@ -151,17 +163,17 @@ func (l *loader) read(path string) (*sourceConfig, error) {
 	return config, nil
 }
 
-func (l *loader) updateSources(path string, config *sourceConfig) error {
+func (l *Loader) updateSources(path string, config *sourceConfig) error {
 	sources := make(map[string]apimodels.CatalogSource, len(config.Catalogs))
 
 	for _, source := range config.Catalogs {
 		glog.Infof("reading config type %s...", source.Type)
 		id := source.GetId()
 		if len(id) == 0 {
-			return fmt.Errorf("invalid catalog id %s", id)
+			return fmt.Errorf("invalid source: missing id")
 		}
 		if _, exists := sources[id]; exists {
-			return fmt.Errorf("duplicate catalog id %s", id)
+			return fmt.Errorf("invalid source: duplicate id %s", id)
 		}
 
 		sources[id] = source.CatalogSource
@@ -172,7 +184,7 @@ func (l *loader) updateSources(path string, config *sourceConfig) error {
 	return l.Sources.Merge(path, sources)
 }
 
-func (l *loader) updateDatabase(ctx context.Context, path string, config *sourceConfig) error {
+func (l *Loader) updateDatabase(ctx context.Context, path string, config *sourceConfig) error {
 	ctx, cancel := context.WithCancel(ctx)
 
 	l.closersMu.Lock()
@@ -227,6 +239,10 @@ func (l *loader) updateDatabase(ctx context.Context, path string, config *source
 					glog.Errorf("%s, artifact %d: %v", *attr.Name, i, err)
 				}
 			}
+
+			for _, handler := range l.handlers {
+				handler(ctx, record)
+			}
 		}
 	}()
 
@@ -236,7 +252,7 @@ func (l *loader) updateDatabase(ctx context.Context, path string, config *source
 // readProviderRecords calls the provider for every configured source and
 // merges the returned channels together. The returned channel is closed when
 // the last provider channel is closed.
-func (l *loader) readProviderRecords(ctx context.Context, path string, config *sourceConfig) <-chan ModelProviderRecord {
+func (l *Loader) readProviderRecords(ctx context.Context, path string, config *sourceConfig) <-chan ModelProviderRecord {
 	configDir := filepath.Dir(path)
 
 	ch := make(chan ModelProviderRecord)
@@ -277,7 +293,7 @@ func (l *loader) readProviderRecords(ctx context.Context, path string, config *s
 	return ch
 }
 
-func (l *loader) setModelSourceID(model dbmodels.CatalogModel, sourceID string) {
+func (l *Loader) setModelSourceID(model dbmodels.CatalogModel, sourceID string) {
 	if model == nil {
 		return
 	}
