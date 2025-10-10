@@ -8,6 +8,7 @@ import {
   CatalogFilterOptionsList,
   CatalogModel,
   CatalogModelDetailsParams,
+  CatalogSource,
   CatalogSourceList,
   ModelCatalogFilterStates,
   ModelCatalogStringFilterValueType,
@@ -195,3 +196,42 @@ export const filtersToFilterQuery = (
   // eg. filterQuery=rps_mean+>1+AND+license+IN+('mit','apache-2.0')+AND+ttft_mean+<+10
   return nonEmptyFilters.length === 0 ? '' : `${nonEmptyFilters.join(' AND ')}`.replace(/\s/g, '+');
 };
+
+export const getUniqueSourceLabels = (catalogSources: CatalogSourceList | null): string[] => {
+  if (!catalogSources) {
+    return [];
+  }
+
+  const allLabels = new Set<string>();
+
+  catalogSources.items.forEach((source) => {
+    if (source.enabled && source.labels.length > 0) {
+      source.labels.forEach((label) => {
+        if (label.trim()) {
+          allLabels.add(label.trim());
+        }
+      });
+    }
+  });
+
+  return Array.from(allLabels);
+};
+
+export const getSourceFromSourceId = (
+  sourceId: string,
+  catalogSources: CatalogSourceList | null,
+): CatalogSource | undefined => {
+  if (!catalogSources || !sourceId) {
+    return undefined;
+  }
+
+  return catalogSources.items.find((source) => source.id === sourceId);
+};
+
+export const hasFiltersApplied = (filterData: ModelCatalogFilterStates): boolean =>
+  Object.values(filterData).some((value) => {
+    if (Array.isArray(value)) {
+      return value.length > 0;
+    }
+    return value !== undefined;
+  });

@@ -5,6 +5,7 @@ import {
   ModelCatalogProvider,
   ModelCatalogTask,
   AllLanguageCode,
+  ModelCatalogNumberFilterKey,
 } from '~/concepts/modelCatalog/const';
 
 export const mockCatalogFilterOptionsList = (
@@ -46,6 +47,13 @@ export const mockCatalogFilterOptionsList = (
         AllLanguageCode.PT,
         AllLanguageCode.ZH,
       ],
+    },
+    [ModelCatalogNumberFilterKey.ttft_mean]: {
+      type: 'number',
+      range: {
+        min: 0,
+        max: 100,
+      },
     },
   },
   ...partial,

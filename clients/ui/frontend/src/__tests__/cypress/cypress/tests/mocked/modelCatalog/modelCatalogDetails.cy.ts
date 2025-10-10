@@ -13,10 +13,12 @@ import { mockCatalogFilterOptionsList } from '~/__mocks__/mockCatalogFilterOptio
 
 type HandlersProps = {
   sources?: CatalogSource[];
+  modelsPerCategory?: number;
 };
 
 const initIntercepts = ({
   sources = [mockCatalogSource({}), mockCatalogSource({ id: 'source-2', name: 'source 2' })],
+  modelsPerCategory = 4,
 }: HandlersProps) => {
   cy.interceptApi(
     `GET /api/:apiVersion/model_catalog/sources`,
@@ -28,24 +30,34 @@ const initIntercepts = ({
     }),
   );
 
-  cy.interceptApi(
-    `GET /api/:apiVersion/model_catalog/models`,
-    {
-      path: { apiVersion: MODEL_CATALOG_API_VERSION },
-      query: { source: 'sample-source' },
-    },
-    mockCatalogModelList({
-      items: [mockCatalogModel({})],
-    }),
-  );
+  sources.forEach((source) => {
+    source.labels.forEach((label) => {
+      cy.interceptApi(
+        `GET /api/:apiVersion/model_catalog/models`,
+        {
+          path: { apiVersion: MODEL_CATALOG_API_VERSION },
+          query: { sourceLabel: label },
+        },
+        mockCatalogModelList({
+          items: Array.from({ length: modelsPerCategory }, (_, i) =>
+            mockCatalogModel({
+              name: `${label.toLowerCase()}-model-${i + 1}`,
+              // eslint-disable-next-line camelcase
+              source_id: source.id,
+            }),
+          ),
+        }),
+      );
+    });
+  });
 
   cy.interceptApi(
     `GET /api/:apiVersion/model_catalog/sources/:sourceId/models/:modelName`,
     {
       path: {
         apiVersion: MODEL_CATALOG_API_VERSION,
-        sourceId: 'sample-source',
-        modelName: 'repo1%2Fmodel1',
+        sourceId: 'source-2',
+        modelName: 'sample%20category%201-model-1',
       },
     },
     mockCatalogModel({}),
@@ -56,8 +68,8 @@ const initIntercepts = ({
     {
       path: {
         apiVersion: MODEL_CATALOG_API_VERSION,
-        sourceId: 'sample-source',
-        modelName: 'repo1%2Fmodel1',
+        sourceId: 'source-2',
+        modelName: 'sample%20category%201-model-1',
       },
     },
     mockCatalogModelArtifactList({}),
@@ -82,7 +94,6 @@ describe('Model Catalog Details Page', () => {
 
     initIntercepts({});
     modelCatalog.visit();
-    modelCatalog.navigate();
   });
 
   it('navigates to details and shows header, breadcrumb and description', () => {
