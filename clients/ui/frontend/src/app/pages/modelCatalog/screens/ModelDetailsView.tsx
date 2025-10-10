@@ -27,6 +27,7 @@ import ModelTimestamp from '~/app/pages/modelRegistry/screens/components/ModelTi
 import {
   getModelArtifactUri,
   hasModelArtifacts,
+  isModelValidated,
 } from '~/app/pages/modelCatalog/utils/modelCatalogUtils';
 
 type ModelDetailsViewProps = {
@@ -44,6 +45,7 @@ const ModelDetailsView: React.FC<ModelDetailsViewProps> = ({
 }) => {
   // Extract all labels from customProperties
   const allLabels = model.customProperties ? getLabels(model.customProperties) : [];
+  const isValidated = isModelValidated(model);
 
   // Extract validated_on platforms
   const validatedOnPlatforms = getValidatedOnPlatforms(model.customProperties);
@@ -75,6 +77,7 @@ const ModelDetailsView: React.FC<ModelDetailsViewProps> = ({
                   tasks={model.tasks ?? []}
                   license={model.license}
                   labels={allLabels}
+                  numLabels={isValidated ? 2 : 3}
                 />
               </DescriptionListDescription>
             </DescriptionListGroup>
