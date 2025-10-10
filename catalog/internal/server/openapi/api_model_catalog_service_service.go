@@ -64,7 +64,7 @@ func (m *ModelCatalogServiceAPIService) GetAllModelArtifacts(ctx context.Context
 	return Response(http.StatusOK, artifacts), nil
 }
 
-func (m *ModelCatalogServiceAPIService) FindModels(ctx context.Context, sourceIDs []string, q, filterQuery, pageSize string, orderBy model.OrderByField, sortOrder model.SortOrder, nextPageToken string) (ImplResponse, error) {
+func (m *ModelCatalogServiceAPIService) FindModels(ctx context.Context, sourceIDs []string, q string, sourceLabels []string, filterQuery, pageSize string, orderBy model.OrderByField, sortOrder model.SortOrder, nextPageToken string) (ImplResponse, error) {
 	var err error
 	pageSizeInt := int32(10)
 
@@ -76,10 +76,23 @@ func (m *ModelCatalogServiceAPIService) FindModels(ctx context.Context, sourceID
 		pageSizeInt = int32(parsed)
 	}
 
+	if len(sourceIDs) == 1 && sourceIDs[0] == "" {
+		sourceIDs = nil
+	}
+	if len(sourceLabels) == 1 && sourceLabels[0] == "" {
+		sourceLabels = nil
+	}
+
+	if len(sourceIDs) > 0 && len(sourceLabels) > 0 {
+		err := fmt.Errorf("source and sourceLabel cannot be used together")
+		return Response(http.StatusBadRequest, err), err
+	}
+
 	listModelsParams := catalog.ListModelsParams{
 		Query:         q,
 		FilterQuery:   filterQuery,
 		SourceIDs:     sourceIDs,
+		SourceLabels:  sourceLabels,
 		PageSize:      pageSizeInt,
 		OrderBy:       orderBy,
 		SortOrder:     sortOrder,

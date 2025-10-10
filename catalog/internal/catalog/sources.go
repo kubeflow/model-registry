@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"maps"
 	"slices"
+	"strings"
 	"sync"
 
 	model "github.com/kubeflow/model-registry/catalog/pkg/openapi"
@@ -25,8 +26,9 @@ func NewSourceCollection() *SourceCollection {
 	}
 }
 
-// merge adds sources from one origin (which should ordinarily be a file path),
-// completely replacing anything that was previously from that origin.
+// Merge adds sources from one origin (ordinarily, a file path--but any unique
+// string will do), completely replacing anything that was previously from that
+// origin.
 func (sc *SourceCollection) Merge(origin string, sources map[string]model.CatalogSource) error {
 	sc.mu.Lock()
 	defer sc.mu.Unlock()
@@ -64,4 +66,40 @@ func (sc *SourceCollection) Get(name string) (src model.CatalogSource, ok bool) 
 
 	src, ok = sc.sources[name]
 	return
+}
+
+// ByLabel returns sources that have any of the labels provided. The matching
+// is case insensitive.
+//
+// If a label is "null", every source without a label is returned.
+func (sc *SourceCollection) ByLabel(labels []string) []model.CatalogSource {
+	sc.mu.RLock()
+	defer sc.mu.RUnlock()
+
+	labelMap := make(map[string]struct{}, len(labels))
+	for _, label := range labels {
+		labelMap[strings.ToLower(label)] = struct{}{}
+	}
+
+	matches := map[string]model.CatalogSource{}
+
+	if _, hasNull := labelMap["null"]; hasNull {
+		for _, source := range sc.sources {
+			if len(source.Labels) == 0 {
+				matches[source.Id] = source
+			}
+		}
+	}
+
+OUTER:
+	for _, source := range sc.sources {
+		for _, label := range source.Labels {
+			if _, match := labelMap[strings.ToLower(label)]; match {
+				matches[source.Id] = source
+				continue OUTER
+			}
+		}
+	}
+
+	return slices.Collect(maps.Values(matches))
 }

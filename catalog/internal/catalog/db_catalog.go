@@ -8,6 +8,7 @@ import (
 	"strconv"
 
 	dbmodels "github.com/kubeflow/model-registry/catalog/internal/db/models"
+	"github.com/kubeflow/model-registry/catalog/internal/db/service"
 	apimodels "github.com/kubeflow/model-registry/catalog/pkg/openapi"
 	"github.com/kubeflow/model-registry/internal/converter"
 	mrmodels "github.com/kubeflow/model-registry/internal/db/models"
@@ -18,15 +19,14 @@ import (
 type dbCatalogImpl struct {
 	catalogModelRepository    dbmodels.CatalogModelRepository
 	catalogArtifactRepository dbmodels.CatalogArtifactRepository
+	sources                   *SourceCollection
 }
 
-func NewDBCatalog(
-	catalogModelRepository dbmodels.CatalogModelRepository,
-	catalogArtifactRepository dbmodels.CatalogArtifactRepository,
-) APIProvider {
+func NewDBCatalog(services service.Services, sources *SourceCollection) APIProvider {
 	return &dbCatalogImpl{
-		catalogArtifactRepository: catalogArtifactRepository,
-		catalogModelRepository:    catalogModelRepository,
+		catalogArtifactRepository: services.CatalogArtifactRepository,
+		catalogModelRepository:    services.CatalogModelRepository,
+		sources:                   sources,
 	}
 }
 
@@ -73,8 +73,25 @@ func (d *dbCatalogImpl) ListModels(ctx context.Context, params ListModelsParams)
 		queryPtr = &params.Query
 	}
 
+	sourceIDs := params.SourceIDs
+	if len(sourceIDs) == 0 && len(params.SourceLabels) > 0 {
+		sources := d.sources.ByLabel(params.SourceLabels)
+		if len(sources) == 0 {
+			// No matching sources, so no matching models.
+			return apimodels.CatalogModelList{
+				Items:    make([]apimodels.CatalogModel, 0),
+				PageSize: pageSize,
+			}, nil
+		}
+
+		sourceIDs = make([]string, len(sources))
+		for i, source := range sources {
+			sourceIDs[i] = source.Id
+		}
+	}
+
 	modelsList, err := d.catalogModelRepository.List(dbmodels.CatalogModelListOptions{
-		SourceIDs: &params.SourceIDs,
+		SourceIDs: &sourceIDs,
 		Query:     queryPtr,
 		Pagination: mrmodels.Pagination{
 			FilterQuery:   &params.FilterQuery,
@@ -89,7 +106,7 @@ func (d *dbCatalogImpl) ListModels(ctx context.Context, params ListModelsParams)
 	}
 
 	modelList := &apimodels.CatalogModelList{
-		Items: make([]apimodels.CatalogModel, 0),
+		Items: make([]apimodels.CatalogModel, 0, len(modelsList.Items)),
 	}
 
 	for _, model := range modelsList.Items {

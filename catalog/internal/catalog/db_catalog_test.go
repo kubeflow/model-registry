@@ -43,12 +43,19 @@ func TestDBCatalog(t *testing.T) {
 	modelArtifactRepo := service.NewCatalogModelArtifactRepository(sharedDB, modelArtifactTypeID)
 	metricsArtifactRepo := service.NewCatalogMetricsArtifactRepository(sharedDB, metricsArtifactTypeID)
 
+	svcs := service.NewServices(
+		catalogModelRepo,
+		catalogArtifactRepo,
+		modelArtifactRepo,
+		metricsArtifactRepo,
+	)
+
 	// Create DB catalog instance
-	dbCatalog := NewDBCatalog(catalogModelRepo, catalogArtifactRepo)
+	dbCatalog := NewDBCatalog(svcs, nil)
 	ctx := context.Background()
 
 	t.Run("TestNewDBCatalog", func(t *testing.T) {
-		catalog := NewDBCatalog(catalogModelRepo, catalogArtifactRepo)
+		catalog := NewDBCatalog(svcs, nil)
 		require.NotNil(t, catalog)
 
 		// Verify it implements the interface

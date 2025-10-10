@@ -306,6 +306,7 @@ func TestFindModels(t *testing.T) {
 				context.Background(),
 				[]string{tc.sourceID},
 				tc.q,
+				[]string{""},
 				tc.filterQuery,
 				tc.pageSize,
 				tc.orderBy,
