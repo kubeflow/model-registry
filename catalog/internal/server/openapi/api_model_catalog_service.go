@@ -117,6 +117,31 @@ func (c *ModelCatalogServiceAPIController) FindSources(w http.ResponseWriter, r 
 func (c *ModelCatalogServiceAPIController) GetModel(w http.ResponseWriter, r *http.Request) {
 	sourceIdParam := chi.URLParam(r, "source_id")
 	modelNameParam := chi.URLParam(r, "*")
+
+	// Special handling for getModel to delegate /artifacts requests to getAllModelArtifacts
+	// The wildcard /* pattern catches /artifacts requests, but we want those to go to GetAllModelArtifacts
+	if strings.HasSuffix(r.URL.Path, "/artifacts") {
+		// Extract the model name by removing the /artifacts suffix
+		modelName := strings.TrimSuffix(modelNameParam, "/artifacts")
+
+		// Call the GetAllModelArtifacts service method directly
+		query := r.URL.Query()
+		artifactTypeParam := query.Get("artifact_type")
+		pageSizeParam := query.Get("pageSize")
+		orderByParam := query.Get("orderBy")
+		sortOrderParam := query.Get("sortOrder")
+		nextPageTokenParam := query.Get("nextPageToken")
+		result, err := c.service.GetAllModelArtifacts(r.Context(), sourceIdParam, modelName, artifactTypeParam, pageSizeParam, model.OrderByField(orderByParam), model.SortOrder(sortOrderParam), nextPageTokenParam)
+		// If an error occurred, encode the error with the status code
+		if err != nil {
+			c.errorHandler(w, r, err, &result)
+			return
+		}
+		// If no error, encode the body and the result code
+		EncodeJSONResponse(result.Body, &result.Code, w)
+		return
+	}
+
 	result, err := c.service.GetModel(r.Context(), sourceIdParam, modelNameParam)
 	// If an error occurred, encode the error with the status code
 	if err != nil {
