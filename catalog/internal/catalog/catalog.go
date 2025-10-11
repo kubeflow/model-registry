@@ -10,6 +10,7 @@ type ListModelsParams struct {
 	Query         string
 	FilterQuery   string
 	SourceIDs     []string
+	SourceLabels  []string
 	PageSize      int32
 	OrderBy       model.OrderByField
 	SortOrder     model.SortOrder

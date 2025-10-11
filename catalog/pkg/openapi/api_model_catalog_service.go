@@ -28,6 +28,7 @@ type ApiFindModelsRequest struct {
 	ApiService    *ModelCatalogServiceAPIService
 	source        *[]string
 	q             *string
+	sourceLabel   *[]string
 	filterQuery   *string
 	pageSize      *string
 	orderBy       *OrderByField
@@ -35,7 +36,7 @@ type ApiFindModelsRequest struct {
 	nextPageToken *string
 }
 
-// Filter models by source. This parameter can be specified multiple times to filter by multiple sources (OR logic). For example: ?source&#x3D;huggingface&amp;source&#x3D;local will return models from either huggingface OR local sources.
+// Filter models by source. Multiple values can be separated by commas to filter by multiple sources (OR logic). For example: ?source&#x3D;huggingface,local will return models from either huggingface OR local sources.
 func (r ApiFindModelsRequest) Source(source []string) ApiFindModelsRequest {
 	r.source = &source
 	return r
@@ -44,6 +45,12 @@ func (r ApiFindModelsRequest) Source(source []string) ApiFindModelsRequest {
 // Free-form keyword search used to filter the response.
 func (r ApiFindModelsRequest) Q(q string) ApiFindModelsRequest {
 	r.q = &q
+	return r
+}
+
+// Filter models by the label associated with the source. Multiple values can be separated by commas. If one of the values is the string &#x60;null&#x60;, then models from every source without a label will be returned.
+func (r ApiFindModelsRequest) SourceLabel(sourceLabel []string) ApiFindModelsRequest {
+	r.sourceLabel = &sourceLabel
 	return r
 }
 
@@ -129,6 +136,17 @@ func (a *ModelCatalogServiceAPIService) FindModelsExecute(r ApiFindModelsRequest
 	}
 	if r.q != nil {
 		parameterAddToHeaderOrQuery(localVarQueryParams, "q", r.q, "")
+	}
+	if r.sourceLabel != nil {
+		t := *r.sourceLabel
+		if reflect.TypeOf(t).Kind() == reflect.Slice {
+			s := reflect.ValueOf(t)
+			for i := 0; i < s.Len(); i++ {
+				parameterAddToHeaderOrQuery(localVarQueryParams, "sourceLabel", s.Index(i).Interface(), "multi")
+			}
+		} else {
+			parameterAddToHeaderOrQuery(localVarQueryParams, "sourceLabel", t, "multi")
+		}
 	}
 	if r.filterQuery != nil {
 		parameterAddToHeaderOrQuery(localVarQueryParams, "filterQuery", r.filterQuery, "")
