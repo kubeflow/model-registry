@@ -35,7 +35,10 @@ sed_inplace 's/github.com\/kubeflow\/model-registry\/pkg\/openapi/github.com\/ku
 sed_inplace 's/{\?model_name+}\?/*/' "$PROJECT_ROOT"/internal/server/openapi/api_model_catalog_service.go
 
 echo "Applying patches to generated code"
-git apply "$PROJECT_ROOT"/../patches/api_model_catalog_service.patch
+(
+    cd "$PROJECT_ROOT/.."
+    git apply patches/api_model_catalog_service.patch
+)
 
 echo "Assembling type_assert Go file"
 ./scripts/gen_type_asserts.sh "$DST"
