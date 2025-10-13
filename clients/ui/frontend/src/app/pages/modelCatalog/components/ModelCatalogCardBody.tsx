@@ -50,6 +50,7 @@ const ModelCatalogCardBody: React.FC<ModelCatalogCardBodyProps> = ({
   const [artifacts, artifactsLoaded, artifactsLoadError] = useCatalogModelArtifacts(
     source?.id || '',
     model.name,
+    isValidated,
   );
 
   const performanceMetrics = artifacts.items.filter(
@@ -64,11 +65,11 @@ const ModelCatalogCardBody: React.FC<ModelCatalogCardBodyProps> = ({
       artifact.metricsType === MetricsType.accuracyMetrics,
   );
 
-  if (!artifactsLoaded) {
+  if (!artifactsLoaded && isValidated) {
     return <Spinner />;
   }
 
-  if (artifactsLoadError) {
+  if (artifactsLoadError && isValidated) {
     return (
       <Alert variant="danger" isInline title={artifactsLoadError.name}>
         {artifactsLoadError.message}
