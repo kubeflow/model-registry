@@ -95,10 +95,6 @@ func (m *ModelCatalogServiceAPIService) FindModels(ctx context.Context, sourceID
 }
 
 func (m *ModelCatalogServiceAPIService) GetModel(ctx context.Context, sourceID, modelName string) (ImplResponse, error) {
-	if name, ok := strings.CutSuffix(modelName, "/artifacts"); ok {
-		return m.GetAllModelArtifacts(ctx, sourceID, name, "", "10", model.OrderByField(model.ORDERBYFIELD_CREATE_TIME), model.SortOrder(model.SORTORDER_ASC), "")
-	}
-
 	if newName, err := url.PathUnescape(modelName); err == nil {
 		modelName = newName
 	}

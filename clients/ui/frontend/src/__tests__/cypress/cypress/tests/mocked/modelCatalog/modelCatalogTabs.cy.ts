@@ -127,6 +127,7 @@ describe('Model Catalog Details Tabs', () => {
         modelCatalog.findOverviewTab().should('have.attr', 'aria-selected', 'true');
         modelCatalog.findOverviewTabContent().should('be.visible');
         modelCatalog.findDetailsDescription().should('be.visible');
+        cy.url().should('include', '/model-catalog/sample-source/validated-model/overview');
       });
 
       it('should switch to Performance Insights tab when clicked', () => {
@@ -139,6 +140,10 @@ describe('Model Catalog Details Tabs', () => {
         modelCatalog.findPerformanceInsightsTab().should('have.attr', 'aria-selected', 'true');
         modelCatalog.findOverviewTab().should('have.attr', 'aria-selected', 'false');
         modelCatalog.findPerformanceInsightsTabContent().should('be.visible');
+        cy.url().should(
+          'include',
+          '/model-catalog/sample-source/validated-model/performance-insights',
+        );
       });
 
       it('should switch back to Overview tab when clicked', () => {
@@ -153,6 +158,7 @@ describe('Model Catalog Details Tabs', () => {
         modelCatalog.findOverviewTab().should('have.attr', 'aria-selected', 'true');
         modelCatalog.findPerformanceInsightsTab().should('have.attr', 'aria-selected', 'false');
         modelCatalog.findOverviewTabContent().should('be.visible');
+        cy.url().should('include', '/model-catalog/sample-source/validated-model/overview');
       });
     });
 

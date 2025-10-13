@@ -11,17 +11,22 @@ import {
   Stack,
   StackItem,
 } from '@patternfly/react-core';
+import { Link } from 'react-router-dom';
 import { MonitoringIcon, HelpIcon, AngleLeftIcon, AngleRightIcon } from '@patternfly/react-icons';
 import {
   CatalogModel,
   CatalogPerformanceMetricsArtifact,
   CatalogAccuracyMetricsArtifact,
+  CatalogSource,
 } from '~/app/modelCatalogTypes';
 import { extractValidatedModelMetrics } from '~/app/pages/modelCatalog/utils/validatedModelUtils';
+import { catalogModelDetailsTabFromModel } from '~/app/routes/modelCatalog/catalogModel';
+import { ModelDetailsTab } from '~/app/pages/modelCatalog/screens/ModelDetailsTabs';
 
 type ModelCatalogCardBodyProps = {
   model: CatalogModel;
   isValidated: boolean;
+  source: CatalogSource | undefined;
   // TODO: Later these will be fetched based on the model, for now using props
   performanceMetrics?: CatalogPerformanceMetricsArtifact[];
   accuracyMetrics?: CatalogAccuracyMetricsArtifact[];
@@ -30,6 +35,7 @@ type ModelCatalogCardBodyProps = {
 const ModelCatalogCardBody: React.FC<ModelCatalogCardBodyProps> = ({
   model,
   isValidated,
+  source,
   performanceMetrics = [],
   accuracyMetrics = [],
 }) => {
@@ -157,9 +163,23 @@ const ModelCatalogCardBody: React.FC<ModelCatalogCardBodyProps> = ({
           >
             <span data-testid="validated-model-benchmarks">
               {currentPerformanceIndex + 1} of {performanceMetrics.length}{' '}
-              <Button variant="link" isInline style={{ padding: 0, fontSize: 'inherit' }}>
-                benchmarks
-              </Button>
+              <Link
+                to={catalogModelDetailsTabFromModel(
+                  ModelDetailsTab.PERFORMANCE_INSIGHTS,
+                  model.name,
+                  source?.id,
+                )}
+              >
+                <Button
+                  variant="link"
+                  isInline
+                  tabIndex={-1}
+                  style={{ padding: 0, fontSize: 'inherit' }}
+                  data-testid="validated-model-benchmark-link"
+                >
+                  benchmarks
+                </Button>
+              </Link>
             </span>
             <Flex gap={{ default: 'gapSm' }} alignItems={{ default: 'alignItemsCenter' }}>
               <Button

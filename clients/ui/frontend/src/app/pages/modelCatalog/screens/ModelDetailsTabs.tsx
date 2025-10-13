@@ -1,5 +1,6 @@
 import * as React from 'react';
 import { Tabs, Tab, TabTitleText, PageSection } from '@patternfly/react-core';
+import { useNavigate } from 'react-router-dom';
 import { CatalogArtifactList, CatalogModel } from '~/app/modelCatalogTypes';
 import { isModelValidated } from '~/app/pages/modelCatalog/utils/modelCatalogUtils';
 import ModelDetailsView from './ModelDetailsView';
@@ -17,6 +18,7 @@ export enum ModelDetailsTabTitle {
 
 type ModelDetailsTabsProps = {
   model: CatalogModel;
+  tab: ModelDetailsTab;
   artifacts: CatalogArtifactList;
   artifactLoaded: boolean;
   artifactsLoadError: Error | undefined;
@@ -24,20 +26,21 @@ type ModelDetailsTabsProps = {
 
 const ModelDetailsTabs = ({
   model,
+  tab,
   artifacts,
   artifactLoaded,
   artifactsLoadError,
 }: ModelDetailsTabsProps): React.JSX.Element => {
-  const [activeTabKey, setActiveTabKey] = React.useState<ModelDetailsTab>(ModelDetailsTab.OVERVIEW);
   const isValidated = isModelValidated(model);
+  const navigate = useNavigate();
 
   const handleTabClick = (
     _event: React.MouseEvent<HTMLElement, MouseEvent>,
     tabIndex: string | number,
   ) => {
-    const validTab = Object.values(ModelDetailsTab).find((tab) => tab === tabIndex);
+    const validTab = Object.values(ModelDetailsTab).find((t) => t === tabIndex);
     if (validTab) {
-      setActiveTabKey(validTab);
+      navigate(`../${validTab}`, { relative: 'path' });
     }
   };
 
@@ -57,7 +60,7 @@ const ModelDetailsTabs = ({
 
   return (
     <Tabs
-      activeKey={activeTabKey}
+      activeKey={tab}
       onSelect={handleTabClick}
       aria-label="Model details page tabs"
       role="region"
