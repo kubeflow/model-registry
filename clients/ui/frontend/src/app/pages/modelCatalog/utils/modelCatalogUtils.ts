@@ -12,6 +12,7 @@ import {
   CatalogSourceList,
   ModelCatalogFilterStates,
   ModelCatalogStringFilterValueType,
+  MetricsType,
 } from '~/app/modelCatalogTypes';
 import { getLabels } from '~/app/pages/modelRegistry/screens/utils';
 import { ModelCatalogStringFilterKey } from '~/concepts/modelCatalog/const';
@@ -77,6 +78,29 @@ export const getModelArtifactUri = (artifacts: CatalogArtifacts[]): string => {
 export const hasModelArtifacts = (artifacts: CatalogArtifacts[]): boolean =>
   artifacts.some((artifact) => artifact.artifactType === CatalogArtifactType.modelArtifact);
 
+export const filterArtifactsByType = <T extends CatalogArtifacts>(
+  artifacts: CatalogArtifacts[],
+  artifactType: CatalogArtifactType,
+  metricsType?: MetricsType,
+): T[] =>
+  artifacts.filter((artifact): artifact is T => {
+    if (artifact.artifactType !== artifactType) {
+      return false;
+    }
+    if (metricsType && 'metricsType' in artifact) {
+      return artifact.metricsType === metricsType;
+    }
+    return true;
+  });
+
+export const hasPerformanceArtifacts = (artifacts: CatalogArtifacts[]): boolean =>
+  artifacts.some(
+    (artifact) =>
+      artifact.artifactType === CatalogArtifactType.metricsArtifact &&
+      'metricsType' in artifact &&
+      artifact.metricsType === MetricsType.performanceMetrics,
+  );
+
 // Utility function to check if a model is validated
 export const isModelValidated = (model: CatalogModel): boolean => {
   if (!model.customProperties) {
@@ -85,6 +109,11 @@ export const isModelValidated = (model: CatalogModel): boolean => {
   const labels = getLabels(model.customProperties);
   return labels.includes('validated');
 };
+
+export const shouldShowValidatedInsights = (
+  model: CatalogModel,
+  artifacts: CatalogArtifacts[],
+): boolean => isModelValidated(model) && hasPerformanceArtifacts(artifacts);
 
 const isStringFilterValid = <K extends ModelCatalogStringFilterKey>(
   filterKey: K,
