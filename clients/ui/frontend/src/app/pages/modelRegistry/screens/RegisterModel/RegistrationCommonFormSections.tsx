@@ -9,7 +9,6 @@ import {
   FormHelperText,
   TextInputGroupMain,
   TextInputGroup,
-  Content,
 } from '@patternfly/react-core';
 import spacing from '@patternfly/react-styles/css/utilities/Spacing/spacing';
 import { UpdateObjectAtPropAndValue } from 'mod-arch-shared';
@@ -215,11 +214,7 @@ const RegistrationCommonFormSections = <D extends RegistrationCommonFormData>({
       </FormSection>
       <FormSection
         title="Model location"
-        description={
-          <Content component="p">
-            Specify the model location by providing either the object storage details or the URI.
-          </Content>
-        }
+        description="Specify the model location by providing either the object storage details or the URI."
       >
         <Radio
           isChecked={modelLocationType === ModelLocationType.ObjectStorage}
