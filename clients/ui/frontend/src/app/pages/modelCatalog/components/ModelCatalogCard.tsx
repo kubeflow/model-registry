@@ -13,12 +13,7 @@ import {
   Truncate,
 } from '@patternfly/react-core';
 import { Link } from 'react-router-dom';
-import {
-  CatalogModel,
-  CatalogSource,
-  CatalogPerformanceMetricsArtifact,
-  CatalogAccuracyMetricsArtifact,
-} from '~/app/modelCatalogTypes';
+import { CatalogModel, CatalogSource } from '~/app/modelCatalogTypes';
 import { catalogModelDetailsFromModel } from '~/app/routes/modelCatalog/catalogModel';
 import { getLabels } from '~/app/pages/modelRegistry/screens/utils';
 import { isModelValidated, getModelName } from '~/app/pages/modelCatalog/utils/modelCatalogUtils';
@@ -29,18 +24,9 @@ type ModelCatalogCardProps = {
   model: CatalogModel;
   source: CatalogSource | undefined;
   truncate?: boolean;
-  // TODO: Later these will be fetched based on the model, for now using props
-  performanceMetrics?: CatalogPerformanceMetricsArtifact[];
-  accuracyMetrics?: CatalogAccuracyMetricsArtifact[];
 };
 
-const ModelCatalogCard: React.FC<ModelCatalogCardProps> = ({
-  model,
-  source,
-  truncate = false,
-  performanceMetrics,
-  accuracyMetrics,
-}) => {
+const ModelCatalogCard: React.FC<ModelCatalogCardProps> = ({ model, source, truncate = false }) => {
   // Extract labels from customProperties and check for validated label
   const allLabels = model.customProperties ? getLabels(model.customProperties) : [];
   const validatedLabels = allLabels.includes('validated') ? ['validated'] : [];
@@ -96,13 +82,7 @@ const ModelCatalogCard: React.FC<ModelCatalogCardProps> = ({
         </CardTitle>
       </CardHeader>
       <CardBody>
-        <ModelCatalogCardBody
-          model={model}
-          isValidated={isValidated}
-          source={source}
-          performanceMetrics={performanceMetrics}
-          accuracyMetrics={accuracyMetrics}
-        />
+        <ModelCatalogCardBody model={model} isValidated={isValidated} source={source} />
       </CardBody>
       <CardFooter>
         <ModelCatalogLabels

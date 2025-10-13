@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import {
+  Alert,
   Button,
   Content,
   ContentVariants,
@@ -8,6 +9,7 @@ import {
   List,
   ListItem,
   Popover,
+  Spinner,
   Stack,
   StackItem,
 } from '@patternfly/react-core';
@@ -15,29 +17,25 @@ import { Link } from 'react-router-dom';
 import { MonitoringIcon, HelpIcon, AngleLeftIcon, AngleRightIcon } from '@patternfly/react-icons';
 import {
   CatalogModel,
-  CatalogPerformanceMetricsArtifact,
-  CatalogAccuracyMetricsArtifact,
   CatalogSource,
+  CatalogArtifactType,
+  MetricsType,
 } from '~/app/modelCatalogTypes';
 import { extractValidatedModelMetrics } from '~/app/pages/modelCatalog/utils/validatedModelUtils';
 import { catalogModelDetailsTabFromModel } from '~/app/routes/modelCatalog/catalogModel';
 import { ModelDetailsTab } from '~/app/pages/modelCatalog/screens/ModelDetailsTabs';
+import { useCatalogModelArtifacts } from '~/app/hooks/modelCatalog/useCatalogModelArtifacts';
 
 type ModelCatalogCardBodyProps = {
   model: CatalogModel;
   isValidated: boolean;
   source: CatalogSource | undefined;
-  // TODO: Later these will be fetched based on the model, for now using props
-  performanceMetrics?: CatalogPerformanceMetricsArtifact[];
-  accuracyMetrics?: CatalogAccuracyMetricsArtifact[];
 };
 
 const ModelCatalogCardBody: React.FC<ModelCatalogCardBodyProps> = ({
   model,
   isValidated,
   source,
-  performanceMetrics = [],
-  accuracyMetrics = [],
 }) => {
   const [currentPerformanceIndex, setCurrentPerformanceIndex] = useState(0);
 
@@ -49,8 +47,37 @@ const ModelCatalogCardBody: React.FC<ModelCatalogCardBodyProps> = ({
     setCurrentPerformanceIndex((prev) => (prev < performanceMetrics.length - 1 ? prev + 1 : 0));
   };
 
-  // TODO: Later we'll fetch artifacts here and show loading state
-  // For now, we just check if the model is validated and has metrics
+  const [artifacts, artifactsLoaded, artifactsLoadError] = useCatalogModelArtifacts(
+    source?.id || '',
+    model.name,
+    isValidated,
+    true,
+  );
+
+  const performanceMetrics = artifacts.items.filter(
+    (artifact) =>
+      artifact.artifactType === CatalogArtifactType.metricsArtifact &&
+      artifact.metricsType === MetricsType.performanceMetrics,
+  );
+
+  const accuracyMetrics = artifacts.items.filter(
+    (artifact) =>
+      artifact.artifactType === CatalogArtifactType.metricsArtifact &&
+      artifact.metricsType === MetricsType.accuracyMetrics,
+  );
+
+  if (!artifactsLoaded && isValidated) {
+    return <Spinner />;
+  }
+
+  if (artifactsLoadError && isValidated) {
+    return (
+      <Alert variant="danger" isInline title={artifactsLoadError.name}>
+        {artifactsLoadError.message}
+      </Alert>
+    );
+  }
+
   if (isValidated && performanceMetrics.length > 0 && accuracyMetrics.length > 0) {
     const metrics = extractValidatedModelMetrics(
       performanceMetrics,

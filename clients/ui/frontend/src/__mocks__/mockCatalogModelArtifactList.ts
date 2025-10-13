@@ -57,6 +57,14 @@ export const mockCatalogPerformanceMetricsArtifact = (
       metadataType: ModelRegistryMetadataType.INT,
       int_value: '2',
     },
+    hardware: {
+      metadataType: ModelRegistryMetadataType.STRING,
+      string_value: 'H100-80',
+    },
+    requests_per_second: {
+      metadataType: ModelRegistryMetadataType.DOUBLE,
+      double_value: 7,
+    },
     ttft_mean: {
       metadataType: ModelRegistryMetadataType.DOUBLE,
       double_value: 35.48818160947744,

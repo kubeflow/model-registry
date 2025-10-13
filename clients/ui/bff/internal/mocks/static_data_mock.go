@@ -864,7 +864,7 @@ func GetCatalogModelArtifactMock() []models.CatalogArtifact {
 	}
 }
 
-func performanceMetricsCustomProperties() *map[string]openapi.MetadataValue {
+func performanceMetricsCustomProperties(customProperties map[string]openapi.MetadataValue) *map[string]openapi.MetadataValue {
 	result := map[string]openapi.MetadataValue{
 		"config_id": {
 			MetadataStringValue: &openapi.MetadataStringValue{
@@ -1057,26 +1057,88 @@ func performanceMetricsCustomProperties() *map[string]openapi.MetadataValue {
 			},
 		},
 	}
+	for key, value := range customProperties {
+		result[key] = value
+	}
 	return &result
 }
 
-func GetCatalogPerformanceMetricsArtifactMock() []models.CatalogArtifact {
-	return []models.CatalogArtifact{
+func GetCatalogPerformanceMetricsArtifactMock(itemCount int32) []models.CatalogArtifact {
+	artifacts := []models.CatalogArtifact{
 		{
 			ArtifactType:             *stringToPointer("metrics-artifact"),
 			MetricsType:              stringToPointer("performance-metrics"),
 			CreateTimeSinceEpoch:     stringToPointer("1693526400000"),
 			LastUpdateTimeSinceEpoch: stringToPointer("1704067200000"),
-			CustomProperties:         performanceMetricsCustomProperties(),
-		}, {
-
-			ArtifactType:         *stringToPointer("model-artifact"),
-			Uri:                  stringToPointer("oci://registry.sample.io/repo1/modelcar-granite-7b-starter:1.4.0"),
-			CreateTimeSinceEpoch: stringToPointer("1693526400000"),
-
+			CustomProperties:         performanceMetricsCustomProperties(map[string]openapi.MetadataValue{}),
+		},
+		{
+			ArtifactType:             *stringToPointer("metrics-artifact"),
+			MetricsType:              stringToPointer("performance-metrics"),
+			CreateTimeSinceEpoch:     stringToPointer("1693526400000"),
 			LastUpdateTimeSinceEpoch: stringToPointer("1704067200000"),
-			CustomProperties:         newCustomProperties(),
-		}}
+			CustomProperties: performanceMetricsCustomProperties(map[string]openapi.MetadataValue{
+				"hardware": {
+					MetadataStringValue: &openapi.MetadataStringValue{
+						StringValue:  "RTX 4090",
+						MetadataType: "MetadataStringValue",
+					},
+				},
+				"hardware_count": {
+					MetadataIntValue: &openapi.MetadataIntValue{
+						IntValue:     "33",
+						MetadataType: "MetadataIntValue",
+					},
+				},
+				"requests_per_second": {
+					MetadataDoubleValue: &openapi.MetadataDoubleValue{
+						DoubleValue:  10,
+						MetadataType: "MetadataDoubleValue",
+					},
+				},
+				"ttft_mean": {
+					MetadataDoubleValue: &openapi.MetadataDoubleValue{
+						DoubleValue:  67.14892749816,
+						MetadataType: "MetadataDoubleValue",
+					},
+				},
+			}),
+		},
+		{
+			ArtifactType:             *stringToPointer("metrics-artifact"),
+			MetricsType:              stringToPointer("performance-metrics"),
+			CreateTimeSinceEpoch:     stringToPointer("1693526400000"),
+			LastUpdateTimeSinceEpoch: stringToPointer("1704067200000"),
+			CustomProperties: performanceMetricsCustomProperties(map[string]openapi.MetadataValue{
+				"hardware": {
+					MetadataStringValue: &openapi.MetadataStringValue{
+						StringValue:  "A100",
+						MetadataType: "MetadataStringValue",
+					},
+				},
+				"hardware_count": {
+					MetadataIntValue: &openapi.MetadataIntValue{
+						IntValue:     "40",
+						MetadataType: "MetadataIntValue",
+					},
+				},
+				"requests_per_second": {
+					MetadataDoubleValue: &openapi.MetadataDoubleValue{
+						DoubleValue:  15,
+						MetadataType: "MetadataDoubleValue",
+					},
+				},
+				"ttft_mean": {
+					MetadataDoubleValue: &openapi.MetadataDoubleValue{
+						DoubleValue:  42.123791232,
+						MetadataType: "MetadataDoubleValue",
+					},
+				},
+			}),
+		},
+	}
+	artifacts = artifacts[:itemCount]
+	return artifacts
 }
 
 func accuracyMetricsCustomProperties() *map[string]openapi.MetadataValue {
@@ -1106,14 +1168,7 @@ func GetCatalogAccuracyMetricsArtifactMock() []models.CatalogArtifact {
 			LastUpdateTimeSinceEpoch: stringToPointer("1704067200000"),
 			CustomProperties:         accuracyMetricsCustomProperties(),
 		},
-		{
-			ArtifactType:         *stringToPointer("model-artifact"),
-			Uri:                  stringToPointer("oci://registry.sample.io/repo1/modelcar-granite-7b-starter:1.4.0"),
-			CreateTimeSinceEpoch: stringToPointer("1693526400000"),
-
-			LastUpdateTimeSinceEpoch: stringToPointer("1704067200000"),
-			CustomProperties:         newCustomProperties(),
-		}}
+	}
 }
 
 func GetCatalogModelArtifactListMock() models.CatalogModelArtifactList {
@@ -1127,8 +1182,8 @@ func GetCatalogModelArtifactListMock() models.CatalogModelArtifactList {
 	}
 }
 
-func GetCatalogPerformanceMetricsArtifactListMock() models.CatalogModelArtifactList {
-	allArtifactMock := GetCatalogPerformanceMetricsArtifactMock()
+func GetCatalogPerformanceMetricsArtifactListMock(itemCount int32) models.CatalogModelArtifactList {
+	allArtifactMock := GetCatalogPerformanceMetricsArtifactMock(itemCount)
 
 	return models.CatalogModelArtifactList{
 		Items:         allArtifactMock,

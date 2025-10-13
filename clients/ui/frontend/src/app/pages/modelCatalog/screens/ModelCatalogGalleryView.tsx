@@ -15,12 +15,9 @@ import { useCatalogModelsBySources } from '~/app/hooks/modelCatalog/useCatalogMo
 import { CatalogModel } from '~/app/modelCatalogTypes';
 import ModelCatalogCard from '~/app/pages/modelCatalog/components/ModelCatalogCard';
 import {
-  isModelValidated,
   getSourceFromSourceId,
   hasFiltersApplied,
 } from '~/app/pages/modelCatalog/utils/modelCatalogUtils';
-import { mockPerformanceMetricsArtifacts } from '~/app/pages/modelCatalog/mocks/hardwareConfigurationMock';
-import { mockAccuracyMetricsArtifacts } from '~/app/pages/modelCatalog/mocks/accuracyMetricsMock';
 import EmptyModelCatalogState from '~/app/pages/modelCatalog/EmptyModelCatalogState';
 
 type ModelCatalogPageProps = {
@@ -104,10 +101,6 @@ const ModelCatalogGalleryView: React.FC<ModelCatalogPageProps> = ({
             key={`${model.name}/${model.source_id}`}
             model={model}
             source={getSourceFromSourceId(model.source_id || '', catalogSources)}
-            performanceMetrics={
-              isModelValidated(model) ? mockPerformanceMetricsArtifacts : undefined
-            }
-            accuracyMetrics={isModelValidated(model) ? mockAccuracyMetricsArtifacts : undefined}
             truncate
           />
         ))}
