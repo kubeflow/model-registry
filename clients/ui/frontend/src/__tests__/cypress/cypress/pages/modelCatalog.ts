@@ -107,10 +107,6 @@ class ModelCatalog {
     return this.findModelCatalogCards().first().should('be.visible');
   }
 
-  findLastModelCatalogCard() {
-    return this.findModelCatalogCards().last().should('be.visible');
-  }
-
   findModelCatalogDetailLink() {
     return cy.findAllByTestId('model-catalog-detail-link');
   }

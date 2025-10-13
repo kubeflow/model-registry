@@ -13,13 +13,8 @@ import { ArrowRightIcon, SearchIcon } from '@patternfly/react-icons';
 import { CatalogSourceList } from '~/app/modelCatalogTypes';
 import { useCatalogModelsBySources } from '~/app/hooks/modelCatalog/useCatalogModelsBySource';
 import EmptyModelCatalogState from '~/app/pages/modelCatalog/EmptyModelCatalogState';
-import {
-  getSourceFromSourceId,
-  isModelValidated,
-} from '~/app/pages/modelCatalog/utils/modelCatalogUtils';
+import { getSourceFromSourceId } from '~/app/pages/modelCatalog/utils/modelCatalogUtils';
 import ModelCatalogCard from '~/app/pages/modelCatalog/components/ModelCatalogCard';
-import { mockPerformanceMetricsArtifacts } from '~/app/pages/modelCatalog/mocks/hardwareConfigurationMock';
-import { mockAccuracyMetricsArtifacts } from '~/app/pages/modelCatalog/mocks/accuracyMetricsMock';
 
 type CategorySectionProps = {
   label: string;
@@ -115,10 +110,6 @@ const CatalogCategorySection: React.FC<CategorySectionProps> = ({
                 key={`${model.name}/${model.source_id}`}
                 model={model}
                 source={getSourceFromSourceId(model.source_id || '', catalogSources)}
-                performanceMetrics={
-                  isModelValidated(model) ? mockPerformanceMetricsArtifacts : undefined
-                }
-                accuracyMetrics={isModelValidated(model) ? mockAccuracyMetricsArtifacts : undefined}
               />
             ))}
           </Gallery>

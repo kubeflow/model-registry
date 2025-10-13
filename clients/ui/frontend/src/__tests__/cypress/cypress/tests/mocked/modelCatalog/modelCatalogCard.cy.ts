@@ -114,8 +114,8 @@ const initIntercepts = ({
     {
       path: {
         apiVersion: MODEL_CATALOG_API_VERSION,
-        sourceId: 'sample-source',
-        modelName: 'repo1/model1',
+        sourceId: 'source-2',
+        modelName: 'validated-model',
       },
     },
     {
@@ -189,7 +189,7 @@ describe('ModelCatalogCard Component', () => {
     });
     it('should show validated model correctly', () => {
       cy.wait('@getCatalogModelArtifacts');
-      modelCatalog.findLastModelCatalogCard().within(() => {
+      modelCatalog.findFirstModelCatalogCard().within(() => {
         modelCatalog.findValidatedModelBenchmarkLink().click();
         cy.url().should('include', 'performance-insights');
       });
