@@ -14,8 +14,8 @@ import { ModelRegistryMetadataType } from '~/app/types';
 import { mockCatalogFilterOptionsList } from '~/__mocks__/mockCatalogFilterOptionsList';
 
 // Mock models for testing
-const mockValidatedModel = mockCatalogModel({
-  name: 'sample%20category%201-model-1',
+export const mockValidatedModel = mockCatalogModel({
+  name: 'validated-model',
   tasks: ['text-generation'],
   customProperties: {
     validated: {
@@ -26,7 +26,7 @@ const mockValidatedModel = mockCatalogModel({
   },
 });
 
-const mockNonValidatedModel = mockCatalogModel({
+export const mockNonValidatedModel = mockCatalogModel({
   name: 'sample%20category%201-model-1',
   tasks: ['text-generation'],
 });
@@ -54,7 +54,7 @@ const initIntercepts = ({
     }),
   );
 
-  sources.forEach((source, sourceIndex) => {
+  sources.forEach((source) => {
     source.labels.forEach((label) => {
       cy.interceptApi(
         `GET /api/:apiVersion/model_catalog/models`,
@@ -65,7 +65,7 @@ const initIntercepts = ({
         mockCatalogModelList({
           items: Array.from({ length: modelsPerCategory }, (_, i) => {
             const customProperties =
-              sourceIndex === 0
+              i === 0 && useValidatedModel
                 ? ({
                     validated: {
                       metadataType: ModelRegistryMetadataType.STRING,
@@ -74,9 +74,13 @@ const initIntercepts = ({
                     },
                   } as ModelRegistryCustomProperties)
                 : undefined;
+            const name =
+              i === 0 && useValidatedModel
+                ? 'validated-model'
+                : `${label.toLowerCase()}-model-${i + 1}`;
 
             return mockCatalogModel({
-              name: `${label.toLowerCase()}-model-${i + 1}`,
+              name,
               // eslint-disable-next-line camelcase
               source_id: source.id,
               customProperties,
@@ -151,7 +155,7 @@ describe('Model Catalog Details Tabs', () => {
         modelCatalog.findOverviewTab().should('have.attr', 'aria-selected', 'true');
         modelCatalog.findOverviewTabContent().should('be.visible');
         modelCatalog.findDetailsDescription().should('be.visible');
-        cy.url().should('include', '/model-catalog/sample-source/validated-model/overview');
+        cy.url().should('include', '/model-catalog/source-2/validated-model/overview');
       });
 
       it('should switch to Performance Insights tab when clicked', () => {
@@ -164,10 +168,7 @@ describe('Model Catalog Details Tabs', () => {
         modelCatalog.findPerformanceInsightsTab().should('have.attr', 'aria-selected', 'true');
         modelCatalog.findOverviewTab().should('have.attr', 'aria-selected', 'false');
         modelCatalog.findPerformanceInsightsTabContent().should('be.visible');
-        cy.url().should(
-          'include',
-          '/model-catalog/sample-source/validated-model/performance-insights',
-        );
+        cy.url().should('include', '/model-catalog/source-2/validated-model/performance-insights');
       });
 
       it('should switch back to Overview tab when clicked', () => {
@@ -182,7 +183,7 @@ describe('Model Catalog Details Tabs', () => {
         modelCatalog.findOverviewTab().should('have.attr', 'aria-selected', 'true');
         modelCatalog.findPerformanceInsightsTab().should('have.attr', 'aria-selected', 'false');
         modelCatalog.findOverviewTabContent().should('be.visible');
-        cy.url().should('include', '/model-catalog/sample-source/validated-model/overview');
+        cy.url().should('include', '/model-catalog/source-2/validated-model/overview');
       });
     });
 

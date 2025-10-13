@@ -116,7 +116,7 @@ class ModelCatalog {
   }
 
   findValidatedModelBenchmarkLink() {
-    return cy.findByTestId('validated-model-benchmark-link');
+    return cy.findAllByTestId('validated-model-benchmark-link');
   }
 
   findModelCatalogDescription() {

@@ -46,6 +46,7 @@ const CatalogCategorySection: React.FC<CategorySectionProps> = ({
   );
 
   const handleShowMoreCategory = (categoryLabel: string) => {
+    window.scrollTo(0, 0);
     onShowMore(categoryLabel);
   };
 
