@@ -36,11 +36,6 @@ class ModelCatalog {
     this.wait();
   }
 
-  navigate() {
-    appChrome.findNavItem('Model Catalog').click();
-    this.wait();
-  }
-
   private wait() {
     cy.findByTestId('app-page-title').should('exist');
     cy.findByTestId('app-page-title').contains('Model Catalog');
@@ -76,6 +71,30 @@ class ModelCatalog {
     return this;
   }
 
+  findAllModelsToggle() {
+    return cy.findByTestId('all');
+  }
+
+  findCategoryToggle(category: string) {
+    return cy.findByTestId(category);
+  }
+
+  findCategoryTitle(category: string) {
+    return cy.findByTestId(['title', category]);
+  }
+
+  findShowMoreModelsLink(category: string) {
+    return cy.findByTestId(['show-more-button', category]);
+  }
+
+  findErrorState(category: string) {
+    return cy.findByTestId(['error-state', category]);
+  }
+
+  findEmptyState(category: string) {
+    return cy.findByTestId(['empty-model-catalog-state', category]);
+  }
+
   findModelCatalogEmptyState() {
     return cy.findByTestId('empty-model-catalog-state');
   }
@@ -97,7 +116,7 @@ class ModelCatalog {
   }
 
   findValidatedModelBenchmarkLink() {
-    return cy.findByTestId('validated-model-benchmark-link');
+    return cy.findAllByTestId('validated-model-benchmark-link');
   }
 
   findModelCatalogDescription() {

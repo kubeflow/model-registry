@@ -9,11 +9,12 @@ import { modelCatalog } from '~/__tests__/cypress/cypress/pages/modelCatalog';
 import { mockModelRegistry } from '~/__mocks__/mockModelRegistry';
 import type { CatalogSource } from '~/app/modelCatalogTypes';
 import { MODEL_CATALOG_API_VERSION } from '~/__tests__/cypress/cypress/support/commands/api';
+import type { ModelRegistryCustomProperties } from '~/app/types';
 import { ModelRegistryMetadataType } from '~/app/types';
 import { mockCatalogFilterOptionsList } from '~/__mocks__/mockCatalogFilterOptionsList';
 
 // Mock models for testing
-const mockValidatedModel = mockCatalogModel({
+export const mockValidatedModel = mockCatalogModel({
   name: 'validated-model',
   tasks: ['text-generation'],
   customProperties: {
@@ -25,19 +26,21 @@ const mockValidatedModel = mockCatalogModel({
   },
 });
 
-const mockNonValidatedModel = mockCatalogModel({
-  name: 'non-validated-model',
+export const mockNonValidatedModel = mockCatalogModel({
+  name: 'sample%20category%201-model-1',
   tasks: ['text-generation'],
 });
 
 type HandlersProps = {
   sources?: CatalogSource[];
   useValidatedModel?: boolean;
+  modelsPerCategory?: number;
 };
 
 const initIntercepts = ({
   sources = [mockCatalogSource({}), mockCatalogSource({ id: 'source-2', name: 'source 2' })],
   useValidatedModel = true,
+  modelsPerCategory = 4,
 }: HandlersProps) => {
   const testModel = useValidatedModel ? mockValidatedModel : mockNonValidatedModel;
 
@@ -51,23 +54,49 @@ const initIntercepts = ({
     }),
   );
 
-  cy.interceptApi(
-    `GET /api/:apiVersion/model_catalog/models`,
-    {
-      path: { apiVersion: MODEL_CATALOG_API_VERSION },
-      query: { source: 'sample-source' },
-    },
-    mockCatalogModelList({
-      items: [testModel],
-    }),
-  );
+  sources.forEach((source) => {
+    source.labels.forEach((label) => {
+      cy.interceptApi(
+        `GET /api/:apiVersion/model_catalog/models`,
+        {
+          path: { apiVersion: MODEL_CATALOG_API_VERSION },
+          query: { sourceLabel: label },
+        },
+        mockCatalogModelList({
+          items: Array.from({ length: modelsPerCategory }, (_, i) => {
+            const customProperties =
+              i === 0 && useValidatedModel
+                ? ({
+                    validated: {
+                      metadataType: ModelRegistryMetadataType.STRING,
+                      // eslint-disable-next-line camelcase
+                      string_value: '',
+                    },
+                  } as ModelRegistryCustomProperties)
+                : undefined;
+            const name =
+              i === 0 && useValidatedModel
+                ? 'validated-model'
+                : `${label.toLowerCase()}-model-${i + 1}`;
+
+            return mockCatalogModel({
+              name,
+              // eslint-disable-next-line camelcase
+              source_id: source.id,
+              customProperties,
+            });
+          }),
+        }),
+      );
+    });
+  });
 
   cy.interceptApi(
     `GET /api/:apiVersion/model_catalog/sources/:sourceId/models/:modelName`,
     {
       path: {
         apiVersion: MODEL_CATALOG_API_VERSION,
-        sourceId: 'sample-source',
+        sourceId: 'source-2',
         modelName: testModel.name.replace('/', '%2F'),
       },
     },
@@ -79,7 +108,7 @@ const initIntercepts = ({
     {
       path: {
         apiVersion: MODEL_CATALOG_API_VERSION,
-        sourceId: 'sample-source',
+        sourceId: 'source-2',
         modelName: testModel.name.replace('/', '%2F'),
       },
     },
@@ -106,7 +135,6 @@ describe('Model Catalog Details Tabs', () => {
 
       initIntercepts({ useValidatedModel: true });
       modelCatalog.visit();
-      modelCatalog.navigate();
     });
 
     describe('Tab Navigation', () => {
@@ -127,7 +155,7 @@ describe('Model Catalog Details Tabs', () => {
         modelCatalog.findOverviewTab().should('have.attr', 'aria-selected', 'true');
         modelCatalog.findOverviewTabContent().should('be.visible');
         modelCatalog.findDetailsDescription().should('be.visible');
-        cy.url().should('include', '/model-catalog/sample-source/validated-model/overview');
+        cy.url().should('include', '/model-catalog/source-2/validated-model/overview');
       });
 
       it('should switch to Performance Insights tab when clicked', () => {
@@ -140,10 +168,7 @@ describe('Model Catalog Details Tabs', () => {
         modelCatalog.findPerformanceInsightsTab().should('have.attr', 'aria-selected', 'true');
         modelCatalog.findOverviewTab().should('have.attr', 'aria-selected', 'false');
         modelCatalog.findPerformanceInsightsTabContent().should('be.visible');
-        cy.url().should(
-          'include',
-          '/model-catalog/sample-source/validated-model/performance-insights',
-        );
+        cy.url().should('include', '/model-catalog/source-2/validated-model/performance-insights');
       });
 
       it('should switch back to Overview tab when clicked', () => {
@@ -158,7 +183,7 @@ describe('Model Catalog Details Tabs', () => {
         modelCatalog.findOverviewTab().should('have.attr', 'aria-selected', 'true');
         modelCatalog.findPerformanceInsightsTab().should('have.attr', 'aria-selected', 'false');
         modelCatalog.findOverviewTabContent().should('be.visible');
-        cy.url().should('include', '/model-catalog/sample-source/validated-model/overview');
+        cy.url().should('include', '/model-catalog/source-2/validated-model/overview');
       });
     });
 
@@ -223,7 +248,6 @@ describe('Model Catalog Details Tabs', () => {
 
       initIntercepts({ useValidatedModel: false });
       modelCatalog.visit();
-      modelCatalog.navigate();
     });
 
     it('should not display tabs for non-validated models', () => {

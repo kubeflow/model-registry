@@ -10,18 +10,24 @@ import {
   CatalogFilterOptionsList,
   CatalogSource,
   CatalogSourceList,
+  CategoryName,
   ModelCatalogFilterKey,
   ModelCatalogFilterStates,
 } from '~/app/modelCatalogTypes';
 import { BFF_API_VERSION, URL_PREFIX } from '~/app/utilities/const';
-import { ModelCatalogStringFilterKey } from '~/concepts/modelCatalog/const';
+import {
+  ModelCatalogNumberFilterKey,
+  ModelCatalogStringFilterKey,
+} from '~/concepts/modelCatalog/const';
 
 export type ModelCatalogContextType = {
   catalogSourcesLoaded: boolean;
   catalogSourcesLoadError?: Error;
   catalogSources: CatalogSourceList | null;
   selectedSource: CatalogSource | undefined;
-  updateSelectedSource: (modelRegistry: CatalogSource | undefined) => void;
+  updateSelectedSource: (source: CatalogSource | undefined) => void;
+  selectedSourceLabel: string | undefined;
+  updateSelectedSourceLabel: (sourceLabel: string | undefined) => void;
   apiState: ModelCatalogAPIState;
   refreshAPIState: () => void;
   filterData: ModelCatalogFilterStates;
@@ -48,8 +54,11 @@ export const ModelCatalogContext = React.createContext<ModelCatalogContextType>(
     [ModelCatalogStringFilterKey.PROVIDER]: [],
     [ModelCatalogStringFilterKey.LICENSE]: [],
     [ModelCatalogStringFilterKey.LANGUAGE]: [],
+    [ModelCatalogNumberFilterKey.ttft_mean]: undefined,
   },
   updateSelectedSource: () => undefined,
+  selectedSourceLabel: undefined,
+  updateSelectedSourceLabel: () => undefined,
   // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
   apiState: { apiAvailable: false, api: null as unknown as ModelCatalogAPIState['api'] },
   refreshAPIState: () => undefined,
@@ -74,9 +83,13 @@ export const ModelCatalogContextProvider: React.FC<ModelCatalogContextProviderPr
     [ModelCatalogStringFilterKey.PROVIDER]: [],
     [ModelCatalogStringFilterKey.LICENSE]: [],
     [ModelCatalogStringFilterKey.LANGUAGE]: [],
+    [ModelCatalogNumberFilterKey.ttft_mean]: undefined,
   });
   const [filterOptions, filterOptionsLoaded, filterOptionsLoadError] =
     useCatalogFilterOptionList(apiState);
+  const [selectedSourceLabel, setSelectedSourceLabel] = React.useState<
+    ModelCatalogContextType['selectedSourceLabel']
+  >(CategoryName.allModels);
 
   const contextValue = React.useMemo(
     () => ({
@@ -85,6 +98,8 @@ export const ModelCatalogContextProvider: React.FC<ModelCatalogContextProviderPr
       catalogSources,
       selectedSource: selectedSource ?? undefined,
       updateSelectedSource: setSelectedSource,
+      selectedSourceLabel: selectedSourceLabel ?? undefined,
+      updateSelectedSourceLabel: setSelectedSourceLabel,
       apiState,
       refreshAPIState,
       filterData,
@@ -105,6 +120,7 @@ export const ModelCatalogContextProvider: React.FC<ModelCatalogContextProviderPr
       filterOptions,
       filterOptionsLoaded,
       filterOptionsLoadError,
+      selectedSourceLabel,
     ],
   );
 

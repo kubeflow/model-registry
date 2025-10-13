@@ -59,6 +59,15 @@ export enum MetricsType {
   performanceMetrics = 'performance-metrics',
 }
 
+export enum CategoryName {
+  allModels = 'All models',
+  communityAndCustomModels = 'Community and custom',
+}
+
+export enum SourceLabel {
+  other = 'null',
+}
+
 export type CatalogArtifactBase = {
   createTimeSinceEpoch: string;
   lastUpdateTimeSinceEpoch: string;
@@ -153,7 +162,8 @@ export type CatalogFilterStringOption<T extends string> = {
 
 export type GetCatalogModelsBySource = (
   opts: APIOptions,
-  sourceId: string,
+  sourceId?: string,
+  sourceLabel?: string,
   paginationParams?: {
     pageSize?: string;
     nextPageToken?: string;
