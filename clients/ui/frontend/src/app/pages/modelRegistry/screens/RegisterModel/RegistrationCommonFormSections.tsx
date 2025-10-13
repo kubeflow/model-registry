@@ -12,7 +12,7 @@ import {
   Content,
 } from '@patternfly/react-core';
 import spacing from '@patternfly/react-styles/css/utilities/Spacing/spacing';
-import { FormSection, UpdateObjectAtPropAndValue } from 'mod-arch-shared';
+import { UpdateObjectAtPropAndValue } from 'mod-arch-shared';
 // import { DataConnection, UpdateObjectAtPropAndValue } from '~/pages/projects/types';
 // import { convertAWSSecretData } from '~/pages/projects/screens/detail/data-connections/utils';
 import FormFieldset from '~/app/pages/modelRegistry/screens/components/FormFieldset';
@@ -20,6 +20,7 @@ import { ModelVersion } from '~/app/types';
 import { ModelLocationType, RegistrationCommonFormData } from './useRegisterModelData';
 import { isNameValid } from './utils';
 import { MR_CHARACTER_LIMIT } from './const';
+import FormSection from '../../components/pf-overrides/FormSection';
 // import { ConnectionModal } from './ConnectionModal';
 
 type RegistrationCommonFormSectionsProps<D extends RegistrationCommonFormData> = {
@@ -177,11 +178,9 @@ const RegistrationCommonFormSections = <D extends RegistrationCommonFormData>({
       <FormSection
         title="Version details"
         description={
-          <Content component="p">
-            {isFirstVersion
-              ? 'Provide model details that apply to every version of this model.'
-              : 'Configure details for the version of this model.'}
-          </Content>
+          isFirstVersion
+            ? 'Provide model details that apply to every version of this model.'
+            : 'Configure details for the version of this model.'
         }
       >
         <FormGroup label="Version name" isRequired fieldId="version-name">
