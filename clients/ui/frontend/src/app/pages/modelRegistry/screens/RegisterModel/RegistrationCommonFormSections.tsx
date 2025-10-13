@@ -17,10 +17,10 @@ import { UpdateObjectAtPropAndValue } from 'mod-arch-shared';
 // import { convertAWSSecretData } from '~/pages/projects/screens/detail/data-connections/utils';
 import FormFieldset from '~/app/pages/modelRegistry/screens/components/FormFieldset';
 import { ModelVersion } from '~/app/types';
+import FormSection from '~/app/pages/modelRegistry/components/pf-overrides/FormSection';
 import { ModelLocationType, RegistrationCommonFormData } from './useRegisterModelData';
 import { isNameValid } from './utils';
 import { MR_CHARACTER_LIMIT } from './const';
-import FormSection from '../../components/pf-overrides/FormSection';
 // import { ConnectionModal } from './ConnectionModal';
 
 type RegistrationCommonFormSectionsProps<D extends RegistrationCommonFormData> = {
