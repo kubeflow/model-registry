@@ -3,11 +3,9 @@ import { ActionsColumn, Td, Tr } from '@patternfly/react-table';
 import {
   ActionList,
   ActionListItem,
+  Alert,
   Button,
   ExpandableSection,
-  FormHelperText,
-  HelperText,
-  HelperTextItem,
   TextInput,
   Truncate,
 } from '@patternfly/react-core';
@@ -27,6 +25,8 @@ type ModelPropertiesTableRowProps = {
   showDeleteModal?: boolean;
   setIsSavingEdits: (isSaving: boolean) => void;
   saveEditedProperty: (oldKey: string, newPair: KeyValuePair) => Promise<unknown>;
+  onKeyValidationChange?: (hasError: boolean) => void;
+  showInlineAlerts?: boolean;
 } & EitherNotBoth<
   { isAddRow: true },
   {
@@ -49,6 +49,8 @@ const ModelPropertiesTableRow: React.FC<ModelPropertiesTableRowProps> = ({
   saveEditedProperty,
   modelName,
   showDeleteModal,
+  onKeyValidationChange,
+  showInlineAlerts = false,
 }) => {
   const { key, value } = keyValuePair;
 
@@ -65,6 +67,11 @@ const ModelPropertiesTableRow: React.FC<ModelPropertiesTableRowProps> = ({
   } else if (unsavedKey.length > 63) {
     keyValidationError = "Key text can't exceed 63 characters";
   }
+
+  // Notify parent about key validation error state
+  React.useEffect(() => {
+    onKeyValidationChange?.(!!keyValidationError);
+  }, [keyValidationError, onKeyValidationChange]);
 
   const clearUnsavedInputs = () => {
     setUnsavedKey(key);
@@ -144,13 +151,23 @@ const ModelPropertiesTableRow: React.FC<ModelPropertiesTableRowProps> = ({
         {isEditing ? (
           <>
             <FormFieldset className="tr-fieldset-wrapper" component={propertyKeyInput} />
-
             {keyValidationError && (
-              <FormHelperText>
-                <HelperText>
-                  <HelperTextItem variant="error">{keyValidationError}</HelperTextItem>
-                </HelperText>
-              </FormHelperText>
+              <Alert
+                variant="danger"
+                title={keyValidationError}
+                isInline
+                isPlain
+                data-testid="property-key-error-alert"
+              />
+            )}
+            {showInlineAlerts && (
+              <Alert
+                variant="info"
+                title="Changes affect all model versions"
+                isInline
+                isPlain
+                data-testid="property-info-alert"
+              />
             )}
           </>
         ) : (

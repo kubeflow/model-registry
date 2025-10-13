@@ -108,6 +108,7 @@ const ModelCatalogGalleryView: React.FC<ModelCatalogPageProps> = ({
               isModelValidated(model) ? mockPerformanceMetricsArtifacts : undefined
             }
             accuracyMetrics={isModelValidated(model) ? mockAccuracyMetricsArtifacts : undefined}
+            truncate
           />
         ))}
       </Gallery>

@@ -38,6 +38,7 @@ const ModelLabels: React.FC<ModelLabelsProps> = ({ name, customProperties }) => 
     labels.map((label, index) => (
       <Label
         variant="outline"
+        color="grey"
         data-testid="label"
         textMaxWidth={textMaxWidth || '40ch'}
         key={index}

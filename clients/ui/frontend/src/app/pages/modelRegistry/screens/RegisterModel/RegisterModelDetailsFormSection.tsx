@@ -7,8 +7,9 @@ import {
   TextInput,
 } from '@patternfly/react-core';
 import React from 'react';
-import { UpdateObjectAtPropAndValue, FormSection } from 'mod-arch-shared';
+import { UpdateObjectAtPropAndValue } from 'mod-arch-shared';
 import FormFieldset from '~/app/pages/modelRegistry/screens/components/FormFieldset';
+import FormSection from '~/app/pages/modelRegistry/components/pf-overrides/FormSection';
 import { MR_CHARACTER_LIMIT } from './const';
 import { RegisterModelFormData } from './useRegisterModelData';
 

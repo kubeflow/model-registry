@@ -24,9 +24,11 @@ export const rmColumns: SortableData<RegisteredModel>[] = [
     field: 'last_modified',
     label: 'Last modified',
     sortable: (a: RegisteredModel, b: RegisteredModel): number => {
-      const first = parseInt(a.lastUpdateTimeSinceEpoch);
-      const second = parseInt(b.lastUpdateTimeSinceEpoch);
-      return new Date(second).getTime() - new Date(first).getTime();
+      // Convert timestamps to numbers for direct comparison
+      const timeA = Number(a.lastUpdateTimeSinceEpoch || 0);
+      const timeB = Number(b.lastUpdateTimeSinceEpoch || 0);
+      // Sort in descending order (newest first)
+      return timeB - timeA;
     },
   },
   {
