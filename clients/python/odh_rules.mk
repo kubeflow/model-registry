@@ -25,3 +25,15 @@ test-e2e-port-cleanup:
 		kill $$(cat .port-forwards.pid) || true; \
 		rm -f .port-forwards.pid; \
 	fi
+
+.PHONY: test-fuzz-odh
+test-fuzz-odh:
+	@echo "Starting test-fuzz"
+	poetry install --all-extras
+	@set -a; . ../../scripts/manifests/minio/.env; set +a; \
+	export VERIFY_SSL=False && \
+	export AUTH_TOKEN=$$(kubectl config view --raw -o jsonpath="{.users[?(@.name==\"$$(kubectl config view -o jsonpath="{.contexts[?(@.name==\"$$(kubectl config current-context)\")].context.user}")\")].user.token}") && \
+	export MR_NAMESPACE=$$(kubectl get datasciencecluster default-dsc -o jsonpath='{.spec.components.modelregistry.registriesNamespace}') && \
+	export MR_URL="https://$$(kubectl get service -n "$$MR_NAMESPACE" model-registry -o jsonpath='{.metadata.annotations.routing\.opendatahub\.io\/external-address-rest}')" && \
+	poetry run pytest --fuzz -svvv --hypothesis-show-statistics tests/fuzz_api -rA --html=../../results/report.html --junit-xml=../../results/xunit_report.xml --self-contained-html
+	@exit $$STATUS
