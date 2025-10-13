@@ -89,6 +89,7 @@ const ModelVersionsCard: React.FC<ModelVersionsCardProps> = ({ rm, isArchiveMode
                       {getLabels(mv.customProperties).map((label) => (
                         <Label
                           variant="outline"
+                          color="grey"
                           key={label}
                           data-testid={`model-version-${mv.id}-property-${label}`}
                         >

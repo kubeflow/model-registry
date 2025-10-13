@@ -14,20 +14,37 @@ import { ModelCatalogContext } from '~/app/context/modelCatalog/ModelCatalogCont
 import { useCatalogModelsBySources } from '~/app/hooks/modelCatalog/useCatalogModelsBySource';
 import { CatalogModel } from '~/app/modelCatalogTypes';
 import ModelCatalogCard from '~/app/pages/modelCatalog/components/ModelCatalogCard';
-import { isModelValidated } from '~/app/pages/modelCatalog/utils/modelCatalogUtils';
+import {
+  isModelValidated,
+  getSourceFromSourceId,
+  hasFiltersApplied,
+} from '~/app/pages/modelCatalog/utils/modelCatalogUtils';
 import { mockPerformanceMetricsArtifacts } from '~/app/pages/modelCatalog/mocks/hardwareConfigurationMock';
 import { mockAccuracyMetricsArtifacts } from '~/app/pages/modelCatalog/mocks/accuracyMetricsMock';
 import EmptyModelCatalogState from '~/app/pages/modelCatalog/EmptyModelCatalogState';
 
 type ModelCatalogPageProps = {
   searchTerm: string;
+  handleFilterReset: () => void;
 };
 
-const ModelCatalogPage: React.FC<ModelCatalogPageProps> = ({ searchTerm }) => {
-  const { selectedSource, filterData, filterOptions, filterOptionsLoaded, filterOptionsLoadError } =
-    React.useContext(ModelCatalogContext);
+const ModelCatalogGalleryView: React.FC<ModelCatalogPageProps> = ({
+  searchTerm,
+  handleFilterReset,
+}) => {
+  const {
+    selectedSourceLabel,
+    filterData,
+    filterOptions,
+    filterOptionsLoaded,
+    filterOptionsLoadError,
+    catalogSources,
+  } = React.useContext(ModelCatalogContext);
+  const filtersApplied = hasFiltersApplied(filterData);
+
   const { catalogModels, catalogModelsLoaded, catalogModelsLoadError } = useCatalogModelsBySources(
-    selectedSource?.id || '',
+    '',
+    selectedSourceLabel === 'All models' ? undefined : selectedSourceLabel,
     10,
     searchTerm,
     filterData,
@@ -56,18 +73,25 @@ const ModelCatalogPage: React.FC<ModelCatalogPageProps> = ({ searchTerm }) => {
     );
   }
 
-  if (catalogModels.items.length === 0) {
+  if (catalogModels.items.length === 0 && !searchTerm && !filtersApplied) {
     return (
       <EmptyModelCatalogState
         testid="empty-model-catalog-state"
         title="No result found"
         headerIcon={SearchIcon}
-        description={
-          <>
-            No models from the <b>{selectedSource?.name}</b> source match the search criteria.
-            Adjust your search, or select a different source
-          </>
-        }
+        description="Adjust your filters and try again."
+      />
+    );
+  }
+
+  if (catalogModels.items.length === 0 && (searchTerm || filtersApplied)) {
+    return (
+      <EmptyModelCatalogState
+        testid="empty-model-catalog-state"
+        title="No result found"
+        headerIcon={SearchIcon}
+        description="Adjust your filters and try again."
+        customAction={<Button onClick={handleFilterReset}>Reset filters</Button>}
       />
     );
   }
@@ -79,11 +103,12 @@ const ModelCatalogPage: React.FC<ModelCatalogPageProps> = ({ searchTerm }) => {
           <ModelCatalogCard
             key={`${model.name}/${model.source_id}`}
             model={model}
-            source={selectedSource}
+            source={getSourceFromSourceId(model.source_id || '', catalogSources)}
             performanceMetrics={
               isModelValidated(model) ? mockPerformanceMetricsArtifacts : undefined
             }
             accuracyMetrics={isModelValidated(model) ? mockAccuracyMetricsArtifacts : undefined}
+            truncate
           />
         ))}
       </Gallery>
@@ -111,4 +136,4 @@ const ModelCatalogPage: React.FC<ModelCatalogPageProps> = ({ searchTerm }) => {
   );
 };
 
-export default ModelCatalogPage;
+export default ModelCatalogGalleryView;

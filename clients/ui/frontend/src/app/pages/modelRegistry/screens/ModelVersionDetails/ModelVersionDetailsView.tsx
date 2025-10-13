@@ -2,8 +2,6 @@ import * as React from 'react';
 import {
   DescriptionList,
   Divider,
-  Flex,
-  FlexItem,
   ContentVariants,
   Title,
   Bullseye,
@@ -14,6 +12,9 @@ import {
   Card,
   CardHeader,
   CardBody,
+  Sidebar,
+  SidebarPanel,
+  SidebarContent,
 } from '@patternfly/react-core';
 import {
   EditableLabelsDescriptionListGroup,
@@ -104,20 +105,16 @@ const ModelVersionDetailsView: React.FC<ModelVersionDetailsViewProps> = ({
             <Title headingLevel="h2">Version details</Title>
           </CardHeader>
           <CardBody>
-            <Flex
-              direction={{ default: 'column', md: 'row' }}
-              columnGap={{ default: 'columnGap4xl' }}
-              rowGap={{ default: 'rowGapLg' }}
-            >
-              <FlexItem flex={{ default: 'flex_1' }}>
-                <DescriptionList isFillColumns>
+            <Sidebar hasBorder hasGutter isPanelRight>
+              <SidebarContent>
+                <DescriptionList>
                   <EditableLabelsDescriptionListGroup
                     labels={getLabels(mv.customProperties)}
                     isArchive={isArchiveVersion}
                     allExistingKeys={Object.keys(mv.customProperties)}
                     title="Labels"
                     contentWhenEmpty="No labels"
-                    labelProps={{ variant: 'outline' }}
+                    labelProps={{ variant: 'outline', color: 'grey' }}
                     onLabelsChange={(editedLabels) =>
                       handleVersionUpdate(
                         apiState.api.patchModelVersion(
@@ -154,9 +151,8 @@ const ModelVersionDetailsView: React.FC<ModelVersionDetailsViewProps> = ({
                     }
                   />
                 </DescriptionList>
-              </FlexItem>
-              <Divider orientation={{ default: 'vertical' }} />
-              <FlexItem flex={{ default: 'flex_1' }}>
+              </SidebarContent>
+              <SidebarPanel width={{ default: 'width_33' }}>
                 {modelArtifact && (
                   <ModelVersionRegisteredFromLink
                     modelArtifact={modelArtifact}
@@ -301,8 +297,8 @@ const ModelVersionDetailsView: React.FC<ModelVersionDetailsViewProps> = ({
                     <ModelTimestamp timeSinceEpoch={mv.createTimeSinceEpoch} />
                   </DashboardDescriptionListGroup>
                 </DescriptionList>
-              </FlexItem>
-            </Flex>
+              </SidebarPanel>
+            </Sidebar>
           </CardBody>
         </Card>
       </StackItem>

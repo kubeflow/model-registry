@@ -53,8 +53,8 @@ const ModelDetailsView: React.FC<ModelDetailsViewProps> = ({
   return (
     <PageSection hasBodyWrapper={false} isFilled>
       <Sidebar hasBorder hasGutter isPanelRight>
-        <SidebarContent>
-          <Content>
+        <SidebarContent style={{ minWidth: 0, overflow: 'hidden' }}>
+          <Content style={{ wordBreak: 'break-word' }}>
             <h2>Description</h2>
             <p data-testid="model-long-description">{model.description || 'No description'}</p>
             <h2>Model card</h2>
@@ -68,8 +68,8 @@ const ModelDetailsView: React.FC<ModelDetailsViewProps> = ({
             />
           )}
         </SidebarContent>
-        <SidebarPanel>
-          <DescriptionList isFillColumns>
+        <SidebarPanel width={{ default: 'width_33' }}>
+          <DescriptionList>
             <DescriptionListGroup>
               <DescriptionListTerm>Labels</DescriptionListTerm>
               <DescriptionListDescription>
@@ -116,10 +116,12 @@ const ModelDetailsView: React.FC<ModelDetailsViewProps> = ({
               ) : !artifactLoaded ? (
                 <Spinner size="sm" />
               ) : artifacts.items.length > 0 && hasModelArtifacts(artifacts.items) ? (
-                <InlineTruncatedClipboardCopy
-                  testId="source-image-location"
-                  textToCopy={getModelArtifactUri(artifacts.items) || ''}
-                />
+                <DescriptionListDescription>
+                  <InlineTruncatedClipboardCopy
+                    testId="source-image-location"
+                    textToCopy={getModelArtifactUri(artifacts.items) || ''}
+                  />
+                </DescriptionListDescription>
               ) : (
                 <p className={text.textColorDisabled}>No artifacts available</p>
               )}

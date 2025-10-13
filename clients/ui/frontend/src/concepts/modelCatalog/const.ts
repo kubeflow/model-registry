@@ -7,6 +7,7 @@ export enum ModelCatalogStringFilterKey {
 
 export enum ModelCatalogNumberFilterKey {
   // TODO add number filters here
+  ttft_mean = 'ttft_mean',
 }
 
 export enum ModelCatalogTask {

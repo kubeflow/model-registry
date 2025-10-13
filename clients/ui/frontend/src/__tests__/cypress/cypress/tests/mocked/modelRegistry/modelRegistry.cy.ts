@@ -274,11 +274,11 @@ describe('Model Registry core', () => {
 
     it('Sort by Last modified', () => {
       modelRegistry.findRegisteredModelTableHeaderButton('Last modified').click();
-      modelRegistry.findRegisteredModelTableHeaderButton('Last modified').should(be.sortAscending);
-      modelRegistry.findRegisteredModelTableHeaderButton('Last modified').click();
       modelRegistry.findRegisteredModelTableHeaderButton('Last modified').should(be.sortDescending);
       modelRegistry.findRegisteredModelTableHeaderButton('Last modified').click();
       modelRegistry.findRegisteredModelTableHeaderButton('Last modified').should(be.sortAscending);
+      modelRegistry.findRegisteredModelTableHeaderButton('Last modified').click();
+      modelRegistry.findRegisteredModelTableHeaderButton('Last modified').should(be.sortDescending);
     });
 
     it('Filter by keyword then both', () => {

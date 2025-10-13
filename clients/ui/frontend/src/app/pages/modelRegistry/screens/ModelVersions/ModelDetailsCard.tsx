@@ -5,7 +5,6 @@ import {
   StackItem,
   Stack,
   CardBody,
-  CardTitle,
   ClipboardCopy,
   Content,
   CardHeader,
@@ -14,6 +13,7 @@ import {
   SidebarPanel,
   SidebarContent,
   Alert,
+  Title,
 } from '@patternfly/react-core';
 import {
   EditableTextDescriptionListGroup,
@@ -63,6 +63,7 @@ const ModelDetailsCard: React.FC<ModelDetailsCardProps> = ({
 
   const labelsSection = (
     <EditableLabelsDescriptionListGroup
+      key={`labels-${rm.lastUpdateTimeSinceEpoch}`}
       labels={getLabels(rm.customProperties)}
       isArchive={isArchiveModel}
       allExistingKeys={Object.keys(rm.customProperties)}
@@ -80,13 +81,14 @@ const ModelDetailsCard: React.FC<ModelDetailsCardProps> = ({
           .then(refresh)
       }
       isCollapsible={false}
-      labelProps={{ variant: 'outline' }}
+      labelProps={{ variant: 'outline', color: 'grey' }}
       onEditingChange={isExpandable ? handleLabelsEditingChange : undefined}
     />
   );
 
   const descriptionSection = (
     <EditableTextDescriptionListGroup
+      key={`description-${rm.lastUpdateTimeSinceEpoch}`}
       truncateMaxLines={3}
       editableVariant="TextArea"
       baseTestId="model-description"
@@ -148,6 +150,7 @@ const ModelDetailsCard: React.FC<ModelDetailsCardProps> = ({
 
   const propertiesSection = (
     <ModelPropertiesExpandableSection
+      key={`properties-${rm.lastUpdateTimeSinceEpoch}`}
       modelName={rm.name}
       isArchive={isArchiveModel}
       customProperties={rm.customProperties}
@@ -157,6 +160,7 @@ const ModelDetailsCard: React.FC<ModelDetailsCardProps> = ({
           .then(refresh)
       }
       onEditingChange={isExpandable ? handlePropertiesEditingChange : undefined}
+      showInlineAlerts
     />
   );
 
@@ -226,7 +230,7 @@ const ModelDetailsCard: React.FC<ModelDetailsCardProps> = ({
               'aria-expanded': isExpanded,
             }}
           >
-            <CardTitle>Model details</CardTitle>
+            <Title headingLevel="h2">Model details</Title>
           </CardHeader>
           <CardExpandableContent data-testid="model-details-card-expandable-content">
             {cardBody}
@@ -234,7 +238,9 @@ const ModelDetailsCard: React.FC<ModelDetailsCardProps> = ({
         </>
       ) : (
         <>
-          <CardTitle>Model details</CardTitle>
+          <CardHeader>
+            <Title headingLevel="h2">Model details</Title>
+          </CardHeader>
           {cardBody}
         </>
       )}
