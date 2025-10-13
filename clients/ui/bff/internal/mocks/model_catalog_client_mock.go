@@ -199,6 +199,8 @@ func (m *ModelCatalogClientMock) GetCatalogModelArtifacts(client httpclient.HTTP
 			PageSize:      int32(0),
 			Size:          int32(0),
 		}
+	} else if sourceId == "sample-source" && (modelName == "repo1%2Fgranite-7b-instruct-validated") {
+		allMockModelArtifacts = GetCatalogModelArtifactListMockForValidatedWithoutPerformance()
 	} else {
 		allMockModelArtifacts = GetCatalogModelArtifactListMock()
 	}
