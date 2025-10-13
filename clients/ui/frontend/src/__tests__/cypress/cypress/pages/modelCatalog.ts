@@ -115,6 +115,10 @@ class ModelCatalog {
     return cy.findAllByTestId('validated-model-benchmark-link');
   }
 
+  findValidatedModelBenchmarkNext() {
+    return cy.findAllByTestId('validated-model-benchmark-next');
+  }
+
   findModelCatalogDescription() {
     return cy.findByTestId('model-catalog-card-description');
   }
@@ -240,6 +244,18 @@ class ModelCatalog {
 
   findHardwareConfigurationPagination() {
     return cy.get('[data-testid="hardware-configuration-table"] .pf-v6-c-pagination');
+  }
+
+  findValidatedModelHardware() {
+    return cy.findByTestId('validated-model-hardware');
+  }
+
+  findValidatedModelRps() {
+    return cy.findByTestId('validated-model-rps');
+  }
+
+  findValidatedModelTtft() {
+    return cy.findByTestId('validated-model-ttft');
   }
 }
 

@@ -1,3 +1,4 @@
+/* eslint-disable camelcase */
 import { modelCatalog } from '~/__tests__/cypress/cypress/pages/modelCatalog';
 import {
   mockCatalogAccuracyMetricsArtifact,
@@ -121,6 +122,46 @@ const initIntercepts = ({
     {
       items: [
         mockCatalogPerformanceMetricsArtifact({}),
+        mockCatalogPerformanceMetricsArtifact({
+          customProperties: {
+            hardware: {
+              metadataType: ModelRegistryMetadataType.STRING,
+              string_value: 'RTX 4090',
+            },
+            hardware_count: {
+              metadataType: ModelRegistryMetadataType.INT,
+              int_value: '33',
+            },
+            requests_per_second: {
+              metadataType: ModelRegistryMetadataType.DOUBLE,
+              double_value: 10,
+            },
+            ttft_mean: {
+              metadataType: ModelRegistryMetadataType.DOUBLE,
+              double_value: 67.14892749816,
+            },
+          },
+        }),
+        mockCatalogPerformanceMetricsArtifact({
+          customProperties: {
+            hardware: {
+              metadataType: ModelRegistryMetadataType.STRING,
+              string_value: 'A100',
+            },
+            hardware_count: {
+              metadataType: ModelRegistryMetadataType.INT,
+              int_value: '40',
+            },
+            requests_per_second: {
+              metadataType: ModelRegistryMetadataType.DOUBLE,
+              double_value: 15,
+            },
+            ttft_mean: {
+              metadataType: ModelRegistryMetadataType.DOUBLE,
+              double_value: 42.123791232,
+            },
+          },
+        }),
         mockCatalogAccuracyMetricsArtifact({}),
         mockCatalogModelArtifact({}),
       ],
@@ -190,6 +231,17 @@ describe('ModelCatalogCard Component', () => {
     it('should show validated model correctly', () => {
       cy.wait('@getCatalogModelArtifacts');
       modelCatalog.findFirstModelCatalogCard().within(() => {
+        modelCatalog.findValidatedModelHardware().should('contain.text', '2xH100-80');
+        modelCatalog.findValidatedModelRps().should('contain.text', '7');
+        modelCatalog.findValidatedModelTtft().should('contain.text', '35.48818160947744');
+        modelCatalog.findValidatedModelBenchmarkNext().click();
+        modelCatalog.findValidatedModelHardware().should('contain.text', '33xRTX 4090');
+        modelCatalog.findValidatedModelRps().should('contain.text', '10');
+        modelCatalog.findValidatedModelTtft().should('contain.text', '67.14892749816');
+        modelCatalog.findValidatedModelBenchmarkNext().click();
+        modelCatalog.findValidatedModelHardware().should('contain.text', '40xA100');
+        modelCatalog.findValidatedModelRps().should('contain.text', '15');
+        modelCatalog.findValidatedModelTtft().should('contain.text', '42.123791232');
         modelCatalog.findValidatedModelBenchmarkLink().click();
         cy.url().should('include', 'performance-insights');
       });

@@ -7,6 +7,7 @@ export const useCatalogModelArtifacts = (
   sourceId: string,
   modelName: string,
   isValidated?: boolean,
+  onlyFetchIfValidated = false,
 ): FetchState<CatalogArtifactList> => {
   const { api, apiAvailable } = useModelCatalogAPI();
 
@@ -21,12 +22,12 @@ export const useCatalogModelArtifacts = (
       if (!modelName) {
         return Promise.reject(new NotReadyError('No model name'));
       }
-      if (isValidated === false) {
+      if (onlyFetchIfValidated && !isValidated) {
         return Promise.reject(new NotReadyError('Model is not validated'));
       }
       return api.getListCatalogModelArtifacts(opts, sourceId, modelName);
     },
-    [apiAvailable, sourceId, modelName, isValidated, api],
+    [apiAvailable, sourceId, modelName, isValidated, api, onlyFetchIfValidated],
   );
   return useFetchState(
     call,

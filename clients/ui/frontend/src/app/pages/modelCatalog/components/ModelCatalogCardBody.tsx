@@ -51,6 +51,7 @@ const ModelCatalogCardBody: React.FC<ModelCatalogCardBodyProps> = ({
     source?.id || '',
     model.name,
     isValidated,
+    true,
   );
 
   const performanceMetrics = artifacts.items.filter(
