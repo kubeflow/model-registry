@@ -169,7 +169,7 @@ describe('Model Catalog Details Tabs', () => {
       it('should switch to Performance Insights tab when clicked', () => {
         modelCatalog.findModelCatalogDetailLink().first().click();
 
-        cy.url().should('include', '/model-catalog/sample-source/validated-model/overview');
+        cy.url().should('include', '/model-catalog/source-2/validated-model/overview');
 
         // Click Performance Insights tab
         modelCatalog.clickPerformanceInsightsTab();
@@ -184,7 +184,7 @@ describe('Model Catalog Details Tabs', () => {
       it('should switch back to Overview tab when clicked', () => {
         modelCatalog.findModelCatalogDetailLink().first().click();
 
-        cy.url().should('include', '/model-catalog/sample-source/validated-model/overview');
+        cy.url().should('include', '/model-catalog/source-2/validated-model/overview');
 
         // First switch to Performance Insights
         modelCatalog.clickPerformanceInsightsTab();
@@ -236,7 +236,7 @@ describe('Model Catalog Details Tabs', () => {
       it('should maintain tab state when switching between tabs', () => {
         modelCatalog.findModelCatalogDetailLink().first().click();
 
-        cy.url().should('include', '/model-catalog/sample-source/validated-model/overview');
+        cy.url().should('include', '/model-catalog/source-2/validated-model/overview');
 
         // Switch to Performance Insights
         modelCatalog.clickPerformanceInsightsTab();
@@ -261,7 +261,6 @@ describe('Model Catalog Details Tabs', () => {
 
       initIntercepts({ useValidatedModel: true, hasPerformanceArtifacts: false });
       modelCatalog.visit();
-      modelCatalog.navigate();
     });
 
     it('should not display tabs for validated models without performance artifacts', () => {
