@@ -119,6 +119,10 @@ class ModelCatalog {
     return cy.findAllByTestId('validated-model-benchmark-next');
   }
 
+  findValidatedModelBenchmarkPrev() {
+    return cy.findAllByTestId('validated-model-benchmark-prev');
+  }
+
   findModelCatalogDescription() {
     return cy.findByTestId('model-catalog-card-description');
   }
