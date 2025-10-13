@@ -68,7 +68,7 @@ const ModelDetailsView: React.FC<ModelDetailsViewProps> = ({
             />
           )}
         </SidebarContent>
-        <SidebarPanel width={{ default: 'width_33' }} style={{ minWidth: 0 }}>
+        <SidebarPanel width={{ default: 'width_33' }}>
           <DescriptionList>
             <DescriptionListGroup>
               <DescriptionListTerm>Labels</DescriptionListTerm>

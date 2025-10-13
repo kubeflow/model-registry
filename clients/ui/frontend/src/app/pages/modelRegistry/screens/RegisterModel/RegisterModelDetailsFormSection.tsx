@@ -1,5 +1,6 @@
 import {
   Content,
+  ContentVariants,
   FormGroup,
   FormHelperText,
   HelperText,
@@ -51,7 +52,7 @@ const RegisterModelDetailsFormSection = <D extends RegisterModelFormData>({
     <FormSection
       title="Model details"
       description={
-        <Content component="p">
+        <Content component={ContentVariants.p}>
           Provide model details that apply to every version of this model.
         </Content>
       }
