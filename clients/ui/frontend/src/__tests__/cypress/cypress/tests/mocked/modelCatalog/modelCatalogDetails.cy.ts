@@ -99,8 +99,10 @@ describe('Model Catalog Details Page', () => {
   it('navigates to details and shows header, breadcrumb and description', () => {
     modelCatalog.findLoadingState().should('not.exist');
     modelCatalog.findModelCatalogDetailLink().first().click();
-    modelCatalog.findBreadcrumb().should('be.visible');
-    modelCatalog.findDetailsProviderText().should('be.visible');
+    // Breadcrumb needs scrollIntoView
+    modelCatalog.findBreadcrumb().scrollIntoView().should('be.visible');
+    // Provider text needs scrollIntoView
+    modelCatalog.findDetailsProviderText().scrollIntoView().should('be.visible');
     modelCatalog.findDetailsDescription().should('exist');
   });
 });

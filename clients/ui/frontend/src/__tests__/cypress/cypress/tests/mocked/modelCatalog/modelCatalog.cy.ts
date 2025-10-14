@@ -113,16 +113,23 @@ describe('Model Catalog Page', () => {
     modelCatalog.findFilter('Language').should('be.visible');
   });
 
+  // Filter checkboxes need scrollIntoView
   it('filters show more and show less button should work', () => {
     initIntercepts({});
     modelCatalog.visit();
     modelCatalog.findFilterShowMoreButton('Task').click();
-    modelCatalog.findFilterCheckbox('Task', 'text-generation').should('be.visible');
-    modelCatalog.findFilterCheckbox('Task', 'text-to-text').should('be.visible');
-    modelCatalog.findFilterCheckbox('Task', 'image-to-text').should('be.visible');
-    modelCatalog.findFilterCheckbox('Task', 'image-text-to-text').should('be.visible');
-    modelCatalog.findFilterCheckbox('Task', 'audio-to-text').should('be.visible');
-    modelCatalog.findFilterCheckbox('Task', 'video-to-text').should('be.visible');
+    modelCatalog
+      .findFilterCheckbox('Task', 'text-generation')
+      .scrollIntoView()
+      .should('be.visible');
+    modelCatalog.findFilterCheckbox('Task', 'text-to-text').scrollIntoView().should('be.visible');
+    modelCatalog.findFilterCheckbox('Task', 'image-to-text').scrollIntoView().should('be.visible');
+    modelCatalog
+      .findFilterCheckbox('Task', 'image-text-to-text')
+      .scrollIntoView()
+      .should('be.visible');
+    modelCatalog.findFilterCheckbox('Task', 'audio-to-text').scrollIntoView().should('be.visible');
+    modelCatalog.findFilterCheckbox('Task', 'video-to-text').scrollIntoView().should('be.visible');
     modelCatalog.findFilterShowLessButton('Task').click();
     modelCatalog.findFilterCheckbox('Task', 'audio-to-text').should('not.exist');
   });
