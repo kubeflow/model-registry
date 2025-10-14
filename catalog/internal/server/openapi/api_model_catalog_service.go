@@ -11,6 +11,7 @@
 package openapi
 
 import (
+	
 	"net/http"
 	"strings"
 
@@ -154,22 +155,7 @@ func (c *ModelCatalogServiceAPIController) GetAllModelArtifacts(w http.ResponseW
 // GetModel - Get a `CatalogModel`.
 func (c *ModelCatalogServiceAPIController) GetModel(w http.ResponseWriter, r *http.Request) {
 	sourceIdParam := chi.URLParam(r, "source_id")
-	modelNameParam := chi.URLParam(r, "*")
-
-	// Special handling for getModel to delegate /artifacts requests to getAllModelArtifacts
-	// The wildcard /* pattern catches /artifacts requests, but we want those to go to GetAllModelArtifacts
-	if strings.HasSuffix(r.URL.Path, "/artifacts") {
-		// Extract the model name by removing the /artifacts suffix
-		modelName := strings.TrimSuffix(modelNameParam, "/artifacts")
-
-		// Add the model_name parameter to the route context so GetAllModelArtifacts can access it
-		chi.RouteContext(r.Context()).URLParams.Add("model_name", modelName)
-
-		// Call the GetAllModelArtifacts handler directly
-		c.GetAllModelArtifacts(w, r)
-		return
-	}
-
+	modelNameParam := chi.URLParam(r, "model_name+")
 	result, err := c.service.GetModel(r.Context(), sourceIdParam, modelNameParam)
 	// If an error occurred, encode the error with the status code
 	if err != nil {
