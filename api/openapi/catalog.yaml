@@ -470,13 +470,15 @@ components:
           description: Known values of the property for string types with a small number of possible options.
           items: {}
         range:
-          type: object
-          description: Min and max values for number types.
-          properties:
-            min:
-              type: number
-            max:
-              type: number
+          $ref: "#/components/schemas/FilterOptionRange"
+    FilterOptionRange:
+      type: object
+      description: Min and max values for number types.
+      properties:
+        min:
+          type: number
+        max:
+          type: number
     FilterOptionsList:
       description: List of FilterOptions
       type: object
