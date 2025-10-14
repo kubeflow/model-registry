@@ -12,7 +12,7 @@ const PerformanceInsightsView = ({
   performanceArtifacts,
   isLoading = false,
 }: PerformanceInsightsViewProps): React.JSX.Element => (
-  <PageSection>
+  <PageSection padding={{ default: 'noPadding' }}>
     <Card>
       <CardBody>
         <Flex direction={{ default: 'column' }} gap={{ default: 'gapLg' }}>

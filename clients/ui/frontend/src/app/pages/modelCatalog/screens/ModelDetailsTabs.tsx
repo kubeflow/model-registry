@@ -65,7 +65,12 @@ const ModelDetailsTabs = ({
 
   if (!showValidatedInsights) {
     return (
-      <PageSection hasBodyWrapper={false} isFilled data-testid="model-overview-tab-content">
+      <PageSection
+        hasBodyWrapper={false}
+        isFilled
+        data-testid="model-overview-tab-content"
+        padding={{ default: 'noPadding' }}
+      >
         <ModelDetailsView
           model={model}
           artifacts={artifacts}
@@ -90,7 +95,12 @@ const ModelDetailsTabs = ({
         aria-label="Model overview tab"
         data-testid="model-overview-tab"
       >
-        <PageSection hasBodyWrapper={false} isFilled data-testid="model-overview-tab-content">
+        <PageSection
+          hasBodyWrapper={false}
+          isFilled
+          data-testid="model-overview-tab-content"
+          padding={{ default: 'noPadding' }}
+        >
           <ModelDetailsView
             model={model}
             artifacts={artifacts}
@@ -105,7 +115,12 @@ const ModelDetailsTabs = ({
         aria-label="Performance insights tab"
         data-testid="performance-insights-tab"
       >
-        <PageSection hasBodyWrapper={false} isFilled data-testid="performance-insights-tab-content">
+        <PageSection
+          hasBodyWrapper={false}
+          isFilled
+          data-testid="performance-insights-tab-content"
+          padding={{ default: 'noPadding' }}
+        >
           <PerformanceInsightsView
             performanceArtifacts={performanceArtifacts}
             isLoading={!artifactLoaded}

@@ -51,7 +51,7 @@ const ModelDetailsView: React.FC<ModelDetailsViewProps> = ({
   const validatedOnPlatforms = getValidatedOnPlatforms(model.customProperties);
 
   return (
-    <PageSection hasBodyWrapper={false} isFilled>
+    <PageSection hasBodyWrapper={false} isFilled padding={{ default: 'noPadding' }}>
       <Sidebar hasBorder hasGutter isPanelRight>
         <SidebarContent style={{ minWidth: 0, overflow: 'hidden' }}>
           <Content style={{ wordBreak: 'break-word' }}>
