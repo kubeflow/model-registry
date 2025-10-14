@@ -598,18 +598,11 @@ type ApiGetAllModelArtifactsRequest struct {
 	ApiService    *ModelCatalogServiceAPIService
 	sourceId      string
 	modelName     string
-	artifactType  *string
 	pageSize      *string
 	orderBy       *OrderByField
 	sortOrder     *SortOrder
 	nextPageToken *string
 	artifactType  *string
-}
-
-// Filter artifacts by type.
-func (r ApiGetAllModelArtifactsRequest) ArtifactType(artifactType string) ApiGetAllModelArtifactsRequest {
-	r.artifactType = &artifactType
-	return r
 }
 
 // Number of entities in each page.
@@ -687,9 +680,6 @@ func (a *ModelCatalogServiceAPIService) GetAllModelArtifactsExecute(r ApiGetAllM
 	localVarQueryParams := url.Values{}
 	localVarFormParams := url.Values{}
 
-	if r.artifactType != nil {
-		parameterAddToHeaderOrQuery(localVarQueryParams, "artifact_type", r.artifactType, "")
-	}
 	if r.pageSize != nil {
 		parameterAddToHeaderOrQuery(localVarQueryParams, "pageSize", r.pageSize, "")
 	}
