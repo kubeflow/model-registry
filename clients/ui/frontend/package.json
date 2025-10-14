@@ -52,7 +52,7 @@
     "css-loader": "^7.1.2",
     "css-minimizer-webpack-plugin": "^7.0.0",
     "dotenv": "^16.5.0",
-    "dotenv-expand": "^5.1.0",
+    "dotenv-expand": "^12.0.3",
     "dotenv-webpack": "^6.0.0",
     "expect": "^30.0.2",
     "file-loader": "^6.2.0",
