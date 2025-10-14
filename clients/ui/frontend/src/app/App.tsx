@@ -6,7 +6,6 @@ import {
   Bullseye,
   Button,
   Page,
-  PageSection,
   PageSidebar,
   Spinner,
   Stack,
@@ -60,31 +59,29 @@ const App: React.FC = () => {
   if (error) {
     // There was an error fetching critical data
     return (
-      <Page sidebar={sidebar}>
-        <PageSection>
-          <Stack hasGutter>
-            <StackItem>
-              <Alert variant="danger" isInline title="General loading error">
-                <p>
-                  {configError?.message ||
-                    namespacesLoadError?.message ||
-                    initializationError?.message ||
-                    'Unknown error occurred during startup'}
-                </p>
-                <p>Logging out and logging back in may solve the issue</p>
-              </Alert>
-            </StackItem>
-            <StackItem>
-              <Button
-                variant="secondary"
-                onClick={() => logout().then(() => window.location.reload())}
-              >
-                Logout
-              </Button>
-            </StackItem>
-          </Stack>
-        </PageSection>
-      </Page>
+      <div className="error-page-container">
+        <Stack hasGutter>
+          <StackItem>
+            <Alert variant="danger" isInline title="General loading error">
+              <p>
+                {configError?.message ||
+                  namespacesLoadError?.message ||
+                  initializationError?.message ||
+                  'Unknown error occurred during startup'}
+              </p>
+              <p>Logging out and logging back in may solve the issue</p>
+            </Alert>
+          </StackItem>
+          <StackItem>
+            <Button
+              variant="secondary"
+              onClick={() => logout().then(() => window.location.reload())}
+            >
+              Logout
+            </Button>
+          </StackItem>
+        </Stack>
+      </div>
     );
   }
 
