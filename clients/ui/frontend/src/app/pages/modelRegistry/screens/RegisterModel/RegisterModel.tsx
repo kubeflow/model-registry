@@ -7,10 +7,9 @@ import {
   Stack,
   StackItem,
 } from '@patternfly/react-core';
-import spacing from '@patternfly/react-styles/css/utilities/Spacing/spacing';
 import { useParams, useNavigate } from 'react-router';
 import { Link } from 'react-router-dom';
-import { ApplicationsPage } from 'mod-arch-shared';
+import { ApplicationsPage, FormSection } from 'mod-arch-shared';
 import { modelRegistryUrl, modelVersionUrl } from '~/app/pages/modelRegistry/screens/routeUtils';
 import { ModelRegistryContext } from '~/app/context/ModelRegistryContext';
 import { AppContext } from '~/app/context/AppContext';
@@ -94,9 +93,9 @@ const RegisterModel: React.FC = () => {
       <PageSection hasBodyWrapper={false} isFilled>
         <Form isWidthLimited>
           <Stack hasGutter>
-            <StackItem className={spacing.mbLg}>
+            <FormSection className="pf-v6-u-pb-xl">
               <PrefilledModelRegistryField mrName={mrName} />
-            </StackItem>
+            </FormSection>
             <StackItem>
               <RegisterModelDetailsFormSection
                 formData={formData}
