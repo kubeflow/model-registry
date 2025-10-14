@@ -1,7 +1,10 @@
 import { modelCatalog } from '~/__tests__/cypress/cypress/pages/modelCatalog';
 import {
+  mockCatalogAccuracyMetricsArtifact,
   mockCatalogModel,
+  mockCatalogModelArtifact,
   mockCatalogModelList,
+  mockCatalogPerformanceMetricsArtifact,
   mockCatalogSource,
   mockCatalogSourceList,
 } from '~/__mocks__';
@@ -60,12 +63,21 @@ const initIntercepts = ({
   );
 
   cy.interceptApi(
-    `GET /api/:apiVersion/model_catalog/models/filter_options`,
+    `GET /api/:apiVersion/model_catalog/sources/:sourceId/artifacts/:modelName`,
     {
-      path: { apiVersion: MODEL_CATALOG_API_VERSION },
-      query: { namespace: 'kubeflow' },
+      path: {
+        apiVersion: MODEL_CATALOG_API_VERSION,
+        sourceId: 'sample-source',
+        modelName: 'repo1/model1',
+      },
     },
-    mockCatalogFilterOptionsList(),
+    {
+      items: [
+        mockCatalogPerformanceMetricsArtifact({}),
+        mockCatalogAccuracyMetricsArtifact({}),
+        mockCatalogModelArtifact({}),
+      ],
+    },
   );
 };
 

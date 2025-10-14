@@ -107,16 +107,20 @@ class ModelCatalog {
     return this.findModelCatalogCards().first().should('be.visible');
   }
 
-  findLastModelCatalogCard() {
-    return this.findModelCatalogCards().last().should('be.visible');
-  }
-
   findModelCatalogDetailLink() {
     return cy.findAllByTestId('model-catalog-detail-link');
   }
 
   findValidatedModelBenchmarkLink() {
     return cy.findAllByTestId('validated-model-benchmark-link');
+  }
+
+  findValidatedModelBenchmarkNext() {
+    return cy.findAllByTestId('validated-model-benchmark-next');
+  }
+
+  findValidatedModelBenchmarkPrev() {
+    return cy.findAllByTestId('validated-model-benchmark-prev');
   }
 
   findModelCatalogDescription() {
@@ -244,6 +248,18 @@ class ModelCatalog {
 
   findHardwareConfigurationPagination() {
     return cy.get('[data-testid="hardware-configuration-table"] .pf-v6-c-pagination');
+  }
+
+  findValidatedModelHardware() {
+    return cy.findByTestId('validated-model-hardware');
+  }
+
+  findValidatedModelRps() {
+    return cy.findByTestId('validated-model-rps');
+  }
+
+  findValidatedModelTtft() {
+    return cy.findByTestId('validated-model-ttft');
   }
 }
 
