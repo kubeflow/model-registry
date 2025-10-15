@@ -11,56 +11,69 @@ import {
 } from '@patternfly/react-core';
 import { HelpIcon } from '@patternfly/react-icons';
 import { ModelCatalogNumberFilterKey } from '~/concepts/modelCatalog/const';
-import { CatalogFilterOptionsList } from '~/app/modelCatalogTypes';
 import { useCatalogNumberFilterState } from '~/app/pages/modelCatalog/utils/modelCatalogUtils';
+import { CatalogPerformanceMetricsArtifact } from '~/app/modelCatalogTypes';
+import { getTotalRps } from '~/app/pages/modelCatalog/utils/performanceMetricsUtils';
 
 const filterKey = ModelCatalogNumberFilterKey.MIN_RPS;
 
 type MinRpsFilterProps = {
-  filterOptions?: CatalogFilterOptionsList | null;
+  performanceArtifacts: CatalogPerformanceMetricsArtifact[];
 };
 
-const MinRpsFilter: React.FC<MinRpsFilterProps> = () => {
-  const { value: savedFilterValue, setValue: setSavedFilterValue } =
+const MinRpsFilter: React.FC<MinRpsFilterProps> = ({ performanceArtifacts }) => {
+  const { value: rpsFilterValue, setValue: setRpsFilterValue } =
     useCatalogNumberFilterState(filterKey);
   const [isOpen, setIsOpen] = React.useState(false);
 
-  // Local state for the filter configuration
-  const [localValue, setLocalValue] = React.useState<number>(savedFilterValue || 1);
-
-  // Update local value when dropdown opens to show current applied value
-  React.useEffect(() => {
-    if (isOpen) {
-      setLocalValue(savedFilterValue || 1);
-    }
-  }, [isOpen, savedFilterValue]);
+  // Local state for editing (initialized with current filter value or reasonable default)
+  const [localValue, setLocalValue] = React.useState<number>(rpsFilterValue || 2);
 
   // Parse saved value if it exists
-  const hasActiveFilter = savedFilterValue !== undefined;
+  const hasActiveFilter = rpsFilterValue !== undefined;
 
   const getDisplayText = (): string => {
     if (hasActiveFilter) {
-      return `Min RPS: ${savedFilterValue}`;
+      return `Min RPS: ${rpsFilterValue}`;
     }
     return 'Min RPS';
   };
 
   const handleApplyFilter = () => {
     // Apply the local value to the actual filter state
-    setSavedFilterValue(localValue);
+    setRpsFilterValue(localValue);
     setIsOpen(false);
   };
 
   const handleReset = () => {
-    setSavedFilterValue(undefined);
-    setLocalValue(1);
+    setRpsFilterValue(undefined);
+    setLocalValue(minValue); // Reset to calculated minimum
     setIsOpen(false);
   };
 
-  // Get min/max values from filter options or use defaults
+  // Calculate min/max values from performance artifacts
   // TODO: Use real min/max values when available from API
-  const minValue = 1; // Default minimum value
-  const maxValue = 300; // Default maximum value
+  const { minValue, maxValue } = React.useMemo(() => {
+    if (performanceArtifacts.length === 0) {
+      return { minValue: 1, maxValue: 300 }; // Default values when no artifacts
+    }
+
+    const rpsValues = performanceArtifacts
+      .map((artifact) => getTotalRps(artifact.customProperties))
+      .filter((rps) => rps > 0); // Filter out invalid values
+
+    if (rpsValues.length === 0) {
+      return { minValue: 1, maxValue: 300 }; // Default values when no valid RPS values
+    }
+
+    return {
+      minValue: Math.min(...rpsValues),
+      maxValue: Math.max(...rpsValues),
+    };
+  }, [performanceArtifacts]);
+
+  // Ensure local value is within the calculated range
+  const clampedLocalValue = Math.min(Math.max(localValue, minValue), maxValue);
 
   const toggle = (toggleRef: React.Ref<MenuToggleElement>) => (
     <MenuToggle
@@ -93,9 +106,8 @@ const MinRpsFilter: React.FC<MinRpsFilterProps> = () => {
                 aria-label="More info for min RPS"
                 className="pf-v6-u-p-xs"
                 onClick={(e) => e.stopPropagation()}
-              >
-                <HelpIcon />
-              </Button>
+                icon={<HelpIcon />}
+              />
             </Popover>
           </FlexItem>
         </Flex>
@@ -106,13 +118,13 @@ const MinRpsFilter: React.FC<MinRpsFilterProps> = () => {
             <Slider
               min={minValue}
               max={maxValue}
-              value={localValue}
+              value={clampedLocalValue}
               onChange={(_, value) => {
                 const clampedValue = Math.max(minValue, Math.min(maxValue, value));
                 setLocalValue(clampedValue);
               }}
               isInputVisible
-              inputValue={localValue}
+              inputValue={clampedLocalValue}
             />
           </FlexItem>
         </Flex>
@@ -125,7 +137,7 @@ const MinRpsFilter: React.FC<MinRpsFilterProps> = () => {
             </Button>
           </FlexItem>
           <FlexItem>
-            <Button variant="secondary" onClick={handleReset}>
+            <Button variant="link" onClick={handleReset}>
               Reset
             </Button>
           </FlexItem>
@@ -141,14 +153,7 @@ const MinRpsFilter: React.FC<MinRpsFilterProps> = () => {
       toggle={toggle}
       shouldFocusToggleOnSelect={false}
     >
-      <div
-        onMouseDown={(e) => e.stopPropagation()}
-        onClick={(e) => e.stopPropagation()}
-        onKeyDown={(e) => e.stopPropagation()}
-        role="presentation"
-      >
-        {filterContent}
-      </div>
+      {filterContent}
     </Dropdown>
   );
 };

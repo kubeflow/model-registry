@@ -4,7 +4,6 @@ import { Spinner } from '@patternfly/react-core';
 import { OuterScrollContainer } from '@patternfly/react-table';
 import { CatalogPerformanceMetricsArtifact } from '~/app/modelCatalogTypes';
 import { ModelCatalogContext } from '~/app/context/modelCatalog/ModelCatalogContext';
-import { useHardwareTypeFilterState } from '~/app/pages/modelCatalog/utils/hardwareTypeFilterState';
 import {
   filterHardwareConfigurationArtifacts,
   clearAllFilters,
@@ -23,14 +22,11 @@ const HardwareConfigurationTable: React.FC<HardwareConfigurationTableProps> = ({
   isLoading = false,
 }) => {
   const { filterData, setFilterData } = React.useContext(ModelCatalogContext);
-  const { appliedHardwareTypes, setAppliedHardwareTypes, clearHardwareFilters } =
-    useHardwareTypeFilterState();
 
   // Apply filters to the artifacts
   const filteredArtifacts = React.useMemo(
-    () =>
-      filterHardwareConfigurationArtifacts(performanceArtifacts, filterData, appliedHardwareTypes),
-    [performanceArtifacts, filterData, appliedHardwareTypes],
+    () => filterHardwareConfigurationArtifacts(performanceArtifacts, filterData),
+    [performanceArtifacts, filterData],
   );
 
   if (isLoading) {
@@ -38,12 +34,7 @@ const HardwareConfigurationTable: React.FC<HardwareConfigurationTableProps> = ({
   }
 
   const toolbarContent = (
-    <HardwareConfigurationFilterToolbar
-      performanceArtifacts={performanceArtifacts}
-      appliedHardwareTypes={appliedHardwareTypes}
-      onApplyHardwareFilters={setAppliedHardwareTypes}
-      onResetHardwareFilters={clearHardwareFilters}
-    />
+    <HardwareConfigurationFilterToolbar performanceArtifacts={performanceArtifacts} />
   );
   const handleClearFilters = () => {
     clearAllFilters(setFilterData);

@@ -1,7 +1,6 @@
 import * as React from 'react';
 import {
   Badge,
-  Button,
   Checkbox,
   Dropdown,
   Flex,
@@ -13,12 +12,10 @@ import {
 } from '@patternfly/react-core';
 import { CatalogPerformanceMetricsArtifact } from '~/app/modelCatalogTypes';
 import { getUniqueHardwareTypes } from '~/app/pages/modelCatalog/utils/hardwareConfigurationFilterUtils';
+import { useHardwareTypeFilterState } from '~/app/pages/modelCatalog/utils/hardwareTypeFilterState';
 
 type HardwareTypeFilterProps = {
   performanceArtifacts: CatalogPerformanceMetricsArtifact[];
-  appliedHardwareTypes: string[];
-  onApplyHardwareFilters: (types: string[]) => void;
-  onResetHardwareFilters: () => void;
 };
 
 type HardwareTypeOption = {
@@ -26,14 +23,9 @@ type HardwareTypeOption = {
   label: string;
 };
 
-const HardwareTypeFilter: React.FC<HardwareTypeFilterProps> = ({
-  performanceArtifacts,
-  appliedHardwareTypes,
-  onApplyHardwareFilters,
-  onResetHardwareFilters,
-}) => {
+const HardwareTypeFilter: React.FC<HardwareTypeFilterProps> = ({ performanceArtifacts }) => {
+  const { appliedHardwareTypes, setAppliedHardwareTypes } = useHardwareTypeFilterState();
   const [isOpen, setIsOpen] = React.useState(false);
-  const [localSelectedHardwareTypes, setLocalSelectedHardwareTypes] = React.useState<string[]>([]);
 
   // Get unique hardware types from actual performance artifacts
   const hardwareOptions: HardwareTypeOption[] = React.useMemo(() => {
@@ -44,34 +36,16 @@ const HardwareTypeFilter: React.FC<HardwareTypeFilterProps> = ({
     }));
   }, [performanceArtifacts]);
 
-  const selectedCount = localSelectedHardwareTypes.length;
+  const selectedCount = appliedHardwareTypes.length;
 
-  // Initialize local state from applied state when dropdown opens
-  React.useEffect(() => {
-    if (isOpen) {
-      setLocalSelectedHardwareTypes([...appliedHardwareTypes]);
-    }
-  }, [isOpen, appliedHardwareTypes]);
-
-  const isHardwareSelected = (value: string): boolean => localSelectedHardwareTypes.includes(value);
+  const isHardwareSelected = (value: string): boolean => appliedHardwareTypes.includes(value);
 
   const toggleHardwareSelection = (value: string, selected: boolean) => {
     if (selected) {
-      setLocalSelectedHardwareTypes([...localSelectedHardwareTypes, value]);
+      setAppliedHardwareTypes([...appliedHardwareTypes, value]);
     } else {
-      setLocalSelectedHardwareTypes(localSelectedHardwareTypes.filter((item) => item !== value));
+      setAppliedHardwareTypes(appliedHardwareTypes.filter((item) => item !== value));
     }
-  };
-
-  const handleApplyFilter = () => {
-    onApplyHardwareFilters(localSelectedHardwareTypes);
-    setIsOpen(false);
-  };
-
-  const handleReset = () => {
-    setLocalSelectedHardwareTypes([]);
-    onResetHardwareFilters();
-    setIsOpen(false);
   };
 
   const toggle = (toggleRef: React.Ref<MenuToggleElement>) => (
@@ -109,22 +83,6 @@ const HardwareTypeFilter: React.FC<HardwareTypeFilterProps> = ({
               ))}
             </Flex>
           </FlexItem>
-
-          {/* Buttons: Apply filter first, then Reset */}
-          <FlexItem>
-            <Flex spaceItems={{ default: 'spaceItemsSm' }}>
-              <FlexItem>
-                <Button variant="primary" onClick={handleApplyFilter}>
-                  Apply filter
-                </Button>
-              </FlexItem>
-              <FlexItem>
-                <Button variant="secondary" onClick={handleReset}>
-                  Reset
-                </Button>
-              </FlexItem>
-            </Flex>
-          </FlexItem>
         </Flex>
       </PanelMain>
     </Panel>
@@ -137,14 +95,7 @@ const HardwareTypeFilter: React.FC<HardwareTypeFilterProps> = ({
       toggle={toggle}
       shouldFocusToggleOnSelect={false}
     >
-      <div
-        onMouseDown={(e) => e.stopPropagation()}
-        onClick={(e) => e.stopPropagation()}
-        onKeyDown={(e) => e.stopPropagation()}
-        role="presentation"
-      >
-        {filterContent}
-      </div>
+      {filterContent}
     </Dropdown>
   );
 };

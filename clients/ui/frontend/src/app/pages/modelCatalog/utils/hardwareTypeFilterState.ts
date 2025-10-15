@@ -1,16 +1,29 @@
 import * as React from 'react';
+import { ModelCatalogStringFilterKey } from '~/concepts/modelCatalog/const';
+import { ModelCatalogContext } from '~/app/context/modelCatalog/ModelCatalogContext';
 
-// Simple hardware type filter state - separate from ModelCatalog system
 export const useHardwareTypeFilterState = (): {
   appliedHardwareTypes: string[];
-  setAppliedHardwareTypes: React.Dispatch<React.SetStateAction<string[]>>;
+  setAppliedHardwareTypes: (hardwareTypes: string[]) => void;
   clearHardwareFilters: () => void;
 } => {
-  const [appliedHardwareTypes, setAppliedHardwareTypes] = React.useState<string[]>([]);
+  const { filterData, setFilterData } = React.useContext(ModelCatalogContext);
+  const appliedHardwareTypes = filterData[ModelCatalogStringFilterKey.HARDWARE_TYPE];
+
+  const setAppliedHardwareTypes = React.useCallback(
+    (hardwareTypes: string[]) => {
+      setFilterData(ModelCatalogStringFilterKey.HARDWARE_TYPE, hardwareTypes);
+    },
+    [setFilterData],
+  );
+
+  const clearHardwareFilters = React.useCallback(() => {
+    setFilterData(ModelCatalogStringFilterKey.HARDWARE_TYPE, []);
+  }, [setFilterData]);
 
   return {
     appliedHardwareTypes,
     setAppliedHardwareTypes,
-    clearHardwareFilters: () => setAppliedHardwareTypes([]),
+    clearHardwareFilters,
   };
 };

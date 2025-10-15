@@ -7,6 +7,7 @@ import { getDoubleValue, getStringValue } from '~/app/utils';
 import {
   ModelCatalogStringFilterKey,
   ModelCatalogNumberFilterKey,
+  LatencyMetricKey,
 } from '~/concepts/modelCatalog/const';
 import { getTotalRps } from './performanceMetricsUtils';
 
@@ -29,29 +30,13 @@ const getLatencyFieldName = (
   const fieldName = `${metricPrefix}${percentileSuffix}`;
 
   // Validate that the field exists in PerformanceMetricsCustomProperties
-  const validFields = [
-    'ttft_mean',
-    'ttft_p90',
-    'ttft_p95',
-    'ttft_p99',
-    'e2e_mean',
-    'e2e_p90',
-    'e2e_p95',
-    'e2e_p99',
-    'tps_mean',
-    'tps_p90',
-    'tps_p95',
-    'tps_p99',
-    'itl_mean',
-    'itl_p90',
-    'itl_p95',
-    'itl_p99',
-  ];
+  // Get latency fields from LatencyMetricKey enum
+  const validFields = Object.values(LatencyMetricKey);
 
-  return validFields.includes(fieldName)
+  return validFields.some((field) => field === fieldName)
     ? // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
       (fieldName as keyof PerformanceMetricsCustomProperties)
-    : 'ttft_mean'; // Default fallback
+    : LatencyMetricKey.TTFT_MEAN; // Default fallback
 };
 
 /**
@@ -61,7 +46,9 @@ export const getUniqueHardwareTypes = (
   artifacts: CatalogPerformanceMetricsArtifact[],
 ): string[] => {
   const hardwareTypes = artifacts
-    .map((artifact) => getStringValue(artifact.customProperties, 'hardware'))
+    .map((artifact) =>
+      getStringValue(artifact.customProperties, ModelCatalogStringFilterKey.HARDWARE_TYPE),
+    )
     .filter((hardware): hardware is string => !!hardware);
 
   return [...new Set(hardwareTypes)].toSorted();
@@ -85,13 +72,16 @@ export const applyMaxLatencyFilter = (
 export const filterHardwareConfigurationArtifacts = (
   artifacts: CatalogPerformanceMetricsArtifact[],
   filterState: ModelCatalogFilterStates,
-  appliedHardwareTypes?: string[],
 ): CatalogPerformanceMetricsArtifact[] =>
   artifacts.filter((artifact) => {
-    // Hardware Type Filter (using dedicated hardware filter state)
-    if (appliedHardwareTypes && appliedHardwareTypes.length > 0) {
-      const hardwareType = getStringValue(artifact.customProperties, 'hardware');
-      if (!hardwareType || !appliedHardwareTypes.includes(hardwareType)) {
+    // Hardware Type Filter (using central filter state)
+    const hardwareTypeFilters = filterState[ModelCatalogStringFilterKey.HARDWARE_TYPE];
+    if (hardwareTypeFilters.length > 0) {
+      const hardwareType = getStringValue(
+        artifact.customProperties,
+        ModelCatalogStringFilterKey.HARDWARE_TYPE,
+      );
+      if (!hardwareType || !hardwareTypeFilters.includes(hardwareType)) {
         return false;
       }
     }
@@ -105,13 +95,11 @@ export const filterHardwareConfigurationArtifacts = (
       }
     }
 
-    // Max Latency Filter (enhanced with metric and percentile support)
+    // Max Latency Filter (using MAX_LATENCY key for now)
+    // TODO: This currently uses TTFT Mean as default - should be enhanced to use
+    // the specific metric/percentile selected by the user
     const maxLatencyFilter = filterState[ModelCatalogNumberFilterKey.MAX_LATENCY];
     if (maxLatencyFilter !== undefined) {
-      // TODO: For now using default TTFT Mean since we only store numeric value
-      // In future iterations, we should store the full LatencyFilterConfig
-      // and use applyMaxLatencyFilter(artifact, fullConfig)
-
       const defaultConfig: LatencyFilterConfig = {
         metric: 'TTFT',
         percentile: 'Mean',
@@ -123,31 +111,28 @@ export const filterHardwareConfigurationArtifacts = (
       }
     }
 
+    // Workload Type Filter (based on max input/output tokens as minimum thresholds)
+    const maxInputTokensFilter = filterState[ModelCatalogNumberFilterKey.MAX_INPUT_TOKENS];
+    const maxOutputTokensFilter = filterState[ModelCatalogNumberFilterKey.MAX_OUTPUT_TOKENS];
+
+    if (maxInputTokensFilter !== undefined && maxOutputTokensFilter !== undefined) {
+      // Get the artifact's max input/output token capabilities
+      const artifactMaxInputTokens = getDoubleValue(artifact.customProperties, 'max_input_tokens');
+      const artifactMaxOutputTokens = getDoubleValue(
+        artifact.customProperties,
+        'max_output_tokens',
+      );
+
+      // Apply minimum threshold logic: artifact must support AT LEAST the selected workload requirements
+      if (
+        artifactMaxInputTokens < maxInputTokensFilter ||
+        artifactMaxOutputTokens < maxOutputTokensFilter
+      ) {
+        return false;
+      }
+    }
     return true;
   });
-
-/**
- * Gets the count of active filters
- */
-export const getActiveFilterCount = (filterState: ModelCatalogFilterStates): number => {
-  let count = 0;
-
-  // Count hardware type filters
-  const hardwareTypeFilters = filterState[ModelCatalogStringFilterKey.PROVIDER];
-  if (hardwareTypeFilters.length > 0) {
-    count++;
-  }
-
-  // Count number filters
-  if (filterState[ModelCatalogNumberFilterKey.MIN_RPS] !== undefined) {
-    count++;
-  }
-  if (filterState[ModelCatalogNumberFilterKey.MAX_LATENCY] !== undefined) {
-    count++;
-  }
-
-  return count;
-};
 
 /**
  * Clears all active filters
@@ -158,10 +143,11 @@ export const clearAllFilters = (
     value: ModelCatalogFilterStates[K],
   ) => void,
 ): void => {
-  // Clear hardware filters
-  setFilterData(ModelCatalogStringFilterKey.PROVIDER, []);
+  // Clear string filters
+  setFilterData(ModelCatalogStringFilterKey.HARDWARE_TYPE, []);
 
   // Clear number filters
-  setFilterData(ModelCatalogNumberFilterKey.MIN_RPS, undefined);
-  setFilterData(ModelCatalogNumberFilterKey.MAX_LATENCY, undefined);
+  Object.values(ModelCatalogNumberFilterKey).forEach((key) => {
+    setFilterData(key, undefined);
+  });
 };

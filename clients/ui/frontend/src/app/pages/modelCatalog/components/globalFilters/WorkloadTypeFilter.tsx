@@ -20,52 +20,21 @@ import {
   workloadTypeToMaxInputOutputTokens,
 } from '~/app/pages/modelCatalog/utils/workloadTypeUtils';
 
-type WorkloadTypeOption = {
-  value: string;
-  label: string;
-  description: string;
-};
-
-const WORKLOAD_TYPE_OPTIONS: WorkloadTypeOption[] = [
-  {
-    value: 'chat',
-    label: 'Chat (512 input | 256 output tokens)',
-    description: 'Conversational AI workload with moderate input/output token lengths',
-  },
-  {
-    value: 'rag',
-    label: 'RAG (4096 input | 512 output tokens)',
-    description: 'Retrieval-Augmented Generation with larger context windows',
-  },
-  {
-    value: 'summarization',
-    label: 'Summarization (2048 input | 256 output tokens)',
-    description: 'Text summarization tasks with long input documents',
-  },
-  {
-    value: 'code_generation',
-    label: 'Code Generation (1024 input | 512 output tokens)',
-    description: 'Code generation and completion tasks',
-  },
-];
-
-const WorkloadTypeFilter: React.FC<WorkloadTypeFilterProps> = () => {
-  const { value: appliedValue, setValue } = useCatalogNumberFilterState(filterKey);
+const WorkloadTypeFilter: React.FC = () => {
+  const { value: maxInputTokens, setValue: setMaxInputTokens } = useCatalogNumberFilterState(
+    ModelCatalogNumberFilterKey.MAX_INPUT_TOKENS,
+  );
+  const { value: maxOutputTokens, setValue: setMaxOutputTokens } = useCatalogNumberFilterState(
+    ModelCatalogNumberFilterKey.MAX_OUTPUT_TOKENS,
+  );
   const [isOpen, setIsOpen] = React.useState(false);
-  const [localSelectedValue, setLocalSelectedValue] = React.useState<string | undefined>(undefined);
 
-  const workloadOptions = WORKLOAD_TYPE_OPTIONS;
-
-  // Initialize local state from applied state when dropdown opens
-  React.useEffect(() => {
-    if (isOpen) {
-      const applied = workloadOptions.find((opt) => opt.value === appliedValue?.toString());
-      setLocalSelectedValue(applied?.value);
-    }
-  }, [isOpen, appliedValue, workloadOptions]);
-
-  const appliedOption = workloadOptions.find((option) => option.value === appliedValue?.toString());
-  const displayText = appliedOption ? appliedOption.label : 'Select workload type';
+  // Derive the selected workload type from the token values
+  const selectedWorkloadType = maxInputOutputTokensToWorkloadType(maxInputTokens, maxOutputTokens);
+  const selectedOption = WORKLOAD_TYPE_OPTIONS.find(
+    (option) => option.value === selectedWorkloadType,
+  );
+  const displayText = selectedOption ? selectedOption.label : 'Select workload type';
 
   const toggle = (toggleRef: React.Ref<MenuToggleElement>) => (
     <MenuToggle
@@ -74,7 +43,7 @@ const WorkloadTypeFilter: React.FC<WorkloadTypeFilterProps> = () => {
       isExpanded={isOpen}
       style={{ minWidth: '300px', width: 'fit-content' }}
     >
-      <span style={{ marginRight: '8px' }}>Workload type:</span>
+      <span className="pf-v6-u-mr-sm">Workload type:</span>
       {displayText}
     </MenuToggle>
   );
@@ -83,18 +52,17 @@ const WorkloadTypeFilter: React.FC<WorkloadTypeFilterProps> = () => {
     <>
       <Select
         isOpen={isOpen}
-        selected={localSelectedValue}
+        selected={selectedWorkloadType}
         onSelect={(_, selectedVal) => {
           // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
-          setLocalSelectedValue(selectedVal as string);
-          // Apply immediately when selecting from dropdown
-          const selectedOption = workloadOptions.find((opt) => opt.value === selectedVal);
-          setValue(
-            selectedOption
-              ? // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
-                (selectedVal as unknown as number)
-              : undefined,
-          );
+          const workloadType = selectedVal as WorkloadTypeOptionValue;
+          const tokenValues = workloadTypeToMaxInputOutputTokens(workloadType);
+
+          if (tokenValues) {
+            setMaxInputTokens(tokenValues.maxInputTokens);
+            setMaxOutputTokens(tokenValues.maxOutputTokens);
+          }
+
           setIsOpen(false);
         }}
         onOpenChange={setIsOpen}
@@ -102,11 +70,11 @@ const WorkloadTypeFilter: React.FC<WorkloadTypeFilterProps> = () => {
         shouldFocusToggleOnSelect
       >
         <SelectList>
-          {workloadOptions.map((option) => (
+          {WORKLOAD_TYPE_OPTIONS.map((option) => (
             <SelectOption
               key={option.value}
               value={option.value}
-              isSelected={localSelectedValue === option.value}
+              isSelected={selectedWorkloadType === option.value}
             >
               {option.label}
             </SelectOption>
@@ -122,9 +90,8 @@ const WorkloadTypeFilter: React.FC<WorkloadTypeFilterProps> = () => {
           variant="plain"
           aria-label="More info for workload type"
           onClick={(e) => e.stopPropagation()}
-        >
-          <HelpIcon />
-        </Button>
+          icon={<HelpIcon />}
+        />
       </Popover>
     </>
   );

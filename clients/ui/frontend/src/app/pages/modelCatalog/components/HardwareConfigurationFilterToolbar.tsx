@@ -10,16 +10,10 @@ import MaxLatencyFilter from './globalFilters/MaxLatencyFilter';
 
 type HardwareConfigurationFilterToolbarProps = {
   performanceArtifacts: CatalogPerformanceMetricsArtifact[];
-  appliedHardwareTypes: string[];
-  onApplyHardwareFilters: (types: string[]) => void;
-  onResetHardwareFilters: () => void;
 };
 
 const HardwareConfigurationFilterToolbar: React.FC<HardwareConfigurationFilterToolbarProps> = ({
   performanceArtifacts,
-  appliedHardwareTypes,
-  onApplyHardwareFilters,
-  onResetHardwareFilters,
 }) => {
   const { filterOptions, filterOptionsLoaded, filterOptionsLoadError, setFilterData } =
     React.useContext(ModelCatalogContext);
@@ -27,8 +21,6 @@ const HardwareConfigurationFilterToolbar: React.FC<HardwareConfigurationFilterTo
   if (!filterOptionsLoaded || filterOptionsLoadError || !filterOptions) {
     return null;
   }
-
-  const { filters } = filterOptions;
 
   const handleClearAllFilters = () => {
     clearAllFilters(setFilterData);
@@ -39,25 +31,21 @@ const HardwareConfigurationFilterToolbar: React.FC<HardwareConfigurationFilterTo
       <ToolbarContent>
         <ToolbarGroup>
           <ToolbarItem>
-            <WorkloadTypeFilter filterOptions={filters} />
+            <WorkloadTypeFilter />
           </ToolbarItem>
-          <ToolbarItem
-            style={{ borderLeft: '1px solid #d2d2d2', paddingLeft: '16px', marginLeft: '16px' }}
-          >
-            <MaxLatencyFilter filterOptions={filterOptions} />
+          <ToolbarItem variant="separator" />
+          <ToolbarItem>
+            <MaxLatencyFilter
+              filterOptions={filterOptions}
+              performanceArtifacts={performanceArtifacts}
+            />
           </ToolbarItem>
           <ToolbarItem>
-            <MinRpsFilter filterOptions={filterOptions} />
+            <MinRpsFilter performanceArtifacts={performanceArtifacts} />
           </ToolbarItem>
-          <ToolbarItem
-            style={{ borderLeft: '1px solid #d2d2d2', paddingLeft: '16px', marginLeft: '16px' }}
-          >
-            <HardwareTypeFilter
-              performanceArtifacts={performanceArtifacts}
-              appliedHardwareTypes={appliedHardwareTypes}
-              onApplyHardwareFilters={onApplyHardwareFilters}
-              onResetHardwareFilters={onResetHardwareFilters}
-            />
+          <ToolbarItem variant="separator" />
+          <ToolbarItem>
+            <HardwareTypeFilter performanceArtifacts={performanceArtifacts} />
           </ToolbarItem>
         </ToolbarGroup>
       </ToolbarContent>
