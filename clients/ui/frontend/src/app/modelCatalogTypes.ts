@@ -212,6 +212,7 @@ export type ModelCatalogStringFilterValueType = {
   [ModelCatalogStringFilterKey.PROVIDER]: ModelCatalogProvider;
   [ModelCatalogStringFilterKey.LICENSE]: ModelCatalogLicense;
   [ModelCatalogStringFilterKey.LANGUAGE]: AllLanguageCode;
+  [ModelCatalogStringFilterKey.HARDWARE_TYPE]: string;
 };
 
 export type ModelCatalogStringFilterOptions = {

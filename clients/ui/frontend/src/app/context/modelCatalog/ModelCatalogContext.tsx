@@ -16,8 +16,8 @@ import {
 } from '~/app/modelCatalogTypes';
 import { BFF_API_VERSION, URL_PREFIX } from '~/app/utilities/const';
 import {
-  ModelCatalogNumberFilterKey,
   ModelCatalogStringFilterKey,
+  ModelCatalogNumberFilterKey,
 } from '~/concepts/modelCatalog/const';
 
 export type ModelCatalogContextType = {
@@ -54,7 +54,11 @@ export const ModelCatalogContext = React.createContext<ModelCatalogContextType>(
     [ModelCatalogStringFilterKey.PROVIDER]: [],
     [ModelCatalogStringFilterKey.LICENSE]: [],
     [ModelCatalogStringFilterKey.LANGUAGE]: [],
-    [ModelCatalogNumberFilterKey.ttft_mean]: undefined,
+    [ModelCatalogStringFilterKey.HARDWARE_TYPE]: [],
+    [ModelCatalogNumberFilterKey.MIN_RPS]: undefined,
+    [ModelCatalogNumberFilterKey.MAX_LATENCY]: undefined,
+    [ModelCatalogNumberFilterKey.MAX_INPUT_TOKENS]: undefined,
+    [ModelCatalogNumberFilterKey.MAX_OUTPUT_TOKENS]: undefined,
   },
   updateSelectedSource: () => undefined,
   selectedSourceLabel: undefined,
@@ -83,7 +87,11 @@ export const ModelCatalogContextProvider: React.FC<ModelCatalogContextProviderPr
     [ModelCatalogStringFilterKey.PROVIDER]: [],
     [ModelCatalogStringFilterKey.LICENSE]: [],
     [ModelCatalogStringFilterKey.LANGUAGE]: [],
-    [ModelCatalogNumberFilterKey.ttft_mean]: undefined,
+    [ModelCatalogStringFilterKey.HARDWARE_TYPE]: [],
+    [ModelCatalogNumberFilterKey.MIN_RPS]: undefined,
+    [ModelCatalogNumberFilterKey.MAX_LATENCY]: undefined,
+    [ModelCatalogNumberFilterKey.MAX_INPUT_TOKENS]: undefined,
+    [ModelCatalogNumberFilterKey.MAX_OUTPUT_TOKENS]: undefined,
   });
   const [filterOptions, filterOptionsLoaded, filterOptionsLoadError] =
     useCatalogFilterOptionList(apiState);
