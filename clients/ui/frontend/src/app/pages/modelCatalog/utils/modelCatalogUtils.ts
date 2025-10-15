@@ -197,7 +197,7 @@ export const filtersToFilterQuery = (
         case 0:
           return '';
         case 1:
-          return `${filterId} = ${wrapInQuotes(data[0])}`;
+          return `${filterId}=${wrapInQuotes(data[0])}`;
         default:
           // 2 or more
           return `${filterId} IN (${data.map(wrapInQuotes).join(inSpacer)})`;
@@ -222,8 +222,8 @@ export const filtersToFilterQuery = (
 
   const nonEmptyFilters = serializedFilters.filter((v) => !!v);
 
-  // eg. filterQuery=rps_mean+>1+AND+license+IN+('mit','apache-2.0')+AND+ttft_mean+<+10
-  return nonEmptyFilters.length === 0 ? '' : `${nonEmptyFilters.join(' AND ')}`.replace(/\s/g, '+');
+  // eg. filterQuery=rps_mean >1 AND license IN ('mit','apache-2.0') AND ttft_mean < 10
+  return nonEmptyFilters.length === 0 ? '' : nonEmptyFilters.join(' AND ');
 };
 
 export const getUniqueSourceLabels = (catalogSources: CatalogSourceList | null): string[] => {
