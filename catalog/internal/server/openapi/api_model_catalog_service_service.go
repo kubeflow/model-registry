@@ -25,7 +25,7 @@ type ModelCatalogServiceAPIService struct {
 }
 
 // GetAllModelArtifacts retrieves all model artifacts for a given model from the specified source.
-func (m *ModelCatalogServiceAPIService) GetAllModelArtifacts(ctx context.Context, sourceID string, modelName string, pageSize string, orderBy model.OrderByField, sortOrder model.SortOrder, nextPageToken string) (ImplResponse, error) {
+func (m *ModelCatalogServiceAPIService) GetAllModelArtifacts(ctx context.Context, sourceID string, modelName string, artifactType string, pageSize string, orderBy model.OrderByField, sortOrder model.SortOrder, nextPageToken string) (ImplResponse, error) {
 	if newName, err := url.PathUnescape(modelName); err == nil {
 		modelName = newName
 	}
@@ -42,6 +42,7 @@ func (m *ModelCatalogServiceAPIService) GetAllModelArtifacts(ctx context.Context
 	}
 
 	artifacts, err := m.provider.GetArtifacts(ctx, modelName, sourceID, catalog.ListArtifactsParams{
+		ArtifactType:  &artifactType,
 		PageSize:      pageSizeInt,
 		OrderBy:       orderBy,
 		SortOrder:     sortOrder,
@@ -75,9 +76,23 @@ func (m *ModelCatalogServiceAPIService) FindModels(ctx context.Context, sourceID
 		pageSizeInt = int32(parsed)
 	}
 
+	if len(sourceIDs) == 1 && sourceIDs[0] == "" {
+		sourceIDs = nil
+	}
+	if len(sourceLabels) == 1 && sourceLabels[0] == "" {
+		sourceLabels = nil
+	}
+
+	if len(sourceIDs) > 0 && len(sourceLabels) > 0 {
+		err := fmt.Errorf("source and sourceLabel cannot be used together")
+		return Response(http.StatusBadRequest, err), err
+	}
+
 	listModelsParams := catalog.ListModelsParams{
 		Query:         q,
+		FilterQuery:   filterQuery,
 		SourceIDs:     sourceIDs,
+		SourceLabels:  sourceLabels,
 		PageSize:      pageSizeInt,
 		OrderBy:       orderBy,
 		SortOrder:     sortOrder,
