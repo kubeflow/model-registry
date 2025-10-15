@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"sort"
 	"strconv"
 
 	dbmodels "github.com/kubeflow/model-registry/catalog/internal/db/models"
@@ -195,7 +196,7 @@ func (d *dbCatalogImpl) GetFilterOptions(ctx context.Context) (*apimodels.Filter
 	}
 
 	// Build FilterOptionsList
-	options := make(map[string]apimodels.FilterOption)
+	options := make(map[string]apimodels.FilterOption, maxFilterValueLength)
 
 	// Process each property and its values
 	for fieldName, values := range filterableProps {
@@ -222,9 +223,16 @@ func (d *dbCatalogImpl) GetFilterOptions(ctx context.Context) (*apimodels.Filter
 		}
 
 		if len(uniqueValues) > 0 {
-			expandedValues := make([]interface{}, 0, len(uniqueValues))
+			sortedValues := make([]string, 0, len(uniqueValues))
 			for v := range uniqueValues {
-				expandedValues = append(expandedValues, v)
+				sortedValues = append(sortedValues, v)
+			}
+			sort.Strings(sortedValues)
+
+			// Convert to []interface{} (supports future non-string filter types)
+			expandedValues := make([]interface{}, len(sortedValues))
+			for i, v := range sortedValues {
+				expandedValues[i] = v
 			}
 
 			options[fieldName] = apimodels.FilterOption{
