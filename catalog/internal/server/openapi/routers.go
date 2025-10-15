@@ -30,8 +30,8 @@ import (
 
 // A Route defines the parameters for an api endpoint
 type Route struct {
-	Method	  string
-	Pattern	 string
+	Method      string
+	Pattern     string
 	HandlerFunc http.HandlerFunc
 }
 
@@ -80,8 +80,8 @@ func EncodeJSONResponse(i interface{}, status *int, w http.ResponseWriter) {
 
 	if i != nil {
 		if err := json.NewEncoder(w).Encode(i); err != nil {
-		        // FIXME: is it too late to inform the client of an error at this point??
-		        glog.Errorf("error encoding JSON response: %v", err)
+			// FIXME: is it too late to inform the client of an error at this point??
+			glog.Errorf("error encoding JSON response: %v", err)
 		}
 	}
 }

@@ -17,12 +17,10 @@ import (
 	model "github.com/kubeflow/model-registry/catalog/pkg/openapi"
 )
 
-
-
 // ModelCatalogServiceAPIRouter defines the required methods for binding the api requests to a responses for the ModelCatalogServiceAPI
 // The ModelCatalogServiceAPIRouter implementation should parse necessary information from the http request,
 // pass the data to a ModelCatalogServiceAPIServicer to perform the required actions, then write the service results to the http response.
-type ModelCatalogServiceAPIRouter interface { 
+type ModelCatalogServiceAPIRouter interface {
 	FindModels(http.ResponseWriter, *http.Request)
 	FindModelsFilterOptions(http.ResponseWriter, *http.Request)
 	FindSources(http.ResponseWriter, *http.Request)
@@ -30,15 +28,14 @@ type ModelCatalogServiceAPIRouter interface {
 	GetModel(http.ResponseWriter, *http.Request)
 }
 
-
 // ModelCatalogServiceAPIServicer defines the api actions for the ModelCatalogServiceAPI service
 // This interface intended to stay up to date with the openapi yaml used to generate it,
 // while the service implementation can be ignored with the .openapi-generator-ignore file
 // and updated with the logic required for the API.
-type ModelCatalogServiceAPIServicer interface { 
-  FindModels(context.Context, []string, string, string, string, string, model.OrderByField, model.SortOrder, string) (ImplResponse, error)
-  FindModelsFilterOptions(context.Context) (ImplResponse, error)
-  FindSources(context.Context, string, string, model.OrderByField, model.SortOrder, string) (ImplResponse, error)
-  GetAllModelArtifacts(context.Context, string, string, string, model.OrderByField, model.SortOrder, string, string) (ImplResponse, error)
-  GetModel(context.Context, string, string) (ImplResponse, error)
+type ModelCatalogServiceAPIServicer interface {
+	FindModels(context.Context, []string, string, string, string, string, model.OrderByField, model.SortOrder, string) (ImplResponse, error)
+	FindModelsFilterOptions(context.Context) (ImplResponse, error)
+	FindSources(context.Context, string, string, model.OrderByField, model.SortOrder, string) (ImplResponse, error)
+	GetAllModelArtifacts(context.Context, string, string, string, model.OrderByField, model.SortOrder, string, string) (ImplResponse, error)
+	GetModel(context.Context, string, string) (ImplResponse, error)
 }

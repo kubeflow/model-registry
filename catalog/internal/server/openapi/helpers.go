@@ -11,28 +11,28 @@
 package openapi
 
 import (
+	"net/http"
 	"reflect"
-        "net/http"
 
 	model "github.com/kubeflow/model-registry/pkg/openapi"
 )
 
 // Response return a ImplResponse struct filled
 func Response(code int, body interface{}) ImplResponse {
-	return ImplResponse {
+	return ImplResponse{
 		Code: code,
 		Body: body,
 	}
 }
 
 func ErrorResponse(code int, err error) ImplResponse {
-       return ImplResponse{
-               Code: code,
-               Body: model.Error{
-                    Code: http.StatusText(code),
-                    Message: err.Error(),
-               },
-       }
+	return ImplResponse{
+		Code: code,
+		Body: model.Error{
+			Code:    http.StatusText(code),
+			Message: err.Error(),
+		},
+	}
 }
 
 // IsZeroValue checks if the val is the zero-ed value.
