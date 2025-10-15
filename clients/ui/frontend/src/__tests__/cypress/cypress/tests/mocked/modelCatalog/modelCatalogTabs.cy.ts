@@ -4,6 +4,8 @@ import {
   mockCatalogModelList,
   mockCatalogSource,
   mockCatalogSourceList,
+  mockNonValidatedModel,
+  mockValidatedModel,
 } from '~/__mocks__';
 import { mockCatalogPerformanceMetricsArtifactList } from '~/__mocks__/mockCatalogModelArtifactList';
 import { modelCatalog } from '~/__tests__/cypress/cypress/pages/modelCatalog';
@@ -13,24 +15,6 @@ import { MODEL_CATALOG_API_VERSION } from '~/__tests__/cypress/cypress/support/c
 import type { ModelRegistryCustomProperties } from '~/app/types';
 import { ModelRegistryMetadataType } from '~/app/types';
 import { mockCatalogFilterOptionsList } from '~/__mocks__/mockCatalogFilterOptionsList';
-
-// Mock models for testing
-export const mockValidatedModel = mockCatalogModel({
-  name: 'validated-model',
-  tasks: ['text-generation'],
-  customProperties: {
-    validated: {
-      metadataType: ModelRegistryMetadataType.STRING,
-      // eslint-disable-next-line camelcase
-      string_value: '',
-    },
-  },
-});
-
-export const mockNonValidatedModel = mockCatalogModel({
-  name: 'sample%20category%201-model-1',
-  tasks: ['text-generation'],
-});
 
 type HandlersProps = {
   sources?: CatalogSource[];
@@ -271,7 +255,7 @@ describe('Model Catalog Details Tabs', () => {
       modelCatalog.findPerformanceInsightsTab().should('not.exist');
 
       modelCatalog.findOverviewTabContent().should('be.visible');
-      modelCatalog.findDetailsDescription().should('be.visible');
+      modelCatalog.findDetailsDescription().scrollIntoView().should('be.visible');
     });
   });
 

@@ -9,13 +9,14 @@ import {
   mockCatalogPerformanceMetricsArtifact,
   mockCatalogSource,
   mockCatalogSourceList,
+  mockNonValidatedModel,
+  mockValidatedModel,
 } from '~/__mocks__';
 import type { CatalogSource } from '~/app/modelCatalogTypes';
 import { MODEL_CATALOG_API_VERSION } from '~/__tests__/cypress/cypress/support/commands/api';
 import { mockCatalogFilterOptionsList } from '~/__mocks__/mockCatalogFilterOptionsList';
 import type { ModelRegistryCustomProperties } from '~/app/types';
 import { ModelRegistryMetadataType } from '~/app/types';
-import { mockNonValidatedModel, mockValidatedModel } from './modelCatalogTabs.cy';
 
 type HandlersProps = {
   sources?: CatalogSource[];
