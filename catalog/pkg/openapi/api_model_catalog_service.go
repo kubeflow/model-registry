@@ -27,7 +27,6 @@ type ApiFindModelsRequest struct {
 	ctx           context.Context
 	ApiService    *ModelCatalogServiceAPIService
 	source        *[]string
-	sourceLabel   *string
 	q             *string
 	sourceLabel   *[]string
 	filterQuery   *string
@@ -40,12 +39,6 @@ type ApiFindModelsRequest struct {
 // Filter models by source. Multiple values can be separated by commas to filter by multiple sources (OR logic). For example: ?source&#x3D;huggingface,local will return models from either huggingface OR local sources.
 func (r ApiFindModelsRequest) Source(source []string) ApiFindModelsRequest {
 	r.source = &source
-	return r
-}
-
-// Filter models by the label associated with the source. This parameter may be included multiple times to include models from multiple sources.
-func (r ApiFindModelsRequest) SourceLabel(sourceLabel string) ApiFindModelsRequest {
-	r.sourceLabel = &sourceLabel
 	return r
 }
 
@@ -140,9 +133,6 @@ func (a *ModelCatalogServiceAPIService) FindModelsExecute(r ApiFindModelsRequest
 		} else {
 			parameterAddToHeaderOrQuery(localVarQueryParams, "source", t, "multi")
 		}
-	}
-	if r.sourceLabel != nil {
-		parameterAddToHeaderOrQuery(localVarQueryParams, "sourceLabel", r.sourceLabel, "")
 	}
 	if r.q != nil {
 		parameterAddToHeaderOrQuery(localVarQueryParams, "q", r.q, "")
@@ -602,7 +592,6 @@ type ApiGetAllModelArtifactsRequest struct {
 	orderBy       *OrderByField
 	sortOrder     *SortOrder
 	nextPageToken *string
-	artifactType  *string
 }
 
 // Number of entities in each page.
@@ -626,12 +615,6 @@ func (r ApiGetAllModelArtifactsRequest) SortOrder(sortOrder SortOrder) ApiGetAll
 // Token to use to retrieve next page of results.
 func (r ApiGetAllModelArtifactsRequest) NextPageToken(nextPageToken string) ApiGetAllModelArtifactsRequest {
 	r.nextPageToken = &nextPageToken
-	return r
-}
-
-// Specifies the artifact types to return. May be specified multiple times to retrieve multiple artifact types.
-func (r ApiGetAllModelArtifactsRequest) ArtifactType(artifactType string) ApiGetAllModelArtifactsRequest {
-	r.artifactType = &artifactType
 	return r
 }
 
@@ -691,9 +674,6 @@ func (a *ModelCatalogServiceAPIService) GetAllModelArtifactsExecute(r ApiGetAllM
 	}
 	if r.nextPageToken != nil {
 		parameterAddToHeaderOrQuery(localVarQueryParams, "nextPageToken", r.nextPageToken, "")
-	}
-	if r.artifactType != nil {
-		parameterAddToHeaderOrQuery(localVarQueryParams, "artifactType", r.artifactType, "")
 	}
 	// to determine the Content-Type header
 	localVarHTTPContentTypes := []string{}

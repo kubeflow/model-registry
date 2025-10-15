@@ -32,15 +32,6 @@ paths:
           explode: true
           in: query
           required: false
-        - name: sourceLabel
-          description: |-
-            Filter models by the label associated with the source. This
-            parameter may be included multiple times to include models from
-            multiple sources.
-          schema:
-            type: string
-          in: query
-          required: false
         - name: q
           description: Free-form keyword search used to filter the response.
           schema:
@@ -183,7 +174,6 @@ paths:
       - $ref: "#/components/parameters/orderBy"
       - $ref: "#/components/parameters/sortOrder"
       - $ref: "#/components/parameters/nextPageToken"
-      - $ref: "#/components/parameters/catalogArtifactType"
 components:
   schemas:
     ArtifactTypeQueryParam:
@@ -699,18 +689,6 @@ components:
       description: Specifies the order by criteria for listing entities.
       schema:
         $ref: "#/components/schemas/OrderByField"
-      in: query
-      required: false
-    catalogArtifactType:
-      name: artifactType
-      description: |-
-        Specifies the artifact types to return. May be specified multiple
-        times to retrieve multiple artifact types.
-      schema:
-        type: string
-        enum:
-          - model-artifact
-          - metrics-artifact
       in: query
       required: false
     id:
