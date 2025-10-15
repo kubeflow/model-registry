@@ -174,7 +174,6 @@ paths:
       - $ref: "#/components/parameters/orderBy"
       - $ref: "#/components/parameters/sortOrder"
       - $ref: "#/components/parameters/nextPageToken"
-      - $ref: "#/components/parameters/catalogArtifactType"
 components:
   schemas:
     CatalogArtifact:
