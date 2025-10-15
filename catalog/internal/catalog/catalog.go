@@ -41,4 +41,8 @@ type APIProvider interface {
 	// model is found with that name, it returns nil. If the model is
 	// found, but has no artifacts, an empty list is returned.
 	GetArtifacts(ctx context.Context, modelName string, sourceID string, params ListArtifactsParams) (model.CatalogArtifactList, error)
+
+	// GetFilterOptions returns all available filter options for models.
+	// This includes field names, data types, and available values or ranges.
+	GetFilterOptions(ctx context.Context) (*model.FilterOptionsList, error)
 }

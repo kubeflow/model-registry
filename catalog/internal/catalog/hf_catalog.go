@@ -49,6 +49,15 @@ func (h *hfCatalogImpl) GetArtifacts(ctx context.Context, modelName string, sour
 	}, nil
 }
 
+func (h *hfCatalogImpl) GetFilterOptions(ctx context.Context) (*openapi.FilterOptionsList, error) {
+	// TODO: Implement HuggingFace filter options retrieval
+	// For now, return empty options to satisfy interface
+	emptyFilters := make(map[string]openapi.FilterOption)
+	return &openapi.FilterOptionsList{
+		Filters: &emptyFilters,
+	}, nil
+}
+
 // validateCredentials checks if the HuggingFace API credentials are valid
 func (h *hfCatalogImpl) validateCredentials(ctx context.Context) error {
 	glog.Infof("Validating HuggingFace API credentials")
