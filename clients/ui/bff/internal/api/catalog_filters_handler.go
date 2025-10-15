@@ -23,6 +23,11 @@ func (app *App) GetCatalogFilterListHandler(w http.ResponseWriter, r *http.Reque
 
 	catalogFilterOptions, err := app.repositories.ModelCatalogClient.GetCatalogFilterOptions(client)
 
+	if err != nil {
+		app.serverErrorResponse(w, r, err)
+		return
+	}
+
 	catalogFilterOptionList := CatalogFilterOptionsListEnvelope{
 		Data: catalogFilterOptions,
 	}
