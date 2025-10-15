@@ -5,6 +5,14 @@ type ScrollViewOnMountProps = {
   scrollToTop?: boolean;
 };
 
+const scrollAllAncestorsToTop = (node: HTMLElement | null) => {
+  if (!node) {
+    return;
+  }
+  node.scrollTo(0, 0);
+  scrollAllAncestorsToTop(node.parentElement);
+};
+
 const ScrollViewOnMount: React.FC<ScrollViewOnMountProps> = ({
   shouldScroll,
   scrollToTop = false,
@@ -14,9 +22,9 @@ const ScrollViewOnMount: React.FC<ScrollViewOnMountProps> = ({
   React.useEffect(() => {
     if (shouldScroll && ref.current) {
       if (scrollToTop) {
-        ref.current.scrollIntoView();
+        scrollAllAncestorsToTop(ref.current);
       } else {
-        window.scrollTo(0, 0);
+        ref.current.scrollIntoView();
       }
     }
   }, [scrollToTop, shouldScroll]);
