@@ -85,12 +85,13 @@ func (c *ModelCatalogServiceAPIController) FindModels(w http.ResponseWriter, r *
 	query := r.URL.Query()
 	sourceParam := strings.Split(query.Get("source"), ",")
 	qParam := query.Get("q")
+	sourceLabelParam := strings.Split(query.Get("sourceLabel"), ",")
 	filterQueryParam := query.Get("filterQuery")
 	pageSizeParam := query.Get("pageSize")
 	orderByParam := query.Get("orderBy")
 	sortOrderParam := query.Get("sortOrder")
 	nextPageTokenParam := query.Get("nextPageToken")
-	result, err := c.service.FindModels(r.Context(), sourceParam, qParam, filterQueryParam, pageSizeParam, model.OrderByField(orderByParam), model.SortOrder(sortOrderParam), nextPageTokenParam)
+	result, err := c.service.FindModels(r.Context(), sourceParam, qParam, sourceLabelParam, filterQueryParam, pageSizeParam, model.OrderByField(orderByParam), model.SortOrder(sortOrderParam), nextPageTokenParam)
 	// If an error occurred, encode the error with the status code
 	if err != nil {
 		c.errorHandler(w, r, err, &result)
