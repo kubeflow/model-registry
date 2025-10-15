@@ -88,6 +88,35 @@ type performanceRecord struct {
 	CustomProperties map[string]interface{} `json:"-"`
 }
 
+// UnmarshalJSON implements custom JSON unmarshaling to capture all undefined fields as CustomProperties
+func (pr *performanceRecord) UnmarshalJSON(data []byte) error {
+	// First unmarshal into a generic map to get all fields
+	var raw map[string]interface{}
+	if err := json.Unmarshal(data, &raw); err != nil {
+		return err
+	}
+
+	// Extract the core fields
+	if id, ok := raw["id"].(string); ok {
+		pr.ID = id
+	}
+	if modelID, ok := raw["model_id"].(string); ok {
+		pr.ModelID = modelID
+	}
+
+	// Initialize CustomProperties if nil
+	if pr.CustomProperties == nil {
+		pr.CustomProperties = make(map[string]interface{})
+	}
+
+	// Copy all fields to CustomProperties, including the core ones
+	for key, value := range raw {
+		pr.CustomProperties[key] = value
+	}
+
+	return nil
+}
+
 type PerformanceMetricsLoader struct {
 	path                  []string
 	modelRepo             dbmodels.CatalogModelRepository
