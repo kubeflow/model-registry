@@ -133,8 +133,8 @@ describe('Model Catalog Details Tabs', () => {
         modelCatalog.findLoadingState().should('not.exist');
         modelCatalog.findModelCatalogDetailLink().first().click();
 
-        // Tabs need scrollIntoView
-        modelCatalog.findModelDetailsTabs().scrollIntoView().should('be.visible');
+        // Verify tabs are present
+        modelCatalog.findModelDetailsTabs().should('be.visible');
         modelCatalog.findOverviewTab().should('be.visible');
         modelCatalog.findPerformanceInsightsTab().should('be.visible');
       });
@@ -144,8 +144,7 @@ describe('Model Catalog Details Tabs', () => {
 
         // Overview tab should be active and content should be visible
         modelCatalog.findOverviewTab().should('have.attr', 'aria-selected', 'true');
-        // Overview content needs scrollIntoView
-        modelCatalog.findOverviewTabContent().scrollIntoView().should('be.visible');
+        modelCatalog.findOverviewTabContent().should('be.visible');
         modelCatalog.findDetailsDescription().should('be.visible');
         cy.url().should('include', '/model-catalog/source-2/validated-model/overview');
       });
@@ -279,8 +278,8 @@ describe('Model Catalog Details Tabs', () => {
       modelCatalog.findOverviewTab().should('not.exist');
       modelCatalog.findPerformanceInsightsTab().should('not.exist');
 
-      // Overview content needs scrollIntoView
-      modelCatalog.findOverviewTabContent().scrollIntoView().should('be.visible');
+      // But overview content should still be visible
+      modelCatalog.findOverviewTabContent().should('be.visible');
       modelCatalog.findDetailsDescription().should('be.visible');
     });
   });
