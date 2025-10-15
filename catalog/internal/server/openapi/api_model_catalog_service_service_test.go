@@ -305,7 +305,6 @@ func TestFindModels(t *testing.T) {
 			resp, err := service.FindModels(
 				context.Background(),
 				[]string{tc.sourceID},
-				"", // sourceLabel
 				tc.q,
 				tc.filterQuery,
 				tc.pageSize,
@@ -983,7 +982,6 @@ func TestGetAllModelArtifacts(t *testing.T) {
 				model.ORDERBYFIELD_CREATE_TIME,
 				model.SORTORDER_ASC,
 				"",
-				"", // artifactType
 			)
 
 			// Check response status

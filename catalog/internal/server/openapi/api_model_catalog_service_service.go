@@ -25,7 +25,7 @@ type ModelCatalogServiceAPIService struct {
 }
 
 // GetAllModelArtifacts retrieves all model artifacts for a given model from the specified source.
-func (m *ModelCatalogServiceAPIService) GetAllModelArtifacts(ctx context.Context, sourceID string, modelName string, pageSize string, orderBy model.OrderByField, sortOrder model.SortOrder, nextPageToken string, artifactType string) (ImplResponse, error) {
+func (m *ModelCatalogServiceAPIService) GetAllModelArtifacts(ctx context.Context, sourceID string, modelName string, pageSize string, orderBy model.OrderByField, sortOrder model.SortOrder, nextPageToken string) (ImplResponse, error) {
 	if newName, err := url.PathUnescape(modelName); err == nil {
 		modelName = newName
 	}
@@ -46,7 +46,6 @@ func (m *ModelCatalogServiceAPIService) GetAllModelArtifacts(ctx context.Context
 		OrderBy:       orderBy,
 		SortOrder:     sortOrder,
 		NextPageToken: &nextPageToken,
-		ArtifactType:  &artifactType,
 	})
 	if err != nil {
 		statusCode := api.ErrToStatus(err)
@@ -64,7 +63,7 @@ func (m *ModelCatalogServiceAPIService) GetAllModelArtifacts(ctx context.Context
 	return Response(http.StatusOK, artifacts), nil
 }
 
-func (m *ModelCatalogServiceAPIService) FindModels(ctx context.Context, sourceIDs []string, sourceLabel string, q string, filterQuery string, pageSize string, orderBy model.OrderByField, sortOrder model.SortOrder, nextPageToken string) (ImplResponse, error) {
+func (m *ModelCatalogServiceAPIService) FindModels(ctx context.Context, sourceIDs []string, q string, filterQuery string, pageSize string, orderBy model.OrderByField, sortOrder model.SortOrder, nextPageToken string) (ImplResponse, error) {
 	var err error
 	pageSizeInt := int32(10)
 
@@ -83,7 +82,6 @@ func (m *ModelCatalogServiceAPIService) FindModels(ctx context.Context, sourceID
 		OrderBy:       orderBy,
 		SortOrder:     sortOrder,
 		NextPageToken: &nextPageToken,
-		// TODO: Add support for sourceLabel and filterQuery
 	}
 
 	models, err := m.provider.ListModels(ctx, listModelsParams)
