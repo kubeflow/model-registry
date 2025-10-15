@@ -92,7 +92,6 @@ describe('Model Catalog All Models View', () => {
 
   describe('Show More Functionality', () => {
     it('should display show more button when category has 4 or more models', () => {
-      // Category sections need scrollIntoView
       modelCatalog.findShowMoreModelsLink('hugging-face').scrollIntoView().should('be.visible');
       modelCatalog.findShowMoreModelsLink('hugging-face').click();
       modelCatalog.findAllModelsToggle().click();
@@ -107,7 +106,6 @@ describe('Model Catalog All Models View', () => {
 
   describe('Error Handling', () => {
     it('should display error message when category fails to load', () => {
-      // Error state needs scrollIntoView
       modelCatalog.findErrorState('null').scrollIntoView().should('be.visible');
       modelCatalog
         .findErrorState('null')
@@ -120,7 +118,7 @@ describe('Model Catalog All Models View', () => {
       initIntercepts({ isEmpty: true });
       modelCatalog.visit();
 
-      modelCatalog.findEmptyState('OpenVINO').should('be.visible');
+      modelCatalog.findEmptyState('OpenVINO').scrollIntoView().should('be.visible');
       modelCatalog
         .findEmptyState('OpenVINO')
         .should('contain.text', 'No result foundAdjust your filters and try again.');

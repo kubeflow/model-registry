@@ -1,4 +1,5 @@
 import { CatalogModel, CatalogModelList } from '~/app/modelCatalogTypes';
+import { ModelRegistryMetadataType } from '~/app/types';
 
 export const mockCatalogModel = (partial?: Partial<CatalogModel>): CatalogModel => ({
   // eslint-disable-next-line camelcase
@@ -361,4 +362,22 @@ export const mockCatalogModelList = (partial?: Partial<CatalogModelList>): Catal
   size: 12,
   nextPageToken: '',
   ...partial,
+});
+
+// Mock models for testing
+export const mockValidatedModel = mockCatalogModel({
+  name: 'validated-model',
+  tasks: ['text-generation'],
+  customProperties: {
+    validated: {
+      metadataType: ModelRegistryMetadataType.STRING,
+      // eslint-disable-next-line camelcase
+      string_value: '',
+    },
+  },
+});
+
+export const mockNonValidatedModel = mockCatalogModel({
+  name: 'sample%20category%201-model-1',
+  tasks: ['text-generation'],
 });

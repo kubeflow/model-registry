@@ -40,11 +40,6 @@ const CatalogCategorySection: React.FC<CategorySectionProps> = ({
     searchTerm,
   );
 
-  const handleShowMoreCategory = (categoryLabel: string) => {
-    window.scrollTo(0, 0);
-    onShowMore(categoryLabel);
-  };
-
   return (
     <>
       <StackItem className="pf-v6-u-pb-xl" style={{ maxWidth: '1600px' }}>
@@ -68,7 +63,7 @@ const CatalogCategorySection: React.FC<CategorySectionProps> = ({
                 icon={<ArrowRightIcon />}
                 iconPosition="right"
                 data-testid={`show-more-button ${label.toLowerCase().replace(/\s+/g, '-')}`}
-                onClick={() => handleShowMoreCategory(label)}
+                onClick={() => onShowMore(label)}
               >
                 Show all {displayName ?? label} models
               </Button>
