@@ -192,13 +192,8 @@ func (m *ModelCatalogClientMock) GetCatalogModelArtifacts(client httpclient.HTTP
 			PageSize:      accuracyArtifacts.PageSize,
 			NextPageToken: "",
 		}
-	} else if sourceId == "sample-source" && modelName == "repo1%2Fgranite-3b-code-base" {
-		allMockModelArtifacts = models.CatalogModelArtifactList{
-			Items:         []models.CatalogArtifact{},
-			NextPageToken: "",
-			PageSize:      int32(0),
-			Size:          int32(0),
-		}
+	} else if sourceId == "sample-source" && (modelName == "repo1%2Fgranite-3b-code-base") {
+		allMockModelArtifacts = GetCatalogModelArtifactListMock()
 	} else {
 		allMockModelArtifacts = GetCatalogModelArtifactListMock()
 	}

@@ -20,11 +20,14 @@ import {
   CatalogSource,
   CatalogArtifactType,
   MetricsType,
+  CatalogPerformanceMetricsArtifact,
+  CatalogAccuracyMetricsArtifact,
 } from '~/app/modelCatalogTypes';
 import { extractValidatedModelMetrics } from '~/app/pages/modelCatalog/utils/validatedModelUtils';
 import { catalogModelDetailsTabFromModel } from '~/app/routes/modelCatalog/catalogModel';
 import { ModelDetailsTab } from '~/app/pages/modelCatalog/screens/ModelDetailsTabs';
 import { useCatalogModelArtifacts } from '~/app/hooks/modelCatalog/useCatalogModelArtifacts';
+import { filterArtifactsByType } from '~/app/pages/modelCatalog/utils/modelCatalogUtils';
 
 type ModelCatalogCardBodyProps = {
   model: CatalogModel;
@@ -54,16 +57,16 @@ const ModelCatalogCardBody: React.FC<ModelCatalogCardBodyProps> = ({
     true,
   );
 
-  const performanceMetrics = artifacts.items.filter(
-    (artifact) =>
-      artifact.artifactType === CatalogArtifactType.metricsArtifact &&
-      artifact.metricsType === MetricsType.performanceMetrics,
+  const performanceMetrics = filterArtifactsByType<CatalogPerformanceMetricsArtifact>(
+    artifacts.items,
+    CatalogArtifactType.metricsArtifact,
+    MetricsType.performanceMetrics,
   );
 
-  const accuracyMetrics = artifacts.items.filter(
-    (artifact) =>
-      artifact.artifactType === CatalogArtifactType.metricsArtifact &&
-      artifact.metricsType === MetricsType.accuracyMetrics,
+  const accuracyMetrics = filterArtifactsByType<CatalogAccuracyMetricsArtifact>(
+    artifacts.items,
+    CatalogArtifactType.metricsArtifact,
+    MetricsType.accuracyMetrics,
   );
 
   if (!artifactsLoaded && isValidated) {
