@@ -15,6 +15,7 @@ type CatalogFilterOptionsListEnvelope Envelope[*models.FilterOptionsList, None]
 
 func (app *App) GetCatalogFilterListHandler(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 	client, ok := r.Context().Value(constants.ModelCatalogHttpClientKey).(httpclient.HTTPClientInterface)
+
 	if !ok {
 		app.serverErrorResponse(w, r, errors.New("catalog REST client not found"))
 		return
