@@ -32,15 +32,6 @@ paths:
           explode: true
           in: query
           required: false
-        - name: sourceLabel
-          description: |-
-            Filter models by the label associated with the source. This
-            parameter may be included multiple times to include models from
-            multiple sources.
-          schema:
-            type: string
-          in: query
-          required: false
         - name: q
           description: Free-form keyword search used to filter the response.
           schema:
