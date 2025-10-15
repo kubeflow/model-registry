@@ -20,7 +20,7 @@ function sed_inplace() {
         # introduce -i parameter for Mac OSX sed compatibility
         sed -E -i '' "$@"
     else
-        sed -i "$@"
+        sed -E -i "$@"
     fi
 }
 
