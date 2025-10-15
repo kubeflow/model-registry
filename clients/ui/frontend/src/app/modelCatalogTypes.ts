@@ -6,6 +6,7 @@ import {
   AllLanguageCode,
   ModelCatalogStringFilterKey,
   ModelCatalogNumberFilterKey,
+  LatencyMetricFieldName,
 } from '~/concepts/modelCatalog/const';
 import {
   ModelRegistryCustomProperties,
@@ -84,26 +85,6 @@ export type PerformanceMetricsCustomProperties = {
   hardware_type?: ModelRegistryCustomPropertyString;
   hardware_count?: ModelRegistryCustomPropertyInt;
   requests_per_second?: ModelRegistryCustomPropertyDouble;
-  // TTFT (Time To First Token) latency metrics
-  ttft_mean?: ModelRegistryCustomPropertyDouble;
-  ttft_p90?: ModelRegistryCustomPropertyDouble;
-  ttft_p95?: ModelRegistryCustomPropertyDouble;
-  ttft_p99?: ModelRegistryCustomPropertyDouble;
-  // E2E (End-to-End) latency metrics
-  e2e_mean?: ModelRegistryCustomPropertyDouble;
-  e2e_p90?: ModelRegistryCustomPropertyDouble;
-  e2e_p95?: ModelRegistryCustomPropertyDouble;
-  e2e_p99?: ModelRegistryCustomPropertyDouble;
-  // TPS (Tokens Per Second) latency metrics
-  tps_mean?: ModelRegistryCustomPropertyDouble;
-  tps_p90?: ModelRegistryCustomPropertyDouble;
-  tps_p95?: ModelRegistryCustomPropertyDouble;
-  tps_p99?: ModelRegistryCustomPropertyDouble;
-  // ITL (Inter-Token Latency) metrics
-  itl_mean?: ModelRegistryCustomPropertyDouble;
-  itl_p90?: ModelRegistryCustomPropertyDouble;
-  itl_p95?: ModelRegistryCustomPropertyDouble;
-  itl_p99?: ModelRegistryCustomPropertyDouble;
   // Token metrics
   max_input_tokens?: ModelRegistryCustomPropertyDouble;
   max_output_tokens?: ModelRegistryCustomPropertyDouble;
@@ -120,7 +101,7 @@ export type PerformanceMetricsCustomProperties = {
   updated_at?: ModelRegistryCustomPropertyString;
   model_hf_repo_name?: ModelRegistryCustomPropertyString;
   scenario_id?: ModelRegistryCustomPropertyString;
-};
+} & Partial<Record<LatencyMetricFieldName, ModelRegistryCustomPropertyDouble>>;
 
 export type AccuracyMetricsCustomProperties = {
   overall_average?: ModelRegistryCustomPropertyDouble;

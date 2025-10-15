@@ -9,6 +9,7 @@ import {
   SelectOption,
 } from '@patternfly/react-core';
 import { HelpIcon } from '@patternfly/react-icons';
+import { asEnumMember } from 'mod-arch-core';
 import {
   ModelCatalogNumberFilterKey,
   WorkloadTypeOptionValue,
@@ -54,8 +55,10 @@ const WorkloadTypeFilter: React.FC = () => {
         isOpen={isOpen}
         selected={selectedWorkloadType}
         onSelect={(_, selectedVal) => {
-          // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
-          const workloadType = selectedVal as WorkloadTypeOptionValue;
+          const workloadType = asEnumMember(selectedVal, WorkloadTypeOptionValue);
+          if (!workloadType) {
+            return;
+          }
           const tokenValues = workloadTypeToMaxInputOutputTokens(workloadType);
 
           if (tokenValues) {

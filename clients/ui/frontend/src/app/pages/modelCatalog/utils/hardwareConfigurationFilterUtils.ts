@@ -1,42 +1,58 @@
 import {
   CatalogPerformanceMetricsArtifact,
   ModelCatalogFilterStates,
-  PerformanceMetricsCustomProperties,
 } from '~/app/modelCatalogTypes';
 import { getDoubleValue, getStringValue } from '~/app/utils';
 import {
   ModelCatalogStringFilterKey,
   ModelCatalogNumberFilterKey,
-  LatencyMetricKey,
+  LatencyMetricFieldName,
+  LatencyPercentile,
+  LatencyMetric,
 } from '~/concepts/modelCatalog/const';
 import { getTotalRps } from './performanceMetricsUtils';
 
 // Type for storing complex latency filter configuration
 export type LatencyFilterConfig = {
-  metric: 'E2E' | 'TTFT' | 'TPS' | 'ITL';
-  percentile: 'Mean' | 'P90' | 'P95' | 'P99';
+  metric: LatencyMetric;
+  percentile: LatencyPercentile;
   value: number;
 };
+
+const isMetricLowercase = (str: string): str is Lowercase<LatencyMetric> =>
+  Object.values(LatencyMetric)
+    .map((value) => value.toLowerCase())
+    .includes(str);
+const isPercentileLowercase = (str: string): str is Lowercase<LatencyPercentile> =>
+  Object.values(LatencyPercentile)
+    .map((value) => value.toLowerCase())
+    .includes(str);
 
 /**
  * Maps metric and percentile combination to the corresponding artifact field
  */
-const getLatencyFieldName = (
-  metric: string,
-  percentile: string,
-): keyof PerformanceMetricsCustomProperties => {
+export const getLatencyFieldName = (
+  metric: LatencyMetric,
+  percentile: LatencyPercentile,
+): LatencyMetricFieldName => {
   const metricPrefix = metric.toLowerCase();
-  const percentileSuffix = percentile === 'Mean' ? '_mean' : `_${percentile.toLowerCase()}`;
-  const fieldName = `${metricPrefix}${percentileSuffix}`;
+  const percentileSuffix = percentile.toLowerCase();
+  if (!isMetricLowercase(metricPrefix) || !isPercentileLowercase(percentileSuffix)) {
+    return 'ttft_mean'; // Default fallback
+  }
+  return `${metricPrefix}_${percentileSuffix}`;
+};
 
-  // Validate that the field exists in PerformanceMetricsCustomProperties
-  // Get latency fields from LatencyMetricKey enum
-  const validFields = Object.values(LatencyMetricKey);
-
-  return validFields.some((field) => field === fieldName)
-    ? // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
-      (fieldName as keyof PerformanceMetricsCustomProperties)
-    : LatencyMetricKey.TTFT_MEAN; // Default fallback
+/**
+ * Inverse of getLatencyFieldName
+ */
+export const parseLatencyFieldName = (
+  fieldName: LatencyMetricFieldName,
+): { metric: LatencyMetric; percentile: LatencyPercentile } | null => {
+  const [prefix, suffix] = fieldName.split('_');
+  const metric = Object.values(LatencyMetric).find((m) => m.toLowerCase() === prefix);
+  const percentile = Object.values(LatencyPercentile).find((p) => p.toLowerCase() === suffix);
+  return metric && percentile ? { metric, percentile } : null;
 };
 
 /**
@@ -101,8 +117,8 @@ export const filterHardwareConfigurationArtifacts = (
     const maxLatencyFilter = filterState[ModelCatalogNumberFilterKey.MAX_LATENCY];
     if (maxLatencyFilter !== undefined) {
       const defaultConfig: LatencyFilterConfig = {
-        metric: 'TTFT',
-        percentile: 'Mean',
+        metric: LatencyMetric.TTFT,
+        percentile: LatencyPercentile.Mean,
         value: maxLatencyFilter,
       };
 
