@@ -92,13 +92,13 @@ describe('Model Catalog All Models View', () => {
 
   describe('Show More Functionality', () => {
     it('should display show more button when category has 4 or more models', () => {
-      modelCatalog.findShowMoreModelsLink('hugging-face').should('be.visible');
+      modelCatalog.findShowMoreModelsLink('hugging-face').scrollIntoView().should('be.visible');
       modelCatalog.findShowMoreModelsLink('hugging-face').click();
       modelCatalog.findAllModelsToggle().click();
-      modelCatalog.findShowMoreModelsLink('openvino').should('be.visible');
+      modelCatalog.findShowMoreModelsLink('openvino').scrollIntoView().should('be.visible');
       modelCatalog.findShowMoreModelsLink('openvino').click();
       modelCatalog.findAllModelsToggle().click();
-      modelCatalog.findShowMoreModelsLink('community').should('be.visible');
+      modelCatalog.findShowMoreModelsLink('community').scrollIntoView().should('be.visible');
       modelCatalog.findAllModelsToggle().click();
       modelCatalog.findShowMoreModelsLink('community').click();
     });
@@ -106,7 +106,7 @@ describe('Model Catalog All Models View', () => {
 
   describe('Error Handling', () => {
     it('should display error message when category fails to load', () => {
-      modelCatalog.findErrorState('null').should('be.visible');
+      modelCatalog.findErrorState('null').scrollIntoView().should('be.visible');
       modelCatalog
         .findErrorState('null')
         .should('contain.text', 'Failed to load Community and custom models');
@@ -118,7 +118,7 @@ describe('Model Catalog All Models View', () => {
       initIntercepts({ isEmpty: true });
       modelCatalog.visit();
 
-      modelCatalog.findEmptyState('OpenVINO').should('be.visible');
+      modelCatalog.findEmptyState('OpenVINO').scrollIntoView().should('be.visible');
       modelCatalog
         .findEmptyState('OpenVINO')
         .should('contain.text', 'No result foundAdjust your filters and try again.');
