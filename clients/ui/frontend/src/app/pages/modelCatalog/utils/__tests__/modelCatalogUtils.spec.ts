@@ -146,22 +146,22 @@ describe('filtersToFilterQuery', () => {
           mockFormData({ tasks: [ModelCatalogTask.TEXT_TO_TEXT] }),
           mockFilterOptions,
         ),
-      ).toBe("tasks+=+'text-to-text'");
+      ).toBe("tasks='text-to-text'");
       expect(
         filtersToFilterQuery(
           mockFormData({ provider: [ModelCatalogProvider.GOOGLE] }),
           mockFilterOptions,
         ),
-      ).toBe("provider+=+'Google'");
+      ).toBe("provider='Google'");
       expect(
         filtersToFilterQuery(
           mockFormData({ license: [ModelCatalogLicense.APACHE_2_0] }),
           mockFilterOptions,
         ),
-      ).toBe("license+=+'apache-2.0'");
+      ).toBe("license='apache-2.0'");
       expect(
         filtersToFilterQuery(mockFormData({ language: [AllLanguageCode.CA] }), mockFilterOptions),
-      ).toBe("language+=+'ca'");
+      ).toBe("language='ca'");
     });
 
     it('handles multiple arrays of a single data point', () => {
@@ -173,13 +173,13 @@ describe('filtersToFilterQuery', () => {
           }),
           mockFilterOptions,
         ),
-      ).toBe("tasks+=+'text-to-text'+AND+license+=+'apache-2.0'");
+      ).toBe("tasks='text-to-text' AND license='apache-2.0'");
       expect(
         filtersToFilterQuery(
           mockFormData({ provider: [ModelCatalogProvider.GOOGLE], language: [AllLanguageCode.CA] }),
           mockFilterOptions,
         ),
-      ).toBe("provider+=+'Google'+AND+language+=+'ca'");
+      ).toBe("provider='Google' AND language='ca'");
     });
 
     it('handles a single array with multiple data points', () => {
@@ -188,25 +188,25 @@ describe('filtersToFilterQuery', () => {
           mockFormData({ tasks: [ModelCatalogTask.TEXT_TO_TEXT, ModelCatalogTask.IMAGE_TO_TEXT] }),
           mockFilterOptions,
         ),
-      ).toBe("tasks+IN+('text-to-text','image-to-text')");
+      ).toBe("tasks IN ('text-to-text','image-to-text')");
       expect(
         filtersToFilterQuery(
           mockFormData({ provider: [ModelCatalogProvider.GOOGLE, ModelCatalogProvider.DEEPSEEK] }),
           mockFilterOptions,
         ),
-      ).toBe("provider+IN+('Google','DeepSeek')");
+      ).toBe("provider IN ('Google','DeepSeek')");
       expect(
         filtersToFilterQuery(
           mockFormData({ license: [ModelCatalogLicense.APACHE_2_0, ModelCatalogLicense.MIT] }),
           mockFilterOptions,
         ),
-      ).toBe("license+IN+('apache-2.0','mit')");
+      ).toBe("license IN ('apache-2.0','mit')");
       expect(
         filtersToFilterQuery(
           mockFormData({ language: [AllLanguageCode.CA, AllLanguageCode.PT] }),
           mockFilterOptions,
         ),
-      ).toBe("language+IN+('ca','pt')");
+      ).toBe("language IN ('ca','pt')");
     });
 
     it('handles multiple arrays with mixed count of data points', () => {
@@ -226,7 +226,7 @@ describe('filtersToFilterQuery', () => {
           mockFilterOptions,
         ),
       ).toBe(
-        "tasks+IN+('text-to-text','image-to-text')+AND+provider+=+'Google'+AND+license+=+'mit'+AND+language+IN+('ca','pt','vi','zsm')",
+        "tasks IN ('text-to-text','image-to-text') AND provider='Google' AND license='mit' AND language IN ('ca','pt','vi','zsm')",
       );
     });
   });
@@ -236,7 +236,7 @@ describe('filtersToFilterQuery', () => {
   //     it('handles TimeToFirstToken - ttft', () => {
   //       // eslint-disable-next-line camelcase
   //       expect(filtersToFilterQuery(mockFormData({ ttft_mean: 100 }), mockFilterOptions)).toBe(
-  //         'ttft_mean+<+100',
+  //         'ttft_mean < 100',
   //       );
   //     });
   //   });
@@ -245,7 +245,7 @@ describe('filtersToFilterQuery', () => {
   //     it('handles TimeToFirstToken - ttft', () => {
   //       // eslint-disable-next-line camelcase
   //       expect(filtersToFilterQuery(mockFormData({ rps_mean: 7 }), mockFilterOptions)).toBe(
-  //         'rps_mean+>+7',
+  //         'rps_mean > 7',
   //       );
   //     });
   //   });
@@ -265,7 +265,7 @@ describe('filtersToFilterQuery', () => {
   //           mockFilterOptions,
   //         ),
   //       ).toBe(
-  //         "tasks+=+'text-to-text'+AND+license+IN+('apache-2.0','mit')+AND+ttft_mean+<+100+AND+rps_mean+>+3",
+  //         "tasks='text-to-text' AND license IN ('apache-2.0','mit') AND ttft_mean < 100 AND rps_mean > 3",
   //       );
   //     });
   //   });
