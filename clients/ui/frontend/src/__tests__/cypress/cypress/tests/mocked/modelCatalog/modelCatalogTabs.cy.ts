@@ -254,7 +254,7 @@ describe('Model Catalog Details Tabs', () => {
       modelCatalog.findPerformanceInsightsTab().should('not.exist');
 
       modelCatalog.findOverviewTabContent().should('be.visible');
-      modelCatalog.findDetailsDescription().scrollIntoView().should('be.visible');
+      modelCatalog.findDetailsDescription().should('be.visible');
     });
   });
 
