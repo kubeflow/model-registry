@@ -61,7 +61,7 @@ var catalogModelProperties = map[string]filter.PropertyDefinition{
 	"description":  {Location: filter.PropertyTable, ValueType: filter.StringValueType, Column: "description"},
 	"owner":        {Location: filter.PropertyTable, ValueType: filter.StringValueType, Column: "owner"},
 	"state":        {Location: filter.PropertyTable, ValueType: filter.StringValueType, Column: "state"},
-	"language":     {Location: filter.PropertyTable, ValueType: filter.StringValueType, Column: "language"},
+	"language":     {Location: filter.PropertyTable, ValueType: filter.ArrayValueType, Column: "language"},
 	"library_name": {Location: filter.PropertyTable, ValueType: filter.StringValueType, Column: "library_name"},
 	"license_link": {Location: filter.PropertyTable, ValueType: filter.StringValueType, Column: "license_link"},
 	"license":      {Location: filter.PropertyTable, ValueType: filter.StringValueType, Column: "license"},
@@ -69,5 +69,5 @@ var catalogModelProperties = map[string]filter.PropertyDefinition{
 	"maturity":     {Location: filter.PropertyTable, ValueType: filter.StringValueType, Column: "maturity"},
 	"provider":     {Location: filter.PropertyTable, ValueType: filter.StringValueType, Column: "provider"},
 	"readme":       {Location: filter.PropertyTable, ValueType: filter.StringValueType, Column: "readme"},
-	"tasks":        {Location: filter.PropertyTable, ValueType: filter.StringValueType, Column: "tasks"},
+	"tasks":        {Location: filter.PropertyTable, ValueType: filter.ArrayValueType, Column: "tasks"},
 }

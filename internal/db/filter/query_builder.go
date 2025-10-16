@@ -404,14 +404,24 @@ func (qb *QueryBuilder) buildPropertyTableCondition(db *gorm.DB, propRef *Proper
 	db = db.Where(fmt.Sprintf("%s.name = ?", alias), propRef.Name)
 
 	// Use the specific value type column based on inferred type
-	valueColumn := fmt.Sprintf("%s.%s", alias, propRef.ValueType)
+	var valueColumn string
+	if propRef.ValueType == ArrayValueType {
+		valueColumn = fmt.Sprintf("%s.%s", alias, StringValueType)
+	} else {
+		valueColumn = fmt.Sprintf("%s.%s", alias, propRef.ValueType)
+	}
 
 	// Use cross-database case-insensitive LIKE for ILIKE operator
 	if operator == "ILIKE" {
 		return qb.buildCaseInsensitiveLikeCondition(db, valueColumn, value)
 	}
 
-	condition := qb.buildOperatorCondition(valueColumn, operator, value)
+	var condition conditionResult
+	if propRef.ValueType == ArrayValueType && db.Name() == "postgres" {
+		condition = qb.buildJSONOperatorCondition(valueColumn, operator, value)
+	} else {
+		condition = qb.buildOperatorCondition(valueColumn, operator, value)
+	}
 	return db.Where(condition.condition, condition.args...)
 }
 
@@ -502,7 +512,7 @@ func (qb *QueryBuilder) buildOperatorCondition(column string, operator string, v
 func (qb *QueryBuilder) buildCaseInsensitiveLikeCondition(db *gorm.DB, column string, value any) *gorm.DB {
 	if strValue, ok := value.(string); ok {
 		// Check database type for optimal implementation
-		switch db.Dialector.Name() {
+		switch db.Name() {
 		case "postgres":
 			// PostgreSQL supports ILIKE natively (most efficient)
 			return db.Where(fmt.Sprintf("%s ILIKE ?", column), strValue)
@@ -520,6 +530,34 @@ func (qb *QueryBuilder) buildCaseInsensitiveLikeCondition(db *gorm.DB, column st
 
 	// Fallback to regular LIKE if value is not a string
 	return db.Where(fmt.Sprintf("%s LIKE ?", column), value)
+}
+
+// buildJSONOperatorCondition builds a condition string for an operator on a JSON array
+func (qb *QueryBuilder) buildJSONOperatorCondition(column string, operator string, value any) conditionResult {
+	switch operator {
+	case "IN":
+		// Handle IN operator with array values
+		if valueSlice, ok := value.([]any); ok {
+			if len(valueSlice) == 0 {
+				// Empty list should return false condition
+				return conditionResult{condition: "1 = 0", args: []any{}}
+			}
+			// Create placeholders for each value
+			return conditionResult{
+				condition: fmt.Sprintf("%s IS JSON ARRAY AND %s::jsonb ? array[?%s]", column, column, strings.Repeat(",?", len(valueSlice)-1)),
+				args:      append([]any{gorm.Expr("?|")}, valueSlice...),
+			}
+		}
+		// Fallback to single value (shouldn't normally happen with proper parsing)
+		fallthrough
+	case "=":
+		return conditionResult{condition: fmt.Sprintf("%s IS JSON ARRAY AND %s::jsonb ? array[?]", column, column), args: []any{gorm.Expr("?|"), value}}
+	case "!=":
+		return conditionResult{condition: fmt.Sprintf("%s IS NOT JSON ARRAY OR NOT %s::jsonb ? array[?]", column, column), args: []any{gorm.Expr("?|"), value}}
+	default:
+		// Pass through anything else
+		return qb.buildOperatorCondition(column, operator, value)
+	}
 }
 
 // defaultEntityMappings implements EntityMappingFunctions for the model registry
