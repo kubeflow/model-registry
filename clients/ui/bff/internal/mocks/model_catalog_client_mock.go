@@ -200,3 +200,9 @@ func (m *ModelCatalogClientMock) GetCatalogModelArtifacts(client httpclient.HTTP
 
 	return &allMockModelArtifacts, nil
 }
+
+func (m *ModelCatalogClientMock) GetCatalogFilterOptions(client httpclient.HTTPClientInterface) (*models.FilterOptionsList, error) {
+	filterOptions := GetFilterOptionsListMock()
+
+	return &filterOptions, nil
+}
