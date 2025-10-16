@@ -14,7 +14,7 @@ import {
 
 describe('validatedModelUtils', () => {
   const createMockPerformanceArtifact = (
-    hardware: string,
+    hardwareType: string,
     hardwareCount: number,
     rpsPerReplica: number,
     ttftMean: number,
@@ -24,9 +24,9 @@ describe('validatedModelUtils', () => {
     createTimeSinceEpoch: '1739210683000',
     lastUpdateTimeSinceEpoch: '1739210683000',
     customProperties: {
-      hardware: {
+      hardware_type: {
         metadataType: ModelRegistryMetadataType.STRING,
-        string_value: hardware,
+        string_value: hardwareType,
       },
       hardware_count: {
         metadataType: ModelRegistryMetadataType.INT,
@@ -63,7 +63,7 @@ describe('validatedModelUtils', () => {
       const result = extractPerformanceMetrics(artifact);
 
       expect(result).toEqual({
-        hardware: 'H100-80',
+        hardwareType: 'H100-80',
         hardwareCount: '2',
         rpsPerReplica: 3.5,
         ttftMean: 1200,
@@ -82,7 +82,7 @@ describe('validatedModelUtils', () => {
       const result = extractPerformanceMetrics(artifact);
 
       expect(result).toEqual({
-        hardware: 'H100-80',
+        hardwareType: 'H100-80',
         hardwareCount: '1',
         rpsPerReplica: 1,
         ttftMean: 1428,
@@ -164,7 +164,7 @@ describe('validatedModelUtils', () => {
 
       expect(result).toEqual({
         accuracy: 60.0,
-        hardware: 'H100-80',
+        hardwareType: 'H100-80',
         hardwareCount: '2',
         rpsPerReplica: 3.5,
         ttftMean: 1200,
@@ -183,7 +183,7 @@ describe('validatedModelUtils', () => {
 
       expect(result).toEqual({
         accuracy: 75.0,
-        hardware: 'A100-80',
+        hardwareType: 'A100-80',
         hardwareCount: '1',
         rpsPerReplica: 2.0,
         ttftMean: 1000,
@@ -198,7 +198,7 @@ describe('validatedModelUtils', () => {
 
       expect(result).toEqual({
         accuracy: 80.0,
-        hardware: 'H100-80',
+        hardwareType: 'H100-80',
         hardwareCount: '1',
         rpsPerReplica: 1,
         ttftMean: 1428,
@@ -213,7 +213,7 @@ describe('validatedModelUtils', () => {
 
       expect(result).toEqual({
         accuracy: 90.0,
-        hardware: 'H100-80',
+        hardwareType: 'H100-80',
         hardwareCount: '1',
         rpsPerReplica: 1,
         ttftMean: 1428,

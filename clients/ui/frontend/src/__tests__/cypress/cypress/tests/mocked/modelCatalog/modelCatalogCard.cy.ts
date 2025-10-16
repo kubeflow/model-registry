@@ -125,7 +125,7 @@ const initIntercepts = ({
         mockCatalogPerformanceMetricsArtifact({}),
         mockCatalogPerformanceMetricsArtifact({
           customProperties: {
-            hardware: {
+            hardware_type: {
               metadataType: ModelRegistryMetadataType.STRING,
               string_value: 'RTX 4090',
             },
@@ -145,7 +145,7 @@ const initIntercepts = ({
         }),
         mockCatalogPerformanceMetricsArtifact({
           customProperties: {
-            hardware: {
+            hardware_type: {
               metadataType: ModelRegistryMetadataType.STRING,
               string_value: 'A100',
             },

@@ -130,7 +130,7 @@ const ModelCatalogCardBody: React.FC<ModelCatalogCardBodyProps> = ({
           <Flex justifyContent={{ default: 'justifyContentSpaceBetween' }}>
             <Flex direction={{ default: 'column' }}>
               <span className="pf-v6-u-font-weight-bold" data-testid="validated-model-hardware">
-                {metrics.hardwareCount}x{metrics.hardware}
+                {metrics.hardwareCount}x{metrics.hardwareType}
               </span>
               <Content component={ContentVariants.small}>Hardware</Content>
             </Flex>

@@ -987,7 +987,7 @@ func performanceMetricsCustomProperties(customProperties map[string]openapi.Meta
 				MetadataType: "MetadataDoubleValue",
 			},
 		},
-		"hardware": {
+		"hardware_type": {
 			MetadataStringValue: &openapi.MetadataStringValue{
 				StringValue:  "H100",
 				MetadataType: "MetadataStringValue",
@@ -1079,7 +1079,7 @@ func GetCatalogPerformanceMetricsArtifactMock(itemCount int32) []models.CatalogA
 			CreateTimeSinceEpoch:     stringToPointer("1693526400000"),
 			LastUpdateTimeSinceEpoch: stringToPointer("1704067200000"),
 			CustomProperties: performanceMetricsCustomProperties(map[string]openapi.MetadataValue{
-				"hardware": {
+				"hardware_type": {
 					MetadataStringValue: &openapi.MetadataStringValue{
 						StringValue:  "RTX 4090",
 						MetadataType: "MetadataStringValue",
@@ -1111,7 +1111,7 @@ func GetCatalogPerformanceMetricsArtifactMock(itemCount int32) []models.CatalogA
 			CreateTimeSinceEpoch:     stringToPointer("1693526400000"),
 			LastUpdateTimeSinceEpoch: stringToPointer("1704067200000"),
 			CustomProperties: performanceMetricsCustomProperties(map[string]openapi.MetadataValue{
-				"hardware": {
+				"hardware_type": {
 					MetadataStringValue: &openapi.MetadataStringValue{
 						StringValue:  "A100",
 						MetadataType: "MetadataStringValue",

@@ -8,7 +8,7 @@ import { ModelRegistryMetadataType } from '~/app/types';
 
 const createPerformanceMetricsArtifact = (
   id: string,
-  hardware: string,
+  hardwareType: string,
   hardwareCount: number,
   rpsPerReplica: number,
   ttftMean: number,
@@ -42,9 +42,9 @@ const createPerformanceMetricsArtifact = (
       metadataType: ModelRegistryMetadataType.STRING,
       string_value: id,
     },
-    hardware: {
+    hardware_type: {
       metadataType: ModelRegistryMetadataType.STRING,
-      string_value: hardware,
+      string_value: hardwareType,
     },
     hardware_count: {
       metadataType: ModelRegistryMetadataType.INT,

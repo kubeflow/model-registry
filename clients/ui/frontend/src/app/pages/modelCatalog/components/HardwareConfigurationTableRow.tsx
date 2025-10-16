@@ -24,7 +24,7 @@ const HardwareConfigurationTableRow: React.FC<HardwareConfigurationTableRowProps
     const { customProperties } = performanceArtifact;
 
     switch (field) {
-      case 'hardware':
+      case 'hardware_type':
         return getHardwareConfiguration(performanceArtifact);
       case 'hardware_count':
         return getIntValue(customProperties, 'hardware_count');
