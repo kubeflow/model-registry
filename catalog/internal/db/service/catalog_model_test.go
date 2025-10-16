@@ -15,7 +15,7 @@ import (
 )
 
 func TestCatalogModelRepository(t *testing.T) {
-	sharedDB, cleanup := testutils.SetupMySQLWithMigrations(t, service.DatastoreSpec())
+	sharedDB, cleanup := testutils.SetupPostgresWithMigrations(t, service.DatastoreSpec())
 	defer cleanup()
 
 	// Create or get the CatalogModel type ID
