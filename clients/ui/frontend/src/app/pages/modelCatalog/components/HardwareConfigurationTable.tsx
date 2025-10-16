@@ -8,6 +8,7 @@ import {
   filterHardwareConfigurationArtifacts,
   clearAllFilters,
 } from '~/app/pages/modelCatalog/utils/hardwareConfigurationFilterUtils';
+import { getLatencyFilterConfig } from '~/app/pages/modelCatalog/utils/latencyFilterState';
 import { hardwareConfigColumns } from './HardwareConfigurationTableColumns';
 import HardwareConfigurationTableRow from './HardwareConfigurationTableRow';
 import HardwareConfigurationFilterToolbar from './HardwareConfigurationFilterToolbar';
@@ -24,10 +25,10 @@ const HardwareConfigurationTable: React.FC<HardwareConfigurationTableProps> = ({
   const { filterData, setFilterData } = React.useContext(ModelCatalogContext);
 
   // Apply filters to the artifacts
-  const filteredArtifacts = React.useMemo(
-    () => filterHardwareConfigurationArtifacts(performanceArtifacts, filterData),
-    [performanceArtifacts, filterData],
-  );
+  const filteredArtifacts = React.useMemo(() => {
+    const latencyConfig = getLatencyFilterConfig();
+    return filterHardwareConfigurationArtifacts(performanceArtifacts, filterData, latencyConfig);
+  }, [performanceArtifacts, filterData]);
 
   if (isLoading) {
     return <Spinner size="lg" />;

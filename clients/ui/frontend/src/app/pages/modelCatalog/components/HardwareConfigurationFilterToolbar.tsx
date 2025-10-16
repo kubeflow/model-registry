@@ -35,10 +35,7 @@ const HardwareConfigurationFilterToolbar: React.FC<HardwareConfigurationFilterTo
           </ToolbarItem>
           <ToolbarItem variant="separator" />
           <ToolbarItem>
-            <MaxLatencyFilter
-              filterOptions={filterOptions}
-              performanceArtifacts={performanceArtifacts}
-            />
+            <MaxLatencyFilter performanceArtifacts={performanceArtifacts} />
           </ToolbarItem>
           <ToolbarItem>
             <MinRpsFilter performanceArtifacts={performanceArtifacts} />

@@ -7,6 +7,7 @@ import {
   ModelCatalogStringFilterKey,
   ModelCatalogNumberFilterKey,
   LatencyMetricFieldName,
+  UseCaseOptionValue,
 } from '~/concepts/modelCatalog/const';
 import {
   ModelRegistryCustomProperties,
@@ -86,10 +87,10 @@ export type PerformanceMetricsCustomProperties = {
   hardware_count?: ModelRegistryCustomPropertyInt;
   requests_per_second?: ModelRegistryCustomPropertyDouble;
   // Token metrics
-  max_input_tokens?: ModelRegistryCustomPropertyDouble;
-  max_output_tokens?: ModelRegistryCustomPropertyDouble;
   mean_input_tokens?: ModelRegistryCustomPropertyDouble;
   mean_output_tokens?: ModelRegistryCustomPropertyDouble;
+  // Use case information
+  use_case?: ModelRegistryCustomPropertyString;
   // Framework information
   framework?: ModelRegistryCustomPropertyString;
   framework_version?: ModelRegistryCustomPropertyString;
@@ -194,6 +195,7 @@ export type ModelCatalogStringFilterValueType = {
   [ModelCatalogStringFilterKey.LICENSE]: ModelCatalogLicense;
   [ModelCatalogStringFilterKey.LANGUAGE]: AllLanguageCode;
   [ModelCatalogStringFilterKey.HARDWARE_TYPE]: string;
+  [ModelCatalogStringFilterKey.USE_CASE]: UseCaseOptionValue;
 };
 
 export type ModelCatalogStringFilterOptions = {
@@ -204,6 +206,9 @@ export type ModelCatalogStringFilterOptions = {
 
 export type CatalogFilterOptions = ModelCatalogStringFilterOptions & {
   [key in ModelCatalogNumberFilterKey]: CatalogFilterNumberOption;
+} & {
+  // Allow additional latency metric field names
+  [key in LatencyMetricFieldName]?: CatalogFilterNumberOption;
 };
 
 export type CatalogFilterOptionsList = {
@@ -211,7 +216,12 @@ export type CatalogFilterOptionsList = {
 };
 
 export type ModelCatalogFilterStates = {
-  [key in ModelCatalogStringFilterKey]: ModelCatalogStringFilterValueType[key][];
+  [ModelCatalogStringFilterKey.TASK]: ModelCatalogTask[];
+  [ModelCatalogStringFilterKey.PROVIDER]: ModelCatalogProvider[];
+  [ModelCatalogStringFilterKey.LICENSE]: ModelCatalogLicense[];
+  [ModelCatalogStringFilterKey.LANGUAGE]: AllLanguageCode[];
+  [ModelCatalogStringFilterKey.HARDWARE_TYPE]: string[];
+  [ModelCatalogStringFilterKey.USE_CASE]: UseCaseOptionValue | undefined;
 } & {
   [key in ModelCatalogNumberFilterKey]: number | undefined;
 };

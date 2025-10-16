@@ -4,13 +4,12 @@ export enum ModelCatalogStringFilterKey {
   LICENSE = 'license',
   LANGUAGE = 'language',
   HARDWARE_TYPE = 'hardware_type',
+  USE_CASE = 'use_case',
 }
 
 export enum ModelCatalogNumberFilterKey {
   MIN_RPS = 'rps_mean',
   MAX_LATENCY = 'ttft_mean',
-  MAX_INPUT_TOKENS = 'max_input_tokens',
-  MAX_OUTPUT_TOKENS = 'max_output_tokens',
 }
 
 export enum LatencyMetric {
@@ -30,11 +29,11 @@ export enum LatencyPercentile {
 // Use getLatencyFieldName util to get values of this type
 export type LatencyMetricFieldName = `${Lowercase<LatencyMetric>}_${Lowercase<LatencyPercentile>}`;
 
-export enum WorkloadTypeOptionValue {
-  CHAT = 'chat',
+export enum UseCaseOptionValue {
+  CHATBOT = 'chatbot',
+  CODE_FIXING = 'code_fixing',
+  LONG_RAG = 'long_rag',
   RAG = 'rag',
-  SUMMARIZATION = 'summarization',
-  CODE_GENERATION = 'code_generation',
 }
 
 export enum ModelCatalogTask {

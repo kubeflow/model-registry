@@ -21,7 +21,7 @@ export type HardwareConfigColumn = Omit<
 // This character is ideally represented by the HTML entity &nbsp; but these strings can't contain HTML entities.
 export const hardwareConfigColumns: HardwareConfigColumn[] = [
   {
-    field: 'hardware_type',
+    field: 'hardware',
     label: 'Hardware Configuration',
     sortable: (
       a: CatalogPerformanceMetricsArtifact,
@@ -253,6 +253,30 @@ export const hardwareConfigColumns: HardwareConfigColumn[] = [
     modifier: 'wrap',
   },
   {
+    field: 'max_input_tokens',
+    label: 'Max Input Tokens',
+    sortable: (
+      a: CatalogPerformanceMetricsArtifact,
+      b: CatalogPerformanceMetricsArtifact,
+    ): number =>
+      getDoubleValue(a.customProperties, 'max_input_tokens') -
+      getDoubleValue(b.customProperties, 'max_input_tokens'),
+    width: 20,
+    modifier: 'wrap',
+  },
+  {
+    field: 'max_output_tokens',
+    label: 'Max Output Tokens',
+    sortable: (
+      a: CatalogPerformanceMetricsArtifact,
+      b: CatalogPerformanceMetricsArtifact,
+    ): number =>
+      getDoubleValue(a.customProperties, 'max_output_tokens') -
+      getDoubleValue(b.customProperties, 'max_output_tokens'),
+    width: 20,
+    modifier: 'wrap',
+  },
+  {
     field: 'mean_input_tokens',
     label: 'Mean Input Tokens',
     sortable: (
@@ -273,20 +297,6 @@ export const hardwareConfigColumns: HardwareConfigColumn[] = [
     ): number =>
       getDoubleValue(a.customProperties, 'mean_output_tokens') -
       getDoubleValue(b.customProperties, 'mean_output_tokens'),
-    width: 20,
-    modifier: 'wrap',
-  },
-  {
-    field: 'use_case',
-    label: 'Use Case',
-    sortable: (
-      a: CatalogPerformanceMetricsArtifact,
-      b: CatalogPerformanceMetricsArtifact,
-    ): number => {
-      const useCaseA = getStringValue(a.customProperties, 'use_case');
-      const useCaseB = getStringValue(b.customProperties, 'use_case');
-      return useCaseA.localeCompare(useCaseB);
-    },
     width: 20,
     modifier: 'wrap',
   },

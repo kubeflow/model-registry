@@ -11,13 +11,16 @@ import {
   CatalogSource,
   CatalogSourceList,
   ModelCatalogFilterStates,
-  ModelCatalogStringFilterValueType,
   MetricsType,
 } from '~/app/modelCatalogTypes';
 import { getLabels } from '~/app/pages/modelRegistry/screens/utils';
 import {
   ModelCatalogStringFilterKey,
   ModelCatalogNumberFilterKey,
+  ModelCatalogTask,
+  ModelCatalogProvider,
+  ModelCatalogLicense,
+  AllLanguageCode,
 } from '~/concepts/modelCatalog/const';
 
 export const extractVersionTag = (tags?: string[]): string | undefined =>
@@ -118,32 +121,67 @@ export const shouldShowValidatedInsights = (
   artifacts: CatalogArtifacts[],
 ): boolean => isModelValidated(model) && hasPerformanceArtifacts(artifacts);
 
-const isStringFilterValid = <K extends ModelCatalogStringFilterKey>(
-  filterKey: K,
-  value: ModelCatalogStringFilterValueType[ModelCatalogStringFilterKey][],
-): value is ModelCatalogFilterStates[K] => isEnumMember(filterKey, ModelCatalogStringFilterKey);
+// Define array-based filter keys (excluding USE_CASE which is single-selection)
+type ArrayFilterKey =
+  | ModelCatalogStringFilterKey.TASK
+  | ModelCatalogStringFilterKey.PROVIDER
+  | ModelCatalogStringFilterKey.LICENSE
+  | ModelCatalogStringFilterKey.LANGUAGE
+  | ModelCatalogStringFilterKey.HARDWARE_TYPE;
 
-export const useCatalogStringFilterState = (
-  filterKey: ModelCatalogStringFilterKey,
+// Type mapping for array filter values
+type ArrayFilterValueType = {
+  [ModelCatalogStringFilterKey.TASK]: ModelCatalogTask;
+  [ModelCatalogStringFilterKey.PROVIDER]: ModelCatalogProvider;
+  [ModelCatalogStringFilterKey.LICENSE]: ModelCatalogLicense;
+  [ModelCatalogStringFilterKey.LANGUAGE]: AllLanguageCode;
+  [ModelCatalogStringFilterKey.HARDWARE_TYPE]: string;
+};
+
+// Type guard to check if a value is an array of the expected type
+const isArrayOfValues = <T>(value: unknown): value is T[] => Array.isArray(value);
+
+// Type guard to check if filter key is valid for array operations
+const isArrayFilterKey = (filterKey: string): filterKey is ArrayFilterKey =>
+  isEnumMember(filterKey, ModelCatalogStringFilterKey) &&
+  filterKey !== ModelCatalogStringFilterKey.USE_CASE;
+
+export const useCatalogStringFilterState = <K extends ArrayFilterKey>(
+  filterKey: K,
 ): {
-  isSelected: (value: ModelCatalogStringFilterValueType[ModelCatalogStringFilterKey]) => boolean;
-  setSelected: (
-    value: ModelCatalogStringFilterValueType[ModelCatalogStringFilterKey],
-    selected: boolean,
-  ) => void;
+  isSelected: (value: ArrayFilterValueType[K]) => boolean;
+  setSelected: (value: ArrayFilterValueType[K], selected: boolean) => void;
 } => {
-  type Value = ModelCatalogStringFilterValueType[ModelCatalogStringFilterKey];
+  type Value = ArrayFilterValueType[K];
   const { filterData, setFilterData } = React.useContext(ModelCatalogContext);
-  const selections: Value[] = filterData[filterKey];
-  const isSelected = React.useCallback((value: Value) => selections.includes(value), [selections]);
+  const selections = filterData[filterKey];
+
+  const isSelected = React.useCallback(
+    (value: Value) => {
+      if (!isArrayOfValues<Value>(selections)) {
+        return false;
+      }
+      return selections.includes(value);
+    },
+    [selections],
+  );
+
   const setSelected = (value: Value, selected: boolean) => {
+    if (!isArrayOfValues<Value>(selections)) {
+      return;
+    }
+
     const nextState: Value[] = selected
       ? [...selections, value]
       : selections.filter((item) => item !== value);
-    if (isStringFilterValid(filterKey, nextState)) {
-      setFilterData(filterKey, nextState);
+
+    if (isArrayFilterKey(filterKey)) {
+      // Type assertion is safe here because we've verified the key is an array filter
+      // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
+      setFilterData(filterKey, nextState as ModelCatalogFilterStates[K]);
     }
   };
+
   return { isSelected, setSelected };
 };
 
@@ -168,7 +206,7 @@ const isArrayOfSelections = (
   filterOption: CatalogFilterOptions[keyof CatalogFilterOptions],
   data: unknown,
 ): data is string[] =>
-  filterOption.type === 'string' && Array.isArray(filterOption.values) && Array.isArray(data);
+  filterOption?.type === 'string' && Array.isArray(filterOption.values) && Array.isArray(data);
 
 // TODO: Implement performance filters.
 // type FilterId = keyof CatalogFilterOptionsList['filters'];
@@ -222,6 +260,11 @@ export const filtersToFilterQuery = (
           // 2 or more
           return `${filterId} IN (${data.map(wrapInQuotes).join(inSpacer)})`;
       }
+    }
+
+    // Handle single string values (like USE_CASE)
+    if (filterOption?.type === 'string' && typeof data === 'string') {
+      return `${filterId}=${wrapInQuotes(data)}`;
     }
 
     // TODO: Implement performance filters.
