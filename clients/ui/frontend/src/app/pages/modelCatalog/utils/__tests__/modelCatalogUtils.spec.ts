@@ -8,6 +8,7 @@ import {
   ModelCatalogProvider,
   ModelCatalogStringFilterKey,
   ModelCatalogTask,
+  UseCaseOptionValue,
 } from '~/concepts/modelCatalog/const';
 import { filtersToFilterQuery } from '~/app/pages/modelCatalog/utils/modelCatalogUtils';
 
@@ -19,20 +20,18 @@ describe('filtersToFilterQuery', () => {
     provider = [],
     language = [],
     hardware_type = [],
+    use_case = undefined,
     rps_mean = undefined,
     ttft_mean = undefined,
-    max_input_tokens = undefined,
-    max_output_tokens = undefined,
   }: Partial<ModelCatalogFilterStates>): ModelCatalogFilterStates => ({
     [ModelCatalogStringFilterKey.TASK]: tasks,
     [ModelCatalogStringFilterKey.PROVIDER]: provider,
     [ModelCatalogStringFilterKey.LICENSE]: license,
     [ModelCatalogStringFilterKey.LANGUAGE]: language,
     [ModelCatalogStringFilterKey.HARDWARE_TYPE]: hardware_type,
+    [ModelCatalogStringFilterKey.USE_CASE]: use_case,
     [ModelCatalogNumberFilterKey.MIN_RPS]: rps_mean,
     [ModelCatalogNumberFilterKey.MAX_LATENCY]: ttft_mean,
-    [ModelCatalogNumberFilterKey.MAX_INPUT_TOKENS]: max_input_tokens,
-    [ModelCatalogNumberFilterKey.MAX_OUTPUT_TOKENS]: max_output_tokens,
   });
 
   const mockFilterOptions: CatalogFilterOptionsList = {
@@ -127,6 +126,15 @@ describe('filtersToFilterQuery', () => {
         type: 'string',
         values: ['GPU', 'CPU', 'TPU', 'FPGA'],
       },
+      [ModelCatalogStringFilterKey.USE_CASE]: {
+        type: 'string',
+        values: [
+          UseCaseOptionValue.CHATBOT,
+          UseCaseOptionValue.CODE_FIXING,
+          UseCaseOptionValue.LONG_RAG,
+          UseCaseOptionValue.RAG,
+        ],
+      },
       [ModelCatalogNumberFilterKey.MIN_RPS]: {
         type: 'number',
         range: {
@@ -139,20 +147,6 @@ describe('filtersToFilterQuery', () => {
         range: {
           min: 0,
           max: 1000,
-        },
-      },
-      [ModelCatalogNumberFilterKey.MAX_INPUT_TOKENS]: {
-        type: 'number',
-        range: {
-          min: 0,
-          max: 8192,
-        },
-      },
-      [ModelCatalogNumberFilterKey.MAX_OUTPUT_TOKENS]: {
-        type: 'number',
-        range: {
-          min: 0,
-          max: 4096,
         },
       },
     },

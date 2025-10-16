@@ -4,44 +4,36 @@ export enum ModelCatalogStringFilterKey {
   LICENSE = 'license',
   LANGUAGE = 'language',
   HARDWARE_TYPE = 'hardware_type',
+  USE_CASE = 'use_case',
 }
 
 export enum ModelCatalogNumberFilterKey {
   MIN_RPS = 'rps_mean',
   MAX_LATENCY = 'ttft_mean',
-  MAX_INPUT_TOKENS = 'max_input_tokens',
-  MAX_OUTPUT_TOKENS = 'max_output_tokens',
 }
 
-// Separate enum for all latency metrics used in validation and filtering
-export enum LatencyMetricKey {
-  // TTFT (Time To First Token)
-  TTFT_MEAN = 'ttft_mean',
-  TTFT_P90 = 'ttft_p90',
-  TTFT_P95 = 'ttft_p95',
-  TTFT_P99 = 'ttft_p99',
-  // E2E (End-to-End)
-  E2E_MEAN = 'e2e_mean',
-  E2E_P90 = 'e2e_p90',
-  E2E_P95 = 'e2e_p95',
-  E2E_P99 = 'e2e_p99',
-  // TPS (Tokens Per Second)
-  TPS_MEAN = 'tps_mean',
-  TPS_P90 = 'tps_p90',
-  TPS_P95 = 'tps_p95',
-  TPS_P99 = 'tps_p99',
-  // ITL (Inter-Token Latency)
-  ITL_MEAN = 'itl_mean',
-  ITL_P90 = 'itl_p90',
-  ITL_P95 = 'itl_p95',
-  ITL_P99 = 'itl_p99',
+export enum LatencyMetric {
+  E2E = 'E2E', // End to End
+  TTFT = 'TTFT', // Time To First Token
+  TPS = 'TPS', // Tokens Per Second
+  ITL = 'ITL', // Inter Token Latency
 }
 
-export enum WorkloadTypeOptionValue {
-  CHAT = 'chat',
+export enum LatencyPercentile {
+  Mean = 'Mean',
+  P90 = 'P90',
+  P95 = 'P95',
+  P99 = 'P99',
+}
+
+// Use getLatencyFieldName util to get values of this type
+export type LatencyMetricFieldName = `${Lowercase<LatencyMetric>}_${Lowercase<LatencyPercentile>}`;
+
+export enum UseCaseOptionValue {
+  CHATBOT = 'chatbot',
+  CODE_FIXING = 'code_fixing',
+  LONG_RAG = 'long_rag',
   RAG = 'rag',
-  SUMMARIZATION = 'summarization',
-  CODE_GENERATION = 'code_generation',
 }
 
 export enum ModelCatalogTask {

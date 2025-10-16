@@ -1,100 +1,76 @@
 import * as React from 'react';
 import {
-  Button,
+  Dropdown,
+  DropdownItem,
+  DropdownList,
   MenuToggle,
   MenuToggleElement,
-  Popover,
-  Select,
-  SelectList,
-  SelectOption,
 } from '@patternfly/react-core';
-import { HelpIcon } from '@patternfly/react-icons';
-import {
-  ModelCatalogNumberFilterKey,
-  WorkloadTypeOptionValue,
-} from '~/concepts/modelCatalog/const';
-import { useCatalogNumberFilterState } from '~/app/pages/modelCatalog/utils/modelCatalogUtils';
-import {
-  WORKLOAD_TYPE_OPTIONS,
-  maxInputOutputTokensToWorkloadType,
-  workloadTypeToMaxInputOutputTokens,
-} from '~/app/pages/modelCatalog/utils/workloadTypeUtils';
+import { asEnumMember } from 'mod-arch-core';
+import { ModelCatalogStringFilterKey, UseCaseOptionValue } from '~/concepts/modelCatalog/const';
+import { USE_CASE_OPTIONS } from '~/app/pages/modelCatalog/utils/workloadTypeUtils';
+import { ModelCatalogContext } from '~/app/context/modelCatalog/ModelCatalogContext';
 
-const WorkloadTypeFilter: React.FC = () => {
-  const { value: maxInputTokens, setValue: setMaxInputTokens } = useCatalogNumberFilterState(
-    ModelCatalogNumberFilterKey.MAX_INPUT_TOKENS,
-  );
-  const { value: maxOutputTokens, setValue: setMaxOutputTokens } = useCatalogNumberFilterState(
-    ModelCatalogNumberFilterKey.MAX_OUTPUT_TOKENS,
-  );
+const UseCaseFilter: React.FC = () => {
+  const { filterData, setFilterData } = React.useContext(ModelCatalogContext);
+  const selectedUseCase = filterData[ModelCatalogStringFilterKey.USE_CASE];
   const [isOpen, setIsOpen] = React.useState(false);
 
-  // Derive the selected workload type from the token values
-  const selectedWorkloadType = maxInputOutputTokensToWorkloadType(maxInputTokens, maxOutputTokens);
-  const selectedOption = WORKLOAD_TYPE_OPTIONS.find(
-    (option) => option.value === selectedWorkloadType,
-  );
-  const displayText = selectedOption ? selectedOption.label : 'Select workload type';
+  const handleUseCaseChange = (useCase: string) => {
+    const useCaseValue = asEnumMember(useCase, UseCaseOptionValue);
+    if (useCaseValue) {
+      const newValue = useCaseValue === selectedUseCase ? undefined : useCaseValue;
+      setFilterData(ModelCatalogStringFilterKey.USE_CASE, newValue);
+    }
+    setIsOpen(false);
+  };
+
+  // Get the display text for the toggle
+  const getToggleText = () => {
+    if (selectedUseCase) {
+      const selectedOption = USE_CASE_OPTIONS.find((option) => option.value === selectedUseCase);
+      return selectedOption ? (
+        <>
+          <strong>Workload type:</strong> {selectedOption.label}
+        </>
+      ) : (
+        'Workload type'
+      );
+    }
+    return 'Workload type';
+  };
 
   const toggle = (toggleRef: React.Ref<MenuToggleElement>) => (
     <MenuToggle
       ref={toggleRef}
       onClick={() => setIsOpen(!isOpen)}
       isExpanded={isOpen}
-      style={{ minWidth: '300px', width: 'fit-content' }}
+      style={{ minWidth: '200px', width: 'fit-content' }}
     >
-      <span className="pf-v6-u-mr-sm">Workload type:</span>
-      {displayText}
+      {getToggleText()}
     </MenuToggle>
   );
 
   return (
-    <>
-      <Select
-        isOpen={isOpen}
-        selected={selectedWorkloadType}
-        onSelect={(_, selectedVal) => {
-          // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
-          const workloadType = selectedVal as WorkloadTypeOptionValue;
-          const tokenValues = workloadTypeToMaxInputOutputTokens(workloadType);
-
-          if (tokenValues) {
-            setMaxInputTokens(tokenValues.maxInputTokens);
-            setMaxOutputTokens(tokenValues.maxOutputTokens);
-          }
-
-          setIsOpen(false);
-        }}
-        onOpenChange={setIsOpen}
-        toggle={toggle}
-        shouldFocusToggleOnSelect
-      >
-        <SelectList>
-          {WORKLOAD_TYPE_OPTIONS.map((option) => (
-            <SelectOption
-              key={option.value}
-              value={option.value}
-              isSelected={selectedWorkloadType === option.value}
-            >
-              {option.label}
-            </SelectOption>
-          ))}
-        </SelectList>
-      </Select>
-      <Popover
-        aria-label="Workload type information"
-        bodyContent="Select a workload type to view performance under specific input and output token lengths."
-        appendTo={() => document.body}
-      >
-        <Button
-          variant="plain"
-          aria-label="More info for workload type"
-          onClick={(e) => e.stopPropagation()}
-          icon={<HelpIcon />}
-        />
-      </Popover>
-    </>
+    <Dropdown
+      isOpen={isOpen}
+      onOpenChange={setIsOpen}
+      toggle={toggle}
+      shouldFocusToggleOnSelect={false}
+    >
+      <DropdownList>
+        {USE_CASE_OPTIONS.map((option) => (
+          <DropdownItem
+            key={option.value}
+            onClick={() => handleUseCaseChange(option.value)}
+            isSelected={selectedUseCase === option.value}
+          >
+            {option.label}
+          </DropdownItem>
+        ))}
+      </DropdownList>
+    </Dropdown>
   );
 };
 
-export default WorkloadTypeFilter;
+export default UseCaseFilter;

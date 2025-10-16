@@ -1,3 +1,4 @@
+/* eslint-disable camelcase */
 import { CatalogFilterOptionsList } from '~/app/modelCatalogTypes';
 import {
   ModelCatalogStringFilterKey,
@@ -6,6 +7,7 @@ import {
   ModelCatalogProvider,
   ModelCatalogTask,
   AllLanguageCode,
+  UseCaseOptionValue,
 } from '~/concepts/modelCatalog/const';
 
 export const mockCatalogFilterOptionsList = (
@@ -52,6 +54,15 @@ export const mockCatalogFilterOptionsList = (
       type: 'string',
       values: ['GPU', 'CPU', 'TPU', 'FPGA'],
     },
+    [ModelCatalogStringFilterKey.USE_CASE]: {
+      type: 'string',
+      values: [
+        UseCaseOptionValue.CHATBOT,
+        UseCaseOptionValue.CODE_FIXING,
+        UseCaseOptionValue.LONG_RAG,
+        UseCaseOptionValue.RAG,
+      ],
+    },
     [ModelCatalogNumberFilterKey.MIN_RPS]: {
       type: 'number',
       range: {
@@ -66,19 +77,66 @@ export const mockCatalogFilterOptionsList = (
         max: 893,
       },
     },
-    [ModelCatalogNumberFilterKey.MAX_INPUT_TOKENS]: {
-      type: 'number',
-      range: {
-        min: 0,
-        max: 8192,
-      },
+    // All latency metric combinations for dropdown options (ttft_mean already exists as MAX_LATENCY)
+    ttft_p90: {
+      type: 'number' as const,
+      range: { min: 25, max: 600 },
     },
-    [ModelCatalogNumberFilterKey.MAX_OUTPUT_TOKENS]: {
-      type: 'number',
-      range: {
-        min: 0,
-        max: 4096,
-      },
+    ttft_p95: {
+      type: 'number' as const,
+      range: { min: 30, max: 700 },
+    },
+    ttft_p99: {
+      type: 'number' as const,
+      range: { min: 40, max: 893 },
+    },
+    e2e_mean: {
+      type: 'number' as const,
+      range: { min: 50, max: 800 },
+    },
+    e2e_p90: {
+      type: 'number' as const,
+      range: { min: 60, max: 900 },
+    },
+    e2e_p95: {
+      type: 'number' as const,
+      range: { min: 70, max: 1000 },
+    },
+    e2e_p99: {
+      type: 'number' as const,
+      range: { min: 80, max: 1200 },
+    },
+    tps_mean: {
+      type: 'number' as const,
+      range: { min: 10, max: 300 },
+    },
+    tps_p90: {
+      type: 'number' as const,
+      range: { min: 15, max: 350 },
+    },
+    tps_p95: {
+      type: 'number' as const,
+      range: { min: 20, max: 400 },
+    },
+    tps_p99: {
+      type: 'number' as const,
+      range: { min: 25, max: 500 },
+    },
+    itl_mean: {
+      type: 'number' as const,
+      range: { min: 5, max: 100 },
+    },
+    itl_p90: {
+      type: 'number' as const,
+      range: { min: 8, max: 120 },
+    },
+    itl_p95: {
+      type: 'number' as const,
+      range: { min: 10, max: 150 },
+    },
+    itl_p99: {
+      type: 'number' as const,
+      range: { min: 15, max: 200 },
     },
   },
   ...partial,

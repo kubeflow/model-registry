@@ -55,10 +55,9 @@ export const ModelCatalogContext = React.createContext<ModelCatalogContextType>(
     [ModelCatalogStringFilterKey.LICENSE]: [],
     [ModelCatalogStringFilterKey.LANGUAGE]: [],
     [ModelCatalogStringFilterKey.HARDWARE_TYPE]: [],
+    [ModelCatalogStringFilterKey.USE_CASE]: undefined,
     [ModelCatalogNumberFilterKey.MIN_RPS]: undefined,
     [ModelCatalogNumberFilterKey.MAX_LATENCY]: undefined,
-    [ModelCatalogNumberFilterKey.MAX_INPUT_TOKENS]: undefined,
-    [ModelCatalogNumberFilterKey.MAX_OUTPUT_TOKENS]: undefined,
   },
   updateSelectedSource: () => undefined,
   selectedSourceLabel: undefined,
@@ -88,10 +87,9 @@ export const ModelCatalogContextProvider: React.FC<ModelCatalogContextProviderPr
     [ModelCatalogStringFilterKey.LICENSE]: [],
     [ModelCatalogStringFilterKey.LANGUAGE]: [],
     [ModelCatalogStringFilterKey.HARDWARE_TYPE]: [],
+    [ModelCatalogStringFilterKey.USE_CASE]: undefined,
     [ModelCatalogNumberFilterKey.MIN_RPS]: undefined,
     [ModelCatalogNumberFilterKey.MAX_LATENCY]: undefined,
-    [ModelCatalogNumberFilterKey.MAX_INPUT_TOKENS]: undefined,
-    [ModelCatalogNumberFilterKey.MAX_OUTPUT_TOKENS]: undefined,
   });
   const [filterOptions, filterOptionsLoaded, filterOptionsLoadError] =
     useCatalogFilterOptionList(apiState);

@@ -1,75 +1,36 @@
-import { WorkloadTypeOptionValue } from '~/concepts/modelCatalog/const';
+import { UseCaseOptionValue } from '~/concepts/modelCatalog/const';
 
-export type WorkloadTypeOption = {
-  value: WorkloadTypeOptionValue;
+export type UseCaseOption = {
+  value: UseCaseOptionValue;
   label: string;
   description: string;
-  maxInputTokens: number;
-  maxOutputTokens: number;
 };
 
-export const WORKLOAD_TYPE_OPTIONS: WorkloadTypeOption[] = [
+export const USE_CASE_OPTIONS: UseCaseOption[] = [
   {
-    value: WorkloadTypeOptionValue.CHAT,
-    label: 'Chat (512 input | 256 output tokens)',
-    description: 'Conversational AI workload with moderate input/output token lengths',
-    maxInputTokens: 512,
-    maxOutputTokens: 256,
+    value: UseCaseOptionValue.CHATBOT,
+    label: 'Chatbot',
+    description: 'Conversational AI applications and interactive chat systems',
   },
   {
-    value: WorkloadTypeOptionValue.RAG,
-    label: 'RAG (4096 input | 512 output tokens)',
-    description: 'Retrieval-Augmented Generation with larger context windows',
-    maxInputTokens: 4096,
-    maxOutputTokens: 512,
+    value: UseCaseOptionValue.CODE_FIXING,
+    label: 'Code Fixing',
+    description: 'Code analysis, debugging, and automated code correction',
   },
   {
-    value: WorkloadTypeOptionValue.SUMMARIZATION,
-    label: 'Summarization (2048 input | 256 output tokens)',
-    description: 'Text summarization tasks with long input documents',
-    maxInputTokens: 2048,
-    maxOutputTokens: 256,
+    value: UseCaseOptionValue.LONG_RAG,
+    label: 'Long RAG',
+    description: 'Retrieval-Augmented Generation with extended context windows',
   },
   {
-    value: WorkloadTypeOptionValue.CODE_GENERATION,
-    label: 'Code Generation (1024 input | 512 output tokens)',
-    description: 'Code generation and completion tasks',
-    maxInputTokens: 1024,
-    maxOutputTokens: 512,
+    value: UseCaseOptionValue.RAG,
+    label: 'RAG',
+    description: 'Retrieval-Augmented Generation with standard context windows',
   },
 ];
 
 /**
- * Utility function to convert max input/output tokens to workload type
+ * Utility function to get use case option by value
  */
-export const maxInputOutputTokensToWorkloadType = (
-  maxInputTokens: number | undefined,
-  maxOutputTokens: number | undefined,
-): WorkloadTypeOptionValue | undefined => {
-  if (maxInputTokens === undefined || maxOutputTokens === undefined) {
-    return undefined;
-  }
-
-  const matchingOption = WORKLOAD_TYPE_OPTIONS.find(
-    (option) =>
-      option.maxInputTokens === maxInputTokens && option.maxOutputTokens === maxOutputTokens,
-  );
-
-  return matchingOption?.value;
-};
-
-/**
- * Utility function to convert workload type to max input/output tokens
- */
-export const workloadTypeToMaxInputOutputTokens = (
-  workloadType: WorkloadTypeOptionValue,
-): { maxInputTokens: number; maxOutputTokens: number } | undefined => {
-  const matchingOption = WORKLOAD_TYPE_OPTIONS.find((option) => option.value === workloadType);
-
-  return matchingOption
-    ? {
-        maxInputTokens: matchingOption.maxInputTokens,
-        maxOutputTokens: matchingOption.maxOutputTokens,
-      }
-    : undefined;
-};
+export const getUseCaseOption = (useCase: UseCaseOptionValue): UseCaseOption | undefined =>
+  USE_CASE_OPTIONS.find((option) => option.value === useCase);
