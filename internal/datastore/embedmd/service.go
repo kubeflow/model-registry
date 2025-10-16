@@ -57,7 +57,7 @@ func (c *EmbedMDConfig) Validate() error {
 			// query components prohibited in database name (e.g. "DB_NAME?tls=preferred")
 			// we append "?charset=utf8mb4" automatically to MySQL DSNs
 			if strings.Count(c.DatabaseDSN, "?") > 1 {
-				return fmt.Errorf("invalid MySQL DSN: database name must not contain '?' characters; do not put query parameters in the database name.")
+				return fmt.Errorf("invalid MySQL DSN: database name must not contain '?' characters; do not put query parameters in the database name")
 			}
 
 			// Validate that the DSN can be parsed before continuing
@@ -84,7 +84,7 @@ func (c *EmbedMDConfig) Validate() error {
 					if strings.HasPrefix(p, "dbname=") {
 						name := strings.TrimPrefix(p, "dbname=")
 						if strings.Contains(name, "?") {
-							return fmt.Errorf("invalid PostgreSQL DSN: database name must not contain '?' characters; do not put query parameters in the database name.")
+							return fmt.Errorf("invalid PostgreSQL DSN: database name must not contain '?' characters; do not put query parameters in the database name")
 						}
 						break
 					}
