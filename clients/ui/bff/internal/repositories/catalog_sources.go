@@ -10,7 +10,7 @@ import (
 )
 
 const sourcesPath = "/sources"
-const filterOptionPath = "models/filter_option"
+const filterOptionPath = "/models/filter_options"
 
 type CatalogSourcesInterface interface {
 	GetAllCatalogSources(client httpclient.HTTPClientInterface, pageValues url.Values) (*models.CatalogSourceList, error)
