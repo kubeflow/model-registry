@@ -244,7 +244,7 @@ const KNOWN_ARRAY_FILTER_IDS: (keyof CatalogFilterOptions)[] = [
 
 // If using LIKE on an array field, we need %" "% around value within the ' '
 const wrapInQuotes = (v: string, isArrayLikeFilter = false): string =>
-  isArrayLikeFilter ? `'%"${v}%"'` : `'${v}'`;
+  isArrayLikeFilter ? `'%"${v}"%'` : `'${v}'`;
 
 // LIKE works for any string filter but is only required for array fields
 const likeFilter = (k: string, v: string, isArrayField: boolean): string =>
