@@ -21,7 +21,7 @@ export type HardwareConfigColumn = Omit<
 // This character is ideally represented by the HTML entity &nbsp; but these strings can't contain HTML entities.
 export const hardwareConfigColumns: HardwareConfigColumn[] = [
   {
-    field: 'hardware',
+    field: 'hardware_type',
     label: 'Hardware Configuration',
     sortable: (
       a: CatalogPerformanceMetricsArtifact,

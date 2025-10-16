@@ -81,7 +81,7 @@ export type CatalogModelArtifact = CatalogArtifactBase & {
 
 export type PerformanceMetricsCustomProperties = {
   config_id?: ModelRegistryCustomPropertyString;
-  hardware?: ModelRegistryCustomPropertyString;
+  hardware_type?: ModelRegistryCustomPropertyString;
   hardware_count?: ModelRegistryCustomPropertyInt;
   requests_per_second?: ModelRegistryCustomPropertyDouble;
   // TTFT (Time To First Token) latency metrics

@@ -5,14 +5,14 @@ import {
 
 export type ValidatedModelMetrics = {
   accuracy: number;
-  hardware: string;
+  hardwareType: string;
   hardwareCount: string;
   rpsPerReplica: number;
   ttftMean: number;
 };
 
 export type PerformanceMetrics = {
-  hardware: string;
+  hardwareType: string;
   hardwareCount: string;
   rpsPerReplica: number;
   ttftMean: number;
@@ -21,7 +21,7 @@ export type PerformanceMetrics = {
 export const extractPerformanceMetrics = (
   performanceMetrics: CatalogPerformanceMetricsArtifact,
 ): PerformanceMetrics => ({
-  hardware: performanceMetrics.customProperties.hardware?.string_value || 'H100-80',
+  hardwareType: performanceMetrics.customProperties.hardware_type?.string_value || 'H100-80',
   hardwareCount: performanceMetrics.customProperties.hardware_count?.int_value || '1',
   rpsPerReplica: performanceMetrics.customProperties.requests_per_second?.double_value || 1,
   ttftMean: performanceMetrics.customProperties.ttft_mean?.double_value || 1428,
@@ -52,7 +52,7 @@ export const extractValidatedModelMetrics = (
   const performance = currentPerformance
     ? extractPerformanceMetrics(currentPerformance)
     : {
-        hardware: 'H100-80',
+        hardwareType: 'H100-80',
         hardwareCount: '1',
         rpsPerReplica: 1,
         ttftMean: 1428,

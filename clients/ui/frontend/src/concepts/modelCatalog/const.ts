@@ -3,7 +3,7 @@ export enum ModelCatalogStringFilterKey {
   PROVIDER = 'provider',
   LICENSE = 'license',
   LANGUAGE = 'language',
-  HARDWARE_TYPE = 'hardware',
+  HARDWARE_TYPE = 'hardware_type',
 }
 
 export enum ModelCatalogNumberFilterKey {
