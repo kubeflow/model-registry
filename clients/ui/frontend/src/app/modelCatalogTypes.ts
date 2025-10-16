@@ -123,7 +123,7 @@ export type PerformanceMetricsCustomProperties = {
 };
 
 export type AccuracyMetricsCustomProperties = {
-  overall_average?: ModelRegistryCustomPropertyDouble;
+  // overall_average?: ModelRegistryCustomPropertyDouble; // NOTE: overall_average is currently omitted from the API and will be restored
   arc_v1?: ModelRegistryCustomPropertyDouble;
 } & Record<string, ModelRegistryCustomPropertyDouble>;
 

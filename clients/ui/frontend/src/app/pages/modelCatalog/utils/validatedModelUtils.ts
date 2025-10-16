@@ -4,7 +4,7 @@ import {
 } from '~/app/modelCatalogTypes';
 
 export type ValidatedModelMetrics = {
-  accuracy: number;
+  // accuracy: number; // NOTE: overall_average is currently omitted from the API and will be restored
   hardwareType: string;
   hardwareCount: string;
   rpsPerReplica: number;
@@ -27,20 +27,21 @@ export const extractPerformanceMetrics = (
   ttftMean: performanceMetrics.customProperties.ttft_mean?.double_value || 1428,
 });
 
-export const calculateAverageAccuracy = (
-  accuracyMetrics: CatalogAccuracyMetricsArtifact[],
-): number => {
-  if (accuracyMetrics.length === 0) {
-    return 53.9; // Default fallback
-  }
-
-  const totalAccuracy = accuracyMetrics.reduce((sum, artifact) => {
-    const accuracy = artifact.customProperties.overall_average?.double_value || 0;
-    return sum + accuracy;
-  }, 0);
-
-  return Math.round((totalAccuracy / accuracyMetrics.length) * 10) / 10; // Round to 1 decimal place
-};
+// NOTE: overall_average is currently omitted from the API and will be restored
+// export const calculateAverageAccuracy = (
+//   accuracyMetrics: CatalogAccuracyMetricsArtifact[],
+// ): number => {
+//   if (accuracyMetrics.length === 0) {
+//     return 53.9; // Default fallback
+//   }
+//
+//   const totalAccuracy = accuracyMetrics.reduce((sum, artifact) => {
+//     const accuracy = artifact.customProperties.overall_average?.double_value || 0;
+//     return sum + accuracy;
+//   }, 0);
+//
+//   return Math.round((totalAccuracy / accuracyMetrics.length) * 10) / 10; // Round to 1 decimal place
+// };
 
 export const extractValidatedModelMetrics = (
   performanceMetrics: CatalogPerformanceMetricsArtifact[],
@@ -59,7 +60,7 @@ export const extractValidatedModelMetrics = (
       };
 
   return {
-    accuracy: calculateAverageAccuracy(accuracyMetrics),
+    // accuracy: calculateAverageAccuracy(accuracyMetrics), // NOTE: overall_average is currently omitted from the API and will be restored
     ...performance,
   };
 };
