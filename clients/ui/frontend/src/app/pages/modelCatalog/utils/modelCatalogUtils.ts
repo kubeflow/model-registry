@@ -15,7 +15,10 @@ import {
   MetricsType,
 } from '~/app/modelCatalogTypes';
 import { getLabels } from '~/app/pages/modelRegistry/screens/utils';
-import { ModelCatalogStringFilterKey } from '~/concepts/modelCatalog/const';
+import {
+  ModelCatalogStringFilterKey,
+  ModelCatalogNumberFilterKey,
+} from '~/concepts/modelCatalog/const';
 
 export const extractVersionTag = (tags?: string[]): string | undefined =>
   tags?.find((tag) => /^\d+\.\d+\.\d+$/.test(tag));
@@ -144,6 +147,23 @@ export const useCatalogStringFilterState = (
   return { isSelected, setSelected };
 };
 
+export const useCatalogNumberFilterState = (
+  filterKey: ModelCatalogNumberFilterKey,
+): {
+  value: number | undefined;
+  setValue: (value: number | undefined) => void;
+} => {
+  const { filterData, setFilterData } = React.useContext(ModelCatalogContext);
+  const value = filterData[filterKey];
+  const setValue = React.useCallback(
+    (newValue: number | undefined) => {
+      setFilterData(filterKey, newValue);
+    },
+    [filterKey, setFilterData],
+  );
+  return { value, setValue };
+};
+
 const isArrayOfSelections = (
   filterOption: CatalogFilterOptions[keyof CatalogFilterOptions],
   data: unknown,
@@ -197,7 +217,7 @@ export const filtersToFilterQuery = (
         case 0:
           return '';
         case 1:
-          return `${filterId} = ${wrapInQuotes(data[0])}`;
+          return `${filterId}=${wrapInQuotes(data[0])}`;
         default:
           // 2 or more
           return `${filterId} IN (${data.map(wrapInQuotes).join(inSpacer)})`;
@@ -222,8 +242,8 @@ export const filtersToFilterQuery = (
 
   const nonEmptyFilters = serializedFilters.filter((v) => !!v);
 
-  // eg. filterQuery=rps_mean+>1+AND+license+IN+('mit','apache-2.0')+AND+ttft_mean+<+10
-  return nonEmptyFilters.length === 0 ? '' : `${nonEmptyFilters.join(' AND ')}`.replace(/\s/g, '+');
+  // eg. filterQuery=rps_mean >1 AND license IN ('mit','apache-2.0') AND ttft_mean < 10
+  return nonEmptyFilters.length === 0 ? '' : nonEmptyFilters.join(' AND ');
 };
 
 export const getUniqueSourceLabels = (catalogSources: CatalogSourceList | null): string[] => {

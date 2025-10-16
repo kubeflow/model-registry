@@ -231,3 +231,56 @@ func mapDataLayerToCatalogModel(modelCtx schema.Context, propertiesCtx []schema.
 
 	return catalogModel
 }
+
+// GetFilterableProperties returns property names and their unique values
+// Only includes properties where ALL values are shorter than maxLength
+func (r *CatalogModelRepositoryImpl) GetFilterableProperties(maxLength int) (map[string][]string, error) {
+	config := r.GetConfig()
+
+	// Get table names using GORM utilities for database compatibility
+	contextTable := utils.GetTableName(config.DB, &schema.Context{})
+	propertyTable := utils.GetTableName(config.DB, &schema.ContextProperty{})
+
+	// Simplified query: get distinct property name/value pairs
+	query := fmt.Sprintf(`
+		SELECT DISTINCT cp.name, cp.string_value
+		FROM %s cp
+		WHERE cp.context_id IN (
+			SELECT id FROM %s WHERE type_id = ?
+		)
+		AND cp.name IN (
+			SELECT name FROM (
+				SELECT name, MAX(CHAR_LENGTH(string_value)) as max_len
+				FROM %s
+				WHERE context_id IN (
+					SELECT id FROM %s WHERE type_id = ?
+				)
+				AND string_value IS NOT NULL
+				AND string_value != ''
+				GROUP BY name
+			) AS field_lengths
+			WHERE max_len <= ?
+		)
+		AND cp.string_value IS NOT NULL
+		AND cp.string_value != ''
+		ORDER BY cp.name, cp.string_value
+	`, propertyTable, contextTable, propertyTable, contextTable)
+
+	type propertyRow struct {
+		Name        string
+		StringValue string
+	}
+
+	var rows []propertyRow
+	if err := config.DB.Raw(query, config.TypeID, config.TypeID, maxLength).Scan(&rows).Error; err != nil {
+		return nil, fmt.Errorf("error querying filterable properties: %w", err)
+	}
+
+	// Aggregate values by property name in Go
+	result := make(map[string][]string)
+	for _, row := range rows {
+		result[row.Name] = append(result[row.Name], row.StringValue)
+	}
+
+	return result, nil
+}

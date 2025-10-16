@@ -42,11 +42,11 @@ func (m *ModelCatalogServiceAPIService) GetAllModelArtifacts(ctx context.Context
 	}
 
 	artifacts, err := m.provider.GetArtifacts(ctx, modelName, sourceID, catalog.ListArtifactsParams{
+		ArtifactType:  &artifactType,
 		PageSize:      pageSizeInt,
 		OrderBy:       orderBy,
 		SortOrder:     sortOrder,
 		NextPageToken: &nextPageToken,
-		ArtifactType:  &artifactType,
 	})
 	if err != nil {
 		statusCode := api.ErrToStatus(err)
@@ -64,7 +64,7 @@ func (m *ModelCatalogServiceAPIService) GetAllModelArtifacts(ctx context.Context
 	return Response(http.StatusOK, artifacts), nil
 }
 
-func (m *ModelCatalogServiceAPIService) FindModels(ctx context.Context, sourceIDs []string, q, filterQuery, pageSize string, orderBy model.OrderByField, sortOrder model.SortOrder, nextPageToken string) (ImplResponse, error) {
+func (m *ModelCatalogServiceAPIService) FindModels(ctx context.Context, sourceIDs []string, q string, sourceLabels []string, filterQuery string, pageSize string, orderBy model.OrderByField, sortOrder model.SortOrder, nextPageToken string) (ImplResponse, error) {
 	var err error
 	pageSizeInt := int32(10)
 
@@ -76,10 +76,23 @@ func (m *ModelCatalogServiceAPIService) FindModels(ctx context.Context, sourceID
 		pageSizeInt = int32(parsed)
 	}
 
+	if len(sourceIDs) == 1 && sourceIDs[0] == "" {
+		sourceIDs = nil
+	}
+	if len(sourceLabels) == 1 && sourceLabels[0] == "" {
+		sourceLabels = nil
+	}
+
+	if len(sourceIDs) > 0 && len(sourceLabels) > 0 {
+		err := fmt.Errorf("source and sourceLabel cannot be used together")
+		return Response(http.StatusBadRequest, err), err
+	}
+
 	listModelsParams := catalog.ListModelsParams{
 		Query:         q,
 		FilterQuery:   filterQuery,
 		SourceIDs:     sourceIDs,
+		SourceLabels:  sourceLabels,
 		PageSize:      pageSizeInt,
 		OrderBy:       orderBy,
 		SortOrder:     sortOrder,
@@ -92,6 +105,15 @@ func (m *ModelCatalogServiceAPIService) FindModels(ctx context.Context, sourceID
 	}
 
 	return Response(http.StatusOK, models), nil
+}
+
+func (m *ModelCatalogServiceAPIService) FindModelsFilterOptions(ctx context.Context) (ImplResponse, error) {
+	filterOptions, err := m.provider.GetFilterOptions(ctx)
+	if err != nil {
+		return ErrorResponse(http.StatusInternalServerError, err), err
+	}
+
+	return Response(http.StatusOK, filterOptions), nil
 }
 
 func (m *ModelCatalogServiceAPIService) GetModel(ctx context.Context, sourceID, modelName string) (ImplResponse, error) {

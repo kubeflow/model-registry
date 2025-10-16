@@ -22,6 +22,7 @@ import (
 // pass the data to a ModelCatalogServiceAPIServicer to perform the required actions, then write the service results to the http response.
 type ModelCatalogServiceAPIRouter interface {
 	FindModels(http.ResponseWriter, *http.Request)
+	FindModelsFilterOptions(http.ResponseWriter, *http.Request)
 	FindSources(http.ResponseWriter, *http.Request)
 	GetModel(http.ResponseWriter, *http.Request)
 	GetAllModelArtifacts(http.ResponseWriter, *http.Request)
@@ -32,7 +33,8 @@ type ModelCatalogServiceAPIRouter interface {
 // while the service implementation can be ignored with the .openapi-generator-ignore file
 // and updated with the logic required for the API.
 type ModelCatalogServiceAPIServicer interface {
-	FindModels(context.Context, []string, string, string, string, model.OrderByField, model.SortOrder, string) (ImplResponse, error)
+	FindModels(context.Context, []string, string, []string, string, string, model.OrderByField, model.SortOrder, string) (ImplResponse, error)
+	FindModelsFilterOptions(context.Context) (ImplResponse, error)
 	FindSources(context.Context, string, string, model.OrderByField, model.SortOrder, string) (ImplResponse, error)
 	GetModel(context.Context, string, string) (ImplResponse, error)
 	GetAllModelArtifacts(context.Context, string, string, string, string, model.OrderByField, model.SortOrder, string) (ImplResponse, error)

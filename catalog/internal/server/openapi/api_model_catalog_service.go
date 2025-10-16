@@ -57,6 +57,11 @@ func (c *ModelCatalogServiceAPIController) Routes() Routes {
 			"/api/model_catalog/v1alpha1/models",
 			c.FindModels,
 		},
+		"FindModelsFilterOptions": Route{
+			strings.ToUpper("Get"),
+			"/api/model_catalog/v1alpha1/models/filter_options",
+			c.FindModelsFilterOptions,
+		},
 		"FindSources": Route{
 			strings.ToUpper("Get"),
 			"/api/model_catalog/v1alpha1/sources",
@@ -80,12 +85,25 @@ func (c *ModelCatalogServiceAPIController) FindModels(w http.ResponseWriter, r *
 	query := r.URL.Query()
 	sourceParam := strings.Split(query.Get("source"), ",")
 	qParam := query.Get("q")
+	sourceLabelParam := strings.Split(query.Get("sourceLabel"), ",")
 	filterQueryParam := query.Get("filterQuery")
 	pageSizeParam := query.Get("pageSize")
 	orderByParam := query.Get("orderBy")
 	sortOrderParam := query.Get("sortOrder")
 	nextPageTokenParam := query.Get("nextPageToken")
-	result, err := c.service.FindModels(r.Context(), sourceParam, qParam, filterQueryParam, pageSizeParam, model.OrderByField(orderByParam), model.SortOrder(sortOrderParam), nextPageTokenParam)
+	result, err := c.service.FindModels(r.Context(), sourceParam, qParam, sourceLabelParam, filterQueryParam, pageSizeParam, model.OrderByField(orderByParam), model.SortOrder(sortOrderParam), nextPageTokenParam)
+	// If an error occurred, encode the error with the status code
+	if err != nil {
+		c.errorHandler(w, r, err, &result)
+		return
+	}
+	// If no error, encode the body and the result code
+	EncodeJSONResponse(result.Body, &result.Code, w)
+}
+
+// FindModelsFilterOptions - Lists fields and available options that can be used in `filterQuery` on the list models endpoint.
+func (c *ModelCatalogServiceAPIController) FindModelsFilterOptions(w http.ResponseWriter, r *http.Request) {
+	result, err := c.service.FindModelsFilterOptions(r.Context())
 	// If an error occurred, encode the error with the status code
 	if err != nil {
 		c.errorHandler(w, r, err, &result)

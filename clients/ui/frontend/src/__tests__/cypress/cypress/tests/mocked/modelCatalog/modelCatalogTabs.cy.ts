@@ -4,6 +4,8 @@ import {
   mockCatalogModelList,
   mockCatalogSource,
   mockCatalogSourceList,
+  mockNonValidatedModel,
+  mockValidatedModel,
 } from '~/__mocks__';
 import { mockCatalogPerformanceMetricsArtifactList } from '~/__mocks__/mockCatalogModelArtifactList';
 import { modelCatalog } from '~/__tests__/cypress/cypress/pages/modelCatalog';
@@ -13,24 +15,6 @@ import { MODEL_CATALOG_API_VERSION } from '~/__tests__/cypress/cypress/support/c
 import type { ModelRegistryCustomProperties } from '~/app/types';
 import { ModelRegistryMetadataType } from '~/app/types';
 import { mockCatalogFilterOptionsList } from '~/__mocks__/mockCatalogFilterOptionsList';
-
-// Mock models for testing
-export const mockValidatedModel = mockCatalogModel({
-  name: 'validated-model',
-  tasks: ['text-generation'],
-  customProperties: {
-    validated: {
-      metadataType: ModelRegistryMetadataType.STRING,
-      // eslint-disable-next-line camelcase
-      string_value: '',
-    },
-  },
-});
-
-export const mockNonValidatedModel = mockCatalogModel({
-  name: 'sample%20category%201-model-1',
-  tasks: ['text-generation'],
-});
 
 type HandlersProps = {
   sources?: CatalogSource[];
@@ -149,8 +133,8 @@ describe('Model Catalog Details Tabs', () => {
         modelCatalog.findLoadingState().should('not.exist');
         modelCatalog.findModelCatalogDetailLink().first().click();
 
-        // Tabs need scrollIntoView
-        modelCatalog.findModelDetailsTabs().scrollIntoView().should('be.visible');
+        // Verify tabs are present
+        modelCatalog.findModelDetailsTabs().should('be.visible');
         modelCatalog.findOverviewTab().should('be.visible');
         modelCatalog.findPerformanceInsightsTab().should('be.visible');
       });
@@ -160,8 +144,7 @@ describe('Model Catalog Details Tabs', () => {
 
         // Overview tab should be active and content should be visible
         modelCatalog.findOverviewTab().should('have.attr', 'aria-selected', 'true');
-        // Overview content needs scrollIntoView
-        modelCatalog.findOverviewTabContent().scrollIntoView().should('be.visible');
+        modelCatalog.findOverviewTabContent().should('be.visible');
         modelCatalog.findDetailsDescription().should('be.visible');
         cy.url().should('include', '/model-catalog/source-2/validated-model/overview');
       });
@@ -295,8 +278,8 @@ describe('Model Catalog Details Tabs', () => {
       modelCatalog.findOverviewTab().should('not.exist');
       modelCatalog.findPerformanceInsightsTab().should('not.exist');
 
-      // Overview content needs scrollIntoView
-      modelCatalog.findOverviewTabContent().scrollIntoView().should('be.visible');
+      // But overview content should still be visible
+      modelCatalog.findOverviewTabContent().should('be.visible');
       modelCatalog.findDetailsDescription().should('be.visible');
     });
   });

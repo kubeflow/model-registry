@@ -306,6 +306,7 @@ func TestFindModels(t *testing.T) {
 				context.Background(),
 				[]string{tc.sourceID},
 				tc.q,
+				[]string{""},
 				tc.filterQuery,
 				tc.pageSize,
 				tc.orderBy,
@@ -775,6 +776,11 @@ func (m *mockModelProvider) GetArtifacts(ctx context.Context, name string, sourc
 	}, nil
 }
 
+func (m *mockModelProvider) GetFilterOptions(ctx context.Context) (*model.FilterOptionsList, error) {
+	emptyFilters := make(map[string]model.FilterOption)
+	return &model.FilterOptionsList{Filters: &emptyFilters}, nil
+}
+
 func TestGetModel(t *testing.T) {
 	testCases := []struct {
 		name           string
@@ -998,6 +1004,47 @@ func TestGetAllModelArtifacts(t *testing.T) {
 			// Check the artifacts
 			assert.Equal(t, tc.expectedArtifacts, artifactList.Items)
 			assert.Equal(t, int32(len(tc.expectedArtifacts)), artifactList.Size)
+		})
+	}
+}
+
+func TestFindModelsFilterOptions(t *testing.T) {
+	testCases := []struct {
+		name           string
+		provider       catalog.APIProvider
+		expectedStatus int
+		expectedError  bool
+	}{
+		{
+			name: "Successfully retrieve filter options",
+			provider: &mockModelProvider{
+				models: map[string]*model.CatalogModel{},
+			},
+			expectedStatus: http.StatusOK,
+			expectedError:  false,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			sources := catalog.NewSourceCollection()
+			service := NewModelCatalogServiceAPIService(tc.provider, sources)
+
+			resp, err := service.FindModelsFilterOptions(context.Background())
+
+			assert.Equal(t, tc.expectedStatus, resp.Code)
+
+			if tc.expectedError {
+				assert.Error(t, err)
+				return
+			}
+			require.NotNil(t, resp.Body)
+
+			// Type assertion to access the FilterOptionsList
+			filterOptions, ok := resp.Body.(*model.FilterOptionsList)
+			require.True(t, ok, "Response body should be a FilterOptionsList")
+
+			require.NotNil(t, filterOptions.Filters)
 		})
 	}
 }

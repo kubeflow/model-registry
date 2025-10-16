@@ -1,11 +1,16 @@
-/* eslint-disable @typescript-eslint/consistent-type-assertions */
 import * as React from 'react';
 import { DashboardEmptyTableView, Table } from 'mod-arch-shared';
 import { Spinner } from '@patternfly/react-core';
 import { OuterScrollContainer } from '@patternfly/react-table';
 import { CatalogPerformanceMetricsArtifact } from '~/app/modelCatalogTypes';
+import { ModelCatalogContext } from '~/app/context/modelCatalog/ModelCatalogContext';
+import {
+  filterHardwareConfigurationArtifacts,
+  clearAllFilters,
+} from '~/app/pages/modelCatalog/utils/hardwareConfigurationFilterUtils';
 import { hardwareConfigColumns } from './HardwareConfigurationTableColumns';
 import HardwareConfigurationTableRow from './HardwareConfigurationTableRow';
+import HardwareConfigurationFilterToolbar from './HardwareConfigurationFilterToolbar';
 
 type HardwareConfigurationTableProps = {
   performanceArtifacts: CatalogPerformanceMetricsArtifact[];
@@ -16,14 +21,23 @@ const HardwareConfigurationTable: React.FC<HardwareConfigurationTableProps> = ({
   performanceArtifacts,
   isLoading = false,
 }) => {
+  const { filterData, setFilterData } = React.useContext(ModelCatalogContext);
+
+  // Apply filters to the artifacts
+  const filteredArtifacts = React.useMemo(
+    () => filterHardwareConfigurationArtifacts(performanceArtifacts, filterData),
+    [performanceArtifacts, filterData],
+  );
+
   if (isLoading) {
     return <Spinner size="lg" />;
   }
 
-  // TODO when we add filters - lift these out as props, reference what tables like RegisteredModelTable do
-  const toolbarContent = <>TODO filter toolbar goes here</>;
-  const clearFilters = () => {
-    // TODO
+  const toolbarContent = (
+    <HardwareConfigurationFilterToolbar performanceArtifacts={performanceArtifacts} />
+  );
+  const handleClearFilters = () => {
+    clearAllFilters(setFilterData);
   };
 
   return (
@@ -33,12 +47,12 @@ const HardwareConfigurationTable: React.FC<HardwareConfigurationTableProps> = ({
         variant="compact"
         isStickyHeader
         hasStickyColumns
-        data={performanceArtifacts}
+        data={filteredArtifacts}
         columns={hardwareConfigColumns}
         toolbarContent={toolbarContent}
-        onClearFilters={clearFilters}
+        onClearFilters={handleClearFilters}
         defaultSortColumn={0}
-        emptyTableView={<DashboardEmptyTableView onClearFilters={clearFilters} />}
+        emptyTableView={<DashboardEmptyTableView onClearFilters={handleClearFilters} />}
         rowRenderer={(artifact) => (
           <HardwareConfigurationTableRow
             key={`${artifact.customProperties.hardware?.string_value} ${artifact.customProperties.hardware_count?.int_value}`}

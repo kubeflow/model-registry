@@ -20,9 +20,9 @@ paths:
       parameters:
         - name: source
           description: |-
-            Filter models by source. This parameter can be specified multiple times
+            Filter models by source. Multiple values can be separated by commas
             to filter by multiple sources (OR logic). For example:
-            ?source=huggingface&source=local will return models from either
+            ?source=huggingface,local will return models from either
             huggingface OR local sources.
           schema:
             type: array
@@ -36,6 +36,18 @@ paths:
           description: Free-form keyword search used to filter the response.
           schema:
             type: string
+          in: query
+          required: false
+        - name: sourceLabel
+          description: |-
+            Filter models by the label associated with the source. Multiple
+            values can be separated by commas. If one of the values is the
+            string `null`, then models from every source without a label will
+            be returned.
+          schema:
+            type: array
+            items:
+              type: string
           in: query
           required: false
         - $ref: "#/components/parameters/filterQuery"
@@ -55,6 +67,22 @@ paths:
         "500":
           $ref: "#/components/responses/InternalServerError"
       operationId: findModels
+  /api/model_catalog/v1alpha1/models/filter_options:
+    description: Lists options for `filterQuery` when listing models.
+    get:
+      summary: Lists fields and available options that can be used in `filterQuery` on the list models endpoint.
+      tags:
+        - ModelCatalogService
+      responses:
+        "200":
+          $ref: "#/components/responses/FilterOptionsResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+      operationId: findModelsFilterOptions
   /api/model_catalog/v1alpha1/sources:
     summary: Path used to get the list of catalog sources.
     description: >-
@@ -422,6 +450,40 @@ components:
         message:
           description: Error message
           type: string
+    FilterOption:
+      type: object
+      required:
+        - type
+      properties:
+        type:
+          type: string
+          description: The data type of the filter option
+          enum:
+            - string
+            - number
+        values:
+          type: array
+          description: Known values of the property for string types with a small number of possible options.
+          items: {}
+        range:
+          $ref: "#/components/schemas/FilterOptionRange"
+    FilterOptionRange:
+      type: object
+      description: Min and max values for number types.
+      properties:
+        min:
+          type: number
+        max:
+          type: number
+    FilterOptionsList:
+      description: List of FilterOptions
+      type: object
+      properties:
+        filters:
+          type: object
+          description: A single filter option.
+          additionalProperties:
+            $ref: "#/components/schemas/FilterOption"
     MetadataBoolValue:
       description: A bool property value.
       type: object
@@ -586,6 +648,12 @@ components:
           schema:
             $ref: "#/components/schemas/Error"
       description: Conflict with current state of target resource
+    FilterOptionsResponse:
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/FilterOptionsList"
+      description: A response containing options for a `filterQuery` parameter.
     InternalServerError:
       content:
         application/json:

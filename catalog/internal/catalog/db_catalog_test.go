@@ -43,12 +43,19 @@ func TestDBCatalog(t *testing.T) {
 	modelArtifactRepo := service.NewCatalogModelArtifactRepository(sharedDB, modelArtifactTypeID)
 	metricsArtifactRepo := service.NewCatalogMetricsArtifactRepository(sharedDB, metricsArtifactTypeID)
 
+	svcs := service.NewServices(
+		catalogModelRepo,
+		catalogArtifactRepo,
+		modelArtifactRepo,
+		metricsArtifactRepo,
+	)
+
 	// Create DB catalog instance
-	dbCatalog := NewDBCatalog(catalogModelRepo, catalogArtifactRepo)
+	dbCatalog := NewDBCatalog(svcs, nil)
 	ctx := context.Background()
 
 	t.Run("TestNewDBCatalog", func(t *testing.T) {
-		catalog := NewDBCatalog(catalogModelRepo, catalogArtifactRepo)
+		catalog := NewDBCatalog(svcs, nil)
 		require.NotNil(t, catalog)
 
 		// Verify it implements the interface
@@ -793,6 +800,168 @@ func TestDBCatalog(t *testing.T) {
 			require.Error(t, err)
 			assert.Contains(t, err.Error(), "invalid model name")
 		})
+	})
+
+	t.Run("TestGetFilterOptions", func(t *testing.T) {
+		// Create models with various properties for filter options testing
+		model1 := &models.CatalogModelImpl{
+			TypeID: apiutils.Of(int32(catalogModelTypeID)),
+			Attributes: &models.CatalogModelAttributes{
+				Name:       apiutils.Of("filter-options-model-1"),
+				ExternalID: apiutils.Of("filter-opt-1"),
+			},
+			Properties: &[]mr_models.Properties{
+				{Name: "source_id", StringValue: apiutils.Of("filter-test-source")},
+				{Name: "license", StringValue: apiutils.Of("MIT")},
+				{Name: "provider", StringValue: apiutils.Of("HuggingFace")},
+				{Name: "maturity", StringValue: apiutils.Of("stable")},
+				{Name: "library_name", StringValue: apiutils.Of("transformers")},
+				{Name: "language", StringValue: apiutils.Of(`["python", "rust"]`)},
+				{Name: "tasks", StringValue: apiutils.Of(`["text-classification", "token-classification"]`)},
+			},
+		}
+
+		model2 := &models.CatalogModelImpl{
+			TypeID: apiutils.Of(int32(catalogModelTypeID)),
+			Attributes: &models.CatalogModelAttributes{
+				Name:       apiutils.Of("filter-options-model-2"),
+				ExternalID: apiutils.Of("filter-opt-2"),
+			},
+			Properties: &[]mr_models.Properties{
+				{Name: "source_id", StringValue: apiutils.Of("filter-test-source")},
+				{Name: "license", StringValue: apiutils.Of("Apache-2.0")},
+				{Name: "provider", StringValue: apiutils.Of("OpenAI")},
+				{Name: "maturity", StringValue: apiutils.Of("experimental")},
+				{Name: "library_name", StringValue: apiutils.Of("openai")},
+				{Name: "language", StringValue: apiutils.Of(`["python", "javascript"]`)},
+				{Name: "tasks", StringValue: apiutils.Of(`["text-generation", "conversational"]`)},
+				{Name: "readme", StringValue: apiutils.Of("This is a very long readme that exceeds 100 characters and should be excluded from filter options because it's too verbose for filtering purposes.")},
+			},
+		}
+
+		model3 := &models.CatalogModelImpl{
+			TypeID: apiutils.Of(int32(catalogModelTypeID)),
+			Attributes: &models.CatalogModelAttributes{
+				Name:       apiutils.Of("filter-options-model-3"),
+				ExternalID: apiutils.Of("filter-opt-3"),
+			},
+			Properties: &[]mr_models.Properties{
+				{Name: "source_id", StringValue: apiutils.Of("filter-test-source")},
+				{Name: "license", StringValue: apiutils.Of("MIT")},
+				{Name: "provider", StringValue: apiutils.Of("PyTorch")},
+				{Name: "maturity", StringValue: apiutils.Of("stable")},
+				{Name: "language", StringValue: apiutils.Of(`["python"]`)},
+				{Name: "tasks", StringValue: apiutils.Of(`["image-classification"]`)},
+				{Name: "logo", StringValue: apiutils.Of("https://example.com/logo.png")},
+				{Name: "license_link", StringValue: apiutils.Of("https://example.com/license")},
+			},
+		}
+
+		_, err := catalogModelRepo.Save(model1)
+		require.NoError(t, err)
+		_, err = catalogModelRepo.Save(model2)
+		require.NoError(t, err)
+		_, err = catalogModelRepo.Save(model3)
+		require.NoError(t, err)
+
+		// Test GetFilterOptions
+		filterOptions, err := dbCatalog.GetFilterOptions(ctx)
+		require.NoError(t, err)
+		require.NotNil(t, filterOptions)
+		require.NotNil(t, filterOptions.Filters)
+
+		filters := *filterOptions.Filters
+
+		// Should include short properties
+		assert.Contains(t, filters, "license")
+		assert.Contains(t, filters, "provider")
+		assert.Contains(t, filters, "maturity")
+		assert.Contains(t, filters, "library_name")
+		assert.Contains(t, filters, "language")
+		assert.Contains(t, filters, "tasks")
+
+		// Should exclude internal/verbose fields
+		assert.NotContains(t, filters, "source_id", "source_id should be excluded")
+		assert.NotContains(t, filters, "logo", "logo should be excluded")
+		assert.NotContains(t, filters, "license_link", "license_link should be excluded")
+		assert.NotContains(t, filters, "readme", "readme should be excluded (too long)")
+
+		licenseFilter := filters["license"]
+		assert.Equal(t, "string", licenseFilter.Type)
+		assert.NotNil(t, licenseFilter.Values)
+		assert.GreaterOrEqual(t, len(licenseFilter.Values), 2, "Should have at least MIT and Apache-2.0")
+
+		// Convert to string slice for easier checking
+		licenseValues := make([]string, 0)
+		for _, v := range licenseFilter.Values {
+			if strVal, ok := v.(string); ok {
+				licenseValues = append(licenseValues, strVal)
+			}
+		}
+		assert.Contains(t, licenseValues, "MIT")
+		assert.Contains(t, licenseValues, "Apache-2.0")
+
+		// Verify provider filter options
+		providerFilter := filters["provider"]
+		assert.Equal(t, "string", providerFilter.Type)
+		providerValues := make([]string, 0)
+		for _, v := range providerFilter.Values {
+			if strVal, ok := v.(string); ok {
+				providerValues = append(providerValues, strVal)
+			}
+		}
+		assert.Contains(t, providerValues, "HuggingFace")
+		assert.Contains(t, providerValues, "OpenAI")
+		assert.Contains(t, providerValues, "PyTorch")
+
+		// Verify JSON array fields are properly parsed and expanded
+		languageFilter := filters["language"]
+		assert.Equal(t, "string", languageFilter.Type)
+		languageValues := make([]string, 0)
+		for _, v := range languageFilter.Values {
+			if strVal, ok := v.(string); ok {
+				languageValues = append(languageValues, strVal)
+			}
+		}
+		// Should contain individual values from JSON arrays
+		assert.Contains(t, languageValues, "python")
+		assert.Contains(t, languageValues, "rust")
+		assert.Contains(t, languageValues, "javascript")
+
+		// Verify tasks are properly expanded
+		tasksFilter := filters["tasks"]
+		assert.Equal(t, "string", tasksFilter.Type)
+		tasksValues := make([]string, 0)
+		for _, v := range tasksFilter.Values {
+			if strVal, ok := v.(string); ok {
+				tasksValues = append(tasksValues, strVal)
+			}
+		}
+		assert.Contains(t, tasksValues, "text-classification")
+		assert.Contains(t, tasksValues, "token-classification")
+		assert.Contains(t, tasksValues, "text-generation")
+		assert.Contains(t, tasksValues, "conversational")
+		assert.Contains(t, tasksValues, "image-classification")
+
+		// Verify no duplicates
+		pythonCount := 0
+		for _, v := range languageValues {
+			if v == "python" {
+				pythonCount++
+			}
+		}
+		assert.Equal(t, 1, pythonCount, "python should appear only once (deduplicated)")
+
+		// Verify maturity options
+		maturityFilter := filters["maturity"]
+		maturityValues := make([]string, 0)
+		for _, v := range maturityFilter.Values {
+			if strVal, ok := v.(string); ok {
+				maturityValues = append(maturityValues, strVal)
+			}
+		}
+		assert.Contains(t, maturityValues, "stable")
+		assert.Contains(t, maturityValues, "experimental")
 	})
 }
 

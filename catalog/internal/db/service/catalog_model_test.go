@@ -337,6 +337,85 @@ func TestCatalogModelRepository(t *testing.T) {
 		require.NotNil(t, retrieved.GetCustomProperties())
 		assert.Len(t, *retrieved.GetCustomProperties(), 2)
 	})
+
+	t.Run("TestGetFilterableProperties", func(t *testing.T) {
+		// Create models with various property lengths
+		shortValueModel := &models.CatalogModelImpl{
+			Attributes: &models.CatalogModelAttributes{
+				Name:       apiutils.Of("short-value-model"),
+				ExternalID: apiutils.Of("short-ext"),
+			},
+			Properties: &[]dbmodels.Properties{
+				{Name: "license", StringValue: apiutils.Of("MIT")},
+				{Name: "provider", StringValue: apiutils.Of("HuggingFace")},
+				{Name: "maturity", StringValue: apiutils.Of("stable")},
+			},
+		}
+
+		longValueModel := &models.CatalogModelImpl{
+			Attributes: &models.CatalogModelAttributes{
+				Name:       apiutils.Of("long-value-model"),
+				ExternalID: apiutils.Of("long-ext"),
+			},
+			Properties: &[]dbmodels.Properties{
+				{Name: "license", StringValue: apiutils.Of("Apache-2.0")},
+				{Name: "readme", StringValue: apiutils.Of("This is a very long readme that should be excluded from filterable properties because it exceeds the maximum length threshold of 100 characters. It contains detailed information about the model.")},
+				{Name: "description", StringValue: apiutils.Of("This is also a very long description that should be excluded from filterable properties because it exceeds 100 chars")},
+			},
+		}
+
+		jsonArrayModel := &models.CatalogModelImpl{
+			Attributes: &models.CatalogModelAttributes{
+				Name:       apiutils.Of("json-array-model"),
+				ExternalID: apiutils.Of("json-ext"),
+			},
+			Properties: &[]dbmodels.Properties{
+				{Name: "language", StringValue: apiutils.Of(`["python", "go"]`)},
+				{Name: "tasks", StringValue: apiutils.Of(`["text-classification", "question-answering"]`)},
+			},
+		}
+
+		_, err := repo.Save(shortValueModel)
+		require.NoError(t, err)
+		_, err = repo.Save(longValueModel)
+		require.NoError(t, err)
+		_, err = repo.Save(jsonArrayModel)
+		require.NoError(t, err)
+
+		// Test with max length of 100
+		result, err := repo.GetFilterableProperties(100)
+		require.NoError(t, err)
+		require.NotNil(t, result)
+
+		// Should include short properties
+		assert.Contains(t, result, "license")
+		assert.Contains(t, result, "provider")
+		assert.Contains(t, result, "maturity")
+		assert.Contains(t, result, "language")
+		assert.Contains(t, result, "tasks")
+
+		// Should exclude long properties
+		assert.NotContains(t, result, "readme")
+		assert.NotContains(t, result, "description")
+
+		// Verify license has both values
+		licenseValues := result["license"]
+		assert.GreaterOrEqual(t, len(licenseValues), 2)
+		assert.Contains(t, licenseValues, "MIT")
+		assert.Contains(t, licenseValues, "Apache-2.0")
+
+		// Test with smaller max length
+		result, err = repo.GetFilterableProperties(10)
+		require.NoError(t, err)
+		require.NotNil(t, result)
+
+		// Should include only very short properties
+		assert.Contains(t, result, "license")
+		// Should exclude longer properties
+		assert.NotContains(t, result, "provider") // "HuggingFace" is > 10 chars
+		assert.NotContains(t, result, "language")
+		assert.NotContains(t, result, "tasks")
+	})
 }
 
 // Helper function to get or create CatalogModel type ID

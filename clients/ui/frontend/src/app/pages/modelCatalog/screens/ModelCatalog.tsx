@@ -46,7 +46,7 @@ const ModelCatalog: React.FC = () => {
 
   return (
     <>
-      <ScrollViewOnMount shouldScroll />
+      <ScrollViewOnMount shouldScroll scrollToTop />
       <ApplicationsPage
         title={<TitleWithIcon title="Model Catalog" objectType={ProjectObjectType.modelCatalog} />}
         description="Discover models that are available for your organization to register, deploy, and customize."

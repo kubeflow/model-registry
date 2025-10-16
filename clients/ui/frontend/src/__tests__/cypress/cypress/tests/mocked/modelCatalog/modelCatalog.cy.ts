@@ -113,24 +113,17 @@ describe('Model Catalog Page', () => {
     modelCatalog.findFilter('Language').should('be.visible');
   });
 
-  // Filter checkboxes need scrollIntoView
   it('filters show more and show less button should work', () => {
     initIntercepts({});
     modelCatalog.visit();
-    modelCatalog.findFilterShowMoreButton('Task').click();
-    modelCatalog
-      .findFilterCheckbox('Task', 'text-generation')
-      .scrollIntoView()
-      .should('be.visible');
-    modelCatalog.findFilterCheckbox('Task', 'text-to-text').scrollIntoView().should('be.visible');
-    modelCatalog.findFilterCheckbox('Task', 'image-to-text').scrollIntoView().should('be.visible');
-    modelCatalog
-      .findFilterCheckbox('Task', 'image-text-to-text')
-      .scrollIntoView()
-      .should('be.visible');
-    modelCatalog.findFilterCheckbox('Task', 'audio-to-text').scrollIntoView().should('be.visible');
-    modelCatalog.findFilterCheckbox('Task', 'video-to-text').scrollIntoView().should('be.visible');
-    modelCatalog.findFilterShowLessButton('Task').click();
+    modelCatalog.findFilterShowMoreButton('Task').click({ scrollBehavior: false });
+    modelCatalog.findFilterCheckbox('Task', 'text-generation').should('be.visible');
+    modelCatalog.findFilterCheckbox('Task', 'text-to-text').should('be.visible');
+    modelCatalog.findFilterCheckbox('Task', 'image-to-text').should('be.visible');
+    modelCatalog.findFilterCheckbox('Task', 'image-text-to-text').should('be.visible');
+    modelCatalog.findFilterCheckbox('Task', 'audio-to-text').should('be.visible');
+    modelCatalog.findFilterCheckbox('Task', 'video-to-text').should('be.visible');
+    modelCatalog.findFilterShowLessButton('Task').click({ scrollBehavior: false });
     modelCatalog.findFilterCheckbox('Task', 'audio-to-text').should('not.exist');
   });
 
@@ -169,7 +162,7 @@ describe('Model Catalog Page', () => {
     ]).then((interceptions) => {
       const lastInterception = interceptions[interceptions.length - 1];
       expect(lastInterception.request.url).to.include(
-        'tasks%2BIN%2B%28%27text-generation%27%2C%27text-to-text%27%29%2BAND%2Bprovider%2B%3D%2B%27Google%27',
+        'tasks+IN+%28%27text-generation%27%2C%27text-to-text%27%29+AND+provider%3D%27Google%27',
       );
     });
   });

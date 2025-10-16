@@ -19,6 +19,7 @@ import {
   hasFiltersApplied,
 } from '~/app/pages/modelCatalog/utils/modelCatalogUtils';
 import EmptyModelCatalogState from '~/app/pages/modelCatalog/EmptyModelCatalogState';
+import ScrollViewOnMount from '~/app/shared/components/ScrollViewOnMount';
 
 type ModelCatalogPageProps = {
   searchTerm: string;
@@ -95,6 +96,7 @@ const ModelCatalogGalleryView: React.FC<ModelCatalogPageProps> = ({
 
   return (
     <>
+      <ScrollViewOnMount shouldScroll scrollToTop />
       <Gallery hasGutter minWidths={{ default: '300px' }}>
         {catalogModels.items.map((model: CatalogModel) => (
           <ModelCatalogCard

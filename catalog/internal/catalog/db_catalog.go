@@ -5,9 +5,11 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"sort"
 	"strconv"
 
 	dbmodels "github.com/kubeflow/model-registry/catalog/internal/db/models"
+	"github.com/kubeflow/model-registry/catalog/internal/db/service"
 	apimodels "github.com/kubeflow/model-registry/catalog/pkg/openapi"
 	"github.com/kubeflow/model-registry/internal/converter"
 	mrmodels "github.com/kubeflow/model-registry/internal/db/models"
@@ -18,15 +20,14 @@ import (
 type dbCatalogImpl struct {
 	catalogModelRepository    dbmodels.CatalogModelRepository
 	catalogArtifactRepository dbmodels.CatalogArtifactRepository
+	sources                   *SourceCollection
 }
 
-func NewDBCatalog(
-	catalogModelRepository dbmodels.CatalogModelRepository,
-	catalogArtifactRepository dbmodels.CatalogArtifactRepository,
-) APIProvider {
+func NewDBCatalog(services service.Services, sources *SourceCollection) APIProvider {
 	return &dbCatalogImpl{
-		catalogArtifactRepository: catalogArtifactRepository,
-		catalogModelRepository:    catalogModelRepository,
+		catalogArtifactRepository: services.CatalogArtifactRepository,
+		catalogModelRepository:    services.CatalogModelRepository,
+		sources:                   sources,
 	}
 }
 
@@ -73,8 +74,25 @@ func (d *dbCatalogImpl) ListModels(ctx context.Context, params ListModelsParams)
 		queryPtr = &params.Query
 	}
 
+	sourceIDs := params.SourceIDs
+	if len(sourceIDs) == 0 && len(params.SourceLabels) > 0 {
+		sources := d.sources.ByLabel(params.SourceLabels)
+		if len(sources) == 0 {
+			// No matching sources, so no matching models.
+			return apimodels.CatalogModelList{
+				Items:    make([]apimodels.CatalogModel, 0),
+				PageSize: pageSize,
+			}, nil
+		}
+
+		sourceIDs = make([]string, len(sources))
+		for i, source := range sources {
+			sourceIDs[i] = source.Id
+		}
+	}
+
 	modelsList, err := d.catalogModelRepository.List(dbmodels.CatalogModelListOptions{
-		SourceIDs: &params.SourceIDs,
+		SourceIDs: &sourceIDs,
 		Query:     queryPtr,
 		Pagination: mrmodels.Pagination{
 			FilterQuery:   &params.FilterQuery,
@@ -89,7 +107,7 @@ func (d *dbCatalogImpl) ListModels(ctx context.Context, params ListModelsParams)
 	}
 
 	modelList := &apimodels.CatalogModelList{
-		Items: make([]apimodels.CatalogModel, 0),
+		Items: make([]apimodels.CatalogModel, 0, len(modelsList.Items)),
 	}
 
 	for _, model := range modelsList.Items {
@@ -165,6 +183,68 @@ func (d *dbCatalogImpl) GetArtifacts(ctx context.Context, modelName string, sour
 	artifactList.Size = int32(len(artifactList.Items))
 
 	return *artifactList, nil
+}
+
+func (d *dbCatalogImpl) GetFilterOptions(ctx context.Context) (*apimodels.FilterOptionsList, error) {
+	// Max length threshold for filter values (excludes verbose fields like readme, description)
+	const maxFilterValueLength = 100
+
+	// Query database for filterable properties
+	filterableProps, err := d.catalogModelRepository.GetFilterableProperties(maxFilterValueLength)
+	if err != nil {
+		return nil, err
+	}
+
+	// Build FilterOptionsList
+	options := make(map[string]apimodels.FilterOption, maxFilterValueLength)
+
+	// Process each property and its values
+	for fieldName, values := range filterableProps {
+		// Skip internal/technical fields that shouldn't be exposed as filters
+		if fieldName == "source_id" || fieldName == "logo" || fieldName == "license_link" {
+			continue
+		}
+
+		// Deduplicate values
+		uniqueValues := make(map[string]bool)
+
+		// Parse JSON arrays for fields like language and tasks
+		for _, value := range values {
+			var arrayValues []string
+			if err := json.Unmarshal([]byte(value), &arrayValues); err == nil {
+				// Successfully parsed as array, add individual values
+				for _, v := range arrayValues {
+					uniqueValues[v] = true
+				}
+			} else {
+				// Not a JSON array
+				uniqueValues[value] = true
+			}
+		}
+
+		if len(uniqueValues) > 0 {
+			sortedValues := make([]string, 0, len(uniqueValues))
+			for v := range uniqueValues {
+				sortedValues = append(sortedValues, v)
+			}
+			sort.Strings(sortedValues)
+
+			// Convert to []interface{} (supports future non-string filter types)
+			expandedValues := make([]interface{}, len(sortedValues))
+			for i, v := range sortedValues {
+				expandedValues[i] = v
+			}
+
+			options[fieldName] = apimodels.FilterOption{
+				Type:   "string",
+				Values: expandedValues,
+			}
+		}
+	}
+
+	return &apimodels.FilterOptionsList{
+		Filters: &options,
+	}, nil
 }
 
 func mapDBModelToAPIModel(m dbmodels.CatalogModel) apimodels.CatalogModel {
