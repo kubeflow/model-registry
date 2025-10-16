@@ -162,7 +162,7 @@ describe('Model Catalog Page', () => {
     ]).then((interceptions) => {
       const lastInterception = interceptions[interceptions.length - 1];
       expect(lastInterception.request.url).to.include(
-        'tasks+IN+%28%27text-generation%27%2C%27text-to-text%27%29+AND+provider%3D%27Google%27',
+        '%28tasks+LIKE+%27%25%22text-generation%22%25%27+OR+tasks+LIKE+%27%25%22text-to-text%22%25%27%29+AND+provider%3D%27Google%27',
       );
     });
   });

@@ -164,7 +164,7 @@ describe('filtersToFilterQuery', () => {
           mockFormData({ tasks: [ModelCatalogTask.TEXT_TO_TEXT] }),
           mockFilterOptions,
         ),
-      ).toBe("tasks='text-to-text'");
+      ).toBe('tasks LIKE \'%"text-to-text"%\'');
       expect(
         filtersToFilterQuery(
           mockFormData({ provider: [ModelCatalogProvider.GOOGLE] }),
@@ -179,7 +179,7 @@ describe('filtersToFilterQuery', () => {
       ).toBe("license='apache-2.0'");
       expect(
         filtersToFilterQuery(mockFormData({ language: [AllLanguageCode.CA] }), mockFilterOptions),
-      ).toBe("language='ca'");
+      ).toBe('language LIKE \'%"ca"%\'');
     });
 
     it('handles multiple arrays of a single data point', () => {
@@ -191,13 +191,13 @@ describe('filtersToFilterQuery', () => {
           }),
           mockFilterOptions,
         ),
-      ).toBe("tasks='text-to-text' AND license='apache-2.0'");
+      ).toBe("tasks LIKE '%\"text-to-text\"%' AND license='apache-2.0'");
       expect(
         filtersToFilterQuery(
           mockFormData({ provider: [ModelCatalogProvider.GOOGLE], language: [AllLanguageCode.CA] }),
           mockFilterOptions,
         ),
-      ).toBe("provider='Google' AND language='ca'");
+      ).toBe("provider='Google' AND language LIKE '%\"ca\"%'");
     });
 
     it('handles a single array with multiple data points', () => {
@@ -206,7 +206,7 @@ describe('filtersToFilterQuery', () => {
           mockFormData({ tasks: [ModelCatalogTask.TEXT_TO_TEXT, ModelCatalogTask.IMAGE_TO_TEXT] }),
           mockFilterOptions,
         ),
-      ).toBe("tasks IN ('text-to-text','image-to-text')");
+      ).toBe('(tasks LIKE \'%"text-to-text"%\' OR tasks LIKE \'%"image-to-text"%\')');
       expect(
         filtersToFilterQuery(
           mockFormData({ provider: [ModelCatalogProvider.GOOGLE, ModelCatalogProvider.DEEPSEEK] }),
@@ -224,7 +224,7 @@ describe('filtersToFilterQuery', () => {
           mockFormData({ language: [AllLanguageCode.CA, AllLanguageCode.PT] }),
           mockFilterOptions,
         ),
-      ).toBe("language IN ('ca','pt')");
+      ).toBe('(language LIKE \'%"ca"%\' OR language LIKE \'%"pt"%\')');
     });
 
     it('handles multiple arrays with mixed count of data points', () => {
@@ -244,7 +244,7 @@ describe('filtersToFilterQuery', () => {
           mockFilterOptions,
         ),
       ).toBe(
-        "tasks IN ('text-to-text','image-to-text') AND provider='Google' AND license='mit' AND language IN ('ca','pt','vi','zsm')",
+        "(tasks LIKE '%\"text-to-text\"%' OR tasks LIKE '%\"image-to-text\"%') AND provider='Google' AND license='mit' AND (language LIKE '%\"ca\"%' OR language LIKE '%\"pt\"%' OR language LIKE '%\"vi\"%' OR language LIKE '%\"zsm\"%')",
       );
     });
   });
