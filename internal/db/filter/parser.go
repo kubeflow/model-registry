@@ -15,6 +15,7 @@ const (
 	DoubleValueType = "double_value"
 	IntValueType    = "int_value"
 	BoolValueType   = "bool_value"
+	ArrayValueType  = "array_value"
 )
 
 // Define the lexer for SQL WHERE clauses
@@ -42,7 +43,7 @@ func initParser() {
 		participle.Lexer(sqlLexer),
 		participle.Elide("whitespace", "Comment"),
 		participle.CaseInsensitive("OR", "AND", "LIKE", "ILIKE", "IN", "true", "false", "TRUE", "FALSE"),
-		participle.CaseInsensitive(StringValueType, DoubleValueType, IntValueType, BoolValueType),
+		participle.CaseInsensitive(StringValueType, DoubleValueType, IntValueType, BoolValueType, ArrayValueType),
 	)
 }
 
@@ -132,7 +133,7 @@ type FilterExpression struct {
 type PropertyReference struct {
 	Name      string
 	IsCustom  bool
-	ValueType string // StringValueType, DoubleValueType, IntValueType, BoolValueType
+	ValueType string // StringValueType, DoubleValueType, IntValueType, BoolValueType, ArrayValueType
 	IsEscaped bool   // whether the property name was escaped with backticks
 }
 
