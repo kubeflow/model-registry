@@ -8,7 +8,7 @@ approvers:
   - tarilabs
   - Tomcli
   - zijianjoy
-  - pboyd
 reviewers:
-  - andreyvelich
   - Al-Pragliola
+  - andreyvelich
+  - pboyd
