@@ -545,15 +545,25 @@ def test_create_model_integration(
     assert created_rm, f"RegisteredModel '{config_model_name}' was not created"
     print(f"✅ RegisteredModel created: {created_rm.name} (ID: {created_rm.id})")
 
+    assert created_rm.custom_properties == json.loads(configmap_data["RegisteredModel.custom_properties"])
+    print(f"✅ RegisteredModel custom properties validated: {created_rm.custom_properties}")
+
     created_mv = model_registry_client.get_model_version(config_model_name, "v1.0.0")
     assert created_mv, "ModelVersion 'v1.0.0' was not created"
     print(f"✅ ModelVersion created: {created_mv.name} (ID: {created_mv.id})")
+
+    assert created_mv.custom_properties == json.loads(configmap_data["ModelVersion.custom_properties"])
+    print(f"✅ ModelVersion custom properties validated: {created_mv.custom_properties}")
 
     created_ma = model_registry_client.get_model_artifact(config_model_name, "v1.0.0")
     assert created_ma, "ModelArtifact was not created"
     assert created_ma.state == ArtifactState.LIVE, f"Artifact state should be LIVE: {created_ma.state}"
     print(f"✅ ModelArtifact created: {created_ma.name} (ID: {created_ma.id})")
     print(f"✅ Artifact URI: {created_ma.uri}")
+
+    assert created_ma.custom_properties == json.loads(configmap_data["ModelArtifact.custom_properties"])
+    print(f"✅ ModelArtifact custom properties validated: {created_ma.custom_properties}")
+
     print("Integration test completed successfully!")
 
 
@@ -602,9 +612,16 @@ def test_create_version_integration(
     assert created_mv, "ModelVersion 'v1.0.0' was not created"
     print(f"✅ ModelVersion created: {created_mv.name} (ID: {created_mv.id})")
 
+    assert created_mv.custom_properties == json.loads(configmap_data["ModelVersion.custom_properties"])
+    print(f"✅ ModelVersion custom properties validated: {created_mv.custom_properties}")
+
     created_ma = model_registry_client.get_model_artifact(unique_model_name, "v1.0.0")
     assert created_ma, "ModelArtifact was not created"
     assert created_ma.state == ArtifactState.LIVE, f"Artifact state should be LIVE: {created_ma.state}"
     print(f"✅ ModelArtifact created: {created_ma.name} (ID: {created_ma.id})")
     print(f"✅ Artifact URI: {created_ma.uri}")
+
+    assert created_ma.custom_properties == json.loads(configmap_data["ModelArtifact.custom_properties"])
+    print(f"✅ ModelArtifact custom properties validated: {created_ma.custom_properties}")
+
     print("Integration test completed successfully!")
