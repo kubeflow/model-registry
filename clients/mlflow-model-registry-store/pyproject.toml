@@ -1,0 +1,29 @@
+[project]
+name = "mlflow-model-registry-store"
+version = "0.1.0"
+description = "MLflow plugin for Model Registry backend store"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "mlflow>=2.0.0",
+    "model-registry",
+]
+
+[project.entry-points."mlflow.model_registry_store"]
+modelregistry = "mlflow_model_registry_store.store:ModelRegistryStore"
+"modelregistry+http" = "mlflow_model_registry_store.store:ModelRegistryStore"
+"modelregistry+https" = "mlflow_model_registry_store.store:ModelRegistryStore"
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=6.0.0",
+    "pytest-asyncio",
+]
+demo = [
+    "numpy>=2.2.6",
+    "scikit-learn>=1.7.2",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
