@@ -2,6 +2,7 @@ package catalog
 
 import (
 	"bufio"
+	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
@@ -92,7 +93,9 @@ type performanceRecord struct {
 func (pr *performanceRecord) UnmarshalJSON(data []byte) error {
 	// First unmarshal into a generic map to get all fields
 	var raw map[string]interface{}
-	if err := json.Unmarshal(data, &raw); err != nil {
+	decoder := json.NewDecoder(bytes.NewReader(data))
+	decoder.UseNumber()
+	if err := decoder.Decode(&raw); err != nil {
 		return err
 	}
 
@@ -579,13 +582,22 @@ func createPerformanceArtifact(perfRecord performanceRecord, modelID int32, type
 		case float64:
 			prop.DoubleValue = &v
 		case int64:
-			intVal := int32(v)
-			prop.IntValue = &intVal
+			prop.SetInt64Value(v)
 		case int:
 			intVal := int32(v)
 			prop.IntValue = &intVal
 		case bool:
 			prop.BoolValue = &v
+		case json.Number:
+			if n, err := v.Int64(); err == nil {
+				prop.SetInt64Value(n)
+			} else if f, err := v.Float64(); err == nil {
+				prop.DoubleValue = &f
+			} else {
+				// This shouldn't happen, but convert it to a string if it does.
+				strVal := v.String()
+				prop.StringValue = &strVal
+			}
 		default:
 			// Convert other types to string representation
 			strVal := fmt.Sprintf("%v", v)
