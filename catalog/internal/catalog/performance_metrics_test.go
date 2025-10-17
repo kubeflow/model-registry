@@ -1,6 +1,7 @@
 package catalog
 
 import (
+	"encoding/json"
 	"testing"
 )
 
@@ -637,6 +638,21 @@ func TestPerformanceRecordUnmarshalJSON(t *testing.T) {
 						t.Errorf("CustomProperties missing key %v", key)
 						continue
 					}
+
+					// Translate json.Number values
+					if jsonNumber, ok := gotValue.(json.Number); ok {
+						var newValue any
+						switch wantValue.(type) {
+						case float64:
+							newValue, err = jsonNumber.Float64()
+						case int, int32, int64:
+							newValue, err = jsonNumber.Int64()
+						}
+						if err == nil {
+							gotValue = newValue
+						}
+					}
+
 					if gotValue != wantValue {
 						t.Errorf("CustomProperties[%v] = %v (type %T), want %v (type %T)",
 							key, gotValue, gotValue, wantValue, wantValue)
@@ -694,7 +710,7 @@ func TestPerformanceRecordUnmarshalJSON_CoreFieldsInCustomProperties(t *testing.
 	if pr.CustomProperties["model_id"] != "test-model" {
 		t.Errorf("CustomProperties[model_id] = %v, want %v", pr.CustomProperties["model_id"], "test-model")
 	}
-	if pr.CustomProperties["throughput"] != 1000.0 {
+	if v, _ := pr.CustomProperties["throughput"].(json.Number).Float64(); v != 1000.0 {
 		t.Errorf("CustomProperties[throughput] = %v, want %v", pr.CustomProperties["throughput"], 1000.0)
 	}
 }

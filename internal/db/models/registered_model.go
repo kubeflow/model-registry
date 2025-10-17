@@ -1,6 +1,10 @@
 package models
 
-import "github.com/kubeflow/model-registry/internal/db/filter"
+import (
+	"math"
+
+	"github.com/kubeflow/model-registry/internal/db/filter"
+)
 
 type RegisteredModelListOptions struct {
 	Pagination
@@ -22,6 +26,15 @@ type Properties struct {
 	BoolValue        *bool
 	ByteValue        *[]byte
 	ProtoValue       *[]byte
+}
+
+func (p *Properties) SetInt64Value(n int64) {
+	if n >= math.MinInt32 && n <= math.MaxInt32 {
+		n32 := int32(n)
+		p.IntValue = &n32
+	} else {
+		p.IntValue = nil
+	}
 }
 
 // Constructor functions for Properties
