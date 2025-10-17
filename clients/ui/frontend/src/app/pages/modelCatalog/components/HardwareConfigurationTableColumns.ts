@@ -7,7 +7,7 @@ import {
   getHardwareConfiguration,
   getTotalRps,
 } from '~/app/pages/modelCatalog/utils/performanceMetricsUtils';
-import { getDoubleValue, getIntValue, getStringValue } from '~/app/utils';
+import { getDoubleValue, getStringValue } from '~/app/utils';
 
 export type HardwareConfigColumnField = keyof PerformanceMetricsCustomProperties | 'total_rps';
 
@@ -30,21 +30,7 @@ export const hardwareConfigColumns: HardwareConfigColumn[] = [
     isStickyColumn: true,
     stickyMinWidth: '162px',
     stickyLeftOffset: '0',
-    modifier: 'wrap',
-  },
-  {
-    field: 'hardware_count',
-    label: 'Total Hardware',
-    sortable: (
-      a: CatalogPerformanceMetricsArtifact,
-      b: CatalogPerformanceMetricsArtifact,
-    ): number =>
-      getIntValue(a.customProperties, 'hardware_count') -
-      getIntValue(b.customProperties, 'hardware_count'),
-    isStickyColumn: true,
     hasRightBorder: true,
-    stickyMinWidth: '130px',
-    stickyLeftOffset: '162px',
     modifier: 'wrap',
   },
   {
