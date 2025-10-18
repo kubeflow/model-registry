@@ -45,6 +45,7 @@ spec:
           failureThreshold: 3
         resources:
           limits:
+            cpu: 1000m
             memory: 2Gi
           requests:
             cpu: 500m
@@ -53,6 +54,7 @@ spec:
           - containerPort: 8080
         args:
           - "--port=8080"
+          - "--auth-method=internal"
         securityContext:
           allowPrivilegeEscalation: false
           capabilities:
