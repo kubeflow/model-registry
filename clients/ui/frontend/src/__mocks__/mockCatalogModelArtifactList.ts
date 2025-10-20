@@ -57,7 +57,7 @@ export const mockCatalogPerformanceMetricsArtifact = (
       metadataType: ModelRegistryMetadataType.INT,
       int_value: '2',
     },
-    hardware: {
+    hardware_type: {
       metadataType: ModelRegistryMetadataType.STRING,
       string_value: 'H100-80',
     },

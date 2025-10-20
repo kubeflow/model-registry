@@ -10,11 +10,13 @@ import (
 )
 
 const sourcesPath = "/sources"
+const filterOptionPath = "/models/filter_options"
 
 type CatalogSourcesInterface interface {
 	GetAllCatalogSources(client httpclient.HTTPClientInterface, pageValues url.Values) (*models.CatalogSourceList, error)
 	GetCatalogSourceModel(client httpclient.HTTPClientInterface, sourceId string, modelName string) (*models.CatalogModel, error)
 	GetCatalogModelArtifacts(client httpclient.HTTPClientInterface, sourceId string, modelName string) (*models.CatalogModelArtifactList, error)
+	GetCatalogFilterOptions(client httpclient.HTTPClientInterface) (*models.FilterOptionsList, error)
 }
 
 type CatalogSources struct {
@@ -72,4 +74,20 @@ func (a CatalogSources) GetCatalogModelArtifacts(client httpclient.HTTPClientInt
 		return nil, fmt.Errorf("error decoding response data: %w", err)
 	}
 	return &catalogModelArtifacts, nil
+}
+
+func (a CatalogSources) GetCatalogFilterOptions(client httpclient.HTTPClientInterface) (*models.FilterOptionsList, error) {
+	responseData, err := client.GET(filterOptionPath)
+
+	if err != nil {
+		return nil, fmt.Errorf("error fetching sourcesPath: %w", err)
+	}
+
+	var sources models.FilterOptionsList
+
+	if err := json.Unmarshal(responseData, &sources); err != nil {
+		return nil, fmt.Errorf("error decoding response data: %w", err)
+	}
+
+	return &sources, nil
 }

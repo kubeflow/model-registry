@@ -29,6 +29,15 @@ func FilterPageValues(values url.Values) url.Values {
 	if v := values.Get("source"); v != "" {
 		result.Set("source", v)
 	}
+	if v := values.Get("sourceLabel"); v != "" {
+		result.Set("sourceLabel", v)
+	}
+	if v := values.Get("filterQuery"); v != "" {
+		result.Set("filterQuery", v)
+	}
+	if v := values.Get("artifactType"); v != "" {
+		result.Set("artifactType", v)
+	}
 
 	return result
 }

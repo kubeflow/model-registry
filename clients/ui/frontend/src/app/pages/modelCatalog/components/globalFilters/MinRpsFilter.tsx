@@ -32,9 +32,13 @@ const MinRpsFilter: React.FC<MinRpsFilterProps> = ({ performanceArtifacts }) => 
   // Parse saved value if it exists
   const hasActiveFilter = rpsFilterValue !== undefined;
 
-  const getDisplayText = (): string => {
+  const getDisplayText = (): React.ReactNode => {
     if (hasActiveFilter) {
-      return `Min RPS: ${rpsFilterValue}`;
+      return (
+        <>
+          <strong>Min RPS:</strong> {rpsFilterValue}
+        </>
+      );
     }
     return 'Min RPS';
   };

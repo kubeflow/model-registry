@@ -987,7 +987,7 @@ func performanceMetricsCustomProperties(customProperties map[string]openapi.Meta
 				MetadataType: "MetadataDoubleValue",
 			},
 		},
-		"hardware": {
+		"hardware_type": {
 			MetadataStringValue: &openapi.MetadataStringValue{
 				StringValue:  "H100",
 				MetadataType: "MetadataStringValue",
@@ -1079,7 +1079,7 @@ func GetCatalogPerformanceMetricsArtifactMock(itemCount int32) []models.CatalogA
 			CreateTimeSinceEpoch:     stringToPointer("1693526400000"),
 			LastUpdateTimeSinceEpoch: stringToPointer("1704067200000"),
 			CustomProperties: performanceMetricsCustomProperties(map[string]openapi.MetadataValue{
-				"hardware": {
+				"hardware_type": {
 					MetadataStringValue: &openapi.MetadataStringValue{
 						StringValue:  "RTX 4090",
 						MetadataType: "MetadataStringValue",
@@ -1111,7 +1111,7 @@ func GetCatalogPerformanceMetricsArtifactMock(itemCount int32) []models.CatalogA
 			CreateTimeSinceEpoch:     stringToPointer("1693526400000"),
 			LastUpdateTimeSinceEpoch: stringToPointer("1704067200000"),
 			CustomProperties: performanceMetricsCustomProperties(map[string]openapi.MetadataValue{
-				"hardware": {
+				"hardware_type": {
 					MetadataStringValue: &openapi.MetadataStringValue{
 						StringValue:  "A100",
 						MetadataType: "MetadataStringValue",
@@ -1201,7 +1201,7 @@ const (
 	FilterOptionTypeNumber models.FilterOptionType = "number"
 )
 
-func int64Ptr(i int64) *int64 {
+func float32Ptr(i float32) *float32 {
 	return &i
 }
 
@@ -1210,14 +1210,14 @@ func GetFilterOptionMocks() map[string]models.FilterOption {
 
 	filterOptions["provider"] = models.FilterOption{
 		Type: FilterOptionTypeString,
-		Values: &[]interface{}{
+		Values: []interface{}{
 			"Red Hat", "IBM", "Google",
 		},
 	}
 
 	filterOptions["license"] = models.FilterOption{
 		Type: FilterOptionTypeString,
-		Values: &[]interface{}{
+		Values: []interface{}{
 			"apache-2.0",
 			"mit",
 		},
@@ -1225,7 +1225,7 @@ func GetFilterOptionMocks() map[string]models.FilterOption {
 
 	filterOptions["tasks"] = models.FilterOption{
 		Type: FilterOptionTypeString,
-		Values: &[]interface{}{
+		Values: []interface{}{
 			"audio-to-text", "image-to-text", "image-text-to-text", "text-generation", "text-to-text", "video-to-text",
 		},
 	}
@@ -1233,7 +1233,7 @@ func GetFilterOptionMocks() map[string]models.FilterOption {
 	// String type filter for programming languages supported
 	filterOptions["language"] = models.FilterOption{
 		Type: FilterOptionTypeString,
-		Values: &[]interface{}{
+		Values: []interface{}{
 			"ar", "cs", "de", "en", "es", "fr", "it", "ja", "ko", "nl", "pt", "zh",
 		},
 	}
@@ -1241,8 +1241,8 @@ func GetFilterOptionMocks() map[string]models.FilterOption {
 	filterOptions["ttft_mean"] = models.FilterOption{
 		Type: FilterOptionTypeNumber,
 		Range: &models.FilterRange{
-			Min: int64Ptr(1),
-			Max: int64Ptr(100),
+			Min: float32Ptr(1),
+			Max: float32Ptr(100),
 		},
 	}
 

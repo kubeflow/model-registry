@@ -321,6 +321,12 @@ curl -i -H "Authorization: Bearer $TOKEN" "http://localhost:4000/api/v1/model_ca
 ```
 
 ```
+# GET /api/v1/model_catalog/models/filter_options
+curl -i -H "kubeflow-userid: user@example.com" "http://localhost:4000/api/v1/model_catalog/models/filter_options?namespace=kubeflow"
+curl -i -H "Authorization: Bearer $TOKEN" "http://localhost:4000/api/v1/model_catalog/models/filter_options?namespace=kubeflow"
+```
+
+```
 # GET /api/v1/model_catalog/sources with name filter
 curl -i -H "kubeflow-userid: user@example.com" "http://localhost:4000/api/v1/model_catalog/sources?namespace=kubeflow&name=sample-source"
 curl -i -H "Authorization: Bearer $TOKEN" "http://localhost:4000/api/v1/model_catalog/sources?namespace=kubeflow&name=sample-source"

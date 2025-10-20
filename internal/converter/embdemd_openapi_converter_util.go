@@ -7,6 +7,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/golang/glog"
 	"github.com/kubeflow/model-registry/internal/apiutils"
 	"github.com/kubeflow/model-registry/internal/db/models"
 	"github.com/kubeflow/model-registry/pkg/api"
@@ -59,7 +60,8 @@ func MapEmbedMDCustomProperties(source []models.Properties) (map[string]openapi.
 			b64 := base64.StdEncoding.EncodeToString(asJSON)
 			customValue.MetadataStructValue = NewMetadataStructValue(b64)
 		} else {
-			return nil, fmt.Errorf("%w: metadataType not found for %s: %v", api.ErrBadRequest, v.Name, v)
+			glog.Warningf("metadataType not found for %s: %v", v.Name, v)
+			continue
 		}
 
 		data[v.Name] = customValue

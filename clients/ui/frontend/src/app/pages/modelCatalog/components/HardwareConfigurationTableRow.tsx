@@ -24,7 +24,7 @@ const HardwareConfigurationTableRow: React.FC<HardwareConfigurationTableRowProps
     const { customProperties } = performanceArtifact;
 
     switch (field) {
-      case 'hardware':
+      case 'hardware_type':
         return getHardwareConfiguration(performanceArtifact);
       case 'hardware_count':
         return getIntValue(customProperties, 'hardware_count');
@@ -49,8 +49,6 @@ const HardwareConfigurationTableRow: React.FC<HardwareConfigurationTableRowProps
       case 'itl_p95':
       case 'itl_p99':
         return formatLatency(getDoubleValue(customProperties, field));
-      case 'max_input_tokens':
-      case 'max_output_tokens':
       case 'mean_input_tokens':
       case 'mean_output_tokens':
         return formatTokenValue(getDoubleValue(customProperties, field));

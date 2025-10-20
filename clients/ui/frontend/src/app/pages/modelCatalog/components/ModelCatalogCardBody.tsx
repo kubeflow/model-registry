@@ -4,7 +4,7 @@ import {
   Button,
   Content,
   ContentVariants,
-  Divider,
+  // Divider, // NOTE: overall_average is currently omitted from the API and will be restored
   Flex,
   List,
   ListItem,
@@ -14,7 +14,11 @@ import {
   StackItem,
 } from '@patternfly/react-core';
 import { Link } from 'react-router-dom';
-import { MonitoringIcon, HelpIcon, AngleLeftIcon, AngleRightIcon } from '@patternfly/react-icons';
+import {
+  /* MonitoringIcon, */ HelpIcon,
+  AngleLeftIcon,
+  AngleRightIcon,
+} from '@patternfly/react-icons'; // NOTE: MonitoringIcon - overall_average is currently omitted from the API and will be restored
 import {
   CatalogModel,
   CatalogSource,
@@ -90,6 +94,7 @@ const ModelCatalogCardBody: React.FC<ModelCatalogCardBodyProps> = ({
 
     return (
       <Stack hasGutter>
+        {/* NOTE: overall_average is currently omitted from the API and will be restored
         <StackItem>
           <Flex
             alignItems={{ default: 'alignItemsCenter' }}
@@ -125,12 +130,13 @@ const ModelCatalogCardBody: React.FC<ModelCatalogCardBodyProps> = ({
         </StackItem>
 
         <Divider />
+        */}
 
         <StackItem>
           <Flex justifyContent={{ default: 'justifyContentSpaceBetween' }}>
             <Flex direction={{ default: 'column' }}>
               <span className="pf-v6-u-font-weight-bold" data-testid="validated-model-hardware">
-                {metrics.hardwareCount}x{metrics.hardware}
+                {metrics.hardwareCount}x{metrics.hardwareType}
               </span>
               <Content component={ContentVariants.small}>Hardware</Content>
             </Flex>

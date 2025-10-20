@@ -7,7 +7,7 @@ import {
   getHardwareConfiguration,
   getTotalRps,
 } from '~/app/pages/modelCatalog/utils/performanceMetricsUtils';
-import { getDoubleValue, getIntValue, getStringValue } from '~/app/utils';
+import { getDoubleValue, getStringValue } from '~/app/utils';
 
 export type HardwareConfigColumnField = keyof PerformanceMetricsCustomProperties | 'total_rps';
 
@@ -21,7 +21,7 @@ export type HardwareConfigColumn = Omit<
 // This character is ideally represented by the HTML entity &nbsp; but these strings can't contain HTML entities.
 export const hardwareConfigColumns: HardwareConfigColumn[] = [
   {
-    field: 'hardware',
+    field: 'hardware_type',
     label: 'Hardware Configuration',
     sortable: (
       a: CatalogPerformanceMetricsArtifact,
@@ -30,21 +30,7 @@ export const hardwareConfigColumns: HardwareConfigColumn[] = [
     isStickyColumn: true,
     stickyMinWidth: '162px',
     stickyLeftOffset: '0',
-    modifier: 'wrap',
-  },
-  {
-    field: 'hardware_count',
-    label: 'Total Hardware',
-    sortable: (
-      a: CatalogPerformanceMetricsArtifact,
-      b: CatalogPerformanceMetricsArtifact,
-    ): number =>
-      getIntValue(a.customProperties, 'hardware_count') -
-      getIntValue(b.customProperties, 'hardware_count'),
-    isStickyColumn: true,
     hasRightBorder: true,
-    stickyMinWidth: '130px',
-    stickyLeftOffset: '162px',
     modifier: 'wrap',
   },
   {
@@ -253,30 +239,6 @@ export const hardwareConfigColumns: HardwareConfigColumn[] = [
     modifier: 'wrap',
   },
   {
-    field: 'max_input_tokens',
-    label: 'Max Input Tokens',
-    sortable: (
-      a: CatalogPerformanceMetricsArtifact,
-      b: CatalogPerformanceMetricsArtifact,
-    ): number =>
-      getDoubleValue(a.customProperties, 'max_input_tokens') -
-      getDoubleValue(b.customProperties, 'max_input_tokens'),
-    width: 20,
-    modifier: 'wrap',
-  },
-  {
-    field: 'max_output_tokens',
-    label: 'Max Output Tokens',
-    sortable: (
-      a: CatalogPerformanceMetricsArtifact,
-      b: CatalogPerformanceMetricsArtifact,
-    ): number =>
-      getDoubleValue(a.customProperties, 'max_output_tokens') -
-      getDoubleValue(b.customProperties, 'max_output_tokens'),
-    width: 20,
-    modifier: 'wrap',
-  },
-  {
     field: 'mean_input_tokens',
     label: 'Mean Input Tokens',
     sortable: (
@@ -297,6 +259,20 @@ export const hardwareConfigColumns: HardwareConfigColumn[] = [
     ): number =>
       getDoubleValue(a.customProperties, 'mean_output_tokens') -
       getDoubleValue(b.customProperties, 'mean_output_tokens'),
+    width: 20,
+    modifier: 'wrap',
+  },
+  {
+    field: 'use_case',
+    label: 'Use Case',
+    sortable: (
+      a: CatalogPerformanceMetricsArtifact,
+      b: CatalogPerformanceMetricsArtifact,
+    ): number => {
+      const useCaseA = getStringValue(a.customProperties, 'use_case');
+      const useCaseB = getStringValue(b.customProperties, 'use_case');
+      return useCaseA.localeCompare(useCaseB);
+    },
     width: 20,
     modifier: 'wrap',
   },

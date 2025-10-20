@@ -8,13 +8,13 @@ import {
 import { ModelRegistryMetadataType } from '~/app/types';
 import {
   extractPerformanceMetrics,
-  calculateAverageAccuracy,
+  // calculateAverageAccuracy, // NOTE: overall_average is currently omitted from the API and will be restored
   extractValidatedModelMetrics,
 } from '~/app/pages/modelCatalog/utils/validatedModelUtils';
 
 describe('validatedModelUtils', () => {
   const createMockPerformanceArtifact = (
-    hardware: string,
+    hardwareType: string,
     hardwareCount: number,
     rpsPerReplica: number,
     ttftMean: number,
@@ -24,9 +24,9 @@ describe('validatedModelUtils', () => {
     createTimeSinceEpoch: '1739210683000',
     lastUpdateTimeSinceEpoch: '1739210683000',
     customProperties: {
-      hardware: {
+      hardware_type: {
         metadataType: ModelRegistryMetadataType.STRING,
-        string_value: hardware,
+        string_value: hardwareType,
       },
       hardware_count: {
         metadataType: ModelRegistryMetadataType.INT,
@@ -43,18 +43,20 @@ describe('validatedModelUtils', () => {
     },
   });
 
-  const createMockAccuracyArtifact = (overallAverage: number): CatalogAccuracyMetricsArtifact => ({
-    artifactType: CatalogArtifactType.metricsArtifact,
-    metricsType: MetricsType.accuracyMetrics,
-    createTimeSinceEpoch: '1739210683000',
-    lastUpdateTimeSinceEpoch: '1739210683000',
-    customProperties: {
-      overall_average: {
-        metadataType: ModelRegistryMetadataType.DOUBLE,
-        double_value: overallAverage,
+  const createMockAccuracyArtifact =
+    () // overallAverage: number, // NOTE: overall_average is currently omitted from the API and will be restored
+    : CatalogAccuracyMetricsArtifact => ({
+      artifactType: CatalogArtifactType.metricsArtifact,
+      metricsType: MetricsType.accuracyMetrics,
+      createTimeSinceEpoch: '1739210683000',
+      lastUpdateTimeSinceEpoch: '1739210683000',
+      customProperties: {
+        // overall_average: { // NOTE: overall_average is currently omitted from the API and will be restored
+        //   metadataType: ModelRegistryMetadataType.DOUBLE,
+        //   double_value: overallAverage,
+        // },
       },
-    },
-  });
+    });
 
   describe('extractPerformanceMetrics', () => {
     it('should extract performance metrics from a single artifact', () => {
@@ -63,7 +65,7 @@ describe('validatedModelUtils', () => {
       const result = extractPerformanceMetrics(artifact);
 
       expect(result).toEqual({
-        hardware: 'H100-80',
+        hardwareType: 'H100-80',
         hardwareCount: '2',
         rpsPerReplica: 3.5,
         ttftMean: 1200,
@@ -82,7 +84,7 @@ describe('validatedModelUtils', () => {
       const result = extractPerformanceMetrics(artifact);
 
       expect(result).toEqual({
-        hardware: 'H100-80',
+        hardwareType: 'H100-80',
         hardwareCount: '1',
         rpsPerReplica: 1,
         ttftMean: 1428,
@@ -90,61 +92,62 @@ describe('validatedModelUtils', () => {
     });
   });
 
-  describe('calculateAverageAccuracy', () => {
-    it('should calculate average accuracy from multiple artifacts', () => {
-      const artifacts = [
-        createMockAccuracyArtifact(50.0),
-        createMockAccuracyArtifact(60.0),
-        createMockAccuracyArtifact(70.0),
-      ];
-
-      const result = calculateAverageAccuracy(artifacts);
-
-      expect(result).toBe(60.0);
-    });
-
-    it('should handle single artifact', () => {
-      const artifacts = [createMockAccuracyArtifact(75.5)];
-
-      const result = calculateAverageAccuracy(artifacts);
-
-      expect(result).toBe(75.5);
-    });
-
-    it('should handle empty array with default fallback', () => {
-      const result = calculateAverageAccuracy([]);
-
-      expect(result).toBe(53.9);
-    });
-
-    it('should round to 1 decimal place', () => {
-      const artifacts = [
-        createMockAccuracyArtifact(50.0),
-        createMockAccuracyArtifact(60.0),
-        createMockAccuracyArtifact(70.0),
-        createMockAccuracyArtifact(80.0),
-      ];
-
-      const result = calculateAverageAccuracy(artifacts);
-
-      expect(result).toBe(65.0);
-    });
-
-    it('should handle artifacts with missing accuracy values', () => {
-      const artifacts = [
-        createMockAccuracyArtifact(50.0),
-        {
-          ...createMockAccuracyArtifact(0),
-          customProperties: {},
-        },
-        createMockAccuracyArtifact(70.0),
-      ];
-
-      const result = calculateAverageAccuracy(artifacts);
-
-      expect(result).toBe(40.0); // (50 + 0 + 70) / 3
-    });
-  });
+  // NOTE: overall_average is currently omitted from the API and will be restored
+  // describe('calculateAverageAccuracy', () => {
+  //   it('should calculate average accuracy from multiple artifacts', () => {
+  //     const artifacts = [
+  //       createMockAccuracyArtifact(50.0),
+  //       createMockAccuracyArtifact(60.0),
+  //       createMockAccuracyArtifact(70.0),
+  //     ];
+  //
+  //     const result = calculateAverageAccuracy(artifacts);
+  //
+  //     expect(result).toBe(60.0);
+  //   });
+  //
+  //   it('should handle single artifact', () => {
+  //     const artifacts = [createMockAccuracyArtifact(75.5)];
+  //
+  //     const result = calculateAverageAccuracy(artifacts);
+  //
+  //     expect(result).toBe(75.5);
+  //   });
+  //
+  //   it('should handle empty array with default fallback', () => {
+  //     const result = calculateAverageAccuracy([]);
+  //
+  //     expect(result).toBe(53.9);
+  //   });
+  //
+  //   it('should round to 1 decimal place', () => {
+  //     const artifacts = [
+  //       createMockAccuracyArtifact(50.0),
+  //       createMockAccuracyArtifact(60.0),
+  //       createMockAccuracyArtifact(70.0),
+  //       createMockAccuracyArtifact(80.0),
+  //     ];
+  //
+  //     const result = calculateAverageAccuracy(artifacts);
+  //
+  //     expect(result).toBe(65.0);
+  //   });
+  //
+  //   it('should handle artifacts with missing accuracy values', () => {
+  //     const artifacts = [
+  //       createMockAccuracyArtifact(50.0),
+  //       {
+  //         ...createMockAccuracyArtifact(0),
+  //         customProperties: {},
+  //       },
+  //       createMockAccuracyArtifact(70.0),
+  //     ];
+  //
+  //     const result = calculateAverageAccuracy(artifacts);
+  //
+  //     expect(result).toBe(40.0); // (50 + 0 + 70) / 3
+  //   });
+  // });
 
   describe('extractValidatedModelMetrics', () => {
     it('should extract metrics from arrays of artifacts with specific performance index', () => {
@@ -155,16 +158,16 @@ describe('validatedModelUtils', () => {
       ];
 
       const accuracyArtifacts = [
-        createMockAccuracyArtifact(50.0),
-        createMockAccuracyArtifact(60.0),
-        createMockAccuracyArtifact(70.0),
+        createMockAccuracyArtifact(/* 50.0 */),
+        createMockAccuracyArtifact(/* 60.0 */),
+        createMockAccuracyArtifact(/* 70.0 */),
       ];
 
       const result = extractValidatedModelMetrics(performanceArtifacts, accuracyArtifacts, 1);
 
       expect(result).toEqual({
-        accuracy: 60.0,
-        hardware: 'H100-80',
+        // accuracy: 60.0, // NOTE: overall_average is currently omitted from the API and will be restored
+        hardwareType: 'H100-80',
         hardwareCount: '2',
         rpsPerReplica: 3.5,
         ttftMean: 1200,
@@ -177,13 +180,13 @@ describe('validatedModelUtils', () => {
         createMockPerformanceArtifact('H100-80', 2, 3.5, 1200),
       ];
 
-      const accuracyArtifacts = [createMockAccuracyArtifact(75.0)];
+      const accuracyArtifacts = [createMockAccuracyArtifact(/* 75.0 */)];
 
       const result = extractValidatedModelMetrics(performanceArtifacts, accuracyArtifacts);
 
       expect(result).toEqual({
-        accuracy: 75.0,
-        hardware: 'A100-80',
+        // accuracy: 75.0, // NOTE: overall_average is currently omitted from the API and will be restored
+        hardwareType: 'A100-80',
         hardwareCount: '1',
         rpsPerReplica: 2.0,
         ttftMean: 1000,
@@ -192,13 +195,13 @@ describe('validatedModelUtils', () => {
 
     it('should handle empty performance artifacts array with defaults', () => {
       const performanceArtifacts: CatalogPerformanceMetricsArtifact[] = [];
-      const accuracyArtifacts = [createMockAccuracyArtifact(80.0)];
+      const accuracyArtifacts = [createMockAccuracyArtifact(/* 80.0 */)];
 
       const result = extractValidatedModelMetrics(performanceArtifacts, accuracyArtifacts);
 
       expect(result).toEqual({
-        accuracy: 80.0,
-        hardware: 'H100-80',
+        // accuracy: 80.0, // NOTE: overall_average is currently omitted from the API and will be restored
+        hardwareType: 'H100-80',
         hardwareCount: '1',
         rpsPerReplica: 1,
         ttftMean: 1428,
@@ -207,13 +210,13 @@ describe('validatedModelUtils', () => {
 
     it('should handle invalid performance index with defaults', () => {
       const performanceArtifacts = [createMockPerformanceArtifact('A100-80', 1, 2.0, 1000)];
-      const accuracyArtifacts = [createMockAccuracyArtifact(90.0)];
+      const accuracyArtifacts = [createMockAccuracyArtifact(/* 90.0 */)];
 
       const result = extractValidatedModelMetrics(performanceArtifacts, accuracyArtifacts, 5);
 
       expect(result).toEqual({
-        accuracy: 90.0,
-        hardware: 'H100-80',
+        // accuracy: 90.0, // NOTE: overall_average is currently omitted from the API and will be restored
+        hardwareType: 'H100-80',
         hardwareCount: '1',
         rpsPerReplica: 1,
         ttftMean: 1428,

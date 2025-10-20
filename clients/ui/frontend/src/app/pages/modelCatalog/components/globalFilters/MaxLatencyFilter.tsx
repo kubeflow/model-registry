@@ -14,18 +14,18 @@ import {
   Slider,
 } from '@patternfly/react-core';
 import { HelpIcon } from '@patternfly/react-icons';
-import { ModelCatalogNumberFilterKey } from '~/concepts/modelCatalog/const';
-import { useCatalogNumberFilterState } from '~/app/pages/modelCatalog/utils/modelCatalogUtils';
 import {
-  CatalogFilterOptionsList,
-  CatalogPerformanceMetricsArtifact,
-} from '~/app/modelCatalogTypes';
+  LatencyMetric,
+  LatencyPercentile,
+  ModelCatalogNumberFilterKey,
+} from '~/concepts/modelCatalog/const';
+import { useCatalogNumberFilterState } from '~/app/pages/modelCatalog/utils/modelCatalogUtils';
+import { CatalogPerformanceMetricsArtifact } from '~/app/modelCatalogTypes';
 import { getDoubleValue } from '~/app/utils';
+import { getLatencyFieldName } from '~/app/pages/modelCatalog/utils/hardwareConfigurationFilterUtils';
+import { useLatencyFilterConfig } from '~/app/pages/modelCatalog/utils/latencyFilterState';
 
 const filterKey = ModelCatalogNumberFilterKey.MAX_LATENCY;
-
-type LatencyMetric = 'E2E' | 'TTFT' | 'TPS' | 'ITL';
-type LatencyPercentile = 'Mean' | 'P90' | 'P95' | 'P99';
 
 type LatencyFilterState = {
   metric: LatencyMetric;
@@ -34,101 +34,68 @@ type LatencyFilterState = {
 };
 
 type MaxLatencyFilterProps = {
-  filterOptions?: CatalogFilterOptionsList | null;
   performanceArtifacts: CatalogPerformanceMetricsArtifact[];
 };
 
-const METRIC_OPTIONS: { value: LatencyMetric; label: string }[] = [
-  { value: 'E2E', label: 'E2E' },
-  { value: 'TTFT', label: 'TTFT' },
-  { value: 'TPS', label: 'TPS' },
-  { value: 'ITL', label: 'ITL' },
-];
+const METRIC_OPTIONS: { value: LatencyMetric; label: LatencyMetric }[] = Object.values(
+  LatencyMetric,
+).map((metric) => ({ value: metric, label: metric }));
 
-const PERCENTILE_OPTIONS: { value: LatencyPercentile; label: string }[] = [
-  { value: 'Mean', label: 'Mean' },
-  { value: 'P90', label: 'P90' },
-  { value: 'P95', label: 'P95' },
-  { value: 'P99', label: 'P99' },
-];
+const PERCENTILE_OPTIONS: { value: LatencyPercentile; label: LatencyPercentile }[] = Object.values(
+  LatencyPercentile,
+).map((percentile) => ({ value: percentile, label: percentile }));
 
-// Helper function to generate field name from metric and percentile
-const getLatencyFieldName = (metric: string, percentile: string): string => {
-  const metricPrefix = metric.toLowerCase();
-  const percentileSuffix = percentile === 'Mean' ? '_mean' : `_${percentile.toLowerCase()}`;
-  return `${metricPrefix}${percentileSuffix}`;
-};
-
-const MaxLatencyFilter: React.FC<MaxLatencyFilterProps> = ({
-  filterOptions,
-  performanceArtifacts,
-}) => {
+const MaxLatencyFilter: React.FC<MaxLatencyFilterProps> = ({ performanceArtifacts }) => {
   const { value: savedFilterValue, setValue: setSavedFilterValue } =
     useCatalogNumberFilterState(filterKey);
+  const { updateConfig: updateSharedLatencyConfig } = useLatencyFilterConfig();
   const [isOpen, setIsOpen] = React.useState(false);
   const [isMetricOpen, setIsMetricOpen] = React.useState(false);
   const [isPercentileOpen, setIsPercentileOpen] = React.useState(false);
 
-  // Filter available metrics based on what's available in filterOptions
-  const availableMetrics = React.useMemo(() => {
-    if (!filterOptions?.filters) {
-      return METRIC_OPTIONS; // Return all options if no filter options available
-    }
+  // Show all available metrics - in production this could be filtered based on backend data
+  const availableMetrics = React.useMemo(() => METRIC_OPTIONS, []);
 
-    const filteredMetrics = METRIC_OPTIONS.filter((metric) =>
-      // Check if at least one percentile option exists for this metric
-      PERCENTILE_OPTIONS.some((percentile) => {
-        const fieldName = getLatencyFieldName(metric.value, percentile.value);
-        return fieldName in filterOptions.filters;
-      }),
-    );
+  // Show all available percentiles - in production this could be filtered based on backend data
+  const getAvailablePercentiles = React.useCallback(() => PERCENTILE_OPTIONS, []);
 
-    // Fallback: if no metrics are available, return all metrics to prevent empty dropdown
-    return filteredMetrics.length > 0 ? filteredMetrics : METRIC_OPTIONS;
-  }, [filterOptions]);
-
-  // Filter available percentiles based on selected metric and filterOptions
-  const getAvailablePercentiles = React.useCallback(
-    (selectedMetric: LatencyMetric) => {
-      if (!filterOptions?.filters) {
-        return PERCENTILE_OPTIONS; // Return all options if no filter options available
-      }
-
-      const filteredOptions = PERCENTILE_OPTIONS.filter((percentile) => {
-        const fieldName = getLatencyFieldName(selectedMetric, percentile.value);
-        return fieldName in filterOptions.filters;
-      });
-
-      // Fallback: if no options are available, return all options to prevent empty dropdown
-      return filteredOptions.length > 0 ? filteredOptions : PERCENTILE_OPTIONS;
-    },
-    [filterOptions],
-  );
-
-  // Local state for the filter configuration (persistent state)
-  const [appliedFilter, setAppliedFilter] = React.useState<LatencyFilterState>(() => {
+  const defaultFilterState = React.useMemo(() => {
     // Initialize with first available options to ensure consistency
-    const firstAvailableMetric = availableMetrics.length > 0 ? availableMetrics[0].value : 'E2E';
-    const firstAvailablePercentile = getAvailablePercentiles(firstAvailableMetric);
+    const firstAvailableMetric =
+      availableMetrics.length > 0 ? availableMetrics[0].value : LatencyMetric.E2E;
+    const firstAvailablePercentile = getAvailablePercentiles();
     const defaultPercentile =
-      firstAvailablePercentile.length > 0 ? firstAvailablePercentile[0].value : 'P90';
+      firstAvailablePercentile.length > 0
+        ? firstAvailablePercentile[0].value
+        : LatencyPercentile.P90;
 
     return {
       metric: firstAvailableMetric,
       percentile: defaultPercentile,
       value: 30, // Reasonable default within typical TTFT range
     };
-  });
+  }, [availableMetrics, getAvailablePercentiles]);
+
+  // Local state for the filter configuration (persistent state)
+  // TODO when we eventually move from ModelCatalogNumberFilterKey.MAX_LATENCY to using the LatencyMetricFieldNames
+  // as separate filter keys, we won't need appliedFilter to be state, we can use the filterKey as the dropdown state and
+  // use parseLatencyFieldName to identify the metric and the percentile from the filterKey.
+  const [appliedFilter, setAppliedFilter] = React.useState<LatencyFilterState>(defaultFilterState);
 
   // Working state while editing the filter
   const [localFilter, setLocalFilter] = React.useState<LatencyFilterState>(appliedFilter);
 
   const hasActiveFilter = savedFilterValue !== undefined;
 
-  const getDisplayText = (): string => {
+  const getDisplayText = (): React.ReactNode => {
     if (hasActiveFilter) {
       // When there's an active filter, show the full specification with actual selected values
-      return `Max latency: ${appliedFilter.metric} | ${appliedFilter.percentile} | ${savedFilterValue}ms`;
+      return (
+        <>
+          <strong>Max latency:</strong> {appliedFilter.metric} | {appliedFilter.percentile} |{' '}
+          {savedFilterValue}ms
+        </>
+      );
     }
     return 'Max latency';
   };
@@ -137,25 +104,19 @@ const MaxLatencyFilter: React.FC<MaxLatencyFilterProps> = ({
     // Store the current local filter values as the applied filter
     setAppliedFilter(localFilter);
     setSavedFilterValue(localFilter.value);
+    // Update the shared config so filtering logic can use it
+    updateSharedLatencyConfig({ metric: localFilter.metric, percentile: localFilter.percentile });
     setIsOpen(false);
   };
 
   const handleReset = () => {
-    // Use first available options instead of hardcoded defaults
-    const firstAvailableMetric = availableMetrics.length > 0 ? availableMetrics[0].value : 'E2E';
-    const firstAvailablePercentile = getAvailablePercentiles(firstAvailableMetric);
-    const defaultPercentile =
-      firstAvailablePercentile.length > 0 ? firstAvailablePercentile[0].value : 'P90';
-
-    const defaultFilter: LatencyFilterState = {
-      metric: firstAvailableMetric,
-      percentile: defaultPercentile,
+    const defaultFilterWithCalculatedMax: LatencyFilterState = {
+      ...defaultFilterState,
       value: Math.min(maxValue, 100), // Use calculated maxValue but cap at reasonable level
     };
-
     setSavedFilterValue(undefined);
-    setAppliedFilter(defaultFilter);
-    setLocalFilter(defaultFilter);
+    setAppliedFilter(defaultFilterWithCalculatedMax);
+    setLocalFilter(defaultFilterWithCalculatedMax);
     setIsOpen(false);
   };
 
@@ -165,16 +126,10 @@ const MaxLatencyFilter: React.FC<MaxLatencyFilterProps> = ({
       return { minValue: 20, maxValue: 893 }; // Default values when no artifacts
     }
 
-    // Get all latency values for the currently selected metric/percentile
-    const fieldName = getLatencyFieldName(appliedFilter.metric, appliedFilter.percentile);
+    // Get all latency values for the currently selected metric/percentile (use localFilter for immediate updates)
+    const fieldName = getLatencyFieldName(localFilter.metric, localFilter.percentile);
     const latencyValues = performanceArtifacts
-      .map((artifact) =>
-        getDoubleValue(
-          artifact.customProperties,
-          // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
-          fieldName as keyof typeof artifact.customProperties,
-        ),
-      )
+      .map((artifact) => getDoubleValue(artifact.customProperties, fieldName))
       .filter((latency) => latency > 0); // Filter out invalid values
 
     if (latencyValues.length === 0) {
@@ -182,13 +137,13 @@ const MaxLatencyFilter: React.FC<MaxLatencyFilterProps> = ({
     }
 
     return {
-      minValue: Math.min(...latencyValues),
-      maxValue: Math.max(...latencyValues),
+      minValue: Math.round(Math.min(...latencyValues)),
+      maxValue: Math.round(Math.max(...latencyValues)),
     };
-  }, [performanceArtifacts, appliedFilter.metric, appliedFilter.percentile]);
+  }, [performanceArtifacts, localFilter.metric, localFilter.percentile]);
 
-  // Helper to ensure value is within bounds
-  const clampedLocalValue = Math.min(Math.max(localFilter.value, minValue), maxValue);
+  // Helper to ensure value is within bounds and rounded to integer
+  const clampedLocalValue = Math.round(Math.min(Math.max(localFilter.value, minValue), maxValue));
 
   const toggle = (toggleRef: React.Ref<MenuToggleElement>) => (
     <MenuToggle
@@ -206,7 +161,7 @@ const MaxLatencyFilter: React.FC<MaxLatencyFilterProps> = ({
       direction={{ default: 'column' }}
       spaceItems={{ default: 'spaceItemsSm' }}
       flexWrap={{ default: 'wrap' }}
-      style={{ width: '500px', padding: '16px' }}
+      style={{ width: '550px', padding: '16px' }}
     >
       <FlexItem>
         <Flex alignItems={{ default: 'alignItemsCenter' }} spaceItems={{ default: 'spaceItemsXs' }}>
@@ -316,7 +271,7 @@ const MaxLatencyFilter: React.FC<MaxLatencyFilterProps> = ({
                 )}
               >
                 <SelectList>
-                  {getAvailablePercentiles(localFilter.metric).map((option) => (
+                  {getAvailablePercentiles().map((option) => (
                     <SelectOption key={option.value} value={option.value}>
                       {option.label}
                     </SelectOption>
@@ -330,18 +285,20 @@ const MaxLatencyFilter: React.FC<MaxLatencyFilterProps> = ({
 
       {/* Slider with value display */}
       <FlexItem>
-        <Slider
-          min={minValue}
-          max={maxValue}
-          value={clampedLocalValue}
-          onChange={(_, value) => {
-            const clampedValue = Math.max(minValue, Math.min(maxValue, value));
-            setLocalFilter({ ...localFilter, value: clampedValue });
-          }}
-          isInputVisible
-          inputValue={clampedLocalValue}
-          inputLabel="ms"
-        />
+        <div style={{ width: '100%', minWidth: '400px' }}>
+          <Slider
+            min={minValue}
+            max={maxValue}
+            value={clampedLocalValue}
+            onChange={(_, value) => {
+              const clampedValue = Math.round(Math.max(minValue, Math.min(maxValue, value)));
+              setLocalFilter({ ...localFilter, value: clampedValue });
+            }}
+            isInputVisible
+            inputValue={clampedLocalValue}
+            inputLabel="ms"
+          />
+        </div>
       </FlexItem>
 
       {/* Buttons: Apply filter first, then Reset */}
@@ -368,6 +325,10 @@ const MaxLatencyFilter: React.FC<MaxLatencyFilterProps> = ({
       onOpenChange={setIsOpen}
       toggle={toggle}
       shouldFocusToggleOnSelect={false}
+      popperProps={{
+        position: 'left',
+        enableFlip: true,
+      }}
     >
       {filterContent}
     </Dropdown>

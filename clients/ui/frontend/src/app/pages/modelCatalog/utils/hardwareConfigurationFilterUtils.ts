@@ -1,42 +1,57 @@
 import {
   CatalogPerformanceMetricsArtifact,
   ModelCatalogFilterStates,
-  PerformanceMetricsCustomProperties,
 } from '~/app/modelCatalogTypes';
 import { getDoubleValue, getStringValue } from '~/app/utils';
 import {
   ModelCatalogStringFilterKey,
   ModelCatalogNumberFilterKey,
-  LatencyMetricKey,
+  LatencyMetricFieldName,
+  LatencyPercentile,
+  LatencyMetric,
 } from '~/concepts/modelCatalog/const';
 import { getTotalRps } from './performanceMetricsUtils';
+import { LatencyFilterConfig as SharedLatencyFilterConfig } from './latencyFilterState';
 
-// Type for storing complex latency filter configuration
-export type LatencyFilterConfig = {
-  metric: 'E2E' | 'TTFT' | 'TPS' | 'ITL';
-  percentile: 'Mean' | 'P90' | 'P95' | 'P99';
+// Type for storing complex latency filter configuration with value
+export type LatencyFilterConfig = SharedLatencyFilterConfig & {
   value: number;
 };
+
+const isMetricLowercase = (str: string): str is Lowercase<LatencyMetric> =>
+  Object.values(LatencyMetric)
+    .map((value) => value.toLowerCase())
+    .includes(str);
+const isPercentileLowercase = (str: string): str is Lowercase<LatencyPercentile> =>
+  Object.values(LatencyPercentile)
+    .map((value) => value.toLowerCase())
+    .includes(str);
 
 /**
  * Maps metric and percentile combination to the corresponding artifact field
  */
-const getLatencyFieldName = (
-  metric: string,
-  percentile: string,
-): keyof PerformanceMetricsCustomProperties => {
+export const getLatencyFieldName = (
+  metric: LatencyMetric,
+  percentile: LatencyPercentile,
+): LatencyMetricFieldName => {
   const metricPrefix = metric.toLowerCase();
-  const percentileSuffix = percentile === 'Mean' ? '_mean' : `_${percentile.toLowerCase()}`;
-  const fieldName = `${metricPrefix}${percentileSuffix}`;
+  const percentileSuffix = percentile.toLowerCase();
+  if (!isMetricLowercase(metricPrefix) || !isPercentileLowercase(percentileSuffix)) {
+    return 'ttft_mean'; // Default fallback
+  }
+  return `${metricPrefix}_${percentileSuffix}`;
+};
 
-  // Validate that the field exists in PerformanceMetricsCustomProperties
-  // Get latency fields from LatencyMetricKey enum
-  const validFields = Object.values(LatencyMetricKey);
-
-  return validFields.some((field) => field === fieldName)
-    ? // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
-      (fieldName as keyof PerformanceMetricsCustomProperties)
-    : LatencyMetricKey.TTFT_MEAN; // Default fallback
+/**
+ * Inverse of getLatencyFieldName
+ */
+export const parseLatencyFieldName = (
+  fieldName: LatencyMetricFieldName,
+): { metric: LatencyMetric; percentile: LatencyPercentile } | null => {
+  const [prefix, suffix] = fieldName.split('_');
+  const metric = Object.values(LatencyMetric).find((m) => m.toLowerCase() === prefix);
+  const percentile = Object.values(LatencyPercentile).find((p) => p.toLowerCase() === suffix);
+  return metric && percentile ? { metric, percentile } : null;
 };
 
 /**
@@ -72,6 +87,7 @@ export const applyMaxLatencyFilter = (
 export const filterHardwareConfigurationArtifacts = (
   artifacts: CatalogPerformanceMetricsArtifact[],
   filterState: ModelCatalogFilterStates,
+  latencyConfig?: SharedLatencyFilterConfig,
 ): CatalogPerformanceMetricsArtifact[] =>
   artifacts.filter((artifact) => {
     // Hardware Type Filter (using central filter state)
@@ -95,42 +111,36 @@ export const filterHardwareConfigurationArtifacts = (
       }
     }
 
-    // Max Latency Filter (using MAX_LATENCY key for now)
-    // TODO: This currently uses TTFT Mean as default - should be enhanced to use
-    // the specific metric/percentile selected by the user
+    // Max Latency Filter - use provided config or fall back to default
     const maxLatencyFilter = filterState[ModelCatalogNumberFilterKey.MAX_LATENCY];
     if (maxLatencyFilter !== undefined) {
-      const defaultConfig: LatencyFilterConfig = {
-        metric: 'TTFT',
-        percentile: 'Mean',
-        value: maxLatencyFilter,
+      const baseConfig = latencyConfig || {
+        metric: LatencyMetric.TTFT,
+        percentile: LatencyPercentile.Mean,
       };
 
-      if (!applyMaxLatencyFilter(artifact, defaultConfig)) {
+      // Create the full config with the current filter value
+      const fullConfig: LatencyFilterConfig = { ...baseConfig, value: maxLatencyFilter };
+
+      if (!applyMaxLatencyFilter(artifact, fullConfig)) {
         return false;
       }
     }
 
-    // Workload Type Filter (based on max input/output tokens as minimum thresholds)
-    const maxInputTokensFilter = filterState[ModelCatalogNumberFilterKey.MAX_INPUT_TOKENS];
-    const maxOutputTokensFilter = filterState[ModelCatalogNumberFilterKey.MAX_OUTPUT_TOKENS];
+    // Use Case Filter
+    const useCaseFilter = filterState[ModelCatalogStringFilterKey.USE_CASE];
 
-    if (maxInputTokensFilter !== undefined && maxOutputTokensFilter !== undefined) {
-      // Get the artifact's max input/output token capabilities
-      const artifactMaxInputTokens = getDoubleValue(artifact.customProperties, 'max_input_tokens');
-      const artifactMaxOutputTokens = getDoubleValue(
-        artifact.customProperties,
-        'max_output_tokens',
-      );
+    if (useCaseFilter) {
+      // Get the artifact's use case
+      const artifactUseCase = getStringValue(artifact.customProperties, 'use_case');
 
-      // Apply minimum threshold logic: artifact must support AT LEAST the selected workload requirements
-      if (
-        artifactMaxInputTokens < maxInputTokensFilter ||
-        artifactMaxOutputTokens < maxOutputTokensFilter
-      ) {
+      // Check if the artifact's use case matches the selected use case
+      // Use includes() to handle potential comma-separated values or partial matches
+      if (!artifactUseCase || !artifactUseCase.includes(useCaseFilter)) {
         return false;
       }
     }
+
     return true;
   });
 
@@ -143,8 +153,15 @@ export const clearAllFilters = (
     value: ModelCatalogFilterStates[K],
   ) => void,
 ): void => {
-  // Clear string filters
+  // Clear string filters (arrays)
+  setFilterData(ModelCatalogStringFilterKey.TASK, []);
+  setFilterData(ModelCatalogStringFilterKey.PROVIDER, []);
+  setFilterData(ModelCatalogStringFilterKey.LICENSE, []);
+  setFilterData(ModelCatalogStringFilterKey.LANGUAGE, []);
   setFilterData(ModelCatalogStringFilterKey.HARDWARE_TYPE, []);
+
+  // Clear use case filter (single value)
+  setFilterData(ModelCatalogStringFilterKey.USE_CASE, undefined);
 
   // Clear number filters
   Object.values(ModelCatalogNumberFilterKey).forEach((key) => {
