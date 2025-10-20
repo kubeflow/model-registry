@@ -3,7 +3,10 @@ package embedmd
 import (
 	"errors"
 	"fmt"
+	"net/url"
+	"strings"
 
+	"github.com/go-sql-driver/mysql"
 	"github.com/golang/glog"
 	"github.com/kubeflow/model-registry/internal/apiutils"
 	"github.com/kubeflow/model-registry/internal/datastore"
@@ -46,6 +49,47 @@ func (c *EmbedMDConfig) Validate() error {
 	if c.DB == nil {
 		if c.DatabaseType != types.DatabaseTypeMySQL && c.DatabaseType != types.DatabaseTypePostgres {
 			return fmt.Errorf("unsupported database type: %s. Supported types: %s, %s", c.DatabaseType, types.DatabaseTypeMySQL, types.DatabaseTypePostgres)
+		}
+
+		switch c.DatabaseType {
+		case types.DatabaseTypeMySQL:
+			// Reject DSNs with multiple '?'
+			// query components prohibited in database name (e.g. "DB_NAME?tls=preferred")
+			// we append "?charset=utf8mb4" automatically to MySQL DSNs
+			if strings.Count(c.DatabaseDSN, "?") > 1 {
+				return fmt.Errorf("invalid MySQL DSN: database name must not contain '?' characters; do not put query parameters in the database name")
+			}
+
+			// Validate that the DSN can be parsed before continuing
+			if _, err := mysql.ParseDSN(c.DatabaseDSN); err != nil {
+				return fmt.Errorf("invalid MySQL DSN: %w", err)
+			}
+
+		case types.DatabaseTypePostgres:
+			// Support both URL and key=value DSN formats.
+			if strings.HasPrefix(c.DatabaseDSN, "postgres://") || strings.HasPrefix(c.DatabaseDSN, "postgresql://") {
+				parsed, err := url.Parse(c.DatabaseDSN)
+				if err != nil {
+					return fmt.Errorf("invalid PostgreSQL DSN: %w", err)
+				}
+				// Path is "/dbname"; ensure db name doesn't contain '?'
+				dbName := strings.TrimPrefix(parsed.Path, "/")
+				if strings.Contains(dbName, "?") {
+					return fmt.Errorf("invalid PostgreSQL DSN: database name must not contain '?' characters; do not put query parameters in the database name")
+				}
+			} else {
+				// key=value format: find dbname=...
+				parts := strings.Fields(c.DatabaseDSN)
+				for _, p := range parts {
+					if strings.HasPrefix(p, "dbname=") {
+						name := strings.TrimPrefix(p, "dbname=")
+						if strings.Contains(name, "?") {
+							return fmt.Errorf("invalid PostgreSQL DSN: database name must not contain '?' characters; do not put query parameters in the database name")
+						}
+						break
+					}
+				}
+			}
 		}
 	}
 
