@@ -56,8 +56,8 @@ func TestMapEmbedMDCustomProperties(t *testing.T) {
 					IntValue: nil,
 				},
 			},
-			expected: nil,
-			wantErr:  true,
+			expected: map[string]openapi.MetadataValue{},
+			wantErr:  false,
 		},
 		{
 			name: "test string value",
@@ -82,8 +82,8 @@ func TestMapEmbedMDCustomProperties(t *testing.T) {
 					StringValue: nil,
 				},
 			},
-			expected: nil,
-			wantErr:  true,
+			expected: map[string]openapi.MetadataValue{},
+			wantErr:  false,
 		},
 		{
 			name: "test string value with mlmd struct prefix",
@@ -123,8 +123,8 @@ func TestMapEmbedMDCustomProperties(t *testing.T) {
 					BoolValue: nil,
 				},
 			},
-			expected: nil,
-			wantErr:  true,
+			expected: map[string]openapi.MetadataValue{},
+			wantErr:  false,
 		},
 		{
 			name: "test double value",
@@ -149,8 +149,8 @@ func TestMapEmbedMDCustomProperties(t *testing.T) {
 					DoubleValue: nil,
 				},
 			},
-			expected: nil,
-			wantErr:  true,
+			expected: map[string]openapi.MetadataValue{},
+			wantErr:  false,
 		},
 		{
 			name: "test byte value",
@@ -175,8 +175,8 @@ func TestMapEmbedMDCustomProperties(t *testing.T) {
 					ByteValue: nil,
 				},
 			},
-			expected: nil,
-			wantErr:  true,
+			expected: map[string]openapi.MetadataValue{},
+			wantErr:  false,
 		},
 	}
 

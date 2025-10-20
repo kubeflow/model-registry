@@ -509,6 +509,8 @@ func createAccuracyMetricsArtifact(evalRecords []evaluationRecord, modelID int32
 				updateTime = &updatedAt
 			}
 		}
+		delete(evalRecord.CustomProperties, "updated_at")
+		delete(evalRecord.CustomProperties, "created_at")
 	}
 
 	// Properties can be empty or contain general metadata
@@ -555,15 +557,25 @@ func createPerformanceArtifact(perfRecord performanceRecord, modelID int32, type
 	var updateTime *int64
 
 	if existingCreateTime == nil {
-		if createdAtFloat, ok := perfRecord.CustomProperties["created_at"].(float64); ok {
-			createdAt := int64(createdAtFloat)
-			createTime = &createdAt
+		if createdAtNum, ok := perfRecord.CustomProperties["created_at"].(json.Number); ok {
+			createdAt, err := createdAtNum.Int64()
+			if err == nil {
+				createTime = &createdAt
+			} else {
+				glog.Warningf("%s: invalid created_at value: %v", artifactName, err)
+			}
 		}
 	}
-	if updatedAtFloat, ok := perfRecord.CustomProperties["updated_at"].(float64); ok {
-		updatedAt := int64(updatedAtFloat)
-		updateTime = &updatedAt
+	if updatedAtNum, ok := perfRecord.CustomProperties["updated_at"].(json.Number); ok {
+		updatedAt, err := updatedAtNum.Int64()
+		if err == nil {
+			updateTime = &updatedAt
+		} else {
+			glog.Warningf("%s: invalid updated_at value: %v", artifactName, err)
+		}
 	}
+	delete(perfRecord.CustomProperties, "updated_at")
+	delete(perfRecord.CustomProperties, "created_at")
 
 	// Properties can be empty - all data goes in custom properties
 	properties := []models.Properties{}
