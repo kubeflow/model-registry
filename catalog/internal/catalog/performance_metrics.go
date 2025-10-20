@@ -10,10 +10,12 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"time"
 
 	"github.com/golang/glog"
 	dbmodels "github.com/kubeflow/model-registry/catalog/internal/db/models"
 	"github.com/kubeflow/model-registry/catalog/internal/db/service"
+	"github.com/kubeflow/model-registry/internal/apiutils"
 	"github.com/kubeflow/model-registry/internal/db/models"
 )
 
@@ -566,6 +568,10 @@ func createPerformanceArtifact(perfRecord performanceRecord, modelID int32, type
 			}
 		}
 	}
+	if createTime == nil {
+		createTime = apiutils.Of(time.Now().UnixMilli())
+	}
+
 	if updatedAtNum, ok := perfRecord.CustomProperties["updated_at"].(json.Number); ok {
 		updatedAt, err := updatedAtNum.Int64()
 		if err == nil {
@@ -573,6 +579,9 @@ func createPerformanceArtifact(perfRecord performanceRecord, modelID int32, type
 		} else {
 			glog.Warningf("%s: invalid updated_at value: %v", artifactName, err)
 		}
+	}
+	if updateTime == nil {
+		updateTime = apiutils.Of(time.Now().UnixMilli())
 	}
 	delete(perfRecord.CustomProperties, "updated_at")
 	delete(perfRecord.CustomProperties, "created_at")
