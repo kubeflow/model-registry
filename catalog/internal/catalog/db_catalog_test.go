@@ -21,12 +21,12 @@ import (
 )
 
 func TestMain(m *testing.M) {
-	os.Exit(testutils.TestMainHelper(m))
+	os.Exit(testutils.TestMainPostgresHelper(m))
 }
 
 func TestDBCatalog(t *testing.T) {
 	// Setup test database
-	sharedDB, cleanup := testutils.SetupMySQLWithMigrations(t, service.DatastoreSpec())
+	sharedDB, cleanup := testutils.SetupPostgresWithMigrations(t, service.DatastoreSpec())
 	defer cleanup()
 
 	// Get type IDs

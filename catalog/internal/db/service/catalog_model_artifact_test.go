@@ -17,7 +17,7 @@ import (
 )
 
 func TestCatalogModelArtifactRepository(t *testing.T) {
-	sharedDB, cleanup := testutils.SetupMySQLWithMigrations(t, service.DatastoreSpec())
+	sharedDB, cleanup := testutils.SetupPostgresWithMigrations(t, service.DatastoreSpec())
 	defer cleanup()
 
 	// Get the CatalogModelArtifact type ID

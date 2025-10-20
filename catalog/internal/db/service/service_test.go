@@ -8,5 +8,5 @@ import (
 )
 
 func TestMain(m *testing.M) {
-	os.Exit(testutils.TestMainHelper(m))
+	os.Exit(testutils.TestMainPostgresHelper(m))
 }
