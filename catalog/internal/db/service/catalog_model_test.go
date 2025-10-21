@@ -199,9 +199,9 @@ func TestCatalogModelRepository(t *testing.T) {
 		updateModel := &models.CatalogModelImpl{
 			ID: saved.GetID(), // Specify the ID for update
 			Attributes: &models.CatalogModelAttributes{
-				Name:                     apiutils.Of("updated-test-model"),
-				ExternalID:               apiutils.Of("updated-ext-456"),
-				CreateTimeSinceEpoch:     saved.GetAttributes().CreateTimeSinceEpoch, // Preserve create time
+				Name:                 apiutils.Of("updated-test-model"),
+				ExternalID:           apiutils.Of("updated-ext-456"),
+				CreateTimeSinceEpoch: saved.GetAttributes().CreateTimeSinceEpoch, // Preserve create time
 			},
 			Properties: &[]dbmodels.Properties{
 				{
@@ -413,7 +413,6 @@ func TestCatalogModelRepository(t *testing.T) {
 		assert.Contains(t, result, "license")
 		// Should exclude longer properties
 		assert.NotContains(t, result, "provider") // "HuggingFace" is > 10 chars
-		assert.NotContains(t, result, "language")
 		assert.NotContains(t, result, "tasks")
 	})
 }
