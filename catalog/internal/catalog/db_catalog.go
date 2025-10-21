@@ -205,40 +205,25 @@ func (d *dbCatalogImpl) GetFilterOptions(ctx context.Context) (*apimodels.Filter
 			continue
 		}
 
-		// Deduplicate values
-		uniqueValues := make(map[string]bool)
-
-		// Parse JSON arrays for fields like language and tasks
-		for _, value := range values {
-			var arrayValues []string
-			if err := json.Unmarshal([]byte(value), &arrayValues); err == nil {
-				// Successfully parsed as array, add individual values
-				for _, v := range arrayValues {
-					uniqueValues[v] = true
-				}
-			} else {
-				// Not a JSON array
-				uniqueValues[value] = true
-			}
+		if len(values) == 0 {
+			continue
 		}
 
-		if len(uniqueValues) > 0 {
-			sortedValues := make([]string, 0, len(uniqueValues))
-			for v := range uniqueValues {
-				sortedValues = append(sortedValues, v)
-			}
-			sort.Strings(sortedValues)
+		sortedValues := make([]string, 0, len(values))
+		for _, v := range values {
+			sortedValues = append(sortedValues, v)
+		}
+		sort.Strings(sortedValues)
 
-			// Convert to []interface{} (supports future non-string filter types)
-			expandedValues := make([]interface{}, len(sortedValues))
-			for i, v := range sortedValues {
-				expandedValues[i] = v
-			}
+		// Convert to []any (supports future non-string filter types)
+		expandedValues := make([]any, len(sortedValues))
+		for i, v := range sortedValues {
+			expandedValues[i] = v
+		}
 
-			options[fieldName] = apimodels.FilterOption{
-				Type:   "string",
-				Values: expandedValues,
-			}
+		options[fieldName] = apimodels.FilterOption{
+			Type:   "string",
+			Values: expandedValues,
 		}
 	}
 
