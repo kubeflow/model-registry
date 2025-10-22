@@ -1660,6 +1660,15 @@ components:
         - ABANDONED
         - REFERENCE
       type: string
+    ArtifactTypeQueryParam:
+      description: Supported artifact types for querying.
+      enum:
+        - model-artifact
+        - doc-artifact
+        - dataset-artifact
+        - metric
+        - parameter
+      type: string
     ArtifactUpdate:
       description: An Artifact to be updated.
       oneOf:
@@ -2700,6 +2709,18 @@ components:
       description: Specifies the order by criteria for listing entities.
       schema:
         $ref: "#/components/schemas/OrderByField"
+      in: query
+      required: false
+    artifactType:
+      style: form
+      explode: true
+      examples:
+        artifactType:
+          value: model-artifact
+      name: artifactType
+      description: "Specifies the artifact type for listing artifacts."
+      schema:
+        $ref: "#/components/schemas/ArtifactTypeQueryParam"
       in: query
       required: false
   securitySchemes: {}
