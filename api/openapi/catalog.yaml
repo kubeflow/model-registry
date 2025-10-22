@@ -170,12 +170,7 @@ paths:
           type: string
         in: path
         required: true
-      - name: artifact_type
-        description: Filter artifacts by type.
-        schema:
-          type: string
-        in: query
-        required: false
+      - $ref: "#/components/parameters/artifactType"
       - $ref: "#/components/parameters/pageSize"
       - $ref: "#/components/parameters/orderBy"
       - $ref: "#/components/parameters/sortOrder"
@@ -186,10 +181,7 @@ components:
       description: Supported artifact types for querying.
       enum:
         - model-artifact
-        - doc-artifact
-        - dataset-artifact
-        - metric
-        - parameter
+        - metrics-artifact
       type: string
     BaseModel:
       type: object
