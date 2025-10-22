@@ -17,7 +17,7 @@ type ParameterRepositoryImpl struct {
 	*GenericRepository[models.Parameter, schema.Artifact, schema.ArtifactProperty, *models.ParameterListOptions]
 }
 
-func NewParameterRepository(db *gorm.DB, typeID int64) models.ParameterRepository {
+func NewParameterRepository(db *gorm.DB, typeID int32) models.ParameterRepository {
 	config := GenericRepositoryConfig[models.Parameter, schema.Artifact, schema.ArtifactProperty, *models.ParameterListOptions]{
 		DB:                  db,
 		TypeID:              typeID,

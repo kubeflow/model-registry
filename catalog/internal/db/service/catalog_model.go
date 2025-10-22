@@ -3,7 +3,6 @@ package service
 import (
 	"errors"
 	"fmt"
-	"math"
 	"strings"
 
 	"github.com/kubeflow/model-registry/catalog/internal/db/filter"
@@ -22,7 +21,7 @@ type CatalogModelRepositoryImpl struct {
 	*service.GenericRepository[models.CatalogModel, schema.Context, schema.ContextProperty, *models.CatalogModelListOptions]
 }
 
-func NewCatalogModelRepository(db *gorm.DB, typeID int64) models.CatalogModelRepository {
+func NewCatalogModelRepository(db *gorm.DB, typeID int32) models.CatalogModelRepository {
 	r := &CatalogModelRepositoryImpl{}
 
 	r.GenericRepository = service.NewGenericRepository(service.GenericRepositoryConfig[models.CatalogModel, schema.Context, schema.ContextProperty, *models.CatalogModelListOptions]{
@@ -46,8 +45,8 @@ func NewCatalogModelRepository(db *gorm.DB, typeID int64) models.CatalogModelRep
 func (r *CatalogModelRepositoryImpl) Save(model models.CatalogModel) (models.CatalogModel, error) {
 	config := r.GetConfig()
 	if model.GetTypeID() == nil {
-		if config.TypeID > 0 && config.TypeID < math.MaxInt32 {
-			model.SetTypeID(int32(config.TypeID))
+		if config.TypeID > 0 {
+			model.SetTypeID(config.TypeID)
 		}
 	}
 

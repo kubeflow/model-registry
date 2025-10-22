@@ -25,7 +25,7 @@ func TestArtifactRepository(t *testing.T) {
 	metricTypeID := getMetricTypeID(t, sharedDB)
 	parameterTypeID := getParameterTypeID(t, sharedDB)
 	metricHistoryTypeID := getMetricHistoryTypeID(t, sharedDB)
-	repo := service.NewArtifactRepository(sharedDB, map[string]int64{
+	repo := service.NewArtifactRepository(sharedDB, map[string]int32{
 		defaults.ModelArtifactTypeName: modelArtifactTypeID,
 		defaults.DocArtifactTypeName:   docArtifactTypeID,
 		defaults.DataSetTypeName:       dataSetTypeID,
@@ -43,7 +43,7 @@ func TestArtifactRepository(t *testing.T) {
 
 	// Create shared test data
 	registeredModel := &models.RegisteredModelImpl{
-		TypeID: apiutils.Of(int32(registeredModelTypeID)),
+		TypeID: apiutils.Of(registeredModelTypeID),
 		Attributes: &models.RegisteredModelAttributes{
 			Name: apiutils.Of("test-registered-model-for-artifacts"),
 		},
@@ -52,7 +52,7 @@ func TestArtifactRepository(t *testing.T) {
 	require.NoError(t, err)
 
 	modelVersion := &models.ModelVersionImpl{
-		TypeID: apiutils.Of(int32(modelVersionTypeID)),
+		TypeID: apiutils.Of(modelVersionTypeID),
 		Attributes: &models.ModelVersionAttributes{
 			Name: apiutils.Of("test-model-version-for-artifacts"),
 		},
@@ -70,7 +70,7 @@ func TestArtifactRepository(t *testing.T) {
 		// Create a model artifact using the model artifact repository
 		modelArtifactRepo := service.NewModelArtifactRepository(sharedDB, modelArtifactTypeID)
 		modelArtifact := &models.ModelArtifactImpl{
-			TypeID: apiutils.Of(int32(modelArtifactTypeID)),
+			TypeID: apiutils.Of(modelArtifactTypeID),
 			Attributes: &models.ModelArtifactAttributes{
 				Name:         apiutils.Of(fmt.Sprintf("%d:test-model-artifact-for-getbyid", *savedModelVersion.GetID())),
 				URI:          apiutils.Of("s3://bucket/model.pkl"),
@@ -84,7 +84,7 @@ func TestArtifactRepository(t *testing.T) {
 		// Create a doc artifact using the doc artifact repository
 		docArtifactRepo := service.NewDocArtifactRepository(sharedDB, docArtifactTypeID)
 		docArtifact := &models.DocArtifactImpl{
-			TypeID: apiutils.Of(int32(docArtifactTypeID)),
+			TypeID: apiutils.Of(docArtifactTypeID),
 			Attributes: &models.DocArtifactAttributes{
 				Name:         apiutils.Of(fmt.Sprintf("%d:unified-test-doc-artifact-for-getbyid", *savedModelVersion.GetID())),
 				URI:          apiutils.Of("s3://bucket/doc.pdf"),
@@ -126,7 +126,7 @@ func TestArtifactRepository(t *testing.T) {
 		// Create model artifacts
 		modelArtifacts := []*models.ModelArtifactImpl{
 			{
-				TypeID: apiutils.Of(int32(modelArtifactTypeID)),
+				TypeID: apiutils.Of(modelArtifactTypeID),
 				Attributes: &models.ModelArtifactAttributes{
 					Name:         apiutils.Of(fmt.Sprintf("%d:list-model-artifact-1", *savedModelVersion.GetID())),
 					ExternalID:   apiutils.Of("list-model-ext-1"),
@@ -136,7 +136,7 @@ func TestArtifactRepository(t *testing.T) {
 				},
 			},
 			{
-				TypeID: apiutils.Of(int32(modelArtifactTypeID)),
+				TypeID: apiutils.Of(modelArtifactTypeID),
 				Attributes: &models.ModelArtifactAttributes{
 					Name:         apiutils.Of(fmt.Sprintf("%d:list-model-artifact-2", *savedModelVersion.GetID())),
 					ExternalID:   apiutils.Of("list-model-ext-2"),
@@ -155,7 +155,7 @@ func TestArtifactRepository(t *testing.T) {
 		// Create doc artifacts
 		docArtifacts := []*models.DocArtifactImpl{
 			{
-				TypeID: apiutils.Of(int32(docArtifactTypeID)),
+				TypeID: apiutils.Of(docArtifactTypeID),
 				Attributes: &models.DocArtifactAttributes{
 					Name:         apiutils.Of(fmt.Sprintf("%d:unified-list-doc-artifact-1", *savedModelVersion.GetID())),
 					ExternalID:   apiutils.Of("unified-list-doc-ext-1"),
@@ -165,7 +165,7 @@ func TestArtifactRepository(t *testing.T) {
 				},
 			},
 			{
-				TypeID: apiutils.Of(int32(docArtifactTypeID)),
+				TypeID: apiutils.Of(docArtifactTypeID),
 				Attributes: &models.DocArtifactAttributes{
 					Name:         apiutils.Of(fmt.Sprintf("%d:unified-list-doc-artifact-2", *savedModelVersion.GetID())),
 					ExternalID:   apiutils.Of("unified-list-doc-ext-2"),
@@ -291,7 +291,7 @@ func TestArtifactRepository(t *testing.T) {
 
 		// Create first artifact (model artifact)
 		artifact1 := &models.ModelArtifactImpl{
-			TypeID: apiutils.Of(int32(modelArtifactTypeID)),
+			TypeID: apiutils.Of(modelArtifactTypeID),
 			Attributes: &models.ModelArtifactAttributes{
 				Name:         apiutils.Of("time-test-model-artifact-1"),
 				URI:          apiutils.Of("s3://bucket/time-model-1.pkl"),
@@ -307,7 +307,7 @@ func TestArtifactRepository(t *testing.T) {
 
 		// Create second artifact (doc artifact)
 		artifact2 := &models.DocArtifactImpl{
-			TypeID: apiutils.Of(int32(docArtifactTypeID)),
+			TypeID: apiutils.Of(docArtifactTypeID),
 			Attributes: &models.DocArtifactAttributes{
 				Name:         apiutils.Of("unified-time-test-doc-artifact-2"),
 				URI:          apiutils.Of("s3://bucket/time-doc-2.pdf"),
@@ -373,7 +373,7 @@ func TestArtifactRepository(t *testing.T) {
 
 		// Create artifacts with similar names but different types
 		modelArtifact := &models.ModelArtifactImpl{
-			TypeID: apiutils.Of(int32(modelArtifactTypeID)),
+			TypeID: apiutils.Of(modelArtifactTypeID),
 			Attributes: &models.ModelArtifactAttributes{
 				Name:         apiutils.Of("mixed-test-artifact"),
 				URI:          apiutils.Of("s3://bucket/mixed-model.pkl"),
@@ -385,7 +385,7 @@ func TestArtifactRepository(t *testing.T) {
 		require.NoError(t, err)
 
 		docArtifact := &models.DocArtifactImpl{
-			TypeID: apiutils.Of(int32(docArtifactTypeID)),
+			TypeID: apiutils.Of(docArtifactTypeID),
 			Attributes: &models.DocArtifactAttributes{
 				Name:         apiutils.Of("unified-mixed-test-doc"),
 				URI:          apiutils.Of("s3://bucket/mixed-doc.pdf"),
@@ -431,7 +431,7 @@ func TestArtifactRepository(t *testing.T) {
 
 		// Create standalone artifacts (without model version attribution)
 		standaloneModelArtifact := &models.ModelArtifactImpl{
-			TypeID: apiutils.Of(int32(modelArtifactTypeID)),
+			TypeID: apiutils.Of(modelArtifactTypeID),
 			Attributes: &models.ModelArtifactAttributes{
 				Name:         apiutils.Of("standalone-model-artifact"),
 				URI:          apiutils.Of("s3://bucket/standalone-model.pkl"),
@@ -443,7 +443,7 @@ func TestArtifactRepository(t *testing.T) {
 		require.NoError(t, err)
 
 		standaloneDocArtifact := &models.DocArtifactImpl{
-			TypeID: apiutils.Of(int32(docArtifactTypeID)),
+			TypeID: apiutils.Of(docArtifactTypeID),
 			Attributes: &models.DocArtifactAttributes{
 				Name:         apiutils.Of("unified-standalone-doc-artifact"),
 				URI:          apiutils.Of("s3://bucket/standalone-doc.pdf"),

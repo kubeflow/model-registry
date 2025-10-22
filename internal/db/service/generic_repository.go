@@ -66,7 +66,7 @@ func applyFilterQuery(query *gorm.DB, listOptions any, mappingFuncs filter.Entit
 // Generic repository configuration
 type GenericRepositoryConfig[TEntity any, TSchema SchemaEntity, TProp PropertyEntity, TListOpts BaseListOptions] struct {
 	DB                    *gorm.DB
-	TypeID                int64
+	TypeID                int32
 	EntityToSchema        EntityToSchemaMapper[TEntity, TSchema]
 	SchemaToEntity        SchemaToEntityMapper[TSchema, TProp, TEntity]
 	EntityToProperties    EntityToPropertiesMapper[TEntity, TProp]

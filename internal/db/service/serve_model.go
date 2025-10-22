@@ -16,7 +16,7 @@ type ServeModelRepositoryImpl struct {
 	*GenericRepository[models.ServeModel, schema.Execution, schema.ExecutionProperty, *models.ServeModelListOptions]
 }
 
-func NewServeModelRepository(db *gorm.DB, typeID int64) models.ServeModelRepository {
+func NewServeModelRepository(db *gorm.DB, typeID int32) models.ServeModelRepository {
 	config := GenericRepositoryConfig[models.ServeModel, schema.Execution, schema.ExecutionProperty, *models.ServeModelListOptions]{
 		DB:                  db,
 		TypeID:              typeID,

@@ -6,7 +6,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"math"
 	"os"
 	"path/filepath"
 	"strings"
@@ -130,7 +129,7 @@ type PerformanceMetricsLoader struct {
 	metricsArtifactTypeID int32
 }
 
-func NewPerformanceMetricsLoader(path []string, modelRepo dbmodels.CatalogModelRepository, metricsArtifactRepo dbmodels.CatalogMetricsArtifactRepository, typeMap map[string]int64) (*PerformanceMetricsLoader, error) {
+func NewPerformanceMetricsLoader(path []string, modelRepo dbmodels.CatalogModelRepository, metricsArtifactRepo dbmodels.CatalogMetricsArtifactRepository, typeMap map[string]int32) (*PerformanceMetricsLoader, error) {
 	if len(path) == 0 {
 		glog.Info("No performance metrics path provided, skipping performance metrics loading")
 		return nil, nil
@@ -147,27 +146,17 @@ func NewPerformanceMetricsLoader(path []string, modelRepo dbmodels.CatalogModelR
 	glog.Infof("Loading performance metrics data from %s", path)
 
 	// Get the TypeID for CatalogModel from the type map
-	modelTypeIDInt64, exists := typeMap[service.CatalogModelTypeName]
+	modelTypeID, exists := typeMap[service.CatalogModelTypeName]
 	if !exists {
 		return nil, fmt.Errorf("CatalogModel type not found in type map")
 	}
-	// Bounds check for int64 to int32 conversion
-	if modelTypeIDInt64 > math.MaxInt32 || modelTypeIDInt64 < math.MinInt32 {
-		return nil, fmt.Errorf("CatalogModel type ID %d is out of int32 range", modelTypeIDInt64)
-	}
-	modelTypeID := int32(modelTypeIDInt64)
 	glog.V(2).Infof("Using catalog model type ID: %d", modelTypeID)
 
 	// Get the TypeID for CatalogMetricsArtifact from the type map
-	metricsArtifactTypeIDInt64, exists := typeMap[service.CatalogMetricsArtifactTypeName]
+	metricsArtifactTypeID, exists := typeMap[service.CatalogMetricsArtifactTypeName]
 	if !exists {
 		return nil, fmt.Errorf("CatalogMetricsArtifact type not found in type map")
 	}
-	// Bounds check for int64 to int32 conversion
-	if metricsArtifactTypeIDInt64 > math.MaxInt32 || metricsArtifactTypeIDInt64 < math.MinInt32 {
-		return nil, fmt.Errorf("CatalogMetricsArtifact type ID %d is out of int32 range", metricsArtifactTypeIDInt64)
-	}
-	metricsArtifactTypeID := int32(metricsArtifactTypeIDInt64)
 	glog.V(2).Infof("Using metrics artifact type ID: %d", metricsArtifactTypeID)
 
 	return &PerformanceMetricsLoader{
@@ -192,9 +181,9 @@ func (pml *PerformanceMetricsLoader) Load(ctx context.Context, record ModelProvi
 	glog.Infof("Loading performance metrics for %s", *attrs.Name)
 
 	// Create a type map from the stored type IDs
-	typeMap := map[string]int64{
-		service.CatalogModelTypeName:           int64(pml.modelTypeID),
-		service.CatalogMetricsArtifactTypeName: int64(pml.metricsArtifactTypeID),
+	typeMap := map[string]int32{
+		service.CatalogModelTypeName:           pml.modelTypeID,
+		service.CatalogMetricsArtifactTypeName: pml.metricsArtifactTypeID,
 	}
 
 	// Call the existing LoadPerformanceMetricsData function
@@ -205,7 +194,7 @@ func (pml *PerformanceMetricsLoader) Load(ctx context.Context, record ModelProvi
 // into the database using the catalog model and artifact repositories.
 // Only loads metrics for models that already exist in the database and where
 // the metrics artifacts don't already exist.
-func LoadPerformanceMetricsData(path []string, modelRepo dbmodels.CatalogModelRepository, metricsArtifactRepo dbmodels.CatalogMetricsArtifactRepository, typeMap map[string]int64) error {
+func LoadPerformanceMetricsData(path []string, modelRepo dbmodels.CatalogModelRepository, metricsArtifactRepo dbmodels.CatalogMetricsArtifactRepository, typeMap map[string]int32) error {
 	if len(path) == 0 {
 		glog.Info("No performance metrics path provided, skipping performance metrics loading")
 		return nil
@@ -222,27 +211,17 @@ func LoadPerformanceMetricsData(path []string, modelRepo dbmodels.CatalogModelRe
 	glog.Infof("Loading performance metrics data from %s", path)
 
 	// Get the TypeID for CatalogModel from the type map
-	modelTypeIDInt64, exists := typeMap[service.CatalogModelTypeName]
+	modelTypeID, exists := typeMap[service.CatalogModelTypeName]
 	if !exists {
 		return fmt.Errorf("CatalogModel type not found in type map")
 	}
-	// Bounds check for int64 to int32 conversion
-	if modelTypeIDInt64 > math.MaxInt32 || modelTypeIDInt64 < math.MinInt32 {
-		return fmt.Errorf("CatalogModel type ID %d is out of int32 range", modelTypeIDInt64)
-	}
-	modelTypeID := int32(modelTypeIDInt64)
 	glog.V(2).Infof("Using catalog model type ID: %d", modelTypeID)
 
 	// Get the TypeID for CatalogMetricsArtifact from the type map
-	metricsArtifactTypeIDInt64, exists := typeMap[service.CatalogMetricsArtifactTypeName]
+	metricsArtifactTypeID, exists := typeMap[service.CatalogMetricsArtifactTypeName]
 	if !exists {
 		return fmt.Errorf("CatalogMetricsArtifact type not found in type map")
 	}
-	// Bounds check for int64 to int32 conversion
-	if metricsArtifactTypeIDInt64 > math.MaxInt32 || metricsArtifactTypeIDInt64 < math.MinInt32 {
-		return fmt.Errorf("CatalogMetricsArtifact type ID %d is out of int32 range", metricsArtifactTypeIDInt64)
-	}
-	metricsArtifactTypeID := int32(metricsArtifactTypeIDInt64)
 	glog.V(2).Infof("Using metrics artifact type ID: %d", metricsArtifactTypeID)
 
 	processedCount := 0

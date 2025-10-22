@@ -47,7 +47,7 @@ type MetricHistoryRepositoryImpl struct {
 	*GenericRepository[models.MetricHistory, schema.Artifact, schema.ArtifactProperty, *models.MetricHistoryListOptions]
 }
 
-func NewMetricHistoryRepository(db *gorm.DB, typeID int64) models.MetricHistoryRepository {
+func NewMetricHistoryRepository(db *gorm.DB, typeID int32) models.MetricHistoryRepository {
 	config := GenericRepositoryConfig[models.MetricHistory, schema.Artifact, schema.ArtifactProperty, *models.MetricHistoryListOptions]{
 		DB:                  db,
 		TypeID:              typeID,

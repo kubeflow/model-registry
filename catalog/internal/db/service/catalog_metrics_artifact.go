@@ -3,7 +3,6 @@ package service
 import (
 	"errors"
 	"fmt"
-	"math"
 
 	"github.com/kubeflow/model-registry/catalog/internal/db/models"
 	"github.com/kubeflow/model-registry/internal/apiutils"
@@ -20,7 +19,7 @@ type CatalogMetricsArtifactRepositoryImpl struct {
 	*service.GenericRepository[models.CatalogMetricsArtifact, schema.Artifact, schema.ArtifactProperty, *models.CatalogMetricsArtifactListOptions]
 }
 
-func NewCatalogMetricsArtifactRepository(db *gorm.DB, typeID int64) models.CatalogMetricsArtifactRepository {
+func NewCatalogMetricsArtifactRepository(db *gorm.DB, typeID int32) models.CatalogMetricsArtifactRepository {
 	config := service.GenericRepositoryConfig[models.CatalogMetricsArtifact, schema.Artifact, schema.ArtifactProperty, *models.CatalogMetricsArtifactListOptions]{
 		DB:                  db,
 		TypeID:              typeID,
@@ -47,8 +46,8 @@ func (r *CatalogMetricsArtifactRepositoryImpl) List(listOptions models.CatalogMe
 func (r *CatalogMetricsArtifactRepositoryImpl) Save(ma models.CatalogMetricsArtifact, parentResourceID *int32) (models.CatalogMetricsArtifact, error) {
 	config := r.GetConfig()
 	if ma.GetTypeID() == nil {
-		if config.TypeID > 0 && config.TypeID < math.MaxInt32 {
-			ma.SetTypeID(int32(config.TypeID))
+		if config.TypeID > 0 {
+			ma.SetTypeID(config.TypeID)
 		}
 	}
 
