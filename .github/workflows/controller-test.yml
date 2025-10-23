@@ -35,7 +35,7 @@ jobs:
         id: tags
         run: |
           commit_sha=${{ github.event.after }}
-          tag=main-${commit_sha:0:7}
+          tag="$BRANCH"-${commit_sha:0:7}
           echo "tag=${tag}" >> $GITHUB_OUTPUT
 
       - name: Clone the code
