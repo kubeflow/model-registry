@@ -283,7 +283,7 @@ func processModelDirectory(dirPath string, modelRepo dbmodels.CatalogModelReposi
 	}
 
 	// Check if the model already exists - only process metrics for existing models
-	existingModel, err := findExistingModel(metadata, modelRepo)
+	existingModel, err := modelRepo.GetByName(metadata.ID)
 	if err != nil {
 		return 0, fmt.Errorf("failed to check for existing model: %v", err)
 	}
@@ -460,25 +460,6 @@ func parsePerformanceFile(filePath string) ([]performanceRecord, error) {
 	}
 
 	return performanceRecords, nil
-}
-
-// findExistingModel checks if a model with the given metadata already exists in the database
-func findExistingModel(metadata metadataJSON, modelRepo dbmodels.CatalogModelRepository) (dbmodels.CatalogModel, error) {
-	// Check if a model with this Name already exists
-	existingModels, err := modelRepo.List(dbmodels.CatalogModelListOptions{
-		Name: &metadata.ID,
-	})
-	if err != nil {
-		return nil, fmt.Errorf("failed to check for existing model: %v", err)
-	}
-
-	// Return the existing model if found, nil otherwise
-	if existingModels.Size > 0 {
-		existingModel := existingModels.Items[0]
-		return existingModel, nil
-	}
-
-	return nil, nil
 }
 
 // createAccuracyMetricsArtifact creates a single metrics artifact from all evaluation records

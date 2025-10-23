@@ -121,7 +121,7 @@ func (r *CatalogMetricsArtifactRepositoryImpl) BatchSave(artifacts []models.Cata
 
 		// Pre-allocate slices for properties and attributions
 		// Estimate ~10 properties per artifact on average
-		allProperties := make([]schema.ArtifactProperty, 0, numArtifacts*10)
+		allProperties := []schema.ArtifactProperty{}
 		var allAttributions []schema.Attribution
 		if parentResourceID != nil {
 			allAttributions = make([]schema.Attribution, 0, numArtifacts)
