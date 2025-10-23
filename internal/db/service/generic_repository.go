@@ -305,13 +305,44 @@ func (r *GenericRepository[TEntity, TSchema, TProp, TListOpts]) Save(entity TEnt
 
 func (r *GenericRepository[TEntity, TSchema, TProp, TListOpts]) buildBaseQuery() *gorm.DB {
 	var schemaEntity TSchema
+
+	// Get the database dialect to determine quoting style
+	var tableNameQuoted string
+
 	switch any(schemaEntity).(type) {
 	case schema.Artifact:
-		return r.config.DB.Model(&schema.Artifact{}).Where("type_id = ?", r.config.TypeID)
+		tableName := "Artifact"
+		switch r.config.DB.Name() {
+		case "mysql":
+			tableNameQuoted = "`" + tableName + "`"
+		case "postgres":
+			tableNameQuoted = `"` + tableName + `"`
+		default:
+			tableNameQuoted = tableName
+		}
+		return r.config.DB.Model(&schema.Artifact{}).Where(tableNameQuoted+".type_id = ?", r.config.TypeID)
 	case schema.Context:
-		return r.config.DB.Model(&schema.Context{}).Where("type_id = ?", r.config.TypeID)
+		tableName := "Context"
+		switch r.config.DB.Name() {
+		case "mysql":
+			tableNameQuoted = "`" + tableName + "`"
+		case "postgres":
+			tableNameQuoted = `"` + tableName + `"`
+		default:
+			tableNameQuoted = tableName
+		}
+		return r.config.DB.Model(&schema.Context{}).Where(tableNameQuoted+".type_id = ?", r.config.TypeID)
 	case schema.Execution:
-		return r.config.DB.Model(&schema.Execution{}).Where("type_id = ?", r.config.TypeID)
+		tableName := "Execution"
+		switch r.config.DB.Name() {
+		case "mysql":
+			tableNameQuoted = "`" + tableName + "`"
+		case "postgres":
+			tableNameQuoted = `"` + tableName + `"`
+		default:
+			tableNameQuoted = tableName
+		}
+		return r.config.DB.Model(&schema.Execution{}).Where(tableNameQuoted+".type_id = ?", r.config.TypeID)
 	default:
 		panic(fmt.Sprintf("unsupported schema entity type: %T", schemaEntity))
 	}

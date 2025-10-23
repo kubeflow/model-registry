@@ -1,6 +1,8 @@
 package filter
 
 import (
+	"strings"
+
 	"github.com/kubeflow/model-registry/internal/db/filter"
 )
 
@@ -31,6 +33,23 @@ func (c *catalogEntityMappings) GetPropertyDefinitionForRestEntity(restEntityTyp
 		if _, isWellKnown := catalogModelProperties[propertyName]; isWellKnown {
 			// Use the well-known property definition
 			return catalogModelProperties[propertyName]
+		}
+
+		// Check if this is a property path referencing a related artifact
+		// Format: artifacts.<propertyName> or artifacts.customProperties.<propertyName>
+		if strings.HasPrefix(propertyName, "artifacts.") {
+			// Extract the artifact property path (everything after "artifacts.")
+			artifactPropertyPath := strings.TrimPrefix(propertyName, "artifacts.")
+
+			// Return a RelatedEntity property definition
+			return filter.PropertyDefinition{
+				Location:          filter.RelatedEntity,
+				ValueType:         filter.StringValueType, // Default, will be inferred at runtime
+				Column:            artifactPropertyPath,   // The property name in the artifact
+				RelatedEntityType: filter.RelatedEntityArtifact,
+				RelatedProperty:   artifactPropertyPath,
+				JoinTable:         "Attribution", // Join through Attribution table
+			}
 		}
 	}
 
