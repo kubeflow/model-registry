@@ -21,7 +21,7 @@ DST="$PROJECT_ROOT/${2:-internal/server/openapi}"
 # count=1: replace first occurrence only (like sed without /g flag)
 # count=N: replace first N occurrences
 py-re-replace() {
-  python -c "
+  python3 -c "
 import fileinput, re, sys
 count, pattern, replacement, filepaths = int(sys.argv[1]), sys.argv[2], sys.argv[3], sys.argv[4:]
 for filepath in filepaths:
