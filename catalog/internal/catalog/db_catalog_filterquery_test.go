@@ -953,10 +953,14 @@ func TestArtifactFilteringEdgeCases(t *testing.T) {
 			expectedSQL: []string{
 				"JOIN",
 				`"ArtifactProperty"`,
+				// Integer literals now query both int_value and double_value
+				".int_value >= $",
+				"OR",
 				".double_value >= $",
+				".int_value <= $",
 				".double_value <= $",
 			},
-			description: "Should handle various comparison operators on artifact properties",
+			description: "Should handle various comparison operators on artifact properties (queries both int and double columns for integer literals)",
 		},
 		{
 			name:        "Artifact property with NULL-like string",
@@ -998,6 +1002,70 @@ func TestArtifactFilteringEdgeCases(t *testing.T) {
 				".string_value ILIKE $",
 			},
 			description: "Should handle both exact and case-insensitive matching on artifact properties",
+		},
+		{
+			name:        "Integer literal queries both int_value and double_value",
+			filterQuery: `artifacts.count = 100`,
+			expectedSQL: []string{
+				"JOIN",
+				`"ArtifactProperty"`,
+				// Integer literals query BOTH columns with OR
+				".int_value = $",
+				"OR",
+				".double_value = $",
+			},
+			description: "Integer literals without explicit type should query both int_value and double_value columns to prevent silent query failures",
+		},
+		{
+			name:        "Explicit int_value type only queries int column",
+			filterQuery: `artifacts.count.int_value = 100`,
+			expectedSQL: []string{
+				"JOIN",
+				`"ArtifactProperty"`,
+				".int_value = $",
+			},
+			description: "Explicit .int_value type specification should only query int_value column",
+		},
+		{
+			name:        "Explicit double_value type only queries double column",
+			filterQuery: `artifacts.score.double_value = 95.5`,
+			expectedSQL: []string{
+				"JOIN",
+				`"ArtifactProperty"`,
+				".double_value = $",
+			},
+			description: "Explicit .double_value type specification should only query double_value column",
+		},
+		{
+			name:        "Float literal only queries double column",
+			filterQuery: `artifacts.score = 95.5`,
+			expectedSQL: []string{
+				"JOIN",
+				`"ArtifactProperty"`,
+				".double_value = $",
+			},
+			description: "Float literals should only query double_value column (no ambiguity)",
+		},
+		{
+			name:        "Range query with integer literals",
+			filterQuery: `artifacts.priority >= 1 AND artifacts.priority <= 5`,
+			expectedSQL: []string{
+				"JOIN",
+				`"ArtifactProperty"`,
+				// Both conditions should have OR clauses
+				".int_value >= $",
+				"OR",
+				".double_value >= $",
+				".int_value <= $",
+				".double_value <= $",
+			},
+			description: "Range queries with integer literals should check both columns to find values stored in either format",
+		},
+		{
+			name:        "Empty Artifact Property",
+			filterQuery: `artifacts.`,
+			shouldError: true,
+			description: "Should error on empty artifact property queries",
 		},
 	}
 

@@ -505,24 +505,48 @@ func (qb *QueryBuilder) buildRelatedEntityPropertyCondition(db *gorm.DB, propDef
 
 	// Determine value type: use explicit type if provided, otherwise infer from value
 	valueType := explicitType
+	inferredAsInt := false
 	if valueType == "" {
 		// No explicit type, infer from value
 		valueType = qb.inferValueTypeFromInterface(value)
-		// For artifact properties, treat integers as doubles for better metric compatibility
-		// (unless explicitly specified as int_value)
+		// Track if we inferred an integer type (for special handling below)
 		if valueType == IntValueType {
-			valueType = DoubleValueType
+			inferredAsInt = true
 		}
 	}
-
-	// Build condition on the appropriate value column
+	
+	// Special handling for integer literals without explicit type:
+	// Query BOTH int_value and double_value to handle data stored in either column.
+	// This prevents silent query failures when data type doesn't match user's expectation.
+	if inferredAsInt {
+		// Build conditions for both int_value and double_value
+		intColumn := fmt.Sprintf("%s.int_value", propAlias)
+		doubleColumn := fmt.Sprintf("%s.double_value", propAlias)
+		
+		// Use cross-database case-insensitive LIKE for ILIKE operator
+		if operator == "ILIKE" {
+			// ILIKE doesn't make sense for numeric types, but handle it anyway
+			return qb.buildCaseInsensitiveLikeCondition(db, intColumn, value)
+		}
+		
+		intCondition := qb.buildOperatorCondition(intColumn, operator, value)
+		doubleCondition := qb.buildOperatorCondition(doubleColumn, operator, value)
+		
+		// Combine with OR to find values in either column
+		combinedCondition := fmt.Sprintf("(%s OR %s)", intCondition.condition, doubleCondition.condition)
+		combinedArgs := append(intCondition.args, doubleCondition.args...)
+		
+		return db.Where(combinedCondition, combinedArgs...)
+	}
+	
+	// For explicit types or non-integer types, use the specified column
 	valueColumn := fmt.Sprintf("%s.%s", propAlias, valueType)
-
+	
 	// Use cross-database case-insensitive LIKE for ILIKE operator
 	if operator == "ILIKE" {
 		return qb.buildCaseInsensitiveLikeCondition(db, valueColumn, value)
 	}
-
+	
 	condition := qb.buildOperatorCondition(valueColumn, operator, value)
 	return db.Where(condition.condition, condition.args...)
 }
@@ -560,19 +584,43 @@ func (qb *QueryBuilder) buildRelatedEntityPropertyConditionString(propDef Proper
 
 	// Determine value type: use explicit type if provided, otherwise infer from value
 	valueType := explicitType
+	inferredAsInt := false
 	if valueType == "" {
 		// No explicit type, infer from value
 		valueType = qb.inferValueTypeFromInterface(value)
-		// For artifact properties, treat integers as doubles for better metric compatibility
-		// (unless explicitly specified as int_value)
+		// Track if we inferred an integer type (for special handling below)
 		if valueType == IntValueType {
-			valueType = DoubleValueType
+			inferredAsInt = true
 		}
 	}
 
 	// Build the value condition
-	valueColumn := fmt.Sprintf("%s.%s", propAlias, valueType)
-	valueCondition := qb.buildOperatorCondition(valueColumn, operator, value)
+	var valueCondition conditionResult
+	
+	// Special handling for integer literals without explicit type:
+	// Query BOTH int_value and double_value to handle data stored in either column.
+	// This prevents silent query failures when data type doesn't match user's expectation.
+	if inferredAsInt {
+		// Build conditions for both int_value and double_value
+		intColumn := fmt.Sprintf("%s.int_value", propAlias)
+		doubleColumn := fmt.Sprintf("%s.double_value", propAlias)
+		
+		intCondition := qb.buildOperatorCondition(intColumn, operator, value)
+		doubleCondition := qb.buildOperatorCondition(doubleColumn, operator, value)
+		
+		// Combine with OR to find values in either column
+		combinedCondition := fmt.Sprintf("(%s OR %s)", intCondition.condition, doubleCondition.condition)
+		combinedArgs := append(intCondition.args, doubleCondition.args...)
+		
+		valueCondition = conditionResult{
+			condition: combinedCondition,
+			args:      combinedArgs,
+		}
+	} else {
+		// For explicit types or non-integer types, use the specified column
+		valueColumn := fmt.Sprintf("%s.%s", propAlias, valueType)
+		valueCondition = qb.buildOperatorCondition(valueColumn, operator, value)
+	}
 
 	// Build the complete EXISTS subquery
 	subquery := fmt.Sprintf(
