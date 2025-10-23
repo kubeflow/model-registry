@@ -474,80 +474,39 @@ func (qb *QueryBuilder) buildRelatedEntityPropertyCondition(db *gorm.DB, propDef
 		return db
 	}
 
-	// Create unique aliases for this join chain
-	attributionAlias := fmt.Sprintf("attr_%d", qb.joinCounter)
-	artifactAlias := fmt.Sprintf("art_%d", qb.joinCounter)
-	propAlias := fmt.Sprintf("artprop_%d", qb.joinCounter)
-
-	// Quote table names for database compatibility
-	attributionTable := qb.quoteTableName("Attribution")
-	artifactTable := qb.quoteTableName("Artifact")
-	artifactPropertyTable := qb.quoteTableName("ArtifactProperty")
+	// Create unique aliases and table names for this join chain
+	aliases := qb.createRelatedEntityAliases(qb.joinCounter)
 
 	// Build the JOIN chain:
 	// JOIN Attribution attr_N ON attr_N.context_id = Context.id
 	join1 := fmt.Sprintf("JOIN %s %s ON %s.context_id = %s.id",
-		attributionTable, attributionAlias, attributionAlias, qb.tablePrefix)
+		aliases.attributionTable, aliases.attributionAlias, aliases.attributionAlias, qb.tablePrefix)
 	db = db.Joins(join1)
 
 	// JOIN Artifact art_N ON art_N.id = attr_N.artifact_id
 	join2 := fmt.Sprintf("JOIN %s %s ON %s.id = %s.artifact_id",
-		artifactTable, artifactAlias, artifactAlias, attributionAlias)
+		aliases.entityTable, aliases.entityAlias, aliases.entityAlias, aliases.attributionAlias)
 	db = db.Joins(join2)
 
 	// JOIN ArtifactProperty artprop_N ON artprop_N.artifact_id = art_N.id
 	join3 := fmt.Sprintf("JOIN %s %s ON %s.artifact_id = %s.id",
-		artifactPropertyTable, propAlias, propAlias, artifactAlias)
+		aliases.propertyTable, aliases.propertyAlias, aliases.propertyAlias, aliases.entityAlias)
 	db = db.Joins(join3)
 
 	// Add condition for property name
-	db = db.Where(fmt.Sprintf("%s.name = ?", propAlias), propDef.RelatedProperty)
+	db = db.Where(fmt.Sprintf("%s.name = ?", aliases.propertyAlias), propDef.RelatedProperty)
 
-	// Determine value type: use explicit type if provided, otherwise infer from value
-	valueType := explicitType
-	inferredAsInt := false
-	if valueType == "" {
-		// No explicit type, infer from value
-		valueType = qb.inferValueTypeFromInterface(value)
-		// Track if we inferred an integer type (for special handling below)
-		if valueType == IntValueType {
-			inferredAsInt = true
-		}
-	}
-
-	// Special handling for integer literals without explicit type:
-	// Query BOTH int_value and double_value to handle data stored in either column.
-	// This prevents silent query failures when data type doesn't match user's expectation.
-	if inferredAsInt {
-		// Build conditions for both int_value and double_value
-		intColumn := fmt.Sprintf("%s.int_value", propAlias)
-		doubleColumn := fmt.Sprintf("%s.double_value", propAlias)
-
-		// Use cross-database case-insensitive LIKE for ILIKE operator
-		if operator == "ILIKE" {
-			// ILIKE doesn't make sense for numeric types, but handle it anyway
-			return qb.buildCaseInsensitiveLikeCondition(db, intColumn, value)
-		}
-
-		intCondition := qb.buildOperatorCondition(intColumn, operator, value)
-		doubleCondition := qb.buildOperatorCondition(doubleColumn, operator, value)
-
-		// Combine with OR to find values in either column
-		combinedCondition := fmt.Sprintf("(%s OR %s)", intCondition.condition, doubleCondition.condition)
-		combinedArgs := append(intCondition.args, doubleCondition.args...)
-
-		return db.Where(combinedCondition, combinedArgs...)
-	}
-
-	// For explicit types or non-integer types, use the specified column
-	valueColumn := fmt.Sprintf("%s.%s", propAlias, valueType)
-
-	// Use cross-database case-insensitive LIKE for ILIKE operator
+	// Handle ILIKE specially (needs case-insensitive handling)
 	if operator == "ILIKE" {
+		// For ILIKE, we need to use the appropriate value column
+		// Note: ILIKE on numeric columns doesn't make much sense, but handle it anyway
+		valueType, _ := qb.determineValueType(explicitType, value)
+		valueColumn := fmt.Sprintf("%s.%s", aliases.propertyAlias, valueType)
 		return qb.buildCaseInsensitiveLikeCondition(db, valueColumn, value)
 	}
 
-	condition := qb.buildOperatorCondition(valueColumn, operator, value)
+	// Build the value condition (handles integer dual-column logic)
+	condition := qb.buildValueCondition(aliases.propertyAlias, explicitType, operator, value)
 	return db.Where(condition.condition, condition.args...)
 }
 
@@ -562,65 +521,11 @@ func (qb *QueryBuilder) buildRelatedEntityPropertyConditionString(propDef Proper
 		return conditionResult{condition: "1=1", args: []any{}}
 	}
 
-	// Create unique aliases
-	attributionAlias := fmt.Sprintf("attr_%d", qb.joinCounter)
-	artifactAlias := fmt.Sprintf("art_%d", qb.joinCounter)
-	propAlias := fmt.Sprintf("artprop_%d", qb.joinCounter)
+	// Create unique aliases and table names for this join chain
+	aliases := qb.createRelatedEntityAliases(qb.joinCounter)
 
-	// Quote table names
-	attributionTable := qb.quoteTableName("Attribution")
-	artifactTable := qb.quoteTableName("Artifact")
-	artifactPropertyTable := qb.quoteTableName("ArtifactProperty")
-
-	// Build EXISTS subquery with the JOIN chain
-	// EXISTS (
-	//   SELECT 1 FROM Attribution attr_N
-	//   JOIN Artifact art_N ON art_N.id = attr_N.artifact_id
-	//   JOIN ArtifactProperty artprop_N ON artprop_N.artifact_id = art_N.id
-	//   WHERE attr_N.context_id = Context.id
-	//     AND artprop_N.name = ?
-	//     AND artprop_N.value_column OPERATOR ?
-	// )
-
-	// Determine value type: use explicit type if provided, otherwise infer from value
-	valueType := explicitType
-	inferredAsInt := false
-	if valueType == "" {
-		// No explicit type, infer from value
-		valueType = qb.inferValueTypeFromInterface(value)
-		// Track if we inferred an integer type (for special handling below)
-		if valueType == IntValueType {
-			inferredAsInt = true
-		}
-	}
-
-	// Build the value condition
-	var valueCondition conditionResult
-
-	// Special handling for integer literals without explicit type:
-	// Query BOTH int_value and double_value to handle data stored in either column.
-	// This prevents silent query failures when data type doesn't match user's expectation.
-	if inferredAsInt {
-		// Build conditions for both int_value and double_value
-		intColumn := fmt.Sprintf("%s.int_value", propAlias)
-		doubleColumn := fmt.Sprintf("%s.double_value", propAlias)
-
-		intCondition := qb.buildOperatorCondition(intColumn, operator, value)
-		doubleCondition := qb.buildOperatorCondition(doubleColumn, operator, value)
-
-		// Combine with OR to find values in either column
-		combinedCondition := fmt.Sprintf("(%s OR %s)", intCondition.condition, doubleCondition.condition)
-		combinedArgs := append(intCondition.args, doubleCondition.args...)
-
-		valueCondition = conditionResult{
-			condition: combinedCondition,
-			args:      combinedArgs,
-		}
-	} else {
-		// For explicit types or non-integer types, use the specified column
-		valueColumn := fmt.Sprintf("%s.%s", propAlias, valueType)
-		valueCondition = qb.buildOperatorCondition(valueColumn, operator, value)
-	}
+	// Build the value condition (handles integer dual-column logic)
+	valueCondition := qb.buildValueCondition(aliases.propertyAlias, explicitType, operator, value)
 
 	// Build the complete EXISTS subquery
 	subquery := fmt.Sprintf(
@@ -628,15 +533,81 @@ func (qb *QueryBuilder) buildRelatedEntityPropertyConditionString(propDef Proper
 			"JOIN %s %s ON %s.id = %s.artifact_id "+
 			"JOIN %s %s ON %s.artifact_id = %s.id "+
 			"WHERE %s.context_id = %s.id AND %s.name = ? AND %s)",
-		attributionTable, attributionAlias,
-		artifactTable, artifactAlias, artifactAlias, attributionAlias,
-		artifactPropertyTable, propAlias, propAlias, artifactAlias,
-		attributionAlias, qb.tablePrefix, propAlias, valueCondition.condition)
+		aliases.attributionTable, aliases.attributionAlias,
+		aliases.entityTable, aliases.entityAlias, aliases.entityAlias, aliases.attributionAlias,
+		aliases.propertyTable, aliases.propertyAlias, aliases.propertyAlias, aliases.entityAlias,
+		aliases.attributionAlias, qb.tablePrefix, aliases.propertyAlias, valueCondition.condition)
 
 	args := []any{propDef.RelatedProperty}
 	args = append(args, valueCondition.args...)
 
 	return conditionResult{condition: subquery, args: args}
+}
+
+// relatedEntityAliases holds the table aliases for a related entity join chain
+type relatedEntityAliases struct {
+	attributionAlias string
+	entityAlias      string
+	propertyAlias    string
+	attributionTable string
+	entityTable      string
+	propertyTable    string
+}
+
+// createRelatedEntityAliases generates unique aliases and quoted table names for artifact filtering
+func (qb *QueryBuilder) createRelatedEntityAliases(counter int) relatedEntityAliases {
+	return relatedEntityAliases{
+		attributionAlias: fmt.Sprintf("attr_%d", counter),
+		entityAlias:      fmt.Sprintf("art_%d", counter),
+		propertyAlias:    fmt.Sprintf("artprop_%d", counter),
+		attributionTable: qb.quoteTableName("Attribution"),
+		entityTable:      qb.quoteTableName("Artifact"),
+		propertyTable:    qb.quoteTableName("ArtifactProperty"),
+	}
+}
+
+// determineValueType determines the value type for a property, handling explicit types and inference
+// Returns the value type and a boolean indicating if an integer was inferred (for dual-column queries)
+func (qb *QueryBuilder) determineValueType(explicitType string, value any) (valueType string, inferredAsInt bool) {
+	if explicitType != "" {
+		// Explicit type provided - use it directly
+		return explicitType, false
+	}
+
+	// No explicit type - infer from value
+	inferredType := qb.inferValueTypeFromInterface(value)
+	if inferredType == IntValueType {
+		// Integer inferred - flag for dual-column query
+		return inferredType, true
+	}
+
+	return inferredType, false
+}
+
+// buildValueCondition builds a condition for a property value, handling the dual-column query for integer literals
+func (qb *QueryBuilder) buildValueCondition(propertyAlias string, explicitType string, operator string, value any) conditionResult {
+	valueType, inferredAsInt := qb.determineValueType(explicitType, value)
+
+	// Special handling for integer literals without explicit type:
+	// Query BOTH int_value and double_value to handle data stored in either column.
+	// This prevents silent query failures when data type doesn't match user's expectation.
+	if inferredAsInt {
+		intColumn := fmt.Sprintf("%s.int_value", propertyAlias)
+		doubleColumn := fmt.Sprintf("%s.double_value", propertyAlias)
+
+		intCondition := qb.buildOperatorCondition(intColumn, operator, value)
+		doubleCondition := qb.buildOperatorCondition(doubleColumn, operator, value)
+
+		// Combine with OR to find values in either column
+		return conditionResult{
+			condition: fmt.Sprintf("(%s OR %s)", intCondition.condition, doubleCondition.condition),
+			args:      append(intCondition.args, doubleCondition.args...),
+		}
+	}
+
+	// For explicit types or non-integer types, use the specified column
+	valueColumn := fmt.Sprintf("%s.%s", propertyAlias, valueType)
+	return qb.buildOperatorCondition(valueColumn, operator, value)
 }
 
 // buildOperatorCondition builds a condition string for an operator
