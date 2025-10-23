@@ -171,10 +171,17 @@ func (qb *QueryBuilder) buildPropertyReference(expr *FilterExpression) *Property
 	propertyName := expr.Property
 
 	// Check if the property has an explicit type suffix (e.g., "budget.double_value")
+	// Valid type suffixes: string_value, double_value, int_value, bool_value
 	var explicitType string
-	if parts := strings.Split(propertyName, "."); len(parts) == 2 {
-		propertyName = parts[0]
-		explicitType = parts[1]
+	if parts := strings.Split(propertyName, "."); len(parts) >= 2 {
+		lastPart := parts[len(parts)-1]
+		// Only treat as type suffix if it's a valid value type
+		if lastPart == "string_value" || lastPart == "double_value" || lastPart == "int_value" || lastPart == "bool_value" {
+			// Reconstruct property name without the type suffix
+			propertyName = strings.Join(parts[:len(parts)-1], ".")
+			explicitType = lastPart
+		}
+		// Otherwise, keep the full path as property name
 	}
 
 	// Use REST entity type-aware property mapping if available
@@ -192,9 +199,10 @@ func (qb *QueryBuilder) buildPropertyReference(expr *FilterExpression) *Property
 	}
 
 	propRef := &PropertyReference{
-		Name:      propName,
-		IsCustom:  propDef.Location == Custom,
-		ValueType: propDef.ValueType,
+		Name:        propName,
+		IsCustom:    propDef.Location == Custom,
+		ValueType:   propDef.ValueType,
+		PropertyDef: propDef, // Store full property definition for advanced handling
 	}
 
 	// If explicit type was specified, use it
@@ -238,13 +246,16 @@ func (qb *QueryBuilder) inferValueTypeFromInterface(value any) string {
 
 // buildPropertyCondition builds a GORM query condition for a property
 func (qb *QueryBuilder) buildPropertyCondition(db *gorm.DB, propRef *PropertyReference, operator string, value any) *gorm.DB {
-	propDef := GetPropertyDefinition(qb.entityType, propRef.Name)
+	// Use the property definition from the PropertyReference (already looked up with REST entity mappings)
+	propDef := propRef.PropertyDef
 
 	switch propDef.Location {
 	case EntityTable:
 		return qb.buildEntityTablePropertyCondition(db, propRef, operator, value)
 	case PropertyTable, Custom:
 		return qb.buildPropertyTableCondition(db, propRef, operator, value)
+	case RelatedEntity:
+		return qb.buildRelatedEntityPropertyCondition(db, propDef, propRef.ValueType, operator, value)
 	default:
 		return qb.buildEntityTablePropertyCondition(db, propRef, operator, value)
 	}
@@ -252,13 +263,16 @@ func (qb *QueryBuilder) buildPropertyCondition(db *gorm.DB, propRef *PropertyRef
 
 // buildPropertyConditionString builds a condition string for a property
 func (qb *QueryBuilder) buildPropertyConditionString(propRef *PropertyReference, operator string, value any) conditionResult {
-	propDef := GetPropertyDefinition(qb.entityType, propRef.Name)
+	// Use the property definition from the PropertyReference (already looked up with REST entity mappings)
+	propDef := propRef.PropertyDef
 
 	switch propDef.Location {
 	case EntityTable:
 		return qb.buildEntityTablePropertyConditionString(propRef, operator, value)
 	case PropertyTable, Custom:
 		return qb.buildPropertyTableConditionString(propRef, operator, value)
+	case RelatedEntity:
+		return qb.buildRelatedEntityPropertyConditionString(propDef, propRef.ValueType, operator, value)
 	default:
 		return qb.buildEntityTablePropertyConditionString(propRef, operator, value)
 	}
@@ -440,6 +454,139 @@ func (qb *QueryBuilder) buildPropertyTableConditionString(propRef *PropertyRefer
 
 	args := []any{propRef.Name}
 	args = append(args, condition.args...)
+
+	return conditionResult{condition: subquery, args: args}
+}
+
+// buildRelatedEntityPropertyCondition builds a condition for properties in related entities (requires multiple JOINs)
+func (qb *QueryBuilder) buildRelatedEntityPropertyCondition(db *gorm.DB, propDef PropertyDefinition, explicitType string, operator string, value any) *gorm.DB {
+	// Increment join counter for unique alias
+	qb.joinCounter++
+
+	// For artifact filtering from a Context (model), we need to:
+	// 1. JOIN Attribution (relation table)
+	// 2. JOIN Artifact (related entity)
+	// 3. JOIN ArtifactProperty (property table of related entity)
+
+	// Currently only supporting artifact filtering from Context entities
+	if qb.entityType != EntityTypeContext || propDef.RelatedEntityType != RelatedEntityArtifact {
+		// Fallback to regular property handling if not supported
+		return db
+	}
+
+	// Create unique aliases for this join chain
+	attributionAlias := fmt.Sprintf("attr_%d", qb.joinCounter)
+	artifactAlias := fmt.Sprintf("art_%d", qb.joinCounter)
+	propAlias := fmt.Sprintf("artprop_%d", qb.joinCounter)
+
+	// Quote table names for database compatibility
+	attributionTable := qb.quoteTableName("Attribution")
+	artifactTable := qb.quoteTableName("Artifact")
+	artifactPropertyTable := qb.quoteTableName("ArtifactProperty")
+
+	// Build the JOIN chain:
+	// JOIN Attribution attr_N ON attr_N.context_id = Context.id
+	join1 := fmt.Sprintf("JOIN %s %s ON %s.context_id = %s.id",
+		attributionTable, attributionAlias, attributionAlias, qb.tablePrefix)
+	db = db.Joins(join1)
+
+	// JOIN Artifact art_N ON art_N.id = attr_N.artifact_id
+	join2 := fmt.Sprintf("JOIN %s %s ON %s.id = %s.artifact_id",
+		artifactTable, artifactAlias, artifactAlias, attributionAlias)
+	db = db.Joins(join2)
+
+	// JOIN ArtifactProperty artprop_N ON artprop_N.artifact_id = art_N.id
+	join3 := fmt.Sprintf("JOIN %s %s ON %s.artifact_id = %s.id",
+		artifactPropertyTable, propAlias, propAlias, artifactAlias)
+	db = db.Joins(join3)
+
+	// Add condition for property name
+	db = db.Where(fmt.Sprintf("%s.name = ?", propAlias), propDef.RelatedProperty)
+
+	// Determine value type: use explicit type if provided, otherwise infer from value
+	valueType := explicitType
+	if valueType == "" {
+		// No explicit type, infer from value
+		valueType = qb.inferValueTypeFromInterface(value)
+		// For artifact properties, treat integers as doubles for better metric compatibility
+		// (unless explicitly specified as int_value)
+		if valueType == IntValueType {
+			valueType = DoubleValueType
+		}
+	}
+
+	// Build condition on the appropriate value column
+	valueColumn := fmt.Sprintf("%s.%s", propAlias, valueType)
+
+	// Use cross-database case-insensitive LIKE for ILIKE operator
+	if operator == "ILIKE" {
+		return qb.buildCaseInsensitiveLikeCondition(db, valueColumn, value)
+	}
+
+	condition := qb.buildOperatorCondition(valueColumn, operator, value)
+	return db.Where(condition.condition, condition.args...)
+}
+
+// buildRelatedEntityPropertyConditionString builds a condition string for properties in related entities
+func (qb *QueryBuilder) buildRelatedEntityPropertyConditionString(propDef PropertyDefinition, explicitType string, operator string, value any) conditionResult {
+	// Increment join counter for unique alias
+	qb.joinCounter++
+
+	// Currently only supporting artifact filtering from Context entities
+	if qb.entityType != EntityTypeContext || propDef.RelatedEntityType != RelatedEntityArtifact {
+		// Fallback - return empty condition
+		return conditionResult{condition: "1=1", args: []any{}}
+	}
+
+	// Create unique aliases
+	attributionAlias := fmt.Sprintf("attr_%d", qb.joinCounter)
+	artifactAlias := fmt.Sprintf("art_%d", qb.joinCounter)
+	propAlias := fmt.Sprintf("artprop_%d", qb.joinCounter)
+
+	// Quote table names
+	attributionTable := qb.quoteTableName("Attribution")
+	artifactTable := qb.quoteTableName("Artifact")
+	artifactPropertyTable := qb.quoteTableName("ArtifactProperty")
+
+	// Build EXISTS subquery with the JOIN chain
+	// EXISTS (
+	//   SELECT 1 FROM Attribution attr_N
+	//   JOIN Artifact art_N ON art_N.id = attr_N.artifact_id
+	//   JOIN ArtifactProperty artprop_N ON artprop_N.artifact_id = art_N.id
+	//   WHERE attr_N.context_id = Context.id
+	//     AND artprop_N.name = ?
+	//     AND artprop_N.value_column OPERATOR ?
+	// )
+
+	// Determine value type: use explicit type if provided, otherwise infer from value
+	valueType := explicitType
+	if valueType == "" {
+		// No explicit type, infer from value
+		valueType = qb.inferValueTypeFromInterface(value)
+		// For artifact properties, treat integers as doubles for better metric compatibility
+		// (unless explicitly specified as int_value)
+		if valueType == IntValueType {
+			valueType = DoubleValueType
+		}
+	}
+
+	// Build the value condition
+	valueColumn := fmt.Sprintf("%s.%s", propAlias, valueType)
+	valueCondition := qb.buildOperatorCondition(valueColumn, operator, value)
+
+	// Build the complete EXISTS subquery
+	subquery := fmt.Sprintf(
+		"EXISTS (SELECT 1 FROM %s %s "+
+			"JOIN %s %s ON %s.id = %s.artifact_id "+
+			"JOIN %s %s ON %s.artifact_id = %s.id "+
+			"WHERE %s.context_id = %s.id AND %s.name = ? AND %s)",
+		attributionTable, attributionAlias,
+		artifactTable, artifactAlias, artifactAlias, attributionAlias,
+		artifactPropertyTable, propAlias, propAlias, artifactAlias,
+		attributionAlias, qb.tablePrefix, propAlias, valueCondition.condition)
+
+	args := []any{propDef.RelatedProperty}
+	args = append(args, valueCondition.args...)
 
 	return conditionResult{condition: subquery, args: args}
 }

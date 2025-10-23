@@ -42,10 +42,11 @@ func (c *catalogEntityMappings) GetPropertyDefinitionForRestEntity(restEntityTyp
 			artifactPropertyPath := strings.TrimPrefix(propertyName, "artifacts.")
 
 			// Return a RelatedEntity property definition
+			// ValueType is left empty to allow runtime type inference from the value
 			return filter.PropertyDefinition{
 				Location:          filter.RelatedEntity,
-				ValueType:         filter.StringValueType, // Default, will be inferred at runtime
-				Column:            artifactPropertyPath,   // The property name in the artifact
+				ValueType:         "", // Empty to enable runtime type inference
+				Column:            artifactPropertyPath,
 				RelatedEntityType: filter.RelatedEntityArtifact,
 				RelatedProperty:   artifactPropertyPath,
 				JoinTable:         "Attribution", // Join through Attribution table
