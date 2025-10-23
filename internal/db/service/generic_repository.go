@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/kubeflow/model-registry/internal/db/dbutil"
 	"github.com/kubeflow/model-registry/internal/db/filter"
 	"github.com/kubeflow/model-registry/internal/db/models"
 	"github.com/kubeflow/model-registry/internal/db/schema"
@@ -305,47 +306,29 @@ func (r *GenericRepository[TEntity, TSchema, TProp, TListOpts]) Save(entity TEnt
 
 func (r *GenericRepository[TEntity, TSchema, TProp, TListOpts]) buildBaseQuery() *gorm.DB {
 	var schemaEntity TSchema
+	var tableName string
+	var model interface{}
 
-	// Get the database dialect to determine quoting style
-	var tableNameQuoted string
-
+	// Determine table name and model based on schema entity type
 	switch any(schemaEntity).(type) {
 	case schema.Artifact:
-		tableName := "Artifact"
-		switch r.config.DB.Name() {
-		case "mysql":
-			tableNameQuoted = "`" + tableName + "`"
-		case "postgres":
-			tableNameQuoted = `"` + tableName + `"`
-		default:
-			tableNameQuoted = tableName
-		}
-		return r.config.DB.Model(&schema.Artifact{}).Where(tableNameQuoted+".type_id = ?", r.config.TypeID)
+		tableName = "Artifact"
+		model = &schema.Artifact{}
 	case schema.Context:
-		tableName := "Context"
-		switch r.config.DB.Name() {
-		case "mysql":
-			tableNameQuoted = "`" + tableName + "`"
-		case "postgres":
-			tableNameQuoted = `"` + tableName + `"`
-		default:
-			tableNameQuoted = tableName
-		}
-		return r.config.DB.Model(&schema.Context{}).Where(tableNameQuoted+".type_id = ?", r.config.TypeID)
+		tableName = "Context"
+		model = &schema.Context{}
 	case schema.Execution:
-		tableName := "Execution"
-		switch r.config.DB.Name() {
-		case "mysql":
-			tableNameQuoted = "`" + tableName + "`"
-		case "postgres":
-			tableNameQuoted = `"` + tableName + `"`
-		default:
-			tableNameQuoted = tableName
-		}
-		return r.config.DB.Model(&schema.Execution{}).Where(tableNameQuoted+".type_id = ?", r.config.TypeID)
+		tableName = "Execution"
+		model = &schema.Execution{}
 	default:
 		panic(fmt.Sprintf("unsupported schema entity type: %T", schemaEntity))
 	}
+
+	// Quote table name based on database dialect and build WHERE clause
+	tableNameQuoted := dbutil.QuoteTableName(r.config.DB, tableName)
+	whereClause := fmt.Sprintf("%s.type_id = ?", tableNameQuoted)
+
+	return r.config.DB.Model(model).Where(whereClause, r.config.TypeID)
 }
 
 func (r *GenericRepository[TEntity, TSchema, TProp, TListOpts]) getEntityID(entity TSchema) int32 {

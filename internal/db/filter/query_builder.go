@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"github.com/kubeflow/model-registry/internal/db/constants"
+	"github.com/kubeflow/model-registry/internal/db/dbutil"
 	"gorm.io/gorm"
 )
 
@@ -92,29 +93,14 @@ func (qb *QueryBuilder) applyDatabaseQuoting() {
 	if qb.db == nil {
 		return
 	}
-	switch qb.db.Name() {
-	case "mysql":
-		qb.tablePrefix = "`" + qb.tablePrefix + "`"
-	case "postgres":
-		qb.tablePrefix = `"` + qb.tablePrefix + `"`
-	default:
-		// Keep unquoted for other databases
-	}
+	// Extract unquoted table name if it was already quoted
+	unquotedName := strings.Trim(qb.tablePrefix, "`\"")
+	qb.tablePrefix = dbutil.QuoteTableName(qb.db, unquotedName)
 }
 
 // quoteTableName quotes a table name based on database dialect
 func (qb *QueryBuilder) quoteTableName(tableName string) string {
-	if qb.db == nil {
-		return tableName
-	}
-	switch qb.db.Name() {
-	case "mysql":
-		return "`" + tableName + "`"
-	case "postgres":
-		return `"` + tableName + `"`
-	default:
-		return tableName
-	}
+	return dbutil.QuoteTableName(qb.db, tableName)
 }
 
 // buildExpression recursively builds query conditions from filter expressions
