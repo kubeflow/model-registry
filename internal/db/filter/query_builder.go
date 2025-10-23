@@ -514,7 +514,7 @@ func (qb *QueryBuilder) buildRelatedEntityPropertyCondition(db *gorm.DB, propDef
 			inferredAsInt = true
 		}
 	}
-	
+
 	// Special handling for integer literals without explicit type:
 	// Query BOTH int_value and double_value to handle data stored in either column.
 	// This prevents silent query failures when data type doesn't match user's expectation.
@@ -522,31 +522,31 @@ func (qb *QueryBuilder) buildRelatedEntityPropertyCondition(db *gorm.DB, propDef
 		// Build conditions for both int_value and double_value
 		intColumn := fmt.Sprintf("%s.int_value", propAlias)
 		doubleColumn := fmt.Sprintf("%s.double_value", propAlias)
-		
+
 		// Use cross-database case-insensitive LIKE for ILIKE operator
 		if operator == "ILIKE" {
 			// ILIKE doesn't make sense for numeric types, but handle it anyway
 			return qb.buildCaseInsensitiveLikeCondition(db, intColumn, value)
 		}
-		
+
 		intCondition := qb.buildOperatorCondition(intColumn, operator, value)
 		doubleCondition := qb.buildOperatorCondition(doubleColumn, operator, value)
-		
+
 		// Combine with OR to find values in either column
 		combinedCondition := fmt.Sprintf("(%s OR %s)", intCondition.condition, doubleCondition.condition)
 		combinedArgs := append(intCondition.args, doubleCondition.args...)
-		
+
 		return db.Where(combinedCondition, combinedArgs...)
 	}
-	
+
 	// For explicit types or non-integer types, use the specified column
 	valueColumn := fmt.Sprintf("%s.%s", propAlias, valueType)
-	
+
 	// Use cross-database case-insensitive LIKE for ILIKE operator
 	if operator == "ILIKE" {
 		return qb.buildCaseInsensitiveLikeCondition(db, valueColumn, value)
 	}
-	
+
 	condition := qb.buildOperatorCondition(valueColumn, operator, value)
 	return db.Where(condition.condition, condition.args...)
 }
@@ -596,7 +596,7 @@ func (qb *QueryBuilder) buildRelatedEntityPropertyConditionString(propDef Proper
 
 	// Build the value condition
 	var valueCondition conditionResult
-	
+
 	// Special handling for integer literals without explicit type:
 	// Query BOTH int_value and double_value to handle data stored in either column.
 	// This prevents silent query failures when data type doesn't match user's expectation.
@@ -604,14 +604,14 @@ func (qb *QueryBuilder) buildRelatedEntityPropertyConditionString(propDef Proper
 		// Build conditions for both int_value and double_value
 		intColumn := fmt.Sprintf("%s.int_value", propAlias)
 		doubleColumn := fmt.Sprintf("%s.double_value", propAlias)
-		
+
 		intCondition := qb.buildOperatorCondition(intColumn, operator, value)
 		doubleCondition := qb.buildOperatorCondition(doubleColumn, operator, value)
-		
+
 		// Combine with OR to find values in either column
 		combinedCondition := fmt.Sprintf("(%s OR %s)", intCondition.condition, doubleCondition.condition)
 		combinedArgs := append(intCondition.args, doubleCondition.args...)
-		
+
 		valueCondition = conditionResult{
 			condition: combinedCondition,
 			args:      combinedArgs,
