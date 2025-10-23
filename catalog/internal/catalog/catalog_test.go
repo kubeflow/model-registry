@@ -500,6 +500,29 @@ func (m *MockCatalogMetricsArtifactRepository) Save(metricsArtifact dbmodels.Cat
 	return savedMetrics, nil
 }
 
+func (m *MockCatalogMetricsArtifactRepository) BatchSave(metricsArtifacts []dbmodels.CatalogMetricsArtifact, parentResourceID *int32) ([]dbmodels.CatalogMetricsArtifact, error) {
+	savedArtifacts := make([]dbmodels.CatalogMetricsArtifact, len(metricsArtifacts))
+
+	for i, metricsArtifact := range metricsArtifacts {
+		m.NextID++
+		id := m.NextID
+
+		// Create a new metrics artifact with assigned ID
+		savedMetrics := &dbmodels.CatalogMetricsArtifactImpl{
+			ID:               &id,
+			TypeID:           metricsArtifact.GetTypeID(),
+			Attributes:       metricsArtifact.GetAttributes(),
+			Properties:       metricsArtifact.GetProperties(),
+			CustomProperties: metricsArtifact.GetCustomProperties(),
+		}
+
+		m.SavedMetrics = append(m.SavedMetrics, savedMetrics)
+		savedArtifacts[i] = savedMetrics
+	}
+
+	return savedArtifacts, nil
+}
+
 // MockCatalogArtifactRepository mocks the CatalogArtifactRepository interface.
 type MockCatalogArtifactRepository struct {
 	SavedArtifacts []dbmodels.CatalogArtifact
