@@ -45,31 +45,33 @@ if [[ "${SKIP_IF_EXISTING,,}" == "true" && "${IMG_REGISTRY,,}" == "quay.io" ]]; 
     fi
 fi
 
-# build docker image, login is not required at this step
+# build docker image, login is required for buildx push
 if [[ "${BUILD_IMAGE,,}" == "true" ]]; then
     echo "Building container image.."
-    make \
-        IMG_REGISTRY="${IMG_REGISTRY}" \
-        IMG_ORG="${IMG_ORG}" \
-        IMG_REPO="${IMG_REPO}" \
-        IMG_VERSION="${VERSION}" \
-        image/build
+    # Login before buildx (buildx pushes directly when PUSH_IMAGE=true)
+    if [[ "${PUSH_IMAGE,,}" == "true" ]]; then
+        make \
+            IMG_REGISTRY="${IMG_REGISTRY}" \
+            DOCKER_USER="${DOCKER_USER}" \
+            DOCKER_PWD="${DOCKER_PWD}" \
+            docker/login
+        echo "Building and pushing multi-architecture container image.."
+        make \
+            IMG_REGISTRY="${IMG_REGISTRY}" \
+            IMG_ORG="${IMG_ORG}" \
+            IMG_REPO="${IMG_REPO}" \
+            IMG_VERSION="${VERSION}" \
+            PLATFORMS="${PLATFORMS:-linux/arm64,linux/amd64,linux/s390x,linux/ppc64le}" \
+            image/buildx
+    else
+        echo "Building container image (local only).."
+        make \
+            IMG_REGISTRY="${IMG_REGISTRY}" \
+            IMG_ORG="${IMG_ORG}" \
+            IMG_REPO="${IMG_REPO}" \
+            IMG_VERSION="${VERSION}" \
+            image/build
+    fi
 else
     echo "Skip container image build."
-fi
-
-# push container image to registry, requires login
-if [[ "${PUSH_IMAGE,,}" == "true" ]]; then
-    echo "Pushing container image.."
-    make \
-        IMG_REGISTRY="${IMG_REGISTRY}" \
-        IMG_ORG="${IMG_ORG}" \
-        IMG_REPO="${IMG_REPO}" \
-        IMG_VERSION="${VERSION}" \
-        DOCKER_USER="${DOCKER_USER}" \
-        DOCKER_PWD="${DOCKER_PWD}" \
-        docker/login \
-        image/push
-else
-    echo "Skip container image push."
 fi
