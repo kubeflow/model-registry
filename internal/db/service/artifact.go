@@ -19,12 +19,12 @@ var ErrArtifactNotFound = errors.New("artifact by id not found")
 
 type ArtifactRepositoryImpl struct {
 	db       *gorm.DB
-	idToName map[int64]string
+	idToName map[int32]string
 	nameToID datastore.ArtifactTypeMap
 }
 
 func NewArtifactRepository(db *gorm.DB, artifactTypes datastore.ArtifactTypeMap) models.ArtifactRepository {
-	idToName := make(map[int64]string, len(artifactTypes))
+	idToName := make(map[int32]string, len(artifactTypes))
 	for name, id := range artifactTypes {
 		idToName[id] = name
 	}
@@ -170,7 +170,7 @@ func (r *ArtifactRepositoryImpl) List(listOptions models.ArtifactListOptions) (*
 }
 
 // getTypeIDFromArtifactType maps artifact type strings to their corresponding type IDs
-func (r *ArtifactRepositoryImpl) getTypeIDFromArtifactType(artifactType string) (int64, error) {
+func (r *ArtifactRepositoryImpl) getTypeIDFromArtifactType(artifactType string) (int32, error) {
 	switch openapi.ArtifactTypeQueryParam(artifactType) {
 	case openapi.ARTIFACTTYPEQUERYPARAM_MODEL_ARTIFACT:
 		return r.nameToID[defaults.ModelArtifactTypeName], nil
@@ -190,7 +190,7 @@ func (r *ArtifactRepositoryImpl) getTypeIDFromArtifactType(artifactType string) 
 func (r *ArtifactRepositoryImpl) mapDataLayerToArtifact(artifact schema.Artifact, properties []schema.ArtifactProperty) (models.Artifact, error) {
 	artToReturn := models.Artifact{}
 
-	typeName := r.idToName[int64(artifact.TypeID)]
+	typeName := r.idToName[artifact.TypeID]
 
 	switch typeName {
 	case defaults.ModelArtifactTypeName:

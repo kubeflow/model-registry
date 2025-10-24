@@ -22,7 +22,7 @@ func TestCatalogArtifactRepository(t *testing.T) {
 	metricsArtifactTypeID := getCatalogMetricsArtifactTypeID(t, sharedDB)
 
 	// Create unified artifact repository with both types
-	artifactTypeMap := map[string]int64{
+	artifactTypeMap := map[string]int32{
 		service.CatalogModelArtifactTypeName:   modelArtifactTypeID,
 		service.CatalogMetricsArtifactTypeName: metricsArtifactTypeID,
 	}
@@ -351,7 +351,7 @@ func TestCatalogArtifactRepository(t *testing.T) {
 		// by temporarily modifying the repository's type mapping
 
 		// Create a repository with incomplete type mapping
-		incompleteTypeMap := map[string]int64{
+		incompleteTypeMap := map[string]int32{
 			service.CatalogModelArtifactTypeName: modelArtifactTypeID,
 			// Missing CatalogMetricsArtifactTypeName intentionally
 		}

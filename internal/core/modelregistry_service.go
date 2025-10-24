@@ -25,7 +25,7 @@ type ModelRegistryService struct {
 	parameterRepository          models.ParameterRepository
 	metricHistoryRepository      models.MetricHistoryRepository
 	mapper                       mapper.EmbedMDMapper
-	typesMap                     map[string]int64
+	typesMap                     map[string]int32
 }
 
 func NewModelRegistryService(
@@ -43,7 +43,7 @@ func NewModelRegistryService(
 	metricRepository models.MetricRepository,
 	parameterRepository models.ParameterRepository,
 	metricHistoryRepository models.MetricHistoryRepository,
-	typesMap map[string]int64) *ModelRegistryService {
+	typesMap map[string]int32) *ModelRegistryService {
 	return &ModelRegistryService{
 		artifactRepository:           artifactRepository,
 		modelArtifactRepository:      modelArtifactRepository,
