@@ -21,19 +21,13 @@ type ArtifactTypeQueryParam string
 // List of ArtifactTypeQueryParam
 const (
 	ARTIFACTTYPEQUERYPARAM_MODEL_ARTIFACT   ArtifactTypeQueryParam = "model-artifact"
-	ARTIFACTTYPEQUERYPARAM_DOC_ARTIFACT     ArtifactTypeQueryParam = "doc-artifact"
-	ARTIFACTTYPEQUERYPARAM_DATASET_ARTIFACT ArtifactTypeQueryParam = "dataset-artifact"
-	ARTIFACTTYPEQUERYPARAM_METRIC           ArtifactTypeQueryParam = "metric"
-	ARTIFACTTYPEQUERYPARAM_PARAMETER        ArtifactTypeQueryParam = "parameter"
+	ARTIFACTTYPEQUERYPARAM_METRICS_ARTIFACT ArtifactTypeQueryParam = "metrics-artifact"
 )
 
 // All allowed values of ArtifactTypeQueryParam enum
 var AllowedArtifactTypeQueryParamEnumValues = []ArtifactTypeQueryParam{
 	"model-artifact",
-	"doc-artifact",
-	"dataset-artifact",
-	"metric",
-	"parameter",
+	"metrics-artifact",
 }
 
 func (v *ArtifactTypeQueryParam) UnmarshalJSON(src []byte) error {

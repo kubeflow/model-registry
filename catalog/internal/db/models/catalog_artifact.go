@@ -7,10 +7,11 @@ import (
 
 type CatalogArtifactListOptions struct {
 	models.Pagination
-	Name             *string
-	ExternalID       *string
-	ParentResourceID *int32
-	ArtifactType     *string
+	Name                *string
+	ExternalID          *string
+	ParentResourceID    *int32
+	ArtifactType        *string
+	ArtifactTypesFilter []string
 }
 
 // GetRestEntityType implements the FilterApplier interface
