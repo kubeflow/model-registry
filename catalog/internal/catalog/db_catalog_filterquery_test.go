@@ -596,7 +596,7 @@ func TestArtifactFilteringCapability(t *testing.T) {
 			name:        "Basic artifact property filter - numeric",
 			filterQuery: `artifacts.ttft_mean >= 90.0`,
 			expectedSQL: []string{
-				"JOIN",
+				"EXISTS",
 				`"Attribution"`,
 				"attr_", // Attribution alias
 				"ON",
@@ -618,7 +618,7 @@ func TestArtifactFilteringCapability(t *testing.T) {
 			name:        "Artifact custom property - string",
 			filterQuery: `artifacts.format = "pytorch"`,
 			expectedSQL: []string{
-				"JOIN",
+				"EXISTS",
 				`"Attribution"`,
 				`"Artifact"`,
 				`"ArtifactProperty"`,
@@ -632,7 +632,7 @@ func TestArtifactFilteringCapability(t *testing.T) {
 			name:        "Artifact property with explicit type",
 			filterQuery: `artifacts.performance_score.double_value > 0.95`,
 			expectedSQL: []string{
-				"JOIN",
+				"EXISTS",
 				`"Attribution"`,
 				`"Artifact"`,
 				`"ArtifactProperty"`,
@@ -648,7 +648,7 @@ func TestArtifactFilteringCapability(t *testing.T) {
 			expectedSQL: []string{
 				`"Context".name = $`,
 				"AND",
-				"JOIN",
+				"EXISTS",
 				`"Attribution"`,
 				`"Artifact"`,
 				`"ArtifactProperty"`,
@@ -662,7 +662,7 @@ func TestArtifactFilteringCapability(t *testing.T) {
 			name:        "Multiple artifact property filters",
 			filterQuery: `artifacts.ttft_mean >= 90.0 AND artifacts.tpot_mean <= 50.0`,
 			expectedSQL: []string{
-				"JOIN",
+				"EXISTS",
 				`"Attribution"`,
 				`"Artifact"`,
 				`"ArtifactProperty"`,
@@ -678,7 +678,7 @@ func TestArtifactFilteringCapability(t *testing.T) {
 			name:        "Artifact property with LIKE",
 			filterQuery: `artifacts.model_format LIKE "%.onnx"`,
 			expectedSQL: []string{
-				"JOIN",
+				"EXISTS",
 				`"Attribution"`,
 				`"Artifact"`,
 				`"ArtifactProperty"`,
@@ -691,7 +691,7 @@ func TestArtifactFilteringCapability(t *testing.T) {
 			name:        "Artifact property with IN clause",
 			filterQuery: `artifacts.device IN ('cuda','rocm')`,
 			expectedSQL: []string{
-				"JOIN",
+				"EXISTS",
 				`"Attribution"`,
 				`"Artifact"`,
 				`"ArtifactProperty"`,
@@ -705,7 +705,7 @@ func TestArtifactFilteringCapability(t *testing.T) {
 			filterQuery: `name LIKE "%llama%" AND provider.string_value = "Meta" AND artifacts.ttft_mean < 100.0`,
 			expectedSQL: []string{
 				`"Context".name LIKE $`,
-				"JOIN",
+				"EXISTS",
 				`"ContextProperty"`,
 				".name = $",
 				".string_value = $",
@@ -722,7 +722,7 @@ func TestArtifactFilteringCapability(t *testing.T) {
 			name:        "Artifact boolean property",
 			filterQuery: `artifacts.is_quantized.bool_value = true`,
 			expectedSQL: []string{
-				"JOIN",
+				"EXISTS",
 				`"Attribution"`,
 				`"Artifact"`,
 				`"ArtifactProperty"`,
@@ -735,7 +735,7 @@ func TestArtifactFilteringCapability(t *testing.T) {
 			name:        "Artifact integer property",
 			filterQuery: `artifacts.batch_size.int_value = 32`,
 			expectedSQL: []string{
-				"JOIN",
+				"EXISTS",
 				`"Attribution"`,
 				`"Artifact"`,
 				`"ArtifactProperty"`,
@@ -916,7 +916,7 @@ func TestArtifactFilteringEdgeCases(t *testing.T) {
 			name:        "Artifact property with special characters in name",
 			filterQuery: "`artifacts.custom-metric` > 100",
 			expectedSQL: []string{
-				"JOIN",
+				"EXISTS",
 				`"ArtifactProperty"`,
 				".name = $",
 			},
@@ -928,7 +928,7 @@ func TestArtifactFilteringEdgeCases(t *testing.T) {
 			expectedSQL: []string{
 				`"Context".name = $`,
 				"OR",
-				"JOIN",
+				"EXISTS",
 				`"Attribution"`,
 				`"Artifact"`,
 				`"ArtifactProperty"`,
@@ -951,7 +951,7 @@ func TestArtifactFilteringEdgeCases(t *testing.T) {
 			name:        "Artifact property comparison operators",
 			filterQuery: `artifacts.memory_mb >= 1024 AND artifacts.latency_ms <= 100`,
 			expectedSQL: []string{
-				"JOIN",
+				"EXISTS",
 				`"ArtifactProperty"`,
 				// Integer literals now query both int_value and double_value
 				".int_value >= $",
@@ -966,7 +966,7 @@ func TestArtifactFilteringEdgeCases(t *testing.T) {
 			name:        "Artifact property with NULL-like string",
 			filterQuery: `artifacts.status = "null"`,
 			expectedSQL: []string{
-				"JOIN",
+				"EXISTS",
 				`"ArtifactProperty"`,
 				".string_value = $",
 			},
@@ -976,7 +976,7 @@ func TestArtifactFilteringEdgeCases(t *testing.T) {
 			name:        "Very long artifact property name",
 			filterQuery: `artifacts.this_is_a_very_long_property_name_that_should_still_work_correctly = "test"`,
 			expectedSQL: []string{
-				"JOIN",
+				"EXISTS",
 				`"ArtifactProperty"`,
 				".name = $",
 			},
@@ -986,7 +986,7 @@ func TestArtifactFilteringEdgeCases(t *testing.T) {
 			name:        "Artifact property with Unicode value",
 			filterQuery: `artifacts.description = "模型描述"`,
 			expectedSQL: []string{
-				"JOIN",
+				"EXISTS",
 				`"ArtifactProperty"`,
 				".string_value = $",
 			},
@@ -996,18 +996,19 @@ func TestArtifactFilteringEdgeCases(t *testing.T) {
 			name:        "Mixed case-sensitive and case-insensitive artifact queries",
 			filterQuery: `artifacts.format = "ONNX" AND artifacts.provider ILIKE "%hugging%"`,
 			expectedSQL: []string{
-				"JOIN",
+				"EXISTS",
 				`"ArtifactProperty"`,
 				".string_value = $",
-				".string_value ILIKE $",
+				"UPPER(",
+				".string_value) LIKE UPPER(",
 			},
-			description: "Should handle both exact and case-insensitive matching on artifact properties",
+			description: "Should handle both exact and case-insensitive matching on artifact properties (ILIKE uses UPPER for cross-DB compatibility)",
 		},
 		{
 			name:        "Integer literal queries both int_value and double_value",
 			filterQuery: `artifacts.count = 100`,
 			expectedSQL: []string{
-				"JOIN",
+				"EXISTS",
 				`"ArtifactProperty"`,
 				// Integer literals query BOTH columns with OR
 				".int_value = $",
@@ -1020,7 +1021,7 @@ func TestArtifactFilteringEdgeCases(t *testing.T) {
 			name:        "Explicit int_value type only queries int column",
 			filterQuery: `artifacts.count.int_value = 100`,
 			expectedSQL: []string{
-				"JOIN",
+				"EXISTS",
 				`"ArtifactProperty"`,
 				".int_value = $",
 			},
@@ -1030,7 +1031,7 @@ func TestArtifactFilteringEdgeCases(t *testing.T) {
 			name:        "Explicit double_value type only queries double column",
 			filterQuery: `artifacts.score.double_value = 95.5`,
 			expectedSQL: []string{
-				"JOIN",
+				"EXISTS",
 				`"ArtifactProperty"`,
 				".double_value = $",
 			},
@@ -1040,7 +1041,7 @@ func TestArtifactFilteringEdgeCases(t *testing.T) {
 			name:        "Float literal only queries double column",
 			filterQuery: `artifacts.score = 95.5`,
 			expectedSQL: []string{
-				"JOIN",
+				"EXISTS",
 				`"ArtifactProperty"`,
 				".double_value = $",
 			},
@@ -1050,7 +1051,7 @@ func TestArtifactFilteringEdgeCases(t *testing.T) {
 			name:        "Range query with integer literals",
 			filterQuery: `artifacts.priority >= 1 AND artifacts.priority <= 5`,
 			expectedSQL: []string{
-				"JOIN",
+				"EXISTS",
 				`"ArtifactProperty"`,
 				// Both conditions should have OR clauses
 				".int_value >= $",
