@@ -81,7 +81,7 @@ func (r *CatalogArtifactRepositoryImpl) List(listOptions models.CatalogArtifactL
 	// Filter by artifact type(s) if specified
 	if len(listOptions.ArtifactTypesFilter) > 0 {
 		// Handle multiple artifact types
-		typeIDs := []int64{}
+		typeIDs := []int32{}
 		for _, artifactType := range listOptions.ArtifactTypesFilter {
 			// Handle "null" string as invalid artifact type
 			if artifactType == "null" || artifactType == "" {
