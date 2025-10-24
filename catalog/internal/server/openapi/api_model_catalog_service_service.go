@@ -25,7 +25,7 @@ type ModelCatalogServiceAPIService struct {
 }
 
 // GetAllModelArtifacts retrieves all model artifacts for a given model from the specified source.
-func (m *ModelCatalogServiceAPIService) GetAllModelArtifacts(ctx context.Context, sourceID string, modelName string, artifactType model.ArtifactTypeQueryParam, pageSize string, orderBy model.OrderByField, sortOrder model.SortOrder, nextPageToken string) (ImplResponse, error) {
+func (m *ModelCatalogServiceAPIService) GetAllModelArtifacts(ctx context.Context, sourceID string, modelName string, artifactType []model.ArtifactTypeQueryParam, pageSize string, orderBy model.OrderByField, sortOrder model.SortOrder, nextPageToken string) (ImplResponse, error) {
 	if newName, err := url.PathUnescape(modelName); err == nil {
 		modelName = newName
 	}
@@ -41,13 +41,30 @@ func (m *ModelCatalogServiceAPIService) GetAllModelArtifacts(ctx context.Context
 		pageSizeInt = int32(parsed)
 	}
 
-	artifactTypeStr := string(artifactType)
+	// Handle multiple artifact types
+	var artifactTypeStr *string
+	var artifactTypesFilter []string
+
+	if len(artifactType) > 0 {
+		// Convert slice of ArtifactTypeQueryParam to slice of strings
+		artifactTypesFilter = make([]string, len(artifactType))
+		for i, at := range artifactType {
+			artifactTypesFilter[i] = string(at)
+		}
+
+		// For backward compatibility, also set the single ArtifactType
+		// This will be used by implementations that don't support multiple types yet
+		artifactTypeStr = new(string)
+		*artifactTypeStr = string(artifactType[0])
+	}
+
 	artifacts, err := m.provider.GetArtifacts(ctx, modelName, sourceID, catalog.ListArtifactsParams{
-		ArtifactType:  &artifactTypeStr,
-		PageSize:      pageSizeInt,
-		OrderBy:       orderBy,
-		SortOrder:     sortOrder,
-		NextPageToken: &nextPageToken,
+		ArtifactType:        artifactTypeStr,
+		ArtifactTypesFilter: artifactTypesFilter,
+		PageSize:            pageSizeInt,
+		OrderBy:             orderBy,
+		SortOrder:           sortOrder,
+		NextPageToken:       &nextPageToken,
 	})
 	if err != nil {
 		statusCode := api.ErrToStatus(err)

@@ -26,7 +26,19 @@ function sed_inplace() {
 
 sed_inplace 's/, orderByParam/, model.OrderByField(orderByParam)/g' "$PROJECT_ROOT"/internal/server/openapi/api_model_catalog_service.go
 sed_inplace 's/, sortOrderParam/, model.SortOrder(sortOrderParam)/g' "$PROJECT_ROOT"/internal/server/openapi/api_model_catalog_service.go
-sed_inplace 's/, artifactTypeParam/, model.ArtifactTypeQueryParam(artifactTypeParam)/g' "$PROJECT_ROOT"/internal/server/openapi/api_model_catalog_service.go
+
+# Convert artifactTypeParam from []string to []model.ArtifactTypeQueryParam
+sed_inplace 's/artifactTypeParam := strings\.Split.*artifactType.*,.*/artifactTypeParam := make([]model.ArtifactTypeQueryParam, 0)/g' "$PROJECT_ROOT"/internal/server/openapi/api_model_catalog_service.go
+sed_inplace '/artifactTypeParam := make/a\
+	// Handle multiple artifactType parameters\
+	for _, v := range query["artifactType"] {\
+		if v != "" {\
+			artifactTypeParam = append(artifactTypeParam, model.ArtifactTypeQueryParam(v))\
+		}\
+	}' "$PROJECT_ROOT"/internal/server/openapi/api_model_catalog_service.go
+
+# Fix the interface definition in api.go to use the correct type
+sed_inplace 's/model\.\[\]ArtifactTypeQueryParam/[]model.ArtifactTypeQueryParam/g' "$PROJECT_ROOT"/internal/server/openapi/api.go
 
 sed_inplace 's/"encoding\/json"//' "$PROJECT_ROOT"/internal/server/openapi/api_model_catalog_service.go
 

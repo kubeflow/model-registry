@@ -588,7 +588,7 @@ type ApiGetAllModelArtifactsRequest struct {
 	ApiService    *ModelCatalogServiceAPIService
 	sourceId      string
 	modelName     string
-	artifactType  *ArtifactTypeQueryParam
+	artifactType  *[]ArtifactTypeQueryParam
 	pageSize      *string
 	orderBy       *OrderByField
 	sortOrder     *SortOrder
@@ -596,7 +596,7 @@ type ApiGetAllModelArtifactsRequest struct {
 }
 
 // Specifies the artifact type for listing artifacts.
-func (r ApiGetAllModelArtifactsRequest) ArtifactType(artifactType ArtifactTypeQueryParam) ApiGetAllModelArtifactsRequest {
+func (r ApiGetAllModelArtifactsRequest) ArtifactType(artifactType []ArtifactTypeQueryParam) ApiGetAllModelArtifactsRequest {
 	r.artifactType = &artifactType
 	return r
 }
@@ -671,7 +671,15 @@ func (a *ModelCatalogServiceAPIService) GetAllModelArtifactsExecute(r ApiGetAllM
 	localVarFormParams := url.Values{}
 
 	if r.artifactType != nil {
-		parameterAddToHeaderOrQuery(localVarQueryParams, "artifactType", r.artifactType, "")
+		t := *r.artifactType
+		if reflect.TypeOf(t).Kind() == reflect.Slice {
+			s := reflect.ValueOf(t)
+			for i := 0; i < s.Len(); i++ {
+				parameterAddToHeaderOrQuery(localVarQueryParams, "artifactType", s.Index(i).Interface(), "multi")
+			}
+		} else {
+			parameterAddToHeaderOrQuery(localVarQueryParams, "artifactType", t, "multi")
+		}
 	}
 	if r.pageSize != nil {
 		parameterAddToHeaderOrQuery(localVarQueryParams, "pageSize", r.pageSize, "")

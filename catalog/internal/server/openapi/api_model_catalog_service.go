@@ -165,12 +165,18 @@ func (c *ModelCatalogServiceAPIController) GetAllModelArtifacts(w http.ResponseW
 	query := r.URL.Query()
 	sourceIdParam := chi.URLParam(r, "source_id")
 	modelNameParam := chi.URLParam(r, "model_name")
-	artifactTypeParam := query.Get("artifactType")
+	artifactTypeParam := make([]model.ArtifactTypeQueryParam, 0)
+	// Handle multiple artifactType parameters
+	for _, v := range query["artifactType"] {
+		if v != "" {
+			artifactTypeParam = append(artifactTypeParam, model.ArtifactTypeQueryParam(v))
+		}
+	}
 	pageSizeParam := query.Get("pageSize")
 	orderByParam := query.Get("orderBy")
 	sortOrderParam := query.Get("sortOrder")
 	nextPageTokenParam := query.Get("nextPageToken")
-	result, err := c.service.GetAllModelArtifacts(r.Context(), sourceIdParam, modelNameParam, model.ArtifactTypeQueryParam(artifactTypeParam), pageSizeParam, model.OrderByField(orderByParam), model.SortOrder(sortOrderParam), nextPageTokenParam)
+	result, err := c.service.GetAllModelArtifacts(r.Context(), sourceIdParam, modelNameParam, artifactTypeParam, pageSizeParam, model.OrderByField(orderByParam), model.SortOrder(sortOrderParam), nextPageTokenParam)
 	// If an error occurred, encode the error with the status code
 	if err != nil {
 		c.errorHandler(w, r, err, &result)

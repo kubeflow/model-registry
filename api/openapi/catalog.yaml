@@ -698,7 +698,9 @@ components:
       name: artifactType
       description: "Specifies the artifact type for listing artifacts."
       schema:
-        $ref: "#/components/schemas/ArtifactTypeQueryParam"
+        type: array
+        items:
+          $ref: "#/components/schemas/ArtifactTypeQueryParam"
       in: query
       required: false
     id:
