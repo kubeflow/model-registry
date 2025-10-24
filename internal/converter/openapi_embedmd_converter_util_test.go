@@ -157,7 +157,7 @@ func TestMapOpenAPICustomPropertiesEmbedMD(t *testing.T) {
 }
 
 func TestMapRegisteredModelTypeIDEmbedMD(t *testing.T) {
-	testId := int64(1)
+	testId := int32(1)
 	testId32 := int32(testId)
 
 	testCases := []struct {
@@ -351,7 +351,7 @@ func TestMapRegisteredModelAttributesEmbedMD(t *testing.T) {
 }
 
 func TestMapModelVersionTypeIDEmbedMD(t *testing.T) {
-	testId := int64(1)
+	testId := int32(1)
 	testId32 := int32(testId)
 
 	testCases := []struct {
@@ -501,7 +501,7 @@ func TestMapModelVersionAttributesEmbedMD(t *testing.T) {
 }
 
 func TestMapServingEnvironmentTypeIDEmbedMD(t *testing.T) {
-	testId := int64(1)
+	testId := int32(1)
 	testId32 := int32(testId)
 
 	testCases := []struct {
@@ -615,7 +615,7 @@ func TestMapServingEnvironmentAttributesEmbedMD(t *testing.T) {
 }
 
 func TestMapInferenceServiceTypeIDEmbedMD(t *testing.T) {
-	testId := int64(1)
+	testId := int32(1)
 	testId32 := int32(testId)
 
 	testCases := []struct {
@@ -783,7 +783,7 @@ func TestMapInferenceServiceAttributesEmbedMD(t *testing.T) {
 }
 
 func TestMapModelArtifactTypeIDEmbedMD(t *testing.T) {
-	testId := int64(1)
+	testId := int32(1)
 	testId32 := int32(testId)
 
 	testCases := []struct {
@@ -1001,7 +1001,7 @@ func TestMapModelArtifactAttributesEmbedMD(t *testing.T) {
 }
 
 func TestMapDocArtifactTypeIDEmbedMD(t *testing.T) {
-	testId := int64(1)
+	testId := int32(1)
 	testId32 := int32(testId)
 
 	testCases := []struct {
@@ -1149,7 +1149,7 @@ func TestMapDocArtifactAttributesEmbedMD(t *testing.T) {
 }
 
 func TestMapServeModelTypeIDEmbedMD(t *testing.T) {
-	testId := int64(1)
+	testId := int32(1)
 	testId32 := int32(testId)
 
 	testCases := []struct {

@@ -17,7 +17,7 @@ type ModelArtifactRepositoryImpl struct {
 	*GenericRepository[models.ModelArtifact, schema.Artifact, schema.ArtifactProperty, *models.ModelArtifactListOptions]
 }
 
-func NewModelArtifactRepository(db *gorm.DB, typeID int64) models.ModelArtifactRepository {
+func NewModelArtifactRepository(db *gorm.DB, typeID int32) models.ModelArtifactRepository {
 	config := GenericRepositoryConfig[models.ModelArtifact, schema.Artifact, schema.ArtifactProperty, *models.ModelArtifactListOptions]{
 		DB:                  db,
 		TypeID:              typeID,

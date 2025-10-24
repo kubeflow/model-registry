@@ -14,7 +14,7 @@ type ServingEnvironmentRepositoryImpl struct {
 	*GenericRepository[models.ServingEnvironment, schema.Context, schema.ContextProperty, *models.ServingEnvironmentListOptions]
 }
 
-func NewServingEnvironmentRepository(db *gorm.DB, typeID int64) models.ServingEnvironmentRepository {
+func NewServingEnvironmentRepository(db *gorm.DB, typeID int32) models.ServingEnvironmentRepository {
 	config := GenericRepositoryConfig[models.ServingEnvironment, schema.Context, schema.ContextProperty, *models.ServingEnvironmentListOptions]{
 		DB:                  db,
 		TypeID:              typeID,

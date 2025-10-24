@@ -16,7 +16,7 @@ type ExperimentRunRepositoryImpl struct {
 	*GenericRepository[models.ExperimentRun, schema.Context, schema.ContextProperty, *models.ExperimentRunListOptions]
 }
 
-func NewExperimentRunRepository(db *gorm.DB, typeID int64) models.ExperimentRunRepository {
+func NewExperimentRunRepository(db *gorm.DB, typeID int32) models.ExperimentRunRepository {
 	config := GenericRepositoryConfig[models.ExperimentRun, schema.Context, schema.ContextProperty, *models.ExperimentRunListOptions]{
 		DB:                  db,
 		TypeID:              typeID,

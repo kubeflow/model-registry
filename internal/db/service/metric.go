@@ -17,7 +17,7 @@ type MetricRepositoryImpl struct {
 	*GenericRepository[models.Metric, schema.Artifact, schema.ArtifactProperty, *models.MetricListOptions]
 }
 
-func NewMetricRepository(db *gorm.DB, typeID int64) models.MetricRepository {
+func NewMetricRepository(db *gorm.DB, typeID int32) models.MetricRepository {
 	config := GenericRepositoryConfig[models.Metric, schema.Artifact, schema.ArtifactProperty, *models.MetricListOptions]{
 		DB:                  db,
 		TypeID:              typeID,
