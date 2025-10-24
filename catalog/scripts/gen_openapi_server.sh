@@ -34,25 +34,26 @@ py-re-replace 0 ', orderByParam' ', model.OrderByField(orderByParam)' "$PROJECT_
 py-re-replace 0 ', sortOrderParam' ', model.SortOrder(sortOrderParam)' "$PROJECT_ROOT"/internal/server/openapi/api_model_catalog_service.go
 
 # Convert artifactTypeParam from []string to []model.ArtifactTypeQueryParam
-py-re-replace 's/artifactTypeParam := strings\.Split.*artifactType.*,.*/artifactTypeParam := make([]model.ArtifactTypeQueryParam, 0)/g' "$PROJECT_ROOT"/internal/server/openapi/api_model_catalog_service.go
-py-re-replace '/artifactTypeParam := make/a\
-	// Handle multiple artifactType parameters\
-	for _, v := range query["artifactType"] {\
-		if v != "" {\
-			artifactTypeParam = append(artifactTypeParam, model.ArtifactTypeQueryParam(v))\
-		}\
+py-re-replace 0 'artifactTypeParam := strings\.Split\(query\.Get\("artifactType"\), ","\)' 'artifactTypeParam := make([]model.ArtifactTypeQueryParam, 0)' "$PROJECT_ROOT"/internal/server/openapi/api_model_catalog_service.go
+py-re-replace 0 'artifactTypeParam := make\(\[\]model\.ArtifactTypeQueryParam, 0\)' 'artifactTypeParam := make([]model.ArtifactTypeQueryParam, 0)
+	// Handle multiple artifactType parameters
+	for _, v := range query["artifactType"] {
+		if v != "" {
+			artifactTypeParam = append(artifactTypeParam, model.ArtifactTypeQueryParam(v))
+		}
 	}' "$PROJECT_ROOT"/internal/server/openapi/api_model_catalog_service.go
 
 # Fix the interface definition in api.go to use the correct type
-py-re-replace 's/model\.\[\]ArtifactTypeQueryParam/[]model.ArtifactTypeQueryParam/g' "$PROJECT_ROOT"/internal/server/openapi/api.go
+py-re-replace 0 'model\.\[\]ArtifactTypeQueryParam' '[]model.ArtifactTypeQueryParam' "$PROJECT_ROOT"/internal/server/openapi/api.go
 
-py-re-replace 's/"encoding\/json"//' "$PROJECT_ROOT"/internal/server/openapi/api_model_catalog_service.go
+py-re-replace 0 '"encoding/json"' '' "$PROJECT_ROOT"/internal/server/openapi/api_model_catalog_service.go
 
 py-re-replace 1 'github\.com/kubeflow/model-registry/pkg/openapi' 'github.com/kubeflow/model-registry/catalog/pkg/openapi' \
     "$PROJECT_ROOT"/internal/server/openapi/api_model_catalog_service.go \
     "$PROJECT_ROOT"/internal/server/openapi/api.go
 
-py-re-replace 1 '\{model_name\+\}|model_name\+' '*' "$PROJECT_ROOT"/internal/server/openapi/api_model_catalog_service.go
+py-re-replace 1 '\{model_name\+\}' '*' "$PROJECT_ROOT"/internal/server/openapi/api_model_catalog_service.go
+py-re-replace 1 'model_name\+' '*' "$PROJECT_ROOT"/internal/server/openapi/api_model_catalog_service.go
 
 echo "Applying patches to generated code"
 (
