@@ -44,4 +44,6 @@ type CatalogMetricsArtifactRepository interface {
 	GetByID(id int32) (CatalogMetricsArtifact, error)
 	List(listOptions CatalogMetricsArtifactListOptions) (*models.ListWrapper[CatalogMetricsArtifact], error)
 	Save(metricsArtifact CatalogMetricsArtifact, parentResourceID *int32) (CatalogMetricsArtifact, error)
+	// BatchSave inserts multiple metrics artifacts in a single batch operation
+	BatchSave(metricsArtifacts []CatalogMetricsArtifact, parentResourceID *int32) ([]CatalogMetricsArtifact, error)
 }
