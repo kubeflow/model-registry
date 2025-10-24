@@ -1,8 +1,9 @@
-- op: add
+- op: replace
   path: /spec/template/spec/containers/0/args
   value: 
     - "--deployment-mode=standalone"
     - "--port=8080"
+    - "--auth-method=internal"
 - op: add
   path: /spec/template/spec/containers/-
   value:
@@ -14,6 +15,8 @@
       - name: nginx-config
         mountPath: /etc/nginx/nginx.conf
         subPath: nginx.conf
+      - name: nginx-conf-d
+        mountPath: /etc/nginx/conf.d
       - name: tmp-volume
         mountPath: /tmp
       - name: var-cache-nginx
@@ -40,6 +43,8 @@
     - name: nginx-config
       configMap:
         name: auth-proxy-config
+    - name: nginx-conf-d
+      emptyDir: {}
     - name: tmp-volume
       emptyDir: {}
     - name: var-cache-nginx
