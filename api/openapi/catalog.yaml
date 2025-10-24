@@ -685,6 +685,43 @@ components:
             $ref: "#/components/schemas/Error"
       description: Unprocessable Entity error
   parameters:
+    filterQuery:
+      examples:
+        filterQuery:
+          value: "name='my-model' AND state='LIVE'"
+      name: filterQuery
+      description: |
+        A SQL-like query string to filter the list of entities. The query supports rich filtering capabilities with automatic type inference.
+
+        **Supported Operators:**
+        - Comparison: `=`, `!=`, `<>`, `>`, `<`, `>=`, `<=`
+        - Pattern matching: `LIKE`, `ILIKE` (case-insensitive)
+        - Set membership: `IN`
+        - Logical: `AND`, `OR`
+        - Grouping: `()` for complex expressions
+
+        **Data Types:**
+        - Strings: `"value"` or `'value'`
+        - Numbers: `42`, `3.14`, `1e-5`
+        - Booleans: `true`, `false` (case-insensitive)
+
+        **Property Access:**
+        - Standard properties: `name`, `id`, `state`, `createTimeSinceEpoch`
+        - Custom properties: Any user-defined property name
+        - Escaped properties: Use backticks for special characters: `` `custom-property` ``
+        - Type-specific access: `property.string_value`, `property.double_value`, `property.int_value`, `property.bool_value`
+
+        **Examples:**
+        - Basic: `name = "my-model"`
+        - Comparison: `accuracy > 0.95`
+        - Pattern: `name LIKE "%tensorflow%"`
+        - Complex: `(name = "model-a" OR name = "model-b") AND state = "LIVE"`
+        - Custom property: `framework.string_value = "pytorch"`
+        - Escaped property: `` `mlflow.source.type` = "notebook" ``
+      schema:
+        type: string
+      in: query
+      required: false
     orderBy:
       style: form
       explode: true
@@ -730,47 +767,6 @@ components:
           value: "10"
       name: parentResourceId
       description: ID of the parent resource to use for search.
-      schema:
-        type: string
-      in: query
-      required: false
-    filterQuery:
-      examples:
-        filterQuery:
-          value: "name='my-model' AND state='LIVE'"
-      name: filterQuery
-      description: |
-        A SQL-like query string to filter the list of entities. The query supports rich filtering capabilities with automatic type inference.
-
-        **Supported Operators:**
-        - Comparison: `=`, `!=`, `<>`, `>`, `<`, `>=`, `<=`
-        - Pattern matching: `LIKE`, `ILIKE` (case-insensitive)
-        - Set membership: `IN`
-        - Logical: `AND`, `OR`
-        - Grouping: `()` for complex expressions
-
-        **Data Types:**
-        - Strings: `"value"` or `'value'`
-        - Numbers: `42`, `3.14`, `1e-5`
-        - Booleans: `true`, `false` (case-insensitive)
-
-        **Property Access:**
-        - Standard properties: `name`, `id`, `state`, `createTimeSinceEpoch`
-        - Custom properties: Any user-defined property name
-        - Escaped properties: Use backticks for special characters: `` `custom-property` ``
-        - Type-specific access: `property.string_value`, `property.double_value`, `property.int_value`, `property.bool_value`
-        - Related artifact properties: `artifacts.<propertyName>` to filter models by their artifact properties
-
-        **Examples:**
-        - Basic: `name = "my-model"`
-        - Comparison: `accuracy > 0.95`
-        - Pattern: `name LIKE "%tensorflow%"`
-        - Complex: `(name = "model-a" OR name = "model-b") AND state = "LIVE"`
-        - Custom property: `framework.string_value = "pytorch"`
-        - Escaped property: `` `mlflow.source.type` = "notebook" ``
-        - Artifact filtering: `artifacts.ttft_mean >= 90` - filter models that have artifacts with ttft_mean >= 90
-        - Artifact custom property: `artifacts.format = "pytorch"` - filter models by artifact custom properties
-        - Combined filtering: `name = "llm-model" AND artifacts.performance_score > 0.95` - combine model and artifact filters
       schema:
         type: string
       in: query

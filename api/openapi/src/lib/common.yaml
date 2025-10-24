@@ -358,7 +358,6 @@ components:
         - Custom properties: Any user-defined property name
         - Escaped properties: Use backticks for special characters: `` `custom-property` ``
         - Type-specific access: `property.string_value`, `property.double_value`, `property.int_value`, `property.bool_value`
-        - Related artifact properties: `artifacts.<propertyName>` to filter models by their artifact properties
 
         **Examples:**
         - Basic: `name = "my-model"`
@@ -367,9 +366,6 @@ components:
         - Complex: `(name = "model-a" OR name = "model-b") AND state = "LIVE"`
         - Custom property: `framework.string_value = "pytorch"`
         - Escaped property: `` `mlflow.source.type` = "notebook" ``
-        - Artifact filtering: `artifacts.ttft_mean >= 90` - filter models that have artifacts with ttft_mean >= 90
-        - Artifact custom property: `artifacts.format = "pytorch"` - filter models by artifact custom properties
-        - Combined filtering: `name = "llm-model" AND artifacts.performance_score > 0.95` - combine model and artifact filters
       schema:
         type: string
       in: query
