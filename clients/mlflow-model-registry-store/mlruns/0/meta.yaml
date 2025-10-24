@@ -1,0 +1,6 @@
+artifact_location: file:///home/jburdo/src/model-registry/clients/mlflow-model-registry-store/mlruns/0
+creation_time: 1759951989082
+experiment_id: '0'
+last_update_time: 1759951989082
+lifecycle_stage: active
+name: Default
