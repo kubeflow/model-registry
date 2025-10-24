@@ -209,6 +209,36 @@ func TestFilterQueryToSQLGeneration(t *testing.T) {
 			description:  "Special characters should be properly escaped and parameterized",
 		},
 		{
+			name:        "Equals for a JSON array",
+			filterQuery: `language = "en"`,
+			expectedSQL: []string{
+				`prop_1.string_value IS JSON ARRAY`,
+				`prop_1.string_value::jsonb ?| array[$`,
+			},
+			expectedArgs: []any{"language", "en"},
+			description:  "Equals on JSON arrays should search inside the array",
+		},
+		{
+			name:        "Not equals for a JSON array",
+			filterQuery: `language != "en"`,
+			expectedSQL: []string{
+				`prop_1.string_value IS NOT JSON ARRAY`,
+				`NOT prop_1.string_value::jsonb ?| array[$`,
+			},
+			expectedArgs: []any{"language", "en"},
+			description:  "Not equals on JSON arrays should search inside the array",
+		},
+		{
+			name:        "IN for a JSON array",
+			filterQuery: `language IN ("en","it")`,
+			expectedSQL: []string{
+				`prop_1.string_value IS JSON ARRAY`,
+				`prop_1.string_value::jsonb ?| array[$`,
+			},
+			expectedArgs: []any{"language", "en", "it"},
+			description:  "IN on JSON arrays should search inside the array",
+		},
+		{
 			name:        "Invalid syntax should error",
 			filterQuery: `invalid syntax here`,
 			shouldError: true,
