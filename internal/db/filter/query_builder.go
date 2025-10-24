@@ -458,68 +458,23 @@ func (qb *QueryBuilder) buildPropertyTableConditionString(propRef *PropertyRefer
 	return conditionResult{condition: subquery, args: args}
 }
 
-// buildRelatedEntityPropertyCondition builds a condition for properties in related entities (requires multiple JOINs)
+// buildRelatedEntityPropertyCondition builds a condition for properties in related entities using EXISTS subquery
+// This avoids JOIN multiplication and ensures correct filtering
 func (qb *QueryBuilder) buildRelatedEntityPropertyCondition(db *gorm.DB, propDef PropertyDefinition, explicitType string, operator string, value any) *gorm.DB {
-	// Increment join counter for unique alias
-	qb.joinCounter++
-
-	// For artifact filtering from a Context (model), we need to:
-	// 1. JOIN Attribution (relation table)
-	// 2. JOIN Artifact (related entity)
-	// 3. JOIN ArtifactProperty (property table of related entity)
-
-	// Currently only supporting artifact filtering from Context entities
-	if qb.entityType != EntityTypeContext || propDef.RelatedEntityType != RelatedEntityArtifact {
-		// Fallback to regular property handling if not supported
-		return db
-	}
-
-	// Create unique aliases and table names for this join chain
-	aliases := qb.createRelatedEntityAliases(qb.joinCounter)
-
-	// Build the JOIN chain:
-	// JOIN Attribution attr_N ON attr_N.context_id = Context.id
-	join1 := fmt.Sprintf("JOIN %s %s ON %s.context_id = %s.id",
-		aliases.attributionTable, aliases.attributionAlias, aliases.attributionAlias, qb.tablePrefix)
-	db = db.Joins(join1)
-
-	// JOIN Artifact art_N ON art_N.id = attr_N.artifact_id
-	join2 := fmt.Sprintf("JOIN %s %s ON %s.id = %s.artifact_id",
-		aliases.entityTable, aliases.entityAlias, aliases.entityAlias, aliases.attributionAlias)
-	db = db.Joins(join2)
-
-	// JOIN ArtifactProperty artprop_N ON artprop_N.artifact_id = art_N.id
-	join3 := fmt.Sprintf("JOIN %s %s ON %s.artifact_id = %s.id",
-		aliases.propertyTable, aliases.propertyAlias, aliases.propertyAlias, aliases.entityAlias)
-	db = db.Joins(join3)
-
-	// Add condition for property name
-	db = db.Where(fmt.Sprintf("%s.name = ?", aliases.propertyAlias), propDef.RelatedProperty)
-
-	// Handle ILIKE specially (needs case-insensitive handling)
-	if operator == "ILIKE" {
-		// For ILIKE, we need to use the appropriate value column
-		// Note: ILIKE on numeric columns doesn't make much sense, but handle it anyway
-		valueType, _ := qb.determineValueType(explicitType, value)
-		valueColumn := fmt.Sprintf("%s.%s", aliases.propertyAlias, valueType)
-		return qb.buildCaseInsensitiveLikeCondition(db, valueColumn, value)
-	}
-
-	// Build the value condition (handles integer dual-column logic)
-	condition := qb.buildValueCondition(aliases.propertyAlias, explicitType, operator, value)
-	return db.Where(condition.condition, condition.args...)
+	conditionResult := qb.buildRelatedEntityPropertyConditionString(propDef, explicitType, operator, value)
+	return db.Where(conditionResult.condition, conditionResult.args...)
 }
 
-// buildRelatedEntityPropertyConditionString builds a condition string for properties in related entities
+// buildRelatedEntityPropertyConditionString builds an EXISTS subquery condition for properties in related entities
 func (qb *QueryBuilder) buildRelatedEntityPropertyConditionString(propDef PropertyDefinition, explicitType string, operator string, value any) conditionResult {
-	// Increment join counter for unique alias
-	qb.joinCounter++
-
 	// Currently only supporting artifact filtering from Context entities
 	if qb.entityType != EntityTypeContext || propDef.RelatedEntityType != RelatedEntityArtifact {
 		// Fallback - return empty condition
 		return conditionResult{condition: "1=1", args: []any{}}
 	}
+
+	// Increment join counter for unique alias
+	qb.joinCounter++
 
 	// Create unique aliases and table names for this join chain
 	aliases := qb.createRelatedEntityAliases(qb.joinCounter)
