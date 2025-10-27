@@ -55,7 +55,7 @@ mypy = "^1.7.0"
 ray = [
     {version = "^2.43.0", python = ">=3.9, <3.13"}
 ] 
-uvloop = "^0.21.0"
+uvloop = ">=0.21,<0.23"
 pytest-asyncio = "^1.1.0"
 requests = "^2.32.2"
 types-python-dateutil = "^2.9.0.20240906"
