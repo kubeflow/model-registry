@@ -42,7 +42,6 @@ func (m *ModelCatalogServiceAPIService) GetAllModelArtifacts(ctx context.Context
 	}
 
 	// Handle multiple artifact types
-	var artifactTypeStr *string
 	var artifactTypesFilter []string
 
 	if len(artifactType) > 0 {
@@ -51,15 +50,9 @@ func (m *ModelCatalogServiceAPIService) GetAllModelArtifacts(ctx context.Context
 		for i, at := range artifactType {
 			artifactTypesFilter[i] = string(at)
 		}
-
-		// For backward compatibility, also set the single ArtifactType
-		// This will be used by implementations that don't support multiple types yet
-		artifactTypeStr = new(string)
-		*artifactTypeStr = string(artifactType[0])
 	}
 
 	artifacts, err := m.provider.GetArtifacts(ctx, modelName, sourceID, catalog.ListArtifactsParams{
-		ArtifactType:        artifactTypeStr,
 		ArtifactTypesFilter: artifactTypesFilter,
 		PageSize:            pageSizeInt,
 		OrderBy:             orderBy,
