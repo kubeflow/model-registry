@@ -352,6 +352,7 @@ components:
         - LAST_UPDATE_TIME
         - ID
         - NAME
+        - ACCURACY
       type: string
 
   responses:

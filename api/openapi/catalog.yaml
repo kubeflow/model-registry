@@ -598,6 +598,7 @@ components:
         - LAST_UPDATE_TIME
         - ID
         - NAME
+        - ACCURACY
       type: string
     SortOrder:
       description: Supported sort direction for ordering result entities.
