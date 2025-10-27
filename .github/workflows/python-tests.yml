@@ -31,7 +31,7 @@ jobs:
       FORCE_COLOR: "1"
     steps:
       - name: Check out the repository
-        uses: actions/checkout@v5.0.0
+        uses: actions/checkout@v5
       - name: Set up Python ${{ matrix.python }}
         uses: actions/setup-python@v6
         with:
@@ -78,7 +78,7 @@ jobs:
         nodejs: ["20"]
     steps:
       - name: Check out the repository
-        uses: actions/checkout@v5.0.0
+        uses: actions/checkout@v5
         with:
           fetch-depth: 0
       - name: Set up Python
@@ -148,7 +148,7 @@ jobs:
       DEPLOY_MANIFEST_DB: "${{ matrix.manifest-db }}"
     steps:
       - name: Check out the repository
-        uses: actions/checkout@v5.0.0
+        uses: actions/checkout@v5
       - name: Set up Python ${{ matrix.python }}
         uses: actions/setup-python@v6
         with:
@@ -252,7 +252,7 @@ jobs:
       FORCE_COLOR: "1"
     steps:
       - name: Check out the repository
-        uses: actions/checkout@v5.0.0
+        uses: actions/checkout@v5
       - name: Set up Python ${{ matrix.python }}
         uses: actions/setup-python@v6
         with:
@@ -285,12 +285,12 @@ jobs:
           nox --python=${{ matrix.python }}
           poetry build
       - name: Upload dist
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: py-dist
           path: clients/python/dist
       - name: Upload documentation
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: py-docs
           path: clients/python/docs/_build

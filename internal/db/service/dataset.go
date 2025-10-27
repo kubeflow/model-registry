@@ -17,7 +17,7 @@ type DataSetRepositoryImpl struct {
 	*GenericRepository[models.DataSet, schema.Artifact, schema.ArtifactProperty, *models.DataSetListOptions]
 }
 
-func NewDataSetRepository(db *gorm.DB, typeID int64) models.DataSetRepository {
+func NewDataSetRepository(db *gorm.DB, typeID int32) models.DataSetRepository {
 	config := GenericRepositoryConfig[models.DataSet, schema.Artifact, schema.ArtifactProperty, *models.DataSetListOptions]{
 		DB:                  db,
 		TypeID:              typeID,

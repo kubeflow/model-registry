@@ -15,24 +15,31 @@ DST="$PROJECT_ROOT/${2:-internal/server/openapi}"
     --ignore-file-override "$PROJECT_ROOT"/.openapi-generator-ignore --additional-properties=outputAsLibrary=true,enumClassPrefix=true,router=chi,sourceFolder=,onlyInterfaces=true,isGoSubmodule=true,enumClassPrefix=true,useOneOfDiscriminatorLookup=true,featureCORS=true \
     --template-dir "$PROJECT_ROOT"/../templates/go-server
 
-function sed_inplace() {
-    if [[ $(uname) == "Darwin" ]]; then
-        # introduce -i parameter for Mac OSX sed compatibility
-        sed -E -i '' "$@"
-    else
-        sed -E -i "$@"
-    fi
+# Python-based regex replace function
+# Usage: py-re-replace <count> <pattern> <replacement> <file1> [file2...]
+# count=0: replace all occurrences (like sed with /g flag)
+# count=1: replace first occurrence only (like sed without /g flag)
+# count=N: replace first N occurrences
+py-re-replace() {
+  python3 -c "
+import fileinput, re, sys
+count, pattern, replacement, filepaths = int(sys.argv[1]), sys.argv[2], sys.argv[3], sys.argv[4:]
+for filepath in filepaths:
+    for line in fileinput.FileInput(filepath, inplace=True, backup=''):
+        sys.stdout.write(re.sub(pattern, replacement, line, count=count))
+" "$@"
 }
 
-sed_inplace 's/, orderByParam/, model.OrderByField(orderByParam)/g' "$PROJECT_ROOT"/internal/server/openapi/api_model_catalog_service.go
-sed_inplace 's/, sortOrderParam/, model.SortOrder(sortOrderParam)/g' "$PROJECT_ROOT"/internal/server/openapi/api_model_catalog_service.go
+py-re-replace 0 ', orderByParam' ', model.OrderByField(orderByParam)' "$PROJECT_ROOT"/internal/server/openapi/api_model_catalog_service.go
+py-re-replace 0 ', sortOrderParam' ', model.SortOrder(sortOrderParam)' "$PROJECT_ROOT"/internal/server/openapi/api_model_catalog_service.go
 
-sed_inplace 's/"encoding\/json"//' "$PROJECT_ROOT"/internal/server/openapi/api_model_catalog_service.go
+py-re-replace 1 '"encoding/json"' '' "$PROJECT_ROOT"/internal/server/openapi/api_model_catalog_service.go
 
-sed_inplace 's/github.com\/kubeflow\/model-registry\/pkg\/openapi/github.com\/kubeflow\/model-registry\/catalog\/pkg\/openapi/' \
+py-re-replace 1 'github\.com/kubeflow/model-registry/pkg/openapi' 'github.com/kubeflow/model-registry/catalog/pkg/openapi' \
     "$PROJECT_ROOT"/internal/server/openapi/api_model_catalog_service.go \
     "$PROJECT_ROOT"/internal/server/openapi/api.go
-sed_inplace 's/\{?model_name\+\}?/*/' "$PROJECT_ROOT"/internal/server/openapi/api_model_catalog_service.go
+
+py-re-replace 1 '\{model_name\+\}|model_name\+' '*' "$PROJECT_ROOT"/internal/server/openapi/api_model_catalog_service.go
 
 echo "Applying patches to generated code"
 (

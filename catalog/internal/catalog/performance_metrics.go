@@ -6,7 +6,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"math"
 	"os"
 	"path/filepath"
 	"strings"
@@ -128,9 +127,11 @@ type PerformanceMetricsLoader struct {
 	metricsArtifactRepo   dbmodels.CatalogMetricsArtifactRepository
 	modelTypeID           int32
 	metricsArtifactTypeID int32
+	// Cache of model ID -> directory path mapping to avoid repeated directory scans
+	modelDirCache map[string]string
 }
 
-func NewPerformanceMetricsLoader(path []string, modelRepo dbmodels.CatalogModelRepository, metricsArtifactRepo dbmodels.CatalogMetricsArtifactRepository, typeMap map[string]int64) (*PerformanceMetricsLoader, error) {
+func NewPerformanceMetricsLoader(path []string, modelRepo dbmodels.CatalogModelRepository, metricsArtifactRepo dbmodels.CatalogMetricsArtifactRepository, typeMap map[string]int32) (*PerformanceMetricsLoader, error) {
 	if len(path) == 0 {
 		glog.Info("No performance metrics path provided, skipping performance metrics loading")
 		return nil, nil
@@ -147,108 +148,40 @@ func NewPerformanceMetricsLoader(path []string, modelRepo dbmodels.CatalogModelR
 	glog.Infof("Loading performance metrics data from %s", path)
 
 	// Get the TypeID for CatalogModel from the type map
-	modelTypeIDInt64, exists := typeMap[service.CatalogModelTypeName]
+	modelTypeID, exists := typeMap[service.CatalogModelTypeName]
 	if !exists {
 		return nil, fmt.Errorf("CatalogModel type not found in type map")
 	}
-	// Bounds check for int64 to int32 conversion
-	if modelTypeIDInt64 > math.MaxInt32 || modelTypeIDInt64 < math.MinInt32 {
-		return nil, fmt.Errorf("CatalogModel type ID %d is out of int32 range", modelTypeIDInt64)
-	}
-	modelTypeID := int32(modelTypeIDInt64)
 	glog.V(2).Infof("Using catalog model type ID: %d", modelTypeID)
 
 	// Get the TypeID for CatalogMetricsArtifact from the type map
-	metricsArtifactTypeIDInt64, exists := typeMap[service.CatalogMetricsArtifactTypeName]
+	metricsArtifactTypeID, exists := typeMap[service.CatalogMetricsArtifactTypeName]
 	if !exists {
 		return nil, fmt.Errorf("CatalogMetricsArtifact type not found in type map")
 	}
-	// Bounds check for int64 to int32 conversion
-	if metricsArtifactTypeIDInt64 > math.MaxInt32 || metricsArtifactTypeIDInt64 < math.MinInt32 {
-		return nil, fmt.Errorf("CatalogMetricsArtifact type ID %d is out of int32 range", metricsArtifactTypeIDInt64)
-	}
-	metricsArtifactTypeID := int32(metricsArtifactTypeIDInt64)
 	glog.V(2).Infof("Using metrics artifact type ID: %d", metricsArtifactTypeID)
 
-	return &PerformanceMetricsLoader{
+	loader := &PerformanceMetricsLoader{
 		path:                  path,
 		modelRepo:             modelRepo,
 		metricsArtifactRepo:   metricsArtifactRepo,
 		modelTypeID:           modelTypeID,
 		metricsArtifactTypeID: metricsArtifactTypeID,
-	}, nil
+		modelDirCache:         make(map[string]string),
+	}
+
+	// Build the model directory cache once during initialization
+	if err := loader.buildModelDirCache(); err != nil {
+		return nil, fmt.Errorf("failed to build model directory cache: %v", err)
+	}
+
+	return loader, nil
 }
 
-func (pml *PerformanceMetricsLoader) Load(ctx context.Context, record ModelProviderRecord) error {
-	if pml == nil {
-		return nil
-	}
-
-	attrs := record.Model.GetAttributes()
-	if attrs == nil || attrs.Name == nil {
-		return nil
-	}
-
-	glog.Infof("Loading performance metrics for %s", *attrs.Name)
-
-	// Create a type map from the stored type IDs
-	typeMap := map[string]int64{
-		service.CatalogModelTypeName:           int64(pml.modelTypeID),
-		service.CatalogMetricsArtifactTypeName: int64(pml.metricsArtifactTypeID),
-	}
-
-	// Call the existing LoadPerformanceMetricsData function
-	return LoadPerformanceMetricsData(pml.path, pml.modelRepo, pml.metricsArtifactRepo, typeMap)
-}
-
-// LoadPerformanceMetricsData loads performance metrics data from the specified directory
-// into the database using the catalog model and artifact repositories.
-// Only loads metrics for models that already exist in the database and where
-// the metrics artifacts don't already exist.
-func LoadPerformanceMetricsData(path []string, modelRepo dbmodels.CatalogModelRepository, metricsArtifactRepo dbmodels.CatalogMetricsArtifactRepository, typeMap map[string]int64) error {
-	if len(path) == 0 {
-		glog.Info("No performance metrics path provided, skipping performance metrics loading")
-		return nil
-	}
-
-	// Check if path exists
-	for _, p := range path {
-		if _, err := os.Stat(p); os.IsNotExist(err) {
-			glog.Warningf("Performance metrics path %s does not exist, skipping performance metrics loading", p)
-			return nil
-		}
-	}
-
-	glog.Infof("Loading performance metrics data from %s", path)
-
-	// Get the TypeID for CatalogModel from the type map
-	modelTypeIDInt64, exists := typeMap[service.CatalogModelTypeName]
-	if !exists {
-		return fmt.Errorf("CatalogModel type not found in type map")
-	}
-	// Bounds check for int64 to int32 conversion
-	if modelTypeIDInt64 > math.MaxInt32 || modelTypeIDInt64 < math.MinInt32 {
-		return fmt.Errorf("CatalogModel type ID %d is out of int32 range", modelTypeIDInt64)
-	}
-	modelTypeID := int32(modelTypeIDInt64)
-	glog.V(2).Infof("Using catalog model type ID: %d", modelTypeID)
-
-	// Get the TypeID for CatalogMetricsArtifact from the type map
-	metricsArtifactTypeIDInt64, exists := typeMap[service.CatalogMetricsArtifactTypeName]
-	if !exists {
-		return fmt.Errorf("CatalogMetricsArtifact type not found in type map")
-	}
-	// Bounds check for int64 to int32 conversion
-	if metricsArtifactTypeIDInt64 > math.MaxInt32 || metricsArtifactTypeIDInt64 < math.MinInt32 {
-		return fmt.Errorf("CatalogMetricsArtifact type ID %d is out of int32 range", metricsArtifactTypeIDInt64)
-	}
-	metricsArtifactTypeID := int32(metricsArtifactTypeIDInt64)
-	glog.V(2).Infof("Using metrics artifact type ID: %d", metricsArtifactTypeID)
-
-	processedCount := 0
-
-	// Walk through the directory structure to find model directories
-	for _, rootPath := range path {
+// buildModelDirCache scans directories once and builds a cache of model ID -> directory path
+func (pml *PerformanceMetricsLoader) buildModelDirCache() error {
+	modelCount := 0
+	for _, rootPath := range pml.path {
 		err := filepath.Walk(rootPath, func(dirPath string, info os.FileInfo, err error) error {
 			if err != nil {
 				return err
@@ -265,109 +198,215 @@ func LoadPerformanceMetricsData(path []string, modelRepo dbmodels.CatalogModelRe
 				return nil // Skip directories without metadata.json
 			}
 
-			glog.Infof("Processing model directory: %s", dirPath)
-
-			// Process the model directory
-			if err := processModelDirectory(dirPath, modelRepo, metricsArtifactRepo, modelTypeID, metricsArtifactTypeID); err != nil {
-				glog.Errorf("Failed to process model directory %s: %v", dirPath, err)
-				// Continue processing other directories
-				return nil
+			// Read and parse metadata.json to extract the model ID
+			metadataData, err := os.ReadFile(metadataPath)
+			if err != nil {
+				glog.Warningf("Failed to read metadata file %s: %v", metadataPath, err)
+				return nil // Continue with other directories
 			}
 
-			processedCount++
+			// Parse metadata to extract the model ID for lookup
+			metadata, err := parseMetadataJSON(metadataData)
+			if err != nil {
+				glog.Warningf("Failed to parse metadata file %s: %v", metadataPath, err)
+				return nil // Continue with other directories
+			}
+
+			// Add to cache
+			pml.modelDirCache[metadata.ID] = dirPath
+			modelCount++
+			glog.V(3).Infof("Cached model directory: %s -> %s", metadata.ID, dirPath)
+
 			return nil
 		})
 
 		if err != nil {
-			return fmt.Errorf("failed to walk performance metrics directory %s: %v", rootPath, err)
+			return fmt.Errorf("failed to walk directory %s: %v", rootPath, err)
 		}
 	}
 
-	glog.Infof("Successfully processed %d model directories", processedCount)
+	glog.Infof("Built model directory cache (%d models indexed)", modelCount)
+
+	return nil
+}
+
+func (pml *PerformanceMetricsLoader) Load(ctx context.Context, record ModelProviderRecord) error {
+	if pml == nil {
+		return nil
+	}
+
+	attrs := record.Model.GetAttributes()
+	if attrs == nil || attrs.Name == nil {
+		return nil
+	}
+
+	modelName := *attrs.Name
+	glog.Infof("Loading performance metrics for %s", modelName)
+
+	// Look up the model directory in the cache
+	dirPath, found := pml.modelDirCache[modelName]
+	if !found {
+		glog.V(2).Infof("No performance metrics directory found for model %s", modelName)
+		return nil
+	}
+
+	glog.V(2).Infof("Found cached directory for model %s: %s", modelName, dirPath)
+
+	// Process this specific model directory using the cached path
+	artifactsCreated, err := processModelDirectory(dirPath, pml.modelRepo, pml.metricsArtifactRepo, pml.modelTypeID, pml.metricsArtifactTypeID)
+	if err != nil {
+		return fmt.Errorf("failed to process metrics for model %s: %v", modelName, err)
+	}
+
+	if artifactsCreated > 0 {
+		glog.Infof("Loaded %d performance metrics artifacts for model %s", artifactsCreated, modelName)
+	}
+
 	return nil
 }
 
 // processModelDirectory processes a single model directory containing metadata.json and metric files
 // Only processes metrics for models that already exist in the database
-func processModelDirectory(dirPath string, modelRepo dbmodels.CatalogModelRepository, metricsArtifactRepo dbmodels.CatalogMetricsArtifactRepository, modelTypeID int32, metricsArtifactTypeID int32) error {
+// Returns the number of artifacts created and any error encountered
+func processModelDirectory(dirPath string, modelRepo dbmodels.CatalogModelRepository, metricsArtifactRepo dbmodels.CatalogMetricsArtifactRepository, modelTypeID int32, metricsArtifactTypeID int32) (int, error) {
 	// Read and parse metadata.json to extract the model ID
 	metadataPath := filepath.Join(dirPath, "metadata.json")
 	metadataData, err := os.ReadFile(metadataPath)
 	if err != nil {
-		return fmt.Errorf("failed to read metadata file %s: %v", metadataPath, err)
+		return 0, fmt.Errorf("failed to read metadata file %s: %v", metadataPath, err)
 	}
 
 	// Parse metadata to extract the model ID for lookup
 	metadata, err := parseMetadataJSON(metadataData)
 	if err != nil {
-		return fmt.Errorf("failed to parse metadata file %s: %v", metadataPath, err)
+		return 0, fmt.Errorf("failed to parse metadata file %s: %v", metadataPath, err)
 	}
 
 	// Check if the model already exists - only process metrics for existing models
-	existingModel, err := findExistingModel(metadata, modelRepo)
+	existingModel, err := modelRepo.GetByName(metadata.ID)
 	if err != nil {
-		return fmt.Errorf("failed to check for existing model: %v", err)
+		return 0, fmt.Errorf("failed to check for existing model: %v", err)
 	}
 
 	// Skip processing if model doesn't exist
 	if existingModel == nil {
 		glog.V(2).Infof("Model %s does not exist in database, skipping metrics processing", metadata.ID)
-		return nil
+		return 0, nil
 	}
 
-	glog.V(2).Infof("Found existing model %s with ID %d, processing metrics", metadata.ID, *existingModel.GetID())
+	modelID := *existingModel.GetID()
+	glog.V(2).Infof("Found existing model %s with ID %d, processing metrics", metadata.ID, modelID)
 
-	// Process evaluation metrics if evaluations.ndjson exists and create separate metric artifacts
+	// Use batch processing for all artifacts
+	return processModelArtifactsBatch(dirPath, modelID, metadata.ID, metricsArtifactRepo, metricsArtifactTypeID)
+}
+
+// processModelArtifactsBatch processes all metric artifacts for a model in batch
+// This reduces DB overhead by parsing, checking, and inserting in optimized phases
+func processModelArtifactsBatch(dirPath string, modelID int32, modelName string, metricsArtifactRepo dbmodels.CatalogMetricsArtifactRepository, metricsArtifactTypeID int32) (int, error) {
+	// Parse all metrics files
+	var evaluationRecords []evaluationRecord
+	var performanceRecords []performanceRecord
+
+	// Parse evaluation metrics if file exists
 	evaluationsPath := filepath.Join(dirPath, "evaluations.ndjson")
 	if _, err := os.Stat(evaluationsPath); err == nil {
-		if err := processEvaluationArtifacts(evaluationsPath, *existingModel.GetID(), metricsArtifactRepo, metricsArtifactTypeID); err != nil {
-			glog.Errorf("Failed to process evaluation artifacts for %s: %v", metadata.ID, err)
+		records, err := parseEvaluationFile(evaluationsPath)
+		if err != nil {
+			glog.Errorf("Failed to parse evaluations file for %s: %v", modelName, err)
+		} else {
+			evaluationRecords = records
 		}
 	}
 
-	// Process performance metrics if performance.ndjson exists
+	// Parse performance metrics if file exists
 	performancePath := filepath.Join(dirPath, "performance.ndjson")
 	if _, err := os.Stat(performancePath); err == nil {
-		if err := processPerformanceArtifacts(performancePath, *existingModel.GetID(), metricsArtifactRepo, metricsArtifactTypeID); err != nil {
-			glog.Errorf("Failed to process performance artifacts for %s: %v", metadata.ID, err)
+		records, err := parsePerformanceFile(performancePath)
+		if err != nil {
+			glog.Errorf("Failed to parse performance file for %s: %v", modelName, err)
+		} else {
+			performanceRecords = records
 		}
 	}
 
-	return nil
-}
+	totalRecords := len(evaluationRecords) + len(performanceRecords)
+	if totalRecords == 0 {
+		return 0, nil
+	}
 
-// findExistingModel checks if a model with the given metadata already exists in the database
-func findExistingModel(metadata metadataJSON, modelRepo dbmodels.CatalogModelRepository) (dbmodels.CatalogModel, error) {
-	// Check if a model with this Name already exists
-	existingModels, err := modelRepo.List(dbmodels.CatalogModelListOptions{
-		Name: &metadata.ID,
+	// Bulk load all existing artifacts for this model and check in-memory
+	// Single DB query to get ALL existing artifacts for this model
+	existingArtifactsList, err := metricsArtifactRepo.List(dbmodels.CatalogMetricsArtifactListOptions{
+		ParentResourceID: &modelID,
 	})
 	if err != nil {
-		return nil, fmt.Errorf("failed to check for existing model: %v", err)
+		return 0, fmt.Errorf("failed to load existing artifacts for model: %v", err)
 	}
 
-	// Return the existing model if found, nil otherwise
-	if existingModels.Size > 0 {
-		existingModel := existingModels.Items[0]
-		return existingModel, nil
+	// Build in-memory map for O(1) lookups: external_id -> artifact
+	existingArtifactsMap := make(map[string]bool, existingArtifactsList.Size)
+	for _, artifact := range existingArtifactsList.Items {
+		if artifact.GetAttributes() != nil && artifact.GetAttributes().ExternalID != nil {
+			existingArtifactsMap[*artifact.GetAttributes().ExternalID] = true
+		}
 	}
 
-	return nil, nil
+	// Check which artifacts need to be created using the in-memory map
+	artifactsToInsert := make([]*dbmodels.CatalogMetricsArtifactImpl, 0, totalRecords)
+
+	// Check evaluation artifacts
+	if len(evaluationRecords) > 0 {
+		externalID := fmt.Sprintf("accuracy-metrics-model-%d", modelID)
+		if !existingArtifactsMap[externalID] {
+			artifact := createAccuracyMetricsArtifact(evaluationRecords, modelID, metricsArtifactTypeID, nil, nil)
+			artifactsToInsert = append(artifactsToInsert, artifact)
+		} else {
+			glog.V(2).Infof("Accuracy metrics artifact already exists, skipping")
+		}
+	}
+
+	// Check performance artifacts
+	for _, perfRecord := range performanceRecords {
+		if !existingArtifactsMap[perfRecord.ID] {
+			artifact := createPerformanceArtifact(perfRecord, modelID, metricsArtifactTypeID, nil, nil)
+			artifactsToInsert = append(artifactsToInsert, artifact)
+		} else {
+			glog.V(2).Infof("Performance artifact %s already exists, skipping", perfRecord.ID)
+		}
+	}
+
+	if len(artifactsToInsert) == 0 {
+		glog.V(2).Infof("All artifacts already exist for model %s, nothing to insert", modelName)
+		return 0, nil
+	}
+
+	// Batch insert all new artifacts using BatchSave
+	// Convert to slice of interface type for BatchSave
+	artifactsToSave := make([]dbmodels.CatalogMetricsArtifact, len(artifactsToInsert))
+	for i, artifact := range artifactsToInsert {
+		artifactsToSave[i] = artifact
+	}
+
+	savedArtifacts, err := metricsArtifactRepo.BatchSave(artifactsToSave, &modelID)
+	if err != nil {
+		return 0, fmt.Errorf("failed to batch save artifacts: %v", err)
+	}
+
+	return len(savedArtifacts), nil
 }
 
-// processEvaluationArtifacts processes evaluation metrics from evaluations.ndjson and creates a single accuracy-metrics artifact
-// Only creates the artifact if it doesn't already exist in the database
-func processEvaluationArtifacts(filePath string, modelID int32, metricsArtifactRepo dbmodels.CatalogMetricsArtifactRepository, metricsArtifactTypeID int32) error {
+// parseEvaluationFile reads and parses an evaluations.ndjson file
+func parseEvaluationFile(filePath string) ([]evaluationRecord, error) {
 	file, err := os.Open(filePath)
 	if err != nil {
-		return fmt.Errorf("failed to open evaluation file %s: %v", filePath, err)
+		return nil, fmt.Errorf("failed to open evaluation file %s: %v", filePath, err)
 	}
 	defer file.Close()
 
 	scanner := bufio.NewScanner(file)
 	evaluationRecords := []evaluationRecord{}
 
-	// Read all evaluation records
 	for scanner.Scan() {
 		line := scanner.Text()
 		if strings.TrimSpace(line) == "" {
@@ -384,57 +423,22 @@ func processEvaluationArtifacts(filePath string, modelID int32, metricsArtifactR
 	}
 
 	if err := scanner.Err(); err != nil {
-		return fmt.Errorf("error reading evaluation file: %v", err)
+		return nil, fmt.Errorf("error reading evaluation file: %v", err)
 	}
 
-	if len(evaluationRecords) == 0 {
-		glog.V(2).Infof("No evaluations found in %s", filePath)
-		return nil
-	}
-
-	// Use a consistent external_id for the accuracy metrics artifact
-	externalID := fmt.Sprintf("accuracy-metrics-model-%d", modelID)
-
-	// Check if artifact with this external_id already exists
-	existingArtifacts, err := metricsArtifactRepo.List(dbmodels.CatalogMetricsArtifactListOptions{
-		ExternalID: &externalID,
-	})
-	if err != nil {
-		return fmt.Errorf("failed to check for existing accuracy metrics artifact: %v", err)
-	}
-
-	// Skip creating artifact if it already exists
-	if existingArtifacts.Size > 0 {
-		existingArtifact := existingArtifacts.Items[0]
-		glog.V(2).Infof("Accuracy metrics artifact already exists with ID %d, skipping", *existingArtifact.GetID())
-		return nil
-	}
-
-	glog.V(2).Infof("Creating new accuracy metrics artifact")
-
-	// Create artifact (no existing ID since we're only creating new ones)
-	artifact := createAccuracyMetricsArtifact(evaluationRecords, modelID, metricsArtifactTypeID, nil, nil)
-
-	// Save artifact to database
-	if _, err := metricsArtifactRepo.Save(artifact, &modelID); err != nil {
-		return fmt.Errorf("failed to save accuracy metrics artifact: %v", err)
-	}
-
-	glog.V(2).Infof("Processed accuracy metrics artifact with %d evaluations from %s", len(evaluationRecords), filePath)
-	return nil
+	return evaluationRecords, nil
 }
 
-// processPerformanceArtifacts processes performance metrics from performance.ndjson
-// Only creates artifacts that don't already exist in the database
-func processPerformanceArtifacts(filePath string, modelID int32, metricsArtifactRepo dbmodels.CatalogMetricsArtifactRepository, metricsArtifactTypeID int32) error {
+// parsePerformanceFile reads and parses a performance.ndjson file
+func parsePerformanceFile(filePath string) ([]performanceRecord, error) {
 	file, err := os.Open(filePath)
 	if err != nil {
-		return fmt.Errorf("failed to open performance file %s: %v", filePath, err)
+		return nil, fmt.Errorf("failed to open performance file %s: %v", filePath, err)
 	}
 	defer file.Close()
 
 	scanner := bufio.NewScanner(file)
-	artifactCount := 0
+	performanceRecords := []performanceRecord{}
 
 	for scanner.Scan() {
 		line := scanner.Text()
@@ -448,43 +452,14 @@ func processPerformanceArtifacts(filePath string, modelID int32, metricsArtifact
 			continue
 		}
 
-		// Check if artifact with this external_id already exists
-		listOptions := dbmodels.CatalogMetricsArtifactListOptions{
-			ExternalID: &perfRecord.ID,
-		}
-		existingArtifacts, err := metricsArtifactRepo.List(listOptions)
-		if err != nil {
-			glog.Errorf("Failed to check for existing performance artifact: %v", err)
-			continue
-		}
-
-		// Skip creating artifact if it already exists
-		if existingArtifacts.Size > 0 {
-			existingArtifact := existingArtifacts.Items[0]
-			glog.V(2).Infof("Performance artifact %s already exists with ID %d, skipping", perfRecord.ID, *existingArtifact.GetID())
-			continue
-		}
-
-		glog.V(2).Infof("Creating new performance artifact %s", perfRecord.ID)
-
-		// Create artifact (no existing ID since we're only creating new ones)
-		artifact := createPerformanceArtifact(perfRecord, modelID, metricsArtifactTypeID, nil, nil)
-
-		// Save artifact to database
-		if _, err := metricsArtifactRepo.Save(artifact, &modelID); err != nil {
-			glog.Errorf("Failed to save performance artifact: %v", err)
-			continue
-		}
-
-		artifactCount++
+		performanceRecords = append(performanceRecords, perfRecord)
 	}
 
 	if err := scanner.Err(); err != nil {
-		return fmt.Errorf("error reading performance file: %v", err)
+		return nil, fmt.Errorf("error reading performance file: %v", err)
 	}
 
-	glog.V(2).Infof("Processed %d performance artifacts from %s", artifactCount, filePath)
-	return nil
+	return performanceRecords, nil
 }
 
 // createAccuracyMetricsArtifact creates a single metrics artifact from all evaluation records

@@ -418,12 +418,12 @@ func TestCatalogModelRepository(t *testing.T) {
 }
 
 // Helper function to get or create CatalogModel type ID
-func getCatalogModelTypeID(t *testing.T, db *gorm.DB) int64 {
+func getCatalogModelTypeID(t *testing.T, db *gorm.DB) int32 {
 	var typeRecord schema.Type
 	err := db.Where("name = ?", service.CatalogModelTypeName).First(&typeRecord).Error
 	if err != nil {
 		require.NoError(t, err, "Failed to query CatalogModel type")
 	}
 
-	return int64(typeRecord.ID)
+	return typeRecord.ID
 }

@@ -7,6 +7,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/kubeflow/model-registry/internal/db/dbutil"
 	"github.com/kubeflow/model-registry/internal/db/models"
 	"gorm.io/gorm"
 )
@@ -72,7 +73,7 @@ func PaginateWithTablePrefix(value any, pagination *models.Pagination, db *gorm.
 			// Apply table prefix to ORDER BY column for consistency with WHERE clauses
 			orderByColumn := sanitizedOrderBy
 			if tablePrefix != "" {
-				quotedPrefix := quoteTableName(db, tablePrefix)
+				quotedPrefix := dbutil.QuoteTableName(db, tablePrefix)
 				orderByColumn = quotedPrefix + "." + sanitizedOrderBy
 			}
 
@@ -112,21 +113,6 @@ func decodeCursor(token string) (*cursor, error) {
 	}, nil
 }
 
-// quoteTableName quotes a table name based on database dialect
-func quoteTableName(db *gorm.DB, tableName string) string {
-	if db == nil || tableName == "" {
-		return tableName
-	}
-	switch db.Name() {
-	case "mysql":
-		return "`" + tableName + "`"
-	case "postgres":
-		return `"` + tableName + `"`
-	default:
-		return tableName
-	}
-}
-
 // buildWhereClause now returns a *gorm.DB with properly parameterized queries instead of raw SQL strings
 func buildWhereClause(db *gorm.DB, cursor *cursor, orderBy string, sortOrder string, tablePrefix string) *gorm.DB {
 	// Validate table prefix to prevent SQL injection
@@ -137,7 +123,7 @@ func buildWhereClause(db *gorm.DB, cursor *cursor, orderBy string, sortOrder str
 
 	// Apply database-specific quoting to table prefix
 	if tablePrefix != "" {
-		tablePrefix = quoteTableName(db, tablePrefix)
+		tablePrefix = dbutil.QuoteTableName(db, tablePrefix)
 	}
 
 	// Build column names with proper validation

@@ -148,17 +148,17 @@ func (st *SpecType) AddBoolean(name string) *SpecType {
 // RepoSet holds repository implementions.
 type RepoSet interface {
 	// TypeMap returns a map of type names to IDs
-	TypeMap() map[string]int64
+	TypeMap() map[string]int32
 
 	// Repository returns a repository instance of the specified type.
 	Repository(t reflect.Type) (any, error)
 }
 
 // ArtifactTypeMap maps artifact type names to IDs
-type ArtifactTypeMap map[string]int64
+type ArtifactTypeMap map[string]int32
 
 // ContextTypeMap maps context type names to IDs
-type ContextTypeMap map[string]int64
+type ContextTypeMap map[string]int32
 
 // ExecutionTypeMap maps execution type names to IDs
-type ExecutionTypeMap map[string]int64
+type ExecutionTypeMap map[string]int32

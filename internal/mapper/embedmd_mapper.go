@@ -15,10 +15,10 @@ type EmbedMDMapper struct {
 	embedMDConverter converter.EmbedMDToOpenAPIConverter
 	*generated.OpenAPIConverterImpl
 	*generated.OpenAPIReconcilerImpl
-	typesMap map[string]int64
+	typesMap map[string]int32
 }
 
-func NewEmbedMDMapper(typesMap map[string]int64) *EmbedMDMapper {
+func NewEmbedMDMapper(typesMap map[string]int32) *EmbedMDMapper {
 	return &EmbedMDMapper{
 		openAPIConverter:      &generated.OpenAPIToEmbedMDConverterImpl{},
 		embedMDConverter:      &generated.EmbedMDToOpenAPIConverterImpl{},

@@ -14,16 +14,16 @@ import (
 
 // Test constants for type IDs
 const (
-	testRegisteredModelTypeId    = int64(1)
-	testModelVersionTypeId       = int64(2)
-	testDocArtifactTypeId        = int64(3)
-	testModelArtifactTypeId      = int64(4)
-	testServingEnvironmentTypeId = int64(5)
-	testInferenceServiceTypeId   = int64(6)
-	testServeModelTypeId         = int64(7)
+	testRegisteredModelTypeId    = int32(1)
+	testModelVersionTypeId       = int32(2)
+	testDocArtifactTypeId        = int32(3)
+	testModelArtifactTypeId      = int32(4)
+	testServingEnvironmentTypeId = int32(5)
+	testInferenceServiceTypeId   = int32(6)
+	testServeModelTypeId         = int32(7)
 )
 
-var testTypesMap = map[string]int64{
+var testTypesMap = map[string]int32{
 	defaults.RegisteredModelTypeName:    testRegisteredModelTypeId,
 	defaults.ModelVersionTypeName:       testModelVersionTypeId,
 	defaults.DocArtifactTypeName:        testDocArtifactTypeId,

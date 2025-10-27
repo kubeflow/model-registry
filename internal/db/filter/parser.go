@@ -15,6 +15,7 @@ const (
 	DoubleValueType = "double_value"
 	IntValueType    = "int_value"
 	BoolValueType   = "bool_value"
+	ArrayValueType  = "array_value"
 )
 
 // Define the lexer for SQL WHERE clauses
@@ -42,7 +43,7 @@ func initParser() {
 		participle.Lexer(sqlLexer),
 		participle.Elide("whitespace", "Comment"),
 		participle.CaseInsensitive("OR", "AND", "LIKE", "ILIKE", "IN", "true", "false", "TRUE", "FALSE"),
-		participle.CaseInsensitive(StringValueType, DoubleValueType, IntValueType, BoolValueType),
+		participle.CaseInsensitive(StringValueType, DoubleValueType, IntValueType, BoolValueType, ArrayValueType),
 	)
 }
 
@@ -91,9 +92,10 @@ type Comparison struct {
 
 //nolint:govet
 type PropertyRef struct {
-	EscapedName string `@EscapedIdent`
-	Name        string `| @Ident`
-	Type        string `("." @("string_value" | "double_value" | "int_value" | "bool_value"))?`
+	EscapedName string   `@EscapedIdent`
+	Name        string   `| @Ident`
+	Path        []string `("." @Ident)*`
+	Type        string   `("." @("string_value" | "double_value" | "int_value" | "bool_value"))?`
 }
 
 //nolint:govet
@@ -130,10 +132,11 @@ type FilterExpression struct {
 
 // PropertyReference represents a property reference with type information
 type PropertyReference struct {
-	Name      string
-	IsCustom  bool
-	ValueType string // StringValueType, DoubleValueType, IntValueType, BoolValueType
-	IsEscaped bool   // whether the property name was escaped with backticks
+	Name        string
+	IsCustom    bool
+	ValueType   string             // StringValueType, DoubleValueType, IntValueType, BoolValueType, ArrayValueType
+	IsEscaped   bool               // whether the property name was escaped with backticks
+	PropertyDef PropertyDefinition // Full property definition for advanced handling
 }
 
 // Parse parses a filter query string and returns the root expression
@@ -201,8 +204,10 @@ func convertComparison(comp *Comparison) *FilterExpression {
 	propRef := convertPropertyRef(comp.Left, comp.Right)
 	value := convertValue(comp.Right)
 
-	// Preserve the full property name with type suffix if specified
+	// Build the full property path including any nested paths
 	propertyName := propRef.Name
+
+	// Add type suffix if specified (for explicit type queries)
 	if comp.Left.Type != "" {
 		propertyName = propRef.Name + "." + comp.Left.Type
 	}
@@ -227,6 +232,10 @@ func convertPropertyRef(prop *PropertyRef, value *Value) *PropertyReference {
 		isEscaped = true
 	} else {
 		name = prop.Name
+		// Build the full path if there are nested properties
+		if len(prop.Path) > 0 {
+			name = name + "." + strings.Join(prop.Path, ".")
+		}
 		isEscaped = false
 	}
 

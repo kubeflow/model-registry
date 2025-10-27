@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"github.com/kubeflow/model-registry/internal/db/constants"
+	"github.com/kubeflow/model-registry/internal/db/dbutil"
 	"gorm.io/gorm"
 )
 
@@ -92,29 +93,14 @@ func (qb *QueryBuilder) applyDatabaseQuoting() {
 	if qb.db == nil {
 		return
 	}
-	switch qb.db.Name() {
-	case "mysql":
-		qb.tablePrefix = "`" + qb.tablePrefix + "`"
-	case "postgres":
-		qb.tablePrefix = `"` + qb.tablePrefix + `"`
-	default:
-		// Keep unquoted for other databases
-	}
+	// Extract unquoted table name if it was already quoted
+	unquotedName := strings.Trim(qb.tablePrefix, "`\"")
+	qb.tablePrefix = dbutil.QuoteTableName(qb.db, unquotedName)
 }
 
 // quoteTableName quotes a table name based on database dialect
 func (qb *QueryBuilder) quoteTableName(tableName string) string {
-	if qb.db == nil {
-		return tableName
-	}
-	switch qb.db.Name() {
-	case "mysql":
-		return "`" + tableName + "`"
-	case "postgres":
-		return `"` + tableName + `"`
-	default:
-		return tableName
-	}
+	return dbutil.QuoteTableName(qb.db, tableName)
 }
 
 // buildExpression recursively builds query conditions from filter expressions
@@ -185,10 +171,17 @@ func (qb *QueryBuilder) buildPropertyReference(expr *FilterExpression) *Property
 	propertyName := expr.Property
 
 	// Check if the property has an explicit type suffix (e.g., "budget.double_value")
+	// Valid type suffixes: string_value, double_value, int_value, bool_value
 	var explicitType string
-	if parts := strings.Split(propertyName, "."); len(parts) == 2 {
-		propertyName = parts[0]
-		explicitType = parts[1]
+	if parts := strings.Split(propertyName, "."); len(parts) >= 2 {
+		lastPart := parts[len(parts)-1]
+		// Only treat as type suffix if it's a valid value type
+		if lastPart == "string_value" || lastPart == "double_value" || lastPart == "int_value" || lastPart == "bool_value" {
+			// Reconstruct property name without the type suffix
+			propertyName = strings.Join(parts[:len(parts)-1], ".")
+			explicitType = lastPart
+		}
+		// Otherwise, keep the full path as property name
 	}
 
 	// Use REST entity type-aware property mapping if available
@@ -206,9 +199,10 @@ func (qb *QueryBuilder) buildPropertyReference(expr *FilterExpression) *Property
 	}
 
 	propRef := &PropertyReference{
-		Name:      propName,
-		IsCustom:  propDef.Location == Custom,
-		ValueType: propDef.ValueType,
+		Name:        propName,
+		IsCustom:    propDef.Location == Custom,
+		ValueType:   propDef.ValueType,
+		PropertyDef: propDef, // Store full property definition for advanced handling
 	}
 
 	// If explicit type was specified, use it
@@ -252,13 +246,16 @@ func (qb *QueryBuilder) inferValueTypeFromInterface(value any) string {
 
 // buildPropertyCondition builds a GORM query condition for a property
 func (qb *QueryBuilder) buildPropertyCondition(db *gorm.DB, propRef *PropertyReference, operator string, value any) *gorm.DB {
-	propDef := GetPropertyDefinition(qb.entityType, propRef.Name)
+	// Use the property definition from the PropertyReference (already looked up with REST entity mappings)
+	propDef := propRef.PropertyDef
 
 	switch propDef.Location {
 	case EntityTable:
 		return qb.buildEntityTablePropertyCondition(db, propRef, operator, value)
 	case PropertyTable, Custom:
 		return qb.buildPropertyTableCondition(db, propRef, operator, value)
+	case RelatedEntity:
+		return qb.buildRelatedEntityPropertyCondition(db, propDef, propRef.ValueType, operator, value)
 	default:
 		return qb.buildEntityTablePropertyCondition(db, propRef, operator, value)
 	}
@@ -266,13 +263,16 @@ func (qb *QueryBuilder) buildPropertyCondition(db *gorm.DB, propRef *PropertyRef
 
 // buildPropertyConditionString builds a condition string for a property
 func (qb *QueryBuilder) buildPropertyConditionString(propRef *PropertyReference, operator string, value any) conditionResult {
-	propDef := GetPropertyDefinition(qb.entityType, propRef.Name)
+	// Use the property definition from the PropertyReference (already looked up with REST entity mappings)
+	propDef := propRef.PropertyDef
 
 	switch propDef.Location {
 	case EntityTable:
 		return qb.buildEntityTablePropertyConditionString(propRef, operator, value)
 	case PropertyTable, Custom:
 		return qb.buildPropertyTableConditionString(propRef, operator, value)
+	case RelatedEntity:
+		return qb.buildRelatedEntityPropertyConditionString(propDef, propRef.ValueType, operator, value)
 	default:
 		return qb.buildEntityTablePropertyConditionString(propRef, operator, value)
 	}
@@ -404,14 +404,24 @@ func (qb *QueryBuilder) buildPropertyTableCondition(db *gorm.DB, propRef *Proper
 	db = db.Where(fmt.Sprintf("%s.name = ?", alias), propRef.Name)
 
 	// Use the specific value type column based on inferred type
-	valueColumn := fmt.Sprintf("%s.%s", alias, propRef.ValueType)
+	var valueColumn string
+	if propRef.ValueType == ArrayValueType {
+		valueColumn = fmt.Sprintf("%s.%s", alias, StringValueType)
+	} else {
+		valueColumn = fmt.Sprintf("%s.%s", alias, propRef.ValueType)
+	}
 
 	// Use cross-database case-insensitive LIKE for ILIKE operator
 	if operator == "ILIKE" {
 		return qb.buildCaseInsensitiveLikeCondition(db, valueColumn, value)
 	}
 
-	condition := qb.buildOperatorCondition(valueColumn, operator, value)
+	var condition conditionResult
+	if propRef.ValueType == ArrayValueType && db.Name() == "postgres" {
+		condition = qb.buildJSONOperatorCondition(valueColumn, operator, value)
+	} else {
+		condition = qb.buildOperatorCondition(valueColumn, operator, value)
+	}
 	return db.Where(condition.condition, condition.args...)
 }
 
@@ -446,6 +456,113 @@ func (qb *QueryBuilder) buildPropertyTableConditionString(propRef *PropertyRefer
 	args = append(args, condition.args...)
 
 	return conditionResult{condition: subquery, args: args}
+}
+
+// buildRelatedEntityPropertyCondition builds a condition for properties in related entities using EXISTS subquery
+// This avoids JOIN multiplication and ensures correct filtering
+func (qb *QueryBuilder) buildRelatedEntityPropertyCondition(db *gorm.DB, propDef PropertyDefinition, explicitType string, operator string, value any) *gorm.DB {
+	conditionResult := qb.buildRelatedEntityPropertyConditionString(propDef, explicitType, operator, value)
+	return db.Where(conditionResult.condition, conditionResult.args...)
+}
+
+// buildRelatedEntityPropertyConditionString builds an EXISTS subquery condition for properties in related entities
+func (qb *QueryBuilder) buildRelatedEntityPropertyConditionString(propDef PropertyDefinition, explicitType string, operator string, value any) conditionResult {
+	// Currently only supporting artifact filtering from Context entities
+	if qb.entityType != EntityTypeContext || propDef.RelatedEntityType != RelatedEntityArtifact {
+		// Fallback - return empty condition
+		return conditionResult{condition: "1=1", args: []any{}}
+	}
+
+	// Increment join counter for unique alias
+	qb.joinCounter++
+
+	// Create unique aliases and table names for this join chain
+	aliases := qb.createRelatedEntityAliases(qb.joinCounter)
+
+	// Build the value condition (handles integer dual-column logic)
+	valueCondition := qb.buildValueCondition(aliases.propertyAlias, explicitType, operator, value)
+
+	// Build the complete EXISTS subquery
+	subquery := fmt.Sprintf(
+		"EXISTS (SELECT 1 FROM %s %s "+
+			"JOIN %s %s ON %s.id = %s.artifact_id "+
+			"JOIN %s %s ON %s.artifact_id = %s.id "+
+			"WHERE %s.context_id = %s.id AND %s.name = ? AND %s)",
+		aliases.attributionTable, aliases.attributionAlias,
+		aliases.entityTable, aliases.entityAlias, aliases.entityAlias, aliases.attributionAlias,
+		aliases.propertyTable, aliases.propertyAlias, aliases.propertyAlias, aliases.entityAlias,
+		aliases.attributionAlias, qb.tablePrefix, aliases.propertyAlias, valueCondition.condition)
+
+	args := []any{propDef.RelatedProperty}
+	args = append(args, valueCondition.args...)
+
+	return conditionResult{condition: subquery, args: args}
+}
+
+// relatedEntityAliases holds the table aliases for a related entity join chain
+type relatedEntityAliases struct {
+	attributionAlias string
+	entityAlias      string
+	propertyAlias    string
+	attributionTable string
+	entityTable      string
+	propertyTable    string
+}
+
+// createRelatedEntityAliases generates unique aliases and quoted table names for artifact filtering
+func (qb *QueryBuilder) createRelatedEntityAliases(counter int) relatedEntityAliases {
+	return relatedEntityAliases{
+		attributionAlias: fmt.Sprintf("attr_%d", counter),
+		entityAlias:      fmt.Sprintf("art_%d", counter),
+		propertyAlias:    fmt.Sprintf("artprop_%d", counter),
+		attributionTable: qb.quoteTableName("Attribution"),
+		entityTable:      qb.quoteTableName("Artifact"),
+		propertyTable:    qb.quoteTableName("ArtifactProperty"),
+	}
+}
+
+// determineValueType determines the value type for a property, handling explicit types and inference
+// Returns the value type and a boolean indicating if an integer was inferred (for dual-column queries)
+func (qb *QueryBuilder) determineValueType(explicitType string, value any) (valueType string, inferredAsInt bool) {
+	if explicitType != "" {
+		// Explicit type provided - use it directly
+		return explicitType, false
+	}
+
+	// No explicit type - infer from value
+	inferredType := qb.inferValueTypeFromInterface(value)
+	if inferredType == IntValueType {
+		// Integer inferred - flag for dual-column query
+		return inferredType, true
+	}
+
+	return inferredType, false
+}
+
+// buildValueCondition builds a condition for a property value, handling the dual-column query for integer literals
+func (qb *QueryBuilder) buildValueCondition(propertyAlias string, explicitType string, operator string, value any) conditionResult {
+	valueType, inferredAsInt := qb.determineValueType(explicitType, value)
+
+	// Special handling for integer literals without explicit type:
+	// Query BOTH int_value and double_value to handle data stored in either column.
+	// This prevents silent query failures when data type doesn't match user's expectation.
+	if inferredAsInt {
+		intColumn := fmt.Sprintf("%s.int_value", propertyAlias)
+		doubleColumn := fmt.Sprintf("%s.double_value", propertyAlias)
+
+		intCondition := qb.buildOperatorCondition(intColumn, operator, value)
+		doubleCondition := qb.buildOperatorCondition(doubleColumn, operator, value)
+
+		// Combine with OR to find values in either column
+		return conditionResult{
+			condition: fmt.Sprintf("(%s OR %s)", intCondition.condition, doubleCondition.condition),
+			args:      append(intCondition.args, doubleCondition.args...),
+		}
+	}
+
+	// For explicit types or non-integer types, use the specified column
+	valueColumn := fmt.Sprintf("%s.%s", propertyAlias, valueType)
+	return qb.buildOperatorCondition(valueColumn, operator, value)
 }
 
 // buildOperatorCondition builds a condition string for an operator
@@ -502,7 +619,7 @@ func (qb *QueryBuilder) buildOperatorCondition(column string, operator string, v
 func (qb *QueryBuilder) buildCaseInsensitiveLikeCondition(db *gorm.DB, column string, value any) *gorm.DB {
 	if strValue, ok := value.(string); ok {
 		// Check database type for optimal implementation
-		switch db.Dialector.Name() {
+		switch db.Name() {
 		case "postgres":
 			// PostgreSQL supports ILIKE natively (most efficient)
 			return db.Where(fmt.Sprintf("%s ILIKE ?", column), strValue)
@@ -520,6 +637,34 @@ func (qb *QueryBuilder) buildCaseInsensitiveLikeCondition(db *gorm.DB, column st
 
 	// Fallback to regular LIKE if value is not a string
 	return db.Where(fmt.Sprintf("%s LIKE ?", column), value)
+}
+
+// buildJSONOperatorCondition builds a condition string for an operator on a JSON array
+func (qb *QueryBuilder) buildJSONOperatorCondition(column string, operator string, value any) conditionResult {
+	switch operator {
+	case "IN":
+		// Handle IN operator with array values
+		if valueSlice, ok := value.([]any); ok {
+			if len(valueSlice) == 0 {
+				// Empty list should return false condition
+				return conditionResult{condition: "1 = 0", args: []any{}}
+			}
+			// Create placeholders for each value
+			return conditionResult{
+				condition: fmt.Sprintf("%s IS JSON ARRAY AND %s::jsonb ? array[?%s]", column, column, strings.Repeat(",?", len(valueSlice)-1)),
+				args:      append([]any{gorm.Expr("?|")}, valueSlice...),
+			}
+		}
+		// Fallback to single value (shouldn't normally happen with proper parsing)
+		fallthrough
+	case "=":
+		return conditionResult{condition: fmt.Sprintf("%s IS JSON ARRAY AND %s::jsonb ? array[?]", column, column), args: []any{gorm.Expr("?|"), value}}
+	case "!=":
+		return conditionResult{condition: fmt.Sprintf("%s IS NOT JSON ARRAY OR NOT %s::jsonb ? array[?]", column, column), args: []any{gorm.Expr("?|"), value}}
+	default:
+		// Pass through anything else
+		return qb.buildOperatorCondition(column, operator, value)
+	}
 }
 
 // defaultEntityMappings implements EntityMappingFunctions for the model registry

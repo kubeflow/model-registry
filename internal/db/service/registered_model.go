@@ -14,7 +14,7 @@ type RegisteredModelRepositoryImpl struct {
 	*GenericRepository[models.RegisteredModel, schema.Context, schema.ContextProperty, *models.RegisteredModelListOptions]
 }
 
-func NewRegisteredModelRepository(db *gorm.DB, typeID int64) models.RegisteredModelRepository {
+func NewRegisteredModelRepository(db *gorm.DB, typeID int32) models.RegisteredModelRepository {
 	config := GenericRepositoryConfig[models.RegisteredModel, schema.Context, schema.ContextProperty, *models.RegisteredModelListOptions]{
 		DB:                  db,
 		TypeID:              typeID,

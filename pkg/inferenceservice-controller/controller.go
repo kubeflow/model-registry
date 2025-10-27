@@ -110,7 +110,8 @@ func (r *InferenceServiceController) Reconcile(ctx context.Context, req ctrl.Req
 
 	if !okMrIsvcId && !okRegisteredModelId {
 		// Early check: no model registry specific labels set in the ISVC, ignore the CR
-		log.Error(fmt.Errorf("missing model registry specific label, unable to link ISVC to Model Registry, skipping InferenceService"), "Stop ModelRegistry InferenceService reconciliation")
+		log.Info(fmt.Sprintf("missing model registry specific label, unable to link ISVC to Model Registry, skipping InferenceService: %s", isvc.Name))
+
 		return ctrl.Result{}, nil
 	}
 

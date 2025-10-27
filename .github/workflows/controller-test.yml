@@ -30,8 +30,16 @@ jobs:
     name: Run on Ubuntu
     runs-on: ubuntu-latest
     steps:
+      - name: Generate tag
+        shell: bash
+        id: tags
+        run: |
+          commit_sha=${{ github.event.after }}
+          tag="${BRANCH:-main}"-${commit_sha:0:7}
+          echo "tag=${tag}" >> $GITHUB_OUTPUT
+
       - name: Clone the code
-        uses: actions/checkout@v5.0.0
+        uses: actions/checkout@v5
 
       - name: Setup Go
         uses: actions/setup-go@v6
@@ -42,3 +50,10 @@ jobs:
         run: |
           go mod tidy
           make controller/test
+
+      - name: Build controller
+        shell: bash
+        env:
+          IMG_REPO: model-registry/controller
+          IMG_VERSION: ${{ steps.tags.outputs.tag }}
+        run: make image/build

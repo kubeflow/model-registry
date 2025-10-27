@@ -20,7 +20,7 @@ type CatalogMetricsArtifactRepositoryImpl struct {
 	*service.GenericRepository[models.CatalogMetricsArtifact, schema.Artifact, schema.ArtifactProperty, *models.CatalogMetricsArtifactListOptions]
 }
 
-func NewCatalogMetricsArtifactRepository(db *gorm.DB, typeID int64) models.CatalogMetricsArtifactRepository {
+func NewCatalogMetricsArtifactRepository(db *gorm.DB, typeID int32) models.CatalogMetricsArtifactRepository {
 	config := service.GenericRepositoryConfig[models.CatalogMetricsArtifact, schema.Artifact, schema.ArtifactProperty, *models.CatalogMetricsArtifactListOptions]{
 		DB:                  db,
 		TypeID:              typeID,
@@ -47,8 +47,8 @@ func (r *CatalogMetricsArtifactRepositoryImpl) List(listOptions models.CatalogMe
 func (r *CatalogMetricsArtifactRepositoryImpl) Save(ma models.CatalogMetricsArtifact, parentResourceID *int32) (models.CatalogMetricsArtifact, error) {
 	config := r.GetConfig()
 	if ma.GetTypeID() == nil {
-		if config.TypeID > 0 && config.TypeID < math.MaxInt32 {
-			ma.SetTypeID(int32(config.TypeID))
+		if config.TypeID > 0 {
+			ma.SetTypeID(config.TypeID)
 		}
 	}
 
@@ -76,6 +76,98 @@ func (r *CatalogMetricsArtifactRepositoryImpl) Save(ma models.CatalogMetricsArti
 	}
 
 	return r.GenericRepository.Save(ma, parentResourceID)
+}
+
+func (r *CatalogMetricsArtifactRepositoryImpl) BatchSave(artifacts []models.CatalogMetricsArtifact, parentResourceID *int32) ([]models.CatalogMetricsArtifact, error) {
+	numArtifacts := len(artifacts)
+	if numArtifacts == 0 {
+		return artifacts, nil
+	}
+
+	config := r.GetConfig()
+
+	// Pre-allocate schema artifacts slice
+	schemaArtifacts := make([]schema.Artifact, numArtifacts)
+
+	// Validate, prepare, and convert all artifacts in one pass
+	for i, ma := range artifacts {
+		if ma.GetTypeID() == nil {
+			if config.TypeID > 0 && config.TypeID < math.MaxInt32 {
+				ma.SetTypeID(int32(config.TypeID))
+			}
+		}
+
+		attr := ma.GetAttributes()
+		if attr == nil {
+			return nil, fmt.Errorf("invalid artifact at index %d: nil attributes", i)
+		}
+
+		switch attr.MetricsType {
+		case models.MetricsTypeAccuracy, models.MetricsTypePerformance:
+			// OK
+		default:
+			return nil, fmt.Errorf("invalid artifact at index %d: unknown metrics type: %s", i, attr.MetricsType)
+		}
+
+		schemaArtifacts[i] = mapCatalogMetricsArtifactToArtifact(ma)
+		artifacts[i] = ma
+	}
+
+	// Execute all batch operations in a single transaction
+	err := config.DB.Transaction(func(tx *gorm.DB) error {
+		// Batch insert artifacts (batch size of 100)
+		if err := tx.CreateInBatches(&schemaArtifacts, 100).Error; err != nil {
+			return fmt.Errorf("failed to batch insert artifacts: %w", err)
+		}
+
+		// Pre-allocate slices for properties and attributions
+		// Estimate ~10 properties per artifact on average
+		allProperties := []schema.ArtifactProperty{}
+		var allAttributions []schema.Attribution
+		if parentResourceID != nil {
+			allAttributions = make([]schema.Attribution, 0, numArtifacts)
+		}
+
+		// Collect all properties and attributions
+		for i, schemaArtifact := range schemaArtifacts {
+			artifactID := schemaArtifact.ID
+			artifacts[i].SetID(artifactID)
+
+			// Collect properties
+			properties := mapCatalogMetricsArtifactToArtifactProperties(artifacts[i], artifactID)
+			allProperties = append(allProperties, properties...)
+
+			// Collect attribution if parentResourceID is provided
+			if parentResourceID != nil {
+				allAttributions = append(allAttributions, schema.Attribution{
+					ContextID:  *parentResourceID,
+					ArtifactID: artifactID,
+				})
+			}
+		}
+
+		// Batch insert all properties
+		if len(allProperties) > 0 {
+			if err := tx.CreateInBatches(&allProperties, 100).Error; err != nil {
+				return fmt.Errorf("failed to batch insert properties: %w", err)
+			}
+		}
+
+		// Batch insert all attributions
+		if len(allAttributions) > 0 {
+			if err := tx.CreateInBatches(&allAttributions, 100).Error; err != nil {
+				return fmt.Errorf("failed to batch insert attributions: %w", err)
+			}
+		}
+
+		return nil
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	return artifacts, nil
 }
 
 func (r *CatalogMetricsArtifactRepositoryImpl) lookupMetricsArtifactByName(name string) (*schema.Artifact, error) {

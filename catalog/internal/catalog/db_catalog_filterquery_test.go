@@ -209,6 +209,36 @@ func TestFilterQueryToSQLGeneration(t *testing.T) {
 			description:  "Special characters should be properly escaped and parameterized",
 		},
 		{
+			name:        "Equals for a JSON array",
+			filterQuery: `language = "en"`,
+			expectedSQL: []string{
+				`prop_1.string_value IS JSON ARRAY`,
+				`prop_1.string_value::jsonb ?| array[$`,
+			},
+			expectedArgs: []any{"language", "en"},
+			description:  "Equals on JSON arrays should search inside the array",
+		},
+		{
+			name:        "Not equals for a JSON array",
+			filterQuery: `language != "en"`,
+			expectedSQL: []string{
+				`prop_1.string_value IS NOT JSON ARRAY`,
+				`NOT prop_1.string_value::jsonb ?| array[$`,
+			},
+			expectedArgs: []any{"language", "en"},
+			description:  "Not equals on JSON arrays should search inside the array",
+		},
+		{
+			name:        "IN for a JSON array",
+			filterQuery: `language IN ("en","it")`,
+			expectedSQL: []string{
+				`prop_1.string_value IS JSON ARRAY`,
+				`prop_1.string_value::jsonb ?| array[$`,
+			},
+			expectedArgs: []any{"language", "en", "it"},
+			description:  "IN on JSON arrays should search inside the array",
+		},
+		{
 			name:        "Invalid syntax should error",
 			filterQuery: `invalid syntax here`,
 			shouldError: true,
@@ -547,6 +577,542 @@ func TestComplexFilterQueryGeneration(t *testing.T) {
 				// Verify query is valid SQL (no syntax errors)
 				assert.NotContains(t, generatedSQL, "ERROR")
 				assert.NotContains(t, generatedSQL, "INVALID")
+			}
+
+			t.Logf("✅ %s", tt.description)
+		})
+	}
+}
+
+func TestArtifactFilteringCapability(t *testing.T) {
+	tests := []struct {
+		name         string
+		filterQuery  string
+		expectedSQL  []string
+		expectedArgs []any
+		description  string
+	}{
+		{
+			name:        "Basic artifact property filter - numeric",
+			filterQuery: `artifacts.ttft_mean >= 90.0`,
+			expectedSQL: []string{
+				"EXISTS",
+				`"Attribution"`,
+				"attr_", // Attribution alias
+				"ON",
+				".context_id = \"Context\".id",
+				`"Artifact"`,
+				"art_", // Artifact alias
+				".id = ",
+				".artifact_id",
+				`"ArtifactProperty"`,
+				"artprop_", // ArtifactProperty alias
+				".artifact_id = ",
+				".name = $",
+				".double_value >= $",
+			},
+			expectedArgs: []any{"ttft_mean", float64(90.0)},
+			description:  "Should JOIN through Attribution to filter models by artifact numeric properties",
+		},
+		{
+			name:        "Artifact custom property - string",
+			filterQuery: `artifacts.format = "pytorch"`,
+			expectedSQL: []string{
+				"EXISTS",
+				`"Attribution"`,
+				`"Artifact"`,
+				`"ArtifactProperty"`,
+				".name = $",
+				".string_value = $",
+			},
+			expectedArgs: []any{"format", "pytorch"},
+			description:  "Should filter models by artifact string custom properties",
+		},
+		{
+			name:        "Artifact property with explicit type",
+			filterQuery: `artifacts.performance_score.double_value > 0.95`,
+			expectedSQL: []string{
+				"EXISTS",
+				`"Attribution"`,
+				`"Artifact"`,
+				`"ArtifactProperty"`,
+				".name = $",
+				".double_value > $",
+			},
+			expectedArgs: []any{"performance_score", 0.95},
+			description:  "Should handle explicit type specification for artifact properties",
+		},
+		{
+			name:        "Combined model and artifact filters",
+			filterQuery: `name = "llm-model" AND artifacts.performance_score > 0.95`,
+			expectedSQL: []string{
+				`"Context".name = $`,
+				"AND",
+				"EXISTS",
+				`"Attribution"`,
+				`"Artifact"`,
+				`"ArtifactProperty"`,
+				".name = $",
+				".double_value > $",
+			},
+			expectedArgs: []any{"llm-model", "performance_score", 0.95},
+			description:  "Should combine model properties and artifact properties in a single query",
+		},
+		{
+			name:        "Multiple artifact property filters",
+			filterQuery: `artifacts.ttft_mean >= 90.0 AND artifacts.tpot_mean <= 50.0`,
+			expectedSQL: []string{
+				"EXISTS",
+				`"Attribution"`,
+				`"Artifact"`,
+				`"ArtifactProperty"`,
+				".name = $",
+				".double_value >= $",
+				".name = $",
+				".double_value <= $",
+			},
+			expectedArgs: []any{"ttft_mean", float64(90), "tpot_mean", float64(50)},
+			description:  "Should handle multiple artifact property filters with separate JOINs",
+		},
+		{
+			name:        "Artifact property with LIKE",
+			filterQuery: `artifacts.model_format LIKE "%.onnx"`,
+			expectedSQL: []string{
+				"EXISTS",
+				`"Attribution"`,
+				`"Artifact"`,
+				`"ArtifactProperty"`,
+				".string_value LIKE $",
+			},
+			expectedArgs: []any{"model_format", "%.onnx"},
+			description:  "Should support pattern matching on artifact properties",
+		},
+		{
+			name:        "Artifact property with IN clause",
+			filterQuery: `artifacts.device IN ('cuda','rocm')`,
+			expectedSQL: []string{
+				"EXISTS",
+				`"Attribution"`,
+				`"Artifact"`,
+				`"ArtifactProperty"`,
+				".string_value IN ($",
+			},
+			expectedArgs: []any{"device", "cuda", "rocm"},
+			description:  "Should handle IN clause for artifact properties",
+		},
+		{
+			name:        "Complex query with model, custom, and artifact properties",
+			filterQuery: `name LIKE "%llama%" AND provider.string_value = "Meta" AND artifacts.ttft_mean < 100.0`,
+			expectedSQL: []string{
+				`"Context".name LIKE $`,
+				"EXISTS",
+				`"ContextProperty"`,
+				".name = $",
+				".string_value = $",
+				`"Attribution"`,
+				`"Artifact"`,
+				`"ArtifactProperty"`,
+				".name = $",
+				".double_value < $",
+			},
+			expectedArgs: []any{"%llama%", "provider", "Meta", "ttft_mean", float64(100.0)},
+			description:  "Should handle complex queries mixing core properties, custom properties, and artifact properties",
+		},
+		{
+			name:        "Artifact boolean property",
+			filterQuery: `artifacts.is_quantized.bool_value = true`,
+			expectedSQL: []string{
+				"EXISTS",
+				`"Attribution"`,
+				`"Artifact"`,
+				`"ArtifactProperty"`,
+				".bool_value = $",
+			},
+			expectedArgs: []any{"is_quantized", true},
+			description:  "Should handle boolean artifact properties",
+		},
+		{
+			name:        "Artifact integer property",
+			filterQuery: `artifacts.batch_size.int_value = 32`,
+			expectedSQL: []string{
+				"EXISTS",
+				`"Attribution"`,
+				`"Artifact"`,
+				`"ArtifactProperty"`,
+				".int_value = $",
+			},
+			expectedArgs: []any{"batch_size", int64(32)},
+			description:  "Should handle integer artifact properties",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			// Parse the filterQuery
+			filterExpr, err := filter.Parse(tt.filterQuery)
+			require.NoError(t, err, "Failed to parse filterQuery: %s", tt.filterQuery)
+			require.NotNil(t, filterExpr, "FilterExpression should not be nil")
+
+			// Create a query builder for catalog models (Context entities)
+			queryBuilder := filter.NewQueryBuilderForRestEntity(
+				filter.RestEntityType(catalogfilter.RestEntityCatalogModel),
+				catalogfilter.NewCatalogEntityMappings(),
+			)
+
+			// Create mock PostgreSQL GORM DB to capture generated SQL
+			mockDB, sqlMock, _ := setupMockGORMWithCapture(t)
+			defer func() {
+				if err := sqlMock.ExpectationsWereMet(); err != nil {
+					t.Logf("SQL mock expectations not met: %v", err)
+				}
+			}()
+
+			// Build the query - this will generate SQL but not execute it
+			baseQuery := mockDB.Model(&schema.Context{}).Where("type_id = ?", 1)
+			resultQuery := queryBuilder.BuildQuery(baseQuery, filterExpr)
+
+			// Capture the generated SQL using DryRun mode
+			generatedSQL, queryArgs := captureQuerySQL(t, mockDB, resultQuery)
+			require.NotEmpty(t, generatedSQL, "Should have captured generated SQL")
+
+			t.Logf("Generated SQL: %s", generatedSQL)
+			t.Logf("Query args: %v", queryArgs)
+
+			// Verify all expected SQL fragments are present
+			for _, expectedFragment := range tt.expectedSQL {
+				assert.Contains(t, generatedSQL, expectedFragment,
+					"Generated SQL should contain fragment: %s\nFull SQL: %s",
+					expectedFragment, generatedSQL)
+			}
+
+			// Verify arguments if specified
+			if len(tt.expectedArgs) > 0 {
+				// Check that all expected args are present (order may vary due to JOINs)
+				// For numeric values, check value equality regardless of type (int vs float64)
+				for _, expectedArg := range tt.expectedArgs {
+					found := false
+					for _, actualArg := range queryArgs {
+						if actualArg == expectedArg {
+							found = true
+							break
+						}
+					}
+					assert.True(t, found, "Expected argument %v not found in actual args: %v",
+						expectedArg, queryArgs)
+				}
+			}
+
+			t.Logf("✅ %s", tt.description)
+		})
+	}
+}
+
+func TestArtifactFilteringSQLInjectionPrevention(t *testing.T) {
+	tests := []struct {
+		name        string
+		filterQuery string
+		description string
+	}{
+		{
+			name:        "SQL injection in artifact property value",
+			filterQuery: `artifacts.format = "'; DROP TABLE \"Artifact\"; --"`,
+			description: "SQL injection attempts in artifact values should be safely parameterized",
+		},
+		{
+			name:        "SQL injection in artifact property name",
+			filterQuery: `artifacts.malicious'; DROP TABLE "Artifact"; -- = "value"`,
+			description: "Malicious artifact property names should be validated",
+		},
+		{
+			name:        "Complex injection via artifact filter",
+			filterQuery: `artifacts.test = "value' OR '1'='1"`,
+			description: "Classic OR injection should be prevented in artifact filters",
+		},
+		{
+			name:        "PostgreSQL-specific injection in artifact query",
+			filterQuery: `artifacts.property = "'; CREATE FUNCTION attack() RETURNS void AS $$ DROP TABLE \"Context\"; $$ LANGUAGE sql; --"`,
+			description: "PostgreSQL function injection should be prevented in artifact queries",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			// Parse the filterQuery
+			filterExpr, err := filter.Parse(tt.filterQuery)
+
+			// Some injection attempts might fail at parse time, which is fine
+			if err != nil {
+				t.Logf("Query rejected at parse time (good): %v", err)
+				return
+			}
+
+			if filterExpr == nil {
+				return
+			}
+
+			// Create query builder
+			queryBuilder := filter.NewQueryBuilderForRestEntity(
+				filter.RestEntityType(catalogfilter.RestEntityCatalogModel),
+				catalogfilter.NewCatalogEntityMappings(),
+			)
+
+			// Create mock PostgreSQL GORM DB
+			mockDB, sqlMock, _ := setupMockGORMWithCapture(t)
+			defer func() {
+				if err := sqlMock.ExpectationsWereMet(); err != nil {
+					t.Logf("SQL mock expectations not met: %v", err)
+				}
+			}()
+
+			// Build the query
+			baseQuery := mockDB.Model(&schema.Context{}).Where("type_id = ?", 1)
+			resultQuery := queryBuilder.BuildQuery(baseQuery, filterExpr)
+
+			// Capture the generated SQL using DryRun mode
+			generatedSQL, _ := captureQuerySQL(t, mockDB, resultQuery)
+
+			// Verify that dangerous SQL is not present in the generated query
+			if generatedSQL != "" {
+				t.Logf("Generated SQL: %s", generatedSQL)
+
+				// Check for dangerous SQL patterns
+				dangerousPatterns := []string{
+					"DROP TABLE",
+					"DELETE FROM",
+					"INSERT INTO",
+					"UPDATE.*SET",
+					"CREATE FUNCTION",
+					"--",
+					";",
+				}
+
+				for _, pattern := range dangerousPatterns {
+					matched, _ := regexp.MatchString(pattern, generatedSQL)
+					assert.False(t, matched,
+						"Generated SQL should not contain dangerous pattern '%s': %s",
+						pattern, generatedSQL)
+				}
+
+				// Verify that all user input is parameterized (using $ placeholders)
+				parameterizedCount := len(regexp.MustCompile(`\$\d+`).FindAllString(generatedSQL, -1))
+				assert.Greater(t, parameterizedCount, 0,
+					"Query should use parameterized queries with $ placeholders")
+
+				t.Logf("✅ %s - SQL safely parameterized with %d parameters", tt.description, parameterizedCount)
+			}
+		})
+	}
+}
+
+func TestArtifactFilteringEdgeCases(t *testing.T) {
+	tests := []struct {
+		name        string
+		filterQuery string
+		expectedSQL []string
+		shouldError bool
+		description string
+	}{
+		{
+			name:        "Artifact property with special characters in name",
+			filterQuery: "`artifacts.custom-metric` > 100",
+			expectedSQL: []string{
+				"EXISTS",
+				`"ArtifactProperty"`,
+				".name = $",
+			},
+			description: "Should handle escaped artifact property names with special characters",
+		},
+		{
+			name:        "Nested model and artifact conditions with parentheses",
+			filterQuery: `(name = "model-a" OR name = "model-b") AND artifacts.score > 0.9`,
+			expectedSQL: []string{
+				`"Context".name = $`,
+				"OR",
+				"EXISTS",
+				`"Attribution"`,
+				`"Artifact"`,
+				`"ArtifactProperty"`,
+			},
+			description: "Should handle complex nested conditions with both model and artifact filters",
+		},
+		{
+			name:        "Multiple artifact properties with OR condition",
+			filterQuery: `artifacts.format = "onnx" OR artifacts.format = "pytorch"`,
+			expectedSQL: []string{
+				"EXISTS",
+				`"Attribution"`,
+				`"Artifact"`,
+				`"ArtifactProperty"`,
+				"OR",
+			},
+			description: "OR conditions on artifact properties should use EXISTS subqueries",
+		},
+		{
+			name:        "Artifact property comparison operators",
+			filterQuery: `artifacts.memory_mb >= 1024 AND artifacts.latency_ms <= 100`,
+			expectedSQL: []string{
+				"EXISTS",
+				`"ArtifactProperty"`,
+				// Integer literals now query both int_value and double_value
+				".int_value >= $",
+				"OR",
+				".double_value >= $",
+				".int_value <= $",
+				".double_value <= $",
+			},
+			description: "Should handle various comparison operators on artifact properties (queries both int and double columns for integer literals)",
+		},
+		{
+			name:        "Artifact property with NULL-like string",
+			filterQuery: `artifacts.status = "null"`,
+			expectedSQL: []string{
+				"EXISTS",
+				`"ArtifactProperty"`,
+				".string_value = $",
+			},
+			description: "Should handle string 'null' as a regular value, not SQL NULL",
+		},
+		{
+			name:        "Very long artifact property name",
+			filterQuery: `artifacts.this_is_a_very_long_property_name_that_should_still_work_correctly = "test"`,
+			expectedSQL: []string{
+				"EXISTS",
+				`"ArtifactProperty"`,
+				".name = $",
+			},
+			description: "Should handle long artifact property names",
+		},
+		{
+			name:        "Artifact property with Unicode value",
+			filterQuery: `artifacts.description = "模型描述"`,
+			expectedSQL: []string{
+				"EXISTS",
+				`"ArtifactProperty"`,
+				".string_value = $",
+			},
+			description: "Should handle Unicode characters in artifact property values",
+		},
+		{
+			name:        "Mixed case-sensitive and case-insensitive artifact queries",
+			filterQuery: `artifacts.format = "ONNX" AND artifacts.provider ILIKE "%hugging%"`,
+			expectedSQL: []string{
+				"EXISTS",
+				`"ArtifactProperty"`,
+				".string_value = $",
+				"UPPER(",
+				".string_value) LIKE UPPER(",
+			},
+			description: "Should handle both exact and case-insensitive matching on artifact properties (ILIKE uses UPPER for cross-DB compatibility)",
+		},
+		{
+			name:        "Integer literal queries both int_value and double_value",
+			filterQuery: `artifacts.count = 100`,
+			expectedSQL: []string{
+				"EXISTS",
+				`"ArtifactProperty"`,
+				// Integer literals query BOTH columns with OR
+				".int_value = $",
+				"OR",
+				".double_value = $",
+			},
+			description: "Integer literals without explicit type should query both int_value and double_value columns to prevent silent query failures",
+		},
+		{
+			name:        "Explicit int_value type only queries int column",
+			filterQuery: `artifacts.count.int_value = 100`,
+			expectedSQL: []string{
+				"EXISTS",
+				`"ArtifactProperty"`,
+				".int_value = $",
+			},
+			description: "Explicit .int_value type specification should only query int_value column",
+		},
+		{
+			name:        "Explicit double_value type only queries double column",
+			filterQuery: `artifacts.score.double_value = 95.5`,
+			expectedSQL: []string{
+				"EXISTS",
+				`"ArtifactProperty"`,
+				".double_value = $",
+			},
+			description: "Explicit .double_value type specification should only query double_value column",
+		},
+		{
+			name:        "Float literal only queries double column",
+			filterQuery: `artifacts.score = 95.5`,
+			expectedSQL: []string{
+				"EXISTS",
+				`"ArtifactProperty"`,
+				".double_value = $",
+			},
+			description: "Float literals should only query double_value column (no ambiguity)",
+		},
+		{
+			name:        "Range query with integer literals",
+			filterQuery: `artifacts.priority >= 1 AND artifacts.priority <= 5`,
+			expectedSQL: []string{
+				"EXISTS",
+				`"ArtifactProperty"`,
+				// Both conditions should have OR clauses
+				".int_value >= $",
+				"OR",
+				".double_value >= $",
+				".int_value <= $",
+				".double_value <= $",
+			},
+			description: "Range queries with integer literals should check both columns to find values stored in either format",
+		},
+		{
+			name:        "Empty Artifact Property",
+			filterQuery: `artifacts.`,
+			shouldError: true,
+			description: "Should error on empty artifact property queries",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			// Parse the filterQuery
+			filterExpr, err := filter.Parse(tt.filterQuery)
+
+			if tt.shouldError {
+				assert.Error(t, err, "Expected parsing error for: %s", tt.filterQuery)
+				return
+			}
+
+			require.NoError(t, err, "Failed to parse filterQuery: %s", tt.filterQuery)
+			require.NotNil(t, filterExpr, "FilterExpression should not be nil")
+
+			// Create a query builder for catalog models
+			queryBuilder := filter.NewQueryBuilderForRestEntity(
+				filter.RestEntityType(catalogfilter.RestEntityCatalogModel),
+				catalogfilter.NewCatalogEntityMappings(),
+			)
+
+			// Create mock PostgreSQL GORM DB
+			mockDB, sqlMock, _ := setupMockGORMWithCapture(t)
+			defer func() {
+				if err := sqlMock.ExpectationsWereMet(); err != nil {
+					t.Logf("SQL mock expectations not met: %v", err)
+				}
+			}()
+
+			// Build the query
+			baseQuery := mockDB.Model(&schema.Context{}).Where("type_id = ?", 1)
+			resultQuery := queryBuilder.BuildQuery(baseQuery, filterExpr)
+
+			// Capture the generated SQL
+			generatedSQL, queryArgs := captureQuerySQL(t, mockDB, resultQuery)
+			require.NotEmpty(t, generatedSQL, "Should have captured generated SQL")
+
+			t.Logf("Generated SQL: %s", generatedSQL)
+			t.Logf("Query args: %v", queryArgs)
+
+			// Verify expected SQL fragments
+			for _, expectedFragment := range tt.expectedSQL {
+				assert.Contains(t, generatedSQL, expectedFragment,
+					"Generated SQL should contain fragment: %s\nFull SQL: %s",
+					expectedFragment, generatedSQL)
 			}
 
 			t.Logf("✅ %s", tt.description)

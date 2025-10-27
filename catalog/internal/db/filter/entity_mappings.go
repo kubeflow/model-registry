@@ -1,6 +1,8 @@
 package filter
 
 import (
+	"strings"
+
 	"github.com/kubeflow/model-registry/internal/db/filter"
 )
 
@@ -32,6 +34,24 @@ func (c *catalogEntityMappings) GetPropertyDefinitionForRestEntity(restEntityTyp
 			// Use the well-known property definition
 			return catalogModelProperties[propertyName]
 		}
+
+		// Check if this is a property path referencing a related artifact
+		// Format: artifacts.<propertyName> or artifacts.customProperties.<propertyName>
+		if strings.HasPrefix(propertyName, "artifacts.") {
+			// Extract the artifact property path (everything after "artifacts.")
+			artifactPropertyPath := strings.TrimPrefix(propertyName, "artifacts.")
+
+			// Return a RelatedEntity property definition
+			// ValueType is left empty to allow runtime type inference from the value
+			return filter.PropertyDefinition{
+				Location:          filter.RelatedEntity,
+				ValueType:         "", // Empty to enable runtime type inference
+				Column:            artifactPropertyPath,
+				RelatedEntityType: filter.RelatedEntityArtifact,
+				RelatedProperty:   artifactPropertyPath,
+				JoinTable:         "Attribution", // Join through Attribution table
+			}
+		}
 	}
 
 	// Not a well-known property for this entity type, treat as custom
@@ -61,7 +81,7 @@ var catalogModelProperties = map[string]filter.PropertyDefinition{
 	"description":  {Location: filter.PropertyTable, ValueType: filter.StringValueType, Column: "description"},
 	"owner":        {Location: filter.PropertyTable, ValueType: filter.StringValueType, Column: "owner"},
 	"state":        {Location: filter.PropertyTable, ValueType: filter.StringValueType, Column: "state"},
-	"language":     {Location: filter.PropertyTable, ValueType: filter.StringValueType, Column: "language"},
+	"language":     {Location: filter.PropertyTable, ValueType: filter.ArrayValueType, Column: "language"},
 	"library_name": {Location: filter.PropertyTable, ValueType: filter.StringValueType, Column: "library_name"},
 	"license_link": {Location: filter.PropertyTable, ValueType: filter.StringValueType, Column: "license_link"},
 	"license":      {Location: filter.PropertyTable, ValueType: filter.StringValueType, Column: "license"},
@@ -69,5 +89,5 @@ var catalogModelProperties = map[string]filter.PropertyDefinition{
 	"maturity":     {Location: filter.PropertyTable, ValueType: filter.StringValueType, Column: "maturity"},
 	"provider":     {Location: filter.PropertyTable, ValueType: filter.StringValueType, Column: "provider"},
 	"readme":       {Location: filter.PropertyTable, ValueType: filter.StringValueType, Column: "readme"},
-	"tasks":        {Location: filter.PropertyTable, ValueType: filter.StringValueType, Column: "tasks"},
+	"tasks":        {Location: filter.PropertyTable, ValueType: filter.ArrayValueType, Column: "tasks"},
 }

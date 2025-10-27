@@ -16,7 +16,7 @@ type InferenceServiceRepositoryImpl struct {
 	*GenericRepository[models.InferenceService, schema.Context, schema.ContextProperty, *models.InferenceServiceListOptions]
 }
 
-func NewInferenceServiceRepository(db *gorm.DB, typeID int64) models.InferenceServiceRepository {
+func NewInferenceServiceRepository(db *gorm.DB, typeID int32) models.InferenceServiceRepository {
 	config := GenericRepositoryConfig[models.InferenceService, schema.Context, schema.ContextProperty, *models.InferenceServiceListOptions]{
 		DB:                  db,
 		TypeID:              typeID,

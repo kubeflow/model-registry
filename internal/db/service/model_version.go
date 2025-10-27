@@ -16,7 +16,7 @@ type ModelVersionRepositoryImpl struct {
 	*GenericRepository[models.ModelVersion, schema.Context, schema.ContextProperty, *models.ModelVersionListOptions]
 }
 
-func NewModelVersionRepository(db *gorm.DB, typeID int64) models.ModelVersionRepository {
+func NewModelVersionRepository(db *gorm.DB, typeID int32) models.ModelVersionRepository {
 	config := GenericRepositoryConfig[models.ModelVersion, schema.Context, schema.ContextProperty, *models.ModelVersionListOptions]{
 		DB:                  db,
 		TypeID:              typeID,

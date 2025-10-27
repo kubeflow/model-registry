@@ -4,7 +4,6 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
-	"math"
 	"strconv"
 
 	"github.com/google/uuid"
@@ -27,19 +26,6 @@ func Int32ToString(id *int32) *string {
 	}
 	idAsString := strconv.FormatInt(int64(*id), 10)
 	return &idAsString
-}
-
-// Int64ToInt32 converts int64 to int32 if numeric, otherwise return error
-func Int64ToInt32(id *int64) (*int32, error) {
-	if id == nil {
-		return nil, nil
-	}
-	if *id > math.MaxInt32 || *id < math.MinInt32 {
-		return nil, fmt.Errorf("id is out of range of int32: %d", *id)
-	}
-
-	idInt32 := int32(*id)
-	return &idInt32, nil
 }
 
 // MapOpenAPICustomPropertiesEmbedMD maps OpenAPI custom properties model to embedmd one
@@ -100,7 +86,7 @@ func MapOpenAPICustomPropertiesEmbedMD(source *map[string]openapi.MetadataValue)
 
 // MapRegisteredModelTypeIDEmbedMD maps RegisteredModel type id to embedmd one
 func MapRegisteredModelTypeIDEmbedMD(source *OpenAPIModelWrapper[openapi.RegisteredModel]) (*int32, error) {
-	return Int64ToInt32(&source.TypeId)
+	return &source.TypeId, nil
 }
 
 func encodeStruct(structValue *structpb.Struct) (string, error) {
@@ -272,7 +258,7 @@ func MapRegisteredModelAttributesEmbedMD(source *openapi.RegisteredModel) (*mode
 
 // MapModelVersionTypeIDEmbedMD maps ModelVersion type id to embedmd one
 func MapModelVersionTypeIDEmbedMD(source *OpenAPIModelWrapper[openapi.ModelVersion]) (*int32, error) {
-	return Int64ToInt32(&source.TypeId)
+	return &source.TypeId, nil
 }
 
 // MapModelVersionPropertiesEmbedMD maps ModelVersion fields to specific embedmd properties
@@ -350,7 +336,7 @@ func MapModelVersionAttributesEmbedMD(source *OpenAPIModelWrapper[openapi.ModelV
 
 // MapServingEnvironmentTypeIDEmbedMD maps ServingEnvironment type id to embedmd one
 func MapServingEnvironmentTypeIDEmbedMD(source *OpenAPIModelWrapper[openapi.ServingEnvironment]) (*int32, error) {
-	return Int64ToInt32(&source.TypeId)
+	return &source.TypeId, nil
 }
 
 // MapServingEnvironmentPropertiesEmbedMD maps ServingEnvironment fields to specific embedmd properties
@@ -396,7 +382,7 @@ func MapServingEnvironmentAttributesEmbedMD(source *openapi.ServingEnvironment) 
 }
 
 func MapInferenceServiceTypeIDEmbedMD(source *OpenAPIModelWrapper[openapi.InferenceService]) (*int32, error) {
-	return Int64ToInt32(&source.TypeId)
+	return &source.TypeId, nil
 }
 
 func MapInferenceServicePropertiesEmbedMD(source *openapi.InferenceService) (*[]models.Properties, error) {
@@ -496,7 +482,7 @@ func MapInferenceServiceAttributesEmbedMD(source *OpenAPIModelWrapper[openapi.In
 }
 
 func MapModelArtifactTypeIDEmbedMD(source *OpenAPIModelWrapper[openapi.ModelArtifact]) (*int32, error) {
-	return Int64ToInt32(&source.TypeId)
+	return &source.TypeId, nil
 }
 
 func MapModelArtifactPropertiesEmbedMD(source *openapi.ModelArtifact) (*[]models.Properties, error) {
@@ -623,7 +609,7 @@ func MapModelArtifactAttributesEmbedMD(source *OpenAPIModelWrapper[openapi.Model
 }
 
 func MapDocArtifactTypeIDEmbedMD(source *OpenAPIModelWrapper[openapi.DocArtifact]) (*int32, error) {
-	return Int64ToInt32(&source.TypeId)
+	return &source.TypeId, nil
 }
 
 func MapDocArtifactPropertiesEmbedMD(source *openapi.DocArtifact) (*[]models.Properties, error) {
@@ -679,7 +665,7 @@ func MapDocArtifactAttributesEmbedMD(source *OpenAPIModelWrapper[openapi.DocArti
 }
 
 func MapServeModelTypeIDEmbedMD(source *OpenAPIModelWrapper[openapi.ServeModel]) (*int32, error) {
-	return Int64ToInt32(&source.TypeId)
+	return &source.TypeId, nil
 }
 
 func MapServeModelPropertiesEmbedMD(source *openapi.ServeModel) (*[]models.Properties, error) {
@@ -748,7 +734,7 @@ func MapServeModelAttributesEmbedMD(source *OpenAPIModelWrapper[openapi.ServeMod
 
 // MapExperimentTypeIDEmbedMD maps Experiment type id to embedmd one
 func MapExperimentTypeIDEmbedMD(source *OpenAPIModelWrapper[openapi.Experiment]) (*int32, error) {
-	return Int64ToInt32(&source.TypeId)
+	return &source.TypeId, nil
 }
 
 // MapExperimentPropertiesEmbedMD maps Experiment fields to specific embedmd properties
@@ -811,7 +797,7 @@ func MapExperimentAttributesEmbedMD(source *openapi.Experiment) (*models.Experim
 
 // MapExperimentRunTypeIDEmbedMD maps ExperimentRun type id to embedmd one
 func MapExperimentRunTypeIDEmbedMD(source *OpenAPIModelWrapper[openapi.ExperimentRun]) (*int32, error) {
-	return Int64ToInt32(&source.TypeId)
+	return &source.TypeId, nil
 }
 
 // MapExperimentRunPropertiesEmbedMD maps ExperimentRun fields to specific embedmd properties
@@ -913,7 +899,7 @@ func MapExperimentRunAttributesEmbedMD(source *OpenAPIModelWrapper[openapi.Exper
 
 // MapDataSetTypeIDEmbedMD maps DataSet type id to embedmd one
 func MapDataSetTypeIDEmbedMD(source *OpenAPIModelWrapper[openapi.DataSet]) (*int32, error) {
-	return Int64ToInt32(&source.TypeId)
+	return &source.TypeId, nil
 }
 
 // MapDataSetPropertiesEmbedMD maps DataSet fields to specific embedmd properties
@@ -1012,7 +998,7 @@ func MapDataSetAttributesEmbedMD(source *OpenAPIModelWrapper[openapi.DataSet]) (
 
 // MapMetricTypeIDEmbedMD maps Metric type id to embedmd one
 func MapMetricTypeIDEmbedMD(source *OpenAPIModelWrapper[openapi.Metric]) (*int32, error) {
-	return Int64ToInt32(&source.TypeId)
+	return &source.TypeId, nil
 }
 
 // MapMetricPropertiesEmbedMD maps Metric fields to specific embedmd properties
@@ -1097,7 +1083,7 @@ func MapMetricAttributesEmbedMD(source *OpenAPIModelWrapper[openapi.Metric]) (*m
 
 // MapParameterTypeIDEmbedMD maps Parameter type id to embedmd one
 func MapParameterTypeIDEmbedMD(source *OpenAPIModelWrapper[openapi.Parameter]) (*int32, error) {
-	return Int64ToInt32(&source.TypeId)
+	return &source.TypeId, nil
 }
 
 // MapParameterPropertiesEmbedMD maps Parameter fields to specific embedmd properties

@@ -20,15 +20,15 @@ import (
 
 // Mock repository types for testing
 type mockArtifactRepo struct {
-	typeID int64
+	typeID int32
 }
 
 type mockContextRepo struct {
-	typeID int64
+	typeID int32
 }
 
 type mockExecutionRepo struct {
-	typeID int64
+	typeID int32
 }
 
 type mockOtherRepo struct {
@@ -36,15 +36,15 @@ type mockOtherRepo struct {
 }
 
 // Mock initializer functions
-func newMockArtifactRepo(db *gorm.DB, typeID int64) *mockArtifactRepo {
+func newMockArtifactRepo(db *gorm.DB, typeID int32) *mockArtifactRepo {
 	return &mockArtifactRepo{typeID: typeID}
 }
 
-func newMockContextRepo(db *gorm.DB, typeID int64) *mockContextRepo {
+func newMockContextRepo(db *gorm.DB, typeID int32) *mockContextRepo {
 	return &mockContextRepo{typeID: typeID}
 }
 
-func newMockExecutionRepo(db *gorm.DB, typeID int64) *mockExecutionRepo {
+func newMockExecutionRepo(db *gorm.DB, typeID int32) *mockExecutionRepo {
 	return &mockExecutionRepo{typeID: typeID}
 }
 
@@ -142,11 +142,11 @@ func TestNewRepoSet_Success(t *testing.T) {
 
 	// Verify TypeMap returns correct mappings
 	typeMap := repoSet.TypeMap()
-	assert.Equal(t, int64(1), typeMap["TestArtifact"])
-	assert.Equal(t, int64(2), typeMap["TestDoc"])
-	assert.Equal(t, int64(3), typeMap["TestContext"])
-	assert.Equal(t, int64(4), typeMap["TestModel"])
-	assert.Equal(t, int64(5), typeMap["TestExecution"])
+	assert.Equal(t, int32(1), typeMap["TestArtifact"])
+	assert.Equal(t, int32(2), typeMap["TestDoc"])
+	assert.Equal(t, int32(3), typeMap["TestContext"])
+	assert.Equal(t, int32(4), typeMap["TestModel"])
+	assert.Equal(t, int32(5), typeMap["TestExecution"])
 }
 
 func TestNewRepoSet_MissingType(t *testing.T) {
@@ -278,7 +278,7 @@ func TestRepoSetImpl_Call_ValidInitializers(t *testing.T) {
 
 	args := map[reflect.Type]any{
 		reflect.TypeOf(db):       db,
-		reflect.TypeOf(int64(0)): int64(42),
+		reflect.TypeOf(int32(0)): int32(42),
 	}
 
 	// Test function with one return value
@@ -293,7 +293,7 @@ func TestRepoSetImpl_Call_ValidInitializers(t *testing.T) {
 	assert.Equal(t, db, mockRepo.db)
 
 	// Test function with two return values (success case)
-	twoReturnSuccessFunc := func(db *gorm.DB, id int64) (*mockArtifactRepo, error) {
+	twoReturnSuccessFunc := func(db *gorm.DB, id int32) (*mockArtifactRepo, error) {
 		return &mockArtifactRepo{typeID: id}, nil
 	}
 	result, err = rs.call(twoReturnSuccessFunc, args)
@@ -301,7 +301,7 @@ func TestRepoSetImpl_Call_ValidInitializers(t *testing.T) {
 	assert.NotNil(t, result)
 	mockArtifact, ok := result.(*mockArtifactRepo)
 	assert.True(t, ok)
-	assert.Equal(t, int64(42), mockArtifact.typeID)
+	assert.Equal(t, int32(42), mockArtifact.typeID)
 
 	// Test function with two return values (error case)
 	twoReturnErrorFunc := func(db *gorm.DB) (*mockOtherRepo, error) {
@@ -320,7 +320,7 @@ func TestMakeTypeMap(t *testing.T) {
 		"type3": datastore.NewSpecType("func3"),
 	}
 
-	nameIDMap := map[string]int64{
+	nameIDMap := map[string]int32{
 		"type1": 10,
 		"type2": 20,
 		"type3": 30,

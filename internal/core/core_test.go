@@ -34,8 +34,8 @@ func setupTestDB(t *testing.T) (*gorm.DB, func()) {
 }
 
 // getTypeIDs retrieves all type IDs from the database for testing
-func getTypeIDs(t *testing.T, db *gorm.DB) map[string]int64 {
-	typesMap := make(map[string]int64)
+func getTypeIDs(t *testing.T, db *gorm.DB) map[string]int32 {
+	typesMap := map[string]int32{}
 
 	typeNames := []string{
 		defaults.RegisteredModelTypeName,
@@ -57,7 +57,7 @@ func getTypeIDs(t *testing.T, db *gorm.DB) map[string]int64 {
 		var typeRecord schema.Type
 		err := db.Where("name = ?", typeName).First(&typeRecord).Error
 		require.NoError(t, err, "Failed to find type: %s", typeName)
-		typesMap[typeName] = int64(typeRecord.ID)
+		typesMap[typeName] = typeRecord.ID
 	}
 
 	return typesMap
@@ -69,7 +69,7 @@ func createModelRegistryService(t *testing.T, db *gorm.DB) *core.ModelRegistrySe
 	typesMap := getTypeIDs(t, db)
 
 	// Create all repositories
-	artifactRepo := service.NewArtifactRepository(db, map[string]int64{
+	artifactRepo := service.NewArtifactRepository(db, map[string]int32{
 		defaults.ModelArtifactTypeName: typesMap[defaults.ModelArtifactTypeName],
 		defaults.DocArtifactTypeName:   typesMap[defaults.DocArtifactTypeName],
 		defaults.DataSetTypeName:       typesMap[defaults.DataSetTypeName],

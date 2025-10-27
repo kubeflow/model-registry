@@ -15,7 +15,7 @@ type OpenAPIModelWrapper[
 	Model            *M
 	ParentResourceId *string
 	ModelName        *string
-	TypeId           int64
+	TypeId           int32
 }
 
 // goverter:converter

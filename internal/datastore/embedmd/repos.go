@@ -15,7 +15,7 @@ var _ datastore.RepoSet = (*repoSetImpl)(nil)
 type repoSetImpl struct {
 	db        *gorm.DB
 	spec      *datastore.Spec
-	nameIDMap map[string]int64
+	nameIDMap map[string]int32
 	repos     map[reflect.Type]any
 }
 
@@ -29,9 +29,9 @@ func newRepoSet(db *gorm.DB, spec *datastore.Spec) (datastore.RepoSet, error) {
 		return nil, err
 	}
 
-	nameIDMap := make(map[string]int64, len(types))
+	nameIDMap := make(map[string]int32, len(types))
 	for _, t := range types {
-		nameIDMap[*t.GetAttributes().Name] = int64(*t.GetID())
+		nameIDMap[*t.GetAttributes().Name] = int32(*t.GetID())
 	}
 
 	glog.Infof("Types retrieved")
@@ -179,15 +179,15 @@ func (rs *repoSetImpl) Repository(t reflect.Type) (any, error) {
 	return nil, fmt.Errorf("unknown repository type: %s", t.Name())
 }
 
-func (rs *repoSetImpl) TypeMap() map[string]int64 {
-	clone := make(map[string]int64, len(rs.nameIDMap))
+func (rs *repoSetImpl) TypeMap() map[string]int32 {
+	clone := make(map[string]int32, len(rs.nameIDMap))
 	for k, v := range rs.nameIDMap {
 		clone[k] = v
 	}
 	return clone
 }
 
-func makeTypeMap[T ~map[string]int64](specMap map[string]*datastore.SpecType, nameIDMap map[string]int64) T {
+func makeTypeMap[T ~map[string]int32](specMap map[string]*datastore.SpecType, nameIDMap map[string]int32) T {
 	returnMap := make(T, len(specMap))
 	for k := range specMap {
 		returnMap[k] = nameIDMap[k]

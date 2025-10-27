@@ -36,7 +36,7 @@ func TestDBCatalog(t *testing.T) {
 
 	// Create repositories
 	catalogModelRepo := service.NewCatalogModelRepository(sharedDB, catalogModelTypeID)
-	catalogArtifactRepo := service.NewCatalogArtifactRepository(sharedDB, map[string]int64{
+	catalogArtifactRepo := service.NewCatalogArtifactRepository(sharedDB, map[string]int32{
 		service.CatalogModelArtifactTypeName:   modelArtifactTypeID,
 		service.CatalogMetricsArtifactTypeName: metricsArtifactTypeID,
 	})
@@ -967,29 +967,29 @@ func TestDBCatalog(t *testing.T) {
 
 // Helper functions to get type IDs from database
 
-func getCatalogModelTypeIDForDBTest(t *testing.T, db *gorm.DB) int64 {
+func getCatalogModelTypeIDForDBTest(t *testing.T, db *gorm.DB) int32 {
 	var typeRecord schema.Type
 	err := db.Where("name = ?", service.CatalogModelTypeName).First(&typeRecord).Error
 	if err != nil {
 		require.NoError(t, err, "Failed to query CatalogModel type")
 	}
-	return int64(typeRecord.ID)
+	return typeRecord.ID
 }
 
-func getCatalogModelArtifactTypeIDForDBTest(t *testing.T, db *gorm.DB) int64 {
+func getCatalogModelArtifactTypeIDForDBTest(t *testing.T, db *gorm.DB) int32 {
 	var typeRecord schema.Type
 	err := db.Where("name = ?", service.CatalogModelArtifactTypeName).First(&typeRecord).Error
 	if err != nil {
 		require.NoError(t, err, "Failed to query CatalogModelArtifact type")
 	}
-	return int64(typeRecord.ID)
+	return typeRecord.ID
 }
 
-func getCatalogMetricsArtifactTypeIDForDBTest(t *testing.T, db *gorm.DB) int64 {
+func getCatalogMetricsArtifactTypeIDForDBTest(t *testing.T, db *gorm.DB) int32 {
 	var typeRecord schema.Type
 	err := db.Where("name = ?", service.CatalogMetricsArtifactTypeName).First(&typeRecord).Error
 	if err != nil {
 		require.NoError(t, err, "Failed to query CatalogMetricsArtifact type")
 	}
-	return int64(typeRecord.ID)
+	return typeRecord.ID
 }

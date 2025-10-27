@@ -629,12 +629,12 @@ func TestCatalogMetricsArtifactRepository(t *testing.T) {
 }
 
 // Helper function to get or create CatalogMetricsArtifact type ID
-func getCatalogMetricsArtifactTypeID(t *testing.T, db *gorm.DB) int64 {
+func getCatalogMetricsArtifactTypeID(t *testing.T, db *gorm.DB) int32 {
 	var typeRecord schema.Type
 	err := db.Where("name = ?", service.CatalogMetricsArtifactTypeName).First(&typeRecord).Error
 	if err != nil {
 		require.NoError(t, err, "Failed to query CatalogMetricsArtifact type")
 	}
 
-	return int64(typeRecord.ID)
+	return typeRecord.ID
 }
