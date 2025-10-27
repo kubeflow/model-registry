@@ -603,6 +603,7 @@ func (r ApiGetAllModelArtifactsRequest) ArtifactType(artifactType []ArtifactType
 }
 
 // Specifies the artifact type for listing artifacts.
+// Deprecated
 func (r ApiGetAllModelArtifactsRequest) ArtifactType2(artifactType2 []ArtifactTypeQueryParam) ApiGetAllModelArtifactsRequest {
 	r.artifactType2 = &artifactType2
 	return r
@@ -682,10 +683,10 @@ func (a *ModelCatalogServiceAPIService) GetAllModelArtifactsExecute(r ApiGetAllM
 		if reflect.TypeOf(t).Kind() == reflect.Slice {
 			s := reflect.ValueOf(t)
 			for i := 0; i < s.Len(); i++ {
-				parameterAddToHeaderOrQuery(localVarQueryParams, "artifact_type", s.Index(i).Interface(), "multi")
+				parameterAddToHeaderOrQuery(localVarQueryParams, "artifactType", s.Index(i).Interface(), "multi")
 			}
 		} else {
-			parameterAddToHeaderOrQuery(localVarQueryParams, "artifact_type", t, "multi")
+			parameterAddToHeaderOrQuery(localVarQueryParams, "artifactType", t, "multi")
 		}
 	}
 	if r.artifactType2 != nil {
@@ -693,10 +694,10 @@ func (a *ModelCatalogServiceAPIService) GetAllModelArtifactsExecute(r ApiGetAllM
 		if reflect.TypeOf(t).Kind() == reflect.Slice {
 			s := reflect.ValueOf(t)
 			for i := 0; i < s.Len(); i++ {
-				parameterAddToHeaderOrQuery(localVarQueryParams, "artifactType", s.Index(i).Interface(), "multi")
+				parameterAddToHeaderOrQuery(localVarQueryParams, "artifact_type", s.Index(i).Interface(), "multi")
 			}
 		} else {
-			parameterAddToHeaderOrQuery(localVarQueryParams, "artifactType", t, "multi")
+			parameterAddToHeaderOrQuery(localVarQueryParams, "artifact_type", t, "multi")
 		}
 	}
 	if r.pageSize != nil {

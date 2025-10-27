@@ -33,30 +33,8 @@ for filepath in filepaths:
 py-re-replace 0 ', orderByParam' ', model.OrderByField(orderByParam)' "$PROJECT_ROOT"/internal/server/openapi/api_model_catalog_service.go
 py-re-replace 0 ', sortOrderParam' ', model.SortOrder(sortOrderParam)' "$PROJECT_ROOT"/internal/server/openapi/api_model_catalog_service.go
 
-######################################################## multi param model artifact handling ########################################################
-### Handle both artifact_type (snake case) and artifactType (camel case) parameters
-### artifact_type will be deprecated in the future and artifactType will be the preferred parameter.
-### Convert artifactTypeParam from []string to []model.ArtifactTypeQueryParam
-py-re-replace 0 'artifactTypeParam := strings\.Split\(query\.Get\("artifact_type"\), ","\)' 'artifactTypeParam := make([]model.ArtifactTypeQueryParam, 0)' "$PROJECT_ROOT"/internal/server/openapi/api_model_catalog_service.go
-py-re-replace 0 'artifactType2Param := strings\.Split\(query\.Get\("artifactType"\), ","\)' 'artifactType2Param := make([]model.ArtifactTypeQueryParam, 0)' "$PROJECT_ROOT"/internal/server/openapi/api_model_catalog_service.go
-py-re-replace 0 'artifactTypeParam := make\(\[\]model\.ArtifactTypeQueryParam, 0\)' 'artifactTypeParam := make([]model.ArtifactTypeQueryParam, 0)
-	// Handle multiple artifactType parameters (camel case - preferred)
-	for _, v := range query["artifactType"] {
-		if v != "" {
-			artifactTypeParam = append(artifactTypeParam, model.ArtifactTypeQueryParam(v))
-		}
-	}
-	// Handle multiple artifact_type parameters (snake case - deprecated, will be removed in future)
-	for _, v := range query["artifact_type"] {
-		if v != "" {
-			artifactTypeParam = append(artifactTypeParam, model.ArtifactTypeQueryParam(v))
-		}
-	}' "$PROJECT_ROOT"/internal/server/openapi/api_model_catalog_service.go
-
-### Fix the interface definition in api.go to use ArtifactTypeQueryParam properly
 py-re-replace 0 'model\.\[\]ArtifactTypeQueryParam' '[]model.ArtifactTypeQueryParam' "$PROJECT_ROOT"/internal/server/openapi/api.go
 py-re-replace 0 'model\.\[\]ArtifactType2QueryParam' '[]model.ArtifactTypeQueryParam' "$PROJECT_ROOT"/internal/server/openapi/api.go
-######################################################## multi param model artifact handling ########################################################
 
 py-re-replace 0 '"encoding/json"' '' "$PROJECT_ROOT"/internal/server/openapi/api_model_catalog_service.go
 

@@ -170,8 +170,8 @@ paths:
           type: string
         in: path
         required: true
-      - $ref: "#/components/parameters/artifact_type"
       - $ref: "#/components/parameters/artifactType"
+      - $ref: "#/components/parameters/artifact_type"
       - $ref: "#/components/parameters/pageSize"
       - $ref: "#/components/parameters/orderBy"
       - $ref: "#/components/parameters/sortOrder"
@@ -705,6 +705,7 @@ components:
       in: query
       required: false
     artifact_type:
+      deprecated: true
       style: form
       explode: true
       examples:
