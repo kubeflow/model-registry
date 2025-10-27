@@ -205,10 +205,8 @@ EOF
     fi
 
     echo "Cleaning up scenario ${scenario_num}..."
-    kubectl delete inferenceservice sklearn-iris-scenario-one -n $kserve_namespace
-
-    sleep 5
-    repeat_cmd_until "kubectl get pod -n $kserve_namespace --selector='component=predictor' --output jsonpath='{.items[*].metadata.name}' | wc -w" "= 0" 60
+    # Delete without waiting - namespace isolation means we don't need to wait
+    kubectl delete inferenceservice sklearn-iris-scenario-one -n $kserve_namespace --wait=false
 
     kill $pf_pid 2>/dev/null || true
 
@@ -320,10 +318,8 @@ EOF
     fi
 
     echo "Cleaning up scenario ${scenario_num}..."
-    kubectl delete inferenceservice sklearn-iris-scenario-two -n $kserve_namespace
-
-    sleep 5
-    repeat_cmd_until "kubectl get pod -n $kserve_namespace --selector='component=predictor' --output jsonpath='{.items[*].metadata.name}' | wc -w" "= 0" 60
+    # Delete without waiting - namespace isolation means we don't need to wait
+    kubectl delete inferenceservice sklearn-iris-scenario-two -n $kserve_namespace --wait=false
 
     kill $pf_pid 2>/dev/null || true
 
@@ -435,10 +431,8 @@ EOF
     fi
 
     echo "Cleaning up scenario ${scenario_num}..."
-    kubectl delete inferenceservice sklearn-iris-scenario-three -n $kserve_namespace
-
-    sleep 5
-    repeat_cmd_until "kubectl get pod -n $kserve_namespace --selector='component=predictor' --output jsonpath='{.items[*].metadata.name}' | wc -w" "= 0" 60
+    # Delete without waiting - namespace isolation means we don't need to wait
+    kubectl delete inferenceservice sklearn-iris-scenario-three -n $kserve_namespace --wait=false
 
     kill $pf_pid 2>/dev/null || true
 
@@ -550,10 +544,8 @@ EOF
     fi
 
     echo "Cleaning up scenario ${scenario_num}..."
-    kubectl delete inferenceservice sklearn-iris-scenario-four -n $kserve_namespace
-
-    sleep 5
-    repeat_cmd_until "kubectl get pod -n $kserve_namespace --selector='component=predictor' --output jsonpath='{.items[*].metadata.name}' | wc -w" "= 0" 60
+    # Delete without waiting - namespace isolation means we don't need to wait
+    kubectl delete inferenceservice sklearn-iris-scenario-four -n $kserve_namespace --wait=false
 
     kill $pf_pid 2>/dev/null || true
 
