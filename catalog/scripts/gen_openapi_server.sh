@@ -42,8 +42,7 @@ py-re-replace 1 'github\.com/kubeflow/model-registry/pkg/openapi' 'github.com/ku
     "$PROJECT_ROOT"/internal/server/openapi/api_model_catalog_service.go \
     "$PROJECT_ROOT"/internal/server/openapi/api.go
 
-py-re-replace 1 '\{model_name\+\}' '*' "$PROJECT_ROOT"/internal/server/openapi/api_model_catalog_service.go
-py-re-replace 1 'model_name\+' '*' "$PROJECT_ROOT"/internal/server/openapi/api_model_catalog_service.go
+py-re-replace 1 '\{model_name\+\}|model_name\+' '*' "$PROJECT_ROOT"/internal/server/openapi/api_model_catalog_service.go
 
 echo "Applying patches to generated code"
 (

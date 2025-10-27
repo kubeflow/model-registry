@@ -43,7 +43,7 @@ index 72e4054d..dc09f621 100644
 +			artifactTypeParam = append(artifactTypeParam, model.ArtifactTypeQueryParam(v))
 +		}
 +	}
-+	artifactType2Param := make([]model.ArtifactTypeQueryParam, 0)
++	var artifactType2Param []model.ArtifactTypeQueryParam
  	pageSizeParam := query.Get("pageSize")
  	orderByParam := query.Get("orderBy")
  	sortOrderParam := query.Get("sortOrder")

@@ -178,7 +178,7 @@ func (c *ModelCatalogServiceAPIController) GetAllModelArtifacts(w http.ResponseW
 			artifactTypeParam = append(artifactTypeParam, model.ArtifactTypeQueryParam(v))
 		}
 	}
-	artifactType2Param := make([]model.ArtifactTypeQueryParam, 0)
+	var artifactType2Param []model.ArtifactTypeQueryParam
 	pageSizeParam := query.Get("pageSize")
 	orderByParam := query.Get("orderBy")
 	sortOrderParam := query.Get("sortOrder")
