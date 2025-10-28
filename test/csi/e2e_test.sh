@@ -176,11 +176,13 @@ run_scenario() {
       "$mr_hostname/api/model_registry/v1alpha3/registered_models" \
       -H 'accept: application/json' \
       -H 'Content-Type: application/json' \
-      -d "{
-      \"description\": \"Iris scikit-learn model\",
-      \"name\": \"$model_name\"
-    }")
-    local rm_id=$(echo "$rm_response" | grep -o '"id":"[^"]*"' | head -1 | cut -d'"' -f4)
+      -d "$(jq -n \
+        --arg name "$model_name" \
+        '{
+          description: "Iris scikit-learn model",
+          name: $name
+        }')")
+    local rm_id=$(echo "$rm_response" | jq -r '.id')
     echo "Created registered model with ID: $rm_id"
 
     # Create model version and capture the ID
@@ -189,12 +191,16 @@ run_scenario() {
       "$mr_hostname/api/model_registry/v1alpha3/model_versions" \
       -H 'accept: application/json' \
       -H 'Content-Type: application/json' \
-      -d "{
-      \"description\": \"Iris model version $mv_name\",
-      \"name\": \"$mv_name\",
-      \"registeredModelID\": \"$rm_id\"
-    }")
-    local mv_id=$(echo "$mv_response" | grep -o '"id":"[^"]*"' | head -1 | cut -d'"' -f4)
+      -d "$(jq -n \
+        --arg name "$mv_name" \
+        --arg description "Iris model version $mv_name" \
+        --arg rmId "$rm_id" \
+        '{
+          description: $description,
+          name: $name,
+          registeredModelID: $rmId
+        }')")
+    local mv_id=$(echo "$mv_response" | jq -r '.id')
     echo "Created model version with ID: $mv_id"
 
     # Create model artifact
@@ -202,15 +208,18 @@ run_scenario() {
       "$mr_hostname/api/model_registry/v1alpha3/model_versions/$mv_id/artifacts" \
       -H 'accept: application/json' \
       -H 'Content-Type: application/json' \
-      -d "{
-      \"description\": \"Model artifact for Iris $mv_name\",
-      \"uri\": \"gs://kfserving-examples/models/sklearn/1.0/model\",
-      \"state\": \"UNKNOWN\",
-      \"name\": \"$artifact_name\",
-      \"modelFormatName\": \"sklearn\",
-      \"modelFormatVersion\": \"1\",
-      \"artifactType\": \"model-artifact\"
-    }"
+      -d "$(jq -n \
+        --arg name "$artifact_name" \
+        --arg description "Model artifact for Iris $mv_name" \
+        '{
+          description: $description,
+          uri: "gs://kfserving-examples/models/sklearn/1.0/model",
+          state: "UNKNOWN",
+          name: $name,
+          modelFormatName: "sklearn",
+          modelFormatVersion: "1",
+          artifactType: "model-artifact"
+        }')"
 
     echo "Starting test for scenario ${scenario_num}..."
 
