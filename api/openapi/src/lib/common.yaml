@@ -1,14 +1,5 @@
 components:
   schemas:
-    ArtifactTypeQueryParam:
-      description: Supported artifact types for querying.
-      enum:
-        - model-artifact
-        - doc-artifact
-        - dataset-artifact
-        - metric
-        - parameter
-      type: string
     BaseModel:
       type: object
       properties:
@@ -397,18 +388,6 @@ components:
       description: "Specifies the sort order for listing entities, defaults to ASC."
       schema:
         $ref: "#/components/schemas/SortOrder"
-      in: query
-      required: false
-    artifactType:
-      style: form
-      explode: true
-      examples:
-        artifactType:
-          value: model-artifact
-      name: artifactType
-      description: "Specifies the artifact type for listing artifacts."
-      schema:
-        $ref: "#/components/schemas/ArtifactTypeQueryParam"
       in: query
       required: false
     stepIds:

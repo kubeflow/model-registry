@@ -170,12 +170,8 @@ paths:
           type: string
         in: path
         required: true
-      - name: artifact_type
-        description: Filter artifacts by type.
-        schema:
-          type: string
-        in: query
-        required: false
+      - $ref: "#/components/parameters/artifactType"
+      - $ref: "#/components/parameters/artifact_type"
       - $ref: "#/components/parameters/pageSize"
       - $ref: "#/components/parameters/orderBy"
       - $ref: "#/components/parameters/sortOrder"
@@ -186,10 +182,7 @@ components:
       description: Supported artifact types for querying.
       enum:
         - model-artifact
-        - doc-artifact
-        - dataset-artifact
-        - metric
-        - parameter
+        - metrics-artifact
       type: string
     BaseModel:
       type: object
@@ -734,6 +727,35 @@ components:
         $ref: "#/components/schemas/OrderByField"
       in: query
       required: false
+    artifactType:
+      style: form
+      explode: true
+      examples:
+        artifactType:
+          value: model-artifact
+      name: artifactType
+      description: "Specifies the artifact type for listing artifacts."
+      schema:
+        type: array
+        items:
+          $ref: "#/components/schemas/ArtifactTypeQueryParam"
+      in: query
+      required: false
+    artifact_type:
+      deprecated: true
+      style: form
+      explode: true
+      examples:
+        artifact_type:
+          value: model-artifact
+      name: artifact_type
+      description: "Specifies the artifact type for listing artifacts."
+      schema:
+        type: array
+        items:
+          $ref: "#/components/schemas/ArtifactTypeQueryParam"
+      in: query
+      required: false
     id:
       name: id
       description: The ID of resource.
@@ -798,18 +820,6 @@ components:
       description: "Specifies the sort order for listing entities, defaults to ASC."
       schema:
         $ref: "#/components/schemas/SortOrder"
-      in: query
-      required: false
-    artifactType:
-      style: form
-      explode: true
-      examples:
-        artifactType:
-          value: model-artifact
-      name: artifactType
-      description: "Specifies the artifact type for listing artifacts."
-      schema:
-        $ref: "#/components/schemas/ArtifactTypeQueryParam"
       in: query
       required: false
     stepIds:

@@ -170,12 +170,8 @@ paths:
           type: string
         in: path
         required: true
-      - name: artifact_type
-        description: Filter artifacts by type.
-        schema:
-          type: string
-        in: query
-        required: false
+      - $ref: "#/components/parameters/artifactType"
+      - $ref: "#/components/parameters/artifact_type"
       - $ref: "#/components/parameters/pageSize"
       - $ref: "#/components/parameters/orderBy"
       - $ref: "#/components/parameters/sortOrder"
@@ -205,6 +201,12 @@ components:
           required:
             - items
         - $ref: "#/components/schemas/BaseResourceList"
+    ArtifactTypeQueryParam:
+      description: Supported artifact types for querying.
+      enum:
+        - model-artifact
+        - metrics-artifact
+      type: string
     CatalogMetricsArtifact:
       description: A metadata Artifact Entity.
       allOf:
@@ -444,6 +446,35 @@ components:
       description: Specifies the order by criteria for listing entities.
       schema:
         $ref: "#/components/schemas/OrderByField"
+      in: query
+      required: false
+    artifactType:
+      style: form
+      explode: true
+      examples:
+        artifactType:
+          value: model-artifact
+      name: artifactType
+      description: "Specifies the artifact type for listing artifacts."
+      schema:
+        type: array
+        items:
+          $ref: "#/components/schemas/ArtifactTypeQueryParam"
+      in: query
+      required: false
+    artifact_type:
+      deprecated: true
+      style: form
+      explode: true
+      examples:
+        artifact_type:
+          value: model-artifact
+      name: artifact_type
+      description: "Specifies the artifact type for listing artifacts."
+      schema:
+        type: array
+        items:
+          $ref: "#/components/schemas/ArtifactTypeQueryParam"
       in: query
       required: false
 tags: []

@@ -153,8 +153,8 @@ func (d *dbCatalogImpl) GetArtifacts(ctx context.Context, modelName string, sour
 	parentResourceID32 := int32(parentResourceID)
 
 	artifactsList, err := d.catalogArtifactRepository.List(dbmodels.CatalogArtifactListOptions{
-		ParentResourceID: &parentResourceID32,
-		ArtifactType:     params.ArtifactType,
+		ParentResourceID:    &parentResourceID32,
+		ArtifactTypesFilter: params.ArtifactTypesFilter,
 		Pagination: mrmodels.Pagination{
 			PageSize:      &pageSize,
 			OrderBy:       &orderBy,

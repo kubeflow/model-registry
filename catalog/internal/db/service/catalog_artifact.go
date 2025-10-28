@@ -10,6 +10,7 @@ import (
 	"github.com/kubeflow/model-registry/internal/db/schema"
 	"github.com/kubeflow/model-registry/internal/db/scopes"
 	"github.com/kubeflow/model-registry/internal/db/utils"
+	"github.com/kubeflow/model-registry/pkg/api"
 	"gorm.io/gorm"
 )
 
@@ -77,8 +78,28 @@ func (r *CatalogArtifactRepositoryImpl) List(listOptions models.CatalogArtifactL
 		query = query.Where("external_id = ?", listOptions.ExternalID)
 	}
 
-	// Filter by artifact type if specified
-	if listOptions.ArtifactType != nil && *listOptions.ArtifactType != "" {
+	// Filter by artifact type(s) if specified
+	if len(listOptions.ArtifactTypesFilter) > 0 {
+		// Handle multiple artifact types
+		typeIDs := []int32{}
+		for _, artifactType := range listOptions.ArtifactTypesFilter {
+			// Handle "null" string as invalid artifact type
+			if artifactType == "null" || artifactType == "" {
+				return nil, fmt.Errorf("invalid artifact type: empty or null value provided: %w", api.ErrBadRequest)
+			}
+			typeID, err := r.getTypeIDFromArtifactType(artifactType)
+			if err != nil {
+				return nil, fmt.Errorf("invalid catalog artifact type %s: %w", artifactType, err)
+			}
+			typeIDs = append(typeIDs, typeID)
+		}
+		query = query.Where("type_id IN ?", typeIDs)
+	} else if listOptions.ArtifactType != nil {
+		// Handle single artifact type for backward compatibility
+		// Handle "null" string as invalid artifact type
+		if *listOptions.ArtifactType == "null" || *listOptions.ArtifactType == "" {
+			return nil, fmt.Errorf("invalid artifact type: empty or null value provided: %w", api.ErrBadRequest)
+		}
 		typeID, err := r.getTypeIDFromArtifactType(*listOptions.ArtifactType)
 		if err != nil {
 			return nil, fmt.Errorf("invalid catalog artifact type %s: %w", *listOptions.ArtifactType, err)

@@ -25,7 +25,7 @@ type ModelCatalogServiceAPIService struct {
 }
 
 // GetAllModelArtifacts retrieves all model artifacts for a given model from the specified source.
-func (m *ModelCatalogServiceAPIService) GetAllModelArtifacts(ctx context.Context, sourceID string, modelName string, artifactType string, pageSize string, orderBy model.OrderByField, sortOrder model.SortOrder, nextPageToken string) (ImplResponse, error) {
+func (m *ModelCatalogServiceAPIService) GetAllModelArtifacts(ctx context.Context, sourceID string, modelName string, artifactType []model.ArtifactTypeQueryParam, _ []model.ArtifactTypeQueryParam, pageSize string, orderBy model.OrderByField, sortOrder model.SortOrder, nextPageToken string) (ImplResponse, error) {
 	if newName, err := url.PathUnescape(modelName); err == nil {
 		modelName = newName
 	}
@@ -41,12 +41,23 @@ func (m *ModelCatalogServiceAPIService) GetAllModelArtifacts(ctx context.Context
 		pageSizeInt = int32(parsed)
 	}
 
+	// Handle multiple artifact types
+	var artifactTypesFilter []string
+
+	if len(artifactType) > 0 {
+		// Convert slice of ArtifactTypeQueryParam to slice of strings
+		artifactTypesFilter = make([]string, len(artifactType))
+		for i, at := range artifactType {
+			artifactTypesFilter[i] = string(at)
+		}
+	}
+
 	artifacts, err := m.provider.GetArtifacts(ctx, modelName, sourceID, catalog.ListArtifactsParams{
-		ArtifactType:  &artifactType,
-		PageSize:      pageSizeInt,
-		OrderBy:       orderBy,
-		SortOrder:     sortOrder,
-		NextPageToken: &nextPageToken,
+		ArtifactTypesFilter: artifactTypesFilter,
+		PageSize:            pageSizeInt,
+		OrderBy:             orderBy,
+		SortOrder:           sortOrder,
+		NextPageToken:       &nextPageToken,
 	})
 	if err != nil {
 		statusCode := api.ErrToStatus(err)

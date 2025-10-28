@@ -18,11 +18,11 @@ type ListModelsParams struct {
 }
 
 type ListArtifactsParams struct {
-	PageSize      int32
-	OrderBy       model.OrderByField
-	SortOrder     model.SortOrder
-	NextPageToken *string
-	ArtifactType  *string
+	PageSize            int32
+	OrderBy             model.OrderByField
+	SortOrder           model.SortOrder
+	NextPageToken       *string
+	ArtifactTypesFilter []string
 }
 
 // APIProvider implements the API endpoints.
