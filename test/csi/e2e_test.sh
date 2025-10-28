@@ -225,8 +225,28 @@ spec:
       storageUri: "$storage_uri"
 EOF
 
+    # Give InferenceService a moment to be processed
+    sleep 2
+
+    # Debug: Check InferenceService status
+    echo "Checking InferenceService status for scenario ${scenario_num}..."
+    kubectl get inferenceservice -n $kserve_namespace || true
+    kubectl describe inferenceservice $inference_service_name -n $kserve_namespace || true
+    echo "Checking for events in namespace..."
+    kubectl get events -n $kserve_namespace --sort-by='.lastTimestamp' || true
+    echo "Checking all resources in namespace..."
+    kubectl get all -n $kserve_namespace || true
+
     # wait for pod predictor to be initialized
     repeat_cmd_until "kubectl get pod -n $kserve_namespace --selector='component=predictor' --output jsonpath='{.items[*].metadata.name}' | grep ${inference_service_name}-predictor | wc -l" "-gt 0" 60
+
+    # If we failed to find the pod, show more debug info
+    if [ $? -ne 0 ]; then
+        echo "Failed to find predictor pod for scenario ${scenario_num}. Showing debug info..."
+        kubectl get pods -n $kserve_namespace -o wide || true
+        kubectl get inferenceservice $inference_service_name -n $kserve_namespace -o yaml || true
+    fi
+
     local predictor=$(kubectl get pod -n $kserve_namespace --selector="component=predictor" --output jsonpath='{.items[0].metadata.name}')
 
     kubectl wait --for=condition=Ready pod/$predictor -n $kserve_namespace --timeout=5m
