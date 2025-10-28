@@ -101,468 +101,176 @@ echo "======== Finished preparing test environment ========"
 declare -a scenario_pids=()
 declare -a scenario_results=()
 
-# Function to run Scenario 1
+# Generic function to run a test scenario
+# Parameters:
+#   $1: scenario_num (1-4)
+#   $2: mr_port (port for model registry port-forward)
+#   $3: mr_namespace (namespace where model registry is running: kubeflow or test)
+#   $4: model_name (registered model name)
+#   $5: version_name (model version name, or empty for latest)
+#   $6: inference_service_name (name of the InferenceService)
+#   $7: artifact_name (name of the model artifact)
+#   $8: description (test scenario description)
+run_scenario() {
+    local scenario_num=$1
+    local mr_port=$2
+    local mr_namespace=$3
+    local model_name=$4
+    local version_name=$5
+    local inference_service_name=$6
+    local artifact_name=$7
+    local description=$8
+
+    local kserve_namespace="kserve-test-${scenario_num}"
+    local mr_hostname="localhost:${mr_port}"
+
+    # Determine if using custom MR service
+    local use_custom_mr=false
+    if [ "$mr_namespace" = "test" ]; then
+        use_custom_mr=true
+    fi
+
+    echo "======== Scenario ${scenario_num} - ${description} ========"
+
+    # Create namespace
+    if ! kubectl get namespace $kserve_namespace &> /dev/null; then
+       kubectl create namespace $kserve_namespace
+    fi
+
+    # Port forward for model registry
+    kubectl port-forward -n $mr_namespace svc/$MODEL_REGISTRY_SERVICE "${mr_port}:$MODEL_REGISTRY_REST_PORT" &
+    local pf_pid=$!
+
+    wait_for_port $mr_port
+
+    echo "Initializing data into Model Registry${use_custom_mr:+ in $mr_namespace namespace} for scenario ${scenario_num}..."
+
+    # Create registered model and capture the ID
+    local rm_response=$(curl --silent -X 'POST' \
+      "$mr_hostname/api/model_registry/v1alpha3/registered_models" \
+      -H 'accept: application/json' \
+      -H 'Content-Type: application/json' \
+      -d "{
+      \"description\": \"Iris scikit-learn model\",
+      \"name\": \"$model_name\"
+    }")
+    local rm_id=$(echo "$rm_response" | grep -o '"id":"[^"]*"' | head -1 | cut -d'"' -f4)
+    echo "Created registered model with ID: $rm_id"
+
+    # Create model version and capture the ID
+    local mv_name="${version_name:-v1}"
+    local mv_response=$(curl --silent -X 'POST' \
+      "$mr_hostname/api/model_registry/v1alpha3/model_versions" \
+      -H 'accept: application/json' \
+      -H 'Content-Type: application/json' \
+      -d "{
+      \"description\": \"Iris model version $mv_name\",
+      \"name\": \"$mv_name\",
+      \"registeredModelID\": \"$rm_id\"
+    }")
+    local mv_id=$(echo "$mv_response" | grep -o '"id":"[^"]*"' | head -1 | cut -d'"' -f4)
+    echo "Created model version with ID: $mv_id"
+
+    # Create model artifact
+    curl --silent -X 'POST' \
+      "$mr_hostname/api/model_registry/v1alpha3/model_versions/$mv_id/artifacts" \
+      -H 'accept: application/json' \
+      -H 'Content-Type: application/json' \
+      -d "{
+      \"description\": \"Model artifact for Iris $mv_name\",
+      \"uri\": \"gs://kfserving-examples/models/sklearn/1.0/model\",
+      \"state\": \"UNKNOWN\",
+      \"name\": \"$artifact_name\",
+      \"modelFormatName\": \"sklearn\",
+      \"modelFormatVersion\": \"1\",
+      \"artifactType\": \"model-artifact\"
+    }"
+
+    echo "Starting test for scenario ${scenario_num}..."
+
+    # Build storage URI
+    local storage_uri
+    if [ "$use_custom_mr" = true ]; then
+        if [ -n "$version_name" ]; then
+            storage_uri="model-registry://$MODEL_REGISTRY_SERVICE.${mr_namespace}.svc.cluster.local:$MODEL_REGISTRY_REST_PORT/$model_name/$version_name"
+        else
+            storage_uri="model-registry://$MODEL_REGISTRY_SERVICE.${mr_namespace}.svc.cluster.local:$MODEL_REGISTRY_REST_PORT/$model_name"
+        fi
+    else
+        if [ -n "$version_name" ]; then
+            storage_uri="model-registry://$model_name/$version_name"
+        else
+            storage_uri="model-registry://$model_name"
+        fi
+    fi
+
+    kubectl apply -n $kserve_namespace -f - <<EOF
+apiVersion: "serving.kserve.io/v1beta1"
+kind: "InferenceService"
+metadata:
+  name: "$inference_service_name"
+spec:
+  predictor:
+    model:
+      modelFormat:
+        name: sklearn
+      storageUri: "$storage_uri"
+EOF
+
+    # wait for pod predictor to be initialized
+    repeat_cmd_until "kubectl get pod -n $kserve_namespace --selector='component=predictor' --output jsonpath='{.items[*].metadata.name}' | grep ${inference_service_name}-predictor | wc -l" "-gt 0" 60
+    local predictor=$(kubectl get pod -n $kserve_namespace --selector="component=predictor" --output jsonpath='{.items[0].metadata.name}')
+
+    kubectl wait --for=condition=Ready pod/$predictor -n $kserve_namespace --timeout=5m
+
+    kubectl wait --for=jsonpath='{.status.url}' inferenceservice/$inference_service_name -n $kserve_namespace --timeout=5m
+    sleep 5
+
+    local service_hostname=$(kubectl get inferenceservice $inference_service_name -n $kserve_namespace -o jsonpath='{.status.url}' | cut -d "/" -f 3)
+    local result=$(curl -s -H "Host: ${service_hostname}" -H "Content-Type: application/json" "http://${INGRESS_HOST}/v1/models/${inference_service_name}:predict" -d @/tmp/iris-input.json)
+    echo "Scenario ${scenario_num} received: $result"
+
+    if [ ! "$result" = "{\"predictions\":[1,1]}" ]; then
+        echo "Scenario ${scenario_num} - Prediction does not match expectation!"
+        echo "Printing some logs for debugging.."
+        kubectl logs pod/$predictor -n $kserve_namespace -c storage-initializer || true
+        kubectl logs pod/$predictor -n $kserve_namespace -c kserve-container || true
+        kill $pf_pid 2>/dev/null || true
+        return 1
+    else
+        echo "Scenario ${scenario_num} - Test succeeded!"
+        kubectl logs pod/$predictor -n $kserve_namespace -c storage-initializer || true
+        kubectl logs pod/$predictor -n $kserve_namespace -c kserve-container || true
+    fi
+
+    echo "Cleaning up scenario ${scenario_num}..."
+    # Delete without waiting - namespace isolation means we don't need to wait
+    kubectl delete inferenceservice $inference_service_name -n $kserve_namespace --wait=false
+
+    # Delete the namespace to clean up all resources
+    kubectl delete namespace $kserve_namespace --wait=false
+
+    kill $pf_pid 2>/dev/null || true
+
+    echo "======== Finished Scenario ${scenario_num} ========"
+    return 0
+}
+
+# Wrapper functions for each scenario
 run_scenario_1() {
-    local scenario_num=1
-    local kserve_namespace="kserve-test-${scenario_num}"
-    local mr_port=8080
-    local mr_hostname="localhost:${mr_port}"
-
-    echo "======== Scenario ${scenario_num} - Testing with default model registry service ========"
-
-    # Create namespace
-    if ! kubectl get namespace $kserve_namespace &> /dev/null; then
-       kubectl create namespace $kserve_namespace
-    fi
-
-    # Port forward for model registry
-    kubectl port-forward -n $NAMESPACE svc/$MODEL_REGISTRY_SERVICE "${mr_port}:$MODEL_REGISTRY_REST_PORT" &
-    local pf_pid=$!
-
-    wait_for_port $mr_port
-
-    echo "Initializing data into Model Registry for scenario ${scenario_num}..."
-
-    # Create registered model and capture the ID
-    local rm_response=$(curl --silent -X 'POST' \
-      "$mr_hostname/api/model_registry/v1alpha3/registered_models" \
-      -H 'accept: application/json' \
-      -H 'Content-Type: application/json' \
-      -d '{
-      "description": "Iris scikit-learn model",
-      "name": "iris-scenario-1"
-    }')
-    local rm_id=$(echo "$rm_response" | grep -o '"id":"[^"]*"' | head -1 | cut -d'"' -f4)
-    echo "Created registered model with ID: $rm_id"
-
-    # Create model version and capture the ID
-    local mv_response=$(curl --silent -X 'POST' \
-      "$mr_hostname/api/model_registry/v1alpha3/model_versions" \
-      -H 'accept: application/json' \
-      -H 'Content-Type: application/json' \
-      -d "{
-      \"description\": \"Iris model version v1\",
-      \"name\": \"v1\",
-      \"registeredModelID\": \"$rm_id\"
-    }")
-    local mv_id=$(echo "$mv_response" | grep -o '"id":"[^"]*"' | head -1 | cut -d'"' -f4)
-    echo "Created model version with ID: $mv_id"
-
-    # Create model artifact
-    curl --silent -X 'POST' \
-      "$mr_hostname/api/model_registry/v1alpha3/model_versions/$mv_id/artifacts" \
-      -H 'accept: application/json' \
-      -H 'Content-Type: application/json' \
-      -d '{
-      "description": "Model artifact for Iris v1",
-      "uri": "gs://kfserving-examples/models/sklearn/1.0/model",
-      "state": "UNKNOWN",
-      "name": "sklearn-iris-v1-scenario-1",
-      "modelFormatName": "sklearn",
-      "modelFormatVersion": "1",
-      "artifactType": "model-artifact"
-    }'
-
-    echo "Starting test for scenario ${scenario_num}..."
-
-    kubectl apply -n $kserve_namespace -f - <<EOF
-apiVersion: "serving.kserve.io/v1beta1"
-kind: "InferenceService"
-metadata:
-  name: "sklearn-iris-scenario-one"
-spec:
-  predictor:
-    model:
-      modelFormat:
-        name: sklearn
-      storageUri: "model-registry://iris-scenario-1/v1"
-EOF
-
-    # wait for pod predictor to be initialized
-    repeat_cmd_until "kubectl get pod -n $kserve_namespace --selector='component=predictor' | wc -l" "-gt 0" 60
-    local predictor=$(kubectl get pod -n $kserve_namespace --selector="component=predictor" --output jsonpath='{.items[0].metadata.name}')
-
-    kubectl wait --for=condition=Ready pod/$predictor -n $kserve_namespace --timeout=5m
-
-    kubectl wait --for=jsonpath='{.status.url}' inferenceservice/sklearn-iris-scenario-one -n $kserve_namespace --timeout=5m
-    sleep 5
-
-    local service_hostname=$(kubectl get inferenceservice sklearn-iris-scenario-one -n $kserve_namespace -o jsonpath='{.status.url}' | cut -d "/" -f 3)
-    local result=$(curl -s -H "Host: ${service_hostname}" -H "Content-Type: application/json" "http://${INGRESS_HOST}/v1/models/sklearn-iris-scenario-one:predict" -d @/tmp/iris-input.json)
-    echo "Scenario ${scenario_num} received: $result"
-
-    if [ ! "$result" = "{\"predictions\":[1,1]}" ]; then
-        echo "Scenario ${scenario_num} - Prediction does not match expectation!"
-        echo "Printing some logs for debugging.."
-        kubectl logs pod/$predictor -n $kserve_namespace -c storage-initializer || true
-        kubectl logs pod/$predictor -n $kserve_namespace -c kserve-container || true
-        kill $pf_pid 2>/dev/null || true
-        return 1
-    else
-        echo "Scenario ${scenario_num} - Test succeeded!"
-        kubectl logs pod/$predictor -n $kserve_namespace -c storage-initializer || true
-        kubectl logs pod/$predictor -n $kserve_namespace -c kserve-container || true
-    fi
-
-    echo "Cleaning up scenario ${scenario_num}..."
-    # Delete without waiting - namespace isolation means we don't need to wait
-    kubectl delete inferenceservice sklearn-iris-scenario-one -n $kserve_namespace --wait=false
-
-    # Delete the namespace to clean up all resources
-    kubectl delete namespace $kserve_namespace --wait=false
-
-    kill $pf_pid 2>/dev/null || true
-
-    echo "======== Finished Scenario ${scenario_num} ========"
-    return 0
+    run_scenario 1 8080 "$NAMESPACE" "iris-scenario-1" "v1" "sklearn-iris-scenario-one" "sklearn-iris-v1-scenario-1" "Testing with default model registry service"
 }
 
-# Function to run Scenario 2
 run_scenario_2() {
-    local scenario_num=2
-    local kserve_namespace="kserve-test-${scenario_num}"
-    local mr_port=8090
-    local mr_hostname="localhost:${mr_port}"
-
-    echo "======== Scenario ${scenario_num} - Testing with default model registry service without model version ========"
-
-    # Create namespace
-    if ! kubectl get namespace $kserve_namespace &> /dev/null; then
-       kubectl create namespace $kserve_namespace
-    fi
-
-    # Port forward for model registry
-    kubectl port-forward -n $NAMESPACE svc/$MODEL_REGISTRY_SERVICE "${mr_port}:$MODEL_REGISTRY_REST_PORT" &
-    local pf_pid=$!
-
-    wait_for_port $mr_port
-
-    echo "Initializing data into Model Registry for scenario ${scenario_num}..."
-
-    # Create registered model and capture the ID
-    local rm_response=$(curl --silent -X 'POST' \
-      "$mr_hostname/api/model_registry/v1alpha3/registered_models" \
-      -H 'accept: application/json' \
-      -H 'Content-Type: application/json' \
-      -d '{
-      "description": "Iris scikit-learn model",
-      "name": "iris-scenario-2"
-    }')
-    local rm_id=$(echo "$rm_response" | grep -o '"id":"[^"]*"' | head -1 | cut -d'"' -f4)
-    echo "Created registered model with ID: $rm_id"
-
-    # Create model version and capture the ID
-    local mv_response=$(curl --silent -X 'POST' \
-      "$mr_hostname/api/model_registry/v1alpha3/model_versions" \
-      -H 'accept: application/json' \
-      -H 'Content-Type: application/json' \
-      -d "{
-      \"description\": \"Iris model version v1\",
-      \"name\": \"v1\",
-      \"registeredModelID\": \"$rm_id\"
-    }")
-    local mv_id=$(echo "$mv_response" | grep -o '"id":"[^"]*"' | head -1 | cut -d'"' -f4)
-    echo "Created model version with ID: $mv_id"
-
-    # Create model artifact
-    curl --silent -X 'POST' \
-      "$mr_hostname/api/model_registry/v1alpha3/model_versions/$mv_id/artifacts" \
-      -H 'accept: application/json' \
-      -H 'Content-Type: application/json' \
-      -d '{
-      "description": "Model artifact for Iris v1",
-      "uri": "gs://kfserving-examples/models/sklearn/1.0/model",
-      "state": "UNKNOWN",
-      "name": "sklearn-iris-v1-scenario-2",
-      "modelFormatName": "sklearn",
-      "modelFormatVersion": "1",
-      "artifactType": "model-artifact"
-    }'
-
-    echo "Starting test for scenario ${scenario_num}..."
-
-    kubectl apply -n $kserve_namespace -f - <<EOF
-apiVersion: "serving.kserve.io/v1beta1"
-kind: "InferenceService"
-metadata:
-  name: "sklearn-iris-scenario-two"
-spec:
-  predictor:
-    model:
-      modelFormat:
-        name: sklearn
-      storageUri: "model-registry://iris-scenario-2"
-EOF
-
-    # wait for pod predictor to be initialized
-    repeat_cmd_until "kubectl get pod -n $kserve_namespace --selector='component=predictor' --output jsonpath='{.items[*].metadata.name}' | grep sklearn-iris-scenario-two | wc -l" "-gt 0" 60
-    local predictor=$(kubectl get pod -n $kserve_namespace --selector="component=predictor" --output jsonpath='{.items[0].metadata.name}')
-
-    kubectl wait --for=condition=Ready pod/$predictor -n $kserve_namespace --timeout=5m
-
-    kubectl wait --for=jsonpath='{.status.url}' inferenceservice/sklearn-iris-scenario-two -n $kserve_namespace --timeout=5m
-    sleep 5
-
-    local service_hostname=$(kubectl get inferenceservice sklearn-iris-scenario-two -n $kserve_namespace -o jsonpath='{.status.url}' | cut -d "/" -f 3)
-    local result=$(curl -s -H "Host: ${service_hostname}" -H "Content-Type: application/json" "http://${INGRESS_HOST}/v1/models/sklearn-iris-scenario-two:predict" -d @/tmp/iris-input.json)
-    echo "Scenario ${scenario_num} received: $result"
-
-    if [ ! "$result" = "{\"predictions\":[1,1]}" ]; then
-        echo "Scenario ${scenario_num} - Prediction does not match expectation!"
-        echo "Printing some logs for debugging.."
-        kubectl logs pod/$predictor -n $kserve_namespace -c storage-initializer || true
-        kubectl logs pod/$predictor -n $kserve_namespace -c kserve-container || true
-        kill $pf_pid 2>/dev/null || true
-        return 1
-    else
-        echo "Scenario ${scenario_num} - Test succeeded!"
-        kubectl logs pod/$predictor -n $kserve_namespace -c storage-initializer || true
-        kubectl logs pod/$predictor -n $kserve_namespace -c kserve-container || true
-    fi
-
-    echo "Cleaning up scenario ${scenario_num}..."
-    # Delete without waiting - namespace isolation means we don't need to wait
-    kubectl delete inferenceservice sklearn-iris-scenario-two -n $kserve_namespace --wait=false
-
-    # Delete the namespace to clean up all resources
-    kubectl delete namespace $kserve_namespace --wait=false
-
-    kill $pf_pid 2>/dev/null || true
-
-    echo "======== Finished Scenario ${scenario_num} ========"
-    return 0
+    run_scenario 2 8090 "$NAMESPACE" "iris-scenario-2" "" "sklearn-iris-scenario-two" "sklearn-iris-v1-scenario-2" "Testing with default model registry service without model version"
 }
 
-# Function to run Scenario 3
 run_scenario_3() {
-    local scenario_num=3
-    local kserve_namespace="kserve-test-${scenario_num}"
-    local mr_port=8082
-    local mr_hostname="localhost:${mr_port}"
-
-    echo "======== Scenario ${scenario_num} - Testing with custom model registry service ========"
-
-    # Create namespace
-    if ! kubectl get namespace $kserve_namespace &> /dev/null; then
-       kubectl create namespace $kserve_namespace
-    fi
-
-    # Port forward for model registry in test namespace
-    kubectl port-forward -n $TESTNAMESPACE svc/$MODEL_REGISTRY_SERVICE "${mr_port}:$MODEL_REGISTRY_REST_PORT" &
-    local pf_pid=$!
-
-    wait_for_port $mr_port
-
-    echo "Initializing data into Model Registry in ${TESTNAMESPACE} namespace for scenario ${scenario_num}..."
-
-    # Create registered model and capture the ID
-    local rm_response=$(curl --silent -X 'POST' \
-      "$mr_hostname/api/model_registry/v1alpha3/registered_models" \
-      -H 'accept: application/json' \
-      -H 'Content-Type: application/json' \
-      -d '{
-      "description": "Iris scikit-learn model",
-      "name": "iris-test-scenario-3"
-    }')
-    local rm_id=$(echo "$rm_response" | grep -o '"id":"[^"]*"' | head -1 | cut -d'"' -f4)
-    echo "Created registered model with ID: $rm_id"
-
-    # Create model version and capture the ID
-    local mv_response=$(curl --silent -X 'POST' \
-      "$mr_hostname/api/model_registry/v1alpha3/model_versions" \
-      -H 'accept: application/json' \
-      -H 'Content-Type: application/json' \
-      -d "{
-      \"description\": \"Iris model version v1\",
-      \"name\": \"v1-test\",
-      \"registeredModelID\": \"$rm_id\"
-    }")
-    local mv_id=$(echo "$mv_response" | grep -o '"id":"[^"]*"' | head -1 | cut -d'"' -f4)
-    echo "Created model version with ID: $mv_id"
-
-    # Create model artifact
-    curl --silent -X 'POST' \
-      "$mr_hostname/api/model_registry/v1alpha3/model_versions/$mv_id/artifacts" \
-      -H 'accept: application/json' \
-      -H 'Content-Type: application/json' \
-      -d '{
-      "description": "Model artifact for Iris v1",
-      "uri": "gs://kfserving-examples/models/sklearn/1.0/model",
-      "state": "UNKNOWN",
-      "name": "sklearn-iris-test-v1-scenario-3",
-      "modelFormatName": "sklearn",
-      "modelFormatVersion": "1",
-      "artifactType": "model-artifact"
-    }'
-
-    echo "Starting test for scenario ${scenario_num}..."
-
-    kubectl apply -n $kserve_namespace -f - <<EOF
-apiVersion: "serving.kserve.io/v1beta1"
-kind: "InferenceService"
-metadata:
-  name: "sklearn-iris-scenario-three"
-spec:
-  predictor:
-    model:
-      modelFormat:
-        name: sklearn
-      storageUri: "model-registry://$MODEL_REGISTRY_SERVICE.${TESTNAMESPACE}.svc.cluster.local:$MODEL_REGISTRY_REST_PORT/iris-test-scenario-3/v1-test"
-EOF
-
-    # wait for pod predictor to be initialized
-    repeat_cmd_until "kubectl get pod -n $kserve_namespace --selector='component=predictor' --output jsonpath='{.items[*].metadata.name}' | grep sklearn-iris-scenario-three-predictor | wc -l" "-gt 0" 60
-    local predictor=$(kubectl get pod -n $kserve_namespace --selector="component=predictor" --output jsonpath='{.items[0].metadata.name}')
-
-    kubectl wait --for=condition=Ready pod/$predictor -n $kserve_namespace --timeout=5m
-
-    kubectl wait --for=jsonpath='{.status.url}' inferenceservice/sklearn-iris-scenario-three -n $kserve_namespace --timeout=5m
-    sleep 5
-
-    local service_hostname=$(kubectl get inferenceservice sklearn-iris-scenario-three -n $kserve_namespace -o jsonpath='{.status.url}' | cut -d "/" -f 3)
-    local result=$(curl -s -H "Host: ${service_hostname}" -H "Content-Type: application/json" "http://${INGRESS_HOST}/v1/models/sklearn-iris-scenario-three:predict" -d @/tmp/iris-input.json)
-    echo "Scenario ${scenario_num} received: $result"
-
-    if [ ! "$result" = "{\"predictions\":[1,1]}" ]; then
-        echo "Scenario ${scenario_num} - Prediction does not match expectation!"
-        echo "Printing some logs for debugging.."
-        kubectl logs pod/$predictor -n $kserve_namespace -c storage-initializer || true
-        kubectl logs pod/$predictor -n $kserve_namespace -c kserve-container || true
-        kill $pf_pid 2>/dev/null || true
-        return 1
-    else
-        echo "Scenario ${scenario_num} - Test succeeded!"
-        kubectl logs pod/$predictor -n $kserve_namespace -c storage-initializer || true
-        kubectl logs pod/$predictor -n $kserve_namespace -c kserve-container || true
-    fi
-
-    echo "Cleaning up scenario ${scenario_num}..."
-    # Delete without waiting - namespace isolation means we don't need to wait
-    kubectl delete inferenceservice sklearn-iris-scenario-three -n $kserve_namespace --wait=false
-
-    # Delete the namespace to clean up all resources
-    kubectl delete namespace $kserve_namespace --wait=false
-
-    kill $pf_pid 2>/dev/null || true
-
-    echo "======== Finished Scenario ${scenario_num} ========"
-    return 0
+    run_scenario 3 8082 "$TESTNAMESPACE" "iris-test-scenario-3" "v1-test" "sklearn-iris-scenario-three" "sklearn-iris-test-v1-scenario-3" "Testing with custom model registry service"
 }
 
-# Function to run Scenario 4
 run_scenario_4() {
-    local scenario_num=4
-    local kserve_namespace="kserve-test-${scenario_num}"
-    local mr_port=8092
-    local mr_hostname="localhost:${mr_port}"
-
-    echo "======== Scenario ${scenario_num} - Testing with custom model registry service without model version ========"
-
-    # Create namespace
-    if ! kubectl get namespace $kserve_namespace &> /dev/null; then
-       kubectl create namespace $kserve_namespace
-    fi
-
-    # Port forward for model registry in test namespace
-    kubectl port-forward -n $TESTNAMESPACE svc/$MODEL_REGISTRY_SERVICE "${mr_port}:$MODEL_REGISTRY_REST_PORT" &
-    local pf_pid=$!
-
-    wait_for_port $mr_port
-
-    echo "Initializing data into Model Registry in ${TESTNAMESPACE} namespace for scenario ${scenario_num}..."
-
-    # Create registered model and capture the ID
-    local rm_response=$(curl --silent -X 'POST' \
-      "$mr_hostname/api/model_registry/v1alpha3/registered_models" \
-      -H 'accept: application/json' \
-      -H 'Content-Type: application/json' \
-      -d '{
-      "description": "Iris scikit-learn model",
-      "name": "iris-test-scenario-4"
-    }')
-    local rm_id=$(echo "$rm_response" | grep -o '"id":"[^"]*"' | head -1 | cut -d'"' -f4)
-    echo "Created registered model with ID: $rm_id"
-
-    # Create model version and capture the ID
-    local mv_response=$(curl --silent -X 'POST' \
-      "$mr_hostname/api/model_registry/v1alpha3/model_versions" \
-      -H 'accept: application/json' \
-      -H 'Content-Type: application/json' \
-      -d "{
-      \"description\": \"Iris model version v1\",
-      \"name\": \"v1-test\",
-      \"registeredModelID\": \"$rm_id\"
-    }")
-    local mv_id=$(echo "$mv_response" | grep -o '"id":"[^"]*"' | head -1 | cut -d'"' -f4)
-    echo "Created model version with ID: $mv_id"
-
-    # Create model artifact
-    curl --silent -X 'POST' \
-      "$mr_hostname/api/model_registry/v1alpha3/model_versions/$mv_id/artifacts" \
-      -H 'accept: application/json' \
-      -H 'Content-Type: application/json' \
-      -d '{
-      "description": "Model artifact for Iris v1",
-      "uri": "gs://kfserving-examples/models/sklearn/1.0/model",
-      "state": "UNKNOWN",
-      "name": "sklearn-iris-test-v1-scenario-4",
-      "modelFormatName": "sklearn",
-      "modelFormatVersion": "1",
-      "artifactType": "model-artifact"
-    }'
-
-    echo "Starting test for scenario ${scenario_num}..."
-
-    kubectl apply -n $kserve_namespace -f - <<EOF
-apiVersion: "serving.kserve.io/v1beta1"
-kind: "InferenceService"
-metadata:
-  name: "sklearn-iris-scenario-four"
-spec:
-  predictor:
-    model:
-      modelFormat:
-        name: sklearn
-      storageUri: "model-registry://$MODEL_REGISTRY_SERVICE.${TESTNAMESPACE}.svc.cluster.local:$MODEL_REGISTRY_REST_PORT/iris-test-scenario-4"
-EOF
-
-    # wait for pod predictor to be initialized
-    repeat_cmd_until "kubectl get pod -n $kserve_namespace --selector='component=predictor' --output jsonpath='{.items[*].metadata.name}' | grep sklearn-iris-scenario-four-predictor | wc -l" "-gt 0" 60
-    local predictor=$(kubectl get pod -n $kserve_namespace --selector="component=predictor" --output jsonpath='{.items[0].metadata.name}')
-
-    kubectl wait --for=condition=Ready pod/$predictor -n $kserve_namespace --timeout=5m
-
-    kubectl wait --for=jsonpath='{.status.url}' inferenceservice/sklearn-iris-scenario-four -n $kserve_namespace --timeout=5m
-    sleep 5
-
-    local service_hostname=$(kubectl get inferenceservice sklearn-iris-scenario-four -n $kserve_namespace -o jsonpath='{.status.url}' | cut -d "/" -f 3)
-    local result=$(curl -s -H "Host: ${service_hostname}" -H "Content-Type: application/json" "http://${INGRESS_HOST}/v1/models/sklearn-iris-scenario-four:predict" -d @/tmp/iris-input.json)
-    echo "Scenario ${scenario_num} received: $result"
-
-    if [ ! "$result" = "{\"predictions\":[1,1]}" ]; then
-        echo "Scenario ${scenario_num} - Prediction does not match expectation!"
-        echo "Printing some logs for debugging.."
-        kubectl logs pod/$predictor -n $kserve_namespace -c storage-initializer || true
-        kubectl logs pod/$predictor -n $kserve_namespace -c kserve-container || true
-        kill $pf_pid 2>/dev/null || true
-        return 1
-    else
-        echo "Scenario ${scenario_num} - Test succeeded!"
-        kubectl logs pod/$predictor -n $kserve_namespace -c storage-initializer || true
-        kubectl logs pod/$predictor -n $kserve_namespace -c kserve-container || true
-    fi
-
-    echo "Cleaning up scenario ${scenario_num}..."
-    # Delete without waiting - namespace isolation means we don't need to wait
-    kubectl delete inferenceservice sklearn-iris-scenario-four -n $kserve_namespace --wait=false
-
-    # Delete the namespace to clean up all resources
-    kubectl delete namespace $kserve_namespace --wait=false
-
-    kill $pf_pid 2>/dev/null || true
-
-    echo "======== Finished Scenario ${scenario_num} ========"
-    return 0
+    run_scenario 4 8092 "$TESTNAMESPACE" "iris-test-scenario-4" "" "sklearn-iris-scenario-four" "sklearn-iris-test-v1-scenario-4" "Testing with custom model registry service without model version"
 }
 
 # Launch all scenarios in parallel
