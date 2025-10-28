@@ -71,7 +71,7 @@ jobs:
       - name: Start KinD cluster
         uses: helm/kind-action@v1.12.0
         with:
-          node_image: "kindest/node:v1.32.2"
+          node_image: "kindest/node:v1.31.0"
 
       - name: Remove AppArmor profile for mysql in KinD on GHA # https://github.com/kubeflow/manifests/issues/2507
         run: |
