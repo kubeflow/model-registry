@@ -208,6 +208,9 @@ EOF
     # Delete without waiting - namespace isolation means we don't need to wait
     kubectl delete inferenceservice sklearn-iris-scenario-one -n $kserve_namespace --wait=false
 
+    # Delete the namespace to clean up all resources
+    kubectl delete namespace $kserve_namespace --wait=false
+
     kill $pf_pid 2>/dev/null || true
 
     echo "======== Finished Scenario ${scenario_num} ========"
@@ -320,6 +323,9 @@ EOF
     echo "Cleaning up scenario ${scenario_num}..."
     # Delete without waiting - namespace isolation means we don't need to wait
     kubectl delete inferenceservice sklearn-iris-scenario-two -n $kserve_namespace --wait=false
+
+    # Delete the namespace to clean up all resources
+    kubectl delete namespace $kserve_namespace --wait=false
 
     kill $pf_pid 2>/dev/null || true
 
@@ -434,6 +440,9 @@ EOF
     # Delete without waiting - namespace isolation means we don't need to wait
     kubectl delete inferenceservice sklearn-iris-scenario-three -n $kserve_namespace --wait=false
 
+    # Delete the namespace to clean up all resources
+    kubectl delete namespace $kserve_namespace --wait=false
+
     kill $pf_pid 2>/dev/null || true
 
     echo "======== Finished Scenario ${scenario_num} ========"
@@ -547,6 +556,9 @@ EOF
     # Delete without waiting - namespace isolation means we don't need to wait
     kubectl delete inferenceservice sklearn-iris-scenario-four -n $kserve_namespace --wait=false
 
+    # Delete the namespace to clean up all resources
+    kubectl delete namespace $kserve_namespace --wait=false
+
     kill $pf_pid 2>/dev/null || true
 
     echo "======== Finished Scenario ${scenario_num} ========"
@@ -598,6 +610,70 @@ for i in 1 2 3 4; do
     fi
 done
 echo "========================================"
+
+# Wait for all test namespaces to be fully deleted
+echo ""
+echo "Waiting for namespace cleanup to complete..."
+cleanup_timeout=120  # 2 minutes timeout
+cleanup_interval=2
+cleanup_start=$(date +%s)
+cleanup_failed=false
+
+while true; do
+    current_time=$(date +%s)
+    elapsed=$((current_time - cleanup_start))
+
+    if [ $elapsed -gt $cleanup_timeout ]; then
+        echo "❌ ERROR: Namespace cleanup timed out after ${cleanup_timeout} seconds!"
+        cleanup_failed=true
+        break
+    fi
+
+    # Check if all namespaces are deleted
+    all_deleted=true
+    for i in 1 2 3 4; do
+        ns="kserve-test-$i"
+        if kubectl get namespace "$ns" &>/dev/null; then
+            all_deleted=false
+            break
+        fi
+    done
+
+    if [ "$all_deleted" = true ]; then
+        echo "✅ All test namespaces successfully deleted (took ${elapsed}s)"
+        break
+    fi
+
+    # Show progress every 10 seconds
+    if [ $((elapsed % 10)) -eq 0 ] && [ $elapsed -gt 0 ]; then
+        remaining_ns=$(kubectl get namespace -o name | grep -c "kserve-test-" || echo 0)
+        echo "⏳ Waiting for cleanup... (${elapsed}s elapsed, ${remaining_ns} namespaces remaining)"
+    fi
+
+    sleep $cleanup_interval
+done
+
+# Final verification - show status of each namespace
+echo ""
+echo "Final namespace status:"
+for i in 1 2 3 4; do
+    ns="kserve-test-$i"
+    if kubectl get namespace "$ns" &>/dev/null; then
+        status=$(kubectl get namespace "$ns" -o jsonpath='{.status.phase}' 2>/dev/null || echo "Unknown")
+        echo "  Namespace $ns: ❌ Still exists (status: $status)"
+        cleanup_failed=true
+    else
+        echo "  Namespace $ns: ✅ Deleted"
+    fi
+done
+
+echo "========================================"
+
+# Fail the test if cleanup failed
+if [ "$cleanup_failed" = true ]; then
+    echo "❌ Namespace cleanup failed!"
+    exit 1
+fi
 
 if [ "$all_passed" = true ]; then
     echo "🎉 All tests passed!"
