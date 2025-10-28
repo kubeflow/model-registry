@@ -614,7 +614,7 @@ echo "========================================"
 # Wait for all test namespaces to be fully deleted
 echo ""
 echo "Waiting for namespace cleanup to complete..."
-cleanup_timeout=120  # 2 minutes timeout
+cleanup_timeout=300  # 5 minutes timeout
 cleanup_interval=2
 cleanup_start=$(date +%s)
 cleanup_failed=false
