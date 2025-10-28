@@ -48,6 +48,24 @@ fi
 # Setup the environment
 ./${DIR}/setup_test_env.sh
 
+# Wait for Knative webhook to be ready (critical for KServe 0.15)
+echo "Waiting for Knative webhook to be ready..."
+kubectl wait --for=condition=Ready pod -l app=webhook -n knative-serving --timeout=5m || {
+    echo "Warning: Knative webhook not ready, checking status..."
+    kubectl get pods -n knative-serving
+    kubectl describe pod -l app=webhook -n knative-serving
+}
+
+# Wait for KServe webhook to be ready
+echo "Waiting for KServe webhook to be ready..."
+kubectl wait --for=condition=Ready pod -l control-plane=kserve-controller-manager -n kserve --timeout=5m || {
+    echo "Warning: KServe webhook not ready, checking status..."
+    kubectl get pods -n kserve
+    kubectl describe pod -l control-plane=kserve-controller-manager -n kserve
+}
+
+echo "All webhooks ready, proceeding with tests..."
+
 # Apply the port forward to access the model registry
 NAMESPACE=${NAMESPACE:-"kubeflow"}
 TESTNAMESPACE=${TESTNAMESPACE:-"test"}
