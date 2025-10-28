@@ -48,6 +48,11 @@ jobs:
       - name: Install network tools
         run: sudo apt-get update && sudo apt-get install -y netcat-openbsd
 
+      - name: Install Helm
+        uses: azure/setup-helm@v4
+        with:
+          version: 'v3.14.0'
+
       - name: Build local model registry image
         shell: bash
         env:

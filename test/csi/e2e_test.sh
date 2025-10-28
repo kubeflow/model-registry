@@ -26,6 +26,14 @@ MR_IMG=${MR_IMG:-"ghcr.io/kubeflow/model-registry/server:$MODELREGISTRY_VERSION"
 # You can provide a local model registry storage initializer container image
 MR_CSI_IMG=${MR_CSI_IMG:-"ghcr.io/kubeflow/model-registry/storage-initializer:$MODELREGISTRY_CSI"}
 
+# Export variables so they're available to setup_test_env.sh
+export KSERVE_VERSION
+export MODELREGISTRY_VERSION
+export MODELREGISTRY_CSI
+export MR_IMG
+export MR_CSI_IMG
+export MRCSI_IMG
+
 # Check if KUBECTL is a valid command
 if [ ! command -v "$KUBECTL" > /dev/null 2>&1 ]; then
     echo "KUBECTL command not found at: $KUBECTL"
@@ -354,8 +362,17 @@ while true; do
 
     # Show progress every 10 seconds
     if [ $((elapsed % 10)) -eq 0 ] && [ $elapsed -gt 0 ]; then
-        remaining_ns=$(kubectl get namespace -o name | grep -c "kserve-test-" || echo 0)
-        echo "⏳ Waiting for cleanup... (${elapsed}s elapsed, ${remaining_ns} namespaces remaining)"
+        remaining_list=""
+        remaining_count=0
+        for i in 1 2 3 4; do
+            if kubectl get namespace "kserve-test-$i" &>/dev/null; then
+                remaining_list="${remaining_list}kserve-test-$i "
+                remaining_count=$((remaining_count + 1))
+            fi
+        done
+        if [ $remaining_count -gt 0 ]; then
+            echo "⏳ Waiting for cleanup... (${elapsed}s elapsed, ${remaining_count} remaining: ${remaining_list})"
+        fi
     fi
 
     sleep $cleanup_interval
