@@ -261,6 +261,18 @@ class ModelCatalog {
   findValidatedModelTtft() {
     return cy.findByTestId('validated-model-ttft');
   }
+
+  findWorkloadTypeFilter() {
+    return cy.findByTestId('workload-type-filter');
+  }
+
+  findWorkloadTypeOption(label: string) {
+    return this.findWorkloadTypeFilter().findDropdownItem(label);
+  }
+
+  selectWorkloadType(label: string) {
+    this.findWorkloadTypeOption(label).click();
+  }
 }
 
 export const modelCatalog = new ModelCatalog();
