@@ -2436,15 +2436,15 @@ components:
       description: A response containing a list of `Artifact` entities.
       links:
         GetArtifactById:
-          $ref: '#/components/links/GetArtifactById'
+          $ref: "#/components/links/GetArtifactById"
         PatchArtifactById:
-          $ref: '#/components/links/PatchArtifactById'
+          $ref: "#/components/links/PatchArtifactById"
         SearchArtifactByExternalId:
-          $ref: '#/components/links/SearchArtifactByExternalId'
+          $ref: "#/components/links/SearchArtifactByExternalId"
         SearchArtifactByName:
-          $ref: '#/components/links/SearchArtifactByName'
+          $ref: "#/components/links/SearchArtifactByName"
         SearchArtifactByParentResourceId:
-          $ref: '#/components/links/SearchArtifactByParentResourceId'
+          $ref: "#/components/links/SearchArtifactByParentResourceId"
     ArtifactResponse:
       content:
         application/json:
@@ -2453,15 +2453,15 @@ components:
       description: A response containing an `Artifact` entity.
       links:
         GetArtifactById:
-          $ref: '#/components/links/GetArtifactById'
+          $ref: "#/components/links/GetArtifactById"
         PatchArtifactById:
-          $ref: '#/components/links/PatchArtifactById'
+          $ref: "#/components/links/PatchArtifactById"
         SearchArtifactByExternalId:
-          $ref: '#/components/links/SearchArtifactByExternalId'
+          $ref: "#/components/links/SearchArtifactByExternalId"
         SearchArtifactByName:
-          $ref: '#/components/links/SearchArtifactByName'
+          $ref: "#/components/links/SearchArtifactByName"
         SearchArtifactByParentResourceId:
-          $ref: '#/components/links/SearchArtifactByParentResourceId'
+          $ref: "#/components/links/SearchArtifactByParentResourceId"
     InferenceServiceListResponse:
       content:
         application/json:
@@ -2470,15 +2470,15 @@ components:
       description: A response containing a list of `InferenceService` entities.
       links:
         GetISById:
-          $ref: '#/components/links/GetISById'
+          $ref: "#/components/links/GetISById"
         PatchISById:
-          $ref: '#/components/links/PatchISById'
+          $ref: "#/components/links/PatchISById"
         SearchISByExternalId:
-          $ref: '#/components/links/SearchISByExternalId'
+          $ref: "#/components/links/SearchISByExternalId"
         SearchISByName:
-          $ref: '#/components/links/SearchISByName'
+          $ref: "#/components/links/SearchISByName"
         SearchISByParentResourceId:
-          $ref: '#/components/links/SearchISByParentResourceId'
+          $ref: "#/components/links/SearchISByParentResourceId"
     InferenceServiceResponse:
       content:
         application/json:
@@ -2487,15 +2487,15 @@ components:
       description: A response containing a `InferenceService` entity.
       links:
         GetISById:
-          $ref: '#/components/links/GetISById'
+          $ref: "#/components/links/GetISById"
         PatchISById:
-          $ref: '#/components/links/PatchISById'
+          $ref: "#/components/links/PatchISById"
         SearchISByExternalId:
-          $ref: '#/components/links/SearchISByExternalId'
+          $ref: "#/components/links/SearchISByExternalId"
         SearchISByName:
-          $ref: '#/components/links/SearchISByName'
+          $ref: "#/components/links/SearchISByName"
         SearchISByParentResourceId:
-          $ref: '#/components/links/SearchISByParentResourceId'
+          $ref: "#/components/links/SearchISByParentResourceId"
     ModelArtifactListResponse:
       content:
         application/json:
@@ -2504,15 +2504,15 @@ components:
       description: A response containing a list of ModelArtifact entities.
       links:
         GetModelArtifactById:
-          $ref: '#/components/links/GetModelArtifactById'
+          $ref: "#/components/links/GetModelArtifactById"
         PatchModelArtifactById:
-          $ref: '#/components/links/PatchModelArtifactById'
+          $ref: "#/components/links/PatchModelArtifactById"
         SearchModelArtifactByExternalId:
-          $ref: '#/components/links/SearchModelArtifactByExternalId'
+          $ref: "#/components/links/SearchModelArtifactByExternalId"
         SearchModelArtifactByName:
-          $ref: '#/components/links/SearchModelArtifactByName'
+          $ref: "#/components/links/SearchModelArtifactByName"
         SearchModelArtifactByParentResourceId:
-          $ref: '#/components/links/SearchModelArtifactByParentResourceId'
+          $ref: "#/components/links/SearchModelArtifactByParentResourceId"
     MetricListResponse:
       content:
         application/json:
@@ -2527,15 +2527,15 @@ components:
       description: A response containing a `ModelArtifact` entity.
       links:
         GetModelArtifactById:
-          $ref: '#/components/links/GetModelArtifactById'
+          $ref: "#/components/links/GetModelArtifactById"
         PatchModelArtifactById:
-          $ref: '#/components/links/PatchModelArtifactById'
+          $ref: "#/components/links/PatchModelArtifactById"
         SearchModelArtifactByExternalId:
-          $ref: '#/components/links/SearchModelArtifactByExternalId'
+          $ref: "#/components/links/SearchModelArtifactByExternalId"
         SearchModelArtifactByName:
-          $ref: '#/components/links/SearchModelArtifactByName'
+          $ref: "#/components/links/SearchModelArtifactByName"
         SearchModelArtifactByParentResourceId:
-          $ref: '#/components/links/SearchModelArtifactByParentResourceId'
+          $ref: "#/components/links/SearchModelArtifactByParentResourceId"
     ModelVersionListResponse:
       content:
         application/json:
@@ -2544,13 +2544,13 @@ components:
       description: A response containing a list of `ModelVersion` entities.
       links:
         GetModelVersionById:
-          $ref: '#/components/links/GetModelVersionById'
+          $ref: "#/components/links/GetModelVersionById"
         PatchModelVersionById:
-          $ref: '#/components/links/PatchModelVersionById'
+          $ref: "#/components/links/PatchModelVersionById"
         SearchModelVersionByExternalId:
-          $ref: '#/components/links/SearchModelVersionByExternalId'
+          $ref: "#/components/links/SearchModelVersionByExternalId"
         SearchModelVersionByName:
-          $ref: '#/components/links/SearchModelVersionByName'
+          $ref: "#/components/links/SearchModelVersionByName"
     ModelVersionResponse:
       content:
         application/json:
@@ -2559,13 +2559,13 @@ components:
       description: A response containing a `ModelVersion` entity.
       links:
         GetModelVersionById:
-          $ref: '#/components/links/GetModelVersionById'
+          $ref: "#/components/links/GetModelVersionById"
         PatchModelVersionById:
-          $ref: '#/components/links/PatchModelVersionById'
+          $ref: "#/components/links/PatchModelVersionById"
         SearchModelVersionByExternalId:
-          $ref: '#/components/links/SearchModelVersionByExternalId'
+          $ref: "#/components/links/SearchModelVersionByExternalId"
         SearchModelVersionByName:
-          $ref: '#/components/links/SearchModelVersionByName'
+          $ref: "#/components/links/SearchModelVersionByName"
     RegisteredModelListResponse:
       content:
         application/json:
@@ -2574,13 +2574,13 @@ components:
       description: A response containing a list of `RegisteredModel` entities.
       links:
         GetRegisteredModelById:
-          $ref: '#/components/links/GetRegisteredModelById'
+          $ref: "#/components/links/GetRegisteredModelById"
         PatchRegisteredModelById:
-          $ref: '#/components/links/PatchRegisteredModelById'
+          $ref: "#/components/links/PatchRegisteredModelById"
         SearchRegisteredModelByExternalId:
-          $ref: '#/components/links/SearchRegisteredModelByExternalId'
+          $ref: "#/components/links/SearchRegisteredModelByExternalId"
         SearchRegisteredModelByName:
-          $ref: '#/components/links/SearchRegisteredModelByName'
+          $ref: "#/components/links/SearchRegisteredModelByName"
     RegisteredModelResponse:
       content:
         application/json:
@@ -2589,13 +2589,13 @@ components:
       description: A response containing a `RegisteredModel` entity.
       links:
         GetRegisteredModelById:
-          $ref: '#/components/links/GetRegisteredModelById'
+          $ref: "#/components/links/GetRegisteredModelById"
         PatchRegisteredModelById:
-          $ref: '#/components/links/PatchRegisteredModelById'
+          $ref: "#/components/links/PatchRegisteredModelById"
         SearchRegisteredModelByExternalId:
-          $ref: '#/components/links/SearchRegisteredModelByExternalId'
+          $ref: "#/components/links/SearchRegisteredModelByExternalId"
         SearchRegisteredModelByName:
-          $ref: '#/components/links/SearchRegisteredModelByName'
+          $ref: "#/components/links/SearchRegisteredModelByName"
     ServeModelListResponse:
       content:
         application/json:
@@ -2616,13 +2616,13 @@ components:
       description: A response containing a list of `ServingEnvironment` entities.
       links:
         GetServingEnvironmentById:
-          $ref: '#/components/links/GetServingEnvironmentById'
+          $ref: "#/components/links/GetServingEnvironmentById"
         PatchServingEnvironmentById:
-          $ref: '#/components/links/PatchServingEnvironmentById'
+          $ref: "#/components/links/PatchServingEnvironmentById"
         SearchServingEnvironmentByExternalId:
-          $ref: '#/components/links/SearchServingEnvironmentByExternalId'
+          $ref: "#/components/links/SearchServingEnvironmentByExternalId"
         SearchServingEnvironmentByName:
-          $ref: '#/components/links/SearchServingEnvironmentByName'
+          $ref: "#/components/links/SearchServingEnvironmentByName"
     ServingEnvironmentResponse:
       content:
         application/json:
@@ -2631,13 +2631,13 @@ components:
       description: A response containing a `ServingEnvironment` entity.
       links:
         GetServingEnvironmentById:
-          $ref: '#/components/links/GetServingEnvironmentById'
+          $ref: "#/components/links/GetServingEnvironmentById"
         PatchServingEnvironmentById:
-          $ref: '#/components/links/PatchServingEnvironmentById'
+          $ref: "#/components/links/PatchServingEnvironmentById"
         SearchServingEnvironmentByExternalId:
-          $ref: '#/components/links/SearchServingEnvironmentByExternalId'
+          $ref: "#/components/links/SearchServingEnvironmentByExternalId"
         SearchServingEnvironmentByName:
-          $ref: '#/components/links/SearchServingEnvironmentByName'
+          $ref: "#/components/links/SearchServingEnvironmentByName"
     ExperimentListResponse:
       content:
         application/json:
@@ -2646,13 +2646,13 @@ components:
       description: A response containing a list of `Experiment` entities.
       links:
         GetExperimentById:
-          $ref: '#/components/links/GetExperimentById'
+          $ref: "#/components/links/GetExperimentById"
         PatchExperimentById:
-          $ref: '#/components/links/PatchExperimentById'
+          $ref: "#/components/links/PatchExperimentById"
         SearchExperimentByExternalId:
-          $ref: '#/components/links/SearchExperimentByExternalId'
+          $ref: "#/components/links/SearchExperimentByExternalId"
         SearchExperimentByName:
-          $ref: '#/components/links/SearchExperimentByName'
+          $ref: "#/components/links/SearchExperimentByName"
     ExperimentResponse:
       content:
         application/json:
@@ -2661,13 +2661,13 @@ components:
       description: A response containing an `Experiment` entity.
       links:
         GetExperimentById:
-          $ref: '#/components/links/GetExperimentById'
+          $ref: "#/components/links/GetExperimentById"
         PatchExperimentById:
-          $ref: '#/components/links/PatchExperimentById'
+          $ref: "#/components/links/PatchExperimentById"
         SearchExperimentByExternalId:
-          $ref: '#/components/links/SearchExperimentByExternalId'
+          $ref: "#/components/links/SearchExperimentByExternalId"
         SearchExperimentByName:
-          $ref: '#/components/links/SearchExperimentByName'
+          $ref: "#/components/links/SearchExperimentByName"
     ExperimentRunListResponse:
       content:
         application/json:
@@ -2676,13 +2676,13 @@ components:
       description: A response containing a list of `ExperimentRun` entities.
       links:
         GetExperimentRunById:
-          $ref: '#/components/links/GetExperimentRunById'
+          $ref: "#/components/links/GetExperimentRunById"
         PatchExperimentRunById:
-          $ref: '#/components/links/PatchExperimentRunById'
+          $ref: "#/components/links/PatchExperimentRunById"
         SearchExperimentRunByExternalId:
-          $ref: '#/components/links/SearchExperimentRunByExternalId'
+          $ref: "#/components/links/SearchExperimentRunByExternalId"
         SearchExperimentRunByName:
-          $ref: '#/components/links/SearchExperimentRunByName'
+          $ref: "#/components/links/SearchExperimentRunByName"
     ExperimentRunResponse:
       content:
         application/json:
@@ -2691,13 +2691,13 @@ components:
       description: A response containing an `ExperimentRun` entity.
       links:
         GetExperimentRunById:
-          $ref: '#/components/links/GetExperimentRunById'
+          $ref: "#/components/links/GetExperimentRunById"
         PatchExperimentRunById:
-          $ref: '#/components/links/PatchExperimentRunById'
+          $ref: "#/components/links/PatchExperimentRunById"
         SearchExperimentRunByExternalId:
-          $ref: '#/components/links/SearchExperimentRunByExternalId'
+          $ref: "#/components/links/SearchExperimentRunByExternalId"
         SearchExperimentRunByName:
-          $ref: '#/components/links/SearchExperimentRunByName'
+          $ref: "#/components/links/SearchExperimentRunByName"
   parameters:
     orderBy:
       style: form

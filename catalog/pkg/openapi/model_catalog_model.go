@@ -52,6 +52,8 @@ type CatalogModel struct {
 	LastUpdateTimeSinceEpoch *string `json:"lastUpdateTimeSinceEpoch,omitempty"`
 	// ID of the source this model belongs to.
 	SourceId *string `json:"source_id,omitempty"`
+	// List of artifacts associated with the model.
+	Artifacts []CatalogModelArtifact `json:"artifacts,omitempty"`
 }
 
 // NewCatalogModel instantiates a new CatalogModel object
@@ -608,6 +610,38 @@ func (o *CatalogModel) SetSourceId(v string) {
 	o.SourceId = &v
 }
 
+// GetArtifacts returns the Artifacts field value if set, zero value otherwise.
+func (o *CatalogModel) GetArtifacts() []CatalogModelArtifact {
+	if o == nil || IsNil(o.Artifacts) {
+		var ret []CatalogModelArtifact
+		return ret
+	}
+	return o.Artifacts
+}
+
+// GetArtifactsOk returns a tuple with the Artifacts field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+func (o *CatalogModel) GetArtifactsOk() ([]CatalogModelArtifact, bool) {
+	if o == nil || IsNil(o.Artifacts) {
+		return nil, false
+	}
+	return o.Artifacts, true
+}
+
+// HasArtifacts returns a boolean if a field has been set.
+func (o *CatalogModel) HasArtifacts() bool {
+	if o != nil && !IsNil(o.Artifacts) {
+		return true
+	}
+
+	return false
+}
+
+// SetArtifacts gets a reference to the given []CatalogModelArtifact and assigns it to the Artifacts field.
+func (o *CatalogModel) SetArtifacts(v []CatalogModelArtifact) {
+	o.Artifacts = v
+}
+
 func (o CatalogModel) MarshalJSON() ([]byte, error) {
 	toSerialize, err := o.ToMap()
 	if err != nil {
@@ -666,6 +700,9 @@ func (o CatalogModel) ToMap() (map[string]interface{}, error) {
 	}
 	if !IsNil(o.SourceId) {
 		toSerialize["source_id"] = o.SourceId
+	}
+	if !IsNil(o.Artifacts) {
+		toSerialize["artifacts"] = o.Artifacts
 	}
 	return toSerialize, nil
 }

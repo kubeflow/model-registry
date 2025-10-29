@@ -55,6 +55,7 @@ paths:
         - $ref: "#/components/parameters/orderBy"
         - $ref: "#/components/parameters/sortOrder"
         - $ref: "#/components/parameters/nextPageToken"
+        - $ref: "#/components/parameters/artifactType"
       responses:
         "200":
           $ref: "#/components/responses/CatalogModelListResponse"
@@ -243,6 +244,11 @@ components:
             source_id:
               type: string
               description: ID of the source this model belongs to.
+            artifacts:
+              type: array
+              description: List of artifacts associated with the model.
+              items:
+                $ref: "#/components/schemas/CatalogModelArtifact"
         - $ref: "#/components/schemas/BaseModel"
         - $ref: "#/components/schemas/BaseResource"
     CatalogModelArtifact:

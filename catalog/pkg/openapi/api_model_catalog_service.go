@@ -34,6 +34,7 @@ type ApiFindModelsRequest struct {
 	orderBy       *OrderByField
 	sortOrder     *SortOrder
 	nextPageToken *string
+	artifactType  *[]ArtifactTypeQueryParam
 }
 
 // Filter models by source. Multiple values can be separated by commas to filter by multiple sources (OR logic). For example: ?source&#x3D;huggingface,local will return models from either huggingface OR local sources.
@@ -81,6 +82,12 @@ func (r ApiFindModelsRequest) SortOrder(sortOrder SortOrder) ApiFindModelsReques
 // Token to use to retrieve next page of results.
 func (r ApiFindModelsRequest) NextPageToken(nextPageToken string) ApiFindModelsRequest {
 	r.nextPageToken = &nextPageToken
+	return r
+}
+
+// Specifies the artifact type for listing artifacts.
+func (r ApiFindModelsRequest) ArtifactType(artifactType []ArtifactTypeQueryParam) ApiFindModelsRequest {
+	r.artifactType = &artifactType
 	return r
 }
 
@@ -162,6 +169,17 @@ func (a *ModelCatalogServiceAPIService) FindModelsExecute(r ApiFindModelsRequest
 	}
 	if r.nextPageToken != nil {
 		parameterAddToHeaderOrQuery(localVarQueryParams, "nextPageToken", r.nextPageToken, "")
+	}
+	if r.artifactType != nil {
+		t := *r.artifactType
+		if reflect.TypeOf(t).Kind() == reflect.Slice {
+			s := reflect.ValueOf(t)
+			for i := 0; i < s.Len(); i++ {
+				parameterAddToHeaderOrQuery(localVarQueryParams, "artifactType", s.Index(i).Interface(), "multi")
+			}
+		} else {
+			parameterAddToHeaderOrQuery(localVarQueryParams, "artifactType", t, "multi")
+		}
 	}
 	// to determine the Content-Type header
 	localVarHTTPContentTypes := []string{}
