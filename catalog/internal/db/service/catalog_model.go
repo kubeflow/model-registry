@@ -376,12 +376,10 @@ func (r *CatalogModelRepositoryImpl) applyAccuracyOrdering(query *gorm.DB, listO
 		Joins("LEFT JOIN (?) accuracy ON \"Context\".id=accuracy.id", accuracySubquery)
 
 	// Apply sorting order
-	if sortOrder == "ASC" {
-		query = query.Order("accuracy ASC NULLS LAST")
-	} else {
-		// Default to DESC for ACCURACY sorting
-		query = query.Order("accuracy DESC NULLS LAST")
+	if sortOrder != "ASC" {
+		sortOrder = "DESC"
 	}
+	query = query.Order(fmt.Sprintf("accuracy %s NULLS LAST, %s.id", sortOrder, contextTable))
 
 	// Handle cursor-based pagination with nextPageToken
 	nextPageToken := listOptions.GetNextPageToken()
@@ -448,10 +446,7 @@ func (r *CatalogModelRepositoryImpl) applyCursorPagination(query *gorm.DB, curso
 	// Handle NULL accuracy values in cursor
 	if cursor.Accuracy == nil {
 		// For models without accuracy, just use ID-based pagination
-		if sortOrder == "ASC" {
-			return query.Where(contextTable+".id > ?", cursor.ID)
-		}
-		return query.Where(contextTable+".id > ?", cursor.ID) // In DESC, NULL comes last, so ID ordering is fine
+		return query.Where(fmt.Sprintf("accuracy IS NULL AND %s.id > ?", contextTable), cursor.ID)
 	}
 
 	accuracyValue := *cursor.Accuracy
@@ -464,7 +459,7 @@ func (r *CatalogModelRepositoryImpl) applyCursorPagination(query *gorm.DB, curso
 			accuracyValue, accuracyValue, cursor.ID)
 	} else {
 		// For DESC: get records where (accuracy < cursor_accuracy) OR (accuracy = cursor_accuracy AND id > cursor_id)
-		return query.Where("(accuracy < ? OR (accuracy = ? AND "+contextTable+".id > ?))",
+		return query.Where("(accuracy < ? OR (accuracy = ? AND "+contextTable+".id > ?) OR accuracy IS NULL)",
 			accuracyValue, accuracyValue, cursor.ID)
 	}
 }
