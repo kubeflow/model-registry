@@ -8,6 +8,9 @@ on:
         branches:
             - main
 
+permissions: # set contents: read at top-level, per OpenSSF ScoreCard rule TokenPermissionsID
+    contents: read
+
 jobs:
     tidy-check:
         runs-on: ubuntu-latest
