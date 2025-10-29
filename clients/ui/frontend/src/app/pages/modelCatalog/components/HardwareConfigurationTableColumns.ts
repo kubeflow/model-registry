@@ -3,7 +3,10 @@ import {
   CatalogPerformanceMetricsArtifact,
   PerformanceMetricsCustomProperties,
 } from '~/app/modelCatalogTypes';
-import { getHardwareConfiguration } from '~/app/pages/modelCatalog/utils/performanceMetricsUtils';
+import {
+  getHardwareConfiguration,
+  getWorkloadType,
+} from '~/app/pages/modelCatalog/utils/performanceMetricsUtils';
 import { getDoubleValue, getStringValue } from '~/app/utils';
 
 export type HardwareConfigColumnField = keyof PerformanceMetricsCustomProperties;
@@ -31,6 +34,19 @@ export const hardwareConfigColumns: HardwareConfigColumn[] = [
     modifier: 'wrap',
   },
   {
+    field: 'use_case',
+    label: 'Workload type',
+    sortable: (
+      a: CatalogPerformanceMetricsArtifact,
+      b: CatalogPerformanceMetricsArtifact,
+    ): number => getWorkloadType(a).localeCompare(getWorkloadType(b)),
+    isStickyColumn: true,
+    stickyMinWidth: '132px',
+    stickyLeftOffset: '162px',
+    modifier: 'wrap',
+    hasRightBorder: true,
+  },
+  {
     field: 'requests_per_second',
     label: 'RPS per Replica',
     sortable: (
@@ -44,7 +60,7 @@ export const hardwareConfigColumns: HardwareConfigColumn[] = [
   },
   {
     field: 'ttft_mean',
-    label: 'TTFT Latency Mean',
+    label: 'TTFT Latency Mean',
     sortable: (
       a: CatalogPerformanceMetricsArtifact,
       b: CatalogPerformanceMetricsArtifact,
@@ -239,27 +255,13 @@ export const hardwareConfigColumns: HardwareConfigColumn[] = [
   },
   {
     field: 'mean_output_tokens',
-    label: 'Mean Output Tokens',
+    label: 'Mean Output Tokens',
     sortable: (
       a: CatalogPerformanceMetricsArtifact,
       b: CatalogPerformanceMetricsArtifact,
     ): number =>
       getDoubleValue(a.customProperties, 'mean_output_tokens') -
       getDoubleValue(b.customProperties, 'mean_output_tokens'),
-    width: 20,
-    modifier: 'wrap',
-  },
-  {
-    field: 'use_case',
-    label: 'Use Case',
-    sortable: (
-      a: CatalogPerformanceMetricsArtifact,
-      b: CatalogPerformanceMetricsArtifact,
-    ): number => {
-      const useCaseA = getStringValue(a.customProperties, 'use_case');
-      const useCaseB = getStringValue(b.customProperties, 'use_case');
-      return useCaseA.localeCompare(useCaseB);
-    },
     width: 20,
     modifier: 'wrap',
   },

@@ -5,6 +5,7 @@ import {
   formatLatency,
   formatTokenValue,
   getHardwareConfiguration,
+  getWorkloadType,
 } from '~/app/pages/modelCatalog/utils/performanceMetricsUtils';
 import { getDoubleValue, getIntValue, getStringValue } from '~/app/utils';
 import {
@@ -51,6 +52,8 @@ const HardwareConfigurationTableRow: React.FC<HardwareConfigurationTableRowProps
         return formatTokenValue(getDoubleValue(customProperties, field));
       case 'framework_version':
         return getStringValue(customProperties, field);
+      case 'use_case':
+        return getWorkloadType(performanceArtifact);
       default:
         return '-';
     }

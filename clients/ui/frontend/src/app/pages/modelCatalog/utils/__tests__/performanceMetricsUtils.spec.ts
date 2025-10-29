@@ -9,7 +9,7 @@ import {
   formatLatency,
   formatTokenValue,
   getWorkloadType,
-} from '../performanceMetricsUtils';
+} from '~/app/pages/modelCatalog/utils/performanceMetricsUtils';
 
 describe('performanceMetricsUtils', () => {
   describe('getHardwareConfiguration', () => {

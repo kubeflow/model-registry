@@ -43,6 +43,7 @@ const UseCaseFilter: React.FC = () => {
   const toggle = (toggleRef: React.Ref<MenuToggleElement>) => (
     <MenuToggle
       ref={toggleRef}
+      data-testid="workload-type-filter"
       onClick={() => setIsOpen(!isOpen)}
       isExpanded={isOpen}
       style={{ minWidth: '200px', width: 'fit-content' }}
