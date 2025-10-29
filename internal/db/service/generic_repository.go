@@ -75,7 +75,8 @@ type GenericRepositoryConfig[TEntity any, TSchema SchemaEntity, TProp PropertyEn
 	EntityName            string
 	PropertyFieldName     string // "artifact_id", "context_id", or "execution_id"
 	ApplyListFilters      func(*gorm.DB, TListOpts) *gorm.DB
-	CreatePaginationToken func(TSchema, TListOpts) string // Optional - defaults to standard implementation
+	CreatePaginationToken func(TSchema, TListOpts) string    // Optional - defaults to standard implementation
+	ApplyCustomOrdering   func(*gorm.DB, TListOpts) *gorm.DB // Optional - custom ordering logic that bypasses standard pagination
 	IsNewEntity           func(TEntity) bool
 	HasCustomProperties   func(TEntity) bool
 	EntityMappingFuncs    filter.EntityMappingFunctions // Optional - custom entity mappings for filtering
@@ -164,32 +165,14 @@ func (r *GenericRepository[TEntity, TSchema, TProp, TListOpts]) List(listOptions
 		return nil, err
 	}
 
-	// Apply pagination
-	orderBy := listOptions.GetOrderBy()
-	sortOrder := listOptions.GetSortOrder()
-	nextPageToken := listOptions.GetNextPageToken()
-	pagination := &models.Pagination{
-		PageSize:      &pageSize,
-		OrderBy:       &orderBy,
-		SortOrder:     &sortOrder,
-		NextPageToken: &nextPageToken,
+	// Apply ordering and pagination
+	if r.config.ApplyCustomOrdering != nil {
+		// Use custom ordering logic if provided
+		query = r.config.ApplyCustomOrdering(query, listOptions)
+	} else {
+		// Apply standard pagination
+		query = r.ApplyStandardPagination(query, listOptions, entities)
 	}
-
-	// Use table prefix for pagination to handle JOINs properly
-	var tablePrefix string
-	var schemaEntity TSchema
-	switch any(schemaEntity).(type) {
-	case schema.Artifact:
-		tablePrefix = "Artifact"
-	case schema.Context:
-		tablePrefix = "Context"
-	case schema.Execution:
-		tablePrefix = "Execution"
-	default:
-		tablePrefix = ""
-	}
-
-	query = query.Scopes(scopes.PaginateWithTablePrefix(entities, pagination, r.config.DB, tablePrefix))
 
 	// Execute query
 	if err := query.Find(&schemaEntities).Error; err != nil {
@@ -224,7 +207,7 @@ func (r *GenericRepository[TEntity, TSchema, TProp, TListOpts]) List(listOptions
 		if r.config.CreatePaginationToken != nil {
 			nextToken = r.config.CreatePaginationToken(lastEntity, listOptions)
 		} else {
-			nextToken = r.createDefaultPaginationToken(lastEntity, listOptions)
+			nextToken = r.CreateDefaultPaginationToken(lastEntity, listOptions)
 		}
 		listOptions.SetNextPageToken(&nextToken)
 	} else {
@@ -232,7 +215,7 @@ func (r *GenericRepository[TEntity, TSchema, TProp, TListOpts]) List(listOptions
 	}
 
 	list.Items = entities
-	nextPageToken = listOptions.GetNextPageToken()
+	nextPageToken := listOptions.GetNextPageToken()
 	list.NextPageToken = nextPageToken
 	list.Size = int32(len(entities))
 
@@ -558,9 +541,9 @@ func (r *GenericRepository[TEntity, TSchema, TProp, TListOpts]) copyPropertyValu
 	}
 }
 
-// createDefaultPaginationToken provides a standard implementation that works for all entities
+// CreateDefaultPaginationToken provides a standard implementation that works for all entities
 // with ID, CreateTimeSinceEpoch, and LastUpdateTimeSinceEpoch fields
-func (r *GenericRepository[TEntity, TSchema, TProp, TListOpts]) createDefaultPaginationToken(entity TSchema, listOptions TListOpts) string {
+func (r *GenericRepository[TEntity, TSchema, TProp, TListOpts]) CreateDefaultPaginationToken(entity TSchema, listOptions TListOpts) string {
 	entityID := r.getEntityID(entity)
 	orderBy := listOptions.GetOrderBy()
 	value := ""
@@ -633,6 +616,37 @@ func (r *GenericRepository[TEntity, TSchema, TProp, TListOpts]) getNonUpdatableF
 
 func (r *GenericRepository[TEntity, TSchema, TProp, TListOpts]) GetConfig() GenericRepositoryConfig[TEntity, TSchema, TProp, TListOpts] {
 	return r.config
+}
+
+// ApplyStandardPagination applies the standard pagination logic using scopes.PaginateWithTablePrefix
+func (r *GenericRepository[TEntity, TSchema, TProp, TListOpts]) ApplyStandardPagination(query *gorm.DB, listOptions TListOpts, entities any) *gorm.DB {
+	pageSize := listOptions.GetPageSize()
+	orderBy := listOptions.GetOrderBy()
+	sortOrder := listOptions.GetSortOrder()
+	nextPageToken := listOptions.GetNextPageToken()
+
+	pagination := &models.Pagination{
+		PageSize:      &pageSize,
+		OrderBy:       &orderBy,
+		SortOrder:     &sortOrder,
+		NextPageToken: &nextPageToken,
+	}
+
+	// Use table prefix for pagination to handle JOINs properly
+	var tablePrefix string
+	var schemaEntity TSchema
+	switch any(schemaEntity).(type) {
+	case schema.Artifact:
+		tablePrefix = "Artifact"
+	case schema.Context:
+		tablePrefix = "Context"
+	case schema.Execution:
+		tablePrefix = "Execution"
+	default:
+		tablePrefix = ""
+	}
+
+	return query.Scopes(scopes.PaginateWithTablePrefix(entities, pagination, r.config.DB, tablePrefix))
 }
 
 // Shared mapping functions for common property conversions

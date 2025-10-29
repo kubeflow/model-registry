@@ -15,7 +15,7 @@ import (
 	"fmt"
 )
 
-// OrderByField Supported fields for ordering result entities.
+// OrderByField Supported fields for ordering result entities.  The `ACCURACY` sort only applies to catalog models, and will sort by the `overall_average` property in any linked metrics artifact.
 type OrderByField string
 
 // List of OrderByField
@@ -24,6 +24,7 @@ const (
 	ORDERBYFIELD_LAST_UPDATE_TIME OrderByField = "LAST_UPDATE_TIME"
 	ORDERBYFIELD_ID               OrderByField = "ID"
 	ORDERBYFIELD_NAME             OrderByField = "NAME"
+	ORDERBYFIELD_ACCURACY         OrderByField = "ACCURACY"
 )
 
 // All allowed values of OrderByField enum
@@ -32,6 +33,7 @@ var AllowedOrderByFieldEnumValues = []OrderByField{
 	"LAST_UPDATE_TIME",
 	"ID",
 	"NAME",
+	"ACCURACY",
 }
 
 func (v *OrderByField) UnmarshalJSON(src []byte) error {

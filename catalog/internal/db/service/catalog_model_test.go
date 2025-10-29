@@ -1,6 +1,8 @@
 package service_test
 
 import (
+	"fmt"
+	"strings"
 	"testing"
 
 	"github.com/kubeflow/model-registry/catalog/internal/db/models"
@@ -415,6 +417,313 @@ func TestCatalogModelRepository(t *testing.T) {
 		assert.NotContains(t, result, "provider") // "HuggingFace" is > 10 chars
 		assert.NotContains(t, result, "tasks")
 	})
+
+	t.Run("TestAccuracySorting", func(t *testing.T) {
+		// Get the CatalogMetricsArtifact type ID for creating accuracy metrics
+		metricsTypeID := getCatalogMetricsArtifactTypeID(t, sharedDB)
+		metricsRepo := service.NewCatalogMetricsArtifactRepository(sharedDB, metricsTypeID)
+
+		// Create test models with different accuracy scores
+		testModels := []struct {
+			name     string
+			accuracy *float64 // nil means no accuracy score
+		}{
+			{"high-accuracy-model", apiutils.Of(95.5)},
+			{"medium-accuracy-model", apiutils.Of(75.0)},
+			{"low-accuracy-model", apiutils.Of(45.2)},
+			{"no-accuracy-model", nil},
+			{"zero-accuracy-model", apiutils.Of(0.0)},
+		}
+
+		var savedModels []models.CatalogModel
+		for _, testModel := range testModels {
+			// Create the model
+			catalogModel := &models.CatalogModelImpl{
+				Attributes: &models.CatalogModelAttributes{
+					Name:       apiutils.Of(testModel.name),
+					ExternalID: apiutils.Of(testModel.name + "-ext"),
+				},
+			}
+
+			savedModel, err := repo.Save(catalogModel)
+			require.NoError(t, err)
+			savedModels = append(savedModels, savedModel)
+
+			// Create accuracy metrics artifact if accuracy score is provided
+			if testModel.accuracy != nil {
+				metricsArtifact := &models.CatalogMetricsArtifactImpl{
+					Attributes: &models.CatalogMetricsArtifactAttributes{
+						Name:        apiutils.Of(fmt.Sprintf("accuracy-metrics-%s", testModel.name)),
+						ExternalID:  apiutils.Of(fmt.Sprintf("accuracy-metrics-%s", testModel.name)),
+						MetricsType: models.MetricsTypeAccuracy,
+					},
+					CustomProperties: &[]dbmodels.Properties{
+						{
+							Name:        "overall_average",
+							DoubleValue: testModel.accuracy,
+						},
+						{
+							Name:        "benchmark1",
+							DoubleValue: apiutils.Of(*testModel.accuracy + 1.0), // Individual benchmark score
+						},
+						{
+							Name:        "benchmark2",
+							DoubleValue: apiutils.Of(*testModel.accuracy - 1.0), // Individual benchmark score
+						},
+					},
+				}
+
+				_, err := metricsRepo.Save(metricsArtifact, savedModel.GetID())
+				require.NoError(t, err)
+			}
+		}
+
+		// Test ACCURACY sorting DESC (default)
+		listOptions := models.CatalogModelListOptions{
+			Pagination: dbmodels.Pagination{
+				OrderBy:   apiutils.Of("ACCURACY"),
+				SortOrder: apiutils.Of("DESC"),
+			},
+		}
+		result, err := repo.List(listOptions)
+		require.NoError(t, err)
+		require.NotNil(t, result)
+
+		// Verify DESC order: high accuracy first, then medium, low, zero, then models without accuracy scores
+		var accuracyModelsFound []string
+		for _, model := range result.Items {
+			name := *model.GetAttributes().Name
+			if name == "high-accuracy-model" || name == "medium-accuracy-model" ||
+			   name == "low-accuracy-model" || name == "zero-accuracy-model" || name == "no-accuracy-model" {
+				accuracyModelsFound = append(accuracyModelsFound, name)
+			}
+		}
+
+		// We should have found all our test models
+		require.GreaterOrEqual(t, len(accuracyModelsFound), 5)
+
+		// Check that high accuracy comes before medium accuracy
+		highIdx := findIndex(accuracyModelsFound, "high-accuracy-model")
+		mediumIdx := findIndex(accuracyModelsFound, "medium-accuracy-model")
+		lowIdx := findIndex(accuracyModelsFound, "low-accuracy-model")
+		zeroIdx := findIndex(accuracyModelsFound, "zero-accuracy-model")
+		noAccIdx := findIndex(accuracyModelsFound, "no-accuracy-model")
+
+		require.NotEqual(t, -1, highIdx, "high-accuracy-model not found in results")
+		require.NotEqual(t, -1, mediumIdx, "medium-accuracy-model not found in results")
+		require.NotEqual(t, -1, lowIdx, "low-accuracy-model not found in results")
+		require.NotEqual(t, -1, zeroIdx, "zero-accuracy-model not found in results")
+		require.NotEqual(t, -1, noAccIdx, "no-accuracy-model not found in results")
+
+		// Verify DESC ordering: high > medium > low > zero > no-accuracy
+		assert.Less(t, highIdx, mediumIdx, "high accuracy model should come before medium accuracy")
+		assert.Less(t, mediumIdx, lowIdx, "medium accuracy model should come before low accuracy")
+		assert.Less(t, lowIdx, zeroIdx, "low accuracy model should come before zero accuracy")
+		assert.Less(t, zeroIdx, noAccIdx, "zero accuracy model should come before no accuracy")
+
+		// Test ACCURACY sorting ASC
+		listOptions = models.CatalogModelListOptions{
+			Pagination: dbmodels.Pagination{
+				OrderBy:   apiutils.Of("ACCURACY"),
+				SortOrder: apiutils.Of("ASC"),
+			},
+		}
+		result, err = repo.List(listOptions)
+		require.NoError(t, err)
+		require.NotNil(t, result)
+
+		// Find our test models in ASC results
+		accuracyModelsFound = []string{}
+		for _, model := range result.Items {
+			name := *model.GetAttributes().Name
+			if name == "high-accuracy-model" || name == "medium-accuracy-model" ||
+			   name == "low-accuracy-model" || name == "zero-accuracy-model" || name == "no-accuracy-model" {
+				accuracyModelsFound = append(accuracyModelsFound, name)
+			}
+		}
+
+		// Get indices for ASC order
+		highIdxAsc := findIndex(accuracyModelsFound, "high-accuracy-model")
+		mediumIdxAsc := findIndex(accuracyModelsFound, "medium-accuracy-model")
+		lowIdxAsc := findIndex(accuracyModelsFound, "low-accuracy-model")
+		zeroIdxAsc := findIndex(accuracyModelsFound, "zero-accuracy-model")
+		noAccIdxAsc := findIndex(accuracyModelsFound, "no-accuracy-model")
+
+		// Verify ASC ordering: zero < low < medium < high, with no-accuracy still last
+		assert.Less(t, zeroIdxAsc, lowIdxAsc, "zero accuracy model should come before low accuracy in ASC")
+		assert.Less(t, lowIdxAsc, mediumIdxAsc, "low accuracy model should come before medium accuracy in ASC")
+		assert.Less(t, mediumIdxAsc, highIdxAsc, "medium accuracy model should come before high accuracy in ASC")
+		assert.Less(t, highIdxAsc, noAccIdxAsc, "models with accuracy should come before models without accuracy in ASC")
+
+		// Test fallback to standard sorting for non-ACCURACY orderBy
+		listOptions = models.CatalogModelListOptions{
+			Pagination: dbmodels.Pagination{
+				OrderBy:   apiutils.Of("ID"),
+				SortOrder: apiutils.Of("ASC"),
+			},
+		}
+		result, err = repo.List(listOptions)
+		require.NoError(t, err)
+		require.NotNil(t, result)
+		// Should not error and should return results (detailed verification not needed since we're testing fallback)
+		assert.Greater(t, len(result.Items), 0)
+	})
+
+	t.Run("TestAccuracySortingPagination", func(t *testing.T) {
+		// Get the CatalogMetricsArtifact type ID for creating accuracy metrics
+		metricsTypeID := getCatalogMetricsArtifactTypeID(t, sharedDB)
+		metricsRepo := service.NewCatalogMetricsArtifactRepository(sharedDB, metricsTypeID)
+
+		// Create 5 test models with accuracy scores for pagination testing
+		// Use unique names to avoid interference with other tests
+		testModels := []struct {
+			name     string
+			accuracy float64
+		}{
+			{"pagination-test-model-a", 95.0}, // Should be first in DESC order
+			{"pagination-test-model-b", 85.0},
+			{"pagination-test-model-c", 75.0},
+			{"pagination-test-model-d", 65.0},
+			{"pagination-test-model-e", 55.0}, // Should be last in DESC order
+		}
+
+		var savedModels []models.CatalogModel
+		for _, testModel := range testModels {
+			// Create the model
+			catalogModel := &models.CatalogModelImpl{
+				Attributes: &models.CatalogModelAttributes{
+					Name:       apiutils.Of(testModel.name),
+					ExternalID: apiutils.Of(testModel.name + "-ext"),
+				},
+			}
+
+			savedModel, err := repo.Save(catalogModel)
+			require.NoError(t, err)
+			savedModels = append(savedModels, savedModel)
+
+			// Create accuracy metrics artifact
+			metricsArtifact := &models.CatalogMetricsArtifactImpl{
+				Attributes: &models.CatalogMetricsArtifactAttributes{
+					Name:        apiutils.Of(fmt.Sprintf("accuracy-metrics-%s", testModel.name)),
+					ExternalID:  apiutils.Of(fmt.Sprintf("accuracy-metrics-%s", testModel.name)),
+					MetricsType: models.MetricsTypeAccuracy,
+				},
+				CustomProperties: &[]dbmodels.Properties{
+					{
+						Name:        "overall_average",
+						DoubleValue: &testModel.accuracy,
+					},
+				},
+			}
+
+			_, err = metricsRepo.Save(metricsArtifact, savedModel.GetID())
+			require.NoError(t, err)
+		}
+
+		// Test pagination by collecting all pages
+		// This approach is more robust and less sensitive to test interference
+		listOptions := models.CatalogModelListOptions{
+			Pagination: dbmodels.Pagination{
+				OrderBy:   apiutils.Of("ACCURACY"),
+				SortOrder: apiutils.Of("DESC"),
+				PageSize:  apiutils.Of(int32(2)),
+			},
+		}
+
+		// Collect all our test models across pages
+		var allPaginatedModels []models.CatalogModel
+		var pageCount int
+		currentToken := (*string)(nil)
+
+		for {
+			pageCount++
+			if currentToken != nil {
+				listOptions.Pagination.NextPageToken = currentToken
+			}
+
+			page, err := repo.List(listOptions)
+			require.NoError(t, err)
+			require.NotNil(t, page)
+			assert.Equal(t, int32(2), page.PageSize)
+
+			// Filter to only include our test models
+			for _, model := range page.Items {
+				if strings.HasPrefix(*model.GetAttributes().Name, "pagination-test-model-") {
+					allPaginatedModels = append(allPaginatedModels, model)
+				}
+			}
+
+			// Stop if no more pages or we've collected all our test models
+			if page.NextPageToken == "" || len(allPaginatedModels) >= 5 {
+				if page.NextPageToken == "" {
+					t.Logf("Pagination completed in %d pages", pageCount)
+				}
+				break
+			}
+			currentToken = &page.NextPageToken
+
+			// Safety check to prevent infinite loop
+			if pageCount > 10 {
+				t.Fatal("Too many pages, might be an infinite loop")
+			}
+		}
+
+		// Verify we collected all our test models
+		assert.GreaterOrEqual(t, len(allPaginatedModels), 5, "Should have found all pagination test models")
+
+		// Extract names and verify ordering (DESC by accuracy)
+		var modelNames []string
+		for _, model := range allPaginatedModels {
+			if strings.HasPrefix(*model.GetAttributes().Name, "pagination-test-model-") {
+				modelNames = append(modelNames, *model.GetAttributes().Name)
+			}
+		}
+
+		// Check that pagination preserved the correct ordering
+		// In DESC order: a(95.0) -> b(85.0) -> c(75.0) -> d(65.0) -> e(55.0)
+		expectedOrder := []string{
+			"pagination-test-model-a", // 95.0 (highest)
+			"pagination-test-model-b", // 85.0
+			"pagination-test-model-c", // 75.0
+			"pagination-test-model-d", // 65.0
+			"pagination-test-model-e", // 55.0 (lowest)
+		}
+
+		// Verify our test models appear in correct order (allowing for other models in between)
+		lastIndex := -1
+		for _, expectedModel := range expectedOrder {
+			foundIndex := -1
+			for i, actualModel := range modelNames {
+				if actualModel == expectedModel {
+					foundIndex = i
+					break
+				}
+			}
+			assert.NotEqual(t, -1, foundIndex, "Should find model %s", expectedModel)
+			if foundIndex != -1 {
+				assert.Greater(t, foundIndex, lastIndex, "Model %s should appear after previous models in DESC order", expectedModel)
+				lastIndex = foundIndex
+			}
+		}
+
+		// Test ASC pagination briefly to verify token generation works in both directions
+		listOptions = models.CatalogModelListOptions{
+			Pagination: dbmodels.Pagination{
+				OrderBy:   apiutils.Of("ACCURACY"),
+				SortOrder: apiutils.Of("ASC"),
+				PageSize:  apiutils.Of(int32(3)),
+			},
+		}
+
+		pageAsc, err := repo.List(listOptions)
+		require.NoError(t, err)
+		require.NotNil(t, pageAsc)
+
+		// Just verify that ASC pagination works and generates tokens when there are more results
+		if len(pageAsc.Items) == 3 {
+			assert.NotEmpty(t, pageAsc.NextPageToken, "Should have next page token in ASC order when page is full")
+		}
+	})
 }
 
 // Helper function to get or create CatalogModel type ID
@@ -426,4 +735,15 @@ func getCatalogModelTypeID(t *testing.T, db *gorm.DB) int32 {
 	}
 
 	return typeRecord.ID
+}
+
+
+// Helper function to find index of string in slice
+func findIndex(slice []string, target string) int {
+	for i, item := range slice {
+		if item == target {
+			return i
+		}
+	}
+	return -1
 }

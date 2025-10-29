@@ -348,12 +348,17 @@ components:
           additionalProperties:
             $ref: "#/components/schemas/FilterOption"
     OrderByField:
-      description: Supported fields for ordering result entities.
+      description: |-
+        Supported fields for ordering result entities.
+
+        The `ACCURACY` sort only applies to catalog models, and will sort by
+        the `overall_average` property in any linked metrics artifact.
       enum:
         - CREATE_TIME
         - LAST_UPDATE_TIME
         - ID
         - NAME
+        - ACCURACY
       type: string
 
   responses:
