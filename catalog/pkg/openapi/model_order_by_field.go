@@ -15,7 +15,7 @@ import (
 	"fmt"
 )
 
-// OrderByField Supported fields for ordering result entities.
+// OrderByField Supported fields for ordering result entities.  The `ACCURACY` sort only applies to catalog models, and will sort by the `overall_average` property in any linked metrics artifact.
 type OrderByField string
 
 // List of OrderByField
