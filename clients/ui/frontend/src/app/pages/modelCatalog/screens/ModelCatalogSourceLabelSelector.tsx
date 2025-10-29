@@ -12,6 +12,7 @@ import {
 import { ArrowRightIcon, FilterIcon } from '@patternfly/react-icons';
 import React from 'react';
 import { useThemeContext } from 'mod-arch-kubeflow';
+import ModelCatalogActiveFilters from '~/app/pages/modelCatalog/components/ModelCatalogActiveFilters';
 import ThemeAwareSearchInput from '~/app/pages/modelRegistry/screens/components/ThemeAwareSearchInput';
 import ModelCatalogSourceLabelBlocks from './ModelCatalogSourceLabelBlocks';
 
@@ -19,12 +20,14 @@ type ModelCatalogSourceLabelSelectorProps = {
   searchTerm?: string;
   onSearch?: (term: string) => void;
   onClearSearch?: () => void;
+  onResetAllFilters?: () => void;
 };
 
 const ModelCatalogSourceLabelSelector: React.FC<ModelCatalogSourceLabelSelectorProps> = ({
   searchTerm,
   onSearch,
   onClearSearch,
+  onResetAllFilters,
 }) => {
   const [inputValue, setInputValue] = React.useState(searchTerm || '');
   const { isMUITheme } = useThemeContext();
@@ -97,6 +100,15 @@ const ModelCatalogSourceLabelSelector: React.FC<ModelCatalogSourceLabelSelectorP
             </Flex>
           </ToolbarContent>
         </Toolbar>
+      </StackItem>
+      <StackItem className="pf-v6-u-pt-md">
+        {onResetAllFilters && (
+          <ModelCatalogActiveFilters
+            searchTerm={searchTerm}
+            onClearSearch={onClearSearch}
+            onResetAllFilters={onResetAllFilters}
+          />
+        )}
       </StackItem>
       <StackItem>
         <ModelCatalogSourceLabelBlocks />

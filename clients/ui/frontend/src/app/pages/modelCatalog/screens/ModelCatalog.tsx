@@ -63,6 +63,7 @@ const ModelCatalog: React.FC = () => {
               searchTerm={searchTerm}
               onSearch={handleSearch}
               onClearSearch={handleClearSearch}
+              onResetAllFilters={handleFilterReset}
             />
             <PageSection isFilled padding={{ default: 'noPadding' }}>
               {isAllModelsView ? (
