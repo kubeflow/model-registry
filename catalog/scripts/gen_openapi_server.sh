@@ -36,8 +36,6 @@ py-re-replace 0 ', sortOrderParam' ', model.SortOrder(sortOrderParam)' "$PROJECT
 py-re-replace 0 'model\.\[\]ArtifactTypeQueryParam' '[]model.ArtifactTypeQueryParam' "$PROJECT_ROOT"/internal/server/openapi/api.go
 py-re-replace 0 'model\.\[\]ArtifactType2QueryParam' '[]model.ArtifactTypeQueryParam' "$PROJECT_ROOT"/internal/server/openapi/api.go
 
-py-re-replace 1 '"encoding/json"' '' "$PROJECT_ROOT"/internal/server/openapi/api_model_catalog_service.go
-
 py-re-replace 1 'github\.com/kubeflow/model-registry/pkg/openapi' 'github.com/kubeflow/model-registry/catalog/pkg/openapi' \
     "$PROJECT_ROOT"/internal/server/openapi/api_model_catalog_service.go \
     "$PROJECT_ROOT"/internal/server/openapi/api.go
@@ -53,6 +51,6 @@ echo "Applying patches to generated code"
 echo "Assembling type_assert Go file"
 ./scripts/gen_type_asserts.sh "$DST"
 
-gofmt -w "$DST"
+$PROJECT_ROOT/../bin/goimports -w "$DST"
 
 echo "OpenAPI server generation completed"

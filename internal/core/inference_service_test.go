@@ -143,7 +143,7 @@ func TestUpsertInferenceService(t *testing.T) {
 			Name:                 apiutils.Of("custom-props-inference-service"),
 			ServingEnvironmentId: *createdEnv.Id,
 			RegisteredModelId:    *createdModel.Id,
-			CustomProperties:     &customProps,
+			CustomProperties:     customProps,
 		}
 
 		result, err := _service.UpsertInferenceService(input)
@@ -153,7 +153,7 @@ func TestUpsertInferenceService(t *testing.T) {
 		assert.Equal(t, "custom-props-inference-service", *result.Name)
 		assert.NotNil(t, result.CustomProperties)
 
-		resultProps := *result.CustomProperties
+		resultProps := result.CustomProperties
 		assert.Contains(t, resultProps, "model_uri")
 		assert.Contains(t, resultProps, "batch_size")
 		assert.Contains(t, resultProps, "enable_logging")
@@ -1047,7 +1047,7 @@ func TestInferenceServiceRoundTrip(t *testing.T) {
 			Name:                 apiutils.Of("roundtrip-custom-props-inference-service"),
 			ServingEnvironmentId: *createdEnv.Id,
 			RegisteredModelId:    *createdModel.Id,
-			CustomProperties:     &customProps,
+			CustomProperties:     customProps,
 		}
 
 		// Create
@@ -1061,7 +1061,7 @@ func TestInferenceServiceRoundTrip(t *testing.T) {
 
 		// Verify custom properties
 		assert.NotNil(t, retrieved.CustomProperties)
-		retrievedProps := *retrieved.CustomProperties
+		retrievedProps := retrieved.CustomProperties
 		assert.Contains(t, retrievedProps, "deployment_type")
 		assert.Contains(t, retrievedProps, "replicas")
 		assert.Equal(t, "canary", retrievedProps["deployment_type"].MetadataStringValue.StringValue)
@@ -1085,14 +1085,14 @@ func TestInferenceServiceRoundTrip(t *testing.T) {
 				},
 			},
 		}
-		retrieved.CustomProperties = &updatedProps
+		retrieved.CustomProperties = updatedProps
 
 		updated, err := _service.UpsertInferenceService(retrieved)
 		require.NoError(t, err)
 
 		// Verify updated custom properties
 		assert.NotNil(t, updated.CustomProperties)
-		finalProps := *updated.CustomProperties
+		finalProps := updated.CustomProperties
 		assert.Equal(t, "blue-green", finalProps["deployment_type"].MetadataStringValue.StringValue)
 		assert.Equal(t, "5", finalProps["replicas"].MetadataIntValue.IntValue)
 		assert.Equal(t, "new_value", finalProps["new_prop"].MetadataStringValue.StringValue)

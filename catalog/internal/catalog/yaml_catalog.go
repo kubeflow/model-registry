@@ -150,7 +150,7 @@ func (ym *yamlModel) convertModelProperties() ([]models.Properties, []models.Pro
 	}
 
 	// Convert custom properties from the YAML model
-	if customProps := convertCustomProperties(ym.CustomProperties); customProps != nil {
+	if customProps := convertCustomProperties(&ym.CustomProperties); customProps != nil {
 		customProperties = append(customProperties, customProps...)
 	}
 
@@ -184,7 +184,7 @@ func convertModelArtifact(artifact *apimodels.CatalogModelArtifact) *dbmodels.Ca
 	artifactProperties = append(artifactProperties, models.NewStringProperty("uri", artifact.Uri, false))
 
 	// Convert custom properties using helper function
-	if customProps := convertCustomProperties(artifact.CustomProperties); customProps != nil {
+	if customProps := convertCustomProperties(&artifact.CustomProperties); customProps != nil {
 		modelArtifact.CustomProperties = &customProps
 	}
 
@@ -223,7 +223,7 @@ func convertMetricsArtifact(artifact *apimodels.CatalogMetricsArtifact) *dbmodel
 	artifactProperties = append(artifactProperties, models.NewStringProperty("metricsType", artifact.MetricsType, false))
 
 	// Convert custom properties using helper function
-	if customProps := convertCustomProperties(artifact.CustomProperties); customProps != nil {
+	if customProps := convertCustomProperties(&artifact.CustomProperties); customProps != nil {
 		metricsArtifact.CustomProperties = &customProps
 	}
 

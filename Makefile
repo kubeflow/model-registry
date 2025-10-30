@@ -77,7 +77,7 @@ openapi/validate: bin/openapi-generator-cli bin/yq
 
 # generate the openapi server implementation
 .PHONY: gen/openapi-server
-gen/openapi-server: bin/openapi-generator-cli api/openapi/model-registry.yaml api/openapi/catalog.yaml openapi/validate internal/server/openapi/api_model_registry_service.go
+gen/openapi-server: bin/openapi-generator-cli api/openapi/model-registry.yaml api/openapi/catalog.yaml openapi/validate internal/server/openapi/api_model_registry_service.go bin/goimports
 	make -C catalog $@
 
 internal/server/openapi/api_model_registry_service.go: bin/openapi-generator-cli api/openapi/model-registry.yaml
@@ -88,11 +88,11 @@ internal/server/openapi/api_model_registry_service.go: bin/openapi-generator-cli
 gen/openapi: bin/openapi-generator-cli api/openapi/model-registry.yaml api/openapi/catalog.yaml openapi/validate pkg/openapi/client.go
 	make -C catalog $@
 
-pkg/openapi/client.go: bin/openapi-generator-cli api/openapi/model-registry.yaml clean-pkg-openapi
+pkg/openapi/client.go: bin/openapi-generator-cli api/openapi/model-registry.yaml clean-pkg-openapi bin/goimports
 	${OPENAPI_GENERATOR} generate \
 		-i api/openapi/model-registry.yaml -g go -o pkg/openapi --package-name openapi \
-		--ignore-file-override ./.openapi-generator-ignore --additional-properties=isGoSubmodule=true,enumClassPrefix=true,useOneOfDiscriminatorLookup=true
-	gofmt -w pkg/openapi
+		--ignore-file-override ./.openapi-generator-ignore --additional-properties=isGoSubmodule=true,enumClassPrefix=true,useOneOfDiscriminatorLookup=true,generateUnmarshalJSON=false
+	$(PROJECT_BIN)/goimports -w pkg/openapi
 
 # Start the MySQL database
 .PHONY: start/mysql
@@ -208,6 +208,9 @@ ifeq (, $(shell which ${PROJECT_BIN}/openapi-generator-cli 2> /dev/null))
 	ln -s openapi-generator-installation/bin/openapi-generator-cli openapi-generator-cli ;\
 	}
 endif
+
+bin/goimports:
+	GOBIN=$(PROJECT_PATH)/bin ${GO} install golang.org/x/tools/cmd/goimports@latest
 
 .PHONY: clean/deps
 clean/deps:

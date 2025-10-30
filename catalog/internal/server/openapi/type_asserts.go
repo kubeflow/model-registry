@@ -79,6 +79,11 @@ func AssertBaseResourceRequired(obj model.BaseResource) error {
 
 // AssertCatalogArtifactListConstraints checks if the values respects the defined constraints
 func AssertCatalogArtifactListConstraints(obj model.CatalogArtifactList) error {
+	for _, el := range obj.Items {
+		if err := AssertCatalogArtifactConstraints(el); err != nil {
+			return err
+		}
+	}
 	return nil
 }
 
@@ -192,6 +197,11 @@ func AssertCatalogModelConstraints(obj model.CatalogModel) error {
 
 // AssertCatalogModelListConstraints checks if the values respects the defined constraints
 func AssertCatalogModelListConstraints(obj model.CatalogModelList) error {
+	for _, el := range obj.Items {
+		if err := AssertCatalogModelConstraints(el); err != nil {
+			return err
+		}
+	}
 	return nil
 }
 
@@ -238,6 +248,11 @@ func AssertCatalogSourceConstraints(obj model.CatalogSource) error {
 
 // AssertCatalogSourceListConstraints checks if the values respects the defined constraints
 func AssertCatalogSourceListConstraints(obj model.CatalogSourceList) error {
+	for _, el := range obj.Items {
+		if err := AssertCatalogSourceConstraints(el); err != nil {
+			return err
+		}
+	}
 	return nil
 }
 
