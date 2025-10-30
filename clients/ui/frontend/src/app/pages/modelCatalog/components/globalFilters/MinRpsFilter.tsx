@@ -13,7 +13,7 @@ import { HelpIcon } from '@patternfly/react-icons';
 import { ModelCatalogNumberFilterKey } from '~/concepts/modelCatalog/const';
 import { useCatalogNumberFilterState } from '~/app/pages/modelCatalog/utils/modelCatalogUtils';
 import { CatalogPerformanceMetricsArtifact } from '~/app/modelCatalogTypes';
-import { getTotalRps } from '~/app/pages/modelCatalog/utils/performanceMetricsUtils';
+import { getDoubleValue } from '~/app/utils';
 
 const filterKey = ModelCatalogNumberFilterKey.MIN_RPS;
 
@@ -63,7 +63,7 @@ const MinRpsFilter: React.FC<MinRpsFilterProps> = ({ performanceArtifacts }) => 
     }
 
     const rpsValues = performanceArtifacts
-      .map((artifact) => getTotalRps(artifact.customProperties))
+      .map((artifact) => getDoubleValue(artifact.customProperties, 'requests_per_second'))
       .filter((rps) => rps > 0); // Filter out invalid values
 
     if (rpsValues.length === 0) {

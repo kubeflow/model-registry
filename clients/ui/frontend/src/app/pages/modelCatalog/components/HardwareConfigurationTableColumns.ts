@@ -5,11 +5,10 @@ import {
 } from '~/app/modelCatalogTypes';
 import {
   getHardwareConfiguration,
-  getTotalRps,
 } from '~/app/pages/modelCatalog/utils/performanceMetricsUtils';
 import { getDoubleValue, getStringValue } from '~/app/utils';
 
-export type HardwareConfigColumnField = keyof PerformanceMetricsCustomProperties | 'total_rps';
+export type HardwareConfigColumnField = keyof PerformanceMetricsCustomProperties;
 
 export type HardwareConfigColumn = Omit<
   SortableData<CatalogPerformanceMetricsArtifact>,
@@ -42,16 +41,6 @@ export const hardwareConfigColumns: HardwareConfigColumn[] = [
     ): number =>
       getDoubleValue(a.customProperties, 'requests_per_second') -
       getDoubleValue(b.customProperties, 'requests_per_second'),
-    width: 20,
-    modifier: 'wrap',
-  },
-  {
-    field: 'total_rps',
-    label: 'Total RPS',
-    sortable: (
-      a: CatalogPerformanceMetricsArtifact,
-      b: CatalogPerformanceMetricsArtifact,
-    ): number => getTotalRps(a.customProperties) - getTotalRps(b.customProperties),
     width: 20,
     modifier: 'wrap',
   },
