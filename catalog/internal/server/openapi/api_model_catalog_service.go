@@ -53,26 +53,67 @@ func NewModelCatalogServiceAPIController(s ModelCatalogServiceAPIServicer, opts 
 func (c *ModelCatalogServiceAPIController) Routes() Routes {
 	return Routes{
 		"FindModels": Route{
+			"FindModels",
 			strings.ToUpper("Get"),
 			"/api/model_catalog/v1alpha1/models",
 			c.FindModels,
 		},
 		"FindModelsFilterOptions": Route{
+			"FindModelsFilterOptions",
 			strings.ToUpper("Get"),
 			"/api/model_catalog/v1alpha1/models/filter_options",
 			c.FindModelsFilterOptions,
 		},
 		"FindSources": Route{
+			"FindSources",
 			strings.ToUpper("Get"),
 			"/api/model_catalog/v1alpha1/sources",
 			c.FindSources,
 		},
 		"GetModel": Route{
+			"GetModel",
 			strings.ToUpper("Get"),
 			"/api/model_catalog/v1alpha1/sources/{source_id}/models/*",
 			c.GetModel,
 		},
 		"GetAllModelArtifacts": Route{
+			"GetAllModelArtifacts",
+			strings.ToUpper("Get"),
+			"/api/model_catalog/v1alpha1/sources/{source_id}/models/{model_name}/artifacts",
+			c.GetAllModelArtifacts,
+		},
+	}
+}
+
+// OrderedRoutes returns all the api routes in a deterministic order for the ModelCatalogServiceAPIController
+func (c *ModelCatalogServiceAPIController) OrderedRoutes() []Route {
+	return []Route{
+		Route{
+			"FindModels",
+			strings.ToUpper("Get"),
+			"/api/model_catalog/v1alpha1/models",
+			c.FindModels,
+		},
+		Route{
+			"FindModelsFilterOptions",
+			strings.ToUpper("Get"),
+			"/api/model_catalog/v1alpha1/models/filter_options",
+			c.FindModelsFilterOptions,
+		},
+		Route{
+			"FindSources",
+			strings.ToUpper("Get"),
+			"/api/model_catalog/v1alpha1/sources",
+			c.FindSources,
+		},
+		Route{
+			"GetModel",
+			strings.ToUpper("Get"),
+			"/api/model_catalog/v1alpha1/sources/{source_id}/models/*",
+			c.GetModel,
+		},
+		Route{
+			"GetAllModelArtifacts",
 			strings.ToUpper("Get"),
 			"/api/model_catalog/v1alpha1/sources/{source_id}/models/{model_name}/artifacts",
 			c.GetAllModelArtifacts,

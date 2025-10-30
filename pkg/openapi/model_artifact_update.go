@@ -129,66 +129,6 @@ func (dst *ArtifactUpdate) UnmarshalJSON(data []byte) error {
 		}
 	}
 
-	// check if the discriminator value is 'DataSetUpdate'
-	if jsonDict["artifactType"] == "DataSetUpdate" {
-		// try to unmarshal JSON data into DataSetUpdate
-		err = json.Unmarshal(data, &dst.DataSetUpdate)
-		if err == nil {
-			return nil // data stored in dst.DataSetUpdate, return on the first match
-		} else {
-			dst.DataSetUpdate = nil
-			return fmt.Errorf("failed to unmarshal ArtifactUpdate as DataSetUpdate: %s", err.Error())
-		}
-	}
-
-	// check if the discriminator value is 'DocArtifactUpdate'
-	if jsonDict["artifactType"] == "DocArtifactUpdate" {
-		// try to unmarshal JSON data into DocArtifactUpdate
-		err = json.Unmarshal(data, &dst.DocArtifactUpdate)
-		if err == nil {
-			return nil // data stored in dst.DocArtifactUpdate, return on the first match
-		} else {
-			dst.DocArtifactUpdate = nil
-			return fmt.Errorf("failed to unmarshal ArtifactUpdate as DocArtifactUpdate: %s", err.Error())
-		}
-	}
-
-	// check if the discriminator value is 'MetricUpdate'
-	if jsonDict["artifactType"] == "MetricUpdate" {
-		// try to unmarshal JSON data into MetricUpdate
-		err = json.Unmarshal(data, &dst.MetricUpdate)
-		if err == nil {
-			return nil // data stored in dst.MetricUpdate, return on the first match
-		} else {
-			dst.MetricUpdate = nil
-			return fmt.Errorf("failed to unmarshal ArtifactUpdate as MetricUpdate: %s", err.Error())
-		}
-	}
-
-	// check if the discriminator value is 'ModelArtifactUpdate'
-	if jsonDict["artifactType"] == "ModelArtifactUpdate" {
-		// try to unmarshal JSON data into ModelArtifactUpdate
-		err = json.Unmarshal(data, &dst.ModelArtifactUpdate)
-		if err == nil {
-			return nil // data stored in dst.ModelArtifactUpdate, return on the first match
-		} else {
-			dst.ModelArtifactUpdate = nil
-			return fmt.Errorf("failed to unmarshal ArtifactUpdate as ModelArtifactUpdate: %s", err.Error())
-		}
-	}
-
-	// check if the discriminator value is 'ParameterUpdate'
-	if jsonDict["artifactType"] == "ParameterUpdate" {
-		// try to unmarshal JSON data into ParameterUpdate
-		err = json.Unmarshal(data, &dst.ParameterUpdate)
-		if err == nil {
-			return nil // data stored in dst.ParameterUpdate, return on the first match
-		} else {
-			dst.ParameterUpdate = nil
-			return fmt.Errorf("failed to unmarshal ArtifactUpdate as ParameterUpdate: %s", err.Error())
-		}
-	}
-
 	return nil
 }
 

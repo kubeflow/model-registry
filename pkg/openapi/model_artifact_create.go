@@ -129,66 +129,6 @@ func (dst *ArtifactCreate) UnmarshalJSON(data []byte) error {
 		}
 	}
 
-	// check if the discriminator value is 'DataSetCreate'
-	if jsonDict["artifactType"] == "DataSetCreate" {
-		// try to unmarshal JSON data into DataSetCreate
-		err = json.Unmarshal(data, &dst.DataSetCreate)
-		if err == nil {
-			return nil // data stored in dst.DataSetCreate, return on the first match
-		} else {
-			dst.DataSetCreate = nil
-			return fmt.Errorf("failed to unmarshal ArtifactCreate as DataSetCreate: %s", err.Error())
-		}
-	}
-
-	// check if the discriminator value is 'DocArtifactCreate'
-	if jsonDict["artifactType"] == "DocArtifactCreate" {
-		// try to unmarshal JSON data into DocArtifactCreate
-		err = json.Unmarshal(data, &dst.DocArtifactCreate)
-		if err == nil {
-			return nil // data stored in dst.DocArtifactCreate, return on the first match
-		} else {
-			dst.DocArtifactCreate = nil
-			return fmt.Errorf("failed to unmarshal ArtifactCreate as DocArtifactCreate: %s", err.Error())
-		}
-	}
-
-	// check if the discriminator value is 'MetricCreate'
-	if jsonDict["artifactType"] == "MetricCreate" {
-		// try to unmarshal JSON data into MetricCreate
-		err = json.Unmarshal(data, &dst.MetricCreate)
-		if err == nil {
-			return nil // data stored in dst.MetricCreate, return on the first match
-		} else {
-			dst.MetricCreate = nil
-			return fmt.Errorf("failed to unmarshal ArtifactCreate as MetricCreate: %s", err.Error())
-		}
-	}
-
-	// check if the discriminator value is 'ModelArtifactCreate'
-	if jsonDict["artifactType"] == "ModelArtifactCreate" {
-		// try to unmarshal JSON data into ModelArtifactCreate
-		err = json.Unmarshal(data, &dst.ModelArtifactCreate)
-		if err == nil {
-			return nil // data stored in dst.ModelArtifactCreate, return on the first match
-		} else {
-			dst.ModelArtifactCreate = nil
-			return fmt.Errorf("failed to unmarshal ArtifactCreate as ModelArtifactCreate: %s", err.Error())
-		}
-	}
-
-	// check if the discriminator value is 'ParameterCreate'
-	if jsonDict["artifactType"] == "ParameterCreate" {
-		// try to unmarshal JSON data into ParameterCreate
-		err = json.Unmarshal(data, &dst.ParameterCreate)
-		if err == nil {
-			return nil // data stored in dst.ParameterCreate, return on the first match
-		} else {
-			dst.ParameterCreate = nil
-			return fmt.Errorf("failed to unmarshal ArtifactCreate as ParameterCreate: %s", err.Error())
-		}
-	}
-
 	return nil
 }
 

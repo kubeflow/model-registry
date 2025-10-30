@@ -129,66 +129,6 @@ func (dst *Artifact) UnmarshalJSON(data []byte) error {
 		}
 	}
 
-	// check if the discriminator value is 'DataSet'
-	if jsonDict["artifactType"] == "DataSet" {
-		// try to unmarshal JSON data into DataSet
-		err = json.Unmarshal(data, &dst.DataSet)
-		if err == nil {
-			return nil // data stored in dst.DataSet, return on the first match
-		} else {
-			dst.DataSet = nil
-			return fmt.Errorf("failed to unmarshal Artifact as DataSet: %s", err.Error())
-		}
-	}
-
-	// check if the discriminator value is 'DocArtifact'
-	if jsonDict["artifactType"] == "DocArtifact" {
-		// try to unmarshal JSON data into DocArtifact
-		err = json.Unmarshal(data, &dst.DocArtifact)
-		if err == nil {
-			return nil // data stored in dst.DocArtifact, return on the first match
-		} else {
-			dst.DocArtifact = nil
-			return fmt.Errorf("failed to unmarshal Artifact as DocArtifact: %s", err.Error())
-		}
-	}
-
-	// check if the discriminator value is 'Metric'
-	if jsonDict["artifactType"] == "Metric" {
-		// try to unmarshal JSON data into Metric
-		err = json.Unmarshal(data, &dst.Metric)
-		if err == nil {
-			return nil // data stored in dst.Metric, return on the first match
-		} else {
-			dst.Metric = nil
-			return fmt.Errorf("failed to unmarshal Artifact as Metric: %s", err.Error())
-		}
-	}
-
-	// check if the discriminator value is 'ModelArtifact'
-	if jsonDict["artifactType"] == "ModelArtifact" {
-		// try to unmarshal JSON data into ModelArtifact
-		err = json.Unmarshal(data, &dst.ModelArtifact)
-		if err == nil {
-			return nil // data stored in dst.ModelArtifact, return on the first match
-		} else {
-			dst.ModelArtifact = nil
-			return fmt.Errorf("failed to unmarshal Artifact as ModelArtifact: %s", err.Error())
-		}
-	}
-
-	// check if the discriminator value is 'Parameter'
-	if jsonDict["artifactType"] == "Parameter" {
-		// try to unmarshal JSON data into Parameter
-		err = json.Unmarshal(data, &dst.Parameter)
-		if err == nil {
-			return nil // data stored in dst.Parameter, return on the first match
-		} else {
-			dst.Parameter = nil
-			return fmt.Errorf("failed to unmarshal Artifact as Parameter: %s", err.Error())
-		}
-	}
-
 	return nil
 }
 
