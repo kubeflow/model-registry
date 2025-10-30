@@ -20,7 +20,7 @@ var _ MappedNullable = &Metric{}
 // Metric A metric representing a numerical measurement from model training or evaluation.
 type Metric struct {
 	// User provided custom properties which are not defined by its type.
-	CustomProperties *map[string]MetadataValue `json:"customProperties,omitempty"`
+	CustomProperties map[string]MetadataValue `json:"customProperties,omitempty"`
 	// An optional description about the resource.
 	Description *string `json:"description,omitempty"`
 	// The external id that come from the clients’ system. This field is optional. If set, it must be unique among all resources within a database instance.
@@ -78,14 +78,14 @@ func (o *Metric) GetCustomProperties() map[string]MetadataValue {
 		var ret map[string]MetadataValue
 		return ret
 	}
-	return *o.CustomProperties
+	return o.CustomProperties
 }
 
 // GetCustomPropertiesOk returns a tuple with the CustomProperties field value if set, nil otherwise
 // and a boolean to check if the value has been set.
-func (o *Metric) GetCustomPropertiesOk() (*map[string]MetadataValue, bool) {
+func (o *Metric) GetCustomPropertiesOk() (map[string]MetadataValue, bool) {
 	if o == nil || IsNil(o.CustomProperties) {
-		return nil, false
+		return map[string]MetadataValue{}, false
 	}
 	return o.CustomProperties, true
 }
@@ -101,7 +101,7 @@ func (o *Metric) HasCustomProperties() bool {
 
 // SetCustomProperties gets a reference to the given map[string]MetadataValue and assigns it to the CustomProperties field.
 func (o *Metric) SetCustomProperties(v map[string]MetadataValue) {
-	o.CustomProperties = &v
+	o.CustomProperties = v
 }
 
 // GetDescription returns the Description field value if set, zero value otherwise.

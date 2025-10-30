@@ -11,7 +11,9 @@ API version: v1alpha3
 package openapi
 
 import (
+	"bytes"
 	"encoding/json"
+	"fmt"
 )
 
 // checks if the ServeModelCreate type satisfies the MappedNullable interface at compile time
@@ -20,7 +22,7 @@ var _ MappedNullable = &ServeModelCreate{}
 // ServeModelCreate An ML model serving action.
 type ServeModelCreate struct {
 	// User provided custom properties which are not defined by its type.
-	CustomProperties *map[string]MetadataValue `json:"customProperties,omitempty"`
+	CustomProperties map[string]MetadataValue `json:"customProperties,omitempty"`
 	// An optional description about the resource.
 	Description *string `json:"description,omitempty"`
 	// The external id that come from the clients’ system. This field is optional. If set, it must be unique among all resources within a database instance.
@@ -31,6 +33,8 @@ type ServeModelCreate struct {
 	// ID of the `ModelVersion` that was served in `InferenceService`.
 	ModelVersionId string `json:"modelVersionId"`
 }
+
+type _ServeModelCreate ServeModelCreate
 
 // NewServeModelCreate instantiates a new ServeModelCreate object
 // This constructor will assign default values to properties that have it defined,
@@ -60,14 +64,14 @@ func (o *ServeModelCreate) GetCustomProperties() map[string]MetadataValue {
 		var ret map[string]MetadataValue
 		return ret
 	}
-	return *o.CustomProperties
+	return o.CustomProperties
 }
 
 // GetCustomPropertiesOk returns a tuple with the CustomProperties field value if set, nil otherwise
 // and a boolean to check if the value has been set.
-func (o *ServeModelCreate) GetCustomPropertiesOk() (*map[string]MetadataValue, bool) {
+func (o *ServeModelCreate) GetCustomPropertiesOk() (map[string]MetadataValue, bool) {
 	if o == nil || IsNil(o.CustomProperties) {
-		return nil, false
+		return map[string]MetadataValue{}, false
 	}
 	return o.CustomProperties, true
 }
@@ -83,7 +87,7 @@ func (o *ServeModelCreate) HasCustomProperties() bool {
 
 // SetCustomProperties gets a reference to the given map[string]MetadataValue and assigns it to the CustomProperties field.
 func (o *ServeModelCreate) SetCustomProperties(v map[string]MetadataValue) {
-	o.CustomProperties = &v
+	o.CustomProperties = v
 }
 
 // GetDescription returns the Description field value if set, zero value otherwise.
@@ -265,6 +269,43 @@ func (o ServeModelCreate) ToMap() (map[string]interface{}, error) {
 	}
 	toSerialize["modelVersionId"] = o.ModelVersionId
 	return toSerialize, nil
+}
+
+func (o *ServeModelCreate) UnmarshalJSON(data []byte) (err error) {
+	// This validates that all required properties are included in the JSON object
+	// by unmarshalling the object into a generic map with string keys and checking
+	// that every required field exists as a key in the generic map.
+	requiredProperties := []string{
+		"modelVersionId",
+	}
+
+	allProperties := make(map[string]interface{})
+
+	err = json.Unmarshal(data, &allProperties)
+
+	if err != nil {
+		return err
+	}
+
+	for _, requiredProperty := range requiredProperties {
+		if _, exists := allProperties[requiredProperty]; !exists {
+			return fmt.Errorf("no value given for required property %v", requiredProperty)
+		}
+	}
+
+	varServeModelCreate := _ServeModelCreate{}
+
+	decoder := json.NewDecoder(bytes.NewReader(data))
+	decoder.DisallowUnknownFields()
+	err = decoder.Decode(&varServeModelCreate)
+
+	if err != nil {
+		return err
+	}
+
+	*o = ServeModelCreate(varServeModelCreate)
+
+	return err
 }
 
 type NullableServeModelCreate struct {

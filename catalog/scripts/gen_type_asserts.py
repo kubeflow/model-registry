@@ -1,7 +1,6 @@
 import typing as t
 from pathlib import Path
 from textwrap import dedent
-import sys
 
 def get_funcs(models: t.Iterable[Path]) -> t.Iterator[str]:
     for path in models:
@@ -50,7 +49,7 @@ if __name__ == "__main__":
     src = root / "internal/server/openapi"
 
     print(
-        dedent(f"""
+        dedent("""
 /*
  * Model Registry REST API
  *

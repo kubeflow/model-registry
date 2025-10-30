@@ -39,7 +39,7 @@ func TestYamlModelToModelProviderRecord(t *testing.T) {
 					SourceId:                 apiutils.Of("test-source"),
 					CreateTimeSinceEpoch:     apiutils.Of("1678886400000"),
 					LastUpdateTimeSinceEpoch: apiutils.Of("1681564800000"),
-					CustomProperties: &map[string]model.MetadataValue{
+					CustomProperties: map[string]model.MetadataValue{
 						"custom_key": {
 							MetadataStringValue: &model.MetadataStringValue{
 								StringValue:  "custom_value",
@@ -56,7 +56,7 @@ func TestYamlModelToModelProviderRecord(t *testing.T) {
 								Uri:                      "https://example.com/model.tar.gz",
 								CreateTimeSinceEpoch:     apiutils.Of("1678886400000"),
 								LastUpdateTimeSinceEpoch: apiutils.Of("1681564800000"),
-								CustomProperties: &map[string]model.MetadataValue{
+								CustomProperties: map[string]model.MetadataValue{
 									"model_size": {
 										MetadataStringValue: &model.MetadataStringValue{
 											StringValue:  "2GB",
@@ -80,7 +80,7 @@ func TestYamlModelToModelProviderRecord(t *testing.T) {
 								MetricsType:              "evaluation-metrics",
 								CreateTimeSinceEpoch:     apiutils.Of("1678886400000"),
 								LastUpdateTimeSinceEpoch: apiutils.Of("1681564800000"),
-								CustomProperties: &map[string]model.MetadataValue{
+								CustomProperties: map[string]model.MetadataValue{
 									"framework": {
 										MetadataStringValue: &model.MetadataStringValue{
 											StringValue:  "scikit-learn",

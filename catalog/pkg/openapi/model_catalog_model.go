@@ -39,7 +39,7 @@ type CatalogModel struct {
 	LicenseLink *string `json:"licenseLink,omitempty"`
 	LibraryName *string `json:"libraryName,omitempty"`
 	// User provided custom properties which are not defined by its type.
-	CustomProperties *map[string]MetadataValue `json:"customProperties,omitempty"`
+	CustomProperties map[string]MetadataValue `json:"customProperties,omitempty"`
 	// The external id that come from the clients’ system. This field is optional. If set, it must be unique among all resources within a database instance.
 	ExternalId *string `json:"externalId,omitempty"`
 	// Name of the model. Must be unique within a source.
@@ -53,6 +53,8 @@ type CatalogModel struct {
 	// ID of the source this model belongs to.
 	SourceId *string `json:"source_id,omitempty"`
 }
+
+type _CatalogModel CatalogModel
 
 // NewCatalogModel instantiates a new CatalogModel object
 // This constructor will assign default values to properties that have it defined,
@@ -398,14 +400,14 @@ func (o *CatalogModel) GetCustomProperties() map[string]MetadataValue {
 		var ret map[string]MetadataValue
 		return ret
 	}
-	return *o.CustomProperties
+	return o.CustomProperties
 }
 
 // GetCustomPropertiesOk returns a tuple with the CustomProperties field value if set, nil otherwise
 // and a boolean to check if the value has been set.
-func (o *CatalogModel) GetCustomPropertiesOk() (*map[string]MetadataValue, bool) {
+func (o *CatalogModel) GetCustomPropertiesOk() (map[string]MetadataValue, bool) {
 	if o == nil || IsNil(o.CustomProperties) {
-		return nil, false
+		return map[string]MetadataValue{}, false
 	}
 	return o.CustomProperties, true
 }
@@ -421,7 +423,7 @@ func (o *CatalogModel) HasCustomProperties() bool {
 
 // SetCustomProperties gets a reference to the given map[string]MetadataValue and assigns it to the CustomProperties field.
 func (o *CatalogModel) SetCustomProperties(v map[string]MetadataValue) {
-	o.CustomProperties = &v
+	o.CustomProperties = v
 }
 
 // GetExternalId returns the ExternalId field value if set, zero value otherwise.

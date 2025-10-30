@@ -11,7 +11,9 @@ API version: v1alpha3
 package openapi
 
 import (
+	"bytes"
 	"encoding/json"
+	"fmt"
 )
 
 // checks if the MetadataBoolValue type satisfies the MappedNullable interface at compile time
@@ -22,6 +24,8 @@ type MetadataBoolValue struct {
 	BoolValue    bool   `json:"bool_value"`
 	MetadataType string `json:"metadataType"`
 }
+
+type _MetadataBoolValue MetadataBoolValue
 
 // NewMetadataBoolValue instantiates a new MetadataBoolValue object
 // This constructor will assign default values to properties that have it defined,
@@ -105,6 +109,44 @@ func (o MetadataBoolValue) ToMap() (map[string]interface{}, error) {
 	toSerialize["bool_value"] = o.BoolValue
 	toSerialize["metadataType"] = o.MetadataType
 	return toSerialize, nil
+}
+
+func (o *MetadataBoolValue) UnmarshalJSON(data []byte) (err error) {
+	// This validates that all required properties are included in the JSON object
+	// by unmarshalling the object into a generic map with string keys and checking
+	// that every required field exists as a key in the generic map.
+	requiredProperties := []string{
+		"bool_value",
+		"metadataType",
+	}
+
+	allProperties := make(map[string]interface{})
+
+	err = json.Unmarshal(data, &allProperties)
+
+	if err != nil {
+		return err
+	}
+
+	for _, requiredProperty := range requiredProperties {
+		if _, exists := allProperties[requiredProperty]; !exists {
+			return fmt.Errorf("no value given for required property %v", requiredProperty)
+		}
+	}
+
+	varMetadataBoolValue := _MetadataBoolValue{}
+
+	decoder := json.NewDecoder(bytes.NewReader(data))
+	decoder.DisallowUnknownFields()
+	err = decoder.Decode(&varMetadataBoolValue)
+
+	if err != nil {
+		return err
+	}
+
+	*o = MetadataBoolValue(varMetadataBoolValue)
+
+	return err
 }
 
 type NullableMetadataBoolValue struct {

@@ -214,6 +214,36 @@ func (obj *MetadataValue) GetActualInstance() interface{} {
 	return nil
 }
 
+// Get the actual instance value
+func (obj MetadataValue) GetActualInstanceValue() interface{} {
+	if obj.MetadataBoolValue != nil {
+		return *obj.MetadataBoolValue
+	}
+
+	if obj.MetadataDoubleValue != nil {
+		return *obj.MetadataDoubleValue
+	}
+
+	if obj.MetadataIntValue != nil {
+		return *obj.MetadataIntValue
+	}
+
+	if obj.MetadataProtoValue != nil {
+		return *obj.MetadataProtoValue
+	}
+
+	if obj.MetadataStringValue != nil {
+		return *obj.MetadataStringValue
+	}
+
+	if obj.MetadataStructValue != nil {
+		return *obj.MetadataStructValue
+	}
+
+	// all schemas are nil
+	return nil
+}
+
 type NullableMetadataValue struct {
 	value *MetadataValue
 	isSet bool

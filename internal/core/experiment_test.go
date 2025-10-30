@@ -22,7 +22,7 @@ func TestUpsertExperiment(t *testing.T) {
 			Description: apiutils.Of("Test experiment description"),
 			Owner:       apiutils.Of("test-owner"),
 			ExternalId:  apiutils.Of("exp-ext-123"),
-			CustomProperties: &map[string]openapi.MetadataValue{
+			CustomProperties: map[string]openapi.MetadataValue{
 				"project": {
 					MetadataStringValue: &openapi.MetadataStringValue{
 						StringValue:  "ml-project",
@@ -44,7 +44,7 @@ func TestUpsertExperiment(t *testing.T) {
 		assert.NotNil(t, result.CreateTimeSinceEpoch)
 		assert.NotNil(t, result.LastUpdateTimeSinceEpoch)
 		assert.NotNil(t, result.CustomProperties)
-		assert.Contains(t, *result.CustomProperties, "project")
+		assert.Contains(t, result.CustomProperties, "project")
 	})
 
 	t.Run("successful update", func(t *testing.T) {
@@ -244,7 +244,7 @@ func TestExperimentNonEditableFieldsProtection(t *testing.T) {
 			Description: apiutils.Of("Original description"),
 			Owner:       apiutils.Of("original-owner"),
 			ExternalId:  apiutils.Of("original-ext-id"),
-			CustomProperties: &map[string]openapi.MetadataValue{
+			CustomProperties: map[string]openapi.MetadataValue{
 				"original_prop": {
 					MetadataStringValue: &openapi.MetadataStringValue{
 						StringValue:  "original_value",
@@ -275,7 +275,7 @@ func TestExperimentNonEditableFieldsProtection(t *testing.T) {
 			Description:              apiutils.Of("Updated description"), // This should be updated (editable)
 			Owner:                    apiutils.Of("updated-owner"),       // This should be updated (editable)
 			ExternalId:               apiutils.Of("updated-ext-id"),      // This should be updated (editable)
-			CustomProperties: &map[string]openapi.MetadataValue{
+			CustomProperties: map[string]openapi.MetadataValue{
 				"updated_prop": {
 					MetadataStringValue: &openapi.MetadataStringValue{
 						StringValue:  "updated_value",
@@ -301,7 +301,7 @@ func TestExperimentNonEditableFieldsProtection(t *testing.T) {
 		assert.Equal(t, "Updated description", *updated.Description, "Description should be updatable")
 		assert.Equal(t, "updated-owner", *updated.Owner, "Owner should be updatable")
 		assert.Equal(t, "updated-ext-id", *updated.ExternalId, "ExternalId should be updatable")
-		assert.Contains(t, *updated.CustomProperties, "updated_prop", "CustomProperties should be updatable")
+		assert.Contains(t, updated.CustomProperties, "updated_prop", "CustomProperties should be updatable")
 	})
 
 	t.Run("partial update preserves existing editable fields", func(t *testing.T) {
@@ -311,7 +311,7 @@ func TestExperimentNonEditableFieldsProtection(t *testing.T) {
 			Description: apiutils.Of("Original description"),
 			Owner:       apiutils.Of("original-owner"),
 			ExternalId:  apiutils.Of("original-ext-id"),
-			CustomProperties: &map[string]openapi.MetadataValue{
+			CustomProperties: map[string]openapi.MetadataValue{
 				"keep_this": {
 					MetadataStringValue: &openapi.MetadataStringValue{
 						StringValue:  "keep_value",
@@ -337,7 +337,7 @@ func TestExperimentNonEditableFieldsProtection(t *testing.T) {
 		assert.Equal(t, "Updated description only", *updated.Description, "Description should be updated")
 		assert.Equal(t, "original-owner", *updated.Owner, "Owner should be preserved from existing")
 		assert.Equal(t, "original-ext-id", *updated.ExternalId, "ExternalId should be preserved from existing")
-		assert.Contains(t, *updated.CustomProperties, "keep_this", "CustomProperties should be preserved from existing")
+		assert.Contains(t, updated.CustomProperties, "keep_this", "CustomProperties should be preserved from existing")
 	})
 }
 
@@ -355,7 +355,7 @@ func TestGetExperimentsWithFilterQuery(t *testing.T) {
 				Description: apiutils.Of("Natural Language Processing experiment"),
 				ExternalId:  apiutils.Of("ext-nlp-001"),
 				Owner:       apiutils.Of("alice"),
-				CustomProperties: &map[string]openapi.MetadataValue{
+				CustomProperties: map[string]openapi.MetadataValue{
 					"project": {
 						MetadataStringValue: &openapi.MetadataStringValue{
 							StringValue:  "nlp",
@@ -389,7 +389,7 @@ func TestGetExperimentsWithFilterQuery(t *testing.T) {
 				Description: apiutils.Of("Computer Vision experiment with object detection"),
 				ExternalId:  apiutils.Of("ext-cv-002"),
 				Owner:       apiutils.Of("bob"),
-				CustomProperties: &map[string]openapi.MetadataValue{
+				CustomProperties: map[string]openapi.MetadataValue{
 					"project": {
 						MetadataStringValue: &openapi.MetadataStringValue{
 							StringValue:  "vision",
@@ -429,7 +429,7 @@ func TestGetExperimentsWithFilterQuery(t *testing.T) {
 				Description: apiutils.Of("NLP sentiment analysis experiment"),
 				ExternalId:  apiutils.Of("ext-nlp-003"),
 				Owner:       apiutils.Of("alice"),
-				CustomProperties: &map[string]openapi.MetadataValue{
+				CustomProperties: map[string]openapi.MetadataValue{
 					"project": {
 						MetadataStringValue: &openapi.MetadataStringValue{
 							StringValue:  "nlp",
@@ -463,7 +463,7 @@ func TestGetExperimentsWithFilterQuery(t *testing.T) {
 				Description: apiutils.Of("Reinforcement Learning experiment"),
 				ExternalId:  apiutils.Of("ext-rl-004"),
 				Owner:       apiutils.Of("charlie"),
-				CustomProperties: &map[string]openapi.MetadataValue{
+				CustomProperties: map[string]openapi.MetadataValue{
 					"project": {
 						MetadataStringValue: &openapi.MetadataStringValue{
 							StringValue:  "reinforcement-learning",

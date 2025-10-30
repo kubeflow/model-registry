@@ -93,7 +93,7 @@ func TestUpsertServingEnvironment(t *testing.T) {
 
 		input := &openapi.ServingEnvironment{
 			Name:             "custom-props-serving-env",
-			CustomProperties: &customProps,
+			CustomProperties: customProps,
 		}
 
 		result, err := _service.UpsertServingEnvironment(input)
@@ -103,7 +103,7 @@ func TestUpsertServingEnvironment(t *testing.T) {
 		assert.Equal(t, "custom-props-serving-env", result.Name)
 		assert.NotNil(t, result.CustomProperties)
 
-		resultProps := *result.CustomProperties
+		resultProps := result.CustomProperties
 		assert.Contains(t, resultProps, "cpu_limit")
 		assert.Contains(t, resultProps, "memory_limit")
 		assert.Contains(t, resultProps, "replicas")
@@ -533,7 +533,7 @@ func TestServingEnvironmentRoundTrip(t *testing.T) {
 
 		original := &openapi.ServingEnvironment{
 			Name:             "roundtrip-custom-props-env",
-			CustomProperties: &customProps,
+			CustomProperties: customProps,
 		}
 
 		// Create
@@ -547,7 +547,7 @@ func TestServingEnvironmentRoundTrip(t *testing.T) {
 
 		// Verify custom properties
 		assert.NotNil(t, retrieved.CustomProperties)
-		retrievedProps := *retrieved.CustomProperties
+		retrievedProps := retrieved.CustomProperties
 		assert.Contains(t, retrievedProps, "environment")
 		assert.Contains(t, retrievedProps, "max_replicas")
 		assert.Equal(t, "production", retrievedProps["environment"].MetadataStringValue.StringValue)
@@ -571,14 +571,14 @@ func TestServingEnvironmentRoundTrip(t *testing.T) {
 				},
 			},
 		}
-		retrieved.CustomProperties = &updatedProps
+		retrieved.CustomProperties = updatedProps
 
 		updated, err := _service.UpsertServingEnvironment(retrieved)
 		require.NoError(t, err)
 
 		// Verify updated custom properties
 		assert.NotNil(t, updated.CustomProperties)
-		finalProps := *updated.CustomProperties
+		finalProps := updated.CustomProperties
 		assert.Equal(t, "staging", finalProps["environment"].MetadataStringValue.StringValue)
 		assert.Equal(t, "5", finalProps["max_replicas"].MetadataIntValue.IntValue)
 		assert.Equal(t, "new_value", finalProps["new_prop"].MetadataStringValue.StringValue)

@@ -397,7 +397,7 @@ func (b *ModelRegistryService) InsertMetricHistory(metric *openapi.Metric, exper
 
 	// Handle custom properties using the converter - use the updated custom properties from tempArtifact
 	if tempArtifact.Metric.CustomProperties != nil {
-		customProps, err := converter.MapOpenAPICustomPropertiesEmbedMD(tempArtifact.Metric.CustomProperties)
+		customProps, err := converter.MapOpenAPICustomPropertiesEmbedMD(&tempArtifact.Metric.CustomProperties)
 		if err != nil {
 			return fmt.Errorf("failed to map custom properties: %w", err)
 		}

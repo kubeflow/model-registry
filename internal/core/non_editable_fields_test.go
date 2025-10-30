@@ -54,7 +54,7 @@ func testRegisteredModelNonEditableFields(t *testing.T, service *core.ModelRegis
 		Name:        "test-rm-non-editable",
 		Description: apiutils.Of("Original description"),
 		Owner:       apiutils.Of("original-owner"),
-		CustomProperties: &map[string]openapi.MetadataValue{
+		CustomProperties: map[string]openapi.MetadataValue{
 			"original": {
 				MetadataStringValue: &openapi.MetadataStringValue{
 					StringValue:  "value",

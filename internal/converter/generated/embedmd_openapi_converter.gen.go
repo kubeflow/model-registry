@@ -21,7 +21,7 @@ func (c *EmbedMDToOpenAPIConverterImpl) ConvertDataSet(source *models.BaseEntity
 			if err != nil {
 				return nil, fmt.Errorf("error setting field CustomProperties: %w", err)
 			}
-			openapiDataSet.CustomProperties = &mapStringOpenapiMetadataValue
+			openapiDataSet.CustomProperties = mapStringOpenapiMetadataValue
 		}
 		openapiDataSet.Description = converter.MapEmbedMDDescription((*source).Properties)
 		openapiDataSet.ExternalId = converter.MapEmbedMDExternalIDDataSet((*source).Attributes)
@@ -56,7 +56,7 @@ func (c *EmbedMDToOpenAPIConverterImpl) ConvertDocArtifact(source *models.BaseEn
 			if err != nil {
 				return nil, fmt.Errorf("error setting field CustomProperties: %w", err)
 			}
-			openapiDocArtifact.CustomProperties = &mapStringOpenapiMetadataValue
+			openapiDocArtifact.CustomProperties = mapStringOpenapiMetadataValue
 		}
 		openapiDocArtifact.Description = converter.MapEmbedMDDescription((*source).Properties)
 		openapiDocArtifact.ExternalId = converter.MapEmbedMDExternalIDDocArtifact((*source).Attributes)
@@ -86,7 +86,7 @@ func (c *EmbedMDToOpenAPIConverterImpl) ConvertExperiment(source *models.BaseEnt
 			if err != nil {
 				return nil, fmt.Errorf("error setting field CustomProperties: %w", err)
 			}
-			openapiExperiment.CustomProperties = &mapStringOpenapiMetadataValue
+			openapiExperiment.CustomProperties = mapStringOpenapiMetadataValue
 		}
 		openapiExperiment.Description = converter.MapEmbedMDDescription((*source).Properties)
 		openapiExperiment.ExternalId = converter.MapEmbedMDExternalIDExperiment((*source).Attributes)
@@ -113,7 +113,7 @@ func (c *EmbedMDToOpenAPIConverterImpl) ConvertExperimentRun(source *models.Base
 			if err != nil {
 				return nil, fmt.Errorf("error setting field CustomProperties: %w", err)
 			}
-			openapiExperimentRun.CustomProperties = &mapStringOpenapiMetadataValue
+			openapiExperimentRun.CustomProperties = mapStringOpenapiMetadataValue
 		}
 		openapiExperimentRun.Description = converter.MapEmbedMDDescription((*source).Properties)
 		openapiExperimentRun.ExternalId = converter.MapEmbedMDExternalIDExperimentRun((*source).Attributes)
@@ -152,7 +152,7 @@ func (c *EmbedMDToOpenAPIConverterImpl) ConvertInferenceService(source *models.B
 			if err != nil {
 				return nil, fmt.Errorf("error setting field CustomProperties: %w", err)
 			}
-			openapiInferenceService.CustomProperties = &mapStringOpenapiMetadataValue
+			openapiInferenceService.CustomProperties = mapStringOpenapiMetadataValue
 		}
 		openapiInferenceService.Description = converter.MapEmbedMDDescription((*source).Properties)
 		openapiInferenceService.ExternalId = converter.MapEmbedMDExternalIDInferenceService((*source).Attributes)
@@ -182,7 +182,7 @@ func (c *EmbedMDToOpenAPIConverterImpl) ConvertMetric(source *models.BaseEntity[
 			if err != nil {
 				return nil, fmt.Errorf("error setting field CustomProperties: %w", err)
 			}
-			openapiMetric.CustomProperties = &mapStringOpenapiMetadataValue
+			openapiMetric.CustomProperties = mapStringOpenapiMetadataValue
 		}
 		openapiMetric.Description = converter.MapEmbedMDDescription((*source).Properties)
 		openapiMetric.ExternalId = converter.MapEmbedMDExternalIDMetric((*source).Attributes)
@@ -214,7 +214,7 @@ func (c *EmbedMDToOpenAPIConverterImpl) ConvertModelArtifact(source *models.Base
 			if err != nil {
 				return nil, fmt.Errorf("error setting field CustomProperties: %w", err)
 			}
-			openapiModelArtifact.CustomProperties = &mapStringOpenapiMetadataValue
+			openapiModelArtifact.CustomProperties = mapStringOpenapiMetadataValue
 		}
 		openapiModelArtifact.Description = converter.MapEmbedMDDescription((*source).Properties)
 		openapiModelArtifact.ExternalId = converter.MapEmbedMDExternalIDModelArtifact((*source).Attributes)
@@ -254,7 +254,7 @@ func (c *EmbedMDToOpenAPIConverterImpl) ConvertModelVersion(source *models.BaseE
 			if err != nil {
 				return nil, fmt.Errorf("error setting field CustomProperties: %w", err)
 			}
-			openapiModelVersion.CustomProperties = &mapStringOpenapiMetadataValue
+			openapiModelVersion.CustomProperties = mapStringOpenapiMetadataValue
 		}
 		openapiModelVersion.Description = converter.MapEmbedMDDescription((*source).Properties)
 		openapiModelVersion.ExternalId = converter.MapEmbedMDExternalIDModelVersion((*source).Attributes)
@@ -282,7 +282,7 @@ func (c *EmbedMDToOpenAPIConverterImpl) ConvertParameter(source *models.BaseEnti
 			if err != nil {
 				return nil, fmt.Errorf("error setting field CustomProperties: %w", err)
 			}
-			openapiParameter.CustomProperties = &mapStringOpenapiMetadataValue
+			openapiParameter.CustomProperties = mapStringOpenapiMetadataValue
 		}
 		openapiParameter.Description = converter.MapEmbedMDDescription((*source).Properties)
 		openapiParameter.ExternalId = converter.MapEmbedMDExternalIDParameter((*source).Attributes)
@@ -317,7 +317,7 @@ func (c *EmbedMDToOpenAPIConverterImpl) ConvertRegisteredModel(source *models.Ba
 			if err != nil {
 				return nil, fmt.Errorf("error setting field CustomProperties: %w", err)
 			}
-			openapiRegisteredModel.CustomProperties = &mapStringOpenapiMetadataValue
+			openapiRegisteredModel.CustomProperties = mapStringOpenapiMetadataValue
 		}
 		openapiRegisteredModel.Description = converter.MapEmbedMDDescription((*source).Properties)
 		openapiRegisteredModel.ExternalId = converter.MapEmbedMDExternalIDRegisteredModel((*source).Attributes)
@@ -353,7 +353,7 @@ func (c *EmbedMDToOpenAPIConverterImpl) ConvertServeModel(source *models.BaseEnt
 			if err != nil {
 				return nil, fmt.Errorf("error setting field CustomProperties: %w", err)
 			}
-			openapiServeModel.CustomProperties = &mapStringOpenapiMetadataValue
+			openapiServeModel.CustomProperties = mapStringOpenapiMetadataValue
 		}
 		openapiServeModel.Description = converter.MapEmbedMDDescription((*source).Properties)
 		openapiServeModel.ExternalId = converter.MapEmbedMDExternalIDServeModel((*source).Attributes)
@@ -384,7 +384,7 @@ func (c *EmbedMDToOpenAPIConverterImpl) ConvertServingEnvironment(source *models
 			if err != nil {
 				return nil, fmt.Errorf("error setting field CustomProperties: %w", err)
 			}
-			openapiServingEnvironment.CustomProperties = &mapStringOpenapiMetadataValue
+			openapiServingEnvironment.CustomProperties = mapStringOpenapiMetadataValue
 		}
 		openapiServingEnvironment.Description = converter.MapEmbedMDDescription((*source).Properties)
 		openapiServingEnvironment.ExternalId = converter.MapEmbedMDExternalIDServingEnvironment((*source).Attributes)

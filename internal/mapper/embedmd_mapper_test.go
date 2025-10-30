@@ -438,7 +438,7 @@ func TestEmbedMDMapToRegisteredModel(t *testing.T) {
 
 	// Verify custom properties
 	assertion.NotNil(result.CustomProperties)
-	customProps := *result.CustomProperties
+	customProps := result.CustomProperties
 	assertion.Contains(customProps, "custom-prop")
 	assertion.Equal("custom-value", customProps["custom-prop"].MetadataStringValue.StringValue)
 }
@@ -761,7 +761,7 @@ func TestEmbedMDMapFromWithCustomProperties(t *testing.T) {
 
 	openAPIModel := &openapi.RegisteredModel{
 		Name:             "test-with-custom-props",
-		CustomProperties: &customProps,
+		CustomProperties: customProps,
 	}
 
 	result, err := mapper.MapFromRegisteredModel(openAPIModel)

@@ -34,7 +34,7 @@ func TestUpsertExperimentRun(t *testing.T) {
 			Status:              apiutils.Of(openapi.EXPERIMENTRUNSTATUS_RUNNING),
 			StartTimeSinceEpoch: apiutils.Of("1234567890"),
 			EndTimeSinceEpoch:   apiutils.Of("1234567999"),
-			CustomProperties: &map[string]openapi.MetadataValue{
+			CustomProperties: map[string]openapi.MetadataValue{
 				"run_type": {
 					MetadataStringValue: &openapi.MetadataStringValue{
 						StringValue:  "training",
@@ -61,7 +61,7 @@ func TestUpsertExperimentRun(t *testing.T) {
 		assert.NotNil(t, result.CreateTimeSinceEpoch)
 		assert.NotNil(t, result.LastUpdateTimeSinceEpoch)
 		assert.NotNil(t, result.CustomProperties)
-		assert.Contains(t, *result.CustomProperties, "run_type")
+		assert.Contains(t, result.CustomProperties, "run_type")
 	})
 
 	t.Run("successful update", func(t *testing.T) {
@@ -482,7 +482,7 @@ func TestGetExperimentRunsWithFilterQuery(t *testing.T) {
 				StartTimeSinceEpoch: apiutils.Of("1700000000"),
 				EndTimeSinceEpoch:   apiutils.Of("1700003600"),
 				ExperimentId:        *createdExperiment.Id,
-				CustomProperties: &map[string]openapi.MetadataValue{
+				CustomProperties: map[string]openapi.MetadataValue{
 					"framework": {
 						MetadataStringValue: &openapi.MetadataStringValue{
 							StringValue:  "pytorch",
@@ -518,7 +518,7 @@ func TestGetExperimentRunsWithFilterQuery(t *testing.T) {
 				Status:              (*openapi.ExperimentRunStatus)(apiutils.Of("FAILED")),
 				StartTimeSinceEpoch: apiutils.Of("1700010000"),
 				ExperimentId:        *createdExperiment.Id,
-				CustomProperties: &map[string]openapi.MetadataValue{
+				CustomProperties: map[string]openapi.MetadataValue{
 					"framework": {
 						MetadataStringValue: &openapi.MetadataStringValue{
 							StringValue:  "tensorflow",
@@ -554,7 +554,7 @@ func TestGetExperimentRunsWithFilterQuery(t *testing.T) {
 				Status:              (*openapi.ExperimentRunStatus)(apiutils.Of("RUNNING")),
 				StartTimeSinceEpoch: apiutils.Of("1700020000"),
 				ExperimentId:        *createdExperiment.Id,
-				CustomProperties: &map[string]openapi.MetadataValue{
+				CustomProperties: map[string]openapi.MetadataValue{
 					"framework": {
 						MetadataStringValue: &openapi.MetadataStringValue{
 							StringValue:  "pytorch",
@@ -589,7 +589,7 @@ func TestGetExperimentRunsWithFilterQuery(t *testing.T) {
 				ExternalId:   apiutils.Of("ext-sklearn-run-004"),
 				Status:       (*openapi.ExperimentRunStatus)(apiutils.Of("FINISHED")),
 				ExperimentId: *createdExperiment.Id,
-				CustomProperties: &map[string]openapi.MetadataValue{
+				CustomProperties: map[string]openapi.MetadataValue{
 					"framework": {
 						MetadataStringValue: &openapi.MetadataStringValue{
 							StringValue:  "sklearn",
@@ -799,7 +799,7 @@ func TestGetExperimentRunsWithFilterQuery(t *testing.T) {
 		anotherRun := &openapi.ExperimentRun{
 			Name:         apiutils.Of("another-pytorch-run"),
 			ExperimentId: *anotherCreatedExperiment.Id,
-			CustomProperties: &map[string]openapi.MetadataValue{
+			CustomProperties: map[string]openapi.MetadataValue{
 				"framework": {
 					MetadataStringValue: &openapi.MetadataStringValue{
 						StringValue:  "pytorch",

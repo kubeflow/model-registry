@@ -2164,13 +2164,13 @@ func (a *ModelRegistryServiceAPIService) FindArtifactExecute(r ApiFindArtifactRe
 	localVarFormParams := url.Values{}
 
 	if r.name != nil {
-		parameterAddToHeaderOrQuery(localVarQueryParams, "name", r.name, "")
+		parameterAddToHeaderOrQuery(localVarQueryParams, "name", r.name, "form", "")
 	}
 	if r.externalId != nil {
-		parameterAddToHeaderOrQuery(localVarQueryParams, "externalId", r.externalId, "")
+		parameterAddToHeaderOrQuery(localVarQueryParams, "externalId", r.externalId, "form", "")
 	}
 	if r.parentResourceId != nil {
-		parameterAddToHeaderOrQuery(localVarQueryParams, "parentResourceId", r.parentResourceId, "")
+		parameterAddToHeaderOrQuery(localVarQueryParams, "parentResourceId", r.parentResourceId, "form", "")
 	}
 	// to determine the Content-Type header
 	localVarHTTPContentTypes := []string{}
@@ -2341,10 +2341,10 @@ func (a *ModelRegistryServiceAPIService) FindExperimentExecute(r ApiFindExperime
 	localVarFormParams := url.Values{}
 
 	if r.name != nil {
-		parameterAddToHeaderOrQuery(localVarQueryParams, "name", r.name, "")
+		parameterAddToHeaderOrQuery(localVarQueryParams, "name", r.name, "form", "")
 	}
 	if r.externalId != nil {
-		parameterAddToHeaderOrQuery(localVarQueryParams, "externalId", r.externalId, "")
+		parameterAddToHeaderOrQuery(localVarQueryParams, "externalId", r.externalId, "form", "")
 	}
 	// to determine the Content-Type header
 	localVarHTTPContentTypes := []string{}
@@ -2511,13 +2511,13 @@ func (a *ModelRegistryServiceAPIService) FindExperimentRunExecute(r ApiFindExper
 	localVarFormParams := url.Values{}
 
 	if r.name != nil {
-		parameterAddToHeaderOrQuery(localVarQueryParams, "name", r.name, "")
+		parameterAddToHeaderOrQuery(localVarQueryParams, "name", r.name, "form", "")
 	}
 	if r.externalId != nil {
-		parameterAddToHeaderOrQuery(localVarQueryParams, "externalId", r.externalId, "")
+		parameterAddToHeaderOrQuery(localVarQueryParams, "externalId", r.externalId, "form", "")
 	}
 	if r.parentResourceId != nil {
-		parameterAddToHeaderOrQuery(localVarQueryParams, "parentResourceId", r.parentResourceId, "")
+		parameterAddToHeaderOrQuery(localVarQueryParams, "parentResourceId", r.parentResourceId, "form", "")
 	}
 	// to determine the Content-Type header
 	localVarHTTPContentTypes := []string{}
@@ -2695,13 +2695,13 @@ func (a *ModelRegistryServiceAPIService) FindInferenceServiceExecute(r ApiFindIn
 	localVarFormParams := url.Values{}
 
 	if r.name != nil {
-		parameterAddToHeaderOrQuery(localVarQueryParams, "name", r.name, "")
+		parameterAddToHeaderOrQuery(localVarQueryParams, "name", r.name, "form", "")
 	}
 	if r.externalId != nil {
-		parameterAddToHeaderOrQuery(localVarQueryParams, "externalId", r.externalId, "")
+		parameterAddToHeaderOrQuery(localVarQueryParams, "externalId", r.externalId, "form", "")
 	}
 	if r.parentResourceId != nil {
-		parameterAddToHeaderOrQuery(localVarQueryParams, "parentResourceId", r.parentResourceId, "")
+		parameterAddToHeaderOrQuery(localVarQueryParams, "parentResourceId", r.parentResourceId, "form", "")
 	}
 	// to determine the Content-Type header
 	localVarHTTPContentTypes := []string{}
@@ -2879,13 +2879,13 @@ func (a *ModelRegistryServiceAPIService) FindModelArtifactExecute(r ApiFindModel
 	localVarFormParams := url.Values{}
 
 	if r.name != nil {
-		parameterAddToHeaderOrQuery(localVarQueryParams, "name", r.name, "")
+		parameterAddToHeaderOrQuery(localVarQueryParams, "name", r.name, "form", "")
 	}
 	if r.externalId != nil {
-		parameterAddToHeaderOrQuery(localVarQueryParams, "externalId", r.externalId, "")
+		parameterAddToHeaderOrQuery(localVarQueryParams, "externalId", r.externalId, "form", "")
 	}
 	if r.parentResourceId != nil {
-		parameterAddToHeaderOrQuery(localVarQueryParams, "parentResourceId", r.parentResourceId, "")
+		parameterAddToHeaderOrQuery(localVarQueryParams, "parentResourceId", r.parentResourceId, "form", "")
 	}
 	// to determine the Content-Type header
 	localVarHTTPContentTypes := []string{}
@@ -3063,13 +3063,13 @@ func (a *ModelRegistryServiceAPIService) FindModelVersionExecute(r ApiFindModelV
 	localVarFormParams := url.Values{}
 
 	if r.name != nil {
-		parameterAddToHeaderOrQuery(localVarQueryParams, "name", r.name, "")
+		parameterAddToHeaderOrQuery(localVarQueryParams, "name", r.name, "form", "")
 	}
 	if r.externalId != nil {
-		parameterAddToHeaderOrQuery(localVarQueryParams, "externalId", r.externalId, "")
+		parameterAddToHeaderOrQuery(localVarQueryParams, "externalId", r.externalId, "form", "")
 	}
 	if r.parentResourceId != nil {
-		parameterAddToHeaderOrQuery(localVarQueryParams, "parentResourceId", r.parentResourceId, "")
+		parameterAddToHeaderOrQuery(localVarQueryParams, "parentResourceId", r.parentResourceId, "form", "")
 	}
 	// to determine the Content-Type header
 	localVarHTTPContentTypes := []string{}
@@ -3240,10 +3240,10 @@ func (a *ModelRegistryServiceAPIService) FindRegisteredModelExecute(r ApiFindReg
 	localVarFormParams := url.Values{}
 
 	if r.name != nil {
-		parameterAddToHeaderOrQuery(localVarQueryParams, "name", r.name, "")
+		parameterAddToHeaderOrQuery(localVarQueryParams, "name", r.name, "form", "")
 	}
 	if r.externalId != nil {
-		parameterAddToHeaderOrQuery(localVarQueryParams, "externalId", r.externalId, "")
+		parameterAddToHeaderOrQuery(localVarQueryParams, "externalId", r.externalId, "form", "")
 	}
 	// to determine the Content-Type header
 	localVarHTTPContentTypes := []string{}
@@ -3403,10 +3403,10 @@ func (a *ModelRegistryServiceAPIService) FindServingEnvironmentExecute(r ApiFind
 	localVarFormParams := url.Values{}
 
 	if r.name != nil {
-		parameterAddToHeaderOrQuery(localVarQueryParams, "name", r.name, "")
+		parameterAddToHeaderOrQuery(localVarQueryParams, "name", r.name, "form", "")
 	}
 	if r.externalId != nil {
-		parameterAddToHeaderOrQuery(localVarQueryParams, "externalId", r.externalId, "")
+		parameterAddToHeaderOrQuery(localVarQueryParams, "externalId", r.externalId, "form", "")
 	}
 	// to determine the Content-Type header
 	localVarHTTPContentTypes := []string{}
@@ -3752,22 +3752,22 @@ func (a *ModelRegistryServiceAPIService) GetArtifactsExecute(r ApiGetArtifactsRe
 	localVarFormParams := url.Values{}
 
 	if r.filterQuery != nil {
-		parameterAddToHeaderOrQuery(localVarQueryParams, "filterQuery", r.filterQuery, "")
+		parameterAddToHeaderOrQuery(localVarQueryParams, "filterQuery", r.filterQuery, "form", "")
 	}
 	if r.artifactType != nil {
-		parameterAddToHeaderOrQuery(localVarQueryParams, "artifactType", r.artifactType, "")
+		parameterAddToHeaderOrQuery(localVarQueryParams, "artifactType", r.artifactType, "form", "")
 	}
 	if r.pageSize != nil {
-		parameterAddToHeaderOrQuery(localVarQueryParams, "pageSize", r.pageSize, "")
+		parameterAddToHeaderOrQuery(localVarQueryParams, "pageSize", r.pageSize, "form", "")
 	}
 	if r.orderBy != nil {
-		parameterAddToHeaderOrQuery(localVarQueryParams, "orderBy", r.orderBy, "")
+		parameterAddToHeaderOrQuery(localVarQueryParams, "orderBy", r.orderBy, "form", "")
 	}
 	if r.sortOrder != nil {
-		parameterAddToHeaderOrQuery(localVarQueryParams, "sortOrder", r.sortOrder, "")
+		parameterAddToHeaderOrQuery(localVarQueryParams, "sortOrder", r.sortOrder, "form", "")
 	}
 	if r.nextPageToken != nil {
-		parameterAddToHeaderOrQuery(localVarQueryParams, "nextPageToken", r.nextPageToken, "")
+		parameterAddToHeaderOrQuery(localVarQueryParams, "nextPageToken", r.nextPageToken, "form", "")
 	}
 	// to determine the Content-Type header
 	localVarHTTPContentTypes := []string{}
@@ -3977,25 +3977,25 @@ func (a *ModelRegistryServiceAPIService) GetEnvironmentInferenceServicesExecute(
 	localVarFormParams := url.Values{}
 
 	if r.filterQuery != nil {
-		parameterAddToHeaderOrQuery(localVarQueryParams, "filterQuery", r.filterQuery, "")
+		parameterAddToHeaderOrQuery(localVarQueryParams, "filterQuery", r.filterQuery, "form", "")
 	}
 	if r.name != nil {
-		parameterAddToHeaderOrQuery(localVarQueryParams, "name", r.name, "")
+		parameterAddToHeaderOrQuery(localVarQueryParams, "name", r.name, "form", "")
 	}
 	if r.externalId != nil {
-		parameterAddToHeaderOrQuery(localVarQueryParams, "externalId", r.externalId, "")
+		parameterAddToHeaderOrQuery(localVarQueryParams, "externalId", r.externalId, "form", "")
 	}
 	if r.pageSize != nil {
-		parameterAddToHeaderOrQuery(localVarQueryParams, "pageSize", r.pageSize, "")
+		parameterAddToHeaderOrQuery(localVarQueryParams, "pageSize", r.pageSize, "form", "")
 	}
 	if r.orderBy != nil {
-		parameterAddToHeaderOrQuery(localVarQueryParams, "orderBy", r.orderBy, "")
+		parameterAddToHeaderOrQuery(localVarQueryParams, "orderBy", r.orderBy, "form", "")
 	}
 	if r.sortOrder != nil {
-		parameterAddToHeaderOrQuery(localVarQueryParams, "sortOrder", r.sortOrder, "")
+		parameterAddToHeaderOrQuery(localVarQueryParams, "sortOrder", r.sortOrder, "form", "")
 	}
 	if r.nextPageToken != nil {
-		parameterAddToHeaderOrQuery(localVarQueryParams, "nextPageToken", r.nextPageToken, "")
+		parameterAddToHeaderOrQuery(localVarQueryParams, "nextPageToken", r.nextPageToken, "form", "")
 	}
 	// to determine the Content-Type header
 	localVarHTTPContentTypes := []string{}
@@ -4341,25 +4341,25 @@ func (a *ModelRegistryServiceAPIService) GetExperimentExperimentRunsExecute(r Ap
 	localVarFormParams := url.Values{}
 
 	if r.name != nil {
-		parameterAddToHeaderOrQuery(localVarQueryParams, "name", r.name, "")
+		parameterAddToHeaderOrQuery(localVarQueryParams, "name", r.name, "form", "")
 	}
 	if r.externalId != nil {
-		parameterAddToHeaderOrQuery(localVarQueryParams, "externalId", r.externalId, "")
+		parameterAddToHeaderOrQuery(localVarQueryParams, "externalId", r.externalId, "form", "")
 	}
 	if r.filterQuery != nil {
-		parameterAddToHeaderOrQuery(localVarQueryParams, "filterQuery", r.filterQuery, "")
+		parameterAddToHeaderOrQuery(localVarQueryParams, "filterQuery", r.filterQuery, "form", "")
 	}
 	if r.pageSize != nil {
-		parameterAddToHeaderOrQuery(localVarQueryParams, "pageSize", r.pageSize, "")
+		parameterAddToHeaderOrQuery(localVarQueryParams, "pageSize", r.pageSize, "form", "")
 	}
 	if r.orderBy != nil {
-		parameterAddToHeaderOrQuery(localVarQueryParams, "orderBy", r.orderBy, "")
+		parameterAddToHeaderOrQuery(localVarQueryParams, "orderBy", r.orderBy, "form", "")
 	}
 	if r.sortOrder != nil {
-		parameterAddToHeaderOrQuery(localVarQueryParams, "sortOrder", r.sortOrder, "")
+		parameterAddToHeaderOrQuery(localVarQueryParams, "sortOrder", r.sortOrder, "form", "")
 	}
 	if r.nextPageToken != nil {
-		parameterAddToHeaderOrQuery(localVarQueryParams, "nextPageToken", r.nextPageToken, "")
+		parameterAddToHeaderOrQuery(localVarQueryParams, "nextPageToken", r.nextPageToken, "form", "")
 	}
 	// to determine the Content-Type header
 	localVarHTTPContentTypes := []string{}
@@ -4710,28 +4710,28 @@ func (a *ModelRegistryServiceAPIService) GetExperimentRunArtifactsExecute(r ApiG
 	localVarFormParams := url.Values{}
 
 	if r.filterQuery != nil {
-		parameterAddToHeaderOrQuery(localVarQueryParams, "filterQuery", r.filterQuery, "")
+		parameterAddToHeaderOrQuery(localVarQueryParams, "filterQuery", r.filterQuery, "form", "")
 	}
 	if r.name != nil {
-		parameterAddToHeaderOrQuery(localVarQueryParams, "name", r.name, "")
+		parameterAddToHeaderOrQuery(localVarQueryParams, "name", r.name, "form", "")
 	}
 	if r.externalId != nil {
-		parameterAddToHeaderOrQuery(localVarQueryParams, "externalId", r.externalId, "")
+		parameterAddToHeaderOrQuery(localVarQueryParams, "externalId", r.externalId, "form", "")
 	}
 	if r.artifactType != nil {
-		parameterAddToHeaderOrQuery(localVarQueryParams, "artifactType", r.artifactType, "")
+		parameterAddToHeaderOrQuery(localVarQueryParams, "artifactType", r.artifactType, "form", "")
 	}
 	if r.pageSize != nil {
-		parameterAddToHeaderOrQuery(localVarQueryParams, "pageSize", r.pageSize, "")
+		parameterAddToHeaderOrQuery(localVarQueryParams, "pageSize", r.pageSize, "form", "")
 	}
 	if r.orderBy != nil {
-		parameterAddToHeaderOrQuery(localVarQueryParams, "orderBy", r.orderBy, "")
+		parameterAddToHeaderOrQuery(localVarQueryParams, "orderBy", r.orderBy, "form", "")
 	}
 	if r.sortOrder != nil {
-		parameterAddToHeaderOrQuery(localVarQueryParams, "sortOrder", r.sortOrder, "")
+		parameterAddToHeaderOrQuery(localVarQueryParams, "sortOrder", r.sortOrder, "form", "")
 	}
 	if r.nextPageToken != nil {
-		parameterAddToHeaderOrQuery(localVarQueryParams, "nextPageToken", r.nextPageToken, "")
+		parameterAddToHeaderOrQuery(localVarQueryParams, "nextPageToken", r.nextPageToken, "form", "")
 	}
 	// to determine the Content-Type header
 	localVarHTTPContentTypes := []string{}
@@ -4930,25 +4930,25 @@ func (a *ModelRegistryServiceAPIService) GetExperimentRunMetricHistoryExecute(r 
 	localVarFormParams := url.Values{}
 
 	if r.filterQuery != nil {
-		parameterAddToHeaderOrQuery(localVarQueryParams, "filterQuery", r.filterQuery, "")
+		parameterAddToHeaderOrQuery(localVarQueryParams, "filterQuery", r.filterQuery, "form", "")
 	}
 	if r.name != nil {
-		parameterAddToHeaderOrQuery(localVarQueryParams, "name", r.name, "")
+		parameterAddToHeaderOrQuery(localVarQueryParams, "name", r.name, "form", "")
 	}
 	if r.stepIds != nil {
-		parameterAddToHeaderOrQuery(localVarQueryParams, "stepIds", r.stepIds, "")
+		parameterAddToHeaderOrQuery(localVarQueryParams, "stepIds", r.stepIds, "form", "")
 	}
 	if r.pageSize != nil {
-		parameterAddToHeaderOrQuery(localVarQueryParams, "pageSize", r.pageSize, "")
+		parameterAddToHeaderOrQuery(localVarQueryParams, "pageSize", r.pageSize, "form", "")
 	}
 	if r.orderBy != nil {
-		parameterAddToHeaderOrQuery(localVarQueryParams, "orderBy", r.orderBy, "")
+		parameterAddToHeaderOrQuery(localVarQueryParams, "orderBy", r.orderBy, "form", "")
 	}
 	if r.sortOrder != nil {
-		parameterAddToHeaderOrQuery(localVarQueryParams, "sortOrder", r.sortOrder, "")
+		parameterAddToHeaderOrQuery(localVarQueryParams, "sortOrder", r.sortOrder, "form", "")
 	}
 	if r.nextPageToken != nil {
-		parameterAddToHeaderOrQuery(localVarQueryParams, "nextPageToken", r.nextPageToken, "")
+		parameterAddToHeaderOrQuery(localVarQueryParams, "nextPageToken", r.nextPageToken, "form", "")
 	}
 	// to determine the Content-Type header
 	localVarHTTPContentTypes := []string{}
@@ -5129,19 +5129,19 @@ func (a *ModelRegistryServiceAPIService) GetExperimentRunsExecute(r ApiGetExperi
 	localVarFormParams := url.Values{}
 
 	if r.filterQuery != nil {
-		parameterAddToHeaderOrQuery(localVarQueryParams, "filterQuery", r.filterQuery, "")
+		parameterAddToHeaderOrQuery(localVarQueryParams, "filterQuery", r.filterQuery, "form", "")
 	}
 	if r.pageSize != nil {
-		parameterAddToHeaderOrQuery(localVarQueryParams, "pageSize", r.pageSize, "")
+		parameterAddToHeaderOrQuery(localVarQueryParams, "pageSize", r.pageSize, "form", "")
 	}
 	if r.orderBy != nil {
-		parameterAddToHeaderOrQuery(localVarQueryParams, "orderBy", r.orderBy, "")
+		parameterAddToHeaderOrQuery(localVarQueryParams, "orderBy", r.orderBy, "form", "")
 	}
 	if r.sortOrder != nil {
-		parameterAddToHeaderOrQuery(localVarQueryParams, "sortOrder", r.sortOrder, "")
+		parameterAddToHeaderOrQuery(localVarQueryParams, "sortOrder", r.sortOrder, "form", "")
 	}
 	if r.nextPageToken != nil {
-		parameterAddToHeaderOrQuery(localVarQueryParams, "nextPageToken", r.nextPageToken, "")
+		parameterAddToHeaderOrQuery(localVarQueryParams, "nextPageToken", r.nextPageToken, "form", "")
 	}
 	// to determine the Content-Type header
 	localVarHTTPContentTypes := []string{}
@@ -5325,25 +5325,25 @@ func (a *ModelRegistryServiceAPIService) GetExperimentRunsMetricHistoryExecute(r
 	localVarFormParams := url.Values{}
 
 	if r.filterQuery != nil {
-		parameterAddToHeaderOrQuery(localVarQueryParams, "filterQuery", r.filterQuery, "")
+		parameterAddToHeaderOrQuery(localVarQueryParams, "filterQuery", r.filterQuery, "form", "")
 	}
 	if r.name != nil {
-		parameterAddToHeaderOrQuery(localVarQueryParams, "name", r.name, "")
+		parameterAddToHeaderOrQuery(localVarQueryParams, "name", r.name, "form", "")
 	}
 	if r.stepIds != nil {
-		parameterAddToHeaderOrQuery(localVarQueryParams, "stepIds", r.stepIds, "")
+		parameterAddToHeaderOrQuery(localVarQueryParams, "stepIds", r.stepIds, "form", "")
 	}
 	if r.pageSize != nil {
-		parameterAddToHeaderOrQuery(localVarQueryParams, "pageSize", r.pageSize, "")
+		parameterAddToHeaderOrQuery(localVarQueryParams, "pageSize", r.pageSize, "form", "")
 	}
 	if r.orderBy != nil {
-		parameterAddToHeaderOrQuery(localVarQueryParams, "orderBy", r.orderBy, "")
+		parameterAddToHeaderOrQuery(localVarQueryParams, "orderBy", r.orderBy, "form", "")
 	}
 	if r.sortOrder != nil {
-		parameterAddToHeaderOrQuery(localVarQueryParams, "sortOrder", r.sortOrder, "")
+		parameterAddToHeaderOrQuery(localVarQueryParams, "sortOrder", r.sortOrder, "form", "")
 	}
 	if r.nextPageToken != nil {
-		parameterAddToHeaderOrQuery(localVarQueryParams, "nextPageToken", r.nextPageToken, "")
+		parameterAddToHeaderOrQuery(localVarQueryParams, "nextPageToken", r.nextPageToken, "form", "")
 	}
 	// to determine the Content-Type header
 	localVarHTTPContentTypes := []string{}
@@ -5524,19 +5524,19 @@ func (a *ModelRegistryServiceAPIService) GetExperimentsExecute(r ApiGetExperimen
 	localVarFormParams := url.Values{}
 
 	if r.filterQuery != nil {
-		parameterAddToHeaderOrQuery(localVarQueryParams, "filterQuery", r.filterQuery, "")
+		parameterAddToHeaderOrQuery(localVarQueryParams, "filterQuery", r.filterQuery, "form", "")
 	}
 	if r.pageSize != nil {
-		parameterAddToHeaderOrQuery(localVarQueryParams, "pageSize", r.pageSize, "")
+		parameterAddToHeaderOrQuery(localVarQueryParams, "pageSize", r.pageSize, "form", "")
 	}
 	if r.orderBy != nil {
-		parameterAddToHeaderOrQuery(localVarQueryParams, "orderBy", r.orderBy, "")
+		parameterAddToHeaderOrQuery(localVarQueryParams, "orderBy", r.orderBy, "form", "")
 	}
 	if r.sortOrder != nil {
-		parameterAddToHeaderOrQuery(localVarQueryParams, "sortOrder", r.sortOrder, "")
+		parameterAddToHeaderOrQuery(localVarQueryParams, "sortOrder", r.sortOrder, "form", "")
 	}
 	if r.nextPageToken != nil {
-		parameterAddToHeaderOrQuery(localVarQueryParams, "nextPageToken", r.nextPageToken, "")
+		parameterAddToHeaderOrQuery(localVarQueryParams, "nextPageToken", r.nextPageToken, "form", "")
 	}
 	// to determine the Content-Type header
 	localVarHTTPContentTypes := []string{}
@@ -6018,25 +6018,25 @@ func (a *ModelRegistryServiceAPIService) GetInferenceServiceServesExecute(r ApiG
 	localVarFormParams := url.Values{}
 
 	if r.filterQuery != nil {
-		parameterAddToHeaderOrQuery(localVarQueryParams, "filterQuery", r.filterQuery, "")
+		parameterAddToHeaderOrQuery(localVarQueryParams, "filterQuery", r.filterQuery, "form", "")
 	}
 	if r.name != nil {
-		parameterAddToHeaderOrQuery(localVarQueryParams, "name", r.name, "")
+		parameterAddToHeaderOrQuery(localVarQueryParams, "name", r.name, "form", "")
 	}
 	if r.externalId != nil {
-		parameterAddToHeaderOrQuery(localVarQueryParams, "externalId", r.externalId, "")
+		parameterAddToHeaderOrQuery(localVarQueryParams, "externalId", r.externalId, "form", "")
 	}
 	if r.pageSize != nil {
-		parameterAddToHeaderOrQuery(localVarQueryParams, "pageSize", r.pageSize, "")
+		parameterAddToHeaderOrQuery(localVarQueryParams, "pageSize", r.pageSize, "form", "")
 	}
 	if r.orderBy != nil {
-		parameterAddToHeaderOrQuery(localVarQueryParams, "orderBy", r.orderBy, "")
+		parameterAddToHeaderOrQuery(localVarQueryParams, "orderBy", r.orderBy, "form", "")
 	}
 	if r.sortOrder != nil {
-		parameterAddToHeaderOrQuery(localVarQueryParams, "sortOrder", r.sortOrder, "")
+		parameterAddToHeaderOrQuery(localVarQueryParams, "sortOrder", r.sortOrder, "form", "")
 	}
 	if r.nextPageToken != nil {
-		parameterAddToHeaderOrQuery(localVarQueryParams, "nextPageToken", r.nextPageToken, "")
+		parameterAddToHeaderOrQuery(localVarQueryParams, "nextPageToken", r.nextPageToken, "form", "")
 	}
 	// to determine the Content-Type header
 	localVarHTTPContentTypes := []string{}
@@ -6364,19 +6364,19 @@ func (a *ModelRegistryServiceAPIService) GetInferenceServicesExecute(r ApiGetInf
 	localVarFormParams := url.Values{}
 
 	if r.filterQuery != nil {
-		parameterAddToHeaderOrQuery(localVarQueryParams, "filterQuery", r.filterQuery, "")
+		parameterAddToHeaderOrQuery(localVarQueryParams, "filterQuery", r.filterQuery, "form", "")
 	}
 	if r.pageSize != nil {
-		parameterAddToHeaderOrQuery(localVarQueryParams, "pageSize", r.pageSize, "")
+		parameterAddToHeaderOrQuery(localVarQueryParams, "pageSize", r.pageSize, "form", "")
 	}
 	if r.orderBy != nil {
-		parameterAddToHeaderOrQuery(localVarQueryParams, "orderBy", r.orderBy, "")
+		parameterAddToHeaderOrQuery(localVarQueryParams, "orderBy", r.orderBy, "form", "")
 	}
 	if r.sortOrder != nil {
-		parameterAddToHeaderOrQuery(localVarQueryParams, "sortOrder", r.sortOrder, "")
+		parameterAddToHeaderOrQuery(localVarQueryParams, "sortOrder", r.sortOrder, "form", "")
 	}
 	if r.nextPageToken != nil {
-		parameterAddToHeaderOrQuery(localVarQueryParams, "nextPageToken", r.nextPageToken, "")
+		parameterAddToHeaderOrQuery(localVarQueryParams, "nextPageToken", r.nextPageToken, "form", "")
 	}
 	// to determine the Content-Type header
 	localVarHTTPContentTypes := []string{}
@@ -6715,19 +6715,19 @@ func (a *ModelRegistryServiceAPIService) GetModelArtifactsExecute(r ApiGetModelA
 	localVarFormParams := url.Values{}
 
 	if r.filterQuery != nil {
-		parameterAddToHeaderOrQuery(localVarQueryParams, "filterQuery", r.filterQuery, "")
+		parameterAddToHeaderOrQuery(localVarQueryParams, "filterQuery", r.filterQuery, "form", "")
 	}
 	if r.pageSize != nil {
-		parameterAddToHeaderOrQuery(localVarQueryParams, "pageSize", r.pageSize, "")
+		parameterAddToHeaderOrQuery(localVarQueryParams, "pageSize", r.pageSize, "form", "")
 	}
 	if r.orderBy != nil {
-		parameterAddToHeaderOrQuery(localVarQueryParams, "orderBy", r.orderBy, "")
+		parameterAddToHeaderOrQuery(localVarQueryParams, "orderBy", r.orderBy, "form", "")
 	}
 	if r.sortOrder != nil {
-		parameterAddToHeaderOrQuery(localVarQueryParams, "sortOrder", r.sortOrder, "")
+		parameterAddToHeaderOrQuery(localVarQueryParams, "sortOrder", r.sortOrder, "form", "")
 	}
 	if r.nextPageToken != nil {
-		parameterAddToHeaderOrQuery(localVarQueryParams, "nextPageToken", r.nextPageToken, "")
+		parameterAddToHeaderOrQuery(localVarQueryParams, "nextPageToken", r.nextPageToken, "form", "")
 	}
 	// to determine the Content-Type header
 	localVarHTTPContentTypes := []string{}
@@ -7089,28 +7089,28 @@ func (a *ModelRegistryServiceAPIService) GetModelVersionArtifactsExecute(r ApiGe
 	localVarFormParams := url.Values{}
 
 	if r.filterQuery != nil {
-		parameterAddToHeaderOrQuery(localVarQueryParams, "filterQuery", r.filterQuery, "")
+		parameterAddToHeaderOrQuery(localVarQueryParams, "filterQuery", r.filterQuery, "form", "")
 	}
 	if r.name != nil {
-		parameterAddToHeaderOrQuery(localVarQueryParams, "name", r.name, "")
+		parameterAddToHeaderOrQuery(localVarQueryParams, "name", r.name, "form", "")
 	}
 	if r.externalId != nil {
-		parameterAddToHeaderOrQuery(localVarQueryParams, "externalId", r.externalId, "")
+		parameterAddToHeaderOrQuery(localVarQueryParams, "externalId", r.externalId, "form", "")
 	}
 	if r.artifactType != nil {
-		parameterAddToHeaderOrQuery(localVarQueryParams, "artifactType", r.artifactType, "")
+		parameterAddToHeaderOrQuery(localVarQueryParams, "artifactType", r.artifactType, "form", "")
 	}
 	if r.pageSize != nil {
-		parameterAddToHeaderOrQuery(localVarQueryParams, "pageSize", r.pageSize, "")
+		parameterAddToHeaderOrQuery(localVarQueryParams, "pageSize", r.pageSize, "form", "")
 	}
 	if r.orderBy != nil {
-		parameterAddToHeaderOrQuery(localVarQueryParams, "orderBy", r.orderBy, "")
+		parameterAddToHeaderOrQuery(localVarQueryParams, "orderBy", r.orderBy, "form", "")
 	}
 	if r.sortOrder != nil {
-		parameterAddToHeaderOrQuery(localVarQueryParams, "sortOrder", r.sortOrder, "")
+		parameterAddToHeaderOrQuery(localVarQueryParams, "sortOrder", r.sortOrder, "form", "")
 	}
 	if r.nextPageToken != nil {
-		parameterAddToHeaderOrQuery(localVarQueryParams, "nextPageToken", r.nextPageToken, "")
+		parameterAddToHeaderOrQuery(localVarQueryParams, "nextPageToken", r.nextPageToken, "form", "")
 	}
 	// to determine the Content-Type header
 	localVarHTTPContentTypes := []string{}
@@ -7291,19 +7291,19 @@ func (a *ModelRegistryServiceAPIService) GetModelVersionsExecute(r ApiGetModelVe
 	localVarFormParams := url.Values{}
 
 	if r.filterQuery != nil {
-		parameterAddToHeaderOrQuery(localVarQueryParams, "filterQuery", r.filterQuery, "")
+		parameterAddToHeaderOrQuery(localVarQueryParams, "filterQuery", r.filterQuery, "form", "")
 	}
 	if r.pageSize != nil {
-		parameterAddToHeaderOrQuery(localVarQueryParams, "pageSize", r.pageSize, "")
+		parameterAddToHeaderOrQuery(localVarQueryParams, "pageSize", r.pageSize, "form", "")
 	}
 	if r.orderBy != nil {
-		parameterAddToHeaderOrQuery(localVarQueryParams, "orderBy", r.orderBy, "")
+		parameterAddToHeaderOrQuery(localVarQueryParams, "orderBy", r.orderBy, "form", "")
 	}
 	if r.sortOrder != nil {
-		parameterAddToHeaderOrQuery(localVarQueryParams, "sortOrder", r.sortOrder, "")
+		parameterAddToHeaderOrQuery(localVarQueryParams, "sortOrder", r.sortOrder, "form", "")
 	}
 	if r.nextPageToken != nil {
-		parameterAddToHeaderOrQuery(localVarQueryParams, "nextPageToken", r.nextPageToken, "")
+		parameterAddToHeaderOrQuery(localVarQueryParams, "nextPageToken", r.nextPageToken, "form", "")
 	}
 	// to determine the Content-Type header
 	localVarHTTPContentTypes := []string{}
@@ -7638,25 +7638,25 @@ func (a *ModelRegistryServiceAPIService) GetRegisteredModelVersionsExecute(r Api
 	localVarFormParams := url.Values{}
 
 	if r.name != nil {
-		parameterAddToHeaderOrQuery(localVarQueryParams, "name", r.name, "")
+		parameterAddToHeaderOrQuery(localVarQueryParams, "name", r.name, "form", "")
 	}
 	if r.externalId != nil {
-		parameterAddToHeaderOrQuery(localVarQueryParams, "externalId", r.externalId, "")
+		parameterAddToHeaderOrQuery(localVarQueryParams, "externalId", r.externalId, "form", "")
 	}
 	if r.filterQuery != nil {
-		parameterAddToHeaderOrQuery(localVarQueryParams, "filterQuery", r.filterQuery, "")
+		parameterAddToHeaderOrQuery(localVarQueryParams, "filterQuery", r.filterQuery, "form", "")
 	}
 	if r.pageSize != nil {
-		parameterAddToHeaderOrQuery(localVarQueryParams, "pageSize", r.pageSize, "")
+		parameterAddToHeaderOrQuery(localVarQueryParams, "pageSize", r.pageSize, "form", "")
 	}
 	if r.orderBy != nil {
-		parameterAddToHeaderOrQuery(localVarQueryParams, "orderBy", r.orderBy, "")
+		parameterAddToHeaderOrQuery(localVarQueryParams, "orderBy", r.orderBy, "form", "")
 	}
 	if r.sortOrder != nil {
-		parameterAddToHeaderOrQuery(localVarQueryParams, "sortOrder", r.sortOrder, "")
+		parameterAddToHeaderOrQuery(localVarQueryParams, "sortOrder", r.sortOrder, "form", "")
 	}
 	if r.nextPageToken != nil {
-		parameterAddToHeaderOrQuery(localVarQueryParams, "nextPageToken", r.nextPageToken, "")
+		parameterAddToHeaderOrQuery(localVarQueryParams, "nextPageToken", r.nextPageToken, "form", "")
 	}
 	// to determine the Content-Type header
 	localVarHTTPContentTypes := []string{}
@@ -7837,19 +7837,19 @@ func (a *ModelRegistryServiceAPIService) GetRegisteredModelsExecute(r ApiGetRegi
 	localVarFormParams := url.Values{}
 
 	if r.filterQuery != nil {
-		parameterAddToHeaderOrQuery(localVarQueryParams, "filterQuery", r.filterQuery, "")
+		parameterAddToHeaderOrQuery(localVarQueryParams, "filterQuery", r.filterQuery, "form", "")
 	}
 	if r.pageSize != nil {
-		parameterAddToHeaderOrQuery(localVarQueryParams, "pageSize", r.pageSize, "")
+		parameterAddToHeaderOrQuery(localVarQueryParams, "pageSize", r.pageSize, "form", "")
 	}
 	if r.orderBy != nil {
-		parameterAddToHeaderOrQuery(localVarQueryParams, "orderBy", r.orderBy, "")
+		parameterAddToHeaderOrQuery(localVarQueryParams, "orderBy", r.orderBy, "form", "")
 	}
 	if r.sortOrder != nil {
-		parameterAddToHeaderOrQuery(localVarQueryParams, "sortOrder", r.sortOrder, "")
+		parameterAddToHeaderOrQuery(localVarQueryParams, "sortOrder", r.sortOrder, "form", "")
 	}
 	if r.nextPageToken != nil {
-		parameterAddToHeaderOrQuery(localVarQueryParams, "nextPageToken", r.nextPageToken, "")
+		parameterAddToHeaderOrQuery(localVarQueryParams, "nextPageToken", r.nextPageToken, "form", "")
 	}
 	// to determine the Content-Type header
 	localVarHTTPContentTypes := []string{}
@@ -8166,19 +8166,19 @@ func (a *ModelRegistryServiceAPIService) GetServingEnvironmentsExecute(r ApiGetS
 	localVarFormParams := url.Values{}
 
 	if r.filterQuery != nil {
-		parameterAddToHeaderOrQuery(localVarQueryParams, "filterQuery", r.filterQuery, "")
+		parameterAddToHeaderOrQuery(localVarQueryParams, "filterQuery", r.filterQuery, "form", "")
 	}
 	if r.pageSize != nil {
-		parameterAddToHeaderOrQuery(localVarQueryParams, "pageSize", r.pageSize, "")
+		parameterAddToHeaderOrQuery(localVarQueryParams, "pageSize", r.pageSize, "form", "")
 	}
 	if r.orderBy != nil {
-		parameterAddToHeaderOrQuery(localVarQueryParams, "orderBy", r.orderBy, "")
+		parameterAddToHeaderOrQuery(localVarQueryParams, "orderBy", r.orderBy, "form", "")
 	}
 	if r.sortOrder != nil {
-		parameterAddToHeaderOrQuery(localVarQueryParams, "sortOrder", r.sortOrder, "")
+		parameterAddToHeaderOrQuery(localVarQueryParams, "sortOrder", r.sortOrder, "form", "")
 	}
 	if r.nextPageToken != nil {
-		parameterAddToHeaderOrQuery(localVarQueryParams, "nextPageToken", r.nextPageToken, "")
+		parameterAddToHeaderOrQuery(localVarQueryParams, "nextPageToken", r.nextPageToken, "form", "")
 	}
 	// to determine the Content-Type header
 	localVarHTTPContentTypes := []string{}

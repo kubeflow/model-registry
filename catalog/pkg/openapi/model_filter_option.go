@@ -26,6 +26,8 @@ type FilterOption struct {
 	Range  *FilterOptionRange `json:"range,omitempty"`
 }
 
+type _FilterOption FilterOption
+
 // NewFilterOption instantiates a new FilterOption object
 // This constructor will assign default values to properties that have it defined,
 // and makes sure properties required by API are set, but the set of arguments
