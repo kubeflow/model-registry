@@ -3,9 +3,7 @@ import {
   CatalogPerformanceMetricsArtifact,
   PerformanceMetricsCustomProperties,
 } from '~/app/modelCatalogTypes';
-import {
-  getHardwareConfiguration,
-} from '~/app/pages/modelCatalog/utils/performanceMetricsUtils';
+import { getHardwareConfiguration } from '~/app/pages/modelCatalog/utils/performanceMetricsUtils';
 import { getDoubleValue, getStringValue } from '~/app/utils';
 
 export type HardwareConfigColumnField = keyof PerformanceMetricsCustomProperties;
