@@ -10,7 +10,6 @@ import {
   LatencyPercentile,
   LatencyMetric,
 } from '~/concepts/modelCatalog/const';
-import { getTotalRps } from './performanceMetricsUtils';
 import { LatencyFilterConfig as SharedLatencyFilterConfig } from './latencyFilterState';
 
 // Type for storing complex latency filter configuration with value
@@ -105,8 +104,8 @@ export const filterHardwareConfigurationArtifacts = (
     // Min RPS Filter
     const minRpsFilter = filterState[ModelCatalogNumberFilterKey.MIN_RPS];
     if (minRpsFilter !== undefined) {
-      const totalRps = getTotalRps(artifact.customProperties);
-      if (totalRps < minRpsFilter) {
+      const rpsPerReplica = getDoubleValue(artifact.customProperties, 'requests_per_second');
+      if (rpsPerReplica < minRpsFilter) {
         return false;
       }
     }
