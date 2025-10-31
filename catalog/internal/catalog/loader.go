@@ -156,6 +156,12 @@ func (l *Loader) read(path string) (*sourceConfig, error) {
 		}
 		// If not explicitly set, default to enabled
 		source.CatalogSource.Enabled = apiutils.Of(true)
+
+		// Default to an empty labels list
+		if source.Labels == nil {
+			source.Labels = []string{}
+		}
+
 		enabledSources = append(enabledSources, source)
 	}
 	config.Catalogs = enabledSources
