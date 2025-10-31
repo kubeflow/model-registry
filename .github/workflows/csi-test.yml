@@ -46,7 +46,12 @@ jobs:
           echo "tag=${tag}" >> $GITHUB_OUTPUT
 
       - name: Install network tools
-        run: sudo apt-get update && sudo apt-get install -y netcat-openbsd
+        run: sudo apt-get update && sudo apt-get install -y netcat-openbsd jq
+
+      - name: Install Helm
+        uses: azure/setup-helm@v4
+        with:
+          version: 'v3.14.0'
 
       - name: Build local model registry image
         shell: bash
@@ -66,7 +71,7 @@ jobs:
       - name: Start KinD cluster
         uses: helm/kind-action@v1.12.0
         with:
-          node_image: "kindest/node:v1.27.11"
+          node_image: "kindest/node:v1.31.0"
 
       - name: Remove AppArmor profile for mysql in KinD on GHA # https://github.com/kubeflow/manifests/issues/2507
         run: |

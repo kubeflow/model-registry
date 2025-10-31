@@ -1,5 +1,5 @@
 # Build the model-registry CSI binary
-FROM --platform=$BUILDPLATFORM registry.access.redhat.com/ubi9/go-toolset:1.24 AS builder
+FROM --platform=$BUILDPLATFORM registry.access.redhat.com/ubi9/go-toolset:1.24 AS common
 ARG TARGETOS
 ARG TARGETARCH
 
@@ -12,37 +12,22 @@ COPY ["catalog/pkg/openapi/go.mod", "catalog/pkg/openapi/"]
 # and so that source changes don't invalidate our downloaded layer
 RUN go mod download
 
-USER root
-# default NodeJS 14 is not enough for openapi-generator-cli, switch to Node JS currently supported
-RUN yum remove -y nodejs npm
-RUN yum module -y reset nodejs
-RUN yum module -y enable nodejs:18
-# install npm and java for openapi-generator-cli
-RUN yum install -y nodejs npm java-11-headless python3
-
-# Copy the go source
-COPY ["Makefile", "main.go", ".openapi-generator-ignore", "openapitools.json", "./"]
-
-# Copy rest of the source
+# Download tools
+COPY Makefile .
+COPY ["main.go", ".openapi-generator-ignore", "openapitools.json", "./"]
 COPY cmd/ cmd/
 COPY api/ api/
 COPY internal/ internal/
 COPY scripts/ scripts/
 COPY pkg/ pkg/
 COPY templates/ templates/
-COPY catalog/ catalog/
 COPY patches/ patches/
+COPY catalog/ catalog/
 
-# Download tools
-RUN make deps
+FROM common AS builder
 
-# NOTE: The two instructions below are effectively equivalent to 'make clean build'
-# DO NOT REMOVE THE 'build/prepare' TARGET!!!
-# It ensures consitent repeatable Dockerfile builds
+USER root
 
-# prepare the build in a separate layer
-RUN make clean build/prepare/csi
-# compile separately to optimize multi-platform builds
 RUN CGO_ENABLED=0 GOOS=${TARGETOS:-linux} GOARCH=${TARGETARCH} make build/compile/csi
 
 # Use distroless as minimal base image to package the model-registry binary
