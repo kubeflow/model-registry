@@ -446,7 +446,13 @@ func (qb *QueryBuilder) buildPropertyTableConditionString(propRef *PropertyRefer
 	}
 
 	// Use the specific value type column based on inferred type
-	valueColumn := propRef.ValueType
+	// For array types, use string_value column; otherwise use the property's value type
+	var valueColumn string
+	if propRef.ValueType == ArrayValueType {
+		valueColumn = fmt.Sprintf("%s.%s", propertyTable, StringValueType)
+	} else {
+		valueColumn = fmt.Sprintf("%s.%s", propertyTable, propRef.ValueType)
+	}
 	condition := qb.buildOperatorCondition(valueColumn, operator, value)
 
 	subquery := fmt.Sprintf("EXISTS (SELECT 1 FROM %s WHERE %s.%s = %s.id AND %s.name = ? AND %s)",
