@@ -78,6 +78,7 @@ func TestLoadCatalogSourcesEnabledDisabled(t *testing.T) {
 					Id:      "catalog1",
 					Name:    "Catalog 1",
 					Enabled: &trueValue,
+					Labels:  []string{},
 				},
 			},
 			wantErr: false,
@@ -104,6 +105,65 @@ func TestLoadCatalogSourcesEnabledDisabled(t *testing.T) {
 
 			if !reflect.DeepEqual(loader.Sources.All(), tt.want) {
 				t.Errorf("NewLoader().Start() got metadata = %#v, want %#v", loader.Sources.All(), tt.want)
+			}
+		})
+	}
+}
+
+func TestCatalogSourceLabelsDefaultToEmptySlice(t *testing.T) {
+	type args struct {
+		catalogsPath string
+	}
+	tests := []struct {
+		name string
+		args args
+		want func(sources map[string]apimodels.CatalogSource) bool
+	}{
+		{
+			name: "labels-default-to-empty-slice",
+			args: args{catalogsPath: "testdata/test-catalog-sources.yaml"},
+			want: func(sources map[string]apimodels.CatalogSource) bool {
+				// Verify that all loaded catalog sources have labels defaulting to empty slice
+				for _, source := range sources {
+					if source.Labels == nil {
+						return false // Labels should not be nil
+					}
+					if len(source.Labels) != 0 {
+						return false // Labels should be empty slice, not nil and not containing elements
+					}
+				}
+				return len(sources) > 0 // Ensure we actually loaded some sources to test
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			// Create mock services
+			services := service.NewServices(
+				&MockCatalogModelRepository{},
+				&MockCatalogArtifactRepository{},
+				&MockCatalogModelArtifactRepository{},
+				&MockCatalogMetricsArtifactRepository{},
+			)
+			loader := NewLoader(services, []string{tt.args.catalogsPath})
+			err := loader.Start(context.Background())
+			if err != nil {
+				t.Errorf("NewLoader().Start() error = %v", err)
+				return
+			}
+
+			sources := loader.Sources.All()
+			if !tt.want(sources) {
+				t.Errorf("Labels validation failed for sources: %#v", sources)
+			}
+
+			// Explicitly verify each source has empty labels slice
+			for id, source := range sources {
+				if source.Labels == nil {
+					t.Errorf("Source %s has nil Labels, expected empty slice", id)
+				} else if len(source.Labels) != 0 {
+					t.Errorf("Source %s has non-empty Labels %v, expected empty slice", id, source.Labels)
+				}
 			}
 		})
 	}
