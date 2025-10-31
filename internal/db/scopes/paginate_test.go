@@ -239,7 +239,7 @@ func TestCursorDecoding(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			cursor, err := decodeCursor(tt.token)
+			cursor, err := DecodeCursor(tt.token)
 			if tt.expectError {
 				assert.Error(t, err, tt.description)
 				assert.Nil(t, cursor, "Cursor should be nil on error")

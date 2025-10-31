@@ -55,14 +55,16 @@ func (d *dbCatalogImpl) GetModel(ctx context.Context, modelName string, sourceID
 
 func (d *dbCatalogImpl) ListModels(ctx context.Context, params ListModelsParams) (apimodels.CatalogModelList, error) {
 	pageSize := int32(params.PageSize)
+	orderBy := string(params.OrderBy)
+	sortOrder := string(params.SortOrder)
 
 	// Use consistent defaults to match pagination logic
-	orderBy := string(params.OrderBy)
 	if orderBy == "" {
 		orderBy = mrmodels.DefaultOrderBy
+	} else if orderBy == "ACCURACY" {
+		orderBy = "artifacts.overall_average.double_value"
 	}
 
-	sortOrder := string(params.SortOrder)
 	if sortOrder == "" {
 		sortOrder = mrmodels.DefaultSortOrder
 	}
