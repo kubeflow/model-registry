@@ -52,6 +52,11 @@ func NewModelCatalogServiceAPIController(s ModelCatalogServiceAPIServicer, opts 
 // Routes returns all the api routes for the ModelCatalogServiceAPIController
 func (c *ModelCatalogServiceAPIController) Routes() Routes {
 	return Routes{
+		"FindLabels": Route{
+			strings.ToUpper("Get"),
+			"/api/model_catalog/v1alpha1/labels",
+			c.FindLabels,
+		},
 		"FindModels": Route{
 			strings.ToUpper("Get"),
 			"/api/model_catalog/v1alpha1/models",
@@ -78,6 +83,23 @@ func (c *ModelCatalogServiceAPIController) Routes() Routes {
 			c.GetAllModelArtifacts,
 		},
 	}
+}
+
+// FindLabels - List All CatalogLabels
+func (c *ModelCatalogServiceAPIController) FindLabels(w http.ResponseWriter, r *http.Request) {
+	query := r.URL.Query()
+	pageSizeParam := query.Get("pageSize")
+	orderByParam := query.Get("orderBy")
+	sortOrderParam := query.Get("sortOrder")
+	nextPageTokenParam := query.Get("nextPageToken")
+	result, err := c.service.FindLabels(r.Context(), pageSizeParam, model.OrderByField(orderByParam), model.SortOrder(sortOrderParam), nextPageTokenParam)
+	// If an error occurred, encode the error with the status code
+	if err != nil {
+		c.errorHandler(w, r, err, &result)
+		return
+	}
+	// If no error, encode the body and the result code
+	EncodeJSONResponse(result.Body, &result.Code, w)
 }
 
 // FindModels - Search catalog models across sources.

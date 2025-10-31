@@ -75,6 +75,20 @@ func (m *ModelCatalogServiceAPIService) GetAllModelArtifacts(ctx context.Context
 	return Response(http.StatusOK, artifacts), nil
 }
 
+func (m *ModelCatalogServiceAPIService) FindLabels(context.Context, string, model.OrderByField, model.SortOrder, string) (ImplResponse, error) {
+	labels := model.CatalogLabelList{
+		Items: []map[string]string{
+			{
+				"name":        "huggingface",
+				"displayName": "HuggingFace Hub",
+				"description": "HuggingFace models with full support and legal indemnification.",
+			},
+		},
+	}
+
+	return Response(http.StatusOK, labels), nil
+}
+
 func (m *ModelCatalogServiceAPIService) FindModels(ctx context.Context, sourceIDs []string, q string, sourceLabels []string, filterQuery string, pageSize string, orderBy model.OrderByField, sortOrder model.SortOrder, nextPageToken string) (ImplResponse, error) {
 	var err error
 	pageSizeInt := int32(10)

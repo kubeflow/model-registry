@@ -10,6 +10,32 @@ servers:
   - url: "https://localhost:8080"
   - url: "http://localhost:8080"
 paths:
+  /api/model_catalog/v1alpha1/labels:
+    summary: Path used to get the list of catalog labels.
+    description: >-
+      The REST endpoint/path used to list zero or more `CatalogLabel` entities.
+    get:
+      summary: List All CatalogLabels
+      tags:
+        - ModelCatalogService
+      parameters:
+        - $ref: "#/components/parameters/pageSize"
+        - $ref: "#/components/parameters/orderBy"
+        - $ref: "#/components/parameters/sortOrder"
+        - $ref: "#/components/parameters/nextPageToken"
+      responses:
+        "200":
+          $ref: "#/components/responses/CatalogLabelListResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+      operationId: findLabels
+      description: Gets a list of all `CatalogLabel` entities.
   /api/model_catalog/v1alpha1/models:
     description: >-
       The REST endpoint/path used to list zero or more `CatalogModel` entities from all `CatalogSources`.
@@ -324,6 +350,28 @@ components:
           required:
             - items
         - $ref: "#/components/schemas/BaseResourceList"
+    CatalogLabel:
+      description: A catalog label. Labels are used to categorize catalog sources. Represented as a flexible map of string key-value pairs.
+      type: object
+      additionalProperties:
+        type: string
+      example:
+        name: huggingface
+        displayName: HuggingFace Hub
+        description: HuggingFace models with full support and legal indemnification.
+    CatalogLabelList:
+      description: List of CatalogLabel entities.
+      allOf:
+        - type: object
+          properties:
+            items:
+              description: Array of `CatalogLabel` entities.
+              type: array
+              items:
+                $ref: "#/components/schemas/CatalogLabel"
+          required:
+            - items
+        - $ref: "#/components/schemas/BaseResourceList"
     CatalogMetricsArtifact:
       description: A metadata Artifact Entity.
       allOf:
@@ -616,6 +664,12 @@ components:
           schema:
             $ref: "#/components/schemas/CatalogArtifactList"
       description: A response containing a list of CatalogArtifact entities.
+    CatalogLabelListResponse:
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/CatalogLabelList"
+      description: A response containing a list of CatalogLabel entities.
     CatalogModelListResponse:
       content:
         application/json:
