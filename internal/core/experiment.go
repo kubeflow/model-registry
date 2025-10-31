@@ -29,6 +29,12 @@ func (b *ModelRegistryService) UpsertExperiment(experiment *openapi.Experiment) 
 			return nil, fmt.Errorf("%v: %w", err, api.ErrBadRequest)
 		}
 
+		// Handle CustomProperties preservation for partial updates
+		// If the update didn't specify CustomProperties (nil), preserve existing ones
+		if experiment.CustomProperties == nil && existing.CustomProperties != nil {
+			withNotEditable.CustomProperties = existing.CustomProperties
+		}
+
 		experiment = &withNotEditable
 	}
 

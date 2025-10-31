@@ -419,8 +419,8 @@ var _ = Describe("InferenceService Controller", func() {
 					return fmt.Errorf("InferenceService URL is not set")
 				}
 
-				if (*restIsvc.CustomProperties)["url"].MetadataStringValue.GetStringValue() != url.String() {
-					return fmt.Errorf("InferenceService URL is not set correctly, got %s, want %s", (*restIsvc.CustomProperties)["url"].MetadataStringValue.GetStringValue(), url.String())
+				if restIsvc.CustomProperties["url"].MetadataStringValue.GetStringValue() != url.String() {
+					return fmt.Errorf("InferenceService URL is not set correctly, got %s, want %s", restIsvc.CustomProperties["url"].MetadataStringValue.GetStringValue(), url.String())
 				}
 
 				return nil
@@ -605,8 +605,8 @@ var _ = Describe("InferenceService Controller", func() {
 					return fmt.Errorf("InferenceService URL is not set")
 				}
 
-				if (*restIsvc.CustomProperties)["url"].MetadataStringValue.GetStringValue() != url.String() {
-					return fmt.Errorf("InferenceService URL is not set correctly, got %s, want %s", (*restIsvc.CustomProperties)["url"].MetadataStringValue.GetStringValue(), url.String())
+				if restIsvc.CustomProperties["url"].MetadataStringValue.GetStringValue() != url.String() {
+					return fmt.Errorf("InferenceService URL is not set correctly, got %s, want %s", restIsvc.CustomProperties["url"].MetadataStringValue.GetStringValue(), url.String())
 				}
 
 				return nil
@@ -641,8 +641,8 @@ var _ = Describe("InferenceService Controller", func() {
 					return fmt.Errorf("InferenceService URL is not set")
 				}
 
-				if (*restIsvc.CustomProperties)["url"].MetadataStringValue.GetStringValue() != url.String() {
-					return fmt.Errorf("InferenceService URL is not set correctly, got %s, want %s", (*restIsvc.CustomProperties)["url"].MetadataStringValue.GetStringValue(), url.String())
+				if restIsvc.CustomProperties["url"].MetadataStringValue.GetStringValue() != url.String() {
+					return fmt.Errorf("InferenceService URL is not set correctly, got %s, want %s", restIsvc.CustomProperties["url"].MetadataStringValue.GetStringValue(), url.String())
 				}
 
 				return nil

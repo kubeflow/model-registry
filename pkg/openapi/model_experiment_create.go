@@ -11,7 +11,9 @@ API version: v1alpha3
 package openapi
 
 import (
+	"bytes"
 	"encoding/json"
+	"fmt"
 )
 
 // checks if the ExperimentCreate type satisfies the MappedNullable interface at compile time
@@ -20,7 +22,7 @@ var _ MappedNullable = &ExperimentCreate{}
 // ExperimentCreate An experiment in model registry. An experiment has ExperimentRun children.
 type ExperimentCreate struct {
 	// User provided custom properties which are not defined by its type.
-	CustomProperties *map[string]MetadataValue `json:"customProperties,omitempty"`
+	CustomProperties map[string]MetadataValue `json:"customProperties,omitempty"`
 	// An optional description about the resource.
 	Description *string `json:"description,omitempty"`
 	// The external id that come from the clients’ system. This field is optional. If set, it must be unique among all resources within a database instance.
@@ -30,6 +32,8 @@ type ExperimentCreate struct {
 	Owner *string          `json:"owner,omitempty"`
 	State *ExperimentState `json:"state,omitempty"`
 }
+
+type _ExperimentCreate ExperimentCreate
 
 // NewExperimentCreate instantiates a new ExperimentCreate object
 // This constructor will assign default values to properties that have it defined,
@@ -59,14 +63,14 @@ func (o *ExperimentCreate) GetCustomProperties() map[string]MetadataValue {
 		var ret map[string]MetadataValue
 		return ret
 	}
-	return *o.CustomProperties
+	return o.CustomProperties
 }
 
 // GetCustomPropertiesOk returns a tuple with the CustomProperties field value if set, nil otherwise
 // and a boolean to check if the value has been set.
-func (o *ExperimentCreate) GetCustomPropertiesOk() (*map[string]MetadataValue, bool) {
+func (o *ExperimentCreate) GetCustomPropertiesOk() (map[string]MetadataValue, bool) {
 	if o == nil || IsNil(o.CustomProperties) {
-		return nil, false
+		return map[string]MetadataValue{}, false
 	}
 	return o.CustomProperties, true
 }
@@ -82,7 +86,7 @@ func (o *ExperimentCreate) HasCustomProperties() bool {
 
 // SetCustomProperties gets a reference to the given map[string]MetadataValue and assigns it to the CustomProperties field.
 func (o *ExperimentCreate) SetCustomProperties(v map[string]MetadataValue) {
-	o.CustomProperties = &v
+	o.CustomProperties = v
 }
 
 // GetDescription returns the Description field value if set, zero value otherwise.
@@ -264,6 +268,43 @@ func (o ExperimentCreate) ToMap() (map[string]interface{}, error) {
 		toSerialize["state"] = o.State
 	}
 	return toSerialize, nil
+}
+
+func (o *ExperimentCreate) UnmarshalJSON(data []byte) (err error) {
+	// This validates that all required properties are included in the JSON object
+	// by unmarshalling the object into a generic map with string keys and checking
+	// that every required field exists as a key in the generic map.
+	requiredProperties := []string{
+		"name",
+	}
+
+	allProperties := make(map[string]interface{})
+
+	err = json.Unmarshal(data, &allProperties)
+
+	if err != nil {
+		return err
+	}
+
+	for _, requiredProperty := range requiredProperties {
+		if _, exists := allProperties[requiredProperty]; !exists {
+			return fmt.Errorf("no value given for required property %v", requiredProperty)
+		}
+	}
+
+	varExperimentCreate := _ExperimentCreate{}
+
+	decoder := json.NewDecoder(bytes.NewReader(data))
+	decoder.DisallowUnknownFields()
+	err = decoder.Decode(&varExperimentCreate)
+
+	if err != nil {
+		return err
+	}
+
+	*o = ExperimentCreate(varExperimentCreate)
+
+	return err
 }
 
 type NullableExperimentCreate struct {

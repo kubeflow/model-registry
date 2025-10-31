@@ -94,7 +94,7 @@ func TestUpsertRegisteredModel(t *testing.T) {
 
 		input := &openapi.RegisteredModel{
 			Name:             "custom-props-model",
-			CustomProperties: &customProps,
+			CustomProperties: customProps,
 		}
 
 		result, err := _service.UpsertRegisteredModel(input)
@@ -104,7 +104,7 @@ func TestUpsertRegisteredModel(t *testing.T) {
 		assert.Equal(t, "custom-props-model", result.Name)
 		assert.NotNil(t, result.CustomProperties)
 
-		resultProps := *result.CustomProperties
+		resultProps := result.CustomProperties
 		assert.Contains(t, resultProps, "accuracy")
 		assert.Contains(t, resultProps, "framework")
 		assert.Contains(t, resultProps, "version")
@@ -634,7 +634,7 @@ func TestGetRegisteredModelsWithFilterQuery(t *testing.T) {
 				Description: apiutils.Of("PyTorch model for image classification"),
 				ExternalId:  apiutils.Of("ext-pytorch-001"),
 				State:       (*openapi.RegisteredModelState)(apiutils.Of("LIVE")),
-				CustomProperties: &map[string]openapi.MetadataValue{
+				CustomProperties: map[string]openapi.MetadataValue{
 					"framework": {
 						MetadataStringValue: &openapi.MetadataStringValue{
 							StringValue:  "pytorch",
@@ -662,7 +662,7 @@ func TestGetRegisteredModelsWithFilterQuery(t *testing.T) {
 				Description: apiutils.Of("TensorFlow model for NLP"),
 				ExternalId:  apiutils.Of("ext-tf-002"),
 				State:       (*openapi.RegisteredModelState)(apiutils.Of("ARCHIVED")),
-				CustomProperties: &map[string]openapi.MetadataValue{
+				CustomProperties: map[string]openapi.MetadataValue{
 					"framework": {
 						MetadataStringValue: &openapi.MetadataStringValue{
 							StringValue:  "tensorflow",
@@ -689,7 +689,7 @@ func TestGetRegisteredModelsWithFilterQuery(t *testing.T) {
 				Name:        "pytorch-model-v2",
 				Description: apiutils.Of("PyTorch model for object detection"),
 				ExternalId:  apiutils.Of("ext-pytorch-003"),
-				CustomProperties: &map[string]openapi.MetadataValue{
+				CustomProperties: map[string]openapi.MetadataValue{
 					"framework": {
 						MetadataStringValue: &openapi.MetadataStringValue{
 							StringValue:  "pytorch",
@@ -716,7 +716,7 @@ func TestGetRegisteredModelsWithFilterQuery(t *testing.T) {
 				Name:        "sklearn-model",
 				Description: apiutils.Of("Scikit-learn model for regression"),
 				ExternalId:  apiutils.Of("ext-sklearn-004"),
-				CustomProperties: &map[string]openapi.MetadataValue{
+				CustomProperties: map[string]openapi.MetadataValue{
 					"framework": {
 						MetadataStringValue: &openapi.MetadataStringValue{
 							StringValue:  "sklearn",

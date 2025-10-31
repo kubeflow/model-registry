@@ -2,7 +2,6 @@ import typing as t
 from pathlib import Path
 from textwrap import dedent
 
-
 def get_funcs(models: t.Iterable[Path]) -> t.Iterator[str]:
     for path in models:
         with path.open() as f:
@@ -13,10 +12,20 @@ def get_funcs(models: t.Iterable[Path]) -> t.Iterator[str]:
 
             buf = []
             in_func = False
+            in_import = False
             for raw in lines:
                 line = raw.rstrip()
                 if not line and not in_func:
                     continue
+
+                if line.startswith("import "):
+                    in_import = True
+                    continue
+                elif line == ")" and in_import:
+                    in_import = False
+                    buf.clear()
+                    continue
+
                 buf.append(line)
                 if line.startswith("func"):
                     in_func = True
@@ -38,6 +47,7 @@ if __name__ == "__main__":
     # model registry repo root
     root = Path(__file__).parent.parent.resolve()
     src = root / "internal/server/openapi"
+
     print(
         dedent("""
 /*

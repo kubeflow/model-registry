@@ -11,7 +11,9 @@ API version: v1alpha3
 package openapi
 
 import (
+	"bytes"
 	"encoding/json"
+	"fmt"
 )
 
 // checks if the BaseResourceList type satisfies the MappedNullable interface at compile time
@@ -26,6 +28,8 @@ type BaseResourceList struct {
 	// Number of items in result list.
 	Size int32 `json:"size"`
 }
+
+type _BaseResourceList BaseResourceList
 
 // NewBaseResourceList instantiates a new BaseResourceList object
 // This constructor will assign default values to properties that have it defined,
@@ -133,6 +137,45 @@ func (o BaseResourceList) ToMap() (map[string]interface{}, error) {
 	toSerialize["pageSize"] = o.PageSize
 	toSerialize["size"] = o.Size
 	return toSerialize, nil
+}
+
+func (o *BaseResourceList) UnmarshalJSON(data []byte) (err error) {
+	// This validates that all required properties are included in the JSON object
+	// by unmarshalling the object into a generic map with string keys and checking
+	// that every required field exists as a key in the generic map.
+	requiredProperties := []string{
+		"nextPageToken",
+		"pageSize",
+		"size",
+	}
+
+	allProperties := make(map[string]interface{})
+
+	err = json.Unmarshal(data, &allProperties)
+
+	if err != nil {
+		return err
+	}
+
+	for _, requiredProperty := range requiredProperties {
+		if _, exists := allProperties[requiredProperty]; !exists {
+			return fmt.Errorf("no value given for required property %v", requiredProperty)
+		}
+	}
+
+	varBaseResourceList := _BaseResourceList{}
+
+	decoder := json.NewDecoder(bytes.NewReader(data))
+	decoder.DisallowUnknownFields()
+	err = decoder.Decode(&varBaseResourceList)
+
+	if err != nil {
+		return err
+	}
+
+	*o = BaseResourceList(varBaseResourceList)
+
+	return err
 }
 
 type NullableBaseResourceList struct {

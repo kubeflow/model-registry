@@ -39,7 +39,7 @@ type BaseModel struct {
 	LicenseLink *string `json:"licenseLink,omitempty"`
 	LibraryName *string `json:"libraryName,omitempty"`
 	// User provided custom properties which are not defined by its type.
-	CustomProperties *map[string]MetadataValue `json:"customProperties,omitempty"`
+	CustomProperties map[string]MetadataValue `json:"customProperties,omitempty"`
 }
 
 // NewBaseModel instantiates a new BaseModel object
@@ -385,14 +385,14 @@ func (o *BaseModel) GetCustomProperties() map[string]MetadataValue {
 		var ret map[string]MetadataValue
 		return ret
 	}
-	return *o.CustomProperties
+	return o.CustomProperties
 }
 
 // GetCustomPropertiesOk returns a tuple with the CustomProperties field value if set, nil otherwise
 // and a boolean to check if the value has been set.
-func (o *BaseModel) GetCustomPropertiesOk() (*map[string]MetadataValue, bool) {
+func (o *BaseModel) GetCustomPropertiesOk() (map[string]MetadataValue, bool) {
 	if o == nil || IsNil(o.CustomProperties) {
-		return nil, false
+		return map[string]MetadataValue{}, false
 	}
 	return o.CustomProperties, true
 }
@@ -408,7 +408,7 @@ func (o *BaseModel) HasCustomProperties() bool {
 
 // SetCustomProperties gets a reference to the given map[string]MetadataValue and assigns it to the CustomProperties field.
 func (o *BaseModel) SetCustomProperties(v map[string]MetadataValue) {
-	o.CustomProperties = &v
+	o.CustomProperties = v
 }
 
 func (o BaseModel) MarshalJSON() ([]byte, error) {
