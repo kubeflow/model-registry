@@ -12,6 +12,8 @@ import {
 import { ArrowRightIcon, FilterIcon } from '@patternfly/react-icons';
 import React from 'react';
 import { useThemeContext } from 'mod-arch-kubeflow';
+import { ModelCatalogStringFilterKey } from '~/concepts/modelCatalog/const';
+import { ModelCatalogFilterKey } from '~/app/modelCatalogTypes';
 import ModelCatalogActiveFilters from '~/app/pages/modelCatalog/components/ModelCatalogActiveFilters';
 import ThemeAwareSearchInput from '~/app/pages/modelRegistry/screens/components/ThemeAwareSearchInput';
 import ModelCatalogSourceLabelBlocks from './ModelCatalogSourceLabelBlocks';
@@ -58,10 +60,22 @@ const ModelCatalogSourceLabelSelector: React.FC<ModelCatalogSourceLabelSelectorP
     }
   };
 
+  // Define which filters to show on the landing page
+  const filtersToShow: ModelCatalogFilterKey[] = [
+    ModelCatalogStringFilterKey.PROVIDER,
+    ModelCatalogStringFilterKey.LICENSE,
+    ModelCatalogStringFilterKey.TASK,
+    ModelCatalogStringFilterKey.LANGUAGE,
+  ];
+
   return (
     <Stack>
       <StackItem>
-        <Toolbar className="pf-v6-u-pb-0">
+        <Toolbar
+          className="pf-v6-u-pb-0"
+          clearAllFilters={onResetAllFilters}
+          clearFiltersButtonText="Reset all filters"
+        >
           <ToolbarContent>
             <Flex>
               <ToolbarToggleGroup breakpoint="md" toggleIcon={<FilterIcon />}>
@@ -97,18 +111,10 @@ const ModelCatalogSourceLabelSelector: React.FC<ModelCatalogSourceLabelSelectorP
                   </ToolbarItem>
                 </ToolbarGroup>
               </ToolbarToggleGroup>
+              {onResetAllFilters && <ModelCatalogActiveFilters filtersToShow={filtersToShow} />}
             </Flex>
           </ToolbarContent>
         </Toolbar>
-      </StackItem>
-      <StackItem className="pf-v6-u-pt-md">
-        {onResetAllFilters && (
-          <ModelCatalogActiveFilters
-            searchTerm={searchTerm}
-            onClearSearch={onClearSearch}
-            onResetAllFilters={onResetAllFilters}
-          />
-        )}
       </StackItem>
       <StackItem>
         <ModelCatalogSourceLabelBlocks />

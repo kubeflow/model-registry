@@ -1,14 +1,6 @@
 import React from 'react';
-import {
-  Button,
-  Flex,
-  FlexItem,
-  Label,
-  LabelGroup,
-  Stack,
-  StackItem,
-} from '@patternfly/react-core';
-import { TimesIcon } from '@patternfly/react-icons';
+import { ToolbarFilter, ToolbarLabelGroup, ToolbarLabel } from '@patternfly/react-core';
+import { isEnumMember } from 'mod-arch-core';
 import { ModelCatalogContext } from '~/app/context/modelCatalog/ModelCatalogContext';
 import {
   ModelCatalogStringFilterKey,
@@ -16,204 +8,112 @@ import {
   MODEL_CATALOG_LICENSE_NAME_MAPPING,
   MODEL_CATALOG_TASK_NAME_MAPPING,
   AllLanguageCodesMap,
-} from '~/concepts/modelCatalog/const';
-import type {
+  MODEL_CATALOG_FILTER_CATEGORY_NAMES,
   ModelCatalogProvider,
   ModelCatalogLicense,
   ModelCatalogTask,
   AllLanguageCode,
 } from '~/concepts/modelCatalog/const';
-import { hasFiltersApplied } from '~/app/pages/modelCatalog/utils/modelCatalogUtils';
+import { ModelCatalogFilterKey } from '~/app/modelCatalogTypes';
 
 type ModelCatalogActiveFiltersProps = {
-  searchTerm?: string;
-  onResetAllFilters: () => void;
-  // eslint-disable-next-line react/no-unused-prop-types
-  onClearSearch?: () => void;
+  filtersToShow: ModelCatalogFilterKey[];
 };
 
-// Filter category display names
-const FILTER_CATEGORY_NAMES: Record<ModelCatalogStringFilterKey, string> = {
-  [ModelCatalogStringFilterKey.PROVIDER]: 'Provider',
-  [ModelCatalogStringFilterKey.LICENSE]: 'License',
-  [ModelCatalogStringFilterKey.TASK]: 'Task',
-  [ModelCatalogStringFilterKey.LANGUAGE]: 'Language',
-  [ModelCatalogStringFilterKey.HARDWARE_TYPE]: 'Hardware type',
-  [ModelCatalogStringFilterKey.USE_CASE]: 'Use case',
-};
-
-const ModelCatalogActiveFilters: React.FC<ModelCatalogActiveFiltersProps> = ({
-  searchTerm,
-  onResetAllFilters,
-}) => {
+const ModelCatalogActiveFilters: React.FC<ModelCatalogActiveFiltersProps> = ({ filtersToShow }) => {
   const { filterData, setFilterData } = React.useContext(ModelCatalogContext);
-  const filtersApplied = hasFiltersApplied(filterData);
-  const hasSearch = Boolean(searchTerm);
 
-  // Don't render if there are no active filters or search term
-  if (!filtersApplied && !hasSearch) {
-    return null;
-  }
-
-  const handleRemoveFilter = (filterKey: ModelCatalogStringFilterKey, value: string) => {
-    const currentValues = filterData[filterKey];
-    if (Array.isArray(currentValues)) {
-      // Compare as strings to handle type mismatches
-      const newValues = currentValues.filter((v) => String(v) !== String(value));
-      setFilterData(filterKey, newValues);
+  const handleRemoveFilter = (categoryKey: string, labelKey: string) => {
+    if (isEnumMember(categoryKey, ModelCatalogStringFilterKey)) {
+      const currentValues = filterData[categoryKey];
+      if (Array.isArray(currentValues)) {
+        const newValues = currentValues.filter((v) => String(v) !== String(labelKey));
+        setFilterData(categoryKey, newValues);
+      }
     }
   };
 
-  const handleClearCategory = (filterKey: ModelCatalogStringFilterKey) => {
-    setFilterData(filterKey, []);
+  const handleClearCategory = (categoryKey: string) => {
+    if (isEnumMember(categoryKey, ModelCatalogStringFilterKey)) {
+      setFilterData(categoryKey, []);
+    }
   };
 
   const getFilterLabel = (filterKey: ModelCatalogStringFilterKey, value: string): string => {
-    try {
-      switch (filterKey) {
-        case ModelCatalogStringFilterKey.PROVIDER: {
-          // Try to find in mapping, fallback to value
-          // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
-          const providerValue = value as ModelCatalogProvider;
-          // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-          return MODEL_CATALOG_PROVIDER_NAME_MAPPING[providerValue] || value;
-        }
-        case ModelCatalogStringFilterKey.LICENSE: {
-          // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
-          const licenseValue = value as ModelCatalogLicense;
-          // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-          return MODEL_CATALOG_LICENSE_NAME_MAPPING[licenseValue] || value;
-        }
-        case ModelCatalogStringFilterKey.TASK: {
-          // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
-          const taskValue = value as ModelCatalogTask;
-          // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-          return MODEL_CATALOG_TASK_NAME_MAPPING[taskValue] || value;
-        }
-        case ModelCatalogStringFilterKey.LANGUAGE: {
-          // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
-          const languageValue = value as AllLanguageCode;
-          // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-          return AllLanguageCodesMap[languageValue] || value;
-        }
-        default:
-          return value;
+    switch (filterKey) {
+      case ModelCatalogStringFilterKey.PROVIDER: {
+        return isEnumMember(value, ModelCatalogProvider)
+          ? MODEL_CATALOG_PROVIDER_NAME_MAPPING[value]
+          : value;
       }
-    } catch {
-      return value;
+      case ModelCatalogStringFilterKey.LICENSE: {
+        return isEnumMember(value, ModelCatalogLicense)
+          ? MODEL_CATALOG_LICENSE_NAME_MAPPING[value]
+          : value;
+      }
+      case ModelCatalogStringFilterKey.TASK: {
+        return isEnumMember(value, ModelCatalogTask)
+          ? MODEL_CATALOG_TASK_NAME_MAPPING[value]
+          : value;
+      }
+      case ModelCatalogStringFilterKey.LANGUAGE: {
+        return isEnumMember(value, AllLanguageCode) ? AllLanguageCodesMap[value] : value;
+      }
+      default:
+        return value;
     }
   };
 
-  // Get active filters grouped by category
-  const activeFiltersByCategory: Array<{
-    category: ModelCatalogStringFilterKey;
-    categoryName: string;
-    values: string[];
-  }> = [];
-
-  // Process each filter category
-  Object.values(ModelCatalogStringFilterKey).forEach((filterKey) => {
-    if (filterKey === ModelCatalogStringFilterKey.USE_CASE) {
-      // Skip USE_CASE as it's a single value, not an array
-      return;
-    }
-
-    const filterValues = filterData[filterKey];
-    if (Array.isArray(filterValues) && filterValues.length > 0) {
-      activeFiltersByCategory.push({
-        category: filterKey,
-        categoryName: FILTER_CATEGORY_NAMES[filterKey],
-        values: filterValues.map((v) => String(v)),
-      });
-    }
-  });
-
-  // Only show chips section if there are actual chips to display
-  const hasChipsToShow = activeFiltersByCategory.length > 0;
-
   return (
-    <Stack>
-      {hasChipsToShow && (
-        <StackItem>
-          <Flex
-            gap={{ default: 'gapMd' }}
-            alignItems={{ default: 'alignItemsBaseline' }}
-            wrap="wrap"
+    <>
+      {filtersToShow.map((filterKey) => {
+        // Only process string filter keys that are arrays
+        if (!isEnumMember(filterKey, ModelCatalogStringFilterKey)) {
+          return null;
+        }
+
+        const filterValues = filterData[filterKey];
+        if (!Array.isArray(filterValues) || filterValues.length === 0) {
+          return null;
+        }
+
+        const categoryName = MODEL_CATALOG_FILTER_CATEGORY_NAMES[filterKey];
+        const labels: ToolbarLabel[] = filterValues.map((value) => {
+          const valueStr = String(value);
+          const labelText = getFilterLabel(filterKey, valueStr);
+          return {
+            key: valueStr,
+            node: <span data-testid={`${filterKey}-filter-chip-${valueStr}`}>{labelText}</span>,
+          };
+        });
+
+        const categoryLabelGroup: ToolbarLabelGroup = {
+          key: filterKey,
+          name: categoryName,
+        };
+
+        return (
+          <ToolbarFilter
+            key={filterKey}
+            categoryName={categoryLabelGroup}
+            labels={labels}
+            deleteLabel={(category, label) => {
+              const categoryKey = typeof category === 'string' ? category : category.key;
+              const labelKey = typeof label === 'string' ? label : label.key;
+              handleRemoveFilter(categoryKey, labelKey);
+            }}
+            deleteLabelGroup={(category) => {
+              const categoryKey = typeof category === 'string' ? category : category.key;
+              handleClearCategory(categoryKey);
+            }}
+            data-testid={`${filterKey}-filter-container`}
           >
-            {activeFiltersByCategory.map(({ category, categoryName, values }) => (
-              <FlexItem key={category}>
-                <div
-                  className="pf-v6-c-toolbar__group"
-                  style={{
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    gap: 'var(--pf-v6-global--spacer--xs)',
-                    padding: 'var(--pf-v6-global--spacer--xs) var(--pf-v6-global--spacer--sm)',
-                    border: '1px solid var(--pf-v6-global--BorderColor--200)',
-                    borderRadius: 'var(--pf-v6-global--BorderRadius--sm)',
-                    backgroundColor: 'var(--pf-v6-global--BackgroundColor--100)',
-                    minHeight: '32px',
-                    boxSizing: 'border-box',
-                    width: 'fit-content',
-                  }}
-                  data-testid={`${category}-filter-container`}
-                >
-                  <LabelGroup categoryName={categoryName}>
-                    {values.map((value) => {
-                      const labelText = getFilterLabel(category, value);
-                      return (
-                        <Label
-                          key={`${category}-${value}`}
-                          variant="outline"
-                          color="grey"
-                          onClose={() => handleRemoveFilter(category, value)}
-                          closeBtnProps={{
-                            'aria-label': `Remove ${categoryName} filter ${labelText}`,
-                          }}
-                          data-testid={`${category}-filter-chip-${value}`}
-                          style={{
-                            backgroundColor: 'var(--pf-v6-global--BackgroundColor--200)',
-                          }}
-                        >
-                          {labelText}
-                        </Label>
-                      );
-                    })}
-                  </LabelGroup>
-                  {values.length > 0 && (
-                    <Button
-                      variant="plain"
-                      onClick={() => handleClearCategory(category)}
-                      aria-label={`Clear all ${categoryName} filters`}
-                      icon={<TimesIcon />}
-                      style={{
-                        padding: 0,
-                        marginLeft: 'var(--pf-v6-global--spacer--xs)',
-                        color: 'var(--pf-v6-global--Color--100)',
-                        minWidth: 'auto',
-                      }}
-                    />
-                  )}
-                </div>
-              </FlexItem>
-            ))}
-          </Flex>
-        </StackItem>
-      )}
-      {(filtersApplied || hasSearch) && (
-        <StackItem className="pf-v6-u-pt-sm">
-          <Button
-            variant="link"
-            isInline
-            onClick={onResetAllFilters}
-            data-testid="reset-all-filters-button"
-            style={{ fontSize: 'var(--pf-v6-global--FontSize--sm)', padding: 0 }}
-          >
-            Reset all filters
-          </Button>
-        </StackItem>
-      )}
-    </Stack>
+            {/* ToolbarFilter requires children but we only render labels, not filter controls */}
+            {null}
+          </ToolbarFilter>
+        );
+      })}
+    </>
   );
 };
 
