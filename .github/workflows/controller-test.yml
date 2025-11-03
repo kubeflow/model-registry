@@ -19,10 +19,8 @@ on:
       - "internal/server/openapi/api_model_registry_service*"
       - "pkg/openapi/**"
       - "go.mod"
-
 permissions: # set contents: read at top-level, per OpenSSF ScoreCard rule TokenPermissionsID
   contents: read
-
 env:
   BRANCH: ${{ github.base_ref }}
 jobs:
@@ -37,20 +35,16 @@ jobs:
           commit_sha=${{ github.event.after }}
           tag="${BRANCH:-main}"-${commit_sha:0:7}
           echo "tag=${tag}" >> $GITHUB_OUTPUT
-
       - name: Clone the code
         uses: actions/checkout@v5
-
       - name: Setup Go
         uses: actions/setup-go@v6
         with:
-          go-version: '1.24'
-
+          go-version: '1.24.9'
       - name: Running Tests
         run: |
           go mod tidy
           make controller/test
-
       - name: Build controller
         shell: bash
         env:

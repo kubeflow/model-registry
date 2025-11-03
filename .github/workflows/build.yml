@@ -13,10 +13,8 @@ on:
       - ".github/ISSUE_TEMPLATE/**"
       - ".github/dependabot.yml"
       - "docs/**"
-
 permissions: # set contents: read at top-level, per OpenSSF ScoreCard rule TokenPermissionsID
   contents: read
-
 jobs:
   prepare:
     uses: ./.github/workflows/prepare.yml
@@ -29,7 +27,7 @@ jobs:
       - name: Setup Go
         uses: actions/setup-go@v6
         with:
-          go-version: "1.24"
+          go-version: "1.24.9"
       - name: Build
         run: make build/compile
       - name: Registry unit tests
