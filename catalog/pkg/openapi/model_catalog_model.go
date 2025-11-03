@@ -53,7 +53,7 @@ type CatalogModel struct {
 	// ID of the source this model belongs to.
 	SourceId *string `json:"source_id,omitempty"`
 	// List of artifacts associated with the model.
-	Artifacts []CatalogModelArtifact `json:"artifacts,omitempty"`
+	Artifacts []CatalogArtifact `json:"artifacts,omitempty"`
 }
 
 // NewCatalogModel instantiates a new CatalogModel object
@@ -611,9 +611,9 @@ func (o *CatalogModel) SetSourceId(v string) {
 }
 
 // GetArtifacts returns the Artifacts field value if set, zero value otherwise.
-func (o *CatalogModel) GetArtifacts() []CatalogModelArtifact {
+func (o *CatalogModel) GetArtifacts() []CatalogArtifact {
 	if o == nil || IsNil(o.Artifacts) {
-		var ret []CatalogModelArtifact
+		var ret []CatalogArtifact
 		return ret
 	}
 	return o.Artifacts
@@ -621,7 +621,7 @@ func (o *CatalogModel) GetArtifacts() []CatalogModelArtifact {
 
 // GetArtifactsOk returns a tuple with the Artifacts field value if set, nil otherwise
 // and a boolean to check if the value has been set.
-func (o *CatalogModel) GetArtifactsOk() ([]CatalogModelArtifact, bool) {
+func (o *CatalogModel) GetArtifactsOk() ([]CatalogArtifact, bool) {
 	if o == nil || IsNil(o.Artifacts) {
 		return nil, false
 	}
@@ -637,8 +637,8 @@ func (o *CatalogModel) HasArtifacts() bool {
 	return false
 }
 
-// SetArtifacts gets a reference to the given []CatalogModelArtifact and assigns it to the Artifacts field.
-func (o *CatalogModel) SetArtifacts(v []CatalogModelArtifact) {
+// SetArtifacts gets a reference to the given []CatalogArtifact and assigns it to the Artifacts field.
+func (o *CatalogModel) SetArtifacts(v []CatalogArtifact) {
 	o.Artifacts = v
 }
 

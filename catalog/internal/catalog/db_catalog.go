@@ -110,8 +110,27 @@ func (d *dbCatalogImpl) ListModels(ctx context.Context, params ListModelsParams)
 		Items: make([]apimodels.CatalogModel, 0, len(modelsList.Items)),
 	}
 
+	// Check if artifacts should be included
+	includeArtifacts := len(params.ArtifactTypesFilter) > 0
+
 	for _, model := range modelsList.Items {
-		modelList.Items = append(modelList.Items, mapDBModelToAPIModel(model))
+		apiModel := mapDBModelToAPIModel(model)
+
+		// If artifact types are specified, fetch and include artifacts
+		if includeArtifacts {
+			artifacts, err := d.fetchModelArtifacts(ctx, model, params.ArtifactTypesFilter)
+			if err != nil {
+				return apimodels.CatalogModelList{}, err
+			}
+			if len(artifacts) > 0 {
+				apiModel.Artifacts = artifacts
+			} else {
+				// Explicitly set to empty array if no artifacts found
+				apiModel.Artifacts = []apimodels.CatalogArtifact{}
+			}
+		}
+
+		modelList.Items = append(modelList.Items, apiModel)
 	}
 
 	modelList.NextPageToken = modelsList.NextPageToken
@@ -119,6 +138,44 @@ func (d *dbCatalogImpl) ListModels(ctx context.Context, params ListModelsParams)
 	modelList.Size = int32(len(modelsList.Items))
 
 	return *modelList, nil
+}
+
+// fetchModelArtifacts retrieves artifacts for a given model filtered by artifact types
+func (d *dbCatalogImpl) fetchModelArtifacts(ctx context.Context, model dbmodels.CatalogModel, artifactTypesFilter []apimodels.ArtifactTypeQueryParam) ([]apimodels.CatalogArtifact, error) {
+	if model.GetID() == nil {
+		return []apimodels.CatalogArtifact{}, nil
+	}
+
+	parentResourceID := *model.GetID()
+
+	// Convert ArtifactTypeQueryParam to strings
+	artifactTypes := make([]string, len(artifactTypesFilter))
+	for i, at := range artifactTypesFilter {
+		artifactTypes[i] = string(at)
+	}
+
+	// Fetch artifacts with no pagination (get all artifacts for this model)
+	artifactsList, err := d.catalogArtifactRepository.List(dbmodels.CatalogArtifactListOptions{
+		ParentResourceID:    &parentResourceID,
+		ArtifactTypesFilter: artifactTypes,
+		Pagination:          mrmodels.Pagination{
+			// No pagination for artifacts in model list
+		},
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	artifacts := make([]apimodels.CatalogArtifact, 0, len(artifactsList.Items))
+	for _, artifact := range artifactsList.Items {
+		mappedArtifact, err := mapDBArtifactToAPIArtifact(artifact)
+		if err != nil {
+			return nil, err
+		}
+		artifacts = append(artifacts, mappedArtifact)
+	}
+
+	return artifacts, nil
 }
 
 func (d *dbCatalogImpl) GetArtifacts(ctx context.Context, modelName string, sourceID string, params ListArtifactsParams) (apimodels.CatalogArtifactList, error) {
