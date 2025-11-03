@@ -680,6 +680,283 @@ func TestFindSources(t *testing.T) {
 	}
 }
 
+func TestFindLabels(t *testing.T) {
+	testCases := []struct {
+		name            string
+		labels          []map[string]string
+		pageSize        string
+		orderBy         string
+		sortOrder       model.SortOrder
+		nextPageToken   string
+		expectedStatus  int
+		expectedSize    int32
+		expectedItems   int
+		checkSorting    bool
+		checkOrderByKey string
+		expectNextToken bool
+	}{
+		{
+			name:            "Empty labels list",
+			labels:          []map[string]string{},
+			pageSize:        "10",
+			orderBy:         "",
+			sortOrder:       model.SORTORDER_ASC,
+			expectedStatus:  http.StatusOK,
+			expectedSize:    0,
+			expectedItems:   0,
+			expectNextToken: false,
+		},
+		{
+			name: "Single label",
+			labels: []map[string]string{
+				{"name": "labelNameOne", "displayName": "Label Name One"},
+			},
+			pageSize:        "10",
+			orderBy:         "",
+			sortOrder:       model.SORTORDER_ASC,
+			expectedStatus:  http.StatusOK,
+			expectedSize:    1,
+			expectedItems:   1,
+			expectNextToken: false,
+		},
+		{
+			name: "Multiple labels",
+			labels: []map[string]string{
+				{"name": "labelNameOne", "displayName": "Label Name One"},
+				{"name": "community", "displayName": "Community Models"},
+				{"name": "enterprise", "displayName": "Enterprise"},
+			},
+			pageSize:        "10",
+			orderBy:         "",
+			sortOrder:       model.SORTORDER_ASC,
+			expectedStatus:  http.StatusOK,
+			expectedSize:    3,
+			expectedItems:   3,
+			expectNextToken: false,
+		},
+		{
+			name: "Pagination - first page",
+			labels: []map[string]string{
+				{"name": "label1", "displayName": "Label 1"},
+				{"name": "label2", "displayName": "Label 2"},
+				{"name": "label3", "displayName": "Label 3"},
+				{"name": "label4", "displayName": "Label 4"},
+			},
+			pageSize:        "2",
+			orderBy:         "",
+			sortOrder:       model.SORTORDER_ASC,
+			expectedStatus:  http.StatusOK,
+			expectedSize:    2,
+			expectedItems:   2,
+			expectNextToken: true,
+		},
+		{
+			name: "Pagination - last page",
+			labels: []map[string]string{
+				{"name": "label1", "displayName": "Label 1"},
+				{"name": "label2", "displayName": "Label 2"},
+				{"name": "label3", "displayName": "Label 3"},
+			},
+			pageSize:        "10",
+			orderBy:         "",
+			sortOrder:       model.SORTORDER_ASC,
+			expectedStatus:  http.StatusOK,
+			expectedSize:    3,
+			expectedItems:   3,
+			expectNextToken: false,
+		},
+		{
+			name: "Sort by name ascending",
+			labels: []map[string]string{
+				{"name": "zebra", "displayName": "Zebra"},
+				{"name": "alpha", "displayName": "Alpha"},
+				{"name": "beta", "displayName": "Beta"},
+			},
+			pageSize:        "10",
+			orderBy:         "name",
+			sortOrder:       model.SORTORDER_ASC,
+			expectedStatus:  http.StatusOK,
+			expectedSize:    3,
+			expectedItems:   3,
+			checkSorting:    true,
+			checkOrderByKey: "name",
+			expectNextToken: false,
+		},
+		{
+			name: "Sort by name descending",
+			labels: []map[string]string{
+				{"name": "alpha", "displayName": "Alpha"},
+				{"name": "beta", "displayName": "Beta"},
+				{"name": "zebra", "displayName": "Zebra"},
+			},
+			pageSize:        "10",
+			orderBy:         "name",
+			sortOrder:       model.SORTORDER_DESC,
+			expectedStatus:  http.StatusOK,
+			expectedSize:    3,
+			expectedItems:   3,
+			checkSorting:    true,
+			checkOrderByKey: "name",
+			expectNextToken: false,
+		},
+		{
+			name: "Sort by displayName",
+			labels: []map[string]string{
+				{"name": "label1", "displayName": "Zebra Display"},
+				{"name": "label2", "displayName": "Alpha Display"},
+				{"name": "label3", "displayName": "Beta Display"},
+			},
+			pageSize:        "10",
+			orderBy:         "displayName",
+			sortOrder:       model.SORTORDER_ASC,
+			expectedStatus:  http.StatusOK,
+			expectedSize:    3,
+			expectedItems:   3,
+			checkSorting:    true,
+			checkOrderByKey: "displayName",
+			expectNextToken: false,
+		},
+		{
+			name: "Labels with missing sort key maintain order",
+			labels: []map[string]string{
+				{"name": "has-priority", "priority": "high"},
+				{"name": "no-priority-1"},
+				{"name": "also-has-priority", "priority": "low"},
+				{"name": "no-priority-2"},
+			},
+			pageSize:        "10",
+			orderBy:         "priority",
+			sortOrder:       model.SORTORDER_ASC,
+			expectedStatus:  http.StatusOK,
+			expectedSize:    4,
+			expectedItems:   4,
+			expectNextToken: false,
+		},
+		{
+			name: "Default page size",
+			labels: []map[string]string{
+				{"name": "label1"},
+				{"name": "label2"},
+			},
+			pageSize:        "",
+			orderBy:         "",
+			sortOrder:       "",
+			expectedStatus:  http.StatusOK,
+			expectedSize:    2,
+			expectedItems:   2,
+			expectNextToken: false,
+		},
+		{
+			name: "Invalid page size",
+			labels: []map[string]string{
+				{"name": "label1"},
+			},
+			pageSize:       "invalid",
+			orderBy:        "",
+			sortOrder:      "",
+			expectedStatus: http.StatusBadRequest,
+		},
+		{
+			name: "Page size exactly matches items",
+			labels: []map[string]string{
+				{"name": "label1"},
+				{"name": "label2"},
+				{"name": "label3"},
+			},
+			pageSize:        "3",
+			orderBy:         "",
+			sortOrder:       "",
+			expectedStatus:  http.StatusOK,
+			expectedSize:    3,
+			expectedItems:   3,
+			expectNextToken: false,
+		},
+	}
+
+	// Run test cases
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			// Create service with test labels
+			sources := catalog.NewSourceCollection()
+			labelCollection := catalog.NewLabelCollection()
+			labelCollection.Merge("test-source", tc.labels)
+
+			service := NewModelCatalogServiceAPIService(&mockModelProvider{}, sources, labelCollection)
+
+			// Call FindLabels
+			resp, err := service.FindLabels(
+				context.Background(),
+				tc.pageSize,
+				tc.orderBy,
+				tc.sortOrder,
+				tc.nextPageToken,
+			)
+
+			// Check response status
+			assert.Equal(t, tc.expectedStatus, resp.Code)
+
+			// If we expect an error, we don't need to check the response body
+			if tc.expectedStatus != http.StatusOK {
+				assert.NotNil(t, err)
+				return
+			}
+
+			// For successful responses, check the response body
+			require.NotNil(t, resp.Body)
+
+			// Type assertion to access the CatalogLabelList
+			labelList, ok := resp.Body.(model.CatalogLabelList)
+			require.True(t, ok, "Response body should be a CatalogLabelList")
+
+			// Check the size matches expected (should be current page size)
+			assert.Equal(t, tc.expectedSize, labelList.Size)
+
+			// Check the number of items matches expected
+			assert.Equal(t, tc.expectedItems, len(labelList.Items))
+
+			// Check that page size is set correctly
+			if tc.pageSize == "" {
+				// Default page size should be 10
+				assert.Equal(t, int32(10), labelList.PageSize)
+			} else if pageSizeInt, err := strconv.ParseInt(tc.pageSize, 10, 32); err == nil {
+				assert.Equal(t, int32(pageSizeInt), labelList.PageSize)
+			}
+
+			// Check next page token
+			if tc.expectNextToken {
+				assert.NotEmpty(t, labelList.NextPageToken, "Should have next page token")
+			} else {
+				assert.Empty(t, labelList.NextPageToken, "Should not have next page token")
+			}
+
+			// Check sorting if required
+			if tc.checkSorting && len(labelList.Items) > 1 && tc.checkOrderByKey != "" {
+				for i := 0; i < len(labelList.Items)-1; i++ {
+					val1, ok1 := labelList.Items[i][tc.checkOrderByKey]
+					val2, ok2 := labelList.Items[i+1][tc.checkOrderByKey]
+
+					// Skip if either doesn't have the key
+					if !ok1 || !ok2 {
+						continue
+					}
+
+					if tc.sortOrder == model.SORTORDER_DESC {
+						assert.GreaterOrEqual(t,
+							val1,
+							val2,
+							"Labels should be sorted by %s in descending order", tc.checkOrderByKey)
+					} else {
+						assert.LessOrEqual(t,
+							val1,
+							val2,
+							"Labels should be sorted by %s in ascending order", tc.checkOrderByKey)
+					}
+				}
+			}
+		})
+	}
+}
+
 // Define a mock model provider
 type mockModelProvider struct {
 	models    map[string]*model.CatalogModel
