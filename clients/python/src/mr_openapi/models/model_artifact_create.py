@@ -15,7 +15,7 @@ import pprint
 import re  # noqa: F401
 from typing import Any, ClassVar
 
-from pydantic import BaseModel, ConfigDict, Field, StrictStr
+from pydantic import BaseModel, ConfigDict, Field, StrictStr, field_validator
 from typing_extensions import Self
 
 from mr_openapi.models.artifact_state import ArtifactState
@@ -25,7 +25,7 @@ from mr_openapi.models.metadata_value import MetadataValue
 class ModelArtifactCreate(BaseModel):
     """An ML model artifact."""  # noqa: E501
 
-    artifact_type: StrictStr | None = Field(default="model-artifact", alias="artifactType")
+    artifact_type: StrictStr | None = Field(default=None, alias="artifactType")
     custom_properties: dict[str, MetadataValue] | None = Field(
         default=None,
         description="User provided custom properties which are not defined by its type.",
@@ -104,6 +104,17 @@ class ModelArtifactCreate(BaseModel):
         "state",
     ]
 
+    @field_validator("artifact_type")
+    def artifact_type_validate_enum(cls, value):
+        """Validates the enum."""
+        if value is None:
+            return value
+
+        if value not in {"model-artifact"}:
+            msg = "must be one of enum values ('model-artifact')"
+            raise ValueError(msg)
+        return value
+
     model_config = ConfigDict(
         populate_by_name=True,
         validate_assignment=True,
@@ -167,7 +178,7 @@ class ModelArtifactCreate(BaseModel):
                 "description": obj.get("description"),
                 "externalId": obj.get("externalId"),
                 "name": obj.get("name"),
-                "artifactType": obj.get("artifactType") if obj.get("artifactType") is not None else "model-artifact",
+                "artifactType": obj.get("artifactType"),
                 "modelFormatName": obj.get("modelFormatName"),
                 "storageKey": obj.get("storageKey"),
                 "storagePath": obj.get("storagePath"),

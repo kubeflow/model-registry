@@ -15,7 +15,7 @@ import pprint
 import re  # noqa: F401
 from typing import Any, ClassVar
 
-from pydantic import BaseModel, ConfigDict, Field, StrictStr
+from pydantic import BaseModel, ConfigDict, Field, StrictStr, field_validator
 from typing_extensions import Self
 
 from mr_openapi.models.artifact_state import ArtifactState
@@ -37,7 +37,7 @@ class ParameterUpdate(BaseModel):
         description="The external id that come from the clients’ system. This field is optional. If set, it must be unique among all resources within a database instance.",
         alias="externalId",
     )
-    artifact_type: StrictStr | None = Field(default="parameter", alias="artifactType")
+    artifact_type: StrictStr | None = Field(default=None, alias="artifactType")
     value: StrictStr | None = Field(default=None, description="The value of the parameter.")
     parameter_type: ParameterType | None = Field(default=None, alias="parameterType")
     state: ArtifactState | None = None
@@ -50,6 +50,17 @@ class ParameterUpdate(BaseModel):
         "parameterType",
         "state",
     ]
+
+    @field_validator("artifact_type")
+    def artifact_type_validate_enum(cls, value):
+        """Validates the enum."""
+        if value is None:
+            return value
+
+        if value not in {"parameter"}:
+            msg = "must be one of enum values ('parameter')"
+            raise ValueError(msg)
+        return value
 
     model_config = ConfigDict(
         populate_by_name=True,
@@ -113,7 +124,7 @@ class ParameterUpdate(BaseModel):
                 else None,
                 "description": obj.get("description"),
                 "externalId": obj.get("externalId"),
-                "artifactType": obj.get("artifactType") if obj.get("artifactType") is not None else "parameter",
+                "artifactType": obj.get("artifactType"),
                 "value": obj.get("value"),
                 "parameterType": obj.get("parameterType"),
                 "state": obj.get("state"),

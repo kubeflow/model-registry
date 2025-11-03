@@ -15,7 +15,7 @@ import pprint
 import re  # noqa: F401
 from typing import Any, ClassVar
 
-from pydantic import BaseModel, ConfigDict, Field, StrictStr
+from pydantic import BaseModel, ConfigDict, Field, StrictStr, field_validator
 from typing_extensions import Self
 
 from mr_openapi.models.artifact_state import ArtifactState
@@ -36,7 +36,7 @@ class DataSetUpdate(BaseModel):
         description="The external id that come from the clients’ system. This field is optional. If set, it must be unique among all resources within a database instance.",
         alias="externalId",
     )
-    artifact_type: StrictStr | None = Field(default="dataset-artifact", alias="artifactType")
+    artifact_type: StrictStr | None = Field(default=None, alias="artifactType")
     digest: StrictStr | None = Field(default=None, description="A unique hash or identifier for the dataset content.")
     source_type: StrictStr | None = Field(
         default=None,
@@ -68,6 +68,17 @@ class DataSetUpdate(BaseModel):
         "uri",
         "state",
     ]
+
+    @field_validator("artifact_type")
+    def artifact_type_validate_enum(cls, value):
+        """Validates the enum."""
+        if value is None:
+            return value
+
+        if value not in {"dataset-artifact"}:
+            msg = "must be one of enum values ('dataset-artifact')"
+            raise ValueError(msg)
+        return value
 
     model_config = ConfigDict(
         populate_by_name=True,
@@ -131,7 +142,7 @@ class DataSetUpdate(BaseModel):
                 else None,
                 "description": obj.get("description"),
                 "externalId": obj.get("externalId"),
-                "artifactType": obj.get("artifactType") if obj.get("artifactType") is not None else "dataset-artifact",
+                "artifactType": obj.get("artifactType"),
                 "digest": obj.get("digest"),
                 "sourceType": obj.get("sourceType"),
                 "source": obj.get("source"),

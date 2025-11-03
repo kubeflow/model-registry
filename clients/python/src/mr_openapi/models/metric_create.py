@@ -15,7 +15,7 @@ import pprint
 import re  # noqa: F401
 from typing import Any, ClassVar
 
-from pydantic import BaseModel, ConfigDict, Field, StrictFloat, StrictInt, StrictStr
+from pydantic import BaseModel, ConfigDict, Field, StrictFloat, StrictInt, StrictStr, field_validator
 from typing_extensions import Self
 
 from mr_openapi.models.artifact_state import ArtifactState
@@ -39,7 +39,7 @@ class MetricCreate(BaseModel):
     name: StrictStr | None = Field(
         default=None, description='The name/key of the metric (e.g., "accuracy", "loss", "f1_score").'
     )
-    artifact_type: StrictStr | None = Field(default="metric", alias="artifactType")
+    artifact_type: StrictStr | None = Field(default=None, alias="artifactType")
     value: StrictFloat | StrictInt | None = Field(default=None, description="The numeric value of the metric.")
     timestamp: StrictStr | None = Field(
         default=None, description="Unix timestamp in milliseconds when the metric was recorded."
@@ -59,6 +59,17 @@ class MetricCreate(BaseModel):
         "step",
         "state",
     ]
+
+    @field_validator("artifact_type")
+    def artifact_type_validate_enum(cls, value):
+        """Validates the enum."""
+        if value is None:
+            return value
+
+        if value not in {"metric"}:
+            msg = "must be one of enum values ('metric')"
+            raise ValueError(msg)
+        return value
 
     model_config = ConfigDict(
         populate_by_name=True,
@@ -123,7 +134,7 @@ class MetricCreate(BaseModel):
                 "description": obj.get("description"),
                 "externalId": obj.get("externalId"),
                 "name": obj.get("name"),
-                "artifactType": obj.get("artifactType") if obj.get("artifactType") is not None else "metric",
+                "artifactType": obj.get("artifactType"),
                 "value": obj.get("value"),
                 "timestamp": obj.get("timestamp"),
                 "step": obj.get("step"),

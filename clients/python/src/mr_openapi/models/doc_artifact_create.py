@@ -15,7 +15,7 @@ import pprint
 import re  # noqa: F401
 from typing import Any, ClassVar
 
-from pydantic import BaseModel, ConfigDict, Field, StrictStr
+from pydantic import BaseModel, ConfigDict, Field, StrictStr, field_validator
 from typing_extensions import Self
 
 from mr_openapi.models.artifact_state import ArtifactState
@@ -40,7 +40,7 @@ class DocArtifactCreate(BaseModel):
         default=None,
         description="The client provided name of the artifact. This field is optional. If set, it must be unique among all the artifacts of the same artifact type within a database instance and cannot be changed once set.",
     )
-    artifact_type: StrictStr | None = Field(default="doc-artifact", alias="artifactType")
+    artifact_type: StrictStr | None = Field(default=None, alias="artifactType")
     uri: StrictStr | None = Field(
         default=None,
         description="The uniform resource identifier of the physical artifact. May be empty if there is no physical artifact.",
@@ -55,6 +55,17 @@ class DocArtifactCreate(BaseModel):
         "uri",
         "state",
     ]
+
+    @field_validator("artifact_type")
+    def artifact_type_validate_enum(cls, value):
+        """Validates the enum."""
+        if value is None:
+            return value
+
+        if value not in {"doc-artifact"}:
+            msg = "must be one of enum values ('doc-artifact')"
+            raise ValueError(msg)
+        return value
 
     model_config = ConfigDict(
         populate_by_name=True,
@@ -119,7 +130,7 @@ class DocArtifactCreate(BaseModel):
                 "description": obj.get("description"),
                 "externalId": obj.get("externalId"),
                 "name": obj.get("name"),
-                "artifactType": obj.get("artifactType") if obj.get("artifactType") is not None else "doc-artifact",
+                "artifactType": obj.get("artifactType"),
                 "uri": obj.get("uri"),
                 "state": obj.get("state"),
             }

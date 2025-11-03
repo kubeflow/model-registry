@@ -15,7 +15,7 @@ import pprint
 import re  # noqa: F401
 from typing import Any, ClassVar
 
-from pydantic import BaseModel, ConfigDict, Field, StrictStr
+from pydantic import BaseModel, ConfigDict, Field, StrictStr, field_validator
 from typing_extensions import Self
 
 from mr_openapi.models.artifact_state import ArtifactState
@@ -59,7 +59,7 @@ class ModelArtifact(BaseModel):
         description="Optional id of the experiment run that produced this artifact.",
         alias="experimentRunId",
     )
-    artifact_type: StrictStr | None = Field(default="model-artifact", alias="artifactType")
+    artifact_type: StrictStr | None = Field(default=None, alias="artifactType")
     model_format_name: StrictStr | None = Field(
         default=None, description="Name of the model format.", alias="modelFormatName"
     )
@@ -127,6 +127,17 @@ class ModelArtifact(BaseModel):
         "uri",
         "state",
     ]
+
+    @field_validator("artifact_type")
+    def artifact_type_validate_enum(cls, value):
+        """Validates the enum."""
+        if value is None:
+            return value
+
+        if value not in {"model-artifact"}:
+            msg = "must be one of enum values ('model-artifact')"
+            raise ValueError(msg)
+        return value
 
     model_config = ConfigDict(
         populate_by_name=True,
@@ -202,7 +213,7 @@ class ModelArtifact(BaseModel):
                 "lastUpdateTimeSinceEpoch": obj.get("lastUpdateTimeSinceEpoch"),
                 "experimentId": obj.get("experimentId"),
                 "experimentRunId": obj.get("experimentRunId"),
-                "artifactType": obj.get("artifactType") if obj.get("artifactType") is not None else "model-artifact",
+                "artifactType": obj.get("artifactType"),
                 "modelFormatName": obj.get("modelFormatName"),
                 "storageKey": obj.get("storageKey"),
                 "storagePath": obj.get("storagePath"),
