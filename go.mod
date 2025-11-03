@@ -1,6 +1,6 @@
 module github.com/kubeflow/model-registry
 
-go 1.24.4
+go 1.24.9
 
 require (
 	github.com/DATA-DOG/go-sqlmock v1.5.2
