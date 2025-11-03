@@ -22,6 +22,7 @@ import (
 type ModelCatalogServiceAPIService struct {
 	provider catalog.APIProvider
 	sources  *catalog.SourceCollection
+	labels   []map[string]string
 }
 
 // GetAllModelArtifacts retrieves all model artifacts for a given model from the specified source.
@@ -75,18 +76,50 @@ func (m *ModelCatalogServiceAPIService) GetAllModelArtifacts(ctx context.Context
 	return Response(http.StatusOK, artifacts), nil
 }
 
-func (m *ModelCatalogServiceAPIService) FindLabels(context.Context, string, model.OrderByField, model.SortOrder, string) (ImplResponse, error) {
-	labels := model.CatalogLabelList{
-		Items: []map[string]string{
-			{
-				"name":        "huggingface",
-				"displayName": "HuggingFace Hub",
-				"description": "HuggingFace models with full support and legal indemnification.",
-			},
-		},
+func (m *ModelCatalogServiceAPIService) FindLabels(ctx context.Context, pageSize string, orderBy string, sortOrder model.SortOrder, nextPageToken string) (ImplResponse, error) {
+	labels := m.labels
+	if len(labels) > math.MaxInt32 {
+		err := errors.New("too many registered labels")
+		return ErrorResponse(http.StatusInternalServerError, err), err
 	}
 
-	return Response(http.StatusOK, labels), nil
+	// Wrap labels to make them sortable
+	sortableLabels := make([]sortableLabel, len(labels))
+	for i, label := range labels {
+		sortableLabels[i] = sortableLabel{
+			data:  label,
+			index: i, // Keep original index for stable sort
+		}
+	}
+
+	// Create paginator - use empty OrderByField since we don't use it for labels
+	paginator, err := newPaginator[sortableLabel](pageSize, model.OrderByField(""), sortOrder, nextPageToken)
+	if err != nil {
+		return ErrorResponse(http.StatusBadRequest, err), err
+	}
+
+	// Create comparison function for labels using the string key
+	cmpFunc := genLabelCmpFunc(orderBy, sortOrder)
+	slices.SortStableFunc(sortableLabels, cmpFunc)
+
+	total := int32(len(sortableLabels))
+
+	// Paginate the sorted labels
+	pagedSortableLabels, next := paginator.Paginate(sortableLabels)
+
+	// Extract the raw label maps
+	pagedLabels := make([]map[string]string, len(pagedSortableLabels))
+	for i, sl := range pagedSortableLabels {
+		pagedLabels[i] = sl.data
+	}
+
+	res := model.CatalogLabelList{
+		PageSize:      paginator.PageSize,
+		Items:         pagedLabels,
+		Size:          total,
+		NextPageToken: next.Token(),
+	}
+	return Response(http.StatusOK, res), nil
 }
 
 func (m *ModelCatalogServiceAPIService) FindModels(ctx context.Context, sourceIDs []string, q string, sourceLabels []string, filterQuery string, pageSize string, orderBy model.OrderByField, sortOrder model.SortOrder, nextPageToken string) (ImplResponse, error) {
@@ -233,13 +266,77 @@ func genCatalogCmpFunc(orderBy model.OrderByField, sortOrder model.SortOrder) (f
 	}
 }
 
+// sortableLabel wraps a label map to make it sortable
+type sortableLabel struct {
+	data  map[string]string
+	index int // Original position for stable sort when key is missing
+}
+
+// SortValue implements the Sortable interface for labels
+func (sl sortableLabel) SortValue(field model.OrderByField) string {
+	// This method is required by the Sortable interface but not used for labels
+	// Labels use string keys directly in genLabelCmpFunc
+	return ""
+}
+
+// genLabelCmpFunc generates a comparison function for sorting labels by a string key
+func genLabelCmpFunc(orderByKey string, sortOrder model.SortOrder) func(sortableLabel, sortableLabel) int {
+	multiplier := 1
+	switch model.SortOrder(strings.ToUpper(string(sortOrder))) {
+	case model.SORTORDER_DESC:
+		multiplier = -1
+	case model.SORTORDER_ASC, "":
+		multiplier = 1
+	}
+
+	return func(a, b sortableLabel) int {
+		// If no orderBy key specified, maintain original order
+		if orderByKey == "" {
+			if a.index < b.index {
+				return -1
+			}
+			if a.index > b.index {
+				return 1
+			}
+			return 0
+		}
+
+		// Get values for the orderBy key
+		aVal, aHasKey := a.data[orderByKey]
+		bVal, bHasKey := b.data[orderByKey]
+
+		// If both have the key, compare their values
+		if aHasKey && bHasKey {
+			return multiplier * strings.Compare(aVal, bVal)
+		}
+
+		// If only one has the key, put it first
+		if aHasKey && !bHasKey {
+			return -1 // a comes first
+		}
+		if !aHasKey && bHasKey {
+			return 1 // b comes first
+		}
+
+		// If neither has the key, maintain original order
+		if a.index < b.index {
+			return -1
+		}
+		if a.index > b.index {
+			return 1
+		}
+		return 0
+	}
+}
+
 var _ ModelCatalogServiceAPIServicer = &ModelCatalogServiceAPIService{}
 
 // NewModelCatalogServiceAPIService creates a default api service
-func NewModelCatalogServiceAPIService(provider catalog.APIProvider, sources *catalog.SourceCollection) ModelCatalogServiceAPIServicer {
+func NewModelCatalogServiceAPIService(provider catalog.APIProvider, sources *catalog.SourceCollection, labels []map[string]string) ModelCatalogServiceAPIServicer {
 	return &ModelCatalogServiceAPIService{
 		provider: provider,
 		sources:  sources,
+		labels:   labels,
 	}
 }
 

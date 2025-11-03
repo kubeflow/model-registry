@@ -44,7 +44,8 @@ type LoaderEventHandler func(ctx context.Context, record ModelProviderRecord) er
 
 // sourceConfig is the structure for the catalog sources YAML file.
 type sourceConfig struct {
-	Catalogs []Source `json:"catalogs"`
+	Catalogs []Source            `json:"catalogs"`
+	Labels   []map[string]string `json:"labels,omitempty"`
 }
 
 // Source is a single entry from the catalog sources YAML file.
@@ -61,6 +62,8 @@ type Source struct {
 type Loader struct {
 	// Sources contains current source information loaded from the configuration files.
 	Sources *SourceCollection
+
+	Labels []map[string]string
 
 	paths     []string
 	services  service.Services
@@ -132,6 +135,8 @@ func (l *Loader) loadOne(ctx context.Context, path string) error {
 		return err
 	}
 
+	l.updateLabels(config)
+
 	return l.updateDatabase(ctx, path, config)
 }
 
@@ -188,6 +193,48 @@ func (l *Loader) updateSources(path string, config *sourceConfig) error {
 	}
 
 	return l.Sources.Merge(path, sources)
+}
+
+func (l *Loader) updateLabels(config *sourceConfig) {
+	// merge config.Labels into l.Labels
+	if config.Labels == nil {
+		return
+	}
+
+	// If loader has no labels yet, just assign
+	if l.Labels == nil {
+		l.Labels = make([]map[string]string, 0, len(config.Labels))
+	}
+
+	// Append labels from config that don't already exist
+	for _, configLabel := range config.Labels {
+		if !containsLabel(l.Labels, configLabel) {
+			l.Labels = append(l.Labels, configLabel)
+		}
+	}
+}
+
+// containsLabel checks if a label map already exists in the labels slice
+func containsLabel(labels []map[string]string, target map[string]string) bool {
+	for _, label := range labels {
+		if mapsEqual(label, target) {
+			return true
+		}
+	}
+	return false
+}
+
+// mapsEqual compares two string maps for equality
+func mapsEqual(a, b map[string]string) bool {
+	if len(a) != len(b) {
+		return false
+	}
+	for k, v := range a {
+		if bv, ok := b[k]; !ok || bv != v {
+			return false
+		}
+	}
+	return true
 }
 
 func (l *Loader) updateDatabase(ctx context.Context, path string, config *sourceConfig) error {
@@ -319,10 +366,10 @@ func (l *Loader) setModelSourceID(model dbmodels.CatalogModel, sourceID string) 
 		}
 	}
 
-	for _, property := range *props {
-		if property.Name == "source_id" {
+	for i := range *props {
+		if (*props)[i].Name == "source_id" {
 			// Already has a source_id, just update it
-			property.StringValue = &sourceID
+			(*props)[i].StringValue = &sourceID
 			return
 		}
 	}

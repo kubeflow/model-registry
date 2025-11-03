@@ -27,7 +27,7 @@ type ApiFindLabelsRequest struct {
 	ctx           context.Context
 	ApiService    *ModelCatalogServiceAPIService
 	pageSize      *string
-	orderBy       *OrderByField
+	orderBy       *string
 	sortOrder     *SortOrder
 	nextPageToken *string
 }
@@ -38,8 +38,8 @@ func (r ApiFindLabelsRequest) PageSize(pageSize string) ApiFindLabelsRequest {
 	return r
 }
 
-// Specifies the order by criteria for listing entities.
-func (r ApiFindLabelsRequest) OrderBy(orderBy OrderByField) ApiFindLabelsRequest {
+// Specifies the key to order catalog labels by. You can provide any string key that may exist in the label maps. Labels that contain the specified key will be sorted by that key&#39;s value. Labels that don&#39;t contain the key will maintain their original order and appear after labels that do contain the key.
+func (r ApiFindLabelsRequest) OrderBy(orderBy string) ApiFindLabelsRequest {
 	r.orderBy = &orderBy
 	return r
 }

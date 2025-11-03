@@ -296,11 +296,13 @@ func TestFindModels(t *testing.T) {
 				},
 			)
 
+			sourceLabels := []map[string]string{}
+
 			provider := &mockModelProvider{
 				models: tc.mockModels,
 			}
 
-			service := NewModelCatalogServiceAPIService(provider, sources)
+			service := NewModelCatalogServiceAPIService(provider, sources, sourceLabels)
 
 			resp, err := service.FindModels(
 				context.Background(),
@@ -590,7 +592,8 @@ func TestFindSources(t *testing.T) {
 			// Create service with test catalogs
 			sources := catalog.NewSourceCollection()
 			sources.Merge("", tc.catalogs)
-			service := NewModelCatalogServiceAPIService(&mockModelProvider{}, sources)
+			sourceLabels := []map[string]string{}
+			service := NewModelCatalogServiceAPIService(&mockModelProvider{}, sources, sourceLabels)
 
 			// Call FindSources
 			resp, err := service.FindSources(
@@ -862,7 +865,8 @@ func TestGetModel(t *testing.T) {
 			// Create service with test sources
 			sources := catalog.NewSourceCollection()
 			sources.Merge("", tc.sources)
-			service := NewModelCatalogServiceAPIService(tc.provider, sources)
+			sourceLabels := []map[string]string{}
+			service := NewModelCatalogServiceAPIService(tc.provider, sources, sourceLabels)
 
 			// Call GetModel
 			resp, _ := service.GetModel(
@@ -972,7 +976,8 @@ func TestGetAllModelArtifacts(t *testing.T) {
 			// Create service with test sources
 			sources := catalog.NewSourceCollection()
 			sources.Merge("", tc.sources)
-			service := NewModelCatalogServiceAPIService(tc.provider, sources)
+			sourceLabels := []map[string]string{}
+			service := NewModelCatalogServiceAPIService(tc.provider, sources, sourceLabels)
 
 			// Call GetAllModelArtifacts
 			resp, _ := service.GetAllModelArtifacts(
@@ -1029,7 +1034,8 @@ func TestFindModelsFilterOptions(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			sources := catalog.NewSourceCollection()
-			service := NewModelCatalogServiceAPIService(tc.provider, sources)
+			sourceLabels := []map[string]string{}
+			service := NewModelCatalogServiceAPIService(tc.provider, sources, sourceLabels)
 
 			resp, err := service.FindModelsFilterOptions(context.Background())
 

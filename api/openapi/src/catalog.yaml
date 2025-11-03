@@ -93,7 +93,7 @@ paths:
         - ModelCatalogService
       parameters:
         - $ref: "#/components/parameters/pageSize"
-        - $ref: "#/components/parameters/orderBy"
+        - $ref: "#/components/parameters/labelOrderBy"
         - $ref: "#/components/parameters/sortOrder"
         - $ref: "#/components/parameters/nextPageToken"
       responses:
@@ -505,6 +505,22 @@ components:
       description: Specifies the order by criteria for listing entities.
       schema:
         $ref: "#/components/schemas/OrderByField"
+      in: query
+      required: false
+    labelOrderBy:
+      style: form
+      explode: true
+      examples:
+        labelOrderBy:
+          value: name
+      name: orderBy
+      description: |
+        Specifies the key to order catalog labels by. You can provide any string key
+        that may exist in the label maps. Labels that contain the specified key will
+        be sorted by that key's value. Labels that don't contain the key will maintain
+        their original order and appear after labels that do contain the key.
+      schema:
+        type: string
       in: query
       required: false
     artifactType:

@@ -77,7 +77,7 @@ func runCatalogServer(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("error loading catalog sources: %v", err)
 	}
 
-	svc := openapi.NewModelCatalogServiceAPIService(catalog.NewDBCatalog(services, loader.Sources), loader.Sources)
+	svc := openapi.NewModelCatalogServiceAPIService(catalog.NewDBCatalog(services, loader.Sources), loader.Sources, loader.Labels)
 	ctrl := openapi.NewModelCatalogServiceAPIController(svc)
 
 	glog.Infof("Catalog API server listening on %s", catalogCfg.ListenAddress)

@@ -92,7 +92,7 @@ func (c *ModelCatalogServiceAPIController) FindLabels(w http.ResponseWriter, r *
 	orderByParam := query.Get("orderBy")
 	sortOrderParam := query.Get("sortOrder")
 	nextPageTokenParam := query.Get("nextPageToken")
-	result, err := c.service.FindLabels(r.Context(), pageSizeParam, model.OrderByField(orderByParam), model.SortOrder(sortOrderParam), nextPageTokenParam)
+	result, err := c.service.FindLabels(r.Context(), pageSizeParam, orderByParam, model.SortOrder(sortOrderParam), nextPageTokenParam)
 	// If an error occurred, encode the error with the status code
 	if err != nil {
 		c.errorHandler(w, r, err, &result)
