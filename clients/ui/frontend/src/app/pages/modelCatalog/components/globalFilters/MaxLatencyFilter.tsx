@@ -5,6 +5,9 @@ import {
   Flex,
   FlexItem,
   FormGroup,
+  InputGroup,
+  InputGroupItem,
+  InputGroupText,
   MenuToggle,
   MenuToggleElement,
   Popover,
@@ -12,6 +15,7 @@ import {
   SelectList,
   SelectOption,
   Slider,
+  TextInput,
 } from '@patternfly/react-core';
 import { HelpIcon } from '@patternfly/react-icons';
 import { LatencyMetric, LatencyPercentile } from '~/concepts/modelCatalog/const';
@@ -141,9 +145,13 @@ const MaxLatencyFilter: React.FC<MaxLatencyFilterProps> = ({ performanceArtifact
   };
 
   // Calculate min/max latency values from performance artifacts
-  const { minValue, maxValue } = React.useMemo((): { minValue: number; maxValue: number } => {
+  const { minValue, maxValue, isSliderDisabled } = React.useMemo((): {
+    minValue: number;
+    maxValue: number;
+    isSliderDisabled: boolean;
+  } => {
     if (performanceArtifacts.length === 0) {
-      return { minValue: 20, maxValue: 893 }; // Default values when no artifacts
+      return { minValue: 20, maxValue: 893, isSliderDisabled: false }; // Default values when no artifacts
     }
 
     // Get all latency values for the currently selected metric/percentile (use localFilter for immediate updates)
@@ -153,12 +161,16 @@ const MaxLatencyFilter: React.FC<MaxLatencyFilterProps> = ({ performanceArtifact
       .filter((latency) => latency > 0); // Filter out invalid values
 
     if (latencyValues.length === 0) {
-      return { minValue: 20, maxValue: 893 }; // Default values when no valid latency values
+      return { minValue: 20, maxValue: 893, isSliderDisabled: false }; // Default values when no valid latency values
     }
 
+    const calculatedMin = Math.round(Math.min(...latencyValues));
+    const calculatedMax = Math.round(Math.max(...latencyValues));
+    const hasIdenticalValues = calculatedMin === calculatedMax;
     return {
-      minValue: Math.round(Math.min(...latencyValues)),
-      maxValue: Math.round(Math.max(...latencyValues)),
+      minValue: calculatedMin,
+      maxValue: hasIdenticalValues ? calculatedMin + 1 : calculatedMax,
+      isSliderDisabled: hasIdenticalValues,
     };
   }, [performanceArtifacts, localFilter.metric, localFilter.percentile]);
 
@@ -305,27 +317,50 @@ const MaxLatencyFilter: React.FC<MaxLatencyFilterProps> = ({ performanceArtifact
 
       {/* Slider with value display */}
       <FlexItem>
-        <div style={{ width: '100%', minWidth: '400px' }}>
-          <Slider
-            min={minValue}
-            max={maxValue}
-            value={clampedLocalValue}
-            onChange={(_, value) => {
-              const clampedValue = Math.round(Math.max(minValue, Math.min(maxValue, value)));
-              setLocalFilter({ ...localFilter, value: clampedValue });
-            }}
-            isInputVisible
-            inputValue={clampedLocalValue}
-            inputLabel="ms"
-          />
-        </div>
+        <Flex alignItems={{ default: 'alignItemsCenter' }} spaceItems={{ default: 'spaceItemsMd' }}>
+          <FlexItem flex={{ default: 'flex_1' }} style={{ minWidth: '300px' }}>
+            <Slider
+              min={minValue}
+              max={maxValue}
+              value={clampedLocalValue}
+              onChange={(_, value) => {
+                const clampedValue = Math.round(value);
+                setLocalFilter({ ...localFilter, value: clampedValue });
+              }}
+              isInputVisible={false}
+              isDisabled={isSliderDisabled}
+              showBoundaries={!isSliderDisabled}
+              hasTooltipOverThumb={isSliderDisabled}
+            />
+          </FlexItem>
+          <FlexItem>
+            <InputGroup>
+              <InputGroupItem isFill>
+                <TextInput
+                  type="number"
+                  value={clampedLocalValue}
+                  min={minValue}
+                  max={maxValue}
+                  isDisabled={isSliderDisabled}
+                  onChange={(event, value) => {
+                    const numValue = Math.round(Number(value));
+                    setLocalFilter({ ...localFilter, value: numValue });
+                  }}
+                  style={{ width: '80px' }}
+                  aria-label="Latency value input"
+                />
+              </InputGroupItem>
+              <InputGroupText isDisabled={isSliderDisabled}>ms</InputGroupText>
+            </InputGroup>
+          </FlexItem>
+        </Flex>
       </FlexItem>
 
       {/* Buttons: Apply filter first, then Reset */}
       <FlexItem>
         <Flex spaceItems={{ default: 'spaceItemsSm' }}>
           <FlexItem>
-            <Button variant="primary" onClick={handleApplyFilter}>
+            <Button variant="primary" onClick={handleApplyFilter} isDisabled={isSliderDisabled}>
               Apply filter
             </Button>
           </FlexItem>

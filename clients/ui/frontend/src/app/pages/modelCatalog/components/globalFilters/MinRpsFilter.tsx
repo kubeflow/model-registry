@@ -4,10 +4,14 @@ import {
   Dropdown,
   Flex,
   FlexItem,
+  InputGroup,
+  InputGroupItem,
+  InputGroupText,
   MenuToggle,
   MenuToggleElement,
   Popover,
   Slider,
+  TextInput,
 } from '@patternfly/react-core';
 import { HelpIcon } from '@patternfly/react-icons';
 import { ModelCatalogNumberFilterKey } from '~/concepts/modelCatalog/const';
@@ -44,7 +48,6 @@ const MinRpsFilter: React.FC<MinRpsFilterProps> = ({ performanceArtifacts }) => 
   };
 
   const handleApplyFilter = () => {
-    // Apply the local value to the actual filter state
     setRpsFilterValue(localValue);
     setIsOpen(false);
   };
@@ -57,9 +60,13 @@ const MinRpsFilter: React.FC<MinRpsFilterProps> = ({ performanceArtifacts }) => 
 
   // Calculate min/max values from performance artifacts
   // TODO: Use real min/max values when available from API
-  const { minValue, maxValue } = React.useMemo(() => {
+  const { minValue, maxValue, isSliderDisabled } = React.useMemo((): {
+    minValue: number;
+    maxValue: number;
+    isSliderDisabled: boolean;
+  } => {
     if (performanceArtifacts.length === 0) {
-      return { minValue: 1, maxValue: 300 }; // Default values when no artifacts
+      return { minValue: 1, maxValue: 300, isSliderDisabled: false }; // Default values when no artifacts
     }
 
     const rpsValues = performanceArtifacts
@@ -67,12 +74,17 @@ const MinRpsFilter: React.FC<MinRpsFilterProps> = ({ performanceArtifacts }) => 
       .filter((rps) => rps > 0); // Filter out invalid values
 
     if (rpsValues.length === 0) {
-      return { minValue: 1, maxValue: 300 }; // Default values when no valid RPS values
+      return { minValue: 1, maxValue: 300, isSliderDisabled: false }; // Default values when no valid RPS values
     }
 
+    const calculatedMin = Math.min(...rpsValues);
+    const calculatedMax = Math.max(...rpsValues);
+    const hasIdenticalValues = calculatedMin === calculatedMax;
+
     return {
-      minValue: Math.min(...rpsValues),
-      maxValue: Math.max(...rpsValues),
+      minValue: calculatedMin,
+      maxValue: hasIdenticalValues ? calculatedMin + 1 : calculatedMax,
+      isSliderDisabled: hasIdenticalValues,
     };
   }, [performanceArtifacts]);
 
@@ -124,19 +136,38 @@ const MinRpsFilter: React.FC<MinRpsFilterProps> = ({ performanceArtifacts }) => 
               max={maxValue}
               value={clampedLocalValue}
               onChange={(_, value) => {
-                const clampedValue = Math.max(minValue, Math.min(maxValue, value));
-                setLocalValue(clampedValue);
+                setLocalValue(value);
               }}
-              isInputVisible
-              inputValue={clampedLocalValue}
+              isInputVisible={false}
+              isDisabled={isSliderDisabled}
             />
+          </FlexItem>
+          <FlexItem>
+            <InputGroup>
+              <InputGroupItem isFill>
+                <TextInput
+                  type="number"
+                  value={clampedLocalValue}
+                  min={minValue}
+                  max={maxValue}
+                  isDisabled={isSliderDisabled}
+                  onChange={(event, value) => {
+                    const numValue = Number(value);
+                    setLocalValue(numValue);
+                  }}
+                  style={{ width: '80px' }}
+                  aria-label="RPS value input"
+                />
+              </InputGroupItem>
+              <InputGroupText isDisabled={isSliderDisabled}>RPS</InputGroupText>
+            </InputGroup>
           </FlexItem>
         </Flex>
       </FlexItem>
       <FlexItem>
         <Flex spaceItems={{ default: 'spaceItemsSm' }}>
           <FlexItem>
-            <Button variant="primary" onClick={handleApplyFilter}>
+            <Button variant="primary" onClick={handleApplyFilter} isDisabled={isSliderDisabled}>
               Apply filter
             </Button>
           </FlexItem>
