@@ -248,7 +248,7 @@ components:
               type: array
               description: List of artifacts associated with the model.
               items:
-                $ref: "#/components/schemas/CatalogModelArtifact"
+                $ref: "#/components/schemas/CatalogArtifact"
         - $ref: "#/components/schemas/BaseModel"
         - $ref: "#/components/schemas/BaseResource"
     CatalogModelArtifact:
