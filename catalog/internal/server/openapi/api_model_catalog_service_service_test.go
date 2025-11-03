@@ -437,8 +437,8 @@ func TestFindSources(t *testing.T) {
 			orderBy:        model.ORDERBYFIELD_ID,
 			sortOrder:      model.SORTORDER_ASC,
 			expectedStatus: http.StatusOK,
-			expectedSize:   3, // Total size should be 3
-			expectedItems:  2, // But only 2 items returned due to page size
+			expectedSize:   2, // Size is the number of items in current page
+			expectedItems:  2, // 2 items returned due to page size
 		},
 		{
 			name: "Default page size",

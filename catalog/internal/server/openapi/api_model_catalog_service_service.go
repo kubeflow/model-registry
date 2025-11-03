@@ -89,6 +89,7 @@ func (m *ModelCatalogServiceAPIService) FindLabels(ctx context.Context, pageSize
 		sortableLabels[i] = sortableLabel{
 			data:  label,
 			index: i, // Keep original index for stable sort
+			id:    generateLabelID(i),
 		}
 	}
 
@@ -102,8 +103,6 @@ func (m *ModelCatalogServiceAPIService) FindLabels(ctx context.Context, pageSize
 	cmpFunc := genLabelCmpFunc(orderBy, sortOrder)
 	slices.SortStableFunc(sortableLabels, cmpFunc)
 
-	total := int32(len(sortableLabels))
-
 	// Paginate the sorted labels
 	pagedSortableLabels, next := paginator.Paginate(sortableLabels)
 
@@ -116,7 +115,7 @@ func (m *ModelCatalogServiceAPIService) FindLabels(ctx context.Context, pageSize
 	res := model.CatalogLabelList{
 		PageSize:      paginator.PageSize,
 		Items:         pagedLabels,
-		Size:          total,
+		Size:          int32(len(pagedLabels)), // Number of items in current page, not total
 		NextPageToken: next.Token(),
 	}
 	return Response(http.StatusOK, res), nil
@@ -228,14 +227,12 @@ func (m *ModelCatalogServiceAPIService) FindSources(ctx context.Context, name st
 	}
 	slices.SortStableFunc(items, cmpFunc)
 
-	total := int32(len(items))
-
 	pagedItems, next := paginator.Paginate(items)
 
 	res := model.CatalogSourceList{
 		PageSize:      paginator.PageSize,
 		Items:         pagedItems,
-		Size:          total,
+		Size:          int32(len(pagedItems)), // Number of items in current page, not total
 		NextPageToken: next.Token(),
 	}
 	return Response(http.StatusOK, res), nil
@@ -266,16 +263,25 @@ func genCatalogCmpFunc(orderBy model.OrderByField, sortOrder model.SortOrder) (f
 	}
 }
 
+// generateLabelID creates a stable, unique ID for a label based on its index
+func generateLabelID(index int) string {
+	return strconv.Itoa(index)
+}
+
 // sortableLabel wraps a label map to make it sortable
 type sortableLabel struct {
 	data  map[string]string
-	index int // Original position for stable sort when key is missing
+	index int    // Original position for stable sort when key is missing
+	id    string // Stable ID for pagination
 }
 
 // SortValue implements the Sortable interface for labels
 func (sl sortableLabel) SortValue(field model.OrderByField) string {
-	// This method is required by the Sortable interface but not used for labels
-	// Labels use string keys directly in genLabelCmpFunc
+	// Return ID for pagination purposes
+	if field == model.ORDERBYFIELD_ID {
+		return sl.id
+	}
+	// For other fields, labels use string keys directly in genLabelCmpFunc
 	return ""
 }
 
