@@ -177,7 +177,7 @@ const ModelRegistrySelector: React.FC<ModelRegistrySelectorProps> = ({
                   <DescriptionListTerm>Server URL</DescriptionListTerm>
                   <DescriptionListDescription>
                     <InlineTruncatedClipboardCopy
-                      textToCopy={`https://${getServerAddress(selection)}`}
+                      textToCopy={`${getServerAddress(selection)}`}
                     />
                   </DescriptionListDescription>
                 </DescriptionListGroup>
