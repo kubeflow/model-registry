@@ -52,7 +52,31 @@ paths:
           required: false
         - $ref: "#/components/parameters/filterQuery"
         - $ref: "#/components/parameters/pageSize"
-        - $ref: "#/components/parameters/orderBy"
+        - name: orderBy
+          style: form
+          explode: true
+          examples:
+            orderBy:
+              value: ID
+          description: |-
+            Specifies the order by criteria for listing entities.
+
+            Supported values are:
+            - CREATE_TIME
+            - LAST_UPDATE_TIME
+            - ID
+            - NAME
+            - ACCURACY
+
+            The `ACCURACY` sort will sort by the `overall_average` property in any linked metrics artifact.
+
+            In addition, models can be sorted by properties. For example:
+            - `provider.string_value` sorts by provider name
+            - `artifacts.ifeval.double_value` sorts by the min/max value a property called ifeval across all associated artifacts
+          schema:
+            $ref: "#/components/schemas/OrderByField"
+          in: query
+          required: false
         - $ref: "#/components/parameters/sortOrder"
         - $ref: "#/components/parameters/nextPageToken"
       responses:
@@ -587,15 +611,11 @@ components:
     OrderByField:
       description: |-
         Supported fields for ordering result entities.
-
-        The `ACCURACY` sort only applies to catalog models, and will sort by
-        the `overall_average` property in any linked metrics artifact.
       enum:
         - CREATE_TIME
         - LAST_UPDATE_TIME
         - ID
         - NAME
-        - ACCURACY
       type: string
     SortOrder:
       description: Supported sort direction for ordering result entities.

@@ -481,7 +481,7 @@ func TestCatalogModelRepository(t *testing.T) {
 		// Test ACCURACY sorting DESC (default)
 		listOptions := models.CatalogModelListOptions{
 			Pagination: dbmodels.Pagination{
-				OrderBy:   apiutils.Of("ACCURACY"),
+				OrderBy:   apiutils.Of("artifacts.overall_average.double_value"),
 				SortOrder: apiutils.Of("DESC"),
 			},
 		}
@@ -494,7 +494,7 @@ func TestCatalogModelRepository(t *testing.T) {
 		for _, model := range result.Items {
 			name := *model.GetAttributes().Name
 			if name == "high-accuracy-model" || name == "medium-accuracy-model" ||
-			   name == "low-accuracy-model" || name == "zero-accuracy-model" || name == "no-accuracy-model" {
+				name == "low-accuracy-model" || name == "zero-accuracy-model" || name == "no-accuracy-model" {
 				accuracyModelsFound = append(accuracyModelsFound, name)
 			}
 		}
@@ -524,7 +524,7 @@ func TestCatalogModelRepository(t *testing.T) {
 		// Test ACCURACY sorting ASC
 		listOptions = models.CatalogModelListOptions{
 			Pagination: dbmodels.Pagination{
-				OrderBy:   apiutils.Of("ACCURACY"),
+				OrderBy:   apiutils.Of("artifacts.overall_average.double_value"),
 				SortOrder: apiutils.Of("ASC"),
 			},
 		}
@@ -537,7 +537,7 @@ func TestCatalogModelRepository(t *testing.T) {
 		for _, model := range result.Items {
 			name := *model.GetAttributes().Name
 			if name == "high-accuracy-model" || name == "medium-accuracy-model" ||
-			   name == "low-accuracy-model" || name == "zero-accuracy-model" || name == "no-accuracy-model" {
+				name == "low-accuracy-model" || name == "zero-accuracy-model" || name == "no-accuracy-model" {
 				accuracyModelsFound = append(accuracyModelsFound, name)
 			}
 		}
@@ -624,7 +624,7 @@ func TestCatalogModelRepository(t *testing.T) {
 		// This approach is more robust and less sensitive to test interference
 		listOptions := models.CatalogModelListOptions{
 			Pagination: dbmodels.Pagination{
-				OrderBy:   apiutils.Of("ACCURACY"),
+				OrderBy:   apiutils.Of("artifacts.overall_average.double_value"),
 				SortOrder: apiutils.Of("DESC"),
 				PageSize:  apiutils.Of(int32(2)),
 			},
@@ -709,7 +709,7 @@ func TestCatalogModelRepository(t *testing.T) {
 		// Test ASC pagination briefly to verify token generation works in both directions
 		listOptions = models.CatalogModelListOptions{
 			Pagination: dbmodels.Pagination{
-				OrderBy:   apiutils.Of("ACCURACY"),
+				OrderBy:   apiutils.Of("artifacts.overall_average.double_value"),
 				SortOrder: apiutils.Of("ASC"),
 				PageSize:  apiutils.Of(int32(3)),
 			},
@@ -736,7 +736,6 @@ func getCatalogModelTypeID(t *testing.T, db *gorm.DB) int32 {
 
 	return typeRecord.ID
 }
-
 
 // Helper function to find index of string in slice
 func findIndex(slice []string, target string) int {
