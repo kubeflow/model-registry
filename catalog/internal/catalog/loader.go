@@ -63,7 +63,8 @@ type Loader struct {
 	// Sources contains current source information loaded from the configuration files.
 	Sources *SourceCollection
 
-	Labels []map[string]string
+	// Labels contains current labels loaded from the configuration files.
+	Labels *LabelCollection
 
 	paths     []string
 	services  service.Services
@@ -75,6 +76,7 @@ type Loader struct {
 func NewLoader(services service.Services, paths []string) *Loader {
 	return &Loader{
 		Sources:  NewSourceCollection(),
+		Labels:   NewLabelCollection(),
 		paths:    paths,
 		services: services,
 		closers:  map[string]func(){},
@@ -135,7 +137,7 @@ func (l *Loader) loadOne(ctx context.Context, path string) error {
 		return err
 	}
 
-	l.updateLabels(config)
+	l.updateLabels(path, config)
 
 	return l.updateDatabase(ctx, path, config)
 }
@@ -195,46 +197,15 @@ func (l *Loader) updateSources(path string, config *sourceConfig) error {
 	return l.Sources.Merge(path, sources)
 }
 
-func (l *Loader) updateLabels(config *sourceConfig) {
-	// merge config.Labels into l.Labels
+func (l *Loader) updateLabels(path string, config *sourceConfig) {
+	// Merge labels from config into the label collection
 	if config.Labels == nil {
+		// No labels in config, but we still need to clear any previous labels from this origin
+		l.Labels.Merge(path, []map[string]string{})
 		return
 	}
 
-	// If loader has no labels yet, just assign
-	if l.Labels == nil {
-		l.Labels = make([]map[string]string, 0, len(config.Labels))
-	}
-
-	// Append labels from config that don't already exist
-	for _, configLabel := range config.Labels {
-		if !containsLabel(l.Labels, configLabel) {
-			l.Labels = append(l.Labels, configLabel)
-		}
-	}
-}
-
-// containsLabel checks if a label map already exists in the labels slice
-func containsLabel(labels []map[string]string, target map[string]string) bool {
-	for _, label := range labels {
-		if mapsEqual(label, target) {
-			return true
-		}
-	}
-	return false
-}
-
-// mapsEqual compares two string maps for equality
-func mapsEqual(a, b map[string]string) bool {
-	if len(a) != len(b) {
-		return false
-	}
-	for k, v := range a {
-		if bv, ok := b[k]; !ok || bv != v {
-			return false
-		}
-	}
-	return true
+	l.Labels.Merge(path, config.Labels)
 }
 
 func (l *Loader) updateDatabase(ctx context.Context, path string, config *sourceConfig) error {

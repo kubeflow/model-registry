@@ -22,7 +22,7 @@ import (
 type ModelCatalogServiceAPIService struct {
 	provider catalog.APIProvider
 	sources  *catalog.SourceCollection
-	labels   []map[string]string
+	labels   *catalog.LabelCollection
 }
 
 // GetAllModelArtifacts retrieves all model artifacts for a given model from the specified source.
@@ -77,7 +77,7 @@ func (m *ModelCatalogServiceAPIService) GetAllModelArtifacts(ctx context.Context
 }
 
 func (m *ModelCatalogServiceAPIService) FindLabels(ctx context.Context, pageSize string, orderBy string, sortOrder model.SortOrder, nextPageToken string) (ImplResponse, error) {
-	labels := m.labels
+	labels := m.labels.All()
 	if len(labels) > math.MaxInt32 {
 		err := errors.New("too many registered labels")
 		return ErrorResponse(http.StatusInternalServerError, err), err
@@ -332,7 +332,7 @@ func genLabelCmpFunc(orderByKey string, sortOrder model.SortOrder) func(sortable
 var _ ModelCatalogServiceAPIServicer = &ModelCatalogServiceAPIService{}
 
 // NewModelCatalogServiceAPIService creates a default api service
-func NewModelCatalogServiceAPIService(provider catalog.APIProvider, sources *catalog.SourceCollection, labels []map[string]string) ModelCatalogServiceAPIServicer {
+func NewModelCatalogServiceAPIService(provider catalog.APIProvider, sources *catalog.SourceCollection, labels *catalog.LabelCollection) ModelCatalogServiceAPIServicer {
 	return &ModelCatalogServiceAPIService{
 		provider: provider,
 		sources:  sources,

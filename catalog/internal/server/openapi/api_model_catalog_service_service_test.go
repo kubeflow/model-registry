@@ -296,7 +296,7 @@ func TestFindModels(t *testing.T) {
 				},
 			)
 
-			sourceLabels := []map[string]string{}
+			sourceLabels := catalog.NewLabelCollection()
 
 			provider := &mockModelProvider{
 				models: tc.mockModels,
@@ -592,7 +592,7 @@ func TestFindSources(t *testing.T) {
 			// Create service with test catalogs
 			sources := catalog.NewSourceCollection()
 			sources.Merge("", tc.catalogs)
-			sourceLabels := []map[string]string{}
+			sourceLabels := catalog.NewLabelCollection()
 			service := NewModelCatalogServiceAPIService(&mockModelProvider{}, sources, sourceLabels)
 
 			// Call FindSources
@@ -865,7 +865,7 @@ func TestGetModel(t *testing.T) {
 			// Create service with test sources
 			sources := catalog.NewSourceCollection()
 			sources.Merge("", tc.sources)
-			sourceLabels := []map[string]string{}
+			sourceLabels := catalog.NewLabelCollection()
 			service := NewModelCatalogServiceAPIService(tc.provider, sources, sourceLabels)
 
 			// Call GetModel
@@ -976,7 +976,7 @@ func TestGetAllModelArtifacts(t *testing.T) {
 			// Create service with test sources
 			sources := catalog.NewSourceCollection()
 			sources.Merge("", tc.sources)
-			sourceLabels := []map[string]string{}
+			sourceLabels := catalog.NewLabelCollection()
 			service := NewModelCatalogServiceAPIService(tc.provider, sources, sourceLabels)
 
 			// Call GetAllModelArtifacts
@@ -1034,7 +1034,7 @@ func TestFindModelsFilterOptions(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			sources := catalog.NewSourceCollection()
-			sourceLabels := []map[string]string{}
+			sourceLabels := catalog.NewLabelCollection()
 			service := NewModelCatalogServiceAPIService(tc.provider, sources, sourceLabels)
 
 			resp, err := service.FindModelsFilterOptions(context.Background())
