@@ -53,8 +53,6 @@ func NewCatalogMetricsArtifact(artifactType string, metricsType string) *Catalog
 // but it doesn't guarantee that properties required by API are set
 func NewCatalogMetricsArtifactWithDefaults() *CatalogMetricsArtifact {
 	this := CatalogMetricsArtifact{}
-	var artifactType string = "metrics-artifact"
-	this.ArtifactType = artifactType
 	return &this
 }
 

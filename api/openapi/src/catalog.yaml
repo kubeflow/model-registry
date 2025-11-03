@@ -217,7 +217,7 @@ components:
           properties:
             artifactType:
               type: string
-              default: metrics-artifact
+              enum: [metrics-artifact]
             metricsType:
               type: string
               enum:
@@ -255,7 +255,7 @@ components:
           properties:
             artifactType:
               type: string
-              default: model-artifact
+              enum: [model-artifact]
             uri:
               type: string
               format: uri

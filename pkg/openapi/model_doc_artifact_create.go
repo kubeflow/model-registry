@@ -39,8 +39,6 @@ type DocArtifactCreate struct {
 // will change when the set of required properties is changed
 func NewDocArtifactCreate() *DocArtifactCreate {
 	this := DocArtifactCreate{}
-	var artifactType string = "doc-artifact"
-	this.ArtifactType = &artifactType
 	var state ArtifactState = ARTIFACTSTATE_UNKNOWN
 	this.State = &state
 	return &this
@@ -51,8 +49,6 @@ func NewDocArtifactCreate() *DocArtifactCreate {
 // but it doesn't guarantee that properties required by API are set
 func NewDocArtifactCreateWithDefaults() *DocArtifactCreate {
 	this := DocArtifactCreate{}
-	var artifactType string = "doc-artifact"
-	this.ArtifactType = &artifactType
 	var state ArtifactState = ARTIFACTSTATE_UNKNOWN
 	this.State = &state
 	return &this

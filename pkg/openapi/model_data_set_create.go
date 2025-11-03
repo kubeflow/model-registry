@@ -49,8 +49,6 @@ type DataSetCreate struct {
 // will change when the set of required properties is changed
 func NewDataSetCreate() *DataSetCreate {
 	this := DataSetCreate{}
-	var artifactType string = "dataset-artifact"
-	this.ArtifactType = &artifactType
 	var state ArtifactState = ARTIFACTSTATE_UNKNOWN
 	this.State = &state
 	return &this
@@ -61,8 +59,6 @@ func NewDataSetCreate() *DataSetCreate {
 // but it doesn't guarantee that properties required by API are set
 func NewDataSetCreateWithDefaults() *DataSetCreate {
 	this := DataSetCreate{}
-	var artifactType string = "dataset-artifact"
-	this.ArtifactType = &artifactType
 	var state ArtifactState = ARTIFACTSTATE_UNKNOWN
 	this.State = &state
 	return &this

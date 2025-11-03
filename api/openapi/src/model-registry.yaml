@@ -1748,7 +1748,7 @@ components:
           properties:
             artifactType:
               type: string
-              default: "doc-artifact"
+              enum: ["doc-artifact"]
     DocArtifactCreate:
       description: A document artifact to be created.
       allOf:
@@ -1758,7 +1758,7 @@ components:
           properties:
             artifactType:
               type: string
-              default: "doc-artifact"
+              enum: ["doc-artifact"]
     DocArtifactUpdate:
       description: A document artifact to be updated.
       allOf:
@@ -1767,7 +1767,7 @@ components:
           properties:
             artifactType:
               type: string
-              default: "doc-artifact"
+              enum: ["doc-artifact"]
             uri:
               description: |-
                 The uniform resource identifier of the physical artifact.
@@ -1784,7 +1784,7 @@ components:
           properties:
             artifactType:
               type: string
-              default: "dataset-artifact"
+              enum: ["dataset-artifact"]
     DataSetCreate:
       description: A dataset artifact to be created.
       allOf:
@@ -1794,7 +1794,7 @@ components:
           properties:
             artifactType:
               type: string
-              default: "dataset-artifact"
+              enum: ["dataset-artifact"]
     DataSetUpdate:
       description: A dataset artifact to be updated.
       allOf:
@@ -1803,7 +1803,7 @@ components:
           properties:
             artifactType:
               type: string
-              default: "dataset-artifact"
+              enum: ["dataset-artifact"]
             digest:
               description: A unique hash or identifier for the dataset content.
               type: string
@@ -1835,7 +1835,7 @@ components:
           properties:
             artifactType:
               type: string
-              default: "metric"
+              enum: ["metric"]
     MetricCreate:
       description: A metric to be created.
       allOf:
@@ -1845,7 +1845,7 @@ components:
           properties:
             artifactType:
               type: string
-              default: "metric"
+              enum: ["metric"]
             name:
               description: The name/key of the metric (e.g., "accuracy", "loss", "f1_score").
               type: string
@@ -1857,7 +1857,7 @@ components:
           properties:
             artifactType:
               type: string
-              default: "metric"
+              enum: ["metric"]
             value:
               description: The numeric value of the metric.
               type: number
@@ -1881,7 +1881,7 @@ components:
           properties:
             artifactType:
               type: string
-              default: "parameter"
+              enum: ["parameter"]
     ParameterCreate:
       description: A parameter to be created.
       allOf:
@@ -1891,7 +1891,7 @@ components:
           properties:
             artifactType:
               type: string
-              default: "parameter"
+              enum: ["parameter"]
             name:
               description: The name/key of the parameter (e.g., "learning_rate", "batch_size", "epochs").
               type: string
@@ -1910,7 +1910,7 @@ components:
           properties:
             artifactType:
               type: string
-              default: "parameter"
+              enum: ["parameter"]
             value:
               description: The value of the parameter.
               type: string
@@ -2013,13 +2013,13 @@ components:
           properties:
             artifactType:
               type: string
-              default: "model-artifact"
+              enum: ["model-artifact"]
     ModelArtifactCreate:
       description: An ML model artifact.
       properties:
         artifactType:
           type: string
-          default: "model-artifact"
+          enum: ["model-artifact"]
       allOf:
         - $ref: "#/components/schemas/BaseResourceCreate"
         - $ref: "#/components/schemas/ModelArtifactUpdate"
@@ -2057,7 +2057,7 @@ components:
           properties:
             artifactType:
               type: string
-              default: "model-artifact"
+              enum: ["model-artifact"]
             modelFormatName:
               description: Name of the model format.
               type: string

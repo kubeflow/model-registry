@@ -57,8 +57,6 @@ type ModelArtifactUpdate struct {
 // will change when the set of required properties is changed
 func NewModelArtifactUpdate() *ModelArtifactUpdate {
 	this := ModelArtifactUpdate{}
-	var artifactType string = "model-artifact"
-	this.ArtifactType = &artifactType
 	var state ArtifactState = ARTIFACTSTATE_UNKNOWN
 	this.State = &state
 	return &this
@@ -69,8 +67,6 @@ func NewModelArtifactUpdate() *ModelArtifactUpdate {
 // but it doesn't guarantee that properties required by API are set
 func NewModelArtifactUpdateWithDefaults() *ModelArtifactUpdate {
 	this := ModelArtifactUpdate{}
-	var artifactType string = "model-artifact"
-	this.ArtifactType = &artifactType
 	var state ArtifactState = ARTIFACTSTATE_UNKNOWN
 	this.State = &state
 	return &this

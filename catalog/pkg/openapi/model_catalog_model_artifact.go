@@ -54,8 +54,6 @@ func NewCatalogModelArtifact(artifactType string, uri string) *CatalogModelArtif
 // but it doesn't guarantee that properties required by API are set
 func NewCatalogModelArtifactWithDefaults() *CatalogModelArtifact {
 	this := CatalogModelArtifact{}
-	var artifactType string = "model-artifact"
-	this.ArtifactType = artifactType
 	return &this
 }
 

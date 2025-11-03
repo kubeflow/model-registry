@@ -53,8 +53,6 @@ type Metric struct {
 // will change when the set of required properties is changed
 func NewMetric() *Metric {
 	this := Metric{}
-	var artifactType string = "metric"
-	this.ArtifactType = &artifactType
 	var state ArtifactState = ARTIFACTSTATE_UNKNOWN
 	this.State = &state
 	return &this
@@ -65,8 +63,6 @@ func NewMetric() *Metric {
 // but it doesn't guarantee that properties required by API are set
 func NewMetricWithDefaults() *Metric {
 	this := Metric{}
-	var artifactType string = "metric"
-	this.ArtifactType = &artifactType
 	var state ArtifactState = ARTIFACTSTATE_UNKNOWN
 	this.State = &state
 	return &this

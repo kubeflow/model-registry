@@ -40,8 +40,6 @@ type ParameterCreate struct {
 // will change when the set of required properties is changed
 func NewParameterCreate() *ParameterCreate {
 	this := ParameterCreate{}
-	var artifactType string = "parameter"
-	this.ArtifactType = &artifactType
 	var state ArtifactState = ARTIFACTSTATE_UNKNOWN
 	this.State = &state
 	return &this
@@ -52,8 +50,6 @@ func NewParameterCreate() *ParameterCreate {
 // but it doesn't guarantee that properties required by API are set
 func NewParameterCreateWithDefaults() *ParameterCreate {
 	this := ParameterCreate{}
-	var artifactType string = "parameter"
-	this.ArtifactType = &artifactType
 	var state ArtifactState = ARTIFACTSTATE_UNKNOWN
 	this.State = &state
 	return &this

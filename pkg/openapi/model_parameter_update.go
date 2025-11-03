@@ -38,8 +38,6 @@ type ParameterUpdate struct {
 // will change when the set of required properties is changed
 func NewParameterUpdate() *ParameterUpdate {
 	this := ParameterUpdate{}
-	var artifactType string = "parameter"
-	this.ArtifactType = &artifactType
 	var state ArtifactState = ARTIFACTSTATE_UNKNOWN
 	this.State = &state
 	return &this
@@ -50,8 +48,6 @@ func NewParameterUpdate() *ParameterUpdate {
 // but it doesn't guarantee that properties required by API are set
 func NewParameterUpdateWithDefaults() *ParameterUpdate {
 	this := ParameterUpdate{}
-	var artifactType string = "parameter"
-	this.ArtifactType = &artifactType
 	var state ArtifactState = ARTIFACTSTATE_UNKNOWN
 	this.State = &state
 	return &this

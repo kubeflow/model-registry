@@ -59,8 +59,6 @@ type ModelArtifactCreate struct {
 // will change when the set of required properties is changed
 func NewModelArtifactCreate() *ModelArtifactCreate {
 	this := ModelArtifactCreate{}
-	var artifactType string = "model-artifact"
-	this.ArtifactType = &artifactType
 	var state ArtifactState = ARTIFACTSTATE_UNKNOWN
 	this.State = &state
 	return &this
@@ -71,8 +69,6 @@ func NewModelArtifactCreate() *ModelArtifactCreate {
 // but it doesn't guarantee that properties required by API are set
 func NewModelArtifactCreateWithDefaults() *ModelArtifactCreate {
 	this := ModelArtifactCreate{}
-	var artifactType string = "model-artifact"
-	this.ArtifactType = &artifactType
 	var state ArtifactState = ARTIFACTSTATE_UNKNOWN
 	this.State = &state
 	return &this
