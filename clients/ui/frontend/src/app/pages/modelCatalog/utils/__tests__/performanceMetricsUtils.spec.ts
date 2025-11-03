@@ -1,11 +1,9 @@
 /* eslint-disable camelcase */
-import { PerformanceMetricsCustomProperties } from '~/app/modelCatalogTypes';
 import { ModelRegistryMetadataType } from '~/app/types';
 import { UseCaseOptionValue } from '~/concepts/modelCatalog/const';
 import { mockCatalogPerformanceMetricsArtifact } from '~/__mocks__';
 import {
   getHardwareConfiguration,
-  getTotalRps,
   formatLatency,
   formatTokenValue,
   getWorkloadType,
@@ -68,73 +66,6 @@ describe('performanceMetricsUtils', () => {
       const artifact = mockCatalogPerformanceMetricsArtifact();
       delete artifact.customProperties.hardware_type;
       expect(getHardwareConfiguration(artifact)).toBe('2 x -');
-    });
-  });
-
-  describe('getTotalRps', () => {
-    it('should calculate total RPS by multiplying hardware count and RPS per replica', () => {
-      const customProperties: PerformanceMetricsCustomProperties = {
-        hardware_count: {
-          metadataType: ModelRegistryMetadataType.INT,
-          int_value: '2',
-        },
-        requests_per_second: {
-          metadataType: ModelRegistryMetadataType.DOUBLE,
-          double_value: 7,
-        },
-      };
-      expect(getTotalRps(customProperties)).toBe(14);
-    });
-
-    it('should handle decimal RPS values', () => {
-      const customProperties: PerformanceMetricsCustomProperties = {
-        hardware_count: {
-          metadataType: ModelRegistryMetadataType.INT,
-          int_value: '4',
-        },
-        requests_per_second: {
-          metadataType: ModelRegistryMetadataType.DOUBLE,
-          double_value: 3.5,
-        },
-      };
-      expect(getTotalRps(customProperties)).toBe(14);
-    });
-
-    it('should return 0 when hardware_count is 0', () => {
-      const customProperties: PerformanceMetricsCustomProperties = {
-        hardware_count: {
-          metadataType: ModelRegistryMetadataType.INT,
-          int_value: '0',
-        },
-        requests_per_second: {
-          metadataType: ModelRegistryMetadataType.DOUBLE,
-          double_value: 10,
-        },
-      };
-      expect(getTotalRps(customProperties)).toBe(0);
-    });
-
-    it('should return 0 when requests_per_second is 0', () => {
-      const customProperties: PerformanceMetricsCustomProperties = {
-        hardware_count: {
-          metadataType: ModelRegistryMetadataType.INT,
-          int_value: '5',
-        },
-        requests_per_second: {
-          metadataType: ModelRegistryMetadataType.DOUBLE,
-          double_value: 0,
-        },
-      };
-      expect(getTotalRps(customProperties)).toBe(0);
-    });
-
-    it('should return 0 when customProperties is undefined', () => {
-      expect(getTotalRps(undefined)).toBe(0);
-    });
-
-    it('should handle missing properties by returning 0', () => {
-      const customProperties: PerformanceMetricsCustomProperties = {};
-      expect(getTotalRps(customProperties)).toBe(0);
     });
   });
 
