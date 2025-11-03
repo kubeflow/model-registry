@@ -75,7 +75,7 @@ func (m *ModelCatalogServiceAPIService) GetAllModelArtifacts(ctx context.Context
 	return Response(http.StatusOK, artifacts), nil
 }
 
-func (m *ModelCatalogServiceAPIService) FindModels(ctx context.Context, sourceIDs []string, q string, sourceLabels []string, filterQuery string, pageSize string, orderBy model.OrderByField, sortOrder model.SortOrder, nextPageToken string) (ImplResponse, error) {
+func (m *ModelCatalogServiceAPIService) FindModels(ctx context.Context, sourceIDs []string, q string, sourceLabels []string, filterQuery string, pageSize string, orderBy model.OrderByField, sortOrder model.SortOrder, nextPageToken string, artifactType []model.ArtifactTypeQueryParam) (ImplResponse, error) {
 	var err error
 	pageSizeInt := int32(10)
 
@@ -100,14 +100,15 @@ func (m *ModelCatalogServiceAPIService) FindModels(ctx context.Context, sourceID
 	}
 
 	listModelsParams := catalog.ListModelsParams{
-		Query:         q,
-		FilterQuery:   filterQuery,
-		SourceIDs:     sourceIDs,
-		SourceLabels:  sourceLabels,
-		PageSize:      pageSizeInt,
-		OrderBy:       orderBy,
-		SortOrder:     sortOrder,
-		NextPageToken: &nextPageToken,
+		Query:               q,
+		FilterQuery:         filterQuery,
+		SourceIDs:           sourceIDs,
+		SourceLabels:        sourceLabels,
+		PageSize:            pageSizeInt,
+		OrderBy:             orderBy,
+		SortOrder:           sortOrder,
+		NextPageToken:       &nextPageToken,
+		ArtifactTypesFilter: artifactType,
 	}
 
 	models, err := m.provider.ListModels(ctx, listModelsParams)
