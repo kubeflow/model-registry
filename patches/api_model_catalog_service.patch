@@ -2,7 +2,24 @@ diff --git a/catalog/internal/server/openapi/api_model_catalog_service.go b/cata
 index 72e4054d..dc09f621 100644
 --- a/catalog/internal/server/openapi/api_model_catalog_service.go
 +++ b/catalog/internal/server/openapi/api_model_catalog_service.go
-@@ -117,6 +117,21 @@ func (c *ModelCatalogServiceAPIController) FindSources(w http.ResponseWriter, r
+@@ -83,7 +83,15 @@ func (c *ModelCatalogServiceAPIController) FindModels(w http.ResponseWriter, r
+ 	orderByParam := query.Get("orderBy")
+ 	sortOrderParam := query.Get("sortOrder")
+ 	nextPageTokenParam := query.Get("nextPageToken")
+-	artifactTypeParam := strings.Split(query.Get("artifactType"), ",")
++
++	// Handle multiple artifactType query parameters
++	artifactTypeParam := make([]string, 0)
++	for _, v := range query["artifactType"] {
++		if v != "" {
++			artifactTypeParam = append(artifactTypeParam, v)
++		}
++	}
++
+ 	result, err := c.service.FindModels(r.Context(), sourceParam, qParam, sourceLabelParam, filterQueryParam, pageSizeParam, model.OrderByField(orderByParam), model.SortOrder(sortOrderParam), nextPageTokenParam, artifactTypeParam)
+ 	// If an error occurred, encode the error with the status code
+ 	if err != nil {
+@@ -117,6 +125,21 @@ func (c *ModelCatalogServiceAPIController) FindSources(w http.ResponseWriter, r
  func (c *ModelCatalogServiceAPIController) GetModel(w http.ResponseWriter, r *http.Request) {
  	sourceIdParam := chi.URLParam(r, "source_id")
  	modelNameParam := chi.URLParam(r, "*")
@@ -24,7 +41,7 @@ index 72e4054d..dc09f621 100644
  	result, err := c.service.GetModel(r.Context(), sourceIdParam, modelNameParam)
  	// If an error occurred, encode the error with the status code
  	if err != nil {
-@@ -165,8 +165,20 @@ func (c *ModelCatalogServiceAPIController) GetAllModelArtifacts(w http.ResponseW
+@@ -165,8 +188,20 @@ func (c *ModelCatalogServiceAPIController) GetAllModelArtifacts(w http.ResponseW
  	query := r.URL.Query()
  	sourceIdParam := chi.URLParam(r, "source_id")
  	modelNameParam := chi.URLParam(r, "model_name")

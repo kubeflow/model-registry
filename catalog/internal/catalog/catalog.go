@@ -15,7 +15,7 @@ type ListModelsParams struct {
 	OrderBy             model.OrderByField
 	SortOrder           model.SortOrder
 	NextPageToken       *string
-	ArtifactTypesFilter []model.ArtifactTypeQueryParam
+	ArtifactTypesFilter []string
 }
 
 type ListArtifactsParams struct {

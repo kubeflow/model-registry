@@ -312,7 +312,7 @@ func TestFindModels(t *testing.T) {
 				tc.orderBy,
 				tc.sortOrder,
 				tc.nextPageToken,
-				[]model.ArtifactTypeQueryParam{},
+				[]string{},
 			)
 
 			assert.Equal(t, tc.expectedStatus, resp.Code)

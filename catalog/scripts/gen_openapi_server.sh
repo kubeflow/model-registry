@@ -36,6 +36,9 @@ py-re-replace 0 ', sortOrderParam' ', model.SortOrder(sortOrderParam)' "$PROJECT
 py-re-replace 0 'model\.\[\]ArtifactTypeQueryParam' '[]model.ArtifactTypeQueryParam' "$PROJECT_ROOT"/internal/server/openapi/api.go
 py-re-replace 0 'model\.\[\]ArtifactType2QueryParam' '[]model.ArtifactTypeQueryParam' "$PROJECT_ROOT"/internal/server/openapi/api.go
 
+# Replace the artifactType parameter type in FindModels to use []string instead of []model.ArtifactTypeQueryParam
+py-re-replace 1 'FindModels\(context\.Context, \[\]string, string, \[\]string, string, string, model\.OrderByField, model\.SortOrder, string, \[\]model\.ArtifactTypeQueryParam\)' 'FindModels(context.Context, []string, string, []string, string, string, model.OrderByField, model.SortOrder, string, []string)' "$PROJECT_ROOT"/internal/server/openapi/api.go
+
 py-re-replace 1 '"encoding/json"' '' "$PROJECT_ROOT"/internal/server/openapi/api_model_catalog_service.go
 
 py-re-replace 1 'github\.com/kubeflow/model-registry/pkg/openapi' 'github.com/kubeflow/model-registry/catalog/pkg/openapi' \

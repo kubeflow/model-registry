@@ -188,7 +188,7 @@ func AssertCatalogModelRequired(obj model.CatalogModel) error {
 	}
 
 	for _, el := range obj.Artifacts {
-		if err := AssertCatalogModelArtifactRequired(el); err != nil {
+		if err := AssertCatalogArtifactRequired(el); err != nil {
 			return err
 		}
 	}

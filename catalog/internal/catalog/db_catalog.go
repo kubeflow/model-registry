@@ -141,23 +141,17 @@ func (d *dbCatalogImpl) ListModels(ctx context.Context, params ListModelsParams)
 }
 
 // fetchModelArtifacts retrieves artifacts for a given model filtered by artifact types
-func (d *dbCatalogImpl) fetchModelArtifacts(ctx context.Context, model dbmodels.CatalogModel, artifactTypesFilter []apimodels.ArtifactTypeQueryParam) ([]apimodels.CatalogArtifact, error) {
+func (d *dbCatalogImpl) fetchModelArtifacts(ctx context.Context, model dbmodels.CatalogModel, artifactTypesFilter []string) ([]apimodels.CatalogArtifact, error) {
 	if model.GetID() == nil {
 		return []apimodels.CatalogArtifact{}, nil
 	}
 
 	parentResourceID := *model.GetID()
 
-	// Convert ArtifactTypeQueryParam to strings
-	artifactTypes := make([]string, len(artifactTypesFilter))
-	for i, at := range artifactTypesFilter {
-		artifactTypes[i] = string(at)
-	}
-
 	// Fetch artifacts with no pagination (get all artifacts for this model)
 	artifactsList, err := d.catalogArtifactRepository.List(dbmodels.CatalogArtifactListOptions{
 		ParentResourceID:    &parentResourceID,
-		ArtifactTypesFilter: artifactTypes,
+		ArtifactTypesFilter: artifactTypesFilter,
 		Pagination:          mrmodels.Pagination{
 			// No pagination for artifacts in model list
 		},
