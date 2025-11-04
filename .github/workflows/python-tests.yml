@@ -229,8 +229,17 @@ jobs:
           kubectl port-forward service/distribution-registry-test-service 5001:5001 &
           sleep 2
           nox --python=${{ matrix.python }} --session=e2e -- --cov-report=xml
+      - name: Check if OpenAPI files changed
+        id: check-openapi-changed
+        if: github.event_name == 'pull_request'
+        run: |
+          if git diff --name-only ${{ github.event.pull_request.base.sha }}...${{ github.event.pull_request.head.sha }} | grep -q "^api/"; then
+            echo "OPENAPI_CHANGED=true" | tee -a $GITHUB_OUTPUT
+          else
+            echo "OPENAPI_CHANGED=false" | tee -a $GITHUB_OUTPUT
+          fi
       - name: Nox test fuzz (main only)
-        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        if: (github.event_name == 'push' && github.ref == 'refs/heads/main') || (github.event_name == 'pull_request' && steps.check-openapi-changed.outputs.OPENAPI_CHANGED == 'true')
         working-directory: clients/python
         run: |
           kubectl port-forward -n kubeflow service/model-registry-service 8080:8080 &
