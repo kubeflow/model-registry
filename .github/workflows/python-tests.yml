@@ -118,6 +118,9 @@ jobs:
   test:
     name: E2E Py ${{ matrix.python }} K8s ${{ matrix.kubernetes-version }} DB ${{ matrix.manifest-db }}
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: read # to use dorny/paths-filter (below)
     strategy:
       fail-fast: false
       matrix:
@@ -232,14 +235,13 @@ jobs:
       - name: Check if OpenAPI files changed
         id: check-openapi-changed
         if: github.event_name == 'pull_request'
-        run: |
-          if git diff --name-only ${{ github.event.pull_request.base.sha }}...${{ github.event.pull_request.head.sha }} | grep -q "^api/"; then
-            echo "OPENAPI_CHANGED=true" | tee -a $GITHUB_OUTPUT
-          else
-            echo "OPENAPI_CHANGED=false" | tee -a $GITHUB_OUTPUT
-          fi
-      - name: Nox test fuzz (main only)
-        if: (github.event_name == 'push' && github.ref == 'refs/heads/main') || (github.event_name == 'pull_request' && steps.check-openapi-changed.outputs.OPENAPI_CHANGED == 'true')
+        uses: dorny/paths-filter@v3
+        with:
+          filters: |
+            openapi:
+              - 'api/**'
+      - name: Nox test fuzz (main only, or PRs with OpenAPI changes)
+        if: (github.event_name == 'push' && github.ref == 'refs/heads/main') || (github.event_name == 'pull_request' && steps.check-openapi-changed.outputs.openapi == 'true')
         working-directory: clients/python
         run: |
           kubectl port-forward -n kubeflow service/model-registry-service 8080:8080 &
