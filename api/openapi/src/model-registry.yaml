@@ -13,7 +13,7 @@ paths:
   /api/model_registry/v1alpha3/artifact:
     summary: Path used to search for an artifact.
     description: >-
-      The REST endpoint/path used to search for an `Artifact` entity.  This path contains a `GET` operation to perform the find task..
+      The REST endpoint/path used to search for an `Artifact` entity.  This path contains a `GET` operation to perform the find task.
     get:
       tags:
         - ModelRegistryService
