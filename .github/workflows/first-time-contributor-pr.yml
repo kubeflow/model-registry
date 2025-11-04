@@ -1,51 +1,36 @@
-# goal: this is meant to remind maintainers/approvers to add labels to ensure all tests are executed before merging
-# and avoid merging without realizing that required tests has not been run; complementary to bulletpoint in template: https://github.com/kubeflow/model-registry/blame/de5f225d96a4daeca77506d233082b1c4ea5afa3/.github/pull_request_template.md#L21
-name: Welcome first-time contributors (Beta)
+name: Welcome first-time contributors (Beta2)
+
 on:
-  pull_request_target:
-    types:
-      - opened
-permissions: # set contents: read at top-level, per OpenSSF ScoreCard rule TokenPermissionsID
-  contents: read
+  pull_request:
+    types: [opened, synchronize, reopened]
 
-# do NOT: add actions/checkout to this flow, add-third party scripts, or auto-trigger CI jobs
 jobs:
-  welcome:
-    permissions:
-      pull-requests: write
+  extract:
     runs-on: ubuntu-latest
+    outputs:
+      approvers: ${{ steps.set-approvers.outputs.approvers }}
     steps:
-      - name: Check contributor status
-        id: check_1st_time_contrib
-        uses: actions/github-script@v8
-        with:
-          script: |
-            const { data: pr } = await github.rest.pulls.get({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              pull_number: context.issue.number
-            });
-            const isFirstTimeContributor = pr.user.contributions === 0;
-            console.log(`First-time contributor status: ${isFirstTimeContributor}`);
-            core.setOutput('isFirstTimeContributor', isFirstTimeContributor.toString());
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-      - name: Log contributor status (isFirstTimeContributor true)
-        if: steps.check_1st_time_contrib.outputs.isFirstTimeContributor == 'true'
-        run: echo "First-time contributor status is ${{ steps.check_1st_time_contrib.outputs.isFirstTimeContributor }}"
-    
-      - name: Log contributor status (isFirstTimeContributor false)
-        if: steps.check_1st_time_contrib.outputs.isFirstTimeContributor == 'false'
-        run: echo "First-time contributor status is ${{ steps.check_1st_time_contrib.outputs.isFirstTimeContributor }}"
-    
-      - name: Add a comment to the PR if first time contributor
-        if: steps.check_1st_time_contrib.outputs.isFirstTimeContributor == 'true'
-        uses: actions/github-script@v8
-        with:
-          script: |
-            github.rest.issues.createComment({
-              issue_number: context.issue.number,
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              body: "Maintainers: let's ensure the label `ok-to-test` has been maintained and all the tests have been executed before merging.<br/><br/>Thank you for your first Pull Request! 🎉🎉"
-            })
-# do NOT: add actions/checkout to this flow, add-third party scripts, or auto-trigger CI jobs
+      - name: Install PyYAML
+        run: pip3 install pyyaml
+
+      - name: Extract approvers from OWNERS file
+        id: set-approvers
+        run: |
+          python3 << 'EOF'
+          import yaml
+          import os
+          
+          with open('OWNERS', 'r') as f:
+              data = yaml.safe_load(f)
+          
+          approvers = data.get('approvers', [])
+          result = ' '.join([f'@{approver}' for approver in approvers])
+          
+          with open(os.environ['GITHUB_OUTPUT'], 'a') as f:
+              f.write(f'approvers={result}\n')
+          
+          print(f'Extracted approvers: {result}')
+          EOF
