@@ -104,6 +104,11 @@ func AssertCatalogArtifactListRequired(obj model.CatalogArtifactList) error {
 	return nil
 }
 
+// AssertCatalogLabelConstraints checks if the values respects the defined constraints
+func AssertCatalogLabelConstraints(obj model.CatalogLabel) error {
+	return nil
+}
+
 // AssertCatalogLabelListConstraints checks if the values respects the defined constraints
 func AssertCatalogLabelListConstraints(obj model.CatalogLabelList) error {
 	return nil
@@ -116,6 +121,20 @@ func AssertCatalogLabelListRequired(obj model.CatalogLabelList) error {
 		"pageSize":      obj.PageSize,
 		"size":          obj.Size,
 		"items":         obj.Items,
+	}
+	for name, el := range elements {
+		if isZero := IsZeroValue(el); isZero {
+			return &RequiredError{Field: name}
+		}
+	}
+
+	return nil
+}
+
+// AssertCatalogLabelRequired checks if the required fields are not zero-ed
+func AssertCatalogLabelRequired(obj model.CatalogLabel) error {
+	elements := map[string]interface{}{
+		"name": obj.Name,
 	}
 	for name, el := range elements {
 		if isZero := IsZeroValue(el); isZero {

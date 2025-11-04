@@ -1,6 +1,7 @@
 package catalog
 
 import (
+	"fmt"
 	"sync"
 )
 
@@ -24,12 +25,62 @@ func NewLabelCollection() *LabelCollection {
 
 // Merge adds labels from one origin (ordinarily, a file path), completely
 // replacing anything that was previously from that origin.
-func (lc *LabelCollection) Merge(origin string, newLabels []map[string]string) {
+// Returns an error if:
+//   - duplicate label names exist within newLabels
+//   - a label name conflicts with an existing label from a different origin
+func (lc *LabelCollection) Merge(origin string, newLabels []map[string]string) error {
+	newLabelNames := make(map[string]bool)
+	for _, newLabel := range newLabels {
+		if name, ok := newLabel["name"]; ok {
+			if newLabelNames[name] {
+				return fmt.Errorf("duplicate label name '%s' within the same origin", name)
+			}
+			newLabelNames[name] = true
+		}
+	}
+
 	lc.mu.Lock()
 	defer lc.mu.Unlock()
 
+	// Build a map of existing label names from OTHER origins (excluding this origin)
+	// This allows us to validate BEFORE mutating state
+	oldIndices, originExists := lc.origins[origin]
+	existingNamesFromOtherOrigins := make(map[string]bool)
+	for i, label := range lc.labels {
+		// Skip labels from this origin (they will be replaced)
+		isFromThisOrigin := false
+		if originExists {
+			for _, idx := range oldIndices {
+				if i == idx {
+					isFromThisOrigin = true
+					break
+				}
+			}
+		}
+
+		if !isFromThisOrigin {
+			if name, ok := label["name"]; ok {
+				existingNamesFromOtherOrigins[name] = true
+			}
+		}
+	}
+
+	// Validate conflicts and prepare labels to add in a single pass
+	labelsToAdd := make([]map[string]string, 0, len(newLabels))
+	for _, newLabel := range newLabels {
+		// Check for conflicts with other origins
+		if name, ok := newLabel["name"]; ok {
+			if existingNamesFromOtherOrigins[name] {
+				return fmt.Errorf("label with name '%s' already exists from another origin", name)
+			}
+		}
+
+		labelsToAdd = append(labelsToAdd, newLabel)
+	}
+
+	// All validation passed, now proceed with mutation
 	// Remove labels that were previously set for this origin
-	if oldIndices, exists := lc.origins[origin]; exists {
+	if originExists {
 		// Mark old labels for removal by setting them to nil
 		for _, idx := range oldIndices {
 			if idx < len(lc.labels) {
@@ -47,13 +98,11 @@ func (lc *LabelCollection) Merge(origin string, newLabels []map[string]string) {
 	}
 	lc.labels = compacted
 
-	// Add new labels from this origin (only if they don't already exist)
-	newIndices := make([]int, 0, len(newLabels))
-	for _, newLabel := range newLabels {
-		if !containsLabel(lc.labels, newLabel) {
-			lc.labels = append(lc.labels, newLabel)
-			newIndices = append(newIndices, len(lc.labels)-1)
-		}
+	// Add the validated new labels
+	newIndices := make([]int, 0, len(labelsToAdd))
+	for _, newLabel := range labelsToAdd {
+		lc.labels = append(lc.labels, newLabel)
+		newIndices = append(newIndices, len(lc.labels)-1)
 	}
 
 	if len(newIndices) > 0 {
@@ -61,6 +110,8 @@ func (lc *LabelCollection) Merge(origin string, newLabels []map[string]string) {
 	} else {
 		delete(lc.origins, origin)
 	}
+
+	return nil
 }
 
 func (lc *LabelCollection) All() []map[string]string {
@@ -70,27 +121,4 @@ func (lc *LabelCollection) All() []map[string]string {
 	result := make([]map[string]string, len(lc.labels))
 	copy(result, lc.labels)
 	return result
-}
-
-// containsLabel checks if a label map already exists in the labels slice.
-func containsLabel(labels []map[string]string, target map[string]string) bool {
-	for _, label := range labels {
-		if mapsEqual(label, target) {
-			return true
-		}
-	}
-	return false
-}
-
-// mapsEqual compares two string maps for equality.
-func mapsEqual(a, b map[string]string) bool {
-	if len(a) != len(b) {
-		return false
-	}
-	for k, v := range a {
-		if bv, ok := b[k]; !ok || bv != v {
-			return false
-		}
-	}
-	return true
 }

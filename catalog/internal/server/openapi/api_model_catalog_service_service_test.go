@@ -932,8 +932,25 @@ func TestFindLabels(t *testing.T) {
 			// Check sorting if required
 			if tc.checkSorting && len(labelList.Items) > 1 && tc.checkOrderByKey != "" {
 				for i := 0; i < len(labelList.Items)-1; i++ {
-					val1, ok1 := labelList.Items[i][tc.checkOrderByKey]
-					val2, ok2 := labelList.Items[i+1][tc.checkOrderByKey]
+					// Get value from either Name field or AdditionalProperties
+					var val1, val2 string
+					var ok1, ok2 bool
+
+					if tc.checkOrderByKey == "name" {
+						val1 = labelList.Items[i].Name
+						val2 = labelList.Items[i+1].Name
+						ok1, ok2 = true, true
+					} else {
+						var v1, v2 interface{}
+						v1, ok1 = labelList.Items[i].AdditionalProperties[tc.checkOrderByKey]
+						v2, ok2 = labelList.Items[i+1].AdditionalProperties[tc.checkOrderByKey]
+						if ok1 {
+							val1, _ = v1.(string)
+						}
+						if ok2 {
+							val2, _ = v2.(string)
+						}
+					}
 
 					// Skip if either doesn't have the key
 					if !ok1 || !ok2 {

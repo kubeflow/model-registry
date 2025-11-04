@@ -26,14 +26,14 @@ type CatalogLabelList struct {
 	// Number of items in result list.
 	Size int32 `json:"size"`
 	// Array of `CatalogLabel` entities.
-	Items []map[string]string `json:"items"`
+	Items []CatalogLabel `json:"items"`
 }
 
 // NewCatalogLabelList instantiates a new CatalogLabelList object
 // This constructor will assign default values to properties that have it defined,
 // and makes sure properties required by API are set, but the set of arguments
 // will change when the set of required properties is changed
-func NewCatalogLabelList(nextPageToken string, pageSize int32, size int32, items []map[string]string) *CatalogLabelList {
+func NewCatalogLabelList(nextPageToken string, pageSize int32, size int32, items []CatalogLabel) *CatalogLabelList {
 	this := CatalogLabelList{}
 	this.NextPageToken = nextPageToken
 	this.PageSize = pageSize
@@ -123,9 +123,9 @@ func (o *CatalogLabelList) SetSize(v int32) {
 }
 
 // GetItems returns the Items field value
-func (o *CatalogLabelList) GetItems() []map[string]string {
+func (o *CatalogLabelList) GetItems() []CatalogLabel {
 	if o == nil {
-		var ret []map[string]string
+		var ret []CatalogLabel
 		return ret
 	}
 
@@ -134,7 +134,7 @@ func (o *CatalogLabelList) GetItems() []map[string]string {
 
 // GetItemsOk returns a tuple with the Items field value
 // and a boolean to check if the value has been set.
-func (o *CatalogLabelList) GetItemsOk() ([]map[string]string, bool) {
+func (o *CatalogLabelList) GetItemsOk() ([]CatalogLabel, bool) {
 	if o == nil {
 		return nil, false
 	}
@@ -142,7 +142,7 @@ func (o *CatalogLabelList) GetItemsOk() ([]map[string]string, bool) {
 }
 
 // SetItems sets field value
-func (o *CatalogLabelList) SetItems(v []map[string]string) {
+func (o *CatalogLabelList) SetItems(v []CatalogLabel) {
 	o.Items = v
 }
 

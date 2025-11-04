@@ -306,8 +306,14 @@ components:
             - items
         - $ref: "#/components/schemas/BaseResourceList"
     CatalogLabel:
-      description: A catalog label. Labels are used to categorize catalog sources. Represented as a flexible map of string key-value pairs.
+      description: A catalog label. Labels are used to categorize catalog sources. Represented as a flexible map of string key-value pairs with a required 'name' field.
       type: object
+      required:
+        - name
+      properties:
+        name:
+          type: string
+          description: The unique name identifier for the label.
       additionalProperties:
         type: string
       example:

@@ -106,10 +106,28 @@ func (m *ModelCatalogServiceAPIService) FindLabels(ctx context.Context, pageSize
 	// Paginate the sorted labels
 	pagedSortableLabels, next := paginator.Paginate(sortableLabels)
 
-	// Extract the raw label maps
-	pagedLabels := make([]map[string]string, len(pagedSortableLabels))
+	// Convert map[string]string to model.CatalogLabel
+	pagedLabels := make([]model.CatalogLabel, len(pagedSortableLabels))
 	for i, sl := range pagedSortableLabels {
-		pagedLabels[i] = sl.data
+		// Extract the "name" field (required)
+		name, ok := sl.data["name"]
+		if !ok || name == "" {
+			err := fmt.Errorf("internal error: label at index %d missing required name field", i)
+			return ErrorResponse(http.StatusInternalServerError, err), err
+		}
+
+		// Create CatalogLabel with name
+		label := model.NewCatalogLabel(name)
+
+		// Add all other properties to AdditionalProperties
+		label.AdditionalProperties = make(map[string]interface{})
+		for key, value := range sl.data {
+			if key != "name" {
+				label.AdditionalProperties[key] = value
+			}
+		}
+
+		pagedLabels[i] = *label
 	}
 
 	res := model.CatalogLabelList{
