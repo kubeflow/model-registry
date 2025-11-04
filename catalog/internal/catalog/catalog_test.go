@@ -130,8 +130,8 @@ func TestLabelsValidation(t *testing.T) {
 			config: &sourceConfig{
 				Catalogs: []Source{},
 				Labels: []map[string]string{
-					{"name": "redhat", "displayName": "Red Hat"},
-					{"name": "community", "displayName": "Community"},
+					{"name": "labelNameOne", "displayName": "Label Name One"},
+					{"name": "labelNameTwo", "displayName": "Label Name Two"},
 				},
 			},
 			wantErr: false,
@@ -141,8 +141,8 @@ func TestLabelsValidation(t *testing.T) {
 			config: &sourceConfig{
 				Catalogs: []Source{},
 				Labels: []map[string]string{
-					{"name": "redhat", "displayName": "Red Hat"},
-					{"displayName": "Community"}, // Missing "name"
+					{"name": "labelNameOne", "displayName": "Label Name One"},
+					{"displayName": "Label Name Two"}, // Missing "name"
 				},
 			},
 			wantErr: true,
@@ -164,13 +164,13 @@ func TestLabelsValidation(t *testing.T) {
 			config: &sourceConfig{
 				Catalogs: []Source{},
 				Labels: []map[string]string{
-					{"name": "redhat", "displayName": "Red Hat 1"},
-					{"name": "community", "displayName": "Community"},
-					{"name": "redhat", "displayName": "Red Hat 2"},
+					{"name": "labelNameOne", "displayName": "Label Name One 1"},
+					{"name": "labelNameTwo", "displayName": "Label Name Two"},
+					{"name": "labelNameOne", "displayName": "Label Name One 2"},
 				},
 			},
 			wantErr: true,
-			errMsg:  "duplicate label name 'redhat' within the same origin",
+			errMsg:  "duplicate label name 'labelNameOne' within the same origin",
 		},
 		{
 			name: "nil labels should not error",
