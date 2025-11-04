@@ -31,7 +31,7 @@ describe('filtersToFilterQuery', () => {
     [ModelCatalogStringFilterKey.HARDWARE_TYPE]: hardware_type,
     [ModelCatalogStringFilterKey.USE_CASE]: use_case,
     [ModelCatalogNumberFilterKey.MIN_RPS]: rps_mean,
-    [ModelCatalogNumberFilterKey.MAX_LATENCY]: ttft_mean,
+    ttft_mean,
   });
 
   const mockFilterOptions: CatalogFilterOptionsList = {
@@ -142,7 +142,7 @@ describe('filtersToFilterQuery', () => {
           max: 300,
         },
       },
-      [ModelCatalogNumberFilterKey.MAX_LATENCY]: {
+      ttft_mean: {
         type: 'number',
         range: {
           min: 0,

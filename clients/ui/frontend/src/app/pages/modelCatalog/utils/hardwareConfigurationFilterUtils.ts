@@ -9,11 +9,13 @@ import {
   LatencyMetricFieldName,
   LatencyPercentile,
   LatencyMetric,
+  LATENCY_METRIC_FIELD_NAMES,
 } from '~/concepts/modelCatalog/const';
-import { LatencyFilterConfig as SharedLatencyFilterConfig } from './latencyFilterState';
 
 // Type for storing complex latency filter configuration with value
-export type LatencyFilterConfig = SharedLatencyFilterConfig & {
+export type LatencyFilterConfig = {
+  metric: LatencyMetric;
+  percentile: LatencyPercentile;
   value: number;
 };
 
@@ -86,7 +88,6 @@ export const applyMaxLatencyFilter = (
 export const filterHardwareConfigurationArtifacts = (
   artifacts: CatalogPerformanceMetricsArtifact[],
   filterState: ModelCatalogFilterStates,
-  latencyConfig?: SharedLatencyFilterConfig,
 ): CatalogPerformanceMetricsArtifact[] =>
   artifacts.filter((artifact) => {
     // Hardware Type Filter (using central filter state)
@@ -110,19 +111,14 @@ export const filterHardwareConfigurationArtifacts = (
       }
     }
 
-    // Max Latency Filter - use provided config or fall back to default
-    const maxLatencyFilter = filterState[ModelCatalogNumberFilterKey.MAX_LATENCY];
-    if (maxLatencyFilter !== undefined) {
-      const baseConfig = latencyConfig || {
-        metric: LatencyMetric.TTFT,
-        percentile: LatencyPercentile.Mean,
-      };
-
-      // Create the full config with the current filter value
-      const fullConfig: LatencyFilterConfig = { ...baseConfig, value: maxLatencyFilter };
-
-      if (!applyMaxLatencyFilter(artifact, fullConfig)) {
-        return false;
+    // Max Latency Filter - check for any active latency field
+    for (const fieldName of LATENCY_METRIC_FIELD_NAMES) {
+      const filterValue = filterState[fieldName];
+      if (filterValue !== undefined && typeof filterValue === 'number') {
+        const latencyValue = getDoubleValue(artifact.customProperties, fieldName);
+        if (latencyValue > filterValue) {
+          return false;
+        }
       }
     }
 
