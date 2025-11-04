@@ -44,7 +44,7 @@ func (c *OpenAPIToEmbedMDConverterImpl) ConvertDataSet(source *converter.OpenAPI
 		modelsBaseEntity.Properties = pModelsPropertiesList
 		var pMapStringOpenapiMetadataValue *map[string]openapi.MetadataValue
 		if (*source).Model != nil {
-			pMapStringOpenapiMetadataValue = (*source).Model.CustomProperties
+			pMapStringOpenapiMetadataValue = &(*source).Model.CustomProperties
 		}
 		pModelsPropertiesList2, err := converter.MapOpenAPICustomPropertiesEmbedMD(pMapStringOpenapiMetadataValue)
 		if err != nil {
@@ -87,7 +87,7 @@ func (c *OpenAPIToEmbedMDConverterImpl) ConvertDocArtifact(source *converter.Ope
 		modelsBaseEntity.Properties = pModelsPropertiesList
 		var pMapStringOpenapiMetadataValue *map[string]openapi.MetadataValue
 		if (*source).Model != nil {
-			pMapStringOpenapiMetadataValue = (*source).Model.CustomProperties
+			pMapStringOpenapiMetadataValue = &(*source).Model.CustomProperties
 		}
 		pModelsPropertiesList2, err := converter.MapOpenAPICustomPropertiesEmbedMD(pMapStringOpenapiMetadataValue)
 		if err != nil {
@@ -130,7 +130,7 @@ func (c *OpenAPIToEmbedMDConverterImpl) ConvertExperiment(source *converter.Open
 		modelsBaseEntity.Properties = pModelsPropertiesList
 		var pMapStringOpenapiMetadataValue *map[string]openapi.MetadataValue
 		if (*source).Model != nil {
-			pMapStringOpenapiMetadataValue = (*source).Model.CustomProperties
+			pMapStringOpenapiMetadataValue = &(*source).Model.CustomProperties
 		}
 		pModelsPropertiesList2, err := converter.MapOpenAPICustomPropertiesEmbedMD(pMapStringOpenapiMetadataValue)
 		if err != nil {
@@ -173,7 +173,7 @@ func (c *OpenAPIToEmbedMDConverterImpl) ConvertExperimentRun(source *converter.O
 		modelsBaseEntity.Properties = pModelsPropertiesList
 		var pMapStringOpenapiMetadataValue *map[string]openapi.MetadataValue
 		if (*source).Model != nil {
-			pMapStringOpenapiMetadataValue = (*source).Model.CustomProperties
+			pMapStringOpenapiMetadataValue = &(*source).Model.CustomProperties
 		}
 		pModelsPropertiesList2, err := converter.MapOpenAPICustomPropertiesEmbedMD(pMapStringOpenapiMetadataValue)
 		if err != nil {
@@ -216,7 +216,7 @@ func (c *OpenAPIToEmbedMDConverterImpl) ConvertInferenceService(source *converte
 		modelsBaseEntity.Properties = pModelsPropertiesList
 		var pMapStringOpenapiMetadataValue *map[string]openapi.MetadataValue
 		if (*source).Model != nil {
-			pMapStringOpenapiMetadataValue = (*source).Model.CustomProperties
+			pMapStringOpenapiMetadataValue = &(*source).Model.CustomProperties
 		}
 		pModelsPropertiesList2, err := converter.MapOpenAPICustomPropertiesEmbedMD(pMapStringOpenapiMetadataValue)
 		if err != nil {
@@ -259,7 +259,7 @@ func (c *OpenAPIToEmbedMDConverterImpl) ConvertMetric(source *converter.OpenAPIM
 		modelsBaseEntity.Properties = pModelsPropertiesList
 		var pMapStringOpenapiMetadataValue *map[string]openapi.MetadataValue
 		if (*source).Model != nil {
-			pMapStringOpenapiMetadataValue = (*source).Model.CustomProperties
+			pMapStringOpenapiMetadataValue = &(*source).Model.CustomProperties
 		}
 		pModelsPropertiesList2, err := converter.MapOpenAPICustomPropertiesEmbedMD(pMapStringOpenapiMetadataValue)
 		if err != nil {
@@ -302,7 +302,7 @@ func (c *OpenAPIToEmbedMDConverterImpl) ConvertModelArtifact(source *converter.O
 		modelsBaseEntity.Properties = pModelsPropertiesList
 		var pMapStringOpenapiMetadataValue *map[string]openapi.MetadataValue
 		if (*source).Model != nil {
-			pMapStringOpenapiMetadataValue = (*source).Model.CustomProperties
+			pMapStringOpenapiMetadataValue = &(*source).Model.CustomProperties
 		}
 		pModelsPropertiesList2, err := converter.MapOpenAPICustomPropertiesEmbedMD(pMapStringOpenapiMetadataValue)
 		if err != nil {
@@ -345,7 +345,7 @@ func (c *OpenAPIToEmbedMDConverterImpl) ConvertModelVersion(source *converter.Op
 		modelsBaseEntity.Properties = pModelsPropertiesList
 		var pMapStringOpenapiMetadataValue *map[string]openapi.MetadataValue
 		if (*source).Model != nil {
-			pMapStringOpenapiMetadataValue = (*source).Model.CustomProperties
+			pMapStringOpenapiMetadataValue = &(*source).Model.CustomProperties
 		}
 		pModelsPropertiesList2, err := converter.MapOpenAPICustomPropertiesEmbedMD(pMapStringOpenapiMetadataValue)
 		if err != nil {
@@ -388,7 +388,7 @@ func (c *OpenAPIToEmbedMDConverterImpl) ConvertParameter(source *converter.OpenA
 		modelsBaseEntity.Properties = pModelsPropertiesList
 		var pMapStringOpenapiMetadataValue *map[string]openapi.MetadataValue
 		if (*source).Model != nil {
-			pMapStringOpenapiMetadataValue = (*source).Model.CustomProperties
+			pMapStringOpenapiMetadataValue = &(*source).Model.CustomProperties
 		}
 		pModelsPropertiesList2, err := converter.MapOpenAPICustomPropertiesEmbedMD(pMapStringOpenapiMetadataValue)
 		if err != nil {
@@ -431,7 +431,7 @@ func (c *OpenAPIToEmbedMDConverterImpl) ConvertRegisteredModel(source *converter
 		modelsBaseEntity.Properties = pModelsPropertiesList
 		var pMapStringOpenapiMetadataValue *map[string]openapi.MetadataValue
 		if (*source).Model != nil {
-			pMapStringOpenapiMetadataValue = (*source).Model.CustomProperties
+			pMapStringOpenapiMetadataValue = &(*source).Model.CustomProperties
 		}
 		pModelsPropertiesList2, err := converter.MapOpenAPICustomPropertiesEmbedMD(pMapStringOpenapiMetadataValue)
 		if err != nil {
@@ -474,7 +474,7 @@ func (c *OpenAPIToEmbedMDConverterImpl) ConvertServeModel(source *converter.Open
 		modelsBaseEntity.Properties = pModelsPropertiesList
 		var pMapStringOpenapiMetadataValue *map[string]openapi.MetadataValue
 		if (*source).Model != nil {
-			pMapStringOpenapiMetadataValue = (*source).Model.CustomProperties
+			pMapStringOpenapiMetadataValue = &(*source).Model.CustomProperties
 		}
 		pModelsPropertiesList2, err := converter.MapOpenAPICustomPropertiesEmbedMD(pMapStringOpenapiMetadataValue)
 		if err != nil {
@@ -517,7 +517,7 @@ func (c *OpenAPIToEmbedMDConverterImpl) ConvertServingEnvironment(source *conver
 		modelsBaseEntity.Properties = pModelsPropertiesList
 		var pMapStringOpenapiMetadataValue *map[string]openapi.MetadataValue
 		if (*source).Model != nil {
-			pMapStringOpenapiMetadataValue = (*source).Model.CustomProperties
+			pMapStringOpenapiMetadataValue = &(*source).Model.CustomProperties
 		}
 		pModelsPropertiesList2, err := converter.MapOpenAPICustomPropertiesEmbedMD(pMapStringOpenapiMetadataValue)
 		if err != nil {

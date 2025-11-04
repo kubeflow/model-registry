@@ -161,31 +161,6 @@ class ArtifactUpdate(BaseModel):
             instance.actual_instance = ParameterUpdate.from_json(json_str)
             return instance
 
-        # check if data type is `DataSetUpdate`
-        if _data_type == "DataSetUpdate":
-            instance.actual_instance = DataSetUpdate.from_json(json_str)
-            return instance
-
-        # check if data type is `DocArtifactUpdate`
-        if _data_type == "DocArtifactUpdate":
-            instance.actual_instance = DocArtifactUpdate.from_json(json_str)
-            return instance
-
-        # check if data type is `MetricUpdate`
-        if _data_type == "MetricUpdate":
-            instance.actual_instance = MetricUpdate.from_json(json_str)
-            return instance
-
-        # check if data type is `ModelArtifactUpdate`
-        if _data_type == "ModelArtifactUpdate":
-            instance.actual_instance = ModelArtifactUpdate.from_json(json_str)
-            return instance
-
-        # check if data type is `ParameterUpdate`
-        if _data_type == "ParameterUpdate":
-            instance.actual_instance = ParameterUpdate.from_json(json_str)
-            return instance
-
         # deserialize data into ModelArtifactUpdate
         try:
             instance.actual_instance = ModelArtifactUpdate.from_json(json_str)

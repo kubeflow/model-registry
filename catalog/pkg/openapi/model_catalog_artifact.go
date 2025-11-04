@@ -45,30 +45,6 @@ func (dst *CatalogArtifact) UnmarshalJSON(data []byte) error {
 		return fmt.Errorf("failed to unmarshal JSON into map for the discriminator lookup")
 	}
 
-	// check if the discriminator value is 'CatalogMetricsArtifact'
-	if jsonDict["artifactType"] == "CatalogMetricsArtifact" {
-		// try to unmarshal JSON data into CatalogMetricsArtifact
-		err = json.Unmarshal(data, &dst.CatalogMetricsArtifact)
-		if err == nil {
-			return nil // data stored in dst.CatalogMetricsArtifact, return on the first match
-		} else {
-			dst.CatalogMetricsArtifact = nil
-			return fmt.Errorf("failed to unmarshal CatalogArtifact as CatalogMetricsArtifact: %s", err.Error())
-		}
-	}
-
-	// check if the discriminator value is 'CatalogModelArtifact'
-	if jsonDict["artifactType"] == "CatalogModelArtifact" {
-		// try to unmarshal JSON data into CatalogModelArtifact
-		err = json.Unmarshal(data, &dst.CatalogModelArtifact)
-		if err == nil {
-			return nil // data stored in dst.CatalogModelArtifact, return on the first match
-		} else {
-			dst.CatalogModelArtifact = nil
-			return fmt.Errorf("failed to unmarshal CatalogArtifact as CatalogModelArtifact: %s", err.Error())
-		}
-	}
-
 	// check if the discriminator value is 'metrics-artifact'
 	if jsonDict["artifactType"] == "metrics-artifact" {
 		// try to unmarshal JSON data into CatalogMetricsArtifact
@@ -120,6 +96,20 @@ func (obj *CatalogArtifact) GetActualInstance() interface{} {
 
 	if obj.CatalogModelArtifact != nil {
 		return obj.CatalogModelArtifact
+	}
+
+	// all schemas are nil
+	return nil
+}
+
+// Get the actual instance value
+func (obj CatalogArtifact) GetActualInstanceValue() interface{} {
+	if obj.CatalogMetricsArtifact != nil {
+		return *obj.CatalogMetricsArtifact
+	}
+
+	if obj.CatalogModelArtifact != nil {
+		return *obj.CatalogModelArtifact
 	}
 
 	// all schemas are nil

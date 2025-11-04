@@ -161,31 +161,6 @@ class ArtifactCreate(BaseModel):
             instance.actual_instance = ParameterCreate.from_json(json_str)
             return instance
 
-        # check if data type is `DataSetCreate`
-        if _data_type == "DataSetCreate":
-            instance.actual_instance = DataSetCreate.from_json(json_str)
-            return instance
-
-        # check if data type is `DocArtifactCreate`
-        if _data_type == "DocArtifactCreate":
-            instance.actual_instance = DocArtifactCreate.from_json(json_str)
-            return instance
-
-        # check if data type is `MetricCreate`
-        if _data_type == "MetricCreate":
-            instance.actual_instance = MetricCreate.from_json(json_str)
-            return instance
-
-        # check if data type is `ModelArtifactCreate`
-        if _data_type == "ModelArtifactCreate":
-            instance.actual_instance = ModelArtifactCreate.from_json(json_str)
-            return instance
-
-        # check if data type is `ParameterCreate`
-        if _data_type == "ParameterCreate":
-            instance.actual_instance = ParameterCreate.from_json(json_str)
-            return instance
-
         # deserialize data into ModelArtifactCreate
         try:
             instance.actual_instance = ModelArtifactCreate.from_json(json_str)

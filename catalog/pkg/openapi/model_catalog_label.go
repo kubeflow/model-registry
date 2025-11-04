@@ -87,27 +87,6 @@ func (o CatalogLabel) ToMap() (map[string]interface{}, error) {
 	return toSerialize, nil
 }
 
-func (o *CatalogLabel) UnmarshalJSON(bytes []byte) (err error) {
-	varCatalogLabel := _CatalogLabel{}
-
-	err = json.Unmarshal(bytes, &varCatalogLabel)
-
-	if err != nil {
-		return err
-	}
-
-	*o = CatalogLabel(varCatalogLabel)
-
-	additionalProperties := make(map[string]interface{})
-
-	if err = json.Unmarshal(bytes, &additionalProperties); err == nil {
-		delete(additionalProperties, "name")
-		o.AdditionalProperties = additionalProperties
-	}
-
-	return err
-}
-
 type NullableCatalogLabel struct {
 	value *CatalogLabel
 	isSet bool

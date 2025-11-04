@@ -54,7 +54,7 @@ class DataSetUpdate(BaseModel):
         default=None,
         description="The uniform resource identifier of the physical dataset. May be empty if there is no physical dataset.",
     )
-    state: ArtifactState | None = None
+    state: ArtifactState | None = ArtifactState.UNKNOWN
     __properties: ClassVar[list[str]] = [
         "customProperties",
         "description",
@@ -109,9 +109,9 @@ class DataSetUpdate(BaseModel):
         # override the default output from pydantic by calling `to_dict()` of each value in custom_properties (dict)
         _field_dict = {}
         if self.custom_properties:
-            for _key in self.custom_properties:
-                if self.custom_properties[_key]:
-                    _field_dict[_key] = self.custom_properties[_key].to_dict()
+            for _key_custom_properties in self.custom_properties:
+                if self.custom_properties[_key_custom_properties]:
+                    _field_dict[_key_custom_properties] = self.custom_properties[_key_custom_properties].to_dict()
             _dict["customProperties"] = _field_dict
         return _dict
 
@@ -138,6 +138,6 @@ class DataSetUpdate(BaseModel):
                 "schema": obj.get("schema"),
                 "profile": obj.get("profile"),
                 "uri": obj.get("uri"),
-                "state": obj.get("state"),
+                "state": obj.get("state") if obj.get("state") is not None else ArtifactState.UNKNOWN,
             }
         )

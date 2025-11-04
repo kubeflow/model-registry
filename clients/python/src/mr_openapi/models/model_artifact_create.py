@@ -23,9 +23,8 @@ from mr_openapi.models.metadata_value import MetadataValue
 
 
 class ModelArtifactCreate(BaseModel):
-    """An ML model artifact."""  # noqa: E501
+    """ModelArtifactCreate."""  # noqa: E501
 
-    artifact_type: StrictStr | None = Field(default="model-artifact", alias="artifactType")
     custom_properties: dict[str, MetadataValue] | None = Field(
         default=None,
         description="User provided custom properties which are not defined by its type.",
@@ -41,6 +40,7 @@ class ModelArtifactCreate(BaseModel):
         default=None,
         description="The client provided name of the artifact. This field is optional. If set, it must be unique among all the artifacts of the same artifact type within a database instance and cannot be changed once set.",
     )
+    artifact_type: StrictStr | None = Field(default="model-artifact", alias="artifactType")
     model_format_name: StrictStr | None = Field(
         default=None, description="Name of the model format.", alias="modelFormatName"
     )
@@ -83,7 +83,7 @@ class ModelArtifactCreate(BaseModel):
         default=None,
         description="The uniform resource identifier of the physical artifact. May be empty if there is no physical artifact.",
     )
-    state: ArtifactState | None = None
+    state: ArtifactState | None = ArtifactState.UNKNOWN
     __properties: ClassVar[list[str]] = [
         "customProperties",
         "description",
@@ -144,9 +144,9 @@ class ModelArtifactCreate(BaseModel):
         # override the default output from pydantic by calling `to_dict()` of each value in custom_properties (dict)
         _field_dict = {}
         if self.custom_properties:
-            for _key in self.custom_properties:
-                if self.custom_properties[_key]:
-                    _field_dict[_key] = self.custom_properties[_key].to_dict()
+            for _key_custom_properties in self.custom_properties:
+                if self.custom_properties[_key_custom_properties]:
+                    _field_dict[_key_custom_properties] = self.custom_properties[_key_custom_properties].to_dict()
             _dict["customProperties"] = _field_dict
         return _dict
 
@@ -179,6 +179,6 @@ class ModelArtifactCreate(BaseModel):
                 "modelSourceId": obj.get("modelSourceId"),
                 "modelSourceName": obj.get("modelSourceName"),
                 "uri": obj.get("uri"),
-                "state": obj.get("state"),
+                "state": obj.get("state") if obj.get("state") is not None else ArtifactState.UNKNOWN,
             }
         )

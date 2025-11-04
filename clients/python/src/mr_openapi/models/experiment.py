@@ -51,7 +51,7 @@ class Experiment(BaseModel):
         alias="lastUpdateTimeSinceEpoch",
     )
     owner: StrictStr | None = None
-    state: ExperimentState | None = None
+    state: ExperimentState | None = ExperimentState.LIVE
     __properties: ClassVar[list[str]] = [
         "customProperties",
         "description",
@@ -109,9 +109,9 @@ class Experiment(BaseModel):
         # override the default output from pydantic by calling `to_dict()` of each value in custom_properties (dict)
         _field_dict = {}
         if self.custom_properties:
-            for _key in self.custom_properties:
-                if self.custom_properties[_key]:
-                    _field_dict[_key] = self.custom_properties[_key].to_dict()
+            for _key_custom_properties in self.custom_properties:
+                if self.custom_properties[_key_custom_properties]:
+                    _field_dict[_key_custom_properties] = self.custom_properties[_key_custom_properties].to_dict()
             _dict["customProperties"] = _field_dict
         return _dict
 
@@ -136,6 +136,6 @@ class Experiment(BaseModel):
                 "createTimeSinceEpoch": obj.get("createTimeSinceEpoch"),
                 "lastUpdateTimeSinceEpoch": obj.get("lastUpdateTimeSinceEpoch"),
                 "owner": obj.get("owner"),
-                "state": obj.get("state"),
+                "state": obj.get("state") if obj.get("state") is not None else ExperimentState.LIVE,
             }
         )
