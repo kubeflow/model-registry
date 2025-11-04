@@ -34,7 +34,7 @@
   "devDependencies": {
     "@module-federation/enhanced": "^0.18.0",
     "@mui/icons-material": "^7.3.4",
-    "@mui/material": "^7.3.4",
+    "@mui/material": "^7.3.5",
     "@mui/types": "^7.4.7",
     "@pmmmwh/react-refresh-webpack-plugin": "^0.5.15",
     "@swc/core": "^1.9.1",
