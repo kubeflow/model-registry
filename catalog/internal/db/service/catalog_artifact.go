@@ -127,15 +127,22 @@ func (r *CatalogArtifactRepositoryImpl) List(listOptions models.CatalogArtifactL
 	nextPageToken := listOptions.GetNextPageToken()
 	pageSize := listOptions.GetPageSize()
 
-	pagination := &dbmodels.Pagination{
-		PageSize:      &pageSize,
-		OrderBy:       &orderBy,
-		SortOrder:     &sortOrder,
-		NextPageToken: &nextPageToken,
-	}
+	// Handle NAME ordering specially (catalog-specific) to avoid string-to-integer cast issues
+	if orderBy == "NAME" {
+		artifactTable := utils.GetTableName(query, &schema.Artifact{})
+		query = ApplyNameOrdering(query, artifactTable, sortOrder, nextPageToken, pageSize)
+	} else {
+		// For non-NAME ordering, use standard pagination
+		pagination := &dbmodels.Pagination{
+			PageSize:      &pageSize,
+			OrderBy:       &orderBy,
+			SortOrder:     &sortOrder,
+			NextPageToken: &nextPageToken,
+		}
 
-	// Use catalog-specific allowed columns (includes NAME)
-	query = query.Scopes(scopes.PaginateWithOptions(artifactsArt, pagination, r.db, "Artifact", CatalogOrderByColumns))
+		// Use catalog-specific allowed columns (includes NAME)
+		query = query.Scopes(scopes.PaginateWithOptions(artifactsArt, pagination, r.db, "Artifact", CatalogOrderByColumns))
+	}
 
 	if err := query.Find(&artifactsArt).Error; err != nil {
 		return nil, fmt.Errorf("error listing catalog artifacts: %w", err)

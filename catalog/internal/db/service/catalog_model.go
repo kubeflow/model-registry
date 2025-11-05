@@ -326,6 +326,12 @@ func (r *CatalogModelRepositoryImpl) applyCustomOrdering(query *gorm.DB, listOpt
 
 	db := r.GetConfig().DB
 	contextTable := utils.GetTableName(db, &schema.Context{})
+	orderBy := listOptions.GetOrderBy()
+
+	// Handle NAME ordering specially (catalog-specific)
+	if orderBy == "NAME" {
+		return ApplyNameOrdering(query, contextTable, listOptions.GetSortOrder(), listOptions.GetNextPageToken(), listOptions.GetPageSize())
+	}
 
 	subquery, sortColumn := r.sortValueQuery(listOptions, contextTable+".id")
 	if subquery == nil {
