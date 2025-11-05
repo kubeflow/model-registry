@@ -41,10 +41,21 @@ func Paginate(value any, pagination *models.Pagination, db *gorm.DB) func(db *go
 }
 
 func PaginateWithTablePrefix(value any, pagination *models.Pagination, db *gorm.DB, tablePrefix string) func(db *gorm.DB) *gorm.DB {
+	return PaginateWithOptions(value, pagination, db, tablePrefix, nil)
+}
+
+// PaginateWithOptions provides full control over pagination with custom allowed columns
+func PaginateWithOptions(value any, pagination *models.Pagination, db *gorm.DB, tablePrefix string, customAllowedColumns map[string]string) func(db *gorm.DB) *gorm.DB {
 	pageSize := pagination.GetPageSize()
 	orderBy := pagination.GetOrderBy()
 	sortOrder := pagination.GetSortOrder()
 	nextPageToken := pagination.GetNextPageToken()
+
+	// Use custom allowed columns if provided, otherwise use default
+	columnsMap := allowedOrderByColumns
+	if customAllowedColumns != nil {
+		columnsMap = customAllowedColumns
+	}
 
 	return func(db *gorm.DB) *gorm.DB {
 		if pageSize > 0 {
@@ -53,7 +64,7 @@ func PaginateWithTablePrefix(value any, pagination *models.Pagination, db *gorm.
 
 		if orderBy != "" && sortOrder != "" {
 			// Validate and sanitize orderBy
-			sanitizedOrderBy, ok := allowedOrderByColumns[orderBy]
+			sanitizedOrderBy, ok := columnsMap[orderBy]
 			if !ok {
 				sanitizedOrderBy = models.DefaultOrderBy
 			}

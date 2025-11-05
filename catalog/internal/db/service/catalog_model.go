@@ -69,6 +69,24 @@ func (r *CatalogModelRepositoryImpl) Save(model models.CatalogModel) (models.Cat
 	return r.GenericRepository.Save(model, nil)
 }
 
+// ApplyStandardPagination overrides the base implementation to use catalog-specific allowed columns
+func (r *CatalogModelRepositoryImpl) ApplyStandardPagination(query *gorm.DB, listOptions *models.CatalogModelListOptions, entities any) *gorm.DB {
+	pageSize := listOptions.GetPageSize()
+	orderBy := listOptions.GetOrderBy()
+	sortOrder := listOptions.GetSortOrder()
+	nextPageToken := listOptions.GetNextPageToken()
+
+	pagination := &dbmodels.Pagination{
+		PageSize:      &pageSize,
+		OrderBy:       &orderBy,
+		SortOrder:     &sortOrder,
+		NextPageToken: &nextPageToken,
+	}
+
+	// Use catalog-specific allowed columns (includes NAME)
+	return query.Scopes(scopes.PaginateWithOptions(entities, pagination, r.GetConfig().DB, "Context", CatalogOrderByColumns))
+}
+
 func (r *CatalogModelRepositoryImpl) List(listOptions models.CatalogModelListOptions) (*dbmodels.ListWrapper[models.CatalogModel], error) {
 	return r.GenericRepository.List(&listOptions)
 }
@@ -311,7 +329,7 @@ func (r *CatalogModelRepositoryImpl) applyCustomOrdering(query *gorm.DB, listOpt
 
 	subquery, sortColumn := r.sortValueQuery(listOptions, contextTable+".id")
 	if subquery == nil {
-		// Fall back to standard pagination
+		// Fall back to standard pagination with catalog-specific allowed columns
 		return r.ApplyStandardPagination(query, listOptions, []models.CatalogModel{})
 	}
 	subquery = subquery.Group(contextTable + ".id")
@@ -368,6 +386,11 @@ func (r *CatalogModelRepositoryImpl) applyCursorPagination(query *gorm.DB, curso
 }
 
 func (r *CatalogModelRepositoryImpl) createPaginationToken(lastItem schema.Context, listOptions *models.CatalogModelListOptions) string {
+	// Handle NAME ordering (catalog-specific)
+	if listOptions.GetOrderBy() == "NAME" {
+		return CreateNamePaginationToken(lastItem.ID, &lastItem.Name)
+	}
+
 	sortValueQuery, column := r.sortValueQuery(listOptions)
 	if sortValueQuery != nil {
 		contextTable := utils.GetTableName(r.GetConfig().DB, &schema.Context{})
