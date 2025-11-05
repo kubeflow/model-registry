@@ -107,6 +107,32 @@ paths:
         "500":
           $ref: "#/components/responses/InternalServerError"
       operationId: findModelsFilterOptions
+  /api/model_catalog/v1alpha1/labels:
+    summary: Path used to get the list of catalog labels.
+    description: >-
+      The REST endpoint/path used to list zero or more `CatalogLabel` entities.
+    get:
+      summary: List All CatalogLabels
+      tags:
+        - ModelCatalogService
+      parameters:
+        - $ref: "#/components/parameters/pageSize"
+        - $ref: "#/components/parameters/labelOrderBy"
+        - $ref: "#/components/parameters/sortOrder"
+        - $ref: "#/components/parameters/nextPageToken"
+      responses:
+        "200":
+          $ref: "#/components/responses/CatalogLabelListResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+      operationId: findLabels
+      description: Gets a list of all `CatalogLabel` entities.
   /api/model_catalog/v1alpha1/sources:
     summary: Path used to get the list of catalog sources.
     description: >-
@@ -303,6 +329,34 @@ components:
           required:
             - items
         - $ref: "#/components/schemas/BaseResourceList"
+    CatalogLabel:
+      description: A catalog label. Labels are used to categorize catalog sources. Represented as a flexible map of string key-value pairs with a required 'name' field.
+      type: object
+      required:
+        - name
+      properties:
+        name:
+          type: string
+          description: The unique name identifier for the label.
+      additionalProperties:
+        type: string
+      example:
+        name: huggingface
+        displayName: HuggingFace Hub
+        description: HuggingFace models with full support and legal indemnification.
+    CatalogLabelList:
+      description: List of CatalogLabel entities.
+      allOf:
+        - type: object
+          properties:
+            items:
+              description: Array of `CatalogLabel` entities.
+              type: array
+              items:
+                $ref: "#/components/schemas/CatalogLabel"
+          required:
+            - items
+        - $ref: "#/components/schemas/BaseResourceList"
     CatalogSource:
       description: A catalog source. A catalog source has CatalogModel children.
       required:
@@ -388,6 +442,12 @@ components:
           schema:
             $ref: "#/components/schemas/CatalogArtifactList"
       description: A response containing a list of CatalogArtifact entities.
+    CatalogLabelListResponse:
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/CatalogLabelList"
+      description: A response containing a list of CatalogLabel entities.
     CatalogModelListResponse:
       content:
         application/json:
@@ -471,6 +531,22 @@ components:
       description: Specifies the order by criteria for listing entities.
       schema:
         $ref: "#/components/schemas/OrderByField"
+      in: query
+      required: false
+    labelOrderBy:
+      style: form
+      explode: true
+      examples:
+        labelOrderBy:
+          value: name
+      name: orderBy
+      description: |
+        Specifies the key to order catalog labels by. You can provide any string key
+        that may exist in the label maps. Labels that contain the specified key will
+        be sorted by that key's value. Labels that don't contain the key will maintain
+        their original order and appear after labels that do contain the key.
+      schema:
+        type: string
       in: query
       required: false
     artifactType:

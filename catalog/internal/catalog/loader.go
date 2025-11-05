@@ -44,7 +44,8 @@ type LoaderEventHandler func(ctx context.Context, record ModelProviderRecord) er
 
 // sourceConfig is the structure for the catalog sources YAML file.
 type sourceConfig struct {
-	Catalogs []Source `json:"catalogs"`
+	Catalogs []Source            `json:"catalogs"`
+	Labels   []map[string]string `json:"labels,omitempty"`
 }
 
 // Source is a single entry from the catalog sources YAML file.
@@ -62,6 +63,9 @@ type Loader struct {
 	// Sources contains current source information loaded from the configuration files.
 	Sources *SourceCollection
 
+	// Labels contains current labels loaded from the configuration files.
+	Labels *LabelCollection
+
 	paths     []string
 	services  service.Services
 	closersMu sync.Mutex
@@ -72,6 +76,7 @@ type Loader struct {
 func NewLoader(services service.Services, paths []string) *Loader {
 	return &Loader{
 		Sources:  NewSourceCollection(),
+		Labels:   NewLabelCollection(),
 		paths:    paths,
 		services: services,
 		closers:  map[string]func(){},
@@ -132,6 +137,11 @@ func (l *Loader) loadOne(ctx context.Context, path string) error {
 		return err
 	}
 
+	err = l.updateLabels(path, config)
+	if err != nil {
+		return err
+	}
+
 	return l.updateDatabase(ctx, path, config)
 }
 
@@ -188,6 +198,23 @@ func (l *Loader) updateSources(path string, config *sourceConfig) error {
 	}
 
 	return l.Sources.Merge(path, sources)
+}
+
+func (l *Loader) updateLabels(path string, config *sourceConfig) error {
+	// Merge labels from config into the label collection
+	if config.Labels == nil {
+		// No labels in config, but we still need to clear any previous labels from this origin
+		return l.Labels.Merge(path, []map[string]string{})
+	}
+
+	// Validate that each label has a required "name" field
+	for i, label := range config.Labels {
+		if name, ok := label["name"]; !ok || name == "" {
+			return fmt.Errorf("invalid label at index %d: missing required 'name' field", i)
+		}
+	}
+
+	return l.Labels.Merge(path, config.Labels)
 }
 
 func (l *Loader) updateDatabase(ctx context.Context, path string, config *sourceConfig) error {
@@ -319,10 +346,10 @@ func (l *Loader) setModelSourceID(model dbmodels.CatalogModel, sourceID string) 
 		}
 	}
 
-	for _, property := range *props {
-		if property.Name == "source_id" {
+	for i := range *props {
+		if (*props)[i].Name == "source_id" {
 			// Already has a source_id, just update it
-			property.StringValue = &sourceID
+			(*props)[i].StringValue = &sourceID
 			return
 		}
 	}

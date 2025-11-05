@@ -110,6 +110,108 @@ func TestLoadCatalogSourcesEnabledDisabled(t *testing.T) {
 	}
 }
 
+func TestLabelsValidation(t *testing.T) {
+	// Create mock services
+	services := service.NewServices(
+		&MockCatalogModelRepository{},
+		&MockCatalogArtifactRepository{},
+		&MockCatalogModelArtifactRepository{},
+		&MockCatalogMetricsArtifactRepository{},
+	)
+
+	tests := []struct {
+		name    string
+		config  *sourceConfig
+		wantErr bool
+		errMsg  string
+	}{
+		{
+			name: "valid labels with name field",
+			config: &sourceConfig{
+				Catalogs: []Source{},
+				Labels: []map[string]string{
+					{"name": "labelNameOne", "displayName": "Label Name One"},
+					{"name": "labelNameTwo", "displayName": "Label Name Two"},
+				},
+			},
+			wantErr: false,
+		},
+		{
+			name: "invalid label missing name field",
+			config: &sourceConfig{
+				Catalogs: []Source{},
+				Labels: []map[string]string{
+					{"name": "labelNameOne", "displayName": "Label Name One"},
+					{"displayName": "Label Name Two"}, // Missing "name"
+				},
+			},
+			wantErr: true,
+			errMsg:  "invalid label at index 1: missing required 'name' field",
+		},
+		{
+			name: "invalid label with empty name",
+			config: &sourceConfig{
+				Catalogs: []Source{},
+				Labels: []map[string]string{
+					{"name": "", "displayName": "Empty Name"},
+				},
+			},
+			wantErr: true,
+			errMsg:  "invalid label at index 0: missing required 'name' field",
+		},
+		{
+			name: "duplicate label names within same origin",
+			config: &sourceConfig{
+				Catalogs: []Source{},
+				Labels: []map[string]string{
+					{"name": "labelNameOne", "displayName": "Label Name One 1"},
+					{"name": "labelNameTwo", "displayName": "Label Name Two"},
+					{"name": "labelNameOne", "displayName": "Label Name One 2"},
+				},
+			},
+			wantErr: true,
+			errMsg:  "duplicate label name 'labelNameOne' within the same origin",
+		},
+		{
+			name: "nil labels should not error",
+			config: &sourceConfig{
+				Catalogs: []Source{},
+				Labels:   nil,
+			},
+			wantErr: false,
+		},
+		{
+			name: "empty labels array should not error",
+			config: &sourceConfig{
+				Catalogs: []Source{},
+				Labels:   []map[string]string{},
+			},
+			wantErr: false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			loader := NewLoader(services, []string{})
+			err := loader.updateLabels("test-path", tt.config)
+
+			if tt.wantErr {
+				if err == nil {
+					t.Errorf("updateLabels() expected error but got none")
+					return
+				}
+				if tt.errMsg != "" && err.Error() != tt.errMsg {
+					t.Errorf("updateLabels() error = %v, want %v", err.Error(), tt.errMsg)
+				}
+			} else {
+				if err != nil {
+					t.Errorf("updateLabels() unexpected error = %v", err)
+				}
+			}
+		})
+	}
+}
+
 func TestCatalogSourceLabelsDefaultToEmptySlice(t *testing.T) {
 	type args struct {
 		catalogsPath string
