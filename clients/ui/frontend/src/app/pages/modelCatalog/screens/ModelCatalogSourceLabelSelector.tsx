@@ -16,6 +16,8 @@ import { ModelCatalogStringFilterKey } from '~/concepts/modelCatalog/const';
 import { ModelCatalogFilterKey } from '~/app/modelCatalogTypes';
 import ModelCatalogActiveFilters from '~/app/pages/modelCatalog/components/ModelCatalogActiveFilters';
 import ThemeAwareSearchInput from '~/app/pages/modelRegistry/screens/components/ThemeAwareSearchInput';
+import { ModelCatalogContext } from '~/app/context/modelCatalog/ModelCatalogContext';
+import { hasFiltersApplied } from '~/app/pages/modelCatalog/utils/modelCatalogUtils';
 import ModelCatalogSourceLabelBlocks from './ModelCatalogSourceLabelBlocks';
 
 type ModelCatalogSourceLabelSelectorProps = {
@@ -33,6 +35,18 @@ const ModelCatalogSourceLabelSelector: React.FC<ModelCatalogSourceLabelSelectorP
 }) => {
   const [inputValue, setInputValue] = React.useState(searchTerm || '');
   const { isMUITheme } = useThemeContext();
+  const { filterData } = React.useContext(ModelCatalogContext);
+  const filtersApplied = React.useMemo(() => hasFiltersApplied(filterData), [filterData]);
+  const hasActiveFilters = React.useMemo(
+    () => filtersApplied || (searchTerm && searchTerm.trim().length > 0),
+    [filtersApplied, searchTerm],
+  );
+
+  const handleClearAllFilters = React.useCallback(() => {
+    if (hasActiveFilters && onResetAllFilters) {
+      onResetAllFilters();
+    }
+  }, [hasActiveFilters, onResetAllFilters]);
 
   React.useEffect(() => {
     setInputValue(searchTerm || '');
@@ -72,9 +86,14 @@ const ModelCatalogSourceLabelSelector: React.FC<ModelCatalogSourceLabelSelectorP
     <Stack>
       <StackItem>
         <Toolbar
+          key={`toolbar-${hasActiveFilters}`}
           className="pf-v6-u-pb-0"
-          clearAllFilters={onResetAllFilters}
-          clearFiltersButtonText="Reset all filters"
+          {...(onResetAllFilters
+            ? {
+                clearAllFilters: handleClearAllFilters,
+                clearFiltersButtonText: hasActiveFilters ? 'Reset all filters' : '',
+              }
+            : {})}
         >
           <ToolbarContent>
             <Flex>
@@ -111,7 +130,9 @@ const ModelCatalogSourceLabelSelector: React.FC<ModelCatalogSourceLabelSelectorP
                   </ToolbarItem>
                 </ToolbarGroup>
               </ToolbarToggleGroup>
-              {onResetAllFilters && <ModelCatalogActiveFilters filtersToShow={filtersToShow} />}
+              {onResetAllFilters && hasActiveFilters && (
+                <ModelCatalogActiveFilters filtersToShow={filtersToShow} />
+              )}
             </Flex>
           </ToolbarContent>
         </Toolbar>
