@@ -230,7 +230,9 @@ func AssertCatalogModelListRequired(obj model.CatalogModelList) error {
 // AssertCatalogModelRequired checks if the required fields are not zero-ed
 func AssertCatalogModelRequired(obj model.CatalogModel) error {
 	elements := map[string]interface{}{
-		"name": obj.Name,
+		"language": obj.Language,
+		"tasks":    obj.Tasks,
+		"name":     obj.Name,
 	}
 	for name, el := range elements {
 		if isZero := IsZeroValue(el); isZero {

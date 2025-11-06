@@ -319,7 +319,7 @@ func (c *EmbedMDToOpenAPIConverterImpl) ConvertRegisteredModel(source *models.Ba
 			}
 			openapiRegisteredModel.CustomProperties = mapStringOpenapiMetadataValue
 		}
-		openapiRegisteredModel.Description = converter.MapEmbedMDDescription((*source).Properties)
+		openapiRegisteredModel.Description = converter.MapEmbedMDDescriptionNullable((*source).Properties)
 		openapiRegisteredModel.ExternalId = converter.MapEmbedMDExternalIDRegisteredModel((*source).Attributes)
 		openapiRegisteredModel.Name = converter.MapEmbedMDNameRegisteredModel((*source).Attributes)
 		openapiRegisteredModel.Id = converter.Int32ToString((*source).ID)

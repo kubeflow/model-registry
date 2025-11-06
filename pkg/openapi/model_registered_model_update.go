@@ -22,26 +22,26 @@ type RegisteredModelUpdate struct {
 	// User provided custom properties which are not defined by its type.
 	CustomProperties map[string]MetadataValue `json:"customProperties,omitempty"`
 	// Human-readable description of the model.
-	Description *string `json:"description,omitempty"`
+	Description NullableString `json:"description,omitempty"`
 	// The external id that come from the clients’ system. This field is optional. If set, it must be unique among all resources within a database instance.
 	ExternalId *string `json:"externalId,omitempty"`
 	// Model documentation in Markdown.
-	Readme *string `json:"readme,omitempty"`
+	Readme NullableString `json:"readme,omitempty"`
 	// Maturity level of the model.
-	Maturity *string `json:"maturity,omitempty"`
+	Maturity NullableString `json:"maturity,omitempty"`
 	// List of supported languages (https://en.wikipedia.org/wiki/List_of_ISO_639_language_codes).
 	Language []string `json:"language,omitempty"`
 	// List of tasks the model is designed for.
 	Tasks []string `json:"tasks,omitempty"`
 	// Name of the organization or entity that provides the model.
-	Provider *string `json:"provider,omitempty"`
+	Provider NullableString `json:"provider,omitempty"`
 	// URL to the model's logo. A [data URL](https://developer.mozilla.org/en-US/docs/Web/URI/Schemes/data) is recommended.
-	Logo *string `json:"logo,omitempty"`
+	Logo NullableString `json:"logo,omitempty"`
 	// Short name of the model's license.
-	License *string `json:"license,omitempty"`
+	License NullableString `json:"license,omitempty"`
 	// URL to the license text.
-	LicenseLink *string               `json:"licenseLink,omitempty"`
-	LibraryName *string               `json:"libraryName,omitempty"`
+	LicenseLink NullableString        `json:"licenseLink,omitempty"`
+	LibraryName NullableString        `json:"libraryName,omitempty"`
 	Owner       *string               `json:"owner,omitempty"`
 	State       *RegisteredModelState `json:"state,omitempty"`
 }
@@ -99,36 +99,47 @@ func (o *RegisteredModelUpdate) SetCustomProperties(v map[string]MetadataValue) 
 	o.CustomProperties = v
 }
 
-// GetDescription returns the Description field value if set, zero value otherwise.
+// GetDescription returns the Description field value if set, zero value otherwise (both if not set or set to explicit null).
 func (o *RegisteredModelUpdate) GetDescription() string {
-	if o == nil || IsNil(o.Description) {
+	if o == nil || IsNil(o.Description.Get()) {
 		var ret string
 		return ret
 	}
-	return *o.Description
+	return *o.Description.Get()
 }
 
 // GetDescriptionOk returns a tuple with the Description field value if set, nil otherwise
 // and a boolean to check if the value has been set.
+// NOTE: If the value is an explicit nil, `nil, true` will be returned
 func (o *RegisteredModelUpdate) GetDescriptionOk() (*string, bool) {
-	if o == nil || IsNil(o.Description) {
+	if o == nil {
 		return nil, false
 	}
-	return o.Description, true
+	return o.Description.Get(), o.Description.IsSet()
 }
 
 // HasDescription returns a boolean if a field has been set.
 func (o *RegisteredModelUpdate) HasDescription() bool {
-	if o != nil && !IsNil(o.Description) {
+	if o != nil && o.Description.IsSet() {
 		return true
 	}
 
 	return false
 }
 
-// SetDescription gets a reference to the given string and assigns it to the Description field.
+// SetDescription gets a reference to the given NullableString and assigns it to the Description field.
 func (o *RegisteredModelUpdate) SetDescription(v string) {
-	o.Description = &v
+	o.Description.Set(&v)
+}
+
+// SetDescriptionNil sets the value for Description to be an explicit nil
+func (o *RegisteredModelUpdate) SetDescriptionNil() {
+	o.Description.Set(nil)
+}
+
+// UnsetDescription ensures that no value is present for Description, not even an explicit nil
+func (o *RegisteredModelUpdate) UnsetDescription() {
+	o.Description.Unset()
 }
 
 // GetExternalId returns the ExternalId field value if set, zero value otherwise.
@@ -163,73 +174,95 @@ func (o *RegisteredModelUpdate) SetExternalId(v string) {
 	o.ExternalId = &v
 }
 
-// GetReadme returns the Readme field value if set, zero value otherwise.
+// GetReadme returns the Readme field value if set, zero value otherwise (both if not set or set to explicit null).
 func (o *RegisteredModelUpdate) GetReadme() string {
-	if o == nil || IsNil(o.Readme) {
+	if o == nil || IsNil(o.Readme.Get()) {
 		var ret string
 		return ret
 	}
-	return *o.Readme
+	return *o.Readme.Get()
 }
 
 // GetReadmeOk returns a tuple with the Readme field value if set, nil otherwise
 // and a boolean to check if the value has been set.
+// NOTE: If the value is an explicit nil, `nil, true` will be returned
 func (o *RegisteredModelUpdate) GetReadmeOk() (*string, bool) {
-	if o == nil || IsNil(o.Readme) {
+	if o == nil {
 		return nil, false
 	}
-	return o.Readme, true
+	return o.Readme.Get(), o.Readme.IsSet()
 }
 
 // HasReadme returns a boolean if a field has been set.
 func (o *RegisteredModelUpdate) HasReadme() bool {
-	if o != nil && !IsNil(o.Readme) {
+	if o != nil && o.Readme.IsSet() {
 		return true
 	}
 
 	return false
 }
 
-// SetReadme gets a reference to the given string and assigns it to the Readme field.
+// SetReadme gets a reference to the given NullableString and assigns it to the Readme field.
 func (o *RegisteredModelUpdate) SetReadme(v string) {
-	o.Readme = &v
+	o.Readme.Set(&v)
 }
 
-// GetMaturity returns the Maturity field value if set, zero value otherwise.
+// SetReadmeNil sets the value for Readme to be an explicit nil
+func (o *RegisteredModelUpdate) SetReadmeNil() {
+	o.Readme.Set(nil)
+}
+
+// UnsetReadme ensures that no value is present for Readme, not even an explicit nil
+func (o *RegisteredModelUpdate) UnsetReadme() {
+	o.Readme.Unset()
+}
+
+// GetMaturity returns the Maturity field value if set, zero value otherwise (both if not set or set to explicit null).
 func (o *RegisteredModelUpdate) GetMaturity() string {
-	if o == nil || IsNil(o.Maturity) {
+	if o == nil || IsNil(o.Maturity.Get()) {
 		var ret string
 		return ret
 	}
-	return *o.Maturity
+	return *o.Maturity.Get()
 }
 
 // GetMaturityOk returns a tuple with the Maturity field value if set, nil otherwise
 // and a boolean to check if the value has been set.
+// NOTE: If the value is an explicit nil, `nil, true` will be returned
 func (o *RegisteredModelUpdate) GetMaturityOk() (*string, bool) {
-	if o == nil || IsNil(o.Maturity) {
+	if o == nil {
 		return nil, false
 	}
-	return o.Maturity, true
+	return o.Maturity.Get(), o.Maturity.IsSet()
 }
 
 // HasMaturity returns a boolean if a field has been set.
 func (o *RegisteredModelUpdate) HasMaturity() bool {
-	if o != nil && !IsNil(o.Maturity) {
+	if o != nil && o.Maturity.IsSet() {
 		return true
 	}
 
 	return false
 }
 
-// SetMaturity gets a reference to the given string and assigns it to the Maturity field.
+// SetMaturity gets a reference to the given NullableString and assigns it to the Maturity field.
 func (o *RegisteredModelUpdate) SetMaturity(v string) {
-	o.Maturity = &v
+	o.Maturity.Set(&v)
 }
 
-// GetLanguage returns the Language field value if set, zero value otherwise.
+// SetMaturityNil sets the value for Maturity to be an explicit nil
+func (o *RegisteredModelUpdate) SetMaturityNil() {
+	o.Maturity.Set(nil)
+}
+
+// UnsetMaturity ensures that no value is present for Maturity, not even an explicit nil
+func (o *RegisteredModelUpdate) UnsetMaturity() {
+	o.Maturity.Unset()
+}
+
+// GetLanguage returns the Language field value if set, zero value otherwise (both if not set or set to explicit null).
 func (o *RegisteredModelUpdate) GetLanguage() []string {
-	if o == nil || IsNil(o.Language) {
+	if o == nil {
 		var ret []string
 		return ret
 	}
@@ -238,6 +271,7 @@ func (o *RegisteredModelUpdate) GetLanguage() []string {
 
 // GetLanguageOk returns a tuple with the Language field value if set, nil otherwise
 // and a boolean to check if the value has been set.
+// NOTE: If the value is an explicit nil, `nil, true` will be returned
 func (o *RegisteredModelUpdate) GetLanguageOk() ([]string, bool) {
 	if o == nil || IsNil(o.Language) {
 		return nil, false
@@ -259,9 +293,9 @@ func (o *RegisteredModelUpdate) SetLanguage(v []string) {
 	o.Language = v
 }
 
-// GetTasks returns the Tasks field value if set, zero value otherwise.
+// GetTasks returns the Tasks field value if set, zero value otherwise (both if not set or set to explicit null).
 func (o *RegisteredModelUpdate) GetTasks() []string {
-	if o == nil || IsNil(o.Tasks) {
+	if o == nil {
 		var ret []string
 		return ret
 	}
@@ -270,6 +304,7 @@ func (o *RegisteredModelUpdate) GetTasks() []string {
 
 // GetTasksOk returns a tuple with the Tasks field value if set, nil otherwise
 // and a boolean to check if the value has been set.
+// NOTE: If the value is an explicit nil, `nil, true` will be returned
 func (o *RegisteredModelUpdate) GetTasksOk() ([]string, bool) {
 	if o == nil || IsNil(o.Tasks) {
 		return nil, false
@@ -291,164 +326,219 @@ func (o *RegisteredModelUpdate) SetTasks(v []string) {
 	o.Tasks = v
 }
 
-// GetProvider returns the Provider field value if set, zero value otherwise.
+// GetProvider returns the Provider field value if set, zero value otherwise (both if not set or set to explicit null).
 func (o *RegisteredModelUpdate) GetProvider() string {
-	if o == nil || IsNil(o.Provider) {
+	if o == nil || IsNil(o.Provider.Get()) {
 		var ret string
 		return ret
 	}
-	return *o.Provider
+	return *o.Provider.Get()
 }
 
 // GetProviderOk returns a tuple with the Provider field value if set, nil otherwise
 // and a boolean to check if the value has been set.
+// NOTE: If the value is an explicit nil, `nil, true` will be returned
 func (o *RegisteredModelUpdate) GetProviderOk() (*string, bool) {
-	if o == nil || IsNil(o.Provider) {
+	if o == nil {
 		return nil, false
 	}
-	return o.Provider, true
+	return o.Provider.Get(), o.Provider.IsSet()
 }
 
 // HasProvider returns a boolean if a field has been set.
 func (o *RegisteredModelUpdate) HasProvider() bool {
-	if o != nil && !IsNil(o.Provider) {
+	if o != nil && o.Provider.IsSet() {
 		return true
 	}
 
 	return false
 }
 
-// SetProvider gets a reference to the given string and assigns it to the Provider field.
+// SetProvider gets a reference to the given NullableString and assigns it to the Provider field.
 func (o *RegisteredModelUpdate) SetProvider(v string) {
-	o.Provider = &v
+	o.Provider.Set(&v)
 }
 
-// GetLogo returns the Logo field value if set, zero value otherwise.
+// SetProviderNil sets the value for Provider to be an explicit nil
+func (o *RegisteredModelUpdate) SetProviderNil() {
+	o.Provider.Set(nil)
+}
+
+// UnsetProvider ensures that no value is present for Provider, not even an explicit nil
+func (o *RegisteredModelUpdate) UnsetProvider() {
+	o.Provider.Unset()
+}
+
+// GetLogo returns the Logo field value if set, zero value otherwise (both if not set or set to explicit null).
 func (o *RegisteredModelUpdate) GetLogo() string {
-	if o == nil || IsNil(o.Logo) {
+	if o == nil || IsNil(o.Logo.Get()) {
 		var ret string
 		return ret
 	}
-	return *o.Logo
+	return *o.Logo.Get()
 }
 
 // GetLogoOk returns a tuple with the Logo field value if set, nil otherwise
 // and a boolean to check if the value has been set.
+// NOTE: If the value is an explicit nil, `nil, true` will be returned
 func (o *RegisteredModelUpdate) GetLogoOk() (*string, bool) {
-	if o == nil || IsNil(o.Logo) {
+	if o == nil {
 		return nil, false
 	}
-	return o.Logo, true
+	return o.Logo.Get(), o.Logo.IsSet()
 }
 
 // HasLogo returns a boolean if a field has been set.
 func (o *RegisteredModelUpdate) HasLogo() bool {
-	if o != nil && !IsNil(o.Logo) {
+	if o != nil && o.Logo.IsSet() {
 		return true
 	}
 
 	return false
 }
 
-// SetLogo gets a reference to the given string and assigns it to the Logo field.
+// SetLogo gets a reference to the given NullableString and assigns it to the Logo field.
 func (o *RegisteredModelUpdate) SetLogo(v string) {
-	o.Logo = &v
+	o.Logo.Set(&v)
 }
 
-// GetLicense returns the License field value if set, zero value otherwise.
+// SetLogoNil sets the value for Logo to be an explicit nil
+func (o *RegisteredModelUpdate) SetLogoNil() {
+	o.Logo.Set(nil)
+}
+
+// UnsetLogo ensures that no value is present for Logo, not even an explicit nil
+func (o *RegisteredModelUpdate) UnsetLogo() {
+	o.Logo.Unset()
+}
+
+// GetLicense returns the License field value if set, zero value otherwise (both if not set or set to explicit null).
 func (o *RegisteredModelUpdate) GetLicense() string {
-	if o == nil || IsNil(o.License) {
+	if o == nil || IsNil(o.License.Get()) {
 		var ret string
 		return ret
 	}
-	return *o.License
+	return *o.License.Get()
 }
 
 // GetLicenseOk returns a tuple with the License field value if set, nil otherwise
 // and a boolean to check if the value has been set.
+// NOTE: If the value is an explicit nil, `nil, true` will be returned
 func (o *RegisteredModelUpdate) GetLicenseOk() (*string, bool) {
-	if o == nil || IsNil(o.License) {
+	if o == nil {
 		return nil, false
 	}
-	return o.License, true
+	return o.License.Get(), o.License.IsSet()
 }
 
 // HasLicense returns a boolean if a field has been set.
 func (o *RegisteredModelUpdate) HasLicense() bool {
-	if o != nil && !IsNil(o.License) {
+	if o != nil && o.License.IsSet() {
 		return true
 	}
 
 	return false
 }
 
-// SetLicense gets a reference to the given string and assigns it to the License field.
+// SetLicense gets a reference to the given NullableString and assigns it to the License field.
 func (o *RegisteredModelUpdate) SetLicense(v string) {
-	o.License = &v
+	o.License.Set(&v)
 }
 
-// GetLicenseLink returns the LicenseLink field value if set, zero value otherwise.
+// SetLicenseNil sets the value for License to be an explicit nil
+func (o *RegisteredModelUpdate) SetLicenseNil() {
+	o.License.Set(nil)
+}
+
+// UnsetLicense ensures that no value is present for License, not even an explicit nil
+func (o *RegisteredModelUpdate) UnsetLicense() {
+	o.License.Unset()
+}
+
+// GetLicenseLink returns the LicenseLink field value if set, zero value otherwise (both if not set or set to explicit null).
 func (o *RegisteredModelUpdate) GetLicenseLink() string {
-	if o == nil || IsNil(o.LicenseLink) {
+	if o == nil || IsNil(o.LicenseLink.Get()) {
 		var ret string
 		return ret
 	}
-	return *o.LicenseLink
+	return *o.LicenseLink.Get()
 }
 
 // GetLicenseLinkOk returns a tuple with the LicenseLink field value if set, nil otherwise
 // and a boolean to check if the value has been set.
+// NOTE: If the value is an explicit nil, `nil, true` will be returned
 func (o *RegisteredModelUpdate) GetLicenseLinkOk() (*string, bool) {
-	if o == nil || IsNil(o.LicenseLink) {
+	if o == nil {
 		return nil, false
 	}
-	return o.LicenseLink, true
+	return o.LicenseLink.Get(), o.LicenseLink.IsSet()
 }
 
 // HasLicenseLink returns a boolean if a field has been set.
 func (o *RegisteredModelUpdate) HasLicenseLink() bool {
-	if o != nil && !IsNil(o.LicenseLink) {
+	if o != nil && o.LicenseLink.IsSet() {
 		return true
 	}
 
 	return false
 }
 
-// SetLicenseLink gets a reference to the given string and assigns it to the LicenseLink field.
+// SetLicenseLink gets a reference to the given NullableString and assigns it to the LicenseLink field.
 func (o *RegisteredModelUpdate) SetLicenseLink(v string) {
-	o.LicenseLink = &v
+	o.LicenseLink.Set(&v)
 }
 
-// GetLibraryName returns the LibraryName field value if set, zero value otherwise.
+// SetLicenseLinkNil sets the value for LicenseLink to be an explicit nil
+func (o *RegisteredModelUpdate) SetLicenseLinkNil() {
+	o.LicenseLink.Set(nil)
+}
+
+// UnsetLicenseLink ensures that no value is present for LicenseLink, not even an explicit nil
+func (o *RegisteredModelUpdate) UnsetLicenseLink() {
+	o.LicenseLink.Unset()
+}
+
+// GetLibraryName returns the LibraryName field value if set, zero value otherwise (both if not set or set to explicit null).
 func (o *RegisteredModelUpdate) GetLibraryName() string {
-	if o == nil || IsNil(o.LibraryName) {
+	if o == nil || IsNil(o.LibraryName.Get()) {
 		var ret string
 		return ret
 	}
-	return *o.LibraryName
+	return *o.LibraryName.Get()
 }
 
 // GetLibraryNameOk returns a tuple with the LibraryName field value if set, nil otherwise
 // and a boolean to check if the value has been set.
+// NOTE: If the value is an explicit nil, `nil, true` will be returned
 func (o *RegisteredModelUpdate) GetLibraryNameOk() (*string, bool) {
-	if o == nil || IsNil(o.LibraryName) {
+	if o == nil {
 		return nil, false
 	}
-	return o.LibraryName, true
+	return o.LibraryName.Get(), o.LibraryName.IsSet()
 }
 
 // HasLibraryName returns a boolean if a field has been set.
 func (o *RegisteredModelUpdate) HasLibraryName() bool {
-	if o != nil && !IsNil(o.LibraryName) {
+	if o != nil && o.LibraryName.IsSet() {
 		return true
 	}
 
 	return false
 }
 
-// SetLibraryName gets a reference to the given string and assigns it to the LibraryName field.
+// SetLibraryName gets a reference to the given NullableString and assigns it to the LibraryName field.
 func (o *RegisteredModelUpdate) SetLibraryName(v string) {
-	o.LibraryName = &v
+	o.LibraryName.Set(&v)
+}
+
+// SetLibraryNameNil sets the value for LibraryName to be an explicit nil
+func (o *RegisteredModelUpdate) SetLibraryNameNil() {
+	o.LibraryName.Set(nil)
+}
+
+// UnsetLibraryName ensures that no value is present for LibraryName, not even an explicit nil
+func (o *RegisteredModelUpdate) UnsetLibraryName() {
+	o.LibraryName.Unset()
 }
 
 // GetOwner returns the Owner field value if set, zero value otherwise.
@@ -528,38 +618,38 @@ func (o RegisteredModelUpdate) ToMap() (map[string]interface{}, error) {
 	if !IsNil(o.CustomProperties) {
 		toSerialize["customProperties"] = o.CustomProperties
 	}
-	if !IsNil(o.Description) {
-		toSerialize["description"] = o.Description
+	if o.Description.IsSet() {
+		toSerialize["description"] = o.Description.Get()
 	}
 	if !IsNil(o.ExternalId) {
 		toSerialize["externalId"] = o.ExternalId
 	}
-	if !IsNil(o.Readme) {
-		toSerialize["readme"] = o.Readme
+	if o.Readme.IsSet() {
+		toSerialize["readme"] = o.Readme.Get()
 	}
-	if !IsNil(o.Maturity) {
-		toSerialize["maturity"] = o.Maturity
+	if o.Maturity.IsSet() {
+		toSerialize["maturity"] = o.Maturity.Get()
 	}
-	if !IsNil(o.Language) {
+	if o.Language != nil {
 		toSerialize["language"] = o.Language
 	}
-	if !IsNil(o.Tasks) {
+	if o.Tasks != nil {
 		toSerialize["tasks"] = o.Tasks
 	}
-	if !IsNil(o.Provider) {
-		toSerialize["provider"] = o.Provider
+	if o.Provider.IsSet() {
+		toSerialize["provider"] = o.Provider.Get()
 	}
-	if !IsNil(o.Logo) {
-		toSerialize["logo"] = o.Logo
+	if o.Logo.IsSet() {
+		toSerialize["logo"] = o.Logo.Get()
 	}
-	if !IsNil(o.License) {
-		toSerialize["license"] = o.License
+	if o.License.IsSet() {
+		toSerialize["license"] = o.License.Get()
 	}
-	if !IsNil(o.LicenseLink) {
-		toSerialize["licenseLink"] = o.LicenseLink
+	if o.LicenseLink.IsSet() {
+		toSerialize["licenseLink"] = o.LicenseLink.Get()
 	}
-	if !IsNil(o.LibraryName) {
-		toSerialize["libraryName"] = o.LibraryName
+	if o.LibraryName.IsSet() {
+		toSerialize["libraryName"] = o.LibraryName.Get()
 	}
 	if !IsNil(o.Owner) {
 		toSerialize["owner"] = o.Owner

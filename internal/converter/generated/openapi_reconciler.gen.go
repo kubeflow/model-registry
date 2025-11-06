@@ -766,38 +766,29 @@ func (c *OpenAPIReconcilerImpl) UpdateExistingRegisteredModel(source converter.O
 		}
 		openapiRegisteredModel.CustomProperties = mapStringOpenapiMetadataValue
 	}
+	var pOpenapiNullableString *openapi.NullableString
+	if source.Update != nil {
+		pOpenapiNullableString = &source.Update.Description
+	}
+	openapiRegisteredModel.Description = converter.CopyNullableStringPtr(pOpenapiNullableString)
 	var pString *string
 	if source.Update != nil {
-		pString = source.Update.Description
+		pString = source.Update.ExternalId
 	}
 	if pString != nil {
 		xstring := *pString
-		openapiRegisteredModel.Description = &xstring
+		openapiRegisteredModel.ExternalId = &xstring
 	}
-	var pString2 *string
+	var pOpenapiNullableString2 *openapi.NullableString
 	if source.Update != nil {
-		pString2 = source.Update.ExternalId
+		pOpenapiNullableString2 = &source.Update.Readme
 	}
-	if pString2 != nil {
-		xstring2 := *pString2
-		openapiRegisteredModel.ExternalId = &xstring2
-	}
-	var pString3 *string
+	openapiRegisteredModel.Readme = converter.CopyNullableStringPtr(pOpenapiNullableString2)
+	var pOpenapiNullableString3 *openapi.NullableString
 	if source.Update != nil {
-		pString3 = source.Update.Readme
+		pOpenapiNullableString3 = &source.Update.Maturity
 	}
-	if pString3 != nil {
-		xstring3 := *pString3
-		openapiRegisteredModel.Readme = &xstring3
-	}
-	var pString4 *string
-	if source.Update != nil {
-		pString4 = source.Update.Maturity
-	}
-	if pString4 != nil {
-		xstring4 := *pString4
-		openapiRegisteredModel.Maturity = &xstring4
-	}
+	openapiRegisteredModel.Maturity = converter.CopyNullableStringPtr(pOpenapiNullableString3)
 	var pStringList *[]string
 	if source.Update != nil {
 		pStringList = &source.Update.Language
@@ -826,53 +817,38 @@ func (c *OpenAPIReconcilerImpl) UpdateExistingRegisteredModel(source converter.O
 		}
 		openapiRegisteredModel.Tasks = stringList2
 	}
-	var pString5 *string
+	var pOpenapiNullableString4 *openapi.NullableString
 	if source.Update != nil {
-		pString5 = source.Update.Provider
+		pOpenapiNullableString4 = &source.Update.Provider
 	}
-	if pString5 != nil {
-		xstring5 := *pString5
-		openapiRegisteredModel.Provider = &xstring5
-	}
-	var pString6 *string
+	openapiRegisteredModel.Provider = converter.CopyNullableStringPtr(pOpenapiNullableString4)
+	var pOpenapiNullableString5 *openapi.NullableString
 	if source.Update != nil {
-		pString6 = source.Update.Logo
+		pOpenapiNullableString5 = &source.Update.Logo
 	}
-	if pString6 != nil {
-		xstring6 := *pString6
-		openapiRegisteredModel.Logo = &xstring6
-	}
-	var pString7 *string
+	openapiRegisteredModel.Logo = converter.CopyNullableStringPtr(pOpenapiNullableString5)
+	var pOpenapiNullableString6 *openapi.NullableString
 	if source.Update != nil {
-		pString7 = source.Update.License
+		pOpenapiNullableString6 = &source.Update.License
 	}
-	if pString7 != nil {
-		xstring7 := *pString7
-		openapiRegisteredModel.License = &xstring7
-	}
-	var pString8 *string
+	openapiRegisteredModel.License = converter.CopyNullableStringPtr(pOpenapiNullableString6)
+	var pOpenapiNullableString7 *openapi.NullableString
 	if source.Update != nil {
-		pString8 = source.Update.LicenseLink
+		pOpenapiNullableString7 = &source.Update.LicenseLink
 	}
-	if pString8 != nil {
-		xstring8 := *pString8
-		openapiRegisteredModel.LicenseLink = &xstring8
-	}
-	var pString9 *string
+	openapiRegisteredModel.LicenseLink = converter.CopyNullableStringPtr(pOpenapiNullableString7)
+	var pOpenapiNullableString8 *openapi.NullableString
 	if source.Update != nil {
-		pString9 = source.Update.LibraryName
+		pOpenapiNullableString8 = &source.Update.LibraryName
 	}
-	if pString9 != nil {
-		xstring9 := *pString9
-		openapiRegisteredModel.LibraryName = &xstring9
-	}
-	var pString10 *string
+	openapiRegisteredModel.LibraryName = converter.CopyNullableStringPtr(pOpenapiNullableString8)
+	var pString2 *string
 	if source.Update != nil {
-		pString10 = source.Update.Owner
+		pString2 = source.Update.Owner
 	}
-	if pString10 != nil {
-		xstring10 := *pString10
-		openapiRegisteredModel.Owner = &xstring10
+	if pString2 != nil {
+		xstring2 := *pString2
+		openapiRegisteredModel.Owner = &xstring2
 	}
 	var pOpenapiRegisteredModelState *openapi.RegisteredModelState
 	if source.Update != nil {

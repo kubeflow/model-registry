@@ -106,29 +106,29 @@ func (ym *yamlModel) convertModelProperties() ([]models.Properties, []models.Pro
 	var customProperties []models.Properties
 
 	// Regular properties
-	if ym.Description != nil {
-		properties = append(properties, models.NewStringProperty("description", *ym.Description, false))
+	if v := ym.Description.Get(); v != nil {
+		properties = append(properties, models.NewStringProperty("description", *v, false))
 	}
-	if ym.Readme != nil {
-		properties = append(properties, models.NewStringProperty("readme", *ym.Readme, false))
+	if v := ym.Readme.Get(); v != nil {
+		properties = append(properties, models.NewStringProperty("readme", *v, false))
 	}
-	if ym.Maturity != nil {
-		properties = append(properties, models.NewStringProperty("maturity", *ym.Maturity, false))
+	if v := ym.Maturity.Get(); v != nil {
+		properties = append(properties, models.NewStringProperty("maturity", *v, false))
 	}
-	if ym.Provider != nil {
-		properties = append(properties, models.NewStringProperty("provider", *ym.Provider, false))
+	if v := ym.Provider.Get(); v != nil {
+		properties = append(properties, models.NewStringProperty("provider", *v, false))
 	}
-	if ym.Logo != nil {
-		properties = append(properties, models.NewStringProperty("logo", *ym.Logo, false))
+	if v := ym.Logo.Get(); v != nil {
+		properties = append(properties, models.NewStringProperty("logo", *v, false))
 	}
-	if ym.License != nil {
-		properties = append(properties, models.NewStringProperty("license", *ym.License, false))
+	if v := ym.License.Get(); v != nil {
+		properties = append(properties, models.NewStringProperty("license", *v, false))
 	}
-	if ym.LicenseLink != nil {
-		properties = append(properties, models.NewStringProperty("license_link", *ym.LicenseLink, false))
+	if v := ym.LicenseLink.Get(); v != nil {
+		properties = append(properties, models.NewStringProperty("license_link", *v, false))
 	}
-	if ym.LibraryName != nil {
-		properties = append(properties, models.NewStringProperty("library_name", *ym.LibraryName, false))
+	if v := ym.LibraryName.Get(); v != nil {
+		properties = append(properties, models.NewStringProperty("library_name", *v, false))
 	}
 	if ym.SourceId != nil {
 		properties = append(properties, models.NewStringProperty("source_id", *ym.SourceId, false))

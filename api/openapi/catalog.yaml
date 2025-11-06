@@ -239,16 +239,20 @@ components:
       properties:
         description:
           type: string
+          nullable: true
           description: Human-readable description of the model.
         readme:
           type: string
+          nullable: true
           description: Model documentation in Markdown.
         maturity:
           type: string
+          nullable: true
           description: Maturity level of the model.
           example: Generally Available
         language:
           type: array
+          nullable: true
           description: List of supported languages (https://en.wikipedia.org/wiki/List_of_ISO_639_language_codes).
           items:
             type: string
@@ -258,6 +262,7 @@ components:
             - cz
         tasks:
           type: array
+          nullable: true
           description: List of tasks the model is designed for.
           items:
             type: string
@@ -265,10 +270,12 @@ components:
             - text-generation
         provider:
           type: string
+          nullable: true
           description: Name of the organization or entity that provides the model.
           example: IBM
         logo:
           type: string
+          nullable: true
           format: uri
           description: |-
             URL to the model's logo. A [data
@@ -276,14 +283,17 @@ components:
             is recommended.
         license:
           type: string
+          nullable: true
           description: Short name of the model's license.
           example: apache-2.0
         licenseLink:
           type: string
+          nullable: true
           format: uri
           description: URL to the license text.
         libraryName:
           type: string
+          nullable: true
           example: transformers
         customProperties:
           description: User provided custom properties which are not defined by its type.
@@ -430,6 +440,8 @@ components:
         - type: object
           required:
             - name
+            - language
+            - tasks
           properties:
             name:
               type: string
@@ -438,6 +450,16 @@ components:
             source_id:
               type: string
               description: ID of the source this model belongs to.
+            description:
+              type: string
+              nullable: true
+              description: Human-readable description of the model.
+            externalId:
+              type: string
+              nullable: true
+              description: |-
+                The external id that come from the clients’ system. This field is optional.
+                If set, it must be unique among all resources within a database instance.
         - $ref: "#/components/schemas/BaseModel"
         - $ref: "#/components/schemas/BaseResource"
     CatalogModelArtifact:

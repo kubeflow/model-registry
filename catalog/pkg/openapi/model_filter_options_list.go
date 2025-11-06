@@ -72,14 +72,6 @@ func (o *FilterOptionsList) SetFilters(v map[string]FilterOption) {
 	o.Filters = &v
 }
 
-func (o FilterOptionsList) MarshalJSON() ([]byte, error) {
-	toSerialize, err := o.ToMap()
-	if err != nil {
-		return []byte{}, err
-	}
-	return json.Marshal(toSerialize)
-}
-
 func (o FilterOptionsList) ToMap() (map[string]interface{}, error) {
 	toSerialize := map[string]interface{}{}
 	if !IsNil(o.Filters) {

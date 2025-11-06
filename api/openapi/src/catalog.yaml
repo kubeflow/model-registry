@@ -285,6 +285,8 @@ components:
         - type: object
           required:
             - name
+            - language
+            - tasks
           properties:
             name:
               type: string
@@ -293,6 +295,16 @@ components:
             source_id:
               type: string
               description: ID of the source this model belongs to.
+            description:
+              type: string
+              nullable: true
+              description: Human-readable description of the model.
+            externalId:
+              type: string
+              nullable: true
+              description: |-
+                The external id that come from the clients’ system. This field is optional.
+                If set, it must be unique among all resources within a database instance.
         - $ref: "#/components/schemas/BaseModel"
         - $ref: "#/components/schemas/BaseResource"
     CatalogModelArtifact:

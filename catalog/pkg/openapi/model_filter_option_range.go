@@ -104,14 +104,6 @@ func (o *FilterOptionRange) SetMax(v float32) {
 	o.Max = &v
 }
 
-func (o FilterOptionRange) MarshalJSON() ([]byte, error) {
-	toSerialize, err := o.ToMap()
-	if err != nil {
-		return []byte{}, err
-	}
-	return json.Marshal(toSerialize)
-}
-
 func (o FilterOptionRange) ToMap() (map[string]interface{}, error) {
 	toSerialize := map[string]interface{}{}
 	if !IsNil(o.Min) {

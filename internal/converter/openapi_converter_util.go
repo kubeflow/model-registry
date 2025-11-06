@@ -174,3 +174,23 @@ func MapNameFromOwned(source *string) *string {
 	joined := strings.Join(exploded[1:], ":")
 	return &joined
 }
+
+func NullableStringToStringPointer(v openapi.NullableString) *string {
+	return v.Get()
+}
+
+func CopyNullableString(v openapi.NullableString) openapi.NullableString {
+	var cp openapi.NullableString
+	if v.IsSet() {
+		cp.Set(v.Get())
+	}
+	return cp
+}
+
+func CopyNullableStringPtr(v *openapi.NullableString) openapi.NullableString {
+	var cp openapi.NullableString
+	if v != nil {
+		cp = CopyNullableString(*v)
+	}
+	return cp
+}

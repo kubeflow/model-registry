@@ -148,14 +148,6 @@ func (o *CatalogArtifactList) SetItems(v []CatalogArtifact) {
 	o.Items = v
 }
 
-func (o CatalogArtifactList) MarshalJSON() ([]byte, error) {
-	toSerialize, err := o.ToMap()
-	if err != nil {
-		return []byte{}, err
-	}
-	return json.Marshal(toSerialize)
-}
-
 func (o CatalogArtifactList) ToMap() (map[string]interface{}, error) {
 	toSerialize := map[string]interface{}{}
 	toSerialize["nextPageToken"] = o.NextPageToken

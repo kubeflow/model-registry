@@ -2,6 +2,7 @@ package catalog
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"os"
 	"strconv"
@@ -86,9 +87,9 @@ func TestDBCatalog(t *testing.T) {
 
 		assert.Equal(t, "test-get-model", retrievedModel.Name)
 		assert.Equal(t, strconv.FormatInt(int64(*savedModel.GetID()), 10), *retrievedModel.Id)
-		assert.Equal(t, "test-get-model-ext", *retrievedModel.ExternalId)
+		assert.Equal(t, "test-get-model-ext", *retrievedModel.ExternalId.Get())
 		assert.Equal(t, "test-source-id", *retrievedModel.SourceId)
-		assert.Equal(t, "Test model description", *retrievedModel.Description)
+		assert.Equal(t, "Test model description", *retrievedModel.Description.Get())
 	})
 
 	t.Run("TestGetModel_NotFound", func(t *testing.T) {
@@ -708,10 +709,10 @@ func TestDBCatalog(t *testing.T) {
 
 			assert.Equal(t, "123", *result.Id)
 			assert.Equal(t, "mapping-test-model", result.Name)
-			assert.Equal(t, "mapping-test-ext", *result.ExternalId)
+			assert.Equal(t, "mapping-test-ext", *result.ExternalId.Get())
 			assert.Equal(t, "test-source", *result.SourceId)
-			assert.Equal(t, "Test description", *result.Description)
-			assert.Equal(t, "pytorch", *result.LibraryName)
+			assert.Equal(t, "Test description", *result.Description.Get())
+			assert.Equal(t, "pytorch", *result.LibraryName.Get())
 			assert.Equal(t, "1234567890", *result.CreateTimeSinceEpoch)
 			assert.Equal(t, "1234567891", *result.LastUpdateTimeSinceEpoch)
 
@@ -800,6 +801,69 @@ func TestDBCatalog(t *testing.T) {
 			require.Error(t, err)
 			assert.Contains(t, err.Error(), "invalid model name")
 		})
+	})
+
+	t.Run("TestGetModel_JSONSerializationIncludesAllOptionalFields", func(t *testing.T) {
+		// Create test model with minimal data (only required fields)
+		// This should test that JSON serialization includes all optional fields even when empty
+		testModel := &models.CatalogModelImpl{
+			TypeID: apiutils.Of(int32(catalogModelTypeID)),
+			Attributes: &models.CatalogModelAttributes{
+				Name: apiutils.Of("minimal-model"), // Only required field
+			},
+			Properties: &[]mr_models.Properties{
+				{Name: "source_id", StringValue: apiutils.Of("minimal-source")}, // Required for lookup
+			},
+		}
+
+		_, err := catalogModelRepo.Save(testModel)
+		require.NoError(t, err)
+
+		// Get the model through the API
+		retrievedModel, err := dbCatalog.GetModel(ctx, "minimal-model", "minimal-source")
+		require.NoError(t, err)
+		require.NotNil(t, retrievedModel)
+
+		// Serialize to JSON
+		jsonBytes, err := json.Marshal(retrievedModel)
+
+		// Parse JSON to check if all optional fields are present
+		var jsonData map[string]interface{}
+		err = json.Unmarshal(jsonBytes, &jsonData)
+		require.NoError(t, err)
+		fmt.Println(string(jsonBytes))
+
+		// Verify that all optional fields are present in JSON (even if null/empty)
+		optionalFields := []string{
+			"description",
+			"readme",
+			"maturity",
+			"language",
+			"tasks",
+			"provider",
+			"logo",
+			"license",
+			"licenseLink",
+			"libraryName",
+			"externalId",
+			"id",                       // Should be present since model is saved
+			"createTimeSinceEpoch",     // Should be present since model is saved
+			"lastUpdateTimeSinceEpoch", // Should be present since model is saved
+			"source_id",                // Should be present since we set it
+		}
+
+		for _, field := range optionalFields {
+			_, exists := jsonData[field]
+			assert.True(t, exists, "Optional field '%s' should be present in JSON even if empty", field)
+		}
+
+		// Verify required field is present
+		assert.Contains(t, jsonData, "name", "Required field 'name' should be present")
+		assert.Equal(t, "minimal-model", jsonData["name"])
+
+		// This test is expected to fail initially because the current ToMap() implementation
+		// only includes optional fields if they are not nil
+		t.Logf("JSON output: %s", string(jsonBytes))
 	})
 
 	t.Run("TestGetFilterOptions", func(t *testing.T) {

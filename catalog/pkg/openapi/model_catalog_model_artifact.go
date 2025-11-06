@@ -333,14 +333,6 @@ func (o *CatalogModelArtifact) SetUri(v string) {
 	o.Uri = v
 }
 
-func (o CatalogModelArtifact) MarshalJSON() ([]byte, error) {
-	toSerialize, err := o.ToMap()
-	if err != nil {
-		return []byte{}, err
-	}
-	return json.Marshal(toSerialize)
-}
-
 func (o CatalogModelArtifact) ToMap() (map[string]interface{}, error) {
 	toSerialize := map[string]interface{}{}
 	if !IsNil(o.CustomProperties) {

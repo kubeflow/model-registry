@@ -120,6 +120,56 @@ class RegisteredModelCreate(BaseModel):
                 if self.custom_properties[_key_custom_properties]:
                     _field_dict[_key_custom_properties] = self.custom_properties[_key_custom_properties].to_dict()
             _dict["customProperties"] = _field_dict
+        # set to None if description (nullable) is None
+        # and model_fields_set contains the field
+        if self.description is None and "description" in self.model_fields_set:
+            _dict["description"] = None
+
+        # set to None if readme (nullable) is None
+        # and model_fields_set contains the field
+        if self.readme is None and "readme" in self.model_fields_set:
+            _dict["readme"] = None
+
+        # set to None if maturity (nullable) is None
+        # and model_fields_set contains the field
+        if self.maturity is None and "maturity" in self.model_fields_set:
+            _dict["maturity"] = None
+
+        # set to None if language (nullable) is None
+        # and model_fields_set contains the field
+        if self.language is None and "language" in self.model_fields_set:
+            _dict["language"] = None
+
+        # set to None if tasks (nullable) is None
+        # and model_fields_set contains the field
+        if self.tasks is None and "tasks" in self.model_fields_set:
+            _dict["tasks"] = None
+
+        # set to None if provider (nullable) is None
+        # and model_fields_set contains the field
+        if self.provider is None and "provider" in self.model_fields_set:
+            _dict["provider"] = None
+
+        # set to None if logo (nullable) is None
+        # and model_fields_set contains the field
+        if self.logo is None and "logo" in self.model_fields_set:
+            _dict["logo"] = None
+
+        # set to None if license (nullable) is None
+        # and model_fields_set contains the field
+        if self.license is None and "license" in self.model_fields_set:
+            _dict["license"] = None
+
+        # set to None if license_link (nullable) is None
+        # and model_fields_set contains the field
+        if self.license_link is None and "license_link" in self.model_fields_set:
+            _dict["licenseLink"] = None
+
+        # set to None if library_name (nullable) is None
+        # and model_fields_set contains the field
+        if self.library_name is None and "library_name" in self.model_fields_set:
+            _dict["libraryName"] = None
+
         return _dict
 
     @classmethod

@@ -19,7 +19,7 @@ gen/openapi: pkg/openapi/client.go
 pkg/openapi/client.go: ../api/openapi/catalog.yaml
 	${OPENAPI_GENERATOR} generate \
 		-i ../api/openapi/catalog.yaml -g go -o pkg/openapi --package-name openapi \
-		--ignore-file-override ./.openapi-generator-ignore --additional-properties=isGoSubmodule=true,enumClassPrefix=true,useOneOfDiscriminatorLookup=true,generateUnmarshalJSON=false
+		--ignore-file-override ./.openapi-generator-ignore --additional-properties=isGoSubmodule=true,enumClassPrefix=true,useOneOfDiscriminatorLookup=true,generateUnmarshalJSON=false,generateMarshalJSON=false
 	$(PROJECT_BIN)/goimports -w pkg/openapi
 
 .PHONY: gen/graphql

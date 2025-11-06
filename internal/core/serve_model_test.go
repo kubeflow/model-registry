@@ -913,7 +913,7 @@ func TestServeModelRoundTrip(t *testing.T) {
 		// Create prerequisites
 		registeredModel := &openapi.RegisteredModel{
 			Name:        "roundtrip-registered-model",
-			Description: apiutils.Of("Roundtrip test registered model"),
+			Description: *openapi.NewNullableString(apiutils.Of("Roundtrip test registered model")),
 		}
 		createdModel, err := _service.UpsertRegisteredModel(registeredModel)
 		require.NoError(t, err)

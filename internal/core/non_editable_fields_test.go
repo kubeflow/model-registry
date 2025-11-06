@@ -52,7 +52,7 @@ func testRegisteredModelNonEditableFields(t *testing.T, service *core.ModelRegis
 	// Create initial model
 	model := &openapi.RegisteredModel{
 		Name:        "test-rm-non-editable",
-		Description: apiutils.Of("Original description"),
+		Description: *openapi.NewNullableString(apiutils.Of("Original description")),
 		Owner:       apiutils.Of("original-owner"),
 		CustomProperties: map[string]openapi.MetadataValue{
 			"original": {
@@ -77,11 +77,11 @@ func testRegisteredModelNonEditableFields(t *testing.T, service *core.ModelRegis
 	// Attempt to hack non-editable fields
 	updateRequest := &openapi.RegisteredModel{
 		Id:                       created.Id,
-		Name:                     "HACKED_NAME",                      // Should be ignored
-		CreateTimeSinceEpoch:     apiutils.Of("9999999999"),          // Should be ignored
-		LastUpdateTimeSinceEpoch: apiutils.Of("8888888888"),          // Should be ignored
-		Description:              apiutils.Of("Updated description"), // Should work
-		Owner:                    apiutils.Of("updated-owner"),       // Should work
+		Name:                     "HACKED_NAME",                                                  // Should be ignored
+		CreateTimeSinceEpoch:     apiutils.Of("9999999999"),                                      // Should be ignored
+		LastUpdateTimeSinceEpoch: apiutils.Of("8888888888"),                                      // Should be ignored
+		Description:              *openapi.NewNullableString(apiutils.Of("Updated description")), // Should work
+		Owner:                    apiutils.Of("updated-owner"),                                   // Should work
 	}
 
 	updated, err := service.UpsertRegisteredModel(updateRequest)
@@ -91,7 +91,7 @@ func testRegisteredModelNonEditableFields(t *testing.T, service *core.ModelRegis
 	assert.Equal(t, originalId, *updated.Id, "RegisteredModel ID should not be changeable")
 	assert.Equal(t, originalName, updated.Name, "RegisteredModel Name should not be changeable")
 	assert.Equal(t, originalCreateTime, *updated.CreateTimeSinceEpoch, "RegisteredModel CreateTime should not be changeable")
-	assert.Equal(t, "Updated description", *updated.Description, "RegisteredModel Description should be updatable")
+	assert.Equal(t, "Updated description", *updated.Description.Get(), "RegisteredModel Description should be updatable")
 	assert.Equal(t, "updated-owner", *updated.Owner, "RegisteredModel Owner should be updatable")
 }
 

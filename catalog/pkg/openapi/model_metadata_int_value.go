@@ -94,14 +94,6 @@ func (o *MetadataIntValue) SetMetadataType(v string) {
 	o.MetadataType = v
 }
 
-func (o MetadataIntValue) MarshalJSON() ([]byte, error) {
-	toSerialize, err := o.ToMap()
-	if err != nil {
-		return []byte{}, err
-	}
-	return json.Marshal(toSerialize)
-}
-
 func (o MetadataIntValue) ToMap() (map[string]interface{}, error) {
 	toSerialize := map[string]interface{}{}
 	toSerialize["int_value"] = o.IntValue

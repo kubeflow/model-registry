@@ -71,33 +71,19 @@ func MapEmbedMDCustomProperties(source []models.Properties) (map[string]openapi.
 }
 
 func MapEmbedMDDescription(source *[]models.Properties) *string {
-	for _, v := range *source {
-		if v.Name == "description" {
-			return v.StringValue
-		}
-	}
+	return findStringProperty(source, "description")
+}
 
-	return nil
+func MapEmbedMDDescriptionNullable(source *[]models.Properties) openapi.NullableString {
+	return findNullableStringProperty(source, "description")
 }
 
 func MapEmbedMDOwner(source *[]models.Properties) *string {
-	for _, v := range *source {
-		if v.Name == "owner" {
-			return v.StringValue
-		}
-	}
-
-	return nil
+	return findStringProperty(source, "owner")
 }
 
 func MapEmbedMDAuthor(source *[]models.Properties) *string {
-	for _, v := range *source {
-		if v.Name == "author" {
-			return v.StringValue
-		}
-	}
-
-	return nil
+	return findStringProperty(source, "author")
 }
 
 func decodeStruct(encodedStr string) (*structpb.Struct, error) {
@@ -164,65 +150,49 @@ func findPropertyByName(source *[]models.Properties, propertyName string) *model
 	return nil
 }
 
-func MapEmbedMDPropertyLibraryName(source *[]models.Properties) *string {
-	if v := findPropertyByName(source, "library_name"); v != nil {
+// findStringProperty returns the StringValue of a property with the given name, or nil if not found
+func findStringProperty(source *[]models.Properties, propertyName string) *string {
+	if v := findPropertyByName(source, propertyName); v != nil {
 		return v.StringValue
 	}
 	return nil
 }
 
-func MapEmbedMDPropertyLicenseLink(source *[]models.Properties) *string {
-	if v := findPropertyByName(source, "license_link"); v != nil {
-		return v.StringValue
+// findNullableStringProperty returns the StringValue of a property with the given name, or nil if not found
+func findNullableStringProperty(source *[]models.Properties, propertyName string) openapi.NullableString {
+	v := findStringProperty(source, propertyName)
+	if v == nil {
+		return openapi.NullableString{}
 	}
-	return nil
+	return *openapi.NewNullableString(v)
 }
 
-func MapEmbedMDPropertyLicense(source *[]models.Properties) *string {
-	if v := findPropertyByName(source, "license"); v != nil {
-		return v.StringValue
-	}
-	return nil
+func MapEmbedMDPropertyLibraryName(source *[]models.Properties) openapi.NullableString {
+	return findNullableStringProperty(source, "library_name")
 }
 
-func MapEmbedMDPropertyLogo(source *[]models.Properties) *string {
-	for _, v := range *source {
-		if v.Name == "logo" {
-			return v.StringValue
-		}
-	}
-
-	return nil
+func MapEmbedMDPropertyLicenseLink(source *[]models.Properties) openapi.NullableString {
+	return findNullableStringProperty(source, "license_link")
 }
 
-func MapEmbedMDPropertyMaturity(source *[]models.Properties) *string {
-	for _, v := range *source {
-		if v.Name == "maturity" {
-			return v.StringValue
-		}
-	}
-
-	return nil
+func MapEmbedMDPropertyLicense(source *[]models.Properties) openapi.NullableString {
+	return findNullableStringProperty(source, "license")
 }
 
-func MapEmbedMDPropertyProvider(source *[]models.Properties) *string {
-	for _, v := range *source {
-		if v.Name == "provider" {
-			return v.StringValue
-		}
-	}
-
-	return nil
+func MapEmbedMDPropertyLogo(source *[]models.Properties) openapi.NullableString {
+	return findNullableStringProperty(source, "logo")
 }
 
-func MapEmbedMDPropertyReadme(source *[]models.Properties) *string {
-	for _, v := range *source {
-		if v.Name == "readme" {
-			return v.StringValue
-		}
-	}
+func MapEmbedMDPropertyMaturity(source *[]models.Properties) openapi.NullableString {
+	return findNullableStringProperty(source, "maturity")
+}
 
-	return nil
+func MapEmbedMDPropertyProvider(source *[]models.Properties) openapi.NullableString {
+	return findNullableStringProperty(source, "provider")
+}
+
+func MapEmbedMDPropertyReadme(source *[]models.Properties) openapi.NullableString {
+	return findNullableStringProperty(source, "readme")
 }
 
 func MapEmbedMDPropertyTasks(source *[]models.Properties) []string {
@@ -339,13 +309,7 @@ func MapEmbedMDLastUpdateTimeSinceEpochServingEnvironment(source *models.Serving
 }
 
 func MapEmbedMDPropertyRuntime(source *[]models.Properties) *string {
-	for _, v := range *source {
-		if v.Name == "runtime" {
-			return v.StringValue
-		}
-	}
-
-	return nil
+	return findStringProperty(source, "runtime")
 }
 
 func MapEmbedMDExternalIDInferenceService(source *models.InferenceServiceAttributes) *string {
@@ -434,103 +398,43 @@ func MapEmbedMDArtifactTypeModelArtifact(source *models.ModelArtifactAttributes)
 }
 
 func MapEmbedMDPropertyModelFormatName(source *[]models.Properties) *string {
-	for _, v := range *source {
-		if v.Name == "model_format_name" {
-			return v.StringValue
-		}
-	}
-
-	return nil
+	return findStringProperty(source, "model_format_name")
 }
 
 func MapEmbedMDPropertyModelFormatVersion(source *[]models.Properties) *string {
-	for _, v := range *source {
-		if v.Name == "model_format_version" {
-			return v.StringValue
-		}
-	}
-
-	return nil
+	return findStringProperty(source, "model_format_version")
 }
 
 func MapEmbedMDPropertyStorageKey(source *[]models.Properties) *string {
-	for _, v := range *source {
-		if v.Name == "storage_key" {
-			return v.StringValue
-		}
-	}
-
-	return nil
+	return findStringProperty(source, "storage_key")
 }
 
 func MapEmbedMDPropertyStoragePath(source *[]models.Properties) *string {
-	for _, v := range *source {
-		if v.Name == "storage_path" {
-			return v.StringValue
-		}
-	}
-
-	return nil
+	return findStringProperty(source, "storage_path")
 }
 
 func MapEmbedMDPropertyServiceAccountName(source *[]models.Properties) *string {
-	for _, v := range *source {
-		if v.Name == "service_account_name" {
-			return v.StringValue
-		}
-	}
-
-	return nil
+	return findStringProperty(source, "service_account_name")
 }
 
 func MapEmbedMDPropertyModelSourceKind(source *[]models.Properties) *string {
-	for _, v := range *source {
-		if v.Name == "model_source_kind" {
-			return v.StringValue
-		}
-	}
-
-	return nil
+	return findStringProperty(source, "model_source_kind")
 }
 
 func MapEmbedMDPropertyModelSourceClass(source *[]models.Properties) *string {
-	for _, v := range *source {
-		if v.Name == "model_source_class" {
-			return v.StringValue
-		}
-	}
-
-	return nil
+	return findStringProperty(source, "model_source_class")
 }
 
 func MapEmbedMDPropertyModelSourceGroup(source *[]models.Properties) *string {
-	for _, v := range *source {
-		if v.Name == "model_source_group" {
-			return v.StringValue
-		}
-	}
-
-	return nil
+	return findStringProperty(source, "model_source_group")
 }
 
 func MapEmbedMDPropertyModelSourceId(source *[]models.Properties) *string {
-	for _, v := range *source {
-		if v.Name == "model_source_id" {
-			return v.StringValue
-		}
-	}
-
-	return nil
+	return findStringProperty(source, "model_source_id")
 }
 
 func MapEmbedMDPropertyModelSourceName(source *[]models.Properties) *string {
-	for _, v := range *source {
-		if v.Name == "model_source_name" {
-			return v.StringValue
-		}
-	}
-
-	return nil
+	return findStringProperty(source, "model_source_name")
 }
 
 func MapEmbedMDExternalIDModelArtifact(source *models.ModelArtifactAttributes) *string {
@@ -698,23 +602,11 @@ func MapEmbedMDPropertyStatusExperimentRun(source *[]models.Properties) (*openap
 }
 
 func MapEmbedMDPropertyStartTimeSinceEpochExperimentRun(source *[]models.Properties) *string {
-	for _, v := range *source {
-		if v.Name == "start_time_since_epoch" {
-			return v.StringValue
-		}
-	}
-
-	return nil
+	return findStringProperty(source, "start_time_since_epoch")
 }
 
 func MapEmbedMDPropertyEndTimeSinceEpochExperimentRun(source *[]models.Properties) *string {
-	for _, v := range *source {
-		if v.Name == "end_time_since_epoch" {
-			return v.StringValue
-		}
-	}
-
-	return nil
+	return findStringProperty(source, "end_time_since_epoch")
 }
 
 func MapEmbedMDPropertyExperimentIdExperimentRun(source *[]models.Properties) (string, error) {
@@ -749,53 +641,23 @@ func MapEmbedMDLastUpdateTimeSinceEpochExperimentRun(source *models.ExperimentRu
 
 // DataSet property mapping functions
 func MapEmbedMDPropertyDigest(source *[]models.Properties) *string {
-	for _, v := range *source {
-		if v.Name == "digest" {
-			return v.StringValue
-		}
-	}
-
-	return nil
+	return findStringProperty(source, "digest")
 }
 
 func MapEmbedMDPropertySourceType(source *[]models.Properties) *string {
-	for _, v := range *source {
-		if v.Name == "source_type" {
-			return v.StringValue
-		}
-	}
-
-	return nil
+	return findStringProperty(source, "source_type")
 }
 
 func MapEmbedMDPropertySource(source *[]models.Properties) *string {
-	for _, v := range *source {
-		if v.Name == "source" {
-			return v.StringValue
-		}
-	}
-
-	return nil
+	return findStringProperty(source, "source")
 }
 
 func MapEmbedMDPropertySchema(source *[]models.Properties) *string {
-	for _, v := range *source {
-		if v.Name == "schema" {
-			return v.StringValue
-		}
-	}
-
-	return nil
+	return findStringProperty(source, "schema")
 }
 
 func MapEmbedMDPropertyProfile(source *[]models.Properties) *string {
-	for _, v := range *source {
-		if v.Name == "profile" {
-			return v.StringValue
-		}
-	}
-
-	return nil
+	return findStringProperty(source, "profile")
 }
 
 // DataSet mapping functions

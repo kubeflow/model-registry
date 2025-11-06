@@ -120,11 +120,11 @@ func MapRegisteredModelPropertiesEmbedMD(source *openapi.RegisteredModel) (*[]mo
 			})
 		}
 
-		if source.Description != nil {
+		if v := source.Description.Get(); v != nil {
 			props = append(props, models.Properties{
 				Name:             "description",
 				IsCustomProperty: false,
-				StringValue:      source.Description,
+				StringValue:      v,
 			})
 		}
 
@@ -153,59 +153,59 @@ func MapRegisteredModelPropertiesEmbedMD(source *openapi.RegisteredModel) (*[]mo
 			})
 		}
 
-		if source.LibraryName != nil {
+		if v := source.LibraryName.Get(); v != nil {
 			props = append(props, models.Properties{
 				Name:             "library_name",
 				IsCustomProperty: false,
-				StringValue:      source.LibraryName,
+				StringValue:      v,
 			})
 		}
 
-		if source.License != nil {
+		if v := source.License.Get(); v != nil {
 			props = append(props, models.Properties{
 				Name:             "license",
 				IsCustomProperty: false,
-				StringValue:      source.License,
+				StringValue:      v,
 			})
 		}
 
-		if source.LicenseLink != nil {
+		if source.LicenseLink.Get() != nil {
 			props = append(props, models.Properties{
 				Name:             "license_link",
 				IsCustomProperty: false,
-				StringValue:      source.LicenseLink,
+				StringValue:      source.LicenseLink.Get(),
 			})
 		}
 
-		if source.Maturity != nil {
+		if v := source.Maturity.Get(); v != nil {
 			props = append(props, models.Properties{
 				Name:             "maturity",
 				IsCustomProperty: false,
-				StringValue:      source.Maturity,
+				StringValue:      v,
 			})
 		}
 
-		if source.Provider != nil {
+		if v := source.Provider.Get(); v != nil {
 			props = append(props, models.Properties{
 				Name:             "provider",
 				IsCustomProperty: false,
-				StringValue:      source.Provider,
+				StringValue:      v,
 			})
 		}
 
-		if source.Readme != nil {
+		if v := source.Readme.Get(); v != nil {
 			props = append(props, models.Properties{
 				Name:             "readme",
 				IsCustomProperty: false,
-				StringValue:      source.Readme,
+				StringValue:      v,
 			})
 		}
 
-		if source.Logo != nil {
+		if v := source.Logo.Get(); v != nil {
 			props = append(props, models.Properties{
 				Name:             "logo",
 				IsCustomProperty: false,
-				StringValue:      source.Logo,
+				StringValue:      v,
 			})
 		}
 

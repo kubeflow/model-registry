@@ -20,7 +20,7 @@ func TestUpsertModelVersion(t *testing.T) {
 		// First create a registered model
 		registeredModel := &openapi.RegisteredModel{
 			Name:        "test-registered-model",
-			Description: apiutils.Of("Test registered model for version"),
+			Description: *openapi.NewNullableString(apiutils.Of("Test registered model for version")),
 		}
 		createdModel, err := _service.UpsertRegisteredModel(registeredModel)
 		require.NoError(t, err)
@@ -865,7 +865,7 @@ func TestModelVersionRoundTrip(t *testing.T) {
 		// Create a registered model
 		registeredModel := &openapi.RegisteredModel{
 			Name:        "roundtrip-registered-model",
-			Description: apiutils.Of("Roundtrip test registered model"),
+			Description: *openapi.NewNullableString(apiutils.Of("Roundtrip test registered model")),
 		}
 		createdModel, err := _service.UpsertRegisteredModel(registeredModel)
 		require.NoError(t, err)

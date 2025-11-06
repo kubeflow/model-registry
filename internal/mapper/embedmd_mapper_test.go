@@ -44,7 +44,7 @@ func TestEmbedMDMapFromRegisteredModel(t *testing.T) {
 
 	openAPIModel := &openapi.RegisteredModel{
 		Name:        "test-registered-model",
-		Description: apiutils.Of("Test description"),
+		Description: *openapi.NewNullableString(apiutils.Of("Test description")),
 		Owner:       apiutils.Of("test-owner"),
 		ExternalId:  apiutils.Of("ext-123"),
 		State:       apiutils.Of(openapi.REGISTEREDMODELSTATE_LIVE),
@@ -432,7 +432,7 @@ func TestEmbedMDMapToRegisteredModel(t *testing.T) {
 	assertion.Equal("1234567891", *result.LastUpdateTimeSinceEpoch)
 
 	// Verify mapped properties
-	assertion.Equal("Test description", *result.Description)
+	assertion.Equal("Test description", *result.Description.Get())
 	assertion.Equal("test-owner", *result.Owner)
 	assertion.Equal(openapi.REGISTEREDMODELSTATE_LIVE, *result.State)
 
@@ -825,7 +825,7 @@ func TestEmbedMDRoundTripConversion(t *testing.T) {
 	// Create an OpenAPI model
 	originalOpenAPI := &openapi.RegisteredModel{
 		Name:        "roundtrip-test",
-		Description: apiutils.Of("Test roundtrip conversion"),
+		Description: *openapi.NewNullableString(apiutils.Of("Test roundtrip conversion")),
 		Owner:       apiutils.Of("test-owner"),
 		ExternalId:  apiutils.Of("roundtrip-ext-123"),
 		State:       apiutils.Of(openapi.REGISTEREDMODELSTATE_LIVE),
@@ -846,7 +846,7 @@ func TestEmbedMDRoundTripConversion(t *testing.T) {
 
 	// Verify the roundtrip preserved the data
 	assertion.Equal(originalOpenAPI.Name, resultOpenAPI.Name)
-	assertion.Equal(*originalOpenAPI.Description, *resultOpenAPI.Description)
+	assertion.Equal(*originalOpenAPI.Description.Get(), *resultOpenAPI.Description.Get())
 	assertion.Equal(*originalOpenAPI.Owner, *resultOpenAPI.Owner)
 	assertion.Equal(*originalOpenAPI.ExternalId, *resultOpenAPI.ExternalId)
 	assertion.Equal(*originalOpenAPI.State, *resultOpenAPI.State)

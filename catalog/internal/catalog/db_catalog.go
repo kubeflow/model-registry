@@ -240,16 +240,18 @@ func mapDBModelToAPIModel(m dbmodels.CatalogModel) apimodels.CatalogModel {
 	id := strconv.FormatInt(int64(*m.GetID()), 10)
 	res.Id = &id
 
-	if m.GetAttributes() != nil {
-		res.Name = *m.GetAttributes().Name
-		res.ExternalId = m.GetAttributes().ExternalID
+	attributes := m.GetAttributes()
 
-		if m.GetAttributes().CreateTimeSinceEpoch != nil {
-			createTimeSinceEpoch := strconv.FormatInt(*m.GetAttributes().CreateTimeSinceEpoch, 10)
+	if attributes != nil {
+		res.Name = *attributes.Name
+		res.ExternalId.Set(attributes.ExternalID)
+
+		if attributes.CreateTimeSinceEpoch != nil {
+			createTimeSinceEpoch := strconv.FormatInt(*attributes.CreateTimeSinceEpoch, 10)
 			res.CreateTimeSinceEpoch = &createTimeSinceEpoch
 		}
-		if m.GetAttributes().LastUpdateTimeSinceEpoch != nil {
-			lastUpdateTimeSinceEpoch := strconv.FormatInt(*m.GetAttributes().LastUpdateTimeSinceEpoch, 10)
+		if attributes.LastUpdateTimeSinceEpoch != nil {
+			lastUpdateTimeSinceEpoch := strconv.FormatInt(*attributes.LastUpdateTimeSinceEpoch, 10)
 			res.LastUpdateTimeSinceEpoch = &lastUpdateTimeSinceEpoch
 		}
 	}
@@ -262,37 +264,21 @@ func mapDBModelToAPIModel(m dbmodels.CatalogModel) apimodels.CatalogModel {
 					res.SourceId = prop.StringValue
 				}
 			case "description":
-				if prop.StringValue != nil {
-					res.Description = prop.StringValue
-				}
+				res.Description.Set(prop.StringValue)
 			case "library_name":
-				if prop.StringValue != nil {
-					res.LibraryName = prop.StringValue
-				}
+				res.LibraryName.Set(prop.StringValue)
 			case "license_link":
-				if prop.StringValue != nil {
-					res.LicenseLink = prop.StringValue
-				}
+				res.LicenseLink.Set(prop.StringValue)
 			case "license":
-				if prop.StringValue != nil {
-					res.License = prop.StringValue
-				}
+				res.License.Set(prop.StringValue)
 			case "logo":
-				if prop.StringValue != nil {
-					res.Logo = prop.StringValue
-				}
+				res.Logo.Set(prop.StringValue)
 			case "maturity":
-				if prop.StringValue != nil {
-					res.Maturity = prop.StringValue
-				}
+				res.Maturity.Set(prop.StringValue)
 			case "provider":
-				if prop.StringValue != nil {
-					res.Provider = prop.StringValue
-				}
+				res.Provider.Set(prop.StringValue)
 			case "readme":
-				if prop.StringValue != nil {
-					res.Readme = prop.StringValue
-				}
+				res.Readme.Set(prop.StringValue)
 			case "language":
 				if prop.StringValue != nil {
 					var languages []string

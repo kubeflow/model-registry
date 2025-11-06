@@ -18,7 +18,7 @@ func TestUpsertRegisteredModel(t *testing.T) {
 	t.Run("successful create", func(t *testing.T) {
 		input := &openapi.RegisteredModel{
 			Name:        "test-model",
-			Description: apiutils.Of("Test model description"),
+			Description: *openapi.NewNullableString(apiutils.Of("Test model description")),
 			Owner:       apiutils.Of("test-owner"),
 			ExternalId:  apiutils.Of("ext-123"),
 			State:       apiutils.Of(openapi.REGISTEREDMODELSTATE_LIVE),
@@ -31,7 +31,7 @@ func TestUpsertRegisteredModel(t *testing.T) {
 		assert.NotNil(t, result.Id)
 		assert.Equal(t, "test-model", result.Name)
 		assert.Equal(t, "ext-123", *result.ExternalId)
-		assert.Equal(t, "Test model description", *result.Description)
+		assert.Equal(t, "Test model description", *result.Description.Get())
 		assert.Equal(t, "test-owner", *result.Owner)
 		assert.Equal(t, openapi.REGISTEREDMODELSTATE_LIVE, *result.State)
 		assert.NotNil(t, result.CreateTimeSinceEpoch)
@@ -42,7 +42,7 @@ func TestUpsertRegisteredModel(t *testing.T) {
 		// Create first
 		input := &openapi.RegisteredModel{
 			Name:        "update-test-model",
-			Description: apiutils.Of("Original description"),
+			Description: *openapi.NewNullableString(apiutils.Of("Original description")),
 		}
 
 		created, err := _service.UpsertRegisteredModel(input)
@@ -53,7 +53,7 @@ func TestUpsertRegisteredModel(t *testing.T) {
 		update := &openapi.RegisteredModel{
 			Id:          created.Id,
 			Name:        "update-test-model", // Name should remain the same
-			Description: apiutils.Of("Updated description"),
+			Description: *openapi.NewNullableString(apiutils.Of("Updated description")),
 			Owner:       apiutils.Of("new-owner"),
 			State:       apiutils.Of(openapi.REGISTEREDMODELSTATE_ARCHIVED),
 		}
@@ -63,7 +63,7 @@ func TestUpsertRegisteredModel(t *testing.T) {
 		require.NotNil(t, updated)
 		assert.Equal(t, *created.Id, *updated.Id)
 		assert.Equal(t, "update-test-model", updated.Name)
-		assert.Equal(t, "Updated description", *updated.Description)
+		assert.Equal(t, "Updated description", *updated.Description.Get())
 		assert.Equal(t, "new-owner", *updated.Owner)
 		assert.Equal(t, openapi.REGISTEREDMODELSTATE_ARCHIVED, *updated.State)
 	})
@@ -141,10 +141,10 @@ func TestUpsertRegisteredModel(t *testing.T) {
 		// Create registered model with nil optional fields
 		input := &openapi.RegisteredModel{
 			Name:        "nil-fields-model",
-			Description: nil, // Explicitly set to nil
-			Owner:       nil, // Explicitly set to nil
-			ExternalId:  nil, // Explicitly set to nil
-			State:       nil, // Explicitly set to nil
+			Description: *openapi.NewNullableString(nil), // Explicitly set to nil
+			Owner:       nil,                             // Explicitly set to nil
+			ExternalId:  nil,                             // Explicitly set to nil
+			State:       nil,                             // Explicitly set to nil
 		}
 
 		result, err := _service.UpsertRegisteredModel(input)
@@ -153,10 +153,10 @@ func TestUpsertRegisteredModel(t *testing.T) {
 		require.NotNil(t, result)
 		assert.NotNil(t, result.Id)
 		assert.Equal(t, "nil-fields-model", result.Name)
-		assert.Nil(t, result.Description) // Verify description remains nil
-		assert.Nil(t, result.Owner)       // Verify owner remains nil
-		assert.Nil(t, result.ExternalId)  // Verify external ID remains nil
-		assert.Nil(t, result.State)       // Verify state remains nil
+		assert.Nil(t, result.Description.Get()) // Verify description remains nil
+		assert.Nil(t, result.Owner)             // Verify owner remains nil
+		assert.Nil(t, result.ExternalId)        // Verify external ID remains nil
+		assert.Nil(t, result.State)             // Verify state remains nil
 		assert.NotNil(t, result.CreateTimeSinceEpoch)
 		assert.NotNil(t, result.LastUpdateTimeSinceEpoch)
 	})
@@ -165,7 +165,7 @@ func TestUpsertRegisteredModel(t *testing.T) {
 		unicodeName := "测试模型-тест-モデル-🚀"
 		input := &openapi.RegisteredModel{
 			Name:        unicodeName,
-			Description: apiutils.Of("Unicode test model with 中文, русский, 日本語, and emoji 🎯"),
+			Description: *openapi.NewNullableString(apiutils.Of("Unicode test model with 中文, русский, 日本語, and emoji 🎯")),
 			Owner:       apiutils.Of("用户-пользователь-ユーザー"),
 		}
 
@@ -174,7 +174,7 @@ func TestUpsertRegisteredModel(t *testing.T) {
 		require.NoError(t, err)
 		require.NotNil(t, result)
 		assert.Equal(t, unicodeName, result.Name)
-		assert.Equal(t, "Unicode test model with 中文, русский, 日本語, and emoji 🎯", *result.Description)
+		assert.Equal(t, "Unicode test model with 中文, русский, 日本語, and emoji 🎯", *result.Description.Get())
 		assert.Equal(t, "用户-пользователь-ユーザー", *result.Owner)
 		assert.NotNil(t, result.Id)
 	})
@@ -183,7 +183,7 @@ func TestUpsertRegisteredModel(t *testing.T) {
 		specialName := "test-model!@#$%^&*()_+-=[]{}|;':\",./<>?"
 		input := &openapi.RegisteredModel{
 			Name:        specialName,
-			Description: apiutils.Of("Model with special chars: !@#$%^&*()_+-=[]{}|;':\",./<>?"),
+			Description: *openapi.NewNullableString(apiutils.Of("Model with special chars: !@#$%^&*()_+-=[]{}|;':\",./<>?")),
 			ExternalId:  apiutils.Of("ext-id-with-special-chars_123!@#"),
 		}
 
@@ -192,7 +192,7 @@ func TestUpsertRegisteredModel(t *testing.T) {
 		require.NoError(t, err)
 		require.NotNil(t, result)
 		assert.Equal(t, specialName, result.Name)
-		assert.Equal(t, "Model with special chars: !@#$%^&*()_+-=[]{}|;':\",./<>?", *result.Description)
+		assert.Equal(t, "Model with special chars: !@#$%^&*()_+-=[]{}|;':\",./<>?", *result.Description.Get())
 		assert.Equal(t, "ext-id-with-special-chars_123!@#", *result.ExternalId)
 		assert.NotNil(t, result.Id)
 	})
@@ -201,7 +201,7 @@ func TestUpsertRegisteredModel(t *testing.T) {
 		mixedName := "模型-test!@#-тест_123-🚀"
 		input := &openapi.RegisteredModel{
 			Name:        mixedName,
-			Description: apiutils.Of("Mixed: 测试!@# русский_test 日本語-123 🎯"),
+			Description: *openapi.NewNullableString(apiutils.Of("Mixed: 测试!@# русский_test 日本語-123 🎯")),
 			Owner:       apiutils.Of("owner@domain.com-用户_123"),
 			ExternalId:  apiutils.Of("ext-混合_test!@#-123"),
 		}
@@ -211,7 +211,7 @@ func TestUpsertRegisteredModel(t *testing.T) {
 		require.NoError(t, err)
 		require.NotNil(t, result)
 		assert.Equal(t, mixedName, result.Name)
-		assert.Equal(t, "Mixed: 测试!@# русский_test 日本語-123 🎯", *result.Description)
+		assert.Equal(t, "Mixed: 测试!@# русский_test 日本語-123 🎯", *result.Description.Get())
 		assert.Equal(t, "owner@domain.com-用户_123", *result.Owner)
 		assert.Equal(t, "ext-混合_test!@#-123", *result.ExternalId)
 		assert.NotNil(t, result.Id)
@@ -223,7 +223,7 @@ func TestUpsertRegisteredModel(t *testing.T) {
 		for i := 0; i < 15; i++ {
 			input := &openapi.RegisteredModel{
 				Name:        fmt.Sprintf("paging-test-model-%02d", i),
-				Description: apiutils.Of(fmt.Sprintf("Test model %d for pagination", i)),
+				Description: *openapi.NewNullableString(apiutils.Of(fmt.Sprintf("Test model %d for pagination", i))),
 				ExternalId:  apiutils.Of(fmt.Sprintf("paging-ext-%02d", i)),
 			}
 
@@ -329,7 +329,7 @@ func TestGetRegisteredModelById(t *testing.T) {
 		// First create a model to retrieve
 		input := &openapi.RegisteredModel{
 			Name:        "get-test-model",
-			Description: apiutils.Of("Test description"),
+			Description: *openapi.NewNullableString(apiutils.Of("Test description")),
 			ExternalId:  apiutils.Of("get-ext-123"),
 			State:       apiutils.Of(openapi.REGISTEREDMODELSTATE_LIVE),
 		}
@@ -346,7 +346,7 @@ func TestGetRegisteredModelById(t *testing.T) {
 		assert.Equal(t, *created.Id, *result.Id)
 		assert.Equal(t, "get-test-model", result.Name)
 		assert.Equal(t, "get-ext-123", *result.ExternalId)
-		assert.Equal(t, "Test description", *result.Description)
+		assert.Equal(t, "Test description", *result.Description.Get())
 		assert.Equal(t, openapi.REGISTEREDMODELSTATE_LIVE, *result.State)
 	})
 
@@ -577,7 +577,7 @@ func TestRegisteredModelRoundTrip(t *testing.T) {
 		// Create a model with all fields
 		original := &openapi.RegisteredModel{
 			Name:        "roundtrip-model",
-			Description: apiutils.Of("Roundtrip test description"),
+			Description: *openapi.NewNullableString(apiutils.Of("Roundtrip test description")),
 			Owner:       apiutils.Of("roundtrip-owner"),
 			ExternalId:  apiutils.Of("roundtrip-ext-123"),
 			State:       apiutils.Of(openapi.REGISTEREDMODELSTATE_LIVE),
@@ -595,13 +595,13 @@ func TestRegisteredModelRoundTrip(t *testing.T) {
 		// Verify all fields match
 		assert.Equal(t, *created.Id, *retrieved.Id)
 		assert.Equal(t, original.Name, retrieved.Name)
-		assert.Equal(t, *original.Description, *retrieved.Description)
+		assert.Equal(t, *original.Description.Get(), *retrieved.Description.Get())
 		assert.Equal(t, *original.Owner, *retrieved.Owner)
 		assert.Equal(t, *original.ExternalId, *retrieved.ExternalId)
 		assert.Equal(t, *original.State, *retrieved.State)
 
 		// Update
-		retrieved.Description = apiutils.Of("Updated description")
+		retrieved.Description = *openapi.NewNullableString(apiutils.Of("Updated description"))
 		retrieved.State = apiutils.Of(openapi.REGISTEREDMODELSTATE_ARCHIVED)
 
 		updated, err := _service.UpsertRegisteredModel(retrieved)
@@ -609,13 +609,13 @@ func TestRegisteredModelRoundTrip(t *testing.T) {
 
 		// Verify update
 		assert.Equal(t, *created.Id, *updated.Id)
-		assert.Equal(t, "Updated description", *updated.Description)
+		assert.Equal(t, "Updated description", *updated.Description.Get())
 		assert.Equal(t, openapi.REGISTEREDMODELSTATE_ARCHIVED, *updated.State)
 
 		// Get again to verify persistence
 		final, err := _service.GetRegisteredModelById(*created.Id)
 		require.NoError(t, err)
-		assert.Equal(t, "Updated description", *final.Description)
+		assert.Equal(t, "Updated description", *final.Description.Get())
 		assert.Equal(t, openapi.REGISTEREDMODELSTATE_ARCHIVED, *final.State)
 	})
 }
@@ -631,7 +631,7 @@ func TestGetRegisteredModelsWithFilterQuery(t *testing.T) {
 		{
 			model: &openapi.RegisteredModel{
 				Name:        "pytorch-model-v1",
-				Description: apiutils.Of("PyTorch model for image classification"),
+				Description: *openapi.NewNullableString(apiutils.Of("PyTorch model for image classification")),
 				ExternalId:  apiutils.Of("ext-pytorch-001"),
 				State:       (*openapi.RegisteredModelState)(apiutils.Of("LIVE")),
 				CustomProperties: map[string]openapi.MetadataValue{
@@ -659,7 +659,7 @@ func TestGetRegisteredModelsWithFilterQuery(t *testing.T) {
 		{
 			model: &openapi.RegisteredModel{
 				Name:        "tensorflow-model-v2",
-				Description: apiutils.Of("TensorFlow model for NLP"),
+				Description: *openapi.NewNullableString(apiutils.Of("TensorFlow model for NLP")),
 				ExternalId:  apiutils.Of("ext-tf-002"),
 				State:       (*openapi.RegisteredModelState)(apiutils.Of("ARCHIVED")),
 				CustomProperties: map[string]openapi.MetadataValue{
@@ -687,7 +687,7 @@ func TestGetRegisteredModelsWithFilterQuery(t *testing.T) {
 		{
 			model: &openapi.RegisteredModel{
 				Name:        "pytorch-model-v2",
-				Description: apiutils.Of("PyTorch model for object detection"),
+				Description: *openapi.NewNullableString(apiutils.Of("PyTorch model for object detection")),
 				ExternalId:  apiutils.Of("ext-pytorch-003"),
 				CustomProperties: map[string]openapi.MetadataValue{
 					"framework": {
@@ -714,7 +714,7 @@ func TestGetRegisteredModelsWithFilterQuery(t *testing.T) {
 		{
 			model: &openapi.RegisteredModel{
 				Name:        "sklearn-model",
-				Description: apiutils.Of("Scikit-learn model for regression"),
+				Description: *openapi.NewNullableString(apiutils.Of("Scikit-learn model for regression")),
 				ExternalId:  apiutils.Of("ext-sklearn-004"),
 				CustomProperties: map[string]openapi.MetadataValue{
 					"framework": {
