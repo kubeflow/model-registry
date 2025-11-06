@@ -127,14 +127,22 @@ func (r *CatalogArtifactRepositoryImpl) List(listOptions models.CatalogArtifactL
 	nextPageToken := listOptions.GetNextPageToken()
 	pageSize := listOptions.GetPageSize()
 
-	pagination := &dbmodels.Pagination{
-		PageSize:      &pageSize,
-		OrderBy:       &orderBy,
-		SortOrder:     &sortOrder,
-		NextPageToken: &nextPageToken,
-	}
+	// Handle NAME ordering specially (catalog-specific) to avoid string-to-integer cast issues
+	if orderBy == "NAME" {
+		artifactTable := utils.GetTableName(query, &schema.Artifact{})
+		query = ApplyNameOrdering(query, artifactTable, sortOrder, nextPageToken, pageSize)
+	} else {
+		// For non-NAME ordering, use standard pagination
+		pagination := &dbmodels.Pagination{
+			PageSize:      &pageSize,
+			OrderBy:       &orderBy,
+			SortOrder:     &sortOrder,
+			NextPageToken: &nextPageToken,
+		}
 
-	query = query.Scopes(scopes.PaginateWithTablePrefix(artifactsArt, pagination, r.db, "Artifact"))
+		// Use catalog-specific allowed columns (includes NAME)
+		query = query.Scopes(scopes.PaginateWithOptions(artifactsArt, pagination, r.db, "Artifact", CatalogOrderByColumns))
+	}
 
 	if err := query.Find(&artifactsArt).Error; err != nil {
 		return nil, fmt.Errorf("error listing catalog artifacts: %w", err)
@@ -222,11 +230,7 @@ func (r *CatalogArtifactRepositoryImpl) createPaginationToken(artifact schema.Ar
 	case "LAST_UPDATE_TIME":
 		value = fmt.Sprintf("%d", artifact.LastUpdateTimeSinceEpoch)
 	case "NAME":
-		if artifact.Name != nil {
-			value = *artifact.Name
-		} else {
-			value = fmt.Sprintf("%d", artifact.ID) // Fallback to ID if name is nil
-		}
+		return CreateNamePaginationToken(artifact.ID, artifact.Name)
 	default:
 		// Default to ID ordering
 		value = fmt.Sprintf("%d", artifact.ID)

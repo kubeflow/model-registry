@@ -724,6 +724,200 @@ func TestCatalogModelRepository(t *testing.T) {
 			assert.NotEmpty(t, pageAsc.NextPageToken, "Should have next page token in ASC order when page is full")
 		}
 	})
+
+	t.Run("TestNameOrdering", func(t *testing.T) {
+		// Create test models with specific names for ordering
+		testModels := []string{
+			"zebra-model",
+			"alpha-model",
+			"beta-model",
+			"gamma-model",
+			"delta-model",
+		}
+
+		var savedModels []models.CatalogModel
+		for _, name := range testModels {
+			catalogModel := &models.CatalogModelImpl{
+				Attributes: &models.CatalogModelAttributes{
+					Name:       apiutils.Of(name),
+					ExternalID: apiutils.Of(name + "-ext"),
+				},
+			}
+
+			savedModel, err := repo.Save(catalogModel)
+			require.NoError(t, err)
+			savedModels = append(savedModels, savedModel)
+		}
+
+		// Test NAME ordering ASC
+		listOptions := models.CatalogModelListOptions{
+			Pagination: dbmodels.Pagination{
+				OrderBy:   apiutils.Of("NAME"),
+				SortOrder: apiutils.Of("ASC"),
+			},
+		}
+		result, err := repo.List(listOptions)
+		require.NoError(t, err)
+		require.NotNil(t, result)
+
+		// Extract our test model names from results
+		var foundNames []string
+		for _, model := range result.Items {
+			name := *model.GetAttributes().Name
+			if name == "zebra-model" || name == "alpha-model" || name == "beta-model" ||
+				name == "gamma-model" || name == "delta-model" {
+				foundNames = append(foundNames, name)
+			}
+		}
+
+		// Verify we found all our test models
+		require.GreaterOrEqual(t, len(foundNames), 5, "Should find all test models")
+
+		// Verify ASC ordering: alpha < beta < delta < gamma < zebra
+		alphaIdx := findIndex(foundNames, "alpha-model")
+		betaIdx := findIndex(foundNames, "beta-model")
+		deltaIdx := findIndex(foundNames, "delta-model")
+		gammaIdx := findIndex(foundNames, "gamma-model")
+		zebraIdx := findIndex(foundNames, "zebra-model")
+
+		require.NotEqual(t, -1, alphaIdx, "alpha-model not found")
+		require.NotEqual(t, -1, betaIdx, "beta-model not found")
+		require.NotEqual(t, -1, deltaIdx, "delta-model not found")
+		require.NotEqual(t, -1, gammaIdx, "gamma-model not found")
+		require.NotEqual(t, -1, zebraIdx, "zebra-model not found")
+
+		assert.Less(t, alphaIdx, betaIdx, "alpha should come before beta in ASC")
+		assert.Less(t, betaIdx, deltaIdx, "beta should come before delta in ASC")
+		assert.Less(t, deltaIdx, gammaIdx, "delta should come before gamma in ASC")
+		assert.Less(t, gammaIdx, zebraIdx, "gamma should come before zebra in ASC")
+
+		// Test NAME ordering DESC
+		listOptions = models.CatalogModelListOptions{
+			Pagination: dbmodels.Pagination{
+				OrderBy:   apiutils.Of("NAME"),
+				SortOrder: apiutils.Of("DESC"),
+			},
+		}
+		result, err = repo.List(listOptions)
+		require.NoError(t, err)
+		require.NotNil(t, result)
+
+		// Extract our test model names from DESC results
+		foundNames = []string{}
+		for _, model := range result.Items {
+			name := *model.GetAttributes().Name
+			if name == "zebra-model" || name == "alpha-model" || name == "beta-model" ||
+				name == "gamma-model" || name == "delta-model" {
+				foundNames = append(foundNames, name)
+			}
+		}
+
+		// Verify DESC ordering: zebra > gamma > delta > beta > alpha
+		alphaIdxDesc := findIndex(foundNames, "alpha-model")
+		betaIdxDesc := findIndex(foundNames, "beta-model")
+		deltaIdxDesc := findIndex(foundNames, "delta-model")
+		gammaIdxDesc := findIndex(foundNames, "gamma-model")
+		zebraIdxDesc := findIndex(foundNames, "zebra-model")
+
+		assert.Less(t, zebraIdxDesc, gammaIdxDesc, "zebra should come before gamma in DESC")
+		assert.Less(t, gammaIdxDesc, deltaIdxDesc, "gamma should come before delta in DESC")
+		assert.Less(t, deltaIdxDesc, betaIdxDesc, "delta should come before beta in DESC")
+		assert.Less(t, betaIdxDesc, alphaIdxDesc, "beta should come before alpha in DESC")
+	})
+
+	t.Run("TestNameOrderingPagination", func(t *testing.T) {
+		// Create models with sequential names for pagination testing
+		testModels := []string{
+			"page-test-model-01",
+			"page-test-model-02",
+			"page-test-model-03",
+			"page-test-model-04",
+			"page-test-model-05",
+		}
+
+		for _, name := range testModels {
+			catalogModel := &models.CatalogModelImpl{
+				Attributes: &models.CatalogModelAttributes{
+					Name:       apiutils.Of(name),
+					ExternalID: apiutils.Of(name + "-ext"),
+				},
+			}
+
+			_, err := repo.Save(catalogModel)
+			require.NoError(t, err)
+		}
+
+		// Test pagination with NAME ordering
+		listOptions := models.CatalogModelListOptions{
+			Pagination: dbmodels.Pagination{
+				OrderBy:   apiutils.Of("NAME"),
+				SortOrder: apiutils.Of("ASC"),
+				PageSize:  apiutils.Of(int32(2)),
+			},
+		}
+
+		// Collect all our test models across pages
+		var allPaginatedModels []string
+		var pageCount int
+		currentToken := (*string)(nil)
+
+		for {
+			pageCount++
+			if currentToken != nil {
+				listOptions.Pagination.NextPageToken = currentToken
+			}
+
+			page, err := repo.List(listOptions)
+			require.NoError(t, err)
+			require.NotNil(t, page)
+			assert.Equal(t, int32(2), page.PageSize)
+
+			// Filter to only include our test models
+			for _, model := range page.Items {
+				name := *model.GetAttributes().Name
+				if strings.HasPrefix(name, "page-test-model-") {
+					allPaginatedModels = append(allPaginatedModels, name)
+				}
+			}
+
+			// Stop if no more pages or we've collected all our test models
+			if page.NextPageToken == "" || len(allPaginatedModels) >= 5 {
+				if page.NextPageToken == "" {
+					t.Logf("NAME pagination completed in %d pages", pageCount)
+				}
+				break
+			}
+			currentToken = &page.NextPageToken
+
+			// Safety check to prevent infinite loop
+			if pageCount > 10 {
+				t.Fatal("Too many pages, might be an infinite loop")
+			}
+		}
+
+		// Verify we collected all our test models
+		assert.GreaterOrEqual(t, len(allPaginatedModels), 5, "Should have found all page-test models")
+
+		// Verify ordering is maintained across pages
+		expectedOrder := []string{
+			"page-test-model-01",
+			"page-test-model-02",
+			"page-test-model-03",
+			"page-test-model-04",
+			"page-test-model-05",
+		}
+
+		// Verify our test models appear in correct order
+		lastIndex := -1
+		for _, expectedModel := range expectedOrder {
+			foundIndex := findIndex(allPaginatedModels, expectedModel)
+			assert.NotEqual(t, -1, foundIndex, "Should find model %s", expectedModel)
+			if foundIndex != -1 {
+				assert.Greater(t, foundIndex, lastIndex, "Model %s should appear after previous models", expectedModel)
+				lastIndex = foundIndex
+			}
+		}
+	})
 }
 
 // Helper function to get or create CatalogModel type ID

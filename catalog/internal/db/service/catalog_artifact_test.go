@@ -375,4 +375,293 @@ func TestCatalogArtifactRepository(t *testing.T) {
 		require.Error(t, err)
 		assert.Contains(t, err.Error(), "invalid catalog artifact type")
 	})
+
+	t.Run("TestNameOrdering", func(t *testing.T) {
+		// Create a new model for this test
+		testModel := &models.CatalogModelImpl{
+			TypeID: apiutils.Of(int32(catalogModelTypeID)),
+			Attributes: &models.CatalogModelAttributes{
+				Name:       apiutils.Of("test-model-for-name-ordering"),
+				ExternalID: apiutils.Of("test-model-name-ordering-ext"),
+			},
+		}
+		savedTestModel, err := catalogModelRepo.Save(testModel)
+		require.NoError(t, err)
+
+		// Create artifacts with various names (including null)
+		testArtifacts := []struct {
+			name *string
+			desc string
+		}{
+			{apiutils.Of("zebra-artifact"), "zebra"},
+			{apiutils.Of("alpha-artifact"), "alpha"},
+			{apiutils.Of("beta-artifact"), "beta"},
+			{nil, "null-name"}, // Artifact with no name (like real model artifacts)
+			{apiutils.Of("gamma-artifact"), "gamma"},
+		}
+
+		for _, artifact := range testArtifacts {
+			metricsArtifact := &models.CatalogMetricsArtifactImpl{
+				TypeID: apiutils.Of(int32(metricsArtifactTypeID)),
+				Attributes: &models.CatalogMetricsArtifactAttributes{
+					Name:         artifact.name,
+					ExternalID:   apiutils.Of(fmt.Sprintf("name-test-%s", artifact.desc)),
+					MetricsType:  models.MetricsTypePerformance,
+					ArtifactType: apiutils.Of("metrics-artifact"),
+				},
+			}
+			_, err := metricsArtifactRepo.Save(metricsArtifact, savedTestModel.GetID())
+			require.NoError(t, err)
+		}
+
+		// Test NAME ordering ASC
+		listOptions := models.CatalogArtifactListOptions{
+			ParentResourceID: savedTestModel.GetID(),
+			Pagination: dbmodels.Pagination{
+				OrderBy:   apiutils.Of("NAME"),
+				SortOrder: apiutils.Of("ASC"),
+			},
+		}
+		result, err := repo.List(listOptions)
+		require.NoError(t, err)
+		require.NotNil(t, result)
+
+		// Extract artifact names (including nulls)
+		var foundArtifacts []struct {
+			name *string
+			desc string
+		}
+		for _, artifact := range result.Items {
+			if artifact.CatalogMetricsArtifact != nil {
+				name := artifact.CatalogMetricsArtifact.GetAttributes().Name
+				foundArtifacts = append(foundArtifacts, struct {
+					name *string
+					desc string
+				}{name, fmt.Sprintf("%v", name)})
+			}
+		}
+
+		require.GreaterOrEqual(t, len(foundArtifacts), 5, "Should find all test artifacts")
+
+		// Find positions of named artifacts
+		var alphaIdx, betaIdx, gammaIdx, zebraIdx, nullIdx int = -1, -1, -1, -1, -1
+		for i, artifact := range foundArtifacts {
+			if artifact.name != nil {
+				switch *artifact.name {
+				case "alpha-artifact":
+					alphaIdx = i
+				case "beta-artifact":
+					betaIdx = i
+				case "gamma-artifact":
+					gammaIdx = i
+				case "zebra-artifact":
+					zebraIdx = i
+				}
+			} else {
+				nullIdx = i
+			}
+		}
+
+		// Verify ASC ordering: alpha < beta < gamma < zebra, and null at the end
+		require.NotEqual(t, -1, alphaIdx, "alpha-artifact not found")
+		require.NotEqual(t, -1, betaIdx, "beta-artifact not found")
+		require.NotEqual(t, -1, gammaIdx, "gamma-artifact not found")
+		require.NotEqual(t, -1, zebraIdx, "zebra-artifact not found")
+		require.NotEqual(t, -1, nullIdx, "null-name artifact not found")
+
+		assert.Less(t, alphaIdx, betaIdx, "alpha should come before beta in ASC")
+		assert.Less(t, betaIdx, gammaIdx, "beta should come before gamma in ASC")
+		assert.Less(t, gammaIdx, zebraIdx, "gamma should come before zebra in ASC")
+		assert.Less(t, zebraIdx, nullIdx, "named artifacts should come before null in ASC")
+
+		// Test NAME ordering DESC
+		listOptions = models.CatalogArtifactListOptions{
+			ParentResourceID: savedTestModel.GetID(),
+			Pagination: dbmodels.Pagination{
+				OrderBy:   apiutils.Of("NAME"),
+				SortOrder: apiutils.Of("DESC"),
+			},
+		}
+		result, err = repo.List(listOptions)
+		require.NoError(t, err)
+		require.NotNil(t, result)
+
+		// Extract artifact names from DESC results
+		foundArtifacts = []struct {
+			name *string
+			desc string
+		}{}
+		for _, artifact := range result.Items {
+			if artifact.CatalogMetricsArtifact != nil {
+				name := artifact.CatalogMetricsArtifact.GetAttributes().Name
+				foundArtifacts = append(foundArtifacts, struct {
+					name *string
+					desc string
+				}{name, fmt.Sprintf("%v", name)})
+			}
+		}
+
+		// Find positions in DESC order
+		alphaIdx, betaIdx, gammaIdx, zebraIdx, nullIdx = -1, -1, -1, -1, -1
+		for i, artifact := range foundArtifacts {
+			if artifact.name != nil {
+				switch *artifact.name {
+				case "alpha-artifact":
+					alphaIdx = i
+				case "beta-artifact":
+					betaIdx = i
+				case "gamma-artifact":
+					gammaIdx = i
+				case "zebra-artifact":
+					zebraIdx = i
+				}
+			} else {
+				nullIdx = i
+			}
+		}
+
+		// Verify DESC ordering: In SQL DESC, NULL comes first, then zebra > gamma > beta > alpha
+		assert.Less(t, nullIdx, zebraIdx, "null should come first in DESC (SQL default behavior)")
+		assert.Less(t, zebraIdx, gammaIdx, "zebra should come before gamma in DESC")
+		assert.Less(t, gammaIdx, betaIdx, "gamma should come before beta in DESC")
+		assert.Less(t, betaIdx, alphaIdx, "beta should come before alpha in DESC")
+	})
+
+	t.Run("TestNameOrderingPagination", func(t *testing.T) {
+		// Create a new model for this test
+		testModel := &models.CatalogModelImpl{
+			TypeID: apiutils.Of(int32(catalogModelTypeID)),
+			Attributes: &models.CatalogModelAttributes{
+				Name:       apiutils.Of("test-model-for-name-pagination"),
+				ExternalID: apiutils.Of("test-model-name-pagination-ext"),
+			},
+		}
+		savedTestModel, err := catalogModelRepo.Save(testModel)
+		require.NoError(t, err)
+
+		// Create artifacts with sequential names for pagination testing
+		artifactNames := []string{
+			"artifact-alpha",
+			"artifact-beta",
+			"artifact-gamma",
+			"artifact-delta",
+			"artifact-epsilon",
+		}
+
+		for i, name := range artifactNames {
+			metricsArtifact := &models.CatalogMetricsArtifactImpl{
+				TypeID: apiutils.Of(int32(metricsArtifactTypeID)),
+				Attributes: &models.CatalogMetricsArtifactAttributes{
+					Name:         apiutils.Of(name),
+					ExternalID:   apiutils.Of(fmt.Sprintf("pagination-test-%d", i)),
+					MetricsType:  models.MetricsTypePerformance,
+					ArtifactType: apiutils.Of("metrics-artifact"),
+				},
+			}
+			_, err := metricsArtifactRepo.Save(metricsArtifact, savedTestModel.GetID())
+			require.NoError(t, err)
+		}
+
+		// Test pagination with NAME ordering (ASC)
+		pageSize := int32(2)
+		listOptions := models.CatalogArtifactListOptions{
+			ParentResourceID: savedTestModel.GetID(),
+			Pagination: dbmodels.Pagination{
+				OrderBy:   apiutils.Of("NAME"),
+				SortOrder: apiutils.Of("ASC"),
+				PageSize:  &pageSize,
+			},
+		}
+
+		// First page
+		result, err := repo.List(listOptions)
+		require.NoError(t, err)
+		require.NotNil(t, result)
+
+		// Filter to only our test artifacts
+		var page1Artifacts []string
+		for _, artifact := range result.Items {
+			if artifact.CatalogMetricsArtifact != nil && artifact.CatalogMetricsArtifact.GetAttributes().Name != nil {
+				name := *artifact.CatalogMetricsArtifact.GetAttributes().Name
+				if name == "artifact-alpha" || name == "artifact-beta" || name == "artifact-gamma" || name == "artifact-delta" || name == "artifact-epsilon" {
+					page1Artifacts = append(page1Artifacts, name)
+				}
+			}
+		}
+
+		require.LessOrEqual(t, len(page1Artifacts), 2, "First page should have at most 2 artifacts")
+		require.GreaterOrEqual(t, len(page1Artifacts), 1, "First page should have at least 1 artifact")
+		assert.NotNil(t, result.NextPageToken, "Should have next page token")
+
+		// Verify first page ordering
+		if len(page1Artifacts) >= 2 {
+			assert.Less(t, page1Artifacts[0], page1Artifacts[1], "First page should be ordered")
+		}
+
+		// Second page
+		listOptions.Pagination.NextPageToken = &result.NextPageToken
+		result2, err := repo.List(listOptions)
+		require.NoError(t, err)
+		require.NotNil(t, result2)
+
+		var page2Artifacts []string
+		for _, artifact := range result2.Items {
+			if artifact.CatalogMetricsArtifact != nil && artifact.CatalogMetricsArtifact.GetAttributes().Name != nil {
+				name := *artifact.CatalogMetricsArtifact.GetAttributes().Name
+				if name == "artifact-alpha" || name == "artifact-beta" || name == "artifact-gamma" || name == "artifact-delta" || name == "artifact-epsilon" {
+					page2Artifacts = append(page2Artifacts, name)
+				}
+			}
+		}
+
+		require.GreaterOrEqual(t, len(page2Artifacts), 1, "Second page should have at least 1 artifact")
+
+		// Verify second page ordering
+		if len(page2Artifacts) >= 2 {
+			assert.Less(t, page2Artifacts[0], page2Artifacts[1], "Second page should be ordered")
+		}
+
+		// Verify no overlap between pages
+		for _, name1 := range page1Artifacts {
+			for _, name2 := range page2Artifacts {
+				assert.NotEqual(t, name1, name2, "Pages should not have overlapping artifacts")
+			}
+		}
+
+		// Verify page 2 comes after page 1
+		if len(page1Artifacts) > 0 && len(page2Artifacts) > 0 {
+			assert.Less(t, page1Artifacts[len(page1Artifacts)-1], page2Artifacts[0], "Page 2 should continue where page 1 ended")
+		}
+
+		// Test DESC pagination
+		listOptions = models.CatalogArtifactListOptions{
+			ParentResourceID: savedTestModel.GetID(),
+			Pagination: dbmodels.Pagination{
+				OrderBy:   apiutils.Of("NAME"),
+				SortOrder: apiutils.Of("DESC"),
+				PageSize:  &pageSize,
+			},
+		}
+
+		resultDesc, err := repo.List(listOptions)
+		require.NoError(t, err)
+		require.NotNil(t, resultDesc)
+
+		var pageDescArtifacts []string
+		for _, artifact := range resultDesc.Items {
+			if artifact.CatalogMetricsArtifact != nil && artifact.CatalogMetricsArtifact.GetAttributes().Name != nil {
+				name := *artifact.CatalogMetricsArtifact.GetAttributes().Name
+				if name == "artifact-alpha" || name == "artifact-beta" || name == "artifact-gamma" || name == "artifact-delta" || name == "artifact-epsilon" {
+					pageDescArtifacts = append(pageDescArtifacts, name)
+				}
+			}
+		}
+
+		require.GreaterOrEqual(t, len(pageDescArtifacts), 1, "DESC first page should have at least 1 artifact")
+
+		// Verify DESC ordering
+		if len(pageDescArtifacts) >= 2 {
+			assert.Greater(t, pageDescArtifacts[0], pageDescArtifacts[1], "DESC page should be reverse ordered")
+		}
+	})
 }
