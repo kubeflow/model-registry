@@ -7,14 +7,14 @@ import (
 	"strings"
 
 	"github.com/julienschmidt/httprouter"
+	catalogOpenapi "github.com/kubeflow/model-registry/catalog/pkg/openapi"
 	"github.com/kubeflow/model-registry/ui/bff/internal/constants"
 	"github.com/kubeflow/model-registry/ui/bff/internal/integrations/httpclient"
-	"github.com/kubeflow/model-registry/ui/bff/internal/models"
 )
 
-type CatalogSourceListEnvelope Envelope[*models.CatalogSourceList, None]
-type CatalogModelEnvelope Envelope[*models.CatalogModel, None]
-type catalogModelArtifactsListEnvelope Envelope[*models.CatalogModelArtifactList, None]
+type CatalogSourceListEnvelope Envelope[*catalogOpenapi.CatalogSourceList, None]
+type CatalogModelEnvelope Envelope[*catalogOpenapi.CatalogModel, None]
+type catalogModelArtifactsListEnvelope Envelope[*catalogOpenapi.CatalogArtifactList, None]
 
 func (app *App) GetAllCatalogSourcesHandler(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 	client, ok := r.Context().Value(constants.ModelCatalogHttpClientKey).(httpclient.HTTPClientInterface)

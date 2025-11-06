@@ -8,9 +8,9 @@ import (
 
 	"github.com/brianvoe/gofakeit/v7"
 	"github.com/google/uuid"
+	catalogOpenapi "github.com/kubeflow/model-registry/catalog/pkg/openapi"
 	"github.com/kubeflow/model-registry/pkg/openapi"
 	"github.com/kubeflow/model-registry/ui/bff/internal/constants"
-	"github.com/kubeflow/model-registry/ui/bff/internal/models"
 )
 
 func GetRegisteredModelMocks() []openapi.RegisteredModel {
@@ -223,52 +223,52 @@ func newCustomProperties() *map[string]openapi.MetadataValue {
 	return &result
 }
 
-func catalogCustomProperties() *map[string]openapi.MetadataValue {
-	result := map[string]openapi.MetadataValue{
+func catalogCustomProperties() *map[string]catalogOpenapi.MetadataValue {
+	result := map[string]catalogOpenapi.MetadataValue{
 		"tensorflow": {
-			MetadataStringValue: &openapi.MetadataStringValue{
+			MetadataStringValue: &catalogOpenapi.MetadataStringValue{
 				StringValue:  "",
 				MetadataType: "MetadataStringValue",
 			},
 		},
 		"pytorch": {
-			MetadataStringValue: &openapi.MetadataStringValue{
+			MetadataStringValue: &catalogOpenapi.MetadataStringValue{
 				StringValue:  "",
 				MetadataType: "MetadataStringValue",
 			},
 		},
 		"mll": {
-			MetadataStringValue: &openapi.MetadataStringValue{
+			MetadataStringValue: &catalogOpenapi.MetadataStringValue{
 				StringValue:  "",
 				MetadataType: "MetadataStringValue",
 			},
 		},
 		"rnn": {
-			MetadataStringValue: &openapi.MetadataStringValue{
+			MetadataStringValue: &catalogOpenapi.MetadataStringValue{
 				StringValue:  "",
 				MetadataType: "MetadataStringValue",
 			},
 		},
 		"validated": {
-			MetadataStringValue: &openapi.MetadataStringValue{
+			MetadataStringValue: &catalogOpenapi.MetadataStringValue{
 				StringValue:  "",
 				MetadataType: "MetadataStringValue",
 			},
 		},
 		"validated_on": {
-			MetadataStringValue: &openapi.MetadataStringValue{
+			MetadataStringValue: &catalogOpenapi.MetadataStringValue{
 				StringValue:  "RHOAI 2.20,RHAIIS 3.0,RHELAI 1.5",
 				MetadataType: "MetadataStringValue",
 			},
 		},
 		"AWS_KEY": {
-			MetadataStringValue: &openapi.MetadataStringValue{
+			MetadataStringValue: &catalogOpenapi.MetadataStringValue{
 				StringValue:  "asdf89asdf098asdfa",
 				MetadataType: "MetadataStringValue",
 			},
 		},
 		"AWS_PASSWORD": {
-			MetadataStringValue: &openapi.MetadataStringValue{
+			MetadataStringValue: &catalogOpenapi.MetadataStringValue{
 				StringValue:  "*AadfeDs34adf",
 				MetadataType: "MetadataStringValue",
 			},
@@ -318,8 +318,8 @@ func GenerateMockArtifact() openapi.Artifact {
 	return mockData
 }
 
-func GetCatalogModelMocks() []models.CatalogModel {
-	sampleModel1 := models.CatalogModel{
+func GetCatalogModelMocks() []catalogOpenapi.CatalogModel {
+	sampleModel1 := catalogOpenapi.CatalogModel{
 		Name:             "repo1/granite-8b-code-instruct",
 		Description:      stringToPointer("Granite-8B-Code-Instruct is a 8B parameter model fine tuned from\nGranite-8B-Code-Base on a combination of permissively licensed instruction\ndata to enhance instruction following capabilities including logical\nreasoning and problem-solving skills."),
 		Provider:         stringToPointer("provider1"),
@@ -673,7 +673,7 @@ Granite 3.1 Instruct Models are primarily finetuned using instruction-response p
 		LastUpdateTimeSinceEpoch: stringToPointer("1704067200000"),
 	}
 
-	sampleModel2 := models.CatalogModel{
+	sampleModel2 := catalogOpenapi.CatalogModel{
 		Name:             "repo1/granite-7b-instruct",
 		Description:      stringToPointer("Granite 7B instruction-tuned model for enterprise applications"),
 		Provider:         stringToPointer("Red Hat"),
@@ -682,11 +682,11 @@ Granite 3.1 Instruct Models are primarily finetuned using instruction-response p
 		Maturity:         stringToPointer("Generally Available"),
 		Language:         []string{"en"},
 		SourceId:         stringToPointer("sample-source"),
-		CustomProperties: newCustomProperties(),
+		CustomProperties: catalogCustomProperties(),
 		Logo:             stringToPointer("data:image/svg+xml;base64,PHN2ZyBpZD0iTGF5ZXJfMSIgZGF0YS1uYW1lPSJMYXllciAxIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxOTIgMTQ1Ij48ZGVmcz48c3R5bGU+LmNscy0xe2ZpbGw6I2UwMDt9PC9zdHlsZT48L2RlZnM+PHRpdGxlPlJlZEhhdC1Mb2dvLUhhdC1Db2xvcjwvdGl0bGU+PHBhdGggZD0iTTE1Ny43Nyw2Mi42MWExNCwxNCwwLDAsMSwuMzEsMy40MmMwLDE0Ljg4LTE4LjEsMTcuNDYtMzAuNjEsMTcuNDZDNzguODMsODMuNDksNDIuNTMsNTMuMjYsNDIuNTMsNDRhNi40Myw2LjQzLDAsMCwxLC4yMi0xLjk0bC0zLjY2LDkuMDZhMTguNDUsMTguNDUsMCwwLDAtMS41MSw3LjMzYzAsMTguMTEsNDEsNDUuNDgsODcuNzQsNDUuNDgsMjAuNjksMCwzNi40My03Ljc2LDM2LjQzLTIxLjc3LDAtMS4wOCwwLTEuOTQtMS43My0xMC4xM1oiLz48cGF0aCBjbGFzcz0iY2xzLTEiIGQ9Ik0xMjcuNDcsODMuNDljMTIuNTEsMCwzMC42MS0yLjU4LDMwLjYxLTE3LjQ2YTE0LDE0LDAsMCwwLS4zMS0zLjQybC03LjQ1LTMyLjM2Yy0xLjcyLTcuMTItMy4yMy0xMC4zNS0xNS43My0xNi42QzEyNC44OSw4LjY5LDEwMy43Ni41LDk3LjUxLjUsOTEuNjkuNSw5MCw4LDgzLjA2LDhjLTYuNjgsMC0xMS42NC01LjYtMTcuODktNS42LTYsMC05LjkxLDQuMDktMTIuOTMsMTIuNSwwLDAtOC40MSwyMy43Mi05LjQ5LDI3LjE2QTYuNDMsNi40MywwLDAsMCw0Mi41Myw0NGMwLDkuMjIsMzYuMywzOS40NSw4NC45NCwzOS40NU0xNjAsNzIuMDdjMS43Myw4LjE5LDEuNzMsOS4wNSwxLjczLDEwLjEzLDAsMTQtMTUuNzQsMjEuNzctMzYuNDMsMjEuNzdDNzguNTQsMTA0LDM3LjU4LDc2LjYsMzcuNTgsNTguNDlhMTguNDUsMTguNDUsMCwwLDEsMS41MS03LjMzQzIyLjI3LDUyLC41LDU1LC41LDc0LjIyYzAsMzEuNDgsNzQuNTksNzAuMjgsMTMzLjY1LDcwLjI4LDQ1LjI4LDAsNTYuNy0yMC40OCw1Ni43LTM2LjY1LDAtMTIuNzItMTEtMjcuMTYtMzAuODMtMzUuNzgiLz48L3N2Zz4="),
 	}
 
-	sampleModel3 := models.CatalogModel{
+	sampleModel3 := catalogOpenapi.CatalogModel{
 		Name:             "repo1/granite-3b-code-base",
 		Description:      stringToPointer("Granite 3B code generation model for programming tasks"),
 		Provider:         stringToPointer("IBM"),
@@ -699,7 +699,7 @@ Granite 3.1 Instruct Models are primarily finetuned using instruction-response p
 		Logo:             stringToPointer("data:image/svg+xml;base64,PHN2ZyBpZD0iTGF5ZXJfMSIgZGF0YS1uYW1lPSJMYXllciAxIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxOTIgMTQ1Ij48ZGVmcz48c3R5bGU+LmNscy0xe2ZpbGw6I2UwMDt9PC9zdHlsZT48L2RlZnM+PHRpdGxlPlJlZEhhdC1Mb2dvLUhhdC1Db2xvcjwvdGl0bGU+PHBhdGggZD0iTTE1Ny43Nyw2Mi42MWExNCwxNCwwLDAsMSwuMzEsMy40MmMwLDE0Ljg4LTE4LjEsMTcuNDYtMzAuNjEsMTcuNDZDNzguODMsODMuNDksNDIuNTMsNTMuMjYsNDIuNTMsNDRhNi40Myw2LjQzLDAsMCwxLC4yMi0xLjk0bC0zLjY2LDkuMDZhMTguNDUsMTguNDUsMCwwLDAtMS41MSw3LjMzYzAsMTguMTEsNDEsNDUuNDgsODcuNzQsNDUuNDgsMjAuNjksMCwzNi40My03Ljc2LDM2LjQzLTIxLjc3LDAtMS4wOCwwLTEuOTQtMS43My0xMC4xM1oiLz48cGF0aCBjbGFzcz0iY2xzLTEiIGQ9Ik0xMjcuNDcsODMuNDljMTIuNTEsMCwzMC42MS0yLjU4LDMwLjYxLTE3LjQ2YTE0LDE0LDAsMCwwLS4zMS0zLjQybC03LjQ1LTMyLjM2Yy0xLjcyLTcuMTItMy4yMy0xMC4zNS0xNS43My0xNi42QzEyNC44OSw4LjY5LDEwMy43Ni41LDk3LjUxLjUsOTEuNjkuNSw5MCw4LDgzLjA2LDhjLTYuNjgsMC0xMS42NC01LjYtMTcuODktNS42LTYsMC05LjkxLDQuMDktMTIuOTMsMTIuNSwwLDAtOC40MSwyMy43Mi05LjQ5LDI3LjE2QTYuNDMsNi40MywwLDAsMCw0Mi41Myw0NGMwLDkuMjIsMzYuMywzOS40NSw4NC45NCwzOS40NU0xNjAsNzIuMDdjMS43Myw4LjE5LDEuNzMsOS4wNSwxLjczLDEwLjEzLDAsMTQtMTUuNzQsMjEuNzctMzYuNDMsMjEuNzdDNzguNTQsMTA0LDM3LjU4LDc2LjYsMzcuNTgsNTguNDlhMTguNDUsMTguNDUsMCwwLDEsMS41MS03LjMzQzIyLjI3LDUyLC41LDU1LC41LDc0LjIyYzAsMzEuNDgsNzQuNTksNzAuMjgsMTMzLjY1LDcwLjI4LDQ1LjI4LDAsNTYuNy0yMC40OCw1Ni43LTM2LjY1LDAtMTIuNzItMTEtMjcuMTYtMzAuODMtMzUuNzgiLz48L3N2Zz4="),
 	}
 
-	huggingFaceModel1 := models.CatalogModel{
+	huggingFaceModel1 := catalogOpenapi.CatalogModel{
 		Name:        "provider2/bert-base-uncased",
 		Description: stringToPointer("BERT base model (uncased) - Pretrained model on English language"),
 		Provider:    stringToPointer("Google"),
@@ -711,7 +711,7 @@ Granite 3.1 Instruct Models are primarily finetuned using instruction-response p
 		LibraryName: stringToPointer("transformers"),
 	}
 
-	huggingFaceModel2 := models.CatalogModel{
+	huggingFaceModel2 := catalogOpenapi.CatalogModel{
 		Name:        "provider3/gpt2",
 		Description: stringToPointer("GPT-2 is a transformers model pretrained on a very large corpus of English data"),
 		Provider:    stringToPointer("provider3"),
@@ -723,7 +723,7 @@ Granite 3.1 Instruct Models are primarily finetuned using instruction-response p
 		LibraryName: stringToPointer("transformers"),
 	}
 
-	huggingFaceModel3 := models.CatalogModel{
+	huggingFaceModel3 := catalogOpenapi.CatalogModel{
 		Name:        "huggingface/distilbert-base-uncased",
 		Description: stringToPointer("DistilBERT base model (uncased) - A smaller, faster version of BERT"),
 		Provider:    stringToPointer("Hugging Face"),
@@ -735,7 +735,7 @@ Granite 3.1 Instruct Models are primarily finetuned using instruction-response p
 		LibraryName: stringToPointer("transformers"),
 	}
 
-	otherModel1 := models.CatalogModel{
+	otherModel1 := catalogOpenapi.CatalogModel{
 		Name:        "adminModel2/admin-model-1",
 		Description: stringToPointer("sample description"),
 		Provider:    stringToPointer("Admin model 1"),
@@ -746,7 +746,7 @@ Granite 3.1 Instruct Models are primarily finetuned using instruction-response p
 		SourceId:    stringToPointer("adminModel2"),
 	}
 
-	otherModel2 := models.CatalogModel{
+	otherModel2 := catalogOpenapi.CatalogModel{
 		Name:        "adminModel1/admin-model-2",
 		Description: stringToPointer("sample description"),
 		Provider:    stringToPointer("Admin model 2"),
@@ -758,9 +758,9 @@ Granite 3.1 Instruct Models are primarily finetuned using instruction-response p
 	}
 
 	// added this to test the load more models button
-	var additionalRepo1Models []models.CatalogModel
+	var additionalRepo1Models []catalogOpenapi.CatalogModel
 	for i := 1; i <= 20; i++ {
-		model := models.CatalogModel{
+		model := catalogOpenapi.CatalogModel{
 			Name:                     fmt.Sprintf("repo1/granite-model-%d", i),
 			Description:              stringToPointer("Granite-8B-Code-Instruct is a 8B parameter model fine tuned from\nGranite-8B-Code-Base on a combination of permissively licensed instruction\ndata to enhance instruction following capabilities including logical\nreasoning and problem-solving skills."),
 			Provider:                 stringToPointer("provider1"),
@@ -774,12 +774,12 @@ Granite 3.1 Instruct Models are primarily finetuned using instruction-response p
 			LibraryName:              stringToPointer("transformers"),
 			CreateTimeSinceEpoch:     stringToPointer("1693526400000"),
 			LastUpdateTimeSinceEpoch: stringToPointer("1704067200000"),
-			CustomProperties:         newCustomProperties(),
+			CustomProperties:         catalogCustomProperties(),
 		}
 		additionalRepo1Models = append(additionalRepo1Models, model)
 	}
 
-	allModels := []models.CatalogModel{
+	allModels := []catalogOpenapi.CatalogModel{
 		sampleModel1, sampleModel2, sampleModel3,
 		huggingFaceModel1, huggingFaceModel2, huggingFaceModel3,
 		otherModel1, otherModel2,
@@ -789,10 +789,10 @@ Granite 3.1 Instruct Models are primarily finetuned using instruction-response p
 	return allModels
 }
 
-func GetCatalogModelListMock() models.CatalogModelList {
+func GetCatalogModelListMock() catalogOpenapi.CatalogModelList {
 	allModels := GetCatalogModelMocks()
 
-	return models.CatalogModelList{
+	return catalogOpenapi.CatalogModelList{
 		Items:         allModels,
 		Size:          int32(len(allModels)),
 		PageSize:      int32(10),
@@ -800,10 +800,10 @@ func GetCatalogModelListMock() models.CatalogModelList {
 	}
 }
 
-func GetCatalogSourceMocks() []models.CatalogSource {
+func GetCatalogSourceMocks() []catalogOpenapi.CatalogSource {
 	enabled := true
 	disabled := false
-	return []models.CatalogSource{
+	return []catalogOpenapi.CatalogSource{
 		{
 			Id:      "sample-source",
 			Name:    "Sample mocked source",
@@ -841,10 +841,10 @@ func GetCatalogSourceMocks() []models.CatalogSource {
 	}
 }
 
-func GetCatalogSourceListMock() models.CatalogSourceList {
+func GetCatalogSourceListMock() catalogOpenapi.CatalogSourceList {
 	allSources := GetCatalogSourceMocks()
 
-	return models.CatalogSourceList{
+	return catalogOpenapi.CatalogSourceList{
 		Items:         allSources,
 		Size:          int32(len(allSources)),
 		PageSize:      int32(10),
@@ -852,208 +852,211 @@ func GetCatalogSourceListMock() models.CatalogSourceList {
 	}
 }
 
-func GetCatalogModelArtifactMock() []models.CatalogArtifact {
-	return []models.CatalogArtifact{
-		{
-			ArtifactType:         *stringToPointer("model-artifact"),
-			Uri:                  stringToPointer("oci://registry.sample.io/repo1/modelcar-granite-7b-starter:1.4.0"),
-			CreateTimeSinceEpoch: stringToPointer("1693526400000"),
+func GetCatalogModelArtifactMock() []catalogOpenapi.CatalogArtifact {
+	modelArtifact := &catalogOpenapi.CatalogModelArtifact{
+		ArtifactType:             "model-artifact",
+		Uri:                      "oci://registry.sample.io/repo1/modelcar-granite-7b-starter:1.4.0",
+		CreateTimeSinceEpoch:     stringToPointer("1693526400000"),
+		LastUpdateTimeSinceEpoch: stringToPointer("1704067200000"),
+		CustomProperties:         catalogCustomProperties(),
+	}
 
-			LastUpdateTimeSinceEpoch: stringToPointer("1704067200000"),
-			CustomProperties:         newCustomProperties(),
+	return []catalogOpenapi.CatalogArtifact{
+		{
+			CatalogModelArtifact: modelArtifact, // Set the inner type
 		},
 	}
 }
 
-func performanceMetricsCustomProperties(customProperties map[string]openapi.MetadataValue) *map[string]openapi.MetadataValue {
-	result := map[string]openapi.MetadataValue{
+func performanceMetricsCustomProperties(customProperties map[string]catalogOpenapi.MetadataValue) *map[string]catalogOpenapi.MetadataValue {
+	result := map[string]catalogOpenapi.MetadataValue{
 		"config_id": {
-			MetadataStringValue: &openapi.MetadataStringValue{
+			MetadataStringValue: &catalogOpenapi.MetadataStringValue{
 				StringValue:  "0055d94f6547237dgf324238",
 				MetadataType: "MetadataStringValue",
 			},
 		},
 		"ttft_mean": {
-			MetadataDoubleValue: &openapi.MetadataDoubleValue{
+			MetadataDoubleValue: &catalogOpenapi.MetadataDoubleValue{
 				DoubleValue:  35.48818160947744,
 				MetadataType: "MetadataDoubleValue",
 			},
 		},
 		"ttft_p90": {
-			MetadataDoubleValue: &openapi.MetadataDoubleValue{
+			MetadataDoubleValue: &catalogOpenapi.MetadataDoubleValue{
 				DoubleValue:  51.55777931213379,
 				MetadataType: "MetadataDoubleValue",
 			},
 		},
 		"ttft_p95": {
-			MetadataDoubleValue: &openapi.MetadataDoubleValue{
+			MetadataDoubleValue: &catalogOpenapi.MetadataDoubleValue{
 				DoubleValue:  61.26761436462402,
 				MetadataType: "MetadataDoubleValue",
 			},
 		},
 		"ttft_p99": {
-			MetadataDoubleValue: &openapi.MetadataDoubleValue{
+			MetadataDoubleValue: &catalogOpenapi.MetadataDoubleValue{
 				DoubleValue:  72.95823097229004,
 				MetadataType: "MetadataDoubleValue",
 			},
 		},
 		"e2e_mean": {
-			MetadataDoubleValue: &openapi.MetadataDoubleValue{
+			MetadataDoubleValue: &catalogOpenapi.MetadataDoubleValue{
 				DoubleValue:  1994.480013381083,
 				MetadataType: "MetadataDoubleValue",
 			},
 		},
 		"e2e_p90": {
-			MetadataDoubleValue: &openapi.MetadataDoubleValue{
+			MetadataDoubleValue: &catalogOpenapi.MetadataDoubleValue{
 				DoubleValue:  2644.604682922363,
 				MetadataType: "MetadataDoubleValue",
 			},
 		},
 		"e2e_p95": {
-			MetadataDoubleValue: &openapi.MetadataDoubleValue{
+			MetadataDoubleValue: &catalogOpenapi.MetadataDoubleValue{
 				DoubleValue:  2813.79246711731,
 				MetadataType: "MetadataDoubleValue",
 			},
 		},
 		"e2e_p99": {
-			MetadataDoubleValue: &openapi.MetadataDoubleValue{
+			MetadataDoubleValue: &catalogOpenapi.MetadataDoubleValue{
 				DoubleValue:  3117.565155029297,
 				MetadataType: "MetadataDoubleValue",
 			},
 		},
 		"tps_mean": {
-			MetadataDoubleValue: &openapi.MetadataDoubleValue{
+			MetadataDoubleValue: &catalogOpenapi.MetadataDoubleValue{
 				DoubleValue:  1785.325259154939,
 				MetadataType: "MetadataDoubleValue",
 			},
 		},
 		"tps_p90": {
-			MetadataDoubleValue: &openapi.MetadataDoubleValue{
+			MetadataDoubleValue: &catalogOpenapi.MetadataDoubleValue{
 				DoubleValue:  3318.278481012658,
 				MetadataType: "MetadataDoubleValue",
 			},
 		},
 		"tps_p95": {
-			MetadataDoubleValue: &openapi.MetadataDoubleValue{
+			MetadataDoubleValue: &catalogOpenapi.MetadataDoubleValue{
 				DoubleValue:  4934.475294117647,
 				MetadataType: "MetadataDoubleValue",
 			},
 		},
 		"tps_p99": {
-			MetadataDoubleValue: &openapi.MetadataDoubleValue{
+			MetadataDoubleValue: &catalogOpenapi.MetadataDoubleValue{
 				DoubleValue:  11781.75280898876,
 				MetadataType: "MetadataDoubleValue",
 			},
 		},
 		"itl_mean": {
-			MetadataDoubleValue: &openapi.MetadataDoubleValue{
+			MetadataDoubleValue: &catalogOpenapi.MetadataDoubleValue{
 				DoubleValue:  7.685877762379151,
 				MetadataType: "MetadataDoubleValue",
 			},
 		},
 		"itl_p90": {
-			MetadataDoubleValue: &openapi.MetadataDoubleValue{
+			MetadataDoubleValue: &catalogOpenapi.MetadataDoubleValue{
 				DoubleValue:  7.778410935521725,
 				MetadataType: "MetadataDoubleValue",
 			},
 		},
 		"itl_p95": {
-			MetadataDoubleValue: &openapi.MetadataDoubleValue{
+			MetadataDoubleValue: &catalogOpenapi.MetadataDoubleValue{
 				DoubleValue:  7.812754891135476,
 				MetadataType: "MetadataDoubleValue",
 			},
 		},
 		"itl_p99": {
-			MetadataDoubleValue: &openapi.MetadataDoubleValue{
+			MetadataDoubleValue: &catalogOpenapi.MetadataDoubleValue{
 				DoubleValue:  7.9100158577958,
 				MetadataType: "MetadataDoubleValue",
 			},
 		},
 		"requests_per_second": {
-			MetadataDoubleValue: &openapi.MetadataDoubleValue{
+			MetadataDoubleValue: &catalogOpenapi.MetadataDoubleValue{
 				DoubleValue:  7,
 				MetadataType: "MetadataDoubleValue",
 			},
 		},
 		"max_input_tokens": {
-			MetadataDoubleValue: &openapi.MetadataDoubleValue{
+			MetadataDoubleValue: &catalogOpenapi.MetadataDoubleValue{
 				DoubleValue:  1024,
 				MetadataType: "MetadataDoubleValue",
 			},
 		},
 		"max_output_tokens": {
-			MetadataDoubleValue: &openapi.MetadataDoubleValue{
+			MetadataDoubleValue: &catalogOpenapi.MetadataDoubleValue{
 				DoubleValue:  1,
 				MetadataType: "MetadataDoubleValue",
 			},
 		},
 		"hardware_type": {
-			MetadataStringValue: &openapi.MetadataStringValue{
+			MetadataStringValue: &catalogOpenapi.MetadataStringValue{
 				StringValue:  "H100",
 				MetadataType: "MetadataStringValue",
 			},
 		},
 		"hardware_count": {
-			MetadataIntValue: &openapi.MetadataIntValue{
+			MetadataIntValue: &catalogOpenapi.MetadataIntValue{
 				IntValue:     "2",
 				MetadataType: "MetadataIntValue",
 			},
 		},
 		"framework": {
-			MetadataStringValue: &openapi.MetadataStringValue{
+			MetadataStringValue: &catalogOpenapi.MetadataStringValue{
 				StringValue:  "vllm",
 				MetadataType: "MetadataStringValue",
 			},
 		},
 		"framework_version": {
-			MetadataStringValue: &openapi.MetadataStringValue{
+			MetadataStringValue: &catalogOpenapi.MetadataStringValue{
 				StringValue:  "v0.1.1",
 				MetadataType: "MetadataStringValue",
 			},
 		},
 		"docker_image": {
-			MetadataStringValue: &openapi.MetadataStringValue{
+			MetadataStringValue: &catalogOpenapi.MetadataStringValue{
 				StringValue:  "vllm/vllm-openai:v0.1.1",
 				MetadataType: "MetadataStringValue",
 			},
 		},
 		"entrypoint": {
-			MetadataStringValue: &openapi.MetadataStringValue{
+			MetadataStringValue: &catalogOpenapi.MetadataStringValue{
 				StringValue: "\npython3\n",
 			},
 		},
 		"inserted_at": {
-			MetadataStringValue: &openapi.MetadataStringValue{
+			MetadataStringValue: &catalogOpenapi.MetadataStringValue{
 				StringValue:  "2025-05-07T00:00:00.000Z",
 				MetadataType: "MetadataStringValue",
 			},
 		},
 		"created_at": {
-			MetadataStringValue: &openapi.MetadataStringValue{
+			MetadataStringValue: &catalogOpenapi.MetadataStringValue{
 				StringValue:  "2025-05-07T00:00:00.000Z",
 				MetadataType: "MetadataStringValue",
 			},
 		},
 		"updated_at": {
-			MetadataStringValue: &openapi.MetadataStringValue{
+			MetadataStringValue: &catalogOpenapi.MetadataStringValue{
 				StringValue:  "2025-05-14T12:08:25.402Z",
 				MetadataType: "MetadataStringValue",
 			},
 		},
 		"mean_input_tokens": {
-			MetadataDoubleValue: &openapi.MetadataDoubleValue{
+			MetadataDoubleValue: &catalogOpenapi.MetadataDoubleValue{
 				DoubleValue:  511.5445458496306,
 				MetadataType: "MetadataDoubleValue",
 			},
 		},
 		"mean_output_tokens": {
-			MetadataDoubleValue: &openapi.MetadataDoubleValue{
+			MetadataDoubleValue: &catalogOpenapi.MetadataDoubleValue{
 				DoubleValue:  255.8678835289005,
 				MetadataType: "MetadataDoubleValue",
 			},
 		},
 		"model_hf_repo_name": {
-			MetadataStringValue: &openapi.MetadataStringValue{
+			MetadataStringValue: &catalogOpenapi.MetadataStringValue{
 				StringValue: "provider1-granite/granite-3.1-8b-instruct",
 			},
 		},
@@ -1064,94 +1067,99 @@ func performanceMetricsCustomProperties(customProperties map[string]openapi.Meta
 	return &result
 }
 
-func GetCatalogPerformanceMetricsArtifactMock(itemCount int32) []models.CatalogArtifact {
-	artifacts := []models.CatalogArtifact{
-		{
-			ArtifactType:             *stringToPointer("metrics-artifact"),
-			MetricsType:              stringToPointer("performance-metrics"),
-			CreateTimeSinceEpoch:     stringToPointer("1693526400000"),
-			LastUpdateTimeSinceEpoch: stringToPointer("1704067200000"),
-			CustomProperties:         performanceMetricsCustomProperties(map[string]openapi.MetadataValue{}),
-		},
-		{
-			ArtifactType:             *stringToPointer("metrics-artifact"),
-			MetricsType:              stringToPointer("performance-metrics"),
-			CreateTimeSinceEpoch:     stringToPointer("1693526400000"),
-			LastUpdateTimeSinceEpoch: stringToPointer("1704067200000"),
-			CustomProperties: performanceMetricsCustomProperties(map[string]openapi.MetadataValue{
-				"hardware_type": {
-					MetadataStringValue: &openapi.MetadataStringValue{
-						StringValue:  "RTX 4090",
-						MetadataType: "MetadataStringValue",
-					},
-				},
-				"hardware_count": {
-					MetadataIntValue: &openapi.MetadataIntValue{
-						IntValue:     "33",
-						MetadataType: "MetadataIntValue",
-					},
-				},
-				"requests_per_second": {
-					MetadataDoubleValue: &openapi.MetadataDoubleValue{
-						DoubleValue:  10,
-						MetadataType: "MetadataDoubleValue",
-					},
-				},
-				"ttft_mean": {
-					MetadataDoubleValue: &openapi.MetadataDoubleValue{
-						DoubleValue:  67.14892749816,
-						MetadataType: "MetadataDoubleValue",
-					},
-				},
-			}),
-		},
-		{
-			ArtifactType:             *stringToPointer("metrics-artifact"),
-			MetricsType:              stringToPointer("performance-metrics"),
-			CreateTimeSinceEpoch:     stringToPointer("1693526400000"),
-			LastUpdateTimeSinceEpoch: stringToPointer("1704067200000"),
-			CustomProperties: performanceMetricsCustomProperties(map[string]openapi.MetadataValue{
-				"hardware_type": {
-					MetadataStringValue: &openapi.MetadataStringValue{
-						StringValue:  "A100",
-						MetadataType: "MetadataStringValue",
-					},
-				},
-				"hardware_count": {
-					MetadataIntValue: &openapi.MetadataIntValue{
-						IntValue:     "40",
-						MetadataType: "MetadataIntValue",
-					},
-				},
-				"requests_per_second": {
-					MetadataDoubleValue: &openapi.MetadataDoubleValue{
-						DoubleValue:  15,
-						MetadataType: "MetadataDoubleValue",
-					},
-				},
-				"ttft_mean": {
-					MetadataDoubleValue: &openapi.MetadataDoubleValue{
-						DoubleValue:  42.123791232,
-						MetadataType: "MetadataDoubleValue",
-					},
-				},
-			}),
-		},
+func GetCatalogPerformanceMetricsArtifactMock(itemCount int32) []catalogOpenapi.CatalogArtifact {
+	artifacts := make([]catalogOpenapi.CatalogArtifact, 0, itemCount)
+
+	metricsArtifact1 := &catalogOpenapi.CatalogMetricsArtifact{
+		ArtifactType:             "metrics-artifact",
+		MetricsType:              "performance-metrics",
+		CreateTimeSinceEpoch:     stringToPointer("1693526400000"),
+		LastUpdateTimeSinceEpoch: stringToPointer("1704067200000"),
+		CustomProperties:         performanceMetricsCustomProperties(map[string]catalogOpenapi.MetadataValue{}),
 	}
-	artifacts = artifacts[:itemCount]
+	artifacts = append(artifacts, catalogOpenapi.CatalogMetricsArtifactAsCatalogArtifact(metricsArtifact1))
+
+	metricsArtifact2 := &catalogOpenapi.CatalogMetricsArtifact{
+		ArtifactType:             "metrics-artifact",
+		MetricsType:              "performance-metrics",
+		CreateTimeSinceEpoch:     stringToPointer("1693526400000"),
+		LastUpdateTimeSinceEpoch: stringToPointer("1704067200000"),
+		CustomProperties: performanceMetricsCustomProperties(map[string]catalogOpenapi.MetadataValue{
+			"hardware_type": {
+				MetadataStringValue: &catalogOpenapi.MetadataStringValue{
+					StringValue:  "RTX 4090",
+					MetadataType: "MetadataStringValue",
+				},
+			},
+			"hardware_count": {
+				MetadataIntValue: &catalogOpenapi.MetadataIntValue{
+					IntValue:     "40",
+					MetadataType: "MetadataIntValue",
+				},
+			},
+			"requests_per_second": {
+				MetadataDoubleValue: &catalogOpenapi.MetadataDoubleValue{
+					DoubleValue:  15,
+					MetadataType: "MetadataDoubleValue",
+				},
+			},
+			"ttft_mean": {
+				MetadataDoubleValue: &catalogOpenapi.MetadataDoubleValue{
+					DoubleValue:  42.123791232,
+					MetadataType: "MetadataDoubleValue",
+				},
+			},
+		}),
+	}
+	artifacts = append(artifacts, catalogOpenapi.CatalogMetricsArtifactAsCatalogArtifact(metricsArtifact2))
+
+	metricsArtifact3 := &catalogOpenapi.CatalogMetricsArtifact{
+		ArtifactType:             "metrics-artifact",
+		MetricsType:              "performance-metrics",
+		CreateTimeSinceEpoch:     stringToPointer("1693526400000"),
+		LastUpdateTimeSinceEpoch: stringToPointer("1704067200000"),
+		CustomProperties: performanceMetricsCustomProperties(map[string]catalogOpenapi.MetadataValue{
+			"hardware_type": {
+				MetadataStringValue: &catalogOpenapi.MetadataStringValue{
+					StringValue:  "RTX 4090",
+					MetadataType: "MetadataStringValue",
+				},
+			},
+			"hardware_count": {
+				MetadataIntValue: &catalogOpenapi.MetadataIntValue{
+					IntValue:     "40",
+					MetadataType: "MetadataIntValue",
+				},
+			},
+			"requests_per_second": {
+				MetadataDoubleValue: &catalogOpenapi.MetadataDoubleValue{
+					DoubleValue:  15,
+					MetadataType: "MetadataDoubleValue",
+				},
+			},
+			"ttft_mean": {
+				MetadataDoubleValue: &catalogOpenapi.MetadataDoubleValue{
+					DoubleValue:  42.123791232,
+					MetadataType: "MetadataDoubleValue",
+				},
+			},
+		}),
+	}
+	artifacts = append(artifacts, catalogOpenapi.CatalogMetricsArtifactAsCatalogArtifact(metricsArtifact3))
+
 	return artifacts
 }
 
-func accuracyMetricsCustomProperties() *map[string]openapi.MetadataValue {
-	result := map[string]openapi.MetadataValue{
+func accuracyMetricsCustomProperties() *map[string]catalogOpenapi.MetadataValue {
+	result := map[string]catalogOpenapi.MetadataValue{
 		"overall_average": {
-			MetadataDoubleValue: &openapi.MetadataDoubleValue{
+			MetadataDoubleValue: &catalogOpenapi.MetadataDoubleValue{
 				DoubleValue:  0.584329,
 				MetadataType: "MetadataDoubleValue",
 			},
 		},
 		"arc_v1": {
-			MetadataDoubleValue: &openapi.MetadataDoubleValue{
+			MetadataDoubleValue: &catalogOpenapi.MetadataDoubleValue{
 				DoubleValue:  0.674673,
 				MetadataType: "MetadataDoubleValue",
 			},
@@ -1160,20 +1168,22 @@ func accuracyMetricsCustomProperties() *map[string]openapi.MetadataValue {
 	return &result
 }
 
-func GetCatalogAccuracyMetricsArtifactMock() []models.CatalogArtifact {
-	return []models.CatalogArtifact{
-		{
-			ArtifactType:             *stringToPointer("metrics-artifact"),
-			MetricsType:              stringToPointer("accuracy-metrics"),
-			CreateTimeSinceEpoch:     stringToPointer("1693526400000"),
-			LastUpdateTimeSinceEpoch: stringToPointer("1704067200000"),
-			CustomProperties:         accuracyMetricsCustomProperties(),
-		},
+func GetCatalogAccuracyMetricsArtifactMock() []catalogOpenapi.CatalogArtifact {
+	metricsArtifact := &catalogOpenapi.CatalogMetricsArtifact{
+		ArtifactType:             "metrics-artifact",
+		MetricsType:              "accuracy-metrics",
+		CreateTimeSinceEpoch:     stringToPointer("1693526400000"),
+		LastUpdateTimeSinceEpoch: stringToPointer("1704067200000"),
+		CustomProperties:         accuracyMetricsCustomProperties(),
+	}
+
+	return []catalogOpenapi.CatalogArtifact{
+		catalogOpenapi.CatalogMetricsArtifactAsCatalogArtifact(metricsArtifact),
 	}
 }
 
-func GetModelArtifactListMockWithItems(items []models.CatalogArtifact, pageSize int32) models.CatalogModelArtifactList {
-	return models.CatalogModelArtifactList{
+func GetModelArtifactListMockWithItems(items []catalogOpenapi.CatalogArtifact, pageSize int32) catalogOpenapi.CatalogArtifactList {
+	return catalogOpenapi.CatalogArtifactList{
 		Items:         items,
 		Size:          int32(len(items)),
 		PageSize:      pageSize,
@@ -1181,41 +1191,41 @@ func GetModelArtifactListMockWithItems(items []models.CatalogArtifact, pageSize 
 	}
 }
 
-func GetCatalogModelArtifactListMock() models.CatalogModelArtifactList {
+func GetCatalogModelArtifactListMock() catalogOpenapi.CatalogArtifactList {
 	allArtifactMock := GetCatalogModelArtifactMock()
 	return GetModelArtifactListMockWithItems(allArtifactMock, 10)
 }
 
-func GetCatalogPerformanceMetricsArtifactListMock(itemCount int32) models.CatalogModelArtifactList {
+func GetCatalogPerformanceMetricsArtifactListMock(itemCount int32) catalogOpenapi.CatalogArtifactList {
 	allArtifactMock := GetCatalogPerformanceMetricsArtifactMock(itemCount)
 	return GetModelArtifactListMockWithItems(allArtifactMock, 10)
 }
 
-func GetCatalogAccuracyMetricsArtifactListMock() models.CatalogModelArtifactList {
+func GetCatalogAccuracyMetricsArtifactListMock() catalogOpenapi.CatalogArtifactList {
 	allArtifactMock := GetCatalogAccuracyMetricsArtifactMock()
 	return GetModelArtifactListMockWithItems(allArtifactMock, 10)
 }
 
 const (
-	FilterOptionTypeString models.FilterOptionType = "string"
-	FilterOptionTypeNumber models.FilterOptionType = "number"
+	FilterOptionTypeString = "string"
+	FilterOptionTypeNumber = "number"
 )
 
 func float32Ptr(i float32) *float32 {
 	return &i
 }
 
-func GetFilterOptionMocks() map[string]models.FilterOption {
-	filterOptions := make(map[string]models.FilterOption)
+func GetFilterOptionMocks() map[string]catalogOpenapi.FilterOption {
+	filterOptions := make(map[string]catalogOpenapi.FilterOption)
 
-	filterOptions["provider"] = models.FilterOption{
+	filterOptions["provider"] = catalogOpenapi.FilterOption{
 		Type: FilterOptionTypeString,
 		Values: []interface{}{
 			"Red Hat", "IBM", "Google",
 		},
 	}
 
-	filterOptions["license"] = models.FilterOption{
+	filterOptions["license"] = catalogOpenapi.FilterOption{
 		Type: FilterOptionTypeString,
 		Values: []interface{}{
 			"apache-2.0",
@@ -1223,7 +1233,7 @@ func GetFilterOptionMocks() map[string]models.FilterOption {
 		},
 	}
 
-	filterOptions["tasks"] = models.FilterOption{
+	filterOptions["tasks"] = catalogOpenapi.FilterOption{
 		Type: FilterOptionTypeString,
 		Values: []interface{}{
 			"audio-to-text", "image-to-text", "image-text-to-text", "text-generation", "text-to-text", "video-to-text",
@@ -1231,16 +1241,16 @@ func GetFilterOptionMocks() map[string]models.FilterOption {
 	}
 
 	// String type filter for programming languages supported
-	filterOptions["language"] = models.FilterOption{
+	filterOptions["language"] = catalogOpenapi.FilterOption{
 		Type: FilterOptionTypeString,
 		Values: []interface{}{
 			"ar", "cs", "de", "en", "es", "fr", "it", "ja", "ko", "nl", "pt", "zh",
 		},
 	}
 
-	filterOptions["ttft_mean"] = models.FilterOption{
+	filterOptions["ttft_mean"] = catalogOpenapi.FilterOption{
 		Type: FilterOptionTypeNumber,
-		Range: &models.FilterRange{
+		Range: &catalogOpenapi.FilterOptionRange{
 			Min: float32Ptr(1),
 			Max: float32Ptr(100),
 		},
@@ -1249,10 +1259,10 @@ func GetFilterOptionMocks() map[string]models.FilterOption {
 	return filterOptions
 }
 
-func GetFilterOptionsListMock() models.FilterOptionsList {
+func GetFilterOptionsListMock() catalogOpenapi.FilterOptionsList {
 	filterOptions := GetFilterOptionMocks()
 
-	return models.FilterOptionsList{
+	return catalogOpenapi.FilterOptionsList{
 		Filters: &filterOptions,
 	}
 }
