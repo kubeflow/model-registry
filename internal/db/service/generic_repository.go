@@ -43,9 +43,9 @@ type FilterApplier interface {
 	GetRestEntityType() filter.RestEntityType
 }
 
-// applyFilterQuery applies advanced filter query processing to a GORM query
+// ApplyFilterQuery applies advanced filter query processing to a GORM query
 // This function encapsulates the common pattern used by both GenericRepository and custom repositories
-func applyFilterQuery(query *gorm.DB, listOptions any, mappingFuncs filter.EntityMappingFunctions) (*gorm.DB, error) {
+func ApplyFilterQuery(query *gorm.DB, listOptions any, mappingFuncs filter.EntityMappingFunctions) (*gorm.DB, error) {
 	if filterQueryGetter, ok := listOptions.(interface{ GetFilterQuery() string }); ok {
 		if filterQuery := filterQueryGetter.GetFilterQuery(); filterQuery != "" {
 			if filterApplier, ok := listOptions.(FilterApplier); ok {
@@ -62,6 +62,11 @@ func applyFilterQuery(query *gorm.DB, listOptions any, mappingFuncs filter.Entit
 		}
 	}
 	return query, nil
+}
+
+// applyFilterQuery is a legacy alias for backward compatibility
+func applyFilterQuery(query *gorm.DB, listOptions any, mappingFuncs filter.EntityMappingFunctions) (*gorm.DB, error) {
+	return ApplyFilterQuery(query, listOptions, mappingFuncs)
 }
 
 // Generic repository configuration

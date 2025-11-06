@@ -4,11 +4,13 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/kubeflow/model-registry/catalog/internal/db/filter"
 	"github.com/kubeflow/model-registry/catalog/internal/db/models"
 	"github.com/kubeflow/model-registry/internal/datastore"
 	dbmodels "github.com/kubeflow/model-registry/internal/db/models"
 	"github.com/kubeflow/model-registry/internal/db/schema"
 	"github.com/kubeflow/model-registry/internal/db/scopes"
+	"github.com/kubeflow/model-registry/internal/db/service"
 	"github.com/kubeflow/model-registry/internal/db/utils"
 	"github.com/kubeflow/model-registry/pkg/api"
 	"gorm.io/gorm"
@@ -120,6 +122,13 @@ func (r *CatalogArtifactRepositoryImpl) List(listOptions models.CatalogArtifactL
 		query = query.Joins(utils.BuildAttributionJoin(query)).
 			Where(utils.GetColumnRef(query, &schema.Attribution{}, "context_id")+" = ?", listOptions.ParentResourceID).
 			Select(utils.GetTableName(query, &schema.Artifact{}) + ".*") // Explicitly select from Artifact table to avoid ambiguity
+	}
+
+	// Apply advanced filter query if supported
+	var err error
+	query, err = service.ApplyFilterQuery(query, &listOptions, filter.NewCatalogEntityMappings())
+	if err != nil {
+		return nil, err
 	}
 
 	orderBy := listOptions.GetOrderBy()

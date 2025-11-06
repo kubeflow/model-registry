@@ -10,7 +10,8 @@ import (
 type CatalogRestEntityType string
 
 const (
-	RestEntityCatalogModel CatalogRestEntityType = "CatalogModel"
+	RestEntityCatalogModel    CatalogRestEntityType = "CatalogModel"
+	RestEntityCatalogArtifact CatalogRestEntityType = "CatalogArtifact"
 )
 
 // catalogEntityMappings implements EntityMappingFunctions for the catalog package
@@ -23,7 +24,12 @@ func NewCatalogEntityMappings() filter.EntityMappingFunctions {
 
 // GetMLMDEntityType maps catalog REST entity types to their underlying MLMD entity type
 func (c *catalogEntityMappings) GetMLMDEntityType(restEntityType filter.RestEntityType) filter.EntityType {
-	return filter.EntityTypeContext
+	switch restEntityType {
+	case filter.RestEntityType(RestEntityCatalogArtifact):
+		return filter.EntityTypeArtifact
+	default:
+		return filter.EntityTypeContext
+	}
 }
 
 // GetPropertyDefinitionForRestEntity returns property definition for a catalog REST entity type
@@ -51,6 +57,13 @@ func (c *catalogEntityMappings) GetPropertyDefinitionForRestEntity(restEntityTyp
 				RelatedProperty:   artifactPropertyPath,
 				JoinTable:         "Attribution", // Join through Attribution table
 			}
+		}
+	}
+
+	if restEntityType == filter.RestEntityType(RestEntityCatalogArtifact) {
+		if _, isWellKnown := catalogArtifactProperties[propertyName]; isWellKnown {
+			// Use the well-known property definition
+			return catalogArtifactProperties[propertyName]
 		}
 	}
 
@@ -90,4 +103,19 @@ var catalogModelProperties = map[string]filter.PropertyDefinition{
 	"provider":     {Location: filter.PropertyTable, ValueType: filter.StringValueType, Column: "provider"},
 	"readme":       {Location: filter.PropertyTable, ValueType: filter.StringValueType, Column: "readme"},
 	"tasks":        {Location: filter.PropertyTable, ValueType: filter.ArrayValueType, Column: "tasks"},
+}
+
+// catalogArtifactProperties defines the allowed properties for CatalogArtifact entities
+var catalogArtifactProperties = map[string]filter.PropertyDefinition{
+	// Common Artifact properties
+	"id":                       {Location: filter.EntityTable, ValueType: filter.IntValueType, Column: "id"},
+	"name":                     {Location: filter.EntityTable, ValueType: filter.StringValueType, Column: "name"},
+	"externalId":               {Location: filter.EntityTable, ValueType: filter.StringValueType, Column: "external_id"},
+	"createTimeSinceEpoch":     {Location: filter.EntityTable, ValueType: filter.IntValueType, Column: "create_time_since_epoch"},
+	"lastUpdateTimeSinceEpoch": {Location: filter.EntityTable, ValueType: filter.IntValueType, Column: "last_update_time_since_epoch"},
+	"uri":                      {Location: filter.EntityTable, ValueType: filter.StringValueType, Column: "uri"},
+	"state":                    {Location: filter.EntityTable, ValueType: filter.StringValueType, Column: "state"},
+
+	// Artifact type (stored in type_id but we can filter by string representation)
+	"artifactType": {Location: filter.PropertyTable, ValueType: filter.StringValueType, Column: "artifactType"},
 }
