@@ -4,8 +4,9 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/kubeflow/model-registry/ui/bff/internal/integrations/httpclient"
 	"net/http"
+
+	"github.com/kubeflow/model-registry/ui/bff/internal/integrations/httpclient"
 
 	"github.com/julienschmidt/httprouter"
 	"github.com/kubeflow/model-registry/pkg/openapi"
@@ -35,7 +36,7 @@ func (app *App) UpdateModelArtifactHandler(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	patchedModelArtifact, err := app.repositories.ModelRegistryClient.UpdateModelArtifact(client, ps.ByName(ArtifactId), jsonData)
+	patchedModelArtifact, err := app.repositories.ModelRegistryClient.UpdateModelArtifact(client, ps.ByName(ModelArtifactId), jsonData)
 	if err != nil {
 		var httpErr *httpclient.HTTPError
 		if errors.As(err, &httpErr) {
