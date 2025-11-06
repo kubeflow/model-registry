@@ -29,6 +29,13 @@ func (b *ModelRegistryService) UpsertModelVersion(modelVersion *openapi.ModelVer
 		if err != nil {
 			return nil, fmt.Errorf("%v: %w", err, api.ErrBadRequest)
 		}
+
+		// Handle CustomProperties preservation for partial updates
+		// If the update didn't specify CustomProperties (nil), preserve existing ones
+		if modelVersion.CustomProperties == nil && existing.CustomProperties != nil {
+			withNotEditable.CustomProperties = existing.CustomProperties
+		}
+
 		modelVersion = &withNotEditable
 	}
 

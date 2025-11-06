@@ -27,6 +27,8 @@ type BaseResourceList struct {
 	Size int32 `json:"size"`
 }
 
+type _BaseResourceList BaseResourceList
+
 // NewBaseResourceList instantiates a new BaseResourceList object
 // This constructor will assign default values to properties that have it defined,
 // and makes sure properties required by API are set, but the set of arguments

@@ -29,6 +29,8 @@ type CatalogLabelList struct {
 	Items []CatalogLabel `json:"items"`
 }
 
+type _CatalogLabelList CatalogLabelList
+
 // NewCatalogLabelList instantiates a new CatalogLabelList object
 // This constructor will assign default values to properties that have it defined,
 // and makes sure properties required by API are set, but the set of arguments

@@ -42,8 +42,8 @@ class ExperimentRunUpdate(BaseModel):
         description="End time of the actual experiment run in milliseconds since epoch. Different from lastUpdateTimeSinceEpoch, which is registry resource update time.",
         alias="endTimeSinceEpoch",
     )
-    status: ExperimentRunStatus | None = None
-    state: ExperimentRunState | None = None
+    status: ExperimentRunStatus | None = ExperimentRunStatus.RUNNING
+    state: ExperimentRunState | None = ExperimentRunState.LIVE
     owner: StrictStr | None = Field(default=None, description="Experiment run owner id or name.")
     __properties: ClassVar[list[str]] = [
         "customProperties",
@@ -95,9 +95,9 @@ class ExperimentRunUpdate(BaseModel):
         # override the default output from pydantic by calling `to_dict()` of each value in custom_properties (dict)
         _field_dict = {}
         if self.custom_properties:
-            for _key in self.custom_properties:
-                if self.custom_properties[_key]:
-                    _field_dict[_key] = self.custom_properties[_key].to_dict()
+            for _key_custom_properties in self.custom_properties:
+                if self.custom_properties[_key_custom_properties]:
+                    _field_dict[_key_custom_properties] = self.custom_properties[_key_custom_properties].to_dict()
             _dict["customProperties"] = _field_dict
         return _dict
 
@@ -118,8 +118,8 @@ class ExperimentRunUpdate(BaseModel):
                 "description": obj.get("description"),
                 "externalId": obj.get("externalId"),
                 "endTimeSinceEpoch": obj.get("endTimeSinceEpoch"),
-                "status": obj.get("status"),
-                "state": obj.get("state"),
+                "status": obj.get("status") if obj.get("status") is not None else ExperimentRunStatus.RUNNING,
+                "state": obj.get("state") if obj.get("state") is not None else ExperimentRunState.LIVE,
                 "owner": obj.get("owner"),
             }
         )

@@ -40,7 +40,7 @@ func testExperimentPartialUpdate(t *testing.T, service *core.ModelRegistryServic
 		Owner:       apiutils.Of("original-owner"),
 		ExternalId:  apiutils.Of("original-ext-id"),
 		State:       (*openapi.ExperimentState)(apiutils.Of(string(openapi.EXPERIMENTSTATE_LIVE))),
-		CustomProperties: &map[string]openapi.MetadataValue{
+		CustomProperties: map[string]openapi.MetadataValue{
 			"team": {
 				MetadataStringValue: &openapi.MetadataStringValue{
 					StringValue:  "data-science",
@@ -78,17 +78,17 @@ func testExperimentPartialUpdate(t *testing.T, service *core.ModelRegistryServic
 		assert.Equal(t, openapi.EXPERIMENTSTATE_LIVE, *updated.State, "State should be preserved")
 
 		// Verify custom properties preserved
-		assert.Contains(t, *updated.CustomProperties, "team", "Custom property 'team' should be preserved")
-		assert.Contains(t, *updated.CustomProperties, "priority", "Custom property 'priority' should be preserved")
-		assert.Equal(t, "data-science", (*updated.CustomProperties)["team"].MetadataStringValue.StringValue)
-		assert.Equal(t, "high", (*updated.CustomProperties)["priority"].MetadataStringValue.StringValue)
+		assert.Contains(t, updated.CustomProperties, "team", "Custom property 'team' should be preserved")
+		assert.Contains(t, updated.CustomProperties, "priority", "Custom property 'priority' should be preserved")
+		assert.Equal(t, "data-science", updated.CustomProperties["team"].MetadataStringValue.GetStringValue())
+		assert.Equal(t, "high", updated.CustomProperties["priority"].MetadataStringValue.GetStringValue())
 	})
 
 	t.Run("update only custom properties - preserves all other fields", func(t *testing.T) {
 		// Update only custom properties
 		partialUpdate := &openapi.Experiment{
 			Id: created.Id,
-			CustomProperties: &map[string]openapi.MetadataValue{
+			CustomProperties: map[string]openapi.MetadataValue{
 				"environment": {
 					MetadataStringValue: &openapi.MetadataStringValue{
 						StringValue:  "production",
@@ -102,8 +102,8 @@ func testExperimentPartialUpdate(t *testing.T, service *core.ModelRegistryServic
 		require.NoError(t, err)
 
 		// Verify custom properties completely replaced (this is expected behavior for maps)
-		assert.Contains(t, *updated.CustomProperties, "environment")
-		assert.Equal(t, "production", (*updated.CustomProperties)["environment"].MetadataStringValue.StringValue)
+		assert.Contains(t, updated.CustomProperties, "environment")
+		assert.Equal(t, "production", updated.CustomProperties["environment"].MetadataStringValue.GetStringValue())
 
 		// For complete replacement of CustomProperties map, previous properties should be gone
 		// This is the expected behavior when you provide a CustomProperties field
@@ -143,7 +143,7 @@ func testRegisteredModelPartialUpdate(t *testing.T, service *core.ModelRegistryS
 		Owner:       apiutils.Of("original-model-owner"),
 		ExternalId:  apiutils.Of("original-model-ext-id"),
 		State:       (*openapi.RegisteredModelState)(apiutils.Of(string(openapi.REGISTEREDMODELSTATE_LIVE))),
-		CustomProperties: &map[string]openapi.MetadataValue{
+		CustomProperties: map[string]openapi.MetadataValue{
 			"framework": {
 				MetadataStringValue: &openapi.MetadataStringValue{
 					StringValue:  "tensorflow",
@@ -172,7 +172,7 @@ func testRegisteredModelPartialUpdate(t *testing.T, service *core.ModelRegistryS
 	assert.Equal(t, "original-model-owner", *updated.Owner, "Owner should be preserved")
 	assert.Equal(t, "original-model-ext-id", *updated.ExternalId, "ExternalId should be preserved")
 	assert.Equal(t, openapi.REGISTEREDMODELSTATE_LIVE, *updated.State, "State should be preserved")
-	assert.Contains(t, *updated.CustomProperties, "framework", "CustomProperties should be preserved")
+	assert.Contains(t, updated.CustomProperties, "framework", "CustomProperties should be preserved")
 }
 
 func testModelVersionPartialUpdate(t *testing.T, service *core.ModelRegistryService) {
@@ -188,7 +188,7 @@ func testModelVersionPartialUpdate(t *testing.T, service *core.ModelRegistryServ
 		Author:      apiutils.Of("original-author"),
 		ExternalId:  apiutils.Of("original-mv-ext-id"),
 		State:       (*openapi.ModelVersionState)(apiutils.Of(string(openapi.MODELVERSIONSTATE_LIVE))),
-		CustomProperties: &map[string]openapi.MetadataValue{
+		CustomProperties: map[string]openapi.MetadataValue{
 			"accuracy": {
 				MetadataDoubleValue: &openapi.MetadataDoubleValue{
 					DoubleValue:  0.95,
@@ -217,7 +217,7 @@ func testModelVersionPartialUpdate(t *testing.T, service *core.ModelRegistryServ
 	assert.Equal(t, "Original version description", *updated.Description, "Description should be preserved")
 	assert.Equal(t, "original-mv-ext-id", *updated.ExternalId, "ExternalId should be preserved")
 	assert.Equal(t, openapi.MODELVERSIONSTATE_LIVE, *updated.State, "State should be preserved")
-	assert.Contains(t, *updated.CustomProperties, "accuracy", "CustomProperties should be preserved")
+	assert.Contains(t, updated.CustomProperties, "accuracy", "CustomProperties should be preserved")
 }
 
 func testArtifactPartialUpdate(t *testing.T, service *core.ModelRegistryService) {
@@ -229,7 +229,7 @@ func testArtifactPartialUpdate(t *testing.T, service *core.ModelRegistryService)
 			Uri:         apiutils.Of("s3://original/path"),
 			ExternalId:  apiutils.Of("original-artifact-ext-id"),
 			State:       (*openapi.ArtifactState)(apiutils.Of(string(openapi.ARTIFACTSTATE_LIVE))),
-			CustomProperties: &map[string]openapi.MetadataValue{
+			CustomProperties: map[string]openapi.MetadataValue{
 				"size": {
 					MetadataIntValue: &openapi.MetadataIntValue{
 						IntValue:     "1024",
@@ -261,8 +261,8 @@ func testArtifactPartialUpdate(t *testing.T, service *core.ModelRegistryService)
 	assert.Equal(t, "Original artifact description", *updated.ModelArtifact.Description, "Description should be preserved")
 	assert.Equal(t, "original-artifact-ext-id", *updated.ModelArtifact.ExternalId, "ExternalId should be preserved")
 	assert.Equal(t, openapi.ARTIFACTSTATE_LIVE, *updated.ModelArtifact.State, "State should be preserved")
-	assert.Contains(t, *updated.ModelArtifact.CustomProperties, "size", "CustomProperties should be preserved")
-	assert.Equal(t, "1024", (*updated.ModelArtifact.CustomProperties)["size"].MetadataIntValue.IntValue)
+	assert.Contains(t, updated.ModelArtifact.CustomProperties, "size", "CustomProperties should be preserved")
+	assert.Equal(t, "1024", updated.ModelArtifact.CustomProperties["size"].MetadataIntValue.GetIntValue())
 }
 
 // TestEmptyStringVsNilBehavior verifies the difference between empty strings and nil pointers

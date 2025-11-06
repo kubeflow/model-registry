@@ -51,7 +51,7 @@ class ServeModel(BaseModel):
         description="Output only. Last update time of the resource since epoch in millisecond since epoch.",
         alias="lastUpdateTimeSinceEpoch",
     )
-    last_known_state: ExecutionState | None = Field(default=None, alias="lastKnownState")
+    last_known_state: ExecutionState | None = Field(default=ExecutionState.UNKNOWN, alias="lastKnownState")
     model_version_id: StrictStr = Field(
         description="ID of the `ModelVersion` that was served in `InferenceService`.", alias="modelVersionId"
     )
@@ -112,9 +112,9 @@ class ServeModel(BaseModel):
         # override the default output from pydantic by calling `to_dict()` of each value in custom_properties (dict)
         _field_dict = {}
         if self.custom_properties:
-            for _key in self.custom_properties:
-                if self.custom_properties[_key]:
-                    _field_dict[_key] = self.custom_properties[_key].to_dict()
+            for _key_custom_properties in self.custom_properties:
+                if self.custom_properties[_key_custom_properties]:
+                    _field_dict[_key_custom_properties] = self.custom_properties[_key_custom_properties].to_dict()
             _dict["customProperties"] = _field_dict
         return _dict
 
@@ -138,7 +138,9 @@ class ServeModel(BaseModel):
                 "id": obj.get("id"),
                 "createTimeSinceEpoch": obj.get("createTimeSinceEpoch"),
                 "lastUpdateTimeSinceEpoch": obj.get("lastUpdateTimeSinceEpoch"),
-                "lastKnownState": obj.get("lastKnownState"),
+                "lastKnownState": obj.get("lastKnownState")
+                if obj.get("lastKnownState") is not None
+                else ExecutionState.UNKNOWN,
                 "modelVersionId": obj.get("modelVersionId"),
             }
         )

@@ -36,7 +36,7 @@ class ModelVersionUpdate(BaseModel):
         description="The external id that come from the clients’ system. This field is optional. If set, it must be unique among all resources within a database instance.",
         alias="externalId",
     )
-    state: ModelVersionState | None = None
+    state: ModelVersionState | None = ModelVersionState.LIVE
     author: StrictStr | None = Field(default=None, description="Name of the author.")
     __properties: ClassVar[list[str]] = ["customProperties", "description", "externalId", "state", "author"]
 
@@ -80,9 +80,9 @@ class ModelVersionUpdate(BaseModel):
         # override the default output from pydantic by calling `to_dict()` of each value in custom_properties (dict)
         _field_dict = {}
         if self.custom_properties:
-            for _key in self.custom_properties:
-                if self.custom_properties[_key]:
-                    _field_dict[_key] = self.custom_properties[_key].to_dict()
+            for _key_custom_properties in self.custom_properties:
+                if self.custom_properties[_key_custom_properties]:
+                    _field_dict[_key_custom_properties] = self.custom_properties[_key_custom_properties].to_dict()
             _dict["customProperties"] = _field_dict
         return _dict
 
@@ -102,7 +102,7 @@ class ModelVersionUpdate(BaseModel):
                 else None,
                 "description": obj.get("description"),
                 "externalId": obj.get("externalId"),
-                "state": obj.get("state"),
+                "state": obj.get("state") if obj.get("state") is not None else ModelVersionState.LIVE,
                 "author": obj.get("author"),
             }
         )

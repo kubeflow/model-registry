@@ -322,7 +322,7 @@ func mapDBModelToAPIModel(m dbmodels.CatalogModel) apimodels.CatalogModel {
 			}
 		}
 		if len(customProps) > 0 {
-			res.CustomProperties = &customProps
+			res.CustomProperties = customProps
 		}
 	}
 
@@ -394,7 +394,7 @@ func mapToModelArtifact(a dbmodels.CatalogModelArtifact) (apimodels.CatalogArtif
 		}
 
 		catalogCustomProps := convertMetadataValueMap(customPropsMap)
-		catalogModelArtifact.CustomProperties = &catalogCustomProps
+		catalogModelArtifact.CustomProperties = catalogCustomProps
 	}
 
 	return apimodels.CatalogArtifact{
@@ -449,7 +449,7 @@ func mapToMetricsArtifact(a dbmodels.CatalogMetricsArtifact, metricsType string)
 		}
 
 		catalogCustomProps := convertMetadataValueMap(customPropsMap)
-		catalogMetricsArtifact.CustomProperties = &catalogCustomProps
+		catalogMetricsArtifact.CustomProperties = catalogCustomProps
 
 	}
 

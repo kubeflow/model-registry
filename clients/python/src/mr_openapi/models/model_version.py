@@ -39,7 +39,7 @@ class ModelVersion(BaseModel):
     name: StrictStr = Field(
         description="The client provided name of the artifact. This field is optional. If set, it must be unique among all the artifacts of the same artifact type within a database instance and cannot be changed once set."
     )
-    state: ModelVersionState | None = None
+    state: ModelVersionState | None = ModelVersionState.LIVE
     author: StrictStr | None = Field(default=None, description="Name of the author.")
     registered_model_id: StrictStr = Field(
         description="ID of the `RegisteredModel` to which this version belongs.", alias="registeredModelId"
@@ -113,9 +113,9 @@ class ModelVersion(BaseModel):
         # override the default output from pydantic by calling `to_dict()` of each value in custom_properties (dict)
         _field_dict = {}
         if self.custom_properties:
-            for _key in self.custom_properties:
-                if self.custom_properties[_key]:
-                    _field_dict[_key] = self.custom_properties[_key].to_dict()
+            for _key_custom_properties in self.custom_properties:
+                if self.custom_properties[_key_custom_properties]:
+                    _field_dict[_key_custom_properties] = self.custom_properties[_key_custom_properties].to_dict()
             _dict["customProperties"] = _field_dict
         return _dict
 
@@ -136,7 +136,7 @@ class ModelVersion(BaseModel):
                 "description": obj.get("description"),
                 "externalId": obj.get("externalId"),
                 "name": obj.get("name"),
-                "state": obj.get("state"),
+                "state": obj.get("state") if obj.get("state") is not None else ModelVersionState.LIVE,
                 "author": obj.get("author"),
                 "registeredModelId": obj.get("registeredModelId"),
                 "id": obj.get("id"),

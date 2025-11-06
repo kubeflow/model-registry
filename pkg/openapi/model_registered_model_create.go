@@ -20,7 +20,7 @@ var _ MappedNullable = &RegisteredModelCreate{}
 // RegisteredModelCreate A registered model in model registry. A registered model has ModelVersion children.
 type RegisteredModelCreate struct {
 	// User provided custom properties which are not defined by its type.
-	CustomProperties *map[string]MetadataValue `json:"customProperties,omitempty"`
+	CustomProperties map[string]MetadataValue `json:"customProperties,omitempty"`
 	// Human-readable description of the model.
 	Description *string `json:"description,omitempty"`
 	// The external id that come from the clients’ system. This field is optional. If set, it must be unique among all resources within a database instance.
@@ -47,6 +47,8 @@ type RegisteredModelCreate struct {
 	Owner       *string               `json:"owner,omitempty"`
 	State       *RegisteredModelState `json:"state,omitempty"`
 }
+
+type _RegisteredModelCreate RegisteredModelCreate
 
 // NewRegisteredModelCreate instantiates a new RegisteredModelCreate object
 // This constructor will assign default values to properties that have it defined,
@@ -76,14 +78,14 @@ func (o *RegisteredModelCreate) GetCustomProperties() map[string]MetadataValue {
 		var ret map[string]MetadataValue
 		return ret
 	}
-	return *o.CustomProperties
+	return o.CustomProperties
 }
 
 // GetCustomPropertiesOk returns a tuple with the CustomProperties field value if set, nil otherwise
 // and a boolean to check if the value has been set.
-func (o *RegisteredModelCreate) GetCustomPropertiesOk() (*map[string]MetadataValue, bool) {
+func (o *RegisteredModelCreate) GetCustomPropertiesOk() (map[string]MetadataValue, bool) {
 	if o == nil || IsNil(o.CustomProperties) {
-		return nil, false
+		return map[string]MetadataValue{}, false
 	}
 	return o.CustomProperties, true
 }
@@ -99,7 +101,7 @@ func (o *RegisteredModelCreate) HasCustomProperties() bool {
 
 // SetCustomProperties gets a reference to the given map[string]MetadataValue and assigns it to the CustomProperties field.
 func (o *RegisteredModelCreate) SetCustomProperties(v map[string]MetadataValue) {
-	o.CustomProperties = &v
+	o.CustomProperties = v
 }
 
 // GetDescription returns the Description field value if set, zero value otherwise.

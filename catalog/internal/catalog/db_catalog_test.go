@@ -668,7 +668,7 @@ func TestDBCatalog(t *testing.T) {
 				assert.NotNil(t, artifact.CatalogModelArtifact.CustomProperties)
 
 				// Verify custom properties are present and properly converted
-				customPropsMap := *artifact.CatalogModelArtifact.CustomProperties
+				customPropsMap := artifact.CatalogModelArtifact.CustomProperties
 				assert.Contains(t, customPropsMap, "custom_prop_1")
 				assert.Contains(t, customPropsMap, "custom_prop_2")
 
