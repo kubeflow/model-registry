@@ -84,9 +84,8 @@ markers = [
     "e2e: end-to-end testing",
     "fuzz: mark a test as a fuzzing (property-based or randomized) test"
 ]
-# Enable parallel execution by default for fuzz tests
-# Use: pytest -m fuzz -n auto
-# Or explicitly: pytest -m fuzz -n 4 (for 4 workers)
+# Note: Parallel execution is enabled in noxfile.py for fuzz tests via "-n auto"
+# To run fuzz tests manually in parallel: pytest tests/fuzz_api --fuzz -n auto
 addopts = "--tb=short --strict-markers"
 
 [tool.ruff]
