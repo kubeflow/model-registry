@@ -5,17 +5,12 @@ import {
   Flex,
   FlexItem,
   FormGroup,
-  InputGroup,
-  InputGroupItem,
-  InputGroupText,
   MenuToggle,
   MenuToggleElement,
   Popover,
   Select,
   SelectList,
   SelectOption,
-  Slider,
-  TextInput,
 } from '@patternfly/react-core';
 import { HelpIcon } from '@patternfly/react-icons';
 import { LatencyMetric, LatencyPercentile } from '~/concepts/modelCatalog/const';
@@ -23,6 +18,12 @@ import { CatalogPerformanceMetricsArtifact } from '~/app/modelCatalogTypes';
 import { getDoubleValue } from '~/app/utils';
 import { getLatencyFieldName } from '~/app/pages/modelCatalog/utils/hardwareConfigurationFilterUtils';
 import { ModelCatalogContext } from '~/app/context/modelCatalog/ModelCatalogContext';
+import {
+  getSliderRange,
+  FALLBACK_LATENCY_RANGE,
+  SliderRange,
+} from '~/app/pages/modelCatalog/utils/performanceMetricsUtils';
+import SliderWithInput from './SliderWithInput';
 
 type LatencyFilterState = {
   metric: LatencyMetric;
@@ -144,38 +145,16 @@ const MaxLatencyFilter: React.FC<MaxLatencyFilterProps> = ({ performanceArtifact
     setIsOpen(false);
   };
 
-  // Calculate min/max latency values from performance artifacts
-  const { minValue, maxValue, isSliderDisabled } = React.useMemo((): {
-    minValue: number;
-    maxValue: number;
-    isSliderDisabled: boolean;
-  } => {
-    if (performanceArtifacts.length === 0) {
-      return { minValue: 20, maxValue: 893, isSliderDisabled: false }; // Default values when no artifacts
-    }
-
-    // Get all latency values for the currently selected metric/percentile (use localFilter for immediate updates)
+  const { minValue, maxValue, isSliderDisabled } = React.useMemo((): SliderRange => {
     const fieldName = getLatencyFieldName(localFilter.metric, localFilter.percentile);
-    const latencyValues = performanceArtifacts
-      .map((artifact) => getDoubleValue(artifact.customProperties, fieldName))
-      .filter((latency) => latency > 0); // Filter out invalid values
 
-    if (latencyValues.length === 0) {
-      return { minValue: 20, maxValue: 893, isSliderDisabled: false }; // Default values when no valid latency values
-    }
-
-    const calculatedMin = Math.round(Math.min(...latencyValues));
-    const calculatedMax = Math.round(Math.max(...latencyValues));
-    const hasIdenticalValues = calculatedMin === calculatedMax;
-    return {
-      minValue: calculatedMin,
-      maxValue: hasIdenticalValues ? calculatedMin + 1 : calculatedMax,
-      isSliderDisabled: hasIdenticalValues,
-    };
+    return getSliderRange({
+      performanceArtifacts,
+      getArtifactFilterValue: (artifact) => getDoubleValue(artifact.customProperties, fieldName),
+      fallbackRange: FALLBACK_LATENCY_RANGE,
+      shouldRound: true,
+    });
   }, [performanceArtifacts, localFilter.metric, localFilter.percentile]);
-
-  // Helper to ensure value is within bounds and rounded to integer
-  const clampedLocalValue = Math.round(Math.min(Math.max(localFilter.value, minValue), maxValue));
 
   const toggle = (toggleRef: React.Ref<MenuToggleElement>) => (
     <MenuToggle
@@ -317,43 +296,18 @@ const MaxLatencyFilter: React.FC<MaxLatencyFilterProps> = ({ performanceArtifact
 
       {/* Slider with value display */}
       <FlexItem>
-        <Flex alignItems={{ default: 'alignItemsCenter' }} spaceItems={{ default: 'spaceItemsMd' }}>
-          <FlexItem flex={{ default: 'flex_1' }} style={{ minWidth: '300px' }}>
-            <Slider
-              min={minValue}
-              max={maxValue}
-              value={clampedLocalValue}
-              onChange={(_, value) => {
-                const clampedValue = Math.round(value);
-                setLocalFilter({ ...localFilter, value: clampedValue });
-              }}
-              isInputVisible={false}
-              isDisabled={isSliderDisabled}
-              showBoundaries={!isSliderDisabled}
-              hasTooltipOverThumb={isSliderDisabled}
-            />
-          </FlexItem>
-          <FlexItem>
-            <InputGroup>
-              <InputGroupItem isFill>
-                <TextInput
-                  type="number"
-                  value={clampedLocalValue}
-                  min={minValue}
-                  max={maxValue}
-                  isDisabled={isSliderDisabled}
-                  onChange={(event, value) => {
-                    const numValue = Math.round(Number(value));
-                    setLocalFilter({ ...localFilter, value: numValue });
-                  }}
-                  style={{ width: '80px' }}
-                  aria-label="Latency value input"
-                />
-              </InputGroupItem>
-              <InputGroupText isDisabled={isSliderDisabled}>ms</InputGroupText>
-            </InputGroup>
-          </FlexItem>
-        </Flex>
+        <SliderWithInput
+          value={localFilter.value}
+          min={minValue}
+          max={maxValue}
+          isDisabled={isSliderDisabled}
+          onChange={(value) => setLocalFilter({ ...localFilter, value })}
+          suffix="ms"
+          ariaLabel="Latency value input"
+          shouldRound
+          showBoundaries={!isSliderDisabled}
+          hasTooltipOverThumb={isSliderDisabled}
+        />
       </FlexItem>
 
       {/* Buttons: Apply filter first, then Reset */}

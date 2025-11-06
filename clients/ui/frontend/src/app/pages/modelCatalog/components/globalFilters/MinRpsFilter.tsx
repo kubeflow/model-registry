@@ -4,20 +4,21 @@ import {
   Dropdown,
   Flex,
   FlexItem,
-  InputGroup,
-  InputGroupItem,
-  InputGroupText,
   MenuToggle,
   MenuToggleElement,
   Popover,
-  Slider,
-  TextInput,
 } from '@patternfly/react-core';
 import { HelpIcon } from '@patternfly/react-icons';
 import { ModelCatalogNumberFilterKey } from '~/concepts/modelCatalog/const';
 import { useCatalogNumberFilterState } from '~/app/pages/modelCatalog/utils/modelCatalogUtils';
 import { CatalogPerformanceMetricsArtifact } from '~/app/modelCatalogTypes';
 import { getDoubleValue } from '~/app/utils';
+import {
+  getSliderRange,
+  FALLBACK_RPS_RANGE,
+  SliderRange,
+} from '~/app/pages/modelCatalog/utils/performanceMetricsUtils';
+import SliderWithInput from './SliderWithInput';
 
 const filterKey = ModelCatalogNumberFilterKey.MIN_RPS;
 
@@ -58,38 +59,16 @@ const MinRpsFilter: React.FC<MinRpsFilterProps> = ({ performanceArtifacts }) => 
     setIsOpen(false);
   };
 
-  // Calculate min/max values from performance artifacts
-  // TODO: Use real min/max values when available from API
-  const { minValue, maxValue, isSliderDisabled } = React.useMemo((): {
-    minValue: number;
-    maxValue: number;
-    isSliderDisabled: boolean;
-  } => {
-    if (performanceArtifacts.length === 0) {
-      return { minValue: 1, maxValue: 300, isSliderDisabled: false }; // Default values when no artifacts
-    }
-
-    const rpsValues = performanceArtifacts
-      .map((artifact) => getDoubleValue(artifact.customProperties, 'requests_per_second'))
-      .filter((rps) => rps > 0); // Filter out invalid values
-
-    if (rpsValues.length === 0) {
-      return { minValue: 1, maxValue: 300, isSliderDisabled: false }; // Default values when no valid RPS values
-    }
-
-    const calculatedMin = Math.min(...rpsValues);
-    const calculatedMax = Math.max(...rpsValues);
-    const hasIdenticalValues = calculatedMin === calculatedMax;
-
-    return {
-      minValue: calculatedMin,
-      maxValue: hasIdenticalValues ? calculatedMin + 1 : calculatedMax,
-      isSliderDisabled: hasIdenticalValues,
-    };
-  }, [performanceArtifacts]);
-
-  // Ensure local value is within the calculated range
-  const clampedLocalValue = Math.min(Math.max(localValue, minValue), maxValue);
+  const { minValue, maxValue, isSliderDisabled } = React.useMemo(
+    (): SliderRange =>
+      getSliderRange({
+        performanceArtifacts,
+        getArtifactFilterValue: (artifact) =>
+          getDoubleValue(artifact.customProperties, 'requests_per_second'),
+        fallbackRange: FALLBACK_RPS_RANGE,
+      }),
+    [performanceArtifacts],
+  );
 
   const toggle = (toggleRef: React.Ref<MenuToggleElement>) => (
     <MenuToggle
@@ -129,40 +108,15 @@ const MinRpsFilter: React.FC<MinRpsFilterProps> = ({ performanceArtifacts }) => 
         </Flex>
       </FlexItem>
       <FlexItem>
-        <Flex alignItems={{ default: 'alignItemsCenter' }} spaceItems={{ default: 'spaceItemsMd' }}>
-          <FlexItem flex={{ default: 'flex_1' }}>
-            <Slider
-              min={minValue}
-              max={maxValue}
-              value={clampedLocalValue}
-              onChange={(_, value) => {
-                setLocalValue(value);
-              }}
-              isInputVisible={false}
-              isDisabled={isSliderDisabled}
-            />
-          </FlexItem>
-          <FlexItem>
-            <InputGroup>
-              <InputGroupItem isFill>
-                <TextInput
-                  type="number"
-                  value={clampedLocalValue}
-                  min={minValue}
-                  max={maxValue}
-                  isDisabled={isSliderDisabled}
-                  onChange={(event, value) => {
-                    const numValue = Number(value);
-                    setLocalValue(numValue);
-                  }}
-                  style={{ width: '80px' }}
-                  aria-label="RPS value input"
-                />
-              </InputGroupItem>
-              <InputGroupText isDisabled={isSliderDisabled}>RPS</InputGroupText>
-            </InputGroup>
-          </FlexItem>
-        </Flex>
+        <SliderWithInput
+          value={localValue}
+          min={minValue}
+          max={maxValue}
+          isDisabled={isSliderDisabled}
+          onChange={setLocalValue}
+          suffix="RPS"
+          ariaLabel="RPS value input"
+        />
       </FlexItem>
       <FlexItem>
         <Flex spaceItems={{ default: 'spaceItemsSm' }}>
