@@ -244,9 +244,9 @@ jobs:
         if: (github.event_name == 'push' && github.ref == 'refs/heads/main') || (github.event_name == 'pull_request' && steps.check-openapi-changed.outputs.openapi == 'true')
         working-directory: clients/python
         run: |
-          kubectl port-forward -n kubeflow service/model-registry-service 8080:8080 &
-          kubectl port-forward -n minio svc/minio 9000:9000 &
-          kubectl port-forward service/distribution-registry-test-service 5001:5001 &
+          kubectl port-forward -n kubeflow service/model-registry-service 8080:8080 > /dev/null 2>&1 &
+          kubectl port-forward -n minio svc/minio 9000:9000 > /dev/null 2>&1 &
+          kubectl port-forward service/distribution-registry-test-service 5001:5001 > /dev/null 2>&1 &
           sleep 2
           nox --python=${{ matrix.python }} --session=fuzz
 
