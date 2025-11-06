@@ -49,6 +49,7 @@ pytest = ">=7.4.2,<9.0.0"
 coverage = { extras = ["toml"], version = "^7.3.2" }
 pytest-cov = ">=4.1,<8.0"
 pytest-mock = ">=3.7.0"
+pytest-xdist = "^3.5.0"
 ruff = ">=0.5.2,<0.14.0"
 mypy = "^1.7.0"
 # atm Ray is only available <3.13, so we will E2E test using Ray in compatible py environments.
@@ -83,6 +84,10 @@ markers = [
     "e2e: end-to-end testing",
     "fuzz: mark a test as a fuzzing (property-based or randomized) test"
 ]
+# Enable parallel execution by default for fuzz tests
+# Use: pytest -m fuzz -n auto
+# Or explicitly: pytest -m fuzz -n 4 (for 4 workers)
+addopts = "--tb=short --strict-markers"
 
 [tool.ruff]
 target-version = "py39"

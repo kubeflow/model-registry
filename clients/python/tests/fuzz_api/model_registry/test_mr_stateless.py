@@ -206,7 +206,8 @@ def check_null_byte_validation_mr(ctx, response, case):
 schema = schemathesis.pytest.from_fixture("generated_schema")
 
 
-schema = (
+# Base schema with common exclusions
+base_schema = (
     schema
     .exclude(
         path="/api/model_registry/v1alpha3/artifacts/{id}",
@@ -221,8 +222,13 @@ schema = (
         method="POST"
     )
 )
+
+# Split tests by HTTP method AND resource type for maximum parallelization
+# This creates many small test functions that can be distributed across workers
+
+# GET endpoints - split by resource type
 @pytest.mark.parametrize("generated_schema", ["model-registry.yaml"], indirect=True)
-@schema.parametrize()
+@base_schema.include(method="GET", path_regex=".*/(registered_model|model_version).*").parametrize()
 @settings(
     max_examples=100,
     deadline=None,
@@ -233,23 +239,14 @@ schema = (
     ],
 )
 @pytest.mark.fuzz
-def test_mr_api_stateless(auth_headers: dict, case: schemathesis.Case, verify_ssl: bool) -> None:
-    """Test the Model Registry API endpoints.
-
-    This test uses schemathesis to generate and validate API requests.
-    Expects 400 Bad Request for any requests containing null bytes.
-    """
+def test_mr_api_stateless_get_models(auth_headers: dict, case: schemathesis.Case, verify_ssl: bool) -> None:
+    """Test GET endpoints for RegisteredModels and ModelVersions."""
     try:
         case.call_and_validate(headers=auth_headers, verify=verify_ssl)
     except Exception as e:
-        # Check if this is a null byte validation error that we expect
         request_has_null_bytes = False
-
-        # Check query parameters for null bytes (both keys and values)
         if case.query:
             request_has_null_bytes = contains_null_bytes(case.query)
-
-        # Check request body for null bytes if not found in query
         if not request_has_null_bytes and hasattr(case, "body") and case.body:
             try:
                 if isinstance(case.body, (str, bytes)):
@@ -257,14 +254,318 @@ def test_mr_api_stateless(auth_headers: dict, case: schemathesis.Case, verify_ss
                     request_has_null_bytes = contains_null_bytes(body_str)
             except (UnicodeDecodeError, AttributeError):
                 pass
-
-        # Check if this looks like a validation error for null bytes
         if request_has_null_bytes and ("400" in str(e) or "CheckFailed" in str(type(e).__name__)):
-            # This is expected behavior for null bytes - skip the test
             logging.info(f"Expected 400 error for null bytes: {case.path}")
             pytest.skip("Expected validation error for null bytes")
         else:
-            # Re-raise other validation errors
+            raise
+
+
+@pytest.mark.parametrize("generated_schema", ["model-registry.yaml"], indirect=True)
+@base_schema.include(method="GET", path_regex=".*/artifact.*").parametrize()
+@settings(
+    max_examples=100,
+    deadline=None,
+    suppress_health_check=[
+        HealthCheck.filter_too_much,
+        HealthCheck.too_slow,
+        HealthCheck.data_too_large,
+    ],
+)
+@pytest.mark.fuzz
+def test_mr_api_stateless_get_artifacts(auth_headers: dict, case: schemathesis.Case, verify_ssl: bool) -> None:
+    """Test GET endpoints for Artifacts and ModelArtifacts."""
+    try:
+        case.call_and_validate(headers=auth_headers, verify=verify_ssl)
+    except Exception as e:
+        request_has_null_bytes = False
+        if case.query:
+            request_has_null_bytes = contains_null_bytes(case.query)
+        if not request_has_null_bytes and hasattr(case, "body") and case.body:
+            try:
+                if isinstance(case.body, (str, bytes)):
+                    body_str = case.body.decode("utf-8") if isinstance(case.body, bytes) else case.body
+                    request_has_null_bytes = contains_null_bytes(body_str)
+            except (UnicodeDecodeError, AttributeError):
+                pass
+        if request_has_null_bytes and ("400" in str(e) or "CheckFailed" in str(type(e).__name__)):
+            logging.info(f"Expected 400 error for null bytes: {case.path}")
+            pytest.skip("Expected validation error for null bytes")
+        else:
+            raise
+
+
+@pytest.mark.parametrize("generated_schema", ["model-registry.yaml"], indirect=True)
+@base_schema.include(method="GET", path_regex=".*/experiment.*").parametrize()
+@settings(
+    max_examples=100,
+    deadline=None,
+    suppress_health_check=[
+        HealthCheck.filter_too_much,
+        HealthCheck.too_slow,
+        HealthCheck.data_too_large,
+    ],
+)
+@pytest.mark.fuzz
+def test_mr_api_stateless_get_experiments(auth_headers: dict, case: schemathesis.Case, verify_ssl: bool) -> None:
+    """Test GET endpoints for Experiments and ExperimentRuns."""
+    try:
+        case.call_and_validate(headers=auth_headers, verify=verify_ssl)
+    except Exception as e:
+        request_has_null_bytes = False
+        if case.query:
+            request_has_null_bytes = contains_null_bytes(case.query)
+        if not request_has_null_bytes and hasattr(case, "body") and case.body:
+            try:
+                if isinstance(case.body, (str, bytes)):
+                    body_str = case.body.decode("utf-8") if isinstance(case.body, bytes) else case.body
+                    request_has_null_bytes = contains_null_bytes(body_str)
+            except (UnicodeDecodeError, AttributeError):
+                pass
+        if request_has_null_bytes and ("400" in str(e) or "CheckFailed" in str(type(e).__name__)):
+            logging.info(f"Expected 400 error for null bytes: {case.path}")
+            pytest.skip("Expected validation error for null bytes")
+        else:
+            raise
+
+
+@pytest.mark.parametrize("generated_schema", ["model-registry.yaml"], indirect=True)
+@base_schema.include(method="GET", path_regex=".*/inference_service.*|.*/serving_environment.*|.*/serve.*").parametrize()
+@settings(
+    max_examples=100,
+    deadline=None,
+    suppress_health_check=[
+        HealthCheck.filter_too_much,
+        HealthCheck.too_slow,
+        HealthCheck.data_too_large,
+    ],
+)
+@pytest.mark.fuzz
+def test_mr_api_stateless_get_serving(auth_headers: dict, case: schemathesis.Case, verify_ssl: bool) -> None:
+    """Test GET endpoints for InferenceServices and ServingEnvironments."""
+    try:
+        case.call_and_validate(headers=auth_headers, verify=verify_ssl)
+    except Exception as e:
+        request_has_null_bytes = False
+        if case.query:
+            request_has_null_bytes = contains_null_bytes(case.query)
+        if not request_has_null_bytes and hasattr(case, "body") and case.body:
+            try:
+                if isinstance(case.body, (str, bytes)):
+                    body_str = case.body.decode("utf-8") if isinstance(case.body, bytes) else case.body
+                    request_has_null_bytes = contains_null_bytes(body_str)
+            except (UnicodeDecodeError, AttributeError):
+                pass
+        if request_has_null_bytes and ("400" in str(e) or "CheckFailed" in str(type(e).__name__)):
+            logging.info(f"Expected 400 error for null bytes: {case.path}")
+            pytest.skip("Expected validation error for null bytes")
+        else:
+            raise
+
+
+# POST endpoints - split by resource type
+@pytest.mark.parametrize("generated_schema", ["model-registry.yaml"], indirect=True)
+@base_schema.include(method="POST", path_regex=".*/(registered_model|model_version).*").parametrize()
+@settings(
+    max_examples=100,
+    deadline=None,
+    suppress_health_check=[
+        HealthCheck.filter_too_much,
+        HealthCheck.too_slow,
+        HealthCheck.data_too_large,
+    ],
+)
+@pytest.mark.fuzz
+def test_mr_api_stateless_post_models(auth_headers: dict, case: schemathesis.Case, verify_ssl: bool) -> None:
+    """Test POST endpoints for RegisteredModels and ModelVersions."""
+    try:
+        case.call_and_validate(headers=auth_headers, verify=verify_ssl)
+    except Exception as e:
+        request_has_null_bytes = False
+        if case.query:
+            request_has_null_bytes = contains_null_bytes(case.query)
+        if not request_has_null_bytes and hasattr(case, "body") and case.body:
+            try:
+                if isinstance(case.body, (str, bytes)):
+                    body_str = case.body.decode("utf-8") if isinstance(case.body, bytes) else case.body
+                    request_has_null_bytes = contains_null_bytes(body_str)
+            except (UnicodeDecodeError, AttributeError):
+                pass
+        if request_has_null_bytes and ("400" in str(e) or "CheckFailed" in str(type(e).__name__)):
+            logging.info(f"Expected 400 error for null bytes: {case.path}")
+            pytest.skip("Expected validation error for null bytes")
+        else:
+            raise
+
+
+@pytest.mark.parametrize("generated_schema", ["model-registry.yaml"], indirect=True)
+@base_schema.include(method="POST", path_regex=".*/artifact.*").parametrize()
+@settings(
+    max_examples=100,
+    deadline=None,
+    suppress_health_check=[
+        HealthCheck.filter_too_much,
+        HealthCheck.too_slow,
+        HealthCheck.data_too_large,
+    ],
+)
+@pytest.mark.fuzz
+def test_mr_api_stateless_post_artifacts(auth_headers: dict, case: schemathesis.Case, verify_ssl: bool) -> None:
+    """Test POST endpoints for Artifacts."""
+    try:
+        case.call_and_validate(headers=auth_headers, verify=verify_ssl)
+    except Exception as e:
+        request_has_null_bytes = False
+        if case.query:
+            request_has_null_bytes = contains_null_bytes(case.query)
+        if not request_has_null_bytes and hasattr(case, "body") and case.body:
+            try:
+                if isinstance(case.body, (str, bytes)):
+                    body_str = case.body.decode("utf-8") if isinstance(case.body, bytes) else case.body
+                    request_has_null_bytes = contains_null_bytes(body_str)
+            except (UnicodeDecodeError, AttributeError):
+                pass
+        if request_has_null_bytes and ("400" in str(e) or "CheckFailed" in str(type(e).__name__)):
+            logging.info(f"Expected 400 error for null bytes: {case.path}")
+            pytest.skip("Expected validation error for null bytes")
+        else:
+            raise
+
+
+@pytest.mark.parametrize("generated_schema", ["model-registry.yaml"], indirect=True)
+@base_schema.include(method="POST", path_regex=".*/experiment.*").parametrize()
+@settings(
+    max_examples=100,
+    deadline=None,
+    suppress_health_check=[
+        HealthCheck.filter_too_much,
+        HealthCheck.too_slow,
+        HealthCheck.data_too_large,
+    ],
+)
+@pytest.mark.fuzz
+def test_mr_api_stateless_post_experiments(auth_headers: dict, case: schemathesis.Case, verify_ssl: bool) -> None:
+    """Test POST endpoints for Experiments and ExperimentRuns."""
+    try:
+        case.call_and_validate(headers=auth_headers, verify=verify_ssl)
+    except Exception as e:
+        request_has_null_bytes = False
+        if case.query:
+            request_has_null_bytes = contains_null_bytes(case.query)
+        if not request_has_null_bytes and hasattr(case, "body") and case.body:
+            try:
+                if isinstance(case.body, (str, bytes)):
+                    body_str = case.body.decode("utf-8") if isinstance(case.body, bytes) else case.body
+                    request_has_null_bytes = contains_null_bytes(body_str)
+            except (UnicodeDecodeError, AttributeError):
+                pass
+        if request_has_null_bytes and ("400" in str(e) or "CheckFailed" in str(type(e).__name__)):
+            logging.info(f"Expected 400 error for null bytes: {case.path}")
+            pytest.skip("Expected validation error for null bytes")
+        else:
+            raise
+
+
+@pytest.mark.parametrize("generated_schema", ["model-registry.yaml"], indirect=True)
+@base_schema.include(method="POST", path_regex=".*/inference_service.*|.*/serving_environment.*").parametrize()
+@settings(
+    max_examples=100,
+    deadline=None,
+    suppress_health_check=[
+        HealthCheck.filter_too_much,
+        HealthCheck.too_slow,
+        HealthCheck.data_too_large,
+    ],
+)
+@pytest.mark.fuzz
+def test_mr_api_stateless_post_serving(auth_headers: dict, case: schemathesis.Case, verify_ssl: bool) -> None:
+    """Test POST endpoints for InferenceServices and ServingEnvironments."""
+    try:
+        case.call_and_validate(headers=auth_headers, verify=verify_ssl)
+    except Exception as e:
+        request_has_null_bytes = False
+        if case.query:
+            request_has_null_bytes = contains_null_bytes(case.query)
+        if not request_has_null_bytes and hasattr(case, "body") and case.body:
+            try:
+                if isinstance(case.body, (str, bytes)):
+                    body_str = case.body.decode("utf-8") if isinstance(case.body, bytes) else case.body
+                    request_has_null_bytes = contains_null_bytes(body_str)
+            except (UnicodeDecodeError, AttributeError):
+                pass
+        if request_has_null_bytes and ("400" in str(e) or "CheckFailed" in str(type(e).__name__)):
+            logging.info(f"Expected 400 error for null bytes: {case.path}")
+            pytest.skip("Expected validation error for null bytes")
+        else:
+            raise
+
+
+# PATCH endpoints - split by resource type
+@pytest.mark.parametrize("generated_schema", ["model-registry.yaml"], indirect=True)
+@base_schema.include(method="PATCH", path_regex=".*/(registered_model|model_version).*").parametrize()
+@settings(
+    max_examples=100,
+    deadline=None,
+    suppress_health_check=[
+        HealthCheck.filter_too_much,
+        HealthCheck.too_slow,
+        HealthCheck.data_too_large,
+    ],
+)
+@pytest.mark.fuzz
+def test_mr_api_stateless_patch_models(auth_headers: dict, case: schemathesis.Case, verify_ssl: bool) -> None:
+    """Test PATCH endpoints for RegisteredModels and ModelVersions."""
+    try:
+        case.call_and_validate(headers=auth_headers, verify=verify_ssl)
+    except Exception as e:
+        request_has_null_bytes = False
+        if case.query:
+            request_has_null_bytes = contains_null_bytes(case.query)
+        if not request_has_null_bytes and hasattr(case, "body") and case.body:
+            try:
+                if isinstance(case.body, (str, bytes)):
+                    body_str = case.body.decode("utf-8") if isinstance(case.body, bytes) else case.body
+                    request_has_null_bytes = contains_null_bytes(body_str)
+            except (UnicodeDecodeError, AttributeError):
+                pass
+        if request_has_null_bytes and ("400" in str(e) or "CheckFailed" in str(type(e).__name__)):
+            logging.info(f"Expected 400 error for null bytes: {case.path}")
+            pytest.skip("Expected validation error for null bytes")
+        else:
+            raise
+
+
+@pytest.mark.parametrize("generated_schema", ["model-registry.yaml"], indirect=True)
+@base_schema.include(method="PATCH", path_regex=".*/artifact.*|.*/experiment.*|.*/inference_service.*|.*/serving_environment.*").parametrize()
+@settings(
+    max_examples=100,
+    deadline=None,
+    suppress_health_check=[
+        HealthCheck.filter_too_much,
+        HealthCheck.too_slow,
+        HealthCheck.data_too_large,
+    ],
+)
+@pytest.mark.fuzz
+def test_mr_api_stateless_patch_others(auth_headers: dict, case: schemathesis.Case, verify_ssl: bool) -> None:
+    """Test PATCH endpoints for Artifacts, Experiments, and Serving resources."""
+    try:
+        case.call_and_validate(headers=auth_headers, verify=verify_ssl)
+    except Exception as e:
+        request_has_null_bytes = False
+        if case.query:
+            request_has_null_bytes = contains_null_bytes(case.query)
+        if not request_has_null_bytes and hasattr(case, "body") and case.body:
+            try:
+                if isinstance(case.body, (str, bytes)):
+                    body_str = case.body.decode("utf-8") if isinstance(case.body, bytes) else case.body
+                    request_has_null_bytes = contains_null_bytes(body_str)
+            except (UnicodeDecodeError, AttributeError):
+                pass
+        if request_has_null_bytes and ("400" in str(e) or "CheckFailed" in str(type(e).__name__)):
+            logging.info(f"Expected 400 error for null bytes: {case.path}")
+            pytest.skip("Expected validation error for null bytes")
+        else:
             raise
 
 @pytest.mark.fuzz
