@@ -5,13 +5,21 @@ catalogs:
     enabled: true
     properties:
       apiKey: "hf_test_api_key_here"
-      url: "https://huggingface.co"
       modelLimit: 50
+      includedModels:
+      - "ibm-granite/granite-4.0-h-small"
+      - "ibm-granite/granite-4.0-h-tiny"
+    excludedModels:
+      - "ibm-granite/granite-4.0-h-small"
   - name: "HuggingFace Invalid Credentials"
     id: hf_invalid
     type: hf
     enabled: false # disabled so it doesn't cause startup failures in tests
     properties:
       apiKey: "invalid_key"
-      url: "https://huggingface.co"
       modelLimit: 10
+      includedModels:
+      - "ibm-granite/granite-4.0-h-small"
+      - "ibm-granite/granite-4.0-h-tiny"
+    excludedModels:
+      - "ibm-granite/granite-4.0-h-small"

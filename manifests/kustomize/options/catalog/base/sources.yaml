@@ -5,3 +5,16 @@ catalogs:
   enabled: true
   properties:
     yamlCatalogPath: sample-catalog.yaml
+- name: Sample HuggingFace Catalog
+  id: sample_hf_catalog
+  type: hf
+  enabled: false
+  properties:
+    apiKey: {$HF_API_KEY}
+    modelLimit: 10
+    includedModels:
+      - "ibm-granite/granite-4.0-h-small"
+      - "ibm-granite/granite-4.0-h-tiny"
+    excludedModels:
+      - "ibm-granite/granite-4.0-h-small"
+
