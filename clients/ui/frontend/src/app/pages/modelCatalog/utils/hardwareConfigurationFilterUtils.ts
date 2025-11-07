@@ -9,7 +9,6 @@ import {
   LatencyMetricFieldName,
   LatencyPercentile,
   LatencyMetric,
-  LATENCY_METRIC_FIELD_NAMES,
 } from '~/concepts/modelCatalog/const';
 
 // Type for storing complex latency filter configuration with value
@@ -112,12 +111,15 @@ export const filterHardwareConfigurationArtifacts = (
     }
 
     // Max Latency Filter - check for any active latency field
-    for (const fieldName of LATENCY_METRIC_FIELD_NAMES) {
-      const filterValue = filterState[fieldName];
-      if (filterValue !== undefined && typeof filterValue === 'number') {
-        const latencyValue = getDoubleValue(artifact.customProperties, fieldName);
-        if (latencyValue > filterValue) {
-          return false;
+    for (const metric of Object.values(LatencyMetric)) {
+      for (const percentile of Object.values(LatencyPercentile)) {
+        const fieldName = getLatencyFieldName(metric, percentile);
+        const filterValue = filterState[fieldName];
+        if (filterValue !== undefined && typeof filterValue === 'number') {
+          const latencyValue = getDoubleValue(artifact.customProperties, fieldName);
+          if (latencyValue > filterValue) {
+            return false;
+          }
         }
       }
     }

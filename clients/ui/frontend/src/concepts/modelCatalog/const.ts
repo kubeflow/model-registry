@@ -28,26 +28,6 @@ export enum LatencyPercentile {
 // Use getLatencyFieldName util to get values of this type
 export type LatencyMetricFieldName = `${Lowercase<LatencyMetric>}_${Lowercase<LatencyPercentile>}`;
 
-// All possible latency metric field names
-export const LATENCY_METRIC_FIELD_NAMES: LatencyMetricFieldName[] = [
-  'e2e_mean',
-  'e2e_p90',
-  'e2e_p95',
-  'e2e_p99',
-  'ttft_mean',
-  'ttft_p90',
-  'ttft_p95',
-  'ttft_p99',
-  'tps_mean',
-  'tps_p90',
-  'tps_p95',
-  'tps_p99',
-  'itl_mean',
-  'itl_p90',
-  'itl_p95',
-  'itl_p99',
-];
-
 export enum UseCaseOptionValue {
   CHATBOT = 'chatbot',
   CODE_FIXING = 'code_fixing',

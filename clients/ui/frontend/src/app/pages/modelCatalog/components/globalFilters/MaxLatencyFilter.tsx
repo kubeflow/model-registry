@@ -14,17 +14,10 @@ import {
   Slider,
 } from '@patternfly/react-core';
 import { HelpIcon } from '@patternfly/react-icons';
-import {
-  LatencyMetric,
-  LatencyPercentile,
-  LATENCY_METRIC_FIELD_NAMES,
-} from '~/concepts/modelCatalog/const';
+import { LatencyMetric, LatencyPercentile } from '~/concepts/modelCatalog/const';
 import { CatalogPerformanceMetricsArtifact } from '~/app/modelCatalogTypes';
 import { getDoubleValue } from '~/app/utils';
-import {
-  getLatencyFieldName,
-  parseLatencyFieldName,
-} from '~/app/pages/modelCatalog/utils/hardwareConfigurationFilterUtils';
+import { getLatencyFieldName } from '~/app/pages/modelCatalog/utils/hardwareConfigurationFilterUtils';
 import { ModelCatalogContext } from '~/app/context/modelCatalog/ModelCatalogContext';
 
 type LatencyFilterState = {
@@ -59,17 +52,12 @@ const MaxLatencyFilter: React.FC<MaxLatencyFilterProps> = ({ performanceArtifact
 
   // Find the currently active latency filter (if any)
   const currentActiveFilter = React.useMemo(() => {
-    for (const fieldName of LATENCY_METRIC_FIELD_NAMES) {
-      const value = filterData[fieldName];
-      if (value !== undefined && typeof value === 'number') {
-        const parsed = parseLatencyFieldName(fieldName);
-        if (parsed) {
-          return {
-            fieldName,
-            metric: parsed.metric,
-            percentile: parsed.percentile,
-            value,
-          };
+    for (const metric of Object.values(LatencyMetric)) {
+      for (const percentile of Object.values(LatencyPercentile)) {
+        const fieldName = getLatencyFieldName(metric, percentile);
+        const value = filterData[fieldName];
+        if (value !== undefined && typeof value === 'number') {
+          return { fieldName, metric, percentile, value };
         }
       }
     }
