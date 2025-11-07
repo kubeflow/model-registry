@@ -14,18 +14,11 @@ import {
   Slider,
 } from '@patternfly/react-core';
 import { HelpIcon } from '@patternfly/react-icons';
-import {
-  LatencyMetric,
-  LatencyPercentile,
-  ModelCatalogNumberFilterKey,
-} from '~/concepts/modelCatalog/const';
-import { useCatalogNumberFilterState } from '~/app/pages/modelCatalog/utils/modelCatalogUtils';
+import { LatencyMetric, LatencyPercentile } from '~/concepts/modelCatalog/const';
 import { CatalogPerformanceMetricsArtifact } from '~/app/modelCatalogTypes';
 import { getDoubleValue } from '~/app/utils';
 import { getLatencyFieldName } from '~/app/pages/modelCatalog/utils/hardwareConfigurationFilterUtils';
-import { useLatencyFilterConfig } from '~/app/pages/modelCatalog/utils/latencyFilterState';
-
-const filterKey = ModelCatalogNumberFilterKey.MAX_LATENCY;
+import { ModelCatalogContext } from '~/app/context/modelCatalog/ModelCatalogContext';
 
 type LatencyFilterState = {
   metric: LatencyMetric;
@@ -46,9 +39,7 @@ const PERCENTILE_OPTIONS: { value: LatencyPercentile; label: LatencyPercentile }
 ).map((percentile) => ({ value: percentile, label: percentile }));
 
 const MaxLatencyFilter: React.FC<MaxLatencyFilterProps> = ({ performanceArtifacts }) => {
-  const { value: savedFilterValue, setValue: setSavedFilterValue } =
-    useCatalogNumberFilterState(filterKey);
-  const { updateConfig: updateSharedLatencyConfig } = useLatencyFilterConfig();
+  const { filterData, setFilterData } = React.useContext(ModelCatalogContext);
   const [isOpen, setIsOpen] = React.useState(false);
   const [isMetricOpen, setIsMetricOpen] = React.useState(false);
   const [isPercentileOpen, setIsPercentileOpen] = React.useState(false);
@@ -59,15 +50,29 @@ const MaxLatencyFilter: React.FC<MaxLatencyFilterProps> = ({ performanceArtifact
   // Show all available percentiles - in production this could be filtered based on backend data
   const getAvailablePercentiles = React.useCallback(() => PERCENTILE_OPTIONS, []);
 
+  // Find the currently active latency filter (if any)
+  const currentActiveFilter = React.useMemo(() => {
+    for (const metric of Object.values(LatencyMetric)) {
+      for (const percentile of Object.values(LatencyPercentile)) {
+        const fieldName = getLatencyFieldName(metric, percentile);
+        const value = filterData[fieldName];
+        if (value !== undefined && typeof value === 'number') {
+          return { fieldName, metric, percentile, value };
+        }
+      }
+    }
+    return null;
+  }, [filterData]);
+
   const defaultFilterState = React.useMemo(() => {
     // Initialize with first available options to ensure consistency
     const firstAvailableMetric =
-      availableMetrics.length > 0 ? availableMetrics[0].value : LatencyMetric.E2E;
+      availableMetrics.length > 0 ? availableMetrics[0].value : LatencyMetric.TTFT;
     const firstAvailablePercentile = getAvailablePercentiles();
     const defaultPercentile =
       firstAvailablePercentile.length > 0
         ? firstAvailablePercentile[0].value
-        : LatencyPercentile.P90;
+        : LatencyPercentile.Mean;
 
     return {
       metric: firstAvailableMetric,
@@ -76,24 +81,36 @@ const MaxLatencyFilter: React.FC<MaxLatencyFilterProps> = ({ performanceArtifact
     };
   }, [availableMetrics, getAvailablePercentiles]);
 
-  // Local state for the filter configuration (persistent state)
-  // TODO when we eventually move from ModelCatalogNumberFilterKey.MAX_LATENCY to using the LatencyMetricFieldNames
-  // as separate filter keys, we won't need appliedFilter to be state, we can use the filterKey as the dropdown state and
-  // use parseLatencyFieldName to identify the metric and the percentile from the filterKey.
-  const [appliedFilter, setAppliedFilter] = React.useState<LatencyFilterState>(defaultFilterState);
-
   // Working state while editing the filter
-  const [localFilter, setLocalFilter] = React.useState<LatencyFilterState>(appliedFilter);
+  const [localFilter, setLocalFilter] = React.useState<LatencyFilterState>(() => {
+    if (currentActiveFilter) {
+      return {
+        metric: currentActiveFilter.metric,
+        percentile: currentActiveFilter.percentile,
+        value: currentActiveFilter.value,
+      };
+    }
+    return defaultFilterState;
+  });
 
-  const hasActiveFilter = savedFilterValue !== undefined;
+  // Update local filter when active filter changes
+  React.useEffect(() => {
+    if (currentActiveFilter) {
+      setLocalFilter({
+        metric: currentActiveFilter.metric,
+        percentile: currentActiveFilter.percentile,
+        value: currentActiveFilter.value,
+      });
+    }
+  }, [currentActiveFilter]);
 
   const getDisplayText = (): React.ReactNode => {
-    if (hasActiveFilter) {
+    if (currentActiveFilter) {
       // When there's an active filter, show the full specification with actual selected values
       return (
         <>
-          <strong>Max latency:</strong> {appliedFilter.metric} | {appliedFilter.percentile} |{' '}
-          {savedFilterValue}ms
+          <strong>Max latency:</strong> {currentActiveFilter.metric} |{' '}
+          {currentActiveFilter.percentile} | {currentActiveFilter.value}ms
         </>
       );
     }
@@ -101,22 +118,25 @@ const MaxLatencyFilter: React.FC<MaxLatencyFilterProps> = ({ performanceArtifact
   };
 
   const handleApplyFilter = () => {
-    // Store the current local filter values as the applied filter
-    setAppliedFilter(localFilter);
-    setSavedFilterValue(localFilter.value);
-    // Update the shared config so filtering logic can use it
-    updateSharedLatencyConfig({ metric: localFilter.metric, percentile: localFilter.percentile });
+    // Clear any existing latency filter
+    if (currentActiveFilter) {
+      setFilterData(currentActiveFilter.fieldName, undefined);
+    }
+
+    // Set the new latency filter using the dynamic field name
+    const newFieldName = getLatencyFieldName(localFilter.metric, localFilter.percentile);
+    setFilterData(newFieldName, localFilter.value);
     setIsOpen(false);
   };
 
   const handleReset = () => {
-    const defaultFilterWithCalculatedMax: LatencyFilterState = {
-      ...defaultFilterState,
-      value: Math.min(maxValue, 100), // Use calculated maxValue but cap at reasonable level
-    };
-    setSavedFilterValue(undefined);
-    setAppliedFilter(defaultFilterWithCalculatedMax);
-    setLocalFilter(defaultFilterWithCalculatedMax);
+    // Clear any existing latency filter
+    if (currentActiveFilter) {
+      setFilterData(currentActiveFilter.fieldName, undefined);
+    }
+
+    // Reset local filter to default
+    setLocalFilter(defaultFilterState);
     setIsOpen(false);
   };
 

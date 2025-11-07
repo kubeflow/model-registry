@@ -9,7 +9,6 @@ export enum ModelCatalogStringFilterKey {
 
 export enum ModelCatalogNumberFilterKey {
   MIN_RPS = 'rps_mean',
-  MAX_LATENCY = 'ttft_mean',
 }
 
 export enum LatencyMetric {

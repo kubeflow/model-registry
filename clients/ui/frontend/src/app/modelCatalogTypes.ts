@@ -186,7 +186,10 @@ export type CatalogModelDetailsParams = {
   modelName?: string;
 };
 
-export type ModelCatalogFilterKey = ModelCatalogStringFilterKey | ModelCatalogNumberFilterKey;
+export type ModelCatalogFilterKey =
+  | ModelCatalogStringFilterKey
+  | ModelCatalogNumberFilterKey
+  | LatencyMetricFieldName;
 
 // Not used for a run time value, just for mapping other types
 export type ModelCatalogStringFilterValueType = {
@@ -224,4 +227,6 @@ export type ModelCatalogFilterStates = {
   [ModelCatalogStringFilterKey.USE_CASE]: UseCaseOptionValue | undefined;
 } & {
   [key in ModelCatalogNumberFilterKey]: number | undefined;
+} & {
+  [key in LatencyMetricFieldName]?: number | undefined;
 };
