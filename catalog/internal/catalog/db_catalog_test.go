@@ -1090,6 +1090,36 @@ func TestDBCatalog(t *testing.T) {
 				filterQuery: "invalid syntax here",
 				shouldError: true,
 			},
+			{
+				name:          "Inferred int type - should match double values (dual-column query)",
+				filterQuery:   `model_size > 400`,
+				expectedCount: 2,
+				expectedNames: []string{"pytorch-model-artifact", "onnx-model-artifact"},
+			},
+			{
+				name:          "Explicit double_value with integer literal",
+				filterQuery:   `model_size.double_value > 400`,
+				expectedCount: 2,
+				expectedNames: []string{"pytorch-model-artifact", "onnx-model-artifact"},
+			},
+			{
+				name:          "Explicit double_value with float literal",
+				filterQuery:   `model_size.double_value > 400.0`,
+				expectedCount: 2,
+				expectedNames: []string{"pytorch-model-artifact", "onnx-model-artifact"},
+			},
+			{
+				name:          "Explicit int_value with integer literal",
+				filterQuery:   `model_size.int_value > 400`,
+				expectedCount: 0, // Data is stored as double, so int_value query returns nothing
+				expectedNames: []string{},
+			},
+			{
+				name:          "Explicit string_value with string literal",
+				filterQuery:   `format.string_value = "onnx"`,
+				expectedCount: 1,
+				expectedNames: []string{"onnx-model-artifact"},
+			},
 		}
 
 		for _, tt := range tests {

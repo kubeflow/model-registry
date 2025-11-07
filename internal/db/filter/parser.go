@@ -132,11 +132,12 @@ type FilterExpression struct {
 
 // PropertyReference represents a property reference with type information
 type PropertyReference struct {
-	Name        string
-	IsCustom    bool
-	ValueType   string             // StringValueType, DoubleValueType, IntValueType, BoolValueType, ArrayValueType
-	IsEscaped   bool               // whether the property name was escaped with backticks
-	PropertyDef PropertyDefinition // Full property definition for advanced handling
+	Name         string
+	IsCustom     bool
+	ValueType    string             // StringValueType, DoubleValueType, IntValueType, BoolValueType, ArrayValueType
+	ExplicitType string             // Non-empty if the type was explicitly specified (e.g., "property.double_value")
+	IsEscaped    bool               // whether the property name was escaped with backticks
+	PropertyDef  PropertyDefinition // Full property definition for advanced handling
 }
 
 // Parse parses a filter query string and returns the root expression
