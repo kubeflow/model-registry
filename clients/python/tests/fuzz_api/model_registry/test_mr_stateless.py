@@ -1,10 +1,12 @@
+from __future__ import annotations
+
 import logging
 import secrets
 import time
-from typing import Any, Callable, Optional
+from typing import Any, Callable
 
 import pytest
-import requests
+import requests  # type: ignore[import-untyped]
 import schemathesis
 from hypothesis import HealthCheck, settings
 
@@ -78,7 +80,7 @@ def generate_unique_timestamp() -> str:
 
 
 def build_artifact_payload(artifact_type: str, uri_prefix: str, state: str, name: str,
-                          description: str = None, external_id: str = None) -> dict[str, Any]:
+                          description: str | None = None, external_id: str | None = None) -> dict[str, Any]:
     """Build a payload for creating an artifact based on its type.
 
     Args:
@@ -92,7 +94,7 @@ def build_artifact_payload(artifact_type: str, uri_prefix: str, state: str, name
     Returns:
         Dictionary containing the artifact payload
     """
-    payload = {
+    payload: dict[str, Any] = {
         "artifactType": artifact_type,
         "name": name,
         "state": state,
@@ -123,7 +125,7 @@ def build_artifact_payload(artifact_type: str, uri_prefix: str, state: str, name
     return payload
 
 
-def validate_artifact_response(response: requests.Response, expected_payload: dict[str, Any]) -> Optional[str]:
+def validate_artifact_response(response: requests.Response, expected_payload: dict[str, Any]) -> str | None:
     """Validate artifact creation response and return the artifact ID.
 
     Args:
@@ -538,7 +540,7 @@ def test_patch_artifact(auth_headers: dict, artifact_resource: Callable, artifac
         create_payload["uri"] = "s3://my-test-bucket/datasets/initial-dataset.parquet"
         create_payload["sourceType"] = "s3"
     elif artifact_type == "metric":
-        create_payload["value"] = 0.85
+        create_payload["value"] = 0.85  # type: ignore[assignment]
         create_payload["timestamp"] = "1000000000"
     elif artifact_type == "parameter":
         create_payload["value"] = "0.01"
@@ -554,7 +556,7 @@ def test_patch_artifact(auth_headers: dict, artifact_resource: Callable, artifac
 
         # Add type-specific update properties if needed
         if artifact_type == "metric":
-            patch_payload["value"] = 0.99  # Updated metric value
+            patch_payload["value"] = 0.99  # type: ignore[assignment]  # Updated metric value
         elif artifact_type == "parameter":
             patch_payload["value"] = "0.001"  # Updated parameter value
 

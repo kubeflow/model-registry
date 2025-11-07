@@ -4,6 +4,7 @@ import time
 from contextlib import AbstractContextManager
 from dataclasses import dataclass
 from typing import Any, Callable, Literal
+from types import TracebackType
 
 from model_registry.core import ModelRegistryAPIClient
 from model_registry.exceptions import StoreError
@@ -49,7 +50,7 @@ class ActiveExperimentRun(AbstractContextManager):
         self._thread_safe_ctx = thread_safe_ctx
         self._exp_run = experiment_run
         self.info = RunInfo(
-            id=experiment_run.id,
+            id=experiment_run.id,  # type: ignore[arg-type]
             name=experiment_run.name,
             experiment_id=experiment_run.experiment_id,
         )
@@ -57,10 +58,15 @@ class ActiveExperimentRun(AbstractContextManager):
         self.__async_runner = async_runner
         self._logs: ExperimentRunArtifactTypes = ExperimentRunArtifactTypes()
 
-    def __enter__(self):
+    def __enter__(self) -> ActiveExperimentRun:
         return self
 
-    def __exit__(self, exc_type, exc_value, traceback):
+    def __exit__(
+        self,
+        exc_type: type[BaseException] | None,
+        exc_value: BaseException | None,
+        traceback: TracebackType | None,
+    ) -> None:
         """Exit the context manager and upsert the logs to the experiment run."""
         temp_artifacts: ExperimentRunArtifactTypes = ExperimentRunArtifactTypes()
         for log in self.get_logs():
@@ -69,11 +75,11 @@ class ActiveExperimentRun(AbstractContextManager):
             )
             log_type = type(server_log)
             if log_type is Parameter:
-                temp_artifacts.params[log.name] = server_log
+                temp_artifacts.params[log.name] = server_log  # type: ignore[index]
             elif log_type is Metric:
-                temp_artifacts.metrics[log.name] = server_log
+                temp_artifacts.metrics[log.name] = server_log  # type: ignore[index]
             elif log_type is DataSet:
-                temp_artifacts.datasets[log.name] = server_log
+                temp_artifacts.datasets[log.name] = server_log  # type: ignore[index]
         self._logs = temp_artifacts
         self._thread_safe_ctx.set(RunContext(active=False))
 
@@ -131,7 +137,7 @@ class ActiveExperimentRun(AbstractContextManager):
             value=value,
             step=step,
             state=ArtifactState.LIVE,
-            timestamp=timestamp or str(int(time.time() * 1000)),
+            timestamp=timestamp or str(int(time.time() * 1000)),  # type: ignore[arg-type]
             description=description,
         )
 
@@ -169,7 +175,7 @@ class ActiveExperimentRun(AbstractContextManager):
         try:
             uri = (
                 upload_to_s3(
-                    s3_auth=s3_auth,
+                    s3_auth=s3_auth,  # type: ignore[arg-type]
                     path=file_path,
                 )
                 if file_path
@@ -178,13 +184,13 @@ class ActiveExperimentRun(AbstractContextManager):
         except Exception as e:
             msg = f"Failed to upload dataset to S3: {e}"
             raise StoreError(msg) from e
-        self._logs.datasets[name] = DataSet(
+        self._logs.datasets[name] = DataSet(  # type: ignore[index]
             name=name,
             uri=uri,
             source_type=source_type,
             source=source,
-            schema=schema,
-            profile=profile,
+            schema=schema,  # type: ignore[arg-type]
+            profile=profile,  # type: ignore[arg-type]
             description=description,
         )
 

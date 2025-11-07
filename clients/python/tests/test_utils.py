@@ -139,8 +139,8 @@ def test_save_to_oci_registry_with_username_password(mocker, tmp_path):
     @contextmanager
     def temp_auth_file_wrapper(auth):
         with temp_auth_file(auth) as f:
-            temp_auth_file_info["path"] = f.name
-            temp_auth_file_info["contents"] = Path(f.name).read_text()
+            temp_auth_file_info["path"] = f.name  # type: ignore[union-attr]
+            temp_auth_file_info["contents"] = Path(f.name).read_text()  # type: ignore[union-attr]
             yield f
 
     mock_skopeo_pull = mocker.patch("olot.backend.skopeo.skopeo_pull")
@@ -203,7 +203,7 @@ def test_save_to_oci_registry_backend_not_found():
     with pytest.raises(
         ValueError, match=f"'{backend}' is not an available backend to use."
     ) as e:
-        save_to_oci_registry("", "", [], "", backend)
+        save_to_oci_registry("", "", [], "", backend)  # type: ignore[arg-type]
 
     assert f"'{backend}' is not an available backend to use." in str(e.value)
 
