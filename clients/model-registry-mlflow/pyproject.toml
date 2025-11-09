@@ -1,0 +1,62 @@
+[project]
+name = "model-registry-mlflow"
+version = "0.1.0"
+description = "Kubeflow Model Registry MLflow Integration Plugin"
+authors = [
+    {name= "Dhiraj Bokde", email= "<dhirajsb@users.noreply.github.com>"},
+]
+license = "Apache-2.0"
+readme = "README.md"
+requires-python = ">=3.9"
+homepage = "https://github.com/kubeflow/model-registry"
+dependencies = [
+    "mlflow>=2.0.0",
+    "requests>=2.25.0",
+]
+
+[project.entry-points."mlflow.tracking_store"]
+modelregistry = "model_registry_mlflow.tracking_store:ModelRegistryTrackingStore"
+"modelregistry+http" = "model_registry_mlflow.tracking_store:ModelRegistryTrackingStore"
+"modelregistry+https" = "model_registry_mlflow.tracking_store:ModelRegistryTrackingStore"
+
+[build-system]
+requires = ["uv_build>=0.8.15,<0.9.0"]
+build-backend = "uv_build"
+
+[tool.uv.build-backend]
+module-name = "model_registry_mlflow"
+module-root = "src"
+
+[dependency-groups]
+dev = [
+    "psutil>=7.0.0",
+    "pytest>=8.4.0",
+    "pytest-cov>=6.2.1",
+    "pytest-dotenv>=0.5.2",
+    "ruff>=0.12.0",
+    "testcontainers>=3.7.0",
+]
+
+[tool.coverage.run]
+source = ["src"]
+omit = [
+    "*/tests/*",
+    "*/__pycache__/*",
+]
+
+[tool.coverage.paths]
+source = [
+    "src/",
+    "*/site-packages/",
+    "*/.venv/lib/python*/site-packages/",
+]
+
+[tool.pytest.ini_options]
+log_cli = true
+log_cli_level = "INFO"
+log_cli_format = "%(asctime)s [%(levelname)8s] %(name)s: %(message)s"
+log_cli_date_format = "%Y-%m-%d %H:%M:%S"
+markers = [
+    "unit: marks tests as unit tests",
+    "e2e: marks tests as end-to-end tests",
+]
