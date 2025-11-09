@@ -19,29 +19,29 @@ var _ MappedNullable = &CatalogModel{}
 
 // CatalogModel A model in the model catalog.
 type CatalogModel struct {
-	// An optional description about the resource.
-	Description *string `json:"description,omitempty"`
+	// Human-readable description of the model.
+	Description NullableString `json:"description,omitempty"`
 	// Model documentation in Markdown.
-	Readme *string `json:"readme,omitempty"`
+	Readme NullableString `json:"readme,omitempty"`
 	// Maturity level of the model.
-	Maturity *string `json:"maturity,omitempty"`
+	Maturity NullableString `json:"maturity,omitempty"`
 	// List of supported languages (https://en.wikipedia.org/wiki/List_of_ISO_639_language_codes).
-	Language []string `json:"language,omitempty"`
+	Language []string `json:"language"`
 	// List of tasks the model is designed for.
-	Tasks []string `json:"tasks,omitempty"`
+	Tasks []string `json:"tasks"`
 	// Name of the organization or entity that provides the model.
-	Provider *string `json:"provider,omitempty"`
+	Provider NullableString `json:"provider,omitempty"`
 	// URL to the model's logo. A [data URL](https://developer.mozilla.org/en-US/docs/Web/URI/Schemes/data) is recommended.
-	Logo *string `json:"logo,omitempty"`
+	Logo NullableString `json:"logo,omitempty"`
 	// Short name of the model's license.
-	License *string `json:"license,omitempty"`
+	License NullableString `json:"license,omitempty"`
 	// URL to the license text.
-	LicenseLink *string `json:"licenseLink,omitempty"`
-	LibraryName *string `json:"libraryName,omitempty"`
+	LicenseLink NullableString `json:"licenseLink,omitempty"`
+	LibraryName NullableString `json:"libraryName,omitempty"`
 	// User provided custom properties which are not defined by its type.
 	CustomProperties map[string]MetadataValue `json:"customProperties,omitempty"`
 	// The external id that come from the clients’ system. This field is optional. If set, it must be unique among all resources within a database instance.
-	ExternalId *string `json:"externalId,omitempty"`
+	ExternalId NullableString `json:"externalId,omitempty"`
 	// Name of the model. Must be unique within a source.
 	Name string `json:"name"`
 	// The unique server generated id of the resource.
@@ -60,8 +60,10 @@ type _CatalogModel CatalogModel
 // This constructor will assign default values to properties that have it defined,
 // and makes sure properties required by API are set, but the set of arguments
 // will change when the set of required properties is changed
-func NewCatalogModel(name string) *CatalogModel {
+func NewCatalogModel(language []string, tasks []string, name string) *CatalogModel {
 	this := CatalogModel{}
+	this.Language = language
+	this.Tasks = tasks
 	this.Name = name
 	return &this
 }
@@ -74,113 +76,149 @@ func NewCatalogModelWithDefaults() *CatalogModel {
 	return &this
 }
 
-// GetDescription returns the Description field value if set, zero value otherwise.
+// GetDescription returns the Description field value if set, zero value otherwise (both if not set or set to explicit null).
 func (o *CatalogModel) GetDescription() string {
-	if o == nil || IsNil(o.Description) {
+	if o == nil || IsNil(o.Description.Get()) {
 		var ret string
 		return ret
 	}
-	return *o.Description
+	return *o.Description.Get()
 }
 
 // GetDescriptionOk returns a tuple with the Description field value if set, nil otherwise
 // and a boolean to check if the value has been set.
+// NOTE: If the value is an explicit nil, `nil, true` will be returned
 func (o *CatalogModel) GetDescriptionOk() (*string, bool) {
-	if o == nil || IsNil(o.Description) {
+	if o == nil {
 		return nil, false
 	}
-	return o.Description, true
+	return o.Description.Get(), o.Description.IsSet()
 }
 
 // HasDescription returns a boolean if a field has been set.
 func (o *CatalogModel) HasDescription() bool {
-	if o != nil && !IsNil(o.Description) {
+	if o != nil && o.Description.IsSet() {
 		return true
 	}
 
 	return false
 }
 
-// SetDescription gets a reference to the given string and assigns it to the Description field.
+// SetDescription gets a reference to the given NullableString and assigns it to the Description field.
 func (o *CatalogModel) SetDescription(v string) {
-	o.Description = &v
+	o.Description.Set(&v)
 }
 
-// GetReadme returns the Readme field value if set, zero value otherwise.
+// SetDescriptionNil sets the value for Description to be an explicit nil
+func (o *CatalogModel) SetDescriptionNil() {
+	o.Description.Set(nil)
+}
+
+// UnsetDescription ensures that no value is present for Description, not even an explicit nil
+func (o *CatalogModel) UnsetDescription() {
+	o.Description.Unset()
+}
+
+// GetReadme returns the Readme field value if set, zero value otherwise (both if not set or set to explicit null).
 func (o *CatalogModel) GetReadme() string {
-	if o == nil || IsNil(o.Readme) {
+	if o == nil || IsNil(o.Readme.Get()) {
 		var ret string
 		return ret
 	}
-	return *o.Readme
+	return *o.Readme.Get()
 }
 
 // GetReadmeOk returns a tuple with the Readme field value if set, nil otherwise
 // and a boolean to check if the value has been set.
+// NOTE: If the value is an explicit nil, `nil, true` will be returned
 func (o *CatalogModel) GetReadmeOk() (*string, bool) {
-	if o == nil || IsNil(o.Readme) {
+	if o == nil {
 		return nil, false
 	}
-	return o.Readme, true
+	return o.Readme.Get(), o.Readme.IsSet()
 }
 
 // HasReadme returns a boolean if a field has been set.
 func (o *CatalogModel) HasReadme() bool {
-	if o != nil && !IsNil(o.Readme) {
+	if o != nil && o.Readme.IsSet() {
 		return true
 	}
 
 	return false
 }
 
-// SetReadme gets a reference to the given string and assigns it to the Readme field.
+// SetReadme gets a reference to the given NullableString and assigns it to the Readme field.
 func (o *CatalogModel) SetReadme(v string) {
-	o.Readme = &v
+	o.Readme.Set(&v)
 }
 
-// GetMaturity returns the Maturity field value if set, zero value otherwise.
+// SetReadmeNil sets the value for Readme to be an explicit nil
+func (o *CatalogModel) SetReadmeNil() {
+	o.Readme.Set(nil)
+}
+
+// UnsetReadme ensures that no value is present for Readme, not even an explicit nil
+func (o *CatalogModel) UnsetReadme() {
+	o.Readme.Unset()
+}
+
+// GetMaturity returns the Maturity field value if set, zero value otherwise (both if not set or set to explicit null).
 func (o *CatalogModel) GetMaturity() string {
-	if o == nil || IsNil(o.Maturity) {
+	if o == nil || IsNil(o.Maturity.Get()) {
 		var ret string
 		return ret
 	}
-	return *o.Maturity
+	return *o.Maturity.Get()
 }
 
 // GetMaturityOk returns a tuple with the Maturity field value if set, nil otherwise
 // and a boolean to check if the value has been set.
+// NOTE: If the value is an explicit nil, `nil, true` will be returned
 func (o *CatalogModel) GetMaturityOk() (*string, bool) {
-	if o == nil || IsNil(o.Maturity) {
+	if o == nil {
 		return nil, false
 	}
-	return o.Maturity, true
+	return o.Maturity.Get(), o.Maturity.IsSet()
 }
 
 // HasMaturity returns a boolean if a field has been set.
 func (o *CatalogModel) HasMaturity() bool {
-	if o != nil && !IsNil(o.Maturity) {
+	if o != nil && o.Maturity.IsSet() {
 		return true
 	}
 
 	return false
 }
 
-// SetMaturity gets a reference to the given string and assigns it to the Maturity field.
+// SetMaturity gets a reference to the given NullableString and assigns it to the Maturity field.
 func (o *CatalogModel) SetMaturity(v string) {
-	o.Maturity = &v
+	o.Maturity.Set(&v)
 }
 
-// GetLanguage returns the Language field value if set, zero value otherwise.
+// SetMaturityNil sets the value for Maturity to be an explicit nil
+func (o *CatalogModel) SetMaturityNil() {
+	o.Maturity.Set(nil)
+}
+
+// UnsetMaturity ensures that no value is present for Maturity, not even an explicit nil
+func (o *CatalogModel) UnsetMaturity() {
+	o.Maturity.Unset()
+}
+
+// GetLanguage returns the Language field value
+// If the value is explicit nil, the zero value for []string will be returned
 func (o *CatalogModel) GetLanguage() []string {
-	if o == nil || IsNil(o.Language) {
+	if o == nil {
 		var ret []string
 		return ret
 	}
+
 	return o.Language
 }
 
-// GetLanguageOk returns a tuple with the Language field value if set, nil otherwise
+// GetLanguageOk returns a tuple with the Language field value
 // and a boolean to check if the value has been set.
+// NOTE: If the value is an explicit nil, `nil, true` will be returned
 func (o *CatalogModel) GetLanguageOk() ([]string, bool) {
 	if o == nil || IsNil(o.Language) {
 		return nil, false
@@ -188,31 +226,25 @@ func (o *CatalogModel) GetLanguageOk() ([]string, bool) {
 	return o.Language, true
 }
 
-// HasLanguage returns a boolean if a field has been set.
-func (o *CatalogModel) HasLanguage() bool {
-	if o != nil && !IsNil(o.Language) {
-		return true
-	}
-
-	return false
-}
-
-// SetLanguage gets a reference to the given []string and assigns it to the Language field.
+// SetLanguage sets field value
 func (o *CatalogModel) SetLanguage(v []string) {
 	o.Language = v
 }
 
-// GetTasks returns the Tasks field value if set, zero value otherwise.
+// GetTasks returns the Tasks field value
+// If the value is explicit nil, the zero value for []string will be returned
 func (o *CatalogModel) GetTasks() []string {
-	if o == nil || IsNil(o.Tasks) {
+	if o == nil {
 		var ret []string
 		return ret
 	}
+
 	return o.Tasks
 }
 
-// GetTasksOk returns a tuple with the Tasks field value if set, nil otherwise
+// GetTasksOk returns a tuple with the Tasks field value
 // and a boolean to check if the value has been set.
+// NOTE: If the value is an explicit nil, `nil, true` will be returned
 func (o *CatalogModel) GetTasksOk() ([]string, bool) {
 	if o == nil || IsNil(o.Tasks) {
 		return nil, false
@@ -220,178 +252,224 @@ func (o *CatalogModel) GetTasksOk() ([]string, bool) {
 	return o.Tasks, true
 }
 
-// HasTasks returns a boolean if a field has been set.
-func (o *CatalogModel) HasTasks() bool {
-	if o != nil && !IsNil(o.Tasks) {
-		return true
-	}
-
-	return false
-}
-
-// SetTasks gets a reference to the given []string and assigns it to the Tasks field.
+// SetTasks sets field value
 func (o *CatalogModel) SetTasks(v []string) {
 	o.Tasks = v
 }
 
-// GetProvider returns the Provider field value if set, zero value otherwise.
+// GetProvider returns the Provider field value if set, zero value otherwise (both if not set or set to explicit null).
 func (o *CatalogModel) GetProvider() string {
-	if o == nil || IsNil(o.Provider) {
+	if o == nil || IsNil(o.Provider.Get()) {
 		var ret string
 		return ret
 	}
-	return *o.Provider
+	return *o.Provider.Get()
 }
 
 // GetProviderOk returns a tuple with the Provider field value if set, nil otherwise
 // and a boolean to check if the value has been set.
+// NOTE: If the value is an explicit nil, `nil, true` will be returned
 func (o *CatalogModel) GetProviderOk() (*string, bool) {
-	if o == nil || IsNil(o.Provider) {
+	if o == nil {
 		return nil, false
 	}
-	return o.Provider, true
+	return o.Provider.Get(), o.Provider.IsSet()
 }
 
 // HasProvider returns a boolean if a field has been set.
 func (o *CatalogModel) HasProvider() bool {
-	if o != nil && !IsNil(o.Provider) {
+	if o != nil && o.Provider.IsSet() {
 		return true
 	}
 
 	return false
 }
 
-// SetProvider gets a reference to the given string and assigns it to the Provider field.
+// SetProvider gets a reference to the given NullableString and assigns it to the Provider field.
 func (o *CatalogModel) SetProvider(v string) {
-	o.Provider = &v
+	o.Provider.Set(&v)
 }
 
-// GetLogo returns the Logo field value if set, zero value otherwise.
+// SetProviderNil sets the value for Provider to be an explicit nil
+func (o *CatalogModel) SetProviderNil() {
+	o.Provider.Set(nil)
+}
+
+// UnsetProvider ensures that no value is present for Provider, not even an explicit nil
+func (o *CatalogModel) UnsetProvider() {
+	o.Provider.Unset()
+}
+
+// GetLogo returns the Logo field value if set, zero value otherwise (both if not set or set to explicit null).
 func (o *CatalogModel) GetLogo() string {
-	if o == nil || IsNil(o.Logo) {
+	if o == nil || IsNil(o.Logo.Get()) {
 		var ret string
 		return ret
 	}
-	return *o.Logo
+	return *o.Logo.Get()
 }
 
 // GetLogoOk returns a tuple with the Logo field value if set, nil otherwise
 // and a boolean to check if the value has been set.
+// NOTE: If the value is an explicit nil, `nil, true` will be returned
 func (o *CatalogModel) GetLogoOk() (*string, bool) {
-	if o == nil || IsNil(o.Logo) {
+	if o == nil {
 		return nil, false
 	}
-	return o.Logo, true
+	return o.Logo.Get(), o.Logo.IsSet()
 }
 
 // HasLogo returns a boolean if a field has been set.
 func (o *CatalogModel) HasLogo() bool {
-	if o != nil && !IsNil(o.Logo) {
+	if o != nil && o.Logo.IsSet() {
 		return true
 	}
 
 	return false
 }
 
-// SetLogo gets a reference to the given string and assigns it to the Logo field.
+// SetLogo gets a reference to the given NullableString and assigns it to the Logo field.
 func (o *CatalogModel) SetLogo(v string) {
-	o.Logo = &v
+	o.Logo.Set(&v)
 }
 
-// GetLicense returns the License field value if set, zero value otherwise.
+// SetLogoNil sets the value for Logo to be an explicit nil
+func (o *CatalogModel) SetLogoNil() {
+	o.Logo.Set(nil)
+}
+
+// UnsetLogo ensures that no value is present for Logo, not even an explicit nil
+func (o *CatalogModel) UnsetLogo() {
+	o.Logo.Unset()
+}
+
+// GetLicense returns the License field value if set, zero value otherwise (both if not set or set to explicit null).
 func (o *CatalogModel) GetLicense() string {
-	if o == nil || IsNil(o.License) {
+	if o == nil || IsNil(o.License.Get()) {
 		var ret string
 		return ret
 	}
-	return *o.License
+	return *o.License.Get()
 }
 
 // GetLicenseOk returns a tuple with the License field value if set, nil otherwise
 // and a boolean to check if the value has been set.
+// NOTE: If the value is an explicit nil, `nil, true` will be returned
 func (o *CatalogModel) GetLicenseOk() (*string, bool) {
-	if o == nil || IsNil(o.License) {
+	if o == nil {
 		return nil, false
 	}
-	return o.License, true
+	return o.License.Get(), o.License.IsSet()
 }
 
 // HasLicense returns a boolean if a field has been set.
 func (o *CatalogModel) HasLicense() bool {
-	if o != nil && !IsNil(o.License) {
+	if o != nil && o.License.IsSet() {
 		return true
 	}
 
 	return false
 }
 
-// SetLicense gets a reference to the given string and assigns it to the License field.
+// SetLicense gets a reference to the given NullableString and assigns it to the License field.
 func (o *CatalogModel) SetLicense(v string) {
-	o.License = &v
+	o.License.Set(&v)
 }
 
-// GetLicenseLink returns the LicenseLink field value if set, zero value otherwise.
+// SetLicenseNil sets the value for License to be an explicit nil
+func (o *CatalogModel) SetLicenseNil() {
+	o.License.Set(nil)
+}
+
+// UnsetLicense ensures that no value is present for License, not even an explicit nil
+func (o *CatalogModel) UnsetLicense() {
+	o.License.Unset()
+}
+
+// GetLicenseLink returns the LicenseLink field value if set, zero value otherwise (both if not set or set to explicit null).
 func (o *CatalogModel) GetLicenseLink() string {
-	if o == nil || IsNil(o.LicenseLink) {
+	if o == nil || IsNil(o.LicenseLink.Get()) {
 		var ret string
 		return ret
 	}
-	return *o.LicenseLink
+	return *o.LicenseLink.Get()
 }
 
 // GetLicenseLinkOk returns a tuple with the LicenseLink field value if set, nil otherwise
 // and a boolean to check if the value has been set.
+// NOTE: If the value is an explicit nil, `nil, true` will be returned
 func (o *CatalogModel) GetLicenseLinkOk() (*string, bool) {
-	if o == nil || IsNil(o.LicenseLink) {
+	if o == nil {
 		return nil, false
 	}
-	return o.LicenseLink, true
+	return o.LicenseLink.Get(), o.LicenseLink.IsSet()
 }
 
 // HasLicenseLink returns a boolean if a field has been set.
 func (o *CatalogModel) HasLicenseLink() bool {
-	if o != nil && !IsNil(o.LicenseLink) {
+	if o != nil && o.LicenseLink.IsSet() {
 		return true
 	}
 
 	return false
 }
 
-// SetLicenseLink gets a reference to the given string and assigns it to the LicenseLink field.
+// SetLicenseLink gets a reference to the given NullableString and assigns it to the LicenseLink field.
 func (o *CatalogModel) SetLicenseLink(v string) {
-	o.LicenseLink = &v
+	o.LicenseLink.Set(&v)
 }
 
-// GetLibraryName returns the LibraryName field value if set, zero value otherwise.
+// SetLicenseLinkNil sets the value for LicenseLink to be an explicit nil
+func (o *CatalogModel) SetLicenseLinkNil() {
+	o.LicenseLink.Set(nil)
+}
+
+// UnsetLicenseLink ensures that no value is present for LicenseLink, not even an explicit nil
+func (o *CatalogModel) UnsetLicenseLink() {
+	o.LicenseLink.Unset()
+}
+
+// GetLibraryName returns the LibraryName field value if set, zero value otherwise (both if not set or set to explicit null).
 func (o *CatalogModel) GetLibraryName() string {
-	if o == nil || IsNil(o.LibraryName) {
+	if o == nil || IsNil(o.LibraryName.Get()) {
 		var ret string
 		return ret
 	}
-	return *o.LibraryName
+	return *o.LibraryName.Get()
 }
 
 // GetLibraryNameOk returns a tuple with the LibraryName field value if set, nil otherwise
 // and a boolean to check if the value has been set.
+// NOTE: If the value is an explicit nil, `nil, true` will be returned
 func (o *CatalogModel) GetLibraryNameOk() (*string, bool) {
-	if o == nil || IsNil(o.LibraryName) {
+	if o == nil {
 		return nil, false
 	}
-	return o.LibraryName, true
+	return o.LibraryName.Get(), o.LibraryName.IsSet()
 }
 
 // HasLibraryName returns a boolean if a field has been set.
 func (o *CatalogModel) HasLibraryName() bool {
-	if o != nil && !IsNil(o.LibraryName) {
+	if o != nil && o.LibraryName.IsSet() {
 		return true
 	}
 
 	return false
 }
 
-// SetLibraryName gets a reference to the given string and assigns it to the LibraryName field.
+// SetLibraryName gets a reference to the given NullableString and assigns it to the LibraryName field.
 func (o *CatalogModel) SetLibraryName(v string) {
-	o.LibraryName = &v
+	o.LibraryName.Set(&v)
+}
+
+// SetLibraryNameNil sets the value for LibraryName to be an explicit nil
+func (o *CatalogModel) SetLibraryNameNil() {
+	o.LibraryName.Set(nil)
+}
+
+// UnsetLibraryName ensures that no value is present for LibraryName, not even an explicit nil
+func (o *CatalogModel) UnsetLibraryName() {
+	o.LibraryName.Unset()
 }
 
 // GetCustomProperties returns the CustomProperties field value if set, zero value otherwise.
@@ -426,36 +504,47 @@ func (o *CatalogModel) SetCustomProperties(v map[string]MetadataValue) {
 	o.CustomProperties = v
 }
 
-// GetExternalId returns the ExternalId field value if set, zero value otherwise.
+// GetExternalId returns the ExternalId field value if set, zero value otherwise (both if not set or set to explicit null).
 func (o *CatalogModel) GetExternalId() string {
-	if o == nil || IsNil(o.ExternalId) {
+	if o == nil || IsNil(o.ExternalId.Get()) {
 		var ret string
 		return ret
 	}
-	return *o.ExternalId
+	return *o.ExternalId.Get()
 }
 
 // GetExternalIdOk returns a tuple with the ExternalId field value if set, nil otherwise
 // and a boolean to check if the value has been set.
+// NOTE: If the value is an explicit nil, `nil, true` will be returned
 func (o *CatalogModel) GetExternalIdOk() (*string, bool) {
-	if o == nil || IsNil(o.ExternalId) {
+	if o == nil {
 		return nil, false
 	}
-	return o.ExternalId, true
+	return o.ExternalId.Get(), o.ExternalId.IsSet()
 }
 
 // HasExternalId returns a boolean if a field has been set.
 func (o *CatalogModel) HasExternalId() bool {
-	if o != nil && !IsNil(o.ExternalId) {
+	if o != nil && o.ExternalId.IsSet() {
 		return true
 	}
 
 	return false
 }
 
-// SetExternalId gets a reference to the given string and assigns it to the ExternalId field.
+// SetExternalId gets a reference to the given NullableString and assigns it to the ExternalId field.
 func (o *CatalogModel) SetExternalId(v string) {
-	o.ExternalId = &v
+	o.ExternalId.Set(&v)
+}
+
+// SetExternalIdNil sets the value for ExternalId to be an explicit nil
+func (o *CatalogModel) SetExternalIdNil() {
+	o.ExternalId.Set(nil)
+}
+
+// UnsetExternalId ensures that no value is present for ExternalId, not even an explicit nil
+func (o *CatalogModel) UnsetExternalId() {
+	o.ExternalId.Unset()
 }
 
 // GetName returns the Name field value
@@ -610,51 +699,43 @@ func (o *CatalogModel) SetSourceId(v string) {
 	o.SourceId = &v
 }
 
-func (o CatalogModel) MarshalJSON() ([]byte, error) {
-	toSerialize, err := o.ToMap()
-	if err != nil {
-		return []byte{}, err
-	}
-	return json.Marshal(toSerialize)
-}
-
 func (o CatalogModel) ToMap() (map[string]interface{}, error) {
 	toSerialize := map[string]interface{}{}
-	if !IsNil(o.Description) {
-		toSerialize["description"] = o.Description
+	if o.Description.IsSet() {
+		toSerialize["description"] = o.Description.Get()
 	}
-	if !IsNil(o.Readme) {
-		toSerialize["readme"] = o.Readme
+	if o.Readme.IsSet() {
+		toSerialize["readme"] = o.Readme.Get()
 	}
-	if !IsNil(o.Maturity) {
-		toSerialize["maturity"] = o.Maturity
+	if o.Maturity.IsSet() {
+		toSerialize["maturity"] = o.Maturity.Get()
 	}
-	if !IsNil(o.Language) {
+	if o.Language != nil {
 		toSerialize["language"] = o.Language
 	}
-	if !IsNil(o.Tasks) {
+	if o.Tasks != nil {
 		toSerialize["tasks"] = o.Tasks
 	}
-	if !IsNil(o.Provider) {
-		toSerialize["provider"] = o.Provider
+	if o.Provider.IsSet() {
+		toSerialize["provider"] = o.Provider.Get()
 	}
-	if !IsNil(o.Logo) {
-		toSerialize["logo"] = o.Logo
+	if o.Logo.IsSet() {
+		toSerialize["logo"] = o.Logo.Get()
 	}
-	if !IsNil(o.License) {
-		toSerialize["license"] = o.License
+	if o.License.IsSet() {
+		toSerialize["license"] = o.License.Get()
 	}
-	if !IsNil(o.LicenseLink) {
-		toSerialize["licenseLink"] = o.LicenseLink
+	if o.LicenseLink.IsSet() {
+		toSerialize["licenseLink"] = o.LicenseLink.Get()
 	}
-	if !IsNil(o.LibraryName) {
-		toSerialize["libraryName"] = o.LibraryName
+	if o.LibraryName.IsSet() {
+		toSerialize["libraryName"] = o.LibraryName.Get()
 	}
 	if !IsNil(o.CustomProperties) {
 		toSerialize["customProperties"] = o.CustomProperties
 	}
-	if !IsNil(o.ExternalId) {
-		toSerialize["externalId"] = o.ExternalId
+	if o.ExternalId.IsSet() {
+		toSerialize["externalId"] = o.ExternalId.Get()
 	}
 	toSerialize["name"] = o.Name
 	if !IsNil(o.Id) {

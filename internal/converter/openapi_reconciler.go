@@ -16,6 +16,14 @@ type OpenAPIReconciler interface {
 	// goverter:default InitWithExisting
 	// goverter:autoMap Update
 	// goverter:ignore Id CreateTimeSinceEpoch LastUpdateTimeSinceEpoch Name
+	// goverter:map Update.Description Description | CopyNullableStringPtr
+	// goverter:map Update.LibraryName LibraryName | CopyNullableStringPtr
+	// goverter:map Update.License License | CopyNullableStringPtr
+	// goverter:map Update.LicenseLink LicenseLink | CopyNullableStringPtr
+	// goverter:map Update.Logo Logo | CopyNullableStringPtr
+	// goverter:map Update.Maturity Maturity | CopyNullableStringPtr
+	// goverter:map Update.Provider Provider | CopyNullableStringPtr
+	// goverter:map Update.Readme Readme | CopyNullableStringPtr
 	UpdateExistingRegisteredModel(source OpenapiUpdateWrapper[openapi.RegisteredModel]) (openapi.RegisteredModel, error)
 
 	// Ignore all fields that can't be updated

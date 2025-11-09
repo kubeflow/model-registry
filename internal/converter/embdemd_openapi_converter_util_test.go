@@ -378,7 +378,7 @@ func TestMapEmbedMDPropertyLibraryName(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			actual := MapEmbedMDPropertyLibraryName(tc.source)
-			assert.Equal(t, tc.expected, actual)
+			assert.Equal(t, tc.expected, actual.Get())
 		})
 	}
 }
@@ -416,7 +416,7 @@ func TestMapEmbedMDPropertyLicenseLink(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			actual := MapEmbedMDPropertyLicenseLink(tc.source)
-			assert.Equal(t, tc.expected, actual)
+			assert.Equal(t, tc.expected, actual.Get())
 		})
 	}
 }
@@ -454,7 +454,7 @@ func TestMapEmbedMDPropertyLicense(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			actual := MapEmbedMDPropertyLicense(tc.source)
-			assert.Equal(t, tc.expected, actual)
+			assert.Equal(t, tc.expected, actual.Get())
 		})
 	}
 }
@@ -492,7 +492,7 @@ func TestMapEmbedMDPropertyLogo(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			actual := MapEmbedMDPropertyLogo(tc.source)
-			assert.Equal(t, tc.expected, actual)
+			assert.Equal(t, tc.expected, actual.Get())
 		})
 	}
 }
@@ -530,7 +530,7 @@ func TestMapEmbedMDPropertyMaturity(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			actual := MapEmbedMDPropertyMaturity(tc.source)
-			assert.Equal(t, tc.expected, actual)
+			assert.Equal(t, tc.expected, actual.Get())
 		})
 	}
 }
@@ -568,7 +568,7 @@ func TestMapEmbedMDPropertyReadme(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			actual := MapEmbedMDPropertyReadme(tc.source)
-			assert.Equal(t, tc.expected, actual)
+			assert.Equal(t, tc.expected, actual.Get())
 		})
 	}
 }

@@ -17,7 +17,7 @@ import (
 // goverter:extend MapEmbedMDExperimentId
 // goverter:extend MapEmbedMDExperimentRunId
 type EmbedMDToOpenAPIConverter interface {
-	// goverter:map Properties Description | MapEmbedMDDescription
+	// goverter:map Properties Description | MapEmbedMDDescriptionNullable
 	// goverter:map Properties Owner | MapEmbedMDOwner
 	// goverter:map Properties Language | MapEmbedMDPropertyLanguage
 	// goverter:map Properties LibraryName | MapEmbedMDPropertyLibraryName

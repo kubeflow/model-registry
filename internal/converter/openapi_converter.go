@@ -26,9 +26,25 @@ type OpenAPIModelWrapper[
 // goverter:useZeroValueOnPointerInconsistency
 type OpenAPIConverter interface {
 	// goverter:ignore Id CreateTimeSinceEpoch LastUpdateTimeSinceEpoch
+	// goverter:map Description | CopyNullableString
+	// goverter:map LibraryName | CopyNullableString
+	// goverter:map License | CopyNullableString
+	// goverter:map LicenseLink | CopyNullableString
+	// goverter:map Logo | CopyNullableString
+	// goverter:map Maturity | CopyNullableString
+	// goverter:map Provider | CopyNullableString
+	// goverter:map Readme | CopyNullableString
 	ConvertRegisteredModelCreate(source *openapi.RegisteredModelCreate) (*openapi.RegisteredModel, error)
 
 	// goverter:ignore Id CreateTimeSinceEpoch LastUpdateTimeSinceEpoch Name
+	// goverter:map Description | CopyNullableString
+	// goverter:map LibraryName | CopyNullableString
+	// goverter:map License | CopyNullableString
+	// goverter:map LicenseLink | CopyNullableString
+	// goverter:map Logo | CopyNullableString
+	// goverter:map Maturity | CopyNullableString
+	// goverter:map Provider | CopyNullableString
+	// goverter:map Readme | CopyNullableString
 	ConvertRegisteredModelUpdate(source *openapi.RegisteredModelUpdate) (*openapi.RegisteredModel, error)
 
 	// goverter:ignore Id CreateTimeSinceEpoch LastUpdateTimeSinceEpoch

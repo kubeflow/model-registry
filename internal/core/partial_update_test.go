@@ -139,7 +139,7 @@ func testRegisteredModelPartialUpdate(t *testing.T, service *core.ModelRegistryS
 	// Create registered model with all fields
 	model := &openapi.RegisteredModel{
 		Name:        "test-partial-model",
-		Description: apiutils.Of("Original model description"),
+		Description: *openapi.NewNullableString(apiutils.Of("Original model description")),
 		Owner:       apiutils.Of("original-model-owner"),
 		ExternalId:  apiutils.Of("original-model-ext-id"),
 		State:       (*openapi.RegisteredModelState)(apiutils.Of(string(openapi.REGISTEREDMODELSTATE_LIVE))),
@@ -159,14 +159,14 @@ func testRegisteredModelPartialUpdate(t *testing.T, service *core.ModelRegistryS
 	// Test partial update - only description
 	partialUpdate := &openapi.RegisteredModel{
 		Id:          created.Id,
-		Description: apiutils.Of("Updated model description"),
+		Description: *openapi.NewNullableString(apiutils.Of("Updated model description")),
 	}
 
 	updated, err := service.UpsertRegisteredModel(partialUpdate)
 	require.NoError(t, err)
 
 	// Verify only description changed
-	assert.Equal(t, "Updated model description", *updated.Description)
+	assert.Equal(t, "Updated model description", *updated.Description.Get())
 
 	// Verify all other fields preserved
 	assert.Equal(t, "original-model-owner", *updated.Owner, "Owner should be preserved")

@@ -899,23 +899,14 @@ func (c *OpenAPIConverterImpl) ConvertRegisteredModelCreate(source *openapi.Regi
 				openapiRegisteredModel.CustomProperties[key] = c.openapiMetadataValueToOpenapiMetadataValue(value)
 			}
 		}
-		if (*source).Description != nil {
-			xstring := *(*source).Description
-			openapiRegisteredModel.Description = &xstring
-		}
+		openapiRegisteredModel.Description = converter.CopyNullableString((*source).Description)
 		if (*source).ExternalId != nil {
-			xstring2 := *(*source).ExternalId
-			openapiRegisteredModel.ExternalId = &xstring2
+			xstring := *(*source).ExternalId
+			openapiRegisteredModel.ExternalId = &xstring
 		}
 		openapiRegisteredModel.Name = (*source).Name
-		if (*source).Readme != nil {
-			xstring3 := *(*source).Readme
-			openapiRegisteredModel.Readme = &xstring3
-		}
-		if (*source).Maturity != nil {
-			xstring4 := *(*source).Maturity
-			openapiRegisteredModel.Maturity = &xstring4
-		}
+		openapiRegisteredModel.Readme = converter.CopyNullableString((*source).Readme)
+		openapiRegisteredModel.Maturity = converter.CopyNullableString((*source).Maturity)
 		if (*source).Language != nil {
 			openapiRegisteredModel.Language = make([]string, len((*source).Language))
 			for i := 0; i < len((*source).Language); i++ {
@@ -928,29 +919,14 @@ func (c *OpenAPIConverterImpl) ConvertRegisteredModelCreate(source *openapi.Regi
 				openapiRegisteredModel.Tasks[j] = (*source).Tasks[j]
 			}
 		}
-		if (*source).Provider != nil {
-			xstring5 := *(*source).Provider
-			openapiRegisteredModel.Provider = &xstring5
-		}
-		if (*source).Logo != nil {
-			xstring6 := *(*source).Logo
-			openapiRegisteredModel.Logo = &xstring6
-		}
-		if (*source).License != nil {
-			xstring7 := *(*source).License
-			openapiRegisteredModel.License = &xstring7
-		}
-		if (*source).LicenseLink != nil {
-			xstring8 := *(*source).LicenseLink
-			openapiRegisteredModel.LicenseLink = &xstring8
-		}
-		if (*source).LibraryName != nil {
-			xstring9 := *(*source).LibraryName
-			openapiRegisteredModel.LibraryName = &xstring9
-		}
+		openapiRegisteredModel.Provider = converter.CopyNullableString((*source).Provider)
+		openapiRegisteredModel.Logo = converter.CopyNullableString((*source).Logo)
+		openapiRegisteredModel.License = converter.CopyNullableString((*source).License)
+		openapiRegisteredModel.LicenseLink = converter.CopyNullableString((*source).LicenseLink)
+		openapiRegisteredModel.LibraryName = converter.CopyNullableString((*source).LibraryName)
 		if (*source).Owner != nil {
-			xstring10 := *(*source).Owner
-			openapiRegisteredModel.Owner = &xstring10
+			xstring2 := *(*source).Owner
+			openapiRegisteredModel.Owner = &xstring2
 		}
 		if (*source).State != nil {
 			openapiRegisteredModelState, err := c.openapiRegisteredModelStateToOpenapiRegisteredModelState(*(*source).State)
@@ -973,22 +949,13 @@ func (c *OpenAPIConverterImpl) ConvertRegisteredModelUpdate(source *openapi.Regi
 				openapiRegisteredModel.CustomProperties[key] = c.openapiMetadataValueToOpenapiMetadataValue(value)
 			}
 		}
-		if (*source).Description != nil {
-			xstring := *(*source).Description
-			openapiRegisteredModel.Description = &xstring
-		}
+		openapiRegisteredModel.Description = converter.CopyNullableString((*source).Description)
 		if (*source).ExternalId != nil {
-			xstring2 := *(*source).ExternalId
-			openapiRegisteredModel.ExternalId = &xstring2
+			xstring := *(*source).ExternalId
+			openapiRegisteredModel.ExternalId = &xstring
 		}
-		if (*source).Readme != nil {
-			xstring3 := *(*source).Readme
-			openapiRegisteredModel.Readme = &xstring3
-		}
-		if (*source).Maturity != nil {
-			xstring4 := *(*source).Maturity
-			openapiRegisteredModel.Maturity = &xstring4
-		}
+		openapiRegisteredModel.Readme = converter.CopyNullableString((*source).Readme)
+		openapiRegisteredModel.Maturity = converter.CopyNullableString((*source).Maturity)
 		if (*source).Language != nil {
 			openapiRegisteredModel.Language = make([]string, len((*source).Language))
 			for i := 0; i < len((*source).Language); i++ {
@@ -1001,29 +968,14 @@ func (c *OpenAPIConverterImpl) ConvertRegisteredModelUpdate(source *openapi.Regi
 				openapiRegisteredModel.Tasks[j] = (*source).Tasks[j]
 			}
 		}
-		if (*source).Provider != nil {
-			xstring5 := *(*source).Provider
-			openapiRegisteredModel.Provider = &xstring5
-		}
-		if (*source).Logo != nil {
-			xstring6 := *(*source).Logo
-			openapiRegisteredModel.Logo = &xstring6
-		}
-		if (*source).License != nil {
-			xstring7 := *(*source).License
-			openapiRegisteredModel.License = &xstring7
-		}
-		if (*source).LicenseLink != nil {
-			xstring8 := *(*source).LicenseLink
-			openapiRegisteredModel.LicenseLink = &xstring8
-		}
-		if (*source).LibraryName != nil {
-			xstring9 := *(*source).LibraryName
-			openapiRegisteredModel.LibraryName = &xstring9
-		}
+		openapiRegisteredModel.Provider = converter.CopyNullableString((*source).Provider)
+		openapiRegisteredModel.Logo = converter.CopyNullableString((*source).Logo)
+		openapiRegisteredModel.License = converter.CopyNullableString((*source).License)
+		openapiRegisteredModel.LicenseLink = converter.CopyNullableString((*source).LicenseLink)
+		openapiRegisteredModel.LibraryName = converter.CopyNullableString((*source).LibraryName)
 		if (*source).Owner != nil {
-			xstring10 := *(*source).Owner
-			openapiRegisteredModel.Owner = &xstring10
+			xstring2 := *(*source).Owner
+			openapiRegisteredModel.Owner = &xstring2
 		}
 		if (*source).State != nil {
 			openapiRegisteredModelState, err := c.openapiRegisteredModelStateToOpenapiRegisteredModelState(*(*source).State)

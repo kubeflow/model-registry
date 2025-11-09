@@ -2052,7 +2052,7 @@ func TestArtifactRoundTrip(t *testing.T) {
 		// Create registered model and model version
 		registeredModel := &openapi.RegisteredModel{
 			Name:        "roundtrip-model",
-			Description: apiutils.Of("Model for roundtrip test"),
+			Description: *openapi.NewNullableString(apiutils.Of("Model for roundtrip test")),
 		}
 		createdModel, err := _service.UpsertRegisteredModel(registeredModel)
 		require.NoError(t, err)

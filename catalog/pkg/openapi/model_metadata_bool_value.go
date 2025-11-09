@@ -94,14 +94,6 @@ func (o *MetadataBoolValue) SetMetadataType(v string) {
 	o.MetadataType = v
 }
 
-func (o MetadataBoolValue) MarshalJSON() ([]byte, error) {
-	toSerialize, err := o.ToMap()
-	if err != nil {
-		return []byte{}, err
-	}
-	return json.Marshal(toSerialize)
-}
-
 func (o MetadataBoolValue) ToMap() (map[string]interface{}, error) {
 	toSerialize := map[string]interface{}{}
 	toSerialize["bool_value"] = o.BoolValue
