@@ -1158,13 +1158,55 @@ func GetCatalogPerformanceMetricsArtifactMock(itemCount int32) []catalogOpenapi.
 			},
 			"use_case": {
 				MetadataStringValue: &catalogOpenapi.MetadataStringValue{
-					StringValue:  "code_fixing",
+					StringValue:  "long_rag",
 					MetadataType: "MetadataStringValue",
 				},
 			},
 		}),
 	}
 	artifacts = append(artifacts, catalogOpenapi.CatalogMetricsArtifactAsCatalogArtifact(metricsArtifact3))
+
+	metricsArtifact4 := &catalogOpenapi.CatalogMetricsArtifact{
+		ArtifactType:             "metrics-artifact",
+		MetricsType:              "performance-metrics",
+		CreateTimeSinceEpoch:     stringToPointer("1693526400000"),
+		LastUpdateTimeSinceEpoch: stringToPointer("1704067200000"),
+		CustomProperties: performanceMetricsCustomProperties(map[string]catalogOpenapi.MetadataValue{
+			"hardware_type": {
+				MetadataStringValue: &catalogOpenapi.MetadataStringValue{
+					StringValue:  "A100",
+					MetadataType: "MetadataStringValue",
+				},
+			},
+			"hardware_count": {
+				MetadataIntValue: &catalogOpenapi.MetadataIntValue{
+					IntValue:     "8",
+					MetadataType: "MetadataIntValue",
+				},
+			},
+			"requests_per_second": {
+				MetadataDoubleValue: &catalogOpenapi.MetadataDoubleValue{
+					DoubleValue:  25,
+					MetadataType: "MetadataDoubleValue",
+				},
+			},
+			"ttft_mean": {
+				MetadataDoubleValue: &catalogOpenapi.MetadataDoubleValue{
+					DoubleValue:  28.5,
+					MetadataType: "MetadataDoubleValue",
+				},
+			},
+			"use_case": {
+				MetadataStringValue: &catalogOpenapi.MetadataStringValue{
+					StringValue:  "code_fixing",
+					MetadataType: "MetadataStringValue",
+				},
+			},
+		}),
+	}
+	if itemCount >= 4 {
+		artifacts = append(artifacts, catalogOpenapi.CatalogMetricsArtifactAsCatalogArtifact(metricsArtifact4))
+	}
 
 	return artifacts
 }
@@ -1264,6 +1306,14 @@ func GetFilterOptionMocks() map[string]catalogOpenapi.FilterOption {
 		Type: FilterOptionTypeString,
 		Values: []interface{}{
 			"ar", "cs", "de", "en", "es", "fr", "it", "ja", "ko", "nl", "pt", "zh",
+		},
+	}
+
+	// String type filter for use cases
+	filterOptions["use_case"] = catalogOpenapi.FilterOption{
+		Type: FilterOptionTypeString,
+		Values: []interface{}{
+			"chatbot", "code_fixing", "long_rag", "rag",
 		},
 	}
 
