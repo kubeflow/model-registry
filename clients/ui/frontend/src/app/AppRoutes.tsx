@@ -6,21 +6,36 @@ import { NavDataItem } from '~/app/standalone/types';
 import ModelRegistrySettingsRoutes from './pages/settings/ModelRegistrySettingsRoutes';
 import ModelRegistryRoutes from './pages/modelRegistry/ModelRegistryRoutes';
 import ModelCatalogRoutes from './pages/modelCatalog/ModelCatalogRoutes';
+import ModelCatalogSettingsRoutes from './pages/modelCatalogSettings/ModelCatalogSettingsRoutes';
 import { modelCatalogUrl } from './routes/modelCatalog/catalogModel';
+import {
+  catalogSettingsUrl,
+  CATALOG_SETTINGS_PAGE_TITLE,
+} from './routes/modelCatalogSettings/modelCatalogSettings';
 import { modelRegistryUrl } from './pages/modelRegistry/screens/routeUtils';
 import useUser from './hooks/useUser';
 
 export const useAdminSettings = (): NavDataItem[] => {
   const { clusterAdmin } = useUser();
+  const { config } = useModularArchContext();
+  const { deploymentMode } = config;
+  const isStandalone = deploymentMode === DeploymentMode.Standalone;
+  const isFederated = deploymentMode === DeploymentMode.Federated;
 
   if (!clusterAdmin) {
     return [];
   }
 
+  const settingsChildren = [{ label: 'Model Registry', path: '/model-registry-settings' }];
+  // Only show Model Catalog Settings in Standalone or Federated mode
+  if (isStandalone || isFederated) {
+    settingsChildren.push({ label: CATALOG_SETTINGS_PAGE_TITLE, path: catalogSettingsUrl() });
+  }
+
   return [
     {
       label: 'Settings',
-      children: [{ label: 'Model Registry', path: '/model-registry-settings' }],
+      children: settingsChildren,
     },
   ];
 };
@@ -61,7 +76,10 @@ const AppRoutes: React.FC = () => {
       <Route path="/" element={<Navigate to={modelRegistryUrl()} replace />} />
       <Route path={`${modelRegistryUrl()}/*`} element={<ModelRegistryRoutes />} />
       {(isStandalone || isFederated) && (
-        <Route path={`${modelCatalogUrl()}/*`} element={<ModelCatalogRoutes />} />
+        <>
+          <Route path={`${modelCatalogUrl()}/*`} element={<ModelCatalogRoutes />} />
+          <Route path={`${catalogSettingsUrl()}/*`} element={<ModelCatalogSettingsRoutes />} />
+        </>
       )}
       <Route path="*" element={<NotFound />} />
       {/* TODO: [Conditional render] Follow up add testing and conditional rendering when in standalone mode */}
