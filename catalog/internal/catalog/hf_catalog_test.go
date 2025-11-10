@@ -247,11 +247,11 @@ func TestHFModel_PopulateFromHFInfo(t *testing.T) {
 		t.Fatalf("Expected Tasks ['text-generation'], got '%v'", hfm.Tasks)
 	}
 
-	if hfm.CustomProperties == nil {
+	if !hfm.HasCustomProperties() {
 		t.Fatal("Expected CustomProperties to be set, got nil")
 	}
 
-	customProps := *hfm.CustomProperties
+	customProps := hfm.GetCustomProperties()
 	if _, ok := customProps["hf_tags"]; !ok {
 		t.Fatal("Expected hf_tags in custom properties")
 	}
