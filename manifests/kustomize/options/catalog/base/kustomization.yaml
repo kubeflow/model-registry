@@ -18,8 +18,12 @@ configMapGenerator:
     disableNameSuffixHash: true
 
 secretGenerator:
-- name: model-catalog-postgres
-  envs:
+- envs:
   - postgres.env
+  name: model-catalog-postgres
   options:
     disableNameSuffixHash: true
+images:
+- name: ghcr.io/kubeflow/model-registry/server
+  newName: ghcr.io/kubeflow/model-registry/server
+  newTag: v0.3.3
