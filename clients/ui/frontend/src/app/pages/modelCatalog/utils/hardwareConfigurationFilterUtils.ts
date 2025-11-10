@@ -125,15 +125,14 @@ export const filterHardwareConfigurationArtifacts = (
     }
 
     // Use Case Filter
-    const useCaseFilter = filterState[ModelCatalogStringFilterKey.USE_CASE];
+    const useCaseFilters = filterState[ModelCatalogStringFilterKey.USE_CASE];
 
-    if (useCaseFilter) {
+    if (useCaseFilters.length > 0) {
       // Get the artifact's use case
       const artifactUseCase = getStringValue(artifact.customProperties, 'use_case');
 
-      // Check if the artifact's use case matches the selected use case
-      // Use includes() to handle potential comma-separated values or partial matches
-      if (!artifactUseCase || !artifactUseCase.includes(useCaseFilter)) {
+      // Check if the artifact's use case matches any of the selected use cases (exact match)
+      if (!artifactUseCase || !useCaseFilters.some((filter) => filter === artifactUseCase)) {
         return false;
       }
     }
@@ -157,8 +156,8 @@ export const clearAllFilters = (
   setFilterData(ModelCatalogStringFilterKey.LANGUAGE, []);
   setFilterData(ModelCatalogStringFilterKey.HARDWARE_TYPE, []);
 
-  // Clear use case filter (single value)
-  setFilterData(ModelCatalogStringFilterKey.USE_CASE, undefined);
+  // Clear use case filter
+  setFilterData(ModelCatalogStringFilterKey.USE_CASE, []);
 
   // Clear number filters
   Object.values(ModelCatalogNumberFilterKey).forEach((key) => {

@@ -9,7 +9,7 @@ import { useCatalogStringFilterState } from '~/app/pages/modelCatalog/utils/mode
 
 const MAX_VISIBLE_FILTERS = 5;
 
-type ArrayFilterKey = Exclude<ModelCatalogStringFilterKey, ModelCatalogStringFilterKey.USE_CASE>;
+type ArrayFilterKey = ModelCatalogStringFilterKey;
 
 type ModelCatalogStringFilterProps<K extends ArrayFilterKey> = {
   title: string;
