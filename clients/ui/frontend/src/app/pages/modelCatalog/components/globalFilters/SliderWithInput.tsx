@@ -34,11 +34,16 @@ const SliderWithInput: React.FC<SliderWithInputProps> = ({
   showBoundaries = false,
   hasTooltipOverThumb = false,
 }) => {
-  const [inputValue, setInputValue] = React.useState<string>(String(value));
+  const roundValue = React.useCallback(
+    (val: number) => (shouldRound ? Math.round(val) : val),
+    [shouldRound],
+  );
+
+  const [inputValue, setInputValue] = React.useState<string>(() => String(roundValue(value)));
 
   React.useEffect(() => {
-    setInputValue(String(value));
-  }, [value]);
+    setInputValue(String(roundValue(value)));
+  }, [value, roundValue]);
 
   const handleInputChange = (_event: React.FormEvent<HTMLInputElement>, val: string) => {
     setInputValue(val);
@@ -46,7 +51,7 @@ const SliderWithInput: React.FC<SliderWithInputProps> = ({
     if (val !== '') {
       const numValue = Number(val);
       if (!Number.isNaN(numValue)) {
-        const processedValue = shouldRound ? Math.round(numValue) : numValue;
+        const processedValue = roundValue(numValue);
         const isInRange = processedValue >= min && processedValue <= max;
         if (isInRange) {
           onChange(processedValue);
@@ -56,19 +61,17 @@ const SliderWithInput: React.FC<SliderWithInputProps> = ({
   };
 
   const handleSliderChange = (_event: unknown, val: number) => {
-    const processedValue = shouldRound ? Math.round(val) : val;
-    onChange(processedValue);
+    onChange(roundValue(val));
   };
 
   const handleBlur = () => {
     const numValue = inputValue === '' ? min : Number(inputValue);
     const clampedValue = Number.isNaN(numValue) ? min : Math.min(Math.max(numValue, min), max);
+    const rounded = roundValue(clampedValue);
 
-    onChange(clampedValue);
-    setInputValue(String(clampedValue));
+    onChange(rounded);
+    setInputValue(String(rounded));
   };
-
-  const clampedSliderValue = Math.min(Math.max(value, min), max);
 
   return (
     <Flex alignItems={{ default: 'alignItemsCenter' }} spaceItems={{ default: 'spaceItemsMd' }}>
@@ -76,7 +79,7 @@ const SliderWithInput: React.FC<SliderWithInputProps> = ({
         <Slider
           min={min}
           max={max}
-          value={clampedSliderValue}
+          value={value}
           onChange={handleSliderChange}
           isInputVisible={false}
           isDisabled={isDisabled}

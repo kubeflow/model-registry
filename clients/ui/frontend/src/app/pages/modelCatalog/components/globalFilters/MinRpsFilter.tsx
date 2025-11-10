@@ -31,10 +31,32 @@ const MinRpsFilter: React.FC<MinRpsFilterProps> = ({ performanceArtifacts }) => 
     useCatalogNumberFilterState(filterKey);
   const [isOpen, setIsOpen] = React.useState(false);
 
-  // Local state for editing (initialized with current filter value or reasonable default)
-  const [localValue, setLocalValue] = React.useState<number>(rpsFilterValue || 2);
+  const { minValue, maxValue, isSliderDisabled } = React.useMemo(
+    (): SliderRange =>
+      getSliderRange({
+        performanceArtifacts,
+        getArtifactFilterValue: (artifact) =>
+          getDoubleValue(artifact.customProperties, 'requests_per_second'),
+        fallbackRange: FALLBACK_RPS_RANGE,
+      }),
+    [performanceArtifacts],
+  );
 
-  // Parse saved value if it exists
+  const [localValue, setLocalValue] = React.useState<number>(
+    () => rpsFilterValue ?? FALLBACK_RPS_RANGE.minValue,
+  );
+
+  const clampedValue = React.useMemo(
+    () => Math.min(Math.max(localValue, minValue), maxValue),
+    [localValue, minValue, maxValue],
+  );
+
+  React.useEffect(() => {
+    if (isOpen) {
+      setLocalValue(rpsFilterValue ?? minValue);
+    }
+  }, [isOpen, rpsFilterValue, minValue]);
+
   const hasActiveFilter = rpsFilterValue !== undefined;
 
   const getDisplayText = (): React.ReactNode => {
@@ -55,20 +77,9 @@ const MinRpsFilter: React.FC<MinRpsFilterProps> = ({ performanceArtifacts }) => 
 
   const handleReset = () => {
     setRpsFilterValue(undefined);
-    setLocalValue(minValue); // Reset to calculated minimum
+    setLocalValue(minValue);
     setIsOpen(false);
   };
-
-  const { minValue, maxValue, isSliderDisabled } = React.useMemo(
-    (): SliderRange =>
-      getSliderRange({
-        performanceArtifacts,
-        getArtifactFilterValue: (artifact) =>
-          getDoubleValue(artifact.customProperties, 'requests_per_second'),
-        fallbackRange: FALLBACK_RPS_RANGE,
-      }),
-    [performanceArtifacts],
-  );
 
   const toggle = (toggleRef: React.Ref<MenuToggleElement>) => (
     <MenuToggle
@@ -109,7 +120,7 @@ const MinRpsFilter: React.FC<MinRpsFilterProps> = ({ performanceArtifacts }) => 
       </FlexItem>
       <FlexItem>
         <SliderWithInput
-          value={localValue}
+          value={clampedValue}
           min={minValue}
           max={maxValue}
           isDisabled={isSliderDisabled}

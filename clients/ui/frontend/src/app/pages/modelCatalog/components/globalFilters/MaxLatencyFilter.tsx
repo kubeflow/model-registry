@@ -109,6 +109,21 @@ const MaxLatencyFilter: React.FC<MaxLatencyFilterProps> = ({ performanceArtifact
     }
   }, [currentActiveFilter]);
 
+  const { minValue, maxValue, isSliderDisabled } = React.useMemo((): SliderRange => {
+    const fieldName = getLatencyFieldName(localFilter.metric, localFilter.percentile);
+
+    return getSliderRange({
+      performanceArtifacts,
+      getArtifactFilterValue: (artifact) => getDoubleValue(artifact.customProperties, fieldName),
+      fallbackRange: FALLBACK_LATENCY_RANGE,
+      shouldRound: true,
+    });
+  }, [performanceArtifacts, localFilter.metric, localFilter.percentile]);
+
+  const clampedValue = React.useMemo(
+    () => Math.min(Math.max(localFilter.value, minValue), maxValue),
+    [localFilter.value, minValue, maxValue],
+  );
   const getDisplayText = (): React.ReactNode => {
     if (currentActiveFilter) {
       // When there's an active filter, show the full specification with actual selected values
@@ -144,17 +159,6 @@ const MaxLatencyFilter: React.FC<MaxLatencyFilterProps> = ({ performanceArtifact
     setLocalFilter(defaultFilterState);
     setIsOpen(false);
   };
-
-  const { minValue, maxValue, isSliderDisabled } = React.useMemo((): SliderRange => {
-    const fieldName = getLatencyFieldName(localFilter.metric, localFilter.percentile);
-
-    return getSliderRange({
-      performanceArtifacts,
-      getArtifactFilterValue: (artifact) => getDoubleValue(artifact.customProperties, fieldName),
-      fallbackRange: FALLBACK_LATENCY_RANGE,
-      shouldRound: true,
-    });
-  }, [performanceArtifacts, localFilter.metric, localFilter.percentile]);
 
   const toggle = (toggleRef: React.Ref<MenuToggleElement>) => (
     <MenuToggle
@@ -297,7 +301,7 @@ const MaxLatencyFilter: React.FC<MaxLatencyFilterProps> = ({ performanceArtifact
       {/* Slider with value display */}
       <FlexItem>
         <SliderWithInput
-          value={localFilter.value}
+          value={clampedValue}
           min={minValue}
           max={maxValue}
           isDisabled={isSliderDisabled}
