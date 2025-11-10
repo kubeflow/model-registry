@@ -28,6 +28,42 @@ def contains_null_bytes(data: Any) -> bool:
     return False
 
 
+def call_and_validate_with_null_byte_handling(case: schemathesis.Case, auth_headers: dict, verify_ssl: bool) -> None:
+    """Execute case validation with proper null byte error handling.
+
+    This utility function handles the common pattern of calling case.call_and_validate()
+    and catching exceptions related to null bytes in the request. If null bytes are detected
+    in the query or body and the error is a 400 or CheckFailed, the test is skipped as expected.
+    Otherwise, the exception is re-raised.
+
+    Args:
+        case: The Schemathesis test case to validate
+        auth_headers: Authentication headers for the API
+        verify_ssl: Whether to verify SSL certificates
+
+    Raises:
+        Exception: Re-raises any exception that is not related to null byte validation
+    """
+    try:
+        case.call_and_validate(headers=auth_headers, verify=verify_ssl)
+    except Exception as e:
+        request_has_null_bytes = False
+        if case.query:
+            request_has_null_bytes = contains_null_bytes(case.query)
+        if not request_has_null_bytes and hasattr(case, "body") and case.body:
+            try:
+                if isinstance(case.body, (str, bytes)):
+                    body_str = case.body.decode("utf-8") if isinstance(case.body, bytes) else case.body
+                    request_has_null_bytes = contains_null_bytes(body_str)
+            except (UnicodeDecodeError, AttributeError):
+                pass
+        if request_has_null_bytes and ("400" in str(e) or "CheckFailed" in str(type(e).__name__)):
+            logging.info(f"Expected 400 error for null bytes: {case.path}")
+            pytest.skip("Expected validation error for null bytes")
+        else:
+            raise
+
+
 # Helper functions for common operations
 def generate_random_id() -> str:
     """Generate a random ID between 100000 and 2000000000."""
@@ -241,24 +277,7 @@ base_schema = (
 @pytest.mark.fuzz
 def test_mr_api_stateless_get_models(auth_headers: dict, case: schemathesis.Case, verify_ssl: bool) -> None:
     """Test GET endpoints for RegisteredModels and ModelVersions."""
-    try:
-        case.call_and_validate(headers=auth_headers, verify=verify_ssl)
-    except Exception as e:
-        request_has_null_bytes = False
-        if case.query:
-            request_has_null_bytes = contains_null_bytes(case.query)
-        if not request_has_null_bytes and hasattr(case, "body") and case.body:
-            try:
-                if isinstance(case.body, (str, bytes)):
-                    body_str = case.body.decode("utf-8") if isinstance(case.body, bytes) else case.body
-                    request_has_null_bytes = contains_null_bytes(body_str)
-            except (UnicodeDecodeError, AttributeError):
-                pass
-        if request_has_null_bytes and ("400" in str(e) or "CheckFailed" in str(type(e).__name__)):
-            logging.info(f"Expected 400 error for null bytes: {case.path}")
-            pytest.skip("Expected validation error for null bytes")
-        else:
-            raise
+    call_and_validate_with_null_byte_handling(case, auth_headers, verify_ssl)
 
 
 @pytest.mark.parametrize("generated_schema", ["model-registry.yaml"], indirect=True)
@@ -275,24 +294,7 @@ def test_mr_api_stateless_get_models(auth_headers: dict, case: schemathesis.Case
 @pytest.mark.fuzz
 def test_mr_api_stateless_get_artifacts(auth_headers: dict, case: schemathesis.Case, verify_ssl: bool) -> None:
     """Test GET endpoints for Artifacts and ModelArtifacts."""
-    try:
-        case.call_and_validate(headers=auth_headers, verify=verify_ssl)
-    except Exception as e:
-        request_has_null_bytes = False
-        if case.query:
-            request_has_null_bytes = contains_null_bytes(case.query)
-        if not request_has_null_bytes and hasattr(case, "body") and case.body:
-            try:
-                if isinstance(case.body, (str, bytes)):
-                    body_str = case.body.decode("utf-8") if isinstance(case.body, bytes) else case.body
-                    request_has_null_bytes = contains_null_bytes(body_str)
-            except (UnicodeDecodeError, AttributeError):
-                pass
-        if request_has_null_bytes and ("400" in str(e) or "CheckFailed" in str(type(e).__name__)):
-            logging.info(f"Expected 400 error for null bytes: {case.path}")
-            pytest.skip("Expected validation error for null bytes")
-        else:
-            raise
+    call_and_validate_with_null_byte_handling(case, auth_headers, verify_ssl)
 
 
 @pytest.mark.parametrize("generated_schema", ["model-registry.yaml"], indirect=True)
@@ -309,24 +311,7 @@ def test_mr_api_stateless_get_artifacts(auth_headers: dict, case: schemathesis.C
 @pytest.mark.fuzz
 def test_mr_api_stateless_get_experiments(auth_headers: dict, case: schemathesis.Case, verify_ssl: bool) -> None:
     """Test GET endpoints for Experiments and ExperimentRuns."""
-    try:
-        case.call_and_validate(headers=auth_headers, verify=verify_ssl)
-    except Exception as e:
-        request_has_null_bytes = False
-        if case.query:
-            request_has_null_bytes = contains_null_bytes(case.query)
-        if not request_has_null_bytes and hasattr(case, "body") and case.body:
-            try:
-                if isinstance(case.body, (str, bytes)):
-                    body_str = case.body.decode("utf-8") if isinstance(case.body, bytes) else case.body
-                    request_has_null_bytes = contains_null_bytes(body_str)
-            except (UnicodeDecodeError, AttributeError):
-                pass
-        if request_has_null_bytes and ("400" in str(e) or "CheckFailed" in str(type(e).__name__)):
-            logging.info(f"Expected 400 error for null bytes: {case.path}")
-            pytest.skip("Expected validation error for null bytes")
-        else:
-            raise
+    call_and_validate_with_null_byte_handling(case, auth_headers, verify_ssl)
 
 
 @pytest.mark.parametrize("generated_schema", ["model-registry.yaml"], indirect=True)
@@ -343,24 +328,7 @@ def test_mr_api_stateless_get_experiments(auth_headers: dict, case: schemathesis
 @pytest.mark.fuzz
 def test_mr_api_stateless_get_serving(auth_headers: dict, case: schemathesis.Case, verify_ssl: bool) -> None:
     """Test GET endpoints for InferenceServices and ServingEnvironments."""
-    try:
-        case.call_and_validate(headers=auth_headers, verify=verify_ssl)
-    except Exception as e:
-        request_has_null_bytes = False
-        if case.query:
-            request_has_null_bytes = contains_null_bytes(case.query)
-        if not request_has_null_bytes and hasattr(case, "body") and case.body:
-            try:
-                if isinstance(case.body, (str, bytes)):
-                    body_str = case.body.decode("utf-8") if isinstance(case.body, bytes) else case.body
-                    request_has_null_bytes = contains_null_bytes(body_str)
-            except (UnicodeDecodeError, AttributeError):
-                pass
-        if request_has_null_bytes and ("400" in str(e) or "CheckFailed" in str(type(e).__name__)):
-            logging.info(f"Expected 400 error for null bytes: {case.path}")
-            pytest.skip("Expected validation error for null bytes")
-        else:
-            raise
+    call_and_validate_with_null_byte_handling(case, auth_headers, verify_ssl)
 
 
 # POST endpoints - split by resource type
@@ -378,24 +346,7 @@ def test_mr_api_stateless_get_serving(auth_headers: dict, case: schemathesis.Cas
 @pytest.mark.fuzz
 def test_mr_api_stateless_post_models(auth_headers: dict, case: schemathesis.Case, verify_ssl: bool) -> None:
     """Test POST endpoints for RegisteredModels and ModelVersions."""
-    try:
-        case.call_and_validate(headers=auth_headers, verify=verify_ssl)
-    except Exception as e:
-        request_has_null_bytes = False
-        if case.query:
-            request_has_null_bytes = contains_null_bytes(case.query)
-        if not request_has_null_bytes and hasattr(case, "body") and case.body:
-            try:
-                if isinstance(case.body, (str, bytes)):
-                    body_str = case.body.decode("utf-8") if isinstance(case.body, bytes) else case.body
-                    request_has_null_bytes = contains_null_bytes(body_str)
-            except (UnicodeDecodeError, AttributeError):
-                pass
-        if request_has_null_bytes and ("400" in str(e) or "CheckFailed" in str(type(e).__name__)):
-            logging.info(f"Expected 400 error for null bytes: {case.path}")
-            pytest.skip("Expected validation error for null bytes")
-        else:
-            raise
+    call_and_validate_with_null_byte_handling(case, auth_headers, verify_ssl)
 
 
 @pytest.mark.parametrize("generated_schema", ["model-registry.yaml"], indirect=True)
@@ -412,24 +363,7 @@ def test_mr_api_stateless_post_models(auth_headers: dict, case: schemathesis.Cas
 @pytest.mark.fuzz
 def test_mr_api_stateless_post_artifacts(auth_headers: dict, case: schemathesis.Case, verify_ssl: bool) -> None:
     """Test POST endpoints for Artifacts."""
-    try:
-        case.call_and_validate(headers=auth_headers, verify=verify_ssl)
-    except Exception as e:
-        request_has_null_bytes = False
-        if case.query:
-            request_has_null_bytes = contains_null_bytes(case.query)
-        if not request_has_null_bytes and hasattr(case, "body") and case.body:
-            try:
-                if isinstance(case.body, (str, bytes)):
-                    body_str = case.body.decode("utf-8") if isinstance(case.body, bytes) else case.body
-                    request_has_null_bytes = contains_null_bytes(body_str)
-            except (UnicodeDecodeError, AttributeError):
-                pass
-        if request_has_null_bytes and ("400" in str(e) or "CheckFailed" in str(type(e).__name__)):
-            logging.info(f"Expected 400 error for null bytes: {case.path}")
-            pytest.skip("Expected validation error for null bytes")
-        else:
-            raise
+    call_and_validate_with_null_byte_handling(case, auth_headers, verify_ssl)
 
 
 @pytest.mark.parametrize("generated_schema", ["model-registry.yaml"], indirect=True)
@@ -446,24 +380,7 @@ def test_mr_api_stateless_post_artifacts(auth_headers: dict, case: schemathesis.
 @pytest.mark.fuzz
 def test_mr_api_stateless_post_experiments(auth_headers: dict, case: schemathesis.Case, verify_ssl: bool) -> None:
     """Test POST endpoints for Experiments and ExperimentRuns."""
-    try:
-        case.call_and_validate(headers=auth_headers, verify=verify_ssl)
-    except Exception as e:
-        request_has_null_bytes = False
-        if case.query:
-            request_has_null_bytes = contains_null_bytes(case.query)
-        if not request_has_null_bytes and hasattr(case, "body") and case.body:
-            try:
-                if isinstance(case.body, (str, bytes)):
-                    body_str = case.body.decode("utf-8") if isinstance(case.body, bytes) else case.body
-                    request_has_null_bytes = contains_null_bytes(body_str)
-            except (UnicodeDecodeError, AttributeError):
-                pass
-        if request_has_null_bytes and ("400" in str(e) or "CheckFailed" in str(type(e).__name__)):
-            logging.info(f"Expected 400 error for null bytes: {case.path}")
-            pytest.skip("Expected validation error for null bytes")
-        else:
-            raise
+    call_and_validate_with_null_byte_handling(case, auth_headers, verify_ssl)
 
 
 @pytest.mark.parametrize("generated_schema", ["model-registry.yaml"], indirect=True)
@@ -480,24 +397,7 @@ def test_mr_api_stateless_post_experiments(auth_headers: dict, case: schemathesi
 @pytest.mark.fuzz
 def test_mr_api_stateless_post_serving(auth_headers: dict, case: schemathesis.Case, verify_ssl: bool) -> None:
     """Test POST endpoints for InferenceServices and ServingEnvironments."""
-    try:
-        case.call_and_validate(headers=auth_headers, verify=verify_ssl)
-    except Exception as e:
-        request_has_null_bytes = False
-        if case.query:
-            request_has_null_bytes = contains_null_bytes(case.query)
-        if not request_has_null_bytes and hasattr(case, "body") and case.body:
-            try:
-                if isinstance(case.body, (str, bytes)):
-                    body_str = case.body.decode("utf-8") if isinstance(case.body, bytes) else case.body
-                    request_has_null_bytes = contains_null_bytes(body_str)
-            except (UnicodeDecodeError, AttributeError):
-                pass
-        if request_has_null_bytes and ("400" in str(e) or "CheckFailed" in str(type(e).__name__)):
-            logging.info(f"Expected 400 error for null bytes: {case.path}")
-            pytest.skip("Expected validation error for null bytes")
-        else:
-            raise
+    call_and_validate_with_null_byte_handling(case, auth_headers, verify_ssl)
 
 
 # PATCH endpoints - split by resource type
@@ -515,24 +415,7 @@ def test_mr_api_stateless_post_serving(auth_headers: dict, case: schemathesis.Ca
 @pytest.mark.fuzz
 def test_mr_api_stateless_patch_models(auth_headers: dict, case: schemathesis.Case, verify_ssl: bool) -> None:
     """Test PATCH endpoints for RegisteredModels and ModelVersions."""
-    try:
-        case.call_and_validate(headers=auth_headers, verify=verify_ssl)
-    except Exception as e:
-        request_has_null_bytes = False
-        if case.query:
-            request_has_null_bytes = contains_null_bytes(case.query)
-        if not request_has_null_bytes and hasattr(case, "body") and case.body:
-            try:
-                if isinstance(case.body, (str, bytes)):
-                    body_str = case.body.decode("utf-8") if isinstance(case.body, bytes) else case.body
-                    request_has_null_bytes = contains_null_bytes(body_str)
-            except (UnicodeDecodeError, AttributeError):
-                pass
-        if request_has_null_bytes and ("400" in str(e) or "CheckFailed" in str(type(e).__name__)):
-            logging.info(f"Expected 400 error for null bytes: {case.path}")
-            pytest.skip("Expected validation error for null bytes")
-        else:
-            raise
+    call_and_validate_with_null_byte_handling(case, auth_headers, verify_ssl)
 
 
 @pytest.mark.parametrize("generated_schema", ["model-registry.yaml"], indirect=True)
@@ -549,24 +432,7 @@ def test_mr_api_stateless_patch_models(auth_headers: dict, case: schemathesis.Ca
 @pytest.mark.fuzz
 def test_mr_api_stateless_patch_others(auth_headers: dict, case: schemathesis.Case, verify_ssl: bool) -> None:
     """Test PATCH endpoints for Artifacts, Experiments, and Serving resources."""
-    try:
-        case.call_and_validate(headers=auth_headers, verify=verify_ssl)
-    except Exception as e:
-        request_has_null_bytes = False
-        if case.query:
-            request_has_null_bytes = contains_null_bytes(case.query)
-        if not request_has_null_bytes and hasattr(case, "body") and case.body:
-            try:
-                if isinstance(case.body, (str, bytes)):
-                    body_str = case.body.decode("utf-8") if isinstance(case.body, bytes) else case.body
-                    request_has_null_bytes = contains_null_bytes(body_str)
-            except (UnicodeDecodeError, AttributeError):
-                pass
-        if request_has_null_bytes and ("400" in str(e) or "CheckFailed" in str(type(e).__name__)):
-            logging.info(f"Expected 400 error for null bytes: {case.path}")
-            pytest.skip("Expected validation error for null bytes")
-        else:
-            raise
+    call_and_validate_with_null_byte_handling(case, auth_headers, verify_ssl)
 
 @pytest.mark.fuzz
 @pytest.mark.parametrize(("artifact_type", "uri_prefix"), ARTIFACT_TYPE_PARAMS)
