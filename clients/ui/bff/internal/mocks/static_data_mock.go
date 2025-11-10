@@ -1156,6 +1156,44 @@ func GetCatalogPerformanceMetricsArtifactMock(itemCount int32) []models.CatalogA
 				},
 			}),
 		},
+		{
+			ArtifactType:             *stringToPointer("metrics-artifact"),
+			MetricsType:              stringToPointer("performance-metrics"),
+			CreateTimeSinceEpoch:     stringToPointer("1693526400000"),
+			LastUpdateTimeSinceEpoch: stringToPointer("1704067200000"),
+			CustomProperties: performanceMetricsCustomProperties(map[string]openapi.MetadataValue{
+				"hardware_type": {
+					MetadataStringValue: &openapi.MetadataStringValue{
+						StringValue:  "A100",
+						MetadataType: "MetadataStringValue",
+					},
+				},
+				"hardware_count": {
+					MetadataIntValue: &openapi.MetadataIntValue{
+						IntValue:     "8",
+						MetadataType: "MetadataIntValue",
+					},
+				},
+				"requests_per_second": {
+					MetadataDoubleValue: &openapi.MetadataDoubleValue{
+						DoubleValue:  25,
+						MetadataType: "MetadataDoubleValue",
+					},
+				},
+				"ttft_mean": {
+					MetadataDoubleValue: &openapi.MetadataDoubleValue{
+						DoubleValue:  28.5,
+						MetadataType: "MetadataDoubleValue",
+					},
+				},
+				"use_case": {
+					MetadataStringValue: &openapi.MetadataStringValue{
+						StringValue:  "long_rag",
+						MetadataType: "MetadataStringValue",
+					},
+				},
+			}),
+		},
 	}
 	artifacts = artifacts[:itemCount]
 	return artifacts
@@ -1253,6 +1291,22 @@ func GetFilterOptionMocks() map[string]models.FilterOption {
 		Type: FilterOptionTypeString,
 		Values: []interface{}{
 			"ar", "cs", "de", "en", "es", "fr", "it", "ja", "ko", "nl", "pt", "zh",
+		},
+	}
+
+	// String type filter for use cases
+	filterOptions["use_case"] = models.FilterOption{
+		Type: FilterOptionTypeString,
+		Values: []interface{}{
+			"chatbot", "code_fixing", "long_rag", "rag",
+		},
+	}
+
+	// String type filter for use cases
+	filterOptions["use_case"] = models.FilterOption{
+		Type: FilterOptionTypeString,
+		Values: []interface{}{
+			"chatbot", "code_fixing", "long_rag", "rag",
 		},
 	}
 

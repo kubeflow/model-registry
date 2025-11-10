@@ -172,7 +172,7 @@ func (m *ModelCatalogClientMock) GetCatalogModelArtifacts(client httpclient.HTTP
 	var allMockModelArtifacts models.CatalogModelArtifactList
 
 	if sourceId == "sample-source" && modelName == "repo1%2Fgranite-8b-code-instruct" {
-		performanceArtifacts := GetCatalogPerformanceMetricsArtifactListMock(3)
+		performanceArtifacts := GetCatalogPerformanceMetricsArtifactListMock(4)
 		accuracyArtifacts := GetCatalogAccuracyMetricsArtifactListMock()
 		modelArtifacts := GetCatalogModelArtifactListMock()
 		combinedItems := append(performanceArtifacts.Items, accuracyArtifacts.Items...)
