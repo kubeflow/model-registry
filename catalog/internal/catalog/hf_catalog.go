@@ -194,7 +194,7 @@ func (hfm *hfModel) populateFromHFInfo(hfInfo *hfModelInfo, sourceId string, ori
 	}
 
 	if len(customProps) > 0 {
-		hfm.CustomProperties = &customProps
+		hfm.SetCustomProperties(customProps)
 	}
 }
 
@@ -359,7 +359,7 @@ func convertHFModelProperties(catalogModel *apimodels.CatalogModel) ([]models.Pr
 	}
 
 	// Convert array properties
-	if catalogModel.Tasks != nil && len(catalogModel.Tasks) > 0 {
+	if len(catalogModel.Tasks) > 0 {
 		if tasksJSON, err := json.Marshal(catalogModel.Tasks); err == nil {
 			properties = append(properties, models.NewStringProperty("tasks", string(tasksJSON), false))
 		}
@@ -367,7 +367,7 @@ func convertHFModelProperties(catalogModel *apimodels.CatalogModel) ([]models.Pr
 
 	// Convert custom properties from the CatalogModel
 	if catalogModel.CustomProperties != nil {
-		for key, value := range *catalogModel.CustomProperties {
+		for key, value := range catalogModel.GetCustomProperties() {
 			prop := convertMetadataValueToProperty(key, value)
 			customProperties = append(customProperties, prop)
 		}
