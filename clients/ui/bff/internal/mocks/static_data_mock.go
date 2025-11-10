@@ -1075,7 +1075,14 @@ func GetCatalogPerformanceMetricsArtifactMock(itemCount int32) []catalogOpenapi.
 		MetricsType:              "performance-metrics",
 		CreateTimeSinceEpoch:     stringToPointer("1693526400000"),
 		LastUpdateTimeSinceEpoch: stringToPointer("1704067200000"),
-		CustomProperties:         performanceMetricsCustomProperties(map[string]catalogOpenapi.MetadataValue{}),
+		CustomProperties: performanceMetricsCustomProperties(map[string]catalogOpenapi.MetadataValue{
+			"use_case": {
+				MetadataStringValue: &catalogOpenapi.MetadataStringValue{
+					StringValue:  "chatbot",
+					MetadataType: "MetadataStringValue",
+				},
+			},
+		}),
 	}
 	artifacts = append(artifacts, catalogOpenapi.CatalogMetricsArtifactAsCatalogArtifact(metricsArtifact1))
 
@@ -1107,6 +1114,12 @@ func GetCatalogPerformanceMetricsArtifactMock(itemCount int32) []catalogOpenapi.
 				MetadataDoubleValue: &catalogOpenapi.MetadataDoubleValue{
 					DoubleValue:  42.123791232,
 					MetadataType: "MetadataDoubleValue",
+				},
+			},
+			"use_case": {
+				MetadataStringValue: &catalogOpenapi.MetadataStringValue{
+					StringValue:  "rag",
+					MetadataType: "MetadataStringValue",
 				},
 			},
 		}),
@@ -1141,6 +1154,12 @@ func GetCatalogPerformanceMetricsArtifactMock(itemCount int32) []catalogOpenapi.
 				MetadataDoubleValue: &catalogOpenapi.MetadataDoubleValue{
 					DoubleValue:  42.123791232,
 					MetadataType: "MetadataDoubleValue",
+				},
+			},
+			"use_case": {
+				MetadataStringValue: &catalogOpenapi.MetadataStringValue{
+					StringValue:  "code_fixing",
+					MetadataType: "MetadataStringValue",
 				},
 			},
 		}),
