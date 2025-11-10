@@ -20,7 +20,7 @@ describe('filtersToFilterQuery', () => {
     provider = [],
     language = [],
     hardware_type = [],
-    use_case = undefined,
+    use_case = [],
     rps_mean = undefined,
     ttft_mean = undefined,
   }: Partial<ModelCatalogFilterStates>): ModelCatalogFilterStates => ({
@@ -180,6 +180,13 @@ describe('filtersToFilterQuery', () => {
       expect(
         filtersToFilterQuery(mockFormData({ language: [AllLanguageCode.CA] }), mockFilterOptions),
       ).toBe('language LIKE \'%"ca"%\'');
+      expect(
+        filtersToFilterQuery(
+          // eslint-disable-next-line camelcase
+          mockFormData({ use_case: [UseCaseOptionValue.CHATBOT] }),
+          mockFilterOptions,
+        ),
+      ).toBe("use_case='chatbot'");
     });
 
     it('handles multiple arrays of a single data point', () => {
@@ -225,6 +232,13 @@ describe('filtersToFilterQuery', () => {
           mockFilterOptions,
         ),
       ).toBe('(language LIKE \'%"ca"%\' OR language LIKE \'%"pt"%\')');
+      expect(
+        filtersToFilterQuery(
+          // eslint-disable-next-line camelcase
+          mockFormData({ use_case: [UseCaseOptionValue.CHATBOT, UseCaseOptionValue.RAG] }),
+          mockFilterOptions,
+        ),
+      ).toBe("use_case IN ('chatbot','rag')");
     });
 
     it('handles multiple arrays with mixed count of data points', () => {
