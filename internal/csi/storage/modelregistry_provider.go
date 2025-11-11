@@ -197,3 +197,11 @@ func (*ModelRegistryProvider) extractProtocol(storageURI string) (kserve.Protoco
 
 	return "", ErrProtocolNotSupported
 }
+
+// UploadObject cannot be implemented for the model-registry provider because:
+//  1. Unlike DownloadModel which receives a model-registry URI to resolve, UploadObject
+//     receives raw bucket/key parameters with no model-registry context
+//  2. There's no way to determine which underlying KServe provider to delegate to
+func (p *ModelRegistryProvider) UploadObject(bucket string, key string, object []byte) error {
+	return fmt.Errorf("uploading objects is currently not supported when using the model-registry protocol")
+}
