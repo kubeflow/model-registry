@@ -486,6 +486,17 @@ components:
           required:
             - items
         - $ref: "#/components/schemas/BaseResourceList"
+    CatalogSourceStatus:
+      description: |-
+        Operational status of a catalog source.
+        - `available`: The source is functioning correctly and models can be retrieved
+        - `error`: The source is experiencing issues and cannot provide models
+        - `disabled`: The source has been intentionally disabled
+      enum:
+        - available
+        - error
+        - disabled
+      type: string
     CatalogSource:
       description: A catalog source. A catalog source has CatalogModel children.
       required:
@@ -509,6 +520,15 @@ components:
           type: array
           items:
             type: string
+        status:
+          $ref: "#/components/schemas/CatalogSourceStatus"
+          description: Current operational status of the catalog source.
+        error:
+          description: |-
+            Detailed error information when the status is "Error".
+            This field is null or empty when the source is functioning normally.
+          type: string
+          nullable: true
         includedModels:
           description: |-
             Optional allow-list of models that are eligible for this source. Entries can be
