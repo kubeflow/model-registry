@@ -10,6 +10,7 @@ import (
 	"github.com/golang/glog"
 	"github.com/kubeflow/model-registry/catalog/internal/db/filter"
 	"github.com/kubeflow/model-registry/catalog/internal/db/models"
+	"github.com/kubeflow/model-registry/internal/db/dbutil"
 	dbmodels "github.com/kubeflow/model-registry/internal/db/models"
 	"github.com/kubeflow/model-registry/internal/db/schema"
 	"github.com/kubeflow/model-registry/internal/db/service"
@@ -516,4 +517,83 @@ func createAccuracyPaginationToken(entityID int32, accuracyValue *float64) strin
 
 	cursor := fmt.Sprintf("%d:%s", entityID, valueStr)
 	return base64.StdEncoding.EncodeToString([]byte(cursor))
+}
+
+// DeleteBySourceIDAndNamePatterns deletes models matching the given source ID and name patterns
+func (r *CatalogModelRepositoryImpl) DeleteBySourceIDAndNamePatterns(sourceID string, namePatterns []string) error {
+	if len(namePatterns) == 0 {
+		return nil
+	}
+
+	config := r.GetConfig()
+	contextTable := utils.GetTableName(config.DB, &schema.Context{})
+	propertyTable := utils.GetTableName(config.DB, &schema.ContextProperty{})
+
+	glog.Infof("Deleting excluded models: sourceID=%s, patterns=%v", sourceID, namePatterns)
+
+	// Build the query using GORM to find matching model IDs
+	// Join with ContextProperty to filter by source_id
+	var modelIDs []int32
+
+	// Quote table names for SQL
+	contextTableQuoted := dbutil.QuoteTableName(config.DB, contextTable)
+	propertyTableQuoted := dbutil.QuoteTableName(config.DB, propertyTable)
+
+	// Start with Context table, join with ContextProperty
+	query := config.DB.Model(&schema.Context{}).
+		Select(fmt.Sprintf("DISTINCT %s.id", contextTableQuoted)).
+		Joins(fmt.Sprintf("JOIN %s cp ON cp.context_id = %s.id", propertyTableQuoted, contextTableQuoted)).
+		Where(fmt.Sprintf("%s.type_id = ?", contextTableQuoted), config.TypeID).
+		Where("cp.name = ? AND cp.string_value = ?", "source_id", sourceID)
+
+	// Build name pattern conditions
+	var nameOrConditions []string
+	var nameArgs []interface{}
+	for _, pattern := range namePatterns {
+		if strings.HasSuffix(pattern, "*") {
+			// Prefix match
+			prefix := strings.TrimSuffix(pattern, "*")
+			nameOrConditions = append(nameOrConditions, fmt.Sprintf("%s.name LIKE ?", contextTableQuoted))
+			nameArgs = append(nameArgs, prefix+"%")
+		} else {
+			// Exact match
+			nameOrConditions = append(nameOrConditions, fmt.Sprintf("%s.name = ?", contextTableQuoted))
+			nameArgs = append(nameArgs, pattern)
+		}
+	}
+
+	if len(nameOrConditions) > 0 {
+		query = query.Where("("+strings.Join(nameOrConditions, " OR ")+")", nameArgs...)
+	}
+
+	if err := query.Scan(&modelIDs).Error; err != nil {
+		return fmt.Errorf("error finding models to delete: %w", err)
+	}
+
+	if len(modelIDs) == 0 {
+		glog.V(2).Infof("No models found matching source ID %s and excluded patterns %v", sourceID, namePatterns)
+		return nil
+	}
+
+	glog.Infof("Found %d model(s) to delete for source ID %s: %v", len(modelIDs), sourceID, modelIDs)
+
+	// Delete properties first (foreign key constraint)
+	if err := config.DB.Exec(fmt.Sprintf("DELETE FROM %s WHERE context_id IN ?", propertyTableQuoted), modelIDs).Error; err != nil {
+		return fmt.Errorf("error deleting properties for excluded models: %w", err)
+	}
+
+	// Delete attributions (if any)
+	attributionTable := utils.GetTableName(config.DB, &schema.Attribution{})
+	attributionTableQuoted := dbutil.QuoteTableName(config.DB, attributionTable)
+	if err := config.DB.Exec(fmt.Sprintf("DELETE FROM %s WHERE context_id IN ?", attributionTableQuoted), modelIDs).Error; err != nil {
+		return fmt.Errorf("error deleting attributions for excluded models: %w", err)
+	}
+
+	// Delete the models themselves
+	if err := config.DB.Exec(fmt.Sprintf("DELETE FROM %s WHERE id IN ?", contextTableQuoted), modelIDs).Error; err != nil {
+		return fmt.Errorf("error deleting excluded models: %w", err)
+	}
+
+	glog.Infof("Successfully deleted %d model(s) matching source ID %s and excluded patterns", len(modelIDs), sourceID)
+	return nil
 }

@@ -220,7 +220,7 @@ func (p *hfModelProvider) getModelsFromHF(ctx context.Context) ([]ModelProviderR
 	var records []ModelProviderRecord
 
 	for _, modelName := range p.includedModels {
-		// Skip if excluded
+		// Skip if excluded - check before fetching to avoid unnecessary API calls
 		if isModelExcluded(modelName, p.excludedModels) {
 			glog.V(2).Infof("Skipping excluded model: %s", modelName)
 			continue
@@ -233,6 +233,17 @@ func (p *hfModelProvider) getModelsFromHF(ctx context.Context) ([]ModelProviderR
 		}
 
 		record := p.convertHFModelToRecord(modelInfo, modelName)
+
+		// Additional safety check: verify the final model name is not excluded
+		// (in case the model name changed during conversion, e.g., from hfInfo.ID)
+		if record.Model.GetAttributes() != nil && record.Model.GetAttributes().Name != nil {
+			finalModelName := *record.Model.GetAttributes().Name
+			if isModelExcluded(finalModelName, p.excludedModels) {
+				glog.V(2).Infof("Skipping excluded model (after conversion): %s", finalModelName)
+				continue
+			}
+		}
+
 		records = append(records, record)
 	}
 
@@ -520,6 +531,9 @@ func newHFModelProvider(ctx context.Context, source *Source, reldir string) (<-c
 				return nil, fmt.Errorf("%s: invalid list: wanted string, got %T", excludedModelsKey, name)
 			}
 			p.excludedModels = append(p.excludedModels, nameStr)
+		}
+		if len(p.excludedModels) > 0 {
+			glog.Infof("Configured %d excluded model pattern(s) for HuggingFace catalog", len(p.excludedModels))
 		}
 	}
 

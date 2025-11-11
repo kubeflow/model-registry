@@ -420,6 +420,16 @@ func (m *MockCatalogModelRepository) GetFilterableProperties(maxLength int) (map
 	return make(map[string][]string), nil
 }
 
+func (m *MockCatalogModelRepository) DeleteBySourceIDAndNamePatterns(sourceID string, namePatterns []string) error {
+	// Simple mock implementation - could be enhanced to actually filter and delete
+	return nil
+}
+
+func (m *MockCatalogModelRepositoryWithErrors) DeleteBySourceIDAndNamePatterns(sourceID string, namePatterns []string) error {
+	// Simple mock implementation - could be enhanced to actually filter and delete
+	return nil
+}
+
 // MockCatalogModelArtifactRepository mocks the CatalogModelArtifactRepository interface.
 type MockCatalogModelArtifactRepository struct {
 	SavedArtifacts []dbmodels.CatalogModelArtifact

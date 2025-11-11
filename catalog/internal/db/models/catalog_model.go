@@ -40,4 +40,7 @@ type CatalogModelRepository interface {
 	// GetFilterableProperties returns a map of property names to their unique values
 	// Only includes string properties where all values are shorter than maxLength
 	GetFilterableProperties(maxLength int) (map[string][]string, error)
+	// DeleteBySourceIDAndNamePatterns deletes models matching the given source ID and name patterns
+	// Patterns can be exact matches or prefix matches (ending with *)
+	DeleteBySourceIDAndNamePatterns(sourceID string, namePatterns []string) error
 }
