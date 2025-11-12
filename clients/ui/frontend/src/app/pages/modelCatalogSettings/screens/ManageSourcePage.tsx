@@ -14,18 +14,9 @@ import {
 const ManageSourcePage: React.FC = () => {
   const { catalogSourceId } = useParams<{ catalogSourceId?: string }>();
   const isAddMode = !catalogSourceId;
-  const pageTitle = React.useMemo(
-    () => (isAddMode ? ADD_SOURCE_TITLE : MANAGE_SOURCE_TITLE),
-    [isAddMode],
-  );
-  const breadcrumbLabel = React.useMemo(
-    () => (isAddMode ? ADD_SOURCE_TITLE : MANAGE_SOURCE_TITLE),
-    [isAddMode],
-  );
-  const description = React.useMemo(
-    () => (isAddMode ? ADD_SOURCE_DESCRIPTION : MANAGE_SOURCE_DESCRIPTION),
-    [isAddMode],
-  );
+  const pageTitle = isAddMode ? ADD_SOURCE_TITLE : MANAGE_SOURCE_TITLE;
+  const breadcrumbLabel = isAddMode ? ADD_SOURCE_TITLE : MANAGE_SOURCE_TITLE;
+  const description = isAddMode ? ADD_SOURCE_DESCRIPTION : MANAGE_SOURCE_DESCRIPTION;
 
   return (
     <ApplicationsPage
