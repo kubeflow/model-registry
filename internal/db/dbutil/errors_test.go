@@ -65,6 +65,21 @@ func TestIsDatabaseTypeConversionError(t *testing.T) {
 			expected: true,
 		},
 		{
+			name:     "PostgreSQL unable to encode numeric to text",
+			err:      errors.New("failed to encode args[4]: unable to encode 5 into text format for text (OID 25): cannot find encode plan"),
+			expected: true,
+		},
+		{
+			name:     "PostgreSQL failed to encode",
+			err:      errors.New("failed to encode args[2]: type mismatch"),
+			expected: true,
+		},
+		{
+			name:     "PostgreSQL cannot find encode plan - mixed case",
+			err:      errors.New("Unable to Encode value: Cannot Find Encode Plan"),
+			expected: true,
+		},
+		{
 			name:     "non-matching error - record not found",
 			err:      errors.New("record not found"),
 			expected: false,

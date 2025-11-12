@@ -24,6 +24,9 @@ func isDatabaseTypeConversionError(err error) bool {
 		"incorrect double value",
 		"incorrect integer value",
 		"truncated incorrect",
+		"unable to encode",
+		"failed to encode",
+		"cannot find encode plan",
 	}
 
 	for _, pattern := range errorPatterns {
