@@ -9,6 +9,7 @@ import (
 	"github.com/kubeflow/model-registry/catalog/internal/db/filter"
 	"github.com/kubeflow/model-registry/catalog/internal/db/models"
 	dbmodels "github.com/kubeflow/model-registry/internal/db/models"
+	"github.com/kubeflow/model-registry/internal/db/dbutil"
 	"github.com/kubeflow/model-registry/internal/db/schema"
 	"github.com/kubeflow/model-registry/internal/db/scopes"
 	"github.com/kubeflow/model-registry/internal/db/service"
@@ -103,6 +104,8 @@ func (r *CatalogModelRepositoryImpl) GetByName(name string) (models.CatalogModel
 	// Query properties
 	var properties []schema.ContextProperty
 	if err := config.DB.Where(config.PropertyFieldName+" = ?", entity.ID).Find(&properties).Error; err != nil {
+		// Sanitize database errors to avoid exposing internal details to users
+		err = dbutil.SanitizeDatabaseError(err)
 		return zeroEntity, fmt.Errorf("error getting properties by %s id: %w", config.EntityName, err)
 	}
 
@@ -119,6 +122,8 @@ func (r *CatalogModelRepositoryImpl) lookupModelByName(name string) (*schema.Con
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, fmt.Errorf("%w: %v", config.NotFoundError, err)
 		}
+		// Sanitize database errors to avoid exposing internal details to users
+		err = dbutil.SanitizeDatabaseError(err)
 		return nil, fmt.Errorf("error getting %s by name: %w", config.EntityName, err)
 	}
 

@@ -72,7 +72,8 @@ func (m *ModelCatalogServiceAPIService) GetAllModelArtifacts(ctx context.Context
 		statusCode := api.ErrToStatus(err)
 		var errorMsg string
 		if errors.Is(err, api.ErrBadRequest) {
-			errorMsg = fmt.Sprintf("Invalid model name '%s' for source '%s'", modelName, sourceID)
+			// Use the original error message which should be more specific
+			errorMsg = err.Error()
 		} else if errors.Is(err, api.ErrNotFound) {
 			errorMsg = fmt.Sprintf("No model found '%s' in source '%s'", modelName, sourceID)
 		} else {

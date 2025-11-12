@@ -4,9 +4,10 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/kubeflow/model-registry/catalog/internal/db/filter"
+	catalogfilter "github.com/kubeflow/model-registry/catalog/internal/db/filter"
 	"github.com/kubeflow/model-registry/catalog/internal/db/models"
 	"github.com/kubeflow/model-registry/internal/datastore"
+	"github.com/kubeflow/model-registry/internal/db/dbutil"
 	dbmodels "github.com/kubeflow/model-registry/internal/db/models"
 	"github.com/kubeflow/model-registry/internal/db/schema"
 	"github.com/kubeflow/model-registry/internal/db/scopes"
@@ -126,7 +127,7 @@ func (r *CatalogArtifactRepositoryImpl) List(listOptions models.CatalogArtifactL
 
 	// Apply advanced filter query if supported
 	var err error
-	query, err = service.ApplyFilterQuery(query, &listOptions, filter.NewCatalogEntityMappings())
+	query, err = service.ApplyFilterQuery(query, &listOptions, catalogfilter.NewCatalogEntityMappings())
 	if err != nil {
 		return nil, err
 	}
@@ -154,6 +155,8 @@ func (r *CatalogArtifactRepositoryImpl) List(listOptions models.CatalogArtifactL
 	}
 
 	if err := query.Find(&artifactsArt).Error; err != nil {
+		// Sanitize database errors to avoid exposing internal details to users
+		err = dbutil.SanitizeDatabaseError(err)
 		return nil, fmt.Errorf("error listing catalog artifacts: %w", err)
 	}
 
