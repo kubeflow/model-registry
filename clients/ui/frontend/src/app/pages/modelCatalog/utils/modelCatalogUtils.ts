@@ -191,24 +191,8 @@ const isFilterIdInMap = (
   filters: CatalogFilterOptions,
 ): filterId is keyof CatalogFilterOptions => typeof filterId === 'string' && filterId in filters;
 
-// TODO tech debt: This hardcoded list should no longer be necessary if the backend properly
-// handles all string filters consistently. Ideally the backend should auto-detect array fields
-// or store all string filters in the same format. Track in separate ticket.
-// Array-based fields that need LIKE syntax instead of IN syntax for database queries
-const ARRAY_FIELD_FILTER_IDS: (keyof CatalogFilterOptions)[] = [
-  ModelCatalogStringFilterKey.LANGUAGE,
-  ModelCatalogStringFilterKey.TASK,
-];
+const wrapInQuotes = (v: string): string => `'${v}'`;
 
-// If using LIKE on an array field, we need %" "% around value within the ' '
-const wrapInQuotes = (v: string, isArrayLikeFilter = false): string =>
-  isArrayLikeFilter ? `'%"${v}"%'` : `'${v}'`;
-
-// LIKE works for any string filter but is only required for array fields
-const likeFilter = (k: string, v: string, isArrayField: boolean): string =>
-  `${k} LIKE ${wrapInQuotes(v, isArrayField)}`;
-
-// = and IN only work for non-array fields
 const eqFilter = (k: string, v: string) => `${k}=${wrapInQuotes(v)}`;
 const inFilter = (k: string, values: string[]) =>
   `${k} IN (${values.map((v) => wrapInQuotes(v)).join(',')})`;
@@ -224,22 +208,15 @@ export const filtersToFilterQuery = (
     }
 
     const filterOption = options.filters[filterId];
-    const isArrayField = ARRAY_FIELD_FILTER_IDS.includes(filterId);
 
     if (isArrayOfSelections(filterOption, data)) {
       switch (data.length) {
         case 0:
           return '';
         case 1:
-          if (isArrayField) {
-            return likeFilter(filterId, data[0], true);
-          }
           return eqFilter(filterId, data[0]);
         default:
           // 2 or more
-          if (isArrayField) {
-            return `(${data.map((value) => likeFilter(filterId, value, true)).join(' OR ')})`;
-          }
           return inFilter(filterId, data);
       }
     }

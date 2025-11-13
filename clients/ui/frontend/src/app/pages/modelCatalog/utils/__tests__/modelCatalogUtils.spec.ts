@@ -164,7 +164,7 @@ describe('filtersToFilterQuery', () => {
           mockFormData({ tasks: [ModelCatalogTask.TEXT_TO_TEXT] }),
           mockFilterOptions,
         ),
-      ).toBe('tasks LIKE \'%"text-to-text"%\'');
+      ).toBe("tasks='text-to-text'");
       expect(
         filtersToFilterQuery(
           mockFormData({ provider: [ModelCatalogProvider.GOOGLE] }),
@@ -179,7 +179,7 @@ describe('filtersToFilterQuery', () => {
       ).toBe("license='apache-2.0'");
       expect(
         filtersToFilterQuery(mockFormData({ language: [AllLanguageCode.CA] }), mockFilterOptions),
-      ).toBe('language LIKE \'%"ca"%\'');
+      ).toBe("language='ca'");
       expect(
         filtersToFilterQuery(
           // eslint-disable-next-line camelcase
@@ -198,13 +198,13 @@ describe('filtersToFilterQuery', () => {
           }),
           mockFilterOptions,
         ),
-      ).toBe("tasks LIKE '%\"text-to-text\"%' AND license='apache-2.0'");
+      ).toBe("tasks='text-to-text' AND license='apache-2.0'");
       expect(
         filtersToFilterQuery(
           mockFormData({ provider: [ModelCatalogProvider.GOOGLE], language: [AllLanguageCode.CA] }),
           mockFilterOptions,
         ),
-      ).toBe("provider='Google' AND language LIKE '%\"ca\"%'");
+      ).toBe("provider='Google' AND language='ca'");
     });
 
     it('handles a single array with multiple data points', () => {
@@ -213,7 +213,7 @@ describe('filtersToFilterQuery', () => {
           mockFormData({ tasks: [ModelCatalogTask.TEXT_TO_TEXT, ModelCatalogTask.IMAGE_TO_TEXT] }),
           mockFilterOptions,
         ),
-      ).toBe('(tasks LIKE \'%"text-to-text"%\' OR tasks LIKE \'%"image-to-text"%\')');
+      ).toBe("tasks IN ('text-to-text','image-to-text')");
       expect(
         filtersToFilterQuery(
           mockFormData({ provider: [ModelCatalogProvider.GOOGLE, ModelCatalogProvider.DEEPSEEK] }),
@@ -231,7 +231,7 @@ describe('filtersToFilterQuery', () => {
           mockFormData({ language: [AllLanguageCode.CA, AllLanguageCode.PT] }),
           mockFilterOptions,
         ),
-      ).toBe('(language LIKE \'%"ca"%\' OR language LIKE \'%"pt"%\')');
+      ).toBe("language IN ('ca','pt')");
       expect(
         filtersToFilterQuery(
           // eslint-disable-next-line camelcase
@@ -258,7 +258,7 @@ describe('filtersToFilterQuery', () => {
           mockFilterOptions,
         ),
       ).toBe(
-        "(tasks LIKE '%\"text-to-text\"%' OR tasks LIKE '%\"image-to-text\"%') AND provider='Google' AND license='mit' AND (language LIKE '%\"ca\"%' OR language LIKE '%\"pt\"%' OR language LIKE '%\"vi\"%' OR language LIKE '%\"zsm\"%')",
+        "tasks IN ('text-to-text','image-to-text') AND provider='Google' AND license='mit' AND language IN ('ca','pt','vi','zsm')",
       );
     });
   });
