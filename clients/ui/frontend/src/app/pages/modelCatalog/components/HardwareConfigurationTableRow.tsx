@@ -8,8 +8,6 @@ import {
   getWorkloadType,
 } from '~/app/pages/modelCatalog/utils/performanceMetricsUtils';
 import { getDoubleValue, getIntValue, getStringValue } from '~/app/utils';
-import { UseCaseOptionValue } from '~/concepts/modelCatalog/const';
-import { USE_CASE_NAME_MAPPING } from '~/app/pages/modelCatalog/utils/workloadTypeUtils';
 import {
   HardwareConfigColumnField,
   hardwareConfigColumns,
@@ -28,6 +26,8 @@ const HardwareConfigurationTableRow: React.FC<HardwareConfigurationTableRowProps
     switch (field) {
       case 'hardware_type':
         return getHardwareConfiguration(performanceArtifact);
+      case 'use_case':
+        return getWorkloadType(performanceArtifact);
       case 'hardware_count':
         return getIntValue(customProperties, 'hardware_count');
       case 'requests_per_second':
@@ -54,13 +54,6 @@ const HardwareConfigurationTableRow: React.FC<HardwareConfigurationTableRowProps
         return formatTokenValue(getDoubleValue(customProperties, field));
       case 'framework_version':
         return getStringValue(customProperties, field);
-      case 'use_case': {
-        const useCaseValue = getStringValue(customProperties, field);
-        // Format use_case for display (e.g., "code_fixing" -> "Code Fixing")
-        const isValidUseCase = (value: string): value is UseCaseOptionValue =>
-          value in USE_CASE_NAME_MAPPING;
-        return isValidUseCase(useCaseValue) ? USE_CASE_NAME_MAPPING[useCaseValue] : useCaseValue;
-      }
       default:
         return '-';
     }
