@@ -389,6 +389,13 @@ func (c *ModelCatalogServiceAPIController) GetAllModelArtifacts(w http.ResponseW
 			artifactType2Param = append(artifactType2Param, *paramEnum)
 		}
 	}
+	var filterQueryParam string
+	if query.Has("filterQuery") {
+		param := query.Get("filterQuery")
+
+		filterQueryParam = param
+	} else {
+	}
 	var pageSizeParam string
 	if query.Has("pageSize") {
 		param := query.Get("pageSize")
@@ -417,7 +424,7 @@ func (c *ModelCatalogServiceAPIController) GetAllModelArtifacts(w http.ResponseW
 		nextPageTokenParam = param
 	} else {
 	}
-	result, err := c.service.GetAllModelArtifacts(r.Context(), sourceIdParam, modelNameParam, artifactTypeParam, artifactType2Param, pageSizeParam, model.OrderByField(orderByParam), model.SortOrder(sortOrderParam), nextPageTokenParam)
+	result, err := c.service.GetAllModelArtifacts(r.Context(), sourceIdParam, modelNameParam, artifactTypeParam, artifactType2Param, filterQueryParam, pageSizeParam, model.OrderByField(orderByParam), model.SortOrder(sortOrderParam), nextPageTokenParam)
 	// If an error occurred, encode the error with the status code
 	if err != nil {
 		c.errorHandler(w, r, err, &result)

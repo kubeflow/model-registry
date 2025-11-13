@@ -154,10 +154,16 @@ func (d *dbCatalogImpl) GetArtifacts(ctx context.Context, modelName string, sour
 
 	parentResourceID32 := int32(parentResourceID)
 
+	var filterQueryPtr *string
+	if params.FilterQuery != "" {
+		filterQueryPtr = &params.FilterQuery
+	}
+
 	artifactsList, err := d.catalogArtifactRepository.List(dbmodels.CatalogArtifactListOptions{
 		ParentResourceID:    &parentResourceID32,
 		ArtifactTypesFilter: params.ArtifactTypesFilter,
 		Pagination: mrmodels.Pagination{
+			FilterQuery:   filterQueryPtr,
 			PageSize:      &pageSize,
 			OrderBy:       &orderBy,
 			SortOrder:     &sortOrder,

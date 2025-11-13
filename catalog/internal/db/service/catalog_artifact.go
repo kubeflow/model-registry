@@ -4,11 +4,14 @@ import (
 	"errors"
 	"fmt"
 
+	catalogfilter "github.com/kubeflow/model-registry/catalog/internal/db/filter"
 	"github.com/kubeflow/model-registry/catalog/internal/db/models"
 	"github.com/kubeflow/model-registry/internal/datastore"
+	"github.com/kubeflow/model-registry/internal/db/dbutil"
 	dbmodels "github.com/kubeflow/model-registry/internal/db/models"
 	"github.com/kubeflow/model-registry/internal/db/schema"
 	"github.com/kubeflow/model-registry/internal/db/scopes"
+	"github.com/kubeflow/model-registry/internal/db/service"
 	"github.com/kubeflow/model-registry/internal/db/utils"
 	"github.com/kubeflow/model-registry/pkg/api"
 	"gorm.io/gorm"
@@ -122,6 +125,13 @@ func (r *CatalogArtifactRepositoryImpl) List(listOptions models.CatalogArtifactL
 			Select(utils.GetTableName(query, &schema.Artifact{}) + ".*") // Explicitly select from Artifact table to avoid ambiguity
 	}
 
+	// Apply advanced filter query if supported
+	var err error
+	query, err = service.ApplyFilterQuery(query, &listOptions, catalogfilter.NewCatalogEntityMappings())
+	if err != nil {
+		return nil, err
+	}
+
 	orderBy := listOptions.GetOrderBy()
 	sortOrder := listOptions.GetSortOrder()
 	nextPageToken := listOptions.GetNextPageToken()
@@ -145,6 +155,8 @@ func (r *CatalogArtifactRepositoryImpl) List(listOptions models.CatalogArtifactL
 	}
 
 	if err := query.Find(&artifactsArt).Error; err != nil {
+		// Sanitize database errors to avoid exposing internal details to users
+		err = dbutil.SanitizeDatabaseError(err)
 		return nil, fmt.Errorf("error listing catalog artifacts: %w", err)
 	}
 

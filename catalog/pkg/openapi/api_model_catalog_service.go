@@ -773,6 +773,7 @@ type ApiGetAllModelArtifactsRequest struct {
 	modelName     string
 	artifactType  *[]ArtifactTypeQueryParam
 	artifactType2 *[]ArtifactTypeQueryParam
+	filterQuery   *string
 	pageSize      *string
 	orderBy       *OrderByField
 	sortOrder     *SortOrder
@@ -789,6 +790,12 @@ func (r ApiGetAllModelArtifactsRequest) ArtifactType(artifactType []ArtifactType
 // Deprecated
 func (r ApiGetAllModelArtifactsRequest) ArtifactType2(artifactType2 []ArtifactTypeQueryParam) ApiGetAllModelArtifactsRequest {
 	r.artifactType2 = &artifactType2
+	return r
+}
+
+// A SQL-like query string to filter catalog artifacts. The query supports rich filtering capabilities with automatic type inference.  **Supported Operators:** - Comparison: &#x60;&#x3D;&#x60;, &#x60;!&#x3D;&#x60;, &#x60;&lt;&gt;&#x60;, &#x60;&gt;&#x60;, &#x60;&lt;&#x60;, &#x60;&gt;&#x3D;&#x60;, &#x60;&lt;&#x3D;&#x60; - Pattern matching: &#x60;LIKE&#x60;, &#x60;ILIKE&#x60; (case-insensitive) - Set membership: &#x60;IN&#x60; - Logical: &#x60;AND&#x60;, &#x60;OR&#x60; - Grouping: &#x60;()&#x60; for complex expressions  **Data Types:** - Strings: &#x60;\&quot;value\&quot;&#x60; or &#x60;&#39;value&#39;&#x60; - Numbers: &#x60;42&#x60;, &#x60;3.14&#x60;, &#x60;1e-5&#x60; - Booleans: &#x60;true&#x60;, &#x60;false&#x60; (case-insensitive)  **Property Access (Artifacts):** - Standard properties: &#x60;name&#x60;, &#x60;id&#x60;, &#x60;uri&#x60;, &#x60;artifactType&#x60;, &#x60;createTimeSinceEpoch&#x60; - Custom properties: Any user-defined property name in &#x60;customProperties&#x60; - Escaped properties: Use backticks for special characters: &#x60;&#x60; &#x60;custom-property&#x60; &#x60;&#x60; - Type-specific access: &#x60;property.string_value&#x60;, &#x60;property.double_value&#x60;, &#x60;property.int_value&#x60;, &#x60;property.bool_value&#x60;  **Examples:** - Basic: &#x60;name &#x3D; \&quot;my-artifact\&quot;&#x60; - Comparison: &#x60;ttft_mean &gt; 90&#x60; - Pattern: &#x60;uri LIKE \&quot;%s3.amazonaws.com%\&quot;&#x60; - Complex: &#x60;(artifactType &#x3D; \&quot;model-artifact\&quot; OR artifactType &#x3D; \&quot;metrics-artifact\&quot;) AND name LIKE \&quot;%pytorch%\&quot;&#x60; - Custom property: &#x60;format.string_value &#x3D; \&quot;pytorch\&quot;&#x60; - Escaped property: &#x60;&#x60; &#x60;custom-key&#x60; &#x3D; \&quot;value\&quot; &#x60;&#x60;
+func (r ApiGetAllModelArtifactsRequest) FilterQuery(filterQuery string) ApiGetAllModelArtifactsRequest {
+	r.filterQuery = &filterQuery
 	return r
 }
 
@@ -882,6 +889,9 @@ func (a *ModelCatalogServiceAPIService) GetAllModelArtifactsExecute(r ApiGetAllM
 		} else {
 			parameterAddToHeaderOrQuery(localVarQueryParams, "artifact_type", t, "form", "multi")
 		}
+	}
+	if r.filterQuery != nil {
+		parameterAddToHeaderOrQuery(localVarQueryParams, "filterQuery", r.filterQuery, "form", "")
 	}
 	if r.pageSize != nil {
 		parameterAddToHeaderOrQuery(localVarQueryParams, "pageSize", r.pageSize, "form", "")

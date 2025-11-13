@@ -963,9 +963,201 @@ func TestDBCatalog(t *testing.T) {
 		assert.Contains(t, maturityValues, "stable")
 		assert.Contains(t, maturityValues, "experimental")
 	})
-}
 
-// Helper functions to get type IDs from database
+	t.Run("TestGetArtifacts_WithFilterQuery", func(t *testing.T) {
+		// Create test model
+		testModel := &models.CatalogModelImpl{
+			TypeID: apiutils.Of(int32(catalogModelTypeID)),
+			Attributes: &models.CatalogModelAttributes{
+				Name:       apiutils.Of("filterquery-artifact-test-model"),
+				ExternalID: apiutils.Of("filterquery-artifact-test-model-ext"),
+			},
+			Properties: &[]mr_models.Properties{
+				{Name: "source_id", StringValue: apiutils.Of("filterquery-test-source")},
+			},
+		}
+
+		savedModel, err := catalogModelRepo.Save(testModel)
+		require.NoError(t, err)
+
+		// Create multiple test artifacts with different properties
+		artifact1 := &models.CatalogModelArtifactImpl{
+			TypeID: apiutils.Of(int32(modelArtifactTypeID)),
+			Attributes: &models.CatalogModelArtifactAttributes{
+				Name:         apiutils.Of("pytorch-model-artifact"),
+				ExternalID:   apiutils.Of("pytorch-model-artifact-ext"),
+				URI:          apiutils.Of("s3://bucket/pytorch/model.bin"),
+				ArtifactType: apiutils.Of(models.CatalogModelArtifactType),
+			},
+			CustomProperties: &[]mr_models.Properties{
+				{Name: "format", StringValue: apiutils.Of("pytorch")},
+				{Name: "model_size", DoubleValue: apiutils.Of(float64(500))},
+			},
+		}
+
+		artifact2 := &models.CatalogModelArtifactImpl{
+			TypeID: apiutils.Of(int32(modelArtifactTypeID)),
+			Attributes: &models.CatalogModelArtifactAttributes{
+				Name:         apiutils.Of("onnx-model-artifact"),
+				ExternalID:   apiutils.Of("onnx-model-artifact-ext"),
+				URI:          apiutils.Of("https://huggingface.co/models/onnx/model.onnx"),
+				ArtifactType: apiutils.Of(models.CatalogModelArtifactType),
+			},
+			CustomProperties: &[]mr_models.Properties{
+				{Name: "format", StringValue: apiutils.Of("onnx")},
+				{Name: "model_size", DoubleValue: apiutils.Of(float64(1500))},
+			},
+		}
+
+		artifact3 := &models.CatalogMetricsArtifactImpl{
+			TypeID: apiutils.Of(int32(metricsArtifactTypeID)),
+			Attributes: &models.CatalogMetricsArtifactAttributes{
+				Name:         apiutils.Of("accuracy-metrics"),
+				ExternalID:   apiutils.Of("accuracy-metrics-ext"),
+				MetricsType:  models.MetricsTypeAccuracy,
+				ArtifactType: apiutils.Of("metrics-artifact"),
+			},
+			CustomProperties: &[]mr_models.Properties{
+				{Name: "overall_average", DoubleValue: apiutils.Of(float64(0.95))},
+			},
+		}
+
+		_, err = modelArtifactRepo.Save(artifact1, savedModel.GetID())
+		require.NoError(t, err)
+		_, err = modelArtifactRepo.Save(artifact2, savedModel.GetID())
+		require.NoError(t, err)
+		_, err = metricsArtifactRepo.Save(artifact3, savedModel.GetID())
+		require.NoError(t, err)
+
+		// Test cases
+		tests := []struct {
+			name          string
+			filterQuery   string
+			expectedCount int32
+			expectedNames []string
+			shouldError   bool
+		}{
+			{
+				name:          "Filter by URI pattern - s3",
+				filterQuery:   `uri LIKE "%s3%"`,
+				expectedCount: 1,
+				expectedNames: []string{"pytorch-model-artifact"},
+			},
+			{
+				name:          "Filter by custom property format",
+				filterQuery:   `format.string_value = "onnx"`,
+				expectedCount: 1,
+				expectedNames: []string{"onnx-model-artifact"},
+			},
+			{
+				name:          "Filter by numeric custom property",
+				filterQuery:   `model_size.double_value > 1000`,
+				expectedCount: 1,
+				expectedNames: []string{"onnx-model-artifact"},
+			},
+			{
+				name:          "Complex filter with AND",
+				filterQuery:   `uri LIKE "%huggingface%" AND format.string_value = "onnx"`,
+				expectedCount: 1,
+				expectedNames: []string{"onnx-model-artifact"},
+			},
+			{
+				name:          "Filter by name pattern",
+				filterQuery:   `name LIKE "%pytorch%"`,
+				expectedCount: 1,
+				expectedNames: []string{"pytorch-model-artifact"},
+			},
+			{
+				name:          "Filter with OR condition",
+				filterQuery:   `format.string_value = "pytorch" OR format.string_value = "onnx"`,
+				expectedCount: 2,
+				expectedNames: []string{"pytorch-model-artifact", "onnx-model-artifact"},
+			},
+			{
+				name:          "Filter with no matches",
+				filterQuery:   `name = "non-existent-artifact"`,
+				expectedCount: 0,
+				expectedNames: []string{},
+			},
+			{
+				name:          "Empty filterQuery returns all artifacts",
+				filterQuery:   "",
+				expectedCount: 3,
+				expectedNames: []string{"pytorch-model-artifact", "onnx-model-artifact", "accuracy-metrics"},
+			},
+			{
+				name:        "Invalid filterQuery syntax",
+				filterQuery: "invalid syntax here",
+				shouldError: true,
+			},
+			{
+				name:          "Inferred int type - should match double values (dual-column query)",
+				filterQuery:   `model_size > 400`,
+				expectedCount: 2,
+				expectedNames: []string{"pytorch-model-artifact", "onnx-model-artifact"},
+			},
+			{
+				name:          "Explicit double_value with integer literal",
+				filterQuery:   `model_size.double_value > 400`,
+				expectedCount: 2,
+				expectedNames: []string{"pytorch-model-artifact", "onnx-model-artifact"},
+			},
+			{
+				name:          "Explicit double_value with float literal",
+				filterQuery:   `model_size.double_value > 400.0`,
+				expectedCount: 2,
+				expectedNames: []string{"pytorch-model-artifact", "onnx-model-artifact"},
+			},
+			{
+				name:          "Explicit int_value with integer literal",
+				filterQuery:   `model_size.int_value > 400`,
+				expectedCount: 0, // Data is stored as double, so int_value query returns nothing
+				expectedNames: []string{},
+			},
+			{
+				name:          "Explicit string_value with string literal",
+				filterQuery:   `format.string_value = "onnx"`,
+				expectedCount: 1,
+				expectedNames: []string{"onnx-model-artifact"},
+			},
+		}
+
+		for _, tt := range tests {
+			t.Run(tt.name, func(t *testing.T) {
+				params := ListArtifactsParams{
+					FilterQuery:   tt.filterQuery,
+					PageSize:      10,
+					OrderBy:       model.ORDERBYFIELD_CREATE_TIME,
+					SortOrder:     model.SORTORDER_ASC,
+					NextPageToken: apiutils.Of(""),
+				}
+
+				result, err := dbCatalog.GetArtifacts(ctx, "filterquery-artifact-test-model", "filterquery-test-source", params)
+
+				if tt.shouldError {
+					require.Error(t, err, "Expected error for invalid filter query")
+					assert.Contains(t, err.Error(), "invalid filter query", "Error should mention invalid filter query")
+					return
+				}
+
+				require.NoError(t, err)
+				assert.Equal(t, tt.expectedCount, result.Size, "Expected %d artifacts but got %d", tt.expectedCount, result.Size)
+
+				// Verify artifact names
+				actualNames := make([]string, 0)
+				for _, artifact := range result.Items {
+					if artifact.CatalogModelArtifact != nil && artifact.CatalogModelArtifact.Name != nil {
+						actualNames = append(actualNames, *artifact.CatalogModelArtifact.Name)
+					}
+					if artifact.CatalogMetricsArtifact != nil && artifact.CatalogMetricsArtifact.Name != nil {
+						actualNames = append(actualNames, *artifact.CatalogMetricsArtifact.Name)
+					}
+				}
+				assert.ElementsMatch(t, tt.expectedNames, actualNames, "Artifact names should match expected")
+			})
+		}
+	})
+}
 
 func getCatalogModelTypeIDForDBTest(t *testing.T, db *gorm.DB) int32 {
 	var typeRecord schema.Type

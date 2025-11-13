@@ -43,15 +43,17 @@ type FilterApplier interface {
 	GetRestEntityType() filter.RestEntityType
 }
 
-// applyFilterQuery applies advanced filter query processing to a GORM query
+// ApplyFilterQuery applies advanced filter query processing to a GORM query
 // This function encapsulates the common pattern used by both GenericRepository and custom repositories
-func applyFilterQuery(query *gorm.DB, listOptions any, mappingFuncs filter.EntityMappingFunctions) (*gorm.DB, error) {
+func ApplyFilterQuery(query *gorm.DB, listOptions any, mappingFuncs filter.EntityMappingFunctions) (*gorm.DB, error) {
 	if filterQueryGetter, ok := listOptions.(interface{ GetFilterQuery() string }); ok {
 		if filterQuery := filterQueryGetter.GetFilterQuery(); filterQuery != "" {
 			if filterApplier, ok := listOptions.(FilterApplier); ok {
 				filterExpr, err := filter.Parse(filterQuery)
 				if err != nil {
-					return nil, fmt.Errorf("invalid filter query: %v: %w", err, api.ErrBadRequest)
+					// Enhance error message with helpful hints for common mistakes
+					enhancedErr := dbutil.EnhanceFilterQueryError(err, filterQuery)
+					return nil, fmt.Errorf("%v: %w", enhancedErr, api.ErrBadRequest)
 				}
 
 				if filterExpr != nil {
@@ -62,6 +64,11 @@ func applyFilterQuery(query *gorm.DB, listOptions any, mappingFuncs filter.Entit
 		}
 	}
 	return query, nil
+}
+
+// applyFilterQuery is a legacy alias for backward compatibility
+func applyFilterQuery(query *gorm.DB, listOptions any, mappingFuncs filter.EntityMappingFunctions) (*gorm.DB, error) {
+	return ApplyFilterQuery(query, listOptions, mappingFuncs)
 }
 
 // Generic repository configuration
@@ -176,6 +183,8 @@ func (r *GenericRepository[TEntity, TSchema, TProp, TListOpts]) List(listOptions
 
 	// Execute query
 	if err := query.Find(&schemaEntities).Error; err != nil {
+		// Sanitize database errors to avoid exposing internal details to users
+		err = dbutil.SanitizeDatabaseError(err)
 		return nil, fmt.Errorf("error listing %ss: %w", r.config.EntityName, err)
 	}
 

@@ -26,7 +26,7 @@ type ModelCatalogServiceAPIService struct {
 }
 
 // GetAllModelArtifacts retrieves all model artifacts for a given model from the specified source.
-func (m *ModelCatalogServiceAPIService) GetAllModelArtifacts(ctx context.Context, sourceID string, modelName string, artifactType []model.ArtifactTypeQueryParam, artifactType2 []model.ArtifactTypeQueryParam, pageSize string, orderBy model.OrderByField, sortOrder model.SortOrder, nextPageToken string) (ImplResponse, error) {
+func (m *ModelCatalogServiceAPIService) GetAllModelArtifacts(ctx context.Context, sourceID string, modelName string, artifactType []model.ArtifactTypeQueryParam, artifactType2 []model.ArtifactTypeQueryParam, filterQuery string, pageSize string, orderBy model.OrderByField, sortOrder model.SortOrder, nextPageToken string) (ImplResponse, error) {
 	// Handle multiple artifact_type parameters (snake case - deprecated, will be removed in future)
 	for _, v := range artifactType2 {
 		if v != "" {
@@ -61,6 +61,7 @@ func (m *ModelCatalogServiceAPIService) GetAllModelArtifacts(ctx context.Context
 	}
 
 	artifacts, err := m.provider.GetArtifacts(ctx, modelName, sourceID, catalog.ListArtifactsParams{
+		FilterQuery:         filterQuery,
 		ArtifactTypesFilter: artifactTypesFilter,
 		PageSize:            pageSizeInt,
 		OrderBy:             orderBy,
@@ -71,7 +72,8 @@ func (m *ModelCatalogServiceAPIService) GetAllModelArtifacts(ctx context.Context
 		statusCode := api.ErrToStatus(err)
 		var errorMsg string
 		if errors.Is(err, api.ErrBadRequest) {
-			errorMsg = fmt.Sprintf("Invalid model name '%s' for source '%s'", modelName, sourceID)
+			// Use the original error message which should be more specific
+			errorMsg = err.Error()
 		} else if errors.Is(err, api.ErrNotFound) {
 			errorMsg = fmt.Sprintf("No model found '%s' in source '%s'", modelName, sourceID)
 		} else {
