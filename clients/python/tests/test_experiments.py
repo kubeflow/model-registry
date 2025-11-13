@@ -28,7 +28,7 @@ def get_artifacts(
 
 @pytest.fixture
 def schema_json():
-    schema = {"epochs": {}}
+    schema: dict[str, dict] = {"epochs": {}}
     return json.dumps(schema)
 
 
@@ -40,15 +40,15 @@ def test_start_experiment_run(client: ModelRegistry, schema_json: str):
             key="rval",
             value=10,
             step=4,
-            timestamp="0",
+            timestamp="0",  # type: ignore[arg-type]
             description="This is a test metric",
         )
         run.log_dataset(
             name="dataset_1",
             source_type="local",
             uri="s3://datasets/test",
-            schema=schema_json,
-            profile="random_profile",
+            schema=schema_json,  # type: ignore[arg-type]
+            profile="random_profile",  # type: ignore[arg-type]
         )
 
     assert len(run.get_logs()) == 3
@@ -59,10 +59,10 @@ def test_start_experiment_run(client: ModelRegistry, schema_json: str):
     assert metric
     assert dataset
 
-    assert param.value == 5.75
-    assert metric.value == 10
-    assert metric.step == 4
-    assert metric.timestamp == "0"
+    assert param.value == 5.75  # type: ignore[union-attr]
+    assert metric.value == 10  # type: ignore[union-attr]
+    assert metric.step == 4  # type: ignore[union-attr]
+    assert metric.timestamp == "0"  # type: ignore[union-attr]
     assert metric.description == "This is a test metric"
     assert metric.name == "rval"
 
@@ -76,10 +76,10 @@ def test_start_experiment_run_with_advanced_scenarios(
         run.log_param("input1", 5.75)
         run.log_param("input1", 500)
         for i in range(10):
-            run.log_metric(f"metric_{i}", value=i * 1000, step=i, timestamp="0")
+            run.log_metric(f"metric_{i}", value=i * 1000, step=i, timestamp="0")  # type: ignore[arg-type]
 
     assert len(run.get_logs()) == 11
-    assert run.get_log("params", "input1").value == 500
+    assert run.get_log("params", "input1").value == 500  # type: ignore[union-attr]
 
     with client.start_experiment_run(
         experiment_name="Experiment_Test_URI_Provided"
@@ -88,10 +88,10 @@ def test_start_experiment_run_with_advanced_scenarios(
             name="dataset_1",
             source_type="s3",
             uri="s3://datasets/test",
-            schema=schema_json,
-            profile="random_profile",
+            schema=schema_json,  # type: ignore[arg-type]
+            profile="random_profile",  # type: ignore[arg-type]
         )
-    assert run.get_log("datasets", "dataset_1").uri == "s3://datasets/test"
+    assert run.get_log("datasets", "dataset_1").uri == "s3://datasets/test"  # type: ignore[union-attr]
 
     # Test actual
     model_dir, _ = get_temp_dir_with_models
@@ -100,8 +100,8 @@ def test_start_experiment_run_with_advanced_scenarios(
         run.log_dataset(
             name="dataset_1",
             source_type="local",
-            schema=schema_json,
-            profile="random_profile",
+            schema=schema_json,  # type: ignore[arg-type]
+            profile="random_profile",  # type: ignore[arg-type]
             file_path=model_dir,
             s3_auth=utils.S3Params(
                 endpoint_url=s3_endpoint,
@@ -112,7 +112,7 @@ def test_start_experiment_run_with_advanced_scenarios(
                 region=region,
             ),
         )
-    assert run.get_log("datasets", "dataset_1").uri.startswith("s3://")
+    assert run.get_log("datasets", "dataset_1").uri.startswith("s3://")  # type: ignore[union-attr]
 
 
 @pytest.mark.e2e
@@ -137,7 +137,7 @@ def test_get_experiment_runs(client: ModelRegistry):
     runs_by_name = client.get_experiment_runs(experiment_name="Experiment_Test_3")
     runs_by_id = client.get_experiment_runs(experiment_id=run.info.experiment_id)
 
-    assert runs_by_name.next_item().id == runs_by_id.next_item().id
+    assert runs_by_name.next_item().id == runs_by_id.next_item().id  # type: ignore[attr-defined]
     runs_by_name.restart()
     runs_by_id.restart()
 
@@ -165,15 +165,15 @@ def test_get_experiment_run_with_artifact_types(
             name="dataset_1",
             source_type="local",
             uri="s3://datasets/test",
-            schema=schema_json,
-            profile="random_profile",
+            schema=schema_json,  # type: ignore[arg-type]
+            profile="random_profile",  # type: ignore[arg-type]
             description="This is a test dataset",
         )
         run.log_metric(
             key="metric_1",
             value=10,
             step=4,
-            timestamp="0",
+            timestamp="0",  # type: ignore[arg-type]
             description="This is a test metric",
         )
         run.log_param(
@@ -185,12 +185,12 @@ def test_get_experiment_run_with_artifact_types(
     dataset_log = client.get_experiment_run_logs(
         run_id=run.info.id,
     )
-    assert dataset_log.next_item().name.endswith("1")
+    assert dataset_log.next_item().name.endswith("1")  # type: ignore[attr-defined]
     assert dataset_log.next_item()
     assert dataset_log.next_item()
     try:
         # fail if we get a 4th item
-        dataset_log.next_item()
+        dataset_log.next_item()  # type: ignore[unused-coroutine]
         pytest.fail("Expected StopIteration")
     except StopIteration:
         assert True
@@ -220,20 +220,20 @@ def test_start_experiment_run_nested(client: ModelRegistry):
             )
     # Assert logs are correct
     for artifact in client.get_experiment_run_logs(run_id=run.info.id):
-        assert artifact.value == 10
-        assert "nested" not in artifact.description
+        assert artifact.value == 10  # type: ignore[union-attr]
+        assert "nested" not in artifact.description  # type: ignore[operator]
 
     for artifact in client.get_experiment_run_logs(run_id=run2.info.id):
-        assert artifact.value == 20
-        assert "nested" in artifact.description
+        assert artifact.value == 20  # type: ignore[union-attr]
+        assert "nested" in artifact.description  # type: ignore[operator]
 
     exp_run = client.get_experiment_run(run_id=run.info.id)
     assert exp_run.custom_properties is None
     assert exp_run.experiment_id == run.info.experiment_id
 
     exp_run = client.get_experiment_run(run_id=run2.info.id)
-    assert "kubeflow.parent_run_id" in exp_run.custom_properties
-    assert exp_run.custom_properties["kubeflow.parent_run_id"] == run.info.id
+    assert "kubeflow.parent_run_id" in exp_run.custom_properties  # type: ignore[operator]
+    assert exp_run.custom_properties["kubeflow.parent_run_id"] == run.info.id  # type: ignore[index]
     assert exp_run.experiment_id == run.info.experiment_id
     assert exp_run.name == run2.info.name
     assert exp_run.id == run2.info.id
@@ -410,11 +410,11 @@ def test_bulk_metrics_and_params_retrieval(client: ModelRegistry):  # noqa: C901
     assert param_attributes == expected_param_attributes
     # Verify values are reasonable
     for metric in metrics:
-        assert isinstance(metric.value, (int, float))
-        assert metric.value > 0
+        assert isinstance(metric.value, (int, float))  # type: ignore[attr-defined]
+        assert metric.value > 0  # type: ignore[attr-defined]
 
     for param in params:
-        assert param.value is not None
+        assert param.value is not None  # type: ignore[attr-defined]
 
     # Test filtering by specific metric names using SQL
     accuracy_metrics = list(get_artifacts(client, artifact_type="metric", filter_query=f'{run_ids_filter} AND name LIKE "%accuracy%"'))
