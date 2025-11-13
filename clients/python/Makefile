@@ -90,12 +90,14 @@ test:
 
 .PHONY: lint
 lint:
-	poetry run ruff check src/model_registry
+	poetry run ruff check
+	poetry run mypy .
 
 .PHONY: tidy
 tidy:
-	poetry run ruff check --fix-only --unsafe-fixes
-	poetry run ruff format src
+	# Fix code issues everywhere, including src/mr_openapi/ (excluded by default in pyproject.toml)
+	poetry run ruff check --fix-only --unsafe-fixes . src/mr_openapi
+	poetry run ruff format src src/mr_openapi
 
 .PHONY: build
 build: install tidy

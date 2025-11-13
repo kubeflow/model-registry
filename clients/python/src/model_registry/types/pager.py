@@ -26,13 +26,13 @@ class Pager(Generic[T], Iterator[T], AsyncIterator[T]):
     def __post_init__(self):
         self.restart()
         if asyncio.iscoroutinefunction(self.page_fn):
-            self.__next__ = NotImplemented
+            self.__next__ = NotImplemented  # type: ignore[method-assign]
             self.next_page = self._anext_page
             self.next_item = self._anext_item
         else:
-            self.__anext__ = NotImplemented
-            self.next_page = self._next_page
-            self.next_item = self._next_item
+            self.__anext__ = NotImplemented  # type: ignore[method-assign]
+            self.next_page = self._next_page  # type: ignore[assignment]
+            self.next_item = self._next_item  # type: ignore[assignment]
 
     def restart(self) -> Pager[T]:
         """Reset the pager.

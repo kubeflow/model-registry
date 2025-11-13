@@ -1,5 +1,5 @@
 import pytest
-import requests
+import requests  # type: ignore[import-untyped,unused-ignore]
 
 from model_registry import ModelRegistry
 from model_registry.types.artifacts import ModelArtifact
@@ -44,7 +44,7 @@ def test_get_model_without_user_token(setup_env_user_token, client: ModelRegistr
         model_format_name="test_format",
         model_format_version="test_version",
         version=version,
-        metadata=metadata,
+        metadata=metadata,  # type: ignore[arg-type]
     )
     assert rm.id
     assert (_rm := client.get_registered_model(name))

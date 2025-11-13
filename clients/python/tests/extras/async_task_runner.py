@@ -52,7 +52,7 @@ class AsyncTaskRunner:
         assert AsyncTaskRunner.__instance is not None
         return AsyncTaskRunner.__instance
 
-    def __init__(self):
+    def __init__(self) -> None:
         """Initialize."""
         # make sure it is a singleton
         if AsyncTaskRunner.__instance is not None:
@@ -66,7 +66,7 @@ class AsyncTaskRunner:
         # register exit handler
         atexit.register(self._close)
 
-    def _close(self):
+    def _close(self) -> None:
         """Clean up. Stop the loop if running."""
         if self.__io_loop:
             self.__io_loop.stop()

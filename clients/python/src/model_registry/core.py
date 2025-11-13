@@ -451,8 +451,8 @@ class ModelRegistryAPIClient:
             if experiment.id:
                 exp = await client.update_experiment(experiment.id, experiment.update())
             elif experiment.name:
-                if exp := await self.get_experiment_by_name(experiment.name):
-                    exp = await client.update_experiment(exp.id, experiment.update())
+                if exp := await self.get_experiment_by_name(experiment.name):  # type: ignore[assignment]
+                    exp = await client.update_experiment(exp.id, experiment.update())  # type: ignore[arg-type]
                 else:
                     exp = await client.create_experiment(experiment.create())
         return Experiment.from_basemodel(exp)
@@ -483,7 +483,7 @@ class ModelRegistryAPIClient:
             except mr_exceptions.NotFoundException:
                 return None
 
-        return RegisteredModel.from_basemodel(exp)
+        return RegisteredModel.from_basemodel(exp)  # type: ignore[return-value,arg-type]
 
     async def get_experiments(self, options: ListOptions | None = None) -> list[Experiment]:
         """Fetch experiments.
@@ -507,7 +507,7 @@ class ModelRegistryAPIClient:
         """
         async with self.get_client() as client:
             if experiment_run.id:
-                exp_run = await client.create_experiment_run(experiment_run.id, experiment_run.update())
+                exp_run = await client.create_experiment_run(experiment_run.id, experiment_run.update())  # type: ignore[arg-type]
             else:
                 exp_run = await client.create_experiment_run(experiment_run.create())
 
@@ -588,11 +588,11 @@ class ModelRegistryAPIClient:
                     msg = "Either experiment_name or experiment_id must be provided"
                     raise ValueError(msg)
                 if not exp:
-                    return None
+                    return None  # type: ignore[return-value]
 
                 exp_run = await client.get_experiment_run(str(run_id))
             except mr_exceptions.NotFoundException:
-                return None
+                return None  # type: ignore[return-value]
 
         return ExperimentRun.from_basemodel(exp_run)
 
@@ -623,11 +623,11 @@ class ModelRegistryAPIClient:
                     exp = await self.get_experiment_by_id(str(experiment_id))
 
                 if not exp:
-                    return None
+                    return None  # type: ignore[return-value]
 
-                exp_run = await client.get_experiment_run(exp.id)
+                exp_run = await client.get_experiment_run(exp.id)  # type: ignore[arg-type]
             except mr_exceptions.NotFoundException:
-                return None
+                return None  # type: ignore[return-value]
 
         return ExperimentRun.from_basemodel(exp_run)
 
@@ -641,7 +641,7 @@ class ModelRegistryAPIClient:
             try:
                 exp_run = await client.get_experiment_run(id)
             except mr_exceptions.NotFoundException:
-                return None
+                return None  # type: ignore[return-value]
 
         return ExperimentRun.from_basemodel(exp_run)
 
@@ -657,7 +657,7 @@ class ModelRegistryAPIClient:
             artifact: Artifact to upsert.
         """
         async with self.get_client() as client:
-            return Artifact.validate_artifact(
+            return Artifact.validate_artifact(  # type: ignore[return-value]
                 await client.upsert_experiment_run_artifact(
                     experimentrun_id=experiment_run_id, artifact=artifact.wrap()
                 )
@@ -682,7 +682,7 @@ class ModelRegistryAPIClient:
         options: ListOptions | None = None,
     ): ...
 
-    @required_args(("run_id",), ("run_name", "experiment_name"), ("run_name", "experiment_id"))
+    @required_args(("run_id",), ("run_name", "experiment_name"), ("run_name", "experiment_id"))  # type: ignore[misc]
     async def get_artifacts_by_experiment_run_params(
         self,
         run_id: str | int | None = None,
@@ -727,18 +727,18 @@ class ModelRegistryAPIClient:
                             f"in experiment {experiment_name} within the first 100 runs. "
                             "Please narrow your search by run id."
                         )
-                        return []
+                        return []  # type: ignore[return-value]
                     run_id = run.id
 
                 logs = await client.get_experiment_run_artifacts(
                     str(run_id), **(options or ListOptions()).as_options()
                 )
             except mr_exceptions.NotFoundException:
-                return []
+                return []  # type: ignore[return-value]
 
         if options:
             options.next_page_token = logs.next_page_token
-        return [Artifact.validate_artifact(log) for log in logs.items or []]
+        return [Artifact.validate_artifact(log) for log in logs.items or []]  # type: ignore[return-value]
 
     async def get_artifacts(
         self,

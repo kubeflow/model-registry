@@ -9,19 +9,22 @@ import os
 import shutil
 import tempfile
 import threading
-from contextlib import AbstractContextManager, contextmanager, suppress
+from collections.abc import Generator
+from contextlib import contextmanager, suppress
 from dataclasses import asdict, dataclass
 from pathlib import Path
-from subprocess import CalledProcessError
-from typing import TYPE_CHECKING, Callable, Protocol, TextIO, TypeVar
+from subprocess import CalledProcessError, CompletedProcess
+from typing import TYPE_CHECKING, Callable, Generic, Protocol, TextIO, TypeVar, cast
 
 from typing_extensions import Literal, overload
 
 from ._utils import required_args
 from .exceptions import MissingMetadata, StoreError
 
-# Generic return type
+# Generic return types
 T = TypeVar("T")
+TPull = TypeVar("TPull", covariant=True)
+TPush = TypeVar("TPush", covariant=True)
 
 # If we want to forward reference
 if TYPE_CHECKING:
@@ -110,30 +113,30 @@ def s3_uri_from(
     return f"s3://{bucket}/{path}?endpoint={endpoint}&defaultRegion={region}"
 
 
-class PullFn(Protocol):
+class PullFn(Protocol[TPull]):
     """Pull function definition."""
 
-    def __call__(self, base: str, dest: Path, **kwargs) -> T: ...  # noqa: D102
+    def __call__(self, base: str, dest: Path, **kwargs) -> TPull: ...  # noqa: D102
 
 
-class PushFn(Protocol):
+class PushFn(Protocol[TPush]):
     """Push function definition."""
 
-    def __call__(self, src: Path, oci_ref: str, **kwargs) -> T: ...  # noqa: D102
+    def __call__(self, src: Path, oci_ref: str, **kwargs) -> TPush: ...  # noqa: D102
 
 
 @dataclass
-class BackendDefinition:
+class BackendDefinition(Generic[TPull, TPush]):
     """Holds the 3 core callables for a backend.
 
     - is_available() -> bool
-    - pull(base_image: str, dest_dir: Path, **kwargs) -> T
-    - push(local_image_path: Path, oci_ref: str, **kwargs) -> T.
+    - pull(base_image: str, dest_dir: Path, **kwargs) -> TPull
+    - push(local_image_path: Path, oci_ref: str, **kwargs) -> TPush.
     """
 
     is_available: Callable[[], bool]
-    pull: PullFn
-    push: PushFn
+    pull: PullFn[TPull]
+    push: PushFn[TPush]
 
 
 def _kwargs_to_params(kwargs: dict[str, str]) -> list[str]:
@@ -149,45 +152,51 @@ def _kwargs_to_params(kwargs: dict[str, str]) -> list[str]:
     return args
 
 
-def _get_skopeo_backend(pull_args: list[str] | None = None, push_args: list[str] | None = None) -> BackendDefinition:
+def _get_skopeo_backend(
+    pull_args: list[str] | None = None, push_args: list[str] | None = None
+) -> BackendDefinition[CompletedProcess[bytes], CompletedProcess[bytes]]:
     try:
         from olot.backend.skopeo import is_skopeo, skopeo_pull, skopeo_push
     except ImportError as e:
         msg = "Could not import 'olot.backend.skopeo'. Ensure that 'olot' is installed if you want to use the 'skopeo' backend."
         raise ImportError(msg) from e
 
-    def wrapped_pull(base_image: str, dest: Path, **kwargs) -> T:
+    def wrapped_pull(base_image: str, dest: Path, **kwargs) -> CompletedProcess[bytes]:
         kwargs = _backend_specific_params("skopeo", "pull", **kwargs)
         params = _kwargs_to_params(kwargs)
         params.extend(pull_args or [])
 
         return _scrub_errors(lambda: skopeo_pull(base_image, dest, params))
 
-    def wrapped_push(src: Path, oci_ref: str, **kwargs) -> T:
+    def wrapped_push(src: Path, oci_ref: str, **kwargs) -> CompletedProcess[bytes]:
         kwargs = _backend_specific_params("skopeo", "push", **kwargs)
         params = _kwargs_to_params(kwargs)
         params.extend(push_args or [])
 
         return _scrub_errors(lambda: skopeo_push(src, oci_ref, params))
 
-    return BackendDefinition(is_available=is_skopeo, pull=wrapped_pull, push=wrapped_push)
+    return BackendDefinition(
+        is_available=is_skopeo, pull=cast(PullFn[CompletedProcess[bytes]], wrapped_pull), push=wrapped_push
+    )
 
 
-def _get_oras_backend(pull_args: list[str] | None = None, push_args: list[str] | None = None) -> BackendDefinition:
+def _get_oras_backend(
+    pull_args: list[str] | None = None, push_args: list[str] | None = None
+) -> BackendDefinition[CompletedProcess[bytes], CompletedProcess[bytes]]:
     try:
         from olot.backend.oras_cp import is_oras, oras_pull, oras_push
     except ImportError as e:
         msg = "Could not import 'olot.backend.oras_cp'. Ensure that 'olot' is installed if you want to use the 'oras_cp' backend."
         raise ImportError(msg) from e
 
-    def wrapped_pull(base_image: str, dest: Path, **kwargs) -> T:
+    def wrapped_pull(base_image: str, dest: Path, **kwargs) -> CompletedProcess[bytes]:
         kwargs = _backend_specific_params("oras", "pull", **kwargs)
         params = _kwargs_to_params(kwargs)
         params.extend(pull_args or [])
 
         return _scrub_errors(lambda: oras_pull(base_image, dest, params))
 
-    def wrapped_push(src: Path, oci_ref: str, **kwargs) -> T:
+    def wrapped_push(src: Path, oci_ref: str, **kwargs) -> CompletedProcess[bytes]:
         kwargs = _backend_specific_params("oras", "push", **kwargs)
         params = _kwargs_to_params(kwargs)
         params.extend(push_args or [])
@@ -196,7 +205,7 @@ def _get_oras_backend(pull_args: list[str] | None = None, push_args: list[str] |
 
     return BackendDefinition(
         is_available=is_oras,
-        pull=wrapped_pull,
+        pull=cast(PullFn[CompletedProcess[bytes]], wrapped_pull),
         push=wrapped_push,
     )
 
@@ -231,6 +240,8 @@ def _backend_specific_params(backend: Literal["skopeo", "oras"], type: Literal["
         prefix = "--from" if type == "pull" else "--to"
         auth_suffix = "registry-config"
     else:
+        # This is defensive code - the Literal type hint makes this unreachable
+        # but we keep it for runtime safety if the type hint is bypassed
         msg = f"invalid backend: {backend!r}"
         raise ValueError(msg)
 
@@ -241,7 +252,7 @@ def _backend_specific_params(backend: Literal["skopeo", "oras"], type: Literal["
     return kwargs
 
 
-def _scrub_errors(func: Callable[[], T]) -> T:
+def _scrub_errors(func: Callable[[], CompletedProcess[bytes]]) -> CompletedProcess[bytes]:
     """Scrub errors of any subprocess command with sensitive data.
 
     Args:
@@ -251,7 +262,7 @@ def _scrub_errors(func: Callable[[], T]) -> T:
         return func()
     except (CalledProcessError, Exception) as e:
         msg = """Problem with command"""
-        raise RuntimeError(msg, e.returncode, e.stderr) from None
+        raise RuntimeError(msg, e.returncode, e.stderr) from None  # type: ignore[attr-defined]
 
 
 @dataclass
@@ -263,10 +274,10 @@ class OCIParams:
 
     base_image: str
     oci_ref: str
-    dest_dir: str | os.PathLike = None
+    dest_dir: str | os.PathLike | None = None
     backend: str = "skopeo"
     modelcard: os.PathLike | None = None
-    custom_oci_backend: BackendDefinition = None
+    custom_oci_backend: BackendDefinition[CompletedProcess[bytes], CompletedProcess[bytes]] | None = None
     oci_auth_env_var: str | None = None
     oci_username: str | None = None
     oci_password: str | None = None
@@ -291,7 +302,7 @@ class S3Params:
 
 
 # A dict mapping backend names to their definitions
-BackendDict = dict[str, Callable[[], BackendDefinition]]
+BackendDict = dict[str, Callable[[], BackendDefinition[CompletedProcess[bytes], CompletedProcess[bytes]]]]
 
 DEFAULT_BACKENDS: BackendDict = {
     "skopeo": _get_skopeo_backend,
@@ -303,10 +314,10 @@ def save_to_oci_registry(  # noqa: C901 ( complex args >8 )
     base_image: str,
     oci_ref: str,
     model_files_path: str | os.PathLike,
-    dest_dir: str | os.PathLike = None,
+    dest_dir: str | os.PathLike | None = None,
     backend: str = "skopeo",
     modelcard: os.PathLike | None = None,
-    custom_oci_backend: BackendDefinition | None = None,
+    custom_oci_backend: BackendDefinition[CompletedProcess[bytes], CompletedProcess[bytes]] | None = None,
     oci_auth_env_var: str | None = None,
     oci_username: str | None = None,
     oci_password: str | None = None,
@@ -383,7 +394,7 @@ or
             params["authfile"] = auth_file.name
         backend_def.pull(base_image, local_image_path, **params)
         # Extract the absolute path from the files found in the path
-        files = [file[0] for file in _get_files_from_path(model_files_path)]
+        files = [file[0] for file in _get_files_from_path(model_files_path)]  # type: ignore[arg-type]
         oci_layers_on_top(local_image_path, files, modelcard)
         backend_def.push(local_image_path, oci_ref, **params)
 
@@ -394,15 +405,17 @@ or
 
 
 @overload
-def temp_auth_file(auth: str) -> AbstractContextManager[TextIO]: ...
+@contextmanager
+def temp_auth_file(auth: str) -> Generator[TextIO, None, None]: ...
 
 
 @overload
-def temp_auth_file(auth: None) -> AbstractContextManager[None]: ...
+@contextmanager
+def temp_auth_file(auth: None) -> Generator[None, None, None]: ...
 
 
 @contextmanager
-def temp_auth_file(auth: str | None) -> AbstractContextManager[TextIO | None]:
+def temp_auth_file(auth: str | None) -> Generator[TextIO | None, None, None]:
     """Create a temporary auth file with optional auth data.
 
     If auth is None, yields None. Otherwise creates a temporary JSON file
@@ -422,7 +435,7 @@ def temp_auth_file(auth: str | None) -> AbstractContextManager[TextIO | None]:
             ) as temp_auth_file:
                 path = temp_auth_file.name
                 temp_auth_file.write(auth)
-            yield temp_auth_file
+            yield temp_auth_file  # type: ignore[misc]
         finally:
             if path is not None:
                 with suppress(OSError):
@@ -510,8 +523,8 @@ def _upload_to_s3(  # noqa: C901
     uri = s3_uri_from(
         path=path_prefix,
         bucket=bucket,
-        endpoint=endpoint_url,
-        region=region,
+        endpoint=endpoint_url,  # type: ignore[arg-type]
+        region=region,  # type: ignore[arg-type]
     )
     files = _get_files_from_path(path)
     for absolute_path_filename, relative_path_filename in files:
@@ -531,9 +544,9 @@ def _connect_to_s3(
     access_key_id: str | None = None,
     secret_access_key: str | None = None,
     region: str | None = None,
-    multipart_threshold: int = None,
-    multipart_chunksize: int = None,
-    max_pool_connections: int = None,
+    multipart_threshold: int | None = None,
+    multipart_chunksize: int | None = None,
+    max_pool_connections: int | None = None,
 ) -> tuple[BaseClient, TransferConfig]:
     """Internal method to connect to Boto3 Client.
 
@@ -554,7 +567,7 @@ def _connect_to_s3(
         ValueError: If the appropriate values are not supplied.
     """
     try:
-        from boto3 import client  # type: ignore
+        from boto3 import client
         from boto3.s3.transfer import TransferConfig
         from botocore.config import Config
 
@@ -780,7 +793,7 @@ def upload_to_s3(
     )
 
 
-class ThreadSafeVariable:
+class ThreadSafeVariable(Generic[T]):
     """Thread safe variable."""
 
     def __init__(self, value: T):

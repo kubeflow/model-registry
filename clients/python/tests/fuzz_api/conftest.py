@@ -5,7 +5,7 @@ from collections.abc import Generator
 from typing import Any
 
 import pytest
-import requests
+import requests  # type: ignore[import-untyped,unused-ignore]
 import schemathesis
 from schemathesis import Case, Response
 from schemathesis.generation.stateful.state_machine import APIStateMachine
@@ -79,7 +79,7 @@ def state_machine(generated_schema: BaseOpenAPISchema, auth_headers: str, pytest
                 capture_output=True,
                 check=True
             )
-            self.headers = auth_headers
+            self.headers = auth_headers  # type: ignore[assignment]
             self.verify = verify_ssl
 
         def before_call(self, case: Case) -> None:
@@ -91,7 +91,7 @@ def state_machine(generated_schema: BaseOpenAPISchema, auth_headers: str, pytest
         def after_call(self, response: Response, case: Case) -> None:
             print(f"{case.method} {case.path} -> {response.status_code},")
 
-    return APIWorkflow
+    return APIWorkflow  # type: ignore[return-value,unused-ignore]
 
 
 @pytest.fixture

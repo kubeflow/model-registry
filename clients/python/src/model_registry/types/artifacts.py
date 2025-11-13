@@ -291,7 +291,7 @@ class DataSet(Artifact):
     digest: str | None = None
     source_type: str | None = None
     source: str | None = None
-    schema: str | None = None
+    schema: str | None = None  # type: ignore[assignment]
     profile: str | None = None
 
     @override
@@ -342,7 +342,7 @@ class DataSet(Artifact):
             source=source.source,
             schema=source.var_schema,
             profile=source.profile,
-            state=source.state,
+            state=source.state,  # type: ignore[arg-type]
             custom_properties=cls._unmap_custom_properties(source.custom_properties)
             if source.custom_properties
             else None,
@@ -410,10 +410,10 @@ class Metric(Artifact):
             last_update_time_since_epoch=source.last_update_time_since_epoch,
             experiment_id=source.experiment_id,
             experiment_run_id=source.experiment_run_id,
-            value=source.value,
+            value=source.value,  # type: ignore[arg-type]
             timestamp=source.timestamp,
-            step=source.step,
-            state=source.state,
+            step=source.step,  # type: ignore[arg-type]
+            state=source.state,  # type: ignore[arg-type]
             custom_properties=cls._unmap_custom_properties(source.custom_properties)
             if source.custom_properties
             else None,
@@ -473,11 +473,11 @@ class Parameter(Artifact):
         assert source.parameter_type
         value = source.value
         if source.parameter_type is ParameterType.NUMBER:
-            value = float(value)
+            value = float(value)  # type: ignore[assignment,arg-type]
         elif source.parameter_type is ParameterType.BOOLEAN:
-            value = bool(value)
+            value = bool(value)  # type: ignore[assignment]
         elif source.parameter_type is ParameterType.OBJECT:
-            value = json.loads(value)
+            value = json.loads(value)  # type: ignore[arg-type]
         return cls(
             id=source.id,
             name=source.name,
@@ -487,9 +487,9 @@ class Parameter(Artifact):
             last_update_time_since_epoch=source.last_update_time_since_epoch,
             experiment_id=source.experiment_id,
             experiment_run_id=source.experiment_run_id,
-            value=value,
+            value=value,  # type: ignore[arg-type]
             parameter_type=source.parameter_type,
-            state=source.state,
+            state=source.state,  # type: ignore[arg-type]
             custom_properties=cls._unmap_custom_properties(source.custom_properties)
             if source.custom_properties
             else None,
