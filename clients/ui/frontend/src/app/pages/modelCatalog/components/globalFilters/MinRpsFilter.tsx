@@ -7,13 +7,18 @@ import {
   MenuToggle,
   MenuToggleElement,
   Popover,
-  Slider,
 } from '@patternfly/react-core';
 import { HelpIcon } from '@patternfly/react-icons';
 import { ModelCatalogNumberFilterKey } from '~/concepts/modelCatalog/const';
 import { useCatalogNumberFilterState } from '~/app/pages/modelCatalog/utils/modelCatalogUtils';
 import { CatalogPerformanceMetricsArtifact } from '~/app/modelCatalogTypes';
 import { getDoubleValue } from '~/app/utils';
+import {
+  getSliderRange,
+  FALLBACK_RPS_RANGE,
+  SliderRange,
+} from '~/app/pages/modelCatalog/utils/performanceMetricsUtils';
+import SliderWithInput from './SliderWithInput';
 
 const filterKey = ModelCatalogNumberFilterKey.MIN_RPS;
 
@@ -26,10 +31,32 @@ const MinRpsFilter: React.FC<MinRpsFilterProps> = ({ performanceArtifacts }) => 
     useCatalogNumberFilterState(filterKey);
   const [isOpen, setIsOpen] = React.useState(false);
 
-  // Local state for editing (initialized with current filter value or reasonable default)
-  const [localValue, setLocalValue] = React.useState<number>(rpsFilterValue || 2);
+  const { minValue, maxValue, isSliderDisabled } = React.useMemo(
+    (): SliderRange =>
+      getSliderRange({
+        performanceArtifacts,
+        getArtifactFilterValue: (artifact) =>
+          getDoubleValue(artifact.customProperties, 'requests_per_second'),
+        fallbackRange: FALLBACK_RPS_RANGE,
+      }),
+    [performanceArtifacts],
+  );
 
-  // Parse saved value if it exists
+  const [localValue, setLocalValue] = React.useState<number>(
+    () => rpsFilterValue ?? FALLBACK_RPS_RANGE.minValue,
+  );
+
+  const clampedValue = React.useMemo(
+    () => Math.min(Math.max(localValue, minValue), maxValue),
+    [localValue, minValue, maxValue],
+  );
+
+  React.useEffect(() => {
+    if (isOpen) {
+      setLocalValue(rpsFilterValue ?? minValue);
+    }
+  }, [isOpen, rpsFilterValue, minValue]);
+
   const hasActiveFilter = rpsFilterValue !== undefined;
 
   const getDisplayText = (): React.ReactNode => {
@@ -44,40 +71,15 @@ const MinRpsFilter: React.FC<MinRpsFilterProps> = ({ performanceArtifacts }) => 
   };
 
   const handleApplyFilter = () => {
-    // Apply the local value to the actual filter state
     setRpsFilterValue(localValue);
     setIsOpen(false);
   };
 
   const handleReset = () => {
     setRpsFilterValue(undefined);
-    setLocalValue(minValue); // Reset to calculated minimum
+    setLocalValue(minValue);
     setIsOpen(false);
   };
-
-  // Calculate min/max values from performance artifacts
-  // TODO: Use real min/max values when available from API
-  const { minValue, maxValue } = React.useMemo(() => {
-    if (performanceArtifacts.length === 0) {
-      return { minValue: 1, maxValue: 300 }; // Default values when no artifacts
-    }
-
-    const rpsValues = performanceArtifacts
-      .map((artifact) => getDoubleValue(artifact.customProperties, 'requests_per_second'))
-      .filter((rps) => rps > 0); // Filter out invalid values
-
-    if (rpsValues.length === 0) {
-      return { minValue: 1, maxValue: 300 }; // Default values when no valid RPS values
-    }
-
-    return {
-      minValue: Math.min(...rpsValues),
-      maxValue: Math.max(...rpsValues),
-    };
-  }, [performanceArtifacts]);
-
-  // Ensure local value is within the calculated range
-  const clampedLocalValue = Math.min(Math.max(localValue, minValue), maxValue);
 
   const toggle = (toggleRef: React.Ref<MenuToggleElement>) => (
     <MenuToggle
@@ -117,26 +119,20 @@ const MinRpsFilter: React.FC<MinRpsFilterProps> = ({ performanceArtifacts }) => 
         </Flex>
       </FlexItem>
       <FlexItem>
-        <Flex alignItems={{ default: 'alignItemsCenter' }} spaceItems={{ default: 'spaceItemsMd' }}>
-          <FlexItem flex={{ default: 'flex_1' }}>
-            <Slider
-              min={minValue}
-              max={maxValue}
-              value={clampedLocalValue}
-              onChange={(_, value) => {
-                const clampedValue = Math.max(minValue, Math.min(maxValue, value));
-                setLocalValue(clampedValue);
-              }}
-              isInputVisible
-              inputValue={clampedLocalValue}
-            />
-          </FlexItem>
-        </Flex>
+        <SliderWithInput
+          value={clampedValue}
+          min={minValue}
+          max={maxValue}
+          isDisabled={isSliderDisabled}
+          onChange={setLocalValue}
+          suffix="RPS"
+          ariaLabel="RPS value input"
+        />
       </FlexItem>
       <FlexItem>
         <Flex spaceItems={{ default: 'spaceItemsSm' }}>
           <FlexItem>
-            <Button variant="primary" onClick={handleApplyFilter}>
+            <Button variant="primary" onClick={handleApplyFilter} isDisabled={isSliderDisabled}>
               Apply filter
             </Button>
           </FlexItem>
