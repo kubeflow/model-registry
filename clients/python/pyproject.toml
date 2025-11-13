@@ -141,8 +141,6 @@ warn_unused_configs = true
 warn_redundant_casts = true
 warn_unused_ignores = true
 warn_no_return = true
-
-exclude = ["^src/mr_openapi/"]
 exclude_gitignore = true
 
 [[tool.mypy.overrides]]
