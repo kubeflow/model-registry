@@ -3,6 +3,7 @@ package service
 import (
 	"errors"
 	"fmt"
+	"strings"
 
 	catalogfilter "github.com/kubeflow/model-registry/catalog/internal/db/filter"
 	"github.com/kubeflow/model-registry/catalog/internal/db/models"
@@ -141,8 +142,8 @@ func (r *CatalogArtifactRepositoryImpl) List(listOptions models.CatalogArtifactL
 	if orderBy == "NAME" {
 		artifactTable := utils.GetTableName(query, &schema.Artifact{})
 		query = ApplyNameOrdering(query, artifactTable, sortOrder, nextPageToken, pageSize)
-	} else {
-		// For non-NAME ordering, use standard pagination
+	} else if _, isAllowedColumn := CatalogOrderByColumns[orderBy]; isAllowedColumn {
+		// Handle standard allowed columns (ID, CREATE_TIME, LAST_UPDATE_TIME)
 		pagination := &dbmodels.Pagination{
 			PageSize:      &pageSize,
 			OrderBy:       &orderBy,
@@ -150,8 +151,14 @@ func (r *CatalogArtifactRepositoryImpl) List(listOptions models.CatalogArtifactL
 			NextPageToken: &nextPageToken,
 		}
 
-		// Use catalog-specific allowed columns (includes NAME)
+		// Use catalog-specific allowed columns
 		query = query.Scopes(scopes.PaginateWithOptions(artifactsArt, pagination, r.db, "Artifact", CatalogOrderByColumns))
+	} else {
+		// Assume it's a custom property ordering (e.g., accuracy.double_value, timestamp.string_value)
+		query, err = r.applyCustomOrdering(query, &listOptions)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	if err := query.Find(&artifactsArt).Error; err != nil {
@@ -231,9 +238,46 @@ func (r *CatalogArtifactRepositoryImpl) mapDataLayerToCatalogArtifact(artifact s
 // createPaginationToken generates a pagination token based on the last artifact and ordering
 func (r *CatalogArtifactRepositoryImpl) createPaginationToken(artifact schema.Artifact, listOptions models.CatalogArtifactListOptions) string {
 	orderBy := listOptions.GetOrderBy()
-	value := ""
 
-	// Generate token value based on ordering field
+	// Handle NAME ordering (catalog-specific)
+	if orderBy == "NAME" {
+		return CreateNamePaginationToken(artifact.ID, artifact.Name)
+	}
+
+	// Handle custom property ordering
+	sortValueQuery, column, err := r.sortValueQuery(&listOptions)
+	if err != nil {
+		// If there's an error in the sort value query (e.g., invalid value type),
+		// fall back to ID ordering for the token
+		// Note: This shouldn't normally happen as the error would be caught earlier in List()
+		fmt.Printf("Warning: error in sortValueQuery during pagination token creation: %v\n", err)
+	} else if sortValueQuery != nil {
+		artifactTable := utils.GetTableName(r.db, &schema.Artifact{})
+		sortValueQuery = sortValueQuery.Where(artifactTable+".id=?", artifact.ID)
+
+		var result struct {
+			IntValue    *int64   `gorm:"int_value"`
+			DoubleValue *float64 `gorm:"double_value"`
+			StringValue *string  `gorm:"string_value"`
+		}
+		err := sortValueQuery.Scan(&result).Error
+		if err != nil {
+			// Log warning and fall back to default
+			fmt.Printf("Failed to get sort value: %v\n", err)
+		} else {
+			switch column {
+			case "int_value":
+				return scopes.CreateNextPageToken(artifact.ID, result.IntValue)
+			case "double_value":
+				return scopes.CreateNextPageToken(artifact.ID, result.DoubleValue)
+			case "string_value":
+				return scopes.CreateNextPageToken(artifact.ID, result.StringValue)
+			}
+		}
+	}
+
+	// Standard ordering fields
+	value := ""
 	switch orderBy {
 	case "ID":
 		value = fmt.Sprintf("%d", artifact.ID)
@@ -241,14 +285,135 @@ func (r *CatalogArtifactRepositoryImpl) createPaginationToken(artifact schema.Ar
 		value = fmt.Sprintf("%d", artifact.CreateTimeSinceEpoch)
 	case "LAST_UPDATE_TIME":
 		value = fmt.Sprintf("%d", artifact.LastUpdateTimeSinceEpoch)
-	case "NAME":
-		return CreateNamePaginationToken(artifact.ID, artifact.Name)
 	default:
 		// Default to ID ordering
 		value = fmt.Sprintf("%d", artifact.ID)
 	}
 
 	return scopes.CreateNextPageToken(artifact.ID, value)
+}
+
+// sortValueQuery returns a query that will produce the value to sort on for
+// the List response. The returned string is the column name.
+//
+// If the sort does not require a subquery, sortValueQuery returns nil, "".
+// If the format is correct but the value type is invalid, returns nil, "" and an error.
+func (r *CatalogArtifactRepositoryImpl) sortValueQuery(listOptions *models.CatalogArtifactListOptions, extraColumns ...any) (*gorm.DB, string, error) {
+	db := r.db
+	artifactTable := utils.GetTableName(db, &schema.Artifact{})
+
+	query := db.Table(artifactTable)
+
+	orderBy := strings.Split(listOptions.GetOrderBy(), ".")
+
+	var valueColumn string
+
+	// Handle <property>.<value_column> e.g. accuracy.double_value, timestamp.string_value
+	if len(orderBy) == 2 {
+		propertyTable := utils.GetTableName(db, &schema.ArtifactProperty{})
+		valueColumn = orderBy[1]
+		query = query.
+			Select(fmt.Sprintf("max(%s.%s) AS %s", propertyTable, valueColumn, valueColumn), extraColumns...).
+			Joins(fmt.Sprintf("LEFT JOIN %s ON %s.id=%s.artifact_id AND %s.name=?", propertyTable, artifactTable, propertyTable, propertyTable), orderBy[0])
+	} else {
+		// Standard sort will work (not a custom property format)
+		return nil, "", nil
+	}
+
+	// The query is built, but verify that the value column is valid before
+	// returning it.
+	switch valueColumn {
+	case "int_value", "double_value", "string_value":
+		// OK - valid value type
+		return query, valueColumn, nil
+	default:
+		// Invalid value type - return error
+		return nil, "", fmt.Errorf("invalid custom property value type '%s': must be one of 'int_value', 'double_value', or 'string_value': %w", valueColumn, api.ErrBadRequest)
+	}
+}
+
+// applyCustomOrdering applies custom ordering logic for non-standard orderBy field
+func (r *CatalogArtifactRepositoryImpl) applyCustomOrdering(query *gorm.DB, listOptions *models.CatalogArtifactListOptions) (*gorm.DB, error) {
+	db := r.db
+	artifactTable := utils.GetTableName(db, &schema.Artifact{})
+	orderBy := listOptions.GetOrderBy()
+
+	// Handle NAME ordering specially (catalog-specific)
+	if orderBy == "NAME" {
+		return ApplyNameOrdering(query, artifactTable, listOptions.GetSortOrder(), listOptions.GetNextPageToken(), listOptions.GetPageSize()), nil
+	}
+
+	subquery, sortColumn, err := r.sortValueQuery(listOptions, artifactTable+".id")
+	if err != nil {
+		// Error in custom property format (e.g., invalid value type)
+		return nil, err
+	}
+	if subquery == nil {
+		// Fall back to standard pagination with catalog-specific allowed columns
+		// If the orderBy is not in CatalogOrderByColumns, PaginateWithOptions will default to ID ordering
+		// This handles invalid custom property formats (e.g., "accuracy" without ".double_value")
+		pageSize := listOptions.GetPageSize()
+		sortOrder := listOptions.GetSortOrder()
+		nextPageToken := listOptions.GetNextPageToken()
+		pagination := &dbmodels.Pagination{
+			PageSize:      &pageSize,
+			OrderBy:       &orderBy,
+			SortOrder:     &sortOrder,
+			NextPageToken: &nextPageToken,
+		}
+		return query.Scopes(scopes.PaginateWithOptions([]schema.Artifact{}, pagination, r.db, "Artifact", CatalogOrderByColumns)), nil
+	}
+	subquery = subquery.Group(artifactTable + ".id")
+
+	// Join the main query with the subquery
+	query = query.
+		Joins(fmt.Sprintf("LEFT JOIN (?) sort_value ON %s.id=sort_value.id", artifactTable), subquery)
+
+	// Apply sorting order
+	sortOrder := listOptions.GetSortOrder()
+	if sortOrder != "ASC" {
+		sortOrder = "DESC"
+	}
+	query = query.Order(fmt.Sprintf("sort_value.%s %s NULLS LAST, %s.id", sortColumn, sortOrder, artifactTable))
+
+	// Handle cursor-based pagination with nextPageToken
+	nextPageToken := listOptions.GetNextPageToken()
+	if nextPageToken != "" {
+		// Parse the cursor from the token
+		if cursor, err := scopes.DecodeCursor(nextPageToken); err == nil {
+			// Apply WHERE clause for cursor-based pagination
+			query = r.applyCursorPagination(query, cursor, sortColumn, sortOrder)
+		}
+		// If token parsing fails, fall back to no cursor (first page)
+	}
+
+	// Apply pagination limit
+	pageSize := listOptions.GetPageSize()
+	if pageSize > 0 {
+		query = query.Limit(int(pageSize) + 1) // +1 to detect if there are more pages
+	}
+
+	return query, nil
+}
+
+// applyCursorPagination applies WHERE clause for cursor-based pagination with custom property sorting
+func (r *CatalogArtifactRepositoryImpl) applyCursorPagination(query *gorm.DB, cursor *scopes.Cursor, sortColumn, sortOrder string) *gorm.DB {
+	artifactTable := utils.GetTableName(query, &schema.Artifact{})
+
+	// Handle NULL values in cursor
+	if cursor.Value == "" {
+		// Items without the sort value will be sorted to the bottom, just use ID-based pagination.
+		return query.Where(fmt.Sprintf("sort_value.%s IS NULL AND %s.id > ?", sortColumn, artifactTable), cursor.ID)
+	}
+
+	cmp := "<"
+	if sortOrder == "ASC" {
+		cmp = ">"
+	}
+
+	// Note that we sort ID ASCENDING as a tie-breaker, so ">" is correct below.
+	return query.Where(fmt.Sprintf("(sort_value.%s %s ? OR (sort_value.%s = ? AND %s.id > ?) OR sort_value.%s IS NULL)", sortColumn, cmp, sortColumn, artifactTable, sortColumn),
+		cursor.Value, cursor.Value, cursor.ID)
 }
 
 func (r *CatalogArtifactRepositoryImpl) DeleteByParentID(artifactTypeName string, parentResourceID int32) error {
