@@ -5,7 +5,6 @@ import {
   Dropdown,
   DropdownItem,
   DropdownList,
-  Flex,
   MenuToggle,
   MenuToggleElement,
   Toolbar,
