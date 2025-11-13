@@ -62,6 +62,7 @@ const WorkloadTypeFilter: React.FC = () => {
                       <Checkbox
                         label={option.label}
                         id={option.value}
+                        data-testid={`workload-type-filter-${option.value}`}
                         isChecked={isUseCaseSelected(option.value)}
                         onChange={(_, checked) => toggleUseCaseSelection(option.value, checked)}
                       />
