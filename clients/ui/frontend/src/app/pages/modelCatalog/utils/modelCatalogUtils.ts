@@ -10,17 +10,13 @@ import {
   CatalogSource,
   CatalogSourceList,
   ModelCatalogFilterStates,
+  ModelCatalogStringFilterValueType,
   MetricsType,
 } from '~/app/modelCatalogTypes';
 import { getLabels } from '~/app/pages/modelRegistry/screens/utils';
 import {
   ModelCatalogStringFilterKey,
   ModelCatalogNumberFilterKey,
-  ModelCatalogTask,
-  ModelCatalogProvider,
-  ModelCatalogLicense,
-  AllLanguageCode,
-  UseCaseOptionValue,
 } from '~/concepts/modelCatalog/const';
 
 export const extractVersionTag = (tags?: string[]): string | undefined =>
@@ -121,46 +117,25 @@ export const shouldShowValidatedInsights = (
   artifacts: CatalogArtifacts[],
 ): boolean => isModelValidated(model) && hasPerformanceArtifacts(artifacts);
 
-// Define array-based filter keys (all string filters support multiple selections)
-type ArrayFilterKey =
-  | ModelCatalogStringFilterKey.TASK
-  | ModelCatalogStringFilterKey.PROVIDER
-  | ModelCatalogStringFilterKey.LICENSE
-  | ModelCatalogStringFilterKey.LANGUAGE
-  | ModelCatalogStringFilterKey.HARDWARE_TYPE
-  | ModelCatalogStringFilterKey.USE_CASE;
-
-// Type mapping for array filter values
-type ArrayFilterValueType = {
-  [ModelCatalogStringFilterKey.TASK]: ModelCatalogTask;
-  [ModelCatalogStringFilterKey.PROVIDER]: ModelCatalogProvider;
-  [ModelCatalogStringFilterKey.LICENSE]: ModelCatalogLicense;
-  [ModelCatalogStringFilterKey.LANGUAGE]: AllLanguageCode;
-  [ModelCatalogStringFilterKey.HARDWARE_TYPE]: string;
-  [ModelCatalogStringFilterKey.USE_CASE]: UseCaseOptionValue;
-};
-
-export const useCatalogStringFilterState = <K extends ArrayFilterKey>(
+export const useCatalogStringFilterState = <K extends ModelCatalogStringFilterKey>(
   filterKey: K,
 ): {
-  isSelected: (value: ArrayFilterValueType[K]) => boolean;
-  setSelected: (value: ArrayFilterValueType[K], selected: boolean) => void;
+  isSelected: (value: ModelCatalogStringFilterValueType[K]) => boolean;
+  setSelected: (value: ModelCatalogStringFilterValueType[K], selected: boolean) => void;
 } => {
-  type Value = ArrayFilterValueType[K];
+  type Value = ModelCatalogStringFilterValueType[K];
   const { filterData, setFilterData } = React.useContext(ModelCatalogContext);
-  // TypeScript limitation: can't narrow ModelCatalogFilterStates[K] for generic K
-  // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
-  const selections = filterData[filterKey] as Value[];
-
+  const selections: string[] = filterData[filterKey];
+  const isValidStringState = (state: string[]): state is ModelCatalogFilterStates[K] =>
+    Object.values(ModelCatalogStringFilterKey).includes(filterKey);
   const isSelected = React.useCallback((value: Value) => selections.includes(value), [selections]);
-
   const setSelected = (value: Value, selected: boolean) => {
     const nextState = selected
       ? [...selections, value]
       : selections.filter((item) => item !== value);
-    // TypeScript limitation: generic K creates intersection type instead of union
-    // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
-    setFilterData(filterKey, nextState as ModelCatalogFilterStates[K]);
+    if (isValidStringState(nextState)) {
+      setFilterData(filterKey, nextState);
+    }
   };
 
   return { isSelected, setSelected };
@@ -216,6 +191,9 @@ const isFilterIdInMap = (
   filters: CatalogFilterOptions,
 ): filterId is keyof CatalogFilterOptions => typeof filterId === 'string' && filterId in filters;
 
+// TODO tech debt: This hardcoded list should no longer be necessary if the backend properly
+// handles all string filters consistently. Ideally the backend should auto-detect array fields
+// or store all string filters in the same format. Track in separate ticket.
 // Array-based fields that need LIKE syntax instead of IN syntax for database queries
 const ARRAY_FIELD_FILTER_IDS: (keyof CatalogFilterOptions)[] = [
   ModelCatalogStringFilterKey.LANGUAGE,

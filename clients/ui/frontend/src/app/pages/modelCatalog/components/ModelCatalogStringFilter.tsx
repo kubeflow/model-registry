@@ -9,16 +9,14 @@ import { useCatalogStringFilterState } from '~/app/pages/modelCatalog/utils/mode
 
 const MAX_VISIBLE_FILTERS = 5;
 
-type ArrayFilterKey = ModelCatalogStringFilterKey;
-
-type ModelCatalogStringFilterProps<K extends ArrayFilterKey> = {
+type ModelCatalogStringFilterProps<K extends ModelCatalogStringFilterKey> = {
   title: string;
   filterKey: K;
   filterToNameMapping: Partial<Record<ModelCatalogStringFilterValueType[K], string>>;
   filters: ModelCatalogStringFilterOptions[K];
 };
 
-const ModelCatalogStringFilter = <K extends ArrayFilterKey>({
+const ModelCatalogStringFilter = <K extends ModelCatalogStringFilterKey>({
   title,
   filterKey,
   filterToNameMapping,
