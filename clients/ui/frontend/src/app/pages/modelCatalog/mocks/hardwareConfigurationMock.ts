@@ -30,6 +30,7 @@ const createPerformanceMetricsArtifact = (
   meanInputTokens: number,
   meanOutputTokens: number,
   frameworkVersion: string,
+  useCase: string,
 ): CatalogPerformanceMetricsArtifact => ({
   artifactType: CatalogArtifactType.metricsArtifact,
   metricsType: MetricsType.performanceMetrics,
@@ -132,6 +133,10 @@ const createPerformanceMetricsArtifact = (
       metadataType: ModelRegistryMetadataType.STRING,
       string_value: frameworkVersion,
     },
+    use_case: {
+      metadataType: ModelRegistryMetadataType.STRING,
+      string_value: useCase,
+    },
   },
 });
 
@@ -160,6 +165,7 @@ export const mockPerformanceMetricsArtifacts: CatalogPerformanceMetricsArtifact[
     512,
     256,
     'v0.8.4',
+    'chatbot',
   ),
   createPerformanceMetricsArtifact(
     '2',
@@ -185,6 +191,7 @@ export const mockPerformanceMetricsArtifacts: CatalogPerformanceMetricsArtifact[
     1024,
     512,
     'v0.9.1',
+    'rag',
   ),
   createPerformanceMetricsArtifact(
     '3',
@@ -210,6 +217,7 @@ export const mockPerformanceMetricsArtifacts: CatalogPerformanceMetricsArtifact[
     2048,
     1024,
     'v0.7.2',
+    'long_rag',
   ),
   createPerformanceMetricsArtifact(
     '4',
@@ -235,6 +243,7 @@ export const mockPerformanceMetricsArtifacts: CatalogPerformanceMetricsArtifact[
     4096,
     2048,
     'v0.9.5',
+    'code_fixing',
   ),
   createPerformanceMetricsArtifact(
     '5',
@@ -260,6 +269,7 @@ export const mockPerformanceMetricsArtifacts: CatalogPerformanceMetricsArtifact[
     1536,
     768,
     'v0.8.7',
+    'rag',
   ),
   createPerformanceMetricsArtifact(
     '6',
@@ -285,5 +295,6 @@ export const mockPerformanceMetricsArtifacts: CatalogPerformanceMetricsArtifact[
     3072,
     1536,
     'v0.6.9',
+    'chatbot',
   ),
 ];

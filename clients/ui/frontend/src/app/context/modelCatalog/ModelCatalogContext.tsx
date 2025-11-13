@@ -54,7 +54,7 @@ export const ModelCatalogContext = React.createContext<ModelCatalogContextType>(
     [ModelCatalogStringFilterKey.LICENSE]: [],
     [ModelCatalogStringFilterKey.LANGUAGE]: [],
     [ModelCatalogStringFilterKey.HARDWARE_TYPE]: [],
-    [ModelCatalogStringFilterKey.USE_CASE]: undefined,
+    [ModelCatalogStringFilterKey.USE_CASE]: [],
     [ModelCatalogNumberFilterKey.MIN_RPS]: undefined,
   },
   updateSelectedSource: () => undefined,
@@ -85,7 +85,7 @@ export const ModelCatalogContextProvider: React.FC<ModelCatalogContextProviderPr
     [ModelCatalogStringFilterKey.LICENSE]: [],
     [ModelCatalogStringFilterKey.LANGUAGE]: [],
     [ModelCatalogStringFilterKey.HARDWARE_TYPE]: [],
-    [ModelCatalogStringFilterKey.USE_CASE]: undefined,
+    [ModelCatalogStringFilterKey.USE_CASE]: [],
     [ModelCatalogNumberFilterKey.MIN_RPS]: undefined,
   });
   const [filterOptions, filterOptionsLoaded, filterOptionsLoadError] =

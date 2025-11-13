@@ -125,21 +125,32 @@ export const filterHardwareConfigurationArtifacts = (
     }
 
     // Use Case Filter
-    const useCaseFilter = filterState[ModelCatalogStringFilterKey.USE_CASE];
+    const useCaseFilters = filterState[ModelCatalogStringFilterKey.USE_CASE];
 
-    if (useCaseFilter) {
+    if (useCaseFilters.length > 0) {
       // Get the artifact's use case
       const artifactUseCase = getStringValue(artifact.customProperties, 'use_case');
 
-      // Check if the artifact's use case matches the selected use case
-      // Use includes() to handle potential comma-separated values or partial matches
-      if (!artifactUseCase || !artifactUseCase.includes(useCaseFilter)) {
+      // Check if the artifact's use case matches any of the selected use cases (exact match)
+      if (!artifactUseCase || !useCaseFilters.some((filter) => filter === artifactUseCase)) {
         return false;
       }
     }
 
     return true;
   });
+
+/**
+ * Gets all filter keys (string filters + number filters)
+ * TODO: Extend to include latency metric filters when needed for filter chips on details page
+ */
+export const getAllFilterKeys = (): {
+  stringFilterKeys: ModelCatalogStringFilterKey[];
+  numberFilterKeys: ModelCatalogNumberFilterKey[];
+} => ({
+  stringFilterKeys: Object.values(ModelCatalogStringFilterKey),
+  numberFilterKeys: Object.values(ModelCatalogNumberFilterKey),
+});
 
 /**
  * Clears all active filters
@@ -150,18 +161,19 @@ export const clearAllFilters = (
     value: ModelCatalogFilterStates[K],
   ) => void,
 ): void => {
-  // Clear string filters (arrays)
-  setFilterData(ModelCatalogStringFilterKey.TASK, []);
-  setFilterData(ModelCatalogStringFilterKey.PROVIDER, []);
-  setFilterData(ModelCatalogStringFilterKey.LICENSE, []);
-  setFilterData(ModelCatalogStringFilterKey.LANGUAGE, []);
-  setFilterData(ModelCatalogStringFilterKey.HARDWARE_TYPE, []);
+  const { stringFilterKeys, numberFilterKeys } = getAllFilterKeys();
 
-  // Clear use case filter (single value)
-  setFilterData(ModelCatalogStringFilterKey.USE_CASE, undefined);
+  // Clear all string filters (arrays)
+  stringFilterKeys.forEach((key) => {
+    setFilterData(key, []);
+  });
 
-  // Clear number filters
-  Object.values(ModelCatalogNumberFilterKey).forEach((key) => {
+  // Clear all number filters
+  numberFilterKeys.forEach((key) => {
     setFilterData(key, undefined);
   });
+
+  // TODO: Clear all latency metric filters (e.g., ttft_mean, ttft_p90, etc.)
+  // This will be needed when we add filter chips to the details page.
+  // Can be part of that PR - will need to loop over all LatencyMetricFieldName combinations.
 };
