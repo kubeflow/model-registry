@@ -1,5 +1,5 @@
 import pytest
-import requests  # type: ignore[import-untyped]
+import requests  # type: ignore[import-untyped,unused-ignore]
 
 from model_registry import ModelRegistry
 from model_registry.types.artifacts import ModelArtifact

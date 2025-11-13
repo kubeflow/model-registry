@@ -6,7 +6,7 @@ import time
 from typing import Any, Callable
 
 import pytest
-import requests  # type: ignore[import-untyped]
+import requests  # type: ignore[import-untyped,unused-ignore]
 import schemathesis
 from hypothesis import HealthCheck, settings
 

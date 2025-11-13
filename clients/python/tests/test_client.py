@@ -5,7 +5,7 @@ from itertools import islice
 from unittest.mock import MagicMock
 
 import pytest
-import requests  # type: ignore[import-untyped]
+import requests  # type: ignore[import-untyped,unused-ignore]
 
 from model_registry import ModelRegistry, utils
 from model_registry.exceptions import StoreError

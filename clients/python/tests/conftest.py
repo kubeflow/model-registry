@@ -12,7 +12,7 @@ from pathlib import Path
 from unittest.mock import Mock, patch
 
 import pytest
-import requests  # type: ignore[import-untyped]
+import requests  # type: ignore[import-untyped,unused-ignore]
 
 from model_registry import ModelRegistry
 from model_registry.utils import BackendDefinition, _get_skopeo_backend
@@ -287,9 +287,9 @@ def patch_s3_env(monkeypatch: pytest.MonkeyPatch):
     bucket = os.getenv("KF_MR_TEST_BUCKET_NAME") or "default"
     region = "east"
 
-    monkeypatch.setenv("AWS_S3_ENDPOINT", s3_endpoint)  # type: ignore[arg-type]
-    monkeypatch.setenv("AWS_ACCESS_KEY_ID", access_key_id)  # type: ignore[arg-type]
-    monkeypatch.setenv("AWS_SECRET_ACCESS_KEY", secret_access_key)  # type: ignore[arg-type]
+    monkeypatch.setenv("AWS_S3_ENDPOINT", s3_endpoint)  # type: ignore[arg-type,unused-ignore]
+    monkeypatch.setenv("AWS_ACCESS_KEY_ID", access_key_id)  # type: ignore[arg-type,unused-ignore]
+    monkeypatch.setenv("AWS_SECRET_ACCESS_KEY", secret_access_key)  # type: ignore[arg-type,unused-ignore]
     monkeypatch.setenv("AWS_DEFAULT_REGION", region)
     monkeypatch.setenv("AWS_S3_BUCKET", bucket)
 
