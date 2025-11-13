@@ -69,9 +69,9 @@ const (
 	CatalogSourceModelCatchAllPath      = CatalogPathPrefix + "/sources/:" + CatalogSourceId + "/models/*" + CatalogModelName
 	CatalogSourceModelArtifactsCatchAll = CatalogPathPrefix + "/sources/:" + CatalogSourceId + "/artifacts/*" + CatalogModelName
 
-	SourceId                           = "source_id"
-	ModelCatalogSettingsSourceListPath = SettingsPath + "/catalog_source"
-	ModelCatalogSettingsSourcePath     = ModelCatalogSettingsSourceListPath + "/:" + SourceId
+	ModelCatalogSettingsPathPrefix           = SettingsPath + "/model_catalog"
+	ModelCatalogSettingsSourceConfigListPath = ModelCatalogSettingsPathPrefix + "/source_configs"
+	ModelCatalogSettingsSourceConfigPath     = ModelCatalogSettingsSourceConfigListPath + "/:" + CatalogSourceId
 )
 
 type App struct {
@@ -269,11 +269,11 @@ func (app *App) Routes() http.Handler {
 		apiRouter.GET(SettingsNamespacePath, app.GetNamespacesHandler)
 
 		// Model catalog settings page
-		apiRouter.GET(ModelCatalogSettingsSourceListPath, app.AttachNamespace(app.GetAllCatalogSourcesHandler))
-		apiRouter.POST(ModelCatalogSettingsSourceListPath, app.AttachNamespace(app.CreateCatalogSourceHandler))
-		apiRouter.GET(ModelCatalogSettingsSourcePath, app.AttachNamespace(app.GetCatalogSourceHandler))
-		apiRouter.PATCH(ModelCatalogSettingsSourcePath, app.AttachNamespace(app.UpdateCatalogSourceHandler))
-		apiRouter.DELETE(ModelCatalogSettingsSourcePath, app.AttachNamespace(app.DeleteCatalogSourceHandler))
+		apiRouter.GET(ModelCatalogSettingsSourceConfigListPath, app.AttachNamespace(app.GetAllCatalogSourceConfigsHandler))
+		apiRouter.POST(ModelCatalogSettingsSourceConfigListPath, app.AttachNamespace(app.CreateCatalogSourceConfigHandler))
+		apiRouter.GET(ModelCatalogSettingsSourceConfigPath, app.AttachNamespace(app.GetCatalogSourceConfigHandler))
+		apiRouter.PATCH(ModelCatalogSettingsSourceConfigPath, app.AttachNamespace(app.UpdateCatalogSourceConfigHandler))
+		apiRouter.DELETE(ModelCatalogSettingsSourceConfigPath, app.AttachNamespace(app.DeleteCatalogSourceConfigHandler))
 	}
 
 	// App Router

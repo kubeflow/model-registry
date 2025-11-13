@@ -10,7 +10,7 @@ servers:
   - url: "https://localhost:8080"
   - url: "http://localhost:8080"
 paths:
-  /api/v1/settings/catalog_source:
+  /api/v1/settings/model_catalog/source_configs:
     summary: Path used to managae Model catalog sources.
     description: The REST endpoint/path used to list and create model catalog sources.
     get:
@@ -20,7 +20,7 @@ paths:
         - $ref: "#/components/parameters/kubeflowUserId"
       responses:
         "200":
-          $ref: "#/components/responses/CatalogSourceResponse"
+          $ref: "#/components/responses/CatalogSourceConfigListResponse"
         "401":
           $ref: "#/components/responses/Unauthorized"
         "500":
@@ -34,7 +34,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/CatalogSourcePayload"
+              $ref: "#/components/schemas/CatalogSourceConfigPayload"
         required: true
       tags:
         - K8SOperation
@@ -42,7 +42,7 @@ paths:
         - $ref: "#/components/parameters/kubeflowUserId"
       responses:
         "201":
-          $ref: "#/components/responses/CatalogSourceResponse"
+          $ref: "#/components/responses/CatalogSourceConfigResponse"
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
@@ -52,7 +52,7 @@ paths:
       operationId: createCatalogSource
       summary: Create Catalog source
       description: Creates a new model catalog source.
-  /api/v1/settings/catalog_source/{sourceId}:
+  /api/v1/settings/model_catalog/source_configs/{sourceId}:
     summary: Path used to manage Model catalog sources.
     description: >-
       The REST endpoint/path used to get, update and delete a single ModelCatalog Source.
@@ -65,7 +65,7 @@ paths:
         - $ref: "#/components/parameters/sourceId" # Use the correct parameter name
       responses:
         "200":
-          $ref: "#/components/responses/CatalogSourceResponse"
+          $ref: "#/components/responses/CatalogSourceConfigResponse"
         "401":
           $ref: "#/components/responses/Unauthorized"
         "404":
@@ -81,7 +81,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/CatalogSourcePayload" 
+              $ref: "#/components/schemas/CatalogSourceConfigPayload"
         required: true
       tags:
         - K8SOperation
@@ -90,7 +90,7 @@ paths:
         - $ref: "#/components/parameters/sourceId"
       responses:
         "200":
-          $ref: "#/components/responses/CatalogSourceResponse"
+          $ref: "#/components/responses/CatalogSourceConfigResponse"
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
@@ -961,7 +961,6 @@ paths:
         "500":
           $ref: "#/components/responses/InternalServerError"
       operationId: getAllModelArtifacts
-  # TODO: Admin endpoints for model catalog
 
 components:
   schemas:
@@ -1034,106 +1033,6 @@ components:
           type: object
           additionalProperties:
             $ref: "#/components/schemas/MetadataValue"
-    # catalog
-    ConfigMapKind: 
-      description: Kubernetes Custom Resource for Config map
-      type: object
-      properties:
-        apiVersion:
-          type: string
-          example: v1alpha1
-        kind:
-          type: string
-          example: ConfigMap
-        metadata:
-          type: object
-          properties:
-            name:
-              type: string
-              example: sample_catalog
-            namespace:
-              type: string
-              example: default
-            creationTimestamp:
-              type: string
-              example: 2024-03-14T08:01:42Z
-        data:
-          type: object
-          properties:
-            sample-catalog.yaml:
-              type: object
-              properties:
-                source:
-                  type: string
-                  description: Name of the catalog source
-                  example: "Hugging Face"
-                models:
-                  type: array
-                  items:
-                    $ref: "#/components/schemas/BaseModel"
-            sources.yaml:
-              type: object
-              properties:
-                catalogs: 
-                  type: array
-                  items:
-                    $ref: "#/components/schemas/CatalogSourcePayload"
-
-    
-    # scehma for model catalog source payload
-    CatalogSourcePayload:
-      description: Payload for creating the catalog source
-      type: object
-      required:
-        - name
-        - id
-        - type
-      properties:
-        name: 
-          type: string
-          description: The name of the catalog source.
-          example: Sample Catalog
-        id:
-          type: string
-          description: A unique identifier for a `CatalogSource`.
-          example: sample_custom_catalog
-        type:
-          type: string
-          example: yaml
-        enabled:
-          type: boolean
-          description: Whether the catalog source is enabled.
-          default: true
-          example: true
-        properties:
-          type: object
-          properties:
-            yamlCatalogPath: 
-              type: string
-              example: sample-catalog.yaml
-            models:
-              type: array
-              items:
-                type: string
-                example: ["rhelai1/modelcar-granite-7b-starter"]
-            excludedModels:
-              type: array
-              items:
-                type: string
-                example: ["model-a:1.0", "model-b:*"]
-                description: list of models name, that will be excluded.
-            apiKey:
-              type: string
-              description: HuggingFace API key - should be stored in a Kubernetes secret and referenced here, or set via environment variable
-              example: "apikey"
-            url:
-              type: string
-              description: Custom HuggingFace URL (defaults to https://huggingface.co)
-              example: "https://huggingface.co"
-            modelLimit:
-              type: number
-              description: Limit the number of models to fetch (defaults to 100)
-              example: 200
     ModelRegistry:
       required:
         - name
@@ -2242,6 +2141,81 @@ components:
           additionalProperties:
             $ref: "#/components/schemas/FilterOption"
 
+    # Schema for catalog settings
+    CatalogSourceConfig:
+      description: A single catalog source configuration
+      type: object
+      allOf:
+        - $ref: "#/components/schemas/CatalogSourceConfigPayload"
+    CatalogSourceConfigList:
+      description: List of catalog sources.
+      type: object
+      properties:
+        catalogs:
+          description: Array of catalog sources.
+          type: array
+          items:
+            $ref: "#/components/schemas/CatalogSourceConfig"
+
+    # scehma for model catalog source payload
+    CatalogSourceConfigPayload:
+      description: Payload for creating the catalog source
+      type: object
+      required:
+        - name
+        - id
+        - type
+      properties:
+        name:
+          type: string
+          description: The name of the catalog source.
+          example: Sample Catalog
+        id:
+          type: string
+          description: A unique identifier for a `CatalogSource`.
+          example: sample_custom_catalog
+        type:
+          type: string
+          example: yaml
+        enabled:
+          type: boolean
+          description: Whether the catalog source is enabled.
+          default: true
+          example: true
+        labels:
+          description: |-
+            Labels associated with the source. The catalog source labels can be
+            used to filter models from sources with the same label (see
+            `sourceLabel` on `/api/model_catalog/v1alpha1/models`)
+          type: array
+          items:
+            type: string
+        includedModels:
+          type: array
+          items:
+            type: string
+            example: rhelai1/modelcar-granite-7b-starter
+        excludedModels:
+          type: array
+          items:
+            type: string
+            example: model-a:1.0
+            description: list of models name, that will be excluded.
+        properties:
+          type: object
+          properties:
+            yamlCatalogPath:
+              type: string
+              example: sample-catalog.yaml
+            accessToken:
+              type: string
+              description: HuggingFace access token - should be stored in a Kubernetes secret and referenced here, or set via environment variable
+              example: "accessToken"
+            allowedOrganization:
+              type: string
+              description: name of the organization that need to ingest from the source.
+              example: org1/
+
   responses:
     NotFound:
       content:
@@ -2267,18 +2241,6 @@ components:
           schema:
             $ref: "#/components/schemas/Error"
       description: Unexpected internal server error
-    CatalogSourceResponse:
-      content:
-        application/json:
-          schema:
-            type: object
-            properties:
-              metadata: 
-                type: object
-                description: Metada about the response
-              data:
-                $ref: "#/components/schemas/ConfigMapKind"
-      description: A response containing a `ConfigMapKind` entity 
     ConfigResponse:
       content:
         application/json:
@@ -2601,15 +2563,27 @@ components:
             $ref: "#/components/schemas/FilterOptionsList"
       description: A response containing options for a `filterQuery` parameter.
 
-  parameters:
-    sourceId:
-      name: sourceId
-      description: A unique identifier for catalog source.
-      schema:
-        type: string
-      in: path
-      required: true
+    # Catalog settings response
+    CatalogSourceConfigListResponse:
+      description: A response containing a list of catalog sources.
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              data:
+                $ref: "#/components/schemas/CatalogSourceConfigList"
+    CatalogSourceConfigResponse:
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              data:
+                $ref: "#/components/schemas/CatalogSourceConfig"
+      description: A response containing a catalog source.
 
+  parameters:
     registeredmodelId:
       name: registeredmodelId
       description: A unique identifier for a `RegisteredModel`.

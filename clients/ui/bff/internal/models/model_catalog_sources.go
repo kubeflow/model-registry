@@ -1,18 +1,24 @@
 package models
 
 type CatalogSourceProperties struct {
-	YamlCatalogPath *string  `json:"yamlCatalogPath"`
-	Models          []string `json:"models"`
-	ExcludedModels  []string `json:"exclidedModels"`
-	APIKey          *string  `json:"apiKey"`
-	URL             *string  `json:"url"`
-	ModelLimit      *int     `json:"modelLimit"`
+	AccessToken         *string `json:"accessToken,omitempty"`
+	AllowedOrganization *string `json:"allowedOrganization,omitempty"`
+	YamlCatalogPath     *string `json:"yamlCatalogPath,omitempty"`
 }
 
-type CatalogSource struct {
-	Name       string                   `json:"name"`
-	Id         string                   `json:"id"`
-	Type       string                   `json:"type"`
-	Enabled    *bool                    `json:"enabled"`
-	Properties *CatalogSourceProperties `json:"properties"`
+type CatalogSourceConfig struct {
+	Id             string                   `json:"id"`
+	Name           string                   `json:"name"`
+	Type           string                   `json:"type"`
+	Enabled        *bool                    `json:"enabled,omitempty"`
+	IncludedModels []string                 `json:"includedModels,omitempty"`
+	Labels         []string                 `json:"labels"`
+	ExcludedModels []string                 `json:"excludedModels,omitempty"`
+	Properties     *CatalogSourceProperties `json:"properties,omitempty"`
+}
+
+type CatalogSourceConfigPayload = CatalogSourceConfig
+
+type CatalogSourceConfigList struct {
+	Catalogs []CatalogSourceConfig `json:"catalogs,omitempty"`
 }

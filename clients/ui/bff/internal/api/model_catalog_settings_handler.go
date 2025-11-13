@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
-	"time"
 
 	"github.com/julienschmidt/httprouter"
 	"github.com/kubeflow/model-registry/ui/bff/internal/constants"
@@ -12,58 +11,32 @@ import (
 	"github.com/kubeflow/model-registry/ui/bff/internal/models"
 )
 
-type ModelCatalogSettingsSourceEnvelope Envelope[models.ConfigMapKind, None]
-type ModelCatalogSettingsSourceListEnvelope Envelope[[]models.ConfigMapKind, None]
-type ModelCatalogSourcePayloadEnvelope Envelope[models.CatalogSource, None]
+type ModelCatalogSettingsSourceConfigEnvelope Envelope[models.CatalogSourceConfig, None]
+type ModelCatalogSettingsSourceConfigListEnvelope Envelope[models.CatalogSourceConfigList, None]
+type ModelCatalogSourcePayloadEnvelope Envelope[models.CatalogSourceConfigPayload, None]
 
-func (app *App) GetAllCatalogSourcesHandler(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
+func (app *App) GetAllCatalogSourceConfigsHandler(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 	ctxLogger := helper.GetContextLoggerFromReq(r)
 	ctxLogger.Info("This functionality is not implement yet. This is a STUB API to unblock frontend development")
 
 	namespace, ok := r.Context().Value(constants.NamespaceHeaderParameterKey).(string)
 	if !ok || namespace == "" {
 		app.badRequestResponse(w, r, fmt.Errorf("missing namespace in the context"))
+		return
 	}
 
-	newCatalogSource := []models.CatalogSource{
-		{
-			Name:    "name",
-			Id:      "catalogSourceId",
-			Type:    "catalogType",
-			Enabled: BoolPtr(true),
-			Properties: &models.CatalogSourceProperties{
-				YamlCatalogPath: stringToPointer("a"),
-				Models:          []string{"rhelai1/modelcar-granite-7b-starter"},
-				ExcludedModels:  []string{"model-a:1.0", "model-b:*"},
-			},
-		},
-		{
-			Name:    "name",
-			Id:      "catalogSourceId",
-			Type:    "catalogType",
-			Enabled: BoolPtr(true),
-			Properties: &models.CatalogSourceProperties{
-				YamlCatalogPath: stringToPointer("a"),
-				Models:          []string{"rhelai1/modelcar-granite-7b-starter"},
-				ExcludedModels:  []string{"model-a:1.0", "model-b:*"},
-			},
-		},
-		{
-			Name:    "name",
-			Id:      "catalogSourceId",
-			Type:    "catalogType",
-			Enabled: BoolPtr(true),
-			Properties: &models.CatalogSourceProperties{
-				YamlCatalogPath: stringToPointer("a"),
-				Models:          []string{"rhelai1/modelcar-granite-7b-starter"},
-				ExcludedModels:  []string{"model-a:1.0", "model-b:*"},
-			},
-		},
+	catalogConfigs := []models.CatalogSourceConfig{
+		createSampleCatalogSource("catalog-1", "Default Catalog", "yaml"),
+		createSampleCatalogSource("catalog-2", "HuggingFace Catalog", "huggingface"),
+		createSampleCatalogSource("catalog-3", "Custom Catalog", "yaml"),
 	}
-	catalogSources := createCatalogSource(namespace, newCatalogSource)
 
-	modelCatalogSource := ModelCatalogSettingsSourceEnvelope{
-		Data: catalogSources,
+	catalogSourceConfigs := models.CatalogSourceConfigList{
+		Catalogs: catalogConfigs,
+	}
+
+	modelCatalogSource := ModelCatalogSettingsSourceConfigListEnvelope{
+		Data: catalogSourceConfigs,
 	}
 
 	err := app.WriteJSON(w, http.StatusOK, modelCatalogSource, nil)
@@ -74,33 +47,22 @@ func (app *App) GetAllCatalogSourcesHandler(w http.ResponseWriter, r *http.Reque
 
 }
 
-func (app *App) GetCatalogSourceHandler(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+func (app *App) GetCatalogSourceConfigHandler(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 	ctxLogger := helper.GetContextLoggerFromReq(r)
 	ctxLogger.Info("This functionality is not implement yet. This is a STUB API to unblock frontend development")
 
 	namespace, ok := r.Context().Value(constants.NamespaceHeaderParameterKey).(string)
 	if !ok || namespace == "" {
 		app.badRequestResponse(w, r, fmt.Errorf("missing namespace in the context"))
+		return
 	}
 
-	catalogSourceId := ps.ByName(SourceId)
-	newCatalogSource := []models.CatalogSource{
-		{
-			Name:    "name",
-			Id:      catalogSourceId,
-			Type:    "catalogType",
-			Enabled: BoolPtr(true),
-			Properties: &models.CatalogSourceProperties{
-				YamlCatalogPath: stringToPointer("a"),
-				Models:          []string{"rhelai1/modelcar-granite-7b-starter"},
-				ExcludedModels:  []string{"model-a:1.0", "model-b:*"},
-			},
-		},
-	}
-	catalogSource := createCatalogSource(namespace, newCatalogSource)
+	catalogSourceId := ps.ByName(CatalogSourceId)
 
-	modelCatalogSource := ModelCatalogSettingsSourceEnvelope{
-		Data: catalogSource,
+	catalogSourceConfig := createSampleCatalogSource(catalogSourceId, "catalog-source-1", "yaml")
+
+	modelCatalogSource := ModelCatalogSettingsSourceConfigEnvelope{
+		Data: catalogSourceConfig,
 	}
 
 	err := app.WriteJSON(w, http.StatusOK, modelCatalogSource, nil)
@@ -111,13 +73,14 @@ func (app *App) GetCatalogSourceHandler(w http.ResponseWriter, r *http.Request, 
 
 }
 
-func (app *App) CreateCatalogSourceHandler(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+func (app *App) CreateCatalogSourceConfigHandler(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 	ctxLogger := helper.GetContextLoggerFromReq(r)
 	ctxLogger.Info("This functionality is not implement yet. This is a STUB API to unblock frontend development")
 
 	namespace, ok := r.Context().Value(constants.NamespaceHeaderParameterKey).(string)
 	if !ok || namespace == "" {
 		app.badRequestResponse(w, r, fmt.Errorf("missing namespace in the context"))
+		return
 	}
 
 	var envelope ModelCatalogSourcePayloadEnvelope
@@ -145,27 +108,13 @@ func (app *App) CreateCatalogSourceHandler(w http.ResponseWriter, r *http.Reques
 
 	ctxLogger.Info("Creating catalog source", "name", sourceName)
 
-	newCatalogSource := []models.CatalogSource{
-		{
-			Name:    "name",
-			Id:      sourceId,
-			Type:    "catalogType",
-			Enabled: BoolPtr(true),
-			Properties: &models.CatalogSourceProperties{
-				YamlCatalogPath: stringToPointer("a"),
-				Models:          []string{"rhelai1/modelcar-granite-7b-starter"},
-				ExcludedModels:  []string{"model-a:1.0", "model-b:*"},
-			},
-		},
-	}
-	catalogSource := createCatalogSource(namespace, newCatalogSource)
+	newCatalogSource := createSampleCatalogSource(sourceId, sourceName, sourceType)
 
-	modelCatalogSource := ModelCatalogSettingsSourceEnvelope{
-		Data: catalogSource,
+	modelCatalogSource := ModelCatalogSettingsSourceConfigEnvelope{
+		Data: newCatalogSource,
 	}
-	n := len(modelCatalogSource.Data.Data.SourcesYaml.Catalogs) - 1
 
-	w.Header().Set("Location", r.URL.JoinPath(modelCatalogSource.Data.Data.SourcesYaml.Catalogs[n].Id).String())
+	w.Header().Set("Location", r.URL.JoinPath(modelCatalogSource.Data.Id).String())
 	writeErr := app.WriteJSON(w, http.StatusCreated, modelCatalogSource, nil)
 	if writeErr != nil {
 		app.serverErrorResponse(w, r, fmt.Errorf("error writing JSON"))
@@ -174,34 +123,23 @@ func (app *App) CreateCatalogSourceHandler(w http.ResponseWriter, r *http.Reques
 
 }
 
-func (app *App) UpdateCatalogSourceHandler(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+func (app *App) UpdateCatalogSourceConfigHandler(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 	ctxLogger := helper.GetContextLoggerFromReq(r)
 	ctxLogger.Info("This functionality is not implement yet. This is a STUB API to unblock frontend development")
 
 	namespace, ok := r.Context().Value(constants.NamespaceHeaderParameterKey).(string)
 	if !ok || namespace == "" {
 		app.badRequestResponse(w, r, fmt.Errorf("missing namespace in the context"))
+		return
 	}
 
 	// this is the temoprary fix to start fronetend development
-	catalogSourceId := ps.ByName(SourceId)
-	newCatalogSource := []models.CatalogSource{
-		{
-			Name:    "name",
-			Id:      catalogSourceId,
-			Type:    "catalogType",
-			Enabled: BoolPtr(true),
-			Properties: &models.CatalogSourceProperties{
-				YamlCatalogPath: stringToPointer("a"),
-				Models:          []string{"rhelai1/modelcar-granite-7b-starter"},
-				ExcludedModels:  []string{"model-a:1.0", "model-b:*"},
-			},
-		},
-	}
-	catalogSource := createCatalogSource(namespace, newCatalogSource)
+	catalogSourceId := ps.ByName(CatalogSourceId)
 
-	modelCatalogSource := ModelCatalogSettingsSourceEnvelope{
-		Data: catalogSource,
+	newCatalogSource := createSampleCatalogSource(catalogSourceId, "Updated Catalog", "yaml")
+
+	modelCatalogSource := ModelCatalogSettingsSourceConfigEnvelope{
+		Data: newCatalogSource,
 	}
 
 	err := app.WriteJSON(w, http.StatusOK, modelCatalogSource, nil)
@@ -211,34 +149,23 @@ func (app *App) UpdateCatalogSourceHandler(w http.ResponseWriter, r *http.Reques
 	}
 }
 
-func (app *App) DeleteCatalogSourceHandler(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+func (app *App) DeleteCatalogSourceConfigHandler(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 	ctxLogger := helper.GetContextLoggerFromReq(r)
 	ctxLogger.Info("This functionality is not implement yet. This is a STUB API to unblock frontend development")
 
 	namespace, ok := r.Context().Value(constants.NamespaceHeaderParameterKey).(string)
 	if !ok || namespace == "" {
 		app.badRequestResponse(w, r, fmt.Errorf("missing namespace in the context"))
+		return
 	}
 
 	// this is the temoprary fix to start fronetend development
-	catalogSourceId := ps.ByName(SourceId)
-	newCatalogSource := []models.CatalogSource{
-		{
-			Name:    "name",
-			Id:      catalogSourceId,
-			Type:    "catalogType",
-			Enabled: BoolPtr(true),
-			Properties: &models.CatalogSourceProperties{
-				YamlCatalogPath: stringToPointer("a"),
-				Models:          []string{"rhelai1/modelcar-granite-7b-starter"},
-				ExcludedModels:  []string{"model-a:1.0", "model-b:*"},
-			},
-		},
-	}
-	catalogSource := createCatalogSource(namespace, newCatalogSource)
+	catalogSourceId := ps.ByName(CatalogSourceId)
 
-	modelCatalogSource := ModelCatalogSettingsSourceEnvelope{
-		Data: catalogSource,
+	newCatalogSource := createSampleCatalogSource(catalogSourceId, "Deleted Catalog", "yaml")
+
+	modelCatalogSource := ModelCatalogSettingsSourceConfigEnvelope{
+		Data: newCatalogSource,
 	}
 
 	err := app.WriteJSON(w, http.StatusOK, modelCatalogSource, nil)
@@ -248,53 +175,20 @@ func (app *App) DeleteCatalogSourceHandler(w http.ResponseWriter, r *http.Reques
 	}
 }
 
-func createCatalogSource(namespace string, newCatalogSources []models.CatalogSource) models.ConfigMapKind {
-	creationTime, _ := time.Parse(time.RFC3339, "2024-03-14T08:01:42Z")
-	catalogSources := []models.CatalogSource{}
-
-	upadtedCatalogSources := append(catalogSources, newCatalogSources...)
-
-	// and also update the type envelop and types in models if required
-
-	return models.ConfigMapKind{
-		APIVersion: "",
-		Kind:       "ConfigMap",
-		Metadata: models.Metadata{
-			Name:              "model-catalog-sources",
-			Namespace:         namespace,
-			CreationTimestamp: creationTime,
-			Annotations:       map[string]string{},
-		},
-		Data: models.ConfigMapData{
-			SamplaCatalogYaml: &models.CatalogContent{
-				Source: "",
-				Models: []models.BaseModel{
-					{
-						Name: "",
-					},
-				},
-			},
-			SourcesYaml: &models.SourcesContent{
-				Catalogs: upadtedCatalogSources,
-			},
+func createSampleCatalogSource(id string, name string, catalogType string) models.CatalogSourceConfig {
+	return models.CatalogSourceConfig{
+		Name:           name,
+		Id:             id,
+		Type:           catalogType,
+		Enabled:        BoolPtr(true),
+		Labels:         []string{},
+		IncludedModels: []string{"rhelai1/modelcar-granite-7b-starter"},
+		ExcludedModels: []string{"model-a:1.0", "model-b:*"},
+		Properties: &models.CatalogSourceProperties{
+			YamlCatalogPath: stringToPointer("/path/to/catalog.yaml"),
 		},
 	}
 }
-
-// func addCatalogSource(catalogSources []models.CatalogSource, name string, id string, catalogType string) []models.CatalogSource {
-// 	// newCatalogSource := models.CatalogSource{
-// 	// 					Name:    name,
-// 	// 					Id:      id,
-// 	// 					Type:    catalogType,
-// 	// 					Enabled: BoolPtr(true),
-// 	// 					Properties: &models.CatalogSourceProperties{
-// 	// 						YamlCatalogPath: stringToPointer("a"),
-// 	// 						Models:          []string{"rhelai1/modelcar-granite-7b-starter"},
-// 	// 						ExcludedModels:  []string{"model-a:1.0", "model-b:*"},
-// 	// 					},
-// 	// }
-// 	return append(catalogSources, newCatalogSource)
-// }
 
 func stringToPointer(s string) *string {
 	return &s
