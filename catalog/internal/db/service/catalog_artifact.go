@@ -3,8 +3,10 @@ package service
 import (
 	"errors"
 	"fmt"
+	"regexp"
 	"strings"
 
+	"github.com/golang/glog"
 	catalogfilter "github.com/kubeflow/model-registry/catalog/internal/db/filter"
 	"github.com/kubeflow/model-registry/catalog/internal/db/models"
 	"github.com/kubeflow/model-registry/internal/datastore"
@@ -19,6 +21,26 @@ import (
 )
 
 var ErrCatalogArtifactNotFound = errors.New("catalog artifact by id not found")
+
+// propertyNameRegex validates custom property names to contain only safe characters
+// Allows: alphanumeric (a-z, A-Z, 0-9), underscores (_), hyphens (-), and dots (.)
+var propertyNameRegex = regexp.MustCompile(`^[a-zA-Z0-9_.-]+$`)
+
+// isValidPropertyName validates that a property name contains only safe characters
+// This provides defense-in-depth against potential injection attacks, even though
+// GORM's parameterized queries already protect against SQL injection.
+func isValidPropertyName(name string) bool {
+	// Empty names are not valid
+	if name == "" {
+		return false
+	}
+	// Check length (reasonable limit to prevent abuse)
+	if len(name) > 255 {
+		return false
+	}
+	// Validate against regex pattern
+	return propertyNameRegex.MatchString(name)
+}
 
 type CatalogArtifactRepositoryImpl struct {
 	db       *gorm.DB
@@ -63,6 +85,13 @@ func (r *CatalogArtifactRepositoryImpl) GetByID(id int32) (models.CatalogArtifac
 	return mappedArtifact, nil
 }
 
+// List retrieves catalog artifacts with support for filtering, pagination, and custom property ordering.
+//
+// The method handles ordering in the following priority:
+// 1. NAME - Special catalog-specific ordering
+// 2. Standard columns (ID, CREATE_TIME, LAST_UPDATE_TIME) - Uses allowed column map
+// 3. Custom properties (e.g., accuracy.double_value) - Dynamic property-based ordering
+// 4. Fallback to ID ordering for invalid inputs
 func (r *CatalogArtifactRepositoryImpl) List(listOptions models.CatalogArtifactListOptions) (*dbmodels.ListWrapper[models.CatalogArtifact], error) {
 	list := dbmodels.ListWrapper[models.CatalogArtifact]{
 		PageSize: listOptions.GetPageSize(),
@@ -250,7 +279,7 @@ func (r *CatalogArtifactRepositoryImpl) createPaginationToken(artifact schema.Ar
 		// If there's an error in the sort value query (e.g., invalid value type),
 		// fall back to ID ordering for the token
 		// Note: This shouldn't normally happen as the error would be caught earlier in List()
-		fmt.Printf("Warning: error in sortValueQuery during pagination token creation: %v\n", err)
+		glog.Warningf("Error in sortValueQuery during pagination token creation: %v", err)
 	} else if sortValueQuery != nil {
 		artifactTable := utils.GetTableName(r.db, &schema.Artifact{})
 		sortValueQuery = sortValueQuery.Where(artifactTable+".id=?", artifact.ID)
@@ -263,7 +292,7 @@ func (r *CatalogArtifactRepositoryImpl) createPaginationToken(artifact schema.Ar
 		err := sortValueQuery.Scan(&result).Error
 		if err != nil {
 			// Log warning and fall back to default
-			fmt.Printf("Failed to get sort value: %v\n", err)
+			glog.Warningf("Failed to get sort value for pagination token: %v", err)
 		} else {
 			switch column {
 			case "int_value":
@@ -310,26 +339,39 @@ func (r *CatalogArtifactRepositoryImpl) sortValueQuery(listOptions *models.Catal
 
 	// Handle <property>.<value_column> e.g. accuracy.double_value, timestamp.string_value
 	if len(orderBy) == 2 {
-		propertyTable := utils.GetTableName(db, &schema.ArtifactProperty{})
+		propertyName := orderBy[0]
 		valueColumn = orderBy[1]
+
+		// SECURITY: Validate value column BEFORE using it in SQL to prevent injection
+		// Even though it's used in a safe context, validate early for defense in depth
+		switch valueColumn {
+		case "int_value", "double_value", "string_value":
+			// OK - valid value type
+		default:
+			// Invalid value type - return error immediately
+			return nil, "", fmt.Errorf("invalid custom property value type '%s': must be one of 'int_value', 'double_value', or 'string_value': %w", valueColumn, api.ErrBadRequest)
+		}
+
+		// SECURITY: Validate property name contains only safe characters
+		// While GORM's parameterized queries prevent SQL injection, we validate for defense in depth
+		// Allow: letters, numbers, underscores, hyphens, dots (common in property names)
+		if !isValidPropertyName(propertyName) {
+			return nil, "", fmt.Errorf("invalid custom property name '%s': property names must contain only alphanumeric characters, underscores, hyphens, and dots: %w", propertyName, api.ErrBadRequest)
+		}
+
+		// SECURITY NOTE: propertyName is passed as a parameterized value (?) to GORM,
+		// which properly escapes it to prevent SQL injection. The validation above is
+		// an additional defense-in-depth measure.
+		propertyTable := utils.GetTableName(db, &schema.ArtifactProperty{})
 		query = query.
 			Select(fmt.Sprintf("max(%s.%s) AS %s", propertyTable, valueColumn, valueColumn), extraColumns...).
-			Joins(fmt.Sprintf("LEFT JOIN %s ON %s.id=%s.artifact_id AND %s.name=?", propertyTable, artifactTable, propertyTable, propertyTable), orderBy[0])
-	} else {
-		// Standard sort will work (not a custom property format)
-		return nil, "", nil
+			Joins(fmt.Sprintf("LEFT JOIN %s ON %s.id=%s.artifact_id AND %s.name=?", propertyTable, artifactTable, propertyTable, propertyTable), propertyName)
+
+		return query, valueColumn, nil
 	}
 
-	// The query is built, but verify that the value column is valid before
-	// returning it.
-	switch valueColumn {
-	case "int_value", "double_value", "string_value":
-		// OK - valid value type
-		return query, valueColumn, nil
-	default:
-		// Invalid value type - return error
-		return nil, "", fmt.Errorf("invalid custom property value type '%s': must be one of 'int_value', 'double_value', or 'string_value': %w", valueColumn, api.ErrBadRequest)
-	}
+	// Standard sort will work (not a custom property format)
+	return nil, "", nil
 }
 
 // applyCustomOrdering applies custom ordering logic for non-standard orderBy field

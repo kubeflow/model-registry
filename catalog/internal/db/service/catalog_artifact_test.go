@@ -13,6 +13,21 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+// Test constants for custom property names and value types
+const (
+	testPropertyAccuracy  = "accuracy"
+	testPropertyTimestamp = "timestamp"
+	testPropertyVersion   = "version"
+	testPropertyScore     = "score"
+
+	testValueTypeDouble = "double_value"
+	testValueTypeString = "string_value"
+	testValueTypeInt    = "int_value"
+
+	testSortOrderASC  = "ASC"
+	testSortOrderDESC = "DESC"
+)
+
 func TestCatalogArtifactRepository(t *testing.T) {
 	sharedDB, cleanup := testutils.SetupPostgresWithMigrations(t, service.DatastoreSpec())
 	defer cleanup()
@@ -648,10 +663,18 @@ func TestCatalogArtifactRepository(t *testing.T) {
 		require.NotNil(t, resultDesc)
 
 		var pageDescArtifacts []string
+		expectedNames := map[string]bool{
+			"artifact-alpha":   true,
+			"artifact-beta":    true,
+			"artifact-gamma":   true,
+			"artifact-delta":   true,
+			"artifact-epsilon": true,
+		}
 		for _, artifact := range resultDesc.Items {
-			if artifact.CatalogMetricsArtifact != nil && artifact.CatalogMetricsArtifact.GetAttributes().Name != nil {
+			if artifact.CatalogMetricsArtifact != nil &&
+				artifact.CatalogMetricsArtifact.GetAttributes().Name != nil {
 				name := *artifact.CatalogMetricsArtifact.GetAttributes().Name
-				if name == "artifact-alpha" || name == "artifact-beta" || name == "artifact-gamma" || name == "artifact-delta" || name == "artifact-epsilon" {
+				if expectedNames[name] {
 					pageDescArtifacts = append(pageDescArtifacts, name)
 				}
 			}
@@ -692,7 +715,7 @@ func TestCatalogArtifactRepository(t *testing.T) {
 		for _, tc := range testArtifacts {
 			customProps := []dbmodels.Properties{
 				{
-					Name:        "accuracy",
+					Name:        testPropertyAccuracy,
 					DoubleValue: apiutils.Of(tc.accuracy),
 				},
 			}
@@ -715,8 +738,10 @@ func TestCatalogArtifactRepository(t *testing.T) {
 		listOptions := models.CatalogArtifactListOptions{
 			ParentResourceID: savedTestModel.GetID(),
 			Pagination: dbmodels.Pagination{
-				OrderBy:   apiutils.Of("accuracy.double_value"),
-				SortOrder: apiutils.Of("ASC"),
+				OrderBy: apiutils.Of(
+					fmt.Sprintf("%s.%s", testPropertyAccuracy, testValueTypeDouble),
+				),
+				SortOrder: apiutils.Of(testSortOrderASC),
 			},
 		}
 		result, err := repo.List(listOptions)
@@ -728,14 +753,21 @@ func TestCatalogArtifactRepository(t *testing.T) {
 			name     string
 			accuracy float64
 		}
+		expectedArtifactNames := map[string]bool{
+			"artifact-high-accuracy":    true,
+			"artifact-low-accuracy":     true,
+			"artifact-medium-accuracy":  true,
+			"artifact-perfect-accuracy": true,
+			"artifact-poor-accuracy":    true,
+		}
 		for _, artifact := range result.Items {
 			if artifact.CatalogMetricsArtifact != nil {
 				name := artifact.CatalogMetricsArtifact.GetAttributes().Name
-				if name != nil && (*name == "artifact-high-accuracy" || *name == "artifact-low-accuracy" || *name == "artifact-medium-accuracy" || *name == "artifact-perfect-accuracy" || *name == "artifact-poor-accuracy") {
+				if name != nil && expectedArtifactNames[*name] {
 					// Get accuracy from custom properties
 					if artifact.CatalogMetricsArtifact.GetCustomProperties() != nil {
 						for _, prop := range *artifact.CatalogMetricsArtifact.GetCustomProperties() {
-							if prop.Name == "accuracy" && prop.DoubleValue != nil {
+							if prop.Name == testPropertyAccuracy && prop.DoubleValue != nil {
 								foundArtifacts = append(foundArtifacts, struct {
 									name     string
 									accuracy float64
@@ -761,8 +793,10 @@ func TestCatalogArtifactRepository(t *testing.T) {
 		listOptions = models.CatalogArtifactListOptions{
 			ParentResourceID: savedTestModel.GetID(),
 			Pagination: dbmodels.Pagination{
-				OrderBy:   apiutils.Of("accuracy.double_value"),
-				SortOrder: apiutils.Of("DESC"),
+				OrderBy: apiutils.Of(
+					fmt.Sprintf("%s.%s", testPropertyAccuracy, testValueTypeDouble),
+				),
+				SortOrder: apiutils.Of(testSortOrderDESC),
 			},
 		}
 		result, err = repo.List(listOptions)
@@ -777,11 +811,11 @@ func TestCatalogArtifactRepository(t *testing.T) {
 		for _, artifact := range result.Items {
 			if artifact.CatalogMetricsArtifact != nil {
 				name := artifact.CatalogMetricsArtifact.GetAttributes().Name
-				if name != nil && (*name == "artifact-high-accuracy" || *name == "artifact-low-accuracy" || *name == "artifact-medium-accuracy" || *name == "artifact-perfect-accuracy" || *name == "artifact-poor-accuracy") {
+				if name != nil && expectedArtifactNames[*name] {
 					// Get accuracy from custom properties
 					if artifact.CatalogMetricsArtifact.GetCustomProperties() != nil {
 						for _, prop := range *artifact.CatalogMetricsArtifact.GetCustomProperties() {
-							if prop.Name == "accuracy" && prop.DoubleValue != nil {
+							if prop.Name == testPropertyAccuracy && prop.DoubleValue != nil {
 								foundArtifacts = append(foundArtifacts, struct {
 									name     string
 									accuracy float64
@@ -831,7 +865,7 @@ func TestCatalogArtifactRepository(t *testing.T) {
 		for _, tc := range testArtifacts {
 			customProps := []dbmodels.Properties{
 				{
-					Name:        "timestamp",
+					Name:        testPropertyTimestamp,
 					StringValue: apiutils.Of(tc.timestamp),
 				},
 			}
@@ -854,8 +888,10 @@ func TestCatalogArtifactRepository(t *testing.T) {
 		listOptions := models.CatalogArtifactListOptions{
 			ParentResourceID: savedTestModel.GetID(),
 			Pagination: dbmodels.Pagination{
-				OrderBy:   apiutils.Of("timestamp.string_value"),
-				SortOrder: apiutils.Of("ASC"),
+				OrderBy: apiutils.Of(
+					fmt.Sprintf("%s.%s", testPropertyTimestamp, testValueTypeString),
+				),
+				SortOrder: apiutils.Of(testSortOrderASC),
 			},
 		}
 		result, err := repo.List(listOptions)
@@ -1202,6 +1238,105 @@ func TestCatalogArtifactRepository(t *testing.T) {
 		}
 	})
 
+	t.Run("TestInvalidPropertyName_Error", func(t *testing.T) {
+		// Create a new model for this test
+		testModel := &models.CatalogModelImpl{
+			TypeID: apiutils.Of(int32(catalogModelTypeID)),
+			Attributes: &models.CatalogModelAttributes{
+				Name:       apiutils.Of("test-model-invalid-property-name"),
+				ExternalID: apiutils.Of("test-model-invalid-property-name-ext"),
+			},
+		}
+		savedTestModel, err := catalogModelRepo.Save(testModel)
+		require.NoError(t, err)
+
+		// Create an artifact
+		metricsArtifact := &models.CatalogMetricsArtifactImpl{
+			TypeID: apiutils.Of(int32(metricsArtifactTypeID)),
+			Attributes: &models.CatalogMetricsArtifactAttributes{
+				Name:         apiutils.Of("test-artifact"),
+				ExternalID:   apiutils.Of("test-artifact-ext"),
+				MetricsType:  models.MetricsTypeAccuracy,
+				ArtifactType: apiutils.Of("metrics-artifact"),
+			},
+		}
+		_, err = metricsArtifactRepo.Save(metricsArtifact, savedTestModel.GetID())
+		require.NoError(t, err)
+
+		// Test with invalid property names - should return error
+		testCases := []struct {
+			name        string
+			orderBy     string
+			expectedErr string
+		}{
+			{
+				name: "Property name with SQL injection attempt",
+				orderBy: fmt.Sprintf(
+					"%s'; DROP TABLE Artifact; --.%s",
+					testPropertyAccuracy,
+					testValueTypeDouble,
+				),
+				expectedErr: "invalid custom property name",
+			},
+			{
+				name: "Property name with special characters",
+				orderBy: fmt.Sprintf("%s@#$.%s",
+					testPropertyAccuracy,
+					testValueTypeDouble,
+				),
+				expectedErr: "invalid custom property name",
+			},
+			{
+				name:        "Property name with spaces",
+				orderBy:     fmt.Sprintf("my %s.%s", testPropertyAccuracy, testValueTypeDouble),
+				expectedErr: "invalid custom property name",
+			},
+			{
+				name:        "Empty property name",
+				orderBy:     fmt.Sprintf(".%s", testValueTypeDouble),
+				expectedErr: "invalid custom property name",
+			},
+		}
+
+		for _, tc := range testCases {
+			t.Run(tc.name, func(t *testing.T) {
+				listOptions := models.CatalogArtifactListOptions{
+					ParentResourceID: savedTestModel.GetID(),
+					Pagination: dbmodels.Pagination{
+						OrderBy:   apiutils.Of(tc.orderBy),
+						SortOrder: apiutils.Of("ASC"),
+					},
+				}
+				_, err := repo.List(listOptions)
+				require.Error(t, err, "Should return error for invalid property name")
+				assert.Contains(t, err.Error(), tc.expectedErr, "Error message should mention invalid property name")
+			})
+		}
+
+		// Test that VALID property names still work
+		validTestCases := []string{
+			fmt.Sprintf("%s.%s", testPropertyAccuracy, testValueTypeDouble),
+			fmt.Sprintf("model_%s.%s", testPropertyAccuracy, testValueTypeDouble),
+			fmt.Sprintf("model-%s.%s", testPropertyAccuracy, testValueTypeDouble),
+			fmt.Sprintf("v1.%s.%s", testPropertyAccuracy, testValueTypeDouble),
+			fmt.Sprintf("%s_v2.%s", testPropertyAccuracy, testValueTypeDouble),
+		}
+
+		for _, validOrderBy := range validTestCases {
+			t.Run("Valid: "+validOrderBy, func(t *testing.T) {
+				listOptions := models.CatalogArtifactListOptions{
+					ParentResourceID: savedTestModel.GetID(),
+					Pagination: dbmodels.Pagination{
+						OrderBy:   apiutils.Of(validOrderBy),
+						SortOrder: apiutils.Of("ASC"),
+					},
+				}
+				_, err := repo.List(listOptions)
+				require.NoError(t, err, "Should not error for valid property name: "+validOrderBy)
+			})
+		}
+	})
+
 	t.Run("TestInvalidCustomPropertyValueType_Error", func(t *testing.T) {
 		// Create a new model for this test
 		testModel := &models.CatalogModelImpl{
@@ -1234,18 +1369,21 @@ func TestCatalogArtifactRepository(t *testing.T) {
 			expectedErr string
 		}{
 			{
-				name:        "Invalid value type: int_valueeee",
-				orderBy:     "accuracy.int_valueeee",
+				name: "Invalid value type: int_valueeee",
+				orderBy: fmt.Sprintf("%s.int_valueeee",
+					testPropertyAccuracy),
 				expectedErr: "invalid custom property value type 'int_valueeee'",
 			},
 			{
-				name:        "Invalid value type: double_val",
-				orderBy:     "score.double_val",
+				name: "Invalid value type: double_val",
+				orderBy: fmt.Sprintf("%s.double_val",
+					testPropertyScore),
 				expectedErr: "invalid custom property value type 'double_val'",
 			},
 			{
-				name:        "Invalid value type: str_value",
-				orderBy:     "timestamp.str_value",
+				name: "Invalid value type: str_value",
+				orderBy: fmt.Sprintf("%s.str_value",
+					testPropertyTimestamp),
 				expectedErr: "invalid custom property value type 'str_value'",
 			},
 			{
