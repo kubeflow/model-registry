@@ -14,20 +14,10 @@ import { ModelCatalogStringFilterKey, UseCaseOptionValue } from '~/concepts/mode
 import { USE_CASE_OPTIONS } from '~/app/pages/modelCatalog/utils/workloadTypeUtils';
 import { ModelCatalogContext } from '~/app/context/modelCatalog/ModelCatalogContext';
 
-type UseCaseOption = {
-  value: UseCaseOptionValue;
-  label: string;
-};
-
 const WorkloadTypeFilter: React.FC = () => {
   const { filterData, setFilterData } = React.useContext(ModelCatalogContext);
   const selectedUseCases = filterData[ModelCatalogStringFilterKey.USE_CASE];
   const [isOpen, setIsOpen] = React.useState(false);
-
-  const useCaseOptions: UseCaseOption[] = USE_CASE_OPTIONS.map((option) => ({
-    value: option.value,
-    label: option.label,
-  }));
 
   const selectedCount = selectedUseCases.length;
 
@@ -65,7 +55,7 @@ const WorkloadTypeFilter: React.FC = () => {
           {/* Workload type checkboxes */}
           <FlexItem>
             <Flex direction={{ default: 'column' }} spaceItems={{ default: 'spaceItemsXs' }}>
-              {useCaseOptions.map((option) => (
+              {USE_CASE_OPTIONS.map((option) => (
                 <FlexItem key={option.value}>
                   <Flex alignItems={{ default: 'alignItemsCenter' }}>
                     <FlexItem flex={{ default: 'flex_1' }}>
