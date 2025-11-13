@@ -7,7 +7,6 @@ import (
 	"os"
 	"path/filepath"
 	"strconv"
-	"strings"
 
 	"k8s.io/apimachinery/pkg/util/yaml"
 
@@ -297,19 +296,6 @@ func (a *yamlArtifact) UnmarshalJSON(buf []byte) error {
 type yamlCatalog struct {
 	Source string      `yaml:"source"`
 	Models []yamlModel `yaml:"models"`
-}
-
-func isModelExcluded(modelName string, patterns []string) bool {
-	for _, pattern := range patterns {
-		if strings.HasSuffix(pattern, "*") {
-			if strings.HasPrefix(modelName, strings.TrimSuffix(pattern, "*")) {
-				return true
-			}
-		} else if modelName == pattern {
-			return true
-		}
-	}
-	return false
 }
 
 type yamlModelProvider struct {
