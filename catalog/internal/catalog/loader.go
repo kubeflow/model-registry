@@ -85,6 +85,8 @@ func NewLoader(services service.Services, paths []string) *Loader {
 
 // RegisterEventHandler adds a function that will be called for every
 // successfully processed record. This should be called before Start.
+//
+// Handlers are called in the order they are registered.
 func (l *Loader) RegisterEventHandler(fn LoaderEventHandler) {
 	l.handlers = append(l.handlers, fn)
 }

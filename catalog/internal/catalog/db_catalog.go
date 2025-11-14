@@ -8,6 +8,7 @@ import (
 	"sort"
 	"strconv"
 
+	"github.com/kubeflow/model-registry/catalog/internal/db/models"
 	dbmodels "github.com/kubeflow/model-registry/catalog/internal/db/models"
 	"github.com/kubeflow/model-registry/catalog/internal/db/service"
 	apimodels "github.com/kubeflow/model-registry/catalog/pkg/openapi"
@@ -20,6 +21,7 @@ import (
 type dbCatalogImpl struct {
 	catalogModelRepository    dbmodels.CatalogModelRepository
 	catalogArtifactRepository dbmodels.CatalogArtifactRepository
+	propertyOptionsRepository dbmodels.PropertyOptionsRepository
 	sources                   *SourceCollection
 }
 
@@ -27,6 +29,7 @@ func NewDBCatalog(services service.Services, sources *SourceCollection) APIProvi
 	return &dbCatalogImpl{
 		catalogArtifactRepository: services.CatalogArtifactRepository,
 		catalogModelRepository:    services.CatalogModelRepository,
+		propertyOptionsRepository: services.PropertyOptionsRepository,
 		sources:                   sources,
 	}
 }
@@ -194,50 +197,100 @@ func (d *dbCatalogImpl) GetArtifacts(ctx context.Context, modelName string, sour
 }
 
 func (d *dbCatalogImpl) GetFilterOptions(ctx context.Context) (*apimodels.FilterOptionsList, error) {
-	// Max length threshold for filter values (excludes verbose fields like readme, description)
-	const maxFilterValueLength = 100
-
-	// Query database for filterable properties
-	filterableProps, err := d.catalogModelRepository.GetFilterableProperties(maxFilterValueLength)
+	contextProperties, err := d.propertyOptionsRepository.List(models.ContextPropertyOptionType, 0)
+	if err != nil {
+		return nil, err
+	}
+	artifactProperties, err := d.propertyOptionsRepository.List(models.ArtifactPropertyOptionType, 0)
 	if err != nil {
 		return nil, err
 	}
 
 	// Build FilterOptionsList
-	options := make(map[string]apimodels.FilterOption, maxFilterValueLength)
+	options := make(map[string]apimodels.FilterOption, len(contextProperties)+len(artifactProperties))
 
-	// Process each property and its values
-	for fieldName, values := range filterableProps {
+	for _, prop := range contextProperties {
 		// Skip internal/technical fields that shouldn't be exposed as filters
-		if fieldName == "source_id" || fieldName == "logo" || fieldName == "license_link" {
+		switch prop.Name {
+		case "source_id", "logo", "license_link":
 			continue
 		}
 
-		if len(values) == 0 {
+		option := dbPropToAPIOption(prop)
+		if option != nil {
+			options[prop.FullName("")] = *option
+		}
+	}
+
+	for _, prop := range artifactProperties {
+		// Skip internal/technical fields that shouldn't be exposed as filters
+		switch prop.Name {
+		case "metricsType", "model_id":
 			continue
 		}
-
-		sortedValues := make([]string, 0, len(values))
-		for _, v := range values {
-			sortedValues = append(sortedValues, v)
-		}
-		sort.Strings(sortedValues)
-
-		// Convert to []any (supports future non-string filter types)
-		expandedValues := make([]any, len(sortedValues))
-		for i, v := range sortedValues {
-			expandedValues[i] = v
-		}
-
-		options[fieldName] = apimodels.FilterOption{
-			Type:   "string",
-			Values: expandedValues,
+		option := dbPropToAPIOption(prop)
+		if option != nil {
+			options[prop.FullName("artifacts")] = *option
 		}
 	}
 
 	return &apimodels.FilterOptionsList{
 		Filters: &options,
 	}, nil
+}
+
+func dbPropToAPIOption(prop dbmodels.PropertyOption) *apimodels.FilterOption {
+	var option apimodels.FilterOption
+
+	switch prop.ValueField() {
+	case dbmodels.StringValueField:
+		if len(prop.StringValue) == 0 {
+			return nil
+		}
+		option.Type = "string"
+		sort.Strings(prop.StringValue)
+		option.Values = anySlice(prop.StringValue)
+
+	case dbmodels.ArrayValueField:
+		if len(prop.ArrayValue) == 0 {
+			return nil
+		}
+		option.Type = "string"
+		sort.Strings(prop.ArrayValue)
+		option.Values = anySlice(prop.ArrayValue)
+
+	case dbmodels.IntValueField:
+		if prop.MinIntValue == nil || prop.MaxIntValue == nil {
+			return nil
+		}
+
+		option.Type = "number"
+		option.Range = &apimodels.FilterOptionRange{
+			Min: float64(*prop.MinIntValue),
+			Max: float64(*prop.MaxIntValue),
+		}
+
+	case dbmodels.DoubleValueField:
+		if prop.MinDoubleValue == nil || prop.MaxDoubleValue == nil {
+			return nil
+		}
+
+		option.Type = "number"
+		option.Range = &apimodels.FilterOptionRange{
+			Min: *prop.MinDoubleValue,
+			Max: *prop.MaxDoubleValue,
+		}
+	}
+
+	return &option
+}
+
+func anySlice[T any](s []T) []any {
+	as := make([]any, len(s))
+	for i, v := range s {
+		as[i] = v
+	}
+	return as
 }
 
 func mapDBModelToAPIModel(m dbmodels.CatalogModel) apimodels.CatalogModel {
