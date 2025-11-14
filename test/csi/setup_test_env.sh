@@ -16,7 +16,7 @@ CLUSTER=${CLUSTER:-"kind"}
 # `kind load docker-image $MRCSI_IMG`
 MRCSI_IMG=${MRCSI_IMG:-"ghcr.io/kubeflow/model-registry/storage-initializer:main"}
 
-KSERVE_VERSION=${KSERVE_VERSION:-"0.15"}
+KSERVE_VERSION=${KSERVE_VERSION:-"0.16"}
 MODELREGISTRY_VERSION=${MODELREGISTRY_VERSION:-"v0.3.2"}
 MODELREGISTRY_CSI=${MODELREGISTRY_CSI:-"v0.3.2"}
 
