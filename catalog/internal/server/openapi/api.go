@@ -39,5 +39,5 @@ type ModelCatalogServiceAPIServicer interface {
 	FindModelsFilterOptions(context.Context) (ImplResponse, error)
 	FindSources(context.Context, string, string, model.OrderByField, model.SortOrder, string) (ImplResponse, error)
 	GetModel(context.Context, string, string) (ImplResponse, error)
-	GetAllModelArtifacts(context.Context, string, string, []model.ArtifactTypeQueryParam, []model.ArtifactTypeQueryParam, string, string, model.OrderByField, model.SortOrder, string) (ImplResponse, error)
+	GetAllModelArtifacts(context.Context, string, string, []model.ArtifactTypeQueryParam, []model.ArtifactTypeQueryParam, string, string, string, model.SortOrder, string) (ImplResponse, error)
 }

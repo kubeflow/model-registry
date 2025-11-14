@@ -775,7 +775,7 @@ type ApiGetAllModelArtifactsRequest struct {
 	artifactType2 *[]ArtifactTypeQueryParam
 	filterQuery   *string
 	pageSize      *string
-	orderBy       *OrderByField
+	orderBy       *string
 	sortOrder     *SortOrder
 	nextPageToken *string
 }
@@ -805,8 +805,8 @@ func (r ApiGetAllModelArtifactsRequest) PageSize(pageSize string) ApiGetAllModel
 	return r
 }
 
-// Specifies the order by criteria for listing entities.
-func (r ApiGetAllModelArtifactsRequest) OrderBy(orderBy OrderByField) ApiGetAllModelArtifactsRequest {
+// Specifies the order by criteria for listing artifacts.  **Standard Fields:** - &#x60;ID&#x60; - Order by artifact ID - &#x60;NAME&#x60; - Order by artifact name - &#x60;CREATE_TIME&#x60; - Order by creation timestamp - &#x60;LAST_UPDATE_TIME&#x60; - Order by last update timestamp  **Custom Property Ordering:**  Artifacts can be ordered by custom properties using the format: &#x60;&lt;property_name&gt;.&lt;value_type&gt;&#x60;  Supported value types: - &#x60;double_value&#x60; - For numeric (floating-point) properties - &#x60;int_value&#x60; - For integer properties - &#x60;string_value&#x60; - For string properties  Examples: - &#x60;mmlu.double_value&#x60; - Order by the &#39;mmlu&#39; benchmark score - &#x60;accuracy.double_value&#x60; - Order by accuracy metric - &#x60;framework_type.string_value&#x60; - Order by framework type - &#x60;hardware_count.int_value&#x60; - Order by hardware count - &#x60;ttft_mean.double_value&#x60; - Order by time-to-first-token mean  **Behavior:** - If an invalid value type is specified (e.g., &#x60;accuracy.invalid_type&#x60;), an error is returned - If an invalid format is used (e.g., &#x60;accuracy&#x60; without &#x60;.value_type&#x60;), it falls back to ID ordering - If a property doesn&#39;t exist, it falls back to ID ordering - Artifacts with the specified property are ordered first (by the property value), followed by artifacts without the property (ordered by ID) - Empty property names (e.g., &#x60;.double_value&#x60;) return an error
+func (r ApiGetAllModelArtifactsRequest) OrderBy(orderBy string) ApiGetAllModelArtifactsRequest {
 	r.orderBy = &orderBy
 	return r
 }

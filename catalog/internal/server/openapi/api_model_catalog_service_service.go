@@ -26,7 +26,7 @@ type ModelCatalogServiceAPIService struct {
 }
 
 // GetAllModelArtifacts retrieves all model artifacts for a given model from the specified source.
-func (m *ModelCatalogServiceAPIService) GetAllModelArtifacts(ctx context.Context, sourceID string, modelName string, artifactType []model.ArtifactTypeQueryParam, artifactType2 []model.ArtifactTypeQueryParam, filterQuery string, pageSize string, orderBy model.OrderByField, sortOrder model.SortOrder, nextPageToken string) (ImplResponse, error) {
+func (m *ModelCatalogServiceAPIService) GetAllModelArtifacts(ctx context.Context, sourceID string, modelName string, artifactType []model.ArtifactTypeQueryParam, artifactType2 []model.ArtifactTypeQueryParam, filterQuery string, pageSize string, orderBy string, sortOrder model.SortOrder, nextPageToken string) (ImplResponse, error) {
 	// Handle multiple artifact_type parameters (snake case - deprecated, will be removed in future)
 	for _, v := range artifactType2 {
 		if v != "" {
