@@ -1,8 +1,20 @@
 diff --git a/catalog/internal/server/openapi/api_model_catalog_service.go b/catalog/internal/server/openapi/api_model_catalog_service.go
-index 3409c7a2..c7f010f1 100644
+index 9c1079ac..86909d80 100644
 --- a/catalog/internal/server/openapi/api_model_catalog_service.go
 +++ b/catalog/internal/server/openapi/api_model_catalog_service.go
-@@ -168,7 +168,7 @@ func (c *ModelCatalogServiceAPIController) FindLabels(w http.ResponseWriter, r *
+@@ -145,9 +145,9 @@ func (c *ModelCatalogServiceAPIController) FindLabels(w http.ResponseWriter, r *
+ 		pageSizeParam = param
+ 	} else {
+ 	}
+-	var orderByParam model.OrderByField
++	var orderByParam string
+ 	if query.Has("orderBy") {
+-		param := model.OrderByField(query.Get("orderBy"))
++		param := query.Get("orderBy")
+ 
+ 		orderByParam = param
+ 	} else {
+@@ -166,7 +166,7 @@ func (c *ModelCatalogServiceAPIController) FindLabels(w http.ResponseWriter, r *
  		nextPageTokenParam = param
  	} else {
  	}
@@ -33,3 +45,24 @@ index 3409c7a2..c7f010f1 100644
  	result, err := c.service.GetModel(r.Context(), sourceIdParam, modelNameParam)
  	// If an error occurred, encode the error with the status code
  	if err != nil {
+@@ -403,9 +418,9 @@ func (c *ModelCatalogServiceAPIController) GetAllModelArtifacts(w http.ResponseW
+ 		pageSizeParam = param
+ 	} else {
+ 	}
+-	var orderByParam model.OrderByField
++	var orderByParam string
+ 	if query.Has("orderBy") {
+-		param := model.OrderByField(query.Get("orderBy"))
++		param := query.Get("orderBy")
+ 
+ 		orderByParam = param
+ 	} else {
+@@ -424,7 +439,7 @@ func (c *ModelCatalogServiceAPIController) GetAllModelArtifacts(w http.ResponseW
+ 		nextPageTokenParam = param
+ 	} else {
+ 	}
+-	result, err := c.service.GetAllModelArtifacts(r.Context(), sourceIdParam, modelNameParam, artifactTypeParam, artifactType2Param, filterQueryParam, pageSizeParam, model.OrderByField(orderByParam), model.SortOrder(sortOrderParam), nextPageTokenParam)
++	result, err := c.service.GetAllModelArtifacts(r.Context(), sourceIdParam, modelNameParam, artifactTypeParam, artifactType2Param, filterQueryParam, pageSizeParam, orderByParam, model.SortOrder(sortOrderParam), nextPageTokenParam)
+ 	// If an error occurred, encode the error with the status code
+ 	if err != nil {
+ 		c.errorHandler(w, r, err, &result)

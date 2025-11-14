@@ -214,9 +214,9 @@ func (c *ModelCatalogServiceAPIController) FindModels(w http.ResponseWriter, r *
 		pageSizeParam = param
 	} else {
 	}
-	var orderByParam model.OrderByField
+	var orderByParam string
 	if query.Has("orderBy") {
-		param := model.OrderByField(query.Get("orderBy"))
+		param := query.Get("orderBy")
 
 		orderByParam = param
 	} else {
@@ -278,9 +278,9 @@ func (c *ModelCatalogServiceAPIController) FindSources(w http.ResponseWriter, r 
 		pageSizeParam = param
 	} else {
 	}
-	var orderByParam model.OrderByField
+	var orderByParam string
 	if query.Has("orderBy") {
-		param := model.OrderByField(query.Get("orderBy"))
+		param := query.Get("orderBy")
 
 		orderByParam = param
 	} else {
@@ -403,9 +403,9 @@ func (c *ModelCatalogServiceAPIController) GetAllModelArtifacts(w http.ResponseW
 		pageSizeParam = param
 	} else {
 	}
-	var orderByParam model.OrderByField
+	var orderByParam string
 	if query.Has("orderBy") {
-		param := model.OrderByField(query.Get("orderBy"))
+		param := query.Get("orderBy")
 
 		orderByParam = param
 	} else {
@@ -424,7 +424,7 @@ func (c *ModelCatalogServiceAPIController) GetAllModelArtifacts(w http.ResponseW
 		nextPageTokenParam = param
 	} else {
 	}
-	result, err := c.service.GetAllModelArtifacts(r.Context(), sourceIdParam, modelNameParam, artifactTypeParam, artifactType2Param, filterQueryParam, pageSizeParam, model.OrderByField(orderByParam), model.SortOrder(sortOrderParam), nextPageTokenParam)
+	result, err := c.service.GetAllModelArtifacts(r.Context(), sourceIdParam, modelNameParam, artifactTypeParam, artifactType2Param, filterQueryParam, pageSizeParam, orderByParam, model.SortOrder(sortOrderParam), nextPageTokenParam)
 	// If an error occurred, encode the error with the status code
 	if err != nil {
 		c.errorHandler(w, r, err, &result)
