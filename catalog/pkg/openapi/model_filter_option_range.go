@@ -19,16 +19,20 @@ var _ MappedNullable = &FilterOptionRange{}
 
 // FilterOptionRange Min and max values for number types.
 type FilterOptionRange struct {
-	Min *float32 `json:"min,omitempty"`
-	Max *float32 `json:"max,omitempty"`
+	Min float64 `json:"min"`
+	Max float64 `json:"max"`
 }
+
+type _FilterOptionRange FilterOptionRange
 
 // NewFilterOptionRange instantiates a new FilterOptionRange object
 // This constructor will assign default values to properties that have it defined,
 // and makes sure properties required by API are set, but the set of arguments
 // will change when the set of required properties is changed
-func NewFilterOptionRange() *FilterOptionRange {
+func NewFilterOptionRange(min float64, max float64) *FilterOptionRange {
 	this := FilterOptionRange{}
+	this.Min = min
+	this.Max = max
 	return &this
 }
 
@@ -40,68 +44,52 @@ func NewFilterOptionRangeWithDefaults() *FilterOptionRange {
 	return &this
 }
 
-// GetMin returns the Min field value if set, zero value otherwise.
-func (o *FilterOptionRange) GetMin() float32 {
-	if o == nil || IsNil(o.Min) {
-		var ret float32
+// GetMin returns the Min field value
+func (o *FilterOptionRange) GetMin() float64 {
+	if o == nil {
+		var ret float64
 		return ret
 	}
-	return *o.Min
+
+	return o.Min
 }
 
-// GetMinOk returns a tuple with the Min field value if set, nil otherwise
+// GetMinOk returns a tuple with the Min field value
 // and a boolean to check if the value has been set.
-func (o *FilterOptionRange) GetMinOk() (*float32, bool) {
-	if o == nil || IsNil(o.Min) {
+func (o *FilterOptionRange) GetMinOk() (*float64, bool) {
+	if o == nil {
 		return nil, false
 	}
-	return o.Min, true
+	return &o.Min, true
 }
 
-// HasMin returns a boolean if a field has been set.
-func (o *FilterOptionRange) HasMin() bool {
-	if o != nil && !IsNil(o.Min) {
-		return true
-	}
-
-	return false
+// SetMin sets field value
+func (o *FilterOptionRange) SetMin(v float64) {
+	o.Min = v
 }
 
-// SetMin gets a reference to the given float32 and assigns it to the Min field.
-func (o *FilterOptionRange) SetMin(v float32) {
-	o.Min = &v
-}
-
-// GetMax returns the Max field value if set, zero value otherwise.
-func (o *FilterOptionRange) GetMax() float32 {
-	if o == nil || IsNil(o.Max) {
-		var ret float32
+// GetMax returns the Max field value
+func (o *FilterOptionRange) GetMax() float64 {
+	if o == nil {
+		var ret float64
 		return ret
 	}
-	return *o.Max
+
+	return o.Max
 }
 
-// GetMaxOk returns a tuple with the Max field value if set, nil otherwise
+// GetMaxOk returns a tuple with the Max field value
 // and a boolean to check if the value has been set.
-func (o *FilterOptionRange) GetMaxOk() (*float32, bool) {
-	if o == nil || IsNil(o.Max) {
+func (o *FilterOptionRange) GetMaxOk() (*float64, bool) {
+	if o == nil {
 		return nil, false
 	}
-	return o.Max, true
+	return &o.Max, true
 }
 
-// HasMax returns a boolean if a field has been set.
-func (o *FilterOptionRange) HasMax() bool {
-	if o != nil && !IsNil(o.Max) {
-		return true
-	}
-
-	return false
-}
-
-// SetMax gets a reference to the given float32 and assigns it to the Max field.
-func (o *FilterOptionRange) SetMax(v float32) {
-	o.Max = &v
+// SetMax sets field value
+func (o *FilterOptionRange) SetMax(v float64) {
+	o.Max = v
 }
 
 func (o FilterOptionRange) MarshalJSON() ([]byte, error) {
@@ -114,12 +102,8 @@ func (o FilterOptionRange) MarshalJSON() ([]byte, error) {
 
 func (o FilterOptionRange) ToMap() (map[string]interface{}, error) {
 	toSerialize := map[string]interface{}{}
-	if !IsNil(o.Min) {
-		toSerialize["min"] = o.Min
-	}
-	if !IsNil(o.Max) {
-		toSerialize["max"] = o.Max
-	}
+	toSerialize["min"] = o.Min
+	toSerialize["max"] = o.Max
 	return toSerialize, nil
 }
 

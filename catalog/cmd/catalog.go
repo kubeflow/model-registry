@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 	"reflect"
+	"time"
 
 	"github.com/golang/glog"
 	"github.com/kubeflow/model-registry/catalog/internal/catalog"
@@ -62,6 +63,7 @@ func runCatalogServer(cmd *cobra.Command, args []string) error {
 		getRepo[models.CatalogArtifactRepository](repoSet),
 		getRepo[models.CatalogModelArtifactRepository](repoSet),
 		getRepo[models.CatalogMetricsArtifactRepository](repoSet),
+		getRepo[models.PropertyOptionsRepository](repoSet),
 	)
 
 	loader := catalog.NewLoader(services, catalogCfg.ConfigPath)
@@ -71,6 +73,12 @@ func runCatalogServer(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("error initializing performance metrics: %v", err)
 	}
 	loader.RegisterEventHandler(perfLoader.Load)
+
+	poRefresher := models.NewPropertyOptionsRefresher(context.Background(), services.PropertyOptionsRepository, time.Second)
+	loader.RegisterEventHandler(func(ctx context.Context, record catalog.ModelProviderRecord) error {
+		poRefresher.Trigger()
+		return nil
+	})
 
 	err = loader.Start(context.Background())
 	if err != nil {

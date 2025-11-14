@@ -8,13 +8,12 @@ import (
 	"github.com/golang/glog"
 	"github.com/kubeflow/model-registry/catalog/internal/db/filter"
 	"github.com/kubeflow/model-registry/catalog/internal/db/models"
-	dbmodels "github.com/kubeflow/model-registry/internal/db/models"
 	"github.com/kubeflow/model-registry/internal/db/dbutil"
+	dbmodels "github.com/kubeflow/model-registry/internal/db/models"
 	"github.com/kubeflow/model-registry/internal/db/schema"
 	"github.com/kubeflow/model-registry/internal/db/scopes"
 	"github.com/kubeflow/model-registry/internal/db/service"
 	"github.com/kubeflow/model-registry/internal/db/utils"
-	"github.com/lib/pq"
 	"gorm.io/gorm"
 )
 
@@ -257,73 +256,6 @@ func mapDataLayerToCatalogModel(modelCtx schema.Context, propertiesCtx []schema.
 	catalogModel.CustomProperties = &customProperties
 
 	return catalogModel
-}
-
-// GetFilterableProperties returns property names and their unique values
-// Only includes properties where ALL values are shorter than maxLength
-func (r *CatalogModelRepositoryImpl) GetFilterableProperties(maxLength int) (map[string][]string, error) {
-	config := r.GetConfig()
-
-	if config.DB.Name() != "postgres" {
-		return nil, fmt.Errorf("GetFilterableProperties is only supported on PostgreSQL")
-	}
-
-	db, err := config.DB.DB()
-	if err != nil {
-		return nil, err
-	}
-
-	// Get table names using GORM utilities for database compatibility
-	contextTable := utils.GetTableName(config.DB, &schema.Context{})
-	propertyTable := utils.GetTableName(config.DB, &schema.ContextProperty{})
-
-	query := fmt.Sprintf(`
-		SELECT name, array_agg(string_value) FROM (
-			SELECT
-				name,
-				string_value
-			FROM %s WHERE
-				context_id IN (
-					SELECT id FROM %s WHERE type_id=$1
-				)
-				AND string_value IS NOT NULL
-				AND string_value != ''
-				AND string_value IS NOT JSON ARRAY
-
-			UNION
-
-			SELECT
-				name,
-				json_array_elements_text(string_value::json) AS string_value
-			FROM %s WHERE
-				context_id IN (
-					SELECT id FROM %s WHERE type_id=$1
-				)
-				AND string_value IS JSON ARRAY
-		)
-		GROUP BY name HAVING MAX(CHAR_LENGTH(string_value)) <= $2
-	`, propertyTable, contextTable, propertyTable, contextTable)
-
-	rows, err := db.Query(query, config.TypeID, maxLength)
-	if err != nil {
-		return nil, fmt.Errorf("error querying filterable properties: %w", err)
-	}
-	defer rows.Close()
-
-	result := map[string][]string{}
-	for rows.Next() {
-		var name string
-		var values pq.StringArray
-
-		err = rows.Scan(&name, &values)
-		if err != nil {
-			return nil, fmt.Errorf("error scanning filterable property row: %w", err)
-		}
-
-		result[name] = []string(values)
-	}
-
-	return result, nil
 }
 
 // applyCustomOrdering applies custom ordering logic for non-standard orderBy field

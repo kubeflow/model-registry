@@ -48,6 +48,7 @@ func TestDBCatalog(t *testing.T) {
 		catalogArtifactRepo,
 		modelArtifactRepo,
 		metricsArtifactRepo,
+		service.NewPropertyOptionsRepository(sharedDB),
 	)
 
 	// Create DB catalog instance
@@ -863,6 +864,9 @@ func TestDBCatalog(t *testing.T) {
 		require.NoError(t, err)
 		_, err = catalogModelRepo.Save(model3)
 		require.NoError(t, err)
+
+		require.NoError(t, dbCatalog.(*dbCatalogImpl).propertyOptionsRepository.Refresh(models.ContextPropertyOptionType))
+		require.NoError(t, dbCatalog.(*dbCatalogImpl).propertyOptionsRepository.Refresh(models.ArtifactPropertyOptionType))
 
 		// Test GetFilterOptions
 		filterOptions, err := dbCatalog.GetFilterOptions(ctx)

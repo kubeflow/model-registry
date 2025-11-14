@@ -1,0 +1,229 @@
+package service_test
+
+import (
+	"testing"
+
+	"github.com/kubeflow/model-registry/catalog/internal/db/models"
+	"github.com/kubeflow/model-registry/catalog/internal/db/service"
+	"github.com/kubeflow/model-registry/internal/apiutils"
+	dbmodels "github.com/kubeflow/model-registry/internal/db/models"
+	"github.com/kubeflow/model-registry/internal/testutils"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+)
+
+func TestPropertyOptionsRepository(t *testing.T) {
+	sharedDB, cleanup := testutils.SetupPostgresWithMigrations(t, service.DatastoreSpec())
+	defer cleanup()
+
+	repo := service.NewPropertyOptionsRepository(sharedDB)
+
+	// Get necessary type IDs for creating test data
+	catalogModelTypeID := getCatalogModelTypeID(t, sharedDB)
+	modelArtifactTypeID := getCatalogModelArtifactTypeID(t, sharedDB)
+
+	// Create test repositories for setting up data
+	catalogModelRepo := service.NewCatalogModelRepository(sharedDB, catalogModelTypeID)
+	artifactRepo := service.NewCatalogModelArtifactRepository(sharedDB, modelArtifactTypeID)
+
+	t.Run("Refresh_ContextPropertyOptions", func(t *testing.T) {
+		// Test refreshing context property options materialized view
+		err := repo.Refresh(models.ContextPropertyOptionType)
+		assert.NoError(t, err)
+	})
+
+	t.Run("Refresh_ArtifactPropertyOptions", func(t *testing.T) {
+		// Test refreshing artifact property options materialized view
+		err := repo.Refresh(models.ArtifactPropertyOptionType)
+		assert.NoError(t, err)
+	})
+
+	t.Run("Refresh_InvalidType", func(t *testing.T) {
+		// Test error handling for invalid property option type
+		err := repo.Refresh(models.PropertyOptionType(999))
+		assert.Error(t, err)
+		assert.Contains(t, err.Error(), "invalid property option type")
+	})
+
+	t.Run("List_ContextPropertyOptions_SharedTestEnvironment", func(t *testing.T) {
+		// Refresh the view first
+		err := repo.Refresh(models.ContextPropertyOptionType)
+		require.NoError(t, err)
+
+		// List context property options for the test type ID
+		options, err := repo.List(models.ContextPropertyOptionType, catalogModelTypeID)
+		assert.NoError(t, err)
+		assert.NotNil(t, options)
+		// In shared test environment, other tests may have created data already
+		// Just verify the function works and returns valid data if any exists
+		for _, option := range options {
+			assert.Equal(t, catalogModelTypeID, option.TypeID)
+			assert.NotEmpty(t, option.Name)
+		}
+	})
+
+	t.Run("List_ArtifactPropertyOptions_SharedTestEnvironment", func(t *testing.T) {
+		// Refresh the view first
+		err := repo.Refresh(models.ArtifactPropertyOptionType)
+		require.NoError(t, err)
+
+		// List artifact property options for the test type ID
+		options, err := repo.List(models.ArtifactPropertyOptionType, modelArtifactTypeID)
+		assert.NoError(t, err)
+		assert.NotNil(t, options)
+		// In shared test environment, other tests may have created data already
+		// Just verify the function works and returns valid data if any exists
+		for _, option := range options {
+			assert.Equal(t, modelArtifactTypeID, option.TypeID)
+			assert.NotEmpty(t, option.Name)
+		}
+	})
+
+	t.Run("List_NonExistentTypeID", func(t *testing.T) {
+		// Test with a type ID that doesn't exist - should return empty results
+		nonExistentTypeID := int32(99999)
+
+		// Test context property options
+		options, err := repo.List(models.ContextPropertyOptionType, nonExistentTypeID)
+		assert.NoError(t, err)
+		assert.NotNil(t, options)
+		assert.Len(t, options, 0)
+
+		// Test artifact property options
+		options, err = repo.List(models.ArtifactPropertyOptionType, nonExistentTypeID)
+		assert.NoError(t, err)
+		assert.NotNil(t, options)
+		assert.Len(t, options, 0)
+	})
+
+	t.Run("List_InvalidType", func(t *testing.T) {
+		// Test error handling for invalid property option type
+		options, err := repo.List(models.PropertyOptionType(999), catalogModelTypeID)
+		assert.Error(t, err)
+		assert.Nil(t, options)
+		assert.Contains(t, err.Error(), "invalid property option type")
+	})
+
+	t.Run("List_ContextPropertyOptions_WithData", func(t *testing.T) {
+		// Create a catalog model with properties to populate the materialized view
+		catalogModel := &models.CatalogModelImpl{
+			TypeID: apiutils.Of(int32(catalogModelTypeID)),
+			Attributes: &models.CatalogModelAttributes{
+				Name:       apiutils.Of("test-model-for-context-properties"),
+				ExternalID: apiutils.Of("context-props-test-123"),
+			},
+			CustomProperties: &[]dbmodels.Properties{
+				{
+					Name:        "custom_prop_1",
+					StringValue: apiutils.Of("value1"),
+				},
+				{
+					Name:     "version_number",
+					IntValue: apiutils.Of(int32(1)),
+				},
+				{
+					Name:        "accuracy",
+					DoubleValue: apiutils.Of(0.95),
+				},
+			},
+		}
+
+		savedModel, err := catalogModelRepo.Save(catalogModel)
+		require.NoError(t, err)
+		require.NotNil(t, savedModel)
+
+		// Refresh the materialized view to include our new data
+		err = repo.Refresh(models.ContextPropertyOptionType)
+		require.NoError(t, err)
+
+		// List context property options
+		options, err := repo.List(models.ContextPropertyOptionType, catalogModelTypeID)
+		assert.NoError(t, err)
+		assert.NotNil(t, options)
+
+		// We should have at least some property options now
+		// The exact number depends on what properties were created
+		if len(options) > 0 {
+			// Verify the structure of returned options
+			for _, option := range options {
+				assert.Equal(t, catalogModelTypeID, option.TypeID)
+				assert.NotEmpty(t, option.Name)
+				// At least one of the value fields should be populated
+				hasValue := len(option.StringValue) > 0 ||
+					len(option.ArrayValue) > 0 ||
+					option.MinDoubleValue != nil ||
+					option.MaxDoubleValue != nil ||
+					option.MinIntValue != nil ||
+					option.MaxIntValue != nil
+				assert.True(t, hasValue, "Option should have at least one value field populated")
+			}
+		}
+	})
+
+	t.Run("List_ArtifactPropertyOptions_WithData", func(t *testing.T) {
+		// First create a catalog model as parent
+		catalogModel := &models.CatalogModelImpl{
+			TypeID: apiutils.Of(int32(catalogModelTypeID)),
+			Attributes: &models.CatalogModelAttributes{
+				Name:       apiutils.Of("test-model-for-artifact-properties"),
+				ExternalID: apiutils.Of("artifact-props-test-123"),
+			},
+		}
+		savedModel, err := catalogModelRepo.Save(catalogModel)
+		require.NoError(t, err)
+
+		// Create an artifact with properties
+		artifact := &models.CatalogModelArtifactImpl{
+			TypeID: apiutils.Of(int32(modelArtifactTypeID)),
+			Attributes: &models.CatalogModelArtifactAttributes{
+				Name:       apiutils.Of("test-artifact-with-properties"),
+				ExternalID: apiutils.Of("artifact-props-test-456"),
+				URI:        apiutils.Of("s3://bucket/model.pkl"),
+			},
+			CustomProperties: &[]dbmodels.Properties{
+				{
+					Name:        "model_type",
+					StringValue: apiutils.Of("classification"),
+				},
+				{
+					Name:     "file_size",
+					IntValue: apiutils.Of(int32(1024)),
+				},
+				{
+					Name:        "validation_accuracy",
+					DoubleValue: apiutils.Of(0.92),
+				},
+			},
+		}
+
+		savedArtifact, err := artifactRepo.Save(artifact, savedModel.GetID())
+		require.NoError(t, err)
+		require.NotNil(t, savedArtifact)
+
+		// Refresh the materialized view to include our new data
+		err = repo.Refresh(models.ArtifactPropertyOptionType)
+		require.NoError(t, err)
+
+		// List artifact property options
+		options, err := repo.List(models.ArtifactPropertyOptionType, modelArtifactTypeID)
+		assert.NoError(t, err)
+		assert.NotNil(t, options)
+
+		// We should have some property options now
+		if len(options) > 0 {
+			// Verify the structure of returned options
+			for _, option := range options {
+				assert.Equal(t, modelArtifactTypeID, option.TypeID)
+				assert.NotEmpty(t, option.Name)
+				// At least one of the value fields should be populated
+				hasValue := len(option.StringValue) > 0 ||
+					len(option.ArrayValue) > 0 ||
+					option.MinDoubleValue != nil ||
+					option.MaxDoubleValue != nil ||
+					option.MinIntValue != nil ||
+					option.MaxIntValue != nil
+				assert.True(t, hasValue, "Option should have at least one value field populated")
+			}
+		}
+	})
+}

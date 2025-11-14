@@ -40,6 +40,7 @@ func TestLoadCatalogSources(t *testing.T) {
 				&MockCatalogArtifactRepository{},
 				&MockCatalogModelArtifactRepository{},
 				&MockCatalogMetricsArtifactRepository{},
+				&MockPropertyOptionsRepository{},
 			)
 			loader := NewLoader(services, []string{tt.args.catalogsPath})
 			err := loader.Start(context.Background())
@@ -92,6 +93,7 @@ func TestLoadCatalogSourcesEnabledDisabled(t *testing.T) {
 				&MockCatalogArtifactRepository{},
 				&MockCatalogModelArtifactRepository{},
 				&MockCatalogMetricsArtifactRepository{},
+				&MockPropertyOptionsRepository{},
 			)
 			loader := NewLoader(services, []string{tt.args.catalogsPath})
 			err := loader.Start(context.Background())
@@ -117,6 +119,7 @@ func TestLabelsValidation(t *testing.T) {
 		&MockCatalogArtifactRepository{},
 		&MockCatalogModelArtifactRepository{},
 		&MockCatalogMetricsArtifactRepository{},
+		&MockPropertyOptionsRepository{},
 	)
 
 	tests := []struct {
@@ -246,6 +249,7 @@ func TestCatalogSourceLabelsDefaultToEmptySlice(t *testing.T) {
 				&MockCatalogArtifactRepository{},
 				&MockCatalogModelArtifactRepository{},
 				&MockCatalogMetricsArtifactRepository{},
+				&MockPropertyOptionsRepository{},
 			)
 			loader := NewLoader(services, []string{tt.args.catalogsPath})
 			err := loader.Start(context.Background())
@@ -283,6 +287,7 @@ func TestLoadCatalogSourcesWithMockRepositories(t *testing.T) {
 		mockArtifactRepo,
 		mockModelArtifactRepo,
 		mockMetricsArtifactRepo,
+		&MockPropertyOptionsRepository{},
 	)
 
 	// Register a test provider that will create some test data
@@ -395,6 +400,7 @@ func TestLoadCatalogSourcesWithRepositoryErrors(t *testing.T) {
 		mockArtifactRepo,
 		mockModelArtifactRepo,
 		mockMetricsArtifactRepo,
+		&MockPropertyOptionsRepository{},
 	)
 
 	// Register a test provider
@@ -578,10 +584,6 @@ func (m *MockCatalogModelRepository) Save(model dbmodels.CatalogModel) (dbmodels
 	return savedModel, nil
 }
 
-func (m *MockCatalogModelRepository) GetFilterableProperties(maxLength int) (map[string][]string, error) {
-	return make(map[string][]string), nil
-}
-
 // MockCatalogModelArtifactRepository mocks the CatalogModelArtifactRepository interface.
 type MockCatalogModelArtifactRepository struct {
 	SavedArtifacts []dbmodels.CatalogModelArtifact
@@ -725,4 +727,54 @@ type MockNotFoundError struct {
 
 func (e *MockNotFoundError) Error() string {
 	return fmt.Sprintf("%s with ID %d not found", e.Entity, e.ID)
+}
+
+// MockPropertyOptionsRepository mocks the PropertyOptionsRepository interface.
+type MockPropertyOptionsRepository struct {
+	RefreshCalls []dbmodels.PropertyOptionType
+	ListCalls    []struct {
+		Type   dbmodels.PropertyOptionType
+		TypeID int32
+	}
+	MockOptions map[dbmodels.PropertyOptionType]map[int32][]dbmodels.PropertyOption
+}
+
+func NewMockPropertyOptionsRepository() *MockPropertyOptionsRepository {
+	return &MockPropertyOptionsRepository{
+		RefreshCalls: make([]dbmodels.PropertyOptionType, 0),
+		ListCalls: make([]struct {
+			Type   dbmodels.PropertyOptionType
+			TypeID int32
+		}, 0),
+		MockOptions: make(map[dbmodels.PropertyOptionType]map[int32][]dbmodels.PropertyOption),
+	}
+}
+
+func (m *MockPropertyOptionsRepository) Refresh(t dbmodels.PropertyOptionType) error {
+	m.RefreshCalls = append(m.RefreshCalls, t)
+	return nil
+}
+
+func (m *MockPropertyOptionsRepository) List(t dbmodels.PropertyOptionType, typeID int32) ([]dbmodels.PropertyOption, error) {
+	m.ListCalls = append(m.ListCalls, struct {
+		Type   dbmodels.PropertyOptionType
+		TypeID int32
+	}{Type: t, TypeID: typeID})
+
+	if typeMap, exists := m.MockOptions[t]; exists {
+		if options, exists := typeMap[typeID]; exists {
+			return options, nil
+		}
+	}
+
+	// Return empty slice by default
+	return []dbmodels.PropertyOption{}, nil
+}
+
+// SetMockOptions allows tests to set up mock data for specific types and typeIDs.
+func (m *MockPropertyOptionsRepository) SetMockOptions(t dbmodels.PropertyOptionType, typeID int32, options []dbmodels.PropertyOption) {
+	if m.MockOptions[t] == nil {
+		m.MockOptions[t] = make(map[int32][]dbmodels.PropertyOption)
+	}
+	m.MockOptions[t][typeID] = options
 }

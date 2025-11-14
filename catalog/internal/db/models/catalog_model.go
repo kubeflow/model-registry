@@ -37,7 +37,4 @@ type CatalogModelRepository interface {
 	GetByName(name string) (CatalogModel, error)
 	List(listOptions CatalogModelListOptions) (*models.ListWrapper[CatalogModel], error)
 	Save(model CatalogModel) (CatalogModel, error)
-	// GetFilterableProperties returns a map of property names to their unique values
-	// Only includes string properties where all values are shorter than maxLength
-	GetFilterableProperties(maxLength int) (map[string][]string, error)
 }
