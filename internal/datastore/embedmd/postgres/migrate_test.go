@@ -40,7 +40,7 @@ func TestMain(m *testing.M) {
 	// Create Postgres container once for all tests
 	container, err := cont_postgres.Run(
 		ctx,
-		"postgres:15",
+		"postgres:16",
 		cont_postgres.WithUsername("postgres"),
 		cont_postgres.WithPassword("testpass"),
 		cont_postgres.WithDatabase("testdb"),
