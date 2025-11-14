@@ -1,6 +1,15 @@
 load('ext://namespace', 'namespace_inject')
 load("ext://restart_process", "docker_build_with_restart")
 
+# Detect host architecture dynamically
+arch = str(local("uname -m")).strip()
+if arch == "x86_64":
+    goarch = "amd64"
+elif arch == "aarch64" or arch == "arm64":
+    goarch = "arm64"
+else:
+    goarch = "amd64"  # fallback to amd64
+
 manifests = kustomize("../../../manifests/kustomize/options/ui/overlays/standalone")
 
 objects = decode_yaml_stream(manifests)
@@ -21,7 +30,7 @@ k8s_resource(
     resource_deps=["proxy", "kubeflow-namespace"],
     port_forwards=[port_forward(
         local_port=8081,
-        container_port=8080,
+        container_port=8000,  # Forward to auth-proxy instead of BFF directly
     )],
     trigger_mode=TRIGGER_MODE_AUTO
 )
@@ -90,7 +99,7 @@ local_resource(
 
 local_resource(
     "bff-bin",
-    "CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o ../../../devenv/bin/bff ./cmd",
+    "CGO_ENABLED=0 GOOS=linux GOARCH=%s go build -o ../../../devenv/bin/bff ./cmd" % goarch,
     dir="../../../clients/ui/bff",
     deps=[
         "../../../clients/ui/bff/cmd",

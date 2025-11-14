@@ -1,5 +1,14 @@
 load("ext://restart_process", "docker_build_with_restart")
 
+# Detect host architecture dynamically
+arch = str(local("uname -m")).strip()
+if arch == "x86_64":
+    goarch = "amd64"
+elif arch == "aarch64" or arch == "arm64":
+    goarch = "arm64"
+else:
+    goarch = "amd64"  # fallback to amd64
+
 load_dynamic("./configs/tiltfiles/setup.tiltfile")
 
 config.define_string_list("services")
@@ -63,7 +72,7 @@ k8s_resource(
 
 local_resource(
     "bin",
-    "CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o devenv/bin/model-registry main.go",
+    "CGO_ENABLED=0 GOOS=linux GOARCH=%s go build -o devenv/bin/model-registry main.go" % goarch,
     dir="../",
     deps=[
         "../cmd",

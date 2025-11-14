@@ -3,6 +3,16 @@ manifests = kustomize("../../../manifests/kustomize/options/catalog/base")
 objects = decode_yaml_stream(manifests)
 
 for o in objects:
+    # Deploy catalog resources in kubeflow namespace to match where UI is looking for them
+    if o.get("metadata"):
+        o["metadata"]["namespace"] = "kubeflow"
+
+    # Add component label for BFF service discovery
+    if o["kind"] == "Service" and o.get("metadata").get("name") == "model-catalog":
+        if "labels" not in o["metadata"]:
+            o["metadata"]["labels"] = {}
+        o["metadata"]["labels"]["component"] = "model-catalog"
+
     if o["kind"] == "Deployment" and o.get("metadata").get("name") in ["model-catalog-server"]:
         o["spec"]["template"]["spec"]["securityContext"] = {"runAsNonRoot": False, "readOnlyRootFilesystem": False}
         o["spec"]["template"]["spec"]["containers"][0]["imagePullPolicy"] = "Always"
