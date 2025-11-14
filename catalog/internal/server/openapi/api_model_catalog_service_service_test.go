@@ -1282,7 +1282,7 @@ func TestGetAllModelArtifacts(t *testing.T) {
 				[]model.ArtifactTypeQueryParam{},
 				"",
 				"10",
-				"CREATE_TIME",
+				string(model.ORDERBYFIELD_CREATE_TIME),
 				model.SORTORDER_ASC,
 				"",
 			)
