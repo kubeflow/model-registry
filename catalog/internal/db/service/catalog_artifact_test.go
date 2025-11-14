@@ -1238,7 +1238,7 @@ func TestCatalogArtifactRepository(t *testing.T) {
 		}
 	})
 
-	t.Run("TestInvalidPropertyName_Error", func(t *testing.T) {
+	t.Run("TestEmptyPropertyName_Error", func(t *testing.T) {
 		// Create a new model for this test
 		testModel := &models.CatalogModelImpl{
 			TypeID: apiutils.Of(int32(catalogModelTypeID)),
@@ -1263,34 +1263,12 @@ func TestCatalogArtifactRepository(t *testing.T) {
 		_, err = metricsArtifactRepo.Save(metricsArtifact, savedTestModel.GetID())
 		require.NoError(t, err)
 
-		// Test with invalid property names - should return error
+		// Test with empty property name - should return error
 		testCases := []struct {
 			name        string
 			orderBy     string
 			expectedErr string
 		}{
-			{
-				name: "Property name with SQL injection attempt",
-				orderBy: fmt.Sprintf(
-					"%s'; DROP TABLE Artifact; --.%s",
-					testPropertyAccuracy,
-					testValueTypeDouble,
-				),
-				expectedErr: "invalid custom property name",
-			},
-			{
-				name: "Property name with special characters",
-				orderBy: fmt.Sprintf("%s@#$.%s",
-					testPropertyAccuracy,
-					testValueTypeDouble,
-				),
-				expectedErr: "invalid custom property name",
-			},
-			{
-				name:        "Property name with spaces",
-				orderBy:     fmt.Sprintf("my %s.%s", testPropertyAccuracy, testValueTypeDouble),
-				expectedErr: "invalid custom property name",
-			},
 			{
 				name:        "Empty property name",
 				orderBy:     fmt.Sprintf(".%s", testValueTypeDouble),
@@ -1313,17 +1291,20 @@ func TestCatalogArtifactRepository(t *testing.T) {
 			})
 		}
 
-		// Test that VALID property names still work
+		// Test that various property names work (they fallback to ID if non-existent)
+		// Property names can contain any characters - they're user-defined metadata
 		validTestCases := []string{
 			fmt.Sprintf("%s.%s", testPropertyAccuracy, testValueTypeDouble),
 			fmt.Sprintf("model_%s.%s", testPropertyAccuracy, testValueTypeDouble),
 			fmt.Sprintf("model-%s.%s", testPropertyAccuracy, testValueTypeDouble),
 			fmt.Sprintf("v1.%s.%s", testPropertyAccuracy, testValueTypeDouble),
 			fmt.Sprintf("%s_v2.%s", testPropertyAccuracy, testValueTypeDouble),
+			fmt.Sprintf("my %s.%s", testPropertyAccuracy, testValueTypeDouble),      // spaces are allowed
+			fmt.Sprintf("%s@special.%s", testPropertyAccuracy, testValueTypeDouble), // special chars allowed
 		}
 
 		for _, validOrderBy := range validTestCases {
-			t.Run("Valid: "+validOrderBy, func(t *testing.T) {
+			t.Run("PropertyName: "+validOrderBy, func(t *testing.T) {
 				listOptions := models.CatalogArtifactListOptions{
 					ParentResourceID: savedTestModel.GetID(),
 					Pagination: dbmodels.Pagination{
@@ -1332,7 +1313,8 @@ func TestCatalogArtifactRepository(t *testing.T) {
 					},
 				}
 				_, err := repo.List(listOptions)
-				require.NoError(t, err, "Should not error for valid property name: "+validOrderBy)
+				// These should not error - non-existent properties just fallback to ID ordering
+				require.NoError(t, err, "Should not error for property name: "+validOrderBy)
 			})
 		}
 	})

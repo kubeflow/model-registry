@@ -3,7 +3,6 @@ package service
 import (
 	"errors"
 	"fmt"
-	"regexp"
 	"strings"
 
 	"github.com/golang/glog"
@@ -22,13 +21,7 @@ import (
 
 var ErrCatalogArtifactNotFound = errors.New("catalog artifact by id not found")
 
-// propertyNameRegex validates custom property names to contain only safe characters
-// Allows: alphanumeric (a-z, A-Z, 0-9), underscores (_), hyphens (-), and dots (.)
-var propertyNameRegex = regexp.MustCompile(`^[a-zA-Z0-9_.-]+$`)
-
-// isValidPropertyName validates that a property name contains only safe characters
-// This provides defense-in-depth against potential injection attacks, even though
-// GORM's parameterized queries already protect against SQL injection.
+// isValidPropertyName validates basic property name constraints
 func isValidPropertyName(name string) bool {
 	// Empty names are not valid
 	if name == "" {
@@ -38,8 +31,8 @@ func isValidPropertyName(name string) bool {
 	if len(name) > 255 {
 		return false
 	}
-	// Validate against regex pattern
-	return propertyNameRegex.MatchString(name)
+
+	return true
 }
 
 type CatalogArtifactRepositoryImpl struct {
