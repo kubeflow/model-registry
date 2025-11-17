@@ -4,7 +4,7 @@ models:
     provider: Open Models Foundation
     logo: data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIiB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCI+CiAgPGRlZnM+CiAgICA8bGluZWFyR3JhZGllbnQgaWQ9InB1cnBsZSIgeDE9IjAlIiB5MT0iMCUiIHgyPSIxMDAlIiB5Mj0iMTAwJSI+CiAgICAgIDxzdG9wIG9mZnNldD0iMCUiIHN0eWxlPSJzdG9wLWNvbG9yOiM5QjU5QjY7c3RvcC1vcGFjaXR5OjEiIC8+CiAgICAgIDxzdG9wIG9mZnNldD0iMTAwJSIgc3R5bGU9InN0b3AtY29sb3I6IzhFNDRBRDtzdG9wLW9wYWNpdHk6MSIgLz4KICAgIDwvbGluZWFyR3JhZGllbnQ+CiAgPC9kZWZzPgogIDxyZWN0IHg9IjI1IiB5PSIzNSIgd2lkdGg9IjMwIiBoZWlnaHQ9IjMwIiBmaWxsPSJ1cmwoI3B1cnBsZSkiIHRyYW5zZm9ybT0icm90YXRlKC0xNSA0MCA1MCkiLz4KICA8cmVjdCB4PSI0NSIgeT0iMzUiIHdpZHRoPSIzMCIgaGVpZ2h0PSIzMCIgZmlsbD0idXJsKCNwdXJwbGUpIiBvcGFjaXR5PSIwLjciIHRyYW5zZm9ybT0icm90YXRlKDE1IDYwIDUwKSIvPgo8L3N2Zz4K
     description: |-
-      Falcon-Mini-2B is a lightweight, community-contributed 2 billion parameter model optimized
+      (DEMO) Falcon-Mini-2B is a lightweight, community-contributed 2 billion parameter model optimized
       for edge deployment and resource-constrained environments. Sed do eiusmod tempor incididunt.
     readme: |-
       # Falcon-Mini-2B
@@ -40,7 +40,7 @@ models:
     provider: Quantum Research Labs
     logo: data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIiB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCI+CiAgPGRlZnM+CiAgICA8bGluZWFyR3JhZGllbnQgaWQ9Im9yYW5nZSIgeDE9IjAlIiB5MT0iMCUiIHgyPSIxMDAlIiB5Mj0iMTAwJSI+CiAgICAgIDxzdG9wIG9mZnNldD0iMCUiIHN0eWxlPSJzdG9wLWNvbG9yOiNGMzlDMTI7c3RvcC1vcGFjaXR5OjEiIC8+CiAgICAgIDxzdG9wIG9mZnNldD0iMTAwJSIgc3R5bGU9InN0b3AtY29sb3I6I0U2N0UyMjtzdG9wLW9wYWNpdHk6MSIgLz4KICAgIDwvbGluZWFyR3JhZGllbnQ+CiAgPC9kZWZzPgogIDxwb2x5Z29uIHBvaW50cz0iNTAsMjAgNjEsNDAgODMsNDMgNjYsNjAgNzAsODIgNTAsNzAgMzAsODIgMzQsNjAgMTcsNDMgMzksNDAiIGZpbGw9InVybCgjb3JhbmdlKSIvPgo8L3N2Zz4K
     description: |-
-      Sentiment-Analyzer-Base is a specialized model for sentiment analysis and emotion detection
+      (DEMO) Sentiment-Analyzer-Base is a specialized model for sentiment analysis and emotion detection
       trained on diverse social media and customer feedback datasets. Duis aute irure dolor.
     readme: |-
       # Sentiment-Analyzer-Base
@@ -77,7 +77,7 @@ models:
     provider: Indie AI Collective
     logo: data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIiB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCI+CiAgPGRlZnM+CiAgICA8bGluZWFyR3JhZGllbnQgaWQ9InRlYWwiIHgxPSIwJSIgeTE9IjAlIiB4Mj0iMTAwJSIgeTI9IjEwMCUiPgogICAgICA8c3RvcCBvZmZzZXQ9IjAlIiBzdHlsZT0ic3RvcC1jb2xvcjojMTZBMDg1O3N0b3Atb3BhY2l0eToxIiAvPgogICAgICA8c3RvcCBvZmZzZXQ9IjEwMCUiIHN0eWxlPSJzdG9wLWNvbG9yOiMxMzhENzU7c3RvcC1vcGFjaXR5OjEiIC8+CiAgICA8L2xpbmVhckdyYWRpZW50PgogIDwvZGVmcz4KICA8cG9seWdvbiBwb2ludHM9IjUwLDE1IDgwLDMwIDgwLDcwIDUwLDg1IDIwLDcwIDIwLDMwIiBmaWxsPSJ1cmwoI3RlYWwpIiBzdHJva2U9IiMxMTdBNjUiIHN0cm9rZS13aWR0aD0iMiIvPgogIDxjaXJjbGUgY3g9IjUwIiBjeT0iNTAiIHI9IjE1IiBmaWxsPSJ3aGl0ZSIgb3BhY2l0eT0iMC4zIi8+Cjwvc3ZnPgo=
     description: |-
-      Creative-Writer-3B is an experimental model fine-tuned for creative writing tasks including
+      (DEMO) Creative-Writer-3B is an experimental model fine-tuned for creative writing tasks including
       story generation, poetry, and narrative completion. Nemo enim ipsam voluptatem quia voluptas.
     readme: |-
       # Creative-Writer-3B
@@ -116,7 +116,7 @@ models:
     provider: Alpha Translation Labs
     logo: data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIiB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCI+CiAgPGRlZnM+CiAgICA8bGluZWFyR3JhZGllbnQgaWQ9InJlZCIgeDE9IjAlIiB5MT0iMCUiIHgyPSIxMDAlIiB5Mj0iMTAwJSI+CiAgICAgIDxzdG9wIG9mZnNldD0iMCUiIHN0eWxlPSJzdG9wLWNvbG9yOiNFNzRDM0M7c3RvcC1vcGFjaXR5OjEiIC8+CiAgICAgIDxzdG9wIG9mZnNldD0iMTAwJSIgc3R5bGU9InN0b3AtY29sb3I6I0MwMzkyQjtzdG9wLW9wYWNpdHk6MSIgLz4KICAgIDwvbGluZWFyR3JhZGllbnQ+CiAgPC9kZWZzPgogIDxwYXRoIGQ9Ik0gNTAgMTAgTCA2MCA0MCBMIDcwIDcwIEwgNTAgNjAgTCAzMCA3MCBMIDQwIDQwIFoiIGZpbGw9InVybCgjcmVkKSIvPgogIDxjaXJjbGUgY3g9IjUwIiBjeT0iMzAiIHI9IjUiIGZpbGw9IndoaXRlIi8+CiAgPHBhdGggZD0iTSAzMCA3MCBRIDQwIDgwIDUwIDc1IFEgNjAgODAgNzAgNzAiIGZpbGw9IiNGMzlDMTIiLz4KPC9zdmc+Cg==
     description: |-
-      Translation-Mini-1B is a compact multilingual translation model supporting 20+ language pairs,
+      (DEMO) Translation-Mini-1B is a compact multilingual translation model supporting 20+ language pairs,
       optimized for low-latency translation tasks. Quis autem vel eum iure reprehenderit.
     readme: |-
       # Translation-Mini-1B
