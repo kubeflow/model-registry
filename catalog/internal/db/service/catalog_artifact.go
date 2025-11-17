@@ -84,7 +84,7 @@ func (r *CatalogArtifactRepositoryImpl) GetByID(id int32) (models.CatalogArtifac
 // 1. NAME - Special catalog-specific ordering
 // 2. Standard columns (ID, CREATE_TIME, LAST_UPDATE_TIME) - Uses allowed column map
 // 3. Custom properties (e.g., accuracy.double_value) - Dynamic property-based ordering
-// 4. Fallback to ID ordering for invalid inputs
+// 4. Fallback to ID ordering for invalid or unrecognized inputs
 func (r *CatalogArtifactRepositoryImpl) List(listOptions models.CatalogArtifactListOptions) (*dbmodels.ListWrapper[models.CatalogArtifact], error) {
 	list := dbmodels.ListWrapper[models.CatalogArtifact]{
 		PageSize: listOptions.GetPageSize(),
@@ -335,8 +335,6 @@ func (r *CatalogArtifactRepositoryImpl) sortValueQuery(listOptions *models.Catal
 		propertyName := orderBy[0]
 		valueColumn = orderBy[1]
 
-		// SECURITY: Validate value column BEFORE using it in SQL to prevent injection
-		// Even though it's used in a safe context, validate early for defense in depth
 		switch valueColumn {
 		case "int_value", "double_value", "string_value":
 			// OK - valid value type
@@ -345,16 +343,10 @@ func (r *CatalogArtifactRepositoryImpl) sortValueQuery(listOptions *models.Catal
 			return nil, "", fmt.Errorf("invalid custom property value type '%s': must be one of 'int_value', 'double_value', or 'string_value': %w", valueColumn, api.ErrBadRequest)
 		}
 
-		// SECURITY: Validate property name contains only safe characters
-		// While GORM's parameterized queries prevent SQL injection, we validate for defense in depth
-		// Allow: letters, numbers, underscores, hyphens, dots (common in property names)
 		if !isValidPropertyName(propertyName) {
-			return nil, "", fmt.Errorf("invalid custom property name '%s': property names must contain only alphanumeric characters, underscores, hyphens, and dots: %w", propertyName, api.ErrBadRequest)
+			return nil, "", fmt.Errorf("invalid custom property name '%s': %w", propertyName, api.ErrBadRequest)
 		}
 
-		// SECURITY NOTE: propertyName is passed as a parameterized value (?) to GORM,
-		// which properly escapes it to prevent SQL injection. The validation above is
-		// an additional defense-in-depth measure.
 		propertyTable := utils.GetTableName(db, &schema.ArtifactProperty{})
 		query = query.
 			Select(fmt.Sprintf("max(%s.%s) AS %s", propertyTable, valueColumn, valueColumn), extraColumns...).
