@@ -12,6 +12,7 @@ import (
 	dbmodels "github.com/kubeflow/model-registry/catalog/internal/db/models"
 	"github.com/kubeflow/model-registry/catalog/internal/db/service"
 	apimodels "github.com/kubeflow/model-registry/catalog/pkg/openapi"
+	"github.com/kubeflow/model-registry/internal/apiutils"
 	"github.com/kubeflow/model-registry/internal/converter"
 	mrmodels "github.com/kubeflow/model-registry/internal/db/models"
 	"github.com/kubeflow/model-registry/pkg/api"
@@ -266,8 +267,8 @@ func dbPropToAPIOption(prop dbmodels.PropertyOption) *apimodels.FilterOption {
 
 		option.Type = "number"
 		option.Range = &apimodels.FilterOptionRange{
-			Min: float64(*prop.MinIntValue),
-			Max: float64(*prop.MaxIntValue),
+			Min: apiutils.Of(float64(*prop.MinIntValue)),
+			Max: apiutils.Of(float64(*prop.MaxIntValue)),
 		}
 
 	case dbmodels.DoubleValueField:
@@ -277,8 +278,8 @@ func dbPropToAPIOption(prop dbmodels.PropertyOption) *apimodels.FilterOption {
 
 		option.Type = "number"
 		option.Range = &apimodels.FilterOptionRange{
-			Min: *prop.MinDoubleValue,
-			Max: *prop.MaxDoubleValue,
+			Min: prop.MinDoubleValue,
+			Max: prop.MaxDoubleValue,
 		}
 	}
 

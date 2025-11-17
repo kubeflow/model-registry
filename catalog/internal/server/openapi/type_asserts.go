@@ -320,16 +320,6 @@ func AssertFilterOptionRangeConstraints(obj model.FilterOptionRange) error {
 
 // AssertFilterOptionRangeRequired checks if the required fields are not zero-ed
 func AssertFilterOptionRangeRequired(obj model.FilterOptionRange) error {
-	elements := map[string]interface{}{
-		"min": obj.Min,
-		"max": obj.Max,
-	}
-	for name, el := range elements {
-		if isZero := IsZeroValue(el); isZero {
-			return &RequiredError{Field: name}
-		}
-	}
-
 	return nil
 }
 

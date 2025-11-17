@@ -542,9 +542,6 @@ components:
     FilterOptionRange:
       type: object
       description: Min and max values for number types.
-      required:
-        - min
-        - max
       properties:
         min:
           type: number
