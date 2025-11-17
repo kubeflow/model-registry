@@ -855,7 +855,7 @@ func GetCatalogSourceListMock() models.CatalogSourceList {
 func GetCatalogModelArtifactMock() []models.CatalogArtifact {
 	return []models.CatalogArtifact{
 		{
-			ArtifactType:         *stringToPointer("model-artifact"),
+			ArtifactType:         "model-artifact",
 			Uri:                  stringToPointer("oci://registry.sample.io/repo1/modelcar-granite-7b-starter:1.4.0"),
 			CreateTimeSinceEpoch: stringToPointer("1693526400000"),
 
@@ -1071,7 +1071,14 @@ func GetCatalogPerformanceMetricsArtifactMock(itemCount int32) []models.CatalogA
 			MetricsType:              stringToPointer("performance-metrics"),
 			CreateTimeSinceEpoch:     stringToPointer("1693526400000"),
 			LastUpdateTimeSinceEpoch: stringToPointer("1704067200000"),
-			CustomProperties:         performanceMetricsCustomProperties(map[string]openapi.MetadataValue{}),
+			CustomProperties: performanceMetricsCustomProperties(map[string]openapi.MetadataValue{
+				"use_case": {
+					MetadataStringValue: &openapi.MetadataStringValue{
+						StringValue:  "chatbot",
+						MetadataType: "MetadataStringValue",
+					},
+				},
+			}),
 		},
 		{
 			ArtifactType:             *stringToPointer("metrics-artifact"),
@@ -1101,6 +1108,12 @@ func GetCatalogPerformanceMetricsArtifactMock(itemCount int32) []models.CatalogA
 					MetadataDoubleValue: &openapi.MetadataDoubleValue{
 						DoubleValue:  67.14892749816,
 						MetadataType: "MetadataDoubleValue",
+					},
+				},
+				"use_case": {
+					MetadataStringValue: &openapi.MetadataStringValue{
+						StringValue:  "rag",
+						MetadataType: "MetadataStringValue",
 					},
 				},
 			}),
@@ -1133,6 +1146,12 @@ func GetCatalogPerformanceMetricsArtifactMock(itemCount int32) []models.CatalogA
 					MetadataDoubleValue: &openapi.MetadataDoubleValue{
 						DoubleValue:  42.123791232,
 						MetadataType: "MetadataDoubleValue",
+					},
+				},
+				"use_case": {
+					MetadataStringValue: &openapi.MetadataStringValue{
+						StringValue:  "code_fixing",
+						MetadataType: "MetadataStringValue",
 					},
 				},
 			}),
