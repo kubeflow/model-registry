@@ -263,6 +263,20 @@ export const getUniqueSourceLabels = (catalogSources: CatalogSourceList | null):
   return Array.from(allLabels);
 };
 
+export const hasSourcesWithoutLabels = (catalogSources: CatalogSourceList | null): boolean => {
+  if (!catalogSources) {
+    return false;
+  }
+
+  return catalogSources.items.some((source) => {
+    if (source.enabled !== false) {
+      // Check if source has no labels or only empty/whitespace labels
+      return source.labels.length === 0 || source.labels.every((label) => !label.trim());
+    }
+    return false;
+  });
+};
+
 export const getSourceFromSourceId = (
   sourceId: string,
   catalogSources: CatalogSourceList | null,
