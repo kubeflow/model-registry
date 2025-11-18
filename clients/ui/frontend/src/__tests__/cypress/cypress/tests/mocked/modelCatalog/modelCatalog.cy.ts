@@ -200,7 +200,7 @@ describe('Model Catalog Page', () => {
       }),
     ).as('getCatalogModelsBySource');
 
-    initIntercepts({});
+    initIntercepts({ sources: defaultSources });
     modelCatalog.visit();
     modelCatalog.findFilterCheckbox('Task', 'text-generation').click();
     modelCatalog.findFilterCheckbox('Task', 'text-to-text').click();
