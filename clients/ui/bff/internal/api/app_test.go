@@ -25,7 +25,7 @@ var _ = Describe("Static File serving Test", func() {
 			}
 			app := &App{
 				kubernetesClientFactory: kubernetesMockedStaticClientFactory,
-				repositories:            repositories.NewRepositories(mockMRClient, mockModelCatalogClient),
+				repositories:            repositories.NewRepositories(mockMRClient, mockModelCatalogClient, modelCatalogSettingsRepository),
 				logger:                  logger,
 				config:                  envConfig,
 			}

@@ -2,44 +2,44 @@ package api
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/http"
 
 	"github.com/julienschmidt/httprouter"
 	"github.com/kubeflow/model-registry/ui/bff/internal/constants"
-	helper "github.com/kubeflow/model-registry/ui/bff/internal/helpers"
 	"github.com/kubeflow/model-registry/ui/bff/internal/models"
 )
 
-type ModelCatalogSettingsSourceConfigEnvelope Envelope[models.CatalogSourceConfig, None]
-type ModelCatalogSettingsSourceConfigListEnvelope Envelope[models.CatalogSourceConfigList, None]
-type ModelCatalogSourcePayloadEnvelope Envelope[models.CatalogSourceConfigPayload, None]
+type ModelCatalogSettingsSourceConfigEnvelope Envelope[*models.CatalogSourceConfig, None]
+type ModelCatalogSettingsSourceConfigListEnvelope Envelope[*models.CatalogSourceConfigList, None]
+type ModelCatalogSourcePayloadEnvelope Envelope[*models.CatalogSourceConfigPayload, None]
 
 func (app *App) GetAllCatalogSourceConfigsHandler(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
-	ctxLogger := helper.GetContextLoggerFromReq(r)
-	ctxLogger.Info("This functionality is not implement yet. This is a STUB API to unblock frontend development")
+	ctx := r.Context()
 
-	namespace, ok := r.Context().Value(constants.NamespaceHeaderParameterKey).(string)
+	namespace, ok := ctx.Value(constants.NamespaceHeaderParameterKey).(string)
 	if !ok || namespace == "" {
-		app.badRequestResponse(w, r, fmt.Errorf("missing namespace in the context"))
+		app.badRequestResponse(w, r, fmt.Errorf("missing namespace in context"))
 		return
 	}
 
-	catalogConfigs := []models.CatalogSourceConfig{
-		createSampleCatalogSource("catalog-1", "Default Catalog", "yaml"),
-		createSampleCatalogSource("catalog-2", "HuggingFace Catalog", "huggingface"),
-		createSampleCatalogSource("catalog-3", "Custom Catalog", "yaml"),
+	client, err := app.kubernetesClientFactory.GetClient(ctx)
+	if err != nil {
+		app.serverErrorResponse(w, r, errors.New("catalog client not found"))
+		return
 	}
-
-	catalogSourceConfigs := models.CatalogSourceConfigList{
-		Catalogs: catalogConfigs,
+	catalogSourceConfigs, err := app.repositories.ModelCatalogSettingsRepository.GetAllCatalogSourceConfigs(ctx, client, namespace)
+	if err != nil {
+		app.serverErrorResponse(w, r, err)
+		return
 	}
 
 	modelCatalogSource := ModelCatalogSettingsSourceConfigListEnvelope{
 		Data: catalogSourceConfigs,
 	}
 
-	err := app.WriteJSON(w, http.StatusOK, modelCatalogSource, nil)
+	err = app.WriteJSON(w, http.StatusOK, modelCatalogSource, nil)
 
 	if err != nil {
 		app.serverErrorResponse(w, r, err)
@@ -48,24 +48,34 @@ func (app *App) GetAllCatalogSourceConfigsHandler(w http.ResponseWriter, r *http
 }
 
 func (app *App) GetCatalogSourceConfigHandler(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
-	ctxLogger := helper.GetContextLoggerFromReq(r)
-	ctxLogger.Info("This functionality is not implement yet. This is a STUB API to unblock frontend development")
+	ctx := r.Context()
 
-	namespace, ok := r.Context().Value(constants.NamespaceHeaderParameterKey).(string)
+	namespace, ok := ctx.Value(constants.NamespaceHeaderParameterKey).(string)
 	if !ok || namespace == "" {
-		app.badRequestResponse(w, r, fmt.Errorf("missing namespace in the context"))
+		app.badRequestResponse(w, r, fmt.Errorf("missing namespace in context"))
+		return
+	}
+
+	client, err := app.kubernetesClientFactory.GetClient(ctx)
+	if err != nil {
+		app.serverErrorResponse(w, r, errors.New("catalog client not found"))
 		return
 	}
 
 	catalogSourceId := ps.ByName(CatalogSourceId)
 
-	catalogSourceConfig := createSampleCatalogSource(catalogSourceId, "catalog-source-1", "yaml")
+	catalogSourceConfig, err := app.repositories.ModelCatalogSettingsRepository.GetCatalogSourceConfig(ctx, client, namespace, catalogSourceId)
+
+	if err != nil {
+		app.serverErrorResponse(w, r, err)
+		return
+	}
 
 	modelCatalogSource := ModelCatalogSettingsSourceConfigEnvelope{
 		Data: catalogSourceConfig,
 	}
 
-	err := app.WriteJSON(w, http.StatusOK, modelCatalogSource, nil)
+	err = app.WriteJSON(w, http.StatusOK, modelCatalogSource, nil)
 
 	if err != nil {
 		app.serverErrorResponse(w, r, err)
@@ -74,12 +84,17 @@ func (app *App) GetCatalogSourceConfigHandler(w http.ResponseWriter, r *http.Req
 }
 
 func (app *App) CreateCatalogSourceConfigHandler(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
-	ctxLogger := helper.GetContextLoggerFromReq(r)
-	ctxLogger.Info("This functionality is not implement yet. This is a STUB API to unblock frontend development")
+	ctx := r.Context()
 
-	namespace, ok := r.Context().Value(constants.NamespaceHeaderParameterKey).(string)
+	namespace, ok := ctx.Value(constants.NamespaceHeaderParameterKey).(string)
 	if !ok || namespace == "" {
-		app.badRequestResponse(w, r, fmt.Errorf("missing namespace in the context"))
+		app.badRequestResponse(w, r, fmt.Errorf("missing namespace in context"))
+		return
+	}
+
+	client, err := app.kubernetesClientFactory.GetClient(ctx)
+	if err != nil {
+		app.serverErrorResponse(w, r, errors.New("catalog client not found"))
 		return
 	}
 
@@ -89,26 +104,12 @@ func (app *App) CreateCatalogSourceConfigHandler(w http.ResponseWriter, r *http.
 		return
 	}
 
-	var sourceName = envelope.Data.Name
-	var sourceId = envelope.Data.Id
-	var sourceType = envelope.Data.Type
+	newCatalogSource, err := app.repositories.ModelCatalogSettingsRepository.CreateCatalogSourceConfig(ctx, client, namespace, *envelope.Data)
 
-	if sourceName == "" {
-		app.badRequestResponse(w, r, fmt.Errorf("source name is required"))
+	if err != nil {
+		app.serverErrorResponse(w, r, err)
 		return
 	}
-	if sourceId == "" {
-		app.badRequestResponse(w, r, fmt.Errorf("source ID is required"))
-		return
-	}
-	if sourceType == "" {
-		app.badRequestResponse(w, r, fmt.Errorf("source type is required"))
-		return
-	}
-
-	ctxLogger.Info("Creating catalog source", "name", sourceName)
-
-	newCatalogSource := createSampleCatalogSource(sourceId, sourceName, sourceType)
 
 	modelCatalogSource := ModelCatalogSettingsSourceConfigEnvelope{
 		Data: newCatalogSource,
@@ -124,25 +125,38 @@ func (app *App) CreateCatalogSourceConfigHandler(w http.ResponseWriter, r *http.
 }
 
 func (app *App) UpdateCatalogSourceConfigHandler(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
-	ctxLogger := helper.GetContextLoggerFromReq(r)
-	ctxLogger.Info("This functionality is not implement yet. This is a STUB API to unblock frontend development")
+	ctx := r.Context()
 
-	namespace, ok := r.Context().Value(constants.NamespaceHeaderParameterKey).(string)
+	namespace, ok := ctx.Value(constants.NamespaceHeaderParameterKey).(string)
 	if !ok || namespace == "" {
-		app.badRequestResponse(w, r, fmt.Errorf("missing namespace in the context"))
+		app.badRequestResponse(w, r, fmt.Errorf("missing namespace in context"))
 		return
 	}
 
-	// this is the temoprary fix to start fronetend development
-	catalogSourceId := ps.ByName(CatalogSourceId)
+	client, err := app.kubernetesClientFactory.GetClient(ctx)
+	if err != nil {
+		app.serverErrorResponse(w, r, errors.New("catalog client not found"))
+		return
+	}
 
-	newCatalogSource := createSampleCatalogSource(catalogSourceId, "Updated Catalog", "yaml")
+	var envelope ModelCatalogSourcePayloadEnvelope
+	if err := json.NewDecoder(r.Body).Decode(&envelope); err != nil {
+		app.serverErrorResponse(w, r, fmt.Errorf("error decoding JSON:: %v", err.Error()))
+		return
+	}
+
+	newCatalogSource, err := app.repositories.ModelCatalogSettingsRepository.UpdateCatalogSourceConfig(ctx, client, namespace, *envelope.Data)
+
+	if err != nil {
+		app.serverErrorResponse(w, r, err)
+		return
+	}
 
 	modelCatalogSource := ModelCatalogSettingsSourceConfigEnvelope{
 		Data: newCatalogSource,
 	}
 
-	err := app.WriteJSON(w, http.StatusOK, modelCatalogSource, nil)
+	err = app.WriteJSON(w, http.StatusOK, modelCatalogSource, nil)
 
 	if err != nil {
 		app.serverErrorResponse(w, r, err)
@@ -150,50 +164,37 @@ func (app *App) UpdateCatalogSourceConfigHandler(w http.ResponseWriter, r *http.
 }
 
 func (app *App) DeleteCatalogSourceConfigHandler(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
-	ctxLogger := helper.GetContextLoggerFromReq(r)
-	ctxLogger.Info("This functionality is not implement yet. This is a STUB API to unblock frontend development")
+	ctx := r.Context()
 
-	namespace, ok := r.Context().Value(constants.NamespaceHeaderParameterKey).(string)
+	namespace, ok := ctx.Value(constants.NamespaceHeaderParameterKey).(string)
 	if !ok || namespace == "" {
-		app.badRequestResponse(w, r, fmt.Errorf("missing namespace in the context"))
+		app.badRequestResponse(w, r, fmt.Errorf("missing namespace in context"))
+		return
+	}
+
+	client, err := app.kubernetesClientFactory.GetClient(ctx)
+	if err != nil {
+		app.serverErrorResponse(w, r, errors.New("catalog client not found"))
 		return
 	}
 
 	// this is the temoprary fix to start fronetend development
 	catalogSourceId := ps.ByName(CatalogSourceId)
 
-	newCatalogSource := createSampleCatalogSource(catalogSourceId, "Deleted Catalog", "yaml")
+	newCatalogSource, err := app.repositories.ModelCatalogSettingsRepository.DeleteCatalogSourceConfig(ctx, client, namespace, catalogSourceId)
+
+	if err != nil {
+		app.serverErrorResponse(w, r, err)
+		return
+	}
 
 	modelCatalogSource := ModelCatalogSettingsSourceConfigEnvelope{
 		Data: newCatalogSource,
 	}
 
-	err := app.WriteJSON(w, http.StatusOK, modelCatalogSource, nil)
+	err = app.WriteJSON(w, http.StatusOK, modelCatalogSource, nil)
 
 	if err != nil {
 		app.serverErrorResponse(w, r, err)
 	}
-}
-
-func createSampleCatalogSource(id string, name string, catalogType string) models.CatalogSourceConfig {
-	return models.CatalogSourceConfig{
-		Name:           name,
-		Id:             id,
-		Type:           catalogType,
-		Enabled:        BoolPtr(true),
-		Labels:         []string{},
-		IncludedModels: []string{"rhelai1/modelcar-granite-7b-starter"},
-		ExcludedModels: []string{"model-a:1.0", "model-b:*"},
-		Properties: &models.CatalogSourceProperties{
-			YamlCatalogPath: stringToPointer("/path/to/catalog.yaml"),
-		},
-	}
-}
-
-func stringToPointer(s string) *string {
-	return &s
-}
-
-func BoolPtr(b bool) *bool {
-	return &b
 }

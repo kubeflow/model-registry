@@ -69,7 +69,7 @@ func (app *App) GetCatalogSourceModelHandler(w http.ResponseWriter, r *http.Requ
 	}
 }
 
-func (app *App) GetCatalogSourceModelArtifactHandler(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+func (app *App) GetCatalogSourceModelArtifactsHandler(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 	client, ok := r.Context().Value(constants.ModelCatalogHttpClientKey).(httpclient.HTTPClientInterface)
 	if !ok {
 		app.serverErrorResponse(w, r, errors.New("catalog REST client not found"))
@@ -81,7 +81,7 @@ func (app *App) GetCatalogSourceModelArtifactHandler(w http.ResponseWriter, r *h
 
 	newModelName := url.PathEscape(modelName)
 
-	catalogModelArtifacts, err := app.repositories.ModelCatalogClient.GetCatalogModelArtifacts(client, ps.ByName(CatalogSourceId), newModelName)
+	catalogModelArtifacts, err := app.repositories.ModelCatalogClient.GetCatalogSourceModelArtifacts(client, ps.ByName(CatalogSourceId), newModelName)
 
 	if err != nil {
 		app.serverErrorResponse(w, r, err)

@@ -10,119 +10,6 @@ servers:
   - url: "https://localhost:8080"
   - url: "http://localhost:8080"
 paths:
-  /api/v1/settings/model_catalog/source_configs:
-    summary: Path used to managae Model catalog sources.
-    description: The REST endpoint/path used to list and create model catalog sources.
-    get:
-      tags:
-        - K8SOperation
-      parameters:
-        - $ref: "#/components/parameters/kubeflowUserId"
-      responses:
-        "200":
-          $ref: "#/components/responses/CatalogSourceConfigListResponse"
-        "401":
-          $ref: "#/components/responses/Unauthorized"
-        "500":
-          $ref: "#/components/responses/InternalServerError"
-      operationId: getCatalogSources
-      summary: List ALL the catalog sources.
-      description: Gets a list of all catalog sources.
-    post:
-      requestBody:
-        description: A new catalog source to be created, potentially including credentials/yaml.
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/CatalogSourceConfigPayload"
-        required: true
-      tags:
-        - K8SOperation
-      parameters:
-        - $ref: "#/components/parameters/kubeflowUserId"
-      responses:
-        "201":
-          $ref: "#/components/responses/CatalogSourceConfigResponse"
-        "400":
-          $ref: "#/components/responses/BadRequest"
-        "401":
-          $ref: "#/components/responses/Unauthorized"
-        "500":
-          $ref: "#/components/responses/InternalServerError"
-      operationId: createCatalogSource
-      summary: Create Catalog source
-      description: Creates a new model catalog source.
-  /api/v1/settings/model_catalog/source_configs/{sourceId}:
-    summary: Path used to manage Model catalog sources.
-    description: >-
-      The REST endpoint/path used to get, update and delete a single ModelCatalog Source.
-    # Add GET operation
-    get:
-      tags:
-        - K8SOperation
-      parameters:
-        - $ref: "#/components/parameters/kubeflowUserId"
-        - $ref: "#/components/parameters/sourceId" # Use the correct parameter name
-      responses:
-        "200":
-          $ref: "#/components/responses/CatalogSourceConfigResponse"
-        "401":
-          $ref: "#/components/responses/Unauthorized"
-        "404":
-          $ref: "#/components/responses/NotFound"
-        "500":
-          $ref: "#/components/responses/InternalServerError"
-      operationId: getCatalogSource
-      summary: Get Model Catalog Source
-      description: Gets the details of a single Model Catalog source potentially including related credentials.
-    patch:
-      requestBody:
-        description: Updated Model Catalog Source information.
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/CatalogSourceConfigPayload"
-        required: true
-      tags:
-        - K8SOperation
-      parameters:
-        - $ref: "#/components/parameters/kubeflowUserId"
-        - $ref: "#/components/parameters/sourceId"
-      responses:
-        "200":
-          $ref: "#/components/responses/CatalogSourceConfigResponse"
-        "400":
-          $ref: "#/components/responses/BadRequest"
-        "401":
-          $ref: "#/components/responses/Unauthorized"
-        "404":
-          $ref: "#/components/responses/NotFound"
-        "500":
-          $ref: "#/components/responses/InternalServerError"
-      operationId: updateModelCatalogSource
-      summary: Update Model Catalog Sources
-      description: Updates an existing Model Catalog source.
-    delete:
-      tags:
-        - K8SOperation
-      parameters:
-        - $ref: "#/components/parameters/kubeflowUserId"
-        - $ref: "#/components/parameters/sourceId"
-      responses:
-        "204":
-          description: Successfully deleted
-        "400":
-          $ref: "#/components/responses/BadRequest"
-        "401":
-          $ref: "#/components/responses/Unauthorized"
-        "404":
-          $ref: "#/components/responses/NotFound"
-        "500":
-          $ref: "#/components/responses/InternalServerError"
-      operationId: deleteModelCatalogSource
-      summary: Delete Model Catalog source
-      description: Deletes an existing Model Catalog Source.
-
   /healthcheck:
     summary: Path targeted for healthcheck purposes.
     description: >-
@@ -961,6 +848,120 @@ paths:
         "500":
           $ref: "#/components/responses/InternalServerError"
       operationId: getAllModelArtifacts
+
+  # Model catalog settings endpoints
+  /api/v1/settings/model_catalog/source_configs:
+    summary: Path used to managae Model catalog sources.
+    description: The REST endpoint/path used to list and create model catalog sources.
+    get:
+      tags:
+        - K8SOperation
+      parameters:
+        - $ref: "#/components/parameters/kubeflowUserId"
+      responses:
+        "200":
+          $ref: "#/components/responses/CatalogSourceConfigListResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+      operationId: getCatalogSources
+      summary: List ALL the catalog sources.
+      description: Gets a list of all catalog sources.
+    post:
+      requestBody:
+        description: A new catalog source to be created, potentially including credentials/yaml.
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CatalogSourceConfigPayload"
+        required: true
+      tags:
+        - K8SOperation
+      parameters:
+        - $ref: "#/components/parameters/kubeflowUserId"
+      responses:
+        "201":
+          $ref: "#/components/responses/CatalogSourceConfigResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+      operationId: createCatalogSource
+      summary: Create a Catalog source
+      description: Creates a new model catalog source.
+  /api/v1/settings/model_catalog/source_configs/{sourceId}:
+    summary: Path used to manage Model catalog sources.
+    description: >-
+      The REST endpoint/path used to get, update and delete a single ModelCatalog Source.
+    # Add GET operation
+    get:
+      tags:
+        - K8SOperation
+      parameters:
+        - $ref: "#/components/parameters/kubeflowUserId"
+        - $ref: "#/components/parameters/sourceId" # Use the correct parameter name
+      responses:
+        "200":
+          $ref: "#/components/responses/CatalogSourceConfigResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+      operationId: getCatalogSource
+      summary: Get a Model Catalog Source
+      description: Gets the details of a single Model Catalog source potentially including related credentials.
+    patch:
+      requestBody:
+        description: Updated Model Catalog Source information.
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CatalogSourceConfigPayload"
+        required: true
+      tags:
+        - K8SOperation
+      parameters:
+        - $ref: "#/components/parameters/kubeflowUserId"
+        - $ref: "#/components/parameters/sourceId"
+      responses:
+        "200":
+          $ref: "#/components/responses/CatalogSourceConfigResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+      operationId: updateModelCatalogSource
+      summary: Update a Model Catalog Sources
+      description: Updates an existing Model Catalog source.
+    delete:
+      tags:
+        - K8SOperation
+      parameters:
+        - $ref: "#/components/parameters/kubeflowUserId"
+        - $ref: "#/components/parameters/sourceId"
+      responses:
+        "204":
+          description: Successfully deleted
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+      operationId: deleteModelCatalogSource
+      summary: Delete a Model Catalog source
+      description: Deletes an existing Model Catalog Source.
 
 components:
   schemas:
@@ -2190,27 +2191,30 @@ components:
           type: array
           items:
             type: string
-        includedModels:
-          type: array
-          items:
-            type: string
-            example: rhelai1/modelcar-granite-7b-starter
-        excludedModels:
-          type: array
-          items:
-            type: string
-            example: model-a:1.0
-            description: list of models name, that will be excluded.
+        isDefault:
+          type: boolean
+          example: true
         properties:
           type: object
           properties:
             yamlCatalogPath:
               type: string
               example: sample-catalog.yaml
-            accessToken:
+            apiKey:
               type: string
               description: HuggingFace access token - should be stored in a Kubernetes secret and referenced here, or set via environment variable
-              example: "accessToken"
+              example: "apiKey"
+            includedModels:
+              type: array
+              items:
+                type: string
+                example: rhelai1/modelcar-granite-7b-starter
+            excludedModels:
+              type: array
+              items:
+                type: string
+                example: model-a:1.0
+                description: list of models name, that will be excluded.
             allowedOrganization:
               type: string
               description: name of the organization that need to ingest from the source.

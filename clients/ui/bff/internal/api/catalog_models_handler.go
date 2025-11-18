@@ -13,7 +13,6 @@ import (
 type CatalogModelListEnvelope Envelope[*models.CatalogModelList, None]
 
 func (app *App) GetAllCatalogModelsAcrossSourcesHandler(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
-
 	client, ok := r.Context().Value(constants.ModelCatalogHttpClientKey).(httpclient.HTTPClientInterface)
 	if !ok {
 		app.serverErrorResponse(w, r, errors.New("catalog REST client not found"))

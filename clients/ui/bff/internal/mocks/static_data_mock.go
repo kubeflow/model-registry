@@ -1274,3 +1274,41 @@ func GetFilterOptionsListMock() models.FilterOptionsList {
 		Filters: &filterOptions,
 	}
 }
+
+func CreateSampleCatalogSource(id string, name string, catalogType string) models.CatalogSourceConfig {
+	defaultCatalog := id == "catalog-1"
+
+	return models.CatalogSourceConfig{
+		Name:      name,
+		Id:        id,
+		Type:      catalogType,
+		Enabled:   BoolPtr(true),
+		Labels:    []string{},
+		IsDefault: &defaultCatalog,
+		Properties: &models.CatalogSourceProperties{
+			YamlCatalogPath: stringToPointer("/path/to/catalog.yaml"),
+			IncludedModels:  []string{"rhelai1/modelcar-granite-7b-starter"},
+			ExcludedModels:  []string{"model-a:1.0", "model-b:*"},
+		},
+	}
+}
+
+func BoolPtr(b bool) *bool {
+	return &b
+}
+
+func GetCatalogSourceConfigsMocks() []models.CatalogSourceConfig {
+	return []models.CatalogSourceConfig{
+		CreateSampleCatalogSource("catalog-1", "Default Catalog", "yaml"),
+		CreateSampleCatalogSource("catalog-2", "HuggingFace Catalog", "huggingface"),
+		CreateSampleCatalogSource("catalog-3", "Custom Catalog", "yaml"),
+	}
+}
+
+func GetCatalogSourceConfigListMock() models.CatalogSourceConfigList {
+	allCatalogSourceConfigs := GetCatalogSourceConfigsMocks()
+
+	return models.CatalogSourceConfigList{
+		Catalogs: allCatalogSourceConfigs,
+	}
+}
