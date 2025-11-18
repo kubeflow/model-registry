@@ -132,7 +132,7 @@ func TestLabelsValidation(t *testing.T) {
 			name: "valid labels with name field",
 			config: &sourceConfig{
 				Catalogs: []Source{},
-				Labels: []map[string]string{
+				Labels: []map[string]any{
 					{"name": "labelNameOne", "displayName": "Label Name One"},
 					{"name": "labelNameTwo", "displayName": "Label Name Two"},
 				},
@@ -143,7 +143,7 @@ func TestLabelsValidation(t *testing.T) {
 			name: "invalid label missing name field",
 			config: &sourceConfig{
 				Catalogs: []Source{},
-				Labels: []map[string]string{
+				Labels: []map[string]any{
 					{"name": "labelNameOne", "displayName": "Label Name One"},
 					{"displayName": "Label Name Two"}, // Missing "name"
 				},
@@ -155,7 +155,7 @@ func TestLabelsValidation(t *testing.T) {
 			name: "invalid label with empty name",
 			config: &sourceConfig{
 				Catalogs: []Source{},
-				Labels: []map[string]string{
+				Labels: []map[string]any{
 					{"name": "", "displayName": "Empty Name"},
 				},
 			},
@@ -166,7 +166,7 @@ func TestLabelsValidation(t *testing.T) {
 			name: "duplicate label names within same origin",
 			config: &sourceConfig{
 				Catalogs: []Source{},
-				Labels: []map[string]string{
+				Labels: []map[string]any{
 					{"name": "labelNameOne", "displayName": "Label Name One 1"},
 					{"name": "labelNameTwo", "displayName": "Label Name Two"},
 					{"name": "labelNameOne", "displayName": "Label Name One 2"},
@@ -187,7 +187,7 @@ func TestLabelsValidation(t *testing.T) {
 			name: "empty labels array should not error",
 			config: &sourceConfig{
 				Catalogs: []Source{},
-				Labels:   []map[string]string{},
+				Labels:   []map[string]any{},
 			},
 			wantErr: false,
 		},
