@@ -18,7 +18,6 @@ type ModelCatalogSettingsRepositoryInterface interface {
 }
 
 type ModelCatalogSettingsRepository struct {
-	logger *slog.Logger
 }
 
 func NewModelCatalogSettingsRepository(logger *slog.Logger) (*ModelCatalogSettingsRepository, error) {
