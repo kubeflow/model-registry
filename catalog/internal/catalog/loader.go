@@ -244,55 +244,9 @@ func (l *Loader) updateDatabase(ctx context.Context, path string, config *source
 				handler(ctx, record)
 			}
 		}
-
-		// After all records are processed, delete any excluded models that should not be in the db
-		for _, source := range config.Catalogs {
-			if err := l.deleteExcludedModels(ctx, &source); err != nil {
-				glog.Errorf("error deleting excluded models for source %s after processing: %v", source.Id, err)
-				// Continue processing other sources even if deletion fails
-			}
-		}
 	}()
 
 	return nil
-}
-
-// deleteExcludedModels deletes models from the database that match the excluded patterns for a given source
-func (l *Loader) deleteExcludedModels(ctx context.Context, source *Source) error {
-	// Only process sources with excludedModels property
-	if _, exists := source.Properties[excludedModelsKey]; !exists {
-		return nil
-	}
-
-	excludedModels, ok := source.Properties[excludedModelsKey].([]any)
-	if !ok {
-		// Invalid format, skip deletion
-		return nil
-	}
-
-	if len(excludedModels) == 0 {
-		return nil
-	}
-
-	// Convert to string slice
-	excludedPatterns := make([]string, 0, len(excludedModels))
-	for _, model := range excludedModels {
-		if modelStr, ok := model.(string); ok {
-			excludedPatterns = append(excludedPatterns, modelStr)
-		}
-	}
-
-	if len(excludedPatterns) == 0 {
-		return nil
-	}
-
-	sourceID := source.GetId()
-	if sourceID == "" {
-		return nil
-	}
-
-	glog.Infof("Deleting excluded models for source %s with %d pattern(s)", sourceID, len(excludedPatterns))
-	return l.services.CatalogModelRepository.DeleteBySourceIDAndNamePatterns(sourceID, excludedPatterns)
 }
 
 // readProviderRecords calls the provider for every configured source and
