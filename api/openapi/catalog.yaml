@@ -545,8 +545,10 @@ components:
       properties:
         min:
           type: number
+          format: double
         max:
           type: number
+          format: double
     FilterOptionsList:
       description: List of FilterOptions
       type: object
