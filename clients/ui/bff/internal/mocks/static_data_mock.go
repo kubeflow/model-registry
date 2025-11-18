@@ -818,7 +818,7 @@ func GetCatalogSourceMocks() []models.CatalogSource {
 		{
 			Id:      "adminModel1",
 			Name:    "Admin model 1",
-			Enabled: &disabled,
+			Enabled: &enabled,
 			Labels:  []string{},
 		},
 		{
@@ -828,10 +828,9 @@ func GetCatalogSourceMocks() []models.CatalogSource {
 			Labels:  []string{"Sample category 1"},
 		},
 		{
-			Id:      "dora",
-			Name:    "Dora source",
-			Enabled: &disabled,
-			Labels:  []string{},
+			Id:     "dora",
+			Name:   "Dora source",
+			Labels: []string{},
 		},
 		{
 			Id:      "adminModel3",
