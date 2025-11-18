@@ -1,13 +1,15 @@
 import * as React from 'react';
 import {
   ExpandableSection,
-  FormSection,
   FormGroup,
   TextArea,
   FormHelperText,
   HelperText,
   HelperTextItem,
 } from '@patternfly/react-core';
+import { UpdateObjectAtPropAndValue } from 'mod-arch-shared';
+import FormFieldset from '~/app/pages/modelRegistry/screens/components/FormFieldset';
+import FormSection from '~/app/pages/modelRegistry/components/pf-overrides/FormSection';
 import {
   ManageSourceFormData,
   SourceType,
@@ -26,14 +28,14 @@ type ModelVisibilitySectionProps = {
   formData: ManageSourceFormData;
   isExpanded: boolean;
   onToggle: () => void;
-  onDataChange: (key: keyof ManageSourceFormData, value: string) => void;
+  setData: UpdateObjectAtPropAndValue<ManageSourceFormData>;
 };
 
 const ModelVisibilitySection: React.FC<ModelVisibilitySectionProps> = ({
   formData,
   isExpanded,
   onToggle,
-  onDataChange,
+  setData,
 }) => {
   const isHuggingFaceMode = formData.sourceType === SourceType.HuggingFace;
   const organization = isHuggingFaceMode ? formData.organization : undefined;
@@ -54,6 +56,32 @@ const ModelVisibilitySection: React.FC<ModelVisibilitySectionProps> = ({
     ? PLACEHOLDERS.EXCLUDED_MODELS_HF
     : PLACEHOLDERS.EXCLUDED_MODELS_GENERIC;
 
+  const allowedModelsInput = (
+    <TextArea
+      id="allowed-models"
+      name="allowed-models"
+      data-testid="allowed-models-input"
+      value={formData.allowedModels}
+      onChange={(_event, value) => setData('allowedModels', value)}
+      rows={3}
+      resizeOrientation="vertical"
+      placeholder={allowedModelsPlaceholder}
+    />
+  );
+
+  const excludedModelsInput = (
+    <TextArea
+      id="excluded-models"
+      name="excluded-models"
+      data-testid="excluded-models-input"
+      value={formData.excludedModels}
+      onChange={(_event, value) => setData('excludedModels', value)}
+      rows={3}
+      resizeOrientation="vertical"
+      placeholder={excludedModelsPlaceholder}
+    />
+  );
+
   return (
     <ExpandableSection
       toggleText={FORM_LABELS.MODEL_VISIBILITY}
@@ -68,21 +96,12 @@ const ModelVisibilitySection: React.FC<ModelVisibilitySectionProps> = ({
           </HelperText>
         </FormHelperText>
         <FormGroup label={FORM_LABELS.ALLOWED_MODELS} fieldId="allowed-models">
+          <FormFieldset component={allowedModelsInput} field="Allowed models" />
           <FormHelperText>
             <HelperText>
               <HelperTextItem>{allowedModelsHelp}</HelperTextItem>
             </HelperText>
           </FormHelperText>
-          <TextArea
-            id="allowed-models"
-            name="allowed-models"
-            data-testid="allowed-models-input"
-            value={formData.allowedModels}
-            onChange={(_event, value) => onDataChange('allowedModels', value)}
-            rows={3}
-            resizeOrientation="vertical"
-            placeholder={allowedModelsPlaceholder}
-          />
           <FormHelperText>
             <HelperText>
               <HelperTextItem>{FIELD_HELPER_TEXT.INCLUDED_MODELS}</HelperTextItem>
@@ -91,21 +110,12 @@ const ModelVisibilitySection: React.FC<ModelVisibilitySectionProps> = ({
         </FormGroup>
 
         <FormGroup label={FORM_LABELS.EXCLUDED_MODELS} fieldId="excluded-models">
+          <FormFieldset component={excludedModelsInput} field="Excluded models" />
           <FormHelperText>
             <HelperText>
               <HelperTextItem>{excludedModelsHelp}</HelperTextItem>
             </HelperText>
           </FormHelperText>
-          <TextArea
-            id="excluded-models"
-            name="excluded-models"
-            data-testid="excluded-models-input"
-            value={formData.excludedModels}
-            onChange={(_event, value) => onDataChange('excludedModels', value)}
-            rows={3}
-            resizeOrientation="vertical"
-            placeholder={excludedModelsPlaceholder}
-          />
           <FormHelperText>
             <HelperText>
               <HelperTextItem>{FIELD_HELPER_TEXT.EXCLUDED_MODELS}</HelperTextItem>

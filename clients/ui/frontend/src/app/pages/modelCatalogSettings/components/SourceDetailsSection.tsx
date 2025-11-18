@@ -1,6 +1,5 @@
 import * as React from 'react';
 import {
-  FormSection,
   FormGroup,
   TextInput,
   Radio,
@@ -10,6 +9,9 @@ import {
   Flex,
   FlexItem,
 } from '@patternfly/react-core';
+import { UpdateObjectAtPropAndValue } from 'mod-arch-shared';
+import FormFieldset from '~/app/pages/modelRegistry/screens/components/FormFieldset';
+import FormSection from '~/app/pages/modelRegistry/components/pf-overrides/FormSection';
 import {
   ManageSourceFormData,
   SourceType,
@@ -23,34 +25,31 @@ import {
 
 type SourceDetailsSectionProps = {
   formData: ManageSourceFormData;
-  touched: Record<string, boolean>;
-  onDataChange: (key: keyof ManageSourceFormData, value: string | boolean) => void;
-  onFieldBlur: (field: string) => void;
+  setData: UpdateObjectAtPropAndValue<ManageSourceFormData>;
 };
 
-const SourceDetailsSection: React.FC<SourceDetailsSectionProps> = ({
-  formData,
-  touched,
-  onDataChange,
-  onFieldBlur,
-}) => {
+const SourceDetailsSection: React.FC<SourceDetailsSectionProps> = ({ formData, setData }) => {
+  const [isNameTouched, setIsNameTouched] = React.useState(false);
   const isNameValid = validateSourceName(formData.name);
-  const isNameTouched = touched.name;
+
+  const nameInput = (
+    <TextInput
+      isRequired
+      type="text"
+      id="source-name"
+      name="source-name"
+      data-testid="source-name-input"
+      value={formData.name}
+      onChange={(_event, value) => setData('name', value)}
+      onBlur={() => setIsNameTouched(true)}
+      validated={isNameTouched && !isNameValid ? 'error' : 'default'}
+    />
+  );
 
   return (
     <FormSection>
       <FormGroup label={FORM_LABELS.NAME} isRequired fieldId="source-name">
-        <TextInput
-          isRequired
-          type="text"
-          id="source-name"
-          name="source-name"
-          data-testid="source-name-input"
-          value={formData.name}
-          onChange={(_event, value) => onDataChange('name', value)}
-          onBlur={() => onFieldBlur('name')}
-          validated={isNameTouched && !isNameValid ? 'error' : 'default'}
-        />
+        <FormFieldset component={nameInput} field="Name" />
         {isNameTouched && !isNameValid && (
           <FormHelperText>
             <HelperText>
@@ -74,7 +73,7 @@ const SourceDetailsSection: React.FC<SourceDetailsSectionProps> = ({
             <Radio
               isChecked={formData.sourceType === SourceType.HuggingFace}
               name="source-type"
-              onChange={() => onDataChange('sourceType', SourceType.HuggingFace)}
+              onChange={() => setData('sourceType', SourceType.HuggingFace)}
               label={SOURCE_TYPE_LABELS.HUGGING_FACE}
               id="source-type-huggingface"
               data-testid="source-type-huggingface"
@@ -84,7 +83,7 @@ const SourceDetailsSection: React.FC<SourceDetailsSectionProps> = ({
             <Radio
               isChecked={formData.sourceType === SourceType.YAML}
               name="source-type"
-              onChange={() => onDataChange('sourceType', SourceType.YAML)}
+              onChange={() => setData('sourceType', SourceType.YAML)}
               label={SOURCE_TYPE_LABELS.YAML}
               id="source-type-yaml"
               data-testid="source-type-yaml"

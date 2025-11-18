@@ -1,12 +1,14 @@
 import * as React from 'react';
 import {
-  FormSection,
   FormGroup,
   TextArea,
   FormHelperText,
   HelperText,
   HelperTextItem,
 } from '@patternfly/react-core';
+import { UpdateObjectAtPropAndValue } from 'mod-arch-shared';
+import FormFieldset from '~/app/pages/modelRegistry/screens/components/FormFieldset';
+import FormSection from '~/app/pages/modelRegistry/components/pf-overrides/FormSection';
 import { ManageSourceFormData } from '~/app/pages/modelCatalogSettings/useManageSourceData';
 import { validateYamlContent } from '~/app/pages/modelCatalogSettings/utils/validation';
 import {
@@ -17,40 +19,38 @@ import {
 
 type YamlSectionProps = {
   formData: ManageSourceFormData;
-  touched: Record<string, boolean>;
-  onDataChange: (key: keyof ManageSourceFormData, value: string) => void;
-  onFieldBlur: (field: string) => void;
+  setData: UpdateObjectAtPropAndValue<ManageSourceFormData>;
 };
 
-const YamlSection: React.FC<YamlSectionProps> = ({
-  formData,
-  touched,
-  onDataChange,
-  onFieldBlur,
-}) => {
+const YamlSection: React.FC<YamlSectionProps> = ({ formData, setData }) => {
+  const [isYamlTouched, setIsYamlTouched] = React.useState(false);
   const isYamlContentValid = validateYamlContent(formData.yamlContent);
+
+  const yamlInput = (
+    <TextArea
+      isRequired
+      id="yaml-content"
+      name="yaml-content"
+      data-testid="yaml-content-input"
+      value={formData.yamlContent}
+      onChange={(_event, value) => setData('yamlContent', value)}
+      onBlur={() => setIsYamlTouched(true)}
+      validated={isYamlTouched && !isYamlContentValid ? 'error' : 'default'}
+      rows={10}
+      resizeOrientation="vertical"
+    />
+  );
 
   return (
     <FormSection data-testid="yaml-section">
       <FormGroup label={FORM_LABELS.YAML_CONTENT} isRequired fieldId="yaml-content">
+        <FormFieldset component={yamlInput} field="YAML" />
         <FormHelperText>
           <HelperText>
             <HelperTextItem>{HELP_TEXT.YAML}</HelperTextItem>
           </HelperText>
         </FormHelperText>
-        <TextArea
-          isRequired
-          id="yaml-content"
-          name="yaml-content"
-          data-testid="yaml-content-input"
-          value={formData.yamlContent}
-          onChange={(_event, value) => onDataChange('yamlContent', value)}
-          onBlur={() => onFieldBlur('yamlContent')}
-          validated={touched.yamlContent && !isYamlContentValid ? 'error' : 'default'}
-          rows={10}
-          resizeOrientation="vertical"
-        />
-        {touched.yamlContent && !isYamlContentValid && (
+        {isYamlTouched && !isYamlContentValid && (
           <FormHelperText>
             <HelperText>
               <HelperTextItem variant="error" data-testid="yaml-content-error">
