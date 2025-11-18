@@ -34,8 +34,7 @@ def lint(session: Session) -> None:
     """Lint using ruff."""
     session.install("ruff")
 
-    # can't check the whole project because of the generated code
-    session.run("ruff", "check", "src/model_registry", "tests")
+    session.run("ruff", "check")
 
 
 @session(python=python_versions)
@@ -47,7 +46,7 @@ def mypy(session: Session) -> None:
         "types-python-dateutil",
     )
 
-    session.run("mypy", "src/model_registry")
+    session.run("mypy", ".")
 
 
 @session(python=python_versions)
