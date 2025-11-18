@@ -267,7 +267,9 @@ class ModelCatalog {
   }
 
   findWorkloadTypeOption(label: string) {
-    return this.findWorkloadTypeFilter().findDropdownItem(label);
+    // Workload type uses checkboxes in a panel, not menu items
+    // Find checkbox by its label within the dropdown panel
+    return cy.contains('label', label).parent().find('input[type="checkbox"]');
   }
 
   selectWorkloadType(label: string) {

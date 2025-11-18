@@ -224,7 +224,7 @@ export type ModelCatalogFilterStates = {
   [ModelCatalogStringFilterKey.LICENSE]: ModelCatalogLicense[];
   [ModelCatalogStringFilterKey.LANGUAGE]: AllLanguageCode[];
   [ModelCatalogStringFilterKey.HARDWARE_TYPE]: string[];
-  [ModelCatalogStringFilterKey.USE_CASE]: UseCaseOptionValue | undefined;
+  [ModelCatalogStringFilterKey.USE_CASE]: UseCaseOptionValue[];
 } & {
   [key in ModelCatalogNumberFilterKey]: number | undefined;
 } & {
