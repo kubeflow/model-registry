@@ -230,3 +230,48 @@ export type ModelCatalogFilterStates = {
 } & {
   [key in LatencyMetricFieldName]?: number | undefined;
 };
+
+// Model Catalog Settings types
+export type CatalogSourceConfig = {
+  id: string;
+  name: string;
+  type: string;
+  enabled?: boolean;
+  labels?: string[];
+  apiKey?: string;
+  allowedOrganization?: string;
+  includedModels?: string[];
+  excludedModels?: string[];
+  isDefault?: boolean;
+  yaml?: string;
+};
+
+export type CatalogSourceConfigPayload = CatalogSourceConfig;
+
+export type CatalogSourceConfigList = {
+  catalogs: CatalogSourceConfig[];
+};
+
+export type GetCatalogSourceConfigs = (opts: APIOptions) => Promise<CatalogSourceConfigList>;
+export type CreateCatalogSourceConfig = (
+  opts: APIOptions,
+  data: CatalogSourceConfigPayload,
+) => Promise<CatalogSourceConfig>;
+export type GetCatalogSourceConfig = (
+  opts: APIOptions,
+  sourceId: string,
+) => Promise<CatalogSourceConfig>;
+export type UpdateCatalogSourceConfig = (
+  opts: APIOptions,
+  sourceId: string,
+  data: CatalogSourceConfigPayload,
+) => Promise<CatalogSourceConfig>;
+export type DeleteCatalogSourceConfig = (opts: APIOptions, sourceId: string) => Promise<void>;
+
+export type ModelCatalogSettingsAPIs = {
+  getCatalogSourceConfigs: GetCatalogSourceConfigs;
+  createCatalogSourceConfig: CreateCatalogSourceConfig;
+  getCatalogSourceConfig: GetCatalogSourceConfig;
+  updateCatalogSourceConfig: UpdateCatalogSourceConfig;
+  deleteCatalogSourceConfig: DeleteCatalogSourceConfig;
+};

@@ -8,9 +8,24 @@ import {
   CATALOG_SETTINGS_DESCRIPTION,
   addSourceUrl,
 } from '~/app/routes/modelCatalogSettings/modelCatalogSettings';
+import { ModelCatalogSettingsContext } from '~/app/context/modelCatalogSettings/ModelCatalogSettingsContext';
 
 const ModelCatalogSettings: React.FC = () => {
   const navigate = useNavigate();
+  const { catalogSourceConfigs, catalogSourceConfigsLoaded, catalogSourceConfigsLoadError } =
+    React.useContext(ModelCatalogSettingsContext);
+
+  // Log the source configs for verification
+  React.useEffect(() => {
+    if (catalogSourceConfigsLoaded && catalogSourceConfigs) {
+      // eslint-disable-next-line no-console
+      console.log('Catalog Source Configs:', catalogSourceConfigs);
+    }
+    if (catalogSourceConfigsLoadError) {
+      // eslint-disable-next-line no-console
+      console.error('Error loading catalog source configs:', catalogSourceConfigsLoadError);
+    }
+  }, [catalogSourceConfigs, catalogSourceConfigsLoaded, catalogSourceConfigsLoadError]);
 
   return (
     <ApplicationsPage
