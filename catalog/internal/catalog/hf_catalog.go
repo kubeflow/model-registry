@@ -109,15 +109,22 @@ func (hfm *hfModel) populateFromHFInfo(ctx context.Context, provider *hfModelPro
 		}
 	}
 
-	// Extract license from tags first (preferred source)
+	// Extract license from tags
+	// Skip license tags in custom properties to avoid duplication
+	var filteredTags []string
 	if len(hfInfo.Tags) > 0 {
+		filteredTags = make([]string, 0, len(hfInfo.Tags))
 		for _, tag := range hfInfo.Tags {
 			if strings.HasPrefix(tag, "license:") {
-				license := strings.TrimPrefix(tag, "license:")
-				if license != "" {
-					hfm.License = &license
-					break
+				// Extract license (only first one)
+				if hfm.License == nil {
+					license := strings.TrimPrefix(tag, "license:")
+					if license != "" {
+						hfm.License = &license
+					}
 				}
+			} else {
+				filteredTags = append(filteredTags, tag)
 			}
 		}
 	}
@@ -173,8 +180,8 @@ func (hfm *hfModel) populateFromHFInfo(ctx context.Context, provider *hfModelPro
 
 	// Convert tags and other metadata to custom properties
 	customProps := make(map[string]apimodels.MetadataValue)
-	if len(hfInfo.Tags) > 0 {
-		if tagsJSON, err := json.Marshal(hfInfo.Tags); err == nil {
+	if len(filteredTags) > 0 {
+		if tagsJSON, err := json.Marshal(filteredTags); err == nil {
 			customProps["hf_tags"] = apimodels.MetadataValue{
 				MetadataStringValue: &apimodels.MetadataStringValue{
 					StringValue: string(tagsJSON),
