@@ -20,7 +20,9 @@ var _ MappedNullable = &CatalogLabel{}
 // CatalogLabel A catalog label. Labels are used to categorize catalog sources. Represented as a flexible map of string key-value pairs with a required 'name' field.
 type CatalogLabel struct {
 	// The unique name identifier for the label.
-	Name                 string `json:"name"`
+	Name NullableString `json:"name"`
+	// An optional human-readable name to show in place of `name`.
+	DisplayName          *string `json:"displayName,omitempty"`
 	AdditionalProperties map[string]interface{}
 }
 
@@ -30,7 +32,7 @@ type _CatalogLabel CatalogLabel
 // This constructor will assign default values to properties that have it defined,
 // and makes sure properties required by API are set, but the set of arguments
 // will change when the set of required properties is changed
-func NewCatalogLabel(name string) *CatalogLabel {
+func NewCatalogLabel(name NullableString) *CatalogLabel {
 	this := CatalogLabel{}
 	this.Name = name
 	return &this
@@ -45,27 +47,61 @@ func NewCatalogLabelWithDefaults() *CatalogLabel {
 }
 
 // GetName returns the Name field value
+// If the value is explicit nil, the zero value for string will be returned
 func (o *CatalogLabel) GetName() string {
-	if o == nil {
+	if o == nil || o.Name.Get() == nil {
 		var ret string
 		return ret
 	}
 
-	return o.Name
+	return *o.Name.Get()
 }
 
 // GetNameOk returns a tuple with the Name field value
 // and a boolean to check if the value has been set.
+// NOTE: If the value is an explicit nil, `nil, true` will be returned
 func (o *CatalogLabel) GetNameOk() (*string, bool) {
 	if o == nil {
 		return nil, false
 	}
-	return &o.Name, true
+	return o.Name.Get(), o.Name.IsSet()
 }
 
 // SetName sets field value
 func (o *CatalogLabel) SetName(v string) {
-	o.Name = v
+	o.Name.Set(&v)
+}
+
+// GetDisplayName returns the DisplayName field value if set, zero value otherwise.
+func (o *CatalogLabel) GetDisplayName() string {
+	if o == nil || IsNil(o.DisplayName) {
+		var ret string
+		return ret
+	}
+	return *o.DisplayName
+}
+
+// GetDisplayNameOk returns a tuple with the DisplayName field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+func (o *CatalogLabel) GetDisplayNameOk() (*string, bool) {
+	if o == nil || IsNil(o.DisplayName) {
+		return nil, false
+	}
+	return o.DisplayName, true
+}
+
+// HasDisplayName returns a boolean if a field has been set.
+func (o *CatalogLabel) HasDisplayName() bool {
+	if o != nil && !IsNil(o.DisplayName) {
+		return true
+	}
+
+	return false
+}
+
+// SetDisplayName gets a reference to the given string and assigns it to the DisplayName field.
+func (o *CatalogLabel) SetDisplayName(v string) {
+	o.DisplayName = &v
 }
 
 func (o CatalogLabel) MarshalJSON() ([]byte, error) {
@@ -78,7 +114,10 @@ func (o CatalogLabel) MarshalJSON() ([]byte, error) {
 
 func (o CatalogLabel) ToMap() (map[string]interface{}, error) {
 	toSerialize := map[string]interface{}{}
-	toSerialize["name"] = o.Name
+	toSerialize["name"] = o.Name.Get()
+	if !IsNil(o.DisplayName) {
+		toSerialize["displayName"] = o.DisplayName
+	}
 
 	for key, value := range o.AdditionalProperties {
 		toSerialize[key] = value

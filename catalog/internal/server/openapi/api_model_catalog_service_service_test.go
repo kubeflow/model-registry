@@ -683,7 +683,7 @@ func TestFindSources(t *testing.T) {
 func TestFindLabels(t *testing.T) {
 	testCases := []struct {
 		name            string
-		labels          []map[string]string
+		labels          []map[string]any
 		pageSize        string
 		orderBy         string
 		sortOrder       model.SortOrder
@@ -697,7 +697,7 @@ func TestFindLabels(t *testing.T) {
 	}{
 		{
 			name:            "Empty labels list",
-			labels:          []map[string]string{},
+			labels:          []map[string]any{},
 			pageSize:        "10",
 			orderBy:         "",
 			sortOrder:       model.SORTORDER_ASC,
@@ -708,7 +708,7 @@ func TestFindLabels(t *testing.T) {
 		},
 		{
 			name: "Single label",
-			labels: []map[string]string{
+			labels: []map[string]any{
 				{"name": "labelNameOne", "displayName": "Label Name One"},
 			},
 			pageSize:        "10",
@@ -721,7 +721,7 @@ func TestFindLabels(t *testing.T) {
 		},
 		{
 			name: "Multiple labels",
-			labels: []map[string]string{
+			labels: []map[string]any{
 				{"name": "labelNameOne", "displayName": "Label Name One"},
 				{"name": "community", "displayName": "Community Models"},
 				{"name": "enterprise", "displayName": "Enterprise"},
@@ -736,7 +736,7 @@ func TestFindLabels(t *testing.T) {
 		},
 		{
 			name: "Pagination - first page",
-			labels: []map[string]string{
+			labels: []map[string]any{
 				{"name": "label1", "displayName": "Label 1"},
 				{"name": "label2", "displayName": "Label 2"},
 				{"name": "label3", "displayName": "Label 3"},
@@ -752,7 +752,7 @@ func TestFindLabels(t *testing.T) {
 		},
 		{
 			name: "Pagination - last page",
-			labels: []map[string]string{
+			labels: []map[string]any{
 				{"name": "label1", "displayName": "Label 1"},
 				{"name": "label2", "displayName": "Label 2"},
 				{"name": "label3", "displayName": "Label 3"},
@@ -767,7 +767,7 @@ func TestFindLabels(t *testing.T) {
 		},
 		{
 			name: "Sort by name ascending",
-			labels: []map[string]string{
+			labels: []map[string]any{
 				{"name": "zebra", "displayName": "Zebra"},
 				{"name": "alpha", "displayName": "Alpha"},
 				{"name": "beta", "displayName": "Beta"},
@@ -784,7 +784,7 @@ func TestFindLabels(t *testing.T) {
 		},
 		{
 			name: "Sort by name descending",
-			labels: []map[string]string{
+			labels: []map[string]any{
 				{"name": "alpha", "displayName": "Alpha"},
 				{"name": "beta", "displayName": "Beta"},
 				{"name": "zebra", "displayName": "Zebra"},
@@ -801,7 +801,7 @@ func TestFindLabels(t *testing.T) {
 		},
 		{
 			name: "Sort by displayName",
-			labels: []map[string]string{
+			labels: []map[string]any{
 				{"name": "label1", "displayName": "Zebra Display"},
 				{"name": "label2", "displayName": "Alpha Display"},
 				{"name": "label3", "displayName": "Beta Display"},
@@ -818,7 +818,7 @@ func TestFindLabels(t *testing.T) {
 		},
 		{
 			name: "Labels with missing sort key maintain order",
-			labels: []map[string]string{
+			labels: []map[string]any{
 				{"name": "has-priority", "priority": "high"},
 				{"name": "no-priority-1"},
 				{"name": "also-has-priority", "priority": "low"},
@@ -834,7 +834,7 @@ func TestFindLabels(t *testing.T) {
 		},
 		{
 			name: "Default page size",
-			labels: []map[string]string{
+			labels: []map[string]any{
 				{"name": "label1"},
 				{"name": "label2"},
 			},
@@ -848,7 +848,7 @@ func TestFindLabels(t *testing.T) {
 		},
 		{
 			name: "Invalid page size",
-			labels: []map[string]string{
+			labels: []map[string]any{
 				{"name": "label1"},
 			},
 			pageSize:       "invalid",
@@ -858,7 +858,7 @@ func TestFindLabels(t *testing.T) {
 		},
 		{
 			name: "Page size exactly matches items",
-			labels: []map[string]string{
+			labels: []map[string]any{
 				{"name": "label1"},
 				{"name": "label2"},
 				{"name": "label3"},
@@ -933,22 +933,25 @@ func TestFindLabels(t *testing.T) {
 			if tc.checkSorting && len(labelList.Items) > 1 && tc.checkOrderByKey != "" {
 				for i := 0; i < len(labelList.Items)-1; i++ {
 					// Get value from either Name field or AdditionalProperties
-					var val1, val2 string
+					var val1, val2 *string
 					var ok1, ok2 bool
 
 					if tc.checkOrderByKey == "name" {
-						val1 = labelList.Items[i].Name
-						val2 = labelList.Items[i+1].Name
-						ok1, ok2 = true, true
+						val1 = labelList.Items[i].Name.Get()
+						val2 = labelList.Items[i+1].Name.Get()
+						ok1 = val1 != nil
+						ok2 = val2 != nil
 					} else {
 						var v1, v2 interface{}
 						v1, ok1 = labelList.Items[i].AdditionalProperties[tc.checkOrderByKey]
 						v2, ok2 = labelList.Items[i+1].AdditionalProperties[tc.checkOrderByKey]
 						if ok1 {
-							val1, _ = v1.(string)
+							val1, _ = v1.(*string)
+							ok1 = val1 != nil
 						}
 						if ok2 {
-							val2, _ = v2.(string)
+							val2, _ = v2.(*string)
+							ok2 = val2 != nil
 						}
 					}
 
@@ -959,13 +962,13 @@ func TestFindLabels(t *testing.T) {
 
 					if tc.sortOrder == model.SORTORDER_DESC {
 						assert.GreaterOrEqual(t,
-							val1,
-							val2,
+							*val1,
+							*val2,
 							"Labels should be sorted by %s in descending order", tc.checkOrderByKey)
 					} else {
 						assert.LessOrEqual(t,
-							val1,
-							val2,
+							*val1,
+							*val2,
 							"Labels should be sorted by %s in ascending order", tc.checkOrderByKey)
 					}
 				}

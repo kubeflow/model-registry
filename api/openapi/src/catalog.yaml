@@ -338,7 +338,11 @@ components:
       properties:
         name:
           type: string
+          nullable: true
           description: The unique name identifier for the label.
+        displayName:
+          type: string
+          description: An optional human-readable name to show in place of `name`.
       additionalProperties:
         type: string
       example:

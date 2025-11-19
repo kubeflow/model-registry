@@ -13,13 +13,13 @@ type LabelCollection struct {
 	origins map[string][]int
 
 	// labels stores all unique labels
-	labels []map[string]string
+	labels []map[string]*string
 }
 
 func NewLabelCollection() *LabelCollection {
 	return &LabelCollection{
 		origins: map[string][]int{},
-		labels:  []map[string]string{},
+		labels:  []map[string]*string{},
 	}
 }
 
@@ -28,12 +28,17 @@ func NewLabelCollection() *LabelCollection {
 // Returns an error if:
 //   - duplicate label names exist within newLabels
 //   - a label name conflicts with an existing label from a different origin
-func (lc *LabelCollection) Merge(origin string, newLabels []map[string]string) error {
-	newLabelNames := make(map[string]bool)
+func (lc *LabelCollection) Merge(origin string, newLabels []map[string]any) error {
+	newLabelNames := make(map[any]bool, len(newLabels))
 	for _, newLabel := range newLabels {
 		if name, ok := newLabel["name"]; ok {
+			_, isStr := name.(string)
+			if !isStr && name != nil {
+				return fmt.Errorf("unknown name type: %v", name)
+			}
+
 			if newLabelNames[name] {
-				return fmt.Errorf("duplicate label name '%s' within the same origin", name)
+				return fmt.Errorf("duplicate label name '%v' within the same origin", name)
 			}
 			newLabelNames[name] = true
 		}
@@ -45,7 +50,7 @@ func (lc *LabelCollection) Merge(origin string, newLabels []map[string]string) e
 	// Build a map of existing label names from OTHER origins (excluding this origin)
 	// This allows us to validate BEFORE mutating state
 	oldIndices, originExists := lc.origins[origin]
-	existingNamesFromOtherOrigins := make(map[string]bool)
+	existingNamesFromOtherOrigins := make(map[any]bool)
 	for i, label := range lc.labels {
 		// Skip labels from this origin (they will be replaced)
 		isFromThisOrigin := false
@@ -60,13 +65,17 @@ func (lc *LabelCollection) Merge(origin string, newLabels []map[string]string) e
 
 		if !isFromThisOrigin {
 			if name, ok := label["name"]; ok {
-				existingNamesFromOtherOrigins[name] = true
+				if name == nil {
+					existingNamesFromOtherOrigins[nil] = true
+				} else {
+					existingNamesFromOtherOrigins[*name] = true
+				}
 			}
 		}
 	}
 
 	// Validate conflicts and prepare labels to add in a single pass
-	labelsToAdd := make([]map[string]string, 0, len(newLabels))
+	labelsToAdd := make([]map[string]*string, 0, len(newLabels))
 	for _, newLabel := range newLabels {
 		// Check for conflicts with other origins
 		if name, ok := newLabel["name"]; ok {
@@ -75,7 +84,22 @@ func (lc *LabelCollection) Merge(origin string, newLabels []map[string]string) e
 			}
 		}
 
-		labelsToAdd = append(labelsToAdd, newLabel)
+		// Verify that every key is a string, except for name which can be nil
+		newLabelSP := make(map[string]*string, len(newLabel))
+		newLabelSP["name"] = nil // default
+		for k, v := range newLabel {
+			if k == "name" && v == nil {
+				continue
+			}
+
+			str, ok := v.(string)
+			if !ok {
+				return fmt.Errorf("label '%v' has invalid property %q, type %T", newLabel["name"], k, v)
+			}
+			newLabelSP[k] = &str
+		}
+
+		labelsToAdd = append(labelsToAdd, newLabelSP)
 	}
 
 	// All validation passed, now proceed with mutation
@@ -90,7 +114,7 @@ func (lc *LabelCollection) Merge(origin string, newLabels []map[string]string) e
 	}
 
 	// Compact the slice by removing nil entries
-	compacted := make([]map[string]string, 0, len(lc.labels))
+	compacted := make([]map[string]*string, 0, len(lc.labels))
 	for _, label := range lc.labels {
 		if label != nil {
 			compacted = append(compacted, label)
@@ -114,11 +138,20 @@ func (lc *LabelCollection) Merge(origin string, newLabels []map[string]string) e
 	return nil
 }
 
-func (lc *LabelCollection) All() []map[string]string {
+func (lc *LabelCollection) All() []map[string]any {
 	lc.mu.RLock()
 	defer lc.mu.RUnlock()
 
-	result := make([]map[string]string, len(lc.labels))
-	copy(result, lc.labels)
+	result := make([]map[string]any, len(lc.labels))
+	for i := range lc.labels {
+		result[i] = make(map[string]any, len(lc.labels[i]))
+		for k, v := range lc.labels[i] {
+			if v == nil {
+				result[i][k] = nil
+			} else {
+				result[i][k] = *v
+			}
+		}
+	}
 	return result
 }

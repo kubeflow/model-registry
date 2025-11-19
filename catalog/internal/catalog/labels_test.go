@@ -15,25 +15,27 @@ func TestLabelCollection_NewLabelCollection(t *testing.T) {
 func TestLabelCollection_Merge_AddLabels(t *testing.T) {
 	lc := NewLabelCollection()
 
-	labels1 := []map[string]string{
+	labels1 := []map[string]any{
 		{"name": "labelNameOne", "displayName": "Label Name One"},
 		{"name": "labelNameTwo", "displayName": "Label Name Two"},
+		{"name": nil, "displayName": "Null Label"},
 	}
 
 	err := lc.Merge("source1", labels1)
 	assert.NoError(t, err)
 
 	all := lc.All()
-	assert.Len(t, all, 2)
+	assert.Len(t, all, 3)
 	assert.Contains(t, all, labels1[0])
 	assert.Contains(t, all, labels1[1])
+	assert.Contains(t, all, labels1[2])
 }
 
 func TestLabelCollection_Merge_ReplaceLabels(t *testing.T) {
 	lc := NewLabelCollection()
 
 	// Add initial labels from source1
-	labels1 := []map[string]string{
+	labels1 := []map[string]any{
 		{"name": "labelNameOne", "displayName": "Label Name One"},
 		{"name": "labelNameTwo", "displayName": "Label Name Two"},
 	}
@@ -41,7 +43,7 @@ func TestLabelCollection_Merge_ReplaceLabels(t *testing.T) {
 	assert.NoError(t, err)
 
 	// Replace labels from source1
-	labels2 := []map[string]string{
+	labels2 := []map[string]any{
 		{"name": "labelNameThree", "displayName": "Label Name Three"},
 	}
 	err = lc.Merge("source1", labels2)
@@ -55,10 +57,10 @@ func TestLabelCollection_Merge_ReplaceLabels(t *testing.T) {
 func TestLabelCollection_Merge_MultipleOrigins(t *testing.T) {
 	lc := NewLabelCollection()
 
-	labels1 := []map[string]string{
+	labels1 := []map[string]any{
 		{"name": "labelNameOne", "displayName": "Label Name One"},
 	}
-	labels2 := []map[string]string{
+	labels2 := []map[string]any{
 		{"name": "labelNameTwo", "displayName": "Label Name Two"},
 	}
 
@@ -77,7 +79,7 @@ func TestLabelCollection_Merge_DuplicateNameWithinSameOrigin(t *testing.T) {
 	lc := NewLabelCollection()
 
 	// Try to add labels with duplicate names in the same batch
-	labels := []map[string]string{
+	labels := []map[string]any{
 		{"name": "labelNameOne", "displayName": "Label Name One"},
 		{"name": "labelNameTwo", "displayName": "Label Name Two"},
 		{"name": "labelNameOne", "displayName": "Label Name One"}, // Duplicate!
@@ -91,18 +93,36 @@ func TestLabelCollection_Merge_DuplicateNameWithinSameOrigin(t *testing.T) {
 	assert.Len(t, all, 0)
 }
 
+func TestLabelCollection_Merge_DuplicateNullNameWithinSameOrigin(t *testing.T) {
+	lc := NewLabelCollection()
+
+	// Try to add labels with duplicate names in the same batch
+	labels := []map[string]any{
+		{"name": nil, "displayName": "Label Name Null"},
+		{"name": "labelNameTwo", "displayName": "Label Name Two"},
+		{"name": nil, "displayName": "Label Name Null"}, // Duplicate!
+	}
+	err := lc.Merge("source1", labels)
+	assert.Error(t, err)
+	assert.Contains(t, err.Error(), "duplicate label name '<nil>' within the same origin")
+
+	// Verify no labels were added (transaction-like behavior)
+	all := lc.All()
+	assert.Len(t, all, 0)
+}
+
 func TestLabelCollection_Merge_DuplicateNameFromDifferentOrigins(t *testing.T) {
 	lc := NewLabelCollection()
 
 	// Add label from source1
-	labels1 := []map[string]string{
+	labels1 := []map[string]any{
 		{"name": "labelNameOne", "displayName": "Label Name One from source1"},
 	}
 	err := lc.Merge("source1", labels1)
 	assert.NoError(t, err)
 
 	// Try to add a label with the same name from source2
-	labels2 := []map[string]string{
+	labels2 := []map[string]any{
 		{"name": "labelNameOne", "displayName": "Label Name One from source2"},
 	}
 	err = lc.Merge("source2", labels2)
@@ -119,14 +139,14 @@ func TestLabelCollection_Merge_SameOriginCanReplaceSameName(t *testing.T) {
 	lc := NewLabelCollection()
 
 	// Add label from source1
-	labels1 := []map[string]string{
+	labels1 := []map[string]any{
 		{"name": "labelNameOne", "displayName": "Label Name One Version 1"},
 	}
 	err := lc.Merge("source1", labels1)
 	assert.NoError(t, err)
 
 	// Replace with same name from same source - should work
-	labels2 := []map[string]string{
+	labels2 := []map[string]any{
 		{"name": "labelNameOne", "displayName": "Label Name One Version 2"},
 	}
 	err = lc.Merge("source1", labels2)
@@ -142,7 +162,7 @@ func TestLabelCollection_Merge_SameOriginWithIdenticalLabels(t *testing.T) {
 	lc := NewLabelCollection()
 
 	// Add labels from source1
-	labels := []map[string]string{
+	labels := []map[string]any{
 		{"name": "labelNameOne", "displayName": "Label Name One"},
 		{"name": "labelNameTwo", "displayName": "Label Name Two"},
 	}
@@ -169,7 +189,7 @@ func TestLabelCollection_Merge_RollbackOnValidationFailure(t *testing.T) {
 	lc := NewLabelCollection()
 
 	// Add initial labels from source1
-	labels1 := []map[string]string{
+	labels1 := []map[string]any{
 		{"name": "labelNameOne", "displayName": "Label Name One"},
 		{"name": "labelNameTwo", "displayName": "Label Name Two"},
 	}
@@ -181,7 +201,7 @@ func TestLabelCollection_Merge_RollbackOnValidationFailure(t *testing.T) {
 	assert.Len(t, all, 2)
 
 	// Try to update source1 with invalid labels (duplicates within same batch)
-	invalidLabels := []map[string]string{
+	invalidLabels := []map[string]any{
 		{"name": "enterprise", "displayName": "Enterprise"},
 		{"name": "enterprise", "displayName": "Enterprise Duplicate"}, // Duplicate!
 	}
@@ -202,14 +222,14 @@ func TestLabelCollection_Merge_RollbackOnCrossOriginConflict(t *testing.T) {
 	lc := NewLabelCollection()
 
 	// Add labels from source1
-	labels1 := []map[string]string{
+	labels1 := []map[string]any{
 		{"name": "source1-label", "displayName": "Source 1 Label"},
 	}
 	err := lc.Merge("source1", labels1)
 	assert.NoError(t, err)
 
 	// Add labels from source2
-	labels2 := []map[string]string{
+	labels2 := []map[string]any{
 		{"name": "source2-label", "displayName": "Source 2 Label"},
 	}
 	err = lc.Merge("source2", labels2)
@@ -220,7 +240,7 @@ func TestLabelCollection_Merge_RollbackOnCrossOriginConflict(t *testing.T) {
 	assert.Len(t, all, 2)
 
 	// Try to update source1 with a label that conflicts with source2
-	conflictingLabels := []map[string]string{
+	conflictingLabels := []map[string]any{
 		{"name": "source2-label", "displayName": "Trying to steal source2 label"},
 	}
 	err = lc.Merge("source1", conflictingLabels)
@@ -232,7 +252,7 @@ func TestLabelCollection_Merge_RollbackOnCrossOriginConflict(t *testing.T) {
 	assert.Len(t, all, 2, "Both original labels should remain after failed validation")
 
 	// Find source1's label
-	var source1Label map[string]string
+	var source1Label map[string]any
 	for _, label := range all {
 		if label["name"] == "source1-label" {
 			source1Label = label
@@ -247,13 +267,13 @@ func TestLabelCollection_Merge_Deduplicate(t *testing.T) {
 	lc := NewLabelCollection()
 
 	// Same label from two sources - should fail because of name conflict
-	label := map[string]string{"name": "labelNameOne", "displayName": "Label Name One"}
+	label := map[string]any{"name": "labelNameOne", "displayName": "Label Name One"}
 
-	err := lc.Merge("source1", []map[string]string{label})
+	err := lc.Merge("source1", []map[string]any{label})
 	assert.NoError(t, err)
 
 	// This should fail because a label with the same name already exists
-	err = lc.Merge("source2", []map[string]string{label})
+	err = lc.Merge("source2", []map[string]any{label})
 	assert.Error(t, err)
 	assert.Contains(t, err.Error(), "label with name 'labelNameOne' already exists from another origin")
 }
@@ -261,14 +281,14 @@ func TestLabelCollection_Merge_Deduplicate(t *testing.T) {
 func TestLabelCollection_Merge_EmptyLabels(t *testing.T) {
 	lc := NewLabelCollection()
 
-	labels1 := []map[string]string{
+	labels1 := []map[string]any{
 		{"name": "labelNameOne", "displayName": "Label Name One"},
 	}
 	err := lc.Merge("source1", labels1)
 	assert.NoError(t, err)
 
 	// Clear labels from source1 by merging empty slice
-	err = lc.Merge("source1", []map[string]string{})
+	err = lc.Merge("source1", []map[string]any{})
 	assert.NoError(t, err)
 
 	all := lc.All()
@@ -279,7 +299,7 @@ func TestLabelCollection_Merge_UpdateOrigin(t *testing.T) {
 	lc := NewLabelCollection()
 
 	// Add labels from source1
-	labels1 := []map[string]string{
+	labels1 := []map[string]any{
 		{"name": "labelNameOne", "displayName": "Label Name One"},
 		{"name": "labelNameTwo", "displayName": "Label Name Two"},
 	}
@@ -287,14 +307,14 @@ func TestLabelCollection_Merge_UpdateOrigin(t *testing.T) {
 	assert.NoError(t, err)
 
 	// Add labels from source2
-	labels2 := []map[string]string{
+	labels2 := []map[string]any{
 		{"name": "labelNameThree", "displayName": "Label Name Three"},
 	}
 	err = lc.Merge("source2", labels2)
 	assert.NoError(t, err)
 
 	// Update source1 with different labels
-	labels3 := []map[string]string{
+	labels3 := []map[string]any{
 		{"name": "labelNameFour", "displayName": "Label Name Four"},
 	}
 	err = lc.Merge("source1", labels3)

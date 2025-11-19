@@ -44,8 +44,8 @@ type LoaderEventHandler func(ctx context.Context, record ModelProviderRecord) er
 
 // sourceConfig is the structure for the catalog sources YAML file.
 type sourceConfig struct {
-	Catalogs []Source            `json:"catalogs"`
-	Labels   []map[string]string `json:"labels,omitempty"`
+	Catalogs []Source         `json:"catalogs"`
+	Labels   []map[string]any `json:"labels,omitempty"`
 }
 
 // Source is a single entry from the catalog sources YAML file.
@@ -206,7 +206,7 @@ func (l *Loader) updateLabels(path string, config *sourceConfig) error {
 	// Merge labels from config into the label collection
 	if config.Labels == nil {
 		// No labels in config, but we still need to clear any previous labels from this origin
-		return l.Labels.Merge(path, []map[string]string{})
+		return l.Labels.Merge(path, []map[string]any{})
 	}
 
 	// Validate that each label has a required "name" field

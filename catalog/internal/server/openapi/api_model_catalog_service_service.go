@@ -125,11 +125,16 @@ func (m *ModelCatalogServiceAPIService) FindLabels(ctx context.Context, pageSize
 			return ErrorResponse(http.StatusInternalServerError, err), err
 		}
 
-		// Create CatalogLabel with name
-		label := model.NewCatalogLabel(name)
+		// Create CatalogLabel with name (which may be null)
+		var label *model.CatalogLabel
+		if nameStr, ok := name.(string); ok {
+			label = model.NewCatalogLabel(*model.NewNullableString(&nameStr))
+		} else {
+			label = model.NewCatalogLabel(*model.NewNullableString(nil))
+		}
 
 		// Add all other properties to AdditionalProperties
-		label.AdditionalProperties = make(map[string]interface{})
+		label.AdditionalProperties = make(map[string]any)
 		for key, value := range sl.data {
 			if key != "name" {
 				label.AdditionalProperties[key] = value
@@ -297,7 +302,7 @@ func generateLabelID(index int) string {
 
 // sortableLabel wraps a label map to make it sortable
 type sortableLabel struct {
-	data  map[string]string
+	data  map[string]any
 	index int    // Original position for stable sort when key is missing
 	id    string // Stable ID for pagination
 }
@@ -335,8 +340,17 @@ func genLabelCmpFunc(orderByKey string, sortOrder model.SortOrder) func(sortable
 		}
 
 		// Get values for the orderBy key
-		aVal, aHasKey := a.data[orderByKey]
-		bVal, bHasKey := b.data[orderByKey]
+		aValRaw, aHasKey := a.data[orderByKey]
+		bValRaw, bHasKey := b.data[orderByKey]
+
+		var aVal string
+		if aHasKey {
+			aVal, aHasKey = aValRaw.(string)
+		}
+		var bVal string
+		if bHasKey {
+			bVal, bHasKey = bValRaw.(string)
+		}
 
 		// If both have the key, compare their values
 		if aHasKey && bHasKey {
