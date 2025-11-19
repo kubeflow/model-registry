@@ -72,6 +72,7 @@ const (
 	ModelCatalogSettingsPathPrefix           = SettingsPath + "/model_catalog"
 	ModelCatalogSettingsSourceConfigListPath = ModelCatalogSettingsPathPrefix + "/source_configs"
 	ModelCatalogSettingsSourceConfigPath     = ModelCatalogSettingsSourceConfigListPath + "/:" + CatalogSourceId
+	CatalogSourcePreviewPath                 = ModelCatalogSettingsPathPrefix + "/source_preview"
 )
 
 type App struct {
@@ -286,6 +287,8 @@ func (app *App) Routes() http.Handler {
 		apiRouter.GET(ModelCatalogSettingsSourceConfigPath, app.AttachNamespace(app.GetCatalogSourceConfigHandler))
 		apiRouter.PATCH(ModelCatalogSettingsSourceConfigPath, app.AttachNamespace(app.UpdateCatalogSourceConfigHandler))
 		apiRouter.DELETE(ModelCatalogSettingsSourceConfigPath, app.AttachNamespace(app.DeleteCatalogSourceConfigHandler))
+
+		apiRouter.POST(CatalogSourcePreviewPath, app.AttachNamespace(app.AttachModelCatalogRESTClient(app.CreateCatalogSourcePreviewHandler)))
 	}
 
 	// App Router

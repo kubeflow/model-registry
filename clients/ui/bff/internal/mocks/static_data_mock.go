@@ -1373,3 +1373,45 @@ func GetCatalogSourceConfigListMock() models.CatalogSourceConfigList {
 		Catalogs: allCatalogSourceConfigs,
 	}
 }
+
+func GetModelsWithInclusionStatusListMocks() []models.CatalogSourcePreviewModel {
+	return []models.CatalogSourcePreviewModel{
+		{
+			Name:     "sample-source/granite",
+			Included: true,
+		},
+		{
+			Name:     "sample-source/model-1",
+			Included: true,
+		},
+		{
+			Name:     "adminModel1/model-2",
+			Included: true,
+		},
+		{
+			Name:     "adminModel1/model-3",
+			Included: false,
+		},
+	}
+}
+
+func GetCatalogSourcePreviewSummaryMock() models.CatalogSourcePreviewSummary {
+	return models.CatalogSourcePreviewSummary{
+		TotalModels:    1500,
+		IncludedModels: 850,
+		ExcludedModels: 650,
+	}
+}
+
+func CreateCatalogSourcePreviewMock() models.CatalogSourcePreviewResult {
+	catalogModelPreview := GetModelsWithInclusionStatusListMocks()
+	catalogSourcePreviewSummary := GetCatalogSourcePreviewSummaryMock()
+
+	return models.CatalogSourcePreviewResult{
+		Items:         catalogModelPreview,
+		Summary:       catalogSourcePreviewSummary,
+		NextPageToken: "",
+		PageSize:      int32(10),
+		Size:          int32(len(catalogModelPreview)),
+	}
+}
