@@ -4,15 +4,16 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
-	"github.com/kubeflow/model-registry/ui/bff/internal/config"
-	k8s "github.com/kubeflow/model-registry/ui/bff/internal/integrations/httpclient"
-	"github.com/kubeflow/model-registry/ui/bff/internal/integrations/kubernetes"
 	"io"
 	"log/slog"
 	"net/http"
 	"net/http/httptest"
 	"os"
 	"path/filepath"
+
+	"github.com/kubeflow/model-registry/ui/bff/internal/config"
+	k8s "github.com/kubeflow/model-registry/ui/bff/internal/integrations/httpclient"
+	"github.com/kubeflow/model-registry/ui/bff/internal/integrations/kubernetes"
 
 	"github.com/kubeflow/model-registry/ui/bff/internal/constants"
 	"github.com/kubeflow/model-registry/ui/bff/internal/mocks"
@@ -28,6 +29,10 @@ func setupApiTest[T any](method string, url string, body interface{}, k8Factory 
 	if err != nil {
 		return *new(T), nil, err
 	}
+	modelCatalogSettingsRepository, err := mocks.NewModelCatalogSettingsRepository(nil)
+	if err != nil {
+		return *new(T), nil, err
+	}
 
 	mockClient := new(mocks.MockHTTPClient)
 
@@ -39,7 +44,7 @@ func setupApiTest[T any](method string, url string, body interface{}, k8Factory 
 		cfg.AuthMethod = config.AuthMethodUser
 	}
 	testApp := App{
-		repositories:            repositories.NewRepositories(mockMRClient, mockModelCatalogClient),
+		repositories:            repositories.NewRepositories(mockMRClient, mockModelCatalogClient, modelCatalogSettingsRepository),
 		kubernetesClientFactory: k8Factory,
 		logger:                  slog.Default(),
 		config:                  cfg,

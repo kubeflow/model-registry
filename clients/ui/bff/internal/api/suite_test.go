@@ -2,14 +2,15 @@ package api
 
 import (
 	"context"
+	"log/slog"
+	"os"
+	"testing"
+
 	k8s "github.com/kubeflow/model-registry/ui/bff/internal/integrations/kubernetes"
 	"github.com/kubeflow/model-registry/ui/bff/internal/integrations/kubernetes/k8mocks"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
-	"log/slog"
-	"os"
 	"sigs.k8s.io/controller-runtime/pkg/envtest"
-	"testing"
 
 	"github.com/kubeflow/model-registry/ui/bff/internal/mocks"
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
@@ -27,6 +28,7 @@ var (
 	kubernetesMockedStaticClientFactory k8s.KubernetesClientFactory
 	mockMRClient                        *mocks.ModelRegistryClientMock
 	mockModelCatalogClient              *mocks.ModelCatalogClientMock
+	modelCatalogSettingsRepository      *mocks.ModelCatalogSettingsRepositoryMock
 	ctx                                 context.Context
 	cancel                              context.CancelFunc
 	logger                              *slog.Logger
@@ -66,6 +68,9 @@ var _ = BeforeSuite(func() {
 	Expect(err).NotTo(HaveOccurred())
 
 	mockModelCatalogClient, err = mocks.NewModelCatalogClientMock(nil)
+	Expect(err).NotTo(HaveOccurred())
+
+	modelCatalogSettingsRepository, err = mocks.NewModelCatalogSettingsRepository(nil)
 	Expect(err).NotTo(HaveOccurred())
 })
 
