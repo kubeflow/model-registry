@@ -502,6 +502,21 @@ components:
           type: array
           items:
             type: string
+        includedModels:
+          description: |-
+            Optional allow-list of models that are eligible for this source. Entries can be
+            exact model names or patterns that use `*` as a wildcard. When provided, only
+            models matching at least one pattern are considered.
+          type: array
+          items:
+            type: string
+        excludedModels:
+          description: |-
+            Optional block-list of models that should be removed from the catalog even if
+            they match `includedModels`. Patterns support the `*` wildcard.
+          type: array
+          items:
+            type: string
     CatalogSourceList:
       description: List of CatalogSource entities.
       allOf:
