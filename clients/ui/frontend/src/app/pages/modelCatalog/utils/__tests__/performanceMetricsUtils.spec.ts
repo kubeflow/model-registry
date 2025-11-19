@@ -7,7 +7,16 @@ import {
   formatLatency,
   formatTokenValue,
   getWorkloadType,
+  getSliderRange,
+  FALLBACK_LATENCY_RANGE,
+  FALLBACK_RPS_RANGE,
 } from '~/app/pages/modelCatalog/utils/performanceMetricsUtils';
+import {
+  CatalogPerformanceMetricsArtifact,
+  CatalogArtifactType,
+  MetricsType,
+} from '~/app/modelCatalogTypes';
+import { getDoubleValue } from '~/app/utils';
 
 describe('performanceMetricsUtils', () => {
   describe('getHardwareConfiguration', () => {
@@ -227,6 +236,238 @@ describe('performanceMetricsUtils', () => {
       // @ts-expect-error - Testing undefined customProperties
       artifact.customProperties = undefined;
       expect(getWorkloadType(artifact)).toBe('-');
+    });
+  });
+});
+
+describe('performanceMetricsUtils', () => {
+  const createMockPerformanceArtifact = (
+    rps: number,
+    latency: number,
+  ): CatalogPerformanceMetricsArtifact => ({
+    artifactType: CatalogArtifactType.metricsArtifact,
+    metricsType: MetricsType.performanceMetrics,
+    createTimeSinceEpoch: '1739210683000',
+    lastUpdateTimeSinceEpoch: '1739210683000',
+    customProperties: {
+      requests_per_second: {
+        metadataType: ModelRegistryMetadataType.DOUBLE,
+        double_value: rps,
+      },
+      ttft_mean: {
+        metadataType: ModelRegistryMetadataType.DOUBLE,
+        double_value: latency,
+      },
+    },
+  });
+
+  describe('getSliderRange', () => {
+    describe('with empty performance artifacts', () => {
+      it('should return fallback range', () => {
+        const result = getSliderRange({
+          performanceArtifacts: [],
+          getArtifactFilterValue: (artifact) =>
+            getDoubleValue(artifact.customProperties, 'requests_per_second'),
+          fallbackRange: FALLBACK_RPS_RANGE,
+        });
+
+        expect(result).toEqual(FALLBACK_RPS_RANGE);
+      });
+    });
+
+    describe('with no valid values', () => {
+      it('should return fallback range when all values are invalid (zero or negative)', () => {
+        const artifacts = [
+          createMockPerformanceArtifact(0, 100),
+          createMockPerformanceArtifact(-5, 200),
+          createMockPerformanceArtifact(0, 300),
+        ];
+
+        const result = getSliderRange({
+          performanceArtifacts: artifacts,
+          getArtifactFilterValue: (artifact) =>
+            getDoubleValue(artifact.customProperties, 'requests_per_second'),
+          fallbackRange: FALLBACK_RPS_RANGE,
+        });
+
+        expect(result).toEqual(FALLBACK_RPS_RANGE);
+      });
+    });
+
+    describe('with valid values', () => {
+      it('should calculate min and max from RPS values', () => {
+        const artifacts = [
+          createMockPerformanceArtifact(10, 100),
+          createMockPerformanceArtifact(50, 200),
+          createMockPerformanceArtifact(25, 150),
+        ];
+
+        const result = getSliderRange({
+          performanceArtifacts: artifacts,
+          getArtifactFilterValue: (artifact) =>
+            getDoubleValue(artifact.customProperties, 'requests_per_second'),
+          fallbackRange: FALLBACK_RPS_RANGE,
+        });
+
+        expect(result).toEqual({
+          minValue: 10,
+          maxValue: 50,
+          isSliderDisabled: false,
+        });
+      });
+
+      it('should calculate min and max from latency values', () => {
+        const artifacts = [
+          createMockPerformanceArtifact(10, 150.5),
+          createMockPerformanceArtifact(20, 200.8),
+          createMockPerformanceArtifact(30, 100.2),
+        ];
+
+        const result = getSliderRange({
+          performanceArtifacts: artifacts,
+          getArtifactFilterValue: (artifact) =>
+            getDoubleValue(artifact.customProperties, 'ttft_mean'),
+          fallbackRange: FALLBACK_LATENCY_RANGE,
+        });
+
+        expect(result).toEqual({
+          minValue: 100.2,
+          maxValue: 200.8,
+          isSliderDisabled: false,
+        });
+      });
+
+      it('should filter out zero and negative values', () => {
+        const artifacts = [
+          createMockPerformanceArtifact(0, 100),
+          createMockPerformanceArtifact(10, 200),
+          createMockPerformanceArtifact(-5, 300),
+          createMockPerformanceArtifact(30, 400),
+        ];
+
+        const result = getSliderRange({
+          performanceArtifacts: artifacts,
+          getArtifactFilterValue: (artifact) =>
+            getDoubleValue(artifact.customProperties, 'requests_per_second'),
+          fallbackRange: FALLBACK_RPS_RANGE,
+        });
+
+        expect(result).toEqual({
+          minValue: 10,
+          maxValue: 30,
+          isSliderDisabled: false,
+        });
+      });
+    });
+
+    describe('with identical values', () => {
+      it('should disable slider and add 1 to max when all values are identical', () => {
+        const artifacts = [
+          createMockPerformanceArtifact(25, 100),
+          createMockPerformanceArtifact(25, 200),
+          createMockPerformanceArtifact(25, 300),
+        ];
+
+        const result = getSliderRange({
+          performanceArtifacts: artifacts,
+          getArtifactFilterValue: (artifact) =>
+            getDoubleValue(artifact.customProperties, 'requests_per_second'),
+          fallbackRange: FALLBACK_RPS_RANGE,
+        });
+
+        expect(result).toEqual({
+          minValue: 25,
+          maxValue: 26, // 25 + 1
+          isSliderDisabled: true,
+        });
+      });
+    });
+
+    describe('with shouldRound flag', () => {
+      it('should round values when shouldRound is true', () => {
+        const artifacts = [
+          createMockPerformanceArtifact(10, 150.4),
+          createMockPerformanceArtifact(20, 200.6),
+          createMockPerformanceArtifact(30, 100.9),
+        ];
+
+        const result = getSliderRange({
+          performanceArtifacts: artifacts,
+          getArtifactFilterValue: (artifact) =>
+            getDoubleValue(artifact.customProperties, 'ttft_mean'),
+          fallbackRange: FALLBACK_LATENCY_RANGE,
+          shouldRound: true,
+        });
+
+        expect(result).toEqual({
+          minValue: 101, // Math.round(100.9)
+          maxValue: 201, // Math.round(200.6)
+          isSliderDisabled: false,
+        });
+      });
+
+      it('should not round values when shouldRound is false', () => {
+        const artifacts = [
+          createMockPerformanceArtifact(10, 150.4),
+          createMockPerformanceArtifact(20, 200.6),
+          createMockPerformanceArtifact(30, 100.9),
+        ];
+
+        const result = getSliderRange({
+          performanceArtifacts: artifacts,
+          getArtifactFilterValue: (artifact) =>
+            getDoubleValue(artifact.customProperties, 'ttft_mean'),
+          fallbackRange: FALLBACK_LATENCY_RANGE,
+          shouldRound: false,
+        });
+
+        expect(result).toEqual({
+          minValue: 100.9,
+          maxValue: 200.6,
+          isSliderDisabled: false,
+        });
+      });
+
+      it('should not round by default when shouldRound is omitted', () => {
+        const artifacts = [
+          createMockPerformanceArtifact(10.5, 100),
+          createMockPerformanceArtifact(50.7, 200),
+        ];
+
+        const result = getSliderRange({
+          performanceArtifacts: artifacts,
+          getArtifactFilterValue: (artifact) =>
+            getDoubleValue(artifact.customProperties, 'requests_per_second'),
+          fallbackRange: FALLBACK_RPS_RANGE,
+        });
+
+        expect(result).toEqual({
+          minValue: 10.5,
+          maxValue: 50.7,
+          isSliderDisabled: false,
+        });
+      });
+
+      it('should handle identical values after rounding', () => {
+        const artifacts = [
+          createMockPerformanceArtifact(10, 100.3),
+          createMockPerformanceArtifact(20, 100.4),
+        ];
+
+        const result = getSliderRange({
+          performanceArtifacts: artifacts,
+          getArtifactFilterValue: (artifact) =>
+            getDoubleValue(artifact.customProperties, 'ttft_mean'),
+          fallbackRange: FALLBACK_LATENCY_RANGE,
+          shouldRound: true,
+        });
+
+        expect(result).toEqual({
+          minValue: 100, // Math.round(100.3) = 100, Math.round(100.4) = 100
+          maxValue: 101, // Since identical, adds 1
+          isSliderDisabled: true,
+        });
+      });
     });
   });
 });
