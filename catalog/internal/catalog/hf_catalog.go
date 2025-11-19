@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"os"
 	"strconv"
 	"strings"
 	"time"
@@ -73,7 +74,7 @@ type hfCard struct {
 }
 
 // populateFromHFInfo populates the hfModel's CatalogModel fields from HuggingFace API data
-func (hfm *hfModel) populateFromHFInfo(hfInfo *hfModelInfo, sourceId string, originalModelName string) {
+func (hfm *hfModel) populateFromHFInfo(ctx context.Context, provider *hfModelProvider, hfInfo *hfModelInfo, sourceId string, originalModelName string) {
 	// Set model name
 	modelName := hfInfo.ID
 	if modelName == "" {
@@ -108,19 +109,43 @@ func (hfm *hfModel) populateFromHFInfo(hfInfo *hfModelInfo, sourceId string, ori
 		}
 	}
 
+	// Extract license from tags first (preferred source)
+	if len(hfInfo.Tags) > 0 {
+		for _, tag := range hfInfo.Tags {
+			if strings.HasPrefix(tag, "license:") {
+				license := strings.TrimPrefix(tag, "license:")
+				if license != "" {
+					hfm.License = &license
+					break
+				}
+			}
+		}
+	}
+
+	// Extract README from sibling files first (preferred source)
+	// Check for common README filenames
+	readmeFilenames := []string{"README.md", "readme.md", "Readme.md", "README", "readme"}
+
+	for _, sibling := range hfInfo.Siblings {
+		for _, readmeFilename := range readmeFilenames {
+			if sibling.RFileName == readmeFilename {
+				if readmeContent, err := provider.fetchFileContent(ctx, modelName, readmeFilename); err == nil {
+					hfm.Readme = &readmeContent
+					break
+				} else {
+					glog.V(2).Infof("Failed to fetch README from sibling file %s for model %s: %v", readmeFilename, modelName, err)
+				}
+			}
+		}
+		if hfm.Readme != nil {
+			break
+		}
+	}
+
 	// Extract description from cardData if available
 	if hfInfo.CardData != nil && hfInfo.CardData.Data != nil {
 		if desc, ok := hfInfo.CardData.Data["description"].(string); ok && desc != "" {
 			hfm.Description = &desc
-		}
-		if readme, ok := hfInfo.CardData.Data["readme"].(string); ok && readme != "" {
-			hfm.Readme = &readme
-		}
-		if license, ok := hfInfo.CardData.Data["license"].(string); ok && license != "" {
-			hfm.License = &license
-		}
-		if licenseLink, ok := hfInfo.CardData.Data["license_link"].(string); ok && licenseLink != "" {
-			hfm.LicenseLink = &licenseLink
 		}
 	}
 
@@ -232,7 +257,7 @@ func (p *hfModelProvider) getModelsFromHF(ctx context.Context) ([]ModelProviderR
 			continue
 		}
 
-		record := p.convertHFModelToRecord(modelInfo, modelName)
+		record := p.convertHFModelToRecord(ctx, modelInfo, modelName)
 
 		// Additional safety check: verify the final model name is not excluded
 		// (in case the model name changed during conversion, e.g., from hfInfo.ID)
@@ -297,10 +322,50 @@ func (p *hfModelProvider) fetchModelInfo(ctx context.Context, modelName string) 
 	return &modelInfo, nil
 }
 
-func (p *hfModelProvider) convertHFModelToRecord(hfInfo *hfModelInfo, originalModelName string) ModelProviderRecord {
+// fetchFileContent fetches the content of a file from HuggingFace repository
+func (p *hfModelProvider) fetchFileContent(ctx context.Context, modelName string, filename string) (string, error) {
+	// Normalize the model name (remove any leading/trailing slashes)
+	modelName = strings.Trim(modelName, "/")
+
+	// Construct the API URL for raw file content
+	// HuggingFace API endpoint: {baseURL}/{model_id}/raw/main/{filename}
+	apiURL := fmt.Sprintf("%s/%s/raw/main/%s", p.baseURL, modelName, filename)
+
+	req, err := http.NewRequestWithContext(ctx, "GET", apiURL, nil)
+	if err != nil {
+		return "", fmt.Errorf("failed to create request: %w", err)
+	}
+
+	// Set User-Agent header
+	req.Header.Set("User-Agent", "model-registry-catalog")
+
+	if p.apiKey != "" {
+		req.Header.Set("Authorization", "Bearer "+p.apiKey)
+	}
+
+	resp, err := p.client.Do(req)
+	if err != nil {
+		return "", fmt.Errorf("failed to fetch file %s for model %s: %w", filename, modelName, err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		bodyBytes, _ := io.ReadAll(resp.Body)
+		return "", fmt.Errorf("HuggingFace API returned status %d for file %s in model %s: %s", resp.StatusCode, filename, modelName, string(bodyBytes))
+	}
+
+	bodyBytes, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return "", fmt.Errorf("failed to read file content for %s in model %s: %w", filename, modelName, err)
+	}
+
+	return string(bodyBytes), nil
+}
+
+func (p *hfModelProvider) convertHFModelToRecord(ctx context.Context, hfInfo *hfModelInfo, originalModelName string) ModelProviderRecord {
 	// Create hfModel and populate it from HF API data
 	hfm := &hfModel{}
-	hfm.populateFromHFInfo(hfInfo, p.sourceId, originalModelName)
+	hfm.populateFromHFInfo(ctx, p, hfInfo, p.sourceId, originalModelName)
 
 	// Convert to database model
 	model := dbmodels.CatalogModelImpl{}
@@ -475,10 +540,10 @@ func newHFModelProvider(ctx context.Context, source *Source, reldir string) (<-c
 	}
 	p.sourceId = sourceId
 
-	// Parse API key
-	apiKey, ok := source.Properties[apiKeyKey].(string)
-	if !ok || apiKey == "" {
-		return nil, fmt.Errorf("missing or invalid '%s' property for HuggingFace catalog", apiKeyKey)
+	// Parse API key from environment variable
+	apiKey := os.Getenv("HF_API_KEY")
+	if apiKey == "" {
+		return nil, fmt.Errorf("missing HF_API_KEY environment variable for HuggingFace catalog")
 	}
 	p.apiKey = apiKey
 
