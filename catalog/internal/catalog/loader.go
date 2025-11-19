@@ -252,10 +252,12 @@ func (l *Loader) updateDatabase(ctx context.Context, path string, config *source
 				continue
 			}
 
-			// Remove any catalog model artifacts that existed
-			// before. Any other artifact types will be added to
-			// what's there.
+			// Remove artifacts that existed before.
 			err = l.services.CatalogArtifactRepository.DeleteByParentID(service.CatalogModelArtifactTypeName, *modelID)
+			if err != nil {
+				glog.Errorf("%s: unable to remove old catalog model artifacts: %v", err)
+			}
+			err = l.services.CatalogArtifactRepository.DeleteByParentID(service.CatalogMetricsArtifactTypeName, *modelID)
 			if err != nil {
 				glog.Errorf("%s: unable to remove old catalog model artifacts: %v", err)
 			}

@@ -821,7 +821,7 @@ func (c *ModelRegistryServiceAPIController) GetArtifacts(w http.ResponseWriter, 
 		nextPageTokenParam = param
 	} else {
 	}
-	result, err := c.service.GetArtifacts(r.Context(), filterQueryParam, model.ArtifactTypeQueryParam(artifactTypeParam), pageSizeParam, model.OrderByField(orderByParam), model.SortOrder(sortOrderParam), nextPageTokenParam)
+	result, err := c.service.GetArtifacts(r.Context(), filterQueryParam, artifactTypeParam, pageSizeParam, orderByParam, sortOrderParam, nextPageTokenParam)
 	// If an error occurred, encode the error with the status code
 	if err != nil {
 		c.errorHandler(w, r, err, &result)
@@ -1018,7 +1018,7 @@ func (c *ModelRegistryServiceAPIController) GetExperimentRuns(w http.ResponseWri
 		nextPageTokenParam = param
 	} else {
 	}
-	result, err := c.service.GetExperimentRuns(r.Context(), filterQueryParam, pageSizeParam, model.OrderByField(orderByParam), model.SortOrder(sortOrderParam), nextPageTokenParam)
+	result, err := c.service.GetExperimentRuns(r.Context(), filterQueryParam, pageSizeParam, orderByParam, sortOrderParam, nextPageTokenParam)
 	// If an error occurred, encode the error with the status code
 	if err != nil {
 		c.errorHandler(w, r, err, &result)
@@ -1111,7 +1111,7 @@ func (c *ModelRegistryServiceAPIController) GetExperimentRunsMetricHistory(w htt
 		nextPageTokenParam = param
 	} else {
 	}
-	result, err := c.service.GetExperimentRunsMetricHistory(r.Context(), filterQueryParam, nameParam, stepIdsParam, pageSizeParam, model.OrderByField(orderByParam), model.SortOrder(sortOrderParam), nextPageTokenParam)
+	result, err := c.service.GetExperimentRunsMetricHistory(r.Context(), filterQueryParam, nameParam, stepIdsParam, pageSizeParam, orderByParam, sortOrderParam, nextPageTokenParam)
 	// If an error occurred, encode the error with the status code
 	if err != nil {
 		c.errorHandler(w, r, err, &result)
@@ -1238,7 +1238,7 @@ func (c *ModelRegistryServiceAPIController) GetExperimentRunArtifacts(w http.Res
 		nextPageTokenParam = param
 	} else {
 	}
-	result, err := c.service.GetExperimentRunArtifacts(r.Context(), experimentrunIdParam, filterQueryParam, nameParam, externalIdParam, model.ArtifactTypeQueryParam(artifactTypeParam), pageSizeParam, model.OrderByField(orderByParam), model.SortOrder(sortOrderParam), nextPageTokenParam)
+	result, err := c.service.GetExperimentRunArtifacts(r.Context(), experimentrunIdParam, filterQueryParam, nameParam, externalIdParam, artifactTypeParam, pageSizeParam, orderByParam, sortOrderParam, nextPageTokenParam)
 	// If an error occurred, encode the error with the status code
 	if err != nil {
 		c.errorHandler(w, r, err, &result)
@@ -1341,7 +1341,7 @@ func (c *ModelRegistryServiceAPIController) GetExperimentRunMetricHistory(w http
 		nextPageTokenParam = param
 	} else {
 	}
-	result, err := c.service.GetExperimentRunMetricHistory(r.Context(), experimentrunIdParam, filterQueryParam, nameParam, stepIdsParam, pageSizeParam, model.OrderByField(orderByParam), model.SortOrder(sortOrderParam), nextPageTokenParam)
+	result, err := c.service.GetExperimentRunMetricHistory(r.Context(), experimentrunIdParam, filterQueryParam, nameParam, stepIdsParam, pageSizeParam, orderByParam, sortOrderParam, nextPageTokenParam)
 	// If an error occurred, encode the error with the status code
 	if err != nil {
 		c.errorHandler(w, r, err, &result)
@@ -1393,7 +1393,7 @@ func (c *ModelRegistryServiceAPIController) GetExperiments(w http.ResponseWriter
 		nextPageTokenParam = param
 	} else {
 	}
-	result, err := c.service.GetExperiments(r.Context(), filterQueryParam, pageSizeParam, model.OrderByField(orderByParam), model.SortOrder(sortOrderParam), nextPageTokenParam)
+	result, err := c.service.GetExperiments(r.Context(), filterQueryParam, pageSizeParam, orderByParam, sortOrderParam, nextPageTokenParam)
 	// If an error occurred, encode the error with the status code
 	if err != nil {
 		c.errorHandler(w, r, err, &result)
@@ -1540,7 +1540,7 @@ func (c *ModelRegistryServiceAPIController) GetExperimentExperimentRuns(w http.R
 		nextPageTokenParam = param
 	} else {
 	}
-	result, err := c.service.GetExperimentExperimentRuns(r.Context(), experimentIdParam, nameParam, externalIdParam, filterQueryParam, pageSizeParam, model.OrderByField(orderByParam), model.SortOrder(sortOrderParam), nextPageTokenParam)
+	result, err := c.service.GetExperimentExperimentRuns(r.Context(), experimentIdParam, nameParam, externalIdParam, filterQueryParam, pageSizeParam, orderByParam, sortOrderParam, nextPageTokenParam)
 	// If an error occurred, encode the error with the status code
 	if err != nil {
 		c.errorHandler(w, r, err, &result)
@@ -1662,7 +1662,7 @@ func (c *ModelRegistryServiceAPIController) GetInferenceServices(w http.Response
 		nextPageTokenParam = param
 	} else {
 	}
-	result, err := c.service.GetInferenceServices(r.Context(), filterQueryParam, pageSizeParam, model.OrderByField(orderByParam), model.SortOrder(sortOrderParam), nextPageTokenParam)
+	result, err := c.service.GetInferenceServices(r.Context(), filterQueryParam, pageSizeParam, orderByParam, sortOrderParam, nextPageTokenParam)
 	// If an error occurred, encode the error with the status code
 	if err != nil {
 		c.errorHandler(w, r, err, &result)
@@ -1826,7 +1826,7 @@ func (c *ModelRegistryServiceAPIController) GetInferenceServiceServes(w http.Res
 		nextPageTokenParam = param
 	} else {
 	}
-	result, err := c.service.GetInferenceServiceServes(r.Context(), inferenceserviceIdParam, filterQueryParam, nameParam, externalIdParam, pageSizeParam, model.OrderByField(orderByParam), model.SortOrder(sortOrderParam), nextPageTokenParam)
+	result, err := c.service.GetInferenceServiceServes(r.Context(), inferenceserviceIdParam, filterQueryParam, nameParam, externalIdParam, pageSizeParam, orderByParam, sortOrderParam, nextPageTokenParam)
 	// If an error occurred, encode the error with the status code
 	if err != nil {
 		c.errorHandler(w, r, err, &result)
@@ -1965,7 +1965,7 @@ func (c *ModelRegistryServiceAPIController) GetModelArtifacts(w http.ResponseWri
 		nextPageTokenParam = param
 	} else {
 	}
-	result, err := c.service.GetModelArtifacts(r.Context(), filterQueryParam, pageSizeParam, model.OrderByField(orderByParam), model.SortOrder(sortOrderParam), nextPageTokenParam)
+	result, err := c.service.GetModelArtifacts(r.Context(), filterQueryParam, pageSizeParam, orderByParam, sortOrderParam, nextPageTokenParam)
 	// If an error occurred, encode the error with the status code
 	if err != nil {
 		c.errorHandler(w, r, err, &result)
@@ -2131,7 +2131,7 @@ func (c *ModelRegistryServiceAPIController) GetModelVersions(w http.ResponseWrit
 		nextPageTokenParam = param
 	} else {
 	}
-	result, err := c.service.GetModelVersions(r.Context(), filterQueryParam, pageSizeParam, model.OrderByField(orderByParam), model.SortOrder(sortOrderParam), nextPageTokenParam)
+	result, err := c.service.GetModelVersions(r.Context(), filterQueryParam, pageSizeParam, orderByParam, sortOrderParam, nextPageTokenParam)
 	// If an error occurred, encode the error with the status code
 	if err != nil {
 		c.errorHandler(w, r, err, &result)
@@ -2285,7 +2285,7 @@ func (c *ModelRegistryServiceAPIController) GetModelVersionArtifacts(w http.Resp
 		nextPageTokenParam = param
 	} else {
 	}
-	result, err := c.service.GetModelVersionArtifacts(r.Context(), modelversionIdParam, filterQueryParam, nameParam, externalIdParam, model.ArtifactTypeQueryParam(artifactTypeParam), pageSizeParam, model.OrderByField(orderByParam), model.SortOrder(sortOrderParam), nextPageTokenParam)
+	result, err := c.service.GetModelVersionArtifacts(r.Context(), modelversionIdParam, filterQueryParam, nameParam, externalIdParam, artifactTypeParam, pageSizeParam, orderByParam, sortOrderParam, nextPageTokenParam)
 	// If an error occurred, encode the error with the status code
 	if err != nil {
 		c.errorHandler(w, r, err, &result)
@@ -2400,7 +2400,7 @@ func (c *ModelRegistryServiceAPIController) GetRegisteredModels(w http.ResponseW
 		nextPageTokenParam = param
 	} else {
 	}
-	result, err := c.service.GetRegisteredModels(r.Context(), filterQueryParam, pageSizeParam, model.OrderByField(orderByParam), model.SortOrder(sortOrderParam), nextPageTokenParam)
+	result, err := c.service.GetRegisteredModels(r.Context(), filterQueryParam, pageSizeParam, orderByParam, sortOrderParam, nextPageTokenParam)
 	// If an error occurred, encode the error with the status code
 	if err != nil {
 		c.errorHandler(w, r, err, &result)
@@ -2547,7 +2547,7 @@ func (c *ModelRegistryServiceAPIController) GetRegisteredModelVersions(w http.Re
 		nextPageTokenParam = param
 	} else {
 	}
-	result, err := c.service.GetRegisteredModelVersions(r.Context(), registeredmodelIdParam, nameParam, externalIdParam, filterQueryParam, pageSizeParam, model.OrderByField(orderByParam), model.SortOrder(sortOrderParam), nextPageTokenParam)
+	result, err := c.service.GetRegisteredModelVersions(r.Context(), registeredmodelIdParam, nameParam, externalIdParam, filterQueryParam, pageSizeParam, orderByParam, sortOrderParam, nextPageTokenParam)
 	// If an error occurred, encode the error with the status code
 	if err != nil {
 		c.errorHandler(w, r, err, &result)
@@ -2662,7 +2662,7 @@ func (c *ModelRegistryServiceAPIController) GetServingEnvironments(w http.Respon
 		nextPageTokenParam = param
 	} else {
 	}
-	result, err := c.service.GetServingEnvironments(r.Context(), filterQueryParam, pageSizeParam, model.OrderByField(orderByParam), model.SortOrder(sortOrderParam), nextPageTokenParam)
+	result, err := c.service.GetServingEnvironments(r.Context(), filterQueryParam, pageSizeParam, orderByParam, sortOrderParam, nextPageTokenParam)
 	// If an error occurred, encode the error with the status code
 	if err != nil {
 		c.errorHandler(w, r, err, &result)
@@ -2809,7 +2809,7 @@ func (c *ModelRegistryServiceAPIController) GetEnvironmentInferenceServices(w ht
 		nextPageTokenParam = param
 	} else {
 	}
-	result, err := c.service.GetEnvironmentInferenceServices(r.Context(), servingenvironmentIdParam, filterQueryParam, nameParam, externalIdParam, pageSizeParam, model.OrderByField(orderByParam), model.SortOrder(sortOrderParam), nextPageTokenParam)
+	result, err := c.service.GetEnvironmentInferenceServices(r.Context(), servingenvironmentIdParam, filterQueryParam, nameParam, externalIdParam, pageSizeParam, orderByParam, sortOrderParam, nextPageTokenParam)
 	// If an error occurred, encode the error with the status code
 	if err != nil {
 		c.errorHandler(w, r, err, &result)
