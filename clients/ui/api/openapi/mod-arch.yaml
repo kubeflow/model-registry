@@ -84,7 +84,7 @@ paths:
         - $ref: "#/components/parameters/kubeflowUserId"
       responses:
         "200":
-          $ref: "#/components/responses/ModelRegistryRespone"
+          $ref: "#/components/responses/ModelRegistryResponse"
         "401":
           $ref: "#/components/responses/Unauthorized"
         "500":
@@ -978,62 +978,6 @@ components:
           type: boolean
           example: true
 
-    BaseModel:
-      type: object
-      properties:
-        description:
-          type: string
-          description: Human-readable description of the model.
-        readme:
-          type: string
-          description: Model documentation in Markdown.
-        maturity:
-          type: string
-          description: Maturity level of the model.
-          example: Generally Available
-        language:
-          type: array
-          description: List of supported languages (https://en.wikipedia.org/wiki/List_of_ISO_639_language_codes).
-          items:
-            type: string
-          example:
-            - en
-            - es
-            - cz
-        tasks:
-          type: array
-          description: List of tasks the model is designed for.
-          items:
-            type: string
-          example:
-            - text-generation
-        provider:
-          type: string
-          description: Name of the organization or entity that provides the model.
-          example: IBM
-        logo:
-          type: string
-          format: uri
-          description: |-
-            URL to the model's logo. A [data
-            URL](https://developer.mozilla.org/en-US/docs/Web/URI/Schemes/data)
-            is recommended.
-        license:
-          type: string
-          description: Short name of the model's license.
-          example: apache-2.0
-        licenseLink:
-          type: string
-          format: uri
-          description: URL to the license text.
-        libraryName:
-          type: string
-          example: transformers
-        customProperties:
-          description: User provided custom properties which are not defined by its type.
-          type: object
-          additionalProperties:
-            $ref: "#/components/schemas/MetadataValue"
     ModelRegistry:
       required:
         - name
@@ -2194,31 +2138,28 @@ components:
         isDefault:
           type: boolean
           example: true
-        properties:
-          type: object
-          properties:
-            yamlCatalogPath:
-              type: string
-              example: sample-catalog.yaml
-            apiKey:
-              type: string
-              description: HuggingFace access token - should be stored in a Kubernetes secret and referenced here, or set via environment variable
-              example: "apiKey"
-            includedModels:
-              type: array
-              items:
-                type: string
-                example: rhelai1/modelcar-granite-7b-starter
-            excludedModels:
-              type: array
-              items:
-                type: string
-                example: model-a:1.0
-                description: list of models name, that will be excluded.
-            allowedOrganization:
-              type: string
-              description: name of the organization that need to ingest from the source.
-              example: org1/
+        yaml:
+          type: string
+          description: Complete YAML catalog content for yaml-type sources.
+        apiKey:
+          type: string
+          description: API key for authenticating with the catalog source.
+          example: "apiKey"
+        includedModels:
+          type: array
+          items:
+            type: string
+            example: rhelai1/modelcar-granite-7b-starter
+        excludedModels:
+          type: array
+          items:
+            type: string
+            example: model-a:1.0
+            description: list of models name, that will be excluded.
+        allowedOrganization:
+          type: string
+          description: name of the organization that need to ingest from the source.
+          example: org1
 
   responses:
     NotFound:
@@ -2263,7 +2204,7 @@ components:
           schema:
             $ref: "#/components/schemas/Error"
       description: Conflict - Role Binding with the same name already exists
-    ModelRegistryRespone:
+    ModelRegistryResponse:
       content:
         application/json:
           schema:
@@ -2554,12 +2495,6 @@ components:
           schema:
             $ref: "#/components/schemas/CatalogSourceList"
       description: A response containing a list of CatalogSource entities.
-    CatalogSourceResponse:
-      content:
-        application/json:
-          schema:
-            $ref: "#/components/schemas/CatalogSource"
-      description: A response containing a `CatalogSource` entity.
     FilterOptionsResponse:
       content:
         application/json:

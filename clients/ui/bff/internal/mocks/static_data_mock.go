@@ -1278,19 +1278,26 @@ func GetFilterOptionsListMock() models.FilterOptionsList {
 func CreateSampleCatalogSource(id string, name string, catalogType string) models.CatalogSourceConfig {
 	defaultCatalog := id == "catalog-1"
 
-	return models.CatalogSourceConfig{
-		Name:      name,
-		Id:        id,
-		Type:      catalogType,
-		Enabled:   BoolPtr(true),
-		Labels:    []string{},
-		IsDefault: &defaultCatalog,
-		Properties: &models.CatalogSourceProperties{
-			YamlCatalogPath: stringToPointer("/path/to/catalog.yaml"),
-			IncludedModels:  []string{"rhelai1/modelcar-granite-7b-starter"},
-			ExcludedModels:  []string{"model-a:1.0", "model-b:*"},
-		},
+	sourceConfig := models.CatalogSourceConfig{
+		Name:           name,
+		Id:             id,
+		Type:           catalogType,
+		Enabled:        BoolPtr(true),
+		Labels:         []string{"source-1"},
+		IsDefault:      &defaultCatalog,
+		IncludedModels: []string{"rhelai1/modelcar-granite-7b-starter"},
+		ExcludedModels: []string{"model-a:1.0", "model-b:*"},
 	}
+
+	switch catalogType {
+	case "yaml":
+		sourceConfig.Yaml = stringToPointer("models:\n  - name: model1")
+	case "huggingface":
+		sourceConfig.AllowedOrganization = stringToPointer("org1")
+		sourceConfig.ApiKey = stringToPointer("apikey")
+	}
+
+	return sourceConfig
 }
 
 func BoolPtr(b bool) *bool {
