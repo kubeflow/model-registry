@@ -30,9 +30,6 @@ for filepath in filepaths:
 " "$@"
 }
 
-py-re-replace 0 ', orderByParam' ', model.OrderByField(orderByParam)' "$PROJECT_ROOT"/internal/server/openapi/api_model_catalog_service.go
-py-re-replace 0 ', sortOrderParam' ', model.SortOrder(sortOrderParam)' "$PROJECT_ROOT"/internal/server/openapi/api_model_catalog_service.go
-
 py-re-replace 0 'model\.\[\]ArtifactTypeQueryParam' '[]model.ArtifactTypeQueryParam' "$PROJECT_ROOT"/internal/server/openapi/api.go
 py-re-replace 0 'model\.\[\]ArtifactType2QueryParam' '[]model.ArtifactTypeQueryParam' "$PROJECT_ROOT"/internal/server/openapi/api.go
 
@@ -45,6 +42,7 @@ py-re-replace 1 '\{model_name\+\}|model_name\+' '*' "$PROJECT_ROOT"/internal/ser
 echo "Applying patches to generated code"
 (
     cd "$PROJECT_ROOT/.."
+    ./bin/goimports -w "$PROJECT_ROOT/internal/server/openapi/api_model_catalog_service.go"
     git apply patches/api_model_catalog_service.patch
 )
 
