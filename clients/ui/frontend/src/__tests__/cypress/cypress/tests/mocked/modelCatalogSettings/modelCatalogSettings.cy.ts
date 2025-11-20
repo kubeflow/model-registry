@@ -205,16 +205,16 @@ describe('Manage Source Page', () => {
 
     it('should expand and collapse model visibility section', () => {
       manageSourcePage.visitAddSource();
-      manageSourcePage.findAllowedModelsInput().should('not.be.visible');
-      manageSourcePage.findExcludedModelsInput().should('not.be.visible');
+      manageSourcePage.findAllowedModelsInput().should('not.exist');
+      manageSourcePage.findExcludedModelsInput().should('not.exist');
 
       manageSourcePage.toggleModelVisibility();
-      manageSourcePage.findAllowedModelsInput().should('be.visible');
-      manageSourcePage.findExcludedModelsInput().should('be.visible');
+      manageSourcePage.findAllowedModelsInput().should('exist');
+      manageSourcePage.findExcludedModelsInput().should('exist');
 
       manageSourcePage.toggleModelVisibility();
-      manageSourcePage.findAllowedModelsInput().should('not.be.visible');
-      manageSourcePage.findExcludedModelsInput().should('not.be.visible');
+      manageSourcePage.findAllowedModelsInput().should('not.exist');
+      manageSourcePage.findExcludedModelsInput().should('not.exist');
     });
 
     it('should allow entering filter values', () => {
