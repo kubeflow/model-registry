@@ -46,7 +46,7 @@ Model registry provides a central repository for model developers to store and m
 8. [UI](clients/ui/README.md)
 
 ## Pre-requisites:
-- go >= 1.24
+- go >= 1.25
 - protoc v24.3 - [Protocol Buffers v24.3 Release](https://github.com/protocolbuffers/protobuf/releases/tag/v24.3)
 - npm >= 10.2.0 - [Installing Node.js and npm](https://docs.npmjs.com/downloading-and-installing-node-js-and-npm)
 - Java >= 11.0
