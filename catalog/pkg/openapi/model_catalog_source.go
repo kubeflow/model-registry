@@ -27,9 +27,9 @@ type CatalogSource struct {
 	Enabled *bool `json:"enabled,omitempty"`
 	// Labels for the catalog source.
 	Labels []string `json:"labels"`
-	// Optional allow-list of models that are eligible for this source. Entries can be exact model names or patterns that use `*` as a wildcard. When provided, only models matching at least one pattern are considered.
+	// Optional allow-list of models that are eligible for this source. Entries can be exact model names or patterns that use `*` as a wildcard. When provided, only models matching at least one pattern are considered.  Pattern matching is case-insensitive, so `Granite/_*` will match `granite/model`, `Granite/model`, and `GRANITE/model`.
 	IncludedModels []string `json:"includedModels,omitempty"`
-	// Optional block-list of models that should be removed from the catalog even if they match `includedModels`. Patterns support the `*` wildcard.
+	// Optional block-list of models that should be removed from the catalog even if they match `includedModels`. Patterns support the `*` wildcard.  Pattern matching is case-insensitive, so `*-beta` will match `Model-Beta`, `model-beta`, and `MODEL-BETA`.
 	ExcludedModels []string `json:"excludedModels,omitempty"`
 }
 

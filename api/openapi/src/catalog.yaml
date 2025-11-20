@@ -390,6 +390,9 @@ components:
             Optional allow-list of models that are eligible for this source. Entries can be
             exact model names or patterns that use `*` as a wildcard. When provided, only
             models matching at least one pattern are considered.
+
+            Pattern matching is case-insensitive, so `Granite/*` will match `granite/model`,
+            `Granite/model`, and `GRANITE/model`.
           type: array
           items:
             type: string
@@ -397,6 +400,9 @@ components:
           description: |-
             Optional block-list of models that should be removed from the catalog even if
             they match `includedModels`. Patterns support the `*` wildcard.
+
+            Pattern matching is case-insensitive, so `*-beta` will match `Model-Beta`,
+            `model-beta`, and `MODEL-BETA`.
           type: array
           items:
             type: string
