@@ -78,7 +78,7 @@ catalogs:
 ## Development
 
 ### Prerequisites
-- Go >= 1.24
+- Go >= 1.25
 - Java >= 11.0 (for OpenAPI generation)
 - Node.js >= 20.0.0 (for GraphQL schema downloads)
 
