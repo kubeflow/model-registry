@@ -131,6 +131,7 @@ const CreateModal: React.FC<CreateModalProps> = ({ onClose, refresh }) => {
           },
           spec: {
             postgres: {
+              database: 'model_registry',
               generateDeployment: true,
             },
           },

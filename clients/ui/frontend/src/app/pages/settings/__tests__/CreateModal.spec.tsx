@@ -179,6 +179,7 @@ describe('CreateModal - PostgreSQL Support', () => {
               }),
               spec: expect.objectContaining({
                 postgres: expect.objectContaining({
+                  database: 'model_registry',
                   generateDeployment: true,
                 }),
               }),
