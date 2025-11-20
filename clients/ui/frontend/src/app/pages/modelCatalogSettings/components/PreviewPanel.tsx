@@ -19,14 +19,7 @@ type PreviewPanelProps = {
 };
 
 const PreviewPanel: React.FC<PreviewPanelProps> = ({ isPreviewEnabled, onPreview }) => (
-  <div
-    data-testid="preview-panel"
-    style={{
-      borderLeft: '1px solid #d2d2d2',
-      paddingLeft: '24px',
-      height: '100%',
-    }}
-  >
+  <div data-testid="preview-panel" className="pf-v6-u-h-100">
     <Flex
       justifyContent={{ default: 'justifyContentSpaceBetween' }}
       alignItems={{ default: 'alignItemsCenter' }}
@@ -60,7 +53,7 @@ const PreviewPanel: React.FC<PreviewPanelProps> = ({ isPreviewEnabled, onPreview
           <PreviewButton
             onClick={onPreview}
             isDisabled={!isPreviewEnabled}
-            variant="primary"
+            variant="link"
             testId="preview-button-panel"
           />
         </EmptyStateActions>

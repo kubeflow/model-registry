@@ -3,10 +3,11 @@ import {
   Form,
   FormGroup,
   Checkbox,
-  Grid,
-  GridItem,
   Stack,
   StackItem,
+  Sidebar,
+  SidebarPanel,
+  SidebarContent,
 } from '@patternfly/react-core';
 import { useNavigate } from 'react-router-dom';
 import FormSection from '~/app/pages/modelRegistry/components/pf-overrides/FormSection';
@@ -65,8 +66,8 @@ const ManageSourceForm: React.FC<ManageSourceFormProps> = ({ existingData, isEdi
 
   return (
     <>
-      <Grid hasGutter span={12}>
-        <GridItem span={7}>
+      <Sidebar hasGutter hasBorder isPanelRight>
+        <SidebarContent>
           <Form isWidthLimited>
             <Stack hasGutter>
               <StackItem>
@@ -98,7 +99,7 @@ const ManageSourceForm: React.FC<ManageSourceFormProps> = ({ existingData, isEdi
                 <FormSection>
                   <FormGroup fieldId="enable-source">
                     <Checkbox
-                      label={FORM_LABELS.ENABLE_SOURCE}
+                      label={<strong>{FORM_LABELS.ENABLE_SOURCE}</strong>}
                       id="enable-source"
                       name="enable-source"
                       data-testid="enable-source-checkbox"
@@ -111,12 +112,11 @@ const ManageSourceForm: React.FC<ManageSourceFormProps> = ({ existingData, isEdi
               </StackItem>
             </Stack>
           </Form>
-        </GridItem>
-
-        <GridItem span={5}>
+        </SidebarContent>
+        <SidebarPanel hasPadding className="pf-v6-u-flex-basis-40">
           <PreviewPanel isPreviewEnabled={canPreview} onPreview={handlePreview} />
-        </GridItem>
-      </Grid>
+        </SidebarPanel>
+      </Sidebar>
       <ManageSourceFormFooter
         submitLabel={isEditMode ? 'Save' : 'Add'}
         submitError={submitError}

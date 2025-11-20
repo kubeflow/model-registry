@@ -1,11 +1,11 @@
 import * as React from 'react';
-import { Button } from '@patternfly/react-core';
+import { Button, ButtonProps } from '@patternfly/react-core';
 import { BUTTON_LABELS } from '~/app/pages/modelCatalogSettings/constants';
 
 type PreviewButtonProps = {
   onClick: () => void;
   isDisabled: boolean;
-  variant?: 'primary' | 'secondary';
+  variant?: ButtonProps['variant'];
   testId?: string;
 };
 

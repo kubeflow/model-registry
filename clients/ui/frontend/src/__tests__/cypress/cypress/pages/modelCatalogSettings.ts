@@ -138,7 +138,7 @@ class ManageSourcePage {
   }
 
   findYamlContentInput() {
-    return cy.findByTestId('yaml-content-input');
+    return cy.findByTestId('yaml-content-input').find('textarea');
   }
 
   findYamlContentError() {

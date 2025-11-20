@@ -1,7 +1,7 @@
 import * as React from 'react';
 import {
   FormGroup,
-  TextArea,
+  FileUpload,
   FormHelperText,
   HelperText,
   HelperTextItem,
@@ -24,21 +24,53 @@ type YamlSectionProps = {
 
 const YamlSection: React.FC<YamlSectionProps> = ({ formData, setData }) => {
   const [isYamlTouched, setIsYamlTouched] = React.useState(false);
+  const [filename, setFilename] = React.useState('');
   const isYamlContentValid = validateYamlContent(formData.yamlContent);
 
+  const handleFileChange = (
+    _event: React.DragEvent<HTMLElement> | React.ChangeEvent<HTMLInputElement> | Event,
+    file: File,
+  ) => {
+    setFilename(file.name);
+    const reader = new FileReader();
+    reader.onload = () => {
+      const text = typeof reader.result === 'string' ? reader.result : '';
+      setData('yamlContent', text);
+      setIsYamlTouched(true);
+    };
+    reader.readAsText(file);
+  };
+
+  const handleTextChange = (_event: React.ChangeEvent<HTMLTextAreaElement>, value: string) => {
+    setData('yamlContent', value);
+  };
+
+  const handleClear = () => {
+    setFilename('');
+    setData('yamlContent', '');
+    setIsYamlTouched(true);
+  };
+
   const yamlInput = (
-    <TextArea
-      isRequired
-      id="yaml-content"
-      name="yaml-content"
-      data-testid="yaml-content-input"
-      value={formData.yamlContent}
-      onChange={(_event, value) => setData('yamlContent', value)}
-      onBlur={() => setIsYamlTouched(true)}
-      validated={isYamlTouched && !isYamlContentValid ? 'error' : 'default'}
-      rows={10}
-      resizeOrientation="vertical"
-    />
+    <div data-testid="yaml-content-input">
+      <FileUpload
+        id="yaml-content"
+        type="text"
+        value={formData.yamlContent}
+        filename={filename}
+        filenamePlaceholder="Drag and drop a YAML file or upload one"
+        onFileInputChange={handleFileChange}
+        onTextChange={handleTextChange}
+        onClearClick={handleClear}
+        onBlur={() => setIsYamlTouched(true)}
+        validated={isYamlTouched && !isYamlContentValid ? 'error' : 'default'}
+        browseButtonText="Upload"
+        allowEditingUploadedText
+        dropzoneProps={{
+          accept: { 'text/yaml': ['.yaml', '.yml'] },
+        }}
+      />
+    </div>
   );
 
   return (

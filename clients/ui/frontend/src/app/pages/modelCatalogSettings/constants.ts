@@ -3,7 +3,7 @@ export const FORM_LABELS = {
   SOURCE_TYPE: 'Source type',
   ORGANIZATION: 'Organization',
   ACCESS_TOKEN: 'Access token',
-  YAML_CONTENT: 'YAML',
+  YAML_CONTENT: 'Upload a YAML file',
   MODEL_VISIBILITY: 'Model visibility',
   ALLOWED_MODELS: 'Included models',
   EXCLUDED_MODELS: 'Excluded models',
