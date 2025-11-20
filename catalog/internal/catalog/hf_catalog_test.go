@@ -172,3 +172,91 @@ func TestNewHfCatalog_DefaultConfiguration(t *testing.T) {
 		t.Fatalf("Expected baseURL '%s', got '%s'", server.URL, hfCatalog.baseURL)
 	}
 }
+
+func TestHFCatalog_GetPerformanceArtifacts(t *testing.T) {
+	// Create mock server that validates credentials
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte(`{"name": "test-user"}`))
+	}))
+	defer server.Close()
+
+	source := &Source{
+		CatalogSource: openapi.CatalogSource{
+			Id:   "test_hf",
+			Name: "Test HF",
+		},
+		Type: "hf",
+		Properties: map[string]any{
+			"apiKey": "test-api-key",
+			"url":    server.URL,
+		},
+	}
+
+	catalog, err := newHfCatalog(source, "")
+	if err != nil {
+		t.Fatalf("Failed to create HF catalog: %v", err)
+	}
+
+	hfCatalog := catalog.(*hfCatalogImpl)
+	ctx := context.Background()
+
+	// Test with various parameters - should always return empty list
+	testCases := []struct {
+		name   string
+		params ListPerformanceArtifactsParams
+	}{
+		{
+			name: "basic request",
+			params: ListPerformanceArtifactsParams{
+				PageSize: 10,
+			},
+		},
+		{
+			name: "with targetRPS",
+			params: ListPerformanceArtifactsParams{
+				TargetRPS: 100,
+				PageSize:  10,
+			},
+		},
+		{
+			name: "with dedup",
+			params: ListPerformanceArtifactsParams{
+				Recommendations: true,
+				PageSize:        10,
+			},
+		},
+		{
+			name: "with targetRPS and dedup",
+			params: ListPerformanceArtifactsParams{
+				TargetRPS:       200,
+				Recommendations: true,
+				PageSize:        20,
+			},
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			// HuggingFace catalog doesn't have performance metrics data
+			// Should return empty list regardless of parameters
+			result, err := hfCatalog.GetPerformanceArtifacts(ctx, "test-model", "hf", tc.params)
+
+			if err != nil {
+				t.Fatalf("Expected no error, got: %v", err)
+			}
+			if result.Size != 0 {
+				t.Fatalf("Expected size 0, got %d", result.Size)
+			}
+			if len(result.Items) != 0 {
+				t.Fatalf("Expected empty items list, got %d items", len(result.Items))
+			}
+			if result.PageSize != tc.params.PageSize {
+				t.Fatalf("Expected pageSize %d, got %d", tc.params.PageSize, result.PageSize)
+			}
+			if result.Items == nil {
+				t.Fatal("Expected non-nil Items slice, got nil")
+			}
+		})
+	}
+}

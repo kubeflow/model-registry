@@ -85,6 +85,52 @@ func (m *ModelCatalogServiceAPIService) GetAllModelArtifacts(ctx context.Context
 	return Response(http.StatusOK, artifacts), nil
 }
 
+func (m *ModelCatalogServiceAPIService) GetAllModelPerformanceArtifacts(ctx context.Context, sourceID string, modelName string, targetRPS int32, recommendations bool, rpsProperty string, latencyProperty string, hardwareCountProperty string, hardwareTypeProperty string, filterQuery string, pageSize string, orderBy string, sortOrder model.SortOrder, nextPageToken string) (ImplResponse, error) {
+	if newName, err := url.PathUnescape(modelName); err == nil {
+		modelName = newName
+	}
+
+	var err error
+	pageSizeInt := int32(10)
+
+	if pageSize != "" {
+		parsed, err := strconv.ParseInt(pageSize, 10, 32)
+		if err != nil {
+			return Response(http.StatusBadRequest, err), err
+		}
+		pageSizeInt = int32(parsed)
+	}
+
+	// Call the provider's GetPerformanceArtifacts method
+	artifacts, err := m.provider.GetPerformanceArtifacts(ctx, modelName, sourceID, catalog.ListPerformanceArtifactsParams{
+		FilterQuery:           filterQuery,
+		PageSize:              pageSizeInt,
+		OrderBy:               orderBy,
+		SortOrder:             sortOrder,
+		NextPageToken:         &nextPageToken,
+		TargetRPS:             targetRPS,
+		Recommendations:       recommendations,
+		RPSProperty:           rpsProperty,
+		LatencyProperty:       latencyProperty,
+		HardwareCountProperty: hardwareCountProperty,
+		HardwareTypeProperty:  hardwareTypeProperty,
+	})
+	if err != nil {
+		statusCode := api.ErrToStatus(err)
+		var errorMsg string
+		if errors.Is(err, api.ErrBadRequest) {
+			errorMsg = err.Error()
+		} else if errors.Is(err, api.ErrNotFound) {
+			errorMsg = fmt.Sprintf("No model found '%s' in source '%s'", modelName, sourceID)
+		} else {
+			errorMsg = err.Error()
+		}
+		return ErrorResponse(statusCode, errors.New(errorMsg)), err
+	}
+
+	return Response(http.StatusOK, artifacts), nil
+}
+
 func (m *ModelCatalogServiceAPIService) FindLabels(ctx context.Context, pageSize string, orderBy string, sortOrder model.SortOrder, nextPageToken string) (ImplResponse, error) {
 	labels := m.labels.All()
 	if len(labels) > math.MaxInt32 {

@@ -23,6 +23,7 @@ type dbCatalogImpl struct {
 	catalogModelRepository    dbmodels.CatalogModelRepository
 	catalogArtifactRepository dbmodels.CatalogArtifactRepository
 	propertyOptionsRepository dbmodels.PropertyOptionsRepository
+	performanceService        *dbmodels.PerformanceArtifactService
 	sources                   *SourceCollection
 }
 
@@ -31,6 +32,7 @@ func NewDBCatalog(services service.Services, sources *SourceCollection) APIProvi
 		catalogArtifactRepository: services.CatalogArtifactRepository,
 		catalogModelRepository:    services.CatalogModelRepository,
 		propertyOptionsRepository: services.PropertyOptionsRepository,
+		performanceService:        dbmodels.NewPerformanceArtifactService(services.CatalogArtifactRepository),
 		sources:                   sources,
 	}
 }
@@ -128,7 +130,7 @@ func (d *dbCatalogImpl) ListModels(ctx context.Context, params ListModelsParams)
 }
 
 func (d *dbCatalogImpl) GetArtifacts(ctx context.Context, modelName string, sourceID string, params ListArtifactsParams) (apimodels.CatalogArtifactList, error) {
-	pageSize := int32(params.PageSize)
+	pageSize := params.PageSize
 
 	// Use consistent defaults to match pagination logic
 	orderBy := string(params.OrderBy)
@@ -238,6 +240,67 @@ func (d *dbCatalogImpl) GetFilterOptions(ctx context.Context) (*apimodels.Filter
 	return &apimodels.FilterOptionsList{
 		Filters: &options,
 	}, nil
+}
+
+func (d *dbCatalogImpl) GetPerformanceArtifacts(ctx context.Context, modelName string, sourceID string, params ListPerformanceArtifactsParams) (apimodels.CatalogArtifactList, error) {
+	// Get the model to validate it exists and get its ID
+	modelsList, err := d.catalogModelRepository.List(dbmodels.CatalogModelListOptions{
+		Name:      &modelName,
+		SourceIDs: &[]string{sourceID},
+	})
+	if err != nil {
+		return apimodels.CatalogArtifactList{}, err
+	}
+
+	if len(modelsList.Items) == 0 {
+		return apimodels.CatalogArtifactList{}, fmt.Errorf("no models found for name=%v: %w", modelName, api.ErrNotFound)
+	}
+
+	if len(modelsList.Items) > 1 {
+		return apimodels.CatalogArtifactList{}, fmt.Errorf("multiple models found for name=%v: %w", modelName, api.ErrNotFound)
+	}
+
+	model := modelsList.Items[0]
+
+	serviceParams := dbmodels.PerformanceArtifactParams{
+		ModelID:               *model.GetID(),
+		TargetRPS:             params.TargetRPS,
+		Recommendations:       params.Recommendations,
+		FilterQuery:           params.FilterQuery,
+		PageSize:              params.PageSize,
+		OrderBy:               params.OrderBy,
+		SortOrder:             string(params.SortOrder),
+		NextPageToken:         params.NextPageToken,
+		RPSProperty:           params.RPSProperty,
+		LatencyProperty:       params.LatencyProperty,
+		HardwareCountProperty: params.HardwareCountProperty,
+		HardwareTypeProperty:  params.HardwareTypeProperty,
+	}
+
+	artifactsList, err := d.performanceService.GetArtifacts(serviceParams)
+	if err != nil {
+		return apimodels.CatalogArtifactList{}, fmt.Errorf("failed to get performance artifacts: %w", err)
+	}
+
+	artifactList := &apimodels.CatalogArtifactList{
+		Items: make([]apimodels.CatalogArtifact, 0, len(artifactsList.Items)),
+	}
+
+	for _, artifact := range artifactsList.Items {
+		mappedArtifact, err := mapDBArtifactToAPIArtifact(dbmodels.CatalogArtifact{
+			CatalogMetricsArtifact: artifact,
+		})
+		if err != nil {
+			return apimodels.CatalogArtifactList{}, err
+		}
+		artifactList.Items = append(artifactList.Items, mappedArtifact)
+	}
+
+	artifactList.NextPageToken = artifactsList.NextPageToken
+	artifactList.PageSize = params.PageSize
+	artifactList.Size = int32(len(artifactList.Items))
+
+	return *artifactList, nil
 }
 
 func dbPropToAPIOption(prop dbmodels.PropertyOption) *apimodels.FilterOption {
