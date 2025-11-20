@@ -195,7 +195,7 @@ func (l *Loader) updateSources(path string, config *sourceConfig) error {
 		}
 
 		// Validate includedModels/excludedModels patterns early
-		if err := ValidateSourceFilters(&source); err != nil {
+		if err := ValidateSourceFilters(source.IncludedModels, source.ExcludedModels); err != nil {
 			return fmt.Errorf("invalid source %s: %w", id, err)
 		}
 

@@ -62,9 +62,28 @@ func compilePatterns(field string, patterns []string) ([]*compiledPattern, error
 	return compiled, nil
 }
 
+// ValidateSourceFilters validates that the includedModels and excludedModels patterns
+// are valid (non-empty, compilable, non-conflicting). This is useful for early validation
+// at configuration load time without constructing the full ModelFilter.
+func ValidateSourceFilters(included, excluded []string) error {
+	if err := detectConflictingPatterns(included, excluded); err != nil {
+		return err
+	}
+
+	if _, err := compilePatterns("includedModels", included); err != nil {
+		return err
+	}
+
+	if _, err := compilePatterns("excludedModels", excluded); err != nil {
+		return err
+	}
+
+	return nil
+}
+
 // NewModelFilter builds a ModelFilter from the provided include/exclude pattern lists.
 func NewModelFilter(included, excluded []string) (*ModelFilter, error) {
-	if err := detectConflictingPatterns(included, excluded); err != nil {
+	if err := ValidateSourceFilters(included, excluded); err != nil {
 		return nil, err
 	}
 
@@ -134,31 +153,6 @@ func (f *ModelFilter) Allows(name string) bool {
 	}
 
 	return true
-}
-
-// ValidateSourceFilters checks that the includedModels and excludedModels patterns
-// in a source are valid (non-empty, compilable, non-conflicting) without constructing
-// the full ModelFilter. This is useful for early validation at configuration load time.
-func ValidateSourceFilters(source *Source) error {
-	if source == nil {
-		return fmt.Errorf("source cannot be nil")
-	}
-
-	// Check for conflicting patterns
-	if err := detectConflictingPatterns(source.IncludedModels, source.ExcludedModels); err != nil {
-		return fmt.Errorf("source %s: %w", source.Id, err)
-	}
-
-	// Validate that all patterns compile successfully
-	if _, err := compilePatterns("includedModels", source.IncludedModels); err != nil {
-		return fmt.Errorf("source %s: %w", source.Id, err)
-	}
-
-	if _, err := compilePatterns("excludedModels", source.ExcludedModels); err != nil {
-		return fmt.Errorf("source %s: %w", source.Id, err)
-	}
-
-	return nil
 }
 
 // NewModelFilterFromSource composes a ModelFilter using the source-level configuration and any legacy additions.
