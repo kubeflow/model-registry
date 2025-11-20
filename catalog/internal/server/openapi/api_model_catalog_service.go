@@ -88,6 +88,12 @@ func (c *ModelCatalogServiceAPIController) Routes() Routes {
 			"/api/model_catalog/v1alpha1/sources/{source_id}/models/{model_name}/artifacts",
 			c.GetAllModelArtifacts,
 		},
+		"GetAllModelPerformanceArtifacts": Route{
+			"GetAllModelPerformanceArtifacts",
+			strings.ToUpper("Get"),
+			"/api/model_catalog/v1alpha1/sources/{source_id}/models/{model_name}/artifacts/performance",
+			c.GetAllModelPerformanceArtifacts,
+		},
 	}
 }
 
@@ -129,6 +135,12 @@ func (c *ModelCatalogServiceAPIController) OrderedRoutes() []Route {
 			strings.ToUpper("Get"),
 			"/api/model_catalog/v1alpha1/sources/{source_id}/models/{model_name}/artifacts",
 			c.GetAllModelArtifacts,
+		},
+		Route{
+			"GetAllModelPerformanceArtifacts",
+			strings.ToUpper("Get"),
+			"/api/model_catalog/v1alpha1/sources/{source_id}/models/{model_name}/artifacts/performance",
+			c.GetAllModelPerformanceArtifacts,
 		},
 	}
 }
@@ -336,6 +348,14 @@ func (c *ModelCatalogServiceAPIController) GetModel(w http.ResponseWriter, r *ht
 		return
 	}
 
+	// Same for /artifacts/performance requests to getAllModelPerformanceArtifacts
+	if strings.HasSuffix(r.URL.Path, "/artifacts/performance") {
+		modelName := strings.TrimSuffix(modelNameParam, "/artifacts/performance")
+		chi.RouteContext(r.Context()).URLParams.Add("model_name", modelName)
+		c.GetAllModelPerformanceArtifacts(w, r)
+		return
+	}
+
 	result, err := c.service.GetModel(r.Context(), sourceIdParam, modelNameParam)
 	// If an error occurred, encode the error with the status code
 	if err != nil {
@@ -425,6 +445,134 @@ func (c *ModelCatalogServiceAPIController) GetAllModelArtifacts(w http.ResponseW
 	} else {
 	}
 	result, err := c.service.GetAllModelArtifacts(r.Context(), sourceIdParam, modelNameParam, artifactTypeParam, artifactType2Param, filterQueryParam, pageSizeParam, orderByParam, sortOrderParam, nextPageTokenParam)
+	// If an error occurred, encode the error with the status code
+	if err != nil {
+		c.errorHandler(w, r, err, &result)
+		return
+	}
+	// If no error, encode the body and the result code
+	_ = EncodeJSONResponse(result.Body, &result.Code, w)
+}
+
+// GetAllModelPerformanceArtifacts - List CatalogArtifacts.
+func (c *ModelCatalogServiceAPIController) GetAllModelPerformanceArtifacts(w http.ResponseWriter, r *http.Request) {
+	query, err := parseQuery(r.URL.RawQuery)
+	if err != nil {
+		c.errorHandler(w, r, &ParsingError{Err: err}, nil)
+		return
+	}
+	sourceIdParam := chi.URLParam(r, "source_id")
+	if sourceIdParam == "" {
+		c.errorHandler(w, r, &RequiredError{"source_id"}, nil)
+		return
+	}
+	modelNameParam := chi.URLParam(r, "model_name")
+	if modelNameParam == "" {
+		c.errorHandler(w, r, &RequiredError{"model_name"}, nil)
+		return
+	}
+	var targetRPSParam int32
+	if query.Has("targetRPS") {
+		param, err := parseNumericParameter[int32](
+			query.Get("targetRPS"),
+			WithParse[int32](parseInt32),
+		)
+		if err != nil {
+			c.errorHandler(w, r, &ParsingError{Param: "targetRPS", Err: err}, nil)
+			return
+		}
+
+		targetRPSParam = param
+	} else {
+	}
+	var recommendationsParam bool
+	if query.Has("recommendations") {
+		param, err := parseBoolParameter(
+			query.Get("recommendations"),
+			WithParse[bool](parseBool),
+		)
+		if err != nil {
+			c.errorHandler(w, r, &ParsingError{Param: "recommendations", Err: err}, nil)
+			return
+		}
+
+		recommendationsParam = param
+	} else {
+		var param bool = false
+		recommendationsParam = param
+	}
+	var rpsPropertyParam string
+	if query.Has("rpsProperty") {
+		param := query.Get("rpsProperty")
+
+		rpsPropertyParam = param
+	} else {
+		param := "requests_per_second"
+		rpsPropertyParam = param
+	}
+	var latencyPropertyParam string
+	if query.Has("latencyProperty") {
+		param := query.Get("latencyProperty")
+
+		latencyPropertyParam = param
+	} else {
+		param := "ttft_p90"
+		latencyPropertyParam = param
+	}
+	var hardwareCountPropertyParam string
+	if query.Has("hardwareCountProperty") {
+		param := query.Get("hardwareCountProperty")
+
+		hardwareCountPropertyParam = param
+	} else {
+		param := "hardware_count"
+		hardwareCountPropertyParam = param
+	}
+	var hardwareTypePropertyParam string
+	if query.Has("hardwareTypeProperty") {
+		param := query.Get("hardwareTypeProperty")
+
+		hardwareTypePropertyParam = param
+	} else {
+		param := "hardware_type"
+		hardwareTypePropertyParam = param
+	}
+	var filterQueryParam string
+	if query.Has("filterQuery") {
+		param := query.Get("filterQuery")
+
+		filterQueryParam = param
+	} else {
+	}
+	var pageSizeParam string
+	if query.Has("pageSize") {
+		param := query.Get("pageSize")
+
+		pageSizeParam = param
+	} else {
+	}
+	var orderByParam string
+	if query.Has("orderBy") {
+		param := query.Get("orderBy")
+
+		orderByParam = param
+	} else {
+	}
+	var sortOrderParam model.SortOrder
+	if query.Has("sortOrder") {
+		param := model.SortOrder(query.Get("sortOrder"))
+
+		sortOrderParam = param
+	} else {
+	}
+	var nextPageTokenParam string
+	if query.Has("nextPageToken") {
+		param := query.Get("nextPageToken")
+
+		nextPageTokenParam = param
+	} else {
+	}
+	result, err := c.service.GetAllModelPerformanceArtifacts(r.Context(), sourceIdParam, modelNameParam, targetRPSParam, recommendationsParam, rpsPropertyParam, latencyPropertyParam, hardwareCountPropertyParam, hardwareTypePropertyParam, filterQueryParam, pageSizeParam, orderByParam, sortOrderParam, nextPageTokenParam)
 	// If an error occurred, encode the error with the status code
 	if err != nil {
 		c.errorHandler(w, r, err, &result)

@@ -227,6 +227,79 @@ paths:
       - $ref: "#/components/parameters/artifactOrderBy"
       - $ref: "#/components/parameters/sortOrder"
       - $ref: "#/components/parameters/nextPageToken"
+  /api/model_catalog/v1alpha1/sources/{source_id}/models/{model_name}/artifacts/performance:
+    description: >-
+      Lists performance metrics artifacts (that is, artifacts of type `CatalogMetricsArtifact` where `metricsType` is `performance-metrics`).
+    get:
+      summary: List CatalogArtifacts.
+      tags:
+        - ModelCatalogService
+      responses:
+        "200":
+          $ref: "#/components/responses/CatalogArtifactListResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+      operationId: getAllModelPerformanceArtifacts
+    parameters:
+      - name: source_id
+        description: A unique identifier for a `CatalogSource`.
+        schema:
+          type: string
+        in: path
+        required: true
+      - name: model_name
+        description: A unique identifier for the model.
+        schema:
+          type: string
+        in: path
+        required: true
+      - name: targetRPS
+        description: |-
+          Target requests per second. If specified, values for `replicas` and
+          `total_requests_per_second` will be calculated and returned as custom
+          properties.
+        schema:
+          type: integer
+        in: query
+      - name: recommendations
+        description: Filter records that are less optimal based on approximate cost to run and latency.
+        schema:
+          type: boolean
+          default: false
+        in: query
+      - name: rpsProperty
+        description: Custom property name for requests per second metric.
+        schema:
+          type: string
+          default: "requests_per_second"
+        in: query
+      - name: latencyProperty
+        description: Custom property name for latency metric (e.g., ttft_p90, p90_latency).
+        schema:
+          type: string
+          default: "ttft_p90"
+        in: query
+      - name: hardwareCountProperty
+        description: Custom property name for hardware count metric.
+        schema:
+          type: string
+          default: "hardware_count"
+        in: query
+      - name: hardwareTypeProperty
+        description: Custom property name for hardware type grouping.
+        schema:
+          type: string
+          default: "hardware_type"
+        in: query
+      - $ref: "#/components/parameters/artifactFilterQuery"
+      - $ref: "#/components/parameters/pageSize"
+      - $ref: "#/components/parameters/artifactOrderBy"
+      - $ref: "#/components/parameters/sortOrder"
+      - $ref: "#/components/parameters/nextPageToken"
 components:
   schemas:
     ArtifactTypeQueryParam:

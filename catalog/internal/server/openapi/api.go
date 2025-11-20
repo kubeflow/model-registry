@@ -27,6 +27,7 @@ type ModelCatalogServiceAPIRouter interface {
 	FindSources(http.ResponseWriter, *http.Request)
 	GetModel(http.ResponseWriter, *http.Request)
 	GetAllModelArtifacts(http.ResponseWriter, *http.Request)
+	GetAllModelPerformanceArtifacts(http.ResponseWriter, *http.Request)
 }
 
 // ModelCatalogServiceAPIServicer defines the api actions for the ModelCatalogServiceAPI service
@@ -40,4 +41,5 @@ type ModelCatalogServiceAPIServicer interface {
 	FindSources(context.Context, string, string, model.OrderByField, model.SortOrder, string) (ImplResponse, error)
 	GetModel(context.Context, string, string) (ImplResponse, error)
 	GetAllModelArtifacts(context.Context, string, string, []model.ArtifactTypeQueryParam, []model.ArtifactTypeQueryParam, string, string, string, model.SortOrder, string) (ImplResponse, error)
+	GetAllModelPerformanceArtifacts(context.Context, string, string, int32, bool, string, string, string, string, string, string, string, model.SortOrder, string) (ImplResponse, error)
 }

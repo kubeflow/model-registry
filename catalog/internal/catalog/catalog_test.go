@@ -13,6 +13,7 @@ import (
 	apimodels "github.com/kubeflow/model-registry/catalog/pkg/openapi"
 	"github.com/kubeflow/model-registry/internal/apiutils"
 	mrmodels "github.com/kubeflow/model-registry/internal/db/models"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestLoadCatalogSources(t *testing.T) {
@@ -790,4 +791,60 @@ func (m *MockPropertyOptionsRepository) SetMockOptions(t dbmodels.PropertyOption
 		m.MockOptions[t] = make(map[int32][]dbmodels.PropertyOption)
 	}
 	m.MockOptions[t][typeID] = options
+}
+
+func TestAPIProviderGetPerformanceArtifacts(t *testing.T) {
+	// This test verifies that the APIProvider interface has GetPerformanceArtifacts method
+	// The actual implementation is tested in db_catalog_test.go
+
+	// Create a mock provider to verify interface compliance
+	services := service.NewServices(
+		&MockCatalogModelRepository{},
+		&MockCatalogArtifactRepository{},
+		&MockCatalogModelArtifactRepository{},
+		&MockCatalogMetricsArtifactRepository{},
+		&MockPropertyOptionsRepository{},
+	)
+	provider := NewDBCatalog(services, nil)
+
+	// Verify provider implements APIProvider interface with GetPerformanceArtifacts
+	var _ APIProvider = provider
+
+	// Basic test - should return error for non-existent model
+	ctx := context.Background()
+	_, err := provider.GetPerformanceArtifacts(ctx, "non-existent-model", "source-1", ListPerformanceArtifactsParams{
+		TargetRPS:       100,
+		Recommendations: true,
+		PageSize:        10,
+	})
+
+	// Should get an error since the model doesn't exist
+	assert.Error(t, err)
+}
+
+// TestAPIProviderInterface verifies that the APIProvider interface supports
+// all required fields in ListPerformanceArtifactsParams
+func TestAPIProviderInterface(t *testing.T) {
+	services := service.NewServices(
+		&MockCatalogModelRepository{},
+		&MockCatalogArtifactRepository{},
+		&MockCatalogModelArtifactRepository{},
+		&MockCatalogMetricsArtifactRepository{},
+		&MockPropertyOptionsRepository{},
+	)
+	var provider APIProvider = NewDBCatalog(services, nil)
+
+	params := ListPerformanceArtifactsParams{
+		TargetRPS:             100,
+		Recommendations:       true,
+		RPSProperty:           "custom_rps",
+		LatencyProperty:       "custom_latency",
+		HardwareCountProperty: "custom_hw_count",
+		HardwareTypeProperty:  "custom_hw_type",
+	}
+
+	// Should compile without errors and be callable
+	ctx := context.Background()
+	_, err := provider.GetPerformanceArtifacts(ctx, "test-model", "source-1", params)
+	assert.Error(t, err) // Expected error since model doesn't exist
 }
