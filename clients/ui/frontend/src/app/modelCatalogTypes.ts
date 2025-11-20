@@ -232,19 +232,28 @@ export type ModelCatalogFilterStates = {
 };
 
 // Model Catalog Settings types
-export type CatalogSourceConfig = {
+export type CatalogSourceConfigCommon = {
   id: string;
   name: string;
-  type: string;
   enabled?: boolean;
   labels?: string[];
-  apiKey?: string;
-  allowedOrganization?: string;
   includedModels?: string[];
   excludedModels?: string[];
   isDefault?: boolean;
+};
+
+export type YamlCatalogSourceConfig = CatalogSourceConfigCommon & {
+  type: 'yaml';
   yaml?: string;
 };
+
+export type HuggingFaceCatalogSourceConfig = CatalogSourceConfigCommon & {
+  type: 'huggingface';
+  allowedOrganization?: string;
+  apiKey?: string;
+};
+
+export type CatalogSourceConfig = YamlCatalogSourceConfig | HuggingFaceCatalogSourceConfig;
 
 export type CatalogSourceConfigPayload = CatalogSourceConfig;
 
