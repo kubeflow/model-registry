@@ -25,7 +25,7 @@ func newCompiledPattern(field string, idx int, raw string) (*compiledPattern, er
 
 	// Convert a simple glob (only supporting '*') into a regexp.
 	var b strings.Builder
-	b.WriteString("^")
+	b.WriteString("(?i)^")
 	for _, r := range value {
 		if r == '*' {
 			b.WriteString(".*")

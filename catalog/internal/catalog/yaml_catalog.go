@@ -364,7 +364,7 @@ func (p *yamlModelProvider) read() (*yamlCatalog, error) {
 func (p *yamlModelProvider) emit(ctx context.Context, catalog *yamlCatalog, out chan<- ModelProviderRecord) {
 	done := ctx.Done()
 	for _, model := range catalog.Models {
-		if p.filter != nil && !p.filter.Allows(model.Name) {
+		if !p.filter.Allows(model.Name) {
 			continue
 		}
 
