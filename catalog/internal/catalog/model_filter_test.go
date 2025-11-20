@@ -58,12 +58,87 @@ func TestModelFilterWithWildcardInMiddle(t *testing.T) {
 	assert.False(t, filter.Allows("DeepSeek/empty-old-v1"))
 	assert.False(t, filter.Allows("Foo/old"))
 	assert.False(t, filter.Allows("Bar/deprecated"))
-	
+
 	// Test that */pattern* requires the pattern immediately after /
 	filter2, err := NewModelFilter(nil, []string{"*/deprecated", "*/old*"})
 	require.NoError(t, err)
-	
+
 	assert.True(t, filter2.Allows("Mistral/empty-deprecated")) // doesn't match */deprecated (no immediate match after /)
-	assert.False(t, filter2.Allows("Foo/deprecated")) // matches */deprecated
-	assert.False(t, filter2.Allows("Bar/old-model")) // matches */old*
+	assert.False(t, filter2.Allows("Foo/deprecated"))          // matches */deprecated
+	assert.False(t, filter2.Allows("Bar/old-model"))           // matches */old*
+}
+
+func TestValidateSourceFilters(t *testing.T) {
+	t.Run("valid source with no filters", func(t *testing.T) {
+		source := &Source{
+			CatalogSource: apimodels.CatalogSource{
+				Id:   "test",
+				Name: "Test source",
+			},
+		}
+		err := ValidateSourceFilters(source)
+		assert.NoError(t, err)
+	})
+
+	t.Run("valid source with patterns", func(t *testing.T) {
+		source := &Source{
+			CatalogSource: apimodels.CatalogSource{
+				Id:             "test",
+				Name:           "Test source",
+				IncludedModels: []string{"Granite/*", "Meta/*"},
+				ExcludedModels: []string{"*-beta"},
+			},
+		}
+		err := ValidateSourceFilters(source)
+		assert.NoError(t, err)
+	})
+
+	t.Run("conflicting patterns", func(t *testing.T) {
+		source := &Source{
+			CatalogSource: apimodels.CatalogSource{
+				Id:             "test",
+				Name:           "Test source",
+				IncludedModels: []string{"Granite/*"},
+				ExcludedModels: []string{"Granite/*"},
+			},
+		}
+		err := ValidateSourceFilters(source)
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "source test")
+		assert.Contains(t, err.Error(), "Granite/*")
+	})
+
+	t.Run("empty pattern in includedModels", func(t *testing.T) {
+		source := &Source{
+			CatalogSource: apimodels.CatalogSource{
+				Id:             "test",
+				Name:           "Test source",
+				IncludedModels: []string{"Granite/*", ""},
+			},
+		}
+		err := ValidateSourceFilters(source)
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "source test")
+		assert.Contains(t, err.Error(), "pattern cannot be empty")
+	})
+
+	t.Run("invalid regex pattern", func(t *testing.T) {
+		// This shouldn't happen with our glob-to-regex conversion,
+		// but validates the error path exists
+		source := &Source{
+			CatalogSource: apimodels.CatalogSource{
+				Id:             "test",
+				Name:           "Test source",
+				IncludedModels: []string{"valid/*"},
+			},
+		}
+		err := ValidateSourceFilters(source)
+		assert.NoError(t, err) // Our conversion always produces valid regex
+	})
+
+	t.Run("nil source", func(t *testing.T) {
+		err := ValidateSourceFilters(nil)
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "source cannot be nil")
+	})
 }

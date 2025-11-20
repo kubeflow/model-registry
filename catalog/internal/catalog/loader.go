@@ -194,7 +194,8 @@ func (l *Loader) updateSources(path string, config *sourceConfig) error {
 			return fmt.Errorf("invalid source: duplicate id %s", id)
 		}
 
-		if _, err := NewModelFilterFromSource(&source, nil, nil); err != nil {
+		// Validate includedModels/excludedModels patterns early
+		if err := ValidateSourceFilters(&source); err != nil {
 			return fmt.Errorf("invalid source %s: %w", id, err)
 		}
 

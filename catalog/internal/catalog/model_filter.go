@@ -136,6 +136,31 @@ func (f *ModelFilter) Allows(name string) bool {
 	return true
 }
 
+// ValidateSourceFilters checks that the includedModels and excludedModels patterns
+// in a source are valid (non-empty, compilable, non-conflicting) without constructing
+// the full ModelFilter. This is useful for early validation at configuration load time.
+func ValidateSourceFilters(source *Source) error {
+	if source == nil {
+		return fmt.Errorf("source cannot be nil")
+	}
+
+	// Check for conflicting patterns
+	if err := detectConflictingPatterns(source.IncludedModels, source.ExcludedModels); err != nil {
+		return fmt.Errorf("source %s: %w", source.Id, err)
+	}
+
+	// Validate that all patterns compile successfully
+	if _, err := compilePatterns("includedModels", source.IncludedModels); err != nil {
+		return fmt.Errorf("source %s: %w", source.Id, err)
+	}
+
+	if _, err := compilePatterns("excludedModels", source.ExcludedModels); err != nil {
+		return fmt.Errorf("source %s: %w", source.Id, err)
+	}
+
+	return nil
+}
+
 // NewModelFilterFromSource composes a ModelFilter using the source-level configuration and any legacy additions.
 func NewModelFilterFromSource(source *Source, extraIncluded, extraExcluded []string) (*ModelFilter, error) {
 	if source == nil {
