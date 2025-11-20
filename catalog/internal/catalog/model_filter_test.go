@@ -16,6 +16,11 @@ func TestModelFilterAllows(t *testing.T) {
 	assert.False(t, filter.Allows("Granite/beta-release"))
 	assert.False(t, filter.Allows("Other/model"))
 
+	// Test case-insensitive matching
+	assert.True(t, filter.Allows("granite/3-1-instruct"))
+	assert.True(t, filter.Allows("GRANITE/3-1-instruct"))
+	assert.False(t, filter.Allows("granite/beta-release"))
+
 	allowAll, err := NewModelFilter([]string{"*"}, nil)
 	require.NoError(t, err)
 	assert.True(t, allowAll.Allows("anything/goes"))
