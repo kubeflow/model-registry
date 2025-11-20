@@ -4,6 +4,8 @@ export type UseCaseOption = {
   value: UseCaseOptionValue;
   label: string;
   description: string;
+  inputTokens: number;
+  outputTokens: number;
 };
 
 export const USE_CASE_OPTIONS: UseCaseOption[] = [
@@ -11,21 +13,29 @@ export const USE_CASE_OPTIONS: UseCaseOption[] = [
     value: UseCaseOptionValue.CHATBOT,
     label: 'Chatbot',
     description: 'Conversational AI applications and interactive chat systems',
+    inputTokens: 512,
+    outputTokens: 256,
   },
   {
     value: UseCaseOptionValue.CODE_FIXING,
     label: 'Code Fixing',
     description: 'Code analysis, debugging, and automated code correction',
+    inputTokens: 1024,
+    outputTokens: 1024,
   },
   {
     value: UseCaseOptionValue.LONG_RAG,
     label: 'Long RAG',
     description: 'Retrieval-Augmented Generation with extended context windows',
+    inputTokens: 10240,
+    outputTokens: 1536,
   },
   {
     value: UseCaseOptionValue.RAG,
     label: 'RAG',
     description: 'Retrieval-Augmented Generation with standard context windows',
+    inputTokens: 4096,
+    outputTokens: 512,
   },
 ];
 
