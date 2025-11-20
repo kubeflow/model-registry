@@ -39,3 +39,63 @@ func (r *ModelRegistrySettingsRepository) GetGroups(ctx context.Context, client 
 
 	return groups, nil
 }
+
+// CreateModelRegistry creates a ModelRegistry custom resource and optionally a Secret for the database password
+func (r *ModelRegistrySettingsRepository) CreateModelRegistry(
+	ctx context.Context,
+	client k8s.KubernetesClientInterface,
+	namespace string,
+	payload models.ModelRegistrySettingsPayload,
+) (*models.ModelRegistryKind, error) {
+	registryName := payload.ModelRegistry.Metadata.Name
+	if registryName == "" {
+		return nil, fmt.Errorf("model registry name is required")
+	}
+
+	// Determine if we need to create a Secret for the database password
+	needsSecret := false
+	if payload.DatabasePassword != nil && *payload.DatabasePassword != "" {
+		// External databases require a Secret
+		if payload.ModelRegistry.Spec.MySQL != nil ||
+			(payload.ModelRegistry.Spec.Postgres != nil && payload.ModelRegistry.Spec.Postgres.GenerateDeployment == nil) {
+			needsSecret = true
+		}
+	}
+
+	// Create Secret if needed
+	if needsSecret {
+		secret := BuildSecret(namespace, registryName, *payload.DatabasePassword)
+		_, err := client.CreateSecret(ctx, namespace, secret)
+		if err != nil {
+			return nil, fmt.Errorf("failed to create database password secret: %w", err)
+		}
+
+		// Update the ModelRegistry spec to reference the Secret
+		secretName := registryName + SecretKeySuffix
+		passwordSecret := &models.PasswordSecret{
+			Name: secretName,
+			Key:  SecretPasswordKey,
+		}
+
+		if payload.ModelRegistry.Spec.MySQL != nil {
+			payload.ModelRegistry.Spec.MySQL.PasswordSecret = passwordSecret
+		} else if payload.ModelRegistry.Spec.Postgres != nil {
+			payload.ModelRegistry.Spec.Postgres.PasswordSecret = passwordSecret
+		}
+	}
+
+	// Convert ModelRegistryKind to unstructured
+	unstructuredObj, err := ModelRegistryKindToUnstructured(payload.ModelRegistry)
+	if err != nil {
+		return nil, fmt.Errorf("failed to convert ModelRegistry to unstructured: %w", err)
+	}
+
+	// Create ModelRegistry CR
+	_, err = client.CreateModelRegistry(ctx, namespace, unstructuredObj)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create ModelRegistry CR: %w", err)
+	}
+
+	// Return the created ModelRegistry
+	return &payload.ModelRegistry, nil
+}

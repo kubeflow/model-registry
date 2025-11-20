@@ -82,16 +82,16 @@ func (app *App) GetModelRegistrySettingsHandler(w http.ResponseWriter, r *http.R
 
 func (app *App) CreateModelRegistrySettingsHandler(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 	ctxLogger := helper.GetContextLoggerFromReq(r)
-	ctxLogger.Info("This functionality is not implement yet. This is a STUB API to unblock frontend development")
 
 	namespace, ok := r.Context().Value(constants.NamespaceHeaderParameterKey).(string)
 	if !ok || namespace == "" {
 		app.badRequestResponse(w, r, fmt.Errorf("missing namespace in the context"))
+		return
 	}
 
 	var envelope ModelRegistrySettingsPayloadEnvelope
 	if err := json.NewDecoder(r.Body).Decode(&envelope); err != nil {
-		app.serverErrorResponse(w, r, fmt.Errorf("error decoding JSON:: %v", err.Error()))
+		app.serverErrorResponse(w, r, fmt.Errorf("error decoding JSON: %v", err.Error()))
 		return
 	}
 
@@ -102,23 +102,45 @@ func (app *App) CreateModelRegistrySettingsHandler(w http.ResponseWriter, r *htt
 		return
 	}
 
-	ctxLogger.Info("Creating model registry", "name", modelRegistryName)
+	ctxLogger.Info("Creating model registry", "name", modelRegistryName, "namespace", namespace)
 
-	// For now, we're using the stub implementation, but we'd use envelope.Data.ModelRegistry
-	// and other fields from the payload in a real implementation
-	registry := createSampleModelRegistry(modelRegistryName, namespace, nil, nil)
+	// Get Kubernetes client from factory
+	k8sClient, err := app.kubernetesClientFactory.GetClient(r.Context())
+	if err != nil {
+		app.serverErrorResponse(w, r, fmt.Errorf("failed to get Kubernetes client: %w", err))
+		return
+	}
+
+	// Set the namespace in the ModelRegistry metadata if not already set
+	if envelope.Data.ModelRegistry.Metadata.Namespace == "" {
+		envelope.Data.ModelRegistry.Metadata.Namespace = namespace
+	}
+
+	// Create the ModelRegistry and optionally a Secret via the repository
+	createdRegistry, err := app.repositories.ModelRegistrySettings.CreateModelRegistry(
+		r.Context(),
+		k8sClient,
+		namespace,
+		envelope.Data,
+	)
+	if err != nil {
+		ctxLogger.Error("Failed to create model registry", "error", err, "name", modelRegistryName)
+		app.serverErrorResponse(w, r, fmt.Errorf("failed to create model registry: %w", err))
+		return
+	}
 
 	modelRegistryRes := ModelRegistrySettingsEnvelope{
-		Data: registry,
+		Data: *createdRegistry,
 	}
 
 	w.Header().Set("Location", r.URL.JoinPath(modelRegistryRes.Data.Metadata.Name).String())
 	writeErr := app.WriteJSON(w, http.StatusCreated, modelRegistryRes, nil)
 	if writeErr != nil {
-		app.serverErrorResponse(w, r, fmt.Errorf("error writing JSON"))
+		app.serverErrorResponse(w, r, fmt.Errorf("error writing JSON: %w", writeErr))
 		return
 	}
 
+	ctxLogger.Info("Successfully created model registry", "name", modelRegistryName)
 }
 
 func (app *App) UpdateModelRegistrySettingsHandler(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
@@ -174,9 +196,10 @@ func createSampleModelRegistry(name string, namespace string, SSLRootCertificate
 
 	creationTime, _ := time.Parse(time.RFC3339, "2024-03-14T08:01:42Z")
 	lastTransitionTime, _ := time.Parse(time.RFC3339, "2024-03-22T09:30:02Z")
+	port := 3306
 
 	return models.ModelRegistryKind{
-		APIVersion: "modelregistry.io/v1alpha1",
+		APIVersion: "modelregistry.opendatahub.io/v1beta1",
 		Kind:       "ModelRegistry",
 		Metadata: models.Metadata{
 			Name:              name,
@@ -197,18 +220,16 @@ func createSampleModelRegistry(name string, namespace string, SSLRootCertificate
 					},
 				},
 			},
-			DatabaseConfig: models.DatabaseConfig{
-				DatabaseType: models.MySQL,
-				Database:     "model-registry",
-				Host:         "model-registry-db",
+			MySQL: &models.MySQLConfig{
+				Database: "model_registry",
+				Host:     "model-registry-db",
 				//intentionally not set
-				// PasswordSecret: models.PasswordSecret{
+				// PasswordSecret: &models.PasswordSecret{
 				// 	Key:  "database-password",
 				// 	Name: "model-registry-db",
 				// },
-				Port:                        5432,
-				SkipDBCreation:              false,
-				Username:                    "mlmduser",
+				Port:                        &port,
+				Username:                    "modelregistryuser",
 				SSLRootCertificateConfigMap: SSLRootCertificateConfigMap,
 				SSLRootCertificateSecret:    SSLRootCertificateSecret,
 			},

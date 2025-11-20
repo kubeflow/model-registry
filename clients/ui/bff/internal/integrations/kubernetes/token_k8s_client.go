@@ -82,10 +82,18 @@ func newTokenKubernetesClient(token string, logger *slog.Logger) (KubernetesClie
 		return nil, fmt.Errorf("failed to create Kubernetes client: %w", err)
 	}
 
+	// Create dynamic client for custom resources
+	dynamicClient, err := helper.GetDynamicClient(cfg)
+	if err != nil {
+		logger.Error("failed to create dynamic client", "error", err)
+		return nil, fmt.Errorf("failed to create dynamic client: %w", err)
+	}
+
 	return &TokenKubernetesClient{
 		SharedClientLogic: SharedClientLogic{
-			Client: clientset,
-			Logger: logger,
+			Client:        clientset,
+			DynamicClient: dynamicClient,
+			Logger:        logger,
 			// Token is retained for follow-up calls; do not log it.
 			Token: NewBearerToken(token),
 		},

@@ -55,8 +55,16 @@ func SetupEnvTest(input TestEnvInput) (*envtest.Environment, kubernetes.Interfac
 		os.Exit(1)
 	}
 
+	// Path to the ModelRegistry CRD for testing (projectRoot is already at .../clients/ui/bff)
+	crdPath := filepath.Join(projectRoot, "internal", "repositories", "testdata")
+
 	testEnv := &envtest.Environment{
 		BinaryAssetsDirectory: filepath.Join(projectRoot, "bin", "k8s", fmt.Sprintf("1.29.0-%s-%s", runtime.GOOS, runtime.GOARCH)),
+		CRDDirectoryPaths:     []string{crdPath},
+		ErrorIfCRDPathMissing: true,
+		CRDInstallOptions: envtest.CRDInstallOptions{
+			CleanUpAfterUse: true,
+		},
 	}
 
 	cfg, err := testEnv.Start()
@@ -65,6 +73,8 @@ func SetupEnvTest(input TestEnvInput) (*envtest.Environment, kubernetes.Interfac
 		input.Cancel()
 		os.Exit(1)
 	}
+
+	input.Logger.Info("envtest started successfully", "crdPath", crdPath)
 
 	clientset, err := kubernetes.NewForConfig(cfg)
 	if err != nil {

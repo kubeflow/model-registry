@@ -1,0 +1,113 @@
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  name: modelregistries.modelregistry.opendatahub.io
+spec:
+  group: modelregistry.opendatahub.io
+  names:
+    kind: ModelRegistry
+    listKind: ModelRegistryList
+    plural: modelregistries
+    singular: modelregistry
+  scope: Namespaced
+  versions:
+  - name: v1beta1
+    served: true
+    storage: true
+    schema:
+      openAPIV3Schema:
+        type: object
+        properties:
+          apiVersion:
+            type: string
+          kind:
+            type: string
+          metadata:
+            type: object
+          spec:
+            type: object
+            properties:
+              grpc:
+                type: object
+                x-kubernetes-preserve-unknown-fields: true
+              rest:
+                type: object
+                x-kubernetes-preserve-unknown-fields: true
+              istio:
+                type: object
+                x-kubernetes-preserve-unknown-fields: true
+              mysql:
+                type: object
+                properties:
+                  host:
+                    type: string
+                  port:
+                    type: integer
+                  database:
+                    type: string
+                  username:
+                    type: string
+                  passwordSecret:
+                    type: object
+                    properties:
+                      name:
+                        type: string
+                      key:
+                        type: string
+                  skipDBCreation:
+                    type: boolean
+                  sslRootCertificateConfigMap:
+                    type: object
+                    properties:
+                      name:
+                        type: string
+                      key:
+                        type: string
+                  sslRootCertificateSecret:
+                    type: object
+                    properties:
+                      name:
+                        type: string
+                      key:
+                        type: string
+              postgres:
+                type: object
+                properties:
+                  host:
+                    type: string
+                  port:
+                    type: integer
+                  database:
+                    type: string
+                  username:
+                    type: string
+                  passwordSecret:
+                    type: object
+                    properties:
+                      name:
+                        type: string
+                      key:
+                        type: string
+                  generateDeployment:
+                    type: boolean
+                  skipDBCreation:
+                    type: boolean
+                  sslMode:
+                    type: string
+                  sslRootCertificateConfigMap:
+                    type: object
+                    properties:
+                      name:
+                        type: string
+                      key:
+                        type: string
+                  sslRootCertificateSecret:
+                    type: object
+                    properties:
+                      name:
+                        type: string
+                      key:
+                        type: string
+          status:
+            type: object
+            x-kubernetes-preserve-unknown-fields: true

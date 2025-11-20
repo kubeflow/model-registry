@@ -6,7 +6,9 @@ import (
 	"log/slog"
 
 	k8s "github.com/kubeflow/model-registry/ui/bff/internal/integrations/kubernetes"
+	"k8s.io/client-go/dynamic"
 	"k8s.io/client-go/kubernetes"
+	"k8s.io/client-go/rest"
 )
 
 type InternalKubernetesClientMock struct {
@@ -14,12 +16,28 @@ type InternalKubernetesClientMock struct {
 }
 
 // newMockedInternalKubernetesClientFromClientset creates a mock from existing envtest clientset
-func newMockedInternalKubernetesClientFromClientset(clientset kubernetes.Interface, logger *slog.Logger) k8s.KubernetesClientInterface {
+func newMockedInternalKubernetesClientFromClientset(clientset kubernetes.Interface, restConfig *rest.Config, logger *slog.Logger) k8s.KubernetesClientInterface {
+	// Create dynamic client from rest config
+	dynamicClient, err := dynamic.NewForConfig(restConfig)
+	if err != nil {
+		logger.Error("failed to create dynamic client for mock", "error", err)
+		// Return mock without dynamic client - tests may fail if they need it
+		return &InternalKubernetesClientMock{
+			InternalKubernetesClient: &k8s.InternalKubernetesClient{
+				SharedClientLogic: k8s.SharedClientLogic{
+					Client: clientset,
+					Logger: logger,
+				},
+			},
+		}
+	}
+
 	return &InternalKubernetesClientMock{
 		InternalKubernetesClient: &k8s.InternalKubernetesClient{
 			SharedClientLogic: k8s.SharedClientLogic{
-				Client: clientset,
-				Logger: logger,
+				Client:        clientset,
+				DynamicClient: dynamicClient,
+				Logger:        logger,
 			},
 		},
 	}

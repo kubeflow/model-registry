@@ -23,6 +23,40 @@ export type ModelRegistry = {
   serverAddress?: string;
 };
 
+export enum DatabaseType {
+  MySQL = 'mysql',
+  PostgreSQL = 'postgres',
+}
+
+export enum DatabaseMode {
+  External = 'external',
+  Default = 'default',
+}
+
+type MySQLDatabaseConfig = {
+  host: string;
+  port?: number;
+  username: string;
+  database: string;
+  passwordSecret?: {
+    name: string;
+    key: string;
+  };
+};
+
+type PostgreSQLDatabaseConfig = {
+  database: string;
+  host?: string; // Optional for default database
+  port?: number;
+  username?: string; // Optional for default database
+  passwordSecret?: {
+    name: string;
+    key: string;
+  };
+  generateDeployment?: boolean; // For default database
+  sslMode?: string;
+};
+
 export type ModelRegistryPayload = {
   modelRegistry: {
     metadata: {
@@ -33,14 +67,11 @@ export type ModelRegistryPayload = {
       };
     };
     spec: {
-      mysql: {
-        host: string;
-        port: number;
-        username: string;
-        database: string;
-      };
+      mysql?: MySQLDatabaseConfig;
+      postgres?: PostgreSQLDatabaseConfig;
     };
   };
+  databasePassword?: string;
 };
 
 export enum ModelRegistryMetadataType {

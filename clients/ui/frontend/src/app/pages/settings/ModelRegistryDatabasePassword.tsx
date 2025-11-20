@@ -65,6 +65,7 @@ const ModelRegistryDatabasePassword: React.FC<ModelRegistryDatabasePasswordProps
         onBlur={() => setIsPasswordTouched(true)}
         onChange={(_e, value) => setPassword(value)}
         validated={isPasswordTouched && !hasContent(password) ? 'error' : 'default'}
+        data-testid="mr-password"
       />
     </>
   );

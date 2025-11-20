@@ -10,13 +10,23 @@ import (
 	"github.com/kubeflow/model-registry/ui/bff/internal/constants"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
+	"k8s.io/apimachinery/pkg/runtime/schema"
+	"k8s.io/client-go/dynamic"
 	"k8s.io/client-go/kubernetes"
 )
 
+var modelRegistryGVR = schema.GroupVersionResource{
+	Group:    "modelregistry.opendatahub.io",
+	Version:  "v1beta1",
+	Resource: "modelregistries",
+}
+
 type SharedClientLogic struct {
-	Client kubernetes.Interface
-	Logger *slog.Logger
-	Token  BearerToken
+	Client        kubernetes.Interface
+	DynamicClient dynamic.Interface
+	Logger        *slog.Logger
+	Token         BearerToken
 }
 
 func (kc *SharedClientLogic) GetServiceNames(sessionCtx context.Context, namespace string) ([]string, error) {
@@ -157,4 +167,62 @@ func (kc *SharedClientLogic) BearerToken() (string, error) {
 func (kc *SharedClientLogic) GetGroups(ctx context.Context) ([]string, error) {
 	kc.Logger.Info("This functionality is not implement yet. This is a STUB API to unblock frontend development until we have a definition on how to create model registries")
 	return []string{}, nil
+}
+
+// CreateModelRegistry creates a ModelRegistry custom resource in the specified namespace
+func (kc *SharedClientLogic) CreateModelRegistry(ctx context.Context, namespace string, obj *unstructured.Unstructured) (*unstructured.Unstructured, error) {
+	if namespace == "" {
+		return nil, fmt.Errorf("namespace cannot be empty")
+	}
+	if obj == nil {
+		return nil, fmt.Errorf("model registry object cannot be nil")
+	}
+
+	// Match existing pattern - use Background for timeout consistency
+	ctxWithTimeout, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+
+	kc.Logger.Info("creating ModelRegistry CR", "namespace", namespace, "name", obj.GetName())
+
+	result, err := kc.DynamicClient.Resource(modelRegistryGVR).Namespace(namespace).Create(
+		ctxWithTimeout,
+		obj,
+		metav1.CreateOptions{},
+	)
+	if err != nil {
+		kc.Logger.Error("failed to create ModelRegistry CR", "error", err, "namespace", namespace, "name", obj.GetName())
+		return nil, fmt.Errorf("failed to create ModelRegistry CR: %w", err)
+	}
+
+	kc.Logger.Info("successfully created ModelRegistry CR", "namespace", namespace, "name", result.GetName())
+	return result, nil
+}
+
+// CreateSecret creates a Kubernetes Secret in the specified namespace
+func (kc *SharedClientLogic) CreateSecret(ctx context.Context, namespace string, secret *corev1.Secret) (*corev1.Secret, error) {
+	if namespace == "" {
+		return nil, fmt.Errorf("namespace cannot be empty")
+	}
+	if secret == nil {
+		return nil, fmt.Errorf("secret object cannot be nil")
+	}
+
+	// Match existing pattern - use Background for timeout consistency
+	ctxWithTimeout, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+
+	kc.Logger.Info("creating Secret", "namespace", namespace, "name", secret.Name)
+
+	result, err := kc.Client.CoreV1().Secrets(namespace).Create(
+		ctxWithTimeout,
+		secret,
+		metav1.CreateOptions{},
+	)
+	if err != nil {
+		kc.Logger.Error("failed to create Secret", "error", err, "namespace", namespace, "name", secret.Name)
+		return nil, fmt.Errorf("failed to create Secret: %w", err)
+	}
+
+	kc.Logger.Info("successfully created Secret", "namespace", namespace, "name", result.Name)
+	return result, nil
 }

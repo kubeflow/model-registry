@@ -29,18 +29,26 @@ func newInternalKubernetesClient(logger *slog.Logger) (KubernetesClientInterface
 		return nil, fmt.Errorf("failed to get kubeconfig: %w", err)
 	}
 
-	// Create client
+	// Create standard Kubernetes client
 	clientset, err := kubernetes.NewForConfig(kubeconfig)
 	if err != nil {
 		logger.Error("failed to create Kubernetes client", "error", err)
 		return nil, fmt.Errorf("failed to create Kubernetes client: %w", err)
 	}
 
+	// Create dynamic client for custom resources
+	dynamicClient, err := helper.GetDynamicClient(kubeconfig)
+	if err != nil {
+		logger.Error("failed to create dynamic client", "error", err)
+		return nil, fmt.Errorf("failed to create dynamic client: %w", err)
+	}
+
 	return &InternalKubernetesClient{
 		SharedClientLogic: SharedClientLogic{
-			Client: clientset,
-			Logger: logger,
-			Token:  NewBearerToken(kubeconfig.BearerToken),
+			Client:        clientset,
+			DynamicClient: dynamicClient,
+			Logger:        logger,
+			Token:         NewBearerToken(kubeconfig.BearerToken),
 		},
 	}, nil
 }

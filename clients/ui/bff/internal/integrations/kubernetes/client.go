@@ -4,6 +4,7 @@ import (
 	"context"
 
 	corev1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 )
 
 const ComponentLabelValue = "model-registry"
@@ -30,4 +31,6 @@ type KubernetesClientInterface interface {
 
 	// Model Registry Settings
 	GetGroups(ctx context.Context) ([]string, error)
+	CreateModelRegistry(ctx context.Context, namespace string, obj *unstructured.Unstructured) (*unstructured.Unstructured, error)
+	CreateSecret(ctx context.Context, namespace string, secret *corev1.Secret) (*corev1.Secret, error)
 }

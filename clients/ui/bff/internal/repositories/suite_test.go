@@ -56,7 +56,7 @@ var _ = BeforeSuite(func() {
 	Expect(err).NotTo(HaveOccurred())
 
 	By("creating factory mock client using shared envtest")
-	kubernetesMockedStaticClientFactory, err = k8mocks.NewStaticClientFactory(clientset, logger)
+	kubernetesMockedStaticClientFactory, err = k8mocks.NewStaticClientFactory(clientset, testEnv.Config, logger)
 	Expect(err).NotTo(HaveOccurred())
 })
 

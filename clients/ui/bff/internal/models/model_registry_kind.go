@@ -28,10 +28,11 @@ type Metadata struct {
 type EmptyObject struct{}
 
 type ModelRegistrySpec struct {
-	GRPC           EmptyObject    `json:"grpc"` // Empty object at create time, properties here aren't used by the UI
-	REST           EmptyObject    `json:"rest"` // Empty object at create time, properties here aren't used by the UI
-	Istio          IstioConfig    `json:"istio"`
-	DatabaseConfig DatabaseConfig `json:"databaseConfig"`
+	GRPC     EmptyObject     `json:"grpc"`               // Empty object at create time, properties here aren't used by the UI
+	REST     EmptyObject     `json:"rest"`               // Empty object at create time, properties here aren't used by the UI
+	Istio    IstioConfig     `json:"istio"`              // Empty object at create time
+	MySQL    *MySQLConfig    `json:"mysql,omitempty"`    // MySQL database configuration (mutually exclusive with Postgres)
+	Postgres *PostgresConfig `json:"postgres,omitempty"` // PostgreSQL database configuration (mutually exclusive with MySQL)
 }
 
 type IstioConfig struct {
@@ -63,16 +64,28 @@ type Entry struct {
 	Key  string `json:"key"`
 }
 
-type DatabaseConfig struct {
-	DatabaseType                DatabaseType   `json:"databaseType"`
-	Database                    string         `json:"database"`
-	Host                        string         `json:"host"`
-	PasswordSecret              PasswordSecret `json:"passwordSecret,omitempty"`
-	Port                        int            `json:"port"`
-	SkipDBCreation              bool           `json:"skipDBCreation"`
-	Username                    string         `json:"username"`
-	SSLRootCertificateConfigMap *Entry         `json:"sslRootCertificateConfigMap,omitempty"`
-	SSLRootCertificateSecret    *Entry         `json:"sslRootCertificateSecret,omitempty"`
+type MySQLConfig struct {
+	Host                        string          `json:"host"`
+	Database                    string          `json:"database"`
+	Username                    string          `json:"username"`
+	PasswordSecret              *PasswordSecret `json:"passwordSecret,omitempty"`
+	Port                        *int            `json:"port,omitempty"` // Default 3306
+	SkipDBCreation              *bool           `json:"skipDBCreation,omitempty"`
+	SSLRootCertificateConfigMap *Entry          `json:"sslRootCertificateConfigMap,omitempty"`
+	SSLRootCertificateSecret    *Entry          `json:"sslRootCertificateSecret,omitempty"`
+}
+
+type PostgresConfig struct {
+	Database                    string          `json:"database"`
+	Host                        string          `json:"host,omitempty"`     // Optional for default database
+	Username                    string          `json:"username,omitempty"` // Optional for default database
+	PasswordSecret              *PasswordSecret `json:"passwordSecret,omitempty"`
+	Port                        *int            `json:"port,omitempty"` // Default 5432
+	SkipDBCreation              *bool           `json:"skipDBCreation,omitempty"`
+	GenerateDeployment          *bool           `json:"generateDeployment,omitempty"` // For default database
+	SSLMode                     string          `json:"sslMode,omitempty"`
+	SSLRootCertificateConfigMap *Entry          `json:"sslRootCertificateConfigMap,omitempty"`
+	SSLRootCertificateSecret    *Entry          `json:"sslRootCertificateSecret,omitempty"`
 }
 
 type PasswordSecret struct {
