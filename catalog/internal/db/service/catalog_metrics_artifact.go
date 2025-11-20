@@ -22,17 +22,18 @@ type CatalogMetricsArtifactRepositoryImpl struct {
 
 func NewCatalogMetricsArtifactRepository(db *gorm.DB, typeID int32) models.CatalogMetricsArtifactRepository {
 	config := service.GenericRepositoryConfig[models.CatalogMetricsArtifact, schema.Artifact, schema.ArtifactProperty, *models.CatalogMetricsArtifactListOptions]{
-		DB:                  db,
-		TypeID:              typeID,
-		EntityToSchema:      mapCatalogMetricsArtifactToArtifact,
-		SchemaToEntity:      mapDataLayerToCatalogMetricsArtifact,
-		EntityToProperties:  mapCatalogMetricsArtifactToArtifactProperties,
-		NotFoundError:       ErrCatalogMetricsArtifactNotFound,
-		EntityName:          "catalog metrics artifact",
-		PropertyFieldName:   "artifact_id",
-		ApplyListFilters:    applyCatalogMetricsArtifactListFilters,
-		IsNewEntity:         func(entity models.CatalogMetricsArtifact) bool { return entity.GetID() == nil },
-		HasCustomProperties: func(entity models.CatalogMetricsArtifact) bool { return entity.GetCustomProperties() != nil },
+		DB:                      db,
+		TypeID:                  typeID,
+		EntityToSchema:          mapCatalogMetricsArtifactToArtifact,
+		SchemaToEntity:          mapDataLayerToCatalogMetricsArtifact,
+		EntityToProperties:      mapCatalogMetricsArtifactToArtifactProperties,
+		NotFoundError:           ErrCatalogMetricsArtifactNotFound,
+		EntityName:              "catalog metrics artifact",
+		PropertyFieldName:       "artifact_id",
+		ApplyListFilters:        applyCatalogMetricsArtifactListFilters,
+		IsNewEntity:             func(entity models.CatalogMetricsArtifact) bool { return entity.GetID() == nil },
+		HasCustomProperties:     func(entity models.CatalogMetricsArtifact) bool { return entity.GetCustomProperties() != nil },
+		PreserveHistoricalTimes: true, // Catalog preserves timestamps from YAML source data
 	}
 
 	return &CatalogMetricsArtifactRepositoryImpl{

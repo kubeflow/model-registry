@@ -21,17 +21,18 @@ type CatalogModelArtifactRepositoryImpl struct {
 
 func NewCatalogModelArtifactRepository(db *gorm.DB, typeID int32) models.CatalogModelArtifactRepository {
 	config := service.GenericRepositoryConfig[models.CatalogModelArtifact, schema.Artifact, schema.ArtifactProperty, *models.CatalogModelArtifactListOptions]{
-		DB:                  db,
-		TypeID:              typeID,
-		EntityToSchema:      mapCatalogModelArtifactToArtifact,
-		SchemaToEntity:      mapDataLayerToCatalogModelArtifact,
-		EntityToProperties:  mapCatalogModelArtifactToArtifactProperties,
-		NotFoundError:       ErrCatalogModelArtifactNotFound,
-		EntityName:          "catalog model artifact",
-		PropertyFieldName:   "artifact_id",
-		ApplyListFilters:    applyCatalogModelArtifactListFilters,
-		IsNewEntity:         func(entity models.CatalogModelArtifact) bool { return entity.GetID() == nil },
-		HasCustomProperties: func(entity models.CatalogModelArtifact) bool { return entity.GetCustomProperties() != nil },
+		DB:                      db,
+		TypeID:                  typeID,
+		EntityToSchema:          mapCatalogModelArtifactToArtifact,
+		SchemaToEntity:          mapDataLayerToCatalogModelArtifact,
+		EntityToProperties:      mapCatalogModelArtifactToArtifactProperties,
+		NotFoundError:           ErrCatalogModelArtifactNotFound,
+		EntityName:              "catalog model artifact",
+		PropertyFieldName:       "artifact_id",
+		ApplyListFilters:        applyCatalogModelArtifactListFilters,
+		IsNewEntity:             func(entity models.CatalogModelArtifact) bool { return entity.GetID() == nil },
+		HasCustomProperties:     func(entity models.CatalogModelArtifact) bool { return entity.GetCustomProperties() != nil },
+		PreserveHistoricalTimes: true, // Catalog preserves timestamps from YAML source data
 	}
 
 	return &CatalogModelArtifactRepositoryImpl{
