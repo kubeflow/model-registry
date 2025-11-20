@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { Breadcrumb, BreadcrumbItem } from '@patternfly/react-core';
-import { ApplicationsPage, TitleWithIcon, ProjectObjectType } from 'mod-arch-shared';
+import { ApplicationsPage } from 'mod-arch-shared';
 import {
   CATALOG_SETTINGS_PAGE_TITLE,
   ADD_SOURCE_TITLE,
@@ -10,6 +10,7 @@ import {
   MANAGE_SOURCE_DESCRIPTION,
   catalogSettingsUrl,
 } from '~/app/routes/modelCatalogSettings/modelCatalogSettings';
+import ManageSourceForm from '~/app/pages/modelCatalogSettings/components/ManageSourceForm';
 
 const ManageSourcePage: React.FC = () => {
   const { catalogSourceId } = useParams<{ catalogSourceId?: string }>();
@@ -17,6 +18,10 @@ const ManageSourcePage: React.FC = () => {
   const pageTitle = isAddMode ? ADD_SOURCE_TITLE : MANAGE_SOURCE_TITLE;
   const breadcrumbLabel = isAddMode ? ADD_SOURCE_TITLE : MANAGE_SOURCE_TITLE;
   const description = isAddMode ? ADD_SOURCE_DESCRIPTION : MANAGE_SOURCE_DESCRIPTION;
+
+  // TODO: Fetch existing data when in edit mode (catalogSourceId exists)
+  // This will be implemented when API integration is ready
+  const existingData = undefined;
 
   return (
     <ApplicationsPage
@@ -30,12 +35,14 @@ const ManageSourcePage: React.FC = () => {
           </BreadcrumbItem>
         </Breadcrumb>
       }
-      title={<TitleWithIcon title={pageTitle} objectType={ProjectObjectType.modelCatalog} />}
+      title={pageTitle}
       description={description}
       empty={false}
       loaded
       provideChildrenPadding
-    />
+    >
+      <ManageSourceForm existingData={existingData} isEditMode={!isAddMode} />
+    </ApplicationsPage>
   );
 };
 
