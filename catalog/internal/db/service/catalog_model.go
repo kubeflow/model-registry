@@ -27,20 +27,21 @@ func NewCatalogModelRepository(db *gorm.DB, typeID int32) models.CatalogModelRep
 	r := &CatalogModelRepositoryImpl{}
 
 	r.GenericRepository = service.NewGenericRepository(service.GenericRepositoryConfig[models.CatalogModel, schema.Context, schema.ContextProperty, *models.CatalogModelListOptions]{
-		DB:                    db,
-		TypeID:                typeID,
-		EntityToSchema:        mapCatalogModelToContext,
-		SchemaToEntity:        mapDataLayerToCatalogModel,
-		EntityToProperties:    mapCatalogModelToContextProperties,
-		NotFoundError:         ErrCatalogModelNotFound,
-		EntityName:            "catalog model",
-		PropertyFieldName:     "context_id",
-		ApplyListFilters:      applyCatalogModelListFilters,
-		CreatePaginationToken: r.createPaginationToken,
-		ApplyCustomOrdering:   r.applyCustomOrdering,
-		IsNewEntity:           func(entity models.CatalogModel) bool { return entity.GetID() == nil },
-		HasCustomProperties:   func(entity models.CatalogModel) bool { return entity.GetCustomProperties() != nil },
-		EntityMappingFuncs:    filter.NewCatalogEntityMappings(),
+		DB:                      db,
+		TypeID:                  typeID,
+		EntityToSchema:          mapCatalogModelToContext,
+		SchemaToEntity:          mapDataLayerToCatalogModel,
+		EntityToProperties:      mapCatalogModelToContextProperties,
+		NotFoundError:           ErrCatalogModelNotFound,
+		EntityName:              "catalog model",
+		PropertyFieldName:       "context_id",
+		ApplyListFilters:        applyCatalogModelListFilters,
+		CreatePaginationToken:   r.createPaginationToken,
+		ApplyCustomOrdering:     r.applyCustomOrdering,
+		IsNewEntity:             func(entity models.CatalogModel) bool { return entity.GetID() == nil },
+		HasCustomProperties:     func(entity models.CatalogModel) bool { return entity.GetCustomProperties() != nil },
+		EntityMappingFuncs:      filter.NewCatalogEntityMappings(),
+		PreserveHistoricalTimes: true, // Catalog preserves timestamps from YAML source data
 	})
 
 	return r

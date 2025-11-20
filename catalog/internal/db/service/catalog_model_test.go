@@ -862,3 +862,121 @@ func findIndex(slice []string, target string) int {
 	}
 	return -1
 }
+
+func TestCatalogModelRepository_TimestampPreservation(t *testing.T) {
+	sharedDB, cleanup := testutils.SetupPostgresWithMigrations(t, service.DatastoreSpec())
+	defer cleanup()
+
+	typeID := getCatalogModelTypeID(t, sharedDB)
+	repo := service.NewCatalogModelRepository(sharedDB, typeID)
+
+	t.Run("Preserve historical timestamps from YAML catalog", func(t *testing.T) {
+		// Simulate loading a model from YAML with historical timestamps
+		historicalCreateTime := int64(1739776988000)  // From YAML example
+		historicalUpdateTime := int64(1746720264000)  // From YAML example
+
+		catalogModel := &models.CatalogModelImpl{
+			Attributes: &models.CatalogModelAttributes{
+				Name:                     apiutils.Of("yaml-loaded-model"),
+				ExternalID:               apiutils.Of("yaml-model-123"),
+				CreateTimeSinceEpoch:     &historicalCreateTime,
+				LastUpdateTimeSinceEpoch: &historicalUpdateTime,
+			},
+			Properties: &[]dbmodels.Properties{
+				{
+					Name:        "description",
+					StringValue: apiutils.Of("Model loaded from YAML"),
+				},
+			},
+		}
+
+		// Save the model - timestamps should be preserved
+		saved, err := repo.Save(catalogModel)
+		require.NoError(t, err)
+		require.NotNil(t, saved)
+		require.NotNil(t, saved.GetID())
+
+		// Verify historical timestamps were preserved
+		savedAttrs := saved.GetAttributes()
+		require.NotNil(t, savedAttrs.CreateTimeSinceEpoch)
+		require.NotNil(t, savedAttrs.LastUpdateTimeSinceEpoch)
+		assert.Equal(t, historicalCreateTime, *savedAttrs.CreateTimeSinceEpoch,
+			"CreateTimeSinceEpoch should be preserved from YAML")
+		assert.Equal(t, historicalUpdateTime, *savedAttrs.LastUpdateTimeSinceEpoch,
+			"LastUpdateTimeSinceEpoch should be preserved from YAML")
+
+		// Reload from database to verify persistence
+		retrieved, err := repo.GetByID(*saved.GetID())
+		require.NoError(t, err)
+		retrievedAttrs := retrieved.GetAttributes()
+		assert.Equal(t, historicalCreateTime, *retrievedAttrs.CreateTimeSinceEpoch,
+			"CreateTimeSinceEpoch should persist in database")
+		assert.Equal(t, historicalUpdateTime, *retrievedAttrs.LastUpdateTimeSinceEpoch,
+			"LastUpdateTimeSinceEpoch should persist in database")
+	})
+
+	t.Run("Auto-generate timestamps for API-created models", func(t *testing.T) {
+		// Model created via API without timestamps
+		catalogModel := &models.CatalogModelImpl{
+			Attributes: &models.CatalogModelAttributes{
+				Name:       apiutils.Of("api-created-model"),
+				ExternalID: apiutils.Of("api-model-456"),
+				// No timestamps set - should be auto-generated
+			},
+			Properties: &[]dbmodels.Properties{
+				{
+					Name:        "description",
+					StringValue: apiutils.Of("Model created via API"),
+				},
+			},
+		}
+
+		// Save the model - timestamps should be auto-generated
+		saved, err := repo.Save(catalogModel)
+		require.NoError(t, err)
+		require.NotNil(t, saved)
+
+		// Verify timestamps were auto-generated (non-zero)
+		savedAttrs := saved.GetAttributes()
+		require.NotNil(t, savedAttrs.CreateTimeSinceEpoch)
+		require.NotNil(t, savedAttrs.LastUpdateTimeSinceEpoch)
+		assert.Greater(t, *savedAttrs.CreateTimeSinceEpoch, int64(0),
+			"CreateTimeSinceEpoch should be auto-generated")
+		assert.Greater(t, *savedAttrs.LastUpdateTimeSinceEpoch, int64(0),
+			"LastUpdateTimeSinceEpoch should be auto-generated")
+	})
+
+	t.Run("Update existing model from YAML preserves CreateTime", func(t *testing.T) {
+		// First save: Create model with historical timestamps
+		historicalCreateTime := int64(1739776988000)
+		firstUpdateTime := int64(1746720264000)
+
+		catalogModel := &models.CatalogModelImpl{
+			Attributes: &models.CatalogModelAttributes{
+				Name:                     apiutils.Of("yaml-updated-model"),
+				ExternalID:               apiutils.Of("yaml-updated-123"),
+				CreateTimeSinceEpoch:     &historicalCreateTime,
+				LastUpdateTimeSinceEpoch: &firstUpdateTime,
+			},
+		}
+
+		saved, err := repo.Save(catalogModel)
+		require.NoError(t, err)
+		savedID := saved.GetID()
+
+		// Second save: Update the model with new LastUpdateTime (simulating catalog reload)
+		newerUpdateTime := int64(1750000000000)
+		catalogModel.ID = savedID
+		catalogModel.GetAttributes().LastUpdateTimeSinceEpoch = &newerUpdateTime
+
+		updated, err := repo.Save(catalogModel)
+		require.NoError(t, err)
+
+		// Verify CreateTime is preserved but LastUpdateTime is updated
+		updatedAttrs := updated.GetAttributes()
+		assert.Equal(t, historicalCreateTime, *updatedAttrs.CreateTimeSinceEpoch,
+			"CreateTimeSinceEpoch should be preserved on update")
+		assert.Equal(t, newerUpdateTime, *updatedAttrs.LastUpdateTimeSinceEpoch,
+			"LastUpdateTimeSinceEpoch should be updated")
+	})
+}

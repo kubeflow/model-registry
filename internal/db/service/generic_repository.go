@@ -73,20 +73,21 @@ func applyFilterQuery(query *gorm.DB, listOptions any, mappingFuncs filter.Entit
 
 // Generic repository configuration
 type GenericRepositoryConfig[TEntity any, TSchema SchemaEntity, TProp PropertyEntity, TListOpts BaseListOptions] struct {
-	DB                    *gorm.DB
-	TypeID                int32
-	EntityToSchema        EntityToSchemaMapper[TEntity, TSchema]
-	SchemaToEntity        SchemaToEntityMapper[TSchema, TProp, TEntity]
-	EntityToProperties    EntityToPropertiesMapper[TEntity, TProp]
-	NotFoundError         error
-	EntityName            string
-	PropertyFieldName     string // "artifact_id", "context_id", or "execution_id"
-	ApplyListFilters      func(*gorm.DB, TListOpts) *gorm.DB
-	CreatePaginationToken func(TSchema, TListOpts) string    // Optional - defaults to standard implementation
-	ApplyCustomOrdering   func(*gorm.DB, TListOpts) *gorm.DB // Optional - custom ordering logic that bypasses standard pagination
-	IsNewEntity           func(TEntity) bool
-	HasCustomProperties   func(TEntity) bool
-	EntityMappingFuncs    filter.EntityMappingFunctions // Optional - custom entity mappings for filtering
+	DB                      *gorm.DB
+	TypeID                  int32
+	EntityToSchema          EntityToSchemaMapper[TEntity, TSchema]
+	SchemaToEntity          SchemaToEntityMapper[TSchema, TProp, TEntity]
+	EntityToProperties      EntityToPropertiesMapper[TEntity, TProp]
+	NotFoundError           error
+	EntityName              string
+	PropertyFieldName       string // "artifact_id", "context_id", or "execution_id"
+	ApplyListFilters        func(*gorm.DB, TListOpts) *gorm.DB
+	CreatePaginationToken   func(TSchema, TListOpts) string    // Optional - defaults to standard implementation
+	ApplyCustomOrdering     func(*gorm.DB, TListOpts) *gorm.DB // Optional - custom ordering logic that bypasses standard pagination
+	IsNewEntity             func(TEntity) bool
+	HasCustomProperties     func(TEntity) bool
+	EntityMappingFuncs      filter.EntityMappingFunctions // Optional - custom entity mappings for filtering
+	PreserveHistoricalTimes bool                          // Optional - when true, preserves timestamps from source data (e.g. YAML catalog loading). Default false (Model Registry behavior - always auto-generate timestamps)
 }
 
 // Generic repository implementation
@@ -241,10 +242,45 @@ func (r *GenericRepository[TEntity, TSchema, TProp, TListOpts]) Save(entity TEnt
 	// Determine if this is a new entity or an update
 	isNewEntity := r.config.IsNewEntity != nil && r.config.IsNewEntity(entity)
 
-	// Set timestamps
-	r.setLastUpdateTime(&schemaEntity, now)
-	if isNewEntity {
-		r.setCreateTime(&schemaEntity, now)
+	// Set timestamps based on configuration and entity state
+	existingCreateTime := r.getCreateTime(schemaEntity)
+	existingUpdateTime := r.getLastUpdateTime(schemaEntity)
+
+	if r.config.PreserveHistoricalTimes {
+		// Catalog mode: Preserve historical timestamps from source data (e.g. YAML)
+		// - For new entities: only set if not already present (preserves YAML timestamps)
+		// - For updates: only set if not already present (preserves YAML timestamps)
+		if isNewEntity {
+			if existingUpdateTime == 0 {
+				r.setLastUpdateTime(&schemaEntity, now)
+			}
+			if existingCreateTime == 0 {
+				r.setCreateTime(&schemaEntity, now)
+			}
+		} else {
+			// Update: preserve timestamps from YAML if present
+			if existingUpdateTime == 0 {
+				r.setLastUpdateTime(&schemaEntity, now)
+			}
+			if existingCreateTime == 0 {
+				r.setCreateTime(&schemaEntity, now)
+			}
+		}
+	} else {
+		// Model Registry mode (default): Always auto-generate timestamps
+		// - For new entities: always set both timestamps to current time
+		// - For updates: always update LastUpdateTime, preserve CreateTime if present
+		if isNewEntity {
+			r.setLastUpdateTime(&schemaEntity, now)
+			r.setCreateTime(&schemaEntity, now)
+		} else {
+			// Always update LastUpdateTime for existing entities being updated
+			r.setLastUpdateTime(&schemaEntity, now)
+			// Only set CreateTime if it's not already set (preserve historical CreateTime)
+			if existingCreateTime == 0 {
+				r.setCreateTime(&schemaEntity, now)
+			}
+		}
 	}
 
 	hasCustomProperties := r.config.HasCustomProperties != nil && r.config.HasCustomProperties(entity)
@@ -257,9 +293,10 @@ func (r *GenericRepository[TEntity, TSchema, TProp, TListOpts]) Save(entity TEnt
 				return fmt.Errorf("error saving %s: %w", r.config.EntityName, err)
 			}
 		} else {
-			// For updates, omit non-updatable fields
+			// For updates, use Updates() to only update changed fields
+			// Updates() automatically handles zero values correctly and respects omitted fields
 			omitFields := r.getNonUpdatableFields(schemaEntity)
-			if err := tx.Omit(omitFields...).Save(&schemaEntity).Error; err != nil {
+			if err := tx.Model(&schemaEntity).Omit(omitFields...).Updates(&schemaEntity).Error; err != nil {
 				return fmt.Errorf("error saving %s: %w", r.config.EntityName, err)
 			}
 		}
