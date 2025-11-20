@@ -167,7 +167,7 @@ const initIntercepts = ({
         mockCatalogModelArtifact({}),
       ],
     },
-  ).as('getCatalogModelArtifacts');
+  ).as('getCatalogSourceModelArtifacts');
 };
 
 describe('ModelCatalogCard Component', () => {
@@ -230,7 +230,7 @@ describe('ModelCatalogCard Component', () => {
       modelCatalog.visit();
     });
     it('should show validated model correctly', () => {
-      cy.wait('@getCatalogModelArtifacts');
+      cy.wait('@getCatalogSourceModelArtifacts');
       modelCatalog.findFirstModelCatalogCard().within(() => {
         modelCatalog.findValidatedModelHardware().should('contain.text', '2xH100-80');
         modelCatalog.findValidatedModelRps().should('contain.text', '7');

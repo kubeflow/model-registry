@@ -1,54 +1,80 @@
 import * as React from 'react';
 import {
+  Badge,
+  Checkbox,
   Dropdown,
-  DropdownItem,
-  DropdownList,
+  Flex,
+  FlexItem,
   MenuToggle,
   MenuToggleElement,
+  Panel,
+  PanelMain,
 } from '@patternfly/react-core';
-import { asEnumMember } from 'mod-arch-core';
 import { ModelCatalogStringFilterKey, UseCaseOptionValue } from '~/concepts/modelCatalog/const';
 import { USE_CASE_OPTIONS } from '~/app/pages/modelCatalog/utils/workloadTypeUtils';
 import { ModelCatalogContext } from '~/app/context/modelCatalog/ModelCatalogContext';
 
-const UseCaseFilter: React.FC = () => {
+const WorkloadTypeFilter: React.FC = () => {
   const { filterData, setFilterData } = React.useContext(ModelCatalogContext);
-  const selectedUseCase = filterData[ModelCatalogStringFilterKey.USE_CASE];
+  const selectedUseCases = filterData[ModelCatalogStringFilterKey.USE_CASE];
   const [isOpen, setIsOpen] = React.useState(false);
 
-  const handleUseCaseChange = (useCase: string) => {
-    const useCaseValue = asEnumMember(useCase, UseCaseOptionValue);
-    if (useCaseValue) {
-      const newValue = useCaseValue === selectedUseCase ? undefined : useCaseValue;
-      setFilterData(ModelCatalogStringFilterKey.USE_CASE, newValue);
-    }
-    setIsOpen(false);
-  };
+  const selectedCount = selectedUseCases.length;
 
-  // Get the display text for the toggle
-  const getToggleText = () => {
-    if (selectedUseCase) {
-      const selectedOption = USE_CASE_OPTIONS.find((option) => option.value === selectedUseCase);
-      return selectedOption ? (
-        <>
-          <strong>Workload type:</strong> {selectedOption.label}
-        </>
-      ) : (
-        'Workload type'
+  const isUseCaseSelected = (value: UseCaseOptionValue): boolean =>
+    selectedUseCases.includes(value);
+
+  const toggleUseCaseSelection = (value: UseCaseOptionValue, selected: boolean) => {
+    if (selected) {
+      setFilterData(ModelCatalogStringFilterKey.USE_CASE, [...selectedUseCases, value]);
+    } else {
+      setFilterData(
+        ModelCatalogStringFilterKey.USE_CASE,
+        selectedUseCases.filter((item) => item !== value),
       );
     }
-    return 'Workload type';
   };
 
   const toggle = (toggleRef: React.Ref<MenuToggleElement>) => (
     <MenuToggle
       ref={toggleRef}
+      data-testid="workload-type-filter"
       onClick={() => setIsOpen(!isOpen)}
       isExpanded={isOpen}
       style={{ minWidth: '200px', width: 'fit-content' }}
+      badge={selectedCount > 0 ? <Badge>{selectedCount} selected</Badge> : undefined}
     >
-      {getToggleText()}
+      Workload type
     </MenuToggle>
+  );
+
+  const filterContent = (
+    <Panel>
+      <PanelMain className="pf-v6-u-p-md">
+        <Flex direction={{ default: 'column' }} spaceItems={{ default: 'spaceItemsSm' }}>
+          {/* Workload type checkboxes */}
+          <FlexItem>
+            <Flex direction={{ default: 'column' }} spaceItems={{ default: 'spaceItemsXs' }}>
+              {USE_CASE_OPTIONS.map((option) => (
+                <FlexItem key={option.value}>
+                  <Flex alignItems={{ default: 'alignItemsCenter' }}>
+                    <FlexItem flex={{ default: 'flex_1' }}>
+                      <Checkbox
+                        label={option.label}
+                        id={option.value}
+                        data-testid={`workload-type-filter-${option.value}`}
+                        isChecked={isUseCaseSelected(option.value)}
+                        onChange={(_, checked) => toggleUseCaseSelection(option.value, checked)}
+                      />
+                    </FlexItem>
+                  </Flex>
+                </FlexItem>
+              ))}
+            </Flex>
+          </FlexItem>
+        </Flex>
+      </PanelMain>
+    </Panel>
   );
 
   return (
@@ -58,19 +84,9 @@ const UseCaseFilter: React.FC = () => {
       toggle={toggle}
       shouldFocusToggleOnSelect={false}
     >
-      <DropdownList>
-        {USE_CASE_OPTIONS.map((option) => (
-          <DropdownItem
-            key={option.value}
-            onClick={() => handleUseCaseChange(option.value)}
-            isSelected={selectedUseCase === option.value}
-          >
-            {option.label}
-          </DropdownItem>
-        ))}
-      </DropdownList>
+      {filterContent}
     </Dropdown>
   );
 };
 
-export default UseCaseFilter;
+export default WorkloadTypeFilter;

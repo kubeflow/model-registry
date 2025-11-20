@@ -21,7 +21,7 @@ docker run --name model-registry-postgres \
     -e POSTGRES_PASSWORD=postgres \
     -e POSTGRES_DB=model-registry \
     -p 5432:5432 \
-    -d postgres:15
+    -d postgres:16
 
 # Wait for postgres to be ready
 echo "Waiting for PostgreSQL to be ready..."
@@ -30,4 +30,4 @@ until docker exec model-registry-postgres pg_isready -h localhost -p 5432 -U pos
     sleep 1
 done
 
-echo "PostgreSQL is up and running" 
+echo "PostgreSQL is up and running"

@@ -34,8 +34,7 @@ def lint(session: Session) -> None:
     """Lint using ruff."""
     session.install("ruff")
 
-    # can't check the whole project because of the generated code
-    session.run("ruff", "check", "src/model_registry", "tests")
+    session.run("ruff", "check")
 
 
 @session(python=python_versions)
@@ -47,7 +46,7 @@ def mypy(session: Session) -> None:
         "types-python-dateutil",
     )
 
-    session.run("mypy", "src/model_registry")
+    session.run("mypy", ".")
 
 
 @session(python=python_versions)
@@ -105,20 +104,35 @@ def e2e_tests(session: Session) -> None:
 
 @session(name="fuzz", python=python_versions)
 def fuzz_tests(session: Session) -> None:
-    """Run the fuzzing tests."""
+    """Run the fuzzing tests with parallel execution for stateless tests."""
     session.install(
         ".",
         "requests",
         "pytest",
+        "pytest-xdist",
         "pytest-mock",
         "uvloop",
         "olot",
         "schemathesis",
     )
+    # Run stateless tests in parallel for faster execution
     session.run(
         "pytest",
+        "tests/fuzz_api/model_registry/test_mr_stateless.py",
+        "tests/fuzz_api/model_catalog/test_catalog_stateless.py",
         "--fuzz",
-        "-rA",
+        "-n",
+        "auto",
+        "-v",
+        "--hypothesis-show-statistics",
+    )
+    # Run stateful tests sequentially (required for state consistency)
+    session.run(
+        "pytest",
+        "tests/fuzz_api/model_registry/test_mr_stateful.py",
+        "--fuzz",
+        "-v",
+        "--hypothesis-show-statistics",
     )
 @session(python=python_versions[0])
 def coverage(session: Session) -> None:

@@ -68,7 +68,7 @@ class RegisteredModel(BaseModel):
     license_link: StrictStr | None = Field(default=None, description="URL to the license text.", alias="licenseLink")
     library_name: StrictStr | None = Field(default=None, alias="libraryName")
     owner: StrictStr | None = None
-    state: RegisteredModelState | None = None
+    state: RegisteredModelState | None = RegisteredModelState.LIVE
     __properties: ClassVar[list[str]] = [
         "customProperties",
         "description",
@@ -135,9 +135,9 @@ class RegisteredModel(BaseModel):
         # override the default output from pydantic by calling `to_dict()` of each value in custom_properties (dict)
         _field_dict = {}
         if self.custom_properties:
-            for _key in self.custom_properties:
-                if self.custom_properties[_key]:
-                    _field_dict[_key] = self.custom_properties[_key].to_dict()
+            for _key_custom_properties in self.custom_properties:
+                if self.custom_properties[_key_custom_properties]:
+                    _field_dict[_key_custom_properties] = self.custom_properties[_key_custom_properties].to_dict()
             _dict["customProperties"] = _field_dict
         return _dict
 
@@ -171,6 +171,6 @@ class RegisteredModel(BaseModel):
                 "licenseLink": obj.get("licenseLink"),
                 "libraryName": obj.get("libraryName"),
                 "owner": obj.get("owner"),
-                "state": obj.get("state"),
+                "state": obj.get("state") if obj.get("state") is not None else RegisteredModelState.LIVE,
             }
         )

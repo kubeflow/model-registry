@@ -682,7 +682,7 @@ Granite 3.1 Instruct Models are primarily finetuned using instruction-response p
 		Maturity:         stringToPointer("Generally Available"),
 		Language:         []string{"en"},
 		SourceId:         stringToPointer("sample-source"),
-		CustomProperties: newCustomProperties(),
+		CustomProperties: catalogCustomProperties(),
 		Logo:             stringToPointer("data:image/svg+xml;base64,PHN2ZyBpZD0iTGF5ZXJfMSIgZGF0YS1uYW1lPSJMYXllciAxIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxOTIgMTQ1Ij48ZGVmcz48c3R5bGU+LmNscy0xe2ZpbGw6I2UwMDt9PC9zdHlsZT48L2RlZnM+PHRpdGxlPlJlZEhhdC1Mb2dvLUhhdC1Db2xvcjwvdGl0bGU+PHBhdGggZD0iTTE1Ny43Nyw2Mi42MWExNCwxNCwwLDAsMSwuMzEsMy40MmMwLDE0Ljg4LTE4LjEsMTcuNDYtMzAuNjEsMTcuNDZDNzguODMsODMuNDksNDIuNTMsNTMuMjYsNDIuNTMsNDRhNi40Myw2LjQzLDAsMCwxLC4yMi0xLjk0bC0zLjY2LDkuMDZhMTguNDUsMTguNDUsMCwwLDAtMS41MSw3LjMzYzAsMTguMTEsNDEsNDUuNDgsODcuNzQsNDUuNDgsMjAuNjksMCwzNi40My03Ljc2LDM2LjQzLTIxLjc3LDAtMS4wOCwwLTEuOTQtMS43My0xMC4xM1oiLz48cGF0aCBjbGFzcz0iY2xzLTEiIGQ9Ik0xMjcuNDcsODMuNDljMTIuNTEsMCwzMC42MS0yLjU4LDMwLjYxLTE3LjQ2YTE0LDE0LDAsMCwwLS4zMS0zLjQybC03LjQ1LTMyLjM2Yy0xLjcyLTcuMTItMy4yMy0xMC4zNS0xNS43My0xNi42QzEyNC44OSw4LjY5LDEwMy43Ni41LDk3LjUxLjUsOTEuNjkuNSw5MCw4LDgzLjA2LDhjLTYuNjgsMC0xMS42NC01LjYtMTcuODktNS42LTYsMC05LjkxLDQuMDktMTIuOTMsMTIuNSwwLDAtOC40MSwyMy43Mi05LjQ5LDI3LjE2QTYuNDMsNi40MywwLDAsMCw0Mi41Myw0NGMwLDkuMjIsMzYuMywzOS40NSw4NC45NCwzOS40NU0xNjAsNzIuMDdjMS43Myw4LjE5LDEuNzMsOS4wNSwxLjczLDEwLjEzLDAsMTQtMTUuNzQsMjEuNzctMzYuNDMsMjEuNzdDNzguNTQsMTA0LDM3LjU4LDc2LjYsMzcuNTgsNTguNDlhMTguNDUsMTguNDUsMCwwLDEsMS41MS03LjMzQzIyLjI3LDUyLC41LDU1LC41LDc0LjIyYzAsMzEuNDgsNzQuNTksNzAuMjgsMTMzLjY1LDcwLjI4LDQ1LjI4LDAsNTYuNy0yMC40OCw1Ni43LTM2LjY1LDAtMTIuNzItMTEtMjcuMTYtMzAuODMtMzUuNzgiLz48L3N2Zz4="),
 	}
 
@@ -774,7 +774,7 @@ Granite 3.1 Instruct Models are primarily finetuned using instruction-response p
 			LibraryName:              stringToPointer("transformers"),
 			CreateTimeSinceEpoch:     stringToPointer("1693526400000"),
 			LastUpdateTimeSinceEpoch: stringToPointer("1704067200000"),
-			CustomProperties:         newCustomProperties(),
+			CustomProperties:         catalogCustomProperties(),
 		}
 		additionalRepo1Models = append(additionalRepo1Models, model)
 	}
@@ -855,7 +855,7 @@ func GetCatalogSourceListMock() models.CatalogSourceList {
 func GetCatalogModelArtifactMock() []models.CatalogArtifact {
 	return []models.CatalogArtifact{
 		{
-			ArtifactType:         *stringToPointer("model-artifact"),
+			ArtifactType:         "model-artifact",
 			Uri:                  stringToPointer("oci://registry.sample.io/repo1/modelcar-granite-7b-starter:1.4.0"),
 			CreateTimeSinceEpoch: stringToPointer("1693526400000"),
 
@@ -1071,7 +1071,14 @@ func GetCatalogPerformanceMetricsArtifactMock(itemCount int32) []models.CatalogA
 			MetricsType:              stringToPointer("performance-metrics"),
 			CreateTimeSinceEpoch:     stringToPointer("1693526400000"),
 			LastUpdateTimeSinceEpoch: stringToPointer("1704067200000"),
-			CustomProperties:         performanceMetricsCustomProperties(map[string]openapi.MetadataValue{}),
+			CustomProperties: performanceMetricsCustomProperties(map[string]openapi.MetadataValue{
+				"use_case": {
+					MetadataStringValue: &openapi.MetadataStringValue{
+						StringValue:  "chatbot",
+						MetadataType: "MetadataStringValue",
+					},
+				},
+			}),
 		},
 		{
 			ArtifactType:             *stringToPointer("metrics-artifact"),
@@ -1101,6 +1108,12 @@ func GetCatalogPerformanceMetricsArtifactMock(itemCount int32) []models.CatalogA
 					MetadataDoubleValue: &openapi.MetadataDoubleValue{
 						DoubleValue:  67.14892749816,
 						MetadataType: "MetadataDoubleValue",
+					},
+				},
+				"use_case": {
+					MetadataStringValue: &openapi.MetadataStringValue{
+						StringValue:  "rag",
+						MetadataType: "MetadataStringValue",
 					},
 				},
 			}),
@@ -1133,6 +1146,50 @@ func GetCatalogPerformanceMetricsArtifactMock(itemCount int32) []models.CatalogA
 					MetadataDoubleValue: &openapi.MetadataDoubleValue{
 						DoubleValue:  42.123791232,
 						MetadataType: "MetadataDoubleValue",
+					},
+				},
+				"use_case": {
+					MetadataStringValue: &openapi.MetadataStringValue{
+						StringValue:  "code_fixing",
+						MetadataType: "MetadataStringValue",
+					},
+				},
+			}),
+		},
+		{
+			ArtifactType:             *stringToPointer("metrics-artifact"),
+			MetricsType:              stringToPointer("performance-metrics"),
+			CreateTimeSinceEpoch:     stringToPointer("1693526400000"),
+			LastUpdateTimeSinceEpoch: stringToPointer("1704067200000"),
+			CustomProperties: performanceMetricsCustomProperties(map[string]openapi.MetadataValue{
+				"hardware_type": {
+					MetadataStringValue: &openapi.MetadataStringValue{
+						StringValue:  "A100",
+						MetadataType: "MetadataStringValue",
+					},
+				},
+				"hardware_count": {
+					MetadataIntValue: &openapi.MetadataIntValue{
+						IntValue:     "8",
+						MetadataType: "MetadataIntValue",
+					},
+				},
+				"requests_per_second": {
+					MetadataDoubleValue: &openapi.MetadataDoubleValue{
+						DoubleValue:  25,
+						MetadataType: "MetadataDoubleValue",
+					},
+				},
+				"ttft_mean": {
+					MetadataDoubleValue: &openapi.MetadataDoubleValue{
+						DoubleValue:  28.5,
+						MetadataType: "MetadataDoubleValue",
+					},
+				},
+				"use_case": {
+					MetadataStringValue: &openapi.MetadataStringValue{
+						StringValue:  "long_rag",
+						MetadataType: "MetadataStringValue",
 					},
 				},
 			}),
@@ -1171,7 +1228,6 @@ func GetCatalogAccuracyMetricsArtifactMock() []models.CatalogArtifact {
 		},
 	}
 }
-
 func GetModelArtifactListMockWithItems(items []models.CatalogArtifact, pageSize int32) models.CatalogModelArtifactList {
 	return models.CatalogModelArtifactList{
 		Items:         items,
@@ -1197,8 +1253,8 @@ func GetCatalogAccuracyMetricsArtifactListMock() models.CatalogModelArtifactList
 }
 
 const (
-	FilterOptionTypeString models.FilterOptionType = "string"
-	FilterOptionTypeNumber models.FilterOptionType = "number"
+	FilterOptionTypeString = "string"
+	FilterOptionTypeNumber = "number"
 )
 
 func float32Ptr(i float32) *float32 {
@@ -1238,6 +1294,22 @@ func GetFilterOptionMocks() map[string]models.FilterOption {
 		},
 	}
 
+	// String type filter for use cases
+	filterOptions["use_case"] = models.FilterOption{
+		Type: FilterOptionTypeString,
+		Values: []interface{}{
+			"chatbot", "code_fixing", "long_rag", "rag",
+		},
+	}
+
+	// String type filter for use cases
+	filterOptions["use_case"] = models.FilterOption{
+		Type: FilterOptionTypeString,
+		Values: []interface{}{
+			"chatbot", "code_fixing", "long_rag", "rag",
+		},
+	}
+
 	filterOptions["ttft_mean"] = models.FilterOption{
 		Type: FilterOptionTypeNumber,
 		Range: &models.FilterRange{
@@ -1254,5 +1326,50 @@ func GetFilterOptionsListMock() models.FilterOptionsList {
 
 	return models.FilterOptionsList{
 		Filters: &filterOptions,
+	}
+}
+
+func CreateSampleCatalogSource(id string, name string, catalogType string) models.CatalogSourceConfig {
+	defaultCatalog := id == "catalog-1"
+
+	sourceConfig := models.CatalogSourceConfig{
+		Name:           name,
+		Id:             id,
+		Type:           catalogType,
+		Enabled:        BoolPtr(true),
+		Labels:         []string{"source-1"},
+		IsDefault:      &defaultCatalog,
+		IncludedModels: []string{"rhelai1/modelcar-granite-7b-starter"},
+		ExcludedModels: []string{"model-a:1.0", "model-b:*"},
+	}
+
+	switch catalogType {
+	case "yaml":
+		sourceConfig.Yaml = stringToPointer("models:\n  - name: model1")
+	case "huggingface":
+		sourceConfig.AllowedOrganization = stringToPointer("org1")
+		sourceConfig.ApiKey = stringToPointer("apikey")
+	}
+
+	return sourceConfig
+}
+
+func BoolPtr(b bool) *bool {
+	return &b
+}
+
+func GetCatalogSourceConfigsMocks() []models.CatalogSourceConfig {
+	return []models.CatalogSourceConfig{
+		CreateSampleCatalogSource("catalog-1", "Default Catalog", "yaml"),
+		CreateSampleCatalogSource("catalog-2", "HuggingFace Catalog", "huggingface"),
+		CreateSampleCatalogSource("catalog-3", "Custom Catalog", "yaml"),
+	}
+}
+
+func GetCatalogSourceConfigListMock() models.CatalogSourceConfigList {
+	allCatalogSourceConfigs := GetCatalogSourceConfigsMocks()
+
+	return models.CatalogSourceConfigList{
+		Catalogs: allCatalogSourceConfigs,
 	}
 }

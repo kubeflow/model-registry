@@ -29,6 +29,8 @@ type ModelArtifactList struct {
 	Items []ModelArtifact `json:"items"`
 }
 
+type _ModelArtifactList ModelArtifactList
+
 // NewModelArtifactList instantiates a new ModelArtifactList object
 // This constructor will assign default values to properties that have it defined,
 // and makes sure properties required by API are set, but the set of arguments

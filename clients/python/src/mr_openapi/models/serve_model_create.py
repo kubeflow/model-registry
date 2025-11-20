@@ -40,7 +40,7 @@ class ServeModelCreate(BaseModel):
         default=None,
         description="The client provided name of the artifact. This field is optional. If set, it must be unique among all the artifacts of the same artifact type within a database instance and cannot be changed once set.",
     )
-    last_known_state: ExecutionState | None = Field(default=None, alias="lastKnownState")
+    last_known_state: ExecutionState | None = Field(default=ExecutionState.UNKNOWN, alias="lastKnownState")
     model_version_id: StrictStr = Field(
         description="ID of the `ModelVersion` that was served in `InferenceService`.", alias="modelVersionId"
     )
@@ -93,9 +93,9 @@ class ServeModelCreate(BaseModel):
         # override the default output from pydantic by calling `to_dict()` of each value in custom_properties (dict)
         _field_dict = {}
         if self.custom_properties:
-            for _key in self.custom_properties:
-                if self.custom_properties[_key]:
-                    _field_dict[_key] = self.custom_properties[_key].to_dict()
+            for _key_custom_properties in self.custom_properties:
+                if self.custom_properties[_key_custom_properties]:
+                    _field_dict[_key_custom_properties] = self.custom_properties[_key_custom_properties].to_dict()
             _dict["customProperties"] = _field_dict
         return _dict
 
@@ -116,7 +116,9 @@ class ServeModelCreate(BaseModel):
                 "description": obj.get("description"),
                 "externalId": obj.get("externalId"),
                 "name": obj.get("name"),
-                "lastKnownState": obj.get("lastKnownState"),
+                "lastKnownState": obj.get("lastKnownState")
+                if obj.get("lastKnownState") is not None
+                else ExecutionState.UNKNOWN,
                 "modelVersionId": obj.get("modelVersionId"),
             }
         )

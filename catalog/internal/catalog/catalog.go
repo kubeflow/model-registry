@@ -18,8 +18,9 @@ type ListModelsParams struct {
 }
 
 type ListArtifactsParams struct {
+	FilterQuery         string
 	PageSize            int32
-	OrderBy             model.OrderByField
+	OrderBy             string
 	SortOrder           model.SortOrder
 	NextPageToken       *string
 	ArtifactTypesFilter []string

@@ -9,7 +9,6 @@ export enum ModelCatalogStringFilterKey {
 
 export enum ModelCatalogNumberFilterKey {
   MIN_RPS = 'rps_mean',
-  MAX_LATENCY = 'ttft_mean',
 }
 
 export enum LatencyMetric {
@@ -319,3 +318,18 @@ export enum AllLanguageCode {
   UR = 'ur',
   TL = 'tl',
 }
+
+/**
+ * Display names for filter categories.
+ * TODO: When performance filters are ready, switch this to be a Record<ModelCatalogFilterKey, string>
+ * to include all ModelCatalogFilterKeys (ModelCatalogStringFilterKey | ModelCatalogNumberFilterKey).
+ * This will allow separate filter category names for "Max latency (TTFT Mean)" and "Max latency (TTFT P99)" etc.
+ */
+export const MODEL_CATALOG_FILTER_CATEGORY_NAMES: Record<ModelCatalogStringFilterKey, string> = {
+  [ModelCatalogStringFilterKey.PROVIDER]: 'Provider',
+  [ModelCatalogStringFilterKey.LICENSE]: 'License',
+  [ModelCatalogStringFilterKey.TASK]: 'Task',
+  [ModelCatalogStringFilterKey.LANGUAGE]: 'Language',
+  [ModelCatalogStringFilterKey.HARDWARE_TYPE]: 'Hardware type',
+  [ModelCatalogStringFilterKey.USE_CASE]: 'Workload type',
+};

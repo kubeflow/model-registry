@@ -11,7 +11,6 @@ import {
   CatalogSource,
   CatalogSourceList,
   CategoryName,
-  ModelCatalogFilterKey,
   ModelCatalogFilterStates,
 } from '~/app/modelCatalogTypes';
 import { BFF_API_VERSION, URL_PREFIX } from '~/app/utilities/const';
@@ -31,7 +30,7 @@ export type ModelCatalogContextType = {
   apiState: ModelCatalogAPIState;
   refreshAPIState: () => void;
   filterData: ModelCatalogFilterStates;
-  setFilterData: <K extends ModelCatalogFilterKey>(
+  setFilterData: <K extends keyof ModelCatalogFilterStates>(
     key: K,
     value: ModelCatalogFilterStates[K],
   ) => void;
@@ -55,9 +54,8 @@ export const ModelCatalogContext = React.createContext<ModelCatalogContextType>(
     [ModelCatalogStringFilterKey.LICENSE]: [],
     [ModelCatalogStringFilterKey.LANGUAGE]: [],
     [ModelCatalogStringFilterKey.HARDWARE_TYPE]: [],
-    [ModelCatalogStringFilterKey.USE_CASE]: undefined,
+    [ModelCatalogStringFilterKey.USE_CASE]: [],
     [ModelCatalogNumberFilterKey.MIN_RPS]: undefined,
-    [ModelCatalogNumberFilterKey.MAX_LATENCY]: undefined,
   },
   updateSelectedSource: () => undefined,
   selectedSourceLabel: undefined,
@@ -87,9 +85,8 @@ export const ModelCatalogContextProvider: React.FC<ModelCatalogContextProviderPr
     [ModelCatalogStringFilterKey.LICENSE]: [],
     [ModelCatalogStringFilterKey.LANGUAGE]: [],
     [ModelCatalogStringFilterKey.HARDWARE_TYPE]: [],
-    [ModelCatalogStringFilterKey.USE_CASE]: undefined,
+    [ModelCatalogStringFilterKey.USE_CASE]: [],
     [ModelCatalogNumberFilterKey.MIN_RPS]: undefined,
-    [ModelCatalogNumberFilterKey.MAX_LATENCY]: undefined,
   });
   const [filterOptions, filterOptionsLoaded, filterOptionsLoadError] =
     useCatalogFilterOptionList(apiState);

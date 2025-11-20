@@ -69,66 +69,6 @@ func (dst *ArtifactCreate) UnmarshalJSON(data []byte) error {
 		return fmt.Errorf("failed to unmarshal JSON into map for the discriminator lookup")
 	}
 
-	// check if the discriminator value is 'DataSetCreate'
-	if jsonDict["artifactType"] == "DataSetCreate" {
-		// try to unmarshal JSON data into DataSetCreate
-		err = json.Unmarshal(data, &dst.DataSetCreate)
-		if err == nil {
-			return nil // data stored in dst.DataSetCreate, return on the first match
-		} else {
-			dst.DataSetCreate = nil
-			return fmt.Errorf("failed to unmarshal ArtifactCreate as DataSetCreate: %s", err.Error())
-		}
-	}
-
-	// check if the discriminator value is 'DocArtifactCreate'
-	if jsonDict["artifactType"] == "DocArtifactCreate" {
-		// try to unmarshal JSON data into DocArtifactCreate
-		err = json.Unmarshal(data, &dst.DocArtifactCreate)
-		if err == nil {
-			return nil // data stored in dst.DocArtifactCreate, return on the first match
-		} else {
-			dst.DocArtifactCreate = nil
-			return fmt.Errorf("failed to unmarshal ArtifactCreate as DocArtifactCreate: %s", err.Error())
-		}
-	}
-
-	// check if the discriminator value is 'MetricCreate'
-	if jsonDict["artifactType"] == "MetricCreate" {
-		// try to unmarshal JSON data into MetricCreate
-		err = json.Unmarshal(data, &dst.MetricCreate)
-		if err == nil {
-			return nil // data stored in dst.MetricCreate, return on the first match
-		} else {
-			dst.MetricCreate = nil
-			return fmt.Errorf("failed to unmarshal ArtifactCreate as MetricCreate: %s", err.Error())
-		}
-	}
-
-	// check if the discriminator value is 'ModelArtifactCreate'
-	if jsonDict["artifactType"] == "ModelArtifactCreate" {
-		// try to unmarshal JSON data into ModelArtifactCreate
-		err = json.Unmarshal(data, &dst.ModelArtifactCreate)
-		if err == nil {
-			return nil // data stored in dst.ModelArtifactCreate, return on the first match
-		} else {
-			dst.ModelArtifactCreate = nil
-			return fmt.Errorf("failed to unmarshal ArtifactCreate as ModelArtifactCreate: %s", err.Error())
-		}
-	}
-
-	// check if the discriminator value is 'ParameterCreate'
-	if jsonDict["artifactType"] == "ParameterCreate" {
-		// try to unmarshal JSON data into ParameterCreate
-		err = json.Unmarshal(data, &dst.ParameterCreate)
-		if err == nil {
-			return nil // data stored in dst.ParameterCreate, return on the first match
-		} else {
-			dst.ParameterCreate = nil
-			return fmt.Errorf("failed to unmarshal ArtifactCreate as ParameterCreate: %s", err.Error())
-		}
-	}
-
 	// check if the discriminator value is 'dataset-artifact'
 	if jsonDict["artifactType"] == "dataset-artifact" {
 		// try to unmarshal JSON data into DataSetCreate
@@ -240,6 +180,32 @@ func (obj *ArtifactCreate) GetActualInstance() interface{} {
 
 	if obj.ParameterCreate != nil {
 		return obj.ParameterCreate
+	}
+
+	// all schemas are nil
+	return nil
+}
+
+// Get the actual instance value
+func (obj ArtifactCreate) GetActualInstanceValue() interface{} {
+	if obj.DataSetCreate != nil {
+		return *obj.DataSetCreate
+	}
+
+	if obj.DocArtifactCreate != nil {
+		return *obj.DocArtifactCreate
+	}
+
+	if obj.MetricCreate != nil {
+		return *obj.MetricCreate
+	}
+
+	if obj.ModelArtifactCreate != nil {
+		return *obj.ModelArtifactCreate
+	}
+
+	if obj.ParameterCreate != nil {
+		return *obj.ParameterCreate
 	}
 
 	// all schemas are nil

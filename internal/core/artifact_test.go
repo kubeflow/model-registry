@@ -119,7 +119,7 @@ func TestUpsertArtifact(t *testing.T) {
 
 		modelArtifact := &openapi.ModelArtifact{
 			Name:             apiutils.Of("custom-props-artifact"),
-			CustomProperties: &customProps,
+			CustomProperties: customProps,
 		}
 
 		artifact := &openapi.Artifact{
@@ -132,7 +132,7 @@ func TestUpsertArtifact(t *testing.T) {
 		require.NotNil(t, result.ModelArtifact)
 		assert.NotNil(t, result.ModelArtifact.CustomProperties)
 
-		resultProps := *result.ModelArtifact.CustomProperties
+		resultProps := result.ModelArtifact.CustomProperties
 		assert.Contains(t, resultProps, "accuracy")
 		assert.Contains(t, resultProps, "framework")
 		assert.Equal(t, 0.95, resultProps["accuracy"].MetadataDoubleValue.DoubleValue)
@@ -2151,7 +2151,7 @@ func TestArtifactRoundTrip(t *testing.T) {
 		modelArtifact := &openapi.ModelArtifact{
 			Name:             apiutils.Of("custom-props-roundtrip"),
 			Uri:              apiutils.Of("s3://bucket/custom-props.pkl"),
-			CustomProperties: &customProps,
+			CustomProperties: customProps,
 		}
 
 		// Create
@@ -2164,7 +2164,7 @@ func TestArtifactRoundTrip(t *testing.T) {
 		require.NoError(t, err)
 		require.NotNil(t, retrieved.CustomProperties)
 
-		resultProps := *retrieved.CustomProperties
+		resultProps := retrieved.CustomProperties
 		assert.Contains(t, resultProps, "accuracy")
 		assert.Contains(t, resultProps, "framework")
 		assert.Contains(t, resultProps, "epochs")
@@ -2189,13 +2189,13 @@ func TestArtifactRoundTrip(t *testing.T) {
 			},
 		}
 
-		retrieved.CustomProperties = &newProps
+		retrieved.CustomProperties = newProps
 
 		updated, err := _service.UpsertModelArtifact(retrieved)
 		require.NoError(t, err)
 		require.NotNil(t, updated.CustomProperties)
 
-		updatedProps := *updated.CustomProperties
+		updatedProps := updated.CustomProperties
 		assert.Contains(t, updatedProps, "accuracy")
 		assert.Contains(t, updatedProps, "new_prop")
 		assert.Equal(t, 0.97, updatedProps["accuracy"].MetadataDoubleValue.DoubleValue)

@@ -34,3 +34,13 @@ export const USE_CASE_OPTIONS: UseCaseOption[] = [
  */
 export const getUseCaseOption = (useCase: UseCaseOptionValue): UseCaseOption | undefined =>
   USE_CASE_OPTIONS.find((option) => option.value === useCase);
+
+/**
+ * Mapping from UseCaseOptionValue to display name for use in filters
+ */
+export const USE_CASE_NAME_MAPPING: Record<UseCaseOptionValue, string> = {
+  [UseCaseOptionValue.CHATBOT]: 'Chatbot',
+  [UseCaseOptionValue.CODE_FIXING]: 'Code Fixing',
+  [UseCaseOptionValue.LONG_RAG]: 'Long RAG',
+  [UseCaseOptionValue.RAG]: 'RAG',
+};

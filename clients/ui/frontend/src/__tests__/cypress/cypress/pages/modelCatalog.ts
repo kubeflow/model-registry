@@ -261,6 +261,20 @@ class ModelCatalog {
   findValidatedModelTtft() {
     return cy.findByTestId('validated-model-ttft');
   }
+
+  findWorkloadTypeFilter() {
+    return cy.findByTestId('workload-type-filter');
+  }
+
+  findWorkloadTypeOption(label: string) {
+    // Workload type uses checkboxes in a panel, not menu items
+    // Find checkbox by its label within the dropdown panel
+    return cy.contains('label', label).parent().find('input[type="checkbox"]');
+  }
+
+  selectWorkloadType(label: string) {
+    this.findWorkloadTypeOption(label).click();
+  }
 }
 
 export const modelCatalog = new ModelCatalog();

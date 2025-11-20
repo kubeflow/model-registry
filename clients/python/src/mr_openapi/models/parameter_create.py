@@ -43,7 +43,7 @@ class ParameterCreate(BaseModel):
     artifact_type: StrictStr | None = Field(default="parameter", alias="artifactType")
     value: StrictStr | None = Field(default=None, description="The value of the parameter.")
     parameter_type: ParameterType | None = Field(default=None, alias="parameterType")
-    state: ArtifactState | None = None
+    state: ArtifactState | None = ArtifactState.UNKNOWN
     __properties: ClassVar[list[str]] = [
         "customProperties",
         "description",
@@ -95,9 +95,9 @@ class ParameterCreate(BaseModel):
         # override the default output from pydantic by calling `to_dict()` of each value in custom_properties (dict)
         _field_dict = {}
         if self.custom_properties:
-            for _key in self.custom_properties:
-                if self.custom_properties[_key]:
-                    _field_dict[_key] = self.custom_properties[_key].to_dict()
+            for _key_custom_properties in self.custom_properties:
+                if self.custom_properties[_key_custom_properties]:
+                    _field_dict[_key_custom_properties] = self.custom_properties[_key_custom_properties].to_dict()
             _dict["customProperties"] = _field_dict
         return _dict
 
@@ -121,6 +121,6 @@ class ParameterCreate(BaseModel):
                 "artifactType": obj.get("artifactType") if obj.get("artifactType") is not None else "parameter",
                 "value": obj.get("value"),
                 "parameterType": obj.get("parameterType"),
-                "state": obj.get("state"),
+                "state": obj.get("state") if obj.get("state") is not None else ArtifactState.UNKNOWN,
             }
         )

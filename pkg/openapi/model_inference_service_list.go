@@ -29,6 +29,8 @@ type InferenceServiceList struct {
 	Items []InferenceService `json:"items"`
 }
 
+type _InferenceServiceList InferenceServiceList
+
 // NewInferenceServiceList instantiates a new InferenceServiceList object
 // This constructor will assign default values to properties that have it defined,
 // and makes sure properties required by API are set, but the set of arguments

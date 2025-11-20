@@ -85,6 +85,12 @@ func (b *ModelRegistryService) upsertArtifact(artifact *openapi.Artifact, parent
 				return nil, fmt.Errorf("%v: %w", err, api.ErrBadRequest)
 			}
 
+			// Handle CustomProperties preservation for partial updates
+			// If the update didn't specify CustomProperties (nil), preserve existing ones
+			if ma.CustomProperties == nil && existing.ModelArtifact.CustomProperties != nil {
+				withNotEditable.CustomProperties = existing.ModelArtifact.CustomProperties
+			}
+
 			ma = &withNotEditable
 		}
 
@@ -122,6 +128,12 @@ func (b *ModelRegistryService) upsertArtifact(artifact *openapi.Artifact, parent
 			withNotEditable, err := b.mapper.UpdateExistingDocArtifact(converter.NewOpenapiUpdateWrapper(existing.DocArtifact, da))
 			if err != nil {
 				return nil, fmt.Errorf("%v: %w", err, api.ErrBadRequest)
+			}
+
+			// Handle CustomProperties preservation for partial updates
+			// If the update didn't specify CustomProperties (nil), preserve existing ones
+			if da.CustomProperties == nil && existing.DocArtifact.CustomProperties != nil {
+				withNotEditable.CustomProperties = existing.DocArtifact.CustomProperties
 			}
 
 			da = &withNotEditable
@@ -162,6 +174,12 @@ func (b *ModelRegistryService) upsertArtifact(artifact *openapi.Artifact, parent
 			withNotEditable, err := b.mapper.UpdateExistingDataSet(converter.NewOpenapiUpdateWrapper(existing.DataSet, ds))
 			if err != nil {
 				return nil, fmt.Errorf("%v: %w", err, api.ErrBadRequest)
+			}
+
+			// Handle CustomProperties preservation for partial updates
+			// If the update didn't specify CustomProperties (nil), preserve existing ones
+			if ds.CustomProperties == nil && existing.DataSet.CustomProperties != nil {
+				withNotEditable.CustomProperties = existing.DataSet.CustomProperties
 			}
 
 			ds = &withNotEditable
@@ -209,6 +227,12 @@ func (b *ModelRegistryService) upsertArtifact(artifact *openapi.Artifact, parent
 				return nil, fmt.Errorf("%v: %w", err, api.ErrBadRequest)
 			}
 
+			// Handle CustomProperties preservation for partial updates
+			// If the update didn't specify CustomProperties (nil), preserve existing ones
+			if me.CustomProperties == nil && existing.Metric.CustomProperties != nil {
+				withNotEditable.CustomProperties = existing.Metric.CustomProperties
+			}
+
 			me = &withNotEditable
 		} else {
 			// For new metrics (no ID), check if a metric with the same name already exists
@@ -221,6 +245,13 @@ func (b *ModelRegistryService) upsertArtifact(artifact *openapi.Artifact, parent
 					if err != nil {
 						return nil, fmt.Errorf("%v: %w", err, api.ErrBadRequest)
 					}
+
+					// Handle CustomProperties preservation for partial updates
+					// If the update didn't specify CustomProperties (nil), preserve existing ones
+					if me.CustomProperties == nil && existing.Metric.CustomProperties != nil {
+						withNotEditable.CustomProperties = existing.Metric.CustomProperties
+					}
+
 					me = &withNotEditable
 				} else if api.IgnoreNotFound(err) != nil {
 					// Only return error if it's not a "not found" error
@@ -267,6 +298,12 @@ func (b *ModelRegistryService) upsertArtifact(artifact *openapi.Artifact, parent
 				return nil, fmt.Errorf("%v: %w", err, api.ErrBadRequest)
 			}
 
+			// Handle CustomProperties preservation for partial updates
+			// If the update didn't specify CustomProperties (nil), preserve existing ones
+			if pa.CustomProperties == nil && existing.Parameter.CustomProperties != nil {
+				withNotEditable.CustomProperties = existing.Parameter.CustomProperties
+			}
+
 			pa = &withNotEditable
 		} else {
 			// For new parameters (no ID), check if a parameter with the same name already exists
@@ -279,6 +316,13 @@ func (b *ModelRegistryService) upsertArtifact(artifact *openapi.Artifact, parent
 					if err != nil {
 						return nil, fmt.Errorf("%v: %w", err, api.ErrBadRequest)
 					}
+
+					// Handle CustomProperties preservation for partial updates
+					// If the update didn't specify CustomProperties (nil), preserve existing ones
+					if pa.CustomProperties == nil && existing.Parameter.CustomProperties != nil {
+						withNotEditable.CustomProperties = existing.Parameter.CustomProperties
+					}
+
 					pa = &withNotEditable
 				} else if api.IgnoreNotFound(err) != nil {
 					// Only return error if it's not a "not found" error
@@ -582,19 +626,18 @@ func (b *ModelRegistryService) GetModelArtifacts(listOptions api.ListOptions, pa
 	return modelArtifactList, nil
 }
 
-func setExperimentPropertiesOnCustomProperties(customProps **map[string]openapi.MetadataValue, experimentId, experimentRunId string) {
+func setExperimentPropertiesOnCustomProperties(customProps *map[string]openapi.MetadataValue, experimentId, experimentRunId string) {
 	if *customProps == nil {
-		*customProps = &map[string]openapi.MetadataValue{}
+		*customProps = map[string]openapi.MetadataValue{}
 	}
 
-	props := *customProps
-	(*props)["experiment_id"] = openapi.MetadataValue{
+	(*customProps)["experiment_id"] = openapi.MetadataValue{
 		MetadataIntValue: &openapi.MetadataIntValue{
 			IntValue:     experimentId,
 			MetadataType: "MetadataIntValue",
 		},
 	}
-	(*props)["experiment_run_id"] = openapi.MetadataValue{
+	(*customProps)["experiment_run_id"] = openapi.MetadataValue{
 		MetadataIntValue: &openapi.MetadataIntValue{
 			IntValue:     experimentRunId,
 			MetadataType: "MetadataIntValue",
@@ -606,7 +649,7 @@ func setExperimentPropertiesOnCustomProperties(customProps **map[string]openapi.
 // both as direct fields (for API response) and as custom properties (for database storage and filterQuery)
 func (b *ModelRegistryService) setExperimentPropertiesOnArtifact(artifact *openapi.Artifact, experimentId, experimentRunId string) {
 	// Define a helper function to reduce repetition
-	setProperties := func(experimentIdPtr, experimentRunIdPtr **string, customProps **map[string]openapi.MetadataValue) {
+	setProperties := func(experimentIdPtr, experimentRunIdPtr **string, customProps *map[string]openapi.MetadataValue) {
 		*experimentIdPtr = &experimentId
 		*experimentRunIdPtr = &experimentRunId
 		setExperimentPropertiesOnCustomProperties(customProps, experimentId, experimentRunId)

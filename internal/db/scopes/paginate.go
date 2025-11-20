@@ -12,11 +12,6 @@ import (
 	"gorm.io/gorm"
 )
 
-type cursor struct {
-	ID    int32
-	Value string
-}
-
 // Allowed column names for orderBy to prevent SQL injection
 var allowedOrderByColumns = map[string]string{
 	"ID":               "id",
@@ -46,10 +41,21 @@ func Paginate(value any, pagination *models.Pagination, db *gorm.DB) func(db *go
 }
 
 func PaginateWithTablePrefix(value any, pagination *models.Pagination, db *gorm.DB, tablePrefix string) func(db *gorm.DB) *gorm.DB {
+	return PaginateWithOptions(value, pagination, db, tablePrefix, nil)
+}
+
+// PaginateWithOptions provides full control over pagination with custom allowed columns
+func PaginateWithOptions(value any, pagination *models.Pagination, db *gorm.DB, tablePrefix string, customAllowedColumns map[string]string) func(db *gorm.DB) *gorm.DB {
 	pageSize := pagination.GetPageSize()
 	orderBy := pagination.GetOrderBy()
 	sortOrder := pagination.GetSortOrder()
 	nextPageToken := pagination.GetNextPageToken()
+
+	// Use custom allowed columns if provided, otherwise use default
+	columnsMap := allowedOrderByColumns
+	if customAllowedColumns != nil {
+		columnsMap = customAllowedColumns
+	}
 
 	return func(db *gorm.DB) *gorm.DB {
 		if pageSize > 0 {
@@ -58,7 +64,7 @@ func PaginateWithTablePrefix(value any, pagination *models.Pagination, db *gorm.
 
 		if orderBy != "" && sortOrder != "" {
 			// Validate and sanitize orderBy
-			sanitizedOrderBy, ok := allowedOrderByColumns[orderBy]
+			sanitizedOrderBy, ok := columnsMap[orderBy]
 			if !ok {
 				sanitizedOrderBy = models.DefaultOrderBy
 			}
@@ -81,7 +87,7 @@ func PaginateWithTablePrefix(value any, pagination *models.Pagination, db *gorm.
 		}
 
 		if nextPageToken != "" {
-			decodedCursor, err := decodeCursor(nextPageToken)
+			decodedCursor, err := DecodeCursor(nextPageToken)
 			if err == nil {
 				db = buildWhereClause(db, decodedCursor, orderBy, sortOrder, tablePrefix)
 			}
@@ -91,30 +97,8 @@ func PaginateWithTablePrefix(value any, pagination *models.Pagination, db *gorm.
 	}
 }
 
-func decodeCursor(token string) (*cursor, error) {
-	decoded, err := base64.StdEncoding.DecodeString(token)
-	if err != nil {
-		return nil, err
-	}
-
-	parts := strings.Split(string(decoded), ":")
-	if len(parts) != 2 {
-		return nil, fmt.Errorf("invalid cursor format")
-	}
-
-	id, err := strconv.ParseInt(parts[0], 10, 32)
-	if err != nil {
-		return nil, err
-	}
-
-	return &cursor{
-		ID:    int32(id),
-		Value: parts[1],
-	}, nil
-}
-
 // buildWhereClause now returns a *gorm.DB with properly parameterized queries instead of raw SQL strings
-func buildWhereClause(db *gorm.DB, cursor *cursor, orderBy string, sortOrder string, tablePrefix string) *gorm.DB {
+func buildWhereClause(db *gorm.DB, cursor *Cursor, orderBy string, sortOrder string, tablePrefix string) *gorm.DB {
 	// Validate table prefix to prevent SQL injection
 	if !isValidTablePrefix(tablePrefix) {
 		// If invalid table prefix, ignore it and use no prefix
@@ -163,7 +147,60 @@ func buildWhereClause(db *gorm.DB, cursor *cursor, orderBy string, sortOrder str
 		cursor.Value, cursor.Value, cursor.ID)
 }
 
-func CreateNextPageToken(id int32, value string) string {
-	cursor := fmt.Sprintf("%d:%s", id, value)
+type Cursor struct {
+	ID    int32
+	Value string
+}
+
+// DecodeCursor parses a next page token.
+func DecodeCursor(token string) (*Cursor, error) {
+	// Sanity check the token size
+	if len(token) > 1024 {
+		return nil, fmt.Errorf("invalid cursor format")
+	}
+
+	decoded, err := base64.StdEncoding.DecodeString(token)
+	if err != nil {
+		return nil, err
+	}
+
+	parts := strings.Split(string(decoded), ":")
+	if len(parts) != 2 {
+		return nil, fmt.Errorf("invalid cursor format")
+	}
+
+	id, err := strconv.ParseInt(parts[0], 10, 32)
+	if err != nil {
+		return nil, err
+	}
+
+	return &Cursor{
+		ID:    int32(id),
+		Value: parts[1],
+	}, nil
+}
+
+func CreateNextPageToken(id int32, value any) string {
+	var valueString string
+
+	switch tval := value.(type) {
+	case string:
+		valueString = tval
+	case *string:
+		if tval != nil {
+			valueString = *tval
+		}
+	case *float64:
+		if tval != nil {
+			valueString = fmt.Sprintf("%.15f", *tval)
+		}
+	case *int64:
+		if tval != nil {
+			valueString = fmt.Sprintf("%d", *tval)
+		}
+	default:
+		valueString = fmt.Sprintf("%v", value)
+	}
+	cursor := fmt.Sprintf("%d:%s", id, valueString)
 	return base64.StdEncoding.EncodeToString([]byte(cursor))
 }

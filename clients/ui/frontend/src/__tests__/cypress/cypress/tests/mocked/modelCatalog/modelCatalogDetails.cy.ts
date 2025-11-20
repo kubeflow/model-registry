@@ -99,7 +99,7 @@ describe('Model Catalog Details Page', () => {
   it('navigates to details and shows header, breadcrumb and description', () => {
     modelCatalog.findLoadingState().should('not.exist');
     modelCatalog.findModelCatalogDetailLink().first().click();
-    modelCatalog.findBreadcrumb().should('be.visible');
+    modelCatalog.findBreadcrumb().should('exist');
     modelCatalog.findDetailsProviderText().should('be.visible');
     modelCatalog.findDetailsDescription().should('exist');
   });

@@ -6,20 +6,20 @@ import contextlib
 import inspect
 import logging
 import os
-from collections.abc import Awaitable, Coroutine, Mapping
+from collections.abc import Coroutine, Mapping
 from dataclasses import asdict
 from pathlib import Path
 from typing import (
     Any,
     Callable,
     TypeVar,
-    Union,
     get_args,
     overload,
 )
 from warnings import warn
 
 from model_registry.types.artifacts import ExperimentRunArtifact
+from model_registry.types.base import BaseResourceModel
 
 from ._experiments import ActiveExperimentRun, RunContext
 from .core import ModelRegistryAPIClient
@@ -46,8 +46,8 @@ from .utils import (
     save_to_oci_registry,
 )
 
-ModelTypes = Union[RegisteredModel, ModelVersion, ModelArtifact, Experiment]
-TModel = TypeVar("TModel", bound=ModelTypes)
+TModel = TypeVar("TModel", bound=BaseResourceModel)
+T = TypeVar("T")
 
 logging.basicConfig(
     format="%(asctime)s.%(msecs)03d - %(name)s:%(levelname)s: %(message)s",
@@ -90,7 +90,7 @@ class ModelRegistry:
         custom_ca: str | None = None,
         custom_ca_envvar: str | None = None,
         log_level: int = logging.WARNING,
-        async_runner: Callable[[Coroutine[Any, Any, Any]], Any] = None,
+        async_runner: Callable[[Coroutine[Any, Any, T]], T] | None = None,
     ):
         """Constructor.
 
@@ -201,7 +201,16 @@ class ModelRegistry:
                 "Server address protocol is http://, but port is not 80 or ending with 80. You may want to verify the configuration is correct."
             )
 
-    def async_runner(self, coro: Awaitable[TModel]) -> TModel:
+    @overload
+    def async_runner(self, coro: Coroutine[Any, Any, TModel]) -> TModel: ...
+
+    @overload
+    def async_runner(self, coro: Coroutine[Any, Any, list[TModel]]) -> list[TModel]: ...
+
+    @overload
+    def async_runner(self, coro: Coroutine[Any, Any, TModel | None]) -> TModel | None: ...
+
+    def async_runner(self, coro: Coroutine[Any, Any, T]) -> T:
         if hasattr(self, "_user_async_runner"):
             return self._user_async_runner(coro)
 
@@ -404,14 +413,14 @@ class ModelRegistry:
         if not model.id:
             msg = "Model must have an ID"
             raise StoreError(msg)
-        if not isinstance(model, get_args(ModelTypes)):
-            msg = f"Model must be one of {get_args(ModelTypes)}"
+        if not isinstance(model, BaseResourceModel):
+            msg = f"Model must be an instance of {BaseResourceModel.__name__} or a subclass"
             raise StoreError(msg)
         if isinstance(model, RegisteredModel):
-            return self.async_runner(self._api.upsert_registered_model(model))
+            return self.async_runner(self._api.upsert_registered_model(model))  # type: ignore[return-value]
         if isinstance(model, ModelVersion):
-            return self.async_runner(self._api.upsert_model_version(model, None))
-        return self.async_runner(self._api.upsert_model_artifact(model))
+            return self.async_runner(self._api.upsert_model_version(model, None))  # type: ignore[return-value]
+        return self.async_runner(self._api.upsert_model_artifact(model))  # type: ignore[arg-type,return-value]
 
     def register_hf_model(
         self,
@@ -704,12 +713,12 @@ class ModelRegistry:
         experiment = self._get_or_create_experiment(exp_name, exp_id, owner, description)
 
         # Get or create run
-        parent_props = self._get_parent_properties(active_ctx, nested_tag) if nested else {}
+        parent_props = self._get_parent_properties(active_ctx, nested_tag) if nested else {}  # type: ignore[arg-type]
         exp_run = self._get_or_create_run(experiment, run_name, run_id, run_description, parent_props, nested)
 
         # Update context if not nested
         if not active_ctx.active:
-            self._set_active_context(experiment.id, exp_name, exp_run.id)
+            self._set_active_context(experiment.id, exp_name, exp_run.id)  # type: ignore[arg-type]
 
         return ActiveExperimentRun(
             thread_safe_ctx=self._active_experiment_context,
@@ -768,7 +777,7 @@ class ModelRegistry:
             exp = self.async_runner(
                 self._api.upsert_experiment(
                     Experiment(
-                        name=exp_name,
+                        name=exp_name,  # type: ignore[arg-type]
                         owner=owner,
                         description=description,
                     )
@@ -801,8 +810,8 @@ class ModelRegistry:
         if run_name:
             exp_run = self.async_runner(
                 self._api.get_experiment_run_by_experiment_and_run_name(
-                    run_id=run_id,
-                    **exp_run_args,
+                    run_name=run_name,
+                    **exp_run_args,  # type: ignore[arg-type]
                 )
             )
         elif run_id:
@@ -817,7 +826,7 @@ class ModelRegistry:
             exp_run = self.async_runner(
                 self._api.upsert_experiment_run(
                     ExperimentRun(
-                        experiment_id=experiment.id,
+                        experiment_id=experiment.id,  # type: ignore[arg-type]
                         name=generate_name("run"),
                         description=run_description,
                         custom_properties=parent_props,
@@ -868,7 +877,7 @@ class ModelRegistry:
     @overload
     def get_experiment_runs(self, experiment_name: str) -> Pager[ExperimentRun]: ...
 
-    @required_args(("experiment_id",), ("experiment_name",))
+    @required_args(("experiment_id",), ("experiment_name",))  # type: ignore[misc]
     def get_experiment_runs(
         self, experiment_id: str | None = None, experiment_name: str | None = None
     ) -> Pager[ExperimentRun]:
@@ -881,7 +890,7 @@ class ModelRegistry:
         def exp_run_list(options: ListOptions) -> list[ExperimentRun]:
             if experiment_id:
                 return self.async_runner(self._api.get_experiment_runs_by_experiment_id(experiment_id, options))
-            return self.async_runner(self._api.get_experiment_runs_by_experiment_name(experiment_name, options))
+            return self.async_runner(self._api.get_experiment_runs_by_experiment_name(experiment_name, options))  # type: ignore[arg-type,type-var]
 
         return Pager[ExperimentRun](exp_run_list)
 
@@ -905,7 +914,7 @@ class ModelRegistry:
         experiment_id: str,
     ) -> Pager[ExperimentRunArtifact]: ...
 
-    @required_args(
+    @required_args(  # type: ignore[misc]
         ("run_id",),
         (
             "run_name",
@@ -950,9 +959,11 @@ class ModelRegistry:
                 )
             if run_name and experiment_id:
                 return self.async_runner(
-                    self._api.get_artifacts_by_experiment_run_params(experiment_id=experiment_id, options=options)
+                    self._api.get_artifacts_by_experiment_run_params(
+                        run_name=run_name, experiment_id=experiment_id, options=options
+                    )
                 )
-            return None
+            return None  # type: ignore[return-value]
 
         return Pager[ExperimentRunArtifact](exp_run_logs)
 

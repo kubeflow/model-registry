@@ -19,8 +19,8 @@ var _ MappedNullable = &FilterOptionRange{}
 
 // FilterOptionRange Min and max values for number types.
 type FilterOptionRange struct {
-	Min *float32 `json:"min,omitempty"`
-	Max *float32 `json:"max,omitempty"`
+	Min *float64 `json:"min,omitempty"`
+	Max *float64 `json:"max,omitempty"`
 }
 
 // NewFilterOptionRange instantiates a new FilterOptionRange object
@@ -41,9 +41,9 @@ func NewFilterOptionRangeWithDefaults() *FilterOptionRange {
 }
 
 // GetMin returns the Min field value if set, zero value otherwise.
-func (o *FilterOptionRange) GetMin() float32 {
+func (o *FilterOptionRange) GetMin() float64 {
 	if o == nil || IsNil(o.Min) {
-		var ret float32
+		var ret float64
 		return ret
 	}
 	return *o.Min
@@ -51,7 +51,7 @@ func (o *FilterOptionRange) GetMin() float32 {
 
 // GetMinOk returns a tuple with the Min field value if set, nil otherwise
 // and a boolean to check if the value has been set.
-func (o *FilterOptionRange) GetMinOk() (*float32, bool) {
+func (o *FilterOptionRange) GetMinOk() (*float64, bool) {
 	if o == nil || IsNil(o.Min) {
 		return nil, false
 	}
@@ -67,15 +67,15 @@ func (o *FilterOptionRange) HasMin() bool {
 	return false
 }
 
-// SetMin gets a reference to the given float32 and assigns it to the Min field.
-func (o *FilterOptionRange) SetMin(v float32) {
+// SetMin gets a reference to the given float64 and assigns it to the Min field.
+func (o *FilterOptionRange) SetMin(v float64) {
 	o.Min = &v
 }
 
 // GetMax returns the Max field value if set, zero value otherwise.
-func (o *FilterOptionRange) GetMax() float32 {
+func (o *FilterOptionRange) GetMax() float64 {
 	if o == nil || IsNil(o.Max) {
-		var ret float32
+		var ret float64
 		return ret
 	}
 	return *o.Max
@@ -83,7 +83,7 @@ func (o *FilterOptionRange) GetMax() float32 {
 
 // GetMaxOk returns a tuple with the Max field value if set, nil otherwise
 // and a boolean to check if the value has been set.
-func (o *FilterOptionRange) GetMaxOk() (*float32, bool) {
+func (o *FilterOptionRange) GetMaxOk() (*float64, bool) {
 	if o == nil || IsNil(o.Max) {
 		return nil, false
 	}
@@ -99,8 +99,8 @@ func (o *FilterOptionRange) HasMax() bool {
 	return false
 }
 
-// SetMax gets a reference to the given float32 and assigns it to the Max field.
-func (o *FilterOptionRange) SetMax(v float32) {
+// SetMax gets a reference to the given float64 and assigns it to the Max field.
+func (o *FilterOptionRange) SetMax(v float64) {
 	o.Max = &v
 }
 

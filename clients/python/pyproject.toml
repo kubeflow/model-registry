@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "model-registry"
-version = "0.3.3"
+version = "0.3.4"
 description = "Client for Kubeflow Model Registry"
 authors = ["Isabella Basso do Amaral <idoamara@redhat.com>"]
 license = "Apache-2.0"
@@ -26,7 +26,7 @@ nest-asyncio = "^1.6.0"
 # necessary for modern type annotations using pydantic on 3.9
 eval-type-backport = "^0.2.0"
 
-huggingface-hub = { version = ">=0.20.1,<0.36.0", optional = true }
+huggingface-hub = { version = ">=0.20.1,<1.2.0", optional = true }
 olot = { version = "^0.1.6", optional = true }
 boto3 = { version = "^1.37.34", optional = true }
 
@@ -49,6 +49,7 @@ pytest = ">=7.4.2,<9.0.0"
 coverage = { extras = ["toml"], version = "^7.3.2" }
 pytest-cov = ">=4.1,<8.0"
 pytest-mock = ">=3.7.0"
+pytest-xdist = "^3.5.0"
 ruff = ">=0.5.2,<0.14.0"
 mypy = "^1.7.0"
 # atm Ray is only available <3.13, so we will E2E test using Ray in compatible py environments.
@@ -60,7 +61,7 @@ pytest-asyncio = "^1.1.0"
 requests = "^2.32.2"
 types-python-dateutil = "^2.9.0.20240906"
 pytest-html = "^4.1.1"
-schemathesis = ">=4.0.3"
+schemathesis = ">=4.0.3,<=4.3.6"
 
 [tool.coverage.run]
 branch = true
@@ -83,11 +84,15 @@ markers = [
     "e2e: end-to-end testing",
     "fuzz: mark a test as a fuzzing (property-based or randomized) test"
 ]
+# Note: Parallel execution is enabled in noxfile.py for fuzz tests via "-n auto"
+# To run fuzz tests manually in parallel: pytest tests/fuzz_api --fuzz -n auto
+addopts = "--tb=short --strict-markers"
 
 [tool.ruff]
 target-version = "py39"
 respect-gitignore = true
 line-length = 119
+extend-exclude = ["src/mr_openapi/"]
 
 [tool.ruff.lint]
 select = [
@@ -131,3 +136,13 @@ show_column_numbers = true
 show_error_codes = true
 show_error_context = true
 ignore_missing_imports = true
+check_untyped_defs = true
+warn_unused_configs = true
+warn_redundant_casts = true
+warn_unused_ignores = true
+warn_no_return = true
+exclude_gitignore = true
+
+[[tool.mypy.overrides]]
+module = "mr_openapi.*"
+ignore_errors = true

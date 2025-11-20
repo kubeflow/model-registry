@@ -40,6 +40,7 @@ func TestLoadCatalogSources(t *testing.T) {
 				&MockCatalogArtifactRepository{},
 				&MockCatalogModelArtifactRepository{},
 				&MockCatalogMetricsArtifactRepository{},
+				&MockPropertyOptionsRepository{},
 			)
 			loader := NewLoader(services, []string{tt.args.catalogsPath})
 			err := loader.Start(context.Background())
@@ -92,6 +93,7 @@ func TestLoadCatalogSourcesEnabledDisabled(t *testing.T) {
 				&MockCatalogArtifactRepository{},
 				&MockCatalogModelArtifactRepository{},
 				&MockCatalogMetricsArtifactRepository{},
+				&MockPropertyOptionsRepository{},
 			)
 			loader := NewLoader(services, []string{tt.args.catalogsPath})
 			err := loader.Start(context.Background())
@@ -105,6 +107,109 @@ func TestLoadCatalogSourcesEnabledDisabled(t *testing.T) {
 
 			if !reflect.DeepEqual(loader.Sources.All(), tt.want) {
 				t.Errorf("NewLoader().Start() got metadata = %#v, want %#v", loader.Sources.All(), tt.want)
+			}
+		})
+	}
+}
+
+func TestLabelsValidation(t *testing.T) {
+	// Create mock services
+	services := service.NewServices(
+		&MockCatalogModelRepository{},
+		&MockCatalogArtifactRepository{},
+		&MockCatalogModelArtifactRepository{},
+		&MockCatalogMetricsArtifactRepository{},
+		&MockPropertyOptionsRepository{},
+	)
+
+	tests := []struct {
+		name    string
+		config  *sourceConfig
+		wantErr bool
+		errMsg  string
+	}{
+		{
+			name: "valid labels with name field",
+			config: &sourceConfig{
+				Catalogs: []Source{},
+				Labels: []map[string]any{
+					{"name": "labelNameOne", "displayName": "Label Name One"},
+					{"name": "labelNameTwo", "displayName": "Label Name Two"},
+				},
+			},
+			wantErr: false,
+		},
+		{
+			name: "invalid label missing name field",
+			config: &sourceConfig{
+				Catalogs: []Source{},
+				Labels: []map[string]any{
+					{"name": "labelNameOne", "displayName": "Label Name One"},
+					{"displayName": "Label Name Two"}, // Missing "name"
+				},
+			},
+			wantErr: true,
+			errMsg:  "invalid label at index 1: missing required 'name' field",
+		},
+		{
+			name: "invalid label with empty name",
+			config: &sourceConfig{
+				Catalogs: []Source{},
+				Labels: []map[string]any{
+					{"name": "", "displayName": "Empty Name"},
+				},
+			},
+			wantErr: true,
+			errMsg:  "invalid label at index 0: missing required 'name' field",
+		},
+		{
+			name: "duplicate label names within same origin",
+			config: &sourceConfig{
+				Catalogs: []Source{},
+				Labels: []map[string]any{
+					{"name": "labelNameOne", "displayName": "Label Name One 1"},
+					{"name": "labelNameTwo", "displayName": "Label Name Two"},
+					{"name": "labelNameOne", "displayName": "Label Name One 2"},
+				},
+			},
+			wantErr: true,
+			errMsg:  "duplicate label name 'labelNameOne' within the same origin",
+		},
+		{
+			name: "nil labels should not error",
+			config: &sourceConfig{
+				Catalogs: []Source{},
+				Labels:   nil,
+			},
+			wantErr: false,
+		},
+		{
+			name: "empty labels array should not error",
+			config: &sourceConfig{
+				Catalogs: []Source{},
+				Labels:   []map[string]any{},
+			},
+			wantErr: false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			loader := NewLoader(services, []string{})
+			err := loader.updateLabels("test-path", tt.config)
+
+			if tt.wantErr {
+				if err == nil {
+					t.Errorf("updateLabels() expected error but got none")
+					return
+				}
+				if tt.errMsg != "" && err.Error() != tt.errMsg {
+					t.Errorf("updateLabels() error = %v, want %v", err.Error(), tt.errMsg)
+				}
+			} else {
+				if err != nil {
+					t.Errorf("updateLabels() unexpected error = %v", err)
+				}
 			}
 		})
 	}
@@ -144,6 +249,7 @@ func TestCatalogSourceLabelsDefaultToEmptySlice(t *testing.T) {
 				&MockCatalogArtifactRepository{},
 				&MockCatalogModelArtifactRepository{},
 				&MockCatalogMetricsArtifactRepository{},
+				&MockPropertyOptionsRepository{},
 			)
 			loader := NewLoader(services, []string{tt.args.catalogsPath})
 			err := loader.Start(context.Background())
@@ -181,6 +287,7 @@ func TestLoadCatalogSourcesWithMockRepositories(t *testing.T) {
 		mockArtifactRepo,
 		mockModelArtifactRepo,
 		mockMetricsArtifactRepo,
+		&MockPropertyOptionsRepository{},
 	)
 
 	// Register a test provider that will create some test data
@@ -293,6 +400,7 @@ func TestLoadCatalogSourcesWithRepositoryErrors(t *testing.T) {
 		mockArtifactRepo,
 		mockModelArtifactRepo,
 		mockMetricsArtifactRepo,
+		&MockPropertyOptionsRepository{},
 	)
 
 	// Register a test provider
@@ -476,10 +584,6 @@ func (m *MockCatalogModelRepository) Save(model dbmodels.CatalogModel) (dbmodels
 	return savedModel, nil
 }
 
-func (m *MockCatalogModelRepository) GetFilterableProperties(maxLength int) (map[string][]string, error) {
-	return make(map[string][]string), nil
-}
-
 // MockCatalogModelArtifactRepository mocks the CatalogModelArtifactRepository interface.
 type MockCatalogModelArtifactRepository struct {
 	SavedArtifacts []dbmodels.CatalogModelArtifact
@@ -623,4 +727,54 @@ type MockNotFoundError struct {
 
 func (e *MockNotFoundError) Error() string {
 	return fmt.Sprintf("%s with ID %d not found", e.Entity, e.ID)
+}
+
+// MockPropertyOptionsRepository mocks the PropertyOptionsRepository interface.
+type MockPropertyOptionsRepository struct {
+	RefreshCalls []dbmodels.PropertyOptionType
+	ListCalls    []struct {
+		Type   dbmodels.PropertyOptionType
+		TypeID int32
+	}
+	MockOptions map[dbmodels.PropertyOptionType]map[int32][]dbmodels.PropertyOption
+}
+
+func NewMockPropertyOptionsRepository() *MockPropertyOptionsRepository {
+	return &MockPropertyOptionsRepository{
+		RefreshCalls: make([]dbmodels.PropertyOptionType, 0),
+		ListCalls: make([]struct {
+			Type   dbmodels.PropertyOptionType
+			TypeID int32
+		}, 0),
+		MockOptions: make(map[dbmodels.PropertyOptionType]map[int32][]dbmodels.PropertyOption),
+	}
+}
+
+func (m *MockPropertyOptionsRepository) Refresh(t dbmodels.PropertyOptionType) error {
+	m.RefreshCalls = append(m.RefreshCalls, t)
+	return nil
+}
+
+func (m *MockPropertyOptionsRepository) List(t dbmodels.PropertyOptionType, typeID int32) ([]dbmodels.PropertyOption, error) {
+	m.ListCalls = append(m.ListCalls, struct {
+		Type   dbmodels.PropertyOptionType
+		TypeID int32
+	}{Type: t, TypeID: typeID})
+
+	if typeMap, exists := m.MockOptions[t]; exists {
+		if options, exists := typeMap[typeID]; exists {
+			return options, nil
+		}
+	}
+
+	// Return empty slice by default
+	return []dbmodels.PropertyOption{}, nil
+}
+
+// SetMockOptions allows tests to set up mock data for specific types and typeIDs.
+func (m *MockPropertyOptionsRepository) SetMockOptions(t dbmodels.PropertyOptionType, typeID int32, options []dbmodels.PropertyOption) {
+	if m.MockOptions[t] == nil {
+		m.MockOptions[t] = make(map[int32][]dbmodels.PropertyOption)
+	}
+	m.MockOptions[t][typeID] = options
 }

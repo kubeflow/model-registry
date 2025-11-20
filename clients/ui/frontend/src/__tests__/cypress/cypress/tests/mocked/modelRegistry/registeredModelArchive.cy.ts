@@ -444,5 +444,7 @@ describe('Archiving model', () => {
     cy.wait('@modelArchived').then((interception) => {
       expect(interception.request.body).to.eql(mockModArchResponse({ state: 'ARCHIVED' }));
     });
+    verifyRelativeURL('/model-registry/modelregistry-sample');
+    cy.findByTestId('app-page-title').should('contain.text', 'Model Registry');
   });
 });

@@ -9,11 +9,13 @@ Do not edit the class manually.
 """  # noqa: E501
 
 import datetime
+import decimal
 import json
 import mimetypes
 import os
 import re
 import tempfile
+import uuid
 from enum import Enum
 from typing import Optional, Union
 from urllib.parse import quote
@@ -59,6 +61,7 @@ class ApiClient:
         "bool": bool,
         "date": datetime.date,
         "datetime": datetime.datetime,
+        "decimal": decimal.Decimal,
         "object": object,
     }
     _pool = None
@@ -198,7 +201,7 @@ class ApiClient:
             body = self.sanitize_for_serialization(body)
 
         # request url
-        if _host is None:
+        if _host is None or self.configuration.ignore_operation_servers:
             url = self.configuration.host + resource_path
         else:
             # use server/host defined in path or operation instead
@@ -273,10 +276,7 @@ class ApiClient:
                     match = re.search(r"charset=([a-zA-Z\-\d]+)[\s;]?", content_type)
                 encoding = match.group(1) if match else "utf-8"
                 response_text = response_data.data.decode(encoding)
-                if response_type in ["bytearray", "str"]:
-                    return_data = self.__deserialize_primitive(response_text, response_type)
-                else:
-                    return_data = self.deserialize(response_text, response_type)
+                return_data = self.deserialize(response_text, response_type, content_type)
         finally:
             if not 200 <= response_data.status <= 299:
                 raise ApiException.from_response(
@@ -300,6 +300,7 @@ class ApiClient:
         If obj is str, int, long, float, bool, return directly.
         If obj is datetime.datetime, datetime.date
             convert to string in iso8601 format.
+        If obj is decimal.Decimal return string representation.
         If obj is list, sanitize each element in the list.
         If obj is dict, return the dict.
         If obj is OpenAPI model, return the properties dict.
@@ -315,12 +316,16 @@ class ApiClient:
             return obj.get_secret_value()
         if isinstance(obj, self.PRIMITIVE_TYPES):
             return obj
+        if isinstance(obj, uuid.UUID):
+            return str(obj)
         if isinstance(obj, list):
             return [self.sanitize_for_serialization(sub_obj) for sub_obj in obj]
         if isinstance(obj, tuple):
             return tuple(self.sanitize_for_serialization(sub_obj) for sub_obj in obj)
         if isinstance(obj, (datetime.datetime, datetime.date)):
             return obj.isoformat()
+        if isinstance(obj, decimal.Decimal):
+            return str(obj)
 
         if isinstance(obj, dict):
             obj_dict = obj
@@ -332,22 +337,34 @@ class ApiClient:
             # model definition for request.
             obj_dict = obj.to_dict() if hasattr(obj, "to_dict") and callable(obj.to_dict) else obj.__dict__
 
+        if isinstance(obj_dict, list):
+            # here we handle instances that can either be a list or something else, and only became a real list by calling to_dict()
+            return self.sanitize_for_serialization(obj_dict)
+
         return {key: self.sanitize_for_serialization(val) for key, val in obj_dict.items()}
 
-    def deserialize(self, response_text, response_type):
+    def deserialize(self, response_text: str, response_type: str, content_type: Optional[str]):
         """Deserializes response into an object.
 
         :param response: RESTResponse object to be deserialized.
         :param response_type: class literal for
             deserialized object, or string of class name.
+        :param content_type: content type of response.
 
         :return: deserialized object.
         """
         # fetch data from response object
-        try:
-            data = json.loads(response_text)
-        except ValueError:
+        if content_type is None:
+            try:
+                data = json.loads(response_text)
+            except ValueError:
+                data = response_text
+        elif re.match(r"^application/(json|[\w!#$&.+\-^_]+\+json)\s*(;|$)", content_type, re.IGNORECASE):
+            data = "" if response_text == "" else json.loads(response_text)
+        elif re.match(r"^text\/[a-z.+-]+\s*(;|$)", content_type, re.IGNORECASE):
             data = response_text
+        else:
+            raise ApiException(status=0, reason=f"Unsupported content type: {content_type}")
 
         return self.__deserialize(data, response_type)
 
@@ -383,12 +400,14 @@ class ApiClient:
 
         if klass in self.PRIMITIVE_TYPES:
             return self.__deserialize_primitive(data, klass)
-        if klass == object:
+        if klass is object:
             return self.__deserialize_object(data)
-        if klass == datetime.date:
+        if klass is datetime.date:
             return self.__deserialize_date(data)
-        if klass == datetime.datetime:
+        if klass is datetime.datetime:
             return self.__deserialize_datetime(data)
+        if klass is decimal.Decimal:
+            return decimal.Decimal(data)
         if issubclass(klass, Enum):
             return self.__deserialize_enum(data, klass)
         return self.__deserialize_model(data, klass)
@@ -443,7 +462,7 @@ class ApiClient:
             if k in collection_formats:
                 collection_format = collection_formats[k]
                 if collection_format == "multi":
-                    new_params.extend((k, str(value)) for value in v)
+                    new_params.extend((k, quote(str(value))) for value in v)
                 else:
                     if collection_format == "ssv":
                         delimiter = " "
@@ -459,7 +478,10 @@ class ApiClient:
 
         return "&".join(["=".join(map(str, item)) for item in new_params])
 
-    def files_parameters(self, files: dict[str, Union[str, bytes]]):
+    def files_parameters(
+        self,
+        files: dict[str, Union[str, bytes, list[str], list[bytes], tuple[str, bytes]]],
+    ):
         """Builds form parameters.
 
         :param files: File parameters.
@@ -474,6 +496,12 @@ class ApiClient:
             elif isinstance(v, bytes):
                 filename = k
                 filedata = v
+            elif isinstance(v, tuple):
+                filename, filedata = v
+            elif isinstance(v, list):
+                for file_param in v:
+                    params.extend(self.files_parameters({k: file_param}))
+                continue
             else:
                 msg = "Unsupported file value"
                 raise ValueError(msg)

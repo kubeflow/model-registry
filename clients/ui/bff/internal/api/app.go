@@ -68,6 +68,10 @@ const (
 	CatalogSourceListPath               = CatalogPathPrefix + "/sources"
 	CatalogSourceModelCatchAllPath      = CatalogPathPrefix + "/sources/:" + CatalogSourceId + "/models/*" + CatalogModelName
 	CatalogSourceModelArtifactsCatchAll = CatalogPathPrefix + "/sources/:" + CatalogSourceId + "/artifacts/*" + CatalogModelName
+
+	ModelCatalogSettingsPathPrefix           = SettingsPath + "/model_catalog"
+	ModelCatalogSettingsSourceConfigListPath = ModelCatalogSettingsPathPrefix + "/source_configs"
+	ModelCatalogSettingsSourceConfigPath     = ModelCatalogSettingsSourceConfigListPath + "/:" + CatalogSourceId
 )
 
 type App struct {
@@ -173,11 +177,23 @@ func NewApp(cfg config.EnvConfig, logger *slog.Logger) (*App, error) {
 		return nil, fmt.Errorf("failed to create ModelRegistry Catalog client: %w", err)
 	}
 
+	var modelCatalogSettingsRepository repositories.ModelCatalogSettingsRepositoryInterface
+
+	if cfg.MockK8Client {
+		modelCatalogSettingsRepository, err = mocks.NewModelCatalogSettingsRepository(logger)
+	} else {
+		modelCatalogSettingsRepository, err = repositories.NewModelCatalogSettingsRepository(logger)
+	}
+
+	if err != nil {
+		return nil, fmt.Errorf("failed to create ModelCatalogSettings client: %w", err)
+	}
+
 	app := &App{
 		config:                  cfg,
 		logger:                  logger,
 		kubernetesClientFactory: k8sFactory,
-		repositories:            repositories.NewRepositories(mrClient, modelCatalogClient),
+		repositories:            repositories.NewRepositories(mrClient, modelCatalogClient, modelCatalogSettingsRepository),
 		testEnv:                 testEnv,
 		rootCAs:                 rootCAs,
 	}
@@ -226,7 +242,7 @@ func (app *App) Routes() http.Handler {
 	apiRouter.GET(CatalogSourceListPath, app.AttachNamespace(app.AttachModelCatalogRESTClient(app.GetAllCatalogSourcesHandler)))
 	apiRouter.GET(CatalogFilterOptionListPath, app.AttachNamespace(app.AttachModelCatalogRESTClient(app.GetCatalogFilterListHandler)))
 	apiRouter.GET(CatalogSourceModelCatchAllPath, app.AttachNamespace(app.AttachModelCatalogRESTClient(app.GetCatalogSourceModelHandler)))
-	apiRouter.GET(CatalogSourceModelArtifactsCatchAll, app.AttachNamespace(app.AttachModelCatalogRESTClient(app.GetCatalogSourceModelArtifactHandler)))
+	apiRouter.GET(CatalogSourceModelArtifactsCatchAll, app.AttachNamespace(app.AttachModelCatalogRESTClient(app.GetCatalogSourceModelArtifactsHandler)))
 	// Kubernetes routes
 	apiRouter.GET(UserPath, app.UserHandler)
 	apiRouter.GET(ModelRegistryListPath, app.AttachNamespace(app.RequireListServiceAccessInNamespace(app.GetAllModelRegistriesHandler)))
@@ -264,6 +280,12 @@ func (app *App) Routes() http.Handler {
 		//This namespace endpoint is used to get the namespaces for the current user inside the model registry settings
 		apiRouter.GET(SettingsNamespacePath, app.GetNamespacesHandler)
 
+		// Model catalog settings page
+		apiRouter.GET(ModelCatalogSettingsSourceConfigListPath, app.AttachNamespace(app.GetAllCatalogSourceConfigsHandler))
+		apiRouter.POST(ModelCatalogSettingsSourceConfigListPath, app.AttachNamespace(app.CreateCatalogSourceConfigHandler))
+		apiRouter.GET(ModelCatalogSettingsSourceConfigPath, app.AttachNamespace(app.GetCatalogSourceConfigHandler))
+		apiRouter.PATCH(ModelCatalogSettingsSourceConfigPath, app.AttachNamespace(app.UpdateCatalogSourceConfigHandler))
+		apiRouter.DELETE(ModelCatalogSettingsSourceConfigPath, app.AttachNamespace(app.DeleteCatalogSourceConfigHandler))
 	}
 
 	// App Router

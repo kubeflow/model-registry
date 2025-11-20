@@ -20,7 +20,7 @@ var _ MappedNullable = &ModelVersion{}
 // ModelVersion Represents a ModelVersion belonging to a RegisteredModel.
 type ModelVersion struct {
 	// User provided custom properties which are not defined by its type.
-	CustomProperties *map[string]MetadataValue `json:"customProperties,omitempty"`
+	CustomProperties map[string]MetadataValue `json:"customProperties,omitempty"`
 	// An optional description about the resource.
 	Description *string `json:"description,omitempty"`
 	// The external id that come from the clients’ system. This field is optional. If set, it must be unique among all resources within a database instance.
@@ -39,6 +39,8 @@ type ModelVersion struct {
 	// Output only. Last update time of the resource since epoch in millisecond since epoch.
 	LastUpdateTimeSinceEpoch *string `json:"lastUpdateTimeSinceEpoch,omitempty"`
 }
+
+type _ModelVersion ModelVersion
 
 // NewModelVersion instantiates a new ModelVersion object
 // This constructor will assign default values to properties that have it defined,
@@ -69,14 +71,14 @@ func (o *ModelVersion) GetCustomProperties() map[string]MetadataValue {
 		var ret map[string]MetadataValue
 		return ret
 	}
-	return *o.CustomProperties
+	return o.CustomProperties
 }
 
 // GetCustomPropertiesOk returns a tuple with the CustomProperties field value if set, nil otherwise
 // and a boolean to check if the value has been set.
-func (o *ModelVersion) GetCustomPropertiesOk() (*map[string]MetadataValue, bool) {
+func (o *ModelVersion) GetCustomPropertiesOk() (map[string]MetadataValue, bool) {
 	if o == nil || IsNil(o.CustomProperties) {
-		return nil, false
+		return map[string]MetadataValue{}, false
 	}
 	return o.CustomProperties, true
 }
@@ -92,7 +94,7 @@ func (o *ModelVersion) HasCustomProperties() bool {
 
 // SetCustomProperties gets a reference to the given map[string]MetadataValue and assigns it to the CustomProperties field.
 func (o *ModelVersion) SetCustomProperties(v map[string]MetadataValue) {
-	o.CustomProperties = &v
+	o.CustomProperties = v
 }
 
 // GetDescription returns the Description field value if set, zero value otherwise.

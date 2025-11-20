@@ -18,7 +18,7 @@ This library provides a high level interface for interacting with a model regist
 In your Python environment, you can install the latest version of the Model Registry Python client with:
 
 ```
-pip install --pre model-registry
+pip install model-registry
 ```
 
 ### Installing extras
@@ -30,7 +30,7 @@ By [installing an extra variant](https://packaging.python.org/en/latest/tutorial
 the additional dependencies will be managed for you automatically, for instance with:
 
 ```
-pip install --pre "model-registry[hf]"
+pip install "model-registry[hf]"
 ```
 
 This step is not required if you already installed the additional dependencies already, for instance with:

@@ -5,7 +5,6 @@ import {
   Dropdown,
   DropdownItem,
   DropdownList,
-  Flex,
   MenuToggle,
   MenuToggleElement,
   Toolbar,
@@ -145,90 +144,85 @@ const ModelVersionListView: React.FC<ModelVersionListViewProps> = ({
         toolbarContent={
           <Toolbar data-testid="model-versions-table-toolbar" clearAllFilters={onClearFilters}>
             <ToolbarContent>
-              {/* TODO: Remove this Flex after the ToolbarContent can center the children elements */}
-              <Flex>
-                <ToolbarToggleGroup toggleIcon={<FilterIcon />} breakpoint="xl">
-                  <ToolbarGroup variant="filter-group">
-                    <FilterToolbar
-                      filterOptions={modelRegistryVersionsFilterOptions}
-                      filterOptionRenders={{
-                        [ModelRegistryVersionsFilterOptions.keyword]: ({ onChange, ...props }) => (
-                          <ThemeAwareSearchInput
-                            {...props}
-                            fieldLabel="Filter by name, description or label"
-                            placeholder="Filter by name, description or label"
-                            className="toolbar-fieldset-wrapper"
-                            style={{ minWidth: '270px' }}
-                            onChange={(value) => onChange(value)}
-                          />
-                        ),
-                        [ModelRegistryVersionsFilterOptions.author]: ({ onChange, ...props }) => (
-                          <ThemeAwareSearchInput
-                            {...props}
-                            fieldLabel="Filter by author"
-                            placeholder="Filter by author"
-                            className="toolbar-fieldset-wrapper"
-                            style={{ minWidth: '270px' }}
-                            onChange={(value) => onChange(value)}
-                          />
-                        ),
-                      }}
-                      filterData={filterData}
-                      onFilterUpdate={onFilterUpdate}
-                    />
-                  </ToolbarGroup>
-                </ToolbarToggleGroup>
+              <ToolbarToggleGroup toggleIcon={<FilterIcon />} breakpoint="xl">
+                <ToolbarGroup variant="filter-group">
+                  <FilterToolbar
+                    filterOptions={modelRegistryVersionsFilterOptions}
+                    filterOptionRenders={{
+                      [ModelRegistryVersionsFilterOptions.keyword]: ({ onChange, ...props }) => (
+                        <ThemeAwareSearchInput
+                          {...props}
+                          fieldLabel="Filter by name, description or label"
+                          placeholder="Filter by name, description or label"
+                          className="toolbar-fieldset-wrapper"
+                          style={{ minWidth: '270px' }}
+                          onChange={(value) => onChange(value)}
+                        />
+                      ),
+                      [ModelRegistryVersionsFilterOptions.author]: ({ onChange, ...props }) => (
+                        <ThemeAwareSearchInput
+                          {...props}
+                          fieldLabel="Filter by author"
+                          placeholder="Filter by author"
+                          className="toolbar-fieldset-wrapper"
+                          style={{ minWidth: '270px' }}
+                          onChange={(value) => onChange(value)}
+                        />
+                      ),
+                    }}
+                    filterData={filterData}
+                    onFilterUpdate={onFilterUpdate}
+                  />
+                </ToolbarGroup>
+              </ToolbarToggleGroup>
 
-                {!isArchiveModel && (
-                  <ToolbarGroup>
-                    <ToolbarItem>
-                      <Button
-                        variant="primary"
-                        onClick={() => {
-                          navigate(registerVersionForModelUrl(rm.id, preferredModelRegistry?.name));
-                        }}
-                      >
-                        Register new version
-                      </Button>
-                    </ToolbarItem>
-                    <ToolbarItem>
-                      <Dropdown
-                        isOpen={isArchivedModelVersionKebabOpen}
-                        onSelect={() => setIsArchivedModelVersionKebabOpen(false)}
-                        onOpenChange={(isOpen: boolean) =>
-                          setIsArchivedModelVersionKebabOpen(isOpen)
-                        }
-                        toggle={(tr: React.Ref<MenuToggleElement>) => (
-                          <MenuToggle
-                            data-testid="model-versions-table-kebab-action"
-                            ref={tr}
-                            variant="plain"
-                            onClick={() =>
-                              setIsArchivedModelVersionKebabOpen(!isArchivedModelVersionKebabOpen)
-                            }
-                            isExpanded={isArchivedModelVersionKebabOpen}
-                            aria-label="View archived versions"
-                          >
-                            <EllipsisVIcon />
-                          </MenuToggle>
-                        )}
-                        shouldFocusToggleOnSelect
-                        popperProps={{ appendTo: 'inline' }}
-                      >
-                        <DropdownList>
-                          <DropdownItem
-                            onClick={() =>
-                              navigate(modelVersionArchiveUrl(rm.id, preferredModelRegistry?.name))
-                            }
-                          >
-                            View archived versions
-                          </DropdownItem>
-                        </DropdownList>
-                      </Dropdown>
-                    </ToolbarItem>
-                  </ToolbarGroup>
-                )}
-              </Flex>
+              {!isArchiveModel && (
+                <ToolbarGroup>
+                  <ToolbarItem>
+                    <Button
+                      variant="primary"
+                      onClick={() => {
+                        navigate(registerVersionForModelUrl(rm.id, preferredModelRegistry?.name));
+                      }}
+                    >
+                      Register new version
+                    </Button>
+                  </ToolbarItem>
+                  <ToolbarItem>
+                    <Dropdown
+                      isOpen={isArchivedModelVersionKebabOpen}
+                      onSelect={() => setIsArchivedModelVersionKebabOpen(false)}
+                      onOpenChange={(isOpen: boolean) => setIsArchivedModelVersionKebabOpen(isOpen)}
+                      toggle={(tr: React.Ref<MenuToggleElement>) => (
+                        <MenuToggle
+                          data-testid="model-versions-table-kebab-action"
+                          ref={tr}
+                          variant="plain"
+                          onClick={() =>
+                            setIsArchivedModelVersionKebabOpen(!isArchivedModelVersionKebabOpen)
+                          }
+                          isExpanded={isArchivedModelVersionKebabOpen}
+                          aria-label="View archived versions"
+                        >
+                          <EllipsisVIcon />
+                        </MenuToggle>
+                      )}
+                      shouldFocusToggleOnSelect
+                      popperProps={{ appendTo: 'inline' }}
+                    >
+                      <DropdownList>
+                        <DropdownItem
+                          onClick={() =>
+                            navigate(modelVersionArchiveUrl(rm.id, preferredModelRegistry?.name))
+                          }
+                        >
+                          View archived versions
+                        </DropdownItem>
+                      </DropdownList>
+                    </Dropdown>
+                  </ToolbarItem>
+                </ToolbarGroup>
+              )}
             </ToolbarContent>
           </Toolbar>
         }

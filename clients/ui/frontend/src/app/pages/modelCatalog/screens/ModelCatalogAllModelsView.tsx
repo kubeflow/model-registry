@@ -4,6 +4,7 @@ import { ModelCatalogContext } from '~/app/context/modelCatalog/ModelCatalogCont
 import {
   filterEnabledCatalogSources,
   getUniqueSourceLabels,
+  hasSourcesWithoutLabels,
 } from '~/app/pages/modelCatalog/utils/modelCatalogUtils';
 import { CategoryName, SourceLabel } from '~/app/modelCatalogTypes';
 import CatalogCategorySection from './CatalogCategorySection';
@@ -19,6 +20,11 @@ const ModelCatalogAllModelsView: React.FC<ModelCatalogAllModelsViewProps> = ({ s
     const enabledSources = filterEnabledCatalogSources(catalogSources);
     return getUniqueSourceLabels(enabledSources);
   }, [catalogSources]);
+
+  const hasSourcesWithoutLabelsValue = React.useMemo(
+    () => hasSourcesWithoutLabels(catalogSources),
+    [catalogSources],
+  );
 
   const handleShowMoreCategory = React.useCallback(
     (categoryLabel: string) => {
@@ -39,15 +45,17 @@ const ModelCatalogAllModelsView: React.FC<ModelCatalogAllModelsViewProps> = ({ s
           onShowMore={handleShowMoreCategory}
         />
       ))}
-      <CatalogCategorySection
-        key={CategoryName.communityAndCustomModels}
-        label={SourceLabel.other}
-        searchTerm={searchTerm}
-        pageSize={4}
-        catalogSources={catalogSources}
-        onShowMore={handleShowMoreCategory}
-        displayName={CategoryName.communityAndCustomModels}
-      />
+      {hasSourcesWithoutLabelsValue && (
+        <CatalogCategorySection
+          key={CategoryName.communityAndCustomModels}
+          label={SourceLabel.other}
+          searchTerm={searchTerm}
+          pageSize={4}
+          catalogSources={catalogSources}
+          onShowMore={handleShowMoreCategory}
+          displayName={CategoryName.communityAndCustomModels}
+        />
+      )}
     </Stack>
   );
 };

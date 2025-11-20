@@ -34,7 +34,8 @@ func DatastoreSpec() *datastore.Spec {
 		AddArtifact(CatalogMetricsArtifactTypeName, datastore.NewSpecType(NewCatalogMetricsArtifactRepository).
 			AddString("metricsType"),
 		).
-		AddOther(NewCatalogArtifactRepository)
+		AddOther(NewCatalogArtifactRepository).
+		AddOther(NewPropertyOptionsRepository)
 }
 
 type Services struct {
@@ -42,6 +43,7 @@ type Services struct {
 	CatalogArtifactRepository        models.CatalogArtifactRepository
 	CatalogModelArtifactRepository   models.CatalogModelArtifactRepository
 	CatalogMetricsArtifactRepository models.CatalogMetricsArtifactRepository
+	PropertyOptionsRepository        models.PropertyOptionsRepository
 }
 
 func NewServices(
@@ -49,11 +51,13 @@ func NewServices(
 	catalogArtifactRepository models.CatalogArtifactRepository,
 	catalogModelArtifactRepository models.CatalogModelArtifactRepository,
 	catalogMetricsArtifactRepository models.CatalogMetricsArtifactRepository,
+	propertyOptionsRepository models.PropertyOptionsRepository,
 ) Services {
 	return Services{
 		CatalogModelRepository:           catalogModelRepository,
 		CatalogArtifactRepository:        catalogArtifactRepository,
 		CatalogModelArtifactRepository:   catalogModelArtifactRepository,
 		CatalogMetricsArtifactRepository: catalogMetricsArtifactRepository,
+		PropertyOptionsRepository:        propertyOptionsRepository,
 	}
 }

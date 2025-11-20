@@ -5,6 +5,7 @@ import {
   formatLatency,
   formatTokenValue,
   getHardwareConfiguration,
+  getWorkloadType,
 } from '~/app/pages/modelCatalog/utils/performanceMetricsUtils';
 import { getDoubleValue, getIntValue, getStringValue } from '~/app/utils';
 import {
@@ -25,6 +26,8 @@ const HardwareConfigurationTableRow: React.FC<HardwareConfigurationTableRowProps
     switch (field) {
       case 'hardware_type':
         return getHardwareConfiguration(performanceArtifact);
+      case 'use_case':
+        return getWorkloadType(performanceArtifact);
       case 'hardware_count':
         return getIntValue(customProperties, 'hardware_count');
       case 'requests_per_second':

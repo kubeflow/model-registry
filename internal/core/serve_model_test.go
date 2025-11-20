@@ -184,7 +184,7 @@ func TestUpsertServeModel(t *testing.T) {
 			Name:             apiutils.Of("custom-props-serve-model"),
 			ModelVersionId:   *createdVersion.Id,
 			LastKnownState:   apiutils.Of(openapi.EXECUTIONSTATE_UNKNOWN),
-			CustomProperties: &customProps,
+			CustomProperties: customProps,
 		}
 
 		result, err := _service.UpsertServeModel(input, createdInfSvc.Id)
@@ -194,7 +194,7 @@ func TestUpsertServeModel(t *testing.T) {
 		assert.Equal(t, "custom-props-serve-model", *result.Name)
 		assert.NotNil(t, result.CustomProperties)
 
-		resultProps := *result.CustomProperties
+		resultProps := result.CustomProperties
 		assert.Contains(t, resultProps, "deployment_config")
 		assert.Contains(t, resultProps, "replicas")
 		assert.Contains(t, resultProps, "auto_scaling")
@@ -1033,7 +1033,7 @@ func TestServeModelRoundTrip(t *testing.T) {
 			Name:             apiutils.Of("roundtrip-custom-props-serve-model"),
 			ModelVersionId:   *createdVersion.Id,
 			LastKnownState:   apiutils.Of(openapi.EXECUTIONSTATE_UNKNOWN),
-			CustomProperties: &customProps,
+			CustomProperties: customProps,
 		}
 
 		// Create
@@ -1047,7 +1047,7 @@ func TestServeModelRoundTrip(t *testing.T) {
 
 		// Verify custom properties
 		assert.NotNil(t, retrieved.CustomProperties)
-		retrievedProps := *retrieved.CustomProperties
+		retrievedProps := retrieved.CustomProperties
 		assert.Contains(t, retrievedProps, "environment")
 		assert.Contains(t, retrievedProps, "max_requests")
 		assert.Equal(t, "staging", retrievedProps["environment"].MetadataStringValue.StringValue)
@@ -1071,14 +1071,14 @@ func TestServeModelRoundTrip(t *testing.T) {
 				},
 			},
 		}
-		retrieved.CustomProperties = &updatedProps
+		retrieved.CustomProperties = updatedProps
 
 		updated, err := _service.UpsertServeModel(retrieved, createdInfSvc.Id)
 		require.NoError(t, err)
 
 		// Verify updated custom properties
 		assert.NotNil(t, updated.CustomProperties)
-		finalProps := *updated.CustomProperties
+		finalProps := updated.CustomProperties
 		assert.Equal(t, "production", finalProps["environment"].MetadataStringValue.StringValue)
 		assert.Equal(t, "500", finalProps["max_requests"].MetadataIntValue.IntValue)
 		assert.Equal(t, "new_value", finalProps["new_prop"].MetadataStringValue.StringValue)

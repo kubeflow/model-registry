@@ -199,10 +199,11 @@ func (qb *QueryBuilder) buildPropertyReference(expr *FilterExpression) *Property
 	}
 
 	propRef := &PropertyReference{
-		Name:        propName,
-		IsCustom:    propDef.Location == Custom,
-		ValueType:   propDef.ValueType,
-		PropertyDef: propDef, // Store full property definition for advanced handling
+		Name:         propName,
+		IsCustom:     propDef.Location == Custom,
+		ValueType:    propDef.ValueType,
+		ExplicitType: explicitType, // Track if type was explicitly specified
+		PropertyDef:  propDef,      // Store full property definition for advanced handling
 	}
 
 	// If explicit type was specified, use it
@@ -403,25 +404,38 @@ func (qb *QueryBuilder) buildPropertyTableCondition(db *gorm.DB, propRef *Proper
 	// Add conditions for property name
 	db = db.Where(fmt.Sprintf("%s.name = ?", alias), propRef.Name)
 
-	// Use the specific value type column based on inferred type
-	var valueColumn string
-	if propRef.ValueType == ArrayValueType {
-		valueColumn = fmt.Sprintf("%s.%s", alias, StringValueType)
-	} else {
-		valueColumn = fmt.Sprintf("%s.%s", alias, propRef.ValueType)
-	}
-
 	// Use cross-database case-insensitive LIKE for ILIKE operator
 	if operator == "ILIKE" {
+		valueColumn := fmt.Sprintf("%s.%s", alias, propRef.ValueType)
 		return qb.buildCaseInsensitiveLikeCondition(db, valueColumn, value)
 	}
 
+	// Determine the value type and whether to use dual-column query
+	valueType, inferredAsInt := qb.determinePropertyValueType(propRef, value)
+
 	var condition conditionResult
-	if propRef.ValueType == ArrayValueType && db.Name() == "postgres" {
+
+	// Special handling for custom properties with inferred integer type:
+	// Query BOTH int_value and double_value to handle data stored in either column
+	if inferredAsInt {
+		intColumn := fmt.Sprintf("%s.int_value", alias)
+		doubleColumn := fmt.Sprintf("%s.double_value", alias)
+		condition = qb.buildDualColumnCondition(intColumn, doubleColumn, operator, value)
+	} else if valueType == ArrayValueType && db.Name() == "postgres" {
+		// Special handling for array types in PostgreSQL
+		valueColumn := fmt.Sprintf("%s.%s", alias, StringValueType)
 		condition = qb.buildJSONOperatorCondition(valueColumn, operator, value)
 	} else {
+		// For explicit types or non-integer types, use the specified column
+		var valueColumn string
+		if valueType == ArrayValueType {
+			valueColumn = fmt.Sprintf("%s.%s", alias, StringValueType)
+		} else {
+			valueColumn = fmt.Sprintf("%s.%s", alias, valueType)
+		}
 		condition = qb.buildOperatorCondition(valueColumn, operator, value)
 	}
+
 	return db.Where(condition.condition, condition.args...)
 }
 
@@ -445,15 +459,27 @@ func (qb *QueryBuilder) buildPropertyTableConditionString(propRef *PropertyRefer
 		joinColumn = "execution_id"
 	}
 
-	// Use the specific value type column based on inferred type
-	// For array types, use string_value column; otherwise use the property's value type
-	var valueColumn string
-	if propRef.ValueType == ArrayValueType {
-		valueColumn = fmt.Sprintf("%s.%s", propertyTable, StringValueType)
+	// Determine the value type and whether to use dual-column query
+	valueType, inferredAsInt := qb.determinePropertyValueType(propRef, value)
+
+	var condition conditionResult
+
+	// Special handling for custom properties with inferred integer type:
+	// Query BOTH int_value and double_value to handle data stored in either column
+	if inferredAsInt {
+		intColumn := fmt.Sprintf("%s.int_value", propertyTable)
+		doubleColumn := fmt.Sprintf("%s.double_value", propertyTable)
+		condition = qb.buildDualColumnCondition(intColumn, doubleColumn, operator, value)
 	} else {
-		valueColumn = fmt.Sprintf("%s.%s", propertyTable, propRef.ValueType)
+		// For explicit types or non-integer types, use the specified column
+		var valueColumn string
+		if valueType == ArrayValueType {
+			valueColumn = fmt.Sprintf("%s.%s", propertyTable, StringValueType)
+		} else {
+			valueColumn = fmt.Sprintf("%s.%s", propertyTable, valueType)
+		}
+		condition = qb.buildOperatorCondition(valueColumn, operator, value)
 	}
-	condition := qb.buildOperatorCondition(valueColumn, operator, value)
 
 	subquery := fmt.Sprintf("EXISTS (SELECT 1 FROM %s WHERE %s.%s = %s.id AND %s.name = ? AND %s)",
 		propertyTable, propertyTable, joinColumn, qb.tablePrefix, propertyTable, condition.condition)
@@ -545,6 +571,37 @@ func (qb *QueryBuilder) determineValueType(explicitType string, value any) (valu
 	return inferredType, false
 }
 
+// determinePropertyValueType determines the value type for a PropertyReference
+// It handles both custom and well-known properties with appropriate logic for each
+// Returns the value type and a boolean indicating if dual-column query should be used
+func (qb *QueryBuilder) determinePropertyValueType(propRef *PropertyReference, value any) (valueType string, inferredAsInt bool) {
+	if propRef.IsCustom {
+		// Custom properties: use ExplicitType or infer from value
+		return qb.determineValueType(propRef.ExplicitType, value)
+	}
+
+	// Well-known properties: use the defined type from property mapping
+	// ExplicitType overrides if specified (e.g., experimentRunId.string_value)
+	if propRef.ExplicitType != "" {
+		return propRef.ExplicitType, false
+	}
+
+	return propRef.ValueType, false // Well-known properties don't use dual-column query
+}
+
+// buildDualColumnCondition builds a condition that queries both int_value and double_value columns
+// This is used for integer literals on custom properties to handle data stored in either column
+func (qb *QueryBuilder) buildDualColumnCondition(intColumn, doubleColumn, operator string, value any) conditionResult {
+	intCondition := qb.buildOperatorCondition(intColumn, operator, value)
+	doubleCondition := qb.buildOperatorCondition(doubleColumn, operator, value)
+
+	// Combine with OR to find values in either column
+	return conditionResult{
+		condition: fmt.Sprintf("(%s OR %s)", intCondition.condition, doubleCondition.condition),
+		args:      append(intCondition.args, doubleCondition.args...),
+	}
+}
+
 // buildValueCondition builds a condition for a property value, handling the dual-column query for integer literals
 func (qb *QueryBuilder) buildValueCondition(propertyAlias string, explicitType string, operator string, value any) conditionResult {
 	valueType, inferredAsInt := qb.determineValueType(explicitType, value)
@@ -555,15 +612,7 @@ func (qb *QueryBuilder) buildValueCondition(propertyAlias string, explicitType s
 	if inferredAsInt {
 		intColumn := fmt.Sprintf("%s.int_value", propertyAlias)
 		doubleColumn := fmt.Sprintf("%s.double_value", propertyAlias)
-
-		intCondition := qb.buildOperatorCondition(intColumn, operator, value)
-		doubleCondition := qb.buildOperatorCondition(doubleColumn, operator, value)
-
-		// Combine with OR to find values in either column
-		return conditionResult{
-			condition: fmt.Sprintf("(%s OR %s)", intCondition.condition, doubleCondition.condition),
-			args:      append(intCondition.args, doubleCondition.args...),
-		}
+		return qb.buildDualColumnCondition(intColumn, doubleColumn, operator, value)
 	}
 
 	// For explicit types or non-integer types, use the specified column

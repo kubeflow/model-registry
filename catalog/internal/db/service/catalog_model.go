@@ -1,31 +1,26 @@
 package service
 
 import (
-	"encoding/base64"
 	"errors"
 	"fmt"
-	"strconv"
 	"strings"
 
 	"github.com/golang/glog"
 	"github.com/kubeflow/model-registry/catalog/internal/db/filter"
 	"github.com/kubeflow/model-registry/catalog/internal/db/models"
+	"github.com/kubeflow/model-registry/internal/db/dbutil"
 	dbmodels "github.com/kubeflow/model-registry/internal/db/models"
 	"github.com/kubeflow/model-registry/internal/db/schema"
+	"github.com/kubeflow/model-registry/internal/db/scopes"
 	"github.com/kubeflow/model-registry/internal/db/service"
 	"github.com/kubeflow/model-registry/internal/db/utils"
-	"github.com/lib/pq"
 	"gorm.io/gorm"
 )
-
-// accuracyProperty is the property of a metrics artifact to use when sorting by accuracy.
-const accuracyProperty = "overall_average"
 
 var ErrCatalogModelNotFound = errors.New("catalog model by id not found")
 
 type CatalogModelRepositoryImpl struct {
 	*service.GenericRepository[models.CatalogModel, schema.Context, schema.ContextProperty, *models.CatalogModelListOptions]
-	metricsArtifactTypeID int32
 }
 
 func NewCatalogModelRepository(db *gorm.DB, typeID int32) models.CatalogModelRepository {
@@ -42,7 +37,7 @@ func NewCatalogModelRepository(db *gorm.DB, typeID int32) models.CatalogModelRep
 		PropertyFieldName:     "context_id",
 		ApplyListFilters:      applyCatalogModelListFilters,
 		CreatePaginationToken: r.createPaginationToken,
-		ApplyCustomOrdering:   r.applyAccuracyOrdering,
+		ApplyCustomOrdering:   r.applyCustomOrdering,
 		IsNewEntity:           func(entity models.CatalogModel) bool { return entity.GetID() == nil },
 		HasCustomProperties:   func(entity models.CatalogModel) bool { return entity.GetCustomProperties() != nil },
 		EntityMappingFuncs:    filter.NewCatalogEntityMappings(),
@@ -74,6 +69,24 @@ func (r *CatalogModelRepositoryImpl) Save(model models.CatalogModel) (models.Cat
 	return r.GenericRepository.Save(model, nil)
 }
 
+// ApplyStandardPagination overrides the base implementation to use catalog-specific allowed columns
+func (r *CatalogModelRepositoryImpl) ApplyStandardPagination(query *gorm.DB, listOptions *models.CatalogModelListOptions, entities any) *gorm.DB {
+	pageSize := listOptions.GetPageSize()
+	orderBy := listOptions.GetOrderBy()
+	sortOrder := listOptions.GetSortOrder()
+	nextPageToken := listOptions.GetNextPageToken()
+
+	pagination := &dbmodels.Pagination{
+		PageSize:      &pageSize,
+		OrderBy:       &orderBy,
+		SortOrder:     &sortOrder,
+		NextPageToken: &nextPageToken,
+	}
+
+	// Use catalog-specific allowed columns (includes NAME)
+	return query.Scopes(scopes.PaginateWithOptions(entities, pagination, r.GetConfig().DB, "Context", CatalogOrderByColumns))
+}
+
 func (r *CatalogModelRepositoryImpl) List(listOptions models.CatalogModelListOptions) (*dbmodels.ListWrapper[models.CatalogModel], error) {
 	return r.GenericRepository.List(&listOptions)
 }
@@ -90,6 +103,8 @@ func (r *CatalogModelRepositoryImpl) GetByName(name string) (models.CatalogModel
 	// Query properties
 	var properties []schema.ContextProperty
 	if err := config.DB.Where(config.PropertyFieldName+" = ?", entity.ID).Find(&properties).Error; err != nil {
+		// Sanitize database errors to avoid exposing internal details to users
+		err = dbutil.SanitizeDatabaseError(err)
 		return zeroEntity, fmt.Errorf("error getting properties by %s id: %w", config.EntityName, err)
 	}
 
@@ -106,6 +121,8 @@ func (r *CatalogModelRepositoryImpl) lookupModelByName(name string) (*schema.Con
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, fmt.Errorf("%w: %v", config.NotFoundError, err)
 		}
+		// Sanitize database errors to avoid exposing internal details to users
+		err = dbutil.SanitizeDatabaseError(err)
 		return nil, fmt.Errorf("error getting %s by name: %w", config.EntityName, err)
 	}
 
@@ -241,158 +258,49 @@ func mapDataLayerToCatalogModel(modelCtx schema.Context, propertiesCtx []schema.
 	return catalogModel
 }
 
-// GetFilterableProperties returns property names and their unique values
-// Only includes properties where ALL values are shorter than maxLength
-func (r *CatalogModelRepositoryImpl) GetFilterableProperties(maxLength int) (map[string][]string, error) {
-	config := r.GetConfig()
-
-	if config.DB.Name() != "postgres" {
-		return nil, fmt.Errorf("GetFilterableProperties is only supported on PostgreSQL")
-	}
-
-	db, err := config.DB.DB()
-	if err != nil {
-		return nil, err
-	}
-
-	// Get table names using GORM utilities for database compatibility
-	contextTable := utils.GetTableName(config.DB, &schema.Context{})
-	propertyTable := utils.GetTableName(config.DB, &schema.ContextProperty{})
-
-	query := fmt.Sprintf(`
-		SELECT name, array_agg(string_value) FROM (
-			SELECT
-				name,
-				string_value
-			FROM %s WHERE
-				context_id IN (
-					SELECT id FROM %s WHERE type_id=$1
-				)
-				AND string_value IS NOT NULL
-				AND string_value != ''
-				AND string_value IS NOT JSON ARRAY
-
-			UNION
-
-			SELECT
-				name,
-				json_array_elements_text(string_value::json) AS string_value
-			FROM %s WHERE
-				context_id IN (
-					SELECT id FROM %s WHERE type_id=$1
-				)
-				AND string_value IS JSON ARRAY
-		)
-		GROUP BY name HAVING MAX(CHAR_LENGTH(string_value)) <= $2
-	`, propertyTable, contextTable, propertyTable, contextTable)
-
-	rows, err := db.Query(query, config.TypeID, maxLength)
-	if err != nil {
-		return nil, fmt.Errorf("error querying filterable properties: %w", err)
-	}
-	defer rows.Close()
-
-	result := map[string][]string{}
-	for rows.Next() {
-		var name string
-		var values pq.StringArray
-
-		err = rows.Scan(&name, &values)
-		if err != nil {
-			return nil, fmt.Errorf("error scanning filterable property row: %w", err)
-		}
-
-		result[name] = []string(values)
-	}
-
-	return result, nil
-}
-
-// getMetricsArtifactTypeID looks up the type ID for CatalogMetricsArtifact dynamically
-func (r *CatalogModelRepositoryImpl) getMetricsArtifactTypeID() (int32, error) {
-	if r.metricsArtifactTypeID != 0 {
-		return r.metricsArtifactTypeID, nil
-	}
-
-	// Look up the type ID dynamically from the database
-	var typeRecord struct {
-		ID int32 `gorm:"column:id"`
-	}
-
-	err := r.GetConfig().DB.
-		Table("\"Type\"").
-		Select("id").
-		Where("name = ?", CatalogMetricsArtifactTypeName).
-		First(&typeRecord).Error
-
-	if err != nil {
-		return 0, fmt.Errorf("failed to lookup CatalogMetricsArtifact type ID: %w", err)
-	}
-
-	// Cache the type ID for future use
-	r.metricsArtifactTypeID = typeRecord.ID
-	return typeRecord.ID, nil
-}
-
-// applyAccuracyOrdering applies custom ordering logic for ACCURACY orderBy field
-func (r *CatalogModelRepositoryImpl) applyAccuracyOrdering(query *gorm.DB, listOptions *models.CatalogModelListOptions) *gorm.DB {
-	orderBy := listOptions.GetOrderBy()
-
-	// Only apply custom ordering for ACCURACY orderBy
-	if orderBy != "ACCURACY" {
-		// Fall back to standard pagination for non-ACCURACY ordering
-		return r.ApplyStandardPagination(query, listOptions, []models.CatalogModel{})
-	}
-
-	// Get the metrics artifact type ID
-	metricsTypeID, err := r.getMetricsArtifactTypeID()
-	if err != nil {
-		// Fall back to standard pagination if we can't get the type ID
-		return r.ApplyStandardPagination(query, listOptions, []models.CatalogModel{})
-	}
+// applyCustomOrdering applies custom ordering logic for non-standard orderBy field
+func (r *CatalogModelRepositoryImpl) applyCustomOrdering(query *gorm.DB, listOptions *models.CatalogModelListOptions) *gorm.DB {
 
 	db := r.GetConfig().DB
 	contextTable := utils.GetTableName(db, &schema.Context{})
-	attributionTable := utils.GetTableName(db, &schema.Attribution{})
-	artifactTable := utils.GetTableName(db, &schema.Artifact{})
-	propertyTable := utils.GetTableName(db, &schema.ArtifactProperty{})
+	orderBy := listOptions.GetOrderBy()
 
-	sortOrder := listOptions.GetSortOrder()
-	pageSize := listOptions.GetPageSize()
+	// Handle NAME ordering specially (catalog-specific)
+	if orderBy == "NAME" {
+		return ApplyNameOrdering(query, contextTable, listOptions.GetSortOrder(), listOptions.GetNextPageToken(), listOptions.GetPageSize())
+	}
 
-	// Build the accuracy subquery
-	// This gets the accuracy score for each model from its AccuracyMetric artifacts
-	accuracySubquery := db.
-		Select(fmt.Sprintf("%s.id, max(%s.double_value) AS accuracy", contextTable, propertyTable)).
-		Table(contextTable).
-		Joins(fmt.Sprintf("LEFT JOIN %s ON %s.id=%s.context_id", attributionTable, contextTable, attributionTable)).
-		Joins(fmt.Sprintf("LEFT JOIN %s ON %s.artifact_id=%s.id AND %s.type_id=?", artifactTable, attributionTable, artifactTable, artifactTable), metricsTypeID).
-		Joins(fmt.Sprintf("LEFT JOIN %s ON %s.id=%s.artifact_id AND %s.name=?", propertyTable, artifactTable, propertyTable, propertyTable), accuracyProperty).
-		Where(contextTable+".type_id=?", r.GetConfig().TypeID).
-		Group(contextTable + ".id")
+	subquery, sortColumn := r.sortValueQuery(listOptions, contextTable+".id")
+	if subquery == nil {
+		// Fall back to standard pagination with catalog-specific allowed columns
+		return r.ApplyStandardPagination(query, listOptions, []models.CatalogModel{})
+	}
+	subquery = subquery.Group(contextTable + ".id")
 
-	// Join the main query with the accuracy subquery
+	// Join the main query with the subquery
 	query = query.
-		Joins("LEFT JOIN (?) accuracy ON \"Context\".id=accuracy.id", accuracySubquery)
+		Joins(fmt.Sprintf("LEFT JOIN (?) sort_value ON %s.id=sort_value.id", contextTable), subquery)
 
 	// Apply sorting order
+	sortOrder := listOptions.GetSortOrder()
 	if sortOrder != "ASC" {
 		sortOrder = "DESC"
 	}
-	query = query.Order(fmt.Sprintf("accuracy %s NULLS LAST, %s.id", sortOrder, contextTable))
+	query = query.Order(fmt.Sprintf("sort_value.%s %s NULLS LAST, %s.id", sortColumn, sortOrder, contextTable))
 
 	// Handle cursor-based pagination with nextPageToken
 	nextPageToken := listOptions.GetNextPageToken()
 	if nextPageToken != "" {
 		// Parse the cursor from the token
-		if cursor, err := r.parseNextPageToken(nextPageToken); err == nil {
+		if cursor, err := scopes.DecodeCursor(nextPageToken); err == nil {
 			// Apply WHERE clause for cursor-based pagination with ACCURACY
-			query = r.applyCursorPagination(query, cursor, sortOrder)
+			query = r.applyCursorPagination(query, cursor, sortColumn, sortOrder)
 		}
 		// If token parsing fails, fall back to no cursor (first page)
 	}
 
 	// Apply pagination limit
+	pageSize := listOptions.GetPageSize()
 	if pageSize > 0 {
 		query = query.Limit(int(pageSize) + 1) // +1 to detect if there are more pages
 	}
@@ -400,120 +308,114 @@ func (r *CatalogModelRepositoryImpl) applyAccuracyOrdering(query *gorm.DB, listO
 	return query
 }
 
-// cursor represents a pagination cursor with ID and accuracy value
-type accuracyCursor struct {
-	ID       int32
-	Accuracy *float64
-}
-
-// parseNextPageToken decodes a nextPageToken and extracts the cursor information
-func (r *CatalogModelRepositoryImpl) parseNextPageToken(token string) (*accuracyCursor, error) {
-	// Sanity check the length before decoding
-	if len(token) > 64 {
-		return nil, fmt.Errorf("invalid nextPageToken")
-	}
-
-	decoded, err := base64.StdEncoding.DecodeString(token)
-	if err != nil {
-		return nil, fmt.Errorf("failed to decode token: %w", err)
-	}
-
-	parts := strings.Split(string(decoded), ":")
-	if len(parts) != 2 {
-		return nil, fmt.Errorf("invalid cursor format, expected 'ID:Value'")
-	}
-
-	id, err := strconv.ParseInt(parts[0], 10, 32)
-	if err != nil {
-		return nil, fmt.Errorf("invalid ID in cursor: %w", err)
-	}
-
-	cursor := accuracyCursor{ID: int32(id)}
-
-	// Parse accuracy value from cursor
-	accuracy, err := strconv.ParseFloat(parts[1], 64)
-	if err == nil {
-		cursor.Accuracy = &accuracy
-	}
-
-	return &cursor, nil
-}
-
 // applyCursorPagination applies WHERE clause for cursor-based pagination with ACCURACY sorting
-func (r *CatalogModelRepositoryImpl) applyCursorPagination(query *gorm.DB, cursor *accuracyCursor, sortOrder string) *gorm.DB {
+func (r *CatalogModelRepositoryImpl) applyCursorPagination(query *gorm.DB, cursor *scopes.Cursor, sortColumn, sortOrder string) *gorm.DB {
 	contextTable := utils.GetTableName(query, &schema.Context{})
 
-	// Handle NULL accuracy values in cursor
-	if cursor.Accuracy == nil {
-		// For models without accuracy, just use ID-based pagination
-		return query.Where(fmt.Sprintf("accuracy IS NULL AND %s.id > ?", contextTable), cursor.ID)
+	// Handle NULL values in cursor
+	if cursor.Value == "" {
+		// Items without the sort value will be sorted to the bottom, just use ID-based pagination.
+		return query.Where(fmt.Sprintf("sort_value.%s IS NULL AND %s.id > ?", sortColumn, contextTable), cursor.ID)
 	}
 
-	accuracyValue := *cursor.Accuracy
-
-	// Apply cursor pagination logic for ACCURACY sorting
+	cmp := "<"
 	if sortOrder == "ASC" {
-		// For ASC: get records where (accuracy > cursor_accuracy) OR (accuracy = cursor_accuracy AND id > cursor_id)
-		// Also include NULL values at the end
-		return query.Where("(accuracy > ? OR (accuracy = ? AND "+contextTable+".id > ?) OR accuracy IS NULL)",
-			accuracyValue, accuracyValue, cursor.ID)
-	} else {
-		// For DESC: get records where (accuracy < cursor_accuracy) OR (accuracy = cursor_accuracy AND id > cursor_id)
-		return query.Where("(accuracy < ? OR (accuracy = ? AND "+contextTable+".id > ?) OR accuracy IS NULL)",
-			accuracyValue, accuracyValue, cursor.ID)
+		cmp = ">"
 	}
+
+	// Note that we sort ID ASCENDING as a tie-breaker, so ">" is correct below.
+	return query.Where(fmt.Sprintf("(sort_value.%s %s ? OR (sort_value.%s = ? AND %s.id > ?) OR sort_value.%s IS NULL)", sortColumn, cmp, sortColumn, contextTable, sortColumn),
+		cursor.Value, cursor.Value, cursor.ID)
 }
 
 func (r *CatalogModelRepositoryImpl) createPaginationToken(lastItem schema.Context, listOptions *models.CatalogModelListOptions) string {
-	if listOptions.GetOrderBy() == "ACCURACY" {
-		// The accuracy metric is not available from the context table,
-		// so we'll need another query to get it.
+	// Handle NAME ordering (catalog-specific)
+	if listOptions.GetOrderBy() == "NAME" {
+		return CreateNamePaginationToken(lastItem.ID, &lastItem.Name)
+	}
 
-		db := r.GetConfig().DB
-		contextTable := utils.GetTableName(db, &schema.Context{})
-		attributionTable := utils.GetTableName(db, &schema.Attribution{})
-		artifactTable := utils.GetTableName(db, &schema.Artifact{})
-		propertyTable := utils.GetTableName(db, &schema.ArtifactProperty{})
-		metricsTypeID, err := r.getMetricsArtifactTypeID()
-		if err != nil {
-			glog.Warningf("Failed to get metrics artifact type ID: %v", err)
-			return r.CreateDefaultPaginationToken(lastItem, listOptions)
-		}
-
-		query := db.
-			Select("MAX(double_value) AS accuracy").
-			Table(contextTable).
-			Joins(fmt.Sprintf("LEFT JOIN %s ON %s.id=%s.context_id", attributionTable, contextTable, attributionTable)).
-			Joins(fmt.Sprintf("LEFT JOIN %s ON %s.artifact_id=%s.id", artifactTable, attributionTable, artifactTable)).
-			Joins(fmt.Sprintf("LEFT JOIN %s ON %s.id=%s.artifact_id", propertyTable, artifactTable, propertyTable)).
-			Where(artifactTable+".type_id=?", metricsTypeID).
-			Where(propertyTable+".name=?", accuracyProperty).
-			Where(contextTable+".id=?", lastItem.ID)
+	sortValueQuery, column := r.sortValueQuery(listOptions)
+	if sortValueQuery != nil {
+		contextTable := utils.GetTableName(r.GetConfig().DB, &schema.Context{})
+		sortValueQuery = sortValueQuery.Where(contextTable+".id=?", lastItem.ID)
 
 		var result struct {
-			Accuracy *float64 `gorm:"accuracy"`
+			IntValue    *int64   `gorm:"int_value"`
+			DoubleValue *float64 `gorm:"double_value"`
+			StringValue *string  `gorm:"string_value"`
 		}
-		err = query.Scan(&result).Error
+		err := sortValueQuery.Scan(&result).Error
 		if err != nil {
-			glog.Warningf("Failed to get accuracy score: %v", err)
-			return r.CreateDefaultPaginationToken(lastItem, listOptions)
+			glog.Warningf("Failed to get sort value: %v", err)
+		} else {
+			switch column {
+			case "int_value":
+				return scopes.CreateNextPageToken(lastItem.ID, result.IntValue)
+			case "double_value":
+				return scopes.CreateNextPageToken(lastItem.ID, result.DoubleValue)
+			case "string_value":
+				fallthrough
+			default:
+				return scopes.CreateNextPageToken(lastItem.ID, result.StringValue)
+			}
 		}
-
-		return createAccuracyPaginationToken(lastItem.ID, result.Accuracy)
 	}
 
 	return r.CreateDefaultPaginationToken(lastItem, listOptions)
 }
 
-// createAccuracyPaginationToken creates a pagination token for ACCURACY sorting
-func createAccuracyPaginationToken(entityID int32, accuracyValue *float64) string {
-	var valueStr string
-	if accuracyValue != nil {
-		valueStr = fmt.Sprintf("%.15f", *accuracyValue)
-	} else {
-		valueStr = "" // Represents NULL
+// sortValueQuery returns a query that will produce the value to sort on for
+// the List response. The returned string is the column name.
+//
+// If the sort does not require a subquery, sortValueQuery returns nil.
+func (r *CatalogModelRepositoryImpl) sortValueQuery(listOptions *models.CatalogModelListOptions, extraColumns ...any) (*gorm.DB, string) {
+	db := r.GetConfig().DB
+	contextTable := utils.GetTableName(db, &schema.Context{})
+
+	query := db.Table(contextTable).
+		Where(contextTable+".type_id=?", r.GetConfig().TypeID)
+
+	orderBy := strings.Split(listOptions.GetOrderBy(), ".")
+
+	var valueColumn string
+
+	switch {
+	case len(orderBy) == 3 && orderBy[0] == "artifacts":
+		// artifacts.<property>.<value_column> e.g. artifacts.ttft_p90.double_value
+
+		attributionTable := utils.GetTableName(db, &schema.Attribution{})
+		propertyTable := utils.GetTableName(db, &schema.ArtifactProperty{})
+
+		aggFn := "max"
+		if listOptions.GetSortOrder() == "ASC" {
+			aggFn = "min"
+		}
+		valueColumn = orderBy[2]
+
+		query = query.
+			Select(fmt.Sprintf("%s(%s.%s) AS %s", aggFn, propertyTable, valueColumn, valueColumn), extraColumns...).
+			Joins(fmt.Sprintf("LEFT JOIN %s ON %s.id=%s.context_id", attributionTable, contextTable, attributionTable)).
+			Joins(fmt.Sprintf("LEFT JOIN %s ON %s.artifact_id=%s.artifact_id AND %s.name=?", propertyTable, attributionTable, propertyTable, propertyTable), orderBy[1])
+	case len(orderBy) == 2:
+		// <property>.<value_column> e.g. provider.string_value
+		propertyTable := utils.GetTableName(db, &schema.ContextProperty{})
+		valueColumn = orderBy[1]
+		query = query.
+			Select(fmt.Sprintf("max(%s.%s) AS %s", propertyTable, valueColumn, valueColumn), extraColumns...).
+			Joins(fmt.Sprintf("LEFT JOIN %s ON %s.id=%s.context_id AND %s.name=?", propertyTable, contextTable, propertyTable, propertyTable), orderBy[0])
+	default:
+		// Standard sort will work
+		return nil, ""
 	}
 
-	cursor := fmt.Sprintf("%d:%s", entityID, valueStr)
-	return base64.StdEncoding.EncodeToString([]byte(cursor))
+	// The query is built, but verify that the value column is valid before
+	// returning it.
+	switch valueColumn {
+	case "int_value", "double_value", "string_value":
+		// OK
+	default:
+		return nil, ""
+	}
+
+	return query, valueColumn
 }
