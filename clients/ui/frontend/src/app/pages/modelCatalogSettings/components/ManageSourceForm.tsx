@@ -34,7 +34,6 @@ type ManageSourceFormProps = {
 const ManageSourceForm: React.FC<ManageSourceFormProps> = ({ existingData, isEditMode }) => {
   const navigate = useNavigate();
   const [formData, setData] = useManageSourceData(existingData);
-  const [isFiltersExpanded, setIsFiltersExpanded] = React.useState(false);
   const [isSubmitting, setIsSubmitting] = React.useState(false);
   const [submitError, setSubmitError] = React.useState<Error | undefined>(undefined);
 
@@ -66,8 +65,8 @@ const ManageSourceForm: React.FC<ManageSourceFormProps> = ({ existingData, isEdi
 
   return (
     <>
-      <Sidebar hasGutter hasBorder isPanelRight>
-        <SidebarContent>
+      <Sidebar hasBorder isPanelRight>
+        <SidebarContent hasPadding>
           <Form isWidthLimited>
             <Stack hasGutter>
               <StackItem>
@@ -87,19 +86,18 @@ const ManageSourceForm: React.FC<ManageSourceFormProps> = ({ existingData, isEdi
               )}
 
               <StackItem>
-                <ModelVisibilitySection
-                  formData={formData}
-                  isExpanded={isFiltersExpanded}
-                  onToggle={() => setIsFiltersExpanded((prev) => !prev)}
-                  setData={setData}
-                />
+                <ModelVisibilitySection formData={formData} setData={setData} />
               </StackItem>
 
               <StackItem>
                 <FormSection>
                   <FormGroup fieldId="enable-source">
                     <Checkbox
-                      label={<strong>{FORM_LABELS.ENABLE_SOURCE}</strong>}
+                      label={
+                        <span className="pf-v6-c-form__label-text">
+                          {FORM_LABELS.ENABLE_SOURCE}
+                        </span>
+                      }
                       id="enable-source"
                       name="enable-source"
                       data-testid="enable-source-checkbox"
@@ -113,7 +111,7 @@ const ManageSourceForm: React.FC<ManageSourceFormProps> = ({ existingData, isEdi
             </Stack>
           </Form>
         </SidebarContent>
-        <SidebarPanel hasPadding className="pf-v6-u-flex-basis-40">
+        <SidebarPanel width={{ default: 'width_50' }} hasPadding>
           <PreviewPanel isPreviewEnabled={canPreview} onPreview={handlePreview} />
         </SidebarPanel>
       </Sidebar>

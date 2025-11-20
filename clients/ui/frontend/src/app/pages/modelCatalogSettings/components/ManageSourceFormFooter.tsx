@@ -32,7 +32,7 @@ const ManageSourceFormFooter: React.FC<ManageSourceFormFooterProps> = ({
   isPreviewDisabled,
   onPreview,
 }) => (
-  <PageSection stickyOnBreakpoint={{ default: 'bottom' }} style={{ boxShadow: 'none' }}>
+  <PageSection hasBodyWrapper={false} stickyOnBreakpoint={{ default: 'bottom' }}>
     <Stack hasGutter>
       {submitError && (
         <StackItem>

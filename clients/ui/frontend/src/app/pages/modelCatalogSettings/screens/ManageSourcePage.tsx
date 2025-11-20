@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { Breadcrumb, BreadcrumbItem } from '@patternfly/react-core';
-import { ApplicationsPage, TitleWithIcon, ProjectObjectType } from 'mod-arch-shared';
+import { ApplicationsPage } from 'mod-arch-shared';
 import {
   CATALOG_SETTINGS_PAGE_TITLE,
   ADD_SOURCE_TITLE,
@@ -35,7 +35,7 @@ const ManageSourcePage: React.FC = () => {
           </BreadcrumbItem>
         </Breadcrumb>
       }
-      title={<TitleWithIcon title={pageTitle} objectType={ProjectObjectType.modelCatalog} />}
+      title={pageTitle}
       description={description}
       empty={false}
       loaded

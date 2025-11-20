@@ -1,6 +1,7 @@
 import * as React from 'react';
 import {
-  ExpandableSection,
+  FormFieldGroupExpandable,
+  FormFieldGroupHeader,
   FormGroup,
   TextArea,
   FormHelperText,
@@ -26,17 +27,10 @@ import {
 
 type ModelVisibilitySectionProps = {
   formData: ManageSourceFormData;
-  isExpanded: boolean;
-  onToggle: () => void;
   setData: UpdateObjectAtPropAndValue<ManageSourceFormData>;
 };
 
-const ModelVisibilitySection: React.FC<ModelVisibilitySectionProps> = ({
-  formData,
-  isExpanded,
-  onToggle,
-  setData,
-}) => {
+const ModelVisibilitySection: React.FC<ModelVisibilitySectionProps> = ({ formData, setData }) => {
   const isHuggingFaceMode = formData.sourceType === SourceType.HuggingFace;
   const organization = isHuggingFaceMode ? formData.organization : undefined;
 
@@ -83,56 +77,46 @@ const ModelVisibilitySection: React.FC<ModelVisibilitySectionProps> = ({
   );
 
   return (
-    <>
-      <ExpandableSection
-        toggleText={FORM_LABELS.MODEL_VISIBILITY}
-        onToggle={onToggle}
-        isExpanded={isExpanded}
-        contentId="model-visibility-content"
+    <FormSection>
+      <FormFieldGroupExpandable
+        toggleAriaLabel="Model visibility"
+        header={
+          <FormFieldGroupHeader
+            titleText={{ text: FORM_LABELS.MODEL_VISIBILITY, id: 'model-visibility-title' }}
+            titleDescription={sectionDescription}
+          />
+        }
         data-testid="model-visibility-section"
-      />
-      <FormHelperText>
-        <HelperText>
-          <HelperTextItem className="pf-v6-u-color-200">{sectionDescription}</HelperTextItem>
-        </HelperText>
-      </FormHelperText>
-      <ExpandableSection
-        isExpanded={isExpanded}
-        isDetached
-        contentId="model-visibility-content"
-        data-testid="model-visibility-content"
       >
-        <FormSection>
-          <FormGroup label={FORM_LABELS.ALLOWED_MODELS} fieldId="allowed-models">
-            <FormFieldset component={allowedModelsInput} field="Allowed models" />
-            <FormHelperText>
-              <HelperText>
-                <HelperTextItem>{allowedModelsHelp}</HelperTextItem>
-              </HelperText>
-            </FormHelperText>
-            <FormHelperText>
-              <HelperText>
-                <HelperTextItem>{FIELD_HELPER_TEXT.INCLUDED_MODELS}</HelperTextItem>
-              </HelperText>
-            </FormHelperText>
-          </FormGroup>
+        <FormGroup label={FORM_LABELS.ALLOWED_MODELS} fieldId="allowed-models">
+          <FormFieldset component={allowedModelsInput} field="Allowed models" />
+          <FormHelperText>
+            <HelperText>
+              <HelperTextItem>{allowedModelsHelp}</HelperTextItem>
+            </HelperText>
+          </FormHelperText>
+          <FormHelperText>
+            <HelperText>
+              <HelperTextItem>{FIELD_HELPER_TEXT.INCLUDED_MODELS}</HelperTextItem>
+            </HelperText>
+          </FormHelperText>
+        </FormGroup>
 
-          <FormGroup label={FORM_LABELS.EXCLUDED_MODELS} fieldId="excluded-models">
-            <FormFieldset component={excludedModelsInput} field="Excluded models" />
-            <FormHelperText>
-              <HelperText>
-                <HelperTextItem>{excludedModelsHelp}</HelperTextItem>
-              </HelperText>
-            </FormHelperText>
-            <FormHelperText>
-              <HelperText>
-                <HelperTextItem>{FIELD_HELPER_TEXT.EXCLUDED_MODELS}</HelperTextItem>
-              </HelperText>
-            </FormHelperText>
-          </FormGroup>
-        </FormSection>
-      </ExpandableSection>
-    </>
+        <FormGroup label={FORM_LABELS.EXCLUDED_MODELS} fieldId="excluded-models">
+          <FormFieldset component={excludedModelsInput} field="Excluded models" />
+          <FormHelperText>
+            <HelperText>
+              <HelperTextItem>{excludedModelsHelp}</HelperTextItem>
+            </HelperText>
+          </FormHelperText>
+          <FormHelperText>
+            <HelperText>
+              <HelperTextItem>{FIELD_HELPER_TEXT.EXCLUDED_MODELS}</HelperTextItem>
+            </HelperText>
+          </FormHelperText>
+        </FormGroup>
+      </FormFieldGroupExpandable>
+    </FormSection>
   );
 };
 
