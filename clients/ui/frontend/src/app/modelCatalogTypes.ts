@@ -230,3 +230,57 @@ export type ModelCatalogFilterStates = {
 } & {
   [key in LatencyMetricFieldName]?: number | undefined;
 };
+
+// Model Catalog Settings types
+export type CatalogSourceConfigCommon = {
+  id: string;
+  name: string;
+  enabled?: boolean;
+  labels?: string[];
+  includedModels?: string[];
+  excludedModels?: string[];
+  isDefault?: boolean;
+};
+
+export type YamlCatalogSourceConfig = CatalogSourceConfigCommon & {
+  type: 'yaml';
+  yaml?: string;
+};
+
+export type HuggingFaceCatalogSourceConfig = CatalogSourceConfigCommon & {
+  type: 'huggingface';
+  allowedOrganization?: string;
+  apiKey?: string;
+};
+
+export type CatalogSourceConfig = YamlCatalogSourceConfig | HuggingFaceCatalogSourceConfig;
+
+export type CatalogSourceConfigPayload = CatalogSourceConfig;
+
+export type CatalogSourceConfigList = {
+  catalogs: CatalogSourceConfig[];
+};
+
+export type GetCatalogSourceConfigs = (opts: APIOptions) => Promise<CatalogSourceConfigList>;
+export type CreateCatalogSourceConfig = (
+  opts: APIOptions,
+  data: CatalogSourceConfigPayload,
+) => Promise<CatalogSourceConfig>;
+export type GetCatalogSourceConfig = (
+  opts: APIOptions,
+  sourceId: string,
+) => Promise<CatalogSourceConfig>;
+export type UpdateCatalogSourceConfig = (
+  opts: APIOptions,
+  sourceId: string,
+  data: CatalogSourceConfigPayload,
+) => Promise<CatalogSourceConfig>;
+export type DeleteCatalogSourceConfig = (opts: APIOptions, sourceId: string) => Promise<void>;
+
+export type ModelCatalogSettingsAPIs = {
+  getCatalogSourceConfigs: GetCatalogSourceConfigs;
+  createCatalogSourceConfig: CreateCatalogSourceConfig;
+  getCatalogSourceConfig: GetCatalogSourceConfig;
+  updateCatalogSourceConfig: UpdateCatalogSourceConfig;
+  deleteCatalogSourceConfig: DeleteCatalogSourceConfig;
+};
