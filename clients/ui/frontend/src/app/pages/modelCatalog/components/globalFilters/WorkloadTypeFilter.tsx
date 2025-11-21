@@ -60,7 +60,7 @@ const WorkloadTypeFilter: React.FC = () => {
                   <Flex alignItems={{ default: 'alignItemsCenter' }}>
                     <FlexItem flex={{ default: 'flex_1' }}>
                       <Checkbox
-                        label={option.label}
+                        label={`${option.label} (${option.inputTokens} input | ${option.outputTokens} output tokens)`}
                         id={option.value}
                         data-testid={`workload-type-filter-${option.value}`}
                         isChecked={isUseCaseSelected(option.value)}

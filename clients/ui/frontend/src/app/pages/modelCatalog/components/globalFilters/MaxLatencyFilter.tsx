@@ -69,22 +69,16 @@ const MaxLatencyFilter: React.FC<MaxLatencyFilterProps> = ({ performanceArtifact
     return null;
   }, [filterData]);
 
-  const defaultFilterState = React.useMemo(() => {
-    // Initialize with first available options to ensure consistency
-    const firstAvailableMetric =
-      availableMetrics.length > 0 ? availableMetrics[0].value : LatencyMetric.TTFT;
-    const firstAvailablePercentile = getAvailablePercentiles();
-    const defaultPercentile =
-      firstAvailablePercentile.length > 0
-        ? firstAvailablePercentile[0].value
-        : LatencyPercentile.Mean;
-
-    return {
-      metric: firstAvailableMetric,
-      percentile: defaultPercentile,
-      value: 30, // Reasonable default within typical TTFT range
-    };
-  }, [availableMetrics, getAvailablePercentiles]);
+  const defaultFilterState = React.useMemo(
+    () =>
+      // Default to TTFT P90 as the most common use case
+      ({
+        metric: LatencyMetric.TTFT,
+        percentile: LatencyPercentile.P90,
+        value: 30, // Reasonable default within typical TTFT range
+      }),
+    [],
+  );
 
   // Working state while editing the filter
   const [localFilter, setLocalFilter] = React.useState<LatencyFilterState>(() => {
