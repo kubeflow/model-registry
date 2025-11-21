@@ -50,8 +50,8 @@ jobs:
 
       - name: Welcome first-time contributors message
         uses: actions/first-interaction@v3
+        continue-on-error: true
         with:
-          repo_token: ${{ secrets.GITHUB_TOKEN }}
           issue_message: |
             🎉 **Welcome to the Kubeflow Model Registry!** 🎉
             Thanks for opening your first issue! We're happy to have you as part of our community 🚀
