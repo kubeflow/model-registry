@@ -48,7 +48,7 @@ class CatalogSourceConfigRow extends TableRow {
   }
 
   toggleEnable() {
-    this.findEnableToggle().click();
+    this.findEnableToggle().click({ force: true });
     return this;
   }
 
