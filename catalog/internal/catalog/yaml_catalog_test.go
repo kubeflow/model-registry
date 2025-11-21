@@ -1,11 +1,15 @@
 package catalog
 
 import (
+	"context"
 	"encoding/json"
+	"fmt"
 	"os"
 	"path/filepath"
 	"slices"
+	"strings"
 	"testing"
+	"time"
 
 	model "github.com/kubeflow/model-registry/catalog/pkg/openapi"
 	"github.com/kubeflow/model-registry/internal/apiutils"
@@ -491,4 +495,153 @@ models:
 		// This should work because filepath.Join(reldir, relativePath) points to our file
 		require.NoError(t, err, "Relative paths should work correctly")
 	})
+}
+
+func TestYamlModelProviderFiltersApplied(t *testing.T) {
+	catalogPath := writeMiniCatalog(t, []string{"Granite/alpha", "Granite/beta-release", "DeepSeek/v1"})
+
+	source := &Source{
+		CatalogSource: model.CatalogSource{
+			Id:             "test",
+			Name:           "Test source",
+			Labels:         []string{},
+			IncludedModels: []string{"Granite/*"},
+			ExcludedModels: []string{"Granite/beta-*"},
+		},
+	}
+
+	filter, err := NewModelFilterFromSource(source, nil, nil)
+	require.NoError(t, err)
+
+	names := collectNamesWithFilter(t, catalogPath, filter)
+	assert.ElementsMatch(t, []string{"Granite/alpha"}, names)
+}
+
+func TestYamlModelProviderLegacyExcludesMerged(t *testing.T) {
+	catalogPath := writeMiniCatalog(t, []string{"Granite/alpha", "Granite/beta-release", "DeepSeek/v1"})
+
+	source := &Source{
+		CatalogSource: model.CatalogSource{
+			Id:             "test",
+			Name:           "Test source",
+			Labels:         []string{},
+			ExcludedModels: []string{"Granite/beta-*"},
+		},
+		Properties: map[string]any{
+			yamlCatalogPathKey: catalogPath,
+			excludedModelsKey:  []any{"DeepSeek/v1"},
+		},
+	}
+
+	ctx, cancel := context.WithCancel(context.Background())
+	t.Cleanup(cancel)
+
+	records, err := newYamlModelProvider(ctx, source, filepath.Dir(catalogPath))
+	require.NoError(t, err)
+
+	names := collectRecordsFromChannel(t, records, 1, cancel)
+	assert.Equal(t, []string{"Granite/alpha"}, names)
+}
+
+func TestYamlModelProviderInvalidPattern(t *testing.T) {
+	catalogPath := writeMiniCatalog(t, []string{"Granite/alpha"})
+
+	source := &Source{
+		CatalogSource: model.CatalogSource{
+			Id:             "test",
+			Name:           "Test source",
+			Labels:         []string{},
+			IncludedModels: []string{""},
+		},
+		Properties: map[string]any{
+			yamlCatalogPathKey: catalogPath,
+		},
+	}
+
+	_, err := newYamlModelProvider(context.Background(), source, filepath.Dir(catalogPath))
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "pattern cannot be empty")
+}
+
+func writeMiniCatalog(t *testing.T, modelNames []string) string {
+	t.Helper()
+
+	dir := t.TempDir()
+	path := filepath.Join(dir, "catalog.yaml")
+
+	var b strings.Builder
+	b.WriteString("source: Test\nmodels:\n")
+	for _, name := range modelNames {
+		b.WriteString(fmt.Sprintf("  - name: %s\n", name))
+	}
+
+	err := os.WriteFile(path, []byte(b.String()), 0o644)
+	require.NoError(t, err)
+
+	return path
+}
+
+func collectNamesWithFilter(t *testing.T, catalogPath string, filter *ModelFilter) []string {
+	t.Helper()
+
+	provider := &yamlModelProvider{
+		path:   catalogPath,
+		filter: filter,
+	}
+
+	catalog, err := provider.read()
+	require.NoError(t, err)
+
+	out := make(chan ModelProviderRecord, len(catalog.Models))
+	provider.emit(context.Background(), catalog, out)
+	close(out)
+
+	var names []string
+	for record := range out {
+		names = append(names, modelNameFromRecord(t, record))
+	}
+
+	return names
+}
+
+func collectRecordsFromChannel(t *testing.T, records <-chan ModelProviderRecord, expected int, cancel context.CancelFunc) []string {
+	t.Helper()
+
+	names := make([]string, 0, expected)
+	timeout := time.After(2 * time.Second)
+
+	for len(names) < expected {
+		select {
+		case record, ok := <-records:
+			if !ok {
+				t.Fatalf("channel closed before receiving %d records", expected)
+			}
+			names = append(names, modelNameFromRecord(t, record))
+		case <-timeout:
+			t.Fatalf("timed out waiting for %d records", expected)
+		}
+	}
+
+	cancel()
+
+	select {
+	case _, ok := <-records:
+		if ok {
+			t.Fatalf("received more than %d records", expected)
+		}
+	case <-time.After(500 * time.Millisecond):
+		t.Fatalf("channel did not close after cancellation")
+	}
+
+	return names
+}
+
+func modelNameFromRecord(t *testing.T, record ModelProviderRecord) string {
+	t.Helper()
+
+	require.NotNil(t, record.Model)
+	attrs := record.Model.GetAttributes()
+	require.NotNil(t, attrs)
+	require.NotNil(t, attrs.Name)
+	return *attrs.Name
 }

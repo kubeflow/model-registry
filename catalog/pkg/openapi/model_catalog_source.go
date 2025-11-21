@@ -27,6 +27,10 @@ type CatalogSource struct {
 	Enabled *bool `json:"enabled,omitempty"`
 	// Labels for the catalog source.
 	Labels []string `json:"labels"`
+	// Optional allow-list of models that are eligible for this source. Entries can be exact model names or patterns that use `*` as a wildcard. When provided, only models matching at least one pattern are considered.  Pattern matching is case-insensitive, so `Granite/_*` will match `granite/model`, `Granite/model`, and `GRANITE/model`.
+	IncludedModels []string `json:"includedModels,omitempty"`
+	// Optional block-list of models that should be removed from the catalog even if they match `includedModels`. Patterns support the `*` wildcard.  Pattern matching is case-insensitive, so `*-beta` will match `Model-Beta`, `model-beta`, and `MODEL-BETA`.
+	ExcludedModels []string `json:"excludedModels,omitempty"`
 }
 
 type _CatalogSource CatalogSource
@@ -159,6 +163,70 @@ func (o *CatalogSource) SetLabels(v []string) {
 	o.Labels = v
 }
 
+// GetIncludedModels returns the IncludedModels field value if set, zero value otherwise.
+func (o *CatalogSource) GetIncludedModels() []string {
+	if o == nil || IsNil(o.IncludedModels) {
+		var ret []string
+		return ret
+	}
+	return o.IncludedModels
+}
+
+// GetIncludedModelsOk returns a tuple with the IncludedModels field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+func (o *CatalogSource) GetIncludedModelsOk() ([]string, bool) {
+	if o == nil || IsNil(o.IncludedModels) {
+		return nil, false
+	}
+	return o.IncludedModels, true
+}
+
+// HasIncludedModels returns a boolean if a field has been set.
+func (o *CatalogSource) HasIncludedModels() bool {
+	if o != nil && !IsNil(o.IncludedModels) {
+		return true
+	}
+
+	return false
+}
+
+// SetIncludedModels gets a reference to the given []string and assigns it to the IncludedModels field.
+func (o *CatalogSource) SetIncludedModels(v []string) {
+	o.IncludedModels = v
+}
+
+// GetExcludedModels returns the ExcludedModels field value if set, zero value otherwise.
+func (o *CatalogSource) GetExcludedModels() []string {
+	if o == nil || IsNil(o.ExcludedModels) {
+		var ret []string
+		return ret
+	}
+	return o.ExcludedModels
+}
+
+// GetExcludedModelsOk returns a tuple with the ExcludedModels field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+func (o *CatalogSource) GetExcludedModelsOk() ([]string, bool) {
+	if o == nil || IsNil(o.ExcludedModels) {
+		return nil, false
+	}
+	return o.ExcludedModels, true
+}
+
+// HasExcludedModels returns a boolean if a field has been set.
+func (o *CatalogSource) HasExcludedModels() bool {
+	if o != nil && !IsNil(o.ExcludedModels) {
+		return true
+	}
+
+	return false
+}
+
+// SetExcludedModels gets a reference to the given []string and assigns it to the ExcludedModels field.
+func (o *CatalogSource) SetExcludedModels(v []string) {
+	o.ExcludedModels = v
+}
+
 func (o CatalogSource) MarshalJSON() ([]byte, error) {
 	toSerialize, err := o.ToMap()
 	if err != nil {
@@ -175,6 +243,12 @@ func (o CatalogSource) ToMap() (map[string]interface{}, error) {
 		toSerialize["enabled"] = o.Enabled
 	}
 	toSerialize["labels"] = o.Labels
+	if !IsNil(o.IncludedModels) {
+		toSerialize["includedModels"] = o.IncludedModels
+	}
+	if !IsNil(o.ExcludedModels) {
+		toSerialize["excludedModels"] = o.ExcludedModels
+	}
 	return toSerialize, nil
 }
 

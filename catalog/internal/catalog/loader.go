@@ -194,6 +194,11 @@ func (l *Loader) updateSources(path string, config *sourceConfig) error {
 			return fmt.Errorf("invalid source: duplicate id %s", id)
 		}
 
+		// Validate includedModels/excludedModels patterns early
+		if err := ValidateSourceFilters(source.IncludedModels, source.ExcludedModels); err != nil {
+			return fmt.Errorf("invalid source %s: %w", id, err)
+		}
+
 		sources[id] = source.CatalogSource
 
 		glog.Infof("loaded source %s of type %s", id, source.Type)

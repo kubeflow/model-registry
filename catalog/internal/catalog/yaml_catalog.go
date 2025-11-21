@@ -7,7 +7,6 @@ import (
 	"os"
 	"path/filepath"
 	"strconv"
-	"strings"
 
 	"k8s.io/apimachinery/pkg/util/yaml"
 
@@ -299,22 +298,9 @@ type yamlCatalog struct {
 	Models []yamlModel `yaml:"models"`
 }
 
-func isModelExcluded(modelName string, patterns []string) bool {
-	for _, pattern := range patterns {
-		if strings.HasSuffix(pattern, "*") {
-			if strings.HasPrefix(modelName, strings.TrimSuffix(pattern, "*")) {
-				return true
-			}
-		} else if modelName == pattern {
-			return true
-		}
-	}
-	return false
-}
-
 type yamlModelProvider struct {
-	path           string
-	excludedModels map[string]struct{}
+	path   string
+	filter *ModelFilter
 }
 
 func (p *yamlModelProvider) Models(ctx context.Context) (<-chan ModelProviderRecord, error) {
@@ -378,7 +364,7 @@ func (p *yamlModelProvider) read() (*yamlCatalog, error) {
 func (p *yamlModelProvider) emit(ctx context.Context, catalog *yamlCatalog, out chan<- ModelProviderRecord) {
 	done := ctx.Done()
 	for _, model := range catalog.Models {
-		if _, excluded := p.excludedModels[model.Name]; excluded {
+		if !p.filter.Allows(model.Name) {
 			continue
 		}
 
@@ -404,22 +390,28 @@ func newYamlModelProvider(ctx context.Context, source *Source, reldir string) (<
 		p.path = filepath.Join(reldir, path)
 	}
 
-	// Excluded models is an optional source property.
-	if _, exists := source.Properties[excludedModelsKey]; exists {
-		excludedModels, ok := source.Properties[excludedModelsKey].([]any)
+	var legacyExcluded []string
+	if raw, exists := source.Properties[excludedModelsKey]; exists {
+		values, ok := raw.([]any)
 		if !ok {
 			return nil, fmt.Errorf("%q property should be a list", excludedModelsKey)
 		}
 
-		p.excludedModels = make(map[string]struct{}, len(excludedModels))
-		for i, name := range excludedModels {
-			nameStr, ok := name.(string)
+		legacyExcluded = make([]string, len(values))
+		for i, value := range values {
+			nameStr, ok := value.(string)
 			if !ok {
-				return nil, fmt.Errorf("%s: invalid list: index %d: wanted string, got %T", name, i, name)
+				return nil, fmt.Errorf("%s: invalid list: index %d: wanted string, got %T", excludedModelsKey, i, value)
 			}
-			p.excludedModels[nameStr] = struct{}{}
+			legacyExcluded[i] = nameStr
 		}
 	}
+
+	filter, err := NewModelFilterFromSource(source, nil, legacyExcluded)
+	if err != nil {
+		return nil, err
+	}
+	p.filter = filter
 
 	return p.Models(ctx)
 }
