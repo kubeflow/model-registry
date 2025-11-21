@@ -50,6 +50,7 @@ jobs:
 
       - name: Welcome first-time contributors message
         uses: actions/first-interaction@v3
+        continue-on-error: true
         with:
           issue_message: |
             🎉 **Welcome to the Kubeflow Model Registry!** 🎉
