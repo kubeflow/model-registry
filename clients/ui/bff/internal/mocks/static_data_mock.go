@@ -803,40 +803,73 @@ func GetCatalogModelListMock() models.CatalogModelList {
 func GetCatalogSourceMocks() []models.CatalogSource {
 	enabled := true
 	disabled := false
+
+	// Status examples
+	activeState := "Active"
+	failedState := "Failed"
+	disabledState := "Disabled"
+
+	invalidCredentialReason := "InvalidCredential"
+	invalidOrgReason := "InvalidOrganization"
+
+	invalidCredentialMsg := "The provided API key is invalid or has expired. Please update your credentials."
+	invalidOrgMsg := "The specified organization 'invalid-org' does not exist or you don't have access to it."
+
 	return []models.CatalogSource{
 		{
 			Id:      "sample-source",
 			Name:    "Sample mocked source",
 			Enabled: &enabled,
 			Labels:  []string{"Sample category 1", "Sample category 2", "Sample category"},
+			Status: &models.CatalogSourceStatus{
+				State: activeState,
+			},
 		},
 		{
 			Id:     "huggingface",
 			Name:   "Hugging Face",
 			Labels: []string{"Sample category 2", "Sample category"},
+			// Status is nil - represents "Starting" state
+			Status: nil,
 		},
 		{
 			Id:      "adminModel1",
 			Name:    "Admin model 1",
 			Enabled: &enabled,
 			Labels:  []string{},
+			Status: &models.CatalogSourceStatus{
+				State:   failedState,
+				Reason:  &invalidCredentialReason,
+				Message: &invalidCredentialMsg,
+			},
 		},
 		{
 			Id:      "adminModel2",
 			Name:    "Admin model 2",
 			Enabled: &enabled,
 			Labels:  []string{"Sample category 1"},
+			Status: &models.CatalogSourceStatus{
+				State:   failedState,
+				Reason:  &invalidOrgReason,
+				Message: &invalidOrgMsg,
+			},
 		},
 		{
 			Id:     "dora",
 			Name:   "Dora source",
 			Labels: []string{},
+			Status: &models.CatalogSourceStatus{
+				State: activeState,
+			},
 		},
 		{
 			Id:      "adminModel3",
 			Name:    "Admin model 3",
 			Enabled: &disabled,
 			Labels:  []string{},
+			Status: &models.CatalogSourceStatus{
+				State: disabledState,
+			},
 		},
 	}
 }
