@@ -1,3 +1,5 @@
+import * as React from 'react';
+import { List, ListItem } from '@patternfly/react-core';
 import { kebabTableColumn, SortableData } from 'mod-arch-shared';
 import { CatalogSourceConfig } from '~/app/modelCatalogTypes';
 
@@ -23,8 +25,23 @@ export const catalogSourceConfigsColumns: SortableData<CatalogSourceConfig>[] = 
     label: 'Model visibility',
     sortable: false,
     info: {
-      popover:
-        'Shows whether all models from a source appear in the model catalog or if visibility is filtered.\n\nAll models: Every model from the source appears in the catalog.\n\nFiltered: Only specific models appear, based on the visibility settings for that source.',
+      popover: (
+        <div>
+          <p>
+            Shows whether all models from a source appear in the model catalog or if visibility is
+            filtered.
+          </p>
+          <List>
+            <ListItem>
+              <strong>All models:</strong> Every model from the source appears in the catalog.
+            </ListItem>
+            <ListItem>
+              <strong>Filtered:</strong> Only specific models appear, based on the visibility
+              settings for that source.
+            </ListItem>
+          </List>
+        </div>
+      ),
     },
     width: 15,
   },

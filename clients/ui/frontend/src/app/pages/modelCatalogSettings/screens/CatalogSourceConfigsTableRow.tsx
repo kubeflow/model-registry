@@ -4,7 +4,6 @@ import { Button, Label, Switch } from '@patternfly/react-core';
 import { useNavigate } from 'react-router-dom';
 import { CatalogSourceConfig } from '~/app/modelCatalogTypes';
 import { manageSourceUrl } from '~/app/routes/modelCatalogSettings/modelCatalogSettings';
-import { useNotification } from '~/app/hooks/useNotification';
 import {
   CATALOG_SOURCE_TYPE_LABELS,
   ModelVisibilityBadgeColor,
@@ -21,7 +20,6 @@ const CatalogSourceConfigsTableRow: React.FC<CatalogSourceConfigsTableRowProps> 
   onDelete,
 }) => {
   const navigate = useNavigate();
-  const notification = useNotification();
   const isDefault = catalogSourceConfig.isDefault ?? false;
   const isEnabled = catalogSourceConfig.enabled ?? true;
 
@@ -31,11 +29,9 @@ const CatalogSourceConfigsTableRow: React.FC<CatalogSourceConfigsTableRowProps> 
   );
 
   const handleEnableToggle = (checked: boolean) => {
-    // For now, just show a notification as per requirements
-    // TODO: RHOAIENG-38347 - Implement actual enable/disable functionality
-    notification.info(
-      `Toggle ${checked ? 'enabled' : 'disabled'}`,
-      `"${catalogSourceConfig.name}" will be ${checked ? 'enabled' : 'disabled'} when functionality is implemented.`,
+    // TODO: Implement actual enable/disable functionality
+    window.alert(
+      `Toggle clicked! "${catalogSourceConfig.name}" will be ${checked ? 'enabled' : 'disabled'} when functionality is implemented.`,
     );
   };
 

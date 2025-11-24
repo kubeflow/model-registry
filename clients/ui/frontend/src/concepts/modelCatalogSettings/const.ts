@@ -1,9 +1,8 @@
-import { CatalogSourceConfig, HuggingFaceCatalogSourceConfig } from '~/app/modelCatalogTypes';
-
-export enum CatalogSourceType {
-  YAML = 'yaml',
-  HUGGING_FACE = 'huggingface',
-}
+import {
+  CatalogSourceConfig,
+  HuggingFaceCatalogSourceConfig,
+  CatalogSourceType,
+} from '~/app/modelCatalogTypes';
 
 export const CATALOG_SOURCE_TYPE_LABELS: Record<CatalogSourceType, string> = {
   [CatalogSourceType.YAML]: 'YAML file',

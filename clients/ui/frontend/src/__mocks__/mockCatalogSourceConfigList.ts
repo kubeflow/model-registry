@@ -3,8 +3,8 @@ import {
   CatalogSourceConfigList,
   YamlCatalogSourceConfig,
   HuggingFaceCatalogSourceConfig,
+  CatalogSourceType,
 } from '~/app/modelCatalogTypes';
-import { CatalogSourceType } from '~/concepts/modelCatalogSettings/const';
 
 export const mockYamlCatalogSourceConfig = (
   partial?: Partial<YamlCatalogSourceConfig>,

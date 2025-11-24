@@ -192,14 +192,22 @@ describe('Catalog Source Configs Table', () => {
   });
 
   describe('Enable toggle functionality', () => {
-    it('should show notification when enable toggle is clicked', () => {
+    it('should show alert when enable toggle is clicked', () => {
       modelCatalogSettings.visit();
       const row = modelCatalogSettings.getRow('HuggingFace Google');
       row.findName().should('be.visible');
       row.findEnableToggle().should('exist').and('be.checked');
+
+      cy.window().then((win) => {
+        cy.stub(win, 'alert').as('windowAlert');
+      });
+
       row.toggleEnable();
-      cy.get('.pf-v6-c-alert-group', { timeout: 5000 }).should('be.visible');
-      cy.get('.pf-v6-c-alert').should('be.visible').and('contain', 'Toggle disabled');
+
+      cy.get('@windowAlert').should(
+        'have.been.calledWith',
+        'Toggle clicked! "HuggingFace Google" will be disabled when functionality is implemented.',
+      );
     });
 
     it('should not show toggle for default sources', () => {
