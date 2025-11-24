@@ -3,8 +3,14 @@ import {
   manageSourcePage,
 } from '~/__tests__/cypress/cypress/pages/modelCatalogSettings';
 import { MODEL_CATALOG_API_VERSION } from '~/__tests__/cypress/cypress/support/commands/api';
-import { mockCatalogSource, mockCatalogSourceList } from '~/__mocks__';
-import type { CatalogSource } from '~/app/modelCatalogTypes';
+import {
+  mockCatalogSource,
+  mockCatalogSourceList,
+  mockCatalogSourceConfigList,
+  mockYamlCatalogSourceConfig,
+  mockHuggingFaceCatalogSourceConfig,
+} from '~/__mocks__';
+import type { CatalogSource, CatalogSourceConfig } from '~/app/modelCatalogTypes';
 
 const NAMESPACE = 'kubeflow';
 const userMock = {
@@ -14,7 +20,7 @@ const userMock = {
   },
 };
 
-const setupMocks = (sources: CatalogSource[] = []) => {
+const setupMocks = (sources: CatalogSource[] = [], sourceConfigs: CatalogSourceConfig[] = []) => {
   cy.intercept('GET', '/model-registry/api/v1/namespaces', {
     data: [{ metadata: { name: NAMESPACE } }],
   });
@@ -28,6 +34,18 @@ const setupMocks = (sources: CatalogSource[] = []) => {
       items: sources,
     }),
   );
+  cy.intercept(
+    'GET',
+    `/model-registry/api/${MODEL_CATALOG_API_VERSION}/settings/model_catalog/source_configs*`,
+    {
+      statusCode: 200,
+      body: {
+        data: mockCatalogSourceConfigList({
+          catalogs: sourceConfigs,
+        }),
+      },
+    },
+  ).as('getCatalogSourceConfigs');
 };
 
 function selectNamespaceIfPresent() {
@@ -40,8 +58,14 @@ function selectNamespaceIfPresent() {
 }
 
 describe('Model Catalog Settings', () => {
+  const defaultYamlSource = mockYamlCatalogSourceConfig({
+    id: 'default-yaml',
+    name: 'Default Catalog',
+    isDefault: true,
+  });
+
   beforeEach(() => {
-    setupMocks();
+    setupMocks([], [defaultYamlSource]);
   });
 
   it('should display the settings page', () => {
@@ -75,6 +99,193 @@ describe('Model Catalog Settings', () => {
     manageSourcePage.findAddSourceDescription();
     manageSourcePage.findBreadcrumb().should('exist');
     manageSourcePage.findBreadcrumbAction().should('contain', 'Add a source');
+  });
+});
+
+describe('Catalog Source Configs Table', () => {
+  const defaultYamlSource = mockYamlCatalogSourceConfig({
+    id: 'default-yaml',
+    name: 'Default Catalog',
+    isDefault: true,
+    enabled: true,
+    includedModels: [],
+    excludedModels: [],
+  });
+
+  const huggingFaceSource = mockHuggingFaceCatalogSourceConfig({
+    id: 'hf-google',
+    name: 'HuggingFace Google',
+    isDefault: false,
+    enabled: true,
+    allowedOrganization: 'Google',
+    includedModels: ['model1', 'model2'],
+  });
+
+  const customYamlSource = mockYamlCatalogSourceConfig({
+    id: 'custom-yaml',
+    name: 'Custom YAML',
+    isDefault: false,
+    enabled: false,
+    excludedModels: ['excluded-model'],
+  });
+
+  beforeEach(() => {
+    setupMocks([], [defaultYamlSource, huggingFaceSource, customYamlSource]);
+  });
+
+  it('should display empty state when no source configs exist', () => {
+    setupMocks([], []);
+    modelCatalogSettings.visit();
+    modelCatalogSettings.shouldBeEmpty();
+    modelCatalogSettings.findEmptyState().should('contain', 'No catalog sources');
+  });
+
+  it('should display table with source configs', () => {
+    modelCatalogSettings.visit();
+    modelCatalogSettings.shouldHaveSourceConfigs();
+    modelCatalogSettings.findRows().should('have.length', 3);
+  });
+
+  it('should render table column headers correctly', () => {
+    modelCatalogSettings.visit();
+    modelCatalogSettings.findTable().should('be.visible');
+    modelCatalogSettings.findTable().contains('th', 'Name').should('be.visible');
+    modelCatalogSettings.findTable().contains('th', 'Organization').should('be.visible');
+    modelCatalogSettings.findTable().contains('th', 'Model visibility').should('be.visible');
+    modelCatalogSettings.findTable().contains('th', 'Source type').should('be.visible');
+    modelCatalogSettings.findTable().contains('th', 'Enable').should('be.visible');
+    modelCatalogSettings.findTable().contains('th', 'Validation status').should('be.visible');
+  });
+
+  describe('Table row rendering', () => {
+    it('should render default YAML source correctly', () => {
+      modelCatalogSettings.visit();
+      const row = modelCatalogSettings.getRow('Default Catalog');
+      row.findName().should('be.visible').and('contain', 'Default Catalog');
+      row.shouldHaveOrganization('-');
+      row.shouldHaveModelVisibility('Unfiltered');
+      row.shouldHaveSourceType('YAML file');
+      row.shouldHaveEnableToggle(false); // Default sources don't have toggle
+    });
+
+    it('should render Hugging Face source correctly', () => {
+      modelCatalogSettings.visit();
+      const row = modelCatalogSettings.getRow('HuggingFace Google');
+      row.findName().should('be.visible').and('contain', 'HuggingFace Google');
+      row.shouldHaveOrganization('Google');
+      row.shouldHaveModelVisibility('Filtered');
+      row.shouldHaveSourceType('Hugging Face');
+      row.shouldHaveEnableToggle(true);
+      row.shouldHaveEnableState(true);
+    });
+
+    it('should render custom YAML source correctly', () => {
+      modelCatalogSettings.visit();
+      const row = modelCatalogSettings.getRow('Custom YAML');
+      row.findName().should('be.visible').and('contain', 'Custom YAML');
+      row.shouldHaveOrganization('-');
+      row.shouldHaveModelVisibility('Filtered');
+      row.shouldHaveSourceType('YAML file');
+      row.shouldHaveEnableToggle(true);
+      row.shouldHaveEnableState(false);
+    });
+  });
+
+  describe('Enable toggle functionality', () => {
+    it('should show alert when enable toggle is clicked', () => {
+      modelCatalogSettings.visit();
+      const row = modelCatalogSettings.getRow('HuggingFace Google');
+      row.findName().should('be.visible');
+      row.findEnableToggle().should('exist').and('be.checked');
+
+      cy.window().then((win) => {
+        cy.stub(win, 'alert').as('windowAlert');
+      });
+
+      row.toggleEnable();
+
+      cy.get('@windowAlert').should(
+        'have.been.calledWith',
+        'Toggle clicked! "HuggingFace Google" will be disabled when functionality is implemented.',
+      );
+    });
+
+    it('should not show toggle for default sources', () => {
+      modelCatalogSettings.visit();
+      const row = modelCatalogSettings.getRow('Default Catalog');
+      row.findName().should('be.visible');
+      row.shouldHaveEnableToggle(false);
+    });
+  });
+
+  describe('Manage source button', () => {
+    it('should navigate to manage source page when button is clicked', () => {
+      modelCatalogSettings.visit();
+      const row = modelCatalogSettings.getRow('HuggingFace Google');
+      row.findName().should('be.visible');
+      row.findManageSourceButton().should('be.visible').click();
+      cy.url().should('include', '/model-catalog-settings/manage-source/hf-google');
+      manageSourcePage.findManageSourceTitle();
+    });
+
+    it('should navigate to correct manage source page for each row', () => {
+      modelCatalogSettings.visit();
+      const customRow = modelCatalogSettings.getRow('Custom YAML');
+      customRow.findName().should('be.visible');
+      customRow.findManageSourceButton().should('be.visible').click();
+      cy.url().should('include', '/model-catalog-settings/manage-source/custom-yaml');
+    });
+  });
+
+  describe('Kebab menu actions', () => {
+    it('should show delete action for non-default sources', () => {
+      modelCatalogSettings.visit();
+      const row = modelCatalogSettings.getRow('HuggingFace Google');
+      row.findName().should('be.visible');
+      row.findKebab().should('be.visible').click();
+      cy.findByRole('menuitem', { name: 'Delete source' })
+        .should('be.visible')
+        .and('not.be.disabled');
+    });
+
+    it('should disable delete action for default sources', () => {
+      modelCatalogSettings.visit();
+      const row = modelCatalogSettings.getRow('Default Catalog');
+      row.findName().should('be.visible');
+      row.findKebab().should('be.visible').click();
+      cy.findByRole('menuitem', { name: 'Delete source' }).should('be.visible').and('be.disabled');
+    });
+  });
+
+  describe('Model visibility badges', () => {
+    it('should show "Filtered" badge when source has included models', () => {
+      modelCatalogSettings.visit();
+      const row = modelCatalogSettings.getRow('HuggingFace Google');
+      row.findName().should('be.visible');
+      row.findModelVisibility().should('be.visible').and('contain', 'Filtered');
+      row
+        .findModelVisibility()
+        .find('[data-testid*="model-visibility-filtered"]')
+        .should('be.visible');
+    });
+
+    it('should show "Filtered" badge when source has excluded models', () => {
+      modelCatalogSettings.visit();
+      const row = modelCatalogSettings.getRow('Custom YAML');
+      row.findName().should('be.visible');
+      row.findModelVisibility().should('be.visible').and('contain', 'Filtered');
+    });
+
+    it('should show "Unfiltered" badge when source has no filters', () => {
+      modelCatalogSettings.visit();
+      const row = modelCatalogSettings.getRow('Default Catalog');
+      row.findName().should('be.visible');
+      row.findModelVisibility().should('be.visible').and('contain', 'Unfiltered');
+      row
+        .findModelVisibility()
+        .find('[data-testid*="model-visibility-unfiltered"]')
+        .should('be.visible');
+    });
   });
 });
 

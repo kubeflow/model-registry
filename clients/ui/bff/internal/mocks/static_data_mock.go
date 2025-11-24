@@ -1333,14 +1333,17 @@ func CreateSampleCatalogSource(id string, name string, catalogType string) model
 	defaultCatalog := id == "catalog-1"
 
 	sourceConfig := models.CatalogSourceConfig{
-		Name:           name,
-		Id:             id,
-		Type:           catalogType,
-		Enabled:        BoolPtr(true),
-		Labels:         []string{"source-1"},
-		IsDefault:      &defaultCatalog,
-		IncludedModels: []string{"rhelai1/modelcar-granite-7b-starter"},
-		ExcludedModels: []string{"model-a:1.0", "model-b:*"},
+		Name:      name,
+		Id:        id,
+		Type:      catalogType,
+		Enabled:   BoolPtr(true),
+		Labels:    []string{"source-1"},
+		IsDefault: &defaultCatalog,
+	}
+
+	if !defaultCatalog {
+		sourceConfig.IncludedModels = []string{"rhelai1/modelcar-granite-7b-starter"}
+		sourceConfig.ExcludedModels = []string{"model-a:1.0", "model-b:*"}
 	}
 
 	switch catalogType {

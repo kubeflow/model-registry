@@ -1,4 +1,75 @@
 import { appChrome } from './appChrome';
+import { TableRow } from './components/table';
+
+class CatalogSourceConfigRow extends TableRow {
+  findName() {
+    return this.find().find('[data-label="Name"]');
+  }
+
+  findOrganization() {
+    return this.find().find('[data-label="Organization"]');
+  }
+
+  findModelVisibility() {
+    return this.find().find('[data-label="Model visibility"]');
+  }
+
+  findSourceType() {
+    return this.find().find('[data-label="Source type"]');
+  }
+
+  findEnableToggle() {
+    return this.find().find('[data-label="Enable"]').find('input[type="checkbox"]');
+  }
+
+  findValidationStatus() {
+    return this.find().find('[data-label="Validation status"]');
+  }
+
+  findManageSourceButton() {
+    return this.find()
+      .find('[data-label="Actions"]')
+      .findByRole('button', { name: 'Manage source' });
+  }
+
+  shouldHaveModelVisibility(visibility: 'Filtered' | 'Unfiltered') {
+    this.findModelVisibility().contains(visibility);
+    return this;
+  }
+
+  shouldHaveOrganization(org: string) {
+    this.findOrganization().contains(org);
+    return this;
+  }
+
+  shouldHaveSourceType(type: string) {
+    this.findSourceType().contains(type);
+    return this;
+  }
+
+  toggleEnable() {
+    this.findEnableToggle().click({ force: true });
+    return this;
+  }
+
+  shouldHaveEnableToggle(shouldExist: boolean) {
+    if (shouldExist) {
+      this.findEnableToggle().should('exist');
+    } else {
+      this.find().find('[data-label="Enable"]').should('be.empty');
+    }
+    return this;
+  }
+
+  shouldHaveEnableState(enabled: boolean) {
+    if (enabled) {
+      this.findEnableToggle().should('be.checked');
+    } else {
+      this.findEnableToggle().should('not.be.checked');
+    }
+    return this;
+  }
+}
 
 class ModelCatalogSettings {
   visit(wait = true) {
@@ -37,6 +108,35 @@ class ModelCatalogSettings {
 
   findAddSourceButton() {
     return cy.findByTestId('add-source-button');
+  }
+
+  findTable() {
+    return cy.findByTestId('catalog-source-configs-table');
+  }
+
+  findEmptyState() {
+    return cy.findByTestId('catalog-settings-empty-state');
+  }
+
+  getRow(name: string) {
+    return new CatalogSourceConfigRow(() =>
+      this.findTable().find('tbody').find('tr').contains(name).parents('tr'),
+    );
+  }
+
+  findRows() {
+    return this.findTable().find('tbody tr');
+  }
+
+  shouldHaveSourceConfigs() {
+    this.findTable().should('exist');
+    this.findRows().should('have.length.at.least', 1);
+    return this;
+  }
+
+  shouldBeEmpty() {
+    this.findEmptyState().should('exist');
+    return this;
   }
 }
 
