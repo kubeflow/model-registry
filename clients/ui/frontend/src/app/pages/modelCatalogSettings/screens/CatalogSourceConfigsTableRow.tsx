@@ -40,7 +40,7 @@ const CatalogSourceConfigsTableRow: React.FC<CatalogSourceConfigsTableRowProps> 
   };
 
   const handleDeleteSource = () => {
-    // TODO: RHOAIENG-38351 - Implement actual delete functionality
+    // TODO: - Implement actual delete functionality
     onDelete?.(catalogSourceConfig);
   };
 
@@ -91,7 +91,7 @@ const CatalogSourceConfigsTableRow: React.FC<CatalogSourceConfigsTableRowProps> 
           />
         )}
       </Td>
-      <Td dataLabel="Validation status">{/* TODO: RHOAIENG-38346 - Status implementation */}</Td>
+      <Td dataLabel="Validation status">{/* TODO: Status implementation */}</Td>
       <Td dataLabel="Actions">
         <Button
           variant="link"
