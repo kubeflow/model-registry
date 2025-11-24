@@ -7,6 +7,7 @@ import (
 	"math"
 	"net/http"
 	"net/url"
+	"os"
 	"slices"
 	"strconv"
 	"strings"
@@ -268,6 +269,10 @@ func (m *ModelCatalogServiceAPIService) FindSources(ctx context.Context, name st
 		NextPageToken: next.Token(),
 	}
 	return Response(http.StatusOK, res), nil
+}
+
+func (m *ModelCatalogServiceAPIService) PreviewCatalogSource(ctx context.Context, configParam *os.File, pageSizeParam string, nextPageTokenParam string, filterStatusParam string) (ImplResponse, error) {
+	return Response(http.StatusOK, ""), nil
 }
 
 func genCatalogCmpFunc(orderBy model.OrderByField, sortOrder model.SortOrder) (func(model.CatalogSource, model.CatalogSource) int, error) {
