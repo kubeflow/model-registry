@@ -27,7 +27,7 @@ import { catalogModelDetailsTabFromModel } from '~/app/routes/modelCatalog/catal
 import { ModelDetailsTab } from '~/app/pages/modelCatalog/screens/ModelDetailsTabs';
 import { useCatalogModelArtifacts } from '~/app/hooks/modelCatalog/useCatalogModelArtifacts';
 import { filterArtifactsByType } from '~/app/pages/modelCatalog/utils/modelCatalogUtils';
-import { formatLatency } from '../utils/performanceMetricsUtils';
+import { formatLatency } from '~/app/pages/modelCatalog/utils/performanceMetricsUtils';
 
 type ModelCatalogCardBodyProps = {
   model: CatalogModel;
