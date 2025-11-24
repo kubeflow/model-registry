@@ -1,5 +1,29 @@
 import { appChrome } from './appChrome';
 import { TableRow } from './components/table';
+import { Modal } from './components/Modal';
+
+class DeleteSourceModal extends Modal {
+  constructor() {
+    super('Delete a source');
+  }
+
+  find() {
+    return cy.findByTestId('delete-source-modal');
+  }
+
+  findDeleteButton() {
+    return this.findFooter().findByRole('button', { name: 'Delete' });
+  }
+
+  findConfirmInput() {
+    return cy.findByTestId('delete-modal-input');
+  }
+
+  typeConfirmation(text: string) {
+    this.findConfirmInput().clear().type(text);
+    return this;
+  }
+}
 
 class CatalogSourceConfigRow extends TableRow {
   findName() {
@@ -66,6 +90,17 @@ class CatalogSourceConfigRow extends TableRow {
       this.findEnableToggle().should('be.checked');
     } else {
       this.findEnableToggle().should('not.be.checked');
+    }
+    return this;
+  }
+
+  shouldHaveKebab(shouldExist: boolean) {
+    if (shouldExist) {
+      this.findKebab().should('exist');
+    } else {
+      this.find().within(() => {
+        cy.get('[data-testid*="source-actions"]').should('not.exist');
+      });
     }
     return this;
   }
@@ -336,3 +371,4 @@ class ManageSourcePage {
 
 export const modelCatalogSettings = new ModelCatalogSettings();
 export const manageSourcePage = new ManageSourcePage();
+export const deleteSourceModal = new DeleteSourceModal();

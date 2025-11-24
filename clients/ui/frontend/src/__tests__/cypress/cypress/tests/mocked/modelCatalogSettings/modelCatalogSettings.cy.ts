@@ -1,6 +1,7 @@
 import {
   modelCatalogSettings,
   manageSourcePage,
+  deleteSourceModal,
 } from '~/__tests__/cypress/cypress/pages/modelCatalogSettings';
 import { MODEL_CATALOG_API_VERSION } from '~/__tests__/cypress/cypress/support/commands/api';
 import {
@@ -238,22 +239,97 @@ describe('Catalog Source Configs Table', () => {
   });
 
   describe('Kebab menu actions', () => {
-    it('should show delete action for non-default sources', () => {
+    it('should show kebab with delete action for non-default sources', () => {
       modelCatalogSettings.visit();
       const row = modelCatalogSettings.getRow('HuggingFace Google');
       row.findName().should('be.visible');
+      row.shouldHaveKebab(true);
       row.findKebab().should('be.visible').click();
       cy.findByRole('menuitem', { name: 'Delete source' })
         .should('be.visible')
         .and('not.be.disabled');
     });
 
-    it('should disable delete action for default sources', () => {
+    it('should not show kebab menu for default sources', () => {
       modelCatalogSettings.visit();
       const row = modelCatalogSettings.getRow('Default Catalog');
       row.findName().should('be.visible');
-      row.findKebab().should('be.visible').click();
-      cy.findByRole('menuitem', { name: 'Delete source' }).should('be.visible').and('be.disabled');
+      row.shouldHaveKebab(false);
+    });
+  });
+
+  describe('Delete source functionality', () => {
+    beforeEach(() => {
+      cy.intercept(
+        'DELETE',
+        `/model-registry/api/${MODEL_CATALOG_API_VERSION}/settings/model_catalog/source_configs/*`,
+        {
+          statusCode: 200,
+        },
+      ).as('deleteSource');
+    });
+
+    it('should open delete modal when delete action is clicked', () => {
+      modelCatalogSettings.visit();
+      const row = modelCatalogSettings.getRow('HuggingFace Google');
+      row.findKebab().click();
+      cy.findByRole('menuitem', { name: 'Delete source' }).click();
+
+      deleteSourceModal.shouldBeOpen();
+      deleteSourceModal.find().should('contain', 'HuggingFace Google');
+      deleteSourceModal.find().should('contain', 'repository will be deleted');
+    });
+
+    it('should require typing source name to enable delete button', () => {
+      modelCatalogSettings.visit();
+      const row = modelCatalogSettings.getRow('HuggingFace Google');
+      row.findKebab().click();
+      cy.findByRole('menuitem', { name: 'Delete source' }).click();
+
+      deleteSourceModal.shouldBeOpen();
+      deleteSourceModal.findDeleteButton().should('be.disabled');
+
+      deleteSourceModal.typeConfirmation('wrong name');
+      deleteSourceModal.findDeleteButton().should('be.disabled');
+
+      deleteSourceModal.typeConfirmation('HuggingFace Google');
+      deleteSourceModal.findDeleteButton().should('not.be.disabled');
+    });
+
+    it('should close modal when cancel is clicked', () => {
+      modelCatalogSettings.visit();
+      const row = modelCatalogSettings.getRow('HuggingFace Google');
+      row.findKebab().click();
+      cy.findByRole('menuitem', { name: 'Delete source' }).click();
+
+      deleteSourceModal.shouldBeOpen();
+      deleteSourceModal.findCancelButton().click();
+      deleteSourceModal.shouldBeOpen(false);
+    });
+
+    it('should disable delete button while deleting', () => {
+      cy.intercept(
+        'DELETE',
+        `/model-registry/api/${MODEL_CATALOG_API_VERSION}/settings/model_catalog/source_configs/*`,
+        (req) => {
+          req.reply({
+            statusCode: 200,
+            delay: 1000,
+          });
+        },
+      ).as('deleteSourceSlow');
+
+      modelCatalogSettings.visit();
+      const row = modelCatalogSettings.getRow('Custom YAML');
+      row.findKebab().click();
+      cy.findByRole('menuitem', { name: 'Delete source' }).click();
+
+      deleteSourceModal.shouldBeOpen();
+      deleteSourceModal.typeConfirmation('Custom YAML');
+      deleteSourceModal.findDeleteButton().should('not.be.disabled').click();
+
+      // Check that the button is disabled (it will show "Loading... Delete")
+      deleteSourceModal.findFooter().find('button').first().should('be.disabled');
     });
   });
 
