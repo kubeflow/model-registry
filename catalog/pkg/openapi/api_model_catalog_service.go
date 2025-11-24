@@ -1407,7 +1407,7 @@ type ApiPreviewCatalogSourceRequest struct {
 	filterStatus  *string
 }
 
-// YAML file containing the catalog source configuration. The file should contain a source definition with type and properties fields, including optional includedModels and excludedModels filters.
+// YAML file containing the catalog source configuration. The file should contain a source definition with type and properties fields, including optional includedModels and excludedModels filters.  Model filter patterns support the &#x60;*&#x60; wildcard only and are case-insensitive. See CatalogSourcePreviewRequest schema for detailed pattern syntax documentation.  File Size Limit: Maximum upload size is 32 MB. Files exceeding this limit will be rejected with a 400 Bad Request error.
 func (r ApiPreviewCatalogSourceRequest) Config(config *os.File) ApiPreviewCatalogSourceRequest {
 	r.config = config
 	return r

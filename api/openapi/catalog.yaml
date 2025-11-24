@@ -188,9 +188,75 @@ paths:
                     YAML file containing the catalog source configuration.
                     The file should contain a source definition with type and properties
                     fields, including optional includedModels and excludedModels filters.
+
+                    Model filter patterns support the `*` wildcard only and are case-insensitive.
+                    See CatalogSourcePreviewRequest schema for detailed pattern syntax documentation.
+
+                    File Size Limit: Maximum upload size is 32 MB. Files exceeding this limit will
+                    be rejected with a 400 Bad Request error.
+            examples:
+              yamlCatalogSource:
+                summary: YAML catalog source with filters
+                description: Upload a YAML file containing source configuration with model filters
+                value: |
+                  type: yaml
+                  includedModels:
+                    - "ibm-granite/*"
+                    - "meta-llama/*"
+                    - "mistralai/*"
+                  excludedModels:
+                    - "*-draft"
+                    - "*-experimental"
+                  properties:
+                    yamlCatalogPath: "models-catalog.yaml"
+              huggingfaceSource:
+                summary: HuggingFace catalog source
+                description: Upload configuration for HuggingFace source with API credentials
+                value: |
+                  type: hf
+                  includedModels:
+                    - "microsoft/*"
+                    - "google/*"
+                  excludedModels:
+                    - "*-gguf"
+                  properties:
+                    apiKey: "your-huggingface-api-key-here" # notsecret
+                    modelLimit: 100
           application/json:
             schema:
               $ref: "#/components/schemas/CatalogSourcePreviewRequest"
+            examples:
+              yamlCatalogSource:
+                summary: YAML catalog source with filters
+                value:
+                  type: yaml
+                  includedModels:
+                    - "ibm-granite/*"
+                    - "meta-llama/*"
+                    - "mistralai/*"
+                  excludedModels:
+                    - "*-draft"
+                    - "*-experimental"
+                  properties:
+                    yamlCatalogPath: "models-catalog.yaml"
+              huggingfaceSource:
+                summary: HuggingFace catalog source
+                value:
+                  type: hf
+                  includedModels:
+                    - "microsoft/*"
+                    - "google/*"
+                  excludedModels:
+                    - "*-gguf"
+                  properties:
+                    apiKey: "your-huggingface-api-key-here" # notsecret
+                    modelLimit: 100
+              noFilters:
+                summary: Source with no filters
+                value:
+                  type: yaml
+                  properties:
+                    yamlCatalogPath: "all-models.yaml"
       parameters:
         - $ref: "#/components/parameters/pageSize"
         - $ref: "#/components/parameters/nextPageToken"
@@ -642,22 +708,47 @@ components:
             type: string
         includedModels:
           description: |-
-            Optional allow-list of models that are eligible for this source. Entries can be
-            exact model names or patterns that use `*` as a wildcard. When provided, only
-            models matching at least one pattern are considered.
+            Optional list of glob patterns for models to include. If specified, only models matching
+            at least one pattern will be included. If omitted, all models are considered for inclusion.
 
-            Pattern matching is case-insensitive, so `Granite/*` will match `granite/model`,
-            `Granite/model`, and `GRANITE/model`.
+            Pattern Syntax:
+            - Only the `*` wildcard is supported (matches zero or more characters)
+            - Patterns are case-insensitive (e.g., `Granite/*` matches `granite/model` and `GRANITE/model`)
+            - Patterns match the entire model name (anchored at start and end)
+            - Wildcards can appear anywhere: `Granite/*`, `*-beta`, `*deprecated*`, `*/old*`
+
+            Examples:
+            - `ibm-granite/*` - matches all models starting with "ibm-granite/"
+            - `meta-llama/*` - matches all models in the meta-llama namespace
+            - `*` - matches all models
+
+            Constraints:
+            - Patterns cannot be empty or whitespace-only
+            - A pattern cannot appear in both includedModels and excludedModels
           type: array
           items:
             type: string
         excludedModels:
           description: |-
-            Optional block-list of models that should be removed from the catalog even if
-            they match `includedModels`. Patterns support the `*` wildcard.
+            Optional list of glob patterns for models to exclude. Models matching any pattern
+            will be excluded even if they match an includedModels pattern. Exclusions take
+            precedence over inclusions.
 
-            Pattern matching is case-insensitive, so `*-beta` will match `Model-Beta`,
-            `model-beta`, and `MODEL-BETA`.
+            Pattern Syntax:
+            - Only the `*` wildcard is supported (matches zero or more characters)
+            - Patterns are case-insensitive
+            - Patterns match the entire model name (anchored at start and end)
+            - Wildcards can appear anywhere in the pattern
+
+            Examples:
+            - `*-draft` - excludes all models ending with "-draft"
+            - `*-experimental` - excludes experimental models
+            - `*deprecated*` - excludes models with "deprecated" anywhere in the name
+            - `*/beta-*` - excludes models with "/beta-" in the path
+
+            Constraints:
+            - Patterns cannot be empty or whitespace-only
+            - A pattern cannot appear in both includedModels and excludedModels
           type: array
           items:
             type: string
@@ -684,12 +775,58 @@ components:
           example: yaml
         includedModels:
           type: array
+          description: |-
+            Optional list of glob patterns for models to include. If specified, only models matching
+            at least one pattern will be included. If omitted, all models are considered for inclusion.
+
+            Pattern Syntax:
+            - Only the `*` wildcard is supported (matches zero or more characters)
+            - Patterns are case-insensitive (e.g., `Granite/*` matches `granite/model` and `GRANITE/model`)
+            - Patterns match the entire model name (anchored at start and end)
+            - Wildcards can appear anywhere: `Granite/*`, `*-beta`, `*deprecated*`, `*/old*`
+
+            Examples:
+            - `ibm-granite/*` - matches all models starting with "ibm-granite/"
+            - `meta-llama/*` - matches all models in the meta-llama namespace
+            - `*` - matches all models
+
+            Constraints:
+            - Patterns cannot be empty or whitespace-only
+            - A pattern cannot appear in both includedModels and excludedModels
           items:
             type: string
+          example:
+            - "ibm-granite/*"
+            - "meta-llama/*"
+            - "mistralai/*"
         excludedModels:
           type: array
+          description: |-
+            Optional list of glob patterns for models to exclude. Models matching any pattern
+            will be excluded even if they match an includedModels pattern. Exclusions take
+            precedence over inclusions.
+
+            Pattern Syntax:
+            - Only the `*` wildcard is supported (matches zero or more characters)
+            - Patterns are case-insensitive
+            - Patterns match the entire model name (anchored at start and end)
+            - Wildcards can appear anywhere in the pattern
+
+            Examples:
+            - `*-draft` - excludes all models ending with "-draft"
+            - `*-experimental` - excludes experimental models
+            - `*deprecated*` - excludes models with "deprecated" anywhere in the name
+            - `*/beta-*` - excludes models with "/beta-" in the path
+
+            Constraints:
+            - Patterns cannot be empty or whitespace-only
+            - A pattern cannot appear in both includedModels and excludedModels
           items:
             type: string
+          example:
+            - "*-draft"
+            - "*-experimental"
+            - "*-unstable"
         properties:
           type: object
           description: Type-specific configuration properties
@@ -964,6 +1101,95 @@ components:
         application/json:
           schema:
             $ref: "#/components/schemas/CatalogSourcePreviewResponse"
+          examples:
+            allModels:
+              summary: All models with inclusion status
+              description: Response showing all models when filterStatus=all
+              value:
+                nextPageToken: ""
+                pageSize: 10
+                size: 5
+                items:
+                  - name: "ibm-granite/granite-3.0-8b-instruct"
+                    included: true
+                  - name: "ibm-granite/granite-3.0-2b-instruct"
+                    included: true
+                  - name: "meta-llama/Llama-2-7b-hf"
+                    included: true
+                  - name: "mistralai/Mistral-7B-v0.1-draft"
+                    included: false
+                  - name: "microsoft/phi-2-experimental"
+                    included: false
+                summary:
+                  totalModels: 5
+                  includedModels: 3
+                  excludedModels: 2
+            includedOnly:
+              summary: Only included models
+              description: Response when filterStatus=included
+              value:
+                nextPageToken: ""
+                pageSize: 10
+                size: 3
+                items:
+                  - name: "ibm-granite/granite-3.0-8b-instruct"
+                    included: true
+                  - name: "ibm-granite/granite-3.0-2b-instruct"
+                    included: true
+                  - name: "meta-llama/Llama-2-7b-hf"
+                    included: true
+                summary:
+                  totalModels: 5
+                  includedModels: 3
+                  excludedModels: 2
+            excludedOnly:
+              summary: Only excluded models
+              description: Response when filterStatus=excluded
+              value:
+                nextPageToken: ""
+                pageSize: 10
+                size: 2
+                items:
+                  - name: "mistralai/Mistral-7B-v0.1-draft"
+                    included: false
+                  - name: "microsoft/phi-2-experimental"
+                    included: false
+                summary:
+                  totalModels: 5
+                  includedModels: 3
+                  excludedModels: 2
+            withPagination:
+              summary: Paginated response
+              description: Response with pagination when pageSize is smaller than total
+              value:
+                nextPageToken: "eyJvZmZzZXQiOjEwfQ==" # notsecret
+                pageSize: 10
+                size: 10
+                items:
+                  - name: "ibm-granite/granite-3.0-8b-instruct"
+                    included: true
+                  - name: "ibm-granite/granite-3.0-2b-instruct"
+                    included: true
+                  - name: "meta-llama/Llama-2-7b-hf"
+                    included: true
+                  - name: "meta-llama/Llama-2-13b-hf"
+                    included: true
+                  - name: "mistralai/Mistral-7B-Instruct-v0.3"
+                    included: true
+                  - name: "mistralai/Mistral-7B-v0.1"
+                    included: true
+                  - name: "microsoft/phi-2"
+                    included: true
+                  - name: "google/gemma-7b"
+                    included: true
+                  - name: "mistralai/Mistral-7B-v0.1-draft"
+                    included: false
+                  - name: "microsoft/phi-2-experimental"
+                    included: false
+                summary:
+                  totalModels: 150
+                  includedModels: 85
+                  excludedModels: 65
       description: |-
         A response containing a list of models with their inclusion/exclusion
         status based on the provided catalog source configuration.
