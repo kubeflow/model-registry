@@ -16,6 +16,7 @@ import (
 	"io"
 	"net/http"
 	"net/url"
+	"os"
 	"reflect"
 	"strings"
 )
@@ -1362,6 +1363,211 @@ func (a *ModelCatalogServiceAPIService) GetModelExecute(r ApiGetModelRequest) (*
 			return localVarReturnValue, localVarHTTPResponse, newErr
 		}
 		if localVarHTTPResponse.StatusCode == 404 {
+			var v Error
+			err = a.client.decode(&v, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
+			if err != nil {
+				newErr.error = err.Error()
+				return localVarReturnValue, localVarHTTPResponse, newErr
+			}
+			newErr.error = formatErrorMessage(localVarHTTPResponse.Status, &v)
+			newErr.model = v
+			return localVarReturnValue, localVarHTTPResponse, newErr
+		}
+		if localVarHTTPResponse.StatusCode == 500 {
+			var v Error
+			err = a.client.decode(&v, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
+			if err != nil {
+				newErr.error = err.Error()
+				return localVarReturnValue, localVarHTTPResponse, newErr
+			}
+			newErr.error = formatErrorMessage(localVarHTTPResponse.Status, &v)
+			newErr.model = v
+		}
+		return localVarReturnValue, localVarHTTPResponse, newErr
+	}
+
+	err = a.client.decode(&localVarReturnValue, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
+	if err != nil {
+		newErr := &GenericOpenAPIError{
+			body:  localVarBody,
+			error: err.Error(),
+		}
+		return localVarReturnValue, localVarHTTPResponse, newErr
+	}
+
+	return localVarReturnValue, localVarHTTPResponse, nil
+}
+
+type ApiPreviewCatalogSourceRequest struct {
+	ctx           context.Context
+	ApiService    *ModelCatalogServiceAPIService
+	config        *os.File
+	pageSize      *string
+	nextPageToken *string
+	filterStatus  *string
+}
+
+// YAML file containing the catalog source configuration. The file should contain a source definition with type and properties fields, including optional includedModels and excludedModels filters.
+func (r ApiPreviewCatalogSourceRequest) Config(config *os.File) ApiPreviewCatalogSourceRequest {
+	r.config = config
+	return r
+}
+
+// Number of entities in each page.
+func (r ApiPreviewCatalogSourceRequest) PageSize(pageSize string) ApiPreviewCatalogSourceRequest {
+	r.pageSize = &pageSize
+	return r
+}
+
+// Token to use to retrieve next page of results.
+func (r ApiPreviewCatalogSourceRequest) NextPageToken(nextPageToken string) ApiPreviewCatalogSourceRequest {
+	r.nextPageToken = &nextPageToken
+	return r
+}
+
+// Filter the response to show specific model statuses: - &#x60;all&#x60; (default): Show all models regardless of inclusion status - &#x60;included&#x60;: Show only models that pass the configured filters - &#x60;excluded&#x60;: Show only models that are filtered out
+func (r ApiPreviewCatalogSourceRequest) FilterStatus(filterStatus string) ApiPreviewCatalogSourceRequest {
+	r.filterStatus = &filterStatus
+	return r
+}
+
+func (r ApiPreviewCatalogSourceRequest) Execute() (*CatalogSourcePreviewResponse, *http.Response, error) {
+	return r.ApiService.PreviewCatalogSourceExecute(r)
+}
+
+/*
+PreviewCatalogSource Preview catalog source configuration
+
+Accepts a catalog source configuration (via multipart form upload for YAML catalogs files)
+and returns a list of models showing which would be included or excluded based
+on the configured filters. This allows users to test and validate their source
+configurations before applying them.
+
+	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+	@return ApiPreviewCatalogSourceRequest
+*/
+func (a *ModelCatalogServiceAPIService) PreviewCatalogSource(ctx context.Context) ApiPreviewCatalogSourceRequest {
+	return ApiPreviewCatalogSourceRequest{
+		ApiService: a,
+		ctx:        ctx,
+	}
+}
+
+// Execute executes the request
+//
+//	@return CatalogSourcePreviewResponse
+func (a *ModelCatalogServiceAPIService) PreviewCatalogSourceExecute(r ApiPreviewCatalogSourceRequest) (*CatalogSourcePreviewResponse, *http.Response, error) {
+	var (
+		localVarHTTPMethod  = http.MethodPost
+		localVarPostBody    interface{}
+		formFiles           []formFile
+		localVarReturnValue *CatalogSourcePreviewResponse
+	)
+
+	localBasePath, err := a.client.cfg.ServerURLWithContext(r.ctx, "ModelCatalogServiceAPIService.PreviewCatalogSource")
+	if err != nil {
+		return localVarReturnValue, nil, &GenericOpenAPIError{error: err.Error()}
+	}
+
+	localVarPath := localBasePath + "/api/model_catalog/v1alpha1/sources/preview"
+
+	localVarHeaderParams := make(map[string]string)
+	localVarQueryParams := url.Values{}
+	localVarFormParams := url.Values{}
+	if r.config == nil {
+		return localVarReturnValue, nil, reportError("config is required and must be specified")
+	}
+
+	if r.pageSize != nil {
+		parameterAddToHeaderOrQuery(localVarQueryParams, "pageSize", r.pageSize, "form", "")
+	}
+	if r.nextPageToken != nil {
+		parameterAddToHeaderOrQuery(localVarQueryParams, "nextPageToken", r.nextPageToken, "form", "")
+	}
+	if r.filterStatus != nil {
+		parameterAddToHeaderOrQuery(localVarQueryParams, "filterStatus", r.filterStatus, "form", "")
+	} else {
+		var defaultValue string = "all"
+		parameterAddToHeaderOrQuery(localVarQueryParams, "filterStatus", defaultValue, "form", "")
+		r.filterStatus = &defaultValue
+	}
+	// to determine the Content-Type header
+	localVarHTTPContentTypes := []string{"multipart/form-data", "application/json"}
+
+	// set Content-Type header
+	localVarHTTPContentType := selectHeaderContentType(localVarHTTPContentTypes)
+	if localVarHTTPContentType != "" {
+		localVarHeaderParams["Content-Type"] = localVarHTTPContentType
+	}
+
+	// to determine the Accept header
+	localVarHTTPHeaderAccepts := []string{"application/json"}
+
+	// set Accept header
+	localVarHTTPHeaderAccept := selectHeaderAccept(localVarHTTPHeaderAccepts)
+	if localVarHTTPHeaderAccept != "" {
+		localVarHeaderParams["Accept"] = localVarHTTPHeaderAccept
+	}
+	var configLocalVarFormFileName string
+	var configLocalVarFileName string
+	var configLocalVarFileBytes []byte
+
+	configLocalVarFormFileName = "config"
+	configLocalVarFile := r.config
+
+	if configLocalVarFile != nil {
+		fbs, _ := io.ReadAll(configLocalVarFile)
+
+		configLocalVarFileBytes = fbs
+		configLocalVarFileName = configLocalVarFile.Name()
+		configLocalVarFile.Close()
+		formFiles = append(formFiles, formFile{fileBytes: configLocalVarFileBytes, fileName: configLocalVarFileName, formFileName: configLocalVarFormFileName})
+	}
+	req, err := a.client.prepareRequest(r.ctx, localVarPath, localVarHTTPMethod, localVarPostBody, localVarHeaderParams, localVarQueryParams, localVarFormParams, formFiles)
+	if err != nil {
+		return localVarReturnValue, nil, err
+	}
+
+	localVarHTTPResponse, err := a.client.callAPI(req)
+	if err != nil || localVarHTTPResponse == nil {
+		return localVarReturnValue, localVarHTTPResponse, err
+	}
+
+	localVarBody, err := io.ReadAll(localVarHTTPResponse.Body)
+	localVarHTTPResponse.Body.Close()
+	localVarHTTPResponse.Body = io.NopCloser(bytes.NewBuffer(localVarBody))
+	if err != nil {
+		return localVarReturnValue, localVarHTTPResponse, err
+	}
+
+	if localVarHTTPResponse.StatusCode >= 300 {
+		newErr := &GenericOpenAPIError{
+			body:  localVarBody,
+			error: localVarHTTPResponse.Status,
+		}
+		if localVarHTTPResponse.StatusCode == 400 {
+			var v Error
+			err = a.client.decode(&v, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
+			if err != nil {
+				newErr.error = err.Error()
+				return localVarReturnValue, localVarHTTPResponse, newErr
+			}
+			newErr.error = formatErrorMessage(localVarHTTPResponse.Status, &v)
+			newErr.model = v
+			return localVarReturnValue, localVarHTTPResponse, newErr
+		}
+		if localVarHTTPResponse.StatusCode == 401 {
+			var v Error
+			err = a.client.decode(&v, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
+			if err != nil {
+				newErr.error = err.Error()
+				return localVarReturnValue, localVarHTTPResponse, newErr
+			}
+			newErr.error = formatErrorMessage(localVarHTTPResponse.Status, &v)
+			newErr.model = v
+			return localVarReturnValue, localVarHTTPResponse, newErr
+		}
+		if localVarHTTPResponse.StatusCode == 422 {
 			var v Error
 			err = a.client.decode(&v, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
 			if err != nil {

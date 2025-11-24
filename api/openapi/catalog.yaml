@@ -160,6 +160,71 @@ paths:
           $ref: "#/components/responses/InternalServerError"
       operationId: findSources
       description: Gets a list of all `CatalogSource` entities.
+  /api/model_catalog/v1alpha1/sources/preview:
+    description: >-
+      The REST endpoint/path used to preview a catalog source configuration. This endpoint accepts a catalog source definition and returns a list of models with their inclusion/exclusion status based on the configured filters.
+    post:
+      summary: Preview catalog source configuration
+      description: |-
+        Accepts a catalog source configuration (via multipart form upload for YAML catalogs files)
+        and returns a list of models showing which would be included or excluded based
+        on the configured filters. This allows users to test and validate their source
+        configurations before applying them.
+      tags:
+        - ModelCatalogService
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required:
+                - config
+              properties:
+                config:
+                  type: string
+                  format: binary
+                  description: |-
+                    YAML file containing the catalog source configuration.
+                    The file should contain a source definition with type and properties
+                    fields, including optional includedModels and excludedModels filters.
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CatalogSourcePreviewRequest"
+      parameters:
+        - $ref: "#/components/parameters/pageSize"
+        - $ref: "#/components/parameters/nextPageToken"
+        - name: filterStatus
+          description: |-
+            Filter the response to show specific model statuses:
+            - `all` (default): Show all models regardless of inclusion status
+            - `included`: Show only models that pass the configured filters
+            - `excluded`: Show only models that are filtered out
+          schema:
+            type: string
+            enum:
+              - all
+              - included
+              - excluded
+            default: all
+          in: query
+          required: false
+      responses:
+        "200":
+          $ref: "#/components/responses/CatalogSourcePreviewResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "422":
+          description: Unprocessable Entity - Invalid source configuration
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+      operationId: previewCatalogSource
   /api/model_catalog/v1alpha1/sources/{source_id}/models/{model_name+}:
     description: >-
       The REST endpoint/path used to get a `CatalogModel`.
@@ -607,6 +672,69 @@ components:
               items:
                 $ref: "#/components/schemas/CatalogSource"
         - $ref: "#/components/schemas/BaseResourceList"
+    CatalogSourcePreviewRequest:
+      description: Request to preview catalog source configuration effects.
+      type: object
+      required:
+        - type
+      properties:
+        type:
+          type: string
+          description: The type of catalog source (e.g., 'huggingface', 'yaml')
+          example: yaml
+        includedModels:
+          type: array
+          items:
+            type: string
+        excludedModels:
+          type: array
+          items:
+            type: string
+        properties:
+          type: object
+          description: Type-specific configuration properties
+          additionalProperties: true
+          example:
+            includedModels:
+              - "ibm-granite/*"
+              - "meta-llama/*"
+            excludedModels:
+              - "*-draft"
+              - "*-experimental"
+    CatalogSourcePreviewResponse:
+      description: Response containing models and their inclusion/exclusion status.
+      allOf:
+        - type: object
+          properties:
+            items:
+              description: Array of model preview results.
+              type: array
+              items:
+                $ref: "#/components/schemas/ModelPreviewResult"
+            summary:
+              description: Summary of the preview results
+              type: object
+              properties:
+                totalModels:
+                  type: integer
+                  description: Total number of models evaluated
+                  example: 1500
+                includedModels:
+                  type: integer
+                  description: Number of models that would be included
+                  example: 850
+                excludedModels:
+                  type: integer
+                  description: Number of models that would be excluded
+                  example: 650
+              required:
+                - totalModels
+                - includedModels
+                - excludedModels
+          required:
+            - items
+            - summary
+        - $ref: "#/components/schemas/BaseResourceList"
     Error:
       description: Error code and message.
       required:
@@ -763,6 +891,22 @@ components:
       example:
         string_value: my_value
         metadataType: MetadataStringValue
+    ModelPreviewResult:
+      description: |-
+        A model with its inclusion/exclusion status based on the
+        configured catalog source filters.
+      type: object
+      required:
+        - name
+        - included
+      properties:
+        name:
+          type: string
+          description: Name of the model
+          example: microsoft/DialoGPT-medium
+        included:
+          type: boolean
+          description: Whether this model would be included based on the source configuration
     OrderByField:
       description: |-
         Supported fields for ordering result entities.
@@ -815,6 +959,14 @@ components:
           schema:
             $ref: "#/components/schemas/CatalogSourceList"
       description: A response containing a list of CatalogSource entities.
+    CatalogSourcePreviewResponse:
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/CatalogSourcePreviewResponse"
+      description: |-
+        A response containing a list of models with their inclusion/exclusion
+        status based on the provided catalog source configuration.
     CatalogSourceResponse:
       content:
         application/json:
