@@ -99,6 +99,10 @@ export HF_API_KEY="your-huggingface-api-key-here"
 - Reference it in your deployment configuration
 - The catalog service will read it from the `HF_API_KEY` environment variable
 
+**Important Notes:**
+- **Private Models**: For private models, the API key must belong to an account that has been granted access to the model. Without proper access, the catalog service will not be able to retrieve model information.
+- **Gated Models**: For gated models (models with usage restrictions), you must accept the model's terms of service on HuggingFace before the catalog service can access all available model information. Visit the model's page on HuggingFace and accept the terms to ensure full metadata is available.
+
 #### 2. Configure the Source
 
 Add a HuggingFace source to your `catalog-sources.yaml`:

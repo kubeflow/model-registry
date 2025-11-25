@@ -49,7 +49,7 @@ type hfModelInfo struct {
 	CreatedAt   string    `json:"createdAt,omitempty"`
 	UpdatedAt   string    `json:"updatedAt,omitempty"`
 	Private     bool      `json:"private,omitempty"`
-	Gated       bool      `json:"gated,omitempty"`
+	Gated       string    `json:"gated,omitempty"`
 	Downloads   int       `json:"downloads,omitempty"`
 	Tags        []string  `json:"tags,omitempty"`
 	PipelineTag string    `json:"pipeline_tag,omitempty"`
@@ -226,7 +226,7 @@ func (hfm *hfModel) populateFromHFInfo(ctx context.Context, provider *hfModelPro
 
 	customProps["hf_gated"] = apimodels.MetadataValue{
 		MetadataStringValue: &apimodels.MetadataStringValue{
-			StringValue: strconv.FormatBool(hfInfo.Gated),
+			StringValue: hfInfo.Gated,
 		},
 	}
 
