@@ -19,7 +19,6 @@ model_catalog_model_artifact.go
 model_catalog_model_list.go
 model_catalog_source.go
 model_catalog_source_list.go
-model_catalog_source_preview_request.go
 model_catalog_source_preview_response.go
 model_catalog_source_preview_response_all_of_summary.go
 model_error.go

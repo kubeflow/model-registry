@@ -332,7 +332,8 @@ paths:
                     fields, including optional includedModels and excludedModels filters.
 
                     Model filter patterns support the `*` wildcard only and are case-insensitive.
-                    See CatalogSourcePreviewRequest schema for detailed pattern syntax documentation.
+                    Patterns match the entire model name (e.g., `ibm-granite/*` matches all
+                    models starting with "ibm-granite/").
 
                     File Size Limit: Maximum upload size is 32 MB. Files exceeding this limit will
                     be rejected with a 400 Bad Request error.
@@ -364,41 +365,6 @@ paths:
                   properties:
                     apiKey: "your-huggingface-api-key-here" # notsecret
                     modelLimit: 100
-          application/json:
-            schema:
-              $ref: "#/components/schemas/CatalogSourcePreviewRequest"
-            examples:
-              yamlCatalogSource:
-                summary: YAML catalog source with filters
-                value:
-                  type: yaml
-                  includedModels:
-                    - "ibm-granite/*"
-                    - "meta-llama/*"
-                    - "mistralai/*"
-                  excludedModels:
-                    - "*-draft"
-                    - "*-experimental"
-                  properties:
-                    yamlCatalogPath: "models-catalog.yaml"
-              huggingfaceSource:
-                summary: HuggingFace catalog source
-                value:
-                  type: hf
-                  includedModels:
-                    - "microsoft/*"
-                    - "google/*"
-                  excludedModels:
-                    - "*-gguf"
-                  properties:
-                    apiKey: "your-huggingface-api-key-here" # notsecret
-                    modelLimit: 100
-              noFilters:
-                summary: Source with no filters
-                value:
-                  type: yaml
-                  properties:
-                    yamlCatalogPath: "all-models.yaml"
       parameters:
         - $ref: "#/components/parameters/pageSize"
         - $ref: "#/components/parameters/nextPageToken"
@@ -648,81 +614,6 @@ components:
               items:
                 $ref: "#/components/schemas/CatalogSource"
         - $ref: "#/components/schemas/BaseResourceList"
-    CatalogSourcePreviewRequest:
-      description: Request to preview catalog source configuration effects.
-      type: object
-      required:
-        - type
-      properties:
-        type:
-          type: string
-          description: The type of catalog source (e.g., 'huggingface', 'yaml')
-          example: yaml
-        includedModels:
-          type: array
-          description: |-
-            Optional list of glob patterns for models to include. If specified, only models matching
-            at least one pattern will be included. If omitted, all models are considered for inclusion.
-
-            Pattern Syntax:
-            - Only the `*` wildcard is supported (matches zero or more characters)
-            - Patterns are case-insensitive (e.g., `Granite/*` matches `granite/model` and `GRANITE/model`)
-            - Patterns match the entire model name (anchored at start and end)
-            - Wildcards can appear anywhere: `Granite/*`, `*-beta`, `*deprecated*`, `*/old*`
-
-            Examples:
-            - `ibm-granite/*` - matches all models starting with "ibm-granite/"
-            - `meta-llama/*` - matches all models in the meta-llama namespace
-            - `*` - matches all models
-
-            Constraints:
-            - Patterns cannot be empty or whitespace-only
-            - A pattern cannot appear in both includedModels and excludedModels
-          items:
-            type: string
-          example:
-            - "ibm-granite/*"
-            - "meta-llama/*"
-            - "mistralai/*"
-        excludedModels:
-          type: array
-          description: |-
-            Optional list of glob patterns for models to exclude. Models matching any pattern
-            will be excluded even if they match an includedModels pattern. Exclusions take
-            precedence over inclusions.
-
-            Pattern Syntax:
-            - Only the `*` wildcard is supported (matches zero or more characters)
-            - Patterns are case-insensitive
-            - Patterns match the entire model name (anchored at start and end)
-            - Wildcards can appear anywhere in the pattern
-
-            Examples:
-            - `*-draft` - excludes all models ending with "-draft"
-            - `*-experimental` - excludes experimental models
-            - `*deprecated*` - excludes models with "deprecated" anywhere in the name
-            - `*/beta-*` - excludes models with "/beta-" in the path
-
-            Constraints:
-            - Patterns cannot be empty or whitespace-only
-            - A pattern cannot appear in both includedModels and excludedModels
-          items:
-            type: string
-          example:
-            - "*-draft"
-            - "*-experimental"
-            - "*-unstable"
-        properties:
-          type: object
-          description: Type-specific configuration properties
-          additionalProperties: true
-          example:
-            includedModels:
-              - "ibm-granite/*"
-              - "meta-llama/*"
-            excludedModels:
-              - "*-draft"
-              - "*-experimental"
     CatalogSourcePreviewResponse:
       description: Response containing models and their inclusion/exclusion status.
       allOf:

@@ -277,25 +277,6 @@ func AssertCatalogSourceListRequired(obj model.CatalogSourceList) error {
 	return nil
 }
 
-// AssertCatalogSourcePreviewRequestConstraints checks if the values respects the defined constraints
-func AssertCatalogSourcePreviewRequestConstraints(obj model.CatalogSourcePreviewRequest) error {
-	return nil
-}
-
-// AssertCatalogSourcePreviewRequestRequired checks if the required fields are not zero-ed
-func AssertCatalogSourcePreviewRequestRequired(obj model.CatalogSourcePreviewRequest) error {
-	elements := map[string]interface{}{
-		"type": obj.Type,
-	}
-	for name, el := range elements {
-		if isZero := IsZeroValue(el); isZero {
-			return &RequiredError{Field: name}
-		}
-	}
-
-	return nil
-}
-
 // AssertCatalogSourcePreviewResponseAllOfSummaryConstraints checks if the values respects the defined constraints
 func AssertCatalogSourcePreviewResponseAllOfSummaryConstraints(obj model.CatalogSourcePreviewResponseAllOfSummary) error {
 	return nil

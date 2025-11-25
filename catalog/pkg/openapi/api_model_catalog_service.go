@@ -1407,7 +1407,7 @@ type ApiPreviewCatalogSourceRequest struct {
 	filterStatus  *string
 }
 
-// YAML file containing the catalog source configuration. The file should contain a source definition with type and properties fields, including optional includedModels and excludedModels filters.  Model filter patterns support the &#x60;*&#x60; wildcard only and are case-insensitive. See CatalogSourcePreviewRequest schema for detailed pattern syntax documentation.  File Size Limit: Maximum upload size is 32 MB. Files exceeding this limit will be rejected with a 400 Bad Request error.
+// YAML file containing the catalog source configuration. The file should contain a source definition with type and properties fields, including optional includedModels and excludedModels filters.  Model filter patterns support the &#x60;*&#x60; wildcard only and are case-insensitive. Patterns match the entire model name (e.g., &#x60;ibm-granite/_*&#x60; matches all models starting with \\\&quot;ibm-granite/\\\&quot;).  File Size Limit: Maximum upload size is 32 MB. Files exceeding this limit will be rejected with a 400 Bad Request error.
 func (r ApiPreviewCatalogSourceRequest) Config(config *os.File) ApiPreviewCatalogSourceRequest {
 	r.config = config
 	return r
@@ -1492,7 +1492,7 @@ func (a *ModelCatalogServiceAPIService) PreviewCatalogSourceExecute(r ApiPreview
 		r.filterStatus = &defaultValue
 	}
 	// to determine the Content-Type header
-	localVarHTTPContentTypes := []string{"multipart/form-data", "application/json"}
+	localVarHTTPContentTypes := []string{"multipart/form-data"}
 
 	// set Content-Type header
 	localVarHTTPContentType := selectHeaderContentType(localVarHTTPContentTypes)
