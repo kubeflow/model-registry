@@ -28,7 +28,6 @@ catalog/pkg/openapi/model_catalog_model_artifact.go linguist-generated=true
 catalog/pkg/openapi/model_catalog_model_list.go linguist-generated=true
 catalog/pkg/openapi/model_catalog_source.go linguist-generated=true
 catalog/pkg/openapi/model_catalog_source_list.go linguist-generated=true
-catalog/pkg/openapi/model_catalog_source_preview_request.go linguist-generated=true
 catalog/pkg/openapi/model_catalog_source_preview_response.go linguist-generated=true
 catalog/pkg/openapi/model_catalog_source_preview_response_all_of_summary.go linguist-generated=true
 catalog/pkg/openapi/model_error.go linguist-generated=true
