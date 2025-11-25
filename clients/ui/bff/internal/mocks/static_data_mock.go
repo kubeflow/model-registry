@@ -1339,14 +1339,14 @@ func GetFilterOptionsListMock() models.FilterOptionsList {
 	}
 }
 
-func CreateSampleCatalogSource(id string, name string, catalogType string) models.CatalogSourceConfig {
+func CreateSampleCatalogSource(id string, name string, catalogType string, enabled bool) models.CatalogSourceConfig {
 	defaultCatalog := id == "sample-source"
 
 	sourceConfig := models.CatalogSourceConfig{
 		Name:      name,
 		Id:        id,
 		Type:      catalogType,
-		Enabled:   BoolPtr(true),
+		Enabled:   &enabled,
 		Labels:    []string{"source-1"},
 		IsDefault: &defaultCatalog,
 	}
@@ -1379,11 +1379,12 @@ func BoolPtr(b bool) *bool {
 func GetCatalogSourceConfigsMocks() []models.CatalogSourceConfig {
 	// Match IDs with catalog sources to show proper statuses
 	return []models.CatalogSourceConfig{
-		CreateSampleCatalogSource("sample-source", "Sample mocked source", "yaml"),
-		CreateSampleCatalogSource("huggingface", "Hugging Face", "huggingface"),
-		CreateSampleCatalogSource("adminModel1", "Admin model 1", "huggingface"),
-		CreateSampleCatalogSource("adminModel2", "Admin model 2", "huggingface"),
-		CreateSampleCatalogSource("dora", "Dora source", "yaml"),
+		CreateSampleCatalogSource("sample-source", "Sample mocked source", "yaml", true),
+		CreateSampleCatalogSource("huggingface", "Hugging Face", "huggingface", false),
+		CreateSampleCatalogSource("adminModel1", "Admin model 1", "huggingface", true),
+		CreateSampleCatalogSource("adminModel2", "Admin model 2", "huggingface", true),
+		CreateSampleCatalogSource("dora", "Dora source", "yaml", true),
+		CreateSampleCatalogSource("catalog-4", "Custom Catalog 2", "yaml", false),
 	}
 }
 

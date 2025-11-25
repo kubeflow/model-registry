@@ -1,7 +1,10 @@
 import * as React from 'react';
 import {
   Alert,
+  AlertActionCloseButton,
   Button,
+  Flex,
+  FlexItem,
   Stack,
   StackItem,
   Toolbar,
@@ -26,7 +29,37 @@ const CatalogSourceConfigsTable: React.FC<CatalogSourceConfigsTableProps> = ({
   onAddSource,
   onDeleteSource,
 }) => {
-  const { catalogSourcesLoadError } = React.useContext(ModelCatalogSettingsContext);
+  const [toggleError, setToggleError] = React.useState<Error | undefined>(undefined);
+  const [isUpdatingToggle, setIsUpdatingToggle] = React.useState(false);
+  const { apiState, refreshCatalogSourceConfigs, catalogSourcesLoadError } = React.useContext(
+    ModelCatalogSettingsContext,
+  );
+  const [showAlert, setShowAlert] = React.useState<boolean>(false);
+
+  const handleEnableToggle = async (checked: boolean, catalogSourceConfig: CatalogSourceConfig) => {
+    if (!apiState.apiAvailable) {
+      setToggleError(new Error('API is not available'));
+      setShowAlert(true);
+      return;
+    }
+    setIsUpdatingToggle(true);
+    setShowAlert(false);
+
+    try {
+      await apiState.api.updateCatalogSourceConfig({}, catalogSourceConfig.id, {
+        enabled: checked,
+      });
+      setToggleError(undefined);
+      refreshCatalogSourceConfigs();
+    } catch (e) {
+      if (e instanceof Error) {
+        setToggleError(new Error(`Error enabling/disabling source ${catalogSourceConfig.name}`));
+        setShowAlert(true);
+      }
+    } finally {
+      setIsUpdatingToggle(false);
+    }
+  };
 
   return (
     <Stack hasGutter>
@@ -48,25 +81,41 @@ const CatalogSourceConfigsTable: React.FC<CatalogSourceConfigsTableProps> = ({
           data={catalogSourceConfigs}
           columns={catalogSourceConfigsColumns}
           toolbarContent={
-            <Toolbar>
-              <ToolbarContent>
-                <ToolbarItem>
-                  <Button
-                    variant="primary"
-                    icon={<PlusCircleIcon />}
-                    onClick={onAddSource}
-                    data-testid="add-source-button"
-                  >
-                    Add a source
-                  </Button>
-                </ToolbarItem>
-              </ToolbarContent>
-            </Toolbar>
+            <Flex direction={{ default: 'column' }}>
+              <FlexItem>
+                <Toolbar>
+                  <ToolbarContent>
+                    <ToolbarItem>
+                      <Button
+                        variant="primary"
+                        icon={<PlusCircleIcon />}
+                        onClick={onAddSource}
+                        data-testid="add-source-button"
+                      >
+                        Add a source
+                      </Button>
+                    </ToolbarItem>
+                  </ToolbarContent>
+                </Toolbar>
+              </FlexItem>
+              {toggleError && showAlert && (
+                <FlexItem>
+                  <Alert
+                    variant="danger"
+                    data-testid="toggle-alert"
+                    title={toggleError.message}
+                    actionClose={<AlertActionCloseButton onClose={() => setShowAlert(false)} />}
+                  />
+                </FlexItem>
+              )}
+            </Flex>
           }
           rowRenderer={(config) => (
             <CatalogSourceConfigsTableRow
               key={config.id}
               catalogSourceConfig={config}
+              isUpdatingToggle={isUpdatingToggle}
+              onToggleUpdate={handleEnableToggle}
               onDeleteSource={onDeleteSource}
             />
           )}
