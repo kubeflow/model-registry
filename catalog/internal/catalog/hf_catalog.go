@@ -49,6 +49,7 @@ type hfModelInfo struct {
 	CreatedAt   string    `json:"createdAt,omitempty"`
 	UpdatedAt   string    `json:"updatedAt,omitempty"`
 	Private     bool      `json:"private,omitempty"`
+	Gated       bool      `json:"gated,omitempty"`
 	Downloads   int       `json:"downloads,omitempty"`
 	Tags        []string  `json:"tags,omitempty"`
 	PipelineTag string    `json:"pipeline_tag,omitempty"`
@@ -72,6 +73,10 @@ type hfConfig struct {
 type hfCard struct {
 	Data map[string]interface{} `json:"data,omitempty"`
 }
+
+var (
+	catalogModelLogo = "data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiPz48c3ZnIGlkPSJ1dWlkLWE2ODNjMGQyLWViOTAtNGI0Yi1hOWE0LTVlMzI2NWYwNzVjNSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIiB3aWR0aD0iMTc1IiBoZWlnaHQ9IjE3NSIgdmlld0JveD0iMCAwIDE3NSAxNzUiPjxkZWZzPjxzdHlsZT4udXVpZC00MmIxYTFkMi05NWQ4LTQ3OTgtYmY5ZS04YTc1NzAyOGM0NWJ7ZmlsbDpub25lO30udXVpZC01MjRiZWEwYi1mMTg2LTQ1ZjAtOWQ4Ny01ZTBhNjlkZjZhYTN7ZmlsbDojZTBlMGUwO30udXVpZC02Mzc3YmY0MS04OTU5LTQyN2ItYWFlZC0xOWRjMDlmNzM1MGV7ZmlsbDojZmZmO30udXVpZC0xNTQyMDVmNy02YzY5LTQyODYtYjllZC1hZDcwMjI0YzdiODR7ZmlsbDojZTAwO308L3N0eWxlPjwvZGVmcz48cmVjdCBjbGFzcz0idXVpZC00MmIxYTFkMi05NWQ4LTQ3OTgtYmY5ZS04YTc1NzAyOGM0NWIiIHdpZHRoPSIxNzUiIGhlaWdodD0iMTc1Ii8+PHJlY3QgY2xhc3M9InV1aWQtNjM3N2JmNDEtODk1OS00MjdiLWFhZWQtMTlkYzA5ZjczNTBlIiB4PSIxMi41IiB5PSIxMi41IiB3aWR0aD0iMTUwIiBoZWlnaHQ9IjE1MCIgcng9IjM3LjUiIHJ5PSIzNy41Ii8+PHBhdGggY2xhc3M9InV1aWQtNTI0YmVhMGItZjE4Ni00NWYwLTlkODctNWUwYTY5ZGY2YWEzIiBkPSJNMTI1LDE3LjcwODMzYzE3LjgwNTY3LDAsMzIuMjkxNjcsMTQuNDg2LDMyLjI5MTY3LDMyLjI5MTY3djc1YzAsMTcuODA1NjYtMTQuNDg1OTksMzIuMjkxNjctMzIuMjkxNjcsMzIuMjkxNjdINTBjLTE3LjgwNTY3LDAtMzIuMjkxNjctMTQuNDg2LTMyLjI5MTY3LTMyLjI5MTY3VjUwYzAtMTcuODA1NjcsMTQuNDg1OTktMzIuMjkxNjcsMzIuMjkxNjctMzIuMjkxNjdoNzVNMTI1LDEyLjVINTBjLTIwLjcxMDY3LDAtMzcuNSwxNi43ODkzMy0zNy41LDM3LjV2NzVjMCwyMC43MTA2NywxNi43ODkzMywzNy41LDM3LjUsMzcuNWg3NWMyMC43MTA2NiwwLDM3LjUtMTYuNzg5MzMsMzcuNS0zNy41VjUwYzAtMjAuNzEwNjctMTYuNzg5MzQtMzcuNS0zNy41LTM3LjVoMFoiLz48cGF0aCBjbGFzcz0idXVpZC0xNTQyMDVmNy02YzY5LTQyODYtYjllZC1hZDcwMjI0YzdiODQiIGQ9Ik0xMTYuNjY2NjIsMTE5LjI3MDgzaC01OC4zMzMzM2MtMS4wNTM4NywwLTIuMDAxOTUtLjYzNDc3LTIuNDA2ODItMS42MDcyNi0uNDAyODMtLjk3MjQ5LS4xNzkwNC0yLjA5MzUxLjU2NTU5LTIuODM4MTNsMjcuMzI1NDQtMjcuMzI1NDQtMjcuMzI1NDQtMjcuMzI1NDRjLS43NDQ2My0uNzQ0NjMtLjk2ODQyLTEuODY1NjQtLjU2NTU5LTIuODM4MTMuNDA0ODctLjk3MjQ5LDEuMzUyOTUtMS42MDcyNiwyLjQwNjgyLTEuNjA3MjZoNTguMzMzMzNjMS4wNTM4NywwLDIuMDAxOTUuNjM0NzcsMi40MDY4MiwxLjYwNzI2LjQwMjgzLjk3MjQ5LjE3OTA0LDIuMDkzNTEtLjU2NTU5LDIuODM4MTNsLTI3LjMyNTQ0LDI3LjMyNTQ0LDI3LjMyNTQ0LDI3LjMyNTQ0Yy43NDQ2My43NDQ2My45Njg0MiwxLjg2NTY0LjU2NTU5LDIuODM4MTMtLjQwNDg3Ljk3MjQ5LTEuMzUyOTUsMS42MDcyNi0yLjQwNjgyLDEuNjA3MjZaTTY0LjYxOTkxLDExNC4wNjI1aDQ1Ljc2MDA5bC0yMi44ODAwNS0yMi44ODAwNS0yMi44ODAwNSwyMi44ODAwNVpNNjQuNjE5OTEsNjAuOTM3NWwyMi44ODAwNSwyMi44ODAwNSwyMi44ODAwNS0yMi44ODAwNWgtNDUuNzYwMDlaIi8+PHBhdGggY2xhc3M9InV1aWQtMTU0MjA1ZjctNmM2OS00Mjg2LWI5ZWQtYWQ3MDIyNGM3Yjg0IiBkPSJNMTE2LjY2NjYyLDkwLjEwNDE3aC01OC4zMzMzM2MtMS40Mzg0LDAtMi42MDQxNy0xLjE2NTc3LTIuNjA0MTctMi42MDQxN3MxLjE2NTc3LTIuNjA0MTcsMi42MDQxNy0yLjYwNDE3aDU4LjMzMzMzYzEuNDM4NCwwLDIuNjA0MTcsMS4xNjU3NywyLjYwNDE3LDIuNjA0MTdzLTEuMTY1NzcsMi42MDQxNy0yLjYwNDE3LDIuNjA0MTdaIi8+PHJlY3QgY2xhc3M9InV1aWQtNjM3N2JmNDEtODk1OS00MjdiLWFhZWQtMTlkYzA5ZjczNTBlIiB4PSIxMTIuNSIgeT0iMTEyLjUiIHdpZHRoPSIxMi41IiBoZWlnaHQ9IjEyLjUiLz48cGF0aCBkPSJNMTI0Ljk5OTk1LDEyNy42MDQxN2gtMTIuNWMtMS40Mzg0LDAtMi42MDQxNy0xLjE2NTc3LTIuNjA0MTctMi42MDQxN3YtMTIuNWMwLTEuNDM4NCwxLjE2NTc3LTIuNjA0MTcsMi42MDQxNy0yLjYwNDE3aDEyLjVjMS40Mzg0LDAsMi42MDQxNywxLjE2NTc3LDIuNjA0MTcsMi42MDQxN3YxMi41YzAsMS40Mzg0LTEuMTY1NzcsMi42MDQxNy0yLjYwNDE3LDIuNjA0MTdaTTExNS4xMDQxMiwxMjIuMzk1ODNoNy4yOTE2N3YtNy4yOTE2N2gtNy4yOTE2N3Y3LjI5MTY3WiIvPjxyZWN0IGNsYXNzPSJ1dWlkLTYzNzdiZjQxLTg5NTktNDI3Yi1hYWVkLTE5ZGMwOWY3MzUwZSIgeD0iNTAiIHk9IjExMi41IiB3aWR0aD0iMTIuNSIgaGVpZ2h0PSIxMi41Ii8+PHBhdGggZD0iTTYyLjQ5OTk1LDEyNy42MDQxN2gtMTIuNWMtMS40Mzg0LDAtMi42MDQxNy0xLjE2NTc3LTIuNjA0MTctMi42MDQxN3YtMTIuNWMwLTEuNDM4NCwxLjE2NTc3LTIuNjA0MTcsMi42MDQxNy0yLjYwNDE3aDEyLjVjMS40Mzg0LDAsMi42MDQxNywxLjE2NTc3LDIuNjA0MTcsMi42MDQxN3YxMi41YzAsMS40Mzg0LTEuMTY1NzcsMi42MDQxNy0yLjYwNDE3LDIuNjA0MTdaTTUyLjYwNDEyLDEyMi4zOTU4M2g3LjI5MTY3di03LjI5MTY3aC03LjI5MTY3djcuMjkxNjdaIi8+PHJlY3QgY2xhc3M9InV1aWQtNjM3N2JmNDEtODk1OS00MjdiLWFhZWQtMTlkYzA5ZjczNTBlIiB4PSIxMTIuNSIgeT0iNTAiIHdpZHRoPSIxMi41IiBoZWlnaHQ9IjEyLjUiLz48cGF0aCBkPSJNMTI0Ljk5OTk1LDY1LjEwNDE3aC0xMi41Yy0xLjQzODQsMC0yLjYwNDE3LTEuMTY1NzctMi42MDQxNy0yLjYwNDE3di0xMi41YzAtMS40Mzg0LDEuMTY1NzctMi42MDQxNywyLjYwNDE3LTIuNjA0MTdoMTIuNWMxLjQzODQsMCwyLjYwNDE3LDEuMTY1NzcsMi42MDQxNywyLjYwNDE3djEyLjVjMCwxLjQzODQtMS4xNjU3NywyLjYwNDE3LTIuNjA0MTcsMi42MDQxN1pNMTE1LjEwNDEyLDU5Ljg5NTgzaDcuMjkxNjd2LTcuMjkxNjdoLTcuMjkxNjd2Ny4yOTE2N1oiLz48cmVjdCBjbGFzcz0idXVpZC02Mzc3YmY0MS04OTU5LTQyN2ItYWFlZC0xOWRjMDlmNzM1MGUiIHg9IjUwIiB5PSI1MCIgd2lkdGg9IjEyLjUiIGhlaWdodD0iMTIuNSIvPjxwYXRoIGQ9Ik02Mi40OTk5NSw2NS4xMDQxN2gtMTIuNWMtMS40Mzg0LDAtMi42MDQxNy0xLjE2NTc3LTIuNjA0MTctMi42MDQxN3YtMTIuNWMwLTEuNDM4NCwxLjE2NTc3LTIuNjA0MTcsMi42MDQxNy0yLjYwNDE3aDEyLjVjMS40Mzg0LDAsMi42MDQxNywxLjE2NTc3LDIuNjA0MTcsMi42MDQxN3YxMi41YzAsMS40Mzg0LTEuMTY1NzcsMi42MDQxNy0yLjYwNDE3LDIuNjA0MTdaTTUyLjYwNDEyLDU5Ljg5NTgzaDcuMjkxNjd2LTcuMjkxNjdoLTcuMjkxNjd2Ny4yOTE2N1oiLz48cmVjdCBjbGFzcz0idXVpZC02Mzc3YmY0MS04OTU5LTQyN2ItYWFlZC0xOWRjMDlmNzM1MGUiIHg9IjUwIiB5PSI4MS4yNSIgd2lkdGg9IjEyLjUiIGhlaWdodD0iMTIuNSIvPjxwYXRoIGQ9Ik02Mi40OTk5NSw5Ni4zNTQxN2gtMTIuNWMtMS40Mzg0LDAtMi42MDQxNy0xLjE2NTc3LTIuNjA0MTctMi42MDQxN3YtMTIuNWMwLTEuNDM4NCwxLjE2NTc3LTIuNjA0MTcsMi42MDQxNy0yLjYwNDE3aDEyLjVjMS40Mzg0LDAsMi42MDQxNywxLjE2NTc3LDIuNjA0MTcsMi42MDQxN3YxMi41YzAsMS40Mzg0LTEuMTY1NzcsMi42MDQxNy0yLjYwNDE3LDIuNjA0MTdaTTUyLjYwNDEyLDkxLjE0NTgzaDcuMjkxNjd2LTcuMjkxNjdoLTcuMjkxNjd2Ny4yOTE2N1oiLz48cmVjdCBjbGFzcz0idXVpZC02Mzc3YmY0MS04OTU5LTQyN2ItYWFlZC0xOWRjMDlmNzM1MGUiIHg9IjExMi41IiB5PSI4MS4yNSIgd2lkdGg9IjEyLjUiIGhlaWdodD0iMTIuNSIvPjxwYXRoIGQ9Ik0xMjQuOTk5OTUsOTYuMzU0MTdoLTEyLjVjLTEuNDM4NCwwLTIuNjA0MTctMS4xNjU3Ny0yLjYwNDE3LTIuNjA0MTd2LTEyLjVjMC0xLjQzODQsMS4xNjU3Ny0yLjYwNDE3LDIuNjA0MTctMi42MDQxN2gxMi41YzEuNDM4NCwwLDIuNjA0MTcsMS4xNjU3NywyLjYwNDE3LDIuNjA0MTd2MTIuNWMwLDEuNDM4NC0xLjE2NTc3LDIuNjA0MTctMi42MDQxNywyLjYwNDE3Wk0xMTUuMTA0MTIsOTEuMTQ1ODNoNy4yOTE2N3YtNy4yOTE2N2gtNy4yOTE2N3Y3LjI5MTY3WiIvPjxyZWN0IGNsYXNzPSJ1dWlkLTYzNzdiZjQxLTg5NTktNDI3Yi1hYWVkLTE5ZGMwOWY3MzUwZSIgeD0iODEuMjUiIHk9IjgxLjI1IiB3aWR0aD0iMTIuNSIgaGVpZ2h0PSIxMi41Ii8+PHBhdGggZD0iTTkzLjc0OTk1LDk2LjM1NDE3aC0xMi41Yy0xLjQzODQsMC0yLjYwNDE3LTEuMTY1NzctMi42MDQxNy0yLjYwNDE3di0xMi41YzAtMS40Mzg0LDEuMTY1NzctMi42MDQxNywyLjYwNDE3LTIuNjA0MTdoMTIuNWMxLjQzODQsMCwyLjYwNDE3LDEuMTY1NzcsMi42MDQxNywyLjYwNDE3djEyLjVjMCwxLjQzODQtMS4xNjU3NywyLjYwNDE3LTIuNjA0MTcsMi42MDQxN1pNODMuODU0MTIsOTEuMTQ1ODNoNy4yOTE2N3YtNy4yOTE2N2gtNy4yOTE2N3Y3LjI5MTY3WiIvPjwvc3ZnPg=="
+)
 
 // populateFromHFInfo populates the hfModel's CatalogModel fields from HuggingFace API data
 func (hfm *hfModel) populateFromHFInfo(ctx context.Context, provider *hfModelProvider, hfInfo *hfModelInfo, sourceId string, originalModelName string) {
@@ -151,9 +156,38 @@ func (hfm *hfModel) populateFromHFInfo(ctx context.Context, provider *hfModelPro
 
 	// Extract description from cardData if available
 	if hfInfo.CardData != nil && hfInfo.CardData.Data != nil {
+		// Extract description from cardData if available
 		if desc, ok := hfInfo.CardData.Data["description"].(string); ok && desc != "" {
 			hfm.Description = &desc
 		}
+
+		// Extract language from cardData if available
+		if langData, ok := hfInfo.CardData.Data["language"].([]interface{}); ok && len(langData) > 0 {
+			languages := make([]string, 0, len(langData))
+			for _, lang := range langData {
+				if langStr, ok := lang.(string); ok && langStr != "" {
+					languages = append(languages, langStr)
+				}
+			}
+			if len(languages) > 0 {
+				hfm.Language = languages
+			}
+		}
+
+		// Extract license link from cardData if available
+		// Check common field names for license link/URL
+		if hfm.LicenseLink == nil {
+			licenseLinkFields := []string{"license_link", "licenseLink", "license_url", "licenseUrl", "license"}
+			for _, field := range licenseLinkFields {
+				if link, ok := hfInfo.CardData.Data[field].(string); ok && link != "" {
+					if strings.HasPrefix(link, "http://") || strings.HasPrefix(link, "https://") {
+						hfm.LicenseLink = &link
+						break
+					}
+				}
+			}
+		}
+
 	}
 
 	// Set provider from author
@@ -165,6 +199,9 @@ func (hfm *hfModel) populateFromHFInfo(ctx context.Context, provider *hfModelPro
 	if hfInfo.LibraryName != "" {
 		hfm.LibraryName = &hfInfo.LibraryName
 	}
+
+	// Set logo
+	hfm.Logo = &catalogModelLogo
 
 	// Convert tasks
 	var tasks []string
@@ -180,6 +217,19 @@ func (hfm *hfModel) populateFromHFInfo(ctx context.Context, provider *hfModelPro
 
 	// Convert tags and other metadata to custom properties
 	customProps := make(map[string]apimodels.MetadataValue)
+
+	customProps["hf_private"] = apimodels.MetadataValue{
+		MetadataStringValue: &apimodels.MetadataStringValue{
+			StringValue: strconv.FormatBool(hfInfo.Private),
+		},
+	}
+
+	customProps["hf_gated"] = apimodels.MetadataValue{
+		MetadataStringValue: &apimodels.MetadataStringValue{
+			StringValue: strconv.FormatBool(hfInfo.Gated),
+		},
+	}
+
 	if len(filteredTags) > 0 {
 		if tagsJSON, err := json.Marshal(filteredTags); err == nil {
 			customProps["hf_tags"] = apimodels.MetadataValue{
@@ -187,22 +237,6 @@ func (hfm *hfModel) populateFromHFInfo(ctx context.Context, provider *hfModelPro
 					StringValue: string(tagsJSON),
 				},
 			}
-		}
-	}
-
-	if hfInfo.Downloads > 0 {
-		customProps["hf_downloads"] = apimodels.MetadataValue{
-			MetadataIntValue: &apimodels.MetadataIntValue{
-				IntValue: strconv.FormatInt(int64(hfInfo.Downloads), 10),
-			},
-		}
-	}
-
-	if hfInfo.Sha != "" {
-		customProps["hf_sha"] = apimodels.MetadataValue{
-			MetadataStringValue: &apimodels.MetadataStringValue{
-				StringValue: hfInfo.Sha,
-			},
 		}
 	}
 
@@ -437,6 +471,9 @@ func convertHFModelProperties(catalogModel *apimodels.CatalogModel) ([]models.Pr
 	if catalogModel.LibraryName != nil {
 		properties = append(properties, models.NewStringProperty("library_name", *catalogModel.LibraryName, false))
 	}
+	if catalogModel.Logo != nil {
+		properties = append(properties, models.NewStringProperty("logo", *catalogModel.Logo, false))
+	}
 	if catalogModel.SourceId != nil {
 		properties = append(properties, models.NewStringProperty("source_id", *catalogModel.SourceId, false))
 	}
@@ -445,6 +482,11 @@ func convertHFModelProperties(catalogModel *apimodels.CatalogModel) ([]models.Pr
 	if len(catalogModel.Tasks) > 0 {
 		if tasksJSON, err := json.Marshal(catalogModel.Tasks); err == nil {
 			properties = append(properties, models.NewStringProperty("tasks", string(tasksJSON), false))
+		}
+	}
+	if len(catalogModel.Language) > 0 {
+		if languageJSON, err := json.Marshal(catalogModel.Language); err == nil {
+			properties = append(properties, models.NewStringProperty("language", string(languageJSON), false))
 		}
 	}
 

@@ -13,6 +13,7 @@ The catalog service operates as a **metadata aggregation layer** that:
 ### Supported Catalog Sources
 
 - **YAML Catalog** - Static YAML files containing model metadata
+- **HuggingFace Hub** - Discover models from HuggingFace's model repository
 
 ## REST API
 
@@ -74,6 +75,60 @@ catalogs:
     properties:
       path: "./models"
 ```
+
+### HuggingFace Source Configuration
+
+The HuggingFace catalog source allows you to discover and import models from the HuggingFace Hub. To configure a HuggingFace source:
+
+#### 1. Set Your API Key
+
+The HuggingFace provider requires an API key for authentication. Set the `HF_API_KEY` environment variable:
+
+```bash
+export HF_API_KEY="your-huggingface-api-key-here"
+```
+
+**Getting a HuggingFace API Key:**
+1. Sign up or log in to [HuggingFace](https://huggingface.co)
+2. Go to your [Settings > Access Tokens](https://huggingface.co/settings/tokens)
+3. Create a new token with "Read" permissions
+4. Copy the token and set it as the `HF_API_KEY` environment variable
+
+**For Kubernetes deployments:**
+- Store the API key in a Kubernetes Secret
+- Reference it in your deployment configuration
+- The catalog service will read it from the `HF_API_KEY` environment variable
+
+#### 2. Configure the Source
+
+Add a HuggingFace source to your `catalog-sources.yaml`:
+
+```yaml
+catalogs:
+  - name: "HuggingFace Hub"
+    id: "huggingface"
+    type: "hf"
+    enabled: true
+    properties:
+      # Required: List of model identifiers to include
+      # Format: "organization/model-name" or "username/model-name"
+      includedModels:
+        - "meta-llama/Llama-3.1-8B-Instruct"
+        - "ibm-granite/granite-4.0-h-small"
+        - "microsoft/phi-2"
+      
+      # Optional: Exclude specific models or patterns
+      # Supports exact matches or patterns ending with "*"
+      excludedModels:
+        - "some-org/unwanted-model"
+        - "another-org/test-*"  # Excludes all models starting with "test-"
+```
+
+#### Excluded Models
+
+The `excludedModels` property supports:
+- **Exact matches**: `"meta-llama/Llama-3.1-8B-Instruct"` - excludes this specific model
+- **Pattern matching**: `"test-*"` - excludes all models starting with "test-"
 
 ## Development
 
