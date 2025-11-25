@@ -25,6 +25,7 @@ const CatalogSourceConfigsTableRow: React.FC<CatalogSourceConfigsTableRowProps> 
   const notification = useNotification();
   const [isDeleteModalOpen, setIsDeleteModalOpen] = React.useState(false);
   const [isDeleting, setIsDeleting] = React.useState(false);
+  const [deleteError, setDeleteError] = React.useState<Error | undefined>();
 
   const isDefault = catalogSourceConfig.isDefault ?? false;
   const isEnabled = catalogSourceConfig.enabled ?? true;
@@ -46,11 +47,13 @@ const CatalogSourceConfigsTableRow: React.FC<CatalogSourceConfigsTableRowProps> 
   };
 
   const handleDeleteSource = () => {
+    setDeleteError(undefined);
     setIsDeleteModalOpen(true);
   };
 
   const handleDeleteConfirm = async () => {
     setIsDeleting(true);
+    setDeleteError(undefined);
 
     try {
       await apiState.api.deleteCatalogSourceConfig({}, catalogSourceConfig.id);
@@ -58,11 +61,7 @@ const CatalogSourceConfigsTableRow: React.FC<CatalogSourceConfigsTableRowProps> 
       refreshCatalogSourceConfigs();
       notification.success(`${catalogSourceConfig.name} deleted successfully`);
     } catch (error) {
-      notification.error(
-        'Error deleting source',
-        error instanceof Error ? error.message : 'Failed to delete source',
-      );
-      setIsDeleteModalOpen(false);
+      setDeleteError(error instanceof Error ? error : new Error('Failed to delete source'));
     } finally {
       setIsDeleting(false);
     }
@@ -154,6 +153,7 @@ const CatalogSourceConfigsTableRow: React.FC<CatalogSourceConfigsTableRowProps> 
           deleting={isDeleting}
           onDelete={handleDeleteConfirm}
           deleteName={catalogSourceConfig.name}
+          error={deleteError}
         >
           The <strong>{catalogSourceConfig.name}</strong> repository will be deleted, and its models
           will be removed from the model catalog.
