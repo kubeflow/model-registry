@@ -9,13 +9,11 @@ import CatalogSourceConfigsTableRow from './CatalogSourceConfigsTableRow';
 type CatalogSourceConfigsTableProps = {
   catalogSourceConfigs: CatalogSourceConfig[];
   onAddSource: () => void;
-  onDeleteSource?: (config: CatalogSourceConfig) => void;
 };
 
 const CatalogSourceConfigsTable: React.FC<CatalogSourceConfigsTableProps> = ({
   catalogSourceConfigs,
   onAddSource,
-  onDeleteSource,
 }) => (
   <Table
     data-testid="catalog-source-configs-table"
@@ -38,11 +36,7 @@ const CatalogSourceConfigsTable: React.FC<CatalogSourceConfigsTableProps> = ({
       </Toolbar>
     }
     rowRenderer={(config) => (
-      <CatalogSourceConfigsTableRow
-        key={config.id}
-        catalogSourceConfig={config}
-        onDelete={onDeleteSource}
-      />
+      <CatalogSourceConfigsTableRow key={config.id} catalogSourceConfig={config} />
     )}
     variant="compact"
   />
