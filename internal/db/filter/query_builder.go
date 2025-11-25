@@ -307,9 +307,12 @@ func (qb *QueryBuilder) buildCombinedArtifactExistsCondition(conditions []artifa
 	propTable := qb.quoteTableName("ArtifactProperty")
 
 	// Build property JOINs for each condition
+	// Important: args must be ordered to match SQL placeholder order:
+	// First all JOIN property names, then all WHERE value conditions
 	var propertyJoins []string
 	var whereConditions []string
-	var args []any
+	var joinArgs []any  // Property names for JOINs
+	var whereArgs []any // Values for WHERE conditions
 
 	for i, c := range conditions {
 		propAlias := fmt.Sprintf("artprop_%d_%d", baseCounter, i)
@@ -319,10 +322,10 @@ func (qb *QueryBuilder) buildCombinedArtifactExistsCondition(conditions []artifa
 		join := fmt.Sprintf("JOIN %s %s ON %s.artifact_id = %s.id AND %s.name = ?",
 			propTable, propAlias, propAlias, artAlias, propAlias)
 		propertyJoins = append(propertyJoins, join)
-		args = append(args, c.propDef.RelatedProperty)
+		joinArgs = append(joinArgs, c.propDef.RelatedProperty)
 
 		whereConditions = append(whereConditions, valueCondition.condition)
-		args = append(args, valueCondition.args...)
+		whereArgs = append(whereArgs, valueCondition.args...)
 	}
 
 	// Build the complete EXISTS subquery
@@ -335,6 +338,9 @@ func (qb *QueryBuilder) buildCombinedArtifactExistsCondition(conditions []artifa
 		artTable, artAlias, artAlias, attrAlias,
 		strings.Join(propertyJoins, " "),
 		attrAlias, qb.tablePrefix, strings.Join(whereConditions, " AND "))
+
+	// Combine args in the correct order: JOIN args first, then WHERE args
+	args := append(joinArgs, whereArgs...)
 
 	return conditionResult{condition: subquery, args: args}
 }
