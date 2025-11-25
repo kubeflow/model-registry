@@ -802,18 +802,15 @@ func GetCatalogModelListMock() models.CatalogModelList {
 
 func GetCatalogSourceMocks() []models.CatalogSource {
 	enabled := true
-	disabled := false
+	disabledBool := false
 
-	// Status examples
-	activeState := "Active"
-	failedState := "Failed"
-	disabledState := "Disabled"
+	// Status examples (matching OpenAPI spec)
+	availableStatus := "available"
+	errorStatus := "error"
+	disabledStatus := "disabled"
 
-	invalidCredentialReason := "InvalidCredential"
-	invalidOrgReason := "InvalidOrganization"
-
-	invalidCredentialMsg := "The provided API key is invalid or has expired. Please update your credentials."
-	invalidOrgMsg := "The specified organization 'invalid-org' does not exist or you don't have access to it."
+	invalidCredentialError := "The provided API key is invalid or has expired. Please update your credentials."
+	invalidOrgError := "The specified organization 'invalid-org' does not exist or you don't have access to it."
 
 	return []models.CatalogSource{
 		{
@@ -821,15 +818,13 @@ func GetCatalogSourceMocks() []models.CatalogSource {
 			Name:    "Sample mocked source",
 			Enabled: &enabled,
 			Labels:  []string{"Sample category 1", "Sample category 2", "Sample category"},
-			Status: &models.CatalogSourceStatus{
-				State: activeState,
-			},
+			Status:  &availableStatus,
 		},
 		{
 			Id:     "huggingface",
 			Name:   "Hugging Face",
 			Labels: []string{"Sample category 2", "Sample category"},
-			// Status is nil - represents "Starting" state
+			// Status is nil - represents "Starting" state (no status yet)
 			Status: nil,
 		},
 		{
@@ -837,39 +832,29 @@ func GetCatalogSourceMocks() []models.CatalogSource {
 			Name:    "Admin model 1",
 			Enabled: &enabled,
 			Labels:  []string{},
-			Status: &models.CatalogSourceStatus{
-				State:   failedState,
-				Reason:  &invalidCredentialReason,
-				Message: &invalidCredentialMsg,
-			},
+			Status:  &errorStatus,
+			Error:   &invalidCredentialError,
 		},
 		{
 			Id:      "adminModel2",
 			Name:    "Admin model 2",
 			Enabled: &enabled,
 			Labels:  []string{"Sample category 1"},
-			Status: &models.CatalogSourceStatus{
-				State:   failedState,
-				Reason:  &invalidOrgReason,
-				Message: &invalidOrgMsg,
-			},
+			Status:  &errorStatus,
+			Error:   &invalidOrgError,
 		},
 		{
 			Id:     "dora",
 			Name:   "Dora source",
 			Labels: []string{},
-			Status: &models.CatalogSourceStatus{
-				State: activeState,
-			},
+			Status: &availableStatus,
 		},
 		{
 			Id:      "adminModel3",
 			Name:    "Admin model 3",
-			Enabled: &disabled,
+			Enabled: &disabledBool,
 			Labels:  []string{},
-			Status: &models.CatalogSourceStatus{
-				State: disabledState,
-			},
+			Status:  &disabledStatus,
 		},
 	}
 }

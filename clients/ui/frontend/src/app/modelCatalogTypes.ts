@@ -16,18 +16,13 @@ import {
   ModelRegistryCustomPropertyDouble,
 } from './types';
 
-export type CatalogSourceStatus = {
-  state?: string;
-  reason?: string;
-  message?: string;
-};
-
 export type CatalogSource = {
   id: string;
   name: string;
   labels: string[];
   enabled?: boolean;
-  status?: CatalogSourceStatus;
+  status?: 'available' | 'error' | 'disabled';
+  error?: string;
 };
 
 export type CatalogSourceList = ModelCatalogListParams & { items: CatalogSource[] };
