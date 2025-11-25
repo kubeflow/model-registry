@@ -2101,6 +2101,21 @@ components:
           type: array
           items:
             type: string
+        status:
+          description: |-
+            Operational status of a catalog source.
+            - `available`: The source is functioning correctly and models can be retrieved
+            - `error`: The source is experiencing issues and cannot provide models
+            - `disabled`: The source has been intentionally disabled
+          type: string
+          enum:
+            - available
+            - error
+            - disabled
+        error:
+          description: |-
+            Error message when status is Failed. Contains details about what went wrong.
+          type: string
     CatalogSourceList:
       description: List of CatalogSource entities.
       allOf:

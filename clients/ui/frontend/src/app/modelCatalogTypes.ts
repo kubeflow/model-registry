@@ -21,6 +21,8 @@ export type CatalogSource = {
   name: string;
   labels: string[];
   enabled?: boolean;
+  status?: 'available' | 'error' | 'disabled';
+  error?: string;
 };
 
 export type CatalogSourceList = ModelCatalogListParams & { items: CatalogSource[] };
