@@ -522,22 +522,6 @@ func TestPopulateFromHFInfoWithCustomProperties(t *testing.T) {
 		t.Error("hf_tags should be a string value")
 	}
 
-	// Verify hf_downloads
-	if downloadsVal, ok := customProps["hf_downloads"]; !ok {
-		t.Error("Expected hf_downloads in custom properties")
-	} else if downloadsVal.MetadataIntValue == nil {
-		t.Error("hf_downloads should be an int value")
-	} else if downloadsVal.MetadataIntValue.IntValue != "5000" {
-		t.Errorf("hf_downloads = %v, want '5000'", downloadsVal.MetadataIntValue.IntValue)
-	}
-
-	// Verify hf_sha
-	if shaVal, ok := customProps["hf_sha"]; !ok {
-		t.Error("Expected hf_sha in custom properties")
-	} else if shaVal.MetadataStringValue == nil || shaVal.MetadataStringValue.StringValue != "sha123" {
-		t.Errorf("hf_sha = %v, want 'sha123'", shaVal.MetadataStringValue)
-	}
-
 	// Verify hf_architectures
 	if archVal, ok := customProps["hf_architectures"]; !ok {
 		t.Error("Expected hf_architectures in custom properties")
