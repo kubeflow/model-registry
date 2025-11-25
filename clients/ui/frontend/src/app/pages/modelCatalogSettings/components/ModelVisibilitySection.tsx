@@ -11,10 +11,7 @@ import {
 import { UpdateObjectAtPropAndValue } from 'mod-arch-shared';
 import FormFieldset from '~/app/pages/modelRegistry/screens/components/FormFieldset';
 import FormSection from '~/app/pages/modelRegistry/components/pf-overrides/FormSection';
-import {
-  ManageSourceFormData,
-  SourceType,
-} from '~/app/pages/modelCatalogSettings/useManageSourceData';
+import { ManageSourceFormData } from '~/app/pages/modelCatalogSettings/useManageSourceData';
 import {
   FORM_LABELS,
   PLACEHOLDERS,
@@ -24,6 +21,7 @@ import {
   getAllowedModelsHelp,
   getExcludedModelsHelp,
 } from '~/app/pages/modelCatalogSettings/constants';
+import { CatalogSourceType } from '~/app/modelCatalogTypes';
 
 type ModelVisibilitySectionProps = {
   formData: ManageSourceFormData;
@@ -31,7 +29,7 @@ type ModelVisibilitySectionProps = {
 };
 
 const ModelVisibilitySection: React.FC<ModelVisibilitySectionProps> = ({ formData, setData }) => {
-  const isHuggingFaceMode = formData.sourceType === SourceType.HuggingFace;
+  const isHuggingFaceMode = formData.sourceType === CatalogSourceType.HUGGING_FACE;
   const organization = isHuggingFaceMode ? formData.organization : undefined;
 
   const sectionDescription =
@@ -55,8 +53,8 @@ const ModelVisibilitySection: React.FC<ModelVisibilitySectionProps> = ({ formDat
       id="allowed-models"
       name="allowed-models"
       data-testid="allowed-models-input"
-      value={formData.allowedModels}
-      onChange={(_event, value) => setData('allowedModels', value)}
+      value={formData.allowedModels.join(', ')}
+      onChange={(_event, value) => setData('allowedModels', [value])}
       rows={3}
       resizeOrientation="vertical"
       placeholder={allowedModelsPlaceholder}
@@ -68,8 +66,8 @@ const ModelVisibilitySection: React.FC<ModelVisibilitySectionProps> = ({ formDat
       id="excluded-models"
       name="excluded-models"
       data-testid="excluded-models-input"
-      value={formData.excludedModels}
-      onChange={(_event, value) => setData('excludedModels', value)}
+      value={formData.excludedModels.join(', ')}
+      onChange={(_event, value) => setData('excludedModels', [value])}
       rows={3}
       resizeOrientation="vertical"
       placeholder={excludedModelsPlaceholder}
@@ -86,6 +84,7 @@ const ModelVisibilitySection: React.FC<ModelVisibilitySectionProps> = ({ formDat
             titleDescription={sectionDescription}
           />
         }
+        isExpanded={formData.isDefault}
         data-testid="model-visibility-section"
       >
         <FormGroup label={FORM_LABELS.ALLOWED_MODELS} fieldId="allowed-models">

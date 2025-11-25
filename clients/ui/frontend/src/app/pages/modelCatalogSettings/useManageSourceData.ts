@@ -1,35 +1,35 @@
 import { GenericObjectState } from 'mod-arch-core';
 import useGenericObjectState from 'mod-arch-core/dist/utilities/useGenericObjectState';
-
-export enum SourceType {
-  HuggingFace = 'huggingface',
-  YAML = 'yaml',
-}
+import { CatalogSourceType } from '~/app/modelCatalogTypes';
 
 export type ManageSourceFormData = {
   name: string;
-  sourceType: SourceType;
+  id: string;
+  sourceType: CatalogSourceType;
   // Hugging Face fields
   accessToken: string;
   organization: string;
   // YAML field
   yamlContent: string;
   // Filter fields
-  allowedModels: string;
-  excludedModels: string;
+  allowedModels: string[];
+  excludedModels: string[];
   // Enable source
   enabled: boolean;
+  isDefault: boolean;
 };
 
 const manageSourceFormDataDefaults: ManageSourceFormData = {
   name: '',
-  sourceType: SourceType.HuggingFace,
+  id: '',
+  sourceType: CatalogSourceType.HUGGING_FACE,
   accessToken: '',
   organization: '',
   yamlContent: '',
-  allowedModels: '',
-  excludedModels: '',
+  allowedModels: [],
+  excludedModels: [],
   enabled: false,
+  isDefault: false,
 };
 
 /**

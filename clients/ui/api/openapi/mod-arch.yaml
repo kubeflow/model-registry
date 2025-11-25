@@ -949,7 +949,7 @@ paths:
         - $ref: "#/components/parameters/kubeflowUserId"
         - $ref: "#/components/parameters/sourceId"
       responses:
-        "204":
+        "200":
           description: Successfully deleted
         "400":
           $ref: "#/components/responses/BadRequest"
@@ -975,6 +975,7 @@ paths:
       tags:
         - ModelCatalogService
       parameters:
+        - $ref: "#/components/parameters/kubeflowUserId"
         - name: statusFilter
           description: |-
             Filter the response to show specific model statuses.
