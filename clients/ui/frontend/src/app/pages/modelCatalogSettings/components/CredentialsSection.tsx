@@ -42,7 +42,7 @@ const CredentialsSection: React.FC<CredentialsSectionProps> = ({ formData, setDa
   const [validationError, setValidationError] = React.useState<Error | undefined>(undefined);
   const [isValidating, setIsValidating] = React.useState(false);
   const [isValidationSuccess, setIsValidationSuccess] = React.useState(false);
-  const [showAlert, setShowAlert] = React.useState<boolean>(true);
+  const [showAlert, setShowAlert] = React.useState<boolean>(false);
 
   const handleValidate = async () => {
     setIsValidating(true);

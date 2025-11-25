@@ -949,7 +949,7 @@ paths:
         - $ref: "#/components/parameters/kubeflowUserId"
         - $ref: "#/components/parameters/sourceId"
       responses:
-        "200":
+        "204":
           description: Successfully deleted
         "400":
           $ref: "#/components/responses/BadRequest"
