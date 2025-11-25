@@ -722,7 +722,7 @@ func TestArtifactFilteringCapability(t *testing.T) {
 				".double_value <= $",
 			},
 			expectedArgs: []any{"ttft_mean", float64(90), "tpot_mean", float64(50)},
-			description:  "Should handle multiple artifact property filters with separate JOINs",
+			description:  "Should handle multiple artifact property filters in a single EXISTS with multiple property JOINs on the SAME artifact",
 		},
 		{
 			name:        "Artifact property with LIKE",
@@ -1119,6 +1119,22 @@ func TestArtifactFilteringEdgeCases(t *testing.T) {
 				".string_value) LIKE UPPER(",
 			},
 			description: "Should handle both exact and case-insensitive matching on artifact properties (ILIKE uses UPPER for cross-DB compatibility)",
+		},
+		{
+			name:        "Bug fix: multiple artifact filters must match SAME artifact",
+			filterQuery: `artifacts.hardware_type LIKE "H200" AND artifacts.ttft_p95 < 50`,
+			expectedSQL: []string{
+				"EXISTS",
+				`"Attribution"`,
+				`"Artifact"`,
+				// Both property JOINs should reference the same artifact (art_X)
+				"artprop_",
+				".artifact_id = art_",
+				// Both conditions should be in the WHERE clause
+				".string_value LIKE $",
+				".double_value < $",
+			},
+			description: "Multiple artifact property filters with AND should generate a SINGLE EXISTS with multiple property JOINs ensuring BOTH conditions match the SAME artifact (not different artifacts)",
 		},
 		{
 			name:        "Integer literal queries both int_value and double_value",
