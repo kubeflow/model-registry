@@ -4,7 +4,6 @@ import {
   Button,
   Content,
   ContentVariants,
-  // Divider, // NOTE: overall_average is currently omitted from the API and will be restored
   Flex,
   List,
   ListItem,
@@ -14,11 +13,7 @@ import {
   StackItem,
 } from '@patternfly/react-core';
 import { Link } from 'react-router-dom';
-import {
-  /* MonitoringIcon, */ HelpIcon,
-  AngleLeftIcon,
-  AngleRightIcon,
-} from '@patternfly/react-icons'; // NOTE: MonitoringIcon - overall_average is currently omitted from the API and will be restored
+import { HelpIcon, AngleLeftIcon, AngleRightIcon } from '@patternfly/react-icons';
 import {
   CatalogModel,
   CatalogSource,
@@ -32,6 +27,7 @@ import { catalogModelDetailsTabFromModel } from '~/app/routes/modelCatalog/catal
 import { ModelDetailsTab } from '~/app/pages/modelCatalog/screens/ModelDetailsTabs';
 import { useCatalogModelArtifacts } from '~/app/hooks/modelCatalog/useCatalogModelArtifacts';
 import { filterArtifactsByType } from '~/app/pages/modelCatalog/utils/modelCatalogUtils';
+import { formatLatency } from '~/app/pages/modelCatalog/utils/performanceMetricsUtils';
 
 type ModelCatalogCardBodyProps = {
   model: CatalogModel;
@@ -94,44 +90,6 @@ const ModelCatalogCardBody: React.FC<ModelCatalogCardBodyProps> = ({
 
     return (
       <Stack hasGutter>
-        {/* NOTE: overall_average is currently omitted from the API and will be restored
-        <StackItem>
-          <Flex
-            alignItems={{ default: 'alignItemsCenter' }}
-            justifyContent={{ default: 'justifyContentSpaceBetween' }}
-          >
-            <Flex
-              alignItems={{ default: 'alignItemsCenter' }}
-              gap={{ default: 'gapSm' }}
-              wrap="nowrap"
-            >
-              <MonitoringIcon />
-              <span data-testid="validated-model-accuracy" className="pf-v6-u-font-weight-bold">
-                {metrics.accuracy}%
-              </span>
-            </Flex>
-            <Flex alignItems={{ default: 'alignItemsCenter' }} gap={{ default: 'gapXs' }}>
-              <span style={{ fontSize: '14px', color: 'var(--pf-v5-global--Color--200)' }}>
-                Average accuracy
-              </span>
-              <Popover
-                headerContent="Average accuracy"
-                bodyContent="The weighted average of normalized scores from all benchmarks. Each benchmark is normalized to a 0-100 scale. All normalized benchmarks are then averaged together."
-              >
-                <Button
-                  icon={<HelpIcon />}
-                  hasNoPadding
-                  aria-label="More info for average accuracy"
-                  variant="plain"
-                />
-              </Popover>
-            </Flex>
-          </Flex>
-        </StackItem>
-
-        <Divider />
-        */}
-
         <StackItem>
           <Flex justifyContent={{ default: 'justifyContentSpaceBetween' }}>
             <Flex direction={{ default: 'column' }}>
@@ -148,7 +106,7 @@ const ModelCatalogCardBody: React.FC<ModelCatalogCardBodyProps> = ({
             </Flex>
             <Flex direction={{ default: 'column' }}>
               <span className="pf-v6-u-font-weight-bold" data-testid="validated-model-ttft">
-                {metrics.ttftMean} ms
+                {formatLatency(metrics.ttftMean)}
               </span>
               <Flex alignItems={{ default: 'alignItemsCenter' }} gap={{ default: 'gapXs' }}>
                 <span style={{ fontSize: '14px', color: 'var(--pf-v5-global--Color--200)' }}>
