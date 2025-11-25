@@ -3,29 +3,66 @@ package repositories
 import (
 	"context"
 	"fmt"
-	"log/slog"
-
 	k8s "github.com/kubeflow/model-registry/ui/bff/internal/integrations/kubernetes"
 	"github.com/kubeflow/model-registry/ui/bff/internal/models"
+	"gopkg.in/yaml.v3"
 )
-
-type ModelCatalogSettingsRepositoryInterface interface {
-	GetAllCatalogSourceConfigs(ctx context.Context, k8sClient k8s.KubernetesClientInterface, namespace string) (*models.CatalogSourceConfigList, error)
-	GetCatalogSourceConfig(ctx context.Context, k8sClient k8s.KubernetesClientInterface, namespace string, catalogSourceId string) (*models.CatalogSourceConfig, error)
-	CreateCatalogSourceConfig(ctx context.Context, k8sClient k8s.KubernetesClientInterface, namespace string, payload models.CatalogSourceConfigPayload) (*models.CatalogSourceConfig, error)
-	UpdateCatalogSourceConfig(ctx context.Context, k8sClient k8s.KubernetesClientInterface, namespace string, payload models.CatalogSourceConfigPayload) (*models.CatalogSourceConfig, error)
-	DeleteCatalogSourceConfig(ctx context.Context, k8sClient k8s.KubernetesClientInterface, namespace string, catalogSourceId string) (*models.CatalogSourceConfig, error)
-}
 
 type ModelCatalogSettingsRepository struct {
 }
 
-func NewModelCatalogSettingsRepository(logger *slog.Logger) (*ModelCatalogSettingsRepository, error) {
-	return &ModelCatalogSettingsRepository{}, nil
+func NewModelCatalogSettingsRepository() *ModelCatalogSettingsRepository {
+	return &ModelCatalogSettingsRepository{}
 }
 
-func (r *ModelCatalogSettingsRepository) GetAllCatalogSourceConfigs(_ context.Context, _ k8s.KubernetesClientInterface, namespace string) (*models.CatalogSourceConfigList, error) {
-	return nil, fmt.Errorf("not implemented yet")
+func (r *ModelCatalogSettingsRepository) GetAllCatalogSourceConfigs(ctx context.Context, client k8s.KubernetesClientInterface, namespace string) (*models.CatalogSourceConfigList, error) {
+	// TODO ppadti we need to merge this catalog source with the other one
+	defaultCM, _, err := client.GetAllCatalogSourceConfigs(ctx, namespace)
+	if err != nil {
+		return nil, fmt.Errorf("failed to fetch catalog source configmaps: %w", err)
+	}
+
+	raw, ok := defaultCM.Data[k8s.CatalogSourceKey]
+	if !ok {
+		return nil, fmt.Errorf("default catalog sources configmap missing key")
+	}
+
+	// Internal struct to match YAML structure
+	var parsed struct {
+		Catalogs []struct {
+			Name       string            `yaml:"name"`
+			Id         string            `yaml:"id"`
+			Type       string            `yaml:"type"`
+			Enabled    *bool             `yaml:"enabled"`
+			Properties map[string]string `yaml:"properties"`
+			Labels     []string          `yaml:"labels"`
+		} `yaml:"catalogs"`
+	}
+
+	if err := yaml.Unmarshal([]byte(raw), &parsed); err != nil {
+		return nil, fmt.Errorf("failed to parse catalogs yaml: %w", err)
+	}
+
+	catalogSources := &models.CatalogSourceConfigList{
+		Catalogs: make([]models.CatalogSourceConfig, 0, len(parsed.Catalogs)),
+	}
+
+	for _, c := range parsed.Catalogs {
+		isDefault := true
+
+		entry := models.CatalogSourceConfig{
+			Id:        c.Id,
+			Name:      c.Name,
+			Type:      c.Type,
+			Enabled:   c.Enabled,
+			Labels:    c.Labels,
+			IsDefault: &isDefault,
+		}
+
+		catalogSources.Catalogs = append(catalogSources.Catalogs, entry)
+	}
+
+	return catalogSources, nil
 }
 
 func (r *ModelCatalogSettingsRepository) GetCatalogSourceConfig(ctx context.Context,
@@ -33,6 +70,7 @@ func (r *ModelCatalogSettingsRepository) GetCatalogSourceConfig(ctx context.Cont
 	namespace string,
 	catalogSourceId string,
 ) (*models.CatalogSourceConfig, error) {
+	// TODO ppadti write the real implementation here calling k8s client
 	return nil, fmt.Errorf("not implemented yet")
 }
 
@@ -42,6 +80,8 @@ func (r *ModelCatalogSettingsRepository) CreateCatalogSourceConfig(
 	namespace string,
 	payload models.CatalogSourceConfigPayload,
 ) (*models.CatalogSourceConfig, error) {
+
+	// TODO ppadti write the real implementation here calling k8s client
 	return nil, fmt.Errorf("not implemented yet")
 }
 
@@ -51,6 +91,7 @@ func (r *ModelCatalogSettingsRepository) UpdateCatalogSourceConfig(
 	namespace string,
 	payload models.CatalogSourceConfigPayload,
 ) (*models.CatalogSourceConfig, error) {
+	// TODO ppadti write the real implementation here calling k8s client
 	return nil, fmt.Errorf("not implemented yet")
 }
 
@@ -60,5 +101,6 @@ func (r *ModelCatalogSettingsRepository) DeleteCatalogSourceConfig(
 	namespace string,
 	catalogSourceId string,
 ) (*models.CatalogSourceConfig, error) {
+	// TODO ppadti write the real implementation here calling k8s client
 	return nil, fmt.Errorf("not implemented yet")
 }
