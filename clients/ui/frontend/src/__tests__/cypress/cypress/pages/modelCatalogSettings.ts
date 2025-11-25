@@ -145,6 +145,10 @@ class ModelCatalogSettings {
     return cy.findByTestId('add-source-button');
   }
 
+  findToggleAlert() {
+    return cy.findByTestId('toggle-alert');
+  }
+
   findTable() {
     return cy.findByTestId('catalog-source-configs-table');
   }

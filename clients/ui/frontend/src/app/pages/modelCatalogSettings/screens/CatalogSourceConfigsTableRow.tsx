@@ -15,10 +15,14 @@ import { useNotification } from '~/app/hooks/useNotification';
 
 type CatalogSourceConfigsTableRowProps = {
   catalogSourceConfig: CatalogSourceConfig;
+  isUpdatingToggle: boolean;
+  onToggleUpdate: (checked: boolean, sourceConfig: CatalogSourceConfig) => void;
 };
 
 const CatalogSourceConfigsTableRow: React.FC<CatalogSourceConfigsTableRowProps> = ({
   catalogSourceConfig,
+  isUpdatingToggle,
+  onToggleUpdate,
 }) => {
   const navigate = useNavigate();
   const { apiState, refreshCatalogSourceConfigs } = React.useContext(ModelCatalogSettingsContext);
@@ -35,11 +39,8 @@ const CatalogSourceConfigsTableRow: React.FC<CatalogSourceConfigsTableRowProps> 
     [catalogSourceConfig],
   );
 
-  const handleEnableToggle = (checked: boolean) => {
-    // TODO: Implement actual enable/disable functionality
-    window.alert(
-      `Toggle clicked! "${catalogSourceConfig.name}" will be ${checked ? 'enabled' : 'disabled'} when functionality is implemented.`,
-    );
+  const handleToggleUpdate = (checked: boolean) => {
+    onToggleUpdate(checked, catalogSourceConfig);
   };
 
   const handleManageSource = () => {
@@ -117,7 +118,8 @@ const CatalogSourceConfigsTableRow: React.FC<CatalogSourceConfigsTableRowProps> 
               id={`enable-toggle-${catalogSourceConfig.id}`}
               aria-label={`Enable ${catalogSourceConfig.name}`}
               isChecked={isEnabled}
-              onChange={(_event, checked) => handleEnableToggle(checked)}
+              isDisabled={isUpdatingToggle}
+              onChange={(_event, checked) => handleToggleUpdate(checked)}
             />
           )}
         </Td>

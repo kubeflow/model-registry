@@ -4,8 +4,9 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/kubeflow/model-registry/ui/bff/internal/mocks"
 	"net/http"
+
+	"github.com/kubeflow/model-registry/ui/bff/internal/mocks"
 
 	"github.com/julienschmidt/httprouter"
 	"github.com/kubeflow/model-registry/ui/bff/internal/constants"
@@ -59,7 +60,7 @@ func (app *App) GetCatalogSourceConfigHandler(w http.ResponseWriter, r *http.Req
 
 	catalogSourceId := ps.ByName(CatalogSourceId)
 	// TODO ppadti write the real implementation here
-	catalogSourceConfig := mocks.CreateSampleCatalogSource(catalogSourceId, "catalog-source-1", "yaml")
+	catalogSourceConfig := mocks.CreateSampleCatalogSource(catalogSourceId, "catalog-source-1", "yaml", true)
 
 	modelCatalogSource := ModelCatalogSettingsSourceConfigEnvelope{
 		Data: &catalogSourceConfig,
@@ -92,7 +93,7 @@ func (app *App) CreateCatalogSourceConfigHandler(w http.ResponseWriter, r *http.
 	var sourceId = envelope.Data.Id
 	var sourceType = envelope.Data.Type
 	// TODO ppadti write the real implementation here
-	newCatalogSource := mocks.CreateSampleCatalogSource(sourceId, sourceName, sourceType)
+	newCatalogSource := mocks.CreateSampleCatalogSource(sourceId, sourceName, sourceType, true)
 
 	modelCatalogSource := ModelCatalogSettingsSourceConfigEnvelope{
 		Data: &newCatalogSource,
@@ -124,7 +125,7 @@ func (app *App) UpdateCatalogSourceConfigHandler(w http.ResponseWriter, r *http.
 
 	catalogSourceId := envelope.Data.Id
 	// TODO ppadti write the real implementation here
-	newCatalogSource := mocks.CreateSampleCatalogSource(catalogSourceId, "Updated Catalog", "yaml")
+	newCatalogSource := mocks.CreateSampleCatalogSource(catalogSourceId, "Updated Catalog", "yaml", true)
 
 	modelCatalogSource := ModelCatalogSettingsSourceConfigEnvelope{
 		Data: &newCatalogSource,
@@ -149,7 +150,7 @@ func (app *App) DeleteCatalogSourceConfigHandler(w http.ResponseWriter, r *http.
 	// TODO ppadti write the real implementation here
 	catalogSourceId := ps.ByName(CatalogSourceId)
 
-	deletedCatalogSource := mocks.CreateSampleCatalogSource(catalogSourceId, "Updated Catalog", "yaml")
+	deletedCatalogSource := mocks.CreateSampleCatalogSource(catalogSourceId, "Updated Catalog", "yaml", true)
 
 	modelCatalogSource := ModelCatalogSettingsSourceConfigEnvelope{
 		Data: &deletedCatalogSource,

@@ -1347,14 +1347,14 @@ func GetFilterOptionsListMock() models.FilterOptionsList {
 	}
 }
 
-func CreateSampleCatalogSource(id string, name string, catalogType string) models.CatalogSourceConfig {
+func CreateSampleCatalogSource(id string, name string, catalogType string, enabled bool) models.CatalogSourceConfig {
 	defaultCatalog := id == "catalog-1"
 
 	sourceConfig := models.CatalogSourceConfig{
 		Name:      name,
 		Id:        id,
 		Type:      catalogType,
-		Enabled:   BoolPtr(true),
+		Enabled:   &enabled,
 		Labels:    []string{"source-1"},
 		IsDefault: &defaultCatalog,
 	}
@@ -1381,9 +1381,10 @@ func BoolPtr(b bool) *bool {
 
 func GetCatalogSourceConfigsMocks() []models.CatalogSourceConfig {
 	return []models.CatalogSourceConfig{
-		CreateSampleCatalogSource("catalog-1", "Default Catalog", "yaml"),
-		CreateSampleCatalogSource("catalog-2", "HuggingFace Catalog", "huggingface"),
-		CreateSampleCatalogSource("catalog-3", "Custom Catalog", "yaml"),
+		CreateSampleCatalogSource("catalog-1", "Default Catalog", "yaml", true),
+		CreateSampleCatalogSource("catalog-2", "HuggingFace Catalog", "huggingface", true),
+		CreateSampleCatalogSource("catalog-3", "Custom Catalog", "yaml", true),
+		CreateSampleCatalogSource("catalog-4", "Custom Catalog 2", "yaml", false),
 	}
 }
 
