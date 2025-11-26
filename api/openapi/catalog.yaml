@@ -166,10 +166,20 @@ paths:
     post:
       summary: Preview catalog source configuration
       description: |-
-        Accepts a catalog source configuration (via multipart form upload for YAML catalogs files)
-        and returns a list of models showing which would be included or excluded based
-        on the configured filters. This allows users to test and validate their source
-        configurations before applying them.
+        Accepts a catalog source configuration and returns a list of models showing
+        which would be included or excluded based on the configured filters. This allows
+        users to test and validate their source configurations before applying them.
+
+        **Two modes of operation:**
+
+        1. **Stateless mode (recommended for new sources):** Upload both `config` and
+           `catalogData` files via multipart form. The models are read directly from
+           the uploaded `catalogData`, enabling preview of new sources before saving
+           anything to the server. This is ideal for testing configurations.
+
+        2. **Path mode (for existing sources):** Upload only `config` with a `yamlCatalogPath`
+           property. The models are read from the specified file path on the server.
+           Use this for previewing changes to existing saved sources.
       tags:
         - ModelCatalogService
       requestBody:
@@ -195,10 +205,56 @@ paths:
 
                     File Size Limit: Maximum upload size is 32 MB. Files exceeding this limit will
                     be rejected with a 400 Bad Request error.
+                catalogData:
+                  type: string
+                  format: binary
+                  description: |-
+                    Optional YAML file containing the catalog data (models).
+
+                    This field enables stateless preview of new sources before saving them.
+                    When provided, the catalog data is read directly from this file instead of
+                    from the `yamlCatalogPath` property in the config.
+
+                    **Two modes of operation:**
+                    1. **Stateless mode (recommended for new sources):** Upload both `config` and
+                       `catalogData` files. The models are read from `catalogData`, allowing preview
+                       without saving anything to the server.
+                    2. **Path mode (for existing sources):** Upload only `config` with a `yamlCatalogPath`
+                       property pointing to a catalog file on the server filesystem.
+
+                    If both `catalogData` and `yamlCatalogPath` are provided, `catalogData` takes precedence.
+
+                    File Size Limit: Maximum upload size is 32 MB.
             examples:
-              yamlCatalogSource:
-                summary: YAML catalog source with filters
-                description: Upload a YAML file containing source configuration with model filters
+              statelessPreview:
+                summary: Stateless preview with uploaded catalog data
+                description: |-
+                  Upload both config and catalogData files to preview a new source
+                  before saving. This is the recommended approach for testing new configurations.
+                value: |
+                  # config file content:
+                  type: yaml
+                  includedModels:
+                    - "ibm-granite/*"
+                    - "meta-llama/*"
+                  excludedModels:
+                    - "*-draft"
+                    - "*-experimental"
+
+                  # catalogData file content (separate file):
+                  models:
+                    - name: ibm-granite/granite-3.0-8b-instruct
+                      description: Granite 8B Instruct model
+                    - name: ibm-granite/granite-3.0-2b-draft
+                      description: Draft version
+                    - name: meta-llama/Llama-2-7b-hf
+                      description: Llama 2 7B
+              pathBasedPreview:
+                summary: Path-based preview using server-side catalog
+                description: |-
+                  Upload only config file with yamlCatalogPath pointing to an
+                  existing catalog file on the server. Use this for previewing
+                  changes to existing saved sources.
                 value: |
                   type: yaml
                   includedModels:
@@ -212,7 +268,9 @@ paths:
                     yamlCatalogPath: "models-catalog.yaml"
               huggingfaceSource:
                 summary: HuggingFace catalog source
-                description: Upload configuration for HuggingFace source with API credentials
+                description: |-
+                  Upload configuration for HuggingFace source with API credentials.
+                  The API key is passed per-request and not persisted anywhere.
                 value: |
                   type: hf
                   includedModels:

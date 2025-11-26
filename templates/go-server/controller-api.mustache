@@ -564,8 +564,17 @@ func (c *{{classname}}Controller) {{nickname}}(w http.ResponseWriter, r *http.Re
 		param, err := ReadFormFileToTempFile(r, "{{baseName}}")
 		{{/isArray}}
 		if err != nil {
+			{{^required}}
+			// Optional file parameter - ignore missing file error
+			if err != http.ErrMissingFile {
+				c.errorHandler(w, r, &ParsingError{Param: "{{baseName}}", Err: err}, nil)
+				return
+			}
+			{{/required}}
+			{{#required}}
 			c.errorHandler(w, r, &ParsingError{Param: "{{baseName}}", Err: err}, nil)
 			return
+			{{/required}}
 		}
 
 		{{paramName}}Param = param

@@ -312,7 +312,7 @@ models:
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			ctx := context.Background()
-			results, err := PreviewSourceModels(ctx, tt.config)
+			results, err := PreviewSourceModels(ctx, tt.config, nil) // nil = path-based mode
 
 			if tt.expectError {
 				require.Error(t, err)
@@ -451,7 +451,7 @@ models:
 			config := tt.setupConfig(catalogPath)
 			ctx := context.Background()
 
-			names, err := loadYamlModelNames(ctx, config)
+			names, err := loadYamlModelNames(ctx, config, nil) // nil = path-based mode
 
 			if tt.expectError {
 				require.Error(t, err)
@@ -463,6 +463,78 @@ models:
 			assert.Equal(t, tt.expectedNames, names)
 		})
 	}
+}
+
+func TestPreviewSourceModels_StatelessMode(t *testing.T) {
+	// Test stateless mode where catalog data is passed directly
+	catalogData := []byte(`
+source: Stateless Test
+models:
+  - name: Granite/3b-instruct
+    description: Granite model
+  - name: Llama/7b-chat
+    description: Llama model
+  - name: Mistral/7b-draft
+    description: Draft model
+`)
+
+	t.Run("stateless mode with catalog data", func(t *testing.T) {
+		config := &PreviewConfig{
+			Type:           "yaml",
+			IncludedModels: []string{"Granite/*", "Llama/*"},
+			ExcludedModels: []string{"*-draft"},
+			// No yamlCatalogPath needed in stateless mode
+		}
+
+		results, err := PreviewSourceModels(context.Background(), config, catalogData)
+		require.NoError(t, err)
+		require.Len(t, results, 3)
+
+		var included []string
+		for _, r := range results {
+			if r.Included {
+				included = append(included, r.Name)
+			}
+		}
+
+		assert.Len(t, included, 2)
+		assert.Contains(t, included, "Granite/3b-instruct")
+		assert.Contains(t, included, "Llama/7b-chat")
+	})
+
+	t.Run("stateless mode takes precedence over path", func(t *testing.T) {
+		// Even with a yamlCatalogPath, catalog data should be used
+		config := &PreviewConfig{
+			Type:       "yaml",
+			Properties: map[string]any{"yamlCatalogPath": "/nonexistent/path.yaml"},
+		}
+
+		results, err := PreviewSourceModels(context.Background(), config, catalogData)
+		require.NoError(t, err)
+		assert.Len(t, results, 3)
+	})
+
+	t.Run("stateless mode with empty catalog data falls back to path", func(t *testing.T) {
+		config := &PreviewConfig{
+			Type:       "yaml",
+			Properties: map[string]any{}, // No path either
+		}
+
+		_, err := PreviewSourceModels(context.Background(), config, nil)
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "missing required property")
+	})
+
+	t.Run("stateless mode with invalid catalog data", func(t *testing.T) {
+		config := &PreviewConfig{
+			Type: "yaml",
+		}
+
+		invalidData := []byte("not: valid: yaml: [")
+		_, err := PreviewSourceModels(context.Background(), config, invalidData)
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "failed to parse catalog file")
+	})
 }
 
 func TestPreviewSourceModels_FilterBehavior(t *testing.T) {
@@ -491,7 +563,7 @@ models:
 			Properties:     map[string]any{"yamlCatalogPath": catalogPath},
 		}
 
-		results, err := PreviewSourceModels(context.Background(), config)
+		results, err := PreviewSourceModels(context.Background(), config, nil)
 		require.NoError(t, err)
 
 		// Should include ibm-granite models except experimental
@@ -515,7 +587,7 @@ models:
 			Properties:     map[string]any{"yamlCatalogPath": catalogPath},
 		}
 
-		results, err := PreviewSourceModels(context.Background(), config)
+		results, err := PreviewSourceModels(context.Background(), config, nil)
 		require.NoError(t, err)
 
 		var includedCount int
@@ -536,7 +608,7 @@ models:
 			Properties:     map[string]any{"yamlCatalogPath": catalogPath},
 		}
 
-		results, err := PreviewSourceModels(context.Background(), config)
+		results, err := PreviewSourceModels(context.Background(), config, nil)
 		require.NoError(t, err)
 
 		var excluded []string
