@@ -34,6 +34,11 @@ func (e *ParsingError) Error() string {
 		return e.Err.Error()
 	}
 
+	// Provide more helpful error messages for common cases
+	if errors.Is(e.Err, http.ErrMissingFile) {
+		return fmt.Sprintf("required file field '%s' is missing from the request. Check that the field name is spelled correctly in your multipart form data.", e.Param)
+	}
+
 	return e.Param + ": " + e.Err.Error()
 }
 
