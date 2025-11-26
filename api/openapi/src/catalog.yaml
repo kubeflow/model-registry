@@ -344,9 +344,6 @@ paths:
                     Model filter patterns support the `*` wildcard only and are case-insensitive.
                     Patterns match the entire model name (e.g., `ibm-granite/*` matches all
                     models starting with "ibm-granite/").
-
-                    File Size Limit: Maximum upload size is 32 MB. Files exceeding this limit will
-                    be rejected with a 400 Bad Request error.
                 catalogData:
                   type: string
                   format: binary
@@ -365,8 +362,6 @@ paths:
                        property pointing to a catalog file on the server filesystem.
 
                     If both `catalogData` and `yamlCatalogPath` are provided, `catalogData` takes precedence.
-
-                    File Size Limit: Maximum upload size is 32 MB.
             examples:
               statelessPreview:
                 summary: Stateless preview with uploaded catalog data

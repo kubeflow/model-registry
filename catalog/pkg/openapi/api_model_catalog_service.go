@@ -1408,7 +1408,7 @@ type ApiPreviewCatalogSourceRequest struct {
 	catalogData   *os.File
 }
 
-// YAML file containing the catalog source configuration. The file should contain a source definition with type and properties fields, including optional includedModels and excludedModels filters.  Model filter patterns support the &#x60;*&#x60; wildcard only and are case-insensitive. Patterns match the entire model name (e.g., &#x60;ibm-granite/_*&#x60; matches all models starting with \\\&quot;ibm-granite/\\\&quot;).  File Size Limit: Maximum upload size is 32 MB. Files exceeding this limit will be rejected with a 400 Bad Request error.
+// YAML file containing the catalog source configuration. The file should contain a source definition with type and properties fields, including optional includedModels and excludedModels filters.  Model filter patterns support the &#x60;*&#x60; wildcard only and are case-insensitive. Patterns match the entire model name (e.g., &#x60;ibm-granite/_*&#x60; matches all models starting with \\\&quot;ibm-granite/\\\&quot;).
 func (r ApiPreviewCatalogSourceRequest) Config(config *os.File) ApiPreviewCatalogSourceRequest {
 	r.config = config
 	return r
@@ -1432,7 +1432,7 @@ func (r ApiPreviewCatalogSourceRequest) FilterStatus(filterStatus string) ApiPre
 	return r
 }
 
-// Optional YAML file containing the catalog data (models).  This field enables stateless preview of new sources before saving them. When provided, the catalog data is read directly from this file instead of from the &#x60;yamlCatalogPath&#x60; property in the config.  **Two modes of operation:** 1. **Stateless mode (recommended for new sources):** Upload both &#x60;config&#x60; and    &#x60;catalogData&#x60; files. The models are read from &#x60;catalogData&#x60;, allowing preview    without saving anything to the server. 2. **Path mode (for existing sources):** Upload only &#x60;config&#x60; with a &#x60;yamlCatalogPath&#x60;    property pointing to a catalog file on the server filesystem.  If both &#x60;catalogData&#x60; and &#x60;yamlCatalogPath&#x60; are provided, &#x60;catalogData&#x60; takes precedence.  File Size Limit: Maximum upload size is 32 MB.
+// Optional YAML file containing the catalog data (models).  This field enables stateless preview of new sources before saving them. When provided, the catalog data is read directly from this file instead of from the &#x60;yamlCatalogPath&#x60; property in the config.  **Two modes of operation:** 1. **Stateless mode (recommended for new sources):** Upload both &#x60;config&#x60; and    &#x60;catalogData&#x60; files. The models are read from &#x60;catalogData&#x60;, allowing preview    without saving anything to the server. 2. **Path mode (for existing sources):** Upload only &#x60;config&#x60; with a &#x60;yamlCatalogPath&#x60;    property pointing to a catalog file on the server filesystem.  If both &#x60;catalogData&#x60; and &#x60;yamlCatalogPath&#x60; are provided, &#x60;catalogData&#x60; takes precedence.
 func (r ApiPreviewCatalogSourceRequest) CatalogData(catalogData *os.File) ApiPreviewCatalogSourceRequest {
 	r.catalogData = catalogData
 	return r
