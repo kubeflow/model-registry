@@ -168,7 +168,12 @@ func setupMock(mockK8sClient kubernetes.Interface, ctx context.Context) error {
 	if err != nil {
 		return err
 	}
-	//TODO ppadti: Add mock setup for model-catalog-sources
+
+	err = createModelCatalogSourcesConfigMap(mockK8sClient, ctx, "kubeflow")
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 
@@ -177,7 +182,6 @@ func createModelCatalogDefaultSourcesConfigMap(
 	ctx context.Context,
 	namespace string,
 ) error {
-	//TODO ppadti review config map final format
 	raw := strings.TrimSpace(`
 catalogs:
   - name: Dora AI
@@ -206,6 +210,77 @@ catalogs:
 		},
 		Data: map[string]string{
 			k8s.CatalogSourceKey: raw,
+		},
+	}
+
+	if _, err := k8sClient.CoreV1().ConfigMaps(namespace).Create(ctx, cm, metav1.CreateOptions{}); err != nil {
+		return fmt.Errorf("failed to create model-catalog-default-sources configmap: %w", err)
+	}
+
+	return nil
+}
+
+func createModelCatalogSourcesConfigMap(
+	k8sClient kubernetes.Interface,
+	ctx context.Context,
+	namespace string,
+) error {
+	raw := strings.TrimSpace(`
+catalogs:
+  - name: Custom yaml
+    id: custom_yaml_models
+    type: yaml
+    enabled: true
+    properties:
+      yamlCatalogPath: /shared-data/models-catalog.yaml
+      includedModels:
+        - model-*
+        - model-2-*
+      excludedModels:
+        - sample-model-*
+    labels:
+      - Dora AI
+
+  - name: Sample source
+    id: sample_source_models
+    type: yaml
+    enabled: false
+    properties:
+      yamlCatalogPath: /shared-data/validated-models-catalog.yaml
+      includedModels:
+        - model-*
+        - model-2-*
+      excludedModels:
+        - sample-model-*
+    labels:
+      - Bella AI validated
+      - Dora AI
+
+  - name: Hugging face source
+    id: hugging_face_source
+    type: huggingface
+    enabled: true
+    properties:
+      apiKey: accessToken
+      allowedOrganization: org
+      includedModels:
+        - model-*
+        - model-2-*
+      excludedModels:
+        - sample-model-*
+    labels:
+      - Bella AI validated
+`)
+
+	cm := &corev1.ConfigMap{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      k8s.CatalogSourceUserConfigMapName,
+			Namespace: namespace,
+		},
+		Data: map[string]string{
+			k8s.CatalogSourceKey:        raw,
+			"custom_yaml_models.yaml":   "models:\n - name: model1",
+			"sample_source_models.yaml": "models:\n - name: model2",
 		},
 	}
 

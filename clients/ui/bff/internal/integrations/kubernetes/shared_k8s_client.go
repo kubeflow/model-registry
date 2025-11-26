@@ -184,8 +184,16 @@ func (kc *SharedClientLogic) GetAllCatalogSourceConfigs(
 		return corev1.ConfigMap{}, corev1.ConfigMap{}, fmt.Errorf("failed to get %s: %w", CatalogSourceDefaultConfigMapName, err)
 	}
 
-	// TODO ppadti Fetch CatalogSourceUserConfigMapName and return it as second parameter
-	// TODO ppadti Another thing for us double check, is if we can share the all same logic across both kubernetes clients (internal and shared)
-	// let's review this together when you write the other CRUD operations.
-	return *defaultCM, corev1.ConfigMap{}, nil
+	userCM, err := kc.Client.CoreV1().ConfigMaps(namespace).Get(sessionCtx, CatalogSourceUserConfigMapName, metav1.GetOptions{})
+
+	if err != nil {
+		sessionLogger.Error("failed to fetch catalog source configmap",
+			"namespace", namespace,
+			"name", CatalogSourceUserConfigMapName,
+			"error", err,
+		)
+		return corev1.ConfigMap{}, corev1.ConfigMap{}, fmt.Errorf("failed to get %s: %w", CatalogSourceUserConfigMapName, err)
+	}
+
+	return *defaultCM, *userCM, nil
 }
