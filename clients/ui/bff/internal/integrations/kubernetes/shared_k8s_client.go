@@ -158,3 +158,42 @@ func (kc *SharedClientLogic) GetGroups(ctx context.Context) ([]string, error) {
 	kc.Logger.Info("This functionality is not implement yet. This is a STUB API to unblock frontend development until we have a definition on how to create model registries")
 	return []string{}, nil
 }
+
+func (kc *SharedClientLogic) GetAllCatalogSourceConfigs(
+	sessionCtx context.Context,
+	namespace string,
+) (corev1.ConfigMap, corev1.ConfigMap, error) {
+
+	if namespace == "" {
+		return corev1.ConfigMap{}, corev1.ConfigMap{}, fmt.Errorf("namespace cannot be empty")
+	}
+
+	sessionLogger := sessionCtx.Value(constants.TraceLoggerKey).(*slog.Logger)
+
+	// Fetch default sources
+	defaultCM, err := kc.Client.CoreV1().
+		ConfigMaps(namespace).
+		Get(sessionCtx, CatalogSourceDefaultConfigMapName, metav1.GetOptions{})
+
+	if err != nil {
+		sessionLogger.Error("failed to fetch default catalog source configmap",
+			"namespace", namespace,
+			"name", CatalogSourceDefaultConfigMapName,
+			"error", err,
+		)
+		return corev1.ConfigMap{}, corev1.ConfigMap{}, fmt.Errorf("failed to get %s: %w", CatalogSourceDefaultConfigMapName, err)
+	}
+
+	userCM, err := kc.Client.CoreV1().ConfigMaps(namespace).Get(sessionCtx, CatalogSourceUserConfigMapName, metav1.GetOptions{})
+
+	if err != nil {
+		sessionLogger.Error("failed to fetch catalog source configmap",
+			"namespace", namespace,
+			"name", CatalogSourceUserConfigMapName,
+			"error", err,
+		)
+		return corev1.ConfigMap{}, corev1.ConfigMap{}, fmt.Errorf("failed to get %s: %w", CatalogSourceUserConfigMapName, err)
+	}
+
+	return *defaultCM, *userCM, nil
+}

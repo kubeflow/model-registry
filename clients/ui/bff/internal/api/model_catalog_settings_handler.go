@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/kubeflow/model-registry/ui/bff/internal/mocks"
 	"net/http"
 
 	"github.com/julienschmidt/httprouter"
@@ -56,26 +57,15 @@ func (app *App) GetCatalogSourceConfigHandler(w http.ResponseWriter, r *http.Req
 		return
 	}
 
-	client, err := app.kubernetesClientFactory.GetClient(ctx)
-	if err != nil {
-		app.serverErrorResponse(w, r, errors.New("catalog client not found"))
-		return
-	}
-
 	catalogSourceId := ps.ByName(CatalogSourceId)
-
-	catalogSourceConfig, err := app.repositories.ModelCatalogSettingsRepository.GetCatalogSourceConfig(ctx, client, namespace, catalogSourceId)
-
-	if err != nil {
-		app.serverErrorResponse(w, r, err)
-		return
-	}
+	// TODO ppadti write the real implementation here
+	catalogSourceConfig := mocks.CreateSampleCatalogSource(catalogSourceId, "catalog-source-1", "yaml")
 
 	modelCatalogSource := ModelCatalogSettingsSourceConfigEnvelope{
-		Data: catalogSourceConfig,
+		Data: &catalogSourceConfig,
 	}
 
-	err = app.WriteJSON(w, http.StatusOK, modelCatalogSource, nil)
+	err := app.WriteJSON(w, http.StatusOK, modelCatalogSource, nil)
 
 	if err != nil {
 		app.serverErrorResponse(w, r, err)
@@ -92,27 +82,20 @@ func (app *App) CreateCatalogSourceConfigHandler(w http.ResponseWriter, r *http.
 		return
 	}
 
-	client, err := app.kubernetesClientFactory.GetClient(ctx)
-	if err != nil {
-		app.serverErrorResponse(w, r, errors.New("catalog client not found"))
-		return
-	}
-
 	var envelope ModelCatalogSourcePayloadEnvelope
 	if err := json.NewDecoder(r.Body).Decode(&envelope); err != nil {
 		app.serverErrorResponse(w, r, fmt.Errorf("error decoding JSON:: %v", err.Error()))
 		return
 	}
 
-	newCatalogSource, err := app.repositories.ModelCatalogSettingsRepository.CreateCatalogSourceConfig(ctx, client, namespace, *envelope.Data)
-
-	if err != nil {
-		app.serverErrorResponse(w, r, err)
-		return
-	}
+	var sourceName = envelope.Data.Name
+	var sourceId = envelope.Data.Id
+	var sourceType = envelope.Data.Type
+	// TODO ppadti write the real implementation here
+	newCatalogSource := mocks.CreateSampleCatalogSource(sourceId, sourceName, sourceType)
 
 	modelCatalogSource := ModelCatalogSettingsSourceConfigEnvelope{
-		Data: newCatalogSource,
+		Data: &newCatalogSource,
 	}
 
 	w.Header().Set("Location", r.URL.JoinPath(modelCatalogSource.Data.Id).String())
@@ -133,30 +116,21 @@ func (app *App) UpdateCatalogSourceConfigHandler(w http.ResponseWriter, r *http.
 		return
 	}
 
-	client, err := app.kubernetesClientFactory.GetClient(ctx)
-	if err != nil {
-		app.serverErrorResponse(w, r, errors.New("catalog client not found"))
-		return
-	}
-
 	var envelope ModelCatalogSourcePayloadEnvelope
 	if err := json.NewDecoder(r.Body).Decode(&envelope); err != nil {
 		app.serverErrorResponse(w, r, fmt.Errorf("error decoding JSON:: %v", err.Error()))
 		return
 	}
 
-	newCatalogSource, err := app.repositories.ModelCatalogSettingsRepository.UpdateCatalogSourceConfig(ctx, client, namespace, *envelope.Data)
-
-	if err != nil {
-		app.serverErrorResponse(w, r, err)
-		return
-	}
+	catalogSourceId := envelope.Data.Id
+	// TODO ppadti write the real implementation here
+	newCatalogSource := mocks.CreateSampleCatalogSource(catalogSourceId, "Updated Catalog", "yaml")
 
 	modelCatalogSource := ModelCatalogSettingsSourceConfigEnvelope{
-		Data: newCatalogSource,
+		Data: &newCatalogSource,
 	}
 
-	err = app.WriteJSON(w, http.StatusOK, modelCatalogSource, nil)
+	err := app.WriteJSON(w, http.StatusOK, modelCatalogSource, nil)
 
 	if err != nil {
 		app.serverErrorResponse(w, r, err)
@@ -172,27 +146,16 @@ func (app *App) DeleteCatalogSourceConfigHandler(w http.ResponseWriter, r *http.
 		return
 	}
 
-	client, err := app.kubernetesClientFactory.GetClient(ctx)
-	if err != nil {
-		app.serverErrorResponse(w, r, errors.New("catalog client not found"))
-		return
-	}
-
-	// this is the temoprary fix to start fronetend development
+	// TODO ppadti write the real implementation here
 	catalogSourceId := ps.ByName(CatalogSourceId)
 
-	newCatalogSource, err := app.repositories.ModelCatalogSettingsRepository.DeleteCatalogSourceConfig(ctx, client, namespace, catalogSourceId)
-
-	if err != nil {
-		app.serverErrorResponse(w, r, err)
-		return
-	}
+	deletedCatalogSource := mocks.CreateSampleCatalogSource(catalogSourceId, "Updated Catalog", "yaml")
 
 	modelCatalogSource := ModelCatalogSettingsSourceConfigEnvelope{
-		Data: newCatalogSource,
+		Data: &deletedCatalogSource,
 	}
 
-	err = app.WriteJSON(w, http.StatusOK, modelCatalogSource, nil)
+	err := app.WriteJSON(w, http.StatusOK, modelCatalogSource, nil)
 
 	if err != nil {
 		app.serverErrorResponse(w, r, err)

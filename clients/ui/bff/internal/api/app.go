@@ -178,14 +178,6 @@ func NewApp(cfg config.EnvConfig, logger *slog.Logger) (*App, error) {
 		return nil, fmt.Errorf("failed to create ModelRegistry Catalog client: %w", err)
 	}
 
-	var modelCatalogSettingsRepository repositories.ModelCatalogSettingsRepositoryInterface
-
-	if cfg.MockK8Client {
-		modelCatalogSettingsRepository, err = mocks.NewModelCatalogSettingsRepository(logger)
-	} else {
-		modelCatalogSettingsRepository, err = repositories.NewModelCatalogSettingsRepository(logger)
-	}
-
 	if err != nil {
 		return nil, fmt.Errorf("failed to create ModelCatalogSettings client: %w", err)
 	}
@@ -194,7 +186,7 @@ func NewApp(cfg config.EnvConfig, logger *slog.Logger) (*App, error) {
 		config:                  cfg,
 		logger:                  logger,
 		kubernetesClientFactory: k8sFactory,
-		repositories:            repositories.NewRepositories(mrClient, modelCatalogClient, modelCatalogSettingsRepository),
+		repositories:            repositories.NewRepositories(mrClient, modelCatalogClient),
 		testEnv:                 testEnv,
 		rootCAs:                 rootCAs,
 	}

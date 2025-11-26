@@ -7,8 +7,9 @@ import (
 	"os"
 	"path/filepath"
 	"runtime"
+	"strings"
 
-	kubernetes2 "github.com/kubeflow/model-registry/ui/bff/internal/integrations/kubernetes"
+	k8s "github.com/kubeflow/model-registry/ui/bff/internal/integrations/kubernetes"
 	corev1 "k8s.io/api/core/v1"
 	rbacv1 "k8s.io/api/rbac/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -160,6 +161,131 @@ func setupMock(mockK8sClient kubernetes.Interface, ctx context.Context) error {
 	err = createGroupNamespaceAccessRBAC(mockK8sClient, ctx, DefaultTestUsers[1].Groups[0], "dora-namespace")
 	if err != nil {
 		return fmt.Errorf("failed to set up group access to namespace: %w", err)
+	}
+
+	//TODO ppadti: Add more mock setup as needed for other namespaces
+	err = createModelCatalogDefaultSourcesConfigMap(mockK8sClient, ctx, "kubeflow")
+	if err != nil {
+		return err
+	}
+
+	err = createModelCatalogSourcesConfigMap(mockK8sClient, ctx, "kubeflow")
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func createModelCatalogDefaultSourcesConfigMap(
+	k8sClient kubernetes.Interface,
+	ctx context.Context,
+	namespace string,
+) error {
+	raw := strings.TrimSpace(`
+catalogs:
+  - name: Dora AI
+    id: dora_ai_models
+    type: yaml
+    enabled: true
+    properties:
+      yamlCatalogPath: /shared-data/models-catalog.yaml
+    labels:
+      - Dora AI
+
+  - name: Bella AI validated
+    id: bella_ai_validated_models
+    type: yaml
+    enabled: true
+    properties:
+      yamlCatalogPath: /shared-data/validated-models-catalog.yaml
+    labels:
+      - Bella AI validated
+`)
+
+	cm := &corev1.ConfigMap{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      k8s.CatalogSourceDefaultConfigMapName,
+			Namespace: namespace,
+		},
+		Data: map[string]string{
+			k8s.CatalogSourceKey: raw,
+		},
+	}
+
+	if _, err := k8sClient.CoreV1().ConfigMaps(namespace).Create(ctx, cm, metav1.CreateOptions{}); err != nil {
+		return fmt.Errorf("failed to create model-catalog-default-sources configmap: %w", err)
+	}
+
+	return nil
+}
+
+func createModelCatalogSourcesConfigMap(
+	k8sClient kubernetes.Interface,
+	ctx context.Context,
+	namespace string,
+) error {
+	raw := strings.TrimSpace(`
+catalogs:
+  - name: Custom yaml
+    id: custom_yaml_models
+    type: yaml
+    enabled: true
+    properties:
+      yamlCatalogPath: /shared-data/models-catalog.yaml
+      includedModels:
+        - model-*
+        - model-2-*
+      excludedModels:
+        - sample-model-*
+    labels:
+      - Dora AI
+
+  - name: Sample source
+    id: sample_source_models
+    type: yaml
+    enabled: false
+    properties:
+      yamlCatalogPath: /shared-data/validated-models-catalog.yaml
+      includedModels:
+        - model-*
+        - model-2-*
+      excludedModels:
+        - sample-model-*
+    labels:
+      - Bella AI validated
+      - Dora AI
+
+  - name: Hugging face source
+    id: hugging_face_source
+    type: huggingface
+    enabled: true
+    properties:
+      apiKey: accessToken
+      allowedOrganization: org
+      includedModels:
+        - model-*
+        - model-2-*
+      excludedModels:
+        - sample-model-*
+    labels:
+      - Bella AI validated
+`)
+
+	cm := &corev1.ConfigMap{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      k8s.CatalogSourceUserConfigMapName,
+			Namespace: namespace,
+		},
+		Data: map[string]string{
+			k8s.CatalogSourceKey:        raw,
+			"custom_yaml_models.yaml":   "models:\n - name: model1",
+			"sample_source_models.yaml": "models:\n - name: model2",
+		},
+	}
+
+	if _, err := k8sClient.CoreV1().ConfigMaps(namespace).Create(ctx, cm, metav1.CreateOptions{}); err != nil {
+		return fmt.Errorf("failed to create model-catalog-default-sources configmap: %w", err)
 	}
 
 	return nil
@@ -373,7 +499,7 @@ func createService(k8sClient kubernetes.Interface, ctx context.Context, name str
 		},
 		Spec: corev1.ServiceSpec{
 			Selector: map[string]string{
-				"component": kubernetes2.ComponentLabelValue,
+				"component": k8s.ComponentLabelValue,
 			},
 			Type:      corev1.ServiceTypeClusterIP,
 			ClusterIP: clusterIP,
