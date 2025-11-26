@@ -35,6 +35,9 @@ func newPaginator[T model.Sortable](pageSize string, orderBy model.OrderByField,
 		if err != nil {
 			return nil, fmt.Errorf("error converting page size to int32: %w", err)
 		}
+		if pageSize64 < 1 {
+			return nil, fmt.Errorf("pageSize must be at least 1, got %d", pageSize64)
+		}
 		p.PageSize = int32(pageSize64)
 	}
 
