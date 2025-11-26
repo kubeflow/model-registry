@@ -318,6 +318,9 @@ def get_mock_custom_oci_backend():
     def pull_mock_imple(base_image, dest_dir, **kwargs):
         pathlib.Path(dest_dir).joinpath("oci-layout").write_text(oci_layout_contents)
         pathlib.Path(dest_dir).joinpath("index.json").write_text(index_json_contents)
+        blobs_sha256_dir = pathlib.Path(dest_dir).joinpath("blobs").joinpath("sha256")
+        blobs_sha256_dir.mkdir(parents=True, exist_ok=True)
+        blobs_sha256_dir.joinpath("unused-blob").write_text("{}")
 
     pull_mock.side_effect = pull_mock_imple
     return BackendDefinition(
