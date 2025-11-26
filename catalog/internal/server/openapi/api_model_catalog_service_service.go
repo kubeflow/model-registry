@@ -317,7 +317,7 @@ func (m *ModelCatalogServiceAPIService) FindSources(ctx context.Context, name st
 	return Response(http.StatusOK, res), nil
 }
 
-func (m *ModelCatalogServiceAPIService) PreviewCatalogSource(ctx context.Context, configParam *os.File, pageSizeParam string, nextPageTokenParam string, filterStatusParam string) (ImplResponse, error) {
+func (m *ModelCatalogServiceAPIService) PreviewCatalogSource(ctx context.Context, configParam *os.File, pageSizeParam string, nextPageTokenParam string, filterStatusParam string, catalogDataParam *os.File) (ImplResponse, error) {
 	// Parse page size
 	pageSize := int32(10)
 	if pageSizeParam != "" {
@@ -350,6 +350,16 @@ func (m *ModelCatalogServiceAPIService) PreviewCatalogSource(ctx context.Context
 		return ErrorResponse(http.StatusBadRequest, fmt.Errorf("failed to read config file: %w", err)), err
 	}
 
+	// Read catalog data if provided (stateless mode)
+	var catalogDataBytes []byte
+	if catalogDataParam != nil {
+		defer catalogDataParam.Close()
+		catalogDataBytes, err = os.ReadFile(catalogDataParam.Name())
+		if err != nil {
+			return ErrorResponse(http.StatusBadRequest, fmt.Errorf("failed to read catalogData file: %w", err)), err
+		}
+	}
+
 	// Parse the config as a preview request
 	previewRequest, err := catalog.ParsePreviewConfig(configBytes)
 	if err != nil {
@@ -357,7 +367,7 @@ func (m *ModelCatalogServiceAPIService) PreviewCatalogSource(ctx context.Context
 	}
 
 	// Load models using the preview service
-	previewResults, err := catalog.PreviewSourceModels(ctx, previewRequest)
+	previewResults, err := catalog.PreviewSourceModels(ctx, previewRequest, catalogDataBytes)
 	if err != nil {
 		return ErrorResponse(http.StatusUnprocessableEntity, fmt.Errorf("failed to load models: %w", err)), err
 	}

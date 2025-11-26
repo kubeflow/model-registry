@@ -379,7 +379,21 @@ func (c *ModelCatalogServiceAPIController) PreviewCatalogSource(w http.ResponseW
 		param := "all"
 		filterStatusParam = param
 	}
-	result, err := c.service.PreviewCatalogSource(r.Context(), configParam, pageSizeParam, nextPageTokenParam, filterStatusParam)
+	var catalogDataParam *os.File
+	{
+		param, err := ReadFormFileToTempFile(r, "catalogData")
+		if err != nil {
+			// Optional file parameter - ignore missing file error
+			if err != http.ErrMissingFile {
+				c.errorHandler(w, r, &ParsingError{Param: "catalogData", Err: err}, nil)
+				return
+			}
+		}
+
+		catalogDataParam = param
+	}
+
+	result, err := c.service.PreviewCatalogSource(r.Context(), configParam, pageSizeParam, nextPageTokenParam, filterStatusParam, catalogDataParam)
 	// If an error occurred, encode the error with the status code
 	if err != nil {
 		c.errorHandler(w, r, err, &result)

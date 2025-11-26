@@ -1405,6 +1405,7 @@ type ApiPreviewCatalogSourceRequest struct {
 	pageSize      *string
 	nextPageToken *string
 	filterStatus  *string
+	catalogData   *os.File
 }
 
 // YAML file containing the catalog source configuration. The file should contain a source definition with type and properties fields, including optional includedModels and excludedModels filters.  Model filter patterns support the &#x60;*&#x60; wildcard only and are case-insensitive. Patterns match the entire model name (e.g., &#x60;ibm-granite/_*&#x60; matches all models starting with \\\&quot;ibm-granite/\\\&quot;).  File Size Limit: Maximum upload size is 32 MB. Files exceeding this limit will be rejected with a 400 Bad Request error.
@@ -1431,6 +1432,12 @@ func (r ApiPreviewCatalogSourceRequest) FilterStatus(filterStatus string) ApiPre
 	return r
 }
 
+// Optional YAML file containing the catalog data (models).  This field enables stateless preview of new sources before saving them. When provided, the catalog data is read directly from this file instead of from the &#x60;yamlCatalogPath&#x60; property in the config.  **Two modes of operation:** 1. **Stateless mode (recommended for new sources):** Upload both &#x60;config&#x60; and    &#x60;catalogData&#x60; files. The models are read from &#x60;catalogData&#x60;, allowing preview    without saving anything to the server. 2. **Path mode (for existing sources):** Upload only &#x60;config&#x60; with a &#x60;yamlCatalogPath&#x60;    property pointing to a catalog file on the server filesystem.  If both &#x60;catalogData&#x60; and &#x60;yamlCatalogPath&#x60; are provided, &#x60;catalogData&#x60; takes precedence.  File Size Limit: Maximum upload size is 32 MB.
+func (r ApiPreviewCatalogSourceRequest) CatalogData(catalogData *os.File) ApiPreviewCatalogSourceRequest {
+	r.catalogData = catalogData
+	return r
+}
+
 func (r ApiPreviewCatalogSourceRequest) Execute() (*CatalogSourcePreviewResponse, *http.Response, error) {
 	return r.ApiService.PreviewCatalogSourceExecute(r)
 }
@@ -1438,13 +1445,23 @@ func (r ApiPreviewCatalogSourceRequest) Execute() (*CatalogSourcePreviewResponse
 /*
 PreviewCatalogSource Preview catalog source configuration
 
-Accepts a catalog source configuration (via multipart form upload for YAML catalogs files)
-and returns a list of models showing which would be included or excluded based
-on the configured filters. This allows users to test and validate their source
-configurations before applying them.
+Accepts a catalog source configuration and returns a list of models showing
+which would be included or excluded based on the configured filters. This allows
+users to test and validate their source configurations before applying them.
 
-	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
-	@return ApiPreviewCatalogSourceRequest
+**Two modes of operation:**
+
+ 1. **Stateless mode (recommended for new sources):** Upload both `config` and
+    `catalogData` files via multipart form. The models are read directly from
+    the uploaded `catalogData`, enabling preview of new sources before saving
+    anything to the server. This is ideal for testing configurations.
+
+ 2. **Path mode (for existing sources):** Upload only `config` with a `yamlCatalogPath`
+    property. The models are read from the specified file path on the server.
+    Use this for previewing changes to existing saved sources.
+
+    @param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+    @return ApiPreviewCatalogSourceRequest
 */
 func (a *ModelCatalogServiceAPIService) PreviewCatalogSource(ctx context.Context) ApiPreviewCatalogSourceRequest {
 	return ApiPreviewCatalogSourceRequest{
@@ -1522,6 +1539,21 @@ func (a *ModelCatalogServiceAPIService) PreviewCatalogSourceExecute(r ApiPreview
 		configLocalVarFileName = configLocalVarFile.Name()
 		configLocalVarFile.Close()
 		formFiles = append(formFiles, formFile{fileBytes: configLocalVarFileBytes, fileName: configLocalVarFileName, formFileName: configLocalVarFormFileName})
+	}
+	var catalogDataLocalVarFormFileName string
+	var catalogDataLocalVarFileName string
+	var catalogDataLocalVarFileBytes []byte
+
+	catalogDataLocalVarFormFileName = "catalogData"
+	catalogDataLocalVarFile := r.catalogData
+
+	if catalogDataLocalVarFile != nil {
+		fbs, _ := io.ReadAll(catalogDataLocalVarFile)
+
+		catalogDataLocalVarFileBytes = fbs
+		catalogDataLocalVarFileName = catalogDataLocalVarFile.Name()
+		catalogDataLocalVarFile.Close()
+		formFiles = append(formFiles, formFile{fileBytes: catalogDataLocalVarFileBytes, fileName: catalogDataLocalVarFileName, formFileName: catalogDataLocalVarFormFileName})
 	}
 	req, err := a.client.prepareRequest(r.ctx, localVarPath, localVarHTTPMethod, localVarPostBody, localVarHeaderParams, localVarQueryParams, localVarFormParams, formFiles)
 	if err != nil {

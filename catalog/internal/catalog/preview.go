@@ -39,7 +39,8 @@ func ParsePreviewConfig(configBytes []byte) (*PreviewConfig, error) {
 
 // PreviewSourceModels loads models from the source configuration and returns
 // preview results showing which models would be included or excluded.
-func PreviewSourceModels(ctx context.Context, config *PreviewConfig) ([]model.ModelPreviewResult, error) {
+// If catalogDataBytes is provided, it will be used directly instead of reading from yamlCatalogPath.
+func PreviewSourceModels(ctx context.Context, config *PreviewConfig, catalogDataBytes []byte) ([]model.ModelPreviewResult, error) {
 	// Create a ModelFilter from the config
 	filter, err := NewModelFilter(config.IncludedModels, config.ExcludedModels)
 	if err != nil {
@@ -47,7 +48,7 @@ func PreviewSourceModels(ctx context.Context, config *PreviewConfig) ([]model.Mo
 	}
 
 	// Load all model names from the source (without filtering)
-	modelNames, err := loadModelNamesFromSource(ctx, config)
+	modelNames, err := loadModelNamesFromSource(ctx, config, catalogDataBytes)
 	if err != nil {
 		return nil, err
 	}
@@ -66,10 +67,11 @@ func PreviewSourceModels(ctx context.Context, config *PreviewConfig) ([]model.Mo
 }
 
 // loadModelNamesFromSource loads model names from the specified source type.
-func loadModelNamesFromSource(ctx context.Context, config *PreviewConfig) ([]string, error) {
+// If catalogDataBytes is provided, it takes precedence over reading from file paths.
+func loadModelNamesFromSource(ctx context.Context, config *PreviewConfig, catalogDataBytes []byte) ([]string, error) {
 	switch config.Type {
 	case "yaml":
-		return loadYamlModelNames(ctx, config)
+		return loadYamlModelNames(ctx, config, catalogDataBytes)
 	case "hf", "huggingface":
 		return nil, fmt.Errorf("HuggingFace source preview is not yet supported")
 	default:
@@ -77,26 +79,37 @@ func loadModelNamesFromSource(ctx context.Context, config *PreviewConfig) ([]str
 	}
 }
 
-// loadYamlModelNames loads model names from a YAML catalog file.
-func loadYamlModelNames(ctx context.Context, config *PreviewConfig) ([]string, error) {
-	path, ok := config.Properties[yamlCatalogPathKey].(string)
-	if !ok || path == "" {
-		return nil, fmt.Errorf("missing required property: %s", yamlCatalogPathKey)
-	}
+// loadYamlModelNames loads model names from a YAML catalog.
+// If catalogDataBytes is provided (stateless mode), it is used directly.
+// Otherwise, the catalog is read from yamlCatalogPath (path mode).
+func loadYamlModelNames(ctx context.Context, config *PreviewConfig, catalogDataBytes []byte) ([]string, error) {
+	var catalogBytes []byte
 
-	// Resolve relative paths - for preview, we use the current working directory
-	if !filepath.IsAbs(path) {
-		cwd, err := os.Getwd()
-		if err != nil {
-			return nil, fmt.Errorf("failed to get working directory: %w", err)
+	if len(catalogDataBytes) > 0 {
+		// Stateless mode: use provided catalog data directly
+		catalogBytes = catalogDataBytes
+	} else {
+		// Path mode: read from yamlCatalogPath
+		path, ok := config.Properties[yamlCatalogPathKey].(string)
+		if !ok || path == "" {
+			return nil, fmt.Errorf("missing required property: %s (provide catalogData file or set yamlCatalogPath in config)", yamlCatalogPathKey)
 		}
-		path = filepath.Join(cwd, path)
-	}
 
-	// Read and parse the catalog file
-	catalogBytes, err := os.ReadFile(path)
-	if err != nil {
-		return nil, fmt.Errorf("failed to read catalog file %s: %w", path, err)
+		// Resolve relative paths - for preview, we use the current working directory
+		if !filepath.IsAbs(path) {
+			cwd, err := os.Getwd()
+			if err != nil {
+				return nil, fmt.Errorf("failed to get working directory: %w", err)
+			}
+			path = filepath.Join(cwd, path)
+		}
+
+		// Read the catalog file
+		var err error
+		catalogBytes, err = os.ReadFile(path)
+		if err != nil {
+			return nil, fmt.Errorf("failed to read catalog file %s: %w", path, err)
+		}
 	}
 
 	var catalog yamlCatalog
