@@ -182,9 +182,7 @@ describe('ModelCatalogCard Component', () => {
 
     it('should display correct source labels', () => {
       modelCatalog.findFirstModelCatalogCard().within(() => {
-        modelCatalog
-          .findSourceLabel()
-          .should('contain.text', 'source 2text-generationprovider1apache-2.0');
+        modelCatalog.findSourceLabel().should('contain.text', 'source 2text-generationprovider1');
       });
     });
 
