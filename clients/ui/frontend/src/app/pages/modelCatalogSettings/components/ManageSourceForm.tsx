@@ -15,10 +15,12 @@ import { catalogSettingsUrl } from '~/app/routes/modelCatalogSettings/modelCatal
 import { isFormValid, isPreviewReady } from '~/app/pages/modelCatalogSettings/utils/validation';
 import {
   ManageSourceFormData,
-  SourceType,
   useManageSourceData,
 } from '~/app/pages/modelCatalogSettings/useManageSourceData';
 import { FORM_LABELS, DESCRIPTIONS } from '~/app/pages/modelCatalogSettings/constants';
+import { ModelCatalogSettingsContext } from '~/app/context/modelCatalogSettings/ModelCatalogSettingsContext';
+import { transformFormDataToPayload } from '~/app/pages/modelCatalogSettings/utils/modelCatalogSettingsUtils';
+import { CatalogSourceType } from '~/app/modelCatalogTypes';
 import SourceDetailsSection from './SourceDetailsSection';
 import CredentialsSection from './CredentialsSection';
 import YamlSection from './YamlSection';
@@ -36,20 +38,33 @@ const ManageSourceForm: React.FC<ManageSourceFormProps> = ({ existingData, isEdi
   const [formData, setData] = useManageSourceData(existingData);
   const [isSubmitting, setIsSubmitting] = React.useState(false);
   const [submitError, setSubmitError] = React.useState<Error | undefined>(undefined);
+  const { apiState, refreshCatalogSourceConfigs } = React.useContext(ModelCatalogSettingsContext);
 
-  const isHuggingFaceMode = formData.sourceType === SourceType.HuggingFace;
+  const isHuggingFaceMode = formData.sourceType === CatalogSourceType.HUGGING_FACE;
   const isFormComplete = isFormValid(formData);
   const canPreview = isPreviewReady(formData);
 
   const handleSubmit = async () => {
+    if (!apiState.apiAvailable) {
+      setSubmitError(new Error('API is not available'));
+      return;
+    }
     setIsSubmitting(true);
     setSubmitError(undefined);
 
     try {
-      // TODO: Implement submit logic (will be part of API integration)
-      // navigate(catalogSettingsUrl());
+      const payload = transformFormDataToPayload(formData);
+
+      if (isEditMode) {
+        await apiState.api.updateCatalogSourceConfig({}, payload.id, payload);
+      } else {
+        await apiState.api.createCatalogSourceConfig({}, payload);
+      }
+
+      refreshCatalogSourceConfigs();
+      navigate(catalogSettingsUrl());
     } catch (error) {
-      setSubmitError(error instanceof Error ? error : new Error('Failed to save source'));
+      setSubmitError(error instanceof Error ? error : new Error(`Failed to save source`));
     } finally {
       setIsSubmitting(false);
     }
@@ -65,12 +80,16 @@ const ManageSourceForm: React.FC<ManageSourceFormProps> = ({ existingData, isEdi
 
   return (
     <>
-      <Sidebar hasBorder isPanelRight>
-        <SidebarContent hasPadding>
+      <Sidebar hasBorder isPanelRight hasGutter>
+        <SidebarContent>
           <Form isWidthLimited>
             <Stack hasGutter>
               <StackItem>
-                <SourceDetailsSection formData={formData} setData={setData} />
+                <SourceDetailsSection
+                  formData={formData}
+                  setData={setData}
+                  isEditMode={isEditMode}
+                />
               </StackItem>
 
               {isHuggingFaceMode && (
@@ -79,7 +98,7 @@ const ManageSourceForm: React.FC<ManageSourceFormProps> = ({ existingData, isEdi
                 </StackItem>
               )}
 
-              {!isHuggingFaceMode && (
+              {!formData.isDefault && !isHuggingFaceMode && (
                 <StackItem>
                   <YamlSection formData={formData} setData={setData} />
                 </StackItem>
@@ -111,7 +130,7 @@ const ManageSourceForm: React.FC<ManageSourceFormProps> = ({ existingData, isEdi
             </Stack>
           </Form>
         </SidebarContent>
-        <SidebarPanel width={{ default: 'width_50' }} hasPadding>
+        <SidebarPanel width={{ default: 'width_50' }}>
           <PreviewPanel isPreviewEnabled={canPreview} onPreview={handlePreview} />
         </SidebarPanel>
       </Sidebar>

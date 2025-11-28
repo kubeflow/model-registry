@@ -1,7 +1,5 @@
-import {
-  ManageSourceFormData,
-  SourceType,
-} from '~/app/pages/modelCatalogSettings/useManageSourceData';
+import { CatalogSourceType } from '~/app/modelCatalogTypes';
+import { ManageSourceFormData } from '~/app/pages/modelCatalogSettings/useManageSourceData';
 
 const isNonEmptyString = (value: string): boolean => value.trim().length > 0;
 
@@ -15,14 +13,14 @@ export const validateAccessToken = (accessToken: string): boolean => isNonEmptyS
 export const validateYamlContent = (yamlContent: string): boolean => isNonEmptyString(yamlContent);
 
 export const validateHuggingFaceCredentials = (data: ManageSourceFormData): boolean => {
-  if (data.sourceType !== SourceType.HuggingFace) {
+  if (data.sourceType !== CatalogSourceType.HUGGING_FACE) {
     return true;
   }
   return validateOrganization(data.organization) && validateAccessToken(data.accessToken);
 };
 
 export const validateYamlMode = (data: ManageSourceFormData): boolean => {
-  if (data.sourceType !== SourceType.YAML) {
+  if (data.sourceType !== CatalogSourceType.YAML) {
     return true;
   }
   return validateYamlContent(data.yamlContent);
@@ -32,7 +30,7 @@ export const isFormValid = (data: ManageSourceFormData): boolean =>
   validateSourceName(data.name) && validateHuggingFaceCredentials(data) && validateYamlMode(data);
 
 export const isPreviewReady = (data: ManageSourceFormData): boolean => {
-  if (data.sourceType === SourceType.HuggingFace) {
+  if (data.sourceType === CatalogSourceType.HUGGING_FACE) {
     return validateHuggingFaceCredentials(data);
   }
   return validateYamlMode(data);

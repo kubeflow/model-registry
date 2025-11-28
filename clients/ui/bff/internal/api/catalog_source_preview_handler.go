@@ -31,6 +31,7 @@ func (app *App) CreateCatalogSourcePreviewHandler(w http.ResponseWriter, r *http
 
 	if err != nil {
 		app.serverErrorResponse(w, r, err)
+		return
 	}
 
 	catalogSourcePreview := CatalogSourcePreviewEnvelope{
