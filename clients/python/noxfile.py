@@ -72,9 +72,8 @@ def tests(session: Session) -> None:
 @session(name="e2e", python=python_versions)
 def e2e_tests(session: Session) -> None:
     """Run the test suite."""
-    session.install(
+    packages = [
         ".",
-        "ray",
         "requests",
         "pytest",
         "pytest-asyncio",
@@ -86,7 +85,12 @@ def e2e_tests(session: Session) -> None:
         "olot",
         "uvloop",
         "schemathesis",
-    )
+    ]
+    # Ray requires Python >3.9
+    if session.python != "3.9":
+        packages.insert(1, "ray")
+
+    session.install(*packages)
     try:
         session.run(
             "pytest",

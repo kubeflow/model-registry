@@ -52,9 +52,9 @@ pytest-mock = ">=3.7.0"
 pytest-xdist = "^3.5.0"
 ruff = ">=0.5.2,<0.15.0"
 mypy = "^1.7.0"
-# atm Ray is only available <3.13, so we will E2E test using Ray in compatible py environments.
+# E2E test using Ray in compatible py environments:
 ray = [
-    {version = "^2.43.0", python = ">=3.9, <3.13"}
+    {version = "^2.52.1", python = ">3.9"}
 ] 
 uvloop = ">=0.21,<0.23"
 pytest-asyncio = "^1.1.0"
