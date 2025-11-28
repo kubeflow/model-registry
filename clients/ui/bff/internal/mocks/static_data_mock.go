@@ -810,7 +810,7 @@ func GetCatalogSourceMocks() []models.CatalogSource {
 	disabledStatus := "disabled"
 
 	invalidCredentialError := "The provided API key is invalid or has expired. Please update your credentials."
-	invalidOrgError := "The specified organization 'invalid-org' does not exist or you don't have access to it."
+	invalidOrgError := "The specified organization 'invalid-org' does not exist or you don't have access to it. Please verify the organization name and ensure you have the necessary permissions to access models from this organization."
 
 	return []models.CatalogSource{
 		{
@@ -1348,7 +1348,7 @@ func GetFilterOptionsListMock() models.FilterOptionsList {
 }
 
 func CreateSampleCatalogSource(id string, name string, catalogType string) models.CatalogSourceConfig {
-	defaultCatalog := id == "catalog-1"
+	defaultCatalog := id == "sample-source"
 
 	sourceConfig := models.CatalogSourceConfig{
 		Name:      name,
@@ -1368,7 +1368,12 @@ func CreateSampleCatalogSource(id string, name string, catalogType string) model
 	case "yaml":
 		sourceConfig.Yaml = stringToPointer("models:\n  - name: model1")
 	case "huggingface":
-		sourceConfig.AllowedOrganization = stringToPointer("org1")
+		// Use different organizations for the failed sources
+		if id == "adminModel2" {
+			sourceConfig.AllowedOrganization = stringToPointer("invalid-org")
+		} else {
+			sourceConfig.AllowedOrganization = stringToPointer("org1")
+		}
 		sourceConfig.ApiKey = stringToPointer("apikey")
 	}
 
@@ -1380,10 +1385,13 @@ func BoolPtr(b bool) *bool {
 }
 
 func GetCatalogSourceConfigsMocks() []models.CatalogSourceConfig {
+	// Match IDs with catalog sources to show proper statuses
 	return []models.CatalogSourceConfig{
-		CreateSampleCatalogSource("catalog-1", "Default Catalog", "yaml"),
-		CreateSampleCatalogSource("catalog-2", "HuggingFace Catalog", "huggingface"),
-		CreateSampleCatalogSource("catalog-3", "Custom Catalog", "yaml"),
+		CreateSampleCatalogSource("sample-source", "Sample mocked source", "yaml"),
+		CreateSampleCatalogSource("huggingface", "Hugging Face", "huggingface"),
+		CreateSampleCatalogSource("adminModel1", "Admin model 1", "huggingface"),
+		CreateSampleCatalogSource("adminModel2", "Admin model 2", "huggingface"),
+		CreateSampleCatalogSource("dora", "Dora source", "yaml"),
 	}
 }
 
