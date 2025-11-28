@@ -53,6 +53,7 @@ jobs:
         run: |
           pipx install --pip-args=--constraint=${{ github.workspace }}/.github/workflows/constraints.txt poetry
           poetry --version
+          pipx inject poetry poetry-plugin-export
       - name: Install Nox
         run: |
           pipx install --pip-args=--constraint=${{ github.workspace }}/.github/workflows/constraints.txt nox
@@ -168,6 +169,7 @@ jobs:
         run: |
           pipx install --pip-args=--constraint=${{ github.workspace }}/.github/workflows/constraints.txt poetry
           poetry --version
+          pipx inject poetry poetry-plugin-export
       - name: Install Nox
         run: |
           pipx install --pip-args=--constraint=${{ github.workspace }}/.github/workflows/constraints.txt nox
@@ -280,6 +282,7 @@ jobs:
         run: |
           pipx install --pip-args=--constraint=${{ github.workspace }}/.github/workflows/constraints.txt poetry
           poetry --version
+          pipx inject poetry poetry-plugin-export
       - name: Install Nox
         run: |
           pipx install --pip-args=--constraint=${{ github.workspace }}/.github/workflows/constraints.txt nox

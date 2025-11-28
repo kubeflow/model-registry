@@ -1,6 +1,6 @@
-pip==23.3.2
-nox==2023.4.22
-nox-poetry==1.0.3
-poetry==1.8.3
-poetry-plugin-export==1.8.0
-virtualenv==20.24.6
+pip==25.3
+nox==2025.11.12
+nox-poetry==1.2.0
+poetry==2.0.1
+poetry-plugin-export==1.9.0
+virtualenv==20.35.4
