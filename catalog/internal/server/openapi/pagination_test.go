@@ -149,6 +149,52 @@ func TestPaginateSources(t *testing.T) {
 	}
 }
 
+func TestNewPaginator_InvalidPageSize(t *testing.T) {
+	testCases := []struct {
+		name        string
+		pageSize    string
+		expectError bool
+		errContains string
+	}{
+		{
+			name:        "pageSize=0 returns error",
+			pageSize:    "0",
+			expectError: true,
+			errContains: "pageSize must be at least 1",
+		},
+		{
+			name:        "negative pageSize returns error",
+			pageSize:    "-5",
+			expectError: true,
+			errContains: "pageSize must be at least 1",
+		},
+		{
+			name:        "valid pageSize=1 works",
+			pageSize:    "1",
+			expectError: false,
+		},
+		{
+			name:        "empty pageSize uses default",
+			pageSize:    "",
+			expectError: false,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			paginator, err := newPaginator[model.CatalogSource](tc.pageSize, "ID", "", "")
+			if tc.expectError {
+				assert.Error(t, err)
+				assert.Contains(t, err.Error(), tc.errContains)
+				assert.Nil(t, paginator)
+			} else {
+				assert.NoError(t, err)
+				assert.NotNil(t, paginator)
+			}
+		})
+	}
+}
+
 func TestPaginateSources_NoDuplicates(t *testing.T) {
 	allSources := createCatalogSources(100)
 	pageSize := "10"
