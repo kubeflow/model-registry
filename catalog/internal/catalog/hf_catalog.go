@@ -58,6 +58,16 @@ func (h *hfCatalogImpl) GetFilterOptions(ctx context.Context) (*openapi.FilterOp
 	}, nil
 }
 
+func (h *hfCatalogImpl) GetPerformanceArtifacts(ctx context.Context, modelName string, sourceID string, params ListPerformanceArtifactsParams) (openapi.CatalogArtifactList, error) {
+	// HuggingFace catalog doesn't have performance metrics data
+	// Return empty list
+	return openapi.CatalogArtifactList{
+		Items:    []openapi.CatalogArtifact{},
+		PageSize: params.PageSize,
+		Size:     0,
+	}, nil
+}
+
 // validateCredentials checks if the HuggingFace API credentials are valid
 func (h *hfCatalogImpl) validateCredentials(ctx context.Context) error {
 	glog.Infof("Validating HuggingFace API credentials")
