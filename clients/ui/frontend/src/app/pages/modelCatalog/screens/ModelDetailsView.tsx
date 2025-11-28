@@ -75,8 +75,7 @@ const ModelDetailsView: React.FC<ModelDetailsViewProps> = ({
               <DescriptionListDescription>
                 <ModelCatalogLabels
                   tasks={model.tasks ?? []}
-                  license={model.license}
-                  labels={allLabels}
+                  labels={allLabels.filter((label) => label !== 'validated')}
                   numLabels={isValidated ? 2 : 3}
                 />
               </DescriptionListDescription>

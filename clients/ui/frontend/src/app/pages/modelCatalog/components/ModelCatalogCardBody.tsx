@@ -108,10 +108,8 @@ const ModelCatalogCardBody: React.FC<ModelCatalogCardBodyProps> = ({
               <span className="pf-v6-u-font-weight-bold" data-testid="validated-model-ttft">
                 {formatLatency(metrics.ttftMean)}
               </span>
-              <Flex alignItems={{ default: 'alignItemsCenter' }} gap={{ default: 'gapXs' }}>
-                <span style={{ fontSize: '14px', color: 'var(--pf-v5-global--Color--200)' }}>
-                  TTFT
-                </span>
+              <Flex alignItems={{ default: 'alignItemsBaseline' }} gap={{ default: 'gapXs' }}>
+                <Content component={ContentVariants.small}>TTFT</Content>
                 <Popover
                   headerContent="Latency"
                   bodyContent={
