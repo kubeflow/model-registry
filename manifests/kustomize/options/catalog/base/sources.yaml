@@ -5,3 +5,4 @@ catalogs:
   enabled: true
   properties:
     yamlCatalogPath: sample-catalog.yaml
+
