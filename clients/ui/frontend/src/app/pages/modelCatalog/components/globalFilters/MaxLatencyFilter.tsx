@@ -151,7 +151,6 @@ const MaxLatencyFilter: React.FC<MaxLatencyFilterProps> = ({ performanceArtifact
 
     // Reset local filter to default
     setLocalFilter(defaultFilterState);
-    setIsOpen(false);
   };
 
   const toggle = (toggleRef: React.Ref<MenuToggleElement>) => (

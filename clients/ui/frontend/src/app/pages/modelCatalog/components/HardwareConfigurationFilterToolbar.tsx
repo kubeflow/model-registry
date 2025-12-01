@@ -1,5 +1,13 @@
 import * as React from 'react';
-import { Toolbar, ToolbarContent, ToolbarGroup, ToolbarItem } from '@patternfly/react-core';
+import {
+  Button,
+  Popover,
+  Toolbar,
+  ToolbarContent,
+  ToolbarGroup,
+  ToolbarItem,
+} from '@patternfly/react-core';
+import { HelpIcon } from '@patternfly/react-icons';
 import { ModelCatalogContext } from '~/app/context/modelCatalog/ModelCatalogContext';
 import { CatalogPerformanceMetricsArtifact } from '~/app/modelCatalogTypes';
 import { clearAllFilters } from '~/app/pages/modelCatalog/utils/hardwareConfigurationFilterUtils';
@@ -32,6 +40,17 @@ const HardwareConfigurationFilterToolbar: React.FC<HardwareConfigurationFilterTo
         <ToolbarGroup>
           <ToolbarItem>
             <WorkloadTypeFilter />
+            <Popover
+              bodyContent="Select a workload type to view performance under specific input and output token lengths."
+              appendTo={() => document.body}
+            >
+              <Button
+                variant="plain"
+                aria-label="More info for workload type"
+                className="pf-v6-u-p-xs"
+                icon={<HelpIcon />}
+              />
+            </Popover>
           </ToolbarItem>
           <ToolbarItem variant="separator" />
           <ToolbarItem>

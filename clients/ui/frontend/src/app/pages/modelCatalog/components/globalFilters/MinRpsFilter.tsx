@@ -78,7 +78,6 @@ const MinRpsFilter: React.FC<MinRpsFilterProps> = ({ performanceArtifacts }) => 
   const handleReset = () => {
     setRpsFilterValue(undefined);
     setLocalValue(minValue);
-    setIsOpen(false);
   };
 
   const toggle = (toggleRef: React.Ref<MenuToggleElement>) => (
