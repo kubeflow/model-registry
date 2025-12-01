@@ -112,6 +112,23 @@ func (qb *QueryBuilder) buildExpression(db *gorm.DB, expr *FilterExpression) *go
 	// Handle logical operators (AND, OR)
 	switch expr.Operator {
 	case "AND":
+		// Collect all artifact property conditions in this AND chain
+		artifactConditions := qb.collectArtifactConditions(expr)
+		if len(artifactConditions) > 1 {
+			// Multiple artifact conditions found - build a combined EXISTS
+			// and process non-artifact conditions separately
+			nonArtifactExpr := qb.removeArtifactConditions(expr)
+
+			combinedArtifact := qb.buildCombinedArtifactExistsCondition(artifactConditions)
+			db = db.Where(combinedArtifact.condition, combinedArtifact.args...)
+
+			if nonArtifactExpr != nil {
+				// Process remaining non-artifact conditions
+				db = qb.buildExpression(db, nonArtifactExpr)
+			}
+			return db
+		}
+
 		leftQuery := qb.buildExpression(db, expr.Left)
 		return qb.buildExpression(leftQuery, expr.Right)
 
@@ -144,6 +161,27 @@ func (qb *QueryBuilder) buildConditionString(expr *FilterExpression) conditionRe
 
 	switch expr.Operator {
 	case "AND":
+		// Collect all artifact property conditions in this AND chain
+		artifactConditions := qb.collectArtifactConditions(expr)
+		if len(artifactConditions) > 1 {
+			// Multiple artifact conditions found - build a combined EXISTS
+			// and process non-artifact conditions separately
+			nonArtifactExpr := qb.removeArtifactConditions(expr)
+
+			combinedArtifact := qb.buildCombinedArtifactExistsCondition(artifactConditions)
+
+			if nonArtifactExpr == nil {
+				// Only artifact conditions
+				return combinedArtifact
+			}
+
+			// Combine with non-artifact conditions
+			nonArtifact := qb.buildConditionString(nonArtifactExpr)
+			condition := fmt.Sprintf("(%s AND %s)", nonArtifact.condition, combinedArtifact.condition)
+			args := append(nonArtifact.args, combinedArtifact.args...)
+			return conditionResult{condition: condition, args: args}
+		}
+
 		left := qb.buildConditionString(expr.Left)
 		right := qb.buildConditionString(expr.Right)
 
@@ -163,6 +201,148 @@ func (qb *QueryBuilder) buildConditionString(expr *FilterExpression) conditionRe
 	}
 
 	return conditionResult{condition: "1=1", args: []any{}}
+}
+
+// artifactConditionInfo holds information about a single artifact property condition
+type artifactConditionInfo struct {
+	propDef      PropertyDefinition
+	explicitType string
+	operator     string
+	value        any
+}
+
+// isArtifactPropertyCondition checks if an expression is a leaf condition on an artifact property
+func (qb *QueryBuilder) isArtifactPropertyCondition(expr *FilterExpression) bool {
+	if !expr.IsLeaf {
+		return false
+	}
+	propRef := qb.buildPropertyReference(expr)
+	return propRef.PropertyDef.Location == RelatedEntity &&
+		propRef.PropertyDef.RelatedEntityType == RelatedEntityArtifact
+}
+
+// collectArtifactConditions recursively collects all artifact property conditions from an AND chain
+func (qb *QueryBuilder) collectArtifactConditions(expr *FilterExpression) []artifactConditionInfo {
+	if expr.IsLeaf {
+		if qb.isArtifactPropertyCondition(expr) {
+			propRef := qb.buildPropertyReference(expr)
+			return []artifactConditionInfo{{
+				propDef:      propRef.PropertyDef,
+				explicitType: propRef.ExplicitType,
+				operator:     expr.Operator,
+				value:        expr.Value,
+			}}
+		}
+		return nil
+	}
+
+	// Only collect from AND chains - OR should be handled separately
+	if expr.Operator != "AND" {
+		return nil
+	}
+
+	var conditions []artifactConditionInfo
+	conditions = append(conditions, qb.collectArtifactConditions(expr.Left)...)
+	conditions = append(conditions, qb.collectArtifactConditions(expr.Right)...)
+	return conditions
+}
+
+// removeArtifactConditions returns a new expression tree with artifact conditions removed
+// Returns nil if the entire expression was artifact conditions
+func (qb *QueryBuilder) removeArtifactConditions(expr *FilterExpression) *FilterExpression {
+	if expr.IsLeaf {
+		if qb.isArtifactPropertyCondition(expr) {
+			return nil
+		}
+		return expr
+	}
+
+	if expr.Operator != "AND" {
+		// For OR expressions, keep as is (artifact conditions in OR need separate EXISTS)
+		return expr
+	}
+
+	left := qb.removeArtifactConditions(expr.Left)
+	right := qb.removeArtifactConditions(expr.Right)
+
+	if left == nil && right == nil {
+		return nil
+	}
+	if left == nil {
+		return right
+	}
+	if right == nil {
+		return left
+	}
+
+	return &FilterExpression{
+		Operator: "AND",
+		Left:     left,
+		Right:    right,
+	}
+}
+
+// buildCombinedArtifactExistsCondition builds a single EXISTS subquery that checks
+// multiple artifact properties on the SAME artifact (joined via multiple property JOINs)
+func (qb *QueryBuilder) buildCombinedArtifactExistsCondition(conditions []artifactConditionInfo) conditionResult {
+	if len(conditions) == 0 {
+		return conditionResult{condition: "1=1", args: []any{}}
+	}
+
+	// If only one condition, use the simple method
+	if len(conditions) == 1 {
+		c := conditions[0]
+		return qb.buildRelatedEntityPropertyConditionString(c.propDef, c.explicitType, c.operator, c.value)
+	}
+
+	// Increment join counter for unique base alias
+	qb.joinCounter++
+	baseCounter := qb.joinCounter
+
+	// Create aliases for the shared Attribution and Artifact tables
+	attrAlias := fmt.Sprintf("attr_%d", baseCounter)
+	artAlias := fmt.Sprintf("art_%d", baseCounter)
+	attrTable := qb.quoteTableName("Attribution")
+	artTable := qb.quoteTableName("Artifact")
+	propTable := qb.quoteTableName("ArtifactProperty")
+
+	// Build property JOINs for each condition
+	// Important: args must be ordered to match SQL placeholder order:
+	// First all JOIN property names, then all WHERE value conditions
+	var propertyJoins []string
+	var whereConditions []string
+	var joinArgs []any  // Property names for JOINs
+	var whereArgs []any // Values for WHERE conditions
+
+	for i, c := range conditions {
+		propAlias := fmt.Sprintf("artprop_%d_%d", baseCounter, i)
+		valueCondition := qb.buildValueCondition(propAlias, c.explicitType, c.operator, c.value)
+
+		// Each property gets its own JOIN with the condition embedded
+		join := fmt.Sprintf("JOIN %s %s ON %s.artifact_id = %s.id AND %s.name = ?",
+			propTable, propAlias, propAlias, artAlias, propAlias)
+		propertyJoins = append(propertyJoins, join)
+		joinArgs = append(joinArgs, c.propDef.RelatedProperty)
+
+		whereConditions = append(whereConditions, valueCondition.condition)
+		whereArgs = append(whereArgs, valueCondition.args...)
+	}
+
+	// Build the complete EXISTS subquery
+	subquery := fmt.Sprintf(
+		"EXISTS (SELECT 1 FROM %s %s "+
+			"JOIN %s %s ON %s.id = %s.artifact_id "+
+			"%s "+
+			"WHERE %s.context_id = %s.id AND %s)",
+		attrTable, attrAlias,
+		artTable, artAlias, artAlias, attrAlias,
+		strings.Join(propertyJoins, " "),
+		attrAlias, qb.tablePrefix, strings.Join(whereConditions, " AND "))
+
+	// Combine args in the correct order: JOIN args first, then WHERE args
+	args := append(joinArgs, whereArgs...)
+
+	return conditionResult{condition: subquery, args: args}
 }
 
 // buildPropertyReference creates a property reference from a filter expression
