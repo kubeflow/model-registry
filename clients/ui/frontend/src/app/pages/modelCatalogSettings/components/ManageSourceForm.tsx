@@ -105,7 +105,15 @@ const ManageSourceForm: React.FC<ManageSourceFormProps> = ({ existingData, isEdi
               )}
 
               <StackItem>
-                <ModelVisibilitySection formData={formData} setData={setData} />
+                <ModelVisibilitySection
+                  formData={formData}
+                  setData={setData}
+                  isDefaultExpanded={
+                    existingData?.isDefault ||
+                    !!existingData?.allowedModels ||
+                    !!existingData?.excludedModels
+                  }
+                />
               </StackItem>
 
               <StackItem>

@@ -26,9 +26,14 @@ import { CatalogSourceType } from '~/app/modelCatalogTypes';
 type ModelVisibilitySectionProps = {
   formData: ManageSourceFormData;
   setData: UpdateObjectAtPropAndValue<ManageSourceFormData>;
+  isDefaultExpanded?: boolean;
 };
 
-const ModelVisibilitySection: React.FC<ModelVisibilitySectionProps> = ({ formData, setData }) => {
+const ModelVisibilitySection: React.FC<ModelVisibilitySectionProps> = ({
+  formData,
+  setData,
+  isDefaultExpanded = false,
+}) => {
   const isHuggingFaceMode = formData.sourceType === CatalogSourceType.HUGGING_FACE;
   const organization = isHuggingFaceMode ? formData.organization : undefined;
 
@@ -84,7 +89,7 @@ const ModelVisibilitySection: React.FC<ModelVisibilitySectionProps> = ({ formDat
             titleDescription={sectionDescription}
           />
         }
-        isExpanded={formData.isDefault}
+        isExpanded={isDefaultExpanded}
         data-testid="model-visibility-section"
       >
         <FormGroup label={FORM_LABELS.ALLOWED_MODELS} fieldId="allowed-models">
