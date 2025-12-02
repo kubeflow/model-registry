@@ -1,7 +1,6 @@
 package catalog
 
 import (
-	"bytes"
 	"context"
 	_ "embed"
 	"encoding/base64"
@@ -33,9 +32,6 @@ type gatedString string
 
 // UnmarshalJSON implements json.Unmarshaler to handle both boolean and string values
 func (g *gatedString) UnmarshalJSON(data []byte) error {
-	// Trim whitespace and quotes
-	data = bytes.TrimSpace(data)
-
 	// Handle null/empty
 	if len(data) == 0 || string(data) == "null" {
 		*g = gatedString("")
