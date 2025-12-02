@@ -21,9 +21,6 @@ export enum CatalogSourceStatus {
   DISABLED = 'disabled',
 }
 
-// Maximum length for error message display in table before truncation
-export const ERROR_MESSAGE_TRUNCATE_LENGTH = 50;
-
 // Type guard for Hugging Face sources
 export const isHuggingFaceSource = (
   config: CatalogSourceConfig,

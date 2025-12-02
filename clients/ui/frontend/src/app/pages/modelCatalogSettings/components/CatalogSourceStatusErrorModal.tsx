@@ -48,17 +48,7 @@ const CatalogSourceStatusErrorModal: React.FC<CatalogSourceStatusErrorModalProps
           title="Validation failed"
           data-testid="catalog-source-status-error-alert"
         >
-          <p data-testid="catalog-source-status-error-details">
-            The system cannot establish a connection to the source. Ensure that the organization and
-            access token are accurate, then try again.
-          </p>
-          {errorMessage && (
-            <p data-testid="catalog-source-status-error-message">
-              <strong>Placeholder for other details message returned from back-end:</strong>
-              <br />
-              {errorMessage}
-            </p>
-          )}
+          <p data-testid="catalog-source-status-error-message">{errorMessage}</p>
         </Alert>
       </ModalBody>
     </Modal>

@@ -446,8 +446,8 @@ describe('Catalog Source Configs Table', () => {
       modelCatalogSettings.visit();
       const row = modelCatalogSettings.getRow('HuggingFace Google');
       row.findName().should('be.visible');
-      row.findValidationStatusErrorLink().should('contain', '...');
-      row.findValidationStatusErrorLink().should('not.contain', longErrorMessage);
+      row.findValidationStatusErrorLink().find('.pf-v6-c-truncate').should('exist');
+      row.findValidationStatusErrorLink().should('contain', longErrorMessage);
     });
 
     it('should open error modal when clicking error message', () => {

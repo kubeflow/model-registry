@@ -1,12 +1,9 @@
 import * as React from 'react';
-import { Button, Label, Spinner, Stack, StackItem } from '@patternfly/react-core';
+import { Button, Label, Spinner, Stack, StackItem, Truncate } from '@patternfly/react-core';
 import { CheckCircleIcon, ExclamationCircleIcon, InProgressIcon } from '@patternfly/react-icons';
 import { CatalogSourceConfig } from '~/app/modelCatalogTypes';
 import { ModelCatalogSettingsContext } from '~/app/context/modelCatalogSettings/ModelCatalogSettingsContext';
-import {
-  CatalogSourceStatus as CatalogSourceStatusEnum,
-  ERROR_MESSAGE_TRUNCATE_LENGTH,
-} from '~/concepts/modelCatalogSettings/const';
+import { CatalogSourceStatus as CatalogSourceStatusEnum } from '~/concepts/modelCatalogSettings/const';
 import CatalogSourceStatusErrorModal from './CatalogSourceStatusErrorModal';
 
 type CatalogSourceStatusProps = {
@@ -14,7 +11,9 @@ type CatalogSourceStatusProps = {
 };
 
 const CatalogSourceStatus: React.FC<CatalogSourceStatusProps> = ({ catalogSourceConfig }) => {
-  const { catalogSources, catalogSourcesLoaded } = React.useContext(ModelCatalogSettingsContext);
+  const { catalogSources, catalogSourcesLoaded, catalogSourcesLoadError } = React.useContext(
+    ModelCatalogSettingsContext,
+  );
   const [isErrorModalOpen, setIsErrorModalOpen] = React.useState(false);
 
   // Don't render status for default sources
@@ -37,17 +36,18 @@ const CatalogSourceStatus: React.FC<CatalogSourceStatusProps> = ({ catalogSource
     (source) => source.id === catalogSourceConfig.id,
   );
 
-  // If no matching source or no status, render "Starting"
+  const startingOrUnknownLabel = (
+    <Label
+      color="grey"
+      icon={<InProgressIcon />}
+      data-testid={`source-status-${catalogSourcesLoadError ? 'unknown' : 'starting'}-${catalogSourceConfig.id}`}
+    >
+      {catalogSourcesLoadError ? 'Unknown' : 'Starting'}
+    </Label>
+  );
+
   if (!matchingSource || !matchingSource.status) {
-    return (
-      <Label
-        color="grey"
-        icon={<InProgressIcon />}
-        data-testid={`source-status-starting-${catalogSourceConfig.id}`}
-      >
-        Starting
-      </Label>
-    );
+    return startingOrUnknownLabel;
   }
 
   // Render based on status
@@ -65,10 +65,6 @@ const CatalogSourceStatus: React.FC<CatalogSourceStatusProps> = ({ catalogSource
 
     case CatalogSourceStatusEnum.ERROR: {
       const errorMessage = matchingSource.error || 'Unknown error occurred';
-      const truncatedMessage =
-        errorMessage.length > ERROR_MESSAGE_TRUNCATE_LENGTH
-          ? `${errorMessage.substring(0, ERROR_MESSAGE_TRUNCATE_LENGTH)}...`
-          : errorMessage;
 
       return (
         <>
@@ -86,11 +82,11 @@ const CatalogSourceStatus: React.FC<CatalogSourceStatusProps> = ({ catalogSource
               <Button
                 variant="link"
                 isInline
+                isDanger
                 onClick={() => setIsErrorModalOpen(true)}
                 data-testid={`source-status-error-link-${catalogSourceConfig.id}`}
-                component="small"
               >
-                {truncatedMessage}
+                <Truncate content={errorMessage} />
               </Button>
             </StackItem>
           </Stack>
@@ -107,15 +103,7 @@ const CatalogSourceStatus: React.FC<CatalogSourceStatusProps> = ({ catalogSource
       return <>-</>;
 
     default:
-      return (
-        <Label
-          color="grey"
-          icon={<InProgressIcon />}
-          data-testid={`source-status-unknown-${catalogSourceConfig.id}`}
-        >
-          Starting
-        </Label>
-      );
+      return startingOrUnknownLabel;
   }
 };
 

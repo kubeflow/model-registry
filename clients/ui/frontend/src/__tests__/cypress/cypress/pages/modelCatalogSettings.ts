@@ -105,7 +105,7 @@ class CatalogSourceConfigRow extends TableRow {
     return this;
   }
 
-  shouldHaveValidationStatus(status: 'Connected' | 'Failed' | 'Starting' | '-') {
+  shouldHaveValidationStatus(status: 'Connected' | 'Failed' | 'Starting' | 'Unknown' | '-') {
     this.findValidationStatus().contains(status);
     return this;
   }
