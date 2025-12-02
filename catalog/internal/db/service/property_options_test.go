@@ -17,9 +17,12 @@ import (
 // This is a regression test for the startup refresh fix - previously, querying
 // unpopulated materialized views would fail with "has not been populated" error.
 func TestPropertyOptionsRepository_RefreshOnEmptyDatabase(t *testing.T) {
-	// Create a fresh database with migrations (views created WITH NO DATA)
+	// Create a database with migrations
 	sharedDB, cleanup := testutils.SetupPostgresWithMigrations(t, service.DatastoreSpec())
 	defer cleanup()
+
+	// Clean up all test data to ensure empty database
+	testutils.CleanupPostgresTestData(t, sharedDB)
 
 	repo := service.NewPropertyOptionsRepository(sharedDB)
 	catalogModelTypeID := getCatalogModelTypeID(t, sharedDB)
@@ -58,10 +61,12 @@ func TestPropertyOptionsRepository_RefreshOnEmptyDatabase(t *testing.T) {
 		contextOptions, err := repo.List(models.ContextPropertyOptionType, 0)
 		require.NoError(t, err)
 		assert.NotNil(t, contextOptions)
+		assert.Empty(t, contextOptions, "Should return empty list when no models exist")
 
 		artifactOptions, err := repo.List(models.ArtifactPropertyOptionType, 0)
 		require.NoError(t, err)
 		assert.NotNil(t, artifactOptions)
+		assert.Empty(t, artifactOptions, "Should return empty list when no artifacts exist")
 	})
 }
 
