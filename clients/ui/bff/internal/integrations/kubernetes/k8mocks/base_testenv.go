@@ -163,7 +163,16 @@ func setupMock(mockK8sClient kubernetes.Interface, ctx context.Context) error {
 		return fmt.Errorf("failed to set up group access to namespace: %w", err)
 	}
 
-	//TODO ppadti: Add more mock setup as needed for other namespaces
+	err = createModelCatalogDefaultSourcesConfigMap(mockK8sClient, ctx, "bella-namespace")
+	if err != nil {
+		return err
+	}
+
+	err = createModelCatalogSourcesConfigMap(mockK8sClient, ctx, "bella-namespace")
+	if err != nil {
+		return err
+	}
+
 	err = createModelCatalogDefaultSourcesConfigMap(mockK8sClient, ctx, "kubeflow")
 	if err != nil {
 		return err
