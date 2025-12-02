@@ -74,8 +74,20 @@ type Loader struct {
 }
 
 func NewLoader(services service.Services, paths []string) *Loader {
+	// Convert paths to absolute for consistent origin ordering.
+	// This matches how loadOne converts paths before calling Merge.
+	absPaths := make([]string, 0, len(paths))
+	for _, p := range paths {
+		absPath, err := filepath.Abs(p)
+		if err != nil {
+			// Fall back to original path if conversion fails
+			absPath = p
+		}
+		absPaths = append(absPaths, absPath)
+	}
+
 	return &Loader{
-		Sources:  NewSourceCollection(),
+		Sources:  NewSourceCollection(absPaths...),
 		Labels:   NewLabelCollection(),
 		paths:    paths,
 		services: services,

@@ -211,6 +211,345 @@ func TestSourceCollection_ByLabel_NilLabels(t *testing.T) {
 	}
 }
 
+func TestSourceCollection_MergeOverride(t *testing.T) {
+	tests := []struct {
+		name           string
+		originOrder    []string
+		mergeSequence  []struct {
+			origin  string
+			sources map[string]model.CatalogSource
+		}
+		expectedSources map[string]model.CatalogSource
+	}{
+		{
+			name:        "later origin overrides earlier origin",
+			originOrder: []string{"default.yaml", "user.yaml"},
+			mergeSequence: []struct {
+				origin  string
+				sources map[string]model.CatalogSource
+			}{
+				{
+					origin: "default.yaml",
+					sources: map[string]model.CatalogSource{
+						"hf": {
+							Id:             "hf",
+							Name:           "Hugging Face",
+							Enabled:        apiutils.Of(true),
+							Labels:         []string{"default"},
+							ExcludedModels: []string{"model-a"},
+						},
+					},
+				},
+				{
+					origin: "user.yaml",
+					sources: map[string]model.CatalogSource{
+						"hf": {
+							Id:             "hf",
+							Name:           "Hugging Face Custom",
+							Enabled:        apiutils.Of(true),
+							Labels:         []string{"custom"},
+							ExcludedModels: []string{"model-a", "DeepSeek"},
+						},
+					},
+				},
+			},
+			expectedSources: map[string]model.CatalogSource{
+				"hf": {
+					Id:             "hf",
+					Name:           "Hugging Face Custom",
+					Enabled:        apiutils.Of(true),
+					Labels:         []string{"custom"},
+					ExcludedModels: []string{"model-a", "DeepSeek"},
+				},
+			},
+		},
+		{
+			name:        "source from single origin behaves as before",
+			originOrder: []string{"default.yaml", "user.yaml"},
+			mergeSequence: []struct {
+				origin  string
+				sources map[string]model.CatalogSource
+			}{
+				{
+					origin: "default.yaml",
+					sources: map[string]model.CatalogSource{
+						"hf": {
+							Id:      "hf",
+							Name:    "Hugging Face",
+							Enabled: apiutils.Of(true),
+							Labels:  []string{"default"},
+						},
+					},
+				},
+				{
+					origin:  "user.yaml",
+					sources: map[string]model.CatalogSource{},
+				},
+			},
+			expectedSources: map[string]model.CatalogSource{
+				"hf": {
+					Id:      "hf",
+					Name:    "Hugging Face",
+					Enabled: apiutils.Of(true),
+					Labels:  []string{"default"},
+				},
+			},
+		},
+		{
+			name:        "multiple sources with partial override",
+			originOrder: []string{"default.yaml", "user.yaml"},
+			mergeSequence: []struct {
+				origin  string
+				sources map[string]model.CatalogSource
+			}{
+				{
+					origin: "default.yaml",
+					sources: map[string]model.CatalogSource{
+						"hf": {
+							Id:      "hf",
+							Name:    "Hugging Face",
+							Enabled: apiutils.Of(true),
+							Labels:  []string{},
+						},
+						"local": {
+							Id:      "local",
+							Name:    "Local Files",
+							Enabled: apiutils.Of(true),
+							Labels:  []string{},
+						},
+					},
+				},
+				{
+					origin: "user.yaml",
+					sources: map[string]model.CatalogSource{
+						"hf": {
+							Id:             "hf",
+							Name:           "Hugging Face",
+							Enabled:        apiutils.Of(true),
+							Labels:         []string{},
+							ExcludedModels: []string{"DeepSeek"},
+						},
+					},
+				},
+			},
+			expectedSources: map[string]model.CatalogSource{
+				"hf": {
+					Id:             "hf",
+					Name:           "Hugging Face",
+					Enabled:        apiutils.Of(true),
+					Labels:         []string{},
+					ExcludedModels: []string{"DeepSeek"},
+				},
+				"local": {
+					Id:      "local",
+					Name:    "Local Files",
+					Enabled: apiutils.Of(true),
+					Labels:  []string{},
+				},
+			},
+		},
+		{
+			name:        "three origins with cascading override",
+			originOrder: []string{"base.yaml", "team.yaml", "user.yaml"},
+			mergeSequence: []struct {
+				origin  string
+				sources map[string]model.CatalogSource
+			}{
+				{
+					origin: "base.yaml",
+					sources: map[string]model.CatalogSource{
+						"hf": {
+							Id:      "hf",
+							Name:    "Base HF",
+							Enabled: apiutils.Of(true),
+							Labels:  []string{"base"},
+						},
+					},
+				},
+				{
+					origin: "team.yaml",
+					sources: map[string]model.CatalogSource{
+						"hf": {
+							Id:      "hf",
+							Name:    "Team HF",
+							Enabled: apiutils.Of(true),
+							Labels:  []string{"team"},
+						},
+					},
+				},
+				{
+					origin: "user.yaml",
+					sources: map[string]model.CatalogSource{
+						"hf": {
+							Id:      "hf",
+							Name:    "User HF",
+							Enabled: apiutils.Of(true),
+							Labels:  []string{"user"},
+						},
+					},
+				},
+			},
+			expectedSources: map[string]model.CatalogSource{
+				"hf": {
+					Id:      "hf",
+					Name:    "User HF",
+					Enabled: apiutils.Of(true),
+					Labels:  []string{"user"},
+				},
+			},
+		},
+		{
+			name:        "user can disable a source from default",
+			originOrder: []string{"default.yaml", "user.yaml"},
+			mergeSequence: []struct {
+				origin  string
+				sources map[string]model.CatalogSource
+			}{
+				{
+					origin: "default.yaml",
+					sources: map[string]model.CatalogSource{
+						"hf": {
+							Id:      "hf",
+							Name:    "Hugging Face",
+							Enabled: apiutils.Of(true),
+							Labels:  []string{},
+						},
+					},
+				},
+				{
+					origin: "user.yaml",
+					sources: map[string]model.CatalogSource{
+						"hf": {
+							Id:      "hf",
+							Name:    "Hugging Face",
+							Enabled: apiutils.Of(false),
+							Labels:  []string{},
+						},
+					},
+				},
+			},
+			expectedSources: map[string]model.CatalogSource{
+				"hf": {
+					Id:      "hf",
+					Name:    "Hugging Face",
+					Enabled: apiutils.Of(false),
+					Labels:  []string{},
+				},
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			sc := NewSourceCollection(tt.originOrder...)
+
+			for _, merge := range tt.mergeSequence {
+				err := sc.Merge(merge.origin, merge.sources)
+				if err != nil {
+					t.Fatalf("Merge(%s) failed: %v", merge.origin, err)
+				}
+			}
+
+			result := sc.All()
+
+			if len(result) != len(tt.expectedSources) {
+				t.Errorf("All() returned %d sources, want %d", len(result), len(tt.expectedSources))
+			}
+
+			for id, expected := range tt.expectedSources {
+				got, ok := result[id]
+				if !ok {
+					t.Errorf("source %s not found in result", id)
+					continue
+				}
+				if got.Id != expected.Id {
+					t.Errorf("source %s: Id = %s, want %s", id, got.Id, expected.Id)
+				}
+				if got.Name != expected.Name {
+					t.Errorf("source %s: Name = %s, want %s", id, got.Name, expected.Name)
+				}
+				if *got.Enabled != *expected.Enabled {
+					t.Errorf("source %s: Enabled = %v, want %v", id, *got.Enabled, *expected.Enabled)
+				}
+				if !reflect.DeepEqual(got.Labels, expected.Labels) {
+					t.Errorf("source %s: Labels = %v, want %v", id, got.Labels, expected.Labels)
+				}
+				if !reflect.DeepEqual(got.ExcludedModels, expected.ExcludedModels) {
+					t.Errorf("source %s: ExcludedModels = %v, want %v", id, got.ExcludedModels, expected.ExcludedModels)
+				}
+			}
+		})
+	}
+}
+
+func TestSourceCollection_MergeOverride_Get(t *testing.T) {
+	sc := NewSourceCollection("default.yaml", "user.yaml")
+
+	// Merge default config
+	err := sc.Merge("default.yaml", map[string]model.CatalogSource{
+		"hf": {
+			Id:      "hf",
+			Name:    "Hugging Face Default",
+			Enabled: apiutils.Of(true),
+			Labels:  []string{},
+		},
+	})
+	if err != nil {
+		t.Fatalf("Merge(default.yaml) failed: %v", err)
+	}
+
+	// Merge user config that overrides
+	err = sc.Merge("user.yaml", map[string]model.CatalogSource{
+		"hf": {
+			Id:             "hf",
+			Name:           "Hugging Face User",
+			Enabled:        apiutils.Of(true),
+			Labels:         []string{"user-managed"},
+			ExcludedModels: []string{"DeepSeek"},
+		},
+	})
+	if err != nil {
+		t.Fatalf("Merge(user.yaml) failed: %v", err)
+	}
+
+	// Get should return the overridden source
+	source, ok := sc.Get("hf")
+	if !ok {
+		t.Fatal("Get(hf) returned false, want true")
+	}
+	if source.Name != "Hugging Face User" {
+		t.Errorf("Get(hf).Name = %s, want 'Hugging Face User'", source.Name)
+	}
+	if len(source.ExcludedModels) != 1 || source.ExcludedModels[0] != "DeepSeek" {
+		t.Errorf("Get(hf).ExcludedModels = %v, want [DeepSeek]", source.ExcludedModels)
+	}
+}
+
+func TestSourceCollection_MergeOverride_DynamicOrigin(t *testing.T) {
+	// Test that origins not in the initial order are appended
+	sc := NewSourceCollection("default.yaml")
+
+	err := sc.Merge("default.yaml", map[string]model.CatalogSource{
+		"hf": {Id: "hf", Name: "Default", Enabled: apiutils.Of(true), Labels: []string{}},
+	})
+	if err != nil {
+		t.Fatalf("Merge(default.yaml) failed: %v", err)
+	}
+
+	// Dynamic origin not in initial order
+	err = sc.Merge("extra.yaml", map[string]model.CatalogSource{
+		"hf": {Id: "hf", Name: "Extra", Enabled: apiutils.Of(true), Labels: []string{}},
+	})
+	if err != nil {
+		t.Fatalf("Merge(extra.yaml) failed: %v", err)
+	}
+
+	source, _ := sc.Get("hf")
+	if source.Name != "Extra" {
+		t.Errorf("dynamically added origin should override earlier origins, got Name = %s", source.Name)
+	}
+}
+
 func TestSourceCollection_ByLabel_NullBehavior(t *testing.T) {
 	// Create test sources with various label configurations to test "null" behavior
 	sources := map[string]model.CatalogSource{
