@@ -12,8 +12,8 @@ export type ManageSourceFormData = {
   // YAML field
   yamlContent: string;
   // Filter fields
-  allowedModels: string[];
-  excludedModels: string[];
+  allowedModels: string;
+  excludedModels: string;
   // Enable source
   enabled: boolean;
   isDefault: boolean;
@@ -26,8 +26,8 @@ const manageSourceFormDataDefaults: ManageSourceFormData = {
   accessToken: '',
   organization: '',
   yamlContent: '',
-  allowedModels: [],
-  excludedModels: [],
+  allowedModels: '',
+  excludedModels: '',
   enabled: false,
   isDefault: false,
 };

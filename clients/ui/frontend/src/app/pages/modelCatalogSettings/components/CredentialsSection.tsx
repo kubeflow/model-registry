@@ -7,8 +7,6 @@ import {
   HelperTextItem,
   Button,
   ActionList,
-  StackItem,
-  Stack,
   Alert,
   AlertActionCloseButton,
 } from '@patternfly/react-core';
@@ -42,10 +40,9 @@ const CredentialsSection: React.FC<CredentialsSectionProps> = ({ formData, setDa
   const [validationError, setValidationError] = React.useState<Error | undefined>(undefined);
   const [isValidating, setIsValidating] = React.useState(false);
   const [isValidationSuccess, setIsValidationSuccess] = React.useState(false);
-  const [showAlert, setShowAlert] = React.useState<boolean>(false);
 
   const handleValidate = async () => {
-    setIsValidating(true);
+    // setIsValidating(true);
     // setValidationError(undefined);
 
     // TODO: Implement validation logic
@@ -117,51 +114,45 @@ const CredentialsSection: React.FC<CredentialsSectionProps> = ({ formData, setDa
             <HelperTextItem>{HELP_TEXT.ACCESS_TOKEN}</HelperTextItem>
           </HelperText>
         </FormHelperText>
-        <Stack hasGutter>
-          <FormFieldset component={accessTokenInput} field="Access token" />
-          {isAccessTokenTouched && !isAccessTokenValid && (
-            <FormHelperText>
-              <HelperText>
-                <HelperTextItem variant="error" data-testid="access-token-error">
-                  {VALIDATION_MESSAGES.ACCESS_TOKEN_REQUIRED}
-                </HelperTextItem>
-              </HelperText>
-            </FormHelperText>
-          )}
-          {validationError && (
-            <StackItem>
-              <Alert isInline variant="danger" title="Validation failed">
-                The system cannot establish a connection to the source. Ensure that the organization
-                and access tokena are accurate, then try again.
-              </Alert>
-            </StackItem>
-          )}
-          {isValidationSuccess && showAlert && (
-            <StackItem>
-              <Alert
-                isInline
-                variant="success"
-                title="Validation successful"
-                actionClose={<AlertActionCloseButton onClose={() => setShowAlert(false)} />}
-              >
-                Tha organisation and accessToken are valid for connection.
-              </Alert>
-            </StackItem>
-          )}
-          <StackItem>
-            <ActionList>
-              <Button
-                isDisabled={!isAccessTokenValid}
-                variant="link"
-                onClick={handleValidate}
-                isLoading={isValidating}
-              >
-                Validate
-              </Button>
-            </ActionList>
-          </StackItem>
-        </Stack>
+        <FormFieldset component={accessTokenInput} field="Access token" />
+        {isAccessTokenTouched && !isAccessTokenValid && (
+          <FormHelperText>
+            <HelperText>
+              <HelperTextItem variant="error" data-testid="access-token-error">
+                {VALIDATION_MESSAGES.ACCESS_TOKEN_REQUIRED}
+              </HelperTextItem>
+            </HelperText>
+          </FormHelperText>
+        )}
       </FormGroup>
+      {validationError && (
+        <Alert isInline variant="danger" title="Validation failed" className="pf-v5-u-mt-md">
+          The system cannot establish a connection to the source. Ensure that the organization and
+          access token are accurate, then try again.
+        </Alert>
+      )}
+      {isValidationSuccess && (
+        <Alert
+          isInline
+          variant="success"
+          className="pf-v5-u-mt-md"
+          title="Validation successful"
+          actionClose={<AlertActionCloseButton onClose={() => setIsValidationSuccess(false)} />}
+        >
+          Tha organization and accessToken are valid for connection.
+        </Alert>
+      )}
+
+      <ActionList className="pf-v5-u-mt-md">
+        <Button
+          isDisabled={!isAccessTokenValid}
+          variant="link"
+          onClick={handleValidate}
+          isLoading={isValidating}
+        >
+          Validate
+        </Button>
+      </ActionList>
     </FormSection>
   );
 };

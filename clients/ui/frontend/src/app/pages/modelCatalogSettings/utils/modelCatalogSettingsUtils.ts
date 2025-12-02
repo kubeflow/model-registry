@@ -5,22 +5,6 @@ import {
 } from '~/app/modelCatalogTypes';
 import { ManageSourceFormData } from '~/app/pages/modelCatalogSettings/useManageSourceData';
 
-export const parseCommaSeparatedArray = (arr: string[]): string[] => {
-  if (arr.length === 0) {
-    return [];
-  }
-
-  const commaSeparatedString = arr[0] || '';
-  if (!commaSeparatedString.trim()) {
-    return [];
-  }
-
-  return commaSeparatedString
-    .split(',')
-    .map((item) => item.trim())
-    .filter((item) => item.length > 0);
-};
-
 export const catalogSourceConfigToFormData = (
   sourceConfig: CatalogSourceConfig,
 ): Partial<ManageSourceFormData> => {
@@ -28,8 +12,8 @@ export const catalogSourceConfigToFormData = (
     name: sourceConfig.name,
     sourceType: sourceConfig.type,
     enabled: sourceConfig.enabled ?? true,
-    allowedModels: sourceConfig.includedModels || [],
-    excludedModels: sourceConfig.excludedModels || [],
+    allowedModels: (sourceConfig.includedModels || []).join(', '),
+    excludedModels: (sourceConfig.excludedModels || []).join(', '),
     isDefault: sourceConfig.isDefault,
     id: sourceConfig.id,
   };
@@ -67,8 +51,14 @@ export const transformFormDataToPayload = (
   type: formData.sourceType,
   enabled: formData.enabled,
   isDefault: formData.isDefault,
-  includedModels: parseCommaSeparatedArray(formData.allowedModels),
-  excludedModels: parseCommaSeparatedArray(formData.excludedModels),
+  includedModels: formData.allowedModels
+    .split(',')
+    .map((item) => item.trim())
+    .filter((item) => item.length > 0),
+  excludedModels: formData.excludedModels
+    .split(',')
+    .map((item) => item.trim())
+    .filter((item) => item.length > 0),
   ...(formData.sourceType === CatalogSourceType.YAML && { yaml: formData.yamlContent }),
   ...(formData.sourceType === CatalogSourceType.HUGGING_FACE && {
     apiKey: formData.accessToken,

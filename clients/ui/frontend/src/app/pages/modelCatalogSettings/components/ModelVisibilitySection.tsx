@@ -53,8 +53,8 @@ const ModelVisibilitySection: React.FC<ModelVisibilitySectionProps> = ({ formDat
       id="allowed-models"
       name="allowed-models"
       data-testid="allowed-models-input"
-      value={formData.allowedModels.join(', ')}
-      onChange={(_event, value) => setData('allowedModels', [value])}
+      value={formData.allowedModels}
+      onChange={(_event, value) => setData('allowedModels', value)}
       rows={3}
       resizeOrientation="vertical"
       placeholder={allowedModelsPlaceholder}
@@ -66,8 +66,8 @@ const ModelVisibilitySection: React.FC<ModelVisibilitySectionProps> = ({ formDat
       id="excluded-models"
       name="excluded-models"
       data-testid="excluded-models-input"
-      value={formData.excludedModels.join(', ')}
-      onChange={(_event, value) => setData('excludedModels', [value])}
+      value={formData.excludedModels}
+      onChange={(_event, value) => setData('excludedModels', value)}
       rows={3}
       resizeOrientation="vertical"
       placeholder={excludedModelsPlaceholder}
