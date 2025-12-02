@@ -12,6 +12,64 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+// TestPropertyOptionsRepository_RefreshOnEmptyDatabase verifies that the materialized
+// views can be refreshed and queried even when no models have been loaded.
+// This is a regression test for the startup refresh fix - previously, querying
+// unpopulated materialized views would fail with "has not been populated" error.
+func TestPropertyOptionsRepository_RefreshOnEmptyDatabase(t *testing.T) {
+	// Create a database with migrations
+	sharedDB, cleanup := testutils.SetupPostgresWithMigrations(t, service.DatastoreSpec())
+	defer cleanup()
+
+	// Clean up all test data to ensure empty database
+	testutils.CleanupPostgresTestData(t, sharedDB)
+
+	repo := service.NewPropertyOptionsRepository(sharedDB)
+	catalogModelTypeID := getCatalogModelTypeID(t, sharedDB)
+	modelArtifactTypeID := getCatalogModelArtifactTypeID(t, sharedDB)
+
+	t.Run("RefreshAndListWithNoModels_ContextPropertyOptions", func(t *testing.T) {
+		// Refresh should succeed even with no data
+		err := repo.Refresh(models.ContextPropertyOptionType)
+		require.NoError(t, err, "Refresh should succeed on empty database")
+
+		// List should succeed after refresh (returning empty results)
+		options, err := repo.List(models.ContextPropertyOptionType, catalogModelTypeID)
+		require.NoError(t, err, "List should succeed after refresh even with no models")
+		assert.NotNil(t, options)
+		assert.Empty(t, options, "Should return empty list when no models exist")
+	})
+
+	t.Run("RefreshAndListWithNoModels_ArtifactPropertyOptions", func(t *testing.T) {
+		// Refresh should succeed even with no data
+		err := repo.Refresh(models.ArtifactPropertyOptionType)
+		require.NoError(t, err, "Refresh should succeed on empty database")
+
+		// List should succeed after refresh (returning empty results)
+		options, err := repo.List(models.ArtifactPropertyOptionType, modelArtifactTypeID)
+		require.NoError(t, err, "List should succeed after refresh even with no models")
+		assert.NotNil(t, options)
+		assert.Empty(t, options, "Should return empty list when no artifacts exist")
+	})
+
+	t.Run("ListAllTypesWithNoModels", func(t *testing.T) {
+		// First refresh both views
+		require.NoError(t, repo.Refresh(models.ContextPropertyOptionType))
+		require.NoError(t, repo.Refresh(models.ArtifactPropertyOptionType))
+
+		// List with typeID=0 should return all options (empty in this case)
+		contextOptions, err := repo.List(models.ContextPropertyOptionType, 0)
+		require.NoError(t, err)
+		assert.NotNil(t, contextOptions)
+		assert.Empty(t, contextOptions, "Should return empty list when no models exist")
+
+		artifactOptions, err := repo.List(models.ArtifactPropertyOptionType, 0)
+		require.NoError(t, err)
+		assert.NotNil(t, artifactOptions)
+		assert.Empty(t, artifactOptions, "Should return empty list when no artifacts exist")
+	})
+}
+
 func TestPropertyOptionsRepository(t *testing.T) {
 	sharedDB, cleanup := testutils.SetupPostgresWithMigrations(t, service.DatastoreSpec())
 	defer cleanup()
