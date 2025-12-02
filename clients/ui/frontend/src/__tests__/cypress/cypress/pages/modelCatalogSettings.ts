@@ -76,15 +76,6 @@ class CatalogSourceConfigRow extends TableRow {
     return this;
   }
 
-  shouldHaveEnableToggle(shouldExist: boolean) {
-    if (shouldExist) {
-      this.findEnableToggle().should('exist');
-    } else {
-      this.find().find('[data-label="Enable"]').should('be.empty');
-    }
-    return this;
-  }
-
   shouldHaveEnableState(enabled: boolean) {
     if (enabled) {
       this.findEnableToggle().should('be.checked');

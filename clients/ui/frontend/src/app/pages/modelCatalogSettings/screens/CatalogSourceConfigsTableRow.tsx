@@ -111,15 +111,13 @@ const CatalogSourceConfigsTableRow: React.FC<CatalogSourceConfigsTableRowProps> 
           </span>
         </Td>
         <Td dataLabel="Enable">
-          {!isDefault && (
-            <Switch
-              data-testid={`enable-toggle-${catalogSourceConfig.id}`}
-              id={`enable-toggle-${catalogSourceConfig.id}`}
-              aria-label={`Enable ${catalogSourceConfig.name}`}
-              isChecked={isEnabled}
-              onChange={(_event, checked) => handleEnableToggle(checked)}
-            />
-          )}
+          <Switch
+            data-testid={`enable-toggle-${catalogSourceConfig.id}`}
+            id={`enable-toggle-${catalogSourceConfig.id}`}
+            aria-label={`Enable ${catalogSourceConfig.name}`}
+            isChecked={isEnabled}
+            onChange={(_event, checked) => handleEnableToggle(checked)}
+          />
         </Td>
         <Td dataLabel="Validation status">
           <CatalogSourceStatus catalogSourceConfig={catalogSourceConfig} />
