@@ -8,8 +8,10 @@ import {
   mockCatalogSourceConfigList,
   mockYamlCatalogSourceConfig,
   mockHuggingFaceCatalogSourceConfig,
+  mockCatalogSource,
+  mockCatalogSourceList,
 } from '~/__mocks__';
-import type { CatalogSourceConfigList } from '~/app/modelCatalogTypes';
+import type { CatalogSource, CatalogSourceConfigList } from '~/app/modelCatalogTypes';
 
 const NAMESPACE = 'kubeflow';
 const userMock = {
@@ -19,7 +21,10 @@ const userMock = {
   },
 };
 
-const setupMocks = (sourceConfigs: CatalogSourceConfigList = { catalogs: [] }) => {
+const setupMocks = (
+  sources: CatalogSource[] = [],
+  sourceConfigs: CatalogSourceConfigList = { catalogs: [] },
+) => {
   cy.intercept('GET', '/model-registry/api/v1/namespaces', {
     data: [{ metadata: { name: NAMESPACE } }],
   });
@@ -28,6 +33,16 @@ const setupMocks = (sourceConfigs: CatalogSourceConfigList = { catalogs: [] }) =
   cy.intercept('GET', '/model-registry/api/v1/settings/model_catalog/source_configs', {
     data: sourceConfigs,
   });
+
+  cy.interceptApi(
+    `GET /api/:apiVersion/model_catalog/sources`,
+    {
+      path: { apiVersion: MODEL_CATALOG_API_VERSION },
+    },
+    mockCatalogSourceList({
+      items: sources,
+    }),
+  );
 };
 
 function selectNamespaceIfPresent() {
@@ -41,7 +56,7 @@ function selectNamespaceIfPresent() {
 
 describe('Model Catalog Settings', () => {
   beforeEach(() => {
-    setupMocks(mockCatalogSourceConfigList({}));
+    setupMocks([], mockCatalogSourceConfigList({}));
   });
 
   it('should display the settings page', () => {
@@ -105,11 +120,11 @@ describe('Catalog Source Configs Table', () => {
     excludedModels: ['excluded-model'],
   });
   beforeEach(() => {
-    setupMocks({ catalogs: [defaultYamlSource, huggingFaceSource, customYamlSource] });
+    setupMocks([], { catalogs: [defaultYamlSource, huggingFaceSource, customYamlSource] });
   });
 
   it('should display empty state when no source configs exist', () => {
-    setupMocks({ catalogs: [] });
+    setupMocks([], { catalogs: [] });
     modelCatalogSettings.visit();
     modelCatalogSettings.shouldBeEmpty();
     modelCatalogSettings.findEmptyState().should('contain', 'No catalog sources');
@@ -340,7 +355,7 @@ describe('Catalog Source Configs Table', () => {
 
   describe('Validation status column', () => {
     it('should show "-" for default sources', () => {
-      setupMocks([], [defaultYamlSource, huggingFaceSource]);
+      setupMocks([], { catalogs: [defaultYamlSource, huggingFaceSource] });
       modelCatalogSettings.visit();
       const row = modelCatalogSettings.getRow('Default Catalog');
       row.findName().should('be.visible');
@@ -348,9 +363,9 @@ describe('Catalog Source Configs Table', () => {
     });
 
     it('should show "-" for disabled sources', () => {
-      setupMocks([], [defaultYamlSource, customYamlSource]);
+      setupMocks([], { catalogs: [defaultYamlSource, huggingFaceSource] });
       modelCatalogSettings.visit();
-      const row = modelCatalogSettings.getRow('Custom YAML');
+      const row = modelCatalogSettings.getRow('Default Catalog');
       row.findName().should('be.visible');
       row.shouldHaveValidationStatus('-');
     });
@@ -361,7 +376,7 @@ describe('Catalog Source Configs Table', () => {
         name: 'HuggingFace Google',
         status: 'available',
       });
-      setupMocks([availableSource], [huggingFaceSource]);
+      setupMocks([availableSource], { catalogs: [huggingFaceSource] });
       modelCatalogSettings.visit();
       const row = modelCatalogSettings.getRow('HuggingFace Google');
       row.findName().should('be.visible');
@@ -370,7 +385,7 @@ describe('Catalog Source Configs Table', () => {
     });
 
     it('should show "Starting" status when no matching source found', () => {
-      setupMocks([], [huggingFaceSource]);
+      setupMocks([], { catalogs: [huggingFaceSource] });
       modelCatalogSettings.visit();
       const row = modelCatalogSettings.getRow('HuggingFace Google');
       row.findName().should('be.visible');
@@ -384,7 +399,7 @@ describe('Catalog Source Configs Table', () => {
         name: 'HuggingFace Google',
         status: undefined,
       });
-      setupMocks([startingSource], [huggingFaceSource]);
+      setupMocks([startingSource], { catalogs: [huggingFaceSource] });
       modelCatalogSettings.visit();
       const row = modelCatalogSettings.getRow('HuggingFace Google');
       row.findName().should('be.visible');
@@ -398,7 +413,7 @@ describe('Catalog Source Configs Table', () => {
         status: 'error',
         error: 'The provided API key is invalid or has expired. Please update your credentials.',
       });
-      setupMocks([errorSource], [huggingFaceSource]);
+      setupMocks([errorSource], { catalogs: [huggingFaceSource] });
       modelCatalogSettings.visit();
       const row = modelCatalogSettings.getRow('HuggingFace Google');
       row.findName().should('be.visible');
@@ -416,7 +431,7 @@ describe('Catalog Source Configs Table', () => {
         status: 'error',
         error: longErrorMessage,
       });
-      setupMocks([errorSource], [huggingFaceSource]);
+      setupMocks([errorSource], { catalogs: [huggingFaceSource] });
       modelCatalogSettings.visit();
       const row = modelCatalogSettings.getRow('HuggingFace Google');
       row.findName().should('be.visible');
@@ -431,7 +446,7 @@ describe('Catalog Source Configs Table', () => {
         status: 'error',
         error: 'The provided API key is invalid or has expired.',
       });
-      setupMocks([errorSource], [huggingFaceSource]);
+      setupMocks([errorSource], { catalogs: [huggingFaceSource] });
       modelCatalogSettings.visit();
       const row = modelCatalogSettings.getRow('HuggingFace Google');
       row.findName().should('be.visible');
@@ -460,7 +475,7 @@ describe('Catalog Source Configs Table', () => {
         status: 'error',
         error: 'The provided API key is invalid.',
       });
-      setupMocks([errorSource], [huggingFaceSource]);
+      setupMocks([errorSource], { catalogs: [huggingFaceSource] });
       modelCatalogSettings.visit();
       const row = modelCatalogSettings.getRow('HuggingFace Google');
       row.clickValidationStatusErrorLink();
@@ -476,7 +491,7 @@ describe('Catalog Source Configs Table', () => {
 
 describe('Manage Source Page', () => {
   beforeEach(() => {
-    setupMocks(mockCatalogSourceConfigList({}));
+    setupMocks([], mockCatalogSourceConfigList({}));
   });
 
   describe('Add Source Mode', () => {
@@ -827,7 +842,7 @@ describe('Manage Source Page', () => {
     const catalogSourceId = 'test-source-id';
 
     beforeEach(() => {
-      setupMocks(mockCatalogSourceConfigList({}));
+      setupMocks([], mockCatalogSourceConfigList({}));
     });
 
     it('should display manage source page', () => {

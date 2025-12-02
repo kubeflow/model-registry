@@ -25,7 +25,7 @@ export type CatalogSource = {
   error?: string;
 };
 
-export type CatalogSourceList = ModelCatalogListParams & { items: CatalogSource[] };
+export type CatalogSourceList = ModelCatalogListParams & { items?: CatalogSource[] };
 
 export type CatalogModel = {
   source_id?: string;
