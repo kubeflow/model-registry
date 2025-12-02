@@ -5,6 +5,10 @@ import {
   FormHelperText,
   HelperText,
   HelperTextItem,
+  Button,
+  ActionList,
+  Alert,
+  AlertActionCloseButton,
 } from '@patternfly/react-core';
 import { UpdateObjectAtPropAndValue } from 'mod-arch-shared';
 import PasswordInput from '~/app/shared/components/PasswordInput';
@@ -33,6 +37,26 @@ const CredentialsSection: React.FC<CredentialsSectionProps> = ({ formData, setDa
 
   const isOrganizationValid = validateOrganization(formData.organization);
   const isAccessTokenValid = validateAccessToken(formData.accessToken);
+  const [validationError, setValidationError] = React.useState<Error | undefined>(undefined);
+  const [isValidating, setIsValidating] = React.useState(false);
+  const [isValidationSuccess, setIsValidationSuccess] = React.useState(false);
+
+  const handleValidate = async () => {
+    // setIsValidating(true);
+    // setValidationError(undefined);
+
+    // TODO: Implement validation logic
+    // setShowAlert(true);
+
+    // if success
+    setValidationError(undefined);
+    setIsValidationSuccess(true);
+    setIsValidating(false);
+
+    //if fails
+    // setValidationError(new Error('error'));
+    // setIsValidationSuccess(false);
+  };
 
   const organizationInput = (
     <TextInput
@@ -67,12 +91,12 @@ const CredentialsSection: React.FC<CredentialsSectionProps> = ({ formData, setDa
   return (
     <FormSection title={FORM_LABELS.CREDENTIALS} data-testid="credentials-section">
       <FormGroup label={FORM_LABELS.ORGANIZATION} isRequired fieldId="organization">
-        <FormFieldset component={organizationInput} field="Allowed organization" />
         <FormHelperText>
           <HelperText>
             <HelperTextItem>{HELP_TEXT.ORGANIZATION}</HelperTextItem>
           </HelperText>
         </FormHelperText>
+        <FormFieldset component={organizationInput} field="Allowed organization" />
         {isOrganizationTouched && !isOrganizationValid && (
           <FormHelperText>
             <HelperText>
@@ -85,12 +109,12 @@ const CredentialsSection: React.FC<CredentialsSectionProps> = ({ formData, setDa
       </FormGroup>
 
       <FormGroup label={FORM_LABELS.ACCESS_TOKEN} isRequired fieldId="access-token">
-        <FormFieldset component={accessTokenInput} field="Access token" />
         <FormHelperText>
           <HelperText>
             <HelperTextItem>{HELP_TEXT.ACCESS_TOKEN}</HelperTextItem>
           </HelperText>
         </FormHelperText>
+        <FormFieldset component={accessTokenInput} field="Access token" />
         {isAccessTokenTouched && !isAccessTokenValid && (
           <FormHelperText>
             <HelperText>
@@ -101,6 +125,34 @@ const CredentialsSection: React.FC<CredentialsSectionProps> = ({ formData, setDa
           </FormHelperText>
         )}
       </FormGroup>
+      {validationError && (
+        <Alert isInline variant="danger" title="Validation failed" className="pf-v5-u-mt-md">
+          The system cannot establish a connection to the source. Ensure that the organization and
+          access token are accurate, then try again.
+        </Alert>
+      )}
+      {isValidationSuccess && (
+        <Alert
+          isInline
+          variant="success"
+          className="pf-v5-u-mt-md"
+          title="Validation successful"
+          actionClose={<AlertActionCloseButton onClose={() => setIsValidationSuccess(false)} />}
+        >
+          Tha organization and accessToken are valid for connection.
+        </Alert>
+      )}
+
+      <ActionList className="pf-v5-u-mt-md">
+        <Button
+          isDisabled={!isAccessTokenValid}
+          variant="link"
+          onClick={handleValidate}
+          isLoading={isValidating}
+        >
+          Validate
+        </Button>
+      </ActionList>
     </FormSection>
   );
 };

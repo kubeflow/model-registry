@@ -1,70 +1,67 @@
 import {
-  CatalogSourceConfig,
   CatalogSourceConfigList,
-  YamlCatalogSourceConfig,
-  HuggingFaceCatalogSourceConfig,
   CatalogSourceType,
+  HuggingFaceCatalogSourceConfig,
+  YamlCatalogSourceConfig,
 } from '~/app/modelCatalogTypes';
 
 export const mockYamlCatalogSourceConfig = (
   partial?: Partial<YamlCatalogSourceConfig>,
 ): YamlCatalogSourceConfig => ({
-  id: 'yaml-source-1',
-  name: 'Red Hat AI',
+  id: 'sample-source-1',
+  name: 'Source 1',
   type: CatalogSourceType.YAML,
   enabled: true,
-  labels: ['Red Hat AI'],
   includedModels: [],
   excludedModels: [],
   isDefault: true,
-  yaml: 'version: 1.0\nmodels:\n  - name: example-model',
+  yaml: 'models:\n  - name: model1',
   ...partial,
 });
 
 export const mockHuggingFaceCatalogSourceConfig = (
   partial?: Partial<HuggingFaceCatalogSourceConfig>,
 ): HuggingFaceCatalogSourceConfig => ({
-  id: 'huggingface-source-1',
-  name: 'Huggingface_Admin_1',
+  id: 'source-2',
+  name: 'Huggingface source 2',
   type: CatalogSourceType.HUGGING_FACE,
   enabled: true,
-  labels: ['Hugging Face'],
   includedModels: [],
   excludedModels: [],
   isDefault: false,
-  allowedOrganization: 'Google',
-  apiKey: undefined,
+  allowedOrganization: 'org1',
+  apiKey: 'apikey',
   ...partial,
 });
-
-export const mockCatalogSourceConfig = (
-  partial?: Partial<CatalogSourceConfig>,
-): CatalogSourceConfig => {
-  if (partial?.type === CatalogSourceType.HUGGING_FACE) {
-    return mockHuggingFaceCatalogSourceConfig(partial as Partial<HuggingFaceCatalogSourceConfig>);
-  }
-  return mockYamlCatalogSourceConfig(partial as Partial<YamlCatalogSourceConfig>);
-};
 
 export const mockCatalogSourceConfigList = (
   partial?: Partial<CatalogSourceConfigList>,
 ): CatalogSourceConfigList => ({
   catalogs: [
-    mockYamlCatalogSourceConfig({ id: 'red-hat-ai', name: 'Red Hat AI', isDefault: true }),
     mockYamlCatalogSourceConfig({
-      id: 'red-hat-ai-validated',
-      name: 'Red Hat AI validated',
+      id: 'sample_source_1',
+      name: 'Sample source 1',
       isDefault: true,
+      includedModels: [],
+      excludedModels: [],
+    }),
+    mockYamlCatalogSourceConfig({
+      id: 'source_2',
+      name: 'Source 2',
+      isDefault: false,
+      includedModels: ['model1', 'model2'],
+      excludedModels: ['model3'],
+      enabled: false,
     }),
     mockHuggingFaceCatalogSourceConfig({
-      id: 'huggingface-admin-1',
-      name: 'Huggingface_Admin_1',
-      allowedOrganization: 'Google',
+      id: 'huggingface_source_3',
+      name: 'Huggingface source 3',
+      allowedOrganization: 'org1',
       isDefault: false,
     }),
     mockYamlCatalogSourceConfig({
-      id: 'yaml-amdimport-1',
-      name: 'YAMLAmdImport_1',
+      id: 'sample_source_4',
+      name: 'Sample source 4',
       isDefault: false,
       includedModels: ['model1', 'model2'],
       excludedModels: ['model3'],

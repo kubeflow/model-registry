@@ -1320,14 +1320,6 @@ func GetFilterOptionMocks() map[string]models.FilterOption {
 		},
 	}
 
-	// String type filter for use cases
-	filterOptions["use_case"] = models.FilterOption{
-		Type: FilterOptionTypeString,
-		Values: []interface{}{
-			"chatbot", "code_fixing", "long_rag", "rag",
-		},
-	}
-
 	filterOptions["ttft_mean"] = models.FilterOption{
 		Type: FilterOptionTypeNumber,
 		Range: &models.FilterRange{

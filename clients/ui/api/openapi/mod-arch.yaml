@@ -975,6 +975,7 @@ paths:
       tags:
         - ModelCatalogService
       parameters:
+        - $ref: "#/components/parameters/kubeflowUserId"
         - name: statusFilter
           description: |-
             Filter the response to show specific model statuses.
