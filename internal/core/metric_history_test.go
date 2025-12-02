@@ -75,8 +75,8 @@ func TestGetExperimentRunMetricHistory(t *testing.T) {
 		assert.NotNil(t, item.CustomProperties, "customProperties should not be nil")
 
 		// Verify that experiment properties are filtered out of custom properties
-		assert.NotContains(t, *item.CustomProperties, "experiment_id", "experiment_id should be filtered out of custom properties")
-		assert.NotContains(t, *item.CustomProperties, "experiment_run_id", "experiment_run_id should be filtered out of custom properties")
+		assert.NotContains(t, item.CustomProperties, "experiment_id", "experiment_id should be filtered out of custom properties")
+		assert.NotContains(t, item.CustomProperties, "experiment_run_id", "experiment_run_id should be filtered out of custom properties")
 
 		switch *item.Name {
 		case "accuracy":
@@ -156,8 +156,8 @@ func TestGetExperimentRunMetricHistoryWithNameFilter(t *testing.T) {
 	assert.NotNil(t, result.Items[0].CustomProperties, "customProperties should not be nil")
 
 	// Verify that experiment properties are filtered out of custom properties
-	assert.NotContains(t, *result.Items[0].CustomProperties, "experiment_id", "experiment_id should be filtered out of custom properties")
-	assert.NotContains(t, *result.Items[0].CustomProperties, "experiment_run_id", "experiment_run_id should be filtered out of custom properties")
+	assert.NotContains(t, result.Items[0].CustomProperties, "experiment_id", "experiment_id should be filtered out of custom properties")
+	assert.NotContains(t, result.Items[0].CustomProperties, "experiment_run_id", "experiment_run_id should be filtered out of custom properties")
 }
 
 func TestInsertMetricHistory(t *testing.T) {
@@ -189,7 +189,7 @@ func TestInsertMetricHistory(t *testing.T) {
 		Description:     apiutils.Of("Test metric description"),
 		ExperimentId:    savedExperiment.Id,
 		ExperimentRunId: savedExperimentRun.Id,
-		CustomProperties: &map[string]openapi.MetadataValue{
+		CustomProperties: map[string]openapi.MetadataValue{
 			"custom_prop": {
 				MetadataStringValue: &openapi.MetadataStringValue{
 					StringValue:  "custom_value",
@@ -235,9 +235,9 @@ func TestInsertMetricHistory(t *testing.T) {
 	assert.NotNil(t, insertedMetric.CustomProperties, "customProperties should not be nil")
 
 	// Verify that experiment properties are filtered out but other custom properties remain
-	assert.NotContains(t, *insertedMetric.CustomProperties, "experiment_id", "experiment_id should be filtered out of custom properties")
-	assert.NotContains(t, *insertedMetric.CustomProperties, "experiment_run_id", "experiment_run_id should be filtered out of custom properties")
-	assert.Contains(t, *insertedMetric.CustomProperties, "custom_prop", "other custom properties should remain")
+	assert.NotContains(t, insertedMetric.CustomProperties, "experiment_id", "experiment_id should be filtered out of custom properties")
+	assert.NotContains(t, insertedMetric.CustomProperties, "experiment_run_id", "experiment_run_id should be filtered out of custom properties")
+	assert.Contains(t, insertedMetric.CustomProperties, "custom_prop", "other custom properties should remain")
 
 	// Test 2: Error handling - nil metric
 	err = service.InsertMetricHistory(nil, *savedExperimentRun.Id)
@@ -306,7 +306,7 @@ func TestUpsertExperimentRunArtifactTriggersMetricHistory(t *testing.T) {
 	assert.Equal(t, savedExperiment.Id, insertedMetric.ExperimentId, "experimentId should be populated from UpsertExperimentRunArtifact")
 	assert.Equal(t, savedExperimentRun.Id, insertedMetric.ExperimentRunId, "experimentRunId should be populated from UpsertExperimentRunArtifact")
 	assert.NotNil(t, insertedMetric.CustomProperties, "customProperties should not be nil")
-	assert.Empty(t, *insertedMetric.CustomProperties, "customProperties should be empty (no duplicate experiment fields)")
+	assert.Empty(t, insertedMetric.CustomProperties, "customProperties should be empty (no duplicate experiment fields)")
 }
 
 func TestGetExperimentRunMetricHistoryEmptyResult(t *testing.T) {
@@ -827,7 +827,7 @@ func TestGetExperimentRunMetricHistoryExperimentFields(t *testing.T) {
 		assert.Equal(t, savedExperiment.Id, item.ExperimentId, "metric %d should have experimentId populated", i)
 		assert.Equal(t, savedExperimentRun.Id, item.ExperimentRunId, "metric %d should have experimentRunId populated", i)
 		assert.NotNil(t, item.CustomProperties, "metric %d customProperties should not be nil", i)
-		assert.Empty(t, *item.CustomProperties, "metric %d customProperties should be empty (no duplicate experiment fields)", i)
+		assert.Empty(t, item.CustomProperties, "metric %d customProperties should be empty (no duplicate experiment fields)", i)
 		assert.Equal(t, "metric", *item.ArtifactType, "metric %d should have correct artifactType", i)
 	}
 
@@ -864,5 +864,5 @@ func TestGetExperimentRunMetricHistoryExperimentFields(t *testing.T) {
 	assert.Equal(t, savedExperiment.Id, filteredMetric.ExperimentId, "filtered metric should have experimentId")
 	assert.Equal(t, savedExperimentRun.Id, filteredMetric.ExperimentRunId, "filtered metric should have experimentRunId")
 	assert.NotNil(t, filteredMetric.CustomProperties, "filtered metric customProperties should not be nil")
-	assert.Empty(t, *filteredMetric.CustomProperties, "filtered metric customProperties should be empty")
+	assert.Empty(t, filteredMetric.CustomProperties, "filtered metric customProperties should be empty")
 }

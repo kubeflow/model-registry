@@ -12,7 +12,7 @@ You can use Model Registry to manage [convenient type definitions](../pkg/openap
 
 ### Prerequisites
 
-* Go >= 1.24
+* Go >= 1.25
 
 Install it using:
 

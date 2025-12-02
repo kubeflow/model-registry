@@ -3,6 +3,13 @@
 
 # Do not edit below this line. Edits will be overwritten by gen_gitattributes.sh
 
+catalog/internal/server/openapi/api.go linguist-generated=true
+catalog/internal/server/openapi/api_model_catalog_service.go linguist-generated=true
+catalog/internal/server/openapi/error.go linguist-generated=true
+catalog/internal/server/openapi/helpers.go linguist-generated=true
+catalog/internal/server/openapi/impl.go linguist-generated=true
+catalog/internal/server/openapi/logger.go linguist-generated=true
+catalog/internal/server/openapi/routers.go linguist-generated=true
 catalog/pkg/openapi/api_model_catalog_service.go linguist-generated=true
 catalog/pkg/openapi/client.go linguist-generated=true
 catalog/pkg/openapi/configuration.go linguist-generated=true
@@ -13,6 +20,8 @@ catalog/pkg/openapi/model_base_resource_dates.go linguist-generated=true
 catalog/pkg/openapi/model_base_resource_list.go linguist-generated=true
 catalog/pkg/openapi/model_catalog_artifact.go linguist-generated=true
 catalog/pkg/openapi/model_catalog_artifact_list.go linguist-generated=true
+catalog/pkg/openapi/model_catalog_label.go linguist-generated=true
+catalog/pkg/openapi/model_catalog_label_list.go linguist-generated=true
 catalog/pkg/openapi/model_catalog_metrics_artifact.go linguist-generated=true
 catalog/pkg/openapi/model_catalog_model.go linguist-generated=true
 catalog/pkg/openapi/model_catalog_model_artifact.go linguist-generated=true
@@ -137,6 +146,13 @@ internal/db/schema/parenttype.gen.go linguist-generated=true
 internal/db/schema/schema_migrations.gen.go linguist-generated=true
 internal/db/schema/type.gen.go linguist-generated=true
 internal/db/schema/typeproperty.gen.go linguist-generated=true
+internal/server/openapi/api.go linguist-generated=true
+internal/server/openapi/api_model_registry_service.go linguist-generated=true
+internal/server/openapi/error.go linguist-generated=true
+internal/server/openapi/helpers.go linguist-generated=true
+internal/server/openapi/impl.go linguist-generated=true
+internal/server/openapi/logger.go linguist-generated=true
+internal/server/openapi/routers.go linguist-generated=true
 pkg/openapi/api_model_registry_service.go linguist-generated=true
 pkg/openapi/client.go linguist-generated=true
 pkg/openapi/configuration.go linguist-generated=true

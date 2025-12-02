@@ -149,7 +149,7 @@ func (ym *yamlModel) convertModelProperties() ([]models.Properties, []models.Pro
 	}
 
 	// Convert custom properties from the YAML model
-	if customProps := convertCustomProperties(ym.CustomProperties); customProps != nil {
+	if customProps := convertCustomProperties(&ym.CustomProperties); customProps != nil {
 		customProperties = append(customProperties, customProps...)
 	}
 
@@ -183,7 +183,7 @@ func convertModelArtifact(artifact *apimodels.CatalogModelArtifact) *dbmodels.Ca
 	artifactProperties = append(artifactProperties, models.NewStringProperty("uri", artifact.Uri, false))
 
 	// Convert custom properties using helper function
-	if customProps := convertCustomProperties(artifact.CustomProperties); customProps != nil {
+	if customProps := convertCustomProperties(&artifact.CustomProperties); customProps != nil {
 		modelArtifact.CustomProperties = &customProps
 	}
 
@@ -222,7 +222,7 @@ func convertMetricsArtifact(artifact *apimodels.CatalogMetricsArtifact) *dbmodel
 	artifactProperties = append(artifactProperties, models.NewStringProperty("metricsType", artifact.MetricsType, false))
 
 	// Convert custom properties using helper function
-	if customProps := convertCustomProperties(artifact.CustomProperties); customProps != nil {
+	if customProps := convertCustomProperties(&artifact.CustomProperties); customProps != nil {
 		metricsArtifact.CustomProperties = &customProps
 	}
 
@@ -299,8 +299,8 @@ type yamlCatalog struct {
 }
 
 type yamlModelProvider struct {
-	path           string
-	excludedModels map[string]struct{}
+	path   string
+	filter *ModelFilter
 }
 
 func (p *yamlModelProvider) Models(ctx context.Context) (<-chan ModelProviderRecord, error) {
@@ -364,7 +364,7 @@ func (p *yamlModelProvider) read() (*yamlCatalog, error) {
 func (p *yamlModelProvider) emit(ctx context.Context, catalog *yamlCatalog, out chan<- ModelProviderRecord) {
 	done := ctx.Done()
 	for _, model := range catalog.Models {
-		if _, excluded := p.excludedModels[model.Name]; excluded {
+		if !p.filter.Allows(model.Name) {
 			continue
 		}
 
@@ -390,22 +390,28 @@ func newYamlModelProvider(ctx context.Context, source *Source, reldir string) (<
 		p.path = filepath.Join(reldir, path)
 	}
 
-	// Excluded models is an optional source property.
-	if _, exists := source.Properties[excludedModelsKey]; exists {
-		excludedModels, ok := source.Properties[excludedModelsKey].([]any)
+	var legacyExcluded []string
+	if raw, exists := source.Properties[excludedModelsKey]; exists {
+		values, ok := raw.([]any)
 		if !ok {
 			return nil, fmt.Errorf("%q property should be a list", excludedModelsKey)
 		}
 
-		p.excludedModels = make(map[string]struct{}, len(excludedModels))
-		for i, name := range excludedModels {
-			nameStr, ok := name.(string)
+		legacyExcluded = make([]string, len(values))
+		for i, value := range values {
+			nameStr, ok := value.(string)
 			if !ok {
-				return nil, fmt.Errorf("%s: invalid list: index %d: wanted string, got %T", name, i, name)
+				return nil, fmt.Errorf("%s: invalid list: index %d: wanted string, got %T", excludedModelsKey, i, value)
 			}
-			p.excludedModels[nameStr] = struct{}{}
+			legacyExcluded[i] = nameStr
 		}
 	}
+
+	filter, err := NewModelFilterFromSource(source, nil, legacyExcluded)
+	if err != nil {
+		return nil, err
+	}
+	p.filter = filter
 
 	return p.Models(ctx)
 }

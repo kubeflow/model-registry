@@ -5,6 +5,7 @@ import { CategoryName, SourceLabel } from '~/app/modelCatalogTypes';
 import {
   getUniqueSourceLabels,
   filterEnabledCatalogSources,
+  hasSourcesWithoutLabels,
 } from '~/app/pages/modelCatalog/utils/modelCatalogUtils';
 
 type SourceLabelBlock = {
@@ -24,6 +25,7 @@ const ModelCatalogSourceLabelBlocks: React.FC = () => {
 
     const enabledSources = filterEnabledCatalogSources(catalogSources);
     const uniqueLabels = getUniqueSourceLabels(enabledSources);
+    const hasNoLabels = hasSourcesWithoutLabels(catalogSources);
 
     const allBlock: SourceLabelBlock = {
       id: 'all',
@@ -37,13 +39,18 @@ const ModelCatalogSourceLabelBlocks: React.FC = () => {
       displayName: `${label} models`,
     }));
 
-    const noLabelsBlock: SourceLabelBlock = {
-      id: 'no-labels',
-      label: SourceLabel.other,
-      displayName: `${CategoryName.communityAndCustomModels} models`,
-    };
+    const blocksToReturn: SourceLabelBlock[] = [allBlock, ...labelBlocks];
 
-    return [allBlock, ...labelBlocks, noLabelsBlock];
+    if (hasNoLabels) {
+      const noLabelsBlock: SourceLabelBlock = {
+        id: 'no-labels',
+        label: SourceLabel.other,
+        displayName: `${CategoryName.communityAndCustomModels} models`,
+      };
+      blocksToReturn.push(noLabelsBlock);
+    }
+
+    return blocksToReturn;
   }, [catalogSources]);
 
   if (!catalogSources) {

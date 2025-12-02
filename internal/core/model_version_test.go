@@ -124,7 +124,7 @@ func TestUpsertModelVersion(t *testing.T) {
 		inputVersion := &openapi.ModelVersion{
 			Name:              "custom-props-version",
 			RegisteredModelId: *createdModel.Id,
-			CustomProperties:  &customProps,
+			CustomProperties:  customProps,
 		}
 
 		result, err := _service.UpsertModelVersion(inputVersion, createdModel.Id)
@@ -134,7 +134,7 @@ func TestUpsertModelVersion(t *testing.T) {
 		assert.Equal(t, "custom-props-version", result.Name)
 		assert.NotNil(t, result.CustomProperties)
 
-		resultProps := *result.CustomProperties
+		resultProps := result.CustomProperties
 		assert.Contains(t, resultProps, "accuracy")
 		assert.Contains(t, resultProps, "framework")
 		assert.Contains(t, resultProps, "epochs")
@@ -941,7 +941,7 @@ func TestGetModelVersionsWithFilterQuery(t *testing.T) {
 				Author:            apiutils.Of("alice"),
 				State:             (*openapi.ModelVersionState)(apiutils.Of("LIVE")),
 				RegisteredModelId: *createdModel.Id,
-				CustomProperties: &map[string]openapi.MetadataValue{
+				CustomProperties: map[string]openapi.MetadataValue{
 					"stage": {
 						MetadataStringValue: &openapi.MetadataStringValue{
 							StringValue:  "production",
@@ -971,7 +971,7 @@ func TestGetModelVersionsWithFilterQuery(t *testing.T) {
 				Author:            apiutils.Of("bob"),
 				State:             (*openapi.ModelVersionState)(apiutils.Of("ARCHIVED")),
 				RegisteredModelId: *createdModel.Id,
-				CustomProperties: &map[string]openapi.MetadataValue{
+				CustomProperties: map[string]openapi.MetadataValue{
 					"stage": {
 						MetadataStringValue: &openapi.MetadataStringValue{
 							StringValue:  "staging",
@@ -1000,7 +1000,7 @@ func TestGetModelVersionsWithFilterQuery(t *testing.T) {
 				ExternalId:        apiutils.Of("ext-v1-1-003"),
 				Author:            apiutils.Of("alice"),
 				RegisteredModelId: *createdModel.Id,
-				CustomProperties: &map[string]openapi.MetadataValue{
+				CustomProperties: map[string]openapi.MetadataValue{
 					"stage": {
 						MetadataStringValue: &openapi.MetadataStringValue{
 							StringValue:  "production",
@@ -1035,7 +1035,7 @@ func TestGetModelVersionsWithFilterQuery(t *testing.T) {
 				ExternalId:        apiutils.Of("ext-v3-beta-004"),
 				Author:            apiutils.Of("charlie"),
 				RegisteredModelId: *createdModel.Id,
-				CustomProperties: &map[string]openapi.MetadataValue{
+				CustomProperties: map[string]openapi.MetadataValue{
 					"stage": {
 						MetadataStringValue: &openapi.MetadataStringValue{
 							StringValue:  "development",
@@ -1234,7 +1234,7 @@ func TestGetModelVersionsWithFilterQuery(t *testing.T) {
 		anotherVersion := &openapi.ModelVersion{
 			Name:              "v1.0.0",
 			RegisteredModelId: *anotherCreatedModel.Id,
-			CustomProperties: &map[string]openapi.MetadataValue{
+			CustomProperties: map[string]openapi.MetadataValue{
 				"stage": {
 					MetadataStringValue: &openapi.MetadataStringValue{
 						StringValue:  "production",

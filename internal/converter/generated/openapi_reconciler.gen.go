@@ -15,17 +15,15 @@ func (c *OpenAPIReconcilerImpl) UpdateExistingDataSet(source converter.OpenapiUp
 	openapiDataSet := converter.InitWithExisting(source)
 	var pMapStringOpenapiMetadataValue *map[string]openapi.MetadataValue
 	if source.Update != nil {
-		pMapStringOpenapiMetadataValue = source.Update.CustomProperties
+		pMapStringOpenapiMetadataValue = &source.Update.CustomProperties
 	}
 	if pMapStringOpenapiMetadataValue != nil {
-		var mapStringOpenapiMetadataValue map[string]openapi.MetadataValue
 		if (*pMapStringOpenapiMetadataValue) != nil {
-			mapStringOpenapiMetadataValue = make(map[string]openapi.MetadataValue, len((*pMapStringOpenapiMetadataValue)))
+			openapiDataSet.CustomProperties = make(map[string]openapi.MetadataValue, len((*pMapStringOpenapiMetadataValue)))
 			for key, value := range *pMapStringOpenapiMetadataValue {
-				mapStringOpenapiMetadataValue[key] = c.openapiMetadataValueToOpenapiMetadataValue(value)
+				openapiDataSet.CustomProperties[key] = c.openapiMetadataValueToOpenapiMetadataValue(value)
 			}
 		}
-		openapiDataSet.CustomProperties = &mapStringOpenapiMetadataValue
 	}
 	var pString *string
 	if source.Update != nil {
@@ -124,17 +122,15 @@ func (c *OpenAPIReconcilerImpl) UpdateExistingDocArtifact(source converter.Opena
 	openapiDocArtifact := converter.InitWithExisting(source)
 	var pMapStringOpenapiMetadataValue *map[string]openapi.MetadataValue
 	if source.Update != nil {
-		pMapStringOpenapiMetadataValue = source.Update.CustomProperties
+		pMapStringOpenapiMetadataValue = &source.Update.CustomProperties
 	}
 	if pMapStringOpenapiMetadataValue != nil {
-		var mapStringOpenapiMetadataValue map[string]openapi.MetadataValue
 		if (*pMapStringOpenapiMetadataValue) != nil {
-			mapStringOpenapiMetadataValue = make(map[string]openapi.MetadataValue, len((*pMapStringOpenapiMetadataValue)))
+			openapiDocArtifact.CustomProperties = make(map[string]openapi.MetadataValue, len((*pMapStringOpenapiMetadataValue)))
 			for key, value := range *pMapStringOpenapiMetadataValue {
-				mapStringOpenapiMetadataValue[key] = c.openapiMetadataValueToOpenapiMetadataValue(value)
+				openapiDocArtifact.CustomProperties[key] = c.openapiMetadataValueToOpenapiMetadataValue(value)
 			}
 		}
-		openapiDocArtifact.CustomProperties = &mapStringOpenapiMetadataValue
 	}
 	var pString *string
 	if source.Update != nil {
@@ -193,17 +189,15 @@ func (c *OpenAPIReconcilerImpl) UpdateExistingExperiment(source converter.Openap
 	openapiExperiment := converter.InitWithExisting(source)
 	var pMapStringOpenapiMetadataValue *map[string]openapi.MetadataValue
 	if source.Update != nil {
-		pMapStringOpenapiMetadataValue = source.Update.CustomProperties
+		pMapStringOpenapiMetadataValue = &source.Update.CustomProperties
 	}
 	if pMapStringOpenapiMetadataValue != nil {
-		var mapStringOpenapiMetadataValue map[string]openapi.MetadataValue
 		if (*pMapStringOpenapiMetadataValue) != nil {
-			mapStringOpenapiMetadataValue = make(map[string]openapi.MetadataValue, len((*pMapStringOpenapiMetadataValue)))
+			openapiExperiment.CustomProperties = make(map[string]openapi.MetadataValue, len((*pMapStringOpenapiMetadataValue)))
 			for key, value := range *pMapStringOpenapiMetadataValue {
-				mapStringOpenapiMetadataValue[key] = c.openapiMetadataValueToOpenapiMetadataValue(value)
+				openapiExperiment.CustomProperties[key] = c.openapiMetadataValueToOpenapiMetadataValue(value)
 			}
 		}
-		openapiExperiment.CustomProperties = &mapStringOpenapiMetadataValue
 	}
 	var pString *string
 	if source.Update != nil {
@@ -246,17 +240,15 @@ func (c *OpenAPIReconcilerImpl) UpdateExistingExperimentRun(source converter.Ope
 	openapiExperimentRun := converter.InitWithExisting(source)
 	var pMapStringOpenapiMetadataValue *map[string]openapi.MetadataValue
 	if source.Update != nil {
-		pMapStringOpenapiMetadataValue = source.Update.CustomProperties
+		pMapStringOpenapiMetadataValue = &source.Update.CustomProperties
 	}
 	if pMapStringOpenapiMetadataValue != nil {
-		var mapStringOpenapiMetadataValue map[string]openapi.MetadataValue
 		if (*pMapStringOpenapiMetadataValue) != nil {
-			mapStringOpenapiMetadataValue = make(map[string]openapi.MetadataValue, len((*pMapStringOpenapiMetadataValue)))
+			openapiExperimentRun.CustomProperties = make(map[string]openapi.MetadataValue, len((*pMapStringOpenapiMetadataValue)))
 			for key, value := range *pMapStringOpenapiMetadataValue {
-				mapStringOpenapiMetadataValue[key] = c.openapiMetadataValueToOpenapiMetadataValue(value)
+				openapiExperimentRun.CustomProperties[key] = c.openapiMetadataValueToOpenapiMetadataValue(value)
 			}
 		}
-		openapiExperimentRun.CustomProperties = &mapStringOpenapiMetadataValue
 	}
 	var pString *string
 	if source.Update != nil {
@@ -326,17 +318,15 @@ func (c *OpenAPIReconcilerImpl) UpdateExistingInferenceService(source converter.
 	openapiInferenceService := converter.InitWithExisting(source)
 	var pMapStringOpenapiMetadataValue *map[string]openapi.MetadataValue
 	if source.Update != nil {
-		pMapStringOpenapiMetadataValue = source.Update.CustomProperties
+		pMapStringOpenapiMetadataValue = &source.Update.CustomProperties
 	}
 	if pMapStringOpenapiMetadataValue != nil {
-		var mapStringOpenapiMetadataValue map[string]openapi.MetadataValue
 		if (*pMapStringOpenapiMetadataValue) != nil {
-			mapStringOpenapiMetadataValue = make(map[string]openapi.MetadataValue, len((*pMapStringOpenapiMetadataValue)))
+			openapiInferenceService.CustomProperties = make(map[string]openapi.MetadataValue, len((*pMapStringOpenapiMetadataValue)))
 			for key, value := range *pMapStringOpenapiMetadataValue {
-				mapStringOpenapiMetadataValue[key] = c.openapiMetadataValueToOpenapiMetadataValue(value)
+				openapiInferenceService.CustomProperties[key] = c.openapiMetadataValueToOpenapiMetadataValue(value)
 			}
 		}
-		openapiInferenceService.CustomProperties = &mapStringOpenapiMetadataValue
 	}
 	var pString *string
 	if source.Update != nil {
@@ -387,17 +377,15 @@ func (c *OpenAPIReconcilerImpl) UpdateExistingMetric(source converter.OpenapiUpd
 	openapiMetric := converter.InitWithExisting(source)
 	var pMapStringOpenapiMetadataValue *map[string]openapi.MetadataValue
 	if source.Update != nil {
-		pMapStringOpenapiMetadataValue = source.Update.CustomProperties
+		pMapStringOpenapiMetadataValue = &source.Update.CustomProperties
 	}
 	if pMapStringOpenapiMetadataValue != nil {
-		var mapStringOpenapiMetadataValue map[string]openapi.MetadataValue
 		if (*pMapStringOpenapiMetadataValue) != nil {
-			mapStringOpenapiMetadataValue = make(map[string]openapi.MetadataValue, len((*pMapStringOpenapiMetadataValue)))
+			openapiMetric.CustomProperties = make(map[string]openapi.MetadataValue, len((*pMapStringOpenapiMetadataValue)))
 			for key, value := range *pMapStringOpenapiMetadataValue {
-				mapStringOpenapiMetadataValue[key] = c.openapiMetadataValueToOpenapiMetadataValue(value)
+				openapiMetric.CustomProperties[key] = c.openapiMetadataValueToOpenapiMetadataValue(value)
 			}
 		}
-		openapiMetric.CustomProperties = &mapStringOpenapiMetadataValue
 	}
 	var pString *string
 	if source.Update != nil {
@@ -472,17 +460,15 @@ func (c *OpenAPIReconcilerImpl) UpdateExistingModelArtifact(source converter.Ope
 	openapiModelArtifact := converter.InitWithExisting(source)
 	var pMapStringOpenapiMetadataValue *map[string]openapi.MetadataValue
 	if source.Update != nil {
-		pMapStringOpenapiMetadataValue = source.Update.CustomProperties
+		pMapStringOpenapiMetadataValue = &source.Update.CustomProperties
 	}
 	if pMapStringOpenapiMetadataValue != nil {
-		var mapStringOpenapiMetadataValue map[string]openapi.MetadataValue
 		if (*pMapStringOpenapiMetadataValue) != nil {
-			mapStringOpenapiMetadataValue = make(map[string]openapi.MetadataValue, len((*pMapStringOpenapiMetadataValue)))
+			openapiModelArtifact.CustomProperties = make(map[string]openapi.MetadataValue, len((*pMapStringOpenapiMetadataValue)))
 			for key, value := range *pMapStringOpenapiMetadataValue {
-				mapStringOpenapiMetadataValue[key] = c.openapiMetadataValueToOpenapiMetadataValue(value)
+				openapiModelArtifact.CustomProperties[key] = c.openapiMetadataValueToOpenapiMetadataValue(value)
 			}
 		}
-		openapiModelArtifact.CustomProperties = &mapStringOpenapiMetadataValue
 	}
 	var pString *string
 	if source.Update != nil {
@@ -621,17 +607,15 @@ func (c *OpenAPIReconcilerImpl) UpdateExistingModelVersion(source converter.Open
 	openapiModelVersion := converter.InitWithExisting(source)
 	var pMapStringOpenapiMetadataValue *map[string]openapi.MetadataValue
 	if source.Update != nil {
-		pMapStringOpenapiMetadataValue = source.Update.CustomProperties
+		pMapStringOpenapiMetadataValue = &source.Update.CustomProperties
 	}
 	if pMapStringOpenapiMetadataValue != nil {
-		var mapStringOpenapiMetadataValue map[string]openapi.MetadataValue
 		if (*pMapStringOpenapiMetadataValue) != nil {
-			mapStringOpenapiMetadataValue = make(map[string]openapi.MetadataValue, len((*pMapStringOpenapiMetadataValue)))
+			openapiModelVersion.CustomProperties = make(map[string]openapi.MetadataValue, len((*pMapStringOpenapiMetadataValue)))
 			for key, value := range *pMapStringOpenapiMetadataValue {
-				mapStringOpenapiMetadataValue[key] = c.openapiMetadataValueToOpenapiMetadataValue(value)
+				openapiModelVersion.CustomProperties[key] = c.openapiMetadataValueToOpenapiMetadataValue(value)
 			}
 		}
-		openapiModelVersion.CustomProperties = &mapStringOpenapiMetadataValue
 	}
 	var pString *string
 	if source.Update != nil {
@@ -674,17 +658,15 @@ func (c *OpenAPIReconcilerImpl) UpdateExistingParameter(source converter.Openapi
 	openapiParameter := converter.InitWithExisting(source)
 	var pMapStringOpenapiMetadataValue *map[string]openapi.MetadataValue
 	if source.Update != nil {
-		pMapStringOpenapiMetadataValue = source.Update.CustomProperties
+		pMapStringOpenapiMetadataValue = &source.Update.CustomProperties
 	}
 	if pMapStringOpenapiMetadataValue != nil {
-		var mapStringOpenapiMetadataValue map[string]openapi.MetadataValue
 		if (*pMapStringOpenapiMetadataValue) != nil {
-			mapStringOpenapiMetadataValue = make(map[string]openapi.MetadataValue, len((*pMapStringOpenapiMetadataValue)))
+			openapiParameter.CustomProperties = make(map[string]openapi.MetadataValue, len((*pMapStringOpenapiMetadataValue)))
 			for key, value := range *pMapStringOpenapiMetadataValue {
-				mapStringOpenapiMetadataValue[key] = c.openapiMetadataValueToOpenapiMetadataValue(value)
+				openapiParameter.CustomProperties[key] = c.openapiMetadataValueToOpenapiMetadataValue(value)
 			}
 		}
-		openapiParameter.CustomProperties = &mapStringOpenapiMetadataValue
 	}
 	var pString *string
 	if source.Update != nil {
@@ -754,17 +736,15 @@ func (c *OpenAPIReconcilerImpl) UpdateExistingRegisteredModel(source converter.O
 	openapiRegisteredModel := converter.InitWithExisting(source)
 	var pMapStringOpenapiMetadataValue *map[string]openapi.MetadataValue
 	if source.Update != nil {
-		pMapStringOpenapiMetadataValue = source.Update.CustomProperties
+		pMapStringOpenapiMetadataValue = &source.Update.CustomProperties
 	}
 	if pMapStringOpenapiMetadataValue != nil {
-		var mapStringOpenapiMetadataValue map[string]openapi.MetadataValue
 		if (*pMapStringOpenapiMetadataValue) != nil {
-			mapStringOpenapiMetadataValue = make(map[string]openapi.MetadataValue, len((*pMapStringOpenapiMetadataValue)))
+			openapiRegisteredModel.CustomProperties = make(map[string]openapi.MetadataValue, len((*pMapStringOpenapiMetadataValue)))
 			for key, value := range *pMapStringOpenapiMetadataValue {
-				mapStringOpenapiMetadataValue[key] = c.openapiMetadataValueToOpenapiMetadataValue(value)
+				openapiRegisteredModel.CustomProperties[key] = c.openapiMetadataValueToOpenapiMetadataValue(value)
 			}
 		}
-		openapiRegisteredModel.CustomProperties = &mapStringOpenapiMetadataValue
 	}
 	var pString *string
 	if source.Update != nil {
@@ -803,28 +783,24 @@ func (c *OpenAPIReconcilerImpl) UpdateExistingRegisteredModel(source converter.O
 		pStringList = &source.Update.Language
 	}
 	if pStringList != nil {
-		var stringList []string
 		if (*pStringList) != nil {
-			stringList = make([]string, len((*pStringList)))
+			openapiRegisteredModel.Language = make([]string, len((*pStringList)))
 			for i := 0; i < len((*pStringList)); i++ {
-				stringList[i] = (*pStringList)[i]
+				openapiRegisteredModel.Language[i] = (*pStringList)[i]
 			}
 		}
-		openapiRegisteredModel.Language = stringList
 	}
 	var pStringList2 *[]string
 	if source.Update != nil {
 		pStringList2 = &source.Update.Tasks
 	}
 	if pStringList2 != nil {
-		var stringList2 []string
 		if (*pStringList2) != nil {
-			stringList2 = make([]string, len((*pStringList2)))
+			openapiRegisteredModel.Tasks = make([]string, len((*pStringList2)))
 			for j := 0; j < len((*pStringList2)); j++ {
-				stringList2[j] = (*pStringList2)[j]
+				openapiRegisteredModel.Tasks[j] = (*pStringList2)[j]
 			}
 		}
-		openapiRegisteredModel.Tasks = stringList2
 	}
 	var pString5 *string
 	if source.Update != nil {
@@ -891,17 +867,15 @@ func (c *OpenAPIReconcilerImpl) UpdateExistingServeModel(source converter.Openap
 	openapiServeModel := converter.InitWithExisting(source)
 	var pMapStringOpenapiMetadataValue *map[string]openapi.MetadataValue
 	if source.Update != nil {
-		pMapStringOpenapiMetadataValue = source.Update.CustomProperties
+		pMapStringOpenapiMetadataValue = &source.Update.CustomProperties
 	}
 	if pMapStringOpenapiMetadataValue != nil {
-		var mapStringOpenapiMetadataValue map[string]openapi.MetadataValue
 		if (*pMapStringOpenapiMetadataValue) != nil {
-			mapStringOpenapiMetadataValue = make(map[string]openapi.MetadataValue, len((*pMapStringOpenapiMetadataValue)))
+			openapiServeModel.CustomProperties = make(map[string]openapi.MetadataValue, len((*pMapStringOpenapiMetadataValue)))
 			for key, value := range *pMapStringOpenapiMetadataValue {
-				mapStringOpenapiMetadataValue[key] = c.openapiMetadataValueToOpenapiMetadataValue(value)
+				openapiServeModel.CustomProperties[key] = c.openapiMetadataValueToOpenapiMetadataValue(value)
 			}
 		}
-		openapiServeModel.CustomProperties = &mapStringOpenapiMetadataValue
 	}
 	var pString *string
 	if source.Update != nil {
@@ -936,17 +910,15 @@ func (c *OpenAPIReconcilerImpl) UpdateExistingServingEnvironment(source converte
 	openapiServingEnvironment := converter.InitWithExisting(source)
 	var pMapStringOpenapiMetadataValue *map[string]openapi.MetadataValue
 	if source.Update != nil {
-		pMapStringOpenapiMetadataValue = source.Update.CustomProperties
+		pMapStringOpenapiMetadataValue = &source.Update.CustomProperties
 	}
 	if pMapStringOpenapiMetadataValue != nil {
-		var mapStringOpenapiMetadataValue map[string]openapi.MetadataValue
 		if (*pMapStringOpenapiMetadataValue) != nil {
-			mapStringOpenapiMetadataValue = make(map[string]openapi.MetadataValue, len((*pMapStringOpenapiMetadataValue)))
+			openapiServingEnvironment.CustomProperties = make(map[string]openapi.MetadataValue, len((*pMapStringOpenapiMetadataValue)))
 			for key, value := range *pMapStringOpenapiMetadataValue {
-				mapStringOpenapiMetadataValue[key] = c.openapiMetadataValueToOpenapiMetadataValue(value)
+				openapiServingEnvironment.CustomProperties[key] = c.openapiMetadataValueToOpenapiMetadataValue(value)
 			}
 		}
-		openapiServingEnvironment.CustomProperties = &mapStringOpenapiMetadataValue
 	}
 	var pString *string
 	if source.Update != nil {

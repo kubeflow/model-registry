@@ -10,6 +10,32 @@ servers:
   - url: "https://localhost:8080"
   - url: "http://localhost:8080"
 paths:
+  /api/model_catalog/v1alpha1/labels:
+    summary: Path used to get the list of catalog labels.
+    description: >-
+      The REST endpoint/path used to list zero or more `CatalogLabel` entities.
+    get:
+      summary: List All CatalogLabels
+      tags:
+        - ModelCatalogService
+      parameters:
+        - $ref: "#/components/parameters/pageSize"
+        - $ref: "#/components/parameters/labelOrderBy"
+        - $ref: "#/components/parameters/sortOrder"
+        - $ref: "#/components/parameters/nextPageToken"
+      responses:
+        "200":
+          $ref: "#/components/responses/CatalogLabelListResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+      operationId: findLabels
+      description: Gets a list of all `CatalogLabel` entities.
   /api/model_catalog/v1alpha1/models:
     description: >-
       The REST endpoint/path used to list zero or more `CatalogModel` entities from all `CatalogSources`.
@@ -52,7 +78,31 @@ paths:
           required: false
         - $ref: "#/components/parameters/filterQuery"
         - $ref: "#/components/parameters/pageSize"
-        - $ref: "#/components/parameters/orderBy"
+        - name: orderBy
+          style: form
+          explode: true
+          examples:
+            orderBy:
+              value: ID
+          description: |-
+            Specifies the order by criteria for listing entities.
+
+            Supported values are:
+            - CREATE_TIME
+            - LAST_UPDATE_TIME
+            - ID
+            - NAME
+            - ACCURACY
+
+            The `ACCURACY` sort will sort by the `overall_average` property in any linked metrics artifact.
+
+            In addition, models can be sorted by properties. For example:
+            - `provider.string_value` sorts by provider name
+            - `artifacts.ifeval.double_value` sorts by the min/max value a property called ifeval across all associated artifacts
+          schema:
+            $ref: "#/components/schemas/OrderByField"
+          in: query
+          required: false
         - $ref: "#/components/parameters/sortOrder"
         - $ref: "#/components/parameters/nextPageToken"
       responses:
@@ -172,8 +222,9 @@ paths:
         required: true
       - $ref: "#/components/parameters/artifactType"
       - $ref: "#/components/parameters/artifact_type"
+      - $ref: "#/components/parameters/artifactFilterQuery"
       - $ref: "#/components/parameters/pageSize"
-      - $ref: "#/components/parameters/orderBy"
+      - $ref: "#/components/parameters/artifactOrderBy"
       - $ref: "#/components/parameters/sortOrder"
       - $ref: "#/components/parameters/nextPageToken"
 components:
@@ -324,6 +375,38 @@ components:
           required:
             - items
         - $ref: "#/components/schemas/BaseResourceList"
+    CatalogLabel:
+      description: A catalog label. Labels are used to categorize catalog sources. Represented as a flexible map of string key-value pairs with a required 'name' field.
+      type: object
+      required:
+        - name
+      properties:
+        name:
+          type: string
+          nullable: true
+          description: The unique name identifier for the label.
+        displayName:
+          type: string
+          description: An optional human-readable name to show in place of `name`.
+      additionalProperties:
+        type: string
+      example:
+        name: huggingface
+        displayName: HuggingFace Hub
+        description: HuggingFace models with full support and legal indemnification.
+    CatalogLabelList:
+      description: List of CatalogLabel entities.
+      allOf:
+        - type: object
+          properties:
+            items:
+              description: Array of `CatalogLabel` entities.
+              type: array
+              items:
+                $ref: "#/components/schemas/CatalogLabel"
+          required:
+            - items
+        - $ref: "#/components/schemas/BaseResourceList"
     CatalogMetricsArtifact:
       description: A metadata Artifact Entity.
       allOf:
@@ -419,6 +502,27 @@ components:
           type: array
           items:
             type: string
+        includedModels:
+          description: |-
+            Optional allow-list of models that are eligible for this source. Entries can be
+            exact model names or patterns that use `*` as a wildcard. When provided, only
+            models matching at least one pattern are considered.
+
+            Pattern matching is case-insensitive, so `Granite/*` will match `granite/model`,
+            `Granite/model`, and `GRANITE/model`.
+          type: array
+          items:
+            type: string
+        excludedModels:
+          description: |-
+            Optional block-list of models that should be removed from the catalog even if
+            they match `includedModels`. Patterns support the `*` wildcard.
+
+            Pattern matching is case-insensitive, so `*-beta` will match `Model-Beta`,
+            `model-beta`, and `MODEL-BETA`.
+          type: array
+          items:
+            type: string
     CatalogSourceList:
       description: List of CatalogSource entities.
       allOf:
@@ -466,8 +570,10 @@ components:
       properties:
         min:
           type: number
+          format: double
         max:
           type: number
+          format: double
     FilterOptionsList:
       description: List of FilterOptions
       type: object
@@ -587,15 +693,11 @@ components:
     OrderByField:
       description: |-
         Supported fields for ordering result entities.
-
-        The `ACCURACY` sort only applies to catalog models, and will sort by
-        the `overall_average` property in any linked metrics artifact.
       enum:
         - CREATE_TIME
         - LAST_UPDATE_TIME
         - ID
         - NAME
-        - ACCURACY
       type: string
     SortOrder:
       description: Supported sort direction for ordering result entities.
@@ -616,6 +718,12 @@ components:
           schema:
             $ref: "#/components/schemas/CatalogArtifactList"
       description: A response containing a list of CatalogArtifact entities.
+    CatalogLabelListResponse:
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/CatalogLabelList"
+      description: A response containing a list of CatalogLabel entities.
     CatalogModelListResponse:
       content:
         application/json:
@@ -720,6 +828,43 @@ components:
         type: string
       in: query
       required: false
+    artifactFilterQuery:
+      examples:
+        artifactFilterQuery:
+          value: "name='my-artifact' AND uri LIKE '%s3%'"
+      name: filterQuery
+      description: |
+        A SQL-like query string to filter catalog artifacts. The query supports rich filtering capabilities with automatic type inference.
+
+        **Supported Operators:**
+        - Comparison: `=`, `!=`, `<>`, `>`, `<`, `>=`, `<=`
+        - Pattern matching: `LIKE`, `ILIKE` (case-insensitive)
+        - Set membership: `IN`
+        - Logical: `AND`, `OR`
+        - Grouping: `()` for complex expressions
+
+        **Data Types:**
+        - Strings: `"value"` or `'value'`
+        - Numbers: `42`, `3.14`, `1e-5`
+        - Booleans: `true`, `false` (case-insensitive)
+
+        **Property Access (Artifacts):**
+        - Standard properties: `name`, `id`, `uri`, `artifactType`, `createTimeSinceEpoch`
+        - Custom properties: Any user-defined property name in `customProperties`
+        - Escaped properties: Use backticks for special characters: `` `custom-property` ``
+        - Type-specific access: `property.string_value`, `property.double_value`, `property.int_value`, `property.bool_value`
+
+        **Examples:**
+        - Basic: `name = "my-artifact"`
+        - Comparison: `ttft_mean > 90`
+        - Pattern: `uri LIKE "%s3.amazonaws.com%"`
+        - Complex: `(artifactType = "model-artifact" OR artifactType = "metrics-artifact") AND name LIKE "%pytorch%"`
+        - Custom property: `format.string_value = "pytorch"`
+        - Escaped property: `` `custom-key` = "value" ``
+      schema:
+        type: string
+      in: query
+      required: false
     orderBy:
       style: form
       explode: true
@@ -730,6 +875,74 @@ components:
       description: Specifies the order by criteria for listing entities.
       schema:
         $ref: "#/components/schemas/OrderByField"
+      in: query
+      required: false
+    artifactOrderBy:
+      style: form
+      explode: true
+      examples:
+        standardField:
+          value: ID
+          summary: Order by standard field
+        customPropertyDouble:
+          value: mmlu.double_value
+          summary: Order by custom double property
+        customPropertyString:
+          value: framework_type.string_value
+          summary: Order by custom string property
+        customPropertyInt:
+          value: hardware_count.int_value
+          summary: Order by custom integer property
+      name: orderBy
+      description: |
+        Specifies the order by criteria for listing artifacts.
+
+        **Standard Fields:**
+        - `ID` - Order by artifact ID
+        - `NAME` - Order by artifact name
+        - `CREATE_TIME` - Order by creation timestamp
+        - `LAST_UPDATE_TIME` - Order by last update timestamp
+
+        **Custom Property Ordering:**
+
+        Artifacts can be ordered by custom properties using the format: `<property_name>.<value_type>`
+
+        Supported value types:
+        - `double_value` - For numeric (floating-point) properties
+        - `int_value` - For integer properties
+        - `string_value` - For string properties
+
+        Examples:
+        - `mmlu.double_value` - Order by the 'mmlu' benchmark score
+        - `accuracy.double_value` - Order by accuracy metric
+        - `framework_type.string_value` - Order by framework type
+        - `hardware_count.int_value` - Order by hardware count
+        - `ttft_mean.double_value` - Order by time-to-first-token mean
+
+        **Behavior:**
+        - If an invalid value type is specified (e.g., `accuracy.invalid_type`), an error is returned
+        - If an invalid format is used (e.g., `accuracy` without `.value_type`), it falls back to ID ordering
+        - If a property doesn't exist, it falls back to ID ordering
+        - Artifacts with the specified property are ordered first (by the property value), followed by artifacts without the property (ordered by ID)
+        - Empty property names (e.g., `.double_value`) return an error
+      schema:
+        type: string
+      in: query
+      required: false
+    labelOrderBy:
+      style: form
+      explode: true
+      examples:
+        labelOrderBy:
+          value: name
+      name: orderBy
+      description: |
+        Specifies the key to order catalog labels by. You can provide any string key
+        that may exist in the label maps. Labels that contain the specified key will
+        be sorted by that key's value. Labels that don't contain the key will maintain
+        their original order and appear after labels that do contain the key.
+      schema:
+        type: string
       in: query
       required: false
     artifactType:

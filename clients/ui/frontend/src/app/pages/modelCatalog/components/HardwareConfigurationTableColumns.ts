@@ -5,20 +5,22 @@ import {
 } from '~/app/modelCatalogTypes';
 import {
   getHardwareConfiguration,
-  getTotalRps,
+  getWorkloadType,
 } from '~/app/pages/modelCatalog/utils/performanceMetricsUtils';
 import { getDoubleValue, getStringValue } from '~/app/utils';
 
-export type HardwareConfigColumnField = keyof PerformanceMetricsCustomProperties | 'total_rps';
+export type HardwareConfigColumnField = keyof PerformanceMetricsCustomProperties;
 
 export type HardwareConfigColumn = Omit<
   SortableData<CatalogPerformanceMetricsArtifact>,
   'field'
 > & { field: HardwareConfigColumnField };
 
-// Note: The labels of most columns here include a non-breaking space (U+00a0) to selectively control word wrap.
-// Your editor may highlight these and warn you that "The character U+00a0 is invisible."
-// This character is ideally represented by the HTML entity &nbsp; but these strings can't contain HTML entities.
+/*Non-breaking space constant (U+00A0) used to selectively control word wrap in column labels.
+This prevents word wrapping into 3 lines (e.g., keeps "TTFT Latency" together instead of "TTFT\nLatency\nMean").
+*/
+const NBSP = '\u00A0';
+
 export const hardwareConfigColumns: HardwareConfigColumn[] = [
   {
     field: 'hardware_type',
@@ -30,12 +32,24 @@ export const hardwareConfigColumns: HardwareConfigColumn[] = [
     isStickyColumn: true,
     stickyMinWidth: '162px',
     stickyLeftOffset: '0',
-    hasRightBorder: true,
     modifier: 'wrap',
   },
   {
+    field: 'use_case',
+    label: 'Workload type',
+    sortable: (
+      a: CatalogPerformanceMetricsArtifact,
+      b: CatalogPerformanceMetricsArtifact,
+    ): number => getWorkloadType(a).localeCompare(getWorkloadType(b)),
+    isStickyColumn: true,
+    stickyMinWidth: '132px',
+    stickyLeftOffset: '162px',
+    modifier: 'wrap',
+    hasRightBorder: true,
+  },
+  {
     field: 'requests_per_second',
-    label: 'RPS per Replica',
+    label: `RPS${NBSP}per Replica`,
     sortable: (
       a: CatalogPerformanceMetricsArtifact,
       b: CatalogPerformanceMetricsArtifact,
@@ -46,18 +60,8 @@ export const hardwareConfigColumns: HardwareConfigColumn[] = [
     modifier: 'wrap',
   },
   {
-    field: 'total_rps',
-    label: 'Total RPS',
-    sortable: (
-      a: CatalogPerformanceMetricsArtifact,
-      b: CatalogPerformanceMetricsArtifact,
-    ): number => getTotalRps(a.customProperties) - getTotalRps(b.customProperties),
-    width: 20,
-    modifier: 'wrap',
-  },
-  {
     field: 'ttft_mean',
-    label: 'TTFT Latency Mean',
+    label: `TTFT${NBSP}Latency Mean`,
     sortable: (
       a: CatalogPerformanceMetricsArtifact,
       b: CatalogPerformanceMetricsArtifact,
@@ -69,7 +73,7 @@ export const hardwareConfigColumns: HardwareConfigColumn[] = [
   },
   {
     field: 'ttft_p90',
-    label: 'TTFT Latency P90',
+    label: `TTFT${NBSP}Latency P90`,
     sortable: (
       a: CatalogPerformanceMetricsArtifact,
       b: CatalogPerformanceMetricsArtifact,
@@ -81,7 +85,7 @@ export const hardwareConfigColumns: HardwareConfigColumn[] = [
   },
   {
     field: 'ttft_p95',
-    label: 'TTFT Latency P95',
+    label: `TTFT${NBSP}Latency P95`,
     sortable: (
       a: CatalogPerformanceMetricsArtifact,
       b: CatalogPerformanceMetricsArtifact,
@@ -93,7 +97,7 @@ export const hardwareConfigColumns: HardwareConfigColumn[] = [
   },
   {
     field: 'ttft_p99',
-    label: 'TTFT Latency P99',
+    label: `TTFT${NBSP}Latency P99`,
     sortable: (
       a: CatalogPerformanceMetricsArtifact,
       b: CatalogPerformanceMetricsArtifact,
@@ -105,7 +109,7 @@ export const hardwareConfigColumns: HardwareConfigColumn[] = [
   },
   {
     field: 'e2e_mean',
-    label: 'E2E Latency Mean',
+    label: `E2E${NBSP}Latency Mean`,
     sortable: (
       a: CatalogPerformanceMetricsArtifact,
       b: CatalogPerformanceMetricsArtifact,
@@ -117,7 +121,7 @@ export const hardwareConfigColumns: HardwareConfigColumn[] = [
   },
   {
     field: 'e2e_p90',
-    label: 'E2E Latency P90',
+    label: `E2E${NBSP}Latency P90`,
     sortable: (
       a: CatalogPerformanceMetricsArtifact,
       b: CatalogPerformanceMetricsArtifact,
@@ -128,7 +132,7 @@ export const hardwareConfigColumns: HardwareConfigColumn[] = [
   },
   {
     field: 'e2e_p95',
-    label: 'E2E Latency P95',
+    label: `E2E${NBSP}Latency P95`,
     sortable: (
       a: CatalogPerformanceMetricsArtifact,
       b: CatalogPerformanceMetricsArtifact,
@@ -139,7 +143,7 @@ export const hardwareConfigColumns: HardwareConfigColumn[] = [
   },
   {
     field: 'e2e_p99',
-    label: 'E2E Latency P99',
+    label: `E2E${NBSP}Latency P99`,
     sortable: (
       a: CatalogPerformanceMetricsArtifact,
       b: CatalogPerformanceMetricsArtifact,
@@ -150,7 +154,7 @@ export const hardwareConfigColumns: HardwareConfigColumn[] = [
   },
   {
     field: 'tps_mean',
-    label: 'TPS Latency Mean',
+    label: `TPS${NBSP}Latency Mean`,
     sortable: (
       a: CatalogPerformanceMetricsArtifact,
       b: CatalogPerformanceMetricsArtifact,
@@ -162,7 +166,7 @@ export const hardwareConfigColumns: HardwareConfigColumn[] = [
   },
   {
     field: 'tps_p90',
-    label: 'TPS Latency P90',
+    label: `TPS${NBSP}Latency P90`,
     sortable: (
       a: CatalogPerformanceMetricsArtifact,
       b: CatalogPerformanceMetricsArtifact,
@@ -173,7 +177,7 @@ export const hardwareConfigColumns: HardwareConfigColumn[] = [
   },
   {
     field: 'tps_p95',
-    label: 'TPS Latency P95',
+    label: `TPS${NBSP}Latency P95`,
     sortable: (
       a: CatalogPerformanceMetricsArtifact,
       b: CatalogPerformanceMetricsArtifact,
@@ -184,7 +188,7 @@ export const hardwareConfigColumns: HardwareConfigColumn[] = [
   },
   {
     field: 'tps_p99',
-    label: 'TPS Latency P99',
+    label: `TPS${NBSP}Latency P99`,
     sortable: (
       a: CatalogPerformanceMetricsArtifact,
       b: CatalogPerformanceMetricsArtifact,
@@ -195,7 +199,7 @@ export const hardwareConfigColumns: HardwareConfigColumn[] = [
   },
   {
     field: 'itl_mean',
-    label: 'ITL Latency Mean',
+    label: `ITL${NBSP}Latency Mean`,
     sortable: (
       a: CatalogPerformanceMetricsArtifact,
       b: CatalogPerformanceMetricsArtifact,
@@ -207,7 +211,7 @@ export const hardwareConfigColumns: HardwareConfigColumn[] = [
   },
   {
     field: 'itl_p90',
-    label: 'ITL Latency P90',
+    label: `ITL${NBSP}Latency P90`,
     sortable: (
       a: CatalogPerformanceMetricsArtifact,
       b: CatalogPerformanceMetricsArtifact,
@@ -218,7 +222,7 @@ export const hardwareConfigColumns: HardwareConfigColumn[] = [
   },
   {
     field: 'itl_p95',
-    label: 'ITL Latency P95',
+    label: `ITL${NBSP}Latency P95`,
     sortable: (
       a: CatalogPerformanceMetricsArtifact,
       b: CatalogPerformanceMetricsArtifact,
@@ -229,7 +233,7 @@ export const hardwareConfigColumns: HardwareConfigColumn[] = [
   },
   {
     field: 'itl_p99',
-    label: 'ITL Latency P99',
+    label: `ITL${NBSP}Latency P99`,
     sortable: (
       a: CatalogPerformanceMetricsArtifact,
       b: CatalogPerformanceMetricsArtifact,
@@ -240,7 +244,7 @@ export const hardwareConfigColumns: HardwareConfigColumn[] = [
   },
   {
     field: 'mean_input_tokens',
-    label: 'Mean Input Tokens',
+    label: `Mean${NBSP}Input Tokens`,
     sortable: (
       a: CatalogPerformanceMetricsArtifact,
       b: CatalogPerformanceMetricsArtifact,
@@ -252,27 +256,13 @@ export const hardwareConfigColumns: HardwareConfigColumn[] = [
   },
   {
     field: 'mean_output_tokens',
-    label: 'Mean Output Tokens',
+    label: `Mean${NBSP}Output Tokens`,
     sortable: (
       a: CatalogPerformanceMetricsArtifact,
       b: CatalogPerformanceMetricsArtifact,
     ): number =>
       getDoubleValue(a.customProperties, 'mean_output_tokens') -
       getDoubleValue(b.customProperties, 'mean_output_tokens'),
-    width: 20,
-    modifier: 'wrap',
-  },
-  {
-    field: 'use_case',
-    label: 'Use Case',
-    sortable: (
-      a: CatalogPerformanceMetricsArtifact,
-      b: CatalogPerformanceMetricsArtifact,
-    ): number => {
-      const useCaseA = getStringValue(a.customProperties, 'use_case');
-      const useCaseB = getStringValue(b.customProperties, 'use_case');
-      return useCaseA.localeCompare(useCaseB);
-    },
     width: 20,
     modifier: 'wrap',
   },

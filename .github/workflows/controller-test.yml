@@ -39,12 +39,12 @@ jobs:
           echo "tag=${tag}" >> $GITHUB_OUTPUT
 
       - name: Clone the code
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
 
       - name: Setup Go
         uses: actions/setup-go@v6
         with:
-          go-version: '1.24'
+          go-version: "1.25.3"
 
       - name: Running Tests
         run: |

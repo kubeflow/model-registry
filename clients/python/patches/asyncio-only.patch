@@ -1,16 +1,17 @@
 diff --git a/clients/python/src/mr_openapi/configuration.py b/clients/python/src/mr_openapi/configuration.py
-index 795d09e8..bab01d69 100644
+index 50b0c1f2..068de622 100644
 --- a/clients/python/src/mr_openapi/configuration.py
 +++ b/clients/python/src/mr_openapi/configuration.py
-@@ -17,7 +17,6 @@ import logging
- from logging import FileHandler
- import sys
- from typing import Optional
+@@ -21,8 +21,6 @@ import sys
+ from typing import Any, ClassVar, Dict, List, Literal, Optional, TypedDict, Union
+ from typing_extensions import NotRequired, Self
+ 
 -import urllib3
+-
  
- import http.client as httplib
- 
-@@ -110,7 +109,6 @@ class Configuration:
+ JSON_SCHEMA_VALIDATION_KEYWORDS = {
+     'multipleOf', 'maximum', 'exclusiveMaximum',
+@@ -238,7 +236,6 @@ class Configuration:
          """Logging Settings
          """
          self.logger["package_logger"] = logging.getLogger("mr_openapi")
@@ -18,11 +19,11 @@ index 795d09e8..bab01d69 100644
          self.logger_format = '%(asctime)s %(levelname)s %(message)s'
          """Log format
          """
-@@ -335,21 +333,6 @@ class Configuration:
-             else:
-                 return key
+@@ -472,21 +469,6 @@ class Configuration:
+
+         return None
  
--    def get_basic_auth_token(self):
+-    def get_basic_auth_token(self) -> Optional[str]:
 -        """Gets HTTP basic authentication header (string).
 -
 -        :return: The token for basic HTTP authentication.
@@ -37,6 +38,6 @@ index 795d09e8..bab01d69 100644
 -            basic_auth=username + ':' + password
 -        ).get('authorization')
 -
-     def auth_settings(self):
+     def auth_settings(self)-> AuthSettings:
          """Gets Auth Settings dict for api client.
  

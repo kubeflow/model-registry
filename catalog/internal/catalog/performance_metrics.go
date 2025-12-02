@@ -21,7 +21,8 @@ import (
 // metadataJSON represents the minimal structure needed from metadata.json files
 // Only the ID field is needed to look up existing models
 type metadataJSON struct {
-	ID string `json:"id"` // Maps to model name for lookup
+	ID              string   `json:"id"`               // Maps to model name for lookup
+	OverallAccuracy *float64 `json:"overall_accuracy"` // Overall accuracy score for the model
 }
 
 // parseMetadataJSON parses JSON data into metadataJSON struct, extracting only the ID field
@@ -298,12 +299,12 @@ func processModelDirectory(dirPath string, modelRepo dbmodels.CatalogModelReposi
 	glog.V(2).Infof("Found existing model %s with ID %d, processing metrics", metadata.ID, modelID)
 
 	// Use batch processing for all artifacts
-	return processModelArtifactsBatch(dirPath, modelID, metadata.ID, metricsArtifactRepo, metricsArtifactTypeID)
+	return processModelArtifactsBatch(dirPath, modelID, metadata.ID, metadata.OverallAccuracy, metricsArtifactRepo, metricsArtifactTypeID)
 }
 
 // processModelArtifactsBatch processes all metric artifacts for a model in batch
 // This reduces DB overhead by parsing, checking, and inserting in optimized phases
-func processModelArtifactsBatch(dirPath string, modelID int32, modelName string, metricsArtifactRepo dbmodels.CatalogMetricsArtifactRepository, metricsArtifactTypeID int32) (int, error) {
+func processModelArtifactsBatch(dirPath string, modelID int32, modelName string, overallAccuracy *float64, metricsArtifactRepo dbmodels.CatalogMetricsArtifactRepository, metricsArtifactTypeID int32) (int, error) {
 	// Parse all metrics files
 	var evaluationRecords []evaluationRecord
 	var performanceRecords []performanceRecord
@@ -359,7 +360,7 @@ func processModelArtifactsBatch(dirPath string, modelID int32, modelName string,
 	if len(evaluationRecords) > 0 {
 		externalID := fmt.Sprintf("accuracy-metrics-model-%d", modelID)
 		if !existingArtifactsMap[externalID] {
-			artifact := createAccuracyMetricsArtifact(evaluationRecords, modelID, metricsArtifactTypeID, nil, nil)
+			artifact := createAccuracyMetricsArtifact(evaluationRecords, modelID, metricsArtifactTypeID, overallAccuracy, nil, nil)
 			artifactsToInsert = append(artifactsToInsert, artifact)
 		} else {
 			glog.V(2).Infof("Accuracy metrics artifact already exists, skipping")
@@ -463,7 +464,7 @@ func parsePerformanceFile(filePath string) ([]performanceRecord, error) {
 }
 
 // createAccuracyMetricsArtifact creates a single metrics artifact from all evaluation records
-func createAccuracyMetricsArtifact(evalRecords []evaluationRecord, modelID int32, typeID int32, existingID *int32, existingCreateTime *int64) *dbmodels.CatalogMetricsArtifactImpl {
+func createAccuracyMetricsArtifact(evalRecords []evaluationRecord, modelID int32, typeID int32, overallAccuracy *float64, existingID *int32, existingCreateTime *int64) *dbmodels.CatalogMetricsArtifactImpl {
 	artifactName := fmt.Sprintf("accuracy-metrics-model-%d", modelID)
 	externalID := fmt.Sprintf("accuracy-metrics-model-%d", modelID)
 
@@ -504,6 +505,14 @@ func createAccuracyMetricsArtifact(evalRecords []evaluationRecord, modelID int32
 				DoubleValue: &score,
 			})
 		}
+	}
+
+	// Add overall_average custom property from metadata.json overall_accuracy field
+	if overallAccuracy != nil {
+		customProperties = append(customProperties, models.Properties{
+			Name:        "overall_average",
+			DoubleValue: overallAccuracy,
+		})
 	}
 
 	// Create the metrics artifact with metricsType set to accuracy-metrics

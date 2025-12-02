@@ -84,7 +84,7 @@ paths:
         - $ref: "#/components/parameters/kubeflowUserId"
       responses:
         "200":
-          $ref: "#/components/responses/ModelRegistryRespone"
+          $ref: "#/components/responses/ModelRegistryResponse"
         "401":
           $ref: "#/components/responses/Unauthorized"
         "500":
@@ -848,7 +848,181 @@ paths:
         "500":
           $ref: "#/components/responses/InternalServerError"
       operationId: getAllModelArtifacts
-  # TODO: Admin endpoints for model catalog
+
+  # Model catalog settings endpoints
+  /api/v1/settings/model_catalog/source_configs:
+    summary: Path used to managae Model catalog sources.
+    description: The REST endpoint/path used to list and create model catalog sources.
+    get:
+      tags:
+        - K8SOperation
+      parameters:
+        - $ref: "#/components/parameters/kubeflowUserId"
+      responses:
+        "200":
+          $ref: "#/components/responses/CatalogSourceConfigListResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+      operationId: getCatalogSources
+      summary: List ALL the catalog sources.
+      description: Gets a list of all catalog sources.
+    post:
+      requestBody:
+        description: A new catalog source to be created, potentially including credentials/yaml.
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CatalogSourceConfigPayload"
+        required: true
+      tags:
+        - K8SOperation
+      parameters:
+        - $ref: "#/components/parameters/kubeflowUserId"
+      responses:
+        "201":
+          $ref: "#/components/responses/CatalogSourceConfigResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+      operationId: createCatalogSource
+      summary: Create a Catalog source
+      description: Creates a new model catalog source.
+  /api/v1/settings/model_catalog/source_configs/{sourceId}:
+    summary: Path used to manage Model catalog sources.
+    description: >-
+      The REST endpoint/path used to get, update and delete a single ModelCatalog Source.
+    # Add GET operation
+    get:
+      tags:
+        - K8SOperation
+      parameters:
+        - $ref: "#/components/parameters/kubeflowUserId"
+        - $ref: "#/components/parameters/sourceId" # Use the correct parameter name
+      responses:
+        "200":
+          $ref: "#/components/responses/CatalogSourceConfigResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+      operationId: getCatalogSource
+      summary: Get a Model Catalog Source
+      description: Gets the details of a single Model Catalog source potentially including related credentials.
+    patch:
+      requestBody:
+        description: Updated Model Catalog Source information.
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CatalogSourceConfigPayload"
+        required: true
+      tags:
+        - K8SOperation
+      parameters:
+        - $ref: "#/components/parameters/kubeflowUserId"
+        - $ref: "#/components/parameters/sourceId"
+      responses:
+        "200":
+          $ref: "#/components/responses/CatalogSourceConfigResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+      operationId: updateModelCatalogSource
+      summary: Update a Model Catalog Sources
+      description: Updates an existing Model Catalog source.
+    delete:
+      tags:
+        - K8SOperation
+      parameters:
+        - $ref: "#/components/parameters/kubeflowUserId"
+        - $ref: "#/components/parameters/sourceId"
+      responses:
+        "204":
+          description: Successfully deleted
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+      operationId: deleteModelCatalogSource
+      summary: Delete a Model Catalog source
+      description: Deletes an existing Model Catalog Source.
+
+  /api/v1/settings/model_catalog/source_preview:
+    description: >-
+      The REST endpoint/path used to preview the effects of catalog source configuration changes.
+    post:
+      summary: Preview catalog source configuration effects
+      description: >-
+        Accepts catalog source definitions and returns a preview of which models would be
+        included or excluded based on the configuration. Supports multipart form uploads
+        for YAML catalogs files.
+      tags:
+        - ModelCatalogService
+      parameters:
+        - $ref: "#/components/parameters/kubeflowUserId"
+        - name: statusFilter
+          description: |-
+            Filter the response to show specific model statuses.
+            - `all` shows all models (default)
+            - `included` shows only models that would be included
+            - `excluded` shows only models that would be excluded
+          schema:
+            type: string
+            enum:
+              - all
+              - included
+              - excluded
+            default: all
+          in: query
+          required: false
+        - $ref: "#/components/parameters/pageSize"
+        - $ref: "#/components/parameters/nextPageToken"
+      requestBody:
+        description: Catalog source configuration
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CatalogSourcePreviewRequest"
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file:
+                  type: string
+                  format: yaml
+                description:
+                  type: string
+                  description:
+                    Should include a file named `source.json`, and may optionally
+                    include a YAML catalog. The name referenced in the source
+                    definition should match uploaded file name.
+      responses:
+        "200":
+          $ref: "#/components/responses/CatalogSourcePreviewResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+      operationId: previewCatalogSource
 
 components:
   schemas:
@@ -864,6 +1038,7 @@ components:
         clusterAdmin:
           type: boolean
           example: true
+
     ModelRegistry:
       required:
         - name
@@ -1927,6 +2102,21 @@ components:
           type: array
           items:
             type: string
+        status:
+          description: |-
+            Operational status of a catalog source.
+            - `available`: The source is functioning correctly and models can be retrieved
+            - `error`: The source is experiencing issues and cannot provide models
+            - `disabled`: The source has been intentionally disabled
+          type: string
+          enum:
+            - available
+            - error
+            - disabled
+        error:
+          description: |-
+            Error message when status is Failed. Contains details about what went wrong.
+          type: string
     CatalogSourceList:
       description: List of CatalogSource entities.
       allOf:
@@ -1971,6 +2161,151 @@ components:
           description: A single filter option.
           additionalProperties:
             $ref: "#/components/schemas/FilterOption"
+    CatalogSourcePreviewRequest:
+      description: Request to preview catalog source configuration effects.
+      type: object
+      required:
+        - type
+      properties:
+        type:
+          type: string
+          description: The type of catalog source (e.g., 'huggingface', 'yaml')
+          example: yaml
+        includedModels:
+          type: array
+          items:
+            type: string
+        excludedModels:
+          type: array
+          items:
+            type: string
+        properties:
+          type: object
+          description: Type-specific configuration properties
+          additionalProperties: true
+    CatalogSourcePreviewModel:
+      description: A model in the preview response with inclusion status.
+      type: object
+      required:
+        - name
+        - included
+      properties:
+        name:
+          type: string
+          description: Name of the model
+          example: microsoft/DialoGPT-medium
+        included:
+          type: boolean
+          description: Whether this model would be included based on the source configuration
+    CatalogSourcePreviewResult:
+      description: Preview result for catalog source configuration.
+      allOf:
+        - type: object
+          properties:
+            items:
+              description: Array of models with their inclusion status.
+              type: array
+              items:
+                $ref: "#/components/schemas/CatalogSourcePreviewModel"
+            summary:
+              description: Summary of the preview results
+              type: object
+              properties:
+                totalModels:
+                  type: integer
+                  description: Total number of models evaluated
+                  example: 1500
+                includedModels:
+                  type: integer
+                  description: Number of models that would be included
+                  example: 850
+                excludedModels:
+                  type: integer
+                  description: Number of models that would be excluded
+                  example: 650
+              required:
+                - totalModels
+                - includedModels
+                - excludedModels
+          required:
+            - items
+            - summary
+        - $ref: "#/components/schemas/BaseResourceList"
+
+    # Schema for catalog settings
+    CatalogSourceConfig:
+      description: A single catalog source configuration
+      type: object
+      allOf:
+        - $ref: "#/components/schemas/CatalogSourceConfigPayload"
+    CatalogSourceConfigList:
+      description: List of catalog sources.
+      type: object
+      properties:
+        catalogs:
+          description: Array of catalog sources.
+          type: array
+          items:
+            $ref: "#/components/schemas/CatalogSourceConfig"
+
+    # scehma for model catalog source payload
+    CatalogSourceConfigPayload:
+      description: Payload for creating the catalog source
+      type: object
+      required:
+        - name
+        - id
+        - type
+      properties:
+        name:
+          type: string
+          description: The name of the catalog source.
+          example: Sample Catalog
+        id:
+          type: string
+          description: A unique identifier for a `CatalogSource`.
+          example: sample_custom_catalog
+        type:
+          type: string
+          example: yaml
+        enabled:
+          type: boolean
+          description: Whether the catalog source is enabled.
+          default: true
+          example: true
+        labels:
+          description: |-
+            Labels associated with the source. The catalog source labels can be
+            used to filter models from sources with the same label (see
+            `sourceLabel` on `/api/model_catalog/v1alpha1/models`)
+          type: array
+          items:
+            type: string
+        isDefault:
+          type: boolean
+          example: true
+        yaml:
+          type: string
+          description: Complete YAML catalog content for yaml-type sources.
+        apiKey:
+          type: string
+          description: API key for authenticating with the catalog source.
+          example: "apiKey"
+        includedModels:
+          type: array
+          items:
+            type: string
+            example: rhelai1/modelcar-granite-7b-starter
+        excludedModels:
+          type: array
+          items:
+            type: string
+            example: model-a:1.0
+            description: list of models name, that will be excluded.
+        allowedOrganization:
+          type: string
+          description: name of the organization that need to ingest from the source.
+          example: org1
 
   responses:
     NotFound:
@@ -2015,7 +2350,7 @@ components:
           schema:
             $ref: "#/components/schemas/Error"
       description: Conflict - Role Binding with the same name already exists
-    ModelRegistryRespone:
+    ModelRegistryResponse:
       content:
         application/json:
           schema:
@@ -2306,18 +2641,38 @@ components:
           schema:
             $ref: "#/components/schemas/CatalogSourceList"
       description: A response containing a list of CatalogSource entities.
-    CatalogSourceResponse:
-      content:
-        application/json:
-          schema:
-            $ref: "#/components/schemas/CatalogSource"
-      description: A response containing a `CatalogSource` entity.
     FilterOptionsResponse:
       content:
         application/json:
           schema:
             $ref: "#/components/schemas/FilterOptionsList"
       description: A response containing options for a `filterQuery` parameter.
+    CatalogSourcePreviewResponse:
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/CatalogSourcePreviewResult"
+      description: A response containing the preview results of catalog source configuration effects.
+
+    # Catalog settings response
+    CatalogSourceConfigListResponse:
+      description: A response containing a list of catalog sources.
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              data:
+                $ref: "#/components/schemas/CatalogSourceConfigList"
+    CatalogSourceConfigResponse:
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              data:
+                $ref: "#/components/schemas/CatalogSourceConfig"
+      description: A response containing a catalog source.
 
   parameters:
     registeredmodelId:

@@ -38,7 +38,7 @@ jobs:
         if: github.head_ref == '' && github.ref == 'refs/heads/main'
         run: echo "BUILD_CONTEXT=main" >> $GITHUB_ENV
       # checkout branch
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       # set image version
       - name: Set main-branch environment
         if: env.BUILD_CONTEXT == 'main'

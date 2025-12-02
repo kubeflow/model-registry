@@ -9,6 +9,7 @@ import {
   CatalogAccuracyMetricsArtifact,
 } from '~/app/modelCatalogTypes';
 import { ModelRegistryMetadataType } from '~/app/types';
+import { UseCaseOptionValue } from '~/concepts/modelCatalog/const';
 
 export const mockCatalogModelArtifact = (
   partial?: Partial<CatalogModelArtifact>,
@@ -84,6 +85,10 @@ export const mockCatalogPerformanceMetricsArtifact = (
     e2e_mean: {
       metadataType: ModelRegistryMetadataType.DOUBLE,
       double_value: 1994.480013381083,
+    },
+    use_case: {
+      metadataType: ModelRegistryMetadataType.STRING,
+      string_value: UseCaseOptionValue.CODE_FIXING,
     },
   },
   ...partial,

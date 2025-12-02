@@ -36,7 +36,7 @@ class ServeModelUpdate(BaseModel):
         description="The external id that come from the clients’ system. This field is optional. If set, it must be unique among all resources within a database instance.",
         alias="externalId",
     )
-    last_known_state: ExecutionState | None = Field(default=None, alias="lastKnownState")
+    last_known_state: ExecutionState | None = Field(default=ExecutionState.UNKNOWN, alias="lastKnownState")
     __properties: ClassVar[list[str]] = ["customProperties", "description", "externalId", "lastKnownState"]
 
     model_config = ConfigDict(
@@ -79,9 +79,9 @@ class ServeModelUpdate(BaseModel):
         # override the default output from pydantic by calling `to_dict()` of each value in custom_properties (dict)
         _field_dict = {}
         if self.custom_properties:
-            for _key in self.custom_properties:
-                if self.custom_properties[_key]:
-                    _field_dict[_key] = self.custom_properties[_key].to_dict()
+            for _key_custom_properties in self.custom_properties:
+                if self.custom_properties[_key_custom_properties]:
+                    _field_dict[_key_custom_properties] = self.custom_properties[_key_custom_properties].to_dict()
             _dict["customProperties"] = _field_dict
         return _dict
 
@@ -101,6 +101,8 @@ class ServeModelUpdate(BaseModel):
                 else None,
                 "description": obj.get("description"),
                 "externalId": obj.get("externalId"),
-                "lastKnownState": obj.get("lastKnownState"),
+                "lastKnownState": obj.get("lastKnownState")
+                if obj.get("lastKnownState") is not None
+                else ExecutionState.UNKNOWN,
             }
         )

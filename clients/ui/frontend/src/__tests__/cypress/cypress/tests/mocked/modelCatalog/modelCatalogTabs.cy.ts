@@ -195,6 +195,81 @@ describe('Model Catalog Details Tabs', () => {
         modelCatalog.findHardwareConfigurationDescription().should('be.visible');
         modelCatalog.findHardwareConfigurationTable().should('be.visible');
       });
+
+      it('should display Workload type column as the second column in hardware configuration table', () => {
+        modelCatalog.findModelCatalogDetailLink().first().click();
+        modelCatalog.clickPerformanceInsightsTab();
+
+        modelCatalog
+          .findHardwareConfigurationTableHeaders()
+          .eq(1)
+          .should('contain.text', 'Workload type');
+        modelCatalog
+          .findHardwareConfigurationColumn('Workload type')
+          .first()
+          .should('contain.text', 'Code Fixing')
+          .should('not.contain.text', 'code_fixing');
+      });
+    });
+
+    describe('Workload Type Filter', () => {
+      it('should display workload type filter in the toolbar', () => {
+        modelCatalog.findModelCatalogDetailLink().first().click();
+        modelCatalog.clickPerformanceInsightsTab();
+
+        modelCatalog
+          .findWorkloadTypeFilter()
+          .should('be.visible')
+          .should('contain.text', 'Workload type');
+      });
+
+      it('should show workload type options when clicked', () => {
+        modelCatalog.findModelCatalogDetailLink().first().click();
+        modelCatalog.clickPerformanceInsightsTab();
+        modelCatalog.findWorkloadTypeFilter().click();
+        modelCatalog.findWorkloadTypeOption('Chatbot').should('be.visible');
+        modelCatalog.findWorkloadTypeOption('Code Fixing').should('be.visible');
+        modelCatalog.findWorkloadTypeOption('Long RAG').should('be.visible');
+        modelCatalog.findWorkloadTypeOption('RAG').should('be.visible');
+      });
+
+      it('should update toggle text when workload type is selected', () => {
+        modelCatalog.findModelCatalogDetailLink().first().click();
+        modelCatalog.clickPerformanceInsightsTab();
+        modelCatalog.findWorkloadTypeFilter().click();
+        modelCatalog.selectWorkloadType('Code Fixing');
+        modelCatalog
+          .findWorkloadTypeFilter()
+          .should('contain.text', 'Workload type')
+          .should('contain.text', '1 selected');
+      });
+
+      it('should filter hardware configuration table by selected workload type', () => {
+        modelCatalog.findModelCatalogDetailLink().first().click();
+        modelCatalog.clickPerformanceInsightsTab();
+        modelCatalog.findHardwareConfigurationTableRows().should('have.length.at.least', 1);
+        modelCatalog.findWorkloadTypeFilter().click();
+        modelCatalog.selectWorkloadType('Code Fixing');
+        modelCatalog.findHardwareConfigurationTableRows().should('exist');
+        modelCatalog.findHardwareConfigurationColumn('Workload type').each(($el) => {
+          cy.wrap($el).should('contain.text', 'Code Fixing');
+        });
+      });
+
+      it('should clear workload type filter when clicking selected option again', () => {
+        modelCatalog.findModelCatalogDetailLink().first().click();
+        modelCatalog.clickPerformanceInsightsTab();
+        modelCatalog.findWorkloadTypeFilter().click();
+        modelCatalog.selectWorkloadType('Code Fixing');
+        modelCatalog
+          .findWorkloadTypeFilter()
+          .should('contain.text', 'Workload type')
+          .should('contain.text', '1 selected');
+
+        modelCatalog.selectWorkloadType('Code Fixing');
+        modelCatalog.findWorkloadTypeFilter().should('contain.text', 'Workload type');
+        modelCatalog.findWorkloadTypeFilter().should('not.contain.text', '1 selected');
+      });
     });
 
     describe('Accessibility', () => {

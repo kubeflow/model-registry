@@ -3,6 +3,10 @@ package api
 import (
 	"context"
 	"encoding/json"
+	"io"
+	"net/http"
+	"net/http/httptest"
+
 	"github.com/kubeflow/model-registry/ui/bff/internal/config"
 	"github.com/kubeflow/model-registry/ui/bff/internal/constants"
 	"github.com/kubeflow/model-registry/ui/bff/internal/integrations/kubernetes"
@@ -11,9 +15,6 @@ import (
 	"github.com/kubeflow/model-registry/ui/bff/internal/repositories"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
-	"io"
-	"net/http"
-	"net/http/httptest"
 )
 
 var _ = Describe("TestNamespacesHandler", func() {

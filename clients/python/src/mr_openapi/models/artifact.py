@@ -147,31 +147,6 @@ class Artifact(BaseModel):
             instance.actual_instance = Parameter.from_json(json_str)
             return instance
 
-        # check if data type is `DataSet`
-        if _data_type == "DataSet":
-            instance.actual_instance = DataSet.from_json(json_str)
-            return instance
-
-        # check if data type is `DocArtifact`
-        if _data_type == "DocArtifact":
-            instance.actual_instance = DocArtifact.from_json(json_str)
-            return instance
-
-        # check if data type is `Metric`
-        if _data_type == "Metric":
-            instance.actual_instance = Metric.from_json(json_str)
-            return instance
-
-        # check if data type is `ModelArtifact`
-        if _data_type == "ModelArtifact":
-            instance.actual_instance = ModelArtifact.from_json(json_str)
-            return instance
-
-        # check if data type is `Parameter`
-        if _data_type == "Parameter":
-            instance.actual_instance = Parameter.from_json(json_str)
-            return instance
-
         # deserialize data into ModelArtifact
         try:
             instance.actual_instance = ModelArtifact.from_json(json_str)

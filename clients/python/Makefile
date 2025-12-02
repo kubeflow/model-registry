@@ -23,17 +23,17 @@ deploy-latest-mr:
 	) \
 	LOCAL=1 IMG=$(IMG):$(IMG_VERSION) ./scripts/deploy_on_kind.sh
 # TODO RHOAIENG-30453 align consistency ./scripts/deploy_on_kind.sh uses IMG with :tag, Vs, Makefile(s) and ci/GHA we use IMG without trailing :tag
-	kubectl port-forward -n kubeflow services/model-registry-service 8080:8080 & echo $$! >> .port-forwards.pid
+	kubectl port-forward -n kubeflow services/model-registry-service 8080:8080 > /dev/null 2>&1 & echo $$! >> .port-forwards.pid
 
 .PHONY: deploy-test-minio
 deploy-test-minio:
 	cd ../../ && ./scripts/deploy_minio_on_kind.sh
-	kubectl port-forward -n minio svc/minio 9000:9000 & echo $$! >> .port-forwards.pid
+	kubectl port-forward -n minio svc/minio 9000:9000 > /dev/null 2>&1 & echo $$! >> .port-forwards.pid
 
 .PHONY: deploy-local-registry
 deploy-local-registry:
 	cd ../../ && ./scripts/deploy_local_kind_registry.sh
-	kubectl port-forward service/distribution-registry-test-service 5001:5001 & echo $$! >> .port-forwards.pid
+	kubectl port-forward service/distribution-registry-test-service -n local-oci-registry-ns 5001:5001 > /dev/null 2>&1 & echo $$! >> .port-forwards.pid
 
 .PHONY: test-e2e
 test-e2e: deploy-latest-mr deploy-local-registry deploy-test-minio
@@ -44,10 +44,13 @@ test-e2e: deploy-latest-mr deploy-local-registry deploy-test-minio
 
 .PHONY: test-fuzz
 test-fuzz: deploy-latest-mr deploy-local-registry deploy-test-minio
-	@echo "Starting test-fuzz"
+	@echo "Starting stateless fuzz tests with parallel execution"
 	poetry install --all-extras
 	@set -a; . ../../scripts/manifests/minio/.env; set +a; \
-	poetry run pytest --fuzz -v -s --hypothesis-show-statistics
+	poetry run pytest tests/fuzz_api/model_registry/test_mr_stateless.py tests/fuzz_api/model_catalog/test_catalog_stateless.py --fuzz -n auto -v --hypothesis-show-statistics
+	@echo "Running stateful fuzz tests sequentially"
+	@set -a; . ../../scripts/manifests/minio/.env; set +a; \
+	poetry run pytest tests/fuzz_api/model_registry/test_mr_stateful.py --fuzz -v --hypothesis-show-statistics
 	@rm -f ../../scripts/manifests/minio/.env
 	$(MAKE) test-e2e-cleanup
 	@exit $$STATUS
@@ -87,12 +90,14 @@ test:
 
 .PHONY: lint
 lint:
-	poetry run ruff check src/model_registry
+	poetry run ruff check
+	poetry run mypy .
 
 .PHONY: tidy
 tidy:
-	poetry run ruff check --fix-only --unsafe-fixes
-	poetry run ruff format src
+	# Fix code issues everywhere, including src/mr_openapi/ (excluded by default in pyproject.toml)
+	poetry run ruff check --fix-only --unsafe-fixes . src/mr_openapi
+	poetry run ruff format src src/mr_openapi
 
 .PHONY: build
 build: install tidy

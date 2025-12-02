@@ -12,19 +12,6 @@ $OPENAPI_GENERATOR generate \
     --ignore-file-override "$PROJECT_ROOT"/.openapi-generator-ignore --additional-properties=outputAsLibrary=true,enumClassPrefix=true,router=chi,sourceFolder=,onlyInterfaces=true,isGoSubmodule=true,enumClassPrefix=true,useOneOfDiscriminatorLookup=true,featureCORS=true \
     --template-dir "$PROJECT_ROOT"/templates/go-server
 
-function sed_inplace() {
-    if [[ $(uname) == "Darwin" ]]; then
-        # introduce -i parameter for Mac OSX sed compatibility
-        sed -i '' "$@"
-    else
-        sed -i "$@"
-    fi
-}
-
-sed_inplace 's/, orderByParam/, model.OrderByField(orderByParam)/g' "$PROJECT_ROOT"/internal/server/openapi/api_model_registry_service.go
-sed_inplace 's/, sortOrderParam/, model.SortOrder(sortOrderParam)/g' "$PROJECT_ROOT"/internal/server/openapi/api_model_registry_service.go
-sed_inplace 's/, artifactTypeParam/, model.ArtifactTypeQueryParam(artifactTypeParam)/g' "$PROJECT_ROOT"/internal/server/openapi/api_model_registry_service.go
-
 echo "Assembling type_assert Go file"
 ./scripts/gen_type_asserts.sh
 

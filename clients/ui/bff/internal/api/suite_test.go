@@ -2,14 +2,15 @@ package api
 
 import (
 	"context"
+	"log/slog"
+	"os"
+	"testing"
+
 	k8s "github.com/kubeflow/model-registry/ui/bff/internal/integrations/kubernetes"
 	"github.com/kubeflow/model-registry/ui/bff/internal/integrations/kubernetes/k8mocks"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
-	"log/slog"
-	"os"
 	"sigs.k8s.io/controller-runtime/pkg/envtest"
-	"testing"
 
 	"github.com/kubeflow/model-registry/ui/bff/internal/mocks"
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
@@ -67,6 +68,7 @@ var _ = BeforeSuite(func() {
 
 	mockModelCatalogClient, err = mocks.NewModelCatalogClientMock(nil)
 	Expect(err).NotTo(HaveOccurred())
+
 })
 
 var _ = AfterSuite(func() {

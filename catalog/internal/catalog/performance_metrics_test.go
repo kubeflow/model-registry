@@ -235,6 +235,98 @@ func TestParseMetadataJSON_OnlyIDMatters(t *testing.T) {
 	}
 }
 
+func TestOverallAccuracyToOverallAverage(t *testing.T) {
+	t.Run("parse overall_accuracy from metadata", func(t *testing.T) {
+		tests := []struct {
+			name      string
+			jsonData  string
+			wantNil   bool
+			wantValue float64
+		}{
+			{
+				name:      "overall_accuracy present",
+				jsonData:  `{"id": "model-1", "overall_accuracy": 85.5}`,
+				wantNil:   false,
+				wantValue: 85.5,
+			},
+			{
+				name:      "overall_accuracy is zero",
+				jsonData:  `{"id": "model-2", "overall_accuracy": 0}`,
+				wantNil:   false,
+				wantValue: 0.0,
+			},
+			{
+				name:     "overall_accuracy is null",
+				jsonData: `{"id": "model-3", "overall_accuracy": null}`,
+				wantNil:  true,
+			},
+			{
+				name:     "overall_accuracy missing",
+				jsonData: `{"id": "model-4"}`,
+				wantNil:  true,
+			},
+		}
+
+		for _, tt := range tests {
+			t.Run(tt.name, func(t *testing.T) {
+				metadata, err := parseMetadataJSON([]byte(tt.jsonData))
+				if err != nil {
+					t.Fatalf("parseMetadataJSON() error = %v", err)
+				}
+
+				if tt.wantNil {
+					if metadata.OverallAccuracy != nil {
+						t.Errorf("OverallAccuracy = %v, want nil", *metadata.OverallAccuracy)
+					}
+				} else {
+					if metadata.OverallAccuracy == nil {
+						t.Errorf("OverallAccuracy = nil, want %v", tt.wantValue)
+					} else if *metadata.OverallAccuracy != tt.wantValue {
+						t.Errorf("OverallAccuracy = %v, want %v", *metadata.OverallAccuracy, tt.wantValue)
+					}
+				}
+			})
+		}
+	})
+
+	t.Run("artifact has overall_average when overall_accuracy provided", func(t *testing.T) {
+		overallAccuracy := 87.5
+		evalRecords := []evaluationRecord{
+			{Benchmark: "mmlu", CustomProperties: map[string]interface{}{"score": 90.0}},
+		}
+
+		artifact := createAccuracyMetricsArtifact(evalRecords, 1, 100, &overallAccuracy, nil, nil)
+
+		found := false
+		for _, prop := range *artifact.CustomProperties {
+			if prop.Name == "overall_average" && prop.DoubleValue != nil {
+				if *prop.DoubleValue != overallAccuracy {
+					t.Errorf("overall_average = %v, want %v", *prop.DoubleValue, overallAccuracy)
+				}
+				found = true
+				break
+			}
+		}
+		if !found {
+			t.Error("overall_average custom property not found in artifact")
+		}
+	})
+
+	t.Run("artifact has no overall_average when overall_accuracy is nil", func(t *testing.T) {
+		evalRecords := []evaluationRecord{
+			{Benchmark: "mmlu", CustomProperties: map[string]interface{}{"score": 90.0}},
+		}
+
+		artifact := createAccuracyMetricsArtifact(evalRecords, 1, 100, nil, nil, nil)
+
+		for _, prop := range *artifact.CustomProperties {
+			if prop.Name == "overall_average" {
+				t.Error("overall_average should not exist when overall_accuracy is nil")
+			}
+		}
+	})
+}
+
 func TestEvaluationRecordUnmarshalJSON(t *testing.T) {
 	tests := []struct {
 		name             string

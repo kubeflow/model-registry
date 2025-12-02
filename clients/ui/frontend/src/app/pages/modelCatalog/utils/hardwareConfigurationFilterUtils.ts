@@ -10,11 +10,11 @@ import {
   LatencyPercentile,
   LatencyMetric,
 } from '~/concepts/modelCatalog/const';
-import { getTotalRps } from './performanceMetricsUtils';
-import { LatencyFilterConfig as SharedLatencyFilterConfig } from './latencyFilterState';
 
 // Type for storing complex latency filter configuration with value
-export type LatencyFilterConfig = SharedLatencyFilterConfig & {
+export type LatencyFilterConfig = {
+  metric: LatencyMetric;
+  percentile: LatencyPercentile;
   value: number;
 };
 
@@ -87,7 +87,6 @@ export const applyMaxLatencyFilter = (
 export const filterHardwareConfigurationArtifacts = (
   artifacts: CatalogPerformanceMetricsArtifact[],
   filterState: ModelCatalogFilterStates,
-  latencyConfig?: SharedLatencyFilterConfig,
 ): CatalogPerformanceMetricsArtifact[] =>
   artifacts.filter((artifact) => {
     // Hardware Type Filter (using central filter state)
@@ -105,44 +104,53 @@ export const filterHardwareConfigurationArtifacts = (
     // Min RPS Filter
     const minRpsFilter = filterState[ModelCatalogNumberFilterKey.MIN_RPS];
     if (minRpsFilter !== undefined) {
-      const totalRps = getTotalRps(artifact.customProperties);
-      if (totalRps < minRpsFilter) {
+      const rpsPerReplica = getDoubleValue(artifact.customProperties, 'requests_per_second');
+      if (rpsPerReplica < minRpsFilter) {
         return false;
       }
     }
 
-    // Max Latency Filter - use provided config or fall back to default
-    const maxLatencyFilter = filterState[ModelCatalogNumberFilterKey.MAX_LATENCY];
-    if (maxLatencyFilter !== undefined) {
-      const baseConfig = latencyConfig || {
-        metric: LatencyMetric.TTFT,
-        percentile: LatencyPercentile.Mean,
-      };
-
-      // Create the full config with the current filter value
-      const fullConfig: LatencyFilterConfig = { ...baseConfig, value: maxLatencyFilter };
-
-      if (!applyMaxLatencyFilter(artifact, fullConfig)) {
-        return false;
+    // Max Latency Filter - check for any active latency field
+    for (const metric of Object.values(LatencyMetric)) {
+      for (const percentile of Object.values(LatencyPercentile)) {
+        const fieldName = getLatencyFieldName(metric, percentile);
+        const filterValue = filterState[fieldName];
+        if (filterValue !== undefined && typeof filterValue === 'number') {
+          const latencyValue = getDoubleValue(artifact.customProperties, fieldName);
+          if (latencyValue > filterValue) {
+            return false;
+          }
+        }
       }
     }
 
     // Use Case Filter
-    const useCaseFilter = filterState[ModelCatalogStringFilterKey.USE_CASE];
+    const useCaseFilters = filterState[ModelCatalogStringFilterKey.USE_CASE];
 
-    if (useCaseFilter) {
+    if (useCaseFilters.length > 0) {
       // Get the artifact's use case
       const artifactUseCase = getStringValue(artifact.customProperties, 'use_case');
 
-      // Check if the artifact's use case matches the selected use case
-      // Use includes() to handle potential comma-separated values or partial matches
-      if (!artifactUseCase || !artifactUseCase.includes(useCaseFilter)) {
+      // Check if the artifact's use case matches any of the selected use cases (exact match)
+      if (!artifactUseCase || !useCaseFilters.some((filter) => filter === artifactUseCase)) {
         return false;
       }
     }
 
     return true;
   });
+
+/**
+ * Gets all filter keys (string filters + number filters)
+ * TODO: Extend to include latency metric filters when needed for filter chips on details page
+ */
+export const getAllFilterKeys = (): {
+  stringFilterKeys: ModelCatalogStringFilterKey[];
+  numberFilterKeys: ModelCatalogNumberFilterKey[];
+} => ({
+  stringFilterKeys: Object.values(ModelCatalogStringFilterKey),
+  numberFilterKeys: Object.values(ModelCatalogNumberFilterKey),
+});
 
 /**
  * Clears all active filters
@@ -153,18 +161,19 @@ export const clearAllFilters = (
     value: ModelCatalogFilterStates[K],
   ) => void,
 ): void => {
-  // Clear string filters (arrays)
-  setFilterData(ModelCatalogStringFilterKey.TASK, []);
-  setFilterData(ModelCatalogStringFilterKey.PROVIDER, []);
-  setFilterData(ModelCatalogStringFilterKey.LICENSE, []);
-  setFilterData(ModelCatalogStringFilterKey.LANGUAGE, []);
-  setFilterData(ModelCatalogStringFilterKey.HARDWARE_TYPE, []);
+  const { stringFilterKeys, numberFilterKeys } = getAllFilterKeys();
 
-  // Clear use case filter (single value)
-  setFilterData(ModelCatalogStringFilterKey.USE_CASE, undefined);
+  // Clear all string filters (arrays)
+  stringFilterKeys.forEach((key) => {
+    setFilterData(key, []);
+  });
 
-  // Clear number filters
-  Object.values(ModelCatalogNumberFilterKey).forEach((key) => {
+  // Clear all number filters
+  numberFilterKeys.forEach((key) => {
     setFilterData(key, undefined);
   });
+
+  // TODO: Clear all latency metric filters (e.g., ttft_mean, ttft_p90, etc.)
+  // This will be needed when we add filter chips to the details page.
+  // Can be part of that PR - will need to loop over all LatencyMetricFieldName combinations.
 };

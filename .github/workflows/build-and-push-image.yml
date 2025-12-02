@@ -20,6 +20,7 @@ env:
   PUSH_IMAGE: true
   DOCKER_USER: ${{ github.actor }}
   DOCKER_PWD: ${{ secrets.GITHUB_TOKEN }}
+  PLATFORMS: linux/arm64,linux/amd64
 
 permissions: # set contents: read at top-level, per OpenSSF ScoreCard rule TokenPermissionsID
   contents: read
@@ -43,7 +44,13 @@ jobs:
         if: github.head_ref == '' && github.ref == 'refs/heads/main'
         run: echo "BUILD_CONTEXT=main" >> $GITHUB_ENV
       # checkout branch
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
+      # Set up QEMU for multi-architecture builds
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+      # Set up Docker Buildx
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
       # set image version
       - name: Set main-branch environment
         if: env.BUILD_CONTEXT == 'main'
@@ -70,23 +77,12 @@ jobs:
       - name: Attach SBOM to Image
         run: |
           cosign attach sbom --sbom model-registry-server-${{ env.VERSION }}-sbom.spdx.json "${{ env.IMG_REGISTRY }}/${{ env.IMG_ORG }}/${{ env.IMG_REPO }}:${{ env.VERSION }}"
-      - name: Tag Latest
+      - name: Tag Latest and Main
         if: env.BUILD_CONTEXT == 'main'
         shell: bash
         env:
           IMG: "${{ env.IMG_REGISTRY }}/${{ env.IMG_ORG }}/${{ env.IMG_REPO }}"
-          BUILD_IMAGE: false # image is already built in "Build and Push Image" step
         run: |
-          docker tag ${{ env.IMG }}:$VERSION ${{ env.IMG }}:latest
-          # BUILD_IMAGE=false skip the build, just push the tag made above
-          VERSION=latest ./scripts/build_deploy.sh
-      - name: Tag Main
-        if: env.BUILD_CONTEXT == 'main'
-        shell: bash
-        env:
-          IMG: "${{ env.IMG_REGISTRY }}/${{ env.IMG_ORG }}/${{ env.IMG_REPO }}"
-          BUILD_IMAGE: false # image is already built in "Build and Push Image" step
-        run: |
-          docker tag ${{ env.IMG }}:$VERSION ${{ env.IMG }}:main
-          # BUILD_IMAGE=false skip the build, just push the tag made above
-          VERSION=main ./scripts/build_deploy.sh
+          # Create manifest tags for multi-arch images
+          docker buildx imagetools create -t ${{ env.IMG }}:latest ${{ env.IMG }}:$VERSION
+          docker buildx imagetools create -t ${{ env.IMG }}:main ${{ env.IMG }}:$VERSION

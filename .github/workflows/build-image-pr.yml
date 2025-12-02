@@ -25,7 +25,7 @@ jobs:
   build-and-test-image:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - name: Generate Tag
         shell: bash
         id: tags
@@ -39,7 +39,7 @@ jobs:
           IMG_VERSION: ${{ steps.tags.outputs.tag }}
         run: make image/build
       - name: Start Kind Cluster
-        uses: helm/kind-action@v1.12.0
+        uses: helm/kind-action@v1.13.0
         with:
           node_image: "kindest/node:v1.27.11"
       - name: Remove AppArmor profile for mysql in KinD on GHA # https://github.com/kubeflow/manifests/issues/2507

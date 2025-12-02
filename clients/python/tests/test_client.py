@@ -5,7 +5,7 @@ from itertools import islice
 from unittest.mock import MagicMock
 
 import pytest
-import requests
+import requests  # type: ignore[import-untyped,unused-ignore]
 
 from model_registry import ModelRegistry, utils
 from model_registry.exceptions import StoreError
@@ -122,8 +122,8 @@ def test_register_version_long_name(client: ModelRegistry):
         version=lorem,
     )
     ma = client.get_model_artifact(name="test_model", version=lorem)
-    assert ma.uri == "https://acme.org/something"
-    assert ma.model_format_name == "test_format_name"
+    assert ma.uri == "https://acme.org/something"  # type: ignore[union-attr]
+    assert ma.model_format_name == "test_format_name"  # type: ignore[union-attr]
 
     with pytest.raises(Exception):  # noqa the focus of this test is the failure case, not to fix on the exception being raised
         client.register_model(
@@ -208,7 +208,7 @@ async def test_update_logical_model_with_labels(client: ModelRegistry):
     ma.custom_properties = ma_labels
     client.update(ma)
 
-    rm = client.get_registered_model(name)
+    rm = client.get_registered_model(name)  # type: ignore[assignment]
     assert rm
     assert rm.custom_properties == rm_labels
     mv = client.get_model_version(name, version)
@@ -324,7 +324,7 @@ async def test_update_existing_model_artifact(client: ModelRegistry):
     assert response.uri == something_else
 
     ma = client.get_model_artifact(name, version)
-    assert ma.uri == something_else
+    assert ma.uri == something_else  # type: ignore[union-attr]
 
 
 @pytest.mark.e2e
@@ -339,7 +339,7 @@ async def test_get(client: ModelRegistry):
         model_format_name="test_format",
         model_format_version="test_version",
         version=version,
-        metadata=metadata,
+        metadata=metadata,  # type: ignore[arg-type]
     )
 
     assert rm.id
@@ -543,7 +543,7 @@ def test_get_model_versions_order_by(client: ModelRegistry):
         mvs,
         client.get_model_versions(name).order_by_id(),
     ):
-        assert mv.id == by_id.id
+        assert mv.id == by_id.id  # type: ignore[union-attr]
         i += 1
 
     assert i == models
@@ -553,7 +553,7 @@ def test_get_model_versions_order_by(client: ModelRegistry):
         mvs,
         client.get_model_versions(name).order_by_creation_time(),
     ):
-        assert mv.id == by_creation.id
+        assert mv.id == by_creation.id  # type: ignore[union-attr]
         i += 1
 
     assert i == models
@@ -563,21 +563,21 @@ def test_get_model_versions_order_by(client: ModelRegistry):
         mvs,
         client.get_model_versions(name).order_by_update_time(),
     ):
-        assert mv.id == by_update.id
+        assert mv.id == by_update.id  # type: ignore[union-attr]
         i += 1
 
     assert i == models
 
     for mv in reversed(mvs):
-        mv.description = "updated"
-        client.update(mv)
+        mv.description = "updated"  # type: ignore[union-attr]
+        client.update(mv)  # type: ignore[type-var]
 
     i = 0
     for mv, by_update in zip(
         reversed(mvs),
         client.get_model_versions(name).order_by_update_time(),
     ):
-        assert mv.id == by_update.id
+        assert mv.id == by_update.id  # type: ignore[union-attr]
         i += 1
 
     assert i == models
@@ -587,7 +587,7 @@ def test_get_model_versions_order_by(client: ModelRegistry):
         mvs,
         client.get_model_versions(name).order_by_update_time().descending(),
     ):
-        assert mv.id == by_update.id
+        assert mv.id == by_update.id  # type: ignore[union-attr]
         i += 1
 
     assert i == models
@@ -862,7 +862,7 @@ def test_nested_recursive_store_in_s3(
 
 @pytest.mark.e2e
 def test_custom_async_runner_with_ray(
-    client_attrs: dict[str, any], client: ModelRegistry, user_token: str, monkeypatch
+    client_attrs: dict[str, any], client: ModelRegistry, user_token: str, monkeypatch  # type: ignore[valid-type]
 ):
     """Test Ray integration with uvloop event loop policy"""
     import asyncio
@@ -911,8 +911,8 @@ def test_custom_async_runner_with_ray(
                     model_format_name="onnx",
                 )
                 ma = client.get_model_artifact(name="test_model", version="v1")
-                assert ma.uri == "https://acme.org/something"
-                assert ma.model_format_name == "onnx"
+                assert ma.uri == "https://acme.org/something"  # type: ignore[union-attr]
+                assert ma.model_format_name == "onnx"  # type: ignore[union-attr]
 
             # Run the Ray test - ray.get is synchronous
             ray.get(test_with_ray.remote())
@@ -1075,25 +1075,25 @@ async def test_register_model_with_s3_data_connection(client: ModelRegistry):
     }
 
     # Register the model with S3 connection details
-    rm = client.register_model(**model_params)
+    rm = client.register_model(**model_params)  # type: ignore[arg-type]
     assert rm.id
 
     # Get and verify the registered model
     rm_by_name = client.get_registered_model(model_params["name"])
-    assert rm_by_name.id == rm.id
+    assert rm_by_name.id == rm.id  # type: ignore[union-attr]
 
     # Get and verify the model version
     mv = client.get_model_version(model_params["name"], model_params["version"])
-    assert mv.description == "The Model"
-    assert mv.name == "v1.0"
+    assert mv.description == "The Model"  # type: ignore[union-attr]
+    assert mv.name == "v1.0"  # type: ignore[union-attr]
 
     # Get and verify the model artifact
     ma = client.get_model_artifact(model_params["name"], model_params["version"])
-    assert ma.uri == uri
-    assert ma.model_format_name == "onnx"
-    assert ma.model_format_version == "1"
-    assert ma.storage_key == data_connection_name
-    assert ma.storage_path == s3_path
+    assert ma.uri == uri  # type: ignore[union-attr]
+    assert ma.model_format_name == "onnx"  # type: ignore[union-attr]
+    assert ma.model_format_version == "1"  # type: ignore[union-attr]
+    assert ma.storage_key == data_connection_name  # type: ignore[union-attr]
+    assert ma.storage_path == s3_path  # type: ignore[union-attr]
 
 
 @pytest.mark.e2e

@@ -139,7 +139,7 @@ const initIntercepts = ({
             },
             ttft_mean: {
               metadataType: ModelRegistryMetadataType.DOUBLE,
-              double_value: 67.14892749816,
+              double_value: 67.15,
             },
           },
         }),
@@ -159,7 +159,7 @@ const initIntercepts = ({
             },
             ttft_mean: {
               metadataType: ModelRegistryMetadataType.DOUBLE,
-              double_value: 42.123791232,
+              double_value: 42.12,
             },
           },
         }),
@@ -167,7 +167,7 @@ const initIntercepts = ({
         mockCatalogModelArtifact({}),
       ],
     },
-  ).as('getCatalogModelArtifacts');
+  ).as('getCatalogSourceModelArtifacts');
 };
 
 describe('ModelCatalogCard Component', () => {
@@ -182,9 +182,7 @@ describe('ModelCatalogCard Component', () => {
 
     it('should display correct source labels', () => {
       modelCatalog.findFirstModelCatalogCard().within(() => {
-        modelCatalog
-          .findSourceLabel()
-          .should('contain.text', 'source 2text-generationprovider1apache-2.0');
+        modelCatalog.findSourceLabel().should('contain.text', 'source 2text-generationprovider1');
       });
     });
 
@@ -230,23 +228,23 @@ describe('ModelCatalogCard Component', () => {
       modelCatalog.visit();
     });
     it('should show validated model correctly', () => {
-      cy.wait('@getCatalogModelArtifacts');
+      cy.wait('@getCatalogSourceModelArtifacts');
       modelCatalog.findFirstModelCatalogCard().within(() => {
         modelCatalog.findValidatedModelHardware().should('contain.text', '2xH100-80');
         modelCatalog.findValidatedModelRps().should('contain.text', '7');
-        modelCatalog.findValidatedModelTtft().should('contain.text', '35.48818160947744');
+        modelCatalog.findValidatedModelTtft().should('contain.text', '35.49');
         modelCatalog.findValidatedModelBenchmarkNext().click();
         modelCatalog.findValidatedModelHardware().should('contain.text', '33xRTX 4090');
         modelCatalog.findValidatedModelRps().should('contain.text', '10');
-        modelCatalog.findValidatedModelTtft().should('contain.text', '67.14892749816');
+        modelCatalog.findValidatedModelTtft().should('contain.text', '67.15');
         modelCatalog.findValidatedModelBenchmarkNext().click();
         modelCatalog.findValidatedModelHardware().should('contain.text', '40xA100');
         modelCatalog.findValidatedModelRps().should('contain.text', '15');
-        modelCatalog.findValidatedModelTtft().should('contain.text', '42.123791232');
+        modelCatalog.findValidatedModelTtft().should('contain.text', '42.12');
         modelCatalog.findValidatedModelBenchmarkPrev().click();
         modelCatalog.findValidatedModelHardware().should('contain.text', '33xRTX 4090');
         modelCatalog.findValidatedModelRps().should('contain.text', '10');
-        modelCatalog.findValidatedModelTtft().should('contain.text', '67.14892749816');
+        modelCatalog.findValidatedModelTtft().should('contain.text', '67.15');
         modelCatalog.findValidatedModelBenchmarkLink().click();
         cy.url().should('include', 'performance-insights');
       });

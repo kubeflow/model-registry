@@ -21,6 +21,8 @@ export type CatalogSource = {
   name: string;
   labels: string[];
   enabled?: boolean;
+  status?: 'available' | 'error' | 'disabled';
+  error?: string;
 };
 
 export type CatalogSourceList = ModelCatalogListParams & { items: CatalogSource[] };
@@ -68,6 +70,11 @@ export enum CategoryName {
 
 export enum SourceLabel {
   other = 'null',
+}
+
+export enum CatalogSourceType {
+  YAML = 'yaml',
+  HUGGING_FACE = 'huggingface',
 }
 
 export type CatalogArtifactBase = {
@@ -186,7 +193,10 @@ export type CatalogModelDetailsParams = {
   modelName?: string;
 };
 
-export type ModelCatalogFilterKey = ModelCatalogStringFilterKey | ModelCatalogNumberFilterKey;
+export type ModelCatalogFilterKey =
+  | ModelCatalogStringFilterKey
+  | ModelCatalogNumberFilterKey
+  | LatencyMetricFieldName;
 
 // Not used for a run time value, just for mapping other types
 export type ModelCatalogStringFilterValueType = {
@@ -221,7 +231,63 @@ export type ModelCatalogFilterStates = {
   [ModelCatalogStringFilterKey.LICENSE]: ModelCatalogLicense[];
   [ModelCatalogStringFilterKey.LANGUAGE]: AllLanguageCode[];
   [ModelCatalogStringFilterKey.HARDWARE_TYPE]: string[];
-  [ModelCatalogStringFilterKey.USE_CASE]: UseCaseOptionValue | undefined;
+  [ModelCatalogStringFilterKey.USE_CASE]: UseCaseOptionValue[];
 } & {
   [key in ModelCatalogNumberFilterKey]: number | undefined;
+} & {
+  [key in LatencyMetricFieldName]?: number | undefined;
+};
+
+// Model Catalog Settings types
+export type CatalogSourceConfigCommon = {
+  id: string;
+  name: string;
+  enabled?: boolean;
+  labels?: string[];
+  includedModels?: string[];
+  excludedModels?: string[];
+  isDefault?: boolean;
+};
+
+export type YamlCatalogSourceConfig = CatalogSourceConfigCommon & {
+  type: CatalogSourceType.YAML;
+  yaml?: string;
+};
+
+export type HuggingFaceCatalogSourceConfig = CatalogSourceConfigCommon & {
+  type: CatalogSourceType.HUGGING_FACE;
+  allowedOrganization?: string;
+  apiKey?: string;
+};
+
+export type CatalogSourceConfig = YamlCatalogSourceConfig | HuggingFaceCatalogSourceConfig;
+
+export type CatalogSourceConfigPayload = CatalogSourceConfig;
+
+export type CatalogSourceConfigList = {
+  catalogs: CatalogSourceConfig[];
+};
+
+export type GetCatalogSourceConfigs = (opts: APIOptions) => Promise<CatalogSourceConfigList>;
+export type CreateCatalogSourceConfig = (
+  opts: APIOptions,
+  data: CatalogSourceConfigPayload,
+) => Promise<CatalogSourceConfig>;
+export type GetCatalogSourceConfig = (
+  opts: APIOptions,
+  sourceId: string,
+) => Promise<CatalogSourceConfig>;
+export type UpdateCatalogSourceConfig = (
+  opts: APIOptions,
+  sourceId: string,
+  data: CatalogSourceConfigPayload,
+) => Promise<CatalogSourceConfig>;
+export type DeleteCatalogSourceConfig = (opts: APIOptions, sourceId: string) => Promise<void>;
+
+export type ModelCatalogSettingsAPIs = {
+  getCatalogSourceConfigs: GetCatalogSourceConfigs;
+  createCatalogSourceConfig: CreateCatalogSourceConfig;
+  getCatalogSourceConfig: GetCatalogSourceConfig;
+  updateCatalogSourceConfig: UpdateCatalogSourceConfig;
+  deleteCatalogSourceConfig: DeleteCatalogSourceConfig;
 };

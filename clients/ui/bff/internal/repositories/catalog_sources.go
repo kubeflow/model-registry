@@ -15,7 +15,7 @@ const filterOptionPath = "/models/filter_options"
 type CatalogSourcesInterface interface {
 	GetAllCatalogSources(client httpclient.HTTPClientInterface, pageValues url.Values) (*models.CatalogSourceList, error)
 	GetCatalogSourceModel(client httpclient.HTTPClientInterface, sourceId string, modelName string) (*models.CatalogModel, error)
-	GetCatalogModelArtifacts(client httpclient.HTTPClientInterface, sourceId string, modelName string) (*models.CatalogModelArtifactList, error)
+	GetCatalogSourceModelArtifacts(client httpclient.HTTPClientInterface, sourceId string, modelName string) (*models.CatalogModelArtifactList, error)
 	GetCatalogFilterOptions(client httpclient.HTTPClientInterface) (*models.FilterOptionsList, error)
 }
 
@@ -58,7 +58,7 @@ func (a CatalogSources) GetCatalogSourceModel(client httpclient.HTTPClientInterf
 	return &catalogModel, nil
 }
 
-func (a CatalogSources) GetCatalogModelArtifacts(client httpclient.HTTPClientInterface, sourceId string, modelName string) (*models.CatalogModelArtifactList, error) {
+func (a CatalogSources) GetCatalogSourceModelArtifacts(client httpclient.HTTPClientInterface, sourceId string, modelName string) (*models.CatalogModelArtifactList, error) {
 	path, err := url.JoinPath(sourcesPath, sourceId, "models", modelName, "artifacts")
 	if err != nil {
 		return nil, err

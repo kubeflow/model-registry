@@ -8,6 +8,8 @@ model_base_resource_dates.go
 model_base_resource_list.go
 model_catalog_artifact.go
 model_catalog_artifact_list.go
+model_catalog_label.go
+model_catalog_label_list.go
 model_catalog_metrics_artifact.go
 model_catalog_model.go
 model_catalog_model_artifact.go

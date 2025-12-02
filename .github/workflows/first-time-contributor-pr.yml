@@ -1,51 +1,85 @@
-# goal: this is meant to remind maintainers/approvers to add labels to ensure all tests are executed before merging
-# and avoid merging without realizing that required tests has not been run; complementary to bulletpoint in template: https://github.com/kubeflow/model-registry/blame/de5f225d96a4daeca77506d233082b1c4ea5afa3/.github/pull_request_template.md#L21
-name: Welcome first-time contributors (Beta)
+name: Welcome first-time contributors (Beta2)
+
 on:
-  pull_request_target:
+  pull_request:
+    types: 
+      - opened
+      - synchronize
+      - reopened
+  issues:
     types:
       - opened
+
 permissions: # set contents: read at top-level, per OpenSSF ScoreCard rule TokenPermissionsID
   contents: read
 
-# do NOT: add actions/checkout to this flow, add-third party scripts, or auto-trigger CI jobs
 jobs:
   welcome:
+    runs-on: ubuntu-latest
     permissions:
       pull-requests: write
-    runs-on: ubuntu-latest
+      issues: write
     steps:
-      - name: Check contributor status
-        id: check_1st_time_contrib
-        uses: actions/github-script@v8
-        with:
-          script: |
-            const { data: pr } = await github.rest.pulls.get({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              pull_number: context.issue.number
-            });
-            const isFirstTimeContributor = pr.user.contributions === 0;
-            console.log(`First-time contributor status: ${isFirstTimeContributor}`);
-            core.setOutput('isFirstTimeContributor', isFirstTimeContributor.toString());
+      - name: Checkout repository
+        uses: actions/checkout@v6
 
-      - name: Log contributor status (isFirstTimeContributor true)
-        if: steps.check_1st_time_contrib.outputs.isFirstTimeContributor == 'true'
-        run: echo "First-time contributor status is ${{ steps.check_1st_time_contrib.outputs.isFirstTimeContributor }}"
-    
-      - name: Log contributor status (isFirstTimeContributor false)
-        if: steps.check_1st_time_contrib.outputs.isFirstTimeContributor == 'false'
-        run: echo "First-time contributor status is ${{ steps.check_1st_time_contrib.outputs.isFirstTimeContributor }}"
-    
-      - name: Add a comment to the PR if first time contributor
-        if: steps.check_1st_time_contrib.outputs.isFirstTimeContributor == 'true'
-        uses: actions/github-script@v8
+      - name: Install PyYAML
+        run: pip3 install pyyaml
+
+      - name: Extract approvers from OWNERS file
+        id: set-approvers
+        run: |
+          python3 << 'EOF'
+          import yaml
+          import os
+          
+          with open('OWNERS', 'r') as f:
+              data = yaml.safe_load(f)
+          
+          approvers = data.get('approvers', [])
+          result = ' '.join([f'@{approver}' for approver in approvers])
+          
+          with open(os.environ['GITHUB_OUTPUT'], 'a') as f:
+              f.write(f'approvers={result}\n')
+          
+          print(f'Extracted approvers: {result}')
+          EOF
+      - name: Log approvers
+        run: |
+          echo "Approvers: ${{ steps.set-approvers.outputs.approvers }}"
+
+      - name: Welcome first-time contributors message
+        uses: actions/first-interaction@v3
+        continue-on-error: true
         with:
-          script: |
-            github.rest.issues.createComment({
-              issue_number: context.issue.number,
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              body: "Maintainers: let's ensure the label `ok-to-test` has been maintained and all the tests have been executed before merging.<br/><br/>Thank you for your first Pull Request! 🎉🎉"
-            })
-# do NOT: add actions/checkout to this flow, add-third party scripts, or auto-trigger CI jobs
+          issue_message: |
+            🎉 **Welcome to the Kubeflow Model Registry!** 🎉
+            Thanks for opening your first issue! We're happy to have you as part of our community 🚀
+
+            **Here's what happens next:**
+            - If you'd like to contribute to this issue, check out our [Contributing Guide](https://github.com/kubeflow/model-registry/blob/main/CONTRIBUTING.md) for repo-specific guidelines and the [Kubeflow Contributor Guide](https://www.kubeflow.org/docs/about/contributing/) for general community standards
+            - Our team will review your issue soon!
+
+            **Join the community:**
+            - **Slack**: Join our [Slack channels](https://www.kubeflow.org/docs/about/community/#slack-channels)
+            - **Meetings**: Attend the [Kubeflow](https://www.kubeflow.org/docs/about/community/#list-of-available-meetings) online calls
+
+            Feel free to ask questions in the comments if you need any help or clarification!
+            Thanks again for contributing to Kubeflow! 🙏
+          pr_message: |
+            🎉 **Welcome to the Kubeflow Model Registry!** 🎉
+            Thanks for opening your first PR! We're happy to have you as part of our community 🚀
+
+            **Here's what happens next:**
+            - If you haven't already, please check out our [Contributing Guide](https://github.com/kubeflow/model-registry/blob/main/CONTRIBUTING.md) for repo-specific guidelines and the [Kubeflow Contributor Guide](https://www.kubeflow.org/docs/about/contributing/) for general community standards
+            - Our team will review your PR soon!
+
+            **Join the community:**
+            - **Slack**: Join our [Slack channels](https://www.kubeflow.org/docs/about/community/#slack-channels)
+            - **Meetings**: Attend the [Kubeflow](https://www.kubeflow.org/docs/about/community/#list-of-available-meetings) online calls
+
+            Feel free to ask questions in the comments if you need any help or clarification!
+            Thanks again for contributing to Kubeflow! 🙏
+
+            Note for: ${{ steps.set-approvers.outputs.approvers }}
+            Kindly ensure the label `ok-to-test` has been added to the PR, and all the tests have been executed before merging!

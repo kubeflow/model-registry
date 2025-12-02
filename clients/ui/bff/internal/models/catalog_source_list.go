@@ -5,6 +5,8 @@ type CatalogSource struct {
 	Name    string   `json:"name"`
 	Enabled *bool    `json:"enabled,omitempty"`
 	Labels  []string `json:"labels"`
+	Status  *string  `json:"status,omitempty"`
+	Error   *string  `json:"error,omitempty"`
 }
 
 type CatalogSourceList struct {

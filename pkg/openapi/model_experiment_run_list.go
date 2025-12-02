@@ -29,6 +29,8 @@ type ExperimentRunList struct {
 	Items []ExperimentRun `json:"items"`
 }
 
+type _ExperimentRunList ExperimentRunList
+
 // NewExperimentRunList instantiates a new ExperimentRunList object
 // This constructor will assign default values to properties that have it defined,
 // and makes sure properties required by API are set, but the set of arguments

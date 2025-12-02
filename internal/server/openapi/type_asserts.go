@@ -33,6 +33,11 @@ func AssertArtifactCreateRequired(obj model.ArtifactCreate) error {
 
 // AssertArtifactListConstraints checks if the values respects the defined constraints
 func AssertArtifactListConstraints(obj model.ArtifactList) error {
+	for _, el := range obj.Items {
+		if err := AssertArtifactConstraints(el); err != nil {
+			return err
+		}
+	}
 	return nil
 }
 
@@ -290,6 +295,11 @@ func AssertExperimentCreateRequired(obj model.ExperimentCreate) error {
 
 // AssertExperimentListConstraints checks if the values respects the defined constraints
 func AssertExperimentListConstraints(obj model.ExperimentList) error {
+	for _, el := range obj.Items {
+		if err := AssertExperimentConstraints(el); err != nil {
+			return err
+		}
+	}
 	return nil
 }
 
@@ -355,6 +365,11 @@ func AssertExperimentRunCreateRequired(obj model.ExperimentRunCreate) error {
 
 // AssertExperimentRunListConstraints checks if the values respects the defined constraints
 func AssertExperimentRunListConstraints(obj model.ExperimentRunList) error {
+	for _, el := range obj.Items {
+		if err := AssertExperimentRunConstraints(el); err != nil {
+			return err
+		}
+	}
 	return nil
 }
 
@@ -471,6 +486,11 @@ func AssertInferenceServiceCreateRequired(obj model.InferenceServiceCreate) erro
 
 // AssertInferenceServiceListConstraints checks if the values respects the defined constraints
 func AssertInferenceServiceListConstraints(obj model.InferenceServiceList) error {
+	for _, el := range obj.Items {
+		if err := AssertInferenceServiceConstraints(el); err != nil {
+			return err
+		}
+	}
 	return nil
 }
 
@@ -696,6 +716,11 @@ func AssertMetricCreateRequired(obj model.MetricCreate) error {
 
 // AssertMetricListConstraints checks if the values respects the defined constraints
 func AssertMetricListConstraints(obj model.MetricList) error {
+	for _, el := range obj.Items {
+		if err := AssertMetricConstraints(el); err != nil {
+			return err
+		}
+	}
 	return nil
 }
 
@@ -753,6 +778,11 @@ func AssertModelArtifactCreateRequired(obj model.ModelArtifactCreate) error {
 
 // AssertModelArtifactListConstraints checks if the values respects the defined constraints
 func AssertModelArtifactListConstraints(obj model.ModelArtifactList) error {
+	for _, el := range obj.Items {
+		if err := AssertModelArtifactConstraints(el); err != nil {
+			return err
+		}
+	}
 	return nil
 }
 
@@ -820,6 +850,11 @@ func AssertModelVersionCreateRequired(obj model.ModelVersionCreate) error {
 
 // AssertModelVersionListConstraints checks if the values respects the defined constraints
 func AssertModelVersionListConstraints(obj model.ModelVersionList) error {
+	for _, el := range obj.Items {
+		if err := AssertModelVersionConstraints(el); err != nil {
+			return err
+		}
+	}
 	return nil
 }
 
@@ -956,6 +991,11 @@ func AssertRegisteredModelCreateRequired(obj model.RegisteredModelCreate) error 
 
 // AssertRegisteredModelListConstraints checks if the values respects the defined constraints
 func AssertRegisteredModelListConstraints(obj model.RegisteredModelList) error {
+	for _, el := range obj.Items {
+		if err := AssertRegisteredModelConstraints(el); err != nil {
+			return err
+		}
+	}
 	return nil
 }
 
@@ -1041,6 +1081,11 @@ func AssertServeModelCreateRequired(obj model.ServeModelCreate) error {
 
 // AssertServeModelListConstraints checks if the values respects the defined constraints
 func AssertServeModelListConstraints(obj model.ServeModelList) error {
+	for _, el := range obj.Items {
+		if err := AssertServeModelConstraints(el); err != nil {
+			return err
+		}
+	}
 	return nil
 }
 
@@ -1116,6 +1161,11 @@ func AssertServingEnvironmentCreateRequired(obj model.ServingEnvironmentCreate) 
 
 // AssertServingEnvironmentListConstraints checks if the values respects the defined constraints
 func AssertServingEnvironmentListConstraints(obj model.ServingEnvironmentList) error {
+	for _, el := range obj.Items {
+		if err := AssertServingEnvironmentConstraints(el); err != nil {
+			return err
+		}
+	}
 	return nil
 }
 

@@ -1,4 +1,3 @@
-import { isEnumMember } from 'mod-arch-core';
 import React from 'react';
 import { ModelCatalogContext } from '~/app/context/modelCatalog/ModelCatalogContext';
 import {
@@ -11,16 +10,13 @@ import {
   CatalogSource,
   CatalogSourceList,
   ModelCatalogFilterStates,
+  ModelCatalogStringFilterValueType,
   MetricsType,
 } from '~/app/modelCatalogTypes';
 import { getLabels } from '~/app/pages/modelRegistry/screens/utils';
 import {
   ModelCatalogStringFilterKey,
   ModelCatalogNumberFilterKey,
-  ModelCatalogTask,
-  ModelCatalogProvider,
-  ModelCatalogLicense,
-  AllLanguageCode,
 } from '~/concepts/modelCatalog/const';
 
 export const extractVersionTag = (tags?: string[]): string | undefined =>
@@ -121,64 +117,24 @@ export const shouldShowValidatedInsights = (
   artifacts: CatalogArtifacts[],
 ): boolean => isModelValidated(model) && hasPerformanceArtifacts(artifacts);
 
-// Define array-based filter keys (excluding USE_CASE which is single-selection)
-type ArrayFilterKey =
-  | ModelCatalogStringFilterKey.TASK
-  | ModelCatalogStringFilterKey.PROVIDER
-  | ModelCatalogStringFilterKey.LICENSE
-  | ModelCatalogStringFilterKey.LANGUAGE
-  | ModelCatalogStringFilterKey.HARDWARE_TYPE;
-
-// Type mapping for array filter values
-type ArrayFilterValueType = {
-  [ModelCatalogStringFilterKey.TASK]: ModelCatalogTask;
-  [ModelCatalogStringFilterKey.PROVIDER]: ModelCatalogProvider;
-  [ModelCatalogStringFilterKey.LICENSE]: ModelCatalogLicense;
-  [ModelCatalogStringFilterKey.LANGUAGE]: AllLanguageCode;
-  [ModelCatalogStringFilterKey.HARDWARE_TYPE]: string;
-};
-
-// Type guard to check if a value is an array of the expected type
-const isArrayOfValues = <T>(value: unknown): value is T[] => Array.isArray(value);
-
-// Type guard to check if filter key is valid for array operations
-const isArrayFilterKey = (filterKey: string): filterKey is ArrayFilterKey =>
-  isEnumMember(filterKey, ModelCatalogStringFilterKey) &&
-  filterKey !== ModelCatalogStringFilterKey.USE_CASE;
-
-export const useCatalogStringFilterState = <K extends ArrayFilterKey>(
+export const useCatalogStringFilterState = <K extends ModelCatalogStringFilterKey>(
   filterKey: K,
 ): {
-  isSelected: (value: ArrayFilterValueType[K]) => boolean;
-  setSelected: (value: ArrayFilterValueType[K], selected: boolean) => void;
+  isSelected: (value: ModelCatalogStringFilterValueType[K]) => boolean;
+  setSelected: (value: ModelCatalogStringFilterValueType[K], selected: boolean) => void;
 } => {
-  type Value = ArrayFilterValueType[K];
+  type Value = ModelCatalogStringFilterValueType[K];
   const { filterData, setFilterData } = React.useContext(ModelCatalogContext);
-  const selections = filterData[filterKey];
-
-  const isSelected = React.useCallback(
-    (value: Value) => {
-      if (!isArrayOfValues<Value>(selections)) {
-        return false;
-      }
-      return selections.includes(value);
-    },
-    [selections],
-  );
-
+  const selections: string[] = filterData[filterKey];
+  const isValidStringState = (state: string[]): state is ModelCatalogFilterStates[K] =>
+    Object.values(ModelCatalogStringFilterKey).includes(filterKey);
+  const isSelected = React.useCallback((value: Value) => selections.includes(value), [selections]);
   const setSelected = (value: Value, selected: boolean) => {
-    if (!isArrayOfValues<Value>(selections)) {
-      return;
-    }
-
-    const nextState: Value[] = selected
+    const nextState = selected
       ? [...selections, value]
       : selections.filter((item) => item !== value);
-
-    if (isArrayFilterKey(filterKey)) {
-      // Type assertion is safe here because we've verified the key is an array filter
-      // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
-      setFilterData(filterKey, nextState as ModelCatalogFilterStates[K]);
+    if (isValidStringState(nextState)) {
+      setFilterData(filterKey, nextState);
     }
   };
 
@@ -235,22 +191,8 @@ const isFilterIdInMap = (
   filters: CatalogFilterOptions,
 ): filterId is keyof CatalogFilterOptions => typeof filterId === 'string' && filterId in filters;
 
-// TODO tech debt: different filterQuery syntax is needed depending on whether the API stores an array of values or a single string value.
-//   the current filter_options API response does not indicate the difference between these two types of fields, so for now we hard-code them.
-const KNOWN_ARRAY_FILTER_IDS: (keyof CatalogFilterOptions)[] = [
-  ModelCatalogStringFilterKey.LANGUAGE,
-  ModelCatalogStringFilterKey.TASK,
-];
+const wrapInQuotes = (v: string): string => `'${v}'`;
 
-// If using LIKE on an array field, we need %" "% around value within the ' '
-const wrapInQuotes = (v: string, isArrayLikeFilter = false): string =>
-  isArrayLikeFilter ? `'%"${v}"%'` : `'${v}'`;
-
-// LIKE works for any string filter but is only required for array fields
-const likeFilter = (k: string, v: string, isArrayField: boolean): string =>
-  `${k} LIKE ${wrapInQuotes(v, isArrayField)}`;
-
-// = and IN only work for non-array fields
 const eqFilter = (k: string, v: string) => `${k}=${wrapInQuotes(v)}`;
 const inFilter = (k: string, values: string[]) =>
   `${k} IN (${values.map((v) => wrapInQuotes(v)).join(',')})`;
@@ -266,29 +208,17 @@ export const filtersToFilterQuery = (
     }
 
     const filterOption = options.filters[filterId];
-    const isArrayField = KNOWN_ARRAY_FILTER_IDS.includes(filterId);
 
     if (isArrayOfSelections(filterOption, data)) {
       switch (data.length) {
         case 0:
           return '';
         case 1:
-          if (isArrayField) {
-            return likeFilter(filterId, data[0], true);
-          }
           return eqFilter(filterId, data[0]);
         default:
           // 2 or more
-          if (isArrayField) {
-            return `(${data.map((value) => likeFilter(filterId, value, true)).join(' OR ')})`;
-          }
           return inFilter(filterId, data);
       }
-    }
-
-    // Handle single string values (like USE_CASE)
-    if (filterOption?.type === 'string' && typeof data === 'string') {
-      return `${filterId}=${wrapInQuotes(data)}`;
     }
 
     // TODO: Implement performance filters.
@@ -331,6 +261,20 @@ export const getUniqueSourceLabels = (catalogSources: CatalogSourceList | null):
   });
 
   return Array.from(allLabels);
+};
+
+export const hasSourcesWithoutLabels = (catalogSources: CatalogSourceList | null): boolean => {
+  if (!catalogSources) {
+    return false;
+  }
+
+  return catalogSources.items.some((source) => {
+    if (source.enabled !== false) {
+      // Check if source has no labels or only empty/whitespace labels
+      return source.labels.length === 0 || source.labels.every((label) => !label.trim());
+    }
+    return false;
+  });
 };
 
 export const getSourceFromSourceId = (

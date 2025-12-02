@@ -3,11 +3,12 @@ package api
 import (
 	"context"
 	"encoding/json"
-	"github.com/kubeflow/model-registry/ui/bff/internal/constants"
-	"github.com/kubeflow/model-registry/ui/bff/internal/integrations/kubernetes"
 	"io"
 	"net/http"
 	"net/http/httptest"
+
+	"github.com/kubeflow/model-registry/ui/bff/internal/constants"
+	"github.com/kubeflow/model-registry/ui/bff/internal/integrations/kubernetes"
 
 	"github.com/kubeflow/model-registry/ui/bff/internal/repositories"
 	. "github.com/onsi/ginkgo/v2"

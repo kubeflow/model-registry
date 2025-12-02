@@ -203,7 +203,7 @@ def test_save_to_oci_registry_backend_not_found():
     with pytest.raises(
         ValueError, match=f"'{backend}' is not an available backend to use."
     ) as e:
-        save_to_oci_registry("", "", [], "", backend)
+        save_to_oci_registry("", "", [], "", backend)  # type: ignore[arg-type]
 
     assert f"'{backend}' is not an available backend to use." in str(e.value)
 
