@@ -18,7 +18,7 @@ import CatalogSourceConfigsTableRow from './CatalogSourceConfigsTableRow';
 type CatalogSourceConfigsTableProps = {
   catalogSourceConfigs: CatalogSourceConfig[];
   onAddSource: () => void;
-  onDeleteSource?: (config: CatalogSourceConfig) => void;
+  onDeleteSource: (sourceId: string) => Promise<void>;
 };
 
 const CatalogSourceConfigsTable: React.FC<CatalogSourceConfigsTableProps> = ({
@@ -67,7 +67,7 @@ const CatalogSourceConfigsTable: React.FC<CatalogSourceConfigsTableProps> = ({
             <CatalogSourceConfigsTableRow
               key={config.id}
               catalogSourceConfig={config}
-              onDelete={onDeleteSource}
+              onDeleteSource={onDeleteSource}
             />
           )}
           variant="compact"

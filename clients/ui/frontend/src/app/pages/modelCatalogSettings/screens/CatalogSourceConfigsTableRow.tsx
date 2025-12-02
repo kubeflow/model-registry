@@ -9,22 +9,20 @@ import {
   ModelVisibilityBadgeColor,
 } from '~/concepts/modelCatalogSettings/const';
 import { hasSourceFilters, getOrganizationDisplay } from '~/concepts/modelCatalogSettings/utils';
-import { ModelCatalogSettingsContext } from '~/app/context/modelCatalogSettings/ModelCatalogSettingsContext';
 import DeleteModal from '~/app/shared/components/DeleteModal';
 import { useNotification } from '~/app/hooks/useNotification';
 import CatalogSourceStatus from '~/app/pages/modelCatalogSettings/components/CatalogSourceStatus';
 
 type CatalogSourceConfigsTableRowProps = {
   catalogSourceConfig: CatalogSourceConfig;
-  onDelete?: (config: CatalogSourceConfig) => void;
+  onDeleteSource: (sourceId: string) => Promise<void>;
 };
 
 const CatalogSourceConfigsTableRow: React.FC<CatalogSourceConfigsTableRowProps> = ({
   catalogSourceConfig,
-  onDelete,
+  onDeleteSource,
 }) => {
   const navigate = useNavigate();
-  const { apiState, refreshCatalogSourceConfigs } = React.useContext(ModelCatalogSettingsContext);
   const notification = useNotification();
   const [isDeleteModalOpen, setIsDeleteModalOpen] = React.useState(false);
   const [isDeleting, setIsDeleting] = React.useState(false);
@@ -49,7 +47,7 @@ const CatalogSourceConfigsTableRow: React.FC<CatalogSourceConfigsTableRowProps> 
     navigate(manageSourceUrl(catalogSourceConfig.id));
   };
 
-  const handleDeleteSource = () => {
+  const handleDeleteClick = () => {
     setDeleteError(undefined);
     setIsDeleteModalOpen(true);
   };
@@ -59,11 +57,9 @@ const CatalogSourceConfigsTableRow: React.FC<CatalogSourceConfigsTableRowProps> 
     setDeleteError(undefined);
 
     try {
-      await apiState.api.deleteCatalogSourceConfig({}, catalogSourceConfig.id);
+      await onDeleteSource(catalogSourceConfig.id);
       setIsDeleteModalOpen(false);
-      refreshCatalogSourceConfigs();
       notification.success(`${catalogSourceConfig.name} deleted successfully`);
-      onDelete?.(catalogSourceConfig);
     } catch (error) {
       setDeleteError(error instanceof Error ? error : new Error('Failed to delete source'));
     } finally {
@@ -143,7 +139,7 @@ const CatalogSourceConfigsTableRow: React.FC<CatalogSourceConfigsTableRowProps> 
               items={[
                 {
                   title: 'Delete source',
-                  onClick: handleDeleteSource,
+                  onClick: handleDeleteClick,
                 },
               ]}
               data-testid={`source-actions-${catalogSourceConfig.id}`}
