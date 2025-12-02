@@ -22,11 +22,7 @@ import (
 
 const (
 	defaultHuggingFaceURL = "https://huggingface.co"
-	apiKeyKey             = "apiKey"
 	urlKey                = "url"
-	modelLimitKey         = "modelLimit"
-	includedModelsKey     = "includedModels"
-	defaultModelLimit     = 100
 )
 
 // gatedString is a custom type that can unmarshal both boolean and string values from JSON
@@ -75,9 +71,8 @@ type hfModelProvider struct {
 	sourceId       string
 	apiKey         string
 	baseURL        string
-	modelLimit     int
 	includedModels []string
-	excludedModels []string
+	filter         *ModelFilter
 }
 
 // hfModelInfo represents the structure of HuggingFace API model information
@@ -329,7 +324,7 @@ func (p *hfModelProvider) getModelsFromHF(ctx context.Context) ([]ModelProviderR
 
 	for _, modelName := range p.includedModels {
 		// Skip if excluded - check before fetching to avoid unnecessary API calls
-		if isModelExcluded(modelName, p.excludedModels) {
+		if !p.filter.Allows(modelName) {
 			glog.V(2).Infof("Skipping excluded model: %s", modelName)
 			continue
 		}
@@ -346,7 +341,7 @@ func (p *hfModelProvider) getModelsFromHF(ctx context.Context) ([]ModelProviderR
 		// (in case the model name changed during conversion, e.g., from hfInfo.ID)
 		if record.Model.GetAttributes() != nil && record.Model.GetAttributes().Name != nil {
 			finalModelName := *record.Model.GetAttributes().Name
-			if isModelExcluded(finalModelName, p.excludedModels) {
+			if !p.filter.Allows(finalModelName) {
 				glog.V(2).Infof("Skipping excluded model (after conversion): %s", finalModelName)
 				continue
 			}
@@ -558,7 +553,7 @@ func (p *hfModelProvider) emit(ctx context.Context, models []ModelProviderRecord
 		// Check if model should be excluded by name
 		if model.Model.GetAttributes() != nil && model.Model.GetAttributes().Name != nil {
 			modelName := *model.Model.GetAttributes().Name
-			if isModelExcluded(modelName, p.excludedModels) {
+			if !p.filter.Allows(modelName) {
 				glog.V(2).Infof("Skipping excluded model in emit: %s", modelName)
 				continue
 			}
@@ -570,19 +565,6 @@ func (p *hfModelProvider) emit(ctx context.Context, models []ModelProviderRecord
 			return
 		}
 	}
-}
-
-func isModelExcluded(modelName string, patterns []string) bool {
-	for _, pattern := range patterns {
-		if strings.HasSuffix(pattern, "*") {
-			if strings.HasPrefix(modelName, strings.TrimSuffix(pattern, "*")) {
-				return true
-			}
-		} else if modelName == pattern {
-			return true
-		}
-	}
-	return false
 }
 
 // validateCredentials checks if the HuggingFace API key credentials are valid
@@ -651,58 +633,21 @@ func newHFModelProvider(ctx context.Context, source *Source, reldir string) (<-c
 		return nil, fmt.Errorf("failed to validate HuggingFace catalog credentials: %w", err)
 	}
 
-	// Parse includedModels
-	includedModels, ok := source.Properties[includedModelsKey].([]any)
-	if !ok {
-		return nil, fmt.Errorf("%q property should be a list", includedModelsKey)
+	// Use top-level IncludedModels from Source as the list of models to fetch
+	// These can be specific model names (required for HF API) or patterns
+	if len(source.IncludedModels) == 0 {
+		return nil, fmt.Errorf("includedModels cannot be empty for HuggingFace catalog")
 	}
 
-	if len(includedModels) == 0 {
-		return nil, fmt.Errorf("%q property cannot be empty", includedModelsKey)
+	p.includedModels = source.IncludedModels
+
+	// Create ModelFilter from source configuration (handles IncludedModels/ExcludedModels from Source)
+	// Note: IncludedModels are used both for fetching and filtering
+	filter, err := NewModelFilterFromSource(source, nil, nil)
+	if err != nil {
+		return nil, err
 	}
-
-	modelStrings := make([]string, 0, len(includedModels))
-	for _, model := range includedModels {
-		modelStr, ok := model.(string)
-		if !ok {
-			return nil, fmt.Errorf("%s: invalid list: expected string, got %T", includedModelsKey, model)
-		}
-		modelStrings = append(modelStrings, modelStr)
-	}
-
-	p.includedModels = modelStrings
-
-	// Parse excludedModels
-	p.excludedModels = []string{}
-	if _, exists := source.Properties[excludedModelsKey]; exists {
-		excludedModels, ok := source.Properties[excludedModelsKey].([]any)
-		if !ok {
-			return nil, fmt.Errorf("%q property should be a list", excludedModelsKey)
-		}
-
-		p.excludedModels = make([]string, 0, len(excludedModels))
-		for _, name := range excludedModels {
-			nameStr, ok := name.(string)
-			if !ok {
-				return nil, fmt.Errorf("%s: invalid list: wanted string, got %T", excludedModelsKey, name)
-			}
-			p.excludedModels = append(p.excludedModels, nameStr)
-		}
-		if len(p.excludedModels) > 0 {
-			glog.Infof("Configured %d excluded model pattern(s) for HuggingFace catalog", len(p.excludedModels))
-		}
-	}
-
-	// TODO: Implement model limit when organizations level includedModels are supported
-	if limit, ok := source.Properties[modelLimitKey].(int); ok && limit > 0 {
-		p.modelLimit = limit
-		glog.Infof("Configuring HuggingFace catalog with URL: %s, modelLimit: %d", p.baseURL, limit)
-		// Note: modelLimit is stored but not currently enforced in the current implementation
-		// This could be used to limit the number of models fetched from includedModels
-	} else {
-		p.modelLimit = defaultModelLimit
-		glog.Infof("Configuring HuggingFace catalog with URL: %s, %d included model(s)", p.baseURL, len(p.includedModels))
-	}
+	p.filter = filter
 
 	return p.Models(ctx)
 }
