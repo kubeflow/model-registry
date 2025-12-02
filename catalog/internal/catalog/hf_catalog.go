@@ -22,7 +22,9 @@ import (
 
 const (
 	defaultHuggingFaceURL = "https://huggingface.co"
+	defaultAPIKeyEnvVar   = "HF_API_KEY"
 	urlKey                = "url"
+	apiKeyEnvVarKey       = "apiKeyEnvVar"
 )
 
 // gatedString is a custom type that can unmarshal both boolean and string values from JSON
@@ -614,9 +616,14 @@ func newHFModelProvider(ctx context.Context, source *Source, reldir string) (<-c
 	p.sourceId = sourceId
 
 	// Parse API key from environment variable
-	apiKey := os.Getenv("HF_API_KEY")
+	// Allow the environment variable name to be configured via properties, defaulting to HF_API_KEY
+	apiKeyEnvVar := defaultAPIKeyEnvVar
+	if envVar, ok := source.Properties[apiKeyEnvVarKey].(string); ok && envVar != "" {
+		apiKeyEnvVar = envVar
+	}
+	apiKey := os.Getenv(apiKeyEnvVar)
 	if apiKey == "" {
-		return nil, fmt.Errorf("missing HF_API_KEY environment variable for HuggingFace catalog")
+		return nil, fmt.Errorf("missing %s environment variable for HuggingFace catalog", apiKeyEnvVar)
 	}
 	p.apiKey = apiKey
 
