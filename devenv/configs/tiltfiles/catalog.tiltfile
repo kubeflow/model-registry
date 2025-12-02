@@ -1,4 +1,4 @@
-manifests = kustomize("../../../manifests/kustomize/options/catalog/base")
+manifests = kustomize("../../../manifests/kustomize/options/catalog/overlays/demo")
 
 objects = decode_yaml_stream(manifests)
 

@@ -11,10 +11,7 @@ resources:
 configMapGenerator:
 - behavior: create
   files:
-  - sources.yaml=dev-sources.yaml
-  - dev-organization-models.yaml=dev-organization-models.yaml
-  - dev-validated-models.yaml=dev-validated-models.yaml
-  - dev-community-models.yaml=dev-community-models.yaml
+  - sources.yaml
   name: model-catalog-sources
   options:
     disableNameSuffixHash: true
