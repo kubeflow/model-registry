@@ -874,7 +874,6 @@ describe('Manage Source Page', () => {
     manageSourcePage.findSourceTypeHuggingFace().should('not.exist');
     manageSourcePage.findSourceTypeYaml().should('not.exist');
 
-    manageSourcePage.toggleModelVisibility();
     manageSourcePage.findAllowedModelsInput().should('exist');
     manageSourcePage.findExcludedModelsInput().should('exist');
     manageSourcePage.findAllowedModelsInput().type(', model-1-*, model-2-*');
