@@ -32,7 +32,7 @@ const CatalogSourceStatus: React.FC<CatalogSourceStatusProps> = ({ catalogSource
   }
 
   // Find the matching source from the catalog sources list
-  const matchingSource = catalogSources?.items.find(
+  const matchingSource = catalogSources?.items?.find(
     (source) => source.id === catalogSourceConfig.id,
   );
 
