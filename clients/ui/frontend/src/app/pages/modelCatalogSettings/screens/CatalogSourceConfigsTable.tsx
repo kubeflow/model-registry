@@ -33,7 +33,7 @@ const CatalogSourceConfigsTable: React.FC<CatalogSourceConfigsTableProps> = ({
       {catalogSourcesLoadError && (
         <StackItem>
           <Alert
-            variant="warning"
+            variant="danger"
             isInline
             title="Error fetching source statuses"
             data-testid="source-status-error-alert"
