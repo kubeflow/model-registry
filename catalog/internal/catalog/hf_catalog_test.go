@@ -229,72 +229,6 @@ func TestPopulateFromHFInfo(t *testing.T) {
 	}
 }
 
-func TestIsModelExcluded(t *testing.T) {
-	tests := []struct {
-		name      string
-		modelName string
-		patterns  []string
-		want      bool
-	}{
-		{
-			name:      "exact match",
-			modelName: "test/model",
-			patterns:  []string{"test/model"},
-			want:      true,
-		},
-		{
-			name:      "no match",
-			modelName: "test/model",
-			patterns:  []string{"other/model"},
-			want:      false,
-		},
-		{
-			name:      "prefix match with wildcard",
-			modelName: "test/model-v1",
-			patterns:  []string{"test/model*"},
-			want:      true,
-		},
-		{
-			name:      "prefix match without wildcard",
-			modelName: "test/model-v1",
-			patterns:  []string{"test/model"},
-			want:      false,
-		},
-		{
-			name:      "multiple patterns, one matches",
-			modelName: "excluded/model",
-			patterns:  []string{"other/model", "excluded/model"},
-			want:      true,
-		},
-		{
-			name:      "wildcard at start",
-			modelName: "test/model",
-			patterns:  []string{"*test*"},
-			want:      false, // wildcard only works at end
-		},
-		{
-			name:      "empty patterns",
-			modelName: "test/model",
-			patterns:  []string{},
-			want:      false,
-		},
-		{
-			name:      "wildcard matches exact",
-			modelName: "test/model",
-			patterns:  []string{"test/model*"},
-			want:      true,
-		},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			if got := isModelExcluded(tt.modelName, tt.patterns); got != tt.want {
-				t.Errorf("isModelExcluded() = %v, want %v", got, tt.want)
-			}
-		})
-	}
-}
-
 func TestConvertHFModelToRecord(t *testing.T) {
 	tests := []struct {
 		name              string
@@ -485,6 +419,87 @@ func TestConvertHFModelProperties(t *testing.T) {
 			}
 			if tt.verifyFunc != nil {
 				tt.verifyFunc(t, props, customProps)
+			}
+		})
+	}
+}
+
+func TestHFModelProviderWithModelFilter(t *testing.T) {
+	tests := []struct {
+		name           string
+		includedModels []string
+		excludedModels []string
+		modelName      string
+		wantAllowed    bool
+		description    string
+	}{
+		{
+			name:           "model matches included pattern",
+			includedModels: []string{"ibm-granite/*"},
+			excludedModels: nil,
+			modelName:      "ibm-granite/granite-4.0-h-small",
+			wantAllowed:    true,
+			description:    "Model matching included pattern should be allowed",
+		},
+		{
+			name:           "model does not match included pattern",
+			includedModels: []string{"ibm-granite/*"},
+			excludedModels: nil,
+			modelName:      "meta-llama/Llama-3.2-1B",
+			wantAllowed:    false,
+			description:    "Model not matching included pattern should be excluded",
+		},
+		{
+			name:           "model matches excluded pattern",
+			includedModels: []string{"ibm-granite/*"},
+			excludedModels: []string{"*-beta"},
+			modelName:      "ibm-granite/granite-4.0-h-beta",
+			wantAllowed:    false,
+			description:    "Model matching excluded pattern should be excluded even if it matches included",
+		},
+		{
+			name:           "model matches included but not excluded",
+			includedModels: []string{"ibm-granite/*"},
+			excludedModels: []string{"*-beta"},
+			modelName:      "ibm-granite/granite-4.0-h-small",
+			wantAllowed:    true,
+			description:    "Model matching included but not excluded should be allowed",
+		},
+		{
+			name:           "case insensitive matching",
+			includedModels: []string{"IBM-Granite/*"},
+			excludedModels: nil,
+			modelName:      "ibm-granite/granite-4.0-h-small",
+			wantAllowed:    true,
+			description:    "Filtering should be case-insensitive",
+		},
+		{
+			name:           "no included patterns allows all",
+			includedModels: nil,
+			excludedModels: []string{"*-beta"},
+			modelName:      "test/model",
+			wantAllowed:    true,
+			description:    "No included patterns means all models are allowed (unless excluded)",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			// Create a filter with the test patterns
+			filter, err := NewModelFilter(tt.includedModels, tt.excludedModels)
+			if err != nil {
+				t.Fatalf("NewModelFilter() error = %v, want nil", err)
+			}
+
+			// Create a provider with the filter
+			provider := &hfModelProvider{
+				filter: filter,
+			}
+
+			// Test that the filter works correctly
+			got := provider.filter.Allows(tt.modelName)
+			if got != tt.wantAllowed {
+				t.Errorf("ModelFilter.Allows(%q) = %v, want %v. %s", tt.modelName, got, tt.wantAllowed, tt.description)
 			}
 		})
 	}
