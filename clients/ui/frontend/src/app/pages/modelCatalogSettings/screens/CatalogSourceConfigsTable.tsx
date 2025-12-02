@@ -34,16 +34,14 @@ const CatalogSourceConfigsTable: React.FC<CatalogSourceConfigsTableProps> = ({
   const { apiState, refreshCatalogSourceConfigs, catalogSourcesLoadError } = React.useContext(
     ModelCatalogSettingsContext,
   );
-  const [showAlert, setShowAlert] = React.useState<boolean>(false);
 
   const handleEnableToggle = async (checked: boolean, catalogSourceConfig: CatalogSourceConfig) => {
     if (!apiState.apiAvailable) {
       setToggleError(new Error('API is not available'));
-      setShowAlert(true);
       return;
     }
     setIsUpdatingToggle(true);
-    setShowAlert(false);
+    setToggleError(undefined);
 
     try {
       await apiState.api.updateCatalogSourceConfig({}, catalogSourceConfig.id, {
@@ -54,7 +52,6 @@ const CatalogSourceConfigsTable: React.FC<CatalogSourceConfigsTableProps> = ({
     } catch (e) {
       if (e instanceof Error) {
         setToggleError(new Error(`Error enabling/disabling source ${catalogSourceConfig.name}`));
-        setShowAlert(true);
       }
     } finally {
       setIsUpdatingToggle(false);
@@ -98,13 +95,15 @@ const CatalogSourceConfigsTable: React.FC<CatalogSourceConfigsTableProps> = ({
                   </ToolbarContent>
                 </Toolbar>
               </FlexItem>
-              {toggleError && showAlert && (
+              {toggleError && (
                 <FlexItem>
                   <Alert
                     variant="danger"
                     data-testid="toggle-alert"
                     title={toggleError.message}
-                    actionClose={<AlertActionCloseButton onClose={() => setShowAlert(false)} />}
+                    actionClose={
+                      <AlertActionCloseButton onClose={() => setToggleError(undefined)} />
+                    }
                   />
                 </FlexItem>
               )}
