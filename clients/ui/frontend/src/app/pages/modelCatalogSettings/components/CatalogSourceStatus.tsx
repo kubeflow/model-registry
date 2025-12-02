@@ -86,7 +86,7 @@ const CatalogSourceStatus: React.FC<CatalogSourceStatusProps> = ({ catalogSource
                 onClick={() => setIsErrorModalOpen(true)}
                 data-testid={`source-status-error-link-${catalogSourceConfig.id}`}
               >
-                <Truncate content={errorMessage} />
+                <Truncate content={errorMessage} tooltipProps={{ hidden: true }} />
               </Button>
             </StackItem>
           </Stack>
