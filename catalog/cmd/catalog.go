@@ -74,6 +74,15 @@ func runCatalogServer(cmd *cobra.Command, args []string) error {
 	}
 	loader.RegisterEventHandler(perfLoader.Load)
 
+	// Perform initial refresh of materialized views on startup.
+	// This is needed when the database is freshly created or migrated.
+	if err := services.PropertyOptionsRepository.Refresh(models.ContextPropertyOptionType); err != nil {
+		glog.Warningf("Failed to refresh context property options on startup: %v", err)
+	}
+	if err := services.PropertyOptionsRepository.Refresh(models.ArtifactPropertyOptionType); err != nil {
+		glog.Warningf("Failed to refresh artifact property options on startup: %v", err)
+	}
+
 	poRefresher := models.NewPropertyOptionsRefresher(context.Background(), services.PropertyOptionsRepository, time.Second)
 	loader.RegisterEventHandler(func(ctx context.Context, record catalog.ModelProviderRecord) error {
 		poRefresher.Trigger()
