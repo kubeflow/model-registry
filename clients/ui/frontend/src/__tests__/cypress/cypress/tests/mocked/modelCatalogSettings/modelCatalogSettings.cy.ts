@@ -363,6 +363,141 @@ describe('Catalog Source Configs Table', () => {
         .should('be.visible');
     });
   });
+
+  describe('Validation status column', () => {
+    it('should show "-" for default sources', () => {
+      setupMocks([], [defaultYamlSource, huggingFaceSource]);
+      modelCatalogSettings.visit();
+      const row = modelCatalogSettings.getRow('Default Catalog');
+      row.findName().should('be.visible');
+      row.shouldHaveValidationStatus('-');
+    });
+
+    it('should show "-" for disabled sources', () => {
+      setupMocks([], [defaultYamlSource, customYamlSource]);
+      modelCatalogSettings.visit();
+      const row = modelCatalogSettings.getRow('Custom YAML');
+      row.findName().should('be.visible');
+      row.shouldHaveValidationStatus('-');
+    });
+
+    it('should show "Connected" status for available sources', () => {
+      const availableSource = mockCatalogSource({
+        id: 'hf-google',
+        name: 'HuggingFace Google',
+        status: 'available',
+      });
+      setupMocks([availableSource], [huggingFaceSource]);
+      modelCatalogSettings.visit();
+      const row = modelCatalogSettings.getRow('HuggingFace Google');
+      row.findName().should('be.visible');
+      row.shouldHaveValidationStatus('Connected');
+      row.findValidationStatus().findByTestId('source-status-connected-hf-google').should('exist');
+    });
+
+    it('should show "Starting" status when no matching source found', () => {
+      setupMocks([], [huggingFaceSource]);
+      modelCatalogSettings.visit();
+      const row = modelCatalogSettings.getRow('HuggingFace Google');
+      row.findName().should('be.visible');
+      row.shouldHaveValidationStatus('Starting');
+      row.findValidationStatus().findByTestId('source-status-starting-hf-google').should('exist');
+    });
+
+    it('should show "Starting" status when source has no status field', () => {
+      const startingSource = mockCatalogSource({
+        id: 'hf-google',
+        name: 'HuggingFace Google',
+        status: undefined,
+      });
+      setupMocks([startingSource], [huggingFaceSource]);
+      modelCatalogSettings.visit();
+      const row = modelCatalogSettings.getRow('HuggingFace Google');
+      row.findName().should('be.visible');
+      row.shouldHaveValidationStatus('Starting');
+    });
+
+    it('should show "Failed" status with error message for error sources', () => {
+      const errorSource = mockCatalogSource({
+        id: 'hf-google',
+        name: 'HuggingFace Google',
+        status: 'error',
+        error: 'The provided API key is invalid or has expired. Please update your credentials.',
+      });
+      setupMocks([errorSource], [huggingFaceSource]);
+      modelCatalogSettings.visit();
+      const row = modelCatalogSettings.getRow('HuggingFace Google');
+      row.findName().should('be.visible');
+      row.shouldHaveValidationStatus('Failed');
+      row.findValidationStatus().findByTestId('source-status-failed-hf-google').should('exist');
+      row.findValidationStatusErrorLink().should('exist');
+    });
+
+    it('should show truncated error message for long errors', () => {
+      const longErrorMessage =
+        'The specified organization "invalid-org" does not exist or you don\'t have access to it. Please verify the organization name and ensure you have the necessary permissions to access models from this organization.';
+      const errorSource = mockCatalogSource({
+        id: 'hf-google',
+        name: 'HuggingFace Google',
+        status: 'error',
+        error: longErrorMessage,
+      });
+      setupMocks([errorSource], [huggingFaceSource]);
+      modelCatalogSettings.visit();
+      const row = modelCatalogSettings.getRow('HuggingFace Google');
+      row.findName().should('be.visible');
+      row.findValidationStatusErrorLink().find('.pf-v6-c-truncate').should('exist');
+      row.findValidationStatusErrorLink().should('contain', longErrorMessage);
+    });
+
+    it('should open error modal when clicking error message', () => {
+      const errorSource = mockCatalogSource({
+        id: 'hf-google',
+        name: 'HuggingFace Google',
+        status: 'error',
+        error: 'The provided API key is invalid or has expired.',
+      });
+      setupMocks([errorSource], [huggingFaceSource]);
+      modelCatalogSettings.visit();
+      const row = modelCatalogSettings.getRow('HuggingFace Google');
+      row.findName().should('be.visible');
+      row.clickValidationStatusErrorLink();
+
+      // Check modal is displayed
+      cy.findByTestId('catalog-source-status-error-modal').should('exist');
+      cy.findByTestId('catalog-source-status-error-modal')
+        .contains('Source status')
+        .should('exist');
+      cy.findByTestId('catalog-source-status-error-modal').contains('Failed').should('exist');
+      cy.findByTestId('catalog-source-status-error-alert').should('exist');
+      cy.findByTestId('catalog-source-status-error-alert')
+        .contains('Validation failed')
+        .should('exist');
+      cy.findByTestId('catalog-source-status-error-message').should(
+        'contain',
+        'The provided API key is invalid or has expired.',
+      );
+    });
+
+    it('should close error modal when clicking close button', () => {
+      const errorSource = mockCatalogSource({
+        id: 'hf-google',
+        name: 'HuggingFace Google',
+        status: 'error',
+        error: 'The provided API key is invalid.',
+      });
+      setupMocks([errorSource], [huggingFaceSource]);
+      modelCatalogSettings.visit();
+      const row = modelCatalogSettings.getRow('HuggingFace Google');
+      row.clickValidationStatusErrorLink();
+
+      cy.findByTestId('catalog-source-status-error-modal').should('exist');
+      cy.findByTestId('catalog-source-status-error-modal')
+        .findByRole('button', { name: 'Close' })
+        .click();
+      cy.findByTestId('catalog-source-status-error-modal').should('not.exist');
+    });
+  });
 });
 
 describe('Manage Source Page', () => {

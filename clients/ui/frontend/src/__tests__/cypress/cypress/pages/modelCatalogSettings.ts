@@ -104,6 +104,20 @@ class CatalogSourceConfigRow extends TableRow {
     }
     return this;
   }
+
+  shouldHaveValidationStatus(status: 'Connected' | 'Failed' | 'Starting' | 'Unknown' | '-') {
+    this.findValidationStatus().contains(status);
+    return this;
+  }
+
+  findValidationStatusErrorLink() {
+    return this.findValidationStatus().find('[data-testid*="source-status-error-link"]');
+  }
+
+  clickValidationStatusErrorLink() {
+    this.findValidationStatusErrorLink().click();
+    return this;
+  }
 }
 
 class ModelCatalogSettings {
@@ -171,6 +185,15 @@ class ModelCatalogSettings {
 
   shouldBeEmpty() {
     this.findEmptyState().should('exist');
+    return this;
+  }
+
+  findSourceStatusErrorAlert() {
+    return cy.findByTestId('source-status-error-alert');
+  }
+
+  shouldHaveSourceStatusErrorAlert() {
+    this.findSourceStatusErrorAlert().should('exist');
     return this;
   }
 }

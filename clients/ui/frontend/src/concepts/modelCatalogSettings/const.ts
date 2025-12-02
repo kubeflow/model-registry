@@ -14,6 +14,13 @@ export enum ModelVisibilityBadgeColor {
   UNFILTERED = 'grey',
 }
 
+// Catalog source status values from the API
+export enum CatalogSourceStatus {
+  AVAILABLE = 'available',
+  ERROR = 'error',
+  DISABLED = 'disabled',
+}
+
 // Type guard for Hugging Face sources
 export const isHuggingFaceSource = (
   config: CatalogSourceConfig,
