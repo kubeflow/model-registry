@@ -13,11 +13,27 @@ import CatalogSourceConfigsTable from './CatalogSourceConfigsTable';
 
 const ModelCatalogSettings: React.FC = () => {
   const navigate = useNavigate();
-  const { catalogSourceConfigs, catalogSourceConfigsLoaded, catalogSourceConfigsLoadError } =
-    React.useContext(ModelCatalogSettingsContext);
+  const {
+    catalogSourceConfigs,
+    catalogSourceConfigsLoaded,
+    catalogSourceConfigsLoadError,
+    apiState,
+    refreshCatalogSourceConfigs,
+  } = React.useContext(ModelCatalogSettingsContext);
 
   const configs = catalogSourceConfigs?.catalogs || [];
   const isEmpty = catalogSourceConfigsLoaded && configs.length === 0;
+
+  const handleDeleteSource = React.useCallback(
+    async (sourceId: string): Promise<void> => {
+      if (!apiState.apiAvailable) {
+        throw new Error('API not available');
+      }
+      await apiState.api.deleteCatalogSourceConfig({}, sourceId);
+      refreshCatalogSourceConfigs();
+    },
+    [apiState.api, apiState.apiAvailable, refreshCatalogSourceConfigs],
+  );
 
   return (
     <ApplicationsPage
@@ -58,6 +74,7 @@ const ModelCatalogSettings: React.FC = () => {
       <CatalogSourceConfigsTable
         catalogSourceConfigs={configs}
         onAddSource={() => navigate(addSourceUrl())}
+        onDeleteSource={handleDeleteSource}
       />
     </ApplicationsPage>
   );
