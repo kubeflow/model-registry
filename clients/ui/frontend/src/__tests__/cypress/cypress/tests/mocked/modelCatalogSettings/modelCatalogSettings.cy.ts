@@ -155,7 +155,6 @@ describe('Catalog Source Configs Table', () => {
       row.shouldHaveOrganization('-');
       row.shouldHaveModelVisibility('Unfiltered');
       row.shouldHaveSourceType('YAML file');
-      row.shouldHaveEnableToggle(false); // Default sources don't have toggle
     });
 
     it('should render Hugging Face source correctly', () => {
@@ -165,7 +164,6 @@ describe('Catalog Source Configs Table', () => {
       row.shouldHaveOrganization('Google');
       row.shouldHaveModelVisibility('Filtered');
       row.shouldHaveSourceType('Hugging Face');
-      row.shouldHaveEnableToggle(true);
       row.shouldHaveEnableState(true);
     });
 
@@ -176,7 +174,6 @@ describe('Catalog Source Configs Table', () => {
       row.shouldHaveOrganization('-');
       row.shouldHaveModelVisibility('Filtered');
       row.shouldHaveSourceType('YAML file');
-      row.shouldHaveEnableToggle(true);
       row.shouldHaveEnableState(false);
     });
   });
@@ -198,13 +195,6 @@ describe('Catalog Source Configs Table', () => {
         'have.been.calledWith',
         'Toggle clicked! "HuggingFace Google" will be disabled when functionality is implemented.',
       );
-    });
-
-    it('should not show toggle for default sources', () => {
-      modelCatalogSettings.visit();
-      const row = modelCatalogSettings.getRow('Default Catalog');
-      row.findName().should('be.visible');
-      row.shouldHaveEnableToggle(false);
     });
   });
 
@@ -884,7 +874,6 @@ describe('Manage Source Page', () => {
     manageSourcePage.findSourceTypeHuggingFace().should('not.exist');
     manageSourcePage.findSourceTypeYaml().should('not.exist');
 
-    manageSourcePage.toggleModelVisibility();
     manageSourcePage.findAllowedModelsInput().should('exist');
     manageSourcePage.findExcludedModelsInput().should('exist');
     manageSourcePage.findAllowedModelsInput().type(', model-1-*, model-2-*');
