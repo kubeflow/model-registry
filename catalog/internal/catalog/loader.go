@@ -56,6 +56,11 @@ type Source struct {
 
 	// Properties used for configuring the catalog connection based on catalog implementation
 	Properties map[string]any `json:"properties,omitempty"`
+
+	// Origin is the absolute path of the config file this source was loaded from.
+	// This is set automatically during loading and used for resolving relative paths.
+	// It is not read from YAML; it's set programmatically.
+	Origin string `json:"-" yaml:"-"`
 }
 
 type Loader struct {
@@ -165,17 +170,7 @@ func (l *Loader) loadAllModels(ctx context.Context) error {
 	// Clear the loaded sources tracker for a fresh load
 	l.loadedSources = map[string]bool{}
 
-	// Use the first config path's directory for relative path resolution
-	// (all config files should be in the same directory or use absolute paths)
-	configDir := ""
-	if len(l.paths) > 0 {
-		absPath, err := filepath.Abs(l.paths[0])
-		if err == nil {
-			configDir = filepath.Dir(absPath)
-		}
-	}
-
-	return l.updateDatabase(ctx, configDir, nil)
+	return l.updateDatabase(ctx)
 }
 
 // reloadAll re-parses all config files and reloads all models.
@@ -231,6 +226,9 @@ func (l *Loader) updateSources(path string, config *sourceConfig) error {
 			return fmt.Errorf("invalid source %s: %w", id, err)
 		}
 
+		// Set the origin path so relative paths in properties can be resolved
+		// relative to this config file's directory
+		source.Origin = path
 		sources[id] = source
 		glog.Infof("loaded source %s of type %s", id, source.Type)
 	}
@@ -255,7 +253,7 @@ func (l *Loader) updateLabels(path string, config *sourceConfig) error {
 	return l.Labels.Merge(path, config.Labels)
 }
 
-func (l *Loader) updateDatabase(ctx context.Context, configDir string, _ *sourceConfig) error {
+func (l *Loader) updateDatabase(ctx context.Context) error {
 	ctx, cancel := context.WithCancel(ctx)
 
 	l.closersMu.Lock()
@@ -269,7 +267,7 @@ func (l *Loader) updateDatabase(ctx context.Context, configDir string, _ *source
 	// Use merged sources from SourceCollection instead of per-file config.
 	// This enables sparse overrides to work: a user can enable a disabled source
 	// with just "id" and "enabled: true", inheriting Type and Properties from the base.
-	records := l.readProviderRecords(ctx, configDir)
+	records := l.readProviderRecords(ctx)
 
 	go func() {
 		for record := range records {
@@ -329,7 +327,7 @@ func (l *Loader) updateDatabase(ctx context.Context, configDir string, _ *source
 // readProviderRecords calls the provider for every merged source that hasn't
 // been loaded yet, and merges the returned channels together. The returned
 // channel is closed when the last provider channel is closed.
-func (l *Loader) readProviderRecords(ctx context.Context, configDir string) <-chan ModelProviderRecord {
+func (l *Loader) readProviderRecords(ctx context.Context) <-chan ModelProviderRecord {
 
 	ch := make(chan ModelProviderRecord)
 	var wg sync.WaitGroup
@@ -361,7 +359,12 @@ func (l *Loader) readProviderRecords(ctx context.Context, configDir string) <-ch
 			continue
 		}
 
-		records, err := registerFunc(ctx, &source, configDir)
+		// Use the source's origin directory for resolving relative paths.
+		// This allows sources from different config files (e.g., mounted from
+		// different configmaps) to use relative paths correctly.
+		sourceDir := filepath.Dir(source.Origin)
+
+		records, err := registerFunc(ctx, &source, sourceDir)
 		if err != nil {
 			glog.Errorf("error reading catalog type %s with id %s: %v", source.Type, source.Id, err)
 			continue

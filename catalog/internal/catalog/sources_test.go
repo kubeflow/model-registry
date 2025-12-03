@@ -822,6 +822,187 @@ func TestSourceCollection_MergeOverride_TypeAndProperties(t *testing.T) {
 	}
 }
 
+func TestSourceCollection_MergeOverride_Origin(t *testing.T) {
+	// Test that Origin is correctly tracked through merge operations
+	// This is important for resolving relative paths in source properties
+
+	tests := []struct {
+		name           string
+		originOrder    []string
+		mergeSequence  []struct {
+			origin  string
+			sources map[string]Source
+		}
+		expectedOrigins map[string]string // sourceId -> expected origin
+	}{
+		{
+			name:        "origin is preserved from first definition",
+			originOrder: []string{"/config/default.yaml", "/user-config/user.yaml"},
+			mergeSequence: []struct {
+				origin  string
+				sources map[string]Source
+			}{
+				{
+					origin: "/config/default.yaml",
+					sources: map[string]Source{
+						"hf": {
+							CatalogSource: model.CatalogSource{
+								Id:      "hf",
+								Name:    "Hugging Face",
+								Enabled: apiutils.Of(true),
+							},
+							Type: "yaml",
+							Properties: map[string]any{
+								"yamlCatalogPath": "models.yaml",
+							},
+							Origin: "/config/default.yaml",
+						},
+					},
+				},
+				{
+					origin: "/user-config/user.yaml",
+					sources: map[string]Source{
+						// Sparse override: only enable and change name
+						"hf": {
+							CatalogSource: model.CatalogSource{
+								Id:      "hf",
+								Name:    "Hugging Face Custom",
+								Enabled: apiutils.Of(true),
+							},
+							Origin: "/user-config/user.yaml",
+							// Properties is nil, so Origin should stay with base
+						},
+					},
+				},
+			},
+			// Origin should be from default.yaml since Properties weren't overridden
+			expectedOrigins: map[string]string{
+				"hf": "/config/default.yaml",
+			},
+		},
+		{
+			name:        "origin changes when properties are overridden",
+			originOrder: []string{"/config/default.yaml", "/user-config/user.yaml"},
+			mergeSequence: []struct {
+				origin  string
+				sources map[string]Source
+			}{
+				{
+					origin: "/config/default.yaml",
+					sources: map[string]Source{
+						"local": {
+							CatalogSource: model.CatalogSource{
+								Id:      "local",
+								Name:    "Local Catalog",
+								Enabled: apiutils.Of(true),
+							},
+							Type: "yaml",
+							Properties: map[string]any{
+								"yamlCatalogPath": "default-models.yaml",
+							},
+							Origin: "/config/default.yaml",
+						},
+					},
+				},
+				{
+					origin: "/user-config/user.yaml",
+					sources: map[string]Source{
+						"local": {
+							CatalogSource: model.CatalogSource{
+								Id:      "local",
+								Enabled: apiutils.Of(true),
+							},
+							// Override Properties - this changes where relative paths resolve from
+							Properties: map[string]any{
+								"yamlCatalogPath": "user-models.yaml",
+							},
+							Origin: "/user-config/user.yaml",
+						},
+					},
+				},
+			},
+			// Origin should be from user.yaml since Properties were overridden
+			expectedOrigins: map[string]string{
+				"local": "/user-config/user.yaml",
+			},
+		},
+		{
+			name:        "multiple sources from different origins",
+			originOrder: []string{"/admin/sources.yaml", "/user/sources.yaml"},
+			mergeSequence: []struct {
+				origin  string
+				sources map[string]Source
+			}{
+				{
+					origin: "/admin/sources.yaml",
+					sources: map[string]Source{
+						"admin-catalog": {
+							CatalogSource: model.CatalogSource{
+								Id:      "admin-catalog",
+								Name:    "Admin Catalog",
+								Enabled: apiutils.Of(true),
+							},
+							Type: "yaml",
+							Properties: map[string]any{
+								"yamlCatalogPath": "admin-models.yaml",
+							},
+							Origin: "/admin/sources.yaml",
+						},
+					},
+				},
+				{
+					origin: "/user/sources.yaml",
+					sources: map[string]Source{
+						"user-catalog": {
+							CatalogSource: model.CatalogSource{
+								Id:      "user-catalog",
+								Name:    "User Catalog",
+								Enabled: apiutils.Of(true),
+							},
+							Type: "yaml",
+							Properties: map[string]any{
+								"yamlCatalogPath": "user-models.yaml",
+							},
+							Origin: "/user/sources.yaml",
+						},
+					},
+				},
+			},
+			// Each source should keep its own origin
+			expectedOrigins: map[string]string{
+				"admin-catalog": "/admin/sources.yaml",
+				"user-catalog":  "/user/sources.yaml",
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			sc := NewSourceCollection(tt.originOrder...)
+
+			for _, merge := range tt.mergeSequence {
+				err := sc.Merge(merge.origin, merge.sources)
+				if err != nil {
+					t.Fatalf("Merge(%s) failed: %v", merge.origin, err)
+				}
+			}
+
+			sources := sc.AllSources()
+
+			for id, expectedOrigin := range tt.expectedOrigins {
+				source, ok := sources[id]
+				if !ok {
+					t.Errorf("source %s not found in AllSources()", id)
+					continue
+				}
+				if source.Origin != expectedOrigin {
+					t.Errorf("source %s: Origin = %s, want %s", id, source.Origin, expectedOrigin)
+				}
+			}
+		})
+	}
+}
+
 func TestSourceCollection_ByLabel_NullBehavior(t *testing.T) {
 	// Create test sources with various label configurations to test "null" behavior
 	// Note: disabled sources are filtered out and not returned

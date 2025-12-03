@@ -361,7 +361,7 @@ func TestLoadCatalogSourcesWithMockRepositories(t *testing.T) {
 		t.Fatalf("updateSources() error = %v", err)
 	}
 
-	err = l.updateDatabase(ctx, "test-path", testConfig)
+	err = l.updateDatabase(ctx)
 	if err != nil {
 		t.Fatalf("updateDatabase() error = %v", err)
 	}
@@ -455,7 +455,7 @@ func TestLoadCatalogSourcesWithRepositoryErrors(t *testing.T) {
 
 	// This should not return an error even if repository operations fail
 	// (errors are logged but don't stop the loading process)
-	err = l.updateDatabase(ctx, "test-path", testConfig)
+	err = l.updateDatabase(ctx)
 	if err != nil {
 		t.Fatalf("updateDatabase() should not fail even with repository errors, got error = %v", err)
 	}

@@ -108,6 +108,13 @@ func mergeSources(base, override Source) Source {
 		result.Properties = override.Properties
 	}
 
+	// Origin: use override's origin if Properties are overridden (since relative
+	// paths in Properties should resolve relative to where they were defined).
+	// Otherwise, keep base origin (where Type and original Properties came from).
+	if override.Properties != nil && override.Origin != "" {
+		result.Origin = override.Origin
+	}
+
 	return result
 }
 
