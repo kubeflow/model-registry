@@ -25,3 +25,8 @@ secretGenerator:
   - postgres.env
   options:
     disableNameSuffixHash: true
+- name: model-catalog-hf-api-key
+  envs:
+  - hf-api-key.env
+  options:
+    disableNameSuffixHash: true

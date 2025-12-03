@@ -3,172 +3,556 @@ package catalog
 import (
 	"context"
 	"net/http"
-	"net/http/httptest"
-	"strings"
 	"testing"
 
-	"github.com/kubeflow/model-registry/catalog/pkg/openapi"
+	apimodels "github.com/kubeflow/model-registry/catalog/pkg/openapi"
+	"github.com/kubeflow/model-registry/internal/db/models"
 )
 
-func TestNewHfCatalog_MissingAPIKey(t *testing.T) {
-	source := &Source{
-		CatalogSource: openapi.CatalogSource{
-			Id:   "test_hf",
-			Name: "Test HF",
+func TestPopulateFromHFInfo(t *testing.T) {
+	tests := []struct {
+		name               string
+		hfInfo             *hfModelInfo
+		sourceId           string
+		originalModelName  string
+		expectedName       string
+		expectedExternalID *string
+		expectedSourceID   *string
+		expectedProvider   *string
+		expectedLicense    *string
+		expectedLibrary    *string
+		hasReadme          bool
+		hasDescription     bool
+		hasTasks           bool
+		hasCustomProps     bool
+	}{
+		{
+			name: "complete model info",
+			hfInfo: &hfModelInfo{
+				ID:          "test-org/test-model",
+				Author:      "test-author",
+				Sha:         "abc123",
+				CreatedAt:   "2023-01-01T00:00:00Z",
+				UpdatedAt:   "2023-01-02T00:00:00Z",
+				Downloads:   1000,
+				Tags:        []string{"license:mit", "transformers", "pytorch"},
+				PipelineTag: "text-generation",
+				Task:        "text-generation",
+				LibraryName: "transformers",
+				Config: &hfConfig{
+					Architectures: []string{"GPT2LMHeadModel"},
+					ModelType:     "gpt2",
+				},
+				CardData: &hfCard{
+					Data: map[string]interface{}{
+						"description": "A test model description",
+					},
+				},
+			},
+			sourceId:          "test-source-id",
+			originalModelName: "test-org/test-model",
+			expectedName:      "test-org/test-model",
+			expectedProvider:  stringPtr("test-author"),
+			expectedLicense:   stringPtr("mit"),
+			expectedLibrary:   stringPtr("transformers"),
+			hasTasks:          true,
+			hasCustomProps:    true,
+			hasReadme:         false, // No README fetching in unit tests
 		},
-		Type: "hf",
-		Properties: map[string]any{
-			"url": "https://huggingface.co",
+		{
+			name: "model with ModelID fallback",
+			hfInfo: &hfModelInfo{
+				ModelID: "fallback-model-id",
+				Author:  "another-author",
+			},
+			sourceId:          "source-2",
+			originalModelName: "original-name",
+			expectedName:      "fallback-model-id",
+			expectedProvider:  stringPtr("another-author"),
+		},
+		{
+			name: "model with original name fallback",
+			hfInfo: &hfModelInfo{
+				Author: "author-3",
+			},
+			sourceId:          "source-3",
+			originalModelName: "fallback-original-name",
+			expectedName:      "fallback-original-name",
+			expectedProvider:  stringPtr("author-3"),
+		},
+		{
+			name: "model with license in tags",
+			hfInfo: &hfModelInfo{
+				ID:   "test/licensed-model",
+				Tags: []string{"license:apache-2.0", "other-tag"},
+			},
+			sourceId:          "source-4",
+			originalModelName: "test/licensed-model",
+			expectedName:      "test/licensed-model",
+			expectedLicense:   stringPtr("apache-2.0"),
+			hasCustomProps:    true,
+		},
+		{
+			name: "model with tasks",
+			hfInfo: &hfModelInfo{
+				ID:          "test/task-model",
+				Task:        "text-classification",
+				PipelineTag: "sentiment-analysis",
+			},
+			sourceId:          "source-5",
+			originalModelName: "test/task-model",
+			expectedName:      "test/task-model",
+			hasTasks:          true,
+		},
+		{
+			name: "model with description in cardData",
+			hfInfo: &hfModelInfo{
+				ID: "test/desc-model",
+				CardData: &hfCard{
+					Data: map[string]interface{}{
+						"description": "This is a test description",
+					},
+				},
+			},
+			sourceId:          "source-6",
+			originalModelName: "test/desc-model",
+			expectedName:      "test/desc-model",
+			hasDescription:    true,
+		},
+		{
+			name: "minimal model info",
+			hfInfo: &hfModelInfo{
+				ID: "minimal/model",
+			},
+			sourceId:          "source-7",
+			originalModelName: "minimal/model",
+			expectedName:      "minimal/model",
 		},
 	}
 
-	_, err := newHfCatalog(source, "")
-	if err == nil {
-		t.Fatal("Expected error for missing API key, got nil")
-	}
-	if err.Error() != "missing or invalid 'apiKey' property for HuggingFace catalog" {
-		t.Fatalf("Expected specific error message, got: %s", err.Error())
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			// Create a mock provider with HTTP client to avoid nil pointer
+			// Note: README fetching will fail, but that's expected in unit tests
+			provider := &hfModelProvider{
+				sourceId: tt.sourceId,
+				client:   &http.Client{},
+			}
+
+			// Create hfModel and populate it
+			hfm := &hfModel{}
+			ctx := context.Background()
+			hfm.populateFromHFInfo(ctx, provider, tt.hfInfo, tt.sourceId, tt.originalModelName)
+
+			// Verify name
+			if hfm.Name != tt.expectedName {
+				t.Errorf("Name = %v, want %v", hfm.Name, tt.expectedName)
+			}
+
+			// Verify ExternalID
+			if tt.expectedExternalID != nil {
+				if hfm.ExternalId == nil || *hfm.ExternalId != *tt.expectedExternalID {
+					t.Errorf("ExternalId = %v, want %v", hfm.ExternalId, tt.expectedExternalID)
+				}
+			} else if tt.hfInfo.ID != "" {
+				// If hfInfo has ID, ExternalId should be set
+				if hfm.ExternalId == nil || *hfm.ExternalId != tt.hfInfo.ID {
+					t.Errorf("ExternalId = %v, want %v", hfm.ExternalId, tt.hfInfo.ID)
+				}
+			}
+
+			// Verify SourceID
+			if tt.expectedSourceID != nil {
+				if hfm.SourceId == nil || *hfm.SourceId != *tt.expectedSourceID {
+					t.Errorf("SourceId = %v, want %v", hfm.SourceId, tt.expectedSourceID)
+				}
+			} else if tt.sourceId != "" {
+				if hfm.SourceId == nil || *hfm.SourceId != tt.sourceId {
+					t.Errorf("SourceId = %v, want %v", hfm.SourceId, tt.sourceId)
+				}
+			}
+
+			// Verify Provider
+			if tt.expectedProvider != nil {
+				if hfm.Provider == nil || *hfm.Provider != *tt.expectedProvider {
+					t.Errorf("Provider = %v, want %v", hfm.Provider, tt.expectedProvider)
+				}
+			}
+
+			// Verify License
+			if tt.expectedLicense != nil {
+				if hfm.License == nil || *hfm.License != *tt.expectedLicense {
+					t.Errorf("License = %v, want %v", hfm.License, tt.expectedLicense)
+				}
+			}
+
+			// Verify LibraryName
+			if tt.expectedLibrary != nil {
+				if hfm.LibraryName == nil || *hfm.LibraryName != *tt.expectedLibrary {
+					t.Errorf("LibraryName = %v, want %v", hfm.LibraryName, tt.expectedLibrary)
+				}
+			}
+
+			// Verify Tasks
+			if tt.hasTasks {
+				if len(hfm.Tasks) == 0 {
+					t.Error("Expected tasks to be set, but got empty slice")
+				}
+			}
+
+			// Verify Description
+			if tt.hasDescription {
+				if hfm.Description == nil {
+					t.Error("Expected description to be set, but got nil")
+				}
+			}
+
+			// Verify CustomProperties
+			if tt.hasCustomProps {
+				if hfm.GetCustomProperties() == nil || len(hfm.GetCustomProperties()) == 0 {
+					t.Error("Expected custom properties to be set, but got nil or empty")
+				}
+			}
+
+			// Verify timestamps if present
+			if tt.hfInfo.CreatedAt != "" {
+				if hfm.CreateTimeSinceEpoch == nil {
+					t.Error("Expected CreateTimeSinceEpoch to be set")
+				}
+			}
+			if tt.hfInfo.UpdatedAt != "" {
+				if hfm.LastUpdateTimeSinceEpoch == nil {
+					t.Error("Expected LastUpdateTimeSinceEpoch to be set")
+				}
+			}
+		})
 	}
 }
 
-func TestNewHfCatalog_WithValidCredentials(t *testing.T) {
-	// Create mock server that returns valid response for credential validation
-	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		// Check for authorization header
-		auth := r.Header.Get("Authorization")
-		if auth != "Bearer test-api-key" {
-			w.WriteHeader(http.StatusUnauthorized)
-			return
-		}
-
-		switch r.URL.Path {
-		case "/api/whoami-v2":
-			w.Header().Set("Content-Type", "application/json")
-			w.WriteHeader(http.StatusOK)
-			w.Write([]byte(`{"name": "test-user", "type": "user"}`))
-		default:
-			w.WriteHeader(http.StatusNotFound)
-		}
-	}))
-	defer server.Close()
-
-	source := &Source{
-		CatalogSource: openapi.CatalogSource{
-			Id:   "test_hf",
-			Name: "Test HF",
+func TestConvertHFModelToRecord(t *testing.T) {
+	tests := []struct {
+		name              string
+		hfInfo            *hfModelInfo
+		originalModelName string
+		sourceId          string
+		verifyFunc        func(t *testing.T, record ModelProviderRecord)
+	}{
+		{
+			name: "complete model conversion",
+			hfInfo: &hfModelInfo{
+				ID:          "test-org/complete-model",
+				Author:      "test-author",
+				CreatedAt:   "2023-01-01T00:00:00Z",
+				UpdatedAt:   "2023-01-02T00:00:00Z",
+				Tags:        []string{"license:mit"},
+				LibraryName: "transformers",
+				Task:        "text-generation",
+				CardData: &hfCard{
+					Data: map[string]interface{}{
+						"description": "A complete test model",
+					},
+				},
+			},
+			originalModelName: "test-org/complete-model",
+			sourceId:          "test-source",
+			verifyFunc: func(t *testing.T, record ModelProviderRecord) {
+				if record.Model == nil {
+					t.Fatal("Model should not be nil")
+				}
+				attrs := record.Model.GetAttributes()
+				if attrs == nil {
+					t.Fatal("Attributes should not be nil")
+				}
+				if attrs.Name == nil || *attrs.Name != "test-org/complete-model" {
+					t.Errorf("Name = %v, want 'test-org/complete-model'", attrs.Name)
+				}
+				if attrs.ExternalID == nil || *attrs.ExternalID != "test-org/complete-model" {
+					t.Errorf("ExternalID = %v, want 'test-org/complete-model'", attrs.ExternalID)
+				}
+				if attrs.CreateTimeSinceEpoch == nil {
+					t.Error("CreateTimeSinceEpoch should be set")
+				}
+				if attrs.LastUpdateTimeSinceEpoch == nil {
+					t.Error("LastUpdateTimeSinceEpoch should be set")
+				}
+				if record.Model.GetProperties() == nil || len(*record.Model.GetProperties()) == 0 {
+					t.Error("Properties should be set")
+				}
+				if len(record.Artifacts) != 0 {
+					t.Errorf("Artifacts should be empty, got %d", len(record.Artifacts))
+				}
+			},
 		},
-		Type: "hf",
-		Properties: map[string]any{
-			"apiKey":     "test-api-key",
-			"url":        server.URL,
-			"modelLimit": 10,
+		{
+			name: "minimal model conversion",
+			hfInfo: &hfModelInfo{
+				ID: "minimal/model",
+			},
+			originalModelName: "minimal/model",
+			sourceId:          "source-1",
+			verifyFunc: func(t *testing.T, record ModelProviderRecord) {
+				if record.Model == nil {
+					t.Fatal("Model should not be nil")
+				}
+				attrs := record.Model.GetAttributes()
+				if attrs == nil || attrs.Name == nil {
+					t.Fatal("Attributes and Name should not be nil")
+				}
+				if *attrs.Name != "minimal/model" {
+					t.Errorf("Name = %v, want 'minimal/model'", attrs.Name)
+				}
+			},
 		},
 	}
 
-	catalog, err := newHfCatalog(source, "")
-	if err != nil {
-		t.Fatalf("Failed to create HF catalog: %v", err)
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			provider := &hfModelProvider{
+				sourceId: tt.sourceId,
+			}
+			ctx := context.Background()
+			record := provider.convertHFModelToRecord(ctx, tt.hfInfo, tt.originalModelName)
+			tt.verifyFunc(t, record)
+		})
+	}
+}
+
+func TestConvertHFModelProperties(t *testing.T) {
+	tests := []struct {
+		name         string
+		catalogModel *apimodels.CatalogModel
+		wantProps    bool
+		wantCustom   bool
+		verifyFunc   func(t *testing.T, props []models.Properties, customProps []models.Properties)
+	}{
+		{
+			name: "model with all properties",
+			catalogModel: &apimodels.CatalogModel{
+				Name:        "test-model",
+				Description: stringPtr("Test description"),
+				Readme:      stringPtr("# Test README"),
+				Provider:    stringPtr("test-provider"),
+				License:     stringPtr("mit"),
+				LibraryName: stringPtr("transformers"),
+				SourceId:    stringPtr("source-1"),
+				Tasks:       []string{"text-generation"},
+			},
+			wantProps:  true,
+			wantCustom: false,
+			verifyFunc: func(t *testing.T, props []models.Properties, customProps []models.Properties) {
+				if len(props) == 0 {
+					t.Error("Expected properties to be set")
+				}
+			},
+		},
+		{
+			name: "model with custom properties",
+			catalogModel: func() *apimodels.CatalogModel {
+				model := &apimodels.CatalogModel{
+					Name: "test-model",
+				}
+				customProps := map[string]apimodels.MetadataValue{
+					"hf_tags": {
+						MetadataStringValue: &apimodels.MetadataStringValue{
+							StringValue: `["tag1","tag2"]`,
+						},
+					},
+				}
+				model.SetCustomProperties(customProps)
+				return model
+			}(),
+			wantProps:  false,
+			wantCustom: true,
+			verifyFunc: func(t *testing.T, props []models.Properties, customProps []models.Properties) {
+				if len(customProps) == 0 {
+					t.Error("Expected custom properties to be set")
+				}
+			},
+		},
+		{
+			name: "model with minimal properties",
+			catalogModel: &apimodels.CatalogModel{
+				Name: "minimal-model",
+			},
+			wantProps:  false,
+			wantCustom: false,
+			verifyFunc: func(t *testing.T, props []models.Properties, customProps []models.Properties) {
+				if len(props) != 0 {
+					t.Errorf("Expected no properties, got %d", len(props))
+				}
+				if len(customProps) != 0 {
+					t.Errorf("Expected no custom properties, got %d", len(customProps))
+				}
+			},
+		},
+		{
+			name: "model with tasks",
+			catalogModel: &apimodels.CatalogModel{
+				Name:  "task-model",
+				Tasks: []string{"classification", "generation"},
+			},
+			wantProps: true,
+			verifyFunc: func(t *testing.T, props []models.Properties, customProps []models.Properties) {
+				// Should have tasks property
+				foundTasks := false
+				for _, prop := range props {
+					if prop.Name == "tasks" {
+						foundTasks = true
+						break
+					}
+				}
+				if !foundTasks {
+					t.Error("Expected tasks property to be present")
+				}
+			},
+		},
 	}
 
-	hfCatalog := catalog.(*hfCatalogImpl)
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			props, customProps := convertHFModelProperties(tt.catalogModel)
+			if (len(props) > 0) != tt.wantProps {
+				t.Errorf("Properties presence = %v, want %v", len(props) > 0, tt.wantProps)
+			}
+			if (len(customProps) > 0) != tt.wantCustom {
+				t.Errorf("Custom properties presence = %v, want %v", len(customProps) > 0, tt.wantCustom)
+			}
+			if tt.verifyFunc != nil {
+				tt.verifyFunc(t, props, customProps)
+			}
+		})
+	}
+}
 
-	// Test that methods return appropriate responses for stub implementation
+func TestHFModelProviderWithModelFilter(t *testing.T) {
+	tests := []struct {
+		name           string
+		includedModels []string
+		excludedModels []string
+		modelName      string
+		wantAllowed    bool
+		description    string
+	}{
+		{
+			name:           "model matches included pattern",
+			includedModels: []string{"ibm-granite/*"},
+			excludedModels: nil,
+			modelName:      "ibm-granite/granite-4.0-h-small",
+			wantAllowed:    true,
+			description:    "Model matching included pattern should be allowed",
+		},
+		{
+			name:           "model does not match included pattern",
+			includedModels: []string{"ibm-granite/*"},
+			excludedModels: nil,
+			modelName:      "meta-llama/Llama-3.2-1B",
+			wantAllowed:    false,
+			description:    "Model not matching included pattern should be excluded",
+		},
+		{
+			name:           "model matches excluded pattern",
+			includedModels: []string{"ibm-granite/*"},
+			excludedModels: []string{"*-beta"},
+			modelName:      "ibm-granite/granite-4.0-h-beta",
+			wantAllowed:    false,
+			description:    "Model matching excluded pattern should be excluded even if it matches included",
+		},
+		{
+			name:           "model matches included but not excluded",
+			includedModels: []string{"ibm-granite/*"},
+			excludedModels: []string{"*-beta"},
+			modelName:      "ibm-granite/granite-4.0-h-small",
+			wantAllowed:    true,
+			description:    "Model matching included but not excluded should be allowed",
+		},
+		{
+			name:           "case insensitive matching",
+			includedModels: []string{"IBM-Granite/*"},
+			excludedModels: nil,
+			modelName:      "ibm-granite/granite-4.0-h-small",
+			wantAllowed:    true,
+			description:    "Filtering should be case-insensitive",
+		},
+		{
+			name:           "no included patterns allows all",
+			includedModels: nil,
+			excludedModels: []string{"*-beta"},
+			modelName:      "test/model",
+			wantAllowed:    true,
+			description:    "No included patterns means all models are allowed (unless excluded)",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			// Create a filter with the test patterns
+			filter, err := NewModelFilter(tt.includedModels, tt.excludedModels)
+			if err != nil {
+				t.Fatalf("NewModelFilter() error = %v, want nil", err)
+			}
+
+			// Create a provider with the filter
+			provider := &hfModelProvider{
+				filter: filter,
+			}
+
+			// Test that the filter works correctly
+			got := provider.filter.Allows(tt.modelName)
+			if got != tt.wantAllowed {
+				t.Errorf("ModelFilter.Allows(%q) = %v, want %v. %s", tt.modelName, got, tt.wantAllowed, tt.description)
+			}
+		})
+	}
+}
+
+func TestPopulateFromHFInfoWithCustomProperties(t *testing.T) {
+	hfInfo := &hfModelInfo{
+		ID:        "test/custom-props-model",
+		Sha:       "sha123",
+		Downloads: 5000,
+		Tags:      []string{"tag1", "tag2", "license:apache-2.0"},
+		Config: &hfConfig{
+			Architectures: []string{"BertModel", "BertForSequenceClassification"},
+			ModelType:     "bert",
+		},
+	}
+
+	provider := &hfModelProvider{
+		sourceId: "test-source",
+	}
+
+	hfm := &hfModel{}
 	ctx := context.Background()
+	hfm.populateFromHFInfo(ctx, provider, hfInfo, "test-source", "test/custom-props-model")
 
-	// Test GetModel - should return not implemented error
-	model, err := hfCatalog.GetModel(ctx, "test-model", "")
-	if err == nil {
-		t.Fatal("Expected not implemented error, got nil")
-	}
-	if model != nil {
-		t.Fatal("Expected nil model, got non-nil")
+	customProps := hfm.GetCustomProperties()
+	if customProps == nil {
+		t.Fatal("Custom properties should not be nil")
 	}
 
-	// Test ListModels - should return empty list
-	listParams := ListModelsParams{
-		Query:     "",
-		OrderBy:   openapi.ORDERBYFIELD_NAME,
-		SortOrder: openapi.SORTORDER_ASC,
-	}
-	modelList, err := hfCatalog.ListModels(ctx, listParams)
-	if err != nil {
-		t.Fatalf("Failed to list models: %v", err)
-	}
-	if len(modelList.Items) != 0 {
-		t.Fatalf("Expected 0 models, got %d", len(modelList.Items))
+	// Verify hf_tags
+	if tagsVal, ok := customProps["hf_tags"]; !ok {
+		t.Error("Expected hf_tags in custom properties")
+	} else if tagsVal.MetadataStringValue == nil {
+		t.Error("hf_tags should be a string value")
 	}
 
-	// Test GetArtifacts - should return empty list
-	artifacts, err := hfCatalog.GetArtifacts(ctx, "test-model", "", ListArtifactsParams{})
-	if err != nil {
-		t.Fatalf("Failed to get artifacts: %v", err)
+	// Verify hf_architectures
+	if archVal, ok := customProps["hf_architectures"]; !ok {
+		t.Error("Expected hf_architectures in custom properties")
+	} else if archVal.MetadataStringValue == nil {
+		t.Error("hf_architectures should be a string value")
 	}
-	if artifacts.Items == nil {
-		t.Fatal("Expected artifacts list, got nil")
-	}
-	if len(artifacts.Items) != 0 {
-		t.Fatalf("Expected 0 artifacts, got %d", len(artifacts.Items))
+
+	// Verify hf_model_type
+	if modelTypeVal, ok := customProps["hf_model_type"]; !ok {
+		t.Error("Expected hf_model_type in custom properties")
+	} else if modelTypeVal.MetadataStringValue == nil || modelTypeVal.MetadataStringValue.StringValue != "bert" {
+		t.Errorf("hf_model_type = %v, want 'bert'", modelTypeVal.MetadataStringValue)
 	}
 }
 
-func TestNewHfCatalog_InvalidCredentials(t *testing.T) {
-	// Create mock server that returns 401
-	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.WriteHeader(http.StatusUnauthorized)
-	}))
-	defer server.Close()
-
-	source := &Source{
-		CatalogSource: openapi.CatalogSource{
-			Id:   "test_hf",
-			Name: "Test HF",
-		},
-		Type: "hf",
-		Properties: map[string]any{
-			"apiKey": "invalid-key",
-			"url":    server.URL,
-		},
-	}
-
-	_, err := newHfCatalog(source, "")
-	if err == nil {
-		t.Fatal("Expected error for invalid credentials, got nil")
-	}
-	if !strings.Contains(err.Error(), "invalid HuggingFace API credentials") {
-		t.Fatalf("Expected credential validation error, got: %s", err.Error())
-	}
-}
-
-func TestNewHfCatalog_DefaultConfiguration(t *testing.T) {
-	// Create mock server for default HuggingFace URL
-	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(`{"name": "test-user"}`))
-	}))
-	defer server.Close()
-
-	source := &Source{
-		CatalogSource: openapi.CatalogSource{
-			Id:   "test_hf",
-			Name: "Test HF",
-		},
-		Type: "hf",
-		Properties: map[string]any{
-			"apiKey": "test-key",
-			"url":    server.URL, // Override default for testing
-		},
-	}
-
-	catalog, err := newHfCatalog(source, "")
-	if err != nil {
-		t.Fatalf("Failed to create HF catalog with defaults: %v", err)
-	}
-
-	hfCatalog := catalog.(*hfCatalogImpl)
-	if hfCatalog.apiKey != "test-key" {
-		t.Fatalf("Expected apiKey 'test-key', got '%s'", hfCatalog.apiKey)
-	}
-	if hfCatalog.baseURL != server.URL {
-		t.Fatalf("Expected baseURL '%s', got '%s'", server.URL, hfCatalog.baseURL)
-	}
+// Helper function to create string pointers
+func stringPtr(s string) *string {
+	return &s
 }

@@ -13,6 +13,7 @@ The catalog service operates as a **metadata aggregation layer** that:
 ### Supported Catalog Sources
 
 - **YAML Catalog** - Static YAML files containing model metadata
+- **HuggingFace Hub** - Discover models from HuggingFace's model repository
 
 ## REST API
 
@@ -74,6 +75,76 @@ catalogs:
     properties:
       path: "./models"
 ```
+
+### HuggingFace Source Configuration
+
+The HuggingFace catalog source allows you to discover and import models from the HuggingFace Hub. To configure a HuggingFace source:
+
+#### 1. Set Your API Key
+
+The HuggingFace provider requires an API key for authentication. By default, the service reads the API key from the `HF_API_KEY` environment variable:
+
+```bash
+export HF_API_KEY="your-huggingface-api-key-here"
+```
+
+**Getting a HuggingFace API Key:**
+1. Sign up or log in to [HuggingFace](https://huggingface.co)
+2. Go to your [Settings > Access Tokens](https://huggingface.co/settings/tokens)
+3. Create a new token with "Read" permissions
+4. Copy the token and set it as an environment variable
+
+**For Kubernetes deployments:**
+- Store the API key in a Kubernetes Secret
+- Reference it in your deployment configuration
+- The catalog service will read it from the configured environment variable (defaults to `HF_API_KEY`)
+
+**Custom Environment Variable Name:**
+You can configure a custom environment variable name per source by setting the `apiKeyEnvVar` property in your source configuration (see below). This is useful when you need different API keys for different sources.
+
+**Important Notes:**
+- **Private Models**: For private models, the API key must belong to an account that has been granted access to the model. Without proper access, the catalog service will not be able to retrieve model information.
+- **Gated Models**: For gated models (models with usage restrictions), you must accept the model's terms of service on HuggingFace before the catalog service can access all available model information. Visit the model's page on HuggingFace and accept the terms to ensure full metadata is available.
+
+#### 2. Configure the Source
+
+Add a HuggingFace source to your `catalog-sources.yaml`:
+
+```yaml
+catalogs:
+  - name: "HuggingFace Hub"
+    id: "huggingface"
+    type: "hf"
+    enabled: true
+    # Required: List of model identifiers to include
+    # Format: "organization/model-name" or "username/model-name"
+    includedModels:
+      - "meta-llama/Llama-3.1-8B-Instruct"
+      - "ibm-granite/granite-4.0-h-small"
+      - "microsoft/phi-2"
+    
+    # Optional: Exclude specific models or patterns
+    # Supports exact matches or patterns ending with "*"
+    excludedModels:
+      - "some-org/unwanted-model"
+      - "another-org/test-*"  # Excludes all models starting with "test-"
+    
+    # Optional: Configure a custom environment variable name for the API key
+    # Defaults to "HF_API_KEY" if not specified
+    properties:
+      apiKeyEnvVar: "MY_CUSTOM_API_KEY_VAR"
+```
+
+#### Model Filtering
+
+Both `includedModels` and `excludedModels` are top-level properties (not nested under `properties`):
+
+- **`includedModels`** (required): List of model identifiers to fetch from HuggingFace. Format: `"organization/model-name"` or `"username/model-name"`
+- **`excludedModels`** (optional): List of models or patterns to exclude from the results
+
+The `excludedModels` property supports:
+- **Exact matches**: `"meta-llama/Llama-3.1-8B-Instruct"` - excludes this specific model
+- **Pattern matching**: `"test-*"` - excludes all models starting with "test-"
 
 ## Development
 
