@@ -73,7 +73,7 @@ type Loader struct {
 	paths         []string
 	services      service.Services
 	closersMu     sync.Mutex
-	closers       map[string]func()
+	closer        func() // cancels the current model loading goroutines
 	handlers      []LoaderEventHandler
 	loadedSources map[string]bool // tracks which source IDs have been loaded
 }
@@ -96,7 +96,6 @@ func NewLoader(services service.Services, paths []string) *Loader {
 		Labels:        NewLabelCollection(),
 		paths:         paths,
 		services:      services,
-		closers:       map[string]func(){},
 		loadedSources: map[string]bool{},
 	}
 }
@@ -257,11 +256,10 @@ func (l *Loader) updateDatabase(ctx context.Context) error {
 	ctx, cancel := context.WithCancel(ctx)
 
 	l.closersMu.Lock()
-	// Use a single key since we now load all merged sources at once
-	if l.closers["_all_"] != nil {
-		l.closers["_all_"]()
+	if l.closer != nil {
+		l.closer()
 	}
-	l.closers["_all_"] = cancel
+	l.closer = cancel
 	l.closersMu.Unlock()
 
 	// Use merged sources from SourceCollection instead of per-file config.
