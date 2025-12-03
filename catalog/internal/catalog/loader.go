@@ -12,7 +12,6 @@ import (
 	dbmodels "github.com/kubeflow/model-registry/catalog/internal/db/models"
 	"github.com/kubeflow/model-registry/catalog/internal/db/service"
 	apimodels "github.com/kubeflow/model-registry/catalog/pkg/openapi"
-	"github.com/kubeflow/model-registry/internal/apiutils"
 	mrmodels "github.com/kubeflow/model-registry/internal/db/models"
 	"k8s.io/apimachinery/pkg/util/yaml"
 )
@@ -66,11 +65,12 @@ type Loader struct {
 	// Labels contains current labels loaded from the configuration files.
 	Labels *LabelCollection
 
-	paths     []string
-	services  service.Services
-	closersMu sync.Mutex
-	closers   map[string]func()
-	handlers  []LoaderEventHandler
+	paths         []string
+	services      service.Services
+	closersMu     sync.Mutex
+	closers       map[string]func()
+	handlers      []LoaderEventHandler
+	loadedSources map[string]bool // tracks which source IDs have been loaded
 }
 
 func NewLoader(services service.Services, paths []string) *Loader {
@@ -87,11 +87,12 @@ func NewLoader(services service.Services, paths []string) *Loader {
 	}
 
 	return &Loader{
-		Sources:  NewSourceCollection(absPaths...),
-		Labels:   NewLabelCollection(),
-		paths:    paths,
-		services: services,
-		closers:  map[string]func(){},
+		Sources:       NewSourceCollection(absPaths...),
+		Labels:        NewLabelCollection(),
+		paths:         paths,
+		services:      services,
+		closers:       map[string]func(){},
+		loadedSources: map[string]bool{},
 	}
 }
 
@@ -106,26 +107,33 @@ func (l *Loader) RegisterEventHandler(fn LoaderEventHandler) {
 // Start processes the sources YAML files. Background goroutines will be
 // stopped when the context is canceled.
 func (l *Loader) Start(ctx context.Context) error {
+	// Phase 1: Parse all config files and merge sources/labels
+	// This must happen BEFORE loading models so that sparse overrides work correctly
 	for _, path := range l.paths {
-		err := l.loadOne(ctx, path)
+		err := l.parseAndMerge(path)
 		if err != nil {
 			return fmt.Errorf("%s: %w", path, err)
 		}
+	}
 
+	// Phase 2: Load models from merged sources (once, after all merging is complete)
+	err := l.loadAllModels(ctx)
+	if err != nil {
+		return err
+	}
+
+	// Phase 3: Set up file watchers for hot-reload
+	for _, path := range l.paths {
 		go func(path string) {
 			changes, err := getMonitor().Path(ctx, path)
 			if err != nil {
 				glog.Errorf("unable to watch sources file (%s): %v", path, err)
-				// Not fatal, we just won't get automatic updates.
+				return
 			}
 
 			for range changes {
 				glog.Infof("Reloading sources %s", path)
-
-				err = l.loadOne(ctx, path)
-				if err != nil {
-					glog.Errorf("unable to load sources: %v", err)
-				}
+				l.reloadAll(ctx)
 			}
 		}(path)
 	}
@@ -133,9 +141,8 @@ func (l *Loader) Start(ctx context.Context) error {
 	return nil
 }
 
-// loadOne processes (or re-processes) a sources config file.
-func (l *Loader) loadOne(ctx context.Context, path string) error {
-	// Get absolute path of the catalog config file
+// parseAndMerge parses a config file and merges its sources/labels into the collections.
+func (l *Loader) parseAndMerge(path string) error {
 	path, err := filepath.Abs(path)
 	if err != nil {
 		return fmt.Errorf("failed to get absolute path for %s: %v", path, err)
@@ -146,17 +153,45 @@ func (l *Loader) loadOne(ctx context.Context, path string) error {
 		return err
 	}
 
-	err = l.updateSources(path, config)
-	if err != nil {
+	if err = l.updateSources(path, config); err != nil {
 		return err
 	}
 
-	err = l.updateLabels(path, config)
-	if err != nil {
-		return err
+	return l.updateLabels(path, config)
+}
+
+// loadAllModels loads models from all merged sources.
+func (l *Loader) loadAllModels(ctx context.Context) error {
+	// Clear the loaded sources tracker for a fresh load
+	l.loadedSources = map[string]bool{}
+
+	// Use the first config path's directory for relative path resolution
+	// (all config files should be in the same directory or use absolute paths)
+	configDir := ""
+	if len(l.paths) > 0 {
+		absPath, err := filepath.Abs(l.paths[0])
+		if err == nil {
+			configDir = filepath.Dir(absPath)
+		}
 	}
 
-	return l.updateDatabase(ctx, path, config)
+	return l.updateDatabase(ctx, configDir, nil)
+}
+
+// reloadAll re-parses all config files and reloads all models.
+// Called when any config file changes.
+func (l *Loader) reloadAll(ctx context.Context) {
+	// Re-parse all config files
+	for _, path := range l.paths {
+		if err := l.parseAndMerge(path); err != nil {
+			glog.Errorf("unable to reload sources from %s: %v", path, err)
+		}
+	}
+
+	// Reload all models
+	if err := l.loadAllModels(ctx); err != nil {
+		glog.Errorf("unable to reload models: %v", err)
+	}
 }
 
 func (l *Loader) read(path string) (*sourceConfig, error) {
@@ -170,31 +205,16 @@ func (l *Loader) read(path string) (*sourceConfig, error) {
 		return nil, err
 	}
 
-	enabledSources := make([]Source, 0, len(config.Catalogs))
-
-	// Remove disabled sources and explicitly set enabled on the others.
-	for _, source := range config.Catalogs {
-		// If enabled is explicitly set to false, skip
-		if source.HasEnabled() && *source.Enabled == false {
-			continue
-		}
-		// If not explicitly set, default to enabled
-		source.CatalogSource.Enabled = apiutils.Of(true)
-
-		// Default to an empty labels list
-		if source.Labels == nil {
-			source.Labels = []string{}
-		}
-
-		enabledSources = append(enabledSources, source)
-	}
-	config.Catalogs = enabledSources
+	// Note: We intentionally do NOT filter disabled sources or apply defaults here.
+	// This allows field-level merging in SourceCollection to work correctly:
+	// - A base source with enabled=false can be enabled by a user override with just id + enabled=true
+	// - Defaults are applied after merging in SourceCollection.merged()
 
 	return config, nil
 }
 
 func (l *Loader) updateSources(path string, config *sourceConfig) error {
-	sources := make(map[string]apimodels.CatalogSource, len(config.Catalogs))
+	sources := make(map[string]Source, len(config.Catalogs))
 
 	for _, source := range config.Catalogs {
 		glog.Infof("reading config type %s...", source.Type)
@@ -206,13 +226,12 @@ func (l *Loader) updateSources(path string, config *sourceConfig) error {
 			return fmt.Errorf("invalid source: duplicate id %s", id)
 		}
 
-		// Validate includedModels/excludedModels patterns early
+		// Validate includedModels/excludedModels patterns early (only if set)
 		if err := ValidateSourceFilters(source.IncludedModels, source.ExcludedModels); err != nil {
 			return fmt.Errorf("invalid source %s: %w", id, err)
 		}
 
-		sources[id] = source.CatalogSource
-
+		sources[id] = source
 		glog.Infof("loaded source %s of type %s", id, source.Type)
 	}
 
@@ -236,17 +255,21 @@ func (l *Loader) updateLabels(path string, config *sourceConfig) error {
 	return l.Labels.Merge(path, config.Labels)
 }
 
-func (l *Loader) updateDatabase(ctx context.Context, path string, config *sourceConfig) error {
+func (l *Loader) updateDatabase(ctx context.Context, configDir string, _ *sourceConfig) error {
 	ctx, cancel := context.WithCancel(ctx)
 
 	l.closersMu.Lock()
-	if l.closers[path] != nil {
-		l.closers[path]()
+	// Use a single key since we now load all merged sources at once
+	if l.closers["_all_"] != nil {
+		l.closers["_all_"]()
 	}
-	l.closers[path] = cancel
+	l.closers["_all_"] = cancel
 	l.closersMu.Unlock()
 
-	records := l.readProviderRecords(ctx, path, config)
+	// Use merged sources from SourceCollection instead of per-file config.
+	// This enables sparse overrides to work: a user can enable a disabled source
+	// with just "id" and "enabled: true", inheriting Type and Properties from the base.
+	records := l.readProviderRecords(ctx, configDir)
 
 	go func() {
 		for record := range records {
@@ -303,16 +326,33 @@ func (l *Loader) updateDatabase(ctx context.Context, path string, config *source
 	return nil
 }
 
-// readProviderRecords calls the provider for every configured source and
-// merges the returned channels together. The returned channel is closed when
-// the last provider channel is closed.
-func (l *Loader) readProviderRecords(ctx context.Context, path string, config *sourceConfig) <-chan ModelProviderRecord {
-	configDir := filepath.Dir(path)
+// readProviderRecords calls the provider for every merged source that hasn't
+// been loaded yet, and merges the returned channels together. The returned
+// channel is closed when the last provider channel is closed.
+func (l *Loader) readProviderRecords(ctx context.Context, configDir string) <-chan ModelProviderRecord {
 
 	ch := make(chan ModelProviderRecord)
 	var wg sync.WaitGroup
 
-	for _, source := range config.Catalogs {
+	// Get all enabled sources from the merged collection.
+	// This allows sparse overrides to work: a user can enable a disabled source
+	// with just "id" and "enabled: true", inheriting Type and Properties from the base.
+	mergedSources := l.Sources.AllSources()
+
+	for _, source := range mergedSources {
+		// Skip sources that have already been loaded
+		if l.loadedSources[source.Id] {
+			continue
+		}
+
+		if source.Type == "" {
+			glog.Errorf("source %s has no type defined, skipping", source.Id)
+			continue
+		}
+
+		// Mark this source as loaded
+		l.loadedSources[source.Id] = true
+
 		glog.Infof("Reading models from %s source %s", source.Type, source.Id)
 
 		registerFunc, ok := registeredModelProviders[source.Type]
