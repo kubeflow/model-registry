@@ -62,7 +62,7 @@ describe('catalogSourceConfigToFormData', () => {
 });
 
 describe('transformFormDataToPayload', () => {
-  it('should tarnsform the form data to payload format', () => {
+  it('should transform the form data to payload format', () => {
     expect(transformFormDataToPayload(yamlFormData)).toEqual(mockYamlCatalogSourceConfig({}));
     expect(transformFormDataToPayload(hfFormData)).toEqual(mockHuggingFaceCatalogSourceConfig({}));
   });

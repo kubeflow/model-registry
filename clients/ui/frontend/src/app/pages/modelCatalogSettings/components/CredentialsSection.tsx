@@ -139,7 +139,7 @@ const CredentialsSection: React.FC<CredentialsSectionProps> = ({ formData, setDa
           title="Validation successful"
           actionClose={<AlertActionCloseButton onClose={() => setIsValidationSuccess(false)} />}
         >
-          Tha organization and accessToken are valid for connection.
+          The organization and accessToken are valid for connection.
         </Alert>
       )}
 
