@@ -30,7 +30,7 @@ const CatalogSourceConfigsTable: React.FC<CatalogSourceConfigsTableProps> = ({
   onDeleteSource,
 }) => {
   const [toggleError, setToggleError] = React.useState<Error | undefined>(undefined);
-  const [isUpdatingToggle, setIsUpdatingToggle] = React.useState(false);
+  const [updatingSourceId, setUpdatingSourceId] = React.useState<string | null>(null);
   const { apiState, refreshCatalogSourceConfigs, catalogSourcesLoadError } = React.useContext(
     ModelCatalogSettingsContext,
   );
@@ -40,7 +40,7 @@ const CatalogSourceConfigsTable: React.FC<CatalogSourceConfigsTableProps> = ({
       setToggleError(new Error('API is not available'));
       return;
     }
-    setIsUpdatingToggle(true);
+    setUpdatingSourceId(catalogSourceConfig.id);
     setToggleError(undefined);
 
     try {
@@ -54,7 +54,7 @@ const CatalogSourceConfigsTable: React.FC<CatalogSourceConfigsTableProps> = ({
         setToggleError(new Error(`Error enabling/disabling source ${catalogSourceConfig.name}`));
       }
     } finally {
-      setIsUpdatingToggle(false);
+      setUpdatingSourceId(null);
     }
   };
 
@@ -113,7 +113,7 @@ const CatalogSourceConfigsTable: React.FC<CatalogSourceConfigsTableProps> = ({
             <CatalogSourceConfigsTableRow
               key={config.id}
               catalogSourceConfig={config}
-              isUpdatingToggle={isUpdatingToggle}
+              updatingSourceId={updatingSourceId}
               onToggleUpdate={handleEnableToggle}
               onDeleteSource={onDeleteSource}
             />
