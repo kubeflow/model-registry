@@ -31,7 +31,7 @@ jobs:
 
     steps:
       - name: "Checkout code"
-        uses: actions/checkout@c2d88d3ecc89a9ef08eebf45d9637801dcee7eb5 # v5.0.0
+        uses: actions/checkout@v6.0.0 # unify for Dependabot bump
         with:
           persist-credentials: false
 
