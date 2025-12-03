@@ -16,11 +16,15 @@ import CatalogSourceStatus from '~/app/pages/modelCatalogSettings/components/Cat
 type CatalogSourceConfigsTableRowProps = {
   catalogSourceConfig: CatalogSourceConfig;
   onDeleteSource: (sourceId: string) => Promise<void>;
+  isUpdatingToggle: boolean;
+  onToggleUpdate: (checked: boolean, sourceConfig: CatalogSourceConfig) => void;
 };
 
 const CatalogSourceConfigsTableRow: React.FC<CatalogSourceConfigsTableRowProps> = ({
   catalogSourceConfig,
   onDeleteSource,
+  isUpdatingToggle,
+  onToggleUpdate,
 }) => {
   const navigate = useNavigate();
   const notification = useNotification();
@@ -37,10 +41,7 @@ const CatalogSourceConfigsTableRow: React.FC<CatalogSourceConfigsTableRowProps> 
   );
 
   const handleEnableToggle = (checked: boolean) => {
-    // TODO: Implement actual enable/disable functionality
-    window.alert(
-      `Toggle clicked! "${catalogSourceConfig.name}" will be ${checked ? 'enabled' : 'disabled'} when functionality is implemented.`,
-    );
+    onToggleUpdate(checked, catalogSourceConfig);
   };
 
   const handleManageSource = () => {
@@ -116,6 +117,7 @@ const CatalogSourceConfigsTableRow: React.FC<CatalogSourceConfigsTableRowProps> 
             id={`enable-toggle-${catalogSourceConfig.id}`}
             aria-label={`Enable ${catalogSourceConfig.name}`}
             isChecked={isEnabled}
+            isDisabled={isUpdatingToggle}
             onChange={(_event, checked) => handleEnableToggle(checked)}
           />
         </Td>

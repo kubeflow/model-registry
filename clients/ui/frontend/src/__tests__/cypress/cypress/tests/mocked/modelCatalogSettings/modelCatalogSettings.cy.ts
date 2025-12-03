@@ -179,22 +179,90 @@ describe('Catalog Source Configs Table', () => {
   });
 
   describe('Enable toggle functionality', () => {
-    it('should show alert when enable toggle is clicked', () => {
+    it('should disable the source when toggle is clicked', () => {
+      cy.intercept('PATCH', '/model-registry/api/v1/settings/model_catalog/source_configs/*', {
+        statusCode: 200,
+        body: {
+          data: mockYamlCatalogSourceConfig({ id: 'source_2', isDefault: false }),
+        },
+      }).as('manageToggle');
       modelCatalogSettings.visit();
       const row = modelCatalogSettings.getRow('HuggingFace Google');
       row.findName().should('be.visible');
       row.findEnableToggle().should('exist').and('be.checked');
 
-      cy.window().then((win) => {
-        cy.stub(win, 'alert').as('windowAlert');
+      row.toggleEnable();
+      cy.wait('@manageToggle').then((interception) => {
+        expect(interception.request.body).to.eql({
+          data: {
+            enabled: false,
+          },
+        });
       });
+    });
+
+    it('should enable the source when toggle is clicked', () => {
+      cy.intercept('PATCH', '/model-registry/api/v1/settings/model_catalog/source_configs/*', {
+        statusCode: 200,
+        body: {
+          data: mockYamlCatalogSourceConfig({ id: 'source_2', isDefault: false }),
+        },
+      }).as('manageToggle');
+      modelCatalogSettings.visit();
+      const row = modelCatalogSettings.getRow('Custom YAML');
+      row.findName().should('be.visible');
+      row.findEnableToggle().should('exist').and('not.be.checked');
 
       row.toggleEnable();
+      cy.wait('@manageToggle').then((interception) => {
+        expect(interception.request.body).to.eql({
+          data: {
+            enabled: true,
+          },
+        });
+      });
+    });
 
-      cy.get('@windowAlert').should(
-        'have.been.calledWith',
-        'Toggle clicked! "HuggingFace Google" will be disabled when functionality is implemented.',
-      );
+    it('should show error, if the patch call to toggle fails', () => {
+      cy.intercept(
+        'PATCH',
+        '/model-registry/api/v1/settings/model_catalog/source_configs/*',
+        (req) => {
+          req.reply({
+            statusCode: 404,
+          });
+        },
+      ).as('manageToggle');
+      modelCatalogSettings.visit();
+      const row = modelCatalogSettings.getRow('Custom YAML');
+      row.findName().should('be.visible');
+      row.findEnableToggle().should('exist').and('not.be.checked');
+
+      row.toggleEnable();
+      modelCatalogSettings.findToggleAlert().should('exist');
+      modelCatalogSettings
+        .findToggleAlert()
+        .should('have.text', 'Danger alert:Error enabling/disabling source Custom YAML');
+    });
+
+    it('should disable the toggle, when the request is processing', () => {
+      cy.intercept(
+        'PATCH',
+        '/model-registry/api/v1/settings/model_catalog/source_configs/*',
+        (req) => {
+          req.reply({
+            statusCode: 200,
+            delay: 1000,
+          });
+        },
+      ).as('manageToggle');
+      modelCatalogSettings.visit();
+      const row = modelCatalogSettings.getRow('Custom YAML');
+      row.findName().should('be.visible');
+      row.findEnableToggle().should('exist').and('not.be.checked');
+
+      row.toggleEnable();
+      row.findEnableToggle().should('be.disabled');
     });
   });
 
