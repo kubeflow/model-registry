@@ -416,6 +416,8 @@ components:
               type: array
               items:
                 $ref: "#/components/schemas/CatalogSource"
+          required:
+            - items
         - $ref: "#/components/schemas/BaseResourceList"
     FilterOption:
       type: object
