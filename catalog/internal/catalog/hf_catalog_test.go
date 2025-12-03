@@ -747,6 +747,69 @@ func TestListModelsByAuthor(t *testing.T) {
 		// "other-model" should be filtered out
 		assert.NotContains(t, models, "search-org/other-model")
 	})
+
+	t.Run("respects maxModels limit", func(t *testing.T) {
+		callCount = 0
+		config := &PreviewConfig{
+			Type: "hf",
+			Properties: map[string]any{
+				"url":       server.URL,
+				"maxModels": 50, // Limit to 50 models
+			},
+		}
+
+		provider, err := NewHFPreviewProvider(config)
+		require.NoError(t, err)
+		assert.Equal(t, 50, provider.maxModels)
+
+		models, err := provider.listModelsByAuthor(context.Background(), "test-org", "")
+		require.NoError(t, err)
+
+		// Should stop at 50 models (first page has 100, but we limit to 50)
+		assert.Len(t, models, 50)
+
+		// Should have only made 1 API call (stopped before second page)
+		assert.Equal(t, 1, callCount)
+	})
+
+	t.Run("uses default maxModels when not specified", func(t *testing.T) {
+		config := &PreviewConfig{
+			Type: "hf",
+			Properties: map[string]any{
+				"url": server.URL,
+			},
+		}
+
+		provider, err := NewHFPreviewProvider(config)
+		require.NoError(t, err)
+
+		// Should use default (500)
+		assert.Equal(t, 500, provider.maxModels)
+	})
+
+	t.Run("maxModels 0 means no limit", func(t *testing.T) {
+		callCount = 0
+		config := &PreviewConfig{
+			Type: "hf",
+			Properties: map[string]any{
+				"url":       server.URL,
+				"maxModels": 0, // No limit
+			},
+		}
+
+		provider, err := NewHFPreviewProvider(config)
+		require.NoError(t, err)
+		assert.Equal(t, 0, provider.maxModels)
+
+		models, err := provider.listModelsByAuthor(context.Background(), "test-org", "")
+		require.NoError(t, err)
+
+		// Should get all 102 models (100 from page 1 + 2 from page 2)
+		assert.Len(t, models, 102)
+
+		// Should have made 2 API calls
+		assert.Equal(t, 2, callCount)
+	})
 }
 
 func TestFetchModelNamesForPreviewWithPatterns(t *testing.T) {

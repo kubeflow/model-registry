@@ -24,6 +24,16 @@ const (
 	defaultAPIKeyEnvVar   = "HF_API_KEY"
 	urlKey                = "url"
 	apiKeyEnvVarKey       = "apiKeyEnvVar"
+	maxModelsKey          = "maxModels"
+
+	// defaultMaxModels is the default limit for models fetched PER PATTERN.
+	// This limit is applied independently to each pattern in includedModels
+	// (e.g., "ibm-granite/*", "meta-llama/*") to prevent overloading the
+	// HuggingFace API with too many requests and to respect rate limiting.
+	//
+	// Example: with maxModels=100 and 3 patterns, up to 300 models total may be fetched.
+	// Set to 0 to disable the limit (not recommended for large organizations).
+	defaultMaxModels = 500
 )
 
 // gatedString is a custom type that can unmarshal both boolean and string values from JSON
@@ -71,6 +81,10 @@ type hfModelProvider struct {
 	baseURL        string
 	includedModels []string
 	filter         *ModelFilter
+	// maxModels limits how many models to fetch PER PATTERN (e.g., per "org/*").
+	// This is applied independently to each pattern to respect HuggingFace API rate limits.
+	// A value of 0 means no limit.
+	maxModels int
 }
 
 // hfModelInfo represents the structure of HuggingFace API model information
@@ -665,8 +679,9 @@ func init() {
 // It initializes the provider from a PreviewConfig without starting the full model loading.
 func NewHFPreviewProvider(config *PreviewConfig) (*hfModelProvider, error) {
 	p := &hfModelProvider{
-		client:  &http.Client{Timeout: 30 * time.Second},
-		baseURL: defaultHuggingFaceURL,
+		client:    &http.Client{Timeout: 30 * time.Second},
+		baseURL:   defaultHuggingFaceURL,
+		maxModels: defaultMaxModels,
 	}
 
 	// Parse API key from environment variable
@@ -683,6 +698,21 @@ func NewHFPreviewProvider(config *PreviewConfig) (*hfModelProvider, error) {
 	// Parse base URL (optional, defaults to huggingface.co)
 	if url, ok := config.Properties[urlKey].(string); ok && url != "" {
 		p.baseURL = strings.TrimSuffix(url, "/")
+	}
+
+	// Parse maxModels limit (optional, defaults to 500)
+	// This limit is applied PER PATTERN (e.g., each "org/*" pattern gets its own limit)
+	// to prevent overloading the HuggingFace API and respect rate limiting.
+	// Set to 0 to disable the limit.
+	if maxModels, ok := config.Properties[maxModelsKey]; ok {
+		switch v := maxModels.(type) {
+		case int:
+			p.maxModels = v
+		case int64:
+			p.maxModels = int(v)
+		case float64:
+			p.maxModels = int(v)
+		}
 	}
 
 	return p, nil
@@ -767,6 +797,13 @@ func (p *hfModelProvider) listModelsByAuthor(ctx context.Context, author string,
 		default:
 		}
 
+		// Check if we've reached the maxModels limit for this pattern
+		// (maxModels is applied per-pattern to respect HF API rate limits)
+		if p.maxModels > 0 && len(allModels) >= p.maxModels {
+			glog.Warningf("Reached maxModels limit (%d) for pattern author=%s, stopping pagination", p.maxModels, author)
+			break
+		}
+
 		// Build API URL
 		apiURL := fmt.Sprintf("%s/api/models?author=%s&limit=%d", p.baseURL, author, limit)
 		if searchPrefix != "" {
@@ -808,6 +845,11 @@ func (p *hfModelProvider) listModelsByAuthor(ctx context.Context, author string,
 
 		// Extract model IDs
 		for _, m := range models {
+			// Check limit before adding each model
+			if p.maxModels > 0 && len(allModels) >= p.maxModels {
+				break
+			}
+
 			modelID := m.ID
 			if modelID == "" {
 				modelID = m.ModelID
@@ -842,7 +884,7 @@ func (p *hfModelProvider) listModelsByAuthor(ctx context.Context, author string,
 		cursor = nextCursor
 	}
 
-	glog.Infof("Listed %d models from author %s", len(allModels), author)
+	glog.Infof("Listed %d models from author %s (maxModels: %d)", len(allModels), author, p.maxModels)
 	return allModels, nil
 }
 
