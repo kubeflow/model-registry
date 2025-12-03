@@ -73,10 +73,28 @@ func loadModelNamesFromSource(ctx context.Context, config *PreviewConfig, catalo
 	case "yaml":
 		return loadYamlModelNames(ctx, config, catalogDataBytes)
 	case "hf", "huggingface":
-		return nil, fmt.Errorf("HuggingFace source preview is not yet supported")
+		return loadHFModelNames(ctx, config)
 	default:
 		return nil, fmt.Errorf("unsupported source type: %s", config.Type)
 	}
+}
+
+// loadHFModelNames fetches model names from the HuggingFace API for preview.
+// For HF sources, includedModels specifies which models to fetch from HuggingFace.
+// This function calls the HF API to validate models exist and get their actual names.
+func loadHFModelNames(ctx context.Context, config *PreviewConfig) ([]string, error) {
+	if len(config.IncludedModels) == 0 {
+		return nil, fmt.Errorf("includedModels is required for HuggingFace source preview (specifies which models to fetch from HuggingFace)")
+	}
+
+	// Create HF preview provider (reuses hfModelProvider from hf_catalog.go)
+	provider, err := NewHFPreviewProvider(config)
+	if err != nil {
+		return nil, err
+	}
+
+	// Fetch model names from HuggingFace API
+	return provider.FetchModelNamesForPreview(ctx, config.IncludedModels)
 }
 
 // loadYamlModelNames loads model names from a YAML catalog.

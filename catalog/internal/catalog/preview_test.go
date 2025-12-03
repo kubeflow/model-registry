@@ -281,13 +281,13 @@ models:
 			errorMsg:    "unsupported source type",
 		},
 		{
-			name: "huggingface not yet supported",
+			name: "huggingface requires includedModels",
 			config: &PreviewConfig{
 				Type:       "hf",
 				Properties: map[string]any{},
 			},
 			expectError: true,
-			errorMsg:    "not yet supported",
+			errorMsg:    "includedModels is required for HuggingFace source preview",
 		},
 		{
 			name: "missing yamlCatalogPath property",
@@ -534,6 +534,45 @@ models:
 		_, err := PreviewSourceModels(context.Background(), config, invalidData)
 		require.Error(t, err)
 		assert.Contains(t, err.Error(), "failed to parse catalog file")
+	})
+}
+
+// Note: HuggingFace preview tests that require API calls are in hf_preview_test.go
+// with proper mock HTTP servers. The tests below only test error conditions that
+// don't require API calls.
+
+func TestPreviewSourceModels_HuggingFace_Errors(t *testing.T) {
+	t.Run("hf preview with empty includedModels returns error", func(t *testing.T) {
+		config := &PreviewConfig{
+			Type:           "hf",
+			IncludedModels: []string{},
+		}
+
+		_, err := PreviewSourceModels(context.Background(), config, nil)
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "includedModels is required")
+	})
+
+	t.Run("hf preview without API key returns error", func(t *testing.T) {
+		// Ensure HF_API_KEY is not set
+		oldKey := os.Getenv("HF_API_KEY")
+		os.Unsetenv("HF_API_KEY")
+		defer func() {
+			if oldKey != "" {
+				os.Setenv("HF_API_KEY", oldKey)
+			}
+		}()
+
+		config := &PreviewConfig{
+			Type: "hf",
+			IncludedModels: []string{
+				"meta-llama/Llama-2-7b-chat",
+			},
+		}
+
+		_, err := PreviewSourceModels(context.Background(), config, nil)
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "HF_API_KEY")
 	})
 }
 
