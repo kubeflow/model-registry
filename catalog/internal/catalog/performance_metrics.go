@@ -23,6 +23,9 @@ import (
 type metadataJSON struct {
 	ID              string   `json:"id"`               // Maps to model name for lookup
 	OverallAccuracy *float64 `json:"overall_accuracy"` // Overall accuracy score for the model
+	Size            *string  `json:"size"`             // Model parameter count (e.g., "8B params")
+	TensorType      *string  `json:"tensor_type"`      // Data precision (e.g., "FP16", "INT4")
+	VariantGroupID  *string  `json:"variant_group_id"` // UUID linking model variants together
 }
 
 // parseMetadataJSON parses JSON data into metadataJSON struct, extracting only the ID field
@@ -293,6 +296,12 @@ func processModelDirectory(dirPath string, modelRepo dbmodels.CatalogModelReposi
 	if existingModel == nil {
 		glog.V(2).Infof("Model %s does not exist in database, skipping metrics processing", metadata.ID)
 		return 0, nil
+	}
+
+	// Enrich the model with metadata before processing metrics artifacts
+	if err := enrichCatalogModelFromMetadata(existingModel, metadata, modelRepo); err != nil {
+		glog.Warningf("Failed to enrich model %s with metadata: %v", metadata.ID, err)
+		// Continue processing - don't fail the whole operation
 	}
 
 	modelID := *existingModel.GetID()
@@ -628,4 +637,55 @@ func createPerformanceArtifact(perfRecord performanceRecord, modelID int32, type
 	}
 
 	return metricsArtifact
+}
+
+// enrichCatalogModelFromMetadata updates CatalogModel with additional fields from metadata.json
+func enrichCatalogModelFromMetadata(existingModel dbmodels.CatalogModel, metadata metadataJSON, modelRepo dbmodels.CatalogModelRepository) error {
+	// Build custom properties to add/update
+	var customProperties []models.Properties
+
+	if metadata.Size != nil && *metadata.Size != "" {
+		customProperties = append(customProperties, models.Properties{
+			Name:             "size",
+			StringValue:      metadata.Size,
+			IsCustomProperty: true,
+		})
+	}
+
+	if metadata.TensorType != nil && *metadata.TensorType != "" {
+		customProperties = append(customProperties, models.Properties{
+			Name:             "tensor_type",
+			StringValue:      metadata.TensorType,
+			IsCustomProperty: true,
+		})
+	}
+
+	if metadata.VariantGroupID != nil && *metadata.VariantGroupID != "" {
+		customProperties = append(customProperties, models.Properties{
+			Name:             "variant_group_id",
+			StringValue:      metadata.VariantGroupID,
+			IsCustomProperty: true,
+		})
+	}
+
+	if len(customProperties) == 0 {
+		return nil // Nothing to update
+	}
+
+	// Add the new custom properties to existing model
+	existingCustomProperties := existingModel.GetCustomProperties()
+	if existingCustomProperties == nil {
+		existingCustomProperties = &customProperties
+	} else {
+		*existingCustomProperties = append(*existingCustomProperties, customProperties...)
+	}
+
+	// Save the updated model
+	_, err := modelRepo.Save(existingModel)
+	if err != nil {
+		return fmt.Errorf("failed to save enriched model: %v", err)
+	}
+
+	glog.V(2).Infof("Enriched model %s with %d custom properties", *existingModel.GetAttributes().Name, len(customProperties))
+	return nil
 }
