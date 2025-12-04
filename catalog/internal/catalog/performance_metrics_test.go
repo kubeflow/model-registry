@@ -1145,20 +1145,7 @@ func TestMetadataJSONEdgeCases(t *testing.T) {
 				"tensor_type": true,
 				"variant_group_id": 456.789
 			}`,
-			wantErr: false,
-			validate: func(t *testing.T, m metadataJSON) {
-				// JSON unmarshaling should handle type mismatches gracefully
-				// Numbers and booleans will become nil for string pointers
-				if m.Size != nil {
-					t.Errorf("Size should be nil for type mismatch, got %v", m.Size)
-				}
-				if m.TensorType != nil {
-					t.Errorf("TensorType should be nil for type mismatch, got %v", m.TensorType)
-				}
-				if m.VariantGroupID != nil {
-					t.Errorf("VariantGroupID should be nil for type mismatch, got %v", m.VariantGroupID)
-				}
-			},
+			wantErr: true,
 		},
 		{
 			name: "metadata with nested objects in new fields (should be handled gracefully)",
@@ -1168,19 +1155,7 @@ func TestMetadataJSONEdgeCases(t *testing.T) {
 				"tensor_type": ["FP16", "INT4"],
 				"variant_group_id": {"id": "abc123"}
 			}`,
-			wantErr: false,
-			validate: func(t *testing.T, m metadataJSON) {
-				// Complex types should be ignored for string fields
-				if m.Size != nil {
-					t.Errorf("Size should be nil for complex type, got %v", m.Size)
-				}
-				if m.TensorType != nil {
-					t.Errorf("TensorType should be nil for complex type, got %v", m.TensorType)
-				}
-				if m.VariantGroupID != nil {
-					t.Errorf("VariantGroupID should be nil for complex type, got %v", m.VariantGroupID)
-				}
-			},
+			wantErr: true,
 		},
 	}
 
