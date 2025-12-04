@@ -1,4 +1,6 @@
 import {
+  Alert,
+  AlertActionCloseButton,
   Button,
   Flex,
   Stack,
@@ -11,13 +13,18 @@ import {
 } from '@patternfly/react-core';
 import { ArrowRightIcon, FilterIcon } from '@patternfly/react-icons';
 import React from 'react';
+import { useLocation } from 'react-router-dom';
 import { useThemeContext } from 'mod-arch-kubeflow';
 import { ModelCatalogStringFilterKey } from '~/concepts/modelCatalog/const';
 import { ModelCatalogFilterKey } from '~/app/modelCatalogTypes';
 import ModelCatalogActiveFilters from '~/app/pages/modelCatalog/components/ModelCatalogActiveFilters';
 import ThemeAwareSearchInput from '~/app/pages/modelRegistry/screens/components/ThemeAwareSearchInput';
 import { ModelCatalogContext } from '~/app/context/modelCatalog/ModelCatalogContext';
-import { hasFiltersApplied } from '~/app/pages/modelCatalog/utils/modelCatalogUtils';
+import {
+  hasFiltersApplied,
+  deepEqual,
+  isModelDetailsPage,
+} from '~/app/pages/modelCatalog/utils/modelCatalogUtils';
 import ModelCatalogSourceLabelBlocks from './ModelCatalogSourceLabelBlocks';
 
 type ModelCatalogSourceLabelSelectorProps = {
@@ -34,13 +41,76 @@ const ModelCatalogSourceLabelSelector: React.FC<ModelCatalogSourceLabelSelectorP
   onResetAllFilters,
 }) => {
   const [inputValue, setInputValue] = React.useState(searchTerm || '');
+  const [alertDismissed, setAlertDismissed] = React.useState(false);
   const { isMUITheme } = useThemeContext();
-  const { filterData } = React.useContext(ModelCatalogContext);
+  const location = useLocation();
+  const {
+    filterData,
+    performanceViewEnabled,
+    performanceFiltersChangedOnDetailsPage,
+    setPerformanceFiltersChangedOnDetailsPage,
+  } = React.useContext(ModelCatalogContext);
   const filtersApplied = React.useMemo(() => hasFiltersApplied(filterData), [filterData]);
   const hasActiveFilters = React.useMemo(
     () => filtersApplied || (searchTerm && searchTerm.trim().length > 0),
     [filtersApplied, searchTerm],
   );
+
+  const isOnCatalogPage = React.useMemo(
+    () => !isModelDetailsPage(location.pathname),
+    [location.pathname],
+  );
+
+  const prevFilterDataRef = React.useRef(filterData);
+  const prevIsOnCatalogPageRef = React.useRef(isOnCatalogPage);
+
+  const shouldShowAlert = React.useMemo(
+    () =>
+      isOnCatalogPage &&
+      performanceViewEnabled &&
+      !alertDismissed &&
+      performanceFiltersChangedOnDetailsPage,
+    [
+      isOnCatalogPage,
+      performanceViewEnabled,
+      alertDismissed,
+      performanceFiltersChangedOnDetailsPage,
+    ],
+  );
+
+  React.useEffect(() => {
+    if (!performanceViewEnabled) {
+      setAlertDismissed(true);
+      setPerformanceFiltersChangedOnDetailsPage(false);
+    }
+  }, [performanceViewEnabled, setPerformanceFiltersChangedOnDetailsPage]);
+
+  React.useEffect(() => {
+    const prevFilters = prevFilterDataRef.current;
+    const filtersChanged = !deepEqual(prevFilters, filterData);
+
+    if (filtersChanged && isOnCatalogPage) {
+      setAlertDismissed(true);
+      setPerformanceFiltersChangedOnDetailsPage(false);
+    }
+
+    prevFilterDataRef.current = filterData;
+  }, [filterData, isOnCatalogPage, setPerformanceFiltersChangedOnDetailsPage]);
+
+  React.useEffect(() => {
+    const wasOnDetailsPage = !prevIsOnCatalogPageRef.current;
+    const isNowOnCatalogPage = isOnCatalogPage;
+
+    if (wasOnDetailsPage && isNowOnCatalogPage) {
+      if (performanceFiltersChangedOnDetailsPage) {
+        setAlertDismissed(false);
+      } else {
+        setAlertDismissed(true);
+      }
+    }
+
+    prevIsOnCatalogPageRef.current = isOnCatalogPage;
+  }, [location.pathname, isOnCatalogPage, performanceFiltersChangedOnDetailsPage]);
 
   const handleClearAllFilters = React.useCallback(() => {
     if (hasActiveFilters && onResetAllFilters) {
@@ -83,11 +153,10 @@ const ModelCatalogSourceLabelSelector: React.FC<ModelCatalogSourceLabelSelectorP
   ];
 
   return (
-    <Stack>
+    <Stack hasGutter>
       <StackItem>
         <Toolbar
           key={`toolbar-${hasActiveFilters}`}
-          className="pf-v6-u-pb-0"
           {...(onResetAllFilters
             ? {
                 clearAllFilters: handleClearAllFilters,
@@ -140,6 +209,24 @@ const ModelCatalogSourceLabelSelector: React.FC<ModelCatalogSourceLabelSelectorP
       <StackItem>
         <ModelCatalogSourceLabelBlocks />
       </StackItem>
+      {shouldShowAlert && (
+        <StackItem style={{ paddingBottom: 'var(--pf-v6-global--spacer--lg)' }}>
+          <Alert
+            variant="info"
+            isInline
+            title="The results list has been updated to match the latest performance criteria set on the details page."
+            actionClose={
+              <AlertActionCloseButton
+                onClose={() => {
+                  setAlertDismissed(true);
+                  setPerformanceFiltersChangedOnDetailsPage(false);
+                }}
+              />
+            }
+            data-testid="performance-filters-updated-alert"
+          />
+        </StackItem>
+      )}
     </Stack>
   );
 };
