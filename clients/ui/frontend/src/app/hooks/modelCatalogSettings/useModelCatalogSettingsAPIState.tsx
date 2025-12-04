@@ -6,6 +6,7 @@ import {
   getCatalogSourceConfig,
   getCatalogSourceConfigs,
   updateCatalogSourceConfig,
+  previewCatalogSource,
 } from '~/app/api/modelCatalogSettings/service';
 import { ModelCatalogSettingsAPIs } from '~/app/modelCatalogTypes';
 
@@ -22,6 +23,7 @@ const useModelCatalogSettingsAPIState = (
       getCatalogSourceConfig: getCatalogSourceConfig(path, queryParameters),
       updateCatalogSourceConfig: updateCatalogSourceConfig(path, queryParameters),
       deleteCatalogSourceConfig: deleteCatalogSourceConfig(path, queryParameters),
+      previewCatalogSource: previewCatalogSource(path, queryParameters),
     }),
     [queryParameters],
   );

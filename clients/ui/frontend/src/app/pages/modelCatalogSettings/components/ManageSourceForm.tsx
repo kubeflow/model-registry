@@ -20,7 +20,11 @@ import {
 import { FORM_LABELS, DESCRIPTIONS } from '~/app/pages/modelCatalogSettings/constants';
 import { ModelCatalogSettingsContext } from '~/app/context/modelCatalogSettings/ModelCatalogSettingsContext';
 import { transformFormDataToPayload } from '~/app/pages/modelCatalogSettings/utils/modelCatalogSettingsUtils';
-import { CatalogSourceType } from '~/app/modelCatalogTypes';
+import {
+  CatalogSourceType,
+  CatalogSourcePreviewResult,
+  CatalogSourcePreviewRequest,
+} from '~/app/modelCatalogTypes';
 import SourceDetailsSection from './SourceDetailsSection';
 import CredentialsSection from './CredentialsSection';
 import YamlSection from './YamlSection';
@@ -40,9 +44,107 @@ const ManageSourceForm: React.FC<ManageSourceFormProps> = ({ existingData, isEdi
   const [submitError, setSubmitError] = React.useState<Error | undefined>(undefined);
   const { apiState, refreshCatalogSourceConfigs } = React.useContext(ModelCatalogSettingsContext);
 
+  // Preview state
+  const [isPreviewLoading, setIsPreviewLoading] = React.useState(false);
+  const [previewResult, setPreviewResult] = React.useState<CatalogSourcePreviewResult | undefined>(
+    undefined,
+  );
+  const [previewError, setPreviewError] = React.useState<Error | undefined>(undefined);
+  const [hasFormChanged, setHasFormChanged] = React.useState(false);
+  const [lastPreviewedData, setLastPreviewedData] = React.useState<string>('');
+  const [isValidateTriggered, setIsValidateTriggered] = React.useState(false);
+
+  // Validation state (for HF credentials)
+  const [validationError, setValidationError] = React.useState<Error | undefined>(undefined);
+  const [isValidationSuccess, setIsValidationSuccess] = React.useState(false);
+
   const isHuggingFaceMode = formData.sourceType === CatalogSourceType.HUGGING_FACE;
   const isFormComplete = isFormValid(formData);
   const canPreview = isPreviewReady(formData);
+
+  // Track form changes to show outdated preview alert
+  React.useEffect(() => {
+    const currentData = JSON.stringify(formData);
+    if (lastPreviewedData && currentData !== lastPreviewedData) {
+      setHasFormChanged(true);
+    }
+  }, [formData, lastPreviewedData]);
+
+  // Auto-trigger preview on mount in edit mode
+  React.useEffect(() => {
+    if (isEditMode && existingData && canPreview && !previewResult) {
+      handlePreview();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const buildPreviewRequest = (): CatalogSourcePreviewRequest => {
+    const payload = transformFormDataToPayload(formData);
+
+    const request: CatalogSourcePreviewRequest = {
+      type: payload.type,
+      includedModels: payload.includedModels,
+      excludedModels: payload.excludedModels,
+    };
+
+    if (payload.type === CatalogSourceType.HUGGING_FACE) {
+      request.properties = {
+        allowedOrganization: payload.allowedOrganization,
+        apiKey: payload.apiKey,
+      };
+    } else {
+      request.properties = {
+        yaml: payload.yaml,
+      };
+    }
+
+    return request;
+  };
+
+  const handlePreview = async () => {
+    if (!apiState.apiAvailable) {
+      setPreviewError(new Error('API is not available'));
+      return;
+    }
+
+    setIsPreviewLoading(true);
+    setPreviewError(undefined);
+    setHasFormChanged(false);
+
+    try {
+      const previewRequest = buildPreviewRequest();
+      const result = await apiState.api.previewCatalogSource({}, previewRequest);
+
+      setPreviewResult(result);
+      setLastPreviewedData(JSON.stringify(formData));
+
+      // If this was triggered by validate button, show success
+      if (isValidateTriggered) {
+        setValidationError(undefined);
+        setIsValidationSuccess(true);
+        setIsValidateTriggered(false);
+      }
+    } catch (error) {
+      const err = error instanceof Error ? error : new Error('Failed to preview source');
+
+      // If triggered by validate button, show error in credentials section
+      if (isValidateTriggered) {
+        setValidationError(err);
+        setIsValidationSuccess(false);
+        setIsValidateTriggered(false);
+      } else {
+        // Otherwise show error in preview panel
+        setPreviewError(err);
+      }
+    } finally {
+      setIsPreviewLoading(false);
+    }
+  };
+
+  const handleValidate = async () => {
+    setIsValidateTriggered(true);
+    await handlePreview();
+  };
 
   const handleSubmit = async () => {
     if (!apiState.apiAvailable) {
@@ -70,10 +172,6 @@ const ManageSourceForm: React.FC<ManageSourceFormProps> = ({ existingData, isEdi
     }
   };
 
-  const handlePreview = () => {
-    // TODO: Implement preview logic (will be part of API integration)
-  };
-
   const handleCancel = () => {
     navigate(catalogSettingsUrl());
   };
@@ -94,7 +192,15 @@ const ManageSourceForm: React.FC<ManageSourceFormProps> = ({ existingData, isEdi
 
               {isHuggingFaceMode && (
                 <StackItem>
-                  <CredentialsSection formData={formData} setData={setData} />
+                  <CredentialsSection
+                    formData={formData}
+                    setData={setData}
+                    onValidate={handleValidate}
+                    isValidating={isPreviewLoading && isValidateTriggered}
+                    validationError={validationError}
+                    isValidationSuccess={isValidationSuccess}
+                    onClearValidationSuccess={() => setIsValidationSuccess(false)}
+                  />
                 </StackItem>
               )}
 
@@ -139,7 +245,14 @@ const ManageSourceForm: React.FC<ManageSourceFormProps> = ({ existingData, isEdi
           </Form>
         </SidebarContent>
         <SidebarPanel width={{ default: 'width_50' }}>
-          <PreviewPanel isPreviewEnabled={canPreview} onPreview={handlePreview} />
+          <PreviewPanel
+            isPreviewEnabled={canPreview}
+            isLoading={isPreviewLoading}
+            onPreview={handlePreview}
+            previewResult={previewResult}
+            previewError={previewError}
+            hasFormChanged={hasFormChanged}
+          />
         </SidebarPanel>
       </Sidebar>
       <ManageSourceFormFooter
@@ -150,6 +263,7 @@ const ManageSourceForm: React.FC<ManageSourceFormProps> = ({ existingData, isEdi
         onSubmit={handleSubmit}
         onCancel={handleCancel}
         isPreviewDisabled={!canPreview}
+        isPreviewLoading={isPreviewLoading}
         onPreview={handlePreview}
       />
     </>
