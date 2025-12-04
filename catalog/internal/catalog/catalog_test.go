@@ -354,7 +354,14 @@ func TestLoadCatalogSourcesWithMockRepositories(t *testing.T) {
 	l := NewLoader(services, []string{})
 	ctx := context.Background()
 
-	err := l.updateDatabase(ctx, "test-path", testConfig)
+	// First call updateSources to populate the SourceCollection
+	// (updateDatabase now uses merged sources from the collection)
+	err := l.updateSources("test-path", testConfig)
+	if err != nil {
+		t.Fatalf("updateSources() error = %v", err)
+	}
+
+	err = l.updateDatabase(ctx)
 	if err != nil {
 		t.Fatalf("updateDatabase() error = %v", err)
 	}
@@ -440,9 +447,15 @@ func TestLoadCatalogSourcesWithRepositoryErrors(t *testing.T) {
 	l := NewLoader(services, []string{})
 	ctx := context.Background()
 
+	// First call updateSources to populate the SourceCollection
+	err := l.updateSources("test-path", testConfig)
+	if err != nil {
+		t.Fatalf("updateSources() error = %v", err)
+	}
+
 	// This should not return an error even if repository operations fail
 	// (errors are logged but don't stop the loading process)
-	err := l.updateDatabase(ctx, "test-path", testConfig)
+	err = l.updateDatabase(ctx)
 	if err != nil {
 		t.Fatalf("updateDatabase() should not fail even with repository errors, got error = %v", err)
 	}

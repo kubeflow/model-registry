@@ -11,36 +11,47 @@ import (
 
 func TestSourceCollection_ByLabel(t *testing.T) {
 	// Create test sources with various labels
-	sources := map[string]model.CatalogSource{
+	// Note: source3 is disabled and should not appear in results
+	sources := map[string]Source{
 		"source1": {
-			Id:      "source1",
-			Name:    "Source 1",
-			Enabled: apiutils.Of(true),
-			Labels:  []string{"frontend", "production"},
+			CatalogSource: model.CatalogSource{
+				Id:      "source1",
+				Name:    "Source 1",
+				Enabled: apiutils.Of(true),
+				Labels:  []string{"frontend", "production"},
+			},
 		},
 		"source2": {
-			Id:      "source2",
-			Name:    "Source 2",
-			Enabled: apiutils.Of(true),
-			Labels:  []string{"Backend", "Development"}, // Mixed case to test case insensitivity
+			CatalogSource: model.CatalogSource{
+				Id:      "source2",
+				Name:    "Source 2",
+				Enabled: apiutils.Of(true),
+				Labels:  []string{"Backend", "Development"}, // Mixed case to test case insensitivity
+			},
 		},
 		"source3": {
-			Id:      "source3",
-			Name:    "Source 3",
-			Enabled: apiutils.Of(false),
-			Labels:  []string{"analytics", "PRODUCTION"}, // Mixed case
+			CatalogSource: model.CatalogSource{
+				Id:      "source3",
+				Name:    "Source 3",
+				Enabled: apiutils.Of(false),                  // Disabled - should not appear in results
+				Labels:  []string{"analytics", "PRODUCTION"}, // Mixed case
+			},
 		},
 		"source4": {
-			Id:      "source4",
-			Name:    "Source 4",
-			Enabled: apiutils.Of(true),
-			Labels:  []string{"testing", "staging"},
+			CatalogSource: model.CatalogSource{
+				Id:      "source4",
+				Name:    "Source 4",
+				Enabled: apiutils.Of(true),
+				Labels:  []string{"testing", "staging", "analytics"}, // Added analytics to test this label with enabled source
+			},
 		},
 		"source5": {
-			Id:      "source5",
-			Name:    "Source 5",
-			Enabled: apiutils.Of(true),
-			Labels:  []string{}, // No labels
+			CatalogSource: model.CatalogSource{
+				Id:      "source5",
+				Name:    "Source 5",
+				Enabled: apiutils.Of(true),
+				Labels:  []string{}, // No labels
+			},
 		},
 	}
 
@@ -70,9 +81,9 @@ func TestSourceCollection_ByLabel(t *testing.T) {
 			expectedSources: []string{"source1", "source2"},
 		},
 		{
-			name:            "production label case insensitive",
+			name:            "production label case insensitive - disabled source excluded",
 			labels:          []string{"production"},
-			expectedSources: []string{"source1", "source3"},
+			expectedSources: []string{"source1"}, // source3 is disabled
 		},
 		{
 			name:            "no matching labels",
@@ -85,9 +96,9 @@ func TestSourceCollection_ByLabel(t *testing.T) {
 			expectedSources: nil,
 		},
 		{
-			name:            "multiple different labels",
+			name:            "multiple different labels - disabled source excluded",
 			labels:          []string{"analytics", "testing"},
-			expectedSources: []string{"source3", "source4"},
+			expectedSources: []string{"source4"}, // source3 is disabled, source4 has both labels
 		},
 	}
 
@@ -170,12 +181,14 @@ func TestSourceCollection_ByLabel_NilLabels(t *testing.T) {
 	sc := NewSourceCollection()
 
 	// Add a source with nil labels (edge case)
-	sources := map[string]model.CatalogSource{
+	sources := map[string]Source{
 		"source1": {
-			Id:      "source1",
-			Name:    "Source 1",
-			Enabled: apiutils.Of(true),
-			Labels:  nil, // nil labels
+			CatalogSource: model.CatalogSource{
+				Id:      "source1",
+				Name:    "Source 1",
+				Enabled: apiutils.Of(true),
+				Labels:  nil, // nil labels
+			},
 		},
 	}
 
@@ -211,32 +224,820 @@ func TestSourceCollection_ByLabel_NilLabels(t *testing.T) {
 	}
 }
 
+func TestSourceCollection_MergeOverride(t *testing.T) {
+	tests := []struct {
+		name          string
+		originOrder   []string
+		mergeSequence []struct {
+			origin  string
+			sources map[string]Source
+		}
+		expectedSources map[string]model.CatalogSource
+	}{
+		{
+			name:        "later origin overrides earlier origin",
+			originOrder: []string{"default.yaml", "user.yaml"},
+			mergeSequence: []struct {
+				origin  string
+				sources map[string]Source
+			}{
+				{
+					origin: "default.yaml",
+					sources: map[string]Source{
+						"hf": {CatalogSource: model.CatalogSource{
+							Id:             "hf",
+							Name:           "Hugging Face",
+							Enabled:        apiutils.Of(true),
+							Labels:         []string{"default"},
+							ExcludedModels: []string{"model-a"},
+						}},
+					},
+				},
+				{
+					origin: "user.yaml",
+					sources: map[string]Source{
+						"hf": {CatalogSource: model.CatalogSource{
+							Id:             "hf",
+							Name:           "Hugging Face Custom",
+							Enabled:        apiutils.Of(true),
+							Labels:         []string{"custom"},
+							ExcludedModels: []string{"model-a", "DeepSeek"},
+						}},
+					},
+				},
+			},
+			expectedSources: map[string]model.CatalogSource{
+				"hf": {
+					Id:             "hf",
+					Name:           "Hugging Face Custom",
+					Enabled:        apiutils.Of(true),
+					Labels:         []string{"custom"},
+					ExcludedModels: []string{"model-a", "DeepSeek"},
+				},
+			},
+		},
+		{
+			name:        "source from single origin behaves as before",
+			originOrder: []string{"default.yaml", "user.yaml"},
+			mergeSequence: []struct {
+				origin  string
+				sources map[string]Source
+			}{
+				{
+					origin: "default.yaml",
+					sources: map[string]Source{
+						"hf": {CatalogSource: model.CatalogSource{
+							Id:      "hf",
+							Name:    "Hugging Face",
+							Enabled: apiutils.Of(true),
+							Labels:  []string{"default"},
+						}},
+					},
+				},
+				{
+					origin:  "user.yaml",
+					sources: map[string]Source{},
+				},
+			},
+			expectedSources: map[string]model.CatalogSource{
+				"hf": {
+					Id:      "hf",
+					Name:    "Hugging Face",
+					Enabled: apiutils.Of(true),
+					Labels:  []string{"default"},
+				},
+			},
+		},
+		{
+			name:        "multiple sources with partial override",
+			originOrder: []string{"default.yaml", "user.yaml"},
+			mergeSequence: []struct {
+				origin  string
+				sources map[string]Source
+			}{
+				{
+					origin: "default.yaml",
+					sources: map[string]Source{
+						"hf": {CatalogSource: model.CatalogSource{
+							Id:      "hf",
+							Name:    "Hugging Face",
+							Enabled: apiutils.Of(true),
+							Labels:  []string{},
+						}},
+						"local": {CatalogSource: model.CatalogSource{
+							Id:      "local",
+							Name:    "Local Files",
+							Enabled: apiutils.Of(true),
+							Labels:  []string{},
+						}},
+					},
+				},
+				{
+					origin: "user.yaml",
+					sources: map[string]Source{
+						"hf": {CatalogSource: model.CatalogSource{
+							Id:             "hf",
+							Name:           "Hugging Face",
+							Enabled:        apiutils.Of(true),
+							Labels:         []string{},
+							ExcludedModels: []string{"DeepSeek"},
+						}},
+					},
+				},
+			},
+			expectedSources: map[string]model.CatalogSource{
+				"hf": {
+					Id:             "hf",
+					Name:           "Hugging Face",
+					Enabled:        apiutils.Of(true),
+					Labels:         []string{},
+					ExcludedModels: []string{"DeepSeek"},
+				},
+				"local": {
+					Id:      "local",
+					Name:    "Local Files",
+					Enabled: apiutils.Of(true),
+					Labels:  []string{},
+				},
+			},
+		},
+		{
+			name:        "three origins with cascading override",
+			originOrder: []string{"base.yaml", "team.yaml", "user.yaml"},
+			mergeSequence: []struct {
+				origin  string
+				sources map[string]Source
+			}{
+				{
+					origin: "base.yaml",
+					sources: map[string]Source{
+						"hf": {CatalogSource: model.CatalogSource{
+							Id:      "hf",
+							Name:    "Base HF",
+							Enabled: apiutils.Of(true),
+							Labels:  []string{"base"},
+						}},
+					},
+				},
+				{
+					origin: "team.yaml",
+					sources: map[string]Source{
+						"hf": {CatalogSource: model.CatalogSource{
+							Id:      "hf",
+							Name:    "Team HF",
+							Enabled: apiutils.Of(true),
+							Labels:  []string{"team"},
+						}},
+					},
+				},
+				{
+					origin: "user.yaml",
+					sources: map[string]Source{
+						"hf": {CatalogSource: model.CatalogSource{
+							Id:      "hf",
+							Name:    "User HF",
+							Enabled: apiutils.Of(true),
+							Labels:  []string{"user"},
+						}},
+					},
+				},
+			},
+			expectedSources: map[string]model.CatalogSource{
+				"hf": {
+					Id:      "hf",
+					Name:    "User HF",
+					Enabled: apiutils.Of(true),
+					Labels:  []string{"user"},
+				},
+			},
+		},
+		{
+			name:        "user can disable a source from default - disabled sources not returned",
+			originOrder: []string{"default.yaml", "user.yaml"},
+			mergeSequence: []struct {
+				origin  string
+				sources map[string]Source
+			}{
+				{
+					origin: "default.yaml",
+					sources: map[string]Source{
+						"hf": {CatalogSource: model.CatalogSource{
+							Id:      "hf",
+							Name:    "Hugging Face",
+							Enabled: apiutils.Of(true),
+							Labels:  []string{},
+						}},
+					},
+				},
+				{
+					origin: "user.yaml",
+					sources: map[string]Source{
+						"hf": {CatalogSource: model.CatalogSource{
+							Id:      "hf",
+							Name:    "Hugging Face",
+							Enabled: apiutils.Of(false),
+							Labels:  []string{},
+						}},
+					},
+				},
+			},
+			// Disabled sources are not returned by All()
+			expectedSources: map[string]model.CatalogSource{},
+		},
+		{
+			name:        "sparse override: user enables disabled source with just id and enabled",
+			originOrder: []string{"default.yaml", "user.yaml"},
+			mergeSequence: []struct {
+				origin  string
+				sources map[string]Source
+			}{
+				{
+					origin: "default.yaml",
+					sources: map[string]Source{
+						"models_x": {CatalogSource: model.CatalogSource{
+							Id:             "models_x",
+							Name:           "Models X Catalog",
+							Enabled:        apiutils.Of(false), // Disabled in default
+							Labels:         []string{"enterprise"},
+							IncludedModels: []string{"model-a", "model-b"},
+							ExcludedModels: []string{"model-c"},
+						}},
+					},
+				},
+				{
+					origin: "user.yaml",
+					sources: map[string]Source{
+						// Sparse override: only id and enabled
+						"models_x": {CatalogSource: model.CatalogSource{
+							Id:      "models_x",
+							Enabled: apiutils.Of(true), // Enable it
+							// Name, Labels, IncludedModels, ExcludedModels are nil/empty
+						}},
+					},
+				},
+			},
+			expectedSources: map[string]model.CatalogSource{
+				"models_x": {
+					Id:             "models_x",
+					Name:           "Models X Catalog",             // Inherited from default
+					Enabled:        apiutils.Of(true),              // Overridden by user
+					Labels:         []string{"enterprise"},         // Inherited from default
+					IncludedModels: []string{"model-a", "model-b"}, // Inherited from default
+					ExcludedModels: []string{"model-c"},            // Inherited from default
+				},
+			},
+		},
+		{
+			name:        "sparse override: user changes only excluded models",
+			originOrder: []string{"default.yaml", "user.yaml"},
+			mergeSequence: []struct {
+				origin  string
+				sources map[string]Source
+			}{
+				{
+					origin: "default.yaml",
+					sources: map[string]Source{
+						"hf": {CatalogSource: model.CatalogSource{
+							Id:             "hf",
+							Name:           "Hugging Face",
+							Enabled:        apiutils.Of(true),
+							Labels:         []string{"public"},
+							ExcludedModels: []string{"model-a"},
+						}},
+					},
+				},
+				{
+					origin: "user.yaml",
+					sources: map[string]Source{
+						"hf": {CatalogSource: model.CatalogSource{
+							Id: "hf",
+							// Only override ExcludedModels
+							ExcludedModels: []string{"model-a", "DeepSeek", "banned-model"},
+						}},
+					},
+				},
+			},
+			expectedSources: map[string]model.CatalogSource{
+				"hf": {
+					Id:             "hf",
+					Name:           "Hugging Face",                                  // Inherited
+					Enabled:        apiutils.Of(true),                               // Inherited
+					Labels:         []string{"public"},                              // Inherited
+					ExcludedModels: []string{"model-a", "DeepSeek", "banned-model"}, // Overridden
+				},
+			},
+		},
+		{
+			name:        "sparse override: user clears labels with empty slice",
+			originOrder: []string{"default.yaml", "user.yaml"},
+			mergeSequence: []struct {
+				origin  string
+				sources map[string]Source
+			}{
+				{
+					origin: "default.yaml",
+					sources: map[string]Source{
+						"hf": {CatalogSource: model.CatalogSource{
+							Id:      "hf",
+							Name:    "Hugging Face",
+							Enabled: apiutils.Of(true),
+							Labels:  []string{"public", "ai"},
+						}},
+					},
+				},
+				{
+					origin: "user.yaml",
+					sources: map[string]Source{
+						"hf": {CatalogSource: model.CatalogSource{
+							Id:     "hf",
+							Labels: []string{}, // Explicitly clear labels
+						}},
+					},
+				},
+			},
+			expectedSources: map[string]model.CatalogSource{
+				"hf": {
+					Id:      "hf",
+					Name:    "Hugging Face",    // Inherited
+					Enabled: apiutils.Of(true), // Inherited
+					Labels:  []string{},        // Overridden to empty
+				},
+			},
+		},
+		{
+			name:        "defaults applied: enabled defaults to true, labels defaults to empty",
+			originOrder: []string{"default.yaml"},
+			mergeSequence: []struct {
+				origin  string
+				sources map[string]Source
+			}{
+				{
+					origin: "default.yaml",
+					sources: map[string]Source{
+						"hf": {CatalogSource: model.CatalogSource{
+							Id:   "hf",
+							Name: "Hugging Face",
+							// Enabled and Labels are nil
+						}},
+					},
+				},
+			},
+			expectedSources: map[string]model.CatalogSource{
+				"hf": {
+					Id:      "hf",
+					Name:    "Hugging Face",
+					Enabled: apiutils.Of(true), // Default applied
+					Labels:  []string{},        // Default applied
+				},
+			},
+		},
+		{
+			name:        "sparse override: type and properties are inherited",
+			originOrder: []string{"default.yaml", "user.yaml"},
+			mergeSequence: []struct {
+				origin  string
+				sources map[string]Source
+			}{
+				{
+					origin: "default.yaml",
+					sources: map[string]Source{
+						"models_x": {
+							CatalogSource: model.CatalogSource{
+								Id:      "models_x",
+								Name:    "Models X Catalog",
+								Enabled: apiutils.Of(false), // Disabled in default
+								Labels:  []string{"enterprise"},
+							},
+							Type: "yaml",
+							Properties: map[string]any{
+								"yamlCatalogPath": "models-x.yaml",
+							},
+						},
+					},
+				},
+				{
+					origin: "user.yaml",
+					sources: map[string]Source{
+						// Sparse override: only id and enabled
+						"models_x": {
+							CatalogSource: model.CatalogSource{
+								Id:      "models_x",
+								Enabled: apiutils.Of(true), // Enable it
+							},
+							// Type and Properties are empty/nil - should be inherited
+						},
+					},
+				},
+			},
+			expectedSources: map[string]model.CatalogSource{
+				"models_x": {
+					Id:      "models_x",
+					Name:    "Models X Catalog",     // Inherited from default
+					Enabled: apiutils.Of(true),      // Overridden by user
+					Labels:  []string{"enterprise"}, // Inherited from default
+				},
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			sc := NewSourceCollection(tt.originOrder...)
+
+			for _, merge := range tt.mergeSequence {
+				err := sc.Merge(merge.origin, merge.sources)
+				if err != nil {
+					t.Fatalf("Merge(%s) failed: %v", merge.origin, err)
+				}
+			}
+
+			result := sc.All()
+
+			if len(result) != len(tt.expectedSources) {
+				t.Errorf("All() returned %d sources, want %d", len(result), len(tt.expectedSources))
+			}
+
+			for id, expected := range tt.expectedSources {
+				got, ok := result[id]
+				if !ok {
+					t.Errorf("source %s not found in result", id)
+					continue
+				}
+				if got.Id != expected.Id {
+					t.Errorf("source %s: Id = %s, want %s", id, got.Id, expected.Id)
+				}
+				if got.Name != expected.Name {
+					t.Errorf("source %s: Name = %s, want %s", id, got.Name, expected.Name)
+				}
+				if *got.Enabled != *expected.Enabled {
+					t.Errorf("source %s: Enabled = %v, want %v", id, *got.Enabled, *expected.Enabled)
+				}
+				if !reflect.DeepEqual(got.Labels, expected.Labels) {
+					t.Errorf("source %s: Labels = %v, want %v", id, got.Labels, expected.Labels)
+				}
+				if !reflect.DeepEqual(got.ExcludedModels, expected.ExcludedModels) {
+					t.Errorf("source %s: ExcludedModels = %v, want %v", id, got.ExcludedModels, expected.ExcludedModels)
+				}
+			}
+		})
+	}
+}
+
+func TestSourceCollection_MergeOverride_Get(t *testing.T) {
+	sc := NewSourceCollection("default.yaml", "user.yaml")
+
+	// Merge default config
+	err := sc.Merge("default.yaml", map[string]Source{
+		"hf": {CatalogSource: model.CatalogSource{
+			Id:      "hf",
+			Name:    "Hugging Face Default",
+			Enabled: apiutils.Of(true),
+			Labels:  []string{},
+		}},
+	})
+	if err != nil {
+		t.Fatalf("Merge(default.yaml) failed: %v", err)
+	}
+
+	// Merge user config that overrides
+	err = sc.Merge("user.yaml", map[string]Source{
+		"hf": {CatalogSource: model.CatalogSource{
+			Id:             "hf",
+			Name:           "Hugging Face User",
+			Enabled:        apiutils.Of(true),
+			Labels:         []string{"user-managed"},
+			ExcludedModels: []string{"DeepSeek"},
+		}},
+	})
+	if err != nil {
+		t.Fatalf("Merge(user.yaml) failed: %v", err)
+	}
+
+	// Get should return the overridden source
+	source, ok := sc.Get("hf")
+	if !ok {
+		t.Fatal("Get(hf) returned false, want true")
+	}
+	if source.Name != "Hugging Face User" {
+		t.Errorf("Get(hf).Name = %s, want 'Hugging Face User'", source.Name)
+	}
+	if len(source.ExcludedModels) != 1 || source.ExcludedModels[0] != "DeepSeek" {
+		t.Errorf("Get(hf).ExcludedModels = %v, want [DeepSeek]", source.ExcludedModels)
+	}
+}
+
+func TestSourceCollection_MergeOverride_DynamicOrigin(t *testing.T) {
+	// Test that origins not in the initial order are appended
+	sc := NewSourceCollection("default.yaml")
+
+	err := sc.Merge("default.yaml", map[string]Source{
+		"hf": {CatalogSource: model.CatalogSource{Id: "hf", Name: "Default", Enabled: apiutils.Of(true), Labels: []string{}}},
+	})
+	if err != nil {
+		t.Fatalf("Merge(default.yaml) failed: %v", err)
+	}
+
+	// Dynamic origin not in initial order
+	err = sc.Merge("extra.yaml", map[string]Source{
+		"hf": {CatalogSource: model.CatalogSource{Id: "hf", Name: "Extra", Enabled: apiutils.Of(true), Labels: []string{}}},
+	})
+	if err != nil {
+		t.Fatalf("Merge(extra.yaml) failed: %v", err)
+	}
+
+	source, _ := sc.Get("hf")
+	if source.Name != "Extra" {
+		t.Errorf("dynamically added origin should override earlier origins, got Name = %s", source.Name)
+	}
+}
+
+func TestSourceCollection_MergeOverride_TypeAndProperties(t *testing.T) {
+	// Test that Type and Properties are properly inherited with sparse overrides
+	sc := NewSourceCollection("default.yaml", "user.yaml")
+
+	// Merge default config with full source definition
+	err := sc.Merge("default.yaml", map[string]Source{
+		"models_x": {
+			CatalogSource: model.CatalogSource{
+				Id:      "models_x",
+				Name:    "Models X Catalog",
+				Enabled: apiutils.Of(false), // Disabled
+				Labels:  []string{"enterprise"},
+			},
+			Type: "yaml",
+			Properties: map[string]any{
+				"yamlCatalogPath": "models-x.yaml",
+				"otherProp":       123,
+			},
+		},
+	})
+	if err != nil {
+		t.Fatalf("Merge(default.yaml) failed: %v", err)
+	}
+
+	// Merge sparse user config that only enables the source
+	err = sc.Merge("user.yaml", map[string]Source{
+		"models_x": {
+			CatalogSource: model.CatalogSource{
+				Id:      "models_x",
+				Enabled: apiutils.Of(true), // Enable it
+			},
+			// Type and Properties are empty - should be inherited
+		},
+	})
+	if err != nil {
+		t.Fatalf("Merge(user.yaml) failed: %v", err)
+	}
+
+	// AllSources should return the merged source with Type and Properties
+	sources := sc.AllSources()
+	source, ok := sources["models_x"]
+	if !ok {
+		t.Fatal("AllSources() should return models_x")
+	}
+
+	if source.Type != "yaml" {
+		t.Errorf("Type = %s, want 'yaml' (inherited from default)", source.Type)
+	}
+
+	if source.Properties == nil {
+		t.Fatal("Properties should be inherited from default")
+	}
+
+	if source.Properties["yamlCatalogPath"] != "models-x.yaml" {
+		t.Errorf("Properties[yamlCatalogPath] = %v, want 'models-x.yaml'", source.Properties["yamlCatalogPath"])
+	}
+
+	if source.Properties["otherProp"] != 123 {
+		t.Errorf("Properties[otherProp] = %v, want 123", source.Properties["otherProp"])
+	}
+
+	// CatalogSource fields should also be merged
+	if source.Name != "Models X Catalog" {
+		t.Errorf("Name = %s, want 'Models X Catalog'", source.Name)
+	}
+
+	if *source.Enabled != true {
+		t.Errorf("Enabled = %v, want true", *source.Enabled)
+	}
+}
+
+func TestSourceCollection_MergeOverride_Origin(t *testing.T) {
+	// Test that Origin is correctly tracked through merge operations
+	// This is important for resolving relative paths in source properties
+
+	tests := []struct {
+		name           string
+		originOrder    []string
+		mergeSequence  []struct {
+			origin  string
+			sources map[string]Source
+		}
+		expectedOrigins map[string]string // sourceId -> expected origin
+	}{
+		{
+			name:        "origin is preserved from first definition",
+			originOrder: []string{"/config/default.yaml", "/user-config/user.yaml"},
+			mergeSequence: []struct {
+				origin  string
+				sources map[string]Source
+			}{
+				{
+					origin: "/config/default.yaml",
+					sources: map[string]Source{
+						"hf": {
+							CatalogSource: model.CatalogSource{
+								Id:      "hf",
+								Name:    "Hugging Face",
+								Enabled: apiutils.Of(true),
+							},
+							Type: "yaml",
+							Properties: map[string]any{
+								"yamlCatalogPath": "models.yaml",
+							},
+							Origin: "/config/default.yaml",
+						},
+					},
+				},
+				{
+					origin: "/user-config/user.yaml",
+					sources: map[string]Source{
+						// Sparse override: only enable and change name
+						"hf": {
+							CatalogSource: model.CatalogSource{
+								Id:      "hf",
+								Name:    "Hugging Face Custom",
+								Enabled: apiutils.Of(true),
+							},
+							Origin: "/user-config/user.yaml",
+							// Properties is nil, so Origin should stay with base
+						},
+					},
+				},
+			},
+			// Origin should be from default.yaml since Properties weren't overridden
+			expectedOrigins: map[string]string{
+				"hf": "/config/default.yaml",
+			},
+		},
+		{
+			name:        "origin changes when properties are overridden",
+			originOrder: []string{"/config/default.yaml", "/user-config/user.yaml"},
+			mergeSequence: []struct {
+				origin  string
+				sources map[string]Source
+			}{
+				{
+					origin: "/config/default.yaml",
+					sources: map[string]Source{
+						"local": {
+							CatalogSource: model.CatalogSource{
+								Id:      "local",
+								Name:    "Local Catalog",
+								Enabled: apiutils.Of(true),
+							},
+							Type: "yaml",
+							Properties: map[string]any{
+								"yamlCatalogPath": "default-models.yaml",
+							},
+							Origin: "/config/default.yaml",
+						},
+					},
+				},
+				{
+					origin: "/user-config/user.yaml",
+					sources: map[string]Source{
+						"local": {
+							CatalogSource: model.CatalogSource{
+								Id:      "local",
+								Enabled: apiutils.Of(true),
+							},
+							// Override Properties - this changes where relative paths resolve from
+							Properties: map[string]any{
+								"yamlCatalogPath": "user-models.yaml",
+							},
+							Origin: "/user-config/user.yaml",
+						},
+					},
+				},
+			},
+			// Origin should be from user.yaml since Properties were overridden
+			expectedOrigins: map[string]string{
+				"local": "/user-config/user.yaml",
+			},
+		},
+		{
+			name:        "multiple sources from different origins",
+			originOrder: []string{"/admin/sources.yaml", "/user/sources.yaml"},
+			mergeSequence: []struct {
+				origin  string
+				sources map[string]Source
+			}{
+				{
+					origin: "/admin/sources.yaml",
+					sources: map[string]Source{
+						"admin-catalog": {
+							CatalogSource: model.CatalogSource{
+								Id:      "admin-catalog",
+								Name:    "Admin Catalog",
+								Enabled: apiutils.Of(true),
+							},
+							Type: "yaml",
+							Properties: map[string]any{
+								"yamlCatalogPath": "admin-models.yaml",
+							},
+							Origin: "/admin/sources.yaml",
+						},
+					},
+				},
+				{
+					origin: "/user/sources.yaml",
+					sources: map[string]Source{
+						"user-catalog": {
+							CatalogSource: model.CatalogSource{
+								Id:      "user-catalog",
+								Name:    "User Catalog",
+								Enabled: apiutils.Of(true),
+							},
+							Type: "yaml",
+							Properties: map[string]any{
+								"yamlCatalogPath": "user-models.yaml",
+							},
+							Origin: "/user/sources.yaml",
+						},
+					},
+				},
+			},
+			// Each source should keep its own origin
+			expectedOrigins: map[string]string{
+				"admin-catalog": "/admin/sources.yaml",
+				"user-catalog":  "/user/sources.yaml",
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			sc := NewSourceCollection(tt.originOrder...)
+
+			for _, merge := range tt.mergeSequence {
+				err := sc.Merge(merge.origin, merge.sources)
+				if err != nil {
+					t.Fatalf("Merge(%s) failed: %v", merge.origin, err)
+				}
+			}
+
+			sources := sc.AllSources()
+
+			for id, expectedOrigin := range tt.expectedOrigins {
+				source, ok := sources[id]
+				if !ok {
+					t.Errorf("source %s not found in AllSources()", id)
+					continue
+				}
+				if source.Origin != expectedOrigin {
+					t.Errorf("source %s: Origin = %s, want %s", id, source.Origin, expectedOrigin)
+				}
+			}
+		})
+	}
+}
+
 func TestSourceCollection_ByLabel_NullBehavior(t *testing.T) {
 	// Create test sources with various label configurations to test "null" behavior
-	sources := map[string]model.CatalogSource{
+	// Note: disabled sources are filtered out and not returned
+	sources := map[string]Source{
 		"source_with_labels": {
-			Id:      "source_with_labels",
-			Name:    "Source With Labels",
-			Enabled: apiutils.Of(true),
-			Labels:  []string{"frontend", "production"},
+			CatalogSource: model.CatalogSource{
+				Id:      "source_with_labels",
+				Name:    "Source With Labels",
+				Enabled: apiutils.Of(true),
+				Labels:  []string{"frontend", "production"},
+			},
 		},
 		"source_empty_labels": {
-			Id:      "source_empty_labels",
-			Name:    "Source Empty Labels",
-			Enabled: apiutils.Of(true),
-			Labels:  []string{}, // Empty labels slice
+			CatalogSource: model.CatalogSource{
+				Id:      "source_empty_labels",
+				Name:    "Source Empty Labels",
+				Enabled: apiutils.Of(true),
+				Labels:  []string{}, // Empty labels slice
+			},
 		},
 		"source_nil_labels": {
-			Id:      "source_nil_labels",
-			Name:    "Source Nil Labels",
-			Enabled: apiutils.Of(true),
-			Labels:  nil, // Nil labels
+			CatalogSource: model.CatalogSource{
+				Id:      "source_nil_labels",
+				Name:    "Source Nil Labels",
+				Enabled: apiutils.Of(true),
+				Labels:  nil, // Nil labels
+			},
 		},
 		"source_another_with_labels": {
-			Id:      "source_another_with_labels",
-			Name:    "Another Source With Labels",
-			Enabled: apiutils.Of(false),
-			Labels:  []string{"backend", "testing"},
+			CatalogSource: model.CatalogSource{
+				Id:      "source_another_with_labels",
+				Name:    "Another Source With Labels",
+				Enabled: apiutils.Of(true), // Changed to enabled
+				Labels:  []string{"backend", "testing"},
+			},
 		},
 	}
 
