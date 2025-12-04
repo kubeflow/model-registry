@@ -69,7 +69,7 @@ const ModelDetailsView: React.FC<ModelDetailsViewProps> = ({
                   </Title>
                 </CardHeader>
                 <CardBody>
-                  <Content style={{ wordBreak: 'break-word' }}>
+                  <Content className="pf-v6-u-text-break-word">
                     <p data-testid="model-long-description">
                       {model.description || 'No description'}
                     </p>
