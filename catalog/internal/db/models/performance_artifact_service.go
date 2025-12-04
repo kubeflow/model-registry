@@ -184,7 +184,7 @@ func (s *PerformanceArtifactService) generateRecommendations(artifacts []Catalog
 	for _, subArtifacts := range byHardware {
 		// First pass, remove options that are slower and more expensive than
 		// options seen before.
-		s.sortArtifactsByProperty(subArtifacts, latencyProperty, true)
+		s.sortArtifacts(subArtifacts, latencyProperty, hardwareCountProperty)
 		cheapest := int32(math.MaxInt32)
 		filtered := []CatalogMetricsArtifact{}
 		for i, artifact := range subArtifacts {
@@ -298,26 +298,36 @@ func (s *PerformanceArtifactService) groupArtifactsByStringProperty(artifacts []
 	return results
 }
 
-// sortArtifactsByProperty sorts a list of artifacts by the DoubleValue of a property.
-func (s *PerformanceArtifactService) sortArtifactsByProperty(artifacts []CatalogMetricsArtifact, property string, asc bool) {
+// sortArtifacts sorts a list of performance artifacts by latency, and hardware count as a tie-breaker.
+func (s *PerformanceArtifactService) sortArtifacts(artifacts []CatalogMetricsArtifact, latencyProperty string, hardwareCountProperty string) {
 	slices.SortFunc(artifacts, func(a CatalogMetricsArtifact, b CatalogMetricsArtifact) int {
-		defaultValue := math.MaxFloat64
-		if !asc {
-			defaultValue *= -1
+		defaultLatency := math.MaxFloat64
+		aLatency := s.extractCustomPropertiesDoubleValue(a.GetCustomProperties(), latencyProperty, defaultLatency)
+		if aLatency <= 0 {
+			aLatency = defaultLatency
+		}
+		bLatency := s.extractCustomPropertiesDoubleValue(b.GetCustomProperties(), latencyProperty, defaultLatency)
+		if bLatency <= 0 {
+			bLatency = defaultLatency
 		}
 
-		aVal := s.extractCustomPropertiesDoubleValue(a.GetCustomProperties(), property, defaultValue)
-		if aVal <= 0 {
-			aVal = defaultValue
+		latencyCmp := cmp.Compare(aLatency, bLatency)
+		if latencyCmp != 0 {
+			return latencyCmp
 		}
-		bVal := s.extractCustomPropertiesDoubleValue(b.GetCustomProperties(), property, defaultValue)
-		if bVal <= 0 {
-			bVal = defaultValue
+
+		// Against all odds, the latency values are the same, so prefer the one with a lower hardware count.
+		var defaultCount int32 = math.MaxInt32
+		aCount := s.extractCustomPropertiesIntValue(a.GetCustomProperties(), hardwareCountProperty, defaultCount)
+		if aCount <= 0 {
+			aCount = defaultCount
 		}
-		if asc {
-			return cmp.Compare(aVal, bVal)
+		bCount := s.extractCustomPropertiesIntValue(b.GetCustomProperties(), hardwareCountProperty, defaultCount)
+		if bCount <= 0 {
+			bCount = defaultCount
 		}
-		return cmp.Compare(bVal, aVal)
+
+		return cmp.Compare(aCount, bCount)
 	})
 }
 

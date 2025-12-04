@@ -1,6 +1,8 @@
 package models
 
 import (
+	"fmt"
+	"math"
 	"testing"
 
 	"github.com/kubeflow/model-registry/internal/apiutils"
@@ -411,5 +413,120 @@ func TestConfigurableRecommendataion(t *testing.T) {
 		require.Greater(t, latency, 0.0)
 		require.Greater(t, nodes, int32(0))
 		require.Equal(t, "gpu-small", instanceType)
+	}
+}
+
+func TestPerformanceArtifactService_RecommendationData(t *testing.T) {
+	tests := []struct {
+		name         string
+		targetRPS    int32
+		inputRows    []testArtifactRow
+		expectedKept []int // indices of rows that should be kept after filtering
+	}{
+		{
+			name:      "known example",
+			targetRPS: 10,
+			inputRows: []testArtifactRow{
+				{hardwareType: "A100-80", hardwareCount: 4, requestsPerSecond: 10.0 / 5.0, latency: 75.0},
+				{hardwareType: "A100-80", hardwareCount: 4, requestsPerSecond: 12.0 / 4.0, latency: 76.0},
+				{hardwareType: "A100-80", hardwareCount: 4, requestsPerSecond: 12.0 / 3.0, latency: 77.0},
+				{hardwareType: "A100-80", hardwareCount: 4, requestsPerSecond: 10.0 / 2.0, latency: 80.0}, // Keep
+				{hardwareType: "A100-80", hardwareCount: 4, requestsPerSecond: 12.0 / 2.0, latency: 86.0},
+				{hardwareType: "A100-80", hardwareCount: 2, requestsPerSecond: 10.0 / 10.0, latency: 112.0},
+				{hardwareType: "A100-80", hardwareCount: 2, requestsPerSecond: 10.0 / 5.0, latency: 113.0},
+				{hardwareType: "A100-80", hardwareCount: 2, requestsPerSecond: 12.0 / 4.0, latency: 117.0},
+				{hardwareType: "A100-80", hardwareCount: 2, requestsPerSecond: 12.0 / 3.0, latency: 128.0},
+				{hardwareType: "A100-80", hardwareCount: 2, requestsPerSecond: 10.0 / 2.0, latency: 129.0}, // Keep
+				{hardwareType: "A100-80", hardwareCount: 2, requestsPerSecond: 12.0 / 2.0, latency: 141.0},
+				{hardwareType: "A100-80", hardwareCount: 2, requestsPerSecond: 14.0 / 2.0, latency: 176.0},
+				{hardwareType: "A100-80", hardwareCount: 1, requestsPerSecond: 10.0 / 10.0, latency: 187.0},
+				{hardwareType: "A100-80", hardwareCount: 1, requestsPerSecond: 10.0 / 5.0, latency: 198.0},
+				{hardwareType: "A100-80", hardwareCount: 1, requestsPerSecond: 12.0 / 4.0, latency: 205.0},
+				{hardwareType: "A100-80", hardwareCount: 2, requestsPerSecond: 10.0 / 10.0, latency: 748.0},
+			},
+			expectedKept: []int{9, 3},
+		},
+		{
+			name:      "same latency, same cost, different hardware count",
+			targetRPS: 8,
+			inputRows: []testArtifactRow{
+				{hardwareType: "A100-80", hardwareCount: 4, latency: 80.0, requestsPerSecond: 4}, // 2 replicas, cost is 8
+				{hardwareType: "A100-80", hardwareCount: 2, latency: 80.0, requestsPerSecond: 2}, // 4 replicas, cost is 8
+			},
+			expectedKept: []int{1}, // Only second row should be kept (lower cost, same latency)
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			service := NewPerformanceArtifactService(nil)
+
+			// Convert test rows to full artifacts
+			artifacts := createArtifactsFromRows(tt.inputRows, tt.targetRPS)
+
+			// Apply Pareto filtering
+			result := service.generateRecommendations(artifacts, "ttft_p90", "hardware_count", "hardware_type")
+
+			// Verify expected artifacts remain
+			verifyExpectedArtifacts(t, artifacts, result, tt.expectedKept)
+		})
+	}
+}
+
+type testArtifactRow struct {
+	hardwareType      string
+	hardwareCount     int32
+	latency           float64
+	requestsPerSecond float64
+}
+
+// createArtifactsFromRows converts simple test data into full CatalogMetricsArtifact objects
+func createArtifactsFromRows(rows []testArtifactRow, targetRPS int32) []CatalogMetricsArtifact {
+	artifacts := make([]CatalogMetricsArtifact, len(rows))
+
+	for i, row := range rows {
+		id := int32(i + 1)
+
+		if row.requestsPerSecond < 1 {
+			row.requestsPerSecond = 1
+		}
+		replicas := int32(math.Ceil(float64(targetRPS) / float64(row.requestsPerSecond)))
+
+		artifact := &CatalogMetricsArtifactImpl{
+			Attributes: &CatalogMetricsArtifactAttributes{
+				Name: apiutils.Of(fmt.Sprintf("artifact-%d", i)),
+			},
+			CustomProperties: &[]dbmodels.Properties{
+				dbmodels.NewStringProperty("hardware_type", row.hardwareType, true),
+				dbmodels.NewIntProperty("hardware_count", row.hardwareCount, true),
+				dbmodels.NewDoubleProperty("ttft_p90", row.latency, true),
+				dbmodels.NewDoubleProperty("requests_per_second", row.requestsPerSecond, true),
+				dbmodels.NewIntProperty("replicas", replicas, true),
+			},
+		}
+		artifact.SetID(id)
+		artifacts[i] = artifact
+	}
+
+	return artifacts
+}
+
+// verifyExpectedArtifacts checks that only the expected artifacts remain after filtering
+func verifyExpectedArtifacts(t *testing.T, originalArtifacts []CatalogMetricsArtifact, filteredResult []CatalogMetricsArtifact, expectedIndices []int) {
+	require.Len(t, filteredResult, len(expectedIndices), "Unexpected number of artifacts after filtering")
+
+	// Create a set of expected IDs
+	expectedIDs := make(map[int32]bool)
+	for _, idx := range expectedIndices {
+		id := originalArtifacts[idx].GetID()
+		require.NotNil(t, id, "Original artifact should have ID")
+		expectedIDs[*id] = true
+	}
+
+	// Verify all filtered results are in the expected set
+	for _, artifact := range filteredResult {
+		id := artifact.GetID()
+		require.NotNil(t, id, "Filtered artifact should have ID")
+		require.True(t, expectedIDs[*id], "Unexpected artifact ID %d in filtered results", *id)
 	}
 }
