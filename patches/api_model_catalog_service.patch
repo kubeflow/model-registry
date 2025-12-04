@@ -1,8 +1,8 @@
 diff --git a/catalog/internal/server/openapi/api_model_catalog_service.go b/catalog/internal/server/openapi/api_model_catalog_service.go
-index c3845578..ad9ec467 100644
+index adfc02f4..f21d8303 100644
 --- a/catalog/internal/server/openapi/api_model_catalog_service.go
 +++ b/catalog/internal/server/openapi/api_model_catalog_service.go
-@@ -321,6 +321,21 @@ func (c *ModelCatalogServiceAPIController) GetModel(w http.ResponseWriter, r *ht
+@@ -333,6 +333,29 @@ func (c *ModelCatalogServiceAPIController) GetModel(w http.ResponseWriter, r *ht
  		c.errorHandler(w, r, &RequiredError{"*"}, nil)
  		return
  	}
@@ -18,6 +18,14 @@ index c3845578..ad9ec467 100644
 +
 +		// Call the GetAllModelArtifacts handler directly
 +		c.GetAllModelArtifacts(w, r)
++		return
++	}
++
++	// Same for /artifacts/performance requests to getAllModelPerformanceArtifacts
++	if strings.HasSuffix(r.URL.Path, "/artifacts/performance") {
++		modelName := strings.TrimSuffix(modelNameParam, "/artifacts/performance")
++		chi.RouteContext(r.Context()).URLParams.Add("model_name", modelName)
++		c.GetAllModelPerformanceArtifacts(w, r)
 +		return
 +	}
 +

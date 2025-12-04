@@ -991,6 +991,274 @@ func (a *ModelCatalogServiceAPIService) GetAllModelArtifactsExecute(r ApiGetAllM
 	return localVarReturnValue, localVarHTTPResponse, nil
 }
 
+type ApiGetAllModelPerformanceArtifactsRequest struct {
+	ctx                   context.Context
+	ApiService            *ModelCatalogServiceAPIService
+	sourceId              string
+	modelName             string
+	targetRPS             *int32
+	recommendations       *bool
+	rpsProperty           *string
+	latencyProperty       *string
+	hardwareCountProperty *string
+	hardwareTypeProperty  *string
+	filterQuery           *string
+	pageSize              *string
+	orderBy               *string
+	sortOrder             *SortOrder
+	nextPageToken         *string
+}
+
+// Target requests per second. If specified, values for &#x60;replicas&#x60; and &#x60;total_requests_per_second&#x60; will be calculated and returned as custom properties.
+func (r ApiGetAllModelPerformanceArtifactsRequest) TargetRPS(targetRPS int32) ApiGetAllModelPerformanceArtifactsRequest {
+	r.targetRPS = &targetRPS
+	return r
+}
+
+// Filter records that are less optimal based on approximate cost to run and latency.
+func (r ApiGetAllModelPerformanceArtifactsRequest) Recommendations(recommendations bool) ApiGetAllModelPerformanceArtifactsRequest {
+	r.recommendations = &recommendations
+	return r
+}
+
+// Custom property name for requests per second metric.
+func (r ApiGetAllModelPerformanceArtifactsRequest) RpsProperty(rpsProperty string) ApiGetAllModelPerformanceArtifactsRequest {
+	r.rpsProperty = &rpsProperty
+	return r
+}
+
+// Custom property name for latency metric (e.g., ttft_p90, p90_latency).
+func (r ApiGetAllModelPerformanceArtifactsRequest) LatencyProperty(latencyProperty string) ApiGetAllModelPerformanceArtifactsRequest {
+	r.latencyProperty = &latencyProperty
+	return r
+}
+
+// Custom property name for hardware count metric.
+func (r ApiGetAllModelPerformanceArtifactsRequest) HardwareCountProperty(hardwareCountProperty string) ApiGetAllModelPerformanceArtifactsRequest {
+	r.hardwareCountProperty = &hardwareCountProperty
+	return r
+}
+
+// Custom property name for hardware type grouping.
+func (r ApiGetAllModelPerformanceArtifactsRequest) HardwareTypeProperty(hardwareTypeProperty string) ApiGetAllModelPerformanceArtifactsRequest {
+	r.hardwareTypeProperty = &hardwareTypeProperty
+	return r
+}
+
+// A SQL-like query string to filter catalog artifacts. The query supports rich filtering capabilities with automatic type inference.  **Supported Operators:** - Comparison: &#x60;&#x3D;&#x60;, &#x60;!&#x3D;&#x60;, &#x60;&lt;&gt;&#x60;, &#x60;&gt;&#x60;, &#x60;&lt;&#x60;, &#x60;&gt;&#x3D;&#x60;, &#x60;&lt;&#x3D;&#x60; - Pattern matching: &#x60;LIKE&#x60;, &#x60;ILIKE&#x60; (case-insensitive) - Set membership: &#x60;IN&#x60; - Logical: &#x60;AND&#x60;, &#x60;OR&#x60; - Grouping: &#x60;()&#x60; for complex expressions  **Data Types:** - Strings: &#x60;\&quot;value\&quot;&#x60; or &#x60;&#39;value&#39;&#x60; - Numbers: &#x60;42&#x60;, &#x60;3.14&#x60;, &#x60;1e-5&#x60; - Booleans: &#x60;true&#x60;, &#x60;false&#x60; (case-insensitive)  **Property Access (Artifacts):** - Standard properties: &#x60;name&#x60;, &#x60;id&#x60;, &#x60;uri&#x60;, &#x60;artifactType&#x60;, &#x60;createTimeSinceEpoch&#x60; - Custom properties: Any user-defined property name in &#x60;customProperties&#x60; - Escaped properties: Use backticks for special characters: &#x60;&#x60; &#x60;custom-property&#x60; &#x60;&#x60; - Type-specific access: &#x60;property.string_value&#x60;, &#x60;property.double_value&#x60;, &#x60;property.int_value&#x60;, &#x60;property.bool_value&#x60;  **Examples:** - Basic: &#x60;name &#x3D; \&quot;my-artifact\&quot;&#x60; - Comparison: &#x60;ttft_mean &gt; 90&#x60; - Pattern: &#x60;uri LIKE \&quot;%s3.amazonaws.com%\&quot;&#x60; - Complex: &#x60;(artifactType &#x3D; \&quot;model-artifact\&quot; OR artifactType &#x3D; \&quot;metrics-artifact\&quot;) AND name LIKE \&quot;%pytorch%\&quot;&#x60; - Custom property: &#x60;format.string_value &#x3D; \&quot;pytorch\&quot;&#x60; - Escaped property: &#x60;&#x60; &#x60;custom-key&#x60; &#x3D; \&quot;value\&quot; &#x60;&#x60;
+func (r ApiGetAllModelPerformanceArtifactsRequest) FilterQuery(filterQuery string) ApiGetAllModelPerformanceArtifactsRequest {
+	r.filterQuery = &filterQuery
+	return r
+}
+
+// Number of entities in each page.
+func (r ApiGetAllModelPerformanceArtifactsRequest) PageSize(pageSize string) ApiGetAllModelPerformanceArtifactsRequest {
+	r.pageSize = &pageSize
+	return r
+}
+
+// Specifies the order by criteria for listing artifacts.  **Standard Fields:** - &#x60;ID&#x60; - Order by artifact ID - &#x60;NAME&#x60; - Order by artifact name - &#x60;CREATE_TIME&#x60; - Order by creation timestamp - &#x60;LAST_UPDATE_TIME&#x60; - Order by last update timestamp  **Custom Property Ordering:**  Artifacts can be ordered by custom properties using the format: &#x60;&lt;property_name&gt;.&lt;value_type&gt;&#x60;  Supported value types: - &#x60;double_value&#x60; - For numeric (floating-point) properties - &#x60;int_value&#x60; - For integer properties - &#x60;string_value&#x60; - For string properties  Examples: - &#x60;mmlu.double_value&#x60; - Order by the &#39;mmlu&#39; benchmark score - &#x60;accuracy.double_value&#x60; - Order by accuracy metric - &#x60;framework_type.string_value&#x60; - Order by framework type - &#x60;hardware_count.int_value&#x60; - Order by hardware count - &#x60;ttft_mean.double_value&#x60; - Order by time-to-first-token mean  **Behavior:** - If an invalid value type is specified (e.g., &#x60;accuracy.invalid_type&#x60;), an error is returned - If an invalid format is used (e.g., &#x60;accuracy&#x60; without &#x60;.value_type&#x60;), it falls back to ID ordering - If a property doesn&#39;t exist, it falls back to ID ordering - Artifacts with the specified property are ordered first (by the property value), followed by artifacts without the property (ordered by ID) - Empty property names (e.g., &#x60;.double_value&#x60;) return an error
+func (r ApiGetAllModelPerformanceArtifactsRequest) OrderBy(orderBy string) ApiGetAllModelPerformanceArtifactsRequest {
+	r.orderBy = &orderBy
+	return r
+}
+
+// Specifies the sort order for listing entities, defaults to ASC.
+func (r ApiGetAllModelPerformanceArtifactsRequest) SortOrder(sortOrder SortOrder) ApiGetAllModelPerformanceArtifactsRequest {
+	r.sortOrder = &sortOrder
+	return r
+}
+
+// Token to use to retrieve next page of results.
+func (r ApiGetAllModelPerformanceArtifactsRequest) NextPageToken(nextPageToken string) ApiGetAllModelPerformanceArtifactsRequest {
+	r.nextPageToken = &nextPageToken
+	return r
+}
+
+func (r ApiGetAllModelPerformanceArtifactsRequest) Execute() (*CatalogArtifactList, *http.Response, error) {
+	return r.ApiService.GetAllModelPerformanceArtifactsExecute(r)
+}
+
+/*
+GetAllModelPerformanceArtifacts List CatalogArtifacts.
+
+	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+	@param sourceId A unique identifier for a `CatalogSource`.
+	@param modelName A unique identifier for the model.
+	@return ApiGetAllModelPerformanceArtifactsRequest
+*/
+func (a *ModelCatalogServiceAPIService) GetAllModelPerformanceArtifacts(ctx context.Context, sourceId string, modelName string) ApiGetAllModelPerformanceArtifactsRequest {
+	return ApiGetAllModelPerformanceArtifactsRequest{
+		ApiService: a,
+		ctx:        ctx,
+		sourceId:   sourceId,
+		modelName:  modelName,
+	}
+}
+
+// Execute executes the request
+//
+//	@return CatalogArtifactList
+func (a *ModelCatalogServiceAPIService) GetAllModelPerformanceArtifactsExecute(r ApiGetAllModelPerformanceArtifactsRequest) (*CatalogArtifactList, *http.Response, error) {
+	var (
+		localVarHTTPMethod  = http.MethodGet
+		localVarPostBody    interface{}
+		formFiles           []formFile
+		localVarReturnValue *CatalogArtifactList
+	)
+
+	localBasePath, err := a.client.cfg.ServerURLWithContext(r.ctx, "ModelCatalogServiceAPIService.GetAllModelPerformanceArtifacts")
+	if err != nil {
+		return localVarReturnValue, nil, &GenericOpenAPIError{error: err.Error()}
+	}
+
+	localVarPath := localBasePath + "/api/model_catalog/v1alpha1/sources/{source_id}/models/{model_name}/artifacts/performance"
+	localVarPath = strings.Replace(localVarPath, "{"+"source_id"+"}", url.PathEscape(parameterValueToString(r.sourceId, "sourceId")), -1)
+	localVarPath = strings.Replace(localVarPath, "{"+"model_name"+"}", url.PathEscape(parameterValueToString(r.modelName, "modelName")), -1)
+
+	localVarHeaderParams := make(map[string]string)
+	localVarQueryParams := url.Values{}
+	localVarFormParams := url.Values{}
+
+	if r.targetRPS != nil {
+		parameterAddToHeaderOrQuery(localVarQueryParams, "targetRPS", r.targetRPS, "form", "")
+	}
+	if r.recommendations != nil {
+		parameterAddToHeaderOrQuery(localVarQueryParams, "recommendations", r.recommendations, "form", "")
+	} else {
+		var defaultValue bool = false
+		parameterAddToHeaderOrQuery(localVarQueryParams, "recommendations", defaultValue, "form", "")
+		r.recommendations = &defaultValue
+	}
+	if r.rpsProperty != nil {
+		parameterAddToHeaderOrQuery(localVarQueryParams, "rpsProperty", r.rpsProperty, "form", "")
+	} else {
+		var defaultValue string = "requests_per_second"
+		parameterAddToHeaderOrQuery(localVarQueryParams, "rpsProperty", defaultValue, "form", "")
+		r.rpsProperty = &defaultValue
+	}
+	if r.latencyProperty != nil {
+		parameterAddToHeaderOrQuery(localVarQueryParams, "latencyProperty", r.latencyProperty, "form", "")
+	} else {
+		var defaultValue string = "ttft_p90"
+		parameterAddToHeaderOrQuery(localVarQueryParams, "latencyProperty", defaultValue, "form", "")
+		r.latencyProperty = &defaultValue
+	}
+	if r.hardwareCountProperty != nil {
+		parameterAddToHeaderOrQuery(localVarQueryParams, "hardwareCountProperty", r.hardwareCountProperty, "form", "")
+	} else {
+		var defaultValue string = "hardware_count"
+		parameterAddToHeaderOrQuery(localVarQueryParams, "hardwareCountProperty", defaultValue, "form", "")
+		r.hardwareCountProperty = &defaultValue
+	}
+	if r.hardwareTypeProperty != nil {
+		parameterAddToHeaderOrQuery(localVarQueryParams, "hardwareTypeProperty", r.hardwareTypeProperty, "form", "")
+	} else {
+		var defaultValue string = "hardware_type"
+		parameterAddToHeaderOrQuery(localVarQueryParams, "hardwareTypeProperty", defaultValue, "form", "")
+		r.hardwareTypeProperty = &defaultValue
+	}
+	if r.filterQuery != nil {
+		parameterAddToHeaderOrQuery(localVarQueryParams, "filterQuery", r.filterQuery, "form", "")
+	}
+	if r.pageSize != nil {
+		parameterAddToHeaderOrQuery(localVarQueryParams, "pageSize", r.pageSize, "form", "")
+	}
+	if r.orderBy != nil {
+		parameterAddToHeaderOrQuery(localVarQueryParams, "orderBy", r.orderBy, "form", "")
+	}
+	if r.sortOrder != nil {
+		parameterAddToHeaderOrQuery(localVarQueryParams, "sortOrder", r.sortOrder, "form", "")
+	}
+	if r.nextPageToken != nil {
+		parameterAddToHeaderOrQuery(localVarQueryParams, "nextPageToken", r.nextPageToken, "form", "")
+	}
+	// to determine the Content-Type header
+	localVarHTTPContentTypes := []string{}
+
+	// set Content-Type header
+	localVarHTTPContentType := selectHeaderContentType(localVarHTTPContentTypes)
+	if localVarHTTPContentType != "" {
+		localVarHeaderParams["Content-Type"] = localVarHTTPContentType
+	}
+
+	// to determine the Accept header
+	localVarHTTPHeaderAccepts := []string{"application/json"}
+
+	// set Accept header
+	localVarHTTPHeaderAccept := selectHeaderAccept(localVarHTTPHeaderAccepts)
+	if localVarHTTPHeaderAccept != "" {
+		localVarHeaderParams["Accept"] = localVarHTTPHeaderAccept
+	}
+	req, err := a.client.prepareRequest(r.ctx, localVarPath, localVarHTTPMethod, localVarPostBody, localVarHeaderParams, localVarQueryParams, localVarFormParams, formFiles)
+	if err != nil {
+		return localVarReturnValue, nil, err
+	}
+
+	localVarHTTPResponse, err := a.client.callAPI(req)
+	if err != nil || localVarHTTPResponse == nil {
+		return localVarReturnValue, localVarHTTPResponse, err
+	}
+
+	localVarBody, err := io.ReadAll(localVarHTTPResponse.Body)
+	localVarHTTPResponse.Body.Close()
+	localVarHTTPResponse.Body = io.NopCloser(bytes.NewBuffer(localVarBody))
+	if err != nil {
+		return localVarReturnValue, localVarHTTPResponse, err
+	}
+
+	if localVarHTTPResponse.StatusCode >= 300 {
+		newErr := &GenericOpenAPIError{
+			body:  localVarBody,
+			error: localVarHTTPResponse.Status,
+		}
+		if localVarHTTPResponse.StatusCode == 401 {
+			var v Error
+			err = a.client.decode(&v, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
+			if err != nil {
+				newErr.error = err.Error()
+				return localVarReturnValue, localVarHTTPResponse, newErr
+			}
+			newErr.error = formatErrorMessage(localVarHTTPResponse.Status, &v)
+			newErr.model = v
+			return localVarReturnValue, localVarHTTPResponse, newErr
+		}
+		if localVarHTTPResponse.StatusCode == 404 {
+			var v Error
+			err = a.client.decode(&v, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
+			if err != nil {
+				newErr.error = err.Error()
+				return localVarReturnValue, localVarHTTPResponse, newErr
+			}
+			newErr.error = formatErrorMessage(localVarHTTPResponse.Status, &v)
+			newErr.model = v
+			return localVarReturnValue, localVarHTTPResponse, newErr
+		}
+		if localVarHTTPResponse.StatusCode == 500 {
+			var v Error
+			err = a.client.decode(&v, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
+			if err != nil {
+				newErr.error = err.Error()
+				return localVarReturnValue, localVarHTTPResponse, newErr
+			}
+			newErr.error = formatErrorMessage(localVarHTTPResponse.Status, &v)
+			newErr.model = v
+		}
+		return localVarReturnValue, localVarHTTPResponse, newErr
+	}
+
+	err = a.client.decode(&localVarReturnValue, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
+	if err != nil {
+		newErr := &GenericOpenAPIError{
+			body:  localVarBody,
+			error: err.Error(),
+		}
+		return localVarReturnValue, localVarHTTPResponse, newErr
+	}
+
+	return localVarReturnValue, localVarHTTPResponse, nil
+}
+
 type ApiGetModelRequest struct {
 	ctx        context.Context
 	ApiService *ModelCatalogServiceAPIService

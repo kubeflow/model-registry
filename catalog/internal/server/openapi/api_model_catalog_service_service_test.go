@@ -1081,6 +1081,51 @@ func (m *mockModelProvider) GetFilterOptions(ctx context.Context) (*model.Filter
 	return &model.FilterOptionsList{Filters: &emptyFilters}, nil
 }
 
+func (m *mockModelProvider) GetPerformanceArtifacts(ctx context.Context, modelName string, sourceID string, params catalog.ListPerformanceArtifactsParams) (model.CatalogArtifactList, error) {
+	artifacts, exists := m.artifacts[modelName]
+	if !exists {
+		return model.CatalogArtifactList{
+			Items:         []model.CatalogArtifact{},
+			Size:          0,
+			PageSize:      params.PageSize,
+			NextPageToken: "",
+		}, nil
+	}
+
+	// Filter for performance artifacts (simplified mock)
+	performanceArtifacts := make([]model.CatalogArtifact, 0)
+	for _, artifact := range artifacts {
+		// In a real implementation, this would check metricsType
+		performanceArtifacts = append(performanceArtifacts, artifact)
+	}
+
+	// Apply targetRPS calculations if specified
+	if params.TargetRPS > 0 {
+		for i := range performanceArtifacts {
+			if performanceArtifacts[i].CatalogMetricsArtifact != nil {
+				if performanceArtifacts[i].CatalogMetricsArtifact.CustomProperties == nil {
+					performanceArtifacts[i].CatalogMetricsArtifact.CustomProperties = make(map[string]model.MetadataValue)
+				}
+				replicas := int32(params.TargetRPS / 50)
+				if replicas < 1 {
+					replicas = 1
+				}
+				totalRPS := float64(params.TargetRPS)
+				replicasStr := strconv.FormatInt(int64(replicas), 10)
+				performanceArtifacts[i].CatalogMetricsArtifact.CustomProperties["replicas"] = model.MetadataIntValueAsMetadataValue(&model.MetadataIntValue{IntValue: replicasStr, MetadataType: "int"})
+				performanceArtifacts[i].CatalogMetricsArtifact.CustomProperties["total_requests_per_second"] = model.MetadataDoubleValueAsMetadataValue(&model.MetadataDoubleValue{DoubleValue: totalRPS, MetadataType: "double"})
+			}
+		}
+	}
+
+	return model.CatalogArtifactList{
+		Items:         performanceArtifacts,
+		Size:          int32(len(performanceArtifacts)),
+		PageSize:      params.PageSize,
+		NextPageToken: "",
+	}, nil
+}
+
 func TestGetModel(t *testing.T) {
 	testCases := []struct {
 		name           string
@@ -1350,6 +1395,300 @@ func TestFindModelsFilterOptions(t *testing.T) {
 			require.True(t, ok, "Response body should be a FilterOptionsList")
 
 			require.NotNil(t, filterOptions.Filters)
+		})
+	}
+}
+
+func TestGetAllModelPerformanceArtifacts(t *testing.T) {
+	// Define test artifacts
+	artifact1Name := "performance-artifact-1"
+	artifact2Name := "performance-artifact-2"
+
+	artifact1 := model.CatalogArtifact{
+		CatalogMetricsArtifact: &model.CatalogMetricsArtifact{
+			Name:             &artifact1Name,
+			ArtifactType:     "metrics-artifact",
+			MetricsType:      "performance-metrics",
+			CustomProperties: map[string]model.MetadataValue{},
+		},
+	}
+
+	artifact2 := model.CatalogArtifact{
+		CatalogMetricsArtifact: &model.CatalogMetricsArtifact{
+			Name:             &artifact2Name,
+			ArtifactType:     "metrics-artifact",
+			MetricsType:      "performance-metrics",
+			CustomProperties: map[string]model.MetadataValue{},
+		},
+	}
+
+	testCases := []struct {
+		name              string
+		sourceID          string
+		modelName         string
+		targetRPS         int32
+		recommendataions  bool
+		filterQuery       string
+		pageSize          string
+		orderBy           string
+		sortOrder         model.SortOrder
+		nextPageToken     string
+		provider          catalog.APIProvider
+		expectedStatus    int
+		expectedArtifacts []model.CatalogArtifact
+		checkCustomProps  bool
+	}{
+		{
+			name:             "Basic performance artifacts retrieval",
+			sourceID:         "source-1",
+			modelName:        "test-model",
+			targetRPS:        0,
+			recommendataions: false,
+			filterQuery:      "",
+			pageSize:         "10",
+			orderBy:          "",
+			sortOrder:        model.SORTORDER_ASC,
+			nextPageToken:    "",
+			provider: &mockModelProvider{
+				models: map[string]*model.CatalogModel{
+					"test-model": {Name: "test-model"},
+				},
+				artifacts: map[string][]model.CatalogArtifact{
+					"test-model": {artifact1, artifact2},
+				},
+			},
+			expectedStatus:    http.StatusOK,
+			expectedArtifacts: []model.CatalogArtifact{artifact1, artifact2},
+			checkCustomProps:  false,
+		},
+		{
+			name:             "Performance artifacts with targetRPS parameter",
+			sourceID:         "source-1",
+			modelName:        "test-model",
+			targetRPS:        100,
+			recommendataions: false,
+			filterQuery:      "",
+			pageSize:         "10",
+			orderBy:          "",
+			sortOrder:        model.SORTORDER_ASC,
+			nextPageToken:    "",
+			provider: &mockModelProvider{
+				models: map[string]*model.CatalogModel{
+					"test-model": {Name: "test-model"},
+				},
+				artifacts: map[string][]model.CatalogArtifact{
+					"test-model": {artifact1},
+				},
+			},
+			expectedStatus:    http.StatusOK,
+			expectedArtifacts: []model.CatalogArtifact{artifact1},
+			checkCustomProps:  true,
+		},
+		{
+			name:             "Performance artifacts with recommendataions enabled",
+			sourceID:         "source-1",
+			modelName:        "test-model",
+			targetRPS:        200,
+			recommendataions: true,
+			filterQuery:      "",
+			pageSize:         "5",
+			orderBy:          "",
+			sortOrder:        model.SORTORDER_DESC,
+			nextPageToken:    "",
+			provider: &mockModelProvider{
+				models: map[string]*model.CatalogModel{
+					"test-model": {Name: "test-model"},
+				},
+				artifacts: map[string][]model.CatalogArtifact{
+					"test-model": {artifact1},
+				},
+			},
+			expectedStatus:    http.StatusOK,
+			expectedArtifacts: []model.CatalogArtifact{artifact1},
+			checkCustomProps:  true,
+		},
+		{
+			name:             "Model not found",
+			sourceID:         "source-1",
+			modelName:        "nonexistent-model",
+			targetRPS:        0,
+			recommendataions: false,
+			filterQuery:      "",
+			pageSize:         "10",
+			orderBy:          "",
+			sortOrder:        model.SORTORDER_ASC,
+			nextPageToken:    "",
+			provider: &mockModelProvider{
+				models:    map[string]*model.CatalogModel{},
+				artifacts: map[string][]model.CatalogArtifact{},
+			},
+			expectedStatus:    http.StatusOK,
+			expectedArtifacts: []model.CatalogArtifact{},
+			checkCustomProps:  false,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			sources := catalog.NewSourceCollection()
+			sources.Merge("", map[string]catalog.Source{
+				tc.sourceID: {
+					CatalogSource: model.CatalogSource{Id: tc.sourceID, Name: "Test Source"},
+				},
+			})
+			sourceLabels := catalog.NewLabelCollection()
+
+			service := NewModelCatalogServiceAPIService(tc.provider, sources, sourceLabels)
+
+			resp, err := service.GetAllModelPerformanceArtifacts(
+				context.Background(),
+				tc.sourceID,
+				tc.modelName,
+				tc.targetRPS,
+				tc.recommendataions,
+				"", // rpsProperty
+				"", // latencyProperty
+				"", // hardwareCountProperty
+				"", // hardwareTypeProperty
+				tc.filterQuery,
+				tc.pageSize,
+				tc.orderBy,
+				tc.sortOrder,
+				tc.nextPageToken,
+			)
+
+			require.NoError(t, err)
+			assert.Equal(t, tc.expectedStatus, resp.Code)
+
+			if tc.expectedStatus != http.StatusOK {
+				return
+			}
+
+			// For successful responses, check the response body
+			require.NotNil(t, resp.Body)
+
+			// Type assertion to access the list of artifacts
+			artifactList, ok := resp.Body.(model.CatalogArtifactList)
+			require.True(t, ok, "Response body should be a CatalogArtifactList")
+
+			// Check artifact count
+			assert.Equal(t, int32(len(tc.expectedArtifacts)), artifactList.Size)
+
+			// If we need to check custom properties (for targetRPS tests)
+			if tc.checkCustomProps && tc.targetRPS > 0 {
+				require.Greater(t, len(artifactList.Items), 0, "Should have at least one artifact")
+
+				// Check that custom properties include replicas and total_requests_per_second
+				artifact := artifactList.Items[0]
+				require.NotNil(t, artifact.CatalogMetricsArtifact, "Should be a metrics artifact")
+				require.NotNil(t, artifact.CatalogMetricsArtifact.CustomProperties, "Should have custom properties")
+
+				_, foundReplicas := artifact.CatalogMetricsArtifact.CustomProperties["replicas"]
+				_, foundTotalRPS := artifact.CatalogMetricsArtifact.CustomProperties["total_requests_per_second"]
+
+				assert.True(t, foundReplicas, "Should have replicas custom property")
+				assert.True(t, foundTotalRPS, "Should have total_requests_per_second custom property")
+			}
+		})
+	}
+}
+
+func TestGetAllModelPerformanceArtifactsWithConfigurableProperties(t *testing.T) {
+	artifact1Name := "performance-artifact-1"
+	artifact1 := model.CatalogArtifact{
+		CatalogMetricsArtifact: &model.CatalogMetricsArtifact{
+			Name:             &artifact1Name,
+			ArtifactType:     "metrics-artifact",
+			MetricsType:      "performance-metrics",
+			CustomProperties: map[string]model.MetadataValue{},
+		},
+	}
+
+	testCases := []struct {
+		name                  string
+		sourceID              string
+		modelName             string
+		targetRPS             int32
+		recommendations       bool
+		rpsProperty           string
+		latencyProperty       string
+		hardwareCountProperty string
+		hardwareTypeProperty  string
+		provider              catalog.APIProvider
+		expectedStatus        int
+	}{
+		{
+			name:                  "Custom property parameters",
+			sourceID:              "source1",
+			modelName:             "model1",
+			targetRPS:             100,
+			recommendations:       true,
+			rpsProperty:           "throughput",
+			latencyProperty:       "p90_latency",
+			hardwareCountProperty: "nodes",
+			hardwareTypeProperty:  "instance_type",
+			provider: &mockModelProvider{
+				models: map[string]*model.CatalogModel{
+					"model1": {Name: "model1"},
+				},
+				artifacts: map[string][]model.CatalogArtifact{
+					"model1": {artifact1},
+				},
+			},
+			expectedStatus: http.StatusOK,
+		},
+		{
+			name:                  "Empty custom property parameters (use defaults)",
+			sourceID:              "source1",
+			modelName:             "model1",
+			targetRPS:             100,
+			recommendations:       true,
+			rpsProperty:           "",
+			latencyProperty:       "",
+			hardwareCountProperty: "",
+			hardwareTypeProperty:  "",
+			provider: &mockModelProvider{
+				models: map[string]*model.CatalogModel{
+					"model1": {Name: "model1"},
+				},
+				artifacts: map[string][]model.CatalogArtifact{
+					"model1": {artifact1},
+				},
+			},
+			expectedStatus: http.StatusOK,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			sources := catalog.NewSourceCollection()
+			sources.Merge("", map[string]catalog.Source{
+				tc.sourceID: {
+					CatalogSource: model.CatalogSource{Id: tc.sourceID, Name: "Test Source"},
+				},
+			})
+			sourceLabels := catalog.NewLabelCollection()
+
+			service := NewModelCatalogServiceAPIService(tc.provider, sources, sourceLabels)
+
+			resp, err := service.GetAllModelPerformanceArtifacts(
+				context.Background(),
+				tc.sourceID,
+				tc.modelName,
+				tc.targetRPS,
+				tc.recommendations,
+				tc.rpsProperty,
+				tc.latencyProperty,
+				tc.hardwareCountProperty,
+				tc.hardwareTypeProperty,
+				"",                  // filterQuery
+				"10",                // pageSize
+				"",                  // orderBy
+				model.SORTORDER_ASC, // sortOrder
+				"")                  // nextPageToken
+
+			assert.NoError(t, err)
+			assert.Equal(t, tc.expectedStatus, resp.Code)
 		})
 	}
 }
