@@ -865,3 +865,325 @@ func TestUnmarshalJSON_EdgeCases(t *testing.T) {
 		})
 	}
 }
+
+func TestParseMetadataJSON_NewFields(t *testing.T) {
+	tests := []struct {
+		name           string
+		jsonData       string
+		wantID         string
+		wantSize       *string
+		wantTensorType *string
+		wantVariantID  *string
+		wantErr        bool
+	}{
+		{
+			name: "complete metadata with all new fields",
+			jsonData: `{
+				"id": "sample-model/test-8b-instruct",
+				"size": "8B params",
+				"tensor_type": "FP16",
+				"variant_group_id": "abc123de-f456-789a-bcde-f0123456789a"
+			}`,
+			wantID:         "sample-model/test-8b-instruct",
+			wantSize:       &[]string{"8B params"}[0],
+			wantTensorType: &[]string{"FP16"}[0],
+			wantVariantID:  &[]string{"abc123de-f456-789a-bcde-f0123456789a"}[0],
+			wantErr:        false,
+		},
+		{
+			name: "metadata with quantized model INT4",
+			jsonData: `{
+				"id": "sample-model/test-70b-quantized.w4a16",
+				"size": "11B params",
+				"tensor_type": "INT4",
+				"variant_group_id": "def456ab-c789-012d-ef34-56789abcdef0"
+			}`,
+			wantID:         "sample-model/test-70b-quantized.w4a16",
+			wantSize:       &[]string{"11B params"}[0],
+			wantTensorType: &[]string{"INT4"}[0],
+			wantVariantID:  &[]string{"def456ab-c789-012d-ef34-56789abcdef0"}[0],
+			wantErr:        false,
+		},
+		{
+			name: "metadata with different tensor types",
+			jsonData: `{
+				"id": "sample-model/test-bf16",
+				"size": "13B params",
+				"tensor_type": "BF16",
+				"variant_group_id": "ghi789cd-e012-345g-hi67-89abcdef0123"
+			}`,
+			wantID:         "sample-model/test-bf16",
+			wantSize:       &[]string{"13B params"}[0],
+			wantTensorType: &[]string{"BF16"}[0],
+			wantVariantID:  &[]string{"ghi789cd-e012-345g-hi67-89abcdef0123"}[0],
+			wantErr:        false,
+		},
+		{
+			name: "metadata with INT8 tensor type",
+			jsonData: `{
+				"id": "sample-model/test-int8",
+				"size": "7B params",
+				"tensor_type": "INT8",
+				"variant_group_id": "jkl012ef-3456-789j-kl01-23456789abcd"
+			}`,
+			wantID:         "sample-model/test-int8",
+			wantSize:       &[]string{"7B params"}[0],
+			wantTensorType: &[]string{"INT8"}[0],
+			wantVariantID:  &[]string{"jkl012ef-3456-789j-kl01-23456789abcd"}[0],
+			wantErr:        false,
+		},
+		{
+			name: "metadata missing all new fields",
+			jsonData: `{
+				"id": "sample-model/minimal-test"
+			}`,
+			wantID:         "sample-model/minimal-test",
+			wantSize:       nil,
+			wantTensorType: nil,
+			wantVariantID:  nil,
+			wantErr:        false,
+		},
+		{
+			name: "metadata with null new fields",
+			jsonData: `{
+				"id": "sample-model/null-fields",
+				"size": null,
+				"tensor_type": null,
+				"variant_group_id": null
+			}`,
+			wantID:         "sample-model/null-fields",
+			wantSize:       nil,
+			wantTensorType: nil,
+			wantVariantID:  nil,
+			wantErr:        false,
+		},
+		{
+			name: "metadata with empty string new fields",
+			jsonData: `{
+				"id": "sample-model/empty-strings",
+				"size": "",
+				"tensor_type": "",
+				"variant_group_id": ""
+			}`,
+			wantID:         "sample-model/empty-strings",
+			wantSize:       &[]string{""}[0],
+			wantTensorType: &[]string{""}[0],
+			wantVariantID:  &[]string{""}[0],
+			wantErr:        false,
+		},
+		{
+			name: "metadata with partial new fields",
+			jsonData: `{
+				"id": "sample-model/partial-fields",
+				"size": "15B params",
+				"tensor_type": "FP8"
+			}`,
+			wantID:         "sample-model/partial-fields",
+			wantSize:       &[]string{"15B params"}[0],
+			wantTensorType: &[]string{"FP8"}[0],
+			wantVariantID:  nil,
+			wantErr:        false,
+		},
+		{
+			name: "metadata with mixed precision format",
+			jsonData: `{
+				"id": "sample-model/mixed-precision",
+				"size": "22B params",
+				"tensor_type": "MXFP4",
+				"variant_group_id": "mno345gh-6789-012m-no34-56789abcdef1"
+			}`,
+			wantID:         "sample-model/mixed-precision",
+			wantSize:       &[]string{"22B params"}[0],
+			wantTensorType: &[]string{"MXFP4"}[0],
+			wantVariantID:  &[]string{"mno345gh-6789-012m-no34-56789abcdef1"}[0],
+			wantErr:        false,
+		},
+		{
+			name: "metadata with large model size",
+			jsonData: `{
+				"id": "sample-model/large-model",
+				"size": "175B params",
+				"tensor_type": "FP16",
+				"variant_group_id": "pqr678ij-9abc-def0-pqr1-23456789abcd"
+			}`,
+			wantID:         "sample-model/large-model",
+			wantSize:       &[]string{"175B params"}[0],
+			wantTensorType: &[]string{"FP16"}[0],
+			wantVariantID:  &[]string{"pqr678ij-9abc-def0-pqr1-23456789abcd"}[0],
+			wantErr:        false,
+		},
+		{
+			name: "metadata with decimal size",
+			jsonData: `{
+				"id": "sample-model/decimal-size",
+				"size": "6.7B params",
+				"tensor_type": "BF16",
+				"variant_group_id": "stu901kl-2def-456s-tu90-123456789abc"
+			}`,
+			wantID:         "sample-model/decimal-size",
+			wantSize:       &[]string{"6.7B params"}[0],
+			wantTensorType: &[]string{"BF16"}[0],
+			wantVariantID:  &[]string{"stu901kl-2def-456s-tu90-123456789abc"}[0],
+			wantErr:        false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := parseMetadataJSON([]byte(tt.jsonData))
+
+			if (err != nil) != tt.wantErr {
+				t.Errorf("parseMetadataJSON() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+
+			if err != nil {
+				return
+			}
+
+			// Test ID field
+			if got.ID != tt.wantID {
+				t.Errorf("parseMetadataJSON() ID = %v, want %v", got.ID, tt.wantID)
+			}
+
+			// Test Size field
+			if (got.Size == nil) != (tt.wantSize == nil) || (got.Size != nil && tt.wantSize != nil && *got.Size != *tt.wantSize) {
+				t.Errorf("parseMetadataJSON() Size = %v, want %v", got.Size, tt.wantSize)
+			}
+
+			// Test TensorType field
+			if (got.TensorType == nil) != (tt.wantTensorType == nil) || (got.TensorType != nil && tt.wantTensorType != nil && *got.TensorType != *tt.wantTensorType) {
+				t.Errorf("parseMetadataJSON() TensorType = %v, want %v", got.TensorType, tt.wantTensorType)
+			}
+
+			// Test VariantGroupID field
+			if (got.VariantGroupID == nil) != (tt.wantVariantID == nil) || (got.VariantGroupID != nil && tt.wantVariantID != nil && *got.VariantGroupID != *tt.wantVariantID) {
+				t.Errorf("parseMetadataJSON() VariantGroupID = %v, want %v", got.VariantGroupID, tt.wantVariantID)
+			}
+		})
+	}
+}
+
+func TestMetadataJSONEdgeCases(t *testing.T) {
+	tests := []struct {
+		name     string
+		jsonData string
+		wantErr  bool
+		validate func(*testing.T, metadataJSON)
+	}{
+		{
+			name: "metadata with very long field values",
+			jsonData: `{
+				"id": "test-model/long-values",
+				"size": "` + generateLongString(1000) + `",
+				"tensor_type": "` + generateLongString(100) + `",
+				"variant_group_id": "` + generateLongString(500) + `"
+			}`,
+			wantErr: false,
+			validate: func(t *testing.T, m metadataJSON) {
+				if m.Size == nil || len(*m.Size) != 1000 {
+					t.Errorf("Size should be 1000 characters long, got %v", m.Size)
+				}
+				if m.TensorType == nil || len(*m.TensorType) != 100 {
+					t.Errorf("TensorType should be 100 characters long, got %v", m.TensorType)
+				}
+				if m.VariantGroupID == nil || len(*m.VariantGroupID) != 500 {
+					t.Errorf("VariantGroupID should be 500 characters long, got %v", m.VariantGroupID)
+				}
+			},
+		},
+		{
+			name: "metadata with special characters and unicode",
+			jsonData: `{
+				"id": "test-model/special-chars-测试",
+				"size": "8B params 🤖",
+				"tensor_type": "FP16-αβγ",
+				"variant_group_id": "uuid-with-special-chars_$#@"
+			}`,
+			wantErr: false,
+			validate: func(t *testing.T, m metadataJSON) {
+				expectedID := "test-model/special-chars-测试"
+				if m.ID != expectedID {
+					t.Errorf("ID should handle unicode, got %v", m.ID)
+				}
+				expectedSize := "8B params 🤖"
+				if m.Size == nil || *m.Size != expectedSize {
+					t.Errorf("Size should handle unicode, got %v", m.Size)
+				}
+				expectedType := "FP16-αβγ"
+				if m.TensorType == nil || *m.TensorType != expectedType {
+					t.Errorf("TensorType should handle unicode, got %v", m.TensorType)
+				}
+			},
+		},
+		{
+			name: "metadata with numeric string values that could cause confusion",
+			jsonData: `{
+				"id": "test-model/numeric-strings",
+				"size": "123",
+				"tensor_type": "456.789",
+				"variant_group_id": "0000-0000-0000-0000"
+			}`,
+			wantErr: false,
+			validate: func(t *testing.T, m metadataJSON) {
+				if m.Size == nil || *m.Size != "123" {
+					t.Errorf("Size should be string '123', got %v", m.Size)
+				}
+				if m.TensorType == nil || *m.TensorType != "456.789" {
+					t.Errorf("TensorType should be string '456.789', got %v", m.TensorType)
+				}
+				if m.VariantGroupID == nil || *m.VariantGroupID != "0000-0000-0000-0000" {
+					t.Errorf("VariantGroupID should be string '0000-0000-0000-0000', got %v", m.VariantGroupID)
+				}
+			},
+		},
+		{
+			name: "metadata with wrong type for new fields",
+			jsonData: `{
+				"id": "test-model/type-mismatch",
+				"size": 123,
+				"tensor_type": true,
+				"variant_group_id": 456.789
+			}`,
+			wantErr: true,
+		},
+		{
+			name: "metadata with nested objects in new fields (should be handled gracefully)",
+			jsonData: `{
+				"id": "test-model/nested-objects",
+				"size": {"value": "8B params"},
+				"tensor_type": ["FP16", "INT4"],
+				"variant_group_id": {"id": "abc123"}
+			}`,
+			wantErr: true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := parseMetadataJSON([]byte(tt.jsonData))
+
+			if (err != nil) != tt.wantErr {
+				t.Errorf("parseMetadataJSON() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+
+			if err != nil {
+				return
+			}
+
+			if tt.validate != nil {
+				tt.validate(t, got)
+			}
+		})
+	}
+}
+
+func generateLongString(length int) string {
+	result := ""
+	char := "a"
+	for i := 0; i < length; i++ {
+		result += char
+	}
+	return result
+}
