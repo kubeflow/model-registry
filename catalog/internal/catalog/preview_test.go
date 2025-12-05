@@ -77,6 +77,26 @@ properties:
 			errorMsg:    "missing required field: type",
 		},
 		{
+			name: "extra fields from full source config are ignored",
+			configYAML: `
+name: "Community and Custom Models"
+id: community_custom_models
+type: yaml
+enabled: true
+includedModels:
+  - "Granite/*"
+properties:
+  yamlCatalogPath: "/path/to/catalog.yaml"
+`,
+			expectError: false,
+			validate: func(t *testing.T, config *PreviewConfig) {
+				// Extra fields (name, id, enabled) should be ignored
+				assert.Equal(t, "yaml", config.Type)
+				assert.Equal(t, []string{"Granite/*"}, config.IncludedModels)
+				assert.Equal(t, "/path/to/catalog.yaml", config.Properties["yamlCatalogPath"])
+			},
+		},
+		{
 			name: "empty type field",
 			configYAML: `
 type: ""

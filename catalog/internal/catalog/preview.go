@@ -19,9 +19,11 @@ type PreviewConfig struct {
 }
 
 // ParsePreviewConfig parses the uploaded config bytes into a PreviewConfig.
+// Extra fields (like name, id, enabled) are ignored so users can paste
+// a full source config entry directly for preview.
 func ParsePreviewConfig(configBytes []byte) (*PreviewConfig, error) {
 	var config PreviewConfig
-	if err := yaml.UnmarshalStrict(configBytes, &config); err != nil {
+	if err := yaml.Unmarshal(configBytes, &config); err != nil {
 		return nil, fmt.Errorf("failed to parse config: %w", err)
 	}
 
