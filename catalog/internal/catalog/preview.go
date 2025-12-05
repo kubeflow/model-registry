@@ -87,6 +87,15 @@ func loadHFModelNames(ctx context.Context, config *PreviewConfig) ([]string, err
 		return nil, fmt.Errorf("includedModels is required for HuggingFace source preview (specifies which models to fetch from HuggingFace)")
 	}
 
+	// SECURITY: Override the URL property to prevent SSRF attacks.
+	// An attacker could otherwise set a custom URL to leak the HF API key
+	// to an attacker-controlled domain.
+	// We ensure requests only go to the official HuggingFace API.
+	if config.Properties == nil {
+		config.Properties = make(map[string]any)
+	}
+	delete(config.Properties, "url")
+
 	// Create HF preview provider (reuses hfModelProvider from hf_catalog.go)
 	provider, err := NewHFPreviewProvider(config)
 	if err != nil {
