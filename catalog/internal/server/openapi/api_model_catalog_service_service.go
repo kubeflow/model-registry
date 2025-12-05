@@ -7,6 +7,7 @@ import (
 	"math"
 	"net/http"
 	"net/url"
+	"os"
 	"slices"
 	"strconv"
 	"strings"
@@ -314,6 +315,113 @@ func (m *ModelCatalogServiceAPIService) FindSources(ctx context.Context, name st
 		NextPageToken: next.Token(),
 	}
 	return Response(http.StatusOK, res), nil
+}
+
+func (m *ModelCatalogServiceAPIService) PreviewCatalogSource(ctx context.Context, configParam *os.File, pageSizeParam string, nextPageTokenParam string, filterStatusParam string, catalogDataParam *os.File) (ImplResponse, error) {
+	// Parse page size
+	pageSize := int32(10)
+	if pageSizeParam != "" {
+		parsed, err := strconv.ParseInt(pageSizeParam, 10, 32)
+		if err != nil {
+			return ErrorResponse(http.StatusBadRequest, fmt.Errorf("invalid pageSize: %w", err)), err
+		}
+		pageSize = int32(parsed)
+	}
+
+	// Parse filterStatus (default: "all")
+	filterStatus := "all"
+	if filterStatusParam != "" {
+		filterStatus = strings.ToLower(filterStatusParam)
+		if filterStatus != "all" && filterStatus != "included" && filterStatus != "excluded" {
+			err := fmt.Errorf("invalid filterStatus: must be 'all', 'included', or 'excluded'")
+			return ErrorResponse(http.StatusBadRequest, err), err
+		}
+	}
+
+	// Read and parse the uploaded config file
+	if configParam == nil {
+		err := errors.New("config file is required")
+		return ErrorResponse(http.StatusBadRequest, err), err
+	}
+	defer configParam.Close()
+
+	configBytes, err := os.ReadFile(configParam.Name())
+	if err != nil {
+		return ErrorResponse(http.StatusBadRequest, fmt.Errorf("failed to read config file: %w", err)), err
+	}
+
+	// Read catalog data if provided (stateless mode)
+	var catalogDataBytes []byte
+	if catalogDataParam != nil {
+		defer catalogDataParam.Close()
+		catalogDataBytes, err = os.ReadFile(catalogDataParam.Name())
+		if err != nil {
+			return ErrorResponse(http.StatusBadRequest, fmt.Errorf("failed to read catalogData file: %w", err)), err
+		}
+	}
+
+	// Parse the config as a preview request
+	previewRequest, err := catalog.ParsePreviewConfig(configBytes)
+	if err != nil {
+		return ErrorResponse(http.StatusUnprocessableEntity, fmt.Errorf("invalid config: %w", err)), err
+	}
+
+	// Load models using the preview service
+	previewResults, err := catalog.PreviewSourceModels(ctx, previewRequest, catalogDataBytes)
+	if err != nil {
+		return ErrorResponse(http.StatusUnprocessableEntity, fmt.Errorf("failed to load models: %w", err)), err
+	}
+
+	// Filter by status
+	var filteredResults []model.ModelPreviewResult
+	for _, result := range previewResults {
+		switch filterStatus {
+		case "included":
+			if result.Included {
+				filteredResults = append(filteredResults, result)
+			}
+		case "excluded":
+			if !result.Included {
+				filteredResults = append(filteredResults, result)
+			}
+		default: // "all"
+			filteredResults = append(filteredResults, result)
+		}
+	}
+
+	// Calculate summary from ALL results (not filtered)
+	var includedCount, excludedCount int32
+	for _, result := range previewResults {
+		if result.Included {
+			includedCount++
+		} else {
+			excludedCount++
+		}
+	}
+
+	summary := model.CatalogSourcePreviewResponseAllOfSummary{
+		TotalModels:    int32(len(previewResults)),
+		IncludedModels: includedCount,
+		ExcludedModels: excludedCount,
+	}
+
+	// Apply pagination
+	paginator, err := newPaginator[model.ModelPreviewResult](pageSizeParam, model.OrderByField(""), model.SortOrder(""), nextPageTokenParam)
+	if err != nil {
+		return ErrorResponse(http.StatusBadRequest, err), err
+	}
+
+	pagedResults, next := paginator.Paginate(filteredResults)
+
+	response := model.CatalogSourcePreviewResponse{
+		PageSize:      pageSize,
+		Size:          int32(len(pagedResults)),
+		NextPageToken: next.Token(),
+		Items:         pagedResults,
+		Summary:       summary,
+	}
+
+	return Response(http.StatusOK, response), nil
 }
 
 func genCatalogCmpFunc(orderBy model.OrderByField, sortOrder model.SortOrder) (func(model.CatalogSource, model.CatalogSource) int, error) {

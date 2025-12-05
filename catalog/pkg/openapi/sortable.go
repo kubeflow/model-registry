@@ -35,3 +35,11 @@ func unrefString(v *string) string {
 	}
 	return *v
 }
+
+func (m ModelPreviewResult) SortValue(field OrderByField) string {
+	switch field {
+	case ORDERBYFIELD_ID, ORDERBYFIELD_NAME:
+		return m.Name
+	}
+	return ""
+}

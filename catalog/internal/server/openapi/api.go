@@ -13,6 +13,7 @@ package openapi
 import (
 	"context"
 	"net/http"
+	"os"
 
 	model "github.com/kubeflow/model-registry/catalog/pkg/openapi"
 )
@@ -25,6 +26,7 @@ type ModelCatalogServiceAPIRouter interface {
 	FindModels(http.ResponseWriter, *http.Request)
 	FindModelsFilterOptions(http.ResponseWriter, *http.Request)
 	FindSources(http.ResponseWriter, *http.Request)
+	PreviewCatalogSource(http.ResponseWriter, *http.Request)
 	GetModel(http.ResponseWriter, *http.Request)
 	GetAllModelArtifacts(http.ResponseWriter, *http.Request)
 	GetAllModelPerformanceArtifacts(http.ResponseWriter, *http.Request)
@@ -39,6 +41,7 @@ type ModelCatalogServiceAPIServicer interface {
 	FindModels(context.Context, []string, string, []string, string, string, model.OrderByField, model.SortOrder, string) (ImplResponse, error)
 	FindModelsFilterOptions(context.Context) (ImplResponse, error)
 	FindSources(context.Context, string, string, model.OrderByField, model.SortOrder, string) (ImplResponse, error)
+	PreviewCatalogSource(context.Context, *os.File, string, string, string, *os.File) (ImplResponse, error)
 	GetModel(context.Context, string, string) (ImplResponse, error)
 	GetAllModelArtifacts(context.Context, string, string, []model.ArtifactTypeQueryParam, []model.ArtifactTypeQueryParam, string, string, string, model.SortOrder, string) (ImplResponse, error)
 	GetAllModelPerformanceArtifacts(context.Context, string, string, int32, bool, string, string, string, string, string, string, string, model.SortOrder, string) (ImplResponse, error)

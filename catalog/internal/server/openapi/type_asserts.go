@@ -278,6 +278,66 @@ func AssertCatalogSourceListRequired(obj model.CatalogSourceList) error {
 	return nil
 }
 
+// AssertCatalogSourcePreviewResponseAllOfSummaryConstraints checks if the values respects the defined constraints
+func AssertCatalogSourcePreviewResponseAllOfSummaryConstraints(obj model.CatalogSourcePreviewResponseAllOfSummary) error {
+	return nil
+}
+
+// AssertCatalogSourcePreviewResponseAllOfSummaryRequired checks if the required fields are not zero-ed
+func AssertCatalogSourcePreviewResponseAllOfSummaryRequired(obj model.CatalogSourcePreviewResponseAllOfSummary) error {
+	elements := map[string]interface{}{
+		"totalModels":    obj.TotalModels,
+		"includedModels": obj.IncludedModels,
+		"excludedModels": obj.ExcludedModels,
+	}
+	for name, el := range elements {
+		if isZero := IsZeroValue(el); isZero {
+			return &RequiredError{Field: name}
+		}
+	}
+
+	return nil
+}
+
+// AssertCatalogSourcePreviewResponseConstraints checks if the values respects the defined constraints
+func AssertCatalogSourcePreviewResponseConstraints(obj model.CatalogSourcePreviewResponse) error {
+	for _, el := range obj.Items {
+		if err := AssertModelPreviewResultConstraints(el); err != nil {
+			return err
+		}
+	}
+	if err := AssertCatalogSourcePreviewResponseAllOfSummaryConstraints(obj.Summary); err != nil {
+		return err
+	}
+	return nil
+}
+
+// AssertCatalogSourcePreviewResponseRequired checks if the required fields are not zero-ed
+func AssertCatalogSourcePreviewResponseRequired(obj model.CatalogSourcePreviewResponse) error {
+	elements := map[string]interface{}{
+		"nextPageToken": obj.NextPageToken,
+		"pageSize":      obj.PageSize,
+		"size":          obj.Size,
+		"items":         obj.Items,
+		"summary":       obj.Summary,
+	}
+	for name, el := range elements {
+		if isZero := IsZeroValue(el); isZero {
+			return &RequiredError{Field: name}
+		}
+	}
+
+	for _, el := range obj.Items {
+		if err := AssertModelPreviewResultRequired(el); err != nil {
+			return err
+		}
+	}
+	if err := AssertCatalogSourcePreviewResponseAllOfSummaryRequired(obj.Summary); err != nil {
+		return err
+	}
+	return nil
+}
+
 // AssertCatalogSourceRequired checks if the required fields are not zero-ed
 func AssertCatalogSourceRequired(obj model.CatalogSource) error {
 	elements := map[string]interface{}{
@@ -445,6 +505,26 @@ func AssertMetadataStructValueRequired(obj model.MetadataStructValue) error {
 	elements := map[string]interface{}{
 		"struct_value": obj.StructValue,
 		"metadataType": obj.MetadataType,
+	}
+	for name, el := range elements {
+		if isZero := IsZeroValue(el); isZero {
+			return &RequiredError{Field: name}
+		}
+	}
+
+	return nil
+}
+
+// AssertModelPreviewResultConstraints checks if the values respects the defined constraints
+func AssertModelPreviewResultConstraints(obj model.ModelPreviewResult) error {
+	return nil
+}
+
+// AssertModelPreviewResultRequired checks if the required fields are not zero-ed
+func AssertModelPreviewResultRequired(obj model.ModelPreviewResult) error {
+	elements := map[string]interface{}{
+		"name":     obj.Name,
+		"included": obj.Included,
 	}
 	for name, el := range elements {
 		if isZero := IsZeroValue(el); isZero {

@@ -12,6 +12,7 @@ package openapi
 
 import (
 	"net/http"
+	"os"
 	"strings"
 
 	"github.com/go-chi/chi/v5"
@@ -76,6 +77,12 @@ func (c *ModelCatalogServiceAPIController) Routes() Routes {
 			"/api/model_catalog/v1alpha1/sources",
 			c.FindSources,
 		},
+		"PreviewCatalogSource": Route{
+			"PreviewCatalogSource",
+			strings.ToUpper("Post"),
+			"/api/model_catalog/v1alpha1/sources/preview",
+			c.PreviewCatalogSource,
+		},
 		"GetModel": Route{
 			"GetModel",
 			strings.ToUpper("Get"),
@@ -123,6 +130,12 @@ func (c *ModelCatalogServiceAPIController) OrderedRoutes() []Route {
 			strings.ToUpper("Get"),
 			"/api/model_catalog/v1alpha1/sources",
 			c.FindSources,
+		},
+		Route{
+			"PreviewCatalogSource",
+			strings.ToUpper("Post"),
+			"/api/model_catalog/v1alpha1/sources/preview",
+			c.PreviewCatalogSource,
 		},
 		Route{
 			"GetModel",
@@ -312,6 +325,75 @@ func (c *ModelCatalogServiceAPIController) FindSources(w http.ResponseWriter, r 
 	} else {
 	}
 	result, err := c.service.FindSources(r.Context(), nameParam, pageSizeParam, orderByParam, sortOrderParam, nextPageTokenParam)
+	// If an error occurred, encode the error with the status code
+	if err != nil {
+		c.errorHandler(w, r, err, &result)
+		return
+	}
+	// If no error, encode the body and the result code
+	_ = EncodeJSONResponse(result.Body, &result.Code, w)
+}
+
+// PreviewCatalogSource - Preview catalog source configuration
+func (c *ModelCatalogServiceAPIController) PreviewCatalogSource(w http.ResponseWriter, r *http.Request) {
+	if err := r.ParseMultipartForm(32 << 20); err != nil {
+		c.errorHandler(w, r, &ParsingError{Err: err}, nil)
+		return
+	}
+	query, err := parseQuery(r.URL.RawQuery)
+	if err != nil {
+		c.errorHandler(w, r, &ParsingError{Err: err}, nil)
+		return
+	}
+	var configParam *os.File
+	{
+		param, err := ReadFormFileToTempFile(r, "config")
+		if err != nil {
+			c.errorHandler(w, r, &ParsingError{Param: "config", Err: err}, nil)
+			return
+		}
+
+		configParam = param
+	}
+
+	var pageSizeParam string
+	if query.Has("pageSize") {
+		param := query.Get("pageSize")
+
+		pageSizeParam = param
+	} else {
+	}
+	var nextPageTokenParam string
+	if query.Has("nextPageToken") {
+		param := query.Get("nextPageToken")
+
+		nextPageTokenParam = param
+	} else {
+	}
+	var filterStatusParam string
+	if query.Has("filterStatus") {
+		param := query.Get("filterStatus")
+
+		filterStatusParam = param
+	} else {
+		param := "all"
+		filterStatusParam = param
+	}
+	var catalogDataParam *os.File
+	{
+		param, err := ReadFormFileToTempFile(r, "catalogData")
+		if err != nil {
+			// Optional file parameter - ignore missing file error
+			if err != http.ErrMissingFile {
+				c.errorHandler(w, r, &ParsingError{Param: "catalogData", Err: err}, nil)
+				return
+			}
+		}
+
+		catalogDataParam = param
+	}
+
+	result, err := c.service.PreviewCatalogSource(r.Context(), configParam, pageSizeParam, nextPageTokenParam, filterStatusParam, catalogDataParam)
 	// If an error occurred, encode the error with the status code
 	if err != nil {
 		c.errorHandler(w, r, err, &result)

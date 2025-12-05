@@ -2,8 +2,15 @@ package catalog
 
 import (
 	"context"
+	"encoding/json"
+	"fmt"
 	"net/http"
+	"net/http/httptest"
+	"os"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 
 	apimodels "github.com/kubeflow/model-registry/catalog/pkg/openapi"
 	"github.com/kubeflow/model-registry/internal/db/models"
@@ -555,4 +562,447 @@ func TestPopulateFromHFInfoWithCustomProperties(t *testing.T) {
 // Helper function to create string pointers
 func stringPtr(s string) *string {
 	return &s
+}
+
+func TestParseModelPattern(t *testing.T) {
+	tests := []struct {
+		pattern      string
+		expectedType PatternType
+		expectedOrg  string
+		expectedPfx  string
+	}{
+		// Exact patterns
+		{"meta-llama/Llama-2-7b-chat", PatternExact, "", ""},
+		{"gpt2", PatternExact, "", ""},
+		{"openai-community/gpt2", PatternExact, "", ""},
+
+		// Org/* patterns
+		{"ibm-granite/*", PatternOrgAll, "ibm-granite", ""},
+		{"meta-llama/*", PatternOrgAll, "meta-llama", ""},
+		{"openai/*", PatternOrgAll, "openai", ""},
+
+		// Org/prefix* patterns
+		{"meta-llama/Llama-2-*", PatternOrgPrefix, "meta-llama", "Llama-2-"},
+		{"ibm-granite/granite-3*", PatternOrgPrefix, "ibm-granite", "granite-3"},
+		{"mistralai/Mistral-*", PatternOrgPrefix, "mistralai", "Mistral-"},
+
+		// Invalid patterns - would try to list all HuggingFace models
+		{"*", PatternInvalid, "", ""},
+		{"*/*", PatternInvalid, "", ""},
+		{"*/something", PatternInvalid, "", ""},
+		{"*/prefix*", PatternInvalid, "", ""},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.pattern, func(t *testing.T) {
+			pType, org, prefix := parseModelPattern(tt.pattern)
+			assert.Equal(t, tt.expectedType, pType, "pattern type mismatch")
+			assert.Equal(t, tt.expectedOrg, org, "org mismatch")
+			assert.Equal(t, tt.expectedPfx, prefix, "prefix mismatch")
+		})
+	}
+}
+
+func TestParseNextCursor(t *testing.T) {
+	tests := []struct {
+		name     string
+		header   string
+		expected string
+	}{
+		{
+			name:     "empty header",
+			header:   "",
+			expected: "",
+		},
+		{
+			name:     "valid next link",
+			header:   `<https://huggingface.co/api/models?author=ibm-granite&limit=100&cursor=abc123>; rel="next"`,
+			expected: "abc123",
+		},
+		{
+			name:     "next link with other params",
+			header:   `<https://huggingface.co/api/models?author=ibm-granite&cursor=xyz789&limit=100>; rel="next"`,
+			expected: "xyz789",
+		},
+		{
+			name:     "multiple links",
+			header:   `<https://example.com/first>; rel="first", <https://huggingface.co/api/models?cursor=page2>; rel="next"`,
+			expected: "page2",
+		},
+		{
+			name:     "no next link",
+			header:   `<https://example.com/first>; rel="first"`,
+			expected: "",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			result := parseNextCursor(tt.header)
+			assert.Equal(t, tt.expected, result)
+		})
+	}
+}
+
+func TestListModelsByAuthor(t *testing.T) {
+	// Setup mock HF server
+	mux := http.NewServeMux()
+	callCount := 0
+
+	// Mock /api/whoami-v2 for credential validation
+	mux.HandleFunc("/api/whoami-v2", func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+		_ = json.NewEncoder(w).Encode(map[string]string{"name": "test-user"})
+	})
+
+	// Mock /api/models list endpoint with pagination
+	mux.HandleFunc("/api/models", func(w http.ResponseWriter, r *http.Request) {
+		callCount++
+		author := r.URL.Query().Get("author")
+		cursor := r.URL.Query().Get("cursor")
+		search := r.URL.Query().Get("search")
+
+		if author == "test-org" {
+			switch cursor {
+			case "":
+				// First page - return 100 items to simulate full page (triggers pagination)
+				models := make([]map[string]interface{}, 100)
+				for i := range 100 {
+					models[i] = map[string]interface{}{"id": fmt.Sprintf("test-org/model-%d", i+1)}
+				}
+				// Add Link header for next page
+				w.Header().Set("Link", `<https://huggingface.co/api/models?author=test-org&cursor=page2>; rel="next"`)
+				_ = json.NewEncoder(w).Encode(models)
+			case "page2":
+				// Second page (last) - return fewer than 100 to indicate end
+				models := []map[string]interface{}{
+					{"id": "test-org/model-101"},
+					{"id": "test-org/model-102"},
+				}
+				_ = json.NewEncoder(w).Encode(models)
+			}
+		} else if author == "search-org" && search != "" {
+			// Search results
+			models := []map[string]interface{}{
+				{"id": "search-org/" + search + "-match1"},
+				{"id": "search-org/" + search + "-match2"},
+				{"id": "search-org/other-model"}, // Should be filtered out
+			}
+			_ = json.NewEncoder(w).Encode(models)
+		} else {
+			_ = json.NewEncoder(w).Encode([]map[string]interface{}{})
+		}
+	})
+
+	server := httptest.NewServer(mux)
+	defer server.Close()
+
+	os.Setenv("HF_API_KEY", "test-api-key")
+	defer os.Unsetenv("HF_API_KEY")
+
+	t.Run("lists all models from org with pagination", func(t *testing.T) {
+		callCount = 0
+		config := &PreviewConfig{
+			Type: "hf",
+			Properties: map[string]any{
+				"url": server.URL,
+			},
+		}
+
+		provider, err := NewHFPreviewProvider(config)
+		require.NoError(t, err)
+
+		models, err := provider.listModelsByAuthor(context.Background(), "test-org", "")
+		require.NoError(t, err)
+
+		// Should have 100 from first page + 2 from second page = 102
+		assert.Len(t, models, 102)
+		assert.Contains(t, models, "test-org/model-1")
+		assert.Contains(t, models, "test-org/model-100")
+		assert.Contains(t, models, "test-org/model-101")
+		assert.Contains(t, models, "test-org/model-102")
+
+		// Should have made 2 API calls (2 pages)
+		assert.Equal(t, 2, callCount)
+	})
+
+	t.Run("filters by search prefix", func(t *testing.T) {
+		config := &PreviewConfig{
+			Type: "hf",
+			Properties: map[string]any{
+				"url": server.URL,
+			},
+		}
+
+		provider, err := NewHFPreviewProvider(config)
+		require.NoError(t, err)
+
+		models, err := provider.listModelsByAuthor(context.Background(), "search-org", "prefix")
+		require.NoError(t, err)
+
+		// Should only include models starting with "prefix"
+		assert.Len(t, models, 2)
+		assert.Contains(t, models, "search-org/prefix-match1")
+		assert.Contains(t, models, "search-org/prefix-match2")
+		// "other-model" should be filtered out
+		assert.NotContains(t, models, "search-org/other-model")
+	})
+
+	t.Run("respects maxModels limit", func(t *testing.T) {
+		callCount = 0
+		config := &PreviewConfig{
+			Type: "hf",
+			Properties: map[string]any{
+				"url":       server.URL,
+				"maxModels": 50, // Limit to 50 models
+			},
+		}
+
+		provider, err := NewHFPreviewProvider(config)
+		require.NoError(t, err)
+		assert.Equal(t, 50, provider.maxModels)
+
+		models, err := provider.listModelsByAuthor(context.Background(), "test-org", "")
+		require.NoError(t, err)
+
+		// Should stop at 50 models (first page has 100, but we limit to 50)
+		assert.Len(t, models, 50)
+
+		// Should have only made 1 API call (stopped before second page)
+		assert.Equal(t, 1, callCount)
+	})
+
+	t.Run("uses default maxModels when not specified", func(t *testing.T) {
+		config := &PreviewConfig{
+			Type: "hf",
+			Properties: map[string]any{
+				"url": server.URL,
+			},
+		}
+
+		provider, err := NewHFPreviewProvider(config)
+		require.NoError(t, err)
+
+		// Should use default (500)
+		assert.Equal(t, 500, provider.maxModels)
+	})
+
+	t.Run("maxModels 0 means no limit", func(t *testing.T) {
+		callCount = 0
+		config := &PreviewConfig{
+			Type: "hf",
+			Properties: map[string]any{
+				"url":       server.URL,
+				"maxModels": 0, // No limit
+			},
+		}
+
+		provider, err := NewHFPreviewProvider(config)
+		require.NoError(t, err)
+		assert.Equal(t, 0, provider.maxModels)
+
+		models, err := provider.listModelsByAuthor(context.Background(), "test-org", "")
+		require.NoError(t, err)
+
+		// Should get all 102 models (100 from page 1 + 2 from page 2)
+		assert.Len(t, models, 102)
+
+		// Should have made 2 API calls
+		assert.Equal(t, 2, callCount)
+	})
+}
+
+func TestFetchModelNamesForPreviewWithPatterns(t *testing.T) {
+	// Setup mock HF server
+	mux := http.NewServeMux()
+
+	mux.HandleFunc("/api/whoami-v2", func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+		_ = json.NewEncoder(w).Encode(map[string]string{"name": "test-user"})
+	})
+
+	// Mock list API
+	mux.HandleFunc("/api/models", func(w http.ResponseWriter, r *http.Request) {
+		author := r.URL.Query().Get("author")
+		if author == "test-org" {
+			models := []map[string]interface{}{
+				{"id": "test-org/model-a"},
+				{"id": "test-org/model-b"},
+			}
+			_ = json.NewEncoder(w).Encode(models)
+		} else {
+			_ = json.NewEncoder(w).Encode([]map[string]interface{}{})
+		}
+	})
+
+	// Mock individual model endpoints
+	mux.HandleFunc("/api/models/exact-org/exact-model", func(w http.ResponseWriter, r *http.Request) {
+		_ = json.NewEncoder(w).Encode(map[string]interface{}{"id": "exact-org/exact-model"})
+	})
+
+	server := httptest.NewServer(mux)
+	defer server.Close()
+
+	os.Setenv("HF_API_KEY", "test-api-key")
+	defer os.Unsetenv("HF_API_KEY")
+
+	t.Run("mixed patterns: org/* and exact", func(t *testing.T) {
+		config := &PreviewConfig{
+			Type: "hf",
+			IncludedModels: []string{
+				"test-org/*",            // Should use list API
+				"exact-org/exact-model", // Should use direct fetch
+			},
+			Properties: map[string]any{
+				"url": server.URL,
+			},
+		}
+
+		provider, err := NewHFPreviewProvider(config)
+		require.NoError(t, err)
+
+		names, err := provider.FetchModelNamesForPreview(context.Background(), config.IncludedModels)
+		require.NoError(t, err)
+
+		assert.Len(t, names, 3)
+		assert.Contains(t, names, "test-org/model-a")
+		assert.Contains(t, names, "test-org/model-b")
+		assert.Contains(t, names, "exact-org/exact-model")
+	})
+
+	t.Run("rejects * wildcard pattern", func(t *testing.T) {
+		config := &PreviewConfig{
+			Type: "hf",
+			IncludedModels: []string{
+				"*",
+			},
+			Properties: map[string]any{
+				"url": server.URL,
+			},
+		}
+
+		provider, err := NewHFPreviewProvider(config)
+		require.NoError(t, err)
+
+		_, err = provider.FetchModelNamesForPreview(context.Background(), config.IncludedModels)
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "wildcard pattern")
+		assert.Contains(t, err.Error(), "not supported")
+	})
+
+	t.Run("rejects */* wildcard pattern", func(t *testing.T) {
+		config := &PreviewConfig{
+			Type: "hf",
+			IncludedModels: []string{
+				"*/*",
+			},
+			Properties: map[string]any{
+				"url": server.URL,
+			},
+		}
+
+		provider, err := NewHFPreviewProvider(config)
+		require.NoError(t, err)
+
+		_, err = provider.FetchModelNamesForPreview(context.Background(), config.IncludedModels)
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "wildcard pattern")
+		assert.Contains(t, err.Error(), "not supported")
+	})
+
+	t.Run("rejects */prefix pattern", func(t *testing.T) {
+		config := &PreviewConfig{
+			Type: "hf",
+			IncludedModels: []string{
+				"*/Llama-*",
+			},
+			Properties: map[string]any{
+				"url": server.URL,
+			},
+		}
+
+		provider, err := NewHFPreviewProvider(config)
+		require.NoError(t, err)
+
+		_, err = provider.FetchModelNamesForPreview(context.Background(), config.IncludedModels)
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "wildcard pattern")
+		assert.Contains(t, err.Error(), "not supported")
+	})
+}
+
+func TestPreviewSourceModelsWithHFPatterns(t *testing.T) {
+	// Setup mock HF server
+	mux := http.NewServeMux()
+
+	mux.HandleFunc("/api/whoami-v2", func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+		_ = json.NewEncoder(w).Encode(map[string]string{"name": "test-user"})
+	})
+
+	mux.HandleFunc("/api/models", func(w http.ResponseWriter, r *http.Request) {
+		author := r.URL.Query().Get("author")
+		if author == "test-org" {
+			models := []map[string]interface{}{
+				{"id": "test-org/model-stable"},
+				{"id": "test-org/model-experimental"},
+				{"id": "test-org/model-draft"},
+			}
+			_ = json.NewEncoder(w).Encode(models)
+		} else {
+			_ = json.NewEncoder(w).Encode([]map[string]interface{}{})
+		}
+	})
+
+	server := httptest.NewServer(mux)
+	defer server.Close()
+
+	os.Setenv("HF_API_KEY", "test-api-key")
+	defer os.Unsetenv("HF_API_KEY")
+
+	t.Run("org/* pattern with excludedModels filter", func(t *testing.T) {
+		// Note: We test the filtering logic by calling NewHFPreviewProvider directly
+		// rather than PreviewSourceModels, because PreviewSourceModels has SSRF
+		// protection that removes custom URLs (which breaks mock server testing).
+		// The filtering behavior is the same - we're testing the filter logic here.
+		includedModels := []string{"test-org/*"}
+		excludedModels := []string{"*-experimental", "*-draft"}
+
+		config := &PreviewConfig{
+			Type:           "hf",
+			IncludedModels: includedModels,
+			ExcludedModels: excludedModels,
+			Properties: map[string]any{
+				"url": server.URL,
+			},
+		}
+
+		// Create provider and fetch model names (bypassing SSRF protection for testing)
+		provider, err := NewHFPreviewProvider(config)
+		require.NoError(t, err)
+
+		modelNames, err := provider.FetchModelNamesForPreview(context.Background(), includedModels)
+		require.NoError(t, err)
+		require.Len(t, modelNames, 3)
+
+		// Create filter and apply it (same logic as PreviewSourceModels)
+		filter, err := NewModelFilter(includedModels, excludedModels)
+		require.NoError(t, err)
+
+		var included, excluded []string
+		for _, name := range modelNames {
+			if filter.Allows(name) {
+				included = append(included, name)
+			} else {
+				excluded = append(excluded, name)
+			}
+		}
+
+		assert.Len(t, included, 1)
+		assert.Contains(t, included, "test-org/model-stable")
+
+		assert.Len(t, excluded, 2)
+		assert.Contains(t, excluded, "test-org/model-experimental")
+		assert.Contains(t, excluded, "test-org/model-draft")
+	})
 }

@@ -19,6 +19,8 @@ model_catalog_model_artifact.go
 model_catalog_model_list.go
 model_catalog_source.go
 model_catalog_source_list.go
+model_catalog_source_preview_response.go
+model_catalog_source_preview_response_all_of_summary.go
 model_error.go
 model_filter_option.go
 model_filter_option_range.go
@@ -30,6 +32,7 @@ model_metadata_proto_value.go
 model_metadata_string_value.go
 model_metadata_struct_value.go
 model_metadata_value.go
+model_model_preview_result.go
 model_order_by_field.go
 model_sort_order.go
 routers.go
