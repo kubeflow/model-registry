@@ -29,34 +29,27 @@ import {
 type CredentialsSectionProps = {
   formData: ManageSourceFormData;
   setData: UpdateObjectAtPropAndValue<ManageSourceFormData>;
+  onValidate: () => Promise<void>;
+  isValidating: boolean;
+  validationError?: Error;
+  isValidationSuccess: boolean;
+  onClearValidationSuccess: () => void;
 };
 
-const CredentialsSection: React.FC<CredentialsSectionProps> = ({ formData, setData }) => {
+const CredentialsSection: React.FC<CredentialsSectionProps> = ({
+  formData,
+  setData,
+  onValidate,
+  isValidating,
+  validationError,
+  isValidationSuccess,
+  onClearValidationSuccess,
+}) => {
   const [isOrganizationTouched, setIsOrganizationTouched] = React.useState(false);
   const [isAccessTokenTouched, setIsAccessTokenTouched] = React.useState(false);
 
   const isOrganizationValid = validateOrganization(formData.organization);
   const isAccessTokenValid = validateAccessToken(formData.accessToken);
-  const [validationError, setValidationError] = React.useState<Error | undefined>(undefined);
-  const [isValidating, setIsValidating] = React.useState(false);
-  const [isValidationSuccess, setIsValidationSuccess] = React.useState(false);
-
-  const handleValidate = async () => {
-    // setIsValidating(true);
-    // setValidationError(undefined);
-
-    // TODO: Implement validation logic
-    // setShowAlert(true);
-
-    // if success
-    setValidationError(undefined);
-    setIsValidationSuccess(true);
-    setIsValidating(false);
-
-    //if fails
-    // setValidationError(new Error('error'));
-    // setIsValidationSuccess(false);
-  };
 
   const organizationInput = (
     <TextInput
@@ -127,8 +120,7 @@ const CredentialsSection: React.FC<CredentialsSectionProps> = ({ formData, setDa
       </FormGroup>
       {validationError && (
         <Alert isInline variant="danger" title="Validation failed" className="pf-v5-u-mt-md">
-          The system cannot establish a connection to the source. Ensure that the organization and
-          access token are accurate, then try again.
+          {validationError.message}
         </Alert>
       )}
       {isValidationSuccess && (
@@ -137,7 +129,7 @@ const CredentialsSection: React.FC<CredentialsSectionProps> = ({ formData, setDa
           variant="success"
           className="pf-v5-u-mt-md"
           title="Validation successful"
-          actionClose={<AlertActionCloseButton onClose={() => setIsValidationSuccess(false)} />}
+          actionClose={<AlertActionCloseButton onClose={onClearValidationSuccess} />}
         >
           The organization and accessToken are valid for connection.
         </Alert>
@@ -145,9 +137,9 @@ const CredentialsSection: React.FC<CredentialsSectionProps> = ({ formData, setDa
 
       <ActionList className="pf-v5-u-mt-md">
         <Button
-          isDisabled={!isAccessTokenValid}
+          isDisabled={!isAccessTokenValid || !isOrganizationValid || isValidating}
           variant="link"
-          onClick={handleValidate}
+          onClick={onValidate}
           isLoading={isValidating}
         >
           Validate
