@@ -961,30 +961,40 @@ func TestPreviewSourceModelsWithHFPatterns(t *testing.T) {
 	defer os.Unsetenv("HF_API_KEY")
 
 	t.Run("org/* pattern with excludedModels filter", func(t *testing.T) {
+		// Note: We test the filtering logic by calling NewHFPreviewProvider directly
+		// rather than PreviewSourceModels, because PreviewSourceModels has SSRF
+		// protection that removes custom URLs (which breaks mock server testing).
+		// The filtering behavior is the same - we're testing the filter logic here.
+		includedModels := []string{"test-org/*"}
+		excludedModels := []string{"*-experimental", "*-draft"}
+
 		config := &PreviewConfig{
-			Type: "hf",
-			IncludedModels: []string{
-				"test-org/*",
-			},
-			ExcludedModels: []string{
-				"*-experimental",
-				"*-draft",
-			},
+			Type:           "hf",
+			IncludedModels: includedModels,
+			ExcludedModels: excludedModels,
 			Properties: map[string]any{
 				"url": server.URL,
 			},
 		}
 
-		results, err := PreviewSourceModels(context.Background(), config, nil)
+		// Create provider and fetch model names (bypassing SSRF protection for testing)
+		provider, err := NewHFPreviewProvider(config)
 		require.NoError(t, err)
-		require.Len(t, results, 3)
+
+		modelNames, err := provider.FetchModelNamesForPreview(context.Background(), includedModels)
+		require.NoError(t, err)
+		require.Len(t, modelNames, 3)
+
+		// Create filter and apply it (same logic as PreviewSourceModels)
+		filter, err := NewModelFilter(includedModels, excludedModels)
+		require.NoError(t, err)
 
 		var included, excluded []string
-		for _, r := range results {
-			if r.Included {
-				included = append(included, r.Name)
+		for _, name := range modelNames {
+			if filter.Allows(name) {
+				included = append(included, name)
 			} else {
-				excluded = append(excluded, r.Name)
+				excluded = append(excluded, name)
 			}
 		}
 
