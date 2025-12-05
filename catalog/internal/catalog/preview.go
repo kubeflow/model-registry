@@ -6,6 +6,7 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/golang/glog"
 	model "github.com/kubeflow/model-registry/catalog/pkg/openapi"
 	"k8s.io/apimachinery/pkg/util/yaml"
 )
@@ -96,7 +97,11 @@ func loadHFModelNames(ctx context.Context, config *PreviewConfig) ([]string, err
 	if config.Properties == nil {
 		config.Properties = make(map[string]any)
 	}
-	delete(config.Properties, "url")
+
+	if customURL, exists := config.Properties["url"]; exists {
+		glog.Warningf("HuggingFace preview: custom URL %q was ignored for security reasons (SSRF prevention)", customURL)
+		delete(config.Properties, "url")
+	}
 
 	// Create HF preview provider (reuses hfModelProvider from hf_catalog.go)
 	provider, err := NewHFPreviewProvider(config)
