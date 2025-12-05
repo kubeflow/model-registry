@@ -4,31 +4,13 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/kubeflow/model-registry/ui/bff/internal/config"
-	"github.com/kubeflow/model-registry/ui/bff/internal/constants"
 	"log/slog"
 	"net/http"
 	"strings"
+
+	"github.com/kubeflow/model-registry/ui/bff/internal/config"
+	"github.com/kubeflow/model-registry/ui/bff/internal/constants"
 )
-
-func NewKubernetesClientFactory(cfg config.EnvConfig, logger *slog.Logger) (KubernetesClientFactory, error) {
-	switch cfg.AuthMethod {
-
-	case config.AuthMethodInternal:
-		k8sFactory, err := NewStaticClientFactory(logger)
-		if err != nil {
-			return nil, fmt.Errorf("failed to create static client factory: %w", err)
-		}
-		return k8sFactory, nil
-
-	case config.AuthMethodUser:
-		k8sFactory := NewTokenClientFactory(logger, cfg)
-		return k8sFactory, nil
-
-	default:
-		return nil, fmt.Errorf("invalid auth method: %q", cfg.AuthMethod)
-	}
-}
 
 // ─── STATIC FACTORY (INTERNAL) ──────────────────────────────────────────
 // uses the credentials of the running backend to create a single instance of the client
@@ -102,16 +84,18 @@ func (f *StaticClientFactory) ValidateRequestIdentity(identity *RequestIdentity)
 //
 
 type TokenClientFactory struct {
-	Logger *slog.Logger
-	Header string
-	Prefix string
+	Logger                     *slog.Logger
+	Header                     string
+	Prefix                     string
+	NewTokenKubernetesClientFn func(token string, logger *slog.Logger) (KubernetesClientInterface, error)
 }
 
 func NewTokenClientFactory(logger *slog.Logger, cfg config.EnvConfig) KubernetesClientFactory {
 	return &TokenClientFactory{
-		Logger: logger,
-		Header: cfg.AuthTokenHeader,
-		Prefix: cfg.AuthTokenPrefix,
+		Logger:                     logger,
+		Header:                     cfg.AuthTokenHeader,
+		Prefix:                     cfg.AuthTokenPrefix,
+		NewTokenKubernetesClientFn: NewTokenKubernetesClient,
 	}
 }
 
@@ -158,5 +142,16 @@ func (f *TokenClientFactory) GetClient(ctx context.Context) (KubernetesClientInt
 		return nil, fmt.Errorf("invalid or missing identity token")
 	}
 
-	return newTokenKubernetesClient(identity.Token, f.Logger)
+	return f.NewTokenKubernetesClientFn(identity.Token, f.Logger)
+}
+
+func NewKubernetesClientFactory(cfg config.EnvConfig, logger *slog.Logger) (KubernetesClientFactory, error) {
+	switch cfg.AuthMethod {
+	case config.AuthMethodInternal:
+		return NewStaticClientFactory(logger)
+	case config.AuthMethodUser:
+		return NewTokenClientFactory(logger, cfg), nil
+	default:
+		return nil, fmt.Errorf("invalid auth method: %q", cfg.AuthMethod)
+	}
 }
