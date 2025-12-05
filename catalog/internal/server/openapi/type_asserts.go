@@ -262,6 +262,7 @@ func AssertCatalogSourceListRequired(obj model.CatalogSourceList) error {
 		"nextPageToken": obj.NextPageToken,
 		"pageSize":      obj.PageSize,
 		"size":          obj.Size,
+		"items":         obj.Items,
 	}
 	for name, el := range elements {
 		if isZero := IsZeroValue(el); isZero {
