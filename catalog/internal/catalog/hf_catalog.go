@@ -619,7 +619,7 @@ func newHFModelProvider(ctx context.Context, source *Source, reldir string) (<-c
 	}
 	apiKey := os.Getenv(apiKeyEnvVar)
 	if apiKey == "" {
-		return nil, fmt.Errorf("missing %s environment variable for HuggingFace catalog", apiKeyEnvVar)
+		glog.Infof("No API key configured for Hugging Face. Only public models and limited data for gated models will be available.")
 	}
 	p.apiKey = apiKey
 
@@ -627,13 +627,23 @@ func newHFModelProvider(ctx context.Context, source *Source, reldir string) (<-c
 	// This allows tests to use mock servers by providing a custom URL
 	p.baseURL = defaultHuggingFaceURL
 	if url, ok := source.Properties[urlKey].(string); ok && url != "" {
-		p.baseURL = strings.TrimSuffix(url, "/") // Remove trailing slash if present
+		p.baseURL = strings.TrimSuffix(url, "/")
 	}
 
-	// Validate credentials before proceeding
-	if err := p.validateCredentials(ctx); err != nil {
-		glog.Errorf("HuggingFace catalog credential validation failed: %v", err)
-		return nil, fmt.Errorf("failed to validate HuggingFace catalog credentials: %w", err)
+	if p.apiKey != "" {
+		hasValidPrefix := strings.HasPrefix(p.apiKey, "hf_")
+		if !hasValidPrefix {
+			// API key is set but doesn't have expected prefix, warn and continue without authentication
+			glog.Infof("API key does not have expected 'hf_' prefix. Only public models and limited data for gated models will be available.")
+			p.apiKey = "" // Clear invalid key to prevent its use
+		}
+		if hasValidPrefix {
+			// Validate credentials only if API key has correct format
+			if err := p.validateCredentials(ctx); err != nil {
+				glog.Errorf("HuggingFace catalog credential validation failed: %v", err)
+				return nil, fmt.Errorf("failed to validate HuggingFace catalog credentials: %w", err)
+			}
+		}
 	}
 
 	// Use top-level IncludedModels from Source as the list of models to fetch
