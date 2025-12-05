@@ -75,6 +75,15 @@ const (
 	CatalogSourcePreviewPath                 = ModelCatalogSettingsPathPrefix + "/source_preview"
 )
 
+const (
+	// TODO(upstream): Keep handler IDs unexported so the extension mechanism stays agnostic of downstream overrides.
+	handlerModelRegistrySettingsListID   HandlerID = "modelRegistrySettings:list"
+	handlerModelRegistrySettingsCreateID HandlerID = "modelRegistrySettings:create"
+	handlerModelRegistrySettingsGetID    HandlerID = "modelRegistrySettings:get"
+	handlerModelRegistrySettingsUpdateID HandlerID = "modelRegistrySettings:update"
+	handlerModelRegistrySettingsDeleteID HandlerID = "modelRegistrySettings:delete"
+)
+
 type App struct {
 	config                  config.EnvConfig
 	logger                  *slog.Logger
@@ -251,11 +260,36 @@ func (app *App) Routes() http.Handler {
 		// SettingsPath endpoints are used to manage the model registry settings and create new model registries
 		// We are still discussing the best way to create model registries in the community
 		// But in the meantime, those endpoints are STUBs endpoints used to unblock the frontend development
-		apiRouter.GET(ModelRegistrySettingsListPath, app.AttachNamespace(app.GetAllModelRegistriesSettingsHandler))
-		apiRouter.POST(ModelRegistrySettingsListPath, app.AttachNamespace(app.CreateModelRegistrySettingsHandler))
-		apiRouter.GET(ModelRegistrySettingsPath, app.AttachNamespace(app.GetModelRegistrySettingsHandler))
-		apiRouter.PATCH(ModelRegistrySettingsPath, app.AttachNamespace(app.UpdateModelRegistrySettingsHandler))
-		apiRouter.DELETE(ModelRegistrySettingsPath, app.AttachNamespace(app.DeleteModelRegistrySettingsHandler))
+		apiRouter.GET(
+			ModelRegistrySettingsListPath,
+			app.handlerWithOverride(handlerModelRegistrySettingsListID, func() httprouter.Handle {
+				return app.AttachNamespace(app.GetAllModelRegistriesSettingsHandler)
+			}),
+		)
+		apiRouter.POST(
+			ModelRegistrySettingsListPath,
+			app.handlerWithOverride(handlerModelRegistrySettingsCreateID, func() httprouter.Handle {
+				return app.AttachNamespace(app.CreateModelRegistrySettingsHandler)
+			}),
+		)
+		apiRouter.GET(
+			ModelRegistrySettingsPath,
+			app.handlerWithOverride(handlerModelRegistrySettingsGetID, func() httprouter.Handle {
+				return app.AttachNamespace(app.GetModelRegistrySettingsHandler)
+			}),
+		)
+		apiRouter.PATCH(
+			ModelRegistrySettingsPath,
+			app.handlerWithOverride(handlerModelRegistrySettingsUpdateID, func() httprouter.Handle {
+				return app.AttachNamespace(app.UpdateModelRegistrySettingsHandler)
+			}),
+		)
+		apiRouter.DELETE(
+			ModelRegistrySettingsPath,
+			app.handlerWithOverride(handlerModelRegistrySettingsDeleteID, func() httprouter.Handle {
+				return app.AttachNamespace(app.DeleteModelRegistrySettingsHandler)
+			}),
+		)
 
 		//SettingsPath: Certificate endpoints
 		apiRouter.GET(CertificatesPath, app.AttachNamespace(app.GetCertificatesHandler))
