@@ -1,6 +1,7 @@
 package service_test
 
 import (
+	"errors"
 	"fmt"
 	"strings"
 	"testing"
@@ -840,6 +841,162 @@ func TestCatalogModelRepository(t *testing.T) {
 			}
 		}
 	})
+
+	t.Run("TestDeleteBySource", func(t *testing.T) {
+		// Setup: Create models with different source IDs
+		sourceID1 := "test_source_1"
+		sourceID2 := "test_source_2"
+
+		model1 := &models.CatalogModelImpl{
+			Attributes: &models.CatalogModelAttributes{
+				Name: apiutils.Of("model-source-1"),
+			},
+			Properties: &[]dbmodels.Properties{
+				{
+					Name:        "source_id",
+					StringValue: &sourceID1,
+				},
+			},
+		}
+
+		model2 := &models.CatalogModelImpl{
+			Attributes: &models.CatalogModelAttributes{
+				Name: apiutils.Of("model-source-1-second"),
+			},
+			Properties: &[]dbmodels.Properties{
+				{
+					Name:        "source_id",
+					StringValue: &sourceID1,
+				},
+			},
+		}
+
+		model3 := &models.CatalogModelImpl{
+			Attributes: &models.CatalogModelAttributes{
+				Name: apiutils.Of("model-source-2"),
+			},
+			Properties: &[]dbmodels.Properties{
+				{
+					Name:        "source_id",
+					StringValue: &sourceID2,
+				},
+			},
+		}
+
+		// Save all models
+		saved1, err := repo.Save(model1)
+		require.NoError(t, err)
+		saved2, err := repo.Save(model2)
+		require.NoError(t, err)
+		saved3, err := repo.Save(model3)
+		require.NoError(t, err)
+
+		// Delete by source_id
+		err = repo.DeleteBySource(sourceID1)
+		require.NoError(t, err)
+
+		// Verify models from source1 are deleted
+		_, err = repo.GetByID(*saved1.GetID())
+		assert.Error(t, err)
+		assert.True(t, errors.Is(err, service.ErrCatalogModelNotFound))
+
+		_, err = repo.GetByID(*saved2.GetID())
+		assert.Error(t, err)
+		assert.True(t, errors.Is(err, service.ErrCatalogModelNotFound))
+
+		// Verify model from source2 still exists
+		retrieved, err := repo.GetByID(*saved3.GetID())
+		require.NoError(t, err)
+		assert.Equal(t, "model-source-2", *retrieved.GetAttributes().Name)
+	})
+
+	t.Run("TestDeleteByID", func(t *testing.T) {
+		// Setup: Create a model
+		model := &models.CatalogModelImpl{
+			Attributes: &models.CatalogModelAttributes{
+				Name: apiutils.Of("model-to-delete"),
+			},
+			Properties: &[]dbmodels.Properties{
+				{
+					Name:        "description",
+					StringValue: apiutils.Of("Model that will be deleted"),
+				},
+			},
+		}
+
+		saved, err := repo.Save(model)
+		require.NoError(t, err)
+
+		// Delete by ID
+		err = repo.DeleteByID(*saved.GetID())
+		require.NoError(t, err)
+
+		// Verify model is deleted
+		_, err = repo.GetByID(*saved.GetID())
+		assert.Error(t, err)
+		assert.True(t, errors.Is(err, service.ErrCatalogModelNotFound))
+	})
+
+	t.Run("TestDeleteBySourceNonExistent", func(t *testing.T) {
+		// Test deleting by non-existent source - should not error
+		err := repo.DeleteBySource("non-existent-source")
+		require.NoError(t, err)
+	})
+
+	t.Run("TestDeleteByIDNonExistent", func(t *testing.T) {
+		// Test deleting non-existent ID - should return NotFoundError
+		err := repo.DeleteByID(999999)
+		require.Error(t, err)
+		assert.True(t, errors.Is(err, service.ErrCatalogModelNotFound))
+	})
+
+	t.Run("TestGetDistinctSourceIDs", func(t *testing.T) {
+		// Get initial count of source IDs
+		initialSourceIDs, err := repo.GetDistinctSourceIDs()
+		assert.NoError(t, err)
+		initialCount := len(initialSourceIDs)
+
+		// Create test data with different source_ids (use unique prefixes to avoid collision with other tests)
+		testSourceID1 := "test-distinct-source-1"
+		testSourceID2 := "test-distinct-source-2"
+
+		model1 := createTestCatalogModelWithSourceID(t, testSourceID1)
+		model2 := createTestCatalogModelWithSourceID(t, testSourceID2)
+		model3 := createTestCatalogModelWithSourceID(t, testSourceID1) // duplicate
+
+		_, err = repo.Save(model1)
+		assert.NoError(t, err)
+		_, err = repo.Save(model2)
+		assert.NoError(t, err)
+		_, err = repo.Save(model3)
+		assert.NoError(t, err)
+
+		// Test distinct source_ids - should have 2 new source IDs added
+		sourceIDs, err := repo.GetDistinctSourceIDs()
+		assert.NoError(t, err)
+		assert.Len(t, sourceIDs, initialCount+2, "Should have exactly 2 new distinct source IDs")
+		assert.Contains(t, sourceIDs, testSourceID1)
+		assert.Contains(t, sourceIDs, testSourceID2)
+	})
+}
+
+func createTestCatalogModelWithSourceID(t *testing.T, sourceID string) models.CatalogModel {
+	model := &models.CatalogModelImpl{
+		Attributes: &models.CatalogModelAttributes{
+			Name: apiutils.Of(fmt.Sprintf("test-model-%s", sourceID)),
+		},
+	}
+
+	// Add source_id as a property
+	properties := []dbmodels.Properties{
+		{
+			Name:        "source_id",
+			StringValue: &sourceID,
+		},
+	}
+	model.Properties = &properties
+
+	return model
 }
 
 // Helper function to get or create CatalogModel type ID
@@ -872,8 +1029,8 @@ func TestCatalogModelRepository_TimestampPreservation(t *testing.T) {
 
 	t.Run("Preserve historical timestamps from YAML catalog", func(t *testing.T) {
 		// Simulate loading a model from YAML with historical timestamps
-		historicalCreateTime := int64(1739776988000)  // From YAML example
-		historicalUpdateTime := int64(1746720264000)  // From YAML example
+		historicalCreateTime := int64(1739776988000) // From YAML example
+		historicalUpdateTime := int64(1746720264000) // From YAML example
 
 		catalogModel := &models.CatalogModelImpl{
 			Attributes: &models.CatalogModelAttributes{
