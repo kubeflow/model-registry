@@ -389,14 +389,18 @@ func (l *Loader) readProviderRecords(ctx context.Context) <-chan ModelProviderRe
 
 			for r := range records {
 				if r.Model == nil {
-					glog.Infof("%s: trigger cleanup", source.Id)
+					glog.V(2).Infof("%s: trigger cleanup", source.Id)
+
+					// Copy the list of model names, then clear it.
+					modelNameSet := mapset.NewSet(modelNames...)
+					modelNames = modelNames[:0]
+
 					go func() {
-						err := l.removeOrphanedModelsFromSource(source.Id, mapset.NewSet(modelNames...))
+						err := l.removeOrphanedModelsFromSource(source.Id, modelNameSet)
 						if err != nil {
 							glog.Errorf("error removing orphaned models: %v", err)
 						}
 					}()
-					modelNames = modelNames[:0]
 					continue
 				}
 
