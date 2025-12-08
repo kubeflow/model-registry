@@ -82,7 +82,7 @@ The HuggingFace catalog source allows you to discover and import models from the
 
 #### 1. Set Your API Key
 
-The HuggingFace provider requires an API key for authentication. By default, the service reads the API key from the `HF_API_KEY` environment variable:
+Setting a Hugging Face API key is optional. Hugging Face  requires an API key for authentication for full access to data of models that are private and/or gated. If an API key is NOT set, private models will be entirely unavailable and gated models will have limited metadata. By default, the service reads the API key from the `HF_API_KEY` environment variable:
 
 ```bash
 export HF_API_KEY="your-huggingface-api-key-here"
