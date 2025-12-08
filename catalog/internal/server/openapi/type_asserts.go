@@ -374,6 +374,26 @@ func AssertErrorRequired(obj model.Error) error {
 	return nil
 }
 
+// AssertFieldFilterConstraints checks if the values respects the defined constraints
+func AssertFieldFilterConstraints(obj model.FieldFilter) error {
+	return nil
+}
+
+// AssertFieldFilterRequired checks if the required fields are not zero-ed
+func AssertFieldFilterRequired(obj model.FieldFilter) error {
+	elements := map[string]interface{}{
+		"operator": obj.Operator,
+		"value":    obj.Value,
+	}
+	for name, el := range elements {
+		if isZero := IsZeroValue(el); isZero {
+			return &RequiredError{Field: name}
+		}
+	}
+
+	return nil
+}
+
 // AssertFilterOptionRangeConstraints checks if the values respects the defined constraints
 func AssertFilterOptionRangeConstraints(obj model.FilterOptionRange) error {
 	return nil

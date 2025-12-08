@@ -22,6 +22,7 @@ model_catalog_source_list.go
 model_catalog_source_preview_response.go
 model_catalog_source_preview_response_all_of_summary.go
 model_error.go
+model_field_filter.go
 model_filter_option.go
 model_filter_option_range.go
 model_filter_options_list.go

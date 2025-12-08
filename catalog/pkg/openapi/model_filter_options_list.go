@@ -21,6 +21,8 @@ var _ MappedNullable = &FilterOptionsList{}
 type FilterOptionsList struct {
 	// A single filter option.
 	Filters *map[string]FilterOption `json:"filters,omitempty"`
+	// Predefined named queries for common filtering scenarios
+	NamedQueries *map[string]map[string]FieldFilter `json:"namedQueries,omitempty"`
 }
 
 // NewFilterOptionsList instantiates a new FilterOptionsList object
@@ -72,6 +74,38 @@ func (o *FilterOptionsList) SetFilters(v map[string]FilterOption) {
 	o.Filters = &v
 }
 
+// GetNamedQueries returns the NamedQueries field value if set, zero value otherwise.
+func (o *FilterOptionsList) GetNamedQueries() map[string]map[string]FieldFilter {
+	if o == nil || IsNil(o.NamedQueries) {
+		var ret map[string]map[string]FieldFilter
+		return ret
+	}
+	return *o.NamedQueries
+}
+
+// GetNamedQueriesOk returns a tuple with the NamedQueries field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+func (o *FilterOptionsList) GetNamedQueriesOk() (*map[string]map[string]FieldFilter, bool) {
+	if o == nil || IsNil(o.NamedQueries) {
+		return nil, false
+	}
+	return o.NamedQueries, true
+}
+
+// HasNamedQueries returns a boolean if a field has been set.
+func (o *FilterOptionsList) HasNamedQueries() bool {
+	if o != nil && !IsNil(o.NamedQueries) {
+		return true
+	}
+
+	return false
+}
+
+// SetNamedQueries gets a reference to the given map[string]map[string]FieldFilter and assigns it to the NamedQueries field.
+func (o *FilterOptionsList) SetNamedQueries(v map[string]map[string]FieldFilter) {
+	o.NamedQueries = &v
+}
+
 func (o FilterOptionsList) MarshalJSON() ([]byte, error) {
 	toSerialize, err := o.ToMap()
 	if err != nil {
@@ -84,6 +118,9 @@ func (o FilterOptionsList) ToMap() (map[string]interface{}, error) {
 	toSerialize := map[string]interface{}{}
 	if !IsNil(o.Filters) {
 		toSerialize["filters"] = o.Filters
+	}
+	if !IsNil(o.NamedQueries) {
+		toSerialize["namedQueries"] = o.NamedQueries
 	}
 	return toSerialize, nil
 }

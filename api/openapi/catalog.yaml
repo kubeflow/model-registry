@@ -831,6 +831,19 @@ components:
         message:
           description: Error message
           type: string
+    FieldFilter:
+      type: object
+      required:
+        - operator
+        - value
+      properties:
+        operator:
+          type: string
+          description: Filter operator (e.g., '<', '=', '>', 'IN')
+          example: '<'
+        value:
+          description: Filter value (can be number, string, or array)
+          example: 70
     FilterOption:
       type: object
       required:
@@ -867,6 +880,13 @@ components:
           description: A single filter option.
           additionalProperties:
             $ref: "#/components/schemas/FilterOption"
+        namedQueries:
+          type: object
+          description: Predefined named queries for common filtering scenarios
+          additionalProperties:
+            type: object
+            additionalProperties:
+              $ref: "#/components/schemas/FieldFilter"
     MetadataBoolValue:
       description: A bool property value.
       type: object
