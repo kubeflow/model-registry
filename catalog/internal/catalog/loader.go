@@ -330,12 +330,18 @@ func (l *Loader) readProviderRecords(ctx context.Context) <-chan ModelProviderRe
 	ch := make(chan ModelProviderRecord)
 	var wg sync.WaitGroup
 
-	// Get all enabled sources from the merged collection.
+	// Get all sources from the merged collection.
 	// This allows sparse overrides to work: a user can enable a disabled source
 	// with just "id" and "enabled: true", inheriting Type and Properties from the base.
 	mergedSources := l.Sources.AllSources()
 
 	for _, source := range mergedSources {
+		// Skip disabled sources - only load catalog data from enabled sources
+		// Per OpenAPI spec, enabled defaults to true, so nil is treated as enabled
+		if source.Enabled != nil && !*source.Enabled {
+			continue
+		}
+
 		// Skip sources that have already been loaded
 		if l.loadedSources[source.Id] {
 			continue

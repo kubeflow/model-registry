@@ -159,21 +159,19 @@ func (sc *SourceCollection) merged() map[string]Source {
 
 // AllSources returns all merged sources including Type and Properties.
 // This is used by the loader to get complete source information.
-// Only enabled sources are returned.
+// All sources are returned regardless of enabled status.
 func (sc *SourceCollection) AllSources() map[string]Source {
 	sc.mu.RLock()
 	defer sc.mu.RUnlock()
 
 	result := map[string]Source{}
 	for id, source := range sc.merged() {
-		if source.Enabled != nil && *source.Enabled {
-			result[id] = source
-		}
+		result[id] = source
 	}
 	return result
 }
 
-// All returns all enabled sources as CatalogSource (for the API).
+// All returns all sources as CatalogSource (for the API).
 // This excludes internal fields like Type and Properties.
 func (sc *SourceCollection) All() map[string]model.CatalogSource {
 	result := map[string]model.CatalogSource{}

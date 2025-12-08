@@ -412,7 +412,7 @@ func TestSourceCollection_MergeOverride(t *testing.T) {
 			},
 		},
 		{
-			name:        "user can disable a source from default - disabled sources not returned",
+			name:        "user can disable a source from default - disabled sources ARE returned",
 			originOrder: []string{"default.yaml", "user.yaml"},
 			mergeSequence: []struct {
 				origin  string
@@ -441,8 +441,15 @@ func TestSourceCollection_MergeOverride(t *testing.T) {
 					},
 				},
 			},
-			// Disabled sources are not returned by All()
-			expectedSources: map[string]model.CatalogSource{},
+			// Disabled sources ARE returned by All() - with enabled field showing false
+			expectedSources: map[string]model.CatalogSource{
+				"hf": {
+					Id:      "hf",
+					Name:    "Hugging Face",
+					Enabled: apiutils.Of(false),
+					Labels:  []string{},
+				},
+			},
 		},
 		{
 			name:        "sparse override: user enables disabled source with just id and enabled",

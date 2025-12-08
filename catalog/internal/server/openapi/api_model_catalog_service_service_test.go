@@ -354,6 +354,7 @@ func TestFindSources(t *testing.T) {
 		expectedSize   int32
 		expectedItems  int
 		checkSorting   bool
+		checkEnabled   bool
 		expectedLabels int
 	}{
 		{
@@ -586,6 +587,151 @@ func TestFindSources(t *testing.T) {
 		},
 	}
 
+	falseValue := false
+	newTestCases := []struct {
+		name           string
+		catalogs       map[string]catalog.Source
+		nameFilter     string
+		pageSize       string
+		orderBy        model.OrderByField
+		sortOrder      model.SortOrder
+		nextPageToken  string
+		expectedStatus int
+		expectedSize   int32
+		expectedItems  int
+		checkSorting   bool
+		checkEnabled   bool
+		expectedLabels int
+	}{
+		{
+			name: "All sources returned regardless of enabled status",
+			catalogs: map[string]catalog.Source{
+				"enabled1":  {CatalogSource: model.CatalogSource{Id: "enabled1", Name: "Enabled Source 1", Enabled: &trueValue}},
+				"disabled1": {CatalogSource: model.CatalogSource{Id: "disabled1", Name: "Disabled Source 1", Enabled: &falseValue}},
+				"enabled2":  {CatalogSource: model.CatalogSource{Id: "enabled2", Name: "Enabled Source 2", Enabled: &trueValue}},
+				"disabled2": {CatalogSource: model.CatalogSource{Id: "disabled2", Name: "Disabled Source 2", Enabled: &falseValue}},
+			},
+			nameFilter:     "",
+			pageSize:       "10",
+			orderBy:        model.ORDERBYFIELD_ID,
+			sortOrder:      model.SORTORDER_ASC,
+			expectedStatus: http.StatusOK,
+			expectedSize:   4,
+			expectedItems:  4,
+			checkEnabled:   true,
+		},
+		{
+			name: "Enabled field present in response for all sources",
+			catalogs: map[string]catalog.Source{
+				"enabled1":  {CatalogSource: model.CatalogSource{Id: "enabled1", Name: "Enabled Source 1", Enabled: &trueValue}},
+				"disabled1": {CatalogSource: model.CatalogSource{Id: "disabled1", Name: "Disabled Source 1", Enabled: &falseValue}},
+			},
+			nameFilter:     "",
+			pageSize:       "10",
+			orderBy:        model.ORDERBYFIELD_ID,
+			sortOrder:      model.SORTORDER_ASC,
+			expectedStatus: http.StatusOK,
+			expectedSize:   2,
+			expectedItems:  2,
+			checkEnabled:   true,
+		},
+		{
+			name: "Name filtering works across all sources (enabled and disabled)",
+			catalogs: map[string]catalog.Source{
+				"enabled1":  {CatalogSource: model.CatalogSource{Id: "enabled1", Name: "Test Source A", Enabled: &trueValue}},
+				"disabled1": {CatalogSource: model.CatalogSource{Id: "disabled1", Name: "Test Source B", Enabled: &falseValue}},
+				"enabled2":  {CatalogSource: model.CatalogSource{Id: "enabled2", Name: "Other Source", Enabled: &trueValue}},
+				"disabled2": {CatalogSource: model.CatalogSource{Id: "disabled2", Name: "Test Source C", Enabled: &falseValue}},
+			},
+			nameFilter:     "Test",
+			pageSize:       "10",
+			orderBy:        model.ORDERBYFIELD_ID,
+			sortOrder:      model.SORTORDER_ASC,
+			expectedStatus: http.StatusOK,
+			expectedSize:   3, // Should find both enabled and disabled sources with "Test" in name
+			expectedItems:  3,
+		},
+		{
+			name: "Pagination accounts for all sources including disabled",
+			catalogs: map[string]catalog.Source{
+				"enabled1":  {CatalogSource: model.CatalogSource{Id: "enabled1", Name: "Source 1", Enabled: &trueValue}},
+				"disabled1": {CatalogSource: model.CatalogSource{Id: "disabled1", Name: "Source 2", Enabled: &falseValue}},
+				"enabled2":  {CatalogSource: model.CatalogSource{Id: "enabled2", Name: "Source 3", Enabled: &trueValue}},
+				"disabled2": {CatalogSource: model.CatalogSource{Id: "disabled2", Name: "Source 4", Enabled: &falseValue}},
+				"enabled3":  {CatalogSource: model.CatalogSource{Id: "enabled3", Name: "Source 5", Enabled: &trueValue}},
+			},
+			nameFilter:     "",
+			pageSize:       "2",
+			orderBy:        model.ORDERBYFIELD_ID,
+			sortOrder:      model.SORTORDER_ASC,
+			expectedStatus: http.StatusOK,
+			expectedSize:   2, // Page size, not total
+			expectedItems:  2, // First page should have 2 items
+		},
+		{
+			name: "Sorting works across all sources (enabled and disabled interleaved)",
+			catalogs: map[string]catalog.Source{
+				"source_d": {CatalogSource: model.CatalogSource{Id: "source_d", Name: "D Source", Enabled: &falseValue}},
+				"source_b": {CatalogSource: model.CatalogSource{Id: "source_b", Name: "B Source", Enabled: &trueValue}},
+				"source_a": {CatalogSource: model.CatalogSource{Id: "source_a", Name: "A Source", Enabled: &falseValue}},
+				"source_c": {CatalogSource: model.CatalogSource{Id: "source_c", Name: "C Source", Enabled: &trueValue}},
+			},
+			nameFilter:     "",
+			pageSize:       "10",
+			orderBy:        model.ORDERBYFIELD_ID,
+			sortOrder:      model.SORTORDER_ASC,
+			expectedStatus: http.StatusOK,
+			expectedSize:   4,
+			expectedItems:  4,
+			checkSorting:   true, // Should be sorted a, b, c, d regardless of enabled status
+		},
+		{
+			name:           "Empty catalog returns empty list",
+			catalogs:       map[string]catalog.Source{},
+			nameFilter:     "",
+			pageSize:       "10",
+			orderBy:        model.ORDERBYFIELD_ID,
+			sortOrder:      model.SORTORDER_ASC,
+			expectedStatus: http.StatusOK,
+			expectedSize:   0,
+			expectedItems:  0,
+		},
+		{
+			name: "All sources disabled still returns all sources",
+			catalogs: map[string]catalog.Source{
+				"disabled1": {CatalogSource: model.CatalogSource{Id: "disabled1", Name: "Disabled Source 1", Enabled: &falseValue}},
+				"disabled2": {CatalogSource: model.CatalogSource{Id: "disabled2", Name: "Disabled Source 2", Enabled: &falseValue}},
+				"disabled3": {CatalogSource: model.CatalogSource{Id: "disabled3", Name: "Disabled Source 3", Enabled: &falseValue}},
+			},
+			nameFilter:     "",
+			pageSize:       "10",
+			orderBy:        model.ORDERBYFIELD_ID,
+			sortOrder:      model.SORTORDER_ASC,
+			expectedStatus: http.StatusOK,
+			expectedSize:   3,
+			expectedItems:  3,
+			checkEnabled:   true,
+		},
+		{
+			name: "Sorting by NAME works across enabled and disabled sources",
+			catalogs: map[string]catalog.Source{
+				"source1": {CatalogSource: model.CatalogSource{Id: "source1", Name: "Zebra Catalog", Enabled: &falseValue}},
+				"source2": {CatalogSource: model.CatalogSource{Id: "source2", Name: "Alpha Catalog", Enabled: &trueValue}},
+				"source3": {CatalogSource: model.CatalogSource{Id: "source3", Name: "Beta Catalog", Enabled: &falseValue}},
+				"source4": {CatalogSource: model.CatalogSource{Id: "source4", Name: "Gamma Catalog", Enabled: &trueValue}},
+			},
+			nameFilter:     "",
+			pageSize:       "10",
+			orderBy:        model.ORDERBYFIELD_NAME,
+			sortOrder:      model.SORTORDER_ASC,
+			expectedStatus: http.StatusOK,
+			expectedSize:   4,
+			expectedItems:  4,
+			checkSorting:   true,
+		},
+	}
+	testCases = append(testCases, newTestCases...)
+
 	// Run test cases
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
@@ -676,6 +822,13 @@ func TestFindSources(t *testing.T) {
 				labels = append(labels, item.Labels...)
 			}
 			assert.Equal(t, tc.expectedLabels, len(labels))
+
+			// Check enabled field if required
+			if tc.checkEnabled {
+				for _, item := range sourceList.Items {
+					assert.NotNil(t, item.Enabled, "Enabled field should be present for source %s", item.Id)
+				}
+			}
 		})
 	}
 }
