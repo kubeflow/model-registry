@@ -11,7 +11,6 @@ import {
   catalogSettingsUrl,
 } from '~/app/routes/modelCatalogSettings/modelCatalogSettings';
 import ManageSourceForm from '~/app/pages/modelCatalogSettings/components/ManageSourceForm';
-import { ModelCatalogSettingsContext } from '~/app/context/modelCatalogSettings/ModelCatalogSettingsContext';
 import { catalogSourceConfigToFormData } from '~/app/pages/modelCatalogSettings/utils/modelCatalogSettingsUtils';
 import { useCatalogSourceConfigBySourceId } from '~/app/hooks/modelCatalogSettings/useCatalogSourceConfigBySourceId';
 

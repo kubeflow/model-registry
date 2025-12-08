@@ -163,10 +163,10 @@ const ManageSourceForm: React.FC<ManageSourceFormProps> = ({ existingData, isEdi
     setSubmitError(undefined);
 
     try {
-      const payload = transformFormDataToPayload(formData);
+      const payload = transformFormDataToPayload(formData, isEditMode);
 
       if (isEditMode) {
-        await apiState.api.updateCatalogSourceConfig({}, payload.id, payload);
+        await apiState.api.updateCatalogSourceConfig({}, formData.id, payload);
       } else {
         await apiState.api.createCatalogSourceConfig({}, payload);
       }
