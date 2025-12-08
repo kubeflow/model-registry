@@ -1,7 +1,6 @@
 import { FetchState, FetchStateCallbackPromise, NotReadyError, useFetchState } from 'mod-arch-core';
 import React from 'react';
-import { CatalogSourceConfig, CatalogSourceConfigList } from '~/app/modelCatalogTypes';
-import { ModelCatalogSettingsAPIState } from './useModelCatalogSettingsAPIState';
+import { CatalogSourceConfig } from '~/app/modelCatalogTypes';
 import { ModelCatalogSettingsContext } from '~/app/context/modelCatalogSettings/ModelCatalogSettingsContext';
 
 type State = CatalogSourceConfig | null;
@@ -19,7 +18,7 @@ export const useCatalogSourceConfigBySourceId = (sourceId: string): FetchState<S
 
       return apiState.api.getCatalogSourceConfig(opts, sourceId);
     },
-    [apiState],
+    [apiState, sourceId],
   );
   return useFetchState(call, null, { initialPromisePurity: true });
 };

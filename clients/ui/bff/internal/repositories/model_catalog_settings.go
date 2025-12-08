@@ -44,12 +44,12 @@ func (r *ModelCatalogSettingsRepository) GetAllCatalogSourceConfigs(ctx context.
 			return nil, fmt.Errorf("failed to parse user managed catalogs: %w", err)
 		}
 
-		for _, userCatalog := range userManagedSources {
-			if existingCatalog, exist := catalogMap[userCatalog.Id]; exist {
-				mergedCatalogs := mergeCatalogConfigs(existingCatalog, userCatalog)
-				catalogMap[userCatalog.Id] = mergedCatalogs
+		for _, userCatalogSource := range userManagedSources {
+			if existingSource, exist := catalogMap[userCatalogSource.Id]; exist {
+				mergedCatalogSources := mergeCatalogSourceConfigs(existingSource, userCatalogSource)
+				catalogMap[userCatalogSource.Id] = mergedCatalogSources
 			} else {
-				catalogMap[userCatalog.Id] = userCatalog
+				catalogMap[userCatalogSource.Id] = userCatalogSource
 			}
 		}
 	}
@@ -58,8 +58,8 @@ func (r *ModelCatalogSettingsRepository) GetAllCatalogSourceConfigs(ctx context.
 		Catalogs: make([]models.CatalogSourceConfig, 0),
 	}
 
-	for _, catalog := range catalogMap {
-		catalogSources.Catalogs = append(catalogSources.Catalogs, catalog)
+	for _, c := range catalogMap {
+		catalogSources.Catalogs = append(catalogSources.Catalogs, c)
 	}
 
 	return catalogSources, nil
@@ -75,14 +75,14 @@ func (r *ModelCatalogSettingsRepository) GetCatalogSourceConfig(ctx context.Cont
 		return nil, fmt.Errorf("failed to fetch catalog source configmaps: %w", err)
 	}
 
-	defaultSource := findCatalogById(defaultCM.Data[k8s.CatalogSourceKey], catalogSourceId, true)
-	userSource := findCatalogById(userCM.Data[k8s.CatalogSourceKey], catalogSourceId, false)
+	defaultSource := findCatalogSourceById(defaultCM.Data[k8s.CatalogSourceKey], catalogSourceId, true)
+	userSource := findCatalogSourceById(userCM.Data[k8s.CatalogSourceKey], catalogSourceId, false)
 
 	var result *models.CatalogSourceConfig
 
 	if userSource != nil {
 		if defaultSource != nil {
-			merged := mergeCatalogConfigs(*defaultSource, *userSource)
+			merged := mergeCatalogSourceConfigs(*defaultSource, *userSource)
 			result = &merged
 		} else {
 			result = userSource
@@ -93,9 +93,9 @@ func (r *ModelCatalogSettingsRepository) GetCatalogSourceConfig(ctx context.Cont
 		return nil, fmt.Errorf("catalog source not found: %s", catalogSourceId)
 	}
 
-	secretName, yamlFilePath := findCatalogProperties(userCM.Data[k8s.CatalogSourceKey], catalogSourceId)
+	secretName, yamlFilePath := findCatalogSourceProperties(userCM.Data[k8s.CatalogSourceKey], catalogSourceId)
 	if secretName == "" && yamlFilePath == "" {
-		secretName, yamlFilePath = findCatalogProperties(defaultCM.Data[k8s.CatalogSourceKey], catalogSourceId)
+		secretName, yamlFilePath = findCatalogSourceProperties(defaultCM.Data[k8s.CatalogSourceKey], catalogSourceId)
 	}
 
 	switch result.Type {
@@ -136,11 +136,11 @@ func (r *ModelCatalogSettingsRepository) CreateCatalogSourceConfig(
 		return nil, fmt.Errorf("failed to fetch catalog source configmaps: %w", err)
 	}
 
-	if findCatalogById(defaultCM.Data[k8s.CatalogSourceKey], payload.Id, true) != nil {
+	if findCatalogSourceById(defaultCM.Data[k8s.CatalogSourceKey], payload.Id, true) != nil {
 		return nil, fmt.Errorf("catalog source '%s' already exists in default sources.", payload.Id)
 	}
 
-	if findCatalogById(userCM.Data[k8s.CatalogSourceKey], payload.Id, false) != nil {
+	if findCatalogSourceById(userCM.Data[k8s.CatalogSourceKey], payload.Id, false) != nil {
 		return nil, fmt.Errorf("catalog source '%s' already exists in user managed sources.", payload.Id)
 	}
 
@@ -165,10 +165,10 @@ func (r *ModelCatalogSettingsRepository) CreateCatalogSourceConfig(
 
 	existingConfigMapEntry := userCM.Data[k8s.CatalogSourceKey]
 
-	updatedConfigMapEntry, err := appendCatalogToYaml(existingConfigMapEntry, newEntry)
+	updatedConfigMapEntry, err := appendCatalogSourceToYaml(existingConfigMapEntry, newEntry)
 	if err != nil {
 		if secretName != "" {
-			deleteSecretForHF(ctx, client, namespace, secretName)
+			deleteSecretForHuggingFace(ctx, client, namespace, secretName)
 		}
 		return nil, fmt.Errorf("failed to append catalog to yaml: %w", err)
 	}
@@ -185,7 +185,7 @@ func (r *ModelCatalogSettingsRepository) CreateCatalogSourceConfig(
 	err = client.UpdateCatalogSourceConfig(ctx, namespace, &userCM)
 	if err != nil {
 		if secretName != "" {
-			deleteSecretForHF(ctx, client, namespace, secretName)
+			deleteSecretForHuggingFace(ctx, client, namespace, secretName)
 		}
 		return nil, fmt.Errorf("failed to update user configmap: %w", err)
 	}
@@ -209,8 +209,8 @@ func (r *ModelCatalogSettingsRepository) UpdateCatalogSourceConfig(
 		return nil, fmt.Errorf("failed to fetch catalog source configmaps: %w", err)
 	}
 
-	existingUserSource := findCatalogById(userCM.Data[k8s.CatalogSourceKey], sourceId, false)
-	existingDefaultSource := findCatalogById(defaultCM.Data[k8s.CatalogSourceKey], sourceId, true)
+	existingUserSource := findCatalogSourceById(userCM.Data[k8s.CatalogSourceKey], sourceId, false)
+	existingDefaultSource := findCatalogSourceById(defaultCM.Data[k8s.CatalogSourceKey], sourceId, true)
 
 	var existingCatalog *models.CatalogSourceConfig
 	var isOverridingDefault bool
@@ -243,9 +243,9 @@ func (r *ModelCatalogSettingsRepository) UpdateCatalogSourceConfig(
 
 	var secretName, yamlFilePath string
 	if !isOverridingDefault || existingUserSource != nil {
-		secretName, yamlFilePath = findCatalogProperties(userCM.Data[k8s.CatalogSourceKey], sourceId)
+		secretName, yamlFilePath = findCatalogSourceProperties(userCM.Data[k8s.CatalogSourceKey], sourceId)
 		if secretName == "" || yamlFilePath == "" {
-			defaultSecretName, defaultYamlPath := findCatalogProperties(defaultCM.Data[k8s.CatalogSourceKey], sourceId)
+			defaultSecretName, defaultYamlPath := findCatalogSourceProperties(defaultCM.Data[k8s.CatalogSourceKey], sourceId)
 			if secretName == "" {
 				secretName = defaultSecretName
 			}
@@ -270,7 +270,6 @@ func (r *ModelCatalogSettingsRepository) UpdateCatalogSourceConfig(
 			}
 
 		case "huggingface":
-
 			if payload.ApiKey != nil && *payload.ApiKey != "" {
 				if secretName != "" {
 					err := client.PatchSecret(ctx, namespace, secretName, map[string]string{
@@ -297,8 +296,7 @@ func (r *ModelCatalogSettingsRepository) UpdateCatalogSourceConfig(
 	}
 
 	if existingUserSource != nil {
-
-		updatedYAML, err := updateCatalogInYAML(
+		updatedYAML, err := updateCatalogSourceInYAML(
 			userCM.Data[k8s.CatalogSourceKey],
 			sourceId,
 			payload,
@@ -310,8 +308,8 @@ func (r *ModelCatalogSettingsRepository) UpdateCatalogSourceConfig(
 		}
 		userCM.Data[k8s.CatalogSourceKey] = updatedYAML
 	} else {
-		overrideEntry := buildOverrideEntry(sourceId, payload)
-		updatedYAML, err := appendCatalogToYaml(userCM.Data[k8s.CatalogSourceKey], overrideEntry)
+		overrideEntry := buildOverrideEntryForDefaultSource(sourceId, payload)
+		updatedYAML, err := appendCatalogSourceToYaml(userCM.Data[k8s.CatalogSourceKey], overrideEntry)
 		if err != nil {
 			return nil, fmt.Errorf("failed to append override entry: %w", err)
 		}
@@ -333,13 +331,12 @@ func (r *ModelCatalogSettingsRepository) DeleteCatalogSourceConfig(
 	namespace string,
 	catalogSourceId string,
 ) (*models.CatalogSourceConfig, error) {
-
 	defaultCM, userCM, err := client.GetAllCatalogSourceConfigs(ctx, namespace)
 	if err != nil {
 		return nil, fmt.Errorf("failed to fetch catalog source configmaps: %w", err)
 	}
 
-	if findCatalogById(defaultCM.Data[k8s.CatalogSourceKey], catalogSourceId, true) != nil {
+	if findCatalogSourceById(defaultCM.Data[k8s.CatalogSourceKey], catalogSourceId, true) != nil {
 		return nil, fmt.Errorf(
 			"cannot delete catalog source '%s': it is a default source. "+
 				"Default sources cannot be deleted, only customized via PATCH",
@@ -347,14 +344,14 @@ func (r *ModelCatalogSettingsRepository) DeleteCatalogSourceConfig(
 		)
 	}
 
-	catalogToDelete := findCatalogById(userCM.Data[k8s.CatalogSourceKey], catalogSourceId, false)
-	if catalogToDelete == nil {
+	catalogSourceToDelete := findCatalogSourceById(userCM.Data[k8s.CatalogSourceKey], catalogSourceId, false)
+	if catalogSourceToDelete == nil {
 		return nil, fmt.Errorf("catalog source '%s' not found in user sources", catalogSourceId)
 	}
 
-	secretName, yamlFilePath := findCatalogProperties(userCM.Data[k8s.CatalogSourceKey], catalogSourceId)
+	secretName, yamlFilePath := findCatalogSourceProperties(userCM.Data[k8s.CatalogSourceKey], catalogSourceId)
 
-	if catalogToDelete.Type == "huggingface" && secretName != "" {
+	if catalogSourceToDelete.Type == "huggingface" && secretName != "" {
 		err := client.DeleteSecret(ctx, namespace, secretName)
 		if err != nil {
 			if !isNotFoundError(err) {
@@ -368,11 +365,11 @@ func (r *ModelCatalogSettingsRepository) DeleteCatalogSourceConfig(
 		}
 	}
 
-	if catalogToDelete.Type == "yaml" && yamlFilePath != "" {
+	if catalogSourceToDelete.Type == "yaml" && yamlFilePath != "" {
 		delete(userCM.Data, yamlFilePath)
 	}
 
-	updatedYAML, err := removeCatalogFromYAML(userCM.Data[k8s.CatalogSourceKey], catalogSourceId)
+	updatedYAML, err := removeCatalogSourceFromYAML(userCM.Data[k8s.CatalogSourceKey], catalogSourceId)
 	if err != nil {
 		return nil, fmt.Errorf("failed to remove catalog from sources.yaml: %w", err)
 	}
@@ -383,7 +380,7 @@ func (r *ModelCatalogSettingsRepository) DeleteCatalogSourceConfig(
 		return nil, fmt.Errorf("failed to update configmap after deletion: %w", err)
 	}
 
-	return catalogToDelete, nil
+	return catalogSourceToDelete, nil
 }
 
 func parseCatalogYaml(raw string, isDefault bool) ([]models.CatalogSourceConfig, error) {
@@ -454,7 +451,7 @@ func extractStringSlice(value interface{}) []string {
 
 }
 
-func mergeCatalogConfigs(defaultCatalog models.CatalogSourceConfig, userCatalog models.CatalogSourceConfig) models.CatalogSourceConfig {
+func mergeCatalogSourceConfigs(defaultCatalog models.CatalogSourceConfig, userCatalog models.CatalogSourceConfig) models.CatalogSourceConfig {
 	mergedSource := defaultCatalog
 
 	if userCatalog.Name != "" {
@@ -520,7 +517,7 @@ func validateCatalogSourceConfigPayload(payload models.CatalogSourceConfigPayloa
 	return nil
 }
 
-func findCatalogById(sourceYAML string, catalogId string, isDefault bool) *models.CatalogSourceConfig {
+func findCatalogSourceById(sourceYAML string, catalogId string, isDefault bool) *models.CatalogSourceConfig {
 	if sourceYAML == "" {
 		return nil
 	}
@@ -591,7 +588,7 @@ func convertSourceConfigToYamlEntry(payload models.CatalogSourceConfigPayload,
 	case "yaml":
 		properties["yamlCatalogPath"] = yamlFileName
 	case "huggingface":
-		properties["apiKeySecret"] = secretName
+		properties["apiKey"] = secretName
 		if payload.AllowedOrganization != nil {
 			properties["allowedOrganization"] = *payload.AllowedOrganization
 		}
@@ -611,7 +608,7 @@ func convertSourceConfigToYamlEntry(payload models.CatalogSourceConfigPayload,
 	return entry
 }
 
-func appendCatalogToYaml(existingConfigMapEntry string, newEntry map[string]interface{}) (string, error) {
+func appendCatalogSourceToYaml(existingConfigMapEntry string, newEntry map[string]interface{}) (string, error) {
 	var parsed struct {
 		Catalogs []map[string]interface{} `yaml:"catalogs"`
 	}
@@ -638,8 +635,8 @@ func createSecretForHuggingFace(ctx context.Context,
 	namespace string,
 	catalogId string,
 	apiKey string) (string, error) {
-	sanitizedId := strings.ReplaceAll(catalogId, "_", "-")
-	secretName := fmt.Sprintf("catalog-%s-apikey", sanitizedId)
+	modifiedSecretName := strings.ReplaceAll(catalogId, "_", "-")
+	secretName := fmt.Sprintf("catalog-%s-apikey", modifiedSecretName)
 	secret := &corev1.Secret{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      secretName,
@@ -663,7 +660,7 @@ func createSecretForHuggingFace(ctx context.Context,
 
 }
 
-func deleteSecretForHF(ctx context.Context,
+func deleteSecretForHuggingFace(ctx context.Context,
 	client k8s.KubernetesClientInterface,
 	namespace string,
 	secretName string) {
@@ -675,7 +672,7 @@ func isNotFoundError(err error) bool {
 		strings.Contains(err.Error(), "NotFound")
 }
 
-func removeCatalogFromYAML(existingYAML string, sourceId string) (string, error) {
+func removeCatalogSourceFromYAML(existingYAML string, sourceId string) (string, error) {
 	var parsed struct {
 		Catalogs []map[string]interface{} `yaml:"catalogs"`
 	}
@@ -685,9 +682,9 @@ func removeCatalogFromYAML(existingYAML string, sourceId string) (string, error)
 	}
 
 	filteredCatalogs := make([]map[string]interface{}, 0)
-	for _, catalog := range parsed.Catalogs {
-		if id, ok := catalog["id"].(string); ok && id != sourceId {
-			filteredCatalogs = append(filteredCatalogs, catalog)
+	for _, catalogSource := range parsed.Catalogs {
+		if id, ok := catalogSource["id"].(string); ok && id != sourceId {
+			filteredCatalogs = append(filteredCatalogs, catalogSource)
 		}
 	}
 
@@ -700,7 +697,7 @@ func removeCatalogFromYAML(existingYAML string, sourceId string) (string, error)
 	return string(updatedBytes), nil
 }
 
-func findCatalogProperties(sourceYAML string, sourceId string) (secretName string, yamlPath string) {
+func findCatalogSourceProperties(sourceYAML string, sourceId string) (secretName string, yamlPath string) {
 	var parsed struct {
 		Catalogs []struct {
 			Id         string                 `yaml:"id"`
@@ -712,10 +709,10 @@ func findCatalogProperties(sourceYAML string, sourceId string) (secretName strin
 		return "", ""
 	}
 
-	for _, catalog := range parsed.Catalogs {
-		if catalog.Id == sourceId && catalog.Properties != nil {
-			secretName, _ = catalog.Properties["apiKeySecret"].(string)
-			yamlPath, _ = catalog.Properties["yamlCatalogPath"].(string)
+	for _, catalogSource := range parsed.Catalogs {
+		if catalogSource.Id == sourceId && catalogSource.Properties != nil {
+			secretName, _ = catalogSource.Properties["apiKey"].(string)
+			yamlPath, _ = catalogSource.Properties["yamlCatalogPath"].(string)
 			return
 		}
 	}
@@ -735,18 +732,10 @@ func validateUpdatePayloadForDefaultOverride(payload models.CatalogSourceConfigP
 		return fmt.Errorf("cannot change 'yaml' content of a default catalog source")
 	}
 
-	if payload.ApiKey != nil && *payload.ApiKey != "" {
-		return fmt.Errorf("cannot change 'apiKey' of a default catalog source")
-	}
-
-	if payload.AllowedOrganization != nil && *payload.AllowedOrganization != "" {
-		return fmt.Errorf("cannot change 'allowedOrganization' of a default catalog source")
-	}
-
 	return nil
 }
 
-func updateCatalogInYAML(
+func updateCatalogSourceInYAML(
 	existingYAML string,
 	catalogId string,
 	payload models.CatalogSourceConfigPayload,
@@ -766,21 +755,21 @@ func updateCatalogInYAML(
 	}
 
 	found := false
-	for i, catalog := range parsed.Catalogs {
-		if id, ok := catalog["id"].(string); ok && id == catalogId {
+	for i, catalogSource := range parsed.Catalogs {
+		if id, ok := catalogSource["id"].(string); ok && id == catalogId {
 			found = true
 
 			if payload.Name != "" {
-				catalog["name"] = payload.Name
+				catalogSource["name"] = payload.Name
 			}
 			if len(payload.Labels) > 0 {
-				catalog["labels"] = payload.Labels
+				catalogSource["labels"] = payload.Labels
 			}
 			if payload.Enabled != nil {
-				catalog["enabled"] = *payload.Enabled
+				catalogSource["enabled"] = *payload.Enabled
 			}
 
-			properties, _ := catalog["properties"].(map[string]interface{})
+			properties, _ := catalogSource["properties"].(map[string]interface{})
 			if properties == nil {
 				properties = make(map[string]interface{})
 			}
@@ -795,17 +784,17 @@ func updateCatalogInYAML(
 				properties["allowedOrganization"] = *payload.AllowedOrganization
 			}
 			if secretName != "" {
-				properties["apiKeySecret"] = secretName
+				properties["apiKey"] = secretName
 			}
 			if yamlFilePath != "" && payload.Yaml != nil {
 				properties["yamlCatalogPath"] = yamlFilePath
 			}
 
 			if len(properties) > 0 {
-				catalog["properties"] = properties
+				catalogSource["properties"] = properties
 			}
 
-			parsed.Catalogs[i] = catalog
+			parsed.Catalogs[i] = catalogSource
 			break
 		}
 	}
@@ -822,7 +811,7 @@ func updateCatalogInYAML(
 	return string(updatedBytes), nil
 }
 
-func buildOverrideEntry(catalogId string, payload models.CatalogSourceConfigPayload) map[string]interface{} {
+func buildOverrideEntryForDefaultSource(catalogId string, payload models.CatalogSourceConfigPayload) map[string]interface{} {
 	entry := map[string]interface{}{
 		"id": catalogId,
 	}

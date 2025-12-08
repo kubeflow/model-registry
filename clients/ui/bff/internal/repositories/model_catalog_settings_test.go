@@ -29,10 +29,10 @@ var _ = Describe("ModelCatalogSettingRepository", func() {
 		It("should return merged source config from both default and user managed configMap", func() {
 			catalogs, err := repo.GetAllCatalogSourceConfigs(ctx, k8sClient, "kubeflow")
 			Expect(err).NotTo(HaveOccurred())
-			Expect(catalogs).NotTo(BeEmpty())
+			Expect(catalogs.Catalogs).NotTo(BeEmpty())
 		})
 
-		It("deafult catalog should have isDefault=true", func() {
+		It("default catalog should have isDefault=true", func() {
 			catalogs, err := repo.GetAllCatalogSourceConfigs(ctx, k8sClient, "kubeflow")
 			Expect(err).NotTo(HaveOccurred())
 			var defaultCatalog *models.CatalogSourceConfig
@@ -61,4 +61,351 @@ var _ = Describe("ModelCatalogSettingRepository", func() {
 		})
 
 	})
+
+	Describe("GetCatalogSourceConfig", func() {
+		It("should return Yaml content for yaml type source config", func() {
+			catalog, err := repo.GetCatalogSourceConfig(ctx, k8sClient, "kubeflow", "dora_ai_models")
+			Expect(err).NotTo(HaveOccurred())
+			Expect(catalog.Type).To(Equal("yaml"))
+			Expect(catalog.Yaml).NotTo(BeNil())
+			Expect(*catalog.Yaml).NotTo(BeEmpty())
+		})
+
+		It("should return apiKey for the huggingFace type source config", func() {
+			catalog, err := repo.GetCatalogSourceConfig(ctx, k8sClient, "kubeflow", "hugging_face_source")
+			Expect(err).NotTo(HaveOccurred())
+			Expect(catalog.Type).To(Equal("huggingface"))
+			Expect(catalog.ApiKey).NotTo(BeNil())
+		})
+
+		It("should return merged data for user override default source config", func() {
+			catalog, err := repo.GetCatalogSourceConfig(ctx, k8sClient, "kubeflow", "dora_ai_models")
+			Expect(err).NotTo(HaveOccurred())
+
+			Expect(catalog.Name).To(Equal("Dora AI"))
+			Expect(*catalog.IsDefault).To(BeTrue())
+		})
+
+		It("should return error if the source config doesn't exist", func() {
+			_, err := repo.GetCatalogSourceConfig(ctx, k8sClient, "kubeflow", "does_not_exist")
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(ContainSubstring("not found"))
+		})
+
+		It("should return isDefault=false for user managed source", func() {
+			catalog, err := repo.GetCatalogSourceConfig(ctx, k8sClient, "kubeflow", "custom_yaml_models")
+			Expect(err).NotTo(HaveOccurred())
+			Expect(*catalog.IsDefault).To(BeFalse())
+		})
+
+		It("should return allowedOrganization for huggingface source", func() {
+			catalog, err := repo.GetCatalogSourceConfig(ctx, k8sClient, "kubeflow", "hugging_face_source")
+			Expect(err).NotTo(HaveOccurred())
+			Expect(catalog.AllowedOrganization).NotTo(BeNil())
+		})
+	})
+
+	Describe("CreateCatalogSourceConfig", func() {
+		It("should fail when id is missing", func() {
+			payload := models.CatalogSourceConfigPayload{
+				Name:    "Test",
+				Type:    "yaml",
+				Enabled: boolPtr(true),
+				Yaml:    stringPtr("models: []"),
+			}
+			_, err := repo.CreateCatalogSourceConfig(ctx, k8sClient, "kubeflow", payload)
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(ContainSubstring("id is required"))
+		})
+
+		It("should fail when name is missing", func() {
+			payload := models.CatalogSourceConfigPayload{
+				Id:      "test",
+				Type:    "yaml",
+				Enabled: boolPtr(true),
+				Yaml:    stringPtr("models: []"),
+			}
+			_, err := repo.CreateCatalogSourceConfig(ctx, k8sClient, "kubeflow", payload)
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(ContainSubstring("name is required"))
+		})
+
+		It("should fail when type is missing", func() {
+			payload := models.CatalogSourceConfigPayload{
+				Id:      "test-id",
+				Name:    "Test",
+				Enabled: boolPtr(true),
+				Yaml:    stringPtr("models: []"),
+			}
+			_, err := repo.CreateCatalogSourceConfig(ctx, k8sClient, "kubeflow", payload)
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(ContainSubstring("type is required"))
+		})
+
+		It("should fail when yaml is missing for yaml type source config", func() {
+			payload := models.CatalogSourceConfigPayload{
+				Id:      "test-id",
+				Name:    "Test",
+				Type:    "yaml",
+				Enabled: boolPtr(true),
+			}
+			_, err := repo.CreateCatalogSourceConfig(ctx, k8sClient, "kubeflow", payload)
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(ContainSubstring("yaml field is required"))
+		})
+
+		It("should fail when apiKey is missing for huggingface-type", func() {
+			payload := models.CatalogSourceConfigPayload{
+				Id:      "test-id",
+				Name:    "Test",
+				Type:    "huggingface",
+				Enabled: boolPtr(true),
+			}
+			_, err := repo.CreateCatalogSourceConfig(ctx, k8sClient, "kubeflow", payload)
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(ContainSubstring("apiKey is required"))
+		})
+
+		It("should fail for unsupported type", func() {
+			payload := models.CatalogSourceConfigPayload{
+				Id:      "test-id",
+				Name:    "Test",
+				Type:    "invalid-type",
+				Enabled: boolPtr(true),
+			}
+			_, err := repo.CreateCatalogSourceConfig(ctx, k8sClient, "kubeflow", payload)
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(ContainSubstring("unsupported catalog type"))
+		})
+
+		It("should fail when id already exists in user sources", func() {
+			payload := models.CatalogSourceConfigPayload{
+				Id:      "custom_yaml_models",
+				Name:    "Duplicate",
+				Type:    "yaml",
+				Enabled: boolPtr(true),
+				Yaml:    stringPtr("models: []"),
+			}
+			_, err := repo.CreateCatalogSourceConfig(ctx, k8sClient, "kubeflow", payload)
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(ContainSubstring("already exists"))
+		})
+
+		It("should fail when id matches a default source", func() {
+			payload := models.CatalogSourceConfigPayload{
+				Id:      "dora_ai_models",
+				Name:    "Duplicate Default",
+				Type:    "yaml",
+				Enabled: boolPtr(true),
+				Yaml:    stringPtr("models: []"),
+			}
+			_, err := repo.CreateCatalogSourceConfig(ctx, k8sClient, "kubeflow", payload)
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(ContainSubstring("already exists in default"))
+		})
+
+		It("should create yaml type source successfully", func() {
+			payload := models.CatalogSourceConfigPayload{
+				Id:      "test_yaml_create",
+				Name:    "Test YAML Create",
+				Type:    "yaml",
+				Enabled: boolPtr(true),
+				Yaml:    stringPtr("models:\n  - name: test"),
+				Labels:  []string{"test"},
+			}
+			result, err := repo.CreateCatalogSourceConfig(ctx, k8sClient, "kubeflow", payload)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(result.Id).To(Equal("test_yaml_create"))
+			Expect(*result.IsDefault).To(BeFalse())
+		})
+
+		It("should create huggingface-type source successfully", func() {
+			payload := models.CatalogSourceConfigPayload{
+				Id:      "test_hf_create",
+				Name:    "Test HF Create",
+				Type:    "huggingface",
+				Enabled: boolPtr(true),
+				ApiKey:  stringPtr("hf_test_key"),
+			}
+			result, err := repo.CreateCatalogSourceConfig(ctx, k8sClient, "kubeflow", payload)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(result.Id).To(Equal("test_hf_create"))
+			Expect(*result.IsDefault).To(BeFalse())
+		})
+
+		It("should create source with includedModels and excludedModels", func() {
+			payload := models.CatalogSourceConfigPayload{
+				Id:             "test_with_filters",
+				Name:           "Test With Filters",
+				Type:           "yaml",
+				Enabled:        boolPtr(true),
+				Yaml:           stringPtr("models: []"),
+				IncludedModels: []string{"model-*"},
+				ExcludedModels: []string{"test-*"},
+			}
+			result, err := repo.CreateCatalogSourceConfig(ctx, k8sClient, "kubeflow", payload)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(result.IncludedModels).To(ConsistOf("model-*"))
+			Expect(result.ExcludedModels).To(ConsistOf("test-*"))
+		})
+	})
+
+	Describe("UpdateCatalogSourceConfig", func() {
+		It("should fail if source does not exist", func() {
+			payload := models.CatalogSourceConfigPayload{
+				Enabled: boolPtr(false),
+			}
+			_, err := repo.UpdateCatalogSourceConfig(ctx, k8sClient, "kubeflow", "does-not-exist", payload)
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(ContainSubstring("not found"))
+		})
+
+		It("should fail, when trying to update the source type", func() {
+			payload := models.CatalogSourceConfigPayload{
+				Type: "huggingface",
+			}
+			_, err := repo.UpdateCatalogSourceConfig(ctx, k8sClient, "kubeflow", "custom_yaml_models", payload)
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(ContainSubstring("cannot change"))
+		})
+
+		It("should fail when updating the name of the default source config", func() {
+			payload := models.CatalogSourceConfigPayload{
+				Name: "Changed Name",
+			}
+			_, err := repo.UpdateCatalogSourceConfig(ctx, k8sClient, "kubeflow", "dora_ai_models", payload)
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(ContainSubstring("cannot change"))
+		})
+
+		It("should fail when updating the labels of default source config", func() {
+			payload := models.CatalogSourceConfigPayload{
+				Labels: []string{"new-label"},
+			}
+			_, err := repo.UpdateCatalogSourceConfig(ctx, k8sClient, "kubeflow", "dora_ai_models", payload)
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(ContainSubstring("cannot change"))
+		})
+
+		It("should fail when updating the yaml of the default source config", func() {
+			payload := models.CatalogSourceConfigPayload{
+				Yaml: stringPtr("new content"),
+			}
+			_, err := repo.UpdateCatalogSourceConfig(ctx, k8sClient, "kubeflow", "dora_ai_models", payload)
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(ContainSubstring("cannot change"))
+		})
+
+		It("should update the user managed source config successfully", func() {
+			payload := models.CatalogSourceConfigPayload{
+				Name:    "Updated Name",
+				Enabled: boolPtr(false),
+			}
+			result, err := repo.UpdateCatalogSourceConfig(ctx, k8sClient, "kubeflow", "custom_yaml_models", payload)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(result.Name).To(Equal("Updated Name"))
+		})
+
+		It("should override the enabled property of default source config in user managed configMap", func() {
+			payload := models.CatalogSourceConfigPayload{
+				Enabled: boolPtr(false),
+			}
+			result, err := repo.UpdateCatalogSourceConfig(ctx, k8sClient, "kubeflow", "dora_ai_models", payload)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(*result.Enabled).To(BeFalse())
+		})
+
+		It("should allow updating includedModels on default catalog", func() {
+			payload := models.CatalogSourceConfigPayload{
+				IncludedModels: []string{"model-a", "model-b"},
+			}
+			result, err := repo.UpdateCatalogSourceConfig(ctx, k8sClient, "kubeflow", "dora_ai_models", payload)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(result.IncludedModels).To(ConsistOf("model-a", "model-b"))
+		})
+
+		It("should allow updating excludedModels on default catalog", func() {
+			payload := models.CatalogSourceConfigPayload{
+				ExcludedModels: []string{"blocked-*"},
+			}
+			result, err := repo.UpdateCatalogSourceConfig(ctx, k8sClient, "kubeflow", "dora_ai_models", payload)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(result.ExcludedModels).To(ConsistOf("blocked-*"))
+		})
+
+		It("should allow updating default twice", func() {
+			// First update
+			payload1 := models.CatalogSourceConfigPayload{
+				Enabled: boolPtr(false),
+			}
+			_, err := repo.UpdateCatalogSourceConfig(ctx, k8sClient, "kubeflow", "bella_ai_validated_models", payload1)
+			Expect(err).NotTo(HaveOccurred())
+
+			// Second update
+			payload2 := models.CatalogSourceConfigPayload{
+				Enabled:        boolPtr(true),
+				IncludedModels: []string{"updated-model"},
+			}
+			result, err := repo.UpdateCatalogSourceConfig(ctx, k8sClient, "kubeflow", "bella_ai_validated_models", payload2)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(*result.Enabled).To(BeTrue())
+			Expect(result.IncludedModels).To(ConsistOf("updated-model"))
+		})
+	})
+
+	Describe("DeleteCatalogSourceConfig", func() {
+		It("should fail when deleting default catalog", func() {
+			_, err := repo.DeleteCatalogSourceConfig(ctx, k8sClient, "kubeflow", "dora_ai_models")
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(ContainSubstring("cannot delete"))
+		})
+
+		It("should fail when the source config does not exist in catalog", func() {
+			_, err := repo.DeleteCatalogSourceConfig(ctx, k8sClient, "kubeflow", "totally-fake-id")
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(ContainSubstring("not found"))
+		})
+
+		It("should delete user yaml source successfully", func() {
+			// First create
+			createPayload := models.CatalogSourceConfigPayload{
+				Id:      "delete-test-yaml",
+				Name:    "Delete Test",
+				Type:    "yaml",
+				Enabled: boolPtr(true),
+				Yaml:    stringPtr("models: []"),
+			}
+			_, err := repo.CreateCatalogSourceConfig(ctx, k8sClient, "kubeflow", createPayload)
+			Expect(err).NotTo(HaveOccurred())
+
+			deleted, err := repo.DeleteCatalogSourceConfig(ctx, k8sClient, "kubeflow", "delete-test-yaml")
+			Expect(err).NotTo(HaveOccurred())
+			Expect(deleted.Id).To(Equal("delete-test-yaml"))
+		})
+
+		It("should delete user huggingface source and its secret", func() {
+			// First create
+			createPayload := models.CatalogSourceConfigPayload{
+				Id:      "delete-test-hf",
+				Name:    "Delete HF Test",
+				Type:    "huggingface",
+				Enabled: boolPtr(true),
+				ApiKey:  stringPtr("hf_delete_test"),
+			}
+			_, err := repo.CreateCatalogSourceConfig(ctx, k8sClient, "kubeflow", createPayload)
+			Expect(err).NotTo(HaveOccurred())
+
+			deleted, err := repo.DeleteCatalogSourceConfig(ctx, k8sClient, "kubeflow", "delete-test-hf")
+			Expect(err).NotTo(HaveOccurred())
+			Expect(deleted.Id).To(Equal("delete-test-hf"))
+		})
+	})
 })
+
+func boolPtr(b bool) *bool {
+	return &b
+}
+
+func stringPtr(s string) *string {
+	return &s
+}

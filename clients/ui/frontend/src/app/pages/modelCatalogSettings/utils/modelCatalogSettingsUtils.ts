@@ -45,23 +45,36 @@ export const generateSourceIdFromName = (name: string): string =>
 
 export const transformFormDataToPayload = (
   formData: ManageSourceFormData,
-): CatalogSourceConfigPayload => ({
-  id: formData.id || generateSourceIdFromName(formData.name),
-  name: formData.name,
-  type: formData.sourceType,
-  enabled: formData.enabled,
-  isDefault: formData.isDefault,
-  includedModels: formData.allowedModels
-    .split(',')
-    .map((item) => item.trim())
-    .filter((item) => item.length > 0),
-  excludedModels: formData.excludedModels
-    .split(',')
-    .map((item) => item.trim())
-    .filter((item) => item.length > 0),
-  ...(formData.sourceType === CatalogSourceType.YAML && { yaml: formData.yamlContent }),
-  ...(formData.sourceType === CatalogSourceType.HUGGING_FACE && {
-    apiKey: formData.accessToken,
-    allowedOrganization: formData.organization,
-  }),
-});
+  isEditMode = false,
+): CatalogSourceConfigPayload => {
+  const parseModels = (models: string): string[] =>
+    models
+      .split(',')
+      .map((item) => item.trim())
+      .filter((item) => item.length > 0);
+
+  if (formData.isDefault) {
+    // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
+    return {
+      enabled: formData.enabled,
+      includedModels: parseModels(formData.allowedModels),
+      excludedModels: parseModels(formData.excludedModels),
+    } as CatalogSourceConfigPayload;
+  }
+
+  // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
+  return {
+    ...(!isEditMode && { id: formData.id || generateSourceIdFromName(formData.name) }),
+    name: formData.name,
+    type: formData.sourceType,
+    enabled: formData.enabled,
+    isDefault: false,
+    includedModels: parseModels(formData.allowedModels),
+    excludedModels: parseModels(formData.excludedModels),
+    ...(formData.sourceType === CatalogSourceType.YAML && { yaml: formData.yamlContent }),
+    ...(formData.sourceType === CatalogSourceType.HUGGING_FACE && {
+      apiKey: formData.accessToken,
+      allowedOrganization: formData.organization,
+    }),
+  } as CatalogSourceConfigPayload;
+};
