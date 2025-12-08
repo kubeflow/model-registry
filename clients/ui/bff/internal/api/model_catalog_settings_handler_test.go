@@ -217,7 +217,7 @@ var _ = Describe("TestModelCatalogSettings", func() {
 					Yaml:    stringPtr("models: []"),
 				},
 			}
-			setupApiTest[ModelCatalogSettingsSourceConfigEnvelope](
+			_, _, err := setupApiTest[ModelCatalogSettingsSourceConfigEnvelope](
 				http.MethodPost,
 				"/api/v1/settings/model_catalog/source_configs?namespace=kubeflow",
 				createPayload,
@@ -225,6 +225,7 @@ var _ = Describe("TestModelCatalogSettings", func() {
 				requestIdentity,
 				"kubeflow",
 			)
+			Expect(err).NotTo(HaveOccurred())
 
 			_, rs, err := setupApiTest[ModelCatalogSettingsSourceConfigEnvelope](
 				http.MethodDelete,

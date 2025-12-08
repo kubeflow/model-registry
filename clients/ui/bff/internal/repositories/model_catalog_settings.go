@@ -137,11 +137,11 @@ func (r *ModelCatalogSettingsRepository) CreateCatalogSourceConfig(
 	}
 
 	if findCatalogSourceById(defaultCM.Data[k8s.CatalogSourceKey], payload.Id, true) != nil {
-		return nil, fmt.Errorf("catalog source '%s' already exists in default sources.", payload.Id)
+		return nil, fmt.Errorf("catalog source '%s' already exists in default sources", payload.Id)
 	}
 
 	if findCatalogSourceById(userCM.Data[k8s.CatalogSourceKey], payload.Id, false) != nil {
-		return nil, fmt.Errorf("catalog source '%s' already exists in user managed sources.", payload.Id)
+		return nil, fmt.Errorf("catalog source '%s' already exists in user managed sources", payload.Id)
 	}
 
 	var secretName string
