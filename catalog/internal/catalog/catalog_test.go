@@ -29,8 +29,7 @@ func TestLoadCatalogSources(t *testing.T) {
 		{
 			name:    "test-catalog-sources",
 			args:    args{catalogsPath: "testdata/test-catalog-sources.yaml"},
-			want:    []string{"catalog1"},
-			wantErr: false,
+			want:    []string{"catalog1", "catalog2"},
 		},
 	}
 	for _, tt := range tests {
@@ -63,6 +62,7 @@ func TestLoadCatalogSources(t *testing.T) {
 
 func TestLoadCatalogSourcesEnabledDisabled(t *testing.T) {
 	trueValue := true
+	falseValue := false
 	type args struct {
 		catalogsPath string
 	}
@@ -80,6 +80,12 @@ func TestLoadCatalogSourcesEnabledDisabled(t *testing.T) {
 					Id:      "catalog1",
 					Name:    "Catalog 1",
 					Enabled: &trueValue,
+					Labels:  []string{},
+				},
+				"catalog2": {
+					Id:      "catalog2",
+					Name:    "Catalog 2",
+					Enabled: &falseValue,
 					Labels:  []string{},
 				},
 			},
@@ -467,6 +473,87 @@ func TestLoadCatalogSourcesWithRepositoryErrors(t *testing.T) {
 	// Verify that no models were saved due to the error
 	if len(mockModelRepo.SavedModels) != 0 {
 		t.Errorf("Expected 0 models to be saved due to error, got %d", len(mockModelRepo.SavedModels))
+	}
+}
+
+func TestLoadCatalogSourcesWithNilEnabled(t *testing.T) {
+	// Test that nil Enabled field is treated as enabled (per OpenAPI spec default: true)
+	mockModelRepo := &MockCatalogModelRepository{}
+	mockArtifactRepo := &MockCatalogArtifactRepository{}
+	mockModelArtifactRepo := &MockCatalogModelArtifactRepository{}
+	mockMetricsArtifactRepo := &MockCatalogMetricsArtifactRepository{}
+
+	services := service.NewServices(
+		mockModelRepo,
+		mockArtifactRepo,
+		mockModelArtifactRepo,
+		mockMetricsArtifactRepo,
+		&MockPropertyOptionsRepository{},
+	)
+
+	// Register a test provider
+	testProviderName := "test-nil-enabled-provider"
+	RegisterModelProvider(testProviderName, func(ctx context.Context, source *Source, reldir string) (<-chan ModelProviderRecord, error) {
+		ch := make(chan ModelProviderRecord, 1)
+
+		modelName := "test-model-nil-enabled"
+		model := &dbmodels.CatalogModelImpl{
+			Attributes: &dbmodels.CatalogModelAttributes{
+				Name: &modelName,
+			},
+		}
+
+		ch <- ModelProviderRecord{
+			Model:     model,
+			Artifacts: []dbmodels.CatalogArtifact{},
+		}
+		close(ch)
+
+		return ch, nil
+	})
+
+	testConfig := &sourceConfig{
+		Catalogs: []Source{
+			{
+				CatalogSource: apimodels.CatalogSource{
+					Id:      "test-catalog-nil-enabled",
+					Name:    "Test Catalog Nil Enabled",
+					Enabled: nil, // Nil should be treated as enabled
+				},
+				Type: testProviderName,
+			},
+		},
+	}
+
+	l := NewLoader(services, []string{})
+	ctx := context.Background()
+
+	// First call updateSources to populate the SourceCollection
+	err := l.updateSources("test-path", testConfig)
+	if err != nil {
+		t.Fatalf("updateSources() error = %v", err)
+	}
+
+	err = l.updateDatabase(ctx)
+	if err != nil {
+		t.Fatalf("updateDatabase() error = %v", err)
+	}
+
+	// Wait for processing
+	time.Sleep(100 * time.Millisecond)
+
+	// Verify that the model WAS saved (because nil Enabled is treated as enabled)
+	if len(mockModelRepo.SavedModels) != 1 {
+		t.Errorf("Expected 1 model to be saved (nil Enabled should be treated as enabled), got %d", len(mockModelRepo.SavedModels))
+	}
+
+	if len(mockModelRepo.SavedModels) > 0 {
+		savedModel := mockModelRepo.SavedModels[0]
+		if savedModel.GetAttributes() == nil || savedModel.GetAttributes().Name == nil {
+			t.Error("Saved model should have attributes with name")
+		} else if *savedModel.GetAttributes().Name != "test-model-nil-enabled" {
+			t.Errorf("Expected model name 'test-model-nil-enabled', got '%s'", *savedModel.GetAttributes().Name)
+		}
 	}
 }
 
