@@ -12,6 +12,7 @@ import {
   Label,
   LabelGroup,
   PageSection,
+  Popover,
   Sidebar,
   SidebarContent,
   SidebarPanel,
@@ -35,6 +36,10 @@ import {
   hasModelArtifacts,
   isModelValidated,
 } from '~/app/pages/modelCatalog/utils/modelCatalogUtils';
+import {
+  ModelCatalogProvider,
+  MODEL_CATALOG_POPOVER_MESSAGES,
+} from '~/concepts/modelCatalog/const';
 
 type ModelDetailsViewProps = {
   model: CatalogModel;
@@ -127,7 +132,15 @@ const ModelDetailsView: React.FC<ModelDetailsViewProps> = ({
                 </DescriptionListGroup>
                 <DescriptionListGroup>
                   <DescriptionListTerm>Provider</DescriptionListTerm>
-                  <DescriptionListDescription>{model.provider || 'N/A'}</DescriptionListDescription>
+                  <DescriptionListDescription>
+                    {model.provider === ModelCatalogProvider.RED_HAT ? (
+                      <Popover bodyContent={MODEL_CATALOG_POPOVER_MESSAGES.RED_HAT}>
+                        <Label>{model.provider}</Label>
+                      </Popover>
+                    ) : (
+                      model.provider || 'N/A'
+                    )}
+                  </DescriptionListDescription>
                 </DescriptionListGroup>
                 {validatedOnPlatforms.length > 0 && (
                   <DescriptionListGroup>
