@@ -5,11 +5,11 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
-	"strings"
 
 	"github.com/julienschmidt/httprouter"
 	"github.com/kubeflow/model-registry/ui/bff/internal/constants"
 	"github.com/kubeflow/model-registry/ui/bff/internal/models"
+	"github.com/kubeflow/model-registry/ui/bff/internal/repositories"
 )
 
 type ModelCatalogSettingsSourceConfigEnvelope Envelope[*models.CatalogSourceConfig, None]
@@ -68,7 +68,7 @@ func (app *App) GetCatalogSourceConfigHandler(w http.ResponseWriter, r *http.Req
 	catalogSourceConfig, err := app.repositories.ModelCatalogSettingsRepository.GetCatalogSourceConfig(ctx, client, namespace, catalogSourceId)
 
 	if err != nil {
-		if strings.Contains(err.Error(), "not found") {
+		if errors.Is(err, repositories.ErrCatalogSourceNotFound) {
 			app.notFoundResponse(w, r)
 		} else {
 			app.serverErrorResponse(w, r, err)
@@ -112,9 +112,9 @@ func (app *App) CreateCatalogSourceConfigHandler(w http.ResponseWriter, r *http.
 	newCatalogSource, err := app.repositories.ModelCatalogSettingsRepository.CreateCatalogSourceConfig(ctx, client, namespace, *envelope.Data)
 
 	if err != nil {
-		if strings.Contains(err.Error(), "already exists") ||
-			strings.Contains(err.Error(), "is required") ||
-			strings.Contains(err.Error(), "unsupported catalog type") {
+		if errors.Is(err, repositories.ErrCatalogSourceAlreadyExist) ||
+			errors.Is(err, repositories.ErrCatalogSourceIdRequired) ||
+			errors.Is(err, repositories.ErrUnsupportedCatalogType) {
 			app.badRequestResponse(w, r, err)
 		} else {
 			app.serverErrorResponse(w, r, err)
@@ -163,9 +163,9 @@ func (app *App) UpdateCatalogSourceConfigHandler(w http.ResponseWriter, r *http.
 	updatedCatalogSource, err := app.repositories.ModelCatalogSettingsRepository.UpdateCatalogSourceConfig(ctx, client, namespace, catalogSourceId, *envelope.Data)
 
 	if err != nil {
-		if strings.Contains(err.Error(), "not found") {
+		if errors.Is(err, repositories.ErrCatalogSourceNotFound) {
 			app.notFoundResponse(w, r)
-		} else if strings.Contains(err.Error(), "cannot change") {
+		} else if errors.Is(err, repositories.ErrCannotChangeDefaultSource) {
 			app.forbiddenResponse(w, r, err.Error())
 		} else {
 			app.serverErrorResponse(w, r, err)
@@ -204,9 +204,9 @@ func (app *App) DeleteCatalogSourceConfigHandler(w http.ResponseWriter, r *http.
 	deletedCatalogSource, err := app.repositories.ModelCatalogSettingsRepository.DeleteCatalogSourceConfig(ctx, client, namespace, catalogSourceId)
 
 	if err != nil {
-		if strings.Contains(err.Error(), "cannot delete") {
+		if errors.Is(err, repositories.ErrCannotDeleteDefaultSource) {
 			app.forbiddenResponse(w, r, err.Error())
-		} else if strings.Contains(err.Error(), "not found") {
+		} else if errors.Is(err, repositories.ErrCatalogSourceNotFound) {
 			app.notFoundResponse(w, r)
 		} else {
 			app.serverErrorResponse(w, r, err)

@@ -2,6 +2,7 @@ package repositories
 
 import (
 	"context"
+	"strings"
 
 	k8s "github.com/kubeflow/model-registry/ui/bff/internal/integrations/kubernetes"
 	"github.com/kubeflow/model-registry/ui/bff/internal/mocks"
@@ -115,7 +116,7 @@ var _ = Describe("ModelCatalogSettingRepository", func() {
 			}
 			_, err := repo.CreateCatalogSourceConfig(ctx, k8sClient, "kubeflow", payload)
 			Expect(err).To(HaveOccurred())
-			Expect(err.Error()).To(ContainSubstring("id is required"))
+			Expect(err.Error()).To(ContainSubstring("catalog source ID is required"))
 		})
 
 		It("should fail when name is missing", func() {
@@ -202,6 +203,36 @@ var _ = Describe("ModelCatalogSettingRepository", func() {
 			_, err := repo.CreateCatalogSourceConfig(ctx, k8sClient, "kubeflow", payload)
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring("already exists in default"))
+		})
+
+		It("should fail when secret name exceeds maximum length", func() {
+			longId := strings.Repeat("a", 239)
+
+			payload := models.CatalogSourceConfigPayload{
+				Id:      longId,
+				Name:    "Test Long ID",
+				Type:    "huggingface",
+				Enabled: boolPtr(true),
+				ApiKey:  stringPtr("hf_test_key"),
+			}
+			_, err := repo.CreateCatalogSourceConfig(ctx, k8sClient, "kubeflow", payload)
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(ContainSubstring("exceeds maximum length"))
+		})
+
+		It("should succeed when catalog ID is at maximum allowed length", func() {
+			maxLengthId := strings.Repeat("b", 238)
+
+			payload := models.CatalogSourceConfigPayload{
+				Id:      maxLengthId,
+				Name:    "Test Max Length ID",
+				Type:    "huggingface",
+				Enabled: boolPtr(true),
+				ApiKey:  stringPtr("hf_test_key"),
+			}
+			result, err := repo.CreateCatalogSourceConfig(ctx, k8sClient, "kubeflow", payload)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(result.Id).To(Equal(maxLengthId))
 		})
 
 		It("should create yaml type source successfully", func() {
@@ -351,13 +382,65 @@ var _ = Describe("ModelCatalogSettingRepository", func() {
 			Expect(*result.Enabled).To(BeTrue())
 			Expect(result.IncludedModels).To(ConsistOf("updated-model"))
 		})
+
+		It("should clear includedModels when empty array is provided", func() {
+			// First create with includedModels
+			initialPayload := models.CatalogSourceConfigPayload{
+				Id:             "test_clear_models",
+				Name:           "Test Clear Models",
+				Type:           "yaml",
+				IncludedModels: []string{"model-*"},
+				ExcludedModels: []string{"old-*"},
+				Yaml:           stringPtr("new content"),
+			}
+			_, err := repo.CreateCatalogSourceConfig(ctx, k8sClient, "kubeflow", initialPayload)
+			Expect(err).NotTo(HaveOccurred())
+
+			// Update with empty includedModels
+			emptyModels := []string{}
+			updatePayload := models.CatalogSourceConfigPayload{
+				IncludedModels: emptyModels,
+				ExcludedModels: []string{"*"},
+			}
+
+			result, err := repo.UpdateCatalogSourceConfig(ctx, k8sClient, "kubeflow", "test_clear_models", updatePayload)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(result.IncludedModels).To(BeEmpty())
+			Expect(result.ExcludedModels).To(Equal([]string{"*"}))
+		})
+
+		It("should clear excluded models when empty array is provided", func() {
+			// First create with includedModels
+			initialPayload := models.CatalogSourceConfigPayload{
+				Id:             "test_clear_excluded_models",
+				Name:           "Test Clear Excluded Models",
+				Type:           "yaml",
+				IncludedModels: []string{"model-*"},
+				ExcludedModels: []string{"old-*"},
+				Yaml:           stringPtr("new content"),
+			}
+			_, err := repo.CreateCatalogSourceConfig(ctx, k8sClient, "kubeflow", initialPayload)
+			Expect(err).NotTo(HaveOccurred())
+
+			// Update with empty excludedModels
+			emptyModels := []string{}
+			updatePayload := models.CatalogSourceConfigPayload{
+				IncludedModels: []string{"*"},
+				ExcludedModels: emptyModels,
+			}
+
+			result, err := repo.UpdateCatalogSourceConfig(ctx, k8sClient, "kubeflow", "test_clear_models", updatePayload)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(result.ExcludedModels).To(BeEmpty())
+			Expect(result.IncludedModels).To(Equal([]string{"*"}))
+		})
 	})
 
 	Describe("DeleteCatalogSourceConfig", func() {
 		It("should fail when deleting default catalog", func() {
 			_, err := repo.DeleteCatalogSourceConfig(ctx, k8sClient, "kubeflow", "dora_ai_models")
 			Expect(err).To(HaveOccurred())
-			Expect(err.Error()).To(ContainSubstring("cannot delete"))
+			Expect(err.Error()).To(ContainSubstring("Cannot delete the deafult source: 'dora_ai_models' is a default source"))
 		})
 
 		It("should fail when the source config does not exist in catalog", func() {
