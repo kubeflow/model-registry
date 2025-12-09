@@ -54,15 +54,13 @@ export const transformFormDataToPayload = (
       .filter((item) => item.length > 0);
 
   if (formData.isDefault) {
-    // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
     return {
       enabled: formData.enabled,
       includedModels: parseModels(formData.allowedModels),
       excludedModels: parseModels(formData.excludedModels),
-    } as CatalogSourceConfigPayload;
+    };
   }
 
-  // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
   return {
     ...(!isEditMode && { id: formData.id || generateSourceIdFromName(formData.name) }),
     name: formData.name,
@@ -76,5 +74,5 @@ export const transformFormDataToPayload = (
       apiKey: formData.accessToken,
       allowedOrganization: formData.organization,
     }),
-  } as CatalogSourceConfigPayload;
+  };
 };

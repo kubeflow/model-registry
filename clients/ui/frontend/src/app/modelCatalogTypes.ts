@@ -251,18 +251,22 @@ export type CatalogSourceConfigCommon = {
 
 export type YamlCatalogSourceConfig = CatalogSourceConfigCommon & {
   type: CatalogSourceType.YAML;
+  /** yaml will be populated on GET (by ID) requests, not on LIST requests */
   yaml?: string;
 };
 
 export type HuggingFaceCatalogSourceConfig = CatalogSourceConfigCommon & {
   type: CatalogSourceType.HUGGING_FACE;
   allowedOrganization?: string;
+  /** apiKey wiil be populated on GET (by ID) requests, not on LIST requests */
   apiKey?: string;
 };
 
 export type CatalogSourceConfig = YamlCatalogSourceConfig | HuggingFaceCatalogSourceConfig;
 
-export type CatalogSourceConfigPayload = CatalogSourceConfig;
+export type CatalogSourceConfigPayload =
+  | CatalogSourceConfig
+  | Pick<CatalogSourceConfig, 'enabled' | 'includedModels' | 'excludedModels'>;
 
 export type CatalogSourceConfigList = {
   catalogs: CatalogSourceConfig[];
