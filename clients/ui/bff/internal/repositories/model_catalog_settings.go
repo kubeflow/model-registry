@@ -25,8 +25,8 @@ var (
 	ErrCatalogSourceAlreadyExist = errors.New("catalog source already exists")
 	ErrCatalogSourceIdRequired   = errors.New("catalog source ID is required")
 	ErrUnsupportedCatalogType    = errors.New("unsupported catalog type")
-	ErrCannotChangeDefaultSource = errors.New("Cannot change the default source")
-	ErrCannotDeleteDefaultSource = errors.New("Cannot delete the deafult source")
+	ErrCannotChangeDefaultSource = errors.New("cannot change the default source")
+	ErrCannotDeleteDefaultSource = errors.New("cannot delete the deafult source")
 	ErrCatalogIDTooLong          = errors.New("catalog source ID exceeds maximum length for secret name")
 )
 
