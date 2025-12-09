@@ -440,7 +440,7 @@ var _ = Describe("ModelCatalogSettingRepository", func() {
 		It("should fail when deleting default catalog", func() {
 			_, err := repo.DeleteCatalogSourceConfig(ctx, k8sClient, "kubeflow", "dora_ai_models")
 			Expect(err).To(HaveOccurred())
-			Expect(err.Error()).To(ContainSubstring("Cannot delete the deafult source: 'dora_ai_models' is a default source"))
+			Expect(err.Error()).To(ContainSubstring("cannot delete the deafult source: 'dora_ai_models' is a default source"))
 		})
 
 		It("should fail when the source config does not exist in catalog", func() {
