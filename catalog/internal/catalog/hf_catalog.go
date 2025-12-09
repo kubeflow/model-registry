@@ -577,6 +577,12 @@ func (p *hfModelProvider) emit(ctx context.Context, models []ModelProviderRecord
 			return
 		}
 	}
+
+	// Send an empty record to indicate that we're done with the batch.
+	select {
+	case out <- ModelProviderRecord{}:
+	case <-done:
+	}
 }
 
 // validateCredentials checks if the HuggingFace API key credentials are valid

@@ -374,6 +374,12 @@ func (p *yamlModelProvider) emit(ctx context.Context, catalog *yamlCatalog, out 
 			return
 		}
 	}
+
+	// Send an empty record to indicate that we're done with the batch.
+	select {
+	case out <- ModelProviderRecord{}:
+	case <-done:
+	}
 }
 
 func newYamlModelProvider(ctx context.Context, source *Source, reldir string) (<-chan ModelProviderRecord, error) {

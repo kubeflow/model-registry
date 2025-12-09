@@ -598,7 +598,9 @@ func collectNamesWithFilter(t *testing.T, catalogPath string, filter *ModelFilte
 
 	var names []string
 	for record := range out {
-		names = append(names, modelNameFromRecord(t, record))
+		if record.Model != nil {
+			names = append(names, modelNameFromRecord(t, record))
+		}
 	}
 
 	return names
@@ -616,7 +618,9 @@ func collectRecordsFromChannel(t *testing.T, records <-chan ModelProviderRecord,
 			if !ok {
 				t.Fatalf("channel closed before receiving %d records", expected)
 			}
-			names = append(names, modelNameFromRecord(t, record))
+			if record.Model != nil {
+				names = append(names, modelNameFromRecord(t, record))
+			}
 		case <-timeout:
 			t.Fatalf("timed out waiting for %d records", expected)
 		}

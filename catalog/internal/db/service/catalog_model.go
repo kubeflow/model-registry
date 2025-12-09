@@ -130,6 +130,76 @@ func (r *CatalogModelRepositoryImpl) lookupModelByName(name string) (*schema.Con
 	return &entity, nil
 }
 
+func (r *CatalogModelRepositoryImpl) DeleteBySource(sourceID string) error {
+	config := r.GetConfig()
+
+	// Delete all Context records where there's a ContextProperty with name='source_id' and string_value=sourceID
+	query := `DELETE FROM "Context" WHERE id IN (
+		SELECT "Context".id
+		FROM "Context"
+		INNER JOIN "ContextProperty" ON "Context".id="ContextProperty".context_id
+		AND "ContextProperty".name='source_id'
+		WHERE "ContextProperty".string_value=?
+		AND "Context".type_id=?
+	)`
+
+	return config.DB.Exec(query, sourceID, config.TypeID).Error
+}
+
+func (r *CatalogModelRepositoryImpl) DeleteByID(id int32) error {
+	config := r.GetConfig()
+
+	// Delete the Context record by ID and type_id
+	// ContextProperty records will be deleted via foreign key cascade
+	result := config.DB.Where("id = ? AND type_id = ?", id, config.TypeID).Delete(&schema.Context{})
+
+	if result.Error != nil {
+		return result.Error
+	}
+
+	if result.RowsAffected == 0 {
+		return fmt.Errorf("%w: id %d", config.NotFoundError, id)
+	}
+
+	return nil
+}
+
+// GetDistinctSourceIDs retrieves all unique source_id values from catalog models.
+// This method queries the ContextProperty table to find distinct string_value entries
+// where the property name is 'source_id'.
+func (r *CatalogModelRepositoryImpl) GetDistinctSourceIDs() ([]string, error) {
+	config := r.GetConfig()
+
+	var sourceIDs []string
+
+	// Execute the SQL query to get distinct source_id values
+	query := `SELECT DISTINCT string_value FROM "ContextProperty" WHERE name='source_id'`
+
+	rows, err := config.DB.Raw(query).Rows()
+	if err != nil {
+		// Sanitize database errors to avoid exposing internal details to users
+		err = dbutil.SanitizeDatabaseError(err)
+		return nil, fmt.Errorf("error querying distinct source IDs: %w", err)
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var sourceID string
+		if err := rows.Scan(&sourceID); err != nil {
+			err = dbutil.SanitizeDatabaseError(err)
+			return nil, fmt.Errorf("error scanning source ID: %w", err)
+		}
+		sourceIDs = append(sourceIDs, sourceID)
+	}
+
+	if err := rows.Err(); err != nil {
+		err = dbutil.SanitizeDatabaseError(err)
+		return nil, fmt.Errorf("error iterating source ID rows: %w", err)
+	}
+
+	return sourceIDs, nil
+}
+
 func applyCatalogModelListFilters(query *gorm.DB, listOptions *models.CatalogModelListOptions) *gorm.DB {
 	contextTable := utils.GetTableName(query.Statement.DB, &schema.Context{})
 

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"reflect"
 	"sort"
+	"sync"
 	"testing"
 	"time"
 
@@ -376,6 +377,9 @@ func TestLoadCatalogSourcesWithMockRepositories(t *testing.T) {
 	// Wait a bit for the goroutine to process
 	time.Sleep(100 * time.Millisecond)
 
+	mockModelRepo.mu.RLock()
+	defer mockModelRepo.mu.RUnlock()
+
 	// Verify that the model was saved
 	if len(mockModelRepo.SavedModels) != 1 {
 		t.Errorf("Expected 1 model to be saved, got %d", len(mockModelRepo.SavedModels))
@@ -390,10 +394,16 @@ func TestLoadCatalogSourcesWithMockRepositories(t *testing.T) {
 		}
 	}
 
+	mockModelArtifactRepo.mu.RLock()
+	defer mockModelArtifactRepo.mu.RUnlock()
+
 	// Verify that artifacts were saved
 	if len(mockModelArtifactRepo.SavedArtifacts) != 1 {
 		t.Errorf("Expected 1 model artifact to be saved, got %d", len(mockModelArtifactRepo.SavedArtifacts))
 	}
+
+	mockMetricsArtifactRepo.mu.RLock()
+	defer mockMetricsArtifactRepo.mu.RUnlock()
 
 	if len(mockMetricsArtifactRepo.SavedMetrics) != 1 {
 		t.Errorf("Expected 1 metrics artifact to be saved, got %d", len(mockMetricsArtifactRepo.SavedMetrics))
@@ -469,6 +479,9 @@ func TestLoadCatalogSourcesWithRepositoryErrors(t *testing.T) {
 
 	// Wait for processing
 	time.Sleep(100 * time.Millisecond)
+
+	mockModelRepo.mu.RLock()
+	defer mockModelRepo.mu.RUnlock()
 
 	// Verify that no models were saved due to the error
 	if len(mockModelRepo.SavedModels) != 0 {
@@ -638,11 +651,14 @@ func (m *MockCatalogModelRepositoryWithErrors) Save(model dbmodels.CatalogModel)
 
 // MockCatalogModelRepository mocks the CatalogModelRepository interface.
 type MockCatalogModelRepository struct {
+	mu          sync.RWMutex
 	SavedModels []dbmodels.CatalogModel
 	NextID      int32
 }
 
 func (m *MockCatalogModelRepository) GetByID(id int32) (dbmodels.CatalogModel, error) {
+	m.mu.RLock()
+	defer m.mu.RUnlock()
 	for _, model := range m.SavedModels {
 		if model.GetID() != nil && *model.GetID() == id {
 			return model, nil
@@ -652,6 +668,8 @@ func (m *MockCatalogModelRepository) GetByID(id int32) (dbmodels.CatalogModel, e
 }
 
 func (m *MockCatalogModelRepository) List(listOptions dbmodels.CatalogModelListOptions) (*mrmodels.ListWrapper[dbmodels.CatalogModel], error) {
+	m.mu.RLock()
+	defer m.mu.RUnlock()
 	return &mrmodels.ListWrapper[dbmodels.CatalogModel]{
 		Items:    m.SavedModels,
 		PageSize: int32(len(m.SavedModels)),
@@ -660,6 +678,8 @@ func (m *MockCatalogModelRepository) List(listOptions dbmodels.CatalogModelListO
 }
 
 func (m *MockCatalogModelRepository) GetByName(name string) (dbmodels.CatalogModel, error) {
+	m.mu.RLock()
+	defer m.mu.RUnlock()
 	for _, model := range m.SavedModels {
 		if model.GetAttributes() != nil && model.GetAttributes().Name != nil && *model.GetAttributes().Name == name {
 			return model, nil
@@ -669,6 +689,9 @@ func (m *MockCatalogModelRepository) GetByName(name string) (dbmodels.CatalogMod
 }
 
 func (m *MockCatalogModelRepository) Save(model dbmodels.CatalogModel) (dbmodels.CatalogModel, error) {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+
 	m.NextID++
 	id := m.NextID
 
@@ -685,13 +708,31 @@ func (m *MockCatalogModelRepository) Save(model dbmodels.CatalogModel) (dbmodels
 	return savedModel, nil
 }
 
+func (m *MockCatalogModelRepository) DeleteBySource(sourceID string) error {
+	// Mock implementation - no-op for testing
+	return nil
+}
+
+func (m *MockCatalogModelRepository) DeleteByID(id int32) error {
+	// Mock implementation - no-op for testing
+	return nil
+}
+
+func (m *MockCatalogModelRepository) GetDistinctSourceIDs() ([]string, error) {
+	// Mock implementation - return empty list by default
+	return []string{}, nil
+}
+
 // MockCatalogModelArtifactRepository mocks the CatalogModelArtifactRepository interface.
 type MockCatalogModelArtifactRepository struct {
+	mu             sync.RWMutex
 	SavedArtifacts []dbmodels.CatalogModelArtifact
 	NextID         int32
 }
 
 func (m *MockCatalogModelArtifactRepository) GetByID(id int32) (dbmodels.CatalogModelArtifact, error) {
+	m.mu.RLock()
+	defer m.mu.RUnlock()
 	for _, artifact := range m.SavedArtifacts {
 		if artifact.GetID() != nil && *artifact.GetID() == id {
 			return artifact, nil
@@ -701,6 +742,8 @@ func (m *MockCatalogModelArtifactRepository) GetByID(id int32) (dbmodels.Catalog
 }
 
 func (m *MockCatalogModelArtifactRepository) List(listOptions dbmodels.CatalogModelArtifactListOptions) (*mrmodels.ListWrapper[dbmodels.CatalogModelArtifact], error) {
+	m.mu.RLock()
+	defer m.mu.RUnlock()
 	return &mrmodels.ListWrapper[dbmodels.CatalogModelArtifact]{
 		Items:    m.SavedArtifacts,
 		PageSize: int32(len(m.SavedArtifacts)),
@@ -709,6 +752,9 @@ func (m *MockCatalogModelArtifactRepository) List(listOptions dbmodels.CatalogMo
 }
 
 func (m *MockCatalogModelArtifactRepository) Save(modelArtifact dbmodels.CatalogModelArtifact, parentResourceID *int32) (dbmodels.CatalogModelArtifact, error) {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+
 	m.NextID++
 	id := m.NextID
 
@@ -727,11 +773,15 @@ func (m *MockCatalogModelArtifactRepository) Save(modelArtifact dbmodels.Catalog
 
 // MockCatalogMetricsArtifactRepository mocks the CatalogMetricsArtifactRepository interface.
 type MockCatalogMetricsArtifactRepository struct {
+	mu           sync.RWMutex
 	SavedMetrics []dbmodels.CatalogMetricsArtifact
 	NextID       int32
 }
 
 func (m *MockCatalogMetricsArtifactRepository) GetByID(id int32) (dbmodels.CatalogMetricsArtifact, error) {
+	m.mu.RLock()
+	defer m.mu.RUnlock()
+
 	for _, metrics := range m.SavedMetrics {
 		if metrics.GetID() != nil && *metrics.GetID() == id {
 			return metrics, nil
@@ -741,6 +791,9 @@ func (m *MockCatalogMetricsArtifactRepository) GetByID(id int32) (dbmodels.Catal
 }
 
 func (m *MockCatalogMetricsArtifactRepository) List(listOptions dbmodels.CatalogMetricsArtifactListOptions) (*mrmodels.ListWrapper[dbmodels.CatalogMetricsArtifact], error) {
+	m.mu.RLock()
+	defer m.mu.RUnlock()
+
 	return &mrmodels.ListWrapper[dbmodels.CatalogMetricsArtifact]{
 		Items:    m.SavedMetrics,
 		PageSize: int32(len(m.SavedMetrics)),
@@ -749,6 +802,9 @@ func (m *MockCatalogMetricsArtifactRepository) List(listOptions dbmodels.Catalog
 }
 
 func (m *MockCatalogMetricsArtifactRepository) Save(metricsArtifact dbmodels.CatalogMetricsArtifact, parentResourceID *int32) (dbmodels.CatalogMetricsArtifact, error) {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+
 	m.NextID++
 	id := m.NextID
 
@@ -766,6 +822,9 @@ func (m *MockCatalogMetricsArtifactRepository) Save(metricsArtifact dbmodels.Cat
 }
 
 func (m *MockCatalogMetricsArtifactRepository) BatchSave(metricsArtifacts []dbmodels.CatalogMetricsArtifact, parentResourceID *int32) ([]dbmodels.CatalogMetricsArtifact, error) {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+
 	savedArtifacts := make([]dbmodels.CatalogMetricsArtifact, len(metricsArtifacts))
 
 	for i, metricsArtifact := range metricsArtifacts {
@@ -790,11 +849,14 @@ func (m *MockCatalogMetricsArtifactRepository) BatchSave(metricsArtifacts []dbmo
 
 // MockCatalogArtifactRepository mocks the CatalogArtifactRepository interface.
 type MockCatalogArtifactRepository struct {
+	mu             sync.RWMutex
 	SavedArtifacts []dbmodels.CatalogArtifact
 	NextID         int32
 }
 
 func (m *MockCatalogArtifactRepository) GetByID(id int32) (dbmodels.CatalogArtifact, error) {
+	m.mu.RLock()
+	defer m.mu.RUnlock()
 	for _, artifact := range m.SavedArtifacts {
 		// Check both model and metrics artifacts for the ID
 		if artifact.CatalogModelArtifact != nil && artifact.CatalogModelArtifact.GetID() != nil && *artifact.CatalogModelArtifact.GetID() == id {
@@ -808,6 +870,8 @@ func (m *MockCatalogArtifactRepository) GetByID(id int32) (dbmodels.CatalogArtif
 }
 
 func (m *MockCatalogArtifactRepository) List(listOptions dbmodels.CatalogArtifactListOptions) (*mrmodels.ListWrapper[dbmodels.CatalogArtifact], error) {
+	m.mu.RLock()
+	defer m.mu.RUnlock()
 	return &mrmodels.ListWrapper[dbmodels.CatalogArtifact]{
 		Items:    m.SavedArtifacts,
 		PageSize: int32(len(m.SavedArtifacts)),
