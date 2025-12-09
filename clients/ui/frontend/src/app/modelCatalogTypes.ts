@@ -284,10 +284,43 @@ export type UpdateCatalogSourceConfig = (
 ) => Promise<CatalogSourceConfig>;
 export type DeleteCatalogSourceConfig = (opts: APIOptions, sourceId: string) => Promise<void>;
 
+// Preview types
+export type CatalogSourcePreviewRequest = {
+  type: string;
+  includedModels?: string[];
+  excludedModels?: string[];
+  properties?: Record<string, unknown>;
+};
+
+export type CatalogSourcePreviewModel = {
+  name: string;
+  included: boolean;
+};
+
+export type CatalogSourcePreviewSummary = {
+  totalModels: number;
+  includedModels: number;
+  excludedModels: number;
+};
+
+export type CatalogSourcePreviewResult = {
+  items: CatalogSourcePreviewModel[];
+  summary: CatalogSourcePreviewSummary;
+  nextPageToken: string;
+  pageSize: number;
+  size: number;
+};
+
+export type PreviewCatalogSource = (
+  opts: APIOptions,
+  data: CatalogSourcePreviewRequest,
+) => Promise<CatalogSourcePreviewResult>;
+
 export type ModelCatalogSettingsAPIs = {
   getCatalogSourceConfigs: GetCatalogSourceConfigs;
   createCatalogSourceConfig: CreateCatalogSourceConfig;
   getCatalogSourceConfig: GetCatalogSourceConfig;
   updateCatalogSourceConfig: UpdateCatalogSourceConfig;
   deleteCatalogSourceConfig: DeleteCatalogSourceConfig;
+  previewCatalogSource: PreviewCatalogSource;
 };

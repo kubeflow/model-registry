@@ -12,6 +12,8 @@ import {
   CatalogSourceConfig,
   CatalogSourceConfigList,
   CatalogSourceConfigPayload,
+  CatalogSourcePreviewRequest,
+  CatalogSourcePreviewResult,
 } from '~/app/modelCatalogTypes';
 
 export const getCatalogSourceConfigs =
@@ -74,3 +76,15 @@ export const deleteCatalogSourceConfig =
   (hostPath: string, queryParams: Record<string, unknown> = {}) =>
   (opts: APIOptions, sourceId: string): Promise<void> =>
     handleRestFailures(restDELETE(hostPath, `/source_configs/${sourceId}`, {}, queryParams, opts));
+
+export const previewCatalogSource =
+  (hostPath: string, queryParams: Record<string, unknown> = {}) =>
+  (opts: APIOptions, data: CatalogSourcePreviewRequest): Promise<CatalogSourcePreviewResult> =>
+    handleRestFailures(
+      restCREATE(hostPath, '/source_preview', assembleModArchBody(data), queryParams, opts),
+    ).then((response) => {
+      if (isModArchResponse<CatalogSourcePreviewResult>(response)) {
+        return response.data;
+      }
+      throw new Error('Invalid response format');
+    });
