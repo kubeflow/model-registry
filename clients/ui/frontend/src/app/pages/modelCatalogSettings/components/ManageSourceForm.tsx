@@ -32,6 +32,15 @@ import ModelVisibilitySection from './ModelVisibilitySection';
 import PreviewPanel from './PreviewPanel';
 import ManageSourceFormFooter from './ManageSourceFormFooter';
 
+type PreviewState = {
+  mode?: 'preview' | 'validate';
+  isLoading: boolean;
+  result?: CatalogSourcePreviewResult;
+  error?: Error;
+  resultDismissed: boolean;
+  lastPreviewedData?: string;
+};
+
 type ManageSourceFormProps = {
   existingData?: Partial<ManageSourceFormData>;
   isEditMode: boolean;
@@ -45,34 +54,33 @@ const ManageSourceForm: React.FC<ManageSourceFormProps> = ({ existingData, isEdi
   const { apiState, refreshCatalogSourceConfigs } = React.useContext(ModelCatalogSettingsContext);
 
   // Preview state
-  const [isPreviewLoading, setIsPreviewLoading] = React.useState(false);
-  const [previewResult, setPreviewResult] = React.useState<CatalogSourcePreviewResult | undefined>(
-    undefined,
-  );
-  const [previewError, setPreviewError] = React.useState<Error | undefined>(undefined);
-  const [hasFormChanged, setHasFormChanged] = React.useState(false);
-  const [lastPreviewedData, setLastPreviewedData] = React.useState<string>('');
-  const [isValidateTriggered, setIsValidateTriggered] = React.useState(false);
-
-  // Validation state (for HF credentials)
-  const [validationError, setValidationError] = React.useState<Error | undefined>(undefined);
-  const [isValidationSuccess, setIsValidationSuccess] = React.useState(false);
+  const [previewState, setPreviewState] = React.useState<PreviewState>({
+    isLoading: false,
+    resultDismissed: false,
+  });
 
   const isHuggingFaceMode = formData.sourceType === CatalogSourceType.HUGGING_FACE;
   const isFormComplete = isFormValid(formData);
   const canPreview = isPreviewReady(formData);
 
-  // Track form changes to show outdated preview alert
-  React.useEffect(() => {
+  // Derive whether form has changed since last preview
+  const hasFormChanged = React.useMemo(() => {
     const currentData = JSON.stringify(formData);
-    if (lastPreviewedData && currentData !== lastPreviewedData) {
-      setHasFormChanged(true);
-    }
-  }, [formData, lastPreviewedData]);
+    return (
+      previewState.lastPreviewedData !== undefined && currentData !== previewState.lastPreviewedData
+    );
+  }, [formData, previewState.lastPreviewedData]);
+
+  // Derive validation success state
+  const isValidationSuccess =
+    previewState.mode === 'validate' &&
+    !previewState.isLoading &&
+    !previewState.error &&
+    !previewState.resultDismissed;
 
   // Auto-trigger preview on mount in edit mode
   React.useEffect(() => {
-    if (isEditMode && existingData && canPreview && !previewResult) {
+    if (isEditMode && existingData && canPreview && !previewState.result) {
       handlePreview();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -101,49 +109,49 @@ const ManageSourceForm: React.FC<ManageSourceFormProps> = ({ existingData, isEdi
     return request;
   };
 
-  const handlePreview = async () => {
+  const handlePreview = async (mode: 'preview' | 'validate' = 'preview') => {
     if (!apiState.apiAvailable) {
-      setPreviewError(new Error('API is not available'));
+      setPreviewState({
+        mode,
+        isLoading: false,
+        error: new Error('API is not available'),
+        resultDismissed: false,
+      });
       return;
     }
 
-    setIsPreviewLoading(true);
-    setPreviewError(undefined);
-    setHasFormChanged(false);
+    // Start loading, clear previous state
+    setPreviewState({
+      mode,
+      isLoading: true,
+      resultDismissed: false,
+    });
 
     try {
       const previewRequest = buildPreviewRequest();
       const result = await apiState.api.previewCatalogSource({}, previewRequest);
 
-      setPreviewResult(result);
-      setLastPreviewedData(JSON.stringify(formData));
-
-      // If this was triggered by validate button, show success
-      if (isValidateTriggered) {
-        setValidationError(undefined);
-        setIsValidationSuccess(true);
-        setIsValidateTriggered(false);
-      }
+      setPreviewState({
+        mode,
+        isLoading: false,
+        result,
+        lastPreviewedData: JSON.stringify(formData),
+        resultDismissed: false,
+      });
     } catch (error) {
       const err = error instanceof Error ? error : new Error('Failed to preview source');
 
-      // If triggered by validate button, show error in credentials section
-      if (isValidateTriggered) {
-        setValidationError(err);
-        setIsValidationSuccess(false);
-        setIsValidateTriggered(false);
-      } else {
-        // Otherwise show error in preview panel
-        setPreviewError(err);
-      }
-    } finally {
-      setIsPreviewLoading(false);
+      setPreviewState({
+        mode,
+        isLoading: false,
+        error: err,
+        resultDismissed: false,
+      });
     }
   };
 
   const handleValidate = async () => {
-    setIsValidateTriggered(true);
-    await handlePreview();
+    await handlePreview('validate');
   };
 
   const handleSubmit = async () => {
@@ -196,10 +204,14 @@ const ManageSourceForm: React.FC<ManageSourceFormProps> = ({ existingData, isEdi
                     formData={formData}
                     setData={setData}
                     onValidate={handleValidate}
-                    isValidating={isPreviewLoading && isValidateTriggered}
-                    validationError={validationError}
+                    isValidating={previewState.mode === 'validate' && previewState.isLoading}
+                    validationError={
+                      previewState.mode === 'validate' ? previewState.error : undefined
+                    }
                     isValidationSuccess={isValidationSuccess}
-                    onClearValidationSuccess={() => setIsValidationSuccess(false)}
+                    onClearValidationSuccess={() =>
+                      setPreviewState({ ...previewState, resultDismissed: true })
+                    }
                   />
                 </StackItem>
               )}
@@ -247,10 +259,10 @@ const ManageSourceForm: React.FC<ManageSourceFormProps> = ({ existingData, isEdi
         <SidebarPanel width={{ default: 'width_50' }}>
           <PreviewPanel
             isPreviewEnabled={canPreview}
-            isLoading={isPreviewLoading}
-            onPreview={handlePreview}
-            previewResult={previewResult}
-            previewError={previewError}
+            isLoading={previewState.isLoading}
+            onPreview={() => handlePreview('preview')}
+            previewResult={previewState.result}
+            previewError={previewState.mode === 'preview' ? previewState.error : undefined}
             hasFormChanged={hasFormChanged}
           />
         </SidebarPanel>
@@ -263,8 +275,8 @@ const ManageSourceForm: React.FC<ManageSourceFormProps> = ({ existingData, isEdi
         onSubmit={handleSubmit}
         onCancel={handleCancel}
         isPreviewDisabled={!canPreview}
-        isPreviewLoading={isPreviewLoading}
-        onPreview={handlePreview}
+        isPreviewLoading={previewState.isLoading}
+        onPreview={() => handlePreview('preview')}
       />
     </>
   );
