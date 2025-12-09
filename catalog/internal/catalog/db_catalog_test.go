@@ -1506,6 +1506,54 @@ func TestDBCatalog_GetPerformanceArtifactsWithService(t *testing.T) {
 	assert.Equal(t, "3", replicas.MetadataIntValue.IntValue)
 }
 
+func TestGetFilterOptionsWithNamedQueries(t *testing.T) {
+	// Setup mock sources with named queries
+	sources := NewSourceCollection()
+	namedQueries := map[string]map[string]FieldFilter{
+		"validation-default": {
+			"ttft_p90":      {Operator: "<", Value: 70},
+			"workload_type": {Operator: "=", Value: "Chat"},
+		},
+		"high-performance": {
+			"performance_score": {Operator: ">", Value: 0.95},
+		},
+	}
+
+	err := sources.MergeWithNamedQueries("test", map[string]Source{}, namedQueries)
+	require.NoError(t, err)
+
+	// Create catalog with mocked dependencies
+	mockServices := service.Services{
+		PropertyOptionsRepository: &mockPropertyRepository{},
+	}
+	catalog := NewDBCatalog(mockServices, sources)
+
+	// Test GetFilterOptions includes named queries
+	result, err := catalog.GetFilterOptions(context.Background())
+	require.NoError(t, err)
+	require.NotNil(t, result.NamedQueries)
+
+	queries := *result.NamedQueries
+	assert.Len(t, queries, 2)
+
+	validationQuery := queries["validation-default"]
+	assert.Equal(t, "<", validationQuery["ttft_p90"].Operator)
+	assert.Equal(t, 70, validationQuery["ttft_p90"].Value)
+	assert.Equal(t, "=", validationQuery["workload_type"].Operator)
+	assert.Equal(t, "Chat", validationQuery["workload_type"].Value)
+}
+
+// Mock repository for testing
+type mockPropertyRepository struct{}
+
+func (m *mockPropertyRepository) List(optionType models.PropertyOptionType, limit int32) ([]models.PropertyOption, error) {
+	return []models.PropertyOption{}, nil
+}
+
+func (m *mockPropertyRepository) Refresh(optionType models.PropertyOptionType) error {
+	return nil
+}
+
 func getCatalogModelArtifactTypeIDForDBTest(t *testing.T, db *gorm.DB) int32 {
 	var typeRecord schema.Type
 	err := db.Where("name = ?", service.CatalogModelArtifactTypeName).First(&typeRecord).Error

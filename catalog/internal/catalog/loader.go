@@ -45,10 +45,17 @@ func RegisterModelProvider(name string, callback ModelProviderFunc) error {
 // LoaderEventHandler is the definition of a function called after a model is loaded.
 type LoaderEventHandler func(ctx context.Context, record ModelProviderRecord) error
 
+// FieldFilter represents a single field filter within a named query
+type FieldFilter struct {
+	Operator string `json:"operator" yaml:"operator"`
+	Value    any    `json:"value" yaml:"value"`
+}
+
 // sourceConfig is the structure for the catalog sources YAML file.
 type sourceConfig struct {
-	Catalogs []Source         `json:"catalogs"`
-	Labels   []map[string]any `json:"labels,omitempty"`
+	Catalogs     []Source                          `json:"catalogs"`
+	Labels       []map[string]any                  `json:"labels,omitempty"`
+	NamedQueries map[string]map[string]FieldFilter `json:"namedQueries,omitempty" yaml:"namedQueries,omitempty"`
 }
 
 // Source is a single entry from the catalog sources YAML file.
@@ -209,6 +216,13 @@ func (l *Loader) read(path string) (*sourceConfig, error) {
 		return nil, err
 	}
 
+	// Validate named queries if present
+	if config.NamedQueries != nil {
+		if err := ValidateNamedQueries(config.NamedQueries); err != nil {
+			return nil, fmt.Errorf("invalid named queries in %s: %w", path, err)
+		}
+	}
+
 	// Note: We intentionally do NOT filter disabled sources or apply defaults here.
 	// This allows field-level merging in SourceCollection to work correctly:
 	// - A base source with enabled=false can be enabled by a user override with just id + enabled=true
@@ -242,6 +256,10 @@ func (l *Loader) updateSources(path string, config *sourceConfig) error {
 		glog.Infof("loaded source %s of type %s", id, source.Type)
 	}
 
+	// Use MergeWithNamedQueries if named queries exist, otherwise use regular Merge
+	if config.NamedQueries != nil {
+		return l.Sources.MergeWithNamedQueries(path, sources, config.NamedQueries)
+	}
 	return l.Sources.Merge(path, sources)
 }
 
