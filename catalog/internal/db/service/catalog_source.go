@@ -111,7 +111,11 @@ func (r *CatalogSourceRepositoryImpl) Save(source models.CatalogSource) (models.
 		}
 	}
 
+	// Update the source with the ID and timestamps from the saved context
 	source.SetID(context.ID)
+	attrs.CreateTimeSinceEpoch = &context.CreateTimeSinceEpoch
+	attrs.LastUpdateTimeSinceEpoch = &context.LastUpdateTimeSinceEpoch
+
 	return source, nil
 }
 
