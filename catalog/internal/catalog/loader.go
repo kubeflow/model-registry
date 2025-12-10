@@ -423,32 +423,40 @@ func (l *Loader) readProviderRecords(ctx context.Context) <-chan ModelProviderRe
 		}
 
 		wg.Add(1)
-		go func() {
+		go func(ctx context.Context, sourceID string) {
 			defer wg.Done()
 
 			modelNames := []string{}
-			var lastError error
+			statusSaved := false
 
 			for r := range records {
+				// Check if context was cancelled (reload triggered)
+				select {
+				case <-ctx.Done():
+					glog.V(2).Infof("%s: context cancelled, stopping", sourceID)
+					return
+				default:
+				}
+
 				if r.Model == nil {
-					glog.V(2).Infof("%s: trigger cleanup", source.Id)
+					glog.V(2).Infof("%s: trigger cleanup", sourceID)
 
 					// Copy the list of model names, then clear it.
 					modelNameSet := mapset.NewSet(modelNames...)
 					modelNames = modelNames[:0]
 
 					go func() {
-						err := l.removeOrphanedModelsFromSource(source.Id, modelNameSet)
+						err := l.removeOrphanedModelsFromSource(sourceID, modelNameSet)
 						if err != nil {
 							glog.Errorf("error removing orphaned models: %v", err)
 						}
 					}()
 
-					// Source finished loading - save status based on whether errors occurred
-					if lastError != nil {
-						l.saveSourceStatus(source.Id, SourceStatusError, lastError.Error())
-					} else {
-						l.saveSourceStatus(source.Id, SourceStatusAvailable, "")
+					// Source finished loading successfully (provider-level errors are caught earlier)
+					// Only save if context is still valid (no reload in progress)
+					if ctx.Err() == nil {
+						l.saveSourceStatus(sourceID, SourceStatusAvailable, "")
+						statusSaved = true
 					}
 					continue
 				}
@@ -458,17 +466,17 @@ func (l *Loader) readProviderRecords(ctx context.Context) <-chan ModelProviderRe
 				}
 
 				// Set source_id on every returned model.
-				l.setModelSourceID(r.Model, source.Id)
+				l.setModelSourceID(r.Model, sourceID)
 
 				ch <- r
 			}
 
-			// If the channel closed without a nil Model marker, the source completed
-			// Save available status if no errors occurred
-			if lastError == nil && len(modelNames) > 0 {
-				l.saveSourceStatus(source.Id, SourceStatusAvailable, "")
+			// If the channel closed without a nil Model marker and status wasn't already saved,
+			// save available status if context is still valid and we processed some models
+			if !statusSaved && ctx.Err() == nil && len(modelNames) > 0 {
+				l.saveSourceStatus(sourceID, SourceStatusAvailable, "")
 			}
-		}()
+		}(ctx, source.Id)
 	}
 
 	go func() {
@@ -608,6 +616,15 @@ func (l *Loader) removeOrphanedModelsFromSource(sourceID string, valid mapset.Se
 // saveSourceStatus persists the operational status of a source to the database.
 // This allows status to be consistent across multiple pods.
 func (l *Loader) saveSourceStatus(sourceID, status string, errorMsg string) {
+	// Validate status is a valid enum value
+	switch status {
+	case SourceStatusAvailable, SourceStatusError, SourceStatusDisabled:
+		// valid
+	default:
+		glog.Errorf("invalid status %q for source %s", status, sourceID)
+		return
+	}
+
 	source := &dbmodels.CatalogSourceImpl{
 		Attributes: &dbmodels.CatalogSourceAttributes{
 			Name: &sourceID,
@@ -619,8 +636,10 @@ func (l *Loader) saveSourceStatus(sourceID, status string, errorMsg string) {
 		mrmodels.NewStringProperty("status", status, false),
 	}
 
-	// Set error property (empty string if no error)
-	props = append(props, mrmodels.NewStringProperty("error", errorMsg, false))
+	// Only store error property when non-empty
+	if errorMsg != "" {
+		props = append(props, mrmodels.NewStringProperty("error", errorMsg, false))
+	}
 
 	source.Properties = &props
 
