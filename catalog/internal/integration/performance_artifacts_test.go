@@ -43,6 +43,13 @@ func getCatalogModelArtifactTypeIDForTest(t *testing.T, db *gorm.DB) int32 {
 	return typeRecord.ID
 }
 
+func getCatalogSourceTypeIDForTest(t *testing.T, db *gorm.DB) int32 {
+	var typeRecord schema.Type
+	err := db.Where("name = ?", service.CatalogSourceTypeName).First(&typeRecord).Error
+	require.NoError(t, err, "Failed to query CatalogSource type")
+	return typeRecord.ID
+}
+
 // TestIntegration_PreservedRecommendationAlgorithm verifies end-to-end functionality
 // with the exact preserved recommendations algorithm from db_catalog.go
 func TestIntegration_PreservedRecommendationAlgorithm(t *testing.T) {
@@ -53,6 +60,7 @@ func TestIntegration_PreservedRecommendationAlgorithm(t *testing.T) {
 	catalogModelTypeID := getCatalogModelTypeIDForTest(t, sharedDB)
 	metricsArtifactTypeID := getCatalogMetricsArtifactTypeIDForTest(t, sharedDB)
 	modelArtifactTypeID := getCatalogModelArtifactTypeIDForTest(t, sharedDB)
+	catalogSourceTypeID := getCatalogSourceTypeIDForTest(t, sharedDB)
 
 	// Create repositories
 	catalogModelRepo := service.NewCatalogModelRepository(sharedDB, catalogModelTypeID)
@@ -62,12 +70,14 @@ func TestIntegration_PreservedRecommendationAlgorithm(t *testing.T) {
 	})
 	modelArtifactRepo := service.NewCatalogModelArtifactRepository(sharedDB, modelArtifactTypeID)
 	metricsArtifactRepo := service.NewCatalogMetricsArtifactRepository(sharedDB, metricsArtifactTypeID)
+	catalogSourceRepo := service.NewCatalogSourceRepository(sharedDB, catalogSourceTypeID)
 
 	services := service.NewServices(
 		catalogModelRepo,
 		catalogArtifactRepo,
 		modelArtifactRepo,
 		metricsArtifactRepo,
+		catalogSourceRepo,
 		service.NewPropertyOptionsRepository(sharedDB),
 	)
 
@@ -339,6 +349,7 @@ func TestIntegration_ServiceLayerBehavior(t *testing.T) {
 	catalogModelTypeID := getCatalogModelTypeIDForTest(t, sharedDB)
 	metricsArtifactTypeID := getCatalogMetricsArtifactTypeIDForTest(t, sharedDB)
 	modelArtifactTypeID := getCatalogModelArtifactTypeIDForTest(t, sharedDB)
+	catalogSourceTypeID := getCatalogSourceTypeIDForTest(t, sharedDB)
 
 	// Create repositories
 	catalogModelRepo := service.NewCatalogModelRepository(sharedDB, catalogModelTypeID)
@@ -348,12 +359,14 @@ func TestIntegration_ServiceLayerBehavior(t *testing.T) {
 	})
 	modelArtifactRepo := service.NewCatalogModelArtifactRepository(sharedDB, modelArtifactTypeID)
 	metricsArtifactRepo := service.NewCatalogMetricsArtifactRepository(sharedDB, metricsArtifactTypeID)
+	catalogSourceRepo := service.NewCatalogSourceRepository(sharedDB, catalogSourceTypeID)
 
 	services := service.NewServices(
 		catalogModelRepo,
 		catalogArtifactRepo,
 		modelArtifactRepo,
 		metricsArtifactRepo,
+		catalogSourceRepo,
 		service.NewPropertyOptionsRepository(sharedDB),
 	)
 
@@ -507,6 +520,7 @@ func TestIntegration_ConfigurableProperties(t *testing.T) {
 	catalogModelTypeID := getCatalogModelTypeIDForTest(t, sharedDB)
 	metricsArtifactTypeID := getCatalogMetricsArtifactTypeIDForTest(t, sharedDB)
 	modelArtifactTypeID := getCatalogModelArtifactTypeIDForTest(t, sharedDB)
+	catalogSourceTypeID := getCatalogSourceTypeIDForTest(t, sharedDB)
 
 	// Create repositories
 	catalogModelRepo := service.NewCatalogModelRepository(sharedDB, catalogModelTypeID)
@@ -516,12 +530,14 @@ func TestIntegration_ConfigurableProperties(t *testing.T) {
 	})
 	modelArtifactRepo := service.NewCatalogModelArtifactRepository(sharedDB, modelArtifactTypeID)
 	metricsArtifactRepo := service.NewCatalogMetricsArtifactRepository(sharedDB, metricsArtifactTypeID)
+	catalogSourceRepo := service.NewCatalogSourceRepository(sharedDB, catalogSourceTypeID)
 
 	services := service.NewServices(
 		catalogModelRepo,
 		catalogArtifactRepo,
 		modelArtifactRepo,
 		metricsArtifactRepo,
+		catalogSourceRepo,
 		service.NewPropertyOptionsRepository(sharedDB),
 	)
 

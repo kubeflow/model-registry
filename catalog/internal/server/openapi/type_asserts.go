@@ -354,6 +354,16 @@ func AssertCatalogSourceRequired(obj model.CatalogSource) error {
 	return nil
 }
 
+// AssertCatalogSourceStatusConstraints checks if the values respects the defined constraints
+func AssertCatalogSourceStatusConstraints(obj model.CatalogSourceStatus) error {
+	return nil
+}
+
+// AssertCatalogSourceStatusRequired checks if the required fields are not zero-ed
+func AssertCatalogSourceStatusRequired(obj model.CatalogSourceStatus) error {
+	return nil
+}
+
 // AssertErrorConstraints checks if the values respects the defined constraints
 func AssertErrorConstraints(obj model.Error) error {
 	return nil

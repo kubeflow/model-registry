@@ -33,6 +33,7 @@ func TestDBCatalog(t *testing.T) {
 	catalogModelTypeID := getCatalogModelTypeIDForDBTest(t, sharedDB)
 	modelArtifactTypeID := getCatalogModelArtifactTypeIDForDBTest(t, sharedDB)
 	metricsArtifactTypeID := getCatalogMetricsArtifactTypeIDForDBTest(t, sharedDB)
+	catalogSourceTypeID := getCatalogSourceTypeIDForDBTest(t, sharedDB)
 
 	// Create repositories
 	catalogModelRepo := service.NewCatalogModelRepository(sharedDB, catalogModelTypeID)
@@ -42,12 +43,14 @@ func TestDBCatalog(t *testing.T) {
 	})
 	modelArtifactRepo := service.NewCatalogModelArtifactRepository(sharedDB, modelArtifactTypeID)
 	metricsArtifactRepo := service.NewCatalogMetricsArtifactRepository(sharedDB, metricsArtifactTypeID)
+	catalogSourceRepo := service.NewCatalogSourceRepository(sharedDB, catalogSourceTypeID)
 
 	svcs := service.NewServices(
 		catalogModelRepo,
 		catalogArtifactRepo,
 		modelArtifactRepo,
 		metricsArtifactRepo,
+		catalogSourceRepo,
 		service.NewPropertyOptionsRepository(sharedDB),
 	)
 
@@ -1415,6 +1418,7 @@ func TestDBCatalog_GetPerformanceArtifactsWithService(t *testing.T) {
 	catalogModelTypeID := getCatalogModelTypeIDForDBTest(t, sharedDB)
 	modelArtifactTypeID := getCatalogModelArtifactTypeIDForDBTest(t, sharedDB)
 	metricsArtifactTypeID := getCatalogMetricsArtifactTypeIDForDBTest(t, sharedDB)
+	catalogSourceTypeID := getCatalogSourceTypeIDForDBTest(t, sharedDB)
 
 	// Create repositories
 	catalogModelRepo := service.NewCatalogModelRepository(sharedDB, catalogModelTypeID)
@@ -1424,12 +1428,14 @@ func TestDBCatalog_GetPerformanceArtifactsWithService(t *testing.T) {
 	})
 	modelArtifactRepo := service.NewCatalogModelArtifactRepository(sharedDB, modelArtifactTypeID)
 	metricsArtifactRepo := service.NewCatalogMetricsArtifactRepository(sharedDB, metricsArtifactTypeID)
+	catalogSourceRepo := service.NewCatalogSourceRepository(sharedDB, catalogSourceTypeID)
 
 	services := service.NewServices(
 		catalogModelRepo,
 		catalogArtifactRepo,
 		modelArtifactRepo,
 		metricsArtifactRepo,
+		catalogSourceRepo,
 		service.NewPropertyOptionsRepository(sharedDB),
 	)
 
@@ -1568,6 +1574,15 @@ func getCatalogMetricsArtifactTypeIDForDBTest(t *testing.T, db *gorm.DB) int32 {
 	err := db.Where("name = ?", service.CatalogMetricsArtifactTypeName).First(&typeRecord).Error
 	if err != nil {
 		require.NoError(t, err, "Failed to query CatalogMetricsArtifact type")
+	}
+	return typeRecord.ID
+}
+
+func getCatalogSourceTypeIDForDBTest(t *testing.T, db *gorm.DB) int32 {
+	var typeRecord schema.Type
+	err := db.Where("name = ?", service.CatalogSourceTypeName).First(&typeRecord).Error
+	if err != nil {
+		require.NoError(t, err, "Failed to query CatalogSource type")
 	}
 	return typeRecord.ID
 }

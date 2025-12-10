@@ -13,6 +13,7 @@ import (
 	"strings"
 
 	"github.com/kubeflow/model-registry/catalog/internal/catalog"
+	"github.com/kubeflow/model-registry/catalog/internal/db/models"
 	model "github.com/kubeflow/model-registry/catalog/pkg/openapi"
 	"github.com/kubeflow/model-registry/pkg/api"
 )
@@ -21,9 +22,10 @@ import (
 // This service should implement the business logic for every endpoint for the ModelCatalogServiceAPI s.coreApi.
 // Include any external packages or services that will be required by this service.
 type ModelCatalogServiceAPIService struct {
-	provider catalog.APIProvider
-	sources  *catalog.SourceCollection
-	labels   *catalog.LabelCollection
+	provider         catalog.APIProvider
+	sources          *catalog.SourceCollection
+	labels           *catalog.LabelCollection
+	sourceRepository models.CatalogSourceRepository
 }
 
 // GetAllModelArtifacts retrieves all model artifacts for a given model from the specified source.
@@ -283,6 +285,17 @@ func (m *ModelCatalogServiceAPIService) FindSources(ctx context.Context, name st
 		return ErrorResponse(http.StatusInternalServerError, err), err
 	}
 
+	// Fetch status from database
+	var statuses map[string]models.SourceStatus
+	if m.sourceRepository != nil {
+		var err error
+		statuses, err = m.sourceRepository.GetAllStatuses()
+		if err != nil {
+			// Log error but continue - status is optional
+			statuses = nil
+		}
+	}
+
 	paginator, err := newPaginator[model.CatalogSource](strPageSize, orderBy, sortOrder, nextPageToken)
 	if err != nil {
 		return ErrorResponse(http.StatusBadRequest, err), err
@@ -295,6 +308,21 @@ func (m *ModelCatalogServiceAPIService) FindSources(ctx context.Context, name st
 	for _, v := range sources {
 		if !strings.Contains(strings.ToLower(v.Name), name) {
 			continue
+		}
+
+		// Merge status from database if available
+		if statuses != nil {
+			if status, ok := statuses[v.Id]; ok {
+				if status.Status != "" {
+					statusEnum := model.CatalogSourceStatus(status.Status)
+					v.Status = &statusEnum
+				}
+				if status.Error != "" {
+					v.Error = *model.NewNullableString(&status.Error)
+				} else {
+					v.Error = *model.NewNullableString(nil)
+				}
+			}
 		}
 
 		items = append(items, v)
@@ -533,11 +561,12 @@ func genLabelCmpFunc(orderByKey string, sortOrder model.SortOrder) func(sortable
 var _ ModelCatalogServiceAPIServicer = &ModelCatalogServiceAPIService{}
 
 // NewModelCatalogServiceAPIService creates a default api service
-func NewModelCatalogServiceAPIService(provider catalog.APIProvider, sources *catalog.SourceCollection, labels *catalog.LabelCollection) ModelCatalogServiceAPIServicer {
+func NewModelCatalogServiceAPIService(provider catalog.APIProvider, sources *catalog.SourceCollection, labels *catalog.LabelCollection, sourceRepository models.CatalogSourceRepository) ModelCatalogServiceAPIServicer {
 	return &ModelCatalogServiceAPIService{
-		provider: provider,
-		sources:  sources,
-		labels:   labels,
+		provider:         provider,
+		sources:          sources,
+		labels:           labels,
+		sourceRepository: sourceRepository,
 	}
 }
 

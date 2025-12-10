@@ -17,6 +17,13 @@ import (
 	"k8s.io/apimachinery/pkg/util/yaml"
 )
 
+// Source status constants matching the OpenAPI enum values
+const (
+	SourceStatusAvailable = "available"
+	SourceStatusError     = "error"
+	SourceStatusDisabled  = "disabled"
+)
+
 // ModelProviderRecord contains one model and its associated artifacts.
 type ModelProviderRecord struct {
 	Model     dbmodels.CatalogModel
@@ -370,6 +377,8 @@ func (l *Loader) readProviderRecords(ctx context.Context) <-chan ModelProviderRe
 		// Skip disabled sources - only load catalog data from enabled sources
 		// Per OpenAPI spec, enabled defaults to true, so nil is treated as enabled
 		if source.Enabled != nil && !*source.Enabled {
+			// Persist disabled status
+			l.saveSourceStatus(source.Id, SourceStatusDisabled, "")
 			continue
 		}
 
@@ -380,6 +389,7 @@ func (l *Loader) readProviderRecords(ctx context.Context) <-chan ModelProviderRe
 
 		if source.Type == "" {
 			glog.Errorf("source %s has no type defined, skipping", source.Id)
+			l.saveSourceStatus(source.Id, SourceStatusError, "source has no type defined")
 			continue
 		}
 
@@ -391,6 +401,7 @@ func (l *Loader) readProviderRecords(ctx context.Context) <-chan ModelProviderRe
 		registerFunc, ok := registeredModelProviders[source.Type]
 		if !ok {
 			glog.Errorf("catalog type %s not registered", source.Type)
+			l.saveSourceStatus(source.Id, SourceStatusError, fmt.Sprintf("catalog type %q not registered", source.Type))
 			continue
 		}
 
@@ -402,6 +413,7 @@ func (l *Loader) readProviderRecords(ctx context.Context) <-chan ModelProviderRe
 		records, err := registerFunc(ctx, &source, sourceDir)
 		if err != nil {
 			glog.Errorf("error reading catalog type %s with id %s: %v", source.Type, source.Id, err)
+			l.saveSourceStatus(source.Id, SourceStatusError, err.Error())
 			continue
 		}
 
@@ -410,6 +422,7 @@ func (l *Loader) readProviderRecords(ctx context.Context) <-chan ModelProviderRe
 			defer wg.Done()
 
 			modelNames := []string{}
+			var lastError error
 
 			for r := range records {
 				if r.Model == nil {
@@ -425,6 +438,13 @@ func (l *Loader) readProviderRecords(ctx context.Context) <-chan ModelProviderRe
 							glog.Errorf("error removing orphaned models: %v", err)
 						}
 					}()
+
+					// Source finished loading - save status based on whether errors occurred
+					if lastError != nil {
+						l.saveSourceStatus(source.Id, SourceStatusError, lastError.Error())
+					} else {
+						l.saveSourceStatus(source.Id, SourceStatusAvailable, "")
+					}
 					continue
 				}
 
@@ -436,6 +456,12 @@ func (l *Loader) readProviderRecords(ctx context.Context) <-chan ModelProviderRe
 				l.setModelSourceID(r.Model, source.Id)
 
 				ch <- r
+			}
+
+			// If the channel closed without a nil Model marker, the source completed
+			// Save available status if no errors occurred
+			if lastError == nil && len(modelNames) > 0 {
+				l.saveSourceStatus(source.Id, SourceStatusAvailable, "")
 			}
 		}()
 	}
@@ -481,7 +507,9 @@ func (l *Loader) setModelSourceID(model dbmodels.CatalogModel, sourceID string) 
 
 func (l *Loader) removeModelsFromMissingSources() error {
 	enabledSourceIDs := mapset.NewSet[string]()
+	allSourceIDs := mapset.NewSet[string]()
 	for id, source := range l.Sources.AllSources() {
+		allSourceIDs.Add(id)
 		if source.Enabled == nil || *source.Enabled {
 			enabledSourceIDs.Add(id)
 		}
@@ -498,6 +526,14 @@ func (l *Loader) removeModelsFromMissingSources() error {
 		err = l.services.CatalogModelRepository.DeleteBySource(oldSource)
 		if err != nil {
 			return fmt.Errorf("unable to remove models from source %q: %w", oldSource, err)
+		}
+
+		// If the source is completely gone from config (not just disabled), remove its status too
+		if !allSourceIDs.Contains(oldSource) {
+			glog.Infof("Removing status for source %s (no longer in config)", oldSource)
+			if delErr := l.services.CatalogSourceRepository.Delete(oldSource); delErr != nil {
+				glog.Errorf("failed to delete status for source %s: %v", oldSource, delErr)
+			}
 		}
 	}
 
@@ -531,4 +567,29 @@ func (l *Loader) removeOrphanedModelsFromSource(sourceID string, valid mapset.Se
 	}
 
 	return nil
+}
+
+// saveSourceStatus persists the operational status of a source to the database.
+// This allows status to be consistent across multiple pods.
+func (l *Loader) saveSourceStatus(sourceID, status string, errorMsg string) {
+	source := &dbmodels.CatalogSourceImpl{
+		Attributes: &dbmodels.CatalogSourceAttributes{
+			Name: &sourceID,
+		},
+	}
+
+	// Set status property
+	props := []mrmodels.Properties{
+		mrmodels.NewStringProperty("status", status, false),
+	}
+
+	// Set error property (empty string if no error)
+	props = append(props, mrmodels.NewStringProperty("error", errorMsg, false))
+
+	source.Properties = &props
+
+	_, err := l.services.CatalogSourceRepository.Save(source)
+	if err != nil {
+		glog.Errorf("failed to save status for source %s: %v", sourceID, err)
+	}
 }

@@ -103,6 +103,7 @@ func TestRemoveModelsFromMissingSources(t *testing.T) {
 				&MockCatalogArtifactRepository{},
 				&MockCatalogModelArtifactRepository{},
 				&MockCatalogMetricsArtifactRepository{},
+				&MockCatalogSourceRepository{},
 				&MockPropertyOptionsRepository{},
 			)
 

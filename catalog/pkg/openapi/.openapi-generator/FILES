@@ -18,6 +18,7 @@ model_catalog_source.go
 model_catalog_source_list.go
 model_catalog_source_preview_response.go
 model_catalog_source_preview_response_all_of_summary.go
+model_catalog_source_status.go
 model_error.go
 model_field_filter.go
 model_filter_option.go
