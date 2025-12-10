@@ -10,7 +10,7 @@ const ComponentLabelValueCatalog = "model-catalog"
 
 // TODO ppadti double check if the config map key is indeed sources.yaml
 const CatalogSourceKey = "sources.yaml"
-const CatalogSourceDefaultConfigMapName = "model-catalog-source-config"
+const CatalogSourceDefaultConfigMapName = "model-catalog-default-sources"
 const CatalogSourceUserConfigMapName = "model-catalog-sources"
 
 type KubernetesClientInterface interface {
