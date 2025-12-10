@@ -105,7 +105,14 @@ const CatalogCategorySection: React.FC<CategorySectionProps> = ({
         ) : (
           <Grid hasGutter>
             {itemsToDisplay.map((model) => (
-              <GridItem key={`${model.name}/${model.source_id}`} sm={6} md={6} lg={6} xl={6} xl2={3}>
+              <GridItem
+                key={`${model.name}/${model.source_id}`}
+                sm={6}
+                md={6}
+                lg={6}
+                xl={6}
+                xl2={3}
+              >
                 <ModelCatalogCard
                   model={model}
                   source={getSourceFromSourceId(model.source_id || '', catalogSources)}
