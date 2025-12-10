@@ -85,7 +85,7 @@ const CatalogCategorySection: React.FC<CategorySectionProps> = ({
         ) : !catalogModelsLoaded ? (
           <Grid hasGutter>
             {Array.from({ length: 4 }).map((_, index) => (
-              <GridItem key={index} sm={6} lg={6} xl={3}>
+              <GridItem key={index} sm={6} md={6} lg={6} xl={6} xl2={3}>
                 <Skeleton
                   height="280px"
                   width="100%"
@@ -105,7 +105,7 @@ const CatalogCategorySection: React.FC<CategorySectionProps> = ({
         ) : (
           <Grid hasGutter>
             {itemsToDisplay.map((model) => (
-              <GridItem key={`${model.name}/${model.source_id}`} sm={6} lg={6} xl={3}>
+              <GridItem key={`${model.name}/${model.source_id}`} sm={6} md={6} lg={6} xl={6} xl2={3}>
                 <ModelCatalogCard
                   model={model}
                   source={getSourceFromSourceId(model.source_id || '', catalogSources)}
