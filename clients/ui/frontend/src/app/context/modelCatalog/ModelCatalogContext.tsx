@@ -19,7 +19,6 @@ import {
   ModelCatalogStringFilterKey,
   ModelCatalogNumberFilterKey,
 } from '~/concepts/modelCatalog/const';
-import { isModelDetailsPage } from '~/app/pages/modelCatalog/utils/modelCatalogUtils';
 
 export type ModelCatalogContextType = {
   catalogSourcesLoaded: boolean;
@@ -89,7 +88,7 @@ export const ModelCatalogContextProvider: React.FC<ModelCatalogContextProviderPr
     useCatalogSources(apiState);
   const [selectedSource, setSelectedSource] =
     React.useState<ModelCatalogContextType['selectedSource']>(undefined);
-  const [filterData, setFilterData] = useGenericObjectState<ModelCatalogFilterStates>({
+  const [filterData, baseSetFilterData] = useGenericObjectState<ModelCatalogFilterStates>({
     [ModelCatalogStringFilterKey.TASK]: [],
     [ModelCatalogStringFilterKey.PROVIDER]: [],
     [ModelCatalogStringFilterKey.LICENSE]: [],
@@ -103,26 +102,31 @@ export const ModelCatalogContextProvider: React.FC<ModelCatalogContextProviderPr
   const [selectedSourceLabel, setSelectedSourceLabel] = React.useState<
     ModelCatalogContextType['selectedSourceLabel']
   >(CategoryName.allModels);
-  const [performanceViewEnabled, setPerformanceViewEnabled] = React.useState(false);
+  const [basePerformanceViewEnabled, setBasePerformanceViewEnabled] = React.useState(false);
   const [performanceFiltersChangedOnDetailsPage, setPerformanceFiltersChangedOnDetailsPage] =
     React.useState(false);
 
   const location = useLocation();
-  const prevLocationRef = React.useRef(location.pathname);
+  const isOnDetailsPage = location.pathname.includes('performance-insights');
 
-  React.useEffect(() => {
-    const prevPath = prevLocationRef.current;
-    const currentPath = location.pathname;
-
-    const wasOnDetailsPath = isModelDetailsPage(prevPath);
-    const isNowOnDetailsPath = isModelDetailsPage(currentPath);
-
-    if (!wasOnDetailsPath && isNowOnDetailsPath) {
+  const setPerformanceViewEnabled = React.useCallback((enabled: boolean) => {
+    setBasePerformanceViewEnabled(enabled);
+    if (!enabled) {
       setPerformanceFiltersChangedOnDetailsPage(false);
     }
+  }, []);
 
-    prevLocationRef.current = currentPath;
-  }, [location.pathname]);
+  const setFilterData = React.useCallback(
+    <K extends keyof ModelCatalogFilterStates>(key: K, value: ModelCatalogFilterStates[K]) => {
+      baseSetFilterData(key, value);
+      if (isOnDetailsPage) {
+        setPerformanceFiltersChangedOnDetailsPage(true);
+      } else {
+        setPerformanceFiltersChangedOnDetailsPage(false);
+      }
+    },
+    [baseSetFilterData, isOnDetailsPage],
+  );
 
   const contextValue = React.useMemo(
     () => ({
@@ -140,7 +144,7 @@ export const ModelCatalogContextProvider: React.FC<ModelCatalogContextProviderPr
       filterOptions,
       filterOptionsLoaded,
       filterOptionsLoadError,
-      performanceViewEnabled,
+      performanceViewEnabled: basePerformanceViewEnabled,
       setPerformanceViewEnabled,
       performanceFiltersChangedOnDetailsPage,
       setPerformanceFiltersChangedOnDetailsPage,
@@ -158,8 +162,10 @@ export const ModelCatalogContextProvider: React.FC<ModelCatalogContextProviderPr
       filterOptionsLoaded,
       filterOptionsLoadError,
       selectedSourceLabel,
-      performanceViewEnabled,
+      basePerformanceViewEnabled,
+      setPerformanceViewEnabled,
       performanceFiltersChangedOnDetailsPage,
+      setPerformanceFiltersChangedOnDetailsPage,
     ],
   );
 

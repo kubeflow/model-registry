@@ -7,6 +7,8 @@ import {
   Switch,
   Content,
   ContentVariants,
+  Card,
+  CardBody,
 } from '@patternfly/react-core';
 import { ModelCatalogContext } from '~/app/context/modelCatalog/ModelCatalogContext';
 import { ModelCatalogStringFilterKey } from '~/concepts/modelCatalog/const';
@@ -37,23 +39,27 @@ const ModelCatalogFilters: React.FC = () => {
   return (
     <Stack hasGutter>
       <StackItem>
-        <Stack hasGutter>
-          <StackItem>
-            <Switch
-              id="model-performance-view-toggle"
-              label="Model performance view"
-              isChecked={performanceViewEnabled}
-              onChange={(_event, checked) => setPerformanceViewEnabled(checked)}
-              data-testid="model-performance-view-toggle"
-            />
-          </StackItem>
-          <StackItem>
-            <Content component={ContentVariants.small}>
-              Enable performance filters, display model benchmark data, and exclude unvalidated
-              models.
-            </Content>
-          </StackItem>
-        </Stack>
+        <Card>
+          <CardBody>
+            <Stack hasGutter>
+              <StackItem>
+                <Switch
+                  id="model-performance-view-toggle"
+                  label="Model performance view"
+                  isChecked={performanceViewEnabled}
+                  onChange={(_event, checked) => setPerformanceViewEnabled(checked)}
+                  data-testid="model-performance-view-toggle"
+                />
+              </StackItem>
+              <StackItem>
+                <Content component={ContentVariants.small}>
+                  Enable performance filters, display model benchmark data, and exclude unvalidated
+                  models.
+                </Content>
+              </StackItem>
+            </Stack>
+          </CardBody>
+        </Card>
       </StackItem>
       <TaskFilter
         filters={filters && ModelCatalogStringFilterKey.TASK in filters ? filters : undefined}

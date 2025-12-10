@@ -20,75 +20,6 @@ import {
 } from '~/concepts/modelCatalog/const';
 
 /**
- * Performs a deep equality check between two values.
- * Handles primitives, arrays, and plain objects.
- * Note: This is a simple implementation. For complex objects with circular references,
- * consider using a library like lodash.isEqual.
- */
-export const deepEqual = <T>(a: T, b: T): boolean => {
-  if (Object.is(a, b)) {
-    return true;
-  }
-
-  if (a == null || b == null) {
-    return false;
-  }
-
-  if (typeof a !== 'object' || typeof b !== 'object') {
-    return false;
-  }
-
-  // Handle Date objects
-  if (a instanceof Date && b instanceof Date) {
-    return a.getTime() === b.getTime();
-  }
-
-  if (a instanceof Date || b instanceof Date) {
-    return false;
-  }
-
-  // Handle RegExp objects
-  if (a instanceof RegExp && b instanceof RegExp) {
-    return a.toString() === b.toString();
-  }
-
-  if (a instanceof RegExp || b instanceof RegExp) {
-    return false;
-  }
-
-  if (Array.isArray(a) !== Array.isArray(b)) {
-    return false;
-  }
-
-  try {
-    const entriesA = Object.entries(a);
-    const entriesB = Object.entries(b);
-
-    if (entriesA.length !== entriesB.length) {
-      return false;
-    }
-
-    // Create a map from b's entries for O(1) lookup
-    const bMap = new Map(entriesB);
-
-    for (const [key, valueA] of entriesA) {
-      if (!bMap.has(key)) {
-        return false;
-      }
-      const valueB = bMap.get(key);
-      if (!deepEqual(valueA, valueB)) {
-        return false;
-      }
-    }
-
-    return true;
-  } catch {
-    // If we can't compare (e.g., circular references), fall back to false
-    return false;
-  }
-};
-
-/**
  * Checks if the given pathname corresponds to a model details page.
  * Details page pattern: /model-catalog/:sourceId/:modelName or /model-catalog/:modelName
  */
@@ -375,33 +306,3 @@ export const hasFiltersApplied = (filterData: ModelCatalogFilterStates): boolean
     }
     return value !== undefined;
   });
-
-/**
- * Checks if any performance filters are applied
- * Performance filters include: USE_CASE, MIN_RPS, HARDWARE_TYPE, and latency metric filters
- */
-export const hasPerformanceFiltersApplied = (filterData: ModelCatalogFilterStates): boolean => {
-  // Check USE_CASE filter
-  if (filterData[ModelCatalogStringFilterKey.USE_CASE].length > 0) {
-    return true;
-  }
-
-  // Check MIN_RPS filter
-  if (filterData[ModelCatalogNumberFilterKey.MIN_RPS] !== undefined) {
-    return true;
-  }
-
-  // Check HARDWARE_TYPE filter
-  if (filterData[ModelCatalogStringFilterKey.HARDWARE_TYPE].length > 0) {
-    return true;
-  }
-
-  // Check latency metric filters (any field that matches latency pattern)
-  const latencyFieldPattern = /^(ttft|tbt|e2e)_(mean|p50|p90|p95|p99)$/;
-  return Object.entries(filterData).some(([key, value]) => {
-    if (latencyFieldPattern.test(key)) {
-      return value !== undefined && typeof value === 'number';
-    }
-    return false;
-  });
-};
