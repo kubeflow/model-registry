@@ -206,6 +206,11 @@ func (l *Loader) reloadAll(ctx context.Context) {
 		}
 	}
 
+	// Clean up models and sources that are no longer in config
+	if err := l.removeModelsFromMissingSources(); err != nil {
+		glog.Errorf("unable to remove models from missing sources: %v", err)
+	}
+
 	// Reload all models
 	if err := l.loadAllModels(ctx); err != nil {
 		glog.Errorf("unable to reload models: %v", err)
@@ -533,6 +538,37 @@ func (l *Loader) removeModelsFromMissingSources() error {
 			glog.Infof("Removing status for source %s (no longer in config)", oldSource)
 			if delErr := l.services.CatalogSourceRepository.Delete(oldSource); delErr != nil {
 				glog.Errorf("failed to delete status for source %s: %v", oldSource, delErr)
+			}
+		}
+	}
+
+	// Also clean up CatalogSource records for sources that are no longer in config
+	// This handles sources that never loaded models (e.g., error sources, disabled sources)
+	if err := l.cleanupOrphanedCatalogSources(allSourceIDs); err != nil {
+		glog.Errorf("failed to cleanup orphaned catalog sources: %v", err)
+	}
+
+	return nil
+}
+
+// cleanupOrphanedCatalogSources removes CatalogSource records for sources that are no longer in the config.
+func (l *Loader) cleanupOrphanedCatalogSources(currentSourceIDs mapset.Set[string]) error {
+	existingSources, err := l.services.CatalogSourceRepository.GetAll()
+	if err != nil {
+		return fmt.Errorf("unable to get existing catalog sources: %w", err)
+	}
+
+	for _, source := range existingSources {
+		attrs := source.GetAttributes()
+		if attrs == nil || attrs.Name == nil {
+			continue
+		}
+
+		sourceID := *attrs.Name
+		if !currentSourceIDs.Contains(sourceID) {
+			glog.Infof("Removing orphaned catalog source %s (no longer in config)", sourceID)
+			if delErr := l.services.CatalogSourceRepository.Delete(sourceID); delErr != nil {
+				glog.Errorf("failed to delete orphaned catalog source %s: %v", sourceID, delErr)
 			}
 		}
 	}
