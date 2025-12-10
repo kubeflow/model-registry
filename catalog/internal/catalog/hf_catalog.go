@@ -174,6 +174,7 @@ func (hfm *hfModel) populateFromHFInfo(ctx context.Context, provider *hfModelPro
 				if hfm.License == nil {
 					license := strings.TrimPrefix(tag, "license:")
 					if license != "" {
+						license = transformLicenseToHumanReadable(license)
 						hfm.License = &license
 					}
 				}
@@ -512,7 +513,8 @@ func convertHFModelProperties(catalogModel *apimodels.CatalogModel) ([]models.Pr
 		properties = append(properties, models.NewStringProperty("provider", *catalogModel.Provider, false))
 	}
 	if catalogModel.License != nil {
-		properties = append(properties, models.NewStringProperty("license", *catalogModel.License, false))
+		humanReadableLicense := transformLicenseToHumanReadable(*catalogModel.License)
+		properties = append(properties, models.NewStringProperty("license", humanReadableLicense, false))
 	}
 	if catalogModel.LicenseLink != nil {
 		properties = append(properties, models.NewStringProperty("license_link", *catalogModel.LicenseLink, false))
