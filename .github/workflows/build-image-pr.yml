@@ -25,7 +25,7 @@ jobs:
   build-and-test-image:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6.0.0
+      - uses: actions/checkout@v6.0.1
       - name: Generate Tag
         shell: bash
         id: tags
