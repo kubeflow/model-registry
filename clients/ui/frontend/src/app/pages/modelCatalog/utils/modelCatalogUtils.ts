@@ -19,17 +19,6 @@ import {
   ModelCatalogNumberFilterKey,
 } from '~/concepts/modelCatalog/const';
 
-/**
- * Checks if the given pathname corresponds to a model details page.
- * Details page pattern: /model-catalog/:sourceId/:modelName or /model-catalog/:modelName
- */
-export const isModelDetailsPage = (pathname: string | null | undefined): boolean => {
-  if (!pathname || typeof pathname !== 'string') {
-    return false;
-  }
-  return !!pathname.match(/\/model-catalog\/[^/]+\/[^/]+/);
-};
-
 export const extractVersionTag = (tags?: string[]): string | undefined =>
   tags?.find((tag) => /^\d+\.\d+\.\d+$/.test(tag));
 export const filterNonVersionTags = (tags?: string[]): string[] | undefined => {

@@ -14,6 +14,7 @@ import {
   CategoryName,
   ModelCatalogFilterStates,
 } from '~/app/modelCatalogTypes';
+import { ModelDetailsTab } from '~/app/pages/modelCatalog/screens/ModelDetailsTabs';
 import { BFF_API_VERSION, URL_PREFIX } from '~/app/utilities/const';
 import {
   ModelCatalogStringFilterKey,
@@ -107,7 +108,7 @@ export const ModelCatalogContextProvider: React.FC<ModelCatalogContextProviderPr
     React.useState(false);
 
   const location = useLocation();
-  const isOnDetailsPage = location.pathname.includes('performance-insights');
+  const isOnDetailsPage = location.pathname.includes(ModelDetailsTab.PERFORMANCE_INSIGHTS);
 
   const setPerformanceViewEnabled = React.useCallback((enabled: boolean) => {
     setBasePerformanceViewEnabled(enabled);
