@@ -149,10 +149,11 @@ const ModelCatalogSourceLabelSelector: React.FC<ModelCatalogSourceLabelSelectorP
         <ModelCatalogSourceLabelBlocks />
       </StackItem>
       {shouldShowAlert && (
-        <StackItem style={{ paddingBottom: 'var(--pf-v6-global--spacer--lg)' }}>
+        <StackItem>
           <Alert
             variant="info"
             isInline
+            className="pf-v6-u-mb-lg"
             title="The results list has been updated to match the latest performance criteria set on the details page."
             actionClose={
               <AlertActionCloseButton
