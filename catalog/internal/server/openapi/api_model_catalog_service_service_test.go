@@ -302,7 +302,7 @@ func TestFindModels(t *testing.T) {
 				models: tc.mockModels,
 			}
 
-			service := NewModelCatalogServiceAPIService(provider, sources, sourceLabels)
+			service := NewModelCatalogServiceAPIService(provider, sources, sourceLabels, nil)
 
 			resp, err := service.FindModels(
 				context.Background(),
@@ -739,7 +739,7 @@ func TestFindSources(t *testing.T) {
 			sources := catalog.NewSourceCollection()
 			sources.Merge("", tc.catalogs)
 			sourceLabels := catalog.NewLabelCollection()
-			service := NewModelCatalogServiceAPIService(&mockModelProvider{}, sources, sourceLabels)
+			service := NewModelCatalogServiceAPIService(&mockModelProvider{}, sources, sourceLabels, nil)
 
 			// Call FindSources
 			resp, err := service.FindSources(
@@ -1034,7 +1034,7 @@ func TestFindLabels(t *testing.T) {
 			labelCollection := catalog.NewLabelCollection()
 			labelCollection.Merge("test-source", tc.labels)
 
-			service := NewModelCatalogServiceAPIService(&mockModelProvider{}, sources, labelCollection)
+			service := NewModelCatalogServiceAPIService(&mockModelProvider{}, sources, labelCollection, nil)
 
 			// Call FindLabels
 			resp, err := service.FindLabels(
@@ -1361,7 +1361,7 @@ func TestGetModel(t *testing.T) {
 			sources := catalog.NewSourceCollection()
 			sources.Merge("", tc.sources)
 			sourceLabels := catalog.NewLabelCollection()
-			service := NewModelCatalogServiceAPIService(tc.provider, sources, sourceLabels)
+			service := NewModelCatalogServiceAPIService(tc.provider, sources, sourceLabels, nil)
 
 			// Call GetModel
 			resp, _ := service.GetModel(
@@ -1472,7 +1472,7 @@ func TestGetAllModelArtifacts(t *testing.T) {
 			sources := catalog.NewSourceCollection()
 			sources.Merge("", tc.sources)
 			sourceLabels := catalog.NewLabelCollection()
-			service := NewModelCatalogServiceAPIService(tc.provider, sources, sourceLabels)
+			service := NewModelCatalogServiceAPIService(tc.provider, sources, sourceLabels, nil)
 
 			// Call GetAllModelArtifacts
 			resp, _ := service.GetAllModelArtifacts(
@@ -1531,7 +1531,7 @@ func TestFindModelsFilterOptions(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			sources := catalog.NewSourceCollection()
 			sourceLabels := catalog.NewLabelCollection()
-			service := NewModelCatalogServiceAPIService(tc.provider, sources, sourceLabels)
+			service := NewModelCatalogServiceAPIService(tc.provider, sources, sourceLabels, nil)
 
 			resp, err := service.FindModelsFilterOptions(context.Background())
 
@@ -1691,7 +1691,7 @@ func TestGetAllModelPerformanceArtifacts(t *testing.T) {
 			})
 			sourceLabels := catalog.NewLabelCollection()
 
-			service := NewModelCatalogServiceAPIService(tc.provider, sources, sourceLabels)
+			service := NewModelCatalogServiceAPIService(tc.provider, sources, sourceLabels, nil)
 
 			resp, err := service.GetAllModelPerformanceArtifacts(
 				context.Background(),
@@ -1822,7 +1822,7 @@ func TestGetAllModelPerformanceArtifactsWithConfigurableProperties(t *testing.T)
 			})
 			sourceLabels := catalog.NewLabelCollection()
 
-			service := NewModelCatalogServiceAPIService(tc.provider, sources, sourceLabels)
+			service := NewModelCatalogServiceAPIService(tc.provider, sources, sourceLabels, nil)
 
 			resp, err := service.GetAllModelPerformanceArtifacts(
 				context.Background(),

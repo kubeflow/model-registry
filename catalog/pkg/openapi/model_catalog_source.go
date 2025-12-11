@@ -26,7 +26,10 @@ type CatalogSource struct {
 	// Whether the catalog source is enabled.
 	Enabled *bool `json:"enabled,omitempty"`
 	// Labels for the catalog source.
-	Labels []string `json:"labels"`
+	Labels []string             `json:"labels"`
+	Status *CatalogSourceStatus `json:"status,omitempty"`
+	// Detailed error information when the status is \"Error\". This field is null or empty when the source is functioning normally.
+	Error NullableString `json:"error,omitempty"`
 	// Optional list of glob patterns for models to include. If specified, only models matching at least one pattern will be included. If omitted, all models are considered for inclusion.  Pattern Syntax: - Only the `*` wildcard is supported (matches zero or more characters) - Patterns are case-insensitive (e.g., `Granite/_*` matches `granite/model` and `GRANITE/model`) - Patterns match the entire model name (anchored at start and end) - Wildcards can appear anywhere: `Granite/_*`, `*-beta`, `*deprecated*`, `*_/old*`  Examples: - `ibm-granite/_*` - matches all models starting with \"ibm-granite/\" - `meta-llama/_*` - matches all models in the meta-llama namespace - `*` - matches all models  Constraints: - Patterns cannot be empty or whitespace-only - A pattern cannot appear in both includedModels and excludedModels
 	IncludedModels []string `json:"includedModels,omitempty"`
 	// Optional list of glob patterns for models to exclude. Models matching any pattern will be excluded even if they match an includedModels pattern. Exclusions take precedence over inclusions.  Pattern Syntax: - Only the `*` wildcard is supported (matches zero or more characters) - Patterns are case-insensitive - Patterns match the entire model name (anchored at start and end) - Wildcards can appear anywhere in the pattern  Examples: - `*-draft` - excludes all models ending with \"-draft\" - `*-experimental` - excludes experimental models - `*deprecated*` - excludes models with \"deprecated\" anywhere in the name - `*_/beta-*` - excludes models with \"/beta-\" in the path  Constraints: - Patterns cannot be empty or whitespace-only - A pattern cannot appear in both includedModels and excludedModels
@@ -163,6 +166,81 @@ func (o *CatalogSource) SetLabels(v []string) {
 	o.Labels = v
 }
 
+// GetStatus returns the Status field value if set, zero value otherwise.
+func (o *CatalogSource) GetStatus() CatalogSourceStatus {
+	if o == nil || IsNil(o.Status) {
+		var ret CatalogSourceStatus
+		return ret
+	}
+	return *o.Status
+}
+
+// GetStatusOk returns a tuple with the Status field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+func (o *CatalogSource) GetStatusOk() (*CatalogSourceStatus, bool) {
+	if o == nil || IsNil(o.Status) {
+		return nil, false
+	}
+	return o.Status, true
+}
+
+// HasStatus returns a boolean if a field has been set.
+func (o *CatalogSource) HasStatus() bool {
+	if o != nil && !IsNil(o.Status) {
+		return true
+	}
+
+	return false
+}
+
+// SetStatus gets a reference to the given CatalogSourceStatus and assigns it to the Status field.
+func (o *CatalogSource) SetStatus(v CatalogSourceStatus) {
+	o.Status = &v
+}
+
+// GetError returns the Error field value if set, zero value otherwise (both if not set or set to explicit null).
+func (o *CatalogSource) GetError() string {
+	if o == nil || IsNil(o.Error.Get()) {
+		var ret string
+		return ret
+	}
+	return *o.Error.Get()
+}
+
+// GetErrorOk returns a tuple with the Error field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+// NOTE: If the value is an explicit nil, `nil, true` will be returned
+func (o *CatalogSource) GetErrorOk() (*string, bool) {
+	if o == nil {
+		return nil, false
+	}
+	return o.Error.Get(), o.Error.IsSet()
+}
+
+// HasError returns a boolean if a field has been set.
+func (o *CatalogSource) HasError() bool {
+	if o != nil && o.Error.IsSet() {
+		return true
+	}
+
+	return false
+}
+
+// SetError gets a reference to the given NullableString and assigns it to the Error field.
+func (o *CatalogSource) SetError(v string) {
+	o.Error.Set(&v)
+}
+
+// SetErrorNil sets the value for Error to be an explicit nil
+func (o *CatalogSource) SetErrorNil() {
+	o.Error.Set(nil)
+}
+
+// UnsetError ensures that no value is present for Error, not even an explicit nil
+func (o *CatalogSource) UnsetError() {
+	o.Error.Unset()
+}
+
 // GetIncludedModels returns the IncludedModels field value if set, zero value otherwise.
 func (o *CatalogSource) GetIncludedModels() []string {
 	if o == nil || IsNil(o.IncludedModels) {
@@ -243,6 +321,12 @@ func (o CatalogSource) ToMap() (map[string]interface{}, error) {
 		toSerialize["enabled"] = o.Enabled
 	}
 	toSerialize["labels"] = o.Labels
+	if !IsNil(o.Status) {
+		toSerialize["status"] = o.Status
+	}
+	if o.Error.IsSet() {
+		toSerialize["error"] = o.Error.Get()
+	}
 	if !IsNil(o.IncludedModels) {
 		toSerialize["includedModels"] = o.IncludedModels
 	}
