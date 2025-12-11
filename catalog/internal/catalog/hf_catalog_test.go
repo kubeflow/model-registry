@@ -60,7 +60,7 @@ func TestPopulateFromHFInfo(t *testing.T) {
 			originalModelName: "test-org/test-model",
 			expectedName:      "test-org/test-model",
 			expectedProvider:  stringPtr("test-author"),
-			expectedLicense:   stringPtr("mit"),
+			expectedLicense:   stringPtr("MIT"),
 			expectedLibrary:   stringPtr("transformers"),
 			hasTasks:          true,
 			hasCustomProps:    true,
@@ -96,7 +96,7 @@ func TestPopulateFromHFInfo(t *testing.T) {
 			sourceId:          "source-4",
 			originalModelName: "test/licensed-model",
 			expectedName:      "test/licensed-model",
-			expectedLicense:   stringPtr("apache-2.0"),
+			expectedLicense:   stringPtr("Apache 2.0"),
 			hasCustomProps:    true,
 		},
 		{
@@ -189,7 +189,7 @@ func TestPopulateFromHFInfo(t *testing.T) {
 			// Verify License
 			if tt.expectedLicense != nil {
 				if hfm.License == nil || *hfm.License != *tt.expectedLicense {
-					t.Errorf("License = %v, want %v", hfm.License, tt.expectedLicense)
+					t.Errorf("License = %v, want %v", *hfm.License, *tt.expectedLicense)
 				}
 			}
 
@@ -339,7 +339,7 @@ func TestConvertHFModelProperties(t *testing.T) {
 				Description: stringPtr("Test description"),
 				Readme:      stringPtr("# Test README"),
 				Provider:    stringPtr("test-provider"),
-				License:     stringPtr("mit"),
+				License:     stringPtr("MIT License"),
 				LibraryName: stringPtr("transformers"),
 				SourceId:    stringPtr("source-1"),
 				Tasks:       []string{"text-generation"},

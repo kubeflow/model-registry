@@ -136,7 +136,7 @@ func TestYamlModelToModelProviderRecord(t *testing.T) {
 				assert.False(t, regularPropMap["logo"].IsCustomProperty)
 
 				assert.Contains(t, regularPropMap, "license")
-				assert.Equal(t, "apache-2.0", *regularPropMap["license"].StringValue)
+				assert.Equal(t, "Apache 2.0", *regularPropMap["license"].StringValue)
 				assert.False(t, regularPropMap["license"].IsCustomProperty)
 
 				assert.Contains(t, regularPropMap, "license_link")
