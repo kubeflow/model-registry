@@ -978,6 +978,205 @@ func TestCatalogModelRepository(t *testing.T) {
 		assert.Contains(t, sourceIDs, testSourceID1)
 		assert.Contains(t, sourceIDs, testSourceID2)
 	})
+
+	t.Run("TestDeleteBySourceWithArtifactCleanup", func(t *testing.T) {
+		sourceID := "test-source-with-artifacts"
+
+		// Create a test model with source_id
+		model := &models.CatalogModelImpl{
+			Attributes: &models.CatalogModelAttributes{
+				Name: apiutils.Of("model-with-artifacts"),
+			},
+			Properties: &[]dbmodels.Properties{
+				{
+					Name:        "source_id",
+					StringValue: &sourceID,
+				},
+			},
+		}
+
+		savedModel, err := repo.Save(model)
+		require.NoError(t, err)
+		modelID := *savedModel.GetID()
+
+		// Create artifacts and link them to the model
+		artifactTypeID := getCatalogModelArtifactTypeID(t, sharedDB)
+		executionTypeID := getOrCreateExecutionTypeID(t, sharedDB)
+
+		// Create artifact 1 (will be orphaned - should be deleted)
+		orphanedArtifact := createTestArtifact(t, sharedDB, artifactTypeID, "orphaned-artifact")
+		createAttribution(t, sharedDB, modelID, orphanedArtifact.ID)
+
+		// Create artifact 2 (will have Event - should be preserved)
+		preservedArtifact := createTestArtifact(t, sharedDB, artifactTypeID, "preserved-artifact")
+		createAttribution(t, sharedDB, modelID, preservedArtifact.ID)
+
+		// Create an execution and event for artifact 2
+		execution := createTestExecution(t, sharedDB, executionTypeID, "test-execution")
+		createTestEvent(t, sharedDB, preservedArtifact.ID, execution.ID)
+
+		// Verify artifacts exist before deletion
+		var artifactCount int64
+		err = sharedDB.Model(&schema.Artifact{}).Where("id IN (?)", []int32{orphanedArtifact.ID, preservedArtifact.ID}).Count(&artifactCount).Error
+		require.NoError(t, err)
+		assert.Equal(t, int64(2), artifactCount, "Both artifacts should exist before deletion")
+
+		// Delete by source
+		err = repo.DeleteBySource(sourceID)
+		require.NoError(t, err)
+
+		// Verify model is deleted
+		_, err = repo.GetByID(modelID)
+		assert.Error(t, err)
+		assert.True(t, errors.Is(err, service.ErrCatalogModelNotFound))
+
+		// Verify orphaned artifact is deleted
+		var orphanedArtifactExists int64
+		err = sharedDB.Model(&schema.Artifact{}).Where("id = ?", orphanedArtifact.ID).Count(&orphanedArtifactExists).Error
+		require.NoError(t, err)
+		assert.Equal(t, int64(0), orphanedArtifactExists, "Orphaned artifact should be deleted")
+
+		// Verify artifact with Event is preserved
+		var preservedArtifactExists int64
+		err = sharedDB.Model(&schema.Artifact{}).Where("id = ?", preservedArtifact.ID).Count(&preservedArtifactExists).Error
+		require.NoError(t, err)
+		assert.Equal(t, int64(1), preservedArtifactExists, "Artifact with Event should be preserved")
+	})
+
+	t.Run("TestDeleteByIDWithArtifactCleanup", func(t *testing.T) {
+		// Create a test model
+		model := &models.CatalogModelImpl{
+			Attributes: &models.CatalogModelAttributes{
+				Name: apiutils.Of("model-for-id-deletion"),
+			},
+		}
+
+		savedModel, err := repo.Save(model)
+		require.NoError(t, err)
+		modelID := *savedModel.GetID()
+
+		// Create artifacts and link them to the model
+		artifactTypeID := getCatalogModelArtifactTypeID(t, sharedDB)
+		executionTypeID := getOrCreateExecutionTypeID(t, sharedDB)
+
+		// Create artifact 1 (will be orphaned - should be deleted)
+		orphanedArtifact := createTestArtifact(t, sharedDB, artifactTypeID, "orphaned-artifact-id")
+		createAttribution(t, sharedDB, modelID, orphanedArtifact.ID)
+
+		// Create artifact 2 (will have Event - should be preserved)
+		preservedArtifact := createTestArtifact(t, sharedDB, artifactTypeID, "preserved-artifact-id")
+		createAttribution(t, sharedDB, modelID, preservedArtifact.ID)
+
+		// Create an execution and event for artifact 2
+		execution := createTestExecution(t, sharedDB, executionTypeID, "test-execution-id")
+		createTestEvent(t, sharedDB, preservedArtifact.ID, execution.ID)
+
+		// Verify artifacts exist before deletion
+		var artifactCount int64
+		err = sharedDB.Model(&schema.Artifact{}).Where("id IN (?)", []int32{orphanedArtifact.ID, preservedArtifact.ID}).Count(&artifactCount).Error
+		require.NoError(t, err)
+		assert.Equal(t, int64(2), artifactCount, "Both artifacts should exist before deletion")
+
+		// Delete by ID
+		err = repo.DeleteByID(modelID)
+		require.NoError(t, err)
+
+		// Verify model is deleted
+		_, err = repo.GetByID(modelID)
+		assert.Error(t, err)
+		assert.True(t, errors.Is(err, service.ErrCatalogModelNotFound))
+
+		// Verify orphaned artifact is deleted
+		var orphanedArtifactExists int64
+		err = sharedDB.Model(&schema.Artifact{}).Where("id = ?", orphanedArtifact.ID).Count(&orphanedArtifactExists).Error
+		require.NoError(t, err)
+		assert.Equal(t, int64(0), orphanedArtifactExists, "Orphaned artifact should be deleted")
+
+		// Verify artifact with Event is preserved
+		var preservedArtifactExists int64
+		err = sharedDB.Model(&schema.Artifact{}).Where("id = ?", preservedArtifact.ID).Count(&preservedArtifactExists).Error
+		require.NoError(t, err)
+		assert.Equal(t, int64(1), preservedArtifactExists, "Artifact with Event should be preserved")
+	})
+
+	t.Run("TestDeleteBySourceMultipleModelsWithArtifacts", func(t *testing.T) {
+		sourceID := "test-source-multiple-models"
+
+		// Create two models with the same source_id
+		model1 := &models.CatalogModelImpl{
+			Attributes: &models.CatalogModelAttributes{
+				Name: apiutils.Of("model-1-multi-source"),
+			},
+			Properties: &[]dbmodels.Properties{
+				{
+					Name:        "source_id",
+					StringValue: &sourceID,
+				},
+			},
+		}
+
+		model2 := &models.CatalogModelImpl{
+			Attributes: &models.CatalogModelAttributes{
+				Name: apiutils.Of("model-2-multi-source"),
+			},
+			Properties: &[]dbmodels.Properties{
+				{
+					Name:        "source_id",
+					StringValue: &sourceID,
+				},
+			},
+		}
+
+		savedModel1, err := repo.Save(model1)
+		require.NoError(t, err)
+		savedModel2, err := repo.Save(model2)
+		require.NoError(t, err)
+
+		artifactTypeID := getCatalogModelArtifactTypeID(t, sharedDB)
+		executionTypeID := getOrCreateExecutionTypeID(t, sharedDB)
+
+		// Create artifacts for model 1
+		orphanedArtifact1 := createTestArtifact(t, sharedDB, artifactTypeID, "orphaned-artifact-model1")
+		createAttribution(t, sharedDB, *savedModel1.GetID(), orphanedArtifact1.ID)
+
+		// Create artifacts for model 2 with Event (should be preserved)
+		preservedArtifact2 := createTestArtifact(t, sharedDB, artifactTypeID, "preserved-artifact-model2")
+		createAttribution(t, sharedDB, *savedModel2.GetID(), preservedArtifact2.ID)
+		execution := createTestExecution(t, sharedDB, executionTypeID, "test-execution-multi")
+		createTestEvent(t, sharedDB, preservedArtifact2.ID, execution.ID)
+
+		// Delete by source - should delete both models
+		err = repo.DeleteBySource(sourceID)
+		require.NoError(t, err)
+
+		// Verify both models are deleted
+		_, err = repo.GetByID(*savedModel1.GetID())
+		assert.Error(t, err)
+		assert.True(t, errors.Is(err, service.ErrCatalogModelNotFound))
+
+		_, err = repo.GetByID(*savedModel2.GetID())
+		assert.Error(t, err)
+		assert.True(t, errors.Is(err, service.ErrCatalogModelNotFound))
+
+		// Verify orphaned artifact is deleted
+		var orphanedExists int64
+		err = sharedDB.Model(&schema.Artifact{}).Where("id = ?", orphanedArtifact1.ID).Count(&orphanedExists).Error
+		require.NoError(t, err)
+		assert.Equal(t, int64(0), orphanedExists, "Orphaned artifact should be deleted")
+
+		// Verify artifact with Event is preserved
+		var preservedExists int64
+		err = sharedDB.Model(&schema.Artifact{}).Where("id = ?", preservedArtifact2.ID).Count(&preservedExists).Error
+		require.NoError(t, err)
+		assert.Equal(t, int64(1), preservedExists, "Artifact with Event should be preserved")
+	})
+
+	t.Run("TestDeleteByIDNonExistentWithArtifacts", func(t *testing.T) {
+		// Test deleting non-existent model ID - should return NotFoundError and not affect any artifacts
+		err := repo.DeleteByID(999999)
+		require.Error(t, err)
+		assert.True(t, errors.Is(err, service.ErrCatalogModelNotFound))
+	})
 }
 
 func createTestCatalogModelWithSourceID(t *testing.T, sourceID string) models.CatalogModel {
@@ -1008,6 +1207,70 @@ func getCatalogModelTypeID(t *testing.T, db *gorm.DB) int32 {
 	}
 
 	return typeRecord.ID
+}
+
+// Helper function to create or get execution type ID for testing
+func getOrCreateExecutionTypeID(t *testing.T, db *gorm.DB) int32 {
+	typeName := "test.Execution"
+	var typeRecord schema.Type
+	err := db.Where("name = ?", typeName).First(&typeRecord).Error
+	if err != nil {
+		// Create the type if it doesn't exist
+		typeRecord = schema.Type{
+			Name: typeName,
+		}
+		err = db.Create(&typeRecord).Error
+		require.NoError(t, err, "Failed to create test execution type")
+	}
+	return typeRecord.ID
+}
+
+// Helper function to create a test artifact
+func createTestArtifact(t *testing.T, db *gorm.DB, typeID int32, name string) *schema.Artifact {
+	artifact := &schema.Artifact{
+		TypeID:                   typeID,
+		Name:                     &name,
+		CreateTimeSinceEpoch:     1000,
+		LastUpdateTimeSinceEpoch: 1000,
+	}
+	err := db.Create(artifact).Error
+	require.NoError(t, err, "Failed to create test artifact")
+	return artifact
+}
+
+// Helper function to create attribution between context and artifact
+func createAttribution(t *testing.T, db *gorm.DB, contextID, artifactID int32) {
+	attribution := &schema.Attribution{
+		ContextID:  contextID,
+		ArtifactID: artifactID,
+	}
+	err := db.Create(attribution).Error
+	require.NoError(t, err, "Failed to create attribution")
+}
+
+// Helper function to create a test execution
+func createTestExecution(t *testing.T, db *gorm.DB, typeID int32, name string) *schema.Execution {
+	execution := &schema.Execution{
+		TypeID:                   typeID,
+		Name:                     &name,
+		CreateTimeSinceEpoch:     1000,
+		LastUpdateTimeSinceEpoch: 1000,
+	}
+	err := db.Create(execution).Error
+	require.NoError(t, err, "Failed to create test execution")
+	return execution
+}
+
+// Helper function to create a test event
+func createTestEvent(t *testing.T, db *gorm.DB, artifactID, executionID int32) *schema.Event {
+	event := &schema.Event{
+		ArtifactID:  artifactID,
+		ExecutionID: executionID,
+		Type:        1, // INPUT event type
+	}
+	err := db.Create(event).Error
+	require.NoError(t, err, "Failed to create test event")
+	return event
 }
 
 // Helper function to find index of string in slice
