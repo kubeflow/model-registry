@@ -32,6 +32,7 @@ var (
 	ErrCannotDeleteDefaultSource = errors.New("cannot delete the default source")
 	ErrCatalogIDTooLong          = errors.New("catalog source ID exceeds maximum length for secret name")
 	ErrCannotChangeType          = errors.New("cannot change catalog source type")
+	ErrValidationFailed          = errors.New("validation failed")
 )
 
 const (
@@ -441,7 +442,7 @@ func validateCatalogSourceConfigPayload(payload models.CatalogSourceConfigPayloa
 	}
 
 	if payload.Name == "" {
-		return fmt.Errorf("name is required")
+		return fmt.Errorf("%w: name is required", ErrValidationFailed)
 	}
 
 	if payload.Type == "" {

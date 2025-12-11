@@ -61,18 +61,27 @@ export const transformFormDataToPayload = (
     };
   }
 
-  return {
+  const commonFields = {
     ...(!isEditMode && { id: formData.id || generateSourceIdFromName(formData.name) }),
     name: formData.name,
-    type: formData.sourceType,
     enabled: formData.enabled,
     isDefault: false,
     includedModels: parseModels(formData.allowedModels),
     excludedModels: parseModels(formData.excludedModels),
-    ...(formData.sourceType === CatalogSourceType.YAML && { yaml: formData.yamlContent }),
-    ...(formData.sourceType === CatalogSourceType.HUGGING_FACE && {
-      apiKey: formData.accessToken,
-      allowedOrganization: formData.organization,
-    }),
+  };
+
+  if (formData.sourceType === CatalogSourceType.YAML) {
+    return {
+      ...commonFields,
+      type: CatalogSourceType.YAML,
+      yaml: formData.yamlContent,
+    };
+  }
+
+  return {
+    ...commonFields,
+    type: CatalogSourceType.HUGGING_FACE,
+    apiKey: formData.accessToken,
+    allowedOrganization: formData.organization,
   };
 };

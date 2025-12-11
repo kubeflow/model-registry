@@ -114,7 +114,8 @@ func (app *App) CreateCatalogSourceConfigHandler(w http.ResponseWriter, r *http.
 	if err != nil {
 		if errors.Is(err, repositories.ErrCatalogSourceAlreadyExist) ||
 			errors.Is(err, repositories.ErrCatalogSourceIdRequired) ||
-			errors.Is(err, repositories.ErrUnsupportedCatalogType) {
+			errors.Is(err, repositories.ErrUnsupportedCatalogType) ||
+			errors.Is(err, repositories.ErrValidationFailed) {
 			app.badRequestResponse(w, r, err)
 		} else {
 			app.serverErrorResponse(w, r, err)
