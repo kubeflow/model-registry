@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"regexp"
 	"strings"
 
 	k8s "github.com/kubeflow/model-registry/ui/bff/internal/integrations/kubernetes"
@@ -110,27 +111,18 @@ func (r *ModelCatalogSettingsRepository) GetCatalogSourceConfig(ctx context.Cont
 		return nil, fmt.Errorf("%w, %s", ErrCatalogSourceNotFound, catalogSourceId)
 	}
 
-	secretName, yamlFilePath := FindCatalogSourceProperties(userCM.Data[k8s.CatalogSourceKey], catalogSourceId)
-	if secretName == "" && yamlFilePath == "" {
-		secretName, yamlFilePath = FindCatalogSourceProperties(defaultCM.Data[k8s.CatalogSourceKey], catalogSourceId)
+	_, yamlFilePath := FindCatalogSourceProperties(userCM.Data[k8s.CatalogSourceKey], catalogSourceId)
+	if yamlFilePath == "" {
+		_, yamlFilePath = FindCatalogSourceProperties(defaultCM.Data[k8s.CatalogSourceKey], catalogSourceId)
 	}
 
-	switch result.Type {
-	case CatalogTypeYaml:
+	if result.Type == CatalogTypeYaml {
 		if yamlFilePath != "" {
 
 			if yamlContent, ok := userCM.Data[yamlFilePath]; ok {
 				result.Yaml = &yamlContent
 			} else if yamlContent, ok := defaultCM.Data[yamlFilePath]; ok {
 				result.Yaml = &yamlContent
-			}
-		}
-
-	case CatalogTypeHuggingFace:
-		if secretName != "" {
-			apiKey, err := client.GetSecretValue(ctx, namespace, secretName, ApiKey)
-			if err == nil && apiKey != "" {
-				result.ApiKey = &apiKey
 			}
 		}
 	}
@@ -440,6 +432,10 @@ func validateCatalogSourceConfigPayload(payload models.CatalogSourceConfigPayloa
 		return fmt.Errorf("%w", ErrCatalogSourceIdRequired)
 	}
 
+	if err := validateCatalogId(payload.Id); err != nil {
+		return err
+	}
+
 	if payload.Name == "" {
 		return fmt.Errorf("name is required")
 	}
@@ -503,6 +499,24 @@ func deleteSecretForHuggingFace(ctx context.Context,
 	namespace string,
 	secretName string) {
 	_ = client.DeleteSecret(ctx, namespace, secretName)
+}
+
+var validCatalogIdRegex = regexp.MustCompile(`^[a-z0-9_]+$`)
+
+func validateCatalogId(id string) error {
+	if id == "" {
+		return ErrCatalogSourceIdRequired
+	}
+
+	if !validCatalogIdRegex.MatchString(id) {
+		return fmt.Errorf("invalid catalog ID: must contain only lowercase letters, numbers, and underscores")
+	}
+
+	if len(id) > 238 {
+		return fmt.Errorf("catalog ID exceeds maximum length of 238 characters")
+	}
+
+	return nil
 }
 
 func validateUpdatePayloadForDefaultOverride(payload models.CatalogSourceConfigPayload) error {

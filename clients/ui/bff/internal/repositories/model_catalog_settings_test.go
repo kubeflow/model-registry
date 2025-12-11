@@ -76,7 +76,7 @@ var _ = Describe("ModelCatalogSettingRepository", func() {
 			catalog, err := repo.GetCatalogSourceConfig(ctx, k8sClient, "kubeflow", "hugging_face_source")
 			Expect(err).NotTo(HaveOccurred())
 			Expect(catalog.Type).To(Equal("huggingface"))
-			Expect(catalog.ApiKey).NotTo(BeNil())
+			Expect(catalog.ApiKey).To(BeNil())
 		})
 
 		It("should return merged data for user override default source config", func() {
@@ -133,7 +133,7 @@ var _ = Describe("ModelCatalogSettingRepository", func() {
 
 		It("should fail when type is missing", func() {
 			payload := models.CatalogSourceConfigPayload{
-				Id:      "test-id",
+				Id:      "test_id",
 				Name:    "Test",
 				Enabled: boolPtr(true),
 				Yaml:    stringPtr("models: []"),
@@ -145,7 +145,7 @@ var _ = Describe("ModelCatalogSettingRepository", func() {
 
 		It("should fail when yaml is missing for yaml type source config", func() {
 			payload := models.CatalogSourceConfigPayload{
-				Id:      "test-id",
+				Id:      "test_id",
 				Name:    "Test",
 				Type:    "yaml",
 				Enabled: boolPtr(true),
@@ -157,7 +157,7 @@ var _ = Describe("ModelCatalogSettingRepository", func() {
 
 		It("should fail when apiKey is missing for huggingface-type", func() {
 			payload := models.CatalogSourceConfigPayload{
-				Id:      "test-id",
+				Id:      "test_id",
 				Name:    "Test",
 				Type:    "huggingface",
 				Enabled: boolPtr(true),
@@ -169,7 +169,7 @@ var _ = Describe("ModelCatalogSettingRepository", func() {
 
 		It("should fail for unsupported type", func() {
 			payload := models.CatalogSourceConfigPayload{
-				Id:      "test-id",
+				Id:      "test_id",
 				Name:    "Test",
 				Type:    "invalid-type",
 				Enabled: boolPtr(true),
@@ -262,6 +262,42 @@ var _ = Describe("ModelCatalogSettingRepository", func() {
 			Expect(err).NotTo(HaveOccurred())
 			Expect(result.Id).To(Equal("test_hf_create"))
 			Expect(*result.IsDefault).To(BeFalse())
+		})
+
+		It("should reject catalog ID with path traversal attempt", func() {
+			payload := models.CatalogSourceConfigPayload{
+				Id:   "../../../etc/passwd",
+				Name: "Malicious",
+				Type: "yaml",
+				Yaml: stringPtr("models:\n  - name: test"),
+			}
+			_, err := repo.CreateCatalogSourceConfig(ctx, k8sClient, "kubeflow", payload)
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(ContainSubstring("invalid catalog ID"))
+		})
+
+		It("should reject catalog ID with forward slash", func() {
+			payload := models.CatalogSourceConfigPayload{
+				Id:   "test/malicious",
+				Name: "Malicious",
+				Type: "yaml",
+				Yaml: stringPtr("models:\n  - name: test"),
+			}
+			_, err := repo.CreateCatalogSourceConfig(ctx, k8sClient, "kubeflow", payload)
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(ContainSubstring("invalid catalog ID"))
+		})
+
+		It("should reject catalog ID with special characters", func() {
+			payload := models.CatalogSourceConfigPayload{
+				Id:   "test@#$%",
+				Name: "Special",
+				Type: "yaml",
+				Yaml: stringPtr("models:\n  - name: test"),
+			}
+			_, err := repo.CreateCatalogSourceConfig(ctx, k8sClient, "kubeflow", payload)
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(ContainSubstring("invalid catalog ID"))
 		})
 
 		It("should create source with includedModels and excludedModels", func() {
@@ -452,7 +488,7 @@ var _ = Describe("ModelCatalogSettingRepository", func() {
 		It("should delete user yaml source successfully", func() {
 			// First create
 			createPayload := models.CatalogSourceConfigPayload{
-				Id:      "delete-test-yaml",
+				Id:      "delete_test_yaml",
 				Name:    "Delete Test",
 				Type:    "yaml",
 				Enabled: boolPtr(true),
@@ -461,15 +497,15 @@ var _ = Describe("ModelCatalogSettingRepository", func() {
 			_, err := repo.CreateCatalogSourceConfig(ctx, k8sClient, "kubeflow", createPayload)
 			Expect(err).NotTo(HaveOccurred())
 
-			deleted, err := repo.DeleteCatalogSourceConfig(ctx, k8sClient, "kubeflow", "delete-test-yaml")
+			deleted, err := repo.DeleteCatalogSourceConfig(ctx, k8sClient, "kubeflow", "delete_test_yaml")
 			Expect(err).NotTo(HaveOccurred())
-			Expect(deleted.Id).To(Equal("delete-test-yaml"))
+			Expect(deleted.Id).To(Equal("delete_test_yaml"))
 		})
 
 		It("should delete user huggingface source and its secret", func() {
 			// First create
 			createPayload := models.CatalogSourceConfigPayload{
-				Id:      "delete-test-hf",
+				Id:      "delete_test_hf",
 				Name:    "Delete HF Test",
 				Type:    "huggingface",
 				Enabled: boolPtr(true),
@@ -478,9 +514,9 @@ var _ = Describe("ModelCatalogSettingRepository", func() {
 			_, err := repo.CreateCatalogSourceConfig(ctx, k8sClient, "kubeflow", createPayload)
 			Expect(err).NotTo(HaveOccurred())
 
-			deleted, err := repo.DeleteCatalogSourceConfig(ctx, k8sClient, "kubeflow", "delete-test-hf")
+			deleted, err := repo.DeleteCatalogSourceConfig(ctx, k8sClient, "kubeflow", "delete_test_hf")
 			Expect(err).NotTo(HaveOccurred())
-			Expect(deleted.Id).To(Equal("delete-test-hf"))
+			Expect(deleted.Id).To(Equal("delete_test_hf"))
 		})
 	})
 })

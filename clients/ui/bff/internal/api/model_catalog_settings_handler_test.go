@@ -76,7 +76,7 @@ var _ = Describe("TestModelCatalogSettings", func() {
 		It("POST returns 201 on success", func() {
 			payload := ModelCatalogSourcePayloadEnvelope{
 				Data: &models.CatalogSourceConfigPayload{
-					Id:      "minimal-handler-test",
+					Id:      "minimal_handler_test",
 					Name:    "Minimal Handler Test",
 					Type:    "yaml",
 					Enabled: boolPtr(true),
@@ -210,7 +210,7 @@ var _ = Describe("TestModelCatalogSettings", func() {
 			// create a source config, before deleting that
 			createPayload := ModelCatalogSourcePayloadEnvelope{
 				Data: &models.CatalogSourceConfigPayload{
-					Id:      "delete-handler-test",
+					Id:      "delete_handler_test",
 					Name:    "Delete Test",
 					Type:    "yaml",
 					Enabled: boolPtr(true),
@@ -229,7 +229,7 @@ var _ = Describe("TestModelCatalogSettings", func() {
 
 			_, rs, err := setupApiTest[ModelCatalogSettingsSourceConfigEnvelope](
 				http.MethodDelete,
-				"/api/v1/settings/model_catalog/source_configs/delete-handler-test?namespace=kubeflow",
+				"/api/v1/settings/model_catalog/source_configs/delete_handler_test?namespace=kubeflow",
 				nil,
 				kubernetesMockedStaticClientFactory,
 				requestIdentity,
