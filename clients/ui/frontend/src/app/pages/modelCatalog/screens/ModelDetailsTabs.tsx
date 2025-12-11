@@ -12,13 +12,9 @@ import {
   shouldShowValidatedInsights,
   filterArtifactsByType,
 } from '~/app/pages/modelCatalog/utils/modelCatalogUtils';
+import { ModelDetailsTab } from '~/concepts/modelCatalog/const';
 import ModelDetailsView from './ModelDetailsView';
 import PerformanceInsightsView from './PerformanceInsightsView';
-
-export enum ModelDetailsTab {
-  OVERVIEW = 'overview',
-  PERFORMANCE_INSIGHTS = 'performance-insights',
-}
 
 export enum ModelDetailsTabTitle {
   OVERVIEW = 'Overview',

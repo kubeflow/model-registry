@@ -1,11 +1,11 @@
 import * as React from 'react';
 import { Navigate, Route, Routes } from 'react-router-dom';
 import { ModelCatalogContextProvider } from '~/app/context/modelCatalog/ModelCatalogContext';
+import { ModelDetailsTab } from '~/concepts/modelCatalog/const';
 import ModelCatalogCoreLoader from './ModelCatalogCoreLoader';
 import ModelDetailsPage from './screens/ModelDetailsPage';
 import RegisterCatalogModelPage from './screens/RegisterCatalogModelPage';
 import ModelCatalog from './screens/ModelCatalog';
-import { ModelDetailsTab } from './screens/ModelDetailsTabs';
 
 const ModelCatalogRoutes: React.FC = () => (
   <ModelCatalogContextProvider>

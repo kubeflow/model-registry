@@ -14,12 +14,12 @@ import {
   CategoryName,
   ModelCatalogFilterStates,
 } from '~/app/modelCatalogTypes';
-import { ModelDetailsTab } from '~/app/pages/modelCatalog/screens/ModelDetailsTabs';
-import { BFF_API_VERSION, URL_PREFIX } from '~/app/utilities/const';
 import {
+  ModelDetailsTab,
   ModelCatalogStringFilterKey,
   ModelCatalogNumberFilterKey,
 } from '~/concepts/modelCatalog/const';
+import { BFF_API_VERSION, URL_PREFIX } from '~/app/utilities/const';
 
 export type ModelCatalogContextType = {
   catalogSourcesLoaded: boolean;
