@@ -943,6 +943,25 @@ describe('Manage Source Page', () => {
       });
       manageSourcePage.visitManageSource(catalogSourceId);
       manageSourcePage.findSubmitButton().should('exist');
+      manageSourcePage.findSubmitButton().should('be.enabled');
+      manageSourcePage.findSubmitButton().should('contain', 'Save');
+    });
+
+    it('should do the form validation for default source config', () => {
+      cy.intercept('GET', '/model-registry/api/v1/settings/model_catalog/source_configs/**', {
+        data: mockYamlCatalogSourceConfig({
+          id: 'source_2',
+          name: 'Source 2',
+          isDefault: true,
+          includedModels: ['model1', 'model2'],
+          excludedModels: ['model3'],
+          enabled: false,
+        }),
+      });
+      manageSourcePage.visitManageSource(catalogSourceId);
+      manageSourcePage.findNameInput().should('have.value', 'Source 2');
+      manageSourcePage.findSubmitButton().should('exist');
+      manageSourcePage.findSubmitButton().should('be.enabled');
       manageSourcePage.findSubmitButton().should('contain', 'Save');
     });
   });
