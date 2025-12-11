@@ -43,29 +43,18 @@ export const generateSourceIdFromName = (name: string): string =>
     .replace(/[^a-zA-Z0-9_]/g, '')
     .toLowerCase();
 
-export const transformFormDataToPayload = (
-  formData: ManageSourceFormData,
-  isEditMode = false,
-): CatalogSourceConfigPayload => {
+export const transformFormDataToConfig = (formData: ManageSourceFormData): CatalogSourceConfig => {
   const parseModels = (models: string): string[] =>
     models
       .split(',')
       .map((item) => item.trim())
       .filter((item) => item.length > 0);
 
-  if (formData.isDefault) {
-    return {
-      enabled: formData.enabled,
-      includedModels: parseModels(formData.allowedModels),
-      excludedModels: parseModels(formData.excludedModels),
-    };
-  }
-
   const commonFields = {
-    ...(!isEditMode && { id: formData.id || generateSourceIdFromName(formData.name) }),
+    id: formData.id || generateSourceIdFromName(formData.name),
     name: formData.name,
     enabled: formData.enabled,
-    isDefault: false,
+    isDefault: formData.isDefault,
     includedModels: parseModels(formData.allowedModels),
     excludedModels: parseModels(formData.excludedModels),
   };
@@ -84,4 +73,24 @@ export const transformFormDataToPayload = (
     apiKey: formData.accessToken,
     allowedOrganization: formData.organization,
   };
+};
+
+export const getPayloadForConfig = (
+  sourceConfig: CatalogSourceConfig,
+  isEditMode = false,
+): CatalogSourceConfigPayload => {
+  if (sourceConfig.isDefault) {
+    return {
+      enabled: sourceConfig.enabled,
+      includedModels: sourceConfig.includedModels,
+      excludedModels: sourceConfig.excludedModels,
+    };
+  }
+
+  if (isEditMode) {
+    const { id, ...catalogSource } = sourceConfig;
+    return catalogSource;
+  }
+
+  return sourceConfig;
 };

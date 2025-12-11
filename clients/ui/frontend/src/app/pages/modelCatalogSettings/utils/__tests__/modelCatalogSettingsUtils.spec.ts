@@ -3,7 +3,8 @@ import { CatalogSourceType } from '~/app/modelCatalogTypes';
 import {
   catalogSourceConfigToFormData,
   generateSourceIdFromName,
-  transformFormDataToPayload,
+  getPayloadForConfig,
+  transformFormDataToConfig,
 } from '~/app/pages/modelCatalogSettings/utils/modelCatalogSettingsUtils';
 import { ManageSourceFormData } from '~/app/pages/modelCatalogSettings/useManageSourceData';
 
@@ -76,51 +77,106 @@ describe('catalogSourceConfigToFormData', () => {
   });
 });
 
-describe('transformFormDataToPayload', () => {
-  it('should transform the form data to payload format', () => {
-    expect(transformFormDataToPayload(yamlFormData, false)).toEqual({
-      enabled: true,
+describe('transformFormDataToConfig', () => {
+  it('should transform YAML form data to full config', () => {
+    expect(transformFormDataToConfig(yamlFormData)).toEqual({
       id: 'sample_source_1',
       name: 'Source 1',
-      yaml: 'models:\n  - name: model1',
-      isDefault: false,
-      type: CatalogSourceType.YAML,
-      excludedModels: [],
-      includedModels: [],
-    });
-
-    expect(transformFormDataToPayload(yamlFormData, true)).toEqual({
       enabled: true,
-      name: 'Source 1',
       isDefault: false,
       type: CatalogSourceType.YAML,
       yaml: 'models:\n  - name: model1',
-      excludedModels: [],
       includedModels: [],
-    });
-
-    expect(transformFormDataToPayload(yamlDefaultFormData, true)).toEqual({
-      enabled: true,
       excludedModels: [],
-      includedModels: [],
     });
+  });
 
-    expect(transformFormDataToPayload(yamlDefaultFormData, false)).toEqual({
-      enabled: true,
-      excludedModels: [],
-      includedModels: [],
-    });
-
-    expect(transformFormDataToPayload(hfFormData, false)).toEqual({
-      allowedOrganization: 'org1',
-      apiKey: 'apikey',
+  it('should transform HuggingFace form data to full config', () => {
+    expect(transformFormDataToConfig(hfFormData)).toEqual({
       id: 'source_2',
-      enabled: true,
-      excludedModels: [],
-      includedModels: [],
-      isDefault: false,
       name: 'Huggingface source 2',
-      type: 'huggingface',
+      enabled: true,
+      isDefault: false,
+      type: CatalogSourceType.HUGGING_FACE,
+      apiKey: 'apikey',
+      allowedOrganization: 'org1',
+      includedModels: [],
+      excludedModels: [],
+    });
+  });
+
+  it('should transform default source form data to full config', () => {
+    expect(transformFormDataToConfig(yamlDefaultFormData)).toEqual({
+      id: 'sample_source_1',
+      name: 'Source 1',
+      enabled: true,
+      isDefault: true,
+      type: CatalogSourceType.YAML,
+      yaml: 'models:\n  - name: model1',
+      includedModels: [],
+      excludedModels: [],
+    });
+  });
+});
+
+describe('getPayloadForConfig', () => {
+  it('should return full config for non-default source (create mode)', () => {
+    const config = transformFormDataToConfig(yamlFormData);
+    expect(getPayloadForConfig(config, false)).toEqual({
+      id: 'sample_source_1',
+      name: 'Source 1',
+      enabled: true,
+      isDefault: false,
+      type: CatalogSourceType.YAML,
+      yaml: 'models:\n  - name: model1',
+      includedModels: [],
+      excludedModels: [],
+    });
+  });
+
+  it('should return config without id for non-default source (edit mode)', () => {
+    const config = transformFormDataToConfig(yamlFormData);
+    expect(getPayloadForConfig(config, true)).toEqual({
+      name: 'Source 1',
+      enabled: true,
+      isDefault: false,
+      type: CatalogSourceType.YAML,
+      yaml: 'models:\n  - name: model1',
+      includedModels: [],
+      excludedModels: [],
+    });
+  });
+
+  it('should return only allowed fields for default source', () => {
+    const config = transformFormDataToConfig(yamlDefaultFormData);
+    expect(getPayloadForConfig(config, false)).toEqual({
+      enabled: true,
+      includedModels: [],
+      excludedModels: [],
+    });
+  });
+
+  it('should return only allowed fields for default source (edit mode)', () => {
+    const config = transformFormDataToConfig(yamlDefaultFormData);
+    expect(getPayloadForConfig(config, true)).toEqual({
+      enabled: true,
+      includedModels: [],
+      excludedModels: [],
+    });
+  });
+
+  it('should return full config for HuggingFace source', () => {
+    const config = transformFormDataToConfig(hfFormData);
+    expect(getPayloadForConfig(config, false)).toEqual({
+      id: 'source_2',
+      name: 'Huggingface source 2',
+      enabled: true,
+      isDefault: false,
+      type: CatalogSourceType.HUGGING_FACE,
+      apiKey: 'apikey',
+      allowedOrganization: 'org1',
+      includedModels: [],
+      excludedModels: [],
     });
   });
 });
