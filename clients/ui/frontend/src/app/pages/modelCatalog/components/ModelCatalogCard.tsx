@@ -18,10 +18,7 @@ import { CatalogModel, CatalogSource } from '~/app/modelCatalogTypes';
 import { catalogModelDetailsFromModel } from '~/app/routes/modelCatalog/catalogModel';
 import { getLabels } from '~/app/pages/modelRegistry/screens/utils';
 import { isModelValidated, getModelName } from '~/app/pages/modelCatalog/utils/modelCatalogUtils';
-import {
-  ModelCatalogProvider,
-  MODEL_CATALOG_POPOVER_MESSAGES,
-} from '~/concepts/modelCatalog/const';
+import { MODEL_CATALOG_POPOVER_MESSAGES } from '~/concepts/modelCatalog/const';
 import ModelCatalogLabels from './ModelCatalogLabels';
 import ModelCatalogCardBody from './ModelCatalogCardBody';
 
@@ -57,14 +54,7 @@ const ModelCatalogCard: React.FC<ModelCatalogCardProps> = ({ model, source, trun
                   <Label color="purple">Validated</Label>
                 </Popover>
               ) : (
-                source &&
-                (source.name === ModelCatalogProvider.RED_HAT ? (
-                  <Popover bodyContent={MODEL_CATALOG_POPOVER_MESSAGES.RED_HAT}>
-                    <Label>{source.name}</Label>
-                  </Popover>
-                ) : (
-                  <Label>{source.name}</Label>
-                ))
+                source && <Label>{source.name}</Label>
               )}
             </FlexItem>
           </Flex>

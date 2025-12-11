@@ -24,10 +24,7 @@ import {
   hasModelArtifacts,
   isModelValidated,
 } from '~/app/pages/modelCatalog/utils/modelCatalogUtils';
-import {
-  ModelCatalogProvider,
-  MODEL_CATALOG_POPOVER_MESSAGES,
-} from '~/concepts/modelCatalog/const';
+import { MODEL_CATALOG_POPOVER_MESSAGES } from '~/concepts/modelCatalog/const';
 import { useCatalogModel } from '~/app/hooks/modelCatalog/useCatalogModel';
 import { ModelRegistrySelectorContext } from '~/app/context/ModelRegistrySelectorContext';
 import { getRegisterCatalogModelRoute } from '~/app/routes/modelCatalog/catalogModelRegister';
@@ -164,13 +161,7 @@ const ModelDetailsPage: React.FC<ModelDetailsPageProps> = ({ tab }) => {
                     alignItems={{ default: 'alignItemsCenter' }}
                   >
                     <Content component={ContentVariants.small}>Provided by</Content>
-                    {model.provider === ModelCatalogProvider.RED_HAT ? (
-                      <Popover bodyContent={MODEL_CATALOG_POPOVER_MESSAGES.RED_HAT}>
-                        <Label>{model.provider}</Label>
-                      </Popover>
-                    ) : (
-                      <Content component={ContentVariants.small}>{model.provider}</Content>
-                    )}
+                    <Content component={ContentVariants.small}>{model.provider}</Content>
                   </Flex>
                 </StackItem>
               </Stack>
