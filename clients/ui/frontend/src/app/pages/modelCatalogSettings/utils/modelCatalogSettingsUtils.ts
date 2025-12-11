@@ -88,8 +88,19 @@ export const getPayloadForConfig = (
   }
 
   if (isEditMode) {
-    const { id, ...catalogSource } = sourceConfig;
-    return catalogSource;
+    return {
+      name: sourceConfig.name,
+      type: sourceConfig.type,
+      enabled: sourceConfig.enabled,
+      isDefault: sourceConfig.isDefault,
+      includedModels: sourceConfig.includedModels,
+      excludedModels: sourceConfig.excludedModels,
+      ...(sourceConfig.type === CatalogSourceType.YAML && { yaml: sourceConfig.yaml }),
+      ...(sourceConfig.type === CatalogSourceType.HUGGING_FACE && {
+        apiKey: sourceConfig.apiKey,
+        allowedOrganization: sourceConfig.allowedOrganization,
+      }),
+    };
   }
 
   return sourceConfig;
