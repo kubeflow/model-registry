@@ -7,7 +7,7 @@ import {
 } from '~/app/pages/modelCatalogSettings/utils/modelCatalogSettingsUtils';
 import { ManageSourceFormData } from '~/app/pages/modelCatalogSettings/useManageSourceData';
 
-const catalogSourceDeafultConfigYAMLMock = mockYamlCatalogSourceConfig({});
+const catalogSourceDefaultConfigYAMLMock = mockYamlCatalogSourceConfig({});
 const catalogSourceConfigYAMLMock = mockYamlCatalogSourceConfig({ isDefault: false });
 const catalogSourceConfigHFMock = mockHuggingFaceCatalogSourceConfig({});
 
@@ -68,7 +68,7 @@ describe('generateSourceIdFromName', () => {
 
 describe('catalogSourceConfigToFormData', () => {
   it('should convert the data from catalogSourceConfig to formData', () => {
-    expect(catalogSourceConfigToFormData(catalogSourceDeafultConfigYAMLMock)).toEqual(
+    expect(catalogSourceConfigToFormData(catalogSourceDefaultConfigYAMLMock)).toEqual(
       yamlDefaultFormData,
     );
     expect(catalogSourceConfigToFormData(catalogSourceConfigYAMLMock)).toEqual(yamlFormData);

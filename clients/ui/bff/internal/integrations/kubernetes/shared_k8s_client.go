@@ -9,6 +9,7 @@ import (
 
 	"github.com/kubeflow/model-registry/ui/bff/internal/constants"
 	corev1 "k8s.io/api/core/v1"
+	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
 )
@@ -187,6 +188,9 @@ func (kc *SharedClientLogic) GetAllCatalogSourceConfigs(
 	userCM, err := kc.Client.CoreV1().ConfigMaps(namespace).Get(sessionCtx, CatalogSourceUserConfigMapName, metav1.GetOptions{})
 
 	if err != nil {
+		if apierrors.IsNotFound(err) {
+			return *defaultCM, corev1.ConfigMap{}, nil
+		}
 		sessionLogger.Error("failed to fetch catalog source configmap",
 			"namespace", namespace,
 			"name", CatalogSourceUserConfigMapName,
@@ -196,27 +200,6 @@ func (kc *SharedClientLogic) GetAllCatalogSourceConfigs(
 	}
 
 	return *defaultCM, *userCM, nil
-}
-
-func (kc *SharedClientLogic) GetSecretValue(
-	ctx context.Context,
-	namespace string,
-	secretName string,
-	key string,
-) (string, error) {
-	sessionLogger := ctx.Value(constants.TraceLoggerKey).(*slog.Logger)
-
-	secret, err := kc.Client.CoreV1().Secrets(namespace).Get(ctx, secretName, metav1.GetOptions{})
-	if err != nil {
-		sessionLogger.Warn("failed to get secret", "namespace", namespace, "name", secretName, "error", err)
-		return "", err
-	}
-
-	if value, ok := secret.Data[key]; ok {
-		return string(value), nil
-	}
-
-	return "", fmt.Errorf("key '%s' not found in secret '%s'", key, secretName)
 }
 
 func (kc *SharedClientLogic) CreateSecret(

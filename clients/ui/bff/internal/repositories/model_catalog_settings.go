@@ -4,9 +4,11 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"log/slog"
 	"regexp"
 	"strings"
 
+	"github.com/kubeflow/model-registry/ui/bff/internal/constants"
 	k8s "github.com/kubeflow/model-registry/ui/bff/internal/integrations/kubernetes"
 	"github.com/kubeflow/model-registry/ui/bff/internal/models"
 	corev1 "k8s.io/api/core/v1"
@@ -27,8 +29,9 @@ var (
 	ErrCatalogSourceIdRequired   = errors.New("catalog source ID is required")
 	ErrUnsupportedCatalogType    = errors.New("unsupported catalog type")
 	ErrCannotChangeDefaultSource = errors.New("cannot change the default source")
-	ErrCannotDeleteDefaultSource = errors.New("cannot delete the deafult source")
+	ErrCannotDeleteDefaultSource = errors.New("cannot delete the default source")
 	ErrCatalogIDTooLong          = errors.New("catalog source ID exceeds maximum length for secret name")
+	ErrCannotChangeType          = errors.New("cannot change catalog source type")
 )
 
 const (
@@ -118,11 +121,16 @@ func (r *ModelCatalogSettingsRepository) GetCatalogSourceConfig(ctx context.Cont
 
 	if result.Type == CatalogTypeYaml {
 		if yamlFilePath != "" {
-
 			if yamlContent, ok := userCM.Data[yamlFilePath]; ok {
 				result.Yaml = &yamlContent
 			} else if yamlContent, ok := defaultCM.Data[yamlFilePath]; ok {
 				result.Yaml = &yamlContent
+			} else {
+				sessionLogger := ctx.Value(constants.TraceLoggerKey).(*slog.Logger)
+				sessionLogger.Warn("yaml catalog content missing from configmap",
+					"catalogId", catalogSourceId,
+					"expectedPath", yamlFilePath,
+				)
 			}
 		}
 	}
@@ -199,11 +207,7 @@ func (r *ModelCatalogSettingsRepository) CreateCatalogSourceConfig(
 		return nil, fmt.Errorf("failed to update user configmap: %w", err)
 	}
 
-	result := models.CatalogSourceConfig(payload)
-	isDefault := false
-	result.IsDefault = &isDefault
-
-	return &result, nil
+	return r.GetCatalogSourceConfig(ctx, client, namespace, payload.Id)
 }
 
 func (r *ModelCatalogSettingsRepository) UpdateCatalogSourceConfig(
@@ -236,8 +240,8 @@ func (r *ModelCatalogSettingsRepository) UpdateCatalogSourceConfig(
 
 	if payload.Type != "" && payload.Type != existingCatalog.Type {
 		return nil, fmt.Errorf(
-			"%w: cannot change type from '%s' to '%s'",
-			ErrCannotChangeDefaultSource,
+			"%w: cannot change from '%s' to '%s'",
+			ErrCannotChangeType,
 			existingCatalog.Type,
 			payload.Type,
 		)
@@ -467,9 +471,9 @@ func createSecretForHuggingFace(ctx context.Context,
 	modifiedSecretName := strings.ReplaceAll(catalogId, "_", "-")
 	secretName := fmt.Sprintf("catalog-%s-apikey", modifiedSecretName)
 
-	// limit for secretName is 253.
+	// limit for secretName is 253. so catalogId length should not exceed 238
 	if len(secretName) > 253 {
-		return "", fmt.Errorf("catalog ID exceeds maximum length of 238 characters")
+		return "", fmt.Errorf("%w: '%s' (max 238 characters for ID)", ErrCatalogIDTooLong, catalogId)
 	}
 
 	secret := &corev1.Secret{
@@ -498,7 +502,15 @@ func deleteSecretForHuggingFace(ctx context.Context,
 	client k8s.KubernetesClientInterface,
 	namespace string,
 	secretName string) {
-	_ = client.DeleteSecret(ctx, namespace, secretName)
+	err := client.DeleteSecret(ctx, namespace, secretName)
+	if err != nil && !apierrors.IsNotFound(err) {
+		sessionLogger := ctx.Value(constants.TraceLoggerKey).(*slog.Logger)
+		sessionLogger.Warn("failed to cleanup secret during rollback",
+			"secretName", secretName,
+			"namespace", namespace,
+			"error", err,
+		)
+	}
 }
 
 var validCatalogIdRegex = regexp.MustCompile(`^[a-z0-9_]+$`)
@@ -513,7 +525,7 @@ func validateCatalogId(id string) error {
 	}
 
 	if len(id) > 238 {
-		return fmt.Errorf("catalog ID exceeds maximum length of 238 characters")
+		return fmt.Errorf("%w: '%s' (max 238 characters)", ErrCatalogIDTooLong, id)
 	}
 
 	return nil

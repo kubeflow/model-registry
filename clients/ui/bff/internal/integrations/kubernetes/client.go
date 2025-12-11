@@ -38,7 +38,6 @@ type KubernetesClientInterface interface {
 	//Model Catalog Settings
 	GetAllCatalogSourceConfigs(ctx context.Context, namespace string) (corev1.ConfigMap, corev1.ConfigMap, error)
 	UpdateCatalogSourceConfig(ctx context.Context, namespace string, configMap *corev1.ConfigMap) error
-	GetSecretValue(ctx context.Context, namespace string, secretName string, key string) (string, error)
 	CreateSecret(ctx context.Context, namespace string, secret *corev1.Secret) error
 	PatchSecret(ctx context.Context, namespace string, secretName string, data map[string]string) error
 	DeleteSecret(ctx context.Context, namespace string, secretName string) error

@@ -165,7 +165,8 @@ func (app *App) UpdateCatalogSourceConfigHandler(w http.ResponseWriter, r *http.
 	if err != nil {
 		if errors.Is(err, repositories.ErrCatalogSourceNotFound) {
 			app.notFoundResponse(w, r)
-		} else if errors.Is(err, repositories.ErrCannotChangeDefaultSource) {
+		} else if errors.Is(err, repositories.ErrCannotChangeDefaultSource) ||
+			errors.Is(err, repositories.ErrCannotChangeType) {
 			app.forbiddenResponse(w, r, err.Error())
 		} else {
 			app.serverErrorResponse(w, r, err)
