@@ -5,7 +5,7 @@ import (
 )
 
 // Generate file for spdxToHumanReadableMap
-//go:generate ./gen_license_names.sh
+//go:generate ../../../scripts/gen_license_names.sh
 
 var spdxOverrides = map[string]string{
 	"apache-2.0":            "Apache 2.0",
