@@ -11,7 +11,11 @@ import {
   mockCatalogSource,
   mockCatalogSourceList,
 } from '~/__mocks__';
-import type { CatalogSource, CatalogSourceConfigList } from '~/app/modelCatalogTypes';
+import {
+  CatalogSourceType,
+  type CatalogSource,
+  type CatalogSourceConfigList,
+} from '~/app/modelCatalogTypes';
 
 const NAMESPACE = 'kubeflow';
 const userMock = {
@@ -849,14 +853,16 @@ describe('Manage Source Page', () => {
       manageSourcePage.findSubmitButton().click();
       cy.wait('@addSourcewithYamlType').then((interception) => {
         expect(interception.request.body).to.eql({
-          data: mockYamlCatalogSourceConfig({
+          data: {
             name: 'sample source',
             id: 'sample_source',
+            isDefault: false,
             includedModels: ['model-1-*', 'model-2-*'],
             excludedModels: ['model-3-*', 'model-4-*'],
             enabled: false,
-            isDefault: false,
-          }),
+            type: CatalogSourceType.YAML,
+            yaml: 'models:\n  - name: model1',
+          },
         });
       });
     });
@@ -883,14 +889,17 @@ describe('Manage Source Page', () => {
       manageSourcePage.findSubmitButton().click();
       cy.wait('@addSourcewithHuggingFaceType').then((interception) => {
         expect(interception.request.body).to.eql({
-          data: mockHuggingFaceCatalogSourceConfig({
+          data: {
             name: 'sample source',
             id: 'sample_source',
+            type: CatalogSourceType.HUGGING_FACE,
             includedModels: ['model-1-*', 'model-2-*'],
             excludedModels: ['model-3-*', 'model-4-*'],
             enabled: false,
             isDefault: false,
-          }),
+            allowedOrganization: 'org1',
+            apiKey: 'apikey',
+          },
         });
       });
     });
@@ -922,13 +931,53 @@ describe('Manage Source Page', () => {
     });
 
     it('should show Save button instead of Add button', () => {
+      cy.intercept('GET', '/model-registry/api/v1/settings/model_catalog/source_configs/**', {
+        data: mockYamlCatalogSourceConfig({
+          id: 'source_2',
+          name: 'Source 2',
+          isDefault: false,
+          includedModels: ['model1', 'model2'],
+          excludedModels: ['model3'],
+          enabled: false,
+        }),
+      });
       manageSourcePage.visitManageSource(catalogSourceId);
       manageSourcePage.findSubmitButton().should('exist');
+      manageSourcePage.findSubmitButton().should('be.enabled');
+      manageSourcePage.findSubmitButton().should('contain', 'Save');
+    });
+
+    it('should do the form validation for default source config', () => {
+      cy.intercept('GET', '/model-registry/api/v1/settings/model_catalog/source_configs/**', {
+        data: mockYamlCatalogSourceConfig({
+          id: 'source_2',
+          name: 'Source 2',
+          isDefault: true,
+          includedModels: ['model1', 'model2'],
+          excludedModels: ['model3'],
+          enabled: false,
+        }),
+      });
+      manageSourcePage.visitManageSource(catalogSourceId);
+      manageSourcePage.findNameInput().should('have.value', 'Source 2');
+      manageSourcePage.findSubmitButton().should('exist');
+      manageSourcePage.findSubmitButton().should('be.enabled');
       manageSourcePage.findSubmitButton().should('contain', 'Save');
     });
   });
 
-  it('should succesfully update the source with yaml type', () => {
+  it('should successfully update the source with yaml type', () => {
+    cy.intercept('GET', '/model-registry/api/v1/settings/model_catalog/source_configs/**', {
+      data: mockYamlCatalogSourceConfig({
+        id: 'source_2',
+        name: 'Source 2',
+        isDefault: false,
+        includedModels: ['model1', 'model2'],
+        excludedModels: ['model3'],
+        enabled: false,
+      }),
+    });
+
     cy.intercept('PATCH', '/model-registry/api/v1/settings/model_catalog/source_configs/*', {
       statusCode: 200,
       body: {
@@ -955,19 +1004,30 @@ describe('Manage Source Page', () => {
 
     cy.wait('@manageSourcewithYamlType').then((interception) => {
       expect(interception.request.body).to.eql({
-        data: mockYamlCatalogSourceConfig({
+        data: {
           name: 'Source 2',
-          id: 'source_2',
+          type: CatalogSourceType.YAML,
           includedModels: ['model1', 'model2', 'model-1-*', 'model-2-*'],
           excludedModels: ['model3', 'model-3-*', 'model-4-*'],
           enabled: true,
           isDefault: false,
-        }),
+          yaml: 'models:\n  - name: model1',
+        },
       });
     });
   });
 
-  it('should succesfully update the source with yaml type and default one', () => {
+  it('should successfully update the source with yaml type and default one', () => {
+    cy.intercept('GET', '/model-registry/api/v1/settings/model_catalog/source_configs/**', {
+      data: mockYamlCatalogSourceConfig({
+        id: 'sample_source_1',
+        name: 'Sample source 1',
+        isDefault: true,
+        includedModels: [],
+        excludedModels: [],
+      }),
+    });
+
     cy.intercept('PATCH', '/model-registry/api/v1/settings/model_catalog/source_configs/*', {
       statusCode: 200,
       body: {
@@ -994,26 +1054,37 @@ describe('Manage Source Page', () => {
 
     cy.wait('@manageSourcewithYamlType').then((interception) => {
       expect(interception.request.body).to.eql({
-        data: mockYamlCatalogSourceConfig({
-          name: 'Sample source 1',
-          id: 'sample_source_1',
+        data: {
+          enabled: false,
           includedModels: ['model-1-*', 'model-2-*'],
           excludedModels: ['model-3-*', 'model-4-*'],
-          enabled: false,
-          isDefault: true,
-        }),
+        },
       });
     });
   });
 
-  it('should successfully update the source with huggingface type type', () => {
+  it('should successfully update the source with huggingface type', () => {
+    cy.intercept('GET', '/model-registry/api/v1/settings/model_catalog/source_configs/**', {
+      data: mockHuggingFaceCatalogSourceConfig({
+        id: 'huggingface_source_3',
+        name: 'Huggingface source 3',
+        allowedOrganization: 'org1',
+        isDefault: false,
+      }),
+    });
+
     cy.intercept(
       'PATCH',
       `/model-registry/api/${MODEL_CATALOG_API_VERSION}/settings/model_catalog/source_configs/*`,
       {
         statusCode: 200,
         body: {
-          data: mockYamlCatalogSourceConfig({ id: 'sample-source-1' }),
+          data: mockHuggingFaceCatalogSourceConfig({
+            id: 'huggingface_source_3',
+            name: 'Huggingface source 3',
+            allowedOrganization: 'org1',
+            isDefault: false,
+          }),
         },
       },
     ).as('manageSourcewithHuggingFaceType');
@@ -1037,14 +1108,16 @@ describe('Manage Source Page', () => {
     manageSourcePage.findSubmitButton().click();
     cy.wait('@manageSourcewithHuggingFaceType').then((interception) => {
       expect(interception.request.body).to.eql({
-        data: mockHuggingFaceCatalogSourceConfig({
+        data: {
           name: 'Huggingface source 3',
-          id: 'huggingface_source_3',
+          apiKey: 'apikey',
+          allowedOrganization: 'org1',
+          type: CatalogSourceType.HUGGING_FACE,
           includedModels: ['model-1-*', 'model-2-*'],
           excludedModels: ['model-3-*', 'model-4-*'],
           enabled: false,
           isDefault: false,
-        }),
+        },
       });
     });
   });

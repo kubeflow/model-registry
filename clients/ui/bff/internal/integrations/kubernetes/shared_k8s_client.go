@@ -9,6 +9,7 @@ import (
 
 	"github.com/kubeflow/model-registry/ui/bff/internal/constants"
 	corev1 "k8s.io/api/core/v1"
+	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
 )
@@ -187,6 +188,9 @@ func (kc *SharedClientLogic) GetAllCatalogSourceConfigs(
 	userCM, err := kc.Client.CoreV1().ConfigMaps(namespace).Get(sessionCtx, CatalogSourceUserConfigMapName, metav1.GetOptions{})
 
 	if err != nil {
+		if apierrors.IsNotFound(err) {
+			return *defaultCM, corev1.ConfigMap{}, nil
+		}
 		sessionLogger.Error("failed to fetch catalog source configmap",
 			"namespace", namespace,
 			"name", CatalogSourceUserConfigMapName,
@@ -196,4 +200,127 @@ func (kc *SharedClientLogic) GetAllCatalogSourceConfigs(
 	}
 
 	return *defaultCM, *userCM, nil
+}
+
+func (kc *SharedClientLogic) CreateSecret(
+	ctx context.Context,
+	namespace string,
+	secret *corev1.Secret,
+) error {
+	sessionLogger := ctx.Value(constants.TraceLoggerKey).(*slog.Logger)
+
+	_, err := kc.Client.CoreV1().
+		Secrets(namespace).
+		Create(ctx, secret, metav1.CreateOptions{})
+
+	if err != nil {
+		sessionLogger.Error("failed to create secret",
+			"namespace", namespace,
+			"name", secret.Name,
+			"error", err,
+		)
+		return fmt.Errorf("failed to create secret %s: %w", secret.Name, err)
+	}
+
+	sessionLogger.Info("successfully created secret",
+		"namespace", namespace,
+		"name", secret.Name,
+	)
+
+	return nil
+}
+
+func (kc *SharedClientLogic) PatchSecret(ctx context.Context, namespace string, secretName string,
+	data map[string]string) error {
+	sessionLogger := ctx.Value(constants.TraceLoggerKey).(*slog.Logger)
+
+	secret, err := kc.Client.CoreV1().Secrets(namespace).Get(ctx, secretName, metav1.GetOptions{})
+	if err != nil {
+		sessionLogger.Error("failed to get secret for patching",
+			"namespace", namespace,
+			"name", secretName,
+			"error", err,
+		)
+		return err
+	}
+
+	if secret.StringData == nil {
+		secret.StringData = make(map[string]string)
+	}
+	for k, v := range data {
+		secret.StringData[k] = v
+	}
+
+	_, err = kc.Client.CoreV1().Secrets(namespace).Update(ctx, secret, metav1.UpdateOptions{})
+	if err != nil {
+		sessionLogger.Error("failed to patch secret",
+			"namespace", namespace,
+			"name", secretName,
+			"error", err,
+		)
+		return fmt.Errorf("failed to patch secret %s: %w", secretName, err)
+	}
+
+	sessionLogger.Info("successfully patched secret",
+		"namespace", namespace,
+		"name", secretName,
+	)
+	return nil
+}
+
+func (kc *SharedClientLogic) DeleteSecret(
+	ctx context.Context,
+	namespace string,
+	secretName string,
+) error {
+	sessionLogger := ctx.Value(constants.TraceLoggerKey).(*slog.Logger)
+
+	err := kc.Client.CoreV1().
+		Secrets(namespace).
+		Delete(ctx, secretName, metav1.DeleteOptions{})
+
+	if err != nil {
+
+		sessionLogger.Warn("failed to delete secret (may not exist)",
+			"namespace", namespace,
+			"name", secretName,
+			"error", err,
+		)
+		return fmt.Errorf("failed to delete secret %s: %w", secretName, err)
+	}
+
+	sessionLogger.Info("successfully deleted secret",
+		"namespace", namespace,
+		"name", secretName,
+	)
+
+	return nil
+}
+
+func (kc *SharedClientLogic) UpdateCatalogSourceConfig(
+	ctx context.Context,
+	namespace string,
+	configMap *corev1.ConfigMap,
+) error {
+	sessionLogger := ctx.Value(constants.TraceLoggerKey).(*slog.Logger)
+
+	_, err := kc.Client.CoreV1().
+		ConfigMaps(namespace).
+		Update(ctx, configMap, metav1.UpdateOptions{})
+
+	if err != nil {
+		sessionLogger.Error("failed to update catalog sources configmap",
+			"namespace", namespace,
+			"name", configMap.Name,
+			"error", err,
+		)
+		return fmt.Errorf("failed to update configmap %s: %w", configMap.Name, err)
+	}
+
+	sessionLogger.Info("successfully updated catalog sources configmap",
+		"namespace", namespace,
+		"name", configMap.Name,
+	)
+
+	return nil
 }

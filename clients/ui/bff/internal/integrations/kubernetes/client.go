@@ -2,13 +2,13 @@ package kubernetes
 
 import (
 	"context"
+
 	corev1 "k8s.io/api/core/v1"
 )
 
 const ComponentLabelValue = "model-registry"
 const ComponentLabelValueCatalog = "model-catalog"
 
-// TODO ppadti double check if the config map key is indeed sources.yaml
 const CatalogSourceKey = "sources.yaml"
 const CatalogSourceDefaultConfigMapName = "model-catalog-default-sources"
 const CatalogSourceUserConfigMapName = "model-catalog-sources"
@@ -37,5 +37,8 @@ type KubernetesClientInterface interface {
 
 	//Model Catalog Settings
 	GetAllCatalogSourceConfigs(ctx context.Context, namespace string) (corev1.ConfigMap, corev1.ConfigMap, error)
-	//TODO ppadti add other methods here
+	UpdateCatalogSourceConfig(ctx context.Context, namespace string, configMap *corev1.ConfigMap) error
+	CreateSecret(ctx context.Context, namespace string, secret *corev1.Secret) error
+	PatchSecret(ctx context.Context, namespace string, secretName string, data map[string]string) error
+	DeleteSecret(ctx context.Context, namespace string, secretName string) error
 }

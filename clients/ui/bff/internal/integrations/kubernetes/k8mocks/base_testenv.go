@@ -183,6 +183,16 @@ func setupMock(mockK8sClient kubernetes.Interface, ctx context.Context) error {
 		return err
 	}
 
+	err = createHuggingFaceSecret(mockK8sClient, ctx, "kubeflow")
+	if err != nil {
+		return err
+	}
+
+	err = createHuggingFaceSecret(mockK8sClient, ctx, "bella-namespace")
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 
@@ -198,7 +208,7 @@ catalogs:
     type: yaml
     enabled: true
     properties:
-      yamlCatalogPath: /shared-data/models-catalog.yaml
+      yamlCatalogPath: dora_ai_models.yaml
     labels:
       - Dora AI
 
@@ -207,7 +217,7 @@ catalogs:
     type: yaml
     enabled: true
     properties:
-      yamlCatalogPath: /shared-data/validated-models-catalog.yaml
+      yamlCatalogPath: bella_ai_validated_models.yaml
     labels:
       - Bella AI validated
 `)
@@ -218,7 +228,9 @@ catalogs:
 			Namespace: namespace,
 		},
 		Data: map[string]string{
-			k8s.CatalogSourceKey: raw,
+			k8s.CatalogSourceKey:             raw,
+			"dora_ai_models.yaml":            "models:\n - name: ai_model1",
+			"bella_ai_validated_models.yaml": "models:\n - name: ai_model2",
 		},
 	}
 
@@ -241,7 +253,7 @@ catalogs:
     type: yaml
     enabled: true
     properties:
-      yamlCatalogPath: /shared-data/models-catalog.yaml
+      yamlCatalogPath: custom_yaml_models.yaml
       includedModels:
         - model-*
         - model-2-*
@@ -255,7 +267,7 @@ catalogs:
     type: yaml
     enabled: false
     properties:
-      yamlCatalogPath: /shared-data/validated-models-catalog.yaml
+      yamlCatalogPath: sample_source_models.yaml
       includedModels:
         - model-*
         - model-2-*
@@ -270,7 +282,7 @@ catalogs:
     type: huggingface
     enabled: true
     properties:
-      apiKey: accessToken
+      apiKey: hugging-face-source-secret
       allowedOrganization: org
       includedModels:
         - model-*
@@ -294,9 +306,27 @@ catalogs:
 	}
 
 	if _, err := k8sClient.CoreV1().ConfigMaps(namespace).Create(ctx, cm, metav1.CreateOptions{}); err != nil {
-		return fmt.Errorf("failed to create model-catalog-default-sources configmap: %w", err)
+		return fmt.Errorf("failed to create model-catalog-sources configmap: %w", err)
 	}
 
+	return nil
+}
+
+func createHuggingFaceSecret(k8sClient kubernetes.Interface, ctx context.Context, namespace string) error {
+	secret := &corev1.Secret{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "hugging-face-source-secret",
+			Namespace: namespace,
+		},
+		Type: corev1.SecretTypeOpaque,
+		StringData: map[string]string{
+			"apiKey": "hf_test_api_key_12345",
+		},
+	}
+
+	if _, err := k8sClient.CoreV1().Secrets(namespace).Create(ctx, secret, metav1.CreateOptions{}); err != nil {
+		return fmt.Errorf("failed to create huggingface secret: %w", err)
+	}
 	return nil
 }
 

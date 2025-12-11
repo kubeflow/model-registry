@@ -6,11 +6,10 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/kubeflow/model-registry/ui/bff/internal/mocks"
-
 	"github.com/julienschmidt/httprouter"
 	"github.com/kubeflow/model-registry/ui/bff/internal/constants"
 	"github.com/kubeflow/model-registry/ui/bff/internal/models"
+	"github.com/kubeflow/model-registry/ui/bff/internal/repositories"
 )
 
 type ModelCatalogSettingsSourceConfigEnvelope Envelope[*models.CatalogSourceConfig, None]
@@ -59,14 +58,29 @@ func (app *App) GetCatalogSourceConfigHandler(w http.ResponseWriter, r *http.Req
 	}
 
 	catalogSourceId := ps.ByName(CatalogSourceId)
-	// TODO ppadti write the real implementation here
-	catalogSourceConfig := mocks.CreateSampleCatalogSource(catalogSourceId, "catalog-source-1", "yaml", true)
 
-	modelCatalogSource := ModelCatalogSettingsSourceConfigEnvelope{
-		Data: &catalogSourceConfig,
+	client, err := app.kubernetesClientFactory.GetClient(ctx)
+	if err != nil {
+		app.serverErrorResponse(w, r, errors.New("catalog client not found"))
+		return
 	}
 
-	err := app.WriteJSON(w, http.StatusOK, modelCatalogSource, nil)
+	catalogSourceConfig, err := app.repositories.ModelCatalogSettingsRepository.GetCatalogSourceConfig(ctx, client, namespace, catalogSourceId)
+
+	if err != nil {
+		if errors.Is(err, repositories.ErrCatalogSourceNotFound) {
+			app.notFoundResponse(w, r)
+		} else {
+			app.serverErrorResponse(w, r, err)
+		}
+		return
+	}
+
+	modelCatalogSource := ModelCatalogSettingsSourceConfigEnvelope{
+		Data: catalogSourceConfig,
+	}
+
+	err = app.WriteJSON(w, http.StatusOK, modelCatalogSource, nil)
 
 	if err != nil {
 		app.serverErrorResponse(w, r, err)
@@ -83,20 +97,34 @@ func (app *App) CreateCatalogSourceConfigHandler(w http.ResponseWriter, r *http.
 		return
 	}
 
+	client, err := app.kubernetesClientFactory.GetClient(ctx)
+	if err != nil {
+		app.serverErrorResponse(w, r, errors.New("catalog client not found"))
+		return
+	}
+
 	var envelope ModelCatalogSourcePayloadEnvelope
 	if err := json.NewDecoder(r.Body).Decode(&envelope); err != nil {
 		app.serverErrorResponse(w, r, fmt.Errorf("error decoding JSON:: %v", err.Error()))
 		return
 	}
 
-	var sourceName = envelope.Data.Name
-	var sourceId = envelope.Data.Id
-	var sourceType = envelope.Data.Type
-	// TODO ppadti write the real implementation here
-	newCatalogSource := mocks.CreateSampleCatalogSource(sourceId, sourceName, sourceType, true)
+	newCatalogSource, err := app.repositories.ModelCatalogSettingsRepository.CreateCatalogSourceConfig(ctx, client, namespace, *envelope.Data)
+
+	if err != nil {
+		if errors.Is(err, repositories.ErrCatalogSourceAlreadyExist) ||
+			errors.Is(err, repositories.ErrCatalogSourceIdRequired) ||
+			errors.Is(err, repositories.ErrUnsupportedCatalogType) ||
+			errors.Is(err, repositories.ErrValidationFailed) {
+			app.badRequestResponse(w, r, err)
+		} else {
+			app.serverErrorResponse(w, r, err)
+		}
+		return
+	}
 
 	modelCatalogSource := ModelCatalogSettingsSourceConfigEnvelope{
-		Data: &newCatalogSource,
+		Data: newCatalogSource,
 	}
 
 	w.Header().Set("Location", r.URL.JoinPath(modelCatalogSource.Data.Id).String())
@@ -117,21 +145,41 @@ func (app *App) UpdateCatalogSourceConfigHandler(w http.ResponseWriter, r *http.
 		return
 	}
 
+	client, err := app.kubernetesClientFactory.GetClient(ctx)
+	if err != nil {
+		app.serverErrorResponse(w, r, errors.New("catalog client not found"))
+		return
+	}
+
 	var envelope ModelCatalogSourcePayloadEnvelope
 	if err := json.NewDecoder(r.Body).Decode(&envelope); err != nil {
 		app.serverErrorResponse(w, r, fmt.Errorf("error decoding JSON:: %v", err.Error()))
 		return
 	}
 
-	catalogSourceId := envelope.Data.Id
-	// TODO ppadti write the real implementation here
-	newCatalogSource := mocks.CreateSampleCatalogSource(catalogSourceId, "Updated Catalog", "yaml", true)
+	catalogSourceId := ps.ByName(CatalogSourceId)
+	if catalogSourceId == "" {
+		catalogSourceId = envelope.Data.Id
+	}
+	updatedCatalogSource, err := app.repositories.ModelCatalogSettingsRepository.UpdateCatalogSourceConfig(ctx, client, namespace, catalogSourceId, *envelope.Data)
 
-	modelCatalogSource := ModelCatalogSettingsSourceConfigEnvelope{
-		Data: &newCatalogSource,
+	if err != nil {
+		if errors.Is(err, repositories.ErrCatalogSourceNotFound) {
+			app.notFoundResponse(w, r)
+		} else if errors.Is(err, repositories.ErrCannotChangeDefaultSource) ||
+			errors.Is(err, repositories.ErrCannotChangeType) {
+			app.forbiddenResponse(w, r, err.Error())
+		} else {
+			app.serverErrorResponse(w, r, err)
+		}
+		return
 	}
 
-	err := app.WriteJSON(w, http.StatusOK, modelCatalogSource, nil)
+	modelCatalogSource := ModelCatalogSettingsSourceConfigEnvelope{
+		Data: updatedCatalogSource,
+	}
+
+	err = app.WriteJSON(w, http.StatusOK, modelCatalogSource, nil)
 
 	if err != nil {
 		app.serverErrorResponse(w, r, err)
@@ -147,16 +195,32 @@ func (app *App) DeleteCatalogSourceConfigHandler(w http.ResponseWriter, r *http.
 		return
 	}
 
-	// TODO ppadti write the real implementation here
-	catalogSourceId := ps.ByName(CatalogSourceId)
-
-	deletedCatalogSource := mocks.CreateSampleCatalogSource(catalogSourceId, "Updated Catalog", "yaml", true)
-
-	modelCatalogSource := ModelCatalogSettingsSourceConfigEnvelope{
-		Data: &deletedCatalogSource,
+	client, err := app.kubernetesClientFactory.GetClient(ctx)
+	if err != nil {
+		app.serverErrorResponse(w, r, errors.New("catalog client not found"))
+		return
 	}
 
-	err := app.WriteJSON(w, http.StatusOK, modelCatalogSource, nil)
+	catalogSourceId := ps.ByName(CatalogSourceId)
+
+	deletedCatalogSource, err := app.repositories.ModelCatalogSettingsRepository.DeleteCatalogSourceConfig(ctx, client, namespace, catalogSourceId)
+
+	if err != nil {
+		if errors.Is(err, repositories.ErrCannotDeleteDefaultSource) {
+			app.forbiddenResponse(w, r, err.Error())
+		} else if errors.Is(err, repositories.ErrCatalogSourceNotFound) {
+			app.notFoundResponse(w, r)
+		} else {
+			app.serverErrorResponse(w, r, err)
+		}
+		return
+	}
+
+	modelCatalogSource := ModelCatalogSettingsSourceConfigEnvelope{
+		Data: deletedCatalogSource,
+	}
+
+	err = app.WriteJSON(w, http.StatusOK, modelCatalogSource, nil)
 
 	if err != nil {
 		app.serverErrorResponse(w, r, err)

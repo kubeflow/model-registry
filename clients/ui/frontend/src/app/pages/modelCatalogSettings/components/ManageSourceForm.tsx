@@ -19,7 +19,10 @@ import {
 } from '~/app/pages/modelCatalogSettings/useManageSourceData';
 import { FORM_LABELS, DESCRIPTIONS } from '~/app/pages/modelCatalogSettings/constants';
 import { ModelCatalogSettingsContext } from '~/app/context/modelCatalogSettings/ModelCatalogSettingsContext';
-import { transformFormDataToPayload } from '~/app/pages/modelCatalogSettings/utils/modelCatalogSettingsUtils';
+import {
+  getPayloadForConfig,
+  transformFormDataToConfig,
+} from '~/app/pages/modelCatalogSettings/utils/modelCatalogSettingsUtils';
 import {
   CatalogSourceType,
   CatalogSourcePreviewResult,
@@ -87,7 +90,7 @@ const ManageSourceForm: React.FC<ManageSourceFormProps> = ({ existingData, isEdi
   }, []);
 
   const buildPreviewRequest = (): CatalogSourcePreviewRequest => {
-    const payload = transformFormDataToPayload(formData);
+    const payload = transformFormDataToConfig(formData);
 
     const request: CatalogSourcePreviewRequest = {
       type: payload.type,
@@ -163,10 +166,11 @@ const ManageSourceForm: React.FC<ManageSourceFormProps> = ({ existingData, isEdi
     setSubmitError(undefined);
 
     try {
-      const payload = transformFormDataToPayload(formData);
+      const sourceConfig = transformFormDataToConfig(formData);
+      const payload = getPayloadForConfig(sourceConfig, isEditMode);
 
       if (isEditMode) {
-        await apiState.api.updateCatalogSourceConfig({}, payload.id, payload);
+        await apiState.api.updateCatalogSourceConfig({}, formData.id, payload);
       } else {
         await apiState.api.createCatalogSourceConfig({}, payload);
       }

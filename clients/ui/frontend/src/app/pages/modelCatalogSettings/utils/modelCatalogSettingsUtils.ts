@@ -43,25 +43,65 @@ export const generateSourceIdFromName = (name: string): string =>
     .replace(/[^a-zA-Z0-9_]/g, '')
     .toLowerCase();
 
-export const transformFormDataToPayload = (
-  formData: ManageSourceFormData,
-): CatalogSourceConfigPayload => ({
-  id: formData.id || generateSourceIdFromName(formData.name),
-  name: formData.name,
-  type: formData.sourceType,
-  enabled: formData.enabled,
-  isDefault: formData.isDefault,
-  includedModels: formData.allowedModels
-    .split(',')
-    .map((item) => item.trim())
-    .filter((item) => item.length > 0),
-  excludedModels: formData.excludedModels
-    .split(',')
-    .map((item) => item.trim())
-    .filter((item) => item.length > 0),
-  ...(formData.sourceType === CatalogSourceType.YAML && { yaml: formData.yamlContent }),
-  ...(formData.sourceType === CatalogSourceType.HUGGING_FACE && {
+export const transformFormDataToConfig = (formData: ManageSourceFormData): CatalogSourceConfig => {
+  const parseModels = (models: string): string[] =>
+    models
+      .split(',')
+      .map((item) => item.trim())
+      .filter((item) => item.length > 0);
+
+  const commonFields = {
+    id: formData.id || generateSourceIdFromName(formData.name),
+    name: formData.name,
+    enabled: formData.enabled,
+    isDefault: formData.isDefault,
+    includedModels: parseModels(formData.allowedModels),
+    excludedModels: parseModels(formData.excludedModels),
+  };
+
+  if (formData.sourceType === CatalogSourceType.YAML) {
+    return {
+      ...commonFields,
+      type: CatalogSourceType.YAML,
+      yaml: formData.yamlContent,
+    };
+  }
+
+  return {
+    ...commonFields,
+    type: CatalogSourceType.HUGGING_FACE,
     apiKey: formData.accessToken,
     allowedOrganization: formData.organization,
-  }),
-});
+  };
+};
+
+export const getPayloadForConfig = (
+  sourceConfig: CatalogSourceConfig,
+  isEditMode = false,
+): CatalogSourceConfigPayload => {
+  if (sourceConfig.isDefault) {
+    return {
+      enabled: sourceConfig.enabled,
+      includedModels: sourceConfig.includedModels,
+      excludedModels: sourceConfig.excludedModels,
+    };
+  }
+
+  if (isEditMode) {
+    return {
+      name: sourceConfig.name,
+      type: sourceConfig.type,
+      enabled: sourceConfig.enabled,
+      isDefault: sourceConfig.isDefault,
+      includedModels: sourceConfig.includedModels,
+      excludedModels: sourceConfig.excludedModels,
+      ...(sourceConfig.type === CatalogSourceType.YAML && { yaml: sourceConfig.yaml }),
+      ...(sourceConfig.type === CatalogSourceType.HUGGING_FACE && {
+        apiKey: sourceConfig.apiKey,
+        allowedOrganization: sourceConfig.allowedOrganization,
+      }),
+    };
+  }
+
+  return sourceConfig;
+};
