@@ -1,4 +1,6 @@
 import {
+  Alert,
+  AlertActionCloseButton,
   Button,
   Flex,
   Stack,
@@ -35,12 +37,19 @@ const ModelCatalogSourceLabelSelector: React.FC<ModelCatalogSourceLabelSelectorP
 }) => {
   const [inputValue, setInputValue] = React.useState(searchTerm || '');
   const { isMUITheme } = useThemeContext();
-  const { filterData } = React.useContext(ModelCatalogContext);
+  const {
+    filterData,
+    performanceViewEnabled,
+    performanceFiltersChangedOnDetailsPage,
+    setPerformanceFiltersChangedOnDetailsPage,
+  } = React.useContext(ModelCatalogContext);
   const filtersApplied = React.useMemo(() => hasFiltersApplied(filterData), [filterData]);
   const hasActiveFilters = React.useMemo(
     () => filtersApplied || (searchTerm && searchTerm.trim().length > 0),
     [filtersApplied, searchTerm],
   );
+
+  const shouldShowAlert = performanceViewEnabled && performanceFiltersChangedOnDetailsPage;
 
   const handleClearAllFilters = React.useCallback(() => {
     if (hasActiveFilters && onResetAllFilters) {
@@ -83,11 +92,10 @@ const ModelCatalogSourceLabelSelector: React.FC<ModelCatalogSourceLabelSelectorP
   ];
 
   return (
-    <Stack>
+    <Stack hasGutter>
       <StackItem>
         <Toolbar
           key={`toolbar-${hasActiveFilters}`}
-          className="pf-v6-u-pb-0"
           {...(onResetAllFilters
             ? {
                 clearAllFilters: handleClearAllFilters,
@@ -140,6 +148,24 @@ const ModelCatalogSourceLabelSelector: React.FC<ModelCatalogSourceLabelSelectorP
       <StackItem>
         <ModelCatalogSourceLabelBlocks />
       </StackItem>
+      {shouldShowAlert && (
+        <StackItem>
+          <Alert
+            variant="info"
+            isInline
+            className="pf-v6-u-mb-lg"
+            title="The results list has been updated to match the latest performance criteria set on the details page."
+            actionClose={
+              <AlertActionCloseButton
+                onClose={() => {
+                  setPerformanceFiltersChangedOnDetailsPage(false);
+                }}
+              />
+            }
+            data-testid="performance-filters-updated-alert"
+          />
+        </StackItem>
+      )}
     </Stack>
   );
 };
