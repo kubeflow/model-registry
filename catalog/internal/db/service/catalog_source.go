@@ -64,57 +64,62 @@ func (r *CatalogSourceRepositoryImpl) Save(source models.CatalogSource) (models.
 
 	now := time.Now().UnixMilli()
 
-	// Check if exists
-	var existing schema.Context
-	err := r.db.Where("name = ? AND type_id = ?", *attrs.Name, r.typeID).First(&existing).Error
+	var savedContext schema.Context
 
-	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
-		err = dbutil.SanitizeDatabaseError(err)
-		return nil, fmt.Errorf("error checking existing catalog source: %w", err)
-	}
+	err := r.db.Transaction(func(tx *gorm.DB) error {
+		// Check if exists
+		var existing schema.Context
+		err := tx.Where("name = ? AND type_id = ?", *attrs.Name, r.typeID).First(&existing).Error
 
-	context := schema.Context{
-		TypeID:                   r.typeID,
-		Name:                     *attrs.Name,
-		LastUpdateTimeSinceEpoch: now,
-	}
-
-	if errors.Is(err, gorm.ErrRecordNotFound) {
-		// Create new
-		context.CreateTimeSinceEpoch = now
-		if err := r.db.Create(&context).Error; err != nil {
-			err = dbutil.SanitizeDatabaseError(err)
-			return nil, fmt.Errorf("error creating catalog source: %w", err)
-		}
-	} else {
-		// Update existing
-		context.ID = existing.ID
-		context.CreateTimeSinceEpoch = existing.CreateTimeSinceEpoch
-		if err := r.db.Save(&context).Error; err != nil {
-			err = dbutil.SanitizeDatabaseError(err)
-			return nil, fmt.Errorf("error updating catalog source: %w", err)
+		if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
+			return fmt.Errorf("error checking existing catalog source: %w", err)
 		}
 
-		// Delete old properties
-		if err := r.db.Where("context_id = ?", context.ID).Delete(&schema.ContextProperty{}).Error; err != nil {
-			err = dbutil.SanitizeDatabaseError(err)
-			return nil, fmt.Errorf("error deleting old catalog source properties: %w", err)
+		savedContext = schema.Context{
+			TypeID:                   r.typeID,
+			Name:                     *attrs.Name,
+			LastUpdateTimeSinceEpoch: now,
 		}
-	}
 
-	// Save properties
-	properties := r.mapEntityToProperties(source, context.ID)
-	if len(properties) > 0 {
-		if err := r.db.Create(&properties).Error; err != nil {
-			err = dbutil.SanitizeDatabaseError(err)
-			return nil, fmt.Errorf("error saving catalog source properties: %w", err)
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			// Create new
+			savedContext.CreateTimeSinceEpoch = now
+			if err := tx.Create(&savedContext).Error; err != nil {
+				return fmt.Errorf("error creating catalog source: %w", err)
+			}
+		} else {
+			// Update existing
+			savedContext.ID = existing.ID
+			savedContext.CreateTimeSinceEpoch = existing.CreateTimeSinceEpoch
+			if err := tx.Save(&savedContext).Error; err != nil {
+				return fmt.Errorf("error updating catalog source: %w", err)
+			}
+
+			// Delete old properties
+			if err := tx.Where("context_id = ?", savedContext.ID).Delete(&schema.ContextProperty{}).Error; err != nil {
+				return fmt.Errorf("error deleting old catalog source properties: %w", err)
+			}
 		}
+
+		// Save properties
+		properties := r.mapEntityToProperties(source, savedContext.ID)
+		if len(properties) > 0 {
+			if err := tx.Create(&properties).Error; err != nil {
+				return fmt.Errorf("error saving catalog source properties: %w", err)
+			}
+		}
+
+		return nil
+	})
+
+	if err != nil {
+		return nil, dbutil.SanitizeDatabaseError(err)
 	}
 
 	// Update the source with the ID and timestamps from the saved context
-	source.SetID(context.ID)
-	attrs.CreateTimeSinceEpoch = &context.CreateTimeSinceEpoch
-	attrs.LastUpdateTimeSinceEpoch = &context.LastUpdateTimeSinceEpoch
+	source.SetID(savedContext.ID)
+	attrs.CreateTimeSinceEpoch = &savedContext.CreateTimeSinceEpoch
+	attrs.LastUpdateTimeSinceEpoch = &savedContext.LastUpdateTimeSinceEpoch
 
 	return source, nil
 }

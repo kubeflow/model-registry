@@ -141,7 +141,7 @@ func (l *Loader) Start(ctx context.Context) error {
 	// Delete models from unknown or disabled sources
 	err := l.removeModelsFromMissingSources()
 	if err != nil {
-		return fmt.Errorf("faied to remove models from missing sources: %w", err)
+		return fmt.Errorf("failed to remove models from missing sources: %w", err)
 	}
 
 	// Phase 2: Load models from merged sources (once, after all merging is complete)
@@ -327,18 +327,18 @@ func (l *Loader) updateDatabase(ctx context.Context) error {
 
 			modelID := model.GetID()
 			if modelID == nil {
-				glog.Errorf("%s: model has no ID after save")
+				glog.Errorf("%s: model has no ID after save", *attr.Name)
 				continue
 			}
 
 			// Remove artifacts that existed before.
 			err = l.services.CatalogArtifactRepository.DeleteByParentID(service.CatalogModelArtifactTypeName, *modelID)
 			if err != nil {
-				glog.Errorf("%s: unable to remove old catalog model artifacts: %v", err)
+				glog.Errorf("%s: unable to remove old catalog model artifacts: %v", *attr.Name, err)
 			}
 			err = l.services.CatalogArtifactRepository.DeleteByParentID(service.CatalogMetricsArtifactTypeName, *modelID)
 			if err != nil {
-				glog.Errorf("%s: unable to remove old catalog model artifacts: %v", err)
+				glog.Errorf("%s: unable to remove old catalog metrics artifacts: %v", *attr.Name, err)
 			}
 
 			for i, artifact := range record.Artifacts {
@@ -430,14 +430,6 @@ func (l *Loader) readProviderRecords(ctx context.Context) <-chan ModelProviderRe
 			statusSaved := false
 
 			for r := range records {
-				// Check if context was cancelled (reload triggered)
-				select {
-				case <-ctx.Done():
-					glog.V(2).Infof("%s: context cancelled, stopping", sourceID)
-					return
-				default:
-				}
-
 				if r.Model == nil {
 					glog.V(2).Infof("%s: trigger cleanup", sourceID)
 
