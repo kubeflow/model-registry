@@ -24,9 +24,9 @@ aiohttp-retry = "^2.8.3"
 # allows for reentrant event loops (used for sync client)
 nest-asyncio = "^1.6.0"
 # necessary for modern type annotations using pydantic on 3.9
-eval-type-backport = "^0.2.0"
+eval-type-backport = ">=0.2,<0.4"
 
-huggingface-hub = { version = ">=0.20.1,<1.2.0", optional = true }
+huggingface-hub = { version = ">=0.20.1,<1.3.0", optional = true }
 olot = { version = "^0.1.6", optional = true }
 boto3 = { version = "^1.37.34", optional = true }
 
@@ -52,9 +52,9 @@ pytest-mock = ">=3.7.0"
 pytest-xdist = "^3.5.0"
 ruff = ">=0.5.2,<0.15.0"
 mypy = "^1.7.0"
-# atm Ray is only available <3.13, so we will E2E test using Ray in compatible py environments.
+# E2E test using Ray in compatible py environments:
 ray = [
-    {version = "^2.43.0", python = ">=3.9, <3.13"}
+    {version = "^2.52.1", python = ">3.9"}
 ] 
 uvloop = ">=0.21,<0.23"
 pytest-asyncio = "^1.1.0"

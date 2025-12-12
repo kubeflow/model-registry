@@ -31,7 +31,7 @@ jobs:
       FORCE_COLOR: "1"
     steps:
       - name: Check out the repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@v6.0.1
       - name: Set up Python ${{ matrix.python }}
         uses: actions/setup-python@v6
         with:
@@ -53,6 +53,7 @@ jobs:
         run: |
           pipx install --pip-args=--constraint=${{ github.workspace }}/.github/workflows/constraints.txt poetry
           poetry --version
+          pipx inject poetry poetry-plugin-export
       - name: Install Nox
         run: |
           pipx install --pip-args=--constraint=${{ github.workspace }}/.github/workflows/constraints.txt nox
@@ -73,7 +74,7 @@ jobs:
         nodejs: ["20"]
     steps:
       - name: Check out the repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@v6.0.1
         with:
           fetch-depth: 0
       - name: Set up Python
@@ -146,7 +147,7 @@ jobs:
       DEPLOY_MANIFEST_DB: "${{ matrix.manifest-db }}"
     steps:
       - name: Check out the repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@v6.0.1
       - name: Set up Python ${{ matrix.python }}
         uses: actions/setup-python@v6
         with:
@@ -168,6 +169,7 @@ jobs:
         run: |
           pipx install --pip-args=--constraint=${{ github.workspace }}/.github/workflows/constraints.txt poetry
           poetry --version
+          pipx inject poetry poetry-plugin-export
       - name: Install Nox
         run: |
           pipx install --pip-args=--constraint=${{ github.workspace }}/.github/workflows/constraints.txt nox
@@ -224,7 +226,7 @@ jobs:
         run: |
           kubectl port-forward -n kubeflow service/model-registry-service 8080:8080 &
           kubectl port-forward -n minio svc/minio 9000:9000 &
-          kubectl port-forward service/distribution-registry-test-service 5001:5001 &
+          kubectl port-forward service/distribution-registry-test-service -n local-oci-registry-ns 5001:5001 &
           sleep 2
           nox --python=${{ matrix.python }} --session=e2e -- --cov-report=xml
       - name: Check if OpenAPI files changed
@@ -241,7 +243,7 @@ jobs:
         run: |
           kubectl port-forward -n kubeflow service/model-registry-service 8080:8080 > /dev/null 2>&1 &
           kubectl port-forward -n minio svc/minio 9000:9000 > /dev/null 2>&1 &
-          kubectl port-forward service/distribution-registry-test-service 5001:5001 > /dev/null 2>&1 &
+          kubectl port-forward service/distribution-registry-test-service -n local-oci-registry-ns 5001:5001 > /dev/null 2>&1 &
           sleep 2
           nox --python=${{ matrix.python }} --session=fuzz
 
@@ -258,7 +260,7 @@ jobs:
       FORCE_COLOR: "1"
     steps:
       - name: Check out the repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@v6.0.1
       - name: Set up Python ${{ matrix.python }}
         uses: actions/setup-python@v6
         with:
@@ -280,6 +282,7 @@ jobs:
         run: |
           pipx install --pip-args=--constraint=${{ github.workspace }}/.github/workflows/constraints.txt poetry
           poetry --version
+          pipx inject poetry poetry-plugin-export
       - name: Install Nox
         run: |
           pipx install --pip-args=--constraint=${{ github.workspace }}/.github/workflows/constraints.txt nox

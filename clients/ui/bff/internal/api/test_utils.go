@@ -29,10 +29,6 @@ func setupApiTest[T any](method string, url string, body interface{}, k8Factory 
 	if err != nil {
 		return *new(T), nil, err
 	}
-	modelCatalogSettingsRepository, err := mocks.NewModelCatalogSettingsRepository(nil)
-	if err != nil {
-		return *new(T), nil, err
-	}
 
 	mockClient := new(mocks.MockHTTPClient)
 
@@ -44,7 +40,7 @@ func setupApiTest[T any](method string, url string, body interface{}, k8Factory 
 		cfg.AuthMethod = config.AuthMethodUser
 	}
 	testApp := App{
-		repositories:            repositories.NewRepositories(mockMRClient, mockModelCatalogClient, modelCatalogSettingsRepository),
+		repositories:            repositories.NewRepositories(mockMRClient, mockModelCatalogClient),
 		kubernetesClientFactory: k8Factory,
 		logger:                  slog.Default(),
 		config:                  cfg,

@@ -29,7 +29,6 @@ type ModelCatalogCardProps = {
 const ModelCatalogCard: React.FC<ModelCatalogCardProps> = ({ model, source, truncate = false }) => {
   // Extract labels from customProperties and check for validated label
   const allLabels = model.customProperties ? getLabels(model.customProperties) : [];
-  const validatedLabels = allLabels.includes('validated') ? ['validated'] : [];
   const isValidated = isModelValidated(model);
 
   return (
@@ -87,9 +86,8 @@ const ModelCatalogCard: React.FC<ModelCatalogCardProps> = ({ model, source, trun
       <CardFooter>
         <ModelCatalogLabels
           tasks={model.tasks ?? []}
-          license={model.license}
           provider={model.provider}
-          labels={validatedLabels}
+          labels={allLabels.filter((label) => label !== 'validated')}
           numLabels={isValidated ? 2 : 3}
         />
       </CardFooter>

@@ -19,6 +19,7 @@ type ManageSourceFormFooterProps = {
   onSubmit: () => void;
   onCancel: () => void;
   isPreviewDisabled: boolean;
+  isPreviewLoading: boolean;
   onPreview: () => void;
 };
 
@@ -30,6 +31,7 @@ const ManageSourceFormFooter: React.FC<ManageSourceFormFooterProps> = ({
   onSubmit,
   onCancel,
   isPreviewDisabled,
+  isPreviewLoading,
   onPreview,
 }) => (
   <PageSection hasBodyWrapper={false} stickyOnBreakpoint={{ default: 'bottom' }}>
@@ -46,7 +48,7 @@ const ManageSourceFormFooter: React.FC<ManageSourceFormFooterProps> = ({
           <ActionListGroup>
             <ActionListItem>
               <Button
-                isDisabled={isSubmitDisabled}
+                isDisabled={isSubmitDisabled || isPreviewLoading}
                 variant="primary"
                 id="submit-button"
                 data-testid="submit-button"
@@ -60,13 +62,14 @@ const ManageSourceFormFooter: React.FC<ManageSourceFormFooterProps> = ({
               <PreviewButton
                 onClick={onPreview}
                 isDisabled={isPreviewDisabled}
+                isLoading={isPreviewLoading}
                 variant="secondary"
                 testId="preview-button"
               />
             </ActionListItem>
             <ActionListItem>
               <Button
-                isDisabled={isSubmitting}
+                isDisabled={isSubmitting || isPreviewLoading}
                 variant="link"
                 id="cancel-button"
                 data-testid="cancel-button"

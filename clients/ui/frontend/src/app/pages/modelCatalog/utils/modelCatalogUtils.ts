@@ -56,12 +56,12 @@ export const filterEnabledCatalogSources = (
     return null;
   }
 
-  const filteredItems = catalogSources.items.filter((source) => source.enabled !== false);
+  const filteredItems = catalogSources.items?.filter((source) => source.enabled !== false);
 
   return {
     ...catalogSources,
-    items: filteredItems,
-    size: filteredItems.length,
+    items: filteredItems || [],
+    size: filteredItems?.length || 0,
   };
 };
 
@@ -244,7 +244,7 @@ export const filtersToFilterQuery = (
 };
 
 export const getUniqueSourceLabels = (catalogSources: CatalogSourceList | null): string[] => {
-  if (!catalogSources) {
+  if (!catalogSources || !catalogSources.items) {
     return [];
   }
 
@@ -264,7 +264,7 @@ export const getUniqueSourceLabels = (catalogSources: CatalogSourceList | null):
 };
 
 export const hasSourcesWithoutLabels = (catalogSources: CatalogSourceList | null): boolean => {
-  if (!catalogSources) {
+  if (!catalogSources || !catalogSources.items) {
     return false;
   }
 
@@ -281,7 +281,7 @@ export const getSourceFromSourceId = (
   sourceId: string,
   catalogSources: CatalogSourceList | null,
 ): CatalogSource | undefined => {
-  if (!catalogSources || !sourceId) {
+  if (!catalogSources || !sourceId || !catalogSources.items) {
     return undefined;
   }
 

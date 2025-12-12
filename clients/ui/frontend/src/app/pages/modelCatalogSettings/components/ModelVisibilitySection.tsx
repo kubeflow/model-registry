@@ -11,10 +11,7 @@ import {
 import { UpdateObjectAtPropAndValue } from 'mod-arch-shared';
 import FormFieldset from '~/app/pages/modelRegistry/screens/components/FormFieldset';
 import FormSection from '~/app/pages/modelRegistry/components/pf-overrides/FormSection';
-import {
-  ManageSourceFormData,
-  SourceType,
-} from '~/app/pages/modelCatalogSettings/useManageSourceData';
+import { ManageSourceFormData } from '~/app/pages/modelCatalogSettings/useManageSourceData';
 import {
   FORM_LABELS,
   PLACEHOLDERS,
@@ -24,14 +21,20 @@ import {
   getAllowedModelsHelp,
   getExcludedModelsHelp,
 } from '~/app/pages/modelCatalogSettings/constants';
+import { CatalogSourceType } from '~/app/modelCatalogTypes';
 
 type ModelVisibilitySectionProps = {
   formData: ManageSourceFormData;
   setData: UpdateObjectAtPropAndValue<ManageSourceFormData>;
+  isDefaultExpanded?: boolean;
 };
 
-const ModelVisibilitySection: React.FC<ModelVisibilitySectionProps> = ({ formData, setData }) => {
-  const isHuggingFaceMode = formData.sourceType === SourceType.HuggingFace;
+const ModelVisibilitySection: React.FC<ModelVisibilitySectionProps> = ({
+  formData,
+  setData,
+  isDefaultExpanded = false,
+}) => {
+  const isHuggingFaceMode = formData.sourceType === CatalogSourceType.HUGGING_FACE;
   const organization = isHuggingFaceMode ? formData.organization : undefined;
 
   const sectionDescription =
@@ -86,6 +89,7 @@ const ModelVisibilitySection: React.FC<ModelVisibilitySectionProps> = ({ formDat
             titleDescription={sectionDescription}
           />
         }
+        isExpanded={isDefaultExpanded}
         data-testid="model-visibility-section"
       >
         <FormGroup label={FORM_LABELS.ALLOWED_MODELS} fieldId="allowed-models">

@@ -9,19 +9,24 @@ import {
   ModelVisibilityBadgeColor,
 } from '~/concepts/modelCatalogSettings/const';
 import { hasSourceFilters, getOrganizationDisplay } from '~/concepts/modelCatalogSettings/utils';
-import { ModelCatalogSettingsContext } from '~/app/context/modelCatalogSettings/ModelCatalogSettingsContext';
 import DeleteModal from '~/app/shared/components/DeleteModal';
 import { useNotification } from '~/app/hooks/useNotification';
+import CatalogSourceStatus from '~/app/pages/modelCatalogSettings/components/CatalogSourceStatus';
 
 type CatalogSourceConfigsTableRowProps = {
   catalogSourceConfig: CatalogSourceConfig;
+  onDeleteSource: (sourceId: string) => Promise<void>;
+  isUpdatingToggle: boolean;
+  onToggleUpdate: (checked: boolean, sourceConfig: CatalogSourceConfig) => void;
 };
 
 const CatalogSourceConfigsTableRow: React.FC<CatalogSourceConfigsTableRowProps> = ({
   catalogSourceConfig,
+  onDeleteSource,
+  isUpdatingToggle,
+  onToggleUpdate,
 }) => {
   const navigate = useNavigate();
-  const { apiState, refreshCatalogSourceConfigs } = React.useContext(ModelCatalogSettingsContext);
   const notification = useNotification();
   const [isDeleteModalOpen, setIsDeleteModalOpen] = React.useState(false);
   const [isDeleting, setIsDeleting] = React.useState(false);
@@ -36,17 +41,14 @@ const CatalogSourceConfigsTableRow: React.FC<CatalogSourceConfigsTableRowProps> 
   );
 
   const handleEnableToggle = (checked: boolean) => {
-    // TODO: Implement actual enable/disable functionality
-    window.alert(
-      `Toggle clicked! "${catalogSourceConfig.name}" will be ${checked ? 'enabled' : 'disabled'} when functionality is implemented.`,
-    );
+    onToggleUpdate(checked, catalogSourceConfig);
   };
 
   const handleManageSource = () => {
     navigate(manageSourceUrl(catalogSourceConfig.id));
   };
 
-  const handleDeleteSource = () => {
+  const handleDeleteClick = () => {
     setDeleteError(undefined);
     setIsDeleteModalOpen(true);
   };
@@ -56,9 +58,8 @@ const CatalogSourceConfigsTableRow: React.FC<CatalogSourceConfigsTableRowProps> 
     setDeleteError(undefined);
 
     try {
-      await apiState.api.deleteCatalogSourceConfig({}, catalogSourceConfig.id);
+      await onDeleteSource(catalogSourceConfig.id);
       setIsDeleteModalOpen(false);
-      refreshCatalogSourceConfigs();
       notification.success(`${catalogSourceConfig.name} deleted successfully`);
     } catch (error) {
       setDeleteError(error instanceof Error ? error : new Error('Failed to delete source'));
@@ -111,17 +112,18 @@ const CatalogSourceConfigsTableRow: React.FC<CatalogSourceConfigsTableRowProps> 
           </span>
         </Td>
         <Td dataLabel="Enable">
-          {!isDefault && (
-            <Switch
-              data-testid={`enable-toggle-${catalogSourceConfig.id}`}
-              id={`enable-toggle-${catalogSourceConfig.id}`}
-              aria-label={`Enable ${catalogSourceConfig.name}`}
-              isChecked={isEnabled}
-              onChange={(_event, checked) => handleEnableToggle(checked)}
-            />
-          )}
+          <Switch
+            data-testid={`enable-toggle-${catalogSourceConfig.id}`}
+            id={`enable-toggle-${catalogSourceConfig.id}`}
+            aria-label={`Enable ${catalogSourceConfig.name}`}
+            isChecked={isEnabled}
+            isDisabled={isUpdatingToggle}
+            onChange={(_event, checked) => handleEnableToggle(checked)}
+          />
         </Td>
-        <Td dataLabel="Validation status">{/* TODO: Status implementation */}</Td>
+        <Td dataLabel="Validation status">
+          <CatalogSourceStatus catalogSourceConfig={catalogSourceConfig} />
+        </Td>
         <Td dataLabel="Actions">
           <Button
             variant="link"
@@ -137,7 +139,7 @@ const CatalogSourceConfigsTableRow: React.FC<CatalogSourceConfigsTableRowProps> 
               items={[
                 {
                   title: 'Delete source',
-                  onClick: handleDeleteSource,
+                  onClick: handleDeleteClick,
                 },
               ]}
               data-testid={`source-actions-${catalogSourceConfig.id}`}

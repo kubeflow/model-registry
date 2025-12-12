@@ -9,6 +9,10 @@ import (
 const ComponentLabelValue = "model-registry"
 const ComponentLabelValueCatalog = "model-catalog"
 
+const CatalogSourceKey = "sources.yaml"
+const CatalogSourceDefaultConfigMapName = "model-catalog-default-sources"
+const CatalogSourceUserConfigMapName = "model-catalog-sources"
+
 type KubernetesClientInterface interface {
 	// Service discovery
 	GetServiceNames(ctx context.Context, namespace string) ([]string, error)
@@ -30,4 +34,11 @@ type KubernetesClientInterface interface {
 
 	// Model Registry Settings
 	GetGroups(ctx context.Context) ([]string, error)
+
+	//Model Catalog Settings
+	GetAllCatalogSourceConfigs(ctx context.Context, namespace string) (corev1.ConfigMap, corev1.ConfigMap, error)
+	UpdateCatalogSourceConfig(ctx context.Context, namespace string, configMap *corev1.ConfigMap) error
+	CreateSecret(ctx context.Context, namespace string, secret *corev1.Secret) error
+	PatchSecret(ctx context.Context, namespace string, secretName string, data map[string]string) error
+	DeleteSecret(ctx context.Context, namespace string, secretName string) error
 }

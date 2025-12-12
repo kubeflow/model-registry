@@ -11,6 +11,8 @@ import {
   catalogSettingsUrl,
 } from '~/app/routes/modelCatalogSettings/modelCatalogSettings';
 import ManageSourceForm from '~/app/pages/modelCatalogSettings/components/ManageSourceForm';
+import { catalogSourceConfigToFormData } from '~/app/pages/modelCatalogSettings/utils/modelCatalogSettingsUtils';
+import { useCatalogSourceConfigBySourceId } from '~/app/hooks/modelCatalogSettings/useCatalogSourceConfigBySourceId';
 
 const ManageSourcePage: React.FC = () => {
   const { catalogSourceId } = useParams<{ catalogSourceId?: string }>();
@@ -19,9 +21,11 @@ const ManageSourcePage: React.FC = () => {
   const breadcrumbLabel = isAddMode ? ADD_SOURCE_TITLE : MANAGE_SOURCE_TITLE;
   const description = isAddMode ? ADD_SOURCE_DESCRIPTION : MANAGE_SOURCE_DESCRIPTION;
 
-  // TODO: Fetch existing data when in edit mode (catalogSourceId exists)
-  // This will be implemented when API integration is ready
-  const existingData = undefined;
+  const state = useCatalogSourceConfigBySourceId(catalogSourceId || '');
+  const [existingSourceConfig, existingSourceConfigLoaded, existingSourceConfigLoadError] = state;
+  const existingData = existingSourceConfig
+    ? catalogSourceConfigToFormData(existingSourceConfig)
+    : undefined;
 
   return (
     <ApplicationsPage
@@ -37,8 +41,9 @@ const ManageSourcePage: React.FC = () => {
       }
       title={pageTitle}
       description={description}
-      empty={false}
-      loaded
+      errorMessage={catalogSourceId ? existingSourceConfigLoadError?.message : undefined}
+      empty={catalogSourceId ? !existingSourceConfig : false}
+      loaded={catalogSourceId ? existingSourceConfigLoaded : true}
       provideChildrenPadding
     >
       <ManageSourceForm existingData={existingData} isEditMode={!isAddMode} />

@@ -3,7 +3,6 @@ import { Label, LabelGroup } from '@patternfly/react-core';
 
 type ModelCatalogLabelsProps = {
   tasks?: string[];
-  license?: string;
   provider?: string;
   labels?: string[];
   numLabels: number;
@@ -11,7 +10,6 @@ type ModelCatalogLabelsProps = {
 
 const ModelCatalogLabels: React.FC<ModelCatalogLabelsProps> = ({
   tasks = [],
-  license,
   provider,
   labels = [],
   numLabels,
@@ -22,13 +20,16 @@ const ModelCatalogLabels: React.FC<ModelCatalogLabelsProps> = ({
         {task}
       </Label>
     ))}
-    {provider && <Label isCompact>{provider}</Label>}
+    {provider && (
+      <Label isCompact variant="outline">
+        {provider}
+      </Label>
+    )}
     {labels.map((label) => (
       <Label data-testid="model-catalog-label" key={label} variant="outline">
         {label}
       </Label>
     ))}
-    {license && <Label color="purple">{license}</Label>}
   </LabelGroup>
 );
 

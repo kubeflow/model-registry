@@ -121,7 +121,8 @@ func (ym *yamlModel) convertModelProperties() ([]models.Properties, []models.Pro
 		properties = append(properties, models.NewStringProperty("logo", *ym.Logo, false))
 	}
 	if ym.License != nil {
-		properties = append(properties, models.NewStringProperty("license", *ym.License, false))
+		humanReadableLicense := transformLicenseToHumanReadable(*ym.License)
+		properties = append(properties, models.NewStringProperty("license", humanReadableLicense, false))
 	}
 	if ym.LicenseLink != nil {
 		properties = append(properties, models.NewStringProperty("license_link", *ym.LicenseLink, false))
@@ -373,6 +374,12 @@ func (p *yamlModelProvider) emit(ctx context.Context, catalog *yamlCatalog, out 
 		case <-done:
 			return
 		}
+	}
+
+	// Send an empty record to indicate that we're done with the batch.
+	select {
+	case out <- ModelProviderRecord{}:
+	case <-done:
 	}
 }
 

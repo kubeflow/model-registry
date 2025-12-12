@@ -1,4 +1,4 @@
-import { ModelDetailsTab } from '~/app/pages/modelCatalog/screens/ModelDetailsTabs';
+import { ModelDetailsTab } from '~/concepts/modelCatalog/const';
 import { getCatalogModelDetailsRoute } from '~/app/routes/modelCatalog/catalogModelDetails';
 
 export const modelCatalogUrl = (sourceId?: string): string =>

@@ -9,6 +9,7 @@ const (
 	CatalogModelTypeName           = "kf.CatalogModel"
 	CatalogModelArtifactTypeName   = "kf.CatalogModelArtifact"
 	CatalogMetricsArtifactTypeName = "kf.CatalogMetricsArtifact"
+	CatalogSourceTypeName          = "kf.CatalogSource"
 )
 
 func DatastoreSpec() *datastore.Spec {
@@ -28,6 +29,10 @@ func DatastoreSpec() *datastore.Spec {
 			AddString("readme").
 			AddStruct("tasks"),
 		).
+		AddContext(CatalogSourceTypeName, datastore.NewSpecType(NewCatalogSourceRepository).
+			AddString("status").
+			AddString("error"),
+		).
 		AddArtifact(CatalogModelArtifactTypeName, datastore.NewSpecType(NewCatalogModelArtifactRepository).
 			AddString("uri"),
 		).
@@ -43,6 +48,7 @@ type Services struct {
 	CatalogArtifactRepository        models.CatalogArtifactRepository
 	CatalogModelArtifactRepository   models.CatalogModelArtifactRepository
 	CatalogMetricsArtifactRepository models.CatalogMetricsArtifactRepository
+	CatalogSourceRepository          models.CatalogSourceRepository
 	PropertyOptionsRepository        models.PropertyOptionsRepository
 }
 
@@ -51,6 +57,7 @@ func NewServices(
 	catalogArtifactRepository models.CatalogArtifactRepository,
 	catalogModelArtifactRepository models.CatalogModelArtifactRepository,
 	catalogMetricsArtifactRepository models.CatalogMetricsArtifactRepository,
+	catalogSourceRepository models.CatalogSourceRepository,
 	propertyOptionsRepository models.PropertyOptionsRepository,
 ) Services {
 	return Services{
@@ -58,6 +65,7 @@ func NewServices(
 		CatalogArtifactRepository:        catalogArtifactRepository,
 		CatalogModelArtifactRepository:   catalogModelArtifactRepository,
 		CatalogMetricsArtifactRepository: catalogMetricsArtifactRepository,
+		CatalogSourceRepository:          catalogSourceRepository,
 		PropertyOptionsRepository:        propertyOptionsRepository,
 	}
 }

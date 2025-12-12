@@ -7,11 +7,13 @@ import (
 	"math"
 	"net/http"
 	"net/url"
+	"os"
 	"slices"
 	"strconv"
 	"strings"
 
 	"github.com/kubeflow/model-registry/catalog/internal/catalog"
+	"github.com/kubeflow/model-registry/catalog/internal/db/models"
 	model "github.com/kubeflow/model-registry/catalog/pkg/openapi"
 	"github.com/kubeflow/model-registry/pkg/api"
 )
@@ -20,9 +22,10 @@ import (
 // This service should implement the business logic for every endpoint for the ModelCatalogServiceAPI s.coreApi.
 // Include any external packages or services that will be required by this service.
 type ModelCatalogServiceAPIService struct {
-	provider catalog.APIProvider
-	sources  *catalog.SourceCollection
-	labels   *catalog.LabelCollection
+	provider         catalog.APIProvider
+	sources          *catalog.SourceCollection
+	labels           *catalog.LabelCollection
+	sourceRepository models.CatalogSourceRepository
 }
 
 // GetAllModelArtifacts retrieves all model artifacts for a given model from the specified source.
@@ -73,6 +76,52 @@ func (m *ModelCatalogServiceAPIService) GetAllModelArtifacts(ctx context.Context
 		var errorMsg string
 		if errors.Is(err, api.ErrBadRequest) {
 			// Use the original error message which should be more specific
+			errorMsg = err.Error()
+		} else if errors.Is(err, api.ErrNotFound) {
+			errorMsg = fmt.Sprintf("No model found '%s' in source '%s'", modelName, sourceID)
+		} else {
+			errorMsg = err.Error()
+		}
+		return ErrorResponse(statusCode, errors.New(errorMsg)), err
+	}
+
+	return Response(http.StatusOK, artifacts), nil
+}
+
+func (m *ModelCatalogServiceAPIService) GetAllModelPerformanceArtifacts(ctx context.Context, sourceID string, modelName string, targetRPS int32, recommendations bool, rpsProperty string, latencyProperty string, hardwareCountProperty string, hardwareTypeProperty string, filterQuery string, pageSize string, orderBy string, sortOrder model.SortOrder, nextPageToken string) (ImplResponse, error) {
+	if newName, err := url.PathUnescape(modelName); err == nil {
+		modelName = newName
+	}
+
+	var err error
+	pageSizeInt := int32(10)
+
+	if pageSize != "" {
+		parsed, err := strconv.ParseInt(pageSize, 10, 32)
+		if err != nil {
+			return Response(http.StatusBadRequest, err), err
+		}
+		pageSizeInt = int32(parsed)
+	}
+
+	// Call the provider's GetPerformanceArtifacts method
+	artifacts, err := m.provider.GetPerformanceArtifacts(ctx, modelName, sourceID, catalog.ListPerformanceArtifactsParams{
+		FilterQuery:           filterQuery,
+		PageSize:              pageSizeInt,
+		OrderBy:               orderBy,
+		SortOrder:             sortOrder,
+		NextPageToken:         &nextPageToken,
+		TargetRPS:             targetRPS,
+		Recommendations:       recommendations,
+		RPSProperty:           rpsProperty,
+		LatencyProperty:       latencyProperty,
+		HardwareCountProperty: hardwareCountProperty,
+		HardwareTypeProperty:  hardwareTypeProperty,
+	})
+	if err != nil {
+		statusCode := api.ErrToStatus(err)
+		var errorMsg string
+		if errors.Is(err, api.ErrBadRequest) {
 			errorMsg = err.Error()
 		} else if errors.Is(err, api.ErrNotFound) {
 			errorMsg = fmt.Sprintf("No model found '%s' in source '%s'", modelName, sourceID)
@@ -236,6 +285,17 @@ func (m *ModelCatalogServiceAPIService) FindSources(ctx context.Context, name st
 		return ErrorResponse(http.StatusInternalServerError, err), err
 	}
 
+	// Fetch status from database
+	var statuses map[string]models.SourceStatus
+	if m.sourceRepository != nil {
+		var err error
+		statuses, err = m.sourceRepository.GetAllStatuses()
+		if err != nil {
+			// Log error but continue - status is optional
+			statuses = nil
+		}
+	}
+
 	paginator, err := newPaginator[model.CatalogSource](strPageSize, orderBy, sortOrder, nextPageToken)
 	if err != nil {
 		return ErrorResponse(http.StatusBadRequest, err), err
@@ -248,6 +308,21 @@ func (m *ModelCatalogServiceAPIService) FindSources(ctx context.Context, name st
 	for _, v := range sources {
 		if !strings.Contains(strings.ToLower(v.Name), name) {
 			continue
+		}
+
+		// Merge status from database if available
+		if statuses != nil {
+			if status, ok := statuses[v.Id]; ok {
+				if status.Status != "" {
+					statusEnum := model.CatalogSourceStatus(status.Status)
+					v.Status = &statusEnum
+				}
+				if status.Error != "" {
+					v.Error = *model.NewNullableString(&status.Error)
+				} else {
+					v.Error = *model.NewNullableString(nil)
+				}
+			}
 		}
 
 		items = append(items, v)
@@ -268,6 +343,113 @@ func (m *ModelCatalogServiceAPIService) FindSources(ctx context.Context, name st
 		NextPageToken: next.Token(),
 	}
 	return Response(http.StatusOK, res), nil
+}
+
+func (m *ModelCatalogServiceAPIService) PreviewCatalogSource(ctx context.Context, configParam *os.File, pageSizeParam string, nextPageTokenParam string, filterStatusParam string, catalogDataParam *os.File) (ImplResponse, error) {
+	// Parse page size
+	pageSize := int32(10)
+	if pageSizeParam != "" {
+		parsed, err := strconv.ParseInt(pageSizeParam, 10, 32)
+		if err != nil {
+			return ErrorResponse(http.StatusBadRequest, fmt.Errorf("invalid pageSize: %w", err)), err
+		}
+		pageSize = int32(parsed)
+	}
+
+	// Parse filterStatus (default: "all")
+	filterStatus := "all"
+	if filterStatusParam != "" {
+		filterStatus = strings.ToLower(filterStatusParam)
+		if filterStatus != "all" && filterStatus != "included" && filterStatus != "excluded" {
+			err := fmt.Errorf("invalid filterStatus: must be 'all', 'included', or 'excluded'")
+			return ErrorResponse(http.StatusBadRequest, err), err
+		}
+	}
+
+	// Read and parse the uploaded config file
+	if configParam == nil {
+		err := errors.New("config file is required")
+		return ErrorResponse(http.StatusBadRequest, err), err
+	}
+	defer configParam.Close()
+
+	configBytes, err := os.ReadFile(configParam.Name())
+	if err != nil {
+		return ErrorResponse(http.StatusBadRequest, fmt.Errorf("failed to read config file: %w", err)), err
+	}
+
+	// Read catalog data if provided (stateless mode)
+	var catalogDataBytes []byte
+	if catalogDataParam != nil {
+		defer catalogDataParam.Close()
+		catalogDataBytes, err = os.ReadFile(catalogDataParam.Name())
+		if err != nil {
+			return ErrorResponse(http.StatusBadRequest, fmt.Errorf("failed to read catalogData file: %w", err)), err
+		}
+	}
+
+	// Parse the config as a preview request
+	previewRequest, err := catalog.ParsePreviewConfig(configBytes)
+	if err != nil {
+		return ErrorResponse(http.StatusUnprocessableEntity, fmt.Errorf("invalid config: %w", err)), err
+	}
+
+	// Load models using the preview service
+	previewResults, err := catalog.PreviewSourceModels(ctx, previewRequest, catalogDataBytes)
+	if err != nil {
+		return ErrorResponse(http.StatusUnprocessableEntity, fmt.Errorf("failed to load models: %w", err)), err
+	}
+
+	// Filter by status
+	var filteredResults []model.ModelPreviewResult
+	for _, result := range previewResults {
+		switch filterStatus {
+		case "included":
+			if result.Included {
+				filteredResults = append(filteredResults, result)
+			}
+		case "excluded":
+			if !result.Included {
+				filteredResults = append(filteredResults, result)
+			}
+		default: // "all"
+			filteredResults = append(filteredResults, result)
+		}
+	}
+
+	// Calculate summary from ALL results (not filtered)
+	var includedCount, excludedCount int32
+	for _, result := range previewResults {
+		if result.Included {
+			includedCount++
+		} else {
+			excludedCount++
+		}
+	}
+
+	summary := model.CatalogSourcePreviewResponseAllOfSummary{
+		TotalModels:    int32(len(previewResults)),
+		IncludedModels: includedCount,
+		ExcludedModels: excludedCount,
+	}
+
+	// Apply pagination
+	paginator, err := newPaginator[model.ModelPreviewResult](pageSizeParam, model.OrderByField(""), model.SortOrder(""), nextPageTokenParam)
+	if err != nil {
+		return ErrorResponse(http.StatusBadRequest, err), err
+	}
+
+	pagedResults, next := paginator.Paginate(filteredResults)
+
+	response := model.CatalogSourcePreviewResponse{
+		PageSize:      pageSize,
+		Size:          int32(len(pagedResults)),
+		NextPageToken: next.Token(),
+		Items:         pagedResults,
+		Summary:       summary,
+	}
+
+	return Response(http.StatusOK, response), nil
 }
 
 func genCatalogCmpFunc(orderBy model.OrderByField, sortOrder model.SortOrder) (func(model.CatalogSource, model.CatalogSource) int, error) {
@@ -379,11 +561,12 @@ func genLabelCmpFunc(orderByKey string, sortOrder model.SortOrder) func(sortable
 var _ ModelCatalogServiceAPIServicer = &ModelCatalogServiceAPIService{}
 
 // NewModelCatalogServiceAPIService creates a default api service
-func NewModelCatalogServiceAPIService(provider catalog.APIProvider, sources *catalog.SourceCollection, labels *catalog.LabelCollection) ModelCatalogServiceAPIServicer {
+func NewModelCatalogServiceAPIService(provider catalog.APIProvider, sources *catalog.SourceCollection, labels *catalog.LabelCollection, sourceRepository models.CatalogSourceRepository) ModelCatalogServiceAPIServicer {
 	return &ModelCatalogServiceAPIService{
-		provider: provider,
-		sources:  sources,
-		labels:   labels,
+		provider:         provider,
+		sources:          sources,
+		labels:           labels,
+		sourceRepository: sourceRepository,
 	}
 }
 

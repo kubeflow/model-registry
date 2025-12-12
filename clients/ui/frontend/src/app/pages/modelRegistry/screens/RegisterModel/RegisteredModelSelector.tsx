@@ -23,9 +23,8 @@ const RegisteredModelSelector: React.FC<RegisteredModelSelectorProps> = ({
       registeredModels.map(({ name, id }) => ({
         content: name,
         value: id,
-        isSelected: id === registeredModelId,
       })),
-    [registeredModels, registeredModelId],
+    [registeredModels],
   );
 
   const modelNameInput = (
@@ -56,6 +55,7 @@ const RegisteredModelSelector: React.FC<RegisteredModelSelectorProps> = ({
   return (
     <TypeaheadSelect
       id="model-name"
+      selected={registeredModelId}
       onClearSelection={() => setRegisteredModelId('')}
       selectOptions={options}
       isScrollable

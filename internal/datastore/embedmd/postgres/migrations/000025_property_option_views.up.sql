@@ -37,8 +37,7 @@ CREATE MATERIALIZED VIEW IF NOT EXISTS context_property_options AS
         FROM "Context"
             INNER JOIN "ContextProperty" ON "Context".id="ContextProperty".context_id
         WHERE int_value IS NOT NULL
-    ) values GROUP BY type_id, name, is_custom_property
-WITH NO DATA;
+    ) values GROUP BY type_id, name, is_custom_property;
 
 CREATE MATERIALIZED VIEW IF NOT EXISTS artifact_property_options AS
     SELECT type_id, name, is_custom_property, array_agg(string_value) string_value, NULL::text[] array_value, NULL::float8 min_double_value, NULL::float8 max_double_value, NULL::integer min_int_value, NULL::integer max_int_value FROM (
@@ -79,5 +78,4 @@ CREATE MATERIALIZED VIEW IF NOT EXISTS artifact_property_options AS
         FROM "Artifact"
             INNER JOIN "ArtifactProperty" ON "Artifact".id="ArtifactProperty".artifact_id
         WHERE int_value IS NOT NULL
-    ) values GROUP BY type_id, name, is_custom_property
-WITH NO DATA;
+    ) values GROUP BY type_id, name, is_custom_property;

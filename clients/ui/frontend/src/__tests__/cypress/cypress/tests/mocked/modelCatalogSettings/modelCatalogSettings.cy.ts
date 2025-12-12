@@ -5,13 +5,17 @@ import {
 } from '~/__tests__/cypress/cypress/pages/modelCatalogSettings';
 import { MODEL_CATALOG_API_VERSION } from '~/__tests__/cypress/cypress/support/commands/api';
 import {
-  mockCatalogSource,
-  mockCatalogSourceList,
   mockCatalogSourceConfigList,
   mockYamlCatalogSourceConfig,
   mockHuggingFaceCatalogSourceConfig,
+  mockCatalogSource,
+  mockCatalogSourceList,
 } from '~/__mocks__';
-import type { CatalogSource, CatalogSourceConfig } from '~/app/modelCatalogTypes';
+import {
+  CatalogSourceType,
+  type CatalogSource,
+  type CatalogSourceConfigList,
+} from '~/app/modelCatalogTypes';
 
 const NAMESPACE = 'kubeflow';
 const userMock = {
@@ -21,11 +25,19 @@ const userMock = {
   },
 };
 
-const setupMocks = (sources: CatalogSource[] = [], sourceConfigs: CatalogSourceConfig[] = []) => {
+const setupMocks = (
+  sources: CatalogSource[] = [],
+  sourceConfigs: CatalogSourceConfigList = { catalogs: [] },
+) => {
   cy.intercept('GET', '/model-registry/api/v1/namespaces', {
     data: [{ metadata: { name: NAMESPACE } }],
   });
   cy.intercept('GET', '/model-registry/api/v1/user', userMock);
+
+  cy.intercept('GET', '/model-registry/api/v1/settings/model_catalog/source_configs', {
+    data: sourceConfigs,
+  });
+
   cy.interceptApi(
     `GET /api/:apiVersion/model_catalog/sources`,
     {
@@ -35,18 +47,6 @@ const setupMocks = (sources: CatalogSource[] = [], sourceConfigs: CatalogSourceC
       items: sources,
     }),
   );
-  cy.intercept(
-    'GET',
-    `/model-registry/api/${MODEL_CATALOG_API_VERSION}/settings/model_catalog/source_configs*`,
-    {
-      statusCode: 200,
-      body: {
-        data: mockCatalogSourceConfigList({
-          catalogs: sourceConfigs,
-        }),
-      },
-    },
-  ).as('getCatalogSourceConfigs');
 };
 
 function selectNamespaceIfPresent() {
@@ -59,14 +59,8 @@ function selectNamespaceIfPresent() {
 }
 
 describe('Model Catalog Settings', () => {
-  const defaultYamlSource = mockYamlCatalogSourceConfig({
-    id: 'default-yaml',
-    name: 'Default Catalog',
-    isDefault: true,
-  });
-
   beforeEach(() => {
-    setupMocks([], [defaultYamlSource]);
+    setupMocks([], mockCatalogSourceConfigList({}));
   });
 
   it('should display the settings page', () => {
@@ -129,13 +123,12 @@ describe('Catalog Source Configs Table', () => {
     enabled: false,
     excludedModels: ['excluded-model'],
   });
-
   beforeEach(() => {
-    setupMocks([], [defaultYamlSource, huggingFaceSource, customYamlSource]);
+    setupMocks([], { catalogs: [defaultYamlSource, huggingFaceSource, customYamlSource] });
   });
 
   it('should display empty state when no source configs exist', () => {
-    setupMocks([], []);
+    setupMocks([], { catalogs: [] });
     modelCatalogSettings.visit();
     modelCatalogSettings.shouldBeEmpty();
     modelCatalogSettings.findEmptyState().should('contain', 'No catalog sources');
@@ -166,7 +159,6 @@ describe('Catalog Source Configs Table', () => {
       row.shouldHaveOrganization('-');
       row.shouldHaveModelVisibility('Unfiltered');
       row.shouldHaveSourceType('YAML file');
-      row.shouldHaveEnableToggle(false); // Default sources don't have toggle
     });
 
     it('should render Hugging Face source correctly', () => {
@@ -176,7 +168,6 @@ describe('Catalog Source Configs Table', () => {
       row.shouldHaveOrganization('Google');
       row.shouldHaveModelVisibility('Filtered');
       row.shouldHaveSourceType('Hugging Face');
-      row.shouldHaveEnableToggle(true);
       row.shouldHaveEnableState(true);
     });
 
@@ -187,35 +178,95 @@ describe('Catalog Source Configs Table', () => {
       row.shouldHaveOrganization('-');
       row.shouldHaveModelVisibility('Filtered');
       row.shouldHaveSourceType('YAML file');
-      row.shouldHaveEnableToggle(true);
       row.shouldHaveEnableState(false);
     });
   });
 
   describe('Enable toggle functionality', () => {
-    it('should show alert when enable toggle is clicked', () => {
+    it('should disable the source when toggle is clicked', () => {
+      cy.intercept('PATCH', '/model-registry/api/v1/settings/model_catalog/source_configs/*', {
+        statusCode: 200,
+        body: {
+          data: mockYamlCatalogSourceConfig({ id: 'source_2', isDefault: false }),
+        },
+      }).as('manageToggle');
       modelCatalogSettings.visit();
       const row = modelCatalogSettings.getRow('HuggingFace Google');
       row.findName().should('be.visible');
       row.findEnableToggle().should('exist').and('be.checked');
 
-      cy.window().then((win) => {
-        cy.stub(win, 'alert').as('windowAlert');
-      });
-
       row.toggleEnable();
-
-      cy.get('@windowAlert').should(
-        'have.been.calledWith',
-        'Toggle clicked! "HuggingFace Google" will be disabled when functionality is implemented.',
-      );
+      cy.wait('@manageToggle').then((interception) => {
+        expect(interception.request.body).to.eql({
+          data: {
+            enabled: false,
+          },
+        });
+      });
     });
 
-    it('should not show toggle for default sources', () => {
+    it('should enable the source when toggle is clicked', () => {
+      cy.intercept('PATCH', '/model-registry/api/v1/settings/model_catalog/source_configs/*', {
+        statusCode: 200,
+        body: {
+          data: mockYamlCatalogSourceConfig({ id: 'source_2', isDefault: false }),
+        },
+      }).as('manageToggle');
       modelCatalogSettings.visit();
-      const row = modelCatalogSettings.getRow('Default Catalog');
+      const row = modelCatalogSettings.getRow('Custom YAML');
       row.findName().should('be.visible');
-      row.shouldHaveEnableToggle(false);
+      row.findEnableToggle().should('exist').and('not.be.checked');
+
+      row.toggleEnable();
+      cy.wait('@manageToggle').then((interception) => {
+        expect(interception.request.body).to.eql({
+          data: {
+            enabled: true,
+          },
+        });
+      });
+    });
+
+    it('should show error, if the patch call to toggle fails', () => {
+      cy.intercept(
+        'PATCH',
+        '/model-registry/api/v1/settings/model_catalog/source_configs/*',
+        (req) => {
+          req.reply({
+            statusCode: 404,
+          });
+        },
+      ).as('manageToggle');
+      modelCatalogSettings.visit();
+      const row = modelCatalogSettings.getRow('Custom YAML');
+      row.findName().should('be.visible');
+      row.findEnableToggle().should('exist').and('not.be.checked');
+
+      row.toggleEnable();
+      modelCatalogSettings.findToggleAlert().should('exist');
+      modelCatalogSettings
+        .findToggleAlert()
+        .should('have.text', 'Danger alert:Error enabling/disabling source Custom YAML');
+    });
+
+    it('should disable the toggle, when the request is processing', () => {
+      cy.intercept(
+        'PATCH',
+        '/model-registry/api/v1/settings/model_catalog/source_configs/*',
+        (req) => {
+          req.reply({
+            statusCode: 200,
+            delay: 1000,
+          });
+        },
+      ).as('manageToggle');
+      modelCatalogSettings.visit();
+      const row = modelCatalogSettings.getRow('Custom YAML');
+      row.findName().should('be.visible');
+      row.findEnableToggle().should('exist').and('not.be.checked');
+
+      row.toggleEnable();
+      row.findEnableToggle().should('be.disabled');
     });
   });
 
@@ -363,11 +414,146 @@ describe('Catalog Source Configs Table', () => {
         .should('be.visible');
     });
   });
+
+  describe('Validation status column', () => {
+    it('should show "-" for default sources', () => {
+      setupMocks([], { catalogs: [defaultYamlSource, huggingFaceSource] });
+      modelCatalogSettings.visit();
+      const row = modelCatalogSettings.getRow('Default Catalog');
+      row.findName().should('be.visible');
+      row.shouldHaveValidationStatus('-');
+    });
+
+    it('should show "-" for disabled sources', () => {
+      setupMocks([], { catalogs: [defaultYamlSource, huggingFaceSource] });
+      modelCatalogSettings.visit();
+      const row = modelCatalogSettings.getRow('Default Catalog');
+      row.findName().should('be.visible');
+      row.shouldHaveValidationStatus('-');
+    });
+
+    it('should show "Connected" status for available sources', () => {
+      const availableSource = mockCatalogSource({
+        id: 'hf-google',
+        name: 'HuggingFace Google',
+        status: 'available',
+      });
+      setupMocks([availableSource], { catalogs: [huggingFaceSource] });
+      modelCatalogSettings.visit();
+      const row = modelCatalogSettings.getRow('HuggingFace Google');
+      row.findName().should('be.visible');
+      row.shouldHaveValidationStatus('Connected');
+      row.findValidationStatus().findByTestId('source-status-connected-hf-google').should('exist');
+    });
+
+    it('should show "Starting" status when no matching source found', () => {
+      setupMocks([], { catalogs: [huggingFaceSource] });
+      modelCatalogSettings.visit();
+      const row = modelCatalogSettings.getRow('HuggingFace Google');
+      row.findName().should('be.visible');
+      row.shouldHaveValidationStatus('Starting');
+      row.findValidationStatus().findByTestId('source-status-starting-hf-google').should('exist');
+    });
+
+    it('should show "Starting" status when source has no status field', () => {
+      const startingSource = mockCatalogSource({
+        id: 'hf-google',
+        name: 'HuggingFace Google',
+        status: undefined,
+      });
+      setupMocks([startingSource], { catalogs: [huggingFaceSource] });
+      modelCatalogSettings.visit();
+      const row = modelCatalogSettings.getRow('HuggingFace Google');
+      row.findName().should('be.visible');
+      row.shouldHaveValidationStatus('Starting');
+    });
+
+    it('should show "Failed" status with error message for error sources', () => {
+      const errorSource = mockCatalogSource({
+        id: 'hf-google',
+        name: 'HuggingFace Google',
+        status: 'error',
+        error: 'The provided API key is invalid or has expired. Please update your credentials.',
+      });
+      setupMocks([errorSource], { catalogs: [huggingFaceSource] });
+      modelCatalogSettings.visit();
+      const row = modelCatalogSettings.getRow('HuggingFace Google');
+      row.findName().should('be.visible');
+      row.shouldHaveValidationStatus('Failed');
+      row.findValidationStatus().findByTestId('source-status-failed-hf-google').should('exist');
+      row.findValidationStatusErrorLink().should('exist');
+    });
+
+    it('should show truncated error message for long errors', () => {
+      const longErrorMessage =
+        'The specified organization "invalid-org" does not exist or you don\'t have access to it. Please verify the organization name and ensure you have the necessary permissions to access models from this organization.';
+      const errorSource = mockCatalogSource({
+        id: 'hf-google',
+        name: 'HuggingFace Google',
+        status: 'error',
+        error: longErrorMessage,
+      });
+      setupMocks([errorSource], { catalogs: [huggingFaceSource] });
+      modelCatalogSettings.visit();
+      const row = modelCatalogSettings.getRow('HuggingFace Google');
+      row.findName().should('be.visible');
+      row.findValidationStatusErrorLink().find('.pf-v6-c-truncate').should('exist');
+      row.findValidationStatusErrorLink().should('contain', longErrorMessage);
+    });
+
+    it('should open error modal when clicking error message', () => {
+      const errorSource = mockCatalogSource({
+        id: 'hf-google',
+        name: 'HuggingFace Google',
+        status: 'error',
+        error: 'The provided API key is invalid or has expired.',
+      });
+      setupMocks([errorSource], { catalogs: [huggingFaceSource] });
+      modelCatalogSettings.visit();
+      const row = modelCatalogSettings.getRow('HuggingFace Google');
+      row.findName().should('be.visible');
+      row.clickValidationStatusErrorLink();
+
+      // Check modal is displayed
+      cy.findByTestId('catalog-source-status-error-modal').should('exist');
+      cy.findByTestId('catalog-source-status-error-modal')
+        .contains('Source status')
+        .should('exist');
+      cy.findByTestId('catalog-source-status-error-modal').contains('Failed').should('exist');
+      cy.findByTestId('catalog-source-status-error-alert').should('exist');
+      cy.findByTestId('catalog-source-status-error-alert')
+        .contains('Validation failed')
+        .should('exist');
+      cy.findByTestId('catalog-source-status-error-message').should(
+        'contain',
+        'The provided API key is invalid or has expired.',
+      );
+    });
+
+    it('should close error modal when clicking close button', () => {
+      const errorSource = mockCatalogSource({
+        id: 'hf-google',
+        name: 'HuggingFace Google',
+        status: 'error',
+        error: 'The provided API key is invalid.',
+      });
+      setupMocks([errorSource], { catalogs: [huggingFaceSource] });
+      modelCatalogSettings.visit();
+      const row = modelCatalogSettings.getRow('HuggingFace Google');
+      row.clickValidationStatusErrorLink();
+
+      cy.findByTestId('catalog-source-status-error-modal').should('exist');
+      cy.findByTestId('catalog-source-status-error-modal')
+        .findByRole('button', { name: 'Close' })
+        .click();
+      cy.findByTestId('catalog-source-status-error-modal').should('not.exist');
+    });
+  });
 });
 
 describe('Manage Source Page', () => {
   beforeEach(() => {
-    setupMocks();
+    setupMocks([], mockCatalogSourceConfigList({}));
   });
 
   describe('Add Source Mode', () => {
@@ -643,17 +829,87 @@ describe('Manage Source Page', () => {
       manageSourcePage.findPreviewButtonHeader().should('not.be.disabled');
       manageSourcePage.findPreviewButtonPanel().should('not.be.disabled');
     });
+
+    it('submit add source form with yaml source type', () => {
+      cy.intercept('POST', '/model-registry/api/v1/settings/model_catalog/source_configs', {
+        data: mockYamlCatalogSourceConfig({}),
+      }).as('addSourcewithYamlType');
+      manageSourcePage.visitAddSource();
+      manageSourcePage.findNameInput().type('sample source');
+      manageSourcePage.selectSourceType('yaml');
+      manageSourcePage.findSourceTypeYaml().should('be.checked');
+
+      manageSourcePage.findYamlSection().should('exist');
+      manageSourcePage.findYamlContentInput().should('exist');
+      manageSourcePage.findYamlContentInput().type('models:\n  - name: model1');
+
+      manageSourcePage.toggleModelVisibility();
+      manageSourcePage.findAllowedModelsInput().should('exist');
+      manageSourcePage.findAllowedModelsInput().type('model-1-*, model-2-*');
+      manageSourcePage.findExcludedModelsInput().should('exist');
+      manageSourcePage.findExcludedModelsInput().type('model-3-*, model-4-*');
+
+      manageSourcePage.findSubmitButton().should('be.enabled');
+      manageSourcePage.findSubmitButton().click();
+      cy.wait('@addSourcewithYamlType').then((interception) => {
+        expect(interception.request.body).to.eql({
+          data: {
+            name: 'sample source',
+            id: 'sample_source',
+            isDefault: false,
+            includedModels: ['model-1-*', 'model-2-*'],
+            excludedModels: ['model-3-*', 'model-4-*'],
+            enabled: false,
+            type: CatalogSourceType.YAML,
+            yaml: 'models:\n  - name: model1',
+          },
+        });
+      });
+    });
+
+    it('submit the add source form with hugging face source type', () => {
+      cy.intercept('POST', '/model-registry/api/v1/settings/model_catalog/source_configs', {
+        data: mockHuggingFaceCatalogSourceConfig({}),
+      }).as('addSourcewithHuggingFaceType');
+      manageSourcePage.visitAddSource();
+      manageSourcePage.findNameInput().type('sample source');
+      manageSourcePage.selectSourceType('huggingface');
+      manageSourcePage.findSourceTypeHuggingFace().should('be.checked');
+
+      manageSourcePage.findAccessTokenInput().type('apikey');
+      manageSourcePage.findOrganizationInput().type('org1');
+
+      manageSourcePage.toggleModelVisibility();
+      manageSourcePage.findAllowedModelsInput().should('exist');
+      manageSourcePage.findAllowedModelsInput().type('model-1-*, model-2-*');
+      manageSourcePage.findExcludedModelsInput().should('exist');
+      manageSourcePage.findExcludedModelsInput().type('model-3-*, model-4-*');
+
+      manageSourcePage.findSubmitButton().should('be.enabled');
+      manageSourcePage.findSubmitButton().click();
+      cy.wait('@addSourcewithHuggingFaceType').then((interception) => {
+        expect(interception.request.body).to.eql({
+          data: {
+            name: 'sample source',
+            id: 'sample_source',
+            type: CatalogSourceType.HUGGING_FACE,
+            includedModels: ['model-1-*', 'model-2-*'],
+            excludedModels: ['model-3-*', 'model-4-*'],
+            enabled: false,
+            isDefault: false,
+            allowedOrganization: 'org1',
+            apiKey: 'apikey',
+          },
+        });
+      });
+    });
   });
 
   describe('Manage Source Mode', () => {
     const catalogSourceId = 'test-source-id';
-    const catalogSource = mockCatalogSource({
-      id: catalogSourceId,
-      name: 'Test Source',
-    });
 
     beforeEach(() => {
-      setupMocks([catalogSource]);
+      setupMocks([], mockCatalogSourceConfigList({}));
     });
 
     it('should display manage source page', () => {
@@ -675,9 +931,194 @@ describe('Manage Source Page', () => {
     });
 
     it('should show Save button instead of Add button', () => {
+      cy.intercept('GET', '/model-registry/api/v1/settings/model_catalog/source_configs/**', {
+        data: mockYamlCatalogSourceConfig({
+          id: 'source_2',
+          name: 'Source 2',
+          isDefault: false,
+          includedModels: ['model1', 'model2'],
+          excludedModels: ['model3'],
+          enabled: false,
+        }),
+      });
       manageSourcePage.visitManageSource(catalogSourceId);
       manageSourcePage.findSubmitButton().should('exist');
+      manageSourcePage.findSubmitButton().should('be.enabled');
       manageSourcePage.findSubmitButton().should('contain', 'Save');
+    });
+
+    it('should do the form validation for default source config', () => {
+      cy.intercept('GET', '/model-registry/api/v1/settings/model_catalog/source_configs/**', {
+        data: mockYamlCatalogSourceConfig({
+          id: 'source_2',
+          name: 'Source 2',
+          isDefault: true,
+          includedModels: ['model1', 'model2'],
+          excludedModels: ['model3'],
+          enabled: false,
+        }),
+      });
+      manageSourcePage.visitManageSource(catalogSourceId);
+      manageSourcePage.findNameInput().should('have.value', 'Source 2');
+      manageSourcePage.findSubmitButton().should('exist');
+      manageSourcePage.findSubmitButton().should('be.enabled');
+      manageSourcePage.findSubmitButton().should('contain', 'Save');
+    });
+  });
+
+  it('should successfully update the source with yaml type', () => {
+    cy.intercept('GET', '/model-registry/api/v1/settings/model_catalog/source_configs/**', {
+      data: mockYamlCatalogSourceConfig({
+        id: 'source_2',
+        name: 'Source 2',
+        isDefault: false,
+        includedModels: ['model1', 'model2'],
+        excludedModels: ['model3'],
+        enabled: false,
+      }),
+    });
+
+    cy.intercept('PATCH', '/model-registry/api/v1/settings/model_catalog/source_configs/*', {
+      statusCode: 200,
+      body: {
+        data: mockYamlCatalogSourceConfig({ id: 'source_2', isDefault: false }),
+      },
+    }).as('manageSourcewithYamlType');
+
+    manageSourcePage.visitManageSource('source_2');
+    cy.url().should('include', '/model-catalog-settings/manage-source/source_2');
+    manageSourcePage.findNameInput().should('have.value', 'Source 2');
+    manageSourcePage.findSourceTypeHuggingFace().should('not.exist');
+    manageSourcePage.findSourceTypeYaml().should('not.exist');
+
+    manageSourcePage.findAllowedModelsInput().should('exist');
+    manageSourcePage.findExcludedModelsInput().should('exist');
+    manageSourcePage.findAllowedModelsInput().type(', model-1-*, model-2-*');
+    manageSourcePage.findExcludedModelsInput().type(', model-3-*, model-4-*');
+    manageSourcePage.findEnableSourceCheckbox().should('not.be.checked');
+    manageSourcePage.findEnableSourceCheckbox().check();
+
+    manageSourcePage.findSubmitButton().should('be.enabled');
+    manageSourcePage.findSubmitButton().should('have.text', 'Save');
+    manageSourcePage.findSubmitButton().click();
+
+    cy.wait('@manageSourcewithYamlType').then((interception) => {
+      expect(interception.request.body).to.eql({
+        data: {
+          name: 'Source 2',
+          type: CatalogSourceType.YAML,
+          includedModels: ['model1', 'model2', 'model-1-*', 'model-2-*'],
+          excludedModels: ['model3', 'model-3-*', 'model-4-*'],
+          enabled: true,
+          isDefault: false,
+          yaml: 'models:\n  - name: model1',
+        },
+      });
+    });
+  });
+
+  it('should successfully update the source with yaml type and default one', () => {
+    cy.intercept('GET', '/model-registry/api/v1/settings/model_catalog/source_configs/**', {
+      data: mockYamlCatalogSourceConfig({
+        id: 'sample_source_1',
+        name: 'Sample source 1',
+        isDefault: true,
+        includedModels: [],
+        excludedModels: [],
+      }),
+    });
+
+    cy.intercept('PATCH', '/model-registry/api/v1/settings/model_catalog/source_configs/*', {
+      statusCode: 200,
+      body: {
+        data: mockYamlCatalogSourceConfig({ id: 'sample_source_1' }),
+      },
+    }).as('manageSourcewithYamlType');
+
+    manageSourcePage.visitManageSource('sample_source_1');
+    cy.url().should('include', '/model-catalog-settings/manage-source/sample_source_1');
+    manageSourcePage.findNameInput().should('have.value', 'Sample source 1');
+    manageSourcePage.findSourceTypeHuggingFace().should('not.exist');
+    manageSourcePage.findSourceTypeYaml().should('not.exist');
+
+    manageSourcePage.findAllowedModelsInput().should('exist');
+    manageSourcePage.findExcludedModelsInput().should('exist');
+    manageSourcePage.findAllowedModelsInput().type('model-1-*, model-2-*');
+    manageSourcePage.findExcludedModelsInput().type('model-3-*, model-4-*');
+    manageSourcePage.findEnableSourceCheckbox().should('be.checked');
+    manageSourcePage.findEnableSourceCheckbox().uncheck();
+
+    manageSourcePage.findSubmitButton().should('be.enabled');
+    manageSourcePage.findSubmitButton().should('have.text', 'Save');
+    manageSourcePage.findSubmitButton().click();
+
+    cy.wait('@manageSourcewithYamlType').then((interception) => {
+      expect(interception.request.body).to.eql({
+        data: {
+          enabled: false,
+          includedModels: ['model-1-*', 'model-2-*'],
+          excludedModels: ['model-3-*', 'model-4-*'],
+        },
+      });
+    });
+  });
+
+  it('should successfully update the source with huggingface type', () => {
+    cy.intercept('GET', '/model-registry/api/v1/settings/model_catalog/source_configs/**', {
+      data: mockHuggingFaceCatalogSourceConfig({
+        id: 'huggingface_source_3',
+        name: 'Huggingface source 3',
+        allowedOrganization: 'org1',
+        isDefault: false,
+      }),
+    });
+
+    cy.intercept(
+      'PATCH',
+      `/model-registry/api/${MODEL_CATALOG_API_VERSION}/settings/model_catalog/source_configs/*`,
+      {
+        statusCode: 200,
+        body: {
+          data: mockHuggingFaceCatalogSourceConfig({
+            id: 'huggingface_source_3',
+            name: 'Huggingface source 3',
+            allowedOrganization: 'org1',
+            isDefault: false,
+          }),
+        },
+      },
+    ).as('manageSourcewithHuggingFaceType');
+
+    manageSourcePage.visitManageSource('huggingface_source_3');
+    manageSourcePage.findNameInput().should('have.value', 'Huggingface source 3');
+
+    manageSourcePage.findAccessTokenInput().should('have.value', 'apikey');
+    manageSourcePage.findOrganizationInput().should('have.value', 'org1');
+
+    manageSourcePage.toggleModelVisibility();
+    manageSourcePage.findAllowedModelsInput().should('exist');
+    manageSourcePage.findAllowedModelsInput().type('model-1-*, model-2-*');
+    manageSourcePage.findExcludedModelsInput().should('exist');
+    manageSourcePage.findExcludedModelsInput().type('model-3-*, model-4-*');
+    manageSourcePage.findEnableSourceCheckbox().should('be.checked');
+    manageSourcePage.findEnableSourceCheckbox().uncheck();
+
+    manageSourcePage.findSubmitButton().should('be.enabled');
+    manageSourcePage.findSubmitButton().should('have.text', 'Save');
+    manageSourcePage.findSubmitButton().click();
+    cy.wait('@manageSourcewithHuggingFaceType').then((interception) => {
+      expect(interception.request.body).to.eql({
+        data: {
+          name: 'Huggingface source 3',
+          apiKey: 'apikey',
+          allowedOrganization: 'org1',
+          type: CatalogSourceType.HUGGING_FACE,
+          includedModels: ['model-1-*', 'model-2-*'],
+          excludedModels: ['model-3-*', 'model-4-*'],
+          enabled: false,
+          isDefault: false,
+        },
+      });
     });
   });
 });

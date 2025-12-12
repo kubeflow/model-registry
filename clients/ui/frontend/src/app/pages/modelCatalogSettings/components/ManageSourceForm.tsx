@@ -15,16 +15,34 @@ import { catalogSettingsUrl } from '~/app/routes/modelCatalogSettings/modelCatal
 import { isFormValid, isPreviewReady } from '~/app/pages/modelCatalogSettings/utils/validation';
 import {
   ManageSourceFormData,
-  SourceType,
   useManageSourceData,
 } from '~/app/pages/modelCatalogSettings/useManageSourceData';
 import { FORM_LABELS, DESCRIPTIONS } from '~/app/pages/modelCatalogSettings/constants';
+import { ModelCatalogSettingsContext } from '~/app/context/modelCatalogSettings/ModelCatalogSettingsContext';
+import {
+  getPayloadForConfig,
+  transformFormDataToConfig,
+} from '~/app/pages/modelCatalogSettings/utils/modelCatalogSettingsUtils';
+import {
+  CatalogSourceType,
+  CatalogSourcePreviewResult,
+  CatalogSourcePreviewRequest,
+} from '~/app/modelCatalogTypes';
 import SourceDetailsSection from './SourceDetailsSection';
 import CredentialsSection from './CredentialsSection';
 import YamlSection from './YamlSection';
 import ModelVisibilitySection from './ModelVisibilitySection';
 import PreviewPanel from './PreviewPanel';
 import ManageSourceFormFooter from './ManageSourceFormFooter';
+
+type PreviewState = {
+  mode?: 'preview' | 'validate';
+  isLoading: boolean;
+  result?: CatalogSourcePreviewResult;
+  error?: Error;
+  resultDismissed: boolean;
+  lastPreviewedData?: string;
+};
 
 type ManageSourceFormProps = {
   existingData?: Partial<ManageSourceFormData>;
@@ -36,27 +54,134 @@ const ManageSourceForm: React.FC<ManageSourceFormProps> = ({ existingData, isEdi
   const [formData, setData] = useManageSourceData(existingData);
   const [isSubmitting, setIsSubmitting] = React.useState(false);
   const [submitError, setSubmitError] = React.useState<Error | undefined>(undefined);
+  const { apiState, refreshCatalogSourceConfigs } = React.useContext(ModelCatalogSettingsContext);
 
-  const isHuggingFaceMode = formData.sourceType === SourceType.HuggingFace;
+  // Preview state
+  const [previewState, setPreviewState] = React.useState<PreviewState>({
+    isLoading: false,
+    resultDismissed: false,
+  });
+
+  const isHuggingFaceMode = formData.sourceType === CatalogSourceType.HUGGING_FACE;
   const isFormComplete = isFormValid(formData);
   const canPreview = isPreviewReady(formData);
 
+  // Derive whether form has changed since last preview
+  const hasFormChanged = React.useMemo(() => {
+    const currentData = JSON.stringify(formData);
+    return (
+      previewState.lastPreviewedData !== undefined && currentData !== previewState.lastPreviewedData
+    );
+  }, [formData, previewState.lastPreviewedData]);
+
+  // Derive validation success state
+  const isValidationSuccess =
+    previewState.mode === 'validate' &&
+    !previewState.isLoading &&
+    !previewState.error &&
+    !previewState.resultDismissed;
+
+  // Auto-trigger preview on mount in edit mode
+  React.useEffect(() => {
+    if (isEditMode && existingData && canPreview && !previewState.result) {
+      handlePreview();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const buildPreviewRequest = (): CatalogSourcePreviewRequest => {
+    const payload = transformFormDataToConfig(formData);
+
+    const request: CatalogSourcePreviewRequest = {
+      type: payload.type,
+      includedModels: payload.includedModels,
+      excludedModels: payload.excludedModels,
+    };
+
+    if (payload.type === CatalogSourceType.HUGGING_FACE) {
+      request.properties = {
+        allowedOrganization: payload.allowedOrganization,
+        apiKey: payload.apiKey,
+      };
+    } else {
+      request.properties = {
+        yaml: payload.yaml,
+      };
+    }
+
+    return request;
+  };
+
+  const handlePreview = async (mode: 'preview' | 'validate' = 'preview') => {
+    if (!apiState.apiAvailable) {
+      setPreviewState({
+        mode,
+        isLoading: false,
+        error: new Error('API is not available'),
+        resultDismissed: false,
+      });
+      return;
+    }
+
+    // Start loading, clear previous state
+    setPreviewState({
+      mode,
+      isLoading: true,
+      resultDismissed: false,
+    });
+
+    try {
+      const previewRequest = buildPreviewRequest();
+      const result = await apiState.api.previewCatalogSource({}, previewRequest);
+
+      setPreviewState({
+        mode,
+        isLoading: false,
+        result,
+        lastPreviewedData: JSON.stringify(formData),
+        resultDismissed: false,
+      });
+    } catch (error) {
+      const err = error instanceof Error ? error : new Error('Failed to preview source');
+
+      setPreviewState({
+        mode,
+        isLoading: false,
+        error: err,
+        resultDismissed: false,
+      });
+    }
+  };
+
+  const handleValidate = async () => {
+    await handlePreview('validate');
+  };
+
   const handleSubmit = async () => {
+    if (!apiState.apiAvailable) {
+      setSubmitError(new Error('API is not available'));
+      return;
+    }
     setIsSubmitting(true);
     setSubmitError(undefined);
 
     try {
-      // TODO: Implement submit logic (will be part of API integration)
-      // navigate(catalogSettingsUrl());
+      const sourceConfig = transformFormDataToConfig(formData);
+      const payload = getPayloadForConfig(sourceConfig, isEditMode);
+
+      if (isEditMode) {
+        await apiState.api.updateCatalogSourceConfig({}, formData.id, payload);
+      } else {
+        await apiState.api.createCatalogSourceConfig({}, payload);
+      }
+
+      refreshCatalogSourceConfigs();
+      navigate(catalogSettingsUrl());
     } catch (error) {
-      setSubmitError(error instanceof Error ? error : new Error('Failed to save source'));
+      setSubmitError(error instanceof Error ? error : new Error(`Failed to save source`));
     } finally {
       setIsSubmitting(false);
     }
-  };
-
-  const handlePreview = () => {
-    // TODO: Implement preview logic (will be part of API integration)
   };
 
   const handleCancel = () => {
@@ -65,28 +190,52 @@ const ManageSourceForm: React.FC<ManageSourceFormProps> = ({ existingData, isEdi
 
   return (
     <>
-      <Sidebar hasBorder isPanelRight>
-        <SidebarContent hasPadding>
+      <Sidebar hasBorder isPanelRight hasGutter>
+        <SidebarContent>
           <Form isWidthLimited>
             <Stack hasGutter>
               <StackItem>
-                <SourceDetailsSection formData={formData} setData={setData} />
+                <SourceDetailsSection
+                  formData={formData}
+                  setData={setData}
+                  isEditMode={isEditMode}
+                />
               </StackItem>
 
               {isHuggingFaceMode && (
                 <StackItem>
-                  <CredentialsSection formData={formData} setData={setData} />
+                  <CredentialsSection
+                    formData={formData}
+                    setData={setData}
+                    onValidate={handleValidate}
+                    isValidating={previewState.mode === 'validate' && previewState.isLoading}
+                    validationError={
+                      previewState.mode === 'validate' ? previewState.error : undefined
+                    }
+                    isValidationSuccess={isValidationSuccess}
+                    onClearValidationSuccess={() =>
+                      setPreviewState({ ...previewState, resultDismissed: true })
+                    }
+                  />
                 </StackItem>
               )}
 
-              {!isHuggingFaceMode && (
+              {!formData.isDefault && !isHuggingFaceMode && (
                 <StackItem>
                   <YamlSection formData={formData} setData={setData} />
                 </StackItem>
               )}
 
               <StackItem>
-                <ModelVisibilitySection formData={formData} setData={setData} />
+                <ModelVisibilitySection
+                  formData={formData}
+                  setData={setData}
+                  isDefaultExpanded={
+                    existingData?.isDefault ||
+                    !!existingData?.allowedModels ||
+                    !!existingData?.excludedModels
+                  }
+                />
               </StackItem>
 
               <StackItem>
@@ -111,8 +260,15 @@ const ManageSourceForm: React.FC<ManageSourceFormProps> = ({ existingData, isEdi
             </Stack>
           </Form>
         </SidebarContent>
-        <SidebarPanel width={{ default: 'width_50' }} hasPadding>
-          <PreviewPanel isPreviewEnabled={canPreview} onPreview={handlePreview} />
+        <SidebarPanel width={{ default: 'width_50' }}>
+          <PreviewPanel
+            isPreviewEnabled={canPreview}
+            isLoading={previewState.isLoading}
+            onPreview={() => handlePreview('preview')}
+            previewResult={previewState.result}
+            previewError={previewState.mode === 'preview' ? previewState.error : undefined}
+            hasFormChanged={hasFormChanged}
+          />
         </SidebarPanel>
       </Sidebar>
       <ManageSourceFormFooter
@@ -123,7 +279,8 @@ const ManageSourceForm: React.FC<ManageSourceFormProps> = ({ existingData, isEdi
         onSubmit={handleSubmit}
         onCancel={handleCancel}
         isPreviewDisabled={!canPreview}
-        onPreview={handlePreview}
+        isPreviewLoading={previewState.isLoading}
+        onPreview={() => handlePreview('preview')}
       />
     </>
   );

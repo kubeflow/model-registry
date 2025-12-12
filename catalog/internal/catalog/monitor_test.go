@@ -139,9 +139,12 @@ func (mw *monitorWatcher) Reset() {
 
 func (mw *monitorWatcher) AssertCount(t *testing.T, expected int, args ...any) bool {
 	t.Helper()
+	// Use 5 second timeout to handle slow CI runners where file system events
+	// can take longer to propagate. The test still returns immediately when
+	// the condition is met, so this doesn't slow down fast runs.
 	return assert.Eventually(t, func() bool {
 		return int(atomic.LoadInt32(&mw.count)) == expected
-	}, time.Second, 10*time.Millisecond, args...)
+	}, 5*time.Second, 10*time.Millisecond, args...)
 }
 
 func (mw *monitorWatcher) Count() int {

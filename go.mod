@@ -1,10 +1,11 @@
 module github.com/kubeflow/model-registry
 
-go 1.25.3
+go 1.24.6
 
 require (
 	github.com/DATA-DOG/go-sqlmock v1.5.2
 	github.com/alecthomas/participle/v2 v2.1.4
+	github.com/deckarep/golang-set/v2 v2.8.0
 	github.com/go-chi/chi/v5 v5.2.3
 	github.com/go-chi/cors v1.2.2
 	github.com/go-logr/logr v1.4.3
@@ -128,6 +129,7 @@ require (
 	github.com/shirou/gopsutil/v4 v4.25.6 // indirect
 	github.com/spiffe/go-spiffe/v2 v2.5.0 // indirect
 	github.com/stoewer/go-strcase v1.3.0 // indirect
+	github.com/stretchr/objx v0.5.2 // indirect
 	github.com/x448/float16 v0.8.4 // indirect
 	github.com/zeebo/errs v1.4.0 // indirect
 	go.opencensus.io v0.24.0 // indirect

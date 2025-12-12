@@ -11,8 +11,10 @@ export const useCatalogSources = (
       if (!apiState.apiAvailable) {
         return Promise.reject(new Error('API not yet available'));
       }
-
-      return apiState.api.getListSources(opts);
+      return apiState.api.getListSources(opts).then((data) => ({
+        ...data,
+        items: data.items ?? [],
+      }));
     },
     [apiState],
   );

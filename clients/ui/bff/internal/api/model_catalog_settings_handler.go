@@ -9,6 +9,7 @@ import (
 	"github.com/julienschmidt/httprouter"
 	"github.com/kubeflow/model-registry/ui/bff/internal/constants"
 	"github.com/kubeflow/model-registry/ui/bff/internal/models"
+	"github.com/kubeflow/model-registry/ui/bff/internal/repositories"
 )
 
 type ModelCatalogSettingsSourceConfigEnvelope Envelope[*models.CatalogSourceConfig, None]
@@ -56,18 +57,22 @@ func (app *App) GetCatalogSourceConfigHandler(w http.ResponseWriter, r *http.Req
 		return
 	}
 
+	catalogSourceId := ps.ByName(CatalogSourceId)
+
 	client, err := app.kubernetesClientFactory.GetClient(ctx)
 	if err != nil {
 		app.serverErrorResponse(w, r, errors.New("catalog client not found"))
 		return
 	}
 
-	catalogSourceId := ps.ByName(CatalogSourceId)
-
 	catalogSourceConfig, err := app.repositories.ModelCatalogSettingsRepository.GetCatalogSourceConfig(ctx, client, namespace, catalogSourceId)
 
 	if err != nil {
-		app.serverErrorResponse(w, r, err)
+		if errors.Is(err, repositories.ErrCatalogSourceNotFound) {
+			app.notFoundResponse(w, r)
+		} else {
+			app.serverErrorResponse(w, r, err)
+		}
 		return
 	}
 
@@ -107,7 +112,14 @@ func (app *App) CreateCatalogSourceConfigHandler(w http.ResponseWriter, r *http.
 	newCatalogSource, err := app.repositories.ModelCatalogSettingsRepository.CreateCatalogSourceConfig(ctx, client, namespace, *envelope.Data)
 
 	if err != nil {
-		app.serverErrorResponse(w, r, err)
+		if errors.Is(err, repositories.ErrCatalogSourceAlreadyExist) ||
+			errors.Is(err, repositories.ErrCatalogSourceIdRequired) ||
+			errors.Is(err, repositories.ErrUnsupportedCatalogType) ||
+			errors.Is(err, repositories.ErrValidationFailed) {
+			app.badRequestResponse(w, r, err)
+		} else {
+			app.serverErrorResponse(w, r, err)
+		}
 		return
 	}
 
@@ -145,15 +157,26 @@ func (app *App) UpdateCatalogSourceConfigHandler(w http.ResponseWriter, r *http.
 		return
 	}
 
-	newCatalogSource, err := app.repositories.ModelCatalogSettingsRepository.UpdateCatalogSourceConfig(ctx, client, namespace, *envelope.Data)
+	catalogSourceId := ps.ByName(CatalogSourceId)
+	if catalogSourceId == "" {
+		catalogSourceId = envelope.Data.Id
+	}
+	updatedCatalogSource, err := app.repositories.ModelCatalogSettingsRepository.UpdateCatalogSourceConfig(ctx, client, namespace, catalogSourceId, *envelope.Data)
 
 	if err != nil {
-		app.serverErrorResponse(w, r, err)
+		if errors.Is(err, repositories.ErrCatalogSourceNotFound) {
+			app.notFoundResponse(w, r)
+		} else if errors.Is(err, repositories.ErrCannotChangeDefaultSource) ||
+			errors.Is(err, repositories.ErrCannotChangeType) {
+			app.forbiddenResponse(w, r, err.Error())
+		} else {
+			app.serverErrorResponse(w, r, err)
+		}
 		return
 	}
 
 	modelCatalogSource := ModelCatalogSettingsSourceConfigEnvelope{
-		Data: newCatalogSource,
+		Data: updatedCatalogSource,
 	}
 
 	err = app.WriteJSON(w, http.StatusOK, modelCatalogSource, nil)
@@ -178,18 +201,23 @@ func (app *App) DeleteCatalogSourceConfigHandler(w http.ResponseWriter, r *http.
 		return
 	}
 
-	// this is the temoprary fix to start fronetend development
 	catalogSourceId := ps.ByName(CatalogSourceId)
 
-	newCatalogSource, err := app.repositories.ModelCatalogSettingsRepository.DeleteCatalogSourceConfig(ctx, client, namespace, catalogSourceId)
+	deletedCatalogSource, err := app.repositories.ModelCatalogSettingsRepository.DeleteCatalogSourceConfig(ctx, client, namespace, catalogSourceId)
 
 	if err != nil {
-		app.serverErrorResponse(w, r, err)
+		if errors.Is(err, repositories.ErrCannotDeleteDefaultSource) {
+			app.forbiddenResponse(w, r, err.Error())
+		} else if errors.Is(err, repositories.ErrCatalogSourceNotFound) {
+			app.notFoundResponse(w, r)
+		} else {
+			app.serverErrorResponse(w, r, err)
+		}
 		return
 	}
 
 	modelCatalogSource := ModelCatalogSettingsSourceConfigEnvelope{
-		Data: newCatalogSource,
+		Data: deletedCatalogSource,
 	}
 
 	err = app.WriteJSON(w, http.StatusOK, modelCatalogSource, nil)

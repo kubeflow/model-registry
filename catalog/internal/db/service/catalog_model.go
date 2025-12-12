@@ -130,6 +130,131 @@ func (r *CatalogModelRepositoryImpl) lookupModelByName(name string) (*schema.Con
 	return &entity, nil
 }
 
+func (r *CatalogModelRepositoryImpl) DeleteBySource(sourceID string) error {
+	config := r.GetConfig()
+
+	return config.DB.Transaction(func(tx *gorm.DB) error {
+		// Delete artifacts linked to models in this source that aren't linked
+		// with an Event.
+		deleteArtifactsQuery :=
+			`DELETE FROM "Artifact" WHERE id IN (
+			SELECT "Artifact".id
+			FROM "Context"
+			INNER JOIN "ContextProperty" ON "Context".id="ContextProperty".context_id
+				AND "ContextProperty".name='source_id' AND
+				"ContextProperty".string_value=?
+			INNER JOIN "Attribution" ON "Context".id="Attribution".context_id
+			INNER JOIN "Artifact" ON "Attribution".artifact_id="Artifact".id
+			WHERE "Context".type_id=? AND NOT EXISTS (
+				SELECT 1 FROM "Event" WHERE "Event".artifact_id="Artifact".id
+			)
+		)`
+		err := tx.Exec(deleteArtifactsQuery, sourceID, config.TypeID).Error
+		if err != nil {
+			return fmt.Errorf("unable to delete artifacts from source %q: %w", sourceID, err)
+		}
+
+		// Delete all Context records where there's a ContextProperty with name='source_id' and string_value=sourceID
+		query := `DELETE FROM "Context" WHERE id IN (
+			SELECT "Context".id
+			FROM "Context"
+			INNER JOIN "ContextProperty" ON "Context".id="ContextProperty".context_id
+			AND "ContextProperty".name='source_id'
+			WHERE "ContextProperty".string_value=?
+			AND "Context".type_id=?
+		)`
+
+		err = tx.Exec(query, sourceID, config.TypeID).Error
+		if err != nil {
+			return fmt.Errorf("unable to delete contexts from source %q: %w", sourceID, err)
+		}
+
+		return nil
+	})
+}
+
+func (r *CatalogModelRepositoryImpl) DeleteByID(id int32) error {
+	config := r.GetConfig()
+
+	var rowsAffected int64
+
+	err := config.DB.Transaction(func(tx *gorm.DB) error {
+		// Delete artifacts linked to this model that aren't linked with an Event.
+		deleteArtifactsQuery :=
+			`DELETE FROM "Artifact" WHERE id IN (
+			SELECT "Artifact".id FROM "Context"
+				INNER JOIN "Attribution" ON "Context".id="Attribution".context_id
+				INNER JOIN "Artifact" ON "Attribution".artifact_id="Artifact".id
+			WHERE "Context".id=? AND "Context".type_id=?
+				AND NOT EXISTS (
+					SELECT 1 FROM "Event" WHERE "Event".artifact_id="Artifact".id
+				)
+		)`
+
+		err := tx.Exec(deleteArtifactsQuery, id, config.TypeID).Error
+		if err != nil {
+			return fmt.Errorf("unable to delete linked artifacts for model %d: %w", id, err)
+		}
+
+		// Delete the Context record by ID and type_id
+		// ContextProperty records will be deleted via foreign key cascade
+		result := tx.Where("id = ? AND type_id = ?", id, config.TypeID).Delete(&schema.Context{})
+
+		if result.Error != nil {
+			return result.Error
+		}
+
+		rowsAffected = result.RowsAffected
+		return nil
+	})
+
+	if err != nil {
+		return err
+	}
+
+	if rowsAffected == 0 {
+		return fmt.Errorf("%w: id %d", config.NotFoundError, id)
+	}
+
+	return nil
+}
+
+// GetDistinctSourceIDs retrieves all unique source_id values from catalog models.
+// This method queries the ContextProperty table to find distinct string_value entries
+// where the property name is 'source_id'.
+func (r *CatalogModelRepositoryImpl) GetDistinctSourceIDs() ([]string, error) {
+	config := r.GetConfig()
+
+	var sourceIDs []string
+
+	// Execute the SQL query to get distinct source_id values
+	query := `SELECT DISTINCT string_value FROM "ContextProperty" WHERE name='source_id'`
+
+	rows, err := config.DB.Raw(query).Rows()
+	if err != nil {
+		// Sanitize database errors to avoid exposing internal details to users
+		err = dbutil.SanitizeDatabaseError(err)
+		return nil, fmt.Errorf("error querying distinct source IDs: %w", err)
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var sourceID string
+		if err := rows.Scan(&sourceID); err != nil {
+			err = dbutil.SanitizeDatabaseError(err)
+			return nil, fmt.Errorf("error scanning source ID: %w", err)
+		}
+		sourceIDs = append(sourceIDs, sourceID)
+	}
+
+	if err := rows.Err(); err != nil {
+		err = dbutil.SanitizeDatabaseError(err)
+		return nil, fmt.Errorf("error iterating source ID rows: %w", err)
+	}
+
+	return sourceIDs, nil
+}
+
 func applyCatalogModelListFilters(query *gorm.DB, listOptions *models.CatalogModelListOptions) *gorm.DB {
 	contextTable := utils.GetTableName(query.Statement.DB, &schema.Context{})
 

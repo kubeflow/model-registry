@@ -33,6 +33,7 @@ func TestDBCatalog(t *testing.T) {
 	catalogModelTypeID := getCatalogModelTypeIDForDBTest(t, sharedDB)
 	modelArtifactTypeID := getCatalogModelArtifactTypeIDForDBTest(t, sharedDB)
 	metricsArtifactTypeID := getCatalogMetricsArtifactTypeIDForDBTest(t, sharedDB)
+	catalogSourceTypeID := getCatalogSourceTypeIDForDBTest(t, sharedDB)
 
 	// Create repositories
 	catalogModelRepo := service.NewCatalogModelRepository(sharedDB, catalogModelTypeID)
@@ -42,12 +43,14 @@ func TestDBCatalog(t *testing.T) {
 	})
 	modelArtifactRepo := service.NewCatalogModelArtifactRepository(sharedDB, modelArtifactTypeID)
 	metricsArtifactRepo := service.NewCatalogMetricsArtifactRepository(sharedDB, metricsArtifactTypeID)
+	catalogSourceRepo := service.NewCatalogSourceRepository(sharedDB, catalogSourceTypeID)
 
 	svcs := service.NewServices(
 		catalogModelRepo,
 		catalogArtifactRepo,
 		modelArtifactRepo,
 		metricsArtifactRepo,
+		catalogSourceRepo,
 		service.NewPropertyOptionsRepository(sharedDB),
 	)
 
@@ -968,6 +971,241 @@ func TestDBCatalog(t *testing.T) {
 		assert.Contains(t, maturityValues, "experimental")
 	})
 
+	t.Run("TestGetPerformanceArtifacts_BasicFiltering", func(t *testing.T) {
+		// Create test model
+		testModel := &models.CatalogModelImpl{
+			TypeID: apiutils.Of(int32(catalogModelTypeID)),
+			Attributes: &models.CatalogModelAttributes{
+				Name:       apiutils.Of("perf-test-model"),
+				ExternalID: apiutils.Of("perf-test-model-ext"),
+			},
+			Properties: &[]mr_models.Properties{
+				{Name: "source_id", StringValue: apiutils.Of("perf-test-source")},
+			},
+		}
+
+		savedModel, err := catalogModelRepo.Save(testModel)
+		require.NoError(t, err)
+
+		// Create performance metrics artifact
+		perfArtifact := &models.CatalogMetricsArtifactImpl{
+			TypeID: apiutils.Of(int32(metricsArtifactTypeID)),
+			Attributes: &models.CatalogMetricsArtifactAttributes{
+				Name:         apiutils.Of("performance-metrics-1"),
+				ExternalID:   apiutils.Of("perf-metrics-1"),
+				MetricsType:  models.MetricsTypePerformance,
+				ArtifactType: apiutils.Of("metrics-artifact"),
+			},
+			CustomProperties: &[]mr_models.Properties{
+				{Name: "throughput", DoubleValue: apiutils.Of(float64(50.0))},
+				{Name: "latency_p99", DoubleValue: apiutils.Of(float64(100.0))},
+			},
+		}
+
+		// Create accuracy metrics artifact (should be filtered out)
+		accuracyArtifact := &models.CatalogMetricsArtifactImpl{
+			TypeID: apiutils.Of(int32(metricsArtifactTypeID)),
+			Attributes: &models.CatalogMetricsArtifactAttributes{
+				Name:         apiutils.Of("accuracy-metrics-1"),
+				ExternalID:   apiutils.Of("acc-metrics-1"),
+				MetricsType:  models.MetricsTypeAccuracy,
+				ArtifactType: apiutils.Of("metrics-artifact"),
+			},
+		}
+
+		_, err = metricsArtifactRepo.Save(perfArtifact, savedModel.GetID())
+		require.NoError(t, err)
+		_, err = metricsArtifactRepo.Save(accuracyArtifact, savedModel.GetID())
+		require.NoError(t, err)
+
+		// Test GetPerformanceArtifacts - should only return performance metrics
+		params := ListPerformanceArtifactsParams{
+			PageSize:        10,
+			OrderBy:         string(model.ORDERBYFIELD_CREATE_TIME),
+			SortOrder:       model.SORTORDER_ASC,
+			NextPageToken:   apiutils.Of(""),
+			TargetRPS:       0,
+			Recommendations: false,
+		}
+
+		result, err := dbCatalog.GetPerformanceArtifacts(ctx, "perf-test-model", "perf-test-source", params)
+		require.NoError(t, err)
+
+		assert.Equal(t, int32(1), result.Size, "Should return only performance metrics")
+		assert.Len(t, result.Items, 1)
+
+		// Verify it's the performance artifact
+		perfItem := result.Items[0]
+		assert.NotNil(t, perfItem.CatalogMetricsArtifact)
+		assert.Equal(t, "performance-metrics-1", *perfItem.CatalogMetricsArtifact.Name)
+		assert.Equal(t, "performance-metrics", perfItem.CatalogMetricsArtifact.MetricsType)
+	})
+
+	t.Run("TestGetPerformanceArtifacts_WithTargetRPS", func(t *testing.T) {
+		// Create test model
+		testModel := &models.CatalogModelImpl{
+			TypeID: apiutils.Of(int32(catalogModelTypeID)),
+			Attributes: &models.CatalogModelAttributes{
+				Name:       apiutils.Of("rps-test-model"),
+				ExternalID: apiutils.Of("rps-test-model-ext"),
+			},
+			Properties: &[]mr_models.Properties{
+				{Name: "source_id", StringValue: apiutils.Of("rps-test-source")},
+			},
+		}
+
+		savedModel, err := catalogModelRepo.Save(testModel)
+		require.NoError(t, err)
+
+		// Create performance metrics artifact with throughput data
+		perfArtifact := &models.CatalogMetricsArtifactImpl{
+			TypeID: apiutils.Of(int32(metricsArtifactTypeID)),
+			Attributes: &models.CatalogMetricsArtifactAttributes{
+				Name:         apiutils.Of("rps-metrics-1"),
+				ExternalID:   apiutils.Of("rps-metrics-1"),
+				MetricsType:  models.MetricsTypePerformance,
+				ArtifactType: apiutils.Of("metrics-artifact"),
+			},
+			CustomProperties: &[]mr_models.Properties{
+				{Name: "throughput", DoubleValue: apiutils.Of(float64(50.0))},
+			},
+		}
+
+		_, err = metricsArtifactRepo.Save(perfArtifact, savedModel.GetID())
+		require.NoError(t, err)
+
+		// Test with targetRPS parameter
+		params := ListPerformanceArtifactsParams{
+			PageSize:        10,
+			OrderBy:         string(model.ORDERBYFIELD_CREATE_TIME),
+			SortOrder:       model.SORTORDER_ASC,
+			NextPageToken:   apiutils.Of(""),
+			TargetRPS:       100,
+			Recommendations: false,
+		}
+
+		result, err := dbCatalog.GetPerformanceArtifacts(ctx, "rps-test-model", "rps-test-source", params)
+		require.NoError(t, err)
+
+		assert.Equal(t, int32(1), result.Size)
+		assert.Len(t, result.Items, 1)
+
+		// Verify targetRPS calculations are added to custom properties
+		perfItem := result.Items[0]
+		assert.NotNil(t, perfItem.CatalogMetricsArtifact)
+		assert.NotNil(t, perfItem.CatalogMetricsArtifact.CustomProperties)
+
+		customProps := perfItem.CatalogMetricsArtifact.CustomProperties
+
+		// Should have replicas property
+		assert.Contains(t, customProps, "replicas")
+		replicasValue := customProps["replicas"]
+		assert.NotNil(t, replicasValue.MetadataIntValue)
+		assert.NotEmpty(t, replicasValue.MetadataIntValue.IntValue)
+		// Verify it's a valid integer
+		replicasInt, err := strconv.ParseInt(replicasValue.MetadataIntValue.IntValue, 10, 32)
+		require.NoError(t, err)
+		assert.Greater(t, int32(replicasInt), int32(0))
+
+		// Should have total_requests_per_second property
+		assert.Contains(t, customProps, "total_requests_per_second")
+		totalRPSValue := customProps["total_requests_per_second"]
+		assert.NotNil(t, totalRPSValue.MetadataDoubleValue)
+		assert.Equal(t, float64(100), totalRPSValue.MetadataDoubleValue.DoubleValue)
+	})
+
+	t.Run("TestGetPerformanceArtifacts_WithDeduplication", func(t *testing.T) {
+		// Create test model
+		testModel := &models.CatalogModelImpl{
+			TypeID: apiutils.Of(int32(catalogModelTypeID)),
+			Attributes: &models.CatalogModelAttributes{
+				Name:       apiutils.Of("dedup-test-model"),
+				ExternalID: apiutils.Of("dedup-test-model-ext"),
+			},
+			Properties: &[]mr_models.Properties{
+				{Name: "source_id", StringValue: apiutils.Of("dedup-test-source")},
+			},
+		}
+
+		savedModel, err := catalogModelRepo.Save(testModel)
+		require.NoError(t, err)
+
+		// Create multiple performance artifacts with different cost profiles
+		// The deduplication algorithm uses hardware_count * replicas for cost calculation
+		// It keeps artifacts with decreasing cost (when sorted by latency)
+		perfArtifact1 := &models.CatalogMetricsArtifactImpl{
+			TypeID: apiutils.Of(int32(metricsArtifactTypeID)),
+			Attributes: &models.CatalogMetricsArtifactAttributes{
+				Name:         apiutils.Of("dedup-metrics-1"),
+				ExternalID:   apiutils.Of("dedup-metrics-1"),
+				MetricsType:  models.MetricsTypePerformance,
+				ArtifactType: apiutils.Of("metrics-artifact"),
+			},
+			CustomProperties: &[]mr_models.Properties{
+				{Name: "hardware_count", IntValue: apiutils.Of(int32(4))},
+				{Name: "ttft_p90", DoubleValue: apiutils.Of(float64(100.0))},
+				{Name: "hardware_type", StringValue: apiutils.Of("gpu-a100")},
+			},
+		}
+
+		perfArtifact2 := &models.CatalogMetricsArtifactImpl{
+			TypeID: apiutils.Of(int32(metricsArtifactTypeID)),
+			Attributes: &models.CatalogMetricsArtifactAttributes{
+				Name:         apiutils.Of("dedup-metrics-2"),
+				ExternalID:   apiutils.Of("dedup-metrics-2"),
+				MetricsType:  models.MetricsTypePerformance,
+				ArtifactType: apiutils.Of("metrics-artifact"),
+			},
+			CustomProperties: &[]mr_models.Properties{
+				{Name: "hardware_count", IntValue: apiutils.Of(int32(4))},
+				{Name: "ttft_p90", DoubleValue: apiutils.Of(float64(150.0))},
+				{Name: "hardware_type", StringValue: apiutils.Of("gpu-a100")},
+			},
+		}
+
+		perfArtifact3 := &models.CatalogMetricsArtifactImpl{
+			TypeID: apiutils.Of(int32(metricsArtifactTypeID)),
+			Attributes: &models.CatalogMetricsArtifactAttributes{
+				Name:         apiutils.Of("dedup-metrics-3"),
+				ExternalID:   apiutils.Of("dedup-metrics-3"),
+				MetricsType:  models.MetricsTypePerformance,
+				ArtifactType: apiutils.Of("metrics-artifact"),
+			},
+			CustomProperties: &[]mr_models.Properties{
+				{Name: "hardware_count", IntValue: apiutils.Of(int32(2))},
+				{Name: "ttft_p90", DoubleValue: apiutils.Of(float64(200.0))},
+				{Name: "hardware_type", StringValue: apiutils.Of("gpu-a100")},
+			},
+		}
+
+		_, err = metricsArtifactRepo.Save(perfArtifact1, savedModel.GetID())
+		require.NoError(t, err)
+		_, err = metricsArtifactRepo.Save(perfArtifact2, savedModel.GetID())
+		require.NoError(t, err)
+		_, err = metricsArtifactRepo.Save(perfArtifact3, savedModel.GetID())
+		require.NoError(t, err)
+
+		// Test without deduplication
+		params := ListPerformanceArtifactsParams{
+			PageSize:        10,
+			OrderBy:         string(model.ORDERBYFIELD_CREATE_TIME),
+			SortOrder:       model.SORTORDER_ASC,
+			NextPageToken:   apiutils.Of(""),
+			TargetRPS:       0,
+			Recommendations: false,
+		}
+
+		result, err := dbCatalog.GetPerformanceArtifacts(ctx, "dedup-test-model", "dedup-test-source", params)
+		require.NoError(t, err)
+		assert.Equal(t, int32(3), result.Size, "Should return all 3 artifacts without dedup")
+
+		// Test with deduplication
+		params.Recommendations = true
+		result, err = dbCatalog.GetPerformanceArtifacts(ctx, "dedup-test-model", "dedup-test-source", params)
+		require.NoError(t, err)
+		assert.Equal(t, int32(2), result.Size, "Should return 2 artifacts after dedup (one for each cost)")
+	})
+
 	t.Run("TestGetArtifacts_WithFilterQuery", func(t *testing.T) {
 		// Create test model
 		testModel := &models.CatalogModelImpl{
@@ -1172,6 +1410,156 @@ func getCatalogModelTypeIDForDBTest(t *testing.T, db *gorm.DB) int32 {
 	return typeRecord.ID
 }
 
+func TestDBCatalog_GetPerformanceArtifactsWithService(t *testing.T) {
+	sharedDB, cleanup := testutils.SetupPostgresWithMigrations(t, service.DatastoreSpec())
+	defer cleanup()
+
+	// Get type IDs
+	catalogModelTypeID := getCatalogModelTypeIDForDBTest(t, sharedDB)
+	modelArtifactTypeID := getCatalogModelArtifactTypeIDForDBTest(t, sharedDB)
+	metricsArtifactTypeID := getCatalogMetricsArtifactTypeIDForDBTest(t, sharedDB)
+	catalogSourceTypeID := getCatalogSourceTypeIDForDBTest(t, sharedDB)
+
+	// Create repositories
+	catalogModelRepo := service.NewCatalogModelRepository(sharedDB, catalogModelTypeID)
+	catalogArtifactRepo := service.NewCatalogArtifactRepository(sharedDB, map[string]int32{
+		service.CatalogModelArtifactTypeName:   modelArtifactTypeID,
+		service.CatalogMetricsArtifactTypeName: metricsArtifactTypeID,
+	})
+	modelArtifactRepo := service.NewCatalogModelArtifactRepository(sharedDB, modelArtifactTypeID)
+	metricsArtifactRepo := service.NewCatalogMetricsArtifactRepository(sharedDB, metricsArtifactTypeID)
+	catalogSourceRepo := service.NewCatalogSourceRepository(sharedDB, catalogSourceTypeID)
+
+	services := service.NewServices(
+		catalogModelRepo,
+		catalogArtifactRepo,
+		modelArtifactRepo,
+		metricsArtifactRepo,
+		catalogSourceRepo,
+		service.NewPropertyOptionsRepository(sharedDB),
+	)
+
+	sources := NewSourceCollection()
+	err := sources.Merge("test-origin", map[string]Source{
+		"test-source": {
+			CatalogSource: model.CatalogSource{
+				Id:   "test-source",
+				Name: "Test Source",
+			},
+		},
+	})
+	require.NoError(t, err)
+
+	provider := NewDBCatalog(services, sources)
+
+	// Create test model and performance artifacts
+	testModel := &models.CatalogModelImpl{
+		TypeID: apiutils.Of(int32(catalogModelTypeID)),
+		Attributes: &models.CatalogModelAttributes{
+			Name:       apiutils.Of("performance-test-model"),
+			ExternalID: apiutils.Of("perf-model-123"),
+		},
+		Properties: &[]mr_models.Properties{
+			{Name: "source_id", StringValue: apiutils.Of("test-source")},
+		},
+	}
+	savedModel, err := catalogModelRepo.Save(testModel)
+	require.NoError(t, err)
+
+	// Create performance metrics artifact with exact properties for algorithm testing
+	perfArtifact := &models.CatalogMetricsArtifactImpl{
+		TypeID: apiutils.Of(int32(metricsArtifactTypeID)),
+		Attributes: &models.CatalogMetricsArtifactAttributes{
+			Name:        apiutils.Of("test-perf-artifact"),
+			ExternalID:  apiutils.Of("perf-123"),
+			MetricsType: models.MetricsTypePerformance,
+		},
+		Properties: &[]mr_models.Properties{
+			{Name: "metricsType", StringValue: apiutils.Of("performance-metrics")},
+		},
+		CustomProperties: &[]mr_models.Properties{
+			{Name: "requests_per_second", DoubleValue: apiutils.Of(200.0)},
+			{Name: "ttft_p90", DoubleValue: apiutils.Of(50.0)},
+			{Name: "hardware_count", IntValue: apiutils.Of(int32(1))},
+			{Name: "hardware_type", StringValue: apiutils.Of("gpu-a100")},
+		},
+	}
+	_, err = metricsArtifactRepo.Save(perfArtifact, savedModel.GetID())
+	require.NoError(t, err)
+
+	// Test GetPerformanceArtifacts with targetRPS and deduplication
+	params := ListPerformanceArtifactsParams{
+		TargetRPS:       600, // Should calculate 3 replicas and be usable by dedup algorithm
+		Recommendations: true,
+		PageSize:        10,
+	}
+
+	result, err := provider.GetPerformanceArtifacts(
+		context.Background(),
+		"performance-test-model",
+		"test-source",
+		params,
+	)
+	require.NoError(t, err)
+	assert.Len(t, result.Items, 1)
+
+	// Verify both targetRPS calculations AND deduplication algorithm were applied via service
+	artifact := result.Items[0]
+	require.NotNil(t, artifact.CatalogMetricsArtifact)
+	assert.Contains(t, artifact.CatalogMetricsArtifact.CustomProperties, "replicas")
+
+	replicas := artifact.CatalogMetricsArtifact.CustomProperties["replicas"]
+	assert.Equal(t, "3", replicas.MetadataIntValue.IntValue)
+}
+
+func TestGetFilterOptionsWithNamedQueries(t *testing.T) {
+	// Setup mock sources with named queries
+	sources := NewSourceCollection()
+	namedQueries := map[string]map[string]FieldFilter{
+		"validation-default": {
+			"ttft_p90":      {Operator: "<", Value: 70},
+			"workload_type": {Operator: "=", Value: "Chat"},
+		},
+		"high-performance": {
+			"performance_score": {Operator: ">", Value: 0.95},
+		},
+	}
+
+	err := sources.MergeWithNamedQueries("test", map[string]Source{}, namedQueries)
+	require.NoError(t, err)
+
+	// Create catalog with mocked dependencies
+	mockServices := service.Services{
+		PropertyOptionsRepository: &mockPropertyRepository{},
+	}
+	catalog := NewDBCatalog(mockServices, sources)
+
+	// Test GetFilterOptions includes named queries
+	result, err := catalog.GetFilterOptions(context.Background())
+	require.NoError(t, err)
+	require.NotNil(t, result.NamedQueries)
+
+	queries := *result.NamedQueries
+	assert.Len(t, queries, 2)
+
+	validationQuery := queries["validation-default"]
+	assert.Equal(t, "<", validationQuery["ttft_p90"].Operator)
+	assert.Equal(t, 70, validationQuery["ttft_p90"].Value)
+	assert.Equal(t, "=", validationQuery["workload_type"].Operator)
+	assert.Equal(t, "Chat", validationQuery["workload_type"].Value)
+}
+
+// Mock repository for testing
+type mockPropertyRepository struct{}
+
+func (m *mockPropertyRepository) List(optionType models.PropertyOptionType, limit int32) ([]models.PropertyOption, error) {
+	return []models.PropertyOption{}, nil
+}
+
+func (m *mockPropertyRepository) Refresh(optionType models.PropertyOptionType) error {
+	return nil
+}
+
 func getCatalogModelArtifactTypeIDForDBTest(t *testing.T, db *gorm.DB) int32 {
 	var typeRecord schema.Type
 	err := db.Where("name = ?", service.CatalogModelArtifactTypeName).First(&typeRecord).Error
@@ -1186,6 +1574,15 @@ func getCatalogMetricsArtifactTypeIDForDBTest(t *testing.T, db *gorm.DB) int32 {
 	err := db.Where("name = ?", service.CatalogMetricsArtifactTypeName).First(&typeRecord).Error
 	if err != nil {
 		require.NoError(t, err, "Failed to query CatalogMetricsArtifact type")
+	}
+	return typeRecord.ID
+}
+
+func getCatalogSourceTypeIDForDBTest(t *testing.T, db *gorm.DB) int32 {
+	var typeRecord schema.Type
+	err := db.Where("name = ?", service.CatalogSourceTypeName).First(&typeRecord).Error
+	if err != nil {
+		require.NoError(t, err, "Failed to query CatalogSource type")
 	}
 	return typeRecord.ID
 }

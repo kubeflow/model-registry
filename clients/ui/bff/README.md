@@ -344,6 +344,76 @@ curl -i -H "kubeflow-userid: user@example.com" "http://localhost:4000/api/v1/mod
 curl -i -H "Authorization: Bearer $TOKEN" "http://localhost:4000/api/v1/model_catalog/sources/sample-source/artifacts/model-name?namespace=kubeflow"
 ```
 
+```
+# GET /api/v1/settings/model_catalog/source_configs
+curl -i -H "kubeflow-userid: user@example.com" "http://localhost:4000/api/v1/settings/model_catalog/source_configs?namespace=kubeflow"
+curl -i -H "Authorization: Bearer $TOKEN" "http://localhost:4000/api/v1/settings/model_catalog/source_configs?namespace=kubeflow"
+```
+
+```
+# GET /api/v1/settings/model_catalog/source_configs/{sourceId}
+curl -i -H "kubeflow-userid: user@example.com" "http://localhost:4000/api/v1/settings/model_catalog/source_configs/test-catalog?namespace=kubeflow"
+curl -i -H "Authorization: Bearer $TOKEN" "http://localhost:4000/api/v1/settings/model_catalog/source_configs/test-catalog?namespace=kubeflow"
+```
+
+```
+# POST /api/v1/settings/model_catalog/source_configs
+curl -i \
+-H "kubeflow-userid: user@example.com" \
+-X POST "http://localhost:4000/api/v1/settings/model_catalog/source_configs?namespace=kubeflow" \
+-H "Content-Type: application/json" \
+-d '{
+  "data":{
+    "id":"test-catalog",
+    "name":"Test Catalog",
+    "type":"yaml",
+    "yaml": "yamlContent:\n - name: test-model"
+    }
+  }'
+curl -i -H "Authorization: Bearer $TOKEN" \
+-X POST "http://localhost:4000/api/v1/settings/model_catalog/source_configs?namespace=kubeflow" \
+-H "Content-Type: application/json" \
+-d '{
+  "data":{
+    "id":"test-catalog",
+    "name":"Test Catalog",
+    "type":"yaml",
+      "yaml": "yamlContent:\n - name: test-model"
+    }
+  }'
+```
+
+```
+# PATCH /api/v1/settings/model_catalog/source_configs/{sourceId}
+curl -i \
+-H "kubeflow-userid: user@example.com" \
+-X PATCH "http://localhost:4000/api/v1/settings/model_catalog/source_configs/test-catalog?namespace=kubeflow" \
+-H "Content-Type: application/json" \
+-d '{
+  "data":{
+    "id":"test-catalog",
+    "name":"Updated Catalog",
+    "type":"yaml"
+    }
+  }'
+curl -i -H "Authorization: Bearer $TOKEN" \
+-X PATCH "http://localhost:4000/api/v1/settings/model_catalog/source_configs/test-catalog?namespace=kubeflow" \
+-H "Content-Type: application/json" \
+-d '{
+  "data":{
+    "id":"test-catalog",
+    "name":"Updated Catalog",
+    "type":"yaml"
+    }
+  }'
+```
+
+```
+# DELETE /api/v1/settings/model_catalog/source_configs/{sourceId}
+curl -i -H "kubeflow-userid: user@example.com" -X DELETE "http://localhost:4000/api/v1/settings/model_catalog/source_configs/test-catalog?namespace=kubeflow"
+curl -i -H "Authorization: Bearer $TOKEN" -X DELETE "http://localhost:4000/api/v1/settings/model_catalog/source_configs/test-catalog?namespace=kubeflow"
+```
+
 ### Pagination
 
 The following query parameters are supported by "Get All" style endpoints to control pagination.

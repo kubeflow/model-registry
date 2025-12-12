@@ -51,7 +51,7 @@ const ModelCatalogCoreLoader: React.FC = () => {
     );
   }
 
-  if (catalogSources?.items.length === 0) {
+  if (catalogSources?.items?.length === 0) {
     return (
       <ApplicationsPage
         title={<TitleWithIcon title="Model Catalog" objectType={ProjectObjectType.modelCatalog} />}

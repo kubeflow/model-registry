@@ -37,4 +37,7 @@ type CatalogModelRepository interface {
 	GetByName(name string) (CatalogModel, error)
 	List(listOptions CatalogModelListOptions) (*models.ListWrapper[CatalogModel], error)
 	Save(model CatalogModel) (CatalogModel, error)
+	DeleteBySource(sourceID string) error
+	DeleteByID(id int32) error
+	GetDistinctSourceIDs() ([]string, error)
 }

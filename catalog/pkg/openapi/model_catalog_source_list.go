@@ -26,7 +26,7 @@ type CatalogSourceList struct {
 	// Number of items in result list.
 	Size int32 `json:"size"`
 	// Array of `CatalogSource` entities.
-	Items []CatalogSource `json:"items,omitempty"`
+	Items []CatalogSource `json:"items"`
 }
 
 type _CatalogSourceList CatalogSourceList
@@ -35,11 +35,12 @@ type _CatalogSourceList CatalogSourceList
 // This constructor will assign default values to properties that have it defined,
 // and makes sure properties required by API are set, but the set of arguments
 // will change when the set of required properties is changed
-func NewCatalogSourceList(nextPageToken string, pageSize int32, size int32) *CatalogSourceList {
+func NewCatalogSourceList(nextPageToken string, pageSize int32, size int32, items []CatalogSource) *CatalogSourceList {
 	this := CatalogSourceList{}
 	this.NextPageToken = nextPageToken
 	this.PageSize = pageSize
 	this.Size = size
+	this.Items = items
 	return &this
 }
 
@@ -123,34 +124,26 @@ func (o *CatalogSourceList) SetSize(v int32) {
 	o.Size = v
 }
 
-// GetItems returns the Items field value if set, zero value otherwise.
+// GetItems returns the Items field value
 func (o *CatalogSourceList) GetItems() []CatalogSource {
-	if o == nil || IsNil(o.Items) {
+	if o == nil {
 		var ret []CatalogSource
 		return ret
 	}
+
 	return o.Items
 }
 
-// GetItemsOk returns a tuple with the Items field value if set, nil otherwise
+// GetItemsOk returns a tuple with the Items field value
 // and a boolean to check if the value has been set.
 func (o *CatalogSourceList) GetItemsOk() ([]CatalogSource, bool) {
-	if o == nil || IsNil(o.Items) {
+	if o == nil {
 		return nil, false
 	}
 	return o.Items, true
 }
 
-// HasItems returns a boolean if a field has been set.
-func (o *CatalogSourceList) HasItems() bool {
-	if o != nil && !IsNil(o.Items) {
-		return true
-	}
-
-	return false
-}
-
-// SetItems gets a reference to the given []CatalogSource and assigns it to the Items field.
+// SetItems sets field value
 func (o *CatalogSourceList) SetItems(v []CatalogSource) {
 	o.Items = v
 }
@@ -168,9 +161,7 @@ func (o CatalogSourceList) ToMap() (map[string]interface{}, error) {
 	toSerialize["nextPageToken"] = o.NextPageToken
 	toSerialize["pageSize"] = o.PageSize
 	toSerialize["size"] = o.Size
-	if !IsNil(o.Items) {
-		toSerialize["items"] = o.Items
-	}
+	toSerialize["items"] = o.Items
 	return toSerialize, nil
 }
 

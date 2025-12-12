@@ -29,7 +29,8 @@ import { CatalogModelDetailsParams } from '~/app/modelCatalogTypes';
 import { useCatalogModelArtifacts } from '~/app/hooks/modelCatalog/useCatalogModelArtifacts';
 import { modelCatalogUrl } from '~/app/routes/modelCatalog/catalogModel';
 import ScrollViewOnMount from '~/app/shared/components/ScrollViewOnMount';
-import ModelDetailsTabs, { ModelDetailsTab } from './ModelDetailsTabs';
+import { ModelDetailsTab } from '~/concepts/modelCatalog/const';
+import ModelDetailsTabs from './ModelDetailsTabs';
 
 type ModelDetailsPageProps = {
   tab: ModelDetailsTab;

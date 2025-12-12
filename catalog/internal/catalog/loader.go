@@ -8,13 +8,20 @@ import (
 	"path/filepath"
 	"sync"
 
+	mapset "github.com/deckarep/golang-set/v2"
 	"github.com/golang/glog"
 	dbmodels "github.com/kubeflow/model-registry/catalog/internal/db/models"
 	"github.com/kubeflow/model-registry/catalog/internal/db/service"
 	apimodels "github.com/kubeflow/model-registry/catalog/pkg/openapi"
-	"github.com/kubeflow/model-registry/internal/apiutils"
 	mrmodels "github.com/kubeflow/model-registry/internal/db/models"
 	"k8s.io/apimachinery/pkg/util/yaml"
+)
+
+// Source status constants matching the OpenAPI enum values
+const (
+	SourceStatusAvailable = "available"
+	SourceStatusError     = "error"
+	SourceStatusDisabled  = "disabled"
 )
 
 // ModelProviderRecord contains one model and its associated artifacts.
@@ -27,6 +34,9 @@ type ModelProviderRecord struct {
 // expected to spawn a goroutine and return immediately. The returned channel must
 // close when the goroutine ends. The goroutine should end when the context is
 // canceled, but may end sooner.
+//
+// The function may emit a record with a nil Model to indicate that the
+// complete set of models has been sent.
 type ModelProviderFunc func(ctx context.Context, source *Source, reldir string) (<-chan ModelProviderRecord, error)
 
 var registeredModelProviders = map[string]ModelProviderFunc{}
@@ -42,10 +52,17 @@ func RegisterModelProvider(name string, callback ModelProviderFunc) error {
 // LoaderEventHandler is the definition of a function called after a model is loaded.
 type LoaderEventHandler func(ctx context.Context, record ModelProviderRecord) error
 
+// FieldFilter represents a single field filter within a named query
+type FieldFilter struct {
+	Operator string `json:"operator" yaml:"operator"`
+	Value    any    `json:"value" yaml:"value"`
+}
+
 // sourceConfig is the structure for the catalog sources YAML file.
 type sourceConfig struct {
-	Catalogs []Source         `json:"catalogs"`
-	Labels   []map[string]any `json:"labels,omitempty"`
+	Catalogs     []Source                          `json:"catalogs"`
+	Labels       []map[string]any                  `json:"labels,omitempty"`
+	NamedQueries map[string]map[string]FieldFilter `json:"namedQueries,omitempty" yaml:"namedQueries,omitempty"`
 }
 
 // Source is a single entry from the catalog sources YAML file.
@@ -57,6 +74,11 @@ type Source struct {
 
 	// Properties used for configuring the catalog connection based on catalog implementation
 	Properties map[string]any `json:"properties,omitempty"`
+
+	// Origin is the absolute path of the config file this source was loaded from.
+	// This is set automatically during loading and used for resolving relative paths.
+	// It is not read from YAML; it's set programmatically.
+	Origin string `json:"-" yaml:"-"`
 }
 
 type Loader struct {
@@ -66,20 +88,33 @@ type Loader struct {
 	// Labels contains current labels loaded from the configuration files.
 	Labels *LabelCollection
 
-	paths     []string
-	services  service.Services
-	closersMu sync.Mutex
-	closers   map[string]func()
-	handlers  []LoaderEventHandler
+	paths         []string
+	services      service.Services
+	closersMu     sync.Mutex
+	closer        func() // cancels the current model loading goroutines
+	handlers      []LoaderEventHandler
+	loadedSources map[string]bool // tracks which source IDs have been loaded
 }
 
 func NewLoader(services service.Services, paths []string) *Loader {
+	// Convert paths to absolute for consistent origin ordering.
+	// This matches how loadOne converts paths before calling Merge.
+	absPaths := make([]string, 0, len(paths))
+	for _, p := range paths {
+		absPath, err := filepath.Abs(p)
+		if err != nil {
+			// Fall back to original path if conversion fails
+			absPath = p
+		}
+		absPaths = append(absPaths, absPath)
+	}
+
 	return &Loader{
-		Sources:  NewSourceCollection(),
-		Labels:   NewLabelCollection(),
-		paths:    paths,
-		services: services,
-		closers:  map[string]func(){},
+		Sources:       NewSourceCollection(absPaths...),
+		Labels:        NewLabelCollection(),
+		paths:         paths,
+		services:      services,
+		loadedSources: map[string]bool{},
 	}
 }
 
@@ -94,26 +129,39 @@ func (l *Loader) RegisterEventHandler(fn LoaderEventHandler) {
 // Start processes the sources YAML files. Background goroutines will be
 // stopped when the context is canceled.
 func (l *Loader) Start(ctx context.Context) error {
+	// Phase 1: Parse all config files and merge sources/labels
+	// This must happen BEFORE loading models so that sparse overrides work correctly
 	for _, path := range l.paths {
-		err := l.loadOne(ctx, path)
+		err := l.parseAndMerge(path)
 		if err != nil {
 			return fmt.Errorf("%s: %w", path, err)
 		}
+	}
 
+	// Delete models from unknown or disabled sources
+	err := l.removeModelsFromMissingSources()
+	if err != nil {
+		return fmt.Errorf("failed to remove models from missing sources: %w", err)
+	}
+
+	// Phase 2: Load models from merged sources (once, after all merging is complete)
+	err = l.loadAllModels(ctx)
+	if err != nil {
+		return err
+	}
+
+	// Phase 3: Set up file watchers for hot-reload
+	for _, path := range l.paths {
 		go func(path string) {
 			changes, err := getMonitor().Path(ctx, path)
 			if err != nil {
 				glog.Errorf("unable to watch sources file (%s): %v", path, err)
-				// Not fatal, we just won't get automatic updates.
+				return
 			}
 
 			for range changes {
 				glog.Infof("Reloading sources %s", path)
-
-				err = l.loadOne(ctx, path)
-				if err != nil {
-					glog.Errorf("unable to load sources: %v", err)
-				}
+				l.reloadAll(ctx)
 			}
 		}(path)
 	}
@@ -121,9 +169,8 @@ func (l *Loader) Start(ctx context.Context) error {
 	return nil
 }
 
-// loadOne processes (or re-processes) a sources config file.
-func (l *Loader) loadOne(ctx context.Context, path string) error {
-	// Get absolute path of the catalog config file
+// parseAndMerge parses a config file and merges its sources/labels into the collections.
+func (l *Loader) parseAndMerge(path string) error {
 	path, err := filepath.Abs(path)
 	if err != nil {
 		return fmt.Errorf("failed to get absolute path for %s: %v", path, err)
@@ -134,17 +181,40 @@ func (l *Loader) loadOne(ctx context.Context, path string) error {
 		return err
 	}
 
-	err = l.updateSources(path, config)
-	if err != nil {
+	if err = l.updateSources(path, config); err != nil {
 		return err
 	}
 
-	err = l.updateLabels(path, config)
-	if err != nil {
-		return err
+	return l.updateLabels(path, config)
+}
+
+// loadAllModels loads models from all merged sources.
+func (l *Loader) loadAllModels(ctx context.Context) error {
+	// Clear the loaded sources tracker for a fresh load
+	l.loadedSources = map[string]bool{}
+
+	return l.updateDatabase(ctx)
+}
+
+// reloadAll re-parses all config files and reloads all models.
+// Called when any config file changes.
+func (l *Loader) reloadAll(ctx context.Context) {
+	// Re-parse all config files
+	for _, path := range l.paths {
+		if err := l.parseAndMerge(path); err != nil {
+			glog.Errorf("unable to reload sources from %s: %v", path, err)
+		}
 	}
 
-	return l.updateDatabase(ctx, path, config)
+	// Clean up models and sources that are no longer in config
+	if err := l.removeModelsFromMissingSources(); err != nil {
+		glog.Errorf("unable to remove models from missing sources: %v", err)
+	}
+
+	// Reload all models
+	if err := l.loadAllModels(ctx); err != nil {
+		glog.Errorf("unable to reload models: %v", err)
+	}
 }
 
 func (l *Loader) read(path string) (*sourceConfig, error) {
@@ -158,31 +228,23 @@ func (l *Loader) read(path string) (*sourceConfig, error) {
 		return nil, err
 	}
 
-	enabledSources := make([]Source, 0, len(config.Catalogs))
-
-	// Remove disabled sources and explicitly set enabled on the others.
-	for _, source := range config.Catalogs {
-		// If enabled is explicitly set to false, skip
-		if source.HasEnabled() && *source.Enabled == false {
-			continue
+	// Validate named queries if present
+	if config.NamedQueries != nil {
+		if err := ValidateNamedQueries(config.NamedQueries); err != nil {
+			return nil, fmt.Errorf("invalid named queries in %s: %w", path, err)
 		}
-		// If not explicitly set, default to enabled
-		source.CatalogSource.Enabled = apiutils.Of(true)
-
-		// Default to an empty labels list
-		if source.Labels == nil {
-			source.Labels = []string{}
-		}
-
-		enabledSources = append(enabledSources, source)
 	}
-	config.Catalogs = enabledSources
+
+	// Note: We intentionally do NOT filter disabled sources or apply defaults here.
+	// This allows field-level merging in SourceCollection to work correctly:
+	// - A base source with enabled=false can be enabled by a user override with just id + enabled=true
+	// - Defaults are applied after merging in SourceCollection.merged()
 
 	return config, nil
 }
 
 func (l *Loader) updateSources(path string, config *sourceConfig) error {
-	sources := make(map[string]apimodels.CatalogSource, len(config.Catalogs))
+	sources := make(map[string]Source, len(config.Catalogs))
 
 	for _, source := range config.Catalogs {
 		glog.Infof("reading config type %s...", source.Type)
@@ -194,16 +256,22 @@ func (l *Loader) updateSources(path string, config *sourceConfig) error {
 			return fmt.Errorf("invalid source: duplicate id %s", id)
 		}
 
-		// Validate includedModels/excludedModels patterns early
+		// Validate includedModels/excludedModels patterns early (only if set)
 		if err := ValidateSourceFilters(source.IncludedModels, source.ExcludedModels); err != nil {
 			return fmt.Errorf("invalid source %s: %w", id, err)
 		}
 
-		sources[id] = source.CatalogSource
-
+		// Set the origin path so relative paths in properties can be resolved
+		// relative to this config file's directory
+		source.Origin = path
+		sources[id] = source
 		glog.Infof("loaded source %s of type %s", id, source.Type)
 	}
 
+	// Use MergeWithNamedQueries if named queries exist, otherwise use regular Merge
+	if config.NamedQueries != nil {
+		return l.Sources.MergeWithNamedQueries(path, sources, config.NamedQueries)
+	}
 	return l.Sources.Merge(path, sources)
 }
 
@@ -224,20 +292,26 @@ func (l *Loader) updateLabels(path string, config *sourceConfig) error {
 	return l.Labels.Merge(path, config.Labels)
 }
 
-func (l *Loader) updateDatabase(ctx context.Context, path string, config *sourceConfig) error {
+func (l *Loader) updateDatabase(ctx context.Context) error {
 	ctx, cancel := context.WithCancel(ctx)
 
 	l.closersMu.Lock()
-	if l.closers[path] != nil {
-		l.closers[path]()
+	if l.closer != nil {
+		l.closer()
 	}
-	l.closers[path] = cancel
+	l.closer = cancel
 	l.closersMu.Unlock()
 
-	records := l.readProviderRecords(ctx, path, config)
+	// Use merged sources from SourceCollection instead of per-file config.
+	// This enables sparse overrides to work: a user can enable a disabled source
+	// with just "id" and "enabled: true", inheriting Type and Properties from the base.
+	records := l.readProviderRecords(ctx)
 
 	go func() {
 		for record := range records {
+			if record.Model == nil {
+				continue
+			}
 			attr := record.Model.GetAttributes()
 			if attr == nil || attr.Name == nil {
 				continue
@@ -253,18 +327,18 @@ func (l *Loader) updateDatabase(ctx context.Context, path string, config *source
 
 			modelID := model.GetID()
 			if modelID == nil {
-				glog.Errorf("%s: model has no ID after save")
+				glog.Errorf("%s: model has no ID after save", *attr.Name)
 				continue
 			}
 
 			// Remove artifacts that existed before.
 			err = l.services.CatalogArtifactRepository.DeleteByParentID(service.CatalogModelArtifactTypeName, *modelID)
 			if err != nil {
-				glog.Errorf("%s: unable to remove old catalog model artifacts: %v", err)
+				glog.Errorf("%s: unable to remove old catalog model artifacts: %v", *attr.Name, err)
 			}
 			err = l.services.CatalogArtifactRepository.DeleteByParentID(service.CatalogMetricsArtifactTypeName, *modelID)
 			if err != nil {
-				glog.Errorf("%s: unable to remove old catalog model artifacts: %v", err)
+				glog.Errorf("%s: unable to remove old catalog metrics artifacts: %v", *attr.Name, err)
 			}
 
 			for i, artifact := range record.Artifacts {
@@ -291,40 +365,110 @@ func (l *Loader) updateDatabase(ctx context.Context, path string, config *source
 	return nil
 }
 
-// readProviderRecords calls the provider for every configured source and
-// merges the returned channels together. The returned channel is closed when
-// the last provider channel is closed.
-func (l *Loader) readProviderRecords(ctx context.Context, path string, config *sourceConfig) <-chan ModelProviderRecord {
-	configDir := filepath.Dir(path)
+// readProviderRecords calls the provider for every merged source that hasn't
+// been loaded yet, and merges the returned channels together. The returned
+// channel is closed when the last provider channel is closed.
+func (l *Loader) readProviderRecords(ctx context.Context) <-chan ModelProviderRecord {
 
 	ch := make(chan ModelProviderRecord)
 	var wg sync.WaitGroup
 
-	for _, source := range config.Catalogs {
+	// Get all sources from the merged collection.
+	// This allows sparse overrides to work: a user can enable a disabled source
+	// with just "id" and "enabled: true", inheriting Type and Properties from the base.
+	mergedSources := l.Sources.AllSources()
+
+	for _, source := range mergedSources {
+		// Skip disabled sources - only load catalog data from enabled sources
+		// Per OpenAPI spec, enabled defaults to true, so nil is treated as enabled
+		if source.Enabled != nil && !*source.Enabled {
+			// Persist disabled status
+			l.saveSourceStatus(source.Id, SourceStatusDisabled, "")
+			continue
+		}
+
+		// Skip sources that have already been loaded
+		if l.loadedSources[source.Id] {
+			continue
+		}
+
+		if source.Type == "" {
+			glog.Errorf("source %s has no type defined, skipping", source.Id)
+			l.saveSourceStatus(source.Id, SourceStatusError, "source has no type defined")
+			continue
+		}
+
+		// Mark this source as loaded
+		l.loadedSources[source.Id] = true
+
 		glog.Infof("Reading models from %s source %s", source.Type, source.Id)
 
 		registerFunc, ok := registeredModelProviders[source.Type]
 		if !ok {
 			glog.Errorf("catalog type %s not registered", source.Type)
+			l.saveSourceStatus(source.Id, SourceStatusError, fmt.Sprintf("catalog type %q not registered", source.Type))
 			continue
 		}
 
-		records, err := registerFunc(ctx, &source, configDir)
+		// Use the source's origin directory for resolving relative paths.
+		// This allows sources from different config files (e.g., mounted from
+		// different configmaps) to use relative paths correctly.
+		sourceDir := filepath.Dir(source.Origin)
+
+		records, err := registerFunc(ctx, &source, sourceDir)
 		if err != nil {
 			glog.Errorf("error reading catalog type %s with id %s: %v", source.Type, source.Id, err)
+			l.saveSourceStatus(source.Id, SourceStatusError, err.Error())
 			continue
 		}
 
 		wg.Add(1)
-		go func() {
+		go func(ctx context.Context, sourceID string) {
 			defer wg.Done()
+
+			modelNames := []string{}
+			statusSaved := false
+
 			for r := range records {
+				if r.Model == nil {
+					glog.V(2).Infof("%s: trigger cleanup", sourceID)
+
+					// Copy the list of model names, then clear it.
+					modelNameSet := mapset.NewSet(modelNames...)
+					modelNames = modelNames[:0]
+
+					go func() {
+						err := l.removeOrphanedModelsFromSource(sourceID, modelNameSet)
+						if err != nil {
+							glog.Errorf("error removing orphaned models: %v", err)
+						}
+					}()
+
+					// Source finished loading successfully (provider-level errors are caught earlier)
+					// Only save if context is still valid (no reload in progress)
+					if ctx.Err() == nil {
+						l.saveSourceStatus(sourceID, SourceStatusAvailable, "")
+						statusSaved = true
+					}
+					continue
+				}
+
+				if attr := r.Model.GetAttributes(); attr != nil && attr.Name != nil {
+					modelNames = append(modelNames, *attr.Name)
+				}
+
 				// Set source_id on every returned model.
-				l.setModelSourceID(r.Model, source.Id)
+				l.setModelSourceID(r.Model, sourceID)
 
 				ch <- r
 			}
-		}()
+
+			// If the channel closed without a nil Model marker and status wasn't already saved,
+			// save available status if context is still valid and we processed some models
+			if !statusSaved && ctx.Err() == nil && len(modelNames) > 0 {
+				l.saveSourceStatus(sourceID, SourceStatusAvailable, "")
+			}
+		}(ctx, source.Id)
 	}
 
 	go func() {
@@ -364,4 +508,135 @@ func (l *Loader) setModelSourceID(model dbmodels.CatalogModel, sourceID string) 
 	}
 
 	*props = append(*props, mrmodels.NewStringProperty("source_id", sourceID, false))
+}
+
+func (l *Loader) removeModelsFromMissingSources() error {
+	enabledSourceIDs := mapset.NewSet[string]()
+	allSourceIDs := mapset.NewSet[string]()
+	for id, source := range l.Sources.AllSources() {
+		allSourceIDs.Add(id)
+		if source.Enabled == nil || *source.Enabled {
+			enabledSourceIDs.Add(id)
+		}
+	}
+
+	existingSourceIDs, err := l.services.CatalogModelRepository.GetDistinctSourceIDs()
+	if err != nil {
+		return fmt.Errorf("unable to retrieve existing source IDs: %w", err)
+	}
+
+	for oldSource := range mapset.NewSet(existingSourceIDs...).Difference(enabledSourceIDs).Iter() {
+		glog.Infof("Removing models from source %s", oldSource)
+
+		err = l.services.CatalogModelRepository.DeleteBySource(oldSource)
+		if err != nil {
+			return fmt.Errorf("unable to remove models from source %q: %w", oldSource, err)
+		}
+
+		// If the source is completely gone from config (not just disabled), remove its status too
+		if !allSourceIDs.Contains(oldSource) {
+			glog.Infof("Removing status for source %s (no longer in config)", oldSource)
+			if delErr := l.services.CatalogSourceRepository.Delete(oldSource); delErr != nil {
+				glog.Errorf("failed to delete status for source %s: %v", oldSource, delErr)
+			}
+		}
+	}
+
+	// Also clean up CatalogSource records for sources that are no longer in config
+	// This handles sources that never loaded models (e.g., error sources, disabled sources)
+	if err := l.cleanupOrphanedCatalogSources(allSourceIDs); err != nil {
+		glog.Errorf("failed to cleanup orphaned catalog sources: %v", err)
+	}
+
+	return nil
+}
+
+// cleanupOrphanedCatalogSources removes CatalogSource records for sources that are no longer in the config.
+func (l *Loader) cleanupOrphanedCatalogSources(currentSourceIDs mapset.Set[string]) error {
+	existingSources, err := l.services.CatalogSourceRepository.GetAll()
+	if err != nil {
+		return fmt.Errorf("unable to get existing catalog sources: %w", err)
+	}
+
+	for _, source := range existingSources {
+		attrs := source.GetAttributes()
+		if attrs == nil || attrs.Name == nil {
+			continue
+		}
+
+		sourceID := *attrs.Name
+		if !currentSourceIDs.Contains(sourceID) {
+			glog.Infof("Removing orphaned catalog source %s (no longer in config)", sourceID)
+			if delErr := l.services.CatalogSourceRepository.Delete(sourceID); delErr != nil {
+				glog.Errorf("failed to delete orphaned catalog source %s: %v", sourceID, delErr)
+			}
+		}
+	}
+
+	return nil
+}
+
+func (l *Loader) removeOrphanedModelsFromSource(sourceID string, valid mapset.Set[string]) error {
+	list, err := l.services.CatalogModelRepository.List(dbmodels.CatalogModelListOptions{
+		SourceIDs: &[]string{sourceID},
+	})
+	if err != nil {
+		return fmt.Errorf("unable to list models from source %q: %w", sourceID, err)
+	}
+
+	for _, model := range list.Items {
+		attr := model.GetAttributes()
+		if attr == nil || attr.Name == nil || model.GetID() == nil {
+			continue
+		}
+
+		if valid.Contains(*attr.Name) {
+			continue
+		}
+
+		glog.Infof("Removing %s model %s", sourceID, *attr.Name)
+
+		err = l.services.CatalogModelRepository.DeleteByID(*model.GetID())
+		if err != nil {
+			return fmt.Errorf("unable to remove model %d (%s from source %s): %w", *model.GetID(), *attr.Name, sourceID, err)
+		}
+	}
+
+	return nil
+}
+
+// saveSourceStatus persists the operational status of a source to the database.
+// This allows status to be consistent across multiple pods.
+func (l *Loader) saveSourceStatus(sourceID, status string, errorMsg string) {
+	// Validate status is a valid enum value
+	switch status {
+	case SourceStatusAvailable, SourceStatusError, SourceStatusDisabled:
+		// valid
+	default:
+		glog.Errorf("invalid status %q for source %s", status, sourceID)
+		return
+	}
+
+	source := &dbmodels.CatalogSourceImpl{
+		Attributes: &dbmodels.CatalogSourceAttributes{
+			Name: &sourceID,
+		},
+	}
+
+	// Set status property
+	props := []mrmodels.Properties{
+		mrmodels.NewStringProperty("status", status, false),
+	}
+
+	// Only store error property when non-empty
+	if errorMsg != "" {
+		props = append(props, mrmodels.NewStringProperty("error", errorMsg, false))
+	}
+
+	source.Properties = &props
+
+	_, err := l.services.CatalogSourceRepository.Save(source)
+	if err != nil {
+		glog.Errorf("failed to save status for source %s: %v", sourceID, err)
+	}
 }

@@ -3,7 +3,8 @@ import {
   Button,
   Flex,
   FlexItem,
-  Gallery,
+  Grid,
+  GridItem,
   Skeleton,
   StackItem,
   Title,
@@ -40,9 +41,11 @@ const CatalogCategorySection: React.FC<CategorySectionProps> = ({
     searchTerm,
   );
 
+  const itemsToDisplay = catalogModels.items.slice(0, pageSize);
+
   return (
     <>
-      <StackItem className="pf-v6-u-pb-xl" style={{ maxWidth: '1600px' }}>
+      <StackItem className="pf-v6-u-pb-xl">
         <Flex
           alignItems={{ default: 'alignItemsCenter' }}
           justifyContent={{ default: 'justifyContentSpaceBetween' }}
@@ -80,17 +83,18 @@ const CatalogCategorySection: React.FC<CategorySectionProps> = ({
             {catalogModelsLoadError.message}
           </Alert>
         ) : !catalogModelsLoaded ? (
-          <Gallery hasGutter minWidths={{ default: '300px' }}>
+          <Grid hasGutter>
             {Array.from({ length: 4 }).map((_, index) => (
-              <Skeleton
-                key={index}
-                height="280px"
-                width="100%"
-                screenreaderText={`Loading ${label} models`}
-                data-testid={`category-skeleton-${label.toLowerCase().replace(/\s+/g, '-')}-${index}`}
-              />
+              <GridItem key={index} sm={6} md={6} lg={6} xl={6} xl2={3}>
+                <Skeleton
+                  height="280px"
+                  width="100%"
+                  screenreaderText={`Loading ${label} models`}
+                  data-testid={`category-skeleton-${label.toLowerCase().replace(/\s+/g, '-')}-${index}`}
+                />
+              </GridItem>
             ))}
-          </Gallery>
+          </Grid>
         ) : catalogModels.items.length === 0 ? (
           <EmptyModelCatalogState
             testid={`empty-model-catalog-state ${label}`}
@@ -99,15 +103,23 @@ const CatalogCategorySection: React.FC<CategorySectionProps> = ({
             description="Adjust your filters and try again."
           />
         ) : (
-          <Gallery hasGutter minWidths={{ default: '300px' }}>
-            {catalogModels.items.slice(0, pageSize).map((model) => (
-              <ModelCatalogCard
+          <Grid hasGutter>
+            {itemsToDisplay.map((model) => (
+              <GridItem
                 key={`${model.name}/${model.source_id}`}
-                model={model}
-                source={getSourceFromSourceId(model.source_id || '', catalogSources)}
-              />
+                sm={6}
+                md={6}
+                lg={6}
+                xl={6}
+                xl2={3}
+              >
+                <ModelCatalogCard
+                  model={model}
+                  source={getSourceFromSourceId(model.source_id || '', catalogSources)}
+                />
+              </GridItem>
             ))}
-          </Gallery>
+          </Grid>
         )}
       </StackItem>
     </>

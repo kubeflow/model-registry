@@ -28,7 +28,6 @@ var (
 	kubernetesMockedStaticClientFactory k8s.KubernetesClientFactory
 	mockMRClient                        *mocks.ModelRegistryClientMock
 	mockModelCatalogClient              *mocks.ModelCatalogClientMock
-	modelCatalogSettingsRepository      *mocks.ModelCatalogSettingsRepositoryMock
 	ctx                                 context.Context
 	cancel                              context.CancelFunc
 	logger                              *slog.Logger
@@ -70,8 +69,6 @@ var _ = BeforeSuite(func() {
 	mockModelCatalogClient, err = mocks.NewModelCatalogClientMock(nil)
 	Expect(err).NotTo(HaveOccurred())
 
-	modelCatalogSettingsRepository, err = mocks.NewModelCatalogSettingsRepository(nil)
-	Expect(err).NotTo(HaveOccurred())
 })
 
 var _ = AfterSuite(func() {

@@ -30,7 +30,7 @@ deploy-test-minio:
 .PHONY: deploy-local-registry
 deploy-local-registry:
 	cd ../../ && ./scripts/deploy_local_kind_registry.sh
-	kubectl port-forward service/distribution-registry-test-service 5001:5001 & echo $$! >> .port-forwards.pid
+	kubectl port-forward service/distribution-registry-test-service -n local-oci-registry-ns 5001:5001 & echo $$! >> .port-forwards.pid
 
 
 .PHONY: dev-load-image

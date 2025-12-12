@@ -18,9 +18,9 @@ metadata:
   namespace: default
 type: kubernetes.io/dockerconfigjson
 stringData:
-  .dockerconfigjson: '{"auths": {"distribution-registry-test-service.default.svc.cluster.local:5001": {"auth": "","email": "user@example.com"}}}'
+  .dockerconfigjson: '{"auths": {"distribution-registry-test-service.local-oci-registry-ns.svc.cluster.local:5001": {"auth": "","email": "user@example.com"}}}'
   ACCESS_TYPE: '["Push,Pull"]'
-  OCI_HOST: distribution-registry-test-service.default.svc.cluster.local:5001
+  OCI_HOST: distribution-registry-test-service.local-oci-registry-ns.svc.cluster.local:5001
 ---
 apiVersion: batch/v1
 kind: Job
@@ -106,9 +106,9 @@ spec:
             - name: MODEL_SYNC_DESTINATION_TYPE
               value: "oci"
             - name: MODEL_SYNC_DESTINATION_OCI_URI
-              value: "distribution-registry-test-service.default.svc.cluster.local:5001/my-model:latest"
+              value: "distribution-registry-test-service.local-oci-registry-ns.svc.cluster.local:5001/my-model:latest"
             - name: MODEL_SYNC_DESTINATION_OCI_REGISTRY
-              value: "distribution-registry-test-service.default.svc.cluster.local:5001"
+              value: "distribution-registry-test-service.local-oci-registry-ns.svc.cluster.local:5001"
             - name: MODEL_SYNC_DESTINATION_OCI_CREDENTIALS_PATH
               value: "/opt/creds/destination/.dockerconfigjson"
             - name: MODEL_SYNC_DESTINATION_OCI_BASE_IMAGE

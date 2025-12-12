@@ -1,6 +1,6 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
-import { BrowserRouter as Router } from 'react-router-dom';
+import { createBrowserRouter, RouterProvider } from 'react-router-dom';
 import {
   BrowserStorageContextProvider,
   NotificationContextProvider,
@@ -26,18 +26,29 @@ const modularArchConfig: ModularArchConfig = {
   mandatoryNamespace: MANDATORY_NAMESPACE,
 };
 
+// Wrapper component that provides all context providers
+const RootLayout: React.FC = () => (
+  <ModularArchContextProvider config={modularArchConfig}>
+    <ThemeProvider theme={STYLE_THEME}>
+      <BrowserStorageContextProvider>
+        <NotificationContextProvider>
+          <App />
+        </NotificationContextProvider>
+      </BrowserStorageContextProvider>
+    </ThemeProvider>
+  </ModularArchContextProvider>
+);
+
+// Use createBrowserRouter for data router features (useBlocker, etc.)
+const router = createBrowserRouter([
+  {
+    path: '*',
+    element: <RootLayout />,
+  },
+]);
+
 root.render(
   <React.StrictMode>
-    <Router>
-      <ModularArchContextProvider config={modularArchConfig}>
-        <ThemeProvider theme={STYLE_THEME}>
-          <BrowserStorageContextProvider>
-            <NotificationContextProvider>
-              <App />
-            </NotificationContextProvider>
-          </BrowserStorageContextProvider>
-        </ThemeProvider>
-      </ModularArchContextProvider>
-    </Router>
+    <RouterProvider router={router} />
   </React.StrictMode>,
 );

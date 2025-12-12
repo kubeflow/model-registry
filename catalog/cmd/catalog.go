@@ -63,6 +63,7 @@ func runCatalogServer(cmd *cobra.Command, args []string) error {
 		getRepo[models.CatalogArtifactRepository](repoSet),
 		getRepo[models.CatalogModelArtifactRepository](repoSet),
 		getRepo[models.CatalogMetricsArtifactRepository](repoSet),
+		getRepo[models.CatalogSourceRepository](repoSet),
 		getRepo[models.PropertyOptionsRepository](repoSet),
 	)
 
@@ -85,7 +86,12 @@ func runCatalogServer(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("error loading catalog sources: %v", err)
 	}
 
-	svc := openapi.NewModelCatalogServiceAPIService(catalog.NewDBCatalog(services, loader.Sources), loader.Sources, loader.Labels)
+	svc := openapi.NewModelCatalogServiceAPIService(
+		catalog.NewDBCatalog(services, loader.Sources),
+		loader.Sources,
+		loader.Labels,
+		services.CatalogSourceRepository,
+	)
 	ctrl := openapi.NewModelCatalogServiceAPIController(svc)
 
 	glog.Infof("Catalog API server listening on %s", catalogCfg.ListenAddress)

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"reflect"
 	"sort"
+	"sync"
 	"testing"
 	"time"
 
@@ -13,6 +14,7 @@ import (
 	apimodels "github.com/kubeflow/model-registry/catalog/pkg/openapi"
 	"github.com/kubeflow/model-registry/internal/apiutils"
 	mrmodels "github.com/kubeflow/model-registry/internal/db/models"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestLoadCatalogSources(t *testing.T) {
@@ -26,10 +28,9 @@ func TestLoadCatalogSources(t *testing.T) {
 		wantErr bool
 	}{
 		{
-			name:    "test-catalog-sources",
-			args:    args{catalogsPath: "testdata/test-catalog-sources.yaml"},
-			want:    []string{"catalog1"},
-			wantErr: false,
+			name: "test-catalog-sources",
+			args: args{catalogsPath: "testdata/test-catalog-sources.yaml"},
+			want: []string{"catalog1", "catalog2"},
 		},
 	}
 	for _, tt := range tests {
@@ -40,6 +41,7 @@ func TestLoadCatalogSources(t *testing.T) {
 				&MockCatalogArtifactRepository{},
 				&MockCatalogModelArtifactRepository{},
 				&MockCatalogMetricsArtifactRepository{},
+				&MockCatalogSourceRepository{},
 				&MockPropertyOptionsRepository{},
 			)
 			loader := NewLoader(services, []string{tt.args.catalogsPath})
@@ -62,6 +64,7 @@ func TestLoadCatalogSources(t *testing.T) {
 
 func TestLoadCatalogSourcesEnabledDisabled(t *testing.T) {
 	trueValue := true
+	falseValue := false
 	type args struct {
 		catalogsPath string
 	}
@@ -81,6 +84,12 @@ func TestLoadCatalogSourcesEnabledDisabled(t *testing.T) {
 					Enabled: &trueValue,
 					Labels:  []string{},
 				},
+				"catalog2": {
+					Id:      "catalog2",
+					Name:    "Catalog 2",
+					Enabled: &falseValue,
+					Labels:  []string{},
+				},
 			},
 			wantErr: false,
 		},
@@ -93,6 +102,7 @@ func TestLoadCatalogSourcesEnabledDisabled(t *testing.T) {
 				&MockCatalogArtifactRepository{},
 				&MockCatalogModelArtifactRepository{},
 				&MockCatalogMetricsArtifactRepository{},
+				&MockCatalogSourceRepository{},
 				&MockPropertyOptionsRepository{},
 			)
 			loader := NewLoader(services, []string{tt.args.catalogsPath})
@@ -119,6 +129,7 @@ func TestLabelsValidation(t *testing.T) {
 		&MockCatalogArtifactRepository{},
 		&MockCatalogModelArtifactRepository{},
 		&MockCatalogMetricsArtifactRepository{},
+		&MockCatalogSourceRepository{},
 		&MockPropertyOptionsRepository{},
 	)
 
@@ -249,6 +260,7 @@ func TestCatalogSourceLabelsDefaultToEmptySlice(t *testing.T) {
 				&MockCatalogArtifactRepository{},
 				&MockCatalogModelArtifactRepository{},
 				&MockCatalogMetricsArtifactRepository{},
+				&MockCatalogSourceRepository{},
 				&MockPropertyOptionsRepository{},
 			)
 			loader := NewLoader(services, []string{tt.args.catalogsPath})
@@ -287,6 +299,7 @@ func TestLoadCatalogSourcesWithMockRepositories(t *testing.T) {
 		mockArtifactRepo,
 		mockModelArtifactRepo,
 		mockMetricsArtifactRepo,
+		&MockCatalogSourceRepository{},
 		&MockPropertyOptionsRepository{},
 	)
 
@@ -354,13 +367,23 @@ func TestLoadCatalogSourcesWithMockRepositories(t *testing.T) {
 	l := NewLoader(services, []string{})
 	ctx := context.Background()
 
-	err := l.updateDatabase(ctx, "test-path", testConfig)
+	// First call updateSources to populate the SourceCollection
+	// (updateDatabase now uses merged sources from the collection)
+	err := l.updateSources("test-path", testConfig)
+	if err != nil {
+		t.Fatalf("updateSources() error = %v", err)
+	}
+
+	err = l.updateDatabase(ctx)
 	if err != nil {
 		t.Fatalf("updateDatabase() error = %v", err)
 	}
 
 	// Wait a bit for the goroutine to process
 	time.Sleep(100 * time.Millisecond)
+
+	mockModelRepo.mu.RLock()
+	defer mockModelRepo.mu.RUnlock()
 
 	// Verify that the model was saved
 	if len(mockModelRepo.SavedModels) != 1 {
@@ -376,10 +399,16 @@ func TestLoadCatalogSourcesWithMockRepositories(t *testing.T) {
 		}
 	}
 
+	mockModelArtifactRepo.mu.RLock()
+	defer mockModelArtifactRepo.mu.RUnlock()
+
 	// Verify that artifacts were saved
 	if len(mockModelArtifactRepo.SavedArtifacts) != 1 {
 		t.Errorf("Expected 1 model artifact to be saved, got %d", len(mockModelArtifactRepo.SavedArtifacts))
 	}
+
+	mockMetricsArtifactRepo.mu.RLock()
+	defer mockMetricsArtifactRepo.mu.RUnlock()
 
 	if len(mockMetricsArtifactRepo.SavedMetrics) != 1 {
 		t.Errorf("Expected 1 metrics artifact to be saved, got %d", len(mockMetricsArtifactRepo.SavedMetrics))
@@ -400,6 +429,7 @@ func TestLoadCatalogSourcesWithRepositoryErrors(t *testing.T) {
 		mockArtifactRepo,
 		mockModelArtifactRepo,
 		mockMetricsArtifactRepo,
+		&MockCatalogSourceRepository{},
 		&MockPropertyOptionsRepository{},
 	)
 
@@ -440,9 +470,15 @@ func TestLoadCatalogSourcesWithRepositoryErrors(t *testing.T) {
 	l := NewLoader(services, []string{})
 	ctx := context.Background()
 
+	// First call updateSources to populate the SourceCollection
+	err := l.updateSources("test-path", testConfig)
+	if err != nil {
+		t.Fatalf("updateSources() error = %v", err)
+	}
+
 	// This should not return an error even if repository operations fail
 	// (errors are logged but don't stop the loading process)
-	err := l.updateDatabase(ctx, "test-path", testConfig)
+	err = l.updateDatabase(ctx)
 	if err != nil {
 		t.Fatalf("updateDatabase() should not fail even with repository errors, got error = %v", err)
 	}
@@ -450,9 +486,94 @@ func TestLoadCatalogSourcesWithRepositoryErrors(t *testing.T) {
 	// Wait for processing
 	time.Sleep(100 * time.Millisecond)
 
+	mockModelRepo.mu.RLock()
+	defer mockModelRepo.mu.RUnlock()
+
 	// Verify that no models were saved due to the error
 	if len(mockModelRepo.SavedModels) != 0 {
 		t.Errorf("Expected 0 models to be saved due to error, got %d", len(mockModelRepo.SavedModels))
+	}
+}
+
+func TestLoadCatalogSourcesWithNilEnabled(t *testing.T) {
+	// Test that nil Enabled field is treated as enabled (per OpenAPI spec default: true)
+	mockModelRepo := &MockCatalogModelRepository{}
+	mockArtifactRepo := &MockCatalogArtifactRepository{}
+	mockModelArtifactRepo := &MockCatalogModelArtifactRepository{}
+	mockMetricsArtifactRepo := &MockCatalogMetricsArtifactRepository{}
+
+	services := service.NewServices(
+		mockModelRepo,
+		mockArtifactRepo,
+		mockModelArtifactRepo,
+		mockMetricsArtifactRepo,
+		&MockCatalogSourceRepository{},
+		&MockPropertyOptionsRepository{},
+	)
+
+	// Register a test provider
+	testProviderName := "test-nil-enabled-provider"
+	RegisterModelProvider(testProviderName, func(ctx context.Context, source *Source, reldir string) (<-chan ModelProviderRecord, error) {
+		ch := make(chan ModelProviderRecord, 1)
+
+		modelName := "test-model-nil-enabled"
+		model := &dbmodels.CatalogModelImpl{
+			Attributes: &dbmodels.CatalogModelAttributes{
+				Name: &modelName,
+			},
+		}
+
+		ch <- ModelProviderRecord{
+			Model:     model,
+			Artifacts: []dbmodels.CatalogArtifact{},
+		}
+		close(ch)
+
+		return ch, nil
+	})
+
+	testConfig := &sourceConfig{
+		Catalogs: []Source{
+			{
+				CatalogSource: apimodels.CatalogSource{
+					Id:      "test-catalog-nil-enabled",
+					Name:    "Test Catalog Nil Enabled",
+					Enabled: nil, // Nil should be treated as enabled
+				},
+				Type: testProviderName,
+			},
+		},
+	}
+
+	l := NewLoader(services, []string{})
+	ctx := context.Background()
+
+	// First call updateSources to populate the SourceCollection
+	err := l.updateSources("test-path", testConfig)
+	if err != nil {
+		t.Fatalf("updateSources() error = %v", err)
+	}
+
+	err = l.updateDatabase(ctx)
+	if err != nil {
+		t.Fatalf("updateDatabase() error = %v", err)
+	}
+
+	// Wait for processing
+	time.Sleep(100 * time.Millisecond)
+
+	// Verify that the model WAS saved (because nil Enabled is treated as enabled)
+	if len(mockModelRepo.SavedModels) != 1 {
+		t.Errorf("Expected 1 model to be saved (nil Enabled should be treated as enabled), got %d", len(mockModelRepo.SavedModels))
+	}
+
+	if len(mockModelRepo.SavedModels) > 0 {
+		savedModel := mockModelRepo.SavedModels[0]
+		if savedModel.GetAttributes() == nil || savedModel.GetAttributes().Name == nil {
+			t.Error("Saved model should have attributes with name")
+		} else if *savedModel.GetAttributes().Name != "test-model-nil-enabled" {
+			t.Errorf("Expected model name 'test-model-nil-enabled', got '%s'", *savedModel.GetAttributes().Name)
+		}
 	}
 }
 
@@ -537,11 +658,14 @@ func (m *MockCatalogModelRepositoryWithErrors) Save(model dbmodels.CatalogModel)
 
 // MockCatalogModelRepository mocks the CatalogModelRepository interface.
 type MockCatalogModelRepository struct {
+	mu          sync.RWMutex
 	SavedModels []dbmodels.CatalogModel
 	NextID      int32
 }
 
 func (m *MockCatalogModelRepository) GetByID(id int32) (dbmodels.CatalogModel, error) {
+	m.mu.RLock()
+	defer m.mu.RUnlock()
 	for _, model := range m.SavedModels {
 		if model.GetID() != nil && *model.GetID() == id {
 			return model, nil
@@ -551,6 +675,8 @@ func (m *MockCatalogModelRepository) GetByID(id int32) (dbmodels.CatalogModel, e
 }
 
 func (m *MockCatalogModelRepository) List(listOptions dbmodels.CatalogModelListOptions) (*mrmodels.ListWrapper[dbmodels.CatalogModel], error) {
+	m.mu.RLock()
+	defer m.mu.RUnlock()
 	return &mrmodels.ListWrapper[dbmodels.CatalogModel]{
 		Items:    m.SavedModels,
 		PageSize: int32(len(m.SavedModels)),
@@ -559,6 +685,8 @@ func (m *MockCatalogModelRepository) List(listOptions dbmodels.CatalogModelListO
 }
 
 func (m *MockCatalogModelRepository) GetByName(name string) (dbmodels.CatalogModel, error) {
+	m.mu.RLock()
+	defer m.mu.RUnlock()
 	for _, model := range m.SavedModels {
 		if model.GetAttributes() != nil && model.GetAttributes().Name != nil && *model.GetAttributes().Name == name {
 			return model, nil
@@ -568,6 +696,9 @@ func (m *MockCatalogModelRepository) GetByName(name string) (dbmodels.CatalogMod
 }
 
 func (m *MockCatalogModelRepository) Save(model dbmodels.CatalogModel) (dbmodels.CatalogModel, error) {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+
 	m.NextID++
 	id := m.NextID
 
@@ -584,13 +715,31 @@ func (m *MockCatalogModelRepository) Save(model dbmodels.CatalogModel) (dbmodels
 	return savedModel, nil
 }
 
+func (m *MockCatalogModelRepository) DeleteBySource(sourceID string) error {
+	// Mock implementation - no-op for testing
+	return nil
+}
+
+func (m *MockCatalogModelRepository) DeleteByID(id int32) error {
+	// Mock implementation - no-op for testing
+	return nil
+}
+
+func (m *MockCatalogModelRepository) GetDistinctSourceIDs() ([]string, error) {
+	// Mock implementation - return empty list by default
+	return []string{}, nil
+}
+
 // MockCatalogModelArtifactRepository mocks the CatalogModelArtifactRepository interface.
 type MockCatalogModelArtifactRepository struct {
+	mu             sync.RWMutex
 	SavedArtifacts []dbmodels.CatalogModelArtifact
 	NextID         int32
 }
 
 func (m *MockCatalogModelArtifactRepository) GetByID(id int32) (dbmodels.CatalogModelArtifact, error) {
+	m.mu.RLock()
+	defer m.mu.RUnlock()
 	for _, artifact := range m.SavedArtifacts {
 		if artifact.GetID() != nil && *artifact.GetID() == id {
 			return artifact, nil
@@ -600,6 +749,8 @@ func (m *MockCatalogModelArtifactRepository) GetByID(id int32) (dbmodels.Catalog
 }
 
 func (m *MockCatalogModelArtifactRepository) List(listOptions dbmodels.CatalogModelArtifactListOptions) (*mrmodels.ListWrapper[dbmodels.CatalogModelArtifact], error) {
+	m.mu.RLock()
+	defer m.mu.RUnlock()
 	return &mrmodels.ListWrapper[dbmodels.CatalogModelArtifact]{
 		Items:    m.SavedArtifacts,
 		PageSize: int32(len(m.SavedArtifacts)),
@@ -608,6 +759,9 @@ func (m *MockCatalogModelArtifactRepository) List(listOptions dbmodels.CatalogMo
 }
 
 func (m *MockCatalogModelArtifactRepository) Save(modelArtifact dbmodels.CatalogModelArtifact, parentResourceID *int32) (dbmodels.CatalogModelArtifact, error) {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+
 	m.NextID++
 	id := m.NextID
 
@@ -626,11 +780,15 @@ func (m *MockCatalogModelArtifactRepository) Save(modelArtifact dbmodels.Catalog
 
 // MockCatalogMetricsArtifactRepository mocks the CatalogMetricsArtifactRepository interface.
 type MockCatalogMetricsArtifactRepository struct {
+	mu           sync.RWMutex
 	SavedMetrics []dbmodels.CatalogMetricsArtifact
 	NextID       int32
 }
 
 func (m *MockCatalogMetricsArtifactRepository) GetByID(id int32) (dbmodels.CatalogMetricsArtifact, error) {
+	m.mu.RLock()
+	defer m.mu.RUnlock()
+
 	for _, metrics := range m.SavedMetrics {
 		if metrics.GetID() != nil && *metrics.GetID() == id {
 			return metrics, nil
@@ -640,6 +798,9 @@ func (m *MockCatalogMetricsArtifactRepository) GetByID(id int32) (dbmodels.Catal
 }
 
 func (m *MockCatalogMetricsArtifactRepository) List(listOptions dbmodels.CatalogMetricsArtifactListOptions) (*mrmodels.ListWrapper[dbmodels.CatalogMetricsArtifact], error) {
+	m.mu.RLock()
+	defer m.mu.RUnlock()
+
 	return &mrmodels.ListWrapper[dbmodels.CatalogMetricsArtifact]{
 		Items:    m.SavedMetrics,
 		PageSize: int32(len(m.SavedMetrics)),
@@ -648,6 +809,9 @@ func (m *MockCatalogMetricsArtifactRepository) List(listOptions dbmodels.Catalog
 }
 
 func (m *MockCatalogMetricsArtifactRepository) Save(metricsArtifact dbmodels.CatalogMetricsArtifact, parentResourceID *int32) (dbmodels.CatalogMetricsArtifact, error) {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+
 	m.NextID++
 	id := m.NextID
 
@@ -665,6 +829,9 @@ func (m *MockCatalogMetricsArtifactRepository) Save(metricsArtifact dbmodels.Cat
 }
 
 func (m *MockCatalogMetricsArtifactRepository) BatchSave(metricsArtifacts []dbmodels.CatalogMetricsArtifact, parentResourceID *int32) ([]dbmodels.CatalogMetricsArtifact, error) {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+
 	savedArtifacts := make([]dbmodels.CatalogMetricsArtifact, len(metricsArtifacts))
 
 	for i, metricsArtifact := range metricsArtifacts {
@@ -689,11 +856,14 @@ func (m *MockCatalogMetricsArtifactRepository) BatchSave(metricsArtifacts []dbmo
 
 // MockCatalogArtifactRepository mocks the CatalogArtifactRepository interface.
 type MockCatalogArtifactRepository struct {
+	mu             sync.RWMutex
 	SavedArtifacts []dbmodels.CatalogArtifact
 	NextID         int32
 }
 
 func (m *MockCatalogArtifactRepository) GetByID(id int32) (dbmodels.CatalogArtifact, error) {
+	m.mu.RLock()
+	defer m.mu.RUnlock()
 	for _, artifact := range m.SavedArtifacts {
 		// Check both model and metrics artifacts for the ID
 		if artifact.CatalogModelArtifact != nil && artifact.CatalogModelArtifact.GetID() != nil && *artifact.CatalogModelArtifact.GetID() == id {
@@ -707,6 +877,8 @@ func (m *MockCatalogArtifactRepository) GetByID(id int32) (dbmodels.CatalogArtif
 }
 
 func (m *MockCatalogArtifactRepository) List(listOptions dbmodels.CatalogArtifactListOptions) (*mrmodels.ListWrapper[dbmodels.CatalogArtifact], error) {
+	m.mu.RLock()
+	defer m.mu.RUnlock()
 	return &mrmodels.ListWrapper[dbmodels.CatalogArtifact]{
 		Items:    m.SavedArtifacts,
 		PageSize: int32(len(m.SavedArtifacts)),
@@ -777,4 +949,114 @@ func (m *MockPropertyOptionsRepository) SetMockOptions(t dbmodels.PropertyOption
 		m.MockOptions[t] = make(map[int32][]dbmodels.PropertyOption)
 	}
 	m.MockOptions[t][typeID] = options
+}
+
+// MockCatalogSourceRepository mocks the CatalogSourceRepository interface.
+type MockCatalogSourceRepository struct {
+	Sources []dbmodels.CatalogSource
+}
+
+func (m *MockCatalogSourceRepository) GetBySourceID(sourceID string) (dbmodels.CatalogSource, error) {
+	for _, s := range m.Sources {
+		if attrs := s.GetAttributes(); attrs != nil && attrs.Name != nil && *attrs.Name == sourceID {
+			return s, nil
+		}
+	}
+	return nil, nil
+}
+
+func (m *MockCatalogSourceRepository) Save(source dbmodels.CatalogSource) (dbmodels.CatalogSource, error) {
+	m.Sources = append(m.Sources, source)
+	return source, nil
+}
+
+func (m *MockCatalogSourceRepository) Delete(sourceID string) error {
+	return nil
+}
+
+func (m *MockCatalogSourceRepository) GetAll() ([]dbmodels.CatalogSource, error) {
+	return m.Sources, nil
+}
+
+func (m *MockCatalogSourceRepository) GetAllStatuses() (map[string]dbmodels.SourceStatus, error) {
+	result := make(map[string]dbmodels.SourceStatus)
+	for _, source := range m.Sources {
+		if attrs := source.GetAttributes(); attrs != nil && attrs.Name != nil {
+			status := dbmodels.SourceStatus{}
+			if props := source.GetProperties(); props != nil {
+				for _, prop := range *props {
+					switch prop.Name {
+					case "status":
+						if prop.StringValue != nil {
+							status.Status = *prop.StringValue
+						}
+					case "error":
+						if prop.StringValue != nil {
+							status.Error = *prop.StringValue
+						}
+					}
+				}
+			}
+			result[*attrs.Name] = status
+		}
+	}
+	return result, nil
+}
+
+func TestAPIProviderGetPerformanceArtifacts(t *testing.T) {
+	// This test verifies that the APIProvider interface has GetPerformanceArtifacts method
+	// The actual implementation is tested in db_catalog_test.go
+
+	// Create a mock provider to verify interface compliance
+	services := service.NewServices(
+		&MockCatalogModelRepository{},
+		&MockCatalogArtifactRepository{},
+		&MockCatalogModelArtifactRepository{},
+		&MockCatalogMetricsArtifactRepository{},
+		&MockCatalogSourceRepository{},
+		&MockPropertyOptionsRepository{},
+	)
+	provider := NewDBCatalog(services, nil)
+
+	// Verify provider implements APIProvider interface with GetPerformanceArtifacts
+	var _ APIProvider = provider
+
+	// Basic test - should return error for non-existent model
+	ctx := context.Background()
+	_, err := provider.GetPerformanceArtifacts(ctx, "non-existent-model", "source-1", ListPerformanceArtifactsParams{
+		TargetRPS:       100,
+		Recommendations: true,
+		PageSize:        10,
+	})
+
+	// Should get an error since the model doesn't exist
+	assert.Error(t, err)
+}
+
+// TestAPIProviderInterface verifies that the APIProvider interface supports
+// all required fields in ListPerformanceArtifactsParams
+func TestAPIProviderInterface(t *testing.T) {
+	services := service.NewServices(
+		&MockCatalogModelRepository{},
+		&MockCatalogArtifactRepository{},
+		&MockCatalogModelArtifactRepository{},
+		&MockCatalogMetricsArtifactRepository{},
+		&MockCatalogSourceRepository{},
+		&MockPropertyOptionsRepository{},
+	)
+	var provider APIProvider = NewDBCatalog(services, nil)
+
+	params := ListPerformanceArtifactsParams{
+		TargetRPS:             100,
+		Recommendations:       true,
+		RPSProperty:           "custom_rps",
+		LatencyProperty:       "custom_latency",
+		HardwareCountProperty: "custom_hw_count",
+		HardwareTypeProperty:  "custom_hw_type",
+	}
+
+	// Should compile without errors and be callable
+	ctx := context.Background()
+	_, err := provider.GetPerformanceArtifacts(ctx, "test-model", "source-1", params)
+	assert.Error(t, err) // Expected error since model doesn't exist
 }

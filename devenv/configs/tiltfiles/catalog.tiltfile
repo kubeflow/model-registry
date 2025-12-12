@@ -1,4 +1,9 @@
-manifests = kustomize("../../../manifests/kustomize/options/catalog/base")
+# Use the "local" overlay path if it exists, if not fall-back to "demo".
+localOverlayPath = "../../../manifests/kustomize/options/catalog/overlays/local"
+if os.path.exists(localOverlayPath):
+    manifests = kustomize(localOverlayPath)
+else:
+    manifests = kustomize("../../../manifests/kustomize/options/catalog/overlays/demo")
 
 objects = decode_yaml_stream(manifests)
 

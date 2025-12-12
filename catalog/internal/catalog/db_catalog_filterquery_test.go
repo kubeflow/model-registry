@@ -721,8 +721,9 @@ func TestArtifactFilteringCapability(t *testing.T) {
 				".name = $",
 				".double_value <= $",
 			},
-			expectedArgs: []any{"ttft_mean", float64(90), "tpot_mean", float64(50)},
-			description:  "Should handle multiple artifact property filters with separate JOINs",
+			// Args order: JOIN property names first, then WHERE value conditions
+			expectedArgs: []any{"ttft_mean", "tpot_mean", float64(90), float64(50)},
+			description:  "Should handle multiple artifact property filters in a single EXISTS with multiple property JOINs on the SAME artifact",
 		},
 		{
 			name:        "Artifact property with LIKE",
@@ -835,20 +836,19 @@ func TestArtifactFilteringCapability(t *testing.T) {
 					expectedFragment, generatedSQL)
 			}
 
-			// Verify arguments if specified
+			// Verify arguments if specified - ORDER MATTERS for SQL placeholder mapping
 			if len(tt.expectedArgs) > 0 {
-				// Check that all expected args are present (order may vary due to JOINs)
-				// For numeric values, check value equality regardless of type (int vs float64)
-				for _, expectedArg := range tt.expectedArgs {
-					found := false
-					for _, actualArg := range queryArgs {
-						if actualArg == expectedArg {
-							found = true
-							break
-						}
-					}
-					assert.True(t, found, "Expected argument %v not found in actual args: %v",
-						expectedArg, queryArgs)
+				// Args must be in exact order to match SQL placeholders ($1, $2, etc.)
+				// This is critical for combined artifact filters where JOIN args come before WHERE args
+				require.Equal(t, len(tt.expectedArgs), len(queryArgs)-1, // -1 for type_id
+					"Argument count mismatch (excluding type_id)")
+
+				// Compare args starting from index 1 (skip type_id at index 0)
+				for i, expectedArg := range tt.expectedArgs {
+					actualArg := queryArgs[i+1] // +1 to skip type_id
+					assert.Equal(t, expectedArg, actualArg,
+						"Argument at position %d should be %v but was %v. Full args: %v",
+						i+1, expectedArg, actualArg, queryArgs)
 				}
 			}
 
@@ -1119,6 +1119,22 @@ func TestArtifactFilteringEdgeCases(t *testing.T) {
 				".string_value) LIKE UPPER(",
 			},
 			description: "Should handle both exact and case-insensitive matching on artifact properties (ILIKE uses UPPER for cross-DB compatibility)",
+		},
+		{
+			name:        "Bug fix: multiple artifact filters must match SAME artifact",
+			filterQuery: `artifacts.hardware_type LIKE "H200" AND artifacts.ttft_p95 < 50`,
+			expectedSQL: []string{
+				"EXISTS",
+				`"Attribution"`,
+				`"Artifact"`,
+				// Both property JOINs should reference the same artifact (art_X)
+				"artprop_",
+				".artifact_id = art_",
+				// Both conditions should be in the WHERE clause
+				".string_value LIKE $",
+				".double_value < $",
+			},
+			description: "Multiple artifact property filters with AND should generate a SINGLE EXISTS with multiple property JOINs ensuring BOTH conditions match the SAME artifact (not different artifacts)",
 		},
 		{
 			name:        "Integer literal queries both int_value and double_value",

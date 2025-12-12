@@ -8,12 +8,12 @@ type Repositories struct {
 	ModelRegistrySettings          *ModelRegistrySettingsRepository
 	ModelRegistryClient            ModelRegistryClientInterface
 	ModelCatalogClient             ModelCatalogClientInterface
-	ModelCatalogSettingsRepository ModelCatalogSettingsRepositoryInterface
+	ModelCatalogSettingsRepository *ModelCatalogSettingsRepository
 	User                           *UserRepository
 	Namespace                      *NamespaceRepository
 }
 
-func NewRepositories(modelRegistryClient ModelRegistryClientInterface, modelCatalogClient ModelCatalogClientInterface, modelCatalogSettingsRepository ModelCatalogSettingsRepositoryInterface) *Repositories {
+func NewRepositories(modelRegistryClient ModelRegistryClientInterface, modelCatalogClient ModelCatalogClientInterface) *Repositories {
 	return &Repositories{
 		HealthCheck:                    NewHealthCheckRepository(),
 		ModelRegistry:                  NewModelRegistryRepository(),
@@ -21,7 +21,7 @@ func NewRepositories(modelRegistryClient ModelRegistryClientInterface, modelCata
 		ModelCatalogClient:             modelCatalogClient,
 		ModelRegistrySettings:          NewModelRegistrySettingsRepository(),
 		ModelRegistryClient:            modelRegistryClient,
-		ModelCatalogSettingsRepository: modelCatalogSettingsRepository,
+		ModelCatalogSettingsRepository: NewModelCatalogSettingsRepository(),
 		User:                           NewUserRepository(),
 		Namespace:                      NewNamespaceRepository(),
 	}

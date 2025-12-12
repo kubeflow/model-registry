@@ -333,3 +333,8 @@ export const MODEL_CATALOG_FILTER_CATEGORY_NAMES: Record<ModelCatalogStringFilte
   [ModelCatalogStringFilterKey.HARDWARE_TYPE]: 'Hardware type',
   [ModelCatalogStringFilterKey.USE_CASE]: 'Workload type',
 };
+
+export enum ModelDetailsTab {
+  OVERVIEW = 'overview',
+  PERFORMANCE_INSIGHTS = 'performance-insights',
+}

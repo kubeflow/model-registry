@@ -24,7 +24,7 @@ import {
 } from '~/app/modelCatalogTypes';
 import { extractValidatedModelMetrics } from '~/app/pages/modelCatalog/utils/validatedModelUtils';
 import { catalogModelDetailsTabFromModel } from '~/app/routes/modelCatalog/catalogModel';
-import { ModelDetailsTab } from '~/app/pages/modelCatalog/screens/ModelDetailsTabs';
+import { ModelDetailsTab } from '~/concepts/modelCatalog/const';
 import { useCatalogModelArtifacts } from '~/app/hooks/modelCatalog/useCatalogModelArtifacts';
 import { filterArtifactsByType } from '~/app/pages/modelCatalog/utils/modelCatalogUtils';
 import { formatLatency } from '~/app/pages/modelCatalog/utils/performanceMetricsUtils';
@@ -108,10 +108,8 @@ const ModelCatalogCardBody: React.FC<ModelCatalogCardBodyProps> = ({
               <span className="pf-v6-u-font-weight-bold" data-testid="validated-model-ttft">
                 {formatLatency(metrics.ttftMean)}
               </span>
-              <Flex alignItems={{ default: 'alignItemsCenter' }} gap={{ default: 'gapXs' }}>
-                <span style={{ fontSize: '14px', color: 'var(--pf-v5-global--Color--200)' }}>
-                  TTFT
-                </span>
+              <Flex alignItems={{ default: 'alignItemsBaseline' }} gap={{ default: 'gapXs' }}>
+                <Content component={ContentVariants.small}>TTFT</Content>
                 <Popover
                   headerContent="Latency"
                   bodyContent={
