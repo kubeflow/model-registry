@@ -167,13 +167,14 @@ func runProxyServer(cmd *cobra.Command, args []string) error {
 			return
 		}
 
-		// Set the model registry service in the holder for health checks
-		serviceHolder.Set(conn)
-
 		ModelRegistryServiceAPIService := openapi.NewModelRegistryServiceAPIService(conn)
 		ModelRegistryServiceAPIController := openapi.NewModelRegistryServiceAPIController(ModelRegistryServiceAPIService)
 
 		router.SetRouter(middleware.WrapWithValidation(ModelRegistryServiceAPIController))
+
+		// Set the model registry service in the holder for health checks AFTER router is ready
+		// This ensures the readiness probe only passes when the router can serve actual requests
+		serviceHolder.Set(conn)
 	}()
 
 	// Start the proxy server in a separate goroutine so that we can handle
