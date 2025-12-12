@@ -1,0 +1,2 @@
+# Ignore testdata directory containing temporary test files
+testdata/ 
