@@ -61,7 +61,7 @@ else
 
     kubectl exec -n "$MR_NAMESPACE" \
         "$(kubectl get pods -l component=db -o jsonpath="{.items[0].metadata.name}" -n "$MR_NAMESPACE")" \
-        -- mysql -u "$MYSQL_USER_NAME" -p"$MYSQL_ROOT_PASSWORD" -D "$TEST_DB_NAME" -e "START TRANSACTION; $PARTIAL_SQL_CMD; COMMIT;"
+        -- mysql -h 127.0.0.1 -u "$MYSQL_USER_NAME" -p"$MYSQL_ROOT_PASSWORD" -D "$TEST_DB_NAME" -e "START TRANSACTION; $PARTIAL_SQL_CMD; COMMIT;"
 
     echo -n 'Done cleaning up kubernetes MySQL DB'
 fi

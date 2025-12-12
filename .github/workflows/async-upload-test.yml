@@ -53,10 +53,6 @@ jobs:
       - name: Run tests
         run: |
           make test
-      - name: Remove AppArmor profile for mysql in KinD on GHA # https://github.com/kubeflow/manifests/issues/2507
-        run: |
-          set -x
-          sudo apparmor_parser -R /etc/apparmor.d/usr.sbin.mysqld
       - name: Run E2E tests
         run: |
           make test-e2e
@@ -74,10 +70,6 @@ jobs:
       - name: Install Poetry
         run: |
           pipx install poetry
-      - name: Remove AppArmor profile for mysql in KinD on GHA # https://github.com/kubeflow/manifests/issues/2507
-        run: |
-          set -x
-          sudo apparmor_parser -R /etc/apparmor.d/usr.sbin.mysqld
       - name: Execute Sample Job E2E test
         run: |
           make test-integration

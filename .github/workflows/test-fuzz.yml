@@ -72,11 +72,6 @@ jobs:
           cluster_name: py-fuzz-${{ matrix.kubernetes-version }}
           kubectl_version: ${{ matrix.kubernetes-version }}
 
-      - name: Remove AppArmor profile for mysql in KinD on GHA # https://github.com/kubeflow/manifests/issues/2507
-        run: |
-          set -x
-          sudo apparmor_parser -R /etc/apparmor.d/usr.sbin.mysqld
-
       - name: Generate Tag
         shell: bash
         id: tags
