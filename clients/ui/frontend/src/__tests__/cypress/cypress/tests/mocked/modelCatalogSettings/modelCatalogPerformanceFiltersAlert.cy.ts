@@ -115,7 +115,7 @@ describe('Model Catalog Performance Filters Alert', () => {
     ]).as('getModelRegistries');
 
     initIntercepts({});
-    modelCatalog.visit();
+    modelCatalog.visit({ enableTempDevCatalogAdvancedFiltersFeature: true });
   });
 
   describe('Alert Display Logic', () => {

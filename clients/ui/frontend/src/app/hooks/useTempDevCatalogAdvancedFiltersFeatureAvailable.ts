@@ -19,9 +19,12 @@ declare global {
   }
 }
 
+export const TEMP_DEV_CATALOG_ADVANCED_FILTERS_FEATURE_KEY =
+  'tempDevCatalogAdvancedFiltersFeatureAvailable';
+
 export const useTempDevCatalogAdvancedFiltersFeatureAvailable = (): boolean => {
   const [isAvailable, setIsAvailable] = useBrowserStorage(
-    'tempDevCatalogAdvancedFiltersFeatureAvailable',
+    TEMP_DEV_CATALOG_ADVANCED_FILTERS_FEATURE_KEY,
     false,
   );
 
