@@ -323,6 +323,10 @@ models:
       - text-generation
     createTimeSinceEpoch: "1733514949000"
     lastUpdateTimeSinceEpoch: "1734637721000"
+    customProperties:
+      model_type:
+        string_value: "generative"
+        metadataType: MetadataStringValue
     artifacts:
       - uri: oci://registry.redhat.io/rhelai1/granite-8b-code-base:1.3-1732870892
       - artifactType: metrics-artifact
@@ -674,6 +678,10 @@ models:
       - text-generation
     createTimeSinceEpoch: "1733514949000"
     lastUpdateTimeSinceEpoch: "1734637721000"
+    customProperties:
+      model_type:
+        string_value: "generative"
+        metadataType: MetadataStringValue
     artifacts:
       - uri: oci://registry.redhat.io/rhelai1/granite-8b-code-instruct:1.3-1732870892
         createTimeSinceEpoch: "1733514949000"
@@ -700,4 +708,8 @@ models:
       - test-task
     createTimeSinceEpoch: "1700000000000"
     lastUpdateTimeSinceEpoch: "1700000000000"
+    customProperties:
+      model_type:
+        string_value: "unknown"
+        metadataType: MetadataStringValue
     artifacts: []

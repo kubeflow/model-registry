@@ -4,7 +4,7 @@ models:
     provider: Validation Authority
     logo: data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIiB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCI+CiAgPGRlZnM+CiAgICA8bGluZWFyR3JhZGllbnQgaWQ9ImdyYWQyIiB4MT0iMCUiIHkxPSIwJSIgeDI9IjEwMCUiIHkyPSIxMDAlIj4KICAgICAgPHN0b3Agb2Zmc2V0PSIwJSIgc3R5bGU9InN0b3AtY29sb3I6IzI3QUU2MDtzdG9wLW9wYWNpdHk6MSIgLz4KICAgICAgPHN0b3Agb2Zmc2V0PSIxMDAlIiBzdHlsZT0ic3RvcC1jb2xvcjojMjI5OTU0O3N0b3Atb3BhY2l0eToxIiAvPgogICAgPC9saW5lYXJHcmFkaWVudD4KICA8L2RlZnM+CiAgPHBhdGggZD0iTSA1MCAxMCBMIDgwIDMwIEwgODAgNzAgTCA1MCA5MCBMIDIwIDcwIEwgMjAgMzAgWiIgZmlsbD0idXJsKCNncmFkMikiIHN0cm9rZT0iIzFFODQ0OSIgc3Ryb2tlLXdpZHRoPSIyIi8+CiAgPHBhdGggZD0iTSAzNSA1MCBMIDQ1IDYwIEwgNjUgMzUiIHN0cm9rZT0id2hpdGUiIHN0cm9rZS13aWR0aD0iNiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIiBmaWxsPSJub25lIi8+Cjwvc3ZnPgo=
     description: |-
-      (DEMO) Production-LLM-8B is an enterprise-validated 8 billion parameter language model that has
+      (DEMO) Production-LLM-8B is an enterprise-validated 8 billion parameter generative language model that has
       undergone rigorous testing for production deployment. Sed do eiusmod tempor incididunt
       ut labore et dolore magna aliqua.
     readme: |-
@@ -76,6 +76,9 @@ models:
     customProperties:
       validated:
         string_value: ""
+        metadataType: MetadataStringValue
+      model_type:
+        string_value: "generative"
         metadataType: MetadataStringValue
     artifacts:
       - uri: oci://registry.example.com/certified/production-llm-8b:validated-v1.0
@@ -479,7 +482,7 @@ models:
     provider: Validation Authority
     logo: data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIiB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCI+CiAgPGRlZnM+CiAgICA8bGluZWFyR3JhZGllbnQgaWQ9ImdyYWQyIiB4MT0iMCUiIHkxPSIwJSIgeDI9IjEwMCUiIHkyPSIxMDAlIj4KICAgICAgPHN0b3Agb2Zmc2V0PSIwJSIgc3R5bGU9InN0b3AtY29sb3I6IzI3QUU2MDtzdG9wLW9wYWNpdHk6MSIgLz4KICAgICAgPHN0b3Agb2Zmc2V0PSIxMDAlIiBzdHlsZT0ic3RvcC1jb2xvcjojMjI5OTU0O3N0b3Atb3BhY2l0eToxIiAvPgogICAgPC9saW5lYXJHcmFkaWVudD4KICA8L2RlZnM+CiAgPHBhdGggZD0iTSA1MCAxMCBMIDgwIDMwIEwgODAgNzAgTCA1MCA5MCBMIDIwIDcwIEwgMjAgMzAgWiIgZmlsbD0idXJsKCNncmFkMikiIHN0cm9rZT0iIzFFODQ0OSIgc3Ryb2tlLXdpZHRoPSIyIi8+CiAgPHBhdGggZD0iTSAzNSA1MCBMIDQ1IDYwIEwgNjUgMzUiIHN0cm9rZT0id2hpdGUiIHN0cm9rZS13aWR0aD0iNiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIiBmaWxsPSJub25lIi8+Cjwvc3ZnPgo=
     description: |-
-      (DEMO) Secure-Embeddings-V2 is a validated embedding model optimized for enterprise search
+      (DEMO) Secure-Embeddings-V2 is a validated predictive embedding model optimized for enterprise search
       and retrieval with enhanced security features. Nemo enim ipsam voluptatem quia
       voluptas sit aspernatur aut odit aut fugit.
     readme: |-
@@ -560,6 +563,9 @@ models:
     customProperties:
       validated:
         string_value: ""
+        metadataType: MetadataStringValue
+      model_type:
+        string_value: "predictive"
         metadataType: MetadataStringValue
     artifacts:
       - uri: oci://registry.example.com/certified/secure-embeddings-v2:validated
@@ -855,7 +861,7 @@ models:
     provider: Validation Authority
     logo: data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIiB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCI+CiAgPGRlZnM+CiAgICA8bGluZWFyR3JhZGllbnQgaWQ9ImdyYWQyIiB4MT0iMCUiIHkxPSIwJSIgeDI9IjEwMCUiIHkyPSIxMDAlIj4KICAgICAgPHN0b3Agb2Zmc2V0PSIwJSIgc3R5bGU9InN0b3AtY29sb3I6IzI3QUU2MDtzdG9wLW9wYWNpdHk6MSIgLz4KICAgICAgPHN0b3Agb2Zmc2V0PSIxMDAlIiBzdHlsZT0ic3RvcC1jb2xvcjojMjI5OTU0O3N0b3Atb3BhY2l0eToxIiAvPgogICAgPC9saW5lYXJHcmFkaWVudD4KICA8L2RlZnM+CiAgPHBhdGggZD0iTSA1MCAxMCBMIDgwIDMwIEwgODAgNzAgTCA1MCA5MCBMIDIwIDcwIEwgMjAgMzAgWiIgZmlsbD0idXJsKCNncmFkMikiIHN0cm9rZT0iIzFFODQ0OSIgc3Ryb2tlLXdpZHRoPSIyIi8+CiAgPHBhdGggZD0iTSAzNSA1MCBMIDQ1IDYwIEwgNjUgMzUiIHN0cm9rZT0id2hpdGUiIHN0cm9rZS13aWR0aD0iNiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIiBmaWxsPSJub25lIi8+Cjwvc3ZnPgo=
     description: |-
-      (DEMO) Analytics-Forecaster-5B is a specialized 5 billion parameter model validated for
+      (DEMO) Analytics-Forecaster-5B is a specialized 5 billion parameter predictive model validated for
       business analytics, time-series forecasting, and data insights generation. Quis autem
       vel eum iure reprehenderit qui in ea voluptate velit.
     readme: |-
@@ -933,6 +939,9 @@ models:
     customProperties:
       validated:
         string_value: ""
+        metadataType: MetadataStringValue
+      model_type:
+        string_value: "predictive"
         metadataType: MetadataStringValue
     artifacts:
       - uri: oci://registry.example.com/certified/analytics-forecaster-5b:v2.0-validated
@@ -1228,7 +1237,7 @@ models:
     provider: Validation Authority
     logo: data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIiB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCI+CiAgPGRlZnM+CiAgICA8bGluZWFyR3JhZGllbnQgaWQ9ImdyYWQyIiB4MT0iMCUiIHkxPSIwJSIgeDI9IjEwMCUiIHkyPSIxMDAlIj4KICAgICAgPHN0b3Agb2Zmc2V0PSIwJSIgc3R5bGU9InN0b3AtY29sb3I6IzI3QUU2MDtzdG9wLW9wYWNpdHk6MSIgLz4KICAgICAgPHN0b3Agb2Zmc2V0PSIxMDAlIiBzdHlsZT0ic3RvcC1jb2xvcjojMjI5OTU0O3N0b3Atb3BhY2l0eToxIiAvPgogICAgPC9saW5lYXJHcmFkaWVudD4KICA8L2RlZnM+CiAgPHBhdGggZD0iTSA1MCAxMCBMIDgwIDMwIEwgODAgNzAgTCA1MCA5MCBMIDIwIDcwIEwgMjAgMzAgWiIgZmlsbD0idXJsKCNncmFkMikiIHN0cm9rZT0iIzFFODQ0OSIgc3Ryb2tlLXdpZHRoPSIyIi8+CiAgPHBhdGggZD0iTSAzNSA1MCBMIDQ1IDYwIEwgNjUgMzUiIHN0cm9rZT0id2hpdGUiIHN0cm9rZS13aWR0aD0iNiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIiBmaWxsPSJub25lIi8+Cjwvc3ZnPgo=
     description: |-
-      (DEMO) Compliance-Assistant-3B is a lightweight 3 billion parameter model validated for
+      (DEMO) Compliance-Assistant-3B is a lightweight 3 billion parameter generative model validated for
       regulatory compliance checking, policy interpretation, and audit assistance. Omnis
       voluptas assumenda est, omnis dolor repellendus.
     readme: |-
@@ -1310,6 +1319,9 @@ models:
     customProperties:
       validated:
         string_value: ""
+        metadataType: MetadataStringValue
+      model_type:
+        string_value: "generative"
         metadataType: MetadataStringValue
     artifacts:
       - uri: oci://registry.example.com/certified/compliance-assistant-3b:validated-v1.1

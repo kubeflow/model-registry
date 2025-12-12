@@ -62,6 +62,204 @@ Artifact references:
 }
 ```
 
+## Custom Properties
+
+Custom properties provide extensible metadata for models and artifacts beyond the predefined schema fields. They enable storing domain-specific metadata, classification tags, and arbitrary key-value data.
+
+### Overview
+
+Custom properties can be attached to:
+- **CatalogModel**: Model-level metadata (e.g., model type, validation status)
+- **CatalogModelArtifact**: Artifact-level metadata (e.g., validation date, deployment targets)
+- **CatalogMetricsArtifact**: Metrics metadata (e.g., benchmark names, hardware configurations)
+
+Each custom property consists of:
+- **Key**: Property name (string)
+- **Value**: Typed metadata value with one of the following types:
+  - `MetadataStringValue`: String values
+  - `MetadataIntValue`: Integer values
+  - `MetadataDoubleValue`: Floating-point values
+  - `MetadataBoolValue`: Boolean values
+
+### Model Type Property
+
+The `model_type` custom property is a standardized property for categorizing models by their AI/ML paradigm. It enables filtering and governance based on model characteristics.
+
+#### Specification
+
+**Property Name**: `model_type`
+
+**Metadata Type**: `MetadataStringValue`
+
+**Allowed Values**:
+- `predictive` - Traditional ML models (regression, classification, forecasting, clustering, etc.)
+- `generative` - Generative AI models (LLMs, diffusion models, GANs, VAEs, etc.)
+- `unknown` - Model type not yet determined or not applicable
+
+#### Usage
+
+The `model_type` property should be set as a custom property on model artifacts to indicate the model's category:
+
+**YAML Format** (for YAML catalog sources):
+```yaml
+models:
+  - name: my-regression-model
+    description: Sales forecasting model
+    customProperties:
+      model_type:
+        metadataType: MetadataStringValue
+        string_value: "predictive"
+    artifacts:
+      - uri: oci://registry.example.com/models/sales-forecast:v1.0
+
+  - name: my-llm-model
+    description: Large language model for text generation
+    customProperties:
+      model_type:
+        metadataType: MetadataStringValue
+        string_value: "generative"
+    artifacts:
+      - uri: oci://registry.example.com/models/text-generator:v2.0
+```
+
+**REST API Response** (JSON):
+```json
+{
+  "name": "my-regression-model",
+  "description": "Sales forecasting model",
+  "customProperties": {
+    "model_type": {
+      "metadataType": "MetadataStringValue",
+      "string_value": "predictive"
+    }
+  }
+}
+```
+
+#### Model Type Classification Guide
+
+**Predictive Models** (`predictive`):
+- Regression models (linear, polynomial, etc.)
+- Classification models (logistic regression, SVM, random forest, etc.)
+- Time-series forecasting
+- Clustering algorithms
+- Anomaly detection
+- Traditional neural networks (CNNs for classification, RNNs for prediction)
+- Gradient boosting models (XGBoost, LightGBM, CatBoost)
+- Recommendation systems (collaborative filtering)
+
+**Generative Models** (`generative`):
+- Large Language Models (LLMs) - GPT, BERT, Llama, etc.
+- Text-to-image models - Stable Diffusion, DALL-E, etc.
+- Generative Adversarial Networks (GANs)
+- Variational Autoencoders (VAEs)
+- Diffusion models
+- Text-to-speech and speech-to-text models
+- Code generation models
+- Transformer-based generation models
+
+**Unknown** (`unknown`):
+- Hybrid models that combine both paradigms
+- Experimental models under development
+- Models where classification is not yet determined
+
+### Querying and Filtering by Custom Properties
+
+#### Filter by Model Type
+
+Search for all generative AI models:
+```bash
+GET /api/model_catalog/v1alpha1/models?source=my-catalog&filterQuery=customProperties.model_type.string_value='generative'
+```
+
+Search for predictive models:
+```bash
+GET /api/model_catalog/v1alpha1/models?source=my-catalog&filterQuery=customProperties.model_type.string_value='predictive'
+```
+
+#### Combining Filters
+
+Filter by model type and other criteria:
+```bash
+# Generative models with production maturity
+GET /api/model_catalog/v1alpha1/models?source=my-catalog&filterQuery=customProperties.model_type.string_value='generative' AND maturity='Production'
+
+# Predictive models for specific tasks
+GET /api/model_catalog/v1alpha1/models?source=my-catalog&filterQuery=customProperties.model_type.string_value='predictive' AND tasks CONTAINS 'regression'
+```
+
+### Additional Custom Properties Examples
+
+#### Validation and Certification
+
+```yaml
+customProperties:
+  validated:
+    metadataType: MetadataStringValue
+    string_value: ""
+  validation_status:
+    metadataType: MetadataStringValue
+    string_value: "certified"
+  validation_date:
+    metadataType: MetadataStringValue
+    string_value: "2025-01-20"
+  compliance:
+    metadataType: MetadataStringValue
+    string_value: "GDPR,CCPA,SOC2"
+```
+
+#### Performance and Hardware
+
+```yaml
+customProperties:
+  hardware_type:
+    metadataType: MetadataStringValue
+    string_value: "H100"
+  hardware_count:
+    metadataType: MetadataIntValue
+    int_value: "2"
+  throughput_tps:
+    metadataType: MetadataDoubleValue
+    double_value: 1105.4
+  latency_p95_ms:
+    metadataType: MetadataDoubleValue
+    double_value: 108.3
+```
+
+#### Deployment Metadata
+
+```yaml
+customProperties:
+  deployment_type:
+    metadataType: MetadataStringValue
+    string_value: "production"
+  framework_type:
+    metadataType: MetadataStringValue
+    string_value: "vllm"
+  framework_version:
+    metadataType: MetadataStringValue
+    string_value: "v0.8.4"
+  use_case:
+    metadataType: MetadataStringValue
+    string_value: "chatbot"
+```
+
+### Best Practices
+
+1. **Use Standardized Properties**: For common use cases like `model_type`, use the documented property names and values to ensure consistency across catalogs.
+
+2. **Choose Appropriate Types**: Select the correct metadata type for your values:
+   - Use `MetadataStringValue` for text, enums, and identifiers
+   - Use `MetadataIntValue` for counts and whole numbers
+   - Use `MetadataDoubleValue` for measurements and metrics
+   - Use `MetadataBoolValue` for flags
+
+3. **Document Custom Properties**: Maintain documentation for any custom properties specific to your organization or use case.
+
+4. **Validate Values**: When using enum-like properties (like `model_type`), validate values against the allowed set to prevent inconsistencies.
+
+5. **Use Hierarchical Keys**: For complex metadata, consider using dot-notation or underscores to create logical groupings (e.g., `validation_status`, `hardware_type`).
+
 ## Configuration
 
 The catalog service uses **file-based configuration** instead of traditional databases:
