@@ -11,10 +11,12 @@ import { HelpIcon } from '@patternfly/react-icons';
 import { ModelCatalogContext } from '~/app/context/modelCatalog/ModelCatalogContext';
 import { CatalogPerformanceMetricsArtifact } from '~/app/modelCatalogTypes';
 import { clearAllFilters } from '~/app/pages/modelCatalog/utils/hardwareConfigurationFilterUtils';
+import { hasFiltersApplied } from '~/app/pages/modelCatalog/utils/modelCatalogUtils';
 import WorkloadTypeFilter from './globalFilters/WorkloadTypeFilter';
 import HardwareTypeFilter from './globalFilters/HardwareTypeFilter';
 import MinRpsFilter from './globalFilters/MinRpsFilter';
 import MaxLatencyFilter from './globalFilters/MaxLatencyFilter';
+import HardwareConfigurationActiveFilters from './HardwareConfigurationActiveFilters';
 
 type HardwareConfigurationFilterToolbarProps = {
   performanceArtifacts: CatalogPerformanceMetricsArtifact[];
@@ -23,8 +25,10 @@ type HardwareConfigurationFilterToolbarProps = {
 const HardwareConfigurationFilterToolbar: React.FC<HardwareConfigurationFilterToolbarProps> = ({
   performanceArtifacts,
 }) => {
-  const { filterOptions, filterOptionsLoaded, filterOptionsLoadError, setFilterData } =
+  const { filterOptions, filterOptionsLoaded, filterOptionsLoadError, filterData, setFilterData } =
     React.useContext(ModelCatalogContext);
+
+  const hasActiveFilters = React.useMemo(() => hasFiltersApplied(filterData), [filterData]);
 
   if (!filterOptionsLoaded || filterOptionsLoadError || !filterOptions) {
     return null;
@@ -35,7 +39,11 @@ const HardwareConfigurationFilterToolbar: React.FC<HardwareConfigurationFilterTo
   };
 
   return (
-    <Toolbar clearAllFilters={handleClearAllFilters} clearFiltersButtonText="Reset all filters">
+    <Toolbar
+      key={`toolbar-${hasActiveFilters}`}
+      clearAllFilters={handleClearAllFilters}
+      clearFiltersButtonText={hasActiveFilters ? 'Reset all filters' : ''}
+    >
       <ToolbarContent>
         <ToolbarGroup>
           <ToolbarItem>
@@ -64,6 +72,7 @@ const HardwareConfigurationFilterToolbar: React.FC<HardwareConfigurationFilterTo
             <HardwareTypeFilter performanceArtifacts={performanceArtifacts} />
           </ToolbarItem>
         </ToolbarGroup>
+        <HardwareConfigurationActiveFilters />
       </ToolbarContent>
     </Toolbar>
   );

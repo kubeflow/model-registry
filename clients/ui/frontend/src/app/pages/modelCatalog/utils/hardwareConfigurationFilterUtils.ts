@@ -173,7 +173,11 @@ export const clearAllFilters = (
     setFilterData(key, undefined);
   });
 
-  // TODO: Clear all latency metric filters (e.g., ttft_mean, ttft_p90, etc.)
-  // This will be needed when we add filter chips to the details page.
-  // Can be part of that PR - will need to loop over all LatencyMetricFieldName combinations.
+  // Clear all latency metric filters (e.g., ttft_mean, ttft_p90, etc.)
+  for (const metric of Object.values(LatencyMetric)) {
+    for (const percentile of Object.values(LatencyPercentile)) {
+      const fieldName = getLatencyFieldName(metric, percentile);
+      setFilterData(fieldName, undefined);
+    }
+  }
 };
