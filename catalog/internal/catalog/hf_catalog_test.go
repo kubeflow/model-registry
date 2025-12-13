@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"os"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -285,8 +286,20 @@ func TestConvertHFModelToRecord(t *testing.T) {
 				if record.Model.GetProperties() == nil || len(*record.Model.GetProperties()) == 0 {
 					t.Error("Properties should be set")
 				}
-				if len(record.Artifacts) != 0 {
-					t.Errorf("Artifacts should be empty, got %d", len(record.Artifacts))
+				// Should have one artifact with hf:// URI
+				if len(record.Artifacts) != 1 {
+					t.Errorf("Expected 1 artifact with hf:// URI, got %d", len(record.Artifacts))
+				}
+				if len(record.Artifacts) == 1 {
+					artifact := record.Artifacts[0]
+					if artifact.CatalogModelArtifact == nil {
+						t.Error("CatalogModelArtifact should not be nil")
+					}
+					if artifact.CatalogModelArtifact.GetAttributes().URI == nil {
+						t.Error("Artifact URI should not be nil")
+					} else if !strings.HasPrefix(*artifact.CatalogModelArtifact.GetAttributes().URI, "hf://") {
+						t.Errorf("Artifact URI should start with hf://, got %s", *artifact.CatalogModelArtifact.GetAttributes().URI)
+					}
 				}
 			},
 		},
@@ -1005,4 +1018,129 @@ func TestPreviewSourceModelsWithHFPatterns(t *testing.T) {
 		assert.Contains(t, excluded, "test-org/model-experimental")
 		assert.Contains(t, excluded, "test-org/model-draft")
 	})
+}
+
+func TestConvertHFModelToRecord_CreatesArtifactWithHFProtocol(t *testing.T) {
+	tests := []struct {
+		name               string
+		hfInfo             *hfModelInfo
+		expectedArtifacts  int
+		expectedURI        string
+		expectedExternalID string
+	}{
+		{
+			name: "creates artifact with hf:// URI for valid model",
+			hfInfo: &hfModelInfo{
+				ID:        "meta-llama/Llama-2-7b",
+				Author:    "meta",
+				ModelID:   "meta-llama/Llama-2-7b",
+				CreatedAt: "2023-01-01T00:00:00Z",
+			},
+			expectedArtifacts:  1,
+			expectedURI:        "hf://meta-llama/Llama-2-7b",
+			expectedExternalID: "meta-llama/Llama-2-7b",
+		},
+		{
+			name: "creates artifact for gated model",
+			hfInfo: &hfModelInfo{
+				ID:      "ibm-granite/granite-3.0-8b-instruct",
+				Author:  "ibm-granite",
+				ModelID: "ibm-granite/granite-3.0-8b-instruct",
+				Gated:   gatedString("auto"),
+			},
+			expectedArtifacts:  1,
+			expectedURI:        "hf://ibm-granite/granite-3.0-8b-instruct",
+			expectedExternalID: "ibm-granite/granite-3.0-8b-instruct",
+		},
+		{
+			name: "no artifact when ExternalId is nil",
+			hfInfo: &hfModelInfo{
+				ModelID: "test-model",
+				Author:  "test-author",
+				// ID is empty, so ExternalId will be nil
+			},
+			expectedArtifacts: 0,
+		},
+		{
+			name: "no artifact when ExternalId is empty string",
+			hfInfo: &hfModelInfo{
+				ID:      "",
+				ModelID: "test-model",
+				Author:  "test-author",
+			},
+			expectedArtifacts: 0,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			provider := &hfModelProvider{
+				client:   &http.Client{},
+				sourceId: "test-source",
+			}
+
+			ctx := context.Background()
+			record := provider.convertHFModelToRecord(ctx, tt.hfInfo, "original-model-name")
+
+			// Check artifact count
+			assert.Len(t, record.Artifacts, tt.expectedArtifacts)
+
+			if tt.expectedArtifacts > 0 {
+				// Verify artifact structure
+				artifact := record.Artifacts[0]
+				require.NotNil(t, artifact.CatalogModelArtifact)
+				require.NotNil(t, artifact.CatalogModelArtifact.GetAttributes())
+
+				attrs := artifact.CatalogModelArtifact.GetAttributes()
+
+				// Check URI has hf:// prefix
+				require.NotNil(t, attrs.URI)
+				assert.Equal(t, tt.expectedURI, *attrs.URI)
+
+				// Check artifact type
+				require.NotNil(t, attrs.ArtifactType)
+				assert.Equal(t, "model-artifact", *attrs.ArtifactType)
+
+				// Check external ID matches model ID
+				require.NotNil(t, attrs.ExternalID)
+				assert.Equal(t, tt.expectedExternalID, *attrs.ExternalID)
+
+				// Check artifact name is set
+				require.NotNil(t, attrs.Name)
+				assert.Contains(t, *attrs.Name, "-hf-artifact")
+			}
+		})
+	}
+}
+
+func TestConvertHFModelToRecord_ArtifactTimestamps(t *testing.T) {
+	hfInfo := &hfModelInfo{
+		ID:        "test-org/test-model",
+		Author:    "test-author",
+		CreatedAt: "2023-01-01T00:00:00Z",
+		UpdatedAt: "2023-06-01T12:00:00Z",
+	}
+
+	provider := &hfModelProvider{
+		client:   &http.Client{},
+		sourceId: "test-source",
+	}
+
+	ctx := context.Background()
+	record := provider.convertHFModelToRecord(ctx, hfInfo, "test-org/test-model")
+
+	require.Len(t, record.Artifacts, 1)
+	artifact := record.Artifacts[0]
+	attrs := artifact.CatalogModelArtifact.GetAttributes()
+
+	// Verify timestamps are copied from model
+	require.NotNil(t, attrs.CreateTimeSinceEpoch)
+	require.NotNil(t, attrs.LastUpdateTimeSinceEpoch)
+
+	// Timestamps should match the model's timestamps
+	require.NotNil(t, record.Model.GetAttributes().CreateTimeSinceEpoch)
+	require.NotNil(t, record.Model.GetAttributes().LastUpdateTimeSinceEpoch)
+
+	assert.Equal(t, *record.Model.GetAttributes().CreateTimeSinceEpoch, *attrs.CreateTimeSinceEpoch)
+	assert.Equal(t, *record.Model.GetAttributes().LastUpdateTimeSinceEpoch, *attrs.LastUpdateTimeSinceEpoch)
 }

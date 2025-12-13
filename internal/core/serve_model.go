@@ -31,6 +31,11 @@ func (b *ModelRegistryService) UpsertServeModel(serveModel *openapi.ServeModel, 
 		serveModel = &withNotEditable
 	}
 
+	// Validate HuggingFace model deployment requirements
+	if err := b.validateHFModelDeployment(serveModel.ModelVersionId); err != nil {
+		return nil, err
+	}
+
 	srvModel, err := b.mapper.MapFromServeModel(serveModel, inferenceServiceId)
 	if err != nil {
 		return nil, fmt.Errorf("%v: %w", err, api.ErrBadRequest)
@@ -133,4 +138,47 @@ func (b *ModelRegistryService) GetServeModels(listOptions api.ListOptions, infer
 	serveModelList.Size = int32(serveModels.Size)
 
 	return serveModelList, nil
+}
+
+// validateHFModelDeployment checks if a HuggingFace model can be deployed.
+// It prevents deployment of gated or private models until authentication support is added.
+func (b *ModelRegistryService) validateHFModelDeployment(modelVersionId string) error {
+	// Get model version to check custom properties
+	version, err := b.GetModelVersionById(modelVersionId)
+	if err != nil {
+		return err
+	}
+
+	// Check if this is a HuggingFace model by looking for HF-specific custom properties
+	if version.CustomProperties == nil {
+		return nil // Not an HF model, no validation needed
+	}
+
+	// Check if model is gated
+	if gated, ok := version.CustomProperties["hf_gated"]; ok {
+		if gated.MetadataStringValue != nil {
+			gatedValue := gated.MetadataStringValue.StringValue
+			// HF gated field can be "false", "auto", "manual", or true
+			// Only allow deployment if explicitly "false" or empty
+			if gatedValue != "false" && gatedValue != "" {
+				return fmt.Errorf(
+					"cannot deploy gated HuggingFace model: authentication not yet supported (model requires approval or authentication): %w",
+					api.ErrBadRequest)
+			}
+		}
+	}
+
+	// Check if model is private
+	if private, ok := version.CustomProperties["hf_private"]; ok {
+		if private.MetadataStringValue != nil {
+			privateValue := private.MetadataStringValue.StringValue
+			if privateValue == "true" {
+				return fmt.Errorf(
+					"cannot deploy private HuggingFace model: authentication not yet supported: %w",
+					api.ErrBadRequest)
+			}
+		}
+	}
+
+	return nil
 }

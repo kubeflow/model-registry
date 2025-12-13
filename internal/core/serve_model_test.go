@@ -1084,3 +1084,211 @@ func TestServeModelRoundTrip(t *testing.T) {
 		assert.Equal(t, "new_value", finalProps["new_prop"].MetadataStringValue.StringValue)
 	})
 }
+
+
+func TestUpsertServeModel_HFModelValidation(t *testing.T) {
+	_service, cleanup := SetupModelRegistryService(t)
+	defer cleanup()
+
+	t.Run("allows deployment of public non-gated HF model", func(t *testing.T) {
+		// Create prerequisites
+		registeredModel := &openapi.RegisteredModel{
+			Name: "hf-public-model",
+		}
+		createdModel, err := _service.UpsertRegisteredModel(registeredModel)
+		require.NoError(t, err)
+
+		servingEnv := &openapi.ServingEnvironment{
+			Name: "hf-public-env",
+		}
+		createdEnv, err := _service.UpsertServingEnvironment(servingEnv)
+		require.NoError(t, err)
+
+		modelVersion := &openapi.ModelVersion{
+			Name:              "v1",
+			RegisteredModelId: *createdModel.Id,
+			CustomProperties: map[string]openapi.MetadataValue{
+				"hf_private": {
+					MetadataStringValue: &openapi.MetadataStringValue{
+						StringValue: "false",
+					},
+				},
+				"hf_gated": {
+					MetadataStringValue: &openapi.MetadataStringValue{
+						StringValue: "false",
+					},
+				},
+			},
+		}
+		createdVersion, err := _service.UpsertModelVersion(modelVersion, createdModel.Id)
+		require.NoError(t, err)
+
+		inferenceService := &openapi.InferenceService{
+			Name:                 apiutils.Of("hf-public-inference-service"),
+			ServingEnvironmentId: *createdEnv.Id,
+			RegisteredModelId:    *createdModel.Id,
+		}
+		createdInfSvc, err := _service.UpsertInferenceService(inferenceService)
+		require.NoError(t, err)
+
+		// Create ServeModel - should succeed
+		serveModel := &openapi.ServeModel{
+			Name:           apiutils.Of("hf-public-serve-model"),
+			ModelVersionId: *createdVersion.Id,
+			LastKnownState: apiutils.Of(openapi.EXECUTIONSTATE_UNKNOWN),
+		}
+
+		result, err := _service.UpsertServeModel(serveModel, createdInfSvc.Id)
+
+		// Should succeed - public non-gated model
+		require.NoError(t, err)
+		require.NotNil(t, result)
+		assert.Equal(t, "hf-public-serve-model", *result.Name)
+	})
+
+	t.Run("blocks deployment of gated HF model", func(t *testing.T) {
+		registeredModel := &openapi.RegisteredModel{
+			Name: "hf-gated-model",
+		}
+		createdModel, err := _service.UpsertRegisteredModel(registeredModel)
+		require.NoError(t, err)
+
+		servingEnv := &openapi.ServingEnvironment{
+			Name: "hf-gated-env",
+		}
+		createdEnv, err := _service.UpsertServingEnvironment(servingEnv)
+		require.NoError(t, err)
+
+		modelVersion := &openapi.ModelVersion{
+			Name:              "v1",
+			RegisteredModelId: *createdModel.Id,
+			CustomProperties: map[string]openapi.MetadataValue{
+				"hf_gated": {
+					MetadataStringValue: &openapi.MetadataStringValue{
+						StringValue: "auto",
+					},
+				},
+			},
+		}
+		createdVersion, err := _service.UpsertModelVersion(modelVersion, createdModel.Id)
+		require.NoError(t, err)
+
+		inferenceService := &openapi.InferenceService{
+			Name:                 apiutils.Of("hf-gated-inference-service"),
+			ServingEnvironmentId: *createdEnv.Id,
+			RegisteredModelId:    *createdModel.Id,
+		}
+		createdInfSvc, err := _service.UpsertInferenceService(inferenceService)
+		require.NoError(t, err)
+
+		// Try to create ServeModel - should fail
+		serveModel := &openapi.ServeModel{
+			Name:           apiutils.Of("hf-gated-serve-model"),
+			ModelVersionId: *createdVersion.Id,
+			LastKnownState: apiutils.Of(openapi.EXECUTIONSTATE_UNKNOWN),
+		}
+
+		result, err := _service.UpsertServeModel(serveModel, createdInfSvc.Id)
+
+		// Should fail due to gated model
+		assert.Error(t, err)
+		assert.Nil(t, result)
+		assert.Contains(t, err.Error(), "cannot deploy gated HuggingFace model")
+		assert.Contains(t, err.Error(), "authentication not yet supported")
+	})
+
+	t.Run("blocks deployment of private HF model", func(t *testing.T) {
+		registeredModel := &openapi.RegisteredModel{
+			Name: "hf-private-model",
+		}
+		createdModel, err := _service.UpsertRegisteredModel(registeredModel)
+		require.NoError(t, err)
+
+		servingEnv := &openapi.ServingEnvironment{
+			Name: "hf-private-env",
+		}
+		createdEnv, err := _service.UpsertServingEnvironment(servingEnv)
+		require.NoError(t, err)
+
+		modelVersion := &openapi.ModelVersion{
+			Name:              "v1",
+			RegisteredModelId: *createdModel.Id,
+			CustomProperties: map[string]openapi.MetadataValue{
+				"hf_private": {
+					MetadataStringValue: &openapi.MetadataStringValue{
+						StringValue: "true",
+					},
+				},
+			},
+		}
+		createdVersion, err := _service.UpsertModelVersion(modelVersion, createdModel.Id)
+		require.NoError(t, err)
+
+		inferenceService := &openapi.InferenceService{
+			Name:                 apiutils.Of("hf-private-inference-service"),
+			ServingEnvironmentId: *createdEnv.Id,
+			RegisteredModelId:    *createdModel.Id,
+		}
+		createdInfSvc, err := _service.UpsertInferenceService(inferenceService)
+		require.NoError(t, err)
+
+		// Try to create ServeModel - should fail
+		serveModel := &openapi.ServeModel{
+			Name:           apiutils.Of("hf-private-serve-model"),
+			ModelVersionId: *createdVersion.Id,
+			LastKnownState: apiutils.Of(openapi.EXECUTIONSTATE_UNKNOWN),
+		}
+
+		result, err := _service.UpsertServeModel(serveModel, createdInfSvc.Id)
+
+		// Should fail due to private model
+		assert.Error(t, err)
+		assert.Nil(t, result)
+		assert.Contains(t, err.Error(), "cannot deploy private HuggingFace model")
+		assert.Contains(t, err.Error(), "authentication not yet supported")
+	})
+
+	t.Run("allows deployment of non-HF model", func(t *testing.T) {
+		registeredModel := &openapi.RegisteredModel{
+			Name: "non-hf-model",
+		}
+		createdModel, err := _service.UpsertRegisteredModel(registeredModel)
+		require.NoError(t, err)
+
+		servingEnv := &openapi.ServingEnvironment{
+			Name: "non-hf-env",
+		}
+		createdEnv, err := _service.UpsertServingEnvironment(servingEnv)
+		require.NoError(t, err)
+
+		modelVersion := &openapi.ModelVersion{
+			Name:              "v1",
+			RegisteredModelId: *createdModel.Id,
+			// No custom properties - not an HF model
+		}
+		createdVersion, err := _service.UpsertModelVersion(modelVersion, createdModel.Id)
+		require.NoError(t, err)
+
+		inferenceService := &openapi.InferenceService{
+			Name:                 apiutils.Of("non-hf-inference-service"),
+			ServingEnvironmentId: *createdEnv.Id,
+			RegisteredModelId:    *createdModel.Id,
+		}
+		createdInfSvc, err := _service.UpsertInferenceService(inferenceService)
+		require.NoError(t, err)
+
+		// Create ServeModel - should succeed
+		serveModel := &openapi.ServeModel{
+			Name:           apiutils.Of("non-hf-serve-model"),
+			ModelVersionId: *createdVersion.Id,
+			LastKnownState: apiutils.Of(openapi.EXECUTIONSTATE_UNKNOWN),
+		}
+
+		result, err := _service.UpsertServeModel(serveModel, createdInfSvc.Id)
+
+		// Should succeed - not an HF model
+		require.NoError(t, err)
+		require.NotNil(t, result)
+		assert.Equal(t, "non-hf-serve-model", *result.Name)
+	})
+}
