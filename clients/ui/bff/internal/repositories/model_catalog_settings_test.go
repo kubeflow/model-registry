@@ -464,7 +464,7 @@ var _ = Describe("ModelCatalogSettingRepository", func() {
 				ExcludedModels: emptyModels,
 			}
 
-			result, err := repo.UpdateCatalogSourceConfig(ctx, k8sClient, "kubeflow", "test_clear_models", updatePayload)
+			result, err := repo.UpdateCatalogSourceConfig(ctx, k8sClient, "kubeflow", "test_clear_excluded_models", updatePayload)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(result.ExcludedModels).To(BeEmpty())
 			Expect(result.IncludedModels).To(Equal([]string{"*"}))

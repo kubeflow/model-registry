@@ -228,9 +228,8 @@ catalogs:
 			Namespace: namespace,
 		},
 		Data: map[string]string{
-			k8s.CatalogSourceKey:             raw,
-			"dora_ai_models.yaml":            "models:\n - name: ai_model1",
-			"bella_ai_validated_models.yaml": "models:\n - name: ai_model2",
+			k8s.CatalogSourceKey:  raw,
+			"dora_ai_models.yaml": "models:\n - name: ai_model1",
 		},
 	}
 

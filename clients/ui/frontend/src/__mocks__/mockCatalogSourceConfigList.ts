@@ -15,7 +15,6 @@ export const mockYamlCatalogSourceConfig = (
   includedModels: [],
   excludedModels: [],
   isDefault: true,
-  yaml: 'models:\n  - name: model1',
   ...partial,
 });
 
