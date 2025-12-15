@@ -141,18 +141,16 @@ const ModelDetailsPage: React.FC<ModelDetailsPageProps> = ({ tab }) => {
               <Stack>
                 <StackItem>
                   <Flex
-                    spaceItems={{ default: 'spaceItemsSm' }}
+                    spaceItems={{ default: 'spaceItemsMd' }}
                     alignItems={{ default: 'alignItemsCenter' }}
                   >
                     <FlexItem>{getModelName(model.name)}</FlexItem>
                     {isModelValidated(model) && (
-                      <FlexItem>
-                        <Popover bodyContent={MODEL_CATALOG_POPOVER_MESSAGES.VALIDATED}>
-                          <Label color="purple" isClickable>
-                            Validated
-                          </Label>
-                        </Popover>
-                      </FlexItem>
+                      <Popover bodyContent={MODEL_CATALOG_POPOVER_MESSAGES.VALIDATED}>
+                        <Label color="purple" isClickable>
+                          Validated
+                        </Label>
+                      </Popover>
                     )}
                   </Flex>
                 </StackItem>
