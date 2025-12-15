@@ -13,7 +13,7 @@ Examples:
 * a given Hugging Face repo
 * “ChatGPT”, “Stable Diffusion”, “Phi”, “Mistral”
 
-> [!NOTE]  
+> [!NOTE]
 > Implemented as MLMD Context.
 
 ## Model Version
@@ -28,7 +28,7 @@ Examples:
 * A container image tag
 * “v1.0”
 
-> [!NOTE]  
+> [!NOTE]
 > Implemented as a MLMD Context with parent-context to the Registered Model. To avoid name clash this is technically named with the prefix of the owned entity (Registered Model).
 
 
@@ -62,7 +62,7 @@ The combination of `uri`, `storage_key`, `storage_path` and additional `customPr
 * use the python function from the point above in a non-Kubernetes context
 * reimplement the python function from the point above in a non-Kubernetes context and in the preferred language of choice
 
-> [!NOTE]  
+> [!NOTE]
 > Implemented as a MLMD Artifact with MLMD Association to the Model Version. To avoid name clashes this is technically named with the prefix of the owned entity (Model Version).
 
 
@@ -74,10 +74,10 @@ A ML model from GitHub:
 
 ```python
 model = registry.register_model(
-    "my-model-from-gh",  
-    "https://github.com/tarilabs/demo20231212/raw/main/v1.nb20231206162408/mnist.onnx",  
+    "my-model-from-gh",
+    "https://github.com/tarilabs/demo20231212/raw/main/v1.nb20231206162408/mnist.onnx",
     version="v1",
-    description="used for demo purposes",
+    version_description="used for demo purposes",
     model_format_name="onnx",
     model_format_version="1"
 )
@@ -87,7 +87,7 @@ resulting in:
 
 ```
 curl --silent -X 'GET' \
-  "$MR_HOSTNAME/api/model_registry/v1alpha3/registered_models/1" \                     
+  "$MR_HOSTNAME/api/model_registry/v1alpha3/registered_models/1" \
   -H 'accept: application/json' | jq
 {
   "createTimeSinceEpoch": "1707765353963",
@@ -100,7 +100,7 @@ curl --silent -X 'GET' \
 
 curl --silent -X 'GET' \
   "$MR_HOSTNAME/api/model_registry/v1alpha3/registered_models/1/versions?pageSize=100&orderBy=ID&sortOrder=DESC&nextPageToken=" \
-  -H 'accept: application/json' | jq 
+  -H 'accept: application/json' | jq
 {
   "items": [
     {
@@ -147,10 +147,10 @@ A ML model from S3 bucket referencing a K8s Secret:
 
 ```python
 model = registry.register_model(
-    "my-model-from-s3",  
-    "s3://mybucket/v1.nb20231222141832/mnist.onnx",  
+    "my-model-from-s3",
+    "s3://mybucket/v1.nb20231222141832/mnist.onnx",
     version="v1.nb20231222141832",
-    description="used for demo purposes",
+    version_description="used for demo purposes",
     model_format_name="onnx",
     model_format_version="1",
     storage_key="aws-connection-mybucket",
@@ -160,15 +160,15 @@ model = registry.register_model(
 
 please notice:
 
-* `storage_key` can be used to reference a Kubernetes Secret, containing AWS_S3_ENDPOINT, AWS_S3_BUCKET, etc. 
+* `storage_key` can be used to reference a Kubernetes Secret, containing AWS_S3_ENDPOINT, AWS_S3_BUCKET, etc.
 * `storage_path` can be used in place of determining the bucket and path from s3:// -like uri, and rely on the storage_key secret’s AWS_S3_BUCKET
 
 resulting in:
 
 ```
 curl --silent -X 'GET' \
-  "$MR_HOSTNAME/api/model_registry/v1alpha3/registered_models/3" \       
-  -H 'accept: application/json' | jq 
+  "$MR_HOSTNAME/api/model_registry/v1alpha3/registered_models/3" \
+  -H 'accept: application/json' | jq
 {
   "createTimeSinceEpoch": "1707765756856",
   "customProperties": {},
@@ -180,7 +180,7 @@ curl --silent -X 'GET' \
 
 curl --silent -X 'GET' \
   "$MR_HOSTNAME/api/model_registry/v1alpha3/registered_models/3/versions?pageSize=100&orderBy=ID&sortOrder=DESC&nextPageToken=" \
-  -H 'accept: application/json' | jq 
+  -H 'accept: application/json' | jq
 {
   "items": [
     {
@@ -200,7 +200,7 @@ curl --silent -X 'GET' \
 }
 
 curl --silent -X 'GET' \
-  "$MR_HOSTNAME/api/model_registry/v1alpha3/model_versions/4/artifacts" \                                                       
+  "$MR_HOSTNAME/api/model_registry/v1alpha3/model_versions/4/artifacts" \
   -H 'accept: application/json' | jq
 {
   "items": [
@@ -229,10 +229,10 @@ A ML model from S3 bucket with all required location details except credentials:
 
 ```python
 model = registry.register_model(
-    "my-model-from-s3-anotherone",  
-    "s3://mybucket/v1.nb20231222141832/mnist.onnx",  
+    "my-model-from-s3-anotherone",
+    "s3://mybucket/v1.nb20231222141832/mnist.onnx",
     version="v1.nb20231222141832",
-    description="used for demo purposes",
+    version_description="used for demo purposes",
     model_format_name="onnx",
     model_format_version="1",
     storage_key="aws-connection-mybucket",
@@ -247,8 +247,8 @@ resulting in:
 
 ```
 curl --silent -X 'GET' \
-  "$MR_HOSTNAME/api/model_registry/v1alpha3/registered_models/5" \                                                               
-  -H 'accept: application/json' | jq 
+  "$MR_HOSTNAME/api/model_registry/v1alpha3/registered_models/5" \
+  -H 'accept: application/json' | jq
 {
   "createTimeSinceEpoch": "1707765990857",
   "customProperties": {},
@@ -260,7 +260,7 @@ curl --silent -X 'GET' \
 
 curl --silent -X 'GET' \
   "$MR_HOSTNAME/api/model_registry/v1alpha3/registered_models/5/versions?pageSize=100&orderBy=ID&sortOrder=DESC&nextPageToken=" \
-  -H 'accept: application/json' | jq 
+  -H 'accept: application/json' | jq
 {
   "items": [
     {
@@ -290,7 +290,7 @@ curl --silent -X 'GET' \
 }
 
 curl --silent -X 'GET' \
-  "$MR_HOSTNAME/api/model_registry/v1alpha3/model_versions/6/artifacts" \                                                      
+  "$MR_HOSTNAME/api/model_registry/v1alpha3/model_versions/6/artifacts" \
   -H 'accept: application/json' | jq
 {
   "items": [
@@ -319,10 +319,10 @@ or with supplied-values:
 
 ```python
 model = registry.register_model(
-    "my-model-from-s3-anotherone",  
-    "s3://mybucket/v1.nb20231222141832/mnist.onnx",  
+    "my-model-from-s3-anotherone",
+    "s3://mybucket/v1.nb20231222141832/mnist.onnx",
     version="v1.nb20231222141832",
-    description="used for demo purposes",
+    version_description="used for demo purposes",
     model_format_name="onnx",
     model_format_version="1",
     storage_key="aws-connection-mybucket",
@@ -349,7 +349,7 @@ model = registry.register_model(
     "mnist-s3",
     "s3://kserve-examples/mnist",
     version="v1",
-    description="used for demo purposes",
+    version_description="used for demo purposes",
     model_format_name="onnx",
     model_format_version="1",
     service_account_name="sa",
@@ -361,14 +361,14 @@ model = registry.register_model(
 )
 ```
 
-this example make reference to KServe tutorial: [https://kserve.github.io/website/master/modelserving/storage/s3/s3/#deploy-the-model-on-s3-with-inferenceservice](https://kserve.github.io/website/master/modelserving/storage/s3/s3/#deploy-the-model-on-s3-with-inferenceservice) 
+this example make reference to KServe tutorial: [https://kserve.github.io/website/master/modelserving/storage/s3/s3/#deploy-the-model-on-s3-with-inferenceservice](https://kserve.github.io/website/master/modelserving/storage/s3/s3/#deploy-the-model-on-s3-with-inferenceservice)
 
 resulting in:
 
 ```
 curl --silent -X 'GET' \
-  "$MR_HOSTNAME/api/model_registry/v1alpha3/registered_models/7" \                                                               
-  -H 'accept: application/json' | jq 
+  "$MR_HOSTNAME/api/model_registry/v1alpha3/registered_models/7" \
+  -H 'accept: application/json' | jq
 {
   "createTimeSinceEpoch": "1707766117250",
   "customProperties": {},
@@ -380,7 +380,7 @@ curl --silent -X 'GET' \
 
 curl --silent -X 'GET' \
   "$MR_HOSTNAME/api/model_registry/v1alpha3/registered_models/7/versions?pageSize=100&orderBy=ID&sortOrder=DESC&nextPageToken=" \
-  -H 'accept: application/json' | jq 
+  -H 'accept: application/json' | jq
 {
   "items": [
     {
@@ -400,7 +400,7 @@ curl --silent -X 'GET' \
 }
 
 curl --silent -X 'GET' \
-  "$MR_HOSTNAME/api/model_registry/v1alpha3/model_versions/8/artifacts" \                                                       
+  "$MR_HOSTNAME/api/model_registry/v1alpha3/model_versions/8/artifacts" \
   -H 'accept: application/json' | jq
 {
   "items": [
@@ -435,7 +435,7 @@ Examples:
 
 * A README.md file
 
-> [!NOTE]  
+> [!NOTE]
 > Implemented as a MLMD Artifact with MLMD Association to the Model Version. To avoid name clashes this is technically named with the prefix of the owned entity (Model Version).
 
 
@@ -466,12 +466,12 @@ classDiagram
         +String modelFormatVersion
         +String storageKey
         +String storagePath
-        +String serviceAccountName 
+        +String serviceAccountName
     }
     RegisteredModel "1" <--> "*" ModelVersion
     ModelVersion "0..1" -- "*" Artifact
     ModelArtifact --|> Artifact
-    DocArtifact --|> Artifact   
+    DocArtifact --|> Artifact
 ```
 
 note: in order to keep the diagram simple, only the most relevant properties of each entity are depicted.

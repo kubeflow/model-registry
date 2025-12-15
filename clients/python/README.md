@@ -8,7 +8,7 @@
 This library provides a high level interface for interacting with a model registry server.
 
 > **Alpha**
-> 
+>
 > This Kubeflow component has **alpha** status with limited support.
 > See the [Kubeflow versioning policies](https://www.kubeflow.org/docs/started/support/#application-status).
 > The Kubeflow team is interested in your [feedback](https://github.com/kubeflow/model-registry) about the usability of the feature.
@@ -77,7 +77,7 @@ model = registry.register_model(
     "my-model",  # model name
     "https://storage-place.my-company.com",  # model URI
     version="2.0.0",
-    description="lorem ipsum",
+    version_description="lorem ipsum",
     model_format_name="onnx",
     model_format_version="1",
     storage_key="my-data-connection",
@@ -123,7 +123,7 @@ model = registry.register_model(
     "my-model",  # model name
     uri=utils.s3_uri_from("path/to/model", "my-bucket"),
     version="2.0.0",
-    description="lorem ipsum",
+    version_description="lorem ipsum",
     model_format_name="onnx",
     model_format_version="1",
     storage_key="my-data-connection",
@@ -151,7 +151,7 @@ hf_model = registry.register_hf_model(
     "relative/path/to/model/file.onnx",
     version="1.2.3",
     model_name="my-model",
-    description="lorem ipsum",
+    version_description="lorem ipsum",
     model_format_name="onnx",
     model_format_version="1",
 )
@@ -268,7 +268,7 @@ registered_model = registry.upload_artifact_and_register_model(
 )
 ```
 
-Additionally, OCI-based storage supports multiple CLI clients to perform the upload. However, one of these clients must be available in the hosts `$PATH`. **Ensure your host has either [skopeo](https://github.com/containers/skopeo) or [oras](https://github.com/oras-project/oras) installed and available.** 
+Additionally, OCI-based storage supports multiple CLI clients to perform the upload. However, one of these clients must be available in the hosts `$PATH`. **Ensure your host has either [skopeo](https://github.com/containers/skopeo) or [oras](https://github.com/oras-project/oras) installed and available.**
 
 By default, `skopeo` is used to perform the OCI image download/upload.
 
@@ -439,7 +439,7 @@ Before running make, ensure docker is running (`docker ps -a`). If it's not, ass
 ------
 Dockerfile:60
 --------------------
-  58 |     
+  58 |
   59 |     # prepare the build in a separate layer
   60 | >>> RUN make clean build/prepare
   61 |     # compile separately to optimize multi-platform builds
