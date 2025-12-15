@@ -24,7 +24,6 @@ import {
   hasModelArtifacts,
   isModelValidated,
 } from '~/app/pages/modelCatalog/utils/modelCatalogUtils';
-import { MODEL_CATALOG_POPOVER_MESSAGES } from '~/concepts/modelCatalog/const';
 import { useCatalogModel } from '~/app/hooks/modelCatalog/useCatalogModel';
 import { ModelRegistrySelectorContext } from '~/app/context/ModelRegistrySelectorContext';
 import { getRegisterCatalogModelRoute } from '~/app/routes/modelCatalog/catalogModelRegister';
@@ -32,7 +31,7 @@ import { CatalogModelDetailsParams } from '~/app/modelCatalogTypes';
 import { useCatalogModelArtifacts } from '~/app/hooks/modelCatalog/useCatalogModelArtifacts';
 import { modelCatalogUrl } from '~/app/routes/modelCatalog/catalogModel';
 import ScrollViewOnMount from '~/app/shared/components/ScrollViewOnMount';
-import { ModelDetailsTab } from '~/concepts/modelCatalog/const';
+import { ModelDetailsTab, MODEL_CATALOG_POPOVER_MESSAGES } from '~/concepts/modelCatalog/const';
 import ModelDetailsTabs from './ModelDetailsTabs';
 
 type ModelDetailsPageProps = {
