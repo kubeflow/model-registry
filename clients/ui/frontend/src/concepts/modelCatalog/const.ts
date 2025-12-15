@@ -104,6 +104,11 @@ export const MODEL_CATALOG_PROVIDER_NOTABLE_MODELS = {
   [ModelCatalogProvider.RED_HAT]: 'Red Hat optimized models',
 };
 
+export const MODEL_CATALOG_POPOVER_MESSAGES = {
+  VALIDATED:
+    'Validated models are benchmarked for performance and quality using leading open source evaluation datasets.',
+} as const;
+
 export enum ModelCatalogLicense {
   APACHE_2_0 = 'apache-2.0',
   GEMMA = 'gemma',

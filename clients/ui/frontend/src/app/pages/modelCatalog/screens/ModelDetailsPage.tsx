@@ -15,12 +15,14 @@ import {
   Popover,
   ActionListGroup,
   Skeleton,
+  Label,
 } from '@patternfly/react-core';
 import { ApplicationsPage } from 'mod-arch-shared';
 import {
   decodeParams,
   getModelName,
   hasModelArtifacts,
+  isModelValidated,
 } from '~/app/pages/modelCatalog/utils/modelCatalogUtils';
 import { useCatalogModel } from '~/app/hooks/modelCatalog/useCatalogModel';
 import { ModelRegistrySelectorContext } from '~/app/context/ModelRegistrySelectorContext';
@@ -29,7 +31,7 @@ import { CatalogModelDetailsParams } from '~/app/modelCatalogTypes';
 import { useCatalogModelArtifacts } from '~/app/hooks/modelCatalog/useCatalogModelArtifacts';
 import { modelCatalogUrl } from '~/app/routes/modelCatalog/catalogModel';
 import ScrollViewOnMount from '~/app/shared/components/ScrollViewOnMount';
-import { ModelDetailsTab } from '~/concepts/modelCatalog/const';
+import { ModelDetailsTab, MODEL_CATALOG_POPOVER_MESSAGES } from '~/concepts/modelCatalog/const';
 import ModelDetailsTabs from './ModelDetailsTabs';
 
 type ModelDetailsPageProps = {
@@ -139,10 +141,17 @@ const ModelDetailsPage: React.FC<ModelDetailsPageProps> = ({ tab }) => {
               <Stack>
                 <StackItem>
                   <Flex
-                    spaceItems={{ default: 'spaceItemsSm' }}
+                    spaceItems={{ default: 'spaceItemsMd' }}
                     alignItems={{ default: 'alignItemsCenter' }}
                   >
                     <FlexItem>{getModelName(model.name)}</FlexItem>
+                    {isModelValidated(model) && (
+                      <Popover bodyContent={MODEL_CATALOG_POPOVER_MESSAGES.VALIDATED}>
+                        <Label color="purple" isClickable>
+                          Validated
+                        </Label>
+                      </Popover>
+                    )}
                   </Flex>
                 </StackItem>
                 <StackItem>
