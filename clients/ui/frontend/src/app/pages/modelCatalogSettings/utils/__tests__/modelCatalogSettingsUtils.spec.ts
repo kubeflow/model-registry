@@ -34,7 +34,7 @@ const yamlDefaultFormData: ManageSourceFormData = {
   name: 'Source 1',
   organization: '',
   sourceType: CatalogSourceType.YAML,
-  yamlContent: 'models:\n  - name: model1',
+  yamlContent: '',
 };
 const hfFormData: ManageSourceFormData = {
   accessToken: 'apikey',
@@ -72,7 +72,18 @@ describe('catalogSourceConfigToFormData', () => {
     expect(catalogSourceConfigToFormData(catalogSourceDefaultConfigYAMLMock)).toEqual(
       yamlDefaultFormData,
     );
-    expect(catalogSourceConfigToFormData(catalogSourceConfigYAMLMock)).toEqual(yamlFormData);
+    expect(catalogSourceConfigToFormData(catalogSourceConfigYAMLMock)).toEqual({
+      accessToken: '',
+      allowedModels: '',
+      enabled: true,
+      excludedModels: '',
+      id: 'sample_source_1',
+      isDefault: false,
+      name: 'Source 1',
+      organization: '',
+      sourceType: CatalogSourceType.YAML,
+      yamlContent: '',
+    });
     expect(catalogSourceConfigToFormData(catalogSourceConfigHFMock)).toEqual(hfFormData);
   });
 });
@@ -112,7 +123,7 @@ describe('transformFormDataToConfig', () => {
       enabled: true,
       isDefault: true,
       type: CatalogSourceType.YAML,
-      yaml: 'models:\n  - name: model1',
+      yaml: '',
       includedModels: [],
       excludedModels: [],
     });

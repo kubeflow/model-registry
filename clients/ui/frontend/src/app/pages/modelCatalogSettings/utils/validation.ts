@@ -20,7 +20,7 @@ export const validateHuggingFaceCredentials = (data: ManageSourceFormData): bool
 };
 
 export const validateYamlMode = (data: ManageSourceFormData): boolean => {
-  if (data.sourceType !== CatalogSourceType.YAML) {
+  if (data.sourceType !== CatalogSourceType.YAML || data.isDefault) {
     return true;
   }
   return validateYamlContent(data.yamlContent);

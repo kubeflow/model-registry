@@ -939,6 +939,7 @@ describe('Manage Source Page', () => {
           includedModels: ['model1', 'model2'],
           excludedModels: ['model3'],
           enabled: false,
+          yaml: 'models:\n  - name: model1',
         }),
       });
       manageSourcePage.visitManageSource(catalogSourceId);
@@ -975,6 +976,7 @@ describe('Manage Source Page', () => {
         includedModels: ['model1', 'model2'],
         excludedModels: ['model3'],
         enabled: false,
+        yaml: 'models:\n  - name: model1',
       }),
     });
 
