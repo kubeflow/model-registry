@@ -51,7 +51,9 @@ const ModelCatalogCard: React.FC<ModelCatalogCardProps> = ({ model, source, trun
             <FlexItem align={{ default: 'alignRight' }}>
               {isValidated ? (
                 <Popover bodyContent={MODEL_CATALOG_POPOVER_MESSAGES.VALIDATED}>
-                  <Label color="purple">Validated</Label>
+                  <Label color="purple" isClickable>
+                    Validated
+                  </Label>
                 </Popover>
               ) : (
                 source && <Label>{source.name}</Label>
