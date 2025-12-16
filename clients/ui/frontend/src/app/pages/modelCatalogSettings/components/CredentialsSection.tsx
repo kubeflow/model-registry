@@ -101,7 +101,7 @@ const CredentialsSection: React.FC<CredentialsSectionProps> = ({
         )}
       </FormGroup>
 
-      <FormGroup label={FORM_LABELS.ACCESS_TOKEN} isRequired fieldId="access-token">
+      <FormGroup label={FORM_LABELS.ACCESS_TOKEN} fieldId="access-token">
         <FormHelperText>
           <HelperText>
             <HelperTextItem>{HELP_TEXT.ACCESS_TOKEN}</HelperTextItem>
