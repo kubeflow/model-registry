@@ -849,6 +849,81 @@ paths:
           $ref: "#/components/responses/InternalServerError"
       operationId: getAllModelArtifacts
 
+  /api/v1/model_catalog/sources/{sourceId}/performance_artifacts/{CatalogModelName+}:
+    description: >-
+      The REST endpoint/path used to list `CatalogModelPerformanceArtifacts`.
+    get:
+      summary: List CatalogModelPerformanceArtifacts.
+      tags:
+        - ModelCatalogService
+      parameters:
+        - $ref: "#/components/parameters/kubeflowUserId"
+        - name: sourceId
+          description: A unique identifier for a `CatalogSource`.
+          schema:
+            type: string
+          in: path
+          required: true
+        - name: CatalogModelName+
+          description: A unique identifier for the model.
+          schema:
+            type: string
+          in: path
+          required: true
+        - name: targetRPS
+          description: |-
+            Target requests per second. If specified, values for `replicas` and
+            `total_requests_per_second` will be calculated and returned as custom
+            properties.
+          schema:
+            type: integer
+          in: query
+        - name: recommendations
+          description: Filter records that are less optimal based on approximate cost to run and latency.
+          schema:
+            type: boolean
+            default: false
+          in: query
+        - name: rpsProperty
+          description: Custom property name for requests per second metric.
+          schema:
+            type: string
+            default: "requests_per_second"
+          in: query
+        - name: latencyProperty
+          description: Custom property name for latency metric (e.g., ttft_p90, p90_latency).
+          schema:
+            type: string
+            default: "ttft_p90"
+          in: query
+        - name: hardwareCountProperty
+          description: Custom property name for hardware count metric.
+          schema:
+            type: string
+            default: "hardware_count"
+          in: query
+        - name: hardwareTypeProperty
+          description: Custom property name for hardware type grouping.
+          schema:
+            type: string
+            default: "hardware_type"
+          in: query
+        - $ref: "#/components/parameters/filterQuery"
+        - $ref: "#/components/parameters/pageSize"
+        - $ref: "#/components/parameters/artifactOrderBy"
+        - $ref: "#/components/parameters/sortOrder"
+        - $ref: "#/components/parameters/nextPageToken"
+      responses:
+        "200":
+          $ref: "#/components/responses/CatalogModelArtifactListResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+      operationId: getPerformanceArtifacts
+
   # Model catalog settings endpoints
   /api/v1/settings/model_catalog/source_configs:
     summary: Path used to managae Model catalog sources.
@@ -2001,6 +2076,7 @@ components:
         - type: object
           required:
             - artifactType
+            - metricsType
           properties:
             artifactType:
               type: string
@@ -2037,6 +2113,7 @@ components:
         - type: object
           required:
             - artifactType
+            - uri
           properties:
             artifactType:
               type: string
@@ -2787,6 +2864,58 @@ components:
       description: Specifies the order by criteria for listing entities.
       schema:
         $ref: "#/components/schemas/OrderByField"
+      in: query
+      required: false
+    artifactOrderBy:
+      style: form
+      explode: true
+      examples:
+        standardField:
+          value: ID
+          summary: Order by standard field
+        customPropertyDouble:
+          value: mmlu.double_value
+          summary: Order by custom double property
+        customPropertyString:
+          value: framework_type.string_value
+          summary: Order by custom string property
+        customPropertyInt:
+          value: hardware_count.int_value
+          summary: Order by custom integer property
+      name: orderBy
+      description: |
+        Specifies the order by criteria for listing artifacts.
+
+        **Standard Fields:**
+        - `ID` - Order by artifact ID
+        - `NAME` - Order by artifact name
+        - `CREATE_TIME` - Order by creation timestamp
+        - `LAST_UPDATE_TIME` - Order by last update timestamp
+
+        **Custom Property Ordering:**
+
+        Artifacts can be ordered by custom properties using the format: `<property_name>.<value_type>`
+
+        Supported value types:
+        - `double_value` - For numeric (floating-point) properties
+        - `int_value` - For integer properties
+        - `string_value` - For string properties
+
+        Examples:
+        - `mmlu.double_value` - Order by the 'mmlu' benchmark score
+        - `accuracy.double_value` - Order by accuracy metric
+        - `framework_type.string_value` - Order by framework type
+        - `hardware_count.int_value` - Order by hardware count
+        - `ttft_mean.double_value` - Order by time-to-first-token mean
+
+        **Behavior:**
+        - If an invalid value type is specified (e.g., `accuracy.invalid_type`), an error is returned
+        - If an invalid format is used (e.g., `accuracy` without `.value_type`), it falls back to ID ordering
+        - If a property doesn't exist, it falls back to ID ordering
+        - Artifacts with the specified property are ordered first (by the property value), followed by artifacts without the property (ordered by ID)
+        - Empty property names (e.g., `.double_value`) return an error
+      schema:
+        type: string
       in: query
       required: false
     sortOrder:

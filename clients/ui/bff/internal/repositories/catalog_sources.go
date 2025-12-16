@@ -15,8 +15,9 @@ const filterOptionPath = "/models/filter_options"
 type CatalogSourcesInterface interface {
 	GetAllCatalogSources(client httpclient.HTTPClientInterface, pageValues url.Values) (*models.CatalogSourceList, error)
 	GetCatalogSourceModel(client httpclient.HTTPClientInterface, sourceId string, modelName string) (*models.CatalogModel, error)
-	GetCatalogSourceModelArtifacts(client httpclient.HTTPClientInterface, sourceId string, modelName string) (*models.CatalogModelArtifactList, error)
+	GetCatalogSourceModelArtifacts(client httpclient.HTTPClientInterface, sourceId string, modelName string, pageValues url.Values) (*models.CatalogModelArtifactList, error)
 	GetCatalogFilterOptions(client httpclient.HTTPClientInterface) (*models.FilterOptionsList, error)
+	GetCatalogModelPerformanceArtifacts(client httpclient.HTTPClientInterface, sourceId string, modelName string, pageValues url.Values) (*models.CatalogModelArtifactList, error)
 }
 
 type CatalogSources struct {
@@ -58,12 +59,12 @@ func (a CatalogSources) GetCatalogSourceModel(client httpclient.HTTPClientInterf
 	return &catalogModel, nil
 }
 
-func (a CatalogSources) GetCatalogSourceModelArtifacts(client httpclient.HTTPClientInterface, sourceId string, modelName string) (*models.CatalogModelArtifactList, error) {
+func (a CatalogSources) GetCatalogSourceModelArtifacts(client httpclient.HTTPClientInterface, sourceId string, modelName string, pageValues url.Values) (*models.CatalogModelArtifactList, error) {
 	path, err := url.JoinPath(sourcesPath, sourceId, "models", modelName, "artifacts")
 	if err != nil {
 		return nil, err
 	}
-	responseData, err := client.GET(path)
+	responseData, err := client.GET(UrlWithPageParams(path, pageValues))
 	if err != nil {
 		return nil, fmt.Errorf("error fetching sourcesPath: %w", err)
 	}
@@ -90,4 +91,22 @@ func (a CatalogSources) GetCatalogFilterOptions(client httpclient.HTTPClientInte
 	}
 
 	return &sources, nil
+}
+
+func (a CatalogSources) GetCatalogModelPerformanceArtifacts(client httpclient.HTTPClientInterface, sourceId string, modelName string, pageValues url.Values) (*models.CatalogModelArtifactList, error) {
+	path, err := url.JoinPath(sourcesPath, sourceId, "models", modelName, "artifacts", "performance")
+	if err != nil {
+		return nil, err
+	}
+	responseData, err := client.GET(UrlWithPageParams(path, pageValues))
+	if err != nil {
+		return nil, fmt.Errorf("error fetching sourcesPath: %w", err)
+	}
+
+	var catalogModelArtifacts models.CatalogModelArtifactList
+
+	if err := json.Unmarshal(responseData, &catalogModelArtifacts); err != nil {
+		return nil, fmt.Errorf("error decoding response data: %w", err)
+	}
+	return &catalogModelArtifacts, nil
 }
