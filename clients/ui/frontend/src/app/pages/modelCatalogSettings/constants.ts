@@ -26,7 +26,6 @@ export const SOURCE_TYPE_LABELS = {
 export const VALIDATION_MESSAGES = {
   NAME_REQUIRED: 'Name is required',
   ORGANIZATION_REQUIRED: 'Organization is required',
-  ACCESS_TOKEN_REQUIRED: 'Access token is required',
   YAML_CONTENT_REQUIRED: 'YAML content is required',
 } as const;
 

@@ -657,11 +657,8 @@ describe('Manage Source Page', () => {
       manageSourcePage.findPreviewButton().should('not.be.disabled');
     });
 
-    it('should show validation errors for HF fields when touched', () => {
+    it('should show validation errors for HF organization when touched', () => {
       manageSourcePage.visitAddSource();
-      manageSourcePage.findAccessTokenInput().focus().blur();
-      manageSourcePage.findAccessTokenError().should('exist');
-      manageSourcePage.findAccessTokenError().should('contain', 'Access token is required');
 
       manageSourcePage.findOrganizationInput().focus().blur();
       manageSourcePage.findOrganizationError().should('exist');
@@ -723,21 +720,17 @@ describe('Manage Source Page', () => {
 
       // Trigger validation errors
       manageSourcePage.findNameInput().focus().blur();
-      manageSourcePage.findAccessTokenInput().focus().blur();
       manageSourcePage.findOrganizationInput().focus().blur();
 
       manageSourcePage.findNameError().should('exist');
-      manageSourcePage.findAccessTokenError().should('exist');
       manageSourcePage.findOrganizationError().should('exist');
 
       // Fill fields
       manageSourcePage.fillSourceName('Test Source');
-      manageSourcePage.fillAccessToken('test-token');
       manageSourcePage.fillOrganization('Google');
 
       // Errors should be cleared
       manageSourcePage.findNameError().should('not.exist');
-      manageSourcePage.findAccessTokenError().should('not.exist');
       manageSourcePage.findOrganizationError().should('not.exist');
     });
 
