@@ -139,22 +139,22 @@ func (b *ModelRegistryService) GetModelVersionByInferenceService(inferenceServic
 	return &versions.Items[0], nil
 }
 
-func (b *ModelRegistryService) GetModelVersionByParams(versionName *string, registeredModelId *string, externalId *string) (*openapi.ModelVersion, error) {
-	if (versionName == nil || registeredModelId == nil) && externalId == nil {
-		return nil, fmt.Errorf("invalid parameters call, supply either (versionName and registeredModelId), or externalId: %w", api.ErrBadRequest)
+func (b *ModelRegistryService) GetModelVersionByParams(name *string, parentResourceId *string, externalId *string) (*openapi.ModelVersion, error) {
+	if (name == nil || parentResourceId == nil) && externalId == nil {
+		return nil, fmt.Errorf("invalid parameters call, supply either (name and parentResourceId), or externalId: %w", api.ErrBadRequest)
 	}
 
 	var parentResourceID *int32
-	if registeredModelId != nil {
+	if parentResourceId != nil {
 		var err error
-		parentResourceID, err = apiutils.ValidateIDAsInt32Ptr(registeredModelId, "registered model")
+		parentResourceID, err = apiutils.ValidateIDAsInt32Ptr(parentResourceId, "registered model")
 		if err != nil {
 			return nil, err
 		}
 	}
 
 	versionsList, err := b.modelVersionRepository.List(models.ModelVersionListOptions{
-		Name:             versionName,
+		Name:             name,
 		ExternalID:       externalId,
 		ParentResourceID: parentResourceID,
 	})
@@ -163,11 +163,11 @@ func (b *ModelRegistryService) GetModelVersionByParams(versionName *string, regi
 	}
 
 	if len(versionsList.Items) > 1 {
-		return nil, fmt.Errorf("multiple model versions found for versionName=%v, registeredModelId=%v, externalId=%v: %w", apiutils.ZeroIfNil(versionName), apiutils.ZeroIfNil(registeredModelId), apiutils.ZeroIfNil(externalId), api.ErrNotFound)
+		return nil, fmt.Errorf("multiple model versions found for name=%v, parentResourceId=%v, externalId=%v: %w", apiutils.ZeroIfNil(name), apiutils.ZeroIfNil(parentResourceId), apiutils.ZeroIfNil(externalId), api.ErrNotFound)
 	}
 
 	if len(versionsList.Items) == 0 {
-		return nil, fmt.Errorf("no model versions found for versionName=%v, registeredModelId=%v, externalId=%v: %w", apiutils.ZeroIfNil(versionName), apiutils.ZeroIfNil(registeredModelId), apiutils.ZeroIfNil(externalId), api.ErrNotFound)
+		return nil, fmt.Errorf("no model versions found for name=%v, parentResourceId=%v, externalId=%v: %w", apiutils.ZeroIfNil(name), apiutils.ZeroIfNil(parentResourceId), apiutils.ZeroIfNil(externalId), api.ErrNotFound)
 	}
 
 	toReturn, err := b.mapper.MapToModelVersion(versionsList.Items[0])
