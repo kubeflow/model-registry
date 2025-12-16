@@ -53,7 +53,7 @@ jobs:
             }
 
       - name: Checkout PR
-        uses: actions/checkout@v6.0.0
+        uses: actions/checkout@v6.0.1
         with:
           ref: ${{ fromJson(steps.pr.outputs.result).sha }}
 
@@ -71,11 +71,6 @@ jobs:
           node_image: kindest/node:${{ matrix.kubernetes-version }}
           cluster_name: py-fuzz-${{ matrix.kubernetes-version }}
           kubectl_version: ${{ matrix.kubernetes-version }}
-
-      - name: Remove AppArmor profile for mysql in KinD on GHA # https://github.com/kubeflow/manifests/issues/2507
-        run: |
-          set -x
-          sudo apparmor_parser -R /etc/apparmor.d/usr.sbin.mysqld
 
       - name: Generate Tag
         shell: bash

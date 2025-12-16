@@ -174,6 +174,7 @@ func (hfm *hfModel) populateFromHFInfo(ctx context.Context, provider *hfModelPro
 				if hfm.License == nil {
 					license := strings.TrimPrefix(tag, "license:")
 					if license != "" {
+						license = transformLicenseToHumanReadable(license)
 						hfm.License = &license
 					}
 				}
@@ -490,9 +491,39 @@ func (p *hfModelProvider) convertHFModelToRecord(ctx context.Context, hfInfo *hf
 		model.CustomProperties = &customProperties
 	}
 
+	// Create model artifact with hf:// protocol for KServe CSI deployment
+	artifacts := []dbmodels.CatalogArtifact{}
+	if hfm.ExternalId != nil && *hfm.ExternalId != "" {
+		// Construct hf:// URI using the HuggingFace model ID
+		hfUri := fmt.Sprintf("hf://%s", *hfm.ExternalId)
+		artifactType := "model-artifact"
+		artifactName := fmt.Sprintf("%s-hf-artifact", modelName)
+
+		// Create CatalogModelArtifact
+		modelArtifact := &dbmodels.CatalogModelArtifactImpl{}
+		modelArtifact.Attributes = &dbmodels.CatalogModelArtifactAttributes{
+			Name:         &artifactName,
+			URI:          &hfUri,
+			ArtifactType: &artifactType,
+			ExternalID:   hfm.ExternalId,
+		}
+
+		// Add timestamps if available from parent model
+		if attrs.CreateTimeSinceEpoch != nil {
+			modelArtifact.Attributes.CreateTimeSinceEpoch = attrs.CreateTimeSinceEpoch
+		}
+		if attrs.LastUpdateTimeSinceEpoch != nil {
+			modelArtifact.Attributes.LastUpdateTimeSinceEpoch = attrs.LastUpdateTimeSinceEpoch
+		}
+
+		artifacts = append(artifacts, dbmodels.CatalogArtifact{
+			CatalogModelArtifact: modelArtifact,
+		})
+	}
+
 	return ModelProviderRecord{
 		Model:     &model,
-		Artifacts: []dbmodels.CatalogArtifact{}, // HF models don't have artifacts from the API
+		Artifacts: artifacts,
 	}
 }
 
@@ -512,7 +543,8 @@ func convertHFModelProperties(catalogModel *apimodels.CatalogModel) ([]models.Pr
 		properties = append(properties, models.NewStringProperty("provider", *catalogModel.Provider, false))
 	}
 	if catalogModel.License != nil {
-		properties = append(properties, models.NewStringProperty("license", *catalogModel.License, false))
+		humanReadableLicense := transformLicenseToHumanReadable(*catalogModel.License)
+		properties = append(properties, models.NewStringProperty("license", humanReadableLicense, false))
 	}
 	if catalogModel.LicenseLink != nil {
 		properties = append(properties, models.NewStringProperty("license_link", *catalogModel.LicenseLink, false))

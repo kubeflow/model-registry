@@ -133,31 +133,86 @@ func (r *CatalogModelRepositoryImpl) lookupModelByName(name string) (*schema.Con
 func (r *CatalogModelRepositoryImpl) DeleteBySource(sourceID string) error {
 	config := r.GetConfig()
 
-	// Delete all Context records where there's a ContextProperty with name='source_id' and string_value=sourceID
-	query := `DELETE FROM "Context" WHERE id IN (
-		SELECT "Context".id
-		FROM "Context"
-		INNER JOIN "ContextProperty" ON "Context".id="ContextProperty".context_id
-		AND "ContextProperty".name='source_id'
-		WHERE "ContextProperty".string_value=?
-		AND "Context".type_id=?
-	)`
+	return config.DB.Transaction(func(tx *gorm.DB) error {
+		// Delete artifacts linked to models in this source that aren't linked
+		// with an Event.
+		deleteArtifactsQuery :=
+			`DELETE FROM "Artifact" WHERE id IN (
+			SELECT "Artifact".id
+			FROM "Context"
+			INNER JOIN "ContextProperty" ON "Context".id="ContextProperty".context_id
+				AND "ContextProperty".name='source_id' AND
+				"ContextProperty".string_value=?
+			INNER JOIN "Attribution" ON "Context".id="Attribution".context_id
+			INNER JOIN "Artifact" ON "Attribution".artifact_id="Artifact".id
+			WHERE "Context".type_id=? AND NOT EXISTS (
+				SELECT 1 FROM "Event" WHERE "Event".artifact_id="Artifact".id
+			)
+		)`
+		err := tx.Exec(deleteArtifactsQuery, sourceID, config.TypeID).Error
+		if err != nil {
+			return fmt.Errorf("unable to delete artifacts from source %q: %w", sourceID, err)
+		}
 
-	return config.DB.Exec(query, sourceID, config.TypeID).Error
+		// Delete all Context records where there's a ContextProperty with name='source_id' and string_value=sourceID
+		query := `DELETE FROM "Context" WHERE id IN (
+			SELECT "Context".id
+			FROM "Context"
+			INNER JOIN "ContextProperty" ON "Context".id="ContextProperty".context_id
+			AND "ContextProperty".name='source_id'
+			WHERE "ContextProperty".string_value=?
+			AND "Context".type_id=?
+		)`
+
+		err = tx.Exec(query, sourceID, config.TypeID).Error
+		if err != nil {
+			return fmt.Errorf("unable to delete contexts from source %q: %w", sourceID, err)
+		}
+
+		return nil
+	})
 }
 
 func (r *CatalogModelRepositoryImpl) DeleteByID(id int32) error {
 	config := r.GetConfig()
 
-	// Delete the Context record by ID and type_id
-	// ContextProperty records will be deleted via foreign key cascade
-	result := config.DB.Where("id = ? AND type_id = ?", id, config.TypeID).Delete(&schema.Context{})
+	var rowsAffected int64
 
-	if result.Error != nil {
-		return result.Error
+	err := config.DB.Transaction(func(tx *gorm.DB) error {
+		// Delete artifacts linked to this model that aren't linked with an Event.
+		deleteArtifactsQuery :=
+			`DELETE FROM "Artifact" WHERE id IN (
+			SELECT "Artifact".id FROM "Context"
+				INNER JOIN "Attribution" ON "Context".id="Attribution".context_id
+				INNER JOIN "Artifact" ON "Attribution".artifact_id="Artifact".id
+			WHERE "Context".id=? AND "Context".type_id=?
+				AND NOT EXISTS (
+					SELECT 1 FROM "Event" WHERE "Event".artifact_id="Artifact".id
+				)
+		)`
+
+		err := tx.Exec(deleteArtifactsQuery, id, config.TypeID).Error
+		if err != nil {
+			return fmt.Errorf("unable to delete linked artifacts for model %d: %w", id, err)
+		}
+
+		// Delete the Context record by ID and type_id
+		// ContextProperty records will be deleted via foreign key cascade
+		result := tx.Where("id = ? AND type_id = ?", id, config.TypeID).Delete(&schema.Context{})
+
+		if result.Error != nil {
+			return result.Error
+		}
+
+		rowsAffected = result.RowsAffected
+		return nil
+	})
+
+	if err != nil {
+		return err
 	}
 
-	if result.RowsAffected == 0 {
+	if rowsAffected == 0 {
 		return fmt.Errorf("%w: id %d", config.NotFoundError, id)
 	}
 

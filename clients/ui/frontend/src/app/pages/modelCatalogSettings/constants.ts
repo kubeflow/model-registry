@@ -26,13 +26,12 @@ export const SOURCE_TYPE_LABELS = {
 export const VALIDATION_MESSAGES = {
   NAME_REQUIRED: 'Name is required',
   ORGANIZATION_REQUIRED: 'Organization is required',
-  ACCESS_TOKEN_REQUIRED: 'Access token is required',
   YAML_CONTENT_REQUIRED: 'YAML content is required',
 } as const;
 
 export const HELP_TEXT = {
   ACCESS_TOKEN:
-    'Enter your fine-grained Hugging Face access token. The token must have the following permissions: read repos in your namespace, read public repos that you can access, access webhooks, and create webhooks.',
+    'Enter your fine-grained Hugging Face access token. Public models can be pulled into catalog without an access token. For private/gated models, a token is recommended to ensure full metadata is displayed, otherwise only limited metadata may be available. The token must have the following permissions: read repos in your namespace, read public repos that you can access.',
   ORGANIZATION:
     'Limiting each Hugging Face source to a single organization helps prevent performance issues when loading large model sets.',
   YAML: 'Upload or paste a YAML string.',

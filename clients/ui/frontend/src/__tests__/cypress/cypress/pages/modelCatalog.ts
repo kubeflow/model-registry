@@ -1,3 +1,4 @@
+import { TEMP_DEV_CATALOG_ADVANCED_FILTERS_FEATURE_KEY } from '~/app/hooks/useTempDevCatalogAdvancedFiltersFeatureAvailable';
 import { appChrome } from './appChrome';
 
 class ModelCatalogFilter {
@@ -31,7 +32,12 @@ class ModelCatalogFilter {
 }
 
 class ModelCatalog {
-  visit() {
+  visit({
+    enableTempDevCatalogAdvancedFiltersFeature = false,
+  }: { enableTempDevCatalogAdvancedFiltersFeature?: boolean } = {}) {
+    if (enableTempDevCatalogAdvancedFiltersFeature) {
+      window.localStorage.setItem(TEMP_DEV_CATALOG_ADVANCED_FILTERS_FEATURE_KEY, 'true');
+    }
     cy.visit('/model-catalog');
     this.wait();
   }
@@ -274,6 +280,32 @@ class ModelCatalog {
 
   selectWorkloadType(label: string) {
     this.findWorkloadTypeOption(label).click();
+  }
+
+  findPerformanceViewToggle() {
+    return cy.pfSwitch('model-performance-view-toggle');
+  }
+
+  findPerformanceViewToggleValue() {
+    return cy.pfSwitchValue('model-performance-view-toggle');
+  }
+
+  togglePerformanceView() {
+    this.findPerformanceViewToggle().click();
+    return this;
+  }
+
+  findPerformanceFiltersUpdatedAlert() {
+    return cy.findByTestId('performance-filters-updated-alert');
+  }
+
+  findPerformanceFiltersUpdatedAlertCloseButton() {
+    return this.findPerformanceFiltersUpdatedAlert().find('button[aria-label^="Close"]');
+  }
+
+  dismissPerformanceFiltersUpdatedAlert() {
+    this.findPerformanceFiltersUpdatedAlertCloseButton().click();
+    return this;
   }
 }
 

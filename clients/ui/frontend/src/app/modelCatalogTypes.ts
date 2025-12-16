@@ -251,18 +251,22 @@ export type CatalogSourceConfigCommon = {
 
 export type YamlCatalogSourceConfig = CatalogSourceConfigCommon & {
   type: CatalogSourceType.YAML;
+  /** yaml will be populated on GET (by ID) requests, not on LIST requests */
   yaml?: string;
 };
 
 export type HuggingFaceCatalogSourceConfig = CatalogSourceConfigCommon & {
   type: CatalogSourceType.HUGGING_FACE;
   allowedOrganization?: string;
+  /** apiKey will be populated on GET (by ID) requests, not on LIST requests */
   apiKey?: string;
 };
 
 export type CatalogSourceConfig = YamlCatalogSourceConfig | HuggingFaceCatalogSourceConfig;
 
-export type CatalogSourceConfigPayload = CatalogSourceConfig;
+export type CatalogSourceConfigPayload =
+  | CatalogSourceConfig
+  | Pick<CatalogSourceConfig, 'enabled' | 'includedModels' | 'excludedModels'>;
 
 export type CatalogSourceConfigList = {
   catalogs: CatalogSourceConfig[];
@@ -284,10 +288,43 @@ export type UpdateCatalogSourceConfig = (
 ) => Promise<CatalogSourceConfig>;
 export type DeleteCatalogSourceConfig = (opts: APIOptions, sourceId: string) => Promise<void>;
 
+// Preview types
+export type CatalogSourcePreviewRequest = {
+  type: string;
+  includedModels?: string[];
+  excludedModels?: string[];
+  properties?: Record<string, unknown>;
+};
+
+export type CatalogSourcePreviewModel = {
+  name: string;
+  included: boolean;
+};
+
+export type CatalogSourcePreviewSummary = {
+  totalModels: number;
+  includedModels: number;
+  excludedModels: number;
+};
+
+export type CatalogSourcePreviewResult = {
+  items: CatalogSourcePreviewModel[];
+  summary: CatalogSourcePreviewSummary;
+  nextPageToken: string;
+  pageSize: number;
+  size: number;
+};
+
+export type PreviewCatalogSource = (
+  opts: APIOptions,
+  data: CatalogSourcePreviewRequest,
+) => Promise<CatalogSourcePreviewResult>;
+
 export type ModelCatalogSettingsAPIs = {
   getCatalogSourceConfigs: GetCatalogSourceConfigs;
   createCatalogSourceConfig: CreateCatalogSourceConfig;
   getCatalogSourceConfig: GetCatalogSourceConfig;
   updateCatalogSourceConfig: UpdateCatalogSourceConfig;
   deleteCatalogSourceConfig: DeleteCatalogSourceConfig;
+  previewCatalogSource: PreviewCatalogSource;
 };

@@ -15,14 +15,14 @@ permissions: # set contents: read at top-level, per OpenSSF ScoreCard rule Token
 
 jobs:
   welcome:
-    if: ${{ github.actor != 'dependabot[bot]' }}
+    # do NOT skip the entire workflow as that generates troubles with Prow/Tide, i.e. do not do `if` checks here
     runs-on: ubuntu-latest
     permissions:
       pull-requests: write
       issues: write
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v6.0.0
+        uses: actions/checkout@v6.0.1
 
       - name: Install PyYAML
         run: pip3 install pyyaml
@@ -50,6 +50,7 @@ jobs:
           echo "Approvers: ${{ steps.set-approvers.outputs.approvers }}"
 
       - name: Welcome first-time contributors message
+        if: ${{ github.actor != 'dependabot[bot]' }}
         uses: actions/first-interaction@v3
         continue-on-error: true
         with:

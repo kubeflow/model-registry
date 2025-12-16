@@ -19,8 +19,9 @@ type originEntry struct {
 // SourceCollection manages catalog sources from multiple origins with priority-based merging.
 // Later entries in the slice take precedence over earlier ones.
 type SourceCollection struct {
-	mu      sync.RWMutex
-	entries []originEntry
+	mu           sync.RWMutex
+	entries      []originEntry
+	namedQueries map[string]map[string]FieldFilter
 }
 
 // NewSourceCollection creates a new SourceCollection with the given origin order.
@@ -32,7 +33,10 @@ func NewSourceCollection(originOrder ...string) *SourceCollection {
 	for i, origin := range originOrder {
 		entries[i] = originEntry{origin: origin, sources: nil}
 	}
-	return &SourceCollection{entries: entries}
+	return &SourceCollection{
+		entries:      entries,
+		namedQueries: make(map[string]map[string]FieldFilter),
+	}
 }
 
 // Merge adds sources from one origin (ordinarily, a file path--but any unique
@@ -46,7 +50,34 @@ func NewSourceCollection(originOrder ...string) *SourceCollection {
 func (sc *SourceCollection) Merge(origin string, sources map[string]Source) error {
 	sc.mu.Lock()
 	defer sc.mu.Unlock()
+	return sc.mergeSourcesInternal(origin, sources)
+}
 
+// MergeWithNamedQueries adds sources and named queries from one origin.
+func (sc *SourceCollection) MergeWithNamedQueries(origin string, sources map[string]Source, namedQueries map[string]map[string]FieldFilter) error {
+	sc.mu.Lock()
+	defer sc.mu.Unlock()
+
+	// Merge sources using existing logic
+	if err := sc.mergeSourcesInternal(origin, sources); err != nil {
+		return err
+	}
+
+	// Merge named queries (later origins override earlier ones)
+	for queryName, fieldFilters := range namedQueries {
+		if sc.namedQueries[queryName] == nil {
+			sc.namedQueries[queryName] = make(map[string]FieldFilter)
+		}
+		for fieldName, filter := range fieldFilters {
+			sc.namedQueries[queryName][fieldName] = filter
+		}
+	}
+
+	return nil
+}
+
+// mergeSourcesInternal extracts the internal logic from Merge
+func (sc *SourceCollection) mergeSourcesInternal(origin string, sources map[string]Source) error {
 	// Find existing entry for this origin
 	for i := range sc.entries {
 		if sc.entries[i].origin == origin {
@@ -58,6 +89,22 @@ func (sc *SourceCollection) Merge(origin string, sources map[string]Source) erro
 	// Origin not found, append it (dynamic registration)
 	sc.entries = append(sc.entries, originEntry{origin: origin, sources: sources})
 	return nil
+}
+
+// GetNamedQueries returns all merged named queries
+func (sc *SourceCollection) GetNamedQueries() map[string]map[string]FieldFilter {
+	sc.mu.RLock()
+	defer sc.mu.RUnlock()
+
+	// Return a copy to prevent external modification
+	result := make(map[string]map[string]FieldFilter, len(sc.namedQueries))
+	for queryName, fieldFilters := range sc.namedQueries {
+		result[queryName] = make(map[string]FieldFilter, len(fieldFilters))
+		for fieldName, filter := range fieldFilters {
+			result[queryName][fieldName] = filter
+		}
+	}
+	return result
 }
 
 // mergeSources performs field-level merging of two Source structs.

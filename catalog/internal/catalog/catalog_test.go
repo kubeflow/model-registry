@@ -28,9 +28,9 @@ func TestLoadCatalogSources(t *testing.T) {
 		wantErr bool
 	}{
 		{
-			name:    "test-catalog-sources",
-			args:    args{catalogsPath: "testdata/test-catalog-sources.yaml"},
-			want:    []string{"catalog1", "catalog2"},
+			name: "test-catalog-sources",
+			args: args{catalogsPath: "testdata/test-catalog-sources.yaml"},
+			want: []string{"catalog1", "catalog2"},
 		},
 	}
 	for _, tt := range tests {
@@ -41,6 +41,7 @@ func TestLoadCatalogSources(t *testing.T) {
 				&MockCatalogArtifactRepository{},
 				&MockCatalogModelArtifactRepository{},
 				&MockCatalogMetricsArtifactRepository{},
+				&MockCatalogSourceRepository{},
 				&MockPropertyOptionsRepository{},
 			)
 			loader := NewLoader(services, []string{tt.args.catalogsPath})
@@ -101,6 +102,7 @@ func TestLoadCatalogSourcesEnabledDisabled(t *testing.T) {
 				&MockCatalogArtifactRepository{},
 				&MockCatalogModelArtifactRepository{},
 				&MockCatalogMetricsArtifactRepository{},
+				&MockCatalogSourceRepository{},
 				&MockPropertyOptionsRepository{},
 			)
 			loader := NewLoader(services, []string{tt.args.catalogsPath})
@@ -127,6 +129,7 @@ func TestLabelsValidation(t *testing.T) {
 		&MockCatalogArtifactRepository{},
 		&MockCatalogModelArtifactRepository{},
 		&MockCatalogMetricsArtifactRepository{},
+		&MockCatalogSourceRepository{},
 		&MockPropertyOptionsRepository{},
 	)
 
@@ -257,6 +260,7 @@ func TestCatalogSourceLabelsDefaultToEmptySlice(t *testing.T) {
 				&MockCatalogArtifactRepository{},
 				&MockCatalogModelArtifactRepository{},
 				&MockCatalogMetricsArtifactRepository{},
+				&MockCatalogSourceRepository{},
 				&MockPropertyOptionsRepository{},
 			)
 			loader := NewLoader(services, []string{tt.args.catalogsPath})
@@ -295,6 +299,7 @@ func TestLoadCatalogSourcesWithMockRepositories(t *testing.T) {
 		mockArtifactRepo,
 		mockModelArtifactRepo,
 		mockMetricsArtifactRepo,
+		&MockCatalogSourceRepository{},
 		&MockPropertyOptionsRepository{},
 	)
 
@@ -424,6 +429,7 @@ func TestLoadCatalogSourcesWithRepositoryErrors(t *testing.T) {
 		mockArtifactRepo,
 		mockModelArtifactRepo,
 		mockMetricsArtifactRepo,
+		&MockCatalogSourceRepository{},
 		&MockPropertyOptionsRepository{},
 	)
 
@@ -501,6 +507,7 @@ func TestLoadCatalogSourcesWithNilEnabled(t *testing.T) {
 		mockArtifactRepo,
 		mockModelArtifactRepo,
 		mockMetricsArtifactRepo,
+		&MockCatalogSourceRepository{},
 		&MockPropertyOptionsRepository{},
 	)
 
@@ -944,6 +951,58 @@ func (m *MockPropertyOptionsRepository) SetMockOptions(t dbmodels.PropertyOption
 	m.MockOptions[t][typeID] = options
 }
 
+// MockCatalogSourceRepository mocks the CatalogSourceRepository interface.
+type MockCatalogSourceRepository struct {
+	Sources []dbmodels.CatalogSource
+}
+
+func (m *MockCatalogSourceRepository) GetBySourceID(sourceID string) (dbmodels.CatalogSource, error) {
+	for _, s := range m.Sources {
+		if attrs := s.GetAttributes(); attrs != nil && attrs.Name != nil && *attrs.Name == sourceID {
+			return s, nil
+		}
+	}
+	return nil, nil
+}
+
+func (m *MockCatalogSourceRepository) Save(source dbmodels.CatalogSource) (dbmodels.CatalogSource, error) {
+	m.Sources = append(m.Sources, source)
+	return source, nil
+}
+
+func (m *MockCatalogSourceRepository) Delete(sourceID string) error {
+	return nil
+}
+
+func (m *MockCatalogSourceRepository) GetAll() ([]dbmodels.CatalogSource, error) {
+	return m.Sources, nil
+}
+
+func (m *MockCatalogSourceRepository) GetAllStatuses() (map[string]dbmodels.SourceStatus, error) {
+	result := make(map[string]dbmodels.SourceStatus)
+	for _, source := range m.Sources {
+		if attrs := source.GetAttributes(); attrs != nil && attrs.Name != nil {
+			status := dbmodels.SourceStatus{}
+			if props := source.GetProperties(); props != nil {
+				for _, prop := range *props {
+					switch prop.Name {
+					case "status":
+						if prop.StringValue != nil {
+							status.Status = *prop.StringValue
+						}
+					case "error":
+						if prop.StringValue != nil {
+							status.Error = *prop.StringValue
+						}
+					}
+				}
+			}
+			result[*attrs.Name] = status
+		}
+	}
+	return result, nil
+}
+
 func TestAPIProviderGetPerformanceArtifacts(t *testing.T) {
 	// This test verifies that the APIProvider interface has GetPerformanceArtifacts method
 	// The actual implementation is tested in db_catalog_test.go
@@ -954,6 +1013,7 @@ func TestAPIProviderGetPerformanceArtifacts(t *testing.T) {
 		&MockCatalogArtifactRepository{},
 		&MockCatalogModelArtifactRepository{},
 		&MockCatalogMetricsArtifactRepository{},
+		&MockCatalogSourceRepository{},
 		&MockPropertyOptionsRepository{},
 	)
 	provider := NewDBCatalog(services, nil)
@@ -981,6 +1041,7 @@ func TestAPIProviderInterface(t *testing.T) {
 		&MockCatalogArtifactRepository{},
 		&MockCatalogModelArtifactRepository{},
 		&MockCatalogMetricsArtifactRepository{},
+		&MockCatalogSourceRepository{},
 		&MockPropertyOptionsRepository{},
 	)
 	var provider APIProvider = NewDBCatalog(services, nil)

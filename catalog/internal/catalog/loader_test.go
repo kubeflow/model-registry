@@ -7,6 +7,8 @@ import (
 	"github.com/kubeflow/model-registry/catalog/internal/db/service"
 	apimodels "github.com/kubeflow/model-registry/catalog/pkg/openapi"
 	"github.com/kubeflow/model-registry/internal/apiutils"
+	"github.com/stretchr/testify/assert"
+	"k8s.io/apimachinery/pkg/util/yaml"
 )
 
 func TestRemoveModelsFromMissingSources(t *testing.T) {
@@ -101,6 +103,7 @@ func TestRemoveModelsFromMissingSources(t *testing.T) {
 				&MockCatalogArtifactRepository{},
 				&MockCatalogModelArtifactRepository{},
 				&MockCatalogMetricsArtifactRepository{},
+				&MockCatalogSourceRepository{},
 				&MockPropertyOptionsRepository{},
 			)
 
@@ -190,4 +193,35 @@ type MockRepositoryError struct {
 
 func (e *MockRepositoryError) Error() string {
 	return e.Message
+
+}
+
+func TestSourceConfigNamedQueries(t *testing.T) {
+	yamlContent := `
+catalogs: []
+namedQueries:
+  validation-default:
+    ttft_p90:
+      operator: '<'
+      value: 70
+    workload_type:
+      operator: '='
+      value: "Chat"
+  high-performance:
+    performance_score:
+      operator: '>'
+      value: 0.95
+`
+	var config sourceConfig
+	err := yaml.UnmarshalStrict([]byte(yamlContent), &config)
+	assert.NoError(t, err)
+	assert.NotNil(t, config.NamedQueries)
+	assert.Len(t, config.NamedQueries, 2)
+
+	validationQuery := config.NamedQueries["validation-default"]
+	assert.NotNil(t, validationQuery)
+	assert.Equal(t, "<", validationQuery["ttft_p90"].Operator)
+	assert.Equal(t, float64(70), validationQuery["ttft_p90"].Value)
+	assert.Equal(t, "=", validationQuery["workload_type"].Operator)
+	assert.Equal(t, "Chat", validationQuery["workload_type"].Value)
 }

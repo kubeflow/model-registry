@@ -237,8 +237,32 @@ func (d *dbCatalogImpl) GetFilterOptions(ctx context.Context) (*apimodels.Filter
 		}
 	}
 
+	// Get named queries from sources configuration
+	var namedQueriesPtr *map[string]map[string]apimodels.FieldFilter
+	if d.sources != nil {
+		namedQueriesMap := d.sources.GetNamedQueries()
+
+		// Convert internal FieldFilter to API FieldFilter
+		apiNamedQueries := make(map[string]map[string]apimodels.FieldFilter, len(namedQueriesMap))
+		for queryName, fieldFilters := range namedQueriesMap {
+			apiFieldFilters := make(map[string]apimodels.FieldFilter, len(fieldFilters))
+			for fieldName, filter := range fieldFilters {
+				apiFieldFilters[fieldName] = apimodels.FieldFilter{
+					Operator: filter.Operator,
+					Value:    filter.Value,
+				}
+			}
+			apiNamedQueries[queryName] = apiFieldFilters
+		}
+
+		if len(apiNamedQueries) > 0 {
+			namedQueriesPtr = &apiNamedQueries
+		}
+	}
+
 	return &apimodels.FilterOptionsList{
-		Filters: &options,
+		Filters:      &options,
+		NamedQueries: namedQueriesPtr,
 	}, nil
 }
 

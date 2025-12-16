@@ -8,21 +8,20 @@ import {
 export const mockYamlCatalogSourceConfig = (
   partial?: Partial<YamlCatalogSourceConfig>,
 ): YamlCatalogSourceConfig => ({
-  id: 'sample-source-1',
+  id: 'sample_source_1',
   name: 'Source 1',
   type: CatalogSourceType.YAML,
   enabled: true,
   includedModels: [],
   excludedModels: [],
   isDefault: true,
-  yaml: 'models:\n  - name: model1',
   ...partial,
 });
 
 export const mockHuggingFaceCatalogSourceConfig = (
   partial?: Partial<HuggingFaceCatalogSourceConfig>,
 ): HuggingFaceCatalogSourceConfig => ({
-  id: 'source-2',
+  id: 'source_2',
   name: 'Huggingface source 2',
   type: CatalogSourceType.HUGGING_FACE,
   enabled: true,

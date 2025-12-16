@@ -81,7 +81,7 @@ func (app *App) GetCatalogSourceModelArtifactsHandler(w http.ResponseWriter, r *
 
 	newModelName := url.PathEscape(modelName)
 
-	catalogModelArtifacts, err := app.repositories.ModelCatalogClient.GetCatalogSourceModelArtifacts(client, ps.ByName(CatalogSourceId), newModelName)
+	catalogModelArtifacts, err := app.repositories.ModelCatalogClient.GetCatalogSourceModelArtifacts(client, ps.ByName(CatalogSourceId), newModelName, r.URL.Query())
 
 	if err != nil {
 		app.serverErrorResponse(w, r, err)
@@ -90,6 +90,34 @@ func (app *App) GetCatalogSourceModelArtifactsHandler(w http.ResponseWriter, r *
 
 	catalogModelArtifactList := catalogModelArtifactsListEnvelope{
 		Data: catalogModelArtifacts,
+	}
+
+	err = app.WriteJSON(w, http.StatusOK, catalogModelArtifactList, nil)
+	if err != nil {
+		app.serverErrorResponse(w, r, err)
+	}
+}
+
+func (app *App) GetCatalogModelPerformanceArtifactsHandler(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+	client, ok := r.Context().Value(constants.ModelCatalogHttpClientKey).(httpclient.HTTPClientInterface)
+	if !ok {
+		app.serverErrorResponse(w, r, errors.New("catalog REST client not found"))
+		return
+	}
+
+	modelName := strings.TrimPrefix(ps.ByName(CatalogModelName), "/")
+
+	newModelName := url.PathEscape(modelName)
+
+	catalogModelPerformanceArtifacts, err := app.repositories.ModelCatalogClient.GetCatalogModelPerformanceArtifacts(client, ps.ByName(CatalogSourceId), newModelName, r.URL.Query())
+
+	if err != nil {
+		app.serverErrorResponse(w, r, err)
+		return
+	}
+
+	catalogModelArtifactList := catalogModelArtifactsListEnvelope{
+		Data: catalogModelPerformanceArtifacts,
 	}
 
 	err = app.WriteJSON(w, http.StatusOK, catalogModelArtifactList, nil)

@@ -354,6 +354,16 @@ func AssertCatalogSourceRequired(obj model.CatalogSource) error {
 	return nil
 }
 
+// AssertCatalogSourceStatusConstraints checks if the values respects the defined constraints
+func AssertCatalogSourceStatusConstraints(obj model.CatalogSourceStatus) error {
+	return nil
+}
+
+// AssertCatalogSourceStatusRequired checks if the required fields are not zero-ed
+func AssertCatalogSourceStatusRequired(obj model.CatalogSourceStatus) error {
+	return nil
+}
+
 // AssertErrorConstraints checks if the values respects the defined constraints
 func AssertErrorConstraints(obj model.Error) error {
 	return nil
@@ -364,6 +374,26 @@ func AssertErrorRequired(obj model.Error) error {
 	elements := map[string]interface{}{
 		"code":    obj.Code,
 		"message": obj.Message,
+	}
+	for name, el := range elements {
+		if isZero := IsZeroValue(el); isZero {
+			return &RequiredError{Field: name}
+		}
+	}
+
+	return nil
+}
+
+// AssertFieldFilterConstraints checks if the values respects the defined constraints
+func AssertFieldFilterConstraints(obj model.FieldFilter) error {
+	return nil
+}
+
+// AssertFieldFilterRequired checks if the required fields are not zero-ed
+func AssertFieldFilterRequired(obj model.FieldFilter) error {
+	elements := map[string]interface{}{
+		"operator": obj.Operator,
+		"value":    obj.Value,
 	}
 	for name, el := range elements {
 		if isZero := IsZeroValue(el); isZero {

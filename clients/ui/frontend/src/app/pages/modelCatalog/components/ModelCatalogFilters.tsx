@@ -2,6 +2,7 @@ import * as React from 'react';
 import { Stack, Spinner, Alert } from '@patternfly/react-core';
 import { ModelCatalogContext } from '~/app/context/modelCatalog/ModelCatalogContext';
 import { ModelCatalogStringFilterKey } from '~/concepts/modelCatalog/const';
+import ModelPerformanceViewToggleCard from './ModelPerformanceViewToggleCard';
 import TaskFilter from './globalFilters/TaskFilter';
 import ProviderFilter from './globalFilters/ProviderFilter';
 import LicenseFilter from './globalFilters/LicenseFilter';
@@ -23,6 +24,7 @@ const ModelCatalogFilters: React.FC = () => {
   }
   return (
     <Stack hasGutter>
+      <ModelPerformanceViewToggleCard />
       <TaskFilter
         filters={filters && ModelCatalogStringFilterKey.TASK in filters ? filters : undefined}
       />

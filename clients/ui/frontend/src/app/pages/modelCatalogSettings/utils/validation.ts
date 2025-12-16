@@ -8,19 +8,17 @@ export const validateSourceName = (name: string): boolean => isNonEmptyString(na
 export const validateOrganization = (organization: string): boolean =>
   isNonEmptyString(organization);
 
-export const validateAccessToken = (accessToken: string): boolean => isNonEmptyString(accessToken);
-
 export const validateYamlContent = (yamlContent: string): boolean => isNonEmptyString(yamlContent);
 
 export const validateHuggingFaceCredentials = (data: ManageSourceFormData): boolean => {
   if (data.sourceType !== CatalogSourceType.HUGGING_FACE) {
     return true;
   }
-  return validateOrganization(data.organization) && validateAccessToken(data.accessToken);
+  return validateOrganization(data.organization);
 };
 
 export const validateYamlMode = (data: ManageSourceFormData): boolean => {
-  if (data.sourceType !== CatalogSourceType.YAML) {
+  if (data.sourceType !== CatalogSourceType.YAML || data.isDefault) {
     return true;
   }
   return validateYamlContent(data.yamlContent);

@@ -834,9 +834,9 @@ func TestSourceCollection_MergeOverride_Origin(t *testing.T) {
 	// This is important for resolving relative paths in source properties
 
 	tests := []struct {
-		name           string
-		originOrder    []string
-		mergeSequence  []struct {
+		name          string
+		originOrder   []string
+		mergeSequence []struct {
 			origin  string
 			sources map[string]Source
 		}
@@ -1134,5 +1134,34 @@ func TestSourceCollection_ByLabel_NullBehavior(t *testing.T) {
 				}
 			}
 		})
+	}
+}
+
+func TestSourceCollection_NamedQueries(t *testing.T) {
+	sc := NewSourceCollection()
+
+	sources := map[string]Source{
+		"test1": {CatalogSource: model.CatalogSource{Id: "test1"}},
+	}
+	namedQueries := map[string]map[string]FieldFilter{
+		"validation-default": {
+			"ttft_p90": {Operator: "<", Value: 70},
+		},
+	}
+
+	err := sc.MergeWithNamedQueries("origin1", sources, namedQueries)
+	if err != nil {
+		t.Fatalf("MergeWithNamedQueries failed: %v", err)
+	}
+
+	queries := sc.GetNamedQueries()
+	if len(queries) != 1 {
+		t.Errorf("GetNamedQueries() returned %d queries, want 1", len(queries))
+	}
+	if queries["validation-default"]["ttft_p90"].Operator != "<" {
+		t.Errorf("Expected operator '<', got '%s'", queries["validation-default"]["ttft_p90"].Operator)
+	}
+	if queries["validation-default"]["ttft_p90"].Value != 70 {
+		t.Errorf("Expected value 70, got %v", queries["validation-default"]["ttft_p90"].Value)
 	}
 }

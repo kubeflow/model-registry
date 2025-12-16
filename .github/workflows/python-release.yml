@@ -16,7 +16,7 @@ jobs:
       FORCE_COLOR: "1"
     steps:
       - name: Check out the repository
-        uses: actions/checkout@v6.0.0
+        uses: actions/checkout@v6.0.1
         with:
           fetch-depth: 0
       - name: Set up Python
