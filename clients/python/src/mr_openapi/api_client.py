@@ -321,7 +321,7 @@ class ApiClient:
             return [self.sanitize_for_serialization(sub_obj) for sub_obj in obj]
         if isinstance(obj, tuple):
             return tuple(self.sanitize_for_serialization(sub_obj) for sub_obj in obj)
-        if isinstance(obj, datetime.datetime | datetime.date):
+        if isinstance(obj, (datetime.datetime, datetime.date)):
             return obj.isoformat()
         if isinstance(obj, decimal.Decimal):
             return str(obj)
@@ -453,7 +453,7 @@ class ApiClient:
         for k, v in params.items() if isinstance(params, dict) else params:
             if isinstance(v, bool):
                 v = str(v).lower()
-            if isinstance(v, int | float):
+            if isinstance(v, (int, float)):
                 v = str(v)
             if isinstance(v, dict):
                 v = json.dumps(v)
