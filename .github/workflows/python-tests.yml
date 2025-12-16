@@ -290,12 +290,12 @@ jobs:
           nox --python=${{ matrix.python }}
           poetry build
       - name: Upload dist
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v6.0.0
         with:
           name: py-dist
           path: clients/python/dist
       - name: Upload documentation
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v6.0.0
         with:
           name: py-docs
           path: clients/python/docs/_build
