@@ -21,7 +21,7 @@ except ImportError:
 
 
 package = "model_registry"
-python_versions = ["3.12", "3.11", "3.10", "3.9"]
+python_versions = ["3.12", "3.11", "3.10"]
 nox.needs_version = ">= 2021.6.6"
 nox.options.sessions = (
     "tests",
@@ -74,6 +74,7 @@ def e2e_tests(session: Session) -> None:
     """Run the test suite."""
     packages = [
         ".",
+        "ray",
         "requests",
         "pytest",
         "pytest-asyncio",
@@ -86,9 +87,6 @@ def e2e_tests(session: Session) -> None:
         "uvloop",
         "schemathesis",
     ]
-    # Ray requires Python >3.9
-    if session.python != "3.9":
-        packages.insert(1, "ray")
 
     session.install(*packages)
     try:
