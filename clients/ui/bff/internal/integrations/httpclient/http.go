@@ -16,7 +16,7 @@ import (
 
 type HTTPClientInterface interface {
 	GET(url string) ([]byte, error)
-	POST(url string, body io.Reader) ([]byte, error)
+	POST(url string, body io.Reader, contentType ...string) ([]byte, error)
 	PATCH(url string, body io.Reader) ([]byte, error)
 }
 
@@ -111,7 +111,7 @@ func (c *HTTPClient) GET(url string) ([]byte, error) {
 	return body, nil
 }
 
-func (c *HTTPClient) POST(url string, body io.Reader) ([]byte, error) {
+func (c *HTTPClient) POST(url string, body io.Reader, contentType ...string) ([]byte, error) {
 	requestId := uuid.NewString()
 
 	fullURL := c.baseURL + url
@@ -120,7 +120,11 @@ func (c *HTTPClient) POST(url string, body io.Reader) ([]byte, error) {
 		return nil, err
 	}
 
-	req.Header.Set("Content-Type", "application/json")
+	ct := "application/json"
+	if len(contentType) > 0 && contentType[0] != "" {
+		ct = contentType[0]
+	}
+	req.Header.Set("Content-Type", ct)
 
 	c.applyHeaders(req)
 
@@ -138,7 +142,7 @@ func (c *HTTPClient) POST(url string, body io.Reader) ([]byte, error) {
 		return nil, fmt.Errorf("error reading response body: %w", err)
 	}
 
-	if response.StatusCode != http.StatusCreated {
+	if response.StatusCode != http.StatusOK && response.StatusCode != http.StatusCreated {
 		var errorResponse ErrorResponse
 		if err := json.Unmarshal(responseBody, &errorResponse); err != nil {
 			// If we can't unmarshal as JSON, create a generic error response with the raw body

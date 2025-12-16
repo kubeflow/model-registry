@@ -59,6 +59,9 @@ func FilterPageValues(values url.Values) url.Values {
 	if v := values.Get("hardwareTypeProperty"); v != "" {
 		result.Set("hardwareTypeProperty", v)
 	}
+	if v := values.Get("filterStatus"); v != "" {
+		result.Set("filterStatus", v)
+	}
 
 	return result
 }

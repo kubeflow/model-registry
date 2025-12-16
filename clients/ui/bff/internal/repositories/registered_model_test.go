@@ -70,7 +70,7 @@ func TestCreateRegisteredModel(t *testing.T) {
 	registeredModel := RegisteredModel{}
 
 	mockClient := new(mocks.MockHTTPClient)
-	mockClient.On("POST", registeredModelPath, mock.Anything).Return(mockData, nil)
+	mockClient.On("POST", registeredModelPath, mock.Anything, mock.Anything).Return(mockData, nil)
 
 	jsonInput, err := json.Marshal(expected)
 	assert.NoError(t, err)
@@ -200,7 +200,7 @@ func TestCreateModelVersionForRegisteredModel(t *testing.T) {
 	path, err := url.JoinPath(registeredModelPath, "1", versionsPath)
 	assert.NoError(t, err)
 	mockClient := new(mocks.MockHTTPClient)
-	mockClient.On(http.MethodPost, path, mock.Anything).Return(mockData, nil)
+	mockClient.On(http.MethodPost, path, mock.Anything, mock.Anything).Return(mockData, nil)
 
 	jsonInput, err := json.Marshal(expected)
 	assert.NoError(t, err)

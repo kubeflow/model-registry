@@ -75,7 +75,7 @@ func TestCreateModelVersion(t *testing.T) {
 	modelVersion := ModelVersion{}
 
 	mockClient := new(mocks.MockHTTPClient)
-	mockClient.On("POST", modelVersionPath, mock.Anything).Return(mockData, nil)
+	mockClient.On("POST", modelVersionPath, mock.Anything, mock.Anything).Return(mockData, nil)
 
 	jsonInput, err := json.Marshal(expected)
 	assert.NoError(t, err)
@@ -182,7 +182,7 @@ func TestCreateModelArtifactByModelVersion(t *testing.T) {
 	assert.NoError(t, err)
 
 	mockClient := new(mocks.MockHTTPClient)
-	mockClient.On(http.MethodPost, path, mock.Anything).Return(mockData, nil)
+	mockClient.On(http.MethodPost, path, mock.Anything, mock.Anything).Return(mockData, nil)
 
 	jsonInnput, err := json.Marshal(expected)
 	assert.NoError(t, err)

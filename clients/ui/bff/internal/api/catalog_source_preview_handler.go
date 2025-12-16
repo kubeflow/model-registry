@@ -21,13 +21,17 @@ func (app *App) CreateCatalogSourcePreviewHandler(w http.ResponseWriter, r *http
 		return
 	}
 
-	var sourcePreviewPayload models.CatalogSourcePreviewRequest
-	if err := json.NewDecoder(r.Body).Decode(&sourcePreviewPayload); err != nil {
-		app.serverErrorResponse(w, r, fmt.Errorf("error decoding JSON:: %v", err.Error()))
-		return
+	var requestBody struct {
+		Data models.CatalogSourcePreviewRequest `json:"data"`
 	}
 
-	sourcePreview, err := app.repositories.ModelCatalogClient.CreateCatalogSourcePreview(client, sourcePreviewPayload)
+	if err := json.NewDecoder(r.Body).Decode(&requestBody); err != nil {
+		app.serverErrorResponse(w, r, fmt.Errorf("error decoding JSON: %v", err.Error()))
+		return
+	}
+	sourcePreviewPayload := requestBody.Data
+
+	sourcePreview, err := app.repositories.ModelCatalogClient.CreateCatalogSourcePreview(client, sourcePreviewPayload, r.URL.Query())
 
 	if err != nil {
 		app.serverErrorResponse(w, r, err)
