@@ -3,7 +3,8 @@ from __future__ import annotations
 import logging
 import secrets
 import time
-from typing import Any, Callable
+from collections.abc import Callable
+from typing import Any
 
 import pytest
 import requests  # type: ignore[import-untyped,unused-ignore]
@@ -54,7 +55,7 @@ def call_and_validate_with_null_byte_handling(case: schemathesis.Case, auth_head
             request_has_null_bytes = contains_null_bytes(case.query)
         if not request_has_null_bytes and hasattr(case, "body") and case.body:
             try:
-                if isinstance(case.body, (str, bytes)):
+                if isinstance(case.body, str | bytes):
                     body_str = case.body.decode("utf-8") if isinstance(case.body, bytes) else case.body
                     request_has_null_bytes = contains_null_bytes(body_str)
             except (UnicodeDecodeError, AttributeError):

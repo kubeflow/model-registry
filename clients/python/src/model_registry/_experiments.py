@@ -3,7 +3,8 @@ from __future__ import annotations  # noqa: I001
 import time
 from contextlib import AbstractContextManager
 from dataclasses import dataclass
-from typing import Any, Callable, Literal
+from typing import Any, Literal
+from collections.abc import Callable
 from types import TracebackType
 
 from model_registry.core import ModelRegistryAPIClient
@@ -98,7 +99,7 @@ class ActiveExperimentRun(AbstractContextManager):
         param_type = ParameterType.STRING  # consistent with param_type default init
         if isinstance(value, bool):
             param_type = ParameterType.BOOLEAN
-        elif isinstance(value, (int, float)):
+        elif isinstance(value, int | float):
             # TODO: ensure for numpy and other numeric types
             param_type = ParameterType.NUMBER
         elif isinstance(value, dict):

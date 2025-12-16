@@ -2,8 +2,8 @@ from __future__ import annotations
 
 import functools
 import inspect
-from collections.abc import Sequence
-from typing import Any, Callable, TypeVar
+from collections.abc import Callable, Sequence
+from typing import Any, TypeVar
 
 CallableT = TypeVar("CallableT", bound=Callable[..., Any])
 

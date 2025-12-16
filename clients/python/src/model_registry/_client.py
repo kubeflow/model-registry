@@ -6,12 +6,11 @@ import contextlib
 import inspect
 import logging
 import os
-from collections.abc import Coroutine, Mapping
+from collections.abc import Callable, Coroutine, Mapping
 from dataclasses import asdict
 from pathlib import Path
 from typing import (
     Any,
-    Callable,
     TypeVar,
     get_args,
     overload,

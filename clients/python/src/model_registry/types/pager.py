@@ -3,9 +3,9 @@
 from __future__ import annotations
 
 import asyncio
-from collections.abc import AsyncIterator, Awaitable, Iterator
+from collections.abc import AsyncIterator, Awaitable, Callable, Iterator
 from dataclasses import dataclass, field
-from typing import Callable, Generic, TypeVar, cast
+from typing import Generic, TypeVar, cast
 
 from .base import BaseModel
 from .options import ListOptions, OrderByField

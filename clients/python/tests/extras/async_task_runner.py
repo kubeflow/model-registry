@@ -36,7 +36,7 @@ import asyncio
 import atexit
 from collections.abc import Coroutine
 from threading import Lock, Thread
-from typing import Any, Optional
+from typing import Any
 
 
 class AsyncTaskRunner:
@@ -60,8 +60,8 @@ class AsyncTaskRunner:
             raise Exception(msg)
         AsyncTaskRunner.__instance = self
         # initialize variables
-        self.__io_loop: Optional[asyncio.AbstractEventLoop] = None
-        self.__runner_thread: Optional[Thread] = None
+        self.__io_loop: asyncio.AbstractEventLoop | None = None
+        self.__runner_thread: Thread | None = None
         self.__lock = Lock()
         # register exit handler
         atexit.register(self._close)
