@@ -4,13 +4,13 @@ from __future__ import annotations
 
 from abc import ABC, abstractmethod
 from collections.abc import Mapping, Sequence
-from typing import Any, Union, get_args
+from typing import Any, get_args
 
 from pydantic import BaseModel, ConfigDict
 
 from mr_openapi.models.metadata_value import MetadataValue
 
-SupportedTypes = Union[bool, int, float, str]
+SupportedTypes = bool | int | float | str
 
 
 class BaseResourceModel(BaseModel, ABC):
