@@ -71,7 +71,7 @@ func (a CatalogSourcePreview) CreateCatalogSourcePreview(client httpclient.HTTPC
 
 	writer.Close()
 
-	responseData, err := client.POST(UrlWithPageParams(path, pageValues), &body, writer.FormDataContentType())
+	responseData, err := client.POSTWithContentType(UrlWithPageParams(path, pageValues), &body, writer.FormDataContentType())
 	if err != nil {
 		return nil, fmt.Errorf("error fetching sourcesPath: %w", err)
 	}

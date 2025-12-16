@@ -16,7 +16,8 @@ import (
 
 type HTTPClientInterface interface {
 	GET(url string) ([]byte, error)
-	POST(url string, body io.Reader, contentType ...string) ([]byte, error)
+	POST(url string, body io.Reader) ([]byte, error)
+	POSTWithContentType(url string, body io.Reader, contentType string) ([]byte, error)
 	PATCH(url string, body io.Reader) ([]byte, error)
 }
 
@@ -111,7 +112,11 @@ func (c *HTTPClient) GET(url string) ([]byte, error) {
 	return body, nil
 }
 
-func (c *HTTPClient) POST(url string, body io.Reader, contentType ...string) ([]byte, error) {
+func (c *HTTPClient) POST(url string, body io.Reader) ([]byte, error) {
+	return c.POSTWithContentType(url, body, "application/json")
+}
+
+func (c *HTTPClient) POSTWithContentType(url string, body io.Reader, contentType string) ([]byte, error) {
 	requestId := uuid.NewString()
 
 	fullURL := c.baseURL + url
@@ -120,11 +125,7 @@ func (c *HTTPClient) POST(url string, body io.Reader, contentType ...string) ([]
 		return nil, err
 	}
 
-	ct := "application/json"
-	if len(contentType) > 0 && contentType[0] != "" {
-		ct = contentType[0]
-	}
-	req.Header.Set("Content-Type", ct)
+	req.Header.Set("Content-Type", contentType)
 
 	c.applyHeaders(req)
 
