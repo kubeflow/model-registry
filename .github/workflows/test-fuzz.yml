@@ -28,7 +28,7 @@ jobs:
       fail-fast: false
       matrix:
         manifest-db: ["db", "postgres"] # subdirectory of manifests/kustomize/overlays to select which database: 'db' (MySQL) or 'postgres'
-        kubernetes-version: ["v1.31.0"]
+        kubernetes-version: ["v1.33.7"]
     env:
       DEPLOY_MANIFEST_DB: "${{ matrix.manifest-db }}"
     steps:

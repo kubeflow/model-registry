@@ -8,7 +8,7 @@ CSI_PATH := $(PROJECT_PATH)/cmd/csi
 CONTROLLER_PATH := $(PROJECT_PATH)/cmd/controller
 
 # ENVTEST_K8S_VERSION refers to the version of kubebuilder assets to be downloaded by envtest binary.
-ENVTEST_K8S_VERSION = 1.29
+ENVTEST_K8S_VERSION = 1.33
 ENVTEST ?= $(PROJECT_BIN)/setup-envtest
 
 # add tools bin directory
@@ -169,7 +169,7 @@ clean/odh:
 	rm -Rf ./model-registry
 
 bin/envtest:
-	GOBIN=$(PROJECT_BIN) ${GO} install sigs.k8s.io/controller-runtime/tools/setup-envtest@v0.0.0-20240320141353-395cfc7486e6
+	GOBIN=$(PROJECT_BIN) ${GO} install sigs.k8s.io/controller-runtime/tools/setup-envtest@release-0.21
 
 GOLANGCI_LINT ?= ${PROJECT_BIN}/golangci-lint
 bin/golangci-lint:
@@ -273,16 +273,16 @@ lint/csi: bin/golangci-lint
 	${GOLANGCI_LINT} run internal/csi/...
 
 .PHONY: test
-test: bin/envtest
-	KUBEBUILDER_ASSETS="$(shell $(ENVTEST) use $(ENVTEST_K8S_VERSION) -p path)" ${GO} test ./internal/... ./pkg/...
+test:
+	${GO} test $$(${GO} list ./internal/... ./pkg/... | grep -v controller)
 
 .PHONY: test-nocache
-test-nocache: bin/envtest
-	KUBEBUILDER_ASSETS="$(shell $(ENVTEST) use $(ENVTEST_K8S_VERSION) -p path)" ${GO} test ./internal/... ./pkg/... -count=1
+test-nocache:
+	${GO} test $$(${GO} list ./internal/... ./pkg/... | grep -v controller) -count=1
 
 .PHONY: test-cover
-test-cover: bin/envtest
-	KUBEBUILDER_ASSETS="$(shell $(ENVTEST) use $(ENVTEST_K8S_VERSION) -p path)" ${GO} test ./internal/... ./pkg/... -coverprofile=coverage.txt
+test-cover:
+	${GO} test $$(${GO} list ./internal/... ./pkg/... | grep -v controller) -coverprofile=coverage.txt
 	${GO} tool cover -html=coverage.txt -o coverage.html
 
 .PHONY: run/proxy
@@ -364,7 +364,7 @@ controller/vet: ## Run go vet against code.
 
 .PHONY: controller/test
 controller/test: controller/manifests controller/generate controller/fmt controller/vet bin/envtest ## Run tests.
-	KUBEBUILDER_ASSETS="$(shell $(ENVTEST) use $(ENVTEST_K8S_VERSION) --bin-dir $(PROJECT_BIN) -p path)" go test $$(go list ./internal/controller/... | grep -vF /e2e) -coverprofile cover.out
+	KUBEBUILDER_ASSETS="$(shell $(ENVTEST) use $(ENVTEST_K8S_VERSION) --bin-dir $(PROJECT_BIN) -p path)" go test $$(go list ./internal/controller/... ./pkg/inferenceservice-controller/... | grep -vF /e2e) -coverprofile cover.out
 
 ##@ Build
 

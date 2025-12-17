@@ -37,7 +37,7 @@ var (
 
 const (
 	CatalogTypeYaml        = "yaml"
-	CatalogTypeHuggingFace = "huggingface"
+	CatalogTypeHuggingFace = "hf"
 	ApiKey                 = "apiKey"
 )
 
@@ -446,20 +446,20 @@ func validateCatalogSourceConfigPayload(payload models.CatalogSourceConfigPayloa
 	}
 
 	if payload.Type == "" {
-		return fmt.Errorf("type is required")
+		return fmt.Errorf("%w: type is required", ErrValidationFailed)
 	}
 
 	switch payload.Type {
 	case CatalogTypeYaml:
 		if payload.Yaml == nil || *payload.Yaml == "" {
-			return fmt.Errorf("yaml field is required for yaml-type sources")
+			return fmt.Errorf("%w: yaml field is required for yaml-type sources", ErrValidationFailed)
 		}
 	case CatalogTypeHuggingFace:
 		if payload.ApiKey == nil || *payload.ApiKey == "" {
 			return fmt.Errorf("apiKey is required for huggingface-type sources")
 		}
 	default:
-		return fmt.Errorf("unsupported catalog type: %s (supported: yaml, huggingface)", payload.Type)
+		return fmt.Errorf("%w: unsupported catalog type: %s (supported: yaml, huggingface)", ErrValidationFailed, payload.Type)
 	}
 	return nil
 }

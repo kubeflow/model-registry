@@ -74,7 +74,7 @@ export enum SourceLabel {
 
 export enum CatalogSourceType {
   YAML = 'yaml',
-  HUGGING_FACE = 'huggingface',
+  HUGGING_FACE = 'hf',
 }
 
 export type CatalogArtifactBase = {

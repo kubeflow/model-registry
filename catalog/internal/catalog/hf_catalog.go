@@ -734,14 +734,14 @@ func NewHFPreviewProvider(config *PreviewConfig) (*hfModelProvider, error) {
 		maxModels: defaultMaxModels,
 	}
 
-	// Parse API key from environment variable
+	// Parse API key from environment variable (optional - allows public model access without key)
 	apiKeyEnvVar := defaultAPIKeyEnvVar
 	if envVar, ok := config.Properties[apiKeyEnvVarKey].(string); ok && envVar != "" {
 		apiKeyEnvVar = envVar
 	}
 	apiKey := os.Getenv(apiKeyEnvVar)
 	if apiKey == "" {
-		return nil, fmt.Errorf("missing %s environment variable for Hugging Face preview", apiKeyEnvVar)
+		glog.Infof("No API key configured for Hugging Face preview. Only public models and limited data for gated models will be available.")
 	}
 	p.apiKey = apiKey
 
@@ -977,9 +977,11 @@ func (p *hfModelProvider) FetchModelNamesForPreview(ctx context.Context, modelId
 		return nil, fmt.Errorf("includedModels is required for Hugging Face source preview")
 	}
 
-	// Validate credentials first
-	if err := p.validateCredentials(ctx); err != nil {
-		return nil, fmt.Errorf("failed to validate Hugging Face credentials: %w", err)
+	// Validate credentials only if API key is provided
+	if p.apiKey != "" {
+		if err := p.validateCredentials(ctx); err != nil {
+			return nil, fmt.Errorf("failed to validate HuggingFace credentials: %w", err)
+		}
 	}
 
 	names := make([]string, 0)
