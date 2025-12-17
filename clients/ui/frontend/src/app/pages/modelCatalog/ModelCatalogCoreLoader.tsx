@@ -12,6 +12,7 @@ import * as React from 'react';
 import { Outlet } from 'react-router-dom';
 import { ModelCatalogContext } from '~/app/context/modelCatalog/ModelCatalogContext';
 import EmptyModelCatalogState from './EmptyModelCatalogState';
+import { hasSourcesWithModels } from './utils/modelCatalogUtils';
 
 const ModelCatalogCoreLoader: React.FC = () => {
   const { catalogSources, catalogSourcesLoaded, catalogSourcesLoadError } =
@@ -50,8 +51,8 @@ const ModelCatalogCoreLoader: React.FC = () => {
       />
     );
   }
-
-  if (catalogSources?.items?.length === 0) {
+  // Show empty state if there are no sources, or if all sources have no models (e.g., disabled)
+  if (catalogSources?.items?.length === 0 || !hasSourcesWithModels(catalogSources)) {
     return (
       <ApplicationsPage
         title={<TitleWithIcon title="Model Catalog" objectType={ProjectObjectType.modelCatalog} />}
@@ -60,11 +61,11 @@ const ModelCatalogCoreLoader: React.FC = () => {
         emptyStatePage={
           <EmptyModelCatalogState
             testid="empty-model-catalog-state"
-            title={isMUITheme ? 'Deploy a model catalog' : 'Request access to model catalog'}
+            title={isMUITheme ? 'Deploy a model catalog' : 'Enable model catalog sources'}
             description={
               isMUITheme
                 ? 'To deploy model catalog, follow the instructions in the docs below.'
-                : 'To request model catalog, or to request permission to access model catalog, contact your administrator.'
+                : 'No catalog sources are enabled. Ask your admin to configure and enable sources for model catalog.'
             }
             headerIcon={() => (
               <img src={typedEmptyImage(ProjectObjectType.modelRegistrySettings)} alt="" />
