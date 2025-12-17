@@ -5,13 +5,14 @@ catalogs:
     enabled: true
     properties:
       yamlCatalogPath: sample-catalog.yaml
-  - name: HuggingFace Hub
+  - name: Hugging Face Hub
     id: huggingface
     type: hf
     enabled: true
     properties:
-      # HuggingFace API key - should be stored in a Kubernetes secret
-      # and referenced here, or set via environment variable
+      # Name of the environment variable containing the Hugging Face API key.
+      # The API key value itself should be stored in a Kubernetes Secret and
+      # exposed as an environment variable in the pod/deployment configuration.
       # Default environment variable name is "HF_API_KEY"
       apiKeyEnvVar: "HF_API_KEY"
     includedModels: 

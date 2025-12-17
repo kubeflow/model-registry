@@ -15,8 +15,10 @@ import (
 
 	"github.com/golang/glog"
 	dbmodels "github.com/kubeflow/model-registry/catalog/internal/db/models"
+	"github.com/kubeflow/model-registry/catalog/internal/db/service"
 	apimodels "github.com/kubeflow/model-registry/catalog/pkg/openapi"
 	"github.com/kubeflow/model-registry/internal/db/models"
+	mrmodels "github.com/kubeflow/model-registry/internal/db/models"
 )
 
 const (
@@ -29,7 +31,7 @@ const (
 	// defaultMaxModels is the default limit for models fetched PER PATTERN.
 	// This limit is applied independently to each pattern in includedModels
 	// (e.g., "ibm-granite/*", "meta-llama/*") to prevent overloading the
-	// HuggingFace API with too many requests and to respect rate limiting.
+	// Hugging Face API with too many requests and to respect rate limiting.
 	//
 	// Example: with maxModels=100 and 3 patterns, up to 300 models total may be fetched.
 	// Set to 0 to disable the limit (not recommended for large organizations).
@@ -69,7 +71,7 @@ func (g gatedString) String() string {
 	return string(g)
 }
 
-// hfModel implements apimodels.CatalogModel and populates it from HuggingFace API data
+// hfModel implements apimodels.CatalogModel and populates it from Hugging Face API data
 type hfModel struct {
 	apimodels.CatalogModel
 }
@@ -82,12 +84,12 @@ type hfModelProvider struct {
 	includedModels []string
 	filter         *ModelFilter
 	// maxModels limits how many models to fetch PER PATTERN (e.g., per "org/*").
-	// This is applied independently to each pattern to respect HuggingFace API rate limits.
+	// This is applied independently to each pattern to respect Hugging Face API rate limits.
 	// A value of 0 means no limit.
 	maxModels int
 }
 
-// hfModelInfo represents the structure of HuggingFace API model information
+// hfModelInfo represents the structure of Hugging Face API model information
 type hfModelInfo struct {
 	ID          string      `json:"id"`
 	Author      string      `json:"author,omitempty"`
@@ -127,7 +129,7 @@ var (
 	catalogModelLogo = "data:image/svg+xml;base64," + base64.StdEncoding.EncodeToString(catalogLogoSVG)
 )
 
-// populateFromHFInfo populates the hfModel's CatalogModel fields from HuggingFace API data
+// populateFromHFInfo populates the hfModel's CatalogModel fields from Hugging Face API data
 func (hfm *hfModel) populateFromHFInfo(ctx context.Context, provider *hfModelProvider, hfInfo *hfModelInfo, sourceId string, originalModelName string) {
 	// Set model name
 	modelName := hfInfo.ID
@@ -375,14 +377,14 @@ func (p *hfModelProvider) fetchModelInfo(ctx context.Context, modelName string) 
 	// Construct the API URL with the full model identifier
 	apiURL := fmt.Sprintf("%s/api/models/%s", p.baseURL, modelName)
 
-	glog.V(2).Infof("Fetching HuggingFace model info from: %s", apiURL)
+	glog.V(2).Infof("Fetching Hugging Face model info from: %s", apiURL)
 
 	req, err := http.NewRequestWithContext(ctx, "GET", apiURL, nil)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create request: %w", err)
 	}
 
-	// Set User-Agent header (HuggingFace API expects this)
+	// Set User-Agent header (Hugging Face API expects this)
 	req.Header.Set("User-Agent", "model-registry-catalog")
 
 	if p.apiKey != "" {
@@ -397,7 +399,7 @@ func (p *hfModelProvider) fetchModelInfo(ctx context.Context, modelName string) 
 
 	if resp.StatusCode != http.StatusOK {
 		bodyBytes, _ := io.ReadAll(resp.Body)
-		return nil, fmt.Errorf("HuggingFace API returned status %d for model %s: %s", resp.StatusCode, modelName, string(bodyBytes))
+		return nil, fmt.Errorf("Hugging Face API returned status %d for model %s: %s", resp.StatusCode, modelName, string(bodyBytes))
 	}
 
 	var modelInfo hfModelInfo
@@ -413,13 +415,13 @@ func (p *hfModelProvider) fetchModelInfo(ctx context.Context, modelName string) 
 	return &modelInfo, nil
 }
 
-// fetchFileContent fetches the content of a file from HuggingFace repository
+// fetchFileContent fetches the content of a file from Hugging Face repository
 func (p *hfModelProvider) fetchFileContent(ctx context.Context, modelName string, filename string) (string, error) {
 	// Normalize the model name (remove any leading/trailing slashes)
 	modelName = strings.Trim(modelName, "/")
 
 	// Construct the API URL for raw file content
-	// HuggingFace API endpoint: {baseURL}/{model_id}/raw/main/{filename}
+	// Hugging Face API endpoint: {baseURL}/{model_id}/raw/main/{filename}
 	apiURL := fmt.Sprintf("%s/%s/raw/main/%s", p.baseURL, modelName, filename)
 
 	req, err := http.NewRequestWithContext(ctx, "GET", apiURL, nil)
@@ -442,7 +444,7 @@ func (p *hfModelProvider) fetchFileContent(ctx context.Context, modelName string
 
 	if resp.StatusCode != http.StatusOK {
 		bodyBytes, _ := io.ReadAll(resp.Body)
-		return "", fmt.Errorf("HuggingFace API returned status %d for file %s in model %s: %s", resp.StatusCode, filename, modelName, string(bodyBytes))
+		return "", fmt.Errorf("Hugging Face API returned status %d for file %s in model %s: %s", resp.StatusCode, filename, modelName, string(bodyBytes))
 	}
 
 	bodyBytes, err := io.ReadAll(resp.Body)
@@ -494,7 +496,7 @@ func (p *hfModelProvider) convertHFModelToRecord(ctx context.Context, hfInfo *hf
 	// Create model artifact with hf:// protocol for KServe CSI deployment
 	artifacts := []dbmodels.CatalogArtifact{}
 	if hfm.ExternalId != nil && *hfm.ExternalId != "" {
-		// Construct hf:// URI using the HuggingFace model ID
+		// Construct hf:// URI using the Hugging Face model ID
 		hfUri := fmt.Sprintf("hf://%s", *hfm.ExternalId)
 		artifactType := "model-artifact"
 		artifactName := fmt.Sprintf("%s-hf-artifact", modelName)
@@ -582,7 +584,7 @@ func convertHFModelProperties(catalogModel *apimodels.CatalogModel) ([]models.Pr
 	return properties, customProperties
 }
 
-// parseHFTime parses HuggingFace timestamp format (ISO 8601)
+// parseHFTime parses Hugging Face timestamp format (ISO 8601)
 func parseHFTime(timeStr string) (int64, error) {
 	t, err := time.Parse(time.RFC3339, timeStr)
 	if err != nil {
@@ -617,9 +619,9 @@ func (p *hfModelProvider) emit(ctx context.Context, models []ModelProviderRecord
 	}
 }
 
-// validateCredentials checks if the HuggingFace API key credentials are valid
+// validateCredentials checks if the Hugging Face API key credentials are valid
 func (p *hfModelProvider) validateCredentials(ctx context.Context) error {
-	glog.Infof("Validating HuggingFace API credentials")
+	glog.Infof("Validating Hugging Face API credentials")
 
 	// Make a simple API call to validate credentials
 	apiURL := p.baseURL + "/api/whoami-v2"
@@ -636,19 +638,19 @@ func (p *hfModelProvider) validateCredentials(ctx context.Context) error {
 
 	resp, err := p.client.Do(req)
 	if err != nil {
-		return fmt.Errorf("failed to validate HuggingFace credentials: %w", err)
+		return fmt.Errorf("failed to validate Hugging Face credentials: %w", err)
 	}
 	defer resp.Body.Close()
 
 	if resp.StatusCode == http.StatusUnauthorized {
-		return fmt.Errorf("invalid HuggingFace API credentials")
+		return fmt.Errorf("invalid Hugging Face API credentials")
 	}
 	if resp.StatusCode != http.StatusOK {
 		bodyBytes, _ := io.ReadAll(resp.Body)
-		return fmt.Errorf("HuggingFace API validation failed with status: %d: %s", resp.StatusCode, string(bodyBytes))
+		return fmt.Errorf("Hugging Face API validation failed with status: %d: %s", resp.StatusCode, string(bodyBytes))
 	}
 
-	glog.Infof("HuggingFace credentials validated successfully")
+	glog.Infof("Hugging Face credentials validated successfully")
 	return nil
 }
 
@@ -659,7 +661,7 @@ func newHFModelProvider(ctx context.Context, source *Source, reldir string) (<-c
 	// Parse Source ID
 	sourceId := source.GetId()
 	if sourceId == "" {
-		return nil, fmt.Errorf("missing source ID for HuggingFace catalog")
+		return nil, fmt.Errorf("missing source ID for Hugging Face catalog")
 	}
 	p.sourceId = sourceId
 
@@ -692,8 +694,8 @@ func newHFModelProvider(ctx context.Context, source *Source, reldir string) (<-c
 		if hasValidPrefix {
 			// Validate credentials only if API key has correct format
 			if err := p.validateCredentials(ctx); err != nil {
-				glog.Errorf("HuggingFace catalog credential validation failed: %v", err)
-				return nil, fmt.Errorf("failed to validate HuggingFace catalog credentials: %w", err)
+				glog.Errorf("Hugging Face catalog credential validation failed: %v", err)
+				return nil, fmt.Errorf("failed to validate Hugging Face catalog credentials: %w", err)
 			}
 		}
 	}
@@ -701,7 +703,7 @@ func newHFModelProvider(ctx context.Context, source *Source, reldir string) (<-c
 	// Use top-level IncludedModels from Source as the list of models to fetch
 	// These can be specific model names (required for HF API) or patterns
 	if len(source.IncludedModels) == 0 {
-		return nil, fmt.Errorf("includedModels cannot be empty for HuggingFace catalog")
+		return nil, fmt.Errorf("includedModels cannot be empty for Hugging Face catalog")
 	}
 
 	p.includedModels = source.IncludedModels
@@ -739,7 +741,7 @@ func NewHFPreviewProvider(config *PreviewConfig) (*hfModelProvider, error) {
 	}
 	apiKey := os.Getenv(apiKeyEnvVar)
 	if apiKey == "" {
-		return nil, fmt.Errorf("missing %s environment variable for HuggingFace preview", apiKeyEnvVar)
+		return nil, fmt.Errorf("missing %s environment variable for Hugging Face preview", apiKeyEnvVar)
 	}
 	p.apiKey = apiKey
 
@@ -750,7 +752,7 @@ func NewHFPreviewProvider(config *PreviewConfig) (*hfModelProvider, error) {
 
 	// Parse maxModels limit (optional, defaults to 500)
 	// This limit is applied PER PATTERN (e.g., each "org/*" pattern gets its own limit)
-	// to prevent overloading the HuggingFace API and respect rate limiting.
+	// to prevent overloading the Hugging Face API and respect rate limiting.
 	// Set to 0 to disable the limit.
 	if maxModels, ok := config.Properties[maxModelsKey]; ok {
 		switch v := maxModels.(type) {
@@ -766,7 +768,7 @@ func NewHFPreviewProvider(config *PreviewConfig) (*hfModelProvider, error) {
 	return p, nil
 }
 
-// hfListResponse represents a single model in the HuggingFace list API response.
+// hfListResponse represents a single model in the Hugging Face list API response.
 type hfListModel struct {
 	ID        string `json:"id"`
 	ModelID   string `json:"modelId,omitempty"`
@@ -790,8 +792,8 @@ const (
 func parseModelPattern(pattern string) (PatternType, string, string) {
 	pattern = strings.TrimSpace(pattern)
 
-	// Reject unsupported wildcard patterns that would try to list all HuggingFace models
-	// HuggingFace has millions of models, so we require a specific organization
+	// Reject unsupported wildcard patterns that would try to list all Hugging Face models
+	// Hugging Face has millions of models, so we require a specific organization
 	if pattern == "*" || pattern == "*/*" {
 		return PatternInvalid, "", ""
 	}
@@ -831,7 +833,7 @@ func parseModelPattern(pattern string) (PatternType, string, string) {
 	return PatternExact, "", ""
 }
 
-// listModelsByAuthor fetches all models from an organization using the HuggingFace list API with pagination.
+// listModelsByAuthor fetches all models from an organization using the Hugging Face list API with pagination.
 // If searchPrefix is provided, it filters models that start with that prefix.
 func (p *hfModelProvider) listModelsByAuthor(ctx context.Context, author string, searchPrefix string) ([]string, error) {
 	var allModels []string
@@ -861,7 +863,7 @@ func (p *hfModelProvider) listModelsByAuthor(ctx context.Context, author string,
 			apiURL += "&cursor=" + cursor
 		}
 
-		glog.V(2).Infof("Fetching HuggingFace models list: %s", apiURL)
+		glog.V(2).Infof("Fetching Hugging Face models list: %s", apiURL)
 
 		req, err := http.NewRequestWithContext(ctx, "GET", apiURL, nil)
 		if err != nil {
@@ -881,7 +883,7 @@ func (p *hfModelProvider) listModelsByAuthor(ctx context.Context, author string,
 		if resp.StatusCode != http.StatusOK {
 			bodyBytes, _ := io.ReadAll(resp.Body)
 			resp.Body.Close()
-			return nil, fmt.Errorf("HuggingFace API returned status %d for author %s: %s", resp.StatusCode, author, string(bodyBytes))
+			return nil, fmt.Errorf("Hugging Face API returned status %d for author %s: %s", resp.StatusCode, author, string(bodyBytes))
 		}
 
 		var models []hfListModel
@@ -967,17 +969,17 @@ func parseNextCursor(linkHeader string) string {
 	return ""
 }
 
-// FetchModelNamesForPreview fetches model info from HuggingFace API for the given model identifiers
+// FetchModelNamesForPreview fetches model info from Hugging Face API for the given model identifiers
 // and returns the actual model names. This is used for preview functionality.
 // Supports patterns like "org/*" and "org/prefix*" which use the paginated list API.
 func (p *hfModelProvider) FetchModelNamesForPreview(ctx context.Context, modelIdentifiers []string) ([]string, error) {
 	if len(modelIdentifiers) == 0 {
-		return nil, fmt.Errorf("includedModels is required for HuggingFace source preview")
+		return nil, fmt.Errorf("includedModels is required for Hugging Face source preview")
 	}
 
 	// Validate credentials first
 	if err := p.validateCredentials(ctx); err != nil {
-		return nil, fmt.Errorf("failed to validate HuggingFace credentials: %w", err)
+		return nil, fmt.Errorf("failed to validate Hugging Face credentials: %w", err)
 	}
 
 	names := make([]string, 0)
@@ -994,11 +996,11 @@ func (p *hfModelProvider) FetchModelNamesForPreview(ctx context.Context, modelId
 		switch patternType {
 		case PatternInvalid:
 			// Reject unsupported wildcard patterns
-			return nil, fmt.Errorf("wildcard pattern %q is not supported - HuggingFace requires a specific organization (e.g., 'ibm-granite/*' or 'meta-llama/Llama-2-*')", pattern)
+			return nil, fmt.Errorf("wildcard pattern %q is not supported - Hugging Face requires a specific organization (e.g., 'ibm-granite/*' or 'meta-llama/Llama-2-*')", pattern)
 
 		case PatternOrgAll, PatternOrgPrefix:
 			// Use paginated list API
-			glog.Infof("Using HuggingFace list API for pattern: %s (org=%s, prefix=%s)", pattern, org, searchPrefix)
+			glog.Infof("Using Hugging Face list API for pattern: %s (org=%s, prefix=%s)", pattern, org, searchPrefix)
 			models, err := p.listModelsByAuthor(ctx, org, searchPrefix)
 			if err != nil {
 				glog.Warningf("Failed to list models for pattern %s: %v", pattern, err)
@@ -1025,4 +1027,288 @@ func (p *hfModelProvider) FetchModelNamesForPreview(ctx context.Context, modelId
 	}
 
 	return names, nil
+}
+
+// getSourceType extracts the "type" property from a catalog source.
+// Returns empty string if the type property is not found.
+func getSourceType(source dbmodels.CatalogSource) string {
+	if props := source.GetProperties(); props != nil {
+		for _, prop := range *props {
+			if prop.Name == "type" && prop.StringValue != nil {
+				return *prop.StringValue
+			}
+		}
+	}
+	return ""
+}
+
+// SyncHuggingFaceModels syncs metadata for all Hugging Face models in the catalog.
+// It fetches the latest metadata from Hugging Face for each model, compares it with existing data,
+// and replaces catalog data when updates are detected.
+func SyncHuggingFaceModels(ctx context.Context, services service.Services) error {
+	allSources, err := services.CatalogSourceRepository.GetAll()
+	if err != nil {
+		return fmt.Errorf("error getting sources: %w", err)
+	}
+
+	hfSourceIDs := []string{}
+	for _, source := range allSources {
+		attrs := source.GetAttributes()
+		sourceName := "unknown"
+		if attrs != nil && attrs.Name != nil {
+			sourceName = *attrs.Name
+		}
+
+		sourceType := getSourceType(source)
+		if sourceType == "" {
+			glog.V(2).Infof("Source %s has no type property", sourceName)
+			continue
+		}
+
+		glog.V(2).Infof("Source %s has type: %s", sourceName, sourceType)
+
+		if sourceType == "hf" {
+			hfSourceIDs = append(hfSourceIDs, sourceName)
+			glog.Infof("Found HF source: %s", sourceName)
+		}
+	}
+
+	if len(hfSourceIDs) == 0 {
+		glog.V(2).Infof("No Hugging Face sources found in catalog")
+		return nil
+	}
+
+	glog.Infof("Found %d Hugging Face source(s): %v", len(hfSourceIDs), hfSourceIDs)
+
+	pageSize := int32(10000)
+	listOptions := dbmodels.CatalogModelListOptions{
+		Pagination: mrmodels.Pagination{
+			PageSize: &pageSize,
+		},
+		SourceIDs: &hfSourceIDs,
+	}
+
+	modelsList, err := services.CatalogModelRepository.List(listOptions)
+	if err != nil {
+		return fmt.Errorf("error listing models: %w", err)
+	}
+
+	if len(modelsList.Items) == 0 {
+		glog.V(2).Infof("No models found in Hugging Face sources")
+		return nil
+	}
+
+	glog.Infof("Found %d models to check for sync", len(modelsList.Items))
+
+	provider := &hfModelProvider{
+		client:  &http.Client{Timeout: 30 * time.Second},
+		baseURL: defaultHuggingFaceURL,
+	}
+
+	apiKeyEnvVar := defaultAPIKeyEnvVar
+	apiKey := os.Getenv(apiKeyEnvVar)
+	if apiKey != "" {
+		if strings.HasPrefix(apiKey, "hf_") {
+			provider.apiKey = apiKey
+		} else {
+			glog.V(2).Infof("API key does not have expected 'hf_' prefix, continuing without authentication")
+		}
+	}
+
+	if url := os.Getenv("HF_URL"); url != "" {
+		provider.baseURL = strings.TrimSuffix(url, "/")
+	}
+
+	currentTime := time.Now().UnixMilli()
+	lastSyncedStr := strconv.FormatInt(currentTime, 10)
+
+	updatedCount := 0
+	skippedCount := 0
+	errorCount := 0
+
+	for _, model := range modelsList.Items {
+		select {
+		case <-ctx.Done():
+			return ctx.Err()
+		default:
+		}
+
+		attrs := model.GetAttributes()
+		if attrs == nil {
+			glog.V(2).Infof("Skipping model: missing attributes")
+			skippedCount++
+			continue
+		}
+
+		modelName := getModelName(model)
+		if modelName == "unknown" {
+			glog.V(2).Infof("Skipping model: missing name")
+			skippedCount++
+			continue
+		}
+
+		// Determine model ID to search on Hugging Face
+		// Prefer ExternalID, fallback to model name
+		var modelID string
+		if attrs.ExternalID != nil && *attrs.ExternalID != "" {
+			modelID = *attrs.ExternalID
+		} else {
+			// Try using model name as HF model identifier
+			modelID = modelName
+		}
+
+		hfInfo, err := provider.fetchModelInfo(ctx, modelID)
+		if err != nil {
+			glog.Errorf("Failed to fetch metadata for model %s (%s): %v", modelName, modelID, err)
+			errorCount++
+			continue
+		}
+
+		// Parse HF update timestamp
+		var hfUpdateTime *int64
+		if hfInfo.UpdatedAt != "" {
+			if updateTime, err := parseHFTime(hfInfo.UpdatedAt); err == nil {
+				hfUpdateTime = &updateTime
+			}
+		}
+
+		// Compare with existing timestamp to determine if update is needed
+		needsUpdate := false
+		if hfUpdateTime != nil {
+			if attrs.LastUpdateTimeSinceEpoch == nil || *attrs.LastUpdateTimeSinceEpoch != *hfUpdateTime {
+				needsUpdate = true
+				glog.V(2).Infof("Model %s has updated timestamp: %d -> %d", modelName,
+					getInt64Value(attrs.LastUpdateTimeSinceEpoch), *hfUpdateTime)
+			}
+		} else {
+			// If HF doesn't have update time but we do, or vice versa, update
+			if attrs.LastUpdateTimeSinceEpoch != nil {
+				needsUpdate = true
+				glog.V(2).Infof("Model %s: HF missing update timestamp, updating", modelName)
+			}
+		}
+
+		// Get the source ID from the model's properties to preserve it
+		modelSourceID := ""
+		if props := model.GetProperties(); props != nil {
+			for _, prop := range *props {
+				if prop.Name == "source_id" && prop.StringValue != nil {
+					modelSourceID = *prop.StringValue
+					break
+				}
+			}
+		}
+
+		if needsUpdate {
+			hfm := &hfModel{}
+			hfm.populateFromHFInfo(ctx, provider, hfInfo, modelSourceID, modelID)
+
+			updatedModel := dbmodels.CatalogModelImpl{}
+			if model.GetID() != nil {
+				updatedModel.ID = model.GetID()
+			}
+			if model.GetTypeID() != nil {
+				updatedModel.TypeID = model.GetTypeID()
+			}
+
+			updatedModelName := hfm.Name
+			updatedAttrs := &dbmodels.CatalogModelAttributes{
+				Name:       &updatedModelName,
+				ExternalID: hfm.ExternalId,
+			}
+
+			if hfm.CreateTimeSinceEpoch != nil {
+				if createTime, err := strconv.ParseInt(*hfm.CreateTimeSinceEpoch, 10, 64); err == nil {
+					updatedAttrs.CreateTimeSinceEpoch = &createTime
+				}
+			}
+			if hfm.LastUpdateTimeSinceEpoch != nil {
+				if updateTime, err := strconv.ParseInt(*hfm.LastUpdateTimeSinceEpoch, 10, 64); err == nil {
+					updatedAttrs.LastUpdateTimeSinceEpoch = &updateTime
+				}
+			}
+			updatedModel.Attributes = updatedAttrs
+
+			properties, customProperties := convertHFModelProperties(&hfm.CatalogModel)
+
+			lastSyncedFound := false
+			for i := range customProperties {
+				if customProperties[i].Name == "last_synced" {
+					customProperties[i].StringValue = &lastSyncedStr
+					lastSyncedFound = true
+					break
+				}
+			}
+			if !lastSyncedFound {
+				customProperties = append(customProperties, models.NewStringProperty("last_synced", lastSyncedStr, true))
+			}
+
+			if len(properties) > 0 {
+				updatedModel.Properties = &properties
+			}
+			if len(customProperties) > 0 {
+				updatedModel.CustomProperties = &customProperties
+			}
+
+			_, err := services.CatalogModelRepository.Save(&updatedModel)
+			if err != nil {
+				glog.Errorf("Failed to save updated model %s: %v", modelName, err)
+				errorCount++
+				continue
+			}
+
+			updatedCount++
+			glog.Infof("Updated model %s with latest Hugging Face data", modelName)
+		} else {
+			// No data changes, but still update last_synced timestamp
+			existingCustomProps := model.GetCustomProperties()
+			if existingCustomProps == nil {
+				existingCustomProps = &[]mrmodels.Properties{}
+			}
+
+			// Update or add last_synced
+			lastSyncedFound := false
+			for i := range *existingCustomProps {
+				if (*existingCustomProps)[i].Name == "last_synced" {
+					(*existingCustomProps)[i].StringValue = &lastSyncedStr
+					lastSyncedFound = true
+					break
+				}
+			}
+			if !lastSyncedFound {
+				*existingCustomProps = append(*existingCustomProps, models.NewStringProperty("last_synced", lastSyncedStr, true))
+			}
+
+			// Save model with updated last_synced
+			_, err := services.CatalogModelRepository.Save(model)
+			if err != nil {
+				glog.Errorf("Failed to save model %s with last_synced: %v", modelName, err)
+				errorCount++
+				continue
+			}
+
+			skippedCount++
+		}
+	}
+
+	glog.Infof("Sync completed for all sources: %d updated, %d skipped, %d errors",
+		updatedCount, skippedCount, errorCount)
+
+	return nil
+}
+
+// Helper function to get model name safely
+func getModelName(model dbmodels.CatalogModel) string {
+	if attrs := model.GetAttributes(); attrs != nil && attrs.Name != nil {
+		return *attrs.Name
+	}
+	return "unknown"
+}
+
+// Helper function to get int64 value safely
+func getInt64Value(v *int64) int64 {
+	if v == nil {
+		return 0
+	}
+	return *v
 }

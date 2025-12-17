@@ -1,0 +1,66 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: model-catalog-sync
+  labels:
+    app.kubernetes.io/name: model-catalog
+    app.kubernetes.io/part-of: model-catalog
+    app.kubernetes.io/component: sync
+spec:
+  # Run every 24 hours at 2 AM UTC
+  schedule: "0 2 * * *"
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 3
+  concurrencyPolicy: Forbid
+  jobTemplate:
+    spec:
+      template:
+        metadata:
+          labels:
+            app.kubernetes.io/name: model-catalog
+            app.kubernetes.io/part-of: model-catalog
+            app.kubernetes.io/component: sync
+        spec:
+          securityContext:
+            seccompProfile:
+              type: RuntimeDefault
+            runAsNonRoot: false
+          restartPolicy: OnFailure
+          containers:
+            - name: sync
+              env:
+                - name: PGHOST
+                  value: model-catalog-postgres
+                - name: PGUSER
+                  valueFrom:
+                    secretKeyRef:
+                      name: model-catalog-postgres
+                      key: POSTGRES_USER
+                - name: PGPASSWORD
+                  valueFrom:
+                    secretKeyRef:
+                      name: model-catalog-postgres
+                      key: POSTGRES_PASSWORD
+                - name: HF_API_KEY
+                  valueFrom:
+                    secretKeyRef:
+                      name: model-catalog-hf-api-key
+                      key: HF_API_KEY
+                      optional: true
+              command:
+                - /model-registry
+                - sync
+              image: ghcr.io/kubeflow/model-registry/server:latest
+              securityContext:
+                allowPrivilegeEscalation: false
+                capabilities:
+                  drop:
+                    - ALL
+              resources:
+                requests:
+                  memory: "256Mi"
+                  cpu: "100m"
+                limits:
+                  memory: "1Gi"
+                  cpu: "500m"
+

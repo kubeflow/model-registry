@@ -6,4 +6,5 @@ import (
 
 func init() {
 	rootCmd.AddCommand(cmd.CatalogCmd)
+	rootCmd.AddCommand(cmd.SyncCmd)
 }

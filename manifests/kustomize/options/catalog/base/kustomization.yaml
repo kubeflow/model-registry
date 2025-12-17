@@ -7,6 +7,7 @@ resources:
 - postgres-statefulset.yaml
 - postgres-pvc.yaml
 - postgres-service.yaml
+- cronjob.yaml
 
 configMapGenerator:
 - behavior: create
