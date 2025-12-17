@@ -122,22 +122,19 @@ jobs:
       matrix:
         python: ["3.12"] # see below for versions 3.9-3.11
         kubernetes-version:
-          ["v1.27.11", "v1.28.7", "v1.29.2", "v1.30.6", "v1.31.0"]
+          ["v1.33.7", "v1.34.3"]
         manifest-db: ["db", "postgres"] # subdirectory of manifests/kustomize/overlays to select which database: 'db' (MySQL) or 'postgres'
         exclude: # on main merges (not PRs), use also different K8s versions for E2E testing
-          - kubernetes-version: ${{ github.event_name != 'push' && 'v1.28.7' }}
-          - kubernetes-version: ${{ github.event_name != 'push' && 'v1.29.2' }}
-          - kubernetes-version: ${{ github.event_name != 'push' && 'v1.30.6' }}
-          - kubernetes-version: ${{ github.event_name != 'push' && 'v1.31.0' }}
-        include: # test Py versions only with a reference K8s version, designated currently to kubernetes-version: v1.27.11
+          - kubernetes-version: ${{ github.event_name != 'push' && 'v1.34.3' }}
+        include: # test Py versions only with a reference K8s version, designated currently to kubernetes-version: v1.33.7
           - python: "3.11"
-            kubernetes-version: "v1.27.11"
+            kubernetes-version: "v1.33.7"
             manifest-db: "db"
           - python: "3.10"
-            kubernetes-version: "v1.27.11"
+            kubernetes-version: "v1.33.7"
             manifest-db: "db"
           - python: "3.9"
-            kubernetes-version: "v1.27.11"
+            kubernetes-version: "v1.33.7"
             manifest-db: "db"
     env:
       FORCE_COLOR: "1"
