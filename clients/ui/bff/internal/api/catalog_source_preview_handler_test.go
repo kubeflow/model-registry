@@ -21,12 +21,16 @@ var _ = Describe("CreateCatalogSourcePreviewHandler", func() {
 				UserID: "user@example.com",
 			}
 
-			requestBody := models.CatalogSourcePreviewRequest{
-				Type:           "yaml",
-				IncludedModels: []string{},
-				ExcludedModels: []string{},
-				Properties: map[string]interface{}{
-					"yaml": "models:\n  - name: test-model",
+			requestBody := struct {
+				Data models.CatalogSourcePreviewRequest `json:"data"`
+			}{
+				Data: models.CatalogSourcePreviewRequest{
+					Type:           "yaml",
+					IncludedModels: []string{},
+					ExcludedModels: []string{},
+					Properties: map[string]interface{}{
+						"yaml": "models:\n  - name: test-model",
+					},
 				},
 			}
 			bodyBytes, _ := json.Marshal(requestBody)
