@@ -1,4 +1,4 @@
-import { TEMP_DEV_CATALOG_ADVANCED_FILTERS_FEATURE_KEY } from '~/app/hooks/useTempDevCatalogAdvancedFiltersFeatureAvailable';
+import { TempDevFeature } from '~/app/hooks/useTempDevFeatureAvailable';
 import { appChrome } from './appChrome';
 
 class ModelCatalogFilter {
@@ -36,7 +36,7 @@ class ModelCatalog {
     enableTempDevCatalogAdvancedFiltersFeature = false,
   }: { enableTempDevCatalogAdvancedFiltersFeature?: boolean } = {}) {
     if (enableTempDevCatalogAdvancedFiltersFeature) {
-      window.localStorage.setItem(TEMP_DEV_CATALOG_ADVANCED_FILTERS_FEATURE_KEY, 'true');
+      window.localStorage.setItem(TempDevFeature.CatalogAdvancedFilters, 'true');
     }
     cy.visit('/model-catalog');
     this.wait();
