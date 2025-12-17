@@ -274,15 +274,15 @@ lint/csi: bin/golangci-lint
 
 .PHONY: test
 test:
-	${GO} test $$(${GO} list ./internal/... ./pkg/... | grep -v /controller) 
+	${GO} test $$(${GO} list ./internal/... ./pkg/... | grep -v controller)
 
 .PHONY: test-nocache
 test-nocache:
-	${GO} test $$(${GO} list ./internal/... ./pkg/... | grep -v /controller) -count=1
+	${GO} test $$(${GO} list ./internal/... ./pkg/... | grep -v controller) -count=1
 
 .PHONY: test-cover
 test-cover:
-	${GO} test $$(${GO} list ./internal/... ./pkg/... | grep -v /controller) -coverprofile=coverage.txt
+	${GO} test $$(${GO} list ./internal/... ./pkg/... | grep -v controller) -coverprofile=coverage.txt
 	${GO} tool cover -html=coverage.txt -o coverage.html
 
 .PHONY: run/proxy
