@@ -39,7 +39,7 @@ func (a CatalogSourcePreview) CreateCatalogSourcePreview(client httpclient.HTTPC
 		"excludedModels": sourcePreviewPayload.ExcludedModels,
 	}
 
-	if sourcePreviewPayload.Type == "huggingface" {
+	if sourcePreviewPayload.Type == CatalogTypeHuggingFace {
 		if org, ok := sourcePreviewPayload.Properties["allowedOrganization"]; ok {
 			configData["allowedOrganization"] = org
 		}
@@ -57,7 +57,7 @@ func (a CatalogSourcePreview) CreateCatalogSourcePreview(client httpclient.HTTPC
 		return nil, fmt.Errorf("error writing config data: %w", err)
 	}
 
-	if sourcePreviewPayload.Type == "yaml" {
+	if sourcePreviewPayload.Type == CatalogTypeYaml {
 		if yamlContent, ok := sourcePreviewPayload.Properties["yaml"].(string); ok && yamlContent != "" {
 			catalogDataPart, err := writer.CreateFormFile("catalogData", "catalog.yaml")
 			if err != nil {
