@@ -74,7 +74,7 @@ var _ = Describe("ModelCatalogSettingRepository", func() {
 		It("should return apiKey for the huggingFace type source config", func() {
 			catalog, err := repo.GetCatalogSourceConfig(ctx, k8sClient, "kubeflow", "hugging_face_source")
 			Expect(err).NotTo(HaveOccurred())
-			Expect(catalog.Type).To(Equal("huggingface"))
+			Expect(catalog.Type).To(Equal("hf"))
 			Expect(catalog.ApiKey).To(BeNil())
 		})
 
@@ -158,7 +158,7 @@ var _ = Describe("ModelCatalogSettingRepository", func() {
 			payload := models.CatalogSourceConfigPayload{
 				Id:      "test_id",
 				Name:    "Test",
-				Type:    "huggingface",
+				Type:    "hf",
 				Enabled: boolPtr(true),
 			}
 			_, err := repo.CreateCatalogSourceConfig(ctx, k8sClient, "kubeflow", payload)
@@ -210,7 +210,7 @@ var _ = Describe("ModelCatalogSettingRepository", func() {
 			payload := models.CatalogSourceConfigPayload{
 				Id:      longId,
 				Name:    "Test Long ID",
-				Type:    "huggingface",
+				Type:    "hf",
 				Enabled: boolPtr(true),
 				ApiKey:  stringPtr("hf_test_key"),
 			}
@@ -225,7 +225,7 @@ var _ = Describe("ModelCatalogSettingRepository", func() {
 			payload := models.CatalogSourceConfigPayload{
 				Id:      maxLengthId,
 				Name:    "Test Max Length ID",
-				Type:    "huggingface",
+				Type:    "hf",
 				Enabled: boolPtr(true),
 				ApiKey:  stringPtr("hf_test_key"),
 			}
@@ -253,7 +253,7 @@ var _ = Describe("ModelCatalogSettingRepository", func() {
 			payload := models.CatalogSourceConfigPayload{
 				Id:      "test_hf_create",
 				Name:    "Test HF Create",
-				Type:    "huggingface",
+				Type:    "hf",
 				Enabled: boolPtr(true),
 				ApiKey:  stringPtr("hf_test_key"),
 			}
@@ -328,7 +328,7 @@ var _ = Describe("ModelCatalogSettingRepository", func() {
 
 		It("should fail, when trying to update the source type", func() {
 			payload := models.CatalogSourceConfigPayload{
-				Type: "huggingface",
+				Type: "hf",
 			}
 			_, err := repo.UpdateCatalogSourceConfig(ctx, k8sClient, "kubeflow", "custom_yaml_models", payload)
 			Expect(err).To(HaveOccurred())
@@ -506,7 +506,7 @@ var _ = Describe("ModelCatalogSettingRepository", func() {
 			createPayload := models.CatalogSourceConfigPayload{
 				Id:      "delete_test_hf",
 				Name:    "Delete HF Test",
-				Type:    "huggingface",
+				Type:    "hf",
 				Enabled: boolPtr(true),
 				ApiKey:  stringPtr("hf_delete_test"),
 			}
