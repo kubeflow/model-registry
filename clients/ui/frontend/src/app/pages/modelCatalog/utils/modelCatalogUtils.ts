@@ -18,6 +18,7 @@ import {
   ModelCatalogStringFilterKey,
   ModelCatalogNumberFilterKey,
 } from '~/concepts/modelCatalog/const';
+import { CatalogSourceStatus } from '~/concepts/modelCatalogSettings/const';
 
 export const extractVersionTag = (tags?: string[]): string | undefined =>
   tags?.find((tag) => /^\d+\.\d+\.\d+$/.test(tag));
@@ -56,9 +57,9 @@ export const filterEnabledCatalogSources = (
     return null;
   }
 
-  // Filter sources that are enabled AND have available models (status === 'available')
+  // Filter sources that are enabled AND have available models
   const filteredItems = catalogSources.items?.filter(
-    (source) => source.enabled !== false && source.status === 'available',
+    (source) => source.enabled !== false && source.status === CatalogSourceStatus.AVAILABLE,
   );
 
   return {
@@ -255,7 +256,11 @@ export const getUniqueSourceLabels = (catalogSources: CatalogSourceList | null):
 
   catalogSources.items.forEach((source) => {
     // Only include labels from sources that are enabled AND have available models
-    if (source.enabled && source.status === 'available' && source.labels.length > 0) {
+    if (
+      source.enabled &&
+      source.status === CatalogSourceStatus.AVAILABLE &&
+      source.labels.length > 0
+    ) {
       source.labels.forEach((label) => {
         if (label.trim()) {
           allLabels.add(label.trim());
@@ -274,7 +279,7 @@ export const hasSourcesWithoutLabels = (catalogSources: CatalogSourceList | null
 
   return catalogSources.items.some((source) => {
     // Only consider sources that are enabled AND have available models
-    if (source.enabled !== false && source.status === 'available') {
+    if (source.enabled !== false && source.status === CatalogSourceStatus.AVAILABLE) {
       // Check if source has no labels or only empty/whitespace labels
       return source.labels.length === 0 || source.labels.every((label) => !label.trim());
     }
@@ -303,7 +308,7 @@ export const hasFiltersApplied = (filterData: ModelCatalogFilterStates): boolean
 
 /**
  * Filters catalog sources to only include those with available models.
- * A source has models if its status is 'available'.
+ * A source has models if its status is AVAILABLE.
  * This is used to filter out disabled sources or sources with errors from the switcher.
  */
 export const filterSourcesWithModels = (
@@ -313,7 +318,9 @@ export const filterSourcesWithModels = (
     return null;
   }
 
-  const filteredItems = catalogSources.items?.filter((source) => source.status === 'available');
+  const filteredItems = catalogSources.items?.filter(
+    (source) => source.status === CatalogSourceStatus.AVAILABLE,
+  );
 
   return {
     ...catalogSources,
@@ -324,12 +331,12 @@ export const filterSourcesWithModels = (
 
 /**
  * Checks if there are any catalog sources that have models available.
- * Returns true if at least one source has status === 'available'.
+ * Returns true if at least one source has status === AVAILABLE.
  */
 export const hasSourcesWithModels = (catalogSources: CatalogSourceList | null): boolean => {
   if (!catalogSources?.items) {
     return false;
   }
 
-  return catalogSources.items.some((source) => source.status === 'available');
+  return catalogSources.items.some((source) => source.status === CatalogSourceStatus.AVAILABLE);
 };
