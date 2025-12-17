@@ -11,6 +11,8 @@ type CatalogModel struct {
 	Language                 []string                          `json:"language,omitempty"`
 	LastUpdateTimeSinceEpoch *string                           `json:"lastUpdateTimeSinceEpoch,omitempty"`
 	LibraryName              *string                           `json:"libraryName,omitempty"`
+	Size                     *string                           `json:"size,omitempty"`
+	TensorType               *string                           `json:"tensorType,omitempty"`
 	License                  *string                           `json:"license,omitempty"`
 	LicenseLink              *string                           `json:"licenseLink,omitempty"`
 	Logo                     *string                           `json:"logo,omitempty"`

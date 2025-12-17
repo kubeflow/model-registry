@@ -118,6 +118,16 @@ const ModelDetailsView: React.FC<ModelDetailsViewProps> = ({
                   </DescriptionListDescription>
                 </DescriptionListGroup>
                 <DescriptionListGroup>
+                  <DescriptionListTerm>Size</DescriptionListTerm>
+                  <DescriptionListDescription>{model.size || 'N/A'}</DescriptionListDescription>
+                </DescriptionListGroup>
+                <DescriptionListGroup>
+                  <DescriptionListTerm>Tensor type</DescriptionListTerm>
+                  <DescriptionListDescription>
+                    {model.tensorType || 'N/A'}
+                  </DescriptionListDescription>
+                </DescriptionListGroup>
+                <DescriptionListGroup>
                   <DescriptionListTerm>License</DescriptionListTerm>
                   <ExternalLink
                     text="Agreement"
