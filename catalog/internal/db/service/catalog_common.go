@@ -30,6 +30,7 @@ func CreateNamePaginationToken(entityID int32, name *string) string {
 // ApplyNameOrdering applies NAME-based ordering with cursor pagination to a query.
 // This handles the catalog-specific NAME ordering which requires string comparison
 // in WHERE clauses (not integer casting like standard pagination).
+// The ordering is case-insensitive using LOWER() for consistent alphabetical sorting.
 //
 // Parameters:
 //   - query: The GORM query to modify
@@ -46,19 +47,19 @@ func ApplyNameOrdering(query *gorm.DB, tableName string, sortOrder string, nextP
 		order = "DESC"
 	}
 
-	// Apply name-based ordering with ID as tie-breaker
-	query = query.Order(fmt.Sprintf("%s.name %s, %s.id ASC", tableName, order, tableName))
+	// Apply case-insensitive name-based ordering with ID as tie-breaker
+	query = query.Order(fmt.Sprintf("LOWER(%s.name) %s, %s.id ASC", tableName, order, tableName))
 
 	// Handle cursor-based pagination for NAME
 	if nextPageToken != "" {
 		if cursor, err := scopes.DecodeCursor(nextPageToken); err == nil {
-			// Cursor pagination based on name (string comparison)
+			// Cursor pagination based on name (case-insensitive string comparison)
 			cmp := ">"
 			if order == "DESC" {
 				cmp = "<"
 			}
-			// Use proper string comparison with name and ID as tie-breaker
-			query = query.Where(fmt.Sprintf("(%s.name %s ? OR (%s.name = ? AND %s.id > ?))", tableName, cmp, tableName, tableName),
+			// Use LOWER() for case-insensitive comparison with name and ID as tie-breaker
+			query = query.Where(fmt.Sprintf("(LOWER(%s.name) %s LOWER(?) OR (LOWER(%s.name) = LOWER(?) AND %s.id > ?))", tableName, cmp, tableName, tableName),
 				cursor.Value, cursor.Value, cursor.ID)
 		}
 	}
