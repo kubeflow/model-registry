@@ -1,8 +1,9 @@
 package mocks
 
 import (
-	"github.com/stretchr/testify/mock"
 	"io"
+
+	"github.com/stretchr/testify/mock"
 )
 
 type MockHTTPClient struct {
@@ -20,6 +21,11 @@ func (m *MockHTTPClient) GET(url string) ([]byte, error) {
 
 func (m *MockHTTPClient) POST(url string, body io.Reader) ([]byte, error) {
 	args := m.Called(url, body)
+	return args.Get(0).([]byte), args.Error(1)
+}
+
+func (m *MockHTTPClient) POSTWithContentType(url string, body io.Reader, contentType string) ([]byte, error) {
+	args := m.Called(url, body, contentType)
 	return args.Get(0).([]byte), args.Error(1)
 }
 

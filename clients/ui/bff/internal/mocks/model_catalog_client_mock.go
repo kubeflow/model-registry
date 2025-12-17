@@ -214,7 +214,7 @@ func (m *ModelCatalogClientMock) GetCatalogFilterOptions(client httpclient.HTTPC
 	return &filterOptions, nil
 }
 
-func (m *ModelCatalogClientMock) CreateCatalogSourcePreview(client httpclient.HTTPClientInterface, sourcePreviewPaylod models.CatalogSourcePreviewRequest) (*models.CatalogSourcePreviewResult, error) {
+func (m *ModelCatalogClientMock) CreateCatalogSourcePreview(client httpclient.HTTPClientInterface, sourcePreviewPayload models.CatalogSourcePreviewRequest, pageValues url.Values) (*models.CatalogSourcePreviewResult, error) {
 	catalogSourcePreview := CreateCatalogSourcePreviewMock()
 
 	return &catalogSourcePreview, nil
