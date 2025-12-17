@@ -105,6 +105,31 @@ const ModelCatalogActiveFilters: React.FC<ModelCatalogActiveFiltersProps> = ({ f
     return `${filterKey}: ≤${value}ms`;
   };
 
+  const filterHasDefaultByName = (filterLabel?: string) => filterLabel === 'Task'; // TODO somehow look up the filter key by name and check if it has defaults in the filter_options
+
+  // Extremely hacky way to replace the default close icon with a redo icon on each render
+  // Note that this also requires adding className="model-catalog-filter-toolbar" to the ancestor Toolbar component everywhere we render ModelCatalogActiveFilters
+  React.useLayoutEffect(() => {
+    setTimeout(() => {
+      document
+        .querySelectorAll('.model-catalog-filter-toolbar .pf-v6-c-toolbar__item.pf-m-label-group')
+        .forEach((element) => {
+          const filterLabel = element.querySelector('.pf-v6-c-label-group__label')?.textContent;
+          const filterHasDefault = filterHasDefaultByName(filterLabel);
+          if (filterHasDefault) {
+            // Replace the default close icon with a redo icon if the filter is resettable to default
+            const closeIcons = element.querySelectorAll('.pf-v6-c-button__icon');
+            closeIcons.forEach((icon) => {
+              icon.setHTMLUnsafe(
+                '<svg class="pf-v6-svg" viewBox="0 0 512 512" fill="currentColor" aria-hidden="true" role="img" width="1em" height="1em"><path d="M500.33 0h-47.41a12 12 0 0 0-12 12.57l4 82.76A247.42 247.42 0 0 0 256 8C119.34 8 7.9 119.53 8 256.19 8.1 393.07 119.1 504 256 504a247.1 247.1 0 0 0 166.18-63.91 12 12 0 0 0 .48-17.43l-34-34a12 12 0 0 0-16.38-.55A176 176 0 1 1 402.1 157.8l-101.53-4.87a12 12 0 0 0-12.57 12v47.41a12 12 0 0 0 12 12h200.33a12 12 0 0 0 12-12V12a12 12 0 0 0-12-12z"></path></svg>',
+              );
+            });
+          }
+        });
+    }, 0);
+  });
+  // Note also that we need to entirely prevent rendering ToolbarFilter for filters whose values are already set to default. the chips only represent things the user has changed.
+
   return (
     <>
       {filtersToShow.map((filterKey) => {

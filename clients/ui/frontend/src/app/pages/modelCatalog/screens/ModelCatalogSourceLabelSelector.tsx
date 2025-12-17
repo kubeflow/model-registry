@@ -95,6 +95,7 @@ const ModelCatalogSourceLabelSelector: React.FC<ModelCatalogSourceLabelSelectorP
     <Stack hasGutter>
       <StackItem>
         <Toolbar
+          className="model-catalog-filter-toolbar"
           key={`toolbar-${hasActiveFilters}`}
           {...(onResetAllFilters
             ? {
