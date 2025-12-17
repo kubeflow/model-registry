@@ -169,7 +169,7 @@ clean/odh:
 	rm -Rf ./model-registry
 
 bin/envtest:
-	GOBIN=$(PROJECT_BIN) ${GO} install sigs.k8s.io/controller-runtime/tools/setup-envtest@v0.0.0-20240320141353-395cfc7486e6
+	GOBIN=$(PROJECT_BIN) ${GO} install sigs.k8s.io/controller-runtime/tools/setup-envtest@v0.21.0
 
 GOLANGCI_LINT ?= ${PROJECT_BIN}/golangci-lint
 bin/golangci-lint:
@@ -273,16 +273,16 @@ lint/csi: bin/golangci-lint
 	${GOLANGCI_LINT} run internal/csi/...
 
 .PHONY: test
-test: bin/envtest
-	KUBEBUILDER_ASSETS="$(shell $(ENVTEST) use $(ENVTEST_K8S_VERSION) -p path)" ${GO} test ./internal/... ./pkg/...
+test:
+	${GO} test $$(${GO} list ./internal/... ./pkg/... | grep -v /controller) 
 
 .PHONY: test-nocache
-test-nocache: bin/envtest
-	KUBEBUILDER_ASSETS="$(shell $(ENVTEST) use $(ENVTEST_K8S_VERSION) -p path)" ${GO} test ./internal/... ./pkg/... -count=1
+test-nocache:
+	${GO} test $$(${GO} list ./internal/... ./pkg/... | grep -v /controller) -count=1
 
 .PHONY: test-cover
-test-cover: bin/envtest
-	KUBEBUILDER_ASSETS="$(shell $(ENVTEST) use $(ENVTEST_K8S_VERSION) -p path)" ${GO} test ./internal/... ./pkg/... -coverprofile=coverage.txt
+test-cover:
+	${GO} test $$(${GO} list ./internal/... ./pkg/... | grep -v /controller) -coverprofile=coverage.txt
 	${GO} tool cover -html=coverage.txt -o coverage.html
 
 .PHONY: run/proxy
