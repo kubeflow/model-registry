@@ -8,7 +8,7 @@ CSI_PATH := $(PROJECT_PATH)/cmd/csi
 CONTROLLER_PATH := $(PROJECT_PATH)/cmd/controller
 
 # ENVTEST_K8S_VERSION refers to the version of kubebuilder assets to be downloaded by envtest binary.
-ENVTEST_K8S_VERSION = 1.29
+ENVTEST_K8S_VERSION = 1.33
 ENVTEST ?= $(PROJECT_BIN)/setup-envtest
 
 # add tools bin directory
