@@ -364,7 +364,7 @@ controller/vet: ## Run go vet against code.
 
 .PHONY: controller/test
 controller/test: controller/manifests controller/generate controller/fmt controller/vet bin/envtest ## Run tests.
-	KUBEBUILDER_ASSETS="$(shell $(ENVTEST) use $(ENVTEST_K8S_VERSION) --bin-dir $(PROJECT_BIN) -p path)" go test $$(go list ./internal/controller/... | grep -vF /e2e) -coverprofile cover.out
+	KUBEBUILDER_ASSETS="$(shell $(ENVTEST) use $(ENVTEST_K8S_VERSION) --bin-dir $(PROJECT_BIN) -p path)" go test $$(go list ./internal/controller/... ./pkg/inferenceservice-controller/... | grep -vF /e2e) -coverprofile cover.out
 
 ##@ Build
 
