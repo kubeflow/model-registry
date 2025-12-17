@@ -12,6 +12,7 @@ import {
   ModelCatalogFilterStates,
   ModelCatalogStringFilterValueType,
   MetricsType,
+  ModelCatalogFilterKey,
 } from '~/app/modelCatalogTypes';
 import { getLabels } from '~/app/pages/modelRegistry/screens/utils';
 import {
@@ -288,10 +289,21 @@ export const getSourceFromSourceId = (
   return catalogSources.items.find((source) => source.id === sourceId);
 };
 
-export const hasFiltersApplied = (filterData: ModelCatalogFilterStates): boolean =>
-  Object.values(filterData).some((value) => {
+/**
+ * Checks if any filters are applied. If filterKeys is provided, only checks those specific filters.
+ * Otherwise checks all filters.
+ */
+export const hasFiltersApplied = (
+  filterData: ModelCatalogFilterStates,
+  filterKeys?: ModelCatalogFilterKey[],
+): boolean => {
+  const keysToCheck = filterKeys ?? (Object.keys(filterData) as ModelCatalogFilterKey[]);
+
+  return keysToCheck.some((key) => {
+    const value = filterData[key as keyof ModelCatalogFilterStates];
     if (Array.isArray(value)) {
       return value.length > 0;
     }
     return value !== undefined;
   });
+};

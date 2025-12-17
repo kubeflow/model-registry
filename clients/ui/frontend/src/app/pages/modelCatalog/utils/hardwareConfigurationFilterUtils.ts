@@ -1,6 +1,7 @@
 import {
   CatalogPerformanceMetricsArtifact,
   ModelCatalogFilterStates,
+  ModelCatalogFilterKey,
 } from '~/app/modelCatalogTypes';
 import { getDoubleValue, getStringValue } from '~/app/utils';
 import {
@@ -9,6 +10,8 @@ import {
   LatencyMetricFieldName,
   LatencyPercentile,
   LatencyMetric,
+  ALL_LATENCY_FIELD_NAMES,
+  isLatencyFieldName,
 } from '~/concepts/modelCatalog/const';
 
 // Type for storing complex latency filter configuration with value
@@ -141,27 +144,45 @@ export const filterHardwareConfigurationArtifacts = (
   });
 
 /**
- * Gets all filter keys (string filters + number filters)
- * TODO: Extend to include latency metric filters when needed for filter chips on details page
+ * Gets all filter keys (string filters + number filters + latency filters)
  */
 export const getAllFilterKeys = (): {
   stringFilterKeys: ModelCatalogStringFilterKey[];
   numberFilterKeys: ModelCatalogNumberFilterKey[];
+  latencyFilterKeys: LatencyMetricFieldName[];
 } => ({
   stringFilterKeys: Object.values(ModelCatalogStringFilterKey),
   numberFilterKeys: Object.values(ModelCatalogNumberFilterKey),
+  latencyFilterKeys: ALL_LATENCY_FIELD_NAMES,
 });
 
 /**
- * Clears all active filters
+ * Clears filters. If filterKeys is provided, only clears those specific filters.
+ * Otherwise clears all filters.
  */
 export const clearAllFilters = (
   setFilterData: <K extends keyof ModelCatalogFilterStates>(
     key: K,
     value: ModelCatalogFilterStates[K],
   ) => void,
+  filterKeys?: ModelCatalogFilterKey[],
 ): void => {
-  const { stringFilterKeys, numberFilterKeys } = getAllFilterKeys();
+  const { stringFilterKeys, numberFilterKeys, latencyFilterKeys } = getAllFilterKeys();
+
+  // If specific filter keys are provided, only clear those
+  if (filterKeys) {
+    filterKeys.forEach((key) => {
+      if (stringFilterKeys.includes(key as ModelCatalogStringFilterKey)) {
+        setFilterData(key as ModelCatalogStringFilterKey, []);
+      } else if (
+        numberFilterKeys.includes(key as ModelCatalogNumberFilterKey) ||
+        isLatencyFieldName(key)
+      ) {
+        setFilterData(key as keyof ModelCatalogFilterStates, undefined);
+      }
+    });
+    return;
+  }
 
   // Clear all string filters (arrays)
   stringFilterKeys.forEach((key) => {
@@ -174,10 +195,7 @@ export const clearAllFilters = (
   });
 
   // Clear all latency metric filters (e.g., ttft_mean, ttft_p90, etc.)
-  for (const metric of Object.values(LatencyMetric)) {
-    for (const percentile of Object.values(LatencyPercentile)) {
-      const fieldName = getLatencyFieldName(metric, percentile);
-      setFilterData(fieldName, undefined);
-    }
-  }
+  latencyFilterKeys.forEach((fieldName) => {
+    setFilterData(fieldName, undefined);
+  });
 };

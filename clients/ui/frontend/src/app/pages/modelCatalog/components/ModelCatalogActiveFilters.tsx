@@ -13,8 +13,12 @@ import {
   ModelCatalogLicense,
   ModelCatalogTask,
   AllLanguageCode,
+  ModelCatalogNumberFilterKey,
+  isLatencyFieldName,
+  type LatencyMetricFieldName,
 } from '~/concepts/modelCatalog/const';
 import { ModelCatalogFilterKey } from '~/app/modelCatalogTypes';
+import { parseLatencyFieldName } from '~/app/pages/modelCatalog/utils/hardwareConfigurationFilterUtils';
 
 type ModelCatalogActiveFiltersProps = {
   filtersToShow: ModelCatalogFilterKey[];
@@ -30,57 +34,99 @@ const ModelCatalogActiveFilters: React.FC<ModelCatalogActiveFiltersProps> = ({ f
         const newValues = currentValues.filter((v) => String(v) !== String(labelKey));
         setFilterData(categoryKey, newValues);
       }
+    } else {
+      // For number filters and latency fields, clear the value
+      setFilterData(categoryKey as keyof typeof filterData, undefined);
     }
   };
 
   const handleClearCategory = (categoryKey: string) => {
     if (isEnumMember(categoryKey, ModelCatalogStringFilterKey)) {
       setFilterData(categoryKey, []);
+    } else {
+      // For number filters and latency fields, clear the value
+      setFilterData(categoryKey as keyof typeof filterData, undefined);
     }
   };
 
-  const getFilterLabel = (filterKey: ModelCatalogStringFilterKey, value: string): string => {
-    switch (filterKey) {
-      case ModelCatalogStringFilterKey.PROVIDER: {
-        return isEnumMember(value, ModelCatalogProvider)
-          ? MODEL_CATALOG_PROVIDER_NAME_MAPPING[value]
-          : value;
+  /**
+   * Gets the display label for a filter value based on the filter key type
+   */
+  const getFilterLabel = (filterKey: ModelCatalogFilterKey, value: string | number): string => {
+    // Handle string filter keys
+    if (isEnumMember(filterKey, ModelCatalogStringFilterKey)) {
+      const valueStr = String(value);
+      switch (filterKey) {
+        case ModelCatalogStringFilterKey.PROVIDER: {
+          return isEnumMember(valueStr, ModelCatalogProvider)
+            ? MODEL_CATALOG_PROVIDER_NAME_MAPPING[valueStr]
+            : valueStr;
+        }
+        case ModelCatalogStringFilterKey.LICENSE: {
+          return isEnumMember(valueStr, ModelCatalogLicense)
+            ? MODEL_CATALOG_LICENSE_NAME_MAPPING[valueStr]
+            : valueStr;
+        }
+        case ModelCatalogStringFilterKey.TASK: {
+          return isEnumMember(valueStr, ModelCatalogTask)
+            ? MODEL_CATALOG_TASK_NAME_MAPPING[valueStr]
+            : valueStr;
+        }
+        case ModelCatalogStringFilterKey.LANGUAGE: {
+          return isEnumMember(valueStr, AllLanguageCode) ? AllLanguageCodesMap[valueStr] : valueStr;
+        }
+        default:
+          return valueStr;
       }
-      case ModelCatalogStringFilterKey.LICENSE: {
-        return isEnumMember(value, ModelCatalogLicense)
-          ? MODEL_CATALOG_LICENSE_NAME_MAPPING[value]
-          : value;
-      }
-      case ModelCatalogStringFilterKey.TASK: {
-        return isEnumMember(value, ModelCatalogTask)
-          ? MODEL_CATALOG_TASK_NAME_MAPPING[value]
-          : value;
-      }
-      case ModelCatalogStringFilterKey.LANGUAGE: {
-        return isEnumMember(value, AllLanguageCode) ? AllLanguageCodesMap[value] : value;
-      }
-      default:
-        return value;
     }
+
+    // Handle number filter keys
+    if (isEnumMember(filterKey, ModelCatalogNumberFilterKey)) {
+      switch (filterKey) {
+        case ModelCatalogNumberFilterKey.MIN_RPS:
+          return `≥${value} requests/sec`;
+        default:
+          return String(value);
+      }
+    }
+
+    // Handle latency field names
+    if (isLatencyFieldName(filterKey)) {
+      const parsed = parseLatencyFieldName(filterKey);
+      if (parsed) {
+        return `${parsed.metric} ${parsed.percentile}: ≤${value}ms`;
+      }
+      return `${filterKey}: ≤${value}ms`;
+    }
+
+    return String(value);
   };
 
   return (
     <>
       {filtersToShow.map((filterKey) => {
-        // Only process string filter keys that are arrays
-        if (!isEnumMember(filterKey, ModelCatalogStringFilterKey)) {
+        const filterValue = filterData[filterKey as keyof typeof filterData];
+
+        // Skip if no value is set
+        if (filterValue === undefined || filterValue === null) {
           return null;
         }
 
-        const filterValues = filterData[filterKey];
-        if (!Array.isArray(filterValues) || filterValues.length === 0) {
+        // For array values (string filters), skip if empty
+        if (Array.isArray(filterValue) && filterValue.length === 0) {
           return null;
         }
 
-        const categoryName = MODEL_CATALOG_FILTER_CATEGORY_NAMES[filterKey];
+        // Normalize to array for consistent handling
+        const filterValues = Array.isArray(filterValue) ? filterValue : [filterValue];
+
+        const categoryName = MODEL_CATALOG_FILTER_CATEGORY_NAMES[
+          filterKey as keyof typeof MODEL_CATALOG_FILTER_CATEGORY_NAMES
+        ];
+
         const labels: ToolbarLabel[] = filterValues.map((value) => {
           const valueStr = String(value);
-          const labelText = getFilterLabel(filterKey, valueStr);
+          const labelText = getFilterLabel(filterKey, value);
           return {
             key: valueStr,
             node: <span data-testid={`${filterKey}-filter-chip-${valueStr}`}>{labelText}</span>,
@@ -98,13 +144,13 @@ const ModelCatalogActiveFilters: React.FC<ModelCatalogActiveFiltersProps> = ({ f
             categoryName={categoryLabelGroup}
             labels={labels}
             deleteLabel={(category, label) => {
-              const categoryKey = typeof category === 'string' ? category : category.key;
+              const categoryKeyValue = typeof category === 'string' ? category : category.key;
               const labelKey = typeof label === 'string' ? label : label.key;
-              handleRemoveFilter(categoryKey, labelKey);
+              handleRemoveFilter(categoryKeyValue, labelKey);
             }}
             deleteLabelGroup={(category) => {
-              const categoryKey = typeof category === 'string' ? category : category.key;
-              handleClearCategory(categoryKey);
+              const categoryKeyValue = typeof category === 'string' ? category : category.key;
+              handleClearCategory(categoryKeyValue);
             }}
             data-testid={`${filterKey}-filter-container`}
           >

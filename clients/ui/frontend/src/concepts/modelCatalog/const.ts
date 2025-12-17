@@ -28,6 +28,23 @@ export enum LatencyPercentile {
 // Use getLatencyFieldName util to get values of this type
 export type LatencyMetricFieldName = `${Lowercase<LatencyMetric>}_${Lowercase<LatencyPercentile>}`;
 
+/**
+ * All possible latency field names computed from LatencyMetric and LatencyPercentile enums
+ */
+export const ALL_LATENCY_FIELD_NAMES: LatencyMetricFieldName[] = Object.values(LatencyMetric).flatMap(
+  (metric) =>
+    Object.values(LatencyPercentile).map(
+      (percentile) =>
+        `${metric.toLowerCase()}_${percentile.toLowerCase()}` as LatencyMetricFieldName,
+    ),
+);
+
+/**
+ * Type guard to check if a string is a valid LatencyMetricFieldName
+ */
+export const isLatencyFieldName = (key: string): key is LatencyMetricFieldName =>
+  ALL_LATENCY_FIELD_NAMES.includes(key as LatencyMetricFieldName);
+
 export enum UseCaseOptionValue {
   CHATBOT = 'chatbot',
   CODE_FIXING = 'code_fixing',
@@ -326,17 +343,26 @@ export enum AllLanguageCode {
 
 /**
  * Display names for filter categories.
- * TODO: When performance filters are ready, switch this to be a Record<ModelCatalogFilterKey, string>
- * to include all ModelCatalogFilterKeys (ModelCatalogStringFilterKey | ModelCatalogNumberFilterKey).
- * This will allow separate filter category names for "Max latency (TTFT Mean)" and "Max latency (TTFT P99)" etc.
+ * Includes all ModelCatalogFilterKeys (ModelCatalogStringFilterKey | ModelCatalogNumberFilterKey | LatencyMetricFieldName).
  */
-export const MODEL_CATALOG_FILTER_CATEGORY_NAMES: Record<ModelCatalogStringFilterKey, string> = {
+export const MODEL_CATALOG_FILTER_CATEGORY_NAMES: Record<
+  ModelCatalogStringFilterKey | ModelCatalogNumberFilterKey | LatencyMetricFieldName,
+  string
+> = {
+  // String filter keys
   [ModelCatalogStringFilterKey.PROVIDER]: 'Provider',
   [ModelCatalogStringFilterKey.LICENSE]: 'License',
   [ModelCatalogStringFilterKey.TASK]: 'Task',
   [ModelCatalogStringFilterKey.LANGUAGE]: 'Language',
   [ModelCatalogStringFilterKey.HARDWARE_TYPE]: 'Hardware type',
   [ModelCatalogStringFilterKey.USE_CASE]: 'Workload type',
+  // Number filter keys
+  [ModelCatalogNumberFilterKey.MIN_RPS]: 'Min RPS',
+  // Latency field names - all use "Max latency" as category name
+  ...Object.fromEntries(ALL_LATENCY_FIELD_NAMES.map((field) => [field, 'Max latency'])) as Record<
+    LatencyMetricFieldName,
+    string
+  >,
 };
 
 export enum ModelDetailsTab {
