@@ -278,7 +278,7 @@ catalogs:
 
   - name: Hugging face source
     id: hugging_face_source
-    type: huggingface
+    type: hf
     enabled: true
     properties:
       apiKey: hugging-face-source-secret

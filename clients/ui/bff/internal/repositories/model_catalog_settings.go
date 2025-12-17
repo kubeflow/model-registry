@@ -37,7 +37,7 @@ var (
 
 const (
 	CatalogTypeYaml        = "yaml"
-	CatalogTypeHuggingFace = "huggingface"
+	CatalogTypeHuggingFace = "hf"
 	ApiKey                 = "apiKey"
 )
 

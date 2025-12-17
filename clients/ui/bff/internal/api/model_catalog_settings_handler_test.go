@@ -239,7 +239,7 @@ var _ = Describe("TestModelCatalogSettings", func() {
 
 		It("PATCH returns 403 when changing type", func() {
 			payload := ModelCatalogSourcePayloadEnvelope{
-				Data: &models.CatalogSourceConfigPayload{Type: "huggingface"},
+				Data: &models.CatalogSourceConfigPayload{Type: "hf"},
 			}
 			_, rs, err := setupApiTest[Envelope[any, any]](
 				http.MethodPatch,
