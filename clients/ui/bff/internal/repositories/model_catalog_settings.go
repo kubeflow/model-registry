@@ -459,7 +459,7 @@ func validateCatalogSourceConfigPayload(payload models.CatalogSourceConfigPayloa
 		}
 	case CatalogTypeHuggingFace:
 		if payload.AllowedOrganization == nil || *payload.AllowedOrganization == "" {
-			return fmt.Errorf("allowedOrganization is required for huggingface-type sources")
+			return fmt.Errorf("%w: allowedOrganization is required for huggingface-type sources", ErrValidationFailed)
 		}
 		// apiKey is optional for HuggingFace sources
 	default:
