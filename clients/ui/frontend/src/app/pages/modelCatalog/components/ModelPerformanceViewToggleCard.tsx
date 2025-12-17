@@ -9,13 +9,15 @@ import {
   CardBody,
 } from '@patternfly/react-core';
 import { ModelCatalogContext } from '~/app/context/modelCatalog/ModelCatalogContext';
-import { useTempDevCatalogAdvancedFiltersFeatureAvailable } from '~/app/hooks/useTempDevCatalogAdvancedFiltersFeatureAvailable';
+import { TempDevFeature, useTempDevFeatureAvailable } from '~/app/hooks/useTempDevFeatureAvailable';
 
 const ModelPerformanceViewToggleCard: React.FC = () => {
   const { performanceViewEnabled, setPerformanceViewEnabled } =
     React.useContext(ModelCatalogContext);
 
-  const isPerformanceToggleAvailable = useTempDevCatalogAdvancedFiltersFeatureAvailable();
+  const isPerformanceToggleAvailable = useTempDevFeatureAvailable(
+    TempDevFeature.CatalogAdvancedFilters,
+  );
   if (!isPerformanceToggleAvailable) {
     return null;
   }
