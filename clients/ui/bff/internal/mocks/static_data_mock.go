@@ -257,7 +257,7 @@ func catalogCustomProperties() *map[string]openapi.MetadataValue {
 		},
 		"validated_on": {
 			MetadataStringValue: &openapi.MetadataStringValue{
-				StringValue:  "RHOAI 2.20,RHAIIS 3.0,RHELAI 1.5",
+				StringValue:  "[\"RHOAI 2.20\",\"RHAIIS 3.0\",\"RHELAI 1.5\"]",
 				MetadataType: "MetadataStringValue",
 			},
 		},
