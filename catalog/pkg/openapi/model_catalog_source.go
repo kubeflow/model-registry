@@ -24,7 +24,8 @@ type CatalogSource struct {
 	// The name of the catalog source.
 	Name string `json:"name"`
 	// Whether the catalog source is enabled.
-	Enabled *bool `json:"enabled,omitempty"`
+	Enabled   *bool             `json:"enabled,omitempty"`
+	AssetType *CatalogAssetType `json:"assetType,omitempty"`
 	// Labels for the catalog source.
 	Labels []string             `json:"labels"`
 	Status *CatalogSourceStatus `json:"status,omitempty"`
@@ -48,6 +49,8 @@ func NewCatalogSource(id string, name string, labels []string) *CatalogSource {
 	this.Name = name
 	var enabled bool = true
 	this.Enabled = &enabled
+	var assetType CatalogAssetType = CATALOGASSETTYPE_MODELS
+	this.AssetType = &assetType
 	this.Labels = labels
 	return &this
 }
@@ -59,6 +62,8 @@ func NewCatalogSourceWithDefaults() *CatalogSource {
 	this := CatalogSource{}
 	var enabled bool = true
 	this.Enabled = &enabled
+	var assetType CatalogAssetType = CATALOGASSETTYPE_MODELS
+	this.AssetType = &assetType
 	return &this
 }
 
@@ -140,6 +145,38 @@ func (o *CatalogSource) HasEnabled() bool {
 // SetEnabled gets a reference to the given bool and assigns it to the Enabled field.
 func (o *CatalogSource) SetEnabled(v bool) {
 	o.Enabled = &v
+}
+
+// GetAssetType returns the AssetType field value if set, zero value otherwise.
+func (o *CatalogSource) GetAssetType() CatalogAssetType {
+	if o == nil || IsNil(o.AssetType) {
+		var ret CatalogAssetType
+		return ret
+	}
+	return *o.AssetType
+}
+
+// GetAssetTypeOk returns a tuple with the AssetType field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+func (o *CatalogSource) GetAssetTypeOk() (*CatalogAssetType, bool) {
+	if o == nil || IsNil(o.AssetType) {
+		return nil, false
+	}
+	return o.AssetType, true
+}
+
+// HasAssetType returns a boolean if a field has been set.
+func (o *CatalogSource) HasAssetType() bool {
+	if o != nil && !IsNil(o.AssetType) {
+		return true
+	}
+
+	return false
+}
+
+// SetAssetType gets a reference to the given CatalogAssetType and assigns it to the AssetType field.
+func (o *CatalogSource) SetAssetType(v CatalogAssetType) {
+	o.AssetType = &v
 }
 
 // GetLabels returns the Labels field value
@@ -319,6 +356,9 @@ func (o CatalogSource) ToMap() (map[string]interface{}, error) {
 	toSerialize["name"] = o.Name
 	if !IsNil(o.Enabled) {
 		toSerialize["enabled"] = o.Enabled
+	}
+	if !IsNil(o.AssetType) {
+		toSerialize["assetType"] = o.AssetType
 	}
 	toSerialize["labels"] = o.Labels
 	if !IsNil(o.Status) {

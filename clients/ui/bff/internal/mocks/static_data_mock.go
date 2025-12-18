@@ -1357,6 +1357,35 @@ func GetFilterOptionsListMock() models.FilterOptionsList {
 	}
 }
 
+func GetMcpFilterOptionsListMock() models.FilterOptionsList {
+	filterOptions := map[string]models.FilterOption{
+		"provider": {
+			Type:   "string",
+			Values: []interface{}{"Anthropic", "OpenAI"},
+		},
+		"license": {
+			Type:   "string",
+			Values: []interface{}{"Apache 2.0", "MIT"},
+		},
+		"tags": {
+			Type:   "string",
+			Values: []interface{}{"ai", "code-assistant", "llm"},
+		},
+		"transports": {
+			Type:   "string",
+			Values: []interface{}{"http", "sse", "stdio"},
+		},
+		"deploymentMode": {
+			Type:   "string",
+			Values: []interface{}{"local", "remote"},
+		},
+	}
+
+	return models.FilterOptionsList{
+		Filters: &filterOptions,
+	}
+}
+
 func CreateSampleCatalogSource(id string, name string, catalogType string, enabled bool) models.CatalogSourceConfig {
 	defaultCatalog := id == "sample-source"
 
@@ -1497,5 +1526,89 @@ func CreateCatalogSourcePreviewMock() models.CatalogSourcePreviewResult {
 		NextPageToken: "",
 		PageSize:      int32(10),
 		Size:          int32(len(catalogModelPreview)),
+	}
+}
+
+func GetMcpServerMocks() []models.McpServer {
+	return []models.McpServer{
+		{
+			ID:          "filesystem-server",
+			Name:        "Filesystem MCP Server",
+			Description: "Provides secure file system operations with configurable access controls",
+			SourceId:    stringToPointer("organization_mcp_servers"),
+			Provider:    stringToPointer("Anthropic"),
+			Transports:  []models.McpTransportType{models.McpTransportTypeStdio},
+			Tags:        []string{"filesystem", "io", "storage"},
+			Tools: []models.McpTool{
+				{
+					Name:        "read_file",
+					Description: "Read the complete contents of a file from the file system",
+				},
+				{
+					Name:        "write_file",
+					Description: "Create a new file or completely overwrite an existing file",
+				},
+				{
+					Name:        "list_directory",
+					Description: "Get a detailed listing of all files and directories in a specified path",
+				},
+			},
+		},
+		{
+			ID:          "github-server",
+			Name:        "GitHub MCP Server",
+			Description: "Interact with GitHub repositories, issues, pull requests, and more",
+			SourceId:    stringToPointer("organization_mcp_servers"),
+			Provider:    stringToPointer("Anthropic"),
+			Transports:  []models.McpTransportType{models.McpTransportTypeStdio},
+			Tags:        []string{"git", "version-control", "ci-cd"},
+			Tools: []models.McpTool{
+				{
+					Name:        "create_repository",
+					Description: "Create a new GitHub repository in your account or organization",
+				},
+				{
+					Name:        "search_repositories",
+					Description: "Search for GitHub repositories",
+				},
+			},
+		},
+		{
+			ID:          "slack-server",
+			Name:        "Slack MCP Server",
+			Description: "Interact with Slack workspaces to send messages, manage channels, and more",
+			SourceId:    stringToPointer("community_mcp_servers"),
+			Provider:    stringToPointer("Anthropic"),
+			Transports:  []models.McpTransportType{models.McpTransportTypeSSE},
+			Tags:        []string{"messaging", "collaboration", "notifications"},
+			Tools: []models.McpTool{
+				{
+					Name:        "send_message",
+					Description: "Send a message to a Slack channel",
+				},
+			},
+		},
+	}
+}
+
+func GetMcpCatalogSourceMocks() []models.McpCatalogSource {
+	enabled := true
+	availableStatus := models.McpCatalogSourceStatusAvailable
+
+	return []models.McpCatalogSource{
+		{
+			ID:      "organization_mcp_servers",
+			Name:    "Organization MCP Servers",
+			Labels:  []string{"Organization MCP"},
+			Enabled: &enabled,
+			Status:  &availableStatus,
+		},
+		{
+			ID:      "community_mcp_servers",
+			Name:    "Community and Custom MCP Servers",
+			Labels:  []string{"Community and custom"},
+			Enabled: &enabled,
+			Status:  &availableStatus,
+		},
 	}
 }

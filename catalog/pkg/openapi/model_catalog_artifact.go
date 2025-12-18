@@ -69,6 +69,30 @@ func (dst *CatalogArtifact) UnmarshalJSON(data []byte) error {
 		}
 	}
 
+	// check if the discriminator value is 'CatalogMetricsArtifact'
+	if jsonDict["artifactType"] == "CatalogMetricsArtifact" {
+		// try to unmarshal JSON data into CatalogMetricsArtifact
+		err = json.Unmarshal(data, &dst.CatalogMetricsArtifact)
+		if err == nil {
+			return nil // data stored in dst.CatalogMetricsArtifact, return on the first match
+		} else {
+			dst.CatalogMetricsArtifact = nil
+			return fmt.Errorf("failed to unmarshal CatalogArtifact as CatalogMetricsArtifact: %s", err.Error())
+		}
+	}
+
+	// check if the discriminator value is 'CatalogModelArtifact'
+	if jsonDict["artifactType"] == "CatalogModelArtifact" {
+		// try to unmarshal JSON data into CatalogModelArtifact
+		err = json.Unmarshal(data, &dst.CatalogModelArtifact)
+		if err == nil {
+			return nil // data stored in dst.CatalogModelArtifact, return on the first match
+		} else {
+			dst.CatalogModelArtifact = nil
+			return fmt.Errorf("failed to unmarshal CatalogArtifact as CatalogModelArtifact: %s", err.Error())
+		}
+	}
+
 	return nil
 }
 

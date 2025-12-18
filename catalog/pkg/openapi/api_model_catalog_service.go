@@ -578,6 +578,7 @@ type ApiFindSourcesRequest struct {
 	ctx           context.Context
 	ApiService    *ModelCatalogServiceAPIService
 	name          *string
+	assetType     *CatalogAssetType
 	pageSize      *string
 	orderBy       *OrderByField
 	sortOrder     *SortOrder
@@ -587,6 +588,12 @@ type ApiFindSourcesRequest struct {
 // Name of entity to search.
 func (r ApiFindSourcesRequest) Name(name string) ApiFindSourcesRequest {
 	r.name = &name
+	return r
+}
+
+// Filter sources by asset type. - &#x60;models&#x60;: Sources containing AI/ML models - &#x60;mcp_servers&#x60;: Sources containing MCP (Model Context Protocol) servers
+func (r ApiFindSourcesRequest) AssetType(assetType CatalogAssetType) ApiFindSourcesRequest {
+	r.assetType = &assetType
 	return r
 }
 
@@ -657,6 +664,12 @@ func (a *ModelCatalogServiceAPIService) FindSourcesExecute(r ApiFindSourcesReque
 
 	if r.name != nil {
 		parameterAddToHeaderOrQuery(localVarQueryParams, "name", r.name, "form", "")
+	}
+	if r.assetType != nil {
+		parameterAddToHeaderOrQuery(localVarQueryParams, "assetType", r.assetType, "form", "")
+	} else {
+		var defaultValue CatalogAssetType = "models"
+		r.assetType = &defaultValue
 	}
 	if r.pageSize != nil {
 		parameterAddToHeaderOrQuery(localVarQueryParams, "pageSize", r.pageSize, "form", "")
@@ -1128,35 +1141,30 @@ func (a *ModelCatalogServiceAPIService) GetAllModelPerformanceArtifactsExecute(r
 		parameterAddToHeaderOrQuery(localVarQueryParams, "recommendations", r.recommendations, "form", "")
 	} else {
 		var defaultValue bool = false
-		parameterAddToHeaderOrQuery(localVarQueryParams, "recommendations", defaultValue, "form", "")
 		r.recommendations = &defaultValue
 	}
 	if r.rpsProperty != nil {
 		parameterAddToHeaderOrQuery(localVarQueryParams, "rpsProperty", r.rpsProperty, "form", "")
 	} else {
 		var defaultValue string = "requests_per_second"
-		parameterAddToHeaderOrQuery(localVarQueryParams, "rpsProperty", defaultValue, "form", "")
 		r.rpsProperty = &defaultValue
 	}
 	if r.latencyProperty != nil {
 		parameterAddToHeaderOrQuery(localVarQueryParams, "latencyProperty", r.latencyProperty, "form", "")
 	} else {
 		var defaultValue string = "ttft_p90"
-		parameterAddToHeaderOrQuery(localVarQueryParams, "latencyProperty", defaultValue, "form", "")
 		r.latencyProperty = &defaultValue
 	}
 	if r.hardwareCountProperty != nil {
 		parameterAddToHeaderOrQuery(localVarQueryParams, "hardwareCountProperty", r.hardwareCountProperty, "form", "")
 	} else {
 		var defaultValue string = "hardware_count"
-		parameterAddToHeaderOrQuery(localVarQueryParams, "hardwareCountProperty", defaultValue, "form", "")
 		r.hardwareCountProperty = &defaultValue
 	}
 	if r.hardwareTypeProperty != nil {
 		parameterAddToHeaderOrQuery(localVarQueryParams, "hardwareTypeProperty", r.hardwareTypeProperty, "form", "")
 	} else {
 		var defaultValue string = "hardware_type"
-		parameterAddToHeaderOrQuery(localVarQueryParams, "hardwareTypeProperty", defaultValue, "form", "")
 		r.hardwareTypeProperty = &defaultValue
 	}
 	if r.filterQuery != nil {
@@ -1505,7 +1513,6 @@ func (a *ModelCatalogServiceAPIService) PreviewCatalogSourceExecute(r ApiPreview
 		parameterAddToHeaderOrQuery(localVarQueryParams, "filterStatus", r.filterStatus, "form", "")
 	} else {
 		var defaultValue string = "all"
-		parameterAddToHeaderOrQuery(localVarQueryParams, "filterStatus", defaultValue, "form", "")
 		r.filterStatus = &defaultValue
 	}
 	// to determine the Content-Type header

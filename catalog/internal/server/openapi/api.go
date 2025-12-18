@@ -18,6 +18,15 @@ import (
 	model "github.com/kubeflow/model-registry/catalog/pkg/openapi"
 )
 
+// McpCatalogServiceAPIRouter defines the required methods for binding the api requests to a responses for the McpCatalogServiceAPI
+// The McpCatalogServiceAPIRouter implementation should parse necessary information from the http request,
+// pass the data to a McpCatalogServiceAPIServicer to perform the required actions, then write the service results to the http response.
+type McpCatalogServiceAPIRouter interface {
+	FindMcpServers(http.ResponseWriter, *http.Request)
+	FindMcpServersFilterOptions(http.ResponseWriter, *http.Request)
+	GetMcpServer(http.ResponseWriter, *http.Request)
+}
+
 // ModelCatalogServiceAPIRouter defines the required methods for binding the api requests to a responses for the ModelCatalogServiceAPI
 // The ModelCatalogServiceAPIRouter implementation should parse necessary information from the http request,
 // pass the data to a ModelCatalogServiceAPIServicer to perform the required actions, then write the service results to the http response.
@@ -32,6 +41,16 @@ type ModelCatalogServiceAPIRouter interface {
 	GetAllModelPerformanceArtifacts(http.ResponseWriter, *http.Request)
 }
 
+// McpCatalogServiceAPIServicer defines the api actions for the McpCatalogServiceAPI service
+// This interface intended to stay up to date with the openapi yaml used to generate it,
+// while the service implementation can be ignored with the .openapi-generator-ignore file
+// and updated with the logic required for the API.
+type McpCatalogServiceAPIServicer interface {
+	FindMcpServers(context.Context, string, string, string, string, model.OrderByField, model.SortOrder, string) (ImplResponse, error)
+	FindMcpServersFilterOptions(context.Context) (ImplResponse, error)
+	GetMcpServer(context.Context, string) (ImplResponse, error)
+}
+
 // ModelCatalogServiceAPIServicer defines the api actions for the ModelCatalogServiceAPI service
 // This interface intended to stay up to date with the openapi yaml used to generate it,
 // while the service implementation can be ignored with the .openapi-generator-ignore file
@@ -40,7 +59,7 @@ type ModelCatalogServiceAPIServicer interface {
 	FindLabels(context.Context, string, string, model.SortOrder, string) (ImplResponse, error)
 	FindModels(context.Context, []string, string, []string, string, string, model.OrderByField, model.SortOrder, string) (ImplResponse, error)
 	FindModelsFilterOptions(context.Context) (ImplResponse, error)
-	FindSources(context.Context, string, string, model.OrderByField, model.SortOrder, string) (ImplResponse, error)
+	FindSources(context.Context, string, model.CatalogAssetType, string, model.OrderByField, model.SortOrder, string) (ImplResponse, error)
 	PreviewCatalogSource(context.Context, *os.File, string, string, string, *os.File) (ImplResponse, error)
 	GetModel(context.Context, string, string) (ImplResponse, error)
 	GetAllModelArtifacts(context.Context, string, string, []model.ArtifactTypeQueryParam, []model.ArtifactTypeQueryParam, string, string, string, model.SortOrder, string) (ImplResponse, error)
