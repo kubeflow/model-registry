@@ -1040,8 +1040,24 @@ func getSourceType(source dbmodels.CatalogSource) string {
 				return *prop.StringValue
 			}
 		}
+		glog.V(2).Infof("Source %s has properties but no 'type' property found", getSourceName(source))
+	} else {
+		attrs := source.GetAttributes()
+		sourceName := "unknown"
+		if attrs != nil && attrs.Name != nil {
+			sourceName = *attrs.Name
+		}
+		glog.V(2).Infof("Source %s has no properties", sourceName)
 	}
 	return ""
+}
+
+func getSourceName(source dbmodels.CatalogSource) string {
+	attrs := source.GetAttributes()
+	if attrs != nil && attrs.Name != nil {
+		return *attrs.Name
+	}
+	return "unknown"
 }
 
 // SyncHuggingFaceModels syncs metadata for all Hugging Face models in the catalog.
@@ -1075,8 +1091,10 @@ func SyncHuggingFaceModels(ctx context.Context, services service.Services) error
 		}
 	}
 
+	glog.Infof("Processed %d total source(s), found %d Hugging Face source(s)", len(allSources), len(hfSourceIDs))
+
 	if len(hfSourceIDs) == 0 {
-		glog.V(2).Infof("No Hugging Face sources found in catalog")
+		glog.Infof("No Hugging Face sources found in catalog, returning early")
 		return nil
 	}
 

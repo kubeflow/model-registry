@@ -52,7 +52,7 @@ func runSync(cmd *cobra.Command, args []string) error {
 
 	// Sync all Hugging Face models in the catalog
 	// The sync function will get all models and search them on Hugging Face
-	glog.Infof("Starting sync for all models in catalog")
+	glog.Infof("Starting sync for all Hugging Face models in catalog")
 
 	err = catalog.SyncHuggingFaceModels(ctx, services)
 	if err != nil {

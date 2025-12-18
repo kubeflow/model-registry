@@ -628,6 +628,15 @@ func (l *Loader) saveSourceStatus(sourceID, status string, errorMsg string) {
 		mrmodels.NewStringProperty("status", status, false),
 	}
 
+	// Look up and save the type property from the Sources collection
+	allSources := l.Sources.AllSources()
+	if sourceConfig, exists := allSources[sourceID]; exists && sourceConfig.Type != "" {
+		props = append(props, mrmodels.NewStringProperty("type", sourceConfig.Type, false))
+		glog.V(2).Infof("Saving type property '%s' for source %s", sourceConfig.Type, sourceID)
+	} else {
+		glog.V(2).Infof("Source %s not found in Sources collection or has no type", sourceID)
+	}
+
 	// Only store error property when non-empty
 	if errorMsg != "" {
 		props = append(props, mrmodels.NewStringProperty("error", errorMsg, false))
