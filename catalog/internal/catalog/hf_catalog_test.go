@@ -13,6 +13,8 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	dbmodels "github.com/kubeflow/model-registry/catalog/internal/db/models"
+	"github.com/kubeflow/model-registry/catalog/internal/db/service"
 	apimodels "github.com/kubeflow/model-registry/catalog/pkg/openapi"
 	"github.com/kubeflow/model-registry/internal/db/models"
 )
@@ -1143,4 +1145,516 @@ func TestConvertHFModelToRecord_ArtifactTimestamps(t *testing.T) {
 
 	assert.Equal(t, *record.Model.GetAttributes().CreateTimeSinceEpoch, *attrs.CreateTimeSinceEpoch)
 	assert.Equal(t, *record.Model.GetAttributes().LastUpdateTimeSinceEpoch, *attrs.LastUpdateTimeSinceEpoch)
+}
+
+// MockHFCatalogModelRepository is a mock implementation of CatalogModelRepository for HF sync testing
+type MockHFCatalogModelRepository struct {
+	models    []dbmodels.CatalogModel
+	listError error
+	saveError error
+	saveCalls []dbmodels.CatalogModel
+}
+
+func (m *MockHFCatalogModelRepository) GetByID(id int32) (dbmodels.CatalogModel, error) {
+	return nil, fmt.Errorf("not implemented")
+}
+
+func (m *MockHFCatalogModelRepository) GetByName(name string) (dbmodels.CatalogModel, error) {
+	return nil, fmt.Errorf("not implemented")
+}
+
+func (m *MockHFCatalogModelRepository) List(listOptions dbmodels.CatalogModelListOptions) (*models.ListWrapper[dbmodels.CatalogModel], error) {
+	if m.listError != nil {
+		return nil, m.listError
+	}
+	return &models.ListWrapper[dbmodels.CatalogModel]{
+		Items: m.models,
+	}, nil
+}
+
+func (m *MockHFCatalogModelRepository) Save(model dbmodels.CatalogModel) (dbmodels.CatalogModel, error) {
+	if m.saveError != nil {
+		return nil, m.saveError
+	}
+	m.saveCalls = append(m.saveCalls, model)
+	return model, nil
+}
+
+func (m *MockHFCatalogModelRepository) DeleteBySource(sourceID string) error {
+	return fmt.Errorf("not implemented")
+}
+
+func (m *MockHFCatalogModelRepository) DeleteByID(id int32) error {
+	return fmt.Errorf("not implemented")
+}
+
+func (m *MockHFCatalogModelRepository) GetDistinctSourceIDs() ([]string, error) {
+	return nil, fmt.Errorf("not implemented")
+}
+
+func TestSyncModelsWithTimestampCheck(t *testing.T) {
+	tests := []struct {
+		name          string
+		setupMockDB   func() *MockHFCatalogModelRepository
+		setupMockHF   func() *httptest.Server
+		expectedError bool
+		expectedSaves int
+		verifyFunc    func(t *testing.T, mockRepo *MockHFCatalogModelRepository, hfServer *httptest.Server)
+	}{
+		{
+			name: "services not available",
+			setupMockDB: func() *MockHFCatalogModelRepository {
+				return &MockHFCatalogModelRepository{}
+			},
+			setupMockHF: func() *httptest.Server {
+				return httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {}))
+			},
+			expectedError: true,
+			expectedSaves: 0,
+			verifyFunc: func(t *testing.T, mockRepo *MockHFCatalogModelRepository, hfServer *httptest.Server) {
+				// Verify no saves were attempted when services is nil
+				assert.Equal(t, 0, len(mockRepo.saveCalls))
+			},
+		},
+		{
+			name: "empty model list",
+			setupMockDB: func() *MockHFCatalogModelRepository {
+				return &MockHFCatalogModelRepository{
+					models: []dbmodels.CatalogModel{},
+				}
+			},
+			setupMockHF: func() *httptest.Server {
+				return httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {}))
+			},
+			expectedError: false,
+			expectedSaves: 0,
+		},
+		{
+			name: "model needs update - timestamp changed",
+			setupMockDB: func() *MockHFCatalogModelRepository {
+				modelID := int32(1)
+				typeID := int32(10)
+				modelName := "test-org/test-model"
+				externalID := "test-org/test-model"
+				oldTimestamp := int64(1000000) // Old timestamp
+				return &MockHFCatalogModelRepository{
+					models: []dbmodels.CatalogModel{
+						&dbmodels.CatalogModelImpl{
+							ID:     &modelID,
+							TypeID: &typeID,
+							Attributes: &dbmodels.CatalogModelAttributes{
+								Name:                     &modelName,
+								ExternalID:               &externalID,
+								LastUpdateTimeSinceEpoch: &oldTimestamp,
+							},
+						},
+					},
+				}
+			},
+			setupMockHF: func() *httptest.Server {
+				return httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+					if strings.Contains(r.URL.Path, "/api/models/test-org/test-model") {
+						// Return model with newer timestamp
+						hfInfo := map[string]interface{}{
+							"id":           "test-org/test-model",
+							"author":       "test-org",
+							"createdAt":    "2023-01-01T00:00:00Z",
+							"lastModified": "2023-01-02T12:00:00Z", // Newer timestamp
+							"tags":         []string{"license:mit"},
+						}
+						w.Header().Set("Content-Type", "application/json")
+						json.NewEncoder(w).Encode(hfInfo)
+					}
+				}))
+			},
+			expectedError: false,
+			expectedSaves: 1,
+			verifyFunc: func(t *testing.T, mockRepo *MockHFCatalogModelRepository, hfServer *httptest.Server) {
+				require.Len(t, mockRepo.saveCalls, 1)
+				savedModel := mockRepo.saveCalls[0]
+				attrs := savedModel.GetAttributes()
+				require.NotNil(t, attrs)
+				require.NotNil(t, attrs.LastUpdateTimeSinceEpoch)
+				// Verify timestamp was updated (should be different from old timestamp 1000000)
+				assert.NotEqual(t, int64(1000000), *attrs.LastUpdateTimeSinceEpoch)
+			},
+		},
+		{
+			name: "model doesn't need update - timestamp same",
+			setupMockDB: func() *MockHFCatalogModelRepository {
+				modelID := int32(1)
+				typeID := int32(10)
+				modelName := "test-org/test-model"
+				externalID := "test-org/test-model"
+				// Parse the timestamp from the HF response
+				// "2023-01-02T12:00:00Z" should be around 1672668000000 milliseconds
+				sameTimestamp := int64(1672668000000)
+				return &MockHFCatalogModelRepository{
+					models: []dbmodels.CatalogModel{
+						&dbmodels.CatalogModelImpl{
+							ID:     &modelID,
+							TypeID: &typeID,
+							Attributes: &dbmodels.CatalogModelAttributes{
+								Name:                     &modelName,
+								ExternalID:               &externalID,
+								LastUpdateTimeSinceEpoch: &sameTimestamp,
+							},
+						},
+					},
+				}
+			},
+			setupMockHF: func() *httptest.Server {
+				return httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+					if strings.Contains(r.URL.Path, "/api/models/test-org/test-model") {
+						hfInfo := map[string]interface{}{
+							"id":           "test-org/test-model",
+							"author":       "test-org",
+							"createdAt":    "2023-01-01T00:00:00Z",
+							"lastModified": "2023-01-02T12:00:00Z", // Same timestamp
+						}
+						w.Header().Set("Content-Type", "application/json")
+						json.NewEncoder(w).Encode(hfInfo)
+					}
+				}))
+			},
+			expectedError: false,
+			expectedSaves: 1, // Still saves to update last_synced
+			verifyFunc: func(t *testing.T, mockRepo *MockHFCatalogModelRepository, hfServer *httptest.Server) {
+				require.Len(t, mockRepo.saveCalls, 1)
+				// Verify last_synced was updated
+				savedModel := mockRepo.saveCalls[0]
+				customProps := savedModel.GetCustomProperties()
+				require.NotNil(t, customProps)
+				foundLastSynced := false
+				for _, prop := range *customProps {
+					if prop.Name == "last_synced" {
+						foundLastSynced = true
+						break
+					}
+				}
+				assert.True(t, foundLastSynced, "last_synced should be updated")
+			},
+		},
+		{
+			name: "model missing attributes",
+			setupMockDB: func() *MockHFCatalogModelRepository {
+				modelID := int32(1)
+				typeID := int32(10)
+				return &MockHFCatalogModelRepository{
+					models: []dbmodels.CatalogModel{
+						&dbmodels.CatalogModelImpl{
+							ID:         &modelID,
+							TypeID:     &typeID,
+							Attributes: nil, // Missing attributes
+						},
+					},
+				}
+			},
+			setupMockHF: func() *httptest.Server {
+				return httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {}))
+			},
+			expectedError: false,
+			expectedSaves: 0, // Should skip this model
+		},
+		{
+			name: "model missing name",
+			setupMockDB: func() *MockHFCatalogModelRepository {
+				modelID := int32(1)
+				typeID := int32(10)
+				return &MockHFCatalogModelRepository{
+					models: []dbmodels.CatalogModel{
+						&dbmodels.CatalogModelImpl{
+							ID:     &modelID,
+							TypeID: &typeID,
+							Attributes: &dbmodels.CatalogModelAttributes{
+								Name: nil, // Missing name
+							},
+						},
+					},
+				}
+			},
+			setupMockHF: func() *httptest.Server {
+				return httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {}))
+			},
+			expectedError: false,
+			expectedSaves: 0, // Should skip this model
+		},
+		{
+			name: "HF API error",
+			setupMockDB: func() *MockHFCatalogModelRepository {
+				modelID := int32(1)
+				typeID := int32(10)
+				modelName := "test-org/test-model"
+				return &MockHFCatalogModelRepository{
+					models: []dbmodels.CatalogModel{
+						&dbmodels.CatalogModelImpl{
+							ID:     &modelID,
+							TypeID: &typeID,
+							Attributes: &dbmodels.CatalogModelAttributes{
+								Name: &modelName,
+							},
+						},
+					},
+				}
+			},
+			setupMockHF: func() *httptest.Server {
+				return httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+					if strings.Contains(r.URL.Path, "/api/models/") {
+						w.WriteHeader(http.StatusNotFound)
+						w.Write([]byte("Model not found"))
+					}
+				}))
+			},
+			expectedError: false, // Function continues on error
+			expectedSaves: 0,
+		},
+		{
+			name: "DB save error",
+			setupMockDB: func() *MockHFCatalogModelRepository {
+				modelID := int32(1)
+				typeID := int32(10)
+				modelName := "test-org/test-model"
+				externalID := "test-org/test-model"
+				oldTimestamp := int64(1000000)
+				return &MockHFCatalogModelRepository{
+					models: []dbmodels.CatalogModel{
+						&dbmodels.CatalogModelImpl{
+							ID:     &modelID,
+							TypeID: &typeID,
+							Attributes: &dbmodels.CatalogModelAttributes{
+								Name:                     &modelName,
+								ExternalID:               &externalID,
+								LastUpdateTimeSinceEpoch: &oldTimestamp,
+							},
+						},
+					},
+					saveError: fmt.Errorf("database error"),
+				}
+			},
+			setupMockHF: func() *httptest.Server {
+				return httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+					if strings.Contains(r.URL.Path, "/api/models/test-org/test-model") {
+						hfInfo := map[string]interface{}{
+							"id":           "test-org/test-model",
+							"author":       "test-org",
+							"lastModified": "2023-01-02T12:00:00Z",
+						}
+						w.Header().Set("Content-Type", "application/json")
+						json.NewEncoder(w).Encode(hfInfo)
+					}
+				}))
+			},
+			expectedError: false, // Function continues on error
+			expectedSaves: 0,     // Save fails, so no successful saves
+		},
+		{
+			name: "model with ExternalID vs without",
+			setupMockDB: func() *MockHFCatalogModelRepository {
+				modelID1 := int32(1)
+				modelID2 := int32(2)
+				typeID := int32(10)
+				modelName1 := "model-with-external-id"
+				modelName2 := "model-without-external-id"
+				externalID := "test-org/external-model"
+				return &MockHFCatalogModelRepository{
+					models: []dbmodels.CatalogModel{
+						&dbmodels.CatalogModelImpl{
+							ID:     &modelID1,
+							TypeID: &typeID,
+							Attributes: &dbmodels.CatalogModelAttributes{
+								Name:       &modelName1,
+								ExternalID: &externalID, // Has ExternalID
+							},
+						},
+						&dbmodels.CatalogModelImpl{
+							ID:     &modelID2,
+							TypeID: &typeID,
+							Attributes: &dbmodels.CatalogModelAttributes{
+								Name: &modelName2, // No ExternalID, uses name
+							},
+						},
+					},
+				}
+			},
+			setupMockHF: func() *httptest.Server {
+				return httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+					if strings.Contains(r.URL.Path, "/api/models/test-org/external-model") {
+						// Model with ExternalID
+						hfInfo := map[string]interface{}{
+							"id":           "test-org/external-model",
+							"author":       "test-org",
+							"lastModified": "2023-01-02T12:00:00Z",
+						}
+						w.Header().Set("Content-Type", "application/json")
+						json.NewEncoder(w).Encode(hfInfo)
+					} else if strings.Contains(r.URL.Path, "/api/models/model-without-external-id") {
+						// Model without ExternalID (uses name)
+						hfInfo := map[string]interface{}{
+							"id":           "model-without-external-id",
+							"author":       "test-org",
+							"lastModified": "2023-01-02T12:00:00Z",
+						}
+						w.Header().Set("Content-Type", "application/json")
+						json.NewEncoder(w).Encode(hfInfo)
+					}
+				}))
+			},
+			expectedError: false,
+			expectedSaves: 2, // Both models should be saved (to update last_synced)
+		},
+		{
+			name: "model with no update timestamp from HF",
+			setupMockDB: func() *MockHFCatalogModelRepository {
+				modelID := int32(1)
+				typeID := int32(10)
+				modelName := "test-org/test-model"
+				existingTimestamp := int64(1000000)
+				return &MockHFCatalogModelRepository{
+					models: []dbmodels.CatalogModel{
+						&dbmodels.CatalogModelImpl{
+							ID:     &modelID,
+							TypeID: &typeID,
+							Attributes: &dbmodels.CatalogModelAttributes{
+								Name:                     &modelName,
+								LastUpdateTimeSinceEpoch: &existingTimestamp,
+							},
+						},
+					},
+				}
+			},
+			setupMockHF: func() *httptest.Server {
+				return httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+					if strings.Contains(r.URL.Path, "/api/models/test-org/test-model") {
+						// Return model without lastModified
+						hfInfo := map[string]interface{}{
+							"id":     "test-org/test-model",
+							"author": "test-org",
+							// No lastModified field
+						}
+						w.Header().Set("Content-Type", "application/json")
+						json.NewEncoder(w).Encode(hfInfo)
+					}
+				}))
+			},
+			expectedError: false,
+			expectedSaves: 1, // Should update because HF missing timestamp but we have one
+			verifyFunc: func(t *testing.T, mockRepo *MockHFCatalogModelRepository, hfServer *httptest.Server) {
+				require.Len(t, mockRepo.saveCalls, 1)
+			},
+		},
+		{
+			name: "DB list error",
+			setupMockDB: func() *MockHFCatalogModelRepository {
+				return &MockHFCatalogModelRepository{
+					listError: fmt.Errorf("database connection error"),
+				}
+			},
+			setupMockHF: func() *httptest.Server {
+				return httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {}))
+			},
+			expectedError: true,
+			expectedSaves: 0,
+		},
+		{
+			name: "multiple models with mixed scenarios",
+			setupMockDB: func() *MockHFCatalogModelRepository {
+				modelID1 := int32(1)
+				modelID2 := int32(2)
+				modelID3 := int32(3)
+				typeID := int32(10)
+				modelName1 := "test-org/model-1"
+				modelName2 := "test-org/model-2"
+				_ = "test-org/model-3" // modelName3 not used but defined for clarity
+				oldTimestamp := int64(1000000)
+				sameTimestamp := int64(1672668000000)
+				return &MockHFCatalogModelRepository{
+					models: []dbmodels.CatalogModel{
+						&dbmodels.CatalogModelImpl{
+							ID:     &modelID1,
+							TypeID: &typeID,
+							Attributes: &dbmodels.CatalogModelAttributes{
+								Name:                     &modelName1,
+								LastUpdateTimeSinceEpoch: &oldTimestamp, // Needs update
+							},
+						},
+						&dbmodels.CatalogModelImpl{
+							ID:     &modelID2,
+							TypeID: &typeID,
+							Attributes: &dbmodels.CatalogModelAttributes{
+								Name:                     &modelName2,
+								LastUpdateTimeSinceEpoch: &sameTimestamp, // No update needed
+							},
+						},
+						&dbmodels.CatalogModelImpl{
+							ID:     &modelID3,
+							TypeID: &typeID,
+							Attributes: &dbmodels.CatalogModelAttributes{
+								Name: nil, // Missing name, should be skipped
+							},
+						},
+					},
+				}
+			},
+			setupMockHF: func() *httptest.Server {
+				return httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+					if strings.Contains(r.URL.Path, "/api/models/test-org/model-1") {
+						hfInfo := map[string]interface{}{
+							"id":           "test-org/model-1",
+							"lastModified": "2023-01-02T12:00:00Z",
+						}
+						w.Header().Set("Content-Type", "application/json")
+						json.NewEncoder(w).Encode(hfInfo)
+					} else if strings.Contains(r.URL.Path, "/api/models/test-org/model-2") {
+						hfInfo := map[string]interface{}{
+							"id":           "test-org/model-2",
+							"lastModified": "2023-01-02T12:00:00Z", // Same timestamp
+						}
+						w.Header().Set("Content-Type", "application/json")
+						json.NewEncoder(w).Encode(hfInfo)
+					}
+				}))
+			},
+			expectedError: false,
+			expectedSaves: 2, // model-1 updated, model-2 last_synced updated, model-3 skipped
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			mockRepo := tt.setupMockDB()
+			hfServer := tt.setupMockHF()
+			defer hfServer.Close()
+
+			// Create services with mock repository (nil for "services not available" test)
+			var services *service.Services
+			if tt.name != "services not available" {
+				services = &service.Services{
+					CatalogModelRepository: mockRepo,
+				}
+			}
+
+			// Create provider
+			provider := &hfModelProvider{
+				client:   &http.Client{},
+				sourceId: "test-source",
+				baseURL:  hfServer.URL,
+				services: services,
+			}
+
+			ctx := context.Background()
+			err := provider.syncModelsWithTimestampCheck(ctx)
+
+			if tt.expectedError {
+				require.Error(t, err)
+			} else {
+				require.NoError(t, err)
+			}
+
+			assert.Equal(t, tt.expectedSaves, len(mockRepo.saveCalls), "Number of save calls should match")
+
+			if tt.verifyFunc != nil {
+				tt.verifyFunc(t, mockRepo, hfServer)
+			}
+		})
+	}
 }
