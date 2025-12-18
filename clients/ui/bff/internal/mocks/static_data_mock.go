@@ -273,6 +273,18 @@ func catalogCustomProperties() *map[string]openapi.MetadataValue {
 				MetadataType: "MetadataStringValue",
 			},
 		},
+		"tensorType": {
+			MetadataStringValue: &openapi.MetadataStringValue{
+				StringValue:  "FP8",
+				MetadataType: "MetadataStringValue",
+			},
+		},
+		"size": {
+			MetadataStringValue: &openapi.MetadataStringValue{
+				StringValue:  "7B param",
+				MetadataType: "MetadataStringValue",
+			},
+		},
 	}
 
 	return &result
@@ -669,8 +681,6 @@ Granite 3.1 Instruct Models are primarily finetuned using instruction-response p
   ` + "```" + ` -->`),
 		SourceId:                 stringToPointer("sample-source"),
 		LibraryName:              stringToPointer("transformers"),
-		Size:                     stringToPointer("7B param"),
-		TensorType:               stringToPointer("FP8"),
 		CreateTimeSinceEpoch:     stringToPointer("1693526400000"),
 		LastUpdateTimeSinceEpoch: stringToPointer("1704067200000"),
 	}

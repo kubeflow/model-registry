@@ -37,8 +37,6 @@ export type CatalogModel = {
   logo?: string;
   tasks?: string[];
   libraryName?: string;
-  size?: string;
-  tensorType?: string;
   license?: string;
   licenseLink?: string;
   description?: string;

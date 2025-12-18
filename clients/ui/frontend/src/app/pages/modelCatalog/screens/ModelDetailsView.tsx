@@ -1,5 +1,6 @@
 import * as React from 'react';
 import {
+  Button,
   Card,
   CardBody,
   CardHeader,
@@ -12,6 +13,7 @@ import {
   Label,
   LabelGroup,
   PageSection,
+  Popover,
   Sidebar,
   SidebarContent,
   SidebarPanel,
@@ -21,11 +23,15 @@ import {
   StackItem,
   Title,
 } from '@patternfly/react-core';
-import { OutlinedClockIcon } from '@patternfly/react-icons';
+import { OutlinedClockIcon, HelpIcon } from '@patternfly/react-icons';
 import { InlineTruncatedClipboardCopy } from 'mod-arch-shared';
 import text from '@patternfly/react-styles/css/utilities/Text/text';
 import { CatalogArtifactList, CatalogModel } from '~/app/modelCatalogTypes';
-import { getLabels, getValidatedOnPlatforms } from '~/app/pages/modelRegistry/screens/utils';
+import {
+  getLabels,
+  getValidatedOnPlatforms,
+  getCustomPropString,
+} from '~/app/pages/modelRegistry/screens/utils';
 import ModelCatalogLabels from '~/app/pages/modelCatalog/components/ModelCatalogLabels';
 import ExternalLink from '~/app/shared/components/ExternalLink';
 import MarkdownComponent from '~/app/shared/markdown/MarkdownComponent';
@@ -55,6 +61,12 @@ const ModelDetailsView: React.FC<ModelDetailsViewProps> = ({
 
   // Extract validated_on platforms
   const validatedOnPlatforms = getValidatedOnPlatforms(model.customProperties);
+
+  // Extract tensor type and size from customProperties
+  const tensorType = model.customProperties
+    ? getCustomPropString(model.customProperties, 'tensorType')
+    : '';
+  const size = model.customProperties ? getCustomPropString(model.customProperties, 'size') : '';
 
   return (
     <PageSection hasBodyWrapper={false} isFilled padding={{ default: 'noPadding' }}>
@@ -119,13 +131,11 @@ const ModelDetailsView: React.FC<ModelDetailsViewProps> = ({
                 </DescriptionListGroup>
                 <DescriptionListGroup>
                   <DescriptionListTerm>Tensor type</DescriptionListTerm>
-                  <DescriptionListDescription>
-                    {model.tensorType || 'N/A'}
-                  </DescriptionListDescription>
+                  <DescriptionListDescription>{tensorType || 'N/A'}</DescriptionListDescription>
                 </DescriptionListGroup>
                 <DescriptionListGroup>
                   <DescriptionListTerm>Size</DescriptionListTerm>
-                  <DescriptionListDescription>{model.size || 'N/A'}</DescriptionListDescription>
+                  <DescriptionListDescription>{size || 'N/A'}</DescriptionListDescription>
                 </DescriptionListGroup>
                 <DescriptionListGroup>
                   <DescriptionListTerm>License</DescriptionListTerm>
@@ -141,7 +151,17 @@ const ModelDetailsView: React.FC<ModelDetailsViewProps> = ({
                 </DescriptionListGroup>
                 {validatedOnPlatforms.length > 0 && (
                   <DescriptionListGroup>
-                    <DescriptionListTerm>Validated on</DescriptionListTerm>
+                    <DescriptionListTerm>
+                      Validated on{' '}
+                      <Popover bodyContent="The platform versions where this model has been validated for operational readiness and compatibility.">
+                        <Button
+                          variant="plain"
+                          aria-label="More info for validated on"
+                          className="pf-v6-u-p-xs"
+                          icon={<HelpIcon />}
+                        />
+                      </Popover>
+                    </DescriptionListTerm>
                     <DescriptionListDescription>
                       <LabelGroup numLabels={5} isCompact>
                         {validatedOnPlatforms.map((platform) => (
