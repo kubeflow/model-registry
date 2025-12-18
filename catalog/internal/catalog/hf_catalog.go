@@ -491,9 +491,39 @@ func (p *hfModelProvider) convertHFModelToRecord(ctx context.Context, hfInfo *hf
 		model.CustomProperties = &customProperties
 	}
 
+	// Create model artifact with hf:// protocol for KServe CSI deployment
+	artifacts := []dbmodels.CatalogArtifact{}
+	if hfm.ExternalId != nil && *hfm.ExternalId != "" {
+		// Construct hf:// URI using the HuggingFace model ID
+		hfUri := fmt.Sprintf("hf://%s", *hfm.ExternalId)
+		artifactType := "model-artifact"
+		artifactName := fmt.Sprintf("%s-hf-artifact", modelName)
+
+		// Create CatalogModelArtifact
+		modelArtifact := &dbmodels.CatalogModelArtifactImpl{}
+		modelArtifact.Attributes = &dbmodels.CatalogModelArtifactAttributes{
+			Name:         &artifactName,
+			URI:          &hfUri,
+			ArtifactType: &artifactType,
+			ExternalID:   hfm.ExternalId,
+		}
+
+		// Add timestamps if available from parent model
+		if attrs.CreateTimeSinceEpoch != nil {
+			modelArtifact.Attributes.CreateTimeSinceEpoch = attrs.CreateTimeSinceEpoch
+		}
+		if attrs.LastUpdateTimeSinceEpoch != nil {
+			modelArtifact.Attributes.LastUpdateTimeSinceEpoch = attrs.LastUpdateTimeSinceEpoch
+		}
+
+		artifacts = append(artifacts, dbmodels.CatalogArtifact{
+			CatalogModelArtifact: modelArtifact,
+		})
+	}
+
 	return ModelProviderRecord{
 		Model:     &model,
-		Artifacts: []dbmodels.CatalogArtifact{}, // HF models don't have artifacts from the API
+		Artifacts: artifacts,
 	}
 }
 
@@ -702,14 +732,14 @@ func NewHFPreviewProvider(config *PreviewConfig) (*hfModelProvider, error) {
 		maxModels: defaultMaxModels,
 	}
 
-	// Parse API key from environment variable
+	// Parse API key from environment variable (optional - allows public model access without key)
 	apiKeyEnvVar := defaultAPIKeyEnvVar
 	if envVar, ok := config.Properties[apiKeyEnvVarKey].(string); ok && envVar != "" {
 		apiKeyEnvVar = envVar
 	}
 	apiKey := os.Getenv(apiKeyEnvVar)
 	if apiKey == "" {
-		return nil, fmt.Errorf("missing %s environment variable for HuggingFace preview", apiKeyEnvVar)
+		glog.Infof("No API key configured for Hugging Face preview. Only public models and limited data for gated models will be available.")
 	}
 	p.apiKey = apiKey
 
@@ -945,9 +975,11 @@ func (p *hfModelProvider) FetchModelNamesForPreview(ctx context.Context, modelId
 		return nil, fmt.Errorf("includedModels is required for HuggingFace source preview")
 	}
 
-	// Validate credentials first
-	if err := p.validateCredentials(ctx); err != nil {
-		return nil, fmt.Errorf("failed to validate HuggingFace credentials: %w", err)
+	// Validate credentials only if API key is provided
+	if p.apiKey != "" {
+		if err := p.validateCredentials(ctx); err != nil {
+			return nil, fmt.Errorf("failed to validate HuggingFace credentials: %w", err)
+		}
 	}
 
 	names := make([]string, 0)

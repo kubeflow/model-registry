@@ -274,10 +274,6 @@ class ManageSourcePage {
     return cy.findByTestId('access-token-input');
   }
 
-  findAccessTokenError() {
-    return cy.findByTestId('access-token-error');
-  }
-
   findOrganizationInput() {
     return cy.findByTestId('organization-input');
   }

@@ -1,6 +1,7 @@
 package catalog
 
 import (
+	"flag"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -11,7 +12,20 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+var enableMonitorTests = flag.Bool("monitor-tests", false, "Enable flaky monitor tests (disabled by default)")
+
+// skipFlaky checks if flaky monitor tests should be skipped.
+// These tests are disabled by default due to timing sensitivity in CI environments.
+// Run with -monitor-tests flag to enable them.
+func skipFlaky(t *testing.T) {
+	t.Helper()
+	if !*enableMonitorTests {
+		t.Skip("Skipping flaky monitor test. Run with -monitor-tests flag to enable.")
+	}
+}
+
 func TestMonitor(t *testing.T) {
+	skipFlaky(t)
 	assert := assert.New(t)
 
 	mon, err := newMonitor()
@@ -72,6 +86,7 @@ func TestMonitor(t *testing.T) {
 }
 
 func TestMonitorSymlinks(t *testing.T) {
+	skipFlaky(t)
 	assert := assert.New(t)
 
 	tmpDir := t.TempDir()

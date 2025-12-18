@@ -15,10 +15,7 @@ import PasswordInput from '~/app/shared/components/PasswordInput';
 import FormFieldset from '~/app/pages/modelRegistry/screens/components/FormFieldset';
 import FormSection from '~/app/pages/modelRegistry/components/pf-overrides/FormSection';
 import { ManageSourceFormData } from '~/app/pages/modelCatalogSettings/useManageSourceData';
-import {
-  validateOrganization,
-  validateAccessToken,
-} from '~/app/pages/modelCatalogSettings/utils/validation';
+import { validateOrganization } from '~/app/pages/modelCatalogSettings/utils/validation';
 import {
   FORM_LABELS,
   VALIDATION_MESSAGES,
@@ -46,10 +43,8 @@ const CredentialsSection: React.FC<CredentialsSectionProps> = ({
   onClearValidationSuccess,
 }) => {
   const [isOrganizationTouched, setIsOrganizationTouched] = React.useState(false);
-  const [isAccessTokenTouched, setIsAccessTokenTouched] = React.useState(false);
 
   const isOrganizationValid = validateOrganization(formData.organization);
-  const isAccessTokenValid = validateAccessToken(formData.accessToken);
 
   const organizationInput = (
     <TextInput
@@ -74,8 +69,6 @@ const CredentialsSection: React.FC<CredentialsSectionProps> = ({
       data-testid="access-token-input"
       value={formData.accessToken}
       onChange={(_event, value) => setData('accessToken', value)}
-      onBlur={() => setIsAccessTokenTouched(true)}
-      validated={isAccessTokenTouched && !isAccessTokenValid ? 'error' : 'default'}
       ariaLabelShow="Show access token"
       ariaLabelHide="Hide access token"
     />
@@ -101,22 +94,13 @@ const CredentialsSection: React.FC<CredentialsSectionProps> = ({
         )}
       </FormGroup>
 
-      <FormGroup label={FORM_LABELS.ACCESS_TOKEN} isRequired fieldId="access-token">
+      <FormGroup label={FORM_LABELS.ACCESS_TOKEN} fieldId="access-token">
         <FormHelperText>
           <HelperText>
             <HelperTextItem>{HELP_TEXT.ACCESS_TOKEN}</HelperTextItem>
           </HelperText>
         </FormHelperText>
         <FormFieldset component={accessTokenInput} field="Access token" />
-        {isAccessTokenTouched && !isAccessTokenValid && (
-          <FormHelperText>
-            <HelperText>
-              <HelperTextItem variant="error" data-testid="access-token-error">
-                {VALIDATION_MESSAGES.ACCESS_TOKEN_REQUIRED}
-              </HelperTextItem>
-            </HelperText>
-          </FormHelperText>
-        )}
       </FormGroup>
       {validationError && (
         <Alert isInline variant="danger" title="Validation failed" className="pf-v5-u-mt-md">
@@ -137,7 +121,7 @@ const CredentialsSection: React.FC<CredentialsSectionProps> = ({
 
       <ActionList className="pf-v5-u-mt-md">
         <Button
-          isDisabled={!isAccessTokenValid || !isOrganizationValid || isValidating}
+          isDisabled={!isOrganizationValid || isValidating}
           variant="link"
           onClick={onValidate}
           isLoading={isValidating}

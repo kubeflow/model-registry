@@ -168,7 +168,7 @@ func (m *ModelCatalogClientMock) GetAllCatalogSources(client httpclient.HTTPClie
 	return &catalogSourceList, nil
 }
 
-func (m *ModelCatalogClientMock) GetCatalogSourceModelArtifacts(client httpclient.HTTPClientInterface, sourceId string, modelName string) (*models.CatalogModelArtifactList, error) {
+func (m *ModelCatalogClientMock) GetCatalogSourceModelArtifacts(client httpclient.HTTPClientInterface, sourceId string, modelName string, pageValues url.Values) (*models.CatalogModelArtifactList, error) {
 	var allMockModelArtifacts models.CatalogModelArtifactList
 
 	if sourceId == "sample-source" && modelName == "repo1%2Fgranite-8b-code-instruct" {
@@ -202,13 +202,19 @@ func (m *ModelCatalogClientMock) GetCatalogSourceModelArtifacts(client httpclien
 	return &allMockModelArtifacts, nil
 }
 
+func (m *ModelCatalogClientMock) GetCatalogModelPerformanceArtifacts(client httpclient.HTTPClientInterface, sourceId string, modelName string, pageValues url.Values) (*models.CatalogModelArtifactList, error) {
+	allMockModelPerformanceArtifacts := GetCatalogPerformanceMetricsArtifactListMock(4)
+	return &allMockModelPerformanceArtifacts, nil
+
+}
+
 func (m *ModelCatalogClientMock) GetCatalogFilterOptions(client httpclient.HTTPClientInterface) (*models.FilterOptionsList, error) {
 	filterOptions := GetFilterOptionsListMock()
 
 	return &filterOptions, nil
 }
 
-func (m *ModelCatalogClientMock) CreateCatalogSourcePreview(client httpclient.HTTPClientInterface, sourcePreviewPaylod models.CatalogSourcePreviewRequest) (*models.CatalogSourcePreviewResult, error) {
+func (m *ModelCatalogClientMock) CreateCatalogSourcePreview(client httpclient.HTTPClientInterface, sourcePreviewPayload models.CatalogSourcePreviewRequest, pageValues url.Values) (*models.CatalogSourcePreviewResult, error) {
 	catalogSourcePreview := CreateCatalogSourcePreviewMock()
 
 	return &catalogSourcePreview, nil

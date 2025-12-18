@@ -41,6 +41,27 @@ func FilterPageValues(values url.Values) url.Values {
 	if v := values.Get("artifactType"); v != "" {
 		result.Set("artifactType", v)
 	}
+	if v := values.Get("targetRPS"); v != "" {
+		result.Set("targetRPS", v)
+	}
+	if v := values.Get("recommendations"); v != "" {
+		result.Set("recommendations", v)
+	}
+	if v := values.Get("rpsProperty"); v != "" {
+		result.Set("rpsProperty", v)
+	}
+	if v := values.Get("latencyProperty"); v != "" {
+		result.Set("latencyProperty", v)
+	}
+	if v := values.Get("hardwareCountProperty"); v != "" {
+		result.Set("hardwareCountProperty", v)
+	}
+	if v := values.Get("hardwareTypeProperty"); v != "" {
+		result.Set("hardwareTypeProperty", v)
+	}
+	if v := values.Get("filterStatus"); v != "" {
+		result.Set("filterStatus", v)
+	}
 
 	return result
 }

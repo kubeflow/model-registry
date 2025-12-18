@@ -573,8 +573,8 @@ func TestPreviewSourceModels_HuggingFace_Errors(t *testing.T) {
 		assert.Contains(t, err.Error(), "includedModels is required")
 	})
 
-	t.Run("hf preview without API key returns error", func(t *testing.T) {
-		// Ensure HF_API_KEY is not set
+	t.Run("hf preview without API key works for public models", func(t *testing.T) {
+		// Ensure HF_API_KEY is not set - should still work for public models
 		oldKey := os.Getenv("HF_API_KEY")
 		os.Unsetenv("HF_API_KEY")
 		defer func() {
@@ -586,13 +586,14 @@ func TestPreviewSourceModels_HuggingFace_Errors(t *testing.T) {
 		config := &PreviewConfig{
 			Type: "hf",
 			IncludedModels: []string{
-				"meta-llama/Llama-2-7b-chat",
+				"openai-community/gpt2", // public model that doesn't require auth
 			},
 		}
 
-		_, err := PreviewSourceModels(context.Background(), config, nil)
-		require.Error(t, err)
-		assert.Contains(t, err.Error(), "HF_API_KEY")
+		// Should not return an error - API key is optional
+		result, err := PreviewSourceModels(context.Background(), config, nil)
+		require.NoError(t, err)
+		assert.NotNil(t, result)
 	})
 }
 

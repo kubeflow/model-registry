@@ -41,7 +41,7 @@ jobs:
       - name: Start Kind Cluster
         uses: helm/kind-action@v1.13.0
         with:
-          node_image: "kindest/node:v1.27.11"
+          node_image: "kindest/node:v1.33.7"
       - name: Load Local Registry Test Image
         env:
           IMG: "${{ env.IMG_REGISTRY }}/${{ env.IMG_ORG }}/${{ env.IMG_REPO }}:${{ steps.tags.outputs.tag }}"
