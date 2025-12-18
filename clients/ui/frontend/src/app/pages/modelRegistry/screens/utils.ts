@@ -14,6 +14,7 @@ import {
   ModelRegistryFilterDataType,
   ModelRegistryVersionsFilterDataType,
 } from '~/app/pages/modelRegistry/screens/const';
+import { CatalogModelCustomPropertyKey } from '~/concepts/modelCatalog/const';
 
 export type ObjectStorageFields = {
   endpoint: string;
@@ -209,7 +210,10 @@ export const getValidatedOnPlatforms = <T extends ModelRegistryCustomProperties>
     return [];
   }
 
-  const validatedOnString = getCustomPropString(customProperties, 'validated_on');
+  const validatedOnString = getCustomPropString(
+    customProperties,
+    CatalogModelCustomPropertyKey.VALIDATED_ON,
+  );
 
   if (!validatedOnString) {
     return [];
