@@ -123,3 +123,35 @@ export const mockCatalogAccuracyMetricsArtifactList = (
   nextPageToken: '',
   ...partial,
 });
+
+/**
+ * Mock artifact with missing customProperties to test defensive handling.
+ * This simulates an API response where customProperties is undefined/null.
+ */
+export const mockCatalogPerformanceMetricsArtifactWithoutCustomProperties =
+  (): CatalogPerformanceMetricsArtifact => ({
+    artifactType: CatalogArtifactType.metricsArtifact,
+    metricsType: MetricsType.performanceMetrics,
+    createTimeSinceEpoch: '1739210683000',
+    lastUpdateTimeSinceEpoch: '1739210683000',
+    // customProperties intentionally omitted
+  });
+
+/**
+ * Mock artifact with partial customProperties (some fields missing).
+ * This simulates an API response where only some fields are present.
+ */
+export const mockCatalogPerformanceMetricsArtifactWithPartialCustomProperties =
+  (): CatalogPerformanceMetricsArtifact => ({
+    artifactType: CatalogArtifactType.metricsArtifact,
+    metricsType: MetricsType.performanceMetrics,
+    createTimeSinceEpoch: '1739210683000',
+    lastUpdateTimeSinceEpoch: '1739210683000',
+    customProperties: {
+      // Only hardware_type present, missing hardware_count, requests_per_second, etc.
+      hardware_type: {
+        metadataType: ModelRegistryMetadataType.STRING,
+        string_value: 'H100-80',
+      },
+    },
+  });

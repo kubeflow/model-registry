@@ -51,7 +51,7 @@ describe('hardwareConfigurationFilterUtils', () => {
       const ragResults = filterHardwareConfigurationArtifacts(artifacts, ragFilterState);
 
       expect(ragResults).toHaveLength(1);
-      expect(ragResults[0].customProperties.use_case?.string_value).toBe('rag');
+      expect(ragResults[0].customProperties?.use_case?.string_value).toBe('rag');
     });
 
     it('should filter artifacts for long_rag independently from rag', () => {
@@ -66,7 +66,7 @@ describe('hardwareConfigurationFilterUtils', () => {
       const longRagResults = filterHardwareConfigurationArtifacts(artifacts, longRagFilterState);
 
       expect(longRagResults).toHaveLength(1);
-      expect(longRagResults[0].customProperties.use_case?.string_value).toBe('long_rag');
+      expect(longRagResults[0].customProperties?.use_case?.string_value).toBe('long_rag');
     });
 
     it('should filter artifacts for multiple use cases', () => {
@@ -86,7 +86,7 @@ describe('hardwareConfigurationFilterUtils', () => {
 
       expect(multiResults).toHaveLength(2);
       const useCases = multiResults.map(
-        (artifact) => artifact.customProperties.use_case?.string_value,
+        (artifact) => artifact.customProperties?.use_case?.string_value,
       );
       expect(useCases).toContain('rag');
       expect(useCases).toContain('long_rag');
@@ -137,7 +137,7 @@ describe('hardwareConfigurationFilterUtils', () => {
 
       // Should only return the artifact with matching use_case
       expect(results).toHaveLength(1);
-      expect(results[0].customProperties.use_case?.string_value).toBe('rag');
+      expect(results[0].customProperties?.use_case?.string_value).toBe('rag');
     });
 
     describe('exact matching verification', () => {
@@ -170,7 +170,7 @@ describe('hardwareConfigurationFilterUtils', () => {
 
         // Should only match exact 'rag', not 'long_rag' or 'rag_extended'
         expect(results).toHaveLength(1);
-        expect(results[0].customProperties.use_case?.string_value).toBe('rag');
+        expect(results[0].customProperties?.use_case?.string_value).toBe('rag');
       });
     });
   });

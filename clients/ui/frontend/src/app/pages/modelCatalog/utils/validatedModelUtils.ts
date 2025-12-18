@@ -21,10 +21,10 @@ export type PerformanceMetrics = {
 export const extractPerformanceMetrics = (
   performanceMetrics: CatalogPerformanceMetricsArtifact,
 ): PerformanceMetrics => ({
-  hardwareType: performanceMetrics.customProperties.hardware_type?.string_value || 'H100-80',
-  hardwareCount: performanceMetrics.customProperties.hardware_count?.int_value || '1',
-  rpsPerReplica: performanceMetrics.customProperties.requests_per_second?.double_value || 1,
-  ttftMean: performanceMetrics.customProperties.ttft_mean?.double_value || 1428,
+  hardwareType: performanceMetrics.customProperties?.hardware_type?.string_value || 'H100-80',
+  hardwareCount: performanceMetrics.customProperties?.hardware_count?.int_value || '1',
+  rpsPerReplica: performanceMetrics.customProperties?.requests_per_second?.double_value || 1,
+  ttftMean: performanceMetrics.customProperties?.ttft_mean?.double_value || 1428,
 });
 
 // NOTE: overall_average is currently omitted from the API and will be restored

@@ -78,9 +78,9 @@ export enum CatalogSourceType {
 }
 
 export type CatalogArtifactBase = {
-  createTimeSinceEpoch: string;
-  lastUpdateTimeSinceEpoch: string;
-  customProperties: ModelRegistryCustomProperties;
+  createTimeSinceEpoch?: string;
+  lastUpdateTimeSinceEpoch?: string;
+  customProperties?: ModelRegistryCustomProperties;
 };
 
 export type CatalogModelArtifact = CatalogArtifactBase & {
@@ -119,13 +119,13 @@ export type AccuracyMetricsCustomProperties = {
 export type CatalogPerformanceMetricsArtifact = Omit<CatalogArtifactBase, 'customProperties'> & {
   artifactType: CatalogArtifactType.metricsArtifact;
   metricsType: MetricsType.performanceMetrics;
-  customProperties: PerformanceMetricsCustomProperties;
+  customProperties?: PerformanceMetricsCustomProperties;
 };
 
 export type CatalogAccuracyMetricsArtifact = Omit<CatalogArtifactBase, 'customProperties'> & {
   artifactType: CatalogArtifactType.metricsArtifact;
   metricsType: MetricsType.accuracyMetrics;
-  customProperties: AccuracyMetricsCustomProperties;
+  customProperties?: AccuracyMetricsCustomProperties;
 };
 
 export type CatalogMetricsArtifact =
