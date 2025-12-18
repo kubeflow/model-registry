@@ -252,6 +252,7 @@ func (d *dbCatalogImpl) GetFilterOptions(ctx context.Context) (*apimodels.Filter
 					Value:    filter.Value,
 				}
 			}
+			d.applyMinMax(apiFieldFilters, options)
 			apiNamedQueries[queryName] = apiFieldFilters
 		}
 
@@ -264,6 +265,37 @@ func (d *dbCatalogImpl) GetFilterOptions(ctx context.Context) (*apimodels.Filter
 		Filters:      &options,
 		NamedQueries: namedQueriesPtr,
 	}, nil
+}
+
+func (d *dbCatalogImpl) applyMinMax(query map[string]apimodels.FieldFilter, options map[string]apimodels.FilterOption) {
+	// Find queries where the value is min or max and replace it with the
+	// actual min or max from the filter options.
+	for key, filter := range query {
+		// Find string values that are either min or max
+		value, ok := filter.Value.(string)
+		if !ok || (value != "min" && value != "max") {
+			continue
+		}
+
+		option, ok := options[key]
+		if !ok || option.Range == nil {
+			// Skip fields without a corresponding option or options without a range.
+			continue
+		}
+
+		switch value {
+		case "min":
+			if option.Range.Min != nil {
+				filter.Value = *option.Range.Min
+			}
+		case "max":
+			if option.Range.Max != nil {
+				filter.Value = *option.Range.Max
+			}
+		}
+
+		query[key] = filter
+	}
 }
 
 func (d *dbCatalogImpl) GetPerformanceArtifacts(ctx context.Context, modelName string, sourceID string, params ListPerformanceArtifactsParams) (apimodels.CatalogArtifactList, error) {

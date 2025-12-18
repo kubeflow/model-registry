@@ -1513,7 +1513,7 @@ func TestDBCatalog_GetPerformanceArtifactsWithService(t *testing.T) {
 }
 
 func TestGetFilterOptionsWithNamedQueries(t *testing.T) {
-	// Setup mock sources with named queries
+	// Setup mock sources with named queries, including some with min/max values
 	sources := NewSourceCollection()
 	namedQueries := map[string]map[string]FieldFilter{
 		"validation-default": {
@@ -1523,30 +1523,51 @@ func TestGetFilterOptionsWithNamedQueries(t *testing.T) {
 		"high-performance": {
 			"performance_score": {Operator: ">", Value: 0.95},
 		},
+		"range-query": {
+			"latency_ms":   {Operator: ">=", Value: "min"},
+			"throughput":   {Operator: "<=", Value: "max"},
+			"memory_usage": {Operator: ">", Value: "min"},
+		},
 	}
 
 	err := sources.MergeWithNamedQueries("test", map[string]Source{}, namedQueries)
 	require.NoError(t, err)
 
-	// Create catalog with mocked dependencies
+	// Create catalog with mocked dependencies that provide filter options with ranges
 	mockServices := service.Services{
-		PropertyOptionsRepository: &mockPropertyRepository{},
+		PropertyOptionsRepository: &mockPropertyRepositoryWithRanges{},
 	}
 	catalog := NewDBCatalog(mockServices, sources)
 
-	// Test GetFilterOptions includes named queries
+	// Test GetFilterOptions includes named queries with min/max transformed
 	result, err := catalog.GetFilterOptions(context.Background())
 	require.NoError(t, err)
 	require.NotNil(t, result.NamedQueries)
 
 	queries := *result.NamedQueries
-	assert.Len(t, queries, 2)
+	assert.Len(t, queries, 3)
 
+	// Test original queries without min/max are unchanged
 	validationQuery := queries["validation-default"]
 	assert.Equal(t, "<", validationQuery["ttft_p90"].Operator)
 	assert.Equal(t, 70, validationQuery["ttft_p90"].Value)
 	assert.Equal(t, "=", validationQuery["workload_type"].Operator)
 	assert.Equal(t, "Chat", validationQuery["workload_type"].Value)
+
+	// Test queries with min/max values are transformed to actual numeric values
+	rangeQuery := queries["range-query"]
+
+	// Verify "min" is replaced with actual min value (10.0)
+	assert.Equal(t, ">=", rangeQuery["latency_ms"].Operator)
+	assert.Equal(t, 10.0, rangeQuery["latency_ms"].Value, "Expected 'min' to be replaced with 10.0")
+
+	// Verify "max" is replaced with actual max value (1000.0)
+	assert.Equal(t, "<=", rangeQuery["throughput"].Operator)
+	assert.Equal(t, 1000.0, rangeQuery["throughput"].Value, "Expected 'max' to be replaced with 1000.0")
+
+	// Verify "min" is replaced with actual min value (0.0)
+	assert.Equal(t, ">", rangeQuery["memory_usage"].Operator)
+	assert.Equal(t, 0.0, rangeQuery["memory_usage"].Value, "Expected 'min' to be replaced with 0.0")
 }
 
 // Mock repository for testing
@@ -1557,6 +1578,41 @@ func (m *mockPropertyRepository) List(optionType models.PropertyOptionType, limi
 }
 
 func (m *mockPropertyRepository) Refresh(optionType models.PropertyOptionType) error {
+	return nil
+}
+
+// Mock repository that provides filter options with numeric ranges for testing min/max transformation
+type mockPropertyRepositoryWithRanges struct{}
+
+func (m *mockPropertyRepositoryWithRanges) List(optionType models.PropertyOptionType, limit int32) ([]models.PropertyOption, error) {
+	// Return property options with numeric ranges that match the fields used in the test
+	minLatency := int64(10)
+	maxLatency := int64(500)
+	minThroughput := int64(100)
+	maxThroughput := int64(1000)
+	minMemory := int64(0)
+	maxMemory := int64(2048)
+
+	return []models.PropertyOption{
+		{
+			Name:        "latency_ms",
+			MinIntValue: &minLatency,
+			MaxIntValue: &maxLatency,
+		},
+		{
+			Name:        "throughput",
+			MinIntValue: &minThroughput,
+			MaxIntValue: &maxThroughput,
+		},
+		{
+			Name:        "memory_usage",
+			MinIntValue: &minMemory,
+			MaxIntValue: &maxMemory,
+		},
+	}, nil
+}
+
+func (m *mockPropertyRepositoryWithRanges) Refresh(optionType models.PropertyOptionType) error {
 	return nil
 }
 
@@ -1585,4 +1641,322 @@ func getCatalogSourceTypeIDForDBTest(t *testing.T, db *gorm.DB) int32 {
 		require.NoError(t, err, "Failed to query CatalogSource type")
 	}
 	return typeRecord.ID
+}
+
+// Helper functions for creating pointers to primitive types
+func floatPtr(val float64) *float64 {
+	return &val
+}
+
+func TestApplyMinMax(t *testing.T) {
+	tests := []struct {
+		name          string
+		inputQuery    map[string]model.FieldFilter
+		inputOptions  map[string]model.FilterOption
+		expectedQuery map[string]model.FieldFilter
+		description   string
+	}{
+		{
+			name: "1. Min Value Replacement",
+			inputQuery: map[string]model.FieldFilter{
+				"throughput": {Operator: ">", Value: "min"},
+			},
+			inputOptions: map[string]model.FilterOption{
+				"throughput": {
+					Type: "number",
+					Range: &model.FilterOptionRange{
+						Min: floatPtr(10.0),
+						Max: floatPtr(100.0),
+					},
+				},
+			},
+			expectedQuery: map[string]model.FieldFilter{
+				"throughput": {Operator: ">", Value: 10.0},
+			},
+			description: "Query with 'min' string should be replaced with numeric min value",
+		},
+		{
+			name: "2. Max Value Replacement",
+			inputQuery: map[string]model.FieldFilter{
+				"latency": {Operator: "<", Value: "max"},
+			},
+			inputOptions: map[string]model.FilterOption{
+				"latency": {
+					Type: "number",
+					Range: &model.FilterOptionRange{
+						Min: floatPtr(5.0),
+						Max: floatPtr(50.0),
+					},
+				},
+			},
+			expectedQuery: map[string]model.FieldFilter{
+				"latency": {Operator: "<", Value: 50.0},
+			},
+			description: "Query with 'max' string should be replaced with numeric max value",
+		},
+		{
+			name: "3. No Change for Non-Min/Max Values",
+			inputQuery: map[string]model.FieldFilter{
+				"status":  {Operator: "=", Value: "active"},
+				"version": {Operator: "=", Value: "v1.0"},
+			},
+			inputOptions: map[string]model.FilterOption{
+				"status": {
+					Type:   "string",
+					Values: []interface{}{"active", "inactive"},
+				},
+			},
+			expectedQuery: map[string]model.FieldFilter{
+				"status":  {Operator: "=", Value: "active"},
+				"version": {Operator: "=", Value: "v1.0"},
+			},
+			description: "Non min/max string values should remain unchanged",
+		},
+		{
+			name: "4. Non-String Value Handling",
+			inputQuery: map[string]model.FieldFilter{
+				"count":      {Operator: ">", Value: 42},
+				"percentage": {Operator: "<", Value: 75.5},
+				"enabled":    {Operator: "=", Value: true},
+			},
+			inputOptions: map[string]model.FilterOption{
+				"count": {
+					Type: "number",
+					Range: &model.FilterOptionRange{
+						Min: floatPtr(0.0),
+						Max: floatPtr(100.0),
+					},
+				},
+			},
+			expectedQuery: map[string]model.FieldFilter{
+				"count":      {Operator: ">", Value: 42},
+				"percentage": {Operator: "<", Value: 75.5},
+				"enabled":    {Operator: "=", Value: true},
+			},
+			description: "Non-string values (int, float, bool) should remain unchanged",
+		},
+		{
+			name: "5. Missing Field in Options",
+			inputQuery: map[string]model.FieldFilter{
+				"unknown_field": {Operator: ">", Value: "min"},
+			},
+			inputOptions: map[string]model.FilterOption{
+				"known_field": {
+					Type: "number",
+					Range: &model.FilterOptionRange{
+						Min: floatPtr(1.0),
+						Max: floatPtr(10.0),
+					},
+				},
+			},
+			expectedQuery: map[string]model.FieldFilter{
+				"unknown_field": {Operator: ">", Value: "min"},
+			},
+			description: "Query with min/max should remain unchanged if field not in options",
+		},
+		{
+			name: "6. Nil Range Handling",
+			inputQuery: map[string]model.FieldFilter{
+				"field_without_range": {Operator: ">", Value: "min"},
+			},
+			inputOptions: map[string]model.FilterOption{
+				"field_without_range": {
+					Type:  "string",
+					Range: nil,
+				},
+			},
+			expectedQuery: map[string]model.FieldFilter{
+				"field_without_range": {Operator: ">", Value: "min"},
+			},
+			description: "Query should remain unchanged when option exists but Range is nil",
+		},
+		{
+			name: "7. Nil Min/Max in Range",
+			inputQuery: map[string]model.FieldFilter{
+				"field_nil_min": {Operator: ">", Value: "min"},
+				"field_nil_max": {Operator: "<", Value: "max"},
+			},
+			inputOptions: map[string]model.FilterOption{
+				"field_nil_min": {
+					Type: "number",
+					Range: &model.FilterOptionRange{
+						Min: nil,
+						Max: floatPtr(100.0),
+					},
+				},
+				"field_nil_max": {
+					Type: "number",
+					Range: &model.FilterOptionRange{
+						Min: floatPtr(0.0),
+						Max: nil,
+					},
+				},
+			},
+			expectedQuery: map[string]model.FieldFilter{
+				"field_nil_min": {Operator: ">", Value: "min"},
+				"field_nil_max": {Operator: "<", Value: "max"},
+			},
+			description: "Query should remain unchanged when Range.Min or Range.Max is nil",
+		},
+		{
+			name:          "8. Empty Maps Handling",
+			inputQuery:    map[string]model.FieldFilter{},
+			inputOptions:  map[string]model.FilterOption{},
+			expectedQuery: map[string]model.FieldFilter{},
+			description:   "Empty maps should be handled gracefully without panics",
+		},
+		{
+			name: "9. Case Sensitivity",
+			inputQuery: map[string]model.FieldFilter{
+				"field1": {Operator: ">", Value: "Min"},
+				"field2": {Operator: "<", Value: "MAX"},
+				"field3": {Operator: "=", Value: "minimum"},
+				"field4": {Operator: "=", Value: "maximum"},
+			},
+			inputOptions: map[string]model.FilterOption{
+				"field1": {
+					Type: "number",
+					Range: &model.FilterOptionRange{
+						Min: floatPtr(1.0),
+						Max: floatPtr(10.0),
+					},
+				},
+				"field2": {
+					Type: "number",
+					Range: &model.FilterOptionRange{
+						Min: floatPtr(1.0),
+						Max: floatPtr(10.0),
+					},
+				},
+				"field3": {
+					Type: "number",
+					Range: &model.FilterOptionRange{
+						Min: floatPtr(1.0),
+						Max: floatPtr(10.0),
+					},
+				},
+				"field4": {
+					Type: "number",
+					Range: &model.FilterOptionRange{
+						Min: floatPtr(1.0),
+						Max: floatPtr(10.0),
+					},
+				},
+			},
+			expectedQuery: map[string]model.FieldFilter{
+				"field1": {Operator: ">", Value: "Min"},
+				"field2": {Operator: "<", Value: "MAX"},
+				"field3": {Operator: "=", Value: "minimum"},
+				"field4": {Operator: "=", Value: "maximum"},
+			},
+			description: "Only exact 'min' and 'max' strings should be replaced (case-sensitive)",
+		},
+		{
+			name: "10. Multiple Filter Replacement",
+			inputQuery: map[string]model.FieldFilter{
+				"throughput": {Operator: ">", Value: "min"},
+				"latency":    {Operator: "<", Value: "max"},
+				"cpu_usage":  {Operator: ">=", Value: "min"},
+			},
+			inputOptions: map[string]model.FilterOption{
+				"throughput": {
+					Type: "number",
+					Range: &model.FilterOptionRange{
+						Min: floatPtr(10.0),
+						Max: floatPtr(1000.0),
+					},
+				},
+				"latency": {
+					Type: "number",
+					Range: &model.FilterOptionRange{
+						Min: floatPtr(1.0),
+						Max: floatPtr(100.0),
+					},
+				},
+				"cpu_usage": {
+					Type: "number",
+					Range: &model.FilterOptionRange{
+						Min: floatPtr(0.0),
+						Max: floatPtr(100.0),
+					},
+				},
+			},
+			expectedQuery: map[string]model.FieldFilter{
+				"throughput": {Operator: ">", Value: 10.0},
+				"latency":    {Operator: "<", Value: 100.0},
+				"cpu_usage":  {Operator: ">=", Value: 0.0},
+			},
+			description: "All applicable fields should be replaced when multiple filters use min/max",
+		},
+		{
+			name: "11. Mixed Scenario",
+			inputQuery: map[string]model.FieldFilter{
+				"throughput": {Operator: ">", Value: "min"},
+				"status":     {Operator: "=", Value: "running"},
+				"latency":    {Operator: "<", Value: "max"},
+				"version":    {Operator: "=", Value: 2},
+				"accuracy":   {Operator: ">=", Value: 0.95},
+			},
+			inputOptions: map[string]model.FilterOption{
+				"throughput": {
+					Type: "number",
+					Range: &model.FilterOptionRange{
+						Min: floatPtr(50.0),
+						Max: floatPtr(500.0),
+					},
+				},
+				"latency": {
+					Type: "number",
+					Range: &model.FilterOptionRange{
+						Min: floatPtr(10.0),
+						Max: floatPtr(200.0),
+					},
+				},
+				"status": {
+					Type:   "string",
+					Values: []interface{}{"running", "stopped"},
+				},
+			},
+			expectedQuery: map[string]model.FieldFilter{
+				"throughput": {Operator: ">", Value: 50.0},
+				"status":     {Operator: "=", Value: "running"},
+				"latency":    {Operator: "<", Value: 200.0},
+				"version":    {Operator: "=", Value: 2},
+				"accuracy":   {Operator: ">=", Value: 0.95},
+			},
+			description: "Only min/max string values should be replaced, others unchanged",
+		},
+		{
+			name: "12. In-Place Modification Verification",
+			inputQuery: map[string]model.FieldFilter{
+				"metric": {Operator: ">", Value: "min"},
+			},
+			inputOptions: map[string]model.FilterOption{
+				"metric": {
+					Type: "number",
+					Range: &model.FilterOptionRange{
+						Min: floatPtr(25.0),
+						Max: floatPtr(75.0),
+					},
+				},
+			},
+			expectedQuery: map[string]model.FieldFilter{
+				"metric": {Operator: ">", Value: 25.0},
+			},
+			description: "Original query map should be modified in-place",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			// Create a catalog instance to access the applyMinMax method
+			catalog := &dbCatalogImpl{}
+
+			// Apply the method
+			catalog.applyMinMax(tt.inputQuery, tt.inputOptions)
+
+			// Verify the query was modified correctly
+			assert.Equal(t, tt.expectedQuery, tt.inputQuery, tt.description)
+		})
+	}
 }
