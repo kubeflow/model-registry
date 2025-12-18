@@ -24,6 +24,9 @@ const (
 	SourceStatusDisabled  = "disabled"
 )
 
+// ServicesContextKey is the context key for passing services to model providers
+var ServicesContextKey = "services"
+
 // ModelProviderRecord contains one model and its associated artifacts.
 type ModelProviderRecord struct {
 	Model     dbmodels.CatalogModel
@@ -415,7 +418,10 @@ func (l *Loader) readProviderRecords(ctx context.Context) <-chan ModelProviderRe
 		// different configmaps) to use relative paths correctly.
 		sourceDir := filepath.Dir(source.Origin)
 
-		records, err := registerFunc(ctx, &source, sourceDir)
+		// Pass services through context for providers that need it (e.g., HF sync)
+		providerCtx := context.WithValue(ctx, ServicesContextKey, l.services)
+
+		records, err := registerFunc(providerCtx, &source, sourceDir)
 		if err != nil {
 			glog.Errorf("error reading catalog type %s with id %s: %v", source.Type, source.Id, err)
 			l.saveSourceStatus(source.Id, SourceStatusError, err.Error())
@@ -626,15 +632,6 @@ func (l *Loader) saveSourceStatus(sourceID, status string, errorMsg string) {
 	// Set status property
 	props := []mrmodels.Properties{
 		mrmodels.NewStringProperty("status", status, false),
-	}
-
-	// Look up and save the type property from the Sources collection
-	allSources := l.Sources.AllSources()
-	if sourceConfig, exists := allSources[sourceID]; exists && sourceConfig.Type != "" {
-		props = append(props, mrmodels.NewStringProperty("type", sourceConfig.Type, false))
-		glog.V(2).Infof("Saving type property '%s' for source %s", sourceConfig.Type, sourceID)
-	} else {
-		glog.V(2).Infof("Source %s not found in Sources collection or has no type", sourceID)
 	}
 
 	// Only store error property when non-empty

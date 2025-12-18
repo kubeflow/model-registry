@@ -20,4 +20,4 @@ catalogs:
       - "ibm-granite/granite-4.0-h-small"
       - "microsoft/phi-2"
     excludedModels:
-      - "microsoft/*"
+      - "some-org/*"

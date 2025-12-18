@@ -66,5 +66,3 @@ patches:
             capabilities:
               drop:
                 - ALL
-            runAsUser: 65532
-            runAsNonRoot: true
