@@ -1,3 +1,4 @@
+import { isEnumMember } from 'mod-arch-core';
 import {
   CatalogPerformanceMetricsArtifact,
   ModelCatalogFilterStates,
@@ -11,7 +12,7 @@ import {
   LatencyPercentile,
   LatencyMetric,
   ALL_LATENCY_FIELD_NAMES,
-  isLatencyFieldName,
+  getLatencyFieldName,
 } from '~/concepts/modelCatalog/const';
 
 // Type for storing complex latency filter configuration with value
@@ -19,30 +20,6 @@ export type LatencyFilterConfig = {
   metric: LatencyMetric;
   percentile: LatencyPercentile;
   value: number;
-};
-
-const isMetricLowercase = (str: string): str is Lowercase<LatencyMetric> =>
-  Object.values(LatencyMetric)
-    .map((value) => value.toLowerCase())
-    .includes(str);
-const isPercentileLowercase = (str: string): str is Lowercase<LatencyPercentile> =>
-  Object.values(LatencyPercentile)
-    .map((value) => value.toLowerCase())
-    .includes(str);
-
-/**
- * Maps metric and percentile combination to the corresponding artifact field
- */
-export const getLatencyFieldName = (
-  metric: LatencyMetric,
-  percentile: LatencyPercentile,
-): LatencyMetricFieldName => {
-  const metricPrefix = metric.toLowerCase();
-  const percentileSuffix = percentile.toLowerCase();
-  if (!isMetricLowercase(metricPrefix) || !isPercentileLowercase(percentileSuffix)) {
-    return 'ttft_mean'; // Default fallback
-  }
-  return `${metricPrefix}_${percentileSuffix}`;
 };
 
 /**
@@ -172,13 +149,10 @@ export const clearAllFilters = (
   // If specific filter keys are provided, only clear those
   if (filterKeys) {
     filterKeys.forEach((key) => {
-      if (stringFilterKeys.includes(key as ModelCatalogStringFilterKey)) {
-        setFilterData(key as ModelCatalogStringFilterKey, []);
-      } else if (
-        numberFilterKeys.includes(key as ModelCatalogNumberFilterKey) ||
-        isLatencyFieldName(key)
-      ) {
-        setFilterData(key as keyof ModelCatalogFilterStates, undefined);
+      if (isEnumMember(key, ModelCatalogStringFilterKey)) {
+        setFilterData(key, []);
+      } else {
+        setFilterData(key, undefined);
       }
     });
     return;

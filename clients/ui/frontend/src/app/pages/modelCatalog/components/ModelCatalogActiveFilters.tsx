@@ -14,8 +14,7 @@ import {
   ModelCatalogTask,
   AllLanguageCode,
   ModelCatalogNumberFilterKey,
-  isLatencyFieldName,
-  type LatencyMetricFieldName,
+  isCatalogFilterKey,
 } from '~/concepts/modelCatalog/const';
 import { ModelCatalogFilterKey } from '~/app/modelCatalogTypes';
 import { parseLatencyFieldName } from '~/app/pages/modelCatalog/utils/hardwareConfigurationFilterUtils';
@@ -28,6 +27,9 @@ const ModelCatalogActiveFilters: React.FC<ModelCatalogActiveFiltersProps> = ({ f
   const { filterData, setFilterData } = React.useContext(ModelCatalogContext);
 
   const handleRemoveFilter = (categoryKey: string, labelKey: string) => {
+    if (!isCatalogFilterKey(categoryKey)) {
+      return;
+    }
     if (isEnumMember(categoryKey, ModelCatalogStringFilterKey)) {
       const currentValues = filterData[categoryKey];
       if (Array.isArray(currentValues)) {
@@ -36,16 +38,19 @@ const ModelCatalogActiveFilters: React.FC<ModelCatalogActiveFiltersProps> = ({ f
       }
     } else {
       // For number filters and latency fields, clear the value
-      setFilterData(categoryKey as keyof typeof filterData, undefined);
+      setFilterData(categoryKey, undefined);
     }
   };
 
   const handleClearCategory = (categoryKey: string) => {
+    if (!isCatalogFilterKey(categoryKey)) {
+      return;
+    }
     if (isEnumMember(categoryKey, ModelCatalogStringFilterKey)) {
       setFilterData(categoryKey, []);
     } else {
       // For number filters and latency fields, clear the value
-      setFilterData(categoryKey as keyof typeof filterData, undefined);
+      setFilterData(categoryKey, undefined);
     }
   };
 
@@ -81,8 +86,10 @@ const ModelCatalogActiveFilters: React.FC<ModelCatalogActiveFiltersProps> = ({ f
     }
 
     // Handle number filter keys
+    // TODO: Remove this condition if we add more number filter keys
     if (isEnumMember(filterKey, ModelCatalogNumberFilterKey)) {
       switch (filterKey) {
+        // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
         case ModelCatalogNumberFilterKey.MIN_RPS:
           return `≥${value} requests/sec`;
         default:
@@ -90,25 +97,21 @@ const ModelCatalogActiveFilters: React.FC<ModelCatalogActiveFiltersProps> = ({ f
       }
     }
 
-    // Handle latency field names
-    if (isLatencyFieldName(filterKey)) {
-      const parsed = parseLatencyFieldName(filterKey);
-      if (parsed) {
-        return `${parsed.metric} ${parsed.percentile}: ≤${value}ms`;
-      }
-      return `${filterKey}: ≤${value}ms`;
+    // Handle latency field names - type is already narrowed to LatencyMetricFieldName
+    const parsed = parseLatencyFieldName(filterKey);
+    if (parsed) {
+      return `${parsed.metric} ${parsed.percentile}: ≤${value}ms`;
     }
-
-    return String(value);
+    return `${filterKey}: ≤${value}ms`;
   };
 
   return (
     <>
       {filtersToShow.map((filterKey) => {
-        const filterValue = filterData[filterKey as keyof typeof filterData];
+        const filterValue = filterData[filterKey];
 
         // Skip if no value is set
-        if (filterValue === undefined || filterValue === null) {
+        if (!filterValue) {
           return null;
         }
 
@@ -120,9 +123,7 @@ const ModelCatalogActiveFilters: React.FC<ModelCatalogActiveFiltersProps> = ({ f
         // Normalize to array for consistent handling
         const filterValues = Array.isArray(filterValue) ? filterValue : [filterValue];
 
-        const categoryName = MODEL_CATALOG_FILTER_CATEGORY_NAMES[
-          filterKey as keyof typeof MODEL_CATALOG_FILTER_CATEGORY_NAMES
-        ];
+        const categoryName = MODEL_CATALOG_FILTER_CATEGORY_NAMES[filterKey];
 
         const labels: ToolbarLabel[] = filterValues.map((value) => {
           const valueStr = String(value);

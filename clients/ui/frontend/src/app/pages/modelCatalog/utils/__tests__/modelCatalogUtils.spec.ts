@@ -154,7 +154,6 @@ describe('filtersToFilterQuery', () => {
       },
     },
   };
-  /* eslint-enable camelcase */
 
   describe('multi-selection values', () => {
     it('handles no data', () => {

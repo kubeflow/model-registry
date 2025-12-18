@@ -8,6 +8,7 @@ import {
   ModelCatalogNumberFilterKey,
   LatencyMetricFieldName,
   UseCaseOptionValue,
+  ModelCatalogFilterKey,
 } from '~/concepts/modelCatalog/const';
 import {
   ModelRegistryCustomProperties,
@@ -193,10 +194,7 @@ export type CatalogModelDetailsParams = {
   modelName?: string;
 };
 
-export type ModelCatalogFilterKey =
-  | ModelCatalogStringFilterKey
-  | ModelCatalogNumberFilterKey
-  | LatencyMetricFieldName;
+export type { ModelCatalogFilterKey };
 
 // Not used for a run time value, just for mapping other types
 export type ModelCatalogStringFilterValueType = {

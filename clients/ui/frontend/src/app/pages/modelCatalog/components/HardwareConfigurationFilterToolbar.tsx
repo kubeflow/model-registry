@@ -9,13 +9,17 @@ import {
 } from '@patternfly/react-core';
 import { HelpIcon } from '@patternfly/react-icons';
 import { ModelCatalogContext } from '~/app/context/modelCatalog/ModelCatalogContext';
-import { CatalogPerformanceMetricsArtifact, ModelCatalogFilterKey } from '~/app/modelCatalogTypes';
+import {
+  CatalogPerformanceMetricsArtifact,
+  ModelCatalogFilterKey,
+  ModelCatalogFilterStates,
+} from '~/app/modelCatalogTypes';
 import { clearAllFilters } from '~/app/pages/modelCatalog/utils/hardwareConfigurationFilterUtils';
 import { hasFiltersApplied } from '~/app/pages/modelCatalog/utils/modelCatalogUtils';
 import {
   ModelCatalogStringFilterKey,
   ModelCatalogNumberFilterKey,
-  isLatencyFieldName,
+  ALL_LATENCY_FIELD_NAMES,
 } from '~/concepts/modelCatalog/const';
 import WorkloadTypeFilter from './globalFilters/WorkloadTypeFilter';
 import HardwareTypeFilter from './globalFilters/HardwareTypeFilter';
@@ -42,12 +46,9 @@ const PERFORMANCE_FILTER_KEYS: ModelCatalogFilterKey[] = [
  * Gets the active filter keys including any active latency filters from filterData
  */
 const getActivePerformanceFilterKeys = (
-  filterData: Record<string, unknown>,
+  filterData: ModelCatalogFilterStates,
 ): ModelCatalogFilterKey[] => {
-  const activeLatencyKeys = Object.keys(filterData).filter(
-    (key) => isLatencyFieldName(key) && filterData[key] !== undefined,
-  ) as ModelCatalogFilterKey[];
-
+  const activeLatencyKeys = ALL_LATENCY_FIELD_NAMES.filter((key) => filterData[key] !== undefined);
   return [...PERFORMANCE_FILTER_KEYS, ...activeLatencyKeys];
 };
 

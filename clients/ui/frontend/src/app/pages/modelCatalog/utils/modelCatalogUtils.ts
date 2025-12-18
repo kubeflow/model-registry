@@ -296,14 +296,13 @@ export const getSourceFromSourceId = (
 export const hasFiltersApplied = (
   filterData: ModelCatalogFilterStates,
   filterKeys?: ModelCatalogFilterKey[],
-): boolean => {
-  const keysToCheck = filterKeys ?? (Object.keys(filterData) as ModelCatalogFilterKey[]);
-
-  return keysToCheck.some((key) => {
-    const value = filterData[key as keyof ModelCatalogFilterStates];
+): boolean =>
+  Object.entries(filterData).some(([key, value]) => {
+    if (filterKeys && !filterKeys.some((k) => k === key)) {
+      return false;
+    }
     if (Array.isArray(value)) {
       return value.length > 0;
     }
     return value !== undefined;
   });
-};

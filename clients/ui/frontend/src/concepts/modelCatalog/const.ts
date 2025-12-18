@@ -28,22 +28,39 @@ export enum LatencyPercentile {
 // Use getLatencyFieldName util to get values of this type
 export type LatencyMetricFieldName = `${Lowercase<LatencyMetric>}_${Lowercase<LatencyPercentile>}`;
 
+const isMetricLowercase = (str: string): str is Lowercase<LatencyMetric> =>
+  Object.values(LatencyMetric)
+    .map((value) => value.toLowerCase())
+    .includes(str);
+
+const isPercentileLowercase = (str: string): str is Lowercase<LatencyPercentile> =>
+  Object.values(LatencyPercentile)
+    .map((value) => value.toLowerCase())
+    .includes(str);
+
+/**
+ * Maps metric and percentile combination to the corresponding artifact field
+ */
+export const getLatencyFieldName = (
+  metric: LatencyMetric,
+  percentile: LatencyPercentile,
+): LatencyMetricFieldName => {
+  const metricPrefix = metric.toLowerCase();
+  const percentileSuffix = percentile.toLowerCase();
+  if (!isMetricLowercase(metricPrefix) || !isPercentileLowercase(percentileSuffix)) {
+    return 'ttft_mean'; // Default fallback
+  }
+  return `${metricPrefix}_${percentileSuffix}`;
+};
+
 /**
  * All possible latency field names computed from LatencyMetric and LatencyPercentile enums
  */
-export const ALL_LATENCY_FIELD_NAMES: LatencyMetricFieldName[] = Object.values(LatencyMetric).flatMap(
-  (metric) =>
-    Object.values(LatencyPercentile).map(
-      (percentile) =>
-        `${metric.toLowerCase()}_${percentile.toLowerCase()}` as LatencyMetricFieldName,
-    ),
+export const ALL_LATENCY_FIELD_NAMES: LatencyMetricFieldName[] = Object.values(
+  LatencyMetric,
+).flatMap((metric) =>
+  Object.values(LatencyPercentile).map((percentile) => getLatencyFieldName(metric, percentile)),
 );
-
-/**
- * Type guard to check if a string is a valid LatencyMetricFieldName
- */
-export const isLatencyFieldName = (key: string): key is LatencyMetricFieldName =>
-  ALL_LATENCY_FIELD_NAMES.includes(key as LatencyMetricFieldName);
 
 export enum UseCaseOptionValue {
   CHATBOT = 'chatbot',
@@ -341,14 +358,31 @@ export enum AllLanguageCode {
   TL = 'tl',
 }
 
+export type ModelCatalogFilterKey =
+  | ModelCatalogStringFilterKey
+  | ModelCatalogNumberFilterKey
+  | LatencyMetricFieldName;
+
+/**
+ * All possible filter keys combining string, number, and latency field keys
+ */
+export const ALL_CATALOG_FILTER_KEYS: ModelCatalogFilterKey[] = [
+  ...Object.values(ModelCatalogStringFilterKey),
+  ...Object.values(ModelCatalogNumberFilterKey),
+  ...ALL_LATENCY_FIELD_NAMES,
+];
+
+/**
+ * Type guard to check if a string is a valid ModelCatalogFilterKey
+ */
+export const isCatalogFilterKey = (key: string): key is ModelCatalogFilterKey =>
+  ALL_CATALOG_FILTER_KEYS.some((k) => String(k) === key);
+
 /**
  * Display names for filter categories.
  * Includes all ModelCatalogFilterKeys (ModelCatalogStringFilterKey | ModelCatalogNumberFilterKey | LatencyMetricFieldName).
  */
-export const MODEL_CATALOG_FILTER_CATEGORY_NAMES: Record<
-  ModelCatalogStringFilterKey | ModelCatalogNumberFilterKey | LatencyMetricFieldName,
-  string
-> = {
+export const MODEL_CATALOG_FILTER_CATEGORY_NAMES: Record<ModelCatalogFilterKey, string> = {
   // String filter keys
   [ModelCatalogStringFilterKey.PROVIDER]: 'Provider',
   [ModelCatalogStringFilterKey.LICENSE]: 'License',
@@ -359,10 +393,11 @@ export const MODEL_CATALOG_FILTER_CATEGORY_NAMES: Record<
   // Number filter keys
   [ModelCatalogNumberFilterKey.MIN_RPS]: 'Min RPS',
   // Latency field names - all use "Max latency" as category name
-  ...Object.fromEntries(ALL_LATENCY_FIELD_NAMES.map((field) => [field, 'Max latency'])) as Record<
+  // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
+  ...(Object.fromEntries(ALL_LATENCY_FIELD_NAMES.map((field) => [field, 'Max latency'])) as Record<
     LatencyMetricFieldName,
     string
-  >,
+  >),
 };
 
 export enum ModelDetailsTab {
