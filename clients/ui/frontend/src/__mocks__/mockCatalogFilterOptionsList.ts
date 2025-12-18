@@ -1,5 +1,5 @@
 /* eslint-disable camelcase */
-import { CatalogFilterOptionsList } from '~/app/modelCatalogTypes';
+import { CatalogFilterOptionsList, NamedQuery, FilterOperator } from '~/app/modelCatalogTypes';
 import {
   ModelCatalogStringFilterKey,
   ModelCatalogNumberFilterKey,
@@ -9,6 +9,32 @@ import {
   AllLanguageCode,
   UseCaseOptionValue,
 } from '~/concepts/modelCatalog/const';
+
+export const mockNamedQueries: Record<string, NamedQuery> = {
+  high_performance_gpu: {
+    'hardware_type.string_value': { operator: FilterOperator.IN, value: ['H100-80', 'A100-80'] },
+    'requests_per_second.double_value': {
+      operator: FilterOperator.GREATER_THAN_OR_EQUAL,
+      value: 50,
+    },
+  },
+  low_latency: {
+    'ttft_p90.double_value': { operator: FilterOperator.LESS_THAN, value: 100 },
+    'e2e_p90.double_value': { operator: FilterOperator.LESS_THAN, value: 500 },
+  },
+  chatbot_optimized: {
+    'use_case.string_value': { operator: FilterOperator.EQUALS, value: UseCaseOptionValue.CHATBOT },
+  },
+  rag_optimized: {
+    'use_case.string_value': {
+      operator: FilterOperator.IN,
+      value: [UseCaseOptionValue.RAG, UseCaseOptionValue.LONG_RAG],
+    },
+  },
+  cost_effective: {
+    'hardware_count.int_value': { operator: FilterOperator.LESS_THAN_OR_EQUAL, value: 2 },
+  },
+};
 
 export const mockCatalogFilterOptionsList = (
   partial?: Partial<CatalogFilterOptionsList>,
@@ -136,5 +162,26 @@ export const mockCatalogFilterOptionsList = (
       range: { min: 15, max: 200 },
     },
   },
+  namedQueries: mockNamedQueries,
   ...partial,
 });
+
+// Mock for artifact-specific filter options (performance artifacts endpoint)
+// This is a subset of filters relevant to performance artifacts
+export const mockArtifactFilterOptionsList = (
+  partial?: Partial<CatalogFilterOptionsList>,
+): CatalogFilterOptionsList => {
+  const base = mockCatalogFilterOptionsList();
+  return {
+    ...base,
+    filters: {
+      ...base.filters,
+      [ModelCatalogStringFilterKey.HARDWARE_TYPE]: {
+        type: 'string',
+        values: ['H100-80', 'A100-80', 'L40S', 'MI300X'],
+      },
+    },
+    namedQueries: mockNamedQueries,
+    ...partial,
+  };
+};
