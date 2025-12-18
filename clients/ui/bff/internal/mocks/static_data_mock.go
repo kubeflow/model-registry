@@ -273,7 +273,7 @@ func catalogCustomProperties() *map[string]openapi.MetadataValue {
 				MetadataType: "MetadataStringValue",
 			},
 		},
-		"tensorType": {
+		"tensor_type": {
 			MetadataStringValue: &openapi.MetadataStringValue{
 				StringValue:  "FP8",
 				MetadataType: "MetadataStringValue",

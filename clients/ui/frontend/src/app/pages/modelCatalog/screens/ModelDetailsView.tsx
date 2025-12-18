@@ -41,6 +41,7 @@ import {
   hasModelArtifacts,
   isModelValidated,
 } from '~/app/pages/modelCatalog/utils/modelCatalogUtils';
+import { CatalogModelCustomPropertyKey } from '~/concepts/modelCatalog/const';
 
 type ModelDetailsViewProps = {
   model: CatalogModel;
@@ -64,9 +65,11 @@ const ModelDetailsView: React.FC<ModelDetailsViewProps> = ({
 
   // Extract tensor type and size from customProperties
   const tensorType = model.customProperties
-    ? getCustomPropString(model.customProperties, 'tensorType')
+    ? getCustomPropString(model.customProperties, CatalogModelCustomPropertyKey.TENSOR_TYPE)
     : '';
-  const size = model.customProperties ? getCustomPropString(model.customProperties, 'size') : '';
+  const size = model.customProperties
+    ? getCustomPropString(model.customProperties, CatalogModelCustomPropertyKey.SIZE)
+    : '';
 
   return (
     <PageSection hasBodyWrapper={false} isFilled padding={{ default: 'noPadding' }}>
