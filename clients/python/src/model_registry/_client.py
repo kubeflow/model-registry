@@ -257,6 +257,7 @@ class ModelRegistry:
         service_account_name: str | None = None,
         author: str | None = None,
         owner: str | None = None,
+        version_description: str | None = None,
         description: str | None = None,
         metadata: Mapping[str, SupportedTypes] | None = None,
     ) -> RegisteredModel:
@@ -271,7 +272,8 @@ class ModelRegistry:
             version: Version of the model. Has to be unique.
             model_format_name: Name of the model format.
             model_format_version: Version of the model format.
-            description: Description of the model.
+            version_description: Description of the model version.
+            description: Deprecated. Use version_description instead.
             author: Author of the model. Defaults to the client author.
             owner: Owner of the model. Defaults to the client author.
             storage_key: Storage key.
@@ -285,6 +287,17 @@ class ModelRegistry:
         Returns:
             Registered model. See: :meth:`~ModelRegistry.register_model`
         """
+        # Handle deprecated parameter
+        if description is not None:
+            warn(
+                "The 'description' parameter is deprecated and will be removed in a future version. "
+                "Use 'version_description' instead.",
+                DeprecationWarning,
+                stacklevel=2,
+            )
+            if version_description is None:
+                version_description = description
+
         # Check if model does not already exist in Registry
         ver = None
         with contextlib.suppress(StoreError):
@@ -319,7 +332,7 @@ class ModelRegistry:
             service_account_name=service_account_name,
             author=author,
             owner=owner,
-            description=description,
+            version_description=version_description,
             metadata=metadata,
         )
 
@@ -341,6 +354,7 @@ class ModelRegistry:
         model_source_name: str | None = None,
         author: str | None = None,
         owner: str | None = None,
+        version_description: str | None = None,
         description: str | None = None,
         metadata: Mapping[str, SupportedTypes] | None = None,
     ) -> RegisteredModel:
@@ -362,7 +376,8 @@ class ModelRegistry:
             version: Version of the model. Has to be unique.
             model_format_name: Name of the model format.
             model_format_version: Version of the model format.
-            description: Description of the model.
+            version_description: Description of the model version.
+            description: Deprecated. Use version_description instead.
             author: Author of the model. Defaults to the client author.
             owner: Owner of the model. Defaults to the client author.
             storage_key: Storage key.
@@ -378,13 +393,24 @@ class ModelRegistry:
         Returns:
             Registered model.
         """
+        # Handle deprecated parameter
+        if description is not None:
+            warn(
+                "The 'description' parameter is deprecated and will be removed in a future version. "
+                "Use 'version_description' instead.",
+                DeprecationWarning,
+                stacklevel=2,
+            )
+            if version_description is None:
+                version_description = description
+
         rm = self.async_runner(self._register_model(name, owner=owner or self._author))
         mv = self.async_runner(
             self._register_new_version(
                 rm,
                 version,
                 author or self._author,
-                description=description,
+                description=version_description,
                 custom_properties=metadata or {},
             )
         )
@@ -422,7 +448,7 @@ class ModelRegistry:
             return self.async_runner(self._api.upsert_model_version(model, None))  # type: ignore[return-value]
         return self.async_runner(self._api.upsert_model_artifact(model))  # type: ignore[arg-type,return-value]
 
-    def register_hf_model(
+    def register_hf_model(  # noqa: C901
         self,
         repo: str,
         path: str,
@@ -433,6 +459,7 @@ class ModelRegistry:
         author: str | None = None,
         owner: str | None = None,
         model_name: str | None = None,
+        version_description: str | None = None,
         description: str | None = None,
         git_ref: str = "main",
     ) -> RegisteredModel:
@@ -452,12 +479,24 @@ class ModelRegistry:
             author: Author of the model. Defaults to repo owner.
             owner: Owner of the model. Defaults to the client author.
             model_name: Name of the model. Defaults to the repo name.
-            description: Description of the model.
+            version_description: Description of the model version.
+            description: Deprecated. Use version_description instead.
             git_ref: Git reference to use. Defaults to `main`.
 
         Returns:
             Registered model.
         """
+        # Handle deprecated parameter
+        if description is not None:
+            warn(
+                "The 'description' parameter is deprecated and will be removed in a future version. "
+                "Use 'version_description' instead.",
+                DeprecationWarning,
+                stacklevel=2,
+            )
+            if version_description is None:
+                version_description = description
+
         try:
             from huggingface_hub import HfApi, hf_hub_url, utils
         except ImportError as e:
@@ -522,7 +561,7 @@ class ModelRegistry:
             version=version,
             model_format_name=model_format_name,
             model_format_version=model_format_version,
-            description=description,
+            version_description=version_description,
             storage_path=path,
             metadata=metadata,
         )

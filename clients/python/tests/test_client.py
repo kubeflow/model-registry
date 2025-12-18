@@ -2,6 +2,7 @@ import logging
 import os
 import tempfile
 from itertools import islice
+from typing import Any
 from unittest.mock import MagicMock
 
 import pytest
@@ -53,9 +54,7 @@ async def test_register_new(client: ModelRegistry):
 async def test_register_new_using_s3_uri_builder(client: ModelRegistry):
     name = "test_model"
     version = "1.0.0"
-    uri = utils.s3_uri_from(
-        "storage/path", "my-bucket", endpoint="my-endpoint", region="my-region"
-    )
+    uri = utils.s3_uri_from("storage/path", "my-bucket", endpoint="my-endpoint", region="my-region")
     rm = client.register_model(
         name,
         uri,
@@ -87,7 +86,7 @@ def test_page_through_one_models(client: ModelRegistry):
     """Complementary of test_page_through_zero_models, check a simple pagination with 1 model on the Model Registry server"""
     client.register_model("my-model", "some://uri", version="v1", model_format_name="vLLM", model_format_version="v1")
     for registered_model in client.get_registered_models():
-        assert registered_model.name == "my-model" # there is only 1 specific model in the MR server.
+        assert registered_model.name == "my-model"  # there is only 1 specific model in the MR server.
 
 
 @pytest.mark.e2e
@@ -220,8 +219,9 @@ async def test_update_logical_model_with_labels(client: ModelRegistry):
 
 
 @pytest.mark.e2e
-async def test_patch_model_artifacts_artifact_type(client: ModelRegistry, request_headers: dict[str, str],
-                                                   verify_ssl: bool):
+async def test_patch_model_artifacts_artifact_type(
+    client: ModelRegistry, request_headers: dict[str, str], verify_ssl: bool
+):
     """Patching ModelArtifact requires `artifactType` value which was previously not required
 
     reported with https://issues.redhat.com/browse/RHOAIENG-15326
@@ -378,9 +378,7 @@ def test_get_registered_models(client: ModelRegistry):
     with pytest.raises(StopIteration):  # noqa: PT012
         while i < 50 and next(rm_iter):
             if rm_iter.options.next_page_token != prev_tok:
-                print(
-                    f"Token changed from {prev_tok} to {rm_iter.options.next_page_token} at {i}"
-                )
+                print(f"Token changed from {prev_tok} to {rm_iter.options.next_page_token} at {i}")
                 prev_tok = rm_iter.options.next_page_token
                 changes += 1
             i += 1
@@ -512,9 +510,7 @@ def test_get_model_versions(client: ModelRegistry):
     with pytest.raises(StopIteration):  # noqa: PT012
         while i < 50 and next(mv_iter):
             if mv_iter.options.next_page_token != prev_tok:
-                print(
-                    f"Token changed from {prev_tok} to {mv_iter.options.next_page_token} at {i}"
-                )
+                print(f"Token changed from {prev_tok} to {mv_iter.options.next_page_token} at {i}")
                 prev_tok = mv_iter.options.next_page_token
                 changes += 1
             i += 1
@@ -724,26 +720,20 @@ def test_singular_store_in_s3(get_model_file, patch_s3_env, client: ModelRegistr
     objects = s3.list_objects_v2(Bucket="default")["Contents"]
     objects_by_name = [obj["Key"] for obj in objects]
     model_name_pfx = os.path.join(prefix, model_name)
-    s3_link = utils.s3_uri_from(
-        bucket=bucket, path=prefix, endpoint=s3_endpoint, region=default_region
-    )
+    s3_link = utils.s3_uri_from(bucket=bucket, path=prefix, endpoint=s3_endpoint, region=default_region)
 
-    assert type(uri) is str
+    assert isinstance(uri, str)
     assert uri == s3_link
     assert model_name_pfx in objects_by_name
 
     # Test file not exists
     with pytest.raises(ValueError, match="Please ensure path is correct.") as e:
-        client.save_to_s3(
-            path=f"{get_model_file}x", s3_prefix=prefix, bucket_name=bucket
-        )
+        client.save_to_s3(path=f"{get_model_file}x", s3_prefix=prefix, bucket_name=bucket)
     assert "please ensure path is correct" in str(e.value).lower()
 
 
 @pytest.mark.e2e
-def test_recursive_store_in_s3(
-    get_temp_dir_with_models, patch_s3_env, client: ModelRegistry
-):
+def test_recursive_store_in_s3(get_temp_dir_with_models, patch_s3_env, client: ModelRegistry):
     pytest.importorskip("boto3")
 
     # So we have an import locally, since we are directly using it
@@ -751,7 +741,7 @@ def test_recursive_store_in_s3(
 
     model_dir, files = get_temp_dir_with_models
     assert model_dir is not None
-    assert type(files) is list
+    assert isinstance(files, list)
     assert len(files) == 3
 
     s3_endpoint = os.getenv("AWS_S3_ENDPOINT")
@@ -782,11 +772,9 @@ def test_recursive_store_in_s3(
     objects = s3.list_objects_v2(Bucket="default")["Contents"]
     objects_by_name = [obj["Key"] for obj in objects]
     formatted_paths = [os.path.join(prefix, os.path.basename(path)) for path in files]
-    s3_uri = utils.s3_uri_from(
-        bucket=bucket, path=prefix, endpoint=s3_endpoint, region=default_region
-    )
+    s3_uri = utils.s3_uri_from(bucket=bucket, path=prefix, endpoint=s3_endpoint, region=default_region)
 
-    assert type(uri) is str
+    assert isinstance(uri, str)
     assert uri == s3_uri
     for path in formatted_paths:
         assert path in objects_by_name
@@ -798,9 +786,7 @@ def test_recursive_store_in_s3(
 
 
 @pytest.mark.e2e
-def test_nested_recursive_store_in_s3(
-    get_temp_dir_with_nested_models, patch_s3_env, client: ModelRegistry
-):
+def test_nested_recursive_store_in_s3(get_temp_dir_with_nested_models, patch_s3_env, client: ModelRegistry):
     pytest.importorskip("boto3")
 
     # So we have an import locally, since we are directly using it
@@ -808,7 +794,7 @@ def test_nested_recursive_store_in_s3(
 
     model_dir, files = get_temp_dir_with_nested_models
     assert model_dir is not None
-    assert type(files) is list
+    assert isinstance(files, list)
     assert len(files) == 3
 
     s3_endpoint = os.getenv("AWS_S3_ENDPOINT")
@@ -838,18 +824,13 @@ def test_nested_recursive_store_in_s3(
     # Manually check that the object is indeed here
     objects = s3.list_objects_v2(Bucket="default")["Contents"]
     objects_by_name = [obj["Key"] for obj in objects]
-    s3_uri = utils.s3_uri_from(
-        bucket=bucket, path=prefix, endpoint=s3_endpoint, region=default_region
-    )
+    s3_uri = utils.s3_uri_from(bucket=bucket, path=prefix, endpoint=s3_endpoint, region=default_region)
     # this is creating a list of all the file names + their immediate parent folder only
     formatted_paths = [
-        os.path.join(
-            prefix, os.path.basename(os.path.dirname(path)), os.path.basename(path)
-        )
-        for path in files
+        os.path.join(prefix, os.path.basename(os.path.dirname(path)), os.path.basename(path)) for path in files
     ]
 
-    assert type(uri) is str
+    assert isinstance(uri, str)
     assert uri == s3_uri
     for path in formatted_paths:
         assert path in objects_by_name
@@ -862,7 +843,10 @@ def test_nested_recursive_store_in_s3(
 
 @pytest.mark.e2e
 def test_custom_async_runner_with_ray(
-    client_attrs: dict[str, any], client: ModelRegistry, user_token: str, monkeypatch  # type: ignore[valid-type]
+    client_attrs: dict[str, Any],
+    client: ModelRegistry,
+    user_token: str,
+    monkeypatch,  # type: ignore[valid-type, unused-ignore]
 ):
     """Test Ray integration with uvloop event loop policy"""
     import asyncio
@@ -880,9 +864,7 @@ def test_custom_async_runner_with_ray(
             # Start the loop and verify we're actually using uvloop
             async def verify_uvloop():
                 current_loop = asyncio.get_running_loop()
-                assert isinstance(current_loop, uvloop.Loop), (
-                    f"Expected uvloop.Loop, got {type(current_loop)}"
-                )
+                assert isinstance(current_loop, uvloop.Loop), f"Expected uvloop.Loop, got {type(current_loop)}"
 
             loop.run_until_complete(verify_uvloop())
 
@@ -940,9 +922,7 @@ def test_upload_artifact_and_register_model_with_default_oci(
     upload_params = utils.OCIParams(
         "quay.io/mmortari/hello-world-wait:latest",
         oci_ref,
-        custom_oci_backend=utils._get_skopeo_backend(
-            push_args=["--dest-tls-verify=false"]
-        ),
+        custom_oci_backend=utils._get_skopeo_backend(push_args=["--dest-tls-verify=false"]),
     )
 
     assert client.upload_artifact_and_register_model(
@@ -1004,17 +984,12 @@ def test_upload_artifact_and_register_model_with_default_s3(
     )
 
     assert (ma := client.get_model_artifact(name, version))
-    assert (
-        ma.uri
-        == f"s3://{bucket}/{s3_prefix}?endpoint={s3_endpoint}&defaultRegion={region}"
-    )
+    assert ma.uri == f"s3://{bucket}/{s3_prefix}?endpoint={s3_endpoint}&defaultRegion={region}"
 
 
 @pytest.mark.e2e
 def test_upload_artifact_and_register_model_missing_upload_params(client):
-    with pytest.raises(
-        ValueError, match='Param "upload_params" is required to perform an upload'
-    ) as e:
+    with pytest.raises(ValueError, match='Param "upload_params" is required to perform an upload') as e:
         client.upload_artifact_and_register_model(
             "a name",
             model_files_path="/doesnt/matter",
@@ -1024,9 +999,8 @@ def test_upload_artifact_and_register_model_missing_upload_params(client):
             model_format_version="test version",
             upload_params=None,
         )
-    assert (
-        'Param "upload_params" is required to perform an upload. Please ensure the value provided is valid'
-        in str(e.value)
+    assert 'Param "upload_params" is required to perform an upload. Please ensure the value provided is valid' in str(
+        e.value
     )
 
 
@@ -1059,9 +1033,7 @@ async def test_register_model_with_s3_data_connection(client: ModelRegistry):
     s3_region = "us-east-1"
 
     # Create the S3 URI using the utility function
-    uri = utils.s3_uri_from(
-        path=s3_path, bucket=s3_bucket, endpoint=s3_endpoint, region=s3_region
-    )
+    uri = utils.s3_uri_from(path=s3_path, bucket=s3_bucket, endpoint=s3_endpoint, region=s3_region)
 
     model_params = {
         "name": "test_model",
@@ -1069,7 +1041,7 @@ async def test_register_model_with_s3_data_connection(client: ModelRegistry):
         "model_format_name": "onnx",
         "model_format_version": "1",
         "version": "v1.0",
-        "description": "The Model",  # This will be set on the model version
+        "version_description": "The Model",  # This will be set on the model version
         "storage_key": data_connection_name,
         "storage_path": s3_path,
     }
@@ -1097,18 +1069,14 @@ async def test_register_model_with_s3_data_connection(client: ModelRegistry):
 
 
 @pytest.mark.e2e
-def test_upload_large_model_file(
-    get_large_model_dir, patch_s3_env, client: ModelRegistry
-):
+def test_upload_large_model_file(get_large_model_dir, patch_s3_env, client: ModelRegistry):
     """Test uploading and registering a large model file (300-500MB)."""
     pytest.importorskip("boto3")
 
     # Verify the large model file exists and has correct size
     model_file = os.path.join(get_large_model_dir, "large_model.onnx")
     file_size = os.path.getsize(model_file)
-    assert 300 * 1024 * 1024 <= file_size <= 500 * 1024 * 1024, (
-        f"File size {file_size} bytes is not in expected range"
-    )
+    assert 300 * 1024 * 1024 <= file_size <= 500 * 1024 * 1024, f"File size {file_size} bytes is not in expected range"
 
     version = "1.0.0"
     prefix = "large_models"
@@ -1154,7 +1122,7 @@ async def test_as_mlops_engineer_i_would_like_to_update_a_description_of_the_mod
         model_format_version="test_version",
         version=version,
         owner="me",
-        description="Lorem ipsum dolor sit amet",
+        version_description="Lorem ipsum dolor sit amet",
     )
     assert rm.id
 
@@ -1179,7 +1147,7 @@ async def test_as_mlops_engineer_i_would_like_to_store_a_description_of_the_mode
         model_format_name="test_format",
         model_format_version="test_version",
         version=version,
-        description="consectetur adipiscing elit",
+        version_description="consectetur adipiscing elit",
     )
     assert rm.id
 
@@ -1212,7 +1180,7 @@ async def test_as_mlops_engineer_i_would_like_to_store_a_longer_documentation_fo
         model_format_name="test_format",
         model_format_version="test_version",
         version=version,
-        description="consectetur adipiscing elit",
+        version_description="consectetur adipiscing elit",
     )
     assert rm.id
 
@@ -1221,9 +1189,7 @@ async def test_as_mlops_engineer_i_would_like_to_store_a_longer_documentation_fo
     assert mv
     assert mv.id
 
-    da = await mr_api.upsert_model_version_artifact(
-        DocArtifact(uri="https://README.md"), mv.id
-    )
+    da = await mr_api.upsert_model_version_artifact(DocArtifact(uri="https://README.md"), mv.id)
     assert da
     assert da.uri == "https://README.md"
 
@@ -1240,7 +1206,7 @@ def mock_get_registered_models(monkeypatch):
 def test_user_token_from_envvar(monkeypatch, mock_get_registered_models):
     """Test for user not providing explicitly user_token,
     reading user token from environment variable."""
-    test_token = "test-token-from-envvar" # noqa: S105
+    test_token = "test-token-from-envvar"  # noqa: S105
 
     with tempfile.NamedTemporaryFile(mode="w", delete=False) as token_file:
         token_file.write(test_token)
@@ -1263,7 +1229,7 @@ def test_user_token_from_envvar(monkeypatch, mock_get_registered_models):
 def test_user_token_from_k8s_file(monkeypatch, mock_get_registered_models):
     """Test for user not providing explicitly user_token,
     reading user token from Kubernetes service account token file."""
-    test_token = "test-token-from-k8s-file" # noqa: S105
+    test_token = "test-token-from-k8s-file"  # noqa: S105
 
     monkeypatch.delenv("KF_PIPELINES_SA_TOKEN_PATH", raising=False)
     with tempfile.NamedTemporaryFile(mode="w", delete=False) as k8s_token_file:
@@ -1286,8 +1252,8 @@ def test_user_token_envvar_priority_over_k8s(monkeypatch, mock_get_registered_mo
     """Test for user not providing explicitly user_token,
     reading user token from environment variable,
     taking precedence over K8s file for Service Account token."""
-    env_token = "test-token-from-envvar" # noqa: S105
-    k8s_token = "test-token-from-k8s-file" # noqa: S105
+    env_token = "test-token-from-envvar"  # noqa: S105
+    k8s_token = "test-token-from-k8s-file"  # noqa: S105
 
     with tempfile.NamedTemporaryFile(mode="w", delete=False) as env_token_file:
         env_token_file.write(env_token)
@@ -1341,7 +1307,7 @@ def test_hint_server_address_port_https_with_port_ending_443_no_warning(mock_get
     """Test cases for the hint_server_address_port method via ModelRegistry constructor.
     Test that no warning is issued when using HTTPS with port ending in 443."""
     with caplog.at_level(logging.WARNING):
-        ModelRegistry(server_address="https://example.com", port=8443, author="test", user_token="test") # noqa: S106
+        ModelRegistry(server_address="https://example.com", port=8443, author="test", user_token="test")  # noqa: S106
 
     assert len(caplog.records) == 0
 
@@ -1350,7 +1316,7 @@ def test_hint_server_address_port_https_with_non_443_port_warning(mock_get_regis
     """Test cases for the hint_server_address_port method via ModelRegistry constructor.
     Test that a warning is issued when using HTTPS with non-443 port."""
     with caplog.at_level(logging.WARNING):
-        ModelRegistry(server_address="https://example.com", port=8080, author="test", user_token="test") # noqa: S106
+        ModelRegistry(server_address="https://example.com", port=8080, author="test", user_token="test")  # noqa: S106
 
     assert len(caplog.records) == 1
     assert "Server address protocol is https://, but port is not 443 or ending with 443" in caplog.records[0].message
@@ -1382,4 +1348,3 @@ def test_hint_server_address_port_http_with_non_80_port_warning(mock_get_registe
 
     assert len(caplog.records) == 1
     assert "Server address protocol is http://, but port is not 80 or ending with 80" in caplog.records[0].message
-
