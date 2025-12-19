@@ -152,8 +152,8 @@ const PreviewPanel: React.FC<PreviewPanelProps> = ({
             <>
               <strong>
                 {activeTab === 'included'
-                  ? `Showing ${items.length} of ${summary?.includedModels ?? 0} models included:`
-                  : `Showing ${items.length} of ${summary?.excludedModels ?? 0} models excluded:`}
+                  ? `${summary?.includedModels ?? 0} of ${summary?.totalModels ?? 0} models included:`
+                  : `${summary?.excludedModels ?? 0} of ${summary?.totalModels ?? 0} models excluded:`}
               </strong>
               <List isPlain className="pf-v6-u-mt-md">
                 {items.map((model) => (
