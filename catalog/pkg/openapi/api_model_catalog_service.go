@@ -669,6 +669,7 @@ func (a *ModelCatalogServiceAPIService) FindSourcesExecute(r ApiFindSourcesReque
 		parameterAddToHeaderOrQuery(localVarQueryParams, "assetType", r.assetType, "form", "")
 	} else {
 		var defaultValue CatalogAssetType = "models"
+		parameterAddToHeaderOrQuery(localVarQueryParams, "assetType", defaultValue, "form", "")
 		r.assetType = &defaultValue
 	}
 	if r.pageSize != nil {
@@ -1141,30 +1142,35 @@ func (a *ModelCatalogServiceAPIService) GetAllModelPerformanceArtifactsExecute(r
 		parameterAddToHeaderOrQuery(localVarQueryParams, "recommendations", r.recommendations, "form", "")
 	} else {
 		var defaultValue bool = false
+		parameterAddToHeaderOrQuery(localVarQueryParams, "recommendations", defaultValue, "form", "")
 		r.recommendations = &defaultValue
 	}
 	if r.rpsProperty != nil {
 		parameterAddToHeaderOrQuery(localVarQueryParams, "rpsProperty", r.rpsProperty, "form", "")
 	} else {
 		var defaultValue string = "requests_per_second"
+		parameterAddToHeaderOrQuery(localVarQueryParams, "rpsProperty", defaultValue, "form", "")
 		r.rpsProperty = &defaultValue
 	}
 	if r.latencyProperty != nil {
 		parameterAddToHeaderOrQuery(localVarQueryParams, "latencyProperty", r.latencyProperty, "form", "")
 	} else {
 		var defaultValue string = "ttft_p90"
+		parameterAddToHeaderOrQuery(localVarQueryParams, "latencyProperty", defaultValue, "form", "")
 		r.latencyProperty = &defaultValue
 	}
 	if r.hardwareCountProperty != nil {
 		parameterAddToHeaderOrQuery(localVarQueryParams, "hardwareCountProperty", r.hardwareCountProperty, "form", "")
 	} else {
 		var defaultValue string = "hardware_count"
+		parameterAddToHeaderOrQuery(localVarQueryParams, "hardwareCountProperty", defaultValue, "form", "")
 		r.hardwareCountProperty = &defaultValue
 	}
 	if r.hardwareTypeProperty != nil {
 		parameterAddToHeaderOrQuery(localVarQueryParams, "hardwareTypeProperty", r.hardwareTypeProperty, "form", "")
 	} else {
 		var defaultValue string = "hardware_type"
+		parameterAddToHeaderOrQuery(localVarQueryParams, "hardwareTypeProperty", defaultValue, "form", "")
 		r.hardwareTypeProperty = &defaultValue
 	}
 	if r.filterQuery != nil {
@@ -1513,6 +1519,7 @@ func (a *ModelCatalogServiceAPIService) PreviewCatalogSourceExecute(r ApiPreview
 		parameterAddToHeaderOrQuery(localVarQueryParams, "filterStatus", r.filterStatus, "form", "")
 	} else {
 		var defaultValue string = "all"
+		parameterAddToHeaderOrQuery(localVarQueryParams, "filterStatus", defaultValue, "form", "")
 		r.filterStatus = &defaultValue
 	}
 	// to determine the Content-Type header

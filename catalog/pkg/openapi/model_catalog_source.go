@@ -24,11 +24,11 @@ type CatalogSource struct {
 	// The name of the catalog source.
 	Name string `json:"name"`
 	// Whether the catalog source is enabled.
-	Enabled   *bool             `json:"enabled,omitempty"`
-	AssetType *CatalogAssetType `json:"assetType,omitempty"`
+	Enabled *bool `json:"enabled,omitempty"`
 	// Labels for the catalog source.
-	Labels []string             `json:"labels"`
-	Status *CatalogSourceStatus `json:"status,omitempty"`
+	Labels    []string             `json:"labels"`
+	AssetType *CatalogAssetType    `json:"assetType,omitempty"`
+	Status    *CatalogSourceStatus `json:"status,omitempty"`
 	// Detailed error information when the status is \"Error\". This field is null or empty when the source is functioning normally.
 	Error NullableString `json:"error,omitempty"`
 	// Optional list of glob patterns for models to include. If specified, only models matching at least one pattern will be included. If omitted, all models are considered for inclusion.  Pattern Syntax: - Only the `*` wildcard is supported (matches zero or more characters) - Patterns are case-insensitive (e.g., `Granite/_*` matches `granite/model` and `GRANITE/model`) - Patterns match the entire model name (anchored at start and end) - Wildcards can appear anywhere: `Granite/_*`, `*-beta`, `*deprecated*`, `*_/old*`  Examples: - `ibm-granite/_*` - matches all models starting with \"ibm-granite/\" - `meta-llama/_*` - matches all models in the meta-llama namespace - `*` - matches all models  Constraints: - Patterns cannot be empty or whitespace-only - A pattern cannot appear in both includedModels and excludedModels
@@ -49,9 +49,9 @@ func NewCatalogSource(id string, name string, labels []string) *CatalogSource {
 	this.Name = name
 	var enabled bool = true
 	this.Enabled = &enabled
+	this.Labels = labels
 	var assetType CatalogAssetType = CATALOGASSETTYPE_MODELS
 	this.AssetType = &assetType
-	this.Labels = labels
 	return &this
 }
 
@@ -147,6 +147,30 @@ func (o *CatalogSource) SetEnabled(v bool) {
 	o.Enabled = &v
 }
 
+// GetLabels returns the Labels field value
+func (o *CatalogSource) GetLabels() []string {
+	if o == nil {
+		var ret []string
+		return ret
+	}
+
+	return o.Labels
+}
+
+// GetLabelsOk returns a tuple with the Labels field value
+// and a boolean to check if the value has been set.
+func (o *CatalogSource) GetLabelsOk() ([]string, bool) {
+	if o == nil {
+		return nil, false
+	}
+	return o.Labels, true
+}
+
+// SetLabels sets field value
+func (o *CatalogSource) SetLabels(v []string) {
+	o.Labels = v
+}
+
 // GetAssetType returns the AssetType field value if set, zero value otherwise.
 func (o *CatalogSource) GetAssetType() CatalogAssetType {
 	if o == nil || IsNil(o.AssetType) {
@@ -177,30 +201,6 @@ func (o *CatalogSource) HasAssetType() bool {
 // SetAssetType gets a reference to the given CatalogAssetType and assigns it to the AssetType field.
 func (o *CatalogSource) SetAssetType(v CatalogAssetType) {
 	o.AssetType = &v
-}
-
-// GetLabels returns the Labels field value
-func (o *CatalogSource) GetLabels() []string {
-	if o == nil {
-		var ret []string
-		return ret
-	}
-
-	return o.Labels
-}
-
-// GetLabelsOk returns a tuple with the Labels field value
-// and a boolean to check if the value has been set.
-func (o *CatalogSource) GetLabelsOk() ([]string, bool) {
-	if o == nil {
-		return nil, false
-	}
-	return o.Labels, true
-}
-
-// SetLabels sets field value
-func (o *CatalogSource) SetLabels(v []string) {
-	o.Labels = v
 }
 
 // GetStatus returns the Status field value if set, zero value otherwise.
@@ -357,10 +357,10 @@ func (o CatalogSource) ToMap() (map[string]interface{}, error) {
 	if !IsNil(o.Enabled) {
 		toSerialize["enabled"] = o.Enabled
 	}
+	toSerialize["labels"] = o.Labels
 	if !IsNil(o.AssetType) {
 		toSerialize["assetType"] = o.AssetType
 	}
-	toSerialize["labels"] = o.Labels
 	if !IsNil(o.Status) {
 		toSerialize["status"] = o.Status
 	}

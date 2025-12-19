@@ -26,7 +26,9 @@ type ApiFindMcpServersRequest struct {
 	ctx           context.Context
 	ApiService    *McpCatalogServiceAPIService
 	name          *string
+	q             *string
 	filterQuery   *string
+	namedQuery    *string
 	pageSize      *string
 	orderBy       *OrderByField
 	sortOrder     *SortOrder
@@ -39,9 +41,21 @@ func (r ApiFindMcpServersRequest) Name(name string) ApiFindMcpServersRequest {
 	return r
 }
 
+// Free-form keyword search used to filter MCP servers by name, description, or provider.
+func (r ApiFindMcpServersRequest) Q(q string) ApiFindMcpServersRequest {
+	r.q = &q
+	return r
+}
+
 // A SQL-like query string to filter the list of entities. The query supports rich filtering capabilities with automatic type inference.  **Supported Operators:** - Comparison: &#x60;&#x3D;&#x60;, &#x60;!&#x3D;&#x60;, &#x60;&lt;&gt;&#x60;, &#x60;&gt;&#x60;, &#x60;&lt;&#x60;, &#x60;&gt;&#x3D;&#x60;, &#x60;&lt;&#x3D;&#x60; - Pattern matching: &#x60;LIKE&#x60;, &#x60;ILIKE&#x60; (case-insensitive) - Set membership: &#x60;IN&#x60; - Logical: &#x60;AND&#x60;, &#x60;OR&#x60; - Grouping: &#x60;()&#x60; for complex expressions  **Data Types:** - Strings: &#x60;\&quot;value\&quot;&#x60; or &#x60;&#39;value&#39;&#x60; - Numbers: &#x60;42&#x60;, &#x60;3.14&#x60;, &#x60;1e-5&#x60; - Booleans: &#x60;true&#x60;, &#x60;false&#x60; (case-insensitive)  **Property Access:** - Standard properties: &#x60;name&#x60;, &#x60;id&#x60;, &#x60;state&#x60;, &#x60;createTimeSinceEpoch&#x60; - Custom properties: Any user-defined property name - Escaped properties: Use backticks for special characters: &#x60;&#x60; &#x60;custom-property&#x60; &#x60;&#x60; - Type-specific access: &#x60;property.string_value&#x60;, &#x60;property.double_value&#x60;, &#x60;property.int_value&#x60;, &#x60;property.bool_value&#x60;  **Examples:** - Basic: &#x60;name &#x3D; \&quot;my-model\&quot;&#x60; - Comparison: &#x60;accuracy &gt; 0.95&#x60; - Pattern: &#x60;name LIKE \&quot;%tensorflow%\&quot;&#x60; - Complex: &#x60;(name &#x3D; \&quot;model-a\&quot; OR name &#x3D; \&quot;model-b\&quot;) AND state &#x3D; \&quot;LIVE\&quot;&#x60; - Custom property: &#x60;framework.string_value &#x3D; \&quot;pytorch\&quot;&#x60; - Escaped property: &#x60;&#x60; &#x60;mlflow.source.type&#x60; &#x3D; \&quot;notebook\&quot; &#x60;&#x60;
 func (r ApiFindMcpServersRequest) FilterQuery(filterQuery string) ApiFindMcpServersRequest {
 	r.filterQuery = &filterQuery
+	return r
+}
+
+// Apply a pre-defined named query to filter the list of entities. Named queries are configured in the catalog sources YAML file and provide reusable filter presets for common filtering scenarios.  **Configuration Example:** &#x60;&#x60;&#x60;yaml namedQueries:   production_ready:     provider:       operator: \&quot;IN\&quot;       value: [\&quot;Dynatrace\&quot;, \&quot;CNCF\&quot;, \&quot;GitHub\&quot;]     verifiedSource:       operator: \&quot;&#x3D;\&quot;       value: true   monitoring_tools:     deploymentMode:       operator: \&quot;&#x3D;\&quot;       value: \&quot;local\&quot; &#x60;&#x60;&#x60;  **Usage:** - Apply single named query: &#x60;?namedQuery&#x3D;production_ready&#x60; - Named queries work alongside other filters (filterQuery, name) - If the named query doesn&#39;t exist, a 400 Bad Request is returned  **Behavior:** - Named query filters are applied in addition to any other filters - Named queries can reference customProperties and standard fields - Results must satisfy ALL conditions in the named query
+func (r ApiFindMcpServersRequest) NamedQuery(namedQuery string) ApiFindMcpServersRequest {
+	r.namedQuery = &namedQuery
 	return r
 }
 
@@ -113,8 +127,14 @@ func (a *McpCatalogServiceAPIService) FindMcpServersExecute(r ApiFindMcpServersR
 	if r.name != nil {
 		parameterAddToHeaderOrQuery(localVarQueryParams, "name", r.name, "form", "")
 	}
+	if r.q != nil {
+		parameterAddToHeaderOrQuery(localVarQueryParams, "q", r.q, "form", "")
+	}
 	if r.filterQuery != nil {
 		parameterAddToHeaderOrQuery(localVarQueryParams, "filterQuery", r.filterQuery, "form", "")
+	}
+	if r.namedQuery != nil {
+		parameterAddToHeaderOrQuery(localVarQueryParams, "namedQuery", r.namedQuery, "form", "")
 	}
 	if r.pageSize != nil {
 		parameterAddToHeaderOrQuery(localVarQueryParams, "pageSize", r.pageSize, "form", "")
@@ -128,6 +148,136 @@ func (a *McpCatalogServiceAPIService) FindMcpServersExecute(r ApiFindMcpServersR
 	if r.nextPageToken != nil {
 		parameterAddToHeaderOrQuery(localVarQueryParams, "nextPageToken", r.nextPageToken, "form", "")
 	}
+	// to determine the Content-Type header
+	localVarHTTPContentTypes := []string{}
+
+	// set Content-Type header
+	localVarHTTPContentType := selectHeaderContentType(localVarHTTPContentTypes)
+	if localVarHTTPContentType != "" {
+		localVarHeaderParams["Content-Type"] = localVarHTTPContentType
+	}
+
+	// to determine the Accept header
+	localVarHTTPHeaderAccepts := []string{"application/json"}
+
+	// set Accept header
+	localVarHTTPHeaderAccept := selectHeaderAccept(localVarHTTPHeaderAccepts)
+	if localVarHTTPHeaderAccept != "" {
+		localVarHeaderParams["Accept"] = localVarHTTPHeaderAccept
+	}
+	req, err := a.client.prepareRequest(r.ctx, localVarPath, localVarHTTPMethod, localVarPostBody, localVarHeaderParams, localVarQueryParams, localVarFormParams, formFiles)
+	if err != nil {
+		return localVarReturnValue, nil, err
+	}
+
+	localVarHTTPResponse, err := a.client.callAPI(req)
+	if err != nil || localVarHTTPResponse == nil {
+		return localVarReturnValue, localVarHTTPResponse, err
+	}
+
+	localVarBody, err := io.ReadAll(localVarHTTPResponse.Body)
+	localVarHTTPResponse.Body.Close()
+	localVarHTTPResponse.Body = io.NopCloser(bytes.NewBuffer(localVarBody))
+	if err != nil {
+		return localVarReturnValue, localVarHTTPResponse, err
+	}
+
+	if localVarHTTPResponse.StatusCode >= 300 {
+		newErr := &GenericOpenAPIError{
+			body:  localVarBody,
+			error: localVarHTTPResponse.Status,
+		}
+		if localVarHTTPResponse.StatusCode == 400 {
+			var v Error
+			err = a.client.decode(&v, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
+			if err != nil {
+				newErr.error = err.Error()
+				return localVarReturnValue, localVarHTTPResponse, newErr
+			}
+			newErr.error = formatErrorMessage(localVarHTTPResponse.Status, &v)
+			newErr.model = v
+			return localVarReturnValue, localVarHTTPResponse, newErr
+		}
+		if localVarHTTPResponse.StatusCode == 401 {
+			var v Error
+			err = a.client.decode(&v, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
+			if err != nil {
+				newErr.error = err.Error()
+				return localVarReturnValue, localVarHTTPResponse, newErr
+			}
+			newErr.error = formatErrorMessage(localVarHTTPResponse.Status, &v)
+			newErr.model = v
+			return localVarReturnValue, localVarHTTPResponse, newErr
+		}
+		if localVarHTTPResponse.StatusCode == 500 {
+			var v Error
+			err = a.client.decode(&v, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
+			if err != nil {
+				newErr.error = err.Error()
+				return localVarReturnValue, localVarHTTPResponse, newErr
+			}
+			newErr.error = formatErrorMessage(localVarHTTPResponse.Status, &v)
+			newErr.model = v
+		}
+		return localVarReturnValue, localVarHTTPResponse, newErr
+	}
+
+	err = a.client.decode(&localVarReturnValue, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
+	if err != nil {
+		newErr := &GenericOpenAPIError{
+			body:  localVarBody,
+			error: err.Error(),
+		}
+		return localVarReturnValue, localVarHTTPResponse, newErr
+	}
+
+	return localVarReturnValue, localVarHTTPResponse, nil
+}
+
+type ApiFindMcpServersFilterOptionsRequest struct {
+	ctx        context.Context
+	ApiService *McpCatalogServiceAPIService
+}
+
+func (r ApiFindMcpServersFilterOptionsRequest) Execute() (*FilterOptionsList, *http.Response, error) {
+	return r.ApiService.FindMcpServersFilterOptionsExecute(r)
+}
+
+/*
+FindMcpServersFilterOptions Lists fields and available options that can be used in `filterQuery` on the list MCP servers endpoint.
+
+	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+	@return ApiFindMcpServersFilterOptionsRequest
+*/
+func (a *McpCatalogServiceAPIService) FindMcpServersFilterOptions(ctx context.Context) ApiFindMcpServersFilterOptionsRequest {
+	return ApiFindMcpServersFilterOptionsRequest{
+		ApiService: a,
+		ctx:        ctx,
+	}
+}
+
+// Execute executes the request
+//
+//	@return FilterOptionsList
+func (a *McpCatalogServiceAPIService) FindMcpServersFilterOptionsExecute(r ApiFindMcpServersFilterOptionsRequest) (*FilterOptionsList, *http.Response, error) {
+	var (
+		localVarHTTPMethod  = http.MethodGet
+		localVarPostBody    interface{}
+		formFiles           []formFile
+		localVarReturnValue *FilterOptionsList
+	)
+
+	localBasePath, err := a.client.cfg.ServerURLWithContext(r.ctx, "McpCatalogServiceAPIService.FindMcpServersFilterOptions")
+	if err != nil {
+		return localVarReturnValue, nil, &GenericOpenAPIError{error: err.Error()}
+	}
+
+	localVarPath := localBasePath + "/api/model_catalog/v1alpha1/mcp_servers/filter_options"
+
+	localVarHeaderParams := make(map[string]string)
+	localVarQueryParams := url.Values{}
+	localVarFormParams := url.Values{}
+
 	// to determine the Content-Type header
 	localVarHTTPContentTypes := []string{}
 
