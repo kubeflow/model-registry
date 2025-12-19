@@ -2218,14 +2218,61 @@ func GetCatalogSourcePreviewSummaryMock() models.CatalogSourcePreviewSummary {
 }
 
 func CreateCatalogSourcePreviewMock() models.CatalogSourcePreviewResult {
-	catalogModelPreview := GetModelsWithInclusionStatusListMocks()
+	return CreateCatalogSourcePreviewMockWithFilter("all", 20, "")
+}
+
+func CreateCatalogSourcePreviewMockWithFilter(filterStatus string, pageSize int, nextPageToken string) models.CatalogSourcePreviewResult {
+	allModels := GetModelsWithInclusionStatusListMocks()
 	catalogSourcePreviewSummary := GetCatalogSourcePreviewSummaryMock()
 
+	// Filter based on filterStatus
+	var filteredModels []models.CatalogSourcePreviewModel
+	switch filterStatus {
+	case "included":
+		for _, m := range allModels {
+			if m.Included {
+				filteredModels = append(filteredModels, m)
+			}
+		}
+	case "excluded":
+		for _, m := range allModels {
+			if !m.Included {
+				filteredModels = append(filteredModels, m)
+			}
+		}
+	default: // "all" or empty
+		filteredModels = allModels
+	}
+
+	// Handle pagination
+	startIndex := 0
+	if nextPageToken != "" {
+		// Parse token as start index (simple mock implementation)
+		fmt.Sscanf(nextPageToken, "%d", &startIndex)
+	}
+
+	if pageSize <= 0 {
+		pageSize = 10
+	}
+
+	endIndex := startIndex + pageSize
+	if endIndex > len(filteredModels) {
+		endIndex = len(filteredModels)
+	}
+
+	pagedModels := filteredModels[startIndex:endIndex]
+
+	// Generate next page token if there are more items
+	var newNextPageToken string
+	if endIndex < len(filteredModels) {
+		newNextPageToken = fmt.Sprintf("%d", endIndex)
+	}
+
 	return models.CatalogSourcePreviewResult{
-		Items:         catalogModelPreview,
+		Items:         pagedModels,
 		Summary:       catalogSourcePreviewSummary,
-		NextPageToken: "",
-		PageSize:      int32(10),
-		Size:          int32(len(catalogModelPreview)),
+		NextPageToken: newNextPageToken,
+		PageSize:      int32(pageSize),
+		Size:          int32(len(pagedModels)),
 	}
 }
