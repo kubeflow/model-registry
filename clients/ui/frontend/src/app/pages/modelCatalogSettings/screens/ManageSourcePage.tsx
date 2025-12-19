@@ -46,7 +46,11 @@ const ManageSourcePage: React.FC = () => {
       loaded={catalogSourceId ? existingSourceConfigLoaded : true}
       provideChildrenPadding
     >
-      <ManageSourceForm existingData={existingData} isEditMode={!isAddMode} />
+      <ManageSourceForm
+        existingData={existingData}
+        existingSourceConfig={existingSourceConfig || undefined}
+        isEditMode={!isAddMode}
+      />
     </ApplicationsPage>
   );
 };

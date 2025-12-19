@@ -24,6 +24,7 @@ import {
   transformFormDataToConfig,
 } from '~/app/pages/modelCatalogSettings/utils/modelCatalogSettingsUtils';
 import {
+  CatalogSourceConfig,
   CatalogSourceType,
   CatalogSourcePreviewResult,
   CatalogSourcePreviewRequest,
@@ -46,10 +47,15 @@ type PreviewState = {
 
 type ManageSourceFormProps = {
   existingData?: Partial<ManageSourceFormData>;
+  existingSourceConfig?: CatalogSourceConfig;
   isEditMode: boolean;
 };
 
-const ManageSourceForm: React.FC<ManageSourceFormProps> = ({ existingData, isEditMode }) => {
+const ManageSourceForm: React.FC<ManageSourceFormProps> = ({
+  existingData,
+  existingSourceConfig,
+  isEditMode,
+}) => {
   const navigate = useNavigate();
   const [formData, setData] = useManageSourceData(existingData);
   const [isSubmitting, setIsSubmitting] = React.useState(false);
@@ -90,7 +96,7 @@ const ManageSourceForm: React.FC<ManageSourceFormProps> = ({ existingData, isEdi
   }, []);
 
   const buildPreviewRequest = (): CatalogSourcePreviewRequest => {
-    const payload = transformFormDataToConfig(formData);
+    const payload = transformFormDataToConfig(formData, existingSourceConfig);
 
     const request: CatalogSourcePreviewRequest = {
       type: payload.type,
@@ -106,6 +112,7 @@ const ManageSourceForm: React.FC<ManageSourceFormProps> = ({ existingData, isEdi
     } else {
       request.properties = {
         yaml: payload.yaml,
+        yamlCatalogPath: payload.yamlCatalogPath,
       };
     }
 
@@ -166,7 +173,7 @@ const ManageSourceForm: React.FC<ManageSourceFormProps> = ({ existingData, isEdi
     setSubmitError(undefined);
 
     try {
-      const sourceConfig = transformFormDataToConfig(formData);
+      const sourceConfig = transformFormDataToConfig(formData, existingSourceConfig);
       const payload = getPayloadForConfig(sourceConfig, isEditMode);
 
       if (isEditMode) {
