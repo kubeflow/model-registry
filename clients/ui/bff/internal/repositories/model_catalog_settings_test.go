@@ -63,12 +63,14 @@ var _ = Describe("ModelCatalogSettingRepository", func() {
 	})
 
 	Describe("GetCatalogSourceConfig", func() {
-		It("should return Yaml content for yaml type source config", func() {
+		It("should return Yaml content and YamlCatalogPath for yaml type source config", func() {
 			catalog, err := repo.GetCatalogSourceConfig(ctx, k8sClient, "kubeflow", "dora_ai_models")
 			Expect(err).NotTo(HaveOccurred())
 			Expect(catalog.Type).To(Equal("yaml"))
 			Expect(catalog.Yaml).NotTo(BeNil())
 			Expect(*catalog.Yaml).NotTo(BeEmpty())
+			Expect(catalog.YamlCatalogPath).NotTo(BeNil())
+			Expect(*catalog.YamlCatalogPath).To(Equal("dora_ai_models.yaml"))
 		})
 
 		It("should return apiKey for the huggingFace type source config", func() {

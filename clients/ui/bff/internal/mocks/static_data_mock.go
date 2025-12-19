@@ -1424,6 +1424,7 @@ func CreateSampleCatalogSource(id string, name string, catalogType string, enabl
 	switch catalogType {
 	case "yaml":
 		sourceConfig.Yaml = stringToPointer("models:\n  - name: model1")
+		sourceConfig.YamlCatalogPath = stringToPointer(id + ".yaml")
 	case "hf":
 		// Use different organizations for the failed sources
 		if id == "adminModel2" {
