@@ -59,6 +59,65 @@ This ensures:
 - Signed images with digest references
 - Signed SBOMs in cosign-compatible SPDX format
 
+### Execution Details
+
+Align all workflows to the alignment pattern:
+
+- [.github/workflows/build-and-push-image.yml](.github/workflows/build-and-push-image.yml) (model-registry server)
+  - Replace custom script with `docker/build-push-action`
+  - Add `docker/metadata-action` for rich metadata
+  - Add multi-arch support (already had QEMU/Buildx)
+  - Add image signing by digest
+  - Change from `cosign attach` to `cosign attest`
+
+- [.github/workflows/build-and-push-async-upload.yml](.github/workflows/build-and-push-async-upload.yml) (async-upload)
+  - Add QEMU for multi-arch support
+  - Add `docker/metadata-action`
+  - Add `platforms: linux/arm64,linux/amd64`
+  - Replace built-in SBOM with `anchore/sbom-action`
+  - Add `cosign` signing and attestation
+
+- [.github/workflows/build-and-push-csi-image.yml](.github/workflows/build-and-push-csi-image.yml) (storage-initializer)
+  - Replace Makefile-based build with `docker/build-push-action`
+  - Add QEMU and Buildx for multi-arch support
+  - Add `platforms: linux/arm64,linux/amd64`
+  - Add `docker/metadata-action`
+  - Add image signing by digest
+  - Change from `cosign attach` to `cosign attest`
+
+- [.github/workflows/build-and-push-ui-images.yml](.github/workflows/build-and-push-ui-images.yml) (UI)
+  - Add QEMU for multi-arch support
+  - Add `platforms: linux/arm64,linux/amd64`
+  - Replace built-in SBOM with `anchore/sbom-action`
+  - Added `cosign` signing and attestation
+
+- [.github/workflows/build-and-push-ui-images-standalone.yml](.github/workflows/build-and-push-ui-images-standalone.yml) (UI standalone)
+  - Add QEMU for multi-arch support
+  - Add `platforms: linux/arm64,linux/amd64`
+  - Replace built-in SBOM with `anchore/sbom-action`
+  - Add `cosign` signing and attestation
+
+So that we can ensure for all workflows:
+- Multi-arch builds: `linux/arm64`, `linux/amd64` with QEMU setup (extending it in the future as needed)
+- `docker/metadata-action`: Rich metadata generation
+- `docker/build-push-action`: Standardized build action
+- Image signing: Using `cosign sign` with _digest_ references
+- SBOM generation: Using `anchore/sbom-action` for SPDX format
+- SBOM attestation: Using `cosign attest` (instead of `cosign attach`)
+- Digest-based references: All signing/attestation uses `@sha256:...`
+- Permissions:
+   - Add `id-token: write` as needed by Cosig
+   - Add `actions: read`, `contents: write` as needed by `anchore/sbom-action`
+
+What is not chaning is the structure of container image Tags, i.e. we will keep the principle that:
+
+```yaml
+tags: |
+  type=raw,value=${{ env.VERSION }}                                 # e.g., v0.3.x or main-a1b2c3d
+  type=raw,value=latest,enable=${{ env.BUILD_CONTEXT == 'main' }}   # latest=main branch
+  type=raw,value=main,enable=${{ env.BUILD_CONTEXT == 'main' }}     # explicit main Tag
+```
+
 ### Test Plan
 
 We already had previous work done in this areas:
