@@ -352,33 +352,6 @@ func (p *hfModelProvider) Models(ctx context.Context) (<-chan ModelProviderRecor
 					glog.Errorf("unable to reprocess Hugging Face models: %v", err)
 					continue
 				}
-				// Add last_synced timestamp to all models
-				currentTime := time.Now().UnixMilli()
-				lastSyncedStr := strconv.FormatInt(currentTime, 10)
-				for i := range catalog {
-					if catalog[i].Model != nil {
-						customProps := catalog[i].Model.GetCustomProperties()
-						if customProps == nil {
-							customProps = &[]models.Properties{}
-						}
-						// Update or add last_synced property
-						found := false
-						for j := range *customProps {
-							if (*customProps)[j].Name == "last_synced" {
-								(*customProps)[j].StringValue = &lastSyncedStr
-								found = true
-								break
-							}
-						}
-						if !found {
-							*customProps = append(*customProps, models.NewStringProperty("last_synced", lastSyncedStr, true))
-						}
-						// Update the model's custom properties
-						if modelImpl, ok := catalog[i].Model.(*dbmodels.CatalogModelImpl); ok {
-							modelImpl.CustomProperties = customProps
-						}
-					}
-				}
 				p.emit(ctx, catalog, ch)
 			}
 		}
@@ -389,6 +362,9 @@ func (p *hfModelProvider) Models(ctx context.Context) (<-chan ModelProviderRecor
 
 func (p *hfModelProvider) getModelsFromHF(ctx context.Context) ([]ModelProviderRecord, error) {
 	var records []ModelProviderRecord
+
+	currentTime := time.Now().UnixMilli()
+	lastSyncedStr := strconv.FormatInt(currentTime, 10)
 
 	for _, modelName := range p.includedModels {
 		// Skip if excluded - check before fetching to avoid unnecessary API calls
@@ -412,6 +388,19 @@ func (p *hfModelProvider) getModelsFromHF(ctx context.Context) ([]ModelProviderR
 			if !p.filter.Allows(finalModelName) {
 				glog.V(2).Infof("Skipping excluded model (after conversion): %s", finalModelName)
 				continue
+			}
+		}
+
+		// Add last_synced property to the model
+		if record.Model != nil {
+			if modelImpl, ok := record.Model.(*dbmodels.CatalogModelImpl); ok {
+				customProps := modelImpl.CustomProperties
+				if customProps == nil {
+					customProps = &[]models.Properties{}
+				}
+				// Add last_synced property
+				*customProps = append(*customProps, models.NewStringProperty("last_synced", lastSyncedStr, true))
+				modelImpl.CustomProperties = customProps
 			}
 		}
 
