@@ -121,9 +121,6 @@ const PreviewPanel: React.FC<PreviewPanelProps> = ({
       return renderEmptyState();
     }
 
-    const totalForTab =
-      activeTab === 'included' ? (summary?.includedModels ?? 0) : (summary?.excludedModels ?? 0);
-
     return (
       <>
         <Tabs
@@ -190,9 +187,9 @@ const PreviewPanel: React.FC<PreviewPanelProps> = ({
               titleText={`No models ${activeTab === 'included' ? 'included' : 'excluded'}`}
             >
               <EmptyStateBody>
-                {totalForTab === 0
+                {activeTab === 'included'
                   ? 'No models from this source match this filter'
-                  : 'No models from this source are visible in the model catalog'}
+                  : 'No models from this source are excluded by this filter'}
               </EmptyStateBody>
             </EmptyState>
           )}
