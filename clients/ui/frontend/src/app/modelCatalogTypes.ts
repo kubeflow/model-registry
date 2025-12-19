@@ -257,7 +257,6 @@ export type FieldFilter = {
   value: string | number | boolean | (string | number)[];
 };
 
-
 export type NamedQuery = Record<string, FieldFilter>;
 
 export type CatalogFilterOptionsList = {
