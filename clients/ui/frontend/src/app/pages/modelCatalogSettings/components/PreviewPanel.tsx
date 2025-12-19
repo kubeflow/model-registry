@@ -15,70 +15,47 @@ import {
   List,
   ListItem,
   Spinner,
-  Pagination,
-  PaginationVariant,
+  Button,
   AlertActionLink,
 } from '@patternfly/react-core';
 import { CubesIcon, CheckCircleIcon, TimesCircleIcon } from '@patternfly/react-icons';
 import { PAGE_TITLES } from '~/app/pages/modelCatalogSettings/constants';
-import { CatalogSourcePreviewResult } from '~/app/modelCatalogTypes';
+import { CatalogSourcePreviewModel, CatalogSourcePreviewSummary } from '~/app/modelCatalogTypes';
 import PreviewButton from './PreviewButton';
+
+type FilterStatus = 'included' | 'excluded';
 
 type PreviewPanelProps = {
   isPreviewEnabled: boolean;
   isLoading: boolean;
   onPreview: () => void;
-  previewResult?: CatalogSourcePreviewResult;
   previewError?: Error;
   hasFormChanged: boolean;
+  activeTab: FilterStatus;
+  items: CatalogSourcePreviewModel[];
+  summary?: CatalogSourcePreviewSummary;
+  hasMore: boolean;
+  isLoadingMore: boolean;
+  onTabChange: (tab: FilterStatus) => void;
+  onLoadMore: () => void;
 };
 
 const PreviewPanel: React.FC<PreviewPanelProps> = ({
   isPreviewEnabled,
   isLoading,
   onPreview,
-  previewResult,
   previewError,
   hasFormChanged,
+  activeTab,
+  items,
+  summary,
+  hasMore,
+  isLoadingMore,
+  onTabChange,
+  onLoadMore,
 }) => {
-  const [activeTabKey, setActiveTabKey] = React.useState<string | number>(0);
-  const [page, setPage] = React.useState(1);
-  const [perPage, setPerPage] = React.useState(10);
-
   const handleTabSelect = (_event: React.MouseEvent, tabIndex: string | number) => {
-    setActiveTabKey(tabIndex);
-    setPage(1); // Reset to first page when switching tabs
-  };
-
-  const filteredItems = React.useMemo(() => {
-    if (!previewResult) {
-      return [];
-    }
-    if (activeTabKey === 0) {
-      return previewResult.items.filter((item) => item.included);
-    }
-    return previewResult.items.filter((item) => !item.included);
-  }, [previewResult, activeTabKey]);
-
-  const paginatedItems = React.useMemo(() => {
-    const startIdx = (page - 1) * perPage;
-    const endIdx = startIdx + perPage;
-    return filteredItems.slice(startIdx, endIdx);
-  }, [filteredItems, page, perPage]);
-
-  const onSetPage = (
-    _event: React.MouseEvent | React.KeyboardEvent | MouseEvent,
-    newPage: number,
-  ) => {
-    setPage(newPage);
-  };
-
-  const onPerPageSelect = (
-    _event: React.MouseEvent | React.KeyboardEvent | MouseEvent,
-    newPerPage: number,
-  ) => {
-    setPerPage(newPerPage);
-    setPage(1);
+    onTabChange(tabIndex === 0 ? 'included' : 'excluded');
   };
 
   const renderEmptyState = () => {
@@ -139,13 +116,21 @@ const PreviewPanel: React.FC<PreviewPanelProps> = ({
       );
     }
 
-    if (!previewResult || previewError) {
+    // Show empty state if no items and no summary (never previewed) or if there's an error
+    if ((!items.length && !summary) || previewError) {
       return renderEmptyState();
     }
 
+    const totalForTab =
+      activeTab === 'included' ? (summary?.includedModels ?? 0) : (summary?.excludedModels ?? 0);
+
     return (
       <>
-        <Tabs activeKey={activeTabKey} onSelect={handleTabSelect} aria-label="Preview tabs">
+        <Tabs
+          activeKey={activeTab === 'included' ? 0 : 1}
+          onSelect={handleTabSelect}
+          aria-label="Preview tabs"
+        >
           <Tab eventKey={0} title={<TabTitleText>Models included</TabTitleText>} />
           <Tab eventKey={1} title={<TabTitleText>Models excluded</TabTitleText>} />
         </Tabs>
@@ -163,32 +148,15 @@ const PreviewPanel: React.FC<PreviewPanelProps> = ({
               }
             />
           )}
-          {paginatedItems.length > 0 ? (
+          {items.length > 0 ? (
             <>
-              <Flex
-                justifyContent={{ default: 'justifyContentSpaceBetween' }}
-                alignItems={{ default: 'alignItemsCenter' }}
-              >
-                <FlexItem>
-                  <strong>
-                    {activeTabKey === 0
-                      ? `${previewResult.summary.includedModels} of ${previewResult.summary.totalModels} models included:`
-                      : `${previewResult.summary.excludedModels} of ${previewResult.summary.totalModels} models excluded:`}
-                  </strong>
-                </FlexItem>
-                <FlexItem>
-                  <Pagination
-                    itemCount={filteredItems.length}
-                    perPage={perPage}
-                    page={page}
-                    onSetPage={onSetPage}
-                    onPerPageSelect={onPerPageSelect}
-                    variant={PaginationVariant.top}
-                  />
-                </FlexItem>
-              </Flex>
+              <strong>
+                {activeTab === 'included'
+                  ? `Showing ${items.length} of ${summary?.includedModels ?? 0} models included:`
+                  : `Showing ${items.length} of ${summary?.excludedModels ?? 0} models excluded:`}
+              </strong>
               <List isPlain className="pf-v6-u-mt-md">
-                {paginatedItems.map((model) => (
+                {items.map((model) => (
                   <ListItem
                     key={model.name}
                     icon={
@@ -203,22 +171,28 @@ const PreviewPanel: React.FC<PreviewPanelProps> = ({
                   </ListItem>
                 ))}
               </List>
-              <Pagination
-                itemCount={filteredItems.length}
-                perPage={perPage}
-                page={page}
-                onSetPage={onSetPage}
-                onPerPageSelect={onPerPageSelect}
-                variant={PaginationVariant.bottom}
-              />
+              {hasMore && (
+                <div className="pf-v6-u-mt-md pf-v6-u-text-align-center">
+                  <Button
+                    variant="link"
+                    onClick={onLoadMore}
+                    isLoading={isLoadingMore}
+                    isDisabled={isLoadingMore}
+                  >
+                    {isLoadingMore ? 'Loading...' : 'Load more'}
+                  </Button>
+                </div>
+              )}
             </>
           ) : (
             <EmptyState
               variant={EmptyStateVariant.sm}
-              titleText={`No models ${activeTabKey === 0 ? 'included' : 'excluded'}`}
+              titleText={`No models ${activeTab === 'included' ? 'included' : 'excluded'}`}
             >
               <EmptyStateBody>
-                No models from this source are visible in the model catalog
+                {totalForTab === 0
+                  ? 'No models from this source match this filter'
+                  : 'No models from this source are visible in the model catalog'}
               </EmptyStateBody>
             </EmptyState>
           )}
