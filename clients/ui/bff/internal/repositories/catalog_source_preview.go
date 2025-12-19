@@ -39,15 +39,16 @@ func (a CatalogSourcePreview) CreateCatalogSourcePreview(client httpclient.HTTPC
 		"excludedModels": sourcePreviewPayload.ExcludedModels,
 	}
 
+	properties := make(map[string]interface{})
 	var yamlContent string
 	var hasYamlContent bool
 
 	if sourcePreviewPayload.Type == CatalogTypeHuggingFace {
 		if org, ok := sourcePreviewPayload.Properties["allowedOrganization"]; ok {
-			configData["allowedOrganization"] = org
+			properties["allowedOrganization"] = org
 		}
 		if apiKey, ok := sourcePreviewPayload.Properties["apiKey"]; ok {
-			configData["apiKey"] = apiKey
+			properties["apiKey"] = apiKey
 		}
 	}
 
@@ -59,11 +60,15 @@ func (a CatalogSourcePreview) CreateCatalogSourcePreview(client httpclient.HTTPC
 		} else {
 			// If no yaml content, check for yamlCatalogPath
 			if yamlPath, ok := sourcePreviewPayload.Properties["yamlCatalogPath"].(string); ok && yamlPath != "" {
-				configData["yamlCatalogPath"] = yamlPath
+				properties["yamlCatalogPath"] = yamlPath
 			} else {
 				return nil, fmt.Errorf("for yaml catalog type, either 'yaml' content or 'yamlCatalogPath' must be provided")
 			}
 		}
+	}
+
+	if len(properties) > 0 {
+		configData["properties"] = properties
 	}
 
 	configJSON, err := json.Marshal(configData)
