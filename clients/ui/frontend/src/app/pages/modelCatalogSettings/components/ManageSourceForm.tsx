@@ -24,8 +24,9 @@ import {
 import {
   CatalogSourceConfig,
   CatalogSourceType,
-  CatalogSourcePreviewResult,
   CatalogSourcePreviewRequest,
+  CatalogSourcePreviewModel,
+  CatalogSourcePreviewSummary,
 } from '~/app/modelCatalogTypes';
 import SourceDetailsSection from './SourceDetailsSection';
 import CredentialsSection from './CredentialsSection';
@@ -34,13 +35,33 @@ import ModelVisibilitySection from './ModelVisibilitySection';
 import PreviewPanel from './PreviewPanel';
 import ManageSourceFormFooter from './ManageSourceFormFooter';
 
+type FilterStatus = 'included' | 'excluded';
+
+type PreviewTabState = {
+  items: CatalogSourcePreviewModel[];
+  nextPageToken?: string;
+  hasMore: boolean;
+};
+
+const initialTabState: PreviewTabState = {
+  items: [],
+  nextPageToken: undefined,
+  hasMore: false,
+};
+
 type PreviewState = {
   mode?: 'preview' | 'validate';
   isLoading: boolean;
-  result?: CatalogSourcePreviewResult;
+  isLoadingMore: boolean;
+  summary?: CatalogSourcePreviewSummary;
+  tabStates: {
+    included: PreviewTabState;
+    excluded: PreviewTabState;
+  };
   error?: Error;
   resultDismissed: boolean;
-  lastPreviewedData?: string;
+  lastPreviewedData?: CatalogSourcePreviewRequest;
+  activeTab: FilterStatus;
 };
 
 type ManageSourceFormProps = {
@@ -64,37 +85,20 @@ const ManageSourceForm: React.FC<ManageSourceFormProps> = ({
   // Preview state
   const [previewState, setPreviewState] = React.useState<PreviewState>({
     isLoading: false,
+    isLoadingMore: false,
+    tabStates: {
+      included: initialTabState,
+      excluded: initialTabState,
+    },
     resultDismissed: false,
+    activeTab: 'included',
   });
 
   const isHuggingFaceMode = formData.sourceType === CatalogSourceType.HUGGING_FACE;
   const isFormComplete = isFormValid(formData);
   const canPreview = isPreviewReady(formData);
 
-  // Derive whether form has changed since last preview
-  const hasFormChanged = React.useMemo(() => {
-    const currentData = JSON.stringify(formData);
-    return (
-      previewState.lastPreviewedData !== undefined && currentData !== previewState.lastPreviewedData
-    );
-  }, [formData, previewState.lastPreviewedData]);
-
-  // Derive validation success state
-  const isValidationSuccess =
-    previewState.mode === 'validate' &&
-    !previewState.isLoading &&
-    !previewState.error &&
-    !previewState.resultDismissed;
-
-  // Auto-trigger preview on mount in edit mode
-  React.useEffect(() => {
-    if (isEditMode && existingData && canPreview && !previewState.result) {
-      handlePreview();
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  const buildPreviewRequest = (): CatalogSourcePreviewRequest => {
+  const buildPreviewRequest = React.useCallback((): CatalogSourcePreviewRequest => {
     const payload = transformFormDataToConfig(formData, existingSourceConfig);
 
     const request: CatalogSourcePreviewRequest = {
@@ -116,47 +120,153 @@ const ManageSourceForm: React.FC<ManageSourceFormProps> = ({
     }
 
     return request;
-  };
+  }, [formData, existingSourceConfig]);
 
-  const handlePreview = async (mode: 'preview' | 'validate' = 'preview') => {
+  // Derive whether form has changed since last preview
+  const hasFormChanged = React.useMemo(() => {
+    if (!previewState.lastPreviewedData) {
+      return false;
+    }
+    const currentRequest = buildPreviewRequest();
+    return JSON.stringify(currentRequest) !== JSON.stringify(previewState.lastPreviewedData);
+  }, [buildPreviewRequest, previewState.lastPreviewedData]);
+
+  // Derive validation success state
+  const isValidationSuccess =
+    previewState.mode === 'validate' &&
+    !previewState.isLoading &&
+    !previewState.error &&
+    !previewState.resultDismissed;
+
+  // Auto-trigger preview on mount in edit mode
+  React.useEffect(() => {
+    const hasNoResults = previewState.tabStates.included.items.length === 0;
+    if (isEditMode && existingData && canPreview && hasNoResults) {
+      handlePreview();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const handlePreview = async (
+    mode: 'preview' | 'validate' = 'preview',
+    options?: {
+      loadMore?: boolean;
+      switchToTab?: FilterStatus;
+    },
+  ) => {
+    const { loadMore = false, switchToTab } = options ?? {};
+    const isFreshPreview = !loadMore && !switchToTab;
+    const targetTab = switchToTab ?? previewState.activeTab;
+
     if (!apiState.apiAvailable) {
-      setPreviewState({
+      setPreviewState((prev) => ({
+        ...prev,
         mode,
         isLoading: false,
         error: new Error('API is not available'),
         resultDismissed: false,
-      });
+      }));
       return;
     }
 
-    // Start loading, clear previous state
-    setPreviewState({
-      mode,
-      isLoading: true,
-      resultDismissed: false,
-    });
+    // For fresh preview, reset everything
+    if (isFreshPreview) {
+      setPreviewState((prev) => ({
+        ...prev,
+        mode,
+        isLoading: true,
+        isLoadingMore: false,
+        tabStates: { included: initialTabState, excluded: initialTabState },
+        activeTab: 'included',
+        error: undefined,
+        resultDismissed: false,
+      }));
+    } else if (loadMore) {
+      setPreviewState((prev) => ({ ...prev, isLoadingMore: true }));
+    } else if (switchToTab) {
+      setPreviewState((prev) => ({ ...prev, activeTab: switchToTab, isLoading: true }));
+    }
+
+    // Use lastPreviewedData for load more / tab switch, current formData for fresh
+    let requestData: CatalogSourcePreviewRequest;
+    if (isFreshPreview) {
+      requestData = buildPreviewRequest();
+    } else if (previewState.lastPreviewedData) {
+      requestData = previewState.lastPreviewedData;
+    } else {
+      // For non-fresh requests, lastPreviewedData must exist (guard against edge case)
+      // eslint-disable-next-line no-console
+      console.warn(
+        'Attempted load more / tab switch without lastPreviewedData, triggering fresh preview',
+      );
+      return handlePreview(mode);
+    }
+
+    // Get token for load more
+    const nextPageToken = loadMore ? previewState.tabStates[targetTab].nextPageToken : undefined;
 
     try {
-      const previewRequest = buildPreviewRequest();
-      const result = await apiState.api.previewCatalogSource({}, previewRequest);
+      const result = await apiState.api.previewCatalogSource({}, requestData, {
+        filterStatus: targetTab,
+        pageSize: 20,
+        nextPageToken,
+      });
 
-      setPreviewState({
-        mode,
-        isLoading: false,
-        result,
-        lastPreviewedData: JSON.stringify(formData),
-        resultDismissed: false,
+      // Update state based on operation type
+      setPreviewState((prev) => {
+        const currentTabState = prev.tabStates[targetTab];
+        const newItems = loadMore ? [...currentTabState.items, ...result.items] : result.items;
+
+        return {
+          ...prev,
+          mode,
+          isLoading: false,
+          isLoadingMore: false,
+          summary: result.summary,
+          lastPreviewedData: isFreshPreview ? requestData : prev.lastPreviewedData,
+          tabStates: {
+            ...prev.tabStates,
+            [targetTab]: {
+              items: newItems,
+              nextPageToken: result.nextPageToken,
+              hasMore: !!result.nextPageToken && result.items.length > 0,
+            },
+          },
+          error: undefined,
+          resultDismissed: false,
+        };
       });
     } catch (error) {
       const err = error instanceof Error ? error : new Error('Failed to preview source');
 
-      setPreviewState({
+      setPreviewState((prev) => ({
+        ...prev,
         mode,
         isLoading: false,
+        isLoadingMore: false,
         error: err,
         resultDismissed: false,
-      });
+      }));
     }
+  };
+
+  const handleTabChange = (newTab: FilterStatus) => {
+    if (newTab === previewState.activeTab) {
+      return;
+    }
+
+    const tabState = previewState.tabStates[newTab];
+    if (tabState.items.length === 0) {
+      // Tab not yet loaded, fetch it
+      handlePreview('preview', { switchToTab: newTab });
+    } else {
+      // Tab already has data, just switch
+      setPreviewState((prev) => ({ ...prev, activeTab: newTab }));
+    }
+  };
+
+  const handleLoadMore = () => {
+    handlePreview('preview', { loadMore: true });
   };
 
   const handleValidate = async () => {
@@ -271,9 +381,15 @@ const ManageSourceForm: React.FC<ManageSourceFormProps> = ({
             isPreviewEnabled={canPreview}
             isLoading={previewState.isLoading}
             onPreview={() => handlePreview('preview')}
-            previewResult={previewState.result}
             previewError={previewState.mode === 'preview' ? previewState.error : undefined}
             hasFormChanged={hasFormChanged}
+            activeTab={previewState.activeTab}
+            items={previewState.tabStates[previewState.activeTab].items}
+            summary={previewState.summary}
+            hasMore={previewState.tabStates[previewState.activeTab].hasMore}
+            isLoadingMore={previewState.isLoadingMore}
+            onTabChange={handleTabChange}
+            onLoadMore={handleLoadMore}
           />
         </SidebarPanel>
       </Sidebar>

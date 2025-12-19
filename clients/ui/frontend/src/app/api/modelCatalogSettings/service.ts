@@ -14,6 +14,7 @@ import {
   CatalogSourceConfigPayload,
   CatalogSourcePreviewRequest,
   CatalogSourcePreviewResult,
+  PreviewCatalogSourceQueryParams,
 } from '~/app/modelCatalogTypes';
 
 export const getCatalogSourceConfigs =
@@ -79,9 +80,19 @@ export const deleteCatalogSourceConfig =
 
 export const previewCatalogSource =
   (hostPath: string, queryParams: Record<string, unknown> = {}) =>
-  (opts: APIOptions, data: CatalogSourcePreviewRequest): Promise<CatalogSourcePreviewResult> =>
+  (
+    opts: APIOptions,
+    data: CatalogSourcePreviewRequest,
+    additionalQueryParams?: PreviewCatalogSourceQueryParams,
+  ): Promise<CatalogSourcePreviewResult> =>
     handleRestFailures(
-      restCREATE(hostPath, '/source_preview', assembleModArchBody(data), queryParams, opts),
+      restCREATE(
+        hostPath,
+        '/source_preview',
+        assembleModArchBody(data),
+        { ...queryParams, ...additionalQueryParams },
+        opts,
+      ),
     ).then((response) => {
       if (isModArchResponse<CatalogSourcePreviewResult>(response)) {
         return response.data;
