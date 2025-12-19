@@ -17,6 +17,7 @@ import (
 	dbmodels "github.com/kubeflow/model-registry/catalog/internal/db/models"
 	"github.com/kubeflow/model-registry/catalog/internal/db/service"
 	apimodels "github.com/kubeflow/model-registry/catalog/pkg/openapi"
+	"github.com/kubeflow/model-registry/internal/apiutils"
 	"github.com/kubeflow/model-registry/internal/db/models"
 	mrmodels "github.com/kubeflow/model-registry/internal/db/models"
 )
@@ -27,6 +28,7 @@ const (
 	urlKey                = "url"
 	apiKeyEnvVarKey       = "apiKeyEnvVar"
 	maxModelsKey          = "maxModels"
+	syncIntervalKey       = "syncInterval"
 
 	// defaultMaxModels is the default limit for models fetched PER PATTERN.
 	// This limit is applied independently to each pattern in includedModels
@@ -36,6 +38,11 @@ const (
 	// Example: with maxModels=100 and 3 patterns, up to 300 models total may be fetched.
 	// Set to 0 to disable the limit (not recommended for large organizations).
 	defaultMaxModels = 500
+
+	// defaultSyncInterval is the default interval for periodic syncing of models.
+	// This can be overridden via the syncInterval property in the source configuration.
+	// For testing, a shorter interval (e.g., "1s" or "10s") can be used to speed up tests.
+	defaultSyncInterval = 24 * time.Hour
 )
 
 // gatedString is a custom type that can unmarshal both boolean and string values from JSON
@@ -87,6 +94,9 @@ type hfModelProvider struct {
 	// This is applied independently to each pattern to respect Hugging Face API rate limits.
 	// A value of 0 means no limit.
 	maxModels int
+	// syncInterval is the interval for periodic syncing of models.
+	// This can be configured via the syncInterval property in the source configuration.
+	syncInterval time.Duration
 	// services is used for periodic syncing with timestamp comparison
 	services *service.Services
 }
@@ -332,8 +342,8 @@ func (p *hfModelProvider) Models(ctx context.Context) (<-chan ModelProviderRecor
 		// Send the initial list right away.
 		p.emit(ctx, catalog, ch)
 
-		// Set up periodic polling (once a day)
-		ticker := time.NewTicker(24 * time.Hour)
+		// Set up periodic polling with configurable interval
+		ticker := time.NewTicker(p.syncInterval)
 		defer ticker.Stop()
 
 		for {
@@ -480,7 +490,7 @@ func (p *hfModelProvider) syncModelsWithTimestampCheck(ctx context.Context) erro
 			if attrs.LastUpdateTimeSinceEpoch == nil || *attrs.LastUpdateTimeSinceEpoch != *hfUpdateTime {
 				needsUpdate = true
 				glog.V(2).Infof("Model %s has updated timestamp: %d -> %d", modelName,
-					getInt64Value(attrs.LastUpdateTimeSinceEpoch), *hfUpdateTime)
+					apiutils.ZeroIfNil(attrs.LastUpdateTimeSinceEpoch), *hfUpdateTime)
 			}
 		} else {
 			// If HF doesn't have update time but we do, or vice versa, update
@@ -909,6 +919,18 @@ func newHFModelProvider(ctx context.Context, source *Source, reldir string) (<-c
 		p.baseURL = strings.TrimSuffix(url, "/")
 	}
 
+	// Parse sync interval (optional, defaults to 24 hours)
+	// This can be configured as a duration string (e.g., "1s", "10s", "1m", "24h").
+	// For testing, a shorter interval can be used to speed up tests.
+	p.syncInterval = defaultSyncInterval
+	if syncInterval, ok := source.Properties[syncIntervalKey].(string); ok && syncInterval != "" {
+		if parsed, err := time.ParseDuration(syncInterval); err == nil {
+			p.syncInterval = parsed
+		} else {
+			glog.Warningf("Invalid syncInterval duration string %q, using default: %v", syncInterval, err)
+		}
+	}
+
 	if p.apiKey != "" {
 		hasValidPrefix := strings.HasPrefix(p.apiKey, "hf_")
 		if !hasValidPrefix {
@@ -954,9 +976,10 @@ func init() {
 // It initializes the provider from a PreviewConfig without starting the full model loading.
 func NewHFPreviewProvider(config *PreviewConfig) (*hfModelProvider, error) {
 	p := &hfModelProvider{
-		client:    &http.Client{Timeout: 30 * time.Second},
-		baseURL:   defaultHuggingFaceURL,
-		maxModels: defaultMaxModels,
+		client:       &http.Client{Timeout: 30 * time.Second},
+		baseURL:      defaultHuggingFaceURL,
+		maxModels:    defaultMaxModels,
+		syncInterval: defaultSyncInterval,
 	}
 
 	// Parse API key from environment variable (optional - allows public model access without key)
@@ -1262,12 +1285,4 @@ func getModelName(model dbmodels.CatalogModel) string {
 		return *attrs.Name
 	}
 	return "unknown"
-}
-
-// Helper function to get int64 value safely
-func getInt64Value(v *int64) int64 {
-	if v == nil {
-		return 0
-	}
-	return *v
 }

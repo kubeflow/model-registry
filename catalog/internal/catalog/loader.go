@@ -24,8 +24,12 @@ const (
 	SourceStatusDisabled  = "disabled"
 )
 
-// ServicesContextKey is the context key for passing services to model providers
-var ServicesContextKey = "services"
+type contextKey int
+
+const (
+	// ServicesContextKey is the context key for passing services to model providers
+	ServicesContextKey contextKey = iota
+)
 
 // ModelProviderRecord contains one model and its associated artifacts.
 type ModelProviderRecord struct {
