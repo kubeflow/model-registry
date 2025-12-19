@@ -14,7 +14,7 @@ import (
 // McpCatalogProvider defines the interface for MCP catalog data providers.
 // This allows switching between embedded data and database-backed implementations.
 type McpCatalogProvider interface {
-	ListMcpServers(ctx context.Context, name string, filterQuery string, namedQuery string) ([]model.McpServer, error)
+	ListMcpServers(ctx context.Context, name string, q string, filterQuery string, namedQuery string) ([]model.McpServer, error)
 	GetMcpServer(ctx context.Context, serverId string) (*model.McpServer, error)
 	GetFilterOptions(ctx context.Context) (*model.FilterOptionsList, error)
 }
@@ -34,8 +34,8 @@ func NewMcpCatalogServiceAPIService(provider McpCatalogProvider) McpCatalogServi
 }
 
 // FindMcpServers - List All McpServers
-func (s *McpCatalogServiceAPIService) FindMcpServers(ctx context.Context, name string, filterQuery string, namedQuery string, strPageSize string, orderBy model.OrderByField, sortOrder model.SortOrder, nextPageToken string) (ImplResponse, error) {
-	servers, err := s.provider.ListMcpServers(ctx, name, filterQuery, namedQuery)
+func (s *McpCatalogServiceAPIService) FindMcpServers(ctx context.Context, name string, q string, filterQuery string, namedQuery string, strPageSize string, orderBy model.OrderByField, sortOrder model.SortOrder, nextPageToken string) (ImplResponse, error) {
+	servers, err := s.provider.ListMcpServers(ctx, name, q, filterQuery, namedQuery)
 	if err != nil {
 		return ErrorResponse(http.StatusInternalServerError, err), err
 	}

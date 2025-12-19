@@ -209,6 +209,24 @@ func applyMcpServerListFilters(query *gorm.DB, listOptions *models.McpServerList
 		)
 	}
 
+	// TextSearch - free-form keyword search across name, description, and provider
+	if listOptions.TextSearch != nil && *listOptions.TextSearch != "" {
+		searchPattern := fmt.Sprintf("%%%s%%", strings.ToLower(*listOptions.TextSearch))
+		propertyTable := utils.GetTableName(query.Statement.DB, &schema.ContextProperty{})
+
+		// Search in name (context table)
+		nameCondition := fmt.Sprintf("LOWER(%s.name) LIKE ?", contextTable)
+
+		// Search in description, provider properties
+		propertyCondition := fmt.Sprintf("EXISTS (SELECT 1 FROM %s cp WHERE cp.context_id = %s.id AND cp.name IN (?, ?) AND LOWER(cp.string_value) LIKE ?)",
+			propertyTable, contextTable)
+
+		query = query.Where(fmt.Sprintf("(%s OR %s)", nameCondition, propertyCondition),
+			searchPattern,
+			"description", "provider", searchPattern,
+		)
+	}
+
 	// Filter by source IDs
 	var nonEmptySourceIDs []string
 	if listOptions.SourceIDs != nil {

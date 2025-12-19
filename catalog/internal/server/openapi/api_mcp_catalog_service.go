@@ -111,6 +111,13 @@ func (c *McpCatalogServiceAPIController) FindMcpServers(w http.ResponseWriter, r
 		nameParam = param
 	} else {
 	}
+	var qParam string
+	if query.Has("q") {
+		param := query.Get("q")
+
+		qParam = param
+	} else {
+	}
 	var filterQueryParam string
 	if query.Has("filterQuery") {
 		param := query.Get("filterQuery")
@@ -153,7 +160,7 @@ func (c *McpCatalogServiceAPIController) FindMcpServers(w http.ResponseWriter, r
 		nextPageTokenParam = param
 	} else {
 	}
-	result, err := c.service.FindMcpServers(r.Context(), nameParam, filterQueryParam, namedQueryParam, pageSizeParam, orderByParam, sortOrderParam, nextPageTokenParam)
+	result, err := c.service.FindMcpServers(r.Context(), nameParam, qParam, filterQueryParam, namedQueryParam, pageSizeParam, orderByParam, sortOrderParam, nextPageTokenParam)
 	// If an error occurred, encode the error with the status code
 	if err != nil {
 		c.errorHandler(w, r, err, &result)

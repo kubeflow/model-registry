@@ -12,6 +12,7 @@ type McpServerListOptions struct {
 	Name        *string
 	SourceIDs   *[]string
 	Query       *string
+	TextSearch  *string
 	FilterQuery *string
 	NamedQuery  *string
 }

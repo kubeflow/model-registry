@@ -461,6 +461,12 @@ paths:
         - McpCatalogService
       parameters:
         - $ref: "#/components/parameters/name"
+        - name: q
+          description: Free-form keyword search used to filter MCP servers by name, description, or provider.
+          schema:
+            type: string
+          in: query
+          required: false
         - $ref: "#/components/parameters/filterQuery"
         - $ref: "#/components/parameters/namedQuery"
         - $ref: "#/components/parameters/pageSize"

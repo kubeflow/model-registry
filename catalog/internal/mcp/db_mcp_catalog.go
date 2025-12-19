@@ -35,11 +35,14 @@ func (p *DbMcpCatalogProvider) SetNamedQueryResolver(resolver NamedQueryResolver
 	p.namedQueryResolver = resolver
 }
 
-// ListMcpServers returns all MCP servers with optional filtering by name, filterQuery, and namedQuery.
-func (p *DbMcpCatalogProvider) ListMcpServers(ctx context.Context, name string, filterQuery string, namedQuery string) ([]model.McpServer, error) {
+// ListMcpServers returns all MCP servers with optional filtering by name, q (text search), filterQuery, and namedQuery.
+func (p *DbMcpCatalogProvider) ListMcpServers(ctx context.Context, name string, q string, filterQuery string, namedQuery string) ([]model.McpServer, error) {
 	listOptions := dbmodels.McpServerListOptions{}
 	if name != "" {
 		listOptions.Query = &name
+	}
+	if q != "" {
+		listOptions.TextSearch = &q
 	}
 
 	// Resolve named query to filter conditions
@@ -472,7 +475,7 @@ func convertYamlEndpointsToApiEndpoints(endpoints *yamlMcpEndpoints) *model.McpE
 // This includes field names and available values for each filterable field.
 func (p *DbMcpCatalogProvider) GetFilterOptions(ctx context.Context) (*model.FilterOptionsList, error) {
 	// Get all servers (without filtering) to extract unique values
-	allServers, err := p.ListMcpServers(ctx, "", "", "")
+	allServers, err := p.ListMcpServers(ctx, "", "", "", "")
 	if err != nil {
 		return nil, fmt.Errorf("failed to list MCP servers for filter options: %w", err)
 	}
