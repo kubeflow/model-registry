@@ -127,7 +127,8 @@ func (r *ModelCatalogSettingsRepository) GetCatalogSourceConfig(ctx context.Cont
 				result.Yaml = &yamlContent
 			} else if yamlContent, ok := defaultCM.Data[yamlFilePath]; ok {
 				result.Yaml = &yamlContent
-			} else {
+			} else if result.IsDefault == nil || !*result.IsDefault {
+				// Only warn for non-default sources
 				sessionLogger := ctx.Value(constants.TraceLoggerKey).(*slog.Logger)
 				sessionLogger.Warn("yaml catalog content missing from configmap",
 					"catalogId", catalogSourceId,
