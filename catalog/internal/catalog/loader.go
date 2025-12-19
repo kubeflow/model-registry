@@ -24,13 +24,6 @@ const (
 	SourceStatusDisabled  = "disabled"
 )
 
-type contextKey int
-
-const (
-	// ServicesContextKey is the context key for passing services to model providers
-	ServicesContextKey contextKey = iota
-)
-
 // ModelProviderRecord contains one model and its associated artifacts.
 type ModelProviderRecord struct {
 	Model     dbmodels.CatalogModel
@@ -422,10 +415,7 @@ func (l *Loader) readProviderRecords(ctx context.Context) <-chan ModelProviderRe
 		// different configmaps) to use relative paths correctly.
 		sourceDir := filepath.Dir(source.Origin)
 
-		// Pass services through context for providers that need it (e.g., HF sync)
-		providerCtx := context.WithValue(ctx, ServicesContextKey, l.services)
-
-		records, err := registerFunc(providerCtx, &source, sourceDir)
+		records, err := registerFunc(ctx, &source, sourceDir)
 		if err != nil {
 			glog.Errorf("error reading catalog type %s with id %s: %v", source.Type, source.Id, err)
 			l.saveSourceStatus(source.Id, SourceStatusError, err.Error())
