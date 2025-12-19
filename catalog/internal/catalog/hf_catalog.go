@@ -15,11 +15,8 @@ import (
 
 	"github.com/golang/glog"
 	dbmodels "github.com/kubeflow/model-registry/catalog/internal/db/models"
-	"github.com/kubeflow/model-registry/catalog/internal/db/service"
 	apimodels "github.com/kubeflow/model-registry/catalog/pkg/openapi"
-	"github.com/kubeflow/model-registry/internal/apiutils"
 	"github.com/kubeflow/model-registry/internal/db/models"
-	mrmodels "github.com/kubeflow/model-registry/internal/db/models"
 )
 
 const (
@@ -97,8 +94,6 @@ type hfModelProvider struct {
 	// syncInterval is the interval for periodic syncing of models.
 	// This can be configured via the syncInterval property in the source configuration.
 	syncInterval time.Duration
-	// services is used for periodic syncing with timestamp comparison
-	services *service.Services
 }
 
 // hfModelInfo represents the structure of Hugging Face API model information
@@ -351,18 +346,40 @@ func (p *hfModelProvider) Models(ctx context.Context) (<-chan ModelProviderRecor
 			case <-ctx.Done():
 				return
 			case <-ticker.C:
-				// Only sync if services are available (for timestamp-based incremental updates)
-				if p.services == nil {
-					glog.V(2).Infof("Skipping periodic sync: services not available")
-					continue
-				}
-
-				glog.Infof("Periodic sync: checking for updates to Hugging Face models")
-				err := p.syncModelsWithTimestampCheck(ctx)
+				glog.Infof("Periodic sync: reprocessing all models for source %s", p.sourceId)
+				catalog, err := p.getModelsFromHF(ctx)
 				if err != nil {
-					glog.Errorf("unable to sync Hugging Face models: %v", err)
+					glog.Errorf("unable to reprocess Hugging Face models: %v", err)
 					continue
 				}
+				// Add last_synced timestamp to all models
+				currentTime := time.Now().UnixMilli()
+				lastSyncedStr := strconv.FormatInt(currentTime, 10)
+				for i := range catalog {
+					if catalog[i].Model != nil {
+						customProps := catalog[i].Model.GetCustomProperties()
+						if customProps == nil {
+							customProps = &[]models.Properties{}
+						}
+						// Update or add last_synced property
+						found := false
+						for j := range *customProps {
+							if (*customProps)[j].Name == "last_synced" {
+								(*customProps)[j].StringValue = &lastSyncedStr
+								found = true
+								break
+							}
+						}
+						if !found {
+							*customProps = append(*customProps, models.NewStringProperty("last_synced", lastSyncedStr, true))
+						}
+						// Update the model's custom properties
+						if modelImpl, ok := catalog[i].Model.(*dbmodels.CatalogModelImpl); ok {
+							modelImpl.CustomProperties = customProps
+						}
+					}
+				}
+				p.emit(ctx, catalog, ch)
 			}
 		}
 	}()
@@ -402,200 +419,6 @@ func (p *hfModelProvider) getModelsFromHF(ctx context.Context) ([]ModelProviderR
 	}
 
 	return records, nil
-}
-
-// syncModelsWithTimestampCheck syncs all models from this provider by checking timestamps
-// and only updating models that have changed.
-func (p *hfModelProvider) syncModelsWithTimestampCheck(ctx context.Context) error {
-	if p.services == nil {
-		return fmt.Errorf("services not available for sync")
-	}
-
-	// Get all models from this source
-	pageSize := int32(10000)
-	listOptions := dbmodels.CatalogModelListOptions{
-		Pagination: mrmodels.Pagination{
-			PageSize: &pageSize,
-		},
-		SourceIDs: &[]string{p.sourceId},
-	}
-
-	modelsList, err := p.services.CatalogModelRepository.List(listOptions)
-	if err != nil {
-		return fmt.Errorf("error listing models: %w", err)
-	}
-
-	if len(modelsList.Items) == 0 {
-		glog.V(2).Infof("No models found in source %s for sync", p.sourceId)
-		return nil
-	}
-
-	glog.Infof("Found %d models to check for sync in source %s", len(modelsList.Items), p.sourceId)
-
-	currentTime := time.Now().UnixMilli()
-	lastSyncedStr := strconv.FormatInt(currentTime, 10)
-
-	updatedCount := 0
-	skippedCount := 0
-	errorCount := 0
-
-	for _, model := range modelsList.Items {
-		select {
-		case <-ctx.Done():
-			return ctx.Err()
-		default:
-		}
-
-		attrs := model.GetAttributes()
-		if attrs == nil {
-			glog.V(2).Infof("Skipping model: missing attributes")
-			skippedCount++
-			continue
-		}
-
-		modelName := getModelName(model)
-		if modelName == "unknown" {
-			glog.V(2).Infof("Skipping model: missing name")
-			skippedCount++
-			continue
-		}
-
-		// Determine model ID to search on Hugging Face
-		// Prefer ExternalID, fallback to model name
-		var modelID string
-		if attrs.ExternalID != nil && *attrs.ExternalID != "" {
-			modelID = *attrs.ExternalID
-		} else {
-			modelID = modelName
-		}
-
-		hfInfo, err := p.fetchModelInfo(ctx, modelID)
-		if err != nil {
-			glog.Errorf("Failed to fetch metadata for model %s (%s): %v", modelName, modelID, err)
-			errorCount++
-			continue
-		}
-
-		// Parse HF update timestamp
-		var hfUpdateTime *int64
-		if hfInfo.UpdatedAt != "" {
-			if updateTime, err := parseHFTime(hfInfo.UpdatedAt); err == nil {
-				hfUpdateTime = &updateTime
-			}
-		}
-
-		// Compare with existing timestamp to determine if update is needed
-		needsUpdate := false
-		if hfUpdateTime != nil {
-			if attrs.LastUpdateTimeSinceEpoch == nil || *attrs.LastUpdateTimeSinceEpoch != *hfUpdateTime {
-				needsUpdate = true
-				glog.V(2).Infof("Model %s has updated timestamp: %d -> %d", modelName,
-					apiutils.ZeroIfNil(attrs.LastUpdateTimeSinceEpoch), *hfUpdateTime)
-			}
-		} else {
-			// If HF doesn't have update time but we do, or vice versa, update
-			if attrs.LastUpdateTimeSinceEpoch != nil {
-				needsUpdate = true
-				glog.V(2).Infof("Model %s: HF missing update timestamp, updating", modelName)
-			}
-		}
-
-		if needsUpdate {
-			hfm := &hfModel{}
-			hfm.populateFromHFInfo(ctx, p, hfInfo, p.sourceId, modelID)
-
-			updatedModel := dbmodels.CatalogModelImpl{}
-			if model.GetID() != nil {
-				updatedModel.ID = model.GetID()
-			}
-			if model.GetTypeID() != nil {
-				updatedModel.TypeID = model.GetTypeID()
-			}
-
-			updatedModelName := hfm.Name
-			updatedAttrs := &dbmodels.CatalogModelAttributes{
-				Name:       &updatedModelName,
-				ExternalID: hfm.ExternalId,
-			}
-
-			if hfm.CreateTimeSinceEpoch != nil {
-				if createTime, err := strconv.ParseInt(*hfm.CreateTimeSinceEpoch, 10, 64); err == nil {
-					updatedAttrs.CreateTimeSinceEpoch = &createTime
-				}
-			}
-			if hfm.LastUpdateTimeSinceEpoch != nil {
-				if updateTime, err := strconv.ParseInt(*hfm.LastUpdateTimeSinceEpoch, 10, 64); err == nil {
-					updatedAttrs.LastUpdateTimeSinceEpoch = &updateTime
-				}
-			}
-			updatedModel.Attributes = updatedAttrs
-
-			properties, customProperties := convertHFModelProperties(&hfm.CatalogModel)
-
-			lastSyncedFound := false
-			for i := range customProperties {
-				if customProperties[i].Name == "last_synced" {
-					customProperties[i].StringValue = &lastSyncedStr
-					lastSyncedFound = true
-					break
-				}
-			}
-			if !lastSyncedFound {
-				customProperties = append(customProperties, models.NewStringProperty("last_synced", lastSyncedStr, true))
-			}
-
-			if len(properties) > 0 {
-				updatedModel.Properties = &properties
-			}
-			if len(customProperties) > 0 {
-				updatedModel.CustomProperties = &customProperties
-			}
-
-			_, err := p.services.CatalogModelRepository.Save(&updatedModel)
-			if err != nil {
-				glog.Errorf("Failed to save updated model %s: %v", modelName, err)
-				errorCount++
-				continue
-			}
-
-			updatedCount++
-			glog.Infof("Updated model %s with latest Hugging Face data", modelName)
-		} else {
-			// No data changes, but still update last_synced timestamp
-			existingCustomProps := model.GetCustomProperties()
-			if existingCustomProps == nil {
-				existingCustomProps = &[]mrmodels.Properties{}
-			}
-
-			// Update or add last_synced
-			lastSyncedFound := false
-			for i := range *existingCustomProps {
-				if (*existingCustomProps)[i].Name == "last_synced" {
-					(*existingCustomProps)[i].StringValue = &lastSyncedStr
-					lastSyncedFound = true
-					break
-				}
-			}
-			if !lastSyncedFound {
-				*existingCustomProps = append(*existingCustomProps, models.NewStringProperty("last_synced", lastSyncedStr, true))
-			}
-
-			// Save model with updated last_synced
-			_, err := p.services.CatalogModelRepository.Save(model)
-			if err != nil {
-				glog.Errorf("Failed to save model %s with last_synced: %v", modelName, err)
-				errorCount++
-				continue
-			}
-
-			skippedCount++
-		}
-	}
-
-	glog.Infof("Sync completed for source %s: %d updated, %d skipped, %d errors",
-		p.sourceId, updatedCount, skippedCount, errorCount)
-
-	return nil
 }
 
 func (p *hfModelProvider) fetchModelInfo(ctx context.Context, modelName string) (*hfModelInfo, error) {
@@ -887,11 +710,6 @@ func (p *hfModelProvider) validateCredentials(ctx context.Context) error {
 func newHFModelProvider(ctx context.Context, source *Source, reldir string) (<-chan ModelProviderRecord, error) {
 	p := &hfModelProvider{}
 	p.client = &http.Client{Timeout: 30 * time.Second}
-
-	// Extract services from context if available (for periodic sync)
-	if services, ok := ctx.Value(ServicesContextKey).(service.Services); ok {
-		p.services = &services
-	}
 
 	// Parse Source ID
 	sourceId := source.GetId()
