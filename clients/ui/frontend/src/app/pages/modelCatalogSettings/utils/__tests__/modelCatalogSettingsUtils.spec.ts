@@ -97,6 +97,24 @@ describe('transformFormDataToConfig', () => {
       isDefault: false,
       type: CatalogSourceType.YAML,
       yaml: 'models:\n  - name: model1',
+      yamlCatalogPath: undefined,
+      includedModels: [],
+      excludedModels: [],
+    });
+  });
+
+  it('should transform YAML form data with existing source config including yamlCatalogPath', () => {
+    const existingConfig = mockYamlCatalogSourceConfig({
+      yamlCatalogPath: 'sample_source_1.yaml',
+    });
+    expect(transformFormDataToConfig(yamlFormData, existingConfig)).toEqual({
+      id: 'sample_source_1',
+      name: 'Source 1',
+      enabled: true,
+      isDefault: false,
+      type: CatalogSourceType.YAML,
+      yaml: 'models:\n  - name: model1',
+      yamlCatalogPath: 'sample_source_1.yaml',
       includedModels: [],
       excludedModels: [],
     });
@@ -124,6 +142,7 @@ describe('transformFormDataToConfig', () => {
       isDefault: true,
       type: CatalogSourceType.YAML,
       yaml: '',
+      yamlCatalogPath: undefined,
       includedModels: [],
       excludedModels: [],
     });
