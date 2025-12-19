@@ -36,6 +36,79 @@ paths:
           $ref: "#/components/responses/InternalServerError"
       operationId: findLabels
       description: Gets a list of all `CatalogLabel` entities.
+  /api/model_catalog/v1alpha1/mcp_servers:
+    summary: Path used to get the list of MCP servers.
+    description: The REST endpoint/path used to list zero or more `McpServer` entities.
+    get:
+      summary: List All McpServers
+      tags:
+        - McpCatalogService
+      parameters:
+        - $ref: "#/components/parameters/name"
+        - name: q
+          description: Free-form keyword search used to filter MCP servers by name, description, or provider.
+          schema:
+            type: string
+          in: query
+          required: false
+        - $ref: "#/components/parameters/filterQuery"
+        - $ref: "#/components/parameters/namedQuery"
+        - $ref: "#/components/parameters/pageSize"
+        - $ref: "#/components/parameters/orderBy"
+        - $ref: "#/components/parameters/sortOrder"
+        - $ref: "#/components/parameters/nextPageToken"
+      responses:
+        "200":
+          $ref: "#/components/responses/McpServerListResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+      operationId: findMcpServers
+      description: Gets a list of all `McpServer` entities.
+  /api/model_catalog/v1alpha1/mcp_servers/filter_options:
+    description: Lists options for `filterQuery` when listing MCP servers.
+    get:
+      summary: Lists fields and available options that can be used in `filterQuery` on the list MCP servers endpoint.
+      tags:
+        - McpCatalogService
+      responses:
+        "200":
+          $ref: "#/components/responses/FilterOptionsResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+      operationId: findMcpServersFilterOptions
+  /api/model_catalog/v1alpha1/mcp_servers/{server_id}:
+    summary: Path used to get a single MCP server.
+    description: The REST endpoint/path used to get a single `McpServer` entity.
+    get:
+      summary: Get an McpServer
+      tags:
+        - McpCatalogService
+      responses:
+        "200":
+          $ref: "#/components/responses/McpServerResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+      operationId: getMcpServer
+      description: Gets a single `McpServer` entity by ID.
+    parameters:
+      - name: server_id
+        description: A unique identifier for an `McpServer`.
+        schema:
+          type: string
+        in: path
+        required: true
   /api/model_catalog/v1alpha1/models:
     description: >-
       The REST endpoint/path used to list zero or more `CatalogModel` entities from all `CatalogSources`.
@@ -451,81 +524,6 @@ paths:
       - $ref: "#/components/parameters/artifactOrderBy"
       - $ref: "#/components/parameters/sortOrder"
       - $ref: "#/components/parameters/nextPageToken"
-  /api/model_catalog/v1alpha1/mcp_servers:
-    summary: Path used to get the list of MCP servers.
-    description: >-
-      The REST endpoint/path used to list zero or more `McpServer` entities.
-    get:
-      summary: List All McpServers
-      tags:
-        - McpCatalogService
-      parameters:
-        - $ref: "#/components/parameters/name"
-        - name: q
-          description: Free-form keyword search used to filter MCP servers by name, description, or provider.
-          schema:
-            type: string
-          in: query
-          required: false
-        - $ref: "#/components/parameters/filterQuery"
-        - $ref: "#/components/parameters/namedQuery"
-        - $ref: "#/components/parameters/pageSize"
-        - $ref: "#/components/parameters/orderBy"
-        - $ref: "#/components/parameters/sortOrder"
-        - $ref: "#/components/parameters/nextPageToken"
-      responses:
-        "200":
-          $ref: "#/components/responses/McpServerListResponse"
-        "400":
-          $ref: "#/components/responses/BadRequest"
-        "401":
-          $ref: "#/components/responses/Unauthorized"
-        "500":
-          $ref: "#/components/responses/InternalServerError"
-      operationId: findMcpServers
-      description: Gets a list of all `McpServer` entities.
-  /api/model_catalog/v1alpha1/mcp_servers/filter_options:
-    description: Lists options for `filterQuery` when listing MCP servers.
-    get:
-      summary: Lists fields and available options that can be used in `filterQuery` on the list MCP servers endpoint.
-      tags:
-        - McpCatalogService
-      responses:
-        "200":
-          $ref: "#/components/responses/FilterOptionsResponse"
-        "400":
-          $ref: "#/components/responses/BadRequest"
-        "401":
-          $ref: "#/components/responses/Unauthorized"
-        "500":
-          $ref: "#/components/responses/InternalServerError"
-      operationId: findMcpServersFilterOptions
-  /api/model_catalog/v1alpha1/mcp_servers/{server_id}:
-    summary: Path used to get a single MCP server.
-    description: >-
-      The REST endpoint/path used to get a single `McpServer` entity.
-    get:
-      summary: Get an McpServer
-      tags:
-        - McpCatalogService
-      responses:
-        "200":
-          $ref: "#/components/responses/McpServerResponse"
-        "401":
-          $ref: "#/components/responses/Unauthorized"
-        "404":
-          $ref: "#/components/responses/NotFound"
-        "500":
-          $ref: "#/components/responses/InternalServerError"
-      operationId: getMcpServer
-      description: Gets a single `McpServer` entity by ID.
-    parameters:
-      - name: server_id
-        description: A unique identifier for an `McpServer`.
-        schema:
-          type: string
-        in: path
-        required: true
 components:
   schemas:
     ArtifactTypeQueryParam:
@@ -674,6 +672,16 @@ components:
           required:
             - items
         - $ref: "#/components/schemas/BaseResourceList"
+    CatalogAssetType:
+      description: |-
+        The type of assets managed by a catalog source.
+        - `models`: AI/ML models (default)
+        - `mcp_servers`: MCP (Model Context Protocol) servers
+      enum:
+        - models
+        - mcp_servers
+      type: string
+      default: models
     CatalogLabel:
       description: A catalog label. Labels are used to categorize catalog sources. Represented as a flexible map of string key-value pairs with a required 'name' field.
       type: object
@@ -796,17 +804,17 @@ components:
           description: Whether the catalog source is enabled.
           type: boolean
           default: true
+        labels:
+          description: Labels for the catalog source.
+          type: array
+          items:
+            type: string
         assetType:
           $ref: "#/components/schemas/CatalogAssetType"
           description: |-
             The type of assets this source manages. Defaults to "models" if not specified.
             This field determines which loader processes the source and which API endpoints
             return the assets.
-        labels:
-          description: Labels for the catalog source.
-          type: array
-          items:
-            type: string
         status:
           $ref: "#/components/schemas/CatalogSourceStatus"
           description: Current operational status of the catalog source.
@@ -920,16 +928,134 @@ components:
         - error
         - disabled
       type: string
-    CatalogAssetType:
+    Error:
+      description: Error code and message.
+      required:
+        - code
+        - message
+      type: object
+      properties:
+        code:
+          description: Error code
+          type: string
+        message:
+          description: Error message
+          type: string
+    FieldFilter:
+      type: object
+      required:
+        - operator
+        - value
+      properties:
+        operator:
+          type: string
+          description: Filter operator (e.g., '<', '=', '>', 'IN')
+          example: '<'
+        value:
+          description: Filter value (can be number, string, or array)
+          example: 70
+    FilterOption:
+      type: object
+      required:
+        - type
+      properties:
+        type:
+          type: string
+          description: The data type of the filter option
+          enum:
+            - string
+            - number
+        values:
+          type: array
+          description: Known values of the property for string types with a small number of possible options.
+          items: {}
+        range:
+          $ref: "#/components/schemas/FilterOptionRange"
+    FilterOptionRange:
+      type: object
+      description: Min and max values for number types.
+      properties:
+        min:
+          type: number
+          format: double
+        max:
+          type: number
+          format: double
+    FilterOptionsList:
+      description: List of FilterOptions
+      type: object
+      properties:
+        filters:
+          type: object
+          description: A single filter option.
+          additionalProperties:
+            $ref: "#/components/schemas/FilterOption"
+        namedQueries:
+          type: object
+          description: Predefined named queries for common filtering scenarios
+          additionalProperties:
+            type: object
+            additionalProperties:
+              $ref: "#/components/schemas/FieldFilter"
+    McpArtifact:
+      description: An artifact for an MCP server (e.g., OCI image for local deployment).
+      type: object
+      required:
+        - uri
+      properties:
+        uri:
+          type: string
+          format: uri
+          description: URI where the artifact can be retrieved (e.g., OCI image URI).
+          example: oci://ghcr.io/dynatrace-oss/dynatrace-mcp-server:1.0.1
+        createTimeSinceEpoch:
+          type: string
+          description: Timestamp when the artifact was created (milliseconds since epoch).
+        lastUpdateTimeSinceEpoch:
+          type: string
+          description: Timestamp when the artifact was last updated (milliseconds since epoch).
+    McpDeploymentMode:
       description: |-
-        The type of assets managed by a catalog source.
-        - `models`: AI/ML models (default)
-        - `mcp_servers`: MCP (Model Context Protocol) servers
+        Deployment mode for the MCP server.
+        - `local`: Server deployed from OCI artifact in Kubernetes cluster
+        - `remote`: Server hosted externally, accessed via network endpoints
       enum:
-        - models
-        - mcp_servers
+        - local
+        - remote
       type: string
-      default: models
+      default: local
+    McpEndpoints:
+      description: |-
+        Network endpoints for remote MCP servers. Contains URLs for different
+        transport protocols. At least one endpoint must be provided for remote servers.
+      type: object
+      properties:
+        http:
+          type: string
+          format: uri
+          description: HTTP REST endpoint URL.
+          example: https://api.mcpservers.org/github-mcp/v1
+        sse:
+          type: string
+          format: uri
+          description: Server-Sent Events endpoint URL.
+          example: https://api.mcpservers.org/github-mcp/sse
+    McpSecurityIndicator:
+      description: Security indicators for an MCP server.
+      type: object
+      properties:
+        verifiedSource:
+          type: boolean
+          description: Whether the source has been verified.
+        secureEndpoint:
+          type: boolean
+          description: Whether the endpoint uses secure communication.
+        sast:
+          type: boolean
+          description: Whether static application security testing has been performed.
+        readOnlyTools:
+          type: boolean
+          description: Whether all tools are read-only.
     McpServer:
       description: An MCP (Model Context Protocol) server that provides tools for AI agents.
       type: object
@@ -972,7 +1098,7 @@ components:
         version:
           type: string
           description: Version of the MCP server.
-          example: "1.0.1"
+          example: 1.0.1
         tags:
           type: array
           items:
@@ -1048,60 +1174,6 @@ components:
           required:
             - items
         - $ref: "#/components/schemas/BaseResourceList"
-    McpTransportType:
-      description: |-
-        Transport protocol used by the MCP server.
-        - `stdio`: Standard input/output streams
-        - `sse`: Server-Sent Events over HTTP
-        - `http`: Standard HTTP/REST
-      enum:
-        - stdio
-        - sse
-        - http
-      type: string
-    McpDeploymentMode:
-      description: |-
-        Deployment mode for the MCP server.
-        - `local`: Server deployed from OCI artifact in Kubernetes cluster
-        - `remote`: Server hosted externally, accessed via network endpoints
-      enum:
-        - local
-        - remote
-      type: string
-      default: local
-    McpEndpoints:
-      description: |-
-        Network endpoints for remote MCP servers. Contains URLs for different
-        transport protocols. At least one endpoint must be provided for remote servers.
-      type: object
-      properties:
-        http:
-          type: string
-          format: uri
-          description: HTTP REST endpoint URL.
-          example: https://api.mcpservers.org/github-mcp/v1
-        sse:
-          type: string
-          format: uri
-          description: Server-Sent Events endpoint URL.
-          example: https://api.mcpservers.org/github-mcp/sse
-    McpArtifact:
-      description: An artifact for an MCP server (e.g., OCI image for local deployment).
-      type: object
-      required:
-        - uri
-      properties:
-        uri:
-          type: string
-          format: uri
-          description: URI where the artifact can be retrieved (e.g., OCI image URI).
-          example: oci://ghcr.io/dynatrace-oss/dynatrace-mcp-server:1.0.1
-        createTimeSinceEpoch:
-          type: string
-          description: Timestamp when the artifact was created (milliseconds since epoch).
-        lastUpdateTimeSinceEpoch:
-          type: string
-          description: Timestamp when the artifact was last updated (milliseconds since epoch).
     McpTool:
       description: A tool exposed by an MCP server.
       type: object
@@ -1135,7 +1207,7 @@ components:
           description: |-
             Human-readable reason why the tool was revoked. This helps users
             understand why the tool is unavailable and when it might be restored.
-          example: "Security vulnerability CVE-2025-XXXX - pending patch"
+          example: Security vulnerability CVE-2025-XXXX - pending patch
         customProperties:
           description: User provided custom properties for the tool.
           type: object
@@ -1174,91 +1246,17 @@ components:
         required:
           type: boolean
           description: Whether the parameter is required.
-    McpSecurityIndicator:
-      description: Security indicators for an MCP server.
-      type: object
-      properties:
-        verifiedSource:
-          type: boolean
-          description: Whether the source has been verified.
-        secureEndpoint:
-          type: boolean
-          description: Whether the endpoint uses secure communication.
-        sast:
-          type: boolean
-          description: Whether static application security testing has been performed.
-        readOnlyTools:
-          type: boolean
-          description: Whether all tools are read-only.
-    Error:
-      description: Error code and message.
-      required:
-        - code
-        - message
-      type: object
-      properties:
-        code:
-          description: Error code
-          type: string
-        message:
-          description: Error message
-          type: string
-    FieldFilter:
-      type: object
-      required:
-        - operator
-        - value
-      properties:
-        operator:
-          type: string
-          description: Filter operator (e.g., '<', '=', '>', 'IN')
-          example: '<'
-        value:
-          description: Filter value (can be number, string, or array)
-          example: 70
-    FilterOption:
-      type: object
-      required:
-        - type
-      properties:
-        type:
-          type: string
-          description: The data type of the filter option
-          enum:
-            - string
-            - number
-        values:
-          type: array
-          description: Known values of the property for string types with a small number of possible options.
-          items: {}
-        range:
-          $ref: "#/components/schemas/FilterOptionRange"
-    FilterOptionRange:
-      type: object
-      description: Min and max values for number types.
-      properties:
-        min:
-          type: number
-          format: double
-        max:
-          type: number
-          format: double
-    FilterOptionsList:
-      description: List of FilterOptions
-      type: object
-      properties:
-        filters:
-          type: object
-          description: A single filter option.
-          additionalProperties:
-            $ref: "#/components/schemas/FilterOption"
-        namedQueries:
-          type: object
-          description: Predefined named queries for common filtering scenarios
-          additionalProperties:
-            type: object
-            additionalProperties:
-              $ref: "#/components/schemas/FieldFilter"
+    McpTransportType:
+      description: |-
+        Transport protocol used by the MCP server.
+        - `stdio`: Standard input/output streams
+        - `sse`: Server-Sent Events over HTTP
+        - `http`: Standard HTTP/REST
+      enum:
+        - stdio
+        - sse
+        - http
+      type: string
     MetadataBoolValue:
       description: A bool property value.
       type: object
@@ -1434,18 +1432,6 @@ components:
           schema:
             $ref: "#/components/schemas/CatalogSourceList"
       description: A response containing a list of CatalogSource entities.
-    McpServerListResponse:
-      content:
-        application/json:
-          schema:
-            $ref: "#/components/schemas/McpServerList"
-      description: A response containing a list of McpServer entities.
-    McpServerResponse:
-      content:
-        application/json:
-          schema:
-            $ref: "#/components/schemas/McpServer"
-      description: A response containing an `McpServer` entity.
     CatalogSourcePreviewResponse:
       content:
         application/json:
@@ -1567,6 +1553,18 @@ components:
           schema:
             $ref: "#/components/schemas/Error"
       description: Unexpected internal server error
+    McpServerListResponse:
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/McpServerList"
+      description: A response containing a list of McpServer entities.
+    McpServerResponse:
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/McpServer"
+      description: A response containing an `McpServer` entity.
     NotFound:
       content:
         application/json:
@@ -1634,7 +1632,7 @@ components:
         artifactFilterQuery:
           value: "name='my-artifact' AND uri LIKE '%s3%'"
       name: filterQuery
-      description: |
+      description: |-
         A SQL-like query string to filter catalog artifacts. The query supports rich filtering capabilities with automatic type inference.
 
         **Supported Operators:**
@@ -1695,7 +1693,7 @@ components:
           value: hardware_count.int_value
           summary: Order by custom integer property
       name: orderBy
-      description: |
+      description: |-
         Specifies the order by criteria for listing artifacts.
 
         **Standard Fields:**
@@ -1737,7 +1735,7 @@ components:
         labelOrderBy:
           value: name
       name: orderBy
-      description: |
+      description: |-
         Specifies the key to order catalog labels by. You can provide any string key
         that may exist in the label maps. Labels that contain the specified key will
         be sorted by that key's value. Labels that don't contain the key will maintain
@@ -1775,6 +1773,56 @@ components:
           $ref: "#/components/schemas/ArtifactTypeQueryParam"
       in: query
       required: false
+    assetType:
+      name: assetType
+      description: |-
+        Filter sources by asset type.
+        - `models`: Sources containing AI/ML models
+        - `mcp_servers`: Sources containing MCP (Model Context Protocol) servers
+      schema:
+        $ref: "#/components/schemas/CatalogAssetType"
+      in: query
+      required: false
+    namedQuery:
+      name: namedQuery
+      description: |-
+        Apply a pre-defined named query to filter the list of entities. Named queries
+        are configured in the catalog sources YAML file and provide reusable filter
+        presets for common filtering scenarios.
+
+        **Configuration Example:**
+        ```yaml
+        namedQueries:
+          production_ready:
+            provider:
+              operator: "IN"
+              value: ["Dynatrace", "CNCF", "GitHub"]
+            verifiedSource:
+              operator: "="
+              value: true
+          monitoring_tools:
+            deploymentMode:
+              operator: "="
+              value: "local"
+        ```
+
+        **Usage:**
+        - Apply single named query: `?namedQuery=production_ready`
+        - Named queries work alongside other filters (filterQuery, name)
+        - If the named query doesn't exist, a 400 Bad Request is returned
+
+        **Behavior:**
+        - Named query filters are applied in addition to any other filters
+        - Named queries can reference customProperties and standard fields
+        - Results must satisfy ALL conditions in the named query
+      schema:
+        type: string
+      in: query
+      required: false
+      examples:
+        namedQuery:
+          value: production_ready
+          summary: Apply production_ready named query
     id:
       name: id
       description: The ID of resource.
@@ -1790,16 +1838,6 @@ components:
       description: Name of entity to search.
       schema:
         type: string
-      in: query
-      required: false
-    assetType:
-      name: assetType
-      description: |-
-        Filter sources by asset type.
-        - `models`: Sources containing AI/ML models
-        - `mcp_servers`: Sources containing MCP (Model Context Protocol) servers
-      schema:
-        $ref: "#/components/schemas/CatalogAssetType"
       in: query
       required: false
     externalId:
@@ -1851,46 +1889,6 @@ components:
         $ref: "#/components/schemas/SortOrder"
       in: query
       required: false
-    namedQuery:
-      name: namedQuery
-      description: |
-        Apply a pre-defined named query to filter the list of entities. Named queries
-        are configured in the catalog sources YAML file and provide reusable filter
-        presets for common filtering scenarios.
-
-        **Configuration Example:**
-        ```yaml
-        namedQueries:
-          production_ready:
-            provider:
-              operator: "IN"
-              value: ["Dynatrace", "CNCF", "GitHub"]
-            verifiedSource:
-              operator: "="
-              value: true
-          monitoring_tools:
-            deploymentMode:
-              operator: "="
-              value: "local"
-        ```
-
-        **Usage:**
-        - Apply single named query: `?namedQuery=production_ready`
-        - Named queries work alongside other filters (filterQuery, name)
-        - If the named query doesn't exist, a 400 Bad Request is returned
-
-        **Behavior:**
-        - Named query filters are applied in addition to any other filters
-        - Named queries can reference customProperties and standard fields
-        - Results must satisfy ALL conditions in the named query
-      schema:
-        type: string
-      in: query
-      required: false
-      examples:
-        namedQuery:
-          value: production_ready
-          summary: Apply production_ready named query
     stepIds:
       style: form
       explode: true
