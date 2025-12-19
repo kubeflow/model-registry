@@ -1096,11 +1096,3 @@ func (p *hfModelProvider) FetchModelNamesForPreview(ctx context.Context, modelId
 
 	return names, nil
 }
-
-// Helper function to get model name safely
-func getModelName(model dbmodels.CatalogModel) string {
-	if attrs := model.GetAttributes(); attrs != nil && attrs.Name != nil {
-		return *attrs.Name
-	}
-	return "unknown"
-}
