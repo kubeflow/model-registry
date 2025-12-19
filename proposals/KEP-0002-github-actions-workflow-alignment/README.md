@@ -40,7 +40,7 @@ Update all GitHub Actions workflows that build and push container images to:
 
 **Risk**: Workflow changes may temporarily break image builds.
 
-**Mitigation**: Test the workflow changes as possible in the PR created for this KEP before merging. Workflows already exist in PR #1790](https://github.com/kubeflow/model-registry/pull/1588) and [PR #1588](https://github.com/kubeflow/model-registry/pull/1588) as partial implementations. Merge the PR for this KEP right after a release, so to mitigate potential unforeseen issues while integrating this strategy for all workflows (i.e.: not jeopardize the release process).
+**Mitigation**: Test the workflow changes as possible in the PR created for this KEP before merging. Workflows already exist in PR #1790](https://github.com/kubeflow/model-registry/pull/1790#pullrequestreview-3374876556) and [PR #1588](https://github.com/kubeflow/model-registry/pull/1588) as partial implementations. Merge the PR for this KEP right after a release, so to mitigate potential unforeseen issues while integrating this strategy for all workflows (i.e.: not jeopardize the release process).
 
 ## Design Details
 
@@ -122,7 +122,7 @@ tags: |
 
 We already had previous work done in this areas:
 
-- [x] Existing workflows in [PR #1790](https://github.com/kubeflow/model-registry/pull/1588) demonstrate multi-arch builds
+- [x] Existing workflows in [PR #1790](https://github.com/kubeflow/model-registry/pull/1790#pullrequestreview-3374876556) demonstrate multi-arch builds
 - [x] Existing workflows in [PR #1588](https://github.com/kubeflow/model-registry/pull/1588) demonstrate SBOM generation
 - [ ] Implement this solution right after a release, so to mitigate potential unforeseen problems while integrating all workflows with this strategy
 
