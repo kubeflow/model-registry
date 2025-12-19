@@ -122,6 +122,7 @@ func (r *ModelCatalogSettingsRepository) GetCatalogSourceConfig(ctx context.Cont
 
 	if result.Type == CatalogTypeYaml {
 		if yamlFilePath != "" {
+			result.YamlCatalogPath = &yamlFilePath
 			if yamlContent, ok := userCM.Data[yamlFilePath]; ok {
 				result.Yaml = &yamlContent
 			} else if yamlContent, ok := defaultCM.Data[yamlFilePath]; ok {

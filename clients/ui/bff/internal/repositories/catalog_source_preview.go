@@ -39,12 +39,30 @@ func (a CatalogSourcePreview) CreateCatalogSourcePreview(client httpclient.HTTPC
 		"excludedModels": sourcePreviewPayload.ExcludedModels,
 	}
 
+	var yamlContent string
+	var hasYamlContent bool
+
 	if sourcePreviewPayload.Type == CatalogTypeHuggingFace {
 		if org, ok := sourcePreviewPayload.Properties["allowedOrganization"]; ok {
 			configData["allowedOrganization"] = org
 		}
 		if apiKey, ok := sourcePreviewPayload.Properties["apiKey"]; ok {
 			configData["apiKey"] = apiKey
+		}
+	}
+
+	if sourcePreviewPayload.Type == CatalogTypeYaml {
+		// Check if yaml content is provided
+		if content, ok := sourcePreviewPayload.Properties["yaml"].(string); ok && content != "" {
+			yamlContent = content
+			hasYamlContent = true
+		} else {
+			// If no yaml content, check for yamlCatalogPath
+			if yamlPath, ok := sourcePreviewPayload.Properties["yamlCatalogPath"].(string); ok && yamlPath != "" {
+				configData["yamlCatalogPath"] = yamlPath
+			} else {
+				return nil, fmt.Errorf("for yaml catalog type, either 'yaml' content or 'yamlCatalogPath' must be provided")
+			}
 		}
 	}
 
@@ -57,15 +75,13 @@ func (a CatalogSourcePreview) CreateCatalogSourcePreview(client httpclient.HTTPC
 		return nil, fmt.Errorf("error writing config data: %w", err)
 	}
 
-	if sourcePreviewPayload.Type == CatalogTypeYaml {
-		if yamlContent, ok := sourcePreviewPayload.Properties["yaml"].(string); ok && yamlContent != "" {
-			catalogDataPart, err := writer.CreateFormFile("catalogData", "catalog.yaml")
-			if err != nil {
-				return nil, fmt.Errorf("error creating catalogData form file: %w", err)
-			}
-			if _, err := catalogDataPart.Write([]byte(yamlContent)); err != nil {
-				return nil, fmt.Errorf("error writing catalog data: %w", err)
-			}
+	if hasYamlContent {
+		catalogDataPart, err := writer.CreateFormFile("catalogData", "catalog.yaml")
+		if err != nil {
+			return nil, fmt.Errorf("error creating catalogData form file: %w", err)
+		}
+		if _, err := catalogDataPart.Write([]byte(yamlContent)); err != nil {
+			return nil, fmt.Errorf("error writing catalog data: %w", err)
 		}
 	}
 
