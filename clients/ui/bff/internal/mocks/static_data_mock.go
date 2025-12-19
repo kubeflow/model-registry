@@ -257,7 +257,7 @@ func catalogCustomProperties() *map[string]openapi.MetadataValue {
 		},
 		"validated_on": {
 			MetadataStringValue: &openapi.MetadataStringValue{
-				StringValue:  "RHOAI 2.20,RHAIIS 3.0,RHELAI 1.5",
+				StringValue:  "[\"RHOAI 2.20\",\"RHAIIS 3.0\",\"RHELAI 1.5\"]",
 				MetadataType: "MetadataStringValue",
 			},
 		},
@@ -270,6 +270,18 @@ func catalogCustomProperties() *map[string]openapi.MetadataValue {
 		"AWS_PASSWORD": {
 			MetadataStringValue: &openapi.MetadataStringValue{
 				StringValue:  "*AadfeDs34adf",
+				MetadataType: "MetadataStringValue",
+			},
+		},
+		"tensor_type": {
+			MetadataStringValue: &openapi.MetadataStringValue{
+				StringValue:  "FP8",
+				MetadataType: "MetadataStringValue",
+			},
+		},
+		"size": {
+			MetadataStringValue: &openapi.MetadataStringValue{
+				StringValue:  "7B param",
 				MetadataType: "MetadataStringValue",
 			},
 		},

@@ -20,6 +20,10 @@ const CatalogSourceStatus: React.FC<CatalogSourceStatusProps> = ({ catalogSource
   if (catalogSourceConfig.isDefault) {
     return <>-</>;
   }
+  // If source is disabled, render "-"
+  if (!catalogSourceConfig.enabled) {
+    return <>-</>;
+  }
 
   // Show loading spinner while fetching sources
   if (!catalogSourcesLoaded) {

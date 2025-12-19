@@ -109,6 +109,12 @@ export const MODEL_CATALOG_POPOVER_MESSAGES = {
     'Validated models are benchmarked for performance and quality using leading open source evaluation datasets.',
 } as const;
 
+export enum CatalogModelCustomPropertyKey {
+  VALIDATED_ON = 'validated_on',
+  TENSOR_TYPE = 'tensor_type',
+  SIZE = 'size',
+}
+
 export enum ModelCatalogLicense {
   APACHE_2_0 = 'apache-2.0',
   GEMMA = 'gemma',
