@@ -13,13 +13,11 @@ import { useNavigate } from 'react-router-dom';
 import FormSection from '~/app/pages/modelRegistry/components/pf-overrides/FormSection';
 import { catalogSettingsUrl } from '~/app/routes/modelCatalogSettings/modelCatalogSettings';
 import { isFormValid, isPreviewReady } from '~/app/pages/modelCatalogSettings/utils/validation';
-import {
-  ManageSourceFormData,
-  useManageSourceData,
-} from '~/app/pages/modelCatalogSettings/useManageSourceData';
+import { useManageSourceData } from '~/app/pages/modelCatalogSettings/useManageSourceData';
 import { FORM_LABELS, DESCRIPTIONS } from '~/app/pages/modelCatalogSettings/constants';
 import { ModelCatalogSettingsContext } from '~/app/context/modelCatalogSettings/ModelCatalogSettingsContext';
 import {
+  catalogSourceConfigToFormData,
   getPayloadForConfig,
   transformFormDataToConfig,
 } from '~/app/pages/modelCatalogSettings/utils/modelCatalogSettingsUtils';
@@ -46,17 +44,18 @@ type PreviewState = {
 };
 
 type ManageSourceFormProps = {
-  existingData?: Partial<ManageSourceFormData>;
   existingSourceConfig?: CatalogSourceConfig;
   isEditMode: boolean;
 };
 
 const ManageSourceForm: React.FC<ManageSourceFormProps> = ({
-  existingData,
   existingSourceConfig,
   isEditMode,
 }) => {
   const navigate = useNavigate();
+  const existingData = existingSourceConfig
+    ? catalogSourceConfigToFormData(existingSourceConfig)
+    : undefined;
   const [formData, setData] = useManageSourceData(existingData);
   const [isSubmitting, setIsSubmitting] = React.useState(false);
   const [submitError, setSubmitError] = React.useState<Error | undefined>(undefined);

@@ -11,7 +11,6 @@ import {
   catalogSettingsUrl,
 } from '~/app/routes/modelCatalogSettings/modelCatalogSettings';
 import ManageSourceForm from '~/app/pages/modelCatalogSettings/components/ManageSourceForm';
-import { catalogSourceConfigToFormData } from '~/app/pages/modelCatalogSettings/utils/modelCatalogSettingsUtils';
 import { useCatalogSourceConfigBySourceId } from '~/app/hooks/modelCatalogSettings/useCatalogSourceConfigBySourceId';
 
 const ManageSourcePage: React.FC = () => {
@@ -23,9 +22,6 @@ const ManageSourcePage: React.FC = () => {
 
   const state = useCatalogSourceConfigBySourceId(catalogSourceId || '');
   const [existingSourceConfig, existingSourceConfigLoaded, existingSourceConfigLoadError] = state;
-  const existingData = existingSourceConfig
-    ? catalogSourceConfigToFormData(existingSourceConfig)
-    : undefined;
 
   return (
     <ApplicationsPage
@@ -47,7 +43,6 @@ const ManageSourcePage: React.FC = () => {
       provideChildrenPadding
     >
       <ManageSourceForm
-        existingData={existingData}
         existingSourceConfig={existingSourceConfig || undefined}
         isEditMode={!isAddMode}
       />
