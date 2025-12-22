@@ -26,6 +26,7 @@ const (
 	apiKeyEnvVarKey       = "apiKeyEnvVar"
 	maxModelsKey          = "maxModels"
 	syncIntervalKey       = "syncInterval"
+	allowedOrgKey         = "allowedOrganization"
 
 	// defaultMaxModels is the default limit for models fetched PER PATTERN.
 	// This limit is applied independently to each pattern in includedModels
@@ -365,6 +366,8 @@ func (p *hfModelProvider) Models(ctx context.Context) (<-chan ModelProviderRecor
 // Uses the same logic as FetchModelNamesForPreview.
 func (p *hfModelProvider) expandModelNames(ctx context.Context, modelIdentifiers []string) ([]string, error) {
 	var allNames []string
+	var failedPatterns []string
+	var wildcardPatterns []string
 
 	for _, pattern := range modelIdentifiers {
 		select {
@@ -380,9 +383,11 @@ func (p *hfModelProvider) expandModelNames(ctx context.Context, modelIdentifiers
 			return nil, fmt.Errorf("wildcard pattern %q is not supported - Hugging Face requires a specific organization (e.g., 'ibm-granite/*' or 'meta-llama/Llama-2-*')", pattern)
 
 		case PatternOrgAll, PatternOrgPrefix:
+			wildcardPatterns = append(wildcardPatterns, pattern)
 			glog.Infof("Expanding wildcard pattern: %s (org=%s, prefix=%s)", pattern, org, searchPrefix)
 			models, err := p.listModelsByAuthor(ctx, org, searchPrefix)
 			if err != nil {
+				failedPatterns = append(failedPatterns, pattern)
 				glog.Warningf("Failed to expand wildcard pattern %s: %v", pattern, err)
 				continue
 			}
@@ -392,6 +397,19 @@ func (p *hfModelProvider) expandModelNames(ctx context.Context, modelIdentifiers
 			// Direct model name - no expansion needed
 			allNames = append(allNames, pattern)
 		}
+	}
+
+	// Check error conditions for wildcard pattern failures
+	if len(wildcardPatterns) > 0 && len(allNames) == 0 {
+		// All wildcard patterns failed AND no results from exact patterns - this is an error
+		if len(failedPatterns) > 0 {
+			return nil, fmt.Errorf("no models found: %v", failedPatterns)
+		} else {
+			return nil, fmt.Errorf("no models found")
+		}
+	} else if len(failedPatterns) > 0 {
+		// Some patterns failed but we have results - log warning and continue with partial results
+		glog.Warningf("Some wildcard patterns failed to expand and were skipped: %v", failedPatterns)
 	}
 
 	return allNames, nil
@@ -768,6 +786,9 @@ func newHFModelProvider(ctx context.Context, source *Source, reldir string) (<-c
 		p.baseURL = strings.TrimSuffix(url, "/")
 	}
 
+	allowedOrg, _ := source.Properties[allowedOrgKey].(string)
+	restrictToOrg(allowedOrg, &source.IncludedModels, &source.ExcludedModels)
+
 	// Parse sync interval (optional, defaults to 24 hours)
 	// This can be configured as a duration string (e.g., "1s", "10s", "1m", "24h").
 	// For testing, a shorter interval can be used to speed up tests.
@@ -845,6 +866,13 @@ func NewHFPreviewProvider(config *PreviewConfig) (*hfModelProvider, error) {
 	// Parse base URL (optional, defaults to huggingface.co)
 	if url, ok := config.Properties[urlKey].(string); ok && url != "" {
 		p.baseURL = strings.TrimSuffix(url, "/")
+	}
+
+	allowedOrg, _ := config.Properties[allowedOrgKey].(string)
+	restrictToOrg(allowedOrg, &config.IncludedModels, &config.ExcludedModels)
+
+	if len(config.IncludedModels) == 0 {
+		return nil, fmt.Errorf("includedModels is required for HuggingFace source preview (specifies which models to fetch from HuggingFace)")
 	}
 
 	// Parse maxModels limit (optional, defaults to 500)
@@ -1134,4 +1162,30 @@ func (p *hfModelProvider) FetchModelNamesForPreview(ctx context.Context, modelId
 	}
 
 	return names, nil
+}
+
+// restrictToOrg prefixes included and excluded model lists with an
+// organization name for convenience and to prevent any other organization from
+// being retrieved.
+func restrictToOrg(org string, included *[]string, excluded *[]string) {
+	if org == "" {
+		// No op
+		return
+	}
+
+	prefix := org + "/"
+
+	if included == nil || len(*included) == 0 {
+		*included = []string{prefix + "*"}
+	} else {
+		for i := range *included {
+			(*included)[i] = prefix + (*included)[i]
+		}
+	}
+
+	if excluded != nil {
+		for i := range *excluded {
+			(*excluded)[i] = prefix + (*excluded)[i]
+		}
+	}
 }

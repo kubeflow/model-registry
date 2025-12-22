@@ -44,16 +44,16 @@ func ParsePreviewConfig(configBytes []byte) (*PreviewConfig, error) {
 // preview results showing which models would be included or excluded.
 // If catalogDataBytes is provided, it will be used directly instead of reading from yamlCatalogPath.
 func PreviewSourceModels(ctx context.Context, config *PreviewConfig, catalogDataBytes []byte) ([]model.ModelPreviewResult, error) {
-	// Create a ModelFilter from the config
-	filter, err := NewModelFilter(config.IncludedModels, config.ExcludedModels)
-	if err != nil {
-		return nil, fmt.Errorf("invalid filter configuration: %w", err)
-	}
-
 	// Load all model names from the source (without filtering)
 	modelNames, err := loadModelNamesFromSource(ctx, config, catalogDataBytes)
 	if err != nil {
 		return nil, err
+	}
+
+	// Create a ModelFilter from the config
+	filter, err := NewModelFilter(config.IncludedModels, config.ExcludedModels)
+	if err != nil {
+		return nil, fmt.Errorf("invalid filter configuration: %w", err)
 	}
 
 	// Create preview results for each model
@@ -86,10 +86,6 @@ func loadModelNamesFromSource(ctx context.Context, config *PreviewConfig, catalo
 // For HF sources, includedModels specifies which models to fetch from HuggingFace.
 // This function calls the HF API to validate models exist and get their actual names.
 func loadHFModelNames(ctx context.Context, config *PreviewConfig) ([]string, error) {
-	if len(config.IncludedModels) == 0 {
-		return nil, fmt.Errorf("includedModels is required for HuggingFace source preview (specifies which models to fetch from HuggingFace)")
-	}
-
 	// SECURITY: Override the URL property to prevent SSRF attacks.
 	// An attacker could otherwise set a custom URL to leak the HF API key
 	// to an attacker-controlled domain.

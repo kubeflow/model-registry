@@ -727,6 +727,7 @@ func TestListModelsByAuthor(t *testing.T) {
 			Properties: map[string]any{
 				"url": server.URL,
 			},
+			IncludedModels: []string{"test-org/*"},
 		}
 
 		provider, err := NewHFPreviewProvider(config)
@@ -752,6 +753,7 @@ func TestListModelsByAuthor(t *testing.T) {
 			Properties: map[string]any{
 				"url": server.URL,
 			},
+			IncludedModels: []string{"test-org/*"},
 		}
 
 		provider, err := NewHFPreviewProvider(config)
@@ -776,6 +778,7 @@ func TestListModelsByAuthor(t *testing.T) {
 				"url":       server.URL,
 				"maxModels": 50, // Limit to 50 models
 			},
+			IncludedModels: []string{"test-org/*"},
 		}
 
 		provider, err := NewHFPreviewProvider(config)
@@ -798,6 +801,7 @@ func TestListModelsByAuthor(t *testing.T) {
 			Properties: map[string]any{
 				"url": server.URL,
 			},
+			IncludedModels: []string{"test-org/*"},
 		}
 
 		provider, err := NewHFPreviewProvider(config)
@@ -815,6 +819,7 @@ func TestListModelsByAuthor(t *testing.T) {
 				"url":       server.URL,
 				"maxModels": 0, // No limit
 			},
+			IncludedModels: []string{"test-org/*"},
 		}
 
 		provider, err := NewHFPreviewProvider(config)
@@ -1303,9 +1308,8 @@ func TestHfModelProvider_Models_WithInvalidWildcardPattern(t *testing.T) {
 	assert.Nil(t, ch)
 }
 
-func TestHfModelProvider_expandModelNames_RequiresValidCredentials(t *testing.T) {
-	// Test that wildcard expansion properly handles credential validation errors gracefully
-	// Mock server that returns 401 Unauthorized for list API
+func TestHfModelProvider_expandModelNames_AllWildcardPatternsFail(t *testing.T) {
+	// Test that when ALL wildcard patterns fail, an error is returned
 	mockServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		// Return 401 for unauthorized requests
 		w.WriteHeader(http.StatusUnauthorized)
@@ -1326,9 +1330,77 @@ func TestHfModelProvider_expandModelNames_RequiresValidCredentials(t *testing.T)
 
 	models, err := provider.expandModelNames(context.Background(), []string{"test-org/*"})
 
-	// Should handle credential validation errors gracefully by logging warning and continuing
-	// (not returning an error, which allows other patterns to be processed)
-	assert.NoError(t, err)
-	// But should return empty list since the API call failed
+	// Should return an error when all wildcard patterns fail (improved error reporting)
+	assert.Error(t, err)
+	assert.Contains(t, err.Error(), "no models found")
 	assert.Empty(t, models)
+}
+
+func TestHfModelProvider_expandModelNames_PartialWildcardFailure(t *testing.T) {
+	// Test that when some but not all wildcard patterns fail, operation continues with partial results
+	mockServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		switch {
+		case strings.Contains(r.URL.RawQuery, "author=good-org"):
+			// Mock successful response for good-org
+			models := []map[string]interface{}{
+				{"id": "good-org/model-1", "author": "good-org"},
+			}
+			json.NewEncoder(w).Encode(models)
+		case strings.Contains(r.URL.RawQuery, "author=bad-org"):
+			// Mock failure for bad-org (unauthorized)
+			w.WriteHeader(http.StatusUnauthorized)
+			w.Write([]byte(`{"error": "Unauthorized"}`))
+		default:
+			http.Error(w, "Not found", http.StatusNotFound)
+		}
+	}))
+	defer mockServer.Close()
+
+	filter, err := NewModelFilter([]string{}, []string{})
+	require.NoError(t, err)
+
+	provider := &hfModelProvider{
+		baseURL: mockServer.URL,
+		filter:  filter,
+		client:  &http.Client{},
+	}
+
+	// Test with mixed patterns: one succeeds, one fails
+	patterns := []string{"good-org/*", "bad-org/*"}
+	models, err := provider.expandModelNames(context.Background(), patterns)
+
+	// Should NOT return error when only some patterns fail
+	assert.NoError(t, err)
+	// Should return partial results from successful patterns
+	assert.Len(t, models, 1)
+	assert.Equal(t, "good-org/model-1", models[0])
+}
+
+func TestHfModelProvider_expandModelNames_ExactPatternsWithWildcardFailures(t *testing.T) {
+	// Test that when wildcard patterns fail but exact patterns exist, operation continues
+	mockServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		// All wildcard requests fail
+		w.WriteHeader(http.StatusUnauthorized)
+		w.Write([]byte(`{"error": "Unauthorized"}`))
+	}))
+	defer mockServer.Close()
+
+	filter, err := NewModelFilter([]string{}, []string{})
+	require.NoError(t, err)
+
+	provider := &hfModelProvider{
+		baseURL: mockServer.URL,
+		filter:  filter,
+		client:  &http.Client{},
+	}
+
+	// Test with mixed patterns: exact models and wildcards
+	patterns := []string{"exact-org/exact-model", "wildcard-org/*"}
+	models, err := provider.expandModelNames(context.Background(), patterns)
+
+	// Should NOT return error when exact patterns exist even if wildcards fail
+	assert.NoError(t, err)
+	// Should return the exact patterns that don't require API calls
+	assert.Len(t, models, 1)
+	assert.Equal(t, "exact-org/exact-model", models[0])
 }
