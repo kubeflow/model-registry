@@ -360,13 +360,55 @@ func (p *hfModelProvider) Models(ctx context.Context) (<-chan ModelProviderRecor
 	return ch, nil
 }
 
-func (p *hfModelProvider) getModelsFromHF(ctx context.Context) ([]ModelProviderRecord, error) {
-	var records []ModelProviderRecord
+// expandModelNames takes a list of model identifiers (which may include wildcards)
+// and returns a list of concrete model names by expanding any wildcard patterns.
+// Uses the same logic as FetchModelNamesForPreview.
+func (p *hfModelProvider) expandModelNames(ctx context.Context, modelIdentifiers []string) ([]string, error) {
+	var allNames []string
 
+	for _, pattern := range modelIdentifiers {
+		select {
+		case <-ctx.Done():
+			return nil, ctx.Err()
+		default:
+		}
+
+		patternType, org, searchPrefix := parseModelPattern(pattern)
+
+		switch patternType {
+		case PatternInvalid:
+			return nil, fmt.Errorf("wildcard pattern %q is not supported - Hugging Face requires a specific organization (e.g., 'ibm-granite/*' or 'meta-llama/Llama-2-*')", pattern)
+
+		case PatternOrgAll, PatternOrgPrefix:
+			glog.Infof("Expanding wildcard pattern: %s (org=%s, prefix=%s)", pattern, org, searchPrefix)
+			models, err := p.listModelsByAuthor(ctx, org, searchPrefix)
+			if err != nil {
+				glog.Warningf("Failed to expand wildcard pattern %s: %v", pattern, err)
+				continue
+			}
+			allNames = append(allNames, models...)
+
+		case PatternExact:
+			// Direct model name - no expansion needed
+			allNames = append(allNames, pattern)
+		}
+	}
+
+	return allNames, nil
+}
+
+func (p *hfModelProvider) getModelsFromHF(ctx context.Context) ([]ModelProviderRecord, error) {
+	// First expand any wildcard patterns to concrete model names
+	expandedModels, err := p.expandModelNames(ctx, p.includedModels)
+	if err != nil {
+		return nil, fmt.Errorf("failed to expand model patterns: %w", err)
+	}
+
+	var records []ModelProviderRecord
 	currentTime := time.Now().UnixMilli()
 	lastSyncedStr := strconv.FormatInt(currentTime, 10)
 
-	for _, modelName := range p.includedModels {
+	for _, modelName := range expandedModels {
 		// Skip if excluded - check before fetching to avoid unnecessary API calls
 		if !p.filter.Allows(modelName) {
 			glog.V(2).Infof("Skipping excluded model: %s", modelName)
