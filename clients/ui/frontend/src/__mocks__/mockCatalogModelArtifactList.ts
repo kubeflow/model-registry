@@ -123,3 +123,71 @@ export const mockCatalogAccuracyMetricsArtifactList = (
   nextPageToken: '',
   ...partial,
 });
+
+// Performance artifact with computed properties (when targetRPS is provided)
+export const mockCatalogPerformanceMetricsArtifactWithRPS = (
+  targetRPS: number,
+  partial?: Partial<CatalogPerformanceMetricsArtifact>,
+): CatalogPerformanceMetricsArtifact => {
+  const baseArtifact = mockCatalogPerformanceMetricsArtifact(partial);
+  const rps = baseArtifact.customProperties.requests_per_second?.double_value || 7;
+  const replicas = Math.ceil(targetRPS / rps);
+
+  return {
+    ...baseArtifact,
+    customProperties: {
+      ...baseArtifact.customProperties,
+      replicas: {
+        metadataType: ModelRegistryMetadataType.INT,
+        int_value: String(replicas),
+      },
+      total_requests_per_second: {
+        metadataType: ModelRegistryMetadataType.DOUBLE,
+        double_value: replicas * rps,
+      },
+    },
+  };
+};
+
+// Mock for Pareto-filtered (recommendations=true) performance artifacts
+export const mockParetoFilteredPerformanceArtifactList = (
+  targetRPS?: number,
+): CatalogArtifactList => ({
+  items: [
+    mockCatalogPerformanceMetricsArtifactWithRPS(targetRPS || 100, {
+      customProperties: {
+        config_id: {
+          metadataType: ModelRegistryMetadataType.STRING,
+          string_value: 'pareto-optimal-1',
+        },
+        hardware_count: { metadataType: ModelRegistryMetadataType.INT, int_value: '1' },
+        hardware_type: { metadataType: ModelRegistryMetadataType.STRING, string_value: 'H100-80' },
+        requests_per_second: { metadataType: ModelRegistryMetadataType.DOUBLE, double_value: 50 },
+        ttft_p90: { metadataType: ModelRegistryMetadataType.DOUBLE, double_value: 35 },
+        use_case: {
+          metadataType: ModelRegistryMetadataType.STRING,
+          string_value: UseCaseOptionValue.CHATBOT,
+        },
+      },
+    }),
+    mockCatalogPerformanceMetricsArtifactWithRPS(targetRPS || 100, {
+      customProperties: {
+        config_id: {
+          metadataType: ModelRegistryMetadataType.STRING,
+          string_value: 'pareto-optimal-2',
+        },
+        hardware_count: { metadataType: ModelRegistryMetadataType.INT, int_value: '2' },
+        hardware_type: { metadataType: ModelRegistryMetadataType.STRING, string_value: 'A100-80' },
+        requests_per_second: { metadataType: ModelRegistryMetadataType.DOUBLE, double_value: 30 },
+        ttft_p90: { metadataType: ModelRegistryMetadataType.DOUBLE, double_value: 28 },
+        use_case: {
+          metadataType: ModelRegistryMetadataType.STRING,
+          string_value: UseCaseOptionValue.RAG,
+        },
+      },
+    }),
+  ],
+  pageSize: 10,
+  size: 2,
+  nextPageToken: '',
+});
