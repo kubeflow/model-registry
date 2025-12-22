@@ -868,19 +868,27 @@ func parseModelPattern(pattern string) (PatternType, string, string) {
 		return PatternOrgAll, org, ""
 	}
 
+	parts := strings.SplitN(pattern, "/", 2)
+
+	org := parts[0]
+	// Ensure org is not empty or a wildcard
+	if org == "" || strings.Contains(org, "*") {
+		return PatternInvalid, "", ""
+	}
+
+	var model string
+	if len(parts) == 2 {
+		model = parts[1]
+		if model == "" {
+			return PatternInvalid, "", ""
+		}
+	}
+
 	// Check if it has a wildcard after org/prefix
-	if strings.Contains(pattern, "/") && strings.HasSuffix(pattern, "*") {
-		parts := strings.SplitN(pattern, "/", 2)
-		if len(parts) == 2 {
-			org := parts[0]
-			// Ensure org is not empty or a wildcard
-			if org == "" || org == "*" {
-				return PatternInvalid, "", ""
-			}
-			prefix := strings.TrimSuffix(parts[1], "*")
-			if prefix != "" {
-				return PatternOrgPrefix, org, prefix
-			}
+	if strings.HasSuffix(model, "*") {
+		prefix := strings.TrimSuffix(model, "*")
+		if prefix != "" {
+			return PatternOrgPrefix, org, prefix
 		}
 	}
 

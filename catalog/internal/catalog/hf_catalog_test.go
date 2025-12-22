@@ -599,11 +599,17 @@ func TestParseModelPattern(t *testing.T) {
 		{"ibm-granite/granite-3*", PatternOrgPrefix, "ibm-granite", "granite-3"},
 		{"mistralai/Mistral-*", PatternOrgPrefix, "mistralai", "Mistral-"},
 
-		// Invalid patterns - would try to list all HuggingFace models
+		// Invalid patterns
 		{"*", PatternInvalid, "", ""},
 		{"*/*", PatternInvalid, "", ""},
 		{"*/something", PatternInvalid, "", ""},
 		{"*/prefix*", PatternInvalid, "", ""},
+		{"foo*/bar-*", PatternInvalid, "", ""},
+		{"foo*", PatternInvalid, "", ""},
+		{"foo*/", PatternInvalid, "", ""},
+		{"foo*bar/", PatternInvalid, "", ""},
+		{"/foo", PatternInvalid, "", ""},
+		{"foo/", PatternInvalid, "", ""},
 	}
 
 	for _, tt := range tests {
