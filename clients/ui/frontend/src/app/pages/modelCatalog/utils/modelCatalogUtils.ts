@@ -206,7 +206,11 @@ export const filtersToFilterQuery = (
   options: CatalogFilterOptionsList,
 ): string => {
   const serializedFilters: string[] = Object.entries(filterData).map(([filterId, data]) => {
-    if (!isFilterIdInMap(filterId, options.filters) || typeof data === 'undefined') {
+    if (
+      !options.filters ||
+      !isFilterIdInMap(filterId, options.filters) ||
+      typeof data === 'undefined'
+    ) {
       // Unhandled key or no data
       return '';
     }

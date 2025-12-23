@@ -141,15 +141,15 @@ export type CatalogArtifactList = ModelCatalogListParams & { items: CatalogArtif
 
 export type CatalogFilterNumberOption = {
   type: 'number';
-  range: {
-    max: number;
-    min: number;
+  range?: {
+    max?: number;
+    min?: number;
   };
 };
 
 export type CatalogFilterStringOption<T extends string> = {
   type: 'string';
-  values: T[];
+  values?: T[];
 };
 
 export type GetCatalogModelsBySource = (
@@ -226,13 +226,13 @@ export type ModelCatalogStringFilterValueType = {
 };
 
 export type ModelCatalogStringFilterOptions = {
-  [key in ModelCatalogStringFilterKey]: CatalogFilterStringOption<
+  [key in ModelCatalogStringFilterKey]?: CatalogFilterStringOption<
     ModelCatalogStringFilterValueType[key]
   >;
 };
 
 export type CatalogFilterOptions = ModelCatalogStringFilterOptions & {
-  [key in ModelCatalogNumberFilterKey]: CatalogFilterNumberOption;
+  [key in ModelCatalogNumberFilterKey]?: CatalogFilterNumberOption;
 } & {
   // Allow additional latency metric field names
   [key in LatencyMetricFieldName]?: CatalogFilterNumberOption;
@@ -258,7 +258,7 @@ export type FieldFilter = {
 export type NamedQuery = Record<string, FieldFilter>;
 
 export type CatalogFilterOptionsList = {
-  filters: CatalogFilterOptions;
+  filters?: CatalogFilterOptions;
   namedQueries?: Record<string, NamedQuery>;
 };
 

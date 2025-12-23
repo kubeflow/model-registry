@@ -31,9 +31,11 @@ const ModelCatalogStringFilter = <K extends ModelCatalogStringFilterKey>({
     [filterToNameMapping],
   );
 
+  const filterValues = React.useMemo(() => filters?.values ?? [], [filters?.values]);
+
   const valuesMatchingSearch = React.useMemo(
     () =>
-      filters.values.filter((value) => {
+      filterValues.filter((value) => {
         const label = getLabel(value).toLowerCase();
         return (
           value.toLowerCase().includes(searchValue.trim().toLowerCase()) ||
@@ -41,7 +43,7 @@ const ModelCatalogStringFilter = <K extends ModelCatalogStringFilterKey>({
           isSelected(value)
         );
       }),
-    [filters.values, getLabel, isSelected, searchValue],
+    [filterValues, getLabel, isSelected, searchValue],
   );
 
   const onSearchChange = (newValue: string) => {
@@ -55,7 +57,7 @@ const ModelCatalogStringFilter = <K extends ModelCatalogStringFilterKey>({
   return (
     <Content data-testid={`${title}-filter`}>
       <Content component={ContentVariants.h6}>{title}</Content>
-      {filters.values.length > MAX_VISIBLE_FILTERS && (
+      {filterValues.length > MAX_VISIBLE_FILTERS && (
         <SearchInput
           placeholder={`Search ${title.toLowerCase()}`}
           data-testid={`${title}-filter-search`}
