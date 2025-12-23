@@ -109,6 +109,9 @@ export type PerformanceMetricsCustomProperties = {
   updated_at?: ModelRegistryCustomPropertyString;
   model_hf_repo_name?: ModelRegistryCustomPropertyString;
   scenario_id?: ModelRegistryCustomPropertyString;
+  // Computed properties when targetRPS is provided
+  replicas?: ModelRegistryCustomPropertyInt;
+  total_requests_per_second?: ModelRegistryCustomPropertyDouble;
 } & Partial<Record<LatencyMetricFieldName, ModelRegistryCustomPropertyDouble>>;
 
 export type AccuracyMetricsCustomProperties = {
@@ -176,7 +179,21 @@ export type GetListCatalogModelArtifacts = (
   opts: APIOptions,
   sourceId: string,
   modelName: string,
+  filterQuery?: string,
 ) => Promise<CatalogArtifactList>;
+
+export type GetPerformanceArtifacts = (
+  opts: APIOptions,
+  sourceId: string,
+  modelName: string,
+  params?: PerformanceArtifactsParams,
+) => Promise<CatalogArtifactList>;
+
+export type GetArtifactFilterOptions = (
+  opts: APIOptions,
+  sourceId: string,
+  modelName: string,
+) => Promise<CatalogFilterOptionsList>;
 
 export type GetCatalogFilterOptionList = (opts: APIOptions) => Promise<CatalogFilterOptionsList>;
 
@@ -221,8 +238,47 @@ export type CatalogFilterOptions = ModelCatalogStringFilterOptions & {
   [key in LatencyMetricFieldName]?: CatalogFilterNumberOption;
 };
 
+export enum FilterOperator {
+  LESS_THAN = '<',
+  EQUALS = '=',
+  GREATER_THAN = '>',
+  LESS_THAN_OR_EQUAL = '<=',
+  GREATER_THAN_OR_EQUAL = '>=',
+  NOT_EQUAL = '!=',
+  IN = 'IN',
+  LIKE = 'LIKE',
+  ILIKE = 'ILIKE',
+}
+
+export type FieldFilter = {
+  operator: FilterOperator;
+  value: string | number | boolean | (string | number)[];
+};
+
+export type NamedQuery = Record<string, FieldFilter>;
+
 export type CatalogFilterOptionsList = {
   filters: CatalogFilterOptions;
+  namedQueries?: Record<string, NamedQuery>;
+};
+
+export type PerformanceArtifactsParams = {
+  targetRPS?: number;
+  recommendations?: boolean;
+  rpsProperty?: string;
+  latencyProperty?: string;
+  hardwareCountProperty?: string;
+  hardwareTypeProperty?: string;
+  filterQuery?: string;
+  pageSize?: string;
+  orderBy?: string;
+  sortOrder?: string;
+  nextPageToken?: string;
+};
+
+export type ComputedPerformanceProperties = {
+  replicas?: number;
+  total_requests_per_second?: number;
 };
 
 export type ModelCatalogFilterStates = {
