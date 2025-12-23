@@ -7,7 +7,7 @@ import {
   getHardwareConfiguration,
   getWorkloadType,
 } from '~/app/pages/modelCatalog/utils/performanceMetricsUtils';
-import { getDoubleValue, getStringValue } from '~/app/utils';
+import { getDoubleValue, getIntValue, getStringValue } from '~/app/utils';
 
 export type HardwareConfigColumnField = keyof PerformanceMetricsCustomProperties;
 
@@ -56,6 +56,29 @@ export const hardwareConfigColumns: HardwareConfigColumn[] = [
     ): number =>
       getDoubleValue(a.customProperties, 'requests_per_second') -
       getDoubleValue(b.customProperties, 'requests_per_second'),
+    width: 20,
+    modifier: 'wrap',
+  },
+  {
+    field: 'replicas',
+    label: 'Replicas',
+    sortable: (
+      a: CatalogPerformanceMetricsArtifact,
+      b: CatalogPerformanceMetricsArtifact,
+    ): number =>
+      getIntValue(a.customProperties, 'replicas') - getIntValue(b.customProperties, 'replicas'),
+    width: 20,
+    modifier: 'wrap',
+  },
+  {
+    field: 'total_requests_per_second',
+    label: `Target${NBSP}RPS`,
+    sortable: (
+      a: CatalogPerformanceMetricsArtifact,
+      b: CatalogPerformanceMetricsArtifact,
+    ): number =>
+      getDoubleValue(a.customProperties, 'total_requests_per_second') -
+      getDoubleValue(b.customProperties, 'total_requests_per_second'),
     width: 20,
     modifier: 'wrap',
   },

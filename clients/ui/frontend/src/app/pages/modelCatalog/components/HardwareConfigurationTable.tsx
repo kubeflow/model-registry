@@ -4,10 +4,7 @@ import { Spinner } from '@patternfly/react-core';
 import { OuterScrollContainer } from '@patternfly/react-table';
 import { CatalogPerformanceMetricsArtifact } from '~/app/modelCatalogTypes';
 import { ModelCatalogContext } from '~/app/context/modelCatalog/ModelCatalogContext';
-import {
-  filterHardwareConfigurationArtifacts,
-  clearAllFilters,
-} from '~/app/pages/modelCatalog/utils/hardwareConfigurationFilterUtils';
+import { clearAllFilters } from '~/app/pages/modelCatalog/utils/hardwareConfigurationFilterUtils';
 import { hardwareConfigColumns } from './HardwareConfigurationTableColumns';
 import HardwareConfigurationTableRow from './HardwareConfigurationTableRow';
 import HardwareConfigurationFilterToolbar from './HardwareConfigurationFilterToolbar';
@@ -21,13 +18,10 @@ const HardwareConfigurationTable: React.FC<HardwareConfigurationTableProps> = ({
   performanceArtifacts,
   isLoading = false,
 }) => {
-  const { filterData, setFilterData } = React.useContext(ModelCatalogContext);
+  const { setFilterData } = React.useContext(ModelCatalogContext);
 
-  // Apply filters to the artifacts
-  const filteredArtifacts = React.useMemo(
-    () => filterHardwareConfigurationArtifacts(performanceArtifacts, filterData),
-    [performanceArtifacts, filterData],
-  );
+  // Note: Filtering is now done server-side via the /performance_artifacts endpoint.
+  // The performanceArtifacts prop contains pre-filtered data from the server.
 
   if (isLoading) {
     return <Spinner size="lg" />;
@@ -47,7 +41,7 @@ const HardwareConfigurationTable: React.FC<HardwareConfigurationTableProps> = ({
         variant="compact"
         isStickyHeader
         hasStickyColumns
-        data={filteredArtifacts}
+        data={performanceArtifacts}
         columns={hardwareConfigColumns}
         toolbarContent={toolbarContent}
         onClearFilters={handleClearFilters}

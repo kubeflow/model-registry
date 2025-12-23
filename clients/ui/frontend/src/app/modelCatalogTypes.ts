@@ -188,6 +188,8 @@ export type GetPerformanceArtifacts = (
   sourceId: string,
   modelName: string,
   params?: PerformanceArtifactsParams,
+  filterData?: ModelCatalogFilterStates,
+  filterOptions?: CatalogFilterOptionsList | null,
 ) => Promise<CatalogArtifactList>;
 
 export type GetArtifactFilterOptions = (
@@ -204,6 +206,7 @@ export type ModelCatalogAPIs = {
   getCatalogModel: GetCatalogModel;
   getListCatalogModelArtifacts: GetListCatalogModelArtifacts;
   getCatalogFilterOptionList: GetCatalogFilterOptionList;
+  getPerformanceArtifacts: GetPerformanceArtifacts;
 };
 
 export type CatalogModelDetailsParams = {
