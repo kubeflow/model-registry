@@ -1,13 +1,5 @@
 import * as React from 'react';
-import {
-  PageSection,
-  Card,
-  CardBody,
-  Title,
-  Flex,
-  FlexItem,
-  Alert,
-} from '@patternfly/react-core';
+import { PageSection, Card, CardBody, Title, Flex, FlexItem, Alert } from '@patternfly/react-core';
 import HardwareConfigurationTable from '~/app/pages/modelCatalog/components/HardwareConfigurationTable';
 import { CatalogPerformanceMetricsArtifact } from '~/app/modelCatalogTypes';
 import { ModelCatalogContext } from '~/app/context/modelCatalog/ModelCatalogContext';
