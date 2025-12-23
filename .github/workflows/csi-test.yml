@@ -71,7 +71,7 @@ jobs:
       - name: Start KinD cluster
         uses: helm/kind-action@v1.13.0
         with:
-          node_image: "kindest/node:v1.31.0"
+          node_image: "kindest/node:v1.33.7"
 
       - name: Install kustomize
         run: ./test/scripts/install_kustomize.sh

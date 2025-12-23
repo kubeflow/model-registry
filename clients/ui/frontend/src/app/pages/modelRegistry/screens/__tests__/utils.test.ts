@@ -38,7 +38,7 @@ describe('getValidatedOnPlatforms', () => {
   it('should return single platform when validated_on has one platform', () => {
     const customProperties: ModelRegistryCustomProperties = {
       validated_on: {
-        string_value: 'OpenShift',
+        string_value: '["OpenShift"]',
         metadataType: ModelRegistryMetadataType.STRING,
       },
     };
@@ -46,10 +46,10 @@ describe('getValidatedOnPlatforms', () => {
     expect(result).toEqual(['OpenShift']);
   });
 
-  it('should return multiple platforms when validated_on has comma-separated platforms', () => {
+  it('should return multiple platforms when validated_on has JSON array of platforms', () => {
     const customProperties: ModelRegistryCustomProperties = {
       validated_on: {
-        string_value: 'OpenShift,Kubernetes,Docker',
+        string_value: '["OpenShift","Kubernetes","Docker"]',
         metadataType: ModelRegistryMetadataType.STRING,
       },
     };
@@ -60,7 +60,7 @@ describe('getValidatedOnPlatforms', () => {
   it('should trim whitespace from platform names', () => {
     const customProperties: ModelRegistryCustomProperties = {
       validated_on: {
-        string_value: ' OpenShift , Kubernetes , Docker ',
+        string_value: '[" OpenShift "," Kubernetes "," Docker "]',
         metadataType: ModelRegistryMetadataType.STRING,
       },
     };
@@ -71,7 +71,7 @@ describe('getValidatedOnPlatforms', () => {
   it('should filter out empty platform names after trimming', () => {
     const customProperties: ModelRegistryCustomProperties = {
       validated_on: {
-        string_value: 'OpenShift, ,Kubernetes,  ,Docker',
+        string_value: '["OpenShift","","Kubernetes","  ","Docker"]',
         metadataType: ModelRegistryMetadataType.STRING,
       },
     };
@@ -82,7 +82,7 @@ describe('getValidatedOnPlatforms', () => {
   it('should handle platforms with special characters', () => {
     const customProperties: ModelRegistryCustomProperties = {
       validated_on: {
-        string_value: 'OpenShift 4.x,Kubernetes 1.28,Red Hat Enterprise Linux',
+        string_value: '["OpenShift 4.x","Kubernetes 1.28","Red Hat Enterprise Linux"]',
         metadataType: ModelRegistryMetadataType.STRING,
       },
     };
@@ -93,7 +93,7 @@ describe('getValidatedOnPlatforms', () => {
   it('should handle mixed case platform names', () => {
     const customProperties: ModelRegistryCustomProperties = {
       validated_on: {
-        string_value: 'openshift,KUBERNETES,Docker',
+        string_value: '["openshift","KUBERNETES","Docker"]',
         metadataType: ModelRegistryMetadataType.STRING,
       },
     };
@@ -119,11 +119,44 @@ describe('getValidatedOnPlatforms', () => {
         metadataType: ModelRegistryMetadataType.STRING,
       },
       validated_on: {
-        string_value: 'OpenShift,Kubernetes',
+        string_value: '["OpenShift","Kubernetes"]',
         metadataType: ModelRegistryMetadataType.STRING,
       },
       license: {
         string_value: 'Apache 2.0',
+        metadataType: ModelRegistryMetadataType.STRING,
+      },
+    };
+    const result = getValidatedOnPlatforms(customProperties);
+    expect(result).toEqual(['OpenShift', 'Kubernetes']);
+  });
+
+  it('should return empty array when validated_on contains invalid JSON', () => {
+    const customProperties: ModelRegistryCustomProperties = {
+      validated_on: {
+        string_value: 'not valid json',
+        metadataType: ModelRegistryMetadataType.STRING,
+      },
+    };
+    const result = getValidatedOnPlatforms(customProperties);
+    expect(result).toEqual([]);
+  });
+
+  it('should return empty array when validated_on JSON is not an array', () => {
+    const customProperties: ModelRegistryCustomProperties = {
+      validated_on: {
+        string_value: '{"platform": "OpenShift"}',
+        metadataType: ModelRegistryMetadataType.STRING,
+      },
+    };
+    const result = getValidatedOnPlatforms(customProperties);
+    expect(result).toEqual([]);
+  });
+
+  it('should filter out non-string items from JSON array', () => {
+    const customProperties: ModelRegistryCustomProperties = {
+      validated_on: {
+        string_value: '["OpenShift",123,null,"Kubernetes",true]',
         metadataType: ModelRegistryMetadataType.STRING,
       },
     };

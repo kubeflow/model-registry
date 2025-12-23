@@ -37,7 +37,7 @@ var (
 
 const (
 	CatalogTypeYaml        = "yaml"
-	CatalogTypeHuggingFace = "huggingface"
+	CatalogTypeHuggingFace = "hf"
 	ApiKey                 = "apiKey"
 )
 
@@ -171,9 +171,12 @@ func (r *ModelCatalogSettingsRepository) CreateCatalogSourceConfig(
 		yamlFileName = fmt.Sprintf("%s.yaml", payload.Id)
 		yamlContent[yamlFileName] = *payload.Yaml
 	case CatalogTypeHuggingFace:
-		secretName, err = createSecretForHuggingFace(ctx, client, namespace, payload.Id, *payload.ApiKey)
-		if err != nil {
-			return nil, fmt.Errorf("failed to create secret for huggingface source: %w", err)
+		// Only create secret if apiKey is provided
+		if payload.ApiKey != nil && *payload.ApiKey != "" {
+			secretName, err = createSecretForHuggingFace(ctx, client, namespace, payload.Id, *payload.ApiKey)
+			if err != nil {
+				return nil, fmt.Errorf("failed to create secret for huggingface source: %w", err)
+			}
 		}
 	default:
 		return nil, fmt.Errorf("%w: %s", ErrUnsupportedCatalogType, payload.Type)
@@ -446,20 +449,21 @@ func validateCatalogSourceConfigPayload(payload models.CatalogSourceConfigPayloa
 	}
 
 	if payload.Type == "" {
-		return fmt.Errorf("type is required")
+		return fmt.Errorf("%w: type is required", ErrValidationFailed)
 	}
 
 	switch payload.Type {
 	case CatalogTypeYaml:
 		if payload.Yaml == nil || *payload.Yaml == "" {
-			return fmt.Errorf("yaml field is required for yaml-type sources")
+			return fmt.Errorf("%w: yaml field is required for yaml-type sources", ErrValidationFailed)
 		}
 	case CatalogTypeHuggingFace:
-		if payload.ApiKey == nil || *payload.ApiKey == "" {
-			return fmt.Errorf("apiKey is required for huggingface-type sources")
+		if payload.AllowedOrganization == nil || *payload.AllowedOrganization == "" {
+			return fmt.Errorf("%w: allowedOrganization is required for huggingface-type sources", ErrValidationFailed)
 		}
+		// apiKey is optional for HuggingFace sources
 	default:
-		return fmt.Errorf("unsupported catalog type: %s (supported: yaml, huggingface)", payload.Type)
+		return fmt.Errorf("%w: unsupported catalog type: %s (supported: yaml, huggingface)", ErrValidationFailed, payload.Type)
 	}
 	return nil
 }

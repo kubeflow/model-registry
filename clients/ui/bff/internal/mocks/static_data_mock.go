@@ -257,7 +257,7 @@ func catalogCustomProperties() *map[string]openapi.MetadataValue {
 		},
 		"validated_on": {
 			MetadataStringValue: &openapi.MetadataStringValue{
-				StringValue:  "RHOAI 2.20,RHAIIS 3.0,RHELAI 1.5",
+				StringValue:  "[\"RHOAI 2.20\",\"RHAIIS 3.0\",\"RHELAI 1.5\"]",
 				MetadataType: "MetadataStringValue",
 			},
 		},
@@ -270,6 +270,18 @@ func catalogCustomProperties() *map[string]openapi.MetadataValue {
 		"AWS_PASSWORD": {
 			MetadataStringValue: &openapi.MetadataStringValue{
 				StringValue:  "*AadfeDs34adf",
+				MetadataType: "MetadataStringValue",
+			},
+		},
+		"tensor_type": {
+			MetadataStringValue: &openapi.MetadataStringValue{
+				StringValue:  "FP8",
+				MetadataType: "MetadataStringValue",
+			},
+		},
+		"size": {
+			MetadataStringValue: &openapi.MetadataStringValue{
+				StringValue:  "7B param",
 				MetadataType: "MetadataStringValue",
 			},
 		},
@@ -1365,7 +1377,7 @@ func CreateSampleCatalogSource(id string, name string, catalogType string, enabl
 	switch catalogType {
 	case "yaml":
 		sourceConfig.Yaml = stringToPointer("models:\n  - name: model1")
-	case "huggingface":
+	case "hf":
 		// Use different organizations for the failed sources
 		if id == "adminModel2" {
 			sourceConfig.AllowedOrganization = stringToPointer("invalid-org")
@@ -1380,26 +1392,6 @@ func CreateSampleCatalogSource(id string, name string, catalogType string, enabl
 
 func BoolPtr(b bool) *bool {
 	return &b
-}
-
-func GetCatalogSourceConfigsMocks() []models.CatalogSourceConfig {
-	// Match IDs with catalog sources to show proper statuses
-	return []models.CatalogSourceConfig{
-		CreateSampleCatalogSource("sample-source", "Sample mocked source", "yaml", true),
-		CreateSampleCatalogSource("huggingface", "Hugging Face", "huggingface", false),
-		CreateSampleCatalogSource("adminModel1", "Admin model 1", "huggingface", true),
-		CreateSampleCatalogSource("adminModel2", "Admin model 2", "huggingface", true),
-		CreateSampleCatalogSource("dora", "Dora source", "yaml", true),
-		CreateSampleCatalogSource("catalog-4", "Custom Catalog 2", "yaml", false),
-	}
-}
-
-func GetCatalogSourceConfigListMock() models.CatalogSourceConfigList {
-	allCatalogSourceConfigs := GetCatalogSourceConfigsMocks()
-
-	return models.CatalogSourceConfigList{
-		Catalogs: allCatalogSourceConfigs,
-	}
 }
 
 func GetModelsWithInclusionStatusListMocks() []models.CatalogSourcePreviewModel {

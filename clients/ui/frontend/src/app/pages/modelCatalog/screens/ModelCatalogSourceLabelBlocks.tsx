@@ -25,7 +25,7 @@ const ModelCatalogSourceLabelBlocks: React.FC = () => {
 
     const enabledSources = filterEnabledCatalogSources(catalogSources);
     const uniqueLabels = getUniqueSourceLabels(enabledSources);
-    const hasNoLabels = hasSourcesWithoutLabels(catalogSources);
+    const hasNoLabels = hasSourcesWithoutLabels(enabledSources);
 
     const allBlock: SourceLabelBlock = {
       id: 'all',

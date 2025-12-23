@@ -72,7 +72,6 @@ var _ = Describe("TestModelCatalogSettings", func() {
 	})
 
 	Context("creating source config", func() {
-
 		It("POST returns 201 on success", func() {
 			payload := ModelCatalogSourcePayloadEnvelope{
 				Data: &models.CatalogSourceConfigPayload{
@@ -115,6 +114,7 @@ var _ = Describe("TestModelCatalogSettings", func() {
 			Expect(err).NotTo(HaveOccurred())
 			Expect(rs.StatusCode).To(Equal(http.StatusBadRequest))
 		})
+
 		It("POST returns 400 for duplicate source", func() {
 			payload := ModelCatalogSourcePayloadEnvelope{
 				Data: &models.CatalogSourceConfigPayload{
@@ -123,6 +123,72 @@ var _ = Describe("TestModelCatalogSettings", func() {
 					Type:    "yaml",
 					Enabled: boolPtr(true),
 					Yaml:    stringPtr("models: []"),
+				},
+			}
+			_, rs, err := setupApiTest[Envelope[any, any]](
+				http.MethodPost,
+				"/api/v1/settings/model_catalog/source_configs?namespace=kubeflow",
+				payload,
+				kubernetesMockedStaticClientFactory,
+				requestIdentity,
+				"kubeflow",
+			)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(rs.StatusCode).To(Equal(http.StatusBadRequest))
+		})
+
+		It("POST returns 400 when type is missing", func() {
+			payload := ModelCatalogSourcePayloadEnvelope{
+				Data: &models.CatalogSourceConfigPayload{
+					Id:      "test_missing_type",
+					Name:    "Test Missing Type",
+					Enabled: boolPtr(true),
+					Yaml:    stringPtr("models: []"),
+					//type is missing
+				},
+			}
+			_, rs, err := setupApiTest[Envelope[any, any]](
+				http.MethodPost,
+				"/api/v1/settings/model_catalog/source_configs?namespace=kubeflow",
+				payload,
+				kubernetesMockedStaticClientFactory,
+				requestIdentity,
+				"kubeflow",
+			)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(rs.StatusCode).To(Equal(http.StatusBadRequest))
+		})
+
+		It("POST returns 400 when yaml is missing for yaml type", func() {
+			payload := ModelCatalogSourcePayloadEnvelope{
+				Data: &models.CatalogSourceConfigPayload{
+					Id:      "test_yaml_no_content",
+					Name:    "Test YAML No Content",
+					Type:    "yaml",
+					Enabled: boolPtr(true),
+					// yaml field missing
+				},
+			}
+			_, rs, err := setupApiTest[Envelope[any, any]](
+				http.MethodPost,
+				"/api/v1/settings/model_catalog/source_configs?namespace=kubeflow",
+				payload,
+				kubernetesMockedStaticClientFactory,
+				requestIdentity,
+				"kubeflow",
+			)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(rs.StatusCode).To(Equal(http.StatusBadRequest))
+		})
+
+		It("POST returns 400 for unsupported catalog type", func() {
+			payload := ModelCatalogSourcePayloadEnvelope{
+				Data: &models.CatalogSourceConfigPayload{
+					Id:      "test_invalid_type",
+					Name:    "Test Invalid Type",
+					Type:    "invalid_type",
+					Enabled: boolPtr(true),
+					// invalid type
 				},
 			}
 			_, rs, err := setupApiTest[Envelope[any, any]](
@@ -173,7 +239,7 @@ var _ = Describe("TestModelCatalogSettings", func() {
 
 		It("PATCH returns 403 when changing type", func() {
 			payload := ModelCatalogSourcePayloadEnvelope{
-				Data: &models.CatalogSourceConfigPayload{Type: "huggingface"},
+				Data: &models.CatalogSourceConfigPayload{Type: "hf"},
 			}
 			_, rs, err := setupApiTest[Envelope[any, any]](
 				http.MethodPatch,

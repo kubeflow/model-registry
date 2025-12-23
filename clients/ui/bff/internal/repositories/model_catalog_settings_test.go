@@ -74,7 +74,7 @@ var _ = Describe("ModelCatalogSettingRepository", func() {
 		It("should return apiKey for the huggingFace type source config", func() {
 			catalog, err := repo.GetCatalogSourceConfig(ctx, k8sClient, "kubeflow", "hugging_face_source")
 			Expect(err).NotTo(HaveOccurred())
-			Expect(catalog.Type).To(Equal("huggingface"))
+			Expect(catalog.Type).To(Equal("hf"))
 			Expect(catalog.ApiKey).To(BeNil())
 		})
 
@@ -154,16 +154,16 @@ var _ = Describe("ModelCatalogSettingRepository", func() {
 			Expect(err.Error()).To(ContainSubstring("yaml field is required"))
 		})
 
-		It("should fail when apiKey is missing for huggingface-type", func() {
+		It("should fail when allowedOrganization is missing for huggingface-type", func() {
 			payload := models.CatalogSourceConfigPayload{
 				Id:      "test_id",
 				Name:    "Test",
-				Type:    "huggingface",
+				Type:    "hf",
 				Enabled: boolPtr(true),
 			}
 			_, err := repo.CreateCatalogSourceConfig(ctx, k8sClient, "kubeflow", payload)
 			Expect(err).To(HaveOccurred())
-			Expect(err.Error()).To(ContainSubstring("apiKey is required"))
+			Expect(err.Error()).To(ContainSubstring("allowedOrganization is required"))
 		})
 
 		It("should fail for unsupported type", func() {
@@ -208,11 +208,12 @@ var _ = Describe("ModelCatalogSettingRepository", func() {
 			longId := strings.Repeat("a", 239)
 
 			payload := models.CatalogSourceConfigPayload{
-				Id:      longId,
-				Name:    "Test Long ID",
-				Type:    "huggingface",
-				Enabled: boolPtr(true),
-				ApiKey:  stringPtr("hf_test_key"),
+				Id:                  longId,
+				Name:                "Test Long ID",
+				Type:                "hf",
+				Enabled:             boolPtr(true),
+				ApiKey:              stringPtr("hf_test_key"),
+				AllowedOrganization: stringPtr("test-org"),
 			}
 			_, err := repo.CreateCatalogSourceConfig(ctx, k8sClient, "kubeflow", payload)
 			Expect(err).To(HaveOccurred())
@@ -223,11 +224,12 @@ var _ = Describe("ModelCatalogSettingRepository", func() {
 			maxLengthId := strings.Repeat("b", 238)
 
 			payload := models.CatalogSourceConfigPayload{
-				Id:      maxLengthId,
-				Name:    "Test Max Length ID",
-				Type:    "huggingface",
-				Enabled: boolPtr(true),
-				ApiKey:  stringPtr("hf_test_key"),
+				Id:                  maxLengthId,
+				Name:                "Test Max Length ID",
+				Type:                "hf",
+				Enabled:             boolPtr(true),
+				ApiKey:              stringPtr("hf_test_key"),
+				AllowedOrganization: stringPtr("test-org"),
 			}
 			result, err := repo.CreateCatalogSourceConfig(ctx, k8sClient, "kubeflow", payload)
 			Expect(err).NotTo(HaveOccurred())
@@ -251,11 +253,12 @@ var _ = Describe("ModelCatalogSettingRepository", func() {
 
 		It("should create huggingface-type source successfully", func() {
 			payload := models.CatalogSourceConfigPayload{
-				Id:      "test_hf_create",
-				Name:    "Test HF Create",
-				Type:    "huggingface",
-				Enabled: boolPtr(true),
-				ApiKey:  stringPtr("hf_test_key"),
+				Id:                  "test_hf_create",
+				Name:                "Test HF Create",
+				Type:                "hf",
+				Enabled:             boolPtr(true),
+				ApiKey:              stringPtr("hf_test_key"),
+				AllowedOrganization: stringPtr("test-org"),
 			}
 			result, err := repo.CreateCatalogSourceConfig(ctx, k8sClient, "kubeflow", payload)
 			Expect(err).NotTo(HaveOccurred())
@@ -328,7 +331,7 @@ var _ = Describe("ModelCatalogSettingRepository", func() {
 
 		It("should fail, when trying to update the source type", func() {
 			payload := models.CatalogSourceConfigPayload{
-				Type: "huggingface",
+				Type: "hf",
 			}
 			_, err := repo.UpdateCatalogSourceConfig(ctx, k8sClient, "kubeflow", "custom_yaml_models", payload)
 			Expect(err).To(HaveOccurred())
@@ -504,11 +507,12 @@ var _ = Describe("ModelCatalogSettingRepository", func() {
 		It("should delete user huggingface source and its secret", func() {
 			// First create
 			createPayload := models.CatalogSourceConfigPayload{
-				Id:      "delete_test_hf",
-				Name:    "Delete HF Test",
-				Type:    "huggingface",
-				Enabled: boolPtr(true),
-				ApiKey:  stringPtr("hf_delete_test"),
+				Id:                  "delete_test_hf",
+				Name:                "Delete HF Test",
+				Type:                "hf",
+				Enabled:             boolPtr(true),
+				ApiKey:              stringPtr("hf_delete_test"),
+				AllowedOrganization: stringPtr("test-org"),
 			}
 			_, err := repo.CreateCatalogSourceConfig(ctx, k8sClient, "kubeflow", createPayload)
 			Expect(err).NotTo(HaveOccurred())

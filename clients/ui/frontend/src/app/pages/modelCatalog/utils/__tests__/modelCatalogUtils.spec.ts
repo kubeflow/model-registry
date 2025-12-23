@@ -1,6 +1,11 @@
 // Disabling camelcase for this file because the inherent property names are not camelcase
 /* eslint-disable camelcase */
-import { CatalogFilterOptionsList, ModelCatalogFilterStates } from '~/app/modelCatalogTypes';
+import {
+  CatalogFilterOptionsList,
+  CatalogSource,
+  CatalogSourceList,
+  ModelCatalogFilterStates,
+} from '~/app/modelCatalogTypes';
 import {
   AllLanguageCode,
   ModelCatalogLicense,
@@ -10,7 +15,15 @@ import {
   ModelCatalogTask,
   UseCaseOptionValue,
 } from '~/concepts/modelCatalog/const';
-import { filtersToFilterQuery } from '~/app/pages/modelCatalog/utils/modelCatalogUtils';
+import { CatalogSourceStatus } from '~/concepts/modelCatalogSettings/const';
+import {
+  filtersToFilterQuery,
+  filterEnabledCatalogSources,
+  filterSourcesWithModels,
+  hasSourcesWithModels,
+  getUniqueSourceLabels,
+  hasSourcesWithoutLabels,
+} from '~/app/pages/modelCatalog/utils/modelCatalogUtils';
 
 // TODO: Implement performance filters.
 describe('filtersToFilterQuery', () => {
@@ -301,4 +314,317 @@ describe('filtersToFilterQuery', () => {
   //       );
   //     });
   //   });
+});
+
+describe('catalog source filtering utilities', () => {
+  const createMockSource = (overrides: Partial<CatalogSource> = {}): CatalogSource => ({
+    id: 'source-1',
+    name: 'Test Source',
+    labels: ['Red Hat'],
+    enabled: true,
+    status: CatalogSourceStatus.AVAILABLE,
+    ...overrides,
+  });
+
+  const createMockSourceList = (items: CatalogSource[] = []): CatalogSourceList => ({
+    items,
+    size: items.length,
+    pageSize: 10,
+    nextPageToken: '',
+  });
+
+  describe('filterEnabledCatalogSources', () => {
+    it('returns null when catalogSources is null', () => {
+      expect(filterEnabledCatalogSources(null)).toBeNull();
+    });
+
+    it('returns empty list when no sources are enabled and available', () => {
+      const sources = createMockSourceList([
+        createMockSource({ id: '1', enabled: false, status: CatalogSourceStatus.DISABLED }),
+        createMockSource({ id: '2', enabled: true, status: CatalogSourceStatus.ERROR }),
+      ]);
+      const result = filterEnabledCatalogSources(sources);
+      expect(result?.items).toHaveLength(0);
+    });
+
+    it('filters out disabled sources', () => {
+      const sources = createMockSourceList([
+        createMockSource({ id: '1', enabled: true, status: CatalogSourceStatus.AVAILABLE }),
+        createMockSource({ id: '2', enabled: false, status: CatalogSourceStatus.AVAILABLE }),
+      ]);
+      const result = filterEnabledCatalogSources(sources);
+      expect(result?.items).toHaveLength(1);
+      expect(result?.items?.[0].id).toBe('1');
+    });
+
+    it('filters out sources without available status', () => {
+      const sources = createMockSourceList([
+        createMockSource({ id: '1', enabled: true, status: CatalogSourceStatus.AVAILABLE }),
+        createMockSource({ id: '2', enabled: true, status: CatalogSourceStatus.ERROR }),
+        createMockSource({ id: '3', enabled: true, status: CatalogSourceStatus.DISABLED }),
+      ]);
+      const result = filterEnabledCatalogSources(sources);
+      expect(result?.items).toHaveLength(1);
+      expect(result?.items?.[0].id).toBe('1');
+    });
+
+    it('returns all sources when all are enabled and available', () => {
+      const sources = createMockSourceList([
+        createMockSource({ id: '1', enabled: true, status: CatalogSourceStatus.AVAILABLE }),
+        createMockSource({ id: '2', enabled: true, status: CatalogSourceStatus.AVAILABLE }),
+      ]);
+      const result = filterEnabledCatalogSources(sources);
+      expect(result?.items).toHaveLength(2);
+    });
+  });
+
+  describe('filterSourcesWithModels', () => {
+    it('returns null when catalogSources is null', () => {
+      expect(filterSourcesWithModels(null)).toBeNull();
+    });
+
+    it('returns only sources with available status', () => {
+      const sources = createMockSourceList([
+        createMockSource({ id: '1', status: CatalogSourceStatus.AVAILABLE }),
+        createMockSource({ id: '2', status: CatalogSourceStatus.ERROR }),
+        createMockSource({ id: '3', status: CatalogSourceStatus.DISABLED }),
+      ]);
+      const result = filterSourcesWithModels(sources);
+      expect(result?.items).toHaveLength(1);
+      expect(result?.items?.[0].id).toBe('1');
+    });
+
+    it('returns empty list when no sources have available status', () => {
+      const sources = createMockSourceList([
+        createMockSource({ id: '1', status: CatalogSourceStatus.ERROR }),
+        createMockSource({ id: '2', status: CatalogSourceStatus.DISABLED }),
+      ]);
+      const result = filterSourcesWithModels(sources);
+      expect(result?.items).toHaveLength(0);
+    });
+  });
+
+  describe('hasSourcesWithModels', () => {
+    it('returns false when catalogSources is null', () => {
+      expect(hasSourcesWithModels(null)).toBe(false);
+    });
+
+    it('returns false when catalogSources has no items', () => {
+      expect(hasSourcesWithModels(createMockSourceList([]))).toBe(false);
+    });
+
+    it('returns false when no sources have available status', () => {
+      const sources = createMockSourceList([
+        createMockSource({ id: '1', status: CatalogSourceStatus.ERROR }),
+        createMockSource({ id: '2', status: CatalogSourceStatus.DISABLED }),
+      ]);
+      expect(hasSourcesWithModels(sources)).toBe(false);
+    });
+
+    it('returns true when at least one source has available status', () => {
+      const sources = createMockSourceList([
+        createMockSource({ id: '1', status: CatalogSourceStatus.ERROR }),
+        createMockSource({ id: '2', status: CatalogSourceStatus.AVAILABLE }),
+      ]);
+      expect(hasSourcesWithModels(sources)).toBe(true);
+    });
+
+    it('returns true when all sources have available status', () => {
+      const sources = createMockSourceList([
+        createMockSource({ id: '1', status: CatalogSourceStatus.AVAILABLE }),
+        createMockSource({ id: '2', status: CatalogSourceStatus.AVAILABLE }),
+      ]);
+      expect(hasSourcesWithModels(sources)).toBe(true);
+    });
+  });
+
+  describe('getUniqueSourceLabels', () => {
+    it('returns empty array when catalogSources is null', () => {
+      expect(getUniqueSourceLabels(null)).toEqual([]);
+    });
+
+    it('returns empty array when catalogSources has no items', () => {
+      expect(getUniqueSourceLabels(createMockSourceList([]))).toEqual([]);
+    });
+
+    it('returns unique labels from enabled and available sources', () => {
+      const sources = createMockSourceList([
+        createMockSource({
+          id: '1',
+          labels: ['Red Hat', 'Enterprise'],
+          enabled: true,
+          status: CatalogSourceStatus.AVAILABLE,
+        }),
+        createMockSource({
+          id: '2',
+          labels: ['Red Hat', 'Community'],
+          enabled: true,
+          status: CatalogSourceStatus.AVAILABLE,
+        }),
+      ]);
+      const labels = getUniqueSourceLabels(sources);
+      expect(labels).toHaveLength(3);
+      expect(labels).toContain('Red Hat');
+      expect(labels).toContain('Enterprise');
+      expect(labels).toContain('Community');
+    });
+
+    it('excludes labels from disabled sources', () => {
+      const sources = createMockSourceList([
+        createMockSource({
+          id: '1',
+          labels: ['Red Hat'],
+          enabled: true,
+          status: CatalogSourceStatus.AVAILABLE,
+        }),
+        createMockSource({
+          id: '2',
+          labels: ['Excluded'],
+          enabled: false,
+          status: CatalogSourceStatus.AVAILABLE,
+        }),
+      ]);
+      const labels = getUniqueSourceLabels(sources);
+      expect(labels).toEqual(['Red Hat']);
+    });
+
+    it('excludes labels from sources without available status', () => {
+      const sources = createMockSourceList([
+        createMockSource({
+          id: '1',
+          labels: ['Red Hat'],
+          enabled: true,
+          status: CatalogSourceStatus.AVAILABLE,
+        }),
+        createMockSource({
+          id: '2',
+          labels: ['Error Source'],
+          enabled: true,
+          status: CatalogSourceStatus.ERROR,
+        }),
+      ]);
+      const labels = getUniqueSourceLabels(sources);
+      expect(labels).toEqual(['Red Hat']);
+    });
+
+    it('trims whitespace from labels', () => {
+      const sources = createMockSourceList([
+        createMockSource({
+          id: '1',
+          labels: ['  Red Hat  ', 'Enterprise'],
+          enabled: true,
+          status: CatalogSourceStatus.AVAILABLE,
+        }),
+      ]);
+      const labels = getUniqueSourceLabels(sources);
+      expect(labels).toContain('Red Hat');
+    });
+
+    it('excludes empty or whitespace-only labels', () => {
+      const sources = createMockSourceList([
+        createMockSource({
+          id: '1',
+          labels: ['Red Hat', '', '   '],
+          enabled: true,
+          status: CatalogSourceStatus.AVAILABLE,
+        }),
+      ]);
+      const labels = getUniqueSourceLabels(sources);
+      expect(labels).toEqual(['Red Hat']);
+    });
+  });
+
+  describe('hasSourcesWithoutLabels', () => {
+    it('returns false when catalogSources is null', () => {
+      expect(hasSourcesWithoutLabels(null)).toBe(false);
+    });
+
+    it('returns false when catalogSources has no items', () => {
+      expect(hasSourcesWithoutLabels(createMockSourceList([]))).toBe(false);
+    });
+
+    it('returns true when an enabled and available source has no labels', () => {
+      const sources = createMockSourceList([
+        createMockSource({
+          id: '1',
+          labels: ['Red Hat'],
+          enabled: true,
+          status: CatalogSourceStatus.AVAILABLE,
+        }),
+        createMockSource({
+          id: '2',
+          labels: [],
+          enabled: true,
+          status: CatalogSourceStatus.AVAILABLE,
+        }),
+      ]);
+      expect(hasSourcesWithoutLabels(sources)).toBe(true);
+    });
+
+    it('returns true when an enabled and available source has only whitespace labels', () => {
+      const sources = createMockSourceList([
+        createMockSource({
+          id: '1',
+          labels: ['   ', ''],
+          enabled: true,
+          status: CatalogSourceStatus.AVAILABLE,
+        }),
+      ]);
+      expect(hasSourcesWithoutLabels(sources)).toBe(true);
+    });
+
+    it('returns false when all enabled and available sources have labels', () => {
+      const sources = createMockSourceList([
+        createMockSource({
+          id: '1',
+          labels: ['Red Hat'],
+          enabled: true,
+          status: CatalogSourceStatus.AVAILABLE,
+        }),
+        createMockSource({
+          id: '2',
+          labels: ['Community'],
+          enabled: true,
+          status: CatalogSourceStatus.AVAILABLE,
+        }),
+      ]);
+      expect(hasSourcesWithoutLabels(sources)).toBe(false);
+    });
+
+    it('ignores disabled sources without labels', () => {
+      const sources = createMockSourceList([
+        createMockSource({
+          id: '1',
+          labels: ['Red Hat'],
+          enabled: true,
+          status: CatalogSourceStatus.AVAILABLE,
+        }),
+        createMockSource({
+          id: '2',
+          labels: [],
+          enabled: false,
+          status: CatalogSourceStatus.AVAILABLE,
+        }),
+      ]);
+      expect(hasSourcesWithoutLabels(sources)).toBe(false);
+    });
+
+    it('ignores sources without available status that have no labels', () => {
+      const sources = createMockSourceList([
+        createMockSource({
+          id: '1',
+          labels: ['Red Hat'],
+          enabled: true,
+          status: CatalogSourceStatus.AVAILABLE,
+        }),
+        createMockSource({
+          id: '2',
+          labels: [],
+          enabled: true,
+          status: CatalogSourceStatus.ERROR,
+        }),
+      ]);
+      expect(hasSourcesWithoutLabels(sources)).toBe(false);
+    });
+  });
 });
