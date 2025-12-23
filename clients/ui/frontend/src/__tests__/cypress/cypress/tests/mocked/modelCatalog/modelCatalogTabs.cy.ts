@@ -227,17 +227,17 @@ describe('Model Catalog Details Tabs', () => {
         modelCatalog.findModelCatalogDetailLink().first().click();
         modelCatalog.clickPerformanceInsightsTab();
         modelCatalog.findWorkloadTypeFilter().click();
-        modelCatalog.findWorkloadTypeOption('Chatbot').should('be.visible');
-        modelCatalog.findWorkloadTypeOption('Code Fixing').should('be.visible');
-        modelCatalog.findWorkloadTypeOption('Long RAG').should('be.visible');
-        modelCatalog.findWorkloadTypeOption('RAG').should('be.visible');
+        modelCatalog.findWorkloadTypeOption('chatbot').should('be.visible');
+        modelCatalog.findWorkloadTypeOption('code_fixing').should('be.visible');
+        modelCatalog.findWorkloadTypeOption('long_rag').should('be.visible');
+        modelCatalog.findWorkloadTypeOption('rag').should('be.visible');
       });
 
       it('should update toggle text when workload type is selected', () => {
         modelCatalog.findModelCatalogDetailLink().first().click();
         modelCatalog.clickPerformanceInsightsTab();
         modelCatalog.findWorkloadTypeFilter().click();
-        modelCatalog.selectWorkloadType('Code Fixing');
+        modelCatalog.selectWorkloadType('code_fixing');
         modelCatalog
           .findWorkloadTypeFilter()
           .should('contain.text', 'Workload type')
@@ -249,7 +249,7 @@ describe('Model Catalog Details Tabs', () => {
         modelCatalog.clickPerformanceInsightsTab();
         modelCatalog.findHardwareConfigurationTableRows().should('have.length.at.least', 1);
         modelCatalog.findWorkloadTypeFilter().click();
-        modelCatalog.selectWorkloadType('Code Fixing');
+        modelCatalog.selectWorkloadType('code_fixing');
         modelCatalog.findHardwareConfigurationTableRows().should('exist');
         modelCatalog.findHardwareConfigurationColumn('Workload type').each(($el) => {
           cy.wrap($el).should('contain.text', 'Code Fixing');
@@ -260,13 +260,15 @@ describe('Model Catalog Details Tabs', () => {
         modelCatalog.findModelCatalogDetailLink().first().click();
         modelCatalog.clickPerformanceInsightsTab();
         modelCatalog.findWorkloadTypeFilter().click();
-        modelCatalog.selectWorkloadType('Code Fixing');
+        modelCatalog.selectWorkloadType('code_fixing');
         modelCatalog
           .findWorkloadTypeFilter()
           .should('contain.text', 'Workload type')
           .should('contain.text', '1 selected');
 
-        modelCatalog.selectWorkloadType('Code Fixing');
+        // Re-open dropdown before deselecting
+        modelCatalog.findWorkloadTypeFilter().click();
+        modelCatalog.selectWorkloadType('code_fixing');
         modelCatalog.findWorkloadTypeFilter().should('contain.text', 'Workload type');
         modelCatalog.findWorkloadTypeFilter().should('not.contain.text', '1 selected');
       });

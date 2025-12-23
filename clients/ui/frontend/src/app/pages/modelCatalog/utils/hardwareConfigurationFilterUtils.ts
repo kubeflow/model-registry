@@ -1,6 +1,8 @@
+import { isEnumMember } from 'mod-arch-core';
 import {
   CatalogPerformanceMetricsArtifact,
   ModelCatalogFilterStates,
+  ModelCatalogFilterKey,
 } from '~/app/modelCatalogTypes';
 import { getDoubleValue, getStringValue } from '~/app/utils';
 import {
@@ -9,6 +11,8 @@ import {
   LatencyMetricFieldName,
   LatencyPercentile,
   LatencyMetric,
+  ALL_LATENCY_FIELD_NAMES,
+  getLatencyFieldName,
 } from '~/concepts/modelCatalog/const';
 
 // Type for storing complex latency filter configuration with value
@@ -16,30 +20,6 @@ export type LatencyFilterConfig = {
   metric: LatencyMetric;
   percentile: LatencyPercentile;
   value: number;
-};
-
-const isMetricLowercase = (str: string): str is Lowercase<LatencyMetric> =>
-  Object.values(LatencyMetric)
-    .map((value) => value.toLowerCase())
-    .includes(str);
-const isPercentileLowercase = (str: string): str is Lowercase<LatencyPercentile> =>
-  Object.values(LatencyPercentile)
-    .map((value) => value.toLowerCase())
-    .includes(str);
-
-/**
- * Maps metric and percentile combination to the corresponding artifact field
- */
-export const getLatencyFieldName = (
-  metric: LatencyMetric,
-  percentile: LatencyPercentile,
-): LatencyMetricFieldName => {
-  const metricPrefix = metric.toLowerCase();
-  const percentileSuffix = percentile.toLowerCase();
-  if (!isMetricLowercase(metricPrefix) || !isPercentileLowercase(percentileSuffix)) {
-    return 'ttft_mean'; // Default fallback
-  }
-  return `${metricPrefix}_${percentileSuffix}`;
 };
 
 /**
@@ -141,27 +121,42 @@ export const filterHardwareConfigurationArtifacts = (
   });
 
 /**
- * Gets all filter keys (string filters + number filters)
- * TODO: Extend to include latency metric filters when needed for filter chips on details page
+ * Gets all filter keys (string filters + number filters + latency filters)
  */
 export const getAllFilterKeys = (): {
   stringFilterKeys: ModelCatalogStringFilterKey[];
   numberFilterKeys: ModelCatalogNumberFilterKey[];
+  latencyFilterKeys: LatencyMetricFieldName[];
 } => ({
   stringFilterKeys: Object.values(ModelCatalogStringFilterKey),
   numberFilterKeys: Object.values(ModelCatalogNumberFilterKey),
+  latencyFilterKeys: ALL_LATENCY_FIELD_NAMES,
 });
 
 /**
- * Clears all active filters
+ * Clears filters. If filterKeys is provided, only clears those specific filters.
+ * Otherwise clears all filters.
  */
 export const clearAllFilters = (
   setFilterData: <K extends keyof ModelCatalogFilterStates>(
     key: K,
     value: ModelCatalogFilterStates[K],
   ) => void,
+  filterKeys?: ModelCatalogFilterKey[],
 ): void => {
-  const { stringFilterKeys, numberFilterKeys } = getAllFilterKeys();
+  const { stringFilterKeys, numberFilterKeys, latencyFilterKeys } = getAllFilterKeys();
+
+  // If specific filter keys are provided, only clear those
+  if (filterKeys) {
+    filterKeys.forEach((key) => {
+      if (isEnumMember(key, ModelCatalogStringFilterKey)) {
+        setFilterData(key, []);
+      } else {
+        setFilterData(key, undefined);
+      }
+    });
+    return;
+  }
 
   // Clear all string filters (arrays)
   stringFilterKeys.forEach((key) => {
@@ -173,7 +168,8 @@ export const clearAllFilters = (
     setFilterData(key, undefined);
   });
 
-  // TODO: Clear all latency metric filters (e.g., ttft_mean, ttft_p90, etc.)
-  // This will be needed when we add filter chips to the details page.
-  // Can be part of that PR - will need to loop over all LatencyMetricFieldName combinations.
+  // Clear all latency metric filters (e.g., ttft_mean, ttft_p90, etc.)
+  latencyFilterKeys.forEach((fieldName) => {
+    setFilterData(fieldName, undefined);
+  });
 };

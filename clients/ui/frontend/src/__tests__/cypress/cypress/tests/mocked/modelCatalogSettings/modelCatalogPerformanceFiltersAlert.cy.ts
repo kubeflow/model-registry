@@ -129,7 +129,7 @@ describe('Model Catalog Performance Filters Alert', () => {
       modelCatalog.clickPerformanceInsightsTab();
 
       modelCatalog.findWorkloadTypeFilter().click();
-      modelCatalog.selectWorkloadType('Code Fixing');
+      modelCatalog.selectWorkloadType('code_fixing');
 
       cy.go('back');
       cy.go('back');
@@ -146,7 +146,7 @@ describe('Model Catalog Performance Filters Alert', () => {
       modelCatalog.clickPerformanceInsightsTab();
 
       modelCatalog.findWorkloadTypeFilter().click();
-      modelCatalog.selectWorkloadType('Code Fixing');
+      modelCatalog.selectWorkloadType('code_fixing');
 
       cy.go('back');
       cy.go('back');
@@ -183,7 +183,7 @@ describe('Model Catalog Performance Filters Alert', () => {
       modelCatalog.clickPerformanceInsightsTab();
 
       modelCatalog.findWorkloadTypeFilter().click();
-      modelCatalog.selectWorkloadType('Code Fixing');
+      modelCatalog.selectWorkloadType('code_fixing');
 
       cy.go('back');
       cy.go('back');
@@ -205,7 +205,7 @@ describe('Model Catalog Performance Filters Alert', () => {
       modelCatalog.clickPerformanceInsightsTab();
 
       modelCatalog.findWorkloadTypeFilter().click();
-      modelCatalog.selectWorkloadType('Code Fixing');
+      modelCatalog.selectWorkloadType('code_fixing');
 
       cy.go('back');
       cy.go('back');
@@ -225,7 +225,7 @@ describe('Model Catalog Performance Filters Alert', () => {
       modelCatalog.clickPerformanceInsightsTab();
 
       modelCatalog.findWorkloadTypeFilter().click();
-      modelCatalog.selectWorkloadType('Code Fixing');
+      modelCatalog.selectWorkloadType('code_fixing');
 
       cy.go('back');
       cy.go('back');
@@ -248,8 +248,10 @@ describe('Model Catalog Performance Filters Alert', () => {
       modelCatalog.clickPerformanceInsightsTab();
 
       modelCatalog.findWorkloadTypeFilter().click();
-      modelCatalog.selectWorkloadType('Code Fixing');
-      modelCatalog.selectWorkloadType('Chatbot');
+      modelCatalog.selectWorkloadType('code_fixing');
+      // Re-open dropdown to select second option
+      modelCatalog.findWorkloadTypeFilter().click();
+      modelCatalog.selectWorkloadType('chatbot');
 
       cy.go('back');
       cy.go('back');

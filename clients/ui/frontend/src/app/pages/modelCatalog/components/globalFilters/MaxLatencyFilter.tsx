@@ -13,10 +13,13 @@ import {
   SelectOption,
 } from '@patternfly/react-core';
 import { HelpIcon } from '@patternfly/react-icons';
-import { LatencyMetric, LatencyPercentile } from '~/concepts/modelCatalog/const';
+import {
+  LatencyMetric,
+  LatencyPercentile,
+  getLatencyFieldName,
+} from '~/concepts/modelCatalog/const';
 import { CatalogPerformanceMetricsArtifact } from '~/app/modelCatalogTypes';
 import { getDoubleValue } from '~/app/utils';
-import { getLatencyFieldName } from '~/app/pages/modelCatalog/utils/hardwareConfigurationFilterUtils';
 import { ModelCatalogContext } from '~/app/context/modelCatalog/ModelCatalogContext';
 import {
   getSliderRange,
