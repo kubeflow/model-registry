@@ -21,15 +21,21 @@ env:
   IMG_UI_REPO: model-registry/ui # this image is intended for local development, not production
   DOCKER_USER: ${{ github.actor }}
   DOCKER_PWD: ${{ secrets.GITHUB_TOKEN }}
+  PLATFORMS: linux/arm64,linux/amd64
 jobs:
   build-and-push:
     runs-on: ubuntu-latest
     permissions:
-      contents: read
+      actions: read # anchore/sbom-action for syft
+      contents: write # anchore/sbom-action for syft
       packages: write
+      id-token: write # cosign
     steps:
     - name: Checkout repository
       uses: actions/checkout@v6.0.1
+
+    - name: Set up QEMU
+      uses: docker/setup-qemu-action@v3
 
     - name: Set up Docker Buildx
       uses: docker/setup-buildx-action@v3
@@ -47,7 +53,7 @@ jobs:
         commit_sha=${{ github.sha }}
         tag=main-${commit_sha:0:7}
         echo "VERSION=${tag}" >> $GITHUB_ENV
-      
+
     - name: Set tag environment
       if: startsWith(github.ref, 'refs/tags/v')
       run: |
@@ -68,9 +74,11 @@ jobs:
           type=raw,value=latest,enable=${{ github.ref == 'refs/heads/main' }}
 
     - name: Build and push Docker image
+      id: build-push
       uses: docker/build-push-action@v6
       with:
         context: ./clients/ui
+        platforms: ${{ env.PLATFORMS }}
         push: true
         tags: ${{ steps.meta.outputs.tags }}
         labels: ${{ steps.meta.outputs.labels }}
@@ -79,5 +87,23 @@ jobs:
           STYLE_THEME=mui-theme
         cache-from: type=gha
         cache-to: type=gha,mode=max
-        provenance: mode=max # pay attention no secrets are passed as build arguments: https://docs.docker.com/build/ci/github-actions/attestations/#default-provenance:~:text=don%27t%20support%20attestations.-,Warning,-If%20you%27re%20using
-        sbom: true
+        provenance: mode=max
+
+    - name: Install Cosign
+      uses: sigstore/cosign-installer@v3
+
+    - name: Sign image with cosign
+      run: |
+        cosign sign --yes "${{ env.IMG_REGISTRY }}/${{ env.IMG_ORG }}/${{ env.IMG_UI_REPO }}@${{ steps.build-push.outputs.digest }}"
+
+    - name: Generate SBOM
+      uses: anchore/sbom-action@v0
+      with:
+        image: "${{ env.IMG_REGISTRY }}/${{ env.IMG_ORG }}/${{ env.IMG_UI_REPO }}@${{ steps.build-push.outputs.digest }}"
+        format: spdx-json # default, but making sure of the format
+        artifact-name: "ui-${{ env.VERSION }}-sbom.spdx.json"
+        output-file: "ui-${{ env.VERSION }}-sbom.spdx.json" # pin the file to use it later below
+
+    - name: Attest SBOM to image
+      run: |
+        cosign attest --yes --predicate ui-${{ env.VERSION }}-sbom.spdx.json --type spdxjson "${{ env.IMG_REGISTRY }}/${{ env.IMG_ORG }}/${{ env.IMG_UI_REPO }}@${{ steps.build-push.outputs.digest }}"
