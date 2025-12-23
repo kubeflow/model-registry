@@ -24,7 +24,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python: ["3.12"]
+        python: ["3.10"]
         session: [lint, mypy]
     env:
       NOXSESSION: ${{ matrix.session }}
@@ -120,7 +120,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python: ["3.12"] # see below for versions 3.9-3.11
+        python: ["3.12"] # see below for versions 3.10-3.11
         kubernetes-version:
           ["v1.33.7", "v1.34.3"]
         manifest-db: ["db", "postgres"] # subdirectory of manifests/kustomize/overlays to select which database: 'db' (MySQL) or 'postgres'
@@ -131,9 +131,6 @@ jobs:
             kubernetes-version: "v1.33.7"
             manifest-db: "db"
           - python: "3.10"
-            kubernetes-version: "v1.33.7"
-            manifest-db: "db"
-          - python: "3.9"
             kubernetes-version: "v1.33.7"
             manifest-db: "db"
     env:

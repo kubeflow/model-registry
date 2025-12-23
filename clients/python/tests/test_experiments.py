@@ -410,7 +410,7 @@ def test_bulk_metrics_and_params_retrieval(client: ModelRegistry):  # noqa: C901
     assert param_attributes == expected_param_attributes
     # Verify values are reasonable
     for metric in metrics:
-        assert isinstance(metric.value, (int, float))  # type: ignore[attr-defined]
+        assert isinstance(metric.value, int | float)  # type: ignore[attr-defined]
         assert metric.value > 0  # type: ignore[attr-defined]
 
     for param in params:

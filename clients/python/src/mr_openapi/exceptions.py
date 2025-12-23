@@ -9,7 +9,7 @@ Do not edit the class manually.
 """  # noqa: E501
 
 import contextlib
-from typing import Any, Optional
+from typing import Any
 
 from typing_extensions import Self
 
@@ -103,8 +103,8 @@ class ApiException(OpenApiException):
         reason=None,
         http_resp=None,
         *,
-        body: Optional[str] = None,
-        data: Optional[Any] = None,
+        body: str | None = None,
+        data: Any | None = None,
     ) -> None:
         self.status = status
         self.reason = reason
@@ -127,8 +127,8 @@ class ApiException(OpenApiException):
         cls,
         *,
         http_resp,
-        body: Optional[str],
-        data: Optional[Any],
+        body: str | None,
+        data: Any | None,
     ) -> Self:
         if http_resp.status == 400:
             raise BadRequestException(http_resp=http_resp, body=body, data=data)
