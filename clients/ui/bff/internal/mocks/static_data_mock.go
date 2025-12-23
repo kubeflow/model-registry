@@ -1349,11 +1349,28 @@ func GetFilterOptionMocks() map[string]models.FilterOption {
 	return filterOptions
 }
 
+func GetNamedQueriesMocks() map[string]map[string]models.FieldFilter {
+	namedQuries := make(map[string]map[string]models.FieldFilter)
+	namedQuries["validation-default"] = map[string]models.FieldFilter{
+		"ttft_p90": {
+			Operator: "<",
+			Value:    float64(70),
+		},
+		"workload_type": {
+			Operator: "=",
+			Value:    "Chat",
+		},
+	}
+	return namedQuries
+}
+
 func GetFilterOptionsListMock() models.FilterOptionsList {
 	filterOptions := GetFilterOptionMocks()
+	namedQueries := GetNamedQueriesMocks()
 
 	return models.FilterOptionsList{
-		Filters: &filterOptions,
+		Filters:      &filterOptions,
+		NamedQueries: &namedQueries,
 	}
 }
 
