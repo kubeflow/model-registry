@@ -47,20 +47,26 @@ export const useCatalogPerformanceArtifacts = (
 ): FetchState<CatalogArtifactList> => {
   const { api, apiAvailable } = useModelCatalogAPI();
 
-  const performanceParams: PerformanceArtifactsParams | undefined = React.useMemo(() => {
-    if (!params) {
-      return { recommendations: true };
-    }
-    return {
-      targetRPS: params.targetRPS,
-      latencyProperty: params.latencyProperty,
-      recommendations: params.recommendations ?? true,
-      pageSize: params.pageSize,
-      orderBy: params.orderBy,
-      sortOrder: params.sortOrder,
-      nextPageToken: params.nextPageToken,
-    };
-  }, [params]);
+  const performanceParams: PerformanceArtifactsParams | undefined = React.useMemo(
+    () => ({
+      targetRPS: params?.targetRPS,
+      latencyProperty: params?.latencyProperty,
+      recommendations: params?.recommendations ?? true,
+      pageSize: params?.pageSize,
+      orderBy: params?.orderBy,
+      sortOrder: params?.sortOrder,
+      nextPageToken: params?.nextPageToken,
+    }),
+    [
+      params?.targetRPS,
+      params?.latencyProperty,
+      params?.recommendations,
+      params?.pageSize,
+      params?.orderBy,
+      params?.sortOrder,
+      params?.nextPageToken,
+    ],
+  );
 
   const call = React.useCallback<FetchStateCallbackPromise<CatalogArtifactList>>(
     (opts) => {

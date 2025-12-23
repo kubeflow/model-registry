@@ -25,7 +25,6 @@ import {
 import { extractValidatedModelMetrics } from '~/app/pages/modelCatalog/utils/validatedModelUtils';
 import { catalogModelDetailsTabFromModel } from '~/app/routes/modelCatalog/catalogModel';
 import { ModelDetailsTab, ModelCatalogNumberFilterKey } from '~/concepts/modelCatalog/const';
-import { useCatalogModelArtifacts } from '~/app/hooks/modelCatalog/useCatalogModelArtifacts';
 import { useCatalogPerformanceArtifacts } from '~/app/hooks/modelCatalog/useCatalogPerformanceArtifacts';
 import {
   filterArtifactsByType,
@@ -60,14 +59,6 @@ const ModelCatalogCardBody: React.FC<ModelCatalogCardBodyProps> = ({
   const targetRPS = filterData[ModelCatalogNumberFilterKey.MIN_RPS];
   const latencyProperty = getActiveLatencyFieldName(filterData);
 
-  // Fetch regular artifacts for accuracy metrics (still needed)
-  const [artifacts, artifactsLoaded, artifactsLoadError] = useCatalogModelArtifacts(
-    source?.id || '',
-    model.name,
-    isValidated,
-    true,
-  );
-
   // Fetch performance artifacts from the new endpoint with server-side filtering
   const [performanceArtifactsList, performanceArtifactsLoaded, performanceArtifactsError] =
     useCatalogPerformanceArtifacts(
@@ -90,27 +81,26 @@ const ModelCatalogCardBody: React.FC<ModelCatalogCardBodyProps> = ({
   );
 
   const accuracyMetrics = filterArtifactsByType<CatalogAccuracyMetricsArtifact>(
-    artifacts.items,
+    performanceArtifactsList.items,
     CatalogArtifactType.metricsArtifact,
     MetricsType.accuracyMetrics,
   );
 
-  const isLoading = isValidated && (!artifactsLoaded || !performanceArtifactsLoaded);
-  const loadError = artifactsLoadError || performanceArtifactsError;
+  const isLoading = isValidated && !performanceArtifactsLoaded;
 
   if (isLoading) {
     return <Spinner />;
   }
 
-  if (loadError && isValidated) {
+  if (performanceArtifactsError && isValidated) {
     return (
-      <Alert variant="danger" isInline title={loadError.name}>
-        {loadError.message}
+      <Alert variant="danger" isInline title={performanceArtifactsError.name}>
+        {performanceArtifactsError.message}
       </Alert>
     );
   }
 
-  if (isValidated && performanceMetrics.length > 0 && accuracyMetrics.length > 0) {
+  if (isValidated && performanceMetrics.length > 0) {
     const metrics = extractValidatedModelMetrics(
       performanceMetrics,
       accuracyMetrics,
