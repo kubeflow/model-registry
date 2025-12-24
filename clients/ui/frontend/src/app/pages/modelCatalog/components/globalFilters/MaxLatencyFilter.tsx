@@ -38,9 +38,12 @@ type MaxLatencyFilterProps = {
   performanceArtifacts: CatalogPerformanceMetricsArtifact[];
 };
 
-const METRIC_OPTIONS: { value: LatencyMetric; label: LatencyMetric }[] = Object.values(
-  LatencyMetric,
-).map((metric) => ({ value: metric, label: metric }));
+// TPS is excluded from filter options for now (will be renamed/reworked in a future ticket)
+const METRIC_OPTIONS: { value: LatencyMetric; label: LatencyMetric }[] = [
+  LatencyMetric.E2E,
+  LatencyMetric.TTFT,
+  LatencyMetric.ITL,
+].map((metric) => ({ value: metric, label: metric }));
 
 const PERCENTILE_OPTIONS: { value: LatencyPercentile; label: LatencyPercentile }[] = Object.values(
   LatencyPercentile,
