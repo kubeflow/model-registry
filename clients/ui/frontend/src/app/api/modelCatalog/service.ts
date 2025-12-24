@@ -6,8 +6,12 @@ import {
   CatalogModelList,
   CatalogSourceList,
   ModelCatalogFilterStates,
+  PerformanceArtifactsParams,
 } from '~/app/modelCatalogTypes';
-import { filtersToFilterQuery } from '~/app/pages/modelCatalog/utils/modelCatalogUtils';
+import {
+  filtersToFilterQuery,
+  filtersToArtifactsFilterQuery,
+} from '~/app/pages/modelCatalog/utils/modelCatalogUtils';
 
 export const getCatalogModelsBySource =
   (hostPath: string, queryParams: Record<string, unknown> = {}) =>
@@ -87,3 +91,38 @@ export const getListCatalogModelArtifacts =
       }
       throw new Error('Invalid response format');
     });
+
+export const getPerformanceArtifacts =
+  (hostPath: string, queryParams: Record<string, unknown> = {}) =>
+  (
+    opts: APIOptions,
+    sourceId: string,
+    modelName: string,
+    params?: PerformanceArtifactsParams,
+    filterData?: ModelCatalogFilterStates,
+    filterOptions?: CatalogFilterOptionsList | null,
+  ): Promise<CatalogArtifactList> => {
+    const allParams: Record<string, unknown> = {
+      ...queryParams,
+      ...(params?.targetRPS !== undefined && { targetRPS: params.targetRPS }),
+      ...(params?.recommendations !== undefined && { recommendations: params.recommendations }),
+      ...(params?.rpsProperty && { rpsProperty: params.rpsProperty }),
+      ...(params?.latencyProperty && { latencyProperty: params.latencyProperty }),
+      ...(params?.hardwareCountProperty && { hardwareCountProperty: params.hardwareCountProperty }),
+      ...(params?.hardwareTypeProperty && { hardwareTypeProperty: params.hardwareTypeProperty }),
+      ...(params?.pageSize && { pageSize: params.pageSize }),
+      ...(params?.orderBy && { orderBy: params.orderBy }),
+      ...(params?.sortOrder && { sortOrder: params.sortOrder }),
+      ...(params?.nextPageToken && { nextPageToken: params.nextPageToken }),
+      ...(filterData &&
+        filterOptions && { filterQuery: filtersToArtifactsFilterQuery(filterData, filterOptions) }),
+    };
+    return handleRestFailures(
+      restGET(hostPath, `/sources/${sourceId}/performance_artifacts/${modelName}`, allParams, opts),
+    ).then((response) => {
+      if (isModArchResponse<CatalogArtifactList>(response)) {
+        return response.data;
+      }
+      throw new Error('Invalid response format');
+    });
+  };

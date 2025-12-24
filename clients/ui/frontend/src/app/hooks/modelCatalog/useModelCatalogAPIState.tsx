@@ -6,6 +6,7 @@ import {
   getCatalogModelsBySource,
   getListCatalogModelArtifacts,
   getListSources,
+  getPerformanceArtifacts,
 } from '~/app/api/modelCatalog/service';
 import { ModelCatalogAPIs } from '~/app/modelCatalogTypes';
 
@@ -22,6 +23,7 @@ const useModelCatalogAPIState = (
       getCatalogModel: getCatalogModel(path, queryParameters),
       getListCatalogModelArtifacts: getListCatalogModelArtifacts(path, queryParameters),
       getCatalogFilterOptionList: getCatalogFilterOptionList(path, queryParameters),
+      getPerformanceArtifacts: getPerformanceArtifacts(path, queryParameters),
     }),
     [queryParameters],
   );

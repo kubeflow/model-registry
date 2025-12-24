@@ -838,6 +838,7 @@ paths:
           in: path
           required: true
         - $ref: "#/components/parameters/catalogArtifactType"
+        - $ref: "#/components/parameters/filterQuery"
       responses:
         "200":
           $ref: "#/components/responses/CatalogModelArtifactListResponse"

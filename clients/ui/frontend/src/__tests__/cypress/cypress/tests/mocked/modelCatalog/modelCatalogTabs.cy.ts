@@ -94,8 +94,22 @@ const initIntercepts = ({
     testModel,
   );
 
+  // Intercept for /artifacts/ - used to determine if tabs should show
   cy.interceptApi(
     `GET /api/:apiVersion/model_catalog/sources/:sourceId/artifacts/:modelName`,
+    {
+      path: {
+        apiVersion: MODEL_CATALOG_API_VERSION,
+        sourceId: 'source-2',
+        modelName: testModel.name.replace('/', '%2F'),
+      },
+    },
+    testArtifacts,
+  );
+
+  // Intercept for /performance_artifacts/ - used for server-side filtered performance data
+  cy.interceptApi(
+    `GET /api/:apiVersion/model_catalog/sources/:sourceId/performance_artifacts/:modelName`,
     {
       path: {
         apiVersion: MODEL_CATALOG_API_VERSION,

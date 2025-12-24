@@ -24,10 +24,14 @@ import {
 } from '~/app/modelCatalogTypes';
 import { extractValidatedModelMetrics } from '~/app/pages/modelCatalog/utils/validatedModelUtils';
 import { catalogModelDetailsTabFromModel } from '~/app/routes/modelCatalog/catalogModel';
-import { ModelDetailsTab } from '~/concepts/modelCatalog/const';
-import { useCatalogModelArtifacts } from '~/app/hooks/modelCatalog/useCatalogModelArtifacts';
-import { filterArtifactsByType } from '~/app/pages/modelCatalog/utils/modelCatalogUtils';
+import { ModelDetailsTab, ModelCatalogNumberFilterKey } from '~/concepts/modelCatalog/const';
+import { useCatalogPerformanceArtifacts } from '~/app/hooks/modelCatalog/useCatalogPerformanceArtifacts';
+import {
+  filterArtifactsByType,
+  getActiveLatencyFieldName,
+} from '~/app/pages/modelCatalog/utils/modelCatalogUtils';
 import { formatLatency } from '~/app/pages/modelCatalog/utils/performanceMetricsUtils';
+import { ModelCatalogContext } from '~/app/context/modelCatalog/ModelCatalogContext';
 
 type ModelCatalogCardBodyProps = {
   model: CatalogModel;
@@ -41,6 +45,7 @@ const ModelCatalogCardBody: React.FC<ModelCatalogCardBodyProps> = ({
   source,
 }) => {
   const [currentPerformanceIndex, setCurrentPerformanceIndex] = useState(0);
+  const { filterData, filterOptions } = React.useContext(ModelCatalogContext);
 
   const handlePreviousBenchmark = () => {
     setCurrentPerformanceIndex((prev) => (prev > 0 ? prev - 1 : performanceMetrics.length - 1));
@@ -50,38 +55,52 @@ const ModelCatalogCardBody: React.FC<ModelCatalogCardBodyProps> = ({
     setCurrentPerformanceIndex((prev) => (prev < performanceMetrics.length - 1 ? prev + 1 : 0));
   };
 
-  const [artifacts, artifactsLoaded, artifactsLoadError] = useCatalogModelArtifacts(
-    source?.id || '',
-    model.name,
-    isValidated,
-    true,
-  );
+  // Get performance-specific filter params for the /performance_artifacts endpoint
+  const targetRPS = filterData[ModelCatalogNumberFilterKey.MIN_RPS];
+  const latencyProperty = getActiveLatencyFieldName(filterData);
+
+  // Fetch performance artifacts from the new endpoint with server-side filtering
+  const [performanceArtifactsList, performanceArtifactsLoaded, performanceArtifactsError] =
+    useCatalogPerformanceArtifacts(
+      source?.id || '',
+      model.name,
+      {
+        targetRPS,
+        latencyProperty,
+        recommendations: true,
+      },
+      filterData,
+      filterOptions,
+      isValidated, // Only fetch if validated
+    );
 
   const performanceMetrics = filterArtifactsByType<CatalogPerformanceMetricsArtifact>(
-    artifacts.items,
+    performanceArtifactsList.items,
     CatalogArtifactType.metricsArtifact,
     MetricsType.performanceMetrics,
   );
 
   const accuracyMetrics = filterArtifactsByType<CatalogAccuracyMetricsArtifact>(
-    artifacts.items,
+    performanceArtifactsList.items,
     CatalogArtifactType.metricsArtifact,
     MetricsType.accuracyMetrics,
   );
 
-  if (!artifactsLoaded && isValidated) {
+  const isLoading = isValidated && !performanceArtifactsLoaded;
+
+  if (isLoading) {
     return <Spinner />;
   }
 
-  if (artifactsLoadError && isValidated) {
+  if (performanceArtifactsError && isValidated) {
     return (
-      <Alert variant="danger" isInline title={artifactsLoadError.name}>
-        {artifactsLoadError.message}
+      <Alert variant="danger" isInline title={performanceArtifactsError.name}>
+        {performanceArtifactsError.message}
       </Alert>
     );
   }
 
-  if (isValidated && performanceMetrics.length > 0 && accuracyMetrics.length > 0) {
+  if (isValidated && performanceMetrics.length > 0) {
     const metrics = extractValidatedModelMetrics(
       performanceMetrics,
       accuracyMetrics,
@@ -99,10 +118,12 @@ const ModelCatalogCardBody: React.FC<ModelCatalogCardBodyProps> = ({
               <Content component={ContentVariants.small}>Hardware</Content>
             </Flex>
             <Flex direction={{ default: 'column' }}>
-              <span className="pf-v6-u-font-weight-bold" data-testid="validated-model-rps">
-                {metrics.rpsPerReplica}
+              <span className="pf-v6-u-font-weight-bold" data-testid="validated-model-replicas">
+                {metrics.replicas !== undefined ? metrics.replicas : metrics.rpsPerReplica}
               </span>
-              <Content component={ContentVariants.small}>RPS/rep.</Content>
+              <Content component={ContentVariants.small}>
+                {metrics.replicas !== undefined ? 'Replicas' : 'RPS/rep.'}
+              </Content>
             </Flex>
             <Flex direction={{ default: 'column' }}>
               <span className="pf-v6-u-font-weight-bold" data-testid="validated-model-ttft">

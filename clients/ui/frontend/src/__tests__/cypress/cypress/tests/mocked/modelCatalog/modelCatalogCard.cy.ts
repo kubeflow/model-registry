@@ -91,7 +91,7 @@ const initIntercepts = ({
   );
 
   cy.interceptApi(
-    `GET /api/:apiVersion/model_catalog/sources/:sourceId/artifacts/:modelName`,
+    `GET /api/:apiVersion/model_catalog/sources/:sourceId/performance_artifacts/:modelName`,
     {
       path: {
         apiVersion: MODEL_CATALOG_API_VERSION,
@@ -112,7 +112,7 @@ const initIntercepts = ({
   );
 
   cy.interceptApi(
-    `GET /api/:apiVersion/model_catalog/sources/:sourceId/artifacts/:modelName`,
+    `GET /api/:apiVersion/model_catalog/sources/:sourceId/performance_artifacts/:modelName`,
     {
       path: {
         apiVersion: MODEL_CATALOG_API_VERSION,
@@ -231,19 +231,19 @@ describe('ModelCatalogCard Component', () => {
       cy.wait('@getCatalogSourceModelArtifacts');
       modelCatalog.findFirstModelCatalogCard().within(() => {
         modelCatalog.findValidatedModelHardware().should('contain.text', '2xH100-80');
-        modelCatalog.findValidatedModelRps().should('contain.text', '7');
+        modelCatalog.findValidatedModelReplicas().should('contain.text', '7');
         modelCatalog.findValidatedModelTtft().should('contain.text', '35.49');
         modelCatalog.findValidatedModelBenchmarkNext().click();
         modelCatalog.findValidatedModelHardware().should('contain.text', '33xRTX 4090');
-        modelCatalog.findValidatedModelRps().should('contain.text', '10');
+        modelCatalog.findValidatedModelReplicas().should('contain.text', '10');
         modelCatalog.findValidatedModelTtft().should('contain.text', '67.15');
         modelCatalog.findValidatedModelBenchmarkNext().click();
         modelCatalog.findValidatedModelHardware().should('contain.text', '40xA100');
-        modelCatalog.findValidatedModelRps().should('contain.text', '15');
+        modelCatalog.findValidatedModelReplicas().should('contain.text', '15');
         modelCatalog.findValidatedModelTtft().should('contain.text', '42.12');
         modelCatalog.findValidatedModelBenchmarkPrev().click();
         modelCatalog.findValidatedModelHardware().should('contain.text', '33xRTX 4090');
-        modelCatalog.findValidatedModelRps().should('contain.text', '10');
+        modelCatalog.findValidatedModelReplicas().should('contain.text', '10');
         modelCatalog.findValidatedModelTtft().should('contain.text', '67.15');
         modelCatalog.findValidatedModelBenchmarkLink().click();
         cy.url().should('include', 'performance-insights');

@@ -264,6 +264,10 @@ class ModelCatalog {
     return cy.findByTestId('validated-model-rps');
   }
 
+  findValidatedModelReplicas() {
+    return cy.findByTestId('validated-model-replicas');
+  }
+
   findValidatedModelTtft() {
     return cy.findByTestId('validated-model-ttft');
   }

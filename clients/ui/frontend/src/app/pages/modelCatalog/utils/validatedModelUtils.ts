@@ -9,6 +9,8 @@ export type ValidatedModelMetrics = {
   hardwareCount: string;
   rpsPerReplica: number;
   ttftMean: number;
+  replicas: number | undefined;
+  totalRequestsPerSecond: number | undefined;
 };
 
 export type PerformanceMetrics = {
@@ -16,6 +18,8 @@ export type PerformanceMetrics = {
   hardwareCount: string;
   rpsPerReplica: number;
   ttftMean: number;
+  replicas: number | undefined;
+  totalRequestsPerSecond: number | undefined;
 };
 
 export const extractPerformanceMetrics = (
@@ -25,6 +29,11 @@ export const extractPerformanceMetrics = (
   hardwareCount: performanceMetrics.customProperties?.hardware_count?.int_value || '1',
   rpsPerReplica: performanceMetrics.customProperties?.requests_per_second?.double_value || 1,
   ttftMean: performanceMetrics.customProperties?.ttft_mean?.double_value || 1428,
+  replicas: performanceMetrics.customProperties?.replicas?.int_value
+    ? Number(performanceMetrics.customProperties.replicas.int_value)
+    : undefined,
+  totalRequestsPerSecond:
+    performanceMetrics.customProperties?.total_requests_per_second?.double_value,
 });
 
 // NOTE: overall_average is currently omitted from the API and will be restored
@@ -45,7 +54,7 @@ export const extractPerformanceMetrics = (
 
 export const extractValidatedModelMetrics = (
   performanceMetrics: CatalogPerformanceMetricsArtifact[],
-  accuracyMetrics: CatalogAccuracyMetricsArtifact[],
+  _accuracyMetrics: CatalogAccuracyMetricsArtifact[],
   currentPerformanceIndex = 0,
 ): ValidatedModelMetrics => {
   const currentPerformance = performanceMetrics[currentPerformanceIndex];
@@ -57,6 +66,8 @@ export const extractValidatedModelMetrics = (
         hardwareCount: '1',
         rpsPerReplica: 1,
         ttftMean: 1428,
+        replicas: undefined,
+        totalRequestsPerSecond: undefined,
       };
 
   return {
