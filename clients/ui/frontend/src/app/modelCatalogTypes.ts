@@ -308,8 +308,9 @@ export type CatalogSourceConfigCommon = {
 
 export type YamlCatalogSourceConfig = CatalogSourceConfigCommon & {
   type: CatalogSourceType.YAML;
-  /** yaml will be populated on GET (by ID) requests, not on LIST requests */
+  /** yaml and yamlCatalogPath will be populated on GET (by ID) requests, not on LIST requests */
   yaml?: string;
+  yamlCatalogPath?: string;
 };
 
 export type HuggingFaceCatalogSourceConfig = CatalogSourceConfigCommon & {
