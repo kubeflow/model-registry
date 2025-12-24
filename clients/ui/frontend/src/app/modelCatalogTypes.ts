@@ -204,6 +204,8 @@ export type ModelCatalogAPIs = {
   getCatalogModel: GetCatalogModel;
   getListCatalogModelArtifacts: GetListCatalogModelArtifacts;
   getCatalogFilterOptionList: GetCatalogFilterOptionList;
+  getPerformanceArtifacts: GetPerformanceArtifacts;
+  getArtifactFilterOptions: GetArtifactFilterOptions;
 };
 
 export type CatalogModelDetailsParams = {
