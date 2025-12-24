@@ -12,6 +12,7 @@ type CatalogSourceConfig struct {
 	ExcludedModels      []string `json:"excludedModels,omitempty"`
 	IsDefault           *bool    `json:"isDefault,omitempty"`
 	Yaml                *string  `json:"yaml,omitempty"`
+	YamlCatalogPath     *string  `json:"yamlCatalogPath,omitempty"`
 }
 
 type CatalogSourceConfigPayload = CatalogSourceConfig
