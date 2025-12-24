@@ -26,6 +26,7 @@ const (
 	apiKeyEnvVarKey       = "apiKeyEnvVar"
 	maxModelsKey          = "maxModels"
 	syncIntervalKey       = "syncInterval"
+	allowedOrgKey         = "allowedOrganization"
 
 	// defaultMaxModels is the default limit for models fetched PER PATTERN.
 	// This limit is applied independently to each pattern in includedModels
@@ -360,13 +361,72 @@ func (p *hfModelProvider) Models(ctx context.Context) (<-chan ModelProviderRecor
 	return ch, nil
 }
 
-func (p *hfModelProvider) getModelsFromHF(ctx context.Context) ([]ModelProviderRecord, error) {
-	var records []ModelProviderRecord
+// expandModelNames takes a list of model identifiers (which may include wildcards)
+// and returns a list of concrete model names by expanding any wildcard patterns.
+// Uses the same logic as FetchModelNamesForPreview.
+func (p *hfModelProvider) expandModelNames(ctx context.Context, modelIdentifiers []string) ([]string, error) {
+	var allNames []string
+	var failedPatterns []string
+	var wildcardPatterns []string
 
+	for _, pattern := range modelIdentifiers {
+		select {
+		case <-ctx.Done():
+			return nil, ctx.Err()
+		default:
+		}
+
+		patternType, org, searchPrefix := parseModelPattern(pattern)
+
+		switch patternType {
+		case PatternInvalid:
+			return nil, fmt.Errorf("wildcard pattern %q is not supported - Hugging Face requires a specific organization (e.g., 'ibm-granite/*' or 'meta-llama/Llama-2-*')", pattern)
+
+		case PatternOrgAll, PatternOrgPrefix:
+			wildcardPatterns = append(wildcardPatterns, pattern)
+			glog.Infof("Expanding wildcard pattern: %s (org=%s, prefix=%s)", pattern, org, searchPrefix)
+			models, err := p.listModelsByAuthor(ctx, org, searchPrefix)
+			if err != nil {
+				failedPatterns = append(failedPatterns, pattern)
+				glog.Warningf("Failed to expand wildcard pattern %s: %v", pattern, err)
+				continue
+			}
+			allNames = append(allNames, models...)
+
+		case PatternExact:
+			// Direct model name - no expansion needed
+			allNames = append(allNames, pattern)
+		}
+	}
+
+	// Check error conditions for wildcard pattern failures
+	if len(wildcardPatterns) > 0 && len(allNames) == 0 {
+		// All wildcard patterns failed AND no results from exact patterns - this is an error
+		if len(failedPatterns) > 0 {
+			return nil, fmt.Errorf("no models found: %v", failedPatterns)
+		} else {
+			return nil, fmt.Errorf("no models found")
+		}
+	} else if len(failedPatterns) > 0 {
+		// Some patterns failed but we have results - log warning and continue with partial results
+		glog.Warningf("Some wildcard patterns failed to expand and were skipped: %v", failedPatterns)
+	}
+
+	return allNames, nil
+}
+
+func (p *hfModelProvider) getModelsFromHF(ctx context.Context) ([]ModelProviderRecord, error) {
+	// First expand any wildcard patterns to concrete model names
+	expandedModels, err := p.expandModelNames(ctx, p.includedModels)
+	if err != nil {
+		return nil, fmt.Errorf("failed to expand model patterns: %w", err)
+	}
+
+	var records []ModelProviderRecord
 	currentTime := time.Now().UnixMilli()
 	lastSyncedStr := strconv.FormatInt(currentTime, 10)
 
-	for _, modelName := range p.includedModels {
+	for _, modelName := range expandedModels {
 		// Skip if excluded - check before fetching to avoid unnecessary API calls
 		if !p.filter.Allows(modelName) {
 			glog.V(2).Infof("Skipping excluded model: %s", modelName)
@@ -726,6 +786,9 @@ func newHFModelProvider(ctx context.Context, source *Source, reldir string) (<-c
 		p.baseURL = strings.TrimSuffix(url, "/")
 	}
 
+	allowedOrg, _ := source.Properties[allowedOrgKey].(string)
+	restrictToOrg(allowedOrg, &source.IncludedModels, &source.ExcludedModels)
+
 	// Parse sync interval (optional, defaults to 24 hours)
 	// This can be configured as a duration string (e.g., "1s", "10s", "1m", "24h").
 	// For testing, a shorter interval can be used to speed up tests.
@@ -805,6 +868,13 @@ func NewHFPreviewProvider(config *PreviewConfig) (*hfModelProvider, error) {
 		p.baseURL = strings.TrimSuffix(url, "/")
 	}
 
+	allowedOrg, _ := config.Properties[allowedOrgKey].(string)
+	restrictToOrg(allowedOrg, &config.IncludedModels, &config.ExcludedModels)
+
+	if len(config.IncludedModels) == 0 {
+		return nil, fmt.Errorf("includedModels is required for HuggingFace source preview (specifies which models to fetch from HuggingFace)")
+	}
+
 	// Parse maxModels limit (optional, defaults to 500)
 	// This limit is applied PER PATTERN (e.g., each "org/*" pattern gets its own limit)
 	// to prevent overloading the Hugging Face API and respect rate limiting.
@@ -868,19 +938,27 @@ func parseModelPattern(pattern string) (PatternType, string, string) {
 		return PatternOrgAll, org, ""
 	}
 
+	parts := strings.SplitN(pattern, "/", 2)
+
+	org := parts[0]
+	// Ensure org is not empty or a wildcard
+	if org == "" || strings.Contains(org, "*") {
+		return PatternInvalid, "", ""
+	}
+
+	var model string
+	if len(parts) == 2 {
+		model = parts[1]
+		if model == "" {
+			return PatternInvalid, "", ""
+		}
+	}
+
 	// Check if it has a wildcard after org/prefix
-	if strings.Contains(pattern, "/") && strings.HasSuffix(pattern, "*") {
-		parts := strings.SplitN(pattern, "/", 2)
-		if len(parts) == 2 {
-			org := parts[0]
-			// Ensure org is not empty or a wildcard
-			if org == "" || org == "*" {
-				return PatternInvalid, "", ""
-			}
-			prefix := strings.TrimSuffix(parts[1], "*")
-			if prefix != "" {
-				return PatternOrgPrefix, org, prefix
-			}
+	if strings.HasSuffix(model, "*") {
+		prefix := strings.TrimSuffix(model, "*")
+		if prefix != "" {
+			return PatternOrgPrefix, org, prefix
 		}
 	}
 
@@ -1084,4 +1162,30 @@ func (p *hfModelProvider) FetchModelNamesForPreview(ctx context.Context, modelId
 	}
 
 	return names, nil
+}
+
+// restrictToOrg prefixes included and excluded model lists with an
+// organization name for convenience and to prevent any other organization from
+// being retrieved.
+func restrictToOrg(org string, included *[]string, excluded *[]string) {
+	if org == "" {
+		// No op
+		return
+	}
+
+	prefix := org + "/"
+
+	if included == nil || len(*included) == 0 {
+		*included = []string{prefix + "*"}
+	} else {
+		for i := range *included {
+			(*included)[i] = prefix + (*included)[i]
+		}
+	}
+
+	if excluded != nil {
+		for i := range *excluded {
+			(*excluded)[i] = prefix + (*excluded)[i]
+		}
+	}
 }
