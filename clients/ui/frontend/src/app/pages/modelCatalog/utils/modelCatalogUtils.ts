@@ -233,20 +233,6 @@ const isFilterIdInMap = (
 ): filterId is keyof CatalogFilterOptions => typeof filterId === 'string' && filterId in filters;
 
 /**
- * Checks if a filter key is an artifact-specific filter (has the artifacts. prefix)
- */
-export const isArtifactFilter = (filterKey: string): boolean =>
-  filterKey.startsWith(ARTIFACTS_FILTER_PREFIX);
-
-/**
- * Strips the artifacts. prefix from a filter key
- */
-export const stripArtifactsPrefix = (filterKey: string): string =>
-  filterKey.startsWith(ARTIFACTS_FILTER_PREFIX)
-    ? filterKey.slice(ARTIFACTS_FILTER_PREFIX.length)
-    : filterKey;
-
-/**
  * Gets the active latency field name from the filter state (if any)
  */
 export const getActiveLatencyFieldName = (
