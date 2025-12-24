@@ -1,31 +1,67 @@
 import * as React from 'react';
 import { PageSection, Card, CardBody, Title, Flex, FlexItem, Alert } from '@patternfly/react-core';
+import { ChartBarIcon } from '@patternfly/react-icons';
+import { useParams } from 'react-router-dom';
 import HardwareConfigurationTable from '~/app/pages/modelCatalog/components/HardwareConfigurationTable';
-import { CatalogPerformanceMetricsArtifact } from '~/app/modelCatalogTypes';
+import {
+  CatalogArtifactType,
+  CatalogModelDetailsParams,
+  CatalogPerformanceMetricsArtifact,
+  MetricsType,
+} from '~/app/modelCatalogTypes';
 import { ModelCatalogContext } from '~/app/context/modelCatalog/ModelCatalogContext';
+import { useCatalogPerformanceArtifacts } from '~/app/hooks/modelCatalog/useCatalogPerformanceArtifacts';
+import { ModelCatalogNumberFilterKey } from '~/concepts/modelCatalog/const';
+import {
+  decodeParams,
+  filterArtifactsByType,
+  getActiveLatencyFieldName,
+} from '~/app/pages/modelCatalog/utils/modelCatalogUtils';
 
-type PerformanceInsightsViewProps = {
-  performanceArtifacts: CatalogPerformanceMetricsArtifact[];
-  isLoading?: boolean;
-  loadError?: Error;
-};
+const PerformanceInsightsView = (): React.JSX.Element => {
+  const params = useParams<CatalogModelDetailsParams>();
+  const decodedParams = decodeParams(params);
+  const { filterData, filterOptions, setPerformanceFiltersChangedOnDetailsPage } =
+    React.useContext(ModelCatalogContext);
 
-const PerformanceInsightsView = ({
-  performanceArtifacts,
-  isLoading = false,
-  loadError,
-}: PerformanceInsightsViewProps): React.JSX.Element => {
-  const { setPerformanceFiltersChangedOnDetailsPage } = React.useContext(ModelCatalogContext);
+  // Get performance-specific filter params for the /performance_artifacts endpoint
+  const targetRPS = filterData[ModelCatalogNumberFilterKey.MIN_RPS];
+  const latencyProperty = getActiveLatencyFieldName(filterData);
+
+  // Fetch performance artifacts from server with filtering/sorting/pagination
+  const [performanceArtifactsList, performanceArtifactsLoaded, performanceArtifactsError] =
+    useCatalogPerformanceArtifacts(
+      decodedParams.sourceId || '',
+      encodeURIComponent(`${decodedParams.modelName}`),
+      {
+        targetRPS,
+        latencyProperty,
+        recommendations: true,
+      },
+      filterData,
+      filterOptions,
+    );
+
+  // Extract performance artifacts from the list
+  const performanceArtifacts = React.useMemo(
+    () =>
+      filterArtifactsByType<CatalogPerformanceMetricsArtifact>(
+        performanceArtifactsList.items,
+        CatalogArtifactType.metricsArtifact,
+        MetricsType.performanceMetrics,
+      ),
+    [performanceArtifactsList.items],
+  );
 
   React.useEffect(() => {
     setPerformanceFiltersChangedOnDetailsPage(false);
   }, [setPerformanceFiltersChangedOnDetailsPage]);
 
-  if (loadError) {
+  if (performanceArtifactsError) {
     return (
       <PageSection padding={{ default: 'noPadding' }}>
         <Alert variant="danger" isInline title="Error loading performance data">
-          {loadError.message}
+          {performanceArtifactsError.message}
         </Alert>
       </PageSection>
     );
@@ -40,7 +76,7 @@ const PerformanceInsightsView = ({
               <Flex direction={{ default: 'column' }} gap={{ default: 'gapSm' }}>
                 <FlexItem>
                   <Title headingLevel="h2" size="lg">
-                    Hardware Configuration
+                    <ChartBarIcon /> Hardware Configuration
                   </Title>
                 </FlexItem>
                 <FlexItem>
@@ -54,7 +90,7 @@ const PerformanceInsightsView = ({
             <FlexItem>
               <HardwareConfigurationTable
                 performanceArtifacts={performanceArtifacts}
-                isLoading={isLoading}
+                isLoading={!performanceArtifactsLoaded}
               />
             </FlexItem>
           </Flex>

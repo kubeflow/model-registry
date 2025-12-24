@@ -1,23 +1,9 @@
 import * as React from 'react';
 import { Tabs, Tab, TabTitleText, PageSection } from '@patternfly/react-core';
-import { useNavigate, useParams } from 'react-router-dom';
-import {
-  CatalogArtifactList,
-  CatalogArtifactType,
-  CatalogModel,
-  CatalogModelDetailsParams,
-  CatalogPerformanceMetricsArtifact,
-  MetricsType,
-} from '~/app/modelCatalogTypes';
-import {
-  shouldShowValidatedInsights,
-  filterArtifactsByType,
-  decodeParams,
-  getActiveLatencyFieldName,
-} from '~/app/pages/modelCatalog/utils/modelCatalogUtils';
-import { ModelDetailsTab, ModelCatalogNumberFilterKey } from '~/concepts/modelCatalog/const';
-import { ModelCatalogContext } from '~/app/context/modelCatalog/ModelCatalogContext';
-import { useCatalogPerformanceArtifacts } from '~/app/hooks/modelCatalog/useCatalogPerformanceArtifacts';
+import { useNavigate } from 'react-router-dom';
+import { CatalogArtifactList, CatalogModel } from '~/app/modelCatalogTypes';
+import { shouldShowValidatedInsights } from '~/app/pages/modelCatalog/utils/modelCatalogUtils';
+import { ModelDetailsTab } from '~/concepts/modelCatalog/const';
 import ModelDetailsView from './ModelDetailsView';
 import PerformanceInsightsView from './PerformanceInsightsView';
 
@@ -42,65 +28,9 @@ const ModelDetailsTabs = ({
   artifactsLoadError,
 }: ModelDetailsTabsProps): React.JSX.Element => {
   const navigate = useNavigate();
-  const params = useParams<CatalogModelDetailsParams>();
-  const decodedParams = decodeParams(params);
-  const { filterData, filterOptions } = React.useContext(ModelCatalogContext);
-
-  // Get performance-specific filter params for the /performance_artifacts endpoint
-  const targetRPS = filterData[ModelCatalogNumberFilterKey.MIN_RPS];
-  const latencyProperty = getActiveLatencyFieldName(filterData);
 
   // Check if this is a validated model that needs performance insights
   const showValidatedInsights = shouldShowValidatedInsights(model, artifacts.items);
-
-  // Only fetch from performance artifacts endpoint when on performance insights tab
-  const shouldFetchPerformanceArtifacts =
-    showValidatedInsights && tab === ModelDetailsTab.PERFORMANCE_INSIGHTS;
-
-  // Fetch performance artifacts from server with filtering/sorting/pagination
-  const [performanceArtifactsList, performanceArtifactsLoaded, performanceArtifactsError] =
-    useCatalogPerformanceArtifacts(
-      decodedParams.sourceId || '',
-      encodeURIComponent(`${decodedParams.modelName}`),
-      {
-        targetRPS,
-        latencyProperty,
-        recommendations: true,
-      },
-      filterData,
-      filterOptions,
-      shouldFetchPerformanceArtifacts,
-    );
-
-  // Extract performance artifacts from the list
-  const performanceArtifacts = React.useMemo(
-    () =>
-      filterArtifactsByType<CatalogPerformanceMetricsArtifact>(
-        performanceArtifactsList.items,
-        CatalogArtifactType.metricsArtifact,
-        MetricsType.performanceMetrics,
-      ),
-    [performanceArtifactsList.items],
-  );
-
-  // Fallback: use locally filtered artifacts if server fetch is not active
-  const localPerformanceArtifacts = React.useMemo(
-    () =>
-      filterArtifactsByType<CatalogPerformanceMetricsArtifact>(
-        artifacts.items,
-        CatalogArtifactType.metricsArtifact,
-        MetricsType.performanceMetrics,
-      ),
-    [artifacts.items],
-  );
-
-  // Use server-fetched artifacts when available, otherwise fallback to local
-  const displayPerformanceArtifacts = shouldFetchPerformanceArtifacts
-    ? performanceArtifacts
-    : localPerformanceArtifacts;
-  const isPerformanceLoading = shouldFetchPerformanceArtifacts
-    ? !performanceArtifactsLoaded
-    : !artifactLoaded;
 
   const handleTabClick = (
     _event: React.MouseEvent<HTMLElement, MouseEvent>,
@@ -170,11 +100,7 @@ const ModelDetailsTabs = ({
           data-testid="performance-insights-tab-content"
           padding={{ default: 'noPadding' }}
         >
-          <PerformanceInsightsView
-            performanceArtifacts={displayPerformanceArtifacts}
-            isLoading={isPerformanceLoading}
-            loadError={performanceArtifactsError}
-          />
+          <PerformanceInsightsView />
         </PageSection>
       </Tab>
     </Tabs>
