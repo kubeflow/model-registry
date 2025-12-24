@@ -359,9 +359,10 @@ export const filtersToArtifactsFilterQuery = (
 
       // For artifacts endpoint, we use the filter ID directly (no prefix stripping needed
       // since our local state doesn't have the prefix - the backend filter_options have it)
-      const filterOption = isFilterIdInMap(filterId, options.filters)
-        ? options.filters[filterId]
-        : undefined;
+      const filterOption =
+        options.filters && isFilterIdInMap(filterId, options.filters)
+          ? options.filters[filterId]
+          : undefined;
 
       if (isArrayOfSelections(filterOption, data)) {
         switch (data.length) {
