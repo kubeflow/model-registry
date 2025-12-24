@@ -55,7 +55,7 @@ const HardwareConfigurationTable: React.FC<HardwareConfigurationTableProps> = ({
         emptyTableView={<DashboardEmptyTableView onClearFilters={handleClearFilters} />}
         rowRenderer={(artifact) => (
           <HardwareConfigurationTableRow
-            key={artifact.customProperties.config_id?.string_value}
+            key={artifact.customProperties?.config_id?.string_value}
             performanceArtifact={artifact}
           />
         )}

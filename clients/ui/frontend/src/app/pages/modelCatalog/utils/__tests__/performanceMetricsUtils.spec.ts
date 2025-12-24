@@ -67,13 +67,17 @@ describe('performanceMetricsUtils', () => {
 
     it('should return "0 x " when hardware_count is missing', () => {
       const artifact = mockCatalogPerformanceMetricsArtifact();
-      delete artifact.customProperties.hardware_count;
+      if (artifact.customProperties) {
+        delete artifact.customProperties.hardware_count;
+      }
       expect(getHardwareConfiguration(artifact)).toBe('0 x H100-80');
     });
 
     it('should return count with "-" when hardware_type is missing', () => {
       const artifact = mockCatalogPerformanceMetricsArtifact();
-      delete artifact.customProperties.hardware_type;
+      if (artifact.customProperties) {
+        delete artifact.customProperties.hardware_type;
+      }
       expect(getHardwareConfiguration(artifact)).toBe('2 x -');
     });
   });
@@ -186,7 +190,9 @@ describe('performanceMetricsUtils', () => {
 
     it('should return "-" when use_case is missing', () => {
       const artifact = mockCatalogPerformanceMetricsArtifact();
-      delete artifact.customProperties.use_case;
+      if (artifact.customProperties) {
+        delete artifact.customProperties.use_case;
+      }
       expect(getWorkloadType(artifact)).toBe('-');
     });
 
@@ -233,7 +239,6 @@ describe('performanceMetricsUtils', () => {
 
     it('should return "-" when customProperties is undefined', () => {
       const artifact = mockCatalogPerformanceMetricsArtifact();
-      // @ts-expect-error - Testing undefined customProperties
       artifact.customProperties = undefined;
       expect(getWorkloadType(artifact)).toBe('-');
     });

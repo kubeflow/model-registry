@@ -130,7 +130,7 @@ export const mockCatalogPerformanceMetricsArtifactWithRPS = (
   partial?: Partial<CatalogPerformanceMetricsArtifact>,
 ): CatalogPerformanceMetricsArtifact => {
   const baseArtifact = mockCatalogPerformanceMetricsArtifact(partial);
-  const rps = baseArtifact.customProperties.requests_per_second?.double_value || 7;
+  const rps = baseArtifact.customProperties?.requests_per_second?.double_value || 7;
   const replicas = Math.ceil(targetRPS / rps);
 
   return {

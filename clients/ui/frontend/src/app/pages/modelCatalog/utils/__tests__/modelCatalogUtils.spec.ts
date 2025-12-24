@@ -171,6 +171,16 @@ describe('filtersToFilterQuery', () => {
       expect(filtersToFilterQuery(mockFormData({}), mockFilterOptions)).toBe('');
     });
 
+    it('returns empty string when options.filters is undefined', () => {
+      const optionsWithoutFilters = { namedQueries: {} } as CatalogFilterOptionsList;
+      expect(
+        filtersToFilterQuery(
+          mockFormData({ tasks: [ModelCatalogTask.TEXT_TO_TEXT] }),
+          optionsWithoutFilters,
+        ),
+      ).toBe('');
+    });
+
     it('handles a single array of a single data point', () => {
       expect(
         filtersToFilterQuery(

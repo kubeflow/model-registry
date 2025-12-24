@@ -37,8 +37,8 @@ const ModelCatalogNumberFilter = <K extends ModelCatalogNumberFilterKey>({
     [setValue],
   );
 
-  const minValue = filters.range.min;
-  const maxValue = filters.range.max;
+  const minValue = filters.range?.min;
+  const maxValue = filters.range?.max;
 
   return (
     <Content data-testid={`${title}-filter`}>
@@ -48,8 +48,10 @@ const ModelCatalogNumberFilter = <K extends ModelCatalogNumberFilterKey>({
           value={value || ''}
           placeholder={placeholder || `Enter ${title.toLowerCase()}`}
           data-testid={`${title}-filter-input`}
-          onMinus={() => handleValueChangeByButton(Math.max(minValue, (value || minValue) - 1))}
-          onPlus={() => handleValueChangeByButton(Math.min(maxValue, (value || 0) + 1))}
+          onMinus={() =>
+            handleValueChangeByButton(Math.max(minValue ?? 0, ((value || minValue) ?? 0) - 1))
+          }
+          onPlus={() => handleValueChangeByButton(Math.min(maxValue ?? Infinity, (value || 0) + 1))}
           onChange={handleValueChange}
           min={minValue}
           max={maxValue}
@@ -59,9 +61,11 @@ const ModelCatalogNumberFilter = <K extends ModelCatalogNumberFilterKey>({
           plusBtnAriaLabel={`Increase ${title} value`}
           widthChars={10}
         />
-        <div className="pf-v6-u-font-size-sm pf-v6-u-color-200 pf-v6-u-mt-xs">
-          Range: {filters.range.min} - {filters.range.max}
-        </div>
+        {filters.range && minValue !== undefined && maxValue !== undefined && (
+          <div className="pf-v6-u-font-size-sm pf-v6-u-color-200 pf-v6-u-mt-xs">
+            Range: {minValue} - {maxValue}
+          </div>
+        )}
       </FormGroup>
     </Content>
   );
