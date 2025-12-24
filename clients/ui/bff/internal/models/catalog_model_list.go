@@ -40,8 +40,14 @@ type FilterOption struct {
 	Values []interface{}    `json:"values,omitempty"`
 }
 
+type FieldFilter struct {
+	Operator string      `json:"operator"`
+	Value    interface{} `json:"value"`
+}
+
 type FilterOptionType string
 
 type FilterOptionsList struct {
-	Filters *map[string]FilterOption `json:"filters,omitempty"`
+	Filters      *map[string]FilterOption           `json:"filters,omitempty"`
+	NamedQueries *map[string]map[string]FieldFilter `json:"namedQueries,omitempty"`
 }
