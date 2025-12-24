@@ -8,23 +8,6 @@ import {
 } from '~/app/modelCatalogTypes';
 import { useModelCatalogAPI } from './useModelCatalogAPI';
 
-export type PerformanceArtifactsFetchParams = {
-  /** The target RPS value for the recommendation algorithm */
-  targetRPS?: number;
-  /** The latency field name (e.g., 'ttft_p90') for the recommendation algorithm */
-  latencyProperty?: string;
-  /** Whether to use the recommendation algorithm (default: true) */
-  recommendations?: boolean;
-  /** Page size for pagination */
-  pageSize?: string;
-  /** Field to order results by */
-  orderBy?: string;
-  /** Sort order: 'asc' or 'desc' */
-  sortOrder?: string;
-  /** Token for fetching next page */
-  nextPageToken?: string;
-};
-
 /**
  * Hook for fetching performance artifacts from the /performance_artifacts endpoint.
  * This endpoint returns only performance artifacts and supports server-side filtering,
@@ -40,7 +23,7 @@ export type PerformanceArtifactsFetchParams = {
 export const useCatalogPerformanceArtifacts = (
   sourceId: string,
   modelName: string,
-  params?: PerformanceArtifactsFetchParams,
+  params?: PerformanceArtifactsParams,
   filterData?: ModelCatalogFilterStates,
   filterOptions?: CatalogFilterOptionsList | null,
   enabled = true,
@@ -50,8 +33,12 @@ export const useCatalogPerformanceArtifacts = (
   const performanceParams: PerformanceArtifactsParams | undefined = React.useMemo(
     () => ({
       targetRPS: params?.targetRPS,
-      latencyProperty: params?.latencyProperty,
       recommendations: params?.recommendations ?? true,
+      rpsProperty: params?.rpsProperty,
+      latencyProperty: params?.latencyProperty,
+      hardwareCountProperty: params?.hardwareCountProperty,
+      hardwareTypeProperty: params?.hardwareTypeProperty,
+      filterQuery: params?.filterQuery,
       pageSize: params?.pageSize,
       orderBy: params?.orderBy,
       sortOrder: params?.sortOrder,
@@ -59,8 +46,12 @@ export const useCatalogPerformanceArtifacts = (
     }),
     [
       params?.targetRPS,
-      params?.latencyProperty,
       params?.recommendations,
+      params?.rpsProperty,
+      params?.latencyProperty,
+      params?.hardwareCountProperty,
+      params?.hardwareTypeProperty,
+      params?.filterQuery,
       params?.pageSize,
       params?.orderBy,
       params?.sortOrder,
