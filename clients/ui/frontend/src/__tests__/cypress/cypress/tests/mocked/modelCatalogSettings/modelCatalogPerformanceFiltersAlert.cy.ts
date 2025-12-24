@@ -99,6 +99,18 @@ const initIntercepts = ({
   );
 
   cy.interceptApi(
+    `GET /api/:apiVersion/model_catalog/sources/:sourceId/performance_artifacts/:modelName`,
+    {
+      path: {
+        apiVersion: MODEL_CATALOG_API_VERSION,
+        sourceId: 'source-2',
+        modelName: testModel.name.replace('/', '%2F'),
+      },
+    },
+    testArtifacts,
+  );
+
+  cy.interceptApi(
     `GET /api/:apiVersion/model_catalog/models/filter_options`,
     {
       path: { apiVersion: MODEL_CATALOG_API_VERSION },

@@ -169,6 +169,11 @@ declare global {
           response: ApiResponse<CatalogArtifactList>,
         ) => Cypress.Chainable<null>) &
         ((
+          type: 'GET /api/:apiVersion/model_catalog/sources/:sourceId/performance_artifacts/:modelName',
+          options: { path: { apiVersion: string; sourceId: string; modelName: string } },
+          response: ApiResponse<CatalogArtifactList>,
+        ) => Cypress.Chainable<null>) &
+        ((
           type: 'GET /api/:apiVersion/model_catalog/models/filter_options',
           options: { path: { apiVersion: string }; query: { namespace: string } },
           response: ApiResponse<CatalogFilterOptionsList>,
