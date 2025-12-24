@@ -903,12 +903,6 @@ func performanceMetricsCustomProperties(customProperties map[string]openapi.Meta
 				MetadataType: "MetadataStringValue",
 			},
 		},
-		"totalRPS": {
-			MetadataDoubleValue: &openapi.MetadataDoubleValue{
-				DoubleValue:  30,
-				MetadataType: "MetadataDoubleValue",
-			},
-		},
 		"ttft_mean": {
 			MetadataDoubleValue: &openapi.MetadataDoubleValue{
 				DoubleValue:  35.48818160947744,

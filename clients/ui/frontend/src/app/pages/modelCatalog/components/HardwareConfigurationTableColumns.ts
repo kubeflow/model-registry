@@ -72,7 +72,7 @@ export const hardwareConfigColumns: HardwareConfigColumn[] = [
   },
   {
     field: 'total_requests_per_second',
-    label: `Target${NBSP}RPS`,
+    label: `Total${NBSP}RPS`,
     sortable: (
       a: CatalogPerformanceMetricsArtifact,
       b: CatalogPerformanceMetricsArtifact,
