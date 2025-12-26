@@ -9,7 +9,6 @@ on:
       - "!DOCKERFILE*"
       - "!**.gitignore"
       - "!**.md"
-  
   pull_request:
     paths:
       - "clients/ui/**"
@@ -18,37 +17,29 @@ on:
       - "!DOCKERFILE*"
       - "!**.gitignore"
       - "!**.md"
-
 permissions: # set contents: read at top-level, per OpenSSF ScoreCard rule TokenPermissionsID
   contents: read
-
 jobs:
   test-and-build:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6.0.1
-
       - name: Set up Node.js
         uses: actions/setup-node@v6
         with:
           node-version: "20"
-
       - name: Install dependencies
         working-directory: clients/ui/frontend
         run: npm install
-
       - name: Run tests
         working-directory: clients/ui/frontend
         run: npm run test
-
       - name: Clean
         working-directory: clients/ui/frontend
         run: npm run build:clean
-
       - name: Build
         working-directory: clients/ui/frontend
         run: npm run build
-
       - name: Check if there are uncommitted file changes
         working-directory: clients/ui/frontend
         run: |

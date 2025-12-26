@@ -1,7 +1,7 @@
 # Kubeflow Contributor Guide
 
-Welcome to the Kubeflow Model Registry project! We'd love to accept your patches and 
-contributions to this project. Please read the 
+Welcome to the Kubeflow Model Registry project! We'd love to accept your patches and
+contributions to this project. Please read the
 [contributor's guide in our docs](https://www.kubeflow.org/docs/about/contributing/).
 
 The contributor's guide:
@@ -30,7 +30,7 @@ The content from this guide might also be applicable in part for general ARM-bas
 ## Consider installing coreutils
 
 While we strived to keep the repository scripts cross-compatible with GNU and BSD utilities, you might want to consider installing the `coreutils` from Homebrew, [following these instructions](https://formulae.brew.sh/formula/coreutils).
-You will need to ensure the gnubin directory is added to your shell path. 
+You will need to ensure the gnubin directory is added to your shell path.
 
 ## Makefile
 

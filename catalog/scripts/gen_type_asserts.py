@@ -2,6 +2,7 @@ import typing as t
 from pathlib import Path
 from textwrap import dedent
 
+
 def get_funcs(models: t.Iterable[Path]) -> t.Iterator[str]:
     for path in models:
         with path.open() as f:

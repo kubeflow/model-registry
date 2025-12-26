@@ -14,4 +14,4 @@ CREATE TABLE IF NOT EXISTS "Execution" (
 
 CREATE INDEX idx_execution_create_time_since_epoch ON "Execution" (create_time_since_epoch);
 CREATE INDEX idx_execution_last_update_time_since_epoch ON "Execution" (last_update_time_since_epoch);
-CREATE INDEX idx_execution_external_id ON "Execution" (external_id); 
+CREATE INDEX idx_execution_external_id ON "Execution" (external_id);

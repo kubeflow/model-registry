@@ -13,6 +13,6 @@ spec:
     app.kubernetes.io/component: database
   type: ClusterIP
   ports:
-  - port: 5432
-    protocol: TCP
-    name: postgres
+    - port: 5432
+      protocol: TCP
+      name: postgres

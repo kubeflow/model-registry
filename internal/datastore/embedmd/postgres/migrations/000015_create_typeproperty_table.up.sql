@@ -4,4 +4,4 @@ CREATE TABLE IF NOT EXISTS "TypeProperty" (
     name VARCHAR(255) NOT NULL,
     data_type INTEGER DEFAULT NULL,
     PRIMARY KEY (type_id, name)
-); 
+);

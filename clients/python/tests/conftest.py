@@ -105,8 +105,12 @@ def verify_ssl() -> bool:
 def poll_for_ready(user_token, verify_ssl):
     params = {
         "url": REGISTRY_URL,
-        "headers": {"Authorization": f"Bearer {user_token}", } if user_token else None,
-        "verify": verify_ssl
+        "headers": {
+            "Authorization": f"Bearer {user_token}",
+        }
+        if user_token
+        else None,
+        "verify": verify_ssl,
     }
     while True:
         elapsed_time = time.time() - start_time
@@ -323,18 +327,14 @@ def get_mock_custom_oci_backend():
         blobs_sha256_dir.joinpath("unused-blob").write_text("{}")
 
     pull_mock.side_effect = pull_mock_imple
-    return BackendDefinition(
-        is_available=is_available_mock, pull=pull_mock, push=push_mock
-    )
+    return BackendDefinition(is_available=is_available_mock, pull=pull_mock, push=push_mock)
 
 
 @pytest.fixture
 def get_mock_skopeo_backend_for_auth(monkeypatch):
     user_auth = b"myuser:passwordhere"
     upc_encoded = base64.b64encode(user_auth)
-    auth_data = {
-        "auths": {"localhost:5001": {"auth": upc_encoded.decode(), "email": ""}}
-    }
+    auth_data = {"auths": {"localhost:5001": {"auth": upc_encoded.decode(), "email": ""}}}
     auth_json = json.dumps(auth_data)
     monkeypatch.setenv(".dockerconfigjson", auth_json)
     generic_auth_vars = ["--username", "myuser", "--password", "mypasswordhere"]
@@ -344,9 +344,7 @@ def get_mock_skopeo_backend_for_auth(monkeypatch):
         patch("olot.backend.skopeo.skopeo_push") as skopeo_push_mock,
         patch("olot.basics.oci_layers_on_top"),
     ):
-        backend = _get_skopeo_backend(
-            pull_args=generic_auth_vars, push_args=generic_auth_vars
-        )
+        backend = _get_skopeo_backend(pull_args=generic_auth_vars, push_args=generic_auth_vars)
 
         def mock_override(base_image, dest_dir, params):
             return params

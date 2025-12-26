@@ -362,14 +362,14 @@ Granite-3.1-8B-Instruct is a 8B parameter long-context instruct model finetuned 
 - **Developers:** Granite Team, provider1
 - **GitHub Repository:** [provider1-granite/granite-3.1-language-models](https://github.com/provider1-granite/granite-3.1-language-models)
 - **Website**: [Granite Docs](https://www.provider1.com/granite/docs/)
-- **Paper:** [Granite 3.1 Language Models (coming soon)](https://huggingface.co/collections/provider1-granite/granite-31-language-models-6751dbbf2f3389bec5c6f02d) 
+- **Paper:** [Granite 3.1 Language Models (coming soon)](https://huggingface.co/collections/provider1-granite/granite-31-language-models-6751dbbf2f3389bec5c6f02d)
 - **Release Date**: December 18th, 2024
 - **License:** [Apache 2.0](https://www.apache.org/licenses/LICENSE-2.0)
 
-**Supported Languages:** 
+**Supported Languages:**
 English, German, Spanish, French, Japanese, Portuguese, Arabic, Czech, Italian, Korean, Dutch, and Chinese. Users may finetune Granite 3.1 models for languages beyond these 12 languages.
 
-**Intended Use:** 
+**Intended Use:**
 The model is designed to respond to general instructions and can be used to build AI assistants for multiple domains, including business applications.
 
 *Capabilities*
@@ -383,7 +383,7 @@ The model is designed to respond to general instructions and can be used to buil
 * Multilingual dialog use cases
 * Long-context tasks including long document/meeting summarization, long document QA, etc.
 
-**Generation:** 
+**Generation:**
 This is a simple example of how to use Granite-3.1-8B-Instruct model.
 
 Install the following libraries:
@@ -413,7 +413,7 @@ chat = tokenizer.apply_chat_template(chat, tokenize=False, add_generation_prompt
 # tokenize the text
 input_tokens = tokenizer(chat, return_tensors="pt").to(device)
 # generate output tokens
-output = model.generate(**input_tokens, 
+output = model.generate(**input_tokens,
                         max_new_tokens=100)
 # decode output tokens into text
 output = tokenizer.batch_decode(output)
@@ -654,13 +654,13 @@ Granite-3.1-8B-Instruct is based on a decoder-only dense transformer architectur
   </tr>
 </tbody></table>
 
-**Training Data:** 
+**Training Data:**
 Overall, our SFT data is largely comprised of three key sources: (1) publicly available datasets with permissive license, (2) internal synthetic data targeting specific capabilities including long-context tasks, and (3) very small amounts of human-curated data. A detailed attribution of datasets can be found in the [Granite 3.0 Technical Report](https://github.com/provider1-granite/granite-3.0-language-models/blob/main/paper.pdf), [Granite 3.1 Technical Report (coming soon)](https://huggingface.co/collections/provider1-granite/granite-31-language-models-6751dbbf2f3389bec5c6f02d), and [Accompanying Author List](https://github.com/provider1-granite/granite-3.0-language-models/blob/main/author-ack.pdf).
 
 **Infrastructure:**
 We train Granite 3.1 Language Models using provider1's super computing cluster, Blue Vela, which is outfitted with NVIDIA H100 GPUs. This cluster provides a scalable and efficient infrastructure for training our models over thousands of GPUs.
 
-**Ethical Considerations and Limitations:** 
+**Ethical Considerations and Limitations:**
 Granite 3.1 Instruct Models are primarily finetuned using instruction-response pairs mostly in English, but also multilingual data covering eleven languages. Although this model can handle multilingual dialog use cases, its performance might not be similar to English tasks. In such case, introducing a small number of examples (few-shot) can help the model in generating more accurate outputs. While this model has been aligned by keeping safety in consideration, the model may in some cases produce inaccurate, biased, or unsafe responses to user prompts. So we urge the community to use this model with proper safety testing and tuning tailored for their specific tasks.
 
 **Resources**

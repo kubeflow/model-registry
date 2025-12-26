@@ -142,4 +142,3 @@ Please notice the OpenAPI spec in the Reference section is automatically updated
 See at the beginning "Prerequisites", to facilitate the next round, now it's the best time:
 - bump already MR py client to the next version, example PR
 https://github.com/kubeflow/model-registry/pull/871
-

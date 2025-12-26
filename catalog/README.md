@@ -324,13 +324,13 @@ catalogs:
       - "meta-llama/Llama-3.1-8B-Instruct"
       - "ibm-granite/granite-4.0-h-small"
       - "microsoft/phi-2"
-    
+
     # Optional: Exclude specific models or patterns
     # Supports exact matches or patterns ending with "*"
     excludedModels:
       - "some-org/unwanted-model"
       - "another-org/test-*"  # Excludes all models starting with "test-"
-    
+
     # Optional: Configure a custom environment variable name for the API key
     # Defaults to "HF_API_KEY" if not specified
     properties:

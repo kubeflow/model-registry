@@ -12,7 +12,7 @@ KUBECTL=${KUBECTL:-"kubectl"}
 CLUSTER=${CLUSTER:-"kind"}
 
 # You can provide a local version of the model registry storage initializer
-# In that case, assure that is visible to the local k8s env, e.g., using 
+# In that case, assure that is visible to the local k8s env, e.g., using
 # `kind load docker-image $MRCSI_IMG`
 MRCSI_IMG=${MRCSI_IMG:-"ghcr.io/kubeflow/model-registry/storage-initializer:main"}
 

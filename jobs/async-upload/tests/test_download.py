@@ -11,11 +11,7 @@ from job.config import get_config
 from job.mr_client import validate_and_get_model_registry_client
 from job.models import S3StorageConfig
 
-DUMMY_FILE_DATA = {
-    "file1.txt": b"test file 1",
-    "dir/file2.txt": b"abc",
-    "file3.log": b"123"
-}
+DUMMY_FILE_DATA = {"file1.txt": b"test file 1", "dir/file2.txt": b"abc", "file3.log": b"123"}
 
 
 @pytest.fixture
@@ -134,9 +130,7 @@ def test_download_from_s3(minimal_update_artifact_env_source_dest_vars):
         client = validate_and_get_model_registry_client(config.registry)
 
     # now patch _connect_to_s3 and os.makedirs
-    with patch("job.download._connect_to_s3") as mock_connect, \
-         patch("os.makedirs") as mock_makedirs:
-
+    with patch("job.download._connect_to_s3") as mock_connect, patch("os.makedirs") as mock_makedirs:
         # prepare our fake s3 client + transfer config
         mock_s3 = Mock()
         mock_transfer_cfg = Mock()
@@ -146,7 +140,7 @@ def test_download_from_s3(minimal_update_artifact_env_source_dest_vars):
         fake_page = {
             "Contents": [
                 {"Key": "test-key/file1.txt"},
-                {"Key": "test-key/dir/"},                # should be skipped
+                {"Key": "test-key/dir/"},  # should be skipped
                 {"Key": "test-key/dir/file2.bin"},
             ]
         }
@@ -191,14 +185,8 @@ def test_download_from_s3(minimal_update_artifact_env_source_dest_vars):
         mock_s3.download_file.assert_has_calls(expected, any_order=False)
 
         # directories should be created for each file
-        mock_makedirs.assert_any_call(
-            os.path.dirname(os.path.join(storage_path, "file1.txt")),
-            exist_ok=True
-        )
-        mock_makedirs.assert_any_call(
-            os.path.dirname(os.path.join(storage_path, "dir", "file2.bin")),
-            exist_ok=True
-        )
+        mock_makedirs.assert_any_call(os.path.dirname(os.path.join(storage_path, "file1.txt")), exist_ok=True)
+        mock_makedirs.assert_any_call(os.path.dirname(os.path.join(storage_path, "dir", "file2.bin")), exist_ok=True)
 
 
 def test_download_from_s3_with_region(minimal_update_artifact_env_source_dest_vars):
@@ -216,8 +204,7 @@ def test_download_from_s3_with_region(minimal_update_artifact_env_source_dest_va
         client = validate_and_get_model_registry_client(config.registry)
 
     # Mock the S3 client and _connect_to_s3 function
-    with patch("job.download._connect_to_s3") as mock_connect, \
-         patch("os.makedirs"):  # silence dir creation
+    with patch("job.download._connect_to_s3") as mock_connect, patch("os.makedirs"):  # silence dir creation
         mock_s3_client = Mock()
         mock_transfer_config = Mock()
         mock_connect.return_value = (mock_s3_client, mock_transfer_config)
@@ -226,7 +213,7 @@ def test_download_from_s3_with_region(minimal_update_artifact_env_source_dest_va
         fake_page = {
             "Contents": [
                 {"Key": "test-key/file1.txt"},
-                {"Key": "test-key/dir/"},                # should be skipped
+                {"Key": "test-key/dir/"},  # should be skipped
                 {"Key": "test-key/dir/file2.bin"},
             ]
         }
@@ -281,8 +268,7 @@ def test_download_from_s3_download_error(minimal_update_artifact_env_source_dest
         client = validate_and_get_model_registry_client(config.registry)
 
     # Mock the S3 client, paginator, and _connect_to_s3 function
-    with patch("job.download._connect_to_s3") as mock_connect, \
-         patch("os.makedirs"):  # silence dir creation
+    with patch("job.download._connect_to_s3") as mock_connect, patch("os.makedirs"):  # silence dir creation
         mock_s3_client = Mock()
         mock_transfer_config = Mock()
         mock_connect.return_value = (mock_s3_client, mock_transfer_config)

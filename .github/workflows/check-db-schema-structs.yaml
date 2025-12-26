@@ -6,10 +6,8 @@ on:
       - 'main'
     tags:
       - 'v*'
-
 permissions: # set contents: read at top-level, per OpenSSF ScoreCard rule TokenPermissionsID
   contents: read
-
 jobs:
   check-mysql-schema-structs:
     runs-on: ubuntu-latest

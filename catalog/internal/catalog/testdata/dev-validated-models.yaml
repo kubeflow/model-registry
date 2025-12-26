@@ -177,7 +177,6 @@ models:
           deployment_type:
             string_value: "production"
             metadataType: MetadataStringValue
-
       - artifactType: metrics-artifact
         metricsType: performance-metrics
         createTimeSinceEpoch: "1736899200000"
@@ -264,7 +263,6 @@ models:
           deployment_type:
             string_value: "production"
             metadataType: MetadataStringValue
-
       - artifactType: metrics-artifact
         metricsType: performance-metrics
         createTimeSinceEpoch: "1736899200000"
@@ -351,7 +349,6 @@ models:
           deployment_type:
             string_value: "production"
             metadataType: MetadataStringValue
-
       - artifactType: metrics-artifact
         metricsType: accuracy-metrics
         createTimeSinceEpoch: "1736899200000"
@@ -372,7 +369,6 @@ models:
           hardware_count:
             int_value: "2"
             metadataType: MetadataIntValue
-
       - artifactType: metrics-artifact
         metricsType: accuracy-metrics
         createTimeSinceEpoch: "1736899200000"
@@ -393,7 +389,6 @@ models:
           hardware_count:
             int_value: "2"
             metadataType: MetadataIntValue
-
       - artifactType: metrics-artifact
         metricsType: accuracy-metrics
         createTimeSinceEpoch: "1736899200000"
@@ -414,7 +409,6 @@ models:
           hardware_count:
             int_value: "2"
             metadataType: MetadataIntValue
-
       - artifactType: metrics-artifact
         metricsType: accuracy-metrics
         createTimeSinceEpoch: "1736899200000"
@@ -435,7 +429,6 @@ models:
           hardware_count:
             int_value: "2"
             metadataType: MetadataIntValue
-
       - artifactType: metrics-artifact
         metricsType: accuracy-metrics
         createTimeSinceEpoch: "1736899200000"
@@ -456,7 +449,6 @@ models:
           hardware_count:
             int_value: "2"
             metadataType: MetadataIntValue
-
       - artifactType: metrics-artifact
         metricsType: accuracy-metrics
         createTimeSinceEpoch: "1736899200000"
@@ -477,7 +469,6 @@ models:
           hardware_count:
             int_value: "2"
             metadataType: MetadataIntValue
-
   - name: certified/secure-embeddings-v2
     provider: Validation Authority
     logo: data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIiB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCI+CiAgPGRlZnM+CiAgICA8bGluZWFyR3JhZGllbnQgaWQ9ImdyYWQyIiB4MT0iMCUiIHkxPSIwJSIgeDI9IjEwMCUiIHkyPSIxMDAlIj4KICAgICAgPHN0b3Agb2Zmc2V0PSIwJSIgc3R5bGU9InN0b3AtY29sb3I6IzI3QUU2MDtzdG9wLW9wYWNpdHk6MSIgLz4KICAgICAgPHN0b3Agb2Zmc2V0PSIxMDAlIiBzdHlsZT0ic3RvcC1jb2xvcjojMjI5OTU0O3N0b3Atb3BhY2l0eToxIiAvPgogICAgPC9saW5lYXJHcmFkaWVudD4KICA8L2RlZnM+CiAgPHBhdGggZD0iTSA1MCAxMCBMIDgwIDMwIEwgODAgNzAgTCA1MCA5MCBMIDIwIDcwIEwgMjAgMzAgWiIgZmlsbD0idXJsKCNncmFkMikiIHN0cm9rZT0iIzFFODQ0OSIgc3Ryb2tlLXdpZHRoPSIyIi8+CiAgPHBhdGggZD0iTSAzNSA1MCBMIDQ1IDYwIEwgNjUgMzUiIHN0cm9rZT0id2hpdGUiIHN0cm9rZS13aWR0aD0iNiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIiBmaWxsPSJub25lIi8+Cjwvc3ZnPgo=
@@ -664,7 +655,6 @@ models:
           deployment_type:
             string_value: "production"
             metadataType: MetadataStringValue
-
       - artifactType: metrics-artifact
         metricsType: performance-metrics
         createTimeSinceEpoch: "1726790400000"
@@ -751,7 +741,6 @@ models:
           deployment_type:
             string_value: "production"
             metadataType: MetadataStringValue
-
       - artifactType: metrics-artifact
         metricsType: accuracy-metrics
         createTimeSinceEpoch: "1726790400000"
@@ -772,7 +761,6 @@ models:
           hardware_count:
             int_value: "1"
             metadataType: MetadataIntValue
-
       - artifactType: metrics-artifact
         metricsType: accuracy-metrics
         createTimeSinceEpoch: "1726790400000"
@@ -793,7 +781,6 @@ models:
           hardware_count:
             int_value: "1"
             metadataType: MetadataIntValue
-
       - artifactType: metrics-artifact
         metricsType: accuracy-metrics
         createTimeSinceEpoch: "1726790400000"
@@ -814,7 +801,6 @@ models:
           hardware_count:
             int_value: "1"
             metadataType: MetadataIntValue
-
       - artifactType: metrics-artifact
         metricsType: accuracy-metrics
         createTimeSinceEpoch: "1726790400000"
@@ -835,7 +821,6 @@ models:
           hardware_count:
             int_value: "1"
             metadataType: MetadataIntValue
-
       - artifactType: metrics-artifact
         metricsType: accuracy-metrics
         createTimeSinceEpoch: "1726790400000"
@@ -856,7 +841,6 @@ models:
           hardware_count:
             int_value: "1"
             metadataType: MetadataIntValue
-
   - name: certified/analytics-forecaster-5b
     provider: Validation Authority
     logo: data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIiB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCI+CiAgPGRlZnM+CiAgICA8bGluZWFyR3JhZGllbnQgaWQ9ImdyYWQyIiB4MT0iMCUiIHkxPSIwJSIgeDI9IjEwMCUiIHkyPSIxMDAlIj4KICAgICAgPHN0b3Agb2Zmc2V0PSIwJSIgc3R5bGU9InN0b3AtY29sb3I6IzI3QUU2MDtzdG9wLW9wYWNpdHk6MSIgLz4KICAgICAgPHN0b3Agb2Zmc2V0PSIxMDAlIiBzdHlsZT0ic3RvcC1jb2xvcjojMjI5OTU0O3N0b3Atb3BhY2l0eToxIiAvPgogICAgPC9saW5lYXJHcmFkaWVudD4KICA8L2RlZnM+CiAgPHBhdGggZD0iTSA1MCAxMCBMIDgwIDMwIEwgODAgNzAgTCA1MCA5MCBMIDIwIDcwIEwgMjAgMzAgWiIgZmlsbD0idXJsKCNncmFkMikiIHN0cm9rZT0iIzFFODQ0OSIgc3Ryb2tlLXdpZHRoPSIyIi8+CiAgPHBhdGggZD0iTSAzNSA1MCBMIDQ1IDYwIEwgNjUgMzUiIHN0cm9rZT0id2hpdGUiIHN0cm9rZS13aWR0aD0iNiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIiBmaWxsPSJub25lIi8+Cjwvc3ZnPgo=
@@ -1040,7 +1024,6 @@ models:
           deployment_type:
             string_value: "production"
             metadataType: MetadataStringValue
-
       - artifactType: metrics-artifact
         metricsType: performance-metrics
         createTimeSinceEpoch: "1720656000000"
@@ -1127,7 +1110,6 @@ models:
           deployment_type:
             string_value: "production"
             metadataType: MetadataStringValue
-
       - artifactType: metrics-artifact
         metricsType: accuracy-metrics
         createTimeSinceEpoch: "1720656000000"
@@ -1148,7 +1130,6 @@ models:
           hardware_count:
             int_value: "2"
             metadataType: MetadataIntValue
-
       - artifactType: metrics-artifact
         metricsType: accuracy-metrics
         createTimeSinceEpoch: "1720656000000"
@@ -1169,7 +1150,6 @@ models:
           hardware_count:
             int_value: "2"
             metadataType: MetadataIntValue
-
       - artifactType: metrics-artifact
         metricsType: accuracy-metrics
         createTimeSinceEpoch: "1720656000000"
@@ -1190,7 +1170,6 @@ models:
           hardware_count:
             int_value: "2"
             metadataType: MetadataIntValue
-
       - artifactType: metrics-artifact
         metricsType: accuracy-metrics
         createTimeSinceEpoch: "1720656000000"
@@ -1211,7 +1190,6 @@ models:
           hardware_count:
             int_value: "2"
             metadataType: MetadataIntValue
-
       - artifactType: metrics-artifact
         metricsType: accuracy-metrics
         createTimeSinceEpoch: "1720656000000"
@@ -1232,7 +1210,6 @@ models:
           hardware_count:
             int_value: "2"
             metadataType: MetadataIntValue
-
   - name: certified/compliance-assistant-3b
     provider: Validation Authority
     logo: data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIiB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCI+CiAgPGRlZnM+CiAgICA8bGluZWFyR3JhZGllbnQgaWQ9ImdyYWQyIiB4MT0iMCUiIHkxPSIwJSIgeDI9IjEwMCUiIHkyPSIxMDAlIj4KICAgICAgPHN0b3Agb2Zmc2V0PSIwJSIgc3R5bGU9InN0b3AtY29sb3I6IzI3QUU2MDtzdG9wLW9wYWNpdHk6MSIgLz4KICAgICAgPHN0b3Agb2Zmc2V0PSIxMDAlIiBzdHlsZT0ic3RvcC1jb2xvcjojMjI5OTU0O3N0b3Atb3BhY2l0eToxIiAvPgogICAgPC9saW5lYXJHcmFkaWVudD4KICA8L2RlZnM+CiAgPHBhdGggZD0iTSA1MCAxMCBMIDgwIDMwIEwgODAgNzAgTCA1MCA5MCBMIDIwIDcwIEwgMjAgMzAgWiIgZmlsbD0idXJsKCNncmFkMikiIHN0cm9rZT0iIzFFODQ0OSIgc3Ryb2tlLXdpZHRoPSIyIi8+CiAgPHBhdGggZD0iTSAzNSA1MCBMIDQ1IDYwIEwgNjUgMzUiIHN0cm9rZT0id2hpdGUiIHN0cm9rZS13aWR0aD0iNiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIiBmaWxsPSJub25lIi8+Cjwvc3ZnPgo=
@@ -1420,7 +1397,6 @@ models:
           deployment_type:
             string_value: "production"
             metadataType: MetadataStringValue
-
       - artifactType: metrics-artifact
         metricsType: performance-metrics
         createTimeSinceEpoch: "1724889600000"
@@ -1507,7 +1483,6 @@ models:
           deployment_type:
             string_value: "production"
             metadataType: MetadataStringValue
-
       - artifactType: metrics-artifact
         metricsType: accuracy-metrics
         createTimeSinceEpoch: "1724889600000"
@@ -1528,7 +1503,6 @@ models:
           hardware_count:
             int_value: "1"
             metadataType: MetadataIntValue
-
       - artifactType: metrics-artifact
         metricsType: accuracy-metrics
         createTimeSinceEpoch: "1724889600000"
@@ -1549,7 +1523,6 @@ models:
           hardware_count:
             int_value: "1"
             metadataType: MetadataIntValue
-
       - artifactType: metrics-artifact
         metricsType: accuracy-metrics
         createTimeSinceEpoch: "1724889600000"
@@ -1570,7 +1543,6 @@ models:
           hardware_count:
             int_value: "1"
             metadataType: MetadataIntValue
-
       - artifactType: metrics-artifact
         metricsType: accuracy-metrics
         createTimeSinceEpoch: "1724889600000"
@@ -1591,7 +1563,6 @@ models:
           hardware_count:
             int_value: "1"
             metadataType: MetadataIntValue
-
       - artifactType: metrics-artifact
         metricsType: accuracy-metrics
         createTimeSinceEpoch: "1724889600000"
@@ -1612,7 +1583,6 @@ models:
           hardware_count:
             int_value: "1"
             metadataType: MetadataIntValue
-
       - artifactType: metrics-artifact
         metricsType: accuracy-metrics
         createTimeSinceEpoch: "1724889600000"
@@ -1633,7 +1603,3 @@ models:
           hardware_count:
             int_value: "1"
             metadataType: MetadataIntValue
-
-
-
-

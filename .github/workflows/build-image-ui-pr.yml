@@ -10,10 +10,8 @@ on:
       - "!**.gitignore"
       - "!**.md"
       - "!**.txt"
-
 permissions: # set contents: read at top-level, per OpenSSF ScoreCard rule TokenPermissionsID
   contents: read
-
 env:
   IMG_ORG: kubeflow
   IMG_REPO: model-registry/ui

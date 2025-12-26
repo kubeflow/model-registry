@@ -14,4 +14,4 @@ CREATE TABLE IF NOT EXISTS "ContextProperty" (
 
 CREATE INDEX idx_context_property_int ON "ContextProperty" (name, is_custom_property, int_value);
 CREATE INDEX idx_context_property_double ON "ContextProperty" (name, is_custom_property, double_value);
-CREATE INDEX idx_context_property_string ON "ContextProperty" (name, is_custom_property, string_value); 
+CREATE INDEX idx_context_property_string ON "ContextProperty" (name, is_custom_property, string_value);

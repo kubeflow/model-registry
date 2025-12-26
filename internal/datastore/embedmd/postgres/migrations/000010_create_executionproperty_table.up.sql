@@ -14,4 +14,4 @@ CREATE TABLE IF NOT EXISTS "ExecutionProperty" (
 
 CREATE INDEX idx_execution_property_int ON "ExecutionProperty" (name, is_custom_property, int_value);
 CREATE INDEX idx_execution_property_double ON "ExecutionProperty" (name, is_custom_property, double_value);
-CREATE INDEX idx_execution_property_string ON "ExecutionProperty" (name, is_custom_property, string_value); 
+CREATE INDEX idx_execution_property_string ON "ExecutionProperty" (name, is_custom_property, string_value);

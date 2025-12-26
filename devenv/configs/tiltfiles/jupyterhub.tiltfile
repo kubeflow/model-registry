@@ -55,4 +55,3 @@ local_resource(
     readiness_probe=probe(exec=exec_action(command=["/bin/bash", "-c", "kubectl get pod -n kubeflow -l app=jupyterhub,component=singleuser-server,hub.jupyter.org/username=mr -o jsonpath={.items[0].status.phase} | grep -q '^Running$' && exit 0 || exit 1"]), initial_delay_secs=5, timeout_secs=60),
     links=[link("http://localhost:8086/user/mr/lab", "Open JupyterLab")]
 )
-

@@ -15,4 +15,3 @@ echo "Waiting for Deployment..."
 kubectl wait --for=condition=available deployment/distribution-registry-test-deployment -n $OCI_REGISTRY_NAMESPACE --timeout=5m
 kubectl logs deployment/distribution-registry-test-deployment -n $OCI_REGISTRY_NAMESPACE
 echo "Deployment looks ready."
-

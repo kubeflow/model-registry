@@ -7,14 +7,14 @@ metadata:
   name: model-registry
 spec:
   ports:
-  - appProtocol: http
-    name: http-api
-    port: 8080
-    protocol: TCP
-  - appProtocol: grpc
-    name: grpc-api
-    port: 9090
-    protocol: TCP
+    - appProtocol: http
+      name: http-api
+      port: 8080
+      protocol: TCP
+    - appProtocol: grpc
+      name: grpc-api
+      port: 9090
+      protocol: TCP
   selector:
     component: model-registry-server
   type: ClusterIP

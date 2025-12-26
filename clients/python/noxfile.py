@@ -136,6 +136,8 @@ def fuzz_tests(session: Session) -> None:
         "-v",
         "--hypothesis-show-statistics",
     )
+
+
 @session(python=python_versions[0])
 def coverage(session: Session) -> None:
     """Produce the coverage report."""

@@ -17,7 +17,7 @@ spec:
     component: model-registry-server
   type: ClusterIP
   ports:
-  - port: 8080
-    protocol: TCP
-    appProtocol: http
-    name: http-api
+    - port: 8080
+      protocol: TCP
+      appProtocol: http
+      name: http-api

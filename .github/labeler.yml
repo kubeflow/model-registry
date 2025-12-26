@@ -1,43 +1,35 @@
 "Area/UI":
-- changed-files:
-  - any-glob-to-any-file: "clients/ui/**"
-
+  - changed-files:
+      - any-glob-to-any-file: "clients/ui/**"
 "Area/MR Python client":
-- changed-files:
-  - any-glob-to-any-file: "clients/python/**"
-
+  - changed-files:
+      - any-glob-to-any-file: "clients/python/**"
 "Area/Go REST server":
-- changed-files:
-  - any-glob-to-any-file:
-    - "api/**"
-    - "cmd/**"
-    - "internal/**"
-    - "patches/**"
-    - "pkg/**"
-    - "templates/go-server/**"
-
+  - changed-files:
+      - any-glob-to-any-file:
+          - "api/**"
+          - "cmd/**"
+          - "internal/**"
+          - "patches/**"
+          - "pkg/**"
+          - "templates/go-server/**"
 "Area/CSI":
-- changed-files:
-  - any-glob-to-any-file: "csi/**"
-
+  - changed-files:
+      - any-glob-to-any-file: "csi/**"
 "Area/Jobs/Async-upload":
-- changed-files:
-  - any-glob-to-any-file: "jobs/async-upload/**"
-
+  - changed-files:
+      - any-glob-to-any-file: "jobs/async-upload/**"
 "Area/Model Catalog":
-- changed-files:
-  - any-glob-to-any-file:
-    - "catalog/**"
-    - "manifests/kustomize/options/catalog/**"
-
+  - changed-files:
+      - any-glob-to-any-file:
+          - "catalog/**"
+          - "manifests/kustomize/options/catalog/**"
 "Area/Manifests":
-- changed-files:
-  - any-glob-to-any-file: "manifests/**"
-
+  - changed-files:
+      - any-glob-to-any-file: "manifests/**"
 "Area/Documentation":
-- changed-files:
-  - any-glob-to-any-file: "docs/**"
-
+  - changed-files:
+      - any-glob-to-any-file: "docs/**"
 "Area/GitHub":
-- changed-files:
-  - any-glob-to-any-file: ".github/**"
+  - changed-files:
+      - any-glob-to-any-file: ".github/**"

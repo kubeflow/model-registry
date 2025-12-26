@@ -31,31 +31,31 @@ spec:
             - proxy
           image: ghcr.io/kubeflow/model-registry/server:latest
           env:
-          - name: DBCONFIG_USER
-            valueFrom:
-              secretKeyRef:
-                name: mysql-secret
-                key: username
-          - name: DBCONFIG_PASSWORD
-            valueFrom:
-              secretKeyRef:
-                name: mysql-secret
-                key: password
-          - name: MYSQL_DATABASE
-            valueFrom:
-              configMapKeyRef:
-                name: pipeline-install-config
-                key: embedmdDb
-          - name: MYSQL_HOST
-            valueFrom:
-              configMapKeyRef:
-                name: pipeline-install-config
-                key: dbHost
-          - name: MYSQL_PORT
-            valueFrom:
-              configMapKeyRef:
-                name: pipeline-install-config
-                key: dbPort
+            - name: DBCONFIG_USER
+              valueFrom:
+                secretKeyRef:
+                  name: mysql-secret
+                  key: username
+            - name: DBCONFIG_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: mysql-secret
+                  key: password
+            - name: MYSQL_DATABASE
+              valueFrom:
+                configMapKeyRef:
+                  name: pipeline-install-config
+                  key: embedmdDb
+            - name: MYSQL_HOST
+              valueFrom:
+                configMapKeyRef:
+                  name: pipeline-install-config
+                  key: dbHost
+            - name: MYSQL_PORT
+              valueFrom:
+                configMapKeyRef:
+                  name: pipeline-install-config
+                  key: dbPort
           ports:
             - name: http-api
               containerPort: 8080

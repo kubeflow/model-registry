@@ -27,12 +27,11 @@ services:
       - PGDATABASE=model_catalog
       - PGUSER=postgres
       - PGPASSWORD=demo
-
   model-registry:
     image: ghcr.io/kubeflow/model-registry/server:latest
     pull_policy: always
     entrypoint: ["/bin/sh"]
-    command: 
+    command:
       - -c
       - |
         if [ "$$DB_TYPE" = "postgres" ]; then
@@ -47,7 +46,6 @@ services:
       - ${DB_TYPE:-mysql}
     environment:
       - DB_TYPE=${DB_TYPE:-mysql}
-
   mysql:
     image: mysql:8.3
     container_name: mysql
@@ -69,7 +67,6 @@ services:
       start_period: 20s
     profiles:
       - mysql
-
   postgres:
     image: postgres:16
     container_name: postgres
@@ -92,11 +89,9 @@ services:
     configs:
       - source: pginit
         target: /docker-entrypoint-initdb.d/pginit.sql
-
 volumes:
   mysql_data:
   postgres_data:
-
 configs:
   pginit:
     content: |

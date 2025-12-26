@@ -46,15 +46,13 @@ async def test_update_registered_model(client: ModelRegistryAPIClient):
 
 @pytest.fixture
 async def registered_model(client: ModelRegistryAPIClient) -> RegisteredModel:
-    return await client.upsert_registered_model(
-        RegisteredModel(name="registered", external_id="mr id")
-    )
+    return await client.upsert_registered_model(RegisteredModel(name="registered", external_id="mr id"))
 
 
 @pytest.mark.e2e
 async def test_get_registered_model_by_id(
-        client: ModelRegistryAPIClient,
-        registered_model: RegisteredModel,
+    client: ModelRegistryAPIClient,
+    registered_model: RegisteredModel,
 ):
     assert (rm := await client.get_registered_model_by_id(str(registered_model.id)))
     assert rm == registered_model
@@ -62,33 +60,25 @@ async def test_get_registered_model_by_id(
 
 @pytest.mark.e2e
 async def test_get_registered_model_by_name(
-        client: ModelRegistryAPIClient,
-        registered_model: RegisteredModel,
+    client: ModelRegistryAPIClient,
+    registered_model: RegisteredModel,
 ):
-    assert (
-        rm := await client.get_registered_model_by_params(name=registered_model.name)
-    )
+    assert (rm := await client.get_registered_model_by_params(name=registered_model.name))
     assert rm == registered_model
 
 
 @pytest.mark.e2e
 async def test_get_registered_model_by_external_id(
-        client: ModelRegistryAPIClient,
-        registered_model: RegisteredModel,
+    client: ModelRegistryAPIClient,
+    registered_model: RegisteredModel,
 ):
     assert registered_model.external_id
-    assert (
-        rm := await client.get_registered_model_by_params(
-            external_id=registered_model.external_id
-        )
-    )
+    assert (rm := await client.get_registered_model_by_params(external_id=registered_model.external_id))
     assert rm == registered_model
 
 
 @pytest.mark.e2e
-async def test_get_registered_models(
-        client: ModelRegistryAPIClient, registered_model: RegisteredModel
-):
+async def test_get_registered_models(client: ModelRegistryAPIClient, registered_model: RegisteredModel):
     rm2 = await client.upsert_registered_model(RegisteredModel(name="rm2"))
 
     rms = await client.get_registered_models()
@@ -109,8 +99,8 @@ async def test_page_through_registered_models(client: ModelRegistryAPIClient):
 
 @pytest.mark.e2e
 async def test_insert_model_version(
-        client: ModelRegistryAPIClient,
-        registered_model: RegisteredModel,
+    client: ModelRegistryAPIClient,
+    registered_model: RegisteredModel,
 ):
     model_version = ModelVersion(name="test version", author="test author")
     mv = await client.upsert_model_version(model_version, str(registered_model.id))
@@ -124,9 +114,7 @@ async def test_insert_model_version(
 
 
 @pytest.mark.e2e
-async def test_update_model_version(
-        client: ModelRegistryAPIClient, registered_model: RegisteredModel
-):
+async def test_update_model_version(client: ModelRegistryAPIClient, registered_model: RegisteredModel):
     model_version = ModelVersion(name="updated mv", author="test author")
     mv = await client.upsert_model_version(model_version, str(registered_model.id))
     last_update = mv.last_update_time_since_epoch
@@ -138,9 +126,7 @@ async def test_update_model_version(
 
 
 @pytest.fixture
-async def model_version(
-        client: ModelRegistryAPIClient, registered_model: RegisteredModel
-) -> ModelVersion:
+async def model_version(client: ModelRegistryAPIClient, registered_model: RegisteredModel) -> ModelVersion:
     return await client.upsert_model_version(
         ModelVersion(name="version", author="author", external_id="mv id"),
         str(registered_model.id),
@@ -148,18 +134,16 @@ async def model_version(
 
 
 @pytest.mark.e2e
-async def test_get_model_version_by_id(
-        client: ModelRegistryAPIClient, model_version: ModelVersion
-):
+async def test_get_model_version_by_id(client: ModelRegistryAPIClient, model_version: ModelVersion):
     assert (mv := await client.get_model_version_by_id(str(model_version.id)))
     assert mv == model_version
 
 
 @pytest.mark.e2e
 async def test_get_model_version_by_name(
-        client: ModelRegistryAPIClient,
-        registered_model: RegisteredModel,
-        model_version: ModelVersion,
+    client: ModelRegistryAPIClient,
+    registered_model: RegisteredModel,
+    model_version: ModelVersion,
 ):
     assert (
         mv := await client.get_model_version_by_params(
@@ -170,43 +154,29 @@ async def test_get_model_version_by_name(
 
 
 @pytest.mark.e2e
-async def test_get_model_version_by_external_id(
-        client: ModelRegistryAPIClient, model_version: ModelVersion
-):
-    assert (
-        mv := await client.get_model_version_by_params(
-            external_id=str(model_version.external_id)
-        )
-    )
+async def test_get_model_version_by_external_id(client: ModelRegistryAPIClient, model_version: ModelVersion):
+    assert (mv := await client.get_model_version_by_params(external_id=str(model_version.external_id)))
     assert mv == model_version
 
 
 @pytest.mark.e2e
 async def test_get_model_versions(
-        client: ModelRegistryAPIClient,
-        registered_model: RegisteredModel,
-        model_version: ModelVersion,
+    client: ModelRegistryAPIClient,
+    registered_model: RegisteredModel,
+    model_version: ModelVersion,
 ):
-    mv2 = await client.upsert_model_version(
-        ModelVersion(name="mv2", author="author"), str(registered_model.id)
-    )
+    mv2 = await client.upsert_model_version(ModelVersion(name="mv2", author="author"), str(registered_model.id))
 
     mvs = await client.get_model_versions(str(registered_model.id))
     assert [model_version, mv2] == mvs
 
 
 @pytest.mark.e2e
-async def test_page_through_model_versions(
-        client: ModelRegistryAPIClient, registered_model: RegisteredModel
-):
+async def test_page_through_model_versions(client: ModelRegistryAPIClient, registered_model: RegisteredModel):
     models = 6
     for i in range(models):
-        await client.upsert_model_version(
-            ModelVersion(name=f"mv{i}"), str(registered_model.id)
-        )
-    pager = Pager(
-        lambda o: client.get_model_versions(str(registered_model.id), o)
-    ).page_size(5)
+        await client.upsert_model_version(ModelVersion(name=f"mv{i}"), str(registered_model.id))
+    pager = Pager(lambda o: client.get_model_versions(str(registered_model.id), o)).page_size(5)
     total = 0
     async for _ in pager:
         total += 1
@@ -214,9 +184,7 @@ async def test_page_through_model_versions(
 
 
 @pytest.mark.e2e
-async def test_insert_model_version_artifact(
-        client: ModelRegistryAPIClient, model_version: ModelVersion
-):
+async def test_insert_model_version_artifact(client: ModelRegistryAPIClient, model_version: ModelVersion):
     model = DocArtifact(
         name="test model",
         uri="test uri",
@@ -231,9 +199,7 @@ async def test_insert_model_version_artifact(
 
 
 @pytest.mark.e2e
-async def test_update_model_version_artifact(
-        client: ModelRegistryAPIClient, model_version: ModelVersion
-):
+async def test_update_model_version_artifact(client: ModelRegistryAPIClient, model_version: ModelVersion):
     model = DocArtifact(name="updated model", uri="uri")
     da = await client.upsert_model_version_artifact(model, str(model_version.id))
     assert da.id
@@ -247,7 +213,7 @@ async def test_update_model_version_artifact(
 
 @pytest.mark.e2e
 async def test_insert_model_artifact(
-        client: ModelRegistryAPIClient,
+    client: ModelRegistryAPIClient,
 ):
     model = ModelArtifact(
         name="test model",
@@ -297,8 +263,8 @@ async def test_update_model_artifact(client: ModelRegistryAPIClient):
 
 @pytest.fixture
 async def model(
-        client: ModelRegistryAPIClient,
-        model_version: ModelVersion,
+    client: ModelRegistryAPIClient,
+    model_version: ModelVersion,
 ) -> ModelArtifact:
     return await client.upsert_model_version_artifact(
         ModelArtifact(name="model", uri="uri", external_id="ma id"),
@@ -307,41 +273,29 @@ async def model(
 
 
 @pytest.mark.e2e
-async def test_get_model_artifact_by_id(
-        client: ModelRegistryAPIClient, model: ModelArtifact
-):
+async def test_get_model_artifact_by_id(client: ModelRegistryAPIClient, model: ModelArtifact):
     assert (ma := await client.get_model_artifact_by_id(str(model.id)))
     assert ma == model
 
 
 @pytest.mark.e2e
 async def test_get_model_artifact_by_name(
-        client: ModelRegistryAPIClient, model_version: ModelVersion, model: ModelArtifact
+    client: ModelRegistryAPIClient, model_version: ModelVersion, model: ModelArtifact
 ):
     assert (
-        ma := await client.get_model_artifact_by_params(
-            name=str(model.name), model_version_id=str(model_version.id)
-        )
+        ma := await client.get_model_artifact_by_params(name=str(model.name), model_version_id=str(model_version.id))
     )
     assert ma == model
 
 
 @pytest.mark.e2e
-async def test_get_model_artifact_by_external_id(
-        client: ModelRegistryAPIClient, model: ModelArtifact
-):
-    assert (
-        ma := await client.get_model_artifact_by_params(
-            external_id=str(model.external_id)
-        )
-    )
+async def test_get_model_artifact_by_external_id(client: ModelRegistryAPIClient, model: ModelArtifact):
+    assert (ma := await client.get_model_artifact_by_params(external_id=str(model.external_id)))
     assert ma == model
 
 
 @pytest.mark.e2e
-async def test_get_all_model_artifacts(
-        client: ModelRegistryAPIClient, model: ModelArtifact
-):
+async def test_get_all_model_artifacts(client: ModelRegistryAPIClient, model: ModelArtifact):
     ma2 = await client.upsert_model_artifact(ModelArtifact(name="ma2", uri="uri"))
 
     mas = await client.get_model_artifacts()
@@ -350,11 +304,9 @@ async def test_get_all_model_artifacts(
 
 @pytest.mark.e2e
 async def test_get_model_version_artifacts_by_mv_id(
-        client: ModelRegistryAPIClient, model_version: ModelVersion, model: ModelArtifact
+    client: ModelRegistryAPIClient, model_version: ModelVersion, model: ModelArtifact
 ):
-    ma2 = await client.upsert_model_version_artifact(
-        ModelArtifact(name="ma2", uri="uri"), str(model_version.id)
-    )
+    ma2 = await client.upsert_model_version_artifact(ModelArtifact(name="ma2", uri="uri"), str(model_version.id))
 
     mas = await client.get_model_artifacts(str(model_version.id))
     assert [model, ma2] == mas
@@ -362,18 +314,16 @@ async def test_get_model_version_artifacts_by_mv_id(
 
 @pytest.mark.e2e
 async def test_page_through_model_version_artifacts(
-        client: ModelRegistryAPIClient,
-        registered_model: RegisteredModel,
-        model_version: ModelVersion,
+    client: ModelRegistryAPIClient,
+    registered_model: RegisteredModel,
+    model_version: ModelVersion,
 ):
     _ = registered_model
     models = 6
     for i in range(models):
         art = ModelArtifact(name=f"ma{i}", uri="uri") if i % 2 == 0 else DocArtifact(name=f"ma{i}", uri="uri")
         await client.upsert_model_version_artifact(art, str(model_version.id))
-    pager = Pager(
-        lambda o: client.get_model_version_artifacts(str(model_version.id), o)
-    ).page_size(5)
+    pager = Pager(lambda o: client.get_model_version_artifacts(str(model_version.id), o)).page_size(5)
     total = 0
     async for _ in pager:
         total += 1

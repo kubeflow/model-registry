@@ -2,13 +2,13 @@ import os
 from urllib.parse import urlparse
 
 ARTIFACT_STATES = [
-   "LIVE",
-   "PENDING",
-   "MARKED_FOR_DELETION",
-   "DELETED",
-   "ABANDONED",
-   "REFERENCE",
-   "UNKNOWN",
+    "LIVE",
+    "PENDING",
+    "MARKED_FOR_DELETION",
+    "DELETED",
+    "ABANDONED",
+    "REFERENCE",
+    "UNKNOWN",
 ]
 ARTIFACT_TYPE_PARAMS = [
     ("model-artifact", "s3://test-bucket/models/"),
@@ -27,4 +27,3 @@ REGISTRY_PORT = int(port)
 
 MAX_POLL_TIME = 10
 POLL_INTERVAL = 1
-

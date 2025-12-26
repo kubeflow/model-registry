@@ -7,5 +7,5 @@ roleRef:
   kind: ClusterRole
   name: cluster-admin
 subjects:
-- kind: User
-  name: test
+  - kind: User
+    name: test

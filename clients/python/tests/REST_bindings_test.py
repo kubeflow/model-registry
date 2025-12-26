@@ -35,9 +35,7 @@ def rm_create() -> RegisteredModelCreate:
 
 
 @pytest.mark.e2e
-async def test_registered_model(
-    client: ModelRegistryServiceApi, rm_create: RegisteredModelCreate
-):
+async def test_registered_model(client: ModelRegistryServiceApi, rm_create: RegisteredModelCreate):
     rm_create.custom_properties = {
         "key1": MetadataValue.from_dict(
             {"string_value": "value1", "metadataType": "MetadataStringValue"},
@@ -59,9 +57,7 @@ async def test_registered_model(
 
 
 @pytest.fixture
-async def mv_create(
-    client: ModelRegistryServiceApi, rm_create: RegisteredModelCreate
-) -> ModelVersionCreate:
+async def mv_create(client: ModelRegistryServiceApi, rm_create: RegisteredModelCreate) -> ModelVersionCreate:
     # HACK: create an RM first because we need an ID for the instance
     rm = await client.create_registered_model(rm_create)
     assert rm is not None
@@ -74,9 +70,7 @@ async def mv_create(
 
 
 @pytest.mark.e2e
-async def test_model_version(
-    client: ModelRegistryServiceApi, mv_create: ModelVersionCreate
-):
+async def test_model_version(client: ModelRegistryServiceApi, mv_create: ModelVersionCreate):
     mv_create.custom_properties = {
         "key1": MetadataValue.from_dict(
             {"string_value": "value1", "metadataType": "MetadataStringValue"},
@@ -100,9 +94,7 @@ async def test_model_version(
 
 
 @pytest.mark.e2e
-async def test_model_artifact(
-    client: ModelRegistryServiceApi, mv_create: ModelVersionCreate
-):
+async def test_model_artifact(client: ModelRegistryServiceApi, mv_create: ModelVersionCreate):
     mv = await client.create_model_version(mv_create)
     assert mv is not None
 
@@ -118,9 +110,7 @@ async def test_model_artifact(
         },
     )
 
-    new_ma = (
-        await client.upsert_model_version_artifact(str(mv.id), Artifact(ma_create))
-    ).actual_instance
+    new_ma = (await client.upsert_model_version_artifact(str(mv.id), Artifact(ma_create))).actual_instance
     assert new_ma is not None
     print("created MA", new_ma, "with ID", new_ma.id)
     assert isinstance(new_ma, ModelArtifact)
@@ -148,9 +138,7 @@ async def test_model_artifact(
         },
     )
 
-    new_da = (
-        await client.upsert_model_version_artifact(str(mv.id), Artifact(doc_art))
-    ).actual_instance
+    new_da = (await client.upsert_model_version_artifact(str(mv.id), Artifact(doc_art))).actual_instance
     assert new_da is not None
     print("created DA", new_da, "with ID", new_da.id)
     assert isinstance(new_da, DocArtifact)

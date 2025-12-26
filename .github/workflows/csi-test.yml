@@ -20,10 +20,8 @@ on:
       - "pkg/openapi/**"
       # csi build depends on base go.mod https://github.com/kubeflow/model-registry/issues/311
       - "go.mod"
-
 permissions: # set contents: read at top-level, per OpenSSF ScoreCard rule TokenPermissionsID
   contents: read
-
 env:
   IMG_REGISTRY: ghcr.io
   IMG_ORG: kubeflow
@@ -36,7 +34,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6.0.1
-
       - name: Generate tag
         shell: bash
         id: tags
@@ -44,15 +41,12 @@ jobs:
           commit_sha=${{ github.event.after }}
           tag=main-${commit_sha:0:7}
           echo "tag=${tag}" >> $GITHUB_OUTPUT
-
       - name: Install network tools
         run: sudo apt-get update && sudo apt-get install -y netcat-openbsd jq
-
       - name: Install Helm
         uses: azure/setup-helm@v4
         with:
           version: 'v3.14.0'
-
       - name: Build local model registry image
         shell: bash
         env:
@@ -60,22 +54,18 @@ jobs:
           VERSION: ${{ steps.tags.outputs.tag }}
           PUSH_IMAGE: false
         run: ./scripts/build_deploy.sh
-
       - name: Build local custom storage initializer
         shell: bash
         env:
           IMG_REPO: ${{ env.MODEL_REGISTRY_CSI_IMG }}
           IMG_VERSION: ${{ steps.tags.outputs.tag }}
         run: make image/build
-
       - name: Start KinD cluster
         uses: helm/kind-action@v1.13.0
         with:
           node_image: "kindest/node:v1.33.7"
-
       - name: Install kustomize
         run: ./test/scripts/install_kustomize.sh
-
       - name: Run tests
         shell: bash
         env:

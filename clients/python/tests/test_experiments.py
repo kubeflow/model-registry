@@ -81,9 +81,7 @@ def test_start_experiment_run_with_advanced_scenarios(
     assert len(run.get_logs()) == 11
     assert run.get_log("params", "input1").value == 500  # type: ignore[union-attr]
 
-    with client.start_experiment_run(
-        experiment_name="Experiment_Test_URI_Provided"
-    ) as run:
+    with client.start_experiment_run(experiment_name="Experiment_Test_URI_Provided") as run:
         run.log_dataset(
             name="dataset_1",
             source_type="s3",
@@ -157,9 +155,7 @@ def test_get_experiment_runs(client: ModelRegistry):
 
 
 @pytest.mark.e2e
-def test_get_experiment_run_with_artifact_types(
-    client: ModelRegistry, schema_json: str
-):
+def test_get_experiment_run_with_artifact_types(client: ModelRegistry, schema_json: str):
     with client.start_experiment_run(experiment_name="Experiment_Test_4") as run:
         run.log_dataset(
             name="dataset_1",
@@ -417,14 +413,18 @@ def test_bulk_metrics_and_params_retrieval(client: ModelRegistry):  # noqa: C901
         assert param.value is not None  # type: ignore[attr-defined]
 
     # Test filtering by specific metric names using SQL
-    accuracy_metrics = list(get_artifacts(client, artifact_type="metric", filter_query=f'{run_ids_filter} AND name LIKE "%accuracy%"'))
+    accuracy_metrics = list(
+        get_artifacts(client, artifact_type="metric", filter_query=f'{run_ids_filter} AND name LIKE "%accuracy%"')
+    )
 
     # Should have 4 accuracy metrics per run (3 epoch + 1 final)
     expected_accuracy_metrics = len(selected_runs) * 4
     assert len(accuracy_metrics) == expected_accuracy_metrics
 
     # Test filtering by specific parameter names using SQL
-    learning_rate_params  = list(get_artifacts(client, artifact_type="parameter", filter_query=f'{run_ids_filter} AND name = "learning_rate"'))
+    learning_rate_params = list(
+        get_artifacts(client, artifact_type="parameter", filter_query=f'{run_ids_filter} AND name = "learning_rate"')
+    )
 
     # Should have 1 learning_rate parameter per run
     assert len(learning_rate_params) == len(selected_runs)

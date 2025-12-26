@@ -13,4 +13,4 @@ CREATE TABLE IF NOT EXISTS "Context" (
 
 CREATE INDEX idx_context_create_time_since_epoch ON "Context" (create_time_since_epoch);
 CREATE INDEX idx_context_last_update_time_since_epoch ON "Context" (last_update_time_since_epoch);
-CREATE INDEX idx_context_external_id ON "Context" (external_id); 
+CREATE INDEX idx_context_external_id ON "Context" (external_id);
