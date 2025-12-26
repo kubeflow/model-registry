@@ -5,4 +5,4 @@ CREATE TABLE IF NOT EXISTS "Association" (
     execution_id INTEGER NOT NULL,
     PRIMARY KEY (id),
     UNIQUE (context_id, execution_id)
-); 
+);

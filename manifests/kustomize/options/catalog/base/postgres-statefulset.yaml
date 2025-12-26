@@ -25,28 +25,28 @@ spec:
         runAsNonRoot: true
         fsGroup: 70
       containers:
-      - name: postgres
-        image: postgres:17.6
-        env:
-        - name: PGDATA
-          value: /var/lib/postgresql/data/pgdata
-        envFrom:
-        - secretRef:
-            name: model-catalog-postgres
-        ports:
         - name: postgres
-          containerPort: 5432
-        volumeMounts:
-        - name: model-catalog-postgres
-          mountPath: /var/lib/postgresql/data
-        securityContext:
-          runAsUser: 70
-          runAsGroup: 70
-          allowPrivilegeEscalation: false
-          capabilities:
-            drop:
-              - ALL
+          image: postgres:17.6
+          env:
+            - name: PGDATA
+              value: /var/lib/postgresql/data/pgdata
+          envFrom:
+            - secretRef:
+                name: model-catalog-postgres
+          ports:
+            - name: postgres
+              containerPort: 5432
+          volumeMounts:
+            - name: model-catalog-postgres
+              mountPath: /var/lib/postgresql/data
+          securityContext:
+            runAsUser: 70
+            runAsGroup: 70
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
       volumes:
-      - name: model-catalog-postgres
-        persistentVolumeClaim:
-          claimName: model-catalog-postgres
+        - name: model-catalog-postgres
+          persistentVolumeClaim:
+            claimName: model-catalog-postgres

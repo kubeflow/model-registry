@@ -407,7 +407,8 @@ def test_get_registered_models_order_by(client: ModelRegistry):
     i = 0
     for rm, by_id in zip(
         rms,
-        client.get_registered_models().order_by_id(), strict=False,
+        client.get_registered_models().order_by_id(),
+        strict=False,
     ):
         assert rm.id == by_id.id
         i += 1
@@ -418,7 +419,8 @@ def test_get_registered_models_order_by(client: ModelRegistry):
     i = 0
     for rm, by_creation in zip(
         rms,
-        client.get_registered_models().order_by_creation_time(), strict=False,
+        client.get_registered_models().order_by_creation_time(),
+        strict=False,
     ):
         assert rm.id == by_creation.id
         i += 1
@@ -429,7 +431,8 @@ def test_get_registered_models_order_by(client: ModelRegistry):
     i = 0
     for rm, by_update in zip(
         rms,
-        client.get_registered_models().order_by_update_time(), strict=False,
+        client.get_registered_models().order_by_update_time(),
+        strict=False,
     ):
         assert rm.id == by_update.id
         i += 1
@@ -445,7 +448,8 @@ def test_get_registered_models_order_by(client: ModelRegistry):
     i = 0
     for rm, by_update in zip(
         reversed(rms),
-        client.get_registered_models().order_by_update_time(), strict=False,
+        client.get_registered_models().order_by_update_time(),
+        strict=False,
     ):
         assert rm.id == by_update.id
         i += 1
@@ -456,7 +460,8 @@ def test_get_registered_models_order_by(client: ModelRegistry):
     i = 0
     for rm, by_update in zip(
         rms,
-        client.get_registered_models().order_by_update_time().descending(), strict=False,
+        client.get_registered_models().order_by_update_time().descending(),
+        strict=False,
     ):
         assert rm.id == by_update.id
         i += 1
@@ -537,7 +542,8 @@ def test_get_model_versions_order_by(client: ModelRegistry):
     i = 0
     for mv, by_id in zip(
         mvs,
-        client.get_model_versions(name).order_by_id(), strict=False,
+        client.get_model_versions(name).order_by_id(),
+        strict=False,
     ):
         assert mv.id == by_id.id  # type: ignore[union-attr]
         i += 1
@@ -547,7 +553,8 @@ def test_get_model_versions_order_by(client: ModelRegistry):
     i = 0
     for mv, by_creation in zip(
         mvs,
-        client.get_model_versions(name).order_by_creation_time(), strict=False,
+        client.get_model_versions(name).order_by_creation_time(),
+        strict=False,
     ):
         assert mv.id == by_creation.id  # type: ignore[union-attr]
         i += 1
@@ -557,7 +564,8 @@ def test_get_model_versions_order_by(client: ModelRegistry):
     i = 0
     for mv, by_update in zip(
         mvs,
-        client.get_model_versions(name).order_by_update_time(), strict=False,
+        client.get_model_versions(name).order_by_update_time(),
+        strict=False,
     ):
         assert mv.id == by_update.id  # type: ignore[union-attr]
         i += 1
@@ -571,7 +579,8 @@ def test_get_model_versions_order_by(client: ModelRegistry):
     i = 0
     for mv, by_update in zip(
         reversed(mvs),
-        client.get_model_versions(name).order_by_update_time(), strict=False,
+        client.get_model_versions(name).order_by_update_time(),
+        strict=False,
     ):
         assert mv.id == by_update.id  # type: ignore[union-attr]
         i += 1
@@ -581,7 +590,8 @@ def test_get_model_versions_order_by(client: ModelRegistry):
     i = 0
     for mv, by_update in zip(
         mvs,
-        client.get_model_versions(name).order_by_update_time().descending(), strict=False,
+        client.get_model_versions(name).order_by_update_time().descending(),
+        strict=False,
     ):
         assert mv.id == by_update.id  # type: ignore[union-attr]
         i += 1

@@ -49,6 +49,7 @@ def destination_oci_env_vars(monkeypatch):
 
     yield vars
 
+
 @pytest.fixture
 def create_model_intent_env_vars(monkeypatch):
     """Fixture to set up environment variables for testing"""
@@ -59,6 +60,7 @@ def create_model_intent_env_vars(monkeypatch):
         monkeypatch.setenv(f"MODEL_SYNC_{key.upper()}", value)
 
     yield vars
+
 
 @pytest.fixture
 def create_version_intent_env_vars(monkeypatch):
@@ -72,6 +74,7 @@ def create_version_intent_env_vars(monkeypatch):
 
     yield vars
 
+
 @pytest.fixture
 def update_artifact_intent_env_vars(monkeypatch):
     """Fixture to set up environment variables for testing"""
@@ -83,6 +86,7 @@ def update_artifact_intent_env_vars(monkeypatch):
         monkeypatch.setenv(f"MODEL_SYNC_{key.upper()}", value)
 
     yield vars
+
 
 @pytest.fixture
 def s3_credentials_folder():
@@ -133,9 +137,7 @@ def uri_credentials_folder(tmp_path):
     return tmp_path, {"uri": uri_value}
 
 
-def test_s3_file_to_oci_env_config(
-    s3_credentials_folder, destination_oci_env_vars, update_artifact_intent_env_vars
-):
+def test_s3_file_to_oci_env_config(s3_credentials_folder, destination_oci_env_vars, update_artifact_intent_env_vars):
     """Tests a configuration where the source is S3, using a credentials path, to a destination with OCI env vars"""
     folder_location, expected_credentials = s3_credentials_folder
 
@@ -147,7 +149,7 @@ def test_s3_file_to_oci_env_config(
             "--source-s3-credentials-path",
             str(folder_location),
             "--source-aws-key",
-            "my-key", # see samples/sample_job_s3_to_oci.yaml, as 'key' is not provided in the Secret (#1256)
+            "my-key",  # see samples/sample_job_s3_to_oci.yaml, as 'key' is not provided in the Secret (#1256)
             "--registry-server-address",
             "https://registry.example.com",
         ]
@@ -160,7 +162,9 @@ def test_s3_file_to_oci_env_config(
     assert config.source.region == expected_credentials["region"]
     assert config.source.bucket == expected_credentials["bucket"]
     assert config.source.endpoint == expected_credentials["endpoint"]
-    assert config.source.key == "my-key" # see samples/sample_job_s3_to_oci.yaml, as 'key' is not provided in the Secret (#1256)
+    assert (
+        config.source.key == "my-key"
+    )  # see samples/sample_job_s3_to_oci.yaml, as 'key' is not provided in the Secret (#1256)
 
     assert isinstance(config.destination, OCIStorageConfig)
     assert config.destination.uri == destination_oci_env_vars["oci_uri"]
@@ -168,18 +172,13 @@ def test_s3_file_to_oci_env_config(
     assert config.destination.password == destination_oci_env_vars["oci_password"]
 
 
-def test_env_based_s3_to_oci_config(
-    update_artifact_intent_env_vars, source_s3_env_vars, destination_oci_env_vars
-):
+def test_env_based_s3_to_oci_config(update_artifact_intent_env_vars, source_s3_env_vars, destination_oci_env_vars):
     """Test configuration using environment variables"""
     config = get_config([])
 
     assert isinstance(config.source, S3StorageConfig)
     assert config.source.access_key_id == source_s3_env_vars["aws_access_key_id"]
-    assert (
-        config.source.secret_access_key
-        == source_s3_env_vars["aws_secret_access_key"]
-    )
+    assert config.source.secret_access_key == source_s3_env_vars["aws_secret_access_key"]
     assert config.source.region == source_s3_env_vars["aws_region"]
     assert config.source.bucket == source_s3_env_vars["aws_bucket"]
 
@@ -320,7 +319,9 @@ def test_uri_params_to_oci_config(update_artifact_intent_env_vars, destination_o
     assert config.destination.uri == destination_oci_env_vars["oci_uri"]
 
 
-def test_uri_credentials_override_params(uri_credentials_folder, destination_oci_env_vars, update_artifact_intent_env_vars):
+def test_uri_credentials_override_params(
+    uri_credentials_folder, destination_oci_env_vars, update_artifact_intent_env_vars
+):
     """Test that URI credentials from file override CLI parameters"""
     folder_location, expected_credentials = uri_credentials_folder
     cli_uri = "hf://cli/model/override"
@@ -375,7 +376,9 @@ def test_uri_credentials_missing_uri_file_error(update_artifact_intent_env_vars,
         )
 
 
-def test_uri_credentials_env_var_support(uri_credentials_folder, update_artifact_intent_env_vars, destination_oci_env_vars, tmp_path, monkeypatch):
+def test_uri_credentials_env_var_support(
+    uri_credentials_folder, update_artifact_intent_env_vars, destination_oci_env_vars, tmp_path, monkeypatch
+):
     """Test that URI credentials path can be set via environment variable"""
     # Create URI credential file
     folder_location, expected_credentials = uri_credentials_folder
@@ -397,5 +400,3 @@ def test_uri_credentials_env_var_support(uri_credentials_folder, update_artifact
     assert isinstance(config.source, URISourceStorageConfig)
     assert config.source.uri == expected_credentials["uri"]
     assert config.source.credentials_path == str(tmp_path)
-
-

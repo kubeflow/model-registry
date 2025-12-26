@@ -44,60 +44,60 @@ spec:
         seccompProfile:
           type: RuntimeDefault
       containers:
-      - command:
-        - /manager
-        args:
-          - --leader-elect
-          - --health-probe-bind-address=:8081
-        image: ghcr.io/kubeflow/model-registry/controller:latest
-        name: manager
-        env:
-          - name: NAMESPACE_LABEL
-            value: ""
-          - name: NAME_LABEL
-            value: ""
-          - name: URL_ANNOTATION
-            value: ""
-          - name: INFERENCE_SERVICE_ID_LABEL
-            value: ""
-          - name: MODEL_VERSION_ID_LABEL
-            value: ""
-          - name: REGISTERED_MODEL_ID_LABEL
-            value: ""
-          - name: FINALIZER
-            value: ""
-          - name: SERVICE_ANNOTATION
-            value: ""
-          - name: REGISTRIES_NAMESPACE
-            value: ""
-          - name: SKIP_TLS_VERIFY
-            value: "false"
-          - name: INFERENCE_SERVICE_CONTROLLER
-            value: ""
-        securityContext:
-          allowPrivilegeEscalation: false
-          capabilities:
-            drop:
-            - "ALL"
-        livenessProbe:
-          httpGet:
-            path: /healthz
-            port: 8081
-          initialDelaySeconds: 15
-          periodSeconds: 20
-        readinessProbe:
-          httpGet:
-            path: /readyz
-            port: 8081
-          initialDelaySeconds: 5
-          periodSeconds: 10
-        # TODO(user): Configure the resources accordingly based on the project requirements.
-        # More info: https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/
-        resources:
-          limits:
-            memory: 128Mi
-          requests:
-            cpu: 10m
-            memory: 64Mi
+        - command:
+            - /manager
+          args:
+            - --leader-elect
+            - --health-probe-bind-address=:8081
+          image: ghcr.io/kubeflow/model-registry/controller:latest
+          name: manager
+          env:
+            - name: NAMESPACE_LABEL
+              value: ""
+            - name: NAME_LABEL
+              value: ""
+            - name: URL_ANNOTATION
+              value: ""
+            - name: INFERENCE_SERVICE_ID_LABEL
+              value: ""
+            - name: MODEL_VERSION_ID_LABEL
+              value: ""
+            - name: REGISTERED_MODEL_ID_LABEL
+              value: ""
+            - name: FINALIZER
+              value: ""
+            - name: SERVICE_ANNOTATION
+              value: ""
+            - name: REGISTRIES_NAMESPACE
+              value: ""
+            - name: SKIP_TLS_VERIFY
+              value: "false"
+            - name: INFERENCE_SERVICE_CONTROLLER
+              value: ""
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - "ALL"
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: 8081
+            initialDelaySeconds: 15
+            periodSeconds: 20
+          readinessProbe:
+            httpGet:
+              path: /readyz
+              port: 8081
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          # TODO(user): Configure the resources accordingly based on the project requirements.
+          # More info: https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/
+          resources:
+            limits:
+              memory: 128Mi
+            requests:
+              cpu: 10m
+              memory: 64Mi
       serviceAccountName: controller-manager
       terminationGracePeriodSeconds: 10

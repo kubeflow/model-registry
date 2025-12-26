@@ -16,7 +16,6 @@ data:
       "team": "nlp-research",
       "cost_center": "engineering"
     }
-
   # ModelVersion metadata
   ModelVersion.name: "1.0.0"
   ModelVersion.description: "Initial production release"
@@ -27,7 +26,6 @@ data:
       "accuracy": 0.95,
       "f1_score": 0.93
     }
-
   # ModelArtifact metadata
   ModelArtifact.name: "sentiment-analyzer"
   ModelArtifact.model_format_name: "tensorflow"
@@ -56,63 +54,56 @@ spec:
   template:
     spec:
       containers:
-      - name: model-sync
-        image: model-registry/async-upload:latest
-        env:
-        # Intent specification
-        - name: MODEL_SYNC_MODEL_UPLOAD_INTENT
-          value: "create_model"
-
-        # ConfigMap metadata path
-        - name: MODEL_SYNC_METADATA_CONFIGMAP_PATH
-          value: "/etc/model-metadata"
-
-        # Source configuration (e.g., S3)
-        - name: MODEL_SYNC_SOURCE_TYPE
-          value: "s3"
-        - name: MODEL_SYNC_SOURCE_AWS_BUCKET
-          value: "my-models-bucket"
-        - name: MODEL_SYNC_SOURCE_AWS_KEY
-          value: "models/sentiment-analyzer/v1.0.0/"
-
-        # Destination configuration (e.g., OCI)
-        - name: MODEL_SYNC_DESTINATION_TYPE
-          value: "oci"
-        - name: MODEL_SYNC_DESTINATION_OCI_REGISTRY
-          value: "registry.example.com"
-        - name: MODEL_SYNC_DESTINATION_OCI_URI
-          value: "registry.example.com/models/sentiment-analyzer:1.0.0"
-
-        # Model Registry configuration
-        - name: MODEL_SYNC_REGISTRY_SERVER_ADDRESS
-          value: "model-registry-service.default.svc.cluster.local"
-        - name: MODEL_SYNC_REGISTRY_PORT
-          value: "8080"
-        - name: MODEL_SYNC_REGISTRY_IS_SECURE
-          value: "false"
-        - name: MODEL_SYNC_REGISTRY_AUTHOR
-          value: "data-science-team"
-
-        volumeMounts:
-        - name: model-metadata
-          mountPath: /etc/model-metadata
-          readOnly: true
-        - name: s3-credentials
-          mountPath: /etc/s3-credentials
-          readOnly: true
-        - name: oci-credentials
-          mountPath: /etc/oci-credentials
-          readOnly: true
-
+        - name: model-sync
+          image: model-registry/async-upload:latest
+          env:
+            # Intent specification
+            - name: MODEL_SYNC_MODEL_UPLOAD_INTENT
+              value: "create_model"
+            # ConfigMap metadata path
+            - name: MODEL_SYNC_METADATA_CONFIGMAP_PATH
+              value: "/etc/model-metadata"
+            # Source configuration (e.g., S3)
+            - name: MODEL_SYNC_SOURCE_TYPE
+              value: "s3"
+            - name: MODEL_SYNC_SOURCE_AWS_BUCKET
+              value: "my-models-bucket"
+            - name: MODEL_SYNC_SOURCE_AWS_KEY
+              value: "models/sentiment-analyzer/v1.0.0/"
+            # Destination configuration (e.g., OCI)
+            - name: MODEL_SYNC_DESTINATION_TYPE
+              value: "oci"
+            - name: MODEL_SYNC_DESTINATION_OCI_REGISTRY
+              value: "registry.example.com"
+            - name: MODEL_SYNC_DESTINATION_OCI_URI
+              value: "registry.example.com/models/sentiment-analyzer:1.0.0"
+            # Model Registry configuration
+            - name: MODEL_SYNC_REGISTRY_SERVER_ADDRESS
+              value: "model-registry-service.default.svc.cluster.local"
+            - name: MODEL_SYNC_REGISTRY_PORT
+              value: "8080"
+            - name: MODEL_SYNC_REGISTRY_IS_SECURE
+              value: "false"
+            - name: MODEL_SYNC_REGISTRY_AUTHOR
+              value: "data-science-team"
+          volumeMounts:
+            - name: model-metadata
+              mountPath: /etc/model-metadata
+              readOnly: true
+            - name: s3-credentials
+              mountPath: /etc/s3-credentials
+              readOnly: true
+            - name: oci-credentials
+              mountPath: /etc/oci-credentials
+              readOnly: true
       volumes:
-      - name: model-metadata
-        configMap:
-          name: model-metadata-configmap
-      - name: s3-credentials
-        secret:
-          secretName: s3-credentials-secret
-      - name: oci-credentials
-        secret:
-          secretName: oci-credentials-secret
-
+        - name: model-metadata
+          configMap:
+            name: model-metadata-configmap
+        - name: s3-credentials
+          secret:
+            secretName: s3-credentials-secret
+        - name: oci-credentials
+          secret:
+            secretName: oci-credentials-secret
       restartPolicy: OnFailure

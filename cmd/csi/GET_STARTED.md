@@ -56,7 +56,7 @@ All the following instructions should be performed from the model-registry root 
     Either, using the local model-registry library as dependency:
     ```bash
     TAG=$(git rev-parse HEAD)
-    IMG=kubeflow/model-registry-storage-initializer:$TAG && \ 
+    IMG=kubeflow/model-registry-storage-initializer:$TAG && \
     make IMG_VERSION=$TAG IMG_REPO=model-registry-storage-initializer image/build && \
     kind load docker-image $IMG
     ```

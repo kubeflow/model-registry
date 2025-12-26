@@ -26,9 +26,9 @@ spec:
           type: RuntimeDefault
         runAsNonRoot: true
       volumes:
-      - name: sources
-        configMap:
-          name: model-catalog-sources
+        - name: sources
+          configMap:
+            name: model-catalog-sources
       containers:
         - name: catalog
           env:
@@ -78,5 +78,5 @@ spec:
               drop:
                 - ALL
           volumeMounts:
-          - name: sources
-            mountPath: /catalog
+            - name: sources
+              mountPath: /catalog

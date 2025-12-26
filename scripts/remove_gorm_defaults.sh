@@ -16,4 +16,4 @@ fi
 # Use sed to remove `;default:NULL` from all .gen.go files in the schema directory
 find "$SCHEMA_DIR" -type f -name "*.gen.go" -exec sed -i 's/;default:NULL//g' {} +
 
-echo "Cleaned up 'default:NULL' from GORM models." 
+echo "Cleaned up 'default:NULL' from GORM models."

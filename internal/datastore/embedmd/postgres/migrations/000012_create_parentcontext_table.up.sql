@@ -5,4 +5,4 @@ CREATE TABLE IF NOT EXISTS "ParentContext" (
     PRIMARY KEY (context_id, parent_context_id)
 );
 
-CREATE INDEX idx_parentcontext_parent_context_id ON "ParentContext" (parent_context_id); 
+CREATE INDEX idx_parentcontext_parent_context_id ON "ParentContext" (parent_context_id);

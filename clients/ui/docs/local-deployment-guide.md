@@ -24,7 +24,7 @@ Create a local cluster for running the MR backend using the following command:
 kind create cluster
 ```
 
-Kind will start creating a new local cluster for you to deploy, once it has completed verify you can access the cluster 
+Kind will start creating a new local cluster for you to deploy, once it has completed verify you can access the cluster
 using kubectl by running:
 
 ```shell
@@ -77,7 +77,7 @@ Two pods should be listed, `model-registry-db-xxx` and `model-registry-deploymen
 
 ##### NOTE: Issues running on arm64 architecture
 
-There is currently an issue deploying to an arm64 device such as a Mac with an M-series chip. This is because the MySql 
+There is currently an issue deploying to an arm64 device such as a Mac with an M-series chip. This is because the MySql
 image tag deployed by the manifests does not have an arm64 compatible image. To work around this you can use a modified
 manifest deployed in a fork of the repo - you can use this by running the below command instead of the first command in
 section 3 of this guide.

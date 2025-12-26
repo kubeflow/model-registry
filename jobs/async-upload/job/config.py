@@ -9,8 +9,6 @@ from .models import (
     AsyncUploadConfig,
     OCIStorageConfig,
     S3StorageConfig,
-    SourceConfig,
-    DestinationConfig,
     ModelConfig,
     ModelInputArgs,
     StorageConfig,
@@ -18,13 +16,8 @@ from .models import (
     S3Config,
     OCIConfig,
     URISourceConfig,
-    SourceType,
-    DestinationType,
     URISourceStorageConfig,
     UploadIntent,
-    CreateModelIntent,
-    CreateVersionIntent,
-    UpdateArtifactIntent,
     ConfigMapMetadata,
     RegisteredModelMetadata,
     ModelVersionMetadata,
@@ -84,10 +77,7 @@ def _parser() -> cap.ArgumentParser:
     # --- model-registry model data ---
     # This intent determines the action to take once the model has been uploaded to the destination.
     p.add_argument(
-        "--model-upload-intent",
-        type=UploadIntent,
-        choices=tuple(UploadIntent),
-        default=UploadIntent.update_artifact
+        "--model-upload-intent", type=UploadIntent, choices=tuple(UploadIntent), default=UploadIntent.update_artifact
     )
     p.add_argument("--model-id")
     p.add_argument("--model-version-id")
@@ -202,9 +192,7 @@ def _load_s3_credentials(path: str | Path, store: S3Config) -> None:
             logger.warning("AWS_BUCKET, or AWS_S3_BUCKET not found in %s", p)
 
 
-def _load_oci_credentials(
-    path: str | Path, store: OCIConfig
-) -> None:
+def _load_oci_credentials(path: str | Path, store: OCIConfig) -> None:
     """
     The path must point to a file which is a `.dockerconfigjson` file
 
@@ -326,9 +314,7 @@ def _load_configmap_metadata(path: str | Path) -> ConfigMapMetadata:
     logger.debug(f"📝 Loaded ModelArtifact metadata: {model_artifact}")
 
     return ConfigMapMetadata(
-        registered_model=registered_model,
-        model_version=model_version,
-        model_artifact=model_artifact
+        registered_model=registered_model, model_version=model_version, model_artifact=model_artifact
     )
 
 
@@ -370,10 +356,7 @@ def get_config(argv: list[str] | None = None) -> AsyncUploadConfig:
         # Load credentials from files, if provided
         if args.source_s3_credentials_path:
             _load_s3_credentials(args.source_s3_credentials_path, s3_config)
-        source_config = S3StorageConfig(
-            **s3_config.model_dump(),
-            credentials_path=args.source_s3_credentials_path
-        )
+        source_config = S3StorageConfig(**s3_config.model_dump(), credentials_path=args.source_s3_credentials_path)
     elif args.source_type == "oci":
         source_config = OCIStorageConfig(
             uri=args.source_oci_uri,
@@ -381,7 +364,7 @@ def get_config(argv: list[str] | None = None) -> AsyncUploadConfig:
             username=args.source_oci_username,
             password=args.source_oci_password,
             email=None,
-            credentials_path=args.source_oci_credentials_path
+            credentials_path=args.source_oci_credentials_path,
         )
         # Load credentials from files, if provided
         if args.source_oci_credentials_path:
@@ -393,8 +376,7 @@ def get_config(argv: list[str] | None = None) -> AsyncUploadConfig:
         if args.source_uri_credentials_path:
             _load_uri_credentials(args.source_uri_credentials_path, uri_config)
         source_config = URISourceStorageConfig(
-            **uri_config.model_dump(),
-            credentials_path=args.source_uri_credentials_path
+            **uri_config.model_dump(), credentials_path=args.source_uri_credentials_path
         )
     else:
         raise ValueError(f"Unsupported source type: {args.source_type}")
@@ -408,7 +390,7 @@ def get_config(argv: list[str] | None = None) -> AsyncUploadConfig:
             access_key_id=args.destination_aws_access_key_id,
             secret_access_key=args.destination_aws_secret_access_key,
             endpoint=args.destination_aws_endpoint,
-            credentials_path=args.destination_s3_credentials_path
+            credentials_path=args.destination_s3_credentials_path,
         )
         # Load credentials from files, if provided
         if args.destination_s3_credentials_path:
@@ -422,7 +404,7 @@ def get_config(argv: list[str] | None = None) -> AsyncUploadConfig:
             email=None,
             base_image=args.destination_oci_base_image,
             enable_tls_verify=args.destination_oci_enable_tls_verify,
-            credentials_path=args.destination_oci_credentials_path
+            credentials_path=args.destination_oci_credentials_path,
         )
         # Load credentials from files, if provided
         if args.destination_oci_credentials_path:
@@ -457,7 +439,9 @@ def get_config(argv: list[str] | None = None) -> AsyncUploadConfig:
             raise ValueError(f"Intent {intent_type} requires ConfigMap metadata but none provided")
         elif intent_type == UploadIntent.create_model:
             if not (metadata.registered_model and metadata.model_version and metadata.model_artifact):
-                raise ValueError("create_model intent requires RegisteredModel, ModelVersion, and ModelArtifact metadata")
+                raise ValueError(
+                    "create_model intent requires RegisteredModel, ModelVersion, and ModelArtifact metadata"
+                )
         elif intent_type == UploadIntent.create_version:
             if not metadata.model_version or not metadata.model_artifact:
                 raise ValueError("create_version intent requires ModelVersion and ModelArtifact metadata")

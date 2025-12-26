@@ -5,10 +5,10 @@ index 50b0c1f2..068de622 100644
 @@ -21,8 +21,6 @@ import sys
  from typing import Any, ClassVar, Dict, List, Literal, Optional, TypedDict, Union
  from typing_extensions import NotRequired, Self
- 
+
 -import urllib3
 -
- 
+
  JSON_SCHEMA_VALIDATION_KEYWORDS = {
      'multipleOf', 'maximum', 'exclusiveMaximum',
 @@ -238,7 +236,6 @@ class Configuration:
@@ -22,7 +22,7 @@ index 50b0c1f2..068de622 100644
 @@ -472,21 +469,6 @@ class Configuration:
 
          return None
- 
+
 -    def get_basic_auth_token(self) -> Optional[str]:
 -        """Gets HTTP basic authentication header (string).
 -
@@ -40,4 +40,4 @@ index 50b0c1f2..068de622 100644
 -
      def auth_settings(self)-> AuthSettings:
          """Gets Auth Settings dict for api client.
- 
+

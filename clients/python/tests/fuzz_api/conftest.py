@@ -15,8 +15,9 @@ from tests.constants import DEFAULT_API_TIMEOUT, REGISTRY_URL
 
 
 @pytest.fixture
-def generated_schema(request: pytest.FixtureRequest, pytestconfig: pytest.Config,
-                     verify_ssl: bool) -> BaseOpenAPISchema:
+def generated_schema(
+    request: pytest.FixtureRequest, pytestconfig: pytest.Config, verify_ssl: bool
+) -> BaseOpenAPISchema:
     """Generate schema for the API based on the schema_file parameter"""
     schema_file = getattr(request, "param", "model-registry.yaml")
     os.environ["API_HOST"] = REGISTRY_URL
@@ -34,6 +35,7 @@ def generated_schema(request: pytest.FixtureRequest, pytestconfig: pytest.Config
 
         # Write to temporary file
         import tempfile
+
         with tempfile.NamedTemporaryFile(mode="w", suffix=".toml", delete=False) as temp_file:
             temp_file.write(modified_content)
             temp_toml_path = temp_file.name
@@ -62,8 +64,9 @@ def auth_headers(user_token: str) -> dict[str, str]:
 
 
 @pytest.fixture
-def state_machine(generated_schema: BaseOpenAPISchema, auth_headers: str, pytestconfig: pytest.Config,
-                  verify_ssl: bool) -> APIStateMachine:
+def state_machine(
+    generated_schema: BaseOpenAPISchema, auth_headers: str, pytestconfig: pytest.Config, verify_ssl: bool
+) -> APIStateMachine:
     BaseAPIWorkflow = generated_schema.as_state_machine()
 
     class APIWorkflow(BaseAPIWorkflow):  # type: ignore
@@ -75,9 +78,7 @@ def state_machine(generated_schema: BaseOpenAPISchema, auth_headers: str, pytest
             root_path = pytestconfig.rootpath.parent.parent
             cleanup_script = root_path / "scripts" / "cleanup.sh"
             subprocess.run(  # noqa: S603
-                [str(cleanup_script)],
-                capture_output=True,
-                check=True
+                [str(cleanup_script)], capture_output=True, check=True
             )
             self.headers = auth_headers  # type: ignore[assignment]
             self.verify = verify_ssl
@@ -119,8 +120,9 @@ def artifact_resource(verify_ssl: bool):
     @contextlib.contextmanager
     def _artifact_resource(auth_headers: dict, payload: dict) -> Generator[str, None, None]:
         create_endpoint = f"{REGISTRY_URL}/api/model_registry/v1alpha3/artifacts"
-        resp = requests.post(create_endpoint, headers=auth_headers, json=payload, timeout=DEFAULT_API_TIMEOUT,
-                             verify=verify_ssl)
+        resp = requests.post(
+            create_endpoint, headers=auth_headers, json=payload, timeout=DEFAULT_API_TIMEOUT, verify=verify_ssl
+        )
         resp.raise_for_status()
         artifact_id = resp.json()["id"]
         try:
@@ -133,4 +135,3 @@ def artifact_resource(verify_ssl: bool):
                 print(f"Failed to delete artifact {artifact_id}: {e}")
 
     return _artifact_resource
-

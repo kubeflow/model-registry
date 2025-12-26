@@ -36,17 +36,17 @@ fi
 
 
 kubectl apply -f $DIR/manifests/minio/deployment.yaml -n $MINIO_NAMESPACE
-if ! kubectl wait --for=condition=available deployment/minio -n $MINIO_NAMESPACE --timeout=3m ; then 
+if ! kubectl wait --for=condition=available deployment/minio -n $MINIO_NAMESPACE --timeout=3m ; then
      echo "Minio deployment took more than 3 minutes."
-     kubectl events -A 
-     kubectl describe deployment/minio -n $MINIO_NAMESPACE 
+     kubectl events -A
+     kubectl describe deployment/minio -n $MINIO_NAMESPACE
      kubectl logs deployment/minio -n $MINIO_NAMESPACE
      exit 1
 fi
 
 kubectl apply -f $DIR/manifests/minio/create_bucket.yaml -n $MINIO_NAMESPACE
-if ! kubectl wait --for=condition=complete job/minio-init -n $MINIO_NAMESPACE --timeout=3m ; then 
-     echo "Job to create Minio initialization took more than 3 minutes." 
+if ! kubectl wait --for=condition=complete job/minio-init -n $MINIO_NAMESPACE --timeout=3m ; then
+     echo "Job to create Minio initialization took more than 3 minutes."
      kubectl events -A
      kubectl logs job/minio-init -n $MINIO_NAMESPACE
      exit 1

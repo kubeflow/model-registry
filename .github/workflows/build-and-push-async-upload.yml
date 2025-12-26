@@ -1,5 +1,4 @@
 name: Build and Push async-upload container image
-
 on:
   push:
     branches:
@@ -14,17 +13,14 @@ on:
       - '!**.md'
       - '!**.txt'
       - '.github/workflows/build-and-push-async-upload.yml' # self
-
 permissions: # set contents: read at top-level, per OpenSSF ScoreCard rule TokenPermissionsID
   contents: read
-
 env:
   IMG_REGISTRY: ghcr.io
   IMG_ORG: kubeflow
   IMG_NAME: model-registry/job/async-upload
   REGISTRY_USER: ${{ github.actor }}
   REGISTRY_PWD: ${{ secrets.GITHUB_TOKEN }}
-
 jobs:
   build-and-push:
     runs-on: ubuntu-latest
@@ -32,41 +28,36 @@ jobs:
       contents: read
       packages: write
     steps:
-    - name: Checkout repository
-      uses: actions/checkout@v6.0.1
-
-    - name: Set up Docker Buildx
-      uses: docker/setup-buildx-action@v3
-
-    - name: Log in to the Container registry
-      uses: docker/login-action@v3
-      with:
-        registry: ${{ env.IMG_REGISTRY }}
-        username: ${{ env.REGISTRY_USER }}
-        password: ${{ env.REGISTRY_PWD }}
-
-    - name: Set main-branch environment # this is for main-sha tag image build
-      if: github.ref == 'refs/heads/main'
-      run: |
-        commit_sha=${{ github.sha }}
-        tag=main-${commit_sha:0:7}
-        echo "VERSION=${tag}" >> $GITHUB_ENV
-
-    - name: Set tag environment # this is for v* tag image build
-      if: startsWith(github.ref, 'refs/tags/v')
-      run: |
-        echo "VERSION=${{ github.ref_name }}" >> $GITHUB_ENV
-
-    - name: Build and push Docker image
-      uses: docker/build-push-action@v6
-      with:
-        context: ./jobs/async-upload
-        push: true
-        tags: |
-          ${{ env.IMG_REGISTRY }}/${{ env.IMG_ORG }}/${{ env.IMG_NAME }}:${{ env.VERSION }}
-          ${{ env.IMG_REGISTRY }}/${{ env.IMG_ORG }}/${{ env.IMG_NAME }}:latest
-          ${{ env.IMG_REGISTRY }}/${{ env.IMG_ORG }}/${{ env.IMG_NAME }}:main
-        cache-from: type=gha
-        cache-to: type=gha,mode=max
-        provenance: mode=max # pay attention no secrets are passed as build arguments: https://docs.docker.com/build/ci/github-actions/attestations/#default-provenance:~:text=don%27t%20support%20attestations.-,Warning,-If%20you%27re%20using
-        sbom: true
+      - name: Checkout repository
+        uses: actions/checkout@v6.0.1
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+      - name: Log in to the Container registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.IMG_REGISTRY }}
+          username: ${{ env.REGISTRY_USER }}
+          password: ${{ env.REGISTRY_PWD }}
+      - name: Set main-branch environment # this is for main-sha tag image build
+        if: github.ref == 'refs/heads/main'
+        run: |
+          commit_sha=${{ github.sha }}
+          tag=main-${commit_sha:0:7}
+          echo "VERSION=${tag}" >> $GITHUB_ENV
+      - name: Set tag environment # this is for v* tag image build
+        if: startsWith(github.ref, 'refs/tags/v')
+        run: |
+          echo "VERSION=${{ github.ref_name }}" >> $GITHUB_ENV
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v6
+        with:
+          context: ./jobs/async-upload
+          push: true
+          tags: |
+            ${{ env.IMG_REGISTRY }}/${{ env.IMG_ORG }}/${{ env.IMG_NAME }}:${{ env.VERSION }}
+            ${{ env.IMG_REGISTRY }}/${{ env.IMG_ORG }}/${{ env.IMG_NAME }}:latest
+            ${{ env.IMG_REGISTRY }}/${{ env.IMG_ORG }}/${{ env.IMG_NAME }}:main
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          provenance: mode=max # pay attention no secrets are passed as build arguments: https://docs.docker.com/build/ci/github-actions/attestations/#default-provenance:~:text=don%27t%20support%20attestations.-,Warning,-If%20you%27re%20using
+          sbom: true

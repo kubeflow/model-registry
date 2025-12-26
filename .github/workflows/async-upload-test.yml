@@ -15,10 +15,8 @@ on:
     paths:
       - "jobs/async-upload/**"
       - ".github/workflows/**"
-
 permissions: # set contents: read at top-level, per OpenSSF ScoreCard rule TokenPermissionsID
   contents: read
-
 env:
   # Async Job
   JOB_IMG_REGISTRY: ghcr.io
@@ -31,7 +29,6 @@ env:
   IMG_REPO: model-registry/server
   IMG_VERSION: cicd
   PUSH_IMAGE: false
-
 jobs:
   py-test:
     runs-on: ubuntu-latest

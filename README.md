@@ -39,7 +39,7 @@ Model registry provides a central repository for model developers to store and m
  - [contributing](./CONTRIBUTING.md)
  - [Kubeflow community and the Model Registry working group](https://www.kubeflow.org/docs/about/community/)
  - REST API
-   - [OpenAPI definition](https://editor.swagger.io/?url=https://raw.githubusercontent.com/kubeflow/model-registry/main/api/openapi/model-registry.yaml) 
+   - [OpenAPI definition](https://editor.swagger.io/?url=https://raw.githubusercontent.com/kubeflow/model-registry/main/api/openapi/model-registry.yaml)
    - [playground](https://petstore.swagger.io/?url=https://raw.githubusercontent.com/kubeflow/model-registry/main/api/openapi/model-registry.yaml)
  - [license scanning](https://github.com/kubeflow/model-registry/issues/323)
  - [monitoring image quality](https://github.com/kubeflow/model-registry/issues/327)
@@ -159,7 +159,7 @@ The server listens on `localhost` by default, hence the `-n 0.0.0.0` option allo
 There are two `docker-compose` files that make the startup easier:
 
 - `docker-compose.yaml` - Uses pre-built images from registry
-- `docker-compose-local.yaml` - Builds model registry from source  
+- `docker-compose-local.yaml` - Builds model registry from source
 
 Both files support MySQL and PostgreSQL databases using profiles.
 
@@ -171,7 +171,7 @@ The easiest way to run the services is using the provided Makefile targets:
 # Start with MySQL (using pre-built images)
 make compose/up
 
-# Start with PostgreSQL (using pre-built images)  
+# Start with PostgreSQL (using pre-built images)
 make compose/up/postgres
 
 # Start with MySQL (builds from source)
@@ -195,7 +195,7 @@ Alternatively, you can run the compose files directly:
 # Using pre-built images with MySQL
 docker-compose --profile mysql up
 
-# Using pre-built images with PostgreSQL  
+# Using pre-built images with PostgreSQL
 DB_TYPE=postgres docker-compose --profile postgres up
 
 # Building from source with PostgreSQL

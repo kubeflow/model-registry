@@ -28,9 +28,7 @@ logger = logging.getLogger(__name__)
 # Test logging configuration immediately
 logger.info("📝 Logging configuration initialized successfully")
 
-termination_message_path = os.environ.get(
-    "TERMINATION_MESSAGE_PATH", "/dev/termination-log"
-)
+termination_message_path = os.environ.get("TERMINATION_MESSAGE_PATH", "/dev/termination-log")
 
 
 def write_to_termination_message_path(message):

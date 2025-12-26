@@ -1,12 +1,12 @@
-from dataclasses import asdict, fields
+from dataclasses import fields
 import logging
-from typing import Any, Dict
 from model_registry import utils
 from model_registry.utils import OCIParams, S3Params, save_to_oci_registry
 
-from .models import AsyncUploadConfig, DestinationConfig, OCIStorageConfig, S3StorageConfig
+from .models import AsyncUploadConfig, OCIStorageConfig, S3StorageConfig
 
 logger = logging.getLogger(__name__)
+
 
 def _get_upload_params(config: AsyncUploadConfig) -> S3Params | OCIParams:
     """
@@ -42,12 +42,10 @@ def _get_upload_params(config: AsyncUploadConfig) -> S3Params | OCIParams:
             oci_username=destination_config.username,
             oci_password=destination_config.password,
             # Same as the default backend, but with additional args included
-            custom_oci_backend=utils._get_skopeo_backend(
-                push_args=push_args
-            ),
+            custom_oci_backend=utils._get_skopeo_backend(push_args=push_args),
         )
     else:
-        raise ValueError(f"Unsupported destination type")
+        raise ValueError("Unsupported destination type")
 
 
 def perform_upload(config: AsyncUploadConfig) -> str:
@@ -68,7 +66,7 @@ def perform_upload(config: AsyncUploadConfig) -> str:
     elif isinstance(upload_params, OCIParams):
         uri = save_to_oci_registry(
             **{field.name: getattr(upload_params, field.name) for field in fields(upload_params)},
-            model_files_path=model_files_path
+            model_files_path=model_files_path,
         )
     else:
         raise ValueError("Unsupported destination type")

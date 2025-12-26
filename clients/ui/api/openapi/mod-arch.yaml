@@ -227,7 +227,6 @@ paths:
       operationId: getCertificates
       summary: List Available Certificates
       description: Gets lists of Secrets and ConfigMaps suitable for certificate usage.
-
   # New path for role bindings
   /api/v1/settings/role_bindings:
     summary: Path used to manage Role Bindings for Model Registries.
@@ -274,7 +273,6 @@ paths:
       operationId: createRoleBinding
       summary: Create Model Registry Role Binding
       description: Creates a new Role Binding associated with Model Registries.
-
   # New path for specific role binding
   /api/v1/settings/role_bindings/{roleBindingName}:
     summary: Path used to manage a single Role Binding for Model Registries.
@@ -688,7 +686,6 @@ paths:
       - $ref: "#/components/parameters/modelRegistryName"
       - $ref: "#/components/parameters/kubeflowUserId"
       - $ref: "#/components/parameters/modelArtifactId"
-
   # New Model catalog endpoints
   /api/v1/model_catalog/models:
     description: >-
@@ -849,7 +846,6 @@ paths:
         "500":
           $ref: "#/components/responses/InternalServerError"
       operationId: getAllModelArtifacts
-
   /api/v1/model_catalog/sources/{sourceId}/performance_artifacts/{CatalogModelName+}:
     description: >-
       The REST endpoint/path used to list `CatalogModelPerformanceArtifacts`.
@@ -924,7 +920,6 @@ paths:
         "500":
           $ref: "#/components/responses/InternalServerError"
       operationId: getPerformanceArtifacts
-
   # Model catalog settings endpoints
   /api/v1/settings/model_catalog/source_configs:
     summary: Path used to managae Model catalog sources.
@@ -1038,16 +1033,13 @@ paths:
       operationId: deleteModelCatalogSource
       summary: Delete a Model Catalog source
       description: Deletes an existing Model Catalog Source.
-
   /api/v1/settings/model_catalog/source_preview:
     description: >-
       The REST endpoint/path used to preview the effects of catalog source configuration changes.
     post:
       summary: Preview catalog source configuration effects
       description: >-
-        Accepts catalog source definitions and returns a preview of which models would be
-        included or excluded based on the configuration. Supports multipart form uploads
-        for YAML catalogs files.
+        Accepts catalog source definitions and returns a preview of which models would be included or excluded based on the configuration. Supports multipart form uploads for YAML catalogs files.
       tags:
         - ModelCatalogService
       parameters:
@@ -1085,10 +1077,7 @@ paths:
                   format: yaml
                 description:
                   type: string
-                  description:
-                    Should include a file named `source.json`, and may optionally
-                    include a YAML catalog. The name referenced in the source
-                    definition should match uploaded file name.
+                  description: Should include a file named `source.json`, and may optionally include a YAML catalog. The name referenced in the source definition should match uploaded file name.
       responses:
         "200":
           $ref: "#/components/responses/CatalogSourcePreviewResponse"
@@ -1099,7 +1088,6 @@ paths:
         "500":
           $ref: "#/components/responses/InternalServerError"
       operationId: previewCatalogSource
-
 components:
   schemas:
     Config:
@@ -1114,7 +1102,6 @@ components:
         clusterAdmin:
           type: boolean
           example: true
-
     ModelRegistry:
       required:
         - name
@@ -1608,7 +1595,6 @@ components:
             The external id that come from the clients' system. This field is optional.
             If set, it must be unique among all resources within a database instance.
           type: string
-
     ArtifactList:
       description: A list of Artifact entities.
       type: object
@@ -1828,7 +1814,6 @@ components:
           items:
             type: string
           description: List of keys within the Secret/ConfigMap containing certificate data.
-
     # New schema for Certificate list response data
     CertificateListData:
       type: object
@@ -1841,7 +1826,6 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/CertificateItem"
-
     # New schema for RoleBinding (simplified, based on k8s V1RoleBinding)
     RoleBinding:
       type: object
@@ -1886,7 +1870,6 @@ components:
             apiGroup:
               type: string
               example: rbac.authorization.k8s.io
-
     # New schema for RoleBinding list
     RoleBindingList:
       description: List of RoleBinding entities.
@@ -1898,7 +1881,6 @@ components:
           items:
             $ref: "#/components/schemas/RoleBinding"
         # Consider adding pagination fields if needed
-
     # New schema for Model Registry Settings Payload (POST/PATCH)
     ModelRegistrySettingsPayload:
       description: Payload for creating or updating Model Registry settings, potentially including credentials and certificates.
@@ -1971,7 +1953,6 @@ components:
           items:
             type: string
           example: ["dora-user@example.com", "dora-admin@example.com"]
-
     # Model Catalog schema
     CatalogBaseModel:
       type: object
@@ -2329,7 +2310,6 @@ components:
             - items
             - summary
         - $ref: "#/components/schemas/BaseResourceList"
-
     # Schema for catalog settings
     CatalogSourceConfig:
       description: A single catalog source configuration
@@ -2345,7 +2325,6 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/CatalogSourceConfig"
-
     # scehma for model catalog source payload
     CatalogSourceConfigPayload:
       description: Payload for creating the catalog source
@@ -2404,7 +2383,6 @@ components:
           type: string
           description: name of the organization that need to ingest from the source.
           example: org1
-
   responses:
     NotFound:
       content:
@@ -2671,7 +2649,6 @@ components:
                 description: Optional new password for the database connection. If provided, it will update the associated secret.
                 nullable: true # Indicates it's optional
                 example: "new-secure-password"
-
     # New response for Certificate List
     CertificateListResponse:
       content:
@@ -2685,7 +2662,6 @@ components:
               data:
                 $ref: "#/components/schemas/CertificateListData"
       description: A response containing a list of available certificates (Secrets and ConfigMaps).
-
     # New response for RoleBinding List
     RoleBindingListResponse:
       content:
@@ -2699,7 +2675,6 @@ components:
               data:
                 $ref: "#/components/schemas/RoleBindingList"
       description: A response containing a list of `RoleBinding` entities.
-
     # New response for a single RoleBinding
     RoleBindingResponse:
       content:
@@ -2713,7 +2688,6 @@ components:
               data:
                 $ref: "#/components/schemas/RoleBinding"
       description: A response containing a single `RoleBinding` entity.
-
     # Model Catalog response
     CatalogModelArtifactListResponse:
       content:
@@ -2751,7 +2725,6 @@ components:
           schema:
             $ref: "#/components/schemas/CatalogSourcePreviewResult"
       description: A response containing the preview results of catalog source configuration effects.
-
     # Catalog settings response
     CatalogSourceConfigListResponse:
       description: A response containing a list of catalog sources.
@@ -2771,7 +2744,6 @@ components:
               data:
                 $ref: "#/components/schemas/CatalogSourceConfig"
       description: A response containing a catalog source.
-
   parameters:
     registeredmodelId:
       name: registeredmodelId
@@ -3015,7 +2987,6 @@ components:
           - metrics-artifact
       in: query
       required: false
-
   securitySchemes:
     Bearer:
       scheme: bearer

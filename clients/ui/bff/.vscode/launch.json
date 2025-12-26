@@ -39,7 +39,7 @@
         "--dev-mode=false",
         "--dev-mode-port=8080",
         "--standalone-mode=true",
-        "--log-level=info" 
+        "--log-level=info"
       ],
       "preLaunchTask": "make build debug"
     },
@@ -60,7 +60,7 @@
         "--dev-mode=false",
         "--dev-mode-port=8080",
         "--standalone-mode=true",
-        "--log-level=info" 
+        "--log-level=info"
       ],
       "preLaunchTask": "make build debug"
     }

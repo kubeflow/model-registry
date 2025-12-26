@@ -16,4 +16,4 @@ CREATE TABLE IF NOT EXISTS "Artifact" (
 CREATE INDEX idx_artifact_uri ON "Artifact" (uri);
 CREATE INDEX idx_artifact_create_time_since_epoch ON "Artifact" (create_time_since_epoch);
 CREATE INDEX idx_artifact_last_update_time_since_epoch ON "Artifact" (last_update_time_since_epoch);
-CREATE INDEX idx_artifact_external_id ON "Artifact" (external_id); 
+CREATE INDEX idx_artifact_external_id ON "Artifact" (external_id);

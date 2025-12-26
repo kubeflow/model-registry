@@ -5,4 +5,4 @@ CREATE TABLE IF NOT EXISTS "Attribution" (
     artifact_id INTEGER NOT NULL,
     PRIMARY KEY (id),
     UNIQUE (context_id, artifact_id)
-); 
+);

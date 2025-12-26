@@ -302,9 +302,7 @@ paths:
       - $ref: "#/components/parameters/nextPageToken"
   /api/model_catalog/v1alpha1/sources/preview:
     description: >-
-      The REST endpoint/path used to preview a catalog source configuration.
-      This endpoint accepts a catalog source definition and returns a list of
-      models with their inclusion/exclusion status based on the configured filters.
+      The REST endpoint/path used to preview a catalog source configuration. This endpoint accepts a catalog source definition and returns a list of models with their inclusion/exclusion status based on the configured filters.
     post:
       summary: Preview catalog source configuration
       description: |-
@@ -804,7 +802,6 @@ components:
         - ID
         - NAME
       type: string
-
   responses:
     CatalogArtifactListResponse:
       content:
@@ -945,7 +942,6 @@ components:
       description: |-
         A response containing a list of models with their inclusion/exclusion
         status based on the provided catalog source configuration.
-
   parameters:
     filterQuery:
       examples:

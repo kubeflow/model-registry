@@ -52,6 +52,6 @@ kubectl port-forward service/model-registry-service 8085:8080 -n <targeted-names
 kubectl port-forward svc/profiles-kfam 8081:8081 -n kubeflow
 ```
 
-After setting up port forwarding, you can access the UI by navigating to:  
+After setting up port forwarding, you can access the UI by navigating to:
 
 http://localhost:8080

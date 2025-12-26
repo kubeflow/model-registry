@@ -1,6 +1,7 @@
 """
 Unit tests for models.py - specifically testing model validation logic.
 """
+
 import pytest
 from pydantic import ValidationError
 
@@ -36,8 +37,8 @@ class TestModelConfigIntentTypes:
 
         # CreateModelIntent should only have intent_type field
         assert config.intent.intent_type == UploadIntent.create_model
-        assert not hasattr(config.intent, 'model_id')
-        assert not hasattr(config.intent, 'artifact_id')
+        assert not hasattr(config.intent, "model_id")
+        assert not hasattr(config.intent, "artifact_id")
 
     def test_create_version_intent_with_required_ids_succeeds(self):
         """Test that create_version intent succeeds when model ID is provided"""
@@ -76,7 +77,7 @@ class TestModelConfigIntentTypes:
         # UpdateArtifactIntent should only have intent_type and artifact_id fields
         assert config.intent.intent_type == UploadIntent.update_artifact
         assert config.intent.artifact_id == "test-artifact-id"
-        assert not hasattr(config.intent, 'model_id')
+        assert not hasattr(config.intent, "model_id")
 
     def test_update_artifact_intent_missing_artifact_id_fails(self):
         """Test that update_artifact intent fails when artifact ID is missing"""
@@ -93,41 +94,30 @@ class TestModelConfigIntentTypes:
         create_intent = CreateModelIntent()
         config = ModelConfig(intent=create_intent)
         serialized = config.model_dump()
-        assert serialized['intent']['intent_type'] == 'create_model'
+        assert serialized["intent"]["intent_type"] == "create_model"
 
         # Test CreateVersionIntent
         version_intent = CreateVersionIntent(model_id="test-id")
         config = ModelConfig(intent=version_intent)
         serialized = config.model_dump()
-        assert serialized['intent']['intent_type'] == 'create_version'
-        assert serialized['intent']['model_id'] == 'test-id'
+        assert serialized["intent"]["intent_type"] == "create_version"
+        assert serialized["intent"]["model_id"] == "test-id"
 
         # Test UpdateArtifactIntent
         artifact_intent = UpdateArtifactIntent(artifact_id="artifact-id")
         config = ModelConfig(intent=artifact_intent)
         serialized = config.model_dump()
-        assert serialized['intent']['intent_type'] == 'update_artifact'
-        assert serialized['intent']['artifact_id'] == 'artifact-id'
+        assert serialized["intent"]["intent_type"] == "update_artifact"
+        assert serialized["intent"]["artifact_id"] == "artifact-id"
 
 
 class TestMetadataModels:
-
     def test_configmap_metadata_structure(self):
         metadata = ConfigMapMetadata(
-            registered_model=RegisteredModelMetadata(
-                name="test-model",
-                description="A test model",
-                owner="test-user"
-            ),
-            model_version=ModelVersionMetadata(
-                name="1.0.0",
-                description="Initial version",
-                author="test-user"
-            ),
+            registered_model=RegisteredModelMetadata(name="test-model", description="A test model", owner="test-user"),
+            model_version=ModelVersionMetadata(name="1.0.0", description="Initial version", author="test-user"),
             model_artifact=ModelArtifactMetadata(
-                name="test-model-artifact",
-                model_format_name="tensorflow",
-                model_format_version="2.8"
+                name="test-model-artifact", model_format_name="tensorflow", model_format_version="2.8"
             ),
         )
 

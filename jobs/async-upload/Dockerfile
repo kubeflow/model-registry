@@ -24,7 +24,7 @@ RUN python -m pip install -r requirements.txt \
     && echo "Installation completed" \
     && echo "Python path:" && python -c "import sys; print('\\n'.join(sys.path))" \
     && echo "Installed packages:" \
-    && python -m pip list 
+    && python -m pip list
 
 # Copy application source
 COPY . .

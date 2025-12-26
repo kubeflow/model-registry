@@ -1,4 +1,3 @@
-from dataclasses import asdict
 import pytest
 from unittest.mock import Mock, patch
 from model_registry.utils import S3Params, OCIParams
@@ -10,8 +9,9 @@ from job.models import (
     ModelConfig,
     StorageConfig,
     RegistryConfig,
-    UpdateArtifactIntent
+    UpdateArtifactIntent,
 )
+
 
 class TestGetUploadParams:
     """Test cases for _get_upload_params function"""
@@ -24,7 +24,7 @@ class TestGetUploadParams:
                 key="source-key",
                 access_key_id="source-key-id",
                 secret_access_key="source-secret",
-                region="us-west-1"
+                region="us-west-1",
             ),
             destination=S3StorageConfig(
                 bucket="test-bucket",
@@ -32,13 +32,11 @@ class TestGetUploadParams:
                 endpoint="https://s3.amazonaws.com",
                 access_key_id="test-access-key",
                 secret_access_key="test-secret-key",
-                region="us-east-1"
+                region="us-east-1",
             ),
-            model=ModelConfig(
-                intent=UpdateArtifactIntent(artifact_id="test-artifact")
-            ),
+            model=ModelConfig(intent=UpdateArtifactIntent(artifact_id="test-artifact")),
             storage=StorageConfig(path="/tmp/test"),
-            registry=RegistryConfig(server_address="test-server")
+            registry=RegistryConfig(server_address="test-server"),
         )
 
         result = _get_upload_params(config)
@@ -59,7 +57,7 @@ class TestGetUploadParams:
                 key="source-key",
                 access_key_id="source-key-id",
                 secret_access_key="source-secret",
-                region="us-west-1"
+                region="us-west-1",
             ),
             destination=OCIStorageConfig(
                 uri="quay.io/example/test:latest",
@@ -68,13 +66,11 @@ class TestGetUploadParams:
                 password="test-password",
                 base_image="foo-bar:latest",
                 enable_tls_verify=False,
-                credentials_path="/tmp/test-creds"
+                credentials_path="/tmp/test-creds",
             ),
-            model=ModelConfig(
-                intent=UpdateArtifactIntent(artifact_id="123")
-            ),
+            model=ModelConfig(intent=UpdateArtifactIntent(artifact_id="123")),
             storage=StorageConfig(path="/tmp/test-model"),
-            registry=RegistryConfig(server_address="test-server")
+            registry=RegistryConfig(server_address="test-server"),
         )
 
         result = _get_upload_params(config)
@@ -85,14 +81,14 @@ class TestGetUploadParams:
         assert result.dest_dir == "/tmp/test-model"
         assert result.oci_username == "test-user"
         assert result.oci_password == "test-password"
-        
+
     def test_get_upload_params_unsupported_type(self):
         """Test _get_upload_params with unsupported destination type raises ValueError"""
         # Create a mock config with an unsupported destination type
         config = Mock(spec=AsyncUploadConfig)
         config.destination = Mock()
         config.destination.__class__.__name__ = "UnsupportedStorageConfig"
-        
+
         with pytest.raises(ValueError, match="Unsupported destination type"):
             _get_upload_params(config)
 
@@ -104,7 +100,7 @@ class TestGetUploadParams:
                 key="source-key",
                 access_key_id="source-key-id",
                 secret_access_key="source-secret",
-                region="us-west-1"
+                region="us-west-1",
             ),
             destination=OCIStorageConfig(
                 uri="quay.io/example/test:latest",
@@ -113,13 +109,11 @@ class TestGetUploadParams:
                 password=None,
                 base_image="foo-bar:latest",
                 enable_tls_verify=False,
-                credentials_path=None
+                credentials_path=None,
             ),
-            model=ModelConfig(
-                intent=UpdateArtifactIntent(artifact_id="123")
-            ),
+            model=ModelConfig(intent=UpdateArtifactIntent(artifact_id="123")),
             storage=StorageConfig(path="/tmp/test-model"),
-            registry=RegistryConfig(server_address="test-server")
+            registry=RegistryConfig(server_address="test-server"),
         )
 
         result = _get_upload_params(config)
@@ -136,12 +130,10 @@ class TestPerformUpload:
     """Test cases for perform_upload function"""
 
     @patch("job.upload.save_to_oci_registry")
-    def test_perform_upload_oci(
-        self, mock_save_to_oci_registry
-    ):
+    def test_perform_upload_oci(self, mock_save_to_oci_registry):
         """Test perform_upload with OCI destination"""
 
-        mock_save_to_oci_registry.return_value = 'quay.io/example/oci/abc:def'
+        mock_save_to_oci_registry.return_value = "quay.io/example/oci/abc:def"
 
         config = AsyncUploadConfig(
             source=S3StorageConfig(
@@ -149,7 +141,7 @@ class TestPerformUpload:
                 key="source-key",
                 access_key_id="source-key-id",
                 secret_access_key="source-secret",
-                region="us-west-1"
+                region="us-west-1",
             ),
             destination=OCIStorageConfig(
                 uri="quay.io/example/oci",
@@ -158,13 +150,11 @@ class TestPerformUpload:
                 password="oci_pass",
                 base_image="foo-bar:latest",
                 enable_tls_verify=False,
-                credentials_path="/tmp/test-creds"
+                credentials_path="/tmp/test-creds",
             ),
-            model=ModelConfig(
-                intent=UpdateArtifactIntent(artifact_id="123")
-            ),
+            model=ModelConfig(intent=UpdateArtifactIntent(artifact_id="123")),
             storage=StorageConfig(path="/tmp/test-model"),
-            registry=RegistryConfig(server_address="test-server")
+            registry=RegistryConfig(server_address="test-server"),
         )
 
         # Act
@@ -174,9 +164,7 @@ class TestPerformUpload:
         assert result_uri == "quay.io/example/oci/abc:def"
 
     @patch("job.upload._get_upload_params")
-    def test_perform_upload_propagates_exceptions_from_get_upload_params(
-        self, mock_get_upload_params
-    ):
+    def test_perform_upload_propagates_exceptions_from_get_upload_params(self, mock_get_upload_params):
         """Test perform_upload propagates exceptions from _get_upload_params"""
         # Setup
         mock_client = Mock()
@@ -188,20 +176,18 @@ class TestPerformUpload:
                 key="source-key",
                 access_key_id="source-key-id",
                 secret_access_key="source-secret",
-                region="us-west-1"
-            ), 
+                region="us-west-1",
+            ),
             destination=S3StorageConfig(
                 bucket="test-bucket",
                 key="test-key",
                 access_key_id="test-access-key",
                 secret_access_key="test-secret-key",
-                region="us-east-1"
+                region="us-east-1",
             ),
-            model=ModelConfig(
-                intent=UpdateArtifactIntent(artifact_id="test-artifact")
-            ),
+            model=ModelConfig(intent=UpdateArtifactIntent(artifact_id="test-artifact")),
             storage=StorageConfig(path="/tmp/test-model"),
-            registry=RegistryConfig(server_address="test-server")
+            registry=RegistryConfig(server_address="test-server"),
         )
 
         # Execute and verify exception is propagated
@@ -212,14 +198,10 @@ class TestPerformUpload:
         mock_client.upload_artifact_and_register_model.assert_not_called()
 
     @patch("job.upload.save_to_oci_registry")
-    def test_perform_upload_propagates_exceptions_from_client(
-        self, mock_save_to_oci_registry
-    ):
+    def test_perform_upload_propagates_exceptions_from_client(self, mock_save_to_oci_registry):
         """Test perform_upload propagates exceptions from client method"""
         # Setup
-        mock_save_to_oci_registry.side_effect = Exception(
-            "Upload failed"
-        )
+        mock_save_to_oci_registry.side_effect = Exception("Upload failed")
 
         config = AsyncUploadConfig(
             source=S3StorageConfig(
@@ -227,7 +209,7 @@ class TestPerformUpload:
                 key="source-key",
                 access_key_id="source-key-id",
                 secret_access_key="source-secret",
-                region="us-west-1"
+                region="us-west-1",
             ),
             destination=OCIStorageConfig(
                 uri="quay.io/example/oci",
@@ -236,13 +218,11 @@ class TestPerformUpload:
                 password="oci_pass",
                 base_image="foo-bar:latest",
                 enable_tls_verify=False,
-                credentials_path="/tmp/test-creds"
+                credentials_path="/tmp/test-creds",
             ),
-            model=ModelConfig(
-                intent=UpdateArtifactIntent(artifact_id="123")
-            ),
+            model=ModelConfig(intent=UpdateArtifactIntent(artifact_id="123")),
             storage=StorageConfig(path="/tmp/test-model"),
-            registry=RegistryConfig(server_address="test-server")
+            registry=RegistryConfig(server_address="test-server"),
         )
 
         # Execute and verify exception is propagated

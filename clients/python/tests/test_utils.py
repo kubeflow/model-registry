@@ -22,10 +22,7 @@ def test_s3_uri_builder():
         endpoint="test-endpoint",
         region="test-region",
     )
-    assert (
-        s3_uri
-        == "s3://test-bucket/test-path?endpoint=test-endpoint&defaultRegion=test-region"
-    )
+    assert s3_uri == "s3://test-bucket/test-path?endpoint=test-endpoint&defaultRegion=test-region"
 
 
 def test_s3_uri_builder_without_env():
@@ -103,9 +100,7 @@ def test_save_to_oci_registry_with_skopeo(get_temp_dir_with_models, get_temp_dir
     )
 
 
-def test_save_to_oci_registry_with_custom_backend(
-    get_temp_dir_with_models, get_temp_dir, get_mock_custom_oci_backend
-):
+def test_save_to_oci_registry_with_custom_backend(get_temp_dir_with_models, get_temp_dir, get_mock_custom_oci_backend):
     backend = "something_custom"
     # similar to other test
     base_image = "busybox:latest"
@@ -160,9 +155,15 @@ def test_save_to_oci_registry_with_username_password(mocker, tmp_path):
 
     assert mock_skopeo_pull.call_args.args == ("busybox", dest_dir, ["--src-authfile", mocker.ANY])
     assert mock_skopeo_pull.call_args.kwargs == {}
-    assert mock_skopeo_push.call_args.args == (dest_dir, "quay.io/example/example:latest", ["--dest-authfile", mocker.ANY])
+    assert mock_skopeo_push.call_args.args == (
+        dest_dir,
+        "quay.io/example/example:latest",
+        ["--dest-authfile", mocker.ANY],
+    )
     assert mock_skopeo_push.call_args.kwargs == {}
-    assert json.loads(temp_auth_file_info["contents"]) == {"auths": {"quay.io/example/example": {"auth": "dXNlcjMyOnppMzMyNw=="}}}
+    assert json.loads(temp_auth_file_info["contents"]) == {
+        "auths": {"quay.io/example/example": {"auth": "dXNlcjMyOnppMzMyNw=="}}
+    }
     assert not Path(temp_auth_file_info["path"]).exists()
 
 
@@ -176,9 +177,7 @@ def test_save_to_oci_registry_auth_params(
     base_image = "busybox:latest"
     dest_dir, _ = get_temp_dir_with_models
     oci_ref = "localhost:5001/foo/bar:latest"
-    backend, skopeo_pull_mock, skopeo_push_mock, generic_params = (
-        get_mock_skopeo_backend_for_auth
-    )
+    backend, skopeo_pull_mock, skopeo_push_mock, generic_params = get_mock_skopeo_backend_for_auth
 
     assert os.getenv(".dockerconfigjson") is not None  # noqa: SIM112 (no capitalization)
 
@@ -200,9 +199,7 @@ def test_save_to_oci_registry_auth_params(
 
 def test_save_to_oci_registry_backend_not_found():
     backend = "non-existent"
-    with pytest.raises(
-        ValueError, match=f"'{backend}' is not an available backend to use."
-    ) as e:
+    with pytest.raises(ValueError, match=f"'{backend}' is not an available backend to use.") as e:
         save_to_oci_registry("", "", [], "", backend)  # type: ignore[arg-type]
 
     assert f"'{backend}' is not an available backend to use." in str(e.value)

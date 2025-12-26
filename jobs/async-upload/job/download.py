@@ -78,9 +78,7 @@ def download_from_hf(uri: str, dest_dir: str) -> str:
 
     components = uri[len(HF_URI_PREFIX) :].split("/")
     if len(components) != 2:
-        raise ValueError(
-            "URI must contain exactly one '/' separating the repo and model name"
-        )
+        raise ValueError("URI must contain exactly one '/' separating the repo and model name")
 
     repo, model_id = components
     if not repo:
@@ -91,9 +89,7 @@ def download_from_hf(uri: str, dest_dir: str) -> str:
         raise ValueError("Model name cannot be empty")
 
     revision = hash_value if hash_value else None
-    return snapshot_download(
-        repo_id=f"{repo}/{model_name}", revision=revision, local_dir=dest_dir
-    )
+    return snapshot_download(repo_id=f"{repo}/{model_name}", revision=revision, local_dir=dest_dir)
 
 
 def download_from_http(uri: str, dest_dir: str) -> str:

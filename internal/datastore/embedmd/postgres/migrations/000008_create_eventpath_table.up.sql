@@ -6,4 +6,4 @@ CREATE TABLE IF NOT EXISTS "EventPath" (
     step_key TEXT
 );
 
-CREATE INDEX idx_event_path_event_id ON "EventPath" (event_id); 
+CREATE INDEX idx_event_path_event_id ON "EventPath" (event_id);

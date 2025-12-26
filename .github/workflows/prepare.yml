@@ -1,9 +1,6 @@
-on:
-  workflow_call
-
+on: workflow_call
 permissions: # set contents: read at top-level, per OpenSSF ScoreCard rule TokenPermissionsID
   contents: read
-
 jobs:
   prepare:
     runs-on: ubuntu-latest

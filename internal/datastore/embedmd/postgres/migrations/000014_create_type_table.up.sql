@@ -13,4 +13,4 @@ CREATE TABLE IF NOT EXISTS "Type" (
 );
 
 CREATE INDEX idx_type_name ON "Type" (name);
-CREATE INDEX idx_type_external_id ON "Type" (external_id); 
+CREATE INDEX idx_type_external_id ON "Type" (external_id);

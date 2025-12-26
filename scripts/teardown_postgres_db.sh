@@ -11,4 +11,4 @@ fi
 if [ "$(docker ps -aq -f name=model-registry-postgres)" ]; then
     echo "Removing PostgreSQL container"
     docker rm model-registry-postgres
-fi 
+fi

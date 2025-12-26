@@ -4,15 +4,15 @@ metadata:
   name: model-registry
 spec:
   gateways:
-  - kubeflow-gateway
+    - kubeflow-gateway
   hosts:
-  - '*'
+    - '*'
   http:
-  - match:
-    - uri:
-        prefix: /api/model_registry/
-    route:
-    - destination:
-        host: model-registry-service.kubeflow.svc.cluster.local
-        port:
-          number: 8080
+    - match:
+        - uri:
+            prefix: /api/model_registry/
+      route:
+        - destination:
+            host: model-registry-service.kubeflow.svc.cluster.local
+            port:
+              number: 8080

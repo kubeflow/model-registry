@@ -9,4 +9,4 @@ CREATE TABLE IF NOT EXISTS "Event" (
     UNIQUE (artifact_id, execution_id, type)
 );
 
-CREATE INDEX idx_event_execution_id ON "Event" (execution_id); 
+CREATE INDEX idx_event_execution_id ON "Event" (execution_id);

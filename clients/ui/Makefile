@@ -33,7 +33,7 @@ dev-install-dependencies:
 .PHONY: dev-bff
 dev-bff:
 	trap 'exit 0' INT; \
-	cd bff && make run PORT=4000 MOCK_K8S_CLIENT=true MOCK_MR_CLIENT=true MOCK_MR_CATALOG_CLIENT=true DEV_MODE=true DEPLOYMENT_MODE=standalone 
+	cd bff && make run PORT=4000 MOCK_K8S_CLIENT=true MOCK_MR_CLIENT=true MOCK_MR_CATALOG_CLIENT=true DEV_MODE=true DEPLOYMENT_MODE=standalone
 
 .PHONY: dev-frontend
 dev-frontend:
@@ -122,7 +122,7 @@ kind-deployment:
 kubeflow-deployment:
 	./scripts/deploy_kubeflow_cluster.sh
 
-############ Build ############	
+############ Build ############
 .PHONY: frontend-build
 frontend-build:
 	cd frontend && DEPLOYMENT_MODE=kubeflow npm run build:prod
@@ -144,4 +144,4 @@ run-local-mocked: frontend-build-standalone bff-build
 	rm -r ./bff/static-local-run && cp -r ./frontend/dist/ ./bff/static-local-run/ && cd bff && make run STATIC_ASSETS_DIR=./static-local-run MOCK_K8S_CLIENT=true DEV_MODE=true
 
 
-	
+

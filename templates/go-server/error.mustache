@@ -61,7 +61,7 @@ func DefaultErrorHandler(w http.ResponseWriter, _ *http.Request, err error, resu
 		// Handle missing required errors
 		_ = EncodeJSONResponse(ErrorResponse(http.StatusBadRequest, err).Body, func(i int) *int { return &i }(http.StatusUnprocessableEntity),{{#addResponseHeaders}} map[string][]string{},{{/addResponseHeaders}} w)
 		return
-	} 
+	}
 
 	// Handle all other errors
 	_ = EncodeJSONResponse(result.Body, &result.Code,{{#addResponseHeaders}} result.Headers,{{/addResponseHeaders}} w)

@@ -1,4 +1,3 @@
-
 source: test-list-models
 models:
   - name: model-alpha
@@ -37,4 +36,3 @@ models:
     provider: Oracle
     libraryName: scikit-learn
     createTimeSinceEpoch: "1690934400000" # August 2, 2023 00:00:00 GMT
-

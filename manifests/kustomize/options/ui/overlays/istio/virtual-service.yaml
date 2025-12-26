@@ -6,21 +6,21 @@ metadata:
     app: model-registry-ui
 spec:
   gateways:
-  - kubeflow-gateway
+    - kubeflow-gateway
   hosts:
-  - '*'
+    - '*'
   http:
-  - headers:
-      request:
-        add:
-          x-forwarded-prefix: /model-registry
-    match:
-    - uri:
-        prefix: /model-registry/
-    rewrite:
-      uri: /
-    route:
-    - destination:
-        host: model-registry-ui-service.kubeflow.svc.cluster.local
-        port:
-          number: 80
+    - headers:
+        request:
+          add:
+            x-forwarded-prefix: /model-registry
+      match:
+        - uri:
+            prefix: /model-registry/
+      rewrite:
+        uri: /
+      route:
+        - destination:
+            host: model-registry-ui-service.kubeflow.svc.cluster.local
+            port:
+              number: 80

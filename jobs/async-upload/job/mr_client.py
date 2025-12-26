@@ -3,11 +3,7 @@ import logging
 from model_registry import ModelRegistry
 from model_registry.types import ArtifactState
 from job.models import (
-    ModelConfig,
     RegistryConfig,
-    UpdateArtifactIntent,
-    CreateModelIntent,
-    CreateVersionIntent,
     ConfigMapMetadata,
 )
 
@@ -77,8 +73,7 @@ async def validate_create_version_intent(client: ModelRegistry, model_id: str, m
     # Fast-fail check: ensure ModelVersion doesn't already exist
     try:
         existing_mv = await client._api.get_model_version_by_params(
-            registered_model_id=model_id, 
-            name=metadata.model_version.name
+            registered_model_id=model_id, name=metadata.model_version.name
         )
         if existing_mv:
             raise ValueError(
