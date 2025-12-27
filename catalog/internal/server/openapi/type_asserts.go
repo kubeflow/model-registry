@@ -109,6 +109,16 @@ func AssertCatalogArtifactListRequired(obj model.CatalogArtifactList) error {
 	return nil
 }
 
+// AssertCatalogAssetTypeConstraints checks if the values respects the defined constraints
+func AssertCatalogAssetTypeConstraints(obj model.CatalogAssetType) error {
+	return nil
+}
+
+// AssertCatalogAssetTypeRequired checks if the required fields are not zero-ed
+func AssertCatalogAssetTypeRequired(obj model.CatalogAssetType) error {
+	return nil
+}
+
 // AssertCatalogLabelConstraints checks if the values respects the defined constraints
 func AssertCatalogLabelConstraints(obj model.CatalogLabel) error {
 	return nil
@@ -421,6 +431,218 @@ func AssertFilterOptionsListConstraints(obj model.FilterOptionsList) error {
 
 // AssertFilterOptionsListRequired checks if the required fields are not zero-ed
 func AssertFilterOptionsListRequired(obj model.FilterOptionsList) error {
+	return nil
+}
+
+// AssertMcpArtifactConstraints checks if the values respects the defined constraints
+func AssertMcpArtifactConstraints(obj model.McpArtifact) error {
+	return nil
+}
+
+// AssertMcpArtifactRequired checks if the required fields are not zero-ed
+func AssertMcpArtifactRequired(obj model.McpArtifact) error {
+	elements := map[string]interface{}{
+		"uri": obj.Uri,
+	}
+	for name, el := range elements {
+		if isZero := IsZeroValue(el); isZero {
+			return &RequiredError{Field: name}
+		}
+	}
+
+	return nil
+}
+
+// AssertMcpDeploymentModeConstraints checks if the values respects the defined constraints
+func AssertMcpDeploymentModeConstraints(obj model.McpDeploymentMode) error {
+	return nil
+}
+
+// AssertMcpDeploymentModeRequired checks if the required fields are not zero-ed
+func AssertMcpDeploymentModeRequired(obj model.McpDeploymentMode) error {
+	return nil
+}
+
+// AssertMcpEndpointsConstraints checks if the values respects the defined constraints
+func AssertMcpEndpointsConstraints(obj model.McpEndpoints) error {
+	return nil
+}
+
+// AssertMcpEndpointsRequired checks if the required fields are not zero-ed
+func AssertMcpEndpointsRequired(obj model.McpEndpoints) error {
+	return nil
+}
+
+// AssertMcpSecurityIndicatorConstraints checks if the values respects the defined constraints
+func AssertMcpSecurityIndicatorConstraints(obj model.McpSecurityIndicator) error {
+	return nil
+}
+
+// AssertMcpSecurityIndicatorRequired checks if the required fields are not zero-ed
+func AssertMcpSecurityIndicatorRequired(obj model.McpSecurityIndicator) error {
+	return nil
+}
+
+// AssertMcpServerConstraints checks if the values respects the defined constraints
+func AssertMcpServerConstraints(obj model.McpServer) error {
+	for _, el := range obj.Tools {
+		if err := AssertMcpToolConstraints(el); err != nil {
+			return err
+		}
+	}
+	if obj.SecurityIndicators != nil {
+		if err := AssertMcpSecurityIndicatorConstraints(*obj.SecurityIndicators); err != nil {
+			return err
+		}
+	}
+	for _, el := range obj.Artifacts {
+		if err := AssertMcpArtifactConstraints(el); err != nil {
+			return err
+		}
+	}
+	if obj.Endpoints != nil {
+		if err := AssertMcpEndpointsConstraints(*obj.Endpoints); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// AssertMcpServerListConstraints checks if the values respects the defined constraints
+func AssertMcpServerListConstraints(obj model.McpServerList) error {
+	for _, el := range obj.Items {
+		if err := AssertMcpServerConstraints(el); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// AssertMcpServerListRequired checks if the required fields are not zero-ed
+func AssertMcpServerListRequired(obj model.McpServerList) error {
+	elements := map[string]interface{}{
+		"nextPageToken": obj.NextPageToken,
+		"pageSize":      obj.PageSize,
+		"size":          obj.Size,
+		"items":         obj.Items,
+	}
+	for name, el := range elements {
+		if isZero := IsZeroValue(el); isZero {
+			return &RequiredError{Field: name}
+		}
+	}
+
+	for _, el := range obj.Items {
+		if err := AssertMcpServerRequired(el); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// AssertMcpServerRequired checks if the required fields are not zero-ed
+func AssertMcpServerRequired(obj model.McpServer) error {
+	elements := map[string]interface{}{
+		"id":   obj.Id,
+		"name": obj.Name,
+	}
+	for name, el := range elements {
+		if isZero := IsZeroValue(el); isZero {
+			return &RequiredError{Field: name}
+		}
+	}
+
+	for _, el := range obj.Tools {
+		if err := AssertMcpToolRequired(el); err != nil {
+			return err
+		}
+	}
+	if obj.SecurityIndicators != nil {
+		if err := AssertMcpSecurityIndicatorRequired(*obj.SecurityIndicators); err != nil {
+			return err
+		}
+	}
+	for _, el := range obj.Artifacts {
+		if err := AssertMcpArtifactRequired(el); err != nil {
+			return err
+		}
+	}
+	if obj.Endpoints != nil {
+		if err := AssertMcpEndpointsRequired(*obj.Endpoints); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// AssertMcpToolAccessTypeConstraints checks if the values respects the defined constraints
+func AssertMcpToolAccessTypeConstraints(obj model.McpToolAccessType) error {
+	return nil
+}
+
+// AssertMcpToolAccessTypeRequired checks if the required fields are not zero-ed
+func AssertMcpToolAccessTypeRequired(obj model.McpToolAccessType) error {
+	return nil
+}
+
+// AssertMcpToolConstraints checks if the values respects the defined constraints
+func AssertMcpToolConstraints(obj model.McpTool) error {
+	for _, el := range obj.Parameters {
+		if err := AssertMcpToolParameterConstraints(el); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// AssertMcpToolParameterConstraints checks if the values respects the defined constraints
+func AssertMcpToolParameterConstraints(obj model.McpToolParameter) error {
+	return nil
+}
+
+// AssertMcpToolParameterRequired checks if the required fields are not zero-ed
+func AssertMcpToolParameterRequired(obj model.McpToolParameter) error {
+	elements := map[string]interface{}{
+		"name":     obj.Name,
+		"type":     obj.Type,
+		"required": obj.Required,
+	}
+	for name, el := range elements {
+		if isZero := IsZeroValue(el); isZero {
+			return &RequiredError{Field: name}
+		}
+	}
+
+	return nil
+}
+
+// AssertMcpToolRequired checks if the required fields are not zero-ed
+func AssertMcpToolRequired(obj model.McpTool) error {
+	elements := map[string]interface{}{
+		"name":       obj.Name,
+		"accessType": obj.AccessType,
+	}
+	for name, el := range elements {
+		if isZero := IsZeroValue(el); isZero {
+			return &RequiredError{Field: name}
+		}
+	}
+
+	for _, el := range obj.Parameters {
+		if err := AssertMcpToolParameterRequired(el); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// AssertMcpTransportTypeConstraints checks if the values respects the defined constraints
+func AssertMcpTransportTypeConstraints(obj model.McpTransportType) error {
+	return nil
+}
+
+// AssertMcpTransportTypeRequired checks if the required fields are not zero-ed
+func AssertMcpTransportTypeRequired(obj model.McpTransportType) error {
 	return nil
 }
 

@@ -12,6 +12,8 @@ type CatalogRestEntityType string
 const (
 	RestEntityCatalogModel    CatalogRestEntityType = "CatalogModel"
 	RestEntityCatalogArtifact CatalogRestEntityType = "CatalogArtifact"
+	RestEntityMcpServer       CatalogRestEntityType = "McpServer"
+	RestEntityMcpServerTool   CatalogRestEntityType = "McpServerTool"
 )
 
 // catalogEntityMappings implements EntityMappingFunctions for the catalog package
@@ -67,6 +69,20 @@ func (c *catalogEntityMappings) GetPropertyDefinitionForRestEntity(restEntityTyp
 		}
 	}
 
+	if restEntityType == filter.RestEntityType(RestEntityMcpServer) {
+		if _, isWellKnown := mcpServerProperties[propertyName]; isWellKnown {
+			// Use the well-known property definition
+			return mcpServerProperties[propertyName]
+		}
+	}
+
+	if restEntityType == filter.RestEntityType(RestEntityMcpServerTool) {
+		if _, isWellKnown := mcpServerToolProperties[propertyName]; isWellKnown {
+			// Use the well-known property definition
+			return mcpServerToolProperties[propertyName]
+		}
+	}
+
 	// Not a well-known property for this entity type, treat as custom
 	return filter.PropertyDefinition{
 		Location:  filter.Custom,
@@ -118,4 +134,52 @@ var catalogArtifactProperties = map[string]filter.PropertyDefinition{
 
 	// Artifact type (stored in type_id but we can filter by string representation)
 	"artifactType": {Location: filter.PropertyTable, ValueType: filter.StringValueType, Column: "artifactType"},
+}
+
+// mcpServerProperties defines the allowed properties for McpServer entities.
+// This follows the same pattern as catalogModelProperties - only properties that are:
+// 1. Entity table columns (required for core identity)
+// 2. Key filterable dimensions that need explicit type handling (arrays, bools)
+// 3. Common properties shared with CatalogModel for consistency
+// All other properties can be queried via custom property fallback.
+var mcpServerProperties = map[string]filter.PropertyDefinition{
+	// Common Context properties (Entity Table - required)
+	"id":                       {Location: filter.EntityTable, ValueType: filter.IntValueType, Column: "id"},
+	"name":                     {Location: filter.EntityTable, ValueType: filter.StringValueType, Column: "name"},
+	"externalId":               {Location: filter.EntityTable, ValueType: filter.StringValueType, Column: "external_id"},
+	"createTimeSinceEpoch":     {Location: filter.EntityTable, ValueType: filter.IntValueType, Column: "create_time_since_epoch"},
+	"lastUpdateTimeSinceEpoch": {Location: filter.EntityTable, ValueType: filter.IntValueType, Column: "last_update_time_since_epoch"},
+
+	// Core properties matching CatalogModel pattern
+	"source_id":    {Location: filter.PropertyTable, ValueType: filter.StringValueType, Column: "source_id"},
+	"description":  {Location: filter.PropertyTable, ValueType: filter.StringValueType, Column: "description"},
+	"provider":     {Location: filter.PropertyTable, ValueType: filter.StringValueType, Column: "provider"},
+	"license":      {Location: filter.PropertyTable, ValueType: filter.StringValueType, Column: "license"},
+	"license_link": {Location: filter.PropertyTable, ValueType: filter.StringValueType, Column: "license_link"},
+	"logo":         {Location: filter.PropertyTable, ValueType: filter.StringValueType, Column: "logo"},
+	"readme":       {Location: filter.PropertyTable, ValueType: filter.StringValueType, Column: "readme"},
+
+	// MCP-specific filterable dimensions (need explicit type for arrays)
+	"tags":           {Location: filter.PropertyTable, ValueType: filter.ArrayValueType, Column: "tags"},
+	"transports":     {Location: filter.PropertyTable, ValueType: filter.ArrayValueType, Column: "transports"},
+	"deploymentMode": {Location: filter.PropertyTable, ValueType: filter.StringValueType, Column: "deploymentMode"},
+
+	// Security indicators (need explicit type for booleans)
+	"verifiedSource":  {Location: filter.PropertyTable, ValueType: filter.BoolValueType, Column: "verifiedSource"},
+	"secureEndpoint":  {Location: filter.PropertyTable, ValueType: filter.BoolValueType, Column: "secureEndpoint"},
+	"sast":            {Location: filter.PropertyTable, ValueType: filter.BoolValueType, Column: "sast"},
+	"readOnlyTools":   {Location: filter.PropertyTable, ValueType: filter.BoolValueType, Column: "readOnlyTools"},
+}
+
+// mcpServerToolProperties defines the allowed properties for McpServerTool entities
+var mcpServerToolProperties = map[string]filter.PropertyDefinition{
+	// Common Artifact properties
+	"id":                       {Location: filter.EntityTable, ValueType: filter.IntValueType, Column: "id"},
+	"name":                     {Location: filter.EntityTable, ValueType: filter.StringValueType, Column: "name"},
+	"createTimeSinceEpoch":     {Location: filter.EntityTable, ValueType: filter.IntValueType, Column: "create_time_since_epoch"},
+	"lastUpdateTimeSinceEpoch": {Location: filter.EntityTable, ValueType: filter.IntValueType, Column: "last_update_time_since_epoch"},
+
+	// McpServerTool-specific properties stored in ArtifactProperty table
+	"description": {Location: filter.PropertyTable, ValueType: filter.StringValueType, Column: "description"},
+	"accessType":  {Location: filter.PropertyTable, ValueType: filter.StringValueType, Column: "accessType"},
 }

@@ -61,7 +61,9 @@ export const getCatalogFilterOptionList =
 export const getListSources =
   (hostPath: string, queryParams: Record<string, unknown> = {}) =>
   (opts: APIOptions): Promise<CatalogSourceList> =>
-    handleRestFailures(restGET(hostPath, '/sources', queryParams, opts)).then((response) => {
+    handleRestFailures(
+      restGET(hostPath, '/sources', { ...queryParams, assetType: 'models' }, opts),
+    ).then((response) => {
       if (isModArchResponse<CatalogSourceList>(response)) {
         return response.data;
       }

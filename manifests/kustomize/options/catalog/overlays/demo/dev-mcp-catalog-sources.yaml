@@ -1,0 +1,22 @@
+catalogs:
+  - name: "Organization MCP Servers"
+    id: organization_mcp_servers
+    type: yaml
+    enabled: true
+    properties:
+      yamlCatalogPath: dev-organization-mcp-servers.yaml
+    labels:
+      - Organization MCP
+    includedServers:
+      - "github-*"
+      - "slack-*"
+      - "jira-*"
+  - name: "Community and Custom MCP Servers"
+    id: community_mcp_servers
+    type: yaml
+    enabled: true
+    properties:
+      yamlCatalogPath: dev-community-mcp-servers.yaml
+    excludedServers:
+      - "*-deprecated"
+      - "*-experimental"

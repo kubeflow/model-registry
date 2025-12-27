@@ -578,6 +578,7 @@ type ApiFindSourcesRequest struct {
 	ctx           context.Context
 	ApiService    *ModelCatalogServiceAPIService
 	name          *string
+	assetType     *CatalogAssetType
 	pageSize      *string
 	orderBy       *OrderByField
 	sortOrder     *SortOrder
@@ -587,6 +588,12 @@ type ApiFindSourcesRequest struct {
 // Name of entity to search.
 func (r ApiFindSourcesRequest) Name(name string) ApiFindSourcesRequest {
 	r.name = &name
+	return r
+}
+
+// Filter sources by asset type. - &#x60;models&#x60;: Sources containing AI/ML models - &#x60;mcp_servers&#x60;: Sources containing MCP (Model Context Protocol) servers
+func (r ApiFindSourcesRequest) AssetType(assetType CatalogAssetType) ApiFindSourcesRequest {
+	r.assetType = &assetType
 	return r
 }
 
@@ -657,6 +664,13 @@ func (a *ModelCatalogServiceAPIService) FindSourcesExecute(r ApiFindSourcesReque
 
 	if r.name != nil {
 		parameterAddToHeaderOrQuery(localVarQueryParams, "name", r.name, "form", "")
+	}
+	if r.assetType != nil {
+		parameterAddToHeaderOrQuery(localVarQueryParams, "assetType", r.assetType, "form", "")
+	} else {
+		var defaultValue CatalogAssetType = "models"
+		parameterAddToHeaderOrQuery(localVarQueryParams, "assetType", defaultValue, "form", "")
+		r.assetType = &defaultValue
 	}
 	if r.pageSize != nil {
 		parameterAddToHeaderOrQuery(localVarQueryParams, "pageSize", r.pageSize, "form", "")

@@ -74,6 +74,14 @@ const (
 	ModelCatalogSettingsSourceConfigListPath = ModelCatalogSettingsPathPrefix + "/source_configs"
 	ModelCatalogSettingsSourceConfigPath     = ModelCatalogSettingsSourceConfigListPath + "/:" + CatalogSourceId
 	CatalogSourcePreviewPath                 = ModelCatalogSettingsPathPrefix + "/source_preview"
+
+	// MCP catalog
+	McpServerId              = "server_id"
+	McpCatalogPathPrefix     = ApiPathPrefix + "/mcp_catalog"
+	McpServerListPath        = McpCatalogPathPrefix + "/mcp_servers"
+	McpServerPath            = McpServerListPath + "/server/:" + McpServerId
+	McpFilterOptionsListPath = McpServerListPath + "/filter_options"
+	McpSourceListPath        = McpCatalogPathPrefix + "/sources"
 )
 
 type App struct {
@@ -238,6 +246,14 @@ func (app *App) Routes() http.Handler {
 	apiRouter.GET(CatalogSourceModelCatchAllPath, app.AttachNamespace(app.AttachModelCatalogRESTClient(app.GetCatalogSourceModelHandler)))
 	apiRouter.GET(CatalogSourceModelArtifactsCatchAll, app.AttachNamespace(app.AttachModelCatalogRESTClient(app.GetCatalogSourceModelArtifactsHandler)))
 	apiRouter.GET(CatalogModelPerformanceArtifacts, app.AttachNamespace(app.AttachModelCatalogRESTClient(app.GetCatalogModelPerformanceArtifactsHandler)))
+
+	// MCP catalog routes
+	// Note: static paths (filter_options) must be registered before wildcard paths (:server_id)
+	apiRouter.GET(McpFilterOptionsListPath, app.AttachNamespace(app.AttachModelCatalogRESTClient(app.GetMcpFilterOptionsHandler)))
+	apiRouter.GET(McpServerListPath, app.AttachNamespace(app.AttachModelCatalogRESTClient(app.GetAllMcpServersHandler)))
+	apiRouter.GET(McpServerPath, app.AttachNamespace(app.AttachModelCatalogRESTClient(app.GetMcpServerHandler)))
+	apiRouter.GET(McpSourceListPath, app.AttachNamespace(app.AttachModelCatalogRESTClient(app.GetAllMcpSourcesHandler)))
+
 	// Kubernetes routes
 	apiRouter.GET(UserPath, app.UserHandler)
 	apiRouter.GET(ModelRegistryListPath, app.AttachNamespace(app.RequireListServiceAccessInNamespace(app.GetAllModelRegistriesHandler)))

@@ -1,6 +1,37 @@
 import typing as t
+import re
 from pathlib import Path
 from textwrap import dedent
+
+# Fields that are pointers in the model but referenced without dereferencing in assertions
+# Format: (field_name, assertion_func_name)
+POINTER_FIELD_FIXES = [
+    # McpServer fields that are pointers
+    ('obj.SecurityIndicators', 'AssertMcpSecurityIndicatorConstraints'),
+    ('obj.SecurityIndicators', 'AssertMcpSecurityIndicatorRequired'),
+    ('obj.Endpoints', 'AssertMcpEndpointsConstraints'),
+    ('obj.Endpoints', 'AssertMcpEndpointsRequired'),
+]
+
+def fix_pointer_dereferences(func: str) -> str:
+    """Fix pointer dereference issues in assertion functions.
+
+    When a field is a pointer type but passed to a function expecting a non-pointer,
+    we need to wrap it with nil check and dereference.
+    """
+    result = func
+
+    for field_name, func_name in POINTER_FIELD_FIXES:
+        # Find patterns like:
+        # \tif err := AssertMcpSecurityIndicatorConstraints(obj.SecurityIndicators); err != nil {
+        # \t\treturn err
+        # \t}
+        old_pattern = f'\tif err := {func_name}({field_name}); err != nil {{\n\t\treturn err\n\t}}'
+        new_pattern = f'\tif {field_name} != nil {{\n\t\tif err := {func_name}(*{field_name}); err != nil {{\n\t\t\treturn err\n\t\t}}\n\t}}'
+
+        result = result.replace(old_pattern, new_pattern)
+
+    return result
 
 def get_funcs(models: t.Iterable[Path]) -> t.Iterator[str]:
     for path in models:
@@ -31,7 +62,10 @@ def get_funcs(models: t.Iterable[Path]) -> t.Iterator[str]:
                     in_func = True
                 elif line.startswith("}") and in_func:
                     in_func = False
-                    yield "\n".join(buf)
+                    func_str = "\n".join(buf)
+                    # Apply pointer dereference fixes
+                    func_str = fix_pointer_dereferences(func_str)
+                    yield func_str
                     buf.clear()
         path.unlink()
 

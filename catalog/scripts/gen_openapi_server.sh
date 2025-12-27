@@ -35,6 +35,7 @@ py-re-replace 0 'model\.\[\]ArtifactType2QueryParam' '[]model.ArtifactTypeQueryP
 
 py-re-replace 1 'github\.com/kubeflow/model-registry/pkg/openapi' 'github.com/kubeflow/model-registry/catalog/pkg/openapi' \
     "$PROJECT_ROOT"/internal/server/openapi/api_model_catalog_service.go \
+    "$PROJECT_ROOT"/internal/server/openapi/api_mcp_catalog_service.go \
     "$PROJECT_ROOT"/internal/server/openapi/api.go
 
 py-re-replace 1 '\{model_name\+\}|model_name\+' '*' "$PROJECT_ROOT"/internal/server/openapi/api_model_catalog_service.go

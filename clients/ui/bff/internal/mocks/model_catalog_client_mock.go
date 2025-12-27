@@ -219,3 +219,94 @@ func (m *ModelCatalogClientMock) CreateCatalogSourcePreview(client httpclient.HT
 
 	return &catalogSourcePreview, nil
 }
+
+func (m *ModelCatalogClientMock) GetAllMcpServers(client httpclient.HTTPClientInterface, pageValues url.Values) (*models.McpServerList, error) {
+	allServers := GetMcpServerMocks()
+
+	pageSizeStr := pageValues.Get("pageSize")
+	pageSize := 10 // default
+	if pageSizeStr != "" {
+		if parsed, err := strconv.Atoi(pageSizeStr); err == nil && parsed > 0 {
+			pageSize = parsed
+		}
+	}
+
+	pageTokenStr := pageValues.Get("nextPageToken")
+	startIndex := 0
+	if pageTokenStr != "" {
+		if parsed, err := strconv.Atoi(pageTokenStr); err == nil && parsed > 0 {
+			startIndex = parsed
+		}
+	}
+
+	totalSize := len(allServers)
+	endIndex := startIndex + pageSize
+	if endIndex > totalSize {
+		endIndex = totalSize
+	}
+
+	var pagedServers []models.McpServer
+	if startIndex < totalSize {
+		pagedServers = allServers[startIndex:endIndex]
+	} else {
+		pagedServers = []models.McpServer{}
+	}
+
+	var nextPageToken string
+	if endIndex < totalSize {
+		nextPageToken = strconv.Itoa(endIndex)
+	}
+
+	size := len(pagedServers)
+	if size > math.MaxInt32 {
+		size = math.MaxInt32
+	}
+	ps := pageSize
+	if ps > math.MaxInt32 {
+		ps = math.MaxInt32
+	}
+
+	mcpServerList := models.McpServerList{
+		Items:         pagedServers,
+		Size:          int32(size),
+		PageSize:      int32(ps),
+		NextPageToken: nextPageToken,
+	}
+
+	return &mcpServerList, nil
+}
+
+func (m *ModelCatalogClientMock) GetMcpServer(client httpclient.HTTPClientInterface, serverId string) (*models.McpServer, error) {
+	allServers := GetMcpServerMocks()
+
+	for _, server := range allServers {
+		if server.ID == serverId {
+			return &server, nil
+		}
+	}
+
+	return nil, fmt.Errorf("MCP server not found for serverId: %s", serverId)
+}
+
+func (m *ModelCatalogClientMock) GetMcpFilterOptions(client httpclient.HTTPClientInterface) (*models.FilterOptionsList, error) {
+	filterOptions := GetMcpFilterOptionsListMock()
+	return &filterOptions, nil
+}
+
+func (m *ModelCatalogClientMock) GetAllMcpSources(client httpclient.HTTPClientInterface, pageValues url.Values) (*models.McpCatalogSourceList, error) {
+	allSources := GetMcpCatalogSourceMocks()
+
+	size := len(allSources)
+	if size > math.MaxInt32 {
+		size = math.MaxInt32
+	}
+
+	mcpSourceList := models.McpCatalogSourceList{
+		Items:         allSources,
+		Size:          int32(size),
+		PageSize:      int32(10),
+		NextPageToken: "",
+	}
+
+	return &mcpSourceList, nil
+}

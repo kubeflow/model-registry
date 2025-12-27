@@ -384,6 +384,24 @@ func (p *yamlModelProvider) emit(ctx context.Context, catalog *yamlCatalog, out 
 }
 
 func newYamlModelProvider(ctx context.Context, source *Source, reldir string) (<-chan ModelProviderRecord, error) {
+	// First, detect the asset type from the YAML content
+	assetType, err := DetectYamlAssetType(source, reldir)
+	if err != nil {
+		return nil, err
+	}
+
+	// Only process this source if it contains models
+	if assetType != AssetTypeModels {
+		glog.V(2).Infof("Skipping source %s in model provider: detected asset type is %s", source.Id, assetType)
+		// Return an empty channel that closes immediately
+		ch := make(chan ModelProviderRecord)
+		close(ch)
+		return ch, nil
+	}
+
+	// Store the detected asset type for API responses
+	source.DetectedAssetType = assetType
+
 	p := &yamlModelProvider{}
 
 	path, exists := source.Properties[yamlCatalogPathKey].(string)

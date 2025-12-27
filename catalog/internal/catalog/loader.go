@@ -79,6 +79,20 @@ type Source struct {
 	// This is set automatically during loading and used for resolving relative paths.
 	// It is not read from YAML; it's set programmatically.
 	Origin string `json:"-" yaml:"-"`
+
+	// DetectedAssetType is the type of assets contained in this source.
+	// It is detected from the YAML content (models: or mcp_servers: key) and not read from YAML.
+	DetectedAssetType AssetType `json:"-" yaml:"-"`
+}
+
+// GetId returns the source ID. Implements common.SourceProperties interface.
+func (s *Source) GetId() string {
+	return s.Id
+}
+
+// GetProperties returns the source properties map. Implements common.SourceProperties interface.
+func (s *Source) GetProperties() map[string]any {
+	return s.Properties
 }
 
 type Loader struct {

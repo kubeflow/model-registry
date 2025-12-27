@@ -20,6 +20,14 @@ configMapGenerator:
   name: model-catalog-demo-perf-data
   options:
     disableNameSuffixHash: true
+- behavior: create
+  files:
+  - mcp-sources.yaml=dev-mcp-catalog-sources.yaml
+  - dev-organization-mcp-servers.yaml=dev-organization-mcp-servers.yaml
+  - dev-community-mcp-servers.yaml=dev-community-mcp-servers.yaml
+  name: mcp-catalog-sources
+  options:
+    disableNameSuffixHash: true
 
 patches:
 - target:
@@ -40,13 +48,27 @@ patches:
         name: perf-data
         emptyDir: {}
     - op: add
+      path: /spec/template/spec/volumes/2
+      value:
+        name: mcp-catalog-sources
+        configMap:
+          name: mcp-catalog-sources
+    - op: add
       path: /spec/template/spec/containers/0/volumeMounts/0
       value:
         name: perf-data
         mountPath: /perf-data
     - op: add
+      path: /spec/template/spec/containers/0/volumeMounts/1
+      value:
+        name: mcp-catalog-sources
+        mountPath: /mcp-catalog
+    - op: add
       path: /spec/template/spec/containers/0/args/0
       value: "--performance-metrics=/perf-data"
+    - op: add
+      path: /spec/template/spec/containers/0/args/1
+      value: "--mcp-catalogs-path=/mcp-catalog/mcp-sources.yaml"
     - op: add
       path: /spec/template/spec/initContainers
       value:
@@ -63,6 +85,8 @@ patches:
               mountPath: /demo-perf-data
           securityContext:
             allowPrivilegeEscalation: false
+            runAsNonRoot: false
+            runAsUser: 0
             capabilities:
               drop:
                 - ALL

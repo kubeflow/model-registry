@@ -7,7 +7,9 @@ import ModelRegistrySettingsRoutes from './pages/settings/ModelRegistrySettingsR
 import ModelRegistryRoutes from './pages/modelRegistry/ModelRegistryRoutes';
 import ModelCatalogRoutes from './pages/modelCatalog/ModelCatalogRoutes';
 import ModelCatalogSettingsRoutes from './pages/modelCatalogSettings/ModelCatalogSettingsRoutes';
+import McpCatalogRoutes from './pages/mcpCatalog/McpCatalogRoutes';
 import { modelCatalogUrl } from './routes/modelCatalog/catalogModel';
+import { mcpCatalogUrl } from './routes/mcpCatalog/mcpCatalog';
 import {
   catalogSettingsUrl,
   CATALOG_SETTINGS_PAGE_TITLE,
@@ -53,11 +55,15 @@ export const useNavData = (): NavDataItem[] => {
     },
   ];
 
-  // Only show Model Catalog in Standalone or Federated mode
+  // Only show Model Catalog and MCP Catalog in Standalone or Federated mode
   if (isStandalone || isFederated) {
     baseNavItems.push({
       label: 'Model Catalog',
       path: modelCatalogUrl(),
+    });
+    baseNavItems.push({
+      label: 'MCP Catalog',
+      path: mcpCatalogUrl(),
     });
   }
 
@@ -78,6 +84,7 @@ const AppRoutes: React.FC = () => {
       {(isStandalone || isFederated) && (
         <>
           <Route path={`${modelCatalogUrl()}/*`} element={<ModelCatalogRoutes />} />
+          <Route path={`${mcpCatalogUrl()}/*`} element={<McpCatalogRoutes />} />
           <Route path={`${catalogSettingsUrl()}/*`} element={<ModelCatalogSettingsRoutes />} />
         </>
       )}

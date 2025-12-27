@@ -43,6 +43,7 @@ func TestLoadCatalogSources(t *testing.T) {
 				&MockCatalogMetricsArtifactRepository{},
 				&MockCatalogSourceRepository{},
 				&MockPropertyOptionsRepository{},
+				nil, // McpServerRepository
 			)
 			loader := NewLoader(services, []string{tt.args.catalogsPath})
 			err := loader.Start(context.Background())
@@ -65,6 +66,7 @@ func TestLoadCatalogSources(t *testing.T) {
 func TestLoadCatalogSourcesEnabledDisabled(t *testing.T) {
 	trueValue := true
 	falseValue := false
+	modelsAssetType := apimodels.CATALOGASSETTYPE_MODELS
 	type args struct {
 		catalogsPath string
 	}
@@ -79,16 +81,18 @@ func TestLoadCatalogSourcesEnabledDisabled(t *testing.T) {
 			args: args{catalogsPath: "testdata/test-catalog-sources.yaml"},
 			want: map[string]apimodels.CatalogSource{
 				"catalog1": {
-					Id:      "catalog1",
-					Name:    "Catalog 1",
-					Enabled: &trueValue,
-					Labels:  []string{},
+					Id:        "catalog1",
+					Name:      "Catalog 1",
+					Enabled:   &trueValue,
+					Labels:    []string{},
+					AssetType: &modelsAssetType,
 				},
 				"catalog2": {
-					Id:      "catalog2",
-					Name:    "Catalog 2",
-					Enabled: &falseValue,
-					Labels:  []string{},
+					Id:        "catalog2",
+					Name:      "Catalog 2",
+					Enabled:   &falseValue,
+					Labels:    []string{},
+					AssetType: &modelsAssetType,
 				},
 			},
 			wantErr: false,
@@ -104,6 +108,7 @@ func TestLoadCatalogSourcesEnabledDisabled(t *testing.T) {
 				&MockCatalogMetricsArtifactRepository{},
 				&MockCatalogSourceRepository{},
 				&MockPropertyOptionsRepository{},
+				nil, // McpServerRepository
 			)
 			loader := NewLoader(services, []string{tt.args.catalogsPath})
 			err := loader.Start(context.Background())
@@ -131,6 +136,7 @@ func TestLabelsValidation(t *testing.T) {
 		&MockCatalogMetricsArtifactRepository{},
 		&MockCatalogSourceRepository{},
 		&MockPropertyOptionsRepository{},
+		nil, // McpServerRepository
 	)
 
 	tests := []struct {
@@ -262,6 +268,7 @@ func TestCatalogSourceLabelsDefaultToEmptySlice(t *testing.T) {
 				&MockCatalogMetricsArtifactRepository{},
 				&MockCatalogSourceRepository{},
 				&MockPropertyOptionsRepository{},
+				nil, // McpServerRepository
 			)
 			loader := NewLoader(services, []string{tt.args.catalogsPath})
 			err := loader.Start(context.Background())
@@ -301,6 +308,7 @@ func TestLoadCatalogSourcesWithMockRepositories(t *testing.T) {
 		mockMetricsArtifactRepo,
 		&MockCatalogSourceRepository{},
 		&MockPropertyOptionsRepository{},
+		nil, // McpServerRepository
 	)
 
 	// Register a test provider that will create some test data
@@ -431,6 +439,7 @@ func TestLoadCatalogSourcesWithRepositoryErrors(t *testing.T) {
 		mockMetricsArtifactRepo,
 		&MockCatalogSourceRepository{},
 		&MockPropertyOptionsRepository{},
+		nil, // McpServerRepository
 	)
 
 	// Register a test provider
@@ -509,6 +518,7 @@ func TestLoadCatalogSourcesWithNilEnabled(t *testing.T) {
 		mockMetricsArtifactRepo,
 		&MockCatalogSourceRepository{},
 		&MockPropertyOptionsRepository{},
+		nil, // McpServerRepository
 	)
 
 	// Register a test provider
@@ -1015,6 +1025,7 @@ func TestAPIProviderGetPerformanceArtifacts(t *testing.T) {
 		&MockCatalogMetricsArtifactRepository{},
 		&MockCatalogSourceRepository{},
 		&MockPropertyOptionsRepository{},
+		nil, // McpServerRepository
 	)
 	provider := NewDBCatalog(services, nil)
 
@@ -1043,6 +1054,7 @@ func TestAPIProviderInterface(t *testing.T) {
 		&MockCatalogMetricsArtifactRepository{},
 		&MockCatalogSourceRepository{},
 		&MockPropertyOptionsRepository{},
+		nil, // McpServerRepository
 	)
 	var provider APIProvider = NewDBCatalog(services, nil)
 

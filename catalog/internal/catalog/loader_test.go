@@ -105,6 +105,7 @@ func TestRemoveModelsFromMissingSources(t *testing.T) {
 				&MockCatalogMetricsArtifactRepository{},
 				&MockCatalogSourceRepository{},
 				&MockPropertyOptionsRepository{},
+				nil, // McpServerRepository
 			)
 
 			// Create loader and populate sources
