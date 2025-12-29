@@ -34,19 +34,22 @@ type LatencyFilterState = {
   value: number;
 };
 
-type MaxLatencyFilterProps = {
+type LatencyFilterProps = {
   performanceArtifacts: CatalogPerformanceMetricsArtifact[];
 };
 
-const METRIC_OPTIONS: { value: LatencyMetric; label: LatencyMetric }[] = Object.values(
-  LatencyMetric,
-).map((metric) => ({ value: metric, label: metric }));
+// TPS is excluded from filter options for now (will be renamed/reworked in a future ticket)
+const METRIC_OPTIONS: { value: LatencyMetric; label: LatencyMetric }[] = [
+  LatencyMetric.E2E,
+  LatencyMetric.TTFT,
+  LatencyMetric.ITL,
+].map((metric) => ({ value: metric, label: metric }));
 
 const PERCENTILE_OPTIONS: { value: LatencyPercentile; label: LatencyPercentile }[] = Object.values(
   LatencyPercentile,
 ).map((percentile) => ({ value: percentile, label: percentile }));
 
-const MaxLatencyFilter: React.FC<MaxLatencyFilterProps> = ({ performanceArtifacts }) => {
+const LatencyFilter: React.FC<LatencyFilterProps> = ({ performanceArtifacts }) => {
   const { filterData, setFilterData } = React.useContext(ModelCatalogContext);
   const [isOpen, setIsOpen] = React.useState(false);
   const [isMetricOpen, setIsMetricOpen] = React.useState(false);
@@ -126,12 +129,12 @@ const MaxLatencyFilter: React.FC<MaxLatencyFilterProps> = ({ performanceArtifact
       // When there's an active filter, show the full specification with actual selected values
       return (
         <>
-          <strong>Max latency:</strong> {currentActiveFilter.metric} |{' '}
-          {currentActiveFilter.percentile} | {currentActiveFilter.value}ms
+          <strong>Latency:</strong> {currentActiveFilter.metric} | {currentActiveFilter.percentile}{' '}
+          | {currentActiveFilter.value}ms
         </>
       );
     }
-    return 'Max latency';
+    return 'Latency';
   };
 
   const handleApplyFilter = () => {
@@ -174,25 +177,6 @@ const MaxLatencyFilter: React.FC<MaxLatencyFilterProps> = ({ performanceArtifact
       flexWrap={{ default: 'wrap' }}
       style={{ width: '550px', padding: '16px' }}
     >
-      <FlexItem>
-        <Flex alignItems={{ default: 'alignItemsCenter' }} spaceItems={{ default: 'spaceItemsXs' }}>
-          <FlexItem>Max latency</FlexItem>
-          <FlexItem>
-            <Popover
-              bodyContent="Set your maximum acceptable latency. Hardware configurations that respond slower than this value will be hidden."
-              appendTo={() => document.body}
-            >
-              <Button
-                variant="plain"
-                aria-label="More info for max latency"
-                className="pf-v6-u-p-xs"
-                icon={<HelpIcon />}
-              />
-            </Popover>
-          </FlexItem>
-        </Flex>
-      </FlexItem>
-
       {/* Metric and Percentile on the same line */}
       <FlexItem>
         <Flex spaceItems={{ default: 'spaceItemsMd' }}>
@@ -243,53 +227,86 @@ const MaxLatencyFilter: React.FC<MaxLatencyFilterProps> = ({ performanceArtifact
             </FormGroup>
           </FlexItem>
 
-          <FlexItem flex={{ default: 'flex_1' }}>
-            <FormGroup>
-              <Select
-                isOpen={isPercentileOpen}
-                selected={localFilter.percentile}
-                onClick={(e) => e.stopPropagation()}
-                onSelect={(_, value) => {
-                  if (
-                    typeof value === 'string' &&
-                    PERCENTILE_OPTIONS.some((opt) => opt.value === value)
-                  ) {
-                    const selectedPercentile = PERCENTILE_OPTIONS.find(
-                      (opt) => opt.value === value,
-                    );
-                    if (selectedPercentile) {
-                      setLocalFilter({ ...localFilter, percentile: selectedPercentile.value });
-                    }
-                  }
-                  setIsPercentileOpen(false);
-                }}
-                onOpenChange={(isSelectOpen) => {
-                  setIsPercentileOpen(isSelectOpen);
-                  // Prevent parent dropdown from closing when this select opens/closes
-                  if (isSelectOpen) {
-                    setIsOpen(true);
-                  }
-                }}
-                toggle={(toggleRef) => (
-                  <MenuToggle
-                    ref={toggleRef}
-                    onClick={() => setIsPercentileOpen(!isPercentileOpen)}
-                    isExpanded={isPercentileOpen}
-                    className="pf-v6-u-w-100"
+          <FlexItem>
+            <Flex
+              alignItems={{ default: 'alignItemsCenter' }}
+              spaceItems={{ default: 'spaceItemsXs' }}
+            >
+              <FlexItem flex={{ default: 'flex_1' }}>
+                <FormGroup>
+                  <Select
+                    isOpen={isPercentileOpen}
+                    selected={localFilter.percentile}
+                    onClick={(e) => e.stopPropagation()}
+                    onSelect={(_, value) => {
+                      if (
+                        typeof value === 'string' &&
+                        PERCENTILE_OPTIONS.some((opt) => opt.value === value)
+                      ) {
+                        const selectedPercentile = PERCENTILE_OPTIONS.find(
+                          (opt) => opt.value === value,
+                        );
+                        if (selectedPercentile) {
+                          setLocalFilter({ ...localFilter, percentile: selectedPercentile.value });
+                        }
+                      }
+                      setIsPercentileOpen(false);
+                    }}
+                    onOpenChange={(isSelectOpen) => {
+                      setIsPercentileOpen(isSelectOpen);
+                      // Prevent parent dropdown from closing when this select opens/closes
+                      if (isSelectOpen) {
+                        setIsOpen(true);
+                      }
+                    }}
+                    toggle={(toggleRef) => (
+                      <MenuToggle
+                        ref={toggleRef}
+                        onClick={() => setIsPercentileOpen(!isPercentileOpen)}
+                        isExpanded={isPercentileOpen}
+                        className="pf-v6-u-w-100"
+                      >
+                        <span>Percentile: {localFilter.percentile}</span>
+                      </MenuToggle>
+                    )}
                   >
-                    <span>Percentile: {localFilter.percentile}</span>
-                  </MenuToggle>
-                )}
-              >
-                <SelectList>
-                  {getAvailablePercentiles().map((option) => (
-                    <SelectOption key={option.value} value={option.value}>
-                      {option.label}
-                    </SelectOption>
-                  ))}
-                </SelectList>
-              </Select>
-            </FormGroup>
+                    <SelectList>
+                      {getAvailablePercentiles().map((option) => (
+                        <SelectOption key={option.value} value={option.value}>
+                          {option.label}
+                        </SelectOption>
+                      ))}
+                    </SelectList>
+                  </Select>
+                </FormGroup>
+              </FlexItem>
+              <FlexItem>
+                <Popover
+                  bodyContent={
+                    <>
+                      Select the latency measure used for benchmarking - percentile or mean.
+                      <ul style={{ marginTop: '8px' }}>
+                        <li>
+                          <strong>P90, P95, P99:</strong> The selected percentage of requests must
+                          meet the latency threshold.
+                        </li>
+                        <li>
+                          <strong>Mean:</strong> The average latency across all requests.
+                        </li>
+                      </ul>
+                    </>
+                  }
+                  appendTo={() => document.body}
+                >
+                  <Button
+                    variant="plain"
+                    aria-label="More info for Percentile"
+                    className="pf-v6-u-p-xs"
+                    icon={<HelpIcon />}
+                  />
+                </Popover>
+              </FlexItem>
+            </Flex>
           </FlexItem>
         </Flex>
       </FlexItem>
@@ -344,4 +361,4 @@ const MaxLatencyFilter: React.FC<MaxLatencyFilterProps> = ({ performanceArtifact
   );
 };
 
-export default MaxLatencyFilter;
+export default LatencyFilter;

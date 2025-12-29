@@ -50,9 +50,9 @@ export const getUniqueHardwareTypes = (
 };
 
 /**
- * Enhanced filter for Max Latency that supports metric and percentile selection
+ * Enhanced filter for Latency that supports metric and percentile selection
  */
-export const applyMaxLatencyFilter = (
+export const applyLatencyFilter = (
   artifact: CatalogPerformanceMetricsArtifact,
   config: LatencyFilterConfig,
 ): boolean => {
