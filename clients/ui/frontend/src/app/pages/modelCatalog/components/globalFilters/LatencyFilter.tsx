@@ -77,12 +77,12 @@ const LatencyFilter: React.FC<LatencyFilterProps> = ({ performanceArtifacts }) =
 
   const defaultFilterState = React.useMemo(
     () =>
-    // Default to TTFT P90 as the most common use case
-    ({
-      metric: LatencyMetric.TTFT,
-      percentile: LatencyPercentile.P90,
-      value: 30, // Reasonable default within typical TTFT range
-    }),
+      // Default to TTFT P90 as the most common use case
+      ({
+        metric: LatencyMetric.TTFT,
+        percentile: LatencyPercentile.P90,
+        value: 30, // Reasonable default within typical TTFT range
+      }),
     [],
   );
 
@@ -129,8 +129,8 @@ const LatencyFilter: React.FC<LatencyFilterProps> = ({ performanceArtifacts }) =
       // When there's an active filter, show the full specification with actual selected values
       return (
         <>
-          <strong>Latency:</strong> {currentActiveFilter.metric} |{' '}
-          {currentActiveFilter.percentile} | {currentActiveFilter.value}ms
+          <strong>Latency:</strong> {currentActiveFilter.metric} | {currentActiveFilter.percentile}{' '}
+          | {currentActiveFilter.value}ms
         </>
       );
     }
@@ -177,7 +177,6 @@ const LatencyFilter: React.FC<LatencyFilterProps> = ({ performanceArtifacts }) =
       flexWrap={{ default: 'wrap' }}
       style={{ width: '550px', padding: '16px' }}
     >
-
       {/* Metric and Percentile on the same line */}
       <FlexItem>
         <Flex spaceItems={{ default: 'spaceItemsMd' }}>
@@ -228,9 +227,11 @@ const LatencyFilter: React.FC<LatencyFilterProps> = ({ performanceArtifacts }) =
             </FormGroup>
           </FlexItem>
 
-
           <FlexItem>
-            <Flex alignItems={{ default: 'alignItemsCenter' }} spaceItems={{ default: 'spaceItemsXs' }}>
+            <Flex
+              alignItems={{ default: 'alignItemsCenter' }}
+              spaceItems={{ default: 'spaceItemsXs' }}
+            >
               <FlexItem flex={{ default: 'flex_1' }}>
                 <FormGroup>
                   <Select
@@ -285,13 +286,13 @@ const LatencyFilter: React.FC<LatencyFilterProps> = ({ performanceArtifacts }) =
                     <>
                       Select the latency measure used for benchmarking - percentile or mean.
                       <ul style={{ marginTop: '8px' }}>
-                      <li>
-                      <strong>P90, P95, P99:</strong> The selected percentage of requests must meet
-                      the latency threshold.
-                      </li>
-                      <li>
-                      <strong>Mean:</strong> The average latency across all requests.
-                      </li>
+                        <li>
+                          <strong>P90, P95, P99:</strong> The selected percentage of requests must
+                          meet the latency threshold.
+                        </li>
+                        <li>
+                          <strong>Mean:</strong> The average latency across all requests.
+                        </li>
                       </ul>
                     </>
                   }
