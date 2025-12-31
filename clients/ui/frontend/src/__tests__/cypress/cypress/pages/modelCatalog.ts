@@ -261,8 +261,25 @@ class ModelCatalog {
     return cy.pfSwitch('model-performance-view-toggle');
   }
 
+  findPerformanceViewToggleValue() {
+    return cy.pfSwitchValue('model-performance-view-toggle');
+  }
+
   togglePerformanceView() {
     this.findPerformanceViewToggle().click();
+    return this;
+  }
+
+  findPerformanceFiltersUpdatedAlert() {
+    return cy.findByTestId('performance-filters-updated-alert');
+  }
+
+  findPerformanceFiltersUpdatedAlertCloseButton() {
+    return this.findPerformanceFiltersUpdatedAlert().find('button[aria-label^="Close"]');
+  }
+
+  dismissPerformanceFiltersUpdatedAlert() {
+    this.findPerformanceFiltersUpdatedAlertCloseButton().click();
     return this;
   }
 
