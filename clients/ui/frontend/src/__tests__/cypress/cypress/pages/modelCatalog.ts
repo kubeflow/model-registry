@@ -141,20 +141,8 @@ class ModelCatalog {
     return cy.get('img[alt="model logo"]');
   }
 
-  findVersionIcon() {
-    return cy.get('.pf-v6-c-icon');
-  }
-
-  findFrameworkLabel() {
-    return cy.contains('PyTorch');
-  }
-
   findTaskLabel() {
     return cy.contains('text-generation');
-  }
-
-  findLicenseLabel() {
-    return cy.contains('apache-2.0');
   }
 
   findProviderLabel() {
@@ -240,28 +228,12 @@ class ModelCatalog {
     return cy.get('[data-testid="hardware-configuration-table"] tbody tr');
   }
 
-  findHardwareConfigurationTableData() {
-    return cy.get('[data-testid="hardware-configuration-table"] tbody td');
-  }
-
   findHardwareConfigurationColumn(columnName: string) {
     return cy.get(`[data-testid="hardware-configuration-table"] [data-label="${columnName}"]`);
   }
 
-  findHardwareConfigurationSortButton(columnName: string) {
-    return cy.get(`[data-testid="hardware-configuration-table"] th`).contains(columnName);
-  }
-
-  findHardwareConfigurationPagination() {
-    return cy.get('[data-testid="hardware-configuration-table"] .pf-v6-c-pagination');
-  }
-
   findValidatedModelHardware() {
     return cy.findByTestId('validated-model-hardware');
-  }
-
-  findValidatedModelRps() {
-    return cy.findByTestId('validated-model-rps');
   }
 
   findValidatedModelReplicas() {
@@ -289,25 +261,65 @@ class ModelCatalog {
     return cy.pfSwitch('model-performance-view-toggle');
   }
 
-  findPerformanceViewToggleValue() {
-    return cy.pfSwitchValue('model-performance-view-toggle');
-  }
-
   togglePerformanceView() {
     this.findPerformanceViewToggle().click();
     return this;
   }
 
-  findPerformanceFiltersUpdatedAlert() {
-    return cy.findByTestId('performance-filters-updated-alert');
+  // Model card content helpers for toggle-based display
+  findValidatedModelBenchmarksCount() {
+    return cy.findAllByTestId('validated-model-benchmarks');
   }
 
-  findPerformanceFiltersUpdatedAlertCloseButton() {
-    return this.findPerformanceFiltersUpdatedAlert().find('button[aria-label^="Close"]');
+  // Latency filter helpers
+  findLatencyFilter() {
+    return cy.findByTestId('latency-filter');
   }
 
-  dismissPerformanceFiltersUpdatedAlert() {
-    this.findPerformanceFiltersUpdatedAlertCloseButton().click();
+  openLatencyFilter() {
+    this.findLatencyFilter().click();
+    // Wait for dropdown content to appear
+    cy.findByTestId('latency-filter-content').should('be.visible');
+    return this;
+  }
+
+  findLatencyMetricSelect() {
+    return cy.findByTestId('latency-metric-select');
+  }
+
+  findLatencyPercentileSelect() {
+    return cy.findByTestId('latency-percentile-select');
+  }
+
+  selectLatencyMetric(metric: string) {
+    this.findLatencyMetricSelect().click();
+    // Wait for menu to appear and click the option
+    cy.findByTestId('latency-metric-options').contains(metric).click();
+    return this;
+  }
+
+  selectLatencyPercentile(percentile: string) {
+    this.findLatencyPercentileSelect().click();
+    // Wait for menu to appear and click the option
+    cy.findByTestId('latency-percentile-options').contains(percentile).click();
+    return this;
+  }
+
+  findApplyFilterButton() {
+    return cy.findByTestId('latency-apply-filter');
+  }
+
+  findResetFilterButton() {
+    return cy.findByTestId('latency-reset-filter');
+  }
+
+  clickApplyFilter() {
+    this.findApplyFilterButton().click();
+    return this;
+  }
+
+  clickResetFilter() {
+    this.findResetFilterButton().click();
     return this;
   }
 }

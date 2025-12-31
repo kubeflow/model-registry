@@ -107,9 +107,83 @@ export const mockCatalogModelArtifactList = (
 export const mockCatalogPerformanceMetricsArtifactList = (
   partial?: Partial<CatalogPerformanceMetricsArtifact>,
 ): CatalogArtifactList => ({
-  items: [mockCatalogPerformanceMetricsArtifact({}), mockCatalogModelArtifact({})],
+  items: [
+    // First artifact with base values
+    mockCatalogPerformanceMetricsArtifact({
+      customProperties: {
+        config_id: {
+          metadataType: ModelRegistryMetadataType.STRING,
+          string_value: 'config-001',
+        },
+        hardware_count: { metadataType: ModelRegistryMetadataType.INT, int_value: '2' },
+        hardware_type: { metadataType: ModelRegistryMetadataType.STRING, string_value: 'H100-80' },
+        requests_per_second: { metadataType: ModelRegistryMetadataType.DOUBLE, double_value: 7 },
+        ttft_mean: { metadataType: ModelRegistryMetadataType.DOUBLE, double_value: 35.48 },
+        ttft_p90: { metadataType: ModelRegistryMetadataType.DOUBLE, double_value: 51.56 },
+        ttft_p95: { metadataType: ModelRegistryMetadataType.DOUBLE, double_value: 61.27 },
+        ttft_p99: { metadataType: ModelRegistryMetadataType.DOUBLE, double_value: 72.96 },
+        e2e_mean: { metadataType: ModelRegistryMetadataType.DOUBLE, double_value: 1994.48 },
+        e2e_p90: { metadataType: ModelRegistryMetadataType.DOUBLE, double_value: 2644.6 },
+        itl_mean: { metadataType: ModelRegistryMetadataType.DOUBLE, double_value: 7.68 },
+        itl_p90: { metadataType: ModelRegistryMetadataType.DOUBLE, double_value: 7.78 },
+        use_case: {
+          metadataType: ModelRegistryMetadataType.STRING,
+          string_value: UseCaseOptionValue.CODE_FIXING,
+        },
+      },
+    }),
+    // Second artifact with different latency values
+    mockCatalogPerformanceMetricsArtifact({
+      customProperties: {
+        config_id: {
+          metadataType: ModelRegistryMetadataType.STRING,
+          string_value: 'config-002',
+        },
+        hardware_count: { metadataType: ModelRegistryMetadataType.INT, int_value: '4' },
+        hardware_type: { metadataType: ModelRegistryMetadataType.STRING, string_value: 'RTX 4090' },
+        requests_per_second: { metadataType: ModelRegistryMetadataType.DOUBLE, double_value: 10 },
+        ttft_mean: { metadataType: ModelRegistryMetadataType.DOUBLE, double_value: 67.15 },
+        ttft_p90: { metadataType: ModelRegistryMetadataType.DOUBLE, double_value: 82.34 },
+        ttft_p95: { metadataType: ModelRegistryMetadataType.DOUBLE, double_value: 95.67 },
+        ttft_p99: { metadataType: ModelRegistryMetadataType.DOUBLE, double_value: 112.45 },
+        e2e_mean: { metadataType: ModelRegistryMetadataType.DOUBLE, double_value: 2450.32 },
+        e2e_p90: { metadataType: ModelRegistryMetadataType.DOUBLE, double_value: 3200.11 },
+        itl_mean: { metadataType: ModelRegistryMetadataType.DOUBLE, double_value: 9.1 },
+        itl_p90: { metadataType: ModelRegistryMetadataType.DOUBLE, double_value: 11.23 },
+        use_case: {
+          metadataType: ModelRegistryMetadataType.STRING,
+          string_value: UseCaseOptionValue.RAG,
+        },
+      },
+    }),
+    // Third artifact with different latency values
+    mockCatalogPerformanceMetricsArtifact({
+      customProperties: {
+        config_id: {
+          metadataType: ModelRegistryMetadataType.STRING,
+          string_value: 'config-003',
+        },
+        hardware_count: { metadataType: ModelRegistryMetadataType.INT, int_value: '8' },
+        hardware_type: { metadataType: ModelRegistryMetadataType.STRING, string_value: 'A100' },
+        requests_per_second: { metadataType: ModelRegistryMetadataType.DOUBLE, double_value: 15 },
+        ttft_mean: { metadataType: ModelRegistryMetadataType.DOUBLE, double_value: 42.12 },
+        ttft_p90: { metadataType: ModelRegistryMetadataType.DOUBLE, double_value: 58.45 },
+        ttft_p95: { metadataType: ModelRegistryMetadataType.DOUBLE, double_value: 68.78 },
+        ttft_p99: { metadataType: ModelRegistryMetadataType.DOUBLE, double_value: 80.91 },
+        e2e_mean: { metadataType: ModelRegistryMetadataType.DOUBLE, double_value: 1850.67 },
+        e2e_p90: { metadataType: ModelRegistryMetadataType.DOUBLE, double_value: 2400.55 },
+        itl_mean: { metadataType: ModelRegistryMetadataType.DOUBLE, double_value: 6.8 },
+        itl_p90: { metadataType: ModelRegistryMetadataType.DOUBLE, double_value: 8.12 },
+        use_case: {
+          metadataType: ModelRegistryMetadataType.STRING,
+          string_value: UseCaseOptionValue.CHATBOT,
+        },
+      },
+    }),
+    mockCatalogModelArtifact({}),
+  ],
   pageSize: 10,
-  size: 15,
+  size: 4,
   nextPageToken: '',
   ...partial,
 });

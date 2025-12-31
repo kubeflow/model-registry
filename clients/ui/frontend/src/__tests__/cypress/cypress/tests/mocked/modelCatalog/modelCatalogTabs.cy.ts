@@ -264,10 +264,13 @@ describe('Model Catalog Details Tabs', () => {
         modelCatalog.findHardwareConfigurationTableRows().should('have.length.at.least', 1);
         modelCatalog.findWorkloadTypeFilter().click();
         modelCatalog.selectWorkloadType('code_fixing');
+        // Verify filter is applied (shown in toggle text)
+        modelCatalog
+          .findWorkloadTypeFilter()
+          .should('contain.text', 'Workload type')
+          .should('contain.text', '1 selected');
+        // Table should still exist (server-side filtering returns mock data)
         modelCatalog.findHardwareConfigurationTableRows().should('exist');
-        modelCatalog.findHardwareConfigurationColumn('Workload type').each(($el) => {
-          cy.wrap($el).should('contain.text', 'Code Fixing');
-        });
       });
 
       it('should clear workload type filter when clicking selected option again', () => {
@@ -372,6 +375,148 @@ describe('Model Catalog Details Tabs', () => {
       // But overview content should still be visible
       modelCatalog.findOverviewTabContent().should('be.visible');
       modelCatalog.findDetailsDescription().should('be.visible');
+    });
+  });
+
+  describe('Latency Filter Column Visibility', () => {
+    // Non-breaking space used in column labels
+    const NBSP = '\u00A0';
+
+    beforeEach(() => {
+      cy.intercept('GET', '/model-registry/api/v1/model_registry*', [
+        mockModelRegistry({ name: 'modelregistry-sample' }),
+      ]).as('getModelRegistries');
+
+      initIntercepts({ useValidatedModel: true, hasPerformanceArtifacts: true });
+      modelCatalog.visit({ enableTempDevCatalogAdvancedFiltersFeature: true });
+    });
+
+    describe('Default State (no latency filter)', () => {
+      it('should show all latency columns when no latency filter is applied', () => {
+        modelCatalog.findModelCatalogDetailLink().first().click();
+        modelCatalog.clickPerformanceInsightsTab();
+
+        // Verify multiple latency columns are visible (using partial text match)
+        modelCatalog.findHardwareConfigurationTableHeaders().should('contain.text', 'TTFT');
+        modelCatalog.findHardwareConfigurationTableHeaders().should('contain.text', 'E2E');
+        modelCatalog.findHardwareConfigurationTableHeaders().should('contain.text', 'ITL');
+      });
+    });
+
+    describe('With Latency Filter Applied', () => {
+      it('should show only the selected latency column when TTFT P90 filter is applied', () => {
+        modelCatalog.findModelCatalogDetailLink().first().click();
+        modelCatalog.clickPerformanceInsightsTab();
+
+        // Open latency filter dropdown
+        modelCatalog.openLatencyFilter();
+
+        // Apply the default TTFT P90 filter
+        modelCatalog.clickApplyFilter();
+
+        // Only TTFT P90 column should be visible
+        modelCatalog
+          .findHardwareConfigurationTableHeaders()
+          .should('contain.text', `TTFT${NBSP}Latency P90`);
+
+        // Other TTFT latency columns should be hidden
+        modelCatalog
+          .findHardwareConfigurationTableHeaders()
+          .should('not.contain.text', 'Latency Mean');
+        modelCatalog
+          .findHardwareConfigurationTableHeaders()
+          .should('not.contain.text', 'Latency P95');
+        modelCatalog
+          .findHardwareConfigurationTableHeaders()
+          .should('not.contain.text', 'Latency P99');
+
+        // E2E and ITL columns should be hidden
+        modelCatalog.findHardwareConfigurationTableHeaders().should('not.contain.text', 'E2E');
+        modelCatalog.findHardwareConfigurationTableHeaders().should('not.contain.text', 'ITL');
+      });
+
+      it('should show only E2E mean column when E2E mean filter is applied', () => {
+        modelCatalog.findModelCatalogDetailLink().first().click();
+        modelCatalog.clickPerformanceInsightsTab();
+
+        // Open latency filter dropdown
+        modelCatalog.openLatencyFilter();
+
+        // Change metric to E2E
+        modelCatalog.selectLatencyMetric('E2E');
+
+        // Change percentile to Mean
+        modelCatalog.selectLatencyPercentile('Mean');
+
+        // Apply filter
+        modelCatalog.clickApplyFilter();
+
+        // Only E2E mean column should be visible
+        modelCatalog
+          .findHardwareConfigurationTableHeaders()
+          .should('contain.text', `E2E${NBSP}Latency Mean`);
+
+        // TTFT and ITL columns should be hidden
+        modelCatalog.findHardwareConfigurationTableHeaders().should('not.contain.text', 'TTFT');
+        modelCatalog.findHardwareConfigurationTableHeaders().should('not.contain.text', 'ITL');
+
+        // Other E2E percentile columns should be hidden
+        modelCatalog
+          .findHardwareConfigurationTableHeaders()
+          .should('not.contain.text', 'Latency P90');
+        modelCatalog
+          .findHardwareConfigurationTableHeaders()
+          .should('not.contain.text', 'Latency P95');
+        modelCatalog
+          .findHardwareConfigurationTableHeaders()
+          .should('not.contain.text', 'Latency P99');
+      });
+
+      it('should restore all latency columns when filter is reset', () => {
+        modelCatalog.findModelCatalogDetailLink().first().click();
+        modelCatalog.clickPerformanceInsightsTab();
+
+        // Apply a filter first
+        modelCatalog.openLatencyFilter();
+        modelCatalog.clickApplyFilter();
+
+        // Verify only TTFT P90 latency column is shown
+        modelCatalog
+          .findHardwareConfigurationTableHeaders()
+          .should('contain.text', `TTFT${NBSP}Latency P90`);
+        modelCatalog.findHardwareConfigurationTableHeaders().should('not.contain.text', 'E2E');
+
+        // Open filter and reset
+        modelCatalog.openLatencyFilter();
+        modelCatalog.clickResetFilter();
+
+        // Close the dropdown by clicking outside
+        cy.get('body').click(0, 0);
+
+        // All latency columns should be visible again
+        modelCatalog.findHardwareConfigurationTableHeaders().should('contain.text', 'TTFT');
+        modelCatalog.findHardwareConfigurationTableHeaders().should('contain.text', 'E2E');
+        modelCatalog.findHardwareConfigurationTableHeaders().should('contain.text', 'ITL');
+      });
+
+      it('should keep non-latency columns visible when latency filter is applied', () => {
+        modelCatalog.findModelCatalogDetailLink().first().click();
+        modelCatalog.clickPerformanceInsightsTab();
+
+        // Apply a latency filter
+        modelCatalog.openLatencyFilter();
+        modelCatalog.clickApplyFilter();
+
+        // Non-latency columns should still be visible
+        modelCatalog
+          .findHardwareConfigurationTableHeaders()
+          .should('contain.text', 'Hardware Configuration');
+        modelCatalog
+          .findHardwareConfigurationTableHeaders()
+          .should('contain.text', 'Workload type');
+        modelCatalog.findHardwareConfigurationTableHeaders().should('contain.text', 'RPS');
+        modelCatalog.findHardwareConfigurationTableHeaders().should('contain.text', 'Replicas');
+      });
     });
   });
 });
