@@ -325,18 +325,6 @@ setuptools = {version = "*", markers = "python_version >= \"3.12\""}
 dev = ["freezegun (>=1.0,<2.0)", "pytest (>=6.0)", "pytest-cov"]
 
 [[package]]
-name = "backoff"
-version = "2.2.1"
-description = "Function decoration for backoff and retry"
-optional = false
-python-versions = ">=3.7,<4.0"
-groups = ["dev"]
-files = [
-    {file = "backoff-2.2.1-py3-none-any.whl", hash = "sha256:63579f9a0628e06278f7e47b7d7d5b6ce20dc65c5e96a6f3ca99a6adca0396e8"},
-    {file = "backoff-2.2.1.tar.gz", hash = "sha256:03f829f5bb1923180821643f8753b0502c3b682293992485b0eef2807afa5cba"},
-]
-
-[[package]]
 name = "backports-asyncio-runner"
 version = "1.2.0"
 description = "Backport of asyncio.Runner, a context manager that controls event loop life cycle."
@@ -2746,18 +2734,17 @@ crt = ["botocore[crt] (>=1.37.4,<2.0a.0)"]
 
 [[package]]
 name = "schemathesis"
-version = "4.3.6"
+version = "4.7.9"
 description = "Property-based testing framework for Open API and GraphQL based apps"
 optional = false
-python-versions = ">=3.9"
+python-versions = ">=3.10"
 groups = ["dev"]
 files = [
-    {file = "schemathesis-4.3.6-py3-none-any.whl", hash = "sha256:d4e926371efd4cae80ae36581e7a7a2abd2bf603c183f1c1205c7cfac7dfec79"},
-    {file = "schemathesis-4.3.6.tar.gz", hash = "sha256:240ebe8ed5531cc97ba4f3eddba1873e536b6f76f0f1857e174d616f0670ddce"},
+    {file = "schemathesis-4.7.9-py3-none-any.whl", hash = "sha256:e4f53f4b19d0695a2cafe99ad7ecbb93a7d80d4ec370ad054e5cb80b9f1c727d"},
+    {file = "schemathesis-4.7.9.tar.gz", hash = "sha256:da9b971f8a1e3196f82d41fcbbcd24d296ee7220de6cb77d8168894c3de30fca"},
 ]
 
 [package.dependencies]
-backoff = ">=2.1.2,<3.0"
 click = ">=8.0,<9"
 colorama = ">=0.4,<1.0"
 harfile = ">=0.4.0,<1.0"
@@ -2768,22 +2755,23 @@ hypothesis-jsonschema = ">=0.23.1,<0.24"
 jsonschema = {version = ">=4.18.0,<5.0", extras = ["format"]}
 junit-xml = ">=1.9,<2.0"
 pyrate-limiter = ">=3.0,<4.0"
-pytest = ">=8,<9"
-pytest-subtests = ">=0.11,<0.15.0"
+pytest = ">=8,<10"
+pytest-subtests = ">=0.11,<0.16.0"
 pyyaml = ">=5.1,<7.0"
 requests = ">=2.22,<3"
 rich = ">=13.9.4"
 starlette-testclient = ">=0.4.1,<1"
-tomli = ">=2.2.1"
+tenacity = ">=9.1.2,<10.0"
+tomli = {version = ">=2.2.1", markers = "python_version < \"3.11\""}
 typing-extensions = ">=4.12.2"
 werkzeug = ">=0.16.0,<4"
 
 [package.extras]
-bench = ["pytest-codspeed (==2.2.1)"]
+bench = ["pytest-codspeed (==4.2.0)"]
 cov = ["coverage-enable-subprocess", "coverage[toml] (>=5.3)"]
-dev = ["aiohttp (>=3.9.1,<4.0)", "coverage (>=6)", "coverage-enable-subprocess", "coverage[toml] (>=5.3)", "fastapi (>=0.86.0)", "flask (>=2.1.1,<3.0)", "hypothesis-openapi (>=0.2,<1) ; python_version >= \"3.10\"", "mkdocs-material", "mkdocstrings[python]", "pydantic (>=1.10.2)", "pytest-asyncio (>=0.18.0,<1.0)", "pytest-codspeed (==2.2.1)", "pytest-httpserver (>=1.0,<2.0)", "pytest-mock (>=3.7.0,<4.0)", "pytest-trio (>=0.8,<1.0)", "pytest-xdist (>=3,<4.0)", "strawberry-graphql[fastapi] (>=0.109.0)", "syrupy (>=2,<5.0)", "tomli-w (>=1.2.0)", "trustme (>=0.9.0,<1.0)"]
+dev = ["aiohttp (>=3.9.1,<4.0)", "coverage (>=6)", "coverage-enable-subprocess", "coverage[toml] (>=5.3)", "fastapi (>=0.86.0)", "flask (>=2.1.1,<3.0)", "hypothesis-openapi (>=0.2,<1) ; python_version >= \"3.10\"", "mkdocs-material", "mkdocstrings[python]", "pydantic (>=1.10.2)", "pytest-asyncio (>=1.0,<2.0)", "pytest-codspeed (==4.2.0)", "pytest-httpserver (>=1.0,<2.0)", "pytest-mock (>=3.7.0,<4.0)", "pytest-trio (>=0.8,<1.0)", "pytest-xdist (>=3,<4.0)", "strawberry-graphql[fastapi] (>=0.109.0)", "syrupy (>=4,<6.0)", "tomli-w (>=1.2.0)", "trustme (>=0.9.0,<1.0)"]
 docs = ["mkdocs-material", "mkdocstrings[python]"]
-tests = ["aiohttp (>=3.9.1,<4.0)", "coverage (>=6)", "fastapi (>=0.86.0)", "flask (>=2.1.1,<3.0)", "hypothesis-openapi (>=0.2,<1) ; python_version >= \"3.10\"", "pydantic (>=1.10.2)", "pytest-asyncio (>=0.18.0,<1.0)", "pytest-httpserver (>=1.0,<2.0)", "pytest-mock (>=3.7.0,<4.0)", "pytest-trio (>=0.8,<1.0)", "pytest-xdist (>=3,<4.0)", "strawberry-graphql[fastapi] (>=0.109.0)", "syrupy (>=2,<5.0)", "tomli-w (>=1.2.0)", "trustme (>=0.9.0,<1.0)"]
+tests = ["aiohttp (>=3.9.1,<4.0)", "coverage (>=6)", "fastapi (>=0.86.0)", "flask (>=2.1.1,<3.0)", "hypothesis-openapi (>=0.2,<1) ; python_version >= \"3.10\"", "pydantic (>=1.10.2)", "pytest-asyncio (>=1.0,<2.0)", "pytest-httpserver (>=1.0,<2.0)", "pytest-mock (>=3.7.0,<4.0)", "pytest-trio (>=0.8,<1.0)", "pytest-xdist (>=3,<4.0)", "strawberry-graphql[fastapi] (>=0.109.0)", "syrupy (>=4,<6.0)", "tomli-w (>=1.2.0)", "trustme (>=0.9.0,<1.0)"]
 
 [[package]]
 name = "setuptools"
@@ -3104,6 +3092,22 @@ requests = "*"
 starlette = ">=0.20.1"
 
 [[package]]
+name = "tenacity"
+version = "9.1.2"
+description = "Retry code until it succeeds"
+optional = false
+python-versions = ">=3.9"
+groups = ["dev"]
+files = [
+    {file = "tenacity-9.1.2-py3-none-any.whl", hash = "sha256:f77bf36710d8b73a50b2dd155c97b870017ad21afe6ab300326b0371b3b05138"},
+    {file = "tenacity-9.1.2.tar.gz", hash = "sha256:1169d376c297e7de388d18b4481760d478b0e99a777cad3a9c86e556f4b697cb"},
+]
+
+[package.extras]
+doc = ["reno", "sphinx"]
+test = ["pytest", "tornado (>=4.5)", "typeguard"]
+
+[[package]]
 name = "tomli"
 version = "2.2.1"
 description = "A lil' TOML parser"
@@ -3144,7 +3148,7 @@ files = [
     {file = "tomli-2.2.1-py3-none-any.whl", hash = "sha256:cb55c73c5f4408779d0cf3eef9f762b9c9f147a77de7b258bef0a5628adc85cc"},
     {file = "tomli-2.2.1.tar.gz", hash = "sha256:cd45e1dc79c835ce60f7404ec8119f2eb06d38b1deba146f07ced3bbc44505ff"},
 ]
-markers = {docs = "python_version == \"3.10\""}
+markers = {dev = "python_full_version <= \"3.11.0a6\"", docs = "python_version == \"3.10\""}
 
 [[package]]
 name = "tqdm"
@@ -3665,4 +3669,4 @@ olot = ["olot"]
 [metadata]
 lock-version = "2.1"
 python-versions = ">= 3.10, < 4.0"
-content-hash = "c48da1222bee51065aba5fa29be14c22b3e2767ecaabf268cac2672194843f78"
+content-hash = "41c0ba9278f7c9fbb4f2f77e502715c5a3561a1695be179c66a7b38165121100"
