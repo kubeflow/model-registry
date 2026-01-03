@@ -21,6 +21,7 @@ env:
   IMG_UI_REPO: model-registry/ui-standalone # this image is intended for local development, not production
   DOCKER_USER: ${{ github.actor }}
   DOCKER_PWD: ${{ secrets.GITHUB_TOKEN }}
+  PLATFORMS: linux/arm64,linux/amd64
 jobs:
   build-and-push:
     runs-on: ubuntu-latest
@@ -30,6 +31,9 @@ jobs:
     steps:
     - name: Checkout repository
       uses: actions/checkout@v6.0.1
+
+    - name: Set up QEMU
+      uses: docker/setup-qemu-action@v3
 
     - name: Set up Docker Buildx
       uses: docker/setup-buildx-action@v3
@@ -72,6 +76,7 @@ jobs:
       with:
         context: ./clients/ui
         push: true
+        platforms: ${{ env.PLATFORMS }}
         tags: ${{ steps.meta.outputs.tags }}
         labels: ${{ steps.meta.outputs.labels }}
         build-args: |
