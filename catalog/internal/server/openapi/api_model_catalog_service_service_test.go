@@ -745,6 +745,7 @@ func TestFindSources(t *testing.T) {
 			resp, err := service.FindSources(
 				context.Background(),
 				tc.nameFilter,
+				"", // assetType - empty means no filter
 				tc.pageSize,
 				tc.orderBy,
 				tc.sortOrder,

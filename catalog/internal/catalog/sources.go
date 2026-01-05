@@ -223,7 +223,15 @@ func (sc *SourceCollection) AllSources() map[string]Source {
 func (sc *SourceCollection) All() map[string]model.CatalogSource {
 	result := map[string]model.CatalogSource{}
 	for id, source := range sc.AllSources() {
-		result[id] = source.CatalogSource
+		catalogSource := source.CatalogSource
+		// Copy DetectedAssetType to the API model's AssetType field
+		// Default to "models" if not detected (for backwards compatibility)
+		assetType := model.CATALOGASSETTYPE_MODELS
+		if source.DetectedAssetType != "" {
+			assetType = model.CatalogAssetType(source.DetectedAssetType)
+		}
+		catalogSource.AssetType = &assetType
+		result[id] = catalogSource
 	}
 	return result
 }

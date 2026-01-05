@@ -10,6 +10,8 @@ const (
 	CatalogModelArtifactTypeName   = "kf.CatalogModelArtifact"
 	CatalogMetricsArtifactTypeName = "kf.CatalogMetricsArtifact"
 	CatalogSourceTypeName          = "kf.CatalogSource"
+	McpServerTypeName              = "kf.McpServer"
+	McpServerToolTypeName          = "kf.McpServerTool"
 )
 
 func DatastoreSpec() *datastore.Spec {
@@ -33,6 +35,28 @@ func DatastoreSpec() *datastore.Spec {
 			AddString("status").
 			AddString("error"),
 		).
+		AddContext(McpServerTypeName, datastore.NewSpecType(NewMcpServerRepository).
+			AddString("source_id").
+			AddString("description").
+			AddString("logo").
+			AddString("provider").
+			AddString("version").
+			AddString("status").
+			AddString("transport").
+			AddString("category").
+			AddStruct("tags").
+			AddString("endpoint").
+			AddString("documentationUrl").
+			AddString("repositoryUrl").
+			AddString("sourceCode").
+			AddString("readme").
+			AddString("publishedDate").
+			AddBoolean("verifiedSource").
+			AddBoolean("secureEndpoint").
+			AddBoolean("sast").
+			AddBoolean("readOnlyTools").
+			AddStruct("tools"),
+		).
 		AddArtifact(CatalogModelArtifactTypeName, datastore.NewSpecType(NewCatalogModelArtifactRepository).
 			AddString("uri"),
 		).
@@ -50,6 +74,7 @@ type Services struct {
 	CatalogMetricsArtifactRepository models.CatalogMetricsArtifactRepository
 	CatalogSourceRepository          models.CatalogSourceRepository
 	PropertyOptionsRepository        models.PropertyOptionsRepository
+	McpServerRepository              models.McpServerRepository
 }
 
 func NewServices(
@@ -59,6 +84,7 @@ func NewServices(
 	catalogMetricsArtifactRepository models.CatalogMetricsArtifactRepository,
 	catalogSourceRepository models.CatalogSourceRepository,
 	propertyOptionsRepository models.PropertyOptionsRepository,
+	mcpServerRepository models.McpServerRepository,
 ) Services {
 	return Services{
 		CatalogModelRepository:           catalogModelRepository,
@@ -67,5 +93,6 @@ func NewServices(
 		CatalogMetricsArtifactRepository: catalogMetricsArtifactRepository,
 		CatalogSourceRepository:          catalogSourceRepository,
 		PropertyOptionsRepository:        propertyOptionsRepository,
+		McpServerRepository:              mcpServerRepository,
 	}
 }
