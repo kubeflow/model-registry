@@ -3,6 +3,46 @@
 
 # Do not edit below this line. Edits will be overwritten by gen_gitattributes.sh
 
+catalog/clients/python/src/catalog_openapi/__init__.py linguist-generated=true
+catalog/clients/python/src/catalog_openapi/api/model_catalog_service_api.py linguist-generated=true
+catalog/clients/python/src/catalog_openapi/api_client.py linguist-generated=true
+catalog/clients/python/src/catalog_openapi/configuration.py linguist-generated=true
+catalog/clients/python/src/catalog_openapi/exceptions.py linguist-generated=true
+catalog/clients/python/src/catalog_openapi/models/__init__.py linguist-generated=true
+catalog/clients/python/src/catalog_openapi/models/artifact_type_query_param.py linguist-generated=true
+catalog/clients/python/src/catalog_openapi/models/base_model.py linguist-generated=true
+catalog/clients/python/src/catalog_openapi/models/base_resource.py linguist-generated=true
+catalog/clients/python/src/catalog_openapi/models/base_resource_dates.py linguist-generated=true
+catalog/clients/python/src/catalog_openapi/models/base_resource_list.py linguist-generated=true
+catalog/clients/python/src/catalog_openapi/models/catalog_artifact.py linguist-generated=true
+catalog/clients/python/src/catalog_openapi/models/catalog_artifact_list.py linguist-generated=true
+catalog/clients/python/src/catalog_openapi/models/catalog_label.py linguist-generated=true
+catalog/clients/python/src/catalog_openapi/models/catalog_label_list.py linguist-generated=true
+catalog/clients/python/src/catalog_openapi/models/catalog_metrics_artifact.py linguist-generated=true
+catalog/clients/python/src/catalog_openapi/models/catalog_model.py linguist-generated=true
+catalog/clients/python/src/catalog_openapi/models/catalog_model_artifact.py linguist-generated=true
+catalog/clients/python/src/catalog_openapi/models/catalog_model_list.py linguist-generated=true
+catalog/clients/python/src/catalog_openapi/models/catalog_source.py linguist-generated=true
+catalog/clients/python/src/catalog_openapi/models/catalog_source_list.py linguist-generated=true
+catalog/clients/python/src/catalog_openapi/models/catalog_source_preview_response.py linguist-generated=true
+catalog/clients/python/src/catalog_openapi/models/catalog_source_preview_response_all_of_summary.py linguist-generated=true
+catalog/clients/python/src/catalog_openapi/models/catalog_source_status.py linguist-generated=true
+catalog/clients/python/src/catalog_openapi/models/error.py linguist-generated=true
+catalog/clients/python/src/catalog_openapi/models/field_filter.py linguist-generated=true
+catalog/clients/python/src/catalog_openapi/models/filter_option.py linguist-generated=true
+catalog/clients/python/src/catalog_openapi/models/filter_option_range.py linguist-generated=true
+catalog/clients/python/src/catalog_openapi/models/filter_options_list.py linguist-generated=true
+catalog/clients/python/src/catalog_openapi/models/metadata_bool_value.py linguist-generated=true
+catalog/clients/python/src/catalog_openapi/models/metadata_double_value.py linguist-generated=true
+catalog/clients/python/src/catalog_openapi/models/metadata_int_value.py linguist-generated=true
+catalog/clients/python/src/catalog_openapi/models/metadata_proto_value.py linguist-generated=true
+catalog/clients/python/src/catalog_openapi/models/metadata_string_value.py linguist-generated=true
+catalog/clients/python/src/catalog_openapi/models/metadata_struct_value.py linguist-generated=true
+catalog/clients/python/src/catalog_openapi/models/metadata_value.py linguist-generated=true
+catalog/clients/python/src/catalog_openapi/models/model_preview_result.py linguist-generated=true
+catalog/clients/python/src/catalog_openapi/models/order_by_field.py linguist-generated=true
+catalog/clients/python/src/catalog_openapi/models/sort_order.py linguist-generated=true
+catalog/clients/python/src/catalog_openapi/rest.py linguist-generated=true
 catalog/internal/server/openapi/api.go linguist-generated=true
 catalog/internal/server/openapi/api_model_catalog_service.go linguist-generated=true
 catalog/internal/server/openapi/error.go linguist-generated=true

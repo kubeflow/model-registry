@@ -1,0 +1,54 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+
+# Type checking
+.mypy_cache/
+
+# Testing
+.pytest_cache/
+/.coverage*
+htmlcov/
+.hypothesis/
+.schemathesis/
+
+# Build
+/dist/
+/build/
+
+# Virtual environments
+venv/
+.venv/
+env/
+
+# Nox
+/.nox/
+
+# Ruff
+.ruff_cache/
+
+# Documentation
+/docs/_build/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Poetry
+.python-version
+
+# Logs and temp files
+*.log
+*.tmp
+
+# Kubernetes/Deployment
+.port-forward.pid
+
+# Screenshots from browser testing
+*.png
+*.jpeg
