@@ -265,3 +265,121 @@ export const mockParetoFilteredPerformanceArtifactList = (
   size: 2,
   nextPageToken: '',
 });
+
+// Mock for performance artifacts filtered by a specific workload type (use_case)
+export const mockFilteredPerformanceArtifactsByWorkloadType = (
+  workloadType: UseCaseOptionValue,
+): CatalogArtifactList => ({
+  items: [
+    mockCatalogPerformanceMetricsArtifact({
+      customProperties: {
+        config_id: {
+          metadataType: ModelRegistryMetadataType.STRING,
+          string_value: `filtered-${workloadType}-1`,
+        },
+        hardware_count: { metadataType: ModelRegistryMetadataType.INT, int_value: '2' },
+        hardware_type: { metadataType: ModelRegistryMetadataType.STRING, string_value: 'H100-80' },
+        requests_per_second: { metadataType: ModelRegistryMetadataType.DOUBLE, double_value: 7 },
+        ttft_mean: { metadataType: ModelRegistryMetadataType.DOUBLE, double_value: 35.48 },
+        ttft_p90: { metadataType: ModelRegistryMetadataType.DOUBLE, double_value: 51.55 },
+        use_case: {
+          metadataType: ModelRegistryMetadataType.STRING,
+          string_value: workloadType,
+        },
+      },
+    }),
+    mockCatalogPerformanceMetricsArtifact({
+      customProperties: {
+        config_id: {
+          metadataType: ModelRegistryMetadataType.STRING,
+          string_value: `filtered-${workloadType}-2`,
+        },
+        hardware_count: { metadataType: ModelRegistryMetadataType.INT, int_value: '4' },
+        hardware_type: { metadataType: ModelRegistryMetadataType.STRING, string_value: 'A100-80' },
+        requests_per_second: { metadataType: ModelRegistryMetadataType.DOUBLE, double_value: 12 },
+        ttft_mean: { metadataType: ModelRegistryMetadataType.DOUBLE, double_value: 28.32 },
+        ttft_p90: { metadataType: ModelRegistryMetadataType.DOUBLE, double_value: 42.18 },
+        use_case: {
+          metadataType: ModelRegistryMetadataType.STRING,
+          string_value: workloadType,
+        },
+      },
+    }),
+  ],
+  pageSize: 10,
+  size: 2,
+  nextPageToken: '',
+});
+
+// Mock for performance artifacts with multiple workload types (unfiltered list)
+export const mockMultipleWorkloadTypePerformanceArtifactList = (): CatalogArtifactList => ({
+  items: [
+    mockCatalogPerformanceMetricsArtifact({
+      customProperties: {
+        config_id: {
+          metadataType: ModelRegistryMetadataType.STRING,
+          string_value: 'multi-workload-1',
+        },
+        hardware_count: { metadataType: ModelRegistryMetadataType.INT, int_value: '2' },
+        hardware_type: { metadataType: ModelRegistryMetadataType.STRING, string_value: 'H100-80' },
+        requests_per_second: { metadataType: ModelRegistryMetadataType.DOUBLE, double_value: 7 },
+        ttft_p90: { metadataType: ModelRegistryMetadataType.DOUBLE, double_value: 51.55 },
+        use_case: {
+          metadataType: ModelRegistryMetadataType.STRING,
+          string_value: UseCaseOptionValue.CODE_FIXING,
+        },
+      },
+    }),
+    mockCatalogPerformanceMetricsArtifact({
+      customProperties: {
+        config_id: {
+          metadataType: ModelRegistryMetadataType.STRING,
+          string_value: 'multi-workload-2',
+        },
+        hardware_count: { metadataType: ModelRegistryMetadataType.INT, int_value: '4' },
+        hardware_type: { metadataType: ModelRegistryMetadataType.STRING, string_value: 'A100-80' },
+        requests_per_second: { metadataType: ModelRegistryMetadataType.DOUBLE, double_value: 12 },
+        ttft_p90: { metadataType: ModelRegistryMetadataType.DOUBLE, double_value: 42.18 },
+        use_case: {
+          metadataType: ModelRegistryMetadataType.STRING,
+          string_value: UseCaseOptionValue.CHATBOT,
+        },
+      },
+    }),
+    mockCatalogPerformanceMetricsArtifact({
+      customProperties: {
+        config_id: {
+          metadataType: ModelRegistryMetadataType.STRING,
+          string_value: 'multi-workload-3',
+        },
+        hardware_count: { metadataType: ModelRegistryMetadataType.INT, int_value: '1' },
+        hardware_type: { metadataType: ModelRegistryMetadataType.STRING, string_value: 'L40S' },
+        requests_per_second: { metadataType: ModelRegistryMetadataType.DOUBLE, double_value: 5 },
+        ttft_p90: { metadataType: ModelRegistryMetadataType.DOUBLE, double_value: 65.23 },
+        use_case: {
+          metadataType: ModelRegistryMetadataType.STRING,
+          string_value: UseCaseOptionValue.RAG,
+        },
+      },
+    }),
+    mockCatalogPerformanceMetricsArtifact({
+      customProperties: {
+        config_id: {
+          metadataType: ModelRegistryMetadataType.STRING,
+          string_value: 'multi-workload-4',
+        },
+        hardware_count: { metadataType: ModelRegistryMetadataType.INT, int_value: '2' },
+        hardware_type: { metadataType: ModelRegistryMetadataType.STRING, string_value: 'MI300X' },
+        requests_per_second: { metadataType: ModelRegistryMetadataType.DOUBLE, double_value: 9 },
+        ttft_p90: { metadataType: ModelRegistryMetadataType.DOUBLE, double_value: 48.77 },
+        use_case: {
+          metadataType: ModelRegistryMetadataType.STRING,
+          string_value: UseCaseOptionValue.LONG_RAG,
+        },
+      },
+    }),
+  ],
+  pageSize: 10,
+  size: 4,
+  nextPageToken: '',
+});
