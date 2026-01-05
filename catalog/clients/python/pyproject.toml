@@ -34,7 +34,6 @@ pytest-cov = ">=4.1,<8.0"
 pytest-mock = ">=3.7.0"
 pytest-asyncio = "^0.24.0"
 pytest-html = "^4.1.1"
-hypothesis = "^6.100.0"
 # Fuzzing
 schemathesis = ">=4.0.3,<=4.3.6"
 # Code quality
@@ -82,7 +81,6 @@ filterwarnings = [
     "error",
     "ignore::DeprecationWarning",
     "ignore::PendingDeprecationWarning",
-    "ignore::hypothesis.errors.HypothesisSideeffectWarning",
 ]
 
 [tool.ruff]
