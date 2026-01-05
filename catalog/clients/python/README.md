@@ -181,7 +181,3 @@ Tests are marked with pytest markers:
 | `CATALOG_IMAGE` | Docker image name | `model-registry:catalog-test` |
 | `CLUSTER_NAME` | Kind cluster name | `catalog-e2e` |
 | `CATALOG_PORT` | Local port for port-forward | `8081` |
-
-## License
-
-Apache-2.0
