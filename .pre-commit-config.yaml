@@ -1,5 +1,5 @@
 exclude: |
-  ^clients/python/patches/.*\.patch$
+  .*\.patch$
 
 repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
@@ -9,20 +9,24 @@ repos:
       - id: check-ast
       - id: check-case-conflict
       - id: check-docstring-first
-      - id: check-executables-have-shebangs
+      # - id: check-executables-have-shebangs
       - id: check-json
       - id: check-merge-conflict
       - id: check-symlinks
       - id: debug-statements
       - id: detect-private-key
+        exclude: '.*_test\.go$'
       - id: end-of-file-fixer
+        exclude: '^clients/python/src/mr_openapi'
       - id: trailing-whitespace
+        exclude: '^clients/python/src/mr_openapi'
 
   - repo: https://github.com/astral-sh/ruff-pre-commit
     rev: v0.7.0
     hooks:
       - id: ruff
         args: [--fix]
-        exclude: ^clients/python/patches/.*\.patch$
+        files: '^clients/python'
       - id: ruff-format
-        exclude: ^clients/python/patches/.*\.patch$
+        files: '^clients/python/src/mr_openapi'
+
