@@ -404,7 +404,7 @@ describe('Model Catalog Details Tabs', () => {
     });
 
     describe('With Latency Filter Applied', () => {
-      it('should show only the selected latency column when TTFT P90 filter is applied', () => {
+      it('should show only the selected latency column and matching TPS column when TTFT P90 filter is applied', () => {
         modelCatalog.findModelCatalogDetailLink().first().click();
         modelCatalog.clickPerformanceInsightsTab();
 
@@ -414,28 +414,22 @@ describe('Model Catalog Details Tabs', () => {
         // Apply the default TTFT P90 filter
         modelCatalog.clickApplyFilter();
 
-        // Only TTFT P90 column should be visible
+        // TTFT P90 column should be visible
         modelCatalog
           .findHardwareConfigurationTableHeaders()
           .should('contain.text', `TTFT${NBSP}Latency P90`);
 
-        // Other TTFT latency columns should be hidden
+        // TPS P90 column should be visible (matching percentile)
         modelCatalog
           .findHardwareConfigurationTableHeaders()
-          .should('not.contain.text', 'Latency Mean');
-        modelCatalog
-          .findHardwareConfigurationTableHeaders()
-          .should('not.contain.text', 'Latency P95');
-        modelCatalog
-          .findHardwareConfigurationTableHeaders()
-          .should('not.contain.text', 'Latency P99');
+          .should('contain.text', `TPS${NBSP}Latency P90`);
 
         // E2E and ITL columns should be hidden
         modelCatalog.findHardwareConfigurationTableHeaders().should('not.contain.text', 'E2E');
         modelCatalog.findHardwareConfigurationTableHeaders().should('not.contain.text', 'ITL');
       });
 
-      it('should show only E2E mean column when E2E mean filter is applied', () => {
+      it('should show only E2E mean column and TPS mean column when E2E mean filter is applied', () => {
         modelCatalog.findModelCatalogDetailLink().first().click();
         modelCatalog.clickPerformanceInsightsTab();
 
@@ -451,25 +445,19 @@ describe('Model Catalog Details Tabs', () => {
         // Apply filter
         modelCatalog.clickApplyFilter();
 
-        // Only E2E mean column should be visible
+        // E2E mean column should be visible
         modelCatalog
           .findHardwareConfigurationTableHeaders()
           .should('contain.text', `E2E${NBSP}Latency Mean`);
 
+        // TPS Mean column should be visible (matching percentile)
+        modelCatalog
+          .findHardwareConfigurationTableHeaders()
+          .should('contain.text', `TPS${NBSP}Latency Mean`);
+
         // TTFT and ITL columns should be hidden
         modelCatalog.findHardwareConfigurationTableHeaders().should('not.contain.text', 'TTFT');
         modelCatalog.findHardwareConfigurationTableHeaders().should('not.contain.text', 'ITL');
-
-        // Other E2E percentile columns should be hidden
-        modelCatalog
-          .findHardwareConfigurationTableHeaders()
-          .should('not.contain.text', 'Latency P90');
-        modelCatalog
-          .findHardwareConfigurationTableHeaders()
-          .should('not.contain.text', 'Latency P95');
-        modelCatalog
-          .findHardwareConfigurationTableHeaders()
-          .should('not.contain.text', 'Latency P99');
       });
 
       it('should restore all latency columns when filter is reset', () => {
@@ -480,10 +468,13 @@ describe('Model Catalog Details Tabs', () => {
         modelCatalog.openLatencyFilter();
         modelCatalog.clickApplyFilter();
 
-        // Verify only TTFT P90 latency column is shown
+        // Verify TTFT P90 and TPS P90 latency columns are shown
         modelCatalog
           .findHardwareConfigurationTableHeaders()
           .should('contain.text', `TTFT${NBSP}Latency P90`);
+        modelCatalog
+          .findHardwareConfigurationTableHeaders()
+          .should('contain.text', `TPS${NBSP}Latency P90`);
         modelCatalog.findHardwareConfigurationTableHeaders().should('not.contain.text', 'E2E');
 
         // Open filter and reset
@@ -497,6 +488,7 @@ describe('Model Catalog Details Tabs', () => {
         modelCatalog.findHardwareConfigurationTableHeaders().should('contain.text', 'TTFT');
         modelCatalog.findHardwareConfigurationTableHeaders().should('contain.text', 'E2E');
         modelCatalog.findHardwareConfigurationTableHeaders().should('contain.text', 'ITL');
+        modelCatalog.findHardwareConfigurationTableHeaders().should('contain.text', 'TPS');
       });
 
       it('should keep non-latency columns visible when latency filter is applied', () => {

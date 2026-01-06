@@ -14,6 +14,7 @@ import {
 } from '@patternfly/react-core';
 import { Link } from 'react-router-dom';
 import { HelpIcon, AngleLeftIcon, AngleRightIcon, ArrowRightIcon } from '@patternfly/react-icons';
+import { TruncatedText } from 'mod-arch-shared';
 import {
   CatalogModel,
   CatalogSource,
@@ -37,14 +38,6 @@ type ModelCatalogCardBodyProps = {
   model: CatalogModel;
   isValidated: boolean;
   source: CatalogSource | undefined;
-};
-
-const descriptionStyle: React.CSSProperties = {
-  overflow: 'hidden',
-  textOverflow: 'ellipsis',
-  WebkitLineClamp: 4,
-  WebkitBoxOrient: 'vertical',
-  display: '-webkit-box',
 };
 
 const ModelCatalogCardBody: React.FC<ModelCatalogCardBodyProps> = ({
@@ -80,7 +73,7 @@ const ModelCatalogCardBody: React.FC<ModelCatalogCardBodyProps> = ({
       },
       filterData,
       filterOptions,
-      isValidated, // Only fetch if validated
+      isValidated && performanceViewEnabled, // Only fetch if validated AND toggle is ON
     );
 
   const performanceMetrics = filterArtifactsByType<CatalogPerformanceMetricsArtifact>(
@@ -95,13 +88,13 @@ const ModelCatalogCardBody: React.FC<ModelCatalogCardBodyProps> = ({
     MetricsType.accuracyMetrics,
   );
 
-  const isLoading = isValidated && !performanceArtifactsLoaded;
+  const isLoading = isValidated && performanceViewEnabled && !performanceArtifactsLoaded;
 
   if (isLoading) {
     return <Spinner />;
   }
 
-  if (performanceArtifactsError && isValidated) {
+  if (performanceArtifactsError && isValidated && performanceViewEnabled) {
     return (
       <Alert variant="danger" isInline title={performanceArtifactsError.name}>
         {performanceArtifactsError.message}
@@ -115,9 +108,11 @@ const ModelCatalogCardBody: React.FC<ModelCatalogCardBodyProps> = ({
       return (
         <Stack hasGutter>
           <StackItem>
-            <div data-testid="model-catalog-card-description" style={descriptionStyle}>
-              {model.description}
-            </div>
+            <TruncatedText
+              content={model.description || ''}
+              maxLines={4}
+              data-testid="model-catalog-card-description"
+            />
           </StackItem>
           <StackItem>
             <Link
@@ -265,9 +260,11 @@ const ModelCatalogCardBody: React.FC<ModelCatalogCardBodyProps> = ({
 
   // Standard card body for non-validated models
   return (
-    <div data-testid="model-catalog-card-description" style={descriptionStyle}>
-      {model.description}
-    </div>
+    <TruncatedText
+      content={model.description || ''}
+      maxLines={4}
+      data-testid="model-catalog-card-description"
+    />
   );
 };
 
