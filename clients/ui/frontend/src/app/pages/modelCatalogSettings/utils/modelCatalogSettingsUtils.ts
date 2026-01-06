@@ -43,7 +43,10 @@ export const generateSourceIdFromName = (name: string): string =>
     .replace(/[^a-zA-Z0-9_]/g, '')
     .toLowerCase();
 
-export const transformFormDataToConfig = (formData: ManageSourceFormData): CatalogSourceConfig => {
+export const transformFormDataToConfig = (
+  formData: ManageSourceFormData,
+  existingSourceConfig?: CatalogSourceConfig,
+): CatalogSourceConfig => {
   const parseModels = (models: string): string[] =>
     models
       .split(',')
@@ -64,6 +67,10 @@ export const transformFormDataToConfig = (formData: ManageSourceFormData): Catal
       ...commonFields,
       type: CatalogSourceType.YAML,
       yaml: formData.yamlContent,
+      yamlCatalogPath:
+        existingSourceConfig?.type === CatalogSourceType.YAML
+          ? existingSourceConfig.yamlCatalogPath
+          : undefined,
     };
   }
 

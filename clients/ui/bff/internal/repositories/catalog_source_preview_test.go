@@ -142,3 +142,74 @@ func TestCreateCatalogSourcePreview_BadRequest(t *testing.T) {
 	assert.Equal(t, http.StatusBadRequest, httpError.StatusCode)
 	mockClient.AssertExpectations(t)
 }
+
+func TestCreateCatalogSourcePreview_WithYamlCatalogPath(t *testing.T) {
+	mockClient := &mocks.MockHTTPClient{}
+
+	// Mock successful response
+	responseJSON := `{"size": 5, "pageSize": 10, "nextPageToken": "", "items": []}`
+	mockClient.On("POSTWithContentType", mock.Anything, mock.Anything, mock.Anything).
+		Return([]byte(responseJSON), nil)
+
+	repo := CatalogSourcePreview{}
+	payload := models.CatalogSourcePreviewRequest{
+		Type:           "yaml",
+		IncludedModels: []string{},
+		ExcludedModels: []string{},
+		Properties: map[string]interface{}{
+			"yamlCatalogPath": "dora_ai_models.yaml",
+		},
+	}
+
+	result, err := repo.CreateCatalogSourcePreview(mockClient, payload, url.Values{})
+
+	assert.NoError(t, err)
+	assert.NotNil(t, result)
+	assert.Equal(t, int32(5), result.Size)
+	mockClient.AssertExpectations(t)
+}
+
+func TestCreateCatalogSourcePreview_MissingBothYamlAndPath(t *testing.T) {
+	mockClient := &mocks.MockHTTPClient{}
+
+	repo := CatalogSourcePreview{}
+	payload := models.CatalogSourcePreviewRequest{
+		Type:           "yaml",
+		IncludedModels: []string{},
+		ExcludedModels: []string{},
+		Properties:     map[string]interface{}{},
+	}
+
+	result, err := repo.CreateCatalogSourcePreview(mockClient, payload, url.Values{})
+
+	assert.Nil(t, result)
+	assert.Error(t, err)
+	assert.Contains(t, err.Error(), "either 'yaml' content or 'yamlCatalogPath' must be provided")
+}
+
+func TestCreateCatalogSourcePreview_EmptyYamlFallsBackToPath(t *testing.T) {
+	mockClient := &mocks.MockHTTPClient{}
+
+	// Mock successful response
+	responseJSON := `{"size": 3, "pageSize": 10, "nextPageToken": "", "items": []}`
+	mockClient.On("POSTWithContentType", mock.Anything, mock.Anything, mock.Anything).
+		Return([]byte(responseJSON), nil)
+
+	repo := CatalogSourcePreview{}
+	payload := models.CatalogSourcePreviewRequest{
+		Type:           "yaml",
+		IncludedModels: []string{},
+		ExcludedModels: []string{},
+		Properties: map[string]interface{}{
+			"yaml":            "", // Empty yaml should fall back to yamlCatalogPath
+			"yamlCatalogPath": "custom_yaml_models.yaml",
+		},
+	}
+
+	result, err := repo.CreateCatalogSourcePreview(mockClient, payload, url.Values{})
+
+	assert.NoError(t, err)
+	assert.NotNil(t, result)
+	assert.Equal(t, int32(3), result.Size)
+	mockClient.AssertExpectations(t)
+}

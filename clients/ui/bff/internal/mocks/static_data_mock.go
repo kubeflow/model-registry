@@ -1404,39 +1404,6 @@ func GetFilterOptionsListMock() models.FilterOptionsList {
 	}
 }
 
-func CreateSampleCatalogSource(id string, name string, catalogType string, enabled bool) models.CatalogSourceConfig {
-	defaultCatalog := id == "sample-source"
-
-	sourceConfig := models.CatalogSourceConfig{
-		Name:      name,
-		Id:        id,
-		Type:      catalogType,
-		Enabled:   &enabled,
-		Labels:    []string{"source-1"},
-		IsDefault: &defaultCatalog,
-	}
-
-	if !defaultCatalog {
-		sourceConfig.IncludedModels = []string{"rhelai1/modelcar-granite-7b-starter"}
-		sourceConfig.ExcludedModels = []string{"model-a:1.0", "model-b:*"}
-	}
-
-	switch catalogType {
-	case "yaml":
-		sourceConfig.Yaml = stringToPointer("models:\n  - name: model1")
-	case "hf":
-		// Use different organizations for the failed sources
-		if id == "adminModel2" {
-			sourceConfig.AllowedOrganization = stringToPointer("invalid-org")
-		} else {
-			sourceConfig.AllowedOrganization = stringToPointer("org1")
-		}
-		sourceConfig.ApiKey = stringToPointer("apikey")
-	}
-
-	return sourceConfig
-}
-
 func BoolPtr(b bool) *bool {
 	return &b
 }
