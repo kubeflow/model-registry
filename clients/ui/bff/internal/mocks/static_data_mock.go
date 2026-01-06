@@ -2248,7 +2248,7 @@ func CreateCatalogSourcePreviewMockWithFilter(filterStatus string, pageSize int,
 	startIndex := 0
 	if nextPageToken != "" {
 		// Parse token as start index (simple mock implementation)
-		fmt.Sscanf(nextPageToken, "%d", &startIndex)
+		_, _ = fmt.Sscanf(nextPageToken, "%d", &startIndex)
 	}
 
 	if pageSize <= 0 {

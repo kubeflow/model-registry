@@ -222,7 +222,7 @@ func (m *ModelCatalogClientMock) CreateCatalogSourcePreview(client httpclient.HT
 
 	pageSize := 20
 	if ps := pageValues.Get("pageSize"); ps != "" {
-		fmt.Sscanf(ps, "%d", &pageSize)
+		_, _ = fmt.Sscanf(ps, "%d", &pageSize)
 	}
 
 	nextPageToken := pageValues.Get("nextPageToken")
