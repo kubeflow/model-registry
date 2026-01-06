@@ -1,6 +1,5 @@
 import * as React from 'react';
 import { PageSection, Card, CardBody, Title, Flex, FlexItem, Alert } from '@patternfly/react-core';
-import { ChartBarIcon } from '@patternfly/react-icons';
 import { useParams } from 'react-router-dom';
 import HardwareConfigurationTable from '~/app/pages/modelCatalog/components/HardwareConfigurationTable';
 import {
@@ -76,7 +75,7 @@ const PerformanceInsightsView = (): React.JSX.Element => {
               <Flex direction={{ default: 'column' }} gap={{ default: 'gapSm' }}>
                 <FlexItem>
                   <Title headingLevel="h2" size="lg">
-                    <ChartBarIcon /> Hardware Configuration
+                    Hardware Configuration
                   </Title>
                 </FlexItem>
                 <FlexItem>
