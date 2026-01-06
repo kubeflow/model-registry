@@ -73,7 +73,7 @@ const ModelCatalogCardBody: React.FC<ModelCatalogCardBodyProps> = ({
       },
       filterData,
       filterOptions,
-      isValidated && performanceViewEnabled, // Only fetch if validated AND toggle is ON
+      isValidated, // Only fetch if validated
     );
 
   const performanceMetrics = filterArtifactsByType<CatalogPerformanceMetricsArtifact>(
@@ -88,13 +88,13 @@ const ModelCatalogCardBody: React.FC<ModelCatalogCardBodyProps> = ({
     MetricsType.accuracyMetrics,
   );
 
-  const isLoading = isValidated && performanceViewEnabled && !performanceArtifactsLoaded;
+  const isLoading = isValidated && !performanceArtifactsLoaded;
 
   if (isLoading) {
     return <Spinner />;
   }
 
-  if (performanceArtifactsError && isValidated && performanceViewEnabled) {
+  if (performanceArtifactsError && isValidated) {
     return (
       <Alert variant="danger" isInline title={performanceArtifactsError.name}>
         {performanceArtifactsError.message}
