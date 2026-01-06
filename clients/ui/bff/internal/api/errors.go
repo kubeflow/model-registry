@@ -94,6 +94,19 @@ func (app *App) notFoundResponse(w http.ResponseWriter, r *http.Request) {
 	app.errorResponse(w, r, httpError)
 }
 
+func (app *App) conflictResponse(w http.ResponseWriter, r *http.Request, message string) {
+	app.logger.Warn("Conflict detected", "message", message, "method", r.Method, "uri", r.URL.RequestURI())
+
+	httpError := &httpclient.HTTPError{
+		StatusCode: http.StatusConflict,
+		ErrorResponse: httpclient.ErrorResponse{
+			Code:    strconv.Itoa(http.StatusConflict),
+			Message: "the resource was modified by another request, please retry",
+		},
+	}
+	app.errorResponse(w, r, httpError)
+}
+
 func (app *App) methodNotAllowedResponse(w http.ResponseWriter, r *http.Request) {
 
 	httpError := &httpclient.HTTPError{
