@@ -320,33 +320,113 @@ catalogs:
     enabled: true
     # Required: List of model identifiers to include
     # Format: "organization/model-name" or "username/model-name"
+    # Supports wildcard patterns: "organization/*" or "organization/prefix*"
     includedModels:
       - "meta-llama/Llama-3.1-8B-Instruct"
-      - "ibm-granite/granite-4.0-h-small"
       - "microsoft/phi-2"
-    
+      - "microsoft/phi-3*"  # All models starting with "phi-3"
+
     # Optional: Exclude specific models or patterns
     # Supports exact matches or patterns ending with "*"
     excludedModels:
       - "some-org/unwanted-model"
       - "another-org/test-*"  # Excludes all models starting with "test-"
-    
+
     # Optional: Configure a custom environment variable name for the API key
     # Defaults to "HF_API_KEY" if not specified
     properties:
       apiKeyEnvVar: "MY_CUSTOM_API_KEY_VAR"
 ```
 
+#### Organization-Restricted Sources
+
+You can restrict a source to only fetch models from a specific organization using the `allowedOrganization` property. This automatically prefixes all model patterns with the organization name:
+
+```yaml
+catalogs:
+  - name: "Meta LLaMA Models"
+    id: "meta-llama-models"
+    type: "hf"
+    enabled: true
+    properties:
+      allowedOrganization: "meta-llama"
+      apiKeyEnvVar: "HF_API_KEY"
+    includedModels:
+      # These patterns are automatically prefixed with "meta-llama/"
+      - "*"           # Expands to: meta-llama/*
+      - "Llama-3*"    # Expands to: meta-llama/Llama-3*
+      - "CodeLlama-*" # Expands to: meta-llama/CodeLlama-*
+    excludedModels:
+      - "*-4bit"      # Excludes: meta-llama/*-4bit
+      - "*-GGUF"      # Excludes: meta-llama/*-GGUF
+```
+
+**Benefits of organization-restricted sources:**
+- **Simplified configuration**: No need to repeat organization name in every pattern
+- **Security**: Prevents accidental inclusion of models from other organizations
+- **Convenience**: Use `"*"` to get all models from an organization
+- **Performance**: Optimized API calls when fetching from a single organization
+
 #### Model Filtering
 
 Both `includedModels` and `excludedModels` are top-level properties (not nested under `properties`):
 
-- **`includedModels`** (required): List of model identifiers to fetch from Hugging Face. Format: `"organization/model-name"` or `"username/model-name"`
+- **`includedModels`** (required): List of model identifiers to fetch from Hugging Face
 - **`excludedModels`** (optional): List of models or patterns to exclude from the results
 
-The `excludedModels` property supports:
+#### Supported Pattern Types
+
+**Exact Model Names:**
+```yaml
+includedModels:
+  - "meta-llama/Llama-3.1-8B-Instruct"  # Specific model
+  - "microsoft/phi-2"                    # Specific model
+```
+
+**Wildcard Patterns:**
+
+In `includedModels`, wildcards can match model names by a prefix.
+
+```yaml
+includedModels:
+  - "microsoft/phi-*"      # All models starting with "phi-"
+  - "meta-llama/Llama-3*"  # All models starting with "Llama-3"
+  - "huggingface/*"        # All models from huggingface organization
+```
+
+**Organization-Only Patterns (with `allowedOrganization`):**
+```yaml
+properties:
+  allowedOrganization: "meta-llama"
+includedModels:
+  - "*"          # All models from meta-llama organization
+  - "Llama-3*"   # All meta-llama models starting with "Llama-3"
+  - "CodeLlama-*" # All meta-llama models starting with "CodeLlama-"
+```
+
+#### Pattern Validation
+
+**Valid patterns:**
+- `"org/model"` - Exact model name
+- `"org/prefix*"` - Models starting with prefix
+- `"org/*"` - All models from organization
+- `"*"` - All models (only when using `allowedOrganization`)
+
+**Invalid patterns (will be rejected):**
+- `"*"` - Global wildcard (without `allowedOrganization`)
+- `"*/*"` - Global organization wildcard
+- `"org*"` - Wildcard in organization name
+- `"org/"` - Empty model name
+- `"*prefix*"` - Multiple wildcards
+
+#### Exclusion Patterns
+
+The `excludedModels` property supports prefixes like `includedModels` and also suffixes and mid-name wildcards:
 - **Exact matches**: `"meta-llama/Llama-3.1-8B-Instruct"` - excludes this specific model
-- **Pattern matching**: `"test-*"` - excludes all models starting with "test-"
+- **Pattern matching**:
+    - `"*-draft"` - excludes all models ending with "-draft"
+    - `"Llama-3.*-Instruct"` - excludes all Llama 3.x models ending with "-Instruct"
+- **Organization patterns**: `"test-org/*"` - excludes all models from test-org
 
 ## Development
 

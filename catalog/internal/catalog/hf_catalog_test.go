@@ -9,6 +9,7 @@ import (
 	"os"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -599,11 +600,17 @@ func TestParseModelPattern(t *testing.T) {
 		{"ibm-granite/granite-3*", PatternOrgPrefix, "ibm-granite", "granite-3"},
 		{"mistralai/Mistral-*", PatternOrgPrefix, "mistralai", "Mistral-"},
 
-		// Invalid patterns - would try to list all HuggingFace models
+		// Invalid patterns
 		{"*", PatternInvalid, "", ""},
 		{"*/*", PatternInvalid, "", ""},
 		{"*/something", PatternInvalid, "", ""},
 		{"*/prefix*", PatternInvalid, "", ""},
+		{"foo*/bar-*", PatternInvalid, "", ""},
+		{"foo*", PatternInvalid, "", ""},
+		{"foo*/", PatternInvalid, "", ""},
+		{"foo*bar/", PatternInvalid, "", ""},
+		{"/foo", PatternInvalid, "", ""},
+		{"foo/", PatternInvalid, "", ""},
 	}
 
 	for _, tt := range tests {
@@ -720,6 +727,7 @@ func TestListModelsByAuthor(t *testing.T) {
 			Properties: map[string]any{
 				"url": server.URL,
 			},
+			IncludedModels: []string{"test-org/*"},
 		}
 
 		provider, err := NewHFPreviewProvider(config)
@@ -745,6 +753,7 @@ func TestListModelsByAuthor(t *testing.T) {
 			Properties: map[string]any{
 				"url": server.URL,
 			},
+			IncludedModels: []string{"test-org/*"},
 		}
 
 		provider, err := NewHFPreviewProvider(config)
@@ -769,6 +778,7 @@ func TestListModelsByAuthor(t *testing.T) {
 				"url":       server.URL,
 				"maxModels": 50, // Limit to 50 models
 			},
+			IncludedModels: []string{"test-org/*"},
 		}
 
 		provider, err := NewHFPreviewProvider(config)
@@ -791,6 +801,7 @@ func TestListModelsByAuthor(t *testing.T) {
 			Properties: map[string]any{
 				"url": server.URL,
 			},
+			IncludedModels: []string{"test-org/*"},
 		}
 
 		provider, err := NewHFPreviewProvider(config)
@@ -808,6 +819,7 @@ func TestListModelsByAuthor(t *testing.T) {
 				"url":       server.URL,
 				"maxModels": 0, // No limit
 			},
+			IncludedModels: []string{"test-org/*"},
 		}
 
 		provider, err := NewHFPreviewProvider(config)
@@ -1143,4 +1155,252 @@ func TestConvertHFModelToRecord_ArtifactTimestamps(t *testing.T) {
 
 	assert.Equal(t, *record.Model.GetAttributes().CreateTimeSinceEpoch, *attrs.CreateTimeSinceEpoch)
 	assert.Equal(t, *record.Model.GetAttributes().LastUpdateTimeSinceEpoch, *attrs.LastUpdateTimeSinceEpoch)
+}
+
+func TestHfModelProvider_Models_WithWildcardPattern(t *testing.T) {
+	// Mock server that handles both list API and individual model API
+	mockServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		switch {
+		case strings.Contains(r.URL.RawQuery, "author=test-org"):
+			// Mock response for list API (used by listModelsByAuthor)
+			// HF API returns an array of models directly
+			models := []map[string]interface{}{
+				{"id": "test-org/model-1", "author": "test-org"},
+				{"id": "test-org/model-2", "author": "test-org"},
+			}
+			json.NewEncoder(w).Encode(models)
+		case strings.HasPrefix(r.URL.Path, "/api/models/test-org/model-"):
+			// Mock response for individual model API (used by fetchModelInfo)
+			modelInfo := hfModelInfo{
+				ID:     strings.TrimPrefix(r.URL.Path, "/api/models/"),
+				Author: "test-org",
+			}
+			json.NewEncoder(w).Encode(modelInfo)
+		default:
+			http.Error(w, "Not found", http.StatusNotFound)
+		}
+	}))
+	defer mockServer.Close()
+
+	filter, err := NewModelFilter([]string{}, []string{})
+	require.NoError(t, err)
+
+	provider := &hfModelProvider{
+		baseURL:        mockServer.URL,
+		includedModels: []string{"test-org/*"},
+		filter:         filter,
+		client:         &http.Client{},
+		syncInterval:   24 * time.Hour,
+	}
+
+	// Use a context with cancel to stop the goroutine after receiving records
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	ch, err := provider.Models(ctx)
+	assert.NoError(t, err)
+
+	var records []ModelProviderRecord
+	for record := range ch {
+		// Skip empty records (batch markers)
+		if record.Model == nil {
+			// After receiving the empty record marker, we're done with this batch
+			cancel()
+			continue
+		}
+		records = append(records, record)
+	}
+
+	// Should have expanded wildcard to 2 concrete models
+	assert.Len(t, records, 2)
+	assert.Contains(t, getModelNames(records), "test-org/model-1")
+	assert.Contains(t, getModelNames(records), "test-org/model-2")
+}
+
+func getModelNames(records []ModelProviderRecord) []string {
+	var names []string
+	for _, record := range records {
+		if record.Model.GetAttributes() != nil && record.Model.GetAttributes().Name != nil {
+			names = append(names, *record.Model.GetAttributes().Name)
+		}
+	}
+	return names
+}
+
+func TestHfModelProvider_Models_WithMixedPatterns(t *testing.T) {
+	mockServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		switch {
+		case strings.Contains(r.URL.RawQuery, "author=test-org"):
+			models := []map[string]interface{}{
+				{"id": "test-org/wildcard-model", "author": "test-org"},
+			}
+			json.NewEncoder(w).Encode(models)
+		case strings.Contains(r.URL.Path, "/api/models/exact-model"):
+			modelInfo := hfModelInfo{
+				ID:     "exact-model",
+				Author: "exact-author",
+			}
+			json.NewEncoder(w).Encode(modelInfo)
+		case strings.Contains(r.URL.Path, "/api/models/test-org/wildcard-model"):
+			modelInfo := hfModelInfo{
+				ID:     "test-org/wildcard-model",
+				Author: "test-org",
+			}
+			json.NewEncoder(w).Encode(modelInfo)
+		default:
+			http.Error(w, "Not found", http.StatusNotFound)
+		}
+	}))
+	defer mockServer.Close()
+
+	filter, err := NewModelFilter([]string{}, []string{})
+	require.NoError(t, err)
+
+	provider := &hfModelProvider{
+		baseURL:        mockServer.URL,
+		includedModels: []string{"exact-model", "test-org/*"},
+		filter:         filter,
+		client:         &http.Client{},
+		syncInterval:   24 * time.Hour,
+	}
+
+	// Use a context with cancel to stop the goroutine after receiving records
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	ch, err := provider.Models(ctx)
+	assert.NoError(t, err)
+
+	var records []ModelProviderRecord
+	for record := range ch {
+		// Skip empty records (batch markers)
+		if record.Model == nil {
+			// After receiving the empty record marker, we're done with this batch
+			cancel()
+			continue
+		}
+		records = append(records, record)
+	}
+
+	// Should have both exact model and wildcard-expanded model
+	assert.Len(t, records, 2)
+	modelNames := getModelNames(records)
+	assert.Contains(t, modelNames, "exact-model")
+	assert.Contains(t, modelNames, "test-org/wildcard-model")
+}
+
+func TestHfModelProvider_Models_WithInvalidWildcardPattern(t *testing.T) {
+	filter, err := NewModelFilter([]string{}, []string{})
+	require.NoError(t, err)
+
+	provider := &hfModelProvider{
+		baseURL:        "https://huggingface.co",
+		includedModels: []string{"*"}, // Invalid global wildcard
+		filter:         filter,
+		client:         &http.Client{},
+	}
+
+	ch, err := provider.Models(context.Background())
+
+	// Should return error for invalid wildcard pattern
+	assert.Error(t, err)
+	assert.Contains(t, err.Error(), "wildcard pattern \"*\" is not supported")
+	assert.Nil(t, ch)
+}
+
+func TestHfModelProvider_expandModelNames_AllWildcardPatternsFail(t *testing.T) {
+	// Test that when ALL wildcard patterns fail, an error is returned
+	mockServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		// Return 401 for unauthorized requests
+		w.WriteHeader(http.StatusUnauthorized)
+		w.Write([]byte(`{"error": "Invalid API key"}`))
+	}))
+	defer mockServer.Close()
+
+	filter, err := NewModelFilter([]string{}, []string{})
+	require.NoError(t, err)
+
+	provider := &hfModelProvider{
+		baseURL:        mockServer.URL,
+		includedModels: []string{"test-org/*"},
+		filter:         filter,
+		client:         &http.Client{},
+		apiKey:         "invalid-key",
+	}
+
+	models, err := provider.expandModelNames(context.Background(), []string{"test-org/*"})
+
+	// Should return an error when all wildcard patterns fail (improved error reporting)
+	assert.Error(t, err)
+	assert.Contains(t, err.Error(), "no models found")
+	assert.Empty(t, models)
+}
+
+func TestHfModelProvider_expandModelNames_PartialWildcardFailure(t *testing.T) {
+	// Test that when some but not all wildcard patterns fail, operation continues with partial results
+	mockServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		switch {
+		case strings.Contains(r.URL.RawQuery, "author=good-org"):
+			// Mock successful response for good-org
+			models := []map[string]interface{}{
+				{"id": "good-org/model-1", "author": "good-org"},
+			}
+			json.NewEncoder(w).Encode(models)
+		case strings.Contains(r.URL.RawQuery, "author=bad-org"):
+			// Mock failure for bad-org (unauthorized)
+			w.WriteHeader(http.StatusUnauthorized)
+			w.Write([]byte(`{"error": "Unauthorized"}`))
+		default:
+			http.Error(w, "Not found", http.StatusNotFound)
+		}
+	}))
+	defer mockServer.Close()
+
+	filter, err := NewModelFilter([]string{}, []string{})
+	require.NoError(t, err)
+
+	provider := &hfModelProvider{
+		baseURL: mockServer.URL,
+		filter:  filter,
+		client:  &http.Client{},
+	}
+
+	// Test with mixed patterns: one succeeds, one fails
+	patterns := []string{"good-org/*", "bad-org/*"}
+	models, err := provider.expandModelNames(context.Background(), patterns)
+
+	// Should NOT return error when only some patterns fail
+	assert.NoError(t, err)
+	// Should return partial results from successful patterns
+	assert.Len(t, models, 1)
+	assert.Equal(t, "good-org/model-1", models[0])
+}
+
+func TestHfModelProvider_expandModelNames_ExactPatternsWithWildcardFailures(t *testing.T) {
+	// Test that when wildcard patterns fail but exact patterns exist, operation continues
+	mockServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		// All wildcard requests fail
+		w.WriteHeader(http.StatusUnauthorized)
+		w.Write([]byte(`{"error": "Unauthorized"}`))
+	}))
+	defer mockServer.Close()
+
+	filter, err := NewModelFilter([]string{}, []string{})
+	require.NoError(t, err)
+
+	provider := &hfModelProvider{
+		baseURL: mockServer.URL,
+		filter:  filter,
+		client:  &http.Client{},
+	}
+
+	// Test with mixed patterns: exact models and wildcards
+	patterns := []string{"exact-org/exact-model", "wildcard-org/*"}
+	models, err := provider.expandModelNames(context.Background(), patterns)
+
+	// Should NOT return error when exact patterns exist even if wildcards fail
+	assert.NoError(t, err)
+	// Should return the exact patterns that don't require API calls
+	assert.Len(t, models, 1)
+	assert.Equal(t, "exact-org/exact-model", models[0])
 }
