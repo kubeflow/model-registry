@@ -384,6 +384,9 @@ includedModels:
 ```
 
 **Wildcard Patterns:**
+
+In `includedModels`, wildcards can match model names by a prefix.
+
 ```yaml
 includedModels:
   - "microsoft/phi-*"      # All models starting with "phi-"
@@ -418,9 +421,11 @@ includedModels:
 
 #### Exclusion Patterns
 
-The `excludedModels` property supports the same pattern types:
+The `excludedModels` property supports prefixes like `includedModels` and also suffixes and mid-name wildcards:
 - **Exact matches**: `"meta-llama/Llama-3.1-8B-Instruct"` - excludes this specific model
-- **Pattern matching**: `"*-draft"` - excludes all models ending with "-draft"
+- **Pattern matching**:
+    - `"*-draft"` - excludes all models ending with "-draft"
+    - `"Llama-3.*-Instruct"` - excludes all Llama 3.x models ending with "-Instruct"
 - **Organization patterns**: `"test-org/*"` - excludes all models from test-org
 
 ## Development
