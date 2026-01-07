@@ -20,8 +20,10 @@ import {
   ModelCatalogNumberFilterKey,
   ALL_LATENCY_FIELD_NAMES,
   LatencyMetricFieldName,
+  VALID_ARCHITECTURES,
 } from '~/concepts/modelCatalog/const';
 import { CatalogSourceStatus } from '~/concepts/modelCatalogSettings/const';
+import { ModelRegistryMetadataType } from '~/app/types';
 
 /**
  * Prefix used by the backend for artifact-specific filter options.
@@ -92,6 +94,55 @@ export const getModelArtifactUri = (artifacts: CatalogArtifacts[]): string => {
 
 export const hasModelArtifacts = (artifacts: CatalogArtifacts[]): boolean =>
   artifacts.some((artifact) => artifact.artifactType === CatalogArtifactType.modelArtifact);
+
+/**
+ * Extracts and validates architecture values from the model artifact's custom properties.
+ * The architecture custom property should be a JSON-encoded array of architecture strings.
+ * Only valid architecture types (amd64, arm64, s390x, ppc64le) are returned.
+ *
+ * @param artifacts Array of catalog artifacts to search
+ * @returns Array of valid architecture strings, or empty array if none found or invalid
+ */
+export const getArchitecturesFromArtifacts = (artifacts: CatalogArtifacts[]): string[] => {
+  const modelArtifact = artifacts.find(
+    (artifact) => artifact.artifactType === CatalogArtifactType.modelArtifact,
+  );
+
+  if (!modelArtifact?.customProperties) {
+    return [];
+  }
+
+  // eslint-disable-next-line @typescript-eslint/dot-notation
+  const architectureProp = modelArtifact.customProperties['architecture'];
+
+  // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+  if (!architectureProp || architectureProp.metadataType !== ModelRegistryMetadataType.STRING) {
+    return [];
+  }
+
+  const architectureString = architectureProp.string_value;
+
+  if (!architectureString) {
+    return [];
+  }
+
+  try {
+    const parsed = JSON.parse(architectureString);
+
+    if (!Array.isArray(parsed)) {
+      return [];
+    }
+
+    return parsed
+      .filter((item) => typeof item === 'string' && VALID_ARCHITECTURES.has(item.toLowerCase()))
+      .map((item) => item.toLowerCase());
+  } catch (error) {
+    // Invalid JSON - return empty array
+    // eslint-disable-next-line no-console
+    console.warn('Failed to parse architecture JSON:', architectureString, error);
+    return [];
+  }
+};
 
 export const hasPerformanceArtifacts = (artifacts: CatalogArtifacts[]): boolean =>
   artifacts.some(
