@@ -22,6 +22,7 @@ import {
   HELP_TEXT,
   PLACEHOLDERS,
 } from '~/app/pages/modelCatalogSettings/constants';
+import { TempDevFeature, useTempDevFeatureAvailable } from '~/app/hooks/useTempDevFeatureAvailable';
 
 type CredentialsSectionProps = {
   formData: ManageSourceFormData;
@@ -61,6 +62,26 @@ const CredentialsSection: React.FC<CredentialsSectionProps> = ({
     />
   );
 
+  const organizationFormGroup = (
+    <FormGroup label={FORM_LABELS.ORGANIZATION} isRequired fieldId="organization">
+      <FormHelperText>
+        <HelperText>
+          <HelperTextItem>{HELP_TEXT.ORGANIZATION}</HelperTextItem>
+        </HelperText>
+      </FormHelperText>
+      <FormFieldset component={organizationInput} field="Allowed organization" />
+      {isOrganizationTouched && !isOrganizationValid && (
+        <FormHelperText>
+          <HelperText>
+            <HelperTextItem variant="error" data-testid="organization-error">
+              {VALIDATION_MESSAGES.ORGANIZATION_REQUIRED}
+            </HelperTextItem>
+          </HelperText>
+        </FormHelperText>
+      )}
+    </FormGroup>
+  );
+
   const accessTokenInput = (
     <PasswordInput
       isRequired
@@ -74,26 +95,8 @@ const CredentialsSection: React.FC<CredentialsSectionProps> = ({
     />
   );
 
-  return (
-    <FormSection title={FORM_LABELS.CREDENTIALS} data-testid="credentials-section">
-      <FormGroup label={FORM_LABELS.ORGANIZATION} isRequired fieldId="organization">
-        <FormHelperText>
-          <HelperText>
-            <HelperTextItem>{HELP_TEXT.ORGANIZATION}</HelperTextItem>
-          </HelperText>
-        </FormHelperText>
-        <FormFieldset component={organizationInput} field="Allowed organization" />
-        {isOrganizationTouched && !isOrganizationValid && (
-          <FormHelperText>
-            <HelperText>
-              <HelperTextItem variant="error" data-testid="organization-error">
-                {VALIDATION_MESSAGES.ORGANIZATION_REQUIRED}
-              </HelperTextItem>
-            </HelperText>
-          </FormHelperText>
-        )}
-      </FormGroup>
-
+  const accessTokenFormGroup = (
+    <>
       <FormGroup label={FORM_LABELS.ACCESS_TOKEN} fieldId="access-token">
         <FormHelperText>
           <HelperText>
@@ -129,6 +132,20 @@ const CredentialsSection: React.FC<CredentialsSectionProps> = ({
           Validate
         </Button>
       </ActionList>
+    </>
+  );
+
+  const accessTokenFeatureAvailable = useTempDevFeatureAvailable(
+    TempDevFeature.CatalogHuggingFaceApiKey,
+  );
+
+  return (
+    <FormSection
+      title={accessTokenFeatureAvailable ? FORM_LABELS.CREDENTIALS : undefined}
+      data-testid="credentials-section"
+    >
+      {organizationFormGroup}
+      {accessTokenFeatureAvailable && accessTokenFormGroup}
     </FormSection>
   );
 };
