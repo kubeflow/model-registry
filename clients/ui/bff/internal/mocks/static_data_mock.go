@@ -688,7 +688,7 @@ Granite 3.1 Instruct Models are primarily finetuned using instruction-response p
 	sampleModel2 := models.CatalogModel{
 		Name:             "repo1/granite-7b-instruct",
 		Description:      stringToPointer("Granite 7B instruction-tuned model for enterprise applications"),
-		Provider:         stringToPointer("Red Hat"),
+		Provider:         stringToPointer("Provider one"),
 		Tasks:            []string{"text-generation", "image-text-to-text"},
 		License:          stringToPointer("apache-2.0"),
 		Maturity:         stringToPointer("Generally Available"),
@@ -1531,46 +1531,504 @@ func GetFilterOptionMocks() map[string]models.FilterOption {
 	filterOptions["provider"] = models.FilterOption{
 		Type: FilterOptionTypeString,
 		Values: []interface{}{
-			"Red Hat", "IBM", "Google",
+			"Alibaba Cloud", "DeepSeek", "Google", "IBM", "Meta", "Microsoft",
+			"Mistral", "Mistral AI", "Moonshot AI", "NVIDIA", "Nvidia", "OpenAI", "Provider one",
 		},
 	}
 
 	filterOptions["license"] = models.FilterOption{
 		Type: FilterOptionTypeString,
 		Values: []interface{}{
-			"apache-2.0",
-			"mit",
+			"Apache 2.0", "Gemma License", "Llama 3.1 Community License",
+			"Llama 3.3 Community License", "Llama 4 Community License", "MIT",
+			"NVIDIA Open Model License", "modified-mit",
 		},
 	}
 
 	filterOptions["tasks"] = models.FilterOption{
 		Type: FilterOptionTypeString,
 		Values: []interface{}{
-			"audio-to-text", "image-to-text", "image-text-to-text", "text-generation", "text-to-text", "video-to-text",
+			"audio-to-text", "automatic-speech-recognition", "automatic-speech-translation",
+			"code-generation", "image-text-to-text", "image-to-text", "text-generation",
+			"text-to-text", "video-to-text",
 		},
 	}
 
-	// String type filter for programming languages supported
 	filterOptions["language"] = models.FilterOption{
 		Type: FilterOptionTypeString,
 		Values: []interface{}{
-			"ar", "cs", "de", "en", "es", "fr", "it", "ja", "ko", "nl", "pt", "zh",
+			"ar", "bg", "ca", "cs", "da", "de", "el", "en", "es", "fa", "fi", "fr",
+			"he", "hi", "hr", "hu", "id", "is", "it", "ja", "ko", "ms", "nl", "nld",
+			"no", "pl", "pt", "ro", "ru", "sk", "sl", "sr", "sv", "th", "tl", "tr",
+			"uk", "ur", "vi", "zh", "zsm",
 		},
 	}
 
-	// String type filter for use cases
-	filterOptions["use_case"] = models.FilterOption{
+	filterOptions["status"] = models.FilterOption{
+		Type: FilterOptionTypeString,
+		Values: []interface{}{
+			"available", "disabled", "error",
+		},
+	}
+
+	filterOptions["model_type.string_value"] = models.FilterOption{
+		Type: FilterOptionTypeString,
+		Values: []interface{}{
+			"generative",
+		},
+	}
+
+	filterOptions["size.string_value"] = models.FilterOption{
+		Type: FilterOptionTypeString,
+		Values: []interface{}{
+			"108B params", "11B params", "120B params", "14B params", "19B params",
+			"1B params", "1T params", "21.5B params", "23B params", "24B params",
+			"2B params", "401B params", "46.7B params", "480B params", "4B params",
+			"671B params", "7.62B params", "7.85B params", "70.6B params", "70B params",
+			"7B params", "8 B", "8.19B params", "8.89B params", "8B params",
+		},
+	}
+
+	filterOptions["tensor_type.string_value"] = models.FilterOption{
+		Type: FilterOptionTypeString,
+		Values: []interface{}{
+			"FP16", "FP8", "INT4", "INT8", "MXFP4",
+		},
+	}
+
+	filterOptions["validated_on.array_value"] = models.FilterOption{
+		Type: FilterOptionTypeString,
+		Values: []interface{}{
+			"RHAIIS 3.0", "RHAIIS 3.2.1", "RHAIIS 3.2.2", "RHELAI 1.5",
+			"RHOAI 2.20", "RHOAI 2.24", "RHOAI 2.25",
+		},
+	}
+
+	filterOptions["variant_group_id.string_value"] = models.FilterOption{
+		Type: FilterOptionTypeString,
+		Values: []interface{}{
+			"10bd75b4-ec27-4ee1-b0c8-5a0e41785b31", "2a4a5f11-fd59-4067-9be7-9d7a07a581c1",
+			"36117278-8e53-4b44-9391-7ba28403caef", "6a1a6cce-efbc-4cea-b738-ea34ccf241a6",
+		},
+	}
+
+	// Artifact properties (with artifacts. prefix)
+	filterOptions["artifacts.use_case.string_value"] = models.FilterOption{
 		Type: FilterOptionTypeString,
 		Values: []interface{}{
 			"chatbot", "code_fixing", "long_rag", "rag",
 		},
 	}
 
-	filterOptions["ttft_mean"] = models.FilterOption{
+	filterOptions["artifacts.hardware_type.string_value"] = models.FilterOption{
+		Type: FilterOptionTypeString,
+		Values: []interface{}{
+			"A100-40", "A100-80", "B200", "H100", "H200", "L4",
+		},
+	}
+
+	filterOptions["artifacts.hardware_configuration.string_value"] = models.FilterOption{
+		Type: FilterOptionTypeString,
+		Values: []interface{}{
+			"A100-40 x 1", "A100-40 x 2", "A100-40 x 4", "A100-40 x 8",
+			"A100-80 x 1", "A100-80 x 2", "A100-80 x 4", "A100-80 x 8",
+			"B200 x 1", "B200 x 2", "B200 x 4", "B200 x 8",
+			"H100 x 1", "H100 x 2", "H100 x 4", "H100 x 8",
+			"H200 x 1", "H200 x 2", "H200 x 4", "H200 x 8",
+			"L4 x 1", "L4 x 2", "L4 x 4", "L4 x 8",
+		},
+	}
+
+	filterOptions["artifacts.type.string_value"] = models.FilterOption{
+		Type: FilterOptionTypeString,
+		Values: []interface{}{
+			"modelcar",
+		},
+	}
+
+	filterOptions["artifacts.framework_type.string_value"] = models.FilterOption{
+		Type: FilterOptionTypeString,
+		Values: []interface{}{
+			"vllm",
+		},
+	}
+
+	filterOptions["artifacts.framework_version.string_value"] = models.FilterOption{
+		Type: FilterOptionTypeString,
+		Values: []interface{}{
+			"0.8.4.20250429", "3.2.2", "rhoai-2.24-cuda-9c2c235775ca099889ee03dee8570b56df9d5d7e",
+			"v0.10.1.1", "v0.8.4",
+		},
+	}
+
+	filterOptions["artifacts.deployment_type.string_value"] = models.FilterOption{
+		Type: FilterOptionTypeString,
+		Values: []interface{}{
+			"local",
+		},
+	}
+
+	filterOptions["artifacts.source.string_value"] = models.FilterOption{
+		Type: FilterOptionTypeString,
+		Values: []interface{}{
+			"sample.test.io",
+		},
+	}
+
+	filterOptions["artifacts.tag.string_value"] = models.FilterOption{
+		Type: FilterOptionTypeString,
+		Values: []interface{}{
+			"1.4", "1.4.0",
+		},
+	}
+
+	filterOptions["artifacts.dataset.string_value"] = models.FilterOption{
+		Type: FilterOptionTypeString,
+		Values: []interface{}{
+			"<nil>",
+		},
+	}
+
+	// TTFT metrics
+	filterOptions["artifacts.ttft_mean.double_value"] = models.FilterOption{
+		Type: FilterOptionTypeNumber,
+		Range: &models.FilterRange{
+			Min: float32Ptr(15.928064),
+			Max: float32Ptr(761.7213),
+		},
+	}
+
+	filterOptions["artifacts.ttft_p90.double_value"] = models.FilterOption{
+		Type: FilterOptionTypeNumber,
+		Range: &models.FilterRange{
+			Min: float32Ptr(16.912937),
+			Max: float32Ptr(892.6554),
+		},
+	}
+
+	filterOptions["artifacts.ttft_p95.double_value"] = models.FilterOption{
+		Type: FilterOptionTypeNumber,
+		Range: &models.FilterRange{
+			Min: float32Ptr(17.714024),
+			Max: float32Ptr(1149.7827),
+		},
+	}
+
+	filterOptions["artifacts.ttft_p99.double_value"] = models.FilterOption{
+		Type: FilterOptionTypeNumber,
+		Range: &models.FilterRange{
+			Min: float32Ptr(20.424604),
+			Max: float32Ptr(4015.3562),
+		},
+	}
+
+	// E2E metrics
+	filterOptions["artifacts.e2e_mean.double_value"] = models.FilterOption{
+		Type: FilterOptionTypeNumber,
+		Range: &models.FilterRange{
+			Min: float32Ptr(808.69165),
+			Max: float32Ptr(66303.875),
+		},
+	}
+
+	filterOptions["artifacts.e2e_p90.double_value"] = models.FilterOption{
+		Type: FilterOptionTypeNumber,
+		Range: &models.FilterRange{
+			Min: float32Ptr(916.4949),
+			Max: float32Ptr(76006.24),
+		},
+	}
+
+	filterOptions["artifacts.e2e_p95.double_value"] = models.FilterOption{
+		Type: FilterOptionTypeNumber,
+		Range: &models.FilterRange{
+			Min: float32Ptr(938.8428),
+			Max: float32Ptr(79946.29),
+		},
+	}
+
+	filterOptions["artifacts.e2e_p99.double_value"] = models.FilterOption{
+		Type: FilterOptionTypeNumber,
+		Range: &models.FilterRange{
+			Min: float32Ptr(969.7657),
+			Max: float32Ptr(87154.36),
+		},
+	}
+
+	// ITL metrics
+	filterOptions["artifacts.itl_mean.double_value"] = models.FilterOption{
+		Type: FilterOptionTypeNumber,
+		Range: &models.FilterRange{
+			Min: float32Ptr(3.1054945),
+			Max: float32Ptr(187.8361),
+		},
+	}
+
+	filterOptions["artifacts.itl_p90.double_value"] = models.FilterOption{
+		Type: FilterOptionTypeNumber,
+		Range: &models.FilterRange{
+			Min: float32Ptr(3.128499),
+			Max: float32Ptr(223.09335),
+		},
+	}
+
+	filterOptions["artifacts.itl_p95.double_value"] = models.FilterOption{
+		Type: FilterOptionTypeNumber,
+		Range: &models.FilterRange{
+			Min: float32Ptr(3.1370418),
+			Max: float32Ptr(224.09294),
+		},
+	}
+
+	filterOptions["artifacts.itl_p99.double_value"] = models.FilterOption{
+		Type: FilterOptionTypeNumber,
+		Range: &models.FilterRange{
+			Min: float32Ptr(3.1642547),
+			Max: float32Ptr(225.55873),
+		},
+	}
+
+	// TPS metrics
+	filterOptions["artifacts.tps_mean.double_value"] = models.FilterOption{
+		Type: FilterOptionTypeNumber,
+		Range: &models.FilterRange{
+			Min: float32Ptr(243.00464),
+			Max: float32Ptr(8623.572),
+		},
+	}
+
+	filterOptions["artifacts.tps_p90.double_value"] = models.FilterOption{
+		Type: FilterOptionTypeNumber,
+		Range: &models.FilterRange{
+			Min: float32Ptr(240.04488),
+			Max: float32Ptr(16578.277),
+		},
+	}
+
+	filterOptions["artifacts.tps_p95.double_value"] = models.FilterOption{
+		Type: FilterOptionTypeNumber,
+		Range: &models.FilterRange{
+			Min: float32Ptr(258.79584),
+			Max: float32Ptr(24966.096),
+		},
+	}
+
+	filterOptions["artifacts.tps_p99.double_value"] = models.FilterOption{
+		Type: FilterOptionTypeNumber,
+		Range: &models.FilterRange{
+			Min: float32Ptr(285.5016),
+			Max: float32Ptr(59918.63),
+		},
+	}
+
+	// RPS and hardware count
+	filterOptions["artifacts.requests_per_second.double_value"] = models.FilterOption{
 		Type: FilterOptionTypeNumber,
 		Range: &models.FilterRange{
 			Min: float32Ptr(1),
-			Max: float32Ptr(100),
+			Max: float32Ptr(34),
+		},
+	}
+
+	filterOptions["artifacts.hardware_count.int_value"] = models.FilterOption{
+		Type: FilterOptionTypeNumber,
+		Range: &models.FilterRange{
+			Min: float32Ptr(1),
+			Max: float32Ptr(8),
+		},
+	}
+
+	// Token metrics
+	filterOptions["artifacts.mean_input_tokens.double_value"] = models.FilterOption{
+		Type: FilterOptionTypeNumber,
+		Range: &models.FilterRange{
+			Min: float32Ptr(501.44446),
+			Max: float32Ptr(10240.305),
+		},
+	}
+
+	filterOptions["artifacts.mean_output_tokens.double_value"] = models.FilterOption{
+		Type: FilterOptionTypeNumber,
+		Range: &models.FilterRange{
+			Min: float32Ptr(254.25284),
+			Max: float32Ptr(1539.3221),
+		},
+	}
+
+	// Benchmark scores
+	filterOptions["artifacts.aime24.double_value"] = models.FilterOption{
+		Type: FilterOptionTypeNumber,
+		Range: &models.FilterRange{
+			Min: float32Ptr(63.3333),
+			Max: float32Ptr(87.33),
+		},
+	}
+
+	filterOptions["artifacts.aime25.double_value"] = models.FilterOption{
+		Type: FilterOptionTypeNumber,
+		Range: &models.FilterRange{
+			Min: float32Ptr(56.6667),
+			Max: float32Ptr(83.3333),
+		},
+	}
+
+	filterOptions["artifacts.arc.double_value"] = models.FilterOption{
+		Type: FilterOptionTypeNumber,
+		Range: &models.FilterRange{
+			Min: float32Ptr(58.5324),
+			Max: float32Ptr(77.1331),
+		},
+	}
+
+	filterOptions["artifacts.arc_challenge.double_value"] = models.FilterOption{
+		Type: FilterOptionTypeNumber,
+		Range: &models.FilterRange{
+			Min: float32Ptr(58.2765),
+			Max: float32Ptr(61.6041),
+		},
+	}
+
+	filterOptions["artifacts.bbh.double_value"] = models.FilterOption{
+		Type: FilterOptionTypeNumber,
+		Range: &models.FilterRange{
+			Min: float32Ptr(1.5589),
+			Max: float32Ptr(70.9991),
+		},
+	}
+
+	filterOptions["artifacts.gpqa.double_value"] = models.FilterOption{
+		Type: FilterOptionTypeNumber,
+		Range: &models.FilterRange{
+			Min: float32Ptr(1.2988554),
+			Max: float32Ptr(34.0855),
+		},
+	}
+
+	filterOptions["artifacts.gpqa_diamond.double_value"] = models.FilterOption{
+		Type: FilterOptionTypeNumber,
+		Range: &models.FilterRange{
+			Min: float32Ptr(30.8081),
+			Max: float32Ptr(80.61),
+		},
+	}
+
+	filterOptions["artifacts.gsm8k.double_value"] = models.FilterOption{
+		Type: FilterOptionTypeNumber,
+		Range: &models.FilterRange{
+			Min: float32Ptr(1.3647),
+			Max: float32Ptr(94.84),
+		},
+	}
+
+	filterOptions["artifacts.hellaswag.double_value"] = models.FilterOption{
+		Type: FilterOptionTypeNumber,
+		Range: &models.FilterRange{
+			Min: float32Ptr(47.4706),
+			Max: float32Ptr(79.0829),
+		},
+	}
+
+	filterOptions["artifacts.humaneval_instruct.double_value"] = models.FilterOption{
+		Type: FilterOptionTypeNumber,
+		Range: &models.FilterRange{
+			Min: float32Ptr(98.0826),
+			Max: float32Ptr(98.0826),
+		},
+	}
+
+	filterOptions["artifacts.ifeval.double_value"] = models.FilterOption{
+		Type: FilterOptionTypeNumber,
+		Range: &models.FilterRange{
+			Min: float32Ptr(57.3253),
+			Max: float32Ptr(91.1024),
+		},
+	}
+
+	filterOptions["artifacts.lcb.double_value"] = models.FilterOption{
+		Type: FilterOptionTypeNumber,
+		Range: &models.FilterRange{
+			Min: float32Ptr(56.5998),
+			Max: float32Ptr(56.5998),
+		},
+	}
+
+	filterOptions["artifacts.math_500.double_value"] = models.FilterOption{
+		Type: FilterOptionTypeNumber,
+		Range: &models.FilterRange{
+			Min: float32Ptr(95.475),
+			Max: float32Ptr(97.4),
+		},
+	}
+
+	filterOptions["artifacts.math_hard.double_value"] = models.FilterOption{
+		Type: FilterOptionTypeNumber,
+		Range: &models.FilterRange{
+			Min: float32Ptr(16.7478),
+			Max: float32Ptr(68.1613),
+		},
+	}
+
+	filterOptions["artifacts.math_lvl5.double_value"] = models.FilterOption{
+		Type: FilterOptionTypeNumber,
+		Range: &models.FilterRange{
+			Min: float32Ptr(24.7392),
+			Max: float32Ptr(51.8965),
+		},
+	}
+
+	filterOptions["artifacts.mgsm.double_value"] = models.FilterOption{
+		Type: FilterOptionTypeNumber,
+		Range: &models.FilterRange{
+			Min: float32Ptr(28.1455),
+			Max: float32Ptr(28.1455),
+		},
+	}
+
+	filterOptions["artifacts.mmlu.double_value"] = models.FilterOption{
+		Type: FilterOptionTypeNumber,
+		Range: &models.FilterRange{
+			Min: float32Ptr(62.8187),
+			Max: float32Ptr(86.3125),
+		},
+	}
+
+	filterOptions["artifacts.mmlu_pro.double_value"] = models.FilterOption{
+		Type: FilterOptionTypeNumber,
+		Range: &models.FilterRange{
+			Min: float32Ptr(14.0625),
+			Max: float32Ptr(64.0293),
+		},
+	}
+
+	filterOptions["artifacts.musr.double_value"] = models.FilterOption{
+		Type: FilterOptionTypeNumber,
+		Range: &models.FilterRange{
+			Min: float32Ptr(4.9206),
+			Max: float32Ptr(46.8073),
+		},
+	}
+
+	filterOptions["artifacts.overall_average.double_value"] = models.FilterOption{
+		Type: FilterOptionTypeNumber,
+		Range: &models.FilterRange{
+			Min: float32Ptr(48.4109),
+			Max: float32Ptr(98.0826),
+		},
+	}
+
+	filterOptions["artifacts.truthfulqa.double_value"] = models.FilterOption{
+		Type: FilterOptionTypeNumber,
+		Range: &models.FilterRange{
+			Min: float32Ptr(47.537),
+			Max: float32Ptr(61.5658),
+		},
+	}
+
+	filterOptions["artifacts.winogrande.double_value"] = models.FilterOption{
+		Type: FilterOptionTypeNumber,
+		Range: &models.FilterRange{
+			Min: float32Ptr(61.9574),
+			Max: float32Ptr(83.7411),
 		},
 	}
 

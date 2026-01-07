@@ -270,6 +270,38 @@ export const filtersToFilterQuery = (
   return nonEmptyFilters.length === 0 ? '' : nonEmptyFilters.join(' AND ');
 };
 
+const findServerFilterKey = (
+  filterId: string,
+  filters: CatalogFilterOptions | undefined,
+): string | undefined => {
+  if (!filters) {
+    return undefined;
+  }
+
+  if (filterId in filters) {
+    return filterId;
+  }
+
+  for (const suffix of ['.string_value', '.double_value', '.int_value', '.array_value']) {
+    const key = `artifacts.${filterId}${suffix}`;
+    if (key in filters) {
+      return key;
+    }
+  }
+  return undefined;
+};
+
+const convertToFilterQueryKey = (serverFilterKey: string): string => {
+  const prefix = 'artifacts.';
+  if (serverFilterKey.startsWith(prefix)) {
+    return serverFilterKey.substring(prefix.length);
+  }
+  return serverFilterKey;
+};
+
+const isLatencyFieldName = (id: string): id is LatencyMetricFieldName =>
+  ALL_LATENCY_FIELD_NAMES.some((name) => name === id);
+
 /**
  * Converts filter data into a filter query string for the /artifacts/performance endpoint.
  * Only includes filters that have the 'artifacts.' prefix and strips that prefix in the output.
@@ -279,55 +311,43 @@ export const filtersToArtifactsFilterQuery = (
   filterData: ModelCatalogFilterStates,
   options: CatalogFilterOptionsList,
 ): string => {
-  const isLatencyFieldName = (id: string): boolean =>
-    ALL_LATENCY_FIELD_NAMES.some((name) => name === id);
-
   const serializedFilters: string[] = Object.entries(filterData)
-    .filter(([filterId]) => {
-      // Only include artifact-specific filters (those with artifacts. prefix in filter options)
-      // OR performance-related filters like latency and hardware_type/use_case
-      // But NOT rps_mean - that goes to targetRPS param
-      if (filterId === ModelCatalogNumberFilterKey.MIN_RPS) {
-        return false; // RPS is passed as targetRPS param, not in filterQuery
-      }
-      // Include latency filters, hardware_type, and use_case for artifacts filtering
-      if (isLatencyFieldName(filterId)) {
-        return true;
-      }
-      if (
+    .filter(
+      ([filterId]) =>
         filterId === ModelCatalogStringFilterKey.HARDWARE_TYPE ||
-        filterId === ModelCatalogStringFilterKey.USE_CASE
-      ) {
-        return true;
-      }
-      return false;
-    })
+        filterId === ModelCatalogStringFilterKey.USE_CASE ||
+        isLatencyFieldName(filterId),
+    )
     .map(([filterId, data]) => {
       if (typeof data === 'undefined') {
         return '';
       }
 
-      // For artifacts endpoint, we use the filter ID directly (no prefix stripping needed
-      // since our local state doesn't have the prefix - the backend filter_options have it)
+      const serverFilterKey = findServerFilterKey(filterId, options.filters);
+      const queryKey = serverFilterKey ? convertToFilterQueryKey(serverFilterKey) : filterId;
+
       const filterOption =
-        options.filters && isFilterIdInMap(filterId, options.filters)
-          ? options.filters[filterId]
+        serverFilterKey && options.filters && isFilterIdInMap(serverFilterKey, options.filters)
+          ? options.filters[serverFilterKey]
           : undefined;
 
-      if (isArrayOfSelections(filterOption, data)) {
+      if (filterOption?.type === 'string' && Array.isArray(data)) {
         switch (data.length) {
           case 0:
             return '';
           case 1:
-            return eqFilter(filterId, data[0]);
+            return eqFilter(queryKey, data[0]);
           default:
-            return inFilter(filterId, data);
+            return inFilter(queryKey, data);
         }
       }
 
-      // Numeric filters for artifacts: latency uses less-than
-      if (isKnownLessThanValue(filterOption, filterId, data)) {
-        return `${filterId} < ${data}`;
+      if (
+        filterOption?.type === 'number' &&
+        isLatencyFieldName(filterId) &&
+        typeof data === 'number'
+      ) {
+        return `${queryKey}<${data}`; // ttft_p90.double_value<60
       }
 
       return '';
