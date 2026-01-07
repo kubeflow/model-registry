@@ -4,9 +4,16 @@ import { Spinner } from '@patternfly/react-core';
 import { OuterScrollContainer } from '@patternfly/react-table';
 import { CatalogPerformanceMetricsArtifact } from '~/app/modelCatalogTypes';
 import { ModelCatalogContext } from '~/app/context/modelCatalog/ModelCatalogContext';
-import { clearAllFilters } from '~/app/pages/modelCatalog/utils/hardwareConfigurationFilterUtils';
+import {
+  clearAllFilters,
+  parseLatencyFieldName,
+} from '~/app/pages/modelCatalog/utils/hardwareConfigurationFilterUtils';
 import { getActiveLatencyFieldName } from '~/app/pages/modelCatalog/utils/modelCatalogUtils';
-import { ALL_LATENCY_FIELD_NAMES, LatencyMetric } from '~/concepts/modelCatalog/const';
+import {
+  ALL_LATENCY_FIELD_NAMES,
+  getLatencyFieldName,
+  LatencyMetric,
+} from '~/concepts/modelCatalog/const';
 import { hardwareConfigColumns, HardwareConfigColumn } from './HardwareConfigurationTableColumns';
 import HardwareConfigurationTableRow from './HardwareConfigurationTableRow';
 import HardwareConfigurationFilterToolbar from './HardwareConfigurationFilterToolbar';
@@ -28,8 +35,6 @@ const HardwareConfigurationTable: React.FC<HardwareConfigurationTableProps> = ({
   // Get the active latency filter field name (if any)
   const activeLatencyField = getActiveLatencyFieldName(filterData);
 
-  const tpsPrefix = LatencyMetric.TPS.toLowerCase();
-
   // When a latency filter is selected, show only that column and hide other latency columns
   // Also show the TPS column with the matching percentile (e.g., TTFT P90 filter shows TPS P90)
   const filteredColumns = React.useMemo((): HardwareConfigColumn[] => {
@@ -38,10 +43,14 @@ const HardwareConfigurationTable: React.FC<HardwareConfigurationTableProps> = ({
       return hardwareConfigColumns;
     }
 
-    // Extract the percentile suffix from the active filter (e.g., 'ttft_p90' -> 'p90', 'e2e_mean' -> 'mean')
-    const percentileSuffix = activeLatencyField.split('_').pop();
-    // Build the matching TPS field name (e.g., 'tps_p90', 'tps_mean')
-    const matchingTpsField = `${tpsPrefix}_${percentileSuffix}`;
+    // Parse the active filter field name to extract metric and percentile
+    const parsed = parseLatencyFieldName(activeLatencyField);
+    if (!parsed) {
+      return hardwareConfigColumns;
+    }
+
+    // Build the matching TPS field name using the same percentile (e.g., TTFT P90 filter shows TPS P90)
+    const matchingTpsField = getLatencyFieldName(LatencyMetric.TPS, parsed.percentile);
 
     // Filter out latency columns that don't match the active filter
     return hardwareConfigColumns.filter((column) => {
@@ -63,7 +72,7 @@ const HardwareConfigurationTable: React.FC<HardwareConfigurationTableProps> = ({
       // If it's a latency column (not TPS), only keep it if it matches the active filter
       return column.field === activeLatencyField;
     });
-  }, [activeLatencyField, tpsPrefix]);
+  }, [activeLatencyField]);
 
   if (isLoading) {
     return <Spinner size="lg" />;
