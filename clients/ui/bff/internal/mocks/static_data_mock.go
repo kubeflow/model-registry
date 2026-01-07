@@ -959,43 +959,43 @@ func performanceMetricsCustomProperties(customProperties map[string]openapi.Meta
 		},
 		"tps_p90": {
 			MetadataDoubleValue: &openapi.MetadataDoubleValue{
-				DoubleValue:  3318.278481012658,
+				DoubleValue:  3318.2751083374023,
 				MetadataType: "MetadataDoubleValue",
 			},
 		},
 		"tps_p95": {
 			MetadataDoubleValue: &openapi.MetadataDoubleValue{
-				DoubleValue:  4934.475294117647,
+				DoubleValue:  4934.475563049316,
 				MetadataType: "MetadataDoubleValue",
 			},
 		},
 		"tps_p99": {
 			MetadataDoubleValue: &openapi.MetadataDoubleValue{
-				DoubleValue:  11781.75280898876,
+				DoubleValue:  11781.748535156249,
 				MetadataType: "MetadataDoubleValue",
 			},
 		},
 		"itl_mean": {
 			MetadataDoubleValue: &openapi.MetadataDoubleValue{
-				DoubleValue:  7.685877762379151,
+				DoubleValue:  7.6874115515873105,
 				MetadataType: "MetadataDoubleValue",
 			},
 		},
 		"itl_p90": {
 			MetadataDoubleValue: &openapi.MetadataDoubleValue{
-				DoubleValue:  7.778410935521725,
+				DoubleValue:  7.782459259033203,
 				MetadataType: "MetadataDoubleValue",
 			},
 		},
 		"itl_p95": {
 			MetadataDoubleValue: &openapi.MetadataDoubleValue{
-				DoubleValue:  7.812754891135476,
+				DoubleValue:  7.808256149291992,
 				MetadataType: "MetadataDoubleValue",
 			},
 		},
 		"itl_p99": {
 			MetadataDoubleValue: &openapi.MetadataDoubleValue{
-				DoubleValue:  7.9100158577958,
+				DoubleValue:  7.911920547485352,
 				MetadataType: "MetadataDoubleValue",
 			},
 		},
@@ -1148,7 +1148,7 @@ func GetCatalogPerformanceMetricsArtifactMock(itemCount int32) []models.CatalogA
 				},
 				"hardware_count": {
 					MetadataIntValue: &openapi.MetadataIntValue{
-						IntValue:     "33",
+						IntValue:     "4",
 						MetadataType: "MetadataIntValue",
 					},
 				},
@@ -1160,7 +1160,73 @@ func GetCatalogPerformanceMetricsArtifactMock(itemCount int32) []models.CatalogA
 				},
 				"ttft_mean": {
 					MetadataDoubleValue: &openapi.MetadataDoubleValue{
-						DoubleValue:  67.14892749816,
+						DoubleValue:  67.15382947561234,
+						MetadataType: "MetadataDoubleValue",
+					},
+				},
+				"ttft_p90": {
+					MetadataDoubleValue: &openapi.MetadataDoubleValue{
+						DoubleValue:  82.34921756823456,
+						MetadataType: "MetadataDoubleValue",
+					},
+				},
+				"ttft_p95": {
+					MetadataDoubleValue: &openapi.MetadataDoubleValue{
+						DoubleValue:  95.67834521987654,
+						MetadataType: "MetadataDoubleValue",
+					},
+				},
+				"ttft_p99": {
+					MetadataDoubleValue: &openapi.MetadataDoubleValue{
+						DoubleValue:  112.45678234561234,
+						MetadataType: "MetadataDoubleValue",
+					},
+				},
+				"e2e_mean": {
+					MetadataDoubleValue: &openapi.MetadataDoubleValue{
+						DoubleValue:  2450.32847561234123,
+						MetadataType: "MetadataDoubleValue",
+					},
+				},
+				"e2e_p90": {
+					MetadataDoubleValue: &openapi.MetadataDoubleValue{
+						DoubleValue:  3120.45678912345678,
+						MetadataType: "MetadataDoubleValue",
+					},
+				},
+				"e2e_p95": {
+					MetadataDoubleValue: &openapi.MetadataDoubleValue{
+						DoubleValue:  3450.78234567891234,
+						MetadataType: "MetadataDoubleValue",
+					},
+				},
+				"e2e_p99": {
+					MetadataDoubleValue: &openapi.MetadataDoubleValue{
+						DoubleValue:  3890.12567891234567,
+						MetadataType: "MetadataDoubleValue",
+					},
+				},
+				"itl_mean": {
+					MetadataDoubleValue: &openapi.MetadataDoubleValue{
+						DoubleValue:  9.458723456123456,
+						MetadataType: "MetadataDoubleValue",
+					},
+				},
+				"itl_p90": {
+					MetadataDoubleValue: &openapi.MetadataDoubleValue{
+						DoubleValue:  11.23456789123456,
+						MetadataType: "MetadataDoubleValue",
+					},
+				},
+				"itl_p95": {
+					MetadataDoubleValue: &openapi.MetadataDoubleValue{
+						DoubleValue:  13.56789123456789,
+						MetadataType: "MetadataDoubleValue",
+					},
+				},
+				"itl_p99": {
+					MetadataDoubleValue: &openapi.MetadataDoubleValue{
+						DoubleValue:  16.78912345678901,
 						MetadataType: "MetadataDoubleValue",
 					},
 				},
@@ -1192,7 +1258,7 @@ func GetCatalogPerformanceMetricsArtifactMock(itemCount int32) []models.CatalogA
 				},
 				"hardware_count": {
 					MetadataIntValue: &openapi.MetadataIntValue{
-						IntValue:     "40",
+						IntValue:     "8",
 						MetadataType: "MetadataIntValue",
 					},
 				},
@@ -1204,7 +1270,73 @@ func GetCatalogPerformanceMetricsArtifactMock(itemCount int32) []models.CatalogA
 				},
 				"ttft_mean": {
 					MetadataDoubleValue: &openapi.MetadataDoubleValue{
-						DoubleValue:  42.123791232,
+						DoubleValue:  42.12834756189234,
+						MetadataType: "MetadataDoubleValue",
+					},
+				},
+				"ttft_p90": {
+					MetadataDoubleValue: &openapi.MetadataDoubleValue{
+						DoubleValue:  58.45912378456123,
+						MetadataType: "MetadataDoubleValue",
+					},
+				},
+				"ttft_p95": {
+					MetadataDoubleValue: &openapi.MetadataDoubleValue{
+						DoubleValue:  68.92345678901234,
+						MetadataType: "MetadataDoubleValue",
+					},
+				},
+				"ttft_p99": {
+					MetadataDoubleValue: &openapi.MetadataDoubleValue{
+						DoubleValue:  85.34567891234567,
+						MetadataType: "MetadataDoubleValue",
+					},
+				},
+				"e2e_mean": {
+					MetadataDoubleValue: &openapi.MetadataDoubleValue{
+						DoubleValue:  1850.67891234567891,
+						MetadataType: "MetadataDoubleValue",
+					},
+				},
+				"e2e_p90": {
+					MetadataDoubleValue: &openapi.MetadataDoubleValue{
+						DoubleValue:  2280.34567891234567,
+						MetadataType: "MetadataDoubleValue",
+					},
+				},
+				"e2e_p95": {
+					MetadataDoubleValue: &openapi.MetadataDoubleValue{
+						DoubleValue:  2580.91234567891234,
+						MetadataType: "MetadataDoubleValue",
+					},
+				},
+				"e2e_p99": {
+					MetadataDoubleValue: &openapi.MetadataDoubleValue{
+						DoubleValue:  2920.45678912345678,
+						MetadataType: "MetadataDoubleValue",
+					},
+				},
+				"itl_mean": {
+					MetadataDoubleValue: &openapi.MetadataDoubleValue{
+						DoubleValue:  6.78912345678901,
+						MetadataType: "MetadataDoubleValue",
+					},
+				},
+				"itl_p90": {
+					MetadataDoubleValue: &openapi.MetadataDoubleValue{
+						DoubleValue:  8.12345678912345,
+						MetadataType: "MetadataDoubleValue",
+					},
+				},
+				"itl_p95": {
+					MetadataDoubleValue: &openapi.MetadataDoubleValue{
+						DoubleValue:  9.45678912345678,
+						MetadataType: "MetadataDoubleValue",
+					},
+				},
+				"itl_p99": {
+					MetadataDoubleValue: &openapi.MetadataDoubleValue{
+						DoubleValue:  11.23456789123456,
 						MetadataType: "MetadataDoubleValue",
 					},
 				},
@@ -1230,13 +1362,13 @@ func GetCatalogPerformanceMetricsArtifactMock(itemCount int32) []models.CatalogA
 				},
 				"hardware_type": {
 					MetadataStringValue: &openapi.MetadataStringValue{
-						StringValue:  "A100",
+						StringValue:  "A100-80",
 						MetadataType: "MetadataStringValue",
 					},
 				},
 				"hardware_count": {
 					MetadataIntValue: &openapi.MetadataIntValue{
-						IntValue:     "8",
+						IntValue:     "2",
 						MetadataType: "MetadataIntValue",
 					},
 				},
@@ -1248,7 +1380,73 @@ func GetCatalogPerformanceMetricsArtifactMock(itemCount int32) []models.CatalogA
 				},
 				"ttft_mean": {
 					MetadataDoubleValue: &openapi.MetadataDoubleValue{
-						DoubleValue:  28.5,
+						DoubleValue:  28.50789123456789,
+						MetadataType: "MetadataDoubleValue",
+					},
+				},
+				"ttft_p90": {
+					MetadataDoubleValue: &openapi.MetadataDoubleValue{
+						DoubleValue:  38.72345678912345,
+						MetadataType: "MetadataDoubleValue",
+					},
+				},
+				"ttft_p95": {
+					MetadataDoubleValue: &openapi.MetadataDoubleValue{
+						DoubleValue:  45.89123456789012,
+						MetadataType: "MetadataDoubleValue",
+					},
+				},
+				"ttft_p99": {
+					MetadataDoubleValue: &openapi.MetadataDoubleValue{
+						DoubleValue:  55.32456789123456,
+						MetadataType: "MetadataDoubleValue",
+					},
+				},
+				"e2e_mean": {
+					MetadataDoubleValue: &openapi.MetadataDoubleValue{
+						DoubleValue:  1450.23456789123456,
+						MetadataType: "MetadataDoubleValue",
+					},
+				},
+				"e2e_p90": {
+					MetadataDoubleValue: &openapi.MetadataDoubleValue{
+						DoubleValue:  1780.45678912345678,
+						MetadataType: "MetadataDoubleValue",
+					},
+				},
+				"e2e_p95": {
+					MetadataDoubleValue: &openapi.MetadataDoubleValue{
+						DoubleValue:  1980.67891234567891,
+						MetadataType: "MetadataDoubleValue",
+					},
+				},
+				"e2e_p99": {
+					MetadataDoubleValue: &openapi.MetadataDoubleValue{
+						DoubleValue:  2250.89123456789012,
+						MetadataType: "MetadataDoubleValue",
+					},
+				},
+				"itl_mean": {
+					MetadataDoubleValue: &openapi.MetadataDoubleValue{
+						DoubleValue:  5.23456789123456,
+						MetadataType: "MetadataDoubleValue",
+					},
+				},
+				"itl_p90": {
+					MetadataDoubleValue: &openapi.MetadataDoubleValue{
+						DoubleValue:  6.45678912345678,
+						MetadataType: "MetadataDoubleValue",
+					},
+				},
+				"itl_p95": {
+					MetadataDoubleValue: &openapi.MetadataDoubleValue{
+						DoubleValue:  7.23456789123456,
+						MetadataType: "MetadataDoubleValue",
+					},
+				},
+				"itl_p99": {
+					MetadataDoubleValue: &openapi.MetadataDoubleValue{
+						DoubleValue:  8.56789123456789,
 						MetadataType: "MetadataDoubleValue",
 					},
 				},

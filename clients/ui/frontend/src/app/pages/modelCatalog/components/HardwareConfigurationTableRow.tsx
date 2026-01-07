@@ -10,15 +10,17 @@ import {
 import { getDoubleValue, getIntValue, getStringValue } from '~/app/utils';
 import {
   HardwareConfigColumnField,
-  hardwareConfigColumns,
+  HardwareConfigColumn,
 } from './HardwareConfigurationTableColumns';
 
 type HardwareConfigurationTableRowProps = {
   performanceArtifact: CatalogPerformanceMetricsArtifact;
+  columns: HardwareConfigColumn[];
 };
 
 const HardwareConfigurationTableRow: React.FC<HardwareConfigurationTableRowProps> = ({
   performanceArtifact,
+  columns,
 }) => {
   const getCellValue = (field: HardwareConfigColumnField): string | number => {
     const { customProperties } = performanceArtifact;
@@ -71,7 +73,7 @@ const HardwareConfigurationTableRow: React.FC<HardwareConfigurationTableRowProps
 
   return (
     <Tr>
-      {hardwareConfigColumns.map((column) => (
+      {columns.map((column) => (
         <Td
           key={column.field}
           dataLabel={column.label.replace('\n', ' ')}
