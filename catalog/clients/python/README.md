@@ -5,7 +5,12 @@ Python client and E2E tests for the Kubeflow Model Catalog.
 ## Installation
 
 ```bash
-# Install dependencies
+# Install dependencies (Poetry creates a virtual environment automatically)
+poetry install
+
+# Or, if you prefer to manage your own virtualenv:
+python -m venv .venv
+source .venv/bin/activate  # On Windows: .venv\Scripts\activate
 poetry install
 
 # Generate OpenAPI client (if needed)
