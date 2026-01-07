@@ -1,0 +1,4 @@
+base-url = "${API_HOST}"
+tls-verify = true
+[generation]
+no-shrink = true

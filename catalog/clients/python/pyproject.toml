@@ -1,0 +1,138 @@
+[tool.poetry]
+name = "model-catalog"
+version = "0.1.0"
+description = "Client for Kubeflow Model Catalog"
+authors = ["Kubeflow Model Registry Team"]
+license = "Apache-2.0"
+readme = "README.md"
+homepage = "https://github.com/kubeflow/model-registry"
+packages = [
+    { include = "model_catalog", from = "src" },
+    { include = "catalog_openapi", from = "src" },
+]
+
+[tool.poetry.urls]
+"Issues" = "https://github.com/kubeflow/model-registry/issues"
+
+[tool.poetry.dependencies]
+python = "^3.10"
+# Generated OpenAPI client dependencies
+typing-extensions = "^4.8"
+python-dateutil = "^2.8.2"
+urllib3 = "^2.0.0"
+pydantic = "^2.7.4"
+# Runtime dependencies
+pyyaml = "^6.0.1"
+requests = "^2.31.0"
+
+[tool.poetry.group.dev.dependencies]
+# Testing
+pytest = ">=8.0.0,<9.0.0"
+pytest-xdist = "^3.5.0"
+pytest-timeout = "^2.2.0"
+pytest-cov = ">=4.1,<8.0"
+pytest-mock = ">=3.7.0"
+pytest-asyncio = "^0.24.0"
+pytest-html = "^4.1.1"
+# Fuzzing
+schemathesis = ">=4.0.3,<=4.3.6"
+# Code quality
+ruff = ">=0.5.2,<0.15.0"
+mypy = "^1.7.0"
+types-python-dateutil = "^2.9.0.20240906"
+types-pyyaml = "^6.0.12"
+types-requests = "^2.31.0"
+# Nox for multi-version testing
+nox = ">=2024.4.15"
+nox-poetry = "^1.0.3"
+
+[tool.coverage.run]
+branch = true
+source = ["model_catalog", "catalog_openapi"]
+
+[tool.coverage.paths]
+source = ["src", "*/site-packages"]
+tests = ["tests", "*/tests"]
+
+[tool.coverage.report]
+show_missing = true
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+markers = [
+    "e2e: end-to-end testing (requires running catalog service)",
+    "fuzz: mark a test as a fuzzing (property-based or randomized) test",
+    "slow: marks tests as slow (deselect with '-m \"not slow\"')",
+    "huggingface: marks tests that interact with HuggingFace API",
+]
+# Note: Parallel execution is enabled in noxfile.py for fuzz tests via "-n auto"
+# To run fuzz tests manually in parallel: pytest tests/fuzz_api --fuzz -n auto
+addopts = "--tb=short --strict-markers -v --color=yes"
+timeout = 300
+filterwarnings = [
+    "error",
+    "ignore::DeprecationWarning",
+    "ignore::PendingDeprecationWarning",
+]
+
+[tool.ruff]
+target-version = "py310"
+respect-gitignore = true
+line-length = 119
+extend-exclude = ["src/catalog_openapi/"]
+
+[tool.ruff.lint]
+select = [
+    "F",   # pyflakes
+    "W",   # pycodestyle warnings
+    "E",   # pycodestyle errors
+    "C90", # mccabe
+    "B",   # bugbear
+    "S",   # flake8-bandit
+    "C4",  # flake8-comprehensions
+    "D",   # pydocstyle
+    "EM",  # flake8-errmsg
+    "I",   # isort
+    "PT",  # pytest
+    "Q",   # flake8-quotes
+    "RET", # flake8-return
+    "SIM", # flake8-simplify
+    "UP",  # pyupgrade
+]
+ignore = [
+    "D105", # missing docstring in magic method
+    "E501", # line too long
+    "S101", # use of assert detected
+]
+mccabe.max-complexity = 8
+per-file-ignores = { "tests/**/*.py" = [
+    "D", # missing docstring in public module
+] }
+
+[tool.ruff.lint.pydocstyle]
+convention = "google"
+
+[tool.mypy]
+python_version = "3.10"
+plugins = []
+strict = false
+pretty = true
+show_column_numbers = true
+show_error_codes = true
+show_error_context = true
+ignore_missing_imports = true
+check_untyped_defs = true
+warn_unused_configs = true
+warn_redundant_casts = true
+warn_unused_ignores = true
+warn_no_return = true
+exclude = ["src/catalog_openapi/"]
+
