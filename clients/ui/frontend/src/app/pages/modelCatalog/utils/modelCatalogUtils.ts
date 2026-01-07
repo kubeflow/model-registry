@@ -20,6 +20,7 @@ import {
   ModelCatalogNumberFilterKey,
   ALL_LATENCY_FIELD_NAMES,
   LatencyMetricFieldName,
+  ModelCatalogSortOption,
 } from '~/concepts/modelCatalog/const';
 import { CatalogSourceStatus } from '~/concepts/modelCatalogSettings/const';
 
@@ -209,6 +210,18 @@ export const getActiveLatencyFieldName = (
     }
   }
   return undefined;
+};
+
+export const getEffectiveSortBy = (
+  sortBy: ModelCatalogSortOption | null,
+  performanceViewEnabled: boolean,
+): ModelCatalogSortOption => {
+  if (sortBy) {
+    return sortBy;
+  }
+  return performanceViewEnabled
+    ? ModelCatalogSortOption.LOWEST_LATENCY
+    : ModelCatalogSortOption.RECENT_PUBLISH;
 };
 
 const wrapInQuotes = (v: string): string => `'${v}'`;

@@ -410,3 +410,19 @@ export enum ModelDetailsTab {
   OVERVIEW = 'overview',
   PERFORMANCE_INSIGHTS = 'performance-insights',
 }
+
+export enum ModelCatalogSortOption {
+  RECENT_PUBLISH = 'recent_publish',
+  LOWEST_LATENCY = 'lowest_latency',
+}
+
+// API sort order constants
+export const SORT_ORDER = {
+  ASC: 'ASC',
+  DESC: 'DESC',
+} as const;
+
+// API sort field constants
+export const SORT_FIELD = {
+  LAST_UPDATE_TIME: 'LAST_UPDATE_TIME',
+} as const;
