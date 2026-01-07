@@ -21,6 +21,7 @@ import HardwareConfigurationFilterToolbar from '~/app/pages/modelCatalog/compone
 import ThemeAwareSearchInput from '~/app/pages/modelRegistry/screens/components/ThemeAwareSearchInput';
 import { ModelCatalogContext } from '~/app/context/modelCatalog/ModelCatalogContext';
 import { hasFiltersApplied } from '~/app/pages/modelCatalog/utils/modelCatalogUtils';
+import ModelCatalogSortDropdown from '~/app/pages/modelCatalog/components/ModelCatalogSortDropdown';
 import ModelCatalogSourceLabelBlocks from './ModelCatalogSourceLabelBlocks';
 
 type ModelCatalogSourceLabelSelectorProps = {
@@ -189,7 +190,13 @@ const ModelCatalogSourceLabelSelector: React.FC<ModelCatalogSourceLabelSelectorP
         </>
       )}
       <StackItem>
-        <ModelCatalogSourceLabelBlocks />
+        <Flex
+          justifyContent={{ default: 'justifyContentSpaceBetween' }}
+          alignItems={{ default: 'alignItemsCenter' }}
+        >
+          <ModelCatalogSourceLabelBlocks />
+          <ModelCatalogSortDropdown performanceViewEnabled={performanceViewEnabled} />
+        </Flex>
       </StackItem>
       {shouldShowAlert && (
         <StackItem>

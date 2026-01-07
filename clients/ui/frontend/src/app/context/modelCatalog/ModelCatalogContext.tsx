@@ -22,6 +22,7 @@ import {
   DEFAULT_PERFORMANCE_FILTERS_QUERY_NAME,
   ALL_LATENCY_FILTER_KEYS,
   isLatencyFilterKey,
+  ModelCatalogSortOption,
 } from '~/concepts/modelCatalog/const';
 import {
   getSingleFilterDefault,
@@ -58,6 +59,8 @@ export type ModelCatalogContextType = {
   getPerformanceFilterDefaultValue: (
     filterKey: keyof ModelCatalogFilterStates,
   ) => string | number | string[] | undefined;
+  sortBy: ModelCatalogSortOption | null;
+  setSortBy: (sortBy: ModelCatalogSortOption | null) => void;
 };
 
 type ModelCatalogContextProviderProps = {
@@ -96,6 +99,8 @@ export const ModelCatalogContext = React.createContext<ModelCatalogContextType>(
   resetPerformanceFiltersToDefaults: () => undefined,
   resetSinglePerformanceFilterToDefault: () => undefined,
   getPerformanceFilterDefaultValue: () => undefined,
+  sortBy: null,
+  setSortBy: () => undefined,
 });
 
 export const ModelCatalogContextProvider: React.FC<ModelCatalogContextProviderProps> = ({
@@ -125,6 +130,7 @@ export const ModelCatalogContextProvider: React.FC<ModelCatalogContextProviderPr
   const [basePerformanceViewEnabled, setBasePerformanceViewEnabled] = React.useState(false);
   const [performanceFiltersChangedOnDetailsPage, setPerformanceFiltersChangedOnDetailsPage] =
     React.useState(false);
+  const [sortBy, setSortBy] = React.useState<ModelCatalogSortOption | null>(null);
 
   const location = useLocation();
   const isOnDetailsPage = location.pathname.includes(ModelDetailsTab.PERFORMANCE_INSIGHTS);
@@ -188,8 +194,23 @@ export const ModelCatalogContextProvider: React.FC<ModelCatalogContextProviderPr
       // When toggle changes, ensure defaults are applied.
       // When toggle is OFF, filters are just not passed in API calls or shown as chips.
       resetPerformanceFiltersToDefaults();
-      if (!enabled) {
+      if (enabled) {
+        // When toggle is on, set default sort to lowest_latency
+        setSortBy((currentSortBy) => {
+          if (currentSortBy === null || currentSortBy === ModelCatalogSortOption.RECENT_PUBLISH) {
+            return ModelCatalogSortOption.LOWEST_LATENCY;
+          }
+          return currentSortBy;
+        });
+      } else {
         setPerformanceFiltersChangedOnDetailsPage(false);
+        // When toggle is off, set default sort to recent_publish
+        setSortBy((currentSortBy) => {
+          if (currentSortBy === null || currentSortBy === ModelCatalogSortOption.LOWEST_LATENCY) {
+            return ModelCatalogSortOption.RECENT_PUBLISH;
+          }
+          return currentSortBy;
+        });
       }
     },
     [resetPerformanceFiltersToDefaults],
@@ -284,6 +305,8 @@ export const ModelCatalogContextProvider: React.FC<ModelCatalogContextProviderPr
       resetPerformanceFiltersToDefaults,
       resetSinglePerformanceFilterToDefault,
       getPerformanceFilterDefaultValue: getDefaultValueForPerformanceFilter,
+      sortBy,
+      setSortBy,
     }),
     [
       catalogSourcesLoaded,
@@ -306,6 +329,8 @@ export const ModelCatalogContextProvider: React.FC<ModelCatalogContextProviderPr
       resetPerformanceFiltersToDefaults,
       resetSinglePerformanceFilterToDefault,
       getDefaultValueForPerformanceFilter,
+      sortBy,
+      setSortBy,
     ],
   );
 

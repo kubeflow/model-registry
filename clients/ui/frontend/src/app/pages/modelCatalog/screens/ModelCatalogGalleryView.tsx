@@ -18,7 +18,10 @@ import {
   getSourceFromSourceId,
   hasFiltersApplied,
   getBasicFiltersOnly,
+  getActiveLatencyFieldName,
+  getEffectiveSortBy,
 } from '~/app/pages/modelCatalog/utils/modelCatalogUtils';
+import { SORT_FIELD, SORT_ORDER, ModelCatalogSortOption } from '~/concepts/modelCatalog/const';
 import EmptyModelCatalogState from '~/app/pages/modelCatalog/EmptyModelCatalogState';
 import ScrollViewOnMount from '~/app/shared/components/ScrollViewOnMount';
 
@@ -39,6 +42,7 @@ const ModelCatalogGalleryView: React.FC<ModelCatalogPageProps> = ({
     filterOptionsLoadError,
     catalogSources,
     performanceViewEnabled,
+    sortBy,
   } = React.useContext(ModelCatalogContext);
   const filtersApplied = hasFiltersApplied(filterData);
 
@@ -49,6 +53,33 @@ const ModelCatalogGalleryView: React.FC<ModelCatalogPageProps> = ({
     [performanceViewEnabled, filterData],
   );
 
+  const sortParams = React.useMemo(() => {
+    // Determine the effective sort option (use context value or default based on toggle)
+    const effectiveSortBy = getEffectiveSortBy(sortBy, performanceViewEnabled);
+
+    if (effectiveSortBy === ModelCatalogSortOption.RECENT_PUBLISH) {
+      return {
+        orderBy: SORT_FIELD.LAST_UPDATE_TIME,
+        sortOrder: SORT_ORDER.DESC, // Most recent first
+      };
+    }
+
+    // effectiveSortBy must be LOWEST_LATENCY at this point
+    const latencyField = getActiveLatencyFieldName(filterData);
+    if (!latencyField) {
+      // Fallback to recent publish if no latency field is available
+      return {
+        orderBy: SORT_FIELD.LAST_UPDATE_TIME,
+        sortOrder: SORT_ORDER.DESC,
+      };
+    }
+    // Use artifacts.[latencyField].double_value for sorting
+    return {
+      orderBy: `artifacts.${latencyField}.double_value`,
+      sortOrder: SORT_ORDER.ASC, // Lowest first (ascending)
+    };
+  }, [sortBy, performanceViewEnabled, filterData]);
+
   const { catalogModels, catalogModelsLoaded, catalogModelsLoadError } = useCatalogModelsBySources(
     '',
     selectedSourceLabel === 'All models' ? undefined : selectedSourceLabel,
@@ -56,6 +87,8 @@ const ModelCatalogGalleryView: React.FC<ModelCatalogPageProps> = ({
     searchTerm,
     effectiveFilterData,
     filterOptions,
+    sortParams.orderBy,
+    sortParams.sortOrder,
   );
 
   const loaded = catalogModelsLoaded && filterOptionsLoaded;
