@@ -140,6 +140,10 @@ export type CatalogArtifacts = CatalogModelArtifact | CatalogMetricsArtifact;
 
 export type CatalogArtifactList = ModelCatalogListParams & { items: CatalogArtifacts[] };
 
+export type CatalogPerformanceArtifactList = ModelCatalogListParams & {
+  items: CatalogPerformanceMetricsArtifact[];
+};
+
 export type CatalogFilterNumberOption = {
   type: 'number';
   range?: {
@@ -190,7 +194,7 @@ export type GetPerformanceArtifacts = (
   params?: PerformanceArtifactsParams,
   filterData?: ModelCatalogFilterStates,
   filterOptions?: CatalogFilterOptionsList | null,
-) => Promise<CatalogArtifactList>;
+) => Promise<CatalogPerformanceArtifactList>;
 
 export type GetArtifactFilterOptions = (
   opts: APIOptions,

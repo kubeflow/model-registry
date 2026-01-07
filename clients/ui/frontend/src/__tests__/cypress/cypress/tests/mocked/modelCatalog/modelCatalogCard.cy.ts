@@ -1,9 +1,7 @@
 /* eslint-disable camelcase */
 import { modelCatalog } from '~/__tests__/cypress/cypress/pages/modelCatalog';
 import {
-  mockCatalogAccuracyMetricsArtifact,
   mockCatalogModel,
-  mockCatalogModelArtifact,
   mockCatalogModelArtifactList,
   mockCatalogModelList,
   mockCatalogPerformanceMetricsArtifact,
@@ -111,6 +109,8 @@ const initIntercepts = ({
     mockCatalogFilterOptionsList(),
   );
 
+  // The /performance_artifacts endpoint only returns performance metrics artifacts
+  // (no accuracy or model artifacts - those are filtered server-side)
   cy.interceptApi(
     `GET /api/:apiVersion/model_catalog/sources/:sourceId/performance_artifacts/:modelName`,
     {
@@ -163,9 +163,10 @@ const initIntercepts = ({
             },
           },
         }),
-        mockCatalogAccuracyMetricsArtifact({}),
-        mockCatalogModelArtifact({}),
       ],
+      pageSize: 10,
+      size: 3,
+      nextPageToken: '',
     },
   ).as('getCatalogSourceModelArtifacts');
 };

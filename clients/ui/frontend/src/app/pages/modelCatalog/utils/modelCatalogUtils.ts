@@ -93,21 +93,6 @@ export const getModelArtifactUri = (artifacts: CatalogArtifacts[]): string => {
 export const hasModelArtifacts = (artifacts: CatalogArtifacts[]): boolean =>
   artifacts.some((artifact) => artifact.artifactType === CatalogArtifactType.modelArtifact);
 
-export const filterArtifactsByType = <T extends CatalogArtifacts>(
-  artifacts: CatalogArtifacts[],
-  artifactType: CatalogArtifactType,
-  metricsType?: MetricsType,
-): T[] =>
-  artifacts.filter((artifact): artifact is T => {
-    if (artifact.artifactType !== artifactType) {
-      return false;
-    }
-    if (metricsType && 'metricsType' in artifact) {
-      return artifact.metricsType === metricsType;
-    }
-    return true;
-  });
-
 export const hasPerformanceArtifacts = (artifacts: CatalogArtifacts[]): boolean =>
   artifacts.some(
     (artifact) =>
@@ -177,27 +162,6 @@ const isArrayOfSelections = (
 ): data is string[] =>
   filterOption?.type === 'string' && Array.isArray(filterOption.values) && Array.isArray(data);
 
-// TODO: Implement performance filters.
-// type FilterId = keyof CatalogFilterOptionsList['filters'];
-// const KNOWN_LESS_THAN_IDS: FilterId[] = [ModelCatalogNumberFilterKey.TTFT_MEAN]; // TODO: populate with filters that need to talk about "less" values
-// const isKnownLessThanValue = (
-//   filterOption: CatalogFilterOptions[keyof CatalogFilterOptions],
-//   filterId: FilterId,
-//   data: unknown,
-// ): data is number =>
-//   filterOption.type === 'number' &&
-//   KNOWN_LESS_THAN_IDS.includes(filterId) &&
-//   typeof data === 'number';
-
-// const KNOWN_MORE_THAN_IDS: FilterId[] = [ModelCatalogNumberFilterKey.RPS_MEAN]; // TODO: populate with filters that need to talk about "more" values
-// const isKnownMoreThanValue = (
-//   filterOption: CatalogFilterOptions[keyof CatalogFilterOptions],
-//   filterId: FilterId,
-//   data: unknown,
-// ): data is number =>
-//   filterOption.type === 'number' &&
-//   KNOWN_MORE_THAN_IDS.includes(filterId) &&
-//   typeof data === 'number';
 /**
  * Filter IDs that should use "less than" comparison (latency filters).
  * All latency field names use less-than comparison.
