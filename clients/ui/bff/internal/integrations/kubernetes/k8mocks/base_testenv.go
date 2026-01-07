@@ -253,11 +253,11 @@ catalogs:
     enabled: true
     properties:
       yamlCatalogPath: custom_yaml_models.yaml
-      includedModels:
-        - model-*
-        - model-2-*
-      excludedModels:
-        - sample-model-*
+    includedModels:
+      - model-*
+      - model-2-*
+    excludedModels:
+      - sample-model-*
     labels:
       - Dora AI
 
@@ -267,11 +267,11 @@ catalogs:
     enabled: false
     properties:
       yamlCatalogPath: sample_source_models.yaml
-      includedModels:
-        - model-*
-        - model-2-*
-      excludedModels:
-        - sample-model-*
+    includedModels:
+      - model-*
+      - model-2-*
+    excludedModels:
+      - sample-model-*
     labels:
       - Bella AI validated
       - Dora AI
@@ -283,11 +283,11 @@ catalogs:
     properties:
       apiKey: hugging-face-source-secret
       allowedOrganization: org
-      includedModels:
-        - model-*
-        - model-2-*
-      excludedModels:
-        - sample-model-*
+    includedModels:
+      - model-*
+      - model-2-*
+    excludedModels:
+      - sample-model-*
     labels:
       - Bella AI validated
 `)
