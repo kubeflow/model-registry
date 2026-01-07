@@ -2,18 +2,12 @@ import * as React from 'react';
 import { PageSection, Card, CardBody, Title, Flex, FlexItem, Alert } from '@patternfly/react-core';
 import { useParams } from 'react-router-dom';
 import HardwareConfigurationTable from '~/app/pages/modelCatalog/components/HardwareConfigurationTable';
-import {
-  CatalogArtifactType,
-  CatalogModelDetailsParams,
-  CatalogPerformanceMetricsArtifact,
-  MetricsType,
-} from '~/app/modelCatalogTypes';
+import { CatalogModelDetailsParams } from '~/app/modelCatalogTypes';
 import { ModelCatalogContext } from '~/app/context/modelCatalog/ModelCatalogContext';
 import { useCatalogPerformanceArtifacts } from '~/app/hooks/modelCatalog/useCatalogPerformanceArtifacts';
 import { ModelCatalogNumberFilterKey } from '~/concepts/modelCatalog/const';
 import {
   decodeParams,
-  filterArtifactsByType,
   getActiveLatencyFieldName,
 } from '~/app/pages/modelCatalog/utils/modelCatalogUtils';
 
@@ -40,17 +34,6 @@ const PerformanceInsightsView = (): React.JSX.Element => {
       filterData,
       filterOptions,
     );
-
-  // Extract performance artifacts from the list
-  const performanceArtifacts = React.useMemo(
-    () =>
-      filterArtifactsByType<CatalogPerformanceMetricsArtifact>(
-        performanceArtifactsList.items,
-        CatalogArtifactType.metricsArtifact,
-        MetricsType.performanceMetrics,
-      ),
-    [performanceArtifactsList.items],
-  );
 
   React.useEffect(() => {
     setPerformanceFiltersChangedOnDetailsPage(false);
@@ -88,7 +71,7 @@ const PerformanceInsightsView = (): React.JSX.Element => {
             </FlexItem>
             <FlexItem>
               <HardwareConfigurationTable
-                performanceArtifacts={performanceArtifacts}
+                performanceArtifacts={performanceArtifactsList.items}
                 isLoading={!performanceArtifactsLoaded}
               />
             </FlexItem>

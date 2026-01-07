@@ -1,8 +1,8 @@
 import { FetchState, FetchStateCallbackPromise, NotReadyError, useFetchState } from 'mod-arch-core';
 import React from 'react';
 import {
-  CatalogArtifactList,
   CatalogFilterOptionsList,
+  CatalogPerformanceArtifactList,
   ModelCatalogFilterStates,
   PerformanceArtifactsParams,
 } from '~/app/modelCatalogTypes';
@@ -27,7 +27,7 @@ export const useCatalogPerformanceArtifacts = (
   filterData?: ModelCatalogFilterStates,
   filterOptions?: CatalogFilterOptionsList | null,
   enabled = true,
-): FetchState<CatalogArtifactList> => {
+): FetchState<CatalogPerformanceArtifactList> => {
   const { api, apiAvailable } = useModelCatalogAPI();
 
   const performanceParams: PerformanceArtifactsParams | undefined = React.useMemo(
@@ -57,7 +57,7 @@ export const useCatalogPerformanceArtifacts = (
     ],
   );
 
-  const call = React.useCallback<FetchStateCallbackPromise<CatalogArtifactList>>(
+  const call = React.useCallback<FetchStateCallbackPromise<CatalogPerformanceArtifactList>>(
     (opts) => {
       if (!apiAvailable) {
         return Promise.reject(new Error('API not yet available'));

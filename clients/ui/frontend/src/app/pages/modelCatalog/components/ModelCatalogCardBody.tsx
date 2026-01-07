@@ -15,22 +15,12 @@ import {
 import { Link } from 'react-router-dom';
 import { HelpIcon, AngleLeftIcon, AngleRightIcon, ArrowRightIcon } from '@patternfly/react-icons';
 import { TruncatedText } from 'mod-arch-shared';
-import {
-  CatalogModel,
-  CatalogSource,
-  CatalogArtifactType,
-  MetricsType,
-  CatalogPerformanceMetricsArtifact,
-  CatalogAccuracyMetricsArtifact,
-} from '~/app/modelCatalogTypes';
+import { CatalogModel, CatalogSource } from '~/app/modelCatalogTypes';
 import { extractValidatedModelMetrics } from '~/app/pages/modelCatalog/utils/validatedModelUtils';
 import { catalogModelDetailsTabFromModel } from '~/app/routes/modelCatalog/catalogModel';
 import { ModelDetailsTab, ModelCatalogNumberFilterKey } from '~/concepts/modelCatalog/const';
 import { useCatalogPerformanceArtifacts } from '~/app/hooks/modelCatalog/useCatalogPerformanceArtifacts';
-import {
-  filterArtifactsByType,
-  getActiveLatencyFieldName,
-} from '~/app/pages/modelCatalog/utils/modelCatalogUtils';
+import { getActiveLatencyFieldName } from '~/app/pages/modelCatalog/utils/modelCatalogUtils';
 import { formatLatency } from '~/app/pages/modelCatalog/utils/performanceMetricsUtils';
 import { ModelCatalogContext } from '~/app/context/modelCatalog/ModelCatalogContext';
 
@@ -76,17 +66,13 @@ const ModelCatalogCardBody: React.FC<ModelCatalogCardBodyProps> = ({
       isValidated, // Only fetch if validated
     );
 
-  const performanceMetrics = filterArtifactsByType<CatalogPerformanceMetricsArtifact>(
-    performanceArtifactsList.items,
-    CatalogArtifactType.metricsArtifact,
-    MetricsType.performanceMetrics,
-  );
+  // Performance artifacts are already filtered by the server endpoint
+  const performanceMetrics = performanceArtifactsList.items;
 
-  const accuracyMetrics = filterArtifactsByType<CatalogAccuracyMetricsArtifact>(
-    performanceArtifactsList.items,
-    CatalogArtifactType.metricsArtifact,
-    MetricsType.accuracyMetrics,
-  );
+  // NOTE: Accuracy metrics are not currently returned by the /performance_artifacts endpoint.
+  // This is kept as a placeholder for when accuracy metrics support is restored.
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const accuracyMetrics: any[] = [];
 
   const isLoading = isValidated && !performanceArtifactsLoaded;
 

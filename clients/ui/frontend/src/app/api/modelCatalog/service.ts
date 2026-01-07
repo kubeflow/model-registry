@@ -4,6 +4,7 @@ import {
   CatalogFilterOptionsList,
   CatalogModel,
   CatalogModelList,
+  CatalogPerformanceArtifactList,
   CatalogSourceList,
   ModelCatalogFilterStates,
   PerformanceArtifactsParams,
@@ -101,7 +102,7 @@ export const getPerformanceArtifacts =
     params?: PerformanceArtifactsParams,
     filterData?: ModelCatalogFilterStates,
     filterOptions?: CatalogFilterOptionsList | null,
-  ): Promise<CatalogArtifactList> => {
+  ): Promise<CatalogPerformanceArtifactList> => {
     const allParams: Record<string, unknown> = {
       ...queryParams,
       ...(params?.targetRPS !== undefined && { targetRPS: params.targetRPS }),
@@ -120,7 +121,7 @@ export const getPerformanceArtifacts =
     return handleRestFailures(
       restGET(hostPath, `/sources/${sourceId}/performance_artifacts/${modelName}`, allParams, opts),
     ).then((response) => {
-      if (isModArchResponse<CatalogArtifactList>(response)) {
+      if (isModArchResponse<CatalogPerformanceArtifactList>(response)) {
         return response.data;
       }
       throw new Error('Invalid response format');
