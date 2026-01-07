@@ -33,6 +33,7 @@ var (
 	ErrCatalogIDTooLong          = errors.New("catalog source ID exceeds maximum length for secret name")
 	ErrCannotChangeType          = errors.New("cannot change catalog source type")
 	ErrValidationFailed          = errors.New("validation failed")
+	ErrCatalogSourceConflict     = errors.New("catalog source was modified by another request")
 )
 
 const (
@@ -210,6 +211,9 @@ func (r *ModelCatalogSettingsRepository) CreateCatalogSourceConfig(
 		if secretName != "" {
 			deleteSecretForHuggingFace(ctx, client, namespace, secretName)
 		}
+		if apierrors.IsConflict(err) {
+			return nil, fmt.Errorf("%w: %v", ErrCatalogSourceConflict, err)
+		}
 		return nil, fmt.Errorf("failed to update user configmap: %w", err)
 	}
 
@@ -338,6 +342,9 @@ func (r *ModelCatalogSettingsRepository) UpdateCatalogSourceConfig(
 
 	err = client.UpdateCatalogSourceConfig(ctx, namespace, &userCM)
 	if err != nil {
+		if apierrors.IsConflict(err) {
+			return nil, fmt.Errorf("%w: %v", ErrCatalogSourceConflict, err)
+		}
 		return nil, fmt.Errorf("failed to update user configmap: %w", err)
 	}
 
@@ -393,6 +400,9 @@ func (r *ModelCatalogSettingsRepository) DeleteCatalogSourceConfig(
 
 	err = client.UpdateCatalogSourceConfig(ctx, namespace, &userCM)
 	if err != nil {
+		if apierrors.IsConflict(err) {
+			return nil, fmt.Errorf("%w: %v", ErrCatalogSourceConflict, err)
+		}
 		return nil, fmt.Errorf("failed to update configmap after deletion: %w", err)
 	}
 

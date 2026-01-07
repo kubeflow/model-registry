@@ -9,6 +9,7 @@ import (
 	"github.com/kubeflow/model-registry/ui/bff/internal/models"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
+	apierrors "k8s.io/apimachinery/pkg/api/errors"
 )
 
 var _ = Describe("ModelCatalogSettingRepository", func() {
@@ -473,6 +474,53 @@ var _ = Describe("ModelCatalogSettingRepository", func() {
 			Expect(err).NotTo(HaveOccurred())
 			Expect(result.ExcludedModels).To(BeEmpty())
 			Expect(result.IncludedModels).To(Equal([]string{"*"}))
+		})
+
+		It("should return conflict error when concurrent updates occur with stale resourceVersion", func() {
+			// First, create a source to test with
+			createPayload := models.CatalogSourceConfigPayload{
+				Id:      "concurrency_test_source",
+				Name:    "Concurrency Test Source",
+				Type:    "yaml",
+				Enabled: boolPtr(true),
+				Yaml:    stringPtr("models: []"),
+			}
+			_, err := repo.CreateCatalogSourceConfig(ctx, k8sClient, "kubeflow", createPayload)
+			Expect(err).NotTo(HaveOccurred())
+
+			// Simulate two concurrent requests by reading the configmap state twice
+			// Request A reads the current state
+			_, cmA, err := k8sClient.GetAllCatalogSourceConfigs(ctx, "kubeflow")
+			Expect(err).NotTo(HaveOccurred())
+			resourceVersionA := cmA.ResourceVersion
+			Expect(resourceVersionA).NotTo(BeEmpty(), "ConfigMap should have a resourceVersion")
+
+			// Request B reads the same state (before A updates)
+			_, cmB, err := k8sClient.GetAllCatalogSourceConfigs(ctx, "kubeflow")
+			Expect(err).NotTo(HaveOccurred())
+			resourceVersionB := cmB.ResourceVersion
+			Expect(resourceVersionB).To(Equal(resourceVersionA), "Both requests should see the same resourceVersion")
+
+			// Request A updates successfully
+			payloadA := models.CatalogSourceConfigPayload{
+				Name: "Updated by Request A",
+			}
+			_, err = repo.UpdateCatalogSourceConfig(ctx, k8sClient, "kubeflow", "concurrency_test_source", payloadA)
+			Expect(err).NotTo(HaveOccurred())
+
+			// Verify the resourceVersion has changed after A's update
+			_, cmAfterA, err := k8sClient.GetAllCatalogSourceConfigs(ctx, "kubeflow")
+			Expect(err).NotTo(HaveOccurred())
+			Expect(cmAfterA.ResourceVersion).NotTo(Equal(resourceVersionA), "resourceVersion should change after update")
+
+			// Request B tries to update with stale resourceVersion
+			// This simulates B modifying its local copy (cmB) and trying to update
+			cmB.Data[k8s.CatalogSourceKey] = "catalogs:\n  - id: concurrency_test_source\n    name: Updated by Request B\n    type: yaml\n    enabled: true"
+			err = k8sClient.UpdateCatalogSourceConfig(ctx, "kubeflow", &cmB)
+
+			// Should fail with a conflict error because cmB has stale resourceVersion
+			Expect(err).To(HaveOccurred())
+			Expect(apierrors.IsConflict(err)).To(BeTrue(), "Expected conflict error due to stale resourceVersion, got: %v", err)
 		})
 	})
 

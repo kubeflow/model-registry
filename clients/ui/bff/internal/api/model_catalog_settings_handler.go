@@ -117,6 +117,8 @@ func (app *App) CreateCatalogSourceConfigHandler(w http.ResponseWriter, r *http.
 			errors.Is(err, repositories.ErrUnsupportedCatalogType) ||
 			errors.Is(err, repositories.ErrValidationFailed) {
 			app.badRequestResponse(w, r, err)
+		} else if errors.Is(err, repositories.ErrCatalogSourceConflict) {
+			app.conflictResponse(w, r, err.Error())
 		} else {
 			app.serverErrorResponse(w, r, err)
 		}
@@ -169,6 +171,8 @@ func (app *App) UpdateCatalogSourceConfigHandler(w http.ResponseWriter, r *http.
 		} else if errors.Is(err, repositories.ErrCannotChangeDefaultSource) ||
 			errors.Is(err, repositories.ErrCannotChangeType) {
 			app.forbiddenResponse(w, r, err.Error())
+		} else if errors.Is(err, repositories.ErrCatalogSourceConflict) {
+			app.conflictResponse(w, r, err.Error())
 		} else {
 			app.serverErrorResponse(w, r, err)
 		}
@@ -210,6 +214,8 @@ func (app *App) DeleteCatalogSourceConfigHandler(w http.ResponseWriter, r *http.
 			app.forbiddenResponse(w, r, err.Error())
 		} else if errors.Is(err, repositories.ErrCatalogSourceNotFound) {
 			app.notFoundResponse(w, r)
+		} else if errors.Is(err, repositories.ErrCatalogSourceConflict) {
+			app.conflictResponse(w, r, err.Error())
 		} else {
 			app.serverErrorResponse(w, r, err)
 		}
