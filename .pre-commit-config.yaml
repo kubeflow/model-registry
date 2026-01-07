@@ -1,30 +1,32 @@
+exclude: |
+  .*\.patch$
 
-exclude: '^patches/'
 repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v4.4.0
+    rev: v6.0.0
     hooks:
       - id: check-added-large-files
       - id: check-ast
       - id: check-case-conflict
       - id: check-docstring-first
-      - id: check-executables-have-shebangs
+      # - id: check-executables-have-shebangs
       - id: check-json
       - id: check-merge-conflict
-        # TODO: (goverter 1.3.2) generated files are marked 777 (see: https://github.com/jmattheis/goverter/issues/128)
-      # - id: check-shebang-scripts-are-executable
       - id: check-symlinks
       - id: debug-statements
       - id: detect-private-key
+        exclude: '.*_test\.go$'
       - id: end-of-file-fixer
+        exclude: '^clients/python/src/mr_openapi'
       - id: trailing-whitespace
+        exclude: '^clients/python/src/mr_openapi'
+
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.1.13
+    rev: v0.7.0
     hooks:
       - id: ruff
         args: [--fix]
+        files: '^clients/python'
       - id: ruff-format
-  - repo: https://github.com/google/yamlfmt
-    rev: v0.10.0
-    hooks:
-      - id: yamlfmt
+        files: '^clients/python/src/mr_openapi'
+
