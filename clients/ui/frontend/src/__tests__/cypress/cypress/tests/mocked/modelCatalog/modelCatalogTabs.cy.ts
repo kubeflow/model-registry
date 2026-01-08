@@ -224,11 +224,12 @@ describe('Model Catalog Details Tabs', () => {
           .findHardwareConfigurationTableHeaders()
           .eq(1)
           .should('contain.text', 'Workload type');
+        // First row should contain formatted workload type (Chatbot, not chatbot)
         modelCatalog
           .findHardwareConfigurationColumn('Workload type')
           .first()
-          .should('contain.text', 'Code Fixing')
-          .should('not.contain.text', 'code_fixing');
+          .should('contain.text', 'Chatbot')
+          .should('not.contain.text', 'chatbot');
       });
     });
 
