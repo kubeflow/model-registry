@@ -8,7 +8,7 @@ export enum ModelCatalogStringFilterKey {
 }
 
 export enum ModelCatalogNumberFilterKey {
-  MIN_RPS = 'rps_mean',
+  MAX_RPS = 'rps_mean',
 }
 
 export enum LatencyMetric {
@@ -61,6 +61,12 @@ export const ALL_LATENCY_FIELD_NAMES: LatencyMetricFieldName[] = Object.values(
 ).flatMap((metric) =>
   Object.values(LatencyPercentile).map((percentile) => getLatencyFieldName(metric, percentile)),
 );
+
+/**
+ * Type guard to check if a string is a valid LatencyMetricFieldName
+ */
+export const isLatencyMetricFieldName = (value: string): value is LatencyMetricFieldName =>
+  ALL_LATENCY_FIELD_NAMES.some((name) => name === value);
 
 export enum UseCaseOptionValue {
   CHATBOT = 'chatbot',
@@ -397,10 +403,10 @@ export const MODEL_CATALOG_FILTER_CATEGORY_NAMES: Record<ModelCatalogFilterKey, 
   [ModelCatalogStringFilterKey.HARDWARE_TYPE]: 'Hardware type',
   [ModelCatalogStringFilterKey.USE_CASE]: 'Workload type',
   // Number filter keys
-  [ModelCatalogNumberFilterKey.MIN_RPS]: 'Min RPS',
-  // Latency field names - all use "Max latency" as category name
+  [ModelCatalogNumberFilterKey.MAX_RPS]: 'Max RPS',
+  // Latency field names - all use "Latency" as category name
   // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
-  ...(Object.fromEntries(ALL_LATENCY_FIELD_NAMES.map((field) => [field, 'Max latency'])) as Record<
+  ...(Object.fromEntries(ALL_LATENCY_FIELD_NAMES.map((field) => [field, 'Latency'])) as Record<
     LatencyMetricFieldName,
     string
   >),

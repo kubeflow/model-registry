@@ -258,10 +258,11 @@ describe('Model Catalog Details Tabs', () => {
         modelCatalog.clickPerformanceInsightsTab();
         modelCatalog.findWorkloadTypeFilter().click();
         modelCatalog.selectWorkloadType('code_fixing');
+        // Single-select dropdown shows selected value in toggle
         modelCatalog
           .findWorkloadTypeFilter()
           .should('contain.text', 'Workload type')
-          .should('contain.text', '1 selected');
+          .should('contain.text', 'Code Fixing');
       });
 
       it('should filter hardware configuration table by selected workload type', () => {
@@ -272,30 +273,32 @@ describe('Model Catalog Details Tabs', () => {
         modelCatalog.findHardwareConfigurationTableRows().should('have.length.at.least', 1);
         modelCatalog.findWorkloadTypeFilter().click();
         modelCatalog.selectWorkloadType('code_fixing');
-        // Verify filter is applied (shown in toggle text)
+        // Verify filter is applied (single-select shows selected value in toggle)
         modelCatalog
           .findWorkloadTypeFilter()
           .should('contain.text', 'Workload type')
-          .should('contain.text', '1 selected');
+          .should('contain.text', 'Code Fixing');
         // Table should still exist (server-side filtering returns mock data)
         modelCatalog.findHardwareConfigurationTableRows().should('exist');
       });
 
-      it('should clear workload type filter when clicking selected option again', () => {
+      it('should change workload type selection when clicking a different option', () => {
         modelCatalog.findModelCatalogDetailLink().first().click();
         modelCatalog.clickPerformanceInsightsTab();
         modelCatalog.findWorkloadTypeFilter().click();
         modelCatalog.selectWorkloadType('code_fixing');
+        // Single-select shows selected value in toggle
         modelCatalog
           .findWorkloadTypeFilter()
           .should('contain.text', 'Workload type')
-          .should('contain.text', '1 selected');
+          .should('contain.text', 'Code Fixing');
 
-        // Re-open dropdown before deselecting
+        // Re-open dropdown and select a different option
         modelCatalog.findWorkloadTypeFilter().click();
-        modelCatalog.selectWorkloadType('code_fixing');
+        modelCatalog.selectWorkloadType('chatbot');
         modelCatalog.findWorkloadTypeFilter().should('contain.text', 'Workload type');
-        modelCatalog.findWorkloadTypeFilter().should('not.contain.text', '1 selected');
+        modelCatalog.findWorkloadTypeFilter().should('contain.text', 'Chatbot');
+        modelCatalog.findWorkloadTypeFilter().should('not.contain.text', 'Code Fixing');
       });
     });
 
@@ -625,7 +628,7 @@ describe('Model Catalog Details Tabs', () => {
         });
       });
 
-      it('should refetch unfiltered data when filter is cleared', () => {
+      it('should refetch data when workload type filter is changed', () => {
         // Initial unfiltered request
         cy.intercept(
           {
@@ -663,7 +666,7 @@ describe('Model Catalog Details Tabs', () => {
         cy.wait('@getFilteredPerformanceArtifacts');
         modelCatalog.findHardwareConfigurationTableRows().should('have.length', 2);
 
-        // Clear filter - server returns unfiltered response
+        // Change filter to chatbot - server returns chatbot-filtered response
         cy.intercept(
           {
             method: 'GET',
@@ -671,17 +674,19 @@ describe('Model Catalog Details Tabs', () => {
               `/api/${MODEL_CATALOG_API_VERSION}/model_catalog/sources/.*/performance_artifacts/.*`,
             ),
           },
-          mockModArchResponse(mockMultipleWorkloadTypePerformanceArtifactList()),
-        ).as('getUnfilteredAfterClear');
+          mockModArchResponse(
+            mockFilteredPerformanceArtifactsByWorkloadType(UseCaseOptionValue.CHATBOT),
+          ),
+        ).as('getFilteredByChatbot');
 
-        // Re-open dropdown and deselect to clear the filter
+        // Re-open dropdown and select a different workload type (single-select replaces the value)
         modelCatalog.findWorkloadTypeFilter().click();
-        modelCatalog.selectWorkloadType('code_fixing');
+        modelCatalog.selectWorkloadType('chatbot');
 
-        cy.wait('@getUnfilteredAfterClear');
+        cy.wait('@getFilteredByChatbot');
 
-        // Verify table shows all items again
-        modelCatalog.findHardwareConfigurationTableRows().should('have.length', 4);
+        // Verify table shows chatbot-filtered items
+        modelCatalog.findHardwareConfigurationTableRows().should('have.length', 2);
       });
     });
   });

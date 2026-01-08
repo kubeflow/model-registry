@@ -221,7 +221,14 @@ describe('performanceMetricsUtils', () => {
     });
 
     it('should handle code_fixing with underscores', () => {
-      const artifact = mockCatalogPerformanceMetricsArtifact();
+      const artifact = mockCatalogPerformanceMetricsArtifact({
+        customProperties: {
+          use_case: {
+            metadataType: ModelRegistryMetadataType.STRING,
+            string_value: 'code_fixing',
+          },
+        },
+      });
       expect(getWorkloadType(artifact)).toBe('Code Fixing');
     });
 

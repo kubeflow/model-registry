@@ -241,6 +241,9 @@ export type CatalogFilterOptions = ModelCatalogStringFilterOptions & {
 } & {
   // Allow additional latency metric field names
   [key in LatencyMetricFieldName]?: CatalogFilterNumberOption;
+} & {
+  // Allow additional artifact filter keys from backend (e.g., artifacts.hardware_type.string_value)
+  [key: string]: CatalogFilterStringOption<string> | CatalogFilterNumberOption | undefined;
 };
 
 export enum FilterOperator {

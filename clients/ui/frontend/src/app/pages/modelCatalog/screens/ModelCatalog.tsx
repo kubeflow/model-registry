@@ -8,6 +8,7 @@ import { hasFiltersApplied } from '~/app/pages/modelCatalog/utils/modelCatalogUt
 import {
   ModelCatalogNumberFilterKey,
   ModelCatalogStringFilterKey,
+  ALL_LATENCY_FIELD_NAMES,
 } from '~/concepts/modelCatalog/const';
 import { CategoryName } from '~/app/modelCatalogTypes';
 import ModelCatalogSourceLabelSelectorNavigator from './ModelCatalogSourceLabelSelectorNavigator';
@@ -30,11 +31,18 @@ const ModelCatalog: React.FC = () => {
   }, []);
 
   const resetAllFilters = React.useCallback(() => {
+    // Clear all string filters
     Object.values(ModelCatalogStringFilterKey).forEach((filterKey) => {
       setFilterData(filterKey, []);
     });
 
+    // Clear all number filters
     Object.values(ModelCatalogNumberFilterKey).forEach((filterKey) => {
+      setFilterData(filterKey, undefined);
+    });
+
+    // Clear all latency filters
+    ALL_LATENCY_FIELD_NAMES.forEach((filterKey) => {
       setFilterData(filterKey, undefined);
     });
   }, [setFilterData]);

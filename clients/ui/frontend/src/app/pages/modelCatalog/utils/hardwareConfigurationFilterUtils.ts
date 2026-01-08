@@ -81,11 +81,11 @@ export const filterHardwareConfigurationArtifacts = (
       }
     }
 
-    // Min RPS Filter
-    const minRpsFilter = filterState[ModelCatalogNumberFilterKey.MIN_RPS];
-    if (minRpsFilter !== undefined) {
+    // Max RPS Filter - filter out artifacts that exceed the max RPS requirement
+    const maxRpsFilter = filterState[ModelCatalogNumberFilterKey.MAX_RPS];
+    if (maxRpsFilter !== undefined) {
       const rpsPerReplica = getDoubleValue(artifact.customProperties, 'requests_per_second');
-      if (rpsPerReplica < minRpsFilter) {
+      if (rpsPerReplica > maxRpsFilter) {
         return false;
       }
     }

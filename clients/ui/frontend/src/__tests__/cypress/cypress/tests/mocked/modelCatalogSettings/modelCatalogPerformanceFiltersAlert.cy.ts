@@ -1,3 +1,4 @@
+import { mockModArchResponse } from 'mod-arch-core';
 import {
   mockCatalogModel,
   mockCatalogModelList,
@@ -53,23 +54,26 @@ const initIntercepts = ({
           }),
         }),
       );
+      // Regex intercept to handle requests with additional query params like filterQuery
+      const encodedLabel = encodeURIComponent(label);
+      const mockModels = mockCatalogModelList({
+        items: Array.from({ length: modelsPerCategory }, (_, i) => {
+          const name = i === 0 ? 'validated-model' : `${label.toLowerCase()}-model-${i + 1}`;
+          return mockCatalogModel({
+            name,
+            // eslint-disable-next-line camelcase
+            source_id: source.id,
+          });
+        }),
+      });
       cy.intercept(
         {
           method: 'GET',
           url: new RegExp(
-            `/api/${MODEL_CATALOG_API_VERSION}/model_catalog/models.*sourceLabel=${encodeURIComponent(label)}`,
+            `/model-registry/api/${MODEL_CATALOG_API_VERSION}/model_catalog/models.*sourceLabel=${encodedLabel}`,
           ),
         },
-        mockCatalogModelList({
-          items: Array.from({ length: modelsPerCategory }, (_, i) => {
-            const name = i === 0 ? 'validated-model' : `${label.toLowerCase()}-model-${i + 1}`;
-            return mockCatalogModel({
-              name,
-              // eslint-disable-next-line camelcase
-              source_id: source.id,
-            });
-          }),
-        }),
+        mockModArchResponse(mockModels),
       ).as(`getModels-${label}-with-filters`);
     });
   });
@@ -153,6 +157,8 @@ describe('Model Catalog Performance Filters Alert', () => {
     it('should show alert when returning from details page after changing performance filters', () => {
       modelCatalog.togglePerformanceView();
       modelCatalog.findPerformanceViewToggleValue().should('be.checked');
+      // Wait for the models to reload after toggle applies default filters
+      modelCatalog.findLoadingState().should('not.exist');
 
       modelCatalog.findModelCatalogDetailLink().first().click();
       modelCatalog.clickPerformanceInsightsTab();
@@ -175,6 +181,7 @@ describe('Model Catalog Performance Filters Alert', () => {
 
     it('should not show alert when no filters were changed on details page', () => {
       modelCatalog.togglePerformanceView();
+      modelCatalog.findLoadingState().should('not.exist');
 
       modelCatalog.findModelCatalogDetailLink().first().click();
       modelCatalog.clickPerformanceInsightsTab();
@@ -190,6 +197,7 @@ describe('Model Catalog Performance Filters Alert', () => {
   describe('Alert Dismissal', () => {
     it('should dismiss alert when close button is clicked', () => {
       modelCatalog.togglePerformanceView();
+      modelCatalog.findLoadingState().should('not.exist');
 
       modelCatalog.findModelCatalogDetailLink().first().click();
       modelCatalog.clickPerformanceInsightsTab();
@@ -212,6 +220,7 @@ describe('Model Catalog Performance Filters Alert', () => {
   describe('Alert Hidden Scenarios', () => {
     it('should hide alert when performance toggle is turned OFF', () => {
       modelCatalog.togglePerformanceView();
+      modelCatalog.findLoadingState().should('not.exist');
 
       modelCatalog.findModelCatalogDetailLink().first().click();
       modelCatalog.clickPerformanceInsightsTab();
@@ -232,6 +241,7 @@ describe('Model Catalog Performance Filters Alert', () => {
 
     it('should hide alert when filters change on catalog page', () => {
       modelCatalog.togglePerformanceView();
+      modelCatalog.findLoadingState().should('not.exist');
 
       modelCatalog.findModelCatalogDetailLink().first().click();
       modelCatalog.clickPerformanceInsightsTab();
@@ -255,6 +265,7 @@ describe('Model Catalog Performance Filters Alert', () => {
   describe('Multiple Filter Changes', () => {
     it('should show alert after changing multiple performance filters', () => {
       modelCatalog.togglePerformanceView();
+      modelCatalog.findLoadingState().should('not.exist');
 
       modelCatalog.findModelCatalogDetailLink().first().click();
       modelCatalog.clickPerformanceInsightsTab();

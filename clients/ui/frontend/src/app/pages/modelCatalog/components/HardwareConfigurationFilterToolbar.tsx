@@ -14,7 +14,6 @@ import {
   ModelCatalogFilterKey,
   ModelCatalogFilterStates,
 } from '~/app/modelCatalogTypes';
-import { clearAllFilters } from '~/app/pages/modelCatalog/utils/hardwareConfigurationFilterUtils';
 import { hasFiltersApplied } from '~/app/pages/modelCatalog/utils/modelCatalogUtils';
 import {
   ModelCatalogStringFilterKey,
@@ -23,46 +22,55 @@ import {
 } from '~/concepts/modelCatalog/const';
 import WorkloadTypeFilter from './globalFilters/WorkloadTypeFilter';
 import HardwareTypeFilter from './globalFilters/HardwareTypeFilter';
-import MinRpsFilter from './globalFilters/MinRpsFilter';
+import MaxRpsFilter from './globalFilters/MaxRpsFilter';
 import LatencyFilter from './globalFilters/LatencyFilter';
 import ModelCatalogActiveFilters from './ModelCatalogActiveFilters';
 
 type HardwareConfigurationFilterToolbarProps = {
-  performanceArtifacts: CatalogPerformanceMetricsArtifact[];
+  performanceArtifacts?: CatalogPerformanceMetricsArtifact[];
 };
 
 /**
- * Filter keys that are shown on the performance/hardware configuration page.
- * This is used to determine which filters to show in the active filters chips
- * and which filters to clear when "Reset all filters" is clicked.
+ * Basic filter keys that appear on the catalog landing page.
+ */
+const BASIC_FILTER_KEYS: ModelCatalogFilterKey[] = [
+  ModelCatalogStringFilterKey.PROVIDER,
+  ModelCatalogStringFilterKey.LICENSE,
+  ModelCatalogStringFilterKey.TASK,
+  ModelCatalogStringFilterKey.LANGUAGE,
+];
+
+/**
+ * Performance filter keys that are shown on the performance/hardware configuration page.
  */
 const PERFORMANCE_FILTER_KEYS: ModelCatalogFilterKey[] = [
   ModelCatalogStringFilterKey.USE_CASE,
   ModelCatalogStringFilterKey.HARDWARE_TYPE,
-  ModelCatalogNumberFilterKey.MIN_RPS,
+  ModelCatalogNumberFilterKey.MAX_RPS,
 ];
 
 /**
- * Gets the active filter keys including any active latency filters from filterData
+ * Gets all filter keys including basic filters, performance filters, and any active latency filters.
+ * When performance view is enabled, we show both basic and performance filter chips together.
  */
-const getActivePerformanceFilterKeys = (
-  filterData: ModelCatalogFilterStates,
-): ModelCatalogFilterKey[] => {
+const getAllActiveFilterKeys = (filterData: ModelCatalogFilterStates): ModelCatalogFilterKey[] => {
   const activeLatencyKeys = ALL_LATENCY_FIELD_NAMES.filter((key) => filterData[key] !== undefined);
-  return [...PERFORMANCE_FILTER_KEYS, ...activeLatencyKeys];
+  return [...BASIC_FILTER_KEYS, ...PERFORMANCE_FILTER_KEYS, ...activeLatencyKeys];
 };
 
 const HardwareConfigurationFilterToolbar: React.FC<HardwareConfigurationFilterToolbarProps> = ({
   performanceArtifacts,
 }) => {
-  const { filterOptions, filterOptionsLoaded, filterOptionsLoadError, filterData, setFilterData } =
-    React.useContext(ModelCatalogContext);
+  const {
+    filterOptions,
+    filterOptionsLoaded,
+    filterOptionsLoadError,
+    filterData,
+    resetPerformanceFiltersToDefaults,
+  } = React.useContext(ModelCatalogContext);
 
-  // Get all performance filter keys including active latency filters
-  const filtersToShow = React.useMemo(
-    () => getActivePerformanceFilterKeys(filterData),
-    [filterData],
-  );
+  // Get all filter keys including basic filters, performance filters, and active latency filters
+  const filtersToShow = React.useMemo(() => getAllActiveFilterKeys(filterData), [filterData]);
 
   // Check if any performance filters are active (only checking performance-related filters)
   const hasActiveFilters = React.useMemo(
@@ -75,8 +83,8 @@ const HardwareConfigurationFilterToolbar: React.FC<HardwareConfigurationFilterTo
   }
 
   const handleClearAllFilters = () => {
-    // Only clear performance-related filters, not the basic catalog filters
-    clearAllFilters(setFilterData, filtersToShow);
+    // Reset performance filters to default values from namedQueries
+    resetPerformanceFiltersToDefaults();
   };
 
   return (
@@ -103,7 +111,7 @@ const HardwareConfigurationFilterToolbar: React.FC<HardwareConfigurationFilterTo
           </ToolbarItem>
           <ToolbarItem variant="separator" />
           <ToolbarItem>
-            <LatencyFilter performanceArtifacts={performanceArtifacts} />
+            <LatencyFilter performanceArtifacts={performanceArtifacts ?? []} />
             <Popover
               bodyContent={
                 <>
@@ -136,11 +144,11 @@ const HardwareConfigurationFilterToolbar: React.FC<HardwareConfigurationFilterTo
             </Popover>
           </ToolbarItem>
           <ToolbarItem>
-            <MinRpsFilter performanceArtifacts={performanceArtifacts} />
+            <MaxRpsFilter performanceArtifacts={performanceArtifacts ?? []} />
           </ToolbarItem>
           <ToolbarItem variant="separator" />
           <ToolbarItem>
-            <HardwareTypeFilter performanceArtifacts={performanceArtifacts} />
+            <HardwareTypeFilter performanceArtifacts={performanceArtifacts ?? []} />
           </ToolbarItem>
         </ToolbarGroup>
         <ModelCatalogActiveFilters filtersToShow={filtersToShow} />

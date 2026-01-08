@@ -64,12 +64,13 @@ describe('validatedModelUtils', () => {
 
       const result = extractPerformanceMetrics(artifact);
 
-      expect(result).toEqual({
+      expect(result).toMatchObject({
         hardwareType: 'H100-80',
         hardwareCount: '2',
         rpsPerReplica: 3.5,
         ttftMean: 1200,
       });
+      expect(result.latencyMetrics).toEqual({ ttft_mean: 1200 });
     });
 
     it('should handle missing properties with default values', () => {
@@ -83,12 +84,13 @@ describe('validatedModelUtils', () => {
 
       const result = extractPerformanceMetrics(artifact);
 
-      expect(result).toEqual({
+      expect(result).toMatchObject({
         hardwareType: 'H100-80',
         hardwareCount: '1',
         rpsPerReplica: 1,
         ttftMean: 1428,
       });
+      expect(result.latencyMetrics).toEqual({});
     });
   });
 
@@ -165,7 +167,7 @@ describe('validatedModelUtils', () => {
 
       const result = extractValidatedModelMetrics(performanceArtifacts, accuracyArtifacts, 1);
 
-      expect(result).toEqual({
+      expect(result).toMatchObject({
         // accuracy: 60.0, // NOTE: overall_average is currently omitted from the API and will be restored
         hardwareType: 'H100-80',
         hardwareCount: '2',
@@ -184,7 +186,7 @@ describe('validatedModelUtils', () => {
 
       const result = extractValidatedModelMetrics(performanceArtifacts, accuracyArtifacts);
 
-      expect(result).toEqual({
+      expect(result).toMatchObject({
         // accuracy: 75.0, // NOTE: overall_average is currently omitted from the API and will be restored
         hardwareType: 'A100-80',
         hardwareCount: '1',
@@ -199,7 +201,7 @@ describe('validatedModelUtils', () => {
 
       const result = extractValidatedModelMetrics(performanceArtifacts, accuracyArtifacts);
 
-      expect(result).toEqual({
+      expect(result).toMatchObject({
         // accuracy: 80.0, // NOTE: overall_average is currently omitted from the API and will be restored
         hardwareType: 'H100-80',
         hardwareCount: '1',
@@ -214,7 +216,7 @@ describe('validatedModelUtils', () => {
 
       const result = extractValidatedModelMetrics(performanceArtifacts, accuracyArtifacts, 5);
 
-      expect(result).toEqual({
+      expect(result).toMatchObject({
         // accuracy: 90.0, // NOTE: overall_average is currently omitted from the API and will be restored
         hardwareType: 'H100-80',
         hardwareCount: '1',

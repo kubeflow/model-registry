@@ -2,6 +2,17 @@ import {
   CatalogPerformanceMetricsArtifact,
   CatalogAccuracyMetricsArtifact,
 } from '~/app/modelCatalogTypes';
+import {
+  LatencyMetric,
+  LatencyMetricFieldName,
+  ALL_LATENCY_FIELD_NAMES,
+} from '~/concepts/modelCatalog/const';
+
+/**
+ * Type for latency metrics - uses LatencyMetricFieldName from const.ts
+ * to dynamically define all possible latency field keys
+ */
+export type LatencyMetricsMap = Partial<Record<LatencyMetricFieldName, number>>;
 
 export type ValidatedModelMetrics = {
   // accuracy: number; // NOTE: overall_average is currently omitted from the API and will be restored
@@ -11,6 +22,7 @@ export type ValidatedModelMetrics = {
   ttftMean: number;
   replicas: number | undefined;
   totalRequestsPerSecond: number | undefined;
+  latencyMetrics: LatencyMetricsMap;
 };
 
 export type PerformanceMetrics = {
@@ -20,6 +32,24 @@ export type PerformanceMetrics = {
   ttftMean: number;
   replicas: number | undefined;
   totalRequestsPerSecond: number | undefined;
+  latencyMetrics: LatencyMetricsMap;
+};
+
+/**
+ * Extracts all latency metrics from artifact custom properties
+ * using ALL_LATENCY_FIELD_NAMES from const.ts
+ */
+const extractLatencyMetrics = (
+  customProperties: CatalogPerformanceMetricsArtifact['customProperties'],
+): LatencyMetricsMap => {
+  const result: LatencyMetricsMap = {};
+  ALL_LATENCY_FIELD_NAMES.forEach((fieldName) => {
+    const value = customProperties?.[fieldName]?.double_value;
+    if (value !== undefined) {
+      result[fieldName] = value;
+    }
+  });
+  return result;
 };
 
 export const extractPerformanceMetrics = (
@@ -34,7 +64,34 @@ export const extractPerformanceMetrics = (
     : undefined,
   totalRequestsPerSecond:
     performanceMetrics.customProperties?.total_requests_per_second?.double_value,
+  latencyMetrics: extractLatencyMetrics(performanceMetrics.customProperties),
 });
+
+/**
+ * Gets the latency value for a specific field name from the latency metrics
+ */
+export const getLatencyValue = (
+  latencyMetrics: ValidatedModelMetrics['latencyMetrics'],
+  fieldName: LatencyMetricFieldName | undefined,
+): number | undefined => {
+  if (!fieldName) {
+    // Default to ttft_mean if no field specified
+    return latencyMetrics.ttft_mean;
+  }
+  return latencyMetrics[fieldName];
+};
+
+/**
+ * Gets the display label for a latency metric (e.g., "TTFT", "ITL", "E2E")
+ */
+export const getLatencyLabel = (fieldName: LatencyMetricFieldName | undefined): string => {
+  if (!fieldName) {
+    return LatencyMetric.TTFT;
+  }
+  const [prefix] = fieldName.split('_');
+  const metric = Object.values(LatencyMetric).find((m) => m.toLowerCase() === prefix);
+  return metric || LatencyMetric.TTFT;
+};
 
 // NOTE: overall_average is currently omitted from the API and will be restored
 // export const calculateAverageAccuracy = (
@@ -68,6 +125,7 @@ export const extractValidatedModelMetrics = (
         ttftMean: 1428,
         replicas: undefined,
         totalRequestsPerSecond: undefined,
+        latencyMetrics: {},
       };
 
   return {
