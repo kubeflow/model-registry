@@ -19,7 +19,7 @@ python = "^3.10"
 # Generated OpenAPI client dependencies
 typing-extensions = "^4.8"
 python-dateutil = "^2.8.2"
-urllib3 = "^2.0.0"
+urllib3 = "^2.6.3"
 pydantic = "^2.7.4"
 # Runtime dependencies
 pyyaml = "^6.0.1"
