@@ -12,6 +12,8 @@ import { mockModelRegistry } from '~/__mocks__/mockModelRegistry';
 import type { CatalogSource } from '~/app/modelCatalogTypes';
 import { MODEL_CATALOG_API_VERSION } from '~/__tests__/cypress/cypress/support/commands/api';
 import { mockCatalogFilterOptionsList } from '~/__mocks__/mockCatalogFilterOptionsList';
+import { ModelRegistryMetadataType } from '~/app/types';
+import type { ModelRegistryCustomProperties } from '~/app/types';
 
 type HandlersProps = {
   sources?: CatalogSource[];
@@ -37,32 +39,26 @@ const initIntercepts = ({
 
   sources.forEach((source) => {
     source.labels.forEach((label) => {
-      cy.interceptApi(
-        `GET /api/:apiVersion/model_catalog/models`,
-        {
-          path: { apiVersion: MODEL_CATALOG_API_VERSION },
-          query: { sourceLabel: label },
-        },
-        mockCatalogModelList({
-          items: Array.from({ length: modelsPerCategory }, (_, i) => {
-            const name = i === 0 ? 'validated-model' : `${label.toLowerCase()}-model-${i + 1}`;
-            return mockCatalogModel({
-              name,
-              // eslint-disable-next-line camelcase
-              source_id: source.id,
-            });
-          }),
-        }),
-      );
-      // Regex intercept to handle requests with additional query params like filterQuery
+      // Use regex intercept to handle all requests including those with filterQuery
       const encodedLabel = encodeURIComponent(label);
       const mockModels = mockCatalogModelList({
         items: Array.from({ length: modelsPerCategory }, (_, i) => {
+          const customProperties =
+            i === 0
+              ? ({
+                  validated: {
+                    metadataType: ModelRegistryMetadataType.STRING,
+                    // eslint-disable-next-line camelcase
+                    string_value: '',
+                  },
+                } as ModelRegistryCustomProperties)
+              : undefined;
           const name = i === 0 ? 'validated-model' : `${label.toLowerCase()}-model-${i + 1}`;
           return mockCatalogModel({
             name,
             // eslint-disable-next-line camelcase
             source_id: source.id,
+            customProperties,
           });
         }),
       });
@@ -74,45 +70,77 @@ const initIntercepts = ({
           ),
         },
         mockModArchResponse(mockModels),
-      ).as(`getModels-${label}-with-filters`);
+      ).as(`getModels-${label}`);
     });
   });
 
-  cy.interceptApi(
-    `GET /api/:apiVersion/model_catalog/sources/:sourceId/models/:modelName`,
-    {
-      path: {
-        apiVersion: MODEL_CATALOG_API_VERSION,
-        sourceId: 'source-2',
-        modelName: testModel.name.replace('/', '%2F'),
-      },
-    },
-    testModel,
-  );
+  // When "All models" is selected and filters are applied (GalleryView), the request
+  // may not include sourceLabel. Create mock models that include validated models.
+  const allModelsResponse = mockCatalogModelList({
+    items: Array.from({ length: modelsPerCategory }, (_, i) => {
+      const customProperties =
+        i === 0
+          ? ({
+              validated: {
+                metadataType: ModelRegistryMetadataType.STRING,
+                // eslint-disable-next-line camelcase
+                string_value: '',
+              },
+            } as ModelRegistryCustomProperties)
+          : undefined;
+      const name = i === 0 ? 'validated-model' : `all-models-model-${i + 1}`;
+      return mockCatalogModel({
+        name,
+        // eslint-disable-next-line camelcase
+        source_id: 'sample-source',
+        customProperties,
+      });
+    }),
+  });
 
-  cy.interceptApi(
-    `GET /api/:apiVersion/model_catalog/sources/:sourceId/artifacts/:modelName`,
+  // Intercept for GalleryView when filters are applied (no sourceLabel, but has filterQuery or pageSize)
+  cy.intercept(
     {
-      path: {
-        apiVersion: MODEL_CATALOG_API_VERSION,
-        sourceId: 'source-2',
-        modelName: testModel.name.replace('/', '%2F'),
-      },
+      method: 'GET',
+      url: new RegExp(
+        `/model-registry/api/${MODEL_CATALOG_API_VERSION}/model_catalog/models\\?(?!.*sourceLabel=)`,
+      ),
     },
-    testArtifacts,
-  );
+    mockModArchResponse(allModelsResponse),
+  ).as('getModelsFiltered');
 
-  cy.interceptApi(
-    `GET /api/:apiVersion/model_catalog/sources/:sourceId/performance_artifacts/:modelName`,
+  // Use regex to match any source's model details requests for validated-model
+  cy.intercept(
     {
-      path: {
-        apiVersion: MODEL_CATALOG_API_VERSION,
-        sourceId: 'source-2',
-        modelName: testModel.name.replace('/', '%2F'),
-      },
+      method: 'GET',
+      url: new RegExp(
+        `/model-registry/api/${MODEL_CATALOG_API_VERSION}/model_catalog/sources/.*/models/validated-model`,
+      ),
     },
-    testArtifacts,
-  );
+    mockModArchResponse(testModel),
+  ).as('getCatalogModel');
+
+  // Use regex to match any source's artifacts requests for validated-model
+  cy.intercept(
+    {
+      method: 'GET',
+      url: new RegExp(
+        `/model-registry/api/${MODEL_CATALOG_API_VERSION}/model_catalog/sources/.*/artifacts/validated-model`,
+      ),
+    },
+    mockModArchResponse(testArtifacts),
+  ).as('getCatalogModelArtifacts');
+
+  // Use regex to match any source's validated-model performance artifacts requests
+  cy.intercept(
+    {
+      method: 'GET',
+      url: new RegExp(
+        `/model-registry/api/${MODEL_CATALOG_API_VERSION}/model_catalog/sources/.*/performance_artifacts/validated-model`,
+      ),
+    },
+    mockModArchResponse(testArtifacts),
+  ).as('getCatalogSourceModelArtifacts');
 
   cy.interceptApi(
     `GET /api/:apiVersion/model_catalog/models/filter_options`,

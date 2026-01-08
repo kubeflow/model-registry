@@ -241,7 +241,7 @@ class ModelCatalog {
   }
 
   findValidatedModelTtft() {
-    return cy.findByTestId('validated-model-ttft');
+    return cy.findByTestId('validated-model-latency');
   }
 
   findWorkloadTypeFilter() {
