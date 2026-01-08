@@ -163,10 +163,13 @@ const isArrayOfSelections = (
   filterOption?.type === 'string' && Array.isArray(filterOption.values) && Array.isArray(data);
 
 /**
- * Filter IDs that should use "less than" comparison (latency filters).
- * All latency field names use less-than comparison.
+ * Filter IDs that should use "less than" comparison (latency filters + Max RPS).
+ * All latency field names and Max RPS use less-than comparison.
  */
-const KNOWN_LESS_THAN_IDS: string[] = ALL_LATENCY_FIELD_NAMES;
+const KNOWN_LESS_THAN_IDS: string[] = [
+  ...ALL_LATENCY_FIELD_NAMES,
+  ModelCatalogNumberFilterKey.MAX_RPS,
+];
 
 const isKnownLessThanValue = (
   filterOption: CatalogFilterOptions[keyof CatalogFilterOptions],
@@ -175,20 +178,6 @@ const isKnownLessThanValue = (
 ): data is number =>
   filterOption?.type === 'number' &&
   KNOWN_LESS_THAN_IDS.includes(filterId) &&
-  typeof data === 'number';
-
-/**
- * Filter IDs that should use "greater than" comparison (RPS filter).
- */
-const KNOWN_GREATER_THAN_IDS: string[] = [ModelCatalogNumberFilterKey.MIN_RPS];
-
-const isKnownGreaterThanValue = (
-  filterOption: CatalogFilterOptions[keyof CatalogFilterOptions],
-  filterId: string,
-  data: unknown,
-): data is number =>
-  filterOption?.type === 'number' &&
-  KNOWN_GREATER_THAN_IDS.includes(filterId) &&
   typeof data === 'number';
 
 const isFilterIdInMap = (
@@ -218,44 +207,75 @@ const inFilter = (k: string, values: string[]) =>
   `${k} IN (${values.map((v) => wrapInQuotes(v)).join(',')})`;
 
 /**
+ * Converts a frontend filter key to its backend artifacts.* prefixed key.
+ * For latency fields, uses the ALL_LATENCY_FIELD_NAMES from const.ts.
+ */
+const getBackendFilterKey = (frontendKey: string): string => {
+  // Check if it's a latency field name
+  if (ALL_LATENCY_FIELD_NAMES.some((name) => name === frontendKey)) {
+    return `artifacts.${frontendKey}.double_value`;
+  }
+
+  // Map other performance filter keys
+  switch (frontendKey) {
+    case ModelCatalogStringFilterKey.HARDWARE_TYPE:
+      return 'artifacts.hardware_type.string_value';
+    case ModelCatalogStringFilterKey.USE_CASE:
+      return 'artifacts.use_case.string_value';
+    case ModelCatalogNumberFilterKey.MAX_RPS:
+      return 'artifacts.requests_per_second.double_value';
+    default:
+      // Non-performance filters use the key as-is
+      return frontendKey;
+  }
+};
+
+/**
  * Converts filter data into a filter query string for the /models endpoint.
- * Supports string filters (equality/IN), and numeric filters (greater than for RPS, less than for latency).
+ * Supports string filters (equality/IN) and numeric filters (less-than for latency/RPS).
+ * Performance filters are mapped to their artifacts.* prefixed backend keys.
  */
 export const filtersToFilterQuery = (
   filterData: ModelCatalogFilterStates,
   options: CatalogFilterOptionsList,
 ): string => {
   const serializedFilters: string[] = Object.entries(filterData).map(([filterId, data]) => {
-    if (
-      !options.filters ||
-      !isFilterIdInMap(filterId, options.filters) ||
-      typeof data === 'undefined'
-    ) {
-      // Unhandled key or no data
+    if (typeof data === 'undefined') {
       return '';
     }
 
-    const filterOption = options.filters[filterId];
+    // Get the backend key (with artifacts.* prefix for performance filters)
+    const backendKey = getBackendFilterKey(filterId);
 
+    // Check if this filter exists in the options (using either frontend or backend key)
+    const filterOption =
+      options.filters && isFilterIdInMap(filterId, options.filters)
+        ? options.filters[filterId]
+        : options.filters && isFilterIdInMap(backendKey, options.filters)
+          ? options.filters[backendKey]
+          : undefined;
+
+    if (!filterOption) {
+      // Filter not found in options
+      return '';
+    }
+
+    // Handle string array filters (multi-select)
     if (isArrayOfSelections(filterOption, data)) {
       switch (data.length) {
         case 0:
           return '';
         case 1:
-          return eqFilter(filterId, data[0]);
+          return eqFilter(backendKey, data[0]);
         default:
           // 2 or more
-          return inFilter(filterId, data);
+          return inFilter(backendKey, data);
       }
     }
 
-    // Numeric filters: less-than for latency, greater-than for RPS
+    // Handle numeric filters (less-than for latency and RPS)
     if (isKnownLessThanValue(filterOption, filterId, data)) {
-      return `${filterId} < ${data}`;
-    }
-
-    if (isKnownGreaterThanValue(filterOption, filterId, data)) {
-      return `${filterId} > ${data}`;
+      return `${backendKey} < ${data}`;
     }
 
     // Shouldn't reach this far, but if it does, log & ignore the case
@@ -266,7 +286,7 @@ export const filtersToFilterQuery = (
 
   const nonEmptyFilters = serializedFilters.filter((v) => !!v);
 
-  // eg. filterQuery=rps_mean > 1 AND license IN ('mit','apache-2.0') AND ttft_mean < 10
+  // eg. filterQuery=license IN ('mit','apache-2.0') AND artifacts.hardware_type.string_value='H100'
   return nonEmptyFilters.length === 0 ? '' : nonEmptyFilters.join(' AND ');
 };
 
@@ -312,12 +332,25 @@ export const filtersToArtifactsFilterQuery = (
   options: CatalogFilterOptionsList,
 ): string => {
   const serializedFilters: string[] = Object.entries(filterData)
-    .filter(
-      ([filterId]) =>
+    .filter(([filterId]) => {
+      // Only include artifact-specific filters (those with artifacts. prefix in filter options)
+      // OR performance-related filters like latency and hardware_type/use_case
+      // But NOT rps_mean - that goes to targetRPS param
+      if (filterId === ModelCatalogNumberFilterKey.MAX_RPS) {
+        return false; // RPS is passed as targetRPS param, not in filterQuery
+      }
+      // Include latency filters, hardware_type, and use_case for artifacts filtering
+      if (isLatencyFieldName(filterId)) {
+        return true;
+      }
+      if (
         filterId === ModelCatalogStringFilterKey.HARDWARE_TYPE ||
-        filterId === ModelCatalogStringFilterKey.USE_CASE ||
-        isLatencyFieldName(filterId),
-    )
+        filterId === ModelCatalogStringFilterKey.USE_CASE
+      ) {
+        return true;
+      }
+      return false;
+    })
     .map(([filterId, data]) => {
       if (typeof data === 'undefined') {
         return '';

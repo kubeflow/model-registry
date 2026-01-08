@@ -11,6 +11,22 @@ import {
 } from '~/concepts/modelCatalog/const';
 
 export const mockNamedQueries: Record<string, NamedQuery> = {
+  // Default performance filters applied when performance toggle is turned on
+  // Uses 'artifacts.' prefix format matching the backend response
+  'default-performance-filters': {
+    'artifacts.use_case.string_value': {
+      operator: FilterOperator.EQUALS,
+      value: UseCaseOptionValue.CHATBOT,
+    },
+    'artifacts.ttft_p90.double_value': {
+      operator: FilterOperator.LESS_THAN_OR_EQUAL,
+      value: 'max', // 'max' means use the max value from the range in filters
+    },
+    'artifacts.requests_per_second.double_value': {
+      operator: FilterOperator.LESS_THAN_OR_EQUAL,
+      value: 'max', // 'max' means use the max value from the range in filters (300 in mock)
+    },
+  },
   high_performance_gpu: {
     'hardware_type.string_value': { operator: FilterOperator.IN, value: ['H100-80', 'A100-80'] },
     'requests_per_second.double_value': {
@@ -89,7 +105,7 @@ export const mockCatalogFilterOptionsList = (
         UseCaseOptionValue.RAG,
       ],
     },
-    [ModelCatalogNumberFilterKey.MIN_RPS]: {
+    [ModelCatalogNumberFilterKey.MAX_RPS]: {
       type: 'number',
       range: {
         min: 1,

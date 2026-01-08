@@ -12,13 +12,25 @@ import {
   CatalogSource,
   CatalogSourceList,
   CategoryName,
+  FilterOperator,
   ModelCatalogFilterStates,
+  NamedQuery,
 } from '~/app/modelCatalogTypes';
 import {
   ModelDetailsTab,
   ModelCatalogStringFilterKey,
   ModelCatalogNumberFilterKey,
+  UseCaseOptionValue,
+  ALL_LATENCY_FIELD_NAMES,
+  isLatencyMetricFieldName,
 } from '~/concepts/modelCatalog/const';
+import { isUseCaseOptionValue } from '~/app/pages/modelCatalog/utils/workloadTypeUtils';
+import {
+  getPerformanceFilterDefaultValue,
+  resolveFilterValue,
+  getLatencyFieldKey,
+  getSingleFilterDefault,
+} from '~/app/pages/modelCatalog/utils/performanceFilterUtils';
 import { BFF_API_VERSION, URL_PREFIX } from '~/app/utilities/const';
 
 export type ModelCatalogContextType = {
@@ -43,6 +55,11 @@ export type ModelCatalogContextType = {
   setPerformanceViewEnabled: (enabled: boolean) => void;
   performanceFiltersChangedOnDetailsPage: boolean;
   setPerformanceFiltersChangedOnDetailsPage: (changed: boolean) => void;
+  resetPerformanceFiltersToDefaults: () => void;
+  resetSinglePerformanceFilterToDefault: (filterKey: keyof ModelCatalogFilterStates) => void;
+  getPerformanceFilterDefaultValue: (
+    filterKey: keyof ModelCatalogFilterStates,
+  ) => string | number | string[] | undefined;
 };
 
 type ModelCatalogContextProviderProps = {
@@ -61,7 +78,7 @@ export const ModelCatalogContext = React.createContext<ModelCatalogContextType>(
     [ModelCatalogStringFilterKey.LANGUAGE]: [],
     [ModelCatalogStringFilterKey.HARDWARE_TYPE]: [],
     [ModelCatalogStringFilterKey.USE_CASE]: [],
-    [ModelCatalogNumberFilterKey.MIN_RPS]: undefined,
+    [ModelCatalogNumberFilterKey.MAX_RPS]: undefined,
   },
   updateSelectedSource: () => undefined,
   selectedSourceLabel: undefined,
@@ -77,6 +94,9 @@ export const ModelCatalogContext = React.createContext<ModelCatalogContextType>(
   setPerformanceViewEnabled: () => undefined,
   performanceFiltersChangedOnDetailsPage: false,
   setPerformanceFiltersChangedOnDetailsPage: () => undefined,
+  resetPerformanceFiltersToDefaults: () => undefined,
+  resetSinglePerformanceFilterToDefault: () => undefined,
+  getPerformanceFilterDefaultValue: () => undefined,
 });
 
 export const ModelCatalogContextProvider: React.FC<ModelCatalogContextProviderProps> = ({
@@ -96,7 +116,7 @@ export const ModelCatalogContextProvider: React.FC<ModelCatalogContextProviderPr
     [ModelCatalogStringFilterKey.LANGUAGE]: [],
     [ModelCatalogStringFilterKey.HARDWARE_TYPE]: [],
     [ModelCatalogStringFilterKey.USE_CASE]: [],
-    [ModelCatalogNumberFilterKey.MIN_RPS]: undefined,
+    [ModelCatalogNumberFilterKey.MAX_RPS]: undefined,
   });
   const [filterOptions, filterOptionsLoaded, filterOptionsLoadError] =
     useCatalogFilterOptionList(apiState);
@@ -110,12 +130,170 @@ export const ModelCatalogContextProvider: React.FC<ModelCatalogContextProviderPr
   const location = useLocation();
   const isOnDetailsPage = location.pathname.includes(ModelDetailsTab.PERFORMANCE_INSIGHTS);
 
-  const setPerformanceViewEnabled = React.useCallback((enabled: boolean) => {
-    setBasePerformanceViewEnabled(enabled);
-    if (!enabled) {
-      setPerformanceFiltersChangedOnDetailsPage(false);
+  /**
+   * Applies filter values from a named query to the filter state.
+   * Maps backend field names (e.g., 'artifacts.use_case.string_value') to frontend filter keys.
+   * Handles special values like 'max' by resolving them from filter ranges.
+   */
+  const applyNamedQueryDefaults = React.useCallback(
+    (namedQuery: NamedQuery) => {
+      Object.entries(namedQuery).forEach(([fieldName, fieldFilter]) => {
+        // Handle artifacts.* prefix - check both with and without prefix
+        const isUseCase =
+          fieldName === 'artifacts.use_case.string_value' || fieldName === 'use_case.string_value';
+        const isHardwareType =
+          fieldName === 'artifacts.hardware_type.string_value' ||
+          fieldName === 'hardware_type.string_value';
+        const isRps =
+          fieldName === 'artifacts.requests_per_second.double_value' ||
+          fieldName === 'requests_per_second.double_value';
+
+        // Check if it's a latency field
+        const latencyFieldKey = getLatencyFieldKey(fieldName);
+
+        if (isUseCase) {
+          // Extract string values and filter to only valid UseCaseOptionValue entries
+          const rawValues =
+            fieldFilter.operator === FilterOperator.IN && Array.isArray(fieldFilter.value)
+              ? fieldFilter.value.filter((v): v is string => typeof v === 'string')
+              : typeof fieldFilter.value === 'string'
+                ? [fieldFilter.value]
+                : [];
+          // Filter to only valid UseCaseOptionValue entries
+          const validValues: UseCaseOptionValue[] = rawValues.filter(isUseCaseOptionValue);
+          baseSetFilterData(ModelCatalogStringFilterKey.USE_CASE, validValues);
+        } else if (isHardwareType) {
+          const values =
+            fieldFilter.operator === FilterOperator.IN && Array.isArray(fieldFilter.value)
+              ? fieldFilter.value.filter((v): v is string => typeof v === 'string')
+              : typeof fieldFilter.value === 'string'
+                ? [fieldFilter.value]
+                : [];
+          baseSetFilterData(ModelCatalogStringFilterKey.HARDWARE_TYPE, values);
+        } else if (isRps) {
+          const resolvedValue = resolveFilterValue(filterOptions, fieldName, fieldFilter.value);
+          if (resolvedValue !== undefined) {
+            baseSetFilterData(ModelCatalogNumberFilterKey.MAX_RPS, resolvedValue);
+          }
+        } else if (latencyFieldKey) {
+          // Apply latency filter using the resolved field name
+          const resolvedValue = resolveFilterValue(filterOptions, fieldName, fieldFilter.value);
+          if (resolvedValue !== undefined) {
+            baseSetFilterData(latencyFieldKey, resolvedValue);
+          }
+        }
+      });
+    },
+    [baseSetFilterData, filterOptions],
+  );
+
+  const setPerformanceViewEnabled = React.useCallback(
+    (enabled: boolean) => {
+      setBasePerformanceViewEnabled(enabled);
+      if (enabled) {
+        // Apply default performance filters from namedQueries if available
+        const defaultQuery = filterOptions?.namedQueries?.['default-performance-filters'];
+        if (defaultQuery) {
+          applyNamedQueryDefaults(defaultQuery);
+        }
+      } else {
+        // Clear performance-related filters when toggle is disabled
+        baseSetFilterData(ModelCatalogStringFilterKey.USE_CASE, []);
+        baseSetFilterData(ModelCatalogStringFilterKey.HARDWARE_TYPE, []);
+        baseSetFilterData(ModelCatalogNumberFilterKey.MAX_RPS, undefined);
+        // Clear all latency filters
+        ALL_LATENCY_FIELD_NAMES.forEach((fieldName) => {
+          baseSetFilterData(fieldName, undefined);
+        });
+        setPerformanceFiltersChangedOnDetailsPage(false);
+      }
+    },
+    [filterOptions?.namedQueries, applyNamedQueryDefaults, baseSetFilterData],
+  );
+
+  /**
+   * Resets all filters when performance view is enabled:
+   * - Clears basic filters (Task, Provider, License, Language)
+   * - Resets performance filters to default values from namedQueries
+   * This is used by "Reset all filters" button in the performance toolbar.
+   */
+  const resetPerformanceFiltersToDefaults = React.useCallback(() => {
+    // Clear basic filters
+    baseSetFilterData(ModelCatalogStringFilterKey.TASK, []);
+    baseSetFilterData(ModelCatalogStringFilterKey.PROVIDER, []);
+    baseSetFilterData(ModelCatalogStringFilterKey.LICENSE, []);
+    baseSetFilterData(ModelCatalogStringFilterKey.LANGUAGE, []);
+
+    // Clear all performance filters
+    baseSetFilterData(ModelCatalogStringFilterKey.USE_CASE, []);
+    baseSetFilterData(ModelCatalogStringFilterKey.HARDWARE_TYPE, []);
+    baseSetFilterData(ModelCatalogNumberFilterKey.MAX_RPS, undefined);
+    ALL_LATENCY_FIELD_NAMES.forEach((fieldName) => {
+      baseSetFilterData(fieldName, undefined);
+    });
+
+    // Then apply performance defaults from namedQueries if available
+    const defaultQuery = filterOptions?.namedQueries?.['default-performance-filters'];
+    if (defaultQuery) {
+      applyNamedQueryDefaults(defaultQuery);
     }
-  }, []);
+  }, [filterOptions?.namedQueries, applyNamedQueryDefaults, baseSetFilterData]);
+
+  /**
+   * Resets a single performance filter to its default value from namedQueries.
+   * Used when clicking the undo button on individual performance filter chips.
+   */
+  const resetSinglePerformanceFilterToDefault = React.useCallback(
+    (filterKey: keyof ModelCatalogFilterStates) => {
+      const { hasDefault, value } = getSingleFilterDefault(filterOptions, filterKey);
+      const filterKeyStr = String(filterKey);
+
+      if (filterKey === ModelCatalogStringFilterKey.USE_CASE) {
+        if (hasDefault && Array.isArray(value)) {
+          // Filter to only valid UseCaseOptionValue entries
+          const validValues: UseCaseOptionValue[] = value
+            .filter((v): v is string => typeof v === 'string')
+            .filter(isUseCaseOptionValue);
+          baseSetFilterData(ModelCatalogStringFilterKey.USE_CASE, validValues);
+        } else {
+          // No default found, clear the filter
+          baseSetFilterData(ModelCatalogStringFilterKey.USE_CASE, []);
+        }
+      } else if (filterKey === ModelCatalogStringFilterKey.HARDWARE_TYPE) {
+        if (hasDefault && Array.isArray(value)) {
+          baseSetFilterData(
+            ModelCatalogStringFilterKey.HARDWARE_TYPE,
+            value.filter((v): v is string => typeof v === 'string'),
+          );
+        } else {
+          baseSetFilterData(ModelCatalogStringFilterKey.HARDWARE_TYPE, []);
+        }
+      } else if (filterKey === ModelCatalogNumberFilterKey.MAX_RPS) {
+        if (hasDefault && typeof value === 'number') {
+          baseSetFilterData(ModelCatalogNumberFilterKey.MAX_RPS, value);
+        } else {
+          baseSetFilterData(ModelCatalogNumberFilterKey.MAX_RPS, undefined);
+        }
+      } else if (isLatencyMetricFieldName(filterKeyStr)) {
+        if (hasDefault && typeof value === 'number') {
+          baseSetFilterData(filterKeyStr, value);
+        } else {
+          baseSetFilterData(filterKeyStr, undefined);
+        }
+      }
+    },
+    [filterOptions, baseSetFilterData],
+  );
+
+  /**
+   * Gets the default value for a performance filter from namedQueries.
+   * Wrapper around the utility function that provides filterOptions from context.
+   */
+  const getDefaultValueForPerformanceFilter = React.useCallback(
+    (filterKey: keyof ModelCatalogFilterStates): string | number | string[] | undefined =>
+      getPerformanceFilterDefaultValue(filterOptions, filterKey),
+    [filterOptions],
+  );
 
   const setFilterData = React.useCallback(
     <K extends keyof ModelCatalogFilterStates>(key: K, value: ModelCatalogFilterStates[K]) => {
@@ -149,6 +327,9 @@ export const ModelCatalogContextProvider: React.FC<ModelCatalogContextProviderPr
       setPerformanceViewEnabled,
       performanceFiltersChangedOnDetailsPage,
       setPerformanceFiltersChangedOnDetailsPage,
+      resetPerformanceFiltersToDefaults,
+      resetSinglePerformanceFilterToDefault,
+      getPerformanceFilterDefaultValue: getDefaultValueForPerformanceFilter,
     }),
     [
       catalogSourcesLoaded,
@@ -167,6 +348,9 @@ export const ModelCatalogContextProvider: React.FC<ModelCatalogContextProviderPr
       setPerformanceViewEnabled,
       performanceFiltersChangedOnDetailsPage,
       setPerformanceFiltersChangedOnDetailsPage,
+      resetPerformanceFiltersToDefaults,
+      resetSinglePerformanceFilterToDefault,
+      getDefaultValueForPerformanceFilter,
     ],
   );
 

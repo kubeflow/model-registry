@@ -18,7 +18,7 @@ const PerformanceInsightsView = (): React.JSX.Element => {
     React.useContext(ModelCatalogContext);
 
   // Get performance-specific filter params for the /performance_artifacts endpoint
-  const targetRPS = filterData[ModelCatalogNumberFilterKey.MIN_RPS];
+  const targetRPS = filterData[ModelCatalogNumberFilterKey.MAX_RPS];
   const latencyProperty = getActiveLatencyFieldName(filterData);
 
   // Fetch performance artifacts from server with filtering/sorting/pagination

@@ -44,7 +44,7 @@ describe('filtersToFilterQuery', () => {
     [ModelCatalogStringFilterKey.LANGUAGE]: language,
     [ModelCatalogStringFilterKey.HARDWARE_TYPE]: hardware_type,
     [ModelCatalogStringFilterKey.USE_CASE]: use_case,
-    [ModelCatalogNumberFilterKey.MIN_RPS]: rps_mean,
+    [ModelCatalogNumberFilterKey.MAX_RPS]: rps_mean,
     ttft_mean,
   });
 
@@ -149,7 +149,7 @@ describe('filtersToFilterQuery', () => {
           UseCaseOptionValue.RAG,
         ],
       },
-      [ModelCatalogNumberFilterKey.MIN_RPS]: {
+      [ModelCatalogNumberFilterKey.MAX_RPS]: {
         type: 'number',
         range: {
           min: 0,
@@ -209,7 +209,7 @@ describe('filtersToFilterQuery', () => {
           mockFormData({ use_case: [UseCaseOptionValue.CHATBOT] }),
           mockFilterOptions,
         ),
-      ).toBe("use_case='chatbot'");
+      ).toBe("artifacts.use_case.string_value='chatbot'");
     });
 
     it('handles multiple arrays of a single data point', () => {
@@ -255,13 +255,7 @@ describe('filtersToFilterQuery', () => {
           mockFilterOptions,
         ),
       ).toBe("language IN ('ca','pt')");
-      expect(
-        filtersToFilterQuery(
-          // eslint-disable-next-line camelcase
-          mockFormData({ use_case: [UseCaseOptionValue.CHATBOT, UseCaseOptionValue.RAG] }),
-          mockFilterOptions,
-        ),
-      ).toBe("use_case IN ('chatbot','rag')");
+      // Note: use_case is now single-select, so multi-select test is not applicable
     });
 
     it('handles multiple arrays with mixed count of data points', () => {
@@ -656,7 +650,7 @@ describe('hasFiltersApplied', () => {
     [ModelCatalogStringFilterKey.LANGUAGE]: language,
     [ModelCatalogStringFilterKey.HARDWARE_TYPE]: hardware_type,
     [ModelCatalogStringFilterKey.USE_CASE]: use_case,
-    [ModelCatalogNumberFilterKey.MIN_RPS]: rps_mean,
+    [ModelCatalogNumberFilterKey.MAX_RPS]: rps_mean,
     ttft_mean,
   });
 
@@ -777,7 +771,7 @@ describe('hasFiltersApplied', () => {
       const filterData = mockFormData({
         rps_mean: 50,
       });
-      expect(hasFiltersApplied(filterData, [ModelCatalogNumberFilterKey.MIN_RPS])).toBe(true);
+      expect(hasFiltersApplied(filterData, [ModelCatalogNumberFilterKey.MAX_RPS])).toBe(true);
       expect(hasFiltersApplied(filterData, [ModelCatalogStringFilterKey.TASK])).toBe(false);
     });
 
@@ -798,7 +792,7 @@ describe('hasFiltersApplied', () => {
       expect(
         hasFiltersApplied(filterData, [
           ModelCatalogStringFilterKey.TASK,
-          ModelCatalogNumberFilterKey.MIN_RPS,
+          ModelCatalogNumberFilterKey.MAX_RPS,
           'ttft_mean',
         ]),
       ).toBe(true);

@@ -2,6 +2,7 @@ import {
   Alert,
   AlertActionCloseButton,
   Button,
+  Content,
   Flex,
   Stack,
   StackItem,
@@ -17,6 +18,7 @@ import { useThemeContext } from 'mod-arch-kubeflow';
 import { ModelCatalogStringFilterKey } from '~/concepts/modelCatalog/const';
 import { ModelCatalogFilterKey } from '~/app/modelCatalogTypes';
 import ModelCatalogActiveFilters from '~/app/pages/modelCatalog/components/ModelCatalogActiveFilters';
+import HardwareConfigurationFilterToolbar from '~/app/pages/modelCatalog/components/HardwareConfigurationFilterToolbar';
 import ThemeAwareSearchInput from '~/app/pages/modelRegistry/screens/components/ThemeAwareSearchInput';
 import { ModelCatalogContext } from '~/app/context/modelCatalog/ModelCatalogContext';
 import { hasFiltersApplied } from '~/app/pages/modelCatalog/utils/modelCatalogUtils';
@@ -96,7 +98,7 @@ const ModelCatalogSourceLabelSelector: React.FC<ModelCatalogSourceLabelSelectorP
       <StackItem>
         <Toolbar
           key={`toolbar-${hasActiveFilters}`}
-          {...(onResetAllFilters
+          {...(onResetAllFilters && !performanceViewEnabled
             ? {
                 clearAllFilters: handleClearAllFilters,
                 clearFiltersButtonText: hasActiveFilters ? 'Reset all filters' : '',
@@ -138,13 +140,25 @@ const ModelCatalogSourceLabelSelector: React.FC<ModelCatalogSourceLabelSelectorP
                   </ToolbarItem>
                 </ToolbarGroup>
               </ToolbarToggleGroup>
-              {onResetAllFilters && hasActiveFilters && (
+              {onResetAllFilters && hasActiveFilters && !performanceViewEnabled && (
                 <ModelCatalogActiveFilters filtersToShow={filtersToShow} />
               )}
             </Flex>
           </ToolbarContent>
         </Toolbar>
       </StackItem>
+      {performanceViewEnabled && (
+        <>
+          <StackItem>
+            <Content component="h2" className="pf-v6-u-font-weight-bold">
+              Workload and performance constraints
+            </Content>
+          </StackItem>
+          <StackItem>
+            <HardwareConfigurationFilterToolbar />
+          </StackItem>
+        </>
+      )}
       <StackItem>
         <ModelCatalogSourceLabelBlocks />
       </StackItem>

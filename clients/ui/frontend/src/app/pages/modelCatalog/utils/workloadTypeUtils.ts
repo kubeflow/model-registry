@@ -46,6 +46,12 @@ export const getUseCaseOption = (useCase: UseCaseOptionValue): UseCaseOption | u
   USE_CASE_OPTIONS.find((option) => option.value === useCase);
 
 /**
+ * Type guard to check if a string is a valid UseCaseOptionValue
+ */
+export const isUseCaseOptionValue = (value: string): value is UseCaseOptionValue =>
+  USE_CASE_OPTIONS.some((option) => option.value === value);
+
+/**
  * Mapping from UseCaseOptionValue to display name for use in filters
  */
 export const USE_CASE_NAME_MAPPING: Record<UseCaseOptionValue, string> = {

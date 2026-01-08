@@ -1,8 +1,8 @@
 /* eslint-disable camelcase */
+import { mockModArchResponse } from 'mod-arch-core';
 import { modelCatalog } from '~/__tests__/cypress/cypress/pages/modelCatalog';
 import {
   mockCatalogModel,
-  mockCatalogModelArtifactList,
   mockCatalogModelList,
   mockCatalogPerformanceMetricsArtifact,
   mockCatalogSource,
@@ -41,40 +41,47 @@ const initIntercepts = ({
 
   sources.forEach((source) => {
     source.labels.forEach((label) => {
-      cy.interceptApi(
-        `GET /api/:apiVersion/model_catalog/models`,
-        {
-          path: { apiVersion: MODEL_CATALOG_API_VERSION },
-          query: { sourceLabel: label },
-        },
-        mockCatalogModelList({
-          items: Array.from({ length: modelsPerCategory }, (_, i) => {
-            const customProperties =
-              i === 0 && useValidatedModel
-                ? ({
-                    validated: {
-                      metadataType: ModelRegistryMetadataType.STRING,
-                      // eslint-disable-next-line camelcase
-                      string_value: '',
-                    },
-                  } as ModelRegistryCustomProperties)
-                : undefined;
-            const name =
-              i === 0 && useValidatedModel
-                ? 'validated-model'
-                : `${label.toLowerCase()}-model-${i + 1}`;
+      const mockModels = mockCatalogModelList({
+        items: Array.from({ length: modelsPerCategory }, (_, i) => {
+          const customProperties =
+            i === 0 && useValidatedModel
+              ? ({
+                  validated: {
+                    metadataType: ModelRegistryMetadataType.STRING,
+                    // eslint-disable-next-line camelcase
+                    string_value: '',
+                  },
+                } as ModelRegistryCustomProperties)
+              : undefined;
+          const name =
+            i === 0 && useValidatedModel
+              ? 'validated-model'
+              : `${label.toLowerCase()}-model-${i + 1}`;
 
-            return mockCatalogModel({
-              name,
-              // eslint-disable-next-line camelcase
-              source_id: source.id,
-              customProperties,
-            });
-          }),
+          return mockCatalogModel({
+            name,
+            // eslint-disable-next-line camelcase
+            source_id: source.id,
+            customProperties,
+          });
         }),
-      );
+      });
+
+      // Use regex-based intercept to match requests with this sourceLabel
+      // This handles both basic requests and requests with filterQuery
+      const encodedLabel = encodeURIComponent(label);
+      cy.intercept(
+        {
+          method: 'GET',
+          url: new RegExp(
+            `/model-registry/api/${MODEL_CATALOG_API_VERSION}/model_catalog/models.*sourceLabel=${encodedLabel}`,
+          ),
+        },
+        mockModArchResponse(mockModels),
+      ).as(`getModels-${label}`);
     });
   });
+
 
   cy.interceptApi(
     `GET /api/:apiVersion/model_catalog/sources/:sourceId/models/:modelName`,
@@ -89,18 +96,6 @@ const initIntercepts = ({
   );
 
   cy.interceptApi(
-    `GET /api/:apiVersion/model_catalog/sources/:sourceId/performance_artifacts/:modelName`,
-    {
-      path: {
-        apiVersion: MODEL_CATALOG_API_VERSION,
-        sourceId: 'source-2',
-        modelName: testModel.name.replace('/', '%2F'),
-      },
-    },
-    mockCatalogModelArtifactList({}),
-  );
-
-  cy.interceptApi(
     `GET /api/:apiVersion/model_catalog/models/filter_options`,
     {
       path: { apiVersion: MODEL_CATALOG_API_VERSION },
@@ -109,8 +104,75 @@ const initIntercepts = ({
     mockCatalogFilterOptionsList(),
   );
 
+  // Mock performance artifacts data - all artifacts use CHATBOT workload type to match default filters
+  const performanceArtifactsResponse = {
+    items: [
+      mockCatalogPerformanceMetricsArtifact({}),
+      mockCatalogPerformanceMetricsArtifact({
+        customProperties: {
+          hardware_type: {
+            metadataType: ModelRegistryMetadataType.STRING,
+            string_value: 'RTX 4090',
+          },
+          hardware_count: {
+            metadataType: ModelRegistryMetadataType.INT,
+            int_value: '33',
+          },
+          requests_per_second: {
+            metadataType: ModelRegistryMetadataType.DOUBLE,
+            double_value: 10,
+          },
+          ttft_mean: {
+            metadataType: ModelRegistryMetadataType.DOUBLE,
+            double_value: 67.15,
+          },
+          ttft_p90: {
+            metadataType: ModelRegistryMetadataType.DOUBLE,
+            double_value: 82.34,
+          },
+          use_case: {
+            metadataType: ModelRegistryMetadataType.STRING,
+            string_value: 'chatbot',
+          },
+        },
+      }),
+      mockCatalogPerformanceMetricsArtifact({
+        customProperties: {
+          hardware_type: {
+            metadataType: ModelRegistryMetadataType.STRING,
+            string_value: 'A100',
+          },
+          hardware_count: {
+            metadataType: ModelRegistryMetadataType.INT,
+            int_value: '40',
+          },
+          requests_per_second: {
+            metadataType: ModelRegistryMetadataType.DOUBLE,
+            double_value: 15,
+          },
+          ttft_mean: {
+            metadataType: ModelRegistryMetadataType.DOUBLE,
+            double_value: 42.12,
+          },
+          ttft_p90: {
+            metadataType: ModelRegistryMetadataType.DOUBLE,
+            double_value: 58.45,
+          },
+          use_case: {
+            metadataType: ModelRegistryMetadataType.STRING,
+            string_value: 'chatbot',
+          },
+        },
+      }),
+    ],
+    pageSize: 10,
+    size: 3,
+    nextPageToken: '',
+  };
+
   // The /performance_artifacts endpoint only returns performance metrics artifacts
   // (no accuracy or model artifacts - those are filtered server-side)
+  // All artifacts use CHATBOT workload type to match default performance filters
   cy.interceptApi(
     `GET /api/:apiVersion/model_catalog/sources/:sourceId/performance_artifacts/:modelName`,
     {
@@ -120,54 +182,7 @@ const initIntercepts = ({
         modelName: 'validated-model',
       },
     },
-    {
-      items: [
-        mockCatalogPerformanceMetricsArtifact({}),
-        mockCatalogPerformanceMetricsArtifact({
-          customProperties: {
-            hardware_type: {
-              metadataType: ModelRegistryMetadataType.STRING,
-              string_value: 'RTX 4090',
-            },
-            hardware_count: {
-              metadataType: ModelRegistryMetadataType.INT,
-              int_value: '33',
-            },
-            requests_per_second: {
-              metadataType: ModelRegistryMetadataType.DOUBLE,
-              double_value: 10,
-            },
-            ttft_mean: {
-              metadataType: ModelRegistryMetadataType.DOUBLE,
-              double_value: 67.15,
-            },
-          },
-        }),
-        mockCatalogPerformanceMetricsArtifact({
-          customProperties: {
-            hardware_type: {
-              metadataType: ModelRegistryMetadataType.STRING,
-              string_value: 'A100',
-            },
-            hardware_count: {
-              metadataType: ModelRegistryMetadataType.INT,
-              int_value: '40',
-            },
-            requests_per_second: {
-              metadataType: ModelRegistryMetadataType.DOUBLE,
-              double_value: 15,
-            },
-            ttft_mean: {
-              metadataType: ModelRegistryMetadataType.DOUBLE,
-              double_value: 42.12,
-            },
-          },
-        }),
-      ],
-      pageSize: 10,
-      size: 3,
-      nextPageToken: '',
-    },
+    performanceArtifactsResponse,
   ).as('getCatalogSourceModelArtifacts');
 };
 
@@ -266,6 +281,8 @@ describe('ModelCatalogCard Component', () => {
         cy.wait('@getCatalogSourceModelArtifacts');
         // Turn the toggle ON before each test in this block
         modelCatalog.togglePerformanceView();
+        // Wait for the page to settle after toggle
+        modelCatalog.findLoadingState().should('not.exist');
       });
 
       it('should show validated model metrics correctly when toggle is ON', () => {
