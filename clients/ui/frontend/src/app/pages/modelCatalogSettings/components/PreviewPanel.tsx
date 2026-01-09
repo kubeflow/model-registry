@@ -23,7 +23,10 @@ import { PAGE_TITLES } from '~/app/pages/modelCatalogSettings/constants';
 import { CatalogSourcePreviewModel, CatalogSourcePreviewSummary } from '~/app/modelCatalogTypes';
 import PreviewButton from './PreviewButton';
 
-type FilterStatus = 'included' | 'excluded';
+export enum PreviewTab {
+  INCLUDED = 'included',
+  EXCLUDED = 'excluded',
+}
 
 type PreviewPanelProps = {
   isPreviewEnabled: boolean;
@@ -31,12 +34,12 @@ type PreviewPanelProps = {
   onPreview: () => void;
   previewError?: Error;
   hasFormChanged: boolean;
-  activeTab: FilterStatus;
+  activeTab: PreviewTab;
   items: CatalogSourcePreviewModel[];
   summary?: CatalogSourcePreviewSummary;
   hasMore: boolean;
   isLoadingMore: boolean;
-  onTabChange: (tab: FilterStatus) => void;
+  onTabChange: (tab: PreviewTab) => void;
   onLoadMore: () => void;
 };
 
@@ -55,7 +58,7 @@ const PreviewPanel: React.FC<PreviewPanelProps> = ({
   onLoadMore,
 }) => {
   const handleTabSelect = (_event: React.MouseEvent, tabIndex: string | number) => {
-    onTabChange(tabIndex === 0 ? 'included' : 'excluded');
+    onTabChange(tabIndex === 0 ? PreviewTab.INCLUDED : PreviewTab.EXCLUDED);
   };
 
   const renderEmptyState = () => {
@@ -124,7 +127,7 @@ const PreviewPanel: React.FC<PreviewPanelProps> = ({
     return (
       <>
         <Tabs
-          activeKey={activeTab === 'included' ? 0 : 1}
+          activeKey={activeTab === PreviewTab.INCLUDED ? 0 : 1}
           onSelect={handleTabSelect}
           aria-label="Preview tabs"
         >
@@ -148,7 +151,7 @@ const PreviewPanel: React.FC<PreviewPanelProps> = ({
           {items.length > 0 ? (
             <>
               <strong>
-                {activeTab === 'included'
+                {activeTab === PreviewTab.INCLUDED
                   ? `${summary?.includedModels ?? 0} of ${summary?.totalModels ?? 0} models included:`
                   : `${summary?.excludedModels ?? 0} of ${summary?.totalModels ?? 0} models excluded:`}
               </strong>
@@ -184,10 +187,10 @@ const PreviewPanel: React.FC<PreviewPanelProps> = ({
           ) : (
             <EmptyState
               variant={EmptyStateVariant.sm}
-              titleText={`No models ${activeTab === 'included' ? 'included' : 'excluded'}`}
+              titleText={`No models ${activeTab === PreviewTab.INCLUDED ? 'included' : 'excluded'}`}
             >
               <EmptyStateBody>
-                {activeTab === 'included'
+                {activeTab === PreviewTab.INCLUDED
                   ? 'No models from this source match this filter'
                   : 'No models from this source are excluded by this filter'}
               </EmptyStateBody>
