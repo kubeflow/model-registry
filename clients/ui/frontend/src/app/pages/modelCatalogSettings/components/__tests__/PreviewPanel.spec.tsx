@@ -25,7 +25,7 @@ const mockExcludedItems: CatalogSourcePreviewModel[] = [
 
 const defaultProps = {
   isPreviewEnabled: true,
-  isLoading: false,
+  isLoadingInitial: false,
   onPreview: jest.fn(),
   previewError: undefined,
   hasFormChanged: false,
@@ -52,8 +52,8 @@ describe('PreviewPanel', () => {
     ).toBeInTheDocument();
   });
 
-  it('renders loading spinner when isLoading is true', () => {
-    render(<PreviewPanel {...defaultProps} isLoading items={[]} />);
+  it('renders loading spinner when isLoadingInitial is true', () => {
+    render(<PreviewPanel {...defaultProps} isLoadingInitial items={[]} />);
 
     expect(screen.getByLabelText('Loading preview')).toBeInTheDocument();
   });
