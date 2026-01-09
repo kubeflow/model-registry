@@ -1,10 +1,9 @@
 import { act, waitFor } from '@testing-library/react';
 import { testHook } from '~/__tests__/unit/testUtils/hooks';
-import { useSourcePreview } from '~/app/pages/modelCatalogSettings/useSourcePreview';
+import { useSourcePreview, PreviewTab } from '~/app/pages/modelCatalogSettings/useSourcePreview';
 import { ManageSourceFormData } from '~/app/pages/modelCatalogSettings/useManageSourceData';
 import { CatalogSourceType } from '~/app/modelCatalogTypes';
 import { ModelCatalogSettingsAPIState } from '~/app/hooks/modelCatalogSettings/useModelCatalogSettingsAPIState';
-import { PreviewTab } from '~/app/pages/modelCatalogSettings/components/PreviewPanel';
 
 // Mock the validation utility
 jest.mock('~/app/pages/modelCatalogSettings/utils/validation', () => ({
