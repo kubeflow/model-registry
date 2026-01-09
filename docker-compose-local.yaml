@@ -3,12 +3,40 @@
 # - a MySQL database,
 # - a model-registry server built from source connected to the MySQL database.
 # - a model-catalog server built from source.
+# - a model-registry-ui built from source (standalone mode)
 # or
 # - a PostgreSQL database,
 # - a model-registry server built from source connected to the PostgreSQL database.
 # - a model-catalog server built from source.
+# - a model-registry-ui built from source (standalone mode)
 version: '3.8'
 services:
+  model-registry-ui:
+    build:
+      context: ./clients/ui
+      dockerfile: Dockerfile.standalone
+      args:
+        DEPLOYMENT_MODE: standalone
+        STYLE_THEME: mui-theme
+    command:
+      - --port=9000
+      - --mock-k8s-client=true
+      - --mock-mr-client=false
+      - --mock-mr-catalog-client=false
+      - --dev-mode=true
+      - --deployment-mode=standalone
+      - --log-level=DEBUG
+    container_name: model-registry-ui
+    ports:
+      - "9000:9000"
+    depends_on:
+      - model-registry
+      - model-catalog
+    profiles:
+      - postgres
+    extra_hosts:
+      - "localhost:host-gateway"
+
   model-catalog:
     build:
       context: .
