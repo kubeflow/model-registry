@@ -10,6 +10,7 @@ import { ModelCatalogStringFilterKey, UseCaseOptionValue } from '~/concepts/mode
 import {
   USE_CASE_OPTIONS,
   isUseCaseOptionValue,
+  getUseCaseDisplayLabel,
 } from '~/app/pages/modelCatalog/utils/workloadTypeUtils';
 import { ModelCatalogContext } from '~/app/context/modelCatalog/ModelCatalogContext';
 
@@ -26,17 +27,6 @@ const WorkloadTypeFilter: React.FC = () => {
 
   // The currently selected workload type (single-select, so take first element)
   const selectedValue = selectedUseCases.length > 0 ? selectedUseCases[0] : undefined;
-
-  const getUseCaseOption = (value: string) => USE_CASE_OPTIONS.find((opt) => opt.value === value);
-
-  // Format: "Label (inputTokens input | outputTokens output tokens)"
-  const getUseCaseDisplayLabel = (value: string): string => {
-    const option = getUseCaseOption(value);
-    if (option) {
-      return `${option.label} (${option.inputTokens} input | ${option.outputTokens} output tokens)`;
-    }
-    return value;
-  };
 
   const handleSelect = (value: string | undefined) => {
     if (value && isUseCaseOptionValue(value)) {

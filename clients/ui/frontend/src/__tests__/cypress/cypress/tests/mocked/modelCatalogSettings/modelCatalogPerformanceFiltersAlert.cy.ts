@@ -1,155 +1,24 @@
-import { mockModArchResponse } from 'mod-arch-core';
-import {
-  mockCatalogModel,
-  mockCatalogModelList,
-  mockCatalogSource,
-  mockCatalogSourceList,
-  mockValidatedModel,
-} from '~/__mocks__';
-import { mockCatalogPerformanceMetricsArtifactList } from '~/__mocks__/mockCatalogModelArtifactList';
 import { modelCatalog } from '~/__tests__/cypress/cypress/pages/modelCatalog';
 import { mockModelRegistry } from '~/__mocks__/mockModelRegistry';
-import type { CatalogSource } from '~/app/modelCatalogTypes';
-import { MODEL_CATALOG_API_VERSION } from '~/__tests__/cypress/cypress/support/commands/api';
-import { mockCatalogFilterOptionsList } from '~/__mocks__/mockCatalogFilterOptionsList';
-import { ModelRegistryMetadataType } from '~/app/types';
-import type { ModelRegistryCustomProperties } from '~/app/types';
+import {
+  setupValidatedModelIntercepts,
+  interceptArtifactsList,
+  interceptPerformanceArtifactsList,
+  type ModelCatalogInterceptOptions,
+} from '~/__tests__/cypress/cypress/support/interceptHelpers/modelCatalog';
 
-type HandlersProps = {
-  sources?: CatalogSource[];
-  modelsPerCategory?: number;
-};
+/**
+ * Initialize intercepts for performance filters alert tests.
+ * Uses shared intercept helpers to reduce duplication.
+ */
+const initIntercepts = (options: Partial<ModelCatalogInterceptOptions> = {}) => {
+  setupValidatedModelIntercepts(options);
 
-const initIntercepts = ({
-  sources = [mockCatalogSource({}), mockCatalogSource({ id: 'source-2', name: 'source 2' })],
-  modelsPerCategory = 4,
-}: HandlersProps) => {
-  const testModel = mockValidatedModel;
-  const testArtifacts = mockCatalogPerformanceMetricsArtifactList({});
-
-  cy.interceptApi(
-    `GET /api/:apiVersion/model_catalog/sources`,
-    {
-      path: { apiVersion: MODEL_CATALOG_API_VERSION },
-    },
-    mockCatalogSourceList({
-      items: sources,
-    }),
-  );
-
-  sources.forEach((source) => {
-    source.labels.forEach((label) => {
-      // Use regex intercept to handle all requests including those with filterQuery
-      const encodedLabel = encodeURIComponent(label);
-      const mockModels = mockCatalogModelList({
-        items: Array.from({ length: modelsPerCategory }, (_, i) => {
-          const customProperties =
-            i === 0
-              ? ({
-                  validated: {
-                    metadataType: ModelRegistryMetadataType.STRING,
-                    // eslint-disable-next-line camelcase
-                    string_value: '',
-                  },
-                } as ModelRegistryCustomProperties)
-              : undefined;
-          const name = i === 0 ? 'validated-model' : `${label.toLowerCase()}-model-${i + 1}`;
-          return mockCatalogModel({
-            name,
-            // eslint-disable-next-line camelcase
-            source_id: source.id,
-            customProperties,
-          });
-        }),
-      });
-      cy.intercept(
-        {
-          method: 'GET',
-          url: new RegExp(
-            `/model-registry/api/${MODEL_CATALOG_API_VERSION}/model_catalog/models.*sourceLabel=${encodedLabel}`,
-          ),
-        },
-        mockModArchResponse(mockModels),
-      ).as(`getModels-${label}`);
-    });
-  });
-
-  // When "All models" is selected and filters are applied (GalleryView), the request
-  // may not include sourceLabel. Create mock models that include validated models.
-  const allModelsResponse = mockCatalogModelList({
-    items: Array.from({ length: modelsPerCategory }, (_, i) => {
-      const customProperties =
-        i === 0
-          ? ({
-              validated: {
-                metadataType: ModelRegistryMetadataType.STRING,
-                // eslint-disable-next-line camelcase
-                string_value: '',
-              },
-            } as ModelRegistryCustomProperties)
-          : undefined;
-      const name = i === 0 ? 'validated-model' : `all-models-model-${i + 1}`;
-      return mockCatalogModel({
-        name,
-        // eslint-disable-next-line camelcase
-        source_id: 'sample-source',
-        customProperties,
-      });
-    }),
-  });
-
-  // Intercept for GalleryView when filters are applied (no sourceLabel, but has filterQuery or pageSize)
-  cy.intercept(
-    {
-      method: 'GET',
-      url: new RegExp(
-        `/model-registry/api/${MODEL_CATALOG_API_VERSION}/model_catalog/models\\?(?!.*sourceLabel=)`,
-      ),
-    },
-    mockModArchResponse(allModelsResponse),
-  ).as('getModelsFiltered');
-
-  // Use regex to match any source's model details requests for validated-model
-  cy.intercept(
-    {
-      method: 'GET',
-      url: new RegExp(
-        `/model-registry/api/${MODEL_CATALOG_API_VERSION}/model_catalog/sources/.*/models/validated-model`,
-      ),
-    },
-    mockModArchResponse(testModel),
-  ).as('getCatalogModel');
-
-  // Use regex to match any source's artifacts requests for validated-model
-  cy.intercept(
-    {
-      method: 'GET',
-      url: new RegExp(
-        `/model-registry/api/${MODEL_CATALOG_API_VERSION}/model_catalog/sources/.*/artifacts/validated-model`,
-      ),
-    },
-    mockModArchResponse(testArtifacts),
-  ).as('getCatalogModelArtifacts');
-
-  // Use regex to match any source's validated-model performance artifacts requests
-  cy.intercept(
-    {
-      method: 'GET',
-      url: new RegExp(
-        `/model-registry/api/${MODEL_CATALOG_API_VERSION}/model_catalog/sources/.*/performance_artifacts/validated-model`,
-      ),
-    },
-    mockModArchResponse(testArtifacts),
-  ).as('getCatalogSourceModelArtifacts');
-
-  cy.interceptApi(
-    `GET /api/:apiVersion/model_catalog/models/filter_options`,
-    {
-      path: { apiVersion: MODEL_CATALOG_API_VERSION },
-      query: { namespace: 'kubeflow' },
-    },
-    mockCatalogFilterOptionsList(),
-  );
+  // Additional intercepts needed for Performance Insights tab:
+  // - /artifacts/ endpoint is used to determine if tabs should show
+  // - /performance_artifacts/ with regex for flexible matching
+  interceptArtifactsList();
+  interceptPerformanceArtifactsList();
 };
 
 describe('Model Catalog Performance Filters Alert', () => {

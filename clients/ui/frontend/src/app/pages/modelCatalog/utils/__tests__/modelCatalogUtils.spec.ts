@@ -37,7 +37,16 @@ describe('filtersToFilterQuery', () => {
     use_case = [],
     rps_mean = undefined,
     ttft_mean = undefined,
-  }: Partial<ModelCatalogFilterStates>): ModelCatalogFilterStates => ({
+  }: {
+    tasks?: ModelCatalogTask[];
+    license?: ModelCatalogLicense[];
+    provider?: ModelCatalogProvider[];
+    language?: AllLanguageCode[];
+    hardware_type?: string[];
+    use_case?: UseCaseOptionValue[];
+    rps_mean?: number;
+    ttft_mean?: number;
+  }): ModelCatalogFilterStates => ({
     [ModelCatalogStringFilterKey.TASK]: tasks,
     [ModelCatalogStringFilterKey.PROVIDER]: provider,
     [ModelCatalogStringFilterKey.LICENSE]: license,
@@ -45,7 +54,7 @@ describe('filtersToFilterQuery', () => {
     [ModelCatalogStringFilterKey.HARDWARE_TYPE]: hardware_type,
     [ModelCatalogStringFilterKey.USE_CASE]: use_case,
     [ModelCatalogNumberFilterKey.MAX_RPS]: rps_mean,
-    ttft_mean,
+    'artifacts.ttft_mean.double_value': ttft_mean,
   });
 
   const mockFilterOptions: CatalogFilterOptionsList = {
@@ -156,7 +165,7 @@ describe('filtersToFilterQuery', () => {
           max: 300,
         },
       },
-      ttft_mean: {
+      'artifacts.ttft_mean.double_value': {
         type: 'number',
         range: {
           min: 0,
@@ -643,7 +652,16 @@ describe('hasFiltersApplied', () => {
     use_case = [],
     rps_mean = undefined,
     ttft_mean = undefined,
-  }: Partial<ModelCatalogFilterStates>): ModelCatalogFilterStates => ({
+  }: {
+    tasks?: ModelCatalogTask[];
+    license?: ModelCatalogLicense[];
+    provider?: ModelCatalogProvider[];
+    language?: AllLanguageCode[];
+    hardware_type?: string[];
+    use_case?: UseCaseOptionValue[];
+    rps_mean?: number;
+    ttft_mean?: number;
+  }): ModelCatalogFilterStates => ({
     [ModelCatalogStringFilterKey.TASK]: tasks,
     [ModelCatalogStringFilterKey.PROVIDER]: provider,
     [ModelCatalogStringFilterKey.LICENSE]: license,
@@ -651,7 +669,7 @@ describe('hasFiltersApplied', () => {
     [ModelCatalogStringFilterKey.HARDWARE_TYPE]: hardware_type,
     [ModelCatalogStringFilterKey.USE_CASE]: use_case,
     [ModelCatalogNumberFilterKey.MAX_RPS]: rps_mean,
-    ttft_mean,
+    'artifacts.ttft_mean.double_value': ttft_mean,
   });
 
   describe('without filterKeys parameter (checks all filters)', () => {
@@ -779,8 +797,8 @@ describe('hasFiltersApplied', () => {
       const filterData = mockFormData({
         ttft_mean: 100,
       });
-      expect(hasFiltersApplied(filterData, ['ttft_mean'])).toBe(true);
-      expect(hasFiltersApplied(filterData, ['e2e_mean'])).toBe(false);
+      expect(hasFiltersApplied(filterData, ['artifacts.ttft_mean.double_value'])).toBe(true);
+      expect(hasFiltersApplied(filterData, ['artifacts.e2e_mean.double_value'])).toBe(false);
     });
 
     it('handles mixed filter types in filterKeys', () => {
@@ -793,7 +811,7 @@ describe('hasFiltersApplied', () => {
         hasFiltersApplied(filterData, [
           ModelCatalogStringFilterKey.TASK,
           ModelCatalogNumberFilterKey.MAX_RPS,
-          'ttft_mean',
+          'artifacts.ttft_mean.double_value',
         ]),
       ).toBe(true);
     });

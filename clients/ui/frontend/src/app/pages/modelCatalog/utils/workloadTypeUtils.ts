@@ -42,7 +42,7 @@ export const USE_CASE_OPTIONS: UseCaseOption[] = [
 /**
  * Utility function to get use case option by value
  */
-export const getUseCaseOption = (useCase: UseCaseOptionValue): UseCaseOption | undefined =>
+export const getUseCaseOption = (useCase: UseCaseOptionValue | string): UseCaseOption | undefined =>
   USE_CASE_OPTIONS.find((option) => option.value === useCase);
 
 /**
@@ -50,6 +50,18 @@ export const getUseCaseOption = (useCase: UseCaseOptionValue): UseCaseOption | u
  */
 export const isUseCaseOptionValue = (value: string): value is UseCaseOptionValue =>
   USE_CASE_OPTIONS.some((option) => option.value === value);
+
+/**
+ * Get display label for a use case value including token information.
+ * Format: "Label (inputTokens input | outputTokens output tokens)"
+ */
+export const getUseCaseDisplayLabel = (value: string): string => {
+  const option = getUseCaseOption(value);
+  if (option) {
+    return `${option.label} (${option.inputTokens} input | ${option.outputTokens} output tokens)`;
+  }
+  return value;
+};
 
 /**
  * Mapping from UseCaseOptionValue to display name for use in filters

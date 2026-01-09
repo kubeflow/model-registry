@@ -1,222 +1,18 @@
-/* eslint-disable camelcase */
-import { mockModArchResponse } from 'mod-arch-core';
 import { modelCatalog } from '~/__tests__/cypress/cypress/pages/modelCatalog';
 import {
-  mockCatalogModel,
-  mockCatalogModelList,
-  mockCatalogPerformanceMetricsArtifact,
-  mockCatalogSource,
-  mockCatalogSourceList,
-  mockNonValidatedModel,
-  mockValidatedModel,
-} from '~/__mocks__';
-import type { CatalogSource } from '~/app/modelCatalogTypes';
-import { MODEL_CATALOG_API_VERSION } from '~/__tests__/cypress/cypress/support/commands/api';
-import { mockCatalogFilterOptionsList } from '~/__mocks__/mockCatalogFilterOptionsList';
-import type { ModelRegistryCustomProperties } from '~/app/types';
-import { ModelRegistryMetadataType } from '~/app/types';
+  setupModelCatalogIntercepts,
+  type ModelCatalogInterceptOptions,
+} from '~/__tests__/cypress/cypress/support/interceptHelpers/modelCatalog';
 
-type HandlersProps = {
-  sources?: CatalogSource[];
-  modelsPerCategory?: number;
-  useValidatedModel?: boolean;
-};
-
-const initIntercepts = ({
-  sources = [mockCatalogSource({}), mockCatalogSource({ id: 'source-2', name: 'source 2' })],
-  modelsPerCategory = 4,
-  useValidatedModel = false,
-}: HandlersProps) => {
-  const testModel = useValidatedModel ? mockValidatedModel : mockNonValidatedModel;
-
-  cy.interceptApi(
-    `GET /api/:apiVersion/model_catalog/sources`,
-    {
-      path: { apiVersion: MODEL_CATALOG_API_VERSION },
-    },
-    mockCatalogSourceList({
-      items: sources,
-    }),
-  );
-
-  sources.forEach((source) => {
-    source.labels.forEach((label) => {
-      const mockModels = mockCatalogModelList({
-        items: Array.from({ length: modelsPerCategory }, (_, i) => {
-          const customProperties =
-            i === 0 && useValidatedModel
-              ? ({
-                  validated: {
-                    metadataType: ModelRegistryMetadataType.STRING,
-                    // eslint-disable-next-line camelcase
-                    string_value: '',
-                  },
-                } as ModelRegistryCustomProperties)
-              : undefined;
-          const name =
-            i === 0 && useValidatedModel
-              ? 'validated-model'
-              : `${label.toLowerCase()}-model-${i + 1}`;
-
-          return mockCatalogModel({
-            name,
-            // eslint-disable-next-line camelcase
-            source_id: source.id,
-            customProperties,
-          });
-        }),
-      });
-
-      // Use regex-based intercept to match requests with this sourceLabel
-      // This handles both basic requests and requests with filterQuery
-      const encodedLabel = encodeURIComponent(label);
-      cy.intercept(
-        {
-          method: 'GET',
-          url: new RegExp(
-            `/model-registry/api/${MODEL_CATALOG_API_VERSION}/model_catalog/models.*sourceLabel=${encodedLabel}`,
-          ),
-        },
-        mockModArchResponse(mockModels),
-      ).as(`getModels-${label}`);
-    });
+/**
+ * Initialize intercepts for model catalog card tests.
+ * Uses shared intercept helpers to reduce duplication.
+ */
+const initIntercepts = (options: Partial<ModelCatalogInterceptOptions> = {}) => {
+  setupModelCatalogIntercepts({
+    includePerformanceArtifacts: options.useValidatedModel ?? false,
+    ...options,
   });
-
-  // When "All models" is selected and filters are applied (GalleryView), the request
-  // may not include sourceLabel. Create mock models that include validated models.
-  const allModelsResponse = mockCatalogModelList({
-    items: Array.from({ length: modelsPerCategory }, (_, i) => {
-      const customProperties =
-        i === 0 && useValidatedModel
-          ? ({
-              validated: {
-                metadataType: ModelRegistryMetadataType.STRING,
-                // eslint-disable-next-line camelcase
-                string_value: '',
-              },
-            } as ModelRegistryCustomProperties)
-          : undefined;
-      const name = i === 0 && useValidatedModel ? 'validated-model' : `all-models-model-${i + 1}`;
-      return mockCatalogModel({
-        name,
-        // eslint-disable-next-line camelcase
-        source_id: 'sample-source',
-        customProperties,
-      });
-    }),
-  });
-
-  // Intercept for GalleryView when filters are applied (no sourceLabel, but has filterQuery or pageSize)
-  cy.intercept(
-    {
-      method: 'GET',
-      url: new RegExp(
-        `/model-registry/api/${MODEL_CATALOG_API_VERSION}/model_catalog/models\\?(?!.*sourceLabel=)`,
-      ),
-    },
-    mockModArchResponse(allModelsResponse),
-  ).as('getModelsFiltered');
-
-  cy.interceptApi(
-    `GET /api/:apiVersion/model_catalog/sources/:sourceId/models/:modelName`,
-    {
-      path: {
-        apiVersion: MODEL_CATALOG_API_VERSION,
-        sourceId: 'source-2',
-        modelName: testModel.name.replace('/', '%2F'),
-      },
-    },
-    testModel,
-  );
-
-  cy.interceptApi(
-    `GET /api/:apiVersion/model_catalog/models/filter_options`,
-    {
-      path: { apiVersion: MODEL_CATALOG_API_VERSION },
-      query: { namespace: 'kubeflow' },
-    },
-    mockCatalogFilterOptionsList(),
-  );
-
-  // Mock performance artifacts data - all artifacts use CHATBOT workload type to match default filters
-  const performanceArtifactsResponse = {
-    items: [
-      mockCatalogPerformanceMetricsArtifact({}),
-      mockCatalogPerformanceMetricsArtifact({
-        customProperties: {
-          hardware_type: {
-            metadataType: ModelRegistryMetadataType.STRING,
-            string_value: 'RTX 4090',
-          },
-          hardware_count: {
-            metadataType: ModelRegistryMetadataType.INT,
-            int_value: '33',
-          },
-          requests_per_second: {
-            metadataType: ModelRegistryMetadataType.DOUBLE,
-            double_value: 10,
-          },
-          ttft_mean: {
-            metadataType: ModelRegistryMetadataType.DOUBLE,
-            double_value: 67.15,
-          },
-          ttft_p90: {
-            metadataType: ModelRegistryMetadataType.DOUBLE,
-            double_value: 82.34,
-          },
-          use_case: {
-            metadataType: ModelRegistryMetadataType.STRING,
-            string_value: 'chatbot',
-          },
-        },
-      }),
-      mockCatalogPerformanceMetricsArtifact({
-        customProperties: {
-          hardware_type: {
-            metadataType: ModelRegistryMetadataType.STRING,
-            string_value: 'A100',
-          },
-          hardware_count: {
-            metadataType: ModelRegistryMetadataType.INT,
-            int_value: '40',
-          },
-          requests_per_second: {
-            metadataType: ModelRegistryMetadataType.DOUBLE,
-            double_value: 15,
-          },
-          ttft_mean: {
-            metadataType: ModelRegistryMetadataType.DOUBLE,
-            double_value: 42.12,
-          },
-          ttft_p90: {
-            metadataType: ModelRegistryMetadataType.DOUBLE,
-            double_value: 58.45,
-          },
-          use_case: {
-            metadataType: ModelRegistryMetadataType.STRING,
-            string_value: 'chatbot',
-          },
-        },
-      }),
-    ],
-    pageSize: 10,
-    size: 3,
-    nextPageToken: '',
-  };
-
-  // The /performance_artifacts endpoint only returns performance metrics artifacts
-  // (no accuracy or model artifacts - those are filtered server-side)
-  // All artifacts use CHATBOT workload type to match default performance filters
-  // Use regex to match any source's validated-model performance artifacts requests
-  cy.intercept(
-    {
-      method: 'GET',
-      url: new RegExp(
-        `/model-registry/api/${MODEL_CATALOG_API_VERSION}/model_catalog/sources/.*/performance_artifacts/validated-model`,
-      ),
-    },
-    mockModArchResponse(performanceArtifactsResponse),
-  ).as('getCatalogSourceModelArtifacts');
 };
 
 describe('ModelCatalogCard Component', () => {
@@ -293,7 +89,7 @@ describe('ModelCatalogCard Component', () => {
           // Should NOT show hardware, replicas, TTFT metrics when toggle is OFF
           modelCatalog.findValidatedModelHardware().should('not.exist');
           modelCatalog.findValidatedModelReplicas().should('not.exist');
-          modelCatalog.findValidatedModelTtft().should('not.exist');
+          modelCatalog.findValidatedModelLatency().should('not.exist');
         });
       });
 
@@ -320,10 +116,12 @@ describe('ModelCatalogCard Component', () => {
 
       it('should show validated model metrics correctly when toggle is ON', () => {
         modelCatalog.findFirstModelCatalogCard().within(() => {
-          // Should show hardware, replicas, TTFT metrics
+          // Should show hardware, replicas, latency metrics
+          // Note: When toggle is ON, default filters set ttft_p90 as the active latency field
+          // and values are formatted with "ms" suffix via formatLatency
           modelCatalog.findValidatedModelHardware().should('contain.text', '2xH100-80');
           modelCatalog.findValidatedModelReplicas().should('contain.text', '7');
-          modelCatalog.findValidatedModelTtft().should('contain.text', '35.49');
+          modelCatalog.findValidatedModelLatency().should('contain.text', '51.56 ms');
 
           // Should NOT show description when toggle is ON
           modelCatalog.findModelCatalogDescription().should('not.exist');
@@ -332,17 +130,19 @@ describe('ModelCatalogCard Component', () => {
           modelCatalog.findValidatedModelBenchmarkNext().click();
           modelCatalog.findValidatedModelHardware().should('contain.text', '33xRTX 4090');
           modelCatalog.findValidatedModelReplicas().should('contain.text', '10');
-          modelCatalog.findValidatedModelTtft().should('contain.text', '67.15');
+          modelCatalog.findValidatedModelLatency().should('contain.text', '82.34 ms');
 
           modelCatalog.findValidatedModelBenchmarkNext().click();
           modelCatalog.findValidatedModelHardware().should('contain.text', '40xA100');
           modelCatalog.findValidatedModelReplicas().should('contain.text', '15');
-          modelCatalog.findValidatedModelTtft().should('contain.text', '42.12');
+          // ttft_p90 value for A100 artifact
+          modelCatalog.findValidatedModelLatency().should('contain.text', '58.45 ms');
 
           modelCatalog.findValidatedModelBenchmarkPrev().click();
           modelCatalog.findValidatedModelHardware().should('contain.text', '33xRTX 4090');
           modelCatalog.findValidatedModelReplicas().should('contain.text', '10');
-          modelCatalog.findValidatedModelTtft().should('contain.text', '67.15');
+          // ttft_p90 value for RTX 4090 artifact
+          modelCatalog.findValidatedModelLatency().should('contain.text', '82.34 ms');
 
           // Click benchmark link to navigate to Performance Insights
           modelCatalog.findValidatedModelBenchmarkLink().click();

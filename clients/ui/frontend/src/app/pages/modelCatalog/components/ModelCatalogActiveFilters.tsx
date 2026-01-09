@@ -1,11 +1,5 @@
 import React from 'react';
-import {
-  ToolbarFilter,
-  ToolbarLabelGroup,
-  ToolbarLabel,
-  Label,
-  LabelGroup,
-} from '@patternfly/react-core';
+import { ToolbarFilter, ToolbarLabelGroup, ToolbarLabel } from '@patternfly/react-core';
 import { isEnumMember } from 'mod-arch-core';
 import { ModelCatalogContext } from '~/app/context/modelCatalog/ModelCatalogContext';
 import {
@@ -21,8 +15,7 @@ import {
   AllLanguageCode,
   ModelCatalogNumberFilterKey,
   isCatalogFilterKey,
-  ALL_LATENCY_FIELD_NAMES,
-  UseCaseOptionValue,
+  isPerformanceFilterKey,
 } from '~/concepts/modelCatalog/const';
 import { ModelCatalogFilterKey } from '~/app/modelCatalogTypes';
 import { parseLatencyFieldName } from '~/app/pages/modelCatalog/utils/hardwareConfigurationFilterUtils';
@@ -30,22 +23,8 @@ import {
   USE_CASE_OPTIONS,
   isUseCaseOptionValue,
 } from '~/app/pages/modelCatalog/utils/workloadTypeUtils';
-
-/**
- * Performance filter keys that should reset to default values instead of clearing.
- */
-const PERFORMANCE_FILTER_KEYS: ModelCatalogFilterKey[] = [
-  ModelCatalogStringFilterKey.USE_CASE,
-  ModelCatalogStringFilterKey.HARDWARE_TYPE,
-  ModelCatalogNumberFilterKey.MAX_RPS,
-];
-
-/**
- * Check if a filter key is a performance filter (should reset to default instead of clear)
- */
-const isPerformanceFilter = (filterKey: ModelCatalogFilterKey): boolean =>
-  PERFORMANCE_FILTER_KEYS.includes(filterKey) ||
-  ALL_LATENCY_FIELD_NAMES.some((name) => name === filterKey);
+import { isValueDifferentFromDefault } from '~/app/pages/modelCatalog/utils/modelCatalogUtils';
+import { formatLatency } from '~/app/pages/modelCatalog/utils/performanceMetricsUtils';
 
 type ModelCatalogActiveFiltersProps = {
   filtersToShow: ModelCatalogFilterKey[];
@@ -60,47 +39,13 @@ const ModelCatalogActiveFilters: React.FC<ModelCatalogActiveFiltersProps> = ({ f
     getPerformanceFilterDefaultValue,
   } = React.useContext(ModelCatalogContext);
 
-  /**
-   * Check if a performance filter value differs from its default value.
-   * Performance filter chips should only be shown when the value differs from default.
-   */
-  const isValueDifferentFromDefault = (
-    filterKey: ModelCatalogFilterKey,
-    currentValue: string | number | string[] | UseCaseOptionValue[],
-  ): boolean => {
-    const defaultValue = getPerformanceFilterDefaultValue(filterKey);
-    if (defaultValue === undefined) {
-      // No default defined, always show the chip
-      return true;
-    }
-
-    // Compare arrays
-    if (Array.isArray(currentValue) && Array.isArray(defaultValue)) {
-      if (currentValue.length !== defaultValue.length) {
-        return true;
-      }
-      return !currentValue.every((v) => defaultValue.includes(String(v)));
-    }
-
-    // Compare single value with array (use_case stores as array but default might be string)
-    if (Array.isArray(currentValue) && !Array.isArray(defaultValue)) {
-      if (currentValue.length !== 1) {
-        return true;
-      }
-      return currentValue[0] !== defaultValue;
-    }
-
-    // Compare single values
-    return currentValue !== defaultValue;
-  };
-
   const handleRemoveFilter = (categoryKey: string, labelKey: string) => {
     if (!isCatalogFilterKey(categoryKey)) {
       return;
     }
 
     // For performance filters when performance view is enabled, reset to default instead of clearing
-    if (performanceViewEnabled && isPerformanceFilter(categoryKey)) {
+    if (performanceViewEnabled && isPerformanceFilterKey(categoryKey)) {
       resetSinglePerformanceFilterToDefault(categoryKey);
       return;
     }
@@ -123,7 +68,7 @@ const ModelCatalogActiveFilters: React.FC<ModelCatalogActiveFiltersProps> = ({ f
     }
 
     // For performance filters when performance view is enabled, reset to default instead of clearing
-    if (performanceViewEnabled && isPerformanceFilter(categoryKey)) {
+    if (performanceViewEnabled && isPerformanceFilterKey(categoryKey)) {
       resetSinglePerformanceFilterToDefault(categoryKey);
       return;
     }
@@ -191,10 +136,8 @@ const ModelCatalogActiveFilters: React.FC<ModelCatalogActiveFiltersProps> = ({ f
 
     // Handle latency field names - type is already narrowed to LatencyMetricFieldName
     const parsed = parseLatencyFieldName(filterKey);
-    if (parsed) {
-      return `${parsed.metric} | ${parsed.percentile} | ${value}ms`;
-    }
-    return `${filterKey}: ${value}ms`;
+    const formattedValue = typeof value === 'number' ? formatLatency(value) : `${value}ms`;
+    return `${parsed.metric} | ${parsed.percentile} | ${formattedValue}`;
   };
 
   return (
@@ -212,11 +155,14 @@ const ModelCatalogActiveFilters: React.FC<ModelCatalogActiveFiltersProps> = ({ f
           return null;
         }
 
-        const isPerf = performanceViewEnabled && isPerformanceFilter(filterKey);
+        const isPerf = performanceViewEnabled && isPerformanceFilterKey(filterKey);
 
         // For performance filters, skip if value matches the default
-        if (isPerf && !isValueDifferentFromDefault(filterKey, filterValue)) {
-          return null;
+        if (isPerf) {
+          const defaultValue = getPerformanceFilterDefaultValue(filterKey);
+          if (!isValueDifferentFromDefault(filterValue, defaultValue)) {
+            return null;
+          }
         }
 
         // Normalize to array for consistent handling
@@ -224,32 +170,7 @@ const ModelCatalogActiveFilters: React.FC<ModelCatalogActiveFiltersProps> = ({ f
 
         const categoryName = MODEL_CATALOG_FILTER_CATEGORY_NAMES[filterKey];
 
-        // For performance filters, render custom labels with undo icon
-        if (isPerf) {
-          return (
-            <LabelGroup
-              key={filterKey}
-              categoryName={categoryName}
-              data-testid={`${filterKey}-filter-container`}
-            >
-              {filterValues.map((value) => {
-                const valueStr = String(value);
-                const labelText = getFilterLabel(filterKey, value);
-                return (
-                  <Label
-                    key={valueStr}
-                    data-testid={`${filterKey}-filter-chip-${valueStr}`}
-                    onClose={() => resetSinglePerformanceFilterToDefault(filterKey)}
-                  >
-                    {labelText}
-                  </Label>
-                );
-              })}
-            </LabelGroup>
-          );
-        }
-
-        // For basic filters, use standard ToolbarFilter
+        // Build labels for ToolbarFilter
         const labels: ToolbarLabel[] = filterValues.map((value) => {
           const valueStr = String(value);
           const labelText = getFilterLabel(filterKey, value);
@@ -264,6 +185,8 @@ const ModelCatalogActiveFilters: React.FC<ModelCatalogActiveFiltersProps> = ({ f
           name: categoryName,
         };
 
+        // Use ToolbarFilter for all filters (both basic and performance)
+        // This ensures proper integration with Toolbar's clearAllFilters button
         return (
           <ToolbarFilter
             key={filterKey}

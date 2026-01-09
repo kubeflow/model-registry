@@ -5,17 +5,54 @@ import HardwareConfigurationTable from '~/app/pages/modelCatalog/components/Hard
 import { CatalogModelDetailsParams } from '~/app/modelCatalogTypes';
 import { ModelCatalogContext } from '~/app/context/modelCatalog/ModelCatalogContext';
 import { useCatalogPerformanceArtifacts } from '~/app/hooks/modelCatalog/useCatalogPerformanceArtifacts';
-import { ModelCatalogNumberFilterKey } from '~/concepts/modelCatalog/const';
+import {
+  ModelCatalogNumberFilterKey,
+  ModelCatalogStringFilterKey,
+  DEFAULT_PERFORMANCE_FILTERS_QUERY_NAME,
+} from '~/concepts/modelCatalog/const';
 import {
   decodeParams,
   getActiveLatencyFieldName,
 } from '~/app/pages/modelCatalog/utils/modelCatalogUtils';
+import {
+  applyFilterValue,
+  getDefaultFiltersFromNamedQuery,
+} from '~/app/pages/modelCatalog/utils/performanceFilterUtils';
 
 const PerformanceInsightsView = (): React.JSX.Element => {
   const params = useParams<CatalogModelDetailsParams>();
   const decodedParams = decodeParams(params);
-  const { filterData, filterOptions, setPerformanceFiltersChangedOnDetailsPage } =
-    React.useContext(ModelCatalogContext);
+  const {
+    filterData,
+    filterOptions,
+    filterOptionsLoaded,
+    setPerformanceFiltersChangedOnDetailsPage,
+    setFilterData,
+  } = React.useContext(ModelCatalogContext);
+
+  // Apply default performance filters on mount if they don't have values yet
+  // This handles the case where user navigates to details page without enabling toggle first
+  React.useEffect(() => {
+    if (!filterOptionsLoaded || !filterOptions?.namedQueries) {
+      return;
+    }
+
+    // Check if any performance filter already has a value
+    const hasUseCaseValue = filterData[ModelCatalogStringFilterKey.USE_CASE].length > 0;
+    const hasRpsValue = filterData[ModelCatalogNumberFilterKey.MAX_RPS] !== undefined;
+    const hasLatencyValue = getActiveLatencyFieldName(filterData) !== undefined;
+
+    // If no performance filters are set, apply defaults
+    if (!hasUseCaseValue && !hasRpsValue && !hasLatencyValue) {
+      const defaultQuery = filterOptions.namedQueries[DEFAULT_PERFORMANCE_FILTERS_QUERY_NAME];
+      const defaults = getDefaultFiltersFromNamedQuery(filterOptions, defaultQuery);
+      Object.entries(defaults).forEach(([filterKey, value]) => {
+        applyFilterValue(setFilterData, filterKey, value);
+      });
+    }
+    // Only run on mount when filterOptions become available
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [filterOptionsLoaded]);
 
   // Get performance-specific filter params for the /performance_artifacts endpoint
   const targetRPS = filterData[ModelCatalogNumberFilterKey.MAX_RPS];

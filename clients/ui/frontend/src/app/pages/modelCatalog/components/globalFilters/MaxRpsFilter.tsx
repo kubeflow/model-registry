@@ -9,7 +9,7 @@ import {
   Popover,
 } from '@patternfly/react-core';
 import { HelpIcon } from '@patternfly/react-icons';
-import { ModelCatalogNumberFilterKey } from '~/concepts/modelCatalog/const';
+import { ModelCatalogNumberFilterKey, PerformancePropertyKey } from '~/concepts/modelCatalog/const';
 import { useCatalogNumberFilterState } from '~/app/pages/modelCatalog/utils/modelCatalogUtils';
 import { CatalogPerformanceMetricsArtifact } from '~/app/modelCatalogTypes';
 import { getDoubleValue } from '~/app/utils';
@@ -22,9 +22,6 @@ import { ModelCatalogContext } from '~/app/context/modelCatalog/ModelCatalogCont
 import SliderWithInput from './SliderWithInput';
 
 const filterKey = ModelCatalogNumberFilterKey.MAX_RPS;
-
-// Backend filter key for RPS in filter_options response
-const RPS_FILTER_KEY = 'artifacts.requests_per_second.double_value';
 
 type MaxRpsFilterProps = {
   performanceArtifacts: CatalogPerformanceMetricsArtifact[];
@@ -42,12 +39,12 @@ const MaxRpsFilter: React.FC<MaxRpsFilterProps> = ({ performanceArtifacts }) => 
       return getSliderRange({
         performanceArtifacts,
         getArtifactFilterValue: (artifact) =>
-          getDoubleValue(artifact.customProperties, 'requests_per_second'),
+          getDoubleValue(artifact.customProperties, PerformancePropertyKey.REQUESTS_PER_SECOND),
         fallbackRange: FALLBACK_RPS_RANGE,
       });
     }
-    // Fall back to filterOptions from context using backend key
-    const filterValue = filterOptions?.filters?.[RPS_FILTER_KEY];
+    // Fall back to filterOptions from context
+    const filterValue = filterOptions?.filters?.[ModelCatalogNumberFilterKey.MAX_RPS];
     if (filterValue && 'range' in filterValue && filterValue.range) {
       return {
         minValue: filterValue.range.min ?? FALLBACK_RPS_RANGE.minValue,

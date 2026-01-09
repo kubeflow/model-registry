@@ -12,7 +12,7 @@ import { ModelCatalogContext } from '~/app/context/modelCatalog/ModelCatalogCont
 import { TempDevFeature, useTempDevFeatureAvailable } from '~/app/hooks/useTempDevFeatureAvailable';
 
 const ModelPerformanceViewToggleCard: React.FC = () => {
-  const { performanceViewEnabled, setPerformanceViewEnabled } =
+  const { performanceViewEnabled, setPerformanceViewEnabled, filterOptionsLoaded } =
     React.useContext(ModelCatalogContext);
 
   const isPerformanceToggleAvailable = useTempDevFeatureAvailable(
@@ -31,6 +31,7 @@ const ModelPerformanceViewToggleCard: React.FC = () => {
               id="model-performance-view-toggle"
               label="Model performance view"
               isChecked={performanceViewEnabled}
+              isDisabled={!filterOptionsLoaded}
               onChange={(_event, checked) => setPerformanceViewEnabled(checked)}
               data-testid="model-performance-view-toggle"
             />

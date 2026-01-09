@@ -240,7 +240,7 @@ class ModelCatalog {
     return cy.findByTestId('validated-model-replicas');
   }
 
-  findValidatedModelTtft() {
+  findValidatedModelLatency() {
     return cy.findByTestId('validated-model-latency');
   }
 
