@@ -170,10 +170,9 @@ const ManageSourceForm: React.FC<ManageSourceFormProps> = ({
       return;
     }
 
-    // For fresh preview, reset everything
+    // For fresh preview, reset everything to clean state
     if (isFreshPreview) {
-      setPreviewState((prev) => ({
-        ...prev,
+      setPreviewState({
         mode,
         isLoading: true,
         isLoadingMore: false,
@@ -181,7 +180,9 @@ const ManageSourceForm: React.FC<ManageSourceFormProps> = ({
         activeTab: 'included',
         error: undefined,
         resultDismissed: false,
-      }));
+        summary: undefined,
+        lastPreviewedData: undefined,
+      });
     } else if (loadMore) {
       setPreviewState((prev) => ({ ...prev, isLoadingMore: true }));
     } else if (switchToTab) {
