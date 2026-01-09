@@ -140,7 +140,7 @@ describe('Compression Level Comparison Card', () => {
     it('should display "Current model" label only for current model', () => {
       modelCatalog.findCompressionCurrentLabel().should('exist');
       modelCatalog.findCompressionCurrentLabel().should('contain', 'Current model');
-      cy.get('[data-testid="compression-current-label"]').should('have.length', 1);
+      modelCatalog.findAllCompressionCurrentLabels().should('have.length', 1);
     });
 
     it('should display tensor type labels for each variant', () => {

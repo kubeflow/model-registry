@@ -366,7 +366,7 @@ class ModelCatalog {
   }
 
   findCompressionVariantSkeleton(index: number) {
-    return cy.findByTestId(`compression-variant-skeleton-${index}`);
+    return cy.findByTestId(`compression-skeleton-${index}`);
   }
 
   findCompressionVariantLink(index: number) {
@@ -383,6 +383,10 @@ class ModelCatalog {
 
   findCompressionCurrentLabel() {
     return cy.findByTestId('compression-current-label');
+  }
+
+  findAllCompressionCurrentLabels() {
+    return cy.findAllByTestId('compression-current-label');
   }
 
   findCompressionDivider(index: number) {
