@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"regexp"
 	"strings"
+
+	"github.com/golang/glog"
 )
 
 // ModelFilter encapsulates include/exclude pattern matching for model names.
@@ -66,9 +68,8 @@ func compilePatterns(field string, patterns []string) ([]*compiledPattern, error
 // are valid (non-empty, compilable, non-conflicting). This is useful for early validation
 // at configuration load time without constructing the full ModelFilter.
 func ValidateSourceFilters(included, excluded []string) error {
-	if err := detectConflictingPatterns(included, excluded); err != nil {
-		return err
-	}
+	// Log conflicts but don't fail validation to avoid pod crash
+	detectConflictingPatterns(included, excluded)
 
 	if _, err := compilePatterns("includedModels", included); err != nil {
 		return err
@@ -118,10 +119,11 @@ func detectConflictingPatterns(included, excluded []string) error {
 		includedIdx[value] = i
 	}
 
-	for j, pattern := range excluded {
+	for _, pattern := range excluded {
 		value := strings.TrimSpace(pattern)
-		if i, exists := includedIdx[value]; exists {
-			return fmt.Errorf("pattern %q is defined in both includedModels[%d] and excludedModels[%d]", value, i, j)
+		if _, exists := includedIdx[value]; exists {
+			glog.Errorf("pattern %q is defined in both includedModels and excludedModels, skipping", value)
+			// Continue processing instead of returning error to avoid pod crash
 		}
 	}
 	return nil
