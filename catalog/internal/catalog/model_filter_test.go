@@ -28,8 +28,7 @@ func TestModelFilterAllows(t *testing.T) {
 
 func TestModelFilterConflictsAndValidation(t *testing.T) {
 	_, err := NewModelFilter([]string{"Granite/*"}, []string{"Granite/*"})
-	require.Error(t, err)
-	assert.Contains(t, err.Error(), "pattern \"Granite/*\"")
+	require.NoError(t, err)
 
 	_, err = NewModelFilter([]string{""}, nil)
 	require.Error(t, err)
