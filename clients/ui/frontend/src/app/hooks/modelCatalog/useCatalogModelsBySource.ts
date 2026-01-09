@@ -33,6 +33,7 @@ export const useCatalogModelsBySources = (
   searchQuery = '',
   filterData?: ModelCatalogFilterStates,
   filterOptions?: CatalogFilterOptionsList | null,
+  filterQuery?: string,
 ): ModelList => {
   const { api, apiAvailable } = useModelCatalogAPI();
 
@@ -55,9 +56,20 @@ export const useCatalogModelsBySources = (
         searchQuery.trim() || undefined,
         filterData,
         filterOptions,
+        filterQuery,
       );
     },
-    [api, apiAvailable, sourceId, pageSize, searchQuery, filterData, filterOptions, sourceLabel],
+    [
+      api,
+      apiAvailable,
+      sourceId,
+      pageSize,
+      searchQuery,
+      filterData,
+      filterOptions,
+      sourceLabel,
+      filterQuery,
+    ],
   );
 
   const [firstPageData, loaded, error, refetch] = useFetchState(

@@ -170,6 +170,7 @@ export type GetCatalogModelsBySource = (
   searchKeyword?: string,
   filterData?: ModelCatalogFilterStates,
   filterOptions?: CatalogFilterOptionsList | null,
+  filterQuery?: string,
 ) => Promise<CatalogModelList>;
 
 export type GetListSources = (opts: APIOptions) => Promise<CatalogSourceList>;
