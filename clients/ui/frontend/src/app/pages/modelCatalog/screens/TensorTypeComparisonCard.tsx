@@ -55,7 +55,7 @@ const TensorTypeComparisonCard: React.FC<TensorTypeComparisonCardProps> = ({ mod
       .slice(0, 4);
   }, [catalogModels.items, model.name]);
 
-  if (!variantGroupId) {
+  if (!variantGroupId || variantGroupId === '-') {
     return null;
   }
 
@@ -138,7 +138,7 @@ const TensorTypeComparisonCard: React.FC<TensorTypeComparisonCardProps> = ({ mod
                                 width="56px"
                                 height="56px"
                                 screenreaderText="Brand image loading"
-                                data-testid={`compression-variant-skeleton-${index}`}
+                                data-testid={`compression-skeleton-${index}`}
                               />
                             )}
                           </FlexItem>

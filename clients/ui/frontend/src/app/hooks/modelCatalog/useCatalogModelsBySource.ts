@@ -105,6 +105,7 @@ export const useCatalogModelsBySources = (
         searchQuery.trim() || undefined,
         filterData,
         filterOptions,
+        filterQuery,
       );
 
       setAllItems((prev) => [...prev, ...response.items]);
@@ -128,6 +129,7 @@ export const useCatalogModelsBySources = (
     sourceLabel,
     filterData,
     filterOptions,
+    filterQuery,
   ]);
 
   React.useEffect(() => {

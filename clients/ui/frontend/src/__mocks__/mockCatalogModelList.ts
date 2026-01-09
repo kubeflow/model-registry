@@ -422,6 +422,10 @@ export const mockVariantModelNoLogo = mockCatalogModel({
   source_id: 'sample-source',
   logo: undefined,
   customProperties: {
+    validated: {
+      metadataType: ModelRegistryMetadataType.STRING,
+      string_value: '',
+    },
     variant_group_id: {
       metadataType: ModelRegistryMetadataType.STRING,
       string_value: MOCK_VARIANT_GROUP_ID,
