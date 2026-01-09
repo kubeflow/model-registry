@@ -2125,95 +2125,34 @@ func BoolPtr(b bool) *bool {
 }
 
 func GetModelsWithInclusionStatusListMocks() []models.CatalogSourcePreviewModel {
-	return []models.CatalogSourcePreviewModel{
-		{
-			Name:     "sample-source/granite",
+	// Generate enough models to test pagination (page size is 20)
+	// We want 45 included and 25 excluded = 70 total models
+	var allModels []models.CatalogSourcePreviewModel
+
+	// Add 45 included models
+	for i := 1; i <= 45; i++ {
+		allModels = append(allModels, models.CatalogSourcePreviewModel{
+			Name:     fmt.Sprintf("sample-source/included-model-%d", i),
 			Included: true,
-		},
-		{
-			Name:     "sample-source/model-1",
-			Included: true,
-		},
-		{
-			Name:     "sample-source/model-2",
-			Included: true,
-		},
-		{
-			Name:     "sample-source/model-3",
-			Included: true,
-		},
-		{
-			Name:     "sample-source/model-4",
-			Included: true,
-		},
-		{
-			Name:     "sample-source/model-5",
-			Included: true,
-		},
-		{
-			Name:     "sample-source/model-6",
-			Included: false,
-		},
-		{
-			Name:     "adminModel1/model-1",
-			Included: true,
-		},
-		{
-			Name:     "adminModel1/model-2",
-			Included: true,
-		},
-		{
-			Name:     "adminModel1/model-3",
-			Included: true,
-		},
-		{
-			Name:     "adminModel1/model-4",
-			Included: true,
-		},
-		{
-			Name:     "adminModel1/model-5",
-			Included: true,
-		},
-		{
-			Name:     "adminModel1/model-6",
-			Included: true,
-		},
-		{
-			Name:     "adminModel1/model-7",
-			Included: true,
-		},
-		{
-			Name:     "adminModel1/model-8",
-			Included: true,
-		},
-		{
-			Name:     "adminModel1/model-9",
-			Included: true,
-		},
-		{
-			Name:     "adminModel1/model-10",
-			Included: false,
-		},
-		{
-			Name:     "adminModel1/model-11",
-			Included: false,
-		},
-		{
-			Name:     "adminModel1/model-12",
-			Included: false,
-		},
-		{
-			Name:     "adminModel1/model-13",
-			Included: false,
-		},
+		})
 	}
+
+	// Add 25 excluded models
+	for i := 1; i <= 25; i++ {
+		allModels = append(allModels, models.CatalogSourcePreviewModel{
+			Name:     fmt.Sprintf("sample-source/excluded-model-%d", i),
+			Included: false,
+		})
+	}
+
+	return allModels
 }
 
 func GetCatalogSourcePreviewSummaryMock() models.CatalogSourcePreviewSummary {
 	return models.CatalogSourcePreviewSummary{
-		TotalModels:    20,
-		IncludedModels: 15,
-		ExcludedModels: 5,
+		TotalModels:    70,
+		IncludedModels: 45,
+		ExcludedModels: 25,
 	}
 }
 
