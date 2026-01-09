@@ -14,13 +14,15 @@ services:
   model-registry-ui:
     build:
       context: ./clients/ui
-      dockerfile: Dockerfile
+      dockerfile: Dockerfile.standalone
       args:
         DEPLOYMENT_MODE: standalone
         STYLE_THEME: mui-theme
     command:
       - --port=9000
       - --mock-k8s-client=true
+      - --mock-mr-client=false
+      - --mock-mr-catalog-client=false
       - --dev-mode=true
       - --deployment-mode=standalone
       - --log-level=DEBUG

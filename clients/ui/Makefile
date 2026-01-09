@@ -80,7 +80,7 @@ docker-build:
 
 .PHONY: docker-build-standalone
 docker-build-standalone:
-	$(CONTAINER_TOOL) build --build-arg DEPLOYMENT_MODE=standalone --build-arg STYLE_THEME=mui-theme -t ${IMG_UI_STANDALONE} .
+	$(CONTAINER_TOOL) build -f Dockerfile.standalone --build-arg DEPLOYMENT_MODE=standalone --build-arg STYLE_THEME=mui-theme -t ${IMG_UI_STANDALONE} .
 
 .PHONY: docker-build-federated
 docker-build-federated:
@@ -92,7 +92,7 @@ docker-buildx:
 
 .PHONY: docker-buildx-standalone
 docker-buildx-standalone:
-	docker buildx build --build-arg DEPLOYMENT_MODE=standalone --build-arg STYLE_THEME=mui-theme --platform ${PLATFORM} -t ${IMG_UI_STANDALONE} --push .
+	docker buildx build -f Dockerfile.standalone --build-arg DEPLOYMENT_MODE=standalone --build-arg STYLE_THEME=mui-theme --platform ${PLATFORM} -t ${IMG_UI_STANDALONE} --push .
 
 .PHONY: docker-buildx-federated
 docker-buildx-federated:

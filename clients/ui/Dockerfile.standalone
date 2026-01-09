@@ -47,12 +47,19 @@ COPY ${BFF_SOURCE_CODE}/internal/ internal/
 # Build the Go application
 RUN CGO_ENABLED=0 GOOS=${TARGETOS:-linux} GOARCH=${TARGETARCH} go build -a -o bff ./cmd
 
+# Install setup-envtest and download K8s binaries for mock mode
+RUN go install sigs.k8s.io/controller-runtime/tools/setup-envtest@release-0.17
+RUN setup-envtest use 1.29.0 --bin-dir /envtest-bin -p path
+
 # Final stage
 # Use distroless as minimal base image to package the application binary
 FROM ${DISTROLESS_BASE_IMAGE}
 WORKDIR /
 COPY --from=bff-builder /usr/src/app/bff ./
 COPY --from=ui-builder /usr/src/app/dist ./static/
+# Copy envtest binaries for mock K8s mode
+COPY --from=bff-builder /envtest-bin /envtest-bin
+ENV ENVTEST_ASSETS_DIR=/envtest-bin
 USER 65532:65532
 
 # Expose port 8080

@@ -12,11 +12,13 @@
 version: '3.8'
 services:
   model-registry-ui:
-    image: ghcr.io/kubeflow/model-registry/ui:latest
+    image: ghcr.io/kubeflow/model-registry/ui-standalone:latest
     pull_policy: always
     command:
       - --port=9000
       - --mock-k8s-client=true
+      - --mock-mr-client=false
+      - --mock-mr-catalog-client=false
       - --dev-mode=true
       - --deployment-mode=standalone
       - --log-level=DEBUG
