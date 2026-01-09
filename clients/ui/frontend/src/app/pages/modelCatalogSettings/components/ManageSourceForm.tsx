@@ -32,10 +32,8 @@ import SourceDetailsSection from './SourceDetailsSection';
 import CredentialsSection from './CredentialsSection';
 import YamlSection from './YamlSection';
 import ModelVisibilitySection from './ModelVisibilitySection';
-import PreviewPanel from './PreviewPanel';
+import PreviewPanel, { PreviewTab } from './PreviewPanel';
 import ManageSourceFormFooter from './ManageSourceFormFooter';
-
-type FilterStatus = 'included' | 'excluded';
 
 type PreviewTabState = {
   items: CatalogSourcePreviewModel[];
@@ -54,14 +52,11 @@ type PreviewState = {
   isLoadingInitial: boolean;
   isLoadingMore: boolean;
   summary?: CatalogSourcePreviewSummary;
-  tabStates: {
-    included: PreviewTabState;
-    excluded: PreviewTabState;
-  };
+  tabStates: Record<PreviewTab, PreviewTabState>;
   error?: Error;
   resultDismissed: boolean;
   lastPreviewedData?: CatalogSourcePreviewRequest;
-  activeTab: FilterStatus;
+  activeTab: PreviewTab;
 };
 
 type ManageSourceFormProps = {
@@ -87,11 +82,11 @@ const ManageSourceForm: React.FC<ManageSourceFormProps> = ({
     isLoadingInitial: false,
     isLoadingMore: false,
     tabStates: {
-      included: initialTabState,
-      excluded: initialTabState,
+      [PreviewTab.INCLUDED]: initialTabState,
+      [PreviewTab.EXCLUDED]: initialTabState,
     },
     resultDismissed: false,
-    activeTab: 'included',
+    activeTab: PreviewTab.INCLUDED,
   });
 
   const isHuggingFaceMode = formData.sourceType === CatalogSourceType.HUGGING_FACE;
@@ -151,13 +146,15 @@ const ManageSourceForm: React.FC<ManageSourceFormProps> = ({
     mode: 'preview' | 'validate' = 'preview',
     options?: {
       loadMore?: boolean;
-      switchToTab?: FilterStatus;
+      switchToTab?: PreviewTab;
     },
   ) => {
     const { loadMore = false, switchToTab } = options ?? {};
     const isFreshPreview = !loadMore && !switchToTab;
     // For fresh preview, always start with 'included' tab
-    const targetTab = isFreshPreview ? 'included' : (switchToTab ?? previewState.activeTab);
+    const targetTab = isFreshPreview
+      ? PreviewTab.INCLUDED
+      : (switchToTab ?? previewState.activeTab);
 
     if (!apiState.apiAvailable) {
       setPreviewState((prev) => ({
@@ -176,8 +173,11 @@ const ManageSourceForm: React.FC<ManageSourceFormProps> = ({
         mode,
         isLoadingInitial: true,
         isLoadingMore: false,
-        tabStates: { included: initialTabState, excluded: initialTabState },
-        activeTab: 'included',
+        tabStates: {
+          [PreviewTab.INCLUDED]: initialTabState,
+          [PreviewTab.EXCLUDED]: initialTabState,
+        },
+        activeTab: PreviewTab.INCLUDED,
         error: undefined,
         resultDismissed: false,
         summary: undefined,
@@ -252,7 +252,7 @@ const ManageSourceForm: React.FC<ManageSourceFormProps> = ({
     }
   };
 
-  const handleTabChange = (newTab: FilterStatus) => {
+  const handleTabChange = (newTab: PreviewTab) => {
     if (newTab === previewState.activeTab) {
       return;
     }

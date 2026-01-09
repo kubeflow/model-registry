@@ -4,7 +4,7 @@ import { userEvent } from '@testing-library/user-event';
 import '@testing-library/jest-dom';
 
 import { CatalogSourcePreviewModel, CatalogSourcePreviewSummary } from '~/app/modelCatalogTypes';
-import PreviewPanel from '~/app/pages/modelCatalogSettings/components/PreviewPanel';
+import PreviewPanel, { PreviewTab } from '~/app/pages/modelCatalogSettings/components/PreviewPanel';
 
 const mockSummary: CatalogSourcePreviewSummary = {
   totalModels: 20,
@@ -29,7 +29,7 @@ const defaultProps = {
   onPreview: jest.fn(),
   previewError: undefined,
   hasFormChanged: false,
-  activeTab: 'included' as const,
+  activeTab: PreviewTab.INCLUDED,
   items: mockIncludedItems,
   summary: mockSummary,
   hasMore: false,
@@ -82,17 +82,19 @@ describe('PreviewPanel', () => {
 
     await user.click(screen.getByText('Models excluded'));
 
-    expect(onTabChange).toHaveBeenCalledWith('excluded');
+    expect(onTabChange).toHaveBeenCalledWith(PreviewTab.EXCLUDED);
   });
 
   it('displays correct count text for included tab', () => {
-    render(<PreviewPanel {...defaultProps} activeTab="included" />);
+    render(<PreviewPanel {...defaultProps} activeTab={PreviewTab.INCLUDED} />);
 
     expect(screen.getByText('15 of 20 models included:')).toBeInTheDocument();
   });
 
   it('displays correct count text for excluded tab', () => {
-    render(<PreviewPanel {...defaultProps} activeTab="excluded" items={mockExcludedItems} />);
+    render(
+      <PreviewPanel {...defaultProps} activeTab={PreviewTab.EXCLUDED} items={mockExcludedItems} />,
+    );
 
     expect(screen.getByText('5 of 20 models excluded:')).toBeInTheDocument();
   });
@@ -152,7 +154,7 @@ describe('PreviewPanel', () => {
         {...defaultProps}
         items={[]}
         summary={{ ...mockSummary, includedModels: 0 }}
-        activeTab="included"
+        activeTab={PreviewTab.INCLUDED}
       />,
     );
 
@@ -166,7 +168,7 @@ describe('PreviewPanel', () => {
         {...defaultProps}
         items={[]}
         summary={{ ...mockSummary, excludedModels: 0 }}
-        activeTab="excluded"
+        activeTab={PreviewTab.EXCLUDED}
       />,
     );
 
