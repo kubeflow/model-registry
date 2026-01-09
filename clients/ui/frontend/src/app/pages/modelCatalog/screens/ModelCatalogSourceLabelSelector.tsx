@@ -20,6 +20,7 @@ import ModelCatalogActiveFilters from '~/app/pages/modelCatalog/components/Model
 import ThemeAwareSearchInput from '~/app/pages/modelRegistry/screens/components/ThemeAwareSearchInput';
 import { ModelCatalogContext } from '~/app/context/modelCatalog/ModelCatalogContext';
 import { hasFiltersApplied } from '~/app/pages/modelCatalog/utils/modelCatalogUtils';
+import ModelCatalogSortDropdown from '~/app/pages/modelCatalog/components/ModelCatalogSortDropdown';
 import ModelCatalogSourceLabelBlocks from './ModelCatalogSourceLabelBlocks';
 
 type ModelCatalogSourceLabelSelectorProps = {
@@ -146,7 +147,13 @@ const ModelCatalogSourceLabelSelector: React.FC<ModelCatalogSourceLabelSelectorP
         </Toolbar>
       </StackItem>
       <StackItem>
-        <ModelCatalogSourceLabelBlocks />
+        <Flex
+          justifyContent={{ default: 'justifyContentSpaceBetween' }}
+          alignItems={{ default: 'alignItemsCenter' }}
+        >
+          <ModelCatalogSourceLabelBlocks />
+          <ModelCatalogSortDropdown performanceViewEnabled={performanceViewEnabled} />
+        </Flex>
       </StackItem>
       {shouldShowAlert && (
         <StackItem>
