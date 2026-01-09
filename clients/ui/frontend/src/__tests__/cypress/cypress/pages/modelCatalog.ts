@@ -240,8 +240,8 @@ class ModelCatalog {
     return cy.findByTestId('validated-model-replicas');
   }
 
-  findValidatedModelTtft() {
-    return cy.findByTestId('validated-model-ttft');
+  findValidatedModelLatency() {
+    return cy.findByTestId('validated-model-latency');
   }
 
   findWorkloadTypeFilter() {
@@ -249,8 +249,8 @@ class ModelCatalog {
   }
 
   findWorkloadTypeOption(useCaseValue: string) {
-    // Use the checkbox id attribute (e.g., 'chatbot', 'code_fixing', 'long_rag', 'rag')
-    return cy.get(`#${useCaseValue}`);
+    // WorkloadTypeFilter is now single-select dropdown with data-testid
+    return cy.findByTestId(`workload-type-filter-${useCaseValue}`);
   }
 
   selectWorkloadType(useCaseValue: string) {

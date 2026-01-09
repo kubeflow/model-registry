@@ -1,17 +1,17 @@
 import * as React from 'react';
 import {
-  Badge,
-  Checkbox,
   Dropdown,
-  Flex,
-  FlexItem,
+  DropdownItem,
+  DropdownList,
   MenuToggle,
   MenuToggleElement,
-  Panel,
-  PanelMain,
 } from '@patternfly/react-core';
 import { ModelCatalogStringFilterKey, UseCaseOptionValue } from '~/concepts/modelCatalog/const';
-import { USE_CASE_OPTIONS } from '~/app/pages/modelCatalog/utils/workloadTypeUtils';
+import {
+  USE_CASE_OPTIONS,
+  isUseCaseOptionValue,
+  getUseCaseDisplayLabel,
+} from '~/app/pages/modelCatalog/utils/workloadTypeUtils';
 import { ModelCatalogContext } from '~/app/context/modelCatalog/ModelCatalogContext';
 
 const WorkloadTypeFilter: React.FC = () => {
@@ -19,20 +19,22 @@ const WorkloadTypeFilter: React.FC = () => {
   const selectedUseCases = filterData[ModelCatalogStringFilterKey.USE_CASE];
   const [isOpen, setIsOpen] = React.useState(false);
 
-  const selectedCount = selectedUseCases.length;
+  // Use static USE_CASE_OPTIONS - these are the only valid workload types we support
+  const availableWorkloadTypes: UseCaseOptionValue[] = React.useMemo(
+    () => USE_CASE_OPTIONS.map((opt) => opt.value),
+    [],
+  );
 
-  const isUseCaseSelected = (value: UseCaseOptionValue): boolean =>
-    selectedUseCases.includes(value);
+  // The currently selected workload type (single-select, so take first element)
+  const selectedValue = selectedUseCases.length > 0 ? selectedUseCases[0] : undefined;
 
-  const toggleUseCaseSelection = (value: UseCaseOptionValue, selected: boolean) => {
-    if (selected) {
-      setFilterData(ModelCatalogStringFilterKey.USE_CASE, [...selectedUseCases, value]);
+  const handleSelect = (value: string | undefined) => {
+    if (value && isUseCaseOptionValue(value)) {
+      setFilterData(ModelCatalogStringFilterKey.USE_CASE, [value]);
     } else {
-      setFilterData(
-        ModelCatalogStringFilterKey.USE_CASE,
-        selectedUseCases.filter((item) => item !== value),
-      );
+      setFilterData(ModelCatalogStringFilterKey.USE_CASE, []);
     }
+    setIsOpen(false);
   };
 
   const toggle = (toggleRef: React.Ref<MenuToggleElement>) => (
@@ -41,50 +43,33 @@ const WorkloadTypeFilter: React.FC = () => {
       data-testid="workload-type-filter"
       onClick={() => setIsOpen(!isOpen)}
       isExpanded={isOpen}
-      style={{ minWidth: '200px', width: 'fit-content' }}
-      badge={selectedCount > 0 ? <Badge>{selectedCount} selected</Badge> : undefined}
+      isFullHeight
+      style={{ minWidth: '200px', width: 'fit-content', height: '56px' }}
     >
-      Workload type
+      {selectedValue ? (
+        <>
+          <strong>Workload type:</strong> {getUseCaseDisplayLabel(selectedValue)}
+        </>
+      ) : (
+        'Workload type'
+      )}
     </MenuToggle>
   );
 
-  const filterContent = (
-    <Panel>
-      <PanelMain className="pf-v6-u-p-md">
-        <Flex direction={{ default: 'column' }} spaceItems={{ default: 'spaceItemsSm' }}>
-          {/* Workload type checkboxes */}
-          <FlexItem>
-            <Flex direction={{ default: 'column' }} spaceItems={{ default: 'spaceItemsXs' }}>
-              {USE_CASE_OPTIONS.map((option) => (
-                <FlexItem key={option.value}>
-                  <Flex alignItems={{ default: 'alignItemsCenter' }}>
-                    <FlexItem flex={{ default: 'flex_1' }}>
-                      <Checkbox
-                        label={`${option.label} (${option.inputTokens} input | ${option.outputTokens} output tokens)`}
-                        id={option.value}
-                        data-testid={`workload-type-filter-${option.value}`}
-                        isChecked={isUseCaseSelected(option.value)}
-                        onChange={(_, checked) => toggleUseCaseSelection(option.value, checked)}
-                      />
-                    </FlexItem>
-                  </Flex>
-                </FlexItem>
-              ))}
-            </Flex>
-          </FlexItem>
-        </Flex>
-      </PanelMain>
-    </Panel>
-  );
-
   return (
-    <Dropdown
-      isOpen={isOpen}
-      onOpenChange={setIsOpen}
-      toggle={toggle}
-      shouldFocusToggleOnSelect={false}
-    >
-      {filterContent}
+    <Dropdown isOpen={isOpen} onOpenChange={setIsOpen} toggle={toggle} shouldFocusToggleOnSelect>
+      <DropdownList>
+        {availableWorkloadTypes.map((value) => (
+          <DropdownItem
+            key={value}
+            onClick={() => handleSelect(value)}
+            isSelected={selectedValue === value}
+            data-testid={`workload-type-filter-${value}`}
+          >
+            {getUseCaseDisplayLabel(value)}
+          </DropdownItem>
+        ))}
+      </DropdownList>
     </Dropdown>
   );
 };

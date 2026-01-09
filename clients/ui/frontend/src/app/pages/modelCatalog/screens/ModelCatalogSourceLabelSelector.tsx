@@ -2,6 +2,7 @@ import {
   Alert,
   AlertActionCloseButton,
   Button,
+  Content,
   Flex,
   Stack,
   StackItem,
@@ -14,9 +15,9 @@ import {
 import { ArrowRightIcon, FilterIcon } from '@patternfly/react-icons';
 import React from 'react';
 import { useThemeContext } from 'mod-arch-kubeflow';
-import { ModelCatalogStringFilterKey } from '~/concepts/modelCatalog/const';
-import { ModelCatalogFilterKey } from '~/app/modelCatalogTypes';
+import { getBasicFiltersToShow } from '~/concepts/modelCatalog/const';
 import ModelCatalogActiveFilters from '~/app/pages/modelCatalog/components/ModelCatalogActiveFilters';
+import HardwareConfigurationFilterToolbar from '~/app/pages/modelCatalog/components/HardwareConfigurationFilterToolbar';
 import ThemeAwareSearchInput from '~/app/pages/modelRegistry/screens/components/ThemeAwareSearchInput';
 import { ModelCatalogContext } from '~/app/context/modelCatalog/ModelCatalogContext';
 import { hasFiltersApplied } from '~/app/pages/modelCatalog/utils/modelCatalogUtils';
@@ -48,6 +49,9 @@ const ModelCatalogSourceLabelSelector: React.FC<ModelCatalogSourceLabelSelectorP
     () => filtersApplied || (searchTerm && searchTerm.trim().length > 0),
     [filtersApplied, searchTerm],
   );
+
+  // Only show basic filters in the main chip bar - performance filters have their own section
+  const filtersToShow = React.useMemo(() => getBasicFiltersToShow(), []);
 
   const shouldShowAlert = performanceViewEnabled && performanceFiltersChangedOnDetailsPage;
 
@@ -82,14 +86,6 @@ const ModelCatalogSourceLabelSelector: React.FC<ModelCatalogSourceLabelSelectorP
       onSearch(value.trim());
     }
   };
-
-  // Define which filters to show on the landing page
-  const filtersToShow: ModelCatalogFilterKey[] = [
-    ModelCatalogStringFilterKey.PROVIDER,
-    ModelCatalogStringFilterKey.LICENSE,
-    ModelCatalogStringFilterKey.TASK,
-    ModelCatalogStringFilterKey.LANGUAGE,
-  ];
 
   return (
     <Stack hasGutter>
@@ -138,13 +134,26 @@ const ModelCatalogSourceLabelSelector: React.FC<ModelCatalogSourceLabelSelectorP
                   </ToolbarItem>
                 </ToolbarGroup>
               </ToolbarToggleGroup>
-              {onResetAllFilters && hasActiveFilters && (
+              {/* When toggle is OFF, show basic filter chips here. When toggle is ON, chips are shown in HardwareConfigurationFilterToolbar */}
+              {!performanceViewEnabled && onResetAllFilters && hasActiveFilters && (
                 <ModelCatalogActiveFilters filtersToShow={filtersToShow} />
               )}
             </Flex>
           </ToolbarContent>
         </Toolbar>
       </StackItem>
+      {performanceViewEnabled && (
+        <>
+          <StackItem>
+            <Content component="h2" className="pf-v6-u-font-weight-bold">
+              Workload and performance constraints
+            </Content>
+          </StackItem>
+          <StackItem>
+            <HardwareConfigurationFilterToolbar onResetAllFilters={onResetAllFilters} />
+          </StackItem>
+        </>
+      )}
       <StackItem>
         <ModelCatalogSourceLabelBlocks />
       </StackItem>

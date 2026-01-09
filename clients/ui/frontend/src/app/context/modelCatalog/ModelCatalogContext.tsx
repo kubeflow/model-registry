@@ -13,12 +13,20 @@ import {
   CatalogSourceList,
   CategoryName,
   ModelCatalogFilterStates,
+  NamedQuery,
 } from '~/app/modelCatalogTypes';
 import {
   ModelDetailsTab,
   ModelCatalogStringFilterKey,
   ModelCatalogNumberFilterKey,
+  ALL_LATENCY_FIELD_NAMES,
+  DEFAULT_PERFORMANCE_FILTERS_QUERY_NAME,
 } from '~/concepts/modelCatalog/const';
+import {
+  getSingleFilterDefault,
+  applyFilterValue,
+  getDefaultFiltersFromNamedQuery,
+} from '~/app/pages/modelCatalog/utils/performanceFilterUtils';
 import { BFF_API_VERSION, URL_PREFIX } from '~/app/utilities/const';
 
 export type ModelCatalogContextType = {
@@ -43,6 +51,13 @@ export type ModelCatalogContextType = {
   setPerformanceViewEnabled: (enabled: boolean) => void;
   performanceFiltersChangedOnDetailsPage: boolean;
   setPerformanceFiltersChangedOnDetailsPage: (changed: boolean) => void;
+  clearAllFilters: () => void;
+  clearBasicFiltersAndResetPerformanceToDefaults: () => void;
+  resetPerformanceFiltersToDefaults: () => void;
+  resetSinglePerformanceFilterToDefault: (filterKey: keyof ModelCatalogFilterStates) => void;
+  getPerformanceFilterDefaultValue: (
+    filterKey: keyof ModelCatalogFilterStates,
+  ) => string | number | string[] | undefined;
 };
 
 type ModelCatalogContextProviderProps = {
@@ -61,7 +76,7 @@ export const ModelCatalogContext = React.createContext<ModelCatalogContextType>(
     [ModelCatalogStringFilterKey.LANGUAGE]: [],
     [ModelCatalogStringFilterKey.HARDWARE_TYPE]: [],
     [ModelCatalogStringFilterKey.USE_CASE]: [],
-    [ModelCatalogNumberFilterKey.MIN_RPS]: undefined,
+    [ModelCatalogNumberFilterKey.MAX_RPS]: undefined,
   },
   updateSelectedSource: () => undefined,
   selectedSourceLabel: undefined,
@@ -77,6 +92,11 @@ export const ModelCatalogContext = React.createContext<ModelCatalogContextType>(
   setPerformanceViewEnabled: () => undefined,
   performanceFiltersChangedOnDetailsPage: false,
   setPerformanceFiltersChangedOnDetailsPage: () => undefined,
+  clearAllFilters: () => undefined,
+  clearBasicFiltersAndResetPerformanceToDefaults: () => undefined,
+  resetPerformanceFiltersToDefaults: () => undefined,
+  resetSinglePerformanceFilterToDefault: () => undefined,
+  getPerformanceFilterDefaultValue: () => undefined,
 });
 
 export const ModelCatalogContextProvider: React.FC<ModelCatalogContextProviderProps> = ({
@@ -96,7 +116,7 @@ export const ModelCatalogContextProvider: React.FC<ModelCatalogContextProviderPr
     [ModelCatalogStringFilterKey.LANGUAGE]: [],
     [ModelCatalogStringFilterKey.HARDWARE_TYPE]: [],
     [ModelCatalogStringFilterKey.USE_CASE]: [],
-    [ModelCatalogNumberFilterKey.MIN_RPS]: undefined,
+    [ModelCatalogNumberFilterKey.MAX_RPS]: undefined,
   });
   const [filterOptions, filterOptionsLoaded, filterOptionsLoadError] =
     useCatalogFilterOptionList(apiState);
@@ -110,12 +130,134 @@ export const ModelCatalogContextProvider: React.FC<ModelCatalogContextProviderPr
   const location = useLocation();
   const isOnDetailsPage = location.pathname.includes(ModelDetailsTab.PERFORMANCE_INSIGHTS);
 
-  const setPerformanceViewEnabled = React.useCallback((enabled: boolean) => {
-    setBasePerformanceViewEnabled(enabled);
-    if (!enabled) {
-      setPerformanceFiltersChangedOnDetailsPage(false);
+  /**
+   * Applies filter values from a named query to the filter state.
+   * Uses getDefaultFiltersFromNamedQuery to parse the namedQuery and applyFilterValue to set each filter.
+   */
+  const applyNamedQueryDefaults = React.useCallback(
+    (namedQuery: NamedQuery) => {
+      const defaults = getDefaultFiltersFromNamedQuery(filterOptions, namedQuery);
+      Object.entries(defaults).forEach(([filterKey, value]) => {
+        applyFilterValue(baseSetFilterData, filterKey, value);
+      });
+    },
+    [baseSetFilterData, filterOptions],
+  );
+
+  /**
+   * Clears all filters to their empty/undefined state.
+   * Used on the landing page "Reset all filters" button.
+   */
+  const clearAllFilters = React.useCallback(() => {
+    // Clear all string filters (arrays set to empty)
+    Object.values(ModelCatalogStringFilterKey).forEach((filterKey) => {
+      baseSetFilterData(filterKey, []);
+    });
+
+    // Clear all number filters (set to undefined)
+    Object.values(ModelCatalogNumberFilterKey).forEach((filterKey) => {
+      baseSetFilterData(filterKey, undefined);
+    });
+
+    // Clear all latency filters (set to undefined)
+    ALL_LATENCY_FIELD_NAMES.forEach((fieldName) => {
+      baseSetFilterData(fieldName, undefined);
+    });
+  }, [baseSetFilterData]);
+
+  /**
+   * Clears only performance filters to their empty/undefined state.
+   * Used on the details page where we don't want to affect basic filters.
+   */
+  const clearPerformanceFilters = React.useCallback(() => {
+    // Clear performance string filters
+    baseSetFilterData(ModelCatalogStringFilterKey.USE_CASE, []);
+    baseSetFilterData(ModelCatalogStringFilterKey.HARDWARE_TYPE, []);
+
+    // Clear performance number filters
+    baseSetFilterData(ModelCatalogNumberFilterKey.MAX_RPS, undefined);
+
+    // Clear all latency filters
+    ALL_LATENCY_FIELD_NAMES.forEach((fieldName) => {
+      baseSetFilterData(fieldName, undefined);
+    });
+  }, [baseSetFilterData]);
+
+  const setPerformanceViewEnabled = React.useCallback(
+    (enabled: boolean) => {
+      setBasePerformanceViewEnabled(enabled);
+      if (enabled) {
+        // Apply default performance filters from namedQueries if available
+        const defaultQuery = filterOptions?.namedQueries?.[DEFAULT_PERFORMANCE_FILTERS_QUERY_NAME];
+        if (defaultQuery) {
+          applyNamedQueryDefaults(defaultQuery);
+        }
+      } else {
+        // Clear performance-related filters when toggle is disabled
+        clearPerformanceFilters();
+        setPerformanceFiltersChangedOnDetailsPage(false);
+      }
+    },
+    [filterOptions?.namedQueries, applyNamedQueryDefaults, clearPerformanceFilters],
+  );
+
+  /**
+   * Resets performance filters then applies defaults from namedQueries.
+   * This is used by "Reset all filters" button on the details page.
+   */
+  const resetPerformanceFiltersToDefaults = React.useCallback(() => {
+    clearPerformanceFilters();
+
+    // Then apply performance defaults from namedQueries if available
+    const defaultQuery = filterOptions?.namedQueries?.[DEFAULT_PERFORMANCE_FILTERS_QUERY_NAME];
+    if (defaultQuery) {
+      applyNamedQueryDefaults(defaultQuery);
     }
-  }, []);
+  }, [clearPerformanceFilters, filterOptions?.namedQueries, applyNamedQueryDefaults]);
+
+  /**
+   * Clears basic filters (Task, Provider, License, Language) completely,
+   * and resets performance filters to their default values.
+   * This is used by "Reset all filters" on the landing page when performance view is enabled.
+   */
+  const clearBasicFiltersAndResetPerformanceToDefaults = React.useCallback(() => {
+    // Clear basic filters (non-performance string filters)
+    baseSetFilterData(ModelCatalogStringFilterKey.TASK, []);
+    baseSetFilterData(ModelCatalogStringFilterKey.PROVIDER, []);
+    baseSetFilterData(ModelCatalogStringFilterKey.LICENSE, []);
+    baseSetFilterData(ModelCatalogStringFilterKey.LANGUAGE, []);
+
+    // Reset performance filters to defaults (reuse existing function)
+    resetPerformanceFiltersToDefaults();
+  }, [baseSetFilterData, resetPerformanceFiltersToDefaults]);
+
+  /**
+   * Resets a single performance filter to its default value from namedQueries.
+   * Used when clicking the undo button on individual performance filter chips.
+   */
+  const resetSinglePerformanceFilterToDefault = React.useCallback(
+    (filterKey: keyof ModelCatalogFilterStates) => {
+      const { value } = getSingleFilterDefault(filterOptions, filterKey);
+      applyFilterValue(baseSetFilterData, filterKey, value);
+    },
+    [filterOptions, baseSetFilterData],
+  );
+
+  /**
+   * Gets the default value for a performance filter from namedQueries.
+   * Wrapper around the utility function that provides filterOptions from context.
+   */
+  const getDefaultValueForPerformanceFilter = React.useCallback(
+    (filterKey: keyof ModelCatalogFilterStates): string | number | string[] | undefined => {
+      const { value } = getSingleFilterDefault(filterOptions, filterKey);
+      // Return value - the type is already compatible
+      if (Array.isArray(value) || typeof value === 'string' || typeof value === 'number') {
+        return value;
+      }
+      return undefined;
+    },
+    [filterOptions],
+  );
 
   const setFilterData = React.useCallback(
     <K extends keyof ModelCatalogFilterStates>(key: K, value: ModelCatalogFilterStates[K]) => {
@@ -149,6 +291,11 @@ export const ModelCatalogContextProvider: React.FC<ModelCatalogContextProviderPr
       setPerformanceViewEnabled,
       performanceFiltersChangedOnDetailsPage,
       setPerformanceFiltersChangedOnDetailsPage,
+      clearAllFilters,
+      clearBasicFiltersAndResetPerformanceToDefaults,
+      resetPerformanceFiltersToDefaults,
+      resetSinglePerformanceFilterToDefault,
+      getPerformanceFilterDefaultValue: getDefaultValueForPerformanceFilter,
     }),
     [
       catalogSourcesLoaded,
@@ -167,6 +314,11 @@ export const ModelCatalogContextProvider: React.FC<ModelCatalogContextProviderPr
       setPerformanceViewEnabled,
       performanceFiltersChangedOnDetailsPage,
       setPerformanceFiltersChangedOnDetailsPage,
+      clearAllFilters,
+      clearBasicFiltersAndResetPerformanceToDefaults,
+      resetPerformanceFiltersToDefaults,
+      resetSinglePerformanceFilterToDefault,
+      getDefaultValueForPerformanceFilter,
     ],
   );
 

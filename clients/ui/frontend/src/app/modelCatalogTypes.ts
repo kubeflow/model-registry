@@ -7,6 +7,7 @@ import {
   ModelCatalogStringFilterKey,
   ModelCatalogNumberFilterKey,
   LatencyMetricFieldName,
+  LatencyPropertyKey,
   UseCaseOptionValue,
   ModelCatalogFilterKey,
 } from '~/concepts/modelCatalog/const';
@@ -113,7 +114,7 @@ export type PerformanceMetricsCustomProperties = {
   // Computed properties when targetRPS is provided
   replicas?: ModelRegistryCustomPropertyInt;
   total_requests_per_second?: ModelRegistryCustomPropertyDouble;
-} & Partial<Record<LatencyMetricFieldName, ModelRegistryCustomPropertyDouble>>;
+} & Partial<Record<LatencyPropertyKey, ModelRegistryCustomPropertyDouble>>;
 
 export type AccuracyMetricsCustomProperties = {
   // overall_average?: ModelRegistryCustomPropertyDouble; // NOTE: overall_average is currently omitted from the API and will be restored
@@ -239,7 +240,6 @@ export type ModelCatalogStringFilterOptions = {
 export type CatalogFilterOptions = ModelCatalogStringFilterOptions & {
   [key in ModelCatalogNumberFilterKey]?: CatalogFilterNumberOption;
 } & {
-  // Allow additional latency metric field names
   [key in LatencyMetricFieldName]?: CatalogFilterNumberOption;
 };
 

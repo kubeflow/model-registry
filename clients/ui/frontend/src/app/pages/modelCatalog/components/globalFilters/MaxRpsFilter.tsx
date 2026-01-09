@@ -9,7 +9,7 @@ import {
   Popover,
 } from '@patternfly/react-core';
 import { HelpIcon } from '@patternfly/react-icons';
-import { ModelCatalogNumberFilterKey } from '~/concepts/modelCatalog/const';
+import { ModelCatalogNumberFilterKey, PerformancePropertyKey } from '~/concepts/modelCatalog/const';
 import { useCatalogNumberFilterState } from '~/app/pages/modelCatalog/utils/modelCatalogUtils';
 import { CatalogPerformanceMetricsArtifact } from '~/app/modelCatalogTypes';
 import { getDoubleValue } from '~/app/utils';
@@ -18,33 +18,44 @@ import {
   FALLBACK_RPS_RANGE,
   SliderRange,
 } from '~/app/pages/modelCatalog/utils/performanceMetricsUtils';
+import { ModelCatalogContext } from '~/app/context/modelCatalog/ModelCatalogContext';
 import SliderWithInput from './SliderWithInput';
 
-const filterKey = ModelCatalogNumberFilterKey.MIN_RPS;
+const filterKey = ModelCatalogNumberFilterKey.MAX_RPS;
 
-type MinRpsFilterProps = {
+type MaxRpsFilterProps = {
   performanceArtifacts: CatalogPerformanceMetricsArtifact[];
 };
 
-const MinRpsFilter: React.FC<MinRpsFilterProps> = ({ performanceArtifacts }) => {
+const MaxRpsFilter: React.FC<MaxRpsFilterProps> = ({ performanceArtifacts }) => {
   const { value: rpsFilterValue, setValue: setRpsFilterValue } =
     useCatalogNumberFilterState(filterKey);
+  const { filterOptions } = React.useContext(ModelCatalogContext);
   const [isOpen, setIsOpen] = React.useState(false);
 
-  const { minValue, maxValue, isSliderDisabled } = React.useMemo(
-    (): SliderRange =>
-      getSliderRange({
+  const { minValue, maxValue, isSliderDisabled } = React.useMemo((): SliderRange => {
+    // First try to get range from performance artifacts
+    if (performanceArtifacts.length > 0) {
+      return getSliderRange({
         performanceArtifacts,
         getArtifactFilterValue: (artifact) =>
-          getDoubleValue(artifact.customProperties, 'requests_per_second'),
+          getDoubleValue(artifact.customProperties, PerformancePropertyKey.REQUESTS_PER_SECOND),
         fallbackRange: FALLBACK_RPS_RANGE,
-      }),
-    [performanceArtifacts],
-  );
+      });
+    }
+    // Fall back to filterOptions from context
+    const filterValue = filterOptions?.filters?.[ModelCatalogNumberFilterKey.MAX_RPS];
+    if (filterValue && 'range' in filterValue && filterValue.range) {
+      return {
+        minValue: filterValue.range.min ?? FALLBACK_RPS_RANGE.minValue,
+        maxValue: filterValue.range.max ?? FALLBACK_RPS_RANGE.maxValue,
+        isSliderDisabled: false,
+      };
+    }
+    return FALLBACK_RPS_RANGE;
+  }, [performanceArtifacts, filterOptions]);
 
-  const [localValue, setLocalValue] = React.useState<number>(
-    () => rpsFilterValue ?? FALLBACK_RPS_RANGE.minValue,
-  );
+  const [localValue, setLocalValue] = React.useState<number>(() => rpsFilterValue ?? maxValue);
 
   const clampedValue = React.useMemo(
     () => Math.min(Math.max(localValue, minValue), maxValue),
@@ -53,9 +64,9 @@ const MinRpsFilter: React.FC<MinRpsFilterProps> = ({ performanceArtifacts }) => 
 
   React.useEffect(() => {
     if (isOpen) {
-      setLocalValue(rpsFilterValue ?? minValue);
+      setLocalValue(rpsFilterValue ?? maxValue);
     }
-  }, [isOpen, rpsFilterValue, minValue]);
+  }, [isOpen, rpsFilterValue, maxValue]);
 
   const hasActiveFilter = rpsFilterValue !== undefined;
 
@@ -63,11 +74,11 @@ const MinRpsFilter: React.FC<MinRpsFilterProps> = ({ performanceArtifacts }) => 
     if (hasActiveFilter) {
       return (
         <>
-          <strong>Min RPS:</strong> {rpsFilterValue}
+          <strong>Max RPS:</strong> {rpsFilterValue}
         </>
       );
     }
-    return 'Min RPS';
+    return 'Max RPS';
   };
 
   const handleApplyFilter = () => {
@@ -77,15 +88,17 @@ const MinRpsFilter: React.FC<MinRpsFilterProps> = ({ performanceArtifacts }) => 
 
   const handleReset = () => {
     setRpsFilterValue(undefined);
-    setLocalValue(minValue);
+    setLocalValue(maxValue);
   };
 
   const toggle = (toggleRef: React.Ref<MenuToggleElement>) => (
     <MenuToggle
       ref={toggleRef}
+      data-testid="max-rps-filter"
       onClick={() => setIsOpen(!isOpen)}
       isExpanded={isOpen}
-      style={{ minWidth: '200px', width: 'fit-content' }}
+      isFullHeight
+      style={{ minWidth: '200px', width: 'fit-content', height: '56px' }}
     >
       {getDisplayText()}
     </MenuToggle>
@@ -100,15 +113,15 @@ const MinRpsFilter: React.FC<MinRpsFilterProps> = ({ performanceArtifacts }) => 
     >
       <FlexItem>
         <Flex alignItems={{ default: 'alignItemsCenter' }} spaceItems={{ default: 'spaceItemsXs' }}>
-          <FlexItem>Min requests per second (RPS)</FlexItem>
+          <FlexItem>Max requests per second (RPS)</FlexItem>
           <FlexItem>
             <Popover
-              bodyContent="Only show models that can handle at least this many requests per second (RPS). Hardware configurations performing below this value will be hidden."
+              bodyContent="Set the maximum requests per second (RPS) target. This will be used to filter hardware configurations that can meet your throughput requirements."
               appendTo={() => document.body}
             >
               <Button
                 variant="plain"
-                aria-label="More info for min RPS"
+                aria-label="More info for max RPS"
                 className="pf-v6-u-p-xs"
                 onClick={(e) => e.stopPropagation()}
                 icon={<HelpIcon />}
@@ -131,12 +144,17 @@ const MinRpsFilter: React.FC<MinRpsFilterProps> = ({ performanceArtifacts }) => 
       <FlexItem>
         <Flex spaceItems={{ default: 'spaceItemsSm' }}>
           <FlexItem>
-            <Button variant="primary" onClick={handleApplyFilter} isDisabled={isSliderDisabled}>
+            <Button
+              variant="primary"
+              onClick={handleApplyFilter}
+              isDisabled={isSliderDisabled}
+              data-testid="max-rps-apply-filter"
+            >
               Apply filter
             </Button>
           </FlexItem>
           <FlexItem>
-            <Button variant="link" onClick={handleReset}>
+            <Button variant="link" onClick={handleReset} data-testid="max-rps-reset-filter">
               Reset
             </Button>
           </FlexItem>
@@ -157,4 +175,4 @@ const MinRpsFilter: React.FC<MinRpsFilterProps> = ({ performanceArtifacts }) => 
   );
 };
 
-export default MinRpsFilter;
+export default MaxRpsFilter;
