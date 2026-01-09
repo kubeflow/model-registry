@@ -100,7 +100,7 @@ const ModelDetailsTabs = ({
           data-testid="performance-insights-tab-content"
           padding={{ default: 'noPadding' }}
         >
-          <PerformanceInsightsView />
+          <PerformanceInsightsView model={model} />
         </PageSection>
       </Tab>
     </Tabs>

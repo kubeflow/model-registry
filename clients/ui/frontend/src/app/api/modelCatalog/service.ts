@@ -26,16 +26,19 @@ export const getCatalogModelsBySource =
     searchKeyword?: string,
     filterData?: ModelCatalogFilterStates,
     filterOptions?: CatalogFilterOptionsList | null,
+    filterQuery?: string,
   ): Promise<CatalogModelList> => {
-    const filterQuery =
-      filterData && filterOptions ? filtersToFilterQuery(filterData, filterOptions) : '';
+    const computedFilterQuery =
+      filterQuery ??
+      (filterData && filterOptions ? filtersToFilterQuery(filterData, filterOptions) : '');
+
     const allParams = {
       source: sourceId,
       sourceLabel,
       ...paginationParams,
       ...(searchKeyword && { q: searchKeyword }),
       ...queryParams,
-      ...(filterQuery && { filterQuery }),
+      ...(computedFilterQuery && { filterQuery: computedFilterQuery }),
     };
     return handleRestFailures(restGET(hostPath, '/models', allParams, opts)).then((response) => {
       if (isModArchResponse<CatalogModelList>(response)) {

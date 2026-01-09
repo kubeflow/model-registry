@@ -24,6 +24,7 @@ import {
   getUniqueSourceLabels,
   hasSourcesWithoutLabels,
   hasFiltersApplied,
+  getModelName,
 } from '~/app/pages/modelCatalog/utils/modelCatalogUtils';
 
 // TODO: Implement performance filters.
@@ -823,5 +824,47 @@ describe('hasFiltersApplied', () => {
       });
       expect(hasFiltersApplied(filterData, [])).toBe(false);
     });
+  });
+});
+
+describe('getModelName', () => {
+  it('should return the part after the slash when model name contains a slash', () => {
+    const result = getModelName('repo1/granite-8b-code-instruct');
+    expect(result).toBe('granite-8b-code-instruct');
+  });
+
+  it('should return the original name when no slash is present', () => {
+    const result = getModelName('granite-8b-code-instruct');
+    expect(result).toBe('granite-8b-code-instruct');
+  });
+
+  it('should return empty string when given an empty string', () => {
+    const result = getModelName('');
+    expect(result).toBe('');
+  });
+
+  it('should handle multiple slashes and return everything after the first slash', () => {
+    const result = getModelName('org/repo/model-name');
+    expect(result).toBe('repo/model-name');
+  });
+
+  it('should return empty string when model name ends with a slash', () => {
+    const result = getModelName('repo/');
+    expect(result).toBe('');
+  });
+
+  it('should return the part after slash when model name starts with a slash', () => {
+    const result = getModelName('/model-name');
+    expect(result).toBe('model-name');
+  });
+
+  it('should handle model names with special characters', () => {
+    const result = getModelName('repo1/granite-8b-code-instruct-quantized.w4a16');
+    expect(result).toBe('granite-8b-code-instruct-quantized.w4a16');
+  });
+
+  it('should handle model names with hyphens and underscores', () => {
+    const result = getModelName('my_org/my-model_v1');
+    expect(result).toBe('my-model_v1');
   });
 });
