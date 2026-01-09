@@ -156,7 +156,8 @@ const ManageSourceForm: React.FC<ManageSourceFormProps> = ({
   ) => {
     const { loadMore = false, switchToTab } = options ?? {};
     const isFreshPreview = !loadMore && !switchToTab;
-    const targetTab = switchToTab ?? previewState.activeTab;
+    // For fresh preview, always start with 'included' tab
+    const targetTab = isFreshPreview ? 'included' : (switchToTab ?? previewState.activeTab);
 
     if (!apiState.apiAvailable) {
       setPreviewState((prev) => ({
