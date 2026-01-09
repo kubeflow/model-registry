@@ -4,7 +4,12 @@ import { userEvent } from '@testing-library/user-event';
 import '@testing-library/jest-dom';
 
 import { CatalogSourcePreviewModel, CatalogSourcePreviewSummary } from '~/app/modelCatalogTypes';
-import PreviewPanel, { PreviewTab } from '~/app/pages/modelCatalogSettings/components/PreviewPanel';
+import PreviewPanel from '~/app/pages/modelCatalogSettings/components/PreviewPanel';
+import {
+  UseSourcePreviewResult,
+  PreviewState,
+  PreviewTab,
+} from '~/app/pages/modelCatalogSettings/useSourcePreview';
 
 const mockSummary: CatalogSourcePreviewSummary = {
   totalModels: 20,
@@ -23,20 +28,38 @@ const mockExcludedItems: CatalogSourcePreviewModel[] = [
   { name: 'excluded-model-2', included: false },
 ];
 
-const defaultProps = {
-  isPreviewEnabled: true,
+const createMockPreviewState = (overrides: Partial<PreviewState> = {}): PreviewState => ({
+  mode: 'preview',
   isLoadingInitial: false,
-  onPreview: jest.fn(),
-  previewError: undefined,
-  hasFormChanged: false,
-  activeTab: PreviewTab.INCLUDED,
-  items: mockIncludedItems,
-  summary: mockSummary,
-  hasMore: false,
   isLoadingMore: false,
-  onTabChange: jest.fn(),
-  onLoadMore: jest.fn(),
-};
+  summary: mockSummary,
+  tabStates: {
+    [PreviewTab.INCLUDED]: { items: mockIncludedItems, hasMore: false },
+    [PreviewTab.EXCLUDED]: { items: mockExcludedItems, hasMore: false },
+  },
+  error: undefined,
+  resultDismissed: false,
+  activeTab: PreviewTab.INCLUDED,
+  ...overrides,
+});
+
+const createMockPreview = (
+  overrides: Partial<UseSourcePreviewResult> = {},
+  stateOverrides: Partial<PreviewState> = {},
+): UseSourcePreviewResult => ({
+  previewState: createMockPreviewState(stateOverrides),
+  handlePreview: jest.fn(),
+  handleTabChange: jest.fn(),
+  handleLoadMore: jest.fn(),
+  handleValidate: jest.fn(),
+  clearValidationSuccess: jest.fn(),
+  hasFormChanged: false,
+  isValidating: false,
+  validationError: undefined,
+  isValidationSuccess: false,
+  canPreview: true,
+  ...overrides,
+});
 
 describe('PreviewPanel', () => {
   beforeEach(() => {
@@ -44,7 +67,17 @@ describe('PreviewPanel', () => {
   });
 
   it('renders empty state when no items and no summary', () => {
-    render(<PreviewPanel {...defaultProps} items={[]} summary={undefined} />);
+    const preview = createMockPreview(
+      {},
+      {
+        summary: undefined,
+        tabStates: {
+          [PreviewTab.INCLUDED]: { items: [], hasMore: false },
+          [PreviewTab.EXCLUDED]: { items: [], hasMore: false },
+        },
+      },
+    );
+    render(<PreviewPanel preview={preview} />);
 
     expect(screen.getByText('Preview models')).toBeInTheDocument();
     expect(
@@ -53,14 +86,34 @@ describe('PreviewPanel', () => {
   });
 
   it('renders loading spinner when isLoadingInitial is true', () => {
-    render(<PreviewPanel {...defaultProps} isLoadingInitial items={[]} />);
+    const preview = createMockPreview(
+      {},
+      {
+        isLoadingInitial: true,
+        tabStates: {
+          [PreviewTab.INCLUDED]: { items: [], hasMore: false },
+          [PreviewTab.EXCLUDED]: { items: [], hasMore: false },
+        },
+      },
+    );
+    render(<PreviewPanel preview={preview} />);
 
     expect(screen.getByLabelText('Loading preview')).toBeInTheDocument();
   });
 
   it('renders error state with retry button when previewError exists', () => {
-    const error = new Error('Failed to fetch preview');
-    render(<PreviewPanel {...defaultProps} previewError={error} items={[]} />);
+    const preview = createMockPreview(
+      {},
+      {
+        error: new Error('Failed to fetch preview'),
+        mode: 'preview',
+        tabStates: {
+          [PreviewTab.INCLUDED]: { items: [], hasMore: false },
+          [PreviewTab.EXCLUDED]: { items: [], hasMore: false },
+        },
+      },
+    );
+    render(<PreviewPanel preview={preview} />);
 
     expect(screen.getByText('Failed to preview the results')).toBeInTheDocument();
     expect(screen.getByText('Failed to fetch preview')).toBeInTheDocument();
@@ -68,68 +121,100 @@ describe('PreviewPanel', () => {
   });
 
   it('renders tabs for included/excluded models', () => {
-    render(<PreviewPanel {...defaultProps} />);
+    const preview = createMockPreview();
+    render(<PreviewPanel preview={preview} />);
 
     expect(screen.getByText('Models included')).toBeInTheDocument();
     expect(screen.getByText('Models excluded')).toBeInTheDocument();
   });
 
-  it('calls onTabChange when switching tabs', async () => {
+  it('calls handleTabChange when switching tabs', async () => {
     const user = userEvent.setup();
-    const onTabChange = jest.fn();
+    const handleTabChange = jest.fn();
+    const preview = createMockPreview({ handleTabChange });
 
-    render(<PreviewPanel {...defaultProps} onTabChange={onTabChange} />);
+    render(<PreviewPanel preview={preview} />);
 
     await user.click(screen.getByText('Models excluded'));
 
-    expect(onTabChange).toHaveBeenCalledWith(PreviewTab.EXCLUDED);
+    expect(handleTabChange).toHaveBeenCalledWith(PreviewTab.EXCLUDED);
   });
 
   it('displays correct count text for included tab', () => {
-    render(<PreviewPanel {...defaultProps} activeTab={PreviewTab.INCLUDED} />);
+    const preview = createMockPreview({}, { activeTab: PreviewTab.INCLUDED });
+    render(<PreviewPanel preview={preview} />);
 
     expect(screen.getByText('15 of 20 models included:')).toBeInTheDocument();
   });
 
   it('displays correct count text for excluded tab', () => {
-    render(
-      <PreviewPanel {...defaultProps} activeTab={PreviewTab.EXCLUDED} items={mockExcludedItems} />,
-    );
+    const preview = createMockPreview({}, { activeTab: PreviewTab.EXCLUDED });
+    render(<PreviewPanel preview={preview} />);
 
     expect(screen.getByText('5 of 20 models excluded:')).toBeInTheDocument();
   });
 
   it('renders Load more button when hasMore is true', () => {
-    render(<PreviewPanel {...defaultProps} hasMore />);
+    const preview = createMockPreview(
+      {},
+      {
+        tabStates: {
+          [PreviewTab.INCLUDED]: { items: mockIncludedItems, hasMore: true },
+          [PreviewTab.EXCLUDED]: { items: mockExcludedItems, hasMore: false },
+        },
+      },
+    );
+    render(<PreviewPanel preview={preview} />);
 
     expect(screen.getByText('Load more')).toBeInTheDocument();
   });
 
   it('does not render Load more button when hasMore is false', () => {
-    render(<PreviewPanel {...defaultProps} hasMore={false} />);
+    const preview = createMockPreview();
+    render(<PreviewPanel preview={preview} />);
 
     expect(screen.queryByText('Load more')).not.toBeInTheDocument();
   });
 
-  it('calls onLoadMore when Load more button clicked', async () => {
+  it('calls handleLoadMore when Load more button clicked', async () => {
     const user = userEvent.setup();
-    const onLoadMore = jest.fn();
+    const handleLoadMore = jest.fn();
+    const preview = createMockPreview(
+      { handleLoadMore },
+      {
+        tabStates: {
+          [PreviewTab.INCLUDED]: { items: mockIncludedItems, hasMore: true },
+          [PreviewTab.EXCLUDED]: { items: mockExcludedItems, hasMore: false },
+        },
+      },
+    );
 
-    render(<PreviewPanel {...defaultProps} hasMore onLoadMore={onLoadMore} />);
+    render(<PreviewPanel preview={preview} />);
 
     await user.click(screen.getByText('Load more'));
 
-    expect(onLoadMore).toHaveBeenCalled();
+    expect(handleLoadMore).toHaveBeenCalled();
   });
 
   it('shows loading state on Load more button when isLoadingMore is true', () => {
-    render(<PreviewPanel {...defaultProps} hasMore isLoadingMore />);
+    const preview = createMockPreview(
+      {},
+      {
+        isLoadingMore: true,
+        tabStates: {
+          [PreviewTab.INCLUDED]: { items: mockIncludedItems, hasMore: true },
+          [PreviewTab.EXCLUDED]: { items: mockExcludedItems, hasMore: false },
+        },
+      },
+    );
+    render(<PreviewPanel preview={preview} />);
 
     expect(screen.getByText('Loading...')).toBeInTheDocument();
   });
 
   it('shows refresh alert when hasFormChanged is true', () => {
-    render(<PreviewPanel {...defaultProps} hasFormChanged />);
+    const preview = createMockPreview({ hasFormChanged: true });
+    render(<PreviewPanel preview={preview} />);
 
     expect(
       screen.getByText('The preview needs to be refreshed after any changes are made'),
@@ -137,40 +222,49 @@ describe('PreviewPanel', () => {
     expect(screen.getByTestId('refresh-preview-link')).toBeInTheDocument();
   });
 
-  it('calls onPreview when refresh link clicked', async () => {
+  it('calls handlePreview when refresh link clicked', async () => {
     const user = userEvent.setup();
-    const onPreview = jest.fn();
+    const handlePreview = jest.fn();
+    const preview = createMockPreview({ handlePreview, hasFormChanged: true });
 
-    render(<PreviewPanel {...defaultProps} hasFormChanged onPreview={onPreview} />);
+    render(<PreviewPanel preview={preview} />);
 
     await user.click(screen.getByTestId('refresh-preview-link'));
 
-    expect(onPreview).toHaveBeenCalled();
+    expect(handlePreview).toHaveBeenCalledWith('preview');
   });
 
   it('renders empty state for included tab with no items but with summary', () => {
-    render(
-      <PreviewPanel
-        {...defaultProps}
-        items={[]}
-        summary={{ ...mockSummary, includedModels: 0 }}
-        activeTab={PreviewTab.INCLUDED}
-      />,
+    const preview = createMockPreview(
+      {},
+      {
+        activeTab: PreviewTab.INCLUDED,
+        summary: { ...mockSummary, includedModels: 0 },
+        tabStates: {
+          [PreviewTab.INCLUDED]: { items: [], hasMore: false },
+          [PreviewTab.EXCLUDED]: { items: mockExcludedItems, hasMore: false },
+        },
+      },
     );
+    render(<PreviewPanel preview={preview} />);
 
     expect(screen.getByText('No models included')).toBeInTheDocument();
     expect(screen.getByText('No models from this source match this filter')).toBeInTheDocument();
   });
 
   it('renders empty state for excluded tab with no items', () => {
-    render(
-      <PreviewPanel
-        {...defaultProps}
-        items={[]}
-        summary={{ ...mockSummary, excludedModels: 0 }}
-        activeTab={PreviewTab.EXCLUDED}
-      />,
+    const preview = createMockPreview(
+      {},
+      {
+        activeTab: PreviewTab.EXCLUDED,
+        summary: { ...mockSummary, excludedModels: 0 },
+        tabStates: {
+          [PreviewTab.INCLUDED]: { items: mockIncludedItems, hasMore: false },
+          [PreviewTab.EXCLUDED]: { items: [], hasMore: false },
+        },
+      },
     );
+    render(<PreviewPanel preview={preview} />);
 
     expect(screen.getByText('No models excluded')).toBeInTheDocument();
     expect(
@@ -179,17 +273,26 @@ describe('PreviewPanel', () => {
   });
 
   it('renders model items in list', () => {
-    render(<PreviewPanel {...defaultProps} />);
+    const preview = createMockPreview();
+    render(<PreviewPanel preview={preview} />);
 
     expect(screen.getByText('model-1')).toBeInTheDocument();
     expect(screen.getByText('model-2')).toBeInTheDocument();
     expect(screen.getByText('model-3')).toBeInTheDocument();
   });
 
-  it('disables preview button when isPreviewEnabled is false', () => {
-    render(
-      <PreviewPanel {...defaultProps} isPreviewEnabled={false} items={[]} summary={undefined} />,
+  it('disables preview button when canPreview is false', () => {
+    const preview = createMockPreview(
+      { canPreview: false },
+      {
+        summary: undefined,
+        tabStates: {
+          [PreviewTab.INCLUDED]: { items: [], hasMore: false },
+          [PreviewTab.EXCLUDED]: { items: [], hasMore: false },
+        },
+      },
     );
+    render(<PreviewPanel preview={preview} />);
 
     const previewButton = screen.getByTestId('preview-button-panel');
     expect(previewButton).toBeDisabled();

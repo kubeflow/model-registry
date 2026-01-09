@@ -49,17 +49,7 @@ const ManageSourceForm: React.FC<ManageSourceFormProps> = ({
   const { apiState, refreshCatalogSourceConfigs } = React.useContext(ModelCatalogSettingsContext);
 
   // Use the preview hook
-  const {
-    previewState,
-    handlePreview,
-    handleTabChange,
-    handleLoadMore,
-    handleValidate,
-    clearValidationSuccess,
-    hasFormChanged,
-    isValidationSuccess,
-    canPreview,
-  } = useSourcePreview({
+  const preview = useSourcePreview({
     formData,
     existingSourceConfig,
     apiState,
@@ -119,13 +109,11 @@ const ManageSourceForm: React.FC<ManageSourceFormProps> = ({
                   <CredentialsSection
                     formData={formData}
                     setData={setData}
-                    onValidate={handleValidate}
-                    isValidating={previewState.mode === 'validate' && previewState.isLoadingInitial}
-                    validationError={
-                      previewState.mode === 'validate' ? previewState.error : undefined
-                    }
-                    isValidationSuccess={isValidationSuccess}
-                    onClearValidationSuccess={clearValidationSuccess}
+                    onValidate={preview.handleValidate}
+                    isValidating={preview.isValidating}
+                    validationError={preview.validationError}
+                    isValidationSuccess={preview.isValidationSuccess}
+                    onClearValidationSuccess={preview.clearValidationSuccess}
                   />
                 </StackItem>
               )}
@@ -171,20 +159,7 @@ const ManageSourceForm: React.FC<ManageSourceFormProps> = ({
           </Form>
         </SidebarContent>
         <SidebarPanel width={{ default: 'width_50' }}>
-          <PreviewPanel
-            isPreviewEnabled={canPreview}
-            isLoadingInitial={previewState.isLoadingInitial}
-            onPreview={() => handlePreview('preview')}
-            previewError={previewState.mode === 'preview' ? previewState.error : undefined}
-            hasFormChanged={hasFormChanged}
-            activeTab={previewState.activeTab}
-            items={previewState.tabStates[previewState.activeTab].items}
-            summary={previewState.summary}
-            hasMore={previewState.tabStates[previewState.activeTab].hasMore}
-            isLoadingMore={previewState.isLoadingMore}
-            onTabChange={handleTabChange}
-            onLoadMore={handleLoadMore}
-          />
+          <PreviewPanel preview={preview} />
         </SidebarPanel>
       </Sidebar>
       <ManageSourceFormFooter
@@ -194,9 +169,9 @@ const ManageSourceForm: React.FC<ManageSourceFormProps> = ({
         isSubmitting={isSubmitting}
         onSubmit={handleSubmit}
         onCancel={handleCancel}
-        isPreviewDisabled={!canPreview}
-        isPreviewLoading={previewState.isLoadingInitial}
-        onPreview={() => handlePreview('preview')}
+        isPreviewDisabled={!preview.canPreview}
+        isPreviewLoading={preview.previewState.isLoadingInitial}
+        onPreview={() => preview.handlePreview('preview')}
       />
     </>
   );

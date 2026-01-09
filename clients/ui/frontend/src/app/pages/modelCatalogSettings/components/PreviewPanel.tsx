@@ -20,45 +20,36 @@ import {
 } from '@patternfly/react-core';
 import { CubesIcon, CheckCircleIcon, TimesCircleIcon } from '@patternfly/react-icons';
 import { PAGE_TITLES } from '~/app/pages/modelCatalogSettings/constants';
-import { CatalogSourcePreviewModel, CatalogSourcePreviewSummary } from '~/app/modelCatalogTypes';
+import {
+  UseSourcePreviewResult,
+  PreviewTab,
+} from '~/app/pages/modelCatalogSettings/useSourcePreview';
 import PreviewButton from './PreviewButton';
 
-export enum PreviewTab {
-  INCLUDED = 'included',
-  EXCLUDED = 'excluded',
-}
-
 type PreviewPanelProps = {
-  isPreviewEnabled: boolean;
-  isLoadingInitial: boolean;
-  onPreview: () => void;
-  previewError?: Error;
-  hasFormChanged: boolean;
-  activeTab: PreviewTab;
-  items: CatalogSourcePreviewModel[];
-  summary?: CatalogSourcePreviewSummary;
-  hasMore: boolean;
-  isLoadingMore: boolean;
-  onTabChange: (tab: PreviewTab) => void;
-  onLoadMore: () => void;
+  preview: UseSourcePreviewResult;
 };
 
-const PreviewPanel: React.FC<PreviewPanelProps> = ({
-  isPreviewEnabled,
-  isLoadingInitial,
-  onPreview,
-  previewError,
-  hasFormChanged,
-  activeTab,
-  items,
-  summary,
-  hasMore,
-  isLoadingMore,
-  onTabChange,
-  onLoadMore,
-}) => {
+const PreviewPanel: React.FC<PreviewPanelProps> = ({ preview }) => {
+  // Derive values from preview
+  const {
+    previewState,
+    handlePreview,
+    handleTabChange,
+    handleLoadMore,
+    hasFormChanged,
+    canPreview,
+  } = preview;
+  const { isLoadingInitial, isLoadingMore, activeTab, summary, tabStates, error, mode } =
+    previewState;
+  const { items, hasMore } = tabStates[activeTab];
+  const previewError = mode === 'preview' ? error : undefined;
+
+  const onPreview = () => handlePreview('preview');
+  const onLoadMore = () => handleLoadMore();
+
   const handleTabSelect = (_event: React.MouseEvent, tabIndex: string | number) => {
-    onTabChange(tabIndex === 0 ? PreviewTab.INCLUDED : PreviewTab.EXCLUDED);
+    handleTabChange(tabIndex === 0 ? PreviewTab.INCLUDED : PreviewTab.EXCLUDED);
   };
 
   const renderEmptyState = () => {
@@ -74,7 +65,7 @@ const PreviewPanel: React.FC<PreviewPanelProps> = ({
             <EmptyStateActions>
               <PreviewButton
                 onClick={onPreview}
-                isDisabled={!isPreviewEnabled}
+                isDisabled={!canPreview}
                 isLoading={isLoadingInitial}
                 variant="link"
                 testId="preview-button-panel-retry"
@@ -99,7 +90,7 @@ const PreviewPanel: React.FC<PreviewPanelProps> = ({
           <EmptyStateActions>
             <PreviewButton
               onClick={onPreview}
-              isDisabled={!isPreviewEnabled}
+              isDisabled={!canPreview}
               isLoading={isLoadingInitial}
               variant="link"
               testId="preview-button-panel"
@@ -216,7 +207,7 @@ const PreviewPanel: React.FC<PreviewPanelProps> = ({
         <FlexItem>
           <PreviewButton
             onClick={onPreview}
-            isDisabled={!isPreviewEnabled}
+            isDisabled={!canPreview}
             isLoading={isLoadingInitial}
             variant="secondary"
             testId="preview-button-header"

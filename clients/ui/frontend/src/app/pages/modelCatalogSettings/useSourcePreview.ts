@@ -10,7 +10,11 @@ import {
 } from '~/app/modelCatalogTypes';
 import { ModelCatalogSettingsAPIState } from '~/app/hooks/modelCatalogSettings/useModelCatalogSettingsAPIState';
 import { ManageSourceFormData } from './useManageSourceData';
-import { PreviewTab } from './components/PreviewPanel';
+
+export enum PreviewTab {
+  INCLUDED = 'included',
+  EXCLUDED = 'excluded',
+}
 
 export type PreviewTabState = {
   items: CatalogSourcePreviewModel[];
@@ -56,6 +60,8 @@ export interface UseSourcePreviewResult {
 
   // Derived
   hasFormChanged: boolean;
+  isValidating: boolean;
+  validationError?: Error;
   isValidationSuccess: boolean;
   canPreview: boolean;
 }
@@ -112,7 +118,9 @@ export const useSourcePreview = ({
     return JSON.stringify(currentRequest) !== JSON.stringify(previewState.lastPreviewedData);
   }, [buildPreviewRequest, previewState.lastPreviewedData]);
 
-  // Derive validation success state
+  // Derive validation states
+  const isValidating = previewState.mode === 'validate' && previewState.isLoadingInitial;
+  const validationError = previewState.mode === 'validate' ? previewState.error : undefined;
   const isValidationSuccess =
     previewState.mode === 'validate' &&
     !previewState.isLoadingInitial &&
@@ -285,6 +293,8 @@ export const useSourcePreview = ({
     handleValidate,
     clearValidationSuccess,
     hasFormChanged,
+    isValidating,
+    validationError,
     isValidationSuccess,
     canPreview,
   };
