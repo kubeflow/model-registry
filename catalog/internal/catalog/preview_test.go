@@ -142,12 +142,22 @@ includedModels:
 			configYAML: `
 type: yaml
 includedModels:
+  - "Granite/model-2"
+excludedModels:
+  - "Granite/model-2"
+`,
+			expectError: false,
+		},
+		{
+			name: "conflicting pattern in both include and exclude, with wildcard",
+			configYAML: `
+type: yaml
+includedModels:
   - "Granite/*"
 excludedModels:
   - "Granite/*"
 `,
-			expectError: true,
-			errorMsg:    "defined in both includedModels",
+			expectError: false,
 		},
 	}
 
