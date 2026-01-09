@@ -19,10 +19,14 @@ import { CatalogModel, CatalogSource } from '~/app/modelCatalogTypes';
 import {
   extractValidatedModelMetrics,
   getLatencyValue,
-  getLatencyLabel,
 } from '~/app/pages/modelCatalog/utils/validatedModelUtils';
 import { catalogModelDetailsTabFromModel } from '~/app/routes/modelCatalog/catalogModel';
-import { ModelDetailsTab, ModelCatalogNumberFilterKey } from '~/concepts/modelCatalog/const';
+import {
+  ModelDetailsTab,
+  ModelCatalogNumberFilterKey,
+  LatencyMetric,
+} from '~/concepts/modelCatalog/const';
+import { parseLatencyFieldName } from '~/app/pages/modelCatalog/utils/hardwareConfigurationFilterUtils';
 import { useCatalogPerformanceArtifacts } from '~/app/hooks/modelCatalog/useCatalogPerformanceArtifacts';
 import { getActiveLatencyFieldName } from '~/app/pages/modelCatalog/utils/modelCatalogUtils';
 import { formatLatency } from '~/app/pages/modelCatalog/utils/performanceMetricsUtils';
@@ -141,7 +145,9 @@ const ModelCatalogCardBody: React.FC<ModelCatalogCardBodyProps> = ({
     const activeLatencyField = latencyProperty;
     const latencyValue =
       getLatencyValue(metrics.latencyMetrics, activeLatencyField) ?? metrics.ttftMean;
-    const latencyLabel = getLatencyLabel(activeLatencyField);
+    const latencyLabel = activeLatencyField
+      ? parseLatencyFieldName(activeLatencyField).metric
+      : LatencyMetric.TTFT;
 
     return (
       <Stack hasGutter>

@@ -89,7 +89,7 @@ export const mockCatalogPerformanceMetricsArtifact = (
     },
     use_case: {
       metadataType: ModelRegistryMetadataType.STRING,
-      // Use CHATBOT as default to match default-performance-filters
+      // Use CHATBOT as default to match DEFAULT_PERFORMANCE_FILTERS_QUERY_NAME
       string_value: UseCaseOptionValue.CHATBOT,
     },
   },

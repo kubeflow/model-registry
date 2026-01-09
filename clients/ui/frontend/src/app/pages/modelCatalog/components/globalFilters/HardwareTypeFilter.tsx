@@ -14,9 +14,7 @@ import { CatalogPerformanceMetricsArtifact } from '~/app/modelCatalogTypes';
 import { getUniqueHardwareTypes } from '~/app/pages/modelCatalog/utils/hardwareConfigurationFilterUtils';
 import { useHardwareTypeFilterState } from '~/app/pages/modelCatalog/utils/hardwareTypeFilterState';
 import { ModelCatalogContext } from '~/app/context/modelCatalog/ModelCatalogContext';
-
-// Backend filter key for hardware type in filter_options response
-const HARDWARE_TYPE_FILTER_KEY = 'artifacts.hardware_type.string_value';
+import { ModelCatalogStringFilterKey } from '~/concepts/modelCatalog/const';
 
 type HardwareTypeFilterProps = {
   performanceArtifacts: CatalogPerformanceMetricsArtifact[];
@@ -42,10 +40,10 @@ const HardwareTypeFilter: React.FC<HardwareTypeFilterProps> = ({ performanceArti
         label: type,
       }));
     }
-    // Fall back to filterOptions from context using backend key
-    const filterValue = filterOptions?.filters?.[HARDWARE_TYPE_FILTER_KEY];
+    // Fall back to filterOptions from context
+    const filterValue = filterOptions?.filters?.[ModelCatalogStringFilterKey.HARDWARE_TYPE];
     if (filterValue && 'values' in filterValue && Array.isArray(filterValue.values)) {
-      return filterValue.values.map((type) => ({
+      return filterValue.values.map((type: string) => ({
         value: type,
         label: type,
       }));

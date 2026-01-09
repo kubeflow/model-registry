@@ -3,8 +3,7 @@ import {
   ModelCatalogNumberFilterKey,
   UseCaseOptionValue,
   isLatencyMetricFieldName,
-  ALL_LATENCY_FIELD_NAMES,
-  LatencyMetricFieldName,
+  DEFAULT_PERFORMANCE_FILTERS_QUERY_NAME,
 } from '~/concepts/modelCatalog/const';
 import {
   CatalogFilterOptionsList,
@@ -15,44 +14,48 @@ import {
 import { isUseCaseOptionValue } from './workloadTypeUtils';
 
 /**
- * Maps a frontend filter key to its corresponding backend field name in namedQueries.
+ * Type for a function that sets filter data.
  */
-export const getBackendFieldName = (filterKey: keyof ModelCatalogFilterStates): string | null => {
-  const filterKeyStr = String(filterKey);
-
-  if (filterKey === ModelCatalogStringFilterKey.USE_CASE) {
-    return 'artifacts.use_case.string_value';
-  }
-  if (filterKey === ModelCatalogStringFilterKey.HARDWARE_TYPE) {
-    return 'artifacts.hardware_type.string_value';
-  }
-  if (filterKey === ModelCatalogNumberFilterKey.MAX_RPS) {
-    return 'artifacts.requests_per_second.double_value';
-  }
-  if (isLatencyMetricFieldName(filterKeyStr)) {
-    return `artifacts.${filterKeyStr}.double_value`;
-  }
-  return null;
-};
+export type SetFilterDataFn = <K extends keyof ModelCatalogFilterStates>(
+  key: K,
+  value: ModelCatalogFilterStates[K],
+) => void;
 
 /**
- * Checks if a field name corresponds to a latency metric field.
- * Handles both prefixed (artifacts.ttft_p90.double_value) and unprefixed (ttft_p90) formats.
+ * Applies a filter value to the filter state with proper type handling.
+ * Handles string arrays (USE_CASE, HARDWARE_TYPE), numbers (MAX_RPS, latency), and clears.
+ * This centralizes the type coercion logic for filter values.
+ * Accepts string for filterKey to work with Object.entries().
  */
-export const getLatencyFieldKey = (fieldName: string): LatencyMetricFieldName | null => {
-  // Check if it's a direct latency field name
-  const directMatch = ALL_LATENCY_FIELD_NAMES.find((name) => name === fieldName);
-  if (directMatch) {
-    return directMatch;
+export const applyFilterValue = (
+  setFilterData: SetFilterDataFn,
+  filterKey: string,
+  value: ModelCatalogFilterStates[keyof ModelCatalogFilterStates] | undefined,
+): void => {
+  if (filterKey === ModelCatalogStringFilterKey.USE_CASE) {
+    if (Array.isArray(value)) {
+      const validValues: UseCaseOptionValue[] = value
+        .filter((v): v is string => typeof v === 'string')
+        .filter(isUseCaseOptionValue);
+      setFilterData(ModelCatalogStringFilterKey.USE_CASE, validValues);
+    } else {
+      setFilterData(ModelCatalogStringFilterKey.USE_CASE, []);
+    }
+  } else if (filterKey === ModelCatalogStringFilterKey.HARDWARE_TYPE) {
+    if (Array.isArray(value)) {
+      const validValues = value.filter((v): v is string => typeof v === 'string');
+      setFilterData(ModelCatalogStringFilterKey.HARDWARE_TYPE, validValues);
+    } else {
+      setFilterData(ModelCatalogStringFilterKey.HARDWARE_TYPE, []);
+    }
+  } else if (filterKey === ModelCatalogNumberFilterKey.MAX_RPS) {
+    setFilterData(
+      ModelCatalogNumberFilterKey.MAX_RPS,
+      typeof value === 'number' ? value : undefined,
+    );
+  } else if (isLatencyMetricFieldName(filterKey)) {
+    setFilterData(filterKey, typeof value === 'number' ? value : undefined);
   }
-  // Check if it's an artifacts.* prefixed latency field
-  const artifactMatch = ALL_LATENCY_FIELD_NAMES.find(
-    (name) => fieldName === `artifacts.${name}.double_value`,
-  );
-  if (artifactMatch) {
-    return artifactMatch;
-  }
-  return null;
 };
 
 /**
@@ -65,10 +68,17 @@ export const resolveFilterValue = (
   value: string | number | boolean | (string | number)[],
 ): number | undefined => {
   if (value === 'max' || value === 'min') {
-    // Look up the range from filterOptions
-    const filterOption = filterOptions?.filters?.[fieldName];
-    if (filterOption && 'range' in filterOption && filterOption.range) {
-      return value === 'max' ? filterOption.range.max : filterOption.range.min;
+    // Look up the range from filterOptions using Object.entries to find the matching field
+    const filters = filterOptions?.filters;
+    if (filters) {
+      const entries = Object.entries(filters);
+      const matchingEntry = entries.find(([key]) => key === fieldName);
+      if (matchingEntry) {
+        const [, filterOption] = matchingEntry;
+        if ('range' in filterOption && filterOption.range) {
+          return value === 'max' ? filterOption.range.max : filterOption.range.min;
+        }
+      }
     }
     return undefined;
   }
@@ -79,76 +89,9 @@ export const resolveFilterValue = (
 };
 
 /**
- * Gets the default value for a performance filter from namedQueries.
- * Used to determine if a filter chip should be shown (only when value differs from default).
- */
-export const getPerformanceFilterDefaultValue = (
-  filterOptions: CatalogFilterOptionsList | null,
-  filterKey: keyof ModelCatalogFilterStates,
-): string | number | string[] | undefined => {
-  const defaultQuery = filterOptions?.namedQueries?.['default-performance-filters'];
-  if (!defaultQuery) {
-    return undefined;
-  }
-
-  // Check if it's a latency field first (before type narrowing)
-  const filterKeyStr = String(filterKey);
-  const isLatencyField = isLatencyMetricFieldName(filterKeyStr);
-
-  // Map frontend filter keys to their corresponding backend field names in namedQueries
-  let backendFieldName: string | null = null;
-  if (filterKey === ModelCatalogStringFilterKey.USE_CASE) {
-    backendFieldName = 'artifacts.use_case.string_value';
-  } else if (filterKey === ModelCatalogStringFilterKey.HARDWARE_TYPE) {
-    backendFieldName = 'artifacts.hardware_type.string_value';
-  } else if (filterKey === ModelCatalogNumberFilterKey.MAX_RPS) {
-    backendFieldName = 'artifacts.requests_per_second.double_value';
-  } else if (isLatencyField) {
-    backendFieldName = `artifacts.${filterKeyStr}.double_value`;
-  }
-
-  // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-  if (!backendFieldName) {
-    return undefined;
-  }
-
-  const fieldFilter = defaultQuery[backendFieldName];
-  // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-  if (!fieldFilter) {
-    return undefined;
-  }
-
-  if (filterKey === ModelCatalogStringFilterKey.USE_CASE) {
-    const rawValues =
-      fieldFilter.operator === FilterOperator.IN && Array.isArray(fieldFilter.value)
-        ? fieldFilter.value.filter((v): v is string => typeof v === 'string')
-        : typeof fieldFilter.value === 'string'
-          ? [fieldFilter.value]
-          : [];
-    const validValues: UseCaseOptionValue[] = rawValues.filter(isUseCaseOptionValue);
-    return validValues.length === 1 ? validValues[0] : validValues;
-  }
-
-  if (filterKey === ModelCatalogStringFilterKey.HARDWARE_TYPE) {
-    const values =
-      fieldFilter.operator === FilterOperator.IN && Array.isArray(fieldFilter.value)
-        ? fieldFilter.value.filter((v): v is string => typeof v === 'string')
-        : typeof fieldFilter.value === 'string'
-          ? [fieldFilter.value]
-          : [];
-    return values;
-  }
-
-  if (filterKey === ModelCatalogNumberFilterKey.MAX_RPS || isLatencyField) {
-    return resolveFilterValue(filterOptions, backendFieldName, fieldFilter.value);
-  }
-
-  return undefined;
-};
-
-/**
- * Applies filter values from a named query to the filter state.
- * Returns an object with the filter values to apply.
+ * Parses filter values from a named query and returns them as a partial filter state.
+ * This is the core function for extracting default filter values from namedQueries.
+ * Filter keys in the frontend now match backend field names directly.
  */
 export const getDefaultFiltersFromNamedQuery = (
   filterOptions: CatalogFilterOptionsList | null,
@@ -157,20 +100,11 @@ export const getDefaultFiltersFromNamedQuery = (
   const result: Partial<ModelCatalogFilterStates> = {};
 
   Object.entries(namedQuery).forEach(([fieldName, fieldFilter]) => {
-    // Handle artifacts.* prefix - check both with and without prefix
-    const isUseCase =
-      fieldName === 'artifacts.use_case.string_value' || fieldName === 'use_case.string_value';
-    const isHardwareType =
-      fieldName === 'artifacts.hardware_type.string_value' ||
-      fieldName === 'hardware_type.string_value';
-    const isRps =
-      fieldName === 'artifacts.requests_per_second.double_value' ||
-      fieldName === 'requests_per_second.double_value';
-
-    // Check if it's a latency field by extracting the field name from artifacts.*.double_value
-    const latencyMatch = fieldName.match(/^artifacts\.([a-z0-9_]+)\.double_value$/);
-    const potentialLatencyField = latencyMatch?.[1];
-    const isLatencyField = potentialLatencyField && isLatencyMetricFieldName(potentialLatencyField);
+    // Check which filter type this is using the enum values (which now match backend keys)
+    const isUseCase = fieldName === ModelCatalogStringFilterKey.USE_CASE;
+    const isHardwareType = fieldName === ModelCatalogStringFilterKey.HARDWARE_TYPE;
+    const isRps = fieldName === ModelCatalogNumberFilterKey.MAX_RPS;
+    const isLatencyField = isLatencyMetricFieldName(fieldName);
 
     if (isUseCase) {
       // Extract string values and filter to only valid UseCaseOptionValue entries
@@ -196,12 +130,11 @@ export const getDefaultFiltersFromNamedQuery = (
       if (resolvedValue !== undefined) {
         result[ModelCatalogNumberFilterKey.MAX_RPS] = resolvedValue;
       }
-      // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-    } else if (isLatencyField && potentialLatencyField) {
-      // Apply latency filter using the resolved field name
+    } else if (isLatencyField) {
+      // Apply latency filter using the full filter key (e.g., 'artifacts.ttft_p90.double_value')
       const resolvedValue = resolveFilterValue(filterOptions, fieldName, fieldFilter.value);
       if (resolvedValue !== undefined) {
-        result[potentialLatencyField] = resolvedValue;
+        result[fieldName] = resolvedValue;
       }
     }
   });
@@ -210,63 +143,31 @@ export const getDefaultFiltersFromNamedQuery = (
 };
 
 /**
- * Type representing the result of getting a single filter's default value.
- * Includes the value and whether a default was found.
+ * Gets all default performance filter values from namedQueries.
+ * Returns a partial filter state with all default values.
  */
-export type SingleFilterDefaultResult = {
-  hasDefault: boolean;
-  value: UseCaseOptionValue[] | string[] | number | undefined;
+export const getDefaultPerformanceFilters = (
+  filterOptions: CatalogFilterOptionsList | null,
+): Partial<ModelCatalogFilterStates> => {
+  const defaultQuery = filterOptions?.namedQueries?.[DEFAULT_PERFORMANCE_FILTERS_QUERY_NAME];
+  if (!defaultQuery) {
+    return {};
+  }
+  return getDefaultFiltersFromNamedQuery(filterOptions, defaultQuery);
 };
 
 /**
  * Gets the default value for a single performance filter from namedQueries.
- * Returns both the value and whether a default was found.
- * This is used when resetting individual filter chips.
+ * Returns the value and whether a default was found.
  */
 export const getSingleFilterDefault = (
   filterOptions: CatalogFilterOptionsList | null,
   filterKey: keyof ModelCatalogFilterStates,
-): SingleFilterDefaultResult => {
-  const defaultQuery = filterOptions?.namedQueries?.['default-performance-filters'];
-  const backendFieldName = getBackendFieldName(filterKey);
-
-  if (!defaultQuery || !backendFieldName) {
-    return { hasDefault: false, value: undefined };
-  }
-
-  const fieldFilter = defaultQuery[backendFieldName];
-  // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-  if (!fieldFilter) {
-    return { hasDefault: false, value: undefined };
-  }
-
-  const filterKeyStr = String(filterKey);
-
-  if (filterKey === ModelCatalogStringFilterKey.USE_CASE) {
-    const rawValues =
-      fieldFilter.operator === FilterOperator.IN && Array.isArray(fieldFilter.value)
-        ? fieldFilter.value.filter((v): v is string => typeof v === 'string')
-        : typeof fieldFilter.value === 'string'
-          ? [fieldFilter.value]
-          : [];
-    const validValues: UseCaseOptionValue[] = rawValues.filter(isUseCaseOptionValue);
-    return { hasDefault: true, value: validValues };
-  }
-
-  if (filterKey === ModelCatalogStringFilterKey.HARDWARE_TYPE) {
-    const values =
-      fieldFilter.operator === FilterOperator.IN && Array.isArray(fieldFilter.value)
-        ? fieldFilter.value.filter((v): v is string => typeof v === 'string')
-        : typeof fieldFilter.value === 'string'
-          ? [fieldFilter.value]
-          : [];
-    return { hasDefault: true, value: values };
-  }
-
-  if (filterKey === ModelCatalogNumberFilterKey.MAX_RPS || isLatencyMetricFieldName(filterKeyStr)) {
-    const resolvedValue = resolveFilterValue(filterOptions, backendFieldName, fieldFilter.value);
-    return { hasDefault: true, value: resolvedValue };
-  }
-
-  return { hasDefault: false, value: undefined };
+): { hasDefault: boolean; value: ModelCatalogFilterStates[keyof ModelCatalogFilterStates] } => {
+  const defaults = getDefaultPerformanceFilters(filterOptions);
+  const value = defaults[filterKey];
+  return {
+    hasDefault: value !== undefined,
+    value,
+  };
 };

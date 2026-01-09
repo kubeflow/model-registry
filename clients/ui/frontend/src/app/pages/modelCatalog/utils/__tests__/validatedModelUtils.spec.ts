@@ -11,6 +11,11 @@ import {
   // calculateAverageAccuracy, // NOTE: overall_average is currently omitted from the API and will be restored
   extractValidatedModelMetrics,
 } from '~/app/pages/modelCatalog/utils/validatedModelUtils';
+import {
+  LatencyMetric,
+  LatencyPercentile,
+  getLatencyFilterKey,
+} from '~/concepts/modelCatalog/const';
 
 describe('validatedModelUtils', () => {
   const createMockPerformanceArtifact = (
@@ -70,7 +75,9 @@ describe('validatedModelUtils', () => {
         rpsPerReplica: 3.5,
         ttftMean: 1200,
       });
-      expect(result.latencyMetrics).toEqual({ ttft_mean: 1200 });
+      expect(result.latencyMetrics).toEqual({
+        [getLatencyFilterKey(LatencyMetric.TTFT, LatencyPercentile.Mean)]: 1200,
+      });
     });
 
     it('should handle missing properties with default values', () => {

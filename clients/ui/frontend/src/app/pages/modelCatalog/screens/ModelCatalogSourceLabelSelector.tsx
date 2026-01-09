@@ -15,8 +15,7 @@ import {
 import { ArrowRightIcon, FilterIcon } from '@patternfly/react-icons';
 import React from 'react';
 import { useThemeContext } from 'mod-arch-kubeflow';
-import { ModelCatalogStringFilterKey } from '~/concepts/modelCatalog/const';
-import { ModelCatalogFilterKey } from '~/app/modelCatalogTypes';
+import { getBasicFiltersToShow } from '~/concepts/modelCatalog/const';
 import ModelCatalogActiveFilters from '~/app/pages/modelCatalog/components/ModelCatalogActiveFilters';
 import HardwareConfigurationFilterToolbar from '~/app/pages/modelCatalog/components/HardwareConfigurationFilterToolbar';
 import ThemeAwareSearchInput from '~/app/pages/modelRegistry/screens/components/ThemeAwareSearchInput';
@@ -50,6 +49,9 @@ const ModelCatalogSourceLabelSelector: React.FC<ModelCatalogSourceLabelSelectorP
     () => filtersApplied || (searchTerm && searchTerm.trim().length > 0),
     [filtersApplied, searchTerm],
   );
+
+  // Only show basic filters in the main chip bar - performance filters have their own section
+  const filtersToShow = React.useMemo(() => getBasicFiltersToShow(), []);
 
   const shouldShowAlert = performanceViewEnabled && performanceFiltersChangedOnDetailsPage;
 
@@ -85,20 +87,12 @@ const ModelCatalogSourceLabelSelector: React.FC<ModelCatalogSourceLabelSelectorP
     }
   };
 
-  // Define which filters to show on the landing page
-  const filtersToShow: ModelCatalogFilterKey[] = [
-    ModelCatalogStringFilterKey.PROVIDER,
-    ModelCatalogStringFilterKey.LICENSE,
-    ModelCatalogStringFilterKey.TASK,
-    ModelCatalogStringFilterKey.LANGUAGE,
-  ];
-
   return (
     <Stack hasGutter>
       <StackItem>
         <Toolbar
           key={`toolbar-${hasActiveFilters}`}
-          {...(onResetAllFilters && !performanceViewEnabled
+          {...(onResetAllFilters
             ? {
                 clearAllFilters: handleClearAllFilters,
                 clearFiltersButtonText: hasActiveFilters ? 'Reset all filters' : '',
@@ -140,7 +134,8 @@ const ModelCatalogSourceLabelSelector: React.FC<ModelCatalogSourceLabelSelectorP
                   </ToolbarItem>
                 </ToolbarGroup>
               </ToolbarToggleGroup>
-              {onResetAllFilters && hasActiveFilters && !performanceViewEnabled && (
+              {/* When toggle is OFF, show basic filter chips here. When toggle is ON, chips are shown in HardwareConfigurationFilterToolbar */}
+              {!performanceViewEnabled && onResetAllFilters && hasActiveFilters && (
                 <ModelCatalogActiveFilters filtersToShow={filtersToShow} />
               )}
             </Flex>
@@ -155,7 +150,7 @@ const ModelCatalogSourceLabelSelector: React.FC<ModelCatalogSourceLabelSelectorP
             </Content>
           </StackItem>
           <StackItem>
-            <HardwareConfigurationFilterToolbar />
+            <HardwareConfigurationFilterToolbar onResetAllFilters={onResetAllFilters} />
           </StackItem>
         </>
       )}

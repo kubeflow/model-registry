@@ -16,7 +16,8 @@ import { HelpIcon } from '@patternfly/react-icons';
 import {
   LatencyMetric,
   LatencyPercentile,
-  getLatencyFieldName,
+  getLatencyFilterKey,
+  getLatencyPropertyKey,
 } from '~/concepts/modelCatalog/const';
 import { CatalogPerformanceMetricsArtifact } from '~/app/modelCatalogTypes';
 import { getDoubleValue } from '~/app/utils';
@@ -25,6 +26,7 @@ import {
   getSliderRange,
   FALLBACK_LATENCY_RANGE,
   SliderRange,
+  formatLatency,
 } from '~/app/pages/modelCatalog/utils/performanceMetricsUtils';
 import SliderWithInput from './SliderWithInput';
 
@@ -65,10 +67,10 @@ const LatencyFilter: React.FC<LatencyFilterProps> = ({ performanceArtifacts }) =
   const currentActiveFilter = React.useMemo(() => {
     for (const metric of Object.values(LatencyMetric)) {
       for (const percentile of Object.values(LatencyPercentile)) {
-        const fieldName = getLatencyFieldName(metric, percentile);
-        const value = filterData[fieldName];
+        const filterKey = getLatencyFilterKey(metric, percentile);
+        const value = filterData[filterKey];
         if (value !== undefined && typeof value === 'number') {
-          return { fieldName, metric, percentile, value };
+          return { fieldName: filterKey, metric, percentile, value };
         }
       }
     }
@@ -112,19 +114,23 @@ const LatencyFilter: React.FC<LatencyFilterProps> = ({ performanceArtifacts }) =
   const { filterOptions } = React.useContext(ModelCatalogContext);
 
   const { minValue, maxValue, isSliderDisabled } = React.useMemo((): SliderRange => {
-    const fieldName = getLatencyFieldName(localFilter.metric, localFilter.percentile);
+    // Use short property key for accessing customProperties
+    const propertyKey = getLatencyPropertyKey(localFilter.metric, localFilter.percentile);
+    // Use full filter key for accessing filterOptions
+    const filterKey = getLatencyFilterKey(localFilter.metric, localFilter.percentile);
 
     // First try to get range from performance artifacts
     if (performanceArtifacts.length > 0) {
       return getSliderRange({
         performanceArtifacts,
-        getArtifactFilterValue: (artifact) => getDoubleValue(artifact.customProperties, fieldName),
+        getArtifactFilterValue: (artifact) =>
+          getDoubleValue(artifact.customProperties, propertyKey),
         fallbackRange: FALLBACK_LATENCY_RANGE,
         shouldRound: true,
       });
     }
     // Fall back to filterOptions from context
-    const latencyFilter = filterOptions?.filters?.[fieldName];
+    const latencyFilter = filterOptions?.filters?.[filterKey];
     if (latencyFilter && 'range' in latencyFilter && latencyFilter.range) {
       return {
         minValue: Math.round(latencyFilter.range.min ?? FALLBACK_LATENCY_RANGE.minValue),
@@ -145,7 +151,7 @@ const LatencyFilter: React.FC<LatencyFilterProps> = ({ performanceArtifacts }) =
       return (
         <>
           <strong>Latency:</strong> {currentActiveFilter.metric} | {currentActiveFilter.percentile}{' '}
-          | Under {currentActiveFilter.value}ms
+          | Under {formatLatency(currentActiveFilter.value)}
         </>
       );
     }
@@ -158,9 +164,9 @@ const LatencyFilter: React.FC<LatencyFilterProps> = ({ performanceArtifacts }) =
       setFilterData(currentActiveFilter.fieldName, undefined);
     }
 
-    // Set the new latency filter using the dynamic field name
-    const newFieldName = getLatencyFieldName(localFilter.metric, localFilter.percentile);
-    setFilterData(newFieldName, localFilter.value);
+    // Set the new latency filter using the dynamic filter key
+    const newFilterKey = getLatencyFilterKey(localFilter.metric, localFilter.percentile);
+    setFilterData(newFilterKey, localFilter.value);
     setIsOpen(false);
   };
 
