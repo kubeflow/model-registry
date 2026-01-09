@@ -37,10 +37,18 @@ help:
 	@echo "    deploy-cleanup   - Remove deployment and Kind cluster"
 
 # Configuration (can be overridden: make deploy CATALOG_PORT=9090)
+DOCKER ?= docker
 export CATALOG_NAMESPACE ?= model-catalog
 export CATALOG_IMAGE ?= model-registry:catalog-test
 export CLUSTER_NAME ?= catalog-e2e
 export CATALOG_PORT ?= 8081
+
+# Kind requires localhost/ prefix for podman-built images
+ifeq ($(DOCKER),podman)
+    KIND_IMAGE := localhost/$(CATALOG_IMAGE)
+else
+    KIND_IMAGE := $(CATALOG_IMAGE)
+endif
 
 # Kustomize overlay for E2E testing
 KUSTOMIZE_E2E := ../../../manifests/kustomize/options/catalog/overlays/e2e
@@ -161,7 +169,7 @@ deploy-kind:
 .PHONY: deploy-build
 deploy-build:
 	@echo "Building Docker image: $(CATALOG_IMAGE)"
-	cd ../../.. && docker build --progress=plain -t "$(CATALOG_IMAGE)" -f Dockerfile .
+	cd ../../.. && $(DOCKER) build --progress=plain -t "$(CATALOG_IMAGE)" -f Dockerfile .
 	@echo "[OK] Build complete"
 
 # Load image into Kind cluster
@@ -169,10 +177,9 @@ deploy-build:
 deploy-load:
 	@echo "Loading image into Kind cluster..."
 	kind load docker-image -n "$(CLUSTER_NAME)" "$(CATALOG_IMAGE)" 2>&1 | tail -5
-	@# Adjust image name for podman if needed
-	@if docker --version 2>&1 | grep -q "podman"; then \
-		echo "Using podman, image will be referenced as localhost/$(CATALOG_IMAGE)"; \
-	fi
+ifeq ($(DOCKER),podman)
+	@echo "Using podman, image will be referenced as $(KIND_IMAGE)"
+endif
 
 # Create namespace
 .PHONY: deploy-namespace
@@ -184,8 +191,7 @@ deploy-namespace:
 .PHONY: deploy-apply
 deploy-apply: deploy-namespace
 	@echo "Applying kustomize manifests..."
-	@# Set the image dynamically to support both Docker and Podman
-	cd "$(KUSTOMIZE_E2E)" && kustomize edit set image "ghcr.io/kubeflow/model-registry/server=$(CATALOG_IMAGE)"
+	cd "$(KUSTOMIZE_E2E)" && kustomize edit set image "ghcr.io/kubeflow/model-registry/server=$(KIND_IMAGE)"
 	kubectl apply -k "$(KUSTOMIZE_E2E)"
 	@echo "Waiting for PostgreSQL to be ready..."
 	kubectl wait --for=condition=ready pod -l app.kubernetes.io/name=postgres -n "$(CATALOG_NAMESPACE)" --timeout=120s
