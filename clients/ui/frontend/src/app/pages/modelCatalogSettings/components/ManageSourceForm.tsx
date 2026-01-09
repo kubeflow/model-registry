@@ -51,7 +51,7 @@ const initialTabState: PreviewTabState = {
 
 type PreviewState = {
   mode?: 'preview' | 'validate';
-  isLoading: boolean;
+  isLoadingInitial: boolean;
   isLoadingMore: boolean;
   summary?: CatalogSourcePreviewSummary;
   tabStates: {
@@ -84,7 +84,7 @@ const ManageSourceForm: React.FC<ManageSourceFormProps> = ({
 
   // Preview state
   const [previewState, setPreviewState] = React.useState<PreviewState>({
-    isLoading: false,
+    isLoadingInitial: false,
     isLoadingMore: false,
     tabStates: {
       included: initialTabState,
@@ -134,7 +134,7 @@ const ManageSourceForm: React.FC<ManageSourceFormProps> = ({
   // Derive validation success state
   const isValidationSuccess =
     previewState.mode === 'validate' &&
-    !previewState.isLoading &&
+    !previewState.isLoadingInitial &&
     !previewState.error &&
     !previewState.resultDismissed;
 
@@ -163,7 +163,7 @@ const ManageSourceForm: React.FC<ManageSourceFormProps> = ({
       setPreviewState((prev) => ({
         ...prev,
         mode,
-        isLoading: false,
+        isLoadingInitial: false,
         error: new Error('API is not available'),
         resultDismissed: false,
       }));
@@ -174,7 +174,7 @@ const ManageSourceForm: React.FC<ManageSourceFormProps> = ({
     if (isFreshPreview) {
       setPreviewState({
         mode,
-        isLoading: true,
+        isLoadingInitial: true,
         isLoadingMore: false,
         tabStates: { included: initialTabState, excluded: initialTabState },
         activeTab: 'included',
@@ -186,7 +186,7 @@ const ManageSourceForm: React.FC<ManageSourceFormProps> = ({
     } else if (loadMore) {
       setPreviewState((prev) => ({ ...prev, isLoadingMore: true }));
     } else if (switchToTab) {
-      setPreviewState((prev) => ({ ...prev, activeTab: switchToTab, isLoading: true }));
+      setPreviewState((prev) => ({ ...prev, activeTab: switchToTab, isLoadingInitial: true }));
     }
 
     // Use lastPreviewedData for load more / tab switch, current formData for fresh
@@ -222,7 +222,7 @@ const ManageSourceForm: React.FC<ManageSourceFormProps> = ({
         return {
           ...prev,
           mode,
-          isLoading: false,
+          isLoadingInitial: false,
           isLoadingMore: false,
           summary: result.summary,
           lastPreviewedData: isFreshPreview ? requestData : prev.lastPreviewedData,
@@ -244,7 +244,7 @@ const ManageSourceForm: React.FC<ManageSourceFormProps> = ({
       setPreviewState((prev) => ({
         ...prev,
         mode,
-        isLoading: false,
+        isLoadingInitial: false,
         isLoadingMore: false,
         error: err,
         resultDismissed: false,
@@ -326,7 +326,7 @@ const ManageSourceForm: React.FC<ManageSourceFormProps> = ({
                     formData={formData}
                     setData={setData}
                     onValidate={handleValidate}
-                    isValidating={previewState.mode === 'validate' && previewState.isLoading}
+                    isValidating={previewState.mode === 'validate' && previewState.isLoadingInitial}
                     validationError={
                       previewState.mode === 'validate' ? previewState.error : undefined
                     }
@@ -381,7 +381,7 @@ const ManageSourceForm: React.FC<ManageSourceFormProps> = ({
         <SidebarPanel width={{ default: 'width_50' }}>
           <PreviewPanel
             isPreviewEnabled={canPreview}
-            isLoading={previewState.isLoading}
+            isLoadingInitial={previewState.isLoadingInitial}
             onPreview={() => handlePreview('preview')}
             previewError={previewState.mode === 'preview' ? previewState.error : undefined}
             hasFormChanged={hasFormChanged}
@@ -403,7 +403,7 @@ const ManageSourceForm: React.FC<ManageSourceFormProps> = ({
         onSubmit={handleSubmit}
         onCancel={handleCancel}
         isPreviewDisabled={!canPreview}
-        isPreviewLoading={previewState.isLoading}
+        isPreviewLoading={previewState.isLoadingInitial}
         onPreview={() => handlePreview('preview')}
       />
     </>

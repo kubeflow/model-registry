@@ -27,7 +27,7 @@ type FilterStatus = 'included' | 'excluded';
 
 type PreviewPanelProps = {
   isPreviewEnabled: boolean;
-  isLoading: boolean;
+  isLoadingInitial: boolean;
   onPreview: () => void;
   previewError?: Error;
   hasFormChanged: boolean;
@@ -42,7 +42,7 @@ type PreviewPanelProps = {
 
 const PreviewPanel: React.FC<PreviewPanelProps> = ({
   isPreviewEnabled,
-  isLoading,
+  isLoadingInitial,
   onPreview,
   previewError,
   hasFormChanged,
@@ -72,7 +72,7 @@ const PreviewPanel: React.FC<PreviewPanelProps> = ({
               <PreviewButton
                 onClick={onPreview}
                 isDisabled={!isPreviewEnabled}
-                isLoading={isLoading}
+                isLoading={isLoadingInitial}
                 variant="link"
                 testId="preview-button-panel-retry"
               />
@@ -97,7 +97,7 @@ const PreviewPanel: React.FC<PreviewPanelProps> = ({
             <PreviewButton
               onClick={onPreview}
               isDisabled={!isPreviewEnabled}
-              isLoading={isLoading}
+              isLoading={isLoadingInitial}
               variant="link"
               testId="preview-button-panel"
             />
@@ -108,7 +108,7 @@ const PreviewPanel: React.FC<PreviewPanelProps> = ({
   };
 
   const renderContent = () => {
-    if (isLoading) {
+    if (isLoadingInitial) {
       return (
         <div className="pf-v6-u-text-align-center pf-v6-u-py-xl">
           <Spinner size="xl" aria-label="Loading preview" />
@@ -214,7 +214,7 @@ const PreviewPanel: React.FC<PreviewPanelProps> = ({
           <PreviewButton
             onClick={onPreview}
             isDisabled={!isPreviewEnabled}
-            isLoading={isLoading}
+            isLoading={isLoadingInitial}
             variant="secondary"
             testId="preview-button-header"
           />
