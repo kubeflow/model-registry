@@ -94,6 +94,8 @@ paths:
             - NAME
             - ACCURACY
 
+            Defaults to `NAME`.
+
             The `ACCURACY` sort will sort by the `overall_average` property in any linked metrics artifact.
 
             In addition, models can be sorted by properties. For example:
