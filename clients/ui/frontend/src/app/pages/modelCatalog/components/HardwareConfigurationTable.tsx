@@ -10,8 +10,9 @@ import {
 } from '~/app/pages/modelCatalog/utils/hardwareConfigurationFilterUtils';
 import { getActiveLatencyFieldName } from '~/app/pages/modelCatalog/utils/modelCatalogUtils';
 import {
-  ALL_LATENCY_FIELD_NAMES,
-  getLatencyFieldName,
+  ALL_LATENCY_PROPERTY_KEYS,
+  PERFORMANCE_FILTER_KEYS,
+  getLatencyPropertyKey,
   LatencyMetric,
 } from '~/concepts/modelCatalog/const';
 import { hardwareConfigColumns, HardwareConfigColumn } from './HardwareConfigurationTableColumns';
@@ -43,20 +44,20 @@ const HardwareConfigurationTable: React.FC<HardwareConfigurationTableProps> = ({
       return hardwareConfigColumns;
     }
 
-    // Parse the active filter field name to extract metric and percentile
+    // Parse the active filter field name to extract metric, percentile, and propertyKey
     const parsed = parseLatencyFieldName(activeLatencyField);
-    if (!parsed) {
-      return hardwareConfigColumns;
-    }
 
-    // Build the matching TPS field name using the same percentile (e.g., TTFT P90 filter shows TPS P90)
-    const matchingTpsField = getLatencyFieldName(LatencyMetric.TPS, parsed.percentile);
+    // Get the property key (short format) that matches the column field
+    const activePropertyKey = parsed.propertyKey;
+
+    // Build the matching TPS property key using the same percentile (e.g., TTFT P90 filter shows TPS P90)
+    const matchingTpsPropertyKey = getLatencyPropertyKey(LatencyMetric.TPS, parsed.percentile);
 
     // Filter out latency columns that don't match the active filter
     return hardwareConfigColumns.filter((column) => {
-      // Check if this column is a latency column
-      const isLatencyColumn = ALL_LATENCY_FIELD_NAMES.some(
-        (fieldName) => fieldName === column.field,
+      // Check if this column is a latency column (using short property keys)
+      const isLatencyColumn = ALL_LATENCY_PROPERTY_KEYS.some(
+        (propertyKey) => propertyKey === column.field,
       );
 
       // If it's not a latency column, keep it
@@ -65,12 +66,12 @@ const HardwareConfigurationTable: React.FC<HardwareConfigurationTableProps> = ({
       }
 
       // Show TPS column with matching percentile (they measure throughput, not latency delay)
-      if (column.field === matchingTpsField) {
+      if (column.field === matchingTpsPropertyKey) {
         return true;
       }
 
       // If it's a latency column (not TPS), only keep it if it matches the active filter
-      return column.field === activeLatencyField;
+      return column.field === activePropertyKey;
     });
   }, [activeLatencyField]);
 
@@ -78,12 +79,17 @@ const HardwareConfigurationTable: React.FC<HardwareConfigurationTableProps> = ({
     return <Spinner size="lg" />;
   }
 
-  const toolbarContent = (
-    <HardwareConfigurationFilterToolbar performanceArtifacts={performanceArtifacts} />
-  );
   const handleClearFilters = () => {
-    clearAllFilters(setFilterData);
+    // On details page, only clear performance filters (not basic filters from landing page)
+    clearAllFilters(setFilterData, PERFORMANCE_FILTER_KEYS);
   };
+
+  const toolbarContent = (
+    <HardwareConfigurationFilterToolbar
+      performanceArtifacts={performanceArtifacts}
+      onResetAllFilters={handleClearFilters}
+    />
+  );
 
   return (
     <OuterScrollContainer>

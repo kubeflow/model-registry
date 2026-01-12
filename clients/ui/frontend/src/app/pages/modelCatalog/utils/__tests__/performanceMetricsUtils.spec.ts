@@ -1,6 +1,6 @@
 /* eslint-disable camelcase */
 import { ModelRegistryMetadataType } from '~/app/types';
-import { UseCaseOptionValue } from '~/concepts/modelCatalog/const';
+import { UseCaseOptionValue, PerformancePropertyKey } from '~/concepts/modelCatalog/const';
 import { mockCatalogPerformanceMetricsArtifact } from '~/__mocks__';
 import {
   getHardwareConfiguration,
@@ -221,7 +221,14 @@ describe('performanceMetricsUtils', () => {
     });
 
     it('should handle code_fixing with underscores', () => {
-      const artifact = mockCatalogPerformanceMetricsArtifact();
+      const artifact = mockCatalogPerformanceMetricsArtifact({
+        customProperties: {
+          use_case: {
+            metadataType: ModelRegistryMetadataType.STRING,
+            string_value: 'code_fixing',
+          },
+        },
+      });
       expect(getWorkloadType(artifact)).toBe('Code Fixing');
     });
 
@@ -272,7 +279,7 @@ describe('performanceMetricsUtils', () => {
         const result = getSliderRange({
           performanceArtifacts: [],
           getArtifactFilterValue: (artifact) =>
-            getDoubleValue(artifact.customProperties, 'requests_per_second'),
+            getDoubleValue(artifact.customProperties, PerformancePropertyKey.REQUESTS_PER_SECOND),
           fallbackRange: FALLBACK_RPS_RANGE,
         });
 
@@ -291,7 +298,7 @@ describe('performanceMetricsUtils', () => {
         const result = getSliderRange({
           performanceArtifacts: artifacts,
           getArtifactFilterValue: (artifact) =>
-            getDoubleValue(artifact.customProperties, 'requests_per_second'),
+            getDoubleValue(artifact.customProperties, PerformancePropertyKey.REQUESTS_PER_SECOND),
           fallbackRange: FALLBACK_RPS_RANGE,
         });
 
@@ -310,7 +317,7 @@ describe('performanceMetricsUtils', () => {
         const result = getSliderRange({
           performanceArtifacts: artifacts,
           getArtifactFilterValue: (artifact) =>
-            getDoubleValue(artifact.customProperties, 'requests_per_second'),
+            getDoubleValue(artifact.customProperties, PerformancePropertyKey.REQUESTS_PER_SECOND),
           fallbackRange: FALLBACK_RPS_RANGE,
         });
 
@@ -353,7 +360,7 @@ describe('performanceMetricsUtils', () => {
         const result = getSliderRange({
           performanceArtifacts: artifacts,
           getArtifactFilterValue: (artifact) =>
-            getDoubleValue(artifact.customProperties, 'requests_per_second'),
+            getDoubleValue(artifact.customProperties, PerformancePropertyKey.REQUESTS_PER_SECOND),
           fallbackRange: FALLBACK_RPS_RANGE,
         });
 
@@ -376,7 +383,7 @@ describe('performanceMetricsUtils', () => {
         const result = getSliderRange({
           performanceArtifacts: artifacts,
           getArtifactFilterValue: (artifact) =>
-            getDoubleValue(artifact.customProperties, 'requests_per_second'),
+            getDoubleValue(artifact.customProperties, PerformancePropertyKey.REQUESTS_PER_SECOND),
           fallbackRange: FALLBACK_RPS_RANGE,
         });
 
@@ -442,7 +449,7 @@ describe('performanceMetricsUtils', () => {
         const result = getSliderRange({
           performanceArtifacts: artifacts,
           getArtifactFilterValue: (artifact) =>
-            getDoubleValue(artifact.customProperties, 'requests_per_second'),
+            getDoubleValue(artifact.customProperties, PerformancePropertyKey.REQUESTS_PER_SECOND),
           fallbackRange: FALLBACK_RPS_RANGE,
         });
 

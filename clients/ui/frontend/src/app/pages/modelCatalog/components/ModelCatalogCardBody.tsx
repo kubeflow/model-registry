@@ -16,9 +16,17 @@ import { Link } from 'react-router-dom';
 import { HelpIcon, AngleLeftIcon, AngleRightIcon, ArrowRightIcon } from '@patternfly/react-icons';
 import { TruncatedText } from 'mod-arch-shared';
 import { CatalogModel, CatalogSource } from '~/app/modelCatalogTypes';
-import { extractValidatedModelMetrics } from '~/app/pages/modelCatalog/utils/validatedModelUtils';
+import {
+  extractValidatedModelMetrics,
+  getLatencyValue,
+} from '~/app/pages/modelCatalog/utils/validatedModelUtils';
 import { catalogModelDetailsTabFromModel } from '~/app/routes/modelCatalog/catalogModel';
-import { ModelDetailsTab, ModelCatalogNumberFilterKey } from '~/concepts/modelCatalog/const';
+import {
+  ModelDetailsTab,
+  ModelCatalogNumberFilterKey,
+  LatencyMetric,
+} from '~/concepts/modelCatalog/const';
+import { parseLatencyFieldName } from '~/app/pages/modelCatalog/utils/hardwareConfigurationFilterUtils';
 import { useCatalogPerformanceArtifacts } from '~/app/hooks/modelCatalog/useCatalogPerformanceArtifacts';
 import { getActiveLatencyFieldName } from '~/app/pages/modelCatalog/utils/modelCatalogUtils';
 import { formatLatency } from '~/app/pages/modelCatalog/utils/performanceMetricsUtils';
@@ -48,8 +56,13 @@ const ModelCatalogCardBody: React.FC<ModelCatalogCardBodyProps> = ({
   };
 
   // Get performance-specific filter params for the /performance_artifacts endpoint
-  const targetRPS = filterData[ModelCatalogNumberFilterKey.MIN_RPS];
-  const latencyProperty = getActiveLatencyFieldName(filterData);
+  const targetRPS = filterData[ModelCatalogNumberFilterKey.MAX_RPS];
+  // Get full filter key for display purposes
+  const latencyFieldName = getActiveLatencyFieldName(filterData);
+  // Use short property key (e.g., 'ttft_p90') for the catalog API, not the full filter key
+  const latencyProperty = latencyFieldName
+    ? parseLatencyFieldName(latencyFieldName).propertyKey
+    : undefined;
 
   // Fetch performance artifacts from the new endpoint with server-side filtering
   const [performanceArtifactsList, performanceArtifactsLoaded, performanceArtifactsError] =
@@ -126,12 +139,20 @@ const ModelCatalogCardBody: React.FC<ModelCatalogCardBodyProps> = ({
       );
     }
 
-    // When performance view toggle is ON, show hardware, TTFT and replicas data
+    // When performance view toggle is ON, show hardware, latency and replicas data
     const metrics = extractValidatedModelMetrics(
       performanceMetrics,
       accuracyMetrics,
       currentPerformanceIndex,
     );
+
+    // Get the selected latency metric from filters, or default to TTFT
+    const activeLatencyField = latencyFieldName;
+    const latencyValue =
+      getLatencyValue(metrics.latencyMetrics, activeLatencyField) ?? metrics.ttftMean;
+    const latencyLabel = activeLatencyField
+      ? parseLatencyFieldName(activeLatencyField).metric
+      : LatencyMetric.TTFT;
 
     return (
       <Stack hasGutter>
@@ -152,11 +173,11 @@ const ModelCatalogCardBody: React.FC<ModelCatalogCardBodyProps> = ({
               </Content>
             </Flex>
             <Flex direction={{ default: 'column' }}>
-              <span className="pf-v6-u-font-weight-bold" data-testid="validated-model-ttft">
-                {formatLatency(metrics.ttftMean)}
+              <span className="pf-v6-u-font-weight-bold" data-testid="validated-model-latency">
+                {formatLatency(latencyValue)}
               </span>
               <Flex alignItems={{ default: 'alignItemsBaseline' }} gap={{ default: 'gapXs' }}>
-                <Content component={ContentVariants.small}>TTFT</Content>
+                <Content component={ContentVariants.small}>{latencyLabel}</Content>
                 <Popover
                   headerContent="Latency"
                   bodyContent={

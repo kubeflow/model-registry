@@ -3,13 +3,34 @@ export enum ModelCatalogStringFilterKey {
   PROVIDER = 'provider',
   LICENSE = 'license',
   LANGUAGE = 'language',
-  HARDWARE_TYPE = 'hardware_type',
-  USE_CASE = 'use_case',
+  // Performance filter keys use backend format
+  HARDWARE_TYPE = 'artifacts.hardware_type.string_value',
+  USE_CASE = 'artifacts.use_case.string_value',
 }
 
 export enum ModelCatalogNumberFilterKey {
-  MIN_RPS = 'rps_mean',
+  // Performance filter key uses backend format
+  MAX_RPS = 'artifacts.requests_per_second.double_value',
 }
+
+/**
+ * Short property keys for accessing artifact customProperties directly.
+ * These correspond to the performance filter keys but without the artifacts.* prefix and suffix.
+ */
+export const PerformancePropertyKey = {
+  HARDWARE_TYPE: 'hardware_type',
+  USE_CASE: 'use_case',
+  REQUESTS_PER_SECOND: 'requests_per_second',
+} as const;
+
+export type PerformancePropertyKeyType =
+  (typeof PerformancePropertyKey)[keyof typeof PerformancePropertyKey];
+
+/**
+ * The name of the default performance filters named query.
+ * Used to look up default filter values in the namedQueries object.
+ */
+export const DEFAULT_PERFORMANCE_FILTERS_QUERY_NAME = 'default-performance-filters';
 
 export enum LatencyMetric {
   E2E = 'E2E', // End to End
@@ -25,8 +46,19 @@ export enum LatencyPercentile {
   P99 = 'P99',
 }
 
-// Use getLatencyFieldName util to get values of this type
-export type LatencyMetricFieldName = `${Lowercase<LatencyMetric>}_${Lowercase<LatencyPercentile>}`;
+/**
+ * Short key format for accessing artifact customProperties (e.g., 'ttft_p90')
+ */
+export type LatencyPropertyKey = `${Lowercase<LatencyMetric>}_${Lowercase<LatencyPercentile>}`;
+
+/**
+ * Full key format for filter state, matching backend namedQueries format
+ * (e.g., 'artifacts.ttft_p90.double_value')
+ */
+export type LatencyFilterKey = `artifacts.${LatencyPropertyKey}.double_value`;
+
+// Keep LatencyMetricFieldName as alias for LatencyFilterKey for backward compatibility during migration
+export type LatencyMetricFieldName = LatencyFilterKey;
 
 const isMetricLowercase = (str: string): str is Lowercase<LatencyMetric> =>
   Object.values(LatencyMetric)
@@ -39,12 +71,12 @@ const isPercentileLowercase = (str: string): str is Lowercase<LatencyPercentile>
     .includes(str);
 
 /**
- * Maps metric and percentile combination to the corresponding artifact field
+ * Gets the short property key for accessing artifact customProperties (e.g., 'ttft_p90')
  */
-export const getLatencyFieldName = (
+export const getLatencyPropertyKey = (
   metric: LatencyMetric,
   percentile: LatencyPercentile,
-): LatencyMetricFieldName => {
+): LatencyPropertyKey => {
   const metricPrefix = metric.toLowerCase();
   const percentileSuffix = percentile.toLowerCase();
   if (!isMetricLowercase(metricPrefix) || !isPercentileLowercase(percentileSuffix)) {
@@ -54,13 +86,64 @@ export const getLatencyFieldName = (
 };
 
 /**
- * All possible latency field names computed from LatencyMetric and LatencyPercentile enums
+ * Gets the full filter key for filter state, matching backend namedQueries format
+ * (e.g., 'artifacts.ttft_p90.double_value')
  */
-export const ALL_LATENCY_FIELD_NAMES: LatencyMetricFieldName[] = Object.values(
-  LatencyMetric,
-).flatMap((metric) =>
-  Object.values(LatencyPercentile).map((percentile) => getLatencyFieldName(metric, percentile)),
+export const getLatencyFilterKey = (
+  metric: LatencyMetric,
+  percentile: LatencyPercentile,
+): LatencyFilterKey => `artifacts.${getLatencyPropertyKey(metric, percentile)}.double_value`;
+
+// Alias for backward compatibility
+export const getLatencyFieldName = getLatencyFilterKey;
+
+/**
+ * All possible latency property keys (short format for customProperties access)
+ */
+export const ALL_LATENCY_PROPERTY_KEYS: LatencyPropertyKey[] = Object.values(LatencyMetric).flatMap(
+  (metric) =>
+    Object.values(LatencyPercentile).map((percentile) => getLatencyPropertyKey(metric, percentile)),
 );
+
+/**
+ * All possible latency filter keys (full format for filter state)
+ */
+export const ALL_LATENCY_FILTER_KEYS: LatencyFilterKey[] = Object.values(LatencyMetric).flatMap(
+  (metric) =>
+    Object.values(LatencyPercentile).map((percentile) => getLatencyFilterKey(metric, percentile)),
+);
+
+// Alias for backward compatibility
+export const ALL_LATENCY_FIELD_NAMES = ALL_LATENCY_FILTER_KEYS;
+
+// Type guard to check if a string is a valid LatencyFilterKey
+export const isLatencyFilterKey = (value: string): value is LatencyFilterKey =>
+  ALL_LATENCY_FILTER_KEYS.some((name) => name === value);
+
+// Alias for backward compatibility
+export const isLatencyMetricFieldName = isLatencyFilterKey;
+
+/**
+ * Parses a LatencyFilterKey to extract the metric and percentile
+ */
+export const parseLatencyFilterKey = (
+  filterKey: LatencyFilterKey,
+): { metric: LatencyMetric; percentile: LatencyPercentile; propertyKey: LatencyPropertyKey } => {
+  // Extract the property key from artifacts.{propertyKey}.double_value
+  const match = filterKey.match(/^artifacts\.([a-z0-9_]+)\.double_value$/);
+  const propertyKey = match?.[1] ?? 'ttft_mean';
+  const [prefix, suffix] = propertyKey.split('_');
+  const metric =
+    Object.values(LatencyMetric).find((m) => m.toLowerCase() === prefix) ?? LatencyMetric.TTFT;
+  const percentile =
+    Object.values(LatencyPercentile).find((p) => p.toLowerCase() === suffix) ??
+    LatencyPercentile.Mean;
+  return {
+    metric,
+    percentile,
+    propertyKey: getLatencyPropertyKey(metric, percentile),
+  };
+};
 
 export enum UseCaseOptionValue {
   CHATBOT = 'chatbot',
@@ -385,6 +468,51 @@ export const isCatalogFilterKey = (key: string): key is ModelCatalogFilterKey =>
   ALL_CATALOG_FILTER_KEYS.some((k) => String(k) === key);
 
 /**
+ * Basic filter keys that appear on the catalog landing page (non-performance filters).
+ */
+export const BASIC_FILTER_KEYS: ModelCatalogFilterKey[] = [
+  ModelCatalogStringFilterKey.PROVIDER,
+  ModelCatalogStringFilterKey.LICENSE,
+  ModelCatalogStringFilterKey.TASK,
+  ModelCatalogStringFilterKey.LANGUAGE,
+];
+
+/**
+ * Performance filter keys that are shown when performance view is enabled.
+ * These filters should reset to default values (from namedQueries) instead of clearing.
+ */
+export const PERFORMANCE_FILTER_KEYS: ModelCatalogFilterKey[] = [
+  ModelCatalogStringFilterKey.USE_CASE,
+  ModelCatalogStringFilterKey.HARDWARE_TYPE,
+  ModelCatalogNumberFilterKey.MAX_RPS,
+  ...ALL_LATENCY_FIELD_NAMES,
+];
+
+/**
+ * Check if a filter key is a performance filter (should reset to default instead of clear).
+ */
+export const isPerformanceFilterKey = (filterKey: ModelCatalogFilterKey): boolean =>
+  PERFORMANCE_FILTER_KEYS.includes(filterKey);
+
+/**
+ * Gets the filter keys to show in the main chip bar (below search).
+ * Only shows basic filters - performance filters are displayed in the HardwareConfigurationFilterToolbar.
+ */
+export const getBasicFiltersToShow = (): ModelCatalogFilterKey[] => BASIC_FILTER_KEYS;
+
+/**
+ * Gets all filter keys to show when performance view is enabled.
+ * Includes basic filters, performance filters, and any active latency filters.
+ */
+export const getAllFiltersToShow = (
+  filterData: Partial<Record<LatencyMetricFieldName, number | undefined>>,
+): ModelCatalogFilterKey[] => {
+  const activeLatencyKeys = ALL_LATENCY_FIELD_NAMES.filter((key) => filterData[key] !== undefined);
+  // Use Set to deduplicate since PERFORMANCE_FILTER_KEYS already includes latency fields
+  return [...new Set([...BASIC_FILTER_KEYS, ...PERFORMANCE_FILTER_KEYS, ...activeLatencyKeys])];
+};
+
+/**
  * Display names for filter categories.
  * Includes all ModelCatalogFilterKeys (ModelCatalogStringFilterKey | ModelCatalogNumberFilterKey | LatencyMetricFieldName).
  */
@@ -397,10 +525,10 @@ export const MODEL_CATALOG_FILTER_CATEGORY_NAMES: Record<ModelCatalogFilterKey, 
   [ModelCatalogStringFilterKey.HARDWARE_TYPE]: 'Hardware type',
   [ModelCatalogStringFilterKey.USE_CASE]: 'Workload type',
   // Number filter keys
-  [ModelCatalogNumberFilterKey.MIN_RPS]: 'Min RPS',
-  // Latency field names - all use "Max latency" as category name
+  [ModelCatalogNumberFilterKey.MAX_RPS]: 'Max RPS',
+  // Latency field names - all use "Latency" as category name
   // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
-  ...(Object.fromEntries(ALL_LATENCY_FIELD_NAMES.map((field) => [field, 'Max latency'])) as Record<
+  ...(Object.fromEntries(ALL_LATENCY_FIELD_NAMES.map((field) => [field, 'Latency'])) as Record<
     LatencyMetricFieldName,
     string
   >),

@@ -1,123 +1,24 @@
-import {
-  mockCatalogModel,
-  mockCatalogModelList,
-  mockCatalogSource,
-  mockCatalogSourceList,
-  mockValidatedModel,
-} from '~/__mocks__';
-import { mockCatalogPerformanceMetricsArtifactList } from '~/__mocks__/mockCatalogModelArtifactList';
 import { modelCatalog } from '~/__tests__/cypress/cypress/pages/modelCatalog';
 import { mockModelRegistry } from '~/__mocks__/mockModelRegistry';
-import type { CatalogSource } from '~/app/modelCatalogTypes';
-import { MODEL_CATALOG_API_VERSION } from '~/__tests__/cypress/cypress/support/commands/api';
-import { mockCatalogFilterOptionsList } from '~/__mocks__/mockCatalogFilterOptionsList';
+import {
+  setupValidatedModelIntercepts,
+  interceptArtifactsList,
+  interceptPerformanceArtifactsList,
+  type ModelCatalogInterceptOptions,
+} from '~/__tests__/cypress/cypress/support/interceptHelpers/modelCatalog';
 
-type HandlersProps = {
-  sources?: CatalogSource[];
-  modelsPerCategory?: number;
-};
+/**
+ * Initialize intercepts for performance filters alert tests.
+ * Uses shared intercept helpers to reduce duplication.
+ */
+const initIntercepts = (options: Partial<ModelCatalogInterceptOptions> = {}) => {
+  setupValidatedModelIntercepts(options);
 
-const initIntercepts = ({
-  sources = [mockCatalogSource({}), mockCatalogSource({ id: 'source-2', name: 'source 2' })],
-  modelsPerCategory = 4,
-}: HandlersProps) => {
-  const testModel = mockValidatedModel;
-  const testArtifacts = mockCatalogPerformanceMetricsArtifactList({});
-
-  cy.interceptApi(
-    `GET /api/:apiVersion/model_catalog/sources`,
-    {
-      path: { apiVersion: MODEL_CATALOG_API_VERSION },
-    },
-    mockCatalogSourceList({
-      items: sources,
-    }),
-  );
-
-  sources.forEach((source) => {
-    source.labels.forEach((label) => {
-      cy.interceptApi(
-        `GET /api/:apiVersion/model_catalog/models`,
-        {
-          path: { apiVersion: MODEL_CATALOG_API_VERSION },
-          query: { sourceLabel: label },
-        },
-        mockCatalogModelList({
-          items: Array.from({ length: modelsPerCategory }, (_, i) => {
-            const name = i === 0 ? 'validated-model' : `${label.toLowerCase()}-model-${i + 1}`;
-            return mockCatalogModel({
-              name,
-              // eslint-disable-next-line camelcase
-              source_id: source.id,
-            });
-          }),
-        }),
-      );
-      cy.intercept(
-        {
-          method: 'GET',
-          url: new RegExp(
-            `/api/${MODEL_CATALOG_API_VERSION}/model_catalog/models.*sourceLabel=${encodeURIComponent(label)}`,
-          ),
-        },
-        mockCatalogModelList({
-          items: Array.from({ length: modelsPerCategory }, (_, i) => {
-            const name = i === 0 ? 'validated-model' : `${label.toLowerCase()}-model-${i + 1}`;
-            return mockCatalogModel({
-              name,
-              // eslint-disable-next-line camelcase
-              source_id: source.id,
-            });
-          }),
-        }),
-      ).as(`getModels-${label}-with-filters`);
-    });
-  });
-
-  cy.interceptApi(
-    `GET /api/:apiVersion/model_catalog/sources/:sourceId/models/:modelName`,
-    {
-      path: {
-        apiVersion: MODEL_CATALOG_API_VERSION,
-        sourceId: 'source-2',
-        modelName: testModel.name.replace('/', '%2F'),
-      },
-    },
-    testModel,
-  );
-
-  cy.interceptApi(
-    `GET /api/:apiVersion/model_catalog/sources/:sourceId/artifacts/:modelName`,
-    {
-      path: {
-        apiVersion: MODEL_CATALOG_API_VERSION,
-        sourceId: 'source-2',
-        modelName: testModel.name.replace('/', '%2F'),
-      },
-    },
-    testArtifacts,
-  );
-
-  cy.interceptApi(
-    `GET /api/:apiVersion/model_catalog/sources/:sourceId/performance_artifacts/:modelName`,
-    {
-      path: {
-        apiVersion: MODEL_CATALOG_API_VERSION,
-        sourceId: 'source-2',
-        modelName: testModel.name.replace('/', '%2F'),
-      },
-    },
-    testArtifacts,
-  );
-
-  cy.interceptApi(
-    `GET /api/:apiVersion/model_catalog/models/filter_options`,
-    {
-      path: { apiVersion: MODEL_CATALOG_API_VERSION },
-      query: { namespace: 'kubeflow' },
-    },
-    mockCatalogFilterOptionsList(),
-  );
+  // Additional intercepts needed for Performance Insights tab:
+  // - /artifacts/ endpoint is used to determine if tabs should show
+  // - /performance_artifacts/ with regex for flexible matching
+  interceptArtifactsList();
+  interceptPerformanceArtifactsList();
 };
 
 describe('Model Catalog Performance Filters Alert', () => {
@@ -153,6 +54,8 @@ describe('Model Catalog Performance Filters Alert', () => {
     it('should show alert when returning from details page after changing performance filters', () => {
       modelCatalog.togglePerformanceView();
       modelCatalog.findPerformanceViewToggleValue().should('be.checked');
+      // Wait for the models to reload after toggle applies default filters
+      modelCatalog.findLoadingState().should('not.exist');
 
       modelCatalog.findModelCatalogDetailLink().first().click();
       modelCatalog.clickPerformanceInsightsTab();
@@ -175,6 +78,7 @@ describe('Model Catalog Performance Filters Alert', () => {
 
     it('should not show alert when no filters were changed on details page', () => {
       modelCatalog.togglePerformanceView();
+      modelCatalog.findLoadingState().should('not.exist');
 
       modelCatalog.findModelCatalogDetailLink().first().click();
       modelCatalog.clickPerformanceInsightsTab();
@@ -190,6 +94,7 @@ describe('Model Catalog Performance Filters Alert', () => {
   describe('Alert Dismissal', () => {
     it('should dismiss alert when close button is clicked', () => {
       modelCatalog.togglePerformanceView();
+      modelCatalog.findLoadingState().should('not.exist');
 
       modelCatalog.findModelCatalogDetailLink().first().click();
       modelCatalog.clickPerformanceInsightsTab();
@@ -212,6 +117,7 @@ describe('Model Catalog Performance Filters Alert', () => {
   describe('Alert Hidden Scenarios', () => {
     it('should hide alert when performance toggle is turned OFF', () => {
       modelCatalog.togglePerformanceView();
+      modelCatalog.findLoadingState().should('not.exist');
 
       modelCatalog.findModelCatalogDetailLink().first().click();
       modelCatalog.clickPerformanceInsightsTab();
@@ -232,6 +138,7 @@ describe('Model Catalog Performance Filters Alert', () => {
 
     it('should hide alert when filters change on catalog page', () => {
       modelCatalog.togglePerformanceView();
+      modelCatalog.findLoadingState().should('not.exist');
 
       modelCatalog.findModelCatalogDetailLink().first().click();
       modelCatalog.clickPerformanceInsightsTab();
@@ -255,6 +162,7 @@ describe('Model Catalog Performance Filters Alert', () => {
   describe('Multiple Filter Changes', () => {
     it('should show alert after changing multiple performance filters', () => {
       modelCatalog.togglePerformanceView();
+      modelCatalog.findLoadingState().should('not.exist');
 
       modelCatalog.findModelCatalogDetailLink().first().click();
       modelCatalog.clickPerformanceInsightsTab();
