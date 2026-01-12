@@ -1,6 +1,6 @@
 import { asEnumMember } from 'mod-arch-core';
 import { CatalogPerformanceMetricsArtifact } from '~/app/modelCatalogTypes';
-import { getIntValue, getStringValue } from '~/app/utils';
+import { getStringValue } from '~/app/utils';
 import {
   UseCaseOptionValue,
   PerformancePropertyKey,
@@ -31,12 +31,6 @@ type CalculateSliderRangeOptions = {
   getArtifactFilterValue: (artifact: CatalogPerformanceMetricsArtifact) => number;
   fallbackRange: SliderRange;
   shouldRound?: boolean;
-};
-
-export const getHardwareConfiguration = (artifact: CatalogPerformanceMetricsArtifact): string => {
-  const count = getIntValue(artifact.customProperties, 'hardware_count');
-  const hardware = getStringValue(artifact.customProperties, PerformancePropertyKey.HARDWARE_TYPE);
-  return `${count} x ${hardware}`;
 };
 
 export const formatLatency = (value: number): string => `${value.toFixed(2)} ms`;

@@ -4,7 +4,6 @@ import { CatalogPerformanceMetricsArtifact } from '~/app/modelCatalogTypes';
 import {
   formatLatency,
   formatTokenValue,
-  getHardwareConfiguration,
   getWorkloadType,
 } from '~/app/pages/modelCatalog/utils/performanceMetricsUtils';
 import { getDoubleValue, getIntValue, getStringValue } from '~/app/utils';
@@ -27,8 +26,10 @@ const HardwareConfigurationTableRow: React.FC<HardwareConfigurationTableRowProps
     const { customProperties } = performanceArtifact;
 
     switch (field) {
+      case PerformancePropertyKey.HARDWARE_CONFIGURATION:
+        return getStringValue(customProperties, field);
       case PerformancePropertyKey.HARDWARE_TYPE:
-        return getHardwareConfiguration(performanceArtifact);
+        return getStringValue(customProperties, field);
       case PerformancePropertyKey.USE_CASE:
         return getWorkloadType(performanceArtifact);
       case 'hardware_count':

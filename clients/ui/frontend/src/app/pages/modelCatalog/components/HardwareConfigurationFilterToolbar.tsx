@@ -17,7 +17,7 @@ import {
 } from '~/concepts/modelCatalog/const';
 import { isValueDifferentFromDefault } from '~/app/pages/modelCatalog/utils/modelCatalogUtils';
 import WorkloadTypeFilter from './globalFilters/WorkloadTypeFilter';
-import HardwareTypeFilter from './globalFilters/HardwareTypeFilter';
+import HardwareConfigurationFilter from './globalFilters/HardwareConfigurationFilter';
 import MaxRpsFilter from './globalFilters/MaxRpsFilter';
 import LatencyFilter from './globalFilters/LatencyFilter';
 import ModelCatalogActiveFilters from './ModelCatalogActiveFilters';
@@ -155,7 +155,7 @@ const HardwareConfigurationFilterToolbar: React.FC<HardwareConfigurationFilterTo
           </ToolbarItem>
           <ToolbarItem variant="separator" />
           <ToolbarItem>
-            <HardwareTypeFilter />
+            <HardwareConfigurationFilter />
           </ToolbarItem>
         </ToolbarGroup>
         <ModelCatalogActiveFilters filtersToShow={filtersToShow} />

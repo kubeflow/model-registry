@@ -74,6 +74,11 @@ export const applyFilterValue = (
       setFilterData(ModelCatalogStringFilterKey.USE_CASE, extractUseCaseValues(value));
     } else if (filterKey === ModelCatalogStringFilterKey.HARDWARE_TYPE) {
       setFilterData(ModelCatalogStringFilterKey.HARDWARE_TYPE, extractStringArrayValue(value));
+    } else if (filterKey === ModelCatalogStringFilterKey.HARDWARE_CONFIGURATION) {
+      setFilterData(
+        ModelCatalogStringFilterKey.HARDWARE_CONFIGURATION,
+        extractStringArrayValue(value),
+      );
     }
     // Future string filters: add else-if cases above
     return;
@@ -170,6 +175,9 @@ export const getDefaultFiltersFromNamedQuery = (
           extractUseCaseValuesFromFieldFilter(fieldFilter);
       } else if (fieldName === ModelCatalogStringFilterKey.HARDWARE_TYPE) {
         result[ModelCatalogStringFilterKey.HARDWARE_TYPE] =
+          extractStringArrayFromFieldFilter(fieldFilter);
+      } else if (fieldName === ModelCatalogStringFilterKey.HARDWARE_CONFIGURATION) {
+        result[ModelCatalogStringFilterKey.HARDWARE_CONFIGURATION] =
           extractStringArrayFromFieldFilter(fieldFilter);
       }
       // Future string filters: add else-if cases above
