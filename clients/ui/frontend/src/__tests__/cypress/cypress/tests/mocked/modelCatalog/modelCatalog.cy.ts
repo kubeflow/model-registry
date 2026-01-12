@@ -1,3 +1,4 @@
+/* eslint-disable camelcase */
 import { modelCatalog } from '~/__tests__/cypress/cypress/pages/modelCatalog';
 import {
   mockCatalogAccuracyMetricsArtifact,
@@ -12,14 +13,17 @@ import type { CatalogSource } from '~/app/modelCatalogTypes';
 import { MODEL_CATALOG_API_VERSION } from '~/__tests__/cypress/cypress/support/commands/api';
 import { mockCatalogFilterOptionsList } from '~/__mocks__/mockCatalogFilterOptionsList';
 import { SourceLabel } from '~/app/modelCatalogTypes';
+import { ModelRegistryMetadataType } from '~/app/types';
 
 type HandlersProps = {
   sources?: CatalogSource[];
   modelsPerCategory?: number;
+  hasValidatedModels?: boolean;
 };
 const initIntercepts = ({
   sources = [mockCatalogSource({}), mockCatalogSource({ id: 'source-2', name: 'source 2' })],
   modelsPerCategory = 4,
+  hasValidatedModels = false,
 }: HandlersProps) => {
   cy.interceptApi(
     `GET /api/:apiVersion/model_catalog/sources`,
@@ -33,6 +37,29 @@ const initIntercepts = ({
 
   sources.forEach((source) => {
     source.labels.forEach((label) => {
+      const models = hasValidatedModels
+        ? [
+            mockCatalogModel({
+              name: 'validated-model',
+              source_id: source.id,
+              customProperties: {
+                validated: { metadataType: ModelRegistryMetadataType.STRING, string_value: '' },
+              },
+            }),
+            ...Array.from({ length: modelsPerCategory - 1 }, (_, i) =>
+              mockCatalogModel({
+                name: `${label.toLowerCase().replace(/\s+/g, '-')}-model-${i + 1}`,
+                source_id: source.id,
+              }),
+            ),
+          ]
+        : Array.from({ length: modelsPerCategory }, (_, i) =>
+            mockCatalogModel({
+              name: `${label.toLowerCase().replace(/\s+/g, '-')}-model-${i + 1}`,
+              source_id: source.id,
+            }),
+          );
+
       cy.interceptApi(
         `GET /api/:apiVersion/model_catalog/models`,
         {
@@ -41,15 +68,7 @@ const initIntercepts = ({
             sourceLabel: label,
           },
         },
-        mockCatalogModelList({
-          items: Array.from({ length: modelsPerCategory }, (_, i) =>
-            mockCatalogModel({
-              name: `${label.toLowerCase()}-model-${i + 1}`,
-              // eslint-disable-next-line camelcase
-              source_id: source.id,
-            }),
-          ),
-        }),
+        mockCatalogModelList({ items: models }),
       );
     });
   });
@@ -89,6 +108,16 @@ const initIntercepts = ({
     mockCatalogFilterOptionsList(),
   );
 
+  cy.intercept(
+    {
+      method: 'GET',
+      url: new RegExp(
+        `/api/${MODEL_CATALOG_API_VERSION}/model_catalog/sources/.*/performance_artifacts/.*`,
+      ),
+    },
+    { items: [], size: 0, pageSize: 10, nextPageToken: '' },
+  ).as('getPerformanceArtifacts');
+
   cy.interceptApi(
     `GET /api/:apiVersion/model_catalog/sources/:sourceId/artifacts/:modelName`,
     {
@@ -117,7 +146,6 @@ describe('Model Catalog Page', () => {
 
   it('should show empty state when configmap has empty sources', () => {
     initIntercepts({ sources: [] });
-    modelCatalog.visit();
     modelCatalog.visit();
     modelCatalog.findModelCatalogEmptyState().should('exist');
   });
@@ -217,5 +245,153 @@ describe('Model Catalog Page', () => {
         'tasks+IN+%28%27text-generation%27%2C%27text-to-text%27%29+AND+provider%3D%27Google%27',
       );
     });
+  });
+});
+
+describe('Performance Empty State', () => {
+  describe('Community & Custom Section', () => {
+    it('should show performance empty state when toggle is ON', () => {
+      initIntercepts({
+        sources: [
+          mockCatalogSource({ labels: ['Provider one'] }),
+          mockCatalogSource({ id: 'custom-source', name: 'Custom Source', labels: [] }),
+        ],
+        hasValidatedModels: true,
+      });
+      modelCatalog.visit({ enableTempDevCatalogAdvancedFiltersFeature: true });
+
+      modelCatalog.togglePerformanceView();
+      modelCatalog.findPerformanceViewToggleValue().should('be.checked');
+
+      modelCatalog.findCategoryToggle('no-labels').click();
+
+      modelCatalog.findPerformanceEmptyState().should('be.visible');
+      modelCatalog.findModelCatalogCards().should('not.exist');
+    });
+
+    it('should show models when toggle is OFF', () => {
+      initIntercepts({
+        sources: [
+          mockCatalogSource({ labels: ['Provider one'] }),
+          mockCatalogSource({ id: 'custom-source', name: 'Custom Source', labels: [] }),
+        ],
+      });
+      modelCatalog.visit({ enableTempDevCatalogAdvancedFiltersFeature: true });
+
+      modelCatalog.findCategoryToggle('no-labels').click();
+
+      modelCatalog.findModelCatalogCards().should('have.length.at.least', 1);
+      modelCatalog.findPerformanceEmptyState().should('not.exist');
+    });
+  });
+
+  describe('Labeled Section Without Validated Models', () => {
+    it('should show performance empty state when toggle is ON and no validated models', () => {
+      initIntercepts({
+        sources: [mockCatalogSource({ labels: ['Provider one'] })],
+        hasValidatedModels: false,
+      });
+      modelCatalog.visit({ enableTempDevCatalogAdvancedFiltersFeature: true });
+
+      modelCatalog.togglePerformanceView();
+      modelCatalog.findCategoryToggle('label-Provider one').click();
+
+      modelCatalog.findPerformanceEmptyState().should('be.visible');
+    });
+
+    it('should show models when toggle is OFF', () => {
+      initIntercepts({
+        sources: [mockCatalogSource({ labels: ['Provider one'] })],
+        hasValidatedModels: false,
+      });
+      modelCatalog.visit({ enableTempDevCatalogAdvancedFiltersFeature: true });
+
+      modelCatalog.findCategoryToggle('label-Provider one').click();
+
+      modelCatalog.findModelCatalogCards().should('have.length.at.least', 1);
+    });
+  });
+
+  describe('Labeled Section With Validated Models', () => {
+    it('should show models when toggle is ON and section has validated models', () => {
+      initIntercepts({
+        sources: [mockCatalogSource({ labels: ['Provider one'] })],
+        hasValidatedModels: true,
+      });
+      modelCatalog.visit({ enableTempDevCatalogAdvancedFiltersFeature: true });
+
+      modelCatalog.togglePerformanceView();
+      modelCatalog.findCategoryToggle('label-Provider one').click();
+
+      modelCatalog.findModelCatalogCards().should('have.length.at.least', 1);
+      modelCatalog.findPerformanceEmptyState().should('not.exist');
+    });
+  });
+
+  describe('Empty State Actions', () => {
+    it('should turn off toggle when clicking "set Explore model performance to off"', () => {
+      initIntercepts({
+        sources: [
+          mockCatalogSource({ labels: ['Provider one'] }),
+          mockCatalogSource({ id: 'custom-source', name: 'Custom Source', labels: [] }),
+        ],
+        hasValidatedModels: true,
+      });
+      modelCatalog.visit({ enableTempDevCatalogAdvancedFiltersFeature: true });
+
+      modelCatalog.togglePerformanceView();
+      modelCatalog.findCategoryToggle('no-labels').click();
+      modelCatalog.findPerformanceEmptyState().should('be.visible');
+
+      modelCatalog.findSetPerformanceOffLink().click();
+
+      modelCatalog.findPerformanceViewToggleValue().should('not.be.checked');
+      modelCatalog.findModelCatalogCards().should('have.length.at.least', 1);
+    });
+
+    it('should navigate to All models when clicking "Select the All models category"', () => {
+      initIntercepts({
+        sources: [
+          mockCatalogSource({ labels: ['Provider one'] }),
+          mockCatalogSource({ id: 'custom-source', name: 'Custom Source', labels: [] }),
+        ],
+        hasValidatedModels: true,
+      });
+      modelCatalog.visit({ enableTempDevCatalogAdvancedFiltersFeature: true });
+
+      modelCatalog.togglePerformanceView();
+      modelCatalog.findCategoryToggle('no-labels').click();
+      modelCatalog.findPerformanceEmptyState().should('be.visible');
+
+      modelCatalog.findSelectAllModelsCategoryButton().click();
+
+      modelCatalog.findAllModelsToggle().find('button').should('have.attr', 'aria-pressed', 'true');
+    });
+  });
+
+  it('should work correctly when toggling performance view', () => {
+    initIntercepts({
+      sources: [
+        mockCatalogSource({ labels: ['Provider one'] }),
+        mockCatalogSource({ id: 'custom-source', name: 'Custom Source', labels: [] }),
+      ],
+      hasValidatedModels: true,
+    });
+    modelCatalog.visit({ enableTempDevCatalogAdvancedFiltersFeature: true });
+
+    modelCatalog.togglePerformanceView();
+    modelCatalog.findPerformanceViewToggleValue().should('be.checked');
+    modelCatalog.findCategoryToggle('no-labels').click();
+    modelCatalog.findPerformanceEmptyState().should('be.visible');
+
+    modelCatalog.findSetPerformanceOffLink().click();
+    modelCatalog.findPerformanceViewToggleValue().should('not.be.checked');
+    modelCatalog.findPerformanceEmptyState().should('not.exist');
+    modelCatalog.findModelCatalogCards().should('have.length.at.least', 1);
+
+    modelCatalog.togglePerformanceView();
+    modelCatalog.findPerformanceViewToggleValue().should('be.checked');
+    modelCatalog.findPerformanceEmptyState().should('be.visible');
+    modelCatalog.findModelCatalogCards().should('not.exist');
   });
 });

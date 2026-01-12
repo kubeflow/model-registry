@@ -390,6 +390,24 @@ class ModelCatalog {
   findAllCompressionVariants() {
     return cy.get('[data-testid^="compression-variant-"]');
   }
+
+  // Performance Empty State
+  findPerformanceEmptyState() {
+    return cy.findByTestId('performance-empty-state');
+  }
+
+  findSetPerformanceOffLink() {
+    return this.findPerformanceEmptyState().contains(
+      'button',
+      /set.*Explore model performance.*to off/i,
+    );
+  }
+
+  findSelectAllModelsCategoryButton() {
+    return this.findPerformanceEmptyState().findByRole('button', {
+      name: /Select the All models category/i,
+    });
+  }
 }
 
 export const modelCatalog = new ModelCatalog();

@@ -804,6 +804,16 @@ Granite 3.1 Instruct Models are primarily finetuned using instruction-response p
 		SourceId:    stringToPointer("adminModel1"),
 	}
 
+	noPerformanceModel := models.CatalogModel{
+		Name:        "no-perf-source/test-model",
+		Description: stringToPointer("Model without performance data"),
+		Provider:    stringToPointer("Test Provider"),
+		Tasks:       []string{"text-generation"},
+		License:     stringToPointer("apache-2.0"),
+		Language:    []string{"en"},
+		SourceId:    stringToPointer("no-perf-source"),
+	}
+
 	// added this to test the load more models button
 	var additionalRepo1Models []models.CatalogModel
 	for i := 1; i <= 20; i++ {
@@ -828,7 +838,7 @@ Granite 3.1 Instruct Models are primarily finetuned using instruction-response p
 
 	allModels := []models.CatalogModel{
 		sampleModel1, sampleModel2, sampleModel3, sampleModel4,
-		huggingFaceModel1, huggingFaceModel2, huggingFaceModel3,
+		huggingFaceModel1, huggingFaceModel2, huggingFaceModel3, noPerformanceModel,
 		otherModel1, otherModel2,
 	}
 	allModels = append(allModels, additionalRepo1Models...)
@@ -902,6 +912,13 @@ func GetCatalogSourceMocks() []models.CatalogSource {
 			Enabled: &disabledBool,
 			Labels:  []string{},
 			Status:  &disabledStatus,
+		},
+		{
+			Id:      "no-perf-source",
+			Name:    "No Performance Data Source",
+			Enabled: &enabled,
+			Labels:  []string{"No Performance"},
+			Status:  &availableStatus,
 		},
 	}
 }

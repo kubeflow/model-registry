@@ -3,16 +3,17 @@ import {
   Bullseye,
   Button,
   EmptyState,
+  EmptyStateVariant,
   Flex,
   Gallery,
   Spinner,
   Title,
 } from '@patternfly/react-core';
-import { SearchIcon } from '@patternfly/react-icons';
+import { ChartBarIcon, SearchIcon } from '@patternfly/react-icons';
 import React from 'react';
 import { ModelCatalogContext } from '~/app/context/modelCatalog/ModelCatalogContext';
 import { useCatalogModelsBySources } from '~/app/hooks/modelCatalog/useCatalogModelsBySource';
-import { CatalogModel } from '~/app/modelCatalogTypes';
+import { CatalogModel, CategoryName, SourceLabel } from '~/app/modelCatalogTypes';
 import ModelCatalogCard from '~/app/pages/modelCatalog/components/ModelCatalogCard';
 import {
   getSourceFromSourceId,
@@ -23,6 +24,11 @@ import {
 } from '~/app/pages/modelCatalog/utils/modelCatalogUtils';
 import EmptyModelCatalogState from '~/app/pages/modelCatalog/EmptyModelCatalogState';
 import ScrollViewOnMount from '~/app/shared/components/ScrollViewOnMount';
+import {
+  ALL_LATENCY_FIELD_NAMES,
+  ModelCatalogNumberFilterKey,
+  ModelCatalogStringFilterKey,
+} from '~/concepts/modelCatalog/const';
 
 type ModelCatalogPageProps = {
   searchTerm: string;
@@ -40,6 +46,9 @@ const ModelCatalogGalleryView: React.FC<ModelCatalogPageProps> = ({
     filterOptionsLoaded,
     filterOptionsLoadError,
     catalogSources,
+    setPerformanceViewEnabled,
+    setFilterData,
+    updateSelectedSourceLabel,
     performanceViewEnabled,
     sortBy,
   } = React.useContext(ModelCatalogContext);
@@ -79,6 +88,23 @@ const ModelCatalogGalleryView: React.FC<ModelCatalogPageProps> = ({
   const loaded = catalogModelsLoaded && filterOptionsLoaded;
   const loadError = catalogModelsLoadError || filterOptionsLoadError;
 
+  const isNoLabelsSection = selectedSourceLabel === SourceLabel.other;
+  const noUserFiltersOrSearch = !filtersApplied && !searchTerm;
+
+  const handleDisablePerformanceView = () => {
+    setPerformanceViewEnabled(false);
+    setFilterData(ModelCatalogNumberFilterKey.MAX_RPS, undefined);
+    setFilterData(ModelCatalogStringFilterKey.HARDWARE_TYPE, []);
+    setFilterData(ModelCatalogStringFilterKey.USE_CASE, []);
+    ALL_LATENCY_FIELD_NAMES.forEach((fieldName) => {
+      setFilterData(fieldName, undefined);
+    });
+  };
+
+  const handleSelectAllModels = () => {
+    updateSelectedSourceLabel(CategoryName.allModels);
+  };
+
   if (loadError) {
     return (
       <Alert variant="danger" title="Failed to load model catalog" isInline>
@@ -95,6 +121,36 @@ const ModelCatalogGalleryView: React.FC<ModelCatalogPageProps> = ({
           Loading model catalog...
         </Title>
       </EmptyState>
+    );
+  }
+
+  if (
+    performanceViewEnabled &&
+    catalogModels.items.length === 0 &&
+    (isNoLabelsSection || noUserFiltersOrSearch)
+  ) {
+    return (
+      <EmptyModelCatalogState
+        testid="performance-empty-state"
+        title="No performance data available in selected category"
+        headerIcon={ChartBarIcon}
+        variant={EmptyStateVariant.lg}
+        description={
+          <>
+            Select the <strong>All models</strong> category to view all models with performance
+            data, or{' '}
+            <Button variant="link" isInline onClick={handleDisablePerformanceView}>
+              set <strong>Explore model performance</strong> to off
+            </Button>{' '}
+            to view models in the selected category.
+          </>
+        }
+        customAction={
+          <Button variant="link" onClick={handleSelectAllModels}>
+            Select the <strong>All models</strong> category
+          </Button>
+        }
+      />
     );
   }
 
