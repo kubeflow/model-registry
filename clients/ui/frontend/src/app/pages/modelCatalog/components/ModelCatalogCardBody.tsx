@@ -57,7 +57,12 @@ const ModelCatalogCardBody: React.FC<ModelCatalogCardBodyProps> = ({
 
   // Get performance-specific filter params for the /performance_artifacts endpoint
   const targetRPS = filterData[ModelCatalogNumberFilterKey.MAX_RPS];
-  const latencyProperty = getActiveLatencyFieldName(filterData);
+  // Get full filter key for display purposes
+  const latencyFieldName = getActiveLatencyFieldName(filterData);
+  // Use short property key (e.g., 'ttft_p90') for the catalog API, not the full filter key
+  const latencyProperty = latencyFieldName
+    ? parseLatencyFieldName(latencyFieldName).propertyKey
+    : undefined;
 
   // Fetch performance artifacts from the new endpoint with server-side filtering
   const [performanceArtifactsList, performanceArtifactsLoaded, performanceArtifactsError] =
@@ -142,7 +147,7 @@ const ModelCatalogCardBody: React.FC<ModelCatalogCardBodyProps> = ({
     );
 
     // Get the selected latency metric from filters, or default to TTFT
-    const activeLatencyField = latencyProperty;
+    const activeLatencyField = latencyFieldName;
     const latencyValue =
       getLatencyValue(metrics.latencyMetrics, activeLatencyField) ?? metrics.ttftMean;
     const latencyLabel = activeLatencyField

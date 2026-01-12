@@ -13,6 +13,7 @@ import {
   interceptArtifactsList,
   type ModelCatalogInterceptOptions,
 } from '~/__tests__/cypress/cypress/support/interceptHelpers/modelCatalog';
+import { NBSP } from '~/__tests__/cypress/cypress/support/constants';
 
 /**
  * Initialize intercepts for model catalog tabs tests.
@@ -301,9 +302,6 @@ describe('Model Catalog Details Tabs', () => {
   });
 
   describe('Latency Filter Column Visibility', () => {
-    // Non-breaking space used in column labels
-    const NBSP = '\u00A0';
-
     beforeEach(() => {
       cy.intercept('GET', '/model-registry/api/v1/model_registry*', [
         mockModelRegistry({ name: 'modelregistry-sample' }),
@@ -441,172 +439,172 @@ describe('Model Catalog Details Tabs', () => {
       });
     });
   });
+});
 
-  describe('Server-Side Filtering', () => {
-    beforeEach(() => {
-      cy.intercept('GET', '/model-registry/api/v1/model_registry*', [
-        mockModelRegistry({ name: 'modelregistry-sample' }),
-      ]).as('getModelRegistries');
+describe('Server-Side Filtering', () => {
+  beforeEach(() => {
+    cy.intercept('GET', '/model-registry/api/v1/model_registry*', [
+      mockModelRegistry({ name: 'modelregistry-sample' }),
+    ]).as('getModelRegistries');
 
-      // Use initIntercepts for common setup
-      initIntercepts({ useValidatedModel: true, includePerformanceArtifacts: true });
+    // Use initIntercepts for common setup
+    initIntercepts({ useValidatedModel: true, includePerformanceArtifacts: true });
+  });
+
+  describe('Filtered Response Handling', () => {
+    it('should display only artifacts matching the selected workload type from server response', () => {
+      // Initial request returns multiple workload types
+      cy.intercept(
+        {
+          method: 'GET',
+          pathname: new RegExp(
+            `/api/${MODEL_CATALOG_API_VERSION}/model_catalog/sources/.*/performance_artifacts/.*`,
+          ),
+        },
+        mockModArchResponse(mockMultipleWorkloadTypePerformanceArtifactList()),
+      ).as('getUnfilteredPerformanceArtifacts');
+
+      modelCatalog.visit();
+      modelCatalog.findLoadingState().should('not.exist');
+      modelCatalog.findModelCatalogDetailLink().first().click();
+      modelCatalog.clickPerformanceInsightsTab();
+
+      cy.wait('@getUnfilteredPerformanceArtifacts');
+
+      // Verify initial table has multiple workload types
+      modelCatalog.findHardwareConfigurationTableRows().should('have.length', 4);
+
+      // Server returns filtered response when filter is applied
+      cy.intercept(
+        {
+          method: 'GET',
+          pathname: new RegExp(
+            `/api/${MODEL_CATALOG_API_VERSION}/model_catalog/sources/.*/performance_artifacts/.*`,
+          ),
+        },
+        mockModArchResponse(
+          mockFilteredPerformanceArtifactsByWorkloadType(UseCaseOptionValue.CODE_FIXING),
+        ),
+      ).as('getFilteredPerformanceArtifacts');
+
+      // Apply workload type filter
+      modelCatalog.findWorkloadTypeFilter().click();
+      modelCatalog.selectWorkloadType('code_fixing');
+
+      cy.wait('@getFilteredPerformanceArtifacts');
+
+      // Verify table shows only filtered results (2 items for code_fixing)
+      modelCatalog.findHardwareConfigurationTableRows().should('have.length', 2);
+
+      // Verify all displayed rows have the correct workload type
+      modelCatalog.findHardwareConfigurationColumn('Workload type').each(($el) => {
+        cy.wrap($el).should('contain.text', 'Code Fixing');
+      });
     });
 
-    describe('Filtered Response Handling', () => {
-      it('should display only artifacts matching the selected workload type from server response', () => {
-        // Initial request returns multiple workload types
-        cy.intercept(
-          {
-            method: 'GET',
-            pathname: new RegExp(
-              `/api/${MODEL_CATALOG_API_VERSION}/model_catalog/sources/.*/performance_artifacts/.*`,
-            ),
-          },
-          mockModArchResponse(mockMultipleWorkloadTypePerformanceArtifactList()),
-        ).as('getUnfilteredPerformanceArtifacts');
-
-        modelCatalog.visit();
-        modelCatalog.findLoadingState().should('not.exist');
-        modelCatalog.findModelCatalogDetailLink().first().click();
-        modelCatalog.clickPerformanceInsightsTab();
-
-        cy.wait('@getUnfilteredPerformanceArtifacts');
-
-        // Verify initial table has multiple workload types
-        modelCatalog.findHardwareConfigurationTableRows().should('have.length', 4);
-
-        // Server returns filtered response when filter is applied
-        cy.intercept(
-          {
-            method: 'GET',
-            pathname: new RegExp(
-              `/api/${MODEL_CATALOG_API_VERSION}/model_catalog/sources/.*/performance_artifacts/.*`,
-            ),
-          },
-          mockModArchResponse(
-            mockFilteredPerformanceArtifactsByWorkloadType(UseCaseOptionValue.CODE_FIXING),
+    it('should update table when server returns different filtered results for chatbot', () => {
+      // Initial request
+      cy.intercept(
+        {
+          method: 'GET',
+          pathname: new RegExp(
+            `/api/${MODEL_CATALOG_API_VERSION}/model_catalog/sources/.*/performance_artifacts/.*`,
           ),
-        ).as('getFilteredPerformanceArtifacts');
+        },
+        mockModArchResponse(mockMultipleWorkloadTypePerformanceArtifactList()),
+      ).as('getUnfilteredPerformanceArtifacts');
 
-        // Apply workload type filter
-        modelCatalog.findWorkloadTypeFilter().click();
-        modelCatalog.selectWorkloadType('code_fixing');
+      modelCatalog.visit();
+      modelCatalog.findLoadingState().should('not.exist');
+      modelCatalog.findModelCatalogDetailLink().first().click();
+      modelCatalog.clickPerformanceInsightsTab();
 
-        cy.wait('@getFilteredPerformanceArtifacts');
+      cy.wait('@getUnfilteredPerformanceArtifacts');
 
-        // Verify table shows only filtered results (2 items for code_fixing)
-        modelCatalog.findHardwareConfigurationTableRows().should('have.length', 2);
+      // Server returns filtered response for chatbot
+      cy.intercept(
+        {
+          method: 'GET',
+          pathname: new RegExp(
+            `/api/${MODEL_CATALOG_API_VERSION}/model_catalog/sources/.*/performance_artifacts/.*`,
+          ),
+        },
+        mockModArchResponse(
+          mockFilteredPerformanceArtifactsByWorkloadType(UseCaseOptionValue.CHATBOT),
+        ),
+      ).as('getFilteredChatbotArtifacts');
 
-        // Verify all displayed rows have the correct workload type
-        modelCatalog.findHardwareConfigurationColumn('Workload type').each(($el) => {
-          cy.wrap($el).should('contain.text', 'Code Fixing');
-        });
+      // Apply chatbot workload type filter
+      modelCatalog.findWorkloadTypeFilter().click();
+      modelCatalog.selectWorkloadType('chatbot');
+
+      cy.wait('@getFilteredChatbotArtifacts');
+
+      // Verify table shows filtered results with Chatbot workload type
+      modelCatalog.findHardwareConfigurationColumn('Workload type').each(($el) => {
+        cy.wrap($el).should('contain.text', 'Chatbot');
       });
+    });
 
-      it('should update table when server returns different filtered results for chatbot', () => {
-        // Initial request
-        cy.intercept(
-          {
-            method: 'GET',
-            pathname: new RegExp(
-              `/api/${MODEL_CATALOG_API_VERSION}/model_catalog/sources/.*/performance_artifacts/.*`,
-            ),
-          },
-          mockModArchResponse(mockMultipleWorkloadTypePerformanceArtifactList()),
-        ).as('getUnfilteredPerformanceArtifacts');
-
-        modelCatalog.visit();
-        modelCatalog.findLoadingState().should('not.exist');
-        modelCatalog.findModelCatalogDetailLink().first().click();
-        modelCatalog.clickPerformanceInsightsTab();
-
-        cy.wait('@getUnfilteredPerformanceArtifacts');
-
-        // Server returns filtered response for chatbot
-        cy.intercept(
-          {
-            method: 'GET',
-            pathname: new RegExp(
-              `/api/${MODEL_CATALOG_API_VERSION}/model_catalog/sources/.*/performance_artifacts/.*`,
-            ),
-          },
-          mockModArchResponse(
-            mockFilteredPerformanceArtifactsByWorkloadType(UseCaseOptionValue.CHATBOT),
+    it('should refetch data when workload type filter is changed', () => {
+      // Initial unfiltered request
+      cy.intercept(
+        {
+          method: 'GET',
+          pathname: new RegExp(
+            `/api/${MODEL_CATALOG_API_VERSION}/model_catalog/sources/.*/performance_artifacts/.*`,
           ),
-        ).as('getFilteredChatbotArtifacts');
+        },
+        mockModArchResponse(mockMultipleWorkloadTypePerformanceArtifactList()),
+      ).as('getUnfilteredPerformanceArtifacts');
 
-        // Apply chatbot workload type filter
-        modelCatalog.findWorkloadTypeFilter().click();
-        modelCatalog.selectWorkloadType('chatbot');
+      modelCatalog.visit();
+      modelCatalog.findLoadingState().should('not.exist');
+      modelCatalog.findModelCatalogDetailLink().first().click();
+      modelCatalog.clickPerformanceInsightsTab();
 
-        cy.wait('@getFilteredChatbotArtifacts');
+      cy.wait('@getUnfilteredPerformanceArtifacts');
+      modelCatalog.findHardwareConfigurationTableRows().should('have.length', 4);
 
-        // Verify table shows filtered results with Chatbot workload type
-        modelCatalog.findHardwareConfigurationColumn('Workload type').each(($el) => {
-          cy.wrap($el).should('contain.text', 'Chatbot');
-        });
-      });
-
-      it('should refetch data when workload type filter is changed', () => {
-        // Initial unfiltered request
-        cy.intercept(
-          {
-            method: 'GET',
-            pathname: new RegExp(
-              `/api/${MODEL_CATALOG_API_VERSION}/model_catalog/sources/.*/performance_artifacts/.*`,
-            ),
-          },
-          mockModArchResponse(mockMultipleWorkloadTypePerformanceArtifactList()),
-        ).as('getUnfilteredPerformanceArtifacts');
-
-        modelCatalog.visit();
-        modelCatalog.findLoadingState().should('not.exist');
-        modelCatalog.findModelCatalogDetailLink().first().click();
-        modelCatalog.clickPerformanceInsightsTab();
-
-        cy.wait('@getUnfilteredPerformanceArtifacts');
-        modelCatalog.findHardwareConfigurationTableRows().should('have.length', 4);
-
-        // Apply filter - server returns filtered response
-        cy.intercept(
-          {
-            method: 'GET',
-            pathname: new RegExp(
-              `/api/${MODEL_CATALOG_API_VERSION}/model_catalog/sources/.*/performance_artifacts/.*`,
-            ),
-          },
-          mockModArchResponse(
-            mockFilteredPerformanceArtifactsByWorkloadType(UseCaseOptionValue.CODE_FIXING),
+      // Apply filter - server returns filtered response
+      cy.intercept(
+        {
+          method: 'GET',
+          pathname: new RegExp(
+            `/api/${MODEL_CATALOG_API_VERSION}/model_catalog/sources/.*/performance_artifacts/.*`,
           ),
-        ).as('getFilteredPerformanceArtifacts');
+        },
+        mockModArchResponse(
+          mockFilteredPerformanceArtifactsByWorkloadType(UseCaseOptionValue.CODE_FIXING),
+        ),
+      ).as('getFilteredPerformanceArtifacts');
 
-        modelCatalog.findWorkloadTypeFilter().click();
-        modelCatalog.selectWorkloadType('code_fixing');
-        cy.wait('@getFilteredPerformanceArtifacts');
-        modelCatalog.findHardwareConfigurationTableRows().should('have.length', 2);
+      modelCatalog.findWorkloadTypeFilter().click();
+      modelCatalog.selectWorkloadType('code_fixing');
+      cy.wait('@getFilteredPerformanceArtifacts');
+      modelCatalog.findHardwareConfigurationTableRows().should('have.length', 2);
 
-        // Change filter to chatbot - server returns chatbot-filtered response
-        cy.intercept(
-          {
-            method: 'GET',
-            pathname: new RegExp(
-              `/api/${MODEL_CATALOG_API_VERSION}/model_catalog/sources/.*/performance_artifacts/.*`,
-            ),
-          },
-          mockModArchResponse(
-            mockFilteredPerformanceArtifactsByWorkloadType(UseCaseOptionValue.CHATBOT),
+      // Change filter to chatbot - server returns chatbot-filtered response
+      cy.intercept(
+        {
+          method: 'GET',
+          pathname: new RegExp(
+            `/api/${MODEL_CATALOG_API_VERSION}/model_catalog/sources/.*/performance_artifacts/.*`,
           ),
-        ).as('getFilteredByChatbot');
+        },
+        mockModArchResponse(
+          mockFilteredPerformanceArtifactsByWorkloadType(UseCaseOptionValue.CHATBOT),
+        ),
+      ).as('getFilteredByChatbot');
 
-        // Re-open dropdown and select a different workload type (single-select replaces the value)
-        modelCatalog.findWorkloadTypeFilter().click();
-        modelCatalog.selectWorkloadType('chatbot');
+      // Re-open dropdown and select a different workload type (single-select replaces the value)
+      modelCatalog.findWorkloadTypeFilter().click();
+      modelCatalog.selectWorkloadType('chatbot');
 
-        cy.wait('@getFilteredByChatbot');
+      cy.wait('@getFilteredByChatbot');
 
-        // Verify table shows chatbot-filtered items
-        modelCatalog.findHardwareConfigurationTableRows().should('have.length', 2);
-      });
+      // Verify table shows chatbot-filtered items
+      modelCatalog.findHardwareConfigurationTableRows().should('have.length', 2);
     });
   });
 });

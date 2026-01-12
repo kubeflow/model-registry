@@ -17,6 +17,7 @@ import ModelCatalogCard from '~/app/pages/modelCatalog/components/ModelCatalogCa
 import {
   getSourceFromSourceId,
   hasFiltersApplied,
+  getBasicFiltersOnly,
 } from '~/app/pages/modelCatalog/utils/modelCatalogUtils';
 import EmptyModelCatalogState from '~/app/pages/modelCatalog/EmptyModelCatalogState';
 import ScrollViewOnMount from '~/app/shared/components/ScrollViewOnMount';
@@ -37,15 +38,23 @@ const ModelCatalogGalleryView: React.FC<ModelCatalogPageProps> = ({
     filterOptionsLoaded,
     filterOptionsLoadError,
     catalogSources,
+    performanceViewEnabled,
   } = React.useContext(ModelCatalogContext);
   const filtersApplied = hasFiltersApplied(filterData);
+
+  // When performance view is disabled, exclude performance filters from API queries
+  // Memoize to prevent infinite re-fetching
+  const effectiveFilterData = React.useMemo(
+    () => (performanceViewEnabled ? filterData : getBasicFiltersOnly(filterData)),
+    [performanceViewEnabled, filterData],
+  );
 
   const { catalogModels, catalogModelsLoaded, catalogModelsLoadError } = useCatalogModelsBySources(
     '',
     selectedSourceLabel === 'All models' ? undefined : selectedSourceLabel,
     10,
     searchTerm,
-    filterData,
+    effectiveFilterData,
     filterOptions,
   );
 

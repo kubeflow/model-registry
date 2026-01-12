@@ -79,13 +79,17 @@ const HardwareConfigurationTable: React.FC<HardwareConfigurationTableProps> = ({
     return <Spinner size="lg" />;
   }
 
-  const toolbarContent = (
-    <HardwareConfigurationFilterToolbar performanceArtifacts={performanceArtifacts} />
-  );
   const handleClearFilters = () => {
     // On details page, only clear performance filters (not basic filters from landing page)
     clearAllFilters(setFilterData, PERFORMANCE_FILTER_KEYS);
   };
+
+  const toolbarContent = (
+    <HardwareConfigurationFilterToolbar
+      performanceArtifacts={performanceArtifacts}
+      onResetAllFilters={handleClearFilters}
+    />
+  );
 
   return (
     <OuterScrollContainer>

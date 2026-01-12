@@ -56,12 +56,21 @@ const HardwareConfigurationFilterToolbar: React.FC<HardwareConfigurationFilterTo
     return null;
   }
 
+  // Custom clear filters button with test ID for Cypress tests
+  const customLabelGroupContent = onResetAllFilters && hasVisibleChips && (
+    <ToolbarItem>
+      <Button variant="link" onClick={onResetAllFilters} data-testid="clear-all-filters-button">
+        Clear all filters
+      </Button>
+    </ToolbarItem>
+  );
+
   return (
     <Toolbar
       {...(onResetAllFilters
         ? {
             clearAllFilters: onResetAllFilters,
-            clearFiltersButtonText: hasVisibleChips ? 'Clear all filters' : '',
+            customLabelGroupContent,
           }
         : {})}
     >

@@ -291,8 +291,50 @@ export const filtersToFilterQuery = (
 };
 
 /**
+ * Find the server filter key for a given filter ID.
+ * Handles the case where local state uses short keys but server uses fully qualified keys.
+ */
+const findServerFilterKey = (
+  filterId: string,
+  filters: CatalogFilterOptions | undefined,
+): string | undefined => {
+  if (!filters) {
+    return undefined;
+  }
+
+  if (filterId in filters) {
+    return filterId;
+  }
+
+  for (const suffix of ['.string_value', '.double_value', '.int_value', '.array_value']) {
+    const key = `artifacts.${filterId}${suffix}`;
+    if (key in filters) {
+      return key;
+    }
+  }
+  return undefined;
+};
+
+/**
+ * Convert a server filter key to the format expected by the filterQuery.
+ * Strips the 'artifacts.' prefix if present.
+ */
+const convertToFilterQueryKey = (serverFilterKey: string): string => {
+  if (serverFilterKey.startsWith(ARTIFACTS_FILTER_PREFIX)) {
+    return serverFilterKey.substring(ARTIFACTS_FILTER_PREFIX.length);
+  }
+  return serverFilterKey;
+};
+
+/**
+ * Check if a filter ID is a latency field name.
+ */
+const isLatencyFieldName = (id: string): id is LatencyMetricFieldName =>
+  ALL_LATENCY_FIELD_NAMES.some((name) => name === id);
+
+/**
  * Converts filter data into a filter query string for the /artifacts/performance endpoint.
- * Only includes filters that have the 'artifacts.' prefix.
+ * Only includes filters that have the 'artifacts.' prefix and strips that prefix in the output.
  * RPS is NOT included in filterQuery - it's passed as targetRPS param instead.
  */
 export const filtersToArtifactsFilterQuery = (
@@ -300,24 +342,23 @@ export const filtersToArtifactsFilterQuery = (
   options: CatalogFilterOptionsList,
 ): string => {
   const serializedFilters: string[] = Object.entries(filterData)
-    .filter(([filterId]) => {
-      // Only include artifact-specific filters (those with artifacts. prefix)
-      // RPS is excluded - it's passed as targetRPS param, not in filterQuery
-      if (filterId === ModelCatalogNumberFilterKey.MAX_RPS) {
-        return false;
-      }
-      // Include any filter with the artifacts. prefix
-      return filterId.startsWith(ARTIFACTS_FILTER_PREFIX);
-    })
+    .filter(
+      ([filterId]) =>
+        filterId === ModelCatalogStringFilterKey.HARDWARE_TYPE ||
+        filterId === ModelCatalogStringFilterKey.USE_CASE ||
+        isLatencyFieldName(filterId),
+    )
     .map(([filterId, data]) => {
       if (typeof data === 'undefined') {
         return '';
       }
 
-      // Filter IDs match backend filter_options keys directly, no conversion needed
+      const serverFilterKey = findServerFilterKey(filterId, options.filters);
+      const queryKey = serverFilterKey ? convertToFilterQueryKey(serverFilterKey) : filterId;
+
       const filterOption =
-        options.filters && isFilterIdInMap(filterId, options.filters)
-          ? options.filters[filterId]
+        serverFilterKey && options.filters && isFilterIdInMap(serverFilterKey, options.filters)
+          ? options.filters[serverFilterKey]
           : undefined;
 
       if (filterOption?.type === 'string' && Array.isArray(data)) {
@@ -325,16 +366,18 @@ export const filtersToArtifactsFilterQuery = (
           case 0:
             return '';
           case 1:
-            return eqFilter(filterId, data[0]);
+            return eqFilter(queryKey, data[0]);
           default:
-            return inFilter(filterId, data);
+            return inFilter(queryKey, data);
         }
       }
 
-      // Numeric filters - look up operator from namedQueries, fallback to '<'
-      if (isKnownNumericFilter(filterOption, filterId, data)) {
-        const operator = getNumericFilterOperator(options, filterId);
-        return `${filterId} ${operator} ${data}`;
+      if (
+        filterOption?.type === 'number' &&
+        isLatencyFieldName(filterId) &&
+        typeof data === 'number'
+      ) {
+        return `${queryKey}<${data}`; // e.g., ttft_p90.double_value<60
       }
 
       return '';
@@ -342,6 +385,30 @@ export const filtersToArtifactsFilterQuery = (
 
   const nonEmptyFilters = serializedFilters.filter((v) => !!v);
   return nonEmptyFilters.length === 0 ? '' : nonEmptyFilters.join(' AND ');
+};
+
+/**
+ * Returns a copy of filterData with only basic (non-performance) filters.
+ * Used when performance view is disabled to exclude performance filters from API queries.
+ */
+export const getBasicFiltersOnly = (
+  filterData: ModelCatalogFilterStates,
+): ModelCatalogFilterStates => {
+  const result: ModelCatalogFilterStates = {
+    ...filterData,
+    // Clear performance string filters
+    [ModelCatalogStringFilterKey.USE_CASE]: [],
+    [ModelCatalogStringFilterKey.HARDWARE_TYPE]: [],
+    // Clear performance number filter
+    [ModelCatalogNumberFilterKey.MAX_RPS]: undefined,
+  };
+
+  // Clear all latency fields
+  ALL_LATENCY_FIELD_NAMES.forEach((latencyKey) => {
+    result[latencyKey] = undefined;
+  });
+
+  return result;
 };
 
 export const getUniqueSourceLabels = (catalogSources: CatalogSourceList | null): string[] => {

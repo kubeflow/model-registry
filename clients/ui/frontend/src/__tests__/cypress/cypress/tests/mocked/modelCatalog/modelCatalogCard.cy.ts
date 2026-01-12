@@ -3,6 +3,7 @@ import {
   setupModelCatalogIntercepts,
   type ModelCatalogInterceptOptions,
 } from '~/__tests__/cypress/cypress/support/interceptHelpers/modelCatalog';
+import { PERFORMANCE_FILTER_TEST_IDS } from '~/__tests__/cypress/cypress/support/constants';
 
 /**
  * Initialize intercepts for model catalog card tests.
@@ -167,6 +168,44 @@ describe('ModelCatalogCard Component', () => {
           modelCatalog.findValidatedModelBenchmarkPrev().click();
           modelCatalog.findValidatedModelHardware().should('contain.text', '33xRTX 4090');
         });
+      });
+    });
+  });
+
+  /**
+   * NOTE: Detailed latency filter interactions, workload type filter options,
+   * and filter reset behavior are comprehensively tested in modelCatalogTabs.cy.ts
+   * (on the Performance Insights tab). These tests focus on card-specific behavior.
+   */
+  describe('Performance Filters on Catalog Landing Page', () => {
+    beforeEach(() => {
+      initIntercepts({ useValidatedModel: true });
+      modelCatalog.visit({ enableTempDevCatalogAdvancedFiltersFeature: true });
+      cy.wait('@getCatalogSourceModelArtifacts');
+      modelCatalog.togglePerformanceView();
+      modelCatalog.findLoadingState().should('not.exist');
+    });
+
+    it('should display performance filters on catalog page when toggle is ON', () => {
+      cy.findByTestId(PERFORMANCE_FILTER_TEST_IDS.workloadType).should('be.visible');
+      cy.findByTestId(PERFORMANCE_FILTER_TEST_IDS.latency).should('be.visible');
+      cy.findByTestId(PERFORMANCE_FILTER_TEST_IDS.maxRps).should('be.visible');
+    });
+
+    it('should update card latency display when latency filter changes', () => {
+      // Card should show latency value
+      modelCatalog.findFirstModelCatalogCard().within(() => {
+        modelCatalog.findValidatedModelLatency().should('be.visible');
+      });
+
+      // Change latency filter
+      modelCatalog.openLatencyFilter();
+      modelCatalog.selectLatencyMetric('E2E');
+      modelCatalog.clickApplyFilter();
+
+      // Card should still show latency value (updated based on filter)
+      modelCatalog.findFirstModelCatalogCard().within(() => {
+        modelCatalog.findValidatedModelLatency().should('be.visible');
       });
     });
   });
