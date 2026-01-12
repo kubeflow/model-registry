@@ -83,10 +83,7 @@ const HardwareConfigurationFilter: React.FC = () => {
 
   const filterContent = (
     <Panel>
-      <PanelMain
-        className="pf-v6-u-p-md"
-        style={{ maxHeight: '300px', overflowY: 'auto' }}
-      >
+      <PanelMain className="pf-v6-u-p-md" style={{ maxHeight: '300px', overflowY: 'auto' }}>
         <Flex direction={{ default: 'column' }} spaceItems={{ default: 'spaceItemsSm' }}>
           {/* Search input */}
           <FlexItem>

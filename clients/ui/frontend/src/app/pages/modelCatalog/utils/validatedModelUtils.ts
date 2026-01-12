@@ -70,8 +70,10 @@ export const extractPerformanceMetrics = (
   const ttftMeanKey = getLatencyPropertyKey(LatencyMetric.TTFT, LatencyPercentile.Mean);
   return {
     hardwareConfiguration:
-      getStringValue(performanceMetrics.customProperties, PerformancePropertyKey.HARDWARE_CONFIGURATION) ||
-      'H100-80',
+      getStringValue(
+        performanceMetrics.customProperties,
+        PerformancePropertyKey.HARDWARE_CONFIGURATION,
+      ) || 'H100-80',
     hardwareType: performanceMetrics.customProperties?.hardware_type?.string_value || 'H100-80',
     hardwareCount: performanceMetrics.customProperties?.hardware_count?.int_value || '1',
     rpsPerReplica: performanceMetrics.customProperties?.requests_per_second?.double_value || 1,
