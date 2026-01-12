@@ -73,6 +73,7 @@ const PerformanceInsightsView = (): React.JSX.Element => {
         targetRPS,
         latencyProperty,
         recommendations: true,
+        pageSize: '99999',
       },
       filterData,
       filterOptions,
