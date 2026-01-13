@@ -1,0 +1,9 @@
+// Styles for ContentModal component
+// TODO: This file was created to support code copied from odh-dashboard.
+// Consider abstracting into mod-arch-shared.
+
+.odh-modal__content-height {
+  // Default modal content styling
+  max-height: 60vh;
+  overflow-y: auto;
+}

@@ -12,7 +12,7 @@ import {
   ModalProps,
   ModalHeaderProps,
 } from '@patternfly/react-core';
-import '#~/concepts/dashboard/ModalStyles.scss';
+import '~/concepts/dashboard/ModalStyles.scss';
 
 export type ButtonAction = {
   label: string;

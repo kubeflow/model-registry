@@ -4,7 +4,7 @@ import { SortableData, checkboxTableColumn, kebabTableColumn } from 'mod-arch-sh
 import { testHook } from '~/__tests__/unit/testUtils/hooks';
 import { useManageColumns } from '~/app/shared/components/manageColumns/useManageColumns';
 
-jest.mock('#~/components/browserStorage/BrowserStorageContext', () => ({
+jest.mock('mod-arch-core', () => ({
   useBrowserStorage: jest.fn(),
 }));
 

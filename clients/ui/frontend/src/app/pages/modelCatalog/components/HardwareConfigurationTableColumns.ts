@@ -5,7 +5,12 @@ import {
 } from '~/app/modelCatalogTypes';
 import { getWorkloadType } from '~/app/pages/modelCatalog/utils/performanceMetricsUtils';
 import { getDoubleValue, getIntValue, getStringValue } from '~/app/utils';
-import { PerformancePropertyKey } from '~/concepts/modelCatalog/const';
+import {
+  LatencyMetric,
+  LatencyPercentile,
+  getLatencyPropertyKey,
+  PerformancePropertyKey,
+} from '~/concepts/modelCatalog/const';
 
 export type HardwareConfigColumnField = keyof PerformanceMetricsCustomProperties;
 
@@ -308,3 +313,49 @@ export const hardwareConfigColumns: HardwareConfigColumn[] = [
     modifier: 'wrap',
   },
 ];
+
+/**
+ * Fields that should always be visible (sticky columns).
+ * These will not appear in the ManageColumnsModal.
+ */
+export const STICKY_COLUMN_FIELDS: HardwareConfigColumnField[] = [
+  PerformancePropertyKey.HARDWARE_TYPE,
+  PerformancePropertyKey.USE_CASE,
+];
+
+/**
+ * Default visible column fields (excluding sticky - they're always visible).
+ * Core metrics: RPS, Replicas, Total RPS, Mean latencies, tokens, vLLM version.
+ */
+export const DEFAULT_VISIBLE_COLUMN_FIELDS: HardwareConfigColumnField[] = [
+  'requests_per_second',
+  'replicas',
+  'total_requests_per_second',
+  'ttft_mean',
+  'e2e_mean',
+  'tps_mean',
+  'mean_input_tokens',
+  'mean_output_tokens',
+  'framework_version',
+];
+
+/**
+ * All latency column fields (TTFT, E2E, ITL - excluding TPS which measures throughput).
+ */
+export const LATENCY_COLUMN_FIELDS: HardwareConfigColumnField[] = Object.values(LatencyMetric)
+  .filter((metric) => metric !== LatencyMetric.TPS)
+  .flatMap((metric) =>
+    Object.values(LatencyPercentile).map((percentile) => getLatencyPropertyKey(metric, percentile)),
+  );
+
+/**
+ * All TPS column fields.
+ */
+export const TPS_COLUMN_FIELDS: HardwareConfigColumnField[] = Object.values(LatencyPercentile).map(
+  (percentile) => getLatencyPropertyKey(LatencyMetric.TPS, percentile),
+);
+
+/**
+ * Storage key for localStorage persistence of column visibility.
+ */
+export const HARDWARE_CONFIG_COLUMNS_STORAGE_KEY = 'hardware-config-table-columns';
