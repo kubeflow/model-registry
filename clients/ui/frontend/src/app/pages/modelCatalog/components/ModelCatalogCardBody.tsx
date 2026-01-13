@@ -25,8 +25,8 @@ import {
   ModelDetailsTab,
   ModelCatalogNumberFilterKey,
   LatencyMetric,
+  parseLatencyFilterKey,
 } from '~/concepts/modelCatalog/const';
-import { parseLatencyFieldName } from '~/app/pages/modelCatalog/utils/hardwareConfigurationFilterUtils';
 import { useCatalogPerformanceArtifacts } from '~/app/hooks/modelCatalog/useCatalogPerformanceArtifacts';
 import { getActiveLatencyFieldName } from '~/app/pages/modelCatalog/utils/modelCatalogUtils';
 import { formatLatency } from '~/app/pages/modelCatalog/utils/performanceMetricsUtils';
@@ -56,15 +56,21 @@ const ModelCatalogCardBody: React.FC<ModelCatalogCardBodyProps> = ({
   };
 
   // Get performance-specific filter params for the /performance_artifacts endpoint
-  const targetRPS = filterData[ModelCatalogNumberFilterKey.MAX_RPS];
+  // Only apply performance filters when toggle is ON
+  const targetRPS = performanceViewEnabled
+    ? filterData[ModelCatalogNumberFilterKey.MAX_RPS]
+    : undefined;
   // Get full filter key for display purposes
-  const latencyFieldName = getActiveLatencyFieldName(filterData);
+  const latencyFieldName = performanceViewEnabled
+    ? getActiveLatencyFieldName(filterData)
+    : undefined;
   // Use short property key (e.g., 'ttft_p90') for the catalog API, not the full filter key
   const latencyProperty = latencyFieldName
-    ? parseLatencyFieldName(latencyFieldName).propertyKey
+    ? parseLatencyFilterKey(latencyFieldName).propertyKey
     : undefined;
 
   // Fetch performance artifacts from the new endpoint with server-side filtering
+  // When toggle is OFF, don't pass filterData so no perf filters are applied
   const [performanceArtifactsList, performanceArtifactsLoaded, performanceArtifactsError] =
     useCatalogPerformanceArtifacts(
       source?.id || '',
@@ -77,8 +83,8 @@ const ModelCatalogCardBody: React.FC<ModelCatalogCardBodyProps> = ({
         //      we need to implement proper cursor-based pagination as the user clicks through artifacts on a card.
         pageSize: '999',
       },
-      filterData,
-      filterOptions,
+      performanceViewEnabled ? filterData : undefined,
+      performanceViewEnabled ? filterOptions : undefined,
       isValidated, // Only fetch if validated
     );
 
@@ -154,7 +160,7 @@ const ModelCatalogCardBody: React.FC<ModelCatalogCardBodyProps> = ({
     const latencyValue =
       getLatencyValue(metrics.latencyMetrics, activeLatencyField) ?? metrics.ttftMean;
     const latencyLabel = activeLatencyField
-      ? parseLatencyFieldName(activeLatencyField).metric
+      ? parseLatencyFilterKey(activeLatencyField).metric
       : LatencyMetric.TTFT;
 
     return (

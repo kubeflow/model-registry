@@ -19,8 +19,9 @@ import {
   ModelDetailsTab,
   ModelCatalogStringFilterKey,
   ModelCatalogNumberFilterKey,
-  ALL_LATENCY_FIELD_NAMES,
   DEFAULT_PERFORMANCE_FILTERS_QUERY_NAME,
+  ALL_LATENCY_FILTER_KEYS,
+  isLatencyFilterKey,
 } from '~/concepts/modelCatalog/const';
 import {
   getSingleFilterDefault,
@@ -52,7 +53,6 @@ export type ModelCatalogContextType = {
   performanceFiltersChangedOnDetailsPage: boolean;
   setPerformanceFiltersChangedOnDetailsPage: (changed: boolean) => void;
   clearAllFilters: () => void;
-  clearBasicFiltersAndResetPerformanceToDefaults: () => void;
   resetPerformanceFiltersToDefaults: () => void;
   resetSinglePerformanceFilterToDefault: (filterKey: keyof ModelCatalogFilterStates) => void;
   getPerformanceFilterDefaultValue: (
@@ -93,7 +93,6 @@ export const ModelCatalogContext = React.createContext<ModelCatalogContextType>(
   performanceFiltersChangedOnDetailsPage: false,
   setPerformanceFiltersChangedOnDetailsPage: () => undefined,
   clearAllFilters: () => undefined,
-  clearBasicFiltersAndResetPerformanceToDefaults: () => undefined,
   resetPerformanceFiltersToDefaults: () => undefined,
   resetSinglePerformanceFilterToDefault: () => undefined,
   getPerformanceFilterDefaultValue: () => undefined,
@@ -145,100 +144,90 @@ export const ModelCatalogContextProvider: React.FC<ModelCatalogContextProviderPr
   );
 
   /**
-   * Clears all filters to their empty/undefined state.
-   * Used on the landing page "Reset all filters" button.
-   */
-  const clearAllFilters = React.useCallback(() => {
-    // Clear all string filters (arrays set to empty)
-    Object.values(ModelCatalogStringFilterKey).forEach((filterKey) => {
-      baseSetFilterData(filterKey, []);
-    });
-
-    // Clear all number filters (set to undefined)
-    Object.values(ModelCatalogNumberFilterKey).forEach((filterKey) => {
-      baseSetFilterData(filterKey, undefined);
-    });
-
-    // Clear all latency filters (set to undefined)
-    ALL_LATENCY_FIELD_NAMES.forEach((fieldName) => {
-      baseSetFilterData(fieldName, undefined);
-    });
-  }, [baseSetFilterData]);
-
-  /**
-   * Clears only performance filters to their empty/undefined state.
-   * Used on the details page where we don't want to affect basic filters.
-   */
-  const clearPerformanceFilters = React.useCallback(() => {
-    // Clear performance string filters
-    baseSetFilterData(ModelCatalogStringFilterKey.USE_CASE, []);
-    baseSetFilterData(ModelCatalogStringFilterKey.HARDWARE_TYPE, []);
-
-    // Clear performance number filters
-    baseSetFilterData(ModelCatalogNumberFilterKey.MAX_RPS, undefined);
-
-    // Clear all latency filters
-    ALL_LATENCY_FIELD_NAMES.forEach((fieldName) => {
-      baseSetFilterData(fieldName, undefined);
-    });
-  }, [baseSetFilterData]);
-
-  const setPerformanceViewEnabled = React.useCallback(
-    (enabled: boolean) => {
-      setBasePerformanceViewEnabled(enabled);
-      if (enabled) {
-        // Apply default performance filters from namedQueries if available
-        const defaultQuery = filterOptions?.namedQueries?.[DEFAULT_PERFORMANCE_FILTERS_QUERY_NAME];
-        if (defaultQuery) {
-          applyNamedQueryDefaults(defaultQuery);
-        }
-      } else {
-        // Clear performance-related filters when toggle is disabled
-        clearPerformanceFilters();
-        setPerformanceFiltersChangedOnDetailsPage(false);
-      }
-    },
-    [filterOptions?.namedQueries, applyNamedQueryDefaults, clearPerformanceFilters],
-  );
-
-  /**
-   * Resets performance filters then applies defaults from namedQueries.
-   * This is used by "Reset all filters" button on the details page.
+   * Resets performance filters to their default values from namedQueries.
+   * Performance filters should always have values (defaults when not explicitly set).
+   * This is the single function for "clearing" or "resetting" performance filters.
    */
   const resetPerformanceFiltersToDefaults = React.useCallback(() => {
-    clearPerformanceFilters();
+    // First, clear ALL latency filters (only one should be active at a time)
+    // This ensures any non-default latency filter is removed before applying defaults
+    ALL_LATENCY_FILTER_KEYS.forEach((latencyKey) => {
+      baseSetFilterData(latencyKey, undefined);
+    });
 
-    // Then apply performance defaults from namedQueries if available
+    // Then apply all defaults from namedQueries
     const defaultQuery = filterOptions?.namedQueries?.[DEFAULT_PERFORMANCE_FILTERS_QUERY_NAME];
     if (defaultQuery) {
       applyNamedQueryDefaults(defaultQuery);
     }
-  }, [clearPerformanceFilters, filterOptions?.namedQueries, applyNamedQueryDefaults]);
+  }, [filterOptions?.namedQueries, applyNamedQueryDefaults, baseSetFilterData]);
 
   /**
-   * Clears basic filters (Task, Provider, License, Language) completely,
-   * and resets performance filters to their default values.
-   * This is used by "Reset all filters" on the landing page when performance view is enabled.
+   * Clears basic filters (Task, Provider, License, Language) to empty.
+   * Note: BASIC_FILTER_KEYS in const.ts should be updated if basic filters change.
    */
-  const clearBasicFiltersAndResetPerformanceToDefaults = React.useCallback(() => {
-    // Clear basic filters (non-performance string filters)
+  const clearBasicFilters = React.useCallback(() => {
     baseSetFilterData(ModelCatalogStringFilterKey.TASK, []);
     baseSetFilterData(ModelCatalogStringFilterKey.PROVIDER, []);
     baseSetFilterData(ModelCatalogStringFilterKey.LICENSE, []);
     baseSetFilterData(ModelCatalogStringFilterKey.LANGUAGE, []);
+  }, [baseSetFilterData]);
 
-    // Reset performance filters to defaults (reuse existing function)
+  /**
+   * Clears all filters: basic filters to empty, performance filters to defaults.
+   */
+  const clearAllFilters = React.useCallback(() => {
+    clearBasicFilters();
     resetPerformanceFiltersToDefaults();
-  }, [baseSetFilterData, resetPerformanceFiltersToDefaults]);
+  }, [clearBasicFilters, resetPerformanceFiltersToDefaults]);
+
+  const setPerformanceViewEnabled = React.useCallback(
+    (enabled: boolean) => {
+      setBasePerformanceViewEnabled(enabled);
+      // Performance filters always have values (defaults).
+      // When toggle changes, ensure defaults are applied.
+      // When toggle is OFF, filters are just not passed in API calls or shown as chips.
+      resetPerformanceFiltersToDefaults();
+      if (!enabled) {
+        setPerformanceFiltersChangedOnDetailsPage(false);
+      }
+    },
+    [resetPerformanceFiltersToDefaults],
+  );
 
   /**
    * Resets a single performance filter to its default value from namedQueries.
    * Used when clicking the undo button on individual performance filter chips.
+   *
+   * For latency filters: Only one latency filter can be active at a time.
+   * When closing any latency chip, we clear ALL latency filters and apply the DEFAULT latency filter.
+   * This ensures proper reset behavior (e.g., closing ITL chip resets to the default TTFT filter).
    */
   const resetSinglePerformanceFilterToDefault = React.useCallback(
     (filterKey: keyof ModelCatalogFilterStates) => {
-      const { value } = getSingleFilterDefault(filterOptions, filterKey);
-      applyFilterValue(baseSetFilterData, filterKey, value);
+      if (isLatencyFilterKey(filterKey)) {
+        // For latency filters: clear ALL latency filters first
+        ALL_LATENCY_FILTER_KEYS.forEach((latencyKey) => {
+          baseSetFilterData(latencyKey, undefined);
+        });
+
+        // Then apply the default latency filter (which may be a different key, e.g., TTFT when closing ITL)
+        const defaultQuery = filterOptions?.namedQueries?.[DEFAULT_PERFORMANCE_FILTERS_QUERY_NAME];
+        if (defaultQuery) {
+          // Find the default latency filter from namedQueries
+          for (const latencyKey of ALL_LATENCY_FILTER_KEYS) {
+            const { hasDefault, value } = getSingleFilterDefault(filterOptions, latencyKey);
+            if (hasDefault && value !== undefined) {
+              applyFilterValue(baseSetFilterData, latencyKey, value);
+              break; // Only apply the first (and should be only) default latency filter
+            }
+          }
+        }
+      } else {
+        // Non-latency filters: just reset to default
+        const { value } = getSingleFilterDefault(filterOptions, filterKey);
+        applyFilterValue(baseSetFilterData, filterKey, value);
+      }
     },
     [filterOptions, baseSetFilterData],
   );
@@ -292,7 +281,6 @@ export const ModelCatalogContextProvider: React.FC<ModelCatalogContextProviderPr
       performanceFiltersChangedOnDetailsPage,
       setPerformanceFiltersChangedOnDetailsPage,
       clearAllFilters,
-      clearBasicFiltersAndResetPerformanceToDefaults,
       resetPerformanceFiltersToDefaults,
       resetSinglePerformanceFilterToDefault,
       getPerformanceFilterDefaultValue: getDefaultValueForPerformanceFilter,
@@ -315,7 +303,6 @@ export const ModelCatalogContextProvider: React.FC<ModelCatalogContextProviderPr
       performanceFiltersChangedOnDetailsPage,
       setPerformanceFiltersChangedOnDetailsPage,
       clearAllFilters,
-      clearBasicFiltersAndResetPerformanceToDefaults,
       resetPerformanceFiltersToDefaults,
       resetSinglePerformanceFilterToDefault,
       getDefaultValueForPerformanceFilter,

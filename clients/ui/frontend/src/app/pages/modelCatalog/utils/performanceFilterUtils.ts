@@ -2,11 +2,14 @@ import {
   ModelCatalogStringFilterKey,
   ModelCatalogNumberFilterKey,
   UseCaseOptionValue,
-  isLatencyMetricFieldName,
+  isLatencyFilterKey,
+  isPerformanceStringFilterKey,
+  isPerformanceNumberFilterKey,
   DEFAULT_PERFORMANCE_FILTERS_QUERY_NAME,
 } from '~/concepts/modelCatalog/const';
 import {
   CatalogFilterOptionsList,
+  FieldFilter,
   FilterOperator,
   ModelCatalogFilterStates,
   NamedQuery,
@@ -22,39 +25,73 @@ export type SetFilterDataFn = <K extends keyof ModelCatalogFilterStates>(
 ) => void;
 
 /**
+ * Extracts and validates string array values from a filter value.
+ * Returns a properly typed array based on the filter key.
+ */
+const extractStringArrayValue = (
+  value: ModelCatalogFilterStates[keyof ModelCatalogFilterStates] | undefined,
+): string[] => {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+  return value.filter((v): v is string => typeof v === 'string');
+};
+
+/**
+ * Extracts and validates USE_CASE filter values.
+ */
+const extractUseCaseValues = (
+  value: ModelCatalogFilterStates[keyof ModelCatalogFilterStates] | undefined,
+): UseCaseOptionValue[] => extractStringArrayValue(value).filter(isUseCaseOptionValue);
+
+/**
+ * Extracts a number value from a filter value.
+ */
+const extractNumberValue = (
+  value: ModelCatalogFilterStates[keyof ModelCatalogFilterStates] | undefined,
+): number | undefined => (typeof value === 'number' ? value : undefined);
+
+/**
  * Applies a filter value to the filter state with proper type handling.
- * Handles string arrays (USE_CASE, HARDWARE_TYPE), numbers (MAX_RPS, latency), and clears.
+ * Uses centralized filter type categorization from const.ts.
  * This centralizes the type coercion logic for filter values.
  * Accepts string for filterKey to work with Object.entries().
+ *
+ * To add a new performance filter:
+ * 1. Add to PERFORMANCE_STRING_FILTER_KEYS or PERFORMANCE_NUMBER_FILTER_KEYS in const.ts
+ * 2. For string filters with special validation (like USE_CASE), add an extraction function
+ * 3. Add a case in the appropriate switch/if statement below
  */
 export const applyFilterValue = (
   setFilterData: SetFilterDataFn,
   filterKey: string,
   value: ModelCatalogFilterStates[keyof ModelCatalogFilterStates] | undefined,
 ): void => {
-  if (filterKey === ModelCatalogStringFilterKey.USE_CASE) {
-    if (Array.isArray(value)) {
-      const validValues: UseCaseOptionValue[] = value
-        .filter((v): v is string => typeof v === 'string')
-        .filter(isUseCaseOptionValue);
-      setFilterData(ModelCatalogStringFilterKey.USE_CASE, validValues);
-    } else {
-      setFilterData(ModelCatalogStringFilterKey.USE_CASE, []);
+  // Handle performance string filters (arrays of strings)
+  if (isPerformanceStringFilterKey(filterKey)) {
+    // Each string filter may have different validation, handle explicitly
+    if (filterKey === ModelCatalogStringFilterKey.USE_CASE) {
+      setFilterData(ModelCatalogStringFilterKey.USE_CASE, extractUseCaseValues(value));
+    } else if (filterKey === ModelCatalogStringFilterKey.HARDWARE_TYPE) {
+      setFilterData(ModelCatalogStringFilterKey.HARDWARE_TYPE, extractStringArrayValue(value));
     }
-  } else if (filterKey === ModelCatalogStringFilterKey.HARDWARE_TYPE) {
-    if (Array.isArray(value)) {
-      const validValues = value.filter((v): v is string => typeof v === 'string');
-      setFilterData(ModelCatalogStringFilterKey.HARDWARE_TYPE, validValues);
-    } else {
-      setFilterData(ModelCatalogStringFilterKey.HARDWARE_TYPE, []);
-    }
-  } else if (filterKey === ModelCatalogNumberFilterKey.MAX_RPS) {
-    setFilterData(
-      ModelCatalogNumberFilterKey.MAX_RPS,
-      typeof value === 'number' ? value : undefined,
-    );
-  } else if (isLatencyMetricFieldName(filterKey)) {
-    setFilterData(filterKey, typeof value === 'number' ? value : undefined);
+    // Future string filters: add else-if cases above
+    return;
+  }
+
+  // Handle performance number filters
+  // Currently only MAX_RPS, but structured for future extensibility
+  if (isPerformanceNumberFilterKey(filterKey)) {
+    const numberValue = extractNumberValue(value);
+    // Use explicit key to ensure type safety (MAX_RPS is currently the only performance number filter)
+    setFilterData(ModelCatalogNumberFilterKey.MAX_RPS, numberValue);
+    return;
+  }
+
+  // Handle latency filters (also numbers)
+  if (isLatencyFilterKey(filterKey)) {
+    const numberValue = extractNumberValue(value);
+    setFilterData(filterKey, numberValue);
   }
 };
 
@@ -89,9 +126,34 @@ export const resolveFilterValue = (
 };
 
 /**
+ * Extracts string array values from a FieldFilter for namedQuery parsing.
+ * Handles both IN operator (array) and single string values.
+ */
+const extractStringArrayFromFieldFilter = (fieldFilter: FieldFilter): string[] => {
+  const rawValues =
+    fieldFilter.operator === FilterOperator.IN && Array.isArray(fieldFilter.value)
+      ? fieldFilter.value.filter((v): v is string => typeof v === 'string')
+      : typeof fieldFilter.value === 'string'
+        ? [fieldFilter.value]
+        : [];
+  return rawValues;
+};
+
+/**
+ * Extracts USE_CASE values from a FieldFilter with validation.
+ */
+const extractUseCaseValuesFromFieldFilter = (fieldFilter: FieldFilter): UseCaseOptionValue[] =>
+  extractStringArrayFromFieldFilter(fieldFilter).filter(isUseCaseOptionValue);
+
+/**
  * Parses filter values from a named query and returns them as a partial filter state.
- * This is the core function for extracting default filter values from namedQueries.
+ * Uses centralized filter type categorization from const.ts.
  * Filter keys in the frontend now match backend field names directly.
+ *
+ * To add a new performance filter:
+ * 1. Add to PERFORMANCE_STRING_FILTER_KEYS or PERFORMANCE_NUMBER_FILTER_KEYS in const.ts
+ * 2. For string filters with special validation (like USE_CASE), add an extraction function
+ * 3. Add a case in the appropriate if/else statement below
  */
 export const getDefaultFiltersFromNamedQuery = (
   filterOptions: CatalogFilterOptionsList | null,
@@ -100,38 +162,33 @@ export const getDefaultFiltersFromNamedQuery = (
   const result: Partial<ModelCatalogFilterStates> = {};
 
   Object.entries(namedQuery).forEach(([fieldName, fieldFilter]) => {
-    // Check which filter type this is using the enum values (which now match backend keys)
-    const isUseCase = fieldName === ModelCatalogStringFilterKey.USE_CASE;
-    const isHardwareType = fieldName === ModelCatalogStringFilterKey.HARDWARE_TYPE;
-    const isRps = fieldName === ModelCatalogNumberFilterKey.MAX_RPS;
-    const isLatencyField = isLatencyMetricFieldName(fieldName);
+    // Handle performance string filters (arrays of strings)
+    if (isPerformanceStringFilterKey(fieldName)) {
+      // Each string filter may have different validation, handle explicitly
+      if (fieldName === ModelCatalogStringFilterKey.USE_CASE) {
+        result[ModelCatalogStringFilterKey.USE_CASE] =
+          extractUseCaseValuesFromFieldFilter(fieldFilter);
+      } else if (fieldName === ModelCatalogStringFilterKey.HARDWARE_TYPE) {
+        result[ModelCatalogStringFilterKey.HARDWARE_TYPE] =
+          extractStringArrayFromFieldFilter(fieldFilter);
+      }
+      // Future string filters: add else-if cases above
+      return;
+    }
 
-    if (isUseCase) {
-      // Extract string values and filter to only valid UseCaseOptionValue entries
-      const rawValues =
-        fieldFilter.operator === FilterOperator.IN && Array.isArray(fieldFilter.value)
-          ? fieldFilter.value.filter((v): v is string => typeof v === 'string')
-          : typeof fieldFilter.value === 'string'
-            ? [fieldFilter.value]
-            : [];
-      // Filter to only valid UseCaseOptionValue entries
-      const validValues: UseCaseOptionValue[] = rawValues.filter(isUseCaseOptionValue);
-      result[ModelCatalogStringFilterKey.USE_CASE] = validValues;
-    } else if (isHardwareType) {
-      const values =
-        fieldFilter.operator === FilterOperator.IN && Array.isArray(fieldFilter.value)
-          ? fieldFilter.value.filter((v): v is string => typeof v === 'string')
-          : typeof fieldFilter.value === 'string'
-            ? [fieldFilter.value]
-            : [];
-      result[ModelCatalogStringFilterKey.HARDWARE_TYPE] = values;
-    } else if (isRps) {
+    // Handle performance number filters
+    // Currently only MAX_RPS, but structured for future extensibility
+    if (isPerformanceNumberFilterKey(fieldName)) {
       const resolvedValue = resolveFilterValue(filterOptions, fieldName, fieldFilter.value);
       if (resolvedValue !== undefined) {
+        // Use explicit key to ensure type safety (MAX_RPS is currently the only performance number filter)
         result[ModelCatalogNumberFilterKey.MAX_RPS] = resolvedValue;
       }
-    } else if (isLatencyField) {
-      // Apply latency filter using the full filter key (e.g., 'artifacts.ttft_p90.double_value')
+      return;
+    }
+
+    // Handle latency filters (also numbers)
+    if (isLatencyFilterKey(fieldName)) {
       const resolvedValue = resolveFilterValue(filterOptions, fieldName, fieldFilter.value);
       if (resolvedValue !== undefined) {
         result[fieldName] = resolvedValue;

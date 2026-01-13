@@ -10,37 +10,23 @@ import {
   Panel,
   PanelMain,
 } from '@patternfly/react-core';
-import { CatalogPerformanceMetricsArtifact } from '~/app/modelCatalogTypes';
-import { getUniqueHardwareTypes } from '~/app/pages/modelCatalog/utils/hardwareConfigurationFilterUtils';
 import { useHardwareTypeFilterState } from '~/app/pages/modelCatalog/utils/hardwareTypeFilterState';
 import { ModelCatalogContext } from '~/app/context/modelCatalog/ModelCatalogContext';
 import { ModelCatalogStringFilterKey } from '~/concepts/modelCatalog/const';
-
-type HardwareTypeFilterProps = {
-  performanceArtifacts: CatalogPerformanceMetricsArtifact[];
-};
 
 type HardwareTypeOption = {
   value: string;
   label: string;
 };
 
-const HardwareTypeFilter: React.FC<HardwareTypeFilterProps> = ({ performanceArtifacts }) => {
+const HardwareTypeFilter: React.FC = () => {
   const { appliedHardwareTypes, setAppliedHardwareTypes } = useHardwareTypeFilterState();
   const { filterOptions } = React.useContext(ModelCatalogContext);
   const [isOpen, setIsOpen] = React.useState(false);
 
-  // Get unique hardware types from performance artifacts, or fall back to filterOptions
+  // Get unique hardware types from filterOptions (which provides the full list across all artifacts)
+  // Don't use performanceArtifacts since we may not have all of them in memory when paginating
   const hardwareOptions: HardwareTypeOption[] = React.useMemo(() => {
-    // First try to get from performance artifacts
-    if (performanceArtifacts.length > 0) {
-      const uniqueTypes = getUniqueHardwareTypes(performanceArtifacts);
-      return uniqueTypes.map((type) => ({
-        value: type,
-        label: type,
-      }));
-    }
-    // Fall back to filterOptions from context
     const filterValue = filterOptions?.filters?.[ModelCatalogStringFilterKey.HARDWARE_TYPE];
     if (filterValue && 'values' in filterValue && Array.isArray(filterValue.values)) {
       return filterValue.values.map((type: string) => ({
@@ -49,7 +35,7 @@ const HardwareTypeFilter: React.FC<HardwareTypeFilterProps> = ({ performanceArti
       }));
     }
     return [];
-  }, [performanceArtifacts, filterOptions]);
+  }, [filterOptions]);
 
   const selectedCount = appliedHardwareTypes.length;
 

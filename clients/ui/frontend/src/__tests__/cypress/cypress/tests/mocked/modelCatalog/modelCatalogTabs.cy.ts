@@ -1,8 +1,5 @@
 import { mockModArchResponse } from 'mod-arch-core';
-import {
-  mockFilteredPerformanceArtifactsByWorkloadType,
-  mockMultipleWorkloadTypePerformanceArtifactList,
-} from '~/__mocks__/mockCatalogModelArtifactList';
+import { mockFilteredPerformanceArtifactsByWorkloadType } from '~/__mocks__/mockCatalogModelArtifactList';
 import { modelCatalog } from '~/__tests__/cypress/cypress/pages/modelCatalog';
 import { mockModelRegistry } from '~/__mocks__/mockModelRegistry';
 import { MODEL_CATALOG_API_VERSION } from '~/__tests__/cypress/cypress/support/commands/api';
@@ -165,18 +162,6 @@ describe('Model Catalog Details Tabs', () => {
         modelCatalog.findWorkloadTypeOption('rag').should('be.visible');
       });
 
-      it('should update toggle text when workload type is selected', () => {
-        modelCatalog.findModelCatalogDetailLink().first().click();
-        modelCatalog.clickPerformanceInsightsTab();
-        modelCatalog.findWorkloadTypeFilter().click();
-        modelCatalog.selectWorkloadType('code_fixing');
-        // Single-select dropdown shows selected value in toggle
-        modelCatalog
-          .findWorkloadTypeFilter()
-          .should('contain.text', 'Workload type')
-          .should('contain.text', 'Code Fixing');
-      });
-
       it('should filter hardware configuration table by selected workload type', () => {
         // Note: This test verifies UI behavior after server-side filter is applied.
         // Server-side filtering is verified by the 'Server-Side Filtering' tests below.
@@ -309,12 +294,14 @@ describe('Model Catalog Details Tabs', () => {
 
       initIntercepts({ useValidatedModel: true, includePerformanceArtifacts: true });
       modelCatalog.visit({ enableTempDevCatalogAdvancedFiltersFeature: true });
+      // Enable performance toggle to apply default filters
+      modelCatalog.togglePerformanceView();
     });
 
     describe('Default State (with default latency filter)', () => {
       it('should show only TTFT P90 and TPS P90 columns when default latency filter is applied', () => {
-        // Note: Default performance filters now automatically apply ttft_p90 filter
-        // when navigating to Performance Insights tab
+        // Note: Default performance filters are automatically applied when
+        // toggle is ON and user navigates to Performance Insights tab
 
         modelCatalog.findModelCatalogDetailLink().first().click();
         modelCatalog.clickPerformanceInsightsTab();
@@ -388,35 +375,40 @@ describe('Model Catalog Details Tabs', () => {
         modelCatalog.findHardwareConfigurationTableHeaders().should('not.contain.text', 'ITL');
       });
 
-      it('should restore all latency columns when filter is reset', () => {
+      it('should reset to default latency filter (TTFT P90) when filter is reset', () => {
         modelCatalog.findModelCatalogDetailLink().first().click();
         modelCatalog.clickPerformanceInsightsTab();
 
-        // Apply a filter first
+        // Apply a non-default filter first (E2E Mean)
         modelCatalog.openLatencyFilter();
+        modelCatalog.selectLatencyMetric('E2E');
+        modelCatalog.selectLatencyPercentile('Mean');
         modelCatalog.clickApplyFilter();
 
-        // Verify TTFT P90 and TPS P90 latency columns are shown
+        // Verify E2E Mean columns are shown
         modelCatalog
           .findHardwareConfigurationTableHeaders()
-          .should('contain.text', `TTFT${NBSP}Latency P90`);
-        modelCatalog
-          .findHardwareConfigurationTableHeaders()
-          .should('contain.text', `TPS${NBSP}Latency P90`);
-        modelCatalog.findHardwareConfigurationTableHeaders().should('not.contain.text', 'E2E');
+          .should('contain.text', `E2E${NBSP}Latency Mean`);
+        modelCatalog.findHardwareConfigurationTableHeaders().should('not.contain.text', 'TTFT');
 
-        // Open filter and reset
+        // Open filter and reset - this should apply the default (TTFT P90), not clear completely
         modelCatalog.openLatencyFilter();
         modelCatalog.clickResetFilter();
 
         // Close the dropdown by clicking outside
         cy.get('body').click(0, 0);
 
-        // All latency columns should be visible again
-        modelCatalog.findHardwareConfigurationTableHeaders().should('contain.text', 'TTFT');
-        modelCatalog.findHardwareConfigurationTableHeaders().should('contain.text', 'E2E');
-        modelCatalog.findHardwareConfigurationTableHeaders().should('contain.text', 'ITL');
-        modelCatalog.findHardwareConfigurationTableHeaders().should('contain.text', 'TPS');
+        // Default latency filter (TTFT P90) should be applied
+        // Only TTFT and TPS P90 columns should be visible
+        modelCatalog
+          .findHardwareConfigurationTableHeaders()
+          .should('contain.text', `TTFT${NBSP}Latency P90`);
+        modelCatalog
+          .findHardwareConfigurationTableHeaders()
+          .should('contain.text', `TPS${NBSP}Latency P90`);
+        // E2E and ITL should NOT be visible (filter is applied, not cleared)
+        modelCatalog.findHardwareConfigurationTableHeaders().should('not.contain.text', 'E2E');
+        modelCatalog.findHardwareConfigurationTableHeaders().should('not.contain.text', 'ITL');
       });
 
       it('should keep non-latency columns visible when latency filter is applied', () => {
@@ -453,7 +445,7 @@ describe('Server-Side Filtering', () => {
 
   describe('Filtered Response Handling', () => {
     it('should display only artifacts matching the selected workload type from server response', () => {
-      // Initial request returns multiple workload types
+      // Initial request returns default-filtered results (chatbot is the default)
       cy.intercept(
         {
           method: 'GET',
@@ -461,20 +453,24 @@ describe('Server-Side Filtering', () => {
             `/api/${MODEL_CATALOG_API_VERSION}/model_catalog/sources/.*/performance_artifacts/.*`,
           ),
         },
-        mockModArchResponse(mockMultipleWorkloadTypePerformanceArtifactList()),
-      ).as('getUnfilteredPerformanceArtifacts');
+        mockModArchResponse(
+          mockFilteredPerformanceArtifactsByWorkloadType(UseCaseOptionValue.CHATBOT),
+        ),
+      ).as('getDefaultFilteredArtifacts');
 
-      modelCatalog.visit();
+      modelCatalog.visit({ enableTempDevCatalogAdvancedFiltersFeature: true });
       modelCatalog.findLoadingState().should('not.exist');
+      // Enable performance toggle to apply filters to API requests
+      modelCatalog.togglePerformanceView();
       modelCatalog.findModelCatalogDetailLink().first().click();
       modelCatalog.clickPerformanceInsightsTab();
 
-      cy.wait('@getUnfilteredPerformanceArtifacts');
+      cy.wait('@getDefaultFilteredArtifacts');
 
-      // Verify initial table has multiple workload types
-      modelCatalog.findHardwareConfigurationTableRows().should('have.length', 4);
+      // Verify initial table shows default-filtered results (chatbot)
+      modelCatalog.findHardwareConfigurationTableRows().should('have.length', 2);
 
-      // Server returns filtered response when filter is applied
+      // Server returns filtered response when filter is changed to code_fixing
       cy.intercept(
         {
           method: 'GET',
@@ -503,7 +499,7 @@ describe('Server-Side Filtering', () => {
     });
 
     it('should update table when server returns different filtered results for chatbot', () => {
-      // Initial request
+      // Initial request returns code_fixing results (we'll change default first)
       cy.intercept(
         {
           method: 'GET',
@@ -511,15 +507,22 @@ describe('Server-Side Filtering', () => {
             `/api/${MODEL_CATALOG_API_VERSION}/model_catalog/sources/.*/performance_artifacts/.*`,
           ),
         },
-        mockModArchResponse(mockMultipleWorkloadTypePerformanceArtifactList()),
-      ).as('getUnfilteredPerformanceArtifacts');
+        mockModArchResponse(
+          mockFilteredPerformanceArtifactsByWorkloadType(UseCaseOptionValue.CODE_FIXING),
+        ),
+      ).as('getCodeFixingArtifacts');
 
-      modelCatalog.visit();
+      modelCatalog.visit({ enableTempDevCatalogAdvancedFiltersFeature: true });
       modelCatalog.findLoadingState().should('not.exist');
+      // Enable performance toggle
+      modelCatalog.togglePerformanceView();
+      // Pre-select code_fixing on landing page so it's not the default chatbot
+      modelCatalog.findWorkloadTypeFilter().click();
+      modelCatalog.selectWorkloadType('code_fixing');
       modelCatalog.findModelCatalogDetailLink().first().click();
       modelCatalog.clickPerformanceInsightsTab();
 
-      cy.wait('@getUnfilteredPerformanceArtifacts');
+      cy.wait('@getCodeFixingArtifacts');
 
       // Server returns filtered response for chatbot
       cy.intercept(
@@ -547,7 +550,7 @@ describe('Server-Side Filtering', () => {
     });
 
     it('should refetch data when workload type filter is changed', () => {
-      // Initial unfiltered request
+      // Initial request returns default-filtered results (chatbot)
       cy.intercept(
         {
           method: 'GET',
@@ -555,18 +558,22 @@ describe('Server-Side Filtering', () => {
             `/api/${MODEL_CATALOG_API_VERSION}/model_catalog/sources/.*/performance_artifacts/.*`,
           ),
         },
-        mockModArchResponse(mockMultipleWorkloadTypePerformanceArtifactList()),
-      ).as('getUnfilteredPerformanceArtifacts');
+        mockModArchResponse(
+          mockFilteredPerformanceArtifactsByWorkloadType(UseCaseOptionValue.CHATBOT),
+        ),
+      ).as('getDefaultFilteredArtifacts');
 
-      modelCatalog.visit();
+      modelCatalog.visit({ enableTempDevCatalogAdvancedFiltersFeature: true });
       modelCatalog.findLoadingState().should('not.exist');
+      // Enable performance toggle
+      modelCatalog.togglePerformanceView();
       modelCatalog.findModelCatalogDetailLink().first().click();
       modelCatalog.clickPerformanceInsightsTab();
 
-      cy.wait('@getUnfilteredPerformanceArtifacts');
-      modelCatalog.findHardwareConfigurationTableRows().should('have.length', 4);
+      cy.wait('@getDefaultFilteredArtifacts');
+      modelCatalog.findHardwareConfigurationTableRows().should('have.length', 2);
 
-      // Apply filter - server returns filtered response
+      // Apply filter - server returns filtered response for code_fixing
       cy.intercept(
         {
           method: 'GET',
@@ -584,7 +591,7 @@ describe('Server-Side Filtering', () => {
       cy.wait('@getFilteredPerformanceArtifacts');
       modelCatalog.findHardwareConfigurationTableRows().should('have.length', 2);
 
-      // Change filter to chatbot - server returns chatbot-filtered response
+      // Change filter to long_rag - server returns long_rag-filtered response
       cy.intercept(
         {
           method: 'GET',
@@ -593,17 +600,17 @@ describe('Server-Side Filtering', () => {
           ),
         },
         mockModArchResponse(
-          mockFilteredPerformanceArtifactsByWorkloadType(UseCaseOptionValue.CHATBOT),
+          mockFilteredPerformanceArtifactsByWorkloadType(UseCaseOptionValue.LONG_RAG),
         ),
-      ).as('getFilteredByChatbot');
+      ).as('getFilteredByLongRag');
 
       // Re-open dropdown and select a different workload type (single-select replaces the value)
       modelCatalog.findWorkloadTypeFilter().click();
-      modelCatalog.selectWorkloadType('chatbot');
+      modelCatalog.selectWorkloadType('long_rag');
 
-      cy.wait('@getFilteredByChatbot');
+      cy.wait('@getFilteredByLongRag');
 
-      // Verify table shows chatbot-filtered items
+      // Verify table shows long_rag-filtered items
       modelCatalog.findHardwareConfigurationTableRows().should('have.length', 2);
     });
   });

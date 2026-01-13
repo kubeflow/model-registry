@@ -5,16 +5,12 @@ import { OuterScrollContainer } from '@patternfly/react-table';
 import { CatalogPerformanceMetricsArtifact } from '~/app/modelCatalogTypes';
 import { ModelCatalogContext } from '~/app/context/modelCatalog/ModelCatalogContext';
 import {
-  clearAllFilters,
-  parseLatencyFieldName,
-} from '~/app/pages/modelCatalog/utils/hardwareConfigurationFilterUtils';
-import { getActiveLatencyFieldName } from '~/app/pages/modelCatalog/utils/modelCatalogUtils';
-import {
   ALL_LATENCY_PROPERTY_KEYS,
-  PERFORMANCE_FILTER_KEYS,
   getLatencyPropertyKey,
   LatencyMetric,
+  parseLatencyFilterKey,
 } from '~/concepts/modelCatalog/const';
+import { getActiveLatencyFieldName } from '~/app/pages/modelCatalog/utils/modelCatalogUtils';
 import { hardwareConfigColumns, HardwareConfigColumn } from './HardwareConfigurationTableColumns';
 import HardwareConfigurationTableRow from './HardwareConfigurationTableRow';
 import HardwareConfigurationFilterToolbar from './HardwareConfigurationFilterToolbar';
@@ -28,7 +24,7 @@ const HardwareConfigurationTable: React.FC<HardwareConfigurationTableProps> = ({
   performanceArtifacts,
   isLoading = false,
 }) => {
-  const { setFilterData, filterData } = React.useContext(ModelCatalogContext);
+  const { filterData, resetPerformanceFiltersToDefaults } = React.useContext(ModelCatalogContext);
 
   // Note: Filtering is now done server-side via the /performance_artifacts endpoint.
   // The performanceArtifacts prop contains pre-filtered data from the server.
@@ -45,7 +41,7 @@ const HardwareConfigurationTable: React.FC<HardwareConfigurationTableProps> = ({
     }
 
     // Parse the active filter field name to extract metric, percentile, and propertyKey
-    const parsed = parseLatencyFieldName(activeLatencyField);
+    const parsed = parseLatencyFilterKey(activeLatencyField);
 
     // Get the property key (short format) that matches the column field
     const activePropertyKey = parsed.propertyKey;
@@ -80,14 +76,14 @@ const HardwareConfigurationTable: React.FC<HardwareConfigurationTableProps> = ({
   }
 
   const handleClearFilters = () => {
-    // On details page, only clear performance filters (not basic filters from landing page)
-    clearAllFilters(setFilterData, PERFORMANCE_FILTER_KEYS);
+    // On details page, reset performance filters to defaults (not basic filters from landing page)
+    resetPerformanceFiltersToDefaults();
   };
 
   const toolbarContent = (
     <HardwareConfigurationFilterToolbar
-      performanceArtifacts={performanceArtifacts}
       onResetAllFilters={handleClearFilters}
+      includePerformanceFilters
     />
   );
 

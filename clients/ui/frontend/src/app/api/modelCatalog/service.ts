@@ -9,10 +9,7 @@ import {
   ModelCatalogFilterStates,
   PerformanceArtifactsParams,
 } from '~/app/modelCatalogTypes';
-import {
-  filtersToFilterQuery,
-  filtersToArtifactsFilterQuery,
-} from '~/app/pages/modelCatalog/utils/modelCatalogUtils';
+import { filtersToFilterQuery } from '~/app/pages/modelCatalog/utils/modelCatalogUtils';
 
 export const getCatalogModelsBySource =
   (hostPath: string, queryParams: Record<string, unknown> = {}) =>
@@ -117,7 +114,9 @@ export const getPerformanceArtifacts =
       ...(params?.sortOrder && { sortOrder: params.sortOrder }),
       ...(params?.nextPageToken && { nextPageToken: params.nextPageToken }),
       ...(filterData &&
-        filterOptions && { filterQuery: filtersToArtifactsFilterQuery(filterData, filterOptions) }),
+        filterOptions && {
+          filterQuery: filtersToFilterQuery(filterData, filterOptions, 'artifacts'),
+        }),
     };
     return handleRestFailures(
       restGET(hostPath, `/sources/${sourceId}/performance_artifacts/${modelName}`, allParams, opts),
