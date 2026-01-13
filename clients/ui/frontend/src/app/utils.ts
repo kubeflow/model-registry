@@ -5,7 +5,7 @@ import {
   ModelVersion,
   RegisteredModel,
 } from '~/app/types';
-import { EMPTY_CUSTOM_PROPERTY_VALUE } from './utilities/const';
+import { EMPTY_CUSTOM_PROPERTY_VALUE } from '~/concepts/modelCatalog/const';
 
 export type ObjectStorageFields = {
   endpoint: string;

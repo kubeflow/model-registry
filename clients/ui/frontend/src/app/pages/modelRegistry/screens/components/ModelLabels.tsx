@@ -14,7 +14,7 @@ import React from 'react';
 import { useDebounceCallback } from 'mod-arch-shared';
 import { ModelVersion, RegisteredModel } from '~/app/types';
 import { getLabels } from '~/app/pages/modelRegistry/screens/utils';
-import { EMPTY_CUSTOM_PROPERTY_VALUE } from '~/app/utilities/const';
+import { EMPTY_CUSTOM_PROPERTY_VALUE } from '~/concepts/modelCatalog/const';
 
 // Threshold count to decide whether to choose modal or popover
 const MODAL_THRESHOLD = 4;

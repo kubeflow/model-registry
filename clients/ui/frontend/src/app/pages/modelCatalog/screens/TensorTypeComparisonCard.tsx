@@ -19,7 +19,7 @@ import { CatalogModel } from '~/app/modelCatalogTypes';
 import { catalogModelDetailsFromModel } from '~/app/routes/modelCatalog/catalogModel';
 import { getStringValue } from '~/app/utils';
 import { getModelName } from '~/app/pages/modelCatalog/utils/modelCatalogUtils';
-import { EMPTY_CUSTOM_PROPERTY_VALUE } from '~/app/utilities/const';
+import { EMPTY_CUSTOM_PROPERTY_VALUE } from '~/concepts/modelCatalog/const';
 import { sortModelsWithCurrentFirst } from '~/app/pages/modelCatalog/utils/validatedModelUtils';
 
 type TensorTypeComparisonCardProps = {

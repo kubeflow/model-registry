@@ -8,8 +8,7 @@ import {
   getWorkloadType,
 } from '~/app/pages/modelCatalog/utils/performanceMetricsUtils';
 import { getDoubleValue, getIntValue, getStringValue } from '~/app/utils';
-import { PerformancePropertyKey } from '~/concepts/modelCatalog/const';
-import { EMPTY_CUSTOM_PROPERTY_VALUE } from '~/app/utilities/const';
+import { PerformancePropertyKey, EMPTY_CUSTOM_PROPERTY_VALUE } from '~/concepts/modelCatalog/const';
 import {
   HardwareConfigColumnField,
   HardwareConfigColumn,

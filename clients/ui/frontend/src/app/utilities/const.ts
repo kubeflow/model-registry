@@ -33,5 +33,3 @@ export const FindAdministratorOptions = [
   'Someone in your IT department or help desk',
   'A project manager or developer',
 ];
-
-export const EMPTY_CUSTOM_PROPERTY_VALUE = '-';

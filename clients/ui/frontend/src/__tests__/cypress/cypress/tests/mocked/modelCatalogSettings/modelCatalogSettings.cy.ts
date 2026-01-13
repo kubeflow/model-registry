@@ -16,7 +16,7 @@ import {
   type CatalogSource,
   type CatalogSourceConfigList,
 } from '~/app/modelCatalogTypes';
-import { EMPTY_CUSTOM_PROPERTY_VALUE } from '~/app/utilities/const';
+import { EMPTY_CUSTOM_PROPERTY_VALUE } from '~/concepts/modelCatalog/const';
 
 const NAMESPACE = 'kubeflow';
 const userMock = {

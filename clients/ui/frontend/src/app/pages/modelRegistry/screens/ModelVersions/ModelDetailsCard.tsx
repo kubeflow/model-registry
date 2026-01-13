@@ -25,7 +25,7 @@ import ModelTimestamp from '~/app/pages/modelRegistry/screens/components/ModelTi
 import ModelPropertiesExpandableSection from '~/app/pages/modelRegistry/screens/components/ModelPropertiesExpandableSection';
 import { ModelRegistryContext } from '~/app/context/ModelRegistryContext';
 import { getLabels, mergeUpdatedLabels } from '~/app/pages/modelRegistry/screens/utils';
-import { EMPTY_CUSTOM_PROPERTY_VALUE } from '~/app/utilities/const';
+import { EMPTY_CUSTOM_PROPERTY_VALUE } from '~/concepts/modelCatalog/const';
 
 type ModelDetailsCardProps = {
   registeredModel: RegisteredModel;

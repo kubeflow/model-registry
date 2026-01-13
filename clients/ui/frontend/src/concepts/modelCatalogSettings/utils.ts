@@ -1,5 +1,5 @@
 import { CatalogSourceConfig } from '~/app/modelCatalogTypes';
-import { EMPTY_CUSTOM_PROPERTY_VALUE } from '~/app/utilities/const';
+import { EMPTY_CUSTOM_PROPERTY_VALUE } from '~/concepts/modelCatalog/const';
 import { isHuggingFaceSource } from './const';
 
 /**

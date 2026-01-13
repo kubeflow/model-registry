@@ -1,6 +1,10 @@
 /* eslint-disable camelcase */
 import { ModelRegistryMetadataType } from '~/app/types';
-import { UseCaseOptionValue, PerformancePropertyKey } from '~/concepts/modelCatalog/const';
+import {
+  UseCaseOptionValue,
+  PerformancePropertyKey,
+  EMPTY_CUSTOM_PROPERTY_VALUE,
+} from '~/concepts/modelCatalog/const';
 import { mockCatalogPerformanceMetricsArtifact } from '~/__mocks__';
 import {
   getHardwareConfiguration,
@@ -17,7 +21,6 @@ import {
   MetricsType,
 } from '~/app/modelCatalogTypes';
 import { getDoubleValue } from '~/app/utils';
-import { EMPTY_CUSTOM_PROPERTY_VALUE } from '~/app/utilities/const';
 
 describe('performanceMetricsUtils', () => {
   describe('getHardwareConfiguration', () => {

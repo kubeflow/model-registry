@@ -1,8 +1,11 @@
 import { asEnumMember } from 'mod-arch-core';
 import { CatalogPerformanceMetricsArtifact } from '~/app/modelCatalogTypes';
 import { getIntValue, getStringValue } from '~/app/utils';
-import { UseCaseOptionValue, PerformancePropertyKey } from '~/concepts/modelCatalog/const';
-import { EMPTY_CUSTOM_PROPERTY_VALUE } from '~/app/utilities/const';
+import {
+  UseCaseOptionValue,
+  PerformancePropertyKey,
+  EMPTY_CUSTOM_PROPERTY_VALUE,
+} from '~/concepts/modelCatalog/const';
 import { getUseCaseOption } from './workloadTypeUtils';
 
 export type SliderRange = {
