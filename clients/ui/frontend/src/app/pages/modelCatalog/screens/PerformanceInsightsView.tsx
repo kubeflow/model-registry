@@ -73,6 +73,9 @@ const PerformanceInsightsView = (): React.JSX.Element => {
         targetRPS,
         latencyProperty,
         recommendations: true,
+        // TODO this is a temporary workaround to avoid capping performance artifacts with a default page size of 20.
+        //      we need to implement proper cursor-based pagination in the performance artifacts table.
+        pageSize: '99999',
       },
       filterData,
       filterOptions,
