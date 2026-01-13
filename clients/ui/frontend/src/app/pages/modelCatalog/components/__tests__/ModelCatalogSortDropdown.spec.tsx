@@ -178,7 +178,7 @@ describe('ModelCatalogSortDropdown', () => {
     });
 
     it('should enable "Lowest latency" when active latency field exists', async () => {
-      mockGetActiveLatencyFieldName.mockReturnValue('ttft_p90');
+      mockGetActiveLatencyFieldName.mockReturnValue('artifacts.ttft_p90.double_value');
 
       render(
         <ModelCatalogContextProvider>
