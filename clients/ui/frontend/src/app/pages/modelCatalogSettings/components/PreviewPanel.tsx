@@ -23,6 +23,7 @@ import { PAGE_TITLES } from '~/app/pages/modelCatalogSettings/constants';
 import {
   UseSourcePreviewResult,
   PreviewTab,
+  PreviewMode,
 } from '~/app/pages/modelCatalogSettings/useSourcePreview';
 import PreviewButton from './PreviewButton';
 
@@ -43,9 +44,9 @@ const PreviewPanel: React.FC<PreviewPanelProps> = ({ preview }) => {
   const { isLoadingInitial, isLoadingMore, activeTab, summary, tabStates, error, mode } =
     previewState;
   const { items, hasMore } = tabStates[activeTab];
-  const previewError = mode === 'preview' ? error : undefined;
+  const previewError = mode === PreviewMode.PREVIEW ? error : undefined;
 
-  const onPreview = () => handlePreview('preview');
+  const onPreview = () => handlePreview();
   const onLoadMore = () => handleLoadMore();
 
   const handleTabSelect = (_event: React.MouseEvent, tabIndex: string | number) => {

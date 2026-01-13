@@ -1,6 +1,10 @@
 import { act, waitFor } from '@testing-library/react';
 import { testHook } from '~/__tests__/unit/testUtils/hooks';
-import { useSourcePreview, PreviewTab } from '~/app/pages/modelCatalogSettings/useSourcePreview';
+import {
+  useSourcePreview,
+  PreviewTab,
+  PreviewMode,
+} from '~/app/pages/modelCatalogSettings/useSourcePreview';
 import { ManageSourceFormData } from '~/app/pages/modelCatalogSettings/useManageSourceData';
 import { CatalogSourceType } from '~/app/modelCatalogTypes';
 import { ModelCatalogSettingsAPIState } from '~/app/hooks/modelCatalogSettings/useModelCatalogSettingsAPIState';
@@ -237,7 +241,7 @@ describe('useSourcePreview', () => {
     });
 
     await waitFor(() => {
-      expect(result.current.previewState.mode).toBe('validate');
+      expect(result.current.previewState.mode).toBe(PreviewMode.VALIDATE);
     });
 
     expect(result.current.isValidationSuccess).toBe(true);

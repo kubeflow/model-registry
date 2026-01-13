@@ -171,7 +171,7 @@ const ManageSourceForm: React.FC<ManageSourceFormProps> = ({
         onCancel={handleCancel}
         isPreviewDisabled={!preview.canPreview}
         isPreviewLoading={preview.previewState.isLoadingInitial}
-        onPreview={() => preview.handlePreview('preview')}
+        onPreview={() => preview.handlePreview()}
       />
     </>
   );

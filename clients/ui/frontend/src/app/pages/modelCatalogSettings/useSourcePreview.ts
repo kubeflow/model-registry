@@ -1,4 +1,5 @@
 import * as React from 'react';
+import { isEqual } from 'lodash-es';
 import { isPreviewReady } from '~/app/pages/modelCatalogSettings/utils/validation';
 import { transformFormDataToConfig } from '~/app/pages/modelCatalogSettings/utils/modelCatalogSettingsUtils';
 import {
@@ -11,10 +12,28 @@ import {
 import { ModelCatalogSettingsAPIState } from '~/app/hooks/modelCatalogSettings/useModelCatalogSettingsAPIState';
 import { ManageSourceFormData } from './useManageSourceData';
 
+export enum PreviewMode {
+  PREVIEW = 'preview',
+  VALIDATE = 'validate',
+}
+
 export enum PreviewTab {
   INCLUDED = 'included',
   EXCLUDED = 'excluded',
 }
+
+const DEFAULT_PREVIEW_PAGE_SIZE = 20;
+
+const getTargetTab = (
+  isFreshPreview: boolean,
+  switchToTab: PreviewTab | undefined,
+  activeTab: PreviewTab,
+): PreviewTab => {
+  if (isFreshPreview) {
+    return PreviewTab.INCLUDED;
+  }
+  return switchToTab ?? activeTab;
+};
 
 export type PreviewTabState = {
   items: CatalogSourcePreviewModel[];
@@ -29,7 +48,7 @@ const initialTabState: PreviewTabState = {
 };
 
 export type PreviewState = {
-  mode?: 'preview' | 'validate';
+  mode?: PreviewMode;
   isLoadingInitial: boolean;
   isLoadingMore: boolean;
   summary?: CatalogSourcePreviewSummary;
@@ -52,7 +71,7 @@ export interface UseSourcePreviewResult {
   previewState: PreviewState;
 
   // Actions
-  handlePreview: (mode?: 'preview' | 'validate') => Promise<void>;
+  handlePreview: (mode?: PreviewMode) => Promise<void>;
   handleTabChange: (tab: PreviewTab) => void;
   handleLoadMore: () => void;
   handleValidate: () => Promise<void>;
@@ -115,21 +134,22 @@ export const useSourcePreview = ({
       return false;
     }
     const currentRequest = buildPreviewRequest();
-    return JSON.stringify(currentRequest) !== JSON.stringify(previewState.lastPreviewedData);
+    return !isEqual(currentRequest, previewState.lastPreviewedData);
   }, [buildPreviewRequest, previewState.lastPreviewedData]);
 
   // Derive validation states
-  const isValidating = previewState.mode === 'validate' && previewState.isLoadingInitial;
-  const validationError = previewState.mode === 'validate' ? previewState.error : undefined;
+  const isValidating = previewState.mode === PreviewMode.VALIDATE && previewState.isLoadingInitial;
+  const validationError =
+    previewState.mode === PreviewMode.VALIDATE ? previewState.error : undefined;
   const isValidationSuccess =
-    previewState.mode === 'validate' &&
+    previewState.mode === PreviewMode.VALIDATE &&
     !previewState.isLoadingInitial &&
     !previewState.error &&
     !previewState.resultDismissed;
 
   const handlePreview = React.useCallback(
     async (
-      mode: 'preview' | 'validate' = 'preview',
+      mode: PreviewMode = PreviewMode.PREVIEW,
       options?: {
         loadMore?: boolean;
         switchToTab?: PreviewTab;
@@ -137,10 +157,7 @@ export const useSourcePreview = ({
     ) => {
       const { loadMore = false, switchToTab } = options ?? {};
       const isFreshPreview = !loadMore && !switchToTab;
-      // For fresh preview, always start with 'included' tab
-      const targetTab = isFreshPreview
-        ? PreviewTab.INCLUDED
-        : (switchToTab ?? previewState.activeTab);
+      const targetTab = getTargetTab(isFreshPreview, switchToTab, previewState.activeTab);
 
       if (!apiState.apiAvailable) {
         setPreviewState((prev) => ({
@@ -196,7 +213,7 @@ export const useSourcePreview = ({
       try {
         const result = await apiState.api.previewCatalogSource({}, requestData, {
           filterStatus: targetTab,
-          pageSize: 20,
+          pageSize: DEFAULT_PREVIEW_PAGE_SIZE,
           nextPageToken,
         });
 
@@ -255,7 +272,7 @@ export const useSourcePreview = ({
       const tabState = previewState.tabStates[newTab];
       if (tabState.items.length === 0) {
         // Tab not yet loaded, fetch it
-        handlePreview('preview', { switchToTab: newTab });
+        handlePreview(PreviewMode.PREVIEW, { switchToTab: newTab });
       } else {
         // Tab already has data, just switch
         setPreviewState((prev) => ({ ...prev, activeTab: newTab }));
@@ -265,11 +282,11 @@ export const useSourcePreview = ({
   );
 
   const handleLoadMore = React.useCallback(() => {
-    handlePreview('preview', { loadMore: true });
+    handlePreview(PreviewMode.PREVIEW, { loadMore: true });
   }, [handlePreview]);
 
   const handleValidate = React.useCallback(async () => {
-    await handlePreview('validate');
+    await handlePreview(PreviewMode.VALIDATE);
   }, [handlePreview]);
 
   const clearValidationSuccess = React.useCallback(() => {

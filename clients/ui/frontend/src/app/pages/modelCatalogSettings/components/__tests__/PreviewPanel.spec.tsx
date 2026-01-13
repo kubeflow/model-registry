@@ -9,6 +9,7 @@ import {
   UseSourcePreviewResult,
   PreviewState,
   PreviewTab,
+  PreviewMode,
 } from '~/app/pages/modelCatalogSettings/useSourcePreview';
 
 const mockSummary: CatalogSourcePreviewSummary = {
@@ -29,7 +30,7 @@ const mockExcludedItems: CatalogSourcePreviewModel[] = [
 ];
 
 const createMockPreviewState = (overrides: Partial<PreviewState> = {}): PreviewState => ({
-  mode: 'preview',
+  mode: PreviewMode.PREVIEW,
   isLoadingInitial: false,
   isLoadingMore: false,
   summary: mockSummary,
@@ -106,7 +107,7 @@ describe('PreviewPanel', () => {
       {},
       {
         error: new Error('Failed to fetch preview'),
-        mode: 'preview',
+        mode: PreviewMode.PREVIEW,
         tabStates: {
           [PreviewTab.INCLUDED]: { items: [], hasMore: false },
           [PreviewTab.EXCLUDED]: { items: [], hasMore: false },
@@ -231,7 +232,7 @@ describe('PreviewPanel', () => {
 
     await user.click(screen.getByTestId('refresh-preview-link'));
 
-    expect(handlePreview).toHaveBeenCalledWith('preview');
+    expect(handlePreview).toHaveBeenCalled();
   });
 
   it('renders empty state for included tab with no items but with summary', () => {
