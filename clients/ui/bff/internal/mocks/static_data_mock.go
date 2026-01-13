@@ -2036,18 +2036,78 @@ func GetFilterOptionMocks() map[string]models.FilterOption {
 }
 
 func GetNamedQueriesMocks() map[string]map[string]models.FieldFilter {
-	namedQuries := make(map[string]map[string]models.FieldFilter)
-	namedQuries["validation-default"] = map[string]models.FieldFilter{
-		"ttft_p90": {
+	namedQueries := make(map[string]map[string]models.FieldFilter)
+
+	// Default performance filters - applied when performance toggle is turned on
+	// Uses full filter key format matching the filters map
+	namedQueries["default-performance-filters"] = map[string]models.FieldFilter{
+		"artifacts.use_case.string_value": {
+			Operator: "=",
+			Value:    "Chatbot", // UseCaseOptionValue.CHATBOT
+		},
+		"artifacts.ttft_p90.double_value": {
+			Operator: "<=",
+			Value:    "max", // 'max' means use the max value from the range in filters
+		},
+		"artifacts.requests_per_second.double_value": {
+			Operator: "<=",
+			Value:    "max", // 'max' means use the max value from the range in filters
+		},
+	}
+
+	// Legacy validation-default query for backward compatibility
+	namedQueries["validation-default"] = map[string]models.FieldFilter{
+		"artifacts.ttft_p90.double_value": {
 			Operator: "<",
 			Value:    float64(70),
 		},
-		"workload_type": {
+		"artifacts.use_case.string_value": {
 			Operator: "=",
-			Value:    "Chat",
+			Value:    "Chatbot",
 		},
 	}
-	return namedQuries
+
+	// High performance GPU configurations
+	namedQueries["high_performance_gpu"] = map[string]models.FieldFilter{
+		"artifacts.hardware_type.string_value": {
+			Operator: "in",
+			Value:    []interface{}{"H100-80", "A100-80"},
+		},
+		"artifacts.requests_per_second.double_value": {
+			Operator: ">=",
+			Value:    float64(50),
+		},
+	}
+
+	// Low latency optimized
+	namedQueries["low_latency"] = map[string]models.FieldFilter{
+		"artifacts.ttft_p90.double_value": {
+			Operator: "<",
+			Value:    float64(100),
+		},
+		"artifacts.e2e_p90.double_value": {
+			Operator: "<",
+			Value:    float64(500),
+		},
+	}
+
+	// Chatbot optimized
+	namedQueries["chatbot_optimized"] = map[string]models.FieldFilter{
+		"artifacts.use_case.string_value": {
+			Operator: "=",
+			Value:    "Chatbot",
+		},
+	}
+
+	// RAG optimized
+	namedQueries["rag_optimized"] = map[string]models.FieldFilter{
+		"artifacts.use_case.string_value": {
+			Operator: "in",
+			Value:    []interface{}{"RAG", "Long RAG"},
+		},
+	}
+
+	return namedQueries
 }
 
 func GetFilterOptionsListMock() models.FilterOptionsList {

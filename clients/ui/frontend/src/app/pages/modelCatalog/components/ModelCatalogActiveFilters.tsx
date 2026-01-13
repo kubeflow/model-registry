@@ -16,9 +16,9 @@ import {
   ModelCatalogNumberFilterKey,
   isCatalogFilterKey,
   isPerformanceFilterKey,
+  parseLatencyFilterKey,
 } from '~/concepts/modelCatalog/const';
 import { ModelCatalogFilterKey } from '~/app/modelCatalogTypes';
-import { parseLatencyFieldName } from '~/app/pages/modelCatalog/utils/hardwareConfigurationFilterUtils';
 import {
   USE_CASE_OPTIONS,
   isUseCaseOptionValue,
@@ -44,12 +44,13 @@ const ModelCatalogActiveFilters: React.FC<ModelCatalogActiveFiltersProps> = ({ f
       return;
     }
 
-    // For performance filters when performance view is enabled, reset to default instead of clearing
-    if (performanceViewEnabled && isPerformanceFilterKey(categoryKey)) {
+    // Performance filters always reset to default (they should always have a value)
+    if (isPerformanceFilterKey(categoryKey)) {
       resetSinglePerformanceFilterToDefault(categoryKey);
       return;
     }
 
+    // Basic filters: remove the specific value
     if (isEnumMember(categoryKey, ModelCatalogStringFilterKey)) {
       const currentValues = filterData[categoryKey];
       if (Array.isArray(currentValues)) {
@@ -57,7 +58,7 @@ const ModelCatalogActiveFilters: React.FC<ModelCatalogActiveFiltersProps> = ({ f
         setFilterData(categoryKey, newValues);
       }
     } else {
-      // For number filters and latency fields, clear the value
+      // For number filters, clear the value
       setFilterData(categoryKey, undefined);
     }
   };
@@ -67,16 +68,17 @@ const ModelCatalogActiveFilters: React.FC<ModelCatalogActiveFiltersProps> = ({ f
       return;
     }
 
-    // For performance filters when performance view is enabled, reset to default instead of clearing
-    if (performanceViewEnabled && isPerformanceFilterKey(categoryKey)) {
+    // Performance filters always reset to default (they should always have a value)
+    if (isPerformanceFilterKey(categoryKey)) {
       resetSinglePerformanceFilterToDefault(categoryKey);
       return;
     }
 
+    // Basic filters: clear completely
     if (isEnumMember(categoryKey, ModelCatalogStringFilterKey)) {
       setFilterData(categoryKey, []);
     } else {
-      // For number filters and latency fields, clear the value
+      // For number filters, clear the value
       setFilterData(categoryKey, undefined);
     }
   };
@@ -135,7 +137,7 @@ const ModelCatalogActiveFilters: React.FC<ModelCatalogActiveFiltersProps> = ({ f
     }
 
     // Handle latency field names - type is already narrowed to LatencyMetricFieldName
-    const parsed = parseLatencyFieldName(filterKey);
+    const parsed = parseLatencyFilterKey(filterKey);
     const formattedValue = typeof value === 'number' ? formatLatency(value) : `${value}ms`;
     return `${parsed.metric} | ${parsed.percentile} | ${formattedValue}`;
   };

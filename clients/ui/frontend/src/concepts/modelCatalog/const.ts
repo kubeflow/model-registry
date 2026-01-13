@@ -94,9 +94,6 @@ export const getLatencyFilterKey = (
   percentile: LatencyPercentile,
 ): LatencyFilterKey => `artifacts.${getLatencyPropertyKey(metric, percentile)}.double_value`;
 
-// Alias for backward compatibility
-export const getLatencyFieldName = getLatencyFilterKey;
-
 /**
  * All possible latency property keys (short format for customProperties access)
  */
@@ -113,15 +110,9 @@ export const ALL_LATENCY_FILTER_KEYS: LatencyFilterKey[] = Object.values(Latency
     Object.values(LatencyPercentile).map((percentile) => getLatencyFilterKey(metric, percentile)),
 );
 
-// Alias for backward compatibility
-export const ALL_LATENCY_FIELD_NAMES = ALL_LATENCY_FILTER_KEYS;
-
 // Type guard to check if a string is a valid LatencyFilterKey
 export const isLatencyFilterKey = (value: string): value is LatencyFilterKey =>
   ALL_LATENCY_FILTER_KEYS.some((name) => name === value);
-
-// Alias for backward compatibility
-export const isLatencyMetricFieldName = isLatencyFilterKey;
 
 /**
  * Parses a LatencyFilterKey to extract the metric and percentile
@@ -458,7 +449,7 @@ export type ModelCatalogFilterKey =
 export const ALL_CATALOG_FILTER_KEYS: ModelCatalogFilterKey[] = [
   ...Object.values(ModelCatalogStringFilterKey),
   ...Object.values(ModelCatalogNumberFilterKey),
-  ...ALL_LATENCY_FIELD_NAMES,
+  ...ALL_LATENCY_FILTER_KEYS,
 ];
 
 /**
@@ -485,7 +476,7 @@ export const PERFORMANCE_FILTER_KEYS: ModelCatalogFilterKey[] = [
   ModelCatalogStringFilterKey.USE_CASE,
   ModelCatalogStringFilterKey.HARDWARE_TYPE,
   ModelCatalogNumberFilterKey.MAX_RPS,
-  ...ALL_LATENCY_FIELD_NAMES,
+  ...ALL_LATENCY_FILTER_KEYS,
 ];
 
 /**
@@ -495,10 +486,49 @@ export const isPerformanceFilterKey = (filterKey: ModelCatalogFilterKey): boolea
   PERFORMANCE_FILTER_KEYS.includes(filterKey);
 
 /**
- * Gets the filter keys to show in the main chip bar (below search).
- * Only shows basic filters - performance filters are displayed in the HardwareConfigurationFilterToolbar.
+ * Performance string filter keys (arrays of strings).
+ * Add new string-based performance filters here.
  */
-export const getBasicFiltersToShow = (): ModelCatalogFilterKey[] => BASIC_FILTER_KEYS;
+export const PERFORMANCE_STRING_FILTER_KEYS: ModelCatalogStringFilterKey[] = [
+  ModelCatalogStringFilterKey.USE_CASE,
+  ModelCatalogStringFilterKey.HARDWARE_TYPE,
+];
+
+/**
+ * Performance number filter keys (single number values).
+ * Add new number-based performance filters here.
+ */
+export const PERFORMANCE_NUMBER_FILTER_KEYS: ModelCatalogNumberFilterKey[] = [
+  ModelCatalogNumberFilterKey.MAX_RPS,
+];
+
+/**
+ * Check if a filter key is a performance string filter.
+ */
+export const isPerformanceStringFilterKey = (
+  filterKey: string,
+): filterKey is ModelCatalogStringFilterKey =>
+  PERFORMANCE_STRING_FILTER_KEYS.some((key) => key === filterKey);
+
+/**
+ * Check if a filter key is a performance number filter.
+ */
+export const isPerformanceNumberFilterKey = (
+  filterKey: string,
+): filterKey is ModelCatalogNumberFilterKey =>
+  PERFORMANCE_NUMBER_FILTER_KEYS.some((key) => key === filterKey);
+
+/**
+ * Gets performance filter keys to show in the hardware configuration toolbar.
+ * Only shows performance filters (not basic filters).
+ */
+export const getPerformanceFiltersToShow = (
+  filterData: Partial<Record<LatencyMetricFieldName, number | undefined>>,
+): ModelCatalogFilterKey[] => {
+  const activeLatencyKeys = ALL_LATENCY_FILTER_KEYS.filter((key) => filterData[key] !== undefined);
+  // Use Set to deduplicate since PERFORMANCE_FILTER_KEYS already includes latency fields
+  return [...new Set([...PERFORMANCE_FILTER_KEYS, ...activeLatencyKeys])];
+};
 
 /**
  * Gets all filter keys to show when performance view is enabled.
@@ -507,7 +537,7 @@ export const getBasicFiltersToShow = (): ModelCatalogFilterKey[] => BASIC_FILTER
 export const getAllFiltersToShow = (
   filterData: Partial<Record<LatencyMetricFieldName, number | undefined>>,
 ): ModelCatalogFilterKey[] => {
-  const activeLatencyKeys = ALL_LATENCY_FIELD_NAMES.filter((key) => filterData[key] !== undefined);
+  const activeLatencyKeys = ALL_LATENCY_FILTER_KEYS.filter((key) => filterData[key] !== undefined);
   // Use Set to deduplicate since PERFORMANCE_FILTER_KEYS already includes latency fields
   return [...new Set([...BASIC_FILTER_KEYS, ...PERFORMANCE_FILTER_KEYS, ...activeLatencyKeys])];
 };
@@ -528,7 +558,7 @@ export const MODEL_CATALOG_FILTER_CATEGORY_NAMES: Record<ModelCatalogFilterKey, 
   [ModelCatalogNumberFilterKey.MAX_RPS]: 'Max RPS',
   // Latency field names - all use "Latency" as category name
   // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
-  ...(Object.fromEntries(ALL_LATENCY_FIELD_NAMES.map((field) => [field, 'Latency'])) as Record<
+  ...(Object.fromEntries(ALL_LATENCY_FILTER_KEYS.map((field) => [field, 'Latency'])) as Record<
     LatencyMetricFieldName,
     string
   >),

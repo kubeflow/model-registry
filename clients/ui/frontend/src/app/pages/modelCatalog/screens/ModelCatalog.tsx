@@ -12,13 +12,8 @@ import ModelCatalogGalleryView from './ModelCatalogGalleryView';
 
 const ModelCatalog: React.FC = () => {
   const [searchTerm, setSearchTerm] = React.useState('');
-  const {
-    selectedSourceLabel,
-    filterData,
-    clearAllFilters,
-    performanceViewEnabled,
-    clearBasicFiltersAndResetPerformanceToDefaults,
-  } = React.useContext(ModelCatalogContext);
+  const { selectedSourceLabel, filterData, clearAllFilters } =
+    React.useContext(ModelCatalogContext);
   const filtersApplied = hasFiltersApplied(filterData);
   const isAllModelsView =
     selectedSourceLabel === CategoryName.allModels && !searchTerm && !filtersApplied;
@@ -33,14 +28,9 @@ const ModelCatalog: React.FC = () => {
 
   const handleFilterReset = React.useCallback(() => {
     setSearchTerm('');
-    // When performance view is enabled, clear basic filters but reset
-    // performance filters to defaults instead of clearing them completely
-    if (performanceViewEnabled) {
-      clearBasicFiltersAndResetPerformanceToDefaults();
-    } else {
-      clearAllFilters();
-    }
-  }, [clearAllFilters, performanceViewEnabled, clearBasicFiltersAndResetPerformanceToDefaults]);
+    // clearAllFilters clears basic filters to empty and resets performance filters to defaults
+    clearAllFilters();
+  }, [clearAllFilters]);
 
   return (
     <>

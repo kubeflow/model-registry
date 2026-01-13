@@ -9,12 +9,9 @@ import {
   Popover,
 } from '@patternfly/react-core';
 import { HelpIcon } from '@patternfly/react-icons';
-import { ModelCatalogNumberFilterKey, PerformancePropertyKey } from '~/concepts/modelCatalog/const';
+import { ModelCatalogNumberFilterKey } from '~/concepts/modelCatalog/const';
 import { useCatalogNumberFilterState } from '~/app/pages/modelCatalog/utils/modelCatalogUtils';
-import { CatalogPerformanceMetricsArtifact } from '~/app/modelCatalogTypes';
-import { getDoubleValue } from '~/app/utils';
 import {
-  getSliderRange,
   FALLBACK_RPS_RANGE,
   SliderRange,
 } from '~/app/pages/modelCatalog/utils/performanceMetricsUtils';
@@ -23,27 +20,15 @@ import SliderWithInput from './SliderWithInput';
 
 const filterKey = ModelCatalogNumberFilterKey.MAX_RPS;
 
-type MaxRpsFilterProps = {
-  performanceArtifacts: CatalogPerformanceMetricsArtifact[];
-};
-
-const MaxRpsFilter: React.FC<MaxRpsFilterProps> = ({ performanceArtifacts }) => {
+const MaxRpsFilter: React.FC = () => {
   const { value: rpsFilterValue, setValue: setRpsFilterValue } =
     useCatalogNumberFilterState(filterKey);
   const { filterOptions } = React.useContext(ModelCatalogContext);
   const [isOpen, setIsOpen] = React.useState(false);
 
   const { minValue, maxValue, isSliderDisabled } = React.useMemo((): SliderRange => {
-    // First try to get range from performance artifacts
-    if (performanceArtifacts.length > 0) {
-      return getSliderRange({
-        performanceArtifacts,
-        getArtifactFilterValue: (artifact) =>
-          getDoubleValue(artifact.customProperties, PerformancePropertyKey.REQUESTS_PER_SECOND),
-        fallbackRange: FALLBACK_RPS_RANGE,
-      });
-    }
-    // Fall back to filterOptions from context
+    // Always get range from filterOptions (which provides the full range across all artifacts)
+    // Don't use performanceArtifacts since we may not have all of them in memory when paginating
     const filterValue = filterOptions?.filters?.[ModelCatalogNumberFilterKey.MAX_RPS];
     if (filterValue && 'range' in filterValue && filterValue.range) {
       return {
@@ -53,7 +38,7 @@ const MaxRpsFilter: React.FC<MaxRpsFilterProps> = ({ performanceArtifacts }) => 
       };
     }
     return FALLBACK_RPS_RANGE;
-  }, [performanceArtifacts, filterOptions]);
+  }, [filterOptions]);
 
   const [localValue, setLocalValue] = React.useState<number>(() => rpsFilterValue ?? maxValue);
 

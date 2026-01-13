@@ -231,7 +231,7 @@ describe('Model Catalog Performance Filters API Behavior', () => {
         .and('contain.text', 'Chatbot');
     });
 
-    it('should NOT apply defaults on Performance Insights tab when toggle is OFF', () => {
+    it('should apply defaults on Performance Insights tab even when toggle is OFF (but not pass to API)', () => {
       visitWithPerformanceToggle(false);
 
       navigateToPerformanceInsightsTab();
@@ -239,11 +239,14 @@ describe('Model Catalog Performance Filters API Behavior', () => {
       // Wait for table to load
       cy.findByTestId(PERFORMANCE_FILTER_TEST_IDS.hardwareTable).should('exist');
 
-      // Workload type filter should NOT have a pre-selected value when toggle is OFF
-      // The dropdown should show placeholder or be empty
+      // Default filters should be applied to UI state (for the table to work properly)
+      // The workload type filter should have a pre-selected default value
       cy.findByTestId(PERFORMANCE_FILTER_TEST_IDS.workloadType)
         .should('be.visible')
-        .and('not.contain.text', 'Chatbot');
+        .and('contain.text', 'Chatbot');
+
+      // However, when toggle is OFF, these defaults are NOT passed to the API
+      // This is verified by the 'should NOT include performance filter params' tests
     });
   });
 
@@ -260,13 +263,13 @@ describe('Model Catalog Performance Filters API Behavior', () => {
       // Change a filter to ensure something is set
       changeWorkloadTypeFilter();
 
-      // Click Clear all filters button in the toolbar
-      cy.findByTestId(PERFORMANCE_FILTER_TEST_IDS.clearAllFilters).click();
+      // Click Clear all filters button in the toolbar (PatternFly's native button)
+      cy.findByRole('button', { name: 'Clear all filters' }).click();
 
-      // Verify filters are cleared - workload type should reset
+      // Verify filters are reset to defaults - workload type should NOT show Code Fixing
       cy.findByTestId(PERFORMANCE_FILTER_TEST_IDS.workloadType)
         .should('be.visible')
-        .and('not.contain.text', 'Code fixing');
+        .and('not.contain.text', 'Code Fixing');
     });
 
     it('should reset latency filter when Clear all filters is clicked', () => {
@@ -279,10 +282,10 @@ describe('Model Catalog Performance Filters API Behavior', () => {
       modelCatalog.selectLatencyMetric('E2E');
       modelCatalog.clickApplyFilter();
 
-      // Click Clear all filters
-      cy.findByTestId(PERFORMANCE_FILTER_TEST_IDS.clearAllFilters).click();
+      // Click Clear all filters (PatternFly's native button)
+      cy.findByRole('button', { name: 'Clear all filters' }).click();
 
-      // Latency filter should be reset (not showing E2E)
+      // Latency filter should be reset to default (TTFT, not E2E)
       cy.findByTestId(PERFORMANCE_FILTER_TEST_IDS.latency)
         .should('be.visible')
         .and('not.contain.text', 'E2E');

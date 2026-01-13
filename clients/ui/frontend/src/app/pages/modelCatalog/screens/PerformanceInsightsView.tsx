@@ -9,12 +9,12 @@ import {
   ModelCatalogNumberFilterKey,
   ModelCatalogStringFilterKey,
   DEFAULT_PERFORMANCE_FILTERS_QUERY_NAME,
+  parseLatencyFilterKey,
 } from '~/concepts/modelCatalog/const';
 import {
   decodeParams,
   getActiveLatencyFieldName,
 } from '~/app/pages/modelCatalog/utils/modelCatalogUtils';
-import { parseLatencyFieldName } from '~/app/pages/modelCatalog/utils/hardwareConfigurationFilterUtils';
 import {
   applyFilterValue,
   getDefaultFiltersFromNamedQuery,
@@ -33,9 +33,9 @@ const PerformanceInsightsView = (): React.JSX.Element => {
   } = React.useContext(ModelCatalogContext);
 
   // Apply default performance filters on mount if they don't have values yet
-  // Only apply defaults if performance view toggle is enabled
+  // Details page should always have default filters applied (regardless of toggle state)
   React.useEffect(() => {
-    if (!filterOptionsLoaded || !filterOptions?.namedQueries || !performanceViewEnabled) {
+    if (!filterOptionsLoaded || !filterOptions?.namedQueries) {
       return;
     }
 
@@ -54,17 +54,23 @@ const PerformanceInsightsView = (): React.JSX.Element => {
     }
     // Only run on mount when filterOptions become available
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [filterOptionsLoaded, performanceViewEnabled]);
+  }, [filterOptionsLoaded]);
 
   // Get performance-specific filter params for the /performance_artifacts endpoint
-  const targetRPS = filterData[ModelCatalogNumberFilterKey.MAX_RPS];
+  // Only apply performance filters when toggle is ON
+  const targetRPS = performanceViewEnabled
+    ? filterData[ModelCatalogNumberFilterKey.MAX_RPS]
+    : undefined;
   // Get full filter key and convert to short property key for the catalog API
-  const latencyFieldName = getActiveLatencyFieldName(filterData);
+  const latencyFieldName = performanceViewEnabled
+    ? getActiveLatencyFieldName(filterData)
+    : undefined;
   const latencyProperty = latencyFieldName
-    ? parseLatencyFieldName(latencyFieldName).propertyKey
+    ? parseLatencyFilterKey(latencyFieldName).propertyKey
     : undefined;
 
   // Fetch performance artifacts from server with filtering/sorting/pagination
+  // When toggle is OFF, don't pass filterData so no perf filters are applied
   const [performanceArtifactsList, performanceArtifactsLoaded, performanceArtifactsError] =
     useCatalogPerformanceArtifacts(
       decodedParams.sourceId || '',
@@ -74,8 +80,8 @@ const PerformanceInsightsView = (): React.JSX.Element => {
         latencyProperty,
         recommendations: true,
       },
-      filterData,
-      filterOptions,
+      performanceViewEnabled ? filterData : undefined,
+      performanceViewEnabled ? filterOptions : undefined,
     );
 
   React.useEffect(() => {

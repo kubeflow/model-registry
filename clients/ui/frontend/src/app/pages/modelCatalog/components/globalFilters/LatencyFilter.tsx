@@ -17,13 +17,9 @@ import {
   LatencyMetric,
   LatencyPercentile,
   getLatencyFilterKey,
-  getLatencyPropertyKey,
 } from '~/concepts/modelCatalog/const';
-import { CatalogPerformanceMetricsArtifact } from '~/app/modelCatalogTypes';
-import { getDoubleValue } from '~/app/utils';
 import { ModelCatalogContext } from '~/app/context/modelCatalog/ModelCatalogContext';
 import {
-  getSliderRange,
   FALLBACK_LATENCY_RANGE,
   SliderRange,
   formatLatency,
@@ -34,10 +30,6 @@ type LatencyFilterState = {
   metric: LatencyMetric;
   percentile: LatencyPercentile;
   value: number;
-};
-
-type LatencyFilterProps = {
-  performanceArtifacts: CatalogPerformanceMetricsArtifact[];
 };
 
 // TPS is excluded from filter options for now (will be renamed/reworked in a future ticket)
@@ -51,7 +43,7 @@ const PERCENTILE_OPTIONS: { value: LatencyPercentile; label: LatencyPercentile }
   LatencyPercentile,
 ).map((percentile) => ({ value: percentile, label: percentile }));
 
-const LatencyFilter: React.FC<LatencyFilterProps> = ({ performanceArtifacts }) => {
+const LatencyFilter: React.FC = () => {
   const { filterData, setFilterData } = React.useContext(ModelCatalogContext);
   const [isOpen, setIsOpen] = React.useState(false);
   const [isMetricOpen, setIsMetricOpen] = React.useState(false);
@@ -114,22 +106,11 @@ const LatencyFilter: React.FC<LatencyFilterProps> = ({ performanceArtifacts }) =
   const { filterOptions } = React.useContext(ModelCatalogContext);
 
   const { minValue, maxValue, isSliderDisabled } = React.useMemo((): SliderRange => {
-    // Use short property key for accessing customProperties
-    const propertyKey = getLatencyPropertyKey(localFilter.metric, localFilter.percentile);
     // Use full filter key for accessing filterOptions
     const filterKey = getLatencyFilterKey(localFilter.metric, localFilter.percentile);
 
-    // First try to get range from performance artifacts
-    if (performanceArtifacts.length > 0) {
-      return getSliderRange({
-        performanceArtifacts,
-        getArtifactFilterValue: (artifact) =>
-          getDoubleValue(artifact.customProperties, propertyKey),
-        fallbackRange: FALLBACK_LATENCY_RANGE,
-        shouldRound: true,
-      });
-    }
-    // Fall back to filterOptions from context
+    // Always get range from filterOptions (which provides the full range across all artifacts)
+    // Don't use performanceArtifacts since we may not have all of them in memory when paginating
     const latencyFilter = filterOptions?.filters?.[filterKey];
     if (latencyFilter && 'range' in latencyFilter && latencyFilter.range) {
       return {
@@ -139,7 +120,7 @@ const LatencyFilter: React.FC<LatencyFilterProps> = ({ performanceArtifacts }) =
       };
     }
     return FALLBACK_LATENCY_RANGE;
-  }, [performanceArtifacts, localFilter.metric, localFilter.percentile, filterOptions]);
+  }, [localFilter.metric, localFilter.percentile, filterOptions]);
 
   const clampedValue = React.useMemo(
     () => Math.min(Math.max(localFilter.value, minValue), maxValue),
@@ -171,13 +152,22 @@ const LatencyFilter: React.FC<LatencyFilterProps> = ({ performanceArtifacts }) =
   };
 
   const handleReset = () => {
-    // Clear any existing latency filter
+    // Reset to default latency filter (performance filters should reset to defaults, not clear)
+    // First clear any existing latency filter
     if (currentActiveFilter) {
       setFilterData(currentActiveFilter.fieldName, undefined);
     }
 
+    // Apply the default latency filter
+    const defaultFilterKey = getLatencyFilterKey(
+      defaultFilterState.metric,
+      defaultFilterState.percentile,
+    );
+    setFilterData(defaultFilterKey, defaultFilterState.value);
+
     // Reset local filter to default
     setLocalFilter(defaultFilterState);
+    setIsOpen(false);
   };
 
   const toggle = (toggleRef: React.Ref<MenuToggleElement>) => (
