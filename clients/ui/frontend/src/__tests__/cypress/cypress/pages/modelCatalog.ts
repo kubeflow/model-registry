@@ -324,6 +324,10 @@ class ModelCatalog {
     return cy.findByTestId('latency-reset-filter');
   }
 
+  findEmptyStateResetFiltersButton() {
+    return this.findModelCatalogEmptyState().findByRole('button', { name: /Reset filters/i });
+  }
+
   clickApplyFilter() {
     this.findApplyFilterButton().click();
     return this;
@@ -399,13 +403,13 @@ class ModelCatalog {
   findSetPerformanceOffLink() {
     return this.findPerformanceEmptyState().contains(
       'button',
-      /set.*Explore model performance.*to off/i,
+      /Turn.*Model performance view.*off/i,
     );
   }
 
   findSelectAllModelsCategoryButton() {
     return this.findPerformanceEmptyState().findByRole('button', {
-      name: /Select the All models category/i,
+      name: /View all models with performance data/i,
     });
   }
 }

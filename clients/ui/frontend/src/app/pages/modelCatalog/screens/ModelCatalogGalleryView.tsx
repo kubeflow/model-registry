@@ -75,7 +75,7 @@ const ModelCatalogGalleryView: React.FC<ModelCatalogPageProps> = ({
 
   const { catalogModels, catalogModelsLoaded, catalogModelsLoadError } = useCatalogModelsBySources(
     '',
-    selectedSourceLabel === 'All models' ? undefined : selectedSourceLabel,
+    selectedSourceLabel === CategoryName.allModels ? undefined : selectedSourceLabel,
     10,
     searchTerm,
     effectiveFilterData,
@@ -89,7 +89,22 @@ const ModelCatalogGalleryView: React.FC<ModelCatalogPageProps> = ({
   const loadError = catalogModelsLoadError || filterOptionsLoadError;
 
   const isNoLabelsSection = selectedSourceLabel === SourceLabel.other;
-  const noUserFiltersOrSearch = !filtersApplied && !searchTerm;
+
+  const areOnlyDefaultFiltersApplied = React.useMemo(() => {
+    const basicFilterKeys = [
+      ModelCatalogStringFilterKey.TASK,
+      ModelCatalogStringFilterKey.PROVIDER,
+      ModelCatalogStringFilterKey.LICENSE,
+      ModelCatalogStringFilterKey.LANGUAGE,
+    ];
+    const hasBasicFiltersApplied = basicFilterKeys.some((key) => {
+      const value = filterData[key];
+      return Array.isArray(value) ? value.length > 0 : !!value;
+    });
+    return !hasBasicFiltersApplied;
+  }, [filterData]);
+
+  const noUserFiltersOrSearch = areOnlyDefaultFiltersApplied && !searchTerm;
 
   const handleDisablePerformanceView = () => {
     setPerformanceViewEnabled(false);
@@ -127,6 +142,7 @@ const ModelCatalogGalleryView: React.FC<ModelCatalogPageProps> = ({
   if (
     performanceViewEnabled &&
     catalogModels.items.length === 0 &&
+    selectedSourceLabel !== CategoryName.allModels &&
     (isNoLabelsSection || noUserFiltersOrSearch)
   ) {
     return (
@@ -138,16 +154,18 @@ const ModelCatalogGalleryView: React.FC<ModelCatalogPageProps> = ({
         description={
           <>
             Select the <strong>All models</strong> category to view all models with performance
-            data, or{' '}
-            <Button variant="link" isInline onClick={handleDisablePerformanceView}>
-              set <strong>Explore model performance</strong> to off
-            </Button>{' '}
-            to view models in the selected category.
+            data, or turn <strong>Model performance view</strong> off to view models in the selected
+            category.
           </>
         }
-        customAction={
-          <Button variant="link" onClick={handleSelectAllModels}>
-            Select the <strong>All models</strong> category
+        primaryAction={
+          <Button variant="primary" onClick={handleSelectAllModels}>
+            View all models with performance data
+          </Button>
+        }
+        secondaryAction={
+          <Button variant="link" onClick={handleDisablePerformanceView}>
+            Turn <strong>Model performance view</strong> off
           </Button>
         }
       />
@@ -158,9 +176,9 @@ const ModelCatalogGalleryView: React.FC<ModelCatalogPageProps> = ({
     return (
       <EmptyModelCatalogState
         testid="empty-model-catalog-state"
-        title="No result found"
+        title="No models available"
         headerIcon={SearchIcon}
-        description="Adjust your filters and try again."
+        description="No models are available in this category."
       />
     );
   }
@@ -172,7 +190,7 @@ const ModelCatalogGalleryView: React.FC<ModelCatalogPageProps> = ({
         title="No result found"
         headerIcon={SearchIcon}
         description="Adjust your filters and try again."
-        customAction={<Button onClick={handleFilterReset}>Reset filters</Button>}
+        primaryAction={<Button onClick={handleFilterReset}>Reset filters</Button>}
       />
     );
   }

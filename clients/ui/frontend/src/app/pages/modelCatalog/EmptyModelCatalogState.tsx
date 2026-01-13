@@ -15,7 +15,8 @@ type EmptyModelCatalogStateType = {
   description: React.ReactNode;
   headerIcon?: React.ComponentType;
   children?: React.ReactNode;
-  customAction?: React.ReactNode;
+  primaryAction?: React.ReactNode;
+  secondaryAction?: React.ReactNode;
   variant?: EmptyStateVariant;
 };
 
@@ -26,7 +27,8 @@ const EmptyModelCatalogState: React.FC<EmptyModelCatalogStateType> = ({
   description,
   headerIcon,
   children,
-  customAction,
+  primaryAction,
+  secondaryAction,
   variant = EmptyStateVariant.sm,
 }) => (
   <EmptyState
@@ -39,7 +41,8 @@ const EmptyModelCatalogState: React.FC<EmptyModelCatalogStateType> = ({
     <EmptyStateBody>{description}</EmptyStateBody>
     {children}
     <EmptyStateFooter>
-      {customAction && <EmptyStateActions>{customAction}</EmptyStateActions>}
+      {primaryAction && <EmptyStateActions>{primaryAction}</EmptyStateActions>}
+      {secondaryAction && <EmptyStateActions>{secondaryAction}</EmptyStateActions>}
     </EmptyStateFooter>
   </EmptyState>
 );

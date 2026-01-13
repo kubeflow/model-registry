@@ -1,4 +1,5 @@
 /* eslint-disable camelcase */
+import { mockModArchResponse } from 'mod-arch-core';
 import { modelCatalog } from '~/__tests__/cypress/cypress/pages/modelCatalog';
 import {
   mockCatalogAccuracyMetricsArtifact,
@@ -15,15 +16,39 @@ import { mockCatalogFilterOptionsList } from '~/__mocks__/mockCatalogFilterOptio
 import { SourceLabel } from '~/app/modelCatalogTypes';
 import { ModelRegistryMetadataType } from '~/app/types';
 
+type FilteredModelsInterceptConfig = {
+  returnModelsForFilters?: boolean;
+  modelsToReturn?: ReturnType<typeof mockCatalogModel>[];
+};
+
+const setupFilteredModelsIntercept = ({
+  returnModelsForFilters = false,
+  modelsToReturn = [],
+}: FilteredModelsInterceptConfig = {}) => {
+  cy.intercept(
+    {
+      method: 'GET',
+      url: '**/model_catalog/models*filterQuery=*',
+    },
+    (req) => {
+      const items = returnModelsForFilters ? modelsToReturn : [];
+      req.reply(mockModArchResponse(mockCatalogModelList({ items })));
+    },
+  ).as('getFilteredModels');
+};
+
 type HandlersProps = {
   sources?: CatalogSource[];
   modelsPerCategory?: number;
   hasValidatedModels?: boolean;
+  includeAllModelsIntercept?: boolean;
 };
+
 const initIntercepts = ({
   sources = [mockCatalogSource({}), mockCatalogSource({ id: 'source-2', name: 'source 2' })],
   modelsPerCategory = 4,
   hasValidatedModels = false,
+  includeAllModelsIntercept = true,
 }: HandlersProps) => {
   cy.interceptApi(
     `GET /api/:apiVersion/model_catalog/sources`,
@@ -91,11 +116,38 @@ const initIntercepts = ({
         items: Array.from({ length: modelsPerCategory }, (_, i) =>
           mockCatalogModel({
             name: `custom-model-${i + 1}`,
-            // eslint-disable-next-line camelcase
             source_id: sources.find((s) => s.labels.length === 0)?.id || 'custom-source',
           }),
         ),
       }),
+    );
+  }
+  if (includeAllModelsIntercept) {
+    cy.intercept(
+      {
+        method: 'GET',
+        url: new RegExp(
+          `/api/${MODEL_CATALOG_API_VERSION}/model_catalog/models\\?(?!.*sourceLabel=)`,
+        ),
+      },
+      (req) => {
+        const models = hasValidatedModels
+          ? [
+              mockCatalogModel({
+                name: 'validated-model',
+                customProperties: {
+                  validated: { metadataType: ModelRegistryMetadataType.STRING, string_value: '' },
+                },
+              }),
+              ...Array.from({ length: modelsPerCategory - 1 }, (_, i) =>
+                mockCatalogModel({ name: `all-model-${i + 1}` }),
+              ),
+            ]
+          : Array.from({ length: modelsPerCategory }, (_, i) =>
+              mockCatalogModel({ name: `all-model-${i + 1}` }),
+            );
+        req.reply(mockModArchResponse(mockCatalogModelList({ items: models })));
+      },
     );
   }
 
@@ -116,7 +168,7 @@ const initIntercepts = ({
       ),
     },
     { items: [], size: 0, pageSize: 10, nextPageToken: '' },
-  ).as('getPerformanceArtifacts');
+  );
 
   cy.interceptApi(
     `GET /api/:apiVersion/model_catalog/sources/:sourceId/artifacts/:modelName`,
@@ -217,28 +269,21 @@ describe('Model Catalog Page', () => {
     // Expected count: unique labels + (1 if sources without labels exist)
     const expectedCategoryCount = uniqueLabels.size + (hasSourcesWithoutLabels ? 1 : 0);
 
-    cy.interceptApi(
-      `GET /api/:apiVersion/model_catalog/models`,
-      {
-        path: { apiVersion: MODEL_CATALOG_API_VERSION },
-        query: { sourceLabel: '' },
-      },
-      mockCatalogModelList({
-        items: [mockCatalogModel({})],
-      }),
-    ).as('getCatalogModelsBySource');
+    initIntercepts({ sources: defaultSources, includeAllModelsIntercept: false });
 
-    initIntercepts({ sources: defaultSources });
+    setupFilteredModelsIntercept({
+      returnModelsForFilters: true,
+      modelsToReturn: [mockCatalogModel({})],
+    });
+
     modelCatalog.visit();
+    modelCatalog.findFilterShowMoreButton('Task').click();
     modelCatalog.findFilterCheckbox('Task', 'text-generation').click();
     modelCatalog.findFilterCheckbox('Task', 'text-to-text').click();
     modelCatalog.findFilterCheckbox('Provider', 'Google').click();
 
     // Wait for the expected number of API calls (one per category section when filters are applied)
-    const waitCalls = Array.from(
-      { length: expectedCategoryCount },
-      () => '@getCatalogModelsBySource',
-    );
+    const waitCalls = Array.from({ length: expectedCategoryCount }, () => '@getFilteredModels');
     cy.wait(waitCalls).then((interceptions) => {
       const lastInterception = interceptions[interceptions.length - 1];
       expect(lastInterception.request.url).to.include(
@@ -258,6 +303,7 @@ describe('Performance Empty State', () => {
         ],
         hasValidatedModels: true,
       });
+      setupFilteredModelsIntercept({ returnModelsForFilters: false });
       modelCatalog.visit({ enableTempDevCatalogAdvancedFiltersFeature: true });
 
       modelCatalog.togglePerformanceView();
@@ -291,6 +337,7 @@ describe('Performance Empty State', () => {
         sources: [mockCatalogSource({ labels: ['Provider one'] })],
         hasValidatedModels: false,
       });
+      setupFilteredModelsIntercept({ returnModelsForFilters: false });
       modelCatalog.visit({ enableTempDevCatalogAdvancedFiltersFeature: true });
 
       modelCatalog.togglePerformanceView();
@@ -329,7 +376,7 @@ describe('Performance Empty State', () => {
   });
 
   describe('Empty State Actions', () => {
-    it('should turn off toggle when clicking "set Explore model performance to off"', () => {
+    it('should turn off toggle when clicking "Turn Model performance view off"', () => {
       initIntercepts({
         sources: [
           mockCatalogSource({ labels: ['Provider one'] }),
@@ -337,6 +384,7 @@ describe('Performance Empty State', () => {
         ],
         hasValidatedModels: true,
       });
+      setupFilteredModelsIntercept({ returnModelsForFilters: false });
       modelCatalog.visit({ enableTempDevCatalogAdvancedFiltersFeature: true });
 
       modelCatalog.togglePerformanceView();
@@ -349,7 +397,7 @@ describe('Performance Empty State', () => {
       modelCatalog.findModelCatalogCards().should('have.length.at.least', 1);
     });
 
-    it('should navigate to All models when clicking "Select the All models category"', () => {
+    it('should navigate to All models when clicking "View all models with performance data"', () => {
       initIntercepts({
         sources: [
           mockCatalogSource({ labels: ['Provider one'] }),
@@ -357,6 +405,7 @@ describe('Performance Empty State', () => {
         ],
         hasValidatedModels: true,
       });
+      setupFilteredModelsIntercept({ returnModelsForFilters: false });
       modelCatalog.visit({ enableTempDevCatalogAdvancedFiltersFeature: true });
 
       modelCatalog.togglePerformanceView();
@@ -366,6 +415,27 @@ describe('Performance Empty State', () => {
       modelCatalog.findSelectAllModelsCategoryButton().click();
 
       modelCatalog.findAllModelsToggle().find('button').should('have.attr', 'aria-pressed', 'true');
+    });
+
+    it('should show performance empty state after clicking Reset filters when toggle is ON', () => {
+      initIntercepts({
+        sources: [mockCatalogSource({ labels: ['Provider one'] })],
+        hasValidatedModels: false,
+      });
+      setupFilteredModelsIntercept({ returnModelsForFilters: false });
+      modelCatalog.visit({ enableTempDevCatalogAdvancedFiltersFeature: true });
+
+      modelCatalog.togglePerformanceView();
+      modelCatalog.findCategoryToggle('label-Provider one').click();
+      modelCatalog.findPerformanceEmptyState().should('be.visible');
+
+      modelCatalog.findFilterShowMoreButton('Task').click();
+      modelCatalog.findFilterCheckbox('Task', 'audio-to-text').click();
+
+      modelCatalog.findModelCatalogEmptyState().should('contain.text', 'No result found');
+
+      modelCatalog.findEmptyStateResetFiltersButton().click();
+      modelCatalog.findPerformanceEmptyState().should('be.visible');
     });
   });
 
@@ -377,6 +447,7 @@ describe('Performance Empty State', () => {
       ],
       hasValidatedModels: true,
     });
+    setupFilteredModelsIntercept({ returnModelsForFilters: false });
     modelCatalog.visit({ enableTempDevCatalogAdvancedFiltersFeature: true });
 
     modelCatalog.togglePerformanceView();
@@ -393,5 +464,41 @@ describe('Performance Empty State', () => {
     modelCatalog.findPerformanceViewToggleValue().should('be.checked');
     modelCatalog.findPerformanceEmptyState().should('be.visible');
     modelCatalog.findModelCatalogCards().should('not.exist');
+  });
+
+  it('should show "No result found" when toggle is ON and user applies filter that returns 0 results', () => {
+    initIntercepts({
+      sources: [mockCatalogSource({ labels: ['Provider one'] })],
+      hasValidatedModels: true,
+    });
+    setupFilteredModelsIntercept({ returnModelsForFilters: false });
+
+    modelCatalog.visit({ enableTempDevCatalogAdvancedFiltersFeature: true });
+    modelCatalog.togglePerformanceView();
+    modelCatalog.findCategoryToggle('label-Provider one').click();
+    modelCatalog.findFilterShowMoreButton('Task').click();
+    modelCatalog.findFilterCheckbox('Task', 'audio-to-text').click();
+    modelCatalog.findPerformanceEmptyState().should('not.exist');
+    modelCatalog.findModelCatalogEmptyState().should('contain.text', 'No result found');
+    modelCatalog.findAllModelsToggle().click();
+    modelCatalog.findPerformanceEmptyState().should('not.exist');
+    modelCatalog.findModelCatalogEmptyState().should('contain.text', 'No result found');
+  });
+});
+
+describe('All Models Section', () => {
+  it('should show models in All models section even when toggle is ON', () => {
+    initIntercepts({
+      sources: [mockCatalogSource({ labels: ['Provider one'] })],
+      hasValidatedModels: true,
+    });
+    modelCatalog.visit({ enableTempDevCatalogAdvancedFiltersFeature: true });
+
+    modelCatalog.togglePerformanceView();
+    modelCatalog.findPerformanceViewToggleValue().should('be.checked');
+
+    modelCatalog.findAllModelsToggle().click();
+    modelCatalog.findModelCatalogCards().should('have.length.at.least', 1);
+    modelCatalog.findPerformanceEmptyState().should('not.exist');
   });
 });
