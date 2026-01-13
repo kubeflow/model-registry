@@ -10,6 +10,7 @@ import {
   Spinner,
   Title,
   Truncate,
+  TruncateProps,
 } from '@patternfly/react-core';
 import React from 'react';
 import { Link } from 'react-router';
@@ -18,6 +19,8 @@ import { CatalogModel } from '~/app/modelCatalogTypes';
 import { catalogModelDetailsFromModel } from '~/app/routes/modelCatalog/catalogModel';
 import { getStringValue } from '~/app/utils';
 import { getModelName } from '~/app/pages/modelCatalog/utils/modelCatalogUtils';
+import { EMPTY_CUSTOM_PROPERTY_VALUE } from '~/app/utilities/const';
+import { sortModelsWithCurrentFirst } from '~/app/pages/modelCatalog/utils/validatedModelUtils';
 
 type TensorTypeComparisonCardProps = {
   model: CatalogModel;
@@ -37,25 +40,12 @@ const TensorTypeComparisonCard: React.FC<TensorTypeComparisonCardProps> = ({ mod
     variantFilterQuery,
   );
 
-  const sortedModels = React.useMemo(() => {
-    if (!catalogModels.items.length) {
-      return [];
-    }
+  const sortedModels = React.useMemo(
+    () => sortModelsWithCurrentFirst(catalogModels.items, model.name, 4),
+    [catalogModels.items, model.name],
+  );
 
-    return [...catalogModels.items]
-      .toSorted((a, b) => {
-        if (a.name === model.name) {
-          return -1;
-        }
-        if (b.name === model.name) {
-          return 1;
-        }
-        return 0;
-      })
-      .slice(0, 4);
-  }, [catalogModels.items, model.name]);
-
-  if (!variantGroupId || variantGroupId === '-') {
+  if (!variantGroupId || variantGroupId === EMPTY_CUSTOM_PROPERTY_VALUE) {
     return null;
   }
 
@@ -105,6 +95,16 @@ const TensorTypeComparisonCard: React.FC<TensorTypeComparisonCardProps> = ({ mod
                   const isCurrent = variant.name === model.name;
                   const modelDisplayName = getModelName(variant.name || '');
 
+                  const truncateProps: Pick<
+                    TruncateProps,
+                    'content' | 'position' | 'tooltipPosition' | 'maxCharsDisplayed'
+                  > = {
+                    content: modelDisplayName,
+                    position: 'middle',
+                    maxCharsDisplayed: 20,
+                    tooltipPosition: 'top',
+                  };
+
                   return (
                     <React.Fragment key={`${variant.name}-${index}`}>
                       {index > 0 && (
@@ -150,10 +150,7 @@ const TensorTypeComparisonCard: React.FC<TensorTypeComparisonCardProps> = ({ mod
                               <FlexItem>
                                 {isCurrent ? (
                                   <Truncate
-                                    content={modelDisplayName}
-                                    position="middle"
-                                    maxCharsDisplayed={20}
-                                    tooltipPosition="top"
+                                    {...truncateProps}
                                     data-testid="compression-current-model-name"
                                   />
                                 ) : (
@@ -165,10 +162,7 @@ const TensorTypeComparisonCard: React.FC<TensorTypeComparisonCardProps> = ({ mod
                                     data-testid={`compression-link-${index}`}
                                   >
                                     <Truncate
-                                      content={modelDisplayName}
-                                      position="middle"
-                                      maxCharsDisplayed={20}
-                                      tooltipPosition="top"
+                                      {...truncateProps}
                                       style={{ textDecoration: 'underline' }}
                                     />
                                   </Link>
@@ -180,8 +174,9 @@ const TensorTypeComparisonCard: React.FC<TensorTypeComparisonCardProps> = ({ mod
                                   alignItems={{ default: 'alignItemsCenter' }}
                                 >
                                   <FlexItem>
-                                    {tensorType && tensorType !== '-' && (
+                                    {tensorType && tensorType !== EMPTY_CUSTOM_PROPERTY_VALUE && (
                                       <Label
+                                        color="green"
                                         isCompact
                                         data-testid={`compression-tensor-type-${index}`}
                                       >

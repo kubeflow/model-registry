@@ -4,12 +4,14 @@ import {
   CatalogAccuracyMetricsArtifact,
   CatalogArtifactType,
   MetricsType,
+  CatalogModel,
 } from '~/app/modelCatalogTypes';
 import { ModelRegistryMetadataType } from '~/app/types';
 import {
   extractPerformanceMetrics,
   // calculateAverageAccuracy, // NOTE: overall_average is currently omitted from the API and will be restored
   extractValidatedModelMetrics,
+  sortModelsWithCurrentFirst,
 } from '~/app/pages/modelCatalog/utils/validatedModelUtils';
 import {
   LatencyMetric,
@@ -230,6 +232,135 @@ describe('validatedModelUtils', () => {
         rpsPerReplica: 1,
         ttftMean: 1428,
       });
+    });
+  });
+
+  describe('sortModelsWithCurrentFirst', () => {
+    const createMockModel = (name: string): CatalogModel =>
+      ({
+        name,
+        source_id: 'test-source',
+      }) as CatalogModel;
+
+    it('should return empty array when given empty array', () => {
+      const result = sortModelsWithCurrentFirst([], 'model-1');
+
+      expect(result).toEqual([]);
+    });
+
+    it('should put current model first', () => {
+      const models = [
+        createMockModel('model-a'),
+        createMockModel('model-b'),
+        createMockModel('current-model'),
+        createMockModel('model-c'),
+      ];
+
+      const result = sortModelsWithCurrentFirst(models, 'current-model');
+
+      expect(result[0].name).toBe('current-model');
+    });
+
+    it('should limit results to specified limit', () => {
+      const models = [
+        createMockModel('model-1'),
+        createMockModel('model-2'),
+        createMockModel('model-3'),
+        createMockModel('model-4'),
+        createMockModel('model-5'),
+        createMockModel('model-6'),
+      ];
+
+      const result = sortModelsWithCurrentFirst(models, 'model-3', 4);
+
+      expect(result).toHaveLength(4);
+    });
+
+    it('should use default limit of 4 when not specified', () => {
+      const models = [
+        createMockModel('model-1'),
+        createMockModel('model-2'),
+        createMockModel('model-3'),
+        createMockModel('model-4'),
+        createMockModel('model-5'),
+      ];
+
+      const result = sortModelsWithCurrentFirst(models, 'model-1');
+
+      expect(result).toHaveLength(4);
+    });
+
+    it('should include current model in limited results even if it was at end', () => {
+      const models = [
+        createMockModel('model-1'),
+        createMockModel('model-2'),
+        createMockModel('model-3'),
+        createMockModel('model-4'),
+        createMockModel('model-5'),
+        createMockModel('current-model'),
+      ];
+
+      const result = sortModelsWithCurrentFirst(models, 'current-model', 4);
+
+      expect(result[0].name).toBe('current-model');
+      expect(result).toHaveLength(4);
+    });
+
+    it('should preserve relative order of other models after current', () => {
+      const models = [
+        createMockModel('model-a'),
+        createMockModel('model-b'),
+        createMockModel('current-model'),
+        createMockModel('model-c'),
+      ];
+
+      const result = sortModelsWithCurrentFirst(models, 'current-model');
+
+      expect(result.map((m) => m.name)).toEqual(['current-model', 'model-a', 'model-b', 'model-c']);
+    });
+
+    it('should handle case when current model is not in the list', () => {
+      const models = [
+        createMockModel('model-a'),
+        createMockModel('model-b'),
+        createMockModel('model-c'),
+      ];
+
+      const result = sortModelsWithCurrentFirst(models, 'non-existent');
+
+      expect(result).toHaveLength(3);
+      expect(result.map((m) => m.name)).toEqual(['model-a', 'model-b', 'model-c']);
+    });
+
+    it('should not mutate original array', () => {
+      const models = [
+        createMockModel('model-a'),
+        createMockModel('current-model'),
+        createMockModel('model-b'),
+      ];
+      const originalOrder = models.map((m) => m.name);
+
+      sortModelsWithCurrentFirst(models, 'current-model');
+
+      expect(models.map((m) => m.name)).toEqual(originalOrder);
+    });
+
+    it('should handle single model that is current', () => {
+      const models = [createMockModel('only-model')];
+
+      const result = sortModelsWithCurrentFirst(models, 'only-model');
+
+      expect(result).toHaveLength(1);
+      expect(result[0].name).toBe('only-model');
+    });
+
+    it('should handle single model that is not current', () => {
+      const models = [createMockModel('only-model')];
+
+      const result = sortModelsWithCurrentFirst(models, 'different-model');
+
+      expect(result).toHaveLength(1);
+      expect(result[0].name).toBe('only-model');
     });
   });
 });

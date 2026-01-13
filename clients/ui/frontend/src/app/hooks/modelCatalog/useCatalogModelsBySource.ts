@@ -137,7 +137,7 @@ export const useCatalogModelsBySources = (
     setTotalSize(0);
     setNextPageToken('');
     setIsLoadingMore(false);
-  }, [sourceId, searchQuery, sourceLabel, filterData, filterOptions]);
+  }, [sourceId, searchQuery, sourceLabel, filterData, filterOptions, filterQuery]);
 
   const refresh = React.useCallback(() => {
     setAllItems([]);
