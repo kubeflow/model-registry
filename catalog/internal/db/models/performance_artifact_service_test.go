@@ -208,6 +208,10 @@ func TestPerformanceArtifactService_Recommendataions(t *testing.T) {
 func TestPropertyValidation(t *testing.T) {
 	service := NewPerformanceArtifactService(nil)
 
+	// Test case: empty artifacts should pass validation (not an error condition)
+	err := service.validateCustomProperties([]CatalogMetricsArtifact{}, "rps", "latency", "hw_count", "hw_type")
+	require.NoError(t, err, "Empty artifacts should not cause validation error")
+
 	// Test case: property exists in some artifacts
 	id1 := int32(1)
 	id2 := int32(2)
@@ -238,7 +242,7 @@ func TestPropertyValidation(t *testing.T) {
 	artifacts[1].SetID(id2)
 
 	// Should not error when property exists in at least one artifact
-	err := service.validateCustomProperties(artifacts, "custom_rps", "custom_latency", "custom_hw_count", "custom_hw_type")
+	err = service.validateCustomProperties(artifacts, "custom_rps", "custom_latency", "custom_hw_count", "custom_hw_type")
 	require.NoError(t, err)
 
 	// Test case: property doesn't exist in any artifact

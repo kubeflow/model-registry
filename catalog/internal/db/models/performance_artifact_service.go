@@ -250,7 +250,13 @@ func (s *PerformanceArtifactService) generateRecommendations(artifacts []Catalog
 }
 
 // validateCustomProperties ensures at least one artifact contains each custom property
+// When there are no artifacts, validation passes (empty result is valid)
 func (s *PerformanceArtifactService) validateCustomProperties(artifacts []CatalogMetricsArtifact, rpsProperty, latencyProperty, hardwareCountProperty, hardwareTypeProperty string) error {
+	// If there are no artifacts, validation passes - empty result is valid
+	if len(artifacts) == 0 {
+		return nil
+	}
+
 	propertyExists := map[string]bool{
 		rpsProperty:           false,
 		latencyProperty:       false,
