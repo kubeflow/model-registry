@@ -431,17 +431,18 @@ func (l *Loader) readProviderRecords(ctx context.Context) <-chan ModelProviderRe
 
 			for r := range records {
 				if r.Model == nil {
-					glog.V(2).Infof("%s: trigger cleanup", sourceID)
+					glog.Infof("%s: loaded %d models", sourceID, len(modelNames))
 
 					// Copy the list of model names, then clear it.
 					modelNameSet := mapset.NewSet(modelNames...)
 					modelNames = modelNames[:0]
 
 					go func() {
-						err := l.removeOrphanedModelsFromSource(sourceID, modelNameSet)
+						count, err := l.removeOrphanedModelsFromSource(sourceID, modelNameSet)
 						if err != nil {
 							glog.Errorf("error removing orphaned models: %v", err)
 						}
+						glog.Infof("%s: cleaned up %d models", sourceID, count)
 					}()
 
 					// Source finished loading successfully (provider-level errors are caught earlier)
@@ -576,14 +577,15 @@ func (l *Loader) cleanupOrphanedCatalogSources(currentSourceIDs mapset.Set[strin
 	return nil
 }
 
-func (l *Loader) removeOrphanedModelsFromSource(sourceID string, valid mapset.Set[string]) error {
+func (l *Loader) removeOrphanedModelsFromSource(sourceID string, valid mapset.Set[string]) (int, error) {
 	list, err := l.services.CatalogModelRepository.List(dbmodels.CatalogModelListOptions{
 		SourceIDs: &[]string{sourceID},
 	})
 	if err != nil {
-		return fmt.Errorf("unable to list models from source %q: %w", sourceID, err)
+		return 0, fmt.Errorf("unable to list models from source %q: %w", sourceID, err)
 	}
 
+	count := 0
 	for _, model := range list.Items {
 		attr := model.GetAttributes()
 		if attr == nil || attr.Name == nil || model.GetID() == nil {
@@ -598,11 +600,12 @@ func (l *Loader) removeOrphanedModelsFromSource(sourceID string, valid mapset.Se
 
 		err = l.services.CatalogModelRepository.DeleteByID(*model.GetID())
 		if err != nil {
-			return fmt.Errorf("unable to remove model %d (%s from source %s): %w", *model.GetID(), *attr.Name, sourceID, err)
+			return count, fmt.Errorf("unable to remove model %d (%s from source %s): %w", *model.GetID(), *attr.Name, sourceID, err)
 		}
+		count++
 	}
 
-	return nil
+	return count, nil
 }
 
 // saveSourceStatus persists the operational status of a source to the database.
