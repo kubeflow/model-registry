@@ -24,11 +24,7 @@ import {
 } from '~/app/pages/modelCatalog/utils/modelCatalogUtils';
 import EmptyModelCatalogState from '~/app/pages/modelCatalog/EmptyModelCatalogState';
 import ScrollViewOnMount from '~/app/shared/components/ScrollViewOnMount';
-import {
-  ALL_LATENCY_FIELD_NAMES,
-  ModelCatalogNumberFilterKey,
-  ModelCatalogStringFilterKey,
-} from '~/concepts/modelCatalog/const';
+import { BASIC_FILTER_KEYS } from '~/concepts/modelCatalog/const';
 
 type ModelCatalogPageProps = {
   searchTerm: string;
@@ -47,7 +43,6 @@ const ModelCatalogGalleryView: React.FC<ModelCatalogPageProps> = ({
     filterOptionsLoadError,
     catalogSources,
     setPerformanceViewEnabled,
-    setFilterData,
     updateSelectedSourceLabel,
     performanceViewEnabled,
     sortBy,
@@ -90,30 +85,15 @@ const ModelCatalogGalleryView: React.FC<ModelCatalogPageProps> = ({
 
   const isNoLabelsSection = selectedSourceLabel === SourceLabel.other;
 
-  const areOnlyDefaultFiltersApplied = React.useMemo(() => {
-    const basicFilterKeys = [
-      ModelCatalogStringFilterKey.TASK,
-      ModelCatalogStringFilterKey.PROVIDER,
-      ModelCatalogStringFilterKey.LICENSE,
-      ModelCatalogStringFilterKey.LANGUAGE,
-    ];
-    const hasBasicFiltersApplied = basicFilterKeys.some((key) => {
-      const value = filterData[key];
-      return Array.isArray(value) ? value.length > 0 : !!value;
-    });
-    return !hasBasicFiltersApplied;
-  }, [filterData]);
+  const areOnlyDefaultFiltersApplied = React.useMemo(
+    () => !hasFiltersApplied(filterData, BASIC_FILTER_KEYS),
+    [filterData],
+  );
 
   const noUserFiltersOrSearch = areOnlyDefaultFiltersApplied && !searchTerm;
 
   const handleDisablePerformanceView = () => {
     setPerformanceViewEnabled(false);
-    setFilterData(ModelCatalogNumberFilterKey.MAX_RPS, undefined);
-    setFilterData(ModelCatalogStringFilterKey.HARDWARE_TYPE, []);
-    setFilterData(ModelCatalogStringFilterKey.USE_CASE, []);
-    ALL_LATENCY_FIELD_NAMES.forEach((fieldName) => {
-      setFilterData(fieldName, undefined);
-    });
   };
 
   const handleSelectAllModels = () => {
