@@ -215,7 +215,19 @@ func (m *ModelCatalogClientMock) GetCatalogFilterOptions(client httpclient.HTTPC
 }
 
 func (m *ModelCatalogClientMock) CreateCatalogSourcePreview(client httpclient.HTTPClientInterface, sourcePreviewPayload models.CatalogSourcePreviewRequest, pageValues url.Values) (*models.CatalogSourcePreviewResult, error) {
-	catalogSourcePreview := CreateCatalogSourcePreviewMock()
+	filterStatus := pageValues.Get("filterStatus")
+	if filterStatus == "" {
+		filterStatus = "all"
+	}
+
+	pageSize := 20
+	if ps := pageValues.Get("pageSize"); ps != "" {
+		_, _ = fmt.Sscanf(ps, "%d", &pageSize)
+	}
+
+	nextPageToken := pageValues.Get("nextPageToken")
+
+	catalogSourcePreview := CreateCatalogSourcePreviewMockWithFilter(filterStatus, pageSize, nextPageToken)
 
 	return &catalogSourcePreview, nil
 }

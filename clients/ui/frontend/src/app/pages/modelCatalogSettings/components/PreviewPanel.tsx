@@ -15,70 +15,42 @@ import {
   List,
   ListItem,
   Spinner,
-  Pagination,
-  PaginationVariant,
+  Button,
   AlertActionLink,
 } from '@patternfly/react-core';
 import { CubesIcon, CheckCircleIcon, TimesCircleIcon } from '@patternfly/react-icons';
 import { PAGE_TITLES } from '~/app/pages/modelCatalogSettings/constants';
-import { CatalogSourcePreviewResult } from '~/app/modelCatalogTypes';
+import {
+  UseSourcePreviewResult,
+  PreviewTab,
+  PreviewMode,
+} from '~/app/pages/modelCatalogSettings/useSourcePreview';
 import PreviewButton from './PreviewButton';
 
 type PreviewPanelProps = {
-  isPreviewEnabled: boolean;
-  isLoading: boolean;
-  onPreview: () => void;
-  previewResult?: CatalogSourcePreviewResult;
-  previewError?: Error;
-  hasFormChanged: boolean;
+  preview: UseSourcePreviewResult;
 };
 
-const PreviewPanel: React.FC<PreviewPanelProps> = ({
-  isPreviewEnabled,
-  isLoading,
-  onPreview,
-  previewResult,
-  previewError,
-  hasFormChanged,
-}) => {
-  const [activeTabKey, setActiveTabKey] = React.useState<string | number>(0);
-  const [page, setPage] = React.useState(1);
-  const [perPage, setPerPage] = React.useState(10);
+const PreviewPanel: React.FC<PreviewPanelProps> = ({ preview }) => {
+  // Derive values from preview
+  const {
+    previewState,
+    handlePreview,
+    handleTabChange,
+    handleLoadMore,
+    hasFormChanged,
+    canPreview,
+  } = preview;
+  const { isLoadingInitial, isLoadingMore, activeTab, summary, tabStates, error, mode } =
+    previewState;
+  const { items, hasMore } = tabStates[activeTab];
+  const previewError = mode === PreviewMode.PREVIEW ? error : undefined;
+
+  const onPreview = () => handlePreview();
+  const onLoadMore = () => handleLoadMore();
 
   const handleTabSelect = (_event: React.MouseEvent, tabIndex: string | number) => {
-    setActiveTabKey(tabIndex);
-    setPage(1); // Reset to first page when switching tabs
-  };
-
-  const filteredItems = React.useMemo(() => {
-    if (!previewResult) {
-      return [];
-    }
-    if (activeTabKey === 0) {
-      return previewResult.items.filter((item) => item.included);
-    }
-    return previewResult.items.filter((item) => !item.included);
-  }, [previewResult, activeTabKey]);
-
-  const paginatedItems = React.useMemo(() => {
-    const startIdx = (page - 1) * perPage;
-    const endIdx = startIdx + perPage;
-    return filteredItems.slice(startIdx, endIdx);
-  }, [filteredItems, page, perPage]);
-
-  const onSetPage = (
-    _event: React.MouseEvent | React.KeyboardEvent | MouseEvent,
-    newPage: number,
-  ) => {
-    setPage(newPage);
-  };
-
-  const onPerPageSelect = (
-    _event: React.MouseEvent | React.KeyboardEvent | MouseEvent,
-    newPerPage: number,
-  ) => {
-    setPerPage(newPerPage);
-    setPage(1);
+    handleTabChange(tabIndex === 0 ? PreviewTab.INCLUDED : PreviewTab.EXCLUDED);
   };
 
   const renderEmptyState = () => {
@@ -94,8 +66,8 @@ const PreviewPanel: React.FC<PreviewPanelProps> = ({
             <EmptyStateActions>
               <PreviewButton
                 onClick={onPreview}
-                isDisabled={!isPreviewEnabled}
-                isLoading={isLoading}
+                isDisabled={!canPreview}
+                isLoading={isLoadingInitial}
                 variant="link"
                 testId="preview-button-panel-retry"
               />
@@ -119,8 +91,8 @@ const PreviewPanel: React.FC<PreviewPanelProps> = ({
           <EmptyStateActions>
             <PreviewButton
               onClick={onPreview}
-              isDisabled={!isPreviewEnabled}
-              isLoading={isLoading}
+              isDisabled={!canPreview}
+              isLoading={isLoadingInitial}
               variant="link"
               testId="preview-button-panel"
             />
@@ -131,7 +103,7 @@ const PreviewPanel: React.FC<PreviewPanelProps> = ({
   };
 
   const renderContent = () => {
-    if (isLoading) {
+    if (isLoadingInitial) {
       return (
         <div className="pf-v6-u-text-align-center pf-v6-u-py-xl">
           <Spinner size="xl" aria-label="Loading preview" />
@@ -139,13 +111,18 @@ const PreviewPanel: React.FC<PreviewPanelProps> = ({
       );
     }
 
-    if (!previewResult || previewError) {
+    // Show empty state if no items and no summary (never previewed) or if there's an error
+    if ((!items.length && !summary) || previewError) {
       return renderEmptyState();
     }
 
     return (
       <>
-        <Tabs activeKey={activeTabKey} onSelect={handleTabSelect} aria-label="Preview tabs">
+        <Tabs
+          activeKey={activeTab === PreviewTab.INCLUDED ? 0 : 1}
+          onSelect={handleTabSelect}
+          aria-label="Preview tabs"
+        >
           <Tab eventKey={0} title={<TabTitleText>Models included</TabTitleText>} />
           <Tab eventKey={1} title={<TabTitleText>Models excluded</TabTitleText>} />
         </Tabs>
@@ -163,32 +140,15 @@ const PreviewPanel: React.FC<PreviewPanelProps> = ({
               }
             />
           )}
-          {paginatedItems.length > 0 ? (
+          {items.length > 0 ? (
             <>
-              <Flex
-                justifyContent={{ default: 'justifyContentSpaceBetween' }}
-                alignItems={{ default: 'alignItemsCenter' }}
-              >
-                <FlexItem>
-                  <strong>
-                    {activeTabKey === 0
-                      ? `${previewResult.summary.includedModels} of ${previewResult.summary.totalModels} models included:`
-                      : `${previewResult.summary.excludedModels} of ${previewResult.summary.totalModels} models excluded:`}
-                  </strong>
-                </FlexItem>
-                <FlexItem>
-                  <Pagination
-                    itemCount={filteredItems.length}
-                    perPage={perPage}
-                    page={page}
-                    onSetPage={onSetPage}
-                    onPerPageSelect={onPerPageSelect}
-                    variant={PaginationVariant.top}
-                  />
-                </FlexItem>
-              </Flex>
+              <strong>
+                {activeTab === PreviewTab.INCLUDED
+                  ? `${summary?.includedModels ?? 0} of ${summary?.totalModels ?? 0} models included:`
+                  : `${summary?.excludedModels ?? 0} of ${summary?.totalModels ?? 0} models excluded:`}
+              </strong>
               <List isPlain className="pf-v6-u-mt-md">
-                {paginatedItems.map((model) => (
+                {items.map((model) => (
                   <ListItem
                     key={model.name}
                     icon={
@@ -203,22 +163,28 @@ const PreviewPanel: React.FC<PreviewPanelProps> = ({
                   </ListItem>
                 ))}
               </List>
-              <Pagination
-                itemCount={filteredItems.length}
-                perPage={perPage}
-                page={page}
-                onSetPage={onSetPage}
-                onPerPageSelect={onPerPageSelect}
-                variant={PaginationVariant.bottom}
-              />
+              {hasMore && (
+                <div className="pf-v6-u-mt-md pf-v6-u-text-align-center">
+                  <Button
+                    variant="link"
+                    onClick={onLoadMore}
+                    isLoading={isLoadingMore}
+                    isDisabled={isLoadingMore}
+                  >
+                    {isLoadingMore ? 'Loading...' : 'Load more'}
+                  </Button>
+                </div>
+              )}
             </>
           ) : (
             <EmptyState
               variant={EmptyStateVariant.sm}
-              titleText={`No models ${activeTabKey === 0 ? 'included' : 'excluded'}`}
+              titleText={`No models ${activeTab === PreviewTab.INCLUDED ? 'included' : 'excluded'}`}
             >
               <EmptyStateBody>
-                No models from this source are visible in the model catalog
+                {activeTab === PreviewTab.INCLUDED
+                  ? 'No models from this source match this filter'
+                  : 'No models from this source are excluded by this filter'}
               </EmptyStateBody>
             </EmptyState>
           )}
@@ -242,8 +208,8 @@ const PreviewPanel: React.FC<PreviewPanelProps> = ({
         <FlexItem>
           <PreviewButton
             onClick={onPreview}
-            isDisabled={!isPreviewEnabled}
-            isLoading={isLoading}
+            isDisabled={!canPreview}
+            isLoading={isLoadingInitial}
             variant="secondary"
             testId="preview-button-header"
           />
