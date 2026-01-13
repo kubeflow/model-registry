@@ -1,3 +1,5 @@
+// TODO this util was copied from odh-dashboard temporarily and should be abstracted out into mod-arch-shared.
+
 import { ManagedColumn } from './useManageColumns';
 
 /**

@@ -1,8 +1,8 @@
 import { act } from 'react';
-import { testHook } from '@odh-dashboard/jest-config/hooks';
-import { useBrowserStorage } from '#~/components/browserStorage/BrowserStorageContext';
-import { SortableData, checkboxTableColumn, kebabTableColumn } from '#~/components/table';
-import { useManageColumns } from '#~/components/table/manageColumns/useManageColumns';
+import { useBrowserStorage } from 'mod-arch-core';
+import { SortableData, checkboxTableColumn, kebabTableColumn } from 'mod-arch-shared';
+import { testHook } from '~/__tests__/unit/testUtils/hooks';
+import { useManageColumns } from '~/app/shared/components/manageColumns/useManageColumns';
 
 jest.mock('#~/components/browserStorage/BrowserStorageContext', () => ({
   useBrowserStorage: jest.fn(),

@@ -1,3 +1,5 @@
+// TODO this component was copied from odh-dashboard temporarily and should be abstracted out into mod-arch-shared.
+
 import React from 'react';
 import { SearchInput } from '@patternfly/react-core';
 

@@ -1,3 +1,5 @@
+// TODO this component was copied from odh-dashboard temporarily and should be abstracted out into mod-arch-shared.
+
 import React from 'react';
 import { Checkbox, Flex, FlexItem, Label, Stack, StackItem, Tooltip } from '@patternfly/react-core';
 import {
@@ -5,10 +7,10 @@ import {
   DragDropSortDragEndEvent,
   DraggableObject,
 } from '@patternfly/react-drag-drop';
-import ContentModal, { ButtonAction } from '#~/components/modals/ContentModal';
 import { ManageColumnSearchInput } from './ManageColumnSearchInput';
 import { ManagedColumn } from './useManageColumns';
 import { reorderColumns } from './utils';
+import ContentModal, { ButtonAction } from '../modals/ContentModal';
 
 /**
  * Configuration for the ManageColumnsModal

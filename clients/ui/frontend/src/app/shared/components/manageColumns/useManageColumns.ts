@@ -1,7 +1,8 @@
+// TODO this hook was copied from odh-dashboard temporarily and should be abstracted out into mod-arch-shared.
+
 import React from 'react';
-import { useBrowserStorage } from '#~/components/browserStorage/BrowserStorageContext';
-import { SortableData } from '#~/components/table/types';
-import { CHECKBOX_FIELD_ID, KEBAB_FIELD_ID, EXPAND_FIELD_ID } from '#~/components/table/const';
+import { useBrowserStorage } from 'mod-arch-core';
+import { SortableData, CHECKBOX_FIELD_ID, KEBAB_FIELD_ID, EXPAND_FIELD_ID } from 'mod-arch-shared';
 
 // Fields that are never manageable by users (UI chrome columns)
 const NON_MANAGEABLE_FIELDS = [CHECKBOX_FIELD_ID, KEBAB_FIELD_ID, EXPAND_FIELD_ID];
