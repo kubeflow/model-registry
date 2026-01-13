@@ -73,6 +73,9 @@ const ModelCatalogCardBody: React.FC<ModelCatalogCardBodyProps> = ({
         targetRPS,
         latencyProperty,
         recommendations: true,
+        // TODO this is a temporary workaround to avoid capping performance artifacts with a default page size of 20.
+        //      we need to implement proper cursor-based pagination as the user clicks through artifacts on a card.
+        pageSize: '999',
       },
       filterData,
       filterOptions,
