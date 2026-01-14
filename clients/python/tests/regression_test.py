@@ -140,6 +140,53 @@ async def test_patch_model_artifacts_artifact_type(client: ModelRegistry, reques
 
 
 @pytest.mark.e2e
+async def test_patch_artifact_cannot_change_artifact_type(client: ModelRegistry, request_headers: dict[str, str],
+                                                          verify_ssl: bool):
+    """Changing artifact type via PATCH should return 400 error, not crash server.
+
+    Regression test: attempting to change artifactType from model-artifact to doc-artifact
+    previously caused the server to panic with a 503 error instead of returning a meaningful
+    error message.
+    """
+    name = "test_model_artifact_type_immutable"
+    version = "1.0.0"
+    rm = client.register_model(
+        name,
+        "s3",
+        model_format_name="test_format",
+        model_format_version="test_version",
+        version=version,
+    )
+    assert rm.id
+    mv = client.get_model_version(name, version)
+    assert mv
+    assert mv.id
+    ma = client.get_model_artifact(name, version)
+    assert ma
+    assert ma.id
+
+    # Attempt to change artifact type from model-artifact to doc-artifact
+    # This should fail with a 400 Bad Request, not crash the server (503)
+    payload = {"artifactType": "doc-artifact"}
+    response = requests.patch(url=f"{REGISTRY_HOST}:{REGISTRY_PORT}/api/model_registry/v1alpha3/artifacts/{ma.id}",
+                              json=payload, timeout=10,
+                              headers=request_headers, verify=verify_ssl)
+
+    # Server should return 400 Bad Request, not 503 (which would indicate a crash)
+    assert response.status_code == 400, (
+        f"Expected 400 Bad Request when changing artifact type, got {response.status_code}. "
+        f"Response: {response.text}"
+    )
+
+    # Verify the error message mentions the type mismatch
+    error_response = response.json()
+    assert "message" in error_response
+    assert "model" in error_response["message"].lower() or "doc" in error_response["message"].lower(), (
+        f"Expected error message to mention artifact types, got: {error_response['message']}"
+    )
+
+
+@pytest.mark.e2e
 async def test_as_mlops_engineer_i_would_like_to_store_a_malformed_registered_model_i_get_a_structured_error_message(
         client: ModelRegistry, request_headers: dict[str, str], verify_ssl: bool):
     """As a MLOps engineer if I try to store a malformed RegisteredModel I get a structured error message

@@ -1,14 +1,49 @@
 package converter
 
 import (
+	"fmt"
+
 	"github.com/kubeflow/model-registry/pkg/openapi"
 )
+
+// getArtifactTypeName returns the type name of an artifact using the GetArtifactType() methods
+// available on each artifact type.
+func getArtifactTypeName(art *openapi.Artifact) string {
+	if art == nil {
+		return "unknown"
+	}
+	if art.ModelArtifact != nil {
+		return art.ModelArtifact.GetArtifactType()
+	}
+	if art.DocArtifact != nil {
+		return art.DocArtifact.GetArtifactType()
+	}
+	if art.DataSet != nil {
+		return art.DataSet.GetArtifactType()
+	}
+	if art.Metric != nil {
+		return art.Metric.GetArtifactType()
+	}
+	if art.Parameter != nil {
+		return art.Parameter.GetArtifactType()
+	}
+	return "unknown"
+}
 
 func UpdateExistingArtifact(genc OpenAPIReconciler, source OpenapiUpdateWrapper[openapi.Artifact]) (openapi.Artifact, error) {
 	art := InitWithExisting(source)
 
 	if source.Update == nil {
 		return art, nil
+	}
+
+	// Validate that the artifact type in the update matches the existing artifact type
+	// Changing artifact type is not allowed
+	existingType := getArtifactTypeName(source.Existing)
+	updateType := getArtifactTypeName(source.Update)
+
+	if existingType != updateType {
+		return art, fmt.Errorf("cannot change artifact type from '%s' to '%s': artifact type is immutable", existingType, updateType)
 	}
 
 	if source.Update.ModelArtifact != nil {
