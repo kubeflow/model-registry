@@ -28,7 +28,7 @@ export interface UseManageColumnsConfig<T> {
   /** Unique key for localStorage persistence */
   storageKey: string;
   /** Default visible column fields when no localStorage value exists */
-  defaultVisibleFields?: string[];
+  defaultVisibleColumnIds?: string[];
   /** Maximum number of manageable columns that can be visible */
   maxVisibleColumns?: number;
 }
@@ -45,12 +45,20 @@ export interface UseManageColumnsResult<T> {
   setVisibleColumnIds: (columnIds: string[]) => void;
   /** The currently visible column IDs (for display purposes like "X of Y selected") */
   visibleColumnIds: string[];
+  /** Default visible column fields when no localStorage value exists. Returned as-is for convenience to pass to ManageColumnsModal. */
+  defaultVisibleColumnIds?: string[];
+  /** Whether the manage columns modal is open */
+  isModalOpen: boolean;
+  /** Opens the manage columns modal */
+  openModal: () => void;
+  /** Closes the manage columns modal */
+  closeModal: () => void;
 }
 
 export const useManageColumns = <T>({
   allColumns,
   storageKey,
-  defaultVisibleFields,
+  defaultVisibleColumnIds,
   maxVisibleColumns,
 }: UseManageColumnsConfig<T>): UseManageColumnsResult<T> => {
   // Get manageable columns (those that can be shown/hidden)
@@ -60,20 +68,20 @@ export const useManageColumns = <T>({
   );
 
   // Calculate default visible fields if not provided
-  const effectiveDefaultVisibleFields = React.useMemo(() => {
-    if (defaultVisibleFields) {
-      return defaultVisibleFields;
+  const effectivedefaultVisibleColumnIds = React.useMemo(() => {
+    if (defaultVisibleColumnIds) {
+      return defaultVisibleColumnIds;
     }
     // Default: show first maxVisibleColumns columns, or first 2 if not specified
     const manageableFields = manageableColumns.map((col) => col.field);
     const defaultCount = maxVisibleColumns ?? 2;
     return manageableFields.slice(0, defaultCount);
-  }, [defaultVisibleFields, manageableColumns, maxVisibleColumns]);
+  }, [defaultVisibleColumnIds, manageableColumns, maxVisibleColumns]);
 
   // Persist visible column IDs to localStorage
   const [storedVisibleIds, setStoredVisibleIds] = useBrowserStorage<string[]>(
     storageKey,
-    effectiveDefaultVisibleFields,
+    effectivedefaultVisibleColumnIds,
     true, // jsonify
   );
 
@@ -145,10 +153,25 @@ export const useManageColumns = <T>({
     [setStoredVisibleIds],
   );
 
+  // Modal state management
+  const [isModalOpen, setIsModalOpen] = React.useState(false);
+
+  const openModal = React.useCallback(() => {
+    setIsModalOpen(true);
+  }, []);
+
+  const closeModal = React.useCallback(() => {
+    setIsModalOpen(false);
+  }, []);
+
   return {
     visibleColumns,
     managedColumns,
     setVisibleColumnIds,
     visibleColumnIds: storedVisibleIds,
+    defaultVisibleColumnIds,
+    isModalOpen,
+    openModal,
+    closeModal,
   };
 };

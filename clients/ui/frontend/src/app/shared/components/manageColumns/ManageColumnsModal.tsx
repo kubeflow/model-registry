@@ -16,23 +16,24 @@ import {
   DragDropSortDragEndEvent,
   DraggableObject,
 } from '@patternfly/react-drag-drop';
+import ContentModal, { ButtonAction } from '~/app/shared/components/modals/ContentModal';
 import { ManageColumnSearchInput } from './ManageColumnSearchInput';
-import { ManagedColumn } from './useManageColumns';
+import { ManagedColumn, UseManageColumnsResult } from './useManageColumns';
 import { reorderColumns } from './utils';
-import ContentModal, { ButtonAction } from '../modals/ContentModal';
 
 /**
  * Configuration for the ManageColumnsModal
  */
 export interface ManageColumnsModalProps {
-  /** Whether the modal is open */
-  isOpen: boolean;
-  /** Callback when the modal closes (cancel or update) */
-  onClose: () => void;
-  /** Callback when columns are updated - receives the new ordered list of visible column IDs */
-  onUpdate: (visibleColumnIds: string[]) => void;
-  /** All available columns that can be managed */
-  columns: ManagedColumn[];
+  /** Result from useManageColumns hook - provides columns, callbacks, modal state, and defaults */
+  manageColumnsResult: Pick<
+    UseManageColumnsResult<unknown>,
+    | 'managedColumns'
+    | 'setVisibleColumnIds'
+    | 'defaultVisibleColumnIds'
+    | 'isModalOpen'
+    | 'closeModal'
+  >;
   /** Modal title - defaults to "Manage columns" */
   title?: string;
   /** Description text shown above the column list */
@@ -45,23 +46,24 @@ export interface ManageColumnsModalProps {
   searchPlaceholder?: string;
   /** Test ID prefix for data-testid attributes */
   dataTestId?: string;
-  /** Default column IDs for the "Restore default columns" feature. If not provided, the restore button is hidden. */
-  defaultColumnIds?: string[];
 }
 
 export const ManageColumnsModal: React.FC<ManageColumnsModalProps> = ({
-  isOpen,
-  onClose,
-  onUpdate,
-  columns: initialColumns,
+  manageColumnsResult,
   title = 'Manage columns',
   description,
   maxSelections,
   maxSelectionsTooltip = 'Maximum columns selected.',
   searchPlaceholder = 'Filter by column name',
   dataTestId = 'manage-columns-modal',
-  defaultColumnIds,
 }) => {
+  const {
+    managedColumns: initialColumns,
+    setVisibleColumnIds,
+    defaultVisibleColumnIds,
+    isModalOpen,
+    closeModal,
+  } = manageColumnsResult;
   const [columns, setColumns] = React.useState<ManagedColumn[]>(initialColumns);
   const [searchValue, setSearchValue] = React.useState('');
 
@@ -76,20 +78,20 @@ export const ManageColumnsModal: React.FC<ManageColumnsModalProps> = ({
 
   // Reset state when modal opens with new columns
   React.useEffect(() => {
-    if (isOpen) {
+    if (isModalOpen) {
       setColumns(initialColumns);
       setSearchValue('');
     }
-  }, [isOpen, initialColumns]);
+  }, [isModalOpen, initialColumns]);
 
   const selectedCount = columns.filter((col) => col.isVisible).length;
   const isMaxReached = maxSelections !== undefined && selectedCount >= maxSelections;
 
   const handleUpdate = React.useCallback(() => {
     const visibleColumnIds = columns.filter((col) => col.isVisible).map((col) => col.id);
-    onUpdate(visibleColumnIds);
-    onClose();
-  }, [columns, onUpdate, onClose]);
+    setVisibleColumnIds(visibleColumnIds);
+    closeModal();
+  }, [columns, setVisibleColumnIds, closeModal]);
 
   const handleSearch = React.useCallback((value: string) => {
     setSearchValue(value);
@@ -111,14 +113,14 @@ export const ManageColumnsModal: React.FC<ManageColumnsModalProps> = ({
   );
 
   const handleRestoreDefaults = React.useCallback(() => {
-    if (!defaultColumnIds) {
+    if (!defaultVisibleColumnIds) {
       return;
     }
     // Update visibility based on default column IDs
     // Also reorder to put default columns first in their original order
     setColumns((prev) => {
-      const defaultSet = new Set(defaultColumnIds);
-      const defaultColumns = defaultColumnIds
+      const defaultSet = new Set(defaultVisibleColumnIds);
+      const defaultColumns = defaultVisibleColumnIds
         .map((id) => prev.find((col) => col.id === id))
         .filter((col): col is ManagedColumn => col !== undefined)
         .map((col) => ({ ...col, isVisible: true }));
@@ -127,9 +129,9 @@ export const ManageColumnsModal: React.FC<ManageColumnsModalProps> = ({
         .map((col) => ({ ...col, isVisible: false }));
       return [...defaultColumns, ...nonDefaultColumns];
     });
-  }, [defaultColumnIds]);
+  }, [defaultVisibleColumnIds]);
 
-  if (!isOpen) {
+  if (!isModalOpen) {
     return null;
   }
 
@@ -142,7 +144,7 @@ export const ManageColumnsModal: React.FC<ManageColumnsModalProps> = ({
     },
     {
       label: 'Cancel',
-      onClick: onClose,
+      onClick: closeModal,
       variant: 'link',
       dataTestId: `${dataTestId}-cancel-button`,
     },
@@ -169,7 +171,7 @@ export const ManageColumnsModal: React.FC<ManageColumnsModalProps> = ({
               {selectedCount} / total {columns.length} selected
             </Label>
           </FlexItem>
-          {defaultColumnIds && (
+          {defaultVisibleColumnIds && (
             <FlexItem>
               <Button
                 variant="link"
@@ -221,7 +223,7 @@ export const ManageColumnsModal: React.FC<ManageColumnsModalProps> = ({
 
   return (
     <ContentModal
-      onClose={onClose}
+      onClose={closeModal}
       title={title}
       description={descriptionContent}
       contents={<DragDropSort items={draggableItems} variant="default" onDrop={handleDrop} />}

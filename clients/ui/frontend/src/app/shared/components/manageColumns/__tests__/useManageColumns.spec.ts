@@ -37,13 +37,13 @@ describe('useManageColumns', () => {
     const renderResult = testHook(useManageColumns<TestData>)({
       allColumns: createMockColumns(),
       storageKey: 'test-columns',
-      defaultVisibleFields: ['col_a', 'col_b'],
+      defaultVisibleColumnIds: ['col_a', 'col_b'],
     });
 
     expect(renderResult.result.current.visibleColumnIds).toEqual(['col_a', 'col_b']);
   });
 
-  it('should use first 2 columns as default when defaultVisibleFields not provided', () => {
+  it('should use first 2 columns as default when defaultVisibleColumnIds not provided', () => {
     useBrowserStorageMock.mockReturnValue([['col_a', 'col_b'], mockSetStoredIds]);
 
     testHook(useManageColumns<TestData>)({

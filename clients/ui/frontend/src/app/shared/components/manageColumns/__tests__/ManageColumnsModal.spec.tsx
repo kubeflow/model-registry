@@ -24,22 +24,37 @@ const createMockColumns = (count = 3): ManagedColumn[] =>
     isVisible: i < 2, // First 2 are visible by default
   }));
 
+const createMockManageColumnsResult = (
+  columns: ManagedColumn[],
+  setVisibleColumnIds: jest.Mock,
+  closeModal: jest.Mock,
+  isModalOpen = true,
+  defaultVisibleColumnIds?: string[],
+) => ({
+  managedColumns: columns,
+  setVisibleColumnIds,
+  defaultVisibleColumnIds,
+  isModalOpen,
+  closeModal,
+});
+
 describe('ManageColumnsModal', () => {
-  const mockOnClose = jest.fn();
-  const mockOnUpdate = jest.fn();
+  const mockCloseModal = jest.fn();
+  const mockSetVisibleColumnIds = jest.fn();
 
   beforeEach(() => {
-    mockOnClose.mockClear();
-    mockOnUpdate.mockClear();
+    mockCloseModal.mockClear();
+    mockSetVisibleColumnIds.mockClear();
   });
 
   it('should render with correct title', () => {
     render(
       <ManageColumnsModal
-        isOpen
-        columns={createMockColumns()}
-        onClose={mockOnClose}
-        onUpdate={mockOnUpdate}
+        manageColumnsResult={createMockManageColumnsResult(
+          createMockColumns(),
+          mockSetVisibleColumnIds,
+          mockCloseModal,
+        )}
         title="Custom Title"
       />,
     );
@@ -50,10 +65,11 @@ describe('ManageColumnsModal', () => {
   it('should render with default title when not provided', () => {
     render(
       <ManageColumnsModal
-        isOpen
-        columns={createMockColumns()}
-        onClose={mockOnClose}
-        onUpdate={mockOnUpdate}
+        manageColumnsResult={createMockManageColumnsResult(
+          createMockColumns(),
+          mockSetVisibleColumnIds,
+          mockCloseModal,
+        )}
       />,
     );
 
@@ -63,10 +79,11 @@ describe('ManageColumnsModal', () => {
   it('should render description when provided', () => {
     render(
       <ManageColumnsModal
-        isOpen
-        columns={createMockColumns()}
-        onClose={mockOnClose}
-        onUpdate={mockOnUpdate}
+        manageColumnsResult={createMockManageColumnsResult(
+          createMockColumns(),
+          mockSetVisibleColumnIds,
+          mockCloseModal,
+        )}
         description="Select columns to display"
       />,
     );
@@ -77,10 +94,11 @@ describe('ManageColumnsModal', () => {
   it('should display all columns with labels', () => {
     render(
       <ManageColumnsModal
-        isOpen
-        columns={createMockColumns()}
-        onClose={mockOnClose}
-        onUpdate={mockOnUpdate}
+        manageColumnsResult={createMockManageColumnsResult(
+          createMockColumns(),
+          mockSetVisibleColumnIds,
+          mockCloseModal,
+        )}
       />,
     );
 
@@ -93,30 +111,37 @@ describe('ManageColumnsModal', () => {
     const columns = createMockColumns(5);
     // 2 visible out of 5
     render(
-      <ManageColumnsModal isOpen columns={columns} onClose={mockOnClose} onUpdate={mockOnUpdate} />,
+      <ManageColumnsModal
+        manageColumnsResult={createMockManageColumnsResult(
+          columns,
+          mockSetVisibleColumnIds,
+          mockCloseModal,
+        )}
+      />,
     );
 
     expect(screen.getByText('2 / total 5 selected')).toBeInTheDocument();
   });
 
-  it('should call onClose when Cancel button is clicked', () => {
+  it('should call closeModal when Cancel button is clicked', () => {
     render(
       <ManageColumnsModal
-        isOpen
-        columns={createMockColumns()}
-        onClose={mockOnClose}
-        onUpdate={mockOnUpdate}
+        manageColumnsResult={createMockManageColumnsResult(
+          createMockColumns(),
+          mockSetVisibleColumnIds,
+          mockCloseModal,
+        )}
         dataTestId="test-modal"
       />,
     );
 
     fireEvent.click(screen.getByTestId('test-modal-cancel-button'));
 
-    expect(mockOnClose).toHaveBeenCalled();
-    expect(mockOnUpdate).not.toHaveBeenCalled();
+    expect(mockCloseModal).toHaveBeenCalled();
+    expect(mockSetVisibleColumnIds).not.toHaveBeenCalled();
   });
 
-  it('should call onUpdate with visible column IDs when Update button is clicked', () => {
+  it('should call setVisibleColumnIds with visible column IDs when Update button is clicked', () => {
     const columns: ManagedColumn[] = [
       { id: 'col_1', label: 'Column 1', isVisible: true },
       { id: 'col_2', label: 'Column 2', isVisible: false },
@@ -125,27 +150,29 @@ describe('ManageColumnsModal', () => {
 
     render(
       <ManageColumnsModal
-        isOpen
-        columns={columns}
-        onClose={mockOnClose}
-        onUpdate={mockOnUpdate}
+        manageColumnsResult={createMockManageColumnsResult(
+          columns,
+          mockSetVisibleColumnIds,
+          mockCloseModal,
+        )}
         dataTestId="test-modal"
       />,
     );
 
     fireEvent.click(screen.getByTestId('test-modal-update-button'));
 
-    expect(mockOnUpdate).toHaveBeenCalledWith(['col_1', 'col_3']);
-    expect(mockOnClose).toHaveBeenCalled();
+    expect(mockSetVisibleColumnIds).toHaveBeenCalledWith(['col_1', 'col_3']);
+    expect(mockCloseModal).toHaveBeenCalled();
   });
 
   it('should render search input with custom placeholder', () => {
     render(
       <ManageColumnsModal
-        isOpen
-        columns={createMockColumns()}
-        onClose={mockOnClose}
-        onUpdate={mockOnUpdate}
+        manageColumnsResult={createMockManageColumnsResult(
+          createMockColumns(),
+          mockSetVisibleColumnIds,
+          mockCloseModal,
+        )}
         searchPlaceholder="Find columns..."
       />,
     );
@@ -162,10 +189,11 @@ describe('ManageColumnsModal', () => {
 
     render(
       <ManageColumnsModal
-        isOpen
-        columns={columns}
-        onClose={mockOnClose}
-        onUpdate={mockOnUpdate}
+        manageColumnsResult={createMockManageColumnsResult(
+          columns,
+          mockSetVisibleColumnIds,
+          mockCloseModal,
+        )}
         dataTestId="test-modal"
       />,
     );
@@ -179,13 +207,15 @@ describe('ManageColumnsModal', () => {
     expect(screen.queryByText('Created Date')).not.toBeInTheDocument();
   });
 
-  it('should not render when isOpen is false', () => {
+  it('should not render when isModalOpen is false', () => {
     render(
       <ManageColumnsModal
-        isOpen={false}
-        columns={createMockColumns()}
-        onClose={mockOnClose}
-        onUpdate={mockOnUpdate}
+        manageColumnsResult={createMockManageColumnsResult(
+          createMockColumns(),
+          mockSetVisibleColumnIds,
+          mockCloseModal,
+          false, // isModalOpen = false
+        )}
         title="Should Not Appear"
       />,
     );
@@ -201,10 +231,11 @@ describe('ManageColumnsModal', () => {
 
     render(
       <ManageColumnsModal
-        isOpen
-        columns={columns}
-        onClose={mockOnClose}
-        onUpdate={mockOnUpdate}
+        manageColumnsResult={createMockManageColumnsResult(
+          columns,
+          mockSetVisibleColumnIds,
+          mockCloseModal,
+        )}
         dataTestId="test-modal"
       />,
     );
@@ -221,7 +252,7 @@ describe('ManageColumnsModal', () => {
     // Now click Update and verify col_2 is included
     fireEvent.click(screen.getByTestId('test-modal-update-button'));
 
-    expect(mockOnUpdate).toHaveBeenCalledWith(['col_1', 'col_2']);
+    expect(mockSetVisibleColumnIds).toHaveBeenCalledWith(['col_1', 'col_2']);
   });
 
   it('should disable unchecked columns when maxSelections is reached', () => {
@@ -233,10 +264,11 @@ describe('ManageColumnsModal', () => {
 
     render(
       <ManageColumnsModal
-        isOpen
-        columns={columns}
-        onClose={mockOnClose}
-        onUpdate={mockOnUpdate}
+        manageColumnsResult={createMockManageColumnsResult(
+          columns,
+          mockSetVisibleColumnIds,
+          mockCloseModal,
+        )}
         maxSelections={2}
       />,
     );
@@ -253,10 +285,11 @@ describe('ManageColumnsModal', () => {
   it('should use custom dataTestId prefix', () => {
     render(
       <ManageColumnsModal
-        isOpen
-        columns={createMockColumns()}
-        onClose={mockOnClose}
-        onUpdate={mockOnUpdate}
+        manageColumnsResult={createMockManageColumnsResult(
+          createMockColumns(),
+          mockSetVisibleColumnIds,
+          mockCloseModal,
+        )}
         dataTestId="my-custom-modal"
       />,
     );
@@ -264,5 +297,68 @@ describe('ManageColumnsModal', () => {
     expect(screen.getByTestId('my-custom-modal')).toBeInTheDocument();
     expect(screen.getByTestId('my-custom-modal-update-button')).toBeInTheDocument();
     expect(screen.getByTestId('my-custom-modal-cancel-button')).toBeInTheDocument();
+  });
+
+  it('should render restore defaults button when defaultVisibleColumnIds is provided', () => {
+    render(
+      <ManageColumnsModal
+        manageColumnsResult={createMockManageColumnsResult(
+          createMockColumns(),
+          mockSetVisibleColumnIds,
+          mockCloseModal,
+          true,
+          ['col_1', 'col_2'],
+        )}
+        dataTestId="test-modal"
+      />,
+    );
+
+    expect(screen.getByTestId('test-modal-restore-defaults')).toBeInTheDocument();
+    expect(screen.getByText('Restore default columns')).toBeInTheDocument();
+  });
+
+  it('should not render restore defaults button when defaultVisibleColumnIds is not provided', () => {
+    render(
+      <ManageColumnsModal
+        manageColumnsResult={createMockManageColumnsResult(
+          createMockColumns(),
+          mockSetVisibleColumnIds,
+          mockCloseModal,
+        )}
+        dataTestId="test-modal"
+      />,
+    );
+
+    expect(screen.queryByTestId('test-modal-restore-defaults')).not.toBeInTheDocument();
+    expect(screen.queryByText('Restore default columns')).not.toBeInTheDocument();
+  });
+
+  it('should restore default columns when restore defaults button is clicked', () => {
+    const columns: ManagedColumn[] = [
+      { id: 'col_1', label: 'Column 1', isVisible: false },
+      { id: 'col_2', label: 'Column 2', isVisible: false },
+      { id: 'col_3', label: 'Column 3', isVisible: true },
+    ];
+
+    render(
+      <ManageColumnsModal
+        manageColumnsResult={createMockManageColumnsResult(
+          columns,
+          mockSetVisibleColumnIds,
+          mockCloseModal,
+          true,
+          ['col_1', 'col_2'],
+        )}
+        dataTestId="test-modal"
+      />,
+    );
+
+    // Click restore defaults
+    fireEvent.click(screen.getByTestId('test-modal-restore-defaults'));
+
+    // Now click Update and verify only default columns are visible
+    fireEvent.click(screen.getByTestId('test-modal-update-button'));
+
+    expect(mockSetVisibleColumnIds).toHaveBeenCalledWith(['col_1', 'col_2']);
   });
 });

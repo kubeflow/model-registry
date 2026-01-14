@@ -21,7 +21,6 @@ const HardwareConfigurationTable: React.FC<HardwareConfigurationTableProps> = ({
   isLoading = false,
 }) => {
   const { filterData, resetPerformanceFiltersToDefaults } = React.useContext(ModelCatalogContext);
-  const [isManageColumnsOpen, setIsManageColumnsOpen] = React.useState(false);
 
   // Note: Filtering is now done server-side via the /performance_artifacts endpoint.
   // The performanceArtifacts prop contains pre-filtered data from the server.
@@ -30,8 +29,7 @@ const HardwareConfigurationTable: React.FC<HardwareConfigurationTableProps> = ({
   const activeLatencyField = getActiveLatencyFieldName(filterData);
 
   // Use the custom hook that combines manage columns with latency filter effects
-  const { columns, managedColumns, setVisibleColumnIds, defaultColumnIds } =
-    useHardwareConfigColumns(activeLatencyField);
+  const { columns, manageColumnsResult } = useHardwareConfigColumns(activeLatencyField);
 
   if (isLoading) {
     return <Spinner size="lg" />;
@@ -46,7 +44,7 @@ const HardwareConfigurationTable: React.FC<HardwareConfigurationTableProps> = ({
     <Button
       variant="link"
       icon={<ColumnsIcon />}
-      onClick={() => setIsManageColumnsOpen(true)}
+      onClick={manageColumnsResult.openModal}
       data-testid="manage-columns-button"
     >
       Manage columns
@@ -85,13 +83,9 @@ const HardwareConfigurationTable: React.FC<HardwareConfigurationTableProps> = ({
         />
       </OuterScrollContainer>
       <ManageColumnsModal
-        isOpen={isManageColumnsOpen}
-        onClose={() => setIsManageColumnsOpen(false)}
-        onUpdate={setVisibleColumnIds}
-        columns={managedColumns}
+        manageColumnsResult={manageColumnsResult}
         description="Select which columns to display in the hardware configuration table."
         dataTestId="hardware-config-manage-columns"
-        defaultColumnIds={defaultColumnIds}
       />
     </>
   );

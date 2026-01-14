@@ -3,7 +3,7 @@ import { SortableData } from 'mod-arch-shared';
 import { CatalogPerformanceMetricsArtifact } from '~/app/modelCatalogTypes';
 import {
   useManageColumns,
-  ManagedColumn,
+  UseManageColumnsResult,
 } from '~/app/shared/components/manageColumns/useManageColumns';
 import {
   LatencyMetric,
@@ -25,14 +25,8 @@ import {
 interface UseHardwareConfigColumnsResult {
   /** Final columns to render in the table (sticky + visible managed columns) */
   columns: HardwareConfigColumn[];
-  /** All manageable columns with visibility state (for the modal) */
-  managedColumns: ManagedColumn[];
-  /** Callback to update which columns are visible */
-  setVisibleColumnIds: (ids: string[]) => void;
-  /** Currently visible column IDs */
-  visibleColumnIds: string[];
-  /** Default column IDs for the restore defaults feature */
-  defaultColumnIds: string[];
+  /** Result from useManageColumns hook, to be passed directly to ManageColumnsModal */
+  manageColumnsResult: UseManageColumnsResult<CatalogPerformanceMetricsArtifact>;
 }
 
 /**
@@ -91,15 +85,10 @@ export const useHardwareConfigColumns = (
     );
 
   // Use the manage columns hook for manageable columns only
-  const {
-    visibleColumns: visibleManagedColumns,
-    managedColumns,
-    setVisibleColumnIds,
-    visibleColumnIds,
-  } = useManageColumns<CatalogPerformanceMetricsArtifact>({
+  const manageColumnsResult = useManageColumns<CatalogPerformanceMetricsArtifact>({
     allColumns: manageableColumnsAsSortable,
     storageKey: HARDWARE_CONFIG_COLUMNS_STORAGE_KEY,
-    defaultVisibleFields: DEFAULT_VISIBLE_COLUMN_FIELDS,
+    defaultVisibleColumnIds: DEFAULT_VISIBLE_COLUMN_FIELDS,
   });
 
   // Effect to update visible columns when latency filter changes
@@ -124,7 +113,7 @@ export const useHardwareConfigColumns = (
     // - Keep all non-latency/non-TPS columns
     // - Remove all latency and TPS columns
     // - Add the active latency column and matching TPS column
-    const newVisibleIds = visibleColumnIds.filter((id) => {
+    const newVisibleIds = manageColumnsResult.visibleColumnIds.filter((id) => {
       const isLatencyColumn = isLatencyColumnField(id);
       const isTpsColumn = isTpsColumnField(id);
       return !isLatencyColumn && !isTpsColumn;
@@ -140,13 +129,13 @@ export const useHardwareConfigColumns = (
       newVisibleIds.push(matchingTpsPropertyKey);
     }
 
-    setVisibleColumnIds(newVisibleIds);
-  }, [activeLatencyField, visibleColumnIds, setVisibleColumnIds]);
+    manageColumnsResult.setVisibleColumnIds(newVisibleIds);
+  }, [activeLatencyField, manageColumnsResult]);
 
   // Combine sticky + visible managed columns
   // Map SortableData back to HardwareConfigColumn by finding the original column
   const columns = React.useMemo((): HardwareConfigColumn[] => {
-    const visibleManaged = visibleManagedColumns
+    const visibleManaged = manageColumnsResult.visibleColumns
       .map((sortableCol) => {
         // Find the original HardwareConfigColumn by field
         if (isHardwareConfigColumnField(sortableCol.field)) {
@@ -157,13 +146,10 @@ export const useHardwareConfigColumns = (
       .filter((col): col is HardwareConfigColumn => col !== undefined);
 
     return [...stickyColumns, ...visibleManaged];
-  }, [stickyColumns, visibleManagedColumns, manageableColumns]);
+  }, [stickyColumns, manageColumnsResult.visibleColumns, manageableColumns]);
 
   return {
     columns,
-    managedColumns,
-    setVisibleColumnIds,
-    visibleColumnIds,
-    defaultColumnIds: DEFAULT_VISIBLE_COLUMN_FIELDS,
+    manageColumnsResult,
   };
 };
