@@ -84,7 +84,7 @@ const HardwareConfigurationTable: React.FC<HardwareConfigurationTableProps> = ({
       </OuterScrollContainer>
       <ManageColumnsModal
         manageColumnsResult={manageColumnsResult}
-        description="Select which columns to display in the hardware configuration table."
+        description="Manage the columns that will appear in the hardware configuration table."
         dataTestId="hardware-config-manage-columns"
       />
     </>
