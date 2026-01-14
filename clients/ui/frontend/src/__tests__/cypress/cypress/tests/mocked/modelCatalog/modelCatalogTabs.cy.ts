@@ -422,7 +422,7 @@ describe('Model Catalog Details Tabs', () => {
         // Non-latency columns should still be visible
         modelCatalog
           .findHardwareConfigurationTableHeaders()
-          .should('contain.text', 'Hardware Configuration');
+          .should('contain.text', 'Hardware configuration');
         modelCatalog
           .findHardwareConfigurationTableHeaders()
           .should('contain.text', 'Workload type');
