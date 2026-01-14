@@ -106,8 +106,7 @@ describe('ModelCatalogCard Component', () => {
     describe('Toggle ON', () => {
       beforeEach(() => {
         initIntercepts({ useValidatedModel: true });
-        // Enable feature flag and visit
-        modelCatalog.visit({ enableTempDevCatalogAdvancedFiltersFeature: true });
+        modelCatalog.visit();
         cy.wait('@getCatalogSourceModelArtifacts');
         // Turn the toggle ON before each test in this block
         modelCatalog.togglePerformanceView();
@@ -180,7 +179,7 @@ describe('ModelCatalogCard Component', () => {
   describe('Performance Filters on Catalog Landing Page', () => {
     beforeEach(() => {
       initIntercepts({ useValidatedModel: true });
-      modelCatalog.visit({ enableTempDevCatalogAdvancedFiltersFeature: true });
+      modelCatalog.visit();
       cy.wait('@getCatalogSourceModelArtifacts');
       modelCatalog.togglePerformanceView();
       modelCatalog.findLoadingState().should('not.exist');

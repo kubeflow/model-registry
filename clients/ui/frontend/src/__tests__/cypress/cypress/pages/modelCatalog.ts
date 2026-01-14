@@ -1,4 +1,3 @@
-import { TempDevFeature } from '~/app/hooks/useTempDevFeatureAvailable';
 import { appChrome } from './appChrome';
 
 class ModelCatalogFilter {
@@ -32,12 +31,7 @@ class ModelCatalogFilter {
 }
 
 class ModelCatalog {
-  visit({
-    enableTempDevCatalogAdvancedFiltersFeature = false,
-  }: { enableTempDevCatalogAdvancedFiltersFeature?: boolean } = {}) {
-    if (enableTempDevCatalogAdvancedFiltersFeature) {
-      window.localStorage.setItem(TempDevFeature.CatalogAdvancedFilters, 'true');
-    }
+  visit() {
     cy.visit('/model-catalog');
     this.wait();
   }
