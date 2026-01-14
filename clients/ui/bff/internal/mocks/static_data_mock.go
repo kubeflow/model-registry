@@ -2078,7 +2078,7 @@ func GetNamedQueriesMocks() map[string]map[string]models.FieldFilter {
 	namedQueries["default-performance-filters"] = map[string]models.FieldFilter{
 		"artifacts.use_case.string_value": {
 			Operator: "=",
-			Value:    "Chatbot", // UseCaseOptionValue.CHATBOT
+			Value:    "chatbot", // UseCaseOptionValue.CHATBOT
 		},
 		"artifacts.ttft_p90.double_value": {
 			Operator: "<=",
@@ -2098,7 +2098,7 @@ func GetNamedQueriesMocks() map[string]map[string]models.FieldFilter {
 		},
 		"artifacts.use_case.string_value": {
 			Operator: "=",
-			Value:    "Chatbot",
+			Value:    "chatbot",
 		},
 	}
 
@@ -2130,7 +2130,7 @@ func GetNamedQueriesMocks() map[string]map[string]models.FieldFilter {
 	namedQueries["chatbot_optimized"] = map[string]models.FieldFilter{
 		"artifacts.use_case.string_value": {
 			Operator: "=",
-			Value:    "Chatbot",
+			Value:    "chatbot",
 		},
 	}
 
@@ -2138,7 +2138,7 @@ func GetNamedQueriesMocks() map[string]map[string]models.FieldFilter {
 	namedQueries["rag_optimized"] = map[string]models.FieldFilter{
 		"artifacts.use_case.string_value": {
 			Operator: "in",
-			Value:    []interface{}{"RAG", "Long RAG"},
+			Value:    []interface{}{"rag", "long_rag"},
 		},
 	}
 
