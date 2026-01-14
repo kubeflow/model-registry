@@ -35,6 +35,7 @@ describe('filtersToFilterQuery', () => {
     provider = [],
     language = [],
     hardware_type = [],
+    hardware_configuration = [],
     use_case = [],
     rps_mean = undefined,
     ttft_mean = undefined,
@@ -44,6 +45,7 @@ describe('filtersToFilterQuery', () => {
     provider?: ModelCatalogProvider[];
     language?: AllLanguageCode[];
     hardware_type?: string[];
+    hardware_configuration?: string[];
     use_case?: UseCaseOptionValue[];
     rps_mean?: number;
     ttft_mean?: number;
@@ -53,6 +55,7 @@ describe('filtersToFilterQuery', () => {
     [ModelCatalogStringFilterKey.LICENSE]: license,
     [ModelCatalogStringFilterKey.LANGUAGE]: language,
     [ModelCatalogStringFilterKey.HARDWARE_TYPE]: hardware_type,
+    [ModelCatalogStringFilterKey.HARDWARE_CONFIGURATION]: hardware_configuration,
     [ModelCatalogStringFilterKey.USE_CASE]: use_case,
     [ModelCatalogNumberFilterKey.MAX_RPS]: rps_mean,
     'artifacts.ttft_mean.double_value': ttft_mean,
@@ -650,6 +653,7 @@ describe('hasFiltersApplied', () => {
     provider = [],
     language = [],
     hardware_type = [],
+    hardware_configuration = [],
     use_case = [],
     rps_mean = undefined,
     ttft_mean = undefined,
@@ -659,6 +663,7 @@ describe('hasFiltersApplied', () => {
     provider?: ModelCatalogProvider[];
     language?: AllLanguageCode[];
     hardware_type?: string[];
+    hardware_configuration?: string[];
     use_case?: UseCaseOptionValue[];
     rps_mean?: number;
     ttft_mean?: number;
@@ -668,6 +673,7 @@ describe('hasFiltersApplied', () => {
     [ModelCatalogStringFilterKey.LICENSE]: license,
     [ModelCatalogStringFilterKey.LANGUAGE]: language,
     [ModelCatalogStringFilterKey.HARDWARE_TYPE]: hardware_type,
+    [ModelCatalogStringFilterKey.HARDWARE_CONFIGURATION]: hardware_configuration,
     [ModelCatalogStringFilterKey.USE_CASE]: use_case,
     [ModelCatalogNumberFilterKey.MAX_RPS]: rps_mean,
     'artifacts.ttft_mean.double_value': ttft_mean,

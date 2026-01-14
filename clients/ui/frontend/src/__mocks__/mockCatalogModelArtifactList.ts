@@ -63,6 +63,10 @@ export const mockCatalogPerformanceMetricsArtifact = (
       metadataType: ModelRegistryMetadataType.STRING,
       string_value: 'H100-80',
     },
+    hardware_configuration: {
+      metadataType: ModelRegistryMetadataType.STRING,
+      string_value: '2 x H100-80',
+    },
     requests_per_second: {
       metadataType: ModelRegistryMetadataType.DOUBLE,
       double_value: 7,

@@ -119,7 +119,7 @@ describe('ModelCatalogCard Component', () => {
           // Should show hardware, replicas, latency metrics
           // Note: When toggle is ON, default filters set ttft_p90 as the active latency field
           // and values are formatted with "ms" suffix via formatLatency
-          modelCatalog.findValidatedModelHardware().should('contain.text', '2xH100-80');
+          modelCatalog.findValidatedModelHardware().should('contain.text', '2 x H100-80');
           modelCatalog.findValidatedModelReplicas().should('contain.text', '7');
           modelCatalog.findValidatedModelLatency().should('contain.text', '51.56 ms');
 
@@ -128,18 +128,18 @@ describe('ModelCatalogCard Component', () => {
 
           // Navigate through benchmarks
           modelCatalog.findValidatedModelBenchmarkNext().click();
-          modelCatalog.findValidatedModelHardware().should('contain.text', '33xRTX 4090');
+          modelCatalog.findValidatedModelHardware().should('contain.text', '33 x RTX 4090');
           modelCatalog.findValidatedModelReplicas().should('contain.text', '10');
           modelCatalog.findValidatedModelLatency().should('contain.text', '82.34 ms');
 
           modelCatalog.findValidatedModelBenchmarkNext().click();
-          modelCatalog.findValidatedModelHardware().should('contain.text', '40xA100');
+          modelCatalog.findValidatedModelHardware().should('contain.text', '40 x A100');
           modelCatalog.findValidatedModelReplicas().should('contain.text', '15');
           // ttft_p90 value for A100 artifact
           modelCatalog.findValidatedModelLatency().should('contain.text', '58.45 ms');
 
           modelCatalog.findValidatedModelBenchmarkPrev().click();
-          modelCatalog.findValidatedModelHardware().should('contain.text', '33xRTX 4090');
+          modelCatalog.findValidatedModelHardware().should('contain.text', '33 x RTX 4090');
           modelCatalog.findValidatedModelReplicas().should('contain.text', '10');
           // ttft_p90 value for RTX 4090 artifact
           modelCatalog.findValidatedModelLatency().should('contain.text', '82.34 ms');
@@ -153,19 +153,19 @@ describe('ModelCatalogCard Component', () => {
       it('should navigate through benchmarks correctly', () => {
         modelCatalog.findFirstModelCatalogCard().within(() => {
           // Initial state - first benchmark
-          modelCatalog.findValidatedModelHardware().should('contain.text', '2xH100-80');
+          modelCatalog.findValidatedModelHardware().should('contain.text', '2 x H100-80');
 
           // Navigate to next benchmark
           modelCatalog.findValidatedModelBenchmarkNext().click();
-          modelCatalog.findValidatedModelHardware().should('contain.text', '33xRTX 4090');
+          modelCatalog.findValidatedModelHardware().should('contain.text', '33 x RTX 4090');
 
           // Navigate to next benchmark
           modelCatalog.findValidatedModelBenchmarkNext().click();
-          modelCatalog.findValidatedModelHardware().should('contain.text', '40xA100');
+          modelCatalog.findValidatedModelHardware().should('contain.text', '40 x A100');
 
           // Navigate back
           modelCatalog.findValidatedModelBenchmarkPrev().click();
-          modelCatalog.findValidatedModelHardware().should('contain.text', '33xRTX 4090');
+          modelCatalog.findValidatedModelHardware().should('contain.text', '33 x RTX 4090');
         });
       });
     });

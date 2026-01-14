@@ -75,6 +75,7 @@ export const ModelCatalogContext = React.createContext<ModelCatalogContextType>(
     [ModelCatalogStringFilterKey.LICENSE]: [],
     [ModelCatalogStringFilterKey.LANGUAGE]: [],
     [ModelCatalogStringFilterKey.HARDWARE_TYPE]: [],
+    [ModelCatalogStringFilterKey.HARDWARE_CONFIGURATION]: [],
     [ModelCatalogStringFilterKey.USE_CASE]: [],
     [ModelCatalogNumberFilterKey.MAX_RPS]: undefined,
   },
@@ -114,6 +115,7 @@ export const ModelCatalogContextProvider: React.FC<ModelCatalogContextProviderPr
     [ModelCatalogStringFilterKey.LICENSE]: [],
     [ModelCatalogStringFilterKey.LANGUAGE]: [],
     [ModelCatalogStringFilterKey.HARDWARE_TYPE]: [],
+    [ModelCatalogStringFilterKey.HARDWARE_CONFIGURATION]: [],
     [ModelCatalogStringFilterKey.USE_CASE]: [],
     [ModelCatalogNumberFilterKey.MAX_RPS]: undefined,
   });

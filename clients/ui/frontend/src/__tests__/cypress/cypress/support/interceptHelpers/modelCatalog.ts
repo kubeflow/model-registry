@@ -218,7 +218,22 @@ export const interceptSingleModelRegex = (model: CatalogModel): void => {
 export const interceptPerformanceArtifacts = (modelName = 'validated-model'): void => {
   const performanceArtifactsResponse = {
     items: [
-      mockCatalogPerformanceMetricsArtifact({}),
+      mockCatalogPerformanceMetricsArtifact({
+        customProperties: {
+          hardware_configuration: {
+            metadataType: ModelRegistryMetadataType.STRING,
+            string_value: '2 x H100-80',
+          },
+          ttft_p90: {
+            metadataType: ModelRegistryMetadataType.DOUBLE,
+            double_value: 51.56,
+          },
+          replicas: {
+            metadataType: ModelRegistryMetadataType.INT,
+            int_value: '7',
+          },
+        },
+      }),
       mockCatalogPerformanceMetricsArtifact({
         customProperties: {
           hardware_type: {
@@ -228,6 +243,10 @@ export const interceptPerformanceArtifacts = (modelName = 'validated-model'): vo
           hardware_count: {
             metadataType: ModelRegistryMetadataType.INT,
             int_value: '33',
+          },
+          hardware_configuration: {
+            metadataType: ModelRegistryMetadataType.STRING,
+            string_value: '33 x RTX 4090',
           },
           requests_per_second: {
             metadataType: ModelRegistryMetadataType.DOUBLE,
@@ -240,6 +259,10 @@ export const interceptPerformanceArtifacts = (modelName = 'validated-model'): vo
           ttft_p90: {
             metadataType: ModelRegistryMetadataType.DOUBLE,
             double_value: 82.34,
+          },
+          replicas: {
+            metadataType: ModelRegistryMetadataType.INT,
+            int_value: '10',
           },
           use_case: {
             metadataType: ModelRegistryMetadataType.STRING,
@@ -257,6 +280,10 @@ export const interceptPerformanceArtifacts = (modelName = 'validated-model'): vo
             metadataType: ModelRegistryMetadataType.INT,
             int_value: '40',
           },
+          hardware_configuration: {
+            metadataType: ModelRegistryMetadataType.STRING,
+            string_value: '40 x A100',
+          },
           requests_per_second: {
             metadataType: ModelRegistryMetadataType.DOUBLE,
             double_value: 15,
@@ -268,6 +295,10 @@ export const interceptPerformanceArtifacts = (modelName = 'validated-model'): vo
           ttft_p90: {
             metadataType: ModelRegistryMetadataType.DOUBLE,
             double_value: 58.45,
+          },
+          replicas: {
+            metadataType: ModelRegistryMetadataType.INT,
+            int_value: '15',
           },
           use_case: {
             metadataType: ModelRegistryMetadataType.STRING,

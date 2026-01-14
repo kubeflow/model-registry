@@ -74,6 +74,11 @@ export const applyFilterValue = (
       setFilterData(ModelCatalogStringFilterKey.USE_CASE, extractUseCaseValues(value));
     } else if (filterKey === ModelCatalogStringFilterKey.HARDWARE_TYPE) {
       setFilterData(ModelCatalogStringFilterKey.HARDWARE_TYPE, extractStringArrayValue(value));
+    } else if (filterKey === ModelCatalogStringFilterKey.HARDWARE_CONFIGURATION) {
+      setFilterData(
+        ModelCatalogStringFilterKey.HARDWARE_CONFIGURATION,
+        extractStringArrayValue(value),
+      );
     }
     // Future string filters: add else-if cases above
     return;
@@ -128,19 +133,18 @@ export const resolveFilterValue = (
 /**
  * Extracts string array values from a FieldFilter for namedQuery parsing.
  * Handles both IN operator (array) and single string values.
+ * This is a generic helper used by all string array filters.
  */
 const extractStringArrayFromFieldFilter = (fieldFilter: FieldFilter): string[] => {
-  const rawValues =
-    fieldFilter.operator === FilterOperator.IN && Array.isArray(fieldFilter.value)
-      ? fieldFilter.value.filter((v): v is string => typeof v === 'string')
-      : typeof fieldFilter.value === 'string'
-        ? [fieldFilter.value]
-        : [];
-  return rawValues;
+  if (fieldFilter.operator === FilterOperator.IN && Array.isArray(fieldFilter.value)) {
+    return fieldFilter.value.filter((v): v is string => typeof v === 'string');
+  }
+  return typeof fieldFilter.value === 'string' ? [fieldFilter.value] : [];
 };
 
 /**
  * Extracts USE_CASE values from a FieldFilter with validation.
+ * USE_CASE requires special validation to ensure values are valid UseCaseOptionValue enums.
  */
 const extractUseCaseValuesFromFieldFilter = (fieldFilter: FieldFilter): UseCaseOptionValue[] =>
   extractStringArrayFromFieldFilter(fieldFilter).filter(isUseCaseOptionValue);
@@ -152,8 +156,8 @@ const extractUseCaseValuesFromFieldFilter = (fieldFilter: FieldFilter): UseCaseO
  *
  * To add a new performance filter:
  * 1. Add to PERFORMANCE_STRING_FILTER_KEYS or PERFORMANCE_NUMBER_FILTER_KEYS in const.ts
- * 2. For string filters with special validation (like USE_CASE), add an extraction function
- * 3. Add a case in the appropriate if/else statement below
+ * 2. For string filters with special validation (like USE_CASE), handle explicitly
+ * 3. For standard string filters, add an else-if case using extractStringArrayFromFieldFilter
  */
 export const getDefaultFiltersFromNamedQuery = (
   filterOptions: CatalogFilterOptionsList | null,
@@ -164,15 +168,22 @@ export const getDefaultFiltersFromNamedQuery = (
   Object.entries(namedQuery).forEach(([fieldName, fieldFilter]) => {
     // Handle performance string filters (arrays of strings)
     if (isPerformanceStringFilterKey(fieldName)) {
-      // Each string filter may have different validation, handle explicitly
+      // USE_CASE requires special validation (must be valid UseCaseOptionValue enum)
       if (fieldName === ModelCatalogStringFilterKey.USE_CASE) {
         result[ModelCatalogStringFilterKey.USE_CASE] =
           extractUseCaseValuesFromFieldFilter(fieldFilter);
-      } else if (fieldName === ModelCatalogStringFilterKey.HARDWARE_TYPE) {
-        result[ModelCatalogStringFilterKey.HARDWARE_TYPE] =
-          extractStringArrayFromFieldFilter(fieldFilter);
+      } else {
+        // All other standard string filters (HARDWARE_TYPE, HARDWARE_CONFIGURATION, etc.)
+        // use the same extraction logic - no special validation needed
+        // This eliminates duplication: both HARDWARE_TYPE and HARDWARE_CONFIGURATION
+        // use extractStringArrayFromFieldFilter with the same pattern
+        const extractedValues = extractStringArrayFromFieldFilter(fieldFilter);
+        if (fieldName === ModelCatalogStringFilterKey.HARDWARE_TYPE) {
+          result[ModelCatalogStringFilterKey.HARDWARE_TYPE] = extractedValues;
+        } else if (fieldName === ModelCatalogStringFilterKey.HARDWARE_CONFIGURATION) {
+          result[ModelCatalogStringFilterKey.HARDWARE_CONFIGURATION] = extractedValues;
+        }
       }
-      // Future string filters: add else-if cases above
       return;
     }
 
