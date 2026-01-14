@@ -13,7 +13,6 @@ import {
 import {
   hardwareConfigColumns,
   HardwareConfigColumn,
-  HardwareConfigColumnField,
   STICKY_COLUMN_FIELDS,
   DEFAULT_VISIBLE_COLUMN_FIELDS,
   LATENCY_COLUMN_FIELDS,
@@ -27,12 +26,6 @@ interface UseHardwareConfigColumnsResult {
   /** Result from useManageColumns hook, to be passed directly to ManageColumnsModal */
   manageColumnsResult: UseManageColumnsResult<CatalogPerformanceMetricsArtifact>;
 }
-
-/**
- * Type guard to check if a string is a HardwareConfigColumnField
- */
-const isHardwareConfigColumnField = (id: string): id is HardwareConfigColumnField =>
-  hardwareConfigColumns.some((col) => col.field === id);
 
 /**
  * Check if a column field is a latency column (TTFT, E2E, ITL - not TPS)
@@ -72,7 +65,10 @@ export const useHardwareConfigColumns = (
   }, []);
 
   // Use the manage columns hook for manageable columns only
-  const manageColumnsResult = useManageColumns<CatalogPerformanceMetricsArtifact>({
+  const manageColumnsResult = useManageColumns<
+    CatalogPerformanceMetricsArtifact,
+    HardwareConfigColumn
+  >({
     allColumns: manageableColumns,
     storageKey: HARDWARE_CONFIG_COLUMNS_STORAGE_KEY,
     defaultVisibleColumnIds: DEFAULT_VISIBLE_COLUMN_FIELDS,
@@ -120,20 +116,10 @@ export const useHardwareConfigColumns = (
   }, [activeLatencyField, manageColumnsResult]);
 
   // Combine sticky + visible managed columns
-  // Map SortableData back to HardwareConfigColumn by finding the original column
-  const columns = React.useMemo((): HardwareConfigColumn[] => {
-    const visibleManaged = manageColumnsResult.visibleColumns
-      .map((sortableCol) => {
-        // Find the original HardwareConfigColumn by field
-        if (isHardwareConfigColumnField(sortableCol.field)) {
-          return manageableColumns.find((col) => col.field === sortableCol.field);
-        }
-        return undefined;
-      })
-      .filter((col): col is HardwareConfigColumn => col !== undefined);
-
-    return [...stickyColumns, ...visibleManaged];
-  }, [stickyColumns, manageColumnsResult.visibleColumns, manageableColumns]);
+  const columns = React.useMemo(
+    (): HardwareConfigColumn[] => [...stickyColumns, ...manageColumnsResult.visibleColumns],
+    [stickyColumns, manageColumnsResult.visibleColumns],
+  );
 
   return {
     columns,

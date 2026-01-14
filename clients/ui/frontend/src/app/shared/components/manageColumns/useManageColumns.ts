@@ -22,9 +22,9 @@ export interface ManagedColumn {
 /**
  * Configuration for the useManageColumns hook
  */
-export interface UseManageColumnsConfig<T> {
+export interface UseManageColumnsConfig<T, C extends SortableData<T> = SortableData<T>> {
   /** All possible columns (the full column definition) */
-  allColumns: SortableData<T>[];
+  allColumns: C[];
   /** Unique key for localStorage persistence */
   storageKey: string;
   /** Default visible column fields when no localStorage value exists */
@@ -36,9 +36,9 @@ export interface UseManageColumnsConfig<T> {
 /**
  * Return type for the useManageColumns hook
  */
-export interface UseManageColumnsResult<T> {
+export interface UseManageColumnsResult<T, C extends SortableData<T> = SortableData<T>> {
   /** The columns to render in the table, filtered and ordered by visibility settings */
-  visibleColumns: SortableData<T>[];
+  visibleColumns: C[];
   /** All manageable columns with their current visibility state (for the modal) */
   managedColumns: ManagedColumn[];
   /** Callback to update which columns are visible (called from modal) */
@@ -55,12 +55,12 @@ export interface UseManageColumnsResult<T> {
   closeModal: () => void;
 }
 
-export const useManageColumns = <T>({
+export const useManageColumns = <T, C extends SortableData<T> = SortableData<T>>({
   allColumns,
   storageKey,
   defaultVisibleColumnIds,
   maxVisibleColumns,
-}: UseManageColumnsConfig<T>): UseManageColumnsResult<T> => {
+}: UseManageColumnsConfig<T, C>): UseManageColumnsResult<T, C> => {
   // Get manageable columns (those that can be shown/hidden)
   const manageableColumns = React.useMemo(
     () => allColumns.filter((col) => !NON_MANAGEABLE_FIELDS.includes(col.field)),
@@ -115,8 +115,8 @@ export const useManageColumns = <T>({
   }, [manageableColumns, storedVisibleIds]);
 
   // Build the final visible columns for the table
-  const visibleColumns: SortableData<T>[] = React.useMemo(() => {
-    const result: SortableData<T>[] = [];
+  const visibleColumns: C[] = React.useMemo(() => {
+    const result: C[] = [];
 
     // First, add columns that come before manageable columns (like checkbox)
     allColumns.forEach((col) => {
