@@ -325,7 +325,9 @@ export const STICKY_COLUMN_FIELDS: HardwareConfigColumnField[] = [
 
 /**
  * Default visible column fields (excluding sticky - they're always visible).
- * Core metrics: RPS, Replicas, Total RPS, Mean latencies, tokens, vLLM version.
+ * Core metrics: Replicas, Total RPS, RPS/replica, P90 latencies, tokens, vLLM version.
+ * NOTE: The latency and TPS will be overridden on mount to match the active latency filter (if any).
+ *       See useHardwareConfigColumns.ts for that logic.
  */
 export const DEFAULT_VISIBLE_COLUMN_FIELDS: HardwareConfigColumnField[] = [
   'replicas',
