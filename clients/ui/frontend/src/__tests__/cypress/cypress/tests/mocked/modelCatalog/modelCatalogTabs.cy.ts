@@ -293,7 +293,7 @@ describe('Model Catalog Details Tabs', () => {
       ]).as('getModelRegistries');
 
       initIntercepts({ useValidatedModel: true, includePerformanceArtifacts: true });
-      modelCatalog.visit({ enableTempDevCatalogAdvancedFiltersFeature: true });
+      modelCatalog.visit();
       // Enable performance toggle to apply default filters
       modelCatalog.togglePerformanceView();
     });
@@ -458,7 +458,7 @@ describe('Server-Side Filtering', () => {
         ),
       ).as('getDefaultFilteredArtifacts');
 
-      modelCatalog.visit({ enableTempDevCatalogAdvancedFiltersFeature: true });
+      modelCatalog.visit();
       modelCatalog.findLoadingState().should('not.exist');
       // Enable performance toggle to apply filters to API requests
       modelCatalog.togglePerformanceView();
@@ -512,7 +512,7 @@ describe('Server-Side Filtering', () => {
         ),
       ).as('getCodeFixingArtifacts');
 
-      modelCatalog.visit({ enableTempDevCatalogAdvancedFiltersFeature: true });
+      modelCatalog.visit();
       modelCatalog.findLoadingState().should('not.exist');
       // Enable performance toggle
       modelCatalog.togglePerformanceView();
@@ -563,7 +563,7 @@ describe('Server-Side Filtering', () => {
         ),
       ).as('getDefaultFilteredArtifacts');
 
-      modelCatalog.visit({ enableTempDevCatalogAdvancedFiltersFeature: true });
+      modelCatalog.visit();
       modelCatalog.findLoadingState().should('not.exist');
       // Enable performance toggle
       modelCatalog.togglePerformanceView();
