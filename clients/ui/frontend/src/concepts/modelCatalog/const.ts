@@ -576,13 +576,11 @@ export enum ModelCatalogSortOption {
   LOWEST_LATENCY = 'lowest_latency',
 }
 
-// API sort order constants
-export const SORT_ORDER = {
-  ASC: 'ASC',
-  DESC: 'DESC',
-} as const;
+export enum SortOrder {
+  ASC = 'ASC',
+  DESC = 'DESC',
+}
 
-// API sort field constants
-export const SORT_FIELD = {
-  LAST_UPDATE_TIME: 'LAST_UPDATE_TIME',
-} as const;
+export enum SortField {
+  LAST_UPDATE_TIME = 'LAST_UPDATE_TIME',
+}

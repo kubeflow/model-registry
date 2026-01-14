@@ -173,7 +173,7 @@ describe('ModelCatalogSortDropdown', () => {
       });
     });
 
-    it('should enable "Lowest latency" option when performance view is enabled', async () => {
+    it('should disable "Lowest latency" option when there is no active latency field', async () => {
       mockGetActiveLatencyFieldName.mockReturnValue(undefined);
 
       render(
@@ -187,7 +187,8 @@ describe('ModelCatalogSortDropdown', () => {
 
       await waitFor(() => {
         const lowestLatencyOption = screen.getByTestId('sort-option-lowest-latency');
-        expect(lowestLatencyOption).not.toHaveAttribute('disabled');
+        const button = lowestLatencyOption.querySelector('button');
+        expect(button).toBeDisabled();
       });
     });
 
@@ -277,6 +278,9 @@ describe('ModelCatalogSortDropdown', () => {
     });
 
     it('should call setSortBy when "Lowest latency" is selected', async () => {
+      // Mock an active latency field so the option is enabled
+      mockGetActiveLatencyFieldName.mockReturnValue('artifacts.ttft_p90.double_value');
+
       const TestComponent: React.FC = () => {
         const { sortBy } = React.useContext(ModelCatalogContext);
         const [selectedValue, setSelectedValue] = React.useState<string>('');

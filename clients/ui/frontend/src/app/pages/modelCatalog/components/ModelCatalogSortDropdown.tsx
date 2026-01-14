@@ -22,9 +22,9 @@ const ModelCatalogSortDropdown: React.FC<ModelCatalogSortDropdownProps> = ({
   const [isOpen, setIsOpen] = React.useState(false);
 
   const activeLatencyField = getActiveLatencyFieldName(filterData);
-  // When performance view is enabled, always allow "Lowest latency" to be selectable
-  // The API will handle fallback to recent publish if no latency field is active
-  const isLatencySortDisabled = !performanceViewEnabled && activeLatencyField === undefined;
+  // Disable latency sort if performance view is disabled or there's no active latency field
+  // Without an active latency field, sorting by latency would fallback to sorting by publish date
+  const isLatencySortDisabled = !performanceViewEnabled || activeLatencyField === undefined;
 
   // Hide dropdown when performance view is disabled
   if (!performanceViewEnabled) {

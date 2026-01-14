@@ -24,6 +24,8 @@ import {
   isPerformanceStringFilterKey,
   PERFORMANCE_FILTER_KEYS,
   ModelCatalogSortOption,
+  SortOrder,
+  SortField,
 } from '~/concepts/modelCatalog/const';
 import { CatalogSourceStatus } from '~/concepts/modelCatalogSettings/const';
 
@@ -248,8 +250,8 @@ export const getSortParams = (
 ): { orderBy: string; sortOrder: string } => {
   const effectiveSortBy = getEffectiveSortBy(sortBy, performanceViewEnabled);
   const recentPublishSort = {
-    orderBy: 'LAST_UPDATE_TIME',
-    sortOrder: 'DESC',
+    orderBy: SortField.LAST_UPDATE_TIME,
+    sortOrder: SortOrder.DESC,
   } as const;
 
   if (effectiveSortBy === ModelCatalogSortOption.RECENT_PUBLISH) {
@@ -267,7 +269,7 @@ export const getSortParams = (
   // This matches the filter key format used in filterQuery, so we can use it directly
   return {
     orderBy: activeLatencyField,
-    sortOrder: 'ASC', // Lowest first (ascending)
+    sortOrder: SortOrder.ASC, // Lowest first (ascending)
   };
 };
 

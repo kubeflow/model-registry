@@ -26,6 +26,7 @@ import {
   ModelCatalogNumberFilterKey,
   LatencyMetric,
   parseLatencyFilterKey,
+  SortOrder,
 } from '~/concepts/modelCatalog/const';
 import { useCatalogPerformanceArtifacts } from '~/app/hooks/modelCatalog/useCatalogPerformanceArtifacts';
 import {
@@ -88,7 +89,7 @@ const ModelCatalogCardBody: React.FC<ModelCatalogCardBodyProps> = ({
         // If a latency filter is applied, sort artifacts on the card by lowest latency.
         ...(latencyFieldName && {
           orderBy: stripArtifactsPrefix(latencyFieldName),
-          sortOrder: 'ASC',
+          sortOrder: SortOrder.ASC,
         }),
       },
       performanceViewEnabled ? filterData : undefined,
