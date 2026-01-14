@@ -21,8 +21,7 @@ type HardwareConfigurationOption = {
 };
 
 const HardwareConfigurationFilter: React.FC = () => {
-  const { appliedHardwareConfigurations, setAppliedHardwareConfigurations } =
-    useHardwareConfigurationFilterState();
+  const { appliedValues, setAppliedValues } = useHardwareConfigurationFilterState();
   const { filterOptions } = React.useContext(ModelCatalogContext);
   const [isOpen, setIsOpen] = React.useState(false);
   const [searchValue, setSearchValue] = React.useState('');
@@ -47,23 +46,20 @@ const HardwareConfigurationFilter: React.FC = () => {
       hardwareOptions.filter(
         (option) =>
           option.label.toLowerCase().includes(searchValue.trim().toLowerCase()) ||
-          appliedHardwareConfigurations.includes(option.value),
+          appliedValues.includes(option.value),
       ),
-    [hardwareOptions, searchValue, appliedHardwareConfigurations],
+    [hardwareOptions, searchValue, appliedValues],
   );
 
-  const selectedCount = appliedHardwareConfigurations.length;
+  const selectedCount = appliedValues.length;
 
-  const isHardwareSelected = (value: string): boolean =>
-    appliedHardwareConfigurations.includes(value);
+  const isHardwareSelected = (value: string): boolean => appliedValues.includes(value);
 
   const toggleHardwareSelection = (value: string, selected: boolean) => {
     if (selected) {
-      setAppliedHardwareConfigurations([...appliedHardwareConfigurations, value]);
+      setAppliedValues([...appliedValues, value]);
     } else {
-      setAppliedHardwareConfigurations(
-        appliedHardwareConfigurations.filter((item) => item !== value),
-      );
+      setAppliedValues(appliedValues.filter((item) => item !== value));
     }
   };
 

@@ -25,21 +25,6 @@ export const getUniqueHardwareTypes = (
 };
 
 /**
- * Extracts unique hardware configurations from performance artifacts
- */
-export const getUniqueHardwareConfigurations = (
-  artifacts: CatalogPerformanceMetricsArtifact[],
-): string[] => {
-  const hardwareConfigurations = artifacts
-    .map((artifact) =>
-      getStringValue(artifact.customProperties, PerformancePropertyKey.HARDWARE_CONFIGURATION),
-    )
-    .filter((hardware): hardware is string => !!hardware && hardware !== '-');
-
-  return [...new Set(hardwareConfigurations)].toSorted();
-};
-
-/**
  * Gets all filter keys (string filters + number filters + latency filters)
  */
 export const getAllFilterKeys = (): {
