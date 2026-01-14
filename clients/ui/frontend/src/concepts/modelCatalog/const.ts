@@ -37,6 +37,9 @@ export const DEFAULT_PERFORMANCE_FILTERS_QUERY_NAME = 'default-performance-filte
 export enum LatencyMetric {
   E2E = 'E2E', // End to End
   TTFT = 'TTFT', // Time To First Token
+  // TODO TPS is not technically a latency field, we should consider refactoring how it is handled in types
+  //      and revisit the special logic that excludes it from latency filters.
+  //      But it does have permutations with the same latency percentiles so leaving it here for now.
   TPS = 'TPS', // Tokens Per Second
   ITL = 'ITL', // Inter Token Latency
 }
