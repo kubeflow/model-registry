@@ -28,7 +28,10 @@ import {
   parseLatencyFilterKey,
 } from '~/concepts/modelCatalog/const';
 import { useCatalogPerformanceArtifacts } from '~/app/hooks/modelCatalog/useCatalogPerformanceArtifacts';
-import { getActiveLatencyFieldName, stripArtifactsPrefix } from '~/app/pages/modelCatalog/utils/modelCatalogUtils';
+import {
+  getActiveLatencyFieldName,
+  stripArtifactsPrefix,
+} from '~/app/pages/modelCatalog/utils/modelCatalogUtils';
 import { formatLatency } from '~/app/pages/modelCatalog/utils/performanceMetricsUtils';
 import { ModelCatalogContext } from '~/app/context/modelCatalog/ModelCatalogContext';
 
