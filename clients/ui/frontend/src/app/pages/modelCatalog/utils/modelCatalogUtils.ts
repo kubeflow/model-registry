@@ -289,7 +289,7 @@ const hasArtifactsPrefix = (filterId: string): boolean =>
  * Used when constructing filterQuery for artifacts endpoint.
  * Example: 'artifacts.use_case.string_value' -> 'use_case.string_value'
  */
-const stripArtifactsPrefix = (filterId: string): string => {
+export const stripArtifactsPrefix = (filterId: string): string => {
   if (hasArtifactsPrefix(filterId)) {
     return filterId.substring(ARTIFACTS_FILTER_PREFIX.length);
   }
