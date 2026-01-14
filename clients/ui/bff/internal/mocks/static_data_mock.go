@@ -2093,17 +2093,17 @@ func GetNamedQueriesMocks() map[string]map[string]models.FieldFilter {
 	// Default performance filters - applied when performance toggle is turned on
 	// Uses full filter key format matching the filters map
 	namedQueries["default-performance-filters"] = map[string]models.FieldFilter{
-		"artifacts.use_case.string_value": {
-			Operator: "=",
-			Value:    "chatbot", // UseCaseOptionValue.CHATBOT
+		"artifacts.requests_per_second.double_value": {
+			Operator: "<=",
+			Value:    float64(1),
 		},
 		"artifacts.ttft_p90.double_value": {
 			Operator: "<=",
-			Value:    "max", // 'max' means use the max value from the range in filters
+			Value:    float64(892.6553726196289),
 		},
-		"artifacts.requests_per_second.double_value": {
-			Operator: "<=",
-			Value:    "max", // 'max' means use the max value from the range in filters
+		"artifacts.use_case.string_value": {
+			Operator: "=",
+			Value:    "chatbot",
 		},
 	}
 

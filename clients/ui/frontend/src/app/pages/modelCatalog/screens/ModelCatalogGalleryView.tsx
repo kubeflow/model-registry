@@ -92,6 +92,25 @@ const ModelCatalogGalleryView: React.FC<ModelCatalogPageProps> = ({
 
   const noUserFiltersOrSearch = areOnlyDefaultFiltersApplied && !searchTerm;
 
+  const shouldShowPerformanceEmptyState = React.useMemo(() => {
+    const isEmptyResult = catalogModels.items.length === 0;
+    const isNotAllModelsCategory = selectedSourceLabel !== CategoryName.allModels;
+    const isPerformanceExcludedSection = isNoLabelsSection || noUserFiltersOrSearch;
+
+    return (
+      performanceViewEnabled &&
+      isEmptyResult &&
+      isNotAllModelsCategory &&
+      isPerformanceExcludedSection
+    );
+  }, [
+    performanceViewEnabled,
+    catalogModels.items.length,
+    selectedSourceLabel,
+    isNoLabelsSection,
+    noUserFiltersOrSearch,
+  ]);
+
   const handleDisablePerformanceView = () => {
     setPerformanceViewEnabled(false);
   };
@@ -119,12 +138,7 @@ const ModelCatalogGalleryView: React.FC<ModelCatalogPageProps> = ({
     );
   }
 
-  if (
-    performanceViewEnabled &&
-    catalogModels.items.length === 0 &&
-    selectedSourceLabel !== CategoryName.allModels &&
-    (isNoLabelsSection || noUserFiltersOrSearch)
-  ) {
+  if (shouldShowPerformanceEmptyState) {
     return (
       <EmptyModelCatalogState
         testid="performance-empty-state"

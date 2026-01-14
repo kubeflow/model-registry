@@ -37,6 +37,31 @@ const setupFilteredModelsIntercept = ({
   ).as('getFilteredModels');
 };
 
+const generateMockModels = (
+  count: number,
+  hasValidated: boolean,
+  namePrefix: string,
+  sourceId?: string,
+): ReturnType<typeof mockCatalogModel>[] => {
+  if (hasValidated) {
+    return [
+      mockCatalogModel({
+        name: 'validated-model',
+        source_id: sourceId,
+        customProperties: {
+          validated: { metadataType: ModelRegistryMetadataType.STRING, string_value: '' },
+        },
+      }),
+      ...Array.from({ length: count - 1 }, (_, i) =>
+        mockCatalogModel({ name: `${namePrefix}-${i + 1}`, source_id: sourceId }),
+      ),
+    ];
+  }
+  return Array.from({ length: count }, (_, i) =>
+    mockCatalogModel({ name: `${namePrefix}-${i + 1}`, source_id: sourceId }),
+  );
+};
+
 type HandlersProps = {
   sources?: CatalogSource[];
   modelsPerCategory?: number;
@@ -62,28 +87,12 @@ const initIntercepts = ({
 
   sources.forEach((source) => {
     source.labels.forEach((label) => {
-      const models = hasValidatedModels
-        ? [
-            mockCatalogModel({
-              name: 'validated-model',
-              source_id: source.id,
-              customProperties: {
-                validated: { metadataType: ModelRegistryMetadataType.STRING, string_value: '' },
-              },
-            }),
-            ...Array.from({ length: modelsPerCategory - 1 }, (_, i) =>
-              mockCatalogModel({
-                name: `${label.toLowerCase().replace(/\s+/g, '-')}-model-${i + 1}`,
-                source_id: source.id,
-              }),
-            ),
-          ]
-        : Array.from({ length: modelsPerCategory }, (_, i) =>
-            mockCatalogModel({
-              name: `${label.toLowerCase().replace(/\s+/g, '-')}-model-${i + 1}`,
-              source_id: source.id,
-            }),
-          );
+      const models = generateMockModels(
+        modelsPerCategory,
+        hasValidatedModels,
+        `${label.toLowerCase().replace(/\s+/g, '-')}-model`,
+        source.id,
+      );
 
       cy.interceptApi(
         `GET /api/:apiVersion/model_catalog/models`,
@@ -131,21 +140,7 @@ const initIntercepts = ({
         ),
       },
       (req) => {
-        const models = hasValidatedModels
-          ? [
-              mockCatalogModel({
-                name: 'validated-model',
-                customProperties: {
-                  validated: { metadataType: ModelRegistryMetadataType.STRING, string_value: '' },
-                },
-              }),
-              ...Array.from({ length: modelsPerCategory - 1 }, (_, i) =>
-                mockCatalogModel({ name: `all-model-${i + 1}` }),
-              ),
-            ]
-          : Array.from({ length: modelsPerCategory }, (_, i) =>
-              mockCatalogModel({ name: `all-model-${i + 1}` }),
-            );
+        const models = generateMockModels(modelsPerCategory, hasValidatedModels, 'all-model');
         req.reply(mockModArchResponse(mockCatalogModelList({ items: models })));
       },
     );
@@ -304,7 +299,7 @@ describe('Performance Empty State', () => {
         hasValidatedModels: true,
       });
       setupFilteredModelsIntercept({ returnModelsForFilters: false });
-      modelCatalog.visit({ enableTempDevCatalogAdvancedFiltersFeature: true });
+      modelCatalog.visit();
 
       modelCatalog.togglePerformanceView();
       modelCatalog.findPerformanceViewToggleValue().should('be.checked');
@@ -322,7 +317,7 @@ describe('Performance Empty State', () => {
           mockCatalogSource({ id: 'custom-source', name: 'Custom Source', labels: [] }),
         ],
       });
-      modelCatalog.visit({ enableTempDevCatalogAdvancedFiltersFeature: true });
+      modelCatalog.visit();
 
       modelCatalog.findCategoryToggle('no-labels').click();
 
@@ -338,7 +333,7 @@ describe('Performance Empty State', () => {
         hasValidatedModels: false,
       });
       setupFilteredModelsIntercept({ returnModelsForFilters: false });
-      modelCatalog.visit({ enableTempDevCatalogAdvancedFiltersFeature: true });
+      modelCatalog.visit();
 
       modelCatalog.togglePerformanceView();
       modelCatalog.findCategoryToggle('label-Provider one').click();
@@ -351,7 +346,7 @@ describe('Performance Empty State', () => {
         sources: [mockCatalogSource({ labels: ['Provider one'] })],
         hasValidatedModels: false,
       });
-      modelCatalog.visit({ enableTempDevCatalogAdvancedFiltersFeature: true });
+      modelCatalog.visit();
 
       modelCatalog.findCategoryToggle('label-Provider one').click();
 
@@ -365,7 +360,7 @@ describe('Performance Empty State', () => {
         sources: [mockCatalogSource({ labels: ['Provider one'] })],
         hasValidatedModels: true,
       });
-      modelCatalog.visit({ enableTempDevCatalogAdvancedFiltersFeature: true });
+      modelCatalog.visit();
 
       modelCatalog.togglePerformanceView();
       modelCatalog.findCategoryToggle('label-Provider one').click();
@@ -385,7 +380,7 @@ describe('Performance Empty State', () => {
         hasValidatedModels: true,
       });
       setupFilteredModelsIntercept({ returnModelsForFilters: false });
-      modelCatalog.visit({ enableTempDevCatalogAdvancedFiltersFeature: true });
+      modelCatalog.visit();
 
       modelCatalog.togglePerformanceView();
       modelCatalog.findCategoryToggle('no-labels').click();
@@ -406,7 +401,7 @@ describe('Performance Empty State', () => {
         hasValidatedModels: true,
       });
       setupFilteredModelsIntercept({ returnModelsForFilters: false });
-      modelCatalog.visit({ enableTempDevCatalogAdvancedFiltersFeature: true });
+      modelCatalog.visit();
 
       modelCatalog.togglePerformanceView();
       modelCatalog.findCategoryToggle('no-labels').click();
@@ -423,7 +418,7 @@ describe('Performance Empty State', () => {
         hasValidatedModels: false,
       });
       setupFilteredModelsIntercept({ returnModelsForFilters: false });
-      modelCatalog.visit({ enableTempDevCatalogAdvancedFiltersFeature: true });
+      modelCatalog.visit();
 
       modelCatalog.togglePerformanceView();
       modelCatalog.findCategoryToggle('label-Provider one').click();
@@ -448,7 +443,7 @@ describe('Performance Empty State', () => {
       hasValidatedModels: true,
     });
     setupFilteredModelsIntercept({ returnModelsForFilters: false });
-    modelCatalog.visit({ enableTempDevCatalogAdvancedFiltersFeature: true });
+    modelCatalog.visit();
 
     modelCatalog.togglePerformanceView();
     modelCatalog.findPerformanceViewToggleValue().should('be.checked');
@@ -473,7 +468,7 @@ describe('Performance Empty State', () => {
     });
     setupFilteredModelsIntercept({ returnModelsForFilters: false });
 
-    modelCatalog.visit({ enableTempDevCatalogAdvancedFiltersFeature: true });
+    modelCatalog.visit();
     modelCatalog.togglePerformanceView();
     modelCatalog.findCategoryToggle('label-Provider one').click();
     modelCatalog.findFilterShowMoreButton('Task').click();
@@ -492,7 +487,7 @@ describe('All Models Section', () => {
       sources: [mockCatalogSource({ labels: ['Provider one'] })],
       hasValidatedModels: true,
     });
-    modelCatalog.visit({ enableTempDevCatalogAdvancedFiltersFeature: true });
+    modelCatalog.visit();
 
     modelCatalog.togglePerformanceView();
     modelCatalog.findPerformanceViewToggleValue().should('be.checked');

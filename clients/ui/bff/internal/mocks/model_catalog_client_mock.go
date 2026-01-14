@@ -40,7 +40,7 @@ func (m *ModelCatalogClientMock) GetAllCatalogModelsAcrossSources(client httpcli
 		allSources := GetCatalogSourceMocks()
 		var matchingSourceIds []string
 
-		if sourceLabel == "Community & Custom" {
+		if sourceLabel == "null" {
 			for _, source := range allSources {
 				if len(source.Labels) == 0 {
 					matchingSourceIds = append(matchingSourceIds, source.Id)
