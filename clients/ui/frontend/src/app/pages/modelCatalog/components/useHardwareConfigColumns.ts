@@ -1,5 +1,4 @@
 import * as React from 'react';
-import { SortableData } from 'mod-arch-shared';
 import { CatalogPerformanceMetricsArtifact } from '~/app/modelCatalogTypes';
 import {
   useManageColumns,
@@ -72,21 +71,9 @@ export const useHardwareConfigColumns = (
     return { stickyColumns: sticky, manageableColumns: manageable };
   }, []);
 
-  // Convert HardwareConfigColumn[] to SortableData[] for useManageColumns
-  // This is safe because HardwareConfigColumn extends SortableData with a more specific field type
-  const manageableColumnsAsSortable: SortableData<CatalogPerformanceMetricsArtifact>[] =
-    React.useMemo(
-      () =>
-        manageableColumns.map((col) => ({
-          ...col,
-          field: col.field, // field is already a string (HardwareConfigColumnField extends string)
-        })),
-      [manageableColumns],
-    );
-
   // Use the manage columns hook for manageable columns only
   const manageColumnsResult = useManageColumns<CatalogPerformanceMetricsArtifact>({
-    allColumns: manageableColumnsAsSortable,
+    allColumns: manageableColumns,
     storageKey: HARDWARE_CONFIG_COLUMNS_STORAGE_KEY,
     defaultVisibleColumnIds: DEFAULT_VISIBLE_COLUMN_FIELDS,
   });
