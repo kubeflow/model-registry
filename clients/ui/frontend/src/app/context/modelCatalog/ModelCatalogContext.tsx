@@ -29,6 +29,7 @@ import {
   applyFilterValue,
   getDefaultFiltersFromNamedQuery,
 } from '~/app/pages/modelCatalog/utils/performanceFilterUtils';
+import { getEffectiveSortBy } from '~/app/pages/modelCatalog/utils/modelCatalogUtils';
 import { BFF_API_VERSION, URL_PREFIX } from '~/app/utilities/const';
 
 export type ModelCatalogContextType = {
@@ -194,23 +195,19 @@ export const ModelCatalogContextProvider: React.FC<ModelCatalogContextProviderPr
       // When toggle changes, ensure defaults are applied.
       // When toggle is OFF, filters are just not passed in API calls or shown as chips.
       resetPerformanceFiltersToDefaults();
-      if (enabled) {
-        // When toggle is on, set default sort to lowest_latency
-        setSortBy((currentSortBy) => {
-          if (currentSortBy === null || currentSortBy === ModelCatalogSortOption.RECENT_PUBLISH) {
-            return ModelCatalogSortOption.LOWEST_LATENCY;
-          }
-          return currentSortBy;
-        });
-      } else {
+
+      // Update sort to default for the new toggle state, preserving user selection if it doesn't match the opposite default
+      const defaultSort = getEffectiveSortBy(null, enabled);
+      const oppositeDefault = getEffectiveSortBy(null, !enabled);
+      setSortBy((currentSortBy) => {
+        if (currentSortBy === null || currentSortBy === oppositeDefault) {
+          return defaultSort;
+        }
+        return currentSortBy;
+      });
+
+      if (!enabled) {
         setPerformanceFiltersChangedOnDetailsPage(false);
-        // When toggle is off, set default sort to recent_publish
-        setSortBy((currentSortBy) => {
-          if (currentSortBy === null || currentSortBy === ModelCatalogSortOption.LOWEST_LATENCY) {
-            return ModelCatalogSortOption.RECENT_PUBLISH;
-          }
-          return currentSortBy;
-        });
       }
     },
     [resetPerformanceFiltersToDefaults],

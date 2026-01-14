@@ -234,6 +234,41 @@ export const getEffectiveSortBy = (
     : ModelCatalogSortOption.RECENT_PUBLISH;
 };
 
+/**
+ * Gets the sort parameters for API requests based on sort option and filter state.
+ * @param sortBy - The selected sort option (or null for default)
+ * @param performanceViewEnabled - Whether performance view is enabled
+ * @param activeLatencyField - The active latency field name (if any)
+ * @returns Object with orderBy and sortOrder for API requests
+ */
+export const getSortParams = (
+  sortBy: ModelCatalogSortOption | null,
+  performanceViewEnabled: boolean,
+  activeLatencyField: LatencyMetricFieldName | undefined,
+): { orderBy: string; sortOrder: string } => {
+  const effectiveSortBy = getEffectiveSortBy(sortBy, performanceViewEnabled);
+  const recentPublishSort = {
+    orderBy: 'LAST_UPDATE_TIME',
+    sortOrder: 'DESC',
+  } as const;
+
+  if (effectiveSortBy === ModelCatalogSortOption.RECENT_PUBLISH) {
+    return recentPublishSort;
+  }
+
+  // effectiveSortBy must be LOWEST_LATENCY at this point
+  if (!activeLatencyField) {
+    // Fallback to recent publish if no latency field is available
+    return recentPublishSort;
+  }
+
+  // Use artifacts.[latencyField].double_value for sorting
+  return {
+    orderBy: `artifacts.${activeLatencyField}.double_value`,
+    sortOrder: 'ASC', // Lowest first (ascending)
+  };
+};
+
 const wrapInQuotes = (v: string): string => `'${v}'`;
 
 const eqFilter = (k: string, v: string) => `${k}=${wrapInQuotes(v)}`;

@@ -8,14 +8,28 @@ import {
 import { ModelCatalogSortOption } from '~/concepts/modelCatalog/const';
 import ModelCatalogSortDropdown from '~/app/pages/modelCatalog/components/ModelCatalogSortDropdown';
 
-// Mock dependencies
-jest.mock('mod-arch-core', () => ({
-  ...jest.requireActual('mod-arch-core'),
-  useQueryParamNamespaces: jest.fn(() => ({})),
-  asEnumMember: jest.fn((value, enumObj) =>
-    value && enumObj && Object.values(enumObj).includes(value) ? value : undefined,
-  ),
-}));
+// Mock mod-arch-core - must be before any imports that use it
+jest.mock('mod-arch-core', () => {
+  const actual = jest.requireActual('mod-arch-core');
+  return {
+    ...actual,
+    useModularArchContext: jest.fn(() => ({
+      config: {
+        deploymentMode: 'standalone',
+        URL_PREFIX: '/',
+        BFF_API_VERSION: 'v1',
+      },
+    })),
+    useNamespaceSelector: jest.fn(() => ({
+      selectedNamespace: undefined,
+      setSelectedNamespace: jest.fn(),
+    })),
+    useQueryParamNamespaces: jest.fn(() => ({})),
+    asEnumMember: jest.fn((value, enumObj) =>
+      value && enumObj && Object.values(enumObj).includes(value) ? value : undefined,
+    ),
+  };
+});
 
 jest.mock('react-router-dom', () => ({
   useLocation: jest.fn(() => ({ pathname: '/model-catalog' })),
