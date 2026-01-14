@@ -27,7 +27,7 @@ const NBSP = '\u00A0';
 export const hardwareConfigColumns: HardwareConfigColumn[] = [
   {
     field: PerformancePropertyKey.HARDWARE_CONFIGURATION,
-    label: 'Hardware Configuration',
+    label: 'Hardware configuration',
     sortable: (
       a: CatalogPerformanceMetricsArtifact,
       b: CatalogPerformanceMetricsArtifact,
@@ -57,6 +57,17 @@ export const hardwareConfigColumns: HardwareConfigColumn[] = [
     hasRightBorder: true,
   },
   {
+    field: 'replicas',
+    label: 'Replicas',
+    sortable: (
+      a: CatalogPerformanceMetricsArtifact,
+      b: CatalogPerformanceMetricsArtifact,
+    ): number =>
+      getIntValue(a.customProperties, 'replicas') - getIntValue(b.customProperties, 'replicas'),
+    width: 20,
+    modifier: 'wrap',
+  },
+  {
     field: PerformancePropertyKey.REQUESTS_PER_SECOND,
     label: `RPS${NBSP}per Replica`,
     sortable: (
@@ -69,19 +80,8 @@ export const hardwareConfigColumns: HardwareConfigColumn[] = [
     modifier: 'wrap',
   },
   {
-    field: 'replicas',
-    label: 'Replicas',
-    sortable: (
-      a: CatalogPerformanceMetricsArtifact,
-      b: CatalogPerformanceMetricsArtifact,
-    ): number =>
-      getIntValue(a.customProperties, 'replicas') - getIntValue(b.customProperties, 'replicas'),
-    width: 20,
-    modifier: 'wrap',
-  },
-  {
     field: 'total_requests_per_second',
-    label: `Total${NBSP}RPS`,
+    label: 'Total RPS',
     sortable: (
       a: CatalogPerformanceMetricsArtifact,
       b: CatalogPerformanceMetricsArtifact,
@@ -185,51 +185,6 @@ export const hardwareConfigColumns: HardwareConfigColumn[] = [
     modifier: 'wrap',
   },
   {
-    field: 'tps_mean',
-    label: `TPS${NBSP}Mean`,
-    sortable: (
-      a: CatalogPerformanceMetricsArtifact,
-      b: CatalogPerformanceMetricsArtifact,
-    ): number =>
-      getDoubleValue(a.customProperties, 'tps_mean') -
-      getDoubleValue(b.customProperties, 'tps_mean'),
-    width: 20,
-    modifier: 'wrap',
-  },
-  {
-    field: 'tps_p90',
-    label: `TPS${NBSP}P90`,
-    sortable: (
-      a: CatalogPerformanceMetricsArtifact,
-      b: CatalogPerformanceMetricsArtifact,
-    ): number =>
-      getDoubleValue(a.customProperties, 'tps_p90') - getDoubleValue(b.customProperties, 'tps_p90'),
-    width: 20,
-    modifier: 'wrap',
-  },
-  {
-    field: 'tps_p95',
-    label: `TPS${NBSP}P95`,
-    sortable: (
-      a: CatalogPerformanceMetricsArtifact,
-      b: CatalogPerformanceMetricsArtifact,
-    ): number =>
-      getDoubleValue(a.customProperties, 'tps_p95') - getDoubleValue(b.customProperties, 'tps_p95'),
-    width: 20,
-    modifier: 'wrap',
-  },
-  {
-    field: 'tps_p99',
-    label: `TPS${NBSP}P99`,
-    sortable: (
-      a: CatalogPerformanceMetricsArtifact,
-      b: CatalogPerformanceMetricsArtifact,
-    ): number =>
-      getDoubleValue(a.customProperties, 'tps_p99') - getDoubleValue(b.customProperties, 'tps_p99'),
-    width: 20,
-    modifier: 'wrap',
-  },
-  {
     field: 'itl_mean',
     label: `ITL${NBSP}Latency Mean`,
     sortable: (
@@ -271,6 +226,51 @@ export const hardwareConfigColumns: HardwareConfigColumn[] = [
       b: CatalogPerformanceMetricsArtifact,
     ): number =>
       getDoubleValue(a.customProperties, 'itl_p99') - getDoubleValue(b.customProperties, 'itl_p99'),
+    width: 20,
+    modifier: 'wrap',
+  },
+  {
+    field: 'tps_mean',
+    label: `TPS${NBSP}Mean`,
+    sortable: (
+      a: CatalogPerformanceMetricsArtifact,
+      b: CatalogPerformanceMetricsArtifact,
+    ): number =>
+      getDoubleValue(a.customProperties, 'tps_mean') -
+      getDoubleValue(b.customProperties, 'tps_mean'),
+    width: 20,
+    modifier: 'wrap',
+  },
+  {
+    field: 'tps_p90',
+    label: `TPS${NBSP}P90`,
+    sortable: (
+      a: CatalogPerformanceMetricsArtifact,
+      b: CatalogPerformanceMetricsArtifact,
+    ): number =>
+      getDoubleValue(a.customProperties, 'tps_p90') - getDoubleValue(b.customProperties, 'tps_p90'),
+    width: 20,
+    modifier: 'wrap',
+  },
+  {
+    field: 'tps_p95',
+    label: `TPS${NBSP}P95`,
+    sortable: (
+      a: CatalogPerformanceMetricsArtifact,
+      b: CatalogPerformanceMetricsArtifact,
+    ): number =>
+      getDoubleValue(a.customProperties, 'tps_p95') - getDoubleValue(b.customProperties, 'tps_p95'),
+    width: 20,
+    modifier: 'wrap',
+  },
+  {
+    field: 'tps_p99',
+    label: `TPS${NBSP}P99`,
+    sortable: (
+      a: CatalogPerformanceMetricsArtifact,
+      b: CatalogPerformanceMetricsArtifact,
+    ): number =>
+      getDoubleValue(a.customProperties, 'tps_p99') - getDoubleValue(b.customProperties, 'tps_p99'),
     width: 20,
     modifier: 'wrap',
   },
@@ -328,12 +328,11 @@ export const STICKY_COLUMN_FIELDS: HardwareConfigColumnField[] = [
  * Core metrics: RPS, Replicas, Total RPS, Mean latencies, tokens, vLLM version.
  */
 export const DEFAULT_VISIBLE_COLUMN_FIELDS: HardwareConfigColumnField[] = [
-  'requests_per_second',
   'replicas',
   'total_requests_per_second',
-  'ttft_mean',
-  'e2e_mean',
-  'tps_mean',
+  'requests_per_second',
+  'ttft_p90',
+  'tps_p90',
   'mean_input_tokens',
   'mean_output_tokens',
   'framework_version',
