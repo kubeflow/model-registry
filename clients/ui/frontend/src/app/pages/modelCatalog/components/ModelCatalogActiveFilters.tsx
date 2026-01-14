@@ -1,6 +1,9 @@
 import React from 'react';
 import { ToolbarFilter, ToolbarLabelGroup, ToolbarLabel } from '@patternfly/react-core';
 import { isEnumMember } from 'mod-arch-core';
+import { Theme } from 'mod-arch-kubeflow';
+import { STYLE_THEME } from '~/app/utilities/const';
+import './ModelCatalogActiveFilters.css';
 import { ModelCatalogContext } from '~/app/context/modelCatalog/ModelCatalogContext';
 import {
   ModelCatalogStringFilterKey,
@@ -38,6 +41,8 @@ const ModelCatalogActiveFilters: React.FC<ModelCatalogActiveFiltersProps> = ({ f
     performanceViewEnabled,
     getPerformanceFilterDefaultValue,
   } = React.useContext(ModelCatalogContext);
+
+  const isPatternfly = STYLE_THEME === Theme.Patternfly;
 
   const handleRemoveFilter = (categoryKey: string, labelKey: string) => {
     if (!isCatalogFilterKey(categoryKey)) {
@@ -172,13 +177,26 @@ const ModelCatalogActiveFilters: React.FC<ModelCatalogActiveFiltersProps> = ({ f
 
         const categoryName = MODEL_CATALOG_FILTER_CATEGORY_NAMES[filterKey];
 
+        // Check if this filter has a default value defined
+        // If so, the filter group gets special styling (fa-undo on group, no X on labels)
+        // This indicates to the user that clicking will reset to default, not clear
+        const filterHasDefault =
+          isPatternfly && getPerformanceFilterDefaultValue(filterKey) !== undefined;
+
         // Build labels for ToolbarFilter
         const labels: ToolbarLabel[] = filterValues.map((value) => {
           const valueStr = String(value);
           const labelText = getFilterLabel(filterKey, value);
           return {
             key: valueStr,
-            node: <span data-testid={`${filterKey}-filter-chip-${valueStr}`}>{labelText}</span>,
+            node: (
+              <span
+                data-testid={`${filterKey}-filter-chip-${valueStr}`}
+                {...(filterHasDefault && { 'data-has-default': 'true' })}
+              >
+                {labelText}
+              </span>
+            ),
           };
         });
 
