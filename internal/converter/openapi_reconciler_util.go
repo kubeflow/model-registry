@@ -6,26 +6,25 @@ import (
 	"github.com/kubeflow/model-registry/pkg/openapi"
 )
 
-// getArtifactTypeName returns the type name of an artifact using the GetArtifactType() methods
-// available on each artifact type.
+// getArtifactTypeName returns the type name of an artifact.
 func getArtifactTypeName(art *openapi.Artifact) string {
 	if art == nil {
 		return "unknown"
 	}
 	if art.ModelArtifact != nil {
-		return art.ModelArtifact.GetArtifactType()
+		return string(openapi.ARTIFACTTYPEQUERYPARAM_MODEL_ARTIFACT)
 	}
 	if art.DocArtifact != nil {
-		return art.DocArtifact.GetArtifactType()
+		return string(openapi.ARTIFACTTYPEQUERYPARAM_DOC_ARTIFACT)
 	}
 	if art.DataSet != nil {
-		return art.DataSet.GetArtifactType()
+		return string(openapi.ARTIFACTTYPEQUERYPARAM_DATASET_ARTIFACT)
 	}
 	if art.Metric != nil {
-		return art.Metric.GetArtifactType()
+		return string(openapi.ARTIFACTTYPEQUERYPARAM_METRIC)
 	}
 	if art.Parameter != nil {
-		return art.Parameter.GetArtifactType()
+		return string(openapi.ARTIFACTTYPEQUERYPARAM_PARAMETER)
 	}
 	return "unknown"
 }
