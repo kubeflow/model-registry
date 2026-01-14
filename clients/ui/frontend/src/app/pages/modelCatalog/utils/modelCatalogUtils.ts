@@ -262,9 +262,11 @@ export const getSortParams = (
     return recentPublishSort;
   }
 
-  // Use artifacts.[latencyField].double_value for sorting
+  // activeLatencyField is already in the correct format: artifacts.{metric}_{percentile}.double_value
+  // (e.g., artifacts.ttft_p90.double_value, artifacts.e2e_mean.double_value, artifacts.itl_p95.double_value)
+  // This matches the filter key format used in filterQuery, so we can use it directly
   return {
-    orderBy: `artifacts.${activeLatencyField}.double_value`,
+    orderBy: activeLatencyField,
     sortOrder: 'ASC', // Lowest first (ascending)
   };
 };
