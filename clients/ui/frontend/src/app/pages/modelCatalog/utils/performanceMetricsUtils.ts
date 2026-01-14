@@ -1,7 +1,11 @@
 import { asEnumMember } from 'mod-arch-core';
 import { CatalogPerformanceMetricsArtifact } from '~/app/modelCatalogTypes';
 import { getIntValue, getStringValue } from '~/app/utils';
-import { UseCaseOptionValue, PerformancePropertyKey } from '~/concepts/modelCatalog/const';
+import {
+  UseCaseOptionValue,
+  PerformancePropertyKey,
+  EMPTY_CUSTOM_PROPERTY_VALUE,
+} from '~/concepts/modelCatalog/const';
 import { getUseCaseOption } from './workloadTypeUtils';
 
 export type SliderRange = {
@@ -42,13 +46,13 @@ export const formatTokenValue = (value: number): string => value.toFixed(0);
 export const getWorkloadType = (artifact: CatalogPerformanceMetricsArtifact): string => {
   const useCaseValue = getStringValue(artifact.customProperties, PerformancePropertyKey.USE_CASE);
   if (!useCaseValue) {
-    return '-';
+    return EMPTY_CUSTOM_PROPERTY_VALUE;
   }
   const useCaseEnum = asEnumMember(useCaseValue, UseCaseOptionValue);
   if (!useCaseEnum) {
-    return '-';
+    return EMPTY_CUSTOM_PROPERTY_VALUE;
   }
-  return getUseCaseOption(useCaseEnum)?.label || '-';
+  return getUseCaseOption(useCaseEnum)?.label || EMPTY_CUSTOM_PROPERTY_VALUE;
 };
 
 export const getSliderRange = ({

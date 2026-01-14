@@ -33,6 +33,7 @@ export const useCatalogModelsBySources = (
   searchQuery = '',
   filterData?: ModelCatalogFilterStates,
   filterOptions?: CatalogFilterOptionsList | null,
+  filterQuery?: string,
 ): ModelList => {
   const { api, apiAvailable } = useModelCatalogAPI();
 
@@ -55,9 +56,20 @@ export const useCatalogModelsBySources = (
         searchQuery.trim() || undefined,
         filterData,
         filterOptions,
+        filterQuery,
       );
     },
-    [api, apiAvailable, sourceId, pageSize, searchQuery, filterData, filterOptions, sourceLabel],
+    [
+      api,
+      apiAvailable,
+      sourceId,
+      pageSize,
+      searchQuery,
+      filterData,
+      filterOptions,
+      sourceLabel,
+      filterQuery,
+    ],
   );
 
   const [firstPageData, loaded, error, refetch] = useFetchState(
@@ -93,6 +105,7 @@ export const useCatalogModelsBySources = (
         searchQuery.trim() || undefined,
         filterData,
         filterOptions,
+        filterQuery,
       );
 
       setAllItems((prev) => [...prev, ...response.items]);
@@ -116,6 +129,7 @@ export const useCatalogModelsBySources = (
     sourceLabel,
     filterData,
     filterOptions,
+    filterQuery,
   ]);
 
   React.useEffect(() => {
@@ -123,7 +137,7 @@ export const useCatalogModelsBySources = (
     setTotalSize(0);
     setNextPageToken('');
     setIsLoadingMore(false);
-  }, [sourceId, searchQuery, sourceLabel, filterData, filterOptions]);
+  }, [sourceId, searchQuery, sourceLabel, filterData, filterOptions, filterQuery]);
 
   const refresh = React.useCallback(() => {
     setAllItems([]);

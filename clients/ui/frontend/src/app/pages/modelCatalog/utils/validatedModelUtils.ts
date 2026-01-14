@@ -1,6 +1,7 @@
 import {
   CatalogPerformanceMetricsArtifact,
   CatalogAccuracyMetricsArtifact,
+  CatalogModel,
 } from '~/app/modelCatalogTypes';
 import {
   LatencyFilterKey,
@@ -133,3 +134,20 @@ export const extractValidatedModelMetrics = (
     ...performance,
   };
 };
+
+export const sortModelsWithCurrentFirst = (
+  models: CatalogModel[],
+  currentModelName: string,
+  limit = 4,
+): CatalogModel[] =>
+  [...models]
+    .toSorted((a, b) => {
+      if (a.name === currentModelName) {
+        return -1;
+      }
+      if (b.name === currentModelName) {
+        return 1;
+      }
+      return 0;
+    })
+    .slice(0, limit);

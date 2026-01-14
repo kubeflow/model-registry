@@ -25,6 +25,7 @@ import ModelTimestamp from '~/app/pages/modelRegistry/screens/components/ModelTi
 import ModelPropertiesExpandableSection from '~/app/pages/modelRegistry/screens/components/ModelPropertiesExpandableSection';
 import { ModelRegistryContext } from '~/app/context/ModelRegistryContext';
 import { getLabels, mergeUpdatedLabels } from '~/app/pages/modelRegistry/screens/utils';
+import { EMPTY_CUSTOM_PROPERTY_VALUE } from '~/concepts/modelCatalog/const';
 
 type ModelDetailsCardProps = {
   registeredModel: RegisteredModel;
@@ -118,7 +119,7 @@ const ModelDetailsCard: React.FC<ModelDetailsCardProps> = ({
         popover="The owner is the user who registered the model."
       >
         <Content component="p" data-testid="registered-model-owner">
-          {rm.owner || '-'}
+          {rm.owner || EMPTY_CUSTOM_PROPERTY_VALUE}
         </Content>
       </DashboardDescriptionListGroup>
       <DashboardDescriptionListGroup title="Model ID">

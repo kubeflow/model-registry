@@ -1,4 +1,5 @@
 import { CatalogSourceConfig } from '~/app/modelCatalogTypes';
+import { EMPTY_CUSTOM_PROPERTY_VALUE } from '~/concepts/modelCatalog/const';
 import { isHuggingFaceSource } from './const';
 
 /**
@@ -20,12 +21,12 @@ export const hasSourceFilters = (config: CatalogSourceConfig): boolean => {
  */
 export const getOrganizationDisplay = (config: CatalogSourceConfig, isDefault: boolean): string => {
   if (isDefault) {
-    return '-';
+    return EMPTY_CUSTOM_PROPERTY_VALUE;
   }
 
   if (isHuggingFaceSource(config)) {
-    return config.allowedOrganization || '-';
+    return config.allowedOrganization || EMPTY_CUSTOM_PROPERTY_VALUE;
   }
 
-  return '-';
+  return EMPTY_CUSTOM_PROPERTY_VALUE;
 };

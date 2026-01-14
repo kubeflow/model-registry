@@ -8,7 +8,7 @@ import {
   getWorkloadType,
 } from '~/app/pages/modelCatalog/utils/performanceMetricsUtils';
 import { getDoubleValue, getIntValue, getStringValue } from '~/app/utils';
-import { PerformancePropertyKey } from '~/concepts/modelCatalog/const';
+import { PerformancePropertyKey, EMPTY_CUSTOM_PROPERTY_VALUE } from '~/concepts/modelCatalog/const';
 import {
   HardwareConfigColumnField,
   HardwareConfigColumn,
@@ -37,11 +37,11 @@ const HardwareConfigurationTableRow: React.FC<HardwareConfigurationTableRowProps
         return getDoubleValue(customProperties, PerformancePropertyKey.REQUESTS_PER_SECOND);
       case 'replicas': {
         const replicasValue = getIntValue(customProperties, 'replicas');
-        return replicasValue > 0 ? replicasValue : '-';
+        return replicasValue > 0 ? replicasValue : EMPTY_CUSTOM_PROPERTY_VALUE;
       }
       case 'total_requests_per_second': {
         const targetRpsValue = getDoubleValue(customProperties, 'total_requests_per_second');
-        return targetRpsValue > 0 ? targetRpsValue : '-';
+        return targetRpsValue > 0 ? targetRpsValue : EMPTY_CUSTOM_PROPERTY_VALUE;
       }
       case 'ttft_mean':
       case 'ttft_p90':
@@ -66,7 +66,7 @@ const HardwareConfigurationTableRow: React.FC<HardwareConfigurationTableRowProps
       case 'framework_version':
         return getStringValue(customProperties, field);
       default:
-        return '-';
+        return EMPTY_CUSTOM_PROPERTY_VALUE;
     }
   };
 

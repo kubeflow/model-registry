@@ -339,6 +339,63 @@ class ModelCatalog {
     this.findResetFilterButton().click();
     return this;
   }
+
+  // Compression Comparison Card
+  findCompressionComparisonCard() {
+    return cy.findByTestId('compression-comparison-card');
+  }
+
+  findCompressionComparisonLoading() {
+    return cy.findByTestId('compression-comparison-loading');
+  }
+
+  findCompressionComparisonError() {
+    return cy.findByTestId('compression-comparison-error');
+  }
+
+  findCompressionComparisonEmpty() {
+    return cy.findByTestId('compression-comparison-empty');
+  }
+
+  findCompressionVariant(index: number) {
+    return cy.findByTestId(`compression-variant-${index}`);
+  }
+
+  findCompressionVariantLogo(index: number) {
+    return cy.findByTestId(`compression-logo-${index}`);
+  }
+
+  findCompressionVariantSkeleton(index: number) {
+    return cy.findByTestId(`compression-skeleton-${index}`);
+  }
+
+  findCompressionVariantLink(index: number) {
+    return cy.findByTestId(`compression-link-${index}`);
+  }
+
+  findCompressionTensorType(index: number) {
+    return cy.findByTestId(`compression-tensor-type-${index}`);
+  }
+
+  findCompressionCurrentModelName() {
+    return cy.findByTestId('compression-current-model-name');
+  }
+
+  findCompressionCurrentLabel() {
+    return cy.findByTestId('compression-current-label');
+  }
+
+  findAllCompressionCurrentLabels() {
+    return cy.findAllByTestId('compression-current-label');
+  }
+
+  findCompressionDivider(index: number) {
+    return cy.findByTestId(`compression-divider-${index}`);
+  }
+
+  findAllCompressionVariants() {
+    return cy.get('[data-testid^="compression-variant-"]');
+  }
 }
 
 export const modelCatalog = new ModelCatalog();

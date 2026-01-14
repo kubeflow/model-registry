@@ -14,6 +14,7 @@ import React from 'react';
 import { useDebounceCallback } from 'mod-arch-shared';
 import { ModelVersion, RegisteredModel } from '~/app/types';
 import { getLabels } from '~/app/pages/modelRegistry/screens/utils';
+import { EMPTY_CUSTOM_PROPERTY_VALUE } from '~/concepts/modelCatalog/const';
 
 // Threshold count to decide whether to choose modal or popover
 const MODAL_THRESHOLD = 4;
@@ -119,7 +120,7 @@ const ModelLabels: React.FC<ModelLabelsProps> = ({ name, customProperties }) => 
   ) : null;
 
   if (Object.keys(customProperties).length === 0) {
-    return '-';
+    return EMPTY_CUSTOM_PROPERTY_VALUE;
   }
 
   return (

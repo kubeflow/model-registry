@@ -568,3 +568,5 @@ export enum ModelDetailsTab {
   OVERVIEW = 'overview',
   PERFORMANCE_INSIGHTS = 'performance-insights',
 }
+
+export const EMPTY_CUSTOM_PROPERTY_VALUE = '-';

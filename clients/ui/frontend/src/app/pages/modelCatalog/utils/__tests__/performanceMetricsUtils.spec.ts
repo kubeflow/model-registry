@@ -1,6 +1,10 @@
 /* eslint-disable camelcase */
 import { ModelRegistryMetadataType } from '~/app/types';
-import { UseCaseOptionValue, PerformancePropertyKey } from '~/concepts/modelCatalog/const';
+import {
+  UseCaseOptionValue,
+  PerformancePropertyKey,
+  EMPTY_CUSTOM_PROPERTY_VALUE,
+} from '~/concepts/modelCatalog/const';
 import { mockCatalogPerformanceMetricsArtifact } from '~/__mocks__';
 import {
   getHardwareConfiguration,
@@ -193,7 +197,7 @@ describe('performanceMetricsUtils', () => {
       if (artifact.customProperties) {
         delete artifact.customProperties.use_case;
       }
-      expect(getWorkloadType(artifact)).toBe('-');
+      expect(getWorkloadType(artifact)).toBe(EMPTY_CUSTOM_PROPERTY_VALUE);
     });
 
     it('should return "-" when use_case is empty string', () => {
@@ -205,7 +209,7 @@ describe('performanceMetricsUtils', () => {
           },
         },
       });
-      expect(getWorkloadType(artifact)).toBe('-');
+      expect(getWorkloadType(artifact)).toBe(EMPTY_CUSTOM_PROPERTY_VALUE);
     });
 
     it('should return "-" when use_case is not a valid enum value', () => {
@@ -217,7 +221,7 @@ describe('performanceMetricsUtils', () => {
           },
         },
       });
-      expect(getWorkloadType(artifact)).toBe('-');
+      expect(getWorkloadType(artifact)).toBe(EMPTY_CUSTOM_PROPERTY_VALUE);
     });
 
     it('should handle code_fixing with underscores', () => {
@@ -247,7 +251,7 @@ describe('performanceMetricsUtils', () => {
     it('should return "-" when customProperties is undefined', () => {
       const artifact = mockCatalogPerformanceMetricsArtifact();
       artifact.customProperties = undefined;
-      expect(getWorkloadType(artifact)).toBe('-');
+      expect(getWorkloadType(artifact)).toBe(EMPTY_CUSTOM_PROPERTY_VALUE);
     });
   });
 });

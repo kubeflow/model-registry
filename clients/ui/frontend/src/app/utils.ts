@@ -5,6 +5,7 @@ import {
   ModelVersion,
   RegisteredModel,
 } from '~/app/types';
+import { EMPTY_CUSTOM_PROPERTY_VALUE } from '~/concepts/modelCatalog/const';
 
 export type ObjectStorageFields = {
   endpoint: string;
@@ -94,7 +95,7 @@ export const getStringValue = <T extends ModelRegistryCustomProperties>(
   if (prop && prop.metadataType === ModelRegistryMetadataType.STRING) {
     return prop.string_value;
   }
-  return '-';
+  return EMPTY_CUSTOM_PROPERTY_VALUE;
 };
 export const getIntValue = <T extends ModelRegistryCustomProperties>(
   customProperties: T | undefined,
