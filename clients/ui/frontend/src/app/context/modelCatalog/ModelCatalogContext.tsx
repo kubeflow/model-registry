@@ -22,12 +22,14 @@ import {
   DEFAULT_PERFORMANCE_FILTERS_QUERY_NAME,
   ALL_LATENCY_FILTER_KEYS,
   isLatencyFilterKey,
+  ModelCatalogSortOption,
 } from '~/concepts/modelCatalog/const';
 import {
   getSingleFilterDefault,
   applyFilterValue,
   getDefaultFiltersFromNamedQuery,
 } from '~/app/pages/modelCatalog/utils/performanceFilterUtils';
+import { getEffectiveSortBy } from '~/app/pages/modelCatalog/utils/modelCatalogUtils';
 import { BFF_API_VERSION, URL_PREFIX } from '~/app/utilities/const';
 
 export type ModelCatalogContextType = {
@@ -58,6 +60,8 @@ export type ModelCatalogContextType = {
   getPerformanceFilterDefaultValue: (
     filterKey: keyof ModelCatalogFilterStates,
   ) => string | number | string[] | undefined;
+  sortBy: ModelCatalogSortOption | null;
+  setSortBy: (sortBy: ModelCatalogSortOption | null) => void;
 };
 
 type ModelCatalogContextProviderProps = {
@@ -97,6 +101,8 @@ export const ModelCatalogContext = React.createContext<ModelCatalogContextType>(
   resetPerformanceFiltersToDefaults: () => undefined,
   resetSinglePerformanceFilterToDefault: () => undefined,
   getPerformanceFilterDefaultValue: () => undefined,
+  sortBy: null,
+  setSortBy: () => undefined,
 });
 
 export const ModelCatalogContextProvider: React.FC<ModelCatalogContextProviderProps> = ({
@@ -127,6 +133,7 @@ export const ModelCatalogContextProvider: React.FC<ModelCatalogContextProviderPr
   const [basePerformanceViewEnabled, setBasePerformanceViewEnabled] = React.useState(false);
   const [performanceFiltersChangedOnDetailsPage, setPerformanceFiltersChangedOnDetailsPage] =
     React.useState(false);
+  const [sortBy, setSortBy] = React.useState<ModelCatalogSortOption | null>(null);
 
   const location = useLocation();
   const isOnDetailsPage = location.pathname.includes(ModelDetailsTab.PERFORMANCE_INSIGHTS);
@@ -191,6 +198,17 @@ export const ModelCatalogContextProvider: React.FC<ModelCatalogContextProviderPr
       // When toggle changes, ensure defaults are applied.
       // When toggle is OFF, filters are just not passed in API calls or shown as chips.
       resetPerformanceFiltersToDefaults();
+
+      // Update sort to default for the new toggle state, preserving user selection if it doesn't match the opposite default
+      const defaultSort = getEffectiveSortBy(null, enabled);
+      const oppositeDefault = getEffectiveSortBy(null, !enabled);
+      setSortBy((currentSortBy) => {
+        if (currentSortBy === null || currentSortBy === oppositeDefault) {
+          return defaultSort;
+        }
+        return currentSortBy;
+      });
+
       if (!enabled) {
         setPerformanceFiltersChangedOnDetailsPage(false);
       }
@@ -287,6 +305,8 @@ export const ModelCatalogContextProvider: React.FC<ModelCatalogContextProviderPr
       resetPerformanceFiltersToDefaults,
       resetSinglePerformanceFilterToDefault,
       getPerformanceFilterDefaultValue: getDefaultValueForPerformanceFilter,
+      sortBy,
+      setSortBy,
     }),
     [
       catalogSourcesLoaded,
@@ -309,6 +329,8 @@ export const ModelCatalogContextProvider: React.FC<ModelCatalogContextProviderPr
       resetPerformanceFiltersToDefaults,
       resetSinglePerformanceFilterToDefault,
       getDefaultValueForPerformanceFilter,
+      sortBy,
+      setSortBy,
     ],
   );
 

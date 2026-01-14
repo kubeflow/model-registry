@@ -34,6 +34,8 @@ export const useCatalogModelsBySources = (
   filterData?: ModelCatalogFilterStates,
   filterOptions?: CatalogFilterOptionsList | null,
   filterQuery?: string,
+  sortBy?: string | null,
+  sortOrder?: string,
 ): ModelList => {
   const { api, apiAvailable } = useModelCatalogAPI();
 
@@ -52,7 +54,11 @@ export const useCatalogModelsBySources = (
         opts,
         sourceId,
         sourceLabel,
-        { pageSize: pageSize.toString() },
+        {
+          pageSize: pageSize.toString(),
+          ...(sortBy && { orderBy: sortBy }),
+          ...(sortOrder && { sortOrder }),
+        },
         searchQuery.trim() || undefined,
         filterData,
         filterOptions,
@@ -69,6 +75,8 @@ export const useCatalogModelsBySources = (
       filterOptions,
       sourceLabel,
       filterQuery,
+      sortBy,
+      sortOrder,
     ],
   );
 
@@ -101,6 +109,8 @@ export const useCatalogModelsBySources = (
         {
           pageSize: pageSize.toString(),
           nextPageToken,
+          ...(sortBy && { orderBy: sortBy }),
+          ...(sortOrder && { sortOrder }),
         },
         searchQuery.trim() || undefined,
         filterData,
@@ -130,6 +140,8 @@ export const useCatalogModelsBySources = (
     filterData,
     filterOptions,
     filterQuery,
+    sortBy,
+    sortOrder,
   ]);
 
   React.useEffect(() => {
@@ -137,7 +149,16 @@ export const useCatalogModelsBySources = (
     setTotalSize(0);
     setNextPageToken('');
     setIsLoadingMore(false);
-  }, [sourceId, searchQuery, sourceLabel, filterData, filterOptions, filterQuery]);
+  }, [
+    sourceId,
+    searchQuery,
+    sourceLabel,
+    filterData,
+    filterOptions,
+    filterQuery,
+    sortBy,
+    sortOrder,
+  ]);
 
   const refresh = React.useCallback(() => {
     setAllItems([]);

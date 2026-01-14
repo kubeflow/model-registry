@@ -23,6 +23,9 @@ import {
   DEFAULT_PERFORMANCE_FILTERS_QUERY_NAME,
   isPerformanceStringFilterKey,
   PERFORMANCE_FILTER_KEYS,
+  ModelCatalogSortOption,
+  SortOrder,
+  SortField,
 } from '~/concepts/modelCatalog/const';
 import { CatalogSourceStatus } from '~/concepts/modelCatalogSettings/const';
 
@@ -221,6 +224,55 @@ export const getActiveLatencyFieldName = (
   return undefined;
 };
 
+export const getEffectiveSortBy = (
+  sortBy: ModelCatalogSortOption | null,
+  performanceViewEnabled: boolean,
+): ModelCatalogSortOption => {
+  if (sortBy) {
+    return sortBy;
+  }
+  return performanceViewEnabled
+    ? ModelCatalogSortOption.LOWEST_LATENCY
+    : ModelCatalogSortOption.RECENT_PUBLISH;
+};
+
+/**
+ * Gets the sort parameters for API requests based on sort option and filter state.
+ * @param sortBy - The selected sort option (or null for default)
+ * @param performanceViewEnabled - Whether performance view is enabled
+ * @param activeLatencyField - The active latency field name (if any)
+ * @returns Object with orderBy and sortOrder for API requests
+ */
+export const getSortParams = (
+  sortBy: ModelCatalogSortOption | null,
+  performanceViewEnabled: boolean,
+  activeLatencyField: LatencyMetricFieldName | undefined,
+): { orderBy: string; sortOrder: string } => {
+  const effectiveSortBy = getEffectiveSortBy(sortBy, performanceViewEnabled);
+  const recentPublishSort = {
+    orderBy: SortField.LAST_UPDATE_TIME,
+    sortOrder: SortOrder.DESC,
+  } as const;
+
+  if (effectiveSortBy === ModelCatalogSortOption.RECENT_PUBLISH) {
+    return recentPublishSort;
+  }
+
+  // effectiveSortBy must be LOWEST_LATENCY at this point
+  if (!activeLatencyField) {
+    // Fallback to recent publish if no latency field is available
+    return recentPublishSort;
+  }
+
+  // activeLatencyField is already in the correct format: artifacts.{metric}_{percentile}.double_value
+  // (e.g., artifacts.ttft_p90.double_value, artifacts.e2e_mean.double_value, artifacts.itl_p95.double_value)
+  // This matches the filter key format used in filterQuery, so we can use it directly
+  return {
+    orderBy: activeLatencyField,
+    sortOrder: SortOrder.ASC, // Lowest first (ascending)
+  };
+};
+
 const wrapInQuotes = (v: string): string => `'${v}'`;
 
 const eqFilter = (k: string, v: string) => `${k}=${wrapInQuotes(v)}`;
@@ -239,7 +291,7 @@ const hasArtifactsPrefix = (filterId: string): boolean =>
  * Used when constructing filterQuery for artifacts endpoint.
  * Example: 'artifacts.use_case.string_value' -> 'use_case.string_value'
  */
-const stripArtifactsPrefix = (filterId: string): string => {
+export const stripArtifactsPrefix = (filterId: string): string => {
   if (hasArtifactsPrefix(filterId)) {
     return filterId.substring(ARTIFACTS_FILTER_PREFIX.length);
   }

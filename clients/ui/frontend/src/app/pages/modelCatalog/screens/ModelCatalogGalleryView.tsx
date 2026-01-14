@@ -18,6 +18,8 @@ import {
   getSourceFromSourceId,
   hasFiltersApplied,
   getBasicFiltersOnly,
+  getActiveLatencyFieldName,
+  getSortParams,
 } from '~/app/pages/modelCatalog/utils/modelCatalogUtils';
 import EmptyModelCatalogState from '~/app/pages/modelCatalog/EmptyModelCatalogState';
 import ScrollViewOnMount from '~/app/shared/components/ScrollViewOnMount';
@@ -39,6 +41,7 @@ const ModelCatalogGalleryView: React.FC<ModelCatalogPageProps> = ({
     filterOptionsLoadError,
     catalogSources,
     performanceViewEnabled,
+    sortBy,
   } = React.useContext(ModelCatalogContext);
   const filtersApplied = hasFiltersApplied(filterData);
 
@@ -49,6 +52,18 @@ const ModelCatalogGalleryView: React.FC<ModelCatalogPageProps> = ({
     [performanceViewEnabled, filterData],
   );
 
+  // Optimize: Only track the active latency field instead of entire filterData
+  // This prevents unnecessary recalculations when non-latency filters change
+  const activeLatencyField = React.useMemo(
+    () => getActiveLatencyFieldName(filterData),
+    [filterData],
+  );
+
+  const sortParams = React.useMemo(
+    () => getSortParams(sortBy, performanceViewEnabled, activeLatencyField),
+    [sortBy, performanceViewEnabled, activeLatencyField],
+  );
+
   const { catalogModels, catalogModelsLoaded, catalogModelsLoadError } = useCatalogModelsBySources(
     '',
     selectedSourceLabel === 'All models' ? undefined : selectedSourceLabel,
@@ -56,6 +71,9 @@ const ModelCatalogGalleryView: React.FC<ModelCatalogPageProps> = ({
     searchTerm,
     effectiveFilterData,
     filterOptions,
+    undefined, // filterQuery - will be computed from filterData and filterOptions
+    sortParams.orderBy,
+    sortParams.sortOrder,
   );
 
   const loaded = catalogModelsLoaded && filterOptionsLoaded;

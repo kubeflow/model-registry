@@ -573,3 +573,17 @@ export enum ModelDetailsTab {
 }
 
 export const EMPTY_CUSTOM_PROPERTY_VALUE = '-';
+
+export enum ModelCatalogSortOption {
+  RECENT_PUBLISH = 'recent_publish',
+  LOWEST_LATENCY = 'lowest_latency',
+}
+
+export enum SortOrder {
+  ASC = 'ASC',
+  DESC = 'DESC',
+}
+
+export enum SortField {
+  LAST_UPDATE_TIME = 'LAST_UPDATE_TIME',
+}
