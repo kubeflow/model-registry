@@ -319,7 +319,7 @@ export const hardwareConfigColumns: HardwareConfigColumn[] = [
  * These will not appear in the ManageColumnsModal.
  */
 export const STICKY_COLUMN_FIELDS: HardwareConfigColumnField[] = [
-  PerformancePropertyKey.HARDWARE_TYPE,
+  PerformancePropertyKey.HARDWARE_CONFIGURATION,
   PerformancePropertyKey.USE_CASE,
 ];
 
