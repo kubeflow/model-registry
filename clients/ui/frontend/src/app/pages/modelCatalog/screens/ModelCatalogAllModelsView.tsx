@@ -47,13 +47,13 @@ const ModelCatalogAllModelsView: React.FC<ModelCatalogAllModelsViewProps> = ({ s
       ))}
       {hasSourcesWithoutLabelsValue && (
         <CatalogCategorySection
-          key={CategoryName.communityAndCustomModels}
+          key={CategoryName.otherModels}
           label={SourceLabel.other}
           searchTerm={searchTerm}
           pageSize={4}
           catalogSources={catalogSources}
           onShowMore={handleShowMoreCategory}
-          displayName={CategoryName.communityAndCustomModels}
+          displayName={CategoryName.otherModels}
         />
       )}
     </Stack>

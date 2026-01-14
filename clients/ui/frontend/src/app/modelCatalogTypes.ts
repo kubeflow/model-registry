@@ -67,7 +67,7 @@ export enum MetricsType {
 
 export enum CategoryName {
   allModels = 'All models',
-  communityAndCustomModels = 'Community and custom',
+  otherModels = 'Other models',
 }
 
 export enum SourceLabel {

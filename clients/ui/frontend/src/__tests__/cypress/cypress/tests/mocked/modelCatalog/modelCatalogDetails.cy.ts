@@ -46,7 +46,7 @@ describe('Model Catalog Details Page - Filter State Management', () => {
   });
 
   it('should persist filter state when navigating between Overview and Performance Insights tabs', () => {
-    modelCatalog.visit({ enableTempDevCatalogAdvancedFiltersFeature: true });
+    modelCatalog.visit();
     modelCatalog.findLoadingState().should('not.exist');
     modelCatalog.togglePerformanceView();
     modelCatalog.findLoadingState().should('not.exist');
@@ -70,7 +70,7 @@ describe('Model Catalog Details Page - Filter State Management', () => {
   });
 
   it('should sync filter changes back to catalog page', () => {
-    modelCatalog.visit({ enableTempDevCatalogAdvancedFiltersFeature: true });
+    modelCatalog.visit();
     modelCatalog.findLoadingState().should('not.exist');
     modelCatalog.togglePerformanceView();
     modelCatalog.findLoadingState().should('not.exist');
