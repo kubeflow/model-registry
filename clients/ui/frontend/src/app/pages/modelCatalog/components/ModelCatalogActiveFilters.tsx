@@ -38,7 +38,6 @@ const ModelCatalogActiveFilters: React.FC<ModelCatalogActiveFiltersProps> = ({ f
     filterData,
     setFilterData,
     resetSinglePerformanceFilterToDefault,
-    performanceViewEnabled,
     getPerformanceFilterDefaultValue,
   } = React.useContext(ModelCatalogContext);
 
@@ -162,11 +161,10 @@ const ModelCatalogActiveFilters: React.FC<ModelCatalogActiveFiltersProps> = ({ f
           return null;
         }
 
-        const isPerf = performanceViewEnabled && isPerformanceFilterKey(filterKey);
-
-        // For performance filters, skip if value matches the default
-        if (isPerf) {
-          const defaultValue = getPerformanceFilterDefaultValue(filterKey);
+        // For any filter with a default value, skip if value matches the default
+        // This ensures consistent behavior across all pages (landing, details, etc.)
+        const defaultValue = getPerformanceFilterDefaultValue(filterKey);
+        if (defaultValue !== undefined) {
           if (!isValueDifferentFromDefault(filterValue, defaultValue)) {
             return null;
           }

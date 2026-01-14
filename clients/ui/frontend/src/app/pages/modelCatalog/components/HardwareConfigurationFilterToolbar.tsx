@@ -13,7 +13,6 @@ import {
   getPerformanceFiltersToShow,
   getAllFiltersToShow,
   BASIC_FILTER_KEYS,
-  isPerformanceFilterKey,
 } from '~/concepts/modelCatalog/const';
 import { isValueDifferentFromDefault } from '~/app/pages/modelCatalog/utils/modelCatalogUtils';
 import WorkloadTypeFilter from './globalFilters/WorkloadTypeFilter';
@@ -61,8 +60,8 @@ const HardwareConfigurationFilterToolbar: React.FC<HardwareConfigurationFilterTo
 
   // Check if there are any visible filter chips (to control "Clear all filters" button visibility)
   // A chip is visible if:
-  // - For basic filters: has a non-empty value
-  // - For performance filters: has a value different from the default (regardless of toggle state)
+  // - For filters with defaults: has a value different from the default
+  // - For filters without defaults: has a non-empty value
   const hasVisibleChips = React.useMemo(
     () =>
       filtersToShow.some((filterKey) => {
@@ -78,14 +77,13 @@ const HardwareConfigurationFilterToolbar: React.FC<HardwareConfigurationFilterTo
           return false;
         }
 
-        // For performance filters, always check if value differs from default
-        // (performance filters always have values - defaults when not explicitly set)
-        if (isPerformanceFilterKey(filterKey)) {
-          const defaultValue = getPerformanceFilterDefaultValue(filterKey);
+        // For any filter with a default value, check if current value differs from default
+        const defaultValue = getPerformanceFilterDefaultValue(filterKey);
+        if (defaultValue !== undefined) {
           return isValueDifferentFromDefault(filterValue, defaultValue);
         }
 
-        // For basic filters, any non-empty value means visible
+        // For filters without defaults, any non-empty value means visible
         return true;
       }),
     [filtersToShow, filterData, getPerformanceFilterDefaultValue],
