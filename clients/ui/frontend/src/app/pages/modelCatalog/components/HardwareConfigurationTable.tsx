@@ -30,7 +30,7 @@ const HardwareConfigurationTable: React.FC<HardwareConfigurationTableProps> = ({
   const activeLatencyField = getActiveLatencyFieldName(filterData);
 
   // Use the custom hook that combines manage columns with latency filter effects
-  const { columns, managedColumns, setVisibleColumnIds } =
+  const { columns, managedColumns, setVisibleColumnIds, defaultColumnIds } =
     useHardwareConfigColumns(activeLatencyField);
 
   if (isLoading) {
@@ -91,6 +91,7 @@ const HardwareConfigurationTable: React.FC<HardwareConfigurationTableProps> = ({
         columns={managedColumns}
         description="Select which columns to display in the hardware configuration table."
         dataTestId="hardware-config-manage-columns"
+        defaultColumnIds={defaultColumnIds}
       />
     </>
   );

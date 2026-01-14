@@ -1,7 +1,16 @@
 // TODO this component was copied from odh-dashboard temporarily and should be abstracted out into mod-arch-shared.
 
 import React from 'react';
-import { Checkbox, Flex, FlexItem, Label, Stack, StackItem, Tooltip } from '@patternfly/react-core';
+import {
+  Button,
+  Checkbox,
+  Flex,
+  FlexItem,
+  Label,
+  Stack,
+  StackItem,
+  Tooltip,
+} from '@patternfly/react-core';
 import {
   DragDropSort,
   DragDropSortDragEndEvent,
@@ -36,6 +45,8 @@ export interface ManageColumnsModalProps {
   searchPlaceholder?: string;
   /** Test ID prefix for data-testid attributes */
   dataTestId?: string;
+  /** Default column IDs for the "Restore default columns" feature. If not provided, the restore button is hidden. */
+  defaultColumnIds?: string[];
 }
 
 export const ManageColumnsModal: React.FC<ManageColumnsModalProps> = ({
@@ -49,6 +60,7 @@ export const ManageColumnsModal: React.FC<ManageColumnsModalProps> = ({
   maxSelectionsTooltip = 'Maximum columns selected.',
   searchPlaceholder = 'Filter by column name',
   dataTestId = 'manage-columns-modal',
+  defaultColumnIds,
 }) => {
   const [columns, setColumns] = React.useState<ManagedColumn[]>(initialColumns);
   const [searchValue, setSearchValue] = React.useState('');
@@ -98,6 +110,25 @@ export const ManageColumnsModal: React.FC<ManageColumnsModalProps> = ({
     [columnsMatchingSearch],
   );
 
+  const handleRestoreDefaults = React.useCallback(() => {
+    if (!defaultColumnIds) {
+      return;
+    }
+    // Update visibility based on default column IDs
+    // Also reorder to put default columns first in their original order
+    setColumns((prev) => {
+      const defaultSet = new Set(defaultColumnIds);
+      const defaultColumns = defaultColumnIds
+        .map((id) => prev.find((col) => col.id === id))
+        .filter((col): col is ManagedColumn => col !== undefined)
+        .map((col) => ({ ...col, isVisible: true }));
+      const nonDefaultColumns = prev
+        .filter((col) => !defaultSet.has(col.id))
+        .map((col) => ({ ...col, isVisible: false }));
+      return [...defaultColumns, ...nonDefaultColumns];
+    });
+  }, [defaultColumnIds]);
+
   if (!isOpen) {
     return null;
   }
@@ -129,9 +160,28 @@ export const ManageColumnsModal: React.FC<ManageColumnsModalProps> = ({
         />
       </StackItem>
       <StackItem>
-        <Label>
-          {selectedCount} / total {columns.length} selected
-        </Label>
+        <Flex
+          justifyContent={{ default: 'justifyContentSpaceBetween' }}
+          alignItems={{ default: 'alignItemsCenter' }}
+        >
+          <FlexItem>
+            <Label>
+              {selectedCount} / total {columns.length} selected
+            </Label>
+          </FlexItem>
+          {defaultColumnIds && (
+            <FlexItem>
+              <Button
+                variant="link"
+                isInline
+                onClick={handleRestoreDefaults}
+                data-testid={`${dataTestId}-restore-defaults`}
+              >
+                Restore default columns
+              </Button>
+            </FlexItem>
+          )}
+        </Flex>
       </StackItem>
     </Stack>
   );

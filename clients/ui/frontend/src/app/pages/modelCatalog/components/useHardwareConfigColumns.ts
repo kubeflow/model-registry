@@ -31,6 +31,8 @@ interface UseHardwareConfigColumnsResult {
   setVisibleColumnIds: (ids: string[]) => void;
   /** Currently visible column IDs */
   visibleColumnIds: string[];
+  /** Default column IDs for the restore defaults feature */
+  defaultColumnIds: string[];
 }
 
 /**
@@ -162,5 +164,6 @@ export const useHardwareConfigColumns = (
     managedColumns,
     setVisibleColumnIds,
     visibleColumnIds,
+    defaultColumnIds: DEFAULT_VISIBLE_COLUMN_FIELDS,
   };
 };
