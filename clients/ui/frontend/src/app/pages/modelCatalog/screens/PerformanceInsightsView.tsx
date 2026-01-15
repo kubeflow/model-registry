@@ -42,7 +42,6 @@ const PerformanceInsightsView: React.FC<PerformanceInsightsViewProps> = ({ model
     filterData,
     filterOptions,
     filterOptionsLoaded,
-    performanceViewEnabled,
     setPerformanceFiltersChangedOnDetailsPage,
     setFilterData,
   } = React.useContext(ModelCatalogContext);
@@ -72,20 +71,16 @@ const PerformanceInsightsView: React.FC<PerformanceInsightsViewProps> = ({ model
   }, [filterOptionsLoaded]);
 
   // Get performance-specific filter params for the /performance_artifacts endpoint
-  // Only apply performance filters when toggle is ON
-  const targetRPS = performanceViewEnabled
-    ? filterData[ModelCatalogNumberFilterKey.MAX_RPS]
-    : undefined;
+  const targetRPS = filterData[ModelCatalogNumberFilterKey.MAX_RPS];
+
   // Get full filter key and convert to short property key for the catalog API
-  const latencyFieldName = performanceViewEnabled
-    ? getActiveLatencyFieldName(filterData)
-    : undefined;
+  const latencyFieldName = getActiveLatencyFieldName(filterData);
+
   const latencyProperty = latencyFieldName
     ? parseLatencyFilterKey(latencyFieldName).propertyKey
     : undefined;
 
   // Fetch performance artifacts from server with filtering/sorting/pagination
-  // When toggle is OFF, don't pass filterData so no perf filters are applied
   const [performanceArtifactsList, performanceArtifactsLoaded, performanceArtifactsError] =
     useCatalogPerformanceArtifacts(
       decodedParams.sourceId || '',
@@ -98,8 +93,8 @@ const PerformanceInsightsView: React.FC<PerformanceInsightsViewProps> = ({ model
         //      we need to implement proper cursor-based pagination in the performance artifacts table.
         pageSize: '99999',
       },
-      performanceViewEnabled ? filterData : undefined,
-      performanceViewEnabled ? filterOptions : undefined,
+      filterData,
+      filterOptions,
     );
 
   React.useEffect(() => {
