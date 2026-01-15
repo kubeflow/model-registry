@@ -314,7 +314,7 @@ describe('Model Catalog Details Tabs', () => {
         // TPS P90 column should be visible (matching percentile)
         modelCatalog
           .findHardwareConfigurationTableHeaders()
-          .should('contain.text', `TPS${NBSP}Latency P90`);
+          .should('contain.text', `TPS${NBSP}P90`);
       });
     });
 
@@ -337,7 +337,7 @@ describe('Model Catalog Details Tabs', () => {
         // TPS P90 column should be visible (matching percentile)
         modelCatalog
           .findHardwareConfigurationTableHeaders()
-          .should('contain.text', `TPS${NBSP}Latency P90`);
+          .should('contain.text', `TPS${NBSP}P90`);
 
         // E2E and ITL columns should be hidden
         modelCatalog.findHardwareConfigurationTableHeaders().should('not.contain.text', 'E2E');
@@ -368,7 +368,7 @@ describe('Model Catalog Details Tabs', () => {
         // TPS Mean column should be visible (matching percentile)
         modelCatalog
           .findHardwareConfigurationTableHeaders()
-          .should('contain.text', `TPS${NBSP}Latency Mean`);
+          .should('contain.text', `TPS${NBSP}Mean`);
 
         // TTFT and ITL columns should be hidden
         modelCatalog.findHardwareConfigurationTableHeaders().should('not.contain.text', 'TTFT');
@@ -405,7 +405,7 @@ describe('Model Catalog Details Tabs', () => {
           .should('contain.text', `TTFT${NBSP}Latency P90`);
         modelCatalog
           .findHardwareConfigurationTableHeaders()
-          .should('contain.text', `TPS${NBSP}Latency P90`);
+          .should('contain.text', `TPS${NBSP}P90`);
         // E2E and ITL should NOT be visible (filter is applied, not cleared)
         modelCatalog.findHardwareConfigurationTableHeaders().should('not.contain.text', 'E2E');
         modelCatalog.findHardwareConfigurationTableHeaders().should('not.contain.text', 'ITL');
@@ -422,7 +422,7 @@ describe('Model Catalog Details Tabs', () => {
         // Non-latency columns should still be visible
         modelCatalog
           .findHardwareConfigurationTableHeaders()
-          .should('contain.text', 'Hardware Configuration');
+          .should('contain.text', 'Hardware configuration');
         modelCatalog
           .findHardwareConfigurationTableHeaders()
           .should('contain.text', 'Workload type');

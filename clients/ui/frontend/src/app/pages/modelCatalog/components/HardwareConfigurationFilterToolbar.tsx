@@ -27,12 +27,15 @@ type HardwareConfigurationFilterToolbarProps = {
   includeBasicFilters?: boolean;
   /** If true, shows performance filter chips. Landing page passes performanceViewEnabled, details page passes true. */
   includePerformanceFilters?: boolean;
+  /** Optional content to render at the end of the toolbar (e.g., manage columns button). */
+  toolbarActions?: React.ReactNode;
 };
 
 const HardwareConfigurationFilterToolbar: React.FC<HardwareConfigurationFilterToolbarProps> = ({
   onResetAllFilters,
   includeBasicFilters = false,
   includePerformanceFilters = true,
+  toolbarActions,
 }) => {
   const {
     filterOptions,
@@ -155,6 +158,12 @@ const HardwareConfigurationFilterToolbar: React.FC<HardwareConfigurationFilterTo
           <ToolbarItem>
             <HardwareConfigurationFilter />
           </ToolbarItem>
+          {toolbarActions && (
+            <>
+              <ToolbarItem variant="separator" />
+              <ToolbarItem>{toolbarActions}</ToolbarItem>
+            </>
+          )}
         </ToolbarGroup>
         <ModelCatalogActiveFilters filtersToShow={filtersToShow} />
       </ToolbarContent>
