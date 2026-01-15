@@ -804,6 +804,16 @@ Granite 3.1 Instruct Models are primarily finetuned using instruction-response p
 		SourceId:    stringToPointer("adminModel1"),
 	}
 
+	noPerformanceModel := models.CatalogModel{
+		Name:        "no-perf-source/test-model",
+		Description: stringToPointer("Model without performance data"),
+		Provider:    stringToPointer("Test Provider"),
+		Tasks:       []string{"text-generation"},
+		License:     stringToPointer("apache-2.0"),
+		Language:    []string{"en"},
+		SourceId:    stringToPointer("no-perf-source"),
+	}
+
 	// added this to test the load more models button
 	var additionalRepo1Models []models.CatalogModel
 	for i := 1; i <= 20; i++ {
@@ -828,7 +838,7 @@ Granite 3.1 Instruct Models are primarily finetuned using instruction-response p
 
 	allModels := []models.CatalogModel{
 		sampleModel1, sampleModel2, sampleModel3, sampleModel4,
-		huggingFaceModel1, huggingFaceModel2, huggingFaceModel3,
+		huggingFaceModel1, huggingFaceModel2, huggingFaceModel3, noPerformanceModel,
 		otherModel1, otherModel2,
 	}
 	allModels = append(allModels, additionalRepo1Models...)
@@ -902,6 +912,13 @@ func GetCatalogSourceMocks() []models.CatalogSource {
 			Enabled: &disabledBool,
 			Labels:  []string{},
 			Status:  &disabledStatus,
+		},
+		{
+			Id:      "no-perf-source",
+			Name:    "No Performance Data Source",
+			Enabled: &enabled,
+			Labels:  []string{"No Performance"},
+			Status:  &availableStatus,
 		},
 	}
 }
@@ -2076,17 +2093,17 @@ func GetNamedQueriesMocks() map[string]map[string]models.FieldFilter {
 	// Default performance filters - applied when performance toggle is turned on
 	// Uses full filter key format matching the filters map
 	namedQueries["default-performance-filters"] = map[string]models.FieldFilter{
-		"artifacts.use_case.string_value": {
-			Operator: "=",
-			Value:    "chatbot", // UseCaseOptionValue.CHATBOT
+		"artifacts.requests_per_second.double_value": {
+			Operator: "<=",
+			Value:    float64(1),
 		},
 		"artifacts.ttft_p90.double_value": {
 			Operator: "<=",
-			Value:    "max", // 'max' means use the max value from the range in filters
+			Value:    float64(892.6553726196289),
 		},
-		"artifacts.requests_per_second.double_value": {
-			Operator: "<=",
-			Value:    "max", // 'max' means use the max value from the range in filters
+		"artifacts.use_case.string_value": {
+			Operator: "=",
+			Value:    "chatbot",
 		},
 	}
 

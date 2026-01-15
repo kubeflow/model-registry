@@ -3,16 +3,17 @@ import {
   Bullseye,
   Button,
   EmptyState,
+  EmptyStateVariant,
   Flex,
   Gallery,
   Spinner,
   Title,
 } from '@patternfly/react-core';
-import { SearchIcon } from '@patternfly/react-icons';
+import { ChartBarIcon, SearchIcon } from '@patternfly/react-icons';
 import React from 'react';
 import { ModelCatalogContext } from '~/app/context/modelCatalog/ModelCatalogContext';
 import { useCatalogModelsBySources } from '~/app/hooks/modelCatalog/useCatalogModelsBySource';
-import { CatalogModel } from '~/app/modelCatalogTypes';
+import { CatalogModel, CategoryName, SourceLabel } from '~/app/modelCatalogTypes';
 import ModelCatalogCard from '~/app/pages/modelCatalog/components/ModelCatalogCard';
 import {
   getSourceFromSourceId,
@@ -23,6 +24,7 @@ import {
 } from '~/app/pages/modelCatalog/utils/modelCatalogUtils';
 import EmptyModelCatalogState from '~/app/pages/modelCatalog/EmptyModelCatalogState';
 import ScrollViewOnMount from '~/app/shared/components/ScrollViewOnMount';
+import { BASIC_FILTER_KEYS } from '~/concepts/modelCatalog/const';
 
 type ModelCatalogPageProps = {
   searchTerm: string;
@@ -40,6 +42,8 @@ const ModelCatalogGalleryView: React.FC<ModelCatalogPageProps> = ({
     filterOptionsLoaded,
     filterOptionsLoadError,
     catalogSources,
+    setPerformanceViewEnabled,
+    updateSelectedSourceLabel,
     performanceViewEnabled,
     sortBy,
   } = React.useContext(ModelCatalogContext);
@@ -66,7 +70,7 @@ const ModelCatalogGalleryView: React.FC<ModelCatalogPageProps> = ({
 
   const { catalogModels, catalogModelsLoaded, catalogModelsLoadError } = useCatalogModelsBySources(
     '',
-    selectedSourceLabel === 'All models' ? undefined : selectedSourceLabel,
+    selectedSourceLabel === CategoryName.allModels ? undefined : selectedSourceLabel,
     10,
     searchTerm,
     effectiveFilterData,
@@ -78,6 +82,42 @@ const ModelCatalogGalleryView: React.FC<ModelCatalogPageProps> = ({
 
   const loaded = catalogModelsLoaded && filterOptionsLoaded;
   const loadError = catalogModelsLoadError || filterOptionsLoadError;
+
+  const isNoLabelsSection = selectedSourceLabel === SourceLabel.other;
+
+  const areOnlyDefaultFiltersApplied = React.useMemo(
+    () => !hasFiltersApplied(filterData, BASIC_FILTER_KEYS),
+    [filterData],
+  );
+
+  const noUserFiltersOrSearch = areOnlyDefaultFiltersApplied && !searchTerm;
+
+  const shouldShowPerformanceEmptyState = React.useMemo(() => {
+    const isEmptyResult = catalogModels.items.length === 0;
+    const isNotAllModelsCategory = selectedSourceLabel !== CategoryName.allModels;
+    const isPerformanceExcludedSection = isNoLabelsSection || noUserFiltersOrSearch;
+
+    return (
+      performanceViewEnabled &&
+      isEmptyResult &&
+      isNotAllModelsCategory &&
+      isPerformanceExcludedSection
+    );
+  }, [
+    performanceViewEnabled,
+    catalogModels.items.length,
+    selectedSourceLabel,
+    isNoLabelsSection,
+    noUserFiltersOrSearch,
+  ]);
+
+  const handleDisablePerformanceView = () => {
+    setPerformanceViewEnabled(false);
+  };
+
+  const handleSelectAllModels = () => {
+    updateSelectedSourceLabel(CategoryName.allModels);
+  };
 
   if (loadError) {
     return (
@@ -98,13 +138,41 @@ const ModelCatalogGalleryView: React.FC<ModelCatalogPageProps> = ({
     );
   }
 
+  if (shouldShowPerformanceEmptyState) {
+    return (
+      <EmptyModelCatalogState
+        testid="performance-empty-state"
+        title="No performance data available in selected category"
+        headerIcon={ChartBarIcon}
+        variant={EmptyStateVariant.lg}
+        description={
+          <>
+            Select the <strong>All models</strong> category to view all models with performance
+            data, or turn <strong>Model performance view</strong> off to view models in the selected
+            category.
+          </>
+        }
+        primaryAction={
+          <Button variant="primary" onClick={handleSelectAllModels}>
+            View all models with performance data
+          </Button>
+        }
+        secondaryAction={
+          <Button variant="link" onClick={handleDisablePerformanceView}>
+            Turn <strong>Model performance view</strong> off
+          </Button>
+        }
+      />
+    );
+  }
+
   if (catalogModels.items.length === 0 && !searchTerm && !filtersApplied) {
     return (
       <EmptyModelCatalogState
         testid="empty-model-catalog-state"
-        title="No result found"
+        title="No models available"
         headerIcon={SearchIcon}
-        description="Adjust your filters and try again."
+        description="No models are available in this category."
       />
     );
   }
@@ -116,7 +184,7 @@ const ModelCatalogGalleryView: React.FC<ModelCatalogPageProps> = ({
         title="No result found"
         headerIcon={SearchIcon}
         description="Adjust your filters and try again."
-        customAction={<Button onClick={handleFilterReset}>Reset filters</Button>}
+        primaryAction={<Button onClick={handleFilterReset}>Reset filters</Button>}
       />
     );
   }

@@ -27,12 +27,44 @@ func (m *ModelCatalogClientMock) GetAllCatalogModelsAcrossSources(client httpcli
 	var filteredModels []models.CatalogModel
 
 	sourceId := pageValues.Get("source")
+	sourceLabel := pageValues.Get("sourceLabel")
 	query := pageValues.Get("q")
 
 	if sourceId != "" {
 		for _, model := range allModels {
 			if model.SourceId != nil && *model.SourceId == sourceId {
 				filteredModels = append(filteredModels, model)
+			}
+		}
+	} else if sourceLabel != "" {
+		allSources := GetCatalogSourceMocks()
+		var matchingSourceIds []string
+
+		if sourceLabel == "null" {
+			for _, source := range allSources {
+				if len(source.Labels) == 0 {
+					matchingSourceIds = append(matchingSourceIds, source.Id)
+				}
+			}
+		} else {
+			for _, source := range allSources {
+				for _, label := range source.Labels {
+					if label == sourceLabel {
+						matchingSourceIds = append(matchingSourceIds, source.Id)
+						break
+					}
+				}
+			}
+		}
+
+		for _, model := range allModels {
+			if model.SourceId != nil {
+				for _, sid := range matchingSourceIds {
+					if *model.SourceId == sid {
+						filteredModels = append(filteredModels, model)
+						break
+					}
+				}
 			}
 		}
 	} else {
