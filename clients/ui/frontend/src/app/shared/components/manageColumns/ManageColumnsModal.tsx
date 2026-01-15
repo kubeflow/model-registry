@@ -4,6 +4,9 @@ import React from 'react';
 import {
   Button,
   Checkbox,
+  EmptyState,
+  EmptyStateBody,
+  EmptyStateVariant,
   Flex,
   FlexItem,
   Label,
@@ -11,6 +14,7 @@ import {
   StackItem,
   Tooltip,
 } from '@patternfly/react-core';
+import { SearchIcon } from '@patternfly/react-icons';
 import {
   DragDropSort,
   DragDropSortDragEndEvent,
@@ -67,11 +71,18 @@ export const ManageColumnsModal: React.FC<ManageColumnsModalProps> = ({
   const [columns, setColumns] = React.useState<ManagedColumn[]>(initialColumns);
   const [searchValue, setSearchValue] = React.useState('');
 
+  // Normalize whitespace (including NBSP) to regular spaces for search comparison
+  const normalizeWhitespace = (str: string): string => str.replace(/\s+/g, ' ');
+
   // Derive filtered columns from search
   const columnsMatchingSearch = React.useMemo(
     () =>
       searchValue
-        ? columns.filter((col) => col.label.toLowerCase().includes(searchValue.toLowerCase()))
+        ? columns.filter((col) =>
+            normalizeWhitespace(col.label.toLowerCase()).includes(
+              normalizeWhitespace(searchValue.toLowerCase()),
+            ),
+          )
         : columns,
     [columns, searchValue],
   );
@@ -226,7 +237,22 @@ export const ManageColumnsModal: React.FC<ManageColumnsModalProps> = ({
       onClose={closeModal}
       title={title}
       description={descriptionContent}
-      contents={<DragDropSort items={draggableItems} variant="default" onDrop={handleDrop} />}
+      contents={
+        columnsMatchingSearch.length === 0 && searchValue ? (
+          <EmptyState
+            headingLevel="h4"
+            icon={SearchIcon}
+            titleText="No results found"
+            variant={EmptyStateVariant.sm}
+          >
+            <EmptyStateBody>
+              No columns match your search. Try adjusting your search terms.
+            </EmptyStateBody>
+          </EmptyState>
+        ) : (
+          <DragDropSort items={draggableItems} variant="default" onDrop={handleDrop} />
+        )
+      }
       buttonActions={buttonActions}
       dataTestId={dataTestId}
       variant="small"
