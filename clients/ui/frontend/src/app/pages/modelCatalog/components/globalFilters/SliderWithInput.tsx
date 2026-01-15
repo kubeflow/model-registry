@@ -27,7 +27,7 @@ const SliderWithInput: React.FC<SliderWithInputProps> = ({
   hasTooltipOverThumb = false,
 }) => {
   const roundValue = React.useCallback(
-    (val: number) => (shouldRound ? parseFloat(val.toFixed(2)) : val),
+    (val: number) => (shouldRound ? Math.ceil(val * 100) / 100 : val),
     [shouldRound],
   );
 
