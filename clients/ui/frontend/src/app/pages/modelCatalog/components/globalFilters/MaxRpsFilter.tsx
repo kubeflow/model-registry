@@ -122,7 +122,6 @@ const MaxRpsFilter: React.FC = () => {
           max={maxValue}
           isDisabled={isSliderDisabled}
           onChange={setLocalValue}
-          suffix="RPS"
           ariaLabel="RPS value input"
         />
       </FlexItem>

@@ -175,11 +175,14 @@ const ModelCatalogActiveFilters: React.FC<ModelCatalogActiveFiltersProps> = ({ f
 
         const categoryName = MODEL_CATALOG_FILTER_CATEGORY_NAMES[filterKey];
 
-        // Check if this filter has a default value defined
+        // Check if this filter has a default value AND is a performance filter
         // If so, the filter group gets special styling (fa-undo on group, no X on labels)
         // This indicates to the user that clicking will reset to default, not clear
+        // Note: HARDWARE_CONFIGURATION is not a performance filter, so it should show normal X icons
         const filterHasDefault =
-          isPatternfly && getPerformanceFilterDefaultValue(filterKey) !== undefined;
+          isPatternfly &&
+          isPerformanceFilterKey(filterKey) &&
+          getPerformanceFilterDefaultValue(filterKey) !== undefined;
 
         // Build labels for ToolbarFilter
         const labels: ToolbarLabel[] = filterValues.map((value) => {

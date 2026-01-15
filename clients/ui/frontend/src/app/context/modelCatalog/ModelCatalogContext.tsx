@@ -163,7 +163,7 @@ export const ModelCatalogContextProvider: React.FC<ModelCatalogContextProviderPr
     ALL_LATENCY_FILTER_KEYS.forEach((latencyKey) => {
       baseSetFilterData(latencyKey, undefined);
     });
-    baseSetFilterData(ModelCatalogStringFilterKey.HARDWARE_TYPE, []);
+    baseSetFilterData(ModelCatalogStringFilterKey.HARDWARE_CONFIGURATION, []);
 
     // Then apply all defaults from namedQueries
     const defaultQuery = filterOptions?.namedQueries?.[DEFAULT_PERFORMANCE_FILTERS_QUERY_NAME];
