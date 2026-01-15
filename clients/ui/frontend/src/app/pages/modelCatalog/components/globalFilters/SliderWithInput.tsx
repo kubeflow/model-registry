@@ -7,7 +7,7 @@ type SliderWithInputProps = {
   max: number;
   isDisabled: boolean;
   onChange: (value: number) => void;
-  suffix: string;
+  suffix?: string;
   ariaLabel: string;
   shouldRound?: boolean;
   showBoundaries?: boolean;
@@ -20,26 +20,27 @@ const SliderWithInput: React.FC<SliderWithInputProps> = ({
   max,
   isDisabled,
   onChange,
-  suffix,
+  suffix = '',
   ariaLabel,
   shouldRound = false,
   showBoundaries = false,
   hasTooltipOverThumb = false,
 }) => {
   const roundValue = React.useCallback(
-    (val: number) => (shouldRound ? Math.round(val) : val),
+    (val: number) => (shouldRound ? Math.ceil(val * 100) / 100 : val),
     [shouldRound],
   );
 
   // Maintain separate state for value and inputValue, following PatternFly's example pattern
-  const [localValue, setLocalValue] = React.useState<number>(value);
-  const [localInputValue, setLocalInputValue] = React.useState<number>(value);
+  const [localValue, setLocalValue] = React.useState<number>(() => roundValue(value));
+  const [localInputValue, setLocalInputValue] = React.useState<number>(() => roundValue(value));
 
   // Sync local state when prop value changes (from parent)
   React.useEffect(() => {
-    setLocalValue(value);
-    setLocalInputValue(value);
-  }, [value]);
+    const roundedValue = roundValue(value);
+    setLocalValue(roundedValue);
+    setLocalInputValue(roundedValue);
+  }, [value, roundValue]);
 
   const handleChange = (
     _event: SliderOnChangeEvent,

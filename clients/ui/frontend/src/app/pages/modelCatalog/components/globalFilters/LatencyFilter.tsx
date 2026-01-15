@@ -17,6 +17,8 @@ import {
   LatencyMetric,
   LatencyPercentile,
   getLatencyFilterKey,
+  ALL_LATENCY_FILTER_KEYS,
+  parseLatencyFilterKey,
 } from '~/concepts/modelCatalog/const';
 import { ModelCatalogContext } from '~/app/context/modelCatalog/ModelCatalogContext';
 import {
@@ -24,6 +26,7 @@ import {
   SliderRange,
   formatLatency,
 } from '~/app/pages/modelCatalog/utils/performanceMetricsUtils';
+import { getDefaultPerformanceFilters } from '~/app/pages/modelCatalog/utils/performanceFilterUtils';
 import SliderWithInput from './SliderWithInput';
 
 type LatencyFilterState = {
@@ -44,7 +47,7 @@ const PERCENTILE_OPTIONS: { value: LatencyPercentile; label: LatencyPercentile }
 ).map((percentile) => ({ value: percentile, label: percentile }));
 
 const LatencyFilter: React.FC = () => {
-  const { filterData, setFilterData } = React.useContext(ModelCatalogContext);
+  const { filterData, setFilterData, filterOptions } = React.useContext(ModelCatalogContext);
   const [isOpen, setIsOpen] = React.useState(false);
   const [isMetricOpen, setIsMetricOpen] = React.useState(false);
   const [isPercentileOpen, setIsPercentileOpen] = React.useState(false);
@@ -69,16 +72,23 @@ const LatencyFilter: React.FC = () => {
     return null;
   }, [filterData]);
 
-  const defaultFilterState = React.useMemo(
-    () =>
-      // Default to TTFT P90 as the most common use case
-      ({
-        metric: LatencyMetric.TTFT,
-        percentile: LatencyPercentile.P90,
-        value: 30, // Reasonable default within typical TTFT range
-      }),
-    [],
-  );
+  const defaultFilterState = React.useMemo(() => {
+    // Find the default latency filter from namedQueries
+    const defaults = getDefaultPerformanceFilters(filterOptions);
+    for (const latencyKey of ALL_LATENCY_FILTER_KEYS) {
+      const defaultValue = defaults[latencyKey];
+      if (typeof defaultValue === 'number') {
+        const { metric, percentile } = parseLatencyFilterKey(latencyKey);
+        return { metric, percentile, value: defaultValue };
+      }
+    }
+    // Fallback if no default found in namedQueries
+    return {
+      metric: LatencyMetric.TTFT,
+      percentile: LatencyPercentile.P90,
+      value: 30,
+    };
+  }, [filterOptions]);
 
   // Working state while editing the filter
   const [localFilter, setLocalFilter] = React.useState<LatencyFilterState>(() => {
@@ -102,8 +112,6 @@ const LatencyFilter: React.FC = () => {
       });
     }
   }, [currentActiveFilter]);
-
-  const { filterOptions } = React.useContext(ModelCatalogContext);
 
   const { minValue, maxValue, isSliderDisabled } = React.useMemo((): SliderRange => {
     // Use full filter key for accessing filterOptions
@@ -167,7 +175,6 @@ const LatencyFilter: React.FC = () => {
 
     // Reset local filter to default
     setLocalFilter(defaultFilterState);
-    setIsOpen(false);
   };
 
   const toggle = (toggleRef: React.Ref<MenuToggleElement>) => (

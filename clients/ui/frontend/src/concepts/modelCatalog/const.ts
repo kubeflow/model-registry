@@ -476,10 +476,11 @@ export const BASIC_FILTER_KEYS: ModelCatalogFilterKey[] = [
 /**
  * Performance filter keys that are shown when performance view is enabled.
  * These filters should reset to default values (from namedQueries) instead of clearing.
+ * Note: HARDWARE_CONFIGURATION is NOT included here because it should clear normally
+ * like basic filters, not reset to defaults.
  */
 export const PERFORMANCE_FILTER_KEYS: ModelCatalogFilterKey[] = [
   ModelCatalogStringFilterKey.USE_CASE,
-  ModelCatalogStringFilterKey.HARDWARE_CONFIGURATION,
   ModelCatalogNumberFilterKey.MAX_RPS,
   ...ALL_LATENCY_FILTER_KEYS,
 ];
@@ -526,13 +527,20 @@ export const isPerformanceNumberFilterKey = (
 /**
  * Gets performance filter keys to show in the hardware configuration toolbar.
  * Only shows performance filters (not basic filters).
+ * Includes HARDWARE_CONFIGURATION which is shown in performance toolbar but clears normally.
  */
 export const getPerformanceFiltersToShow = (
   filterData: Partial<Record<LatencyMetricFieldName, number | undefined>>,
 ): ModelCatalogFilterKey[] => {
   const activeLatencyKeys = ALL_LATENCY_FILTER_KEYS.filter((key) => filterData[key] !== undefined);
   // Use Set to deduplicate since PERFORMANCE_FILTER_KEYS already includes latency fields
-  return [...new Set([...PERFORMANCE_FILTER_KEYS, ...activeLatencyKeys])];
+  return [
+    ...new Set([
+      ...PERFORMANCE_FILTER_KEYS,
+      ModelCatalogStringFilterKey.HARDWARE_CONFIGURATION,
+      ...activeLatencyKeys,
+    ]),
+  ];
 };
 
 /**
@@ -544,7 +552,15 @@ export const getAllFiltersToShow = (
 ): ModelCatalogFilterKey[] => {
   const activeLatencyKeys = ALL_LATENCY_FILTER_KEYS.filter((key) => filterData[key] !== undefined);
   // Use Set to deduplicate since PERFORMANCE_FILTER_KEYS already includes latency fields
-  return [...new Set([...BASIC_FILTER_KEYS, ...PERFORMANCE_FILTER_KEYS, ...activeLatencyKeys])];
+  // Include HARDWARE_CONFIGURATION which shows in performance toolbar but clears normally
+  return [
+    ...new Set([
+      ...BASIC_FILTER_KEYS,
+      ...PERFORMANCE_FILTER_KEYS,
+      ModelCatalogStringFilterKey.HARDWARE_CONFIGURATION,
+      ...activeLatencyKeys,
+    ]),
+  ];
 };
 
 /**

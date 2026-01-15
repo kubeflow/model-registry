@@ -23,7 +23,7 @@ const filterKey = ModelCatalogNumberFilterKey.MAX_RPS;
 const MaxRpsFilter: React.FC = () => {
   const { value: rpsFilterValue, setValue: setRpsFilterValue } =
     useCatalogNumberFilterState(filterKey);
-  const { filterOptions } = React.useContext(ModelCatalogContext);
+  const { filterOptions, getPerformanceFilterDefaultValue } = React.useContext(ModelCatalogContext);
   const [isOpen, setIsOpen] = React.useState(false);
 
   const { minValue, maxValue, isSliderDisabled } = React.useMemo((): SliderRange => {
@@ -72,8 +72,11 @@ const MaxRpsFilter: React.FC = () => {
   };
 
   const handleReset = () => {
-    setRpsFilterValue(undefined);
-    setLocalValue(maxValue);
+    // Get default value from namedQueries, fallback to maxValue
+    const defaultValue = getPerformanceFilterDefaultValue(filterKey);
+    const value = typeof defaultValue === 'number' ? defaultValue : maxValue;
+    setRpsFilterValue(value);
+    setLocalValue(value);
   };
 
   const toggle = (toggleRef: React.Ref<MenuToggleElement>) => (
@@ -122,7 +125,6 @@ const MaxRpsFilter: React.FC = () => {
           max={maxValue}
           isDisabled={isSliderDisabled}
           onChange={setLocalValue}
-          suffix="RPS"
           ariaLabel="RPS value input"
         />
       </FlexItem>
