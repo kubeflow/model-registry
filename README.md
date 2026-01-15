@@ -244,6 +244,18 @@ End-to-end testing is developed with KinD and Pytest; this higher-lever layer of
 MR utilizes a common `ARCHIVED` status for all types.
 To delete something, simply update its status.
 
+### How do I check reasons and re-run for FOSSA failures against a PR on this repo?
+
+Follow the link from the GitHub PR page "View details" link of the specific FOSSA action which is failing. This will take you to a FOSSA page for that specific check for that PR. Address the failures listed in FOSSA as most appropriate; then "🔁 Run policy scan" button from that same page.
+Please note: re-running the scan from the _main_ FOSSA page of the project/repo does not achieve the same result.
+You will need an account for the [CNCF FOSSA instance](https://contribute.cncf.io/resources/services/hosted-tools/) to access all related FOSSA pages.
+
+### How do I get an account for the CNCF FOSSA instance?
+
+You need to provide your email, name, and mention you're a project Approver (refer [OWNERS file](OWNERS)) to the [CNCF Service Desk](http://servicedesk.cncf.io/), requesting access to the [CNCF FOSSA instance](https://contribute.cncf.io/resources/services/hosted-tools/).
+Please note: you do not need to create an account on fossa.com on your own; if you already have an account, you'll need to ask migration to the CNCF Service Desk.
+If you cannot access the CNCF Service Desk, ask one of your fellow Approvers for help!
+
 ## Tips
 ### Pull image rate limiting
 
