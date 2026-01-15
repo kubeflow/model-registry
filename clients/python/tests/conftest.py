@@ -167,6 +167,33 @@ def client(user_token: str) -> ModelRegistry:
 
 
 @pytest.fixture
+def register_model_with_version(client: ModelRegistry):
+    def _register(
+        name: str,
+        version: str,
+        uri: str = "s3",
+        model_format_name: str = "test_format",
+        model_format_version: str = "test_version",
+        **register_kwargs,
+    ):
+        rm = client.register_model(
+            name,
+            uri,
+            model_format_name=model_format_name,
+            model_format_version=model_format_version,
+            version=version,
+            **register_kwargs,
+        )
+        assert rm.id
+        mv = client.get_model_version(name, version)
+        assert mv
+        assert mv.id
+        return rm, mv
+
+    return _register
+
+
+@pytest.fixture
 @cleanup
 def client_attrs() -> dict[str, any]:  # type: ignore[valid-type]
     return {

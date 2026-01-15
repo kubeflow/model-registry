@@ -8,28 +8,22 @@ from .conftest import REGISTRY_HOST, REGISTRY_PORT
 
 
 @pytest.mark.e2e
-def test_create_tagged_version(client: ModelRegistry):
+def test_create_tagged_version(register_model_with_version):
     """Test regression for creating tagged versions.
 
     Reported on: https://github.com/kubeflow/model-registry/issues/255
     """
     name = "test_model"
     version = "model:latest"
-    rm = client.register_model(
-        name,
-        "s3",
-        model_format_name="test_format",
-        model_format_version="test_version",
-        version=version,
-    )
-    assert rm.id
-    mv = client.get_model_version(name, version)
-    assert mv
-    assert mv.id
+    register_model_with_version(name, version)
 
 
 @pytest.mark.e2e
-def test_get_model_without_user_token(setup_env_user_token, client: ModelRegistry):
+def test_get_model_without_user_token(
+    setup_env_user_token,
+    client: ModelRegistry,
+    register_model_with_version,
+):
     """Test regression for using client methods without an user_token in the init arguments.
 
     Reported on: https://github.com/kubeflow/model-registry/issues/340
@@ -38,15 +32,11 @@ def test_get_model_without_user_token(setup_env_user_token, client: ModelRegistr
     name = "test_model"
     version = "1.0.0"
     metadata = {"a": 1, "b": "2"}
-    rm = client.register_model(
+    rm, _ = register_model_with_version(
         name,
-        "s3",
-        model_format_name="test_format",
-        model_format_version="test_version",
-        version=version,
-        metadata=metadata,  # type: ignore[arg-type]
+        version,
+        metadata=metadata,
     )
-    assert rm.id
     assert (_rm := client.get_registered_model(name))
     assert rm.id == _rm.id
 
@@ -78,7 +68,7 @@ def test_get_few_registered_models(client: ModelRegistry):
 
 
 @pytest.mark.e2e
-async def test_create_standalone_model_artifact(client: ModelRegistry):
+async def test_create_standalone_model_artifact(client: ModelRegistry, register_model_with_version):
     """Test regression for creating standalone model artifact.
 
     Reported on: https://github.com/kubeflow/model-registry/issues/231"""
@@ -89,41 +79,30 @@ async def test_create_standalone_model_artifact(client: ModelRegistry):
         assert new_ma.id
         assert new_ma.uri == "s3"
 
-    rm = client.register_model(
+    _, mv = register_model_with_version(
         "test_model",
-        "s3",
-        version="1.0.0",
+        "1.0.0",
         model_format_name="x",
         model_format_version="y",
     )
-    assert rm.id
-    mv = client.get_model_version("test_model", "1.0.0")
-    assert mv
-    assert mv.id
     mv_ma = await client._api.upsert_model_version_artifact(new_ma, mv.id)
     assert mv_ma.id == new_ma.id
 
 
 @pytest.mark.e2e
-async def test_patch_model_artifacts_artifact_type(client: ModelRegistry, request_headers: dict[str, str],
-                                                   verify_ssl: bool):
+async def test_patch_model_artifacts_artifact_type(
+    client: ModelRegistry,
+    request_headers: dict[str, str],
+    verify_ssl: bool,
+    register_model_with_version,
+):
     """Patching Artifacts makes the model registry server panic.
 
     reported with https://issues.redhat.com/browse/RHOAIENG-16932
     """
     name = "test_model"
     version = "1.0.0"
-    rm = client.register_model(
-        name,
-        "s3",
-        model_format_name="test_format",
-        model_format_version="test_version",
-        version=version,
-    )
-    assert rm.id
-    mv = client.get_model_version(name, version)
-    assert mv
-    assert mv.id
+    register_model_with_version(name, version)
     ma = client.get_model_artifact(name, version)
     assert ma
     assert ma.id
@@ -140,8 +119,49 @@ async def test_patch_model_artifacts_artifact_type(client: ModelRegistry, reques
 
 
 @pytest.mark.e2e
+async def test_patch_artifact_cannot_change_artifact_type(
+    client: ModelRegistry,
+    request_headers: dict[str, str],
+    verify_ssl: bool,
+    register_model_with_version,
+):
+    """Changing artifact type via PATCH should return 400 error, not crash server.
+
+    Regression test: attempting to change artifactType from model-artifact to doc-artifact
+    previously caused the server to panic with a 503 error instead of returning a meaningful
+    error message.
+    """
+    name = "test_model_artifact_type_immutable"
+    version = "1.0.0"
+    register_model_with_version(name, version)
+    ma = client.get_model_artifact(name, version)
+    assert ma
+    assert ma.id
+
+    # Attempt to change artifact type from model-artifact to doc-artifact
+    # This should fail with a 400 Bad Request, not crash the server (503)
+    payload = {"artifactType": "doc-artifact"}
+    response = requests.patch(url=f"{REGISTRY_HOST}:{REGISTRY_PORT}/api/model_registry/v1alpha3/artifacts/{ma.id}",
+                              json=payload, timeout=10,
+                              headers=request_headers, verify=verify_ssl)
+
+    # Server should return 400 Bad Request, not 503 (which would indicate a crash)
+    assert response.status_code == 400, (
+        f"Expected 400 Bad Request when changing artifact type, got {response.status_code}. "
+        f"Response: {response.text}"
+    )
+
+    # Verify the error message mentions the type mismatch
+    error_response = response.json()
+    assert "message" in error_response
+    assert "model" in error_response["message"].lower() or "doc" in error_response["message"].lower(), (
+        f"Expected error message to mention artifact types, got: {error_response['message']}"
+    )
+
+
+@pytest.mark.e2e
 async def test_as_mlops_engineer_i_would_like_to_store_a_malformed_registered_model_i_get_a_structured_error_message(
-        client: ModelRegistry, request_headers: dict[str, str], verify_ssl: bool):
+        request_headers: dict[str, str], verify_ssl: bool):
     """As a MLOps engineer if I try to store a malformed RegisteredModel I get a structured error message
     """
     payload = { "name": "test_model", "ext_id": 123 }
@@ -157,19 +177,16 @@ async def test_as_mlops_engineer_i_would_like_to_store_a_malformed_registered_mo
 
 @pytest.mark.e2e
 async def test_as_mlops_engineer_i_would_like_to_store_a_malformed_model_version_i_get_a_structured_error_message(
-        client: ModelRegistry, request_headers: dict[str, str], verify_ssl: bool):
+        request_headers: dict[str, str], verify_ssl: bool, register_model_with_version):
     """As a MLOps engineer if I try to store a malformed ModelVersion I get a structured error message
     """
     name = "test_model"
     version = "1.0.0"
-    rm = client.register_model(
+    rm, _ = register_model_with_version(
         name,
-        "https://acme.org/something",
-        model_format_name="test_format",
-        model_format_version="test_version",
-        version=version,
+        version,
+        uri="https://acme.org/something",
     )
-    assert rm.id
 
     payload = { "registeredModelId": rm.id }
     response = requests.post(url=f"{REGISTRY_HOST}:{REGISTRY_PORT}/api/model_registry/v1alpha3/model_versions",
