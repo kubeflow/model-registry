@@ -35,7 +35,7 @@ def test_get_model_without_user_token(
     rm, _ = register_model_with_version(
         name,
         version,
-        metadata=metadata,  # type: ignore[arg-type]
+        metadata=metadata,
     )
     assert (_rm := client.get_registered_model(name))
     assert rm.id == _rm.id

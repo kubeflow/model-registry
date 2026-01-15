@@ -189,7 +189,7 @@ async def test_update_logical_model_with_labels(
     ma.custom_properties = ma_labels
     client.update(ma)
 
-    rm = client.get_registered_model(name)  # type: ignore[assignment]
+    rm = client.get_registered_model(name)
     assert rm
     assert rm.custom_properties == rm_labels
     mv = client.get_model_version(name, version)
@@ -309,7 +309,7 @@ async def test_get(
     rm, _ = register_model_with_version(
         name,
         version,
-        metadata=metadata,  # type: ignore[arg-type]
+        metadata=metadata,
     )
 
     assert rm.id
