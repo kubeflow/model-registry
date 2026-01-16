@@ -576,3 +576,6 @@ export const hasSourcesWithModels = (catalogSources: CatalogSourceList | null): 
 
   return catalogSources.items.some((source) => source.status === CatalogSourceStatus.AVAILABLE);
 };
+
+export const generateCategoryName = (name: string): string =>
+  name.toLowerCase().endsWith('models') ? name : `${name} models`;

@@ -155,8 +155,8 @@ const ModelDetailsView: React.FC<ModelDetailsViewProps> = ({
                 {validatedOnPlatforms.length > 0 && (
                   <DescriptionListGroup>
                     <DescriptionListTerm>
-                      Validated on{' '}
-                      <Popover bodyContent="The platform versions where this model has been validated for operational readiness and compatibility.">
+                      Certified platforms{' '}
+                      <Popover bodyContent="The model has been tested and verified to operate correctly on the specified enterprise platforms.">
                         <Button
                           variant="plain"
                           aria-label="More info for validated on"

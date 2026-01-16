@@ -204,7 +204,7 @@ const ModelCatalogSourceLabelSelector: React.FC<ModelCatalogSourceLabelSelectorP
             variant="info"
             isInline
             className="pf-v6-u-mb-lg"
-            title="The results list has been updated to match the latest performance criteria set on the details page."
+            title="The results list has been updated to match the latest performance criteria set on the model details page."
             actionClose={
               <AlertActionCloseButton
                 onClose={() => {

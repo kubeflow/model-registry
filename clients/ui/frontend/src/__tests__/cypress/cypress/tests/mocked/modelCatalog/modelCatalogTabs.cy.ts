@@ -149,7 +149,7 @@ describe('Model Catalog Details Tabs', () => {
         modelCatalog
           .findWorkloadTypeFilter()
           .should('be.visible')
-          .should('contain.text', 'Workload type');
+          .should('contain.text', 'Scenario');
       });
 
       it('should show workload type options when clicked', () => {
@@ -173,7 +173,7 @@ describe('Model Catalog Details Tabs', () => {
         // Verify filter is applied (single-select shows selected value in toggle)
         modelCatalog
           .findWorkloadTypeFilter()
-          .should('contain.text', 'Workload type')
+          .should('contain.text', 'Scenario')
           .should('contain.text', 'Code Fixing');
         // Table should still exist (server-side filtering returns mock data)
         modelCatalog.findHardwareConfigurationTableRows().should('exist');
@@ -187,13 +187,13 @@ describe('Model Catalog Details Tabs', () => {
         // Single-select shows selected value in toggle
         modelCatalog
           .findWorkloadTypeFilter()
-          .should('contain.text', 'Workload type')
+          .should('contain.text', 'Scenario')
           .should('contain.text', 'Code Fixing');
 
         // Re-open dropdown and select a different option
         modelCatalog.findWorkloadTypeFilter().click();
         modelCatalog.selectWorkloadType('chatbot');
-        modelCatalog.findWorkloadTypeFilter().should('contain.text', 'Workload type');
+        modelCatalog.findWorkloadTypeFilter().should('contain.text', 'Scenario');
         modelCatalog.findWorkloadTypeFilter().should('contain.text', 'Chatbot');
         modelCatalog.findWorkloadTypeFilter().should('not.contain.text', 'Code Fixing');
       });

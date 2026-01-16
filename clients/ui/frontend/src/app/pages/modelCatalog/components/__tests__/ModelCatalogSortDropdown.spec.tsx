@@ -109,7 +109,7 @@ describe('ModelCatalogSortDropdown', () => {
   });
 
   describe('Display Value', () => {
-    it('should display "Recent publish" when sortBy is null', () => {
+    it('should display " Publish date (Newest → Oldest)" when sortBy is null', () => {
       render(
         <ModelCatalogContextProvider>
           <ModelCatalogSortDropdown performanceViewEnabled />
@@ -117,10 +117,10 @@ describe('ModelCatalogSortDropdown', () => {
       );
 
       const toggle = screen.getByTestId('model-catalog-sort-dropdown');
-      expect(toggle).toHaveTextContent('Recent publish');
+      expect(toggle).toHaveTextContent('Publish date (Newest → Oldest)');
     });
 
-    it('should display "Recent publish" when sortBy is recent_publish', () => {
+    it('should display " Publish date (Newest → Oldest)" when sortBy is recent_publish', () => {
       // We'll need to set the context value - for now, test the default behavior
       render(
         <ModelCatalogContextProvider>
@@ -129,10 +129,10 @@ describe('ModelCatalogSortDropdown', () => {
       );
 
       const toggle = screen.getByTestId('model-catalog-sort-dropdown');
-      expect(toggle).toHaveTextContent('Recent publish');
+      expect(toggle).toHaveTextContent('Publish date (Newest → Oldest)');
     });
 
-    it('should display "Lowest latency" when sortBy is lowest_latency', async () => {
+    it('should display "Latency (Lowest → Highest)" when sortBy is lowest_latency', async () => {
       const TestComponent: React.FC = () => {
         const { setSortBy } = React.useContext(ModelCatalogContext);
 
@@ -151,7 +151,7 @@ describe('ModelCatalogSortDropdown', () => {
 
       await waitFor(() => {
         const toggle = screen.getByTestId('model-catalog-sort-dropdown');
-        expect(toggle).toHaveTextContent('Lowest latency');
+        expect(toggle).toHaveTextContent('Latency (Lowest → Highest)');
       });
     });
   });
@@ -173,7 +173,7 @@ describe('ModelCatalogSortDropdown', () => {
       });
     });
 
-    it('should disable "Lowest latency" option when there is no active latency field', async () => {
+    it('should disable "Latency (Lowest → Highest)" option when there is no active latency field', async () => {
       mockGetActiveLatencyFieldName.mockReturnValue(undefined);
 
       render(
@@ -192,7 +192,7 @@ describe('ModelCatalogSortDropdown', () => {
       });
     });
 
-    it('should enable "Lowest latency" when active latency field exists', async () => {
+    it('should enable "Latency (Lowest → Highest)" when active latency field exists', async () => {
       mockGetActiveLatencyFieldName.mockReturnValue('artifacts.ttft_p90.double_value');
 
       render(
@@ -212,7 +212,7 @@ describe('ModelCatalogSortDropdown', () => {
   });
 
   describe('Selection', () => {
-    it('should call setSortBy when "Recent publish" is selected', async () => {
+    it('should call setSortBy when " Publish date (Newest → Oldest)" is selected', async () => {
       const TestComponent: React.FC = () => {
         const { sortBy, setSortBy } = React.useContext(ModelCatalogContext);
         const [selectedValue, setSelectedValue] = React.useState<string>('');
@@ -244,7 +244,7 @@ describe('ModelCatalogSortDropdown', () => {
       // Wait for initial state
       await waitFor(() => {
         expect(screen.getByTestId('model-catalog-sort-dropdown')).toHaveTextContent(
-          'Lowest latency',
+          'Latency (Lowest → Highest)',
         );
       });
 
@@ -252,7 +252,7 @@ describe('ModelCatalogSortDropdown', () => {
       const toggle = screen.getByTestId('model-catalog-sort-dropdown');
       fireEvent.click(toggle);
 
-      // Wait for dropdown to open and select "Recent publish"
+      // Wait for dropdown to open and select " Publish date (Newest → Oldest)"
       await waitFor(() => {
         const recentPublishOption = screen.getByTestId('sort-option-recent-publish');
         expect(recentPublishOption).toBeInTheDocument();
@@ -277,7 +277,7 @@ describe('ModelCatalogSortDropdown', () => {
       );
     });
 
-    it('should call setSortBy when "Lowest latency" is selected', async () => {
+    it('should call setSortBy when "Latency (Lowest → Highest)" is selected', async () => {
       // Mock an active latency field so the option is enabled
       mockGetActiveLatencyFieldName.mockReturnValue('artifacts.ttft_p90.double_value');
 
@@ -309,7 +309,7 @@ describe('ModelCatalogSortDropdown', () => {
       const toggle = screen.getByTestId('model-catalog-sort-dropdown');
       fireEvent.click(toggle);
 
-      // Wait for dropdown to open and select "Lowest latency"
+      // Wait for dropdown to open and select "Latency (Lowest → Highest)"
       await waitFor(() => {
         const lowestLatencyOption = screen.getByTestId('sort-option-lowest-latency');
         expect(lowestLatencyOption).toBeInTheDocument();

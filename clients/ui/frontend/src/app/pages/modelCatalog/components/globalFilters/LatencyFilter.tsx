@@ -152,8 +152,8 @@ const LatencyFilter: React.FC = () => {
       // When there's an active filter, show the full specification with actual selected values
       return (
         <>
-          <strong>Latency:</strong> {currentActiveFilter.metric} | {currentActiveFilter.percentile}{' '}
-          | Under {formatLatency(currentActiveFilter.value)}
+          <strong>Latency:</strong> {currentActiveFilter.metric} at {currentActiveFilter.percentile}{' '}
+          ≤ {formatLatency(currentActiveFilter.value)}
         </>
       );
     }
@@ -384,7 +384,7 @@ const LatencyFilter: React.FC = () => {
               onClick={handleApplyFilter}
               isDisabled={isSliderDisabled}
             >
-              Apply filter
+              Apply
             </Button>
           </FlexItem>
           <FlexItem>

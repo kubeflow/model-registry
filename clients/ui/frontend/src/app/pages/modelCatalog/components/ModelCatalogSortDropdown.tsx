@@ -48,9 +48,9 @@ const ModelCatalogSortDropdown: React.FC<ModelCatalogSortDropdownProps> = ({
 
   const getDisplayValue = (): string => {
     if (sortBy === ModelCatalogSortOption.LOWEST_LATENCY) {
-      return 'Lowest latency';
+      return 'Latency (Lowest → Highest)';
     }
-    return 'Recent publish';
+    return 'Publish date (Newest → Oldest)';
   };
 
   const currentSort = sortBy || ModelCatalogSortOption.RECENT_PUBLISH;
@@ -80,14 +80,14 @@ const ModelCatalogSortDropdown: React.FC<ModelCatalogSortDropdownProps> = ({
             value={ModelCatalogSortOption.RECENT_PUBLISH}
             data-testid="sort-option-recent-publish"
           >
-            Recent publish
+            Publish date (Newest → Oldest)
           </SelectOption>
           <SelectOption
             value={ModelCatalogSortOption.LOWEST_LATENCY}
             isDisabled={isLatencySortDisabled}
             data-testid="sort-option-lowest-latency"
           >
-            Lowest latency
+            Latency (Lowest → Highest)
           </SelectOption>
         </SelectList>
       </Select>

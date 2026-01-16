@@ -6,9 +6,7 @@ import {
   FlexItem,
   MenuToggle,
   MenuToggleElement,
-  Popover,
 } from '@patternfly/react-core';
-import { HelpIcon } from '@patternfly/react-icons';
 import { ModelCatalogNumberFilterKey } from '~/concepts/modelCatalog/const';
 import { useCatalogNumberFilterState } from '~/app/pages/modelCatalog/utils/modelCatalogUtils';
 import { MAX_RPS_RANGE } from '~/app/pages/modelCatalog/utils/performanceMetricsUtils';
@@ -84,25 +82,7 @@ const MaxRpsFilter: React.FC = () => {
       flexWrap={{ default: 'wrap' }}
       style={{ width: '500px', padding: '16px' }}
     >
-      <FlexItem>
-        <Flex alignItems={{ default: 'alignItemsCenter' }} spaceItems={{ default: 'spaceItemsXs' }}>
-          <FlexItem>Max requests per second (RPS)</FlexItem>
-          <FlexItem>
-            <Popover
-              bodyContent="Set the maximum requests per second (RPS) target. This will be used to filter hardware configurations that can meet your throughput requirements."
-              appendTo={() => document.body}
-            >
-              <Button
-                variant="plain"
-                aria-label="More info for max RPS"
-                className="pf-v6-u-p-xs"
-                onClick={(e) => e.stopPropagation()}
-                icon={<HelpIcon />}
-              />
-            </Popover>
-          </FlexItem>
-        </Flex>
-      </FlexItem>
+      <FlexItem>Max requests per second (RPS)</FlexItem>
       <FlexItem>
         <SliderWithInput
           value={clampedValue}

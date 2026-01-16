@@ -57,11 +57,14 @@ const TensorTypeComparisonCard: React.FC<TensorTypeComparisonCardProps> = ({ mod
             <Flex direction={{ default: 'column' }} gap={{ default: 'gapSm' }}>
               <FlexItem>
                 <Title headingLevel="h2" size="lg">
-                  Compression level comparison
+                  Model variants by tensor type
                 </Title>
               </FlexItem>
               <FlexItem>
-                <p>View benchmark performance of this model&apos;s available compression levels.</p>
+                <p>
+                  Compare benchmark performance across tensor types to understand accuracy and
+                  efficiency tradeoffs.
+                </p>
               </FlexItem>
             </Flex>
           </FlexItem>

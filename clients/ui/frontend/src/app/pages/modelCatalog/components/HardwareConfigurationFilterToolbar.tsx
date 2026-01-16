@@ -99,14 +99,17 @@ const HardwareConfigurationFilterToolbar: React.FC<HardwareConfigurationFilterTo
   return (
     <Toolbar
       // Only show "Clear all filters" button when there are visible chips to clear
-      {...(onResetAllFilters && hasVisibleChips ? { clearAllFilters: onResetAllFilters } : {})}
+      {...(onResetAllFilters && hasVisibleChips
+        ? { clearAllFilters: onResetAllFilters, clearFiltersButtonText: 'Reset all defaults' }
+        : {})}
     >
       <ToolbarContent rowWrap={{ default: 'wrap' }}>
         <ToolbarGroup rowWrap={{ default: 'wrap' }}>
           <ToolbarItem>
             <WorkloadTypeFilter />
             <Popover
-              bodyContent="Select a workload type to view performance under specific input and output token lengths."
+              bodyContent="Select a predefined scenario used to measure and compare model performance."
+              footerContent="Each scenario uses fixed input and output token lengths. Scenario names approximate common use cases and do not describe model capabilities."
               appendTo={() => document.body}
             >
               <Button
@@ -153,10 +156,34 @@ const HardwareConfigurationFilterToolbar: React.FC<HardwareConfigurationFilterTo
           </ToolbarItem>
           <ToolbarItem>
             <MaxRpsFilter />
+            <Popover
+              bodyContent="Set your target traffic load in requests per second (RPS). This value is used to calculate the optimal deployment size (number of replicas) for reliable performance. "
+              appendTo={() => document.body}
+              position="top"
+            >
+              <Button
+                variant="plain"
+                aria-label="More info for latency"
+                className="pf-v6-u-p-xs"
+                icon={<HelpIcon />}
+              />
+            </Popover>
           </ToolbarItem>
           <ToolbarItem variant="separator" />
           <ToolbarItem>
             <HardwareConfigurationFilter />
+            <Popover
+              bodyContent="Select the desired hardware configuration used for benchmarking. The format of hardware is [GPU type] x [number of GPUs per replica]. Example, A100 x 1"
+              appendTo={() => document.body}
+              position="top"
+            >
+              <Button
+                variant="plain"
+                aria-label="More info for latency"
+                className="pf-v6-u-p-xs"
+                icon={<HelpIcon />}
+              />
+            </Popover>
           </ToolbarItem>
           {toolbarActions && (
             <>

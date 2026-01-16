@@ -73,7 +73,7 @@ describe('ManageColumnsModal', () => {
       />,
     );
 
-    expect(screen.getByText('Manage columns')).toBeInTheDocument();
+    expect(screen.getByText('Customize columns')).toBeInTheDocument();
   });
 
   it('should render description when provided', () => {

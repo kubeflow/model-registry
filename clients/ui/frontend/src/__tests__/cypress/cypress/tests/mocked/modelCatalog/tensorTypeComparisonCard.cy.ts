@@ -121,10 +121,13 @@ describe('Compression Level Comparison Card', () => {
       modelCatalog.findCompressionComparisonCard().should('exist');
       modelCatalog
         .findCompressionComparisonCard()
-        .should('contain', 'Compression level comparison');
+        .should('contain', 'Model variants by tensor type');
       modelCatalog
         .findCompressionComparisonCard()
-        .should('contain', 'View benchmark performance of this model');
+        .should(
+          'contain',
+          'Compare benchmark performance across tensor types to understand accuracy and efficiency tradeoffs.',
+        );
     });
 
     it('should display exactly 4 variant models', () => {

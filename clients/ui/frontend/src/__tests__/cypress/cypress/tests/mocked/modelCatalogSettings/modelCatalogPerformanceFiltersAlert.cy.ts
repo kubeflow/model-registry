@@ -72,7 +72,7 @@ describe('Model Catalog Performance Filters Alert', () => {
         .findPerformanceFiltersUpdatedAlert()
         .should(
           'contain.text',
-          'The results list has been updated to match the latest performance criteria set on the details page.',
+          'Info alert:The results list has been updated to match the latest performance criteria set on the model details page.',
         );
     });
 
