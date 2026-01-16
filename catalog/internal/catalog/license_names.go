@@ -677,6 +677,7 @@ var spdxToHumanReadableMap = map[string]string{
 	"unlicense":                            "The Unlicense",
 	"unlicense-libtelnet":                  "Unlicense - libtelnet variant",
 	"unlicense-libwhirlpool":               "Unlicense - libwhirlpool variant",
+	"unrar":                                "UnRAR License",
 	"upl-1.0":                              "Universal Permissive License v1.0",
 	"urt-rle":                              "Utah Raster Toolkit Run Length Encoded License",
 	"vim":                                  "Vim License",
