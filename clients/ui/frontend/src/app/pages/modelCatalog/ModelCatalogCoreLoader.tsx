@@ -70,7 +70,7 @@ const ModelCatalogCoreLoader: React.FC = () => {
             headerIcon={() => (
               <img src={typedEmptyImage(ProjectObjectType.modelRegistrySettings)} alt="" />
             )}
-            customAction={isMUITheme ? <KubeflowDocs /> : <WhosMyAdministrator />}
+            primaryAction={isMUITheme ? <KubeflowDocs /> : <WhosMyAdministrator />}
           />
         }
         headerContent={null}

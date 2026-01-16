@@ -1,92 +1,14 @@
 /* eslint-disable camelcase */
-import {
-  mockCatalogModel,
-  mockCatalogModelArtifactList,
-  mockCatalogModelList,
-  mockCatalogSource,
-  mockCatalogSourceList,
-  mockCatalogModelArtifact,
-} from '~/__mocks__';
 import { modelCatalog } from '~/__tests__/cypress/cypress/pages/modelCatalog';
 import { mockModelRegistry } from '~/__mocks__/mockModelRegistry';
-import type { CatalogSource } from '~/app/modelCatalogTypes';
-import { MODEL_CATALOG_API_VERSION } from '~/__tests__/cypress/cypress/support/commands/api';
-import { mockCatalogFilterOptionsList } from '~/__mocks__/mockCatalogFilterOptionsList';
+import {
+  setupModelCatalogIntercepts,
+  setupValidatedModelIntercepts,
+  interceptArtifactsList,
+  interceptPerformanceArtifactsList,
+} from '~/__tests__/cypress/cypress/support/interceptHelpers/modelCatalog';
+import { mockCatalogModelArtifact } from '~/__mocks__';
 import { ModelRegistryMetadataType } from '~/app/types';
-
-type HandlersProps = {
-  sources?: CatalogSource[];
-  modelsPerCategory?: number;
-};
-
-const initIntercepts = ({
-  sources = [mockCatalogSource({}), mockCatalogSource({ id: 'source-2', name: 'source 2' })],
-  modelsPerCategory = 4,
-}: HandlersProps) => {
-  cy.interceptApi(
-    `GET /api/:apiVersion/model_catalog/sources`,
-    {
-      path: { apiVersion: MODEL_CATALOG_API_VERSION },
-    },
-    mockCatalogSourceList({
-      items: sources,
-    }),
-  );
-
-  sources.forEach((source) => {
-    source.labels.forEach((label) => {
-      cy.interceptApi(
-        `GET /api/:apiVersion/model_catalog/models`,
-        {
-          path: { apiVersion: MODEL_CATALOG_API_VERSION },
-          query: { sourceLabel: label },
-        },
-        mockCatalogModelList({
-          items: Array.from({ length: modelsPerCategory }, (_, i) =>
-            mockCatalogModel({
-              name: `${label.toLowerCase()}-model-${i + 1}`,
-              // eslint-disable-next-line camelcase
-              source_id: source.id,
-            }),
-          ),
-        }),
-      );
-    });
-  });
-
-  cy.interceptApi(
-    `GET /api/:apiVersion/model_catalog/sources/:sourceId/models/:modelName`,
-    {
-      path: {
-        apiVersion: MODEL_CATALOG_API_VERSION,
-        sourceId: 'source-2',
-        modelName: 'sample%20category%201-model-1',
-      },
-    },
-    mockCatalogModel({}),
-  );
-
-  cy.interceptApi(
-    `GET /api/:apiVersion/model_catalog/sources/:sourceId/artifacts/:modelName`,
-    {
-      path: {
-        apiVersion: MODEL_CATALOG_API_VERSION,
-        sourceId: 'source-2',
-        modelName: 'sample%20category%201-model-1',
-      },
-    },
-    mockCatalogModelArtifactList({}),
-  );
-
-  cy.interceptApi(
-    `GET /api/:apiVersion/model_catalog/models/filter_options`,
-    {
-      path: { apiVersion: MODEL_CATALOG_API_VERSION },
-      query: { namespace: 'kubeflow' },
-    },
-    mockCatalogFilterOptionsList(),
-  );
-};
 
 describe('Model Catalog Details Page', () => {
   beforeEach(() => {
@@ -95,7 +17,7 @@ describe('Model Catalog Details Page', () => {
       mockModelRegistry({ name: 'modelregistry-sample' }),
     ]).as('getModelRegistries');
 
-    initIntercepts({});
+    setupModelCatalogIntercepts({});
     modelCatalog.visit();
   });
 
@@ -116,28 +38,21 @@ describe('Model Catalog Details Page', () => {
 
   it('shows architecture field with valid architectures', () => {
     // Override the artifacts intercept with architecture data
-    cy.interceptApi(
-      `GET /api/:apiVersion/model_catalog/sources/:sourceId/artifacts/:modelName`,
-      {
-        path: {
-          apiVersion: MODEL_CATALOG_API_VERSION,
-          sourceId: 'source-2',
-          modelName: 'sample%20category%201-model-1',
-        },
-      },
-      mockCatalogModelArtifactList({
-        items: [
-          mockCatalogModelArtifact({
-            customProperties: {
-              architecture: {
-                string_value: '["amd64", "arm64", "s390x"]',
-                metadataType: ModelRegistryMetadataType.STRING,
-              },
+    interceptArtifactsList({
+      items: [
+        mockCatalogModelArtifact({
+          customProperties: {
+            architecture: {
+              string_value: '["amd64", "arm64", "s390x"]',
+              metadataType: ModelRegistryMetadataType.STRING,
             },
-          }),
-        ],
-      }),
-    );
+          },
+        }),
+      ],
+      size: 1,
+      pageSize: 10,
+      nextPageToken: '',
+    });
 
     modelCatalog.findLoadingState().should('not.exist');
     modelCatalog.findModelCatalogDetailLink().first().click();
@@ -150,28 +65,21 @@ describe('Model Catalog Details Page', () => {
 
   it('shows architecture field with uppercase architectures normalized to lowercase', () => {
     // Override the artifacts intercept with uppercase architecture data
-    cy.interceptApi(
-      `GET /api/:apiVersion/model_catalog/sources/:sourceId/artifacts/:modelName`,
-      {
-        path: {
-          apiVersion: MODEL_CATALOG_API_VERSION,
-          sourceId: 'source-2',
-          modelName: 'sample%20category%201-model-1',
-        },
-      },
-      mockCatalogModelArtifactList({
-        items: [
-          mockCatalogModelArtifact({
-            customProperties: {
-              architecture: {
-                string_value: '["AMD64", "ARM64"]',
-                metadataType: ModelRegistryMetadataType.STRING,
-              },
+    interceptArtifactsList({
+      items: [
+        mockCatalogModelArtifact({
+          customProperties: {
+            architecture: {
+              string_value: '["AMD64", "ARM64"]',
+              metadataType: ModelRegistryMetadataType.STRING,
             },
-          }),
-        ],
-      }),
-    );
+          },
+        }),
+      ],
+      size: 1,
+      pageSize: 10,
+      nextPageToken: '',
+    });
 
     modelCatalog.findLoadingState().should('not.exist');
     modelCatalog.findModelCatalogDetailLink().first().click();
@@ -183,33 +91,91 @@ describe('Model Catalog Details Page', () => {
 
   it('does not show architecture field when only invalid architectures are present', () => {
     // Override the artifacts intercept with invalid architecture data
-    cy.interceptApi(
-      `GET /api/:apiVersion/model_catalog/sources/:sourceId/artifacts/:modelName`,
-      {
-        path: {
-          apiVersion: MODEL_CATALOG_API_VERSION,
-          sourceId: 'source-2',
-          modelName: 'sample%20category%201-model-1',
-        },
-      },
-      mockCatalogModelArtifactList({
-        items: [
-          mockCatalogModelArtifact({
-            customProperties: {
-              architecture: {
-                string_value: '["invalid-arch", "unknown"]',
-                metadataType: ModelRegistryMetadataType.STRING,
-              },
+    interceptArtifactsList({
+      items: [
+        mockCatalogModelArtifact({
+          customProperties: {
+            architecture: {
+              string_value: '["invalid-arch", "unknown"]',
+              metadataType: ModelRegistryMetadataType.STRING,
             },
-          }),
-        ],
-      }),
-    );
+          },
+        }),
+      ],
+      size: 1,
+      pageSize: 10,
+      nextPageToken: '',
+    });
 
     modelCatalog.findLoadingState().should('not.exist');
     modelCatalog.findModelCatalogDetailLink().first().click();
 
     // Architecture field should not exist when all architectures are invalid
     modelCatalog.findModelArchitecture().should('not.exist');
+  });
+});
+
+/**
+ * NOTE: Performance Insights Tab Navigation, Hardware Configuration Table,
+ * Workload Type Filter, and Latency Filter tests are covered in modelCatalogTabs.cy.ts.
+ * This file focuses on filter state management across pages.
+ */
+
+describe('Model Catalog Details Page - Filter State Management', () => {
+  beforeEach(() => {
+    cy.intercept('GET', '/model-registry/api/v1/model_registry*', [
+      mockModelRegistry({ name: 'modelregistry-sample' }),
+    ]).as('getModelRegistries');
+
+    // Use validated model intercepts which include performance artifacts
+    setupValidatedModelIntercepts({});
+    interceptArtifactsList();
+    interceptPerformanceArtifactsList();
+  });
+
+  it('should persist filter state when navigating between Overview and Performance Insights tabs', () => {
+    modelCatalog.visit();
+    modelCatalog.findLoadingState().should('not.exist');
+    modelCatalog.togglePerformanceView();
+    modelCatalog.findLoadingState().should('not.exist');
+
+    modelCatalog.findModelCatalogDetailLink().first().click();
+    modelCatalog.clickPerformanceInsightsTab();
+
+    // Change a filter
+    modelCatalog.findWorkloadTypeFilter().click();
+    modelCatalog.selectWorkloadType('code_fixing');
+
+    // Navigate to Overview tab
+    modelCatalog.clickOverviewTab();
+    modelCatalog.findOverviewTabContent().should('be.visible');
+
+    // Navigate back to Performance Insights
+    modelCatalog.clickPerformanceInsightsTab();
+
+    // Filter should still show the selected value (capitalized as "Code Fixing")
+    modelCatalog.findWorkloadTypeFilter().should('contain.text', 'Code Fixing');
+  });
+
+  it('should sync filter changes back to catalog page', () => {
+    modelCatalog.visit();
+    modelCatalog.findLoadingState().should('not.exist');
+    modelCatalog.togglePerformanceView();
+    modelCatalog.findLoadingState().should('not.exist');
+
+    modelCatalog.findModelCatalogDetailLink().first().click();
+    modelCatalog.clickPerformanceInsightsTab();
+
+    // Change a filter on details page
+    modelCatalog.findWorkloadTypeFilter().click();
+    modelCatalog.selectWorkloadType('rag');
+
+    // Go back to catalog page
+    cy.go('back');
+    cy.go('back');
+    modelCatalog.findLoadingState().should('not.exist');
+
+    // The alert should show indicating filters were updated
+    modelCatalog.findPerformanceFiltersUpdatedAlert().should('be.visible');
   });
 });

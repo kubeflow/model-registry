@@ -1,4 +1,3 @@
-import { TEMP_DEV_CATALOG_ADVANCED_FILTERS_FEATURE_KEY } from '~/app/hooks/useTempDevCatalogAdvancedFiltersFeatureAvailable';
 import { appChrome } from './appChrome';
 
 class ModelCatalogFilter {
@@ -32,12 +31,7 @@ class ModelCatalogFilter {
 }
 
 class ModelCatalog {
-  visit({
-    enableTempDevCatalogAdvancedFiltersFeature = false,
-  }: { enableTempDevCatalogAdvancedFiltersFeature?: boolean } = {}) {
-    if (enableTempDevCatalogAdvancedFiltersFeature) {
-      window.localStorage.setItem(TEMP_DEV_CATALOG_ADVANCED_FILTERS_FEATURE_KEY, 'true');
-    }
+  visit() {
     cy.visit('/model-catalog');
     this.wait();
   }
@@ -244,8 +238,8 @@ class ModelCatalog {
     return cy.findByTestId('validated-model-replicas');
   }
 
-  findValidatedModelTtft() {
-    return cy.findByTestId('validated-model-ttft');
+  findValidatedModelLatency() {
+    return cy.findByTestId('validated-model-latency');
   }
 
   findWorkloadTypeFilter() {
@@ -253,8 +247,8 @@ class ModelCatalog {
   }
 
   findWorkloadTypeOption(useCaseValue: string) {
-    // Use the checkbox id attribute (e.g., 'chatbot', 'code_fixing', 'long_rag', 'rag')
-    return cy.get(`#${useCaseValue}`);
+    // WorkloadTypeFilter is now single-select dropdown with data-testid
+    return cy.findByTestId(`workload-type-filter-${useCaseValue}`);
   }
 
   selectWorkloadType(useCaseValue: string) {
@@ -334,6 +328,10 @@ class ModelCatalog {
     return cy.findByTestId('latency-reset-filter');
   }
 
+  findEmptyStateResetFiltersButton() {
+    return this.findModelCatalogEmptyState().findByRole('button', { name: /Reset filters/i });
+  }
+
   clickApplyFilter() {
     this.findApplyFilterButton().click();
     return this;
@@ -342,6 +340,81 @@ class ModelCatalog {
   clickResetFilter() {
     this.findResetFilterButton().click();
     return this;
+  }
+
+  // Compression Comparison Card
+  findCompressionComparisonCard() {
+    return cy.findByTestId('compression-comparison-card');
+  }
+
+  findCompressionComparisonLoading() {
+    return cy.findByTestId('compression-comparison-loading');
+  }
+
+  findCompressionComparisonError() {
+    return cy.findByTestId('compression-comparison-error');
+  }
+
+  findCompressionComparisonEmpty() {
+    return cy.findByTestId('compression-comparison-empty');
+  }
+
+  findCompressionVariant(index: number) {
+    return cy.findByTestId(`compression-variant-${index}`);
+  }
+
+  findCompressionVariantLogo(index: number) {
+    return cy.findByTestId(`compression-logo-${index}`);
+  }
+
+  findCompressionVariantSkeleton(index: number) {
+    return cy.findByTestId(`compression-skeleton-${index}`);
+  }
+
+  findCompressionVariantLink(index: number) {
+    return cy.findByTestId(`compression-link-${index}`);
+  }
+
+  findCompressionTensorType(index: number) {
+    return cy.findByTestId(`compression-tensor-type-${index}`);
+  }
+
+  findCompressionCurrentModelName() {
+    return cy.findByTestId('compression-current-model-name');
+  }
+
+  findCompressionCurrentLabel() {
+    return cy.findByTestId('compression-current-label');
+  }
+
+  findAllCompressionCurrentLabels() {
+    return cy.findAllByTestId('compression-current-label');
+  }
+
+  findCompressionDivider(index: number) {
+    return cy.findByTestId(`compression-divider-${index}`);
+  }
+
+  findAllCompressionVariants() {
+    return cy.get('[data-testid^="compression-variant-"]');
+  }
+
+  // Performance Empty State
+  findPerformanceEmptyState() {
+    return cy.findByTestId('performance-empty-state');
+  }
+
+  findSetPerformanceOffLink() {
+    return this.findPerformanceEmptyState().contains(
+      'button',
+      /Turn.*Model performance view.*off/i,
+    );
+  }
+
+  findSelectAllModelsCategoryButton() {
+    return this.findPerformanceEmptyState().findByRole('button', {
+      name: /View all models with performance data/i,
+    });
   }
 }
 

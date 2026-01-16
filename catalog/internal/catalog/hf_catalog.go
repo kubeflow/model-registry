@@ -426,6 +426,8 @@ func (p *hfModelProvider) getModelsFromHF(ctx context.Context) ([]ModelProviderR
 	currentTime := time.Now().UnixMilli()
 	lastSyncedStr := strconv.FormatInt(currentTime, 10)
 
+	var failedModels []string
+
 	for _, modelName := range expandedModels {
 		// Skip if excluded - check before fetching to avoid unnecessary API calls
 		if !p.filter.Allows(modelName) {
@@ -436,6 +438,7 @@ func (p *hfModelProvider) getModelsFromHF(ctx context.Context) ([]ModelProviderR
 		modelInfo, err := p.fetchModelInfo(ctx, modelName)
 		if err != nil {
 			glog.Errorf("Failed to fetch model info for %s: %v", modelName, err)
+			failedModels = append(failedModels, modelName)
 			continue
 		}
 
@@ -465,6 +468,10 @@ func (p *hfModelProvider) getModelsFromHF(ctx context.Context) ([]ModelProviderR
 		}
 
 		records = append(records, record)
+	}
+
+	if len(failedModels) > 0 {
+		return records, fmt.Errorf("Failed to fetch some models, ensure models exist and are accessible with given credentials. Failed models: %v", failedModels)
 	}
 
 	return records, nil

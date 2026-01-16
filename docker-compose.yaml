@@ -3,12 +3,36 @@
 # - a MySQL database,
 # - a model-registry server connected to the MySQL database.
 # - a model-catalog server
+# - a model-registry-ui (standalone mode)
 # or
 # - a PostgreSQL database,
 # - a model-registry server connected to the PostgreSQL database.
 # - a model-catalog server
+# - a model-registry-ui (standalone mode)
 version: '3.8'
 services:
+  model-registry-ui:
+    image: ghcr.io/kubeflow/model-registry/ui-standalone:latest
+    pull_policy: always
+    command:
+      - --port=9000
+      - --mock-k8s-client=true
+      - --mock-mr-client=false
+      - --mock-mr-catalog-client=false
+      - --dev-mode=true
+      - --deployment-mode=standalone
+      - --log-level=DEBUG
+    container_name: model-registry-ui
+    ports:
+      - "9000:9000"
+    depends_on:
+      - model-registry
+      - model-catalog
+    profiles:
+      - postgres
+    extra_hosts:
+      - "localhost:host-gateway"
+
   model-catalog:
     image: ghcr.io/kubeflow/model-registry/server:latest
     pull_policy: always

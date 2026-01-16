@@ -9,10 +9,7 @@ import {
   ModelCatalogFilterStates,
   PerformanceArtifactsParams,
 } from '~/app/modelCatalogTypes';
-import {
-  filtersToFilterQuery,
-  filtersToArtifactsFilterQuery,
-} from '~/app/pages/modelCatalog/utils/modelCatalogUtils';
+import { filtersToFilterQuery } from '~/app/pages/modelCatalog/utils/modelCatalogUtils';
 
 export const getCatalogModelsBySource =
   (hostPath: string, queryParams: Record<string, unknown> = {}) =>
@@ -29,15 +26,19 @@ export const getCatalogModelsBySource =
     searchKeyword?: string,
     filterData?: ModelCatalogFilterStates,
     filterOptions?: CatalogFilterOptionsList | null,
+    filterQuery?: string,
   ): Promise<CatalogModelList> => {
+    const computedFilterQuery =
+      filterQuery ??
+      (filterData && filterOptions ? filtersToFilterQuery(filterData, filterOptions) : '');
+
     const allParams = {
       source: sourceId,
       sourceLabel,
       ...paginationParams,
       ...(searchKeyword && { q: searchKeyword }),
       ...queryParams,
-      ...(filterData &&
-        filterOptions && { filterQuery: filtersToFilterQuery(filterData, filterOptions) }),
+      ...(computedFilterQuery && { filterQuery: computedFilterQuery }),
     };
     return handleRestFailures(restGET(hostPath, '/models', allParams, opts)).then((response) => {
       if (isModArchResponse<CatalogModelList>(response)) {
@@ -116,7 +117,9 @@ export const getPerformanceArtifacts =
       ...(params?.sortOrder && { sortOrder: params.sortOrder }),
       ...(params?.nextPageToken && { nextPageToken: params.nextPageToken }),
       ...(filterData &&
-        filterOptions && { filterQuery: filtersToArtifactsFilterQuery(filterData, filterOptions) }),
+        filterOptions && {
+          filterQuery: filtersToFilterQuery(filterData, filterOptions, 'artifacts'),
+        }),
     };
     return handleRestFailures(
       restGET(hostPath, `/sources/${sourceId}/performance_artifacts/${modelName}`, allParams, opts),

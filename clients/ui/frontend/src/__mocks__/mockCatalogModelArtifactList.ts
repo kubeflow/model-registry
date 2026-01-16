@@ -63,6 +63,10 @@ export const mockCatalogPerformanceMetricsArtifact = (
       metadataType: ModelRegistryMetadataType.STRING,
       string_value: 'H100-80',
     },
+    hardware_configuration: {
+      metadataType: ModelRegistryMetadataType.STRING,
+      string_value: '2 x H100-80',
+    },
     requests_per_second: {
       metadataType: ModelRegistryMetadataType.DOUBLE,
       double_value: 7,
@@ -89,7 +93,8 @@ export const mockCatalogPerformanceMetricsArtifact = (
     },
     use_case: {
       metadataType: ModelRegistryMetadataType.STRING,
-      string_value: UseCaseOptionValue.CODE_FIXING,
+      // Use CHATBOT as default to match DEFAULT_PERFORMANCE_FILTERS_QUERY_NAME
+      string_value: UseCaseOptionValue.CHATBOT,
     },
   },
   ...partial,
@@ -109,7 +114,7 @@ export const mockCatalogPerformanceMetricsArtifactList = (
   partial?: Partial<CatalogPerformanceMetricsArtifact>,
 ): CatalogPerformanceArtifactList => ({
   items: [
-    // First artifact with base values
+    // First artifact with base values - uses CHATBOT to match default filters
     mockCatalogPerformanceMetricsArtifact({
       customProperties: {
         config_id: {
@@ -129,7 +134,7 @@ export const mockCatalogPerformanceMetricsArtifactList = (
         itl_p90: { metadataType: ModelRegistryMetadataType.DOUBLE, double_value: 7.78 },
         use_case: {
           metadataType: ModelRegistryMetadataType.STRING,
-          string_value: UseCaseOptionValue.CODE_FIXING,
+          string_value: UseCaseOptionValue.CHATBOT,
         },
         ...partial?.customProperties,
       },
@@ -158,7 +163,7 @@ export const mockCatalogPerformanceMetricsArtifactList = (
         },
       },
     }),
-    // Third artifact with different latency values
+    // Third artifact with CODE_FIXING workload type for testing filter changes
     mockCatalogPerformanceMetricsArtifact({
       customProperties: {
         config_id: {
@@ -178,7 +183,7 @@ export const mockCatalogPerformanceMetricsArtifactList = (
         itl_p90: { metadataType: ModelRegistryMetadataType.DOUBLE, double_value: 8.12 },
         use_case: {
           metadataType: ModelRegistryMetadataType.STRING,
-          string_value: UseCaseOptionValue.CHATBOT,
+          string_value: UseCaseOptionValue.CODE_FIXING,
         },
       },
     }),

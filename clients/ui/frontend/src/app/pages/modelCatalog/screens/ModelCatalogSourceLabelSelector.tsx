@@ -2,6 +2,7 @@ import {
   Alert,
   AlertActionCloseButton,
   Button,
+  Content,
   Flex,
   Stack,
   StackItem,
@@ -14,12 +15,13 @@ import {
 import { ArrowRightIcon, FilterIcon } from '@patternfly/react-icons';
 import React from 'react';
 import { useThemeContext } from 'mod-arch-kubeflow';
-import { ModelCatalogStringFilterKey } from '~/concepts/modelCatalog/const';
-import { ModelCatalogFilterKey } from '~/app/modelCatalogTypes';
+import { BASIC_FILTER_KEYS } from '~/concepts/modelCatalog/const';
 import ModelCatalogActiveFilters from '~/app/pages/modelCatalog/components/ModelCatalogActiveFilters';
+import HardwareConfigurationFilterToolbar from '~/app/pages/modelCatalog/components/HardwareConfigurationFilterToolbar';
 import ThemeAwareSearchInput from '~/app/pages/modelRegistry/screens/components/ThemeAwareSearchInput';
 import { ModelCatalogContext } from '~/app/context/modelCatalog/ModelCatalogContext';
 import { hasFiltersApplied } from '~/app/pages/modelCatalog/utils/modelCatalogUtils';
+import ModelCatalogSortDropdown from '~/app/pages/modelCatalog/components/ModelCatalogSortDropdown';
 import ModelCatalogSourceLabelBlocks from './ModelCatalogSourceLabelBlocks';
 
 type ModelCatalogSourceLabelSelectorProps = {
@@ -43,11 +45,41 @@ const ModelCatalogSourceLabelSelector: React.FC<ModelCatalogSourceLabelSelectorP
     performanceFiltersChangedOnDetailsPage,
     setPerformanceFiltersChangedOnDetailsPage,
   } = React.useContext(ModelCatalogContext);
-  const filtersApplied = React.useMemo(() => hasFiltersApplied(filterData), [filterData]);
-  const hasActiveFilters = React.useMemo(
-    () => filtersApplied || (searchTerm && searchTerm.trim().length > 0),
-    [filtersApplied, searchTerm],
+
+  // Only show basic filters in the main chip bar - performance filters have their own section
+  const filtersToShow = BASIC_FILTER_KEYS;
+
+  // Check if any basic filters are applied
+  const hasBasicFiltersApplied = React.useMemo(
+    () => hasFiltersApplied(filterData, filtersToShow),
+    [filterData, filtersToShow],
   );
+
+  // Check if search term is active
+  const hasSearchTerm = Boolean(searchTerm && searchTerm.trim().length > 0);
+
+  // When performance toggle is ON, we need to check if performance filters differ from defaults
+  // When toggle is OFF, we just check if any filters have values
+  const hasActiveFilters = React.useMemo(() => {
+    if (hasSearchTerm) {
+      return true;
+    }
+
+    if (hasBasicFiltersApplied) {
+      return true;
+    }
+
+    // When performance view is OFF, only basic filters matter
+    if (!performanceViewEnabled) {
+      return false;
+    }
+
+    // When performance view is ON, check if any performance filters differ from defaults
+    // (the HardwareConfigurationFilterToolbar handles showing its own "Clear all filters")
+    // The top toolbar should only show "Reset all filters" if basic filters are applied
+    // or if there's a search term
+    return false;
+  }, [hasSearchTerm, hasBasicFiltersApplied, performanceViewEnabled]);
 
   const shouldShowAlert = performanceViewEnabled && performanceFiltersChangedOnDetailsPage;
 
@@ -83,27 +115,21 @@ const ModelCatalogSourceLabelSelector: React.FC<ModelCatalogSourceLabelSelectorP
     }
   };
 
-  // Define which filters to show on the landing page
-  const filtersToShow: ModelCatalogFilterKey[] = [
-    ModelCatalogStringFilterKey.PROVIDER,
-    ModelCatalogStringFilterKey.LICENSE,
-    ModelCatalogStringFilterKey.TASK,
-    ModelCatalogStringFilterKey.LANGUAGE,
-  ];
-
   return (
     <Stack hasGutter>
       <StackItem>
         <Toolbar
-          key={`toolbar-${hasActiveFilters}`}
-          {...(onResetAllFilters
+          // Use PatternFly's native clearAllFilters - it automatically shows/hides based on ToolbarFilter labels
+          // When performance view is OFF, show reset button for basic filters
+          // When performance view is ON, the HardwareConfigurationFilterToolbar handles resetting
+          {...(onResetAllFilters && !performanceViewEnabled && hasBasicFiltersApplied
             ? {
                 clearAllFilters: handleClearAllFilters,
-                clearFiltersButtonText: hasActiveFilters ? 'Reset all filters' : '',
+                clearFiltersButtonText: 'Reset all filters',
               }
             : {})}
         >
-          <ToolbarContent>
+          <ToolbarContent rowWrap={{ default: 'wrap' }}>
             <Flex>
               <ToolbarToggleGroup breakpoint="md" toggleIcon={<FilterIcon />}>
                 <ToolbarGroup variant="filter-group" gap={{ default: 'gapMd' }} alignItems="center">
@@ -138,15 +164,39 @@ const ModelCatalogSourceLabelSelector: React.FC<ModelCatalogSourceLabelSelectorP
                   </ToolbarItem>
                 </ToolbarGroup>
               </ToolbarToggleGroup>
-              {onResetAllFilters && hasActiveFilters && (
+              {/* When toggle is OFF, show basic filter chips in the main toolbar */}
+              {/* When toggle is ON, all chips are shown in HardwareConfigurationFilterToolbar below */}
+              {!performanceViewEnabled && onResetAllFilters && hasBasicFiltersApplied && (
                 <ModelCatalogActiveFilters filtersToShow={filtersToShow} />
               )}
             </Flex>
           </ToolbarContent>
         </Toolbar>
       </StackItem>
+      {performanceViewEnabled && (
+        <>
+          <StackItem>
+            <Content component="h2" className="pf-v6-u-font-weight-bold">
+              Workload and performance constraints
+            </Content>
+          </StackItem>
+          <StackItem>
+            <HardwareConfigurationFilterToolbar
+              onResetAllFilters={onResetAllFilters}
+              includeBasicFilters
+              includePerformanceFilters={performanceViewEnabled}
+            />
+          </StackItem>
+        </>
+      )}
       <StackItem>
-        <ModelCatalogSourceLabelBlocks />
+        <Flex
+          justifyContent={{ default: 'justifyContentSpaceBetween' }}
+          alignItems={{ default: 'alignItemsCenter' }}
+        >
+          <ModelCatalogSourceLabelBlocks />
+          <ModelCatalogSortDropdown performanceViewEnabled={performanceViewEnabled} />
+        </Flex>
       </StackItem>
       {shouldShowAlert && (
         <StackItem>

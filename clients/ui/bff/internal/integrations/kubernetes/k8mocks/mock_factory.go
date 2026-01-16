@@ -80,7 +80,15 @@ func (f *MockedStaticClientFactory) GetClient(_ context.Context) (k8s.Kubernetes
 }
 
 func (f *MockedStaticClientFactory) ExtractRequestIdentity(httpHeader http.Header) (*k8s.RequestIdentity, error) {
-	return f.realFactoryWithoutClient.ExtractRequestIdentity(httpHeader)
+	identity, err := f.realFactoryWithoutClient.ExtractRequestIdentity(httpHeader)
+	if err != nil {
+		// In mock mode, use default test user when header is missing
+		return &k8s.RequestIdentity{
+			UserID: DefaultTestUsers[0].UserName,
+			Groups: DefaultTestUsers[0].Groups,
+		}, nil
+	}
+	return identity, nil
 }
 func (f *MockedStaticClientFactory) ValidateRequestIdentity(identity *k8s.RequestIdentity) error {
 	return f.realFactoryWithoutClient.ValidateRequestIdentity(identity)

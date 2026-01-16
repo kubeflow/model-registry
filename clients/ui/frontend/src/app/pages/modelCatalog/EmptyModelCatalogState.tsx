@@ -10,31 +10,39 @@ import { PlusCircleIcon } from '@patternfly/react-icons';
 
 type EmptyModelCatalogStateType = {
   testid?: string;
+  className?: string;
   title: string;
   description: React.ReactNode;
   headerIcon?: React.ComponentType;
   children?: React.ReactNode;
-  customAction?: React.ReactNode;
+  primaryAction?: React.ReactNode;
+  secondaryAction?: React.ReactNode;
+  variant?: EmptyStateVariant;
 };
 
 const EmptyModelCatalogState: React.FC<EmptyModelCatalogStateType> = ({
   testid,
+  className,
   title,
   description,
   headerIcon,
   children,
-  customAction,
+  primaryAction,
+  secondaryAction,
+  variant = EmptyStateVariant.sm,
 }) => (
   <EmptyState
+    className={className}
     icon={headerIcon ?? PlusCircleIcon}
     titleText={title}
-    variant={EmptyStateVariant.sm}
+    variant={variant}
     data-testid={testid}
   >
     <EmptyStateBody>{description}</EmptyStateBody>
     {children}
     <EmptyStateFooter>
-      {customAction && <EmptyStateActions>{customAction}</EmptyStateActions>}
+      {primaryAction && <EmptyStateActions>{primaryAction}</EmptyStateActions>}
+      {secondaryAction && <EmptyStateActions>{secondaryAction}</EmptyStateActions>}
     </EmptyStateFooter>
   </EmptyState>
 );

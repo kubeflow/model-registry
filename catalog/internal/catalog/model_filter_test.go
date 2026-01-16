@@ -27,9 +27,11 @@ func TestModelFilterAllows(t *testing.T) {
 }
 
 func TestModelFilterConflictsAndValidation(t *testing.T) {
-	_, err := NewModelFilter([]string{"Granite/*"}, []string{"Granite/*"})
-	require.Error(t, err)
-	assert.Contains(t, err.Error(), "pattern \"Granite/*\"")
+	_, err := NewModelFilter([]string{"meta-llama/Llama-3.2-1B"}, []string{"meta-llama/Llama-3.2-1B"})
+	require.NoError(t, err)
+
+	_, err = NewModelFilter([]string{"Granite/*"}, []string{"Granite/*"})
+	require.NoError(t, err)
 
 	_, err = NewModelFilter([]string{""}, nil)
 	require.Error(t, err)
@@ -86,8 +88,12 @@ func TestValidateSourceFilters(t *testing.T) {
 
 	t.Run("conflicting patterns", func(t *testing.T) {
 		err := ValidateSourceFilters([]string{"Granite/*"}, []string{"Granite/*"})
-		require.Error(t, err)
-		assert.Contains(t, err.Error(), "Granite/*")
+		require.NoError(t, err)
+	})
+
+	t.Run("conflicting patterns", func(t *testing.T) {
+		err := ValidateSourceFilters([]string{"Granite/model-2"}, []string{"Granite/model-2"})
+		require.NoError(t, err)
 	})
 
 	t.Run("empty pattern in includedModels", func(t *testing.T) {

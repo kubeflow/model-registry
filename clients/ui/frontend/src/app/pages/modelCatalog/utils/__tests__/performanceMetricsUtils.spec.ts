@@ -1,9 +1,12 @@
 /* eslint-disable camelcase */
 import { ModelRegistryMetadataType } from '~/app/types';
-import { UseCaseOptionValue } from '~/concepts/modelCatalog/const';
+import {
+  UseCaseOptionValue,
+  PerformancePropertyKey,
+  EMPTY_CUSTOM_PROPERTY_VALUE,
+} from '~/concepts/modelCatalog/const';
 import { mockCatalogPerformanceMetricsArtifact } from '~/__mocks__';
 import {
-  getHardwareConfiguration,
   formatLatency,
   formatTokenValue,
   getWorkloadType,
@@ -19,69 +22,6 @@ import {
 import { getDoubleValue } from '~/app/utils';
 
 describe('performanceMetricsUtils', () => {
-  describe('getHardwareConfiguration', () => {
-    it('should return formatted hardware configuration string', () => {
-      const artifact = mockCatalogPerformanceMetricsArtifact();
-      expect(getHardwareConfiguration(artifact)).toBe('2 x H100-80');
-    });
-
-    it('should handle single hardware count', () => {
-      const artifact = mockCatalogPerformanceMetricsArtifact({
-        customProperties: {
-          hardware_type: {
-            metadataType: ModelRegistryMetadataType.STRING,
-            string_value: 'A100-40',
-          },
-          hardware_count: {
-            metadataType: ModelRegistryMetadataType.INT,
-            int_value: '1',
-          },
-          requests_per_second: {
-            metadataType: ModelRegistryMetadataType.DOUBLE,
-            double_value: 5,
-          },
-        },
-      });
-      expect(getHardwareConfiguration(artifact)).toBe('1 x A100-40');
-    });
-
-    it('should handle large hardware counts', () => {
-      const artifact = mockCatalogPerformanceMetricsArtifact({
-        customProperties: {
-          hardware_type: {
-            metadataType: ModelRegistryMetadataType.STRING,
-            string_value: 'GPU-V100',
-          },
-          hardware_count: {
-            metadataType: ModelRegistryMetadataType.INT,
-            int_value: '8',
-          },
-          requests_per_second: {
-            metadataType: ModelRegistryMetadataType.DOUBLE,
-            double_value: 10,
-          },
-        },
-      });
-      expect(getHardwareConfiguration(artifact)).toBe('8 x GPU-V100');
-    });
-
-    it('should return "0 x " when hardware_count is missing', () => {
-      const artifact = mockCatalogPerformanceMetricsArtifact();
-      if (artifact.customProperties) {
-        delete artifact.customProperties.hardware_count;
-      }
-      expect(getHardwareConfiguration(artifact)).toBe('0 x H100-80');
-    });
-
-    it('should return count with "-" when hardware_type is missing', () => {
-      const artifact = mockCatalogPerformanceMetricsArtifact();
-      if (artifact.customProperties) {
-        delete artifact.customProperties.hardware_type;
-      }
-      expect(getHardwareConfiguration(artifact)).toBe('2 x -');
-    });
-  });
-
   describe('formatLatency', () => {
     it('should format latency value with 2 decimal places and "ms" suffix', () => {
       expect(formatLatency(35.48818160947744)).toBe('35.49 ms');
@@ -193,7 +133,7 @@ describe('performanceMetricsUtils', () => {
       if (artifact.customProperties) {
         delete artifact.customProperties.use_case;
       }
-      expect(getWorkloadType(artifact)).toBe('-');
+      expect(getWorkloadType(artifact)).toBe(EMPTY_CUSTOM_PROPERTY_VALUE);
     });
 
     it('should return "-" when use_case is empty string', () => {
@@ -205,7 +145,7 @@ describe('performanceMetricsUtils', () => {
           },
         },
       });
-      expect(getWorkloadType(artifact)).toBe('-');
+      expect(getWorkloadType(artifact)).toBe(EMPTY_CUSTOM_PROPERTY_VALUE);
     });
 
     it('should return "-" when use_case is not a valid enum value', () => {
@@ -217,11 +157,18 @@ describe('performanceMetricsUtils', () => {
           },
         },
       });
-      expect(getWorkloadType(artifact)).toBe('-');
+      expect(getWorkloadType(artifact)).toBe(EMPTY_CUSTOM_PROPERTY_VALUE);
     });
 
     it('should handle code_fixing with underscores', () => {
-      const artifact = mockCatalogPerformanceMetricsArtifact();
+      const artifact = mockCatalogPerformanceMetricsArtifact({
+        customProperties: {
+          use_case: {
+            metadataType: ModelRegistryMetadataType.STRING,
+            string_value: 'code_fixing',
+          },
+        },
+      });
       expect(getWorkloadType(artifact)).toBe('Code Fixing');
     });
 
@@ -240,7 +187,7 @@ describe('performanceMetricsUtils', () => {
     it('should return "-" when customProperties is undefined', () => {
       const artifact = mockCatalogPerformanceMetricsArtifact();
       artifact.customProperties = undefined;
-      expect(getWorkloadType(artifact)).toBe('-');
+      expect(getWorkloadType(artifact)).toBe(EMPTY_CUSTOM_PROPERTY_VALUE);
     });
   });
 });
@@ -272,7 +219,7 @@ describe('performanceMetricsUtils', () => {
         const result = getSliderRange({
           performanceArtifacts: [],
           getArtifactFilterValue: (artifact) =>
-            getDoubleValue(artifact.customProperties, 'requests_per_second'),
+            getDoubleValue(artifact.customProperties, PerformancePropertyKey.REQUESTS_PER_SECOND),
           fallbackRange: FALLBACK_RPS_RANGE,
         });
 
@@ -291,7 +238,7 @@ describe('performanceMetricsUtils', () => {
         const result = getSliderRange({
           performanceArtifacts: artifacts,
           getArtifactFilterValue: (artifact) =>
-            getDoubleValue(artifact.customProperties, 'requests_per_second'),
+            getDoubleValue(artifact.customProperties, PerformancePropertyKey.REQUESTS_PER_SECOND),
           fallbackRange: FALLBACK_RPS_RANGE,
         });
 
@@ -310,7 +257,7 @@ describe('performanceMetricsUtils', () => {
         const result = getSliderRange({
           performanceArtifacts: artifacts,
           getArtifactFilterValue: (artifact) =>
-            getDoubleValue(artifact.customProperties, 'requests_per_second'),
+            getDoubleValue(artifact.customProperties, PerformancePropertyKey.REQUESTS_PER_SECOND),
           fallbackRange: FALLBACK_RPS_RANGE,
         });
 
@@ -353,7 +300,7 @@ describe('performanceMetricsUtils', () => {
         const result = getSliderRange({
           performanceArtifacts: artifacts,
           getArtifactFilterValue: (artifact) =>
-            getDoubleValue(artifact.customProperties, 'requests_per_second'),
+            getDoubleValue(artifact.customProperties, PerformancePropertyKey.REQUESTS_PER_SECOND),
           fallbackRange: FALLBACK_RPS_RANGE,
         });
 
@@ -376,7 +323,7 @@ describe('performanceMetricsUtils', () => {
         const result = getSliderRange({
           performanceArtifacts: artifacts,
           getArtifactFilterValue: (artifact) =>
-            getDoubleValue(artifact.customProperties, 'requests_per_second'),
+            getDoubleValue(artifact.customProperties, PerformancePropertyKey.REQUESTS_PER_SECOND),
           fallbackRange: FALLBACK_RPS_RANGE,
         });
 
@@ -442,7 +389,7 @@ describe('performanceMetricsUtils', () => {
         const result = getSliderRange({
           performanceArtifacts: artifacts,
           getArtifactFilterValue: (artifact) =>
-            getDoubleValue(artifact.customProperties, 'requests_per_second'),
+            getDoubleValue(artifact.customProperties, PerformancePropertyKey.REQUESTS_PER_SECOND),
           fallbackRange: FALLBACK_RPS_RANGE,
         });
 

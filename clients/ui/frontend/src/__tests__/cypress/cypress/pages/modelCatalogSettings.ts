@@ -1,3 +1,4 @@
+import { TempDevFeature } from '~/app/hooks/useTempDevFeatureAvailable';
 import { appChrome } from './appChrome';
 import { TableRow } from './components/table';
 import { Modal } from './components/Modal';
@@ -112,7 +113,13 @@ class CatalogSourceConfigRow extends TableRow {
 }
 
 class ModelCatalogSettings {
-  visit(wait = true) {
+  visit({
+    wait = true,
+    enableTempDevCatalogHuggingFaceApiKeyFeature = false,
+  }: { wait?: boolean; enableTempDevCatalogHuggingFaceApiKeyFeature?: boolean } = {}) {
+    if (enableTempDevCatalogHuggingFaceApiKeyFeature) {
+      window.localStorage.setItem(TempDevFeature.CatalogHuggingFaceApiKey, 'true');
+    }
     cy.visit('/model-catalog-settings');
     if (wait) {
       this.wait();
@@ -194,14 +201,29 @@ class ModelCatalogSettings {
 }
 
 class ManageSourcePage {
-  visitAddSource(wait = true) {
+  visitAddSource({
+    wait = true,
+    enableTempDevCatalogHuggingFaceApiKeyFeature = false,
+  }: { wait?: boolean; enableTempDevCatalogHuggingFaceApiKeyFeature?: boolean } = {}) {
+    if (enableTempDevCatalogHuggingFaceApiKeyFeature) {
+      window.localStorage.setItem(TempDevFeature.CatalogHuggingFaceApiKey, 'true');
+    }
     cy.visit('/model-catalog-settings/add-source');
     if (wait) {
       this.wait();
     }
   }
 
-  visitManageSource(catalogSourceId: string, wait = true) {
+  visitManageSource(
+    catalogSourceId: string,
+    {
+      wait = true,
+      enableTempDevCatalogHuggingFaceApiKeyFeature = false,
+    }: { wait?: boolean; enableTempDevCatalogHuggingFaceApiKeyFeature?: boolean } = {},
+  ) {
+    if (enableTempDevCatalogHuggingFaceApiKeyFeature) {
+      window.localStorage.setItem(TempDevFeature.CatalogHuggingFaceApiKey, 'true');
+    }
     cy.visit(`/model-catalog-settings/manage-source/${encodeURIComponent(catalogSourceId)}`);
     if (wait) {
       this.wait();

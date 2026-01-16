@@ -24,18 +24,18 @@ def test_secure_client(monkeypatch):
 
 
 @pytest.mark.e2e
-async def test_register_new(client: ModelRegistry):
+async def test_register_new(
+    client: ModelRegistry,
+    register_model_with_version,
+):
     """As a MLOps engineer I would like to store Model name"""
     name = "test_model"
     version = "1.0.0"
-    rm = client.register_model(
+    rm, _ = register_model_with_version(
         name,
-        "https://acme.org/something",
-        model_format_name="test_format",
-        model_format_version="test_version",
-        version=version,
+        version,
+        uri="https://acme.org/something",
     )
-    assert rm.id
     assert rm.name == name  # check the Model name
 
     mr_api = client._api
@@ -51,16 +51,17 @@ async def test_register_new(client: ModelRegistry):
 
 
 @pytest.mark.e2e
-async def test_register_new_using_s3_uri_builder(client: ModelRegistry):
+async def test_register_new_using_s3_uri_builder(
+    client: ModelRegistry,
+    register_model_with_version,
+):
     name = "test_model"
     version = "1.0.0"
     uri = utils.s3_uri_from("storage/path", "my-bucket", endpoint="my-endpoint", region="my-region")
-    rm = client.register_model(
+    rm, _ = register_model_with_version(
         name,
-        uri,
-        model_format_name="test_format",
-        model_format_version="test_version",
-        version=version,
+        version,
+        uri=uri,
     )
     assert rm.id is not None
 
@@ -135,23 +136,11 @@ def test_register_version_long_name(client: ModelRegistry):
 
 
 @pytest.mark.e2e
-async def test_update_models(client: ModelRegistry):
+async def test_update_models(client: ModelRegistry, register_model_with_version):
     name = "test_model"
     version = "1.0.0"
-    rm = client.register_model(
-        name,
-        "s3",
-        model_format_name="test_format",
-        model_format_version="test_version",
-        version=version,
-    )
-    assert rm.id
-
-    mr_api = client._api
-    mv = await mr_api.get_model_version_by_params(rm.id, version)
-    assert mv
-    assert mv.id
-    ma = await mr_api.get_model_artifact_by_params(name, mv.id)
+    rm, mv = register_model_with_version(name, version)
+    ma = client.get_model_artifact(name, version)
     assert ma
 
     new_description = "updated description"
@@ -164,24 +153,17 @@ async def test_update_models(client: ModelRegistry):
 
 
 @pytest.mark.e2e
-async def test_update_logical_model_with_labels(client: ModelRegistry):
+async def test_update_logical_model_with_labels(
+    client: ModelRegistry,
+    register_model_with_version,
+):
     """As a MLOps engineer I would like to store some labels
 
     A custom property of type string, with empty string value, shall be considered a Label; this is also semantically compatible for properties having empty string values in general.
     """
     name = "test_model"
     version = "1.0.0"
-    rm = client.register_model(
-        name,
-        "s3",
-        model_format_name="test_format",
-        model_format_version="test_version",
-        version=version,
-    )
-    assert rm.id
-    mv = client.get_model_version(name, version)
-    assert mv
-    assert mv.id
+    rm, mv = register_model_with_version(name, version)
     ma = client.get_model_artifact(name, version)
     assert ma
     assert ma.id
@@ -207,7 +189,7 @@ async def test_update_logical_model_with_labels(client: ModelRegistry):
     ma.custom_properties = ma_labels
     client.update(ma)
 
-    rm = client.get_registered_model(name)  # type: ignore[assignment]
+    rm = client.get_registered_model(name)
     assert rm
     assert rm.custom_properties == rm_labels
     mv = client.get_model_version(name, version)
@@ -220,7 +202,10 @@ async def test_update_logical_model_with_labels(client: ModelRegistry):
 
 @pytest.mark.e2e
 async def test_patch_model_artifacts_artifact_type(
-    client: ModelRegistry, request_headers: dict[str, str], verify_ssl: bool
+    client: ModelRegistry,
+    request_headers: dict[str, str],
+    verify_ssl: bool,
+    register_model_with_version,
 ):
     """Patching ModelArtifact requires `artifactType` value which was previously not required
 
@@ -228,17 +213,7 @@ async def test_patch_model_artifacts_artifact_type(
     """
     name = "test_model"
     version = "1.0.0"
-    rm = client.register_model(
-        name,
-        "s3",
-        model_format_name="test_format",
-        model_format_version="test_version",
-        version=version,
-    )
-    assert rm.id
-    mv = client.get_model_version(name, version)
-    assert mv
-    assert mv.id
+    register_model_with_version(name, version)
     ma = client.get_model_artifact(name, version)
     assert ma
     assert ma.id
@@ -261,20 +236,22 @@ async def test_patch_model_artifacts_artifact_type(
 
 
 @pytest.mark.e2e
-async def test_update_preserves_model_info(client: ModelRegistry):
+async def test_update_preserves_model_info(
+    client: ModelRegistry,
+    register_model_with_version,
+):
     name = "test_model"
     version = "1.0.0"
     uri = "s3"
     model_fmt_name = "test_format"
     model_fmt_version = "test_version"
-    rm = client.register_model(
+    rm, _ = register_model_with_version(
         name,
-        uri,
+        version,
+        uri=uri,
         model_format_name=model_fmt_name,
         model_format_version=model_fmt_version,
-        version=version,
     )
-    assert rm.id
 
     mr_api = client._api
     mv = await mr_api.get_model_version_by_params(rm.id, version)
@@ -295,24 +272,17 @@ async def test_update_preserves_model_info(client: ModelRegistry):
 
 
 @pytest.mark.e2e
-async def test_update_existing_model_artifact(client: ModelRegistry):
+async def test_update_existing_model_artifact(
+    client: ModelRegistry,
+    register_model_with_version,
+):
     """Updating uri (or other properties) by re-using and call to update
 
     reported via slack
     """
     name = "test_model"
     version = "1.0.0"
-    rm = client.register_model(
-        name,
-        "s3",
-        model_format_name="test_format",
-        model_format_version="test_version",
-        version=version,
-    )
-    assert rm.id
-    mv = client.get_model_version(name, version)
-    assert mv
-    assert mv.id
+    register_model_with_version(name, version)
     ma = client.get_model_artifact(name, version)
     assert ma
     assert ma.id
@@ -328,18 +298,18 @@ async def test_update_existing_model_artifact(client: ModelRegistry):
 
 
 @pytest.mark.e2e
-async def test_get(client: ModelRegistry):
+async def test_get(
+    client: ModelRegistry,
+    register_model_with_version,
+):
     name = "test_model"
     version = "1.0.0"
     metadata = {"a": 1, "b": "2"}
 
-    rm = client.register_model(
+    rm, _ = register_model_with_version(
         name,
-        "s3",
-        model_format_name="test_format",
-        model_format_version="test_version",
-        version=version,
-        metadata=metadata,  # type: ignore[arg-type]
+        version,
+        metadata=metadata,
     )
 
     assert rm.id
@@ -1170,25 +1140,19 @@ async def test_as_mlops_engineer_i_would_like_to_store_a_description_of_the_mode
 @pytest.mark.e2e
 async def test_as_mlops_engineer_i_would_like_to_store_a_longer_documentation_for_the_model(
     client: ModelRegistry,
+    register_model_with_version,
 ):
     """As a MLOps engineer I would like to store a longer documentation for the model"""
     name = "test_model"
     version = "1.0.0"
-    rm = client.register_model(
+    _, mv = register_model_with_version(
         name,
-        "https://acme.org/something",
-        model_format_name="test_format",
-        model_format_version="test_version",
-        version=version,
+        version,
+        uri="https://acme.org/something",
         version_description="consectetur adipiscing elit",
     )
-    assert rm.id
 
     mr_api = client._api
-    mv = await mr_api.get_model_version_by_params(rm.id, version)
-    assert mv
-    assert mv.id
-
     da = await mr_api.upsert_model_version_artifact(DocArtifact(uri="https://README.md"), mv.id)
     assert da
     assert da.uri == "https://README.md"

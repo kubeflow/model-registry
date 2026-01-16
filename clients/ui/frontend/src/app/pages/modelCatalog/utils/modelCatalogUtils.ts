@@ -18,9 +18,15 @@ import { getLabels } from '~/app/pages/modelRegistry/screens/utils';
 import {
   ModelCatalogStringFilterKey,
   ModelCatalogNumberFilterKey,
-  ALL_LATENCY_FIELD_NAMES,
+  ALL_LATENCY_FILTER_KEYS,
   LatencyMetricFieldName,
   VALID_ARCHITECTURES,
+  DEFAULT_PERFORMANCE_FILTERS_QUERY_NAME,
+  isPerformanceStringFilterKey,
+  PERFORMANCE_FILTER_KEYS,
+  ModelCatalogSortOption,
+  SortOrder,
+  SortField,
 } from '~/concepts/modelCatalog/const';
 import { CatalogSourceStatus } from '~/concepts/modelCatalogSettings/const';
 import { ModelRegistryMetadataType } from '~/app/types';
@@ -29,7 +35,7 @@ import { ModelRegistryMetadataType } from '~/app/types';
  * Prefix used by the backend for artifact-specific filter options.
  * Filter options with this prefix are applicable to the artifacts endpoint.
  */
-export const ARTIFACTS_FILTER_PREFIX = 'artifacts.';
+const ARTIFACTS_FILTER_PREFIX = 'artifacts.';
 
 export const extractVersionTag = (tags?: string[]): string | undefined =>
   tags?.find((tag) => /^\d+\.\d+\.\d+$/.test(tag));
@@ -214,33 +220,40 @@ const isArrayOfSelections = (
   filterOption?.type === 'string' && Array.isArray(filterOption.values) && Array.isArray(data);
 
 /**
- * Filter IDs that should use "less than" comparison (latency filters).
- * All latency field names use less-than comparison.
+ * Filter IDs that use numeric comparison (latency filters + Max RPS).
  */
-const KNOWN_LESS_THAN_IDS: string[] = ALL_LATENCY_FIELD_NAMES;
+const KNOWN_NUMERIC_FILTER_IDS: string[] = [
+  ...ALL_LATENCY_FILTER_KEYS,
+  ModelCatalogNumberFilterKey.MAX_RPS,
+];
 
-const isKnownLessThanValue = (
+/**
+ * Type guard to check if a filter is a known numeric filter with a number value.
+ */
+const isKnownNumericFilter = (
   filterOption: CatalogFilterOptions[keyof CatalogFilterOptions],
   filterId: string,
   data: unknown,
 ): data is number =>
   filterOption?.type === 'number' &&
-  KNOWN_LESS_THAN_IDS.includes(filterId) &&
+  KNOWN_NUMERIC_FILTER_IDS.includes(filterId) &&
   typeof data === 'number';
 
 /**
- * Filter IDs that should use "greater than" comparison (RPS filter).
+ * Gets the comparison operator for a numeric filter from namedQueries.
+ * Looks up the operator in the default performance filters namedQuery,
+ * falls back to '<' if not found.
  */
-const KNOWN_GREATER_THAN_IDS: string[] = [ModelCatalogNumberFilterKey.MIN_RPS];
-
-const isKnownGreaterThanValue = (
-  filterOption: CatalogFilterOptions[keyof CatalogFilterOptions],
-  filterId: string,
-  data: unknown,
-): data is number =>
-  filterOption?.type === 'number' &&
-  KNOWN_GREATER_THAN_IDS.includes(filterId) &&
-  typeof data === 'number';
+const getNumericFilterOperator = (options: CatalogFilterOptionsList, filterId: string): string => {
+  const defaultQuery = options.namedQueries?.[DEFAULT_PERFORMANCE_FILTERS_QUERY_NAME];
+  if (defaultQuery && filterId in defaultQuery) {
+    const fieldFilter = defaultQuery[filterId];
+    // Return the operator from the namedQuery (e.g., '<=', '<', '>')
+    return fieldFilter.operator;
+  }
+  // Fall back to '<' if this filter isn't in the namedQuery
+  return '<';
+};
 
 const isFilterIdInMap = (
   filterId: unknown,
@@ -253,13 +266,62 @@ const isFilterIdInMap = (
 export const getActiveLatencyFieldName = (
   filterData: ModelCatalogFilterStates,
 ): LatencyMetricFieldName | undefined => {
-  for (const fieldName of ALL_LATENCY_FIELD_NAMES) {
+  for (const fieldName of ALL_LATENCY_FILTER_KEYS) {
     const value = filterData[fieldName];
     if (value !== undefined && typeof value === 'number') {
       return fieldName;
     }
   }
   return undefined;
+};
+
+export const getEffectiveSortBy = (
+  sortBy: ModelCatalogSortOption | null,
+  performanceViewEnabled: boolean,
+): ModelCatalogSortOption => {
+  if (sortBy) {
+    return sortBy;
+  }
+  return performanceViewEnabled
+    ? ModelCatalogSortOption.LOWEST_LATENCY
+    : ModelCatalogSortOption.RECENT_PUBLISH;
+};
+
+/**
+ * Gets the sort parameters for API requests based on sort option and filter state.
+ * @param sortBy - The selected sort option (or null for default)
+ * @param performanceViewEnabled - Whether performance view is enabled
+ * @param activeLatencyField - The active latency field name (if any)
+ * @returns Object with orderBy and sortOrder for API requests
+ */
+export const getSortParams = (
+  sortBy: ModelCatalogSortOption | null,
+  performanceViewEnabled: boolean,
+  activeLatencyField: LatencyMetricFieldName | undefined,
+): { orderBy: string; sortOrder: string } => {
+  const effectiveSortBy = getEffectiveSortBy(sortBy, performanceViewEnabled);
+  const recentPublishSort = {
+    orderBy: SortField.LAST_UPDATE_TIME,
+    sortOrder: SortOrder.DESC,
+  } as const;
+
+  if (effectiveSortBy === ModelCatalogSortOption.RECENT_PUBLISH) {
+    return recentPublishSort;
+  }
+
+  // effectiveSortBy must be LOWEST_LATENCY at this point
+  if (!activeLatencyField) {
+    // Fallback to recent publish if no latency field is available
+    return recentPublishSort;
+  }
+
+  // activeLatencyField is already in the correct format: artifacts.{metric}_{percentile}.double_value
+  // (e.g., artifacts.ttft_p90.double_value, artifacts.e2e_mean.double_value, artifacts.itl_p95.double_value)
+  // This matches the filter key format used in filterQuery, so we can use it directly
+  return {
+    orderBy: activeLatencyField,
+    sortOrder: SortOrder.ASC, // Lowest first (ascending)
+  };
 };
 
 const wrapInQuotes = (v: string): string => `'${v}'`;
@@ -269,123 +331,157 @@ const inFilter = (k: string, values: string[]) =>
   `${k} IN (${values.map((v) => wrapInQuotes(v)).join(',')})`;
 
 /**
- * Converts filter data into a filter query string for the /models endpoint.
- * Supports string filters (equality/IN), and numeric filters (greater than for RPS, less than for latency).
+ * Check if a filter key has the artifacts.* prefix.
+ * Filter keys with this prefix are artifact-specific filters.
+ */
+const hasArtifactsPrefix = (filterId: string): boolean =>
+  filterId.startsWith(ARTIFACTS_FILTER_PREFIX);
+
+/**
+ * Strips the 'artifacts.' prefix from a filter key if present.
+ * Used when constructing filterQuery for artifacts endpoint.
+ * Example: 'artifacts.use_case.string_value' -> 'use_case.string_value'
+ */
+export const stripArtifactsPrefix = (filterId: string): string => {
+  if (hasArtifactsPrefix(filterId)) {
+    return filterId.substring(ARTIFACTS_FILTER_PREFIX.length);
+  }
+  return filterId;
+};
+
+/**
+ * Target endpoint type for filter query construction.
+ * - 'models': Include all filters (except RPS), use filter keys directly
+ * - 'artifacts': Only include artifact-prefixed filters, strip the prefix in output
+ */
+export type FilterQueryTarget = 'models' | 'artifacts';
+
+/**
+ * Determines if a filter should be included based on the target endpoint.
+ * - For models: Include all filters except RPS (which is passed as a separate param)
+ * - For artifacts: Only include filters that have the artifacts.* prefix
+ */
+const shouldIncludeFilter = (filterId: string, target: FilterQueryTarget): boolean => {
+  // RPS is always passed as a separate param, not in filterQuery
+  if (filterId === ModelCatalogNumberFilterKey.MAX_RPS) {
+    return false;
+  }
+
+  if (target === 'models') {
+    // For models, include all filters (except RPS which is already excluded)
+    return true;
+  }
+
+  // For artifacts, only include filters with the artifacts.* prefix
+  return hasArtifactsPrefix(filterId);
+};
+
+/**
+ * Gets the query key to use in the filterQuery string.
+ * - For models: Use the filter ID directly (it already includes artifacts.* prefix if needed)
+ * - For artifacts: Strip the artifacts.* prefix (the endpoint doesn't need it)
+ */
+const getQueryKey = (filterId: string, target: FilterQueryTarget): string => {
+  if (target === 'artifacts') {
+    return stripArtifactsPrefix(filterId);
+  }
+  return filterId;
+};
+
+/**
+ * Serializes a single filter entry to a filter query clause.
+ * Handles string arrays (IN/equality) and numeric filters (comparison operators).
+ */
+const serializeFilterEntry = (
+  filterId: string,
+  data: ModelCatalogFilterStates[keyof ModelCatalogFilterStates],
+  options: CatalogFilterOptionsList,
+  target: FilterQueryTarget,
+): string => {
+  if (typeof data === 'undefined') {
+    return '';
+  }
+
+  // Get the filter option from the options map
+  const filterOption =
+    options.filters && isFilterIdInMap(filterId, options.filters)
+      ? options.filters[filterId]
+      : undefined;
+
+  if (!filterOption) {
+    return '';
+  }
+
+  const queryKey = getQueryKey(filterId, target);
+
+  // Handle string array filters (multi-select)
+  if (isArrayOfSelections(filterOption, data)) {
+    switch (data.length) {
+      case 0:
+        return '';
+      case 1:
+        return eqFilter(queryKey, data[0]);
+      default:
+        return inFilter(queryKey, data);
+    }
+  }
+
+  // Handle numeric filters
+  if (isKnownNumericFilter(filterOption, filterId, data)) {
+    const operator = getNumericFilterOperator(options, filterId);
+    return `${queryKey} ${operator} ${data}`;
+  }
+
+  return '';
+};
+
+/**
+ * Converts filter data into a filter query string.
+ *
+ * @param filterData - The current filter state
+ * @param options - Filter options from the server (includes namedQueries for operators)
+ * @param target - The target endpoint:
+ *   - 'models': Include all filters (except RPS), use filter keys directly
+ *   - 'artifacts': Only include artifact-prefixed filters, strip the prefix in output
+ *
+ * Note: RPS is NOT included in filterQuery for either target - it's passed as targetRPS param.
  */
 export const filtersToFilterQuery = (
   filterData: ModelCatalogFilterStates,
   options: CatalogFilterOptionsList,
+  target: FilterQueryTarget = 'models',
 ): string => {
-  const serializedFilters: string[] = Object.entries(filterData).map(([filterId, data]) => {
-    if (
-      !options.filters ||
-      !isFilterIdInMap(filterId, options.filters) ||
-      typeof data === 'undefined'
-    ) {
-      // Unhandled key or no data
-      return '';
-    }
-
-    const filterOption = options.filters[filterId];
-
-    if (isArrayOfSelections(filterOption, data)) {
-      switch (data.length) {
-        case 0:
-          return '';
-        case 1:
-          return eqFilter(filterId, data[0]);
-        default:
-          // 2 or more
-          return inFilter(filterId, data);
-      }
-    }
-
-    // Numeric filters: less-than for latency, greater-than for RPS
-    if (isKnownLessThanValue(filterOption, filterId, data)) {
-      return `${filterId} < ${data}`;
-    }
-
-    if (isKnownGreaterThanValue(filterOption, filterId, data)) {
-      return `${filterId} > ${data}`;
-    }
-
-    // Shouldn't reach this far, but if it does, log & ignore the case
-    // eslint-disable-next-line no-console
-    console.warn('Unhandled option', filterId, data, filterOption);
-    return '';
-  });
+  const serializedFilters: string[] = Object.entries(filterData)
+    .filter(([filterId]) => shouldIncludeFilter(filterId, target))
+    .map(([filterId, data]) => serializeFilterEntry(filterId, data, options, target));
 
   const nonEmptyFilters = serializedFilters.filter((v) => !!v);
-
-  // eg. filterQuery=rps_mean > 1 AND license IN ('mit','apache-2.0') AND ttft_mean < 10
   return nonEmptyFilters.length === 0 ? '' : nonEmptyFilters.join(' AND ');
 };
 
 /**
- * Converts filter data into a filter query string for the /artifacts/performance endpoint.
- * Only includes filters that have the 'artifacts.' prefix and strips that prefix in the output.
- * RPS is NOT included in filterQuery for artifacts - it's passed as targetRPS param instead.
+ * Returns a copy of filterData with only basic (non-performance) filters.
+ * Used when performance view is disabled to exclude performance filters from API queries.
+ * Performance filters are cleared to their empty state ([] for arrays, undefined for numbers).
  */
-export const filtersToArtifactsFilterQuery = (
+export const getBasicFiltersOnly = (
   filterData: ModelCatalogFilterStates,
-  options: CatalogFilterOptionsList,
-): string => {
-  const isLatencyFieldName = (id: string): boolean =>
-    ALL_LATENCY_FIELD_NAMES.some((name) => name === id);
+): ModelCatalogFilterStates => {
+  // Start with a copy of filterData
+  const result: ModelCatalogFilterStates = { ...filterData };
 
-  const serializedFilters: string[] = Object.entries(filterData)
-    .filter(([filterId]) => {
-      // Only include artifact-specific filters (those with artifacts. prefix in filter options)
-      // OR performance-related filters like latency and hardware_type/use_case
-      // But NOT rps_mean - that goes to targetRPS param
-      if (filterId === ModelCatalogNumberFilterKey.MIN_RPS) {
-        return false; // RPS is passed as targetRPS param, not in filterQuery
-      }
-      // Include latency filters, hardware_type, and use_case for artifacts filtering
-      if (isLatencyFieldName(filterId)) {
-        return true;
-      }
-      if (
-        filterId === ModelCatalogStringFilterKey.HARDWARE_TYPE ||
-        filterId === ModelCatalogStringFilterKey.USE_CASE
-      ) {
-        return true;
-      }
-      return false;
-    })
-    .map(([filterId, data]) => {
-      if (typeof data === 'undefined') {
-        return '';
-      }
+  // Clear all performance filters using the centralized list
+  PERFORMANCE_FILTER_KEYS.forEach((perfKey) => {
+    if (isPerformanceStringFilterKey(perfKey)) {
+      // String filters clear to empty array
+      result[perfKey] = [];
+    } else {
+      // Number filters (MAX_RPS and latency) clear to undefined
+      result[perfKey] = undefined;
+    }
+  });
 
-      // For artifacts endpoint, we use the filter ID directly (no prefix stripping needed
-      // since our local state doesn't have the prefix - the backend filter_options have it)
-      const filterOption =
-        options.filters && isFilterIdInMap(filterId, options.filters)
-          ? options.filters[filterId]
-          : undefined;
-
-      if (isArrayOfSelections(filterOption, data)) {
-        switch (data.length) {
-          case 0:
-            return '';
-          case 1:
-            return eqFilter(filterId, data[0]);
-          default:
-            return inFilter(filterId, data);
-        }
-      }
-
-      // Numeric filters for artifacts: latency uses less-than
-      if (isKnownLessThanValue(filterOption, filterId, data)) {
-        return `${filterId} < ${data}`;
-      }
-
-      return '';
-    });
-
-  const nonEmptyFilters = serializedFilters.filter((v) => !!v);
-  return nonEmptyFilters.length === 0 ? '' : nonEmptyFilters.join(' AND ');
+  return result;
 };
 
 export const getUniqueSourceLabels = (catalogSources: CatalogSourceList | null): string[] => {
@@ -456,6 +552,46 @@ export const hasFiltersApplied = (
     }
     return value !== undefined;
   });
+
+/**
+ * Checks if a filter value differs from its default value.
+ * Used to determine if a filter chip should be visible.
+ */
+export const isValueDifferentFromDefault = (
+  currentValue: string | number | string[] | undefined,
+  defaultValue: string | number | string[] | undefined,
+): boolean => {
+  if (defaultValue === undefined) {
+    // No default defined, show chip if value exists
+    if (Array.isArray(currentValue)) {
+      return currentValue.length > 0;
+    }
+    return currentValue !== undefined;
+  }
+
+  if (currentValue === undefined) {
+    return false;
+  }
+
+  // Compare arrays
+  if (Array.isArray(currentValue) && Array.isArray(defaultValue)) {
+    if (currentValue.length !== defaultValue.length) {
+      return true;
+    }
+    return !currentValue.every((v) => defaultValue.includes(String(v)));
+  }
+
+  // Compare single value with array
+  if (Array.isArray(currentValue) && !Array.isArray(defaultValue)) {
+    if (currentValue.length !== 1) {
+      return true;
+    }
+    return currentValue[0] !== defaultValue;
+  }
+
+  // Compare single values
+  return currentValue !== defaultValue;
+};
 
 /**
  * Filters catalog sources to only include those with available models.

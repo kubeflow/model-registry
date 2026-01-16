@@ -3410,3 +3410,70 @@ func TestArtifactFilterQuery(t *testing.T) {
 	_ = createdStandaloneArtifact2
 	_ = createdStandaloneArtifact3
 }
+
+func TestArtifactTypeMismatchOnUpdate(t *testing.T) {
+	service, cleanup := SetupModelRegistryService(t)
+	defer cleanup()
+
+	t.Run("cannot change model-artifact to doc-artifact", func(t *testing.T) {
+		modelArtifact := &openapi.ModelArtifact{
+			Name:        apiutils.Of("test-type-mismatch-model"),
+			Description: apiutils.Of("Original model artifact"),
+			Uri:         apiutils.Of("s3://bucket/model.pkl"),
+		}
+
+		artifact := &openapi.Artifact{
+			ModelArtifact: modelArtifact,
+		}
+
+		created, err := service.UpsertArtifact(artifact)
+		require.NoError(t, err)
+		require.NotNil(t, created.ModelArtifact)
+		require.NotNil(t, created.ModelArtifact.Id)
+
+		updateArtifact := &openapi.Artifact{
+			DocArtifact: &openapi.DocArtifact{
+				Id:          created.ModelArtifact.Id,
+				Description: apiutils.Of("Trying to change to doc artifact"),
+				Uri:         apiutils.Of("s3://bucket/doc.pdf"),
+			},
+		}
+
+		result, err := service.UpsertArtifact(updateArtifact)
+		assert.Error(t, err)
+		assert.Nil(t, result)
+
+		assert.Contains(t, err.Error(), "is not a doc artifact")
+	})
+
+	t.Run("cannot change doc-artifact to model-artifact", func(t *testing.T) {
+		docArtifact := &openapi.DocArtifact{
+			Name:        apiutils.Of("test-type-mismatch-doc"),
+			Description: apiutils.Of("Original doc artifact"),
+			Uri:         apiutils.Of("s3://bucket/doc.pdf"),
+		}
+
+		artifact := &openapi.Artifact{
+			DocArtifact: docArtifact,
+		}
+
+		created, err := service.UpsertArtifact(artifact)
+		require.NoError(t, err)
+		require.NotNil(t, created.DocArtifact)
+		require.NotNil(t, created.DocArtifact.Id)
+
+		updateArtifact := &openapi.Artifact{
+			ModelArtifact: &openapi.ModelArtifact{
+				Id:          created.DocArtifact.Id,
+				Description: apiutils.Of("Trying to change to model artifact"),
+				Uri:         apiutils.Of("s3://bucket/model.pkl"),
+			},
+		}
+
+		result, err := service.UpsertArtifact(updateArtifact)
+		assert.Error(t, err)
+		assert.Nil(t, result)
+
+		assert.Contains(t, err.Error(), "is not a model artifact")
+	})
+}

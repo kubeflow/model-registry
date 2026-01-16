@@ -28,6 +28,7 @@ import {
   hasSourcesWithoutLabels,
   hasFiltersApplied,
   getArchitecturesFromArtifacts,
+  getModelName,
 } from '~/app/pages/modelCatalog/utils/modelCatalogUtils';
 import { mockCatalogModelArtifact } from '~/__mocks__/mockCatalogModelArtifactList';
 import { ModelRegistryMetadataType } from '~/app/types';
@@ -40,18 +41,30 @@ describe('filtersToFilterQuery', () => {
     provider = [],
     language = [],
     hardware_type = [],
+    hardware_configuration = [],
     use_case = [],
     rps_mean = undefined,
     ttft_mean = undefined,
-  }: Partial<ModelCatalogFilterStates>): ModelCatalogFilterStates => ({
+  }: {
+    tasks?: ModelCatalogTask[];
+    license?: ModelCatalogLicense[];
+    provider?: ModelCatalogProvider[];
+    language?: AllLanguageCode[];
+    hardware_type?: string[];
+    hardware_configuration?: string[];
+    use_case?: UseCaseOptionValue[];
+    rps_mean?: number;
+    ttft_mean?: number;
+  }): ModelCatalogFilterStates => ({
     [ModelCatalogStringFilterKey.TASK]: tasks,
     [ModelCatalogStringFilterKey.PROVIDER]: provider,
     [ModelCatalogStringFilterKey.LICENSE]: license,
     [ModelCatalogStringFilterKey.LANGUAGE]: language,
     [ModelCatalogStringFilterKey.HARDWARE_TYPE]: hardware_type,
+    [ModelCatalogStringFilterKey.HARDWARE_CONFIGURATION]: hardware_configuration,
     [ModelCatalogStringFilterKey.USE_CASE]: use_case,
-    [ModelCatalogNumberFilterKey.MIN_RPS]: rps_mean,
-    ttft_mean,
+    [ModelCatalogNumberFilterKey.MAX_RPS]: rps_mean,
+    'artifacts.ttft_mean.double_value': ttft_mean,
   });
 
   const mockFilterOptions: CatalogFilterOptionsList = {
@@ -155,14 +168,14 @@ describe('filtersToFilterQuery', () => {
           UseCaseOptionValue.RAG,
         ],
       },
-      [ModelCatalogNumberFilterKey.MIN_RPS]: {
+      [ModelCatalogNumberFilterKey.MAX_RPS]: {
         type: 'number',
         range: {
           min: 0,
           max: 300,
         },
       },
-      ttft_mean: {
+      'artifacts.ttft_mean.double_value': {
         type: 'number',
         range: {
           min: 0,
@@ -215,7 +228,7 @@ describe('filtersToFilterQuery', () => {
           mockFormData({ use_case: [UseCaseOptionValue.CHATBOT] }),
           mockFilterOptions,
         ),
-      ).toBe("use_case='chatbot'");
+      ).toBe("artifacts.use_case.string_value='chatbot'");
     });
 
     it('handles multiple arrays of a single data point', () => {
@@ -261,13 +274,7 @@ describe('filtersToFilterQuery', () => {
           mockFilterOptions,
         ),
       ).toBe("language IN ('ca','pt')");
-      expect(
-        filtersToFilterQuery(
-          // eslint-disable-next-line camelcase
-          mockFormData({ use_case: [UseCaseOptionValue.CHATBOT, UseCaseOptionValue.RAG] }),
-          mockFilterOptions,
-        ),
-      ).toBe("use_case IN ('chatbot','rag')");
+      // Note: use_case is now single-select, so multi-select test is not applicable
     });
 
     it('handles multiple arrays with mixed count of data points', () => {
@@ -652,18 +659,30 @@ describe('hasFiltersApplied', () => {
     provider = [],
     language = [],
     hardware_type = [],
+    hardware_configuration = [],
     use_case = [],
     rps_mean = undefined,
     ttft_mean = undefined,
-  }: Partial<ModelCatalogFilterStates>): ModelCatalogFilterStates => ({
+  }: {
+    tasks?: ModelCatalogTask[];
+    license?: ModelCatalogLicense[];
+    provider?: ModelCatalogProvider[];
+    language?: AllLanguageCode[];
+    hardware_type?: string[];
+    hardware_configuration?: string[];
+    use_case?: UseCaseOptionValue[];
+    rps_mean?: number;
+    ttft_mean?: number;
+  }): ModelCatalogFilterStates => ({
     [ModelCatalogStringFilterKey.TASK]: tasks,
     [ModelCatalogStringFilterKey.PROVIDER]: provider,
     [ModelCatalogStringFilterKey.LICENSE]: license,
     [ModelCatalogStringFilterKey.LANGUAGE]: language,
     [ModelCatalogStringFilterKey.HARDWARE_TYPE]: hardware_type,
+    [ModelCatalogStringFilterKey.HARDWARE_CONFIGURATION]: hardware_configuration,
     [ModelCatalogStringFilterKey.USE_CASE]: use_case,
-    [ModelCatalogNumberFilterKey.MIN_RPS]: rps_mean,
-    ttft_mean,
+    [ModelCatalogNumberFilterKey.MAX_RPS]: rps_mean,
+    'artifacts.ttft_mean.double_value': ttft_mean,
   });
 
   describe('without filterKeys parameter (checks all filters)', () => {
@@ -783,7 +802,7 @@ describe('hasFiltersApplied', () => {
       const filterData = mockFormData({
         rps_mean: 50,
       });
-      expect(hasFiltersApplied(filterData, [ModelCatalogNumberFilterKey.MIN_RPS])).toBe(true);
+      expect(hasFiltersApplied(filterData, [ModelCatalogNumberFilterKey.MAX_RPS])).toBe(true);
       expect(hasFiltersApplied(filterData, [ModelCatalogStringFilterKey.TASK])).toBe(false);
     });
 
@@ -791,8 +810,8 @@ describe('hasFiltersApplied', () => {
       const filterData = mockFormData({
         ttft_mean: 100,
       });
-      expect(hasFiltersApplied(filterData, ['ttft_mean'])).toBe(true);
-      expect(hasFiltersApplied(filterData, ['e2e_mean'])).toBe(false);
+      expect(hasFiltersApplied(filterData, ['artifacts.ttft_mean.double_value'])).toBe(true);
+      expect(hasFiltersApplied(filterData, ['artifacts.e2e_mean.double_value'])).toBe(false);
     });
 
     it('handles mixed filter types in filterKeys', () => {
@@ -804,8 +823,8 @@ describe('hasFiltersApplied', () => {
       expect(
         hasFiltersApplied(filterData, [
           ModelCatalogStringFilterKey.TASK,
-          ModelCatalogNumberFilterKey.MIN_RPS,
-          'ttft_mean',
+          ModelCatalogNumberFilterKey.MAX_RPS,
+          'artifacts.ttft_mean.double_value',
         ]),
       ).toBe(true);
     });
@@ -1117,5 +1136,47 @@ describe('getArchitecturesFromArtifacts', () => {
     expect(result).toContain('arm64');
     expect(result).toContain('s390x');
     expect(result).toContain('ppc64le');
+  });
+});
+
+describe('getModelName', () => {
+  it('should return the part after the slash when model name contains a slash', () => {
+    const result = getModelName('repo1/granite-8b-code-instruct');
+    expect(result).toBe('granite-8b-code-instruct');
+  });
+
+  it('should return the original name when no slash is present', () => {
+    const result = getModelName('granite-8b-code-instruct');
+    expect(result).toBe('granite-8b-code-instruct');
+  });
+
+  it('should return empty string when given an empty string', () => {
+    const result = getModelName('');
+    expect(result).toBe('');
+  });
+
+  it('should handle multiple slashes and return everything after the first slash', () => {
+    const result = getModelName('org/repo/model-name');
+    expect(result).toBe('repo/model-name');
+  });
+
+  it('should return empty string when model name ends with a slash', () => {
+    const result = getModelName('repo/');
+    expect(result).toBe('');
+  });
+
+  it('should return the part after slash when model name starts with a slash', () => {
+    const result = getModelName('/model-name');
+    expect(result).toBe('model-name');
+  });
+
+  it('should handle model names with special characters', () => {
+    const result = getModelName('repo1/granite-8b-code-instruct-quantized.w4a16');
+    expect(result).toBe('granite-8b-code-instruct-quantized.w4a16');
+  });
+
+  it('should handle model names with hyphens and underscores', () => {
+    const result = getModelName('my_org/my-model_v1');
+    expect(result).toBe('my-model_v1');
   });
 });

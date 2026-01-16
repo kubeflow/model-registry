@@ -116,7 +116,7 @@ describe('Model Catalog All Models View', () => {
       modelCatalog.findCategoryToggle('no-labels').should('be.visible');
     });
 
-    it('should hide Community and custom models section when no sources without labels exist', () => {
+    it('should hide Other models section when no sources without labels exist', () => {
       initIntercepts({
         sources: [
           mockCatalogSource({ id: 'huggingface', name: 'Hugging Face', labels: ['Hugging Face'] }),
@@ -138,7 +138,7 @@ describe('Model Catalog All Models View', () => {
       modelCatalog.findCategoryTitle('OpenVINO').should('contain.text', 'OpenVINO models');
       cy.findByTestId('title Hugging Face').should('contain.text', 'Hugging Face models');
       modelCatalog.findCategoryTitle('Community').should('contain.text', 'Community models');
-      modelCatalog.findCategoryTitle('null').should('contain.text', 'Community and custom models');
+      modelCatalog.findCategoryTitle('null').should('contain.text', 'Other models');
     });
   });
 
@@ -185,9 +185,7 @@ describe('Model Catalog All Models View', () => {
       modelCatalog.visit();
 
       modelCatalog.findErrorState('null').scrollIntoView().should('be.visible');
-      modelCatalog
-        .findErrorState('null')
-        .should('contain.text', 'Failed to load Community and custom models');
+      modelCatalog.findErrorState('null').should('contain.text', 'Failed to load Other models');
     });
   });
 

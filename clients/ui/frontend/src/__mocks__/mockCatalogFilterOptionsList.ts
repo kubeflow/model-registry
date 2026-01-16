@@ -8,25 +8,48 @@ import {
   ModelCatalogTask,
   AllLanguageCode,
   UseCaseOptionValue,
+  DEFAULT_PERFORMANCE_FILTERS_QUERY_NAME,
 } from '~/concepts/modelCatalog/const';
 
 export const mockNamedQueries: Record<string, NamedQuery> = {
+  // Default performance filters applied when performance toggle is turned on
+  // Uses enum values which now match backend format
+  [DEFAULT_PERFORMANCE_FILTERS_QUERY_NAME]: {
+    [ModelCatalogStringFilterKey.USE_CASE]: {
+      operator: FilterOperator.EQUALS,
+      value: UseCaseOptionValue.CHATBOT,
+    },
+    'artifacts.ttft_p90.double_value': {
+      operator: FilterOperator.LESS_THAN_OR_EQUAL,
+      value: 'max', // 'max' means use the max value from the range in filters
+    },
+    [ModelCatalogNumberFilterKey.MAX_RPS]: {
+      operator: FilterOperator.LESS_THAN_OR_EQUAL,
+      value: 'max', // 'max' means use the max value from the range in filters (300 in mock)
+    },
+  },
   high_performance_gpu: {
-    'hardware_type.string_value': { operator: FilterOperator.IN, value: ['H100-80', 'A100-80'] },
-    'requests_per_second.double_value': {
+    [ModelCatalogStringFilterKey.HARDWARE_TYPE]: {
+      operator: FilterOperator.IN,
+      value: ['H100-80', 'A100-80'],
+    },
+    [ModelCatalogNumberFilterKey.MAX_RPS]: {
       operator: FilterOperator.GREATER_THAN_OR_EQUAL,
       value: 50,
     },
   },
   low_latency: {
-    'ttft_p90.double_value': { operator: FilterOperator.LESS_THAN, value: 100 },
-    'e2e_p90.double_value': { operator: FilterOperator.LESS_THAN, value: 500 },
+    'artifacts.ttft_p90.double_value': { operator: FilterOperator.LESS_THAN, value: 100 },
+    'artifacts.e2e_p90.double_value': { operator: FilterOperator.LESS_THAN, value: 500 },
   },
   chatbot_optimized: {
-    'use_case.string_value': { operator: FilterOperator.EQUALS, value: UseCaseOptionValue.CHATBOT },
+    [ModelCatalogStringFilterKey.USE_CASE]: {
+      operator: FilterOperator.EQUALS,
+      value: UseCaseOptionValue.CHATBOT,
+    },
   },
   rag_optimized: {
-    'use_case.string_value': {
+    [ModelCatalogStringFilterKey.USE_CASE]: {
       operator: FilterOperator.IN,
       value: [UseCaseOptionValue.RAG, UseCaseOptionValue.LONG_RAG],
     },
@@ -89,75 +112,75 @@ export const mockCatalogFilterOptionsList = (
         UseCaseOptionValue.RAG,
       ],
     },
-    [ModelCatalogNumberFilterKey.MIN_RPS]: {
+    [ModelCatalogNumberFilterKey.MAX_RPS]: {
       type: 'number',
       range: {
         min: 1,
         max: 300,
       },
     },
-    // All latency metric combinations for dropdown options
-    ttft_mean: {
+    // All latency metric combinations for dropdown options (using full filter key format)
+    'artifacts.ttft_mean.double_value': {
       type: 'number' as const,
       range: { min: 20, max: 893 },
     },
-    ttft_p90: {
+    'artifacts.ttft_p90.double_value': {
       type: 'number' as const,
       range: { min: 25, max: 600 },
     },
-    ttft_p95: {
+    'artifacts.ttft_p95.double_value': {
       type: 'number' as const,
       range: { min: 30, max: 700 },
     },
-    ttft_p99: {
+    'artifacts.ttft_p99.double_value': {
       type: 'number' as const,
       range: { min: 40, max: 893 },
     },
-    e2e_mean: {
+    'artifacts.e2e_mean.double_value': {
       type: 'number' as const,
       range: { min: 50, max: 800 },
     },
-    e2e_p90: {
+    'artifacts.e2e_p90.double_value': {
       type: 'number' as const,
       range: { min: 60, max: 900 },
     },
-    e2e_p95: {
+    'artifacts.e2e_p95.double_value': {
       type: 'number' as const,
       range: { min: 70, max: 1000 },
     },
-    e2e_p99: {
+    'artifacts.e2e_p99.double_value': {
       type: 'number' as const,
       range: { min: 80, max: 1200 },
     },
-    tps_mean: {
+    'artifacts.tps_mean.double_value': {
       type: 'number' as const,
       range: { min: 10, max: 300 },
     },
-    tps_p90: {
+    'artifacts.tps_p90.double_value': {
       type: 'number' as const,
       range: { min: 15, max: 350 },
     },
-    tps_p95: {
+    'artifacts.tps_p95.double_value': {
       type: 'number' as const,
       range: { min: 20, max: 400 },
     },
-    tps_p99: {
+    'artifacts.tps_p99.double_value': {
       type: 'number' as const,
       range: { min: 25, max: 500 },
     },
-    itl_mean: {
+    'artifacts.itl_mean.double_value': {
       type: 'number' as const,
       range: { min: 5, max: 100 },
     },
-    itl_p90: {
+    'artifacts.itl_p90.double_value': {
       type: 'number' as const,
       range: { min: 8, max: 120 },
     },
-    itl_p95: {
+    'artifacts.itl_p95.double_value': {
       type: 'number' as const,
       range: { min: 10, max: 150 },
     },
-    itl_p99: {
+    'artifacts.itl_p99.double_value': {
       type: 'number' as const,
       range: { min: 15, max: 200 },
     },

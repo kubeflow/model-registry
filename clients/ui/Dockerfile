@@ -22,7 +22,7 @@ COPY ${UI_SOURCE_CODE} /usr/src/app
 # Install the dependencies and build
 RUN npm cache clean --force
 RUN npm ci --omit=optional
-RUN npm run build:prod
+RUN DEPLOYMENT_MODE=${DEPLOYMENT_MODE} STYLE_THEME=${STYLE_THEME} npm run build:prod
 
 # BFF build stage
 FROM ${GOLANG_BASE_IMAGE} AS bff-builder

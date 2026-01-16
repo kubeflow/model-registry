@@ -27,12 +27,44 @@ func (m *ModelCatalogClientMock) GetAllCatalogModelsAcrossSources(client httpcli
 	var filteredModels []models.CatalogModel
 
 	sourceId := pageValues.Get("source")
+	sourceLabel := pageValues.Get("sourceLabel")
 	query := pageValues.Get("q")
 
 	if sourceId != "" {
 		for _, model := range allModels {
 			if model.SourceId != nil && *model.SourceId == sourceId {
 				filteredModels = append(filteredModels, model)
+			}
+		}
+	} else if sourceLabel != "" {
+		allSources := GetCatalogSourceMocks()
+		var matchingSourceIds []string
+
+		if sourceLabel == "null" {
+			for _, source := range allSources {
+				if len(source.Labels) == 0 {
+					matchingSourceIds = append(matchingSourceIds, source.Id)
+				}
+			}
+		} else {
+			for _, source := range allSources {
+				for _, label := range source.Labels {
+					if label == sourceLabel {
+						matchingSourceIds = append(matchingSourceIds, source.Id)
+						break
+					}
+				}
+			}
+		}
+
+		for _, model := range allModels {
+			if model.SourceId != nil {
+				for _, sid := range matchingSourceIds {
+					if *model.SourceId == sid {
+						filteredModels = append(filteredModels, model)
+						break
+					}
+				}
 			}
 		}
 	} else {
@@ -171,7 +203,7 @@ func (m *ModelCatalogClientMock) GetAllCatalogSources(client httpclient.HTTPClie
 func (m *ModelCatalogClientMock) GetCatalogSourceModelArtifacts(client httpclient.HTTPClientInterface, sourceId string, modelName string, pageValues url.Values) (*models.CatalogModelArtifactList, error) {
 	var allMockModelArtifacts models.CatalogModelArtifactList
 
-	if sourceId == "sample-source" && modelName == "repo1%2Fgranite-8b-code-instruct" {
+	if sourceId == "sample-source" && (modelName == "repo1%2Fgranite-8b-code-instruct" || modelName == "repo1%2Fgranite-8b-code-instruct-quantized.w4a16") {
 		performanceArtifacts := GetCatalogPerformanceMetricsArtifactListMock(4)
 		accuracyArtifacts := GetCatalogAccuracyMetricsArtifactListMock()
 		modelArtifacts := GetCatalogModelArtifactListMock()
@@ -215,7 +247,19 @@ func (m *ModelCatalogClientMock) GetCatalogFilterOptions(client httpclient.HTTPC
 }
 
 func (m *ModelCatalogClientMock) CreateCatalogSourcePreview(client httpclient.HTTPClientInterface, sourcePreviewPayload models.CatalogSourcePreviewRequest, pageValues url.Values) (*models.CatalogSourcePreviewResult, error) {
-	catalogSourcePreview := CreateCatalogSourcePreviewMock()
+	filterStatus := pageValues.Get("filterStatus")
+	if filterStatus == "" {
+		filterStatus = "all"
+	}
+
+	pageSize := 20
+	if ps := pageValues.Get("pageSize"); ps != "" {
+		_, _ = fmt.Sscanf(ps, "%d", &pageSize)
+	}
+
+	nextPageToken := pageValues.Get("nextPageToken")
+
+	catalogSourcePreview := CreateCatalogSourcePreviewMockWithFilter(filterStatus, pageSize, nextPageToken)
 
 	return &catalogSourcePreview, nil
 }

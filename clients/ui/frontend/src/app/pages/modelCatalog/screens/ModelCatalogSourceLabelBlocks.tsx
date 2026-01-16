@@ -45,7 +45,7 @@ const ModelCatalogSourceLabelBlocks: React.FC = () => {
       const noLabelsBlock: SourceLabelBlock = {
         id: 'no-labels',
         label: SourceLabel.other,
-        displayName: `${CategoryName.communityAndCustomModels} models`,
+        displayName: CategoryName.otherModels,
       };
       blocksToReturn.push(noLabelsBlock);
     }

@@ -7,6 +7,7 @@ import {
   ModelCatalogStringFilterKey,
   ModelCatalogNumberFilterKey,
   LatencyMetricFieldName,
+  LatencyPropertyKey,
   UseCaseOptionValue,
   ModelCatalogFilterKey,
 } from '~/concepts/modelCatalog/const';
@@ -66,7 +67,7 @@ export enum MetricsType {
 
 export enum CategoryName {
   allModels = 'All models',
-  communityAndCustomModels = 'Community and custom',
+  otherModels = 'Other models',
 }
 
 export enum SourceLabel {
@@ -91,7 +92,10 @@ export type CatalogModelArtifact = CatalogArtifactBase & {
 
 export type PerformanceMetricsCustomProperties = {
   config_id?: ModelRegistryCustomPropertyString;
+  hardware_configuration?: ModelRegistryCustomPropertyString;
+  /** @deprecated Use hardware_configuration instead. Should not be used for filtering or display. */
   hardware_type?: ModelRegistryCustomPropertyString;
+  /** @deprecated Use hardware_configuration instead. Should not be used for filtering or display. */
   hardware_count?: ModelRegistryCustomPropertyInt;
   requests_per_second?: ModelRegistryCustomPropertyDouble;
   // Token metrics
@@ -113,7 +117,7 @@ export type PerformanceMetricsCustomProperties = {
   // Computed properties when targetRPS is provided
   replicas?: ModelRegistryCustomPropertyInt;
   total_requests_per_second?: ModelRegistryCustomPropertyDouble;
-} & Partial<Record<LatencyMetricFieldName, ModelRegistryCustomPropertyDouble>>;
+} & Partial<Record<LatencyPropertyKey, ModelRegistryCustomPropertyDouble>>;
 
 export type AccuracyMetricsCustomProperties = {
   // overall_average?: ModelRegistryCustomPropertyDouble; // NOTE: overall_average is currently omitted from the API and will be restored
@@ -170,6 +174,7 @@ export type GetCatalogModelsBySource = (
   searchKeyword?: string,
   filterData?: ModelCatalogFilterStates,
   filterOptions?: CatalogFilterOptionsList | null,
+  filterQuery?: string,
 ) => Promise<CatalogModelList>;
 
 export type GetListSources = (opts: APIOptions) => Promise<CatalogSourceList>;
@@ -227,6 +232,7 @@ export type ModelCatalogStringFilterValueType = {
   [ModelCatalogStringFilterKey.LICENSE]: ModelCatalogLicense;
   [ModelCatalogStringFilterKey.LANGUAGE]: AllLanguageCode;
   [ModelCatalogStringFilterKey.HARDWARE_TYPE]: string;
+  [ModelCatalogStringFilterKey.HARDWARE_CONFIGURATION]: string;
   [ModelCatalogStringFilterKey.USE_CASE]: UseCaseOptionValue;
 };
 
@@ -239,7 +245,6 @@ export type ModelCatalogStringFilterOptions = {
 export type CatalogFilterOptions = ModelCatalogStringFilterOptions & {
   [key in ModelCatalogNumberFilterKey]?: CatalogFilterNumberOption;
 } & {
-  // Allow additional latency metric field names
   [key in LatencyMetricFieldName]?: CatalogFilterNumberOption;
 };
 
@@ -292,6 +297,7 @@ export type ModelCatalogFilterStates = {
   [ModelCatalogStringFilterKey.LICENSE]: ModelCatalogLicense[];
   [ModelCatalogStringFilterKey.LANGUAGE]: AllLanguageCode[];
   [ModelCatalogStringFilterKey.HARDWARE_TYPE]: string[];
+  [ModelCatalogStringFilterKey.HARDWARE_CONFIGURATION]: string[];
   [ModelCatalogStringFilterKey.USE_CASE]: UseCaseOptionValue[];
 } & {
   [key in ModelCatalogNumberFilterKey]: number | undefined;
@@ -377,9 +383,16 @@ export type CatalogSourcePreviewResult = {
   size: number;
 };
 
+export type PreviewCatalogSourceQueryParams = {
+  filterStatus?: 'all' | 'included' | 'excluded';
+  pageSize?: number;
+  nextPageToken?: string;
+};
+
 export type PreviewCatalogSource = (
   opts: APIOptions,
   data: CatalogSourcePreviewRequest,
+  queryParams?: PreviewCatalogSourceQueryParams,
 ) => Promise<CatalogSourcePreviewResult>;
 
 export type ModelCatalogSettingsAPIs = {

@@ -119,6 +119,15 @@ The following Makefile targets are used to build and push the Docker images the 
   * Command: `make docker-push-standalone`
   * This command uses the `CONTAINER_TOOL` and `IMG_UI_STANDALONE` environment variables to push the image.
 
+### Dockerfile Structure
+
+The UI has two Dockerfiles:
+
+* **`Dockerfile`**: Production image for Kubeflow and federated deployments. Minimal image without test dependencies.
+* **`Dockerfile.standalone`**: Standalone mode image. Used for local development and docker compose.
+
+The standalone image includes K8s test binaries to support the `--mock-k8s-client=true` flag at runtime.
+
 ## Deployments
 
 For more information on how to deploy the Model Registry UI, please refer to the [Model registry UI] documentation.
