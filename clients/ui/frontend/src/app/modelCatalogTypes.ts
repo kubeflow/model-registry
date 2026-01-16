@@ -175,6 +175,11 @@ export type GetCatalogModelsBySource = (
   filterData?: ModelCatalogFilterStates,
   filterOptions?: CatalogFilterOptionsList | null,
   filterQuery?: string,
+  performanceParams?: {
+    targetRPS?: number;
+    latencyProperty?: string;
+    recommendations?: boolean;
+  },
 ) => Promise<CatalogModelList>;
 
 export type GetListSources = (opts: APIOptions) => Promise<CatalogSourceList>;

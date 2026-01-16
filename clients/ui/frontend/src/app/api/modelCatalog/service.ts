@@ -27,6 +27,11 @@ export const getCatalogModelsBySource =
     filterData?: ModelCatalogFilterStates,
     filterOptions?: CatalogFilterOptionsList | null,
     filterQuery?: string,
+    performanceParams?: {
+      targetRPS?: number;
+      latencyProperty?: string;
+      recommendations?: boolean;
+    },
   ): Promise<CatalogModelList> => {
     const computedFilterQuery =
       filterQuery ??
@@ -39,6 +44,13 @@ export const getCatalogModelsBySource =
       ...(searchKeyword && { q: searchKeyword }),
       ...queryParams,
       ...(computedFilterQuery && { filterQuery: computedFilterQuery }),
+      ...(performanceParams?.targetRPS !== undefined && { targetRPS: performanceParams.targetRPS }),
+      ...(performanceParams?.latencyProperty && {
+        latencyProperty: performanceParams.latencyProperty,
+      }),
+      ...(performanceParams?.recommendations !== undefined && {
+        recommendations: performanceParams.recommendations,
+      }),
     };
     return handleRestFailures(restGET(hostPath, '/models', allParams, opts)).then((response) => {
       if (isModArchResponse<CatalogModelList>(response)) {

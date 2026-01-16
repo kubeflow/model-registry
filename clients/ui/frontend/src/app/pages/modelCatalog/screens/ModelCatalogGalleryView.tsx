@@ -24,7 +24,11 @@ import {
 } from '~/app/pages/modelCatalog/utils/modelCatalogUtils';
 import EmptyModelCatalogState from '~/app/pages/modelCatalog/EmptyModelCatalogState';
 import ScrollViewOnMount from '~/app/shared/components/ScrollViewOnMount';
-import { BASIC_FILTER_KEYS } from '~/concepts/modelCatalog/const';
+import {
+  BASIC_FILTER_KEYS,
+  ModelCatalogNumberFilterKey,
+  parseLatencyFilterKey,
+} from '~/concepts/modelCatalog/const';
 
 type ModelCatalogPageProps = {
   searchTerm: string;
@@ -68,6 +72,24 @@ const ModelCatalogGalleryView: React.FC<ModelCatalogPageProps> = ({
     [sortBy, performanceViewEnabled, activeLatencyField],
   );
 
+  // Derive performance params to pass to the models API when performance view is enabled
+  const performanceParams = React.useMemo(() => {
+    if (!performanceViewEnabled) {
+      return undefined;
+    }
+
+    const targetRPS = filterData[ModelCatalogNumberFilterKey.MAX_RPS];
+    const latencyProperty = activeLatencyField
+      ? parseLatencyFilterKey(activeLatencyField).propertyKey
+      : undefined;
+
+    return {
+      targetRPS,
+      latencyProperty,
+      recommendations: true,
+    };
+  }, [performanceViewEnabled, filterData, activeLatencyField]);
+
   const { catalogModels, catalogModelsLoaded, catalogModelsLoadError } = useCatalogModelsBySources(
     '',
     selectedSourceLabel === CategoryName.allModels ? undefined : selectedSourceLabel,
@@ -78,6 +100,7 @@ const ModelCatalogGalleryView: React.FC<ModelCatalogPageProps> = ({
     undefined, // filterQuery - will be computed from filterData and filterOptions
     sortParams.orderBy,
     sortParams.sortOrder,
+    performanceParams,
   );
 
   const loaded = catalogModelsLoaded && filterOptionsLoaded;
