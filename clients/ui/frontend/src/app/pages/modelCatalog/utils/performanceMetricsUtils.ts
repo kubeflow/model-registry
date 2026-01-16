@@ -14,6 +14,14 @@ export type SliderRange = {
   isSliderDisabled: boolean;
 };
 
+export const MAX_RPS_MAX_VALUE = 50;
+
+export const MAX_RPS_RANGE: SliderRange = {
+  minValue: 1,
+  maxValue: MAX_RPS_MAX_VALUE,
+  isSliderDisabled: false,
+};
+
 export const FALLBACK_RPS_RANGE: SliderRange = {
   minValue: 1,
   maxValue: 300,
