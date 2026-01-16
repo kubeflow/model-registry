@@ -8,7 +8,7 @@ import {
   List,
   ListItem,
   Popover,
-  Spinner,
+  Skeleton,
   Stack,
   StackItem,
 } from '@patternfly/react-core';
@@ -108,7 +108,7 @@ const ModelCatalogCardBody: React.FC<ModelCatalogCardBodyProps> = ({
   const isLoading = isValidated && !performanceArtifactsLoaded;
 
   if (isLoading) {
-    return <Spinner />;
+    return <Skeleton width="100%" screenreaderText="Loading model artifacts" />;
   }
 
   if (performanceArtifactsError && isValidated) {
@@ -163,6 +163,17 @@ const ModelCatalogCardBody: React.FC<ModelCatalogCardBodyProps> = ({
       accuracyMetrics,
       currentPerformanceIndex,
     );
+
+    // If no valid metrics, fall back to showing description
+    if (!metrics) {
+      return (
+        <TruncatedText
+          content={model.description || ''}
+          maxLines={4}
+          data-testid="model-catalog-card-description"
+        />
+      );
+    }
 
     // Get the selected latency metric from filters, or default to TTFT
     const activeLatencyField = latencyFieldName;

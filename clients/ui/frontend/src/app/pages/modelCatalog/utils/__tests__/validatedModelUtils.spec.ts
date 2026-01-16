@@ -204,34 +204,22 @@ describe('validatedModelUtils', () => {
       });
     });
 
-    it('should handle empty performance artifacts array with defaults', () => {
+    it('should return null when performance artifacts array is empty', () => {
       const performanceArtifacts: CatalogPerformanceMetricsArtifact[] = [];
       const accuracyArtifacts = [createMockAccuracyArtifact(/* 80.0 */)];
 
       const result = extractValidatedModelMetrics(performanceArtifacts, accuracyArtifacts);
 
-      expect(result).toMatchObject({
-        // accuracy: 80.0, // NOTE: overall_average is currently omitted from the API and will be restored
-        hardwareType: 'H100-80',
-        hardwareCount: '1',
-        rpsPerReplica: 1,
-        ttftMean: 1428,
-      });
+      expect(result).toBeNull();
     });
 
-    it('should handle invalid performance index with defaults', () => {
+    it('should return null when performance index is invalid', () => {
       const performanceArtifacts = [createMockPerformanceArtifact('A100-80', 1, 2.0, 1000)];
       const accuracyArtifacts = [createMockAccuracyArtifact(/* 90.0 */)];
 
       const result = extractValidatedModelMetrics(performanceArtifacts, accuracyArtifacts, 5);
 
-      expect(result).toMatchObject({
-        // accuracy: 90.0, // NOTE: overall_average is currently omitted from the API and will be restored
-        hardwareType: 'H100-80',
-        hardwareCount: '1',
-        rpsPerReplica: 1,
-        ttftMean: 1428,
-      });
+      expect(result).toBeNull();
     });
   });
 
