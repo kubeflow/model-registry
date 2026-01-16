@@ -226,6 +226,10 @@ func (m *ModelCatalogServiceAPIService) FindModels(ctx context.Context, sourceID
 		return Response(http.StatusBadRequest, err), err
 	}
 
+	if orderBy == "" {
+		orderBy = model.ORDERBYFIELD_NAME
+	}
+
 	listModelsParams := catalog.ListModelsParams{
 		Query:         q,
 		FilterQuery:   filterQuery,

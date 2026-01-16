@@ -250,7 +250,7 @@ func (r ApiFindModelsRequest) PageSize(pageSize string) ApiFindModelsRequest {
 	return r
 }
 
-// Specifies the order by criteria for listing entities.  Supported values are: - CREATE_TIME - LAST_UPDATE_TIME - ID - NAME - ACCURACY  The &#x60;ACCURACY&#x60; sort will sort by the &#x60;overall_average&#x60; property in any linked metrics artifact.  In addition, models can be sorted by properties. For example: - &#x60;provider.string_value&#x60; sorts by provider name - &#x60;artifacts.ifeval.double_value&#x60; sorts by the min/max value a property called ifeval across all associated artifacts
+// Specifies the order by criteria for listing entities.  Supported values are: - CREATE_TIME - LAST_UPDATE_TIME - ID - NAME - ACCURACY  Defaults to &#x60;NAME&#x60;.  The &#x60;ACCURACY&#x60; sort will sort by the &#x60;overall_average&#x60; property in any linked metrics artifact.  In addition, models can be sorted by properties. For example: - &#x60;provider.string_value&#x60; sorts by provider name - &#x60;artifacts.ifeval.double_value&#x60; sorts by the min/max value a property called ifeval across all associated artifacts
 func (r ApiFindModelsRequest) OrderBy(orderBy OrderByField) ApiFindModelsRequest {
 	r.orderBy = &orderBy
 	return r
