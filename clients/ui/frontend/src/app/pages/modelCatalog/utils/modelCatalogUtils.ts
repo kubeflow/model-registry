@@ -357,14 +357,10 @@ const serializeFilterEntry = (
       ? options.filters[filterId]
       : undefined;
 
-  if (!filterOption) {
-    return '';
-  }
-
   const queryKey = getQueryKey(filterId, target);
 
   // Handle string array filters (multi-select)
-  if (isArrayOfSelections(filterOption, data)) {
+  if (filterOption && isArrayOfSelections(filterOption, data)) {
     switch (data.length) {
       case 0:
         return '';
@@ -375,8 +371,26 @@ const serializeFilterEntry = (
     }
   }
 
+  if (!filterOption && isPerformanceStringFilterKey(filterId) && Array.isArray(data)) {
+    const stringData = data.map(String);
+    switch (stringData.length) {
+      case 0:
+        return '';
+      case 1:
+        return eqFilter(queryKey, stringData[0]);
+      default:
+        return inFilter(queryKey, stringData);
+    }
+  }
+
   // Handle numeric filters
-  if (isKnownNumericFilter(filterOption, filterId, data)) {
+  if (filterOption && isKnownNumericFilter(filterOption, filterId, data)) {
+    const operator = getNumericFilterOperator(options, filterId);
+    return `${queryKey} ${operator} ${data}`;
+  }
+
+  // Handle known numeric filters (latency) even without filterOption
+  if (!filterOption && KNOWN_NUMERIC_FILTER_IDS.includes(filterId) && typeof data === 'number') {
     const operator = getNumericFilterOperator(options, filterId);
     return `${queryKey} ${operator} ${data}`;
   }
