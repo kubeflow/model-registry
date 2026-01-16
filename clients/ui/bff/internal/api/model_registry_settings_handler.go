@@ -36,17 +36,17 @@ func (app *App) GetAllModelRegistriesSettingsHandler(w http.ResponseWriter, r *h
 		Key:  "ssl-secret-key",
 	}
 
-	registries := []models.ModelRegistryKind{createSampleModelRegistry("model-registry", namespace, &sslRootCertificateConfigMap, nil),
+	registries := []models.ModelRegistryKind{
+		createSampleModelRegistry("model-registry", namespace, &sslRootCertificateConfigMap, nil),
 		createSampleModelRegistry("model-registry-dora", namespace, nil, &sslRootCertificateSecret),
-		createSampleModelRegistry("model-registry-bella", namespace, nil, nil)}
+		createSampleModelRegistry("model-registry-bella", namespace, nil, nil),
+	}
 
 	modelRegistryRes := ModelRegistrySettingsListEnvelope{
 		Data: registries,
 	}
 
-	err := app.WriteJSON(w, http.StatusOK, modelRegistryRes, nil)
-
-	if err != nil {
+	if err := app.WriteJSON(w, http.StatusOK, modelRegistryRes, nil); err != nil {
 		app.serverErrorResponse(w, r, err)
 	}
 
@@ -73,9 +73,7 @@ func (app *App) GetModelRegistrySettingsHandler(w http.ResponseWriter, r *http.R
 		Data: modelRegistryWithCreds,
 	}
 
-	err := app.WriteJSON(w, http.StatusOK, modelRegistryRes, nil)
-
-	if err != nil {
+	if err := app.WriteJSON(w, http.StatusOK, modelRegistryRes, nil); err != nil {
 		app.serverErrorResponse(w, r, err)
 	}
 }
@@ -94,18 +92,7 @@ func (app *App) CreateModelRegistrySettingsHandler(w http.ResponseWriter, r *htt
 		app.serverErrorResponse(w, r, fmt.Errorf("error decoding JSON:: %v", err.Error()))
 		return
 	}
-
-	var modelRegistryName = envelope.Data.ModelRegistry.Metadata.Name
-
-	if modelRegistryName == "" {
-		app.badRequestResponse(w, r, fmt.Errorf("model registry name is required"))
-		return
-	}
-
-	ctxLogger.Info("Creating model registry", "name", modelRegistryName)
-
-	// For now, we're using the stub implementation, but we'd use envelope.Data.ModelRegistry
-	// and other fields from the payload in a real implementation
+	modelRegistryName := envelope.Data.ModelRegistry.Metadata.Name
 	registry := createSampleModelRegistry(modelRegistryName, namespace, nil, nil)
 
 	modelRegistryRes := ModelRegistrySettingsEnvelope{
@@ -113,12 +100,10 @@ func (app *App) CreateModelRegistrySettingsHandler(w http.ResponseWriter, r *htt
 	}
 
 	w.Header().Set("Location", r.URL.JoinPath(modelRegistryRes.Data.Metadata.Name).String())
-	writeErr := app.WriteJSON(w, http.StatusCreated, modelRegistryRes, nil)
-	if writeErr != nil {
+	if err := app.WriteJSON(w, http.StatusCreated, modelRegistryRes, nil); err != nil {
 		app.serverErrorResponse(w, r, fmt.Errorf("error writing JSON"))
 		return
 	}
-
 }
 
 func (app *App) UpdateModelRegistrySettingsHandler(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
@@ -137,8 +122,7 @@ func (app *App) UpdateModelRegistrySettingsHandler(w http.ResponseWriter, r *htt
 		Data: registry,
 	}
 
-	err := app.WriteJSON(w, http.StatusOK, modelRegistryRes, nil)
-	if err != nil {
+	if err := app.WriteJSON(w, http.StatusOK, modelRegistryRes, nil); err != nil {
 		app.serverErrorResponse(w, r, fmt.Errorf("error writing JSON"))
 		return
 	}
@@ -161,9 +145,7 @@ func (app *App) DeleteModelRegistrySettingsHandler(w http.ResponseWriter, r *htt
 		Data: registry,
 	}
 
-	err := app.WriteJSON(w, http.StatusOK, modelRegistryRes, nil)
-
-	if err != nil {
+	if err := app.WriteJSON(w, http.StatusOK, modelRegistryRes, nil); err != nil {
 		app.serverErrorResponse(w, r, err)
 	}
 
