@@ -11,10 +11,7 @@ import {
 import { HelpIcon } from '@patternfly/react-icons';
 import { ModelCatalogNumberFilterKey } from '~/concepts/modelCatalog/const';
 import { useCatalogNumberFilterState } from '~/app/pages/modelCatalog/utils/modelCatalogUtils';
-import {
-  FALLBACK_RPS_RANGE,
-  SliderRange,
-} from '~/app/pages/modelCatalog/utils/performanceMetricsUtils';
+import { MAX_RPS_RANGE } from '~/app/pages/modelCatalog/utils/performanceMetricsUtils';
 import { ModelCatalogContext } from '~/app/context/modelCatalog/ModelCatalogContext';
 import SliderWithInput from './SliderWithInput';
 
@@ -23,22 +20,10 @@ const filterKey = ModelCatalogNumberFilterKey.MAX_RPS;
 const MaxRpsFilter: React.FC = () => {
   const { value: rpsFilterValue, setValue: setRpsFilterValue } =
     useCatalogNumberFilterState(filterKey);
-  const { filterOptions, getPerformanceFilterDefaultValue } = React.useContext(ModelCatalogContext);
+  const { getPerformanceFilterDefaultValue } = React.useContext(ModelCatalogContext);
   const [isOpen, setIsOpen] = React.useState(false);
 
-  const { minValue, maxValue, isSliderDisabled } = React.useMemo((): SliderRange => {
-    // Always get range from filterOptions (which provides the full range across all artifacts)
-    // Don't use performanceArtifacts since we may not have all of them in memory when paginating
-    const filterValue = filterOptions?.filters?.[ModelCatalogNumberFilterKey.MAX_RPS];
-    if (filterValue && 'range' in filterValue && filterValue.range) {
-      return {
-        minValue: filterValue.range.min ?? FALLBACK_RPS_RANGE.minValue,
-        maxValue: filterValue.range.max ?? FALLBACK_RPS_RANGE.maxValue,
-        isSliderDisabled: false,
-      };
-    }
-    return FALLBACK_RPS_RANGE;
-  }, [filterOptions]);
+  const { minValue, maxValue, isSliderDisabled } = MAX_RPS_RANGE;
 
   const [localValue, setLocalValue] = React.useState<number>(() => rpsFilterValue ?? maxValue);
 
