@@ -1400,3 +1400,348 @@ func TestCatalogModelRepository_TimestampPreservation(t *testing.T) {
 			"LastUpdateTimeSinceEpoch should be updated")
 	})
 }
+
+// TestSortingFilteringInconsistency reproduces the bug where sorting and filtering
+// by artifact properties use different artifact sets, leading to inconsistent results.
+//
+// Bug: When both sorting and filtering by artifact properties, the sorting logic
+// considers ALL artifacts while filtering only considers artifacts passing the filter.
+//
+// Test scenario:
+// - Model A: artifacts with accuracy=[0.95 deprecated, 0.65 active]
+// - Model B: artifacts with accuracy=[0.75 active]
+// - Filter: artifacts.status.string_value='active'
+// - Sort: artifacts.accuracy.double_value DESC
+//
+// Expected: Model B (0.75) before Model A (0.65) - considering only active artifacts
+// Actual: Model A before Model B - sorting uses 0.95 value from deprecated artifact
+func TestSortingFilteringInconsistency(t *testing.T) {
+	sharedDB, cleanup := testutils.SetupPostgresWithMigrations(t, service.DatastoreSpec())
+	defer cleanup()
+
+	// Clean up any existing test data to ensure test isolation
+	testutils.CleanupPostgresTestData(t, sharedDB)
+
+	// Setup repositories
+	catalogModelTypeID := getCatalogModelTypeID(t, sharedDB)
+	modelRepo := service.NewCatalogModelRepository(sharedDB, catalogModelTypeID)
+
+	modelArtifactTypeID := getCatalogModelArtifactTypeID(t, sharedDB)
+	modelArtifactRepo := service.NewCatalogModelArtifactRepository(sharedDB, modelArtifactTypeID)
+
+	// Test case: Create Model A with high accuracy deprecated artifact + low accuracy active artifact
+	t.Run("TestBugReproduction", func(t *testing.T) {
+		// Create Model A
+		modelA := &models.CatalogModelImpl{
+			Attributes: &models.CatalogModelAttributes{
+				Name:       apiutils.Of("model-a-bug-test"),
+				ExternalID: apiutils.Of("model-a-ext-123"),
+			},
+		}
+		savedModelA, err := modelRepo.Save(modelA)
+		require.NoError(t, err)
+
+		// Create Model B
+		modelB := &models.CatalogModelImpl{
+			Attributes: &models.CatalogModelAttributes{
+				Name:       apiutils.Of("model-b-bug-test"),
+				ExternalID: apiutils.Of("model-b-ext-456"),
+			},
+		}
+		savedModelB, err := modelRepo.Save(modelB)
+		require.NoError(t, err)
+
+		// Create artifacts for Model A:
+		// 1. High accuracy artifact (0.95) with status="deprecated"
+		artifactA1 := &models.CatalogModelArtifactImpl{
+			Attributes: &models.CatalogModelArtifactAttributes{
+				Name:       apiutils.Of("model-a-deprecated-artifact"),
+				ExternalID: apiutils.Of("model-a-deprecated-ext"),
+			},
+			CustomProperties: &[]dbmodels.Properties{
+				{
+					Name:        "accuracy",
+					DoubleValue: apiutils.Of(0.95),
+				},
+				{
+					Name:        "status",
+					StringValue: apiutils.Of("deprecated"),
+				},
+			},
+		}
+		_, err = modelArtifactRepo.Save(artifactA1, savedModelA.GetID())
+		require.NoError(t, err)
+
+		// 2. Low accuracy artifact (0.65) with status="active"
+		artifactA2 := &models.CatalogModelArtifactImpl{
+			Attributes: &models.CatalogModelArtifactAttributes{
+				Name:       apiutils.Of("model-a-active-artifact"),
+				ExternalID: apiutils.Of("model-a-active-ext"),
+			},
+			CustomProperties: &[]dbmodels.Properties{
+				{
+					Name:        "accuracy",
+					DoubleValue: apiutils.Of(0.65),
+				},
+				{
+					Name:        "status",
+					StringValue: apiutils.Of("active"),
+				},
+			},
+		}
+		_, err = modelArtifactRepo.Save(artifactA2, savedModelA.GetID())
+		require.NoError(t, err)
+
+		// Create artifacts for Model B:
+		// 1. Medium accuracy artifact (0.75) with status="active"
+		artifactB1 := &models.CatalogModelArtifactImpl{
+			Attributes: &models.CatalogModelArtifactAttributes{
+				Name:       apiutils.Of("model-b-active-artifact"),
+				ExternalID: apiutils.Of("model-b-active-ext"),
+			},
+			CustomProperties: &[]dbmodels.Properties{
+				{
+					Name:        "accuracy",
+					DoubleValue: apiutils.Of(0.75),
+				},
+				{
+					Name:        "status",
+					StringValue: apiutils.Of("active"),
+				},
+			},
+		}
+		_, err = modelArtifactRepo.Save(artifactB1, savedModelB.GetID())
+		require.NoError(t, err)
+
+		// Test the bug: Filter by active status + sort by accuracy DESC
+		listOptions := models.CatalogModelListOptions{
+			Pagination: dbmodels.Pagination{
+				FilterQuery: apiutils.Of("artifacts.status.string_value='active'"),
+				OrderBy:     apiutils.Of("artifacts.accuracy.double_value"),
+				SortOrder:   apiutils.Of("DESC"),
+			},
+		}
+
+		result, err := modelRepo.List(listOptions)
+		require.NoError(t, err)
+		require.NotNil(t, result)
+		require.GreaterOrEqual(t, len(result.Items), 2, "Should find both models")
+
+		// Extract our test models from results
+		var foundModels []models.CatalogModel
+		for _, model := range result.Items {
+			name := *model.GetAttributes().Name
+			if name == "model-a-bug-test" || name == "model-b-bug-test" {
+				foundModels = append(foundModels, model)
+			}
+		}
+		require.Len(t, foundModels, 2, "Should find both test models")
+
+		// Find positions of Model A and Model B in results
+		modelAIndex := -1
+		modelBIndex := -1
+		for i, model := range foundModels {
+			name := *model.GetAttributes().Name
+			if name == "model-a-bug-test" {
+				modelAIndex = i
+			} else if name == "model-b-bug-test" {
+				modelBIndex = i
+			}
+		}
+
+		require.NotEqual(t, -1, modelAIndex, "Should find Model A in filtered results")
+		require.NotEqual(t, -1, modelBIndex, "Should find Model B in filtered results")
+
+		// **EXPECT CORRECT BEHAVIOR**:
+		// Model B (accuracy 0.75 active) should come before Model A (accuracy 0.65 active)
+		// When filtering by status='active', sorting should only consider active artifacts
+		//
+		// This test will FAIL until the bug is fixed, then PASS once correct behavior is implemented
+		t.Logf("Model A index: %d, Model B index: %d", modelAIndex, modelBIndex)
+
+		// Assert the CORRECT expected behavior - this will fail until bug is fixed
+		assert.Less(t, modelBIndex, modelAIndex,
+			"Model B (active artifact accuracy=0.75) should be sorted before Model A (active artifact accuracy=0.65). "+
+				"Current bug: sorting uses Model A's deprecated artifact (accuracy=0.95) instead of only considering active artifacts that pass the filter. "+
+				"Fix: sorting and filtering must operate on the same artifact dataset.")
+	})
+}
+
+// TestSortingFilteringEdgeCases tests edge cases for the sorting/filtering consistency fix
+func TestSortingFilteringEdgeCases(t *testing.T) {
+	sharedDB, cleanup := testutils.SetupPostgresWithMigrations(t, service.DatastoreSpec())
+	defer cleanup()
+
+	// Clean up any existing test data to ensure test isolation
+	testutils.CleanupPostgresTestData(t, sharedDB)
+
+	// Setup repositories
+	catalogModelTypeID := getCatalogModelTypeID(t, sharedDB)
+	modelRepo := service.NewCatalogModelRepository(sharedDB, catalogModelTypeID)
+
+	modelArtifactTypeID := getCatalogModelArtifactTypeID(t, sharedDB)
+	modelArtifactRepo := service.NewCatalogModelArtifactRepository(sharedDB, modelArtifactTypeID)
+
+	// Create test models with various artifact scenarios
+	modelA := &models.CatalogModelImpl{
+		Attributes: &models.CatalogModelAttributes{
+			Name: apiutils.Of("Edge Test Model A"),
+		},
+		Properties: &[]dbmodels.Properties{
+			{Name: "provider", StringValue: apiutils.Of("edge-provider-a")},
+		},
+	}
+
+	modelB := &models.CatalogModelImpl{
+		Attributes: &models.CatalogModelAttributes{
+			Name: apiutils.Of("Edge Test Model B"),
+		},
+		Properties: &[]dbmodels.Properties{
+			{Name: "provider", StringValue: apiutils.Of("edge-provider-b")},
+		},
+	}
+
+	// Save models
+	savedModelA, err := modelRepo.Save(modelA)
+	require.NoError(t, err)
+	savedModelB, err := modelRepo.Save(modelB)
+	require.NoError(t, err)
+
+	// Create artifacts for Model A
+	artifactA1 := &models.CatalogModelArtifactImpl{
+		Attributes: &models.CatalogModelArtifactAttributes{
+			Name: apiutils.Of("edge-artifact-a1"),
+		},
+		CustomProperties: &[]dbmodels.Properties{
+			{Name: "accuracy", DoubleValue: apiutils.Of(0.95)},
+			{Name: "status", StringValue: apiutils.Of("deprecated")},
+		},
+	}
+
+	artifactA2 := &models.CatalogModelArtifactImpl{
+		Attributes: &models.CatalogModelArtifactAttributes{
+			Name: apiutils.Of("edge-artifact-a2"),
+		},
+		CustomProperties: &[]dbmodels.Properties{
+			{Name: "accuracy", DoubleValue: apiutils.Of(0.65)},
+			{Name: "status", StringValue: apiutils.Of("active")},
+		},
+	}
+
+	// Create artifacts for Model B
+	artifactB1 := &models.CatalogModelArtifactImpl{
+		Attributes: &models.CatalogModelArtifactAttributes{
+			Name: apiutils.Of("edge-artifact-b1"),
+		},
+		CustomProperties: &[]dbmodels.Properties{
+			{Name: "accuracy", DoubleValue: apiutils.Of(0.75)},
+			{Name: "status", StringValue: apiutils.Of("active")},
+		},
+	}
+
+	// Save artifacts with parent relationships
+	_, err = modelArtifactRepo.Save(artifactA1, savedModelA.GetID())
+	require.NoError(t, err)
+	_, err = modelArtifactRepo.Save(artifactA2, savedModelA.GetID())
+	require.NoError(t, err)
+	_, err = modelArtifactRepo.Save(artifactB1, savedModelB.GetID())
+	require.NoError(t, err)
+
+	t.Run("EdgeCase_NoArtifactsMatchFilter", func(t *testing.T) {
+		// Test filtering for artifacts that don't exist
+		listOptions := models.CatalogModelListOptions{
+			Pagination: dbmodels.Pagination{
+				FilterQuery: apiutils.Of("artifacts.nonexistent.string_value='missing'"),
+				OrderBy:     apiutils.Of("artifacts.accuracy.double_value"),
+				SortOrder:   apiutils.Of("DESC"),
+			},
+		}
+
+		result, err := modelRepo.List(listOptions)
+		assert.NoError(t, err, "Should handle filters with no matches gracefully")
+		assert.Equal(t, int32(0), result.Size, "Should return empty results when no artifacts match filter")
+	})
+
+	t.Run("EdgeCase_MultipleFilterConditions", func(t *testing.T) {
+		// Test with multiple AND filter conditions
+		listOptions := models.CatalogModelListOptions{
+			Pagination: dbmodels.Pagination{
+				FilterQuery: apiutils.Of("artifacts.status.string_value='active' AND artifacts.accuracy.double_value>0.6"),
+				OrderBy:     apiutils.Of("artifacts.accuracy.double_value"),
+				SortOrder:   apiutils.Of("DESC"),
+			},
+		}
+
+		result, err := modelRepo.List(listOptions)
+		assert.NoError(t, err, "Should handle multiple filter conditions")
+
+		// Should find Model B (0.75 active > 0.6) and Model A (0.65 active > 0.6)
+		// Model B (0.75) should come first in DESC order
+		assert.Equal(t, int32(2), result.Size)
+
+		// Find model positions
+		modelAIndex, modelBIndex := -1, -1
+		for i, model := range result.Items {
+			if *model.GetID() == *savedModelA.GetID() {
+				modelAIndex = i
+			} else if *model.GetID() == *savedModelB.GetID() {
+				modelBIndex = i
+			}
+		}
+
+		assert.NotEqual(t, -1, modelAIndex, "Should find Model A")
+		assert.NotEqual(t, -1, modelBIndex, "Should find Model B")
+		assert.Less(t, modelBIndex, modelAIndex, "Model B (0.75) should be sorted before Model A (0.65)")
+	})
+
+	t.Run("EdgeCase_FilterWithNoResults", func(t *testing.T) {
+		// Test filter that matches no artifacts
+		listOptions := models.CatalogModelListOptions{
+			Pagination: dbmodels.Pagination{
+				FilterQuery: apiutils.Of("artifacts.accuracy.double_value>1.0"), // No accuracy > 1.0
+				OrderBy:     apiutils.Of("artifacts.accuracy.double_value"),
+				SortOrder:   apiutils.Of("DESC"),
+			},
+		}
+
+		result, err := modelRepo.List(listOptions)
+		assert.NoError(t, err, "Should handle filters with no results")
+		assert.Equal(t, int32(0), result.Size, "Should return empty results")
+	})
+
+	t.Run("EdgeCase_OnlyOneModelMatches", func(t *testing.T) {
+		// Test filter that matches only one model
+		listOptions := models.CatalogModelListOptions{
+			Pagination: dbmodels.Pagination{
+				FilterQuery: apiutils.Of("artifacts.status.string_value='deprecated'"),
+				OrderBy:     apiutils.Of("artifacts.accuracy.double_value"),
+				SortOrder:   apiutils.Of("DESC"),
+			},
+		}
+
+		result, err := modelRepo.List(listOptions)
+		assert.NoError(t, err, "Should handle single result")
+
+		// Should find only Model A's deprecated artifact (0.95)
+		assert.Equal(t, int32(1), result.Size)
+		assert.Equal(t, savedModelA.GetID(), result.Items[0].GetID())
+	})
+
+	t.Run("EdgeCase_StringPropertySorting", func(t *testing.T) {
+		// Test string property sorting with numeric filter
+		listOptions := models.CatalogModelListOptions{
+			Pagination: dbmodels.Pagination{
+				FilterQuery: apiutils.Of("artifacts.accuracy.double_value>0.6"),
+				OrderBy:     apiutils.Of("artifacts.status.string_value"),
+				SortOrder:   apiutils.Of("ASC"), // Should sort: active, active, deprecated
+			},
+		}
+
+		result, err := modelRepo.List(listOptions)
+		assert.NoError(t, err, "Should handle string property sorting with numeric filter")
+
+		// Should find Model A (accuracy 0.95 deprecated, 0.65 active) and Model B (0.75 active)
+		// Both models have artifacts with accuracy > 0.6, so both should be included
+		assert.Equal(t, int32(2), result.Size)
+	})
+}
