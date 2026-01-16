@@ -8,7 +8,7 @@ import {
   List,
   ListItem,
   Popover,
-  Spinner,
+  Skeleton,
   Stack,
   StackItem,
 } from '@patternfly/react-core';
@@ -108,7 +108,7 @@ const ModelCatalogCardBody: React.FC<ModelCatalogCardBodyProps> = ({
   const isLoading = isValidated && !performanceArtifactsLoaded;
 
   if (isLoading) {
-    return <Spinner />;
+    return <Skeleton width="100%" screenreaderText="Loading model artifacts" />;
   }
 
   if (performanceArtifactsError && isValidated) {
