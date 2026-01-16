@@ -33,7 +33,7 @@ export const HELP_TEXT = {
   ACCESS_TOKEN:
     'Enter your fine-grained Hugging Face access token. Public models can be pulled into catalog without an access token. For private/gated models, a token is recommended to ensure full metadata is displayed, otherwise only limited metadata may be available. The token must have the following permissions: read repos in your namespace, read public repos that you can access.',
   ORGANIZATION:
-    'Enter the name of the organization (for example, Google/) to sync models from. Hugging Face sources are limited to 1 organization to prevent performance issues related to loading large model sets.',
+    'Enter the name of the organization (for example, Google) to sync models from. Hugging Face sources are limited to 1 organization to prevent performance issues related to loading large model sets.',
   YAML: 'Upload or paste a YAML string.',
 } as const;
 
