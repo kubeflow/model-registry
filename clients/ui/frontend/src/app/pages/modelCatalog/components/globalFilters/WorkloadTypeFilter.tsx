@@ -48,7 +48,7 @@ const WorkloadTypeFilter: React.FC = () => {
     >
       {selectedValue ? (
         <>
-          <strong>Workload type:</strong> {getUseCaseDisplayLabel(selectedValue)}
+          <strong>Scenario:</strong> {getUseCaseDisplayLabel(selectedValue)}
         </>
       ) : (
         'Workload type'

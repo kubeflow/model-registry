@@ -28,6 +28,13 @@ export const hardwareConfigColumns: HardwareConfigColumn[] = [
   {
     field: PerformancePropertyKey.HARDWARE_CONFIGURATION,
     label: 'Hardware configuration',
+    info: {
+      popover:
+        'The hardware configuration used for benchmarking, including the GPU type and the number of GPUs per replica.',
+      popoverProps: {
+        position: 'left',
+      },
+    },
     sortable: (
       a: CatalogPerformanceMetricsArtifact,
       b: CatalogPerformanceMetricsArtifact,
@@ -59,6 +66,13 @@ export const hardwareConfigColumns: HardwareConfigColumn[] = [
   {
     field: 'replicas',
     label: 'Replicas',
+    info: {
+      popover:
+        'The number of replicas required to support the specified maximum requests per second (Max RPS).',
+      popoverProps: {
+        position: 'left',
+      },
+    },
     sortable: (
       a: CatalogPerformanceMetricsArtifact,
       b: CatalogPerformanceMetricsArtifact,
@@ -82,6 +96,15 @@ export const hardwareConfigColumns: HardwareConfigColumn[] = [
   {
     field: 'total_requests_per_second',
     label: 'Total RPS',
+    info: {
+      popover:
+        'The total traffic capacity, measured in requests per second, supported by the recommended number of replicas.',
+      popoverProps: {
+        position: 'left',
+        footerContent:
+          'Note: Because we cannot use fractional GPUs, requirements are rounded up (example, 1.2 becomes 2), which might result in a higher total RPS than your defined maximum.',
+      },
+    },
     sortable: (
       a: CatalogPerformanceMetricsArtifact,
       b: CatalogPerformanceMetricsArtifact,
@@ -301,6 +324,12 @@ export const hardwareConfigColumns: HardwareConfigColumn[] = [
   {
     field: 'framework_version',
     label: 'vLLM Version',
+    info: {
+      popover: 'The vLLM inference engine version used to generate these performance results.',
+      popoverProps: {
+        position: 'left',
+      },
+    },
     sortable: (
       a: CatalogPerformanceMetricsArtifact,
       b: CatalogPerformanceMetricsArtifact,

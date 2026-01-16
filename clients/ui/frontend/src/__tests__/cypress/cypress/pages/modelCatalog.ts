@@ -401,10 +401,7 @@ class ModelCatalog {
   }
 
   findSetPerformanceOffLink() {
-    return this.findPerformanceEmptyState().contains(
-      'button',
-      /Turn.*Model performance view.*off/i,
-    );
+    return this.findPerformanceEmptyState().contains('button', /Turn off model performance view/i);
   }
 
   findSelectAllModelsCategoryButton() {

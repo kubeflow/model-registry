@@ -38,7 +38,7 @@ export interface ManageColumnsModalProps {
     | 'isModalOpen'
     | 'closeModal'
   >;
-  /** Modal title - defaults to "Manage columns" */
+  /** Modal title - defaults to "Customize columns" */
   title?: string;
   /** Description text shown above the column list */
   description?: string;
@@ -54,7 +54,7 @@ export interface ManageColumnsModalProps {
 
 export const ManageColumnsModal: React.FC<ManageColumnsModalProps> = ({
   manageColumnsResult,
-  title = 'Manage columns',
+  title = 'Customize columns',
   description,
   maxSelections,
   maxSelectionsTooltip = 'Maximum columns selected.',

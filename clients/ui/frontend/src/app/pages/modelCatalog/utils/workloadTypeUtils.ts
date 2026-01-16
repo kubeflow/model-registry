@@ -58,7 +58,7 @@ export const isUseCaseOptionValue = (value: string): value is UseCaseOptionValue
 export const getUseCaseDisplayLabel = (value: string): string => {
   const option = getUseCaseOption(value);
   if (option) {
-    return `${option.label} (${option.inputTokens} input | ${option.outputTokens} output tokens)`;
+    return `${option.label} (${option.inputTokens} input / ${option.outputTokens} output tokens)`;
   }
   return value;
 };

@@ -14,7 +14,10 @@ import { ArrowRightIcon, SearchIcon } from '@patternfly/react-icons';
 import { CatalogSourceList } from '~/app/modelCatalogTypes';
 import { useCatalogModelsBySources } from '~/app/hooks/modelCatalog/useCatalogModelsBySource';
 import EmptyModelCatalogState from '~/app/pages/modelCatalog/EmptyModelCatalogState';
-import { getSourceFromSourceId } from '~/app/pages/modelCatalog/utils/modelCatalogUtils';
+import {
+  generateCategoryName,
+  getSourceFromSourceId,
+} from '~/app/pages/modelCatalog/utils/modelCatalogUtils';
 import ModelCatalogCard from '~/app/pages/modelCatalog/components/ModelCatalogCard';
 
 type CategorySectionProps = {
@@ -45,7 +48,7 @@ const CatalogCategorySection: React.FC<CategorySectionProps> = ({
 
   // Helper to format category title - only append "models" if not already present
   const name = displayName ?? label;
-  const categoryTitle = name.toLowerCase().endsWith('models') ? name : `${name} models`;
+  const categoryTitle = generateCategoryName(name);
 
   return (
     <>

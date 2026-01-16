@@ -7,7 +7,10 @@ import {
   ContentVariants,
   Card,
   CardBody,
+  Flex,
+  FlexItem,
 } from '@patternfly/react-core';
+import { ChartBarIcon } from '@patternfly/react-icons';
 import { ModelCatalogContext } from '~/app/context/modelCatalog/ModelCatalogContext';
 
 const ModelPerformanceViewToggleCard: React.FC = () => {
@@ -15,18 +18,26 @@ const ModelPerformanceViewToggleCard: React.FC = () => {
     React.useContext(ModelCatalogContext);
 
   return (
-    <Card>
+    <Card style={{ minWidth: '280px' }}>
       <CardBody>
         <Stack hasGutter>
           <StackItem>
-            <Switch
-              id="model-performance-view-toggle"
-              label="Model performance view"
-              isChecked={performanceViewEnabled}
-              isDisabled={!filterOptionsLoaded}
-              onChange={(_event, checked) => setPerformanceViewEnabled(checked)}
-              data-testid="model-performance-view-toggle"
-            />
+            <Flex>
+              <FlexItem>
+                <ChartBarIcon />
+              </FlexItem>
+              <FlexItem>
+                <Switch
+                  id="model-performance-view-toggle"
+                  label="Model performance view"
+                  isChecked={performanceViewEnabled}
+                  isReversed
+                  isDisabled={!filterOptionsLoaded}
+                  onChange={(_event, checked) => setPerformanceViewEnabled(checked)}
+                  data-testid="model-performance-view-toggle"
+                />
+              </FlexItem>
+            </Flex>
           </StackItem>
           <StackItem>
             <Content component={ContentVariants.small}>

@@ -47,7 +47,7 @@ const HardwareConfigurationTable: React.FC<HardwareConfigurationTableProps> = ({
       onClick={manageColumnsResult.openModal}
       data-testid="manage-columns-button"
     >
-      Manage columns
+      Customize columns
     </Button>
   );
 
@@ -84,7 +84,7 @@ const HardwareConfigurationTable: React.FC<HardwareConfigurationTableProps> = ({
       </OuterScrollContainer>
       <ManageColumnsModal
         manageColumnsResult={manageColumnsResult}
-        description="Manage the columns that will appear in the hardware configuration table."
+        description="Manage the columns that appear in the hardware configuration table."
         dataTestId="hardware-config-manage-columns"
       />
     </>
