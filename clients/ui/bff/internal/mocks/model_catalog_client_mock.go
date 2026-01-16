@@ -29,6 +29,7 @@ func (m *ModelCatalogClientMock) GetAllCatalogModelsAcrossSources(client httpcli
 	sourceId := pageValues.Get("source")
 	sourceLabel := pageValues.Get("sourceLabel")
 	query := pageValues.Get("q")
+	validatedOnly := pageValues.Get("validatedOnly") == "true"
 
 	if sourceId != "" {
 		for _, model := range allModels {
@@ -99,6 +100,19 @@ func (m *ModelCatalogClientMock) GetAllCatalogModelsAcrossSources(client httpcli
 		}
 
 		filteredModels = queryFilteredModels
+	}
+
+	// Filter by validated label when validatedOnly is true
+	if validatedOnly {
+		var validatedModels []models.CatalogModel
+		for _, model := range filteredModels {
+			if model.CustomProperties != nil {
+				if _, hasValidated := (*model.CustomProperties)["validated"]; hasValidated {
+					validatedModels = append(validatedModels, model)
+				}
+			}
+		}
+		filteredModels = validatedModels
 	}
 
 	pageSizeStr := pageValues.Get("pageSize")

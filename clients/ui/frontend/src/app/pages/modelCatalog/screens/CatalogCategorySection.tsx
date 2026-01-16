@@ -16,6 +16,7 @@ import { useCatalogModelsBySources } from '~/app/hooks/modelCatalog/useCatalogMo
 import EmptyModelCatalogState from '~/app/pages/modelCatalog/EmptyModelCatalogState';
 import { getSourceFromSourceId } from '~/app/pages/modelCatalog/utils/modelCatalogUtils';
 import ModelCatalogCard from '~/app/pages/modelCatalog/components/ModelCatalogCard';
+import { ModelCatalogContext } from '~/app/context/modelCatalog/ModelCatalogContext';
 
 type CategorySectionProps = {
   label: string;
@@ -34,11 +35,18 @@ const CatalogCategorySection: React.FC<CategorySectionProps> = ({
   onShowMore,
   displayName,
 }) => {
+  const { performanceViewEnabled } = React.useContext(ModelCatalogContext);
   const { catalogModels, catalogModelsLoaded, catalogModelsLoadError } = useCatalogModelsBySources(
     undefined,
     label,
     pageSize,
     searchTerm,
+    undefined,
+    undefined,
+    undefined,
+    undefined,
+    undefined,
+    performanceViewEnabled,
   );
 
   const itemsToDisplay = catalogModels.items.slice(0, pageSize);

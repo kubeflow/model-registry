@@ -36,6 +36,7 @@ export const useCatalogModelsBySources = (
   filterQuery?: string,
   sortBy?: string | null,
   sortOrder?: string,
+  validatedOnly?: boolean,
 ): ModelList => {
   const { api, apiAvailable } = useModelCatalogAPI();
 
@@ -63,6 +64,7 @@ export const useCatalogModelsBySources = (
         filterData,
         filterOptions,
         filterQuery,
+        validatedOnly,
       );
     },
     [
@@ -77,6 +79,7 @@ export const useCatalogModelsBySources = (
       filterQuery,
       sortBy,
       sortOrder,
+      validatedOnly,
     ],
   );
 
@@ -116,6 +119,7 @@ export const useCatalogModelsBySources = (
         filterData,
         filterOptions,
         filterQuery,
+        validatedOnly,
       );
 
       setAllItems((prev) => [...prev, ...response.items]);
@@ -142,6 +146,7 @@ export const useCatalogModelsBySources = (
     filterQuery,
     sortBy,
     sortOrder,
+    validatedOnly,
   ]);
 
   React.useEffect(() => {
@@ -158,6 +163,7 @@ export const useCatalogModelsBySources = (
     filterQuery,
     sortBy,
     sortOrder,
+    validatedOnly,
   ]);
 
   const refresh = React.useCallback(() => {
