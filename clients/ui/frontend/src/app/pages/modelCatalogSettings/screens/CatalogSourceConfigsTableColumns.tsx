@@ -6,7 +6,7 @@ import { CatalogSourceConfig } from '~/app/modelCatalogTypes';
 export const catalogSourceConfigsColumns: SortableData<CatalogSourceConfig>[] = [
   {
     field: 'name',
-    label: 'Name',
+    label: 'Source name',
     sortable: (a, b) => a.name.localeCompare(b.name),
     width: 15,
   },

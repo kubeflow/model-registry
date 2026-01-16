@@ -1,7 +1,7 @@
 export const FORM_LABELS = {
   NAME: 'Name',
   SOURCE_TYPE: 'Source type',
-  ORGANIZATION: 'Organization',
+  ORGANIZATION: 'Allowed organization',
   ACCESS_TOKEN: 'Access token',
   YAML_CONTENT: 'Upload a YAML file',
   MODEL_VISIBILITY: 'Model visibility',
@@ -33,16 +33,16 @@ export const HELP_TEXT = {
   ACCESS_TOKEN:
     'Enter your fine-grained Hugging Face access token. Public models can be pulled into catalog without an access token. For private/gated models, a token is recommended to ensure full metadata is displayed, otherwise only limited metadata may be available. The token must have the following permissions: read repos in your namespace, read public repos that you can access.',
   ORGANIZATION:
-    'Limiting each Hugging Face source to a single organization helps prevent performance issues when loading large model sets.',
+    'Enter the name of the organization (for example, Google) to sync models from. Hugging Face sources are limited to 1 organization to prevent performance issues related to loading large model sets.',
   YAML: 'Upload or paste a YAML string.',
 } as const;
 
 export const PLACEHOLDERS = {
   ORGANIZATION: 'Example: Google',
   ALLOWED_MODELS_HF: 'Enter model names, one per line (e.g., gemma-7b*)',
-  ALLOWED_MODELS_GENERIC: 'Enter model names, one per line',
+  ALLOWED_MODELS_GENERIC: 'Example: Llama*, Llama-3.1-8B-Instruct',
   EXCLUDED_MODELS_HF: 'Enter model names, one per line (e.g., gemma-7b-test*)',
-  EXCLUDED_MODELS_GENERIC: 'Enter model names, one per line',
+  EXCLUDED_MODELS_GENERIC: 'Example: Llama*, Llama-3.1-8B-Instruct',
 } as const;
 
 export const DESCRIPTIONS = {

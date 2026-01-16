@@ -218,7 +218,7 @@ describe('PreviewPanel', () => {
     render(<PreviewPanel preview={preview} />);
 
     expect(
-      screen.getByText('The preview needs to be refreshed after any changes are made'),
+      screen.getByText('Source configuration changed. Refresh the preview.'),
     ).toBeInTheDocument();
     expect(screen.getByTestId('refresh-preview-link')).toBeInTheDocument();
   });
@@ -250,7 +250,11 @@ describe('PreviewPanel', () => {
     render(<PreviewPanel preview={preview} />);
 
     expect(screen.getByText('No models included')).toBeInTheDocument();
-    expect(screen.getByText('No models from this source match this filter')).toBeInTheDocument();
+    expect(
+      screen.getByText(
+        'No models from this source are visible in the model catalog. To include models, edit the model visibility settings of this source.',
+      ),
+    ).toBeInTheDocument();
   });
 
   it('renders empty state for excluded tab with no items', () => {

@@ -49,8 +49,8 @@ const CatalogSourceStatusErrorModal: React.FC<CatalogSourceStatusErrorModalProps
           data-testid="catalog-source-status-error-alert"
         >
           <p data-testid="catalog-source-status-error-details">
-            The system cannot establish a connection to the source. Ensure that the organization and
-            access token are accurate, then try again.
+            The system cannot establish a connection to the source. Ensure that the organization is
+            accurate, then try again.
           </p>
           {errorMessage && <p data-testid="catalog-source-status-error-message">{errorMessage}</p>}
         </Alert>

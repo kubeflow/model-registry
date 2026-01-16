@@ -131,11 +131,11 @@ const PreviewPanel: React.FC<PreviewPanelProps> = ({ preview }) => {
             <Alert
               variant="info"
               isInline
-              title="The preview needs to be refreshed after any changes are made"
+              title="Source configuration changed. Refresh the preview."
               className="pf-v6-u-mb-md"
               actionLinks={
                 <AlertActionLink onClick={onPreview} data-testid="refresh-preview-link">
-                  Refresh the preview
+                  Refresh preview
                 </AlertActionLink>
               }
             />
@@ -183,7 +183,7 @@ const PreviewPanel: React.FC<PreviewPanelProps> = ({ preview }) => {
             >
               <EmptyStateBody>
                 {activeTab === PreviewTab.INCLUDED
-                  ? 'No models from this source match this filter'
+                  ? 'No models from this source are visible in the model catalog. To include models, edit the model visibility settings of this source.'
                   : 'No models from this source are excluded by this filter'}
               </EmptyStateBody>
             </EmptyState>
