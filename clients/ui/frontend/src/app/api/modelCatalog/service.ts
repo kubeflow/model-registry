@@ -27,7 +27,6 @@ export const getCatalogModelsBySource =
     filterData?: ModelCatalogFilterStates,
     filterOptions?: CatalogFilterOptionsList | null,
     filterQuery?: string,
-    validatedOnly?: boolean,
   ): Promise<CatalogModelList> => {
     const computedFilterQuery =
       filterQuery ??
@@ -40,7 +39,6 @@ export const getCatalogModelsBySource =
       ...(searchKeyword && { q: searchKeyword }),
       ...queryParams,
       ...(computedFilterQuery && { filterQuery: computedFilterQuery }),
-      ...(validatedOnly && { validatedOnly: 'true' }),
     };
     return handleRestFailures(restGET(hostPath, '/models', allParams, opts)).then((response) => {
       if (isModArchResponse<CatalogModelList>(response)) {

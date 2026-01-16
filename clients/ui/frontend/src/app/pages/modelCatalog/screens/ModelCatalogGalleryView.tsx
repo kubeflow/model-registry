@@ -78,7 +78,6 @@ const ModelCatalogGalleryView: React.FC<ModelCatalogPageProps> = ({
     undefined, // filterQuery - will be computed from filterData and filterOptions
     sortParams.orderBy,
     sortParams.sortOrder,
-    performanceViewEnabled,
   );
 
   const loaded = catalogModelsLoaded && filterOptionsLoaded;

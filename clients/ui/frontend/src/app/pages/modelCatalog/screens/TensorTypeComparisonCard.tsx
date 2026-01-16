@@ -38,9 +38,6 @@ const TensorTypeComparisonCard: React.FC<TensorTypeComparisonCardProps> = ({ mod
     undefined,
     undefined,
     variantFilterQuery,
-    undefined,
-    undefined,
-    undefined,
   );
 
   const sortedModels = React.useMemo(

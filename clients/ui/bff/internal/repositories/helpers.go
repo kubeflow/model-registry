@@ -62,9 +62,6 @@ func FilterPageValues(values url.Values) url.Values {
 	if v := values.Get("filterStatus"); v != "" {
 		result.Set("filterStatus", v)
 	}
-	if v := values.Get("validatedOnly"); v != "" {
-		result.Set("validatedOnly", v)
-	}
 
 	return result
 }

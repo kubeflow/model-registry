@@ -5,6 +5,7 @@ import (
 	"log/slog"
 	"math"
 	"net/url"
+	"regexp"
 	"strconv"
 	"strings"
 
@@ -13,6 +14,112 @@ import (
 	"github.com/kubeflow/model-registry/ui/bff/internal/integrations/httpclient"
 	"github.com/stretchr/testify/mock"
 )
+
+func isModelValidated(model models.CatalogModel) bool {
+	if model.CustomProperties == nil {
+		return false
+	}
+	_, hasValidated := (*model.CustomProperties)["validated"]
+	return hasValidated
+}
+
+func parseFilterQuery(filterQuery string) []string {
+	if filterQuery == "" {
+		return nil
+	}
+	parts := regexp.MustCompile(`(?i)\s+AND\s+`).Split(filterQuery, -1)
+	var conditions []string
+	for _, part := range parts {
+		trimmed := strings.TrimSpace(part)
+		if trimmed != "" {
+			conditions = append(conditions, trimmed)
+		}
+	}
+	return conditions
+}
+
+func hasArtifactPrefix(condition string) bool {
+	return strings.HasPrefix(condition, "artifacts.")
+}
+
+func modelMatchesFilterQuery(model models.CatalogModel, filterQuery string) bool {
+	conditions := parseFilterQuery(filterQuery)
+	if len(conditions) == 0 {
+		return true // No filter, include all
+	}
+
+	for _, condition := range conditions {
+		if hasArtifactPrefix(condition) {
+			if !isModelValidated(model) {
+				return false
+			}
+			continue
+		}
+
+		if !modelMatchesCondition(model, condition) {
+			return false
+		}
+	}
+
+	return true
+}
+
+func modelMatchesCondition(model models.CatalogModel, condition string) bool {
+	eqRegex := regexp.MustCompile(`^(\w+)='([^']*)'$`)
+	if matches := eqRegex.FindStringSubmatch(condition); matches != nil {
+		field := strings.ToLower(matches[1])
+		value := matches[2]
+		return modelFieldEquals(model, field, value)
+	}
+
+	inRegex := regexp.MustCompile(`^(\w+)\s+IN\s+\(([^)]+)\)$`)
+	if matches := inRegex.FindStringSubmatch(condition); matches != nil {
+		field := strings.ToLower(matches[1])
+		valuesStr := matches[2]
+		// Parse values from 'value1','value2',...
+		valueRegex := regexp.MustCompile(`'([^']*)'`)
+		valueMatches := valueRegex.FindAllStringSubmatch(valuesStr, -1)
+		var values []string
+		for _, vm := range valueMatches {
+			values = append(values, vm[1])
+		}
+		return modelFieldInValues(model, field, values)
+	}
+	return true
+}
+
+func modelFieldEquals(model models.CatalogModel, field string, value string) bool {
+	switch field {
+	case "provider":
+		return model.Provider != nil && strings.EqualFold(*model.Provider, value)
+	case "license":
+		return model.License != nil && strings.EqualFold(*model.License, value)
+	case "tasks":
+		for _, task := range model.Tasks {
+			if strings.EqualFold(task, value) {
+				return true
+			}
+		}
+		return false
+	case "language":
+		for _, lang := range model.Language {
+			if strings.EqualFold(lang, value) {
+				return true
+			}
+		}
+		return false
+	}
+	return true
+}
+
+func modelFieldInValues(model models.CatalogModel, field string, values []string) bool {
+	for _, value := range values {
+		if modelFieldEquals(model, field, value) {
+			return true
+		}
+	}
+	return false
+}
 
 type ModelCatalogClientMock struct {
 	mock.Mock
@@ -29,7 +136,7 @@ func (m *ModelCatalogClientMock) GetAllCatalogModelsAcrossSources(client httpcli
 	sourceId := pageValues.Get("source")
 	sourceLabel := pageValues.Get("sourceLabel")
 	query := pageValues.Get("q")
-	validatedOnly := pageValues.Get("validatedOnly") == "true"
+	filterQuery := pageValues.Get("filterQuery")
 
 	if sourceId != "" {
 		for _, model := range allModels {
@@ -102,17 +209,14 @@ func (m *ModelCatalogClientMock) GetAllCatalogModelsAcrossSources(client httpcli
 		filteredModels = queryFilteredModels
 	}
 
-	// Filter by validated label when validatedOnly is true
-	if validatedOnly {
-		var validatedModels []models.CatalogModel
+	if filterQuery != "" {
+		var filterQueryFilteredModels []models.CatalogModel
 		for _, model := range filteredModels {
-			if model.CustomProperties != nil {
-				if _, hasValidated := (*model.CustomProperties)["validated"]; hasValidated {
-					validatedModels = append(validatedModels, model)
-				}
+			if modelMatchesFilterQuery(model, filterQuery) {
+				filterQueryFilteredModels = append(filterQueryFilteredModels, model)
 			}
 		}
-		filteredModels = validatedModels
+		filteredModels = filterQueryFilteredModels
 	}
 
 	pageSizeStr := pageValues.Get("pageSize")
