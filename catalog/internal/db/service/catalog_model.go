@@ -9,6 +9,7 @@ import (
 	"github.com/kubeflow/model-registry/catalog/internal/db/filter"
 	"github.com/kubeflow/model-registry/catalog/internal/db/models"
 	"github.com/kubeflow/model-registry/internal/db/dbutil"
+	dbfilter "github.com/kubeflow/model-registry/internal/db/filter"
 	dbmodels "github.com/kubeflow/model-registry/internal/db/models"
 	"github.com/kubeflow/model-registry/internal/db/schema"
 	"github.com/kubeflow/model-registry/internal/db/scopes"
@@ -522,6 +523,28 @@ func (r *CatalogModelRepositoryImpl) sortValueQuery(listOptions *models.CatalogM
 			Select(fmt.Sprintf("%s(%s.%s) AS %s", aggFn, propertyTable, valueColumn, valueColumn), extraColumns...).
 			Joins(fmt.Sprintf("LEFT JOIN %s ON %s.id=%s.context_id", attributionTable, contextTable, attributionTable)).
 			Joins(fmt.Sprintf("LEFT JOIN %s ON %s.artifact_id=%s.artifact_id AND %s.name=?", propertyTable, attributionTable, propertyTable, propertyTable), orderBy[1])
+
+		// Apply artifact filter conditions to sorting subquery, so
+		// that sorting only considers artifacts that pass the filter
+		// criteria
+		if filterQuery := listOptions.GetFilterQuery(); filterQuery != "" {
+			artifactConditions := r.extractArtifactConditions(filterQuery)
+			if len(artifactConditions) > 0 {
+				// Apply each artifact filter condition to the sorting subquery
+				for _, condition := range artifactConditions {
+					// Create a separate ArtifactProperty alias for this filter condition
+					// to avoid conflicts with the sorting property JOIN
+					filterPropAlias := fmt.Sprintf("ArtifactProperty_filter_%s", condition.property)
+					valueColumn := r.determineValueColumn(condition)
+
+					// Add JOINs for the filter condition
+					query = query.
+						Joins(fmt.Sprintf("LEFT JOIN %s %s ON %s.artifact_id=%s.artifact_id AND %s.name=?",
+							propertyTable, filterPropAlias, attributionTable, filterPropAlias, filterPropAlias), condition.property).
+						Where(fmt.Sprintf("%s.%s %s ?", filterPropAlias, valueColumn, condition.operator), condition.value)
+				}
+			}
+		}
 	case len(orderBy) == 2:
 		// <property>.<value_column> e.g. provider.string_value
 		propertyTable := utils.GetTableName(db, &schema.ContextProperty{})
@@ -544,4 +567,118 @@ func (r *CatalogModelRepositoryImpl) sortValueQuery(listOptions *models.CatalogM
 	}
 
 	return query, valueColumn
+}
+
+// artifactCondition represents a single artifact property filter condition
+type artifactCondition struct {
+	property  string // artifact property name (e.g., "status", "accuracy")
+	operator  string // filter operator (e.g., "=", ">", "LIKE")
+	value     any    // filter value
+	valueType string // explicit value type if specified (e.g., "string_value", "double_value")
+}
+
+// extractArtifactConditions extracts all artifact property filter conditions from a filter query
+// Returns slice of conditions that should be applied to artifact filtering
+func (r *CatalogModelRepositoryImpl) extractArtifactConditions(filterQuery string) []artifactCondition {
+	if filterQuery == "" {
+		return nil
+	}
+
+	// Parse the filter query using the existing filter parser
+	filterExpr, err := dbfilter.Parse(filterQuery)
+	if err != nil {
+		// If parsing fails, return no conditions (fail safe)
+		return nil
+	}
+
+	if filterExpr == nil {
+		return nil
+	}
+
+	return r.collectArtifactConditionsFromExpr(filterExpr)
+}
+
+// collectArtifactConditionsFromExpr recursively extracts artifact conditions from a filter expression
+func (r *CatalogModelRepositoryImpl) collectArtifactConditionsFromExpr(expr *dbfilter.FilterExpression) []artifactCondition {
+	if expr.IsLeaf {
+		// Check if this is an artifact property condition
+		if r.isArtifactProperty(expr.Property) {
+			condition := r.parseArtifactCondition(expr)
+			if condition != nil {
+				return []artifactCondition{*condition}
+			}
+		}
+		return nil
+	}
+
+	// For non-leaf nodes, collect conditions from left and right
+	var conditions []artifactCondition
+	if expr.Left != nil {
+		conditions = append(conditions, r.collectArtifactConditionsFromExpr(expr.Left)...)
+	}
+	if expr.Right != nil {
+		conditions = append(conditions, r.collectArtifactConditionsFromExpr(expr.Right)...)
+	}
+
+	return conditions
+}
+
+// isArtifactProperty checks if a property name refers to an artifact property
+// Artifact properties have the format "artifacts.property_name[.value_type]"
+func (r *CatalogModelRepositoryImpl) isArtifactProperty(propertyName string) bool {
+	return strings.HasPrefix(propertyName, "artifacts.")
+}
+
+// parseArtifactCondition converts a filter expression to an artifact condition
+func (r *CatalogModelRepositoryImpl) parseArtifactCondition(expr *dbfilter.FilterExpression) *artifactCondition {
+	if !r.isArtifactProperty(expr.Property) {
+		return nil
+	}
+
+	// Extract artifact property name and optional value type
+	// Format: artifacts.property_name[.value_type]
+	parts := strings.SplitN(expr.Property, ".", 3)
+	if len(parts) < 2 {
+		return nil // Invalid format
+	}
+
+	propertyName := parts[1] // "property_name"
+	var valueType string
+
+	// Check if there's an explicit value type (e.g., artifacts.accuracy.double_value)
+	if len(parts) == 3 {
+		valueType = parts[2]
+	}
+
+	return &artifactCondition{
+		property:  propertyName,
+		operator:  expr.Operator,
+		value:     expr.Value,
+		valueType: valueType,
+	}
+}
+
+// determineValueColumn determines which database column to use for an artifact condition
+func (r *CatalogModelRepositoryImpl) determineValueColumn(condition artifactCondition) string {
+	// If explicit value type is specified, use it
+	if condition.valueType != "" {
+		switch condition.valueType {
+		case "string_value", "double_value", "int_value", "bool_value":
+			return condition.valueType
+		}
+	}
+
+	// Infer value type from the value
+	switch condition.value.(type) {
+	case string:
+		return "string_value"
+	case int, int32, int64:
+		return "int_value"
+	case float32, float64:
+		return "double_value"
+	case bool:
+		return "bool_value"
+	default:
+		return "string_value" // fallback
+	}
 }
