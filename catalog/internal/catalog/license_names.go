@@ -357,6 +357,7 @@ var spdxToHumanReadableMap = map[string]string{
 	"hpnd-sell-mit-disclaimer-xserver":     "Historical Permission Notice and Disclaimer - sell xserver variant with MIT disclaimer",
 	"hpnd-sell-regexpr":                    "Historical Permission Notice and Disclaimer - sell regexpr variant",
 	"hpnd-sell-variant":                    "Historical Permission Notice and Disclaimer - sell variant",
+	"hpnd-sell-variant-critical-systems":   "HPND - sell variant with safety critical systems clause",
 	"hpnd-sell-variant-mit-disclaimer":     "HPND sell variant with MIT disclaimer",
 	"hpnd-sell-variant-mit-disclaimer-rev": "HPND sell variant with MIT disclaimer - reverse",
 	"hpnd-smc":                             "Historical Permission Notice and Disclaimer - SMC variant",
