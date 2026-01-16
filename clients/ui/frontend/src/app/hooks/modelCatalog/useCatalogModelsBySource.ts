@@ -36,6 +36,11 @@ export const useCatalogModelsBySources = (
   filterQuery?: string,
   sortBy?: string | null,
   sortOrder?: string,
+  performanceParams?: {
+    targetRPS?: number;
+    latencyProperty?: string;
+    recommendations?: boolean;
+  },
 ): ModelList => {
   const { api, apiAvailable } = useModelCatalogAPI();
 
@@ -63,6 +68,7 @@ export const useCatalogModelsBySources = (
         filterData,
         filterOptions,
         filterQuery,
+        performanceParams,
       );
     },
     [
@@ -77,6 +83,7 @@ export const useCatalogModelsBySources = (
       filterQuery,
       sortBy,
       sortOrder,
+      performanceParams,
     ],
   );
 
@@ -116,6 +123,7 @@ export const useCatalogModelsBySources = (
         filterData,
         filterOptions,
         filterQuery,
+        performanceParams,
       );
 
       setAllItems((prev) => [...prev, ...response.items]);
@@ -142,6 +150,7 @@ export const useCatalogModelsBySources = (
     filterQuery,
     sortBy,
     sortOrder,
+    performanceParams,
   ]);
 
   React.useEffect(() => {
@@ -158,6 +167,7 @@ export const useCatalogModelsBySources = (
     filterQuery,
     sortBy,
     sortOrder,
+    performanceParams,
   ]);
 
   const refresh = React.useCallback(() => {
