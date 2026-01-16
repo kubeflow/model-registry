@@ -6,7 +6,7 @@ import { CatalogSourceConfig } from '~/app/modelCatalogTypes';
 export const catalogSourceConfigsColumns: SortableData<CatalogSourceConfig>[] = [
   {
     field: 'name',
-    label: 'Name',
+    label: 'Source name',
     sortable: (a, b) => a.name.localeCompare(b.name),
     width: 15,
   },
@@ -56,8 +56,7 @@ export const catalogSourceConfigsColumns: SortableData<CatalogSourceConfig>[] = 
     label: 'Enable',
     sortable: false,
     info: {
-      popover:
-        'Enable a source to make its models available to users in your organization from the model catalog.',
+      popover: 'Models from enabled sources are available in the model catalog.',
     },
     width: 10,
   },

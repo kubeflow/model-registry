@@ -218,7 +218,7 @@ describe('PreviewPanel', () => {
     render(<PreviewPanel preview={preview} />);
 
     expect(
-      screen.getByText('The preview needs to be refreshed after any changes are made'),
+      screen.getByText('Source configuration changed. Refresh the preview.'),
     ).toBeInTheDocument();
     expect(screen.getByTestId('refresh-preview-link')).toBeInTheDocument();
   });

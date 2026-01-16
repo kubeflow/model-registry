@@ -57,7 +57,7 @@ class CatalogSourceConfigRow extends TableRow {
       .findByRole('button', { name: 'Manage source' });
   }
 
-  shouldHaveModelVisibility(visibility: 'Filtered' | 'Unfiltered') {
+  shouldHaveModelVisibility(visibility: 'Filtered' | 'All models') {
     this.findModelVisibility().contains(visibility);
     return this;
   }
@@ -142,7 +142,7 @@ class ModelCatalogSettings {
 
   findHeading() {
     cy.findByTestId('app-page-title').should('exist');
-    cy.findByTestId('app-page-title').contains('Model catalog settings');
+    cy.findByTestId('app-page-title').contains('Model catalog sources');
   }
 
   findNavItem() {
@@ -150,7 +150,9 @@ class ModelCatalogSettings {
   }
 
   findDescription() {
-    return cy.contains('Manage model catalog sources for your organization.');
+    return cy.contains(
+      'Add and manage model sources that populate the model catalog for users in your organization.',
+    );
   }
 
   findAddSourceButton() {
@@ -240,7 +242,7 @@ class ManageSourcePage {
   }
 
   findBreadcrumb() {
-    return cy.get('a[href="/model-catalog-settings"]').contains('Model catalog settings');
+    return cy.get('a[href="/model-catalog-settings"]').contains('Model catalog sources');
   }
 
   findBreadcrumbAction() {

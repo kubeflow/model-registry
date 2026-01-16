@@ -1,5 +1,6 @@
-export const CATALOG_SETTINGS_PAGE_TITLE = 'Model catalog settings';
-export const CATALOG_SETTINGS_DESCRIPTION = 'Manage model catalog sources for your organization.';
+export const CATALOG_SETTINGS_PAGE_TITLE = 'Model catalog sources';
+export const CATALOG_SETTINGS_DESCRIPTION =
+  'Add and manage model sources that populate the model catalog for users in your organization.';
 
 export const ADD_SOURCE_TITLE = 'Add a source';
 export const ADD_SOURCE_DESCRIPTION = 'Add a new model catalog source to your organization.';
