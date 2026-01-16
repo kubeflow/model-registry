@@ -183,7 +183,7 @@ const PreviewPanel: React.FC<PreviewPanelProps> = ({ preview }) => {
             >
               <EmptyStateBody>
                 {activeTab === PreviewTab.INCLUDED
-                  ? 'No models from this source match this filter'
+                  ? 'No models from this source are visible in the model catalog. To include models, edit the model visibility settings of this source.'
                   : 'No models from this source are excluded by this filter'}
               </EmptyStateBody>
             </EmptyState>

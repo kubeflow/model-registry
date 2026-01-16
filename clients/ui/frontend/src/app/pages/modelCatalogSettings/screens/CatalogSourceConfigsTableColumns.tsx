@@ -56,7 +56,8 @@ export const catalogSourceConfigsColumns: SortableData<CatalogSourceConfig>[] = 
     label: 'Enable',
     sortable: false,
     info: {
-      popover: 'Models from enabled sources are available in the model catalog.',
+      popover:
+        'Enable a source to make its models available to users in your organization from the model catalog.',
     },
     width: 10,
   },
