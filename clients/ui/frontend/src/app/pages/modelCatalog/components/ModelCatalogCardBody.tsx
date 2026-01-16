@@ -164,6 +164,17 @@ const ModelCatalogCardBody: React.FC<ModelCatalogCardBodyProps> = ({
       currentPerformanceIndex,
     );
 
+    // If no valid metrics, fall back to showing description
+    if (!metrics) {
+      return (
+        <TruncatedText
+          content={model.description || ''}
+          maxLines={4}
+          data-testid="model-catalog-card-description"
+        />
+      );
+    }
+
     // Get the selected latency metric from filters, or default to TTFT
     const activeLatencyField = latencyFieldName;
     const latencyValue =
