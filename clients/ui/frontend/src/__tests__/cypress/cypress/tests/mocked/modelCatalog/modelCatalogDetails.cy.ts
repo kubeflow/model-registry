@@ -1,3 +1,4 @@
+/* eslint-disable camelcase */
 import { modelCatalog } from '~/__tests__/cypress/cypress/pages/modelCatalog';
 import { mockModelRegistry } from '~/__mocks__/mockModelRegistry';
 import {
@@ -6,6 +7,8 @@ import {
   interceptArtifactsList,
   interceptPerformanceArtifactsList,
 } from '~/__tests__/cypress/cypress/support/interceptHelpers/modelCatalog';
+import { mockCatalogModelArtifact } from '~/__mocks__';
+import { ModelRegistryMetadataType } from '~/app/types';
 
 describe('Model Catalog Details Page', () => {
   beforeEach(() => {
@@ -24,6 +27,91 @@ describe('Model Catalog Details Page', () => {
     modelCatalog.findBreadcrumb().should('exist');
     modelCatalog.findDetailsProviderText().should('be.visible');
     modelCatalog.findDetailsDescription().should('exist');
+  });
+
+  it('does not show architecture field when no architectures are available', () => {
+    modelCatalog.findLoadingState().should('not.exist');
+    modelCatalog.findModelCatalogDetailLink().first().click();
+    // Architecture field should not exist when no valid architectures
+    modelCatalog.findModelArchitecture().should('not.exist');
+  });
+
+  it('shows architecture field with valid architectures', () => {
+    // Override the artifacts intercept with architecture data
+    interceptArtifactsList({
+      items: [
+        mockCatalogModelArtifact({
+          customProperties: {
+            architecture: {
+              string_value: '["amd64", "arm64", "s390x"]',
+              metadataType: ModelRegistryMetadataType.STRING,
+            },
+          },
+        }),
+      ],
+      size: 1,
+      pageSize: 10,
+      nextPageToken: '',
+    });
+
+    modelCatalog.findLoadingState().should('not.exist');
+    modelCatalog.findModelCatalogDetailLink().first().click();
+    modelCatalog.findBreadcrumb().should('exist');
+
+    // Architecture field should exist and show correct values
+    modelCatalog.findModelArchitecture().should('be.visible');
+    modelCatalog.findModelArchitecture().should('contain.text', 'amd64, arm64, s390x');
+  });
+
+  it('shows architecture field with uppercase architectures normalized to lowercase', () => {
+    // Override the artifacts intercept with uppercase architecture data
+    interceptArtifactsList({
+      items: [
+        mockCatalogModelArtifact({
+          customProperties: {
+            architecture: {
+              string_value: '["AMD64", "ARM64"]',
+              metadataType: ModelRegistryMetadataType.STRING,
+            },
+          },
+        }),
+      ],
+      size: 1,
+      pageSize: 10,
+      nextPageToken: '',
+    });
+
+    modelCatalog.findLoadingState().should('not.exist');
+    modelCatalog.findModelCatalogDetailLink().first().click();
+
+    // Architecture should be normalized to lowercase
+    modelCatalog.findModelArchitecture().should('be.visible');
+    modelCatalog.findModelArchitecture().should('contain.text', 'amd64, arm64');
+  });
+
+  it('does not show architecture field when only invalid architectures are present', () => {
+    // Override the artifacts intercept with invalid architecture data
+    interceptArtifactsList({
+      items: [
+        mockCatalogModelArtifact({
+          customProperties: {
+            architecture: {
+              string_value: '["invalid-arch", "unknown"]',
+              metadataType: ModelRegistryMetadataType.STRING,
+            },
+          },
+        }),
+      ],
+      size: 1,
+      pageSize: 10,
+      nextPageToken: '',
+    });
+
+    modelCatalog.findLoadingState().should('not.exist');
+    modelCatalog.findModelCatalogDetailLink().first().click();
+
+    // Architecture field should not exist when all architectures are invalid
+    modelCatalog.findModelArchitecture().should('not.exist');
   });
 });
 

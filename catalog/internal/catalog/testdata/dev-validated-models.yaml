@@ -85,6 +85,9 @@ models:
         createTimeSinceEpoch: "1737331200000"
         lastUpdateTimeSinceEpoch: "1737331200000"
         customProperties:
+          architecture:
+            metadataType: MetadataStringValue
+            string_value: '["amd64"]'
           validation_status:
             string_value: "certified"
             metadataType: MetadataStringValue
@@ -572,6 +575,9 @@ models:
         createTimeSinceEpoch: "1733356800000"
         lastUpdateTimeSinceEpoch: "1733356800000"
         customProperties:
+          architecture:
+            metadataType: MetadataStringValue
+            string_value: '["amd64", "arm64", "s390x", "ppc64le"]'
           security_certification:
             string_value: "passed"
             metadataType: MetadataStringValue
@@ -948,6 +954,9 @@ models:
         createTimeSinceEpoch: "1731888000000"
         lastUpdateTimeSinceEpoch: "1731888000000"
         customProperties:
+          architecture:
+            metadataType: MetadataStringValue
+            string_value: '["amd64", "arm64"]'
           validation_type:
             string_value: "analytics"
             metadataType: MetadataStringValue
@@ -1328,6 +1337,9 @@ models:
         createTimeSinceEpoch: "1738022400000"
         lastUpdateTimeSinceEpoch: "1738022400000"
         customProperties:
+          architecture:
+            metadataType: MetadataStringValue
+            string_value: '["amd64", "arm64", "s390x"]'
           compliance_domains:
             string_value: "GDPR,HIPAA,SOX,CCPA"
             metadataType: MetadataStringValue
