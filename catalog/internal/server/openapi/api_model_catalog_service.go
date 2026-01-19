@@ -210,6 +210,72 @@ func (c *ModelCatalogServiceAPIController) FindModels(w http.ResponseWriter, r *
 		c.errorHandler(w, r, &ParsingError{Err: err}, nil)
 		return
 	}
+	var recommendationsParam bool
+	if query.Has("recommendations") {
+		param, err := parseBoolParameter(
+			query.Get("recommendations"),
+			WithParse[bool](parseBool),
+		)
+		if err != nil {
+			c.errorHandler(w, r, &ParsingError{Param: "recommendations", Err: err}, nil)
+			return
+		}
+
+		recommendationsParam = param
+	} else {
+		var param bool = false
+		recommendationsParam = param
+	}
+	var targetRPSParam int32
+	if query.Has("targetRPS") {
+		param, err := parseNumericParameter[int32](
+			query.Get("targetRPS"),
+			WithParse[int32](parseInt32),
+		)
+		if err != nil {
+			c.errorHandler(w, r, &ParsingError{Param: "targetRPS", Err: err}, nil)
+			return
+		}
+
+		targetRPSParam = param
+	} else {
+	}
+	var latencyPropertyParam string
+	if query.Has("latencyProperty") {
+		param := query.Get("latencyProperty")
+
+		latencyPropertyParam = param
+	} else {
+		param := "ttft_p90"
+		latencyPropertyParam = param
+	}
+	var rpsPropertyParam string
+	if query.Has("rpsProperty") {
+		param := query.Get("rpsProperty")
+
+		rpsPropertyParam = param
+	} else {
+		param := "requests_per_second"
+		rpsPropertyParam = param
+	}
+	var hardwareCountPropertyParam string
+	if query.Has("hardwareCountProperty") {
+		param := query.Get("hardwareCountProperty")
+
+		hardwareCountPropertyParam = param
+	} else {
+		param := "hardware_count"
+		hardwareCountPropertyParam = param
+	}
+	var hardwareTypePropertyParam string
+	if query.Has("hardwareTypeProperty") {
+		param := query.Get("hardwareTypeProperty")
+
+		hardwareTypePropertyParam = param
+	} else {
+		param := "hardware_type"
+		hardwareTypePropertyParam = param
+	}
 	var sourceParam []string
 	if query.Has("source") {
 		sourceParam = strings.Split(query.Get("source"), ",")
@@ -260,7 +326,7 @@ func (c *ModelCatalogServiceAPIController) FindModels(w http.ResponseWriter, r *
 		nextPageTokenParam = param
 	} else {
 	}
-	result, err := c.service.FindModels(r.Context(), sourceParam, qParam, sourceLabelParam, filterQueryParam, pageSizeParam, orderByParam, sortOrderParam, nextPageTokenParam)
+	result, err := c.service.FindModels(r.Context(), recommendationsParam, targetRPSParam, latencyPropertyParam, rpsPropertyParam, hardwareCountPropertyParam, hardwareTypePropertyParam, sourceParam, qParam, sourceLabelParam, filterQueryParam, pageSizeParam, orderByParam, sortOrderParam, nextPageTokenParam)
 	// If an error occurred, encode the error with the status code
 	if err != nil {
 		c.errorHandler(w, r, err, &result)

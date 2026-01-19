@@ -208,16 +208,58 @@ func (a *ModelCatalogServiceAPIService) FindLabelsExecute(r ApiFindLabelsRequest
 }
 
 type ApiFindModelsRequest struct {
-	ctx           context.Context
-	ApiService    *ModelCatalogServiceAPIService
-	source        *[]string
-	q             *string
-	sourceLabel   *[]string
-	filterQuery   *string
-	pageSize      *string
-	orderBy       *OrderByField
-	sortOrder     *SortOrder
-	nextPageToken *string
+	ctx                   context.Context
+	ApiService            *ModelCatalogServiceAPIService
+	recommendations       *bool
+	targetRPS             *int32
+	latencyProperty       *string
+	rpsProperty           *string
+	hardwareCountProperty *string
+	hardwareTypeProperty  *string
+	source                *[]string
+	q                     *string
+	sourceLabel           *[]string
+	filterQuery           *string
+	pageSize              *string
+	orderBy               *OrderByField
+	sortOrder             *SortOrder
+	nextPageToken         *string
+}
+
+// Sort models by lowest recommended latency using Pareto filtering
+func (r ApiFindModelsRequest) Recommendations(recommendations bool) ApiFindModelsRequest {
+	r.recommendations = &recommendations
+	return r
+}
+
+// Target requests per second for latency calculations
+func (r ApiFindModelsRequest) TargetRPS(targetRPS int32) ApiFindModelsRequest {
+	r.targetRPS = &targetRPS
+	return r
+}
+
+// Property name for latency metric
+func (r ApiFindModelsRequest) LatencyProperty(latencyProperty string) ApiFindModelsRequest {
+	r.latencyProperty = &latencyProperty
+	return r
+}
+
+// Property name for RPS metric
+func (r ApiFindModelsRequest) RpsProperty(rpsProperty string) ApiFindModelsRequest {
+	r.rpsProperty = &rpsProperty
+	return r
+}
+
+// Property name for hardware count
+func (r ApiFindModelsRequest) HardwareCountProperty(hardwareCountProperty string) ApiFindModelsRequest {
+	r.hardwareCountProperty = &hardwareCountProperty
+	return r
+}
+
+// Property name for hardware type grouping
+func (r ApiFindModelsRequest) HardwareTypeProperty(hardwareTypeProperty string) ApiFindModelsRequest {
+	r.hardwareTypeProperty = &hardwareTypeProperty
+	return r
 }
 
 // Filter models by source. Multiple values can be separated by commas to filter by multiple sources (OR logic). For example: ?source&#x3D;huggingface,local will return models from either huggingface OR local sources.
@@ -307,6 +349,44 @@ func (a *ModelCatalogServiceAPIService) FindModelsExecute(r ApiFindModelsRequest
 	localVarQueryParams := url.Values{}
 	localVarFormParams := url.Values{}
 
+	if r.recommendations != nil {
+		parameterAddToHeaderOrQuery(localVarQueryParams, "recommendations", r.recommendations, "form", "")
+	} else {
+		var defaultValue bool = false
+		parameterAddToHeaderOrQuery(localVarQueryParams, "recommendations", defaultValue, "form", "")
+		r.recommendations = &defaultValue
+	}
+	if r.targetRPS != nil {
+		parameterAddToHeaderOrQuery(localVarQueryParams, "targetRPS", r.targetRPS, "form", "")
+	}
+	if r.latencyProperty != nil {
+		parameterAddToHeaderOrQuery(localVarQueryParams, "latencyProperty", r.latencyProperty, "form", "")
+	} else {
+		var defaultValue string = "ttft_p90"
+		parameterAddToHeaderOrQuery(localVarQueryParams, "latencyProperty", defaultValue, "form", "")
+		r.latencyProperty = &defaultValue
+	}
+	if r.rpsProperty != nil {
+		parameterAddToHeaderOrQuery(localVarQueryParams, "rpsProperty", r.rpsProperty, "form", "")
+	} else {
+		var defaultValue string = "requests_per_second"
+		parameterAddToHeaderOrQuery(localVarQueryParams, "rpsProperty", defaultValue, "form", "")
+		r.rpsProperty = &defaultValue
+	}
+	if r.hardwareCountProperty != nil {
+		parameterAddToHeaderOrQuery(localVarQueryParams, "hardwareCountProperty", r.hardwareCountProperty, "form", "")
+	} else {
+		var defaultValue string = "hardware_count"
+		parameterAddToHeaderOrQuery(localVarQueryParams, "hardwareCountProperty", defaultValue, "form", "")
+		r.hardwareCountProperty = &defaultValue
+	}
+	if r.hardwareTypeProperty != nil {
+		parameterAddToHeaderOrQuery(localVarQueryParams, "hardwareTypeProperty", r.hardwareTypeProperty, "form", "")
+	} else {
+		var defaultValue string = "hardware_type"
+		parameterAddToHeaderOrQuery(localVarQueryParams, "hardwareTypeProperty", defaultValue, "form", "")
+		r.hardwareTypeProperty = &defaultValue
+	}
 	if r.source != nil {
 		t := *r.source
 		if reflect.TypeOf(t).Kind() == reflect.Slice {

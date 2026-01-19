@@ -44,6 +44,48 @@ paths:
       tags:
         - ModelCatalogService
       parameters:
+        - name: recommendations
+          in: query
+          description: Sort models by lowest recommended latency using Pareto filtering
+          required: false
+          schema:
+            type: boolean
+            default: false
+        - name: targetRPS
+          in: query
+          description: Target requests per second for latency calculations
+          required: false
+          schema:
+            type: integer
+            format: int32
+        - name: latencyProperty
+          in: query
+          description: Property name for latency metric
+          required: false
+          schema:
+            type: string
+            default: "ttft_p90"
+        - name: rpsProperty
+          in: query
+          description: Property name for RPS metric
+          required: false
+          schema:
+            type: string
+            default: "requests_per_second"
+        - name: hardwareCountProperty
+          in: query
+          description: Property name for hardware count
+          required: false
+          schema:
+            type: string
+            default: "hardware_count"
+        - name: hardwareTypeProperty
+          in: query
+          description: Property name for hardware type grouping
+          required: false
+          schema:
+            type: string
+            default: "hardware_type"
         - name: source
           description: |-
             Filter models by source. Multiple values can be separated by commas

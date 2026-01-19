@@ -2,6 +2,7 @@ package openapi
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 	"sort"
 	"strconv"
@@ -10,7 +11,9 @@ import (
 	"time"
 
 	"github.com/kubeflow/model-registry/catalog/internal/catalog"
+	dbmodels "github.com/kubeflow/model-registry/catalog/internal/db/models"
 	model "github.com/kubeflow/model-registry/catalog/pkg/openapi"
+	mrmodels "github.com/kubeflow/model-registry/internal/db/models"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -306,6 +309,12 @@ func TestFindModels(t *testing.T) {
 
 			resp, err := service.FindModels(
 				context.Background(),
+				false, // recommended
+				0,     // targetRPS
+				"",    // latencyProperty
+				"",    // rpsProperty
+				"",    // hardwareCountProperty
+				"",    // hardwareTypeProperty
 				[]string{tc.sourceID},
 				tc.q,
 				[]string{""},
@@ -1136,6 +1145,11 @@ type mockModelProvider struct {
 	artifacts map[string][]model.CatalogArtifact
 }
 
+// Mock provider that fails when recommended is used (for testing implementation)
+type mockProviderThatFailsOnRecommended struct {
+	*mockModelProvider
+}
+
 // Implement GetModel method for the mock provider
 func (m *mockModelProvider) GetModel(ctx context.Context, name string, sourceID string) (*model.CatalogModel, error) {
 	model, exists := m.models[name]
@@ -1143,6 +1157,33 @@ func (m *mockModelProvider) GetModel(ctx context.Context, name string, sourceID 
 		return nil, nil
 	}
 	return model, nil
+}
+
+func (m *mockProviderThatFailsOnRecommended) ListModels(ctx context.Context, params catalog.ListModelsParams) (model.CatalogModelList, error) {
+	if params.Recommended {
+		return model.CatalogModelList{}, fmt.Errorf("recommended sorting not implemented")
+	}
+	return m.mockModelProvider.ListModels(ctx, params)
+}
+
+func (m *mockProviderThatFailsOnRecommended) GetModel(ctx context.Context, name string, sourceID string) (*model.CatalogModel, error) {
+	return m.mockModelProvider.GetModel(ctx, name, sourceID)
+}
+
+func (m *mockProviderThatFailsOnRecommended) GetArtifacts(ctx context.Context, modelName string, sourceID string, params catalog.ListArtifactsParams) (model.CatalogArtifactList, error) {
+	return m.mockModelProvider.GetArtifacts(ctx, modelName, sourceID, params)
+}
+
+func (m *mockProviderThatFailsOnRecommended) GetPerformanceArtifacts(ctx context.Context, modelName string, sourceID string, params catalog.ListPerformanceArtifactsParams) (model.CatalogArtifactList, error) {
+	return m.mockModelProvider.GetPerformanceArtifacts(ctx, modelName, sourceID, params)
+}
+
+func (m *mockProviderThatFailsOnRecommended) GetFilterOptions(ctx context.Context) (*model.FilterOptionsList, error) {
+	return m.mockModelProvider.GetFilterOptions(ctx)
+}
+
+func (m *mockProviderThatFailsOnRecommended) FindModelsWithRecommendedLatency(ctx context.Context, pagination mrmodels.Pagination, paretoParams dbmodels.ParetoFilteringParams, sourceIDs []string) (*model.CatalogModelList, error) {
+	return nil, fmt.Errorf("recommended sorting not implemented")
 }
 
 func (m *mockModelProvider) ListModels(ctx context.Context, params catalog.ListModelsParams) (model.CatalogModelList, error) {
@@ -1232,6 +1273,31 @@ func (m *mockModelProvider) GetArtifacts(ctx context.Context, name string, sourc
 func (m *mockModelProvider) GetFilterOptions(ctx context.Context) (*model.FilterOptionsList, error) {
 	emptyFilters := make(map[string]model.FilterOption)
 	return &model.FilterOptionsList{Filters: &emptyFilters}, nil
+}
+
+func (m *mockModelProvider) FindModelsWithRecommendedLatency(ctx context.Context, pagination mrmodels.Pagination, paretoParams dbmodels.ParetoFilteringParams, sourceIDs []string) (*model.CatalogModelList, error) {
+	// Basic mock implementation - just return models sorted by name
+	var allModels []*model.CatalogModel
+	for _, mdl := range m.models {
+		allModels = append(allModels, mdl)
+	}
+
+	// Sort by name for consistent results
+	sort.SliceStable(allModels, func(i, j int) bool {
+		return allModels[i].Name < allModels[j].Name
+	})
+
+	items := make([]model.CatalogModel, len(allModels))
+	for i, mdl := range allModels {
+		items[i] = *mdl
+	}
+
+	return &model.CatalogModelList{
+		Items:         items,
+		Size:          int32(len(items)),
+		PageSize:      10,
+		NextPageToken: "",
+	}, nil
 }
 
 func (m *mockModelProvider) GetPerformanceArtifacts(ctx context.Context, modelName string, sourceID string, params catalog.ListPerformanceArtifactsParams) (model.CatalogArtifactList, error) {
@@ -1744,6 +1810,154 @@ func TestGetAllModelPerformanceArtifacts(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestFindModelsRecommended(t *testing.T) {
+	// Setup test server and data
+	sources := catalog.NewSourceCollection()
+	sources.Merge("",
+		map[string]catalog.Source{
+			"source1": {CatalogSource: model.CatalogSource{Id: "source1", Name: "Test Source 1"}},
+		},
+	)
+
+	sourceLabels := catalog.NewLabelCollection()
+
+	provider := &mockModelProvider{
+		models: map[string]*model.CatalogModel{
+			"modelA": {Name: "Model A"},
+			"modelB": {Name: "Model B"},
+		},
+	}
+
+	service := NewModelCatalogServiceAPIService(provider, sources, sourceLabels, nil)
+
+	// Test recommended=true with default parameters
+	resp, err := service.FindModels(
+		context.Background(),
+		true, // recommended
+		0,    // targetRPS
+		"",   // latencyProperty
+		"",   // rpsProperty
+		"",   // hardwareCountProperty
+		"",   // hardwareTypeProperty
+		[]string{"source1"},
+		"",
+		[]string{""},
+		"",
+		"10",
+		model.ORDERBYFIELD_NAME,
+		model.SORTORDER_ASC,
+		"",
+	)
+
+	assert.Equal(t, http.StatusOK, resp.Code)
+	require.NoError(t, err)
+
+	require.NotNil(t, resp.Body)
+	response, ok := resp.Body.(model.CatalogModelList)
+	require.True(t, ok)
+
+	// Verify models are sorted by recommended latency (mock returns models sorted by name)
+	require.True(t, len(response.Items) > 0)
+}
+
+func TestFindModelsRecommendedWithCustomParams(t *testing.T) {
+	sources := catalog.NewSourceCollection()
+	sources.Merge("",
+		map[string]catalog.Source{
+			"source1": {CatalogSource: model.CatalogSource{Id: "source1", Name: "Test Source 1"}},
+		},
+	)
+
+	sourceLabels := catalog.NewLabelCollection()
+
+	provider := &mockModelProvider{
+		models: map[string]*model.CatalogModel{
+			"modelA": {Name: "Model A"},
+			"modelB": {Name: "Model B"},
+		},
+	}
+
+	service := NewModelCatalogServiceAPIService(provider, sources, sourceLabels, nil)
+
+	// Test with custom latency property and targetRPS
+	resp, err := service.FindModels(
+		context.Background(),
+		true,             // recommended
+		100,              // targetRPS
+		"custom_latency", // latencyProperty
+		"",               // rpsProperty
+		"",               // hardwareCountProperty
+		"",               // hardwareTypeProperty
+		[]string{"source1"},
+		"",
+		[]string{""},
+		"",
+		"10",
+		model.ORDERBYFIELD_NAME,
+		model.SORTORDER_ASC,
+		"",
+	)
+
+	assert.Equal(t, http.StatusOK, resp.Code)
+	require.NoError(t, err)
+
+	require.NotNil(t, resp.Body)
+	response, ok := resp.Body.(model.CatalogModelList)
+	require.True(t, ok)
+
+	// Verify models are sorted by recommended latency (mock returns models sorted by name)
+	require.True(t, len(response.Items) > 0)
+}
+
+func TestFindModelsRecommendedIgnoresOrderBy(t *testing.T) {
+	sources := catalog.NewSourceCollection()
+	sources.Merge("",
+		map[string]catalog.Source{
+			"source1": {CatalogSource: model.CatalogSource{Id: "source1", Name: "Test Source 1"}},
+		},
+	)
+
+	sourceLabels := catalog.NewLabelCollection()
+
+	provider := &mockModelProvider{
+		models: map[string]*model.CatalogModel{
+			"modelA": {Name: "Model A"},
+			"modelB": {Name: "Model B"},
+		},
+	}
+
+	service := NewModelCatalogServiceAPIService(provider, sources, sourceLabels, nil)
+
+	// Test that orderBy is ignored when recommended=true
+	resp, err := service.FindModels(
+		context.Background(),
+		true, // recommended
+		0,    // targetRPS
+		"",   // latencyProperty
+		"",   // rpsProperty
+		"",   // hardwareCountProperty
+		"",   // hardwareTypeProperty
+		[]string{"source1"},
+		"",
+		[]string{""},
+		"",
+		"10",
+		model.ORDERBYFIELD_NAME, // This should be ignored
+		model.SORTORDER_ASC,
+		"",
+	)
+
+	assert.Equal(t, http.StatusOK, resp.Code)
+	require.NoError(t, err)
+
+	require.NotNil(t, resp.Body)
+	response, ok := resp.Body.(model.CatalogModelList)
+	require.True(t, ok)
+
+	// Verify models are sorted by recommended latency (mock returns models sorted by name)
+	require.True(t, len(response.Items) > 0)
 }
 
 func TestGetAllModelPerformanceArtifactsWithConfigurableProperties(t *testing.T) {

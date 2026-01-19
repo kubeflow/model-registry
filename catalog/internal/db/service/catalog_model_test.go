@@ -1418,6 +1418,7 @@ func TestCatalogModelRepository_TimestampPreservation(t *testing.T) {
 func TestSortingFilteringInconsistency(t *testing.T) {
 	sharedDB, cleanup := testutils.SetupPostgresWithMigrations(t, service.DatastoreSpec())
 	defer cleanup()
+	defer testutils.CleanupPostgresTestData(t, sharedDB)
 
 	// Clean up any existing test data to ensure test isolation
 	testutils.CleanupPostgresTestData(t, sharedDB)
@@ -1571,6 +1572,7 @@ func TestSortingFilteringInconsistency(t *testing.T) {
 func TestSortingFilteringEdgeCases(t *testing.T) {
 	sharedDB, cleanup := testutils.SetupPostgresWithMigrations(t, service.DatastoreSpec())
 	defer cleanup()
+	defer testutils.CleanupPostgresTestData(t, sharedDB)
 
 	// Clean up any existing test data to ensure test isolation
 	testutils.CleanupPostgresTestData(t, sharedDB)

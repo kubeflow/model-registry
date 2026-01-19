@@ -2,6 +2,7 @@ package models
 
 import (
 	"cmp"
+	"context"
 	"fmt"
 	"math"
 	"slices"
@@ -25,13 +26,23 @@ type PerformanceArtifactParams struct {
 	HardwareTypeProperty  string // configurable "hardware_type"
 }
 
-type PerformanceArtifactService struct {
-	artifactRepo CatalogArtifactRepository
+type ParetoFilteringParams struct {
+	TargetRPS             *int32
+	LatencyProperty       string
+	RpsProperty           string
+	HardwareCountProperty string
+	HardwareTypeProperty  string
 }
 
-func NewPerformanceArtifactService(repo CatalogArtifactRepository) *PerformanceArtifactService {
+type PerformanceArtifactService struct {
+	artifactRepo CatalogArtifactRepository
+	modelRepo    CatalogModelRepository
+}
+
+func NewPerformanceArtifactService(artifactRepo CatalogArtifactRepository, modelRepo CatalogModelRepository) *PerformanceArtifactService {
 	return &PerformanceArtifactService{
-		artifactRepo: repo,
+		artifactRepo: artifactRepo,
+		modelRepo:    modelRepo,
 	}
 }
 
@@ -52,7 +63,7 @@ func (s *PerformanceArtifactService) GetArtifacts(params PerformanceArtifactPara
 		},
 	}
 
-	// Recommendations need to be based on the full list. Pagination is handled below.
+	// Recommended need to be based on the full list. Pagination is handled below.
 	if params.Recommendations {
 		listOptions.PageSize = nil
 		listOptions.NextPageToken = nil
@@ -131,7 +142,7 @@ func (s *PerformanceArtifactService) processArtifacts(artifacts []CatalogMetrics
 	}
 
 	if params.Recommendations {
-		artifacts = s.generateRecommendations(artifacts, latencyProperty, hardwareCountProperty, hardwareTypeProperty)
+		artifacts = s.generateRecommended(artifacts, latencyProperty, hardwareCountProperty, hardwareTypeProperty)
 	}
 
 	return artifacts
@@ -174,8 +185,8 @@ const (
 	fastThreshold  = 100
 )
 
-// generateRecommendations removes duplicates based on cost estimates
-func (s *PerformanceArtifactService) generateRecommendations(artifacts []CatalogMetricsArtifact, latencyProperty, hardwareCountProperty, hardwareTypeProperty string) []CatalogMetricsArtifact {
+// generateRecommended removes duplicates based on cost estimates
+func (s *PerformanceArtifactService) generateRecommended(artifacts []CatalogMetricsArtifact, latencyProperty, hardwareCountProperty, hardwareTypeProperty string) []CatalogMetricsArtifact {
 	keepIDs := map[int32]struct{}{}
 
 	// Group the full list by hardware_type
@@ -414,4 +425,88 @@ func (s *PerformanceArtifactService) paginate(list *models.ListWrapper[CatalogMe
 	} else {
 		list.Size = math.MaxInt32
 	}
+}
+
+// GetMinimumRecommendedLatency returns the minimum latency from Pareto-filtered performance artifacts
+// Returns nil if model has no performance artifacts or none pass filtering
+func (s *PerformanceArtifactService) GetMinimumRecommendedLatency(
+	ctx context.Context,
+	modelName string,
+	sourceID string,
+	params ParetoFilteringParams,
+	filterQuery string,
+) (*float64, error) {
+	// Set defaults for required parameters
+	if params.LatencyProperty == "" {
+		params.LatencyProperty = "ttft_p90"
+	}
+	if params.RpsProperty == "" {
+		params.RpsProperty = "requests_per_second"
+	}
+	if params.HardwareCountProperty == "" {
+		params.HardwareCountProperty = "hardware_count"
+	}
+	if params.HardwareTypeProperty == "" {
+		params.HardwareTypeProperty = "hardware_type"
+	}
+
+	// Convert target RPS from pointer to value for existing interface
+	targetRPS := int32(1) // default
+	if params.TargetRPS != nil {
+		targetRPS = *params.TargetRPS
+	}
+
+	// Resolve model name to ID
+	model, err := s.modelRepo.GetByName(modelName)
+	if err != nil {
+		return nil, fmt.Errorf("failed to find model %s: %w", modelName, err)
+	}
+
+	// Create params for existing GetArtifacts method
+	artifactParams := PerformanceArtifactParams{
+		ModelID:               *model.GetID(),
+		TargetRPS:             targetRPS,
+		Recommendations:       true,                   // Enable Pareto filtering
+		FilterQuery:           filterQuery,            // Apply same filter as performance artifacts API
+		PageSize:              100,                    // Get all Pareto-filtered artifacts (reasonable limit)
+		OrderBy:               params.LatencyProperty, // Sort by latency property (e.g., "ttft_p90")
+		SortOrder:             "ASC",                  // Ascending order to get minimum first
+		RPSProperty:           params.RpsProperty,
+		LatencyProperty:       params.LatencyProperty,
+		HardwareCountProperty: params.HardwareCountProperty,
+		HardwareTypeProperty:  params.HardwareTypeProperty,
+	}
+
+	// Get all performance artifacts for this model using existing method
+	result, err := s.GetArtifacts(artifactParams)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get performance artifacts: %w", err)
+	}
+
+	// Return minimum latency from filtered results
+	if len(result.Items) == 0 {
+		return nil, nil // No artifacts or none survived filtering
+	}
+
+	// Find minimum latency property across all Pareto-filtered artifacts
+	var minLatency *float64
+	artifacts := result.Items
+
+	for _, artifact := range artifacts {
+		customProps := artifact.GetCustomProperties()
+		if customProps != nil {
+			for _, prop := range *customProps {
+				if prop.Name == params.LatencyProperty && prop.DoubleValue != nil {
+					if minLatency == nil || *prop.DoubleValue < *minLatency {
+						minLatency = prop.DoubleValue
+					}
+				}
+			}
+		}
+	}
+
+	if minLatency != nil {
+		return minLatency, nil
+	}
+	return nil, nil // Latency property not found
 }
