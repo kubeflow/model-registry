@@ -1,0 +1,52 @@
+name: "Check OWNERS"
+
+on:
+  pull_request:
+    paths:
+      - 'OWNERS'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  check-owners:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: yq - portable yaml processor
+        uses: mikefarah/yq@v4
+
+      - name: Check approvers against kubeflow-hub-team
+        continue-on-error: true
+        run: |
+          # Extract approvers from OWNERS (excluding noqa lines)
+          approvers=$(grep -v '# noqa(kubeflow-hub-team)' OWNERS | yq eval '.approvers[]')
+
+          # Fetch kubeflow-hub-team members
+          hub_team=$(curl -s https://raw.githubusercontent.com/kubeflow/internal-acls/master/github-orgs/kubeflow/org.yaml | \
+            yq '.orgs.kubeflow.teams.kubeflow-hub-team.members[]')
+
+          echo -e "Approvers:\n$approvers\n"
+          echo -e "kubeflow-hub-team:\n$hub_team\n"
+
+          # Find approvers not in hub team
+          missing=$(comm -23 <(echo "$approvers" | sort) <(echo "$hub_team" | sort))
+
+          echo "Approvers NOT in kubeflow-hub-team:"
+          echo "$missing"
+
+          # Convert to space-separated for annotation
+          missing=$(echo "$missing" | tr '\n' ' ' | xargs)
+
+          # Annotate if there are missing approvers
+          if [ -n "$missing" ]; then
+            echo "::warning file=OWNERS,line=1::Approvers not in kubeflow-hub-team: $missing"
+          else
+            echo "✅ All approvers are in kubeflow-hub-team!"
+          fi
+
+      - name: Ensure workflow success  # don't ever fail merging PR for this sanity check
+        run: exit 0
