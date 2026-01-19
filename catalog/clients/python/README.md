@@ -2,6 +2,17 @@
 
 Python client and E2E tests for the Kubeflow Model Catalog.
 
+## Prerequisites
+
+To run the catalog tests, you need the following tools installed:
+
+- **Python** 3.10, 3.11, or 3.12
+- **Poetry** - Python dependency management ([install guide](https://python-poetry.org/docs/#installation))
+- **Docker** or **Podman** - Container runtime for building images
+- **kubectl** - Kubernetes CLI ([install guide](https://kubernetes.io/docs/tasks/tools/))
+- **Kind** - Kubernetes in Docker ([install guide](https://kind.sigs.k8s.io/docs/user/quick-start/#installation))
+- **kustomize** - Kubernetes configuration management (auto-installed via `make deploy-kustomize`)
+
 ## Installation
 
 ```bash
@@ -15,11 +26,26 @@ poetry install
 
 # Generate OpenAPI client (if needed)
 make generate
+
+# Install kustomize (required for deployment targets)
+make deploy-kustomize
 ```
 
 ## Running Tests
 
 Tests assume a catalog service is already running (locally, in K8s, etc.).
+
+### Troubleshooting
+
+**Error: `/bin/sh: kustomize: command not found`**
+
+If you see this error when running `make deploy`, it means kustomize is not installed. Install it with:
+
+```bash
+make deploy-kustomize
+```
+
+Then retry your deployment command.
 
 ### Quick Start (Local Kind Cluster)
 
