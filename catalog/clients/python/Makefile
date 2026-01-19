@@ -52,6 +52,8 @@ endif
 
 # Kustomize overlay for E2E testing
 KUSTOMIZE_E2E := ../../../manifests/kustomize/options/catalog/overlays/e2e
+LOCALBIN := $(shell pwd)/bin
+KUSTOMIZE := $(LOCALBIN)/kustomize
 
 .PHONY: install
 install: generate
@@ -191,7 +193,9 @@ deploy-namespace:
 .PHONY: deploy-apply
 deploy-apply: deploy-namespace
 	@echo "Applying kustomize manifests..."
-	cd "$(KUSTOMIZE_E2E)" && kustomize edit set image "ghcr.io/kubeflow/model-registry/server=$(KIND_IMAGE)"
+	cd "$(KUSTOMIZE_E2E)" && \
+	( [ -f $(KUSTOMIZE) ] || ( mkdir -p $(LOCALBIN) && curl -s "https://raw.githubusercontent.com/kubernetes-sigs/kustomize/master/hack/install_kustomize.sh" | bash -s -- $(LOCALBIN) ) ) && \
+	$(KUSTOMIZE) edit set image "ghcr.io/kubeflow/model-registry/server=$(KIND_IMAGE)"
 	kubectl apply -k "$(KUSTOMIZE_E2E)"
 	@echo "Waiting for PostgreSQL to be ready..."
 	kubectl wait --for=condition=ready pod -l app.kubernetes.io/name=postgres -n "$(CATALOG_NAMESPACE)" --timeout=120s
