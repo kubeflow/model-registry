@@ -302,6 +302,7 @@ class CatalogAPIClient:
     def get_models(
         self,
         source: str | None = None,
+        q: str | None = None,
         filter_query: str | None = None,
         order_by: str | None = None,
         sort_order: str | None = None,
@@ -312,6 +313,7 @@ class CatalogAPIClient:
 
         Args:
             source: Filter by source ID.
+            q: Free-form keyword search to filter the response.
             filter_query: Filter query string.
             order_by: Field to order by (NAME, CREATE_TIME, ACCURACY, etc.).
             sort_order: Sort order (ASC or DESC).
@@ -337,6 +339,7 @@ class CatalogAPIClient:
 
         response = self.catalog_api.find_models(
             source=source_list,
+            q=q,
             filter_query=filter_query,
             order_by=order_by_enum,
             sort_order=sort_order_enum,
