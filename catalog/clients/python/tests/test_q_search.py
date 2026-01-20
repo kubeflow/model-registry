@@ -126,6 +126,7 @@ class TestModelSearch:
         self,
         search_term: str | None,
         api_client: CatalogAPIClient,
+        test_catalog_data: dict,
     ):
         """Test behavior with empty or None q parameter.
 
@@ -136,4 +137,5 @@ class TestModelSearch:
         models_q = response.get("items", [])
         response = api_client.get_models()
         models_actual = response.get("items", [])
-        assert len(models_q) == len(models_actual)
+        models_yaml = test_catalog_data.get("models", [])
+        assert len(models_q) == len(models_actual) == len(models_yaml)
