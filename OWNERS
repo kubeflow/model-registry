@@ -1,11 +1,12 @@
 approvers:
   - Al-Pragliola
-  - andreyvelich
-  - ckadner
+  - andreyvelich  # noqa(kubeflow-hub-team)
   - ederign
   - pboyd
   - rareddy
   - tarilabs
+emeritus_approvers:
+  - ckadner
   - Tomcli
   - zijianjoy
 reviewers:
