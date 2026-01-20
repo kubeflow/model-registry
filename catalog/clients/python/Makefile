@@ -53,8 +53,8 @@ endif
 # Kustomize overlay for E2E testing
 KUSTOMIZE_E2E := ../../../manifests/kustomize/options/catalog/overlays/e2e
 LOCALBIN := $(shell pwd)/bin
-# Use local kustomize if available, otherwise fall back to system kustomize
-KUSTOMIZE ?= $(shell if [ -f $(LOCALBIN)/kustomize ]; then echo $(LOCALBIN)/kustomize; else echo kustomize; fi)
+KUSTOMIZE := $(LOCALBIN)/kustomize
+KUSTOMIZE_VERSION ?= 5.5.0
 
 .PHONY: install
 install: generate
@@ -190,21 +190,23 @@ deploy-namespace:
 	@echo "Creating namespace: $(CATALOG_NAMESPACE)"
 	kubectl create namespace "$(CATALOG_NAMESPACE)" --dry-run=client -o yaml | kubectl apply -f -
 
-# Install kustomize if not already present
+# Install kustomize with pinned version
 .PHONY: deploy-kustomize
-deploy-kustomize:
+deploy-kustomize: $(LOCALBIN)
 	@if [ ! -f $(KUSTOMIZE) ]; then \
-		echo "Installing kustomize to $(LOCALBIN)..."; \
-		mkdir -p $(LOCALBIN); \
-		curl -s "https://raw.githubusercontent.com/kubernetes-sigs/kustomize/master/hack/install_kustomize.sh" | bash -s -- $(LOCALBIN); \
-		echo "[OK] Kustomize installed"; \
+		echo "Installing kustomize $(KUSTOMIZE_VERSION) to $(LOCALBIN)..."; \
+		curl -s "https://raw.githubusercontent.com/kubernetes-sigs/kustomize/master/hack/install_kustomize.sh" | bash -s $(KUSTOMIZE_VERSION) $(LOCALBIN); \
+		echo "[OK] Kustomize $(KUSTOMIZE_VERSION) installed"; \
 	else \
 		echo "Kustomize already installed at $(KUSTOMIZE)"; \
 	fi
 
+$(LOCALBIN):
+	mkdir -p $(LOCALBIN)
+
 # Apply kustomize manifests (includes postgres, secrets, configmaps, catalog)
 .PHONY: deploy-apply
-deploy-apply: deploy-namespace
+deploy-apply: deploy-namespace deploy-kustomize
 	@echo "Applying kustomize manifests..."
 	cd "$(KUSTOMIZE_E2E)" && \
 	$(KUSTOMIZE) edit set image "ghcr.io/kubeflow/model-registry/server=$(KIND_IMAGE)"

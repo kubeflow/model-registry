@@ -11,7 +11,8 @@ To run the catalog tests, you need the following tools installed:
 - **Docker** or **Podman** - Container runtime for building images
 - **kubectl** - Kubernetes CLI ([install guide](https://kubernetes.io/docs/tasks/tools/))
 - **Kind** - Kubernetes in Docker ([install guide](https://kind.sigs.k8s.io/docs/user/quick-start/#installation))
-- **kustomize** - Kubernetes configuration management (auto-installed via `make deploy-kustomize`)
+
+**Note:** Kustomize 5.5.0 is automatically installed to `bin/` when running deployment targets.
 
 ## Installation
 
@@ -26,26 +27,11 @@ poetry install
 
 # Generate OpenAPI client (if needed)
 make generate
-
-# Install kustomize (required for deployment targets)
-make deploy-kustomize
 ```
 
 ## Running Tests
 
 Tests assume a catalog service is already running (locally, in K8s, etc.).
-
-### Troubleshooting
-
-**Error: `/bin/sh: kustomize: command not found`**
-
-If you see this error when running `make deploy`, it means kustomize is not installed. Install it with:
-
-```bash
-make deploy-kustomize
-```
-
-Then retry your deployment command.
 
 ### Quick Start (Local Kind Cluster)
 
@@ -69,7 +55,7 @@ make deploy-cleanup
 | `make deploy-build` | Build Docker image only |
 | `make deploy-load` | Load image into Kind cluster |
 | `make deploy-k8s` | Deploy to existing K8s cluster (no Kind, no build) |
-| `make deploy-apply` | Apply kustomize manifests |
+| `make deploy-apply` | Apply kustomize manifests (auto-installs kustomize 5.5.0 if needed) |
 | `make deploy-forward` | Start port-forward |
 | `make deploy-restart` | Rebuild and restart catalog (after code changes) |
 | `make deploy-cleanup` | Remove deployment and Kind cluster |
