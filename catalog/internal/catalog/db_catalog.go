@@ -5,11 +5,11 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"log"
 	"sort"
 	"strconv"
 	"strings"
 
+	"github.com/golang/glog"
 	"github.com/kubeflow/model-registry/catalog/internal/db/models"
 	dbmodels "github.com/kubeflow/model-registry/catalog/internal/db/models"
 	"github.com/kubeflow/model-registry/catalog/internal/db/service"
@@ -737,7 +737,7 @@ func (d *dbCatalogImpl) FindModelsWithRecommendedLatency(
 			filterQuery,
 		)
 		if err != nil {
-			log.Printf("Warning: failed to get latency for model %s: %v", apiModel.Name, err)
+			glog.Warningf("Warning: failed to get latency for model %s: %v", apiModel.Name, err)
 			latency = nil // Treat as no latency data
 		}
 
