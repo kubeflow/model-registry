@@ -127,7 +127,7 @@ const ModelCatalogCardBody: React.FC<ModelCatalogCardBodyProps> = ({
     return <Skeleton width="100%" screenreaderText="Loading model artifacts" />;
   }
 
-  // On error, fall back to showing description 
+  // On error, fall back to showing description
   if (performanceArtifactsError && isValidated) {
     return (
       <TruncatedText
