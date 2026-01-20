@@ -11,6 +11,7 @@ import time
 from collections.abc import Generator
 from pathlib import Path
 
+import yaml
 import pytest
 import requests
 
@@ -252,3 +253,24 @@ def testdata_dir(root) -> Path:
 def local_testdata_dir() -> Path:
     """Get path to local testdata directory (in tests/)."""
     return Path(__file__).parent / "testdata"
+
+
+@pytest.fixture(scope="session")
+def test_catalog_data(root: Path) -> dict:
+    """Load test catalog data used by E2E tests.
+
+    Returns:
+        Dictionary containing the test catalog YAML data.
+    """
+    test_catalog_path = (
+        root
+        / "manifests"
+        / "kustomize"
+        / "options"
+        / "catalog"
+        / "overlays"
+        / "e2e"
+        / "test-catalog.yaml"
+    )
+    with open(test_catalog_path) as f:
+        return yaml.safe_load(f)
