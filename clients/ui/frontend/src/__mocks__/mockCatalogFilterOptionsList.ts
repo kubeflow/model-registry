@@ -9,6 +9,7 @@ import {
   AllLanguageCode,
   UseCaseOptionValue,
   DEFAULT_PERFORMANCE_FILTERS_QUERY_NAME,
+  ModelCatalogTensorType,
 } from '~/concepts/modelCatalog/const';
 
 export const mockNamedQueries: Record<string, NamedQuery> = {
@@ -97,6 +98,16 @@ export const mockCatalogFilterOptionsList = (
         AllLanguageCode.NL,
         AllLanguageCode.PT,
         AllLanguageCode.ZH,
+      ],
+    },
+    [ModelCatalogStringFilterKey.TENSOR_TYPE]: {
+      type: 'string',
+      values: [
+        ModelCatalogTensorType.FP16,
+        ModelCatalogTensorType.FP8,
+        ModelCatalogTensorType.INT4,
+        ModelCatalogTensorType.INT8,
+        ModelCatalogTensorType.MXFP4,
       ],
     },
     [ModelCatalogStringFilterKey.HARDWARE_TYPE]: {

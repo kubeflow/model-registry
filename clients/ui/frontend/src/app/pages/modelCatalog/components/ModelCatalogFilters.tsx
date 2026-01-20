@@ -7,6 +7,7 @@ import TaskFilter from './globalFilters/TaskFilter';
 import ProviderFilter from './globalFilters/ProviderFilter';
 import LicenseFilter from './globalFilters/LicenseFilter';
 import LanguageFilter from './globalFilters/LanguageFilter';
+import TensorTypeFilter from './globalFilters/TensorTypeFilter';
 
 const ModelCatalogFilters: React.FC = () => {
   const { filterOptions, filterOptionsLoaded, filterOptionsLoadError } =
@@ -36,6 +37,11 @@ const ModelCatalogFilters: React.FC = () => {
       />
       <LanguageFilter
         filters={filters && ModelCatalogStringFilterKey.LANGUAGE in filters ? filters : undefined}
+      />
+      <TensorTypeFilter
+        filters={
+          filters && ModelCatalogStringFilterKey.TENSOR_TYPE in filters ? filters : undefined
+        }
       />
     </Stack>
   );

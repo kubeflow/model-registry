@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { StackItem } from '@patternfly/react-core';
+import { Divider, StackItem } from '@patternfly/react-core';
 import ModelCatalogStringFilter from '~/app/pages/modelCatalog/components/ModelCatalogStringFilter';
 import {
   ModelCatalogStringFilterKey,
@@ -29,14 +29,17 @@ const LanguageFilter: React.FC<LanguageFilterProps> = ({ filters }) => {
   }
 
   return (
-    <StackItem>
-      <ModelCatalogStringFilter<ModelCatalogStringFilterKey.LANGUAGE>
-        title="Language"
-        filterKey={filterKey}
-        filterToNameMapping={LANGUAGE_NAME_MAPPING}
-        filters={language}
-      />
-    </StackItem>
+    <>
+      <StackItem>
+        <ModelCatalogStringFilter<ModelCatalogStringFilterKey.LANGUAGE>
+          title="Language"
+          filterKey={filterKey}
+          filterToNameMapping={LANGUAGE_NAME_MAPPING}
+          filters={language}
+        />
+      </StackItem>
+      <Divider />
+    </>
   );
 };
 
