@@ -23,6 +23,8 @@ export const SOURCE_TYPE_LABELS = {
   YAML: 'YAML file',
 } as const;
 
+export const SOURCE_NAME_CHARACTER_LIMIT = 238;
+
 export const VALIDATION_MESSAGES = {
   NAME_REQUIRED: 'Name is required',
   ORGANIZATION_REQUIRED: 'Organization is required',
