@@ -2,6 +2,18 @@
 
 Python client and E2E tests for the Kubeflow Model Catalog.
 
+## Prerequisites
+
+To run the catalog tests, you need the following tools installed:
+
+- **Python** 3.10, 3.11, or 3.12
+- **Poetry** - Python dependency management ([install guide](https://python-poetry.org/docs/#installation))
+- **Docker** or **Podman** - Container runtime for building images
+- **kubectl** - Kubernetes CLI ([install guide](https://kubernetes.io/docs/tasks/tools/))
+- **Kind** - Kubernetes in Docker ([install guide](https://kind.sigs.k8s.io/docs/user/quick-start/#installation))
+
+**Note:** Kustomize 5.5.0 is automatically installed to `bin/` when running deployment targets.
+
 ## Installation
 
 ```bash
@@ -43,7 +55,7 @@ make deploy-cleanup
 | `make deploy-build` | Build Docker image only |
 | `make deploy-load` | Load image into Kind cluster |
 | `make deploy-k8s` | Deploy to existing K8s cluster (no Kind, no build) |
-| `make deploy-apply` | Apply kustomize manifests |
+| `make deploy-apply` | Apply kustomize manifests (auto-installs kustomize 5.5.0 if needed) |
 | `make deploy-forward` | Start port-forward |
 | `make deploy-restart` | Rebuild and restart catalog (after code changes) |
 | `make deploy-cleanup` | Remove deployment and Kind cluster |

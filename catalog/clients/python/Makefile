@@ -52,6 +52,9 @@ endif
 
 # Kustomize overlay for E2E testing
 KUSTOMIZE_E2E := ../../../manifests/kustomize/options/catalog/overlays/e2e
+LOCALBIN := $(shell pwd)/bin
+KUSTOMIZE := $(LOCALBIN)/kustomize
+KUSTOMIZE_VERSION ?= 5.5.0
 
 .PHONY: install
 install: generate
@@ -187,11 +190,26 @@ deploy-namespace:
 	@echo "Creating namespace: $(CATALOG_NAMESPACE)"
 	kubectl create namespace "$(CATALOG_NAMESPACE)" --dry-run=client -o yaml | kubectl apply -f -
 
+# Install kustomize with pinned version
+.PHONY: deploy-kustomize
+deploy-kustomize: $(LOCALBIN)
+	@if [ ! -f $(KUSTOMIZE) ]; then \
+		echo "Installing kustomize $(KUSTOMIZE_VERSION) to $(LOCALBIN)..."; \
+		curl -s "https://raw.githubusercontent.com/kubernetes-sigs/kustomize/master/hack/install_kustomize.sh" | bash -s $(KUSTOMIZE_VERSION) $(LOCALBIN); \
+		echo "[OK] Kustomize $(KUSTOMIZE_VERSION) installed"; \
+	else \
+		echo "Kustomize already installed at $(KUSTOMIZE)"; \
+	fi
+
+$(LOCALBIN):
+	mkdir -p $(LOCALBIN)
+
 # Apply kustomize manifests (includes postgres, secrets, configmaps, catalog)
 .PHONY: deploy-apply
-deploy-apply: deploy-namespace
+deploy-apply: deploy-namespace deploy-kustomize
 	@echo "Applying kustomize manifests..."
-	cd "$(KUSTOMIZE_E2E)" && kustomize edit set image "ghcr.io/kubeflow/model-registry/server=$(KIND_IMAGE)"
+	cd "$(KUSTOMIZE_E2E)" && \
+	$(KUSTOMIZE) edit set image "ghcr.io/kubeflow/model-registry/server=$(KIND_IMAGE)"
 	kubectl apply -k "$(KUSTOMIZE_E2E)"
 	@echo "Waiting for PostgreSQL to be ready..."
 	kubectl wait --for=condition=ready pod -l app.kubernetes.io/name=postgres -n "$(CATALOG_NAMESPACE)" --timeout=120s
