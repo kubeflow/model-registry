@@ -1,6 +1,7 @@
 package models
 
 import (
+	"context"
 	"fmt"
 	"math"
 	"testing"
@@ -8,6 +9,7 @@ import (
 	"github.com/kubeflow/model-registry/internal/apiutils"
 	dbmodels "github.com/kubeflow/model-registry/internal/db/models"
 	mrmodels "github.com/kubeflow/model-registry/internal/db/models"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 )
@@ -15,6 +17,46 @@ import (
 // MockCatalogArtifactRepository is a mock implementation for testing
 type MockCatalogArtifactRepository struct {
 	mock.Mock
+}
+
+// MockCatalogModelRepository is a mock implementation for testing
+type MockCatalogModelRepository struct {
+	mock.Mock
+}
+
+func (m *MockCatalogModelRepository) GetByName(name string) (CatalogModel, error) {
+	args := m.Called(name)
+	return args.Get(0).(CatalogModel), args.Error(1)
+}
+
+func (m *MockCatalogModelRepository) GetByID(id int32) (CatalogModel, error) {
+	args := m.Called(id)
+	return args.Get(0).(CatalogModel), args.Error(1)
+}
+
+func (m *MockCatalogModelRepository) List(listOptions CatalogModelListOptions) (*mrmodels.ListWrapper[CatalogModel], error) {
+	args := m.Called(listOptions)
+	return args.Get(0).(*mrmodels.ListWrapper[CatalogModel]), args.Error(1)
+}
+
+func (m *MockCatalogModelRepository) Save(model CatalogModel) (CatalogModel, error) {
+	args := m.Called(model)
+	return args.Get(0).(CatalogModel), args.Error(1)
+}
+
+func (m *MockCatalogModelRepository) DeleteBySource(sourceID string) error {
+	args := m.Called(sourceID)
+	return args.Error(0)
+}
+
+func (m *MockCatalogModelRepository) DeleteByID(id int32) error {
+	args := m.Called(id)
+	return args.Error(0)
+}
+
+func (m *MockCatalogModelRepository) GetDistinctSourceIDs() ([]string, error) {
+	args := m.Called()
+	return args.Get(0).([]string), args.Error(1)
 }
 
 func (m *MockCatalogArtifactRepository) GetByID(id int32) (CatalogArtifact, error) {
@@ -34,8 +76,8 @@ func (m *MockCatalogArtifactRepository) DeleteByParentID(artifactType string, pa
 
 func TestPerformanceArtifactService_GetArtifacts(t *testing.T) {
 	// Mock repository for testing
-	mockRepo := &MockCatalogArtifactRepository{}
-	service := NewPerformanceArtifactService(mockRepo)
+	mockArtifactRepo := &MockCatalogArtifactRepository{}
+	service := NewPerformanceArtifactService(mockArtifactRepo, nil)
 
 	// Setup mock to return test artifacts with performance metrics
 	id := int32(1)
@@ -56,7 +98,7 @@ func TestPerformanceArtifactService_GetArtifacts(t *testing.T) {
 	// Set ID for the artifact
 	testArtifacts[0].CatalogMetricsArtifact.SetID(id)
 
-	mockRepo.On("List", mock.AnythingOfType("models.CatalogArtifactListOptions")).
+	mockArtifactRepo.On("List", mock.AnythingOfType("models.CatalogArtifactListOptions")).
 		Return(&mrmodels.ListWrapper[CatalogArtifact]{
 			Items: testArtifacts,
 		}, nil)
@@ -74,14 +116,14 @@ func TestPerformanceArtifactService_GetArtifacts(t *testing.T) {
 	require.Len(t, result.Items, 1)
 
 	// Verify repository was called with correct performance filtering
-	mockRepo.AssertCalled(t, "List", mock.MatchedBy(func(opts CatalogArtifactListOptions) bool {
+	mockArtifactRepo.AssertCalled(t, "List", mock.MatchedBy(func(opts CatalogArtifactListOptions) bool {
 		return opts.ParentResourceID != nil && *opts.ParentResourceID == 123
 	}))
 }
 
 func TestPerformanceArtifactService_ProcessWithTargetRPSAndRecommendataion(t *testing.T) {
-	mockRepo := &MockCatalogArtifactRepository{}
-	service := NewPerformanceArtifactService(mockRepo)
+	mockArtifactRepo := &MockCatalogArtifactRepository{}
+	service := NewPerformanceArtifactService(mockArtifactRepo, nil)
 
 	// Mock repository to return test artifacts with performance data
 	id := int32(1)
@@ -106,7 +148,7 @@ func TestPerformanceArtifactService_ProcessWithTargetRPSAndRecommendataion(t *te
 		},
 	}
 
-	mockRepo.On("List", mock.Anything).Return(testDBResult, nil)
+	mockArtifactRepo.On("List", mock.Anything).Return(testDBResult, nil)
 
 	params := PerformanceArtifactParams{
 		ModelID:         123,
@@ -165,7 +207,7 @@ func TestPerformanceArtifactParamsStructure(t *testing.T) {
 }
 
 func TestPerformanceArtifactService_Recommendataions(t *testing.T) {
-	service := NewPerformanceArtifactService(nil) // No repo needed for this test
+	service := NewPerformanceArtifactService(nil, nil) // No repo needed for this test
 
 	id1 := int32(1)
 	id2 := int32(2)
@@ -198,7 +240,7 @@ func TestPerformanceArtifactService_Recommendataions(t *testing.T) {
 	artifacts[0].SetID(id1)
 	artifacts[1].SetID(id2)
 
-	result := service.generateRecommendations(artifacts, "ttft_p90", "hardware_count", "hardware_type")
+	result := service.generateRecommended(artifacts, "ttft_p90", "hardware_count", "hardware_type")
 
 	// Should apply the two-pass filtering with epsilon thresholds
 	require.True(t, len(result) <= len(artifacts))
@@ -206,7 +248,7 @@ func TestPerformanceArtifactService_Recommendataions(t *testing.T) {
 
 // TestPropertyValidation tests the validateCustomProperties method
 func TestPropertyValidation(t *testing.T) {
-	service := NewPerformanceArtifactService(nil)
+	service := NewPerformanceArtifactService(nil, nil)
 
 	// Test case: empty artifacts should pass validation (not an error condition)
 	err := service.validateCustomProperties([]CatalogMetricsArtifact{}, "rps", "latency", "hw_count", "hw_type")
@@ -263,8 +305,8 @@ func TestPropertyValidation(t *testing.T) {
 
 // TestGetArtifactsWithValidation tests that GetArtifacts validates custom properties
 func TestGetArtifactsWithValidation(t *testing.T) {
-	mockRepo := &MockCatalogArtifactRepository{}
-	service := NewPerformanceArtifactService(mockRepo)
+	mockArtifactRepo := &MockCatalogArtifactRepository{}
+	service := NewPerformanceArtifactService(mockArtifactRepo, nil)
 
 	id1 := int32(1)
 	testArtifacts := []CatalogArtifact{
@@ -283,7 +325,7 @@ func TestGetArtifactsWithValidation(t *testing.T) {
 	}
 	testArtifacts[0].CatalogMetricsArtifact.SetID(id1)
 
-	mockRepo.On("List", mock.AnythingOfType("models.CatalogArtifactListOptions")).
+	mockArtifactRepo.On("List", mock.AnythingOfType("models.CatalogArtifactListOptions")).
 		Return(&mrmodels.ListWrapper[CatalogArtifact]{Items: testArtifacts}, nil)
 
 	// Test with valid custom properties
@@ -311,7 +353,7 @@ func TestGetArtifactsWithValidation(t *testing.T) {
 
 // TestConfigurablePropertyUsage tests that custom property names are used in calculations
 func TestConfigurablePropertyUsage(t *testing.T) {
-	service := NewPerformanceArtifactService(nil) // No repo needed for this test
+	service := NewPerformanceArtifactService(nil, nil) // No repo needed for this test
 
 	// Create test artifact with custom property names
 	id := int32(1)
@@ -353,7 +395,7 @@ func TestConfigurablePropertyUsage(t *testing.T) {
 
 // TestConfigurableRecommendataion tests deduplication with configurable property names
 func TestConfigurableRecommendataion(t *testing.T) {
-	service := NewPerformanceArtifactService(nil)
+	service := NewPerformanceArtifactService(nil, nil)
 
 	id1 := int32(1)
 	id2 := int32(2)
@@ -401,7 +443,7 @@ func TestConfigurableRecommendataion(t *testing.T) {
 	artifacts[1].SetID(id2)
 	artifacts[2].SetID(id3)
 
-	result := service.generateRecommendations(artifacts, "p90_latency", "nodes", "instance_type")
+	result := service.generateRecommended(artifacts, "p90_latency", "nodes", "instance_type")
 
 	// The dominated artifact (slow and expensive) should be filtered out
 	require.Less(t, len(result), len(artifacts))
@@ -463,13 +505,13 @@ func TestPerformanceArtifactService_RecommendationData(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			service := NewPerformanceArtifactService(nil)
+			service := NewPerformanceArtifactService(nil, nil)
 
 			// Convert test rows to full artifacts
 			artifacts := createArtifactsFromRows(tt.inputRows, tt.targetRPS)
 
 			// Apply Pareto filtering
-			result := service.generateRecommendations(artifacts, "ttft_p90", "hardware_count", "hardware_type")
+			result := service.generateRecommended(artifacts, "ttft_p90", "hardware_count", "hardware_type")
 
 			// Verify expected artifacts remain
 			verifyExpectedArtifacts(t, artifacts, result, tt.expectedKept)
@@ -533,4 +575,93 @@ func verifyExpectedArtifacts(t *testing.T, originalArtifacts []CatalogMetricsArt
 		require.NotNil(t, id, "Filtered artifact should have ID")
 		require.True(t, expectedIDs[*id], "Unexpected artifact ID %d in filtered results", *id)
 	}
+}
+
+func TestGetMinimumRecommendedLatency(t *testing.T) {
+	// Mock repositories for testing
+	mockArtifactRepo := &MockCatalogArtifactRepository{}
+	mockModelRepo := &MockCatalogModelRepository{}
+	service := NewPerformanceArtifactService(mockArtifactRepo, mockModelRepo)
+
+	// Setup mock model repository to return a model with ID
+	testModelID := int32(42)
+	mockModelRepo.On("GetByName", "test-model").Return(&CatalogModelImpl{
+		ID: apiutils.Of(testModelID),
+	}, nil)
+
+	// Setup mock to return test artifacts with performance data
+	id := int32(1)
+	testArtifacts := []CatalogArtifact{
+		{
+			CatalogMetricsArtifact: &CatalogMetricsArtifactImpl{
+				Attributes: &CatalogMetricsArtifactAttributes{
+					Name:        apiutils.Of("test-perf-artifact"),
+					MetricsType: MetricsTypePerformance,
+				},
+				Properties: &[]dbmodels.Properties{},
+				CustomProperties: &[]dbmodels.Properties{
+					{Name: "ttft_p90", DoubleValue: apiutils.Of(150.0)},
+					{Name: "requests_per_second", DoubleValue: apiutils.Of(200.0)},
+					{Name: "hardware_count", IntValue: apiutils.Of(int32(2))},
+					{Name: "hardware_type", StringValue: apiutils.Of("gpu-a100")},
+				},
+			},
+		},
+	}
+	// Set ID for the artifact
+	testArtifacts[0].CatalogMetricsArtifact.SetID(id)
+
+	mockArtifactRepo.On("List", mock.AnythingOfType("models.CatalogArtifactListOptions")).
+		Return(&mrmodels.ListWrapper[CatalogArtifact]{
+			Items: testArtifacts,
+		}, nil)
+
+	// Test with valid performance data
+	minLatency, err := service.GetMinimumRecommendedLatency(
+		context.Background(),
+		"test-model",
+		"test-source",
+		ParetoFilteringParams{
+			LatencyProperty:       "ttft_p90",
+			RpsProperty:           "requests_per_second",
+			HardwareCountProperty: "hardware_count",
+			HardwareTypeProperty:  "hardware_type",
+		},
+		"",
+	)
+
+	require.NoError(t, err)
+	require.NotNil(t, minLatency)
+	assert.Equal(t, 150.0, *minLatency) // Expected minimum from test data
+}
+
+func TestGetMinimumRecommendedLatency_NoArtifacts(t *testing.T) {
+	// Mock repositories for testing
+	mockArtifactRepo := &MockCatalogArtifactRepository{}
+	mockModelRepo := &MockCatalogModelRepository{}
+	service := NewPerformanceArtifactService(mockArtifactRepo, mockModelRepo)
+
+	// Setup mock model repository to return a model with ID
+	testModelID := int32(42)
+	mockModelRepo.On("GetByName", "nonexistent-model").Return(&CatalogModelImpl{
+		ID: apiutils.Of(testModelID),
+	}, nil)
+
+	// Setup mock to return empty result
+	mockArtifactRepo.On("List", mock.AnythingOfType("models.CatalogArtifactListOptions")).
+		Return(&mrmodels.ListWrapper[CatalogArtifact]{
+			Items: []CatalogArtifact{},
+		}, nil)
+
+	// Test with model that has no performance artifacts
+	minLatency, err := service.GetMinimumRecommendedLatency(
+		context.Background(),
+		"nonexistent-model",
+		"test-source",
+		ParetoFilteringParams{},
+		"",
+	)
+
+	require.NoError(t, err)
+	require.Nil(t, minLatency) // Should return nil for models without data
 }

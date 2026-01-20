@@ -38,7 +38,7 @@ type ModelCatalogServiceAPIRouter interface {
 // and updated with the logic required for the API.
 type ModelCatalogServiceAPIServicer interface {
 	FindLabels(context.Context, string, string, model.SortOrder, string) (ImplResponse, error)
-	FindModels(context.Context, []string, string, []string, string, string, model.OrderByField, model.SortOrder, string) (ImplResponse, error)
+	FindModels(context.Context, bool, int32, string, string, string, string, []string, string, []string, string, string, model.OrderByField, model.SortOrder, string) (ImplResponse, error)
 	FindModelsFilterOptions(context.Context) (ImplResponse, error)
 	FindSources(context.Context, string, string, model.OrderByField, model.SortOrder, string) (ImplResponse, error)
 	PreviewCatalogSource(context.Context, *os.File, string, string, string, *os.File) (ImplResponse, error)

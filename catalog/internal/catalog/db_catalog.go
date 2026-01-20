@@ -7,7 +7,9 @@ import (
 	"fmt"
 	"sort"
 	"strconv"
+	"strings"
 
+	"github.com/golang/glog"
 	"github.com/kubeflow/model-registry/catalog/internal/db/models"
 	dbmodels "github.com/kubeflow/model-registry/catalog/internal/db/models"
 	"github.com/kubeflow/model-registry/catalog/internal/db/service"
@@ -32,7 +34,7 @@ func NewDBCatalog(services service.Services, sources *SourceCollection) APIProvi
 		catalogArtifactRepository: services.CatalogArtifactRepository,
 		catalogModelRepository:    services.CatalogModelRepository,
 		propertyOptionsRepository: services.PropertyOptionsRepository,
-		performanceService:        dbmodels.NewPerformanceArtifactService(services.CatalogArtifactRepository),
+		performanceService:        dbmodels.NewPerformanceArtifactService(services.CatalogArtifactRepository, services.CatalogModelRepository),
 		sources:                   sources,
 	}
 }
@@ -675,4 +677,128 @@ func convertMetadataValueMap(source map[string]openapi.MetadataValue) map[string
 	}
 
 	return result
+}
+
+func (d *dbCatalogImpl) FindModelsWithRecommendedLatency(
+	ctx context.Context,
+	pagination mrmodels.Pagination,
+	paretoParams dbmodels.ParetoFilteringParams,
+	sourceIDs []string,
+) (*apimodels.CatalogModelList, error) {
+	// Get all models first (without pagination)
+	var sourceIDsPtr *[]string
+	if len(sourceIDs) > 0 {
+		sourceIDsPtr = &sourceIDs
+	}
+
+	allModels, err := d.catalogModelRepository.List(dbmodels.CatalogModelListOptions{
+		SourceIDs: sourceIDsPtr,
+		Pagination: mrmodels.Pagination{
+			FilterQuery: pagination.FilterQuery,
+			PageSize:    apiutils.Of(int32(0)), // Get all models
+		},
+	})
+	if err != nil {
+		return nil, fmt.Errorf("failed to fetch models: %w", err)
+	}
+
+	type modelWithLatency struct {
+		Model   apimodels.CatalogModel
+		Latency *float64
+	}
+
+	var modelsWithLatency []modelWithLatency
+
+	// Get recommended latency for each model
+	for _, model := range allModels.Items {
+		apiModel := mapDBModelToAPIModel(model)
+
+		// Extract source ID from model properties
+		sourceID := ""
+		if apiModel.SourceId != nil {
+			sourceID = *apiModel.SourceId
+		}
+
+		// Transform filter query from models format to performance artifacts format
+		// Models API: artifacts.use_case.string_value='chatbot'
+		// Performance API: use_case.string_value='chatbot'
+		filterQuery := ""
+		if pagination.FilterQuery != nil {
+			filterQuery = *pagination.FilterQuery
+			// Extract only artifact-related filters and remove "artifacts." prefix
+			filterQuery = strings.ReplaceAll(filterQuery, "artifacts.", "")
+		}
+
+		latency, err := d.performanceService.GetMinimumRecommendedLatency(
+			ctx,
+			apiModel.Name,
+			sourceID,
+			paretoParams,
+			filterQuery,
+		)
+		if err != nil {
+			glog.Warningf("Warning: failed to get latency for model %s: %v", apiModel.Name, err)
+			latency = nil // Treat as no latency data
+		}
+
+		modelsWithLatency = append(modelsWithLatency, modelWithLatency{
+			Model:   apiModel,
+			Latency: latency,
+		})
+	}
+
+	// Sort: models with latency first (ascending), then models without latency
+	sort.Slice(modelsWithLatency, func(i, j int) bool {
+		latencyI, latencyJ := modelsWithLatency[i].Latency, modelsWithLatency[j].Latency
+
+		if latencyI == nil && latencyJ == nil {
+			return false // Maintain original order for models without latency
+		}
+		if latencyI == nil {
+			return false // Models without latency go last
+		}
+		if latencyJ == nil {
+			return true // Models with latency go first
+		}
+		return *latencyI < *latencyJ // Sort by latency ascending
+	})
+
+	// Apply pagination to sorted results
+	pageSize := int32(10) // default
+	if pagination.PageSize != nil {
+		pageSize = *pagination.PageSize
+	}
+
+	start := 0
+	if pagination.NextPageToken != nil {
+		if parsed, err := strconv.Atoi(*pagination.NextPageToken); err == nil {
+			start = parsed
+		}
+	}
+	if start > len(modelsWithLatency) {
+		start = len(modelsWithLatency)
+	}
+
+	end := start + int(pageSize)
+	if end > len(modelsWithLatency) {
+		end = len(modelsWithLatency)
+	}
+
+	paginatedItems := make([]apimodels.CatalogModel, 0, end-start)
+	for i := start; i < end; i++ {
+		paginatedItems = append(paginatedItems, modelsWithLatency[i].Model)
+	}
+
+	// Calculate next page token
+	var nextPageToken string
+	if end < len(modelsWithLatency) {
+		nextPageToken = fmt.Sprintf("%d", end)
+	}
+
+	return &apimodels.CatalogModelList{
+		Items:         paginatedItems,
+		NextPageToken: nextPageToken,
+		PageSize:      pageSize,
+		Size:          int32(len(paginatedItems)),
+	}, nil
 }

@@ -5,13 +5,16 @@ import (
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
+	"sort"
 	"strconv"
 	"testing"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/kubeflow/model-registry/catalog/internal/catalog"
+	dbmodels "github.com/kubeflow/model-registry/catalog/internal/db/models"
 	"github.com/kubeflow/model-registry/catalog/internal/server/openapi"
 	model "github.com/kubeflow/model-registry/catalog/pkg/openapi"
+	mrmodels "github.com/kubeflow/model-registry/internal/db/models"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -532,4 +535,29 @@ func (m *mockPerformanceProvider) GetPerformanceArtifacts(ctx context.Context, m
 
 func (m *mockPerformanceProvider) GetFilterOptions(ctx context.Context) (*model.FilterOptionsList, error) {
 	return &model.FilterOptionsList{}, nil
+}
+
+func (m *mockPerformanceProvider) FindModelsWithRecommendedLatency(ctx context.Context, pagination mrmodels.Pagination, paretoParams dbmodels.ParetoFilteringParams, sourceIDs []string) (*model.CatalogModelList, error) {
+	// Basic mock implementation - just return models sorted by name
+	var allModels []*model.CatalogModel
+	for _, mdl := range m.models {
+		allModels = append(allModels, mdl)
+	}
+
+	// Sort by name for consistent results
+	sort.SliceStable(allModels, func(i, j int) bool {
+		return allModels[i].Name < allModels[j].Name
+	})
+
+	items := make([]model.CatalogModel, len(allModels))
+	for i, mdl := range allModels {
+		items[i] = *mdl
+	}
+
+	return &model.CatalogModelList{
+		Items:         items,
+		Size:          int32(len(items)),
+		PageSize:      10,
+		NextPageToken: "",
+	}, nil
 }

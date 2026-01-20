@@ -14,7 +14,9 @@ import (
 
 	"github.com/kubeflow/model-registry/catalog/internal/catalog"
 	"github.com/kubeflow/model-registry/catalog/internal/db/models"
+	dbmodels "github.com/kubeflow/model-registry/catalog/internal/db/models"
 	model "github.com/kubeflow/model-registry/catalog/pkg/openapi"
+	mrmodels "github.com/kubeflow/model-registry/internal/db/models"
 	"github.com/kubeflow/model-registry/pkg/api"
 )
 
@@ -202,14 +204,15 @@ func (m *ModelCatalogServiceAPIService) FindLabels(ctx context.Context, pageSize
 	return Response(http.StatusOK, res), nil
 }
 
-func (m *ModelCatalogServiceAPIService) FindModels(ctx context.Context, sourceIDs []string, q string, sourceLabels []string, filterQuery string, pageSize string, orderBy model.OrderByField, sortOrder model.SortOrder, nextPageToken string) (ImplResponse, error) {
+func (m *ModelCatalogServiceAPIService) FindModels(ctx context.Context, recommended bool, targetRPS int32, latencyProperty string, rpsProperty string, hardwareCountProperty string, hardwareTypeProperty string, sourceIDs []string, q string, sourceLabels []string, filterQuery string, pageSize string, orderBy model.OrderByField, sortOrder model.SortOrder, nextPageToken string) (ImplResponse, error) {
+	// Validate pagination parameters
 	var err error
 	pageSizeInt := int32(10)
 
 	if pageSize != "" {
 		parsed, err := strconv.ParseInt(pageSize, 10, 32)
 		if err != nil {
-			return Response(http.StatusBadRequest, err), err
+			return ErrorResponse(http.StatusBadRequest, fmt.Errorf("invalid pagination parameters: %w", err)), err
 		}
 		pageSizeInt = int32(parsed)
 	}
@@ -223,22 +226,80 @@ func (m *ModelCatalogServiceAPIService) FindModels(ctx context.Context, sourceID
 
 	if len(sourceIDs) > 0 && len(sourceLabels) > 0 {
 		err := fmt.Errorf("source and sourceLabel cannot be used together")
-		return Response(http.StatusBadRequest, err), err
+		return ErrorResponse(http.StatusBadRequest, err), err
 	}
 
+	// Handle recommended latency sorting
+	if recommended {
+		// Build Pareto filtering parameters with defaults
+		var targetRPSPtr *int32
+		if targetRPS != 0 {
+			targetRPSPtr = &targetRPS
+		}
+
+		latencyProp := latencyProperty
+		if latencyProp == "" {
+			latencyProp = "ttft_p90"
+		}
+
+		rpsProp := rpsProperty
+		if rpsProp == "" {
+			rpsProp = "requests_per_second"
+		}
+
+		hardwareCountProp := hardwareCountProperty
+		if hardwareCountProp == "" {
+			hardwareCountProp = "hardware_count"
+		}
+
+		hardwareTypeProp := hardwareTypeProperty
+		if hardwareTypeProp == "" {
+			hardwareTypeProp = "hardware_type"
+		}
+
+		paretoParams := dbmodels.ParetoFilteringParams{
+			TargetRPS:             targetRPSPtr,
+			LatencyProperty:       latencyProp,
+			RpsProperty:           rpsProp,
+			HardwareCountProperty: hardwareCountProp,
+			HardwareTypeProperty:  hardwareTypeProp,
+		}
+
+		pagination := mrmodels.Pagination{
+			PageSize:      &pageSizeInt,
+			NextPageToken: &nextPageToken,
+			FilterQuery:   &filterQuery,
+		}
+
+		// Use recommended latency sorting (ignores orderBy)
+		models, err := m.provider.FindModelsWithRecommendedLatency(ctx, pagination, paretoParams, sourceIDs)
+		if err != nil {
+			return ErrorResponse(http.StatusInternalServerError, fmt.Errorf("failed to find models with recommended latency: %w", err)), err
+		}
+
+		return Response(http.StatusOK, *models), nil
+	}
+
+	// Existing logic for non-recommended sorting
 	if orderBy == "" {
 		orderBy = model.ORDERBYFIELD_NAME
 	}
 
 	listModelsParams := catalog.ListModelsParams{
-		Query:         q,
-		FilterQuery:   filterQuery,
-		SourceIDs:     sourceIDs,
-		SourceLabels:  sourceLabels,
-		PageSize:      pageSizeInt,
-		OrderBy:       orderBy,
-		SortOrder:     sortOrder,
-		NextPageToken: &nextPageToken,
+		Query:                 q,
+		FilterQuery:           filterQuery,
+		SourceIDs:             sourceIDs,
+		SourceLabels:          sourceLabels,
+		PageSize:              pageSizeInt,
+		OrderBy:               orderBy,
+		SortOrder:             sortOrder,
+		NextPageToken:         &nextPageToken,
+		Recommended:           recommended,
+		TargetRPS:             targetRPS,
+		LatencyProperty:       latencyProperty,
+		RPSProperty:           rpsProperty,
+		HardwareCountProperty: hardwareCountProperty,
+		HardwareTypeProperty:  hardwareTypeProperty,
 	}
 
 	models, err := m.provider.ListModels(ctx, listModelsParams)
