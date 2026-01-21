@@ -76,8 +76,9 @@ type DatabaseConfig struct {
 }
 
 type PasswordSecret struct {
-	Key  string `json:"key"`
-	Name string `json:"name"`
+	Key   string `json:"key"`
+	Name  string `json:"name"`
+	Value string `json:"-"` // Excluded from JSON serialization to prevent accidental exposure in API responses
 }
 
 type Status struct {
