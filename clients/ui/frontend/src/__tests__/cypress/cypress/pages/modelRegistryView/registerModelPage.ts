@@ -14,6 +14,8 @@ export enum FormFieldSelector {
   LOCATION_PATH = '#location-path',
   LOCATION_TYPE_URI = '#location-type-uri',
   LOCATION_URI = '#location-uri',
+  JOB_NAME = '#model-transfer-job-name',
+  RESOURCE_NAME = '#model-transfer-job-resourceName',
 }
 
 class RegisterModelPage {
@@ -55,6 +57,26 @@ class RegisterModelPage {
 
   findSubmitButton() {
     return cy.findByTestId('create-button');
+  }
+
+  findRegisterToggle() {
+    return cy.findByRole('button', { name: 'Register' });
+  }
+
+  findRegisterAndStoreToggle() {
+    return cy.findByRole('button', { name: 'Register and store' });
+  }
+
+  selectRegisterAndStore() {
+    this.findRegisterAndStoreToggle().click();
+  }
+
+  findEditResourceNameLink() {
+    return cy.findByTestId('model-transfer-job-editResourceLink');
+  }
+
+  clickEditResourceName() {
+    this.findEditResourceNameLink().click();
   }
 }
 
