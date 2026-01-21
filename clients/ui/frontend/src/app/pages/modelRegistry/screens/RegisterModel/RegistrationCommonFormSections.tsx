@@ -9,6 +9,7 @@ import {
   ToggleGroup,
   ToggleGroupItem,
 } from '@patternfly/react-core';
+import spacing from '@patternfly/react-styles/css/utilities/Spacing/spacing';
 import { UpdateObjectAtPropAndValue } from 'mod-arch-shared';
 // import { DataConnection, UpdateObjectAtPropAndValue } from '~/pages/projects/types';
 // import { convertAWSSecretData } from '~/pages/projects/screens/detail/data-connections/utils';
@@ -153,7 +154,7 @@ const RegistrationCommonFormSections = <D extends RegistrationCommonFormData>({
         }
       >
         {isRegistryStorageFeatureAvailable && (
-          <ToggleGroup aria-label="Registration mode">
+          <ToggleGroup aria-label="Registration mode" className={spacing.myMd}>
             <ToggleGroupItem
               text="Register"
               isSelected={registrationMode === RegistrationMode.Register}
