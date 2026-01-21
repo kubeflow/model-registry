@@ -6,6 +6,7 @@ import FormFieldset from '~/app/pages/modelRegistry/screens/components/FormField
 type ResourceNameFieldProps = {
   allowEdit: boolean;
   dataTestId: string;
+  helperText?: React.ReactNode;
   //   k8sName: K8sNameDescriptionFieldData['k8sName'];
   //   onDataChange?: K8sNameDescriptionFieldUpdateFunction;
 };
@@ -14,6 +15,7 @@ type ResourceNameFieldProps = {
 const ResourceNameField: React.FC<ResourceNameFieldProps> = ({
   allowEdit,
   dataTestId,
+  helperText,
   //   k8sName,
   //   onDataChange,
 }) => {
@@ -70,14 +72,16 @@ const ResourceNameField: React.FC<ResourceNameFieldProps> = ({
       >
         <FormFieldset component={textInput} field="Host" />
       </FormGroup>
-      <HelperText>
-        <HelperTextItem>
-          The resource name is used to identify your resource, and is generated based on the name
-          you enter. The resource name cannot be edited after creation.
-        </HelperTextItem>
-        {/* <HelperTextItemMaxLength k8sName={k8sName} />
+      {helperText || (
+        <HelperText>
+          <HelperTextItem>
+            The resource name is used to identify your resource, and is generated based on the name
+            you enter. The resource name cannot be edited after creation.
+          </HelperTextItem>
+          {/* <HelperTextItemMaxLength k8sName={k8sName} />
          <HelperTextItemValidCharacters k8sName={k8sName} /> */}
-      </HelperText>
+        </HelperText>
+      )}
     </>
   );
 

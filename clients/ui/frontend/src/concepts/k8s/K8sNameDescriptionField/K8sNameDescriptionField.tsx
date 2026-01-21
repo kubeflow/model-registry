@@ -41,6 +41,7 @@ type K8sNameDescriptionFieldProps = {
   descriptionLabel?: string;
   nameLabel?: string;
   nameHelperText?: React.ReactNode;
+  resourceNameHelperText?: React.ReactNode;
   hideDescription?: boolean;
 };
 
@@ -55,6 +56,7 @@ const K8sNameDescriptionField: React.FC<K8sNameDescriptionFieldProps> = ({
   descriptionLabel = 'Description',
   nameLabel = 'Name',
   nameHelperText,
+  resourceNameHelperText,
   hideDescription,
 }) => {
   const [showK8sField, setShowK8sField] = React.useState(false);
@@ -151,15 +153,20 @@ const K8sNameDescriptionField: React.FC<K8sNameDescriptionFieldProps> = ({
         </>
       )}
 
-      <ResourceNameField allowEdit={showK8sField} dataTestId={dataTestId} />
+      <ResourceNameField
+        allowEdit={showK8sField}
+        dataTestId={dataTestId}
+        helperText={resourceNameHelperText}
+      />
 
-      {!hideDescription && isMUITheme ? (
-        descriptionFormGroup
-      ) : (
-        <FormGroup label={descriptionLabel} fieldId={`${dataTestId}-description`}>
-          {descriptionTextArea}
-        </FormGroup>
-      )}
+      {!hideDescription &&
+        (isMUITheme ? (
+          descriptionFormGroup
+        ) : (
+          <FormGroup label={descriptionLabel} fieldId={`${dataTestId}-description`}>
+            {descriptionTextArea}
+          </FormGroup>
+        ))}
     </>
   );
 };

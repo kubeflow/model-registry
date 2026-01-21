@@ -28,6 +28,8 @@ export type RegistrationCommonFormData = {
   destinationOciEmail: string;
   namespace?: string;
   registrationMode?: RegistrationMode.Register | RegistrationMode.RegisterAndStore;
+  jobName: string;
+  jobResourceName: string;
   versionCustomProperties?: ModelRegistryCustomProperties;
   modelCustomProperties?: ModelRegistryCustomProperties;
   additionalArtifactProperties?: Partial<ModelArtifact>;
@@ -66,6 +68,8 @@ const registrationCommonFormDataDefaults: RegistrationCommonFormData = {
   destinationOciEmail: '',
   namespace: '',
   registrationMode: RegistrationMode.Register,
+  jobName: '',
+  jobResourceName: '',
   modelCustomProperties: {},
   versionCustomProperties: {},
 };
