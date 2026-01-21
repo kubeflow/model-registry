@@ -62,18 +62,11 @@ const RegisterCatalogModelForm: React.FC<RegisterCatalogModelFormProps> = ({
 
   const uri = artifacts.length > 0 ? getModelArtifactUri(artifacts) : '';
 
-  const initialFormData: RegisterCatalogModelFormData = {
+  const initialFormData: Partial<RegisterCatalogModelFormData> = {
     modelName: getModelName(decodedParams.modelName || ''),
     modelDescription: model?.description || '',
     versionName: 'Version 1',
-    versionDescription: '',
-    sourceModelFormat: '',
-    sourceModelFormatVersion: '',
     modelLocationType: ModelLocationType.URI,
-    modelLocationEndpoint: '',
-    modelLocationBucket: '',
-    modelLocationRegion: '',
-    modelLocationPath: '',
     modelLocationURI: uri || '',
     modelRegistry: preferredModelRegistry.name,
     modelCustomProperties: { ...getLabelsFromCustomProperties(model?.customProperties), ...tasks },
