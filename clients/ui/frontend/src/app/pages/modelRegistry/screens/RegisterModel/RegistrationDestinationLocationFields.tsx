@@ -1,18 +1,15 @@
 import React from 'react';
-import {
-  FormGroup,
-  TextInput,
-  Radio,
-  HelperText,
-  HelperTextItem,
-  TextInputGroupMain,
-  TextInputGroup,
-} from '@patternfly/react-core';
+import { FormGroup, TextInput, Radio } from '@patternfly/react-core';
 import spacing from '@patternfly/react-styles/css/utilities/Spacing/spacing';
 import { UpdateObjectAtPropAndValue } from 'mod-arch-shared';
 import PasswordInput from '~/app/shared/components/PasswordInput';
 import FormFieldset from '~/app/pages/modelRegistry/screens/components/FormFieldset';
-import { DestinationStorageType, RegistrationCommonFormData } from './useRegisterModelData';
+import {
+  DestinationStorageType,
+  ModelLocationType,
+  RegistrationCommonFormData,
+} from './useRegisterModelData';
+import RegistrationModelLocationFields from './RegistrationModelLocationFields';
 
 type RegistrationDestinationLocationFieldsProps<D extends RegistrationCommonFormData> = {
   formData: D;
@@ -27,10 +24,6 @@ const RegistrationDestinationLocationFields = <D extends RegistrationCommonFormD
     destinationStorageType,
     destinationS3AccessKeyId,
     destinationS3SecretAccessKey,
-    destinationS3Endpoint,
-    destinationS3Bucket,
-    destinationS3Region,
-    destinationS3Path,
     destinationOciRegistry,
     destinationOciUsername,
     destinationOciPassword,
@@ -38,7 +31,31 @@ const RegistrationDestinationLocationFields = <D extends RegistrationCommonFormD
     destinationOciEmail,
   } = formData;
 
-  // S3 fields
+  // S3 common fields (endpoint, bucket, region, path) from RegistrationModelLocationFields
+  const destinationFormData: D = {
+    ...formData,
+    modelLocationType: ModelLocationType.ObjectStorage,
+    modelLocationEndpoint: formData.destinationS3Endpoint,
+    modelLocationBucket: formData.destinationS3Bucket,
+    modelLocationRegion: formData.destinationS3Region,
+    modelLocationPath: formData.destinationS3Path,
+    modelLocationURI: formData.modelLocationURI,
+  };
+
+  const destinationSetData: UpdateObjectAtPropAndValue<D> = (key: keyof D, value: D[keyof D]) => {
+    if (key === 'modelLocationEndpoint') {
+      setData('destinationS3Endpoint', String(value));
+    } else if (key === 'modelLocationBucket') {
+      setData('destinationS3Bucket', String(value));
+    } else if (key === 'modelLocationRegion') {
+      setData('destinationS3Region', String(value));
+    } else if (key === 'modelLocationPath') {
+      setData('destinationS3Path', String(value));
+    } else {
+      setData(key, value);
+    }
+  };
+
   const s3AccessKeyIdInput = (
     <TextInput
       isRequired
@@ -58,49 +75,6 @@ const RegistrationDestinationLocationFields = <D extends RegistrationCommonFormD
       value={destinationS3SecretAccessKey}
       onChange={(_e, value) => setData('destinationS3SecretAccessKey', value)}
     />
-  );
-
-  const s3EndpointInput = (
-    <TextInput
-      type="text"
-      id="destination-s3-endpoint"
-      name="destination-s3-endpoint"
-      value={destinationS3Endpoint}
-      onChange={(_e, value) => setData('destinationS3Endpoint', value)}
-    />
-  );
-
-  const s3BucketInput = (
-    <TextInput
-      type="text"
-      id="destination-s3-bucket"
-      name="destination-s3-bucket"
-      value={destinationS3Bucket}
-      onChange={(_e, value) => setData('destinationS3Bucket', value)}
-    />
-  );
-
-  const s3RegionInput = (
-    <TextInput
-      type="text"
-      id="destination-s3-region"
-      name="destination-s3-region"
-      value={destinationS3Region}
-      onChange={(_e, value) => setData('destinationS3Region', value)}
-    />
-  );
-
-  const s3PathInput = (
-    <TextInputGroup>
-      <TextInputGroupMain
-        icon="/"
-        type="text"
-        id="destination-s3-path"
-        name="destination-s3-path"
-        value={destinationS3Path}
-        onChange={(_e, value) => setData('destinationS3Path', value)}
-      />
-    </TextInputGroup>
   );
 
   // OCI fields
@@ -170,38 +144,11 @@ const RegistrationDestinationLocationFields = <D extends RegistrationCommonFormD
       />
       {destinationStorageType === DestinationStorageType.S3 && (
         <>
-          <FormGroup
-            className={spacing.mlLg}
-            label="Endpoint"
-            isRequired
-            fieldId="destination-s3-endpoint"
-          >
-            <FormFieldset component={s3EndpointInput} field="Endpoint" />
-          </FormGroup>
-          <FormGroup
-            className={spacing.mlLg}
-            label="Bucket"
-            isRequired
-            fieldId="destination-s3-bucket"
-          >
-            <FormFieldset component={s3BucketInput} field="Bucket" />
-          </FormGroup>
-          <FormGroup className={spacing.mlLg} label="Region" fieldId="destination-s3-region">
-            <FormFieldset component={s3RegionInput} field="Region" />
-          </FormGroup>
-          <FormGroup
-            className={`destination-s3-path ${spacing.mlLg}`}
-            label="Path"
-            isRequired
-            fieldId="destination-s3-path"
-          >
-            <FormFieldset component={s3PathInput} field="Path" />
-            <HelperText>
-              <HelperTextItem>
-                Enter a path to a model or folder. This path cannot point to a root folder.
-              </HelperTextItem>
-            </HelperText>
-          </FormGroup>
+          <RegistrationModelLocationFields
+            formData={destinationFormData}
+            setData={destinationSetData}
+            hideRadioButtons
+          />
           <FormGroup
             className={spacing.mlLg}
             label="Access Key ID"

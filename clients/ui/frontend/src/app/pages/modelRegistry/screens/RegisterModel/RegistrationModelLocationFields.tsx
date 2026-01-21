@@ -17,12 +17,14 @@ type RegistrationModelLocationFieldsProps<D extends RegistrationCommonFormData> 
   formData: D;
   setData: UpdateObjectAtPropAndValue<D>;
   isCatalogModel?: boolean;
+  hideRadioButtons?: boolean;
 };
 
 const RegistrationModelLocationFields = <D extends RegistrationCommonFormData>({
   formData,
   setData,
   isCatalogModel,
+  hideRadioButtons = false,
 }: RegistrationModelLocationFieldsProps<D>): React.ReactNode => {
   const {
     modelLocationType,
@@ -92,17 +94,19 @@ const RegistrationModelLocationFields = <D extends RegistrationCommonFormData>({
 
   return (
     <>
-      <Radio
-        isChecked={modelLocationType === ModelLocationType.ObjectStorage}
-        name="location-type-object-storage"
-        isDisabled={isCatalogModel}
-        onChange={() => {
-          setData('modelLocationType', ModelLocationType.ObjectStorage);
-        }}
-        label="Object storage"
-        id="location-type-object-storage"
-      />
-      {modelLocationType === ModelLocationType.ObjectStorage && (
+      {!hideRadioButtons && (
+        <Radio
+          isChecked={modelLocationType === ModelLocationType.ObjectStorage}
+          name="location-type-object-storage"
+          isDisabled={isCatalogModel}
+          onChange={() => {
+            setData('modelLocationType', ModelLocationType.ObjectStorage);
+          }}
+          label="Object storage"
+          id="location-type-object-storage"
+        />
+      )}
+      {(hideRadioButtons || modelLocationType === ModelLocationType.ObjectStorage) && (
         <>
           <FormGroup
             className={spacing.mlLg}
@@ -133,20 +137,24 @@ const RegistrationModelLocationFields = <D extends RegistrationCommonFormData>({
           </FormGroup>
         </>
       )}
-      <Radio
-        isChecked={modelLocationType === ModelLocationType.URI}
-        name="location-type-uri"
-        onChange={() => {
-          setData('modelLocationType', ModelLocationType.URI);
-        }}
-        label="URI"
-        id="location-type-uri"
-      />
-      {modelLocationType === ModelLocationType.URI && (
+      {!hideRadioButtons && (
         <>
-          <FormGroup className={spacing.mlLg} label="URI" isRequired fieldId="location-uri">
-            <FormFieldset component={uriInput} field="URI" />
-          </FormGroup>
+          <Radio
+            isChecked={modelLocationType === ModelLocationType.URI}
+            name="location-type-uri"
+            onChange={() => {
+              setData('modelLocationType', ModelLocationType.URI);
+            }}
+            label="URI"
+            id="location-type-uri"
+          />
+          {modelLocationType === ModelLocationType.URI && (
+            <>
+              <FormGroup className={spacing.mlLg} label="URI" isRequired fieldId="location-uri">
+                <FormFieldset component={uriInput} field="URI" />
+              </FormGroup>
+            </>
+          )}
         </>
       )}
     </>
