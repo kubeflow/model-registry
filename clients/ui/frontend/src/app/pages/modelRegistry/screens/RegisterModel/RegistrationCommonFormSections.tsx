@@ -3,12 +3,11 @@ import {
   FormGroup,
   TextInput,
   TextArea,
-  Radio,
   HelperText,
   HelperTextItem,
   FormHelperText,
-  TextInputGroupMain,
-  TextInputGroup,
+  ToggleGroup,
+  ToggleGroupItem,
 } from '@patternfly/react-core';
 import spacing from '@patternfly/react-styles/css/utilities/Spacing/spacing';
 import { UpdateObjectAtPropAndValue } from 'mod-arch-shared';
@@ -17,10 +16,18 @@ import { UpdateObjectAtPropAndValue } from 'mod-arch-shared';
 import FormFieldset from '~/app/pages/modelRegistry/screens/components/FormFieldset';
 import { ModelVersion } from '~/app/types';
 import FormSection from '~/app/pages/modelRegistry/components/pf-overrides/FormSection';
-import { ModelLocationType, RegistrationCommonFormData } from './useRegisterModelData';
+import { useTempDevFeatureAvailable, TempDevFeature } from '~/app/hooks/useTempDevFeatureAvailable';
+import { RegistrationCommonFormData } from './useRegisterModelData';
+import RegistrationModelLocationFields from './RegistrationModelLocationFields';
+import RegisterAndStoreFields from './RegisterAndStoreFields';
 import { isNameValid } from './utils';
 import { MR_CHARACTER_LIMIT } from './const';
 // import { ConnectionModal } from './ConnectionModal';
+
+enum RegistrationMode {
+  Register = 'register',
+  RegisterAndStore = 'registerAndStore',
+}
 
 type RegistrationCommonFormSectionsProps<D extends RegistrationCommonFormData> = {
   formData: D;
@@ -37,39 +44,15 @@ const RegistrationCommonFormSections = <D extends RegistrationCommonFormData>({
   latestVersion,
   isCatalogModel,
 }: RegistrationCommonFormSectionsProps<D>): React.ReactNode => {
-  // const [isAutofillModalOpen, setAutofillModalOpen] = React.useState(false);
   const isVersionNameValid = isNameValid(formData.versionName);
+  const isRegistryStorageFeatureAvailable = useTempDevFeatureAvailable(
+    TempDevFeature.RegistryStorage,
+  );
+  const [registrationMode, setRegistrationMode] = React.useState<RegistrationMode>(
+    RegistrationMode.Register,
+  );
 
-  // const connectionDataMap: Record<
-  //   string,
-  //   keyof Pick<
-  //     RegistrationCommonFormData,
-  //     'modelLocationEndpoint' | 'modelLocationBucket' | 'modelLocationRegion'
-  //   >
-  // > = {
-  //   AWS_S3_ENDPOINT: 'modelLocationEndpoint',
-  //   AWS_S3_BUCKET: 'modelLocationBucket',
-  //   AWS_DEFAULT_REGION: 'modelLocationRegion',
-  // };
-
-  // const fillObjectStorageByConnection = (connection: DataConnection) => {
-  //   convertAWSSecretData(connection).forEach((dataItem) => {
-  //     setData(connectionDataMap[dataItem.key], dataItem.value);
-  //   });
-  // };
-
-  const {
-    versionName,
-    versionDescription,
-    sourceModelFormat,
-    sourceModelFormatVersion,
-    modelLocationType,
-    modelLocationEndpoint,
-    modelLocationBucket,
-    modelLocationRegion,
-    modelLocationPath,
-    modelLocationURI,
-  } = formData;
+  const { versionName, versionDescription, sourceModelFormat, sourceModelFormatVersion } = formData;
 
   const versionNameInput = (
     <TextInput
@@ -116,63 +99,6 @@ const RegistrationCommonFormSections = <D extends RegistrationCommonFormData>({
     />
   );
 
-  const endpointInput = (
-    <TextInput
-      isRequired
-      type="text"
-      id="location-endpoint"
-      name="location-endpoint"
-      value={modelLocationEndpoint}
-      onChange={(_e, value) => setData('modelLocationEndpoint', value)}
-    />
-  );
-
-  const bucketInput = (
-    <TextInput
-      isRequired
-      type="text"
-      id="location-bucket"
-      name="location-bucket"
-      value={modelLocationBucket}
-      onChange={(_e, value) => setData('modelLocationBucket', value)}
-    />
-  );
-
-  const regionInput = (
-    <TextInput
-      type="text"
-      id="location-region"
-      name="location-region"
-      value={modelLocationRegion}
-      onChange={(_e, value) => setData('modelLocationRegion', value)}
-    />
-  );
-
-  const pathInput = (
-    <TextInputGroup>
-      <TextInputGroupMain
-        icon="/"
-        type="text"
-        id="location-path"
-        name="location-path"
-        value={modelLocationPath}
-        onChange={(_e, value) => setData('modelLocationPath', value)}
-      />
-    </TextInputGroup>
-  );
-
-  const uriInput = (
-    <TextInput
-      isRequired
-      type="text"
-      id="location-uri"
-      name="location-uri"
-      value={modelLocationURI}
-      onChange={(_e, value) => setData('modelLocationURI', value)}
-      isDisabled={isCatalogModel}
-    />
-  );
-
   return (
     <>
       <FormSection
@@ -214,89 +140,47 @@ const RegistrationCommonFormSections = <D extends RegistrationCommonFormData>({
         </FormGroup>
       </FormSection>
       <FormSection
-        title="Model location"
-        description="Specify the model location by providing either the object storage details or the URI."
+        title={isRegistryStorageFeatureAvailable ? 'Model location and storage' : 'Model location'}
+        description={
+          isRegistryStorageFeatureAvailable ? (
+            <>
+              Choose <strong>Register</strong> to use the model&apos;s original storage location for
+              artifact storage, or <strong>Register and store</strong> to specify a different
+              artifact storage location.
+            </>
+          ) : (
+            'Specify the model location by providing either the object storage details or the URI.'
+          )
+        }
       >
-        <Radio
-          isChecked={modelLocationType === ModelLocationType.ObjectStorage}
-          name="location-type-object-storage"
-          isDisabled={isCatalogModel}
-          onChange={() => {
-            setData('modelLocationType', ModelLocationType.ObjectStorage);
-          }}
-          label="Object storage"
-          id="location-type-object-storage"
-        />
-        {/* {modelLocationType === ModelLocationType.ObjectStorage && (
-            <SplitItem>
-              <Button
-                data-testid="object-storage-autofill-button"
-                variant="link"
-                isInline
-                icon={<OptimizeIcon />}
-                onClick={() => setAutofillModalOpen(true)}
-              >
-                Autofill from data connection
-              </Button>
-            </SplitItem>
-          )} */}
-        {modelLocationType === ModelLocationType.ObjectStorage && (
-          <>
-            <FormGroup
-              className={spacing.mlLg}
-              label="Endpoint"
-              isRequired
-              fieldId="location-endpoint"
-            >
-              <FormFieldset component={endpointInput} field="Endpoint" />
-            </FormGroup>
-            <FormGroup className={spacing.mlLg} label="Bucket" isRequired fieldId="location-bucket">
-              <FormFieldset component={bucketInput} field="Bucket" />
-            </FormGroup>
-            <FormGroup className={spacing.mlLg} label="Region" fieldId="location-region">
-              <FormFieldset component={regionInput} field="Region" />
-            </FormGroup>
-            <FormGroup
-              className={`location-path` + ` ${spacing.mlLg}`}
-              label="Path"
-              isRequired
-              fieldId="location-path"
-            >
-              <FormFieldset component={pathInput} field="Path" />
-              <HelperText>
-                <HelperTextItem>
-                  Enter a path to a model or folder. This path cannot point to a root folder.
-                </HelperTextItem>
-              </HelperText>
-            </FormGroup>
-          </>
+        {isRegistryStorageFeatureAvailable && (
+          <ToggleGroup aria-label="Registration mode" className={spacing.myMd}>
+            <ToggleGroupItem
+              text="Register"
+              isSelected={registrationMode === RegistrationMode.Register}
+              onChange={() => setRegistrationMode(RegistrationMode.Register)}
+            />
+            <ToggleGroupItem
+              text="Register and store"
+              isSelected={registrationMode === RegistrationMode.RegisterAndStore}
+              onChange={() => setRegistrationMode(RegistrationMode.RegisterAndStore)}
+            />
+          </ToggleGroup>
         )}
-        <Radio
-          isChecked={modelLocationType === ModelLocationType.URI}
-          name="location-type-uri"
-          onChange={() => {
-            setData('modelLocationType', ModelLocationType.URI);
-          }}
-          label="URI"
-          id="location-type-uri"
-        />
-        {modelLocationType === ModelLocationType.URI && (
-          <>
-            <FormGroup className={spacing.mlLg} label="URI" isRequired fieldId="location-uri">
-              <FormFieldset component={uriInput} field="URI" />
-            </FormGroup>
-          </>
+        {registrationMode === RegistrationMode.Register ? (
+          <RegistrationModelLocationFields
+            formData={formData}
+            setData={setData}
+            isCatalogModel={isCatalogModel}
+          />
+        ) : (
+          <RegisterAndStoreFields
+            formData={formData}
+            setData={setData}
+            isCatalogModel={isCatalogModel}
+          />
         )}
       </FormSection>
-      {/* {isAutofillModalOpen ? (
-        <ConnectionModal
-          onClose={() => setAutofillModalOpen(false)}
-          onSubmit={(connection) => {
-            fillObjectStorageByConnection(connection);
-            setAutofillModalOpen(false);
-          }}
-        />
-      ) : null} */}
     </>
   );
 };
