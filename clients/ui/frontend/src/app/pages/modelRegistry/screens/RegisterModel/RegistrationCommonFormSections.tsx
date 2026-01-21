@@ -18,6 +18,7 @@ import FormSection from '~/app/pages/modelRegistry/components/pf-overrides/FormS
 import { useTempDevFeatureAvailable, TempDevFeature } from '~/app/hooks/useTempDevFeatureAvailable';
 import { RegistrationCommonFormData } from './useRegisterModelData';
 import RegistrationModelLocationFields from './RegistrationModelLocationFields';
+import RegisterAndStoreFields from './RegisterAndStoreFields';
 import { isNameValid } from './utils';
 import { MR_CHARACTER_LIMIT } from './const';
 // import { ConnectionModal } from './ConnectionModal';
@@ -165,11 +166,19 @@ const RegistrationCommonFormSections = <D extends RegistrationCommonFormData>({
             />
           </ToggleGroup>
         )}
-        <RegistrationModelLocationFields
-          formData={formData}
-          setData={setData}
-          isCatalogModel={isCatalogModel}
-        />
+        {registrationMode === RegistrationMode.Register ? (
+          <RegistrationModelLocationFields
+            formData={formData}
+            setData={setData}
+            isCatalogModel={isCatalogModel}
+          />
+        ) : (
+          <RegisterAndStoreFields
+            formData={formData}
+            setData={setData}
+            isCatalogModel={isCatalogModel}
+          />
+        )}
       </FormSection>
     </>
   );
