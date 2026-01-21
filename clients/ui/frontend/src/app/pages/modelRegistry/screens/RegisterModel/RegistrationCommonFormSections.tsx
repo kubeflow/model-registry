@@ -9,6 +9,8 @@ import {
   FormHelperText,
   TextInputGroupMain,
   TextInputGroup,
+  ToggleGroup,
+  ToggleGroupItem,
 } from '@patternfly/react-core';
 import spacing from '@patternfly/react-styles/css/utilities/Spacing/spacing';
 import { UpdateObjectAtPropAndValue } from 'mod-arch-shared';
@@ -17,10 +19,16 @@ import { UpdateObjectAtPropAndValue } from 'mod-arch-shared';
 import FormFieldset from '~/app/pages/modelRegistry/screens/components/FormFieldset';
 import { ModelVersion } from '~/app/types';
 import FormSection from '~/app/pages/modelRegistry/components/pf-overrides/FormSection';
+import { useTempDevFeatureAvailable, TempDevFeature } from '~/app/hooks/useTempDevFeatureAvailable';
 import { ModelLocationType, RegistrationCommonFormData } from './useRegisterModelData';
 import { isNameValid } from './utils';
 import { MR_CHARACTER_LIMIT } from './const';
 // import { ConnectionModal } from './ConnectionModal';
+
+enum RegistrationMode {
+  Register = 'register',
+  RegisterAndStore = 'registerAndStore',
+}
 
 type RegistrationCommonFormSectionsProps<D extends RegistrationCommonFormData> = {
   formData: D;
@@ -39,6 +47,12 @@ const RegistrationCommonFormSections = <D extends RegistrationCommonFormData>({
 }: RegistrationCommonFormSectionsProps<D>): React.ReactNode => {
   // const [isAutofillModalOpen, setAutofillModalOpen] = React.useState(false);
   const isVersionNameValid = isNameValid(formData.versionName);
+  const isRegistryStorageFeatureAvailable = useTempDevFeatureAvailable(
+    TempDevFeature.RegistryStorage,
+  );
+  const [registrationMode, setRegistrationMode] = React.useState<RegistrationMode>(
+    RegistrationMode.Register,
+  );
 
   // const connectionDataMap: Record<
   //   string,
@@ -214,9 +228,33 @@ const RegistrationCommonFormSections = <D extends RegistrationCommonFormData>({
         </FormGroup>
       </FormSection>
       <FormSection
-        title="Model location"
-        description="Specify the model location by providing either the object storage details or the URI."
+        title={isRegistryStorageFeatureAvailable ? 'Model location and storage' : 'Model location'}
+        description={
+          isRegistryStorageFeatureAvailable ? (
+            <>
+              Choose <strong>Register</strong> to use the model&apos;s original storage location for
+              artifact storage, or <strong>Register and store</strong> to specify a different
+              artifact storage location.
+            </>
+          ) : (
+            'Specify the model location by providing either the object storage details or the URI.'
+          )
+        }
       >
+        {isRegistryStorageFeatureAvailable && (
+          <ToggleGroup aria-label="Registration mode">
+            <ToggleGroupItem
+              text="Register"
+              isSelected={registrationMode === RegistrationMode.Register}
+              onChange={() => setRegistrationMode(RegistrationMode.Register)}
+            />
+            <ToggleGroupItem
+              text="Register and store"
+              isSelected={registrationMode === RegistrationMode.RegisterAndStore}
+              onChange={() => setRegistrationMode(RegistrationMode.RegisterAndStore)}
+            />
+          </ToggleGroup>
+        )}
         <Radio
           isChecked={modelLocationType === ModelLocationType.ObjectStorage}
           name="location-type-object-storage"
@@ -293,7 +331,7 @@ const RegistrationCommonFormSections = <D extends RegistrationCommonFormData>({
           onClose={() => setAutofillModalOpen(false)}
           onSubmit={(connection) => {
             fillObjectStorageByConnection(connection);
-            setAutofillModalOpen(false);
+            setAutofillModalOpen(false); 
           }}
         />
       ) : null} */}
