@@ -1,0 +1,42 @@
+name: Setup Python with Poetry and Nox
+description: Sets up Python, pip, Poetry, and Nox for use in workflows
+inputs:
+  python-version:
+    description: Python version to use
+    required: true
+runs:
+  using: composite
+  steps:
+    - name: Set up Python ${{ inputs.python-version }}
+      uses: actions/setup-python@v6
+      with:
+        python-version: ${{ inputs.python-version }}
+
+    - name: Upgrade pip
+      shell: bash
+      run: |
+        pip install --constraint=.github/workflows/constraints.txt pip
+        pip --version
+
+    - name: Upgrade pip in virtual environments
+      shell: python
+      run: |
+        import os
+        import pip
+
+        with open(os.environ["GITHUB_ENV"], mode="a") as io:
+            print(f"VIRTUALENV_PIP={pip.__version__}", file=io)
+
+    - name: Install Poetry
+      shell: bash
+      run: |
+        pipx install --pip-args=--constraint=${{ github.workspace }}/.github/workflows/constraints.txt poetry
+        poetry --version
+        pipx inject poetry poetry-plugin-export
+
+    - name: Install Nox
+      shell: bash
+      run: |
+        pipx install --pip-args=--constraint=${{ github.workspace }}/.github/workflows/constraints.txt nox
+        pipx inject --pip-args=--constraint=${{ github.workspace }}/.github/workflows/constraints.txt nox nox-poetry
+        nox --version

@@ -32,33 +32,10 @@ jobs:
     steps:
       - name: Check out the repository
         uses: actions/checkout@v6.0.1
-      - name: Set up Python ${{ matrix.python }}
-        uses: actions/setup-python@v6
+      - name: Setup Python, Poetry, and Nox
+        uses: ./.github/actions/setup-python-poetry
         with:
           python-version: ${{ matrix.python }}
-      - name: Upgrade pip
-        run: |
-          pip install --constraint=.github/workflows/constraints.txt pip
-          pip --version
-      - name: Upgrade pip in virtual environments
-        shell: python
-        run: |
-          import os
-          import pip
-
-          with open(os.environ["GITHUB_ENV"], mode="a") as io:
-              print(f"VIRTUALENV_PIP={pip.__version__}", file=io)
-      - name: Install Poetry
-        # use absolute path as recommended with: https://github.com/pypa/pipx/issues/1331
-        run: |
-          pipx install --pip-args=--constraint=${{ github.workspace }}/.github/workflows/constraints.txt poetry
-          poetry --version
-          pipx inject poetry poetry-plugin-export
-      - name: Install Nox
-        run: |
-          pipx install --pip-args=--constraint=${{ github.workspace }}/.github/workflows/constraints.txt nox
-          pipx inject --pip-args=--constraint=${{ github.workspace }}/.github/workflows/constraints.txt nox nox-poetry
-          nox --version
       - name: Nox lint
         working-directory: clients/python
         run: |
@@ -142,33 +119,10 @@ jobs:
     steps:
       - name: Check out the repository
         uses: actions/checkout@v6.0.1
-      - name: Set up Python ${{ matrix.python }}
-        uses: actions/setup-python@v6
+      - name: Setup Python, Poetry, and Nox
+        uses: ./.github/actions/setup-python-poetry
         with:
           python-version: ${{ matrix.python }}
-      - name: Upgrade pip
-        run: |
-          pip install --constraint=.github/workflows/constraints.txt pip
-          pip --version
-      - name: Upgrade pip in virtual environments
-        shell: python
-        run: |
-          import os
-          import pip
-
-          with open(os.environ["GITHUB_ENV"], mode="a") as io:
-              print(f"VIRTUALENV_PIP={pip.__version__}", file=io)
-      - name: Install Poetry
-        # use absolute path as recommended with: https://github.com/pypa/pipx/issues/1331
-        run: |
-          pipx install --pip-args=--constraint=${{ github.workspace }}/.github/workflows/constraints.txt poetry
-          poetry --version
-          pipx inject poetry poetry-plugin-export
-      - name: Install Nox
-        run: |
-          pipx install --pip-args=--constraint=${{ github.workspace }}/.github/workflows/constraints.txt nox
-          pipx inject --pip-args=--constraint=${{ github.workspace }}/.github/workflows/constraints.txt nox nox-poetry
-          nox --version
       - name: Install Storage Clients
         # Oras should be available in the GH Action CI by default
         # See: https://oras.land/docs/installation/#runner-machine-of-azure-devops-and-github-actions
@@ -251,33 +205,10 @@ jobs:
     steps:
       - name: Check out the repository
         uses: actions/checkout@v6.0.1
-      - name: Set up Python ${{ matrix.python }}
-        uses: actions/setup-python@v6
+      - name: Setup Python, Poetry, and Nox
+        uses: ./.github/actions/setup-python-poetry
         with:
           python-version: ${{ matrix.python }}
-      - name: Upgrade pip
-        run: |
-          pip install --constraint=.github/workflows/constraints.txt pip
-          pip --version
-      - name: Upgrade pip in virtual environments
-        shell: python
-        run: |
-          import os
-          import pip
-
-          with open(os.environ["GITHUB_ENV"], mode="a") as io:
-              print(f"VIRTUALENV_PIP={pip.__version__}", file=io)
-      - name: Install Poetry
-        # use absolute path as recommended with: https://github.com/pypa/pipx/issues/1331
-        run: |
-          pipx install --pip-args=--constraint=${{ github.workspace }}/.github/workflows/constraints.txt poetry
-          poetry --version
-          pipx inject poetry poetry-plugin-export
-      - name: Install Nox
-        run: |
-          pipx install --pip-args=--constraint=${{ github.workspace }}/.github/workflows/constraints.txt nox
-          pipx inject --pip-args=--constraint=${{ github.workspace }}/.github/workflows/constraints.txt nox nox-poetry
-          nox --version
       - name: Run Nox
         working-directory: clients/python
         run: |
@@ -325,33 +256,10 @@ jobs:
     steps:
       - name: Check out the repository
         uses: actions/checkout@v6.0.1
-      - name: Set up Python ${{ matrix.python }}
-        uses: actions/setup-python@v6
+      - name: Setup Python, Poetry, and Nox
+        uses: ./.github/actions/setup-python-poetry
         with:
           python-version: ${{ matrix.python }}
-      - name: Upgrade pip
-        run: |
-          pip install --constraint=.github/workflows/constraints.txt pip
-          pip --version
-      - name: Upgrade pip in virtual environments
-        shell: python
-        run: |
-          import os
-          import pip
-
-          with open(os.environ["GITHUB_ENV"], mode="a") as io:
-              print(f"VIRTUALENV_PIP={pip.__version__}", file=io)
-      - name: Install Poetry
-        # use absolute path as recommended with: https://github.com/pypa/pipx/issues/1331
-        run: |
-          pipx install --pip-args=--constraint=${{ github.workspace }}/.github/workflows/constraints.txt poetry
-          poetry --version
-          pipx inject poetry poetry-plugin-export
-      - name: Install Nox
-        run: |
-          pipx install --pip-args=--constraint=${{ github.workspace }}/.github/workflows/constraints.txt nox
-          pipx inject --pip-args=--constraint=${{ github.workspace }}/.github/workflows/constraints.txt nox nox-poetry
-          nox --version
       - name: Start Kind Cluster
         uses: helm/kind-action@v1.13.0
         with:
