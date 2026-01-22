@@ -58,6 +58,7 @@ def e2e_tests(session: Session) -> None:
         "pytest-xdist",
         "coverage[toml]",
         "pytest-cov",
+        "schemathesis",
     )
     try:
         session.run(
