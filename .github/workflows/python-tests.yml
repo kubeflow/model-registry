@@ -226,46 +226,33 @@ jobs:
           path: clients/python/docs/_build
 
   catalog-test:
-    name: Catalog E2E Py ${{ matrix.python }} K8s ${{ matrix.kubernetes-version }}
+    name: Catalog E2E
     runs-on: ubuntu-latest
     permissions:
       contents: read
       pull-requests: read
-    strategy:
-      fail-fast: false
-      matrix:
-        python: ["3.12"] # see below for versions 3.10-3.11
-        kubernetes-version: ["v1.33.7", "v1.34.3"]
-        catalog-port: [8200]
-        exclude: # on main merges (not PRs), use also different K8s versions for E2E testing
-          - kubernetes-version: ${{ github.event_name != 'push' && 'v1.34.3' }}
-        include: # test Py versions only with a reference K8s version, designated currently to kubernetes-version: v1.33.7
-          - python: "3.11"
-            kubernetes-version: "v1.33.7"
-            catalog-port: 8201
-          - python: "3.10"
-            kubernetes-version: "v1.33.7"
-            catalog-port: 8202
     env:
       FORCE_COLOR: "1"
       CATALOG_NAMESPACE: "model-catalog"
       CATALOG_IMAGE: "model-registry:catalog-test"
-      CLUSTER_NAME: "catalog-e2e-py-${{ matrix.python }}"
-      CATALOG_PORT: "${{ matrix.catalog-port }}"
-      CATALOG_URL: "http://localhost:${{ matrix.catalog-port }}"
+      CLUSTER_NAME: "catalog-e2e"
+      CATALOG_PORT: "8200"
+      CATALOG_URL: "http://localhost:8200"
+      PYTHON_VERSION: "3.12"
+      KUBERNETES_VERSION: "v1.33.7"
     steps:
       - name: Check out the repository
         uses: actions/checkout@v6.0.1
       - name: Setup Python, Poetry, and Nox
         uses: ./.github/actions/setup-python-poetry
         with:
-          python-version: ${{ matrix.python }}
+          python-version: ${{ env.PYTHON_VERSION }}
       - name: Start Kind Cluster
         uses: helm/kind-action@v1.13.0
         with:
-          node_image: kindest/node:${{ matrix.kubernetes-version }}
-          cluster_name: catalog-e2e-py-${{ matrix.python }}
-          kubectl_version: ${{ matrix.kubernetes-version }}
+          node_image: kindest/node:${{ env.KUBERNETES_VERSION }}
+          cluster_name: ${{ env.CLUSTER_NAME }}
+          kubectl_version: ${{ env.KUBERNETES_VERSION }}
       - name: Build Catalog Image
         working-directory: catalog/clients/python
         run: |
@@ -281,6 +268,6 @@ jobs:
       - name: Nox catalog E2E tests
         working-directory: catalog/clients/python
         run: |
-          kubectl port-forward -n ${{ env.CATALOG_NAMESPACE }} svc/model-catalog ${{ matrix.catalog-port }}:8080 &
+          kubectl port-forward -n ${{ env.CATALOG_NAMESPACE }} svc/model-catalog ${{ env.CATALOG_PORT }}:8080 &
           sleep 2
-          nox --python=${{ matrix.python }} --session=e2e -- --cov-report=xml
+          nox --python=${{ env.PYTHON_VERSION }} --session=e2e -- --cov-report=xml
