@@ -293,3 +293,86 @@ jobs:
         with:
           name: py-docs
           path: clients/python/docs/_build
+
+  catalog-test:
+    name: Catalog E2E Py ${{ matrix.python }} K8s ${{ matrix.kubernetes-version }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: read
+    strategy:
+      fail-fast: false
+      matrix:
+        python: ["3.12"] # see below for versions 3.10-3.11
+        kubernetes-version: ["v1.33.7", "v1.34.3"]
+        catalog-port: [8200] # unique port to avoid conflicts with test job
+        exclude: # on main merges (not PRs), use also different K8s versions for E2E testing
+          - kubernetes-version: ${{ github.event_name != 'push' && 'v1.34.3' }}
+        include: # test Py versions only with a reference K8s version, designated currently to kubernetes-version: v1.33.7
+          - python: "3.11"
+            kubernetes-version: "v1.33.7"
+            catalog-port: 8201
+          - python: "3.10"
+            kubernetes-version: "v1.33.7"
+            catalog-port: 8202
+    env:
+      FORCE_COLOR: "1"
+      CATALOG_NAMESPACE: "model-catalog"
+      CATALOG_IMAGE: "model-registry:catalog-test"
+      CLUSTER_NAME: "catalog-e2e-py-${{ matrix.python }}"
+      CATALOG_PORT: "${{ matrix.catalog-port }}"
+      CATALOG_URL: "http://localhost:${{ matrix.catalog-port }}"
+    steps:
+      - name: Check out the repository
+        uses: actions/checkout@v6.0.1
+      - name: Set up Python ${{ matrix.python }}
+        uses: actions/setup-python@v6
+        with:
+          python-version: ${{ matrix.python }}
+      - name: Upgrade pip
+        run: |
+          pip install --constraint=.github/workflows/constraints.txt pip
+          pip --version
+      - name: Upgrade pip in virtual environments
+        shell: python
+        run: |
+          import os
+          import pip
+
+          with open(os.environ["GITHUB_ENV"], mode="a") as io:
+              print(f"VIRTUALENV_PIP={pip.__version__}", file=io)
+      - name: Install Poetry
+        # use absolute path as recommended with: https://github.com/pypa/pipx/issues/1331
+        run: |
+          pipx install --pip-args=--constraint=${{ github.workspace }}/.github/workflows/constraints.txt poetry
+          poetry --version
+          pipx inject poetry poetry-plugin-export
+      - name: Install Nox
+        run: |
+          pipx install --pip-args=--constraint=${{ github.workspace }}/.github/workflows/constraints.txt nox
+          pipx inject --pip-args=--constraint=${{ github.workspace }}/.github/workflows/constraints.txt nox nox-poetry
+          nox --version
+      - name: Start Kind Cluster
+        uses: helm/kind-action@v1.13.0
+        with:
+          node_image: kindest/node:${{ matrix.kubernetes-version }}
+          cluster_name: catalog-e2e-py-${{ matrix.python }}
+          kubectl_version: ${{ matrix.kubernetes-version }}
+      - name: Build Catalog Image
+        working-directory: catalog/clients/python
+        run: |
+          make deploy-build
+      - name: Load Catalog Image into Kind
+        working-directory: catalog/clients/python
+        run: |
+          make deploy-load
+      - name: Deploy Catalog to Kind
+        working-directory: catalog/clients/python
+        run: |
+          make deploy-apply
+      - name: Nox catalog E2E tests
+        working-directory: catalog/clients/python
+        run: |
+          kubectl port-forward -n ${{ env.CATALOG_NAMESPACE }} svc/model-catalog ${{ matrix.catalog-port }}:8080 &
+          sleep 2
+          nox --python=${{ matrix.python }} --session=e2e -- --cov-report=xml
