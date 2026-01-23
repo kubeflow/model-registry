@@ -191,11 +191,21 @@ deploy-namespace:
 	kubectl create namespace "$(CATALOG_NAMESPACE)" --dry-run=client -o yaml | kubectl apply -f -
 
 # Install kustomize with pinned version
+# Note: Retry logic is needed because the install script may hit GitHub API rate limits,
+# especially when multiple jobs run in parallel in CI/CD (e.g., GitHub Actions).
 .PHONY: deploy-kustomize
 deploy-kustomize: $(LOCALBIN)
 	@if [ ! -f $(KUSTOMIZE) ]; then \
 		echo "Installing kustomize $(KUSTOMIZE_VERSION) to $(LOCALBIN)..."; \
-		curl -s "https://raw.githubusercontent.com/kubernetes-sigs/kustomize/master/hack/install_kustomize.sh" | bash -s $(KUSTOMIZE_VERSION) $(LOCALBIN); \
+		for i in 1 2 3; do \
+			echo "Attempt $$i of 3..."; \
+			curl -s "https://raw.githubusercontent.com/kubernetes-sigs/kustomize/master/hack/install_kustomize.sh" | bash -s $(KUSTOMIZE_VERSION) $(LOCALBIN) && break || \
+			{ echo "Installation failed, retrying in 5 seconds..."; sleep 5; }; \
+		done; \
+		if [ ! -f $(KUSTOMIZE) ]; then \
+			echo "ERROR: Kustomize installation failed after 3 attempts"; \
+			exit 1; \
+		fi; \
 		echo "[OK] Kustomize $(KUSTOMIZE_VERSION) installed"; \
 	else \
 		echo "Kustomize already installed at $(KUSTOMIZE)"; \
