@@ -10,6 +10,7 @@ import {
 } from '@patternfly/react-core';
 import spacing from '@patternfly/react-styles/css/utilities/Spacing/spacing';
 import { UpdateObjectAtPropAndValue } from 'mod-arch-shared';
+import PasswordInput from '~/app/shared/components/PasswordInput';
 import FormFieldset from '~/app/pages/modelRegistry/screens/components/FormFieldset';
 import { ModelLocationType, RegistrationCommonFormData } from './useRegisterModelData';
 
@@ -17,14 +18,14 @@ type RegistrationModelLocationFieldsProps<D extends RegistrationCommonFormData> 
   formData: D;
   setData: UpdateObjectAtPropAndValue<D>;
   isCatalogModel?: boolean;
-  hideRadioButtons?: boolean;
+  includeCredentialFields?: boolean;
 };
 
 const RegistrationModelLocationFields = <D extends RegistrationCommonFormData>({
   formData,
   setData,
   isCatalogModel,
-  hideRadioButtons = false,
+  includeCredentialFields = false,
 }: RegistrationModelLocationFieldsProps<D>): React.ReactNode => {
   const {
     modelLocationType,
@@ -33,6 +34,8 @@ const RegistrationModelLocationFields = <D extends RegistrationCommonFormData>({
     modelLocationRegion,
     modelLocationPath,
     modelLocationURI,
+    modelLocationS3AccessKeyId,
+    modelLocationS3SecretAccessKey,
   } = formData;
 
   const endpointInput = (
@@ -92,21 +95,40 @@ const RegistrationModelLocationFields = <D extends RegistrationCommonFormData>({
     />
   );
 
+  const s3AccessKeyIdInput = (
+    <TextInput
+      isRequired
+      type="text"
+      id="location-s3-access-key-id"
+      name="location-s3-access-key-id"
+      value={modelLocationS3AccessKeyId}
+      onChange={(_e, value) => setData('modelLocationS3AccessKeyId', value)}
+    />
+  );
+
+  const s3SecretAccessKeyInput = (
+    <PasswordInput
+      isRequired
+      id="location-s3-secret-access-key"
+      name="location-s3-secret-access-key"
+      value={modelLocationS3SecretAccessKey}
+      onChange={(_e, value) => setData('modelLocationS3SecretAccessKey', value)}
+    />
+  );
+
   return (
     <>
-      {!hideRadioButtons && (
-        <Radio
-          isChecked={modelLocationType === ModelLocationType.ObjectStorage}
-          name="location-type-object-storage"
-          isDisabled={isCatalogModel}
-          onChange={() => {
-            setData('modelLocationType', ModelLocationType.ObjectStorage);
-          }}
-          label="Object storage"
-          id="location-type-object-storage"
-        />
-      )}
-      {(hideRadioButtons || modelLocationType === ModelLocationType.ObjectStorage) && (
+      <Radio
+        isChecked={modelLocationType === ModelLocationType.ObjectStorage}
+        name="location-type-object-storage"
+        isDisabled={isCatalogModel}
+        onChange={() => {
+          setData('modelLocationType', ModelLocationType.ObjectStorage);
+        }}
+        label="Object storage"
+        id="location-type-object-storage"
+      />
+      {modelLocationType === ModelLocationType.ObjectStorage && (
         <>
           <FormGroup
             className={spacing.mlLg}
@@ -135,26 +157,42 @@ const RegistrationModelLocationFields = <D extends RegistrationCommonFormData>({
               </HelperTextItem>
             </HelperText>
           </FormGroup>
-        </>
-      )}
-      {!hideRadioButtons && (
-        <>
-          <Radio
-            isChecked={modelLocationType === ModelLocationType.URI}
-            name="location-type-uri"
-            onChange={() => {
-              setData('modelLocationType', ModelLocationType.URI);
-            }}
-            label="URI"
-            id="location-type-uri"
-          />
-          {modelLocationType === ModelLocationType.URI && (
+          {includeCredentialFields && (
             <>
-              <FormGroup className={spacing.mlLg} label="URI" isRequired fieldId="location-uri">
-                <FormFieldset component={uriInput} field="URI" />
+              <FormGroup
+                className={spacing.mlLg}
+                label="Access Key ID"
+                isRequired
+                fieldId="location-s3-access-key-id"
+              >
+                <FormFieldset component={s3AccessKeyIdInput} field="Access Key ID" />
+              </FormGroup>
+              <FormGroup
+                className={spacing.mlLg}
+                label="Secret Access Key"
+                isRequired
+                fieldId="location-s3-secret-access-key"
+              >
+                <FormFieldset component={s3SecretAccessKeyInput} field="Secret Access Key" />
               </FormGroup>
             </>
           )}
+        </>
+      )}
+      <Radio
+        isChecked={modelLocationType === ModelLocationType.URI}
+        name="location-type-uri"
+        onChange={() => {
+          setData('modelLocationType', ModelLocationType.URI);
+        }}
+        label="URI"
+        id="location-type-uri"
+      />
+      {modelLocationType === ModelLocationType.URI && (
+        <>
+          <FormGroup className={spacing.mlLg} label="URI" isRequired fieldId="location-uri">
+            <FormFieldset component={uriInput} field="URI" />
+          </FormGroup>
         </>
       )}
     </>

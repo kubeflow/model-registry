@@ -38,7 +38,7 @@ const RegisterAndStoreFields = <D extends RegistrationCommonFormData>({
     </FormSection>
     <FormSection
       title="Model destination location"
-      description="Specify the location that will be used to store the registered model."
+      description="Specify the OCI registry location that will be used to store the registered model."
     >
       <RegistrationDestinationLocationFields formData={formData} setData={setData} />
     </FormSection>

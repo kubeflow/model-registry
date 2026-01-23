@@ -7,11 +7,6 @@ export enum ModelLocationType {
   URI = 'URI',
 }
 
-export enum DestinationStorageType {
-  S3 = 'S3',
-  OCI = 'OCI',
-}
-
 export type RegistrationCommonFormData = {
   versionName: string;
   versionDescription: string;
@@ -23,13 +18,8 @@ export type RegistrationCommonFormData = {
   modelLocationRegion: string;
   modelLocationPath: string;
   modelLocationURI: string;
-  destinationStorageType: DestinationStorageType;
-  destinationS3AccessKeyId: string;
-  destinationS3SecretAccessKey: string;
-  destinationS3Endpoint: string;
-  destinationS3Bucket: string;
-  destinationS3Region: string;
-  destinationS3Path: string;
+  modelLocationS3AccessKeyId: string;
+  modelLocationS3SecretAccessKey: string;
   destinationOciRegistry: string;
   destinationOciUsername: string;
   destinationOciPassword: string;
@@ -64,13 +54,8 @@ const registrationCommonFormDataDefaults: RegistrationCommonFormData = {
   modelLocationRegion: '',
   modelLocationPath: '',
   modelLocationURI: '',
-  destinationStorageType: DestinationStorageType.S3,
-  destinationS3AccessKeyId: '',
-  destinationS3SecretAccessKey: '',
-  destinationS3Endpoint: '',
-  destinationS3Bucket: '',
-  destinationS3Region: '',
-  destinationS3Path: '',
+  modelLocationS3AccessKeyId: '',
+  modelLocationS3SecretAccessKey: '',
   destinationOciRegistry: '',
   destinationOciUsername: '',
   destinationOciPassword: '',
