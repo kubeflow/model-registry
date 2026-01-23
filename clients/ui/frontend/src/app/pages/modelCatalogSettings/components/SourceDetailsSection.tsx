@@ -39,7 +39,6 @@ const SourceDetailsSection: React.FC<SourceDetailsSectionProps> = ({
   const [isNameTouched, setIsNameTouched] = React.useState(false);
   const isNameValid = validateSourceName(formData.name);
   const hasNameError = isNameTouched && !isNameValid;
-  const isNameEmpty = isSourceNameEmpty(formData.name);
 
   const nameInput = (
     <TextInput
@@ -64,9 +63,11 @@ const SourceDetailsSection: React.FC<SourceDetailsSectionProps> = ({
           <FormHelperText>
             <HelperText>
               <HelperTextItem variant="error" data-testid="source-name-error">
-                {isNameEmpty
+                {isSourceNameEmpty(formData.name)
                   ? VALIDATION_MESSAGES.NAME_REQUIRED
-                  : `Cannot exceed ${SOURCE_NAME_CHARACTER_LIMIT} characters`}
+                  : formData.name.length > SOURCE_NAME_CHARACTER_LIMIT
+                    ? `Cannot exceed ${SOURCE_NAME_CHARACTER_LIMIT} characters`
+                    : null}
               </HelperTextItem>
             </HelperText>
           </FormHelperText>

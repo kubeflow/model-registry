@@ -9,9 +9,6 @@ export const validateSourceName = (name: string): boolean =>
 
 export const isSourceNameEmpty = (name: string): boolean => !isNonEmptyString(name);
 
-export const isSourceNameTooLong = (name: string): boolean =>
-  name.length > SOURCE_NAME_CHARACTER_LIMIT;
-
 export const validateOrganization = (organization: string): boolean =>
   isNonEmptyString(organization);
 
