@@ -58,10 +58,7 @@ class ModelRegistryAPIClient:
             custom_ca: The path to a PEM-
         """
         parsed_url = urlparse(server_address if "//" in server_address else f"//{server_address}")
-        if parsed_url.port:
-            host = server_address
-        else:
-            host = f"{server_address}:{port}"
+        host = server_address if parsed_url.port else f"{server_address}:{port}"
 
         return cls(
             Configuration(
@@ -86,10 +83,7 @@ class ModelRegistryAPIClient:
             user_token: The PEM-encoded user token as a string.
         """
         parsed_url = urlparse(server_address if "//" in server_address else f"//{server_address}")
-        if parsed_url.port:
-            host = server_address
-        else:
-            host = f"{server_address}:{port}"
+        host = server_address if parsed_url.port else f"{server_address}:{port}"
 
         config = Configuration(
             host=host,
