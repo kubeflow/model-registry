@@ -6,6 +6,7 @@ from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 from dataclasses import dataclass
 from typing import TypeVar, cast, overload
+from urllib.parse import urlparse
 
 from mr_openapi import (
     ApiClient,
@@ -56,9 +57,15 @@ class ModelRegistryAPIClient:
             user_token: The PEM-encoded user token as a string.
             custom_ca: The path to a PEM-
         """
+        parsed_url = urlparse(server_address if "//" in server_address else f"//{server_address}")
+        if parsed_url.port:
+            host = server_address
+        else:
+            host = f"{server_address}:{port}"
+
         return cls(
             Configuration(
-                f"{server_address}:{port}",
+                host=host,
                 access_token=user_token,
                 ssl_ca_cert=custom_ca,
             )
@@ -78,8 +85,14 @@ class ModelRegistryAPIClient:
             port: Server port.
             user_token: The PEM-encoded user token as a string.
         """
+        parsed_url = urlparse(server_address if "//" in server_address else f"//{server_address}")
+        if parsed_url.port:
+            host = server_address
+        else:
+            host = f"{server_address}:{port}"
+
         config = Configuration(
-            host=f"{server_address}:{port}",
+            host=host,
             access_token=user_token,
             verify_ssl=False,
         )
