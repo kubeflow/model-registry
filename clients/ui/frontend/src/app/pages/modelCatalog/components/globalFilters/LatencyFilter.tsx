@@ -102,6 +102,8 @@ const LatencyFilter: React.FC = () => {
     return defaultFilterState;
   });
 
+  const appliedFilterStateRef = React.useRef<LatencyFilterState | null>(null);
+
   // Update local filter when active filter changes
   React.useEffect(() => {
     if (currentActiveFilter) {
@@ -112,6 +114,23 @@ const LatencyFilter: React.FC = () => {
       });
     }
   }, [currentActiveFilter]);
+
+  // Capture the applied filter state when menu opens
+  React.useEffect(() => {
+    if (isOpen) {
+      // Capture the current filter state when menu opens
+      if (currentActiveFilter) {
+        appliedFilterStateRef.current = {
+          metric: currentActiveFilter.metric,
+          percentile: currentActiveFilter.percentile,
+          value: currentActiveFilter.value,
+        };
+      } else {
+        appliedFilterStateRef.current = defaultFilterState;
+      }
+      setLocalFilter(appliedFilterStateRef.current);
+    }
+  }, [isOpen, currentActiveFilter, defaultFilterState]);
 
   const { minValue, maxValue, isSliderDisabled } = React.useMemo((): SliderRange => {
     const filterKey = getLatencyFilterKey(localFilter.metric, localFilter.percentile);
@@ -173,21 +192,15 @@ const LatencyFilter: React.FC = () => {
   };
 
   const handleReset = () => {
-    // Reset to default latency filter (performance filters should reset to defaults, not clear)
-    // First clear any existing latency filter
-    if (currentActiveFilter) {
-      setFilterData(currentActiveFilter.fieldName, undefined);
+    // Reset to the filter state that was active when menu opened (not the original default)
+    if (appliedFilterStateRef.current) {
+      const resetState = appliedFilterStateRef.current;
+      setLocalFilter(resetState);
+      // Update the refs so the useEffect doesn't think metric/percentile changed
+      // This prevents the value from being reset to maxValue
+      prevMetricRef.current = resetState.metric;
+      prevPercentileRef.current = resetState.percentile;
     }
-
-    // Apply the default latency filter
-    const defaultFilterKey = getLatencyFilterKey(
-      defaultFilterState.metric,
-      defaultFilterState.percentile,
-    );
-    setFilterData(defaultFilterKey, defaultFilterState.value);
-
-    // Reset local filter to default
-    setLocalFilter(defaultFilterState);
   };
 
   const toggle = (toggleRef: React.Ref<MenuToggleElement>) => (
