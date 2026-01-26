@@ -375,7 +375,7 @@ describe('Model Catalog Details Tabs', () => {
         modelCatalog.findHardwareConfigurationTableHeaders().should('not.contain.text', 'ITL');
       });
 
-      it('should reset to default latency filter (TTFT P90) when filter is reset', () => {
+      it('should reset to applied values when changes were made in the dropdown', () => {
         modelCatalog.findModelCatalogDetailLink().first().click();
         modelCatalog.clickPerformanceInsightsTab();
 
@@ -391,24 +391,18 @@ describe('Model Catalog Details Tabs', () => {
           .should('contain.text', `E2E${NBSP}Latency Mean`);
         modelCatalog.findHardwareConfigurationTableHeaders().should('not.contain.text', 'TTFT');
 
-        // Open filter and reset - this should apply the default (TTFT P90), not clear completely
         modelCatalog.openLatencyFilter();
-        modelCatalog.clickResetFilter();
+        modelCatalog.selectLatencyMetric('TTFT');
+        modelCatalog.selectLatencyPercentile('P90');
 
-        // Close the dropdown by clicking outside
+        // Click reset - should restore to applied values (E2E Mean), not apply filter
+        modelCatalog.clickResetFilter();
         cy.get('body').click(0, 0);
 
-        // Default latency filter (TTFT P90) should be applied
-        // Only TTFT and TPS P90 columns should be visible
         modelCatalog
           .findHardwareConfigurationTableHeaders()
-          .should('contain.text', `TTFT${NBSP}Latency P90`);
-        modelCatalog
-          .findHardwareConfigurationTableHeaders()
-          .should('contain.text', `TPS${NBSP}P90`);
-        // E2E and ITL should NOT be visible (filter is applied, not cleared)
-        modelCatalog.findHardwareConfigurationTableHeaders().should('not.contain.text', 'E2E');
-        modelCatalog.findHardwareConfigurationTableHeaders().should('not.contain.text', 'ITL');
+          .should('contain.text', `E2E${NBSP}Latency Mean`);
+        modelCatalog.findHardwareConfigurationTableHeaders().should('not.contain.text', 'TTFT');
       });
 
       it('should keep non-latency columns visible when latency filter is applied', () => {
