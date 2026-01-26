@@ -9,14 +9,14 @@ import requests  # type: ignore[import-untyped,unused-ignore]
 import schemathesis
 from schemathesis import Case, Response
 from schemathesis.generation.stateful.state_machine import APIStateMachine
-from schemathesis.specs.openapi.schemas import BaseOpenAPISchema
+from schemathesis.specs.openapi.schemas import OpenApiSchema
 
 from tests.constants import DEFAULT_API_TIMEOUT, REGISTRY_URL
 
 
 @pytest.fixture
 def generated_schema(request: pytest.FixtureRequest, pytestconfig: pytest.Config,
-                     verify_ssl: bool) -> BaseOpenAPISchema:
+                     verify_ssl: bool) -> OpenApiSchema:
     """Generate schema for the API based on the schema_file parameter"""
     schema_file = getattr(request, "param", "model-registry.yaml")
     os.environ["API_HOST"] = REGISTRY_URL
@@ -62,7 +62,7 @@ def auth_headers(user_token: str) -> dict[str, str]:
 
 
 @pytest.fixture
-def state_machine(generated_schema: BaseOpenAPISchema, auth_headers: str, pytestconfig: pytest.Config,
+def state_machine(generated_schema: OpenApiSchema, auth_headers: str, pytestconfig: pytest.Config,
                   verify_ssl: bool) -> APIStateMachine:
     BaseAPIWorkflow = generated_schema.as_state_machine()
 
