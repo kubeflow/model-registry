@@ -31,7 +31,7 @@ jobs:
       FORCE_COLOR: "1"
     steps:
       - name: Check out the repository
-        uses: actions/checkout@v6.0.1
+        uses: actions/checkout@v6
       - name: Setup Python, Poetry, and Nox
         uses: ./.github/actions/setup-python-poetry
         with:
@@ -51,7 +51,7 @@ jobs:
         nodejs: ["20"]
     steps:
       - name: Check out the repository
-        uses: actions/checkout@v6.0.1
+        uses: actions/checkout@v6
         with:
           fetch-depth: 0
       - name: Set up Python
@@ -118,7 +118,7 @@ jobs:
       DEPLOY_MANIFEST_DB: "${{ matrix.manifest-db }}"
     steps:
       - name: Check out the repository
-        uses: actions/checkout@v6.0.1
+        uses: actions/checkout@v6
       - name: Setup Python, Poetry, and Nox
         uses: ./.github/actions/setup-python-poetry
         with:
@@ -204,7 +204,7 @@ jobs:
       FORCE_COLOR: "1"
     steps:
       - name: Check out the repository
-        uses: actions/checkout@v6.0.1
+        uses: actions/checkout@v6
       - name: Setup Python, Poetry, and Nox
         uses: ./.github/actions/setup-python-poetry
         with:
@@ -242,7 +242,7 @@ jobs:
       KUBERNETES_VERSION: "v1.33.7"
     steps:
       - name: Check out the repository
-        uses: actions/checkout@v6.0.1
+        uses: actions/checkout@v6
       - name: Setup Python, Poetry, and Nox
         uses: ./.github/actions/setup-python-poetry
         with:
