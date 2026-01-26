@@ -75,13 +75,11 @@ class CatalogModel(BaseModel):
         * `None` is only added to the output dict for nullable fields that
           were set at model initialization. Other fields with value `None`
           are ignored.
-        * OpenAPI `readOnly` fields are excluded.
-        * OpenAPI `readOnly` fields are excluded.
+        * OpenAPI `readOnly` fields were excluded:
+        "create_time_since_epoch" and "last_update_time_since_epoch" are now
+        being returned to properly test them in e2e test.
         """
-        excluded_fields: set[str] = set([
-            "create_time_since_epoch",
-            "last_update_time_since_epoch",
-        ])
+        excluded_fields: set[str] = set([])
 
         _dict = self.model_dump(
             by_alias=True,
