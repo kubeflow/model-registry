@@ -229,21 +229,6 @@ export enum CatalogModelCustomPropertyKey {
   ARCHITECTURE = 'architecture',
 }
 
-/**
- * Valid CPU architecture types
- */
-export enum CpuArchitecture {
-  AMD64 = 'amd64',
-  ARM64 = 'arm64',
-  S390X = 's390x',
-  PPC64LE = 'ppc64le',
-}
-
-/**
- * Set of valid CPU architectures for validation
- */
-export const VALID_ARCHITECTURES = new Set<string>(Object.values(CpuArchitecture));
-
 export enum ModelCatalogLicense {
   APACHE_2_0 = 'apache-2.0',
   GEMMA = 'gemma',

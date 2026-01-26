@@ -918,6 +918,31 @@ describe('getArchitecturesFromArtifacts', () => {
     expect(result).toEqual([]);
   });
 
+  it('should log a warning when architecture JSON is invalid', () => {
+    const originalEnv = process.env.NODE_ENV;
+    process.env.NODE_ENV = 'development';
+
+    const warnSpy = jest.spyOn(console, 'warn').mockImplementation();
+    const artifact = mockCatalogModelArtifact({
+      customProperties: {
+        architecture: {
+          string_value: 'not valid json',
+          metadataType: ModelRegistryMetadataType.STRING,
+        },
+      },
+    });
+
+    getArchitecturesFromArtifacts([artifact]);
+
+    expect(warnSpy).toHaveBeenCalledWith(
+      'Failed to parse architecture JSON:',
+      'not valid json',
+      expect.any(Error),
+    );
+    warnSpy.mockRestore();
+    process.env.NODE_ENV = originalEnv;
+  });
+
   it('should return empty array when architecture JSON is not an array', () => {
     const artifact = mockCatalogModelArtifact({
       customProperties: {
@@ -983,17 +1008,17 @@ describe('getArchitecturesFromArtifacts', () => {
     expect(result).toEqual(['amd64', 'arm64', 's390x']);
   });
 
-  it('should filter out invalid architecture types', () => {
+  it('should return all architecture types without validation', () => {
     const artifact = mockCatalogModelArtifact({
       customProperties: {
         architecture: {
-          string_value: '["amd64", "invalid-arch", "arm64", "unknown"]',
+          string_value: '["amd64", "custom-arch", "arm64", "unknown"]',
           metadataType: ModelRegistryMetadataType.STRING,
         },
       },
     });
     const result = getArchitecturesFromArtifacts([artifact]);
-    expect(result).toEqual(['amd64', 'arm64']);
+    expect(result).toEqual(['amd64', 'custom-arch', 'arm64', 'unknown']);
   });
 
   it('should filter out non-string items from JSON array', () => {
@@ -1009,17 +1034,17 @@ describe('getArchitecturesFromArtifacts', () => {
     expect(result).toEqual(['amd64', 'arm64', 's390x']);
   });
 
-  it('should return empty array when all architectures are invalid', () => {
+  it('should return all architecture strings without validation', () => {
     const artifact = mockCatalogModelArtifact({
       customProperties: {
         architecture: {
-          string_value: '["invalid1", "invalid2", "unknown"]',
+          string_value: '["custom1", "custom2", "unknown"]',
           metadataType: ModelRegistryMetadataType.STRING,
         },
       },
     });
     const result = getArchitecturesFromArtifacts([artifact]);
-    expect(result).toEqual([]);
+    expect(result).toEqual(['custom1', 'custom2', 'unknown']);
   });
 
   it('should return empty array when array contains only non-string types', () => {
@@ -1121,7 +1146,7 @@ describe('getArchitecturesFromArtifacts', () => {
     expect(result).toEqual(['amd64', 'arm64']);
   });
 
-  it('should validate all CPU architecture types', () => {
+  it('should return all common CPU architecture types', () => {
     const artifact = mockCatalogModelArtifact({
       customProperties: {
         architecture: {
@@ -1136,6 +1161,32 @@ describe('getArchitecturesFromArtifacts', () => {
     expect(result).toContain('arm64');
     expect(result).toContain('s390x');
     expect(result).toContain('ppc64le');
+  });
+
+  it('should deduplicate architectures when duplicates exist', () => {
+    const artifact = mockCatalogModelArtifact({
+      customProperties: {
+        architecture: {
+          string_value: '["amd64", "AMD64", "amd64"]',
+          metadataType: ModelRegistryMetadataType.STRING,
+        },
+      },
+    });
+    const result = getArchitecturesFromArtifacts([artifact]);
+    expect(result).toEqual(['amd64']); // Should return only one instance
+  });
+
+  it('should deduplicate mixed case architectures across multiple values', () => {
+    const artifact = mockCatalogModelArtifact({
+      customProperties: {
+        architecture: {
+          string_value: '["amd64", "arm64", "AMD64", "ARM64", "amd64", "s390x"]',
+          metadataType: ModelRegistryMetadataType.STRING,
+        },
+      },
+    });
+    const result = getArchitecturesFromArtifacts([artifact]);
+    expect(result).toEqual(['amd64', 'arm64', 's390x']);
   });
 });
 

@@ -6,6 +6,7 @@ import {
   CatalogFilterOptions,
   CatalogFilterOptionsList,
   CatalogModel,
+  CatalogModelArtifact,
   CatalogModelDetailsParams,
   CatalogSource,
   CatalogSourceList,
@@ -20,13 +21,13 @@ import {
   ModelCatalogNumberFilterKey,
   ALL_LATENCY_FILTER_KEYS,
   LatencyMetricFieldName,
-  VALID_ARCHITECTURES,
   DEFAULT_PERFORMANCE_FILTERS_QUERY_NAME,
   isPerformanceStringFilterKey,
   PERFORMANCE_FILTER_KEYS,
   ModelCatalogSortOption,
   SortOrder,
   SortField,
+  CatalogModelCustomPropertyKey,
 } from '~/concepts/modelCatalog/const';
 import { CatalogSourceStatus } from '~/concepts/modelCatalogSettings/const';
 import { ModelRegistryMetadataType } from '~/app/types';
@@ -87,65 +88,71 @@ export const filterEnabledCatalogSources = (
 };
 
 export const getModelArtifactUri = (artifacts: CatalogArtifacts[]): string => {
-  const modelArtifact = artifacts.find(
-    (artifact) => artifact.artifactType === CatalogArtifactType.modelArtifact,
-  );
-
-  if (modelArtifact) {
-    return modelArtifact.uri || '';
-  }
-
-  return '';
+  const modelArtifact = findModelArtifact(artifacts);
+  return modelArtifact?.uri || '';
 };
 
 export const hasModelArtifacts = (artifacts: CatalogArtifacts[]): boolean =>
   artifacts.some((artifact) => artifact.artifactType === CatalogArtifactType.modelArtifact);
 
 /**
- * Extracts and validates architecture values from the model artifact's custom properties.
- * The architecture custom property should be a JSON-encoded array of architecture strings.
- * Only valid architecture types (amd64, arm64, s390x, ppc64le) are returned.
- *
+ * Finds the model artifact from an array of catalog artifacts.
  * @param artifacts Array of catalog artifacts to search
- * @returns Array of valid architecture strings, or empty array if none found or invalid
+ * @returns The model artifact if found, undefined otherwise
  */
-export const getArchitecturesFromArtifacts = (artifacts: CatalogArtifacts[]): string[] => {
-  const modelArtifact = artifacts.find(
-    (artifact) => artifact.artifactType === CatalogArtifactType.modelArtifact,
+const findModelArtifact = (artifacts: CatalogArtifacts[]): CatalogModelArtifact | undefined =>
+  artifacts.find(
+    (artifact): artifact is CatalogModelArtifact =>
+      artifact.artifactType === CatalogArtifactType.modelArtifact,
   );
 
-  if (!modelArtifact?.customProperties) {
+/**
+ * Extracts architecture values from the model artifact's custom properties.
+ * The architecture custom property should be a JSON-encoded array of architecture strings.
+ * Architectures are normalized to lowercase and deduplicated.
+ *
+ * @param artifacts Array of catalog artifacts to search
+ * @returns Array of architecture strings, or empty array if none found or invalid
+ */
+export const getArchitecturesFromArtifacts = (artifacts: CatalogArtifacts[]): string[] => {
+  const modelArtifact = findModelArtifact(artifacts);
+
+  if (!modelArtifact) {
     return [];
   }
 
-  // eslint-disable-next-line @typescript-eslint/dot-notation
-  const architectureProp = modelArtifact.customProperties['architecture'];
+  const architectureProp =
+    modelArtifact.customProperties?.[CatalogModelCustomPropertyKey.ARCHITECTURE];
 
-  // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
   if (!architectureProp || architectureProp.metadataType !== ModelRegistryMetadataType.STRING) {
     return [];
   }
 
   const architectureString = architectureProp.string_value;
 
-  if (!architectureString) {
-    return [];
-  }
-
   try {
-    const parsed = JSON.parse(architectureString);
-
-    if (!Array.isArray(parsed)) {
+    if (!architectureString) {
       return [];
     }
+    const parsed = JSON.parse(architectureString);
 
-    return parsed
-      .filter((item) => typeof item === 'string' && VALID_ARCHITECTURES.has(item.toLowerCase()))
-      .map((item) => item.toLowerCase());
+    // Handle both non-array and array cases in one flow
+    const items = Array.isArray(parsed) ? parsed : [];
+
+    // Filter strings, normalize to lowercase, and deduplicate
+    return [
+      ...new Set(
+        items
+          .filter((item): item is string => typeof item === 'string')
+          .map((item) => item.toLowerCase()),
+      ),
+    ];
   } catch (error) {
     // Invalid JSON - return empty array
-    // eslint-disable-next-line no-console
-    console.warn('Failed to parse architecture JSON:', architectureString, error);
+    if (process.env.NODE_ENV === 'development') {
+      // eslint-disable-next-line no-console
+      console.warn('Failed to parse architecture JSON:', architectureString, error);
+    }
     return [];
   }
 };

@@ -72,8 +72,11 @@ const ModelDetailsView: React.FC<ModelDetailsViewProps> = ({
     ? getCustomPropString(model.customProperties, CatalogModelCustomPropertyKey.SIZE)
     : '';
 
-  // Extract architectures from artifacts
-  const architectures = artifactLoaded ? getArchitecturesFromArtifacts(artifacts.items) : [];
+  // Extract architectures from artifacts with memoization to prevent unnecessary recalculations
+  const architectures = React.useMemo(
+    () => (artifactLoaded ? getArchitecturesFromArtifacts(artifacts.items) : []),
+    [artifactLoaded, artifacts.items],
+  );
 
   return (
     <PageSection hasBodyWrapper={false} isFilled padding={{ default: 'noPadding' }}>

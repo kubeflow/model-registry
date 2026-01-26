@@ -35,9 +35,20 @@ describe('Model Catalog Details Page', () => {
     // Architecture field should not exist when no valid architectures
     modelCatalog.findModelArchitecture().should('not.exist');
   });
+});
+
+describe('Model Catalog Details Page - Architecture Field', () => {
+  beforeEach(() => {
+    // Mock model registries for register button functionality
+    cy.intercept('GET', '/model-registry/api/v1/model_registry*', [
+      mockModelRegistry({ name: 'modelregistry-sample' }),
+    ]).as('getModelRegistries');
+
+    setupModelCatalogIntercepts({});
+  });
 
   it('shows architecture field with valid architectures', () => {
-    // Override the artifacts intercept with architecture data
+    // Set up intercept with architecture data before navigation
     interceptArtifactsList({
       items: [
         mockCatalogModelArtifact({
@@ -54,6 +65,7 @@ describe('Model Catalog Details Page', () => {
       nextPageToken: '',
     });
 
+    modelCatalog.visit();
     modelCatalog.findLoadingState().should('not.exist');
     modelCatalog.findModelCatalogDetailLink().first().click();
     modelCatalog.findBreadcrumb().should('exist');
@@ -64,7 +76,7 @@ describe('Model Catalog Details Page', () => {
   });
 
   it('shows architecture field with uppercase architectures normalized to lowercase', () => {
-    // Override the artifacts intercept with uppercase architecture data
+    // Set up intercept with uppercase architecture data before navigation
     interceptArtifactsList({
       items: [
         mockCatalogModelArtifact({
@@ -81,6 +93,7 @@ describe('Model Catalog Details Page', () => {
       nextPageToken: '',
     });
 
+    modelCatalog.visit();
     modelCatalog.findLoadingState().should('not.exist');
     modelCatalog.findModelCatalogDetailLink().first().click();
 
@@ -89,14 +102,14 @@ describe('Model Catalog Details Page', () => {
     modelCatalog.findModelArchitecture().should('contain.text', 'amd64, arm64');
   });
 
-  it('does not show architecture field when only invalid architectures are present', () => {
-    // Override the artifacts intercept with invalid architecture data
+  it('shows architecture field with custom architecture values', () => {
+    // Set up intercept with custom architecture data before navigation
     interceptArtifactsList({
       items: [
         mockCatalogModelArtifact({
           customProperties: {
             architecture: {
-              string_value: '["invalid-arch", "unknown"]',
+              string_value: '["custom-arch", "unknown"]',
               metadataType: ModelRegistryMetadataType.STRING,
             },
           },
@@ -107,11 +120,13 @@ describe('Model Catalog Details Page', () => {
       nextPageToken: '',
     });
 
+    modelCatalog.visit();
     modelCatalog.findLoadingState().should('not.exist');
     modelCatalog.findModelCatalogDetailLink().first().click();
 
-    // Architecture field should not exist when all architectures are invalid
-    modelCatalog.findModelArchitecture().should('not.exist');
+    // Architecture field should display all architecture values without validation
+    modelCatalog.findModelArchitecture().should('be.visible');
+    modelCatalog.findModelArchitecture().should('contain.text', 'custom-arch, unknown');
   });
 });
 
