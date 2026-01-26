@@ -76,9 +76,9 @@ class TestSourceStatus:
         sources = api_client.get_sources()
         assert sources.get("items"), "No sources found"
 
-        # Find an enabled source
+        # Find an enabled source that is available (not in error state)
         enabled_source = next(
-            (s for s in sources["items"] if s.get("enabled") is True),
+            (s for s in sources["items"] if s.get("enabled") is True and s.get("status") != "error"),
             None,
         )
 
@@ -232,6 +232,28 @@ class TestSourcePaths:
                 assert isinstance(error, str)
                 assert len(error) > 0
 
+    def test_source_error_field_consistency(self, api_client: CatalogAPIClient):
+        """Test that error field is consistent with source status."""
+        response = api_client.get_sources()
+        assert response.get("items"), "No sources found"
+
+        for source in response["items"]:
+            status = source.get("status")
+            error = source.get("error")
+            source_id = source.get("id") or source.get("name")
+
+            # Available and disabled sources should not have errors
+            if status in ["available", "disabled"]:
+                assert error is None or error == "", (
+                    f"Source '{source_id}' with status '{status}' should not have error, got: {error}"
+                )
+
+            # Error status sources must have an error message
+            if status == "error":
+                assert error is not None and error != "", (
+                    f"Source '{source_id}' has status 'error' but no error message"
+                )
+
 
 class TestSourceMerge:
     """Test suite for source merge functionality."""
@@ -246,7 +268,7 @@ class TestSourceMerge:
             status = source.get("status")
 
             if enabled is True:
-                assert status in ["available", None], f"Source {source.get('id')} has enabled=True but status={status}"
+                assert status in ["available", "error", None], f"Source {source.get('id')} has enabled=True but status={status}"
             if enabled is False:
                 assert status in ["disabled", None], f"Source {source.get('id')} has enabled=False but status={status}"
 

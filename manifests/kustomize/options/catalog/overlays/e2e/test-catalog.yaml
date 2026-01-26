@@ -5,6 +5,16 @@ models:
   # Models with artifacts and accuracy for ordering/filtering tests
   - name: test-model-1
     description: Primary test model with high accuracy
+    customProperties:
+      size:
+        metadataType: MetadataStringValue
+        string_value: "7B"
+      tensor_type:
+        metadataType: MetadataStringValue
+        string_value: "bfloat16"
+      variant_group_id:
+        metadataType: MetadataStringValue
+        string_value: "group-1"
     artifacts:
       - name: pytorch-artifact
         uri: s3://bucket/test-model-1.tar.gz
@@ -21,6 +31,16 @@ models:
 
   - name: test-model-2
     description: Secondary test model with medium accuracy
+    customProperties:
+      size:
+        metadataType: MetadataStringValue
+        string_value: "13B"
+      tensor_type:
+        metadataType: MetadataStringValue
+        string_value: "float16"
+      variant_group_id:
+        metadataType: MetadataStringValue
+        string_value: "group-2"
     artifacts:
       - name: onnx-artifact
         uri: s3://bucket/test-model-2.tar.gz

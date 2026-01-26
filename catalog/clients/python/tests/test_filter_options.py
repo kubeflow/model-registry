@@ -19,13 +19,15 @@ class TestFilterOptions:
     def test_get_filter_options_returns_response(self, api_client: CatalogAPIClient):
         """Test that filter options endpoint returns a response."""
         response = api_client.get_filter_options()
+        assert response is not None, "Filter options response should not be None"
         assert isinstance(response, dict)
 
     def test_filter_options_has_filters_field(self, api_client: CatalogAPIClient):
         """Test that filter options response has filters field."""
         response = api_client.get_filter_options()
-        assert "filters" in response
-        assert isinstance(response["filters"], dict)
+        filters = response["filters"]
+        assert isinstance(filters, dict)
+        assert len(filters) > 0, "Filters object should not be empty"
 
     def test_filter_options_contains_field_types(self, api_client: CatalogAPIClient):
         """Test that filter options contains field type information."""
@@ -106,8 +108,21 @@ class TestFilterValidation:
             if field_info.get("type") == "string":
                 values = field_info.get("values", [])
                 assert isinstance(values, list), f"Values for {field_name} should be a list"
-                for val in values:
-                    assert isinstance(val, str), f"Value in {field_name} should be string, got {type(val)}"
+                for idx, val in enumerate(values):
+                    assert isinstance(val, str), f"Value at index {idx} in {field_name} should be string, got {type(val)}"
+                    assert val.strip(), f"Value at index {idx} in {field_name} should not be empty or whitespace"
+
+    def test_string_values_are_distinct(self, api_client: CatalogAPIClient):
+        """Test that string filter values contain no duplicates."""
+        response = api_client.get_filter_options()
+        filters = response.get("filters", {})
+
+        for field_name, field_info in filters.items():
+            if field_info.get("type") == "string":
+                values = field_info.get("values", [])
+                assert len(values) == len(set(values)), (
+                    f"Values for '{field_name}' should be distinct (found duplicates)"
+                )
 
     def test_filter_field_names_format(self, api_client: CatalogAPIClient):
         """Test that filter field names follow expected format."""

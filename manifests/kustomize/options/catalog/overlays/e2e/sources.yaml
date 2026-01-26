@@ -15,3 +15,11 @@ catalogs:
     properties:
       yamlCatalogPath: /testdata/disabled-catalog.yaml
 
+  # Error catalog for testing error status behavior
+  - name: Error Catalog
+    id: error_catalog
+    type: yaml
+    enabled: true
+    properties:
+      yamlCatalogPath: /testdata/nonexistent-catalog.yaml
+

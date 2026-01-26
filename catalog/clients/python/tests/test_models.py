@@ -121,3 +121,46 @@ class TestModels:
                 assert source.get("enabled") is True or source.get("status") == "available", (
                     f"Source {source_id} has {model_counts[source_id]} models but is not enabled"
                 )
+
+    def test_models_custom_properties_has_valid_structure(self, api_client: CatalogAPIClient):
+        """Test that models with custom properties have valid MetadataStringValue structure."""
+        models = api_client.get_models()
+        models_with_props = [m for m in models.get("items", []) if m.get("customProperties")]
+
+        if not models_with_props:
+            pytest.skip("No models with custom properties found in test data")
+
+        all_errors = []
+        for model in models_with_props:
+            model_name = model.get("name")
+            custom_properties = model.get("customProperties")
+            if errors := _validate_custom_property_structure(custom_properties):
+                all_errors.append(f"Model '{model_name}': {'\n'.join(errors)}")
+        assert not all_errors, "\n".join(all_errors)
+
+
+def _validate_custom_property_structure(custom_properties: dict) -> list[str]:
+    """Validate the structure of a custom property."""
+    expected_keys = ["size", "tensor_type", "variant_group_id"]
+    errors = []
+    for key in expected_keys:
+        prop = custom_properties[key]
+
+        if not isinstance(prop, dict):
+            errors.append(f"Custom property '{key}' is not a dictionary")
+
+        if "metadataType" not in prop:
+            errors.append(f"Custom property '{key}' missing 'metadataType' field")
+        if prop.get("metadataType") != "MetadataStringValue":
+            errors.append(
+                f"Custom property '{key}' has unexpected metadataType: {prop.get('metadataType')} "
+            )
+
+        if "string_value" not in prop:
+            errors.append(f"Custom property '{key}' missing 'string_value' field")
+        if not isinstance(prop.get("string_value"), str):
+            errors.append(
+                f"Custom property '{key}' string_value is not a string: {type(prop.get('string_value'))}"
+            )
+
+    return errors
