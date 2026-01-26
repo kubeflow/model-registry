@@ -168,8 +168,6 @@ class TestFieldOrdering:
         assert "items" in response, f"Response missing 'items' field: {response.keys()}"
 
         items = response["items"]
-        if len(items) < 2:
-            pytest.skip(f"Need at least 2 models to test {order_by} sorting")
 
         assert validate_items_sorted_correctly(items, order_by, sort_order), (
             f"Models not sorted correctly by {order_by} {sort_order}"
