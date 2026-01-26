@@ -161,8 +161,6 @@ class TestFieldOrdering:
         - LAST_UPDATE_TIME (timestamp)
 
         In both ASC and DESC order.
-
-        Note: NAME sorting is already covered in TestNameOrdering.
         """
         response = api_client.get_models(order_by=order_by, sort_order=sort_order)
 
