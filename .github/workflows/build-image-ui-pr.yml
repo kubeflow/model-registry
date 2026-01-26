@@ -27,7 +27,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       # checkout branch
-      - uses: actions/checkout@v6.0.1
+      - uses: actions/checkout@v6
       - name: Build UI Image
         shell: bash
         run: ./scripts/build_deploy.sh
