@@ -137,7 +137,7 @@
     "eslint-config-prettier": "^9.1.0",
     "eslint-import-resolver-node": "^0.3.7",
     "eslint-import-resolver-typescript": "^3.8.3",
-    "eslint-plugin-cypress": "^3.3.0",
+    "eslint-plugin-cypress": "^5.2.0",
     "eslint-plugin-import": "^2.31.0",
     "eslint-plugin-jsx-a11y": "^6.10.2",
     "eslint-plugin-no-only-tests": "^3.1.0",
