@@ -1,13 +1,23 @@
 catalogs:
-  - name: "Hugging Face Hub"
-    id: "huggingFace"
-    type: hf
+  - name: "Organization AI Models"
+    id: organization_ai_models
+    type: yaml
     enabled: true
-    includedModels: 
-      - "meta-llama/Llama-3.2-1B"
-      - "microsoft/Phi-3-mini-4k-instruct"
-      - "Anwarkh1/Skin_Cancer-Image_Classification"
-    excludedModels:
-      - "Granite/*"
     properties:
-      syncInterval: "24h"
+      yamlCatalogPath: dev-organization-models.yaml
+    labels:
+      - Organization AI
+  - name: "Validated AI Models"
+    id: validated_ai_models
+    type: yaml
+    enabled: true
+    properties:
+      yamlCatalogPath: dev-validated-models.yaml
+    labels:
+      - Validated AI
+  - name: "Community and Custom Models"
+    id: community_custom_models
+    type: yaml
+    enabled: true
+    properties:
+      yamlCatalogPath: dev-community-models.yaml
