@@ -344,12 +344,12 @@ func (f *PaginatedFetcher[T]) FetchAll(ctx context.Context) ([]T, error) {
 
 		var items []T
 		if err := json.NewDecoder(resp.Body).Decode(&items); err != nil {
-			resp.Body.Close()
+			_ = resp.Body.Close()
 			return nil, fmt.Errorf("failed to decode response: %w", err)
 		}
 
 		nextCursor, hasMore := f.ParseNext(resp, items)
-		resp.Body.Close()
+		_ = resp.Body.Close()
 
 		allItems = append(allItems, items...)
 
