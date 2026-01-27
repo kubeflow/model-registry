@@ -34,6 +34,7 @@ func TestPopulateFromHFInfo(t *testing.T) {
 		hasDescription     bool
 		hasTasks           bool
 		hasCustomProps     bool
+		expectedModelType  *string
 	}{
 		{
 			name: "complete model info",
@@ -67,6 +68,7 @@ func TestPopulateFromHFInfo(t *testing.T) {
 			hasTasks:          true,
 			hasCustomProps:    true,
 			hasReadme:         false, // No README fetching in unit tests
+			expectedModelType: stringPtr("generative"),
 		},
 		{
 			name: "model with ModelID fallback",
@@ -78,6 +80,7 @@ func TestPopulateFromHFInfo(t *testing.T) {
 			originalModelName: "original-name",
 			expectedName:      "fallback-model-id",
 			expectedProvider:  stringPtr("another-author"),
+			expectedModelType: stringPtr("unknown"),
 		},
 		{
 			name: "model with original name fallback",
@@ -88,6 +91,7 @@ func TestPopulateFromHFInfo(t *testing.T) {
 			originalModelName: "fallback-original-name",
 			expectedName:      "fallback-original-name",
 			expectedProvider:  stringPtr("author-3"),
+			expectedModelType: stringPtr("unknown"),
 		},
 		{
 			name: "model with license in tags",
@@ -100,6 +104,7 @@ func TestPopulateFromHFInfo(t *testing.T) {
 			expectedName:      "test/licensed-model",
 			expectedLicense:   stringPtr("Apache 2.0"),
 			hasCustomProps:    true,
+			expectedModelType: stringPtr("unknown"),
 		},
 		{
 			name: "model with tasks",
@@ -112,6 +117,8 @@ func TestPopulateFromHFInfo(t *testing.T) {
 			originalModelName: "test/task-model",
 			expectedName:      "test/task-model",
 			hasTasks:          true,
+			hasCustomProps:    true,
+			expectedModelType: stringPtr("predictive"),
 		},
 		{
 			name: "model with description in cardData",
@@ -127,6 +134,7 @@ func TestPopulateFromHFInfo(t *testing.T) {
 			originalModelName: "test/desc-model",
 			expectedName:      "test/desc-model",
 			hasDescription:    true,
+			expectedModelType: stringPtr("unknown"),
 		},
 		{
 			name: "minimal model info",
@@ -136,6 +144,64 @@ func TestPopulateFromHFInfo(t *testing.T) {
 			sourceId:          "source-7",
 			originalModelName: "minimal/model",
 			expectedName:      "minimal/model",
+			hasCustomProps:    true,
+			expectedModelType: stringPtr("unknown"),
+		},
+		{
+			name: "model with generative task - should classify as generative",
+			hfInfo: &hfModelInfo{
+				ID:          "test/generative-model",
+				Task:        "text-generation",
+				PipelineTag: "text-generation",
+			},
+			sourceId:          "source-8",
+			originalModelName: "test/generative-model",
+			expectedName:      "test/generative-model",
+			hasTasks:          true,
+			hasCustomProps:    true,
+			expectedModelType: stringPtr("generative"),
+		},
+		{
+			name: "model with predictive task - should classify as predictive",
+			hfInfo: &hfModelInfo{
+				ID:          "test/predictive-model",
+				Task:        "text-classification",
+				PipelineTag: "tag1",
+			},
+			sourceId:          "source-9",
+			originalModelName: "test/predictive-model",
+			expectedName:      "test/predictive-model",
+			hasTasks:          true,
+			hasCustomProps:    true,
+			expectedModelType: stringPtr("predictive"),
+		},
+		{
+			name: "model with both generative and predictive tasks - should prioritize generative",
+			hfInfo: &hfModelInfo{
+				ID:          "test/mixed-model",
+				Task:        "text-generation",
+				PipelineTag: "text-classification",
+			},
+			sourceId:          "source-10",
+			originalModelName: "test/mixed-model",
+			expectedName:      "test/mixed-model",
+			hasTasks:          true,
+			hasCustomProps:    true,
+			expectedModelType: stringPtr("generative"),
+		},
+		{
+			name: "model with unknown task - should classify as unknown",
+			hfInfo: &hfModelInfo{
+				ID:          "test/unknown-model",
+				Task:        "unknown-task-type",
+				PipelineTag: "another-unknown-task",
+			},
+			sourceId:          "source-11",
+			originalModelName: "test/unknown-model",
+			expectedName:      "test/unknown-model",
+			hasTasks:          true,
+			hasCustomProps:    true,
+			expectedModelType: stringPtr("unknown"),
 		},
 	}
 
@@ -208,6 +274,11 @@ func TestPopulateFromHFInfo(t *testing.T) {
 					t.Error("Expected tasks to be set, but got empty slice")
 				}
 			}
+			if !tt.hasTasks {
+				if len(hfm.Tasks) != 0 {
+					t.Error("Expected tasks to be empty, but got non-empty slice")
+				}
+			}
 
 			// Verify Description
 			if tt.hasDescription {
@@ -218,8 +289,19 @@ func TestPopulateFromHFInfo(t *testing.T) {
 
 			// Verify CustomProperties
 			if tt.hasCustomProps {
-				if hfm.GetCustomProperties() == nil || len(hfm.GetCustomProperties()) == 0 {
+				customProps := hfm.GetCustomProperties()
+				if len(customProps) == 0 {
 					t.Error("Expected custom properties to be set, but got nil or empty")
+				}
+				// Verify model_type
+				if tt.expectedModelType != nil {
+					if modelTypeVal, ok := customProps["model_type"]; !ok {
+						t.Error("Expected model_type in custom properties")
+					} else if modelTypeVal.MetadataStringValue == nil {
+						t.Error("model_type should be a string value")
+					} else if modelTypeVal.MetadataStringValue.StringValue != *tt.expectedModelType {
+						t.Errorf("Expected model_type to be '%s', but got '%s'", *tt.expectedModelType, modelTypeVal.MetadataStringValue.StringValue)
+					}
 				}
 			}
 
@@ -1403,4 +1485,182 @@ func TestHfModelProvider_expandModelNames_ExactPatternsWithWildcardFailures(t *t
 	// Should return the exact patterns that don't require API calls
 	assert.Len(t, models, 1)
 	assert.Equal(t, "exact-org/exact-model", models[0])
+}
+
+func TestClassifyModelTypeFromTasks(t *testing.T) {
+	tests := []struct {
+		name     string
+		tasks    []string
+		expected string
+	}{
+		{
+			name:     "generative task - text-generation",
+			tasks:    []string{"text-generation"},
+			expected: "generative",
+		},
+		{
+			name:     "generative task - summarization",
+			tasks:    []string{"summarization"},
+			expected: "generative",
+		},
+		{
+			name:     "generative task - translation",
+			tasks:    []string{"translation"},
+			expected: "generative",
+		},
+		{
+			name:     "generative task - text-to-image",
+			tasks:    []string{"text-to-image"},
+			expected: "generative",
+		},
+		{
+			name:     "generative task - text-to-speech",
+			tasks:    []string{"text-to-speech"},
+			expected: "generative",
+		},
+		{
+			name:     "predictive task - text-classification",
+			tasks:    []string{"text-classification"},
+			expected: "predictive",
+		},
+		{
+			name:     "predictive task - image-classification",
+			tasks:    []string{"image-classification"},
+			expected: "predictive",
+		},
+		{
+			name:     "predictive task - question-answering",
+			tasks:    []string{"question-answering"},
+			expected: "predictive",
+		},
+		{
+			name:     "predictive task - object-detection",
+			tasks:    []string{"object-detection"},
+			expected: "predictive",
+		},
+		{
+			name:     "predictive task - feature-extraction",
+			tasks:    []string{"feature-extraction"},
+			expected: "predictive",
+		},
+		{
+			name:     "multiple generative tasks",
+			tasks:    []string{"text-generation", "summarization"},
+			expected: "generative",
+		},
+		{
+			name:     "multiple predictive tasks",
+			tasks:    []string{"text-classification", "image-classification"},
+			expected: "predictive",
+		},
+		{
+			name:     "generative takes priority over predictive",
+			tasks:    []string{"text-generation", "text-classification"},
+			expected: "generative",
+		},
+		{
+			name:     "unknown task",
+			tasks:    []string{"unknown-task"},
+			expected: "unknown",
+		},
+		{
+			name:     "empty tasks",
+			tasks:    []string{},
+			expected: "unknown",
+		},
+		{
+			name:     "case insensitive - GENERATIVE",
+			tasks:    []string{"TEXT-GENERATION"},
+			expected: "generative",
+		},
+		{
+			name:     "case insensitive - Predictive",
+			tasks:    []string{"Text-Classification"},
+			expected: "predictive",
+		},
+		{
+			name:     "task with whitespace",
+			tasks:    []string{"  text-generation  "},
+			expected: "generative",
+		},
+		{
+			name:     "all generative task types - summarization",
+			tasks:    []string{"summarization"},
+			expected: "generative",
+		},
+		{
+			name:     "all generative task types - translation",
+			tasks:    []string{"translation"},
+			expected: "generative",
+		},
+		{
+			name:     "all generative task types - text-to-image",
+			tasks:    []string{"text-to-image"},
+			expected: "generative",
+		},
+		{
+			name:     "all generative task types - unconditional-image-generation",
+			tasks:    []string{"unconditional-image-generation"},
+			expected: "generative",
+		},
+		{
+			name:     "all generative task types - image-to-image",
+			tasks:    []string{"image-to-image"},
+			expected: "generative",
+		},
+		{
+			name:     "all generative task types - audio-to-audio",
+			tasks:    []string{"audio-to-audio"},
+			expected: "generative",
+		},
+		{
+			name:     "all predictive task types - zero-shot-classification",
+			tasks:    []string{"zero-shot-classification"},
+			expected: "predictive",
+		},
+		{
+			name:     "all predictive task types - audio-classification",
+			tasks:    []string{"audio-classification"},
+			expected: "predictive",
+		},
+		{
+			name:     "all predictive task types - document-question-answering",
+			tasks:    []string{"document-question-answering"},
+			expected: "predictive",
+		},
+		{
+			name:     "all predictive task types - image-segmentation",
+			tasks:    []string{"image-segmentation"},
+			expected: "predictive",
+		},
+		{
+			name:     "all predictive task types - keypoint-detection",
+			tasks:    []string{"keypoint-detection"},
+			expected: "predictive",
+		},
+		{
+			name:     "all predictive task types - image-feature-extraction",
+			tasks:    []string{"image-feature-extraction"},
+			expected: "predictive",
+		},
+		{
+			name:     "all predictive task types - fill-mask",
+			tasks:    []string{"fill-mask"},
+			expected: "predictive",
+		},
+		{
+			name:     "unknown task with recognized task - should classify based on recognized",
+			tasks:    []string{"unknown-task", "text-generation"},
+			expected: "generative",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			result := classifyModelTypeFromTasks(tt.tasks)
+			if result != tt.expected {
+				t.Errorf("classifyModelTypeFromTasks(%v) = %q, want %q", tt.tasks, result, tt.expected)
+			}
+		})
+	}
 }
