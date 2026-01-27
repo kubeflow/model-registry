@@ -57,7 +57,7 @@ class ModelRegistryAPIClient:
             user_token: The PEM-encoded user token as a string.
             custom_ca: The path to a PEM-
         """
-        parsed_url = urlparse(server_address if "//" in server_address else f"//{server_address}")
+        parsed_url = urlparse(server_address)
         host = server_address if parsed_url.port else f"{server_address}:{port}"
 
         return cls(
