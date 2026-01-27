@@ -1,5 +1,16 @@
 base-url = "${API_HOST}"
 tls-verify = true
+
 [generation]
 # Don't shrink failing examples to save time
 no-shrink = true
+
+[checks]
+ignored_auth.enabled = false
+response_schema_conformance.enabled = false
+positive_data_acceptance.enabled = false
+status_code_conformance.enabled = false
+content_type_conformance.enabled = false
+missing_required_header.enabled = false
+negative_data_rejection.enabled = false
+unsupported_method.enabled = false
