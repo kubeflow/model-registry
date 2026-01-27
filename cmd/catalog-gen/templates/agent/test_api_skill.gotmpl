@@ -1,0 +1,52 @@
+# Test API Endpoints
+
+This skill provides curl commands to test all API endpoints for {{.CatalogName}}.
+
+## Prerequisites
+
+Start the server first:
+```bash
+go run ./cmd/{{.CatalogName}}.go --catalogs-path=manifests/kustomize/overlays/dev/sources.yaml
+```
+
+## Entity Endpoints
+
+### List All {{.EntityName}}s
+
+```bash
+curl -s "http://localhost:{{.Port}}/api/{{.CatalogName}}/v1alpha1/{{.EntityNameLower}}s" | jq
+```
+
+### List with Pagination
+
+```bash
+curl -s "http://localhost:{{.Port}}/api/{{.CatalogName}}/v1alpha1/{{.EntityNameLower}}s?pageSize=10" | jq
+```
+
+### Get {{.EntityName}} by Name
+
+```bash
+curl -s "http://localhost:{{.Port}}/api/{{.CatalogName}}/v1alpha1/{{.EntityNameLower}}s/{name}" | jq
+```
+
+Replace `{name}` with an actual entity name from your sample data.
+{{.ArtifactEndpoints}}
+## Health Check
+
+```bash
+curl -s "http://localhost:{{.Port}}/healthz"
+```
+
+## Troubleshooting
+
+If you get connection refused:
+- Make sure the server is running
+- Check if another process is using port {{.Port}}
+
+If you get 404:
+- Verify the entity name exists in sample-catalog.yaml
+- Check the URL path is correct
+
+If you get 500:
+- Check server logs for errors
+- Verify database connection

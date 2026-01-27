@@ -1,0 +1,106 @@
+package providers
+
+import (
+	"context"
+	"fmt"
+	"os"
+	"path/filepath"
+
+	"github.com/golang/glog"
+	k8syaml "k8s.io/apimachinery/pkg/util/yaml"
+{{if .HasArtifacts}}
+	"{{.Package}}/internal/catalog"
+{{end}}	"{{.Package}}/internal/db/models"
+	pkgcatalog "github.com/kubeflow/model-registry/pkg/catalog"
+)
+
+// yaml{{.EntityName}} represents a {{.EntityName}} entry in the YAML catalog file.
+type yaml{{.EntityName}} struct {
+	Name        string  `json:"name" yaml:"name"`
+	Description *string `json:"description,omitempty" yaml:"description,omitempty"`
+	// TODO: Add additional fields from catalog.yaml properties
+}
+
+// yaml{{.EntityName}}Catalog is the structure of the YAML catalog file.
+type yaml{{.EntityName}}Catalog struct {
+	{{.EntityName}}s []yaml{{.EntityName}} `json:"{{.EntityNameLower}}s" yaml:"{{.EntityNameLower}}s"`
+}
+{{.ArtifactStructs}}
+// glogLogger implements yaml.Logger using glog.
+type glogLogger struct{}
+
+func (glogLogger) Infof(format string, args ...any)  { glog.Infof(format, args...) }
+func (glogLogger) Errorf(format string, args ...any) { glog.Errorf(format, args...) }
+
+// New{{.EntityName}}YAMLProvider creates a new YAML provider for {{.EntityName}} entities.
+func New{{.EntityName}}YAMLProvider() pkgcatalog.ProviderFunc[models.{{.EntityName}}, {{.ArtifactType}}] {
+	return func(ctx context.Context, source *pkgcatalog.Source, reldir string) (<-chan pkgcatalog.Record[models.{{.EntityName}}, {{.ArtifactType}}], error) {
+		// Get catalog path
+		catalogPath, ok := source.Properties["yamlCatalogPath"].(string)
+		if !ok || catalogPath == "" {
+			return nil, fmt.Errorf("missing yamlCatalogPath property")
+		}
+		if !filepath.IsAbs(catalogPath) {
+			catalogPath = filepath.Join(reldir, catalogPath)
+		}
+
+		// Read catalog data
+		catalogData, err := os.ReadFile(catalogPath)
+		if err != nil {
+			return nil, fmt.Errorf("failed to read catalog file: %w", err)
+		}
+
+		// Optionally read artifacts file
+		var artifactsData []byte
+		if artifactsPath, ok := source.Properties["yamlArtifactsPath"].(string); ok && artifactsPath != "" {
+			if !filepath.IsAbs(artifactsPath) {
+				artifactsPath = filepath.Join(reldir, artifactsPath)
+			}
+			artifactsData, err = os.ReadFile(artifactsPath)
+			if err != nil {
+				glog.Warningf("failed to read artifacts file %s: %v", artifactsPath, err)
+			}
+		}
+
+		records, err := parse{{.EntityName}}Catalog(catalogData, artifactsData)
+		if err != nil {
+			return nil, err
+		}
+
+		ch := make(chan pkgcatalog.Record[models.{{.EntityName}}, {{.ArtifactType}}])
+		go func() {
+			defer close(ch)
+			for _, record := range records {
+				select {
+				case <-ctx.Done():
+					return
+				case ch <- record:
+				}
+			}
+		}()
+
+		return ch, nil
+	}
+}
+
+// parse{{.EntityName}}Catalog parses the YAML catalog files into records.
+func parse{{.EntityName}}Catalog(catalogData, artifactsData []byte) ([]pkgcatalog.Record[models.{{.EntityName}}, {{.ArtifactType}}], error) {
+	var entityCatalog yaml{{.EntityName}}Catalog
+	if err := k8syaml.UnmarshalStrict(catalogData, &entityCatalog); err != nil {
+		return nil, err
+	}
+{{.ArtifactParseCode}}
+	records := make([]pkgcatalog.Record[models.{{.EntityName}}, {{.ArtifactType}}], 0, len(entityCatalog.{{.EntityName}}s))
+	for _, item := range entityCatalog.{{.EntityName}}s {
+		name := item.Name
+		entity := models.New{{.EntityName}}(&models.{{.EntityName}}Attributes{
+			Name:        &name,
+			Description: item.Description,
+		})
+		record := pkgcatalog.Record[models.{{.EntityName}}, {{.ArtifactType}}]{Entity: entity}
+{{.ArtifactMatchCode}}
+		records = append(records, record)
+	}
+
+	return records, nil
+}

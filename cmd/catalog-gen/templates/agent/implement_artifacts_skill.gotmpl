@@ -1,0 +1,72 @@
+# Implement Artifact Support
+
+This skill implements the missing artifact pieces after running `catalog-gen generate`.
+
+## Trigger
+
+Use this skill when:
+- You see compiler errors about missing `GetXxxArtifacts` methods
+- You see errors about `NewServices` having wrong number of arguments
+- You see type mismatches between `any` and `catalog.Artifact`
+- The user asks to "implement artifact support" or "fix artifact compilation errors"
+
+## Files to Modify
+
+1. `cmd/{{.CatalogName}}.go` - Add artifact repository to NewServices
+2. `internal/server/openapi/api_{{.EntityNameLower}}_service_impl.go` - Add API methods
+3. `internal/catalog/providers/yaml_provider.go` - Update provider to use catalog.Artifact
+
+## Step 1: Update cmd/{{.CatalogName}}.go
+
+Find the `service.NewServices` call and update it:
+
+```go
+services := service.NewServices(
+	getRepo[models.{{.EntityName}}Repository](repoSet),
+{{.RepoArgs}},
+)
+```
+
+Also update the provider registry type from `any` to `catalog.Artifact`:
+
+```go
+registry := pkgcatalog.NewProviderRegistry[models.{{.EntityName}}, catalog.Artifact]()
+registry.Register("yaml", providers.New{{.EntityName}}YAMLProvider())
+```
+
+## Step 2: Update api_{{.EntityNameLower}}_service_impl.go
+
+Add these methods:
+
+```go
+{{.APIMethods}}
+```
+
+Add these conversion functions:
+
+```go
+{{.ConversionFuncs}}
+```
+
+## Step 3: Update yaml_provider.go
+
+Change the provider function signature from `any` to `catalog.Artifact`:
+
+```go
+import (
+	"github.com/kubeflow/model-registry/{{.CatalogName}}/internal/catalog"
+)
+
+func New{{.EntityName}}YAMLProvider() pkgcatalog.ProviderFunc[models.{{.EntityName}}, catalog.Artifact] {
+	return func(ctx context.Context, source *pkgcatalog.Source, reldir string) (<-chan pkgcatalog.Record[models.{{.EntityName}}, catalog.Artifact], error) {
+```
+
+## Verification
+
+After making these changes, run:
+
+```bash
+go build ./...
+```
+
+The build should succeed without errors.

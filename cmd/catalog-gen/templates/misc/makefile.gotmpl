@@ -1,0 +1,99 @@
+# {{.Name}} Catalog Makefile
+PROJECT_BIN := $(CURDIR)/../bin
+OPENAPI_GENERATOR := $(PROJECT_BIN)/openapi-generator-cli
+YQ := $(PROJECT_BIN)/yq
+GO ?= "$(shell which go)"
+
+# OpenAPI source files
+OPENAPI_SRC := api/openapi/src/openapi.yaml
+OPENAPI_COMPONENTS := api/openapi/src/generated/components.yaml
+OPENAPI_MERGED := api/openapi/openapi.yaml
+
+# Merge OpenAPI files: src/openapi.yaml (paths) + src/generated/components.yaml (schemas)
+# Output is committed to git and used by OpenAPI generators.
+$(OPENAPI_MERGED): $(OPENAPI_SRC) $(OPENAPI_COMPONENTS) $(YQ)
+	$(YQ) eval-all '. as $$item ireduce ({}; . * $$item)' $(OPENAPI_SRC) $(OPENAPI_COMPONENTS) > $(OPENAPI_MERGED)
+	$(YQ) eval -i '{"openapi": .openapi, "info": .info, "servers": .servers, "paths": .paths, "components": .components} | sort_keys(.paths) | sort_keys(.components.schemas)' $(OPENAPI_MERGED)
+
+.PHONY: api/openapi
+api/openapi: $(OPENAPI_MERGED)
+
+# OpenAPI server generation
+.PHONY: gen/openapi-server
+gen/openapi-server: internal/server/openapi/api_{{.EntityNameLower}}_service.go
+
+internal/server/openapi/api_{{.EntityNameLower}}_service.go: $(OPENAPI_MERGED)
+	@mkdir -p internal/server/openapi
+	${OPENAPI_GENERATOR} generate \
+		-i $(OPENAPI_MERGED) -g go-server -o internal/server/openapi --package-name openapi \
+		--ignore-file-override ./.openapi-generator-ignore \
+		--additional-properties=sourceFolder=,outputAsLibrary=true,router=chi,serverPort={{.Port}}
+	$(PROJECT_BIN)/goimports -w internal/server/openapi
+
+# OpenAPI client generation
+.PHONY: gen/openapi
+gen/openapi: pkg/openapi/client.go
+
+# Generate both server and client
+.PHONY: gen/openapi-all
+gen/openapi-all: gen/openapi-server gen/openapi
+
+pkg/openapi/client.go: $(OPENAPI_MERGED)
+	@mkdir -p pkg/openapi
+	${OPENAPI_GENERATOR} generate \
+		-i $(OPENAPI_MERGED) -g go -o pkg/openapi --package-name openapi \
+		--ignore-file-override ./.openapi-generator-ignore \
+		--additional-properties=isGoSubmodule=true,enumClassPrefix=true,useOneOfDiscriminatorLookup=true,generateUnmarshalJSON=false
+	$(PROJECT_BIN)/goimports -w pkg/openapi
+
+# Build the catalog binary
+.PHONY: build
+build:
+	${GO} build -o bin/{{.Name}} ./cmd/
+
+# Run tests
+.PHONY: test
+test:
+	${GO} test ./...
+
+.PHONY: test-nocache
+test-nocache:
+	${GO} test ./... -count=1
+
+.PHONY: test-cover
+test-cover:
+	${GO} test ./... -coverprofile=coverage.txt
+	${GO} tool cover -html=coverage.txt -o coverage.html
+
+# Clean generated files
+.PHONY: clean-internal-server-openapi
+clean-internal-server-openapi:
+	rm -rf internal/server/openapi
+
+.PHONY: clean-pkg-openapi
+clean-pkg-openapi:
+	rm -rf pkg/openapi
+
+.PHONY: clean
+clean: clean-internal-server-openapi clean-pkg-openapi
+	rm -rf bin/
+
+# Regenerate all code from catalog.yaml
+.PHONY: generate
+generate:
+	catalog-gen generate
+	$(MAKE) api/openapi
+
+# Help
+.PHONY: help
+help:
+	@echo "Available targets:"
+	@echo "  api/openapi         - Merge OpenAPI source files"
+	@echo "  gen/openapi-server  - Generate OpenAPI server handlers"
+	@echo "  gen/openapi         - Generate OpenAPI client"
+	@echo "  gen/openapi-all     - Generate both server and client"
+	@echo "  build               - Build the catalog binary"
+	@echo "  test                - Run tests"
+	@echo "  test-cover          - Run tests with coverage"
+	@echo "  clean               - Remove generated files"
+	@echo "  generate            - Regenerate code from catalog.yaml and merge OpenAPI"

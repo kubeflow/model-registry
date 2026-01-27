@@ -1,0 +1,75 @@
+# Add Property to {{.EntityName}}
+
+This skill adds a new property to the {{.EntityName}} entity by updating all necessary files.
+
+## Arguments
+
+The user should provide:
+- Property name (e.g., "version", "priority")
+- Property type (string, integer, boolean, number, array)
+
+If not provided, ask the user.
+
+## Step 1: Update catalog.yaml
+
+Add the new property under `spec.entity.properties`:
+
+```yaml
+spec:
+  entity:
+    name: {{.EntityName}}
+    properties:
+      # ... existing properties ...
+      - name: <property_name>
+        type: <type>          # string, integer, boolean, number, array
+        required: false       # optional: set to true if required
+```
+
+## Step 2: Regenerate Code
+
+```bash
+catalog-gen generate
+make gen/openapi-server
+```
+
+## Step 3: Update YAML Provider
+
+Edit `internal/catalog/providers/yaml_provider.go`:
+
+1. Add field to `yaml{{.EntityName}}` struct
+2. Add mapping in `parse{{.EntityName}}Catalog` when creating the entity
+
+## Step 4: Update Repository Mapper
+
+Edit `internal/db/service/{{.EntityNameLower}}.go`:
+
+1. Add variable declaration in `mapContextTo{{.EntityName}}`
+2. Add case in the switch statement
+3. Add to the attributes struct literal
+4. Add persistence in `map{{.EntityName}}ToContextProperties`
+
+## Step 5: Update OpenAPI Converter
+
+Edit `internal/server/openapi/api_{{.EntityNameLower}}_service_impl.go`:
+
+Add to `convertToOpenAPIModel`:
+```go
+if attrs.<PropertyName> != nil {
+    result.<PropertyName> = *attrs.<PropertyName>
+}
+```
+
+## Step 6: Build and Verify
+
+```bash
+go build ./...
+```
+
+## Type Reference
+
+| catalog.yaml | Go model field | YAML struct field | DB storage |
+|--------------|----------------|-------------------|------------|
+| string       | *string        | *string           | StringValue |
+| integer      | *int32         | *int32            | IntValue |
+| boolean      | *bool          | *bool             | BoolValue |
+| array        | []string       | []string          | StringValue (comma-separated) |

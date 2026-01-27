@@ -1,0 +1,106 @@
+package main
+
+import (
+	"context"
+	"flag"
+	"fmt"
+	"net/http"
+	"os"
+	"os/signal"
+	"reflect"
+	"syscall"
+
+	"github.com/golang/glog"
+
+	"{{.Package}}/internal/catalog"
+	"{{.Package}}/internal/catalog/providers"
+	"{{.Package}}/internal/db/models"
+	"{{.Package}}/internal/db/service"
+	"{{.Package}}/internal/server/openapi"
+	"github.com/kubeflow/model-registry/internal/datastore"
+	"github.com/kubeflow/model-registry/internal/datastore/embedmd"
+	pkgcatalog "github.com/kubeflow/model-registry/pkg/catalog"
+)
+
+func main() {
+	var (
+		listenAddr   string
+		catalogsPath string
+	)
+
+	flag.StringVar(&listenAddr, "listen", ":{{.Port}}", "Address to listen on")
+	flag.StringVar(&catalogsPath, "catalogs-path", "/catalog/sources.yaml", "Path to catalog sources config")
+	flag.Parse()
+
+	ctx, cancelCtx := context.WithCancel(context.Background())
+	defer cancelCtx()
+
+	// Handle shutdown signals - exit immediately on signal
+	sigCh := make(chan os.Signal, 1)
+	signal.Notify(sigCh, syscall.SIGINT, syscall.SIGTERM)
+	go func() {
+		<-sigCh
+		glog.Info("Shutting down...")
+		cancelCtx()
+		glog.Flush()
+		os.Exit(0)
+	}()
+
+	glog.Infof("Starting {{.Name}} catalog on %s", listenAddr)
+
+	// Create datastore connector
+	glog.Info("Connecting to PostgreSQL database...")
+	ds, err := datastore.NewConnector("embedmd", &embedmd.EmbedMDConfig{
+		DatabaseType: "postgres",
+		DatabaseDSN:  "", // Uses PostgreSQL env vars (PGHOST, PGUSER, PGPASSWORD, PGDATABASE, PGPORT)
+	})
+	if err != nil {
+		glog.Fatalf("Failed to create datastore: %v", err)
+	}
+
+	// Connect and run migrations
+	repoSet, err := ds.Connect(service.DatastoreSpec())
+	if err != nil {
+		glog.Fatalf("Failed to initialize datastore: %v", err)
+	}
+	glog.Info("Database connected successfully")
+
+	// Initialize services from repository set
+	services := service.NewServices(
+		getRepo[models.{{.EntityName}}Repository](repoSet),
+	)
+
+	// Set up provider registry and register providers
+	registry := pkgcatalog.NewProviderRegistry[models.{{.EntityName}}, any]()
+	if err := registry.Register("yaml", providers.New{{.EntityName}}YAMLProvider()); err != nil {
+		glog.Fatalf("Failed to register YAML provider: %v", err)
+	}
+
+	// Create and start loader
+	loader := catalog.NewLoader(services, []string{catalogsPath}, registry)
+	if err := loader.Start(ctx); err != nil {
+		glog.Fatalf("Failed to start loader: %v", err)
+	}
+	glog.Info("Catalog loader started")
+
+	// Create API service and controller
+	// Note: Run 'make gen/openapi-server' first to generate the OpenAPI handlers
+	apiService := openapi.New{{.EntityName}}CatalogServiceAPIService(services)
+	apiController := openapi.NewDefaultAPIController(apiService)
+	router := openapi.NewRouter(apiController)
+
+	// Start HTTP server
+	glog.Infof("API server listening on %s", listenAddr)
+	if err := http.ListenAndServe(listenAddr, router); err != nil {
+		glog.Fatalf("HTTP server error: %v", err)
+	}
+}
+
+// getRepo extracts a typed repository from the RepoSet.
+func getRepo[T any](repoSet datastore.RepoSet) T {
+	repo, err := repoSet.Repository(reflect.TypeFor[T]())
+	if err != nil {
+		panic(fmt.Sprintf("unable to get repository: %v", err))
+	}
+	return repo.(T)
+}

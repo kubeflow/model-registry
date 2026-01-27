@@ -1,0 +1,225 @@
+# Regenerate Skill
+
+Regenerate code from catalog.yaml after adding or modifying properties.
+
+## Current Properties
+{{range .Properties}}
+- `{{.Name}}` ({{.Type}})
+{{- end}}
+
+## Steps
+
+### 1. Run catalog-gen generate
+
+```bash
+catalog-gen generate
+```
+
+This regenerates:
+- `internal/db/models/{{.EntityNameLower}}.go` (entity model with all properties)
+- `api/openapi/src/generated/components.yaml` (OpenAPI schema)
+- `internal/db/service/spec.go` (datastore spec)
+{{- if .HasArtifacts}}
+- `internal/db/models/{{.EntityNameLower}}_*_artifact.go` (artifact models)
+- `internal/db/service/{{.EntityNameLower}}_*_artifact.go` (artifact repositories)
+{{- end}}
+
+### 2. Update YAML Provider
+
+Edit `internal/catalog/providers/yaml_provider.go`:
+
+**Update the yaml{{.EntityName}} struct** to include all properties:
+
+```go
+type yaml{{.EntityName}} struct {
+	Name        string   `json:"name" yaml:"name"`
+{{- range .Properties}}
+{{- if eq .Type "array"}}
+	{{.FieldName}} []string `json:"{{.Name}},omitempty" yaml:"{{.Name}},omitempty"`
+{{- else}}
+	{{.FieldName}} *string `json:"{{.Name}},omitempty" yaml:"{{.Name}},omitempty"`
+{{- end}}
+{{- end}}
+}
+```
+
+**Update parse{{.EntityName}}Catalog** to map all fields:
+
+```go
+entity := models.New{{.EntityName}}(&models.{{.EntityName}}Attributes{
+	Name:        &name,
+{{- range .Properties}}
+	{{.AttrName}}: item.{{.FieldName}},
+{{- end}}
+})
+```
+{{if .HasArtifacts}}
+### 3. Update YAML Provider for Artifacts
+
+**Add artifact struct(s):**
+
+```go
+{{- range .Artifacts}}
+// yaml{{$.EntityName}}{{.Name}}Artifact represents a {{.Name}} artifact entry in the YAML artifacts file.
+type yaml{{$.EntityName}}{{.Name}}Artifact struct {
+	{{$.EntityName}}Name string  `json:"{{$.EntityNameLower}}Name" yaml:"{{$.EntityNameLower}}Name"`
+	Name             string  `json:"name" yaml:"name"`
+{{- range .Properties}}
+	{{.FieldName}} *string `json:"{{.Name}},omitempty" yaml:"{{.Name}},omitempty"`
+{{- end}}
+}
+{{end}}
+
+// yamlArtifactsCatalog is the structure of the YAML artifacts file.
+type yamlArtifactsCatalog struct {
+{{- range .Artifacts}}
+	{{.Name}}Artifacts []yaml{{$.EntityName}}{{.Name}}Artifact `json:"{{$.EntityNameLower}}{{.Name}}Artifacts" yaml:"{{$.EntityNameLower}}{{.Name}}Artifacts"`
+{{- end}}
+}
+```
+
+**Parse artifacts in parse{{.EntityName}}Catalog:**
+
+```go
+// Parse artifacts file if provided
+artifactsByEntity := make(map[string][]any)
+if artifactsData != nil {
+	var artifactsCatalog yamlArtifactsCatalog
+	if err := k8syaml.UnmarshalStrict(artifactsData, &artifactsCatalog); err == nil {
+{{- range .Artifacts}}
+		for _, a := range artifactsCatalog.{{.Name}}Artifacts {
+			artifactName := a.Name
+			artifact := models.New{{$.EntityName}}{{.Name}}Artifact(&models.{{$.EntityName}}{{.Name}}ArtifactAttributes{
+				Name: &artifactName,
+{{- range .Properties}}
+				{{.AttrName}}: a.{{.FieldName}},
+{{- end}}
+			})
+			artifactsByEntity[a.{{$.EntityName}}Name] = append(artifactsByEntity[a.{{$.EntityName}}Name], artifact)
+		}
+{{- end}}
+	}
+}
+```
+
+**Attach artifacts to entities:**
+
+```go
+// After creating record
+if artifacts, ok := artifactsByEntity[name]; ok {
+	record.Artifacts = artifacts
+}
+```
+{{end}}
+### {{if .HasArtifacts}}4{{else}}3{{end}}. Update Service Mappers
+
+Edit `internal/db/service/{{.EntityNameLower}}.go`:
+
+**Update mapContextTo{{.EntityName}}** - add variable declarations and switch cases:
+
+```go
+// Add variables for each property
+{{- range .Properties}}
+{{- if eq .Type "array"}}
+var {{.VarName}} []string
+{{- else}}
+var {{.VarName}} *string
+{{- end}}
+{{- end}}
+
+// Add switch cases for each property
+for _, p := range props {
+	switch p.Name {
+{{- range .Properties}}
+{{- if eq .Type "array"}}
+	case "{{.Name}}":
+		if p.StringValue != nil {
+			_ = json.Unmarshal([]byte(*p.StringValue), &{{.VarName}})
+		}
+{{- else}}
+	case "{{.Name}}":
+		if p.StringValue != nil {
+			{{.VarName}} = p.StringValue
+		}
+{{- end}}
+{{- end}}
+	}
+	modelProps = append(modelProps, service.MapContextPropertyToProperties(p))
+}
+
+// Assign to attributes
+Attributes: &models.{{.EntityName}}Attributes{
+	Name:                     &ctx.Name,
+	ExternalID:               ctx.ExternalID,
+	CreateTimeSinceEpoch:     &ctx.CreateTimeSinceEpoch,
+	LastUpdateTimeSinceEpoch: &ctx.LastUpdateTimeSinceEpoch,
+{{- range .Properties}}
+	{{.AttrName}}: {{.VarName}},
+{{- end}}
+},
+```
+
+**Update map{{.EntityName}}ToContextProperties** - add property write statements:
+
+```go
+{{- range .Properties}}
+{{- if eq .Type "array"}}
+if len(attrs.{{.AttrName}}) > 0 {
+	if bytes, err := json.Marshal(attrs.{{.AttrName}}); err == nil {
+		str := string(bytes)
+		props = append(props, schema.ContextProperty{
+			ContextID:   entityID,
+			Name:        "{{.Name}}",
+			StringValue: &str,
+		})
+	}
+}
+{{- else}}
+if attrs.{{.AttrName}} != nil {
+	props = append(props, schema.ContextProperty{
+		ContextID:   entityID,
+		Name:        "{{.Name}}",
+		StringValue: attrs.{{.AttrName}},
+	})
+}
+{{- end}}
+{{- end}}
+```
+
+### {{if .HasArtifacts}}5{{else}}4{{end}}. Update OpenAPI Service Implementation
+
+Edit `internal/server/openapi/api_{{.EntityNameLower}}_service_impl.go`:
+
+**Update convertToOpenAPIModel** to map all properties:
+
+```go
+{{- range .Properties}}
+{{- if eq .Type "array"}}
+if attrs.{{.AttrName}} != nil {
+	result.{{.AttrName}} = attrs.{{.AttrName}}
+}
+{{- else}}
+if attrs.{{.AttrName}} != nil {
+	result.{{.AttrName}} = *attrs.{{.AttrName}}
+}
+{{- end}}
+{{- end}}
+```
+
+### {{if .HasArtifacts}}6{{else}}5{{end}}. Regenerate OpenAPI Server
+
+```bash
+make gen/openapi-server
+```
+
+### {{if .HasArtifacts}}7{{else}}6{{end}}. Verify Build
+
+```bash
+go build ./...
+```
+
+## Notes
+
+- Array properties (like tags) are stored as JSON strings in the database
+- Use `json.Marshal`/`json.Unmarshal` for array serialization
+- Property field names in Go use PascalCase (e.g., `source_id` → `Source_id`)
