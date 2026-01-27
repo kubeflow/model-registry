@@ -72,8 +72,3 @@ func generateArtifactModel(config CatalogConfig, artifact ArtifactConfig) error 
 	fmt.Printf("  Generated: internal/db/models/%s\n", filename)
 	return executeTemplate(TmplModelsArtifact, filepath.Join(modelsDir, filename), data)
 }
-
-// generateBaseModels generates the base models file.
-func generateBaseModels(outputDir string) error {
-	return executeTemplate(TmplModelsBase, filepath.Join(outputDir, "internal", "db", "models", "base.go"), nil)
-}

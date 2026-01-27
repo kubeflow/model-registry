@@ -112,7 +112,7 @@ func initCatalog(name, entityName, packageName, outputDir string) error {
 	if err != nil {
 		return fmt.Errorf("failed to create config file: %w", err)
 	}
-	defer configFile.Close()
+	defer func() { _ = configFile.Close() }()
 
 	encoder := yaml.NewEncoder(configFile)
 	encoder.SetIndent(2)
@@ -128,7 +128,7 @@ func initCatalog(name, entityName, packageName, outputDir string) error {
 	if err := os.Chdir(outputDir); err != nil {
 		return fmt.Errorf("failed to change to output directory: %w", err)
 	}
-	defer os.Chdir(originalDir)
+	defer func() { _ = os.Chdir(originalDir) }()
 
 	fmt.Println("\n=== Generating editable files (created once, you can modify) ===")
 

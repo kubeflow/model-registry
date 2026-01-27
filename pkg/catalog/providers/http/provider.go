@@ -250,7 +250,7 @@ func DoRequest[T any](ctx context.Context, client *http.Client, req Request) (*T
 	if err != nil {
 		return nil, fmt.Errorf("request failed: %w", err)
 	}
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 
 	if resp.StatusCode != http.StatusOK {
 		bodyBytes, _ := io.ReadAll(resp.Body)
@@ -285,7 +285,7 @@ func DoRequestRaw(ctx context.Context, client *http.Client, req Request) ([]byte
 	if err != nil {
 		return nil, fmt.Errorf("request failed: %w", err)
 	}
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 
 	if resp.StatusCode != http.StatusOK {
 		bodyBytes, _ := io.ReadAll(resp.Body)
@@ -338,7 +338,7 @@ func (f *PaginatedFetcher[T]) FetchAll(ctx context.Context) ([]T, error) {
 
 		if resp.StatusCode != http.StatusOK {
 			bodyBytes, _ := io.ReadAll(resp.Body)
-			resp.Body.Close()
+			_ = resp.Body.Close()
 			return nil, fmt.Errorf("HTTP %d: %s", resp.StatusCode, string(bodyBytes))
 		}
 

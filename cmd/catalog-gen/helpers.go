@@ -34,7 +34,7 @@ func saveConfig(config CatalogConfig) error {
 	if err != nil {
 		return fmt.Errorf("failed to open catalog.yaml: %w", err)
 	}
-	defer configFile.Close()
+	defer func() { _ = configFile.Close() }()
 
 	encoder := yaml.NewEncoder(configFile)
 	encoder.SetIndent(2)

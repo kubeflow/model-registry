@@ -78,7 +78,7 @@ func executeTemplate(templatePath, outputPath string, data any) error {
 	if err != nil {
 		return fmt.Errorf("failed to create file %s: %w", outputPath, err)
 	}
-	defer file.Close()
+	defer func() { _ = file.Close() }()
 
 	if err := tmpl.Execute(file, data); err != nil {
 		return fmt.Errorf("failed to execute template %s: %w", templatePath, err)

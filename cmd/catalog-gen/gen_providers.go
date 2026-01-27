@@ -85,10 +85,7 @@ type yaml%s%s struct {
 			for _, prop := range artifact.Properties {
 				goType := goTypeFromSpec(prop.Type)
 				// Remove pointer for optional fields in yaml struct
-				yamlGoType := goType
-				if strings.HasPrefix(yamlGoType, "*") {
-					yamlGoType = yamlGoType[1:]
-				}
+				yamlGoType := strings.TrimPrefix(goType, "*")
 				artifactStructs.WriteString(fmt.Sprintf("\t%s %s `json:\"%s,omitempty\" yaml:\"%s,omitempty\"`\n",
 					capitalize(prop.Name), yamlGoType, prop.Name, prop.Name))
 			}

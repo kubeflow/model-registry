@@ -153,35 +153,6 @@ func generateDevArtifactsFile(config CatalogConfig, devDir string) error {
 	return nil
 }
 
-// generateSampleCatalog generates the sample catalog files.
-func generateSampleCatalog(config CatalogConfig) error {
-	entityName := config.Spec.Entity.Name
-	lowerName := strings.ToLower(entityName)
-
-	data := map[string]any{
-		"Name":            config.Metadata.Name,
-		"EntityName":      entityName,
-		"EntityNameLower": lowerName,
-	}
-
-	manifestsDir := filepath.Join("manifests", "kustomize", "base")
-	if err := ensureDir(manifestsDir); err != nil {
-		return err
-	}
-
-	if err := executeTemplate(TmplManifestsSampleCatalog, filepath.Join(manifestsDir, "sample-catalog.yaml"), data); err != nil {
-		return err
-	}
-	if err := executeTemplate(TmplManifestsSources, filepath.Join(manifestsDir, "sources.yaml"), data); err != nil {
-		return err
-	}
-	if err := executeTemplate(TmplManifestsKustomization, filepath.Join(manifestsDir, "kustomization.yaml"), data); err != nil {
-		return err
-	}
-
-	return nil
-}
-
 // generateMakefile generates the Makefile.
 func generateMakefile(config CatalogConfig) error {
 	data := map[string]any{

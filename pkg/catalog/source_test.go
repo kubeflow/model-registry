@@ -126,7 +126,7 @@ func TestSourceCollectionByLabel(t *testing.T) {
 			Labels: nil, // No labels
 		},
 	}
-	sc.Merge("test.yaml", sources)
+	_ = sc.Merge("test.yaml", sources)
 
 	// Test finding by label
 	result := sc.ByLabel([]string{"prod"})
