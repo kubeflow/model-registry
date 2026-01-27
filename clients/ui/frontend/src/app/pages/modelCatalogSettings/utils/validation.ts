@@ -1,9 +1,13 @@
 import { CatalogSourceType } from '~/app/modelCatalogTypes';
 import { ManageSourceFormData } from '~/app/pages/modelCatalogSettings/useManageSourceData';
+import { SOURCE_NAME_CHARACTER_LIMIT } from '~/app/pages/modelCatalogSettings/constants';
 
 const isNonEmptyString = (value: string): boolean => value.trim().length > 0;
 
-export const validateSourceName = (name: string): boolean => isNonEmptyString(name);
+export const validateSourceName = (name: string): boolean =>
+  isNonEmptyString(name) && name.length <= SOURCE_NAME_CHARACTER_LIMIT;
+
+export const isSourceNameEmpty = (name: string): boolean => !isNonEmptyString(name);
 
 export const validateOrganization = (organization: string): boolean =>
   isNonEmptyString(organization);

@@ -13,11 +13,15 @@ import { UpdateObjectAtPropAndValue } from 'mod-arch-shared';
 import FormFieldset from '~/app/pages/modelRegistry/screens/components/FormFieldset';
 import FormSection from '~/app/pages/modelRegistry/components/pf-overrides/FormSection';
 import { ManageSourceFormData } from '~/app/pages/modelCatalogSettings/useManageSourceData';
-import { validateSourceName } from '~/app/pages/modelCatalogSettings/utils/validation';
+import {
+  validateSourceName,
+  isSourceNameEmpty,
+} from '~/app/pages/modelCatalogSettings/utils/validation';
 import {
   FORM_LABELS,
   SOURCE_TYPE_LABELS,
   VALIDATION_MESSAGES,
+  SOURCE_NAME_CHARACTER_LIMIT,
 } from '~/app/pages/modelCatalogSettings/constants';
 import { CatalogSourceType } from '~/app/modelCatalogTypes';
 
@@ -34,6 +38,7 @@ const SourceDetailsSection: React.FC<SourceDetailsSectionProps> = ({
 }) => {
   const [isNameTouched, setIsNameTouched] = React.useState(false);
   const isNameValid = validateSourceName(formData.name);
+  const hasNameError = isNameTouched && !isNameValid;
 
   const nameInput = (
     <TextInput
@@ -46,7 +51,7 @@ const SourceDetailsSection: React.FC<SourceDetailsSectionProps> = ({
       value={formData.name}
       onChange={(_event, value) => setData('name', value)}
       onBlur={() => setIsNameTouched(true)}
-      validated={isNameTouched && !isNameValid ? 'error' : 'default'}
+      validated={hasNameError ? 'error' : 'default'}
     />
   );
 
@@ -54,11 +59,15 @@ const SourceDetailsSection: React.FC<SourceDetailsSectionProps> = ({
     <FormSection>
       <FormGroup label={FORM_LABELS.NAME} isRequired fieldId="source-name">
         <FormFieldset component={nameInput} field="Name" data-testid="source-name-readonly" />
-        {isNameTouched && !isNameValid && (
+        {hasNameError && (
           <FormHelperText>
             <HelperText>
               <HelperTextItem variant="error" data-testid="source-name-error">
-                {VALIDATION_MESSAGES.NAME_REQUIRED}
+                {isSourceNameEmpty(formData.name)
+                  ? VALIDATION_MESSAGES.NAME_REQUIRED
+                  : formData.name.length > SOURCE_NAME_CHARACTER_LIMIT
+                    ? `Cannot exceed ${SOURCE_NAME_CHARACTER_LIMIT} characters`
+                    : null}
               </HelperTextItem>
             </HelperText>
           </FormHelperText>
