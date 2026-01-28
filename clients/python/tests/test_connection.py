@@ -18,11 +18,11 @@ def test_connection_args():
 
     # Secure connection tests
     client = ModelRegistryAPIClient.secure_connection(
-        server_address, port, user_token="token"
+        server_address, port, user_token="token"  # noqa: S106
     )
     assert client.config.host == host
 
     client = ModelRegistryAPIClient.secure_connection(
-        server_address_with_port, port, user_token="token"
+        server_address_with_port, port, user_token="token"  # noqa: S106
     )
     assert client.config.host == server_address_with_port
