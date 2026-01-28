@@ -226,14 +226,6 @@ export enum ModelCatalogTensorType {
   MXFP4 = 'MXFP4',
 }
 
-export const MODEL_CATALOG_TENSOR_TYPE_MAPPING = {
-  [ModelCatalogTensorType.FP16]: 'FP16',
-  [ModelCatalogTensorType.FP8]: 'FP8',
-  [ModelCatalogTensorType.INT4]: 'INT4',
-  [ModelCatalogTensorType.INT8]: 'INT8',
-  [ModelCatalogTensorType.MXFP4]: 'MXFP4',
-};
-
 export const MODEL_CATALOG_POPOVER_MESSAGES = {
   VALIDATED:
     'Validated models are benchmarked for performance and quality using leading open source evaluation datasets.',

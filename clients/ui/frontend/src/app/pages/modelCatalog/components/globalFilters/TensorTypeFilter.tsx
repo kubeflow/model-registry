@@ -1,10 +1,7 @@
-import React from 'react';
+import * as React from 'react';
 import { StackItem } from '@patternfly/react-core';
 import { CatalogFilterOptions, ModelCatalogStringFilterOptions } from '~/app/modelCatalogTypes';
-import {
-  MODEL_CATALOG_TENSOR_TYPE_MAPPING,
-  ModelCatalogStringFilterKey,
-} from '~/concepts/modelCatalog/const';
+import { ModelCatalogStringFilterKey, ModelCatalogTensorType } from '~/concepts/modelCatalog/const';
 import ModelCatalogStringFilter from '~/app/pages/modelCatalog/components/ModelCatalogStringFilter';
 
 const filterKey = ModelCatalogStringFilterKey.TENSOR_TYPE;
@@ -26,7 +23,7 @@ const TensorTypeFilter: React.FC<TensorTypeFilterProps> = ({ filters }) => {
         title="Tensor type"
         filterKey={filterKey}
         filters={tensorType}
-        filterToNameMapping={MODEL_CATALOG_TENSOR_TYPE_MAPPING}
+        filterToNameMapping={ModelCatalogTensorType}
       />
     </StackItem>
   );

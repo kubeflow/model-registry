@@ -23,26 +23,18 @@ const ModelCatalogFilters: React.FC = () => {
       </Alert>
     );
   }
+
+  const getFilterProps = (filterKey: ModelCatalogStringFilterKey) =>
+    filters && filterKey in filters ? filters : undefined;
+
   return (
     <Stack hasGutter>
       <ModelPerformanceViewToggleCard />
-      <TaskFilter
-        filters={filters && ModelCatalogStringFilterKey.TASK in filters ? filters : undefined}
-      />
-      <ProviderFilter
-        filters={filters && ModelCatalogStringFilterKey.PROVIDER in filters ? filters : undefined}
-      />
-      <LicenseFilter
-        filters={filters && ModelCatalogStringFilterKey.LICENSE in filters ? filters : undefined}
-      />
-      <LanguageFilter
-        filters={filters && ModelCatalogStringFilterKey.LANGUAGE in filters ? filters : undefined}
-      />
-      <TensorTypeFilter
-        filters={
-          filters && ModelCatalogStringFilterKey.TENSOR_TYPE in filters ? filters : undefined
-        }
-      />
+      <TaskFilter filters={getFilterProps(ModelCatalogStringFilterKey.TASK)} />
+      <ProviderFilter filters={getFilterProps(ModelCatalogStringFilterKey.PROVIDER)} />
+      <LicenseFilter filters={getFilterProps(ModelCatalogStringFilterKey.LICENSE)} />
+      <LanguageFilter filters={getFilterProps(ModelCatalogStringFilterKey.LANGUAGE)} />
+      <TensorTypeFilter filters={getFilterProps(ModelCatalogStringFilterKey.TENSOR_TYPE)} />
     </Stack>
   );
 };
