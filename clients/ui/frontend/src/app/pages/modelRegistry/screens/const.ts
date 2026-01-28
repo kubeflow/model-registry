@@ -34,3 +34,8 @@ export const initialModelRegistryVersionsFilterData: ModelRegistryVersionsFilter
   [ModelRegistryVersionsFilterOptions.keyword]: '',
   [ModelRegistryVersionsFilterOptions.author]: '',
 };
+
+export enum RegistrationMode {
+  Register = 'register',
+  RegisterAndStore = 'registerAndStore',
+}
