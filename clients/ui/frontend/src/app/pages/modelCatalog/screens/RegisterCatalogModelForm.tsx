@@ -76,6 +76,7 @@ const RegisterCatalogModelForm: React.FC<RegisterCatalogModelFormProps> = ({
     modelLocationPath: '',
     modelLocationURI: uri || '',
     modelRegistry: preferredModelRegistry.name,
+    namespace: '',
     modelCustomProperties: { ...getLabelsFromCustomProperties(model?.customProperties), ...tasks },
     versionCustomProperties: {
       ...model?.customProperties,

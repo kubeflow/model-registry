@@ -1,6 +1,7 @@
 import { GenericObjectState } from 'mod-arch-core';
 import useGenericObjectState from 'mod-arch-core/dist/utilities/useGenericObjectState';
 import { ModelRegistryCustomProperties, ModelArtifact } from '~/app/types';
+import { RegistrationMode } from '~/app/pages/modelRegistry/screens/const';
 
 export enum ModelLocationType {
   ObjectStorage = 'Object storage',
@@ -18,6 +19,8 @@ export type RegistrationCommonFormData = {
   modelLocationRegion: string;
   modelLocationPath: string;
   modelLocationURI: string;
+  namespace?: string;
+  registrationMode?: RegistrationMode.Register | RegistrationMode.RegisterAndStore;
   versionCustomProperties?: ModelRegistryCustomProperties;
   modelCustomProperties?: ModelRegistryCustomProperties;
   additionalArtifactProperties?: Partial<ModelArtifact>;
@@ -47,6 +50,8 @@ const registrationCommonFormDataDefaults: RegistrationCommonFormData = {
   modelLocationRegion: '',
   modelLocationPath: '',
   modelLocationURI: '',
+  namespace: '',
+  registrationMode: RegistrationMode.Register,
   modelCustomProperties: {},
   versionCustomProperties: {},
 };
