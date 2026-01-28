@@ -82,7 +82,7 @@ class ModelRegistryAPIClient:
             port: Server port.
             user_token: The PEM-encoded user token as a string.
         """
-        parsed_url = urlparse(server_address if "//" in server_address else f"//{server_address}")
+        parsed_url = urlparse(server_address)
         host = server_address if parsed_url.port else f"{server_address}:{port}"
 
         config = Configuration(
