@@ -1178,8 +1178,7 @@ def test_user_token_from_envvar(monkeypatch, mock_get_registered_models):
 
     monkeypatch.setenv("KF_PIPELINES_SA_TOKEN_PATH", token_file_path)
     client = ModelRegistry(
-        server_address="http://localhost",
-        port=8080,
+        server_address="http://localhost:8080",
         author="test_author",
         is_secure=False,
         # user_token=None -> ... Let it read from Env var
@@ -1201,8 +1200,7 @@ def test_user_token_from_k8s_file(monkeypatch, mock_get_registered_models):
         k8s_token_file_path = k8s_token_file.name
     monkeypatch.setattr("model_registry._client.DEFAULT_K8S_SA_TOKEN_PATH", k8s_token_file_path)
     client = ModelRegistry(
-        server_address="http://localhost",
-        port=8080,
+        server_address="http://localhost:8080",
         author="test_author",
         is_secure=False,
         # user_token=None -> ... Let it read from K8s file
@@ -1228,8 +1226,7 @@ def test_user_token_envvar_priority_over_k8s(monkeypatch, mock_get_registered_mo
         k8s_token_file_path = k8s_token_file.name
     monkeypatch.setattr("model_registry._client.DEFAULT_K8S_SA_TOKEN_PATH", k8s_token_file_path)
     client = ModelRegistry(
-        server_address="http://localhost",
-        port=8080,
+        server_address="http://localhost:8080",
         author="test_author",
         is_secure=False,
         # user_token=None -> ... Let it read from Env var (and not from K8s file, given that Env var is set)
@@ -1248,8 +1245,7 @@ def test_user_token_missing_warning(monkeypatch, mock_get_registered_models):
     mock_warn = MagicMock()
     monkeypatch.setattr("model_registry._client.warn", mock_warn)
     client = ModelRegistry(
-        server_address="http://localhost",
-        port=8080,
+        server_address="http://localhost:8080",
         author="test_author",
         is_secure=False,
         # user_token=None -> ... Let it try to read, but missing Env var and K8s file, it will emit a warning
