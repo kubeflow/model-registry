@@ -34,6 +34,7 @@ const RegisterAndStoreFields = <D extends RegistrationCommonFormData>({
         formData={formData}
         setData={setData}
         isCatalogModel={isCatalogModel}
+        includeCredentialFields
       />
     </FormSection>
     <FormSection
