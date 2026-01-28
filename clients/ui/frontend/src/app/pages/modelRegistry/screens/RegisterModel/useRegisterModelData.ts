@@ -18,6 +18,7 @@ export type RegistrationCommonFormData = {
   modelLocationRegion: string;
   modelLocationPath: string;
   modelLocationURI: string;
+  jobName: string;
   versionCustomProperties?: ModelRegistryCustomProperties;
   modelCustomProperties?: ModelRegistryCustomProperties;
   additionalArtifactProperties?: Partial<ModelArtifact>;
@@ -47,6 +48,7 @@ const registrationCommonFormDataDefaults: RegistrationCommonFormData = {
   modelLocationRegion: '',
   modelLocationPath: '',
   modelLocationURI: '',
+  jobName: '',
   modelCustomProperties: {},
   versionCustomProperties: {},
 };

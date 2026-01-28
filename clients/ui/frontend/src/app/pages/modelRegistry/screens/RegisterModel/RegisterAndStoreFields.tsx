@@ -1,6 +1,8 @@
 import React from 'react';
+import { HelperText, HelperTextItem } from '@patternfly/react-core';
 import { UpdateObjectAtPropAndValue } from 'mod-arch-shared';
 import FormSection from '~/app/pages/modelRegistry/components/pf-overrides/FormSection';
+import K8sNameDescriptionField from '~/concepts/k8s/K8sNameDescriptionField/K8sNameDescriptionField';
 import { RegistrationCommonFormData } from './useRegisterModelData';
 import RegistrationModelLocationFields from './RegistrationModelLocationFields';
 
@@ -16,10 +18,33 @@ const RegisterAndStoreFields = <D extends RegistrationCommonFormData>({
   isCatalogModel,
 }: RegisterAndStoreFieldsProps<D>): React.ReactNode => (
   <>
-    TODO job name and namespace fields here
+    <K8sNameDescriptionField
+      dataTestId="model-transfer-job"
+      nameLabel="Model transfer job name"
+      data={{
+        name: formData.jobName,
+        description: '',
+      }}
+      onDataChange={(data) => {
+        setData('jobName', data.name);
+      }}
+      resourceNameHelperText={
+        <>
+          <HelperText>
+            <HelperTextItem>Cannot exceed 30 characters.</HelperTextItem>
+            <HelperTextItem>
+              Must start and end with a letter or number. Valid characters include lowercase
+              letters, numbers, and hyphens (-).
+            </HelperTextItem>
+            <HelperTextItem>
+              Auto generated value will be used as resource name if field is blank.
+            </HelperTextItem>
+          </HelperText>
+        </>
+      }
+      hideDescription
+    />
     {/*
-      TODO use the K8sNameResourceField component here for the job name.
-
       TODO add a namespace selector - don't replicate the ODH notion of "projects", we will start with a simple k8s namespace selector.
       Needs to list all namespaces the user can see, which is something we already have in the app header here, look how that was done.
 
