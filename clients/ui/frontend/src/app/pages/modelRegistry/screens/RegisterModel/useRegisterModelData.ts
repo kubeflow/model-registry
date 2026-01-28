@@ -18,6 +18,13 @@ export type RegistrationCommonFormData = {
   modelLocationRegion: string;
   modelLocationPath: string;
   modelLocationURI: string;
+  modelLocationS3AccessKeyId: string;
+  modelLocationS3SecretAccessKey: string;
+  destinationOciRegistry: string;
+  destinationOciUsername: string;
+  destinationOciPassword: string;
+  destinationOciUri: string;
+  destinationOciEmail: string;
   versionCustomProperties?: ModelRegistryCustomProperties;
   modelCustomProperties?: ModelRegistryCustomProperties;
   additionalArtifactProperties?: Partial<ModelArtifact>;
@@ -47,6 +54,13 @@ const registrationCommonFormDataDefaults: RegistrationCommonFormData = {
   modelLocationRegion: '',
   modelLocationPath: '',
   modelLocationURI: '',
+  modelLocationS3AccessKeyId: '',
+  modelLocationS3SecretAccessKey: '',
+  destinationOciRegistry: '',
+  destinationOciUsername: '',
+  destinationOciPassword: '',
+  destinationOciUri: '',
+  destinationOciEmail: '',
   modelCustomProperties: {},
   versionCustomProperties: {},
 };

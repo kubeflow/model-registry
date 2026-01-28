@@ -3,6 +3,7 @@ import { UpdateObjectAtPropAndValue } from 'mod-arch-shared';
 import FormSection from '~/app/pages/modelRegistry/components/pf-overrides/FormSection';
 import { RegistrationCommonFormData } from './useRegisterModelData';
 import RegistrationModelLocationFields from './RegistrationModelLocationFields';
+import RegistrationDestinationLocationFields from './RegistrationDestinationLocationFields';
 
 type RegisterAndStoreFieldsProps<D extends RegistrationCommonFormData> = {
   formData: D;
@@ -33,19 +34,14 @@ const RegisterAndStoreFields = <D extends RegistrationCommonFormData>({
         formData={formData}
         setData={setData}
         isCatalogModel={isCatalogModel}
+        includeCredentialFields
       />
     </FormSection>
     <FormSection
       title="Model destination location"
-      description="Specify the location that will be used to store the registered model."
+      description="Specify the OCI registry location that will be used to store the registered model."
     >
-      TODO destination location fields here
-      {/* 
-        TODO this will need the inputs we require to create the secret required by the job,
-        but in a generic way - don't recreate the whole ODH create/select connection flow
-        here. start with bare minimum simple inputs.
-        Jobs are documented here: https://github.com/kubeflow/model-registry/tree/main/jobs/async-upload
-      */}
+      <RegistrationDestinationLocationFields formData={formData} setData={setData} />
     </FormSection>
   </>
 );
