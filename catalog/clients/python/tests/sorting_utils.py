@@ -1,5 +1,6 @@
 """Utility functions for sorting tests."""
 
+import pytest
 from typing import Any
 
 
@@ -53,7 +54,7 @@ def validate_items_sorted_correctly(items: list[dict], field: str, order: str) -
         True if items are sorted correctly, False otherwise
     """
     if len(items) < 2:
-        return True
+        pytest.fail("List has fewer than 2 items, double check the data you are passing to this function")
 
     values = [get_field_value(item, field) for item in items]
 
