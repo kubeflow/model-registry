@@ -8,6 +8,7 @@ import {
 } from '~/app/types';
 import { ModelRegistryAPIState } from '~/app/hooks/useModelRegistryAPIState';
 import { objectStorageFieldsToUri } from '~/app/utils';
+import { RegistrationMode } from '~/app/pages/modelRegistry/screens/const';
 import {
   ModelLocationType,
   RegisterCatalogModelFormData,
@@ -137,8 +138,14 @@ const isSubmitDisabledForCommonFields = (formData: RegistrationCommonFormData): 
     modelLocationURI,
     modelLocationBucket,
     modelLocationEndpoint,
+    registrationMode,
     modelLocationPath,
+    namespace,
   } = formData;
+
+  if (registrationMode === RegistrationMode.RegisterAndStore && !namespace) {
+    return true;
+  }
   return (
     !versionName ||
     (modelLocationType === ModelLocationType.URI && !modelLocationURI) ||
