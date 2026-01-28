@@ -2,6 +2,7 @@ package mocks
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"log/slog"
 	"os"
@@ -935,14 +936,22 @@ func GetCatalogSourceListMock() models.CatalogSourceList {
 }
 
 func GetCatalogModelArtifactMock() []models.CatalogArtifact {
+	architecturesJSON, _ := json.Marshal([]string{"amd64", "arm64", "s390x", "ppc64le"})
+	customProps := newCustomProperties()
+	(*customProps)["architecture"] = openapi.MetadataValue{
+		MetadataStringValue: &openapi.MetadataStringValue{
+			StringValue:  string(architecturesJSON),
+			MetadataType: "MetadataStringValue",
+		},
+	}
+
 	return []models.CatalogArtifact{
 		{
-			ArtifactType:         "model-artifact",
-			Uri:                  stringToPointer("oci://registry.sample.io/repo1/modelcar-granite-7b-starter:1.4.0"),
-			CreateTimeSinceEpoch: stringToPointer("1693526400000"),
-
+			ArtifactType:             "model-artifact",
+			Uri:                      stringToPointer("oci://registry.sample.io/repo1/modelcar-granite-7b-starter:1.4.0"),
+			CreateTimeSinceEpoch:     stringToPointer("1693526400000"),
 			LastUpdateTimeSinceEpoch: stringToPointer("1704067200000"),
-			CustomProperties:         newCustomProperties(),
+			CustomProperties:         customProps,
 		},
 	}
 }

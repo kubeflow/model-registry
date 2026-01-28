@@ -6,6 +6,7 @@ import {
   CatalogFilterOptions,
   CatalogFilterOptionsList,
   CatalogModel,
+  CatalogModelArtifact,
   CatalogModelDetailsParams,
   CatalogSource,
   CatalogSourceList,
@@ -26,8 +27,10 @@ import {
   ModelCatalogSortOption,
   SortOrder,
   SortField,
+  CatalogModelCustomPropertyKey,
 } from '~/concepts/modelCatalog/const';
 import { CatalogSourceStatus } from '~/concepts/modelCatalogSettings/const';
+import { ModelRegistryMetadataType } from '~/app/types';
 
 /**
  * Prefix used by the backend for artifact-specific filter options.
@@ -85,19 +88,74 @@ export const filterEnabledCatalogSources = (
 };
 
 export const getModelArtifactUri = (artifacts: CatalogArtifacts[]): string => {
-  const modelArtifact = artifacts.find(
-    (artifact) => artifact.artifactType === CatalogArtifactType.modelArtifact,
-  );
-
-  if (modelArtifact) {
-    return modelArtifact.uri || '';
-  }
-
-  return '';
+  const modelArtifact = findModelArtifact(artifacts);
+  return modelArtifact?.uri || '';
 };
 
 export const hasModelArtifacts = (artifacts: CatalogArtifacts[]): boolean =>
   artifacts.some((artifact) => artifact.artifactType === CatalogArtifactType.modelArtifact);
+
+/**
+ * Finds the model artifact from an array of catalog artifacts.
+ * @param artifacts Array of catalog artifacts to search
+ * @returns The model artifact if found, undefined otherwise
+ */
+const findModelArtifact = (artifacts: CatalogArtifacts[]): CatalogModelArtifact | undefined =>
+  artifacts.find(
+    (artifact): artifact is CatalogModelArtifact =>
+      artifact.artifactType === CatalogArtifactType.modelArtifact,
+  );
+
+/**
+ * Extracts architecture values from the model artifact's custom properties.
+ * The architecture custom property should be a JSON-encoded array of architecture strings.
+ * Architectures are normalized to lowercase and deduplicated.
+ *
+ * @param artifacts Array of catalog artifacts to search
+ * @returns Array of architecture strings, or empty array if none found or invalid
+ */
+export const getArchitecturesFromArtifacts = (artifacts: CatalogArtifacts[]): string[] => {
+  const modelArtifact = findModelArtifact(artifacts);
+
+  if (!modelArtifact) {
+    return [];
+  }
+
+  const architectureProp =
+    modelArtifact.customProperties?.[CatalogModelCustomPropertyKey.ARCHITECTURE];
+
+  if (!architectureProp || architectureProp.metadataType !== ModelRegistryMetadataType.STRING) {
+    return [];
+  }
+
+  const architectureString = architectureProp.string_value;
+
+  try {
+    if (!architectureString) {
+      return [];
+    }
+    const parsed = JSON.parse(architectureString);
+
+    // Handle both non-array and array cases in one flow
+    const items = Array.isArray(parsed) ? parsed : [];
+
+    // Filter strings, normalize to lowercase, and deduplicate
+    return [
+      ...new Set(
+        items
+          .filter((item): item is string => typeof item === 'string')
+          .map((item) => item.toLowerCase()),
+      ),
+    ];
+  } catch (error) {
+    // Invalid JSON - return empty array
+    if (process.env.NODE_ENV === 'development') {
+      // eslint-disable-next-line no-console
+      console.warn('Failed to parse architecture JSON:', architectureString, error);
+    }
+    return [];
+  }
+};
 
 export const hasPerformanceArtifacts = (artifacts: CatalogArtifacts[]): boolean =>
   artifacts.some(
