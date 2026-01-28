@@ -3,6 +3,7 @@ export enum ModelCatalogStringFilterKey {
   PROVIDER = 'provider',
   LICENSE = 'license',
   LANGUAGE = 'language',
+  TENSOR_TYPE = 'tensor_type.string_value',
   // Performance filter keys use backend format
   HARDWARE_TYPE = 'artifacts.hardware_type.string_value',
   HARDWARE_CONFIGURATION = 'artifacts.hardware_configuration.string_value',
@@ -216,6 +217,14 @@ export const MODEL_CATALOG_PROVIDER_NOTABLE_MODELS = {
   [ModelCatalogProvider.NVIDIA_ALTERNATE]: 'NVIDIA research models',
   [ModelCatalogProvider.RED_HAT]: 'Red Hat optimized models',
 };
+
+export enum ModelCatalogTensorType {
+  FP16 = 'FP16',
+  FP8 = 'FP8',
+  INT4 = 'INT4',
+  INT8 = 'INT8',
+  MXFP4 = 'MXFP4',
+}
 
 export const MODEL_CATALOG_POPOVER_MESSAGES = {
   VALIDATED:
@@ -471,6 +480,7 @@ export const BASIC_FILTER_KEYS: ModelCatalogFilterKey[] = [
   ModelCatalogStringFilterKey.LICENSE,
   ModelCatalogStringFilterKey.TASK,
   ModelCatalogStringFilterKey.LANGUAGE,
+  ModelCatalogStringFilterKey.TENSOR_TYPE,
 ];
 
 /**
@@ -576,6 +586,7 @@ export const MODEL_CATALOG_FILTER_CATEGORY_NAMES: Record<ModelCatalogFilterKey, 
   [ModelCatalogStringFilterKey.HARDWARE_TYPE]: 'Hardware type',
   [ModelCatalogStringFilterKey.HARDWARE_CONFIGURATION]: 'Hardware',
   [ModelCatalogStringFilterKey.USE_CASE]: 'Workload type',
+  [ModelCatalogStringFilterKey.TENSOR_TYPE]: 'Tensor type',
   // Number filter keys
   [ModelCatalogNumberFilterKey.MAX_RPS]: 'Max RPS',
   // Latency field names - all use "Latency" as category name

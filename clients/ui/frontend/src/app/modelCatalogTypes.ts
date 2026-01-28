@@ -10,6 +10,7 @@ import {
   LatencyPropertyKey,
   UseCaseOptionValue,
   ModelCatalogFilterKey,
+  ModelCatalogTensorType,
 } from '~/concepts/modelCatalog/const';
 import {
   ModelRegistryCustomProperties,
@@ -236,6 +237,7 @@ export type ModelCatalogStringFilterValueType = {
   [ModelCatalogStringFilterKey.PROVIDER]: ModelCatalogProvider;
   [ModelCatalogStringFilterKey.LICENSE]: ModelCatalogLicense;
   [ModelCatalogStringFilterKey.LANGUAGE]: AllLanguageCode;
+  [ModelCatalogStringFilterKey.TENSOR_TYPE]: ModelCatalogTensorType;
   [ModelCatalogStringFilterKey.HARDWARE_TYPE]: string;
   [ModelCatalogStringFilterKey.HARDWARE_CONFIGURATION]: string;
   [ModelCatalogStringFilterKey.USE_CASE]: UseCaseOptionValue;
@@ -301,6 +303,7 @@ export type ModelCatalogFilterStates = {
   [ModelCatalogStringFilterKey.PROVIDER]: ModelCatalogProvider[];
   [ModelCatalogStringFilterKey.LICENSE]: ModelCatalogLicense[];
   [ModelCatalogStringFilterKey.LANGUAGE]: AllLanguageCode[];
+  [ModelCatalogStringFilterKey.TENSOR_TYPE]: ModelCatalogTensorType[];
   [ModelCatalogStringFilterKey.HARDWARE_TYPE]: string[];
   [ModelCatalogStringFilterKey.HARDWARE_CONFIGURATION]: string[];
   [ModelCatalogStringFilterKey.USE_CASE]: UseCaseOptionValue[];

@@ -82,6 +82,7 @@ export const ModelCatalogContext = React.createContext<ModelCatalogContextType>(
     [ModelCatalogStringFilterKey.HARDWARE_CONFIGURATION]: [],
     [ModelCatalogStringFilterKey.USE_CASE]: [],
     [ModelCatalogNumberFilterKey.MAX_RPS]: undefined,
+    [ModelCatalogStringFilterKey.TENSOR_TYPE]: [],
   },
   updateSelectedSource: () => undefined,
   selectedSourceLabel: undefined,
@@ -124,6 +125,7 @@ export const ModelCatalogContextProvider: React.FC<ModelCatalogContextProviderPr
     [ModelCatalogStringFilterKey.HARDWARE_CONFIGURATION]: [],
     [ModelCatalogStringFilterKey.USE_CASE]: [],
     [ModelCatalogNumberFilterKey.MAX_RPS]: undefined,
+    [ModelCatalogStringFilterKey.TENSOR_TYPE]: [],
   });
   const [filterOptions, filterOptionsLoaded, filterOptionsLoadError] =
     useCatalogFilterOptionList(apiState);
@@ -173,7 +175,7 @@ export const ModelCatalogContextProvider: React.FC<ModelCatalogContextProviderPr
   }, [filterOptions?.namedQueries, applyNamedQueryDefaults, baseSetFilterData]);
 
   /**
-   * Clears basic filters (Task, Provider, License, Language) to empty.
+   * Clears basic filters (Task, Provider, License, Language, Tensor Type) to empty.
    * Note: BASIC_FILTER_KEYS in const.ts should be updated if basic filters change.
    */
   const clearBasicFilters = React.useCallback(() => {
@@ -181,6 +183,7 @@ export const ModelCatalogContextProvider: React.FC<ModelCatalogContextProviderPr
     baseSetFilterData(ModelCatalogStringFilterKey.PROVIDER, []);
     baseSetFilterData(ModelCatalogStringFilterKey.LICENSE, []);
     baseSetFilterData(ModelCatalogStringFilterKey.LANGUAGE, []);
+    baseSetFilterData(ModelCatalogStringFilterKey.TENSOR_TYPE, []);
   }, [baseSetFilterData]);
 
   /**

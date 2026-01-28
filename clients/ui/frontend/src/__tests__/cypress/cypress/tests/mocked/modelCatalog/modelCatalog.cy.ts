@@ -69,6 +69,25 @@ type HandlersProps = {
   includeAllModelsIntercept?: boolean;
 };
 
+const calculateExpectedCategoryCount = (sources: CatalogSource[]): number => {
+  const uniqueLabels = new Set<string>();
+  sources.forEach((source) => {
+    source.labels.forEach((label) => {
+      if (label.trim()) {
+        uniqueLabels.add(label.trim());
+      }
+    });
+  });
+
+  const hasSourcesWithoutLabels = sources.some(
+    (source) =>
+      source.enabled !== false &&
+      (source.labels.length === 0 || source.labels.every((label) => !label.trim())),
+  );
+
+  return uniqueLabels.size + (hasSourcesWithoutLabels ? 1 : 0);
+};
+
 const initIntercepts = ({
   sources = [mockCatalogSource({}), mockCatalogSource({ id: 'source-2', name: 'source 2' })],
   modelsPerCategory = 4,
@@ -213,6 +232,7 @@ describe('Model Catalog Page', () => {
     modelCatalog.findFilter('License').should('be.visible');
     modelCatalog.findFilter('Task').should('be.visible');
     modelCatalog.findFilter('Language').should('be.visible');
+    modelCatalog.findFilter('Tensor type').scrollIntoView().should('be.visible');
   });
 
   it('filters show more and show less button should work', () => {
@@ -245,24 +265,8 @@ describe('Model Catalog Page', () => {
       mockCatalogSource({}),
       mockCatalogSource({ id: 'source-2', name: 'source 2' }),
     ];
-    const uniqueLabels = new Set<string>();
-    defaultSources.forEach((source) => {
-      source.labels.forEach((label) => {
-        if (label.trim()) {
-          uniqueLabels.add(label.trim());
-        }
-      });
-    });
 
-    // Check if there are sources without labels
-    const hasSourcesWithoutLabels = defaultSources.some(
-      (source) =>
-        source.enabled !== false &&
-        (source.labels.length === 0 || source.labels.every((label) => !label.trim())),
-    );
-
-    // Expected count: unique labels + (1 if sources without labels exist)
-    const expectedCategoryCount = uniqueLabels.size + (hasSourcesWithoutLabels ? 1 : 0);
+    const expectedCategoryCount = calculateExpectedCategoryCount(defaultSources);
 
     initIntercepts({ sources: defaultSources, includeAllModelsIntercept: false });
 
@@ -284,6 +288,58 @@ describe('Model Catalog Page', () => {
       expect(lastInterception.request.url).to.include(
         'tasks+IN+%28%27text-generation%27%2C%27text-to-text%27%29+AND+provider%3D%27Google%27',
       );
+    });
+  });
+
+  it('tensor type filter checkbox should work', () => {
+    initIntercepts({ includeAllModelsIntercept: true });
+
+    setupFilteredModelsIntercept({
+      returnModelsForFilters: true,
+      modelsToReturn: [mockCatalogModel({})],
+    });
+
+    modelCatalog.visit();
+    modelCatalog.findFilterCheckbox('Tensor type', 'FP16').click();
+    cy.wait('@getFilteredModels');
+
+    modelCatalog.findFilterCheckbox('Tensor type', 'INT8').click();
+
+    cy.wait('@getFilteredModels').then((interception) => {
+      expect(interception.request.url).to.include(
+        'tensor_type.string_value+IN+%28%27FP16%27%2C%27INT8%27%29',
+      );
+    });
+  });
+
+  it('tensor type filter combined with other filters should work', () => {
+    const defaultSources = [
+      mockCatalogSource({}),
+      mockCatalogSource({ id: 'source-2', name: 'source 2' }),
+    ];
+
+    const expectedCategoryCount = calculateExpectedCategoryCount(defaultSources);
+
+    initIntercepts({ sources: defaultSources, includeAllModelsIntercept: false });
+
+    setupFilteredModelsIntercept({
+      returnModelsForFilters: true,
+      modelsToReturn: [mockCatalogModel({})],
+    });
+
+    modelCatalog.visit();
+    modelCatalog.findFilterShowMoreButton('Task').click();
+    modelCatalog.findFilterCheckbox('Task', 'text-generation').click();
+    modelCatalog.findFilterCheckbox('Tensor type', 'FP16').click();
+    modelCatalog.findFilterCheckbox('Provider', 'Google').click();
+
+    const waitCalls = Array.from({ length: expectedCategoryCount }, () => '@getFilteredModels');
+    cy.wait(waitCalls).then((interceptions) => {
+      const lastInterception = interceptions[interceptions.length - 1];
+      const { url } = lastInterception.request;
+      expect(url).to.include('tasks%3D%27text-generation%27');
+      expect(url).to.include('tensor_type.string_value%3D%27FP16%27');
+      expect(url).to.include('provider%3D%27Google%27');
     });
   });
 });
