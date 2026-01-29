@@ -61,6 +61,7 @@ const NamespaceSelector: React.FC<NamespaceSelectorProps> = ({
       placeholder={placeholderText}
       isDisabled={isDisabled}
       isFullWidth={isFullWidth}
+      popperProps={{ maxWidth: '400px' }}
       dataTestId={placeholderText ? 'form-namespace-selector' : 'navbar-namespace-selector'}
     />
   );
