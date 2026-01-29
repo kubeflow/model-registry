@@ -158,6 +158,11 @@ func (s EmbedMDService) Type() string {
 	return connectorType
 }
 
+// DB returns the underlying GORM database connection for pglock.
+func (s *EmbedMDService) DB() (*gorm.DB, error) {
+	return s.dbConnector.Connect()
+}
+
 const (
 	executionTypeKind int32 = iota
 	artifactTypeKind
