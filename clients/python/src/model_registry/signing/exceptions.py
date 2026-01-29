@@ -1,13 +1,17 @@
 """Exceptions for signing operations."""
 
 
-class SigningError(Exception):
-    """Raised when image signing fails."""
+class ModelSigningError(Exception):
+    """Base exception for model signing operations."""
 
 
-class VerificationError(Exception):
-    """Raised when image verification fails."""
+class SigningError(ModelSigningError):
+    """Raised when signing fails."""
 
 
-class InitializationError(Exception):
-    """Raised when sigstore initialization fails."""
+class VerificationError(ModelSigningError):
+    """Raised when verification fails."""
+
+
+class InitializationError(ModelSigningError):
+    """Raised when initialization fails."""
