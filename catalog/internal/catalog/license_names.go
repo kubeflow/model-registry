@@ -686,6 +686,7 @@ var spdxToHumanReadableMap = map[string]string{
 	"upl-1.0":                              "Universal Permissive License v1.0",
 	"urt-rle":                              "Utah Raster Toolkit Run Length Encoded License",
 	"vim":                                  "Vim License",
+	"vixie-cron":                           "Vixie Cron License",
 	"vostrom":                              "VOSTROM Public License for Open Source",
 	"vsl-1.0":                              "Vovida Software License v1.0",
 	"w3c":                                  "W3C Software Notice and License (2002-12-31)",
