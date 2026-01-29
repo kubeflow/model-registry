@@ -15,10 +15,12 @@ import { EllipsisVIcon, FilterIcon } from '@patternfly/react-icons';
 import { useNavigate } from 'react-router-dom';
 import { ModelRegistrySelectorContext } from '~/app/context/ModelRegistrySelectorContext';
 import {
+  modelTransferJobsUrl,
   registeredModelArchiveUrl,
   registerModelUrl,
   registerVersionUrl,
 } from '~/app/pages/modelRegistry/screens/routeUtils';
+import { useTempDevFeatureAvailable, TempDevFeature } from '~/app/hooks/useTempDevFeatureAvailable';
 
 type RegisteredModelsTableToolbarProps = {
   toggleGroupItems?: React.ReactNode;
@@ -33,6 +35,7 @@ const RegisteredModelsTableToolbar: React.FC<RegisteredModelsTableToolbarProps> 
   const { preferredModelRegistry } = React.useContext(ModelRegistrySelectorContext);
   const [isRegisterNewVersionOpen, setIsRegisterNewVersionOpen] = React.useState(false);
   const [isArchivedModelKebabOpen, setIsArchivedModelKebabOpen] = React.useState(false);
+  const isModelTransferJobsAvailable = useTempDevFeatureAvailable(TempDevFeature.RegistryStorage);
 
   const tooltipRef = React.useRef<HTMLButtonElement>(null);
 
@@ -110,6 +113,13 @@ const RegisteredModelsTableToolbar: React.FC<RegisteredModelsTableToolbarProps> 
               >
                 View archived models
               </DropdownItem>
+              {isModelTransferJobsAvailable && (
+                <DropdownItem
+                  onClick={() => navigate(modelTransferJobsUrl(preferredModelRegistry?.name))}
+                >
+                  View model transfer jobs
+                </DropdownItem>
+              )}
             </DropdownList>
           </Dropdown>
         </ToolbarItem>

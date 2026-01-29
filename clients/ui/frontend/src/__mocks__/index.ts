@@ -6,3 +6,4 @@ export * from './mockCatalogSourceList';
 export * from './mockCatalogSourceConfigList';
 export * from './mockCatalogModelList';
 export * from './mockCatalogModelArtifactList';
+export * from './mockModelTransferJob';

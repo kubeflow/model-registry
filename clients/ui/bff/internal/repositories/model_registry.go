@@ -7,7 +7,7 @@ import (
 	"github.com/kubeflow/model-registry/ui/bff/internal/constants"
 	helper "github.com/kubeflow/model-registry/ui/bff/internal/helpers"
 	k8s "github.com/kubeflow/model-registry/ui/bff/internal/integrations/kubernetes"
-
+	"github.com/kubeflow/model-registry/ui/bff/internal/mocks"
 	"github.com/kubeflow/model-registry/ui/bff/internal/models"
 )
 
@@ -132,4 +132,13 @@ func (m *ModelRegistryRepository) ResolveServerAddress(clusterIP string, httpPor
 
 	url := fmt.Sprintf("%s://%s:%d/api/model_registry/v1alpha3", protocol, clusterIP, httpPort)
 	return url
+}
+
+// GetAllModelTransferJobs returns all model transfer jobs for the given namespace
+// TODO: Replace with actual implementation when backend API is available
+func (m *ModelRegistryRepository) GetAllModelTransferJobs(_ context.Context, _ k8s.KubernetesClientInterface, _ string) (*models.ModelTransferJobList, error) {
+	// TODO: Implement actual API call to fetch transfer jobs
+	// For now, return mock data for development/testing
+	mockData := mocks.GetModelTransferJobListMock()
+	return &mockData, nil
 }
