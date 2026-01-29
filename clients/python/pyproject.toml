@@ -27,11 +27,14 @@ nest-asyncio = "^1.6.0"
 huggingface-hub = { version = ">=0.20.1,<1.4.0", optional = true }
 olot = { version = "^0.1.6", optional = true }
 boto3 = { version = "^1.37.34", optional = true }
+rh-model-signing = { version = "0.0.3", optional = true }
+platformdirs = { version = "^4.0.0", optional = true }
 
 [tool.poetry.extras]
 hf = ["huggingface-hub"]
 boto3 = ["boto3"]
 olot = ["olot"]
+signing = ["rh-model-signing", "platformdirs"]
 
 [tool.poetry.group.docs]
 optional = true
