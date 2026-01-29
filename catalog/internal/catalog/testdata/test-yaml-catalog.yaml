@@ -329,6 +329,10 @@ models:
         metadataType: MetadataStringValue
     artifacts:
       - uri: oci://registry.redhat.io/rhelai1/granite-8b-code-base:1.3-1732870892
+        customProperties:
+          architecture:
+            metadataType: MetadataStringValue
+            string_value: '["amd64", "arm64"]'
       - artifactType: metrics-artifact
         createTimeSinceEpoch: "1733514949000"
         lastUpdateTimeSinceEpoch: "1734637721000"
@@ -687,6 +691,9 @@ models:
         createTimeSinceEpoch: "1733514949000"
         lastUpdateTimeSinceEpoch: "1734637721000"
         customProperties:
+          architecture:
+            metadataType: MetadataStringValue
+            string_value: '["amd64"]'
           foo:
             string_value: bar
             metadataType: MetadataStringValue

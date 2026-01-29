@@ -235,6 +235,7 @@ export enum CatalogModelCustomPropertyKey {
   VALIDATED_ON = 'validated_on',
   TENSOR_TYPE = 'tensor_type',
   SIZE = 'size',
+  ARCHITECTURE = 'architecture',
 }
 
 export enum ModelCatalogLicense {

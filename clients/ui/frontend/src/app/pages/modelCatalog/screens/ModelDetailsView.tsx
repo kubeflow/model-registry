@@ -37,6 +37,7 @@ import ExternalLink from '~/app/shared/components/ExternalLink';
 import MarkdownComponent from '~/app/shared/markdown/MarkdownComponent';
 import ModelTimestamp from '~/app/pages/modelRegistry/screens/components/ModelTimestamp';
 import {
+  getArchitecturesFromArtifacts,
   getModelArtifactUri,
   hasModelArtifacts,
   isModelValidated,
@@ -70,6 +71,12 @@ const ModelDetailsView: React.FC<ModelDetailsViewProps> = ({
   const size = model.customProperties
     ? getCustomPropString(model.customProperties, CatalogModelCustomPropertyKey.SIZE)
     : '';
+
+  // Extract architectures from artifacts with memoization to prevent unnecessary recalculations
+  const architectures = React.useMemo(
+    () => (artifactLoaded ? getArchitecturesFromArtifacts(artifacts.items) : []),
+    [artifactLoaded, artifacts.items],
+  );
 
   return (
     <PageSection hasBodyWrapper={false} isFilled padding={{ default: 'noPadding' }}>
@@ -195,6 +202,14 @@ const ModelDetailsView: React.FC<ModelDetailsViewProps> = ({
                     <p className={text.textColorDisabled}>No artifacts available</p>
                   )}
                 </DescriptionListGroup>
+                {architectures.length > 0 && (
+                  <DescriptionListGroup>
+                    <DescriptionListTerm>Architecture</DescriptionListTerm>
+                    <DescriptionListDescription data-testid="model-architecture">
+                      {architectures.join(', ')}
+                    </DescriptionListDescription>
+                  </DescriptionListGroup>
+                )}
                 <DescriptionListGroup>
                   <DescriptionListTerm>Last modified</DescriptionListTerm>
                   <DescriptionListDescription>
