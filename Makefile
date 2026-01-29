@@ -260,7 +260,6 @@ build/csi: build/prepare/csi build/compile/csi
 
 .PHONY: gen
 gen: deps gen/openapi gen/openapi-server gen/converter
-	${GO} generate ./...
 
 .PHONY: lint
 lint: bin/golangci-lint
