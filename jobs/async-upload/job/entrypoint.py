@@ -46,13 +46,14 @@ def record_error(exc):
     logger.error(message)
 
 
-def write_success_result(entity_ids: CreatedEntityIds) -> None:
+def write_success_result(entity_ids: CreatedEntityIds, intent_type: str) -> None:
     """Write success result with entity IDs to termination message path.
     
     Args:
         entity_ids: CreatedEntityIds object containing the IDs of created/updated entities.
+        intent_type: The intent type string (e.g., "update_artifact", "create_model", "create_version").
     """
-    result_dict = {}
+    result_dict = {"intent": intent_type}
     
     if entity_ids.registered_model_id:
         result_dict["RegisteredModel"] = {"id": entity_ids.registered_model_id}
@@ -84,14 +85,17 @@ async def main() -> None:
 
         intent = config.model.intent
         entity_ids: CreatedEntityIds | None = None
+        intent_type: str | None = None
         
         if isinstance(intent, UpdateArtifactIntent):
+            intent_type = "update_artifact"
             logger.info("📋 Processing update_artifact intent")
             await set_artifact_pending(client, intent.artifact_id)
             perform_download(config)
             uri = perform_upload(config)
             entity_ids = await update_model_artifact_uri(client, intent.artifact_id, uri)
         elif isinstance(intent, CreateModelIntent):
+            intent_type = "create_model"
             logger.info("📋 Processing create_model intent")
             if not config.metadata:
                 raise ValueError("create_model intent requires ConfigMap metadata")
@@ -102,6 +106,7 @@ async def main() -> None:
             uri = perform_upload(config)
             entity_ids = await create_model_and_artifact(client, config.metadata, uri)
         elif isinstance(intent, CreateVersionIntent):
+            intent_type = "create_version"
             logger.info("📋 Processing create_version intent")
             if not config.metadata:
                 raise ValueError("create_version intent requires ConfigMap metadata")
@@ -115,8 +120,8 @@ async def main() -> None:
             raise ValueError(f"Unknown intent type: {type(intent)}")
         
         # Write success result to termination message path
-        if entity_ids:
-            write_success_result(entity_ids)
+        if entity_ids and intent_type:
+            write_success_result(entity_ids, intent_type)
     except BaseException as e:
         record_error(e)
         raise
