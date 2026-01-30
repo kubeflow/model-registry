@@ -51,9 +51,7 @@ class RegisterAndStoreFields {
   }
 
   shouldShowPlaceholder(placeholder = 'Select a namespace') {
-    this.findNamespaceSelector()
-      .find('span.pf-v6-c-menu-toggle__text')
-      .should('contain.text', placeholder);
+    this.findNamespaceSelector().findByText(placeholder).should('contain.text', placeholder);
     return this;
   }
 
@@ -67,7 +65,7 @@ class RegisterAndStoreFields {
   }
 
   shouldShowSelectedNamespace(name: string) {
-    this.findNamespaceSelector().find('span.pf-v6-c-menu-toggle__text').should('have.text', name);
+    this.findNamespaceSelector().findByText(name).should('have.text', name);
     return this;
   }
 
