@@ -63,3 +63,6 @@ export const modelVersionDeploymentsUrl = (
   rmId?: string,
   preferredModelRegistry?: string,
 ): string => `${modelVersionUrl(mvId, rmId, preferredModelRegistry)}/deployments`;
+
+export const modelTransferJobsUrl = (preferredModelRegistry?: string): string =>
+  `${modelRegistryUrl(preferredModelRegistry)}/model-transfer-jobs`;

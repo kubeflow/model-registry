@@ -8,6 +8,7 @@ import {
   getListModelArtifacts,
   getListModelVersions,
   getListRegisteredModels,
+  getListModelTransferJobs,
   getModelArtifactsByModelVersion,
   getModelVersion,
   getModelVersionsByRegisteredModel,
@@ -41,6 +42,7 @@ const useModelRegistryAPIState = (
       patchRegisteredModel: patchRegisteredModel(path, queryParameters),
       patchModelVersion: patchModelVersion(path, queryParameters),
       patchModelArtifact: patchModelArtifact(path, queryParameters),
+      listModelTransferJobs: getListModelTransferJobs(path, queryParameters),
     }),
     [queryParameters],
   );

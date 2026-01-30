@@ -17,6 +17,7 @@ import {
   ModelVersion,
   RegisteredModelList,
   RegisteredModel,
+  ModelTransferJobList,
 } from '~/app/types';
 import { bumpRegisteredModelTimestamp } from '~/app/api/updateTimestamps';
 
@@ -229,3 +230,15 @@ export const patchModelArtifact =
       }
       throw new Error('Invalid response format');
     });
+
+export const getListModelTransferJobs =
+  (hostPath: string, queryParams: Record<string, unknown> = {}) =>
+  (opts: APIOptions): Promise<ModelTransferJobList> =>
+    handleRestFailures(restGET(hostPath, `/model_transfer_jobs`, queryParams, opts)).then(
+      (response) => {
+        if (isModArchResponse<ModelTransferJobList>(response)) {
+          return response.data;
+        }
+        throw new Error('Invalid response format');
+      },
+    );
