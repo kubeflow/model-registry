@@ -1,4 +1,5 @@
 import logging
+from dataclasses import dataclass
 
 from model_registry import ModelRegistry
 from model_registry.types import ArtifactState
@@ -12,6 +13,14 @@ from job.models import (
 )
 
 logger = logging.getLogger(__name__)
+
+
+@dataclass
+class CreatedEntityIds:
+    """IDs of created/updated entities in the model registry."""
+    registered_model_id: str | None = None
+    model_version_id: str | None = None
+    model_artifact_id: str | None = None
 
 
 def validate_and_get_model_registry_client(config: RegistryConfig) -> ModelRegistry:
@@ -94,27 +103,50 @@ async def validate_create_version_intent(client: ModelRegistry, model_id: str, m
     logger.debug("✅ create_version intent validation passed")
 
 
-async def create_model_and_artifact(client: ModelRegistry, metadata: ConfigMapMetadata, uri: str) -> None:
-    """Creates a new registered model, model version, and model artifact."""
+async def create_model_and_artifact(client: ModelRegistry, metadata: ConfigMapMetadata, uri: str) -> CreatedEntityIds:
+    """Creates a new registered model, model version, and model artifact.
+    
+    Returns:
+        CreatedEntityIds: IDs of the created registered model, model version, and model artifact.
+    """
     logger.debug("🔍 Creating new registered model, version, and artifact")
     rm = await _create_registered_model(client, metadata.registered_model)
-    await _create_version_and_artifact_for_model(client, rm, uri, metadata)
+    mv, artifact = await _create_version_and_artifact_for_model(client, rm, uri, metadata)
+    return CreatedEntityIds(
+        registered_model_id=str(rm.id) if rm.id else None,
+        model_version_id=str(mv.id) if mv.id else None,
+        model_artifact_id=str(artifact.id) if artifact.id else None,
+    )
 
 
 async def create_version_and_artifact(
     client: ModelRegistry, model_id: str, metadata: ConfigMapMetadata, uri: str
-) -> None:
-    """Creates a new model version and model artifact under an existing registered model."""
+) -> CreatedEntityIds:
+    """Creates a new model version and model artifact under an existing registered model.
+    
+    Returns:
+        CreatedEntityIds: IDs of the existing registered model, and created model version and model artifact.
+    """
     logger.debug("🔍 Creating new version and artifact for model ID: %s", model_id)
 
     rm = await client._api.get_registered_model_by_id(model_id)
     if not rm:
         raise ValueError(f"RegisteredModel with ID '{model_id}' not found")
 
-    await _create_version_and_artifact_for_model(client, rm, uri, metadata)
+    mv, artifact = await _create_version_and_artifact_for_model(client, rm, uri, metadata)
+    return CreatedEntityIds(
+        registered_model_id=str(rm.id) if rm.id else None,
+        model_version_id=str(mv.id) if mv.id else None,
+        model_artifact_id=str(artifact.id) if artifact.id else None,
+    )
 
 
-async def update_model_artifact_uri(client: ModelRegistry, artifact_id: str, uri: str) -> None:
+async def update_model_artifact_uri(client: ModelRegistry, artifact_id: str, uri: str) -> CreatedEntityIds:
+    """Updates the model artifact URI and sets state to LIVE.
+    
+    Returns:
+        CreatedEntityIds: IDs of the updated model artifact, its model version, and registered model.
+    """
     logger.debug("🔍 Updating model artifact URI: %s", uri)
     artifact = await client._api.get_model_artifact_by_id(artifact_id)
 
@@ -126,6 +158,38 @@ async def update_model_artifact_uri(client: ModelRegistry, artifact_id: str, uri
     artifact.uri = uri
     await client._api.upsert_model_artifact(artifact)
     logger.debug("✅ Model artifact URI updated: %s", uri)
+    
+    # Fetch the updated artifact to get the model_version_id
+    updated_artifact = await client._api.get_model_artifact_by_id(artifact_id)
+    model_version_id = None
+    registered_model_id = None
+    
+    # Try to get model_version_id from the artifact using getattr to safely access private attribute
+    model_version_id = getattr(updated_artifact, '_model_version_id', None)
+    if not model_version_id:
+        model_version_id = getattr(updated_artifact, 'model_version_id', None)
+    
+    # If we have a model_version_id, try to get the registered_model_id
+    if model_version_id:
+        try:
+            mv = await client._api.get_model_version_by_id(model_version_id)
+            if mv:
+                # Try to get registered_model_id from model version
+                registered_model_id = getattr(mv, 'registered_model_id', None)
+                if not registered_model_id:
+                    # Fallback: try to get it from the model version's parent
+                    registered_model_id = getattr(mv, '_registered_model_id', None)
+                logger.debug("✅ Retrieved model_version_id: %s, registered_model_id: %s", model_version_id, registered_model_id)
+        except Exception as e:
+            logger.warning(f"Could not fetch model version {model_version_id} to get registered_model_id: {e}")
+    else:
+        logger.warning(f"Could not retrieve model_version_id from artifact {artifact_id}")
+    
+    return CreatedEntityIds(
+        registered_model_id=str(registered_model_id) if registered_model_id else None,
+        model_version_id=str(model_version_id) if model_version_id else None,
+        model_artifact_id=str(artifact_id) if artifact_id else None,
+    )
 
 
 async def _create_registered_model(client: ModelRegistry, rm_metadata):
@@ -142,8 +206,12 @@ async def _create_registered_model(client: ModelRegistry, rm_metadata):
 
 async def _create_version_and_artifact_for_model(
     client: ModelRegistry, rm, uri: str, metadata: ConfigMapMetadata
-) -> None:
-    """Creates a model version and artifact under the given registered model."""
+) -> tuple:
+    """Creates a model version and artifact under the given registered model.
+    
+    Returns:
+        tuple: (ModelVersion, ModelArtifact) - The created model version and artifact objects.
+    """
     mv_metadata = metadata.model_version
     version_name = mv_metadata.name or "1.0.0"
 
@@ -181,3 +249,5 @@ async def _create_version_and_artifact_for_model(
     artifact.state = ArtifactState.LIVE
     await client._api.upsert_model_artifact(artifact)
     logger.debug("✅ Updated ModelArtifact state to LIVE: %s", artifact.id)
+    
+    return (mv, artifact)
