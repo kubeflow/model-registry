@@ -123,21 +123,14 @@ export const extractValidatedModelMetrics = (
   performanceMetrics: CatalogPerformanceMetricsArtifact[],
   _accuracyMetrics: CatalogAccuracyMetricsArtifact[],
   currentPerformanceIndex = 0,
-): ValidatedModelMetrics => {
+): ValidatedModelMetrics | null => {
   const currentPerformance = performanceMetrics[currentPerformanceIndex];
   // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-  const performance = currentPerformance
-    ? extractPerformanceMetrics(currentPerformance)
-    : {
-        hardwareConfiguration: 'H100-80',
-        hardwareType: 'H100-80',
-        hardwareCount: '1',
-        rpsPerReplica: 1,
-        ttftMean: 1428,
-        replicas: undefined,
-        totalRequestsPerSecond: undefined,
-        latencyMetrics: {},
-      };
+  if (!currentPerformance) {
+    return null;
+  }
+
+  const performance = extractPerformanceMetrics(currentPerformance);
 
   return {
     // accuracy: calculateAverageAccuracy(accuracyMetrics), // NOTE: overall_average is currently omitted from the API and will be restored
