@@ -43,7 +43,7 @@ const ModelTransferJobs: React.FC<ModelTransferJobsProps> = ({ ...pageProps }) =
         />
       }
     >
-      <ModelTransferJobsListView jobs={jobs.items} isLoading={!jobsLoaded} />
+      <ModelTransferJobsListView jobs={jobs.items} />
     </ApplicationsPage>
   );
 };

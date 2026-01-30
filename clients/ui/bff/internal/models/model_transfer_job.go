@@ -73,7 +73,7 @@ type ModelTransferJob struct {
 	ModelVersionName         string                       `json:"modelVersionName,omitempty"`
 	ModelArtifactId          string                       `json:"modelArtifactId,omitempty"`
 	ModelArtifactName        string                       `json:"modelArtifactName,omitempty"`
-	Project                  string                       `json:"project,omitempty"`
+	Namespace                string                       `json:"namespace,omitempty"`
 	Author                   string                       `json:"author,omitempty"`
 	Status                   ModelTransferJobStatus       `json:"status"`
 	CreateTimeSinceEpoch     string                       `json:"createTimeSinceEpoch"`

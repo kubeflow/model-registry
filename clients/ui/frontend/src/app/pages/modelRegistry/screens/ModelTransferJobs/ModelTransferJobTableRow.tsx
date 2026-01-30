@@ -120,9 +120,9 @@ const ModelTransferJobTableRow: React.FC<ModelTransferJobTableRowProps> = ({ job
           EMPTY_CUSTOM_PROPERTY_VALUE
         )}
       </Td>
-      <Td dataLabel="Project">
-        <Content component="p" data-testid="job-project">
-          {job.project || EMPTY_CUSTOM_PROPERTY_VALUE}
+      <Td dataLabel="Namespace">
+        <Content component="p" data-testid="job-namespace">
+          {job.namespace || EMPTY_CUSTOM_PROPERTY_VALUE}
         </Content>
       </Td>
       <Td dataLabel="Created">

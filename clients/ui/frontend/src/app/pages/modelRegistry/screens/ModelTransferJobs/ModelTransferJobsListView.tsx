@@ -11,7 +11,7 @@ enum ModelTransferJobsFilterOptions {
   jobName = 'jobName',
   modelName = 'modelName',
   versionName = 'versionName',
-  project = 'project',
+  namespace = 'namespace',
   author = 'author',
   status = 'status',
 }
@@ -20,7 +20,7 @@ const modelTransferJobsFilterOptions = {
   [ModelTransferJobsFilterOptions.jobName]: 'Job name',
   [ModelTransferJobsFilterOptions.modelName]: 'Model name',
   [ModelTransferJobsFilterOptions.versionName]: 'Version name',
-  [ModelTransferJobsFilterOptions.project]: 'Project',
+  [ModelTransferJobsFilterOptions.namespace]: 'Namespace',
   [ModelTransferJobsFilterOptions.author]: 'Author',
   [ModelTransferJobsFilterOptions.status]: 'Status',
 };
@@ -31,20 +31,16 @@ const initialFilterData: ModelTransferJobsFilterDataType = {
   [ModelTransferJobsFilterOptions.jobName]: undefined,
   [ModelTransferJobsFilterOptions.modelName]: undefined,
   [ModelTransferJobsFilterOptions.versionName]: undefined,
-  [ModelTransferJobsFilterOptions.project]: undefined,
+  [ModelTransferJobsFilterOptions.namespace]: undefined,
   [ModelTransferJobsFilterOptions.author]: undefined,
   [ModelTransferJobsFilterOptions.status]: undefined,
 };
 
 type ModelTransferJobsListViewProps = {
   jobs: ModelTransferJob[];
-  isLoading: boolean;
 };
 
-const ModelTransferJobsListView: React.FC<ModelTransferJobsListViewProps> = ({
-  jobs,
-  isLoading,
-}) => {
+const ModelTransferJobsListView: React.FC<ModelTransferJobsListViewProps> = ({ jobs }) => {
   const [filterData, setFilterData] =
     React.useState<ModelTransferJobsFilterDataType>(initialFilterData);
 
@@ -61,7 +57,7 @@ const ModelTransferJobsListView: React.FC<ModelTransferJobsListViewProps> = ({
     const jobNameFilter = filterData[ModelTransferJobsFilterOptions.jobName]?.toLowerCase();
     const modelNameFilter = filterData[ModelTransferJobsFilterOptions.modelName]?.toLowerCase();
     const versionNameFilter = filterData[ModelTransferJobsFilterOptions.versionName]?.toLowerCase();
-    const projectFilter = filterData[ModelTransferJobsFilterOptions.project]?.toLowerCase();
+    const namespaceFilter = filterData[ModelTransferJobsFilterOptions.namespace]?.toLowerCase();
     const authorFilter = filterData[ModelTransferJobsFilterOptions.author]?.toLowerCase();
     const statusFilter = filterData[ModelTransferJobsFilterOptions.status]?.toLowerCase();
 
@@ -75,7 +71,7 @@ const ModelTransferJobsListView: React.FC<ModelTransferJobsListViewProps> = ({
       if (versionNameFilter && !job.modelVersionName?.toLowerCase().includes(versionNameFilter)) {
         return false;
       }
-      if (projectFilter && !job.project?.toLowerCase().includes(projectFilter)) {
+      if (namespaceFilter && !job.namespace?.toLowerCase().includes(namespaceFilter)) {
         return false;
       }
       if (authorFilter && !job.author?.toLowerCase().includes(authorFilter)) {
@@ -88,7 +84,7 @@ const ModelTransferJobsListView: React.FC<ModelTransferJobsListViewProps> = ({
     });
   }, [jobs, filterData]);
 
-  if (!isLoading && jobs.length === 0) {
+  if (jobs.length === 0) {
     return (
       <EmptyModelRegistryState
         testid="empty-model-transfer-jobs"
@@ -134,11 +130,11 @@ const ModelTransferJobsListView: React.FC<ModelTransferJobsListViewProps> = ({
               onChange={(value) => onChange(value)}
             />
           ),
-          [ModelTransferJobsFilterOptions.project]: ({ onChange, ...props }) => (
+          [ModelTransferJobsFilterOptions.namespace]: ({ onChange, ...props }) => (
             <ThemeAwareSearchInput
               {...props}
-              fieldLabel="Filter by project"
-              placeholder="Filter by project"
+              fieldLabel="Filter by namespace"
+              placeholder="Filter by namespace"
               className="toolbar-fieldset-wrapper"
               style={{ minWidth: '270px' }}
               onChange={(value) => onChange(value)}

@@ -21,9 +21,9 @@ export const modelTransferJobsColumns: SortableData<ModelTransferJob>[] = [
     width: 15,
   },
   {
-    field: 'project',
-    label: 'Project',
-    sortable: (a, b) => (a.project || '').localeCompare(b.project || ''),
+    field: 'namespace',
+    label: 'Namespace',
+    sortable: (a, b) => (a.namespace || '').localeCompare(b.namespace || ''),
     width: 10,
   },
   {

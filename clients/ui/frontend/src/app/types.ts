@@ -311,7 +311,7 @@ export type ModelTransferJob = {
   modelVersionName?: string;
   modelArtifactId?: string;
   modelArtifactName?: string;
-  project?: string;
+  namespace?: string;
   author?: string;
   status: ModelTransferJobStatus;
   createTimeSinceEpoch: string;
@@ -322,8 +322,3 @@ export type ModelTransferJob = {
 export type ModelTransferJobList = ModelRegistryListParams & { items: ModelTransferJob[] };
 
 export type GetListModelTransferJobs = (opts: APIOptions) => Promise<ModelTransferJobList>;
-
-export type GetModelTransferJobsByRegisteredModel = (
-  opts: APIOptions,
-  registeredModelId: string,
-) => Promise<ModelTransferJobList>;
