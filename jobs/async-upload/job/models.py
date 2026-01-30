@@ -123,6 +123,9 @@ class CreateVersionIntent(BaseModel):
 class UpdateArtifactIntent(BaseModel):
     intent_type: Literal[UploadIntent.update_artifact] = UploadIntent.update_artifact
     artifact_id: str = Field(..., description="Model artifact ID to update")
+    # Optional IDs to pass through to termination message output
+    model_id: str | None = Field(default=None, description="Optional registered model ID to include in output")
+    version_id: str | None = Field(default=None, description="Optional model version ID to include in output")
 
 
 IntentConfig = Union[CreateModelIntent, CreateVersionIntent, UpdateArtifactIntent]
