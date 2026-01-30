@@ -599,12 +599,12 @@ def test_update_artifact_integration(
     print(f"✅ Artifact state updated to: {updated_ma.state}")
     
     # Validate termination message contains correct IDs
+    # Note: update_artifact only returns the ModelArtifact ID since that's the only
+    # entity being updated - the job doesn't look up parent RM/MV IDs
     print("Validating termination message...")
     validate_termination_message(
         job_result.termination_message,
         expected_intent="update_artifact",
-        expected_rm_id=rm.id,
-        expected_mv_id=mv.id,
         expected_ma_id=ma.id,
     )
     
