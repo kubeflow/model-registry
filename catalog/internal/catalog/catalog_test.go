@@ -382,16 +382,14 @@ func TestLoadCatalogSourcesWithMockRepositories(t *testing.T) {
 	// Wait a bit for the goroutine to process
 	time.Sleep(100 * time.Millisecond)
 
-	mockModelRepo.mu.RLock()
-	defer mockModelRepo.mu.RUnlock()
-
 	// Verify that the model was saved
-	if len(mockModelRepo.SavedModels) != 1 {
-		t.Errorf("Expected 1 model to be saved, got %d", len(mockModelRepo.SavedModels))
+	savedModels := mockModelRepo.GetSavedModels()
+	if len(savedModels) != 1 {
+		t.Errorf("Expected 1 model to be saved, got %d", len(savedModels))
 	}
 
-	if len(mockModelRepo.SavedModels) > 0 {
-		savedModel := mockModelRepo.SavedModels[0]
+	if len(savedModels) > 0 {
+		savedModel := savedModels[0]
 		if savedModel.GetAttributes() == nil || savedModel.GetAttributes().Name == nil {
 			t.Error("Saved model should have attributes with name")
 		} else if *savedModel.GetAttributes().Name != "test-model" {
@@ -486,12 +484,10 @@ func TestLoadCatalogSourcesWithRepositoryErrors(t *testing.T) {
 	// Wait for processing
 	time.Sleep(100 * time.Millisecond)
 
-	mockModelRepo.mu.RLock()
-	defer mockModelRepo.mu.RUnlock()
-
 	// Verify that no models were saved due to the error
-	if len(mockModelRepo.SavedModels) != 0 {
-		t.Errorf("Expected 0 models to be saved due to error, got %d", len(mockModelRepo.SavedModels))
+	savedModels := mockModelRepo.GetSavedModels()
+	if len(savedModels) != 0 {
+		t.Errorf("Expected 0 models to be saved due to error, got %d", len(savedModels))
 	}
 }
 
@@ -563,12 +559,13 @@ func TestLoadCatalogSourcesWithNilEnabled(t *testing.T) {
 	time.Sleep(100 * time.Millisecond)
 
 	// Verify that the model WAS saved (because nil Enabled is treated as enabled)
-	if len(mockModelRepo.SavedModels) != 1 {
-		t.Errorf("Expected 1 model to be saved (nil Enabled should be treated as enabled), got %d", len(mockModelRepo.SavedModels))
+	savedModels := mockModelRepo.GetSavedModels()
+	if len(savedModels) != 1 {
+		t.Errorf("Expected 1 model to be saved (nil Enabled should be treated as enabled), got %d", len(savedModels))
 	}
 
-	if len(mockModelRepo.SavedModels) > 0 {
-		savedModel := mockModelRepo.SavedModels[0]
+	if len(savedModels) > 0 {
+		savedModel := savedModels[0]
 		if savedModel.GetAttributes() == nil || savedModel.GetAttributes().Name == nil {
 			t.Error("Saved model should have attributes with name")
 		} else if *savedModel.GetAttributes().Name != "test-model-nil-enabled" {
@@ -716,18 +713,43 @@ func (m *MockCatalogModelRepository) Save(model dbmodels.CatalogModel) (dbmodels
 }
 
 func (m *MockCatalogModelRepository) DeleteBySource(sourceID string) error {
+	m.mu.Lock()
+	defer m.mu.Unlock()
 	// Mock implementation - no-op for testing
 	return nil
 }
 
 func (m *MockCatalogModelRepository) DeleteByID(id int32) error {
+	m.mu.Lock()
+	defer m.mu.Unlock()
 	// Mock implementation - no-op for testing
 	return nil
 }
 
 func (m *MockCatalogModelRepository) GetDistinctSourceIDs() ([]string, error) {
+	m.mu.RLock()
+	defer m.mu.RUnlock()
 	// Mock implementation - return empty list by default
 	return []string{}, nil
+}
+
+// GetSavedModels returns a copy of the saved models slice in a thread-safe manner.
+// This should be used by tests instead of directly accessing SavedModels field.
+func (m *MockCatalogModelRepository) GetSavedModels() []dbmodels.CatalogModel {
+	m.mu.RLock()
+	defer m.mu.RUnlock()
+	// Return a copy to prevent external modifications
+	result := make([]dbmodels.CatalogModel, len(m.SavedModels))
+	copy(result, m.SavedModels)
+	return result
+}
+
+// Reset clears all saved models and resets the NextID counter in a thread-safe manner.
+func (m *MockCatalogModelRepository) Reset() {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	m.SavedModels = []dbmodels.CatalogModel{}
+	m.NextID = 0
 }
 
 // MockCatalogModelArtifactRepository mocks the CatalogModelArtifactRepository interface.
@@ -776,6 +798,23 @@ func (m *MockCatalogModelArtifactRepository) Save(modelArtifact dbmodels.Catalog
 
 	m.SavedArtifacts = append(m.SavedArtifacts, savedArtifact)
 	return savedArtifact, nil
+}
+
+// GetSavedArtifacts returns a copy of the saved artifacts slice in a thread-safe manner.
+func (m *MockCatalogModelArtifactRepository) GetSavedArtifacts() []dbmodels.CatalogModelArtifact {
+	m.mu.RLock()
+	defer m.mu.RUnlock()
+	result := make([]dbmodels.CatalogModelArtifact, len(m.SavedArtifacts))
+	copy(result, m.SavedArtifacts)
+	return result
+}
+
+// Reset clears all saved artifacts and resets the NextID counter in a thread-safe manner.
+func (m *MockCatalogModelArtifactRepository) Reset() {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	m.SavedArtifacts = []dbmodels.CatalogModelArtifact{}
+	m.NextID = 0
 }
 
 // MockCatalogMetricsArtifactRepository mocks the CatalogMetricsArtifactRepository interface.
@@ -852,6 +891,23 @@ func (m *MockCatalogMetricsArtifactRepository) BatchSave(metricsArtifacts []dbmo
 	}
 
 	return savedArtifacts, nil
+}
+
+// GetSavedMetrics returns a copy of the saved metrics slice in a thread-safe manner.
+func (m *MockCatalogMetricsArtifactRepository) GetSavedMetrics() []dbmodels.CatalogMetricsArtifact {
+	m.mu.RLock()
+	defer m.mu.RUnlock()
+	result := make([]dbmodels.CatalogMetricsArtifact, len(m.SavedMetrics))
+	copy(result, m.SavedMetrics)
+	return result
+}
+
+// Reset clears all saved metrics and resets the NextID counter in a thread-safe manner.
+func (m *MockCatalogMetricsArtifactRepository) Reset() {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	m.SavedMetrics = []dbmodels.CatalogMetricsArtifact{}
+	m.NextID = 0
 }
 
 // MockCatalogArtifactRepository mocks the CatalogArtifactRepository interface.
@@ -953,10 +1009,13 @@ func (m *MockPropertyOptionsRepository) SetMockOptions(t dbmodels.PropertyOption
 
 // MockCatalogSourceRepository mocks the CatalogSourceRepository interface.
 type MockCatalogSourceRepository struct {
+	mu      sync.RWMutex
 	Sources []dbmodels.CatalogSource
 }
 
 func (m *MockCatalogSourceRepository) GetBySourceID(sourceID string) (dbmodels.CatalogSource, error) {
+	m.mu.RLock()
+	defer m.mu.RUnlock()
 	for _, s := range m.Sources {
 		if attrs := s.GetAttributes(); attrs != nil && attrs.Name != nil && *attrs.Name == sourceID {
 			return s, nil
@@ -966,19 +1025,31 @@ func (m *MockCatalogSourceRepository) GetBySourceID(sourceID string) (dbmodels.C
 }
 
 func (m *MockCatalogSourceRepository) Save(source dbmodels.CatalogSource) (dbmodels.CatalogSource, error) {
+	m.mu.Lock()
+	defer m.mu.Unlock()
 	m.Sources = append(m.Sources, source)
 	return source, nil
 }
 
 func (m *MockCatalogSourceRepository) Delete(sourceID string) error {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	// Mock implementation - no-op for testing
 	return nil
 }
 
 func (m *MockCatalogSourceRepository) GetAll() ([]dbmodels.CatalogSource, error) {
-	return m.Sources, nil
+	m.mu.RLock()
+	defer m.mu.RUnlock()
+	// Return a copy to prevent external modifications
+	result := make([]dbmodels.CatalogSource, len(m.Sources))
+	copy(result, m.Sources)
+	return result, nil
 }
 
 func (m *MockCatalogSourceRepository) GetAllStatuses() (map[string]dbmodels.SourceStatus, error) {
+	m.mu.RLock()
+	defer m.mu.RUnlock()
 	result := make(map[string]dbmodels.SourceStatus)
 	for _, source := range m.Sources {
 		if attrs := source.GetAttributes(); attrs != nil && attrs.Name != nil {
