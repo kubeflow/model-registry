@@ -79,3 +79,48 @@ describe('NavBar', () => {
     navBar.findNamespaceSelector().findByText('namespace-2').should('exist');
   });
 });
+
+describe('NavBar - NamespaceSelector', () => {
+  beforeEach(() => {
+    cy.intercept('/logout').as('logout');
+  });
+
+  it('Should display empty state when no namespaces are returned', () => {
+    initIntercepts({ namespaces: [] });
+    appChrome.visit();
+    navBar.shouldNamespaceSelectorHaveNoItems();
+  });
+
+  it('Should auto-select first namespace on initial load', () => {
+    initIntercepts({
+      namespaces: [
+        mockNamespace({ name: 'namespace-1' }),
+        mockNamespace({ name: 'namespace-2' }),
+        mockNamespace({ name: 'namespace-3' }),
+      ],
+    });
+    appChrome.visit();
+    navBar.shouldNamespaceSelectorShow('namespace-1');
+  });
+
+  it('Should select and update namespace', () => {
+    initIntercepts({});
+    appChrome.visit();
+
+    navBar.findNamespaceSelector().findByText('namespace-1').should('exist');
+    navBar.selectNamespace('namespace-2');
+    navBar.findNamespaceSelector().findByText('namespace-2').should('exist');
+  });
+
+  it('Should maintain namespace selection across navigation', () => {
+    initIntercepts({});
+    appChrome.visit();
+
+    navBar.selectNamespace('namespace-2');
+    navBar.shouldNamespaceSelectorShow('namespace-2');
+    appChrome.findNavItem('Model Catalog').click();
+    navBar.shouldNamespaceSelectorShow('namespace-2');
+    appChrome.findNavItem('Model Registry').click();
+    navBar.shouldNamespaceSelectorShow('namespace-2');
+  });
+});
