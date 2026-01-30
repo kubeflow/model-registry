@@ -141,11 +141,25 @@ async def create_version_and_artifact(
     )
 
 
-async def update_model_artifact_uri(client: ModelRegistry, artifact_id: str, uri: str) -> CreatedEntityIds:
+async def update_model_artifact_uri(
+    client: ModelRegistry,
+    artifact_id: str,
+    uri: str,
+    registered_model_id: str | None = None,
+    model_version_id: str | None = None,
+) -> CreatedEntityIds:
     """Updates the model artifact URI and sets state to LIVE.
     
+    Args:
+        client: Model registry client.
+        artifact_id: ID of the artifact to update.
+        uri: New URI for the artifact.
+        registered_model_id: Optional registered model ID to pass through to output.
+        model_version_id: Optional model version ID to pass through to output.
+    
     Returns:
-        CreatedEntityIds: IDs of the updated model artifact, its model version, and registered model.
+        CreatedEntityIds: IDs passed through to output. For update_artifact intent,
+        model and version IDs will be in the output if and only if they are passed in.
     """
     logger.debug("🔍 Updating model artifact URI: %s", uri)
     artifact = await client._api.get_model_artifact_by_id(artifact_id)
@@ -159,36 +173,11 @@ async def update_model_artifact_uri(client: ModelRegistry, artifact_id: str, uri
     await client._api.upsert_model_artifact(artifact)
     logger.debug("✅ Model artifact URI updated: %s", uri)
     
-    # Fetch the updated artifact to get the model_version_id
-    updated_artifact = await client._api.get_model_artifact_by_id(artifact_id)
-    model_version_id = None
-    registered_model_id = None
-    
-    # Try to get model_version_id from the artifact using getattr to safely access private attribute
-    model_version_id = getattr(updated_artifact, '_model_version_id', None)
-    if not model_version_id:
-        model_version_id = getattr(updated_artifact, 'model_version_id', None)
-    
-    # If we have a model_version_id, try to get the registered_model_id
-    if model_version_id:
-        try:
-            mv = await client._api.get_model_version_by_id(model_version_id)
-            if mv:
-                # Try to get registered_model_id from model version
-                registered_model_id = getattr(mv, 'registered_model_id', None)
-                if not registered_model_id:
-                    # Fallback: try to get it from the model version's parent
-                    registered_model_id = getattr(mv, '_registered_model_id', None)
-                logger.debug("✅ Retrieved model_version_id: %s, registered_model_id: %s", model_version_id, registered_model_id)
-        except Exception as e:
-            logger.warning(f"Could not fetch model version {model_version_id} to get registered_model_id: {e}")
-    else:
-        logger.warning(f"Could not retrieve model_version_id from artifact {artifact_id}")
-    
+    # Pass through the IDs that were provided
     return CreatedEntityIds(
-        registered_model_id=str(registered_model_id) if registered_model_id else None,
-        model_version_id=str(model_version_id) if model_version_id else None,
-        model_artifact_id=str(artifact_id) if artifact_id else None,
+        registered_model_id=registered_model_id,
+        model_version_id=model_version_id,
+        model_artifact_id=artifact_id,
     )
 
 

@@ -93,7 +93,14 @@ async def main() -> None:
             await set_artifact_pending(client, intent.artifact_id)
             perform_download(config)
             uri = perform_upload(config)
-            entity_ids = await update_model_artifact_uri(client, intent.artifact_id, uri)
+            # Pass through optional model_id and version_id if provided
+            entity_ids = await update_model_artifact_uri(
+                client,
+                intent.artifact_id,
+                uri,
+                registered_model_id=intent.model_id,
+                model_version_id=intent.version_id,
+            )
         elif isinstance(intent, CreateModelIntent):
             intent_type = "create_model"
             logger.info("📋 Processing create_model intent")
