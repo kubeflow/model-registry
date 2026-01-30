@@ -85,10 +85,8 @@ async def main() -> None:
 
         intent = config.model.intent
         entity_ids: CreatedEntityIds | None = None
-        intent_type: str | None = None
         
         if isinstance(intent, UpdateArtifactIntent):
-            intent_type = "update_artifact"
             logger.info("📋 Processing update_artifact intent")
             await set_artifact_pending(client, intent.artifact_id)
             perform_download(config)
@@ -102,7 +100,6 @@ async def main() -> None:
                 model_version_id=intent.version_id,
             )
         elif isinstance(intent, CreateModelIntent):
-            intent_type = "create_model"
             logger.info("📋 Processing create_model intent")
             if not config.metadata:
                 raise ValueError("create_model intent requires ConfigMap metadata")
@@ -113,7 +110,6 @@ async def main() -> None:
             uri = perform_upload(config)
             entity_ids = await create_model_and_artifact(client, config.metadata, uri)
         elif isinstance(intent, CreateVersionIntent):
-            intent_type = "create_version"
             logger.info("📋 Processing create_version intent")
             if not config.metadata:
                 raise ValueError("create_version intent requires ConfigMap metadata")
@@ -127,8 +123,8 @@ async def main() -> None:
             raise ValueError(f"Unknown intent type: {type(intent)}")
         
         # Write success result to termination message path
-        if entity_ids and intent_type:
-            write_success_result(entity_ids, intent_type)
+        if entity_ids:
+            write_success_result(entity_ids, intent.intent_type)
     except BaseException as e:
         record_error(e)
         raise
