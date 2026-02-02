@@ -52,13 +52,12 @@ const RegisterAndStoreFields = <D extends RegistrationCommonFormData>({
   }, [formData.jobName, formData.jobResourceName]);
 
   const onDataChange = React.useCallback(
-    (updatedNameDesc: { name: string; description: string }) => {
-      setData('jobName', updatedNameDesc.name);
-     if (!data.k8sName.state.touched) {
-        setData('jobResourceName', translateDisplayNameForK8s(updatedNameDesc.name));
-      }
+    (key: keyof K8sNameDescriptionFieldData, value: string) => {
+      const updatedData = handleUpdateLogic(data)(key, value);
+      setData('jobName', updatedData.name);
+      setData('jobResourceName', updatedData.k8sName.value);
     },
-    [data.k8sName.state.touched, setData],
+    [data, setData],
   );
 
   const handleNamespaceSelect = (namespace: string) => {

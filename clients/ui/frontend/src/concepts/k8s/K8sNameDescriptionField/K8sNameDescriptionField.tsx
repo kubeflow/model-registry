@@ -10,38 +10,37 @@ import {
 import { useThemeContext } from 'mod-arch-kubeflow';
 import ResourceNameDefinitionTooltip from '~/concepts/k8s/ResourceNameDefinitionTootip';
 import FormFieldset from '~/app/pages/modelRegistry/screens/components/FormFieldset';
+import {
+  K8sNameDescriptionFieldData,
+  K8sNameDescriptionFieldUpdateFunction,
+  UseK8sNameDescriptionDataConfiguration,
+  UseK8sNameDescriptionFieldData,
+} from './types';
+import { handleUpdateLogic, setupDefaults } from './utils';
 import ResourceNameField from './ResourceNameField';
 
-// TODO: replace with the actual call once we have the endpoint
-
 /** Companion data hook */
-// export const useK8sNameDescriptionFieldData = (
-//   configuration: UseK8sNameDescriptionDataConfiguration = {},
-// ): UseK8sNameDescriptionFieldData => {
-//   const [data, setData] = React.useState<K8sNameDescriptionFieldData>(() =>
-//     setupDefaults(configuration),
-//   );
+export const useK8sNameDescriptionFieldData = (
+  configuration: UseK8sNameDescriptionDataConfiguration = {},
+): UseK8sNameDescriptionFieldData => {
+  const [data, setData] = React.useState<K8sNameDescriptionFieldData>(() =>
+    setupDefaults(configuration),
+  );
 
-//   const onDataChange = React.useCallback<K8sNameDescriptionFieldUpdateFunction>((key, value) => {
-//     setData((currentData) => handleUpdateLogic(currentData)(key, value));
-//   }, []);
+  const onDataChange = React.useCallback<K8sNameDescriptionFieldUpdateFunction>((key, value) => {
+    setData((currentData) => handleUpdateLogic(currentData)(key, value));
+  }, []);
 
-//   return { data, onDataChange };
-// };
-
-type NameDescType = {
-  name: string;
-  description: string;
+  return { data, onDataChange };
 };
 
 type K8sNameDescriptionFieldProps = {
-  data: NameDescType;
-  onDataChange: (data: NameDescType) => void;
+  data: UseK8sNameDescriptionFieldData['data'];
+  onDataChange?: UseK8sNameDescriptionFieldData['onDataChange'];
   dataTestId: string;
   descriptionLabel?: string;
   nameLabel?: string;
   nameHelperText?: React.ReactNode;
-  resourceNameHelperText?: React.ReactNode;
   hideDescription?: boolean;
 };
 
@@ -56,19 +55,21 @@ const K8sNameDescriptionField: React.FC<K8sNameDescriptionFieldProps> = ({
   descriptionLabel = 'Description',
   nameLabel = 'Name',
   nameHelperText,
-  resourceNameHelperText,
   hideDescription,
 }) => {
   const [showK8sField, setShowK8sField] = React.useState(false);
   const { isMUITheme } = useThemeContext();
 
+  const { name, description, k8sName } = data;
+
   const nameInput = (
     <TextInput
+      aria-readonly={!onDataChange}
       data-testid={`${dataTestId}-name`}
       id={`${dataTestId}-name`}
       name={`${dataTestId}-name`}
-      value={data.name}
-      onChange={(_e, value) => onDataChange({ ...data, name: value })}
+      value={name}
+      onChange={(_e, value) => onDataChange?.('name', value)}
       isRequired
     />
   );
@@ -78,20 +79,16 @@ const K8sNameDescriptionField: React.FC<K8sNameDescriptionFieldProps> = ({
       <FormGroup label={nameLabel} isRequired fieldId={`${dataTestId}-name`}>
         <FormFieldset component={nameInput} field="Name" />
       </FormGroup>
-      {nameHelperText || !showK8sField ? (
-        //  &&
-        // !k8sName.state.immutable
+      {nameHelperText || (!showK8sField && !k8sName.state.immutable) ? (
         <HelperText>
           {nameHelperText && <HelperTextItem>{nameHelperText}</HelperTextItem>}
-          {!showK8sField && (
-            // !k8sName.state.immutable
-            // &&
+          {!showK8sField && !k8sName.state.immutable && (
             <>
-              {/* {k8sName.value && (
+              {k8sName.value && (
                 <HelperTextItem>
                   The resource name will be <b>{k8sName.value}</b>.
                 </HelperTextItem>
-              )} */}
+              )}
               <HelperTextItem>
                 <Button
                   data-testid={`${dataTestId}-editResourceLink`}
@@ -112,23 +109,25 @@ const K8sNameDescriptionField: React.FC<K8sNameDescriptionFieldProps> = ({
 
   const descriptionTextInput = (
     <TextInput
+      aria-readonly={!onDataChange}
       data-testid={`${dataTestId}-description`}
       id={`${dataTestId}-description`}
       name={`${dataTestId}-description`}
       type="text"
-      value={data.description}
-      onChange={(_e, value) => onDataChange({ ...data, description: value })}
+      value={description}
+      onChange={(_e, value) => onDataChange?.('description', value)}
     />
   );
 
   const descriptionTextArea = (
     <TextArea
+      aria-readonly={!onDataChange}
       data-testid={`${dataTestId}-description`}
       id={`${dataTestId}-description`}
       name={`${dataTestId}-description`}
       type="text"
-      value={data.description}
-      onChange={(_e, value) => onDataChange({ ...data, description: value })}
+      value={description}
+      onChange={(_e, value) => onDataChange?.('description', value)}
       resizeOrientation="vertical"
       autoResize
     />
@@ -156,7 +155,8 @@ const K8sNameDescriptionField: React.FC<K8sNameDescriptionFieldProps> = ({
       <ResourceNameField
         allowEdit={showK8sField}
         dataTestId={dataTestId}
-        helperText={resourceNameHelperText}
+        k8sName={k8sName}
+        onDataChange={onDataChange}
       />
 
       {!hideDescription &&
