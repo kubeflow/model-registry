@@ -10,7 +10,6 @@ import {
 import { ModelCatalogNumberFilterKey } from '~/concepts/modelCatalog/const';
 import { useCatalogNumberFilterState } from '~/app/pages/modelCatalog/utils/modelCatalogUtils';
 import { MAX_RPS_RANGE } from '~/app/pages/modelCatalog/utils/performanceMetricsUtils';
-import { ModelCatalogContext } from '~/app/context/modelCatalog/ModelCatalogContext';
 import SliderWithInput from './SliderWithInput';
 
 const filterKey = ModelCatalogNumberFilterKey.MAX_RPS;
@@ -18,7 +17,6 @@ const filterKey = ModelCatalogNumberFilterKey.MAX_RPS;
 const MaxRpsFilter: React.FC = () => {
   const { value: rpsFilterValue, setValue: setRpsFilterValue } =
     useCatalogNumberFilterState(filterKey);
-  const { getPerformanceFilterDefaultValue } = React.useContext(ModelCatalogContext);
   const [isOpen, setIsOpen] = React.useState(false);
 
   const { minValue, maxValue, isSliderDisabled } = MAX_RPS_RANGE;
@@ -55,11 +53,7 @@ const MaxRpsFilter: React.FC = () => {
   };
 
   const handleReset = () => {
-    // Get default value from namedQueries, fallback to maxValue
-    const defaultValue = getPerformanceFilterDefaultValue(filterKey);
-    const value = typeof defaultValue === 'number' ? defaultValue : maxValue;
-    setRpsFilterValue(value);
-    setLocalValue(value);
+    setLocalValue(rpsFilterValue ?? maxValue);
   };
 
   const toggle = (toggleRef: React.Ref<MenuToggleElement>) => (
