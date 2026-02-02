@@ -7,7 +7,6 @@ import {
   TextArea,
   TextInput,
 } from '@patternfly/react-core';
-import { useThemeContext } from 'mod-arch-kubeflow';
 import ResourceNameDefinitionTooltip from '~/concepts/k8s/ResourceNameDefinitionTootip';
 import FormFieldset from '~/app/pages/modelRegistry/screens/components/FormFieldset';
 import {
@@ -58,7 +57,6 @@ const K8sNameDescriptionField: React.FC<K8sNameDescriptionFieldProps> = ({
   hideDescription,
 }) => {
   const [showK8sField, setShowK8sField] = React.useState(false);
-  const { isMUITheme } = useThemeContext();
 
   const { name, description, k8sName } = data;
 
@@ -74,7 +72,21 @@ const K8sNameDescriptionField: React.FC<K8sNameDescriptionFieldProps> = ({
     />
   );
 
-  const nameFormGroup = (
+  const descriptionTextArea = (
+    <TextArea
+      aria-readonly={!onDataChange}
+      data-testid={`${dataTestId}-description`}
+      id={`${dataTestId}-description`}
+      name={`${dataTestId}-description`}
+      type="text"
+      value={description}
+      onChange={(_e, value) => onDataChange?.('description', value)}
+      resizeOrientation="vertical"
+      autoResize
+    />
+  );
+
+  return (
     <>
       <FormGroup label={nameLabel} isRequired fieldId={`${dataTestId}-name`}>
         <FormFieldset component={nameInput} field="Name" />
@@ -104,53 +116,6 @@ const K8sNameDescriptionField: React.FC<K8sNameDescriptionFieldProps> = ({
           )}
         </HelperText>
       ) : null}
-    </>
-  );
-
-  const descriptionTextInput = (
-    <TextInput
-      aria-readonly={!onDataChange}
-      data-testid={`${dataTestId}-description`}
-      id={`${dataTestId}-description`}
-      name={`${dataTestId}-description`}
-      type="text"
-      value={description}
-      onChange={(_e, value) => onDataChange?.('description', value)}
-    />
-  );
-
-  const descriptionTextArea = (
-    <TextArea
-      aria-readonly={!onDataChange}
-      data-testid={`${dataTestId}-description`}
-      id={`${dataTestId}-description`}
-      name={`${dataTestId}-description`}
-      type="text"
-      value={description}
-      onChange={(_e, value) => onDataChange?.('description', value)}
-      resizeOrientation="vertical"
-      autoResize
-    />
-  );
-
-  const descriptionFormGroup = (
-    <FormGroup label={descriptionLabel} fieldId={`${dataTestId}-description`}>
-      <FormFieldset component={descriptionTextInput} field="Description" />
-    </FormGroup>
-  );
-
-  return (
-    <>
-      {isMUITheme ? (
-        nameFormGroup
-      ) : (
-        <>
-          <FormGroup label={nameLabel} isRequired fieldId={`${dataTestId}-name`}>
-            {nameInput}
-            {nameHelperText}
-          </FormGroup>
-        </>
-      )}
 
       <ResourceNameField
         allowEdit={showK8sField}
@@ -159,14 +124,11 @@ const K8sNameDescriptionField: React.FC<K8sNameDescriptionFieldProps> = ({
         onDataChange={onDataChange}
       />
 
-      {!hideDescription &&
-        (isMUITheme ? (
-          descriptionFormGroup
-        ) : (
-          <FormGroup label={descriptionLabel} fieldId={`${dataTestId}-description`}>
-            {descriptionTextArea}
-          </FormGroup>
-        ))}
+      {!hideDescription && (
+        <FormGroup label={descriptionLabel} fieldId={`${dataTestId}-description`}>
+          <FormFieldset component={descriptionTextArea} field="Description" />
+        </FormGroup>
+      )}
     </>
   );
 };

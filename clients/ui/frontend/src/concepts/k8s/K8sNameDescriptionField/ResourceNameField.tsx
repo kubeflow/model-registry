@@ -6,7 +6,6 @@ import {
   TextInput,
   ValidatedOptions,
 } from '@patternfly/react-core';
-import { useThemeContext } from 'mod-arch-kubeflow';
 import FormFieldset from '~/app/pages/modelRegistry/screens/components/FormFieldset';
 import { K8sNameDescriptionFieldData, K8sNameDescriptionFieldUpdateFunction } from './types';
 
@@ -24,16 +23,10 @@ const ResourceNameField: React.FC<ResourceNameFieldProps> = ({
   k8sName,
   onDataChange,
 }) => {
-  const { isMUITheme } = useThemeContext();
-
   if (k8sName.state.immutable) {
-    return isMUITheme ? (
+    return (
       <FormGroup label="Resource name" fieldId={`${dataTestId}-resource-name`}>
         <FormFieldset component={<div>{k8sName.value}</div>} field="Resource name" />
-      </FormGroup>
-    ) : (
-      <FormGroup label="Resource name" fieldId={`${dataTestId}-resource-name`}>
-        {k8sName.value}
       </FormGroup>
     );
   }
@@ -63,7 +56,7 @@ const ResourceNameField: React.FC<ResourceNameFieldProps> = ({
     />
   );
 
-  const resourceNameFormGroup = (
+  return (
     <>
       <FormGroup
         label="Resource name"
@@ -94,8 +87,6 @@ const ResourceNameField: React.FC<ResourceNameFieldProps> = ({
       </HelperText>
     </>
   );
-
-  return isMUITheme ? resourceNameFormGroup : textInput;
 };
 
 export default ResourceNameField;
