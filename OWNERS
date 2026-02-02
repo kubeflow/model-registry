@@ -2,6 +2,7 @@ approvers:
   - Al-Pragliola
   - andreyvelich  # noqa(kubeflow-hub-team)
   - ederign
+  - jonburdo
   - pboyd
   - rareddy
   - tarilabs
@@ -13,5 +14,4 @@ reviewers:
   - Al-Pragliola
   - andreyvelich
   - fege
-  - jonburdo
   - pboyd
