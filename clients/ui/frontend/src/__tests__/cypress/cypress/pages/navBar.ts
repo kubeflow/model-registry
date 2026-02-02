@@ -28,6 +28,10 @@ class NavBar {
     this.findNamespaceSelector().click();
     cy.findByRole('option').should('not.exist');
   }
+
+  shouldNamespaceSelectorShow(name: string) {
+    this.findNamespaceSelector().findByText(name).should('exist');
+  }
 }
 
 export const navBar = new NavBar();

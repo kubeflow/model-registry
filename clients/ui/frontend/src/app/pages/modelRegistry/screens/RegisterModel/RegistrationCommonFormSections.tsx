@@ -17,17 +17,13 @@ import FormFieldset from '~/app/pages/modelRegistry/screens/components/FormField
 import { ModelVersion } from '~/app/types';
 import FormSection from '~/app/pages/modelRegistry/components/pf-overrides/FormSection';
 import { useTempDevFeatureAvailable, TempDevFeature } from '~/app/hooks/useTempDevFeatureAvailable';
+import { RegistrationMode } from '~/app/pages/modelRegistry/screens/const';
 import { RegistrationCommonFormData } from './useRegisterModelData';
 import RegistrationModelLocationFields from './RegistrationModelLocationFields';
 import RegisterAndStoreFields from './RegisterAndStoreFields';
 import { isNameValid } from './utils';
 import { MR_CHARACTER_LIMIT } from './const';
 // import { ConnectionModal } from './ConnectionModal';
-
-enum RegistrationMode {
-  Register = 'register',
-  RegisterAndStore = 'registerAndStore',
-}
 
 type RegistrationCommonFormSectionsProps<D extends RegistrationCommonFormData> = {
   formData: D;
@@ -48,11 +44,17 @@ const RegistrationCommonFormSections = <D extends RegistrationCommonFormData>({
   const isRegistryStorageFeatureAvailable = useTempDevFeatureAvailable(
     TempDevFeature.RegistryStorage,
   );
-  const [registrationMode, setRegistrationMode] = React.useState<RegistrationMode>(
-    RegistrationMode.Register,
-  );
+  const registrationMode = formData.registrationMode || RegistrationMode.Register;
 
   const { versionName, versionDescription, sourceModelFormat, sourceModelFormatVersion } = formData;
+
+  const handleModeChange = (mode: RegistrationMode) => {
+    setData('registrationMode', mode);
+
+    if (mode === RegistrationMode.Register) {
+      setData('namespace', '');
+    }
+  };
 
   const versionNameInput = (
     <TextInput
@@ -154,16 +156,22 @@ const RegistrationCommonFormSections = <D extends RegistrationCommonFormData>({
         }
       >
         {isRegistryStorageFeatureAvailable && (
-          <ToggleGroup aria-label="Registration mode" className={spacing.myMd}>
+          <ToggleGroup
+            aria-label="Registration mode"
+            className={spacing.myMd}
+            data-testid="registration-mode-toggle-group"
+          >
             <ToggleGroupItem
               text="Register"
               isSelected={registrationMode === RegistrationMode.Register}
-              onChange={() => setRegistrationMode(RegistrationMode.Register)}
+              data-testid="registration-mode-register"
+              onChange={() => handleModeChange(RegistrationMode.Register)}
             />
             <ToggleGroupItem
               text="Register and store"
               isSelected={registrationMode === RegistrationMode.RegisterAndStore}
-              onChange={() => setRegistrationMode(RegistrationMode.RegisterAndStore)}
+              onChange={() => handleModeChange(RegistrationMode.RegisterAndStore)}
+              data-testid="registration-mode-register-and-store"
             />
           </ToggleGroup>
         )}
