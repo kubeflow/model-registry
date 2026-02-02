@@ -43,6 +43,15 @@ const (
 	defaultSyncInterval = 24 * time.Hour
 )
 
+// ModelType represents the classification of a model based on its tasks.
+type ModelType string
+
+const (
+	ModelTypeGenerative ModelType = "generative"
+	ModelTypePredictive ModelType = "predictive"
+	ModelTypeUnknown    ModelType = "unknown"
+)
+
 // gatedString is a custom type that can unmarshal both boolean and string values from JSON
 // It converts booleans to strings (false -> "false", true -> "true")
 type gatedString string
@@ -167,33 +176,29 @@ var predictiveTasks = map[string]bool{
 	"fill-mask":                   true,
 }
 
-// classifyModelTypeFromTasks classifies a model as "generative", "predictive", or "unknown" based on its task information.
-func classifyModelTypeFromTasks(tasks []string) string {
+// classifyModelTypeFromTasks classifies a model as generative, predictive, or unknown based on its task information.
+func classifyModelTypeFromTasks(tasks []string) ModelType {
 	if len(tasks) == 0 {
-		return "unknown"
+		return ModelTypeUnknown
 	}
 
-	hasGenerative := false
 	hasPredictive := false
 
+	// If model has both generative and predictive tasks, return generative
 	for _, task := range tasks {
 		task = strings.ToLower(strings.TrimSpace(task))
 		if generativeTasks[task] {
-			hasGenerative = true
+			return ModelTypeGenerative
 		} else if predictiveTasks[task] {
 			hasPredictive = true
 		}
 	}
 
-	// Prioritize generative if both are present
-	if hasGenerative {
-		return "generative"
-	}
 	if hasPredictive {
-		return "predictive"
+		return ModelTypePredictive
 	}
 
-	return "unknown"
+	return ModelTypeUnknown
 }
 
 // populateFromHFInfo populates the hfModel's CatalogModel fields from Hugging Face API data
@@ -343,7 +348,7 @@ func (hfm *hfModel) populateFromHFInfo(ctx context.Context, provider *hfModelPro
 	// Add model_type classification (always set, including "unknown")
 	customProps["model_type"] = apimodels.MetadataValue{
 		MetadataStringValue: &apimodels.MetadataStringValue{
-			StringValue: modelType,
+			StringValue: string(modelType),
 		},
 	}
 

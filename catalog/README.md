@@ -169,7 +169,7 @@ The Hugging Face catalog provider automatically classifies models based on their
 
 **Classification Heuristic:**
 
-The classification logic (`classifyModelTypeFromTasks`) examines the model's task list and:
+The classification logic examines the model's task list and:
 1. Checks if any task matches the **generative tasks** set → classifies as `"generative"`
 2. Checks if any task matches the **predictive tasks** set → classifies as `"predictive"`
 3. If both generative and predictive tasks are present, **generative takes priority**

@@ -1491,167 +1491,167 @@ func TestClassifyModelTypeFromTasks(t *testing.T) {
 	tests := []struct {
 		name     string
 		tasks    []string
-		expected string
+		expected ModelType
 	}{
 		{
 			name:     "generative task - text-generation",
 			tasks:    []string{"text-generation"},
-			expected: "generative",
+			expected: ModelTypeGenerative,
 		},
 		{
 			name:     "generative task - summarization",
 			tasks:    []string{"summarization"},
-			expected: "generative",
+			expected: ModelTypeGenerative,
 		},
 		{
 			name:     "generative task - translation",
 			tasks:    []string{"translation"},
-			expected: "generative",
+			expected: ModelTypeGenerative,
 		},
 		{
 			name:     "generative task - text-to-image",
 			tasks:    []string{"text-to-image"},
-			expected: "generative",
+			expected: ModelTypeGenerative,
 		},
 		{
 			name:     "generative task - text-to-speech",
 			tasks:    []string{"text-to-speech"},
-			expected: "generative",
+			expected: ModelTypeGenerative,
 		},
 		{
 			name:     "predictive task - text-classification",
 			tasks:    []string{"text-classification"},
-			expected: "predictive",
+			expected: ModelTypePredictive,
 		},
 		{
 			name:     "predictive task - image-classification",
 			tasks:    []string{"image-classification"},
-			expected: "predictive",
+			expected: ModelTypePredictive,
 		},
 		{
 			name:     "predictive task - question-answering",
 			tasks:    []string{"question-answering"},
-			expected: "predictive",
+			expected: ModelTypePredictive,
 		},
 		{
 			name:     "predictive task - object-detection",
 			tasks:    []string{"object-detection"},
-			expected: "predictive",
+			expected: ModelTypePredictive,
 		},
 		{
 			name:     "predictive task - feature-extraction",
 			tasks:    []string{"feature-extraction"},
-			expected: "predictive",
+			expected: ModelTypePredictive,
 		},
 		{
 			name:     "multiple generative tasks",
 			tasks:    []string{"text-generation", "summarization"},
-			expected: "generative",
+			expected: ModelTypeGenerative,
 		},
 		{
 			name:     "multiple predictive tasks",
 			tasks:    []string{"text-classification", "image-classification"},
-			expected: "predictive",
+			expected: ModelTypePredictive,
 		},
 		{
 			name:     "generative takes priority over predictive",
 			tasks:    []string{"text-generation", "text-classification"},
-			expected: "generative",
+			expected: ModelTypeGenerative,
 		},
 		{
 			name:     "unknown task",
 			tasks:    []string{"unknown-task"},
-			expected: "unknown",
+			expected: ModelTypeUnknown,
 		},
 		{
 			name:     "empty tasks",
 			tasks:    []string{},
-			expected: "unknown",
+			expected: ModelTypeUnknown,
 		},
 		{
 			name:     "case insensitive - GENERATIVE",
 			tasks:    []string{"TEXT-GENERATION"},
-			expected: "generative",
+			expected: ModelTypeGenerative,
 		},
 		{
 			name:     "case insensitive - Predictive",
 			tasks:    []string{"Text-Classification"},
-			expected: "predictive",
+			expected: ModelTypePredictive,
 		},
 		{
 			name:     "task with whitespace",
 			tasks:    []string{"  text-generation  "},
-			expected: "generative",
+			expected: ModelTypeGenerative,
 		},
 		{
 			name:     "all generative task types - summarization",
 			tasks:    []string{"summarization"},
-			expected: "generative",
+			expected: ModelTypeGenerative,
 		},
 		{
 			name:     "all generative task types - translation",
 			tasks:    []string{"translation"},
-			expected: "generative",
+			expected: ModelTypeGenerative,
 		},
 		{
 			name:     "all generative task types - text-to-image",
 			tasks:    []string{"text-to-image"},
-			expected: "generative",
+			expected: ModelTypeGenerative,
 		},
 		{
 			name:     "all generative task types - unconditional-image-generation",
 			tasks:    []string{"unconditional-image-generation"},
-			expected: "generative",
+			expected: ModelTypeGenerative,
 		},
 		{
 			name:     "all generative task types - image-to-image",
 			tasks:    []string{"image-to-image"},
-			expected: "generative",
+			expected: ModelTypeGenerative,
 		},
 		{
 			name:     "all generative task types - audio-to-audio",
 			tasks:    []string{"audio-to-audio"},
-			expected: "generative",
+			expected: ModelTypeGenerative,
 		},
 		{
 			name:     "all predictive task types - zero-shot-classification",
 			tasks:    []string{"zero-shot-classification"},
-			expected: "predictive",
+			expected: ModelTypePredictive,
 		},
 		{
 			name:     "all predictive task types - audio-classification",
 			tasks:    []string{"audio-classification"},
-			expected: "predictive",
+			expected: ModelTypePredictive,
 		},
 		{
 			name:     "all predictive task types - document-question-answering",
 			tasks:    []string{"document-question-answering"},
-			expected: "predictive",
+			expected: ModelTypePredictive,
 		},
 		{
 			name:     "all predictive task types - image-segmentation",
 			tasks:    []string{"image-segmentation"},
-			expected: "predictive",
+			expected: ModelTypePredictive,
 		},
 		{
 			name:     "all predictive task types - keypoint-detection",
 			tasks:    []string{"keypoint-detection"},
-			expected: "predictive",
+			expected: ModelTypePredictive,
 		},
 		{
 			name:     "all predictive task types - image-feature-extraction",
 			tasks:    []string{"image-feature-extraction"},
-			expected: "predictive",
+			expected: ModelTypePredictive,
 		},
 		{
 			name:     "all predictive task types - fill-mask",
 			tasks:    []string{"fill-mask"},
-			expected: "predictive",
+			expected: ModelTypePredictive,
 		},
 		{
 			name:     "unknown task with recognized task - should classify based on recognized",
 			tasks:    []string{"unknown-task", "text-generation"},
-			expected: "generative",
+			expected: ModelTypeGenerative,
 		},
 	}
 
