@@ -10,6 +10,8 @@ interface NamespaceSelectorProps {
   selectedNamespace?: string;
   placeholderText?: string;
   isFullWidth?: boolean;
+  isGlobalSelector?: boolean;
+  ignoreMandatoryNamespace?: boolean;
 }
 
 const NamespaceSelector: React.FC<NamespaceSelectorProps> = ({
@@ -19,20 +21,23 @@ const NamespaceSelector: React.FC<NamespaceSelectorProps> = ({
   isDisabled: externalDisabled,
   selectedNamespace,
   isFullWidth,
+  isGlobalSelector,
+  ignoreMandatoryNamespace,
 }) => {
-  const { namespaces, preferredNamespace, updatePreferredNamespace } = useNamespaceSelector();
+  const { namespaces = [], preferredNamespace, updatePreferredNamespace } = useNamespaceSelector();
   const { config } = useModularArchContext();
 
   // Check if mandatory namespace is configured
   const isMandatoryNamespace = Boolean(config.mandatoryNamespace);
 
-  const isDisabled = externalDisabled || isMandatoryNamespace || namespaces.length === 0;
+  const baseDisabled = externalDisabled || namespaces.length === 0;
+  const isDisabled = ignoreMandatoryNamespace ? baseDisabled : baseDisabled || isMandatoryNamespace;
   const options: SimpleSelectOption[] = namespaces.map((namespace) => ({
     key: namespace.name,
     label: namespace.name,
   }));
 
-  const selectedValue = placeholderText
+  const selectedValue = !isGlobalSelector
     ? selectedNamespace || ''
     : preferredNamespace?.name || namespaces[0]?.name || '';
 
@@ -41,14 +46,12 @@ const NamespaceSelector: React.FC<NamespaceSelectorProps> = ({
       return;
     }
 
-    if (!isMandatoryNamespace) {
-      if (!placeholderText) {
-        updatePreferredNamespace({ name: key });
-      }
+    if (!isMandatoryNamespace && isGlobalSelector) {
+      updatePreferredNamespace({ name: key });
+    }
 
-      if (onSelect) {
-        onSelect(key);
-      }
+    if (onSelect) {
+      onSelect(key);
     }
   };
 
@@ -62,7 +65,7 @@ const NamespaceSelector: React.FC<NamespaceSelectorProps> = ({
       isDisabled={isDisabled}
       isFullWidth={isFullWidth}
       popperProps={{ maxWidth: '400px' }}
-      dataTestId={placeholderText ? 'form-namespace-selector' : 'navbar-namespace-selector'}
+      dataTestId={isGlobalSelector ? 'navbar-namespace-selector' : 'form-namespace-selector'}
     />
   );
 };

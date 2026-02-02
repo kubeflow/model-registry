@@ -1,7 +1,7 @@
 import React from 'react';
 import { UpdateObjectAtPropAndValue } from 'mod-arch-shared';
-import { Button, FormGroup, Popover } from '@patternfly/react-core';
-import { HelpIcon } from '@patternfly/react-icons';
+import { FormGroup } from '@patternfly/react-core';
+
 import { useThemeContext } from 'mod-arch-kubeflow';
 import FormSection from '~/app/pages/modelRegistry/components/pf-overrides/FormSection';
 import NamespaceSelector from '~/app/standalone/NamespaceSelector';
@@ -32,6 +32,7 @@ const RegisterAndStoreFields = <D extends RegistrationCommonFormData>({
       onSelect={handleNamespaceSelect}
       selectedNamespace={formData.namespace}
       isFullWidth
+      ignoreMandatoryNamespace
     />
   );
 
@@ -43,27 +44,9 @@ const RegisterAndStoreFields = <D extends RegistrationCommonFormData>({
 
       */}
       {isMUITheme ? (
-        <FormSection title="Project">{namespaceSelectorElement}</FormSection>
+        <FormSection title="Namespace">{namespaceSelectorElement}</FormSection>
       ) : (
-        <FormGroup
-          label="Project"
-          data-testid="namespace-form-group"
-          isRequired
-          labelHelp={
-            <Popover
-              data-testid="namespace-help-popover"
-              bodyContent="This list includes only projects that you and the selected model registry have permission to access. To request access to a new or existing project, contact your administrator."
-            >
-              <Button
-                variant="plain"
-                data-testid="namespace-help-button"
-                aria-label="More info on project field"
-                className="pf-v6-u-p-xs"
-                icon={<HelpIcon />}
-              />
-            </Popover>
-          }
-        >
+        <FormGroup label="Project" data-testid="namespace-form-group" isRequired>
           {namespaceSelectorElement}
         </FormGroup>
       )}

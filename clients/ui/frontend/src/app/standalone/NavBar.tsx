@@ -69,7 +69,7 @@ const NavBar: React.FC<NavBarProps> = ({ username, onLogout }) => {
           <ToolbarContent>
             <ToolbarGroup variant="action-group-plain" align={{ default: 'alignStart' }}>
               <ToolbarItem className="kubeflow-u-namespace-select">
-                <NamespaceSelector />
+                <NamespaceSelector isGlobalSelector />
               </ToolbarItem>
             </ToolbarGroup>
             {username && (
