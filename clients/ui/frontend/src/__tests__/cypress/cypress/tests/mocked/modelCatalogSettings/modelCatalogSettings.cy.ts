@@ -469,6 +469,20 @@ describe('Catalog Source Configs Table', () => {
       row.shouldHaveValidationStatus('Starting');
     });
 
+    it('should show "Starting" status when re-enabling source (enabled=true but status=disabled)', () => {
+      const reenablingSource = mockCatalogSource({
+        id: 'hf-google',
+        name: 'HuggingFace Google',
+        status: 'disabled',
+      });
+      setupMocks([reenablingSource], { catalogs: [huggingFaceSource] }); // huggingFaceSource has enabled=true
+      modelCatalogSettings.visit();
+      const row = modelCatalogSettings.getRow('HuggingFace Google');
+      row.findName().should('be.visible');
+      row.shouldHaveValidationStatus('Starting');
+      row.findValidationStatus().findByTestId('source-status-starting-hf-google').should('exist');
+    });
+
     it('should show "Failed" status with error message for error sources', () => {
       const errorSource = mockCatalogSource({
         id: 'hf-google',
