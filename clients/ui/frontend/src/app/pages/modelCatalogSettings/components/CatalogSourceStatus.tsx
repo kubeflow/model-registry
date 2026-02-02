@@ -99,8 +99,9 @@ const CatalogSourceStatus: React.FC<CatalogSourceStatusProps> = ({ catalogSource
     }
 
     case CatalogSourceStatusEnum.DISABLED:
-      return <>-</>;
-
+      // If we reach here, config.enabled is true - line 24
+      // But status is still DISABLED, so show "Starting" (re-enable case)
+      return startingOrUnknownLabel;
     default:
       return startingOrUnknownLabel;
   }
