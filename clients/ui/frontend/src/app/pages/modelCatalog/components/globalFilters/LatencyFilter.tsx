@@ -102,33 +102,17 @@ const LatencyFilter: React.FC = () => {
     return defaultFilterState;
   });
 
-  const appliedFilterStateRef = React.useRef<LatencyFilterState | null>(null);
-
-  // Update local filter when active filter changes
-  React.useEffect(() => {
-    if (currentActiveFilter) {
-      setLocalFilter({
-        metric: currentActiveFilter.metric,
-        percentile: currentActiveFilter.percentile,
-        value: currentActiveFilter.value,
-      });
-    }
-  }, [currentActiveFilter]);
-
-  // Capture the applied filter state when menu opens
   React.useEffect(() => {
     if (isOpen) {
-      // Capture the current filter state when menu opens
-      if (currentActiveFilter) {
-        appliedFilterStateRef.current = {
-          metric: currentActiveFilter.metric,
-          percentile: currentActiveFilter.percentile,
-          value: currentActiveFilter.value,
-        };
-      } else {
-        appliedFilterStateRef.current = defaultFilterState;
-      }
-      setLocalFilter(appliedFilterStateRef.current);
+      // Use currentActiveFilter or defaultFilterState
+      const initialState = currentActiveFilter
+        ? {
+            metric: currentActiveFilter.metric,
+            percentile: currentActiveFilter.percentile,
+            value: currentActiveFilter.value,
+          }
+        : defaultFilterState;
+      setLocalFilter(initialState);
     }
   }, [isOpen, currentActiveFilter, defaultFilterState]);
 
@@ -192,15 +176,19 @@ const LatencyFilter: React.FC = () => {
   };
 
   const handleReset = () => {
-    // Reset to the filter state that was active when menu opened (not the original default)
-    if (appliedFilterStateRef.current) {
-      const resetState = appliedFilterStateRef.current;
-      setLocalFilter(resetState);
-      // Update the refs so the useEffect doesn't think metric/percentile changed
-      // This prevents the value from being reset to maxValue
-      prevMetricRef.current = resetState.metric;
-      prevPercentileRef.current = resetState.percentile;
-    }
+    // Reset to the filter state that was active when menu opened
+    const resetState = currentActiveFilter
+      ? {
+          metric: currentActiveFilter.metric,
+          percentile: currentActiveFilter.percentile,
+          value: currentActiveFilter.value,
+        }
+      : defaultFilterState;
+    setLocalFilter(resetState);
+    // Update the refs so the useEffect doesn't think metric/percentile changed
+    // This prevents the value from being reset to maxValue
+    prevMetricRef.current = resetState.metric;
+    prevPercentileRef.current = resetState.percentile;
   };
 
   const toggle = (toggleRef: React.Ref<MenuToggleElement>) => (

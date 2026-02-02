@@ -23,8 +23,6 @@ const MaxRpsFilter: React.FC = () => {
 
   const [localValue, setLocalValue] = React.useState<number>(() => rpsFilterValue ?? maxValue);
 
-  const appliedValueRef = React.useRef<number | undefined>(undefined);
-
   const clampedValue = React.useMemo(
     () => Math.min(Math.max(localValue, minValue), maxValue),
     [localValue, minValue, maxValue],
@@ -32,7 +30,6 @@ const MaxRpsFilter: React.FC = () => {
 
   React.useEffect(() => {
     if (isOpen) {
-      appliedValueRef.current = rpsFilterValue;
       setLocalValue(rpsFilterValue ?? maxValue);
     }
   }, [isOpen, rpsFilterValue, maxValue]);
@@ -56,7 +53,7 @@ const MaxRpsFilter: React.FC = () => {
   };
 
   const handleReset = () => {
-    setLocalValue(appliedValueRef.current ?? maxValue);
+    setLocalValue(rpsFilterValue ?? maxValue);
   };
 
   const toggle = (toggleRef: React.Ref<MenuToggleElement>) => (
