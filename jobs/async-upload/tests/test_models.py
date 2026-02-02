@@ -69,14 +69,29 @@ class TestModelConfigIntentTypes:
         assert config.intent.artifact_id == "test-artifact-id"
 
     def test_update_artifact_intent_structure(self):
-        """Test that UpdateArtifactIntent only has the required fields"""
+        """Test that UpdateArtifactIntent has required and optional fields"""
         intent = UpdateArtifactIntent(artifact_id="test-artifact-id")
         config = ModelConfig(intent=intent)
 
-        # UpdateArtifactIntent should only have intent_type and artifact_id fields
+        # UpdateArtifactIntent has intent_type, artifact_id (required), and optional model_id/version_id
         assert config.intent.intent_type == UploadIntent.update_artifact
         assert config.intent.artifact_id == "test-artifact-id"
-        assert not hasattr(config.intent, 'model_id')
+        # Optional fields default to None
+        assert config.intent.model_id is None
+        assert config.intent.version_id is None
+
+    def test_update_artifact_intent_with_optional_ids(self):
+        """Test that UpdateArtifactIntent accepts optional model_id and version_id for pass-through"""
+        intent = UpdateArtifactIntent(
+            artifact_id="test-artifact-id",
+            model_id="rm-123",
+            version_id="mv-456",
+        )
+        config = ModelConfig(intent=intent)
+
+        assert config.intent.artifact_id == "test-artifact-id"
+        assert config.intent.model_id == "rm-123"
+        assert config.intent.version_id == "mv-456"
 
     def test_update_artifact_intent_missing_artifact_id_fails(self):
         """Test that update_artifact intent fails when artifact ID is missing"""
