@@ -42,9 +42,9 @@ export const HELP_TEXT = {
 export const PLACEHOLDERS = {
   ORGANIZATION: 'Example: Google',
   ALLOWED_MODELS_HF: 'Enter model names, one per line (e.g., gemma-7b*)',
-  ALLOWED_MODELS_GENERIC: 'Example: Llama*, Llama-3.1-8B-Instruct',
+  ALLOWED_MODELS_GENERIC: 'Example: Google/gemma-7b*, Meta/Llama-3.1-8B-Instruct',
   EXCLUDED_MODELS_HF: 'Enter model names, one per line (e.g., gemma-7b-test*)',
-  EXCLUDED_MODELS_GENERIC: 'Example: Llama*, Llama-3.1-8B-Instruct',
+  EXCLUDED_MODELS_GENERIC: 'Example: Google/gemma-7b-test*, Meta/Llama*',
 } as const;
 
 export const DESCRIPTIONS = {
@@ -72,9 +72,7 @@ export const getExcludedModelsHelp = (organization?: string): string =>
     ? `Enter the names of ${organization} models to exclude from this source. These models will not appear in the model catalog.`
     : 'Enter the names of models to exclude from this source. These models will not appear in the model catalog.';
 
-export const FIELD_HELPER_TEXT = {
-  INCLUDED_MODELS:
-    'Separate model names using commas. To include all models with a specific prefix, enter the prefix followed by an asterisk. Example, Llama*',
-  EXCLUDED_MODELS:
-    'Separate model names using commas. To exclude all models with a specific prefix, enter the prefix followed by an asterisk. Example, Llama*',
-} as const;
+export const getModelsFieldHelperText = (isHuggingFaceSource: boolean): string =>
+  isHuggingFaceSource
+    ? 'Separate model names using commas. Use an asterisk for prefix matching. Example: Llama*'
+    : 'Separate model names using commas, including the organization prefix. Use an asterisk for prefix matching. Example: Google/gemma*';
