@@ -11,7 +11,7 @@ To run these tests:
 
 import pytest
 
-from model_catalog import CatalogAPIClient
+from model_catalog import CatalogAPIClient, CatalogValidationError
 
 
 class TestArtifacts:
@@ -118,6 +118,80 @@ class TestArtifacts:
                 acc = props["accuracy"].get("double_value")
                 assert acc is not None, "Accuracy value is None"
                 assert acc > 0.9, f"Expected accuracy > 0.9, got {acc}"
+
+    def test_filter_artifacts_with_and_logic(self, api_client: CatalogAPIClient, model_with_artifacts: tuple[str, str]) -> None:
+        """Test filtering artifacts with AND logic combining multiple conditions."""
+        source_id, model_name = model_with_artifacts
+
+        # Test combining filters with AND
+        filter_query = '(framework_type.string_value = "pytorch") AND (accuracy.double_value > 0.5)'
+        response = api_client.get_artifacts(
+            source_id=source_id,
+            model_name=model_name,
+            filter_query=filter_query,
+        )
+
+        assert isinstance(response, dict)
+        assert "items" in response
+
+        # Ensure at least one artifact matches (test data should have pytorch with accuracy > 0.5)
+        items = response.get("items", [])
+        assert len(items) > 0, "Expected at least one artifact matching AND filter"
+
+        # Verify all returned artifacts match both conditions
+        for artifact in items:
+            props = artifact.get("customProperties", {})
+
+            framework = props["framework_type"].get("string_value")
+            assert framework == "pytorch", f"Expected framework_type='pytorch', got '{framework}'"
+
+            acc = props["accuracy"].get("double_value")
+            assert acc is not None and acc > 0.5, f"Expected accuracy > 0.5, got {acc}"
+
+    def test_filter_artifacts_with_or_logic(self, api_client: CatalogAPIClient, model_with_artifacts: tuple[str, str]) -> None:
+        """Test filtering artifacts with OR logic combining multiple conditions."""
+        source_id, model_name = model_with_artifacts
+
+        # Test combining filters with OR using existing frameworks in test data
+        filter_query = '(framework_type.string_value = "pytorch") OR (framework_type.string_value = "onnx")'
+        response = api_client.get_artifacts(
+            source_id=source_id,
+            model_name=model_name,
+            filter_query=filter_query,
+        )
+
+        assert isinstance(response, dict)
+        assert "items" in response
+
+        # Ensure at least one artifact matches (test data should have pytorch or onnx)
+        items = response.get("items", [])
+        assert len(items) > 0, "Expected at least one artifact matching OR filter"
+
+        # Verify all returned artifacts match at least one condition
+        for artifact in items:
+            props = artifact.get("customProperties", {})
+
+            framework = props["framework_type"].get("string_value")
+            assert framework in ["pytorch", "onnx"], (
+                f"Expected framework_type to be 'pytorch' or 'onnx', got '{framework}'"
+            )
+
+    def test_filter_artifacts_returns_empty_for_no_matches(self, api_client: CatalogAPIClient, model_with_artifacts: tuple[str, str]) -> None:
+        """Test that a valid filter query with no matching artifacts returns empty results."""
+        source_id, model_name = model_with_artifacts
+
+        # Use a valid query that should return no results
+        filter_query = 'framework_type.string_value = "nonexistent_framework_xyz"'
+        response = api_client.get_artifacts(
+            source_id=source_id,
+            model_name=model_name,
+            filter_query=filter_query,
+        )
+
+        assert isinstance(response, dict)
+        assert "items" in response
+        assert response["items"] == [], "Expected empty results for non-matching filter"
+        assert response.get("size", 0) == 0, "Expected size to be 0 for non-matching filter"
 
     def test_multiple_models_have_different_artifacts(self, api_client: CatalogAPIClient) -> None:
         """Test that different models have their own artifacts."""
@@ -240,3 +314,109 @@ class TestArtifacts:
             for acc in accuracy_values:
                 assert isinstance(acc, (int, float))
                 assert 0 <= acc <= 1, f"Accuracy {acc} should be between 0 and 1"
+
+    @pytest.mark.parametrize(
+        "artifact_type",
+        [
+            pytest.param("model-artifact", id="single_model_artifact"),
+            pytest.param("metrics-artifact", id="single_metrics_artifact"),
+            pytest.param(["model-artifact", "metrics-artifact"], id="multiple_artifact_types"),
+        ],
+    )
+    def test_filter_artifacts_by_artifact_type(
+        self, api_client: CatalogAPIClient, model_with_artifacts: tuple[str, str], artifact_type: str | list[str]
+    ) -> None:
+        """Test filtering artifacts by single or multiple artifact types."""
+        source_id, model_name = model_with_artifacts
+
+        # Get all artifacts first
+        all_artifacts_response = api_client.get_artifacts(
+            source_id=source_id,
+            model_name=model_name,
+        )
+        all_artifacts = all_artifacts_response["items"]
+
+        # Filter by artifact type
+        filtered_response = api_client.get_artifacts(
+            source_id=source_id,
+            model_name=model_name,
+            artifact_type=artifact_type,
+        )
+
+        filtered_artifacts = filtered_response["items"]
+
+        # Convert to list for validation
+        expected_types = [artifact_type] if isinstance(artifact_type, str) else artifact_type
+
+        # Verify all returned artifacts match the requested type(s)
+        for artifact in filtered_artifacts:
+            assert artifact["artifactType"] in expected_types, (
+                f"Expected artifactType to be one of {expected_types}, got '{artifact['artifactType']}'"
+            )
+
+        # Verify the filter didn't miss any artifacts of the requested type(s)
+        expected_artifacts = [a for a in all_artifacts if a.get("artifactType") in expected_types]
+        assert len(filtered_artifacts) == len(expected_artifacts), (
+            f"Filter returned {len(filtered_artifacts)} artifacts, "
+            f"but expected {len(expected_artifacts)} artifacts of type(s) {expected_types}"
+        )
+
+class TestNegativeArtifacts:
+    """Test suite for negative artifact functionality."""
+
+    @pytest.mark.parametrize(
+        "invalid_filter_query",
+        [
+            pytest.param(
+                "fake IN ('test', 'fake'))",
+                id="malformed_syntax_unbalanced_parentheses",
+            ),
+            pytest.param(
+                "ttft_p90.double_value < abc",
+                id="type_mismatch_string_in_numeric_comparison",
+            ),
+            pytest.param(
+                "hardware_type.string_value = 5.0",
+                id="type_mismatch_number_in_string_equality",
+            ),
+            pytest.param(
+                "field.string_value IN (unclosed",
+                id="malformed_syntax_unclosed_list",
+            ),
+            pytest.param(
+                "field.string_value AND",
+                id="malformed_syntax_incomplete_expression",
+            ),
+        ],
+    )
+    def test_search_artifacts_by_invalid_filter_query(
+        self,
+        api_client: CatalogAPIClient,
+        model_with_artifacts: tuple[str, str],
+        invalid_filter_query: str,
+    ) -> None:
+        """Test that search artifacts by invalid filter query raises a validation error."""
+        source_id, model_name = model_with_artifacts
+        with pytest.raises(CatalogValidationError, match="invalid filter query"):
+            api_client.get_artifacts(
+                source_id=source_id,
+                model_name=model_name,
+                filter_query=invalid_filter_query,
+            )
+
+    def test_filter_artifacts_by_invalid_artifact_type(
+        self, api_client: CatalogAPIClient, model_with_artifacts: tuple[str, str]
+    ) -> None:
+        """Test that filtering by an invalid artifact type raises a validation error."""
+        source_id, model_name = model_with_artifacts
+
+        invalid_artifact_type = "invalid-artifact-type"
+
+        with pytest.raises(
+            CatalogValidationError, match="Input should be 'model-artifact' or 'metrics-artifact'"
+        ):
+            api_client.get_artifacts(
+                source_id=source_id,
+                model_name=model_name,
+                artifact_type=invalid_artifact_type,
+            )
