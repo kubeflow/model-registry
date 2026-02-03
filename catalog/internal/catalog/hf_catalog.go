@@ -43,6 +43,15 @@ const (
 	defaultSyncInterval = 24 * time.Hour
 )
 
+// ModelType represents the classification of a model based on its tasks.
+type ModelType string
+
+const (
+	ModelTypeGenerative ModelType = "generative"
+	ModelTypePredictive ModelType = "predictive"
+	ModelTypeUnknown    ModelType = "unknown"
+)
+
 // gatedString is a custom type that can unmarshal both boolean and string values from JSON
 // It converts booleans to strings (false -> "false", true -> "true")
 type gatedString string
@@ -136,6 +145,61 @@ var catalogLogoSVG []byte
 var (
 	catalogModelLogo = "data:image/svg+xml;base64," + base64.StdEncoding.EncodeToString(catalogLogoSVG)
 )
+
+// generativeTasks contains the set of Hugging Face task types that indicate generative models.
+// These models produce novel content (text, images, audio, etc.).
+var generativeTasks = map[string]bool{
+	"text-generation":                true,
+	"summarization":                  true,
+	"translation":                    true,
+	"text-to-image":                  true,
+	"unconditional-image-generation": true,
+	"image-to-image":                 true,
+	"text-to-speech":                 true,
+	"audio-to-audio":                 true,
+}
+
+// predictiveTasks contains the set of Hugging Face task types that indicate predictive models.
+// These models produce classifications, scores, labels, or predictions.
+var predictiveTasks = map[string]bool{
+	"text-classification":         true,
+	"image-classification":        true,
+	"zero-shot-classification":    true,
+	"audio-classification":        true,
+	"question-answering":          true,
+	"document-question-answering": true,
+	"object-detection":            true,
+	"image-segmentation":          true,
+	"keypoint-detection":          true,
+	"feature-extraction":          true,
+	"image-feature-extraction":    true,
+	"fill-mask":                   true,
+}
+
+// classifyModelTypeFromTasks classifies a model as generative, predictive, or unknown based on its task information.
+func classifyModelTypeFromTasks(tasks []string) ModelType {
+	if len(tasks) == 0 {
+		return ModelTypeUnknown
+	}
+
+	hasPredictive := false
+
+	// If model has both generative and predictive tasks, return generative
+	for _, task := range tasks {
+		task = strings.ToLower(strings.TrimSpace(task))
+		if generativeTasks[task] {
+			return ModelTypeGenerative
+		} else if predictiveTasks[task] {
+			hasPredictive = true
+		}
+	}
+
+	if hasPredictive {
+		return ModelTypePredictive
+	}
+
+	return ModelTypeUnknown
+}
 
 // populateFromHFInfo populates the hfModel's CatalogModel fields from Hugging Face API data
 func (hfm *hfModel) populateFromHFInfo(ctx context.Context, provider *hfModelProvider, hfInfo *hfModelInfo, sourceId string, originalModelName string) {
@@ -275,8 +339,18 @@ func (hfm *hfModel) populateFromHFInfo(ctx context.Context, provider *hfModelPro
 		hfm.Tasks = tasks
 	}
 
+	// Classify model type based on tasks (heuristic-based classification)
+	modelType := classifyModelTypeFromTasks(tasks)
+
 	// Convert tags and other metadata to custom properties
 	customProps := make(map[string]apimodels.MetadataValue)
+
+	// Add model_type classification (always set, including "unknown")
+	customProps["model_type"] = apimodels.MetadataValue{
+		MetadataStringValue: &apimodels.MetadataStringValue{
+			StringValue: string(modelType),
+		},
+	}
 
 	customProps["hf_private"] = apimodels.MetadataValue{
 		MetadataStringValue: &apimodels.MetadataStringValue{

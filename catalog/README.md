@@ -163,18 +163,60 @@ models:
 - Experimental models under development
 - Models where classification is not yet determined
 
+#### Automatic Classification for Hugging Face Models
+
+The Hugging Face catalog provider automatically classifies models based on their task types. When a model is imported from Hugging Face, the `model_type` custom property is set based on the model's declared tasks using a heuristic classification system.
+
+**Classification Heuristic:**
+
+The classification logic examines the model's task list and:
+1. Checks if any task matches the **generative tasks** set → classifies as `"generative"`
+2. Checks if any task matches the **predictive tasks** set → classifies as `"predictive"`
+3. If both generative and predictive tasks are present, **generative takes priority**
+4. If no matching tasks are found → classifies as `"unknown"`
+
+**Task Mappings:**
+
+The following Hugging Face task types are mapped to model types:
+
+**Generative Tasks** (maps to `"generative"`):
+- `text-generation` - Text generation models
+- `summarization` - Text summarization models
+- `translation` - Translation models
+- `text-to-image` - Text-to-image generation models
+- `unconditional-image-generation` - Image generation models
+- `image-to-image` - Image-to-image transformation models
+- `text-to-speech` - Text-to-speech synthesis models
+- `audio-to-audio` - Audio transformation models
+
+**Predictive Tasks** (maps to `"predictive"`):
+- `text-classification` - Text classification models
+- `image-classification` - Image classification models
+- `zero-shot-classification` - Zero-shot classification models
+- `audio-classification` - Audio classification models
+- `question-answering` - Question answering models
+- `document-question-answering` - Document QA models
+- `object-detection` - Object detection models
+- `image-segmentation` - Image segmentation models
+- `keypoint-detection` - Keypoint detection models
+- `feature-extraction` - Feature extraction models
+- `image-feature-extraction` - Image feature extraction models
+- `fill-mask` - Masked language models
+
+**Note:** The classification is performed automatically when models are fetched from Hugging Face. Models that don't match any known tasks will be classified as `"unknown"` and can be manually updated via the YAML catalog or API if needed.
+
 ### Querying and Filtering by Custom Properties
 
 #### Filter by Model Type
 
 Search for all generative AI models:
 ```bash
-GET /api/model_catalog/v1alpha1/models?source=my-catalog&filterQuery=customProperties.model_type.string_value='generative'
+GET /api/model_catalog/v1alpha1/models?source=my-catalog&filterQuery=.model_type.string_value='generative'
 ```
 
 Search for predictive models:
 ```bash
-GET /api/model_catalog/v1alpha1/models?source=my-catalog&filterQuery=customProperties.model_type.string_value='predictive'
+GET /api/model_catalog/v1alpha1/models?source=my-catalog&filterQuery=.model_type.string_value='predictive'
 ```
 
 #### Combining Filters
