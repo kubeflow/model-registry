@@ -10,6 +10,7 @@ import (
 	"strings"
 
 	k8s "github.com/kubeflow/model-registry/ui/bff/internal/integrations/kubernetes"
+	batchv1 "k8s.io/api/batch/v1"
 	corev1 "k8s.io/api/core/v1"
 	rbacv1 "k8s.io/api/rbac/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -201,6 +202,16 @@ func setupMock(mockK8sClient kubernetes.Interface, ctx context.Context) error {
 	}
 
 	err = createHuggingFaceSecret(mockK8sClient, ctx, "bella-namespace")
+	if err != nil {
+		return err
+	}
+
+	err = createModelTransferJob(mockK8sClient, ctx, "kubeflow")
+	if err != nil {
+		return err
+	}
+
+	err = createModelTransferJob(mockK8sClient, ctx, "bella-namespace")
 	if err != nil {
 		return err
 	}
@@ -613,6 +624,328 @@ func createModelCatalogService(k8sClient kubernetes.Interface, ctx context.Conte
 	_, err := k8sClient.CoreV1().Services(namespace).Create(ctx, service, metav1.CreateOptions{})
 	if err != nil {
 		return fmt.Errorf("failed to create model-catalog service: %w", err)
+	}
+
+	return nil
+}
+
+func createModelTransferJob(k8sClient kubernetes.Interface, ctx context.Context, namespace string) error {
+	configMap := &corev1.ConfigMap{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "transfer-job-001-config",
+			Namespace: namespace,
+			Labels: map[string]string{
+				"modelregistry.kubeflow.org/job-type": "async-upload",
+				"modelregistry.kubeflow.org/job-id":   "001",
+			},
+		},
+		Data: map[string]string{
+			"RegisteredModel.name":            "Model One",
+			"RegisteredModel.description":     "This model does things and stuff",
+			"RegisteredModel.owner":           "Sherlock Holmes",
+			"ModelVersion.name":               "Version One",
+			"ModelVersion.author":             "Sherlock Holmes",
+			"ModelArtifact.model_format_name": "onnx",
+		},
+	}
+
+	_, err := k8sClient.CoreV1().ConfigMaps(namespace).Create(ctx, configMap, metav1.CreateOptions{})
+	if err != nil {
+		return fmt.Errorf("failed to create configmap: %w", err)
+	}
+
+	sourceSecret := &corev1.Secret{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "transfer-job-001-source-secret",
+			Namespace: namespace,
+			Labels: map[string]string{
+				"modelregistry.kubeflow.org/job-type": "async-upload",
+				"modelregistry.kubeflow.org/job-id":   "001",
+			},
+		},
+		StringData: map[string]string{
+			"AWS_ACCESS_KEY_ID":     "mock-access-key",
+			"AWS_SECRET_ACCESS_KEY": "mock-secret-key",
+			"AWS_REGION":            "us-east-1",
+			"AWS_S3_BUCKET":         "source-bucket",
+		},
+	}
+
+	_, err = k8sClient.CoreV1().Secrets(namespace).Create(ctx, sourceSecret, metav1.CreateOptions{})
+	if err != nil {
+		return fmt.Errorf("failed to create source secret: %w", err)
+	}
+
+	destSecret := &corev1.Secret{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "transfer-job-001-dest-secret",
+			Namespace: namespace,
+			Labels: map[string]string{
+				"modelregistry.kubeflow.org/job-type": "async-upload",
+				"modelregistry.kubeflow.org/job-id":   "001",
+			},
+		},
+		Type: corev1.SecretTypeDockerConfigJson,
+		StringData: map[string]string{
+			".dockerconfigjson": `{"auths":{"quay.io":{"auth":"bW9jazptb2Nr","email":"test@example.com"}}}`,
+		},
+	}
+
+	_, err = k8sClient.CoreV1().Secrets(namespace).Create(ctx, destSecret, metav1.CreateOptions{})
+	if err != nil {
+		return fmt.Errorf("failed to create destination secret: %w", err)
+	}
+
+	backoffLimit := int32(3)
+
+	job := &batchv1.Job{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "transfer-job-001",
+			Namespace: namespace,
+			Labels: map[string]string{
+				"modelregistry.kubeflow.org/job-type": "async-upload",
+				"modelregistry.kubeflow.org/job-id":   "001",
+			},
+			Annotations: map[string]string{
+				"modelregistry.kubeflow.org/registered-model-id": "1",
+				"modelregistry.kubeflow.org/model-name":          "Model One",
+				"modelregistry.kubeflow.org/model-version-id":    "1",
+				"modelregistry.kubeflow.org/version-name":        "Version One",
+				"modelregistry.kubeflow.org/source-type":         "s3",
+				"modelregistry.kubeflow.org/source-bucket":       "source-bucket",
+				"modelregistry.kubeflow.org/source-key":          "models/my-model",
+				"modelregistry.kubeflow.org/dest-type":           "oci",
+				"modelregistry.kubeflow.org/dest-uri":            "quay.io/test/model:v1",
+				"modelregistry.kubeflow.org/upload-intent":       "create_model",
+			},
+		},
+		Spec: batchv1.JobSpec{
+			BackoffLimit: &backoffLimit,
+			Template: corev1.PodTemplateSpec{
+				ObjectMeta: metav1.ObjectMeta{
+					Labels: map[string]string{
+						"modelregistry.kubeflow.org/job-type": "async-upload",
+					},
+				},
+				Spec: corev1.PodSpec{
+					RestartPolicy: corev1.RestartPolicyNever,
+					Containers: []corev1.Container{
+						{
+							Name:  "async-upload",
+							Image: "quay.io/opendatahub/model-registry-job-async-upload:latest",
+							Env: []corev1.EnvVar{
+								{Name: "MODEL_SYNC_SOURCE_TYPE", Value: "s3"},
+								{Name: "MODEL_SYNC_SOURCE_AWS_KEY", Value: "models/my-model"},
+								{Name: "MODEL_SYNC_DESTINATION_TYPE", Value: "oci"},
+								{Name: "MODEL_SYNC_DESTINATION_OCI_URI", Value: "quay.io/test/model:v1"},
+								{Name: "MODEL_SYNC_DESTINATION_OCI_REGISTRY", Value: "quay.io"},
+								{Name: "MODEL_SYNC_MODEL_UPLOAD_INTENT", Value: "create_model"},
+								{Name: "MODEL_SYNC_METADATA_CONFIGMAP_PATH", Value: "/etc/model-metadata"},
+								{Name: "MODEL_SYNC_SOURCE_S3_CREDENTIALS_PATH", Value: "/opt/creds/source"},
+								{Name: "MODEL_SYNC_DESTINATION_OCI_CREDENTIALS_PATH", Value: "/opt/creds/destination/.dockerconfigjson"},
+							},
+							VolumeMounts: []corev1.VolumeMount{
+								{Name: "source-credentials", MountPath: "/opt/creds/source", ReadOnly: true},
+								{Name: "destination-credentials", MountPath: "/opt/creds/destination", ReadOnly: true},
+								{Name: "model-metadata", MountPath: "/etc/model-metadata", ReadOnly: true},
+							},
+						},
+					},
+					Volumes: []corev1.Volume{
+						{
+							Name: "source-credentials",
+							VolumeSource: corev1.VolumeSource{
+								Secret: &corev1.SecretVolumeSource{
+									SecretName: "transfer-job-001-source-secret",
+								},
+							},
+						},
+						{
+							Name: "destination-credentials",
+							VolumeSource: corev1.VolumeSource{
+								Secret: &corev1.SecretVolumeSource{
+									SecretName: "transfer-job-001-dest-secret",
+								},
+							},
+						},
+						{
+							Name: "model-metadata",
+							VolumeSource: corev1.VolumeSource{
+								ConfigMap: &corev1.ConfigMapVolumeSource{
+									LocalObjectReference: corev1.LocalObjectReference{
+										Name: "transfer-job-001-config",
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+	}
+
+	createdJob1, err := k8sClient.BatchV1().Jobs(namespace).Create(ctx, job, metav1.CreateOptions{})
+	if err != nil {
+		return fmt.Errorf("failed to create job: %w", err)
+	}
+
+	createdJob1.Status = batchv1.JobStatus{
+		Active: 1,
+	}
+	_, err = k8sClient.BatchV1().Jobs(namespace).UpdateStatus(ctx, createdJob1, metav1.UpdateOptions{})
+	if err != nil {
+		return fmt.Errorf("failed to update job status: %w", err)
+	}
+
+	job2ConfigMap := &corev1.ConfigMap{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "transfer-job-002-config",
+			Namespace: namespace,
+			Labels: map[string]string{
+				"modelregistry.kubeflow.org/job-type": "async-upload",
+				"modelregistry.kubeflow.org/job-id":   "002",
+			},
+		},
+		Data: map[string]string{
+			"RegisteredModel.name":        "Model Two",
+			"RegisteredModel.description": "Another model for testing",
+			"RegisteredModel.owner":       "John Watson",
+			"ModelVersion.name":           "Version Three",
+			"ModelVersion.author":         "John Watson",
+		},
+	}
+
+	_, err = k8sClient.CoreV1().ConfigMaps(namespace).Create(ctx, job2ConfigMap, metav1.CreateOptions{})
+	if err != nil {
+		return fmt.Errorf("failed to create job2 configmap: %w", err)
+	}
+
+	job2 := &batchv1.Job{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "transfer-job-002",
+			Namespace: namespace,
+			Labels: map[string]string{
+				"modelregistry.kubeflow.org/job-type": "async-upload",
+				"modelregistry.kubeflow.org/job-id":   "002",
+			},
+			Annotations: map[string]string{
+				"modelregistry.kubeflow.org/registered-model-id": "2",
+				"modelregistry.kubeflow.org/model-name":          "Model Two",
+				"modelregistry.kubeflow.org/model-version-id":    "3",
+				"modelregistry.kubeflow.org/version-name":        "Version Three",
+				"modelregistry.kubeflow.org/source-type":         "s3",
+				"modelregistry.kubeflow.org/dest-type":           "oci",
+				"modelregistry.kubeflow.org/dest-uri":            "quay.io/test/model-two:v3",
+				"modelregistry.kubeflow.org/upload-intent":       "create_model",
+				"modelregistry.kubeflow.org/author":              "John Watson",
+				"modelregistry.kubeflow.org/description":         "Create new model - completed successfully",
+			},
+		},
+		Spec: batchv1.JobSpec{
+			BackoffLimit: &backoffLimit,
+			Template: corev1.PodTemplateSpec{
+				Spec: corev1.PodSpec{
+					RestartPolicy: corev1.RestartPolicyNever,
+					Containers: []corev1.Container{
+						{
+							Name:  "async-upload",
+							Image: "quay.io/opendatahub/model-registry-job-async-upload:latest",
+						},
+					},
+				},
+			},
+		},
+	}
+
+	createdJob2, err := k8sClient.BatchV1().Jobs(namespace).Create(ctx, job2, metav1.CreateOptions{})
+	if err != nil {
+		return fmt.Errorf("failed to create job2: %w", err)
+	}
+
+	createdJob2.Status = batchv1.JobStatus{
+		Succeeded: 1,
+		Conditions: []batchv1.JobCondition{
+			{Type: batchv1.JobComplete, Status: corev1.ConditionTrue},
+		},
+	}
+
+	_, err = k8sClient.BatchV1().Jobs(namespace).UpdateStatus(ctx, createdJob2, metav1.UpdateOptions{})
+	if err != nil {
+		return fmt.Errorf("failed to update job2 status: %w", err)
+	}
+
+	job3ConfigMap := &corev1.ConfigMap{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "transfer-job-003-config",
+			Namespace: namespace,
+			Labels: map[string]string{
+				"modelregistry.kubeflow.org/job-type": "async-upload",
+				"modelregistry.kubeflow.org/job-id":   "003",
+			},
+		},
+		Data: map[string]string{
+			"RegisteredModel.name": "Model One",
+			"ModelVersion.name":    "Version Two",
+			"ModelVersion.author":  "Sherlock Holmes",
+		},
+	}
+
+	_, err = k8sClient.CoreV1().ConfigMaps(namespace).Create(ctx, job3ConfigMap, metav1.CreateOptions{})
+	if err != nil {
+		return fmt.Errorf("failed to create job3 configmap: %w", err)
+	}
+
+	job3 := &batchv1.Job{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "transfer-job-003",
+			Namespace: namespace,
+			Labels: map[string]string{
+				"modelregistry.kubeflow.org/job-type": "async-upload",
+				"modelregistry.kubeflow.org/job-id":   "003",
+			},
+			Annotations: map[string]string{
+				"modelregistry.kubeflow.org/registered-model-id": "1",
+				"modelregistry.kubeflow.org/model-name":          "Model One",
+				"modelregistry.kubeflow.org/model-version-id":    "2",
+				"modelregistry.kubeflow.org/version-name":        "Version Two",
+				"modelregistry.kubeflow.org/source-type":         "s3",
+				"modelregistry.kubeflow.org/dest-type":           "oci",
+				"modelregistry.kubeflow.org/dest-uri":            "quay.io/test/model-one:v2",
+				"modelregistry.kubeflow.org/upload-intent":       "create_version",
+				"modelregistry.kubeflow.org/author":              "Sherlock Holmes",
+				"modelregistry.kubeflow.org/description":         "Create new version - failed due to connection timeout",
+			},
+		},
+		Spec: batchv1.JobSpec{
+			BackoffLimit: &backoffLimit,
+			Template: corev1.PodTemplateSpec{
+				Spec: corev1.PodSpec{
+					RestartPolicy: corev1.RestartPolicyNever,
+					Containers: []corev1.Container{
+						{
+							Name:  "async-upload",
+							Image: "quay.io/opendatahub/model-registry-job-async-upload:latest",
+						},
+					},
+				},
+			},
+		},
+	}
+
+	createdJob3, err := k8sClient.BatchV1().Jobs(namespace).Create(ctx, job3, metav1.CreateOptions{})
+	if err != nil {
+		return fmt.Errorf("failed to create job3: %w", err)
+	}
+
+	createdJob3.Status = batchv1.JobStatus{
+		Failed: 1,
+		Conditions: []batchv1.JobCondition{
+			{Type: batchv1.JobFailed, Status: corev1.ConditionTrue, Message: "Connection timeout to destination registry"},
+		},
+	}
+	_, err = k8sClient.BatchV1().Jobs(namespace).UpdateStatus(ctx, createdJob3, metav1.UpdateOptions{})
+	if err != nil {
+		return fmt.Errorf("failed to update job3 status: %w", err)
 	}
 
 	return nil

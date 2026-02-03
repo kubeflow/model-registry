@@ -7,8 +7,10 @@ import (
 	"github.com/kubeflow/model-registry/ui/bff/internal/constants"
 	helper "github.com/kubeflow/model-registry/ui/bff/internal/helpers"
 	k8s "github.com/kubeflow/model-registry/ui/bff/internal/integrations/kubernetes"
-	"github.com/kubeflow/model-registry/ui/bff/internal/mocks"
 	"github.com/kubeflow/model-registry/ui/bff/internal/models"
+	batchv1 "k8s.io/api/batch/v1"
+	corev1 "k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 type ModelRegistryRepository struct {
@@ -134,11 +136,120 @@ func (m *ModelRegistryRepository) ResolveServerAddress(clusterIP string, httpPor
 	return url
 }
 
-// GetAllModelTransferJobs returns all model transfer jobs for the given namespace
-// TODO: Replace with actual implementation when backend API is available
-func (m *ModelRegistryRepository) GetAllModelTransferJobs(_ context.Context, _ k8s.KubernetesClientInterface, _ string) (*models.ModelTransferJobList, error) {
-	// TODO: Implement actual API call to fetch transfer jobs
-	// For now, return mock data for development/testing
-	mockData := mocks.GetModelTransferJobListMock()
-	return &mockData, nil
+// GetAllModelTransferJobs returns just one mock sample to unblock the UI work and the rest of the logic will be added in followup PR
+// TODO: Replace with actual implementation for all the methods
+func (m *ModelRegistryRepository) GetAllModelTransferJobs(ctx context.Context, client k8s.KubernetesClientInterface, namespace string) (*models.ModelTransferJobList, error) {
+	jobList, err := client.GetAllModelTransferJobs(ctx, namespace)
+	if err != nil {
+		return nil, fmt.Errorf("failed to fetch model transfer jobs: %w", err)
+	}
+
+	var transferJobs []models.ModelTransferJob
+	for _, job := range jobList.Items {
+		transferJobs = append(transferJobs, convertK8sJobToModel(&job))
+	}
+
+	return &models.ModelTransferJobList{
+		Items:    transferJobs,
+		Size:     len(transferJobs),
+		PageSize: len(transferJobs),
+	}, nil
+
+}
+
+func (m *ModelRegistryRepository) CreateModelTransferJob(ctx context.Context, client k8s.KubernetesClientInterface, namespace string, payload models.ModelTransferJob) error {
+	job := convertModelToK8sJob(payload, namespace)
+
+	err := client.CreateModelTransferJob(ctx, namespace, job)
+	if err != nil {
+		return fmt.Errorf("failed to create model transfer job: %w", err)
+	}
+	return nil
+}
+
+func (m *ModelRegistryRepository) UpdateModelTransferJob(ctx context.Context, client k8s.KubernetesClientInterface, namespace string, jobId string, updates map[string]string) error {
+	err := client.UpdateModelTransferJob(ctx, namespace, jobId, updates)
+	if err != nil {
+		return fmt.Errorf("failed to update model transfer job %s: %w", jobId, err)
+	}
+	return nil
+}
+
+func (m *ModelRegistryRepository) DeleteModelTransferJob(ctx context.Context, client k8s.KubernetesClientInterface, namespace string, jobId string) error {
+	err := client.DeleteModelTransferJob(ctx, namespace, jobId)
+	if err != nil {
+		return fmt.Errorf("failed to delete model transfer job %s: %w", jobId, err)
+	}
+	return nil
+}
+
+// TODO: These functions convert the minimum required fields for now. Improve these to convert all the necessary fields
+func convertModelToK8sJob(payload models.ModelTransferJob, namespace string) *batchv1.Job {
+	backoffLimit := int32(3)
+
+	return &batchv1.Job{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      payload.Name,
+			Namespace: namespace,
+			Labels: map[string]string{
+				"modelregistry.kubeflow.org/job-type": "async-upload",
+				"modelregistry.kubeflow.org/job-id":   payload.Id,
+			},
+			Annotations: map[string]string{
+				"modelregistry.kubeflow.org/source-type":   string(payload.Source.Type),
+				"modelregistry.kubeflow.org/dest-type":     string(payload.Destination.Type),
+				"modelregistry.kubeflow.org/model-name":    payload.RegisteredModelName,
+				"modelregistry.kubeflow.org/upload-intent": string(payload.UploadIntent),
+			},
+		},
+		Spec: batchv1.JobSpec{
+			BackoffLimit: &backoffLimit,
+			Template: corev1.PodTemplateSpec{
+				Spec: corev1.PodSpec{
+					RestartPolicy: corev1.RestartPolicyNever,
+					Containers: []corev1.Container{
+						{
+							Name:  "async-upload",
+							Image: "quay.io/opendatahub/model-registry-job-async-upload:latest",
+						},
+					},
+				},
+			},
+		},
+	}
+}
+
+func convertK8sJobToModel(job *batchv1.Job) models.ModelTransferJob {
+	annotations := job.Annotations
+	if annotations == nil {
+		annotations = map[string]string{}
+	}
+	labels := job.Labels
+	if labels == nil {
+		labels = map[string]string{}
+	}
+
+	status := models.ModelTransferJobStatusPending
+	if job.Status.Succeeded > 0 {
+		status = models.ModelTransferJobStatusCompleted
+	} else if job.Status.Failed > 0 {
+		status = models.ModelTransferJobStatusFailed
+	} else if job.Status.Active > 0 {
+		status = models.ModelTransferJobStatusRunning
+	}
+
+	return models.ModelTransferJob{
+		Id:                   labels["modelregistry.kubeflow.org/job-id"],
+		Name:                 job.Name,
+		Description:          annotations["modelregistry.kubeflow.org/description"],
+		RegisteredModelName:  annotations["modelregistry.kubeflow.org/model-name"],
+		ModelVersionName:     annotations["modelregistry.kubeflow.org/version-name"],
+		RegisteredModelId:    annotations["modelregistry.kubeflow.org/registered-model-id"],
+		ModelVersionId:       annotations["modelregistry.kubeflow.org/model-version-id"],
+		ModelArtifactId:      annotations["modelregistry.kubeflow.org/model-artifact-id"],
+		Author:               annotations["modelregistry.kubeflow.org/author"],
+		Status:               status,
+		CreateTimeSinceEpoch: fmt.Sprintf("%d", job.CreationTimestamp.UnixMilli()),
+		Namespace:            job.Namespace,
+	}
 }

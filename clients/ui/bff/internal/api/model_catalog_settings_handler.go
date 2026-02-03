@@ -105,7 +105,7 @@ func (app *App) CreateCatalogSourceConfigHandler(w http.ResponseWriter, r *http.
 
 	var envelope ModelCatalogSourcePayloadEnvelope
 	if err := json.NewDecoder(r.Body).Decode(&envelope); err != nil {
-		app.serverErrorResponse(w, r, fmt.Errorf("error decoding JSON:: %v", err.Error()))
+		app.serverErrorResponse(w, r, fmt.Errorf("error decoding JSON: %v", err.Error()))
 		return
 	}
 
@@ -155,7 +155,7 @@ func (app *App) UpdateCatalogSourceConfigHandler(w http.ResponseWriter, r *http.
 
 	var envelope ModelCatalogSourcePayloadEnvelope
 	if err := json.NewDecoder(r.Body).Decode(&envelope); err != nil {
-		app.serverErrorResponse(w, r, fmt.Errorf("error decoding JSON:: %v", err.Error()))
+		app.serverErrorResponse(w, r, fmt.Errorf("error decoding JSON: %v", err.Error()))
 		return
 	}
 

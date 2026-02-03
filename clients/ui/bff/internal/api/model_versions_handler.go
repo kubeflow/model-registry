@@ -4,12 +4,13 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"net/http"
+
 	"github.com/julienschmidt/httprouter"
 	"github.com/kubeflow/model-registry/pkg/openapi"
 	"github.com/kubeflow/model-registry/ui/bff/internal/constants"
 	"github.com/kubeflow/model-registry/ui/bff/internal/integrations/httpclient"
 	"github.com/kubeflow/model-registry/ui/bff/internal/validation"
-	"net/http"
 )
 
 type ModelVersionEnvelope Envelope[*openapi.ModelVersion, None]
@@ -80,7 +81,7 @@ func (app *App) CreateModelVersionHandler(w http.ResponseWriter, r *http.Request
 
 	var envelope ModelVersionEnvelope
 	if err := json.NewDecoder(r.Body).Decode(&envelope); err != nil {
-		app.serverErrorResponse(w, r, fmt.Errorf("error decoding JSON:: %v", err.Error()))
+		app.serverErrorResponse(w, r, fmt.Errorf("error decoding JSON: %v", err.Error()))
 		return
 	}
 
@@ -134,7 +135,7 @@ func (app *App) UpdateModelVersionHandler(w http.ResponseWriter, r *http.Request
 
 	var envelope ModelVersionUpdateEnvelope
 	if err := json.NewDecoder(r.Body).Decode(&envelope); err != nil {
-		app.serverErrorResponse(w, r, fmt.Errorf("error decoding JSON:: %v", err.Error()))
+		app.serverErrorResponse(w, r, fmt.Errorf("error decoding JSON: %v", err.Error()))
 		return
 	}
 
@@ -207,7 +208,7 @@ func (app *App) CreateModelArtifactByModelVersionHandler(w http.ResponseWriter, 
 
 	var envelope ModelArtifactEnvelope
 	if err := json.NewDecoder(r.Body).Decode(&envelope); err != nil {
-		app.serverErrorResponse(w, r, fmt.Errorf("error decoding JSON:: %v", err.Error()))
+		app.serverErrorResponse(w, r, fmt.Errorf("error decoding JSON: %v", err.Error()))
 		return
 	}
 

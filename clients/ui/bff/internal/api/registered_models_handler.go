@@ -4,12 +4,13 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"net/http"
+
 	"github.com/julienschmidt/httprouter"
 	"github.com/kubeflow/model-registry/pkg/openapi"
 	"github.com/kubeflow/model-registry/ui/bff/internal/constants"
 	"github.com/kubeflow/model-registry/ui/bff/internal/integrations/httpclient"
 	"github.com/kubeflow/model-registry/ui/bff/internal/validation"
-	"net/http"
 )
 
 type RegisteredModelEnvelope Envelope[*openapi.RegisteredModel, None]
@@ -48,7 +49,7 @@ func (app *App) CreateRegisteredModelHandler(w http.ResponseWriter, r *http.Requ
 
 	var envelope RegisteredModelEnvelope
 	if err := json.NewDecoder(r.Body).Decode(&envelope); err != nil {
-		app.serverErrorResponse(w, r, fmt.Errorf("error decoding JSON:: %v", err.Error()))
+		app.serverErrorResponse(w, r, fmt.Errorf("error decoding JSON: %v", err.Error()))
 		return
 	}
 
@@ -130,7 +131,7 @@ func (app *App) UpdateRegisteredModelHandler(w http.ResponseWriter, r *http.Requ
 
 	var envelope RegisteredModelUpdateEnvelope
 	if err := json.NewDecoder(r.Body).Decode(&envelope); err != nil {
-		app.serverErrorResponse(w, r, fmt.Errorf("error decoding JSON:: %v", err.Error()))
+		app.serverErrorResponse(w, r, fmt.Errorf("error decoding JSON: %v", err.Error()))
 		return
 	}
 
@@ -204,7 +205,7 @@ func (app *App) CreateModelVersionForRegisteredModelHandler(w http.ResponseWrite
 
 	var envelope ModelVersionEnvelope
 	if err := json.NewDecoder(r.Body).Decode(&envelope); err != nil {
-		app.badRequestResponse(w, r, fmt.Errorf("error decoding JSON:: %v", err.Error()))
+		app.badRequestResponse(w, r, fmt.Errorf("error decoding JSON: %v", err.Error()))
 		return
 	}
 
