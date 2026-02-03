@@ -16,10 +16,10 @@ import {
   FORM_LABELS,
   PLACEHOLDERS,
   DESCRIPTIONS,
-  FIELD_HELPER_TEXT,
   getFilterInfoWithOrg,
   getAllowedModelsHelp,
   getExcludedModelsHelp,
+  getModelsFieldHelperText,
 } from '~/app/pages/modelCatalogSettings/constants';
 import { CatalogSourceType } from '~/app/modelCatalogTypes';
 
@@ -44,6 +44,7 @@ const ModelVisibilitySection: React.FC<ModelVisibilitySectionProps> = ({
 
   const allowedModelsHelp = getAllowedModelsHelp(organization);
   const excludedModelsHelp = getExcludedModelsHelp(organization);
+  const modelsFieldHelperText = getModelsFieldHelperText(isHuggingFaceMode);
 
   const allowedModelsPlaceholder = isHuggingFaceMode
     ? PLACEHOLDERS.ALLOWED_MODELS_HF
@@ -101,7 +102,7 @@ const ModelVisibilitySection: React.FC<ModelVisibilitySectionProps> = ({
           </FormHelperText>
           <FormHelperText>
             <HelperText>
-              <HelperTextItem>{FIELD_HELPER_TEXT.INCLUDED_MODELS}</HelperTextItem>
+              <HelperTextItem>{modelsFieldHelperText}</HelperTextItem>
             </HelperText>
           </FormHelperText>
         </FormGroup>
@@ -115,7 +116,7 @@ const ModelVisibilitySection: React.FC<ModelVisibilitySectionProps> = ({
           </FormHelperText>
           <FormHelperText>
             <HelperText>
-              <HelperTextItem>{FIELD_HELPER_TEXT.EXCLUDED_MODELS}</HelperTextItem>
+              <HelperTextItem>{modelsFieldHelperText}</HelperTextItem>
             </HelperText>
           </FormHelperText>
         </FormGroup>
