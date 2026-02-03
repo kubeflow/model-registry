@@ -68,6 +68,8 @@ const RegisterCatalogModelForm: React.FC<RegisterCatalogModelFormProps> = ({
     versionName: 'Version 1',
     modelLocationType: ModelLocationType.URI,
     modelLocationURI: uri || '',
+    jobName: '',
+    jobResourceName: '',
     modelRegistry: preferredModelRegistry.name,
     namespace: '',
     modelCustomProperties: { ...getLabelsFromCustomProperties(model?.customProperties), ...tasks },

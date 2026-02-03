@@ -142,8 +142,12 @@ const RegistrationCommonFormSections = <D extends RegistrationCommonFormData>({
         </FormGroup>
       </FormSection>
       <FormSection
-        title={isRegistryStorageFeatureAvailable ? 'Model location and storage' : 'Model location'}
+        title={
+          // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+          isRegistryStorageFeatureAvailable ? 'Model location and storage' : 'Model location'
+        }
         description={
+          // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
           isRegistryStorageFeatureAvailable ? (
             <>
               Choose <strong>Register</strong> to use the model&apos;s original storage location for
@@ -155,6 +159,7 @@ const RegistrationCommonFormSections = <D extends RegistrationCommonFormData>({
           )
         }
       >
+        {/* eslint-disable-next-line @typescript-eslint/no-unnecessary-condition */}
         {isRegistryStorageFeatureAvailable && (
           <ToggleGroup
             aria-label="Registration mode"

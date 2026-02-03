@@ -17,13 +17,10 @@ import { useNavigate } from 'react-router';
 import { FormSection } from 'mod-arch-shared';
 import { createModelRegistrySettings } from '~/app/api/k8s';
 import ModelRegistryDatabasePassword from '~/app/pages/settings/ModelRegistryDatabasePassword';
-import K8sNameDescriptionField from '~/concepts/k8s/K8sNameDescriptionField/K8sNameDescriptionField';
+import K8sNameDescriptionField, {
+  useK8sNameDescriptionFieldData,
+} from '~/concepts/k8s/K8sNameDescriptionField/K8sNameDescriptionField';
 import ThemeAwareFormGroupWrapper from '~/app/pages/settings/components/ThemeAwareFormGroupWrapper';
-
-type NameDescType = {
-  name: string;
-  description: string;
-};
 
 type ModelRegistryPayload = {
   modelRegistry: {
@@ -52,10 +49,7 @@ type CreateModalProps = {
 
 const CreateModal: React.FC<CreateModalProps> = ({ onClose, refresh }) => {
   const [error, setError] = React.useState<Error>();
-  const [nameDesc, setNameDesc] = React.useState<NameDescType>({
-    name: '',
-    description: '',
-  });
+  const { data: nameDescData, onDataChange: onNameDescChange } = useK8sNameDescriptionFieldData();
   const [host, setHost] = React.useState('');
   const [port, setPort] = React.useState('');
   const [username, setUsername] = React.useState('');
@@ -72,7 +66,8 @@ const CreateModal: React.FC<CreateModalProps> = ({ onClose, refresh }) => {
 
   const onBeforeClose = () => {
     setError(undefined);
-    setNameDesc({ name: '', description: '' });
+    onNameDescChange('name', '');
+    onNameDescChange('description', '');
     setHost('');
     setPort('');
     setUsername('');
@@ -90,7 +85,10 @@ const CreateModal: React.FC<CreateModalProps> = ({ onClose, refresh }) => {
   const hasContent = (value: string): boolean => !!value.trim().length;
 
   const canSubmit = () =>
-    hasContent(nameDesc.name) &&
+    hasContent(nameDescData.name) &&
+    hasContent(nameDescData.k8sName.value) &&
+    !nameDescData.k8sName.state.invalidCharacters &&
+    !nameDescData.k8sName.state.invalidLength &&
     hasContent(host) &&
     hasContent(password) &&
     hasContent(port) &&
@@ -104,10 +102,10 @@ const CreateModal: React.FC<CreateModalProps> = ({ onClose, refresh }) => {
     const payload: ModelRegistryPayload = {
       modelRegistry: {
         metadata: {
-          name: nameDesc.name,
+          name: nameDescData.k8sName.value,
           annotations: {
-            'openshift.io/display-name': nameDesc.name,
-            'openshift.io/description': nameDesc.description,
+            'openshift.io/display-name': nameDescData.name,
+            'openshift.io/description': nameDescData.description,
           },
         },
         spec: {
@@ -243,7 +241,11 @@ const CreateModal: React.FC<CreateModalProps> = ({ onClose, refresh }) => {
       <ModalHeader title="Create model registry" />
       <ModalBody>
         <Form>
-          <K8sNameDescriptionField dataTestId="mr" data={nameDesc} onDataChange={setNameDesc} />
+          <K8sNameDescriptionField
+            dataTestId="mr"
+            data={nameDescData}
+            onDataChange={onNameDescChange}
+          />
           <FormSection
             title="Connect to external MySQL database"
             description="This external database is where model data is stored."
