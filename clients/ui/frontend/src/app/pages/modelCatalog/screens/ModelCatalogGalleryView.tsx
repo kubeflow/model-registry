@@ -25,11 +25,7 @@ import {
 } from '~/app/pages/modelCatalog/utils/modelCatalogUtils';
 import EmptyModelCatalogState from '~/app/pages/modelCatalog/EmptyModelCatalogState';
 import ScrollViewOnMount from '~/app/shared/components/ScrollViewOnMount';
-import {
-  BASIC_FILTER_KEYS,
-  ModelCatalogNumberFilterKey,
-  parseLatencyFilterKey,
-} from '~/concepts/modelCatalog/const';
+import { ModelCatalogNumberFilterKey, parseLatencyFilterKey } from '~/concepts/modelCatalog/const';
 
 type ModelCatalogPageProps = {
   searchTerm: string;
@@ -110,10 +106,7 @@ const ModelCatalogGalleryView: React.FC<ModelCatalogPageProps> = ({
   const isNoLabelsSection = selectedSourceLabel === SourceLabel.other;
 
   // Performance empty state should only show when no user filters are applied
-  const areAllFiltersAtDefaults = React.useMemo(
-    () => !hasFiltersApplied(filterData),
-    [filterData],
-  );
+  const areAllFiltersAtDefaults = React.useMemo(() => !hasFiltersApplied(filterData), [filterData]);
 
   const noUserFiltersOrSearch = areAllFiltersAtDefaults && !searchTerm;
 
