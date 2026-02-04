@@ -6,15 +6,18 @@ import ModelCatalogFilters from '~/app/pages/modelCatalog/components/ModelCatalo
 import { ModelCatalogContext } from '~/app/context/modelCatalog/ModelCatalogContext';
 import { hasFiltersApplied } from '~/app/pages/modelCatalog/utils/modelCatalogUtils';
 import { CategoryName } from '~/app/modelCatalogTypes';
+import { BASIC_FILTER_KEYS } from '~/concepts/modelCatalog/const';
 import ModelCatalogSourceLabelSelectorNavigator from './ModelCatalogSourceLabelSelectorNavigator';
 import ModelCatalogAllModelsView from './ModelCatalogAllModelsView';
 import ModelCatalogGalleryView from './ModelCatalogGalleryView';
 
 const ModelCatalog: React.FC = () => {
   const [searchTerm, setSearchTerm] = React.useState('');
-  const { selectedSourceLabel, filterData, clearAllFilters } =
+  const { selectedSourceLabel, filterData, clearAllFilters, performanceViewEnabled } =
     React.useContext(ModelCatalogContext);
-  const filtersApplied = hasFiltersApplied(filterData);
+  const filtersApplied = performanceViewEnabled
+    ? hasFiltersApplied(filterData)
+    : hasFiltersApplied(filterData, BASIC_FILTER_KEYS);
   const isAllModelsView =
     selectedSourceLabel === CategoryName.allModels && !searchTerm && !filtersApplied;
 

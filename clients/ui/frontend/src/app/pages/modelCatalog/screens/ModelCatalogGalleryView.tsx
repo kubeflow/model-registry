@@ -52,7 +52,9 @@ const ModelCatalogGalleryView: React.FC<ModelCatalogPageProps> = ({
     performanceViewEnabled,
     sortBy,
   } = React.useContext(ModelCatalogContext);
-  const filtersApplied = hasFiltersApplied(filterData);
+  const filtersApplied = performanceViewEnabled
+    ? hasFiltersApplied(filterData)
+    : hasFiltersApplied(filterData, BASIC_FILTER_KEYS);
 
   // When performance view is disabled, exclude performance filters from API queries
   // Memoize to prevent infinite re-fetching
