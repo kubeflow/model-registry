@@ -15,6 +15,8 @@ import pytest
 
 from model_catalog import CatalogAPIClient
 
+from tests.sorting_utils import get_field_value, validate_items_sorted_correctly
+
 
 def _assert_response_valid(response: dict[str, Any]) -> None:
     """Assert that API response has valid structure.
@@ -131,6 +133,47 @@ class TestNameOrdering:
                 )
 
 
+class TestFieldOrdering:
+    """Test suite for ID, CREATE_TIME, and LAST_UPDATE_TIME ordering."""
+
+    @pytest.mark.parametrize(
+        "order_by,sort_order",
+        [
+            ("ID", "ASC"),
+            ("ID", "DESC"),
+            ("CREATE_TIME", "ASC"),
+            ("CREATE_TIME", "DESC"),
+            ("LAST_UPDATE_TIME", "ASC"),
+            ("LAST_UPDATE_TIME", "DESC"),
+        ],
+    )
+    def test_field_sorting_works_correctly(
+        self,
+        order_by: str,
+        sort_order: str,
+        api_client: CatalogAPIClient,
+    ):
+        """Test models endpoint sorts correctly by field and order.
+
+        Validates that the API correctly sorts models by:
+        - ID (numeric)
+        - CREATE_TIME (timestamp)
+        - LAST_UPDATE_TIME (timestamp)
+
+        In both ASC and DESC order.
+        """
+        response = api_client.get_models(order_by=order_by, sort_order=sort_order)
+
+        assert isinstance(response, dict), f"Response is not a dict: {type(response)}"
+        assert "items" in response, f"Response missing 'items' field: {response.keys()}"
+
+        items = response["items"]
+
+        assert validate_items_sorted_correctly(items, order_by, sort_order), (
+            f"Models not sorted correctly by {order_by} {sort_order}"
+        )
+
+
 class TestAccuracyOrdering:
     """Test suite for ACCURACY ordering functionality."""
 
@@ -234,3 +277,55 @@ class TestAccuracyOrdering:
                     assert "double_value" in accuracy_prop or "metadataType" in accuracy_prop, (
                         f"Accuracy property has unexpected structure: {accuracy_prop}"
                     )
+
+    @pytest.mark.parametrize(
+        "sort_order,filter_query",
+        [
+            ("ASC", "tasks='text-generation'"),
+            ("DESC", "tasks='text-generation'"),
+        ],
+    )
+    def test_accuracy_sorting_with_filter(
+        self,
+        sort_order: str,
+        filter_query: str,
+        api_client: CatalogAPIClient,
+    ):
+        """Test accuracy sorting works correctly with filter applied.
+
+        Validates:
+        1. Filter is applied correctly (only matching models returned)
+        2. Models WITH accuracy appear first, sorted by accuracy value
+        3. Models WITHOUT accuracy appear after (NULLS LAST)
+        """
+        response = api_client.get_models(
+            order_by="ACCURACY",
+            sort_order=sort_order,
+            filter_query=filter_query,
+        )
+
+        assert isinstance(response, dict)
+        assert "items" in response
+
+        items = response.get("items", [])
+
+        # Validate NULLS LAST behavior
+        found_model_without_accuracy = False
+        accuracies_with_values = []
+
+        for model in items:
+            acc = _get_model_accuracy(model)
+            if acc is None:
+                found_model_without_accuracy = True
+            else:
+                assert not found_model_without_accuracy, (
+                    "Found model with accuracy after model without accuracy"
+                )
+                accuracies_with_values.append(acc)
+
+        # Validate accuracy ordering
+        if len(accuracies_with_values) >= 2:
+            expected = sorted(accuracies_with_values, reverse=(sort_order == "DESC"))
+            assert accuracies_with_values == expected, (
+                f"Accuracies not in {sort_order} order: {accuracies_with_values}"
+            )
