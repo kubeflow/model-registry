@@ -88,7 +88,7 @@ func (app *App) GetCatalogSourceConfigHandler(w http.ResponseWriter, r *http.Req
 
 }
 
-func (app *App) CreateCatalogSourceConfigHandler(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+func (app *App) CreateCatalogSourceConfigHandler(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 	ctx := r.Context()
 
 	namespace, ok := ctx.Value(constants.NamespaceHeaderParameterKey).(string)

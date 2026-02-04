@@ -357,6 +357,9 @@ func (kc *SharedClientLogic) CreateModelTransferJob(ctx context.Context, namespa
 
 	_, err := kc.Client.BatchV1().Jobs(namespace).Create(ctx, job, metav1.CreateOptions{})
 
+	// TODO: After creating the Job, patch ConfigMap and Secrets to add ownerReferences
+	// pointing to the Job's UID so they are garbage collected when the Job is deleted.
+
 	if err != nil {
 		sessionLogger.Error("failed to create job",
 			"namespace", namespace,
@@ -387,7 +390,7 @@ func (kc *SharedClientLogic) UpdateModelTransferJob(ctx context.Context, namespa
 		return err
 	}
 
-	// TODO: add logic to construct the job to update the model transfer job
+	// TODO: Add logic to construct the job to update the model transfer job
 
 	_, err = kc.Client.BatchV1().Jobs(namespace).Update(ctx, modelTransferJob, metav1.UpdateOptions{})
 

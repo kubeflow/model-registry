@@ -45,7 +45,7 @@ func (app *App) GetAllModelTransferJobsHandler(w http.ResponseWriter, r *http.Re
 	}
 }
 
-func (app *App) CreateModelTransferJobHandler(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+func (app *App) CreateModelTransferJobHandler(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 	ctx := r.Context()
 
 	namespace, ok := ctx.Value(constants.NamespaceHeaderParameterKey).(string)
@@ -124,7 +124,7 @@ func (app *App) UpdateModelTransferJobHandler(w http.ResponseWriter, r *http.Req
 	// 	Data: updatedModelTransferJob,
 	// }
 
-	err = app.WriteJSON(w, http.StatusCreated, map[string]string{"status": "updated"}, nil)
+	err = app.WriteJSON(w, http.StatusOK, map[string]string{"status": "updated"}, nil)
 	if err != nil {
 		app.serverErrorResponse(w, r, fmt.Errorf("error writing JSON"))
 		return
