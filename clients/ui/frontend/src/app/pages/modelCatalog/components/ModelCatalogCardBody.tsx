@@ -62,21 +62,18 @@ const ModelCatalogCardBody: React.FC<ModelCatalogCardBodyProps> = ({
   };
 
   // Get performance-specific filter params for the /performance_artifacts endpoint
-  // Only apply performance filters when toggle is ON
-  const targetRPS = performanceViewEnabled
-    ? filterData[ModelCatalogNumberFilterKey.MAX_RPS]
-    : undefined;
+  // Always apply performance filters to get accurate benchmark counts, regardless of toggle state
+  const targetRPS = filterData[ModelCatalogNumberFilterKey.MAX_RPS];
   // Get full filter key for display purposes
-  const latencyFieldName = performanceViewEnabled
-    ? getActiveLatencyFieldName(filterData)
-    : undefined;
+  const latencyFieldName = getActiveLatencyFieldName(filterData);
   // Use short property key (e.g., 'ttft_p90') for the catalog API, not the full filter key
   const latencyProperty = latencyFieldName
     ? parseLatencyFilterKey(latencyFieldName).propertyKey
     : undefined;
 
   // Fetch performance artifacts from the new endpoint with server-side filtering
-  // When toggle is OFF, don't pass filterData so no perf filters are applied
+  // Always pass filterData so perf filters are applied - this ensures accurate benchmark counts
+  // The toggle only controls display, not the artifact fetch filters
   const [performanceArtifactsList, performanceArtifactsLoaded, performanceArtifactsError] =
     useCatalogPerformanceArtifacts(
       source?.id || '',
@@ -94,8 +91,8 @@ const ModelCatalogCardBody: React.FC<ModelCatalogCardBodyProps> = ({
           sortOrder: SortOrder.ASC,
         }),
       },
-      performanceViewEnabled ? filterData : undefined,
-      performanceViewEnabled ? filterOptions : undefined,
+      filterData,
+      filterOptions,
       isValidated, // Only fetch if validated
     );
 
