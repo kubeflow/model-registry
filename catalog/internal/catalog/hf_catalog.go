@@ -399,18 +399,20 @@ func (hfm *hfModel) populateFromHFInfo(ctx context.Context, provider *hfModelPro
 }
 
 func (p *hfModelProvider) Models(ctx context.Context) (<-chan ModelProviderRecord, error) {
-	// Read the catalog and report errors
-	catalog, err := p.getModelsFromHF(ctx)
-	if err != nil {
-		return nil, err
+	// Read the catalog - may return partial results with an error if any models fail to be loaded
+	catalog, fetchErr := p.getModelsFromHF(ctx)
+
+	// If we got no models AND an error, return the error immediately
+	if fetchErr != nil && len(catalog) == 0 {
+		return nil, fetchErr
 	}
 
 	ch := make(chan ModelProviderRecord)
 	go func() {
 		defer close(ch)
 
-		// Send the initial list right away.
-		p.emit(ctx, catalog, ch)
+		// Send the initial list right away, then send error status if there was a partial failure
+		p.emitWithError(ctx, catalog, fetchErr, ch)
 
 		// Set up periodic polling with configurable interval
 		ticker := time.NewTicker(p.syncInterval)
@@ -423,11 +425,13 @@ func (p *hfModelProvider) Models(ctx context.Context) (<-chan ModelProviderRecor
 			case <-ticker.C:
 				glog.Infof("Periodic sync: reprocessing all models for source %s", p.sourceId)
 				catalog, err := p.getModelsFromHF(ctx)
-				if err != nil {
+				// Even if there's an error, emit successful models first, then signal the error
+				if len(catalog) > 0 || err == nil {
+					p.emitWithError(ctx, catalog, err, ch)
+				} else {
+					// No models and an error - just log it
 					glog.Errorf("unable to reprocess Hugging Face models: %v", err)
-					continue
 				}
-				p.emit(ctx, catalog, ch)
 			}
 		}
 	}()
@@ -777,6 +781,13 @@ func parseHFTime(timeStr string) (int64, error) {
 }
 
 func (p *hfModelProvider) emit(ctx context.Context, models []ModelProviderRecord, out chan<- ModelProviderRecord) {
+	p.emitWithError(ctx, models, nil, out)
+}
+
+// emitWithError sends all successfully loadedmodels to the channel, then sends a final empty record.
+// If err is non-nil, the final record will include the error to signal a partial failure
+// (some models were loaded successfully, but others failed).
+func (p *hfModelProvider) emitWithError(ctx context.Context, models []ModelProviderRecord, err error, out chan<- ModelProviderRecord) {
 	done := ctx.Done()
 	for _, model := range models {
 		// Check if model should be excluded by name
@@ -796,8 +807,9 @@ func (p *hfModelProvider) emit(ctx context.Context, models []ModelProviderRecord
 	}
 
 	// Send an empty record to indicate that we're done with the batch.
+	// Include any error to signal partial failure (models loaded, but some failed).
 	select {
-	case out <- ModelProviderRecord{}:
+	case out <- ModelProviderRecord{Error: err}:
 	case <-done:
 	}
 }
