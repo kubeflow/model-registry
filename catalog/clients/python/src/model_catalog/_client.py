@@ -181,13 +181,14 @@ class CatalogAPIClient:
     # Maximum allowed timeout (5 minutes)
     MAX_TIMEOUT = 300
 
-    def __init__(self, base_url: str, timeout: int = 10, verify_ssl: bool = True):
+    def __init__(self, base_url: str, timeout: int = 10, verify_ssl: bool = True, access_token: str = None):
         """Initialize API client.
 
         Args:
             base_url: Base URL of the catalog service (e.g., http://localhost:8081)
             timeout: Request timeout in seconds (must be positive, max 300)
             verify_ssl: Whether to verify SSL certificates (default True)
+            access_token: Access token for authentication (default None)
 
         Raises:
             ValueError: If base_url is empty or invalid, or timeout is not positive.
@@ -210,9 +211,10 @@ class CatalogAPIClient:
         self.base_url = base_url.rstrip("/")
         self.timeout = timeout
         self.verify_ssl = verify_ssl
+        self.access_token = access_token
 
         # Configure the generated client
-        config = Configuration(host=self.base_url)
+        config = Configuration(host=self.base_url, access_token=self.access_token)
         config.verify_ssl = verify_ssl
         self.api_client = ApiClient(configuration=config)
         self._configure_timeout(config, timeout)
