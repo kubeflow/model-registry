@@ -28,6 +28,8 @@ const (
 type ModelProviderRecord struct {
 	Model     dbmodels.CatalogModel
 	Artifacts []dbmodels.CatalogArtifact
+	// Error can be set here to emit successfully loaded models before updating source status err.
+	Error error
 }
 
 // ModelProviderFunc emits models and related data in the channel it returns. It is
@@ -445,10 +447,15 @@ func (l *Loader) readProviderRecords(ctx context.Context) <-chan ModelProviderRe
 						glog.Infof("%s: cleaned up %d models", sourceID, count)
 					}()
 
-					// Source finished loading successfully (provider-level errors are caught earlier)
-					// Only save if context is still valid (no reload in progress)
+					// Only save status if context is still valid (no reload in progress)
 					if ctx.Err() == nil {
-						l.saveSourceStatus(sourceID, SourceStatusAvailable, "")
+						// Check if there was a partial error (some models failed to load)
+						if r.Error != nil {
+							glog.Errorf("%s: partial error after loading models: %v", sourceID, r.Error)
+							l.saveSourceStatus(sourceID, SourceStatusError, r.Error.Error())
+						} else {
+							l.saveSourceStatus(sourceID, SourceStatusAvailable, "")
+						}
 						statusSaved = true
 					}
 					continue
