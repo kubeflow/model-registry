@@ -89,7 +89,7 @@ func (app *App) CreateModelRegistrySettingsHandler(w http.ResponseWriter, r *htt
 
 	var envelope ModelRegistrySettingsPayloadEnvelope
 	if err := json.NewDecoder(r.Body).Decode(&envelope); err != nil {
-		app.serverErrorResponse(w, r, fmt.Errorf("error decoding JSON:: %v", err.Error()))
+		app.serverErrorResponse(w, r, fmt.Errorf("error decoding JSON: %v", err.Error()))
 		return
 	}
 

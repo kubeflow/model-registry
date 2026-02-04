@@ -1100,6 +1100,118 @@ paths:
           $ref: "#/components/responses/InternalServerError"
       operationId: previewCatalogSource
 
+  # Model transfer job endpoint
+  /api/v1/model_registry/{modelRegistryName}/model_transfer_jobs:
+    summary: Path used to manage model transfer jobs.
+    description: >-
+      The REST endpoint/path used to list and create `ModelTransferJob` entities.
+    get:
+      tags:
+        - K8SOperation
+      parameters:
+        - $ref: "#/components/parameters/modelRegistryName"
+        - $ref: "#/components/parameters/kubeflowUserId"
+        - $ref: "#/components/parameters/pageSize"
+        - $ref: "#/components/parameters/nextPageToken"
+      responses:
+        "200":
+          $ref: "#/components/responses/ModelTransferJobListResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+      operationId: getModelTransferJobs
+      summary: List All Model Transfer Jobs
+      description: Gets a list of all `ModelTransferJob` entities.
+    post:
+      requestBody:
+        description: A new `ModelTransferJob` to be created.
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                metadata:
+                  type: object
+                  description: Metadata about the request
+                data:
+                  $ref: "#/components/schemas/ModelTransferJob"
+        required: true
+      tags:
+        - K8SOperation
+      parameters:
+        - $ref: "#/components/parameters/modelRegistryName"
+        - $ref: "#/components/parameters/kubeflowUserId"
+      responses:
+        "201":
+          $ref: "#/components/responses/ModelTransferJobResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+      operationId: createModelTransferJob
+      summary: Create a Model Transfer Job
+      description: Creates a new instance of a `ModelTransferJob`.
+  /api/v1/model_registry/{modelRegistryName}/model_transfer_jobs/{modelTransferJobId}:
+    summary: Path used to manage a single ModelTransferJob.
+    description: >-
+      The REST endpoint/path used to update and delete single instances of a `ModelTransferJob`.
+    patch:
+      requestBody:
+        description: Updated `ModelTransferJob` information.
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                metadata:
+                  type: object
+                  description: Metadata about the request
+                data:
+                  $ref: "#/components/schemas/ModelTransferJob"
+        required: true
+      tags:
+        - K8SOperation
+      parameters:
+        - $ref: "#/components/parameters/modelRegistryName"
+        - $ref: "#/components/parameters/kubeflowUserId"
+        - $ref: "#/components/parameters/modelTransferJobId"
+      responses:
+        "200":
+          $ref: "#/components/responses/ModelTransferJobResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+      operationId: updateModelTransferJob
+      summary: Update a Model Transfer Job
+      description: Updates an existing `ModelTransferJob`.
+    delete:
+      tags:
+        - K8SOperation
+      parameters:
+        - $ref: "#/components/parameters/modelRegistryName"
+        - $ref: "#/components/parameters/kubeflowUserId"
+        - $ref: "#/components/parameters/modelTransferJobId"
+      responses:
+        "204":
+          description: Successfully deleted
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+      operationId: deleteModelTransferJob
+      summary: Delete a Model Transfer Job
+      description: Deletes an existing `ModelTransferJob`.
+
 components:
   schemas:
     Config:
@@ -2405,6 +2517,124 @@ components:
           description: name of the organization that need to ingest from the source.
           example: org1
 
+    ModelTransferJobSourceType:
+      description: The type of source for a transfer job.
+      type: string
+      enum:
+        - s3
+        - uri
+    ModelTransferJobDestinationType:
+      description: The type of destination for a transfer job.
+      type: string
+      enum:
+        - oci
+    ModelTransferJobStatus:
+      description: The status of a transfer job.
+      type: string
+      enum:
+        - PENDING
+        - RUNNING
+        - COMPLETED
+        - FAILED
+        - CANCELLED
+    ModelTransferJobUploadIntent:
+      description: The intent of the upload.
+      type: string
+      enum:
+        - create_model
+        - create_version
+        - update_artifact
+    ModelTransferJobSource:
+      description: Source configuration for a transfer job.
+      type: object
+      properties:
+        type:
+          $ref: "#/components/schemas/ModelTransferJobSourceType"
+        bucket:
+          type: string
+        key:
+          type: string
+        region:
+          type: string
+        endpoint:
+          type: string
+        uri:
+          type: string
+        registry:
+          type: string
+    ModelTransferJobDestination:
+      description: Destination configuration for a transfer job.
+      type: object
+      properties:
+        type:
+          $ref: "#/components/schemas/ModelTransferJobDestinationType"
+        bucket:
+          type: string
+        key:
+          type: string
+        region:
+          type: string
+        endpoint:
+          type: string
+        uri:
+          type: string
+        registry:
+          type: string
+    ModelTransferJob:
+      description: A model transfer job entity.
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        description:
+          type: string
+        source:
+          $ref: "#/components/schemas/ModelTransferJobSource"
+        destination:
+          $ref: "#/components/schemas/ModelTransferJobDestination"
+        uploadIntent:
+          $ref: "#/components/schemas/ModelTransferJobUploadIntent"
+        registeredModelId:
+          type: string
+        registeredModelName:
+          type: string
+        modelVersionId:
+          type: string
+        modelVersionName:
+          type: string
+        modelArtifactId:
+          type: string
+        modelArtifactName:
+          type: string
+        namespace:
+          type: string
+        author:
+          type: string
+        status:
+          $ref: "#/components/schemas/ModelTransferJobStatus"
+        createTimeSinceEpoch:
+          type: string
+        lastUpdateTimeSinceEpoch:
+          type: string
+        errorMessage:
+          type: string
+    ModelTransferJobList:
+      description: List of ModelTransferJob entities.
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/ModelTransferJob"
+        size:
+          type: integer
+        pageSize:
+          type: integer
+        nextPageToken:
+          type: string
+
   responses:
     NotFound:
       content:
@@ -2772,6 +3002,31 @@ components:
                 $ref: "#/components/schemas/CatalogSourceConfig"
       description: A response containing a catalog source.
 
+    ModelTransferJobResponse:
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              metadata:
+                type: object
+                description: Metadata about the response
+              data:
+                $ref: "#/components/schemas/ModelTransferJob"
+      description: A response containing a `ModelTransferJob` entity.
+    ModelTransferJobListResponse:
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              metadata:
+                type: object
+                description: Metadata about the response
+              data:
+                $ref: "#/components/schemas/ModelTransferJobList"
+      description: A response containing a list of `ModelTransferJob` entities.
+
   parameters:
     registeredmodelId:
       name: registeredmodelId
@@ -3015,6 +3270,13 @@ components:
           - metrics-artifact
       in: query
       required: false
+    modelTransferJobId:
+      name: modelTransferJobId
+      description: A unique identifier for a `ModelTransferJob`.
+      schema:
+        type: string
+      in: path
+      required: true
 
   securitySchemes:
     Bearer:

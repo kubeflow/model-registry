@@ -4,8 +4,9 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/kubeflow/model-registry/ui/bff/internal/integrations/httpclient"
 	"net/http"
+
+	"github.com/kubeflow/model-registry/ui/bff/internal/integrations/httpclient"
 
 	"github.com/julienschmidt/httprouter"
 	"github.com/kubeflow/model-registry/pkg/openapi"
@@ -24,7 +25,7 @@ func (app *App) CreateArtifactHandler(w http.ResponseWriter, r *http.Request, _ 
 
 	var envelope ArtifactEnvelope
 	if err := json.NewDecoder(r.Body).Decode(&envelope); err != nil {
-		app.serverErrorResponse(w, r, fmt.Errorf("error decoding JSON:: %v", err.Error()))
+		app.serverErrorResponse(w, r, fmt.Errorf("error decoding JSON: %v", err.Error()))
 		return
 	}
 

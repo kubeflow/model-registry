@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/kubeflow/model-registry/ui/bff/internal/constants"
+	batchv1 "k8s.io/api/batch/v1"
 	corev1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -280,7 +281,6 @@ func (kc *SharedClientLogic) DeleteSecret(
 		Delete(ctx, secretName, metav1.DeleteOptions{})
 
 	if err != nil {
-
 		sessionLogger.Warn("failed to delete secret (may not exist)",
 			"namespace", namespace,
 			"name", secretName,
@@ -323,4 +323,157 @@ func (kc *SharedClientLogic) UpdateCatalogSourceConfig(
 	)
 
 	return nil
+}
+
+func (kc *SharedClientLogic) GetAllModelTransferJobs(
+	ctx context.Context,
+	namespace string,
+) (*batchv1.JobList, error) {
+	if namespace == "" {
+		return &batchv1.JobList{}, fmt.Errorf("namespace cannot be empty")
+	}
+
+	sessionLogger := ctx.Value(constants.TraceLoggerKey).(*slog.Logger)
+
+	labelSelector := "modelregistry.kubeflow.org/job-type=async-upload"
+
+	modelTransferJobList, err := kc.Client.BatchV1().Jobs(namespace).List(ctx, metav1.ListOptions{
+		LabelSelector: labelSelector,
+	})
+
+	if err != nil {
+		sessionLogger.Error("failed to fetch list of model transfer job",
+			"namespace", namespace,
+			"error", err,
+		)
+		return &batchv1.JobList{}, fmt.Errorf("failed to list model transfer job: %w", err)
+	}
+
+	return modelTransferJobList, nil
+}
+
+func (kc *SharedClientLogic) CreateModelTransferJob(ctx context.Context, namespace string, job *batchv1.Job) error {
+	sessionLogger := ctx.Value(constants.TraceLoggerKey).(*slog.Logger)
+
+	_, err := kc.Client.BatchV1().Jobs(namespace).Create(ctx, job, metav1.CreateOptions{})
+
+	// TODO: After creating the Job, patch ConfigMap and Secrets to add ownerReferences
+	// pointing to the Job's UID so they are garbage collected when the Job is deleted.
+
+	if err != nil {
+		sessionLogger.Error("failed to create job",
+			"namespace", namespace,
+			"name", job.Name,
+			"error", err,
+		)
+		return fmt.Errorf("failed to create job %s: %w", job.Name, err)
+	}
+
+	sessionLogger.Info("successfully created job",
+		"namespace", namespace,
+		"name", job.Name,
+	)
+
+	return nil
+}
+
+func (kc *SharedClientLogic) UpdateModelTransferJob(ctx context.Context, namespace string, jobId string, data map[string]string) error {
+	sessionLogger := ctx.Value(constants.TraceLoggerKey).(*slog.Logger)
+
+	modelTransferJob, err := kc.Client.BatchV1().Jobs(namespace).Get(ctx, jobId, metav1.GetOptions{})
+	if err != nil {
+		sessionLogger.Error("failed to get job for patching",
+			"namespace", namespace,
+			"jobId", jobId,
+			"error", err,
+		)
+		return err
+	}
+
+	// TODO: Add logic to construct the job to update the model transfer job
+
+	_, err = kc.Client.BatchV1().Jobs(namespace).Update(ctx, modelTransferJob, metav1.UpdateOptions{})
+
+	if err != nil {
+		sessionLogger.Error("failed to patch job",
+			"namespace", namespace,
+			"jobId", jobId,
+			"error", err,
+		)
+		return fmt.Errorf("failed to patch job %s: %w", jobId, err)
+	}
+
+	sessionLogger.Info("successfully patched job",
+		"namespace", namespace,
+		"jobId", jobId,
+	)
+	return nil
+
+}
+
+func (kc *SharedClientLogic) DeleteModelTransferJob(ctx context.Context, namespace string, jobId string) error {
+	sessionLogger := ctx.Value(constants.TraceLoggerKey).(*slog.Logger)
+
+	err := kc.Client.BatchV1().Jobs(namespace).Delete(ctx, jobId, metav1.DeleteOptions{})
+
+	if err != nil {
+		sessionLogger.Warn("failed to delete job (may not exist)",
+			"namespace", namespace,
+			"jobId", jobId,
+			"error", err,
+		)
+		return fmt.Errorf("failed to delete job %s: %w", jobId, err)
+	}
+
+	sessionLogger.Info("successfully deleted job",
+		"namespace", namespace,
+		"jobId", jobId,
+	)
+
+	return nil
+}
+
+func (kc *SharedClientLogic) CreateConfigMap(ctx context.Context, namespace string, configMap *corev1.ConfigMap) error {
+	sessionLogger := ctx.Value(constants.TraceLoggerKey).(*slog.Logger)
+
+	_, err := kc.Client.CoreV1().ConfigMaps(namespace).Create(ctx, configMap, metav1.CreateOptions{})
+
+	if err != nil {
+		sessionLogger.Error("failed to create configMap",
+			"namespace", namespace,
+			"name", configMap.Name,
+			"error", err,
+		)
+		return fmt.Errorf("failed to create configMap %s: %w", configMap.Name, err)
+	}
+
+	sessionLogger.Info("successfully created configMap",
+		"namespace", namespace,
+		"name", configMap.Name,
+	)
+
+	return nil
+}
+
+func (kc *SharedClientLogic) DeleteConfigMap(ctx context.Context, namespace string, name string) error {
+	sessionLogger := ctx.Value(constants.TraceLoggerKey).(*slog.Logger)
+
+	err := kc.Client.CoreV1().ConfigMaps(namespace).Delete(ctx, name, metav1.DeleteOptions{})
+
+	if err != nil {
+		sessionLogger.Warn("failed to delete configMap (may not exist)",
+			"namespace", namespace,
+			"name", name,
+			"error", err,
+		)
+		return fmt.Errorf("failed to delete configMap %s: %w", name, err)
+	}
+
+	sessionLogger.Info("successfully deleted configMap",
+		"namespace", namespace,
+		"name", name,
+	)
+
+	return nil
+
 }

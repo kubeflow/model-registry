@@ -24,7 +24,7 @@ func (app *App) UpdateModelArtifactHandler(w http.ResponseWriter, r *http.Reques
 
 	var envelope ModelArtifactUpdateEnvelope
 	if err := json.NewDecoder(r.Body).Decode(&envelope); err != nil {
-		app.serverErrorResponse(w, r, fmt.Errorf("error decoding JSON:: %v", err.Error()))
+		app.serverErrorResponse(w, r, fmt.Errorf("error decoding JSON: %v", err.Error()))
 		return
 	}
 
