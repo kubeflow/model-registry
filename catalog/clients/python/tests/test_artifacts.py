@@ -24,7 +24,7 @@ class TestArtifacts:
     # === Basic Tests ===
 
     def test_get_artifacts_returns_response(
-        self, api_client: CatalogAPIClient, model_with_artifacts: tuple[str, str]
+        self, api_client: CatalogAPIClient, model_with_artifacts: tuple[str, str], suppress_ssl_warnings: None
     ) -> None:
         """Test that getting artifacts returns a response."""
         source_id, model_name = model_with_artifacts
@@ -33,7 +33,7 @@ class TestArtifacts:
         assert "items" in response
 
     def test_artifacts_have_expected_structure(
-        self, api_client: CatalogAPIClient, model_with_artifacts: tuple[str, str]
+        self, api_client: CatalogAPIClient, model_with_artifacts: tuple[str, str], suppress_ssl_warnings: None
     ) -> None:
         """Test that artifacts have expected structure."""
         source_id, model_name = model_with_artifacts
@@ -47,7 +47,7 @@ class TestArtifacts:
     # === Filtering Tests ===
 
     def test_filter_artifacts_by_model(
-        self, api_client: CatalogAPIClient, model_with_artifacts: tuple[str, str]
+        self, api_client: CatalogAPIClient, model_with_artifacts: tuple[str, str], suppress_ssl_warnings: None
     ) -> None:
         """Test filtering artifacts by model source and name."""
         source_id, model_name = model_with_artifacts
@@ -61,7 +61,7 @@ class TestArtifacts:
         assert len(artifacts) > 0, f"Expected artifacts for {model_name}"
 
     def test_filter_artifacts_by_query(
-        self, api_client: CatalogAPIClient, model_with_artifacts: tuple[str, str]
+        self, api_client: CatalogAPIClient, model_with_artifacts: tuple[str, str], suppress_ssl_warnings: None
     ) -> None:
         """Test filtering artifacts using filter query."""
         source_id, model_name = model_with_artifacts
@@ -95,7 +95,7 @@ class TestArtifacts:
                 assert props["framework_type"].get("string_value") == "pytorch"
 
     def test_filter_artifacts_by_numeric_property(
-        self, api_client: CatalogAPIClient, model_with_artifacts: tuple[str, str]
+        self, api_client: CatalogAPIClient, model_with_artifacts: tuple[str, str], suppress_ssl_warnings: None
     ) -> None:
         """Test filtering artifacts by numeric custom property."""
         source_id, model_name = model_with_artifacts
@@ -119,7 +119,9 @@ class TestArtifacts:
                 assert acc is not None, "Accuracy value is None"
                 assert acc > 0.9, f"Expected accuracy > 0.9, got {acc}"
 
-    def test_multiple_models_have_different_artifacts(self, api_client: CatalogAPIClient) -> None:
+    def test_multiple_models_have_different_artifacts(
+        self, api_client: CatalogAPIClient, suppress_ssl_warnings: None
+    ) -> None:
         """Test that different models have their own artifacts."""
         models = api_client.get_models()
         if not models.get("items") or len(models["items"]) < 2:
@@ -147,7 +149,7 @@ class TestArtifacts:
     # === Ordering Tests ===
 
     def test_artifacts_have_ordering_fields(
-        self, api_client: CatalogAPIClient, model_with_artifacts: tuple[str, str]
+        self, api_client: CatalogAPIClient, model_with_artifacts: tuple[str, str], suppress_ssl_warnings: None
     ) -> None:
         """Test artifacts have timestamp fields for ordering."""
         source_id, model_name = model_with_artifacts
@@ -171,7 +173,7 @@ class TestArtifacts:
             assert has_ordering_field, "Artifact missing ordering fields"
 
     def test_artifacts_have_identifiers(
-        self, api_client: CatalogAPIClient, model_with_artifacts: tuple[str, str]
+        self, api_client: CatalogAPIClient, model_with_artifacts: tuple[str, str], suppress_ssl_warnings: None
     ) -> None:
         """Test artifacts can be identified by name/id."""
         source_id, model_name = model_with_artifacts
@@ -194,7 +196,7 @@ class TestArtifacts:
         assert len(identifiers) > 0, "No artifact identifiers found"
 
     def test_artifacts_pagination(
-        self, api_client: CatalogAPIClient, model_with_artifacts: tuple[str, str]
+        self, api_client: CatalogAPIClient, model_with_artifacts: tuple[str, str], suppress_ssl_warnings: None
     ) -> None:
         """Test artifacts support pagination."""
         source_id, model_name = model_with_artifacts
@@ -213,7 +215,7 @@ class TestArtifacts:
         assert "pageSize" in response or "size" in response
 
     def test_artifacts_custom_properties(
-        self, api_client: CatalogAPIClient, model_with_artifacts: tuple[str, str]
+        self, api_client: CatalogAPIClient, model_with_artifacts: tuple[str, str], suppress_ssl_warnings: None
     ) -> None:
         """Test that artifacts with custom properties are valid."""
         source_id, model_name = model_with_artifacts

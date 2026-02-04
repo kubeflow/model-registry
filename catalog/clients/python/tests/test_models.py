@@ -16,22 +16,24 @@ from model_catalog import CatalogAPIClient
 class TestModels:
     """Test suite for model functionality."""
 
-    def test_get_models_returns_items(self, api_client: CatalogAPIClient):
+    def test_get_models_returns_items(self, api_client: CatalogAPIClient, suppress_ssl_warnings: None):
         """Test that getting all models returns a list of items."""
         response = api_client.get_models()
+
         assert "items" in response
         assert isinstance(response["items"], list)
 
-    def test_models_have_required_fields(self, api_client: CatalogAPIClient):
+    def test_models_have_required_fields(self, api_client: CatalogAPIClient, suppress_ssl_warnings: None):
         """Test that models have required fields."""
         response = api_client.get_models()
+        print(response)
         assert response.get("items"), "No models found"
 
         for model in response["items"]:
             assert "name" in model, "Model missing name"
             assert "source_id" in model, f"Model {model.get('name')} missing source_id"
 
-    def test_filter_models_by_source(self, api_client: CatalogAPIClient):
+    def test_filter_models_by_source(self, api_client: CatalogAPIClient, suppress_ssl_warnings: None):
         """Test filtering models by source."""
         sources = api_client.get_sources()
         if sources.get("items"):
@@ -44,13 +46,13 @@ class TestModels:
                 for model in response.get("items", []):
                     assert model.get("source_id") == source_id
 
-    def test_get_models_with_pagination(self, api_client: CatalogAPIClient):
+    def test_get_models_with_pagination(self, api_client: CatalogAPIClient, suppress_ssl_warnings: None):
         """Test model pagination."""
         response = api_client.get_models(page_size=5)
         assert "items" in response
         assert len(response["items"]) <= 5
 
-    def test_pagination_next_page(self, api_client: CatalogAPIClient):
+    def test_pagination_next_page(self, api_client: CatalogAPIClient, suppress_ssl_warnings: None):
         """Test getting next page of models."""
         response = api_client.get_models(page_size=3)
 
@@ -67,7 +69,7 @@ class TestModels:
             # No overlap between pages
             assert not names1.intersection(names2)
 
-    def test_models_reference_valid_sources(self, api_client: CatalogAPIClient):
+    def test_models_reference_valid_sources(self, api_client: CatalogAPIClient, suppress_ssl_warnings: None):
         """Test that all models reference valid enabled sources."""
         sources = api_client.get_sources(page_size=100)
         enabled_source_ids = {
@@ -82,7 +84,7 @@ class TestModels:
             source_id = model.get("source_id")
             assert source_id in enabled_source_ids, f"Model {model.get('name')} has invalid source_id: {source_id}"
 
-    def test_models_from_disabled_source_excluded(self, api_client: CatalogAPIClient):
+    def test_models_from_disabled_source_excluded(self, api_client: CatalogAPIClient, suppress_ssl_warnings: None):
         """Test that models from disabled sources don't appear in results."""
         sources = api_client.get_sources()
         assert sources.get("items"), "No sources found"
@@ -102,7 +104,7 @@ class TestModels:
         for disabled_id in disabled_source_ids:
             assert disabled_id not in model_source_ids, f"Model from disabled source {disabled_id} found in results"
 
-    def test_model_count_consistency(self, api_client: CatalogAPIClient):
+    def test_model_count_consistency(self, api_client: CatalogAPIClient, suppress_ssl_warnings: None):
         """Test that model counts per source are consistent."""
         sources = api_client.get_sources()
         models = api_client.get_models()
@@ -122,7 +124,9 @@ class TestModels:
                     f"Source {source_id} has {model_counts[source_id]} models but is not enabled"
                 )
 
-    def test_models_custom_properties_has_valid_structure(self, api_client: CatalogAPIClient):
+    def test_models_custom_properties_has_valid_structure(
+        self, api_client: CatalogAPIClient, suppress_ssl_warnings: None, kind_cluster: bool
+    ):
         """Test that models with custom properties have valid MetadataStringValue structure."""
         models = api_client.get_models()
         models_with_props = [m for m in models.get("items", []) if m.get("customProperties")]
@@ -134,14 +138,15 @@ class TestModels:
         for model in models_with_props:
             model_name = model.get("name")
             custom_properties = model.get("customProperties")
-            if errors := _validate_custom_property_structure(custom_properties):
+            if errors := _validate_custom_property_structure(custom_properties=custom_properties,
+                                                             kind_cluster=kind_cluster):
                 all_errors.append(f"Model '{model_name}': {'\n'.join(errors)}")
         assert not all_errors, "\n".join(all_errors)
 
 
-def _validate_custom_property_structure(custom_properties: dict) -> list[str]:
+def _validate_custom_property_structure(custom_properties: dict, kind_cluster: bool) -> list[str]:
     """Validate the structure of a custom property."""
-    expected_keys = ["size", "tensor_type", "variant_group_id"]
+    expected_keys = ["size", "tensor_type", "variant_group_id"] if kind_cluster else ["model_type"]
     errors = []
     for key in expected_keys:
         prop = custom_properties[key]
@@ -152,15 +157,11 @@ def _validate_custom_property_structure(custom_properties: dict) -> list[str]:
         if "metadataType" not in prop:
             errors.append(f"Custom property '{key}' missing 'metadataType' field")
         if prop.get("metadataType") != "MetadataStringValue":
-            errors.append(
-                f"Custom property '{key}' has unexpected metadataType: {prop.get('metadataType')} "
-            )
+            errors.append(f"Custom property '{key}' has unexpected metadataType: {prop.get('metadataType')} ")
 
         if "string_value" not in prop:
             errors.append(f"Custom property '{key}' missing 'string_value' field")
         if not isinstance(prop.get("string_value"), str):
-            errors.append(
-                f"Custom property '{key}' string_value is not a string: {type(prop.get('string_value'))}"
-            )
+            errors.append(f"Custom property '{key}' string_value is not a string: {type(prop.get('string_value'))}")
 
     return errors

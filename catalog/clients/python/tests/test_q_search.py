@@ -34,6 +34,8 @@ class TestModelSearch:
         search_term: str,
         api_client: CatalogAPIClient,
         test_catalog_data: dict,
+        suppress_ssl_warnings: None,
+        kind_cluster: bool,
     ):
         """Test basic search functionality with q parameter using test data validation.
 
@@ -46,20 +48,20 @@ class TestModelSearch:
         assert "items" in response
         models = response.get("items", [])
 
-        # Validate API results against test data
-        is_valid, errors = validate_search_results_against_test_data(
-            api_response=response,
-            search_term=search_term,
-            catalog_data=test_catalog_data,
-        )
+        # Validate API results against test data (only for Kind clusters)
+        if kind_cluster:
+            is_valid, errors = validate_search_results_against_test_data(
+                api_response=response,
+                search_term=search_term,
+                catalog_data=test_catalog_data,
+            )
 
-        assert is_valid, f"API search results do not match test data for '{search_term}': {errors}"
+            assert is_valid, f"API search results do not match test data for '{search_term}': {errors}"
 
         # Additional validation: ensure returned models actually contain the search term
         for model in models:
             assert validate_model_contains_search_term(model, search_term), (
-                f"Model '{model.get('name')}' doesn't contain search term '{search_term}' "
-                f"in any searchable field"
+                f"Model '{model.get('name')}' doesn't contain search term '{search_term}' in any searchable field"
             )
 
     @pytest.mark.parametrize(
@@ -75,6 +77,7 @@ class TestModelSearch:
         case_variant: str,
         api_client: CatalogAPIClient,
         test_catalog_data: dict,
+        suppress_ssl_warnings: None,
     ):
         """Test that search is case insensitive.
 
@@ -88,12 +91,10 @@ class TestModelSearch:
 
         assert len(models1) == len(models2), f"Got {len(models1)} models vs {len(models2)}"
 
-        sorted_m1 = sorted(models1, key=lambda x: x['id'])
-        sorted_m2 = sorted(models2, key=lambda x: x.get('id'))
+        sorted_m1 = sorted(models1, key=lambda x: x["id"])
+        sorted_m2 = sorted(models2, key=lambda x: x.get("id"))
 
         assert sorted_m1 == sorted_m2
-
-        
 
     @pytest.mark.parametrize(
         "search_term",
@@ -106,6 +107,7 @@ class TestModelSearch:
         api_client: CatalogAPIClient,
         test_catalog_data: dict,
         search_term: str,
+        suppress_ssl_warnings: None,
     ):
         """Test search with term that should return no results."""
         response = api_client.get_models(q=search_term)
@@ -127,6 +129,8 @@ class TestModelSearch:
         search_term: str | None,
         api_client: CatalogAPIClient,
         test_catalog_data: dict,
+        suppress_ssl_warnings: None,
+        kind_cluster: bool,
     ):
         """Test behavior with empty or None q parameter.
 
@@ -137,5 +141,11 @@ class TestModelSearch:
         models_q = response.get("items", [])
         response = api_client.get_models()
         models_actual = response.get("items", [])
-        models_yaml = test_catalog_data.get("models", [])
-        assert len(models_q) == len(models_actual) == len(models_yaml)
+
+        # Validate against test data only for Kind clusters
+        if kind_cluster:
+            models_yaml = test_catalog_data.get("models", [])
+            assert len(models_q) == len(models_actual) == len(models_yaml)
+        else:
+            # For non-Kind clusters, just verify empty/None query returns same as no query
+            assert len(models_q) == len(models_actual)

@@ -18,19 +18,19 @@ from model_catalog import CatalogAPIClient
 class TestSourceBasics:
     """Test suite for basic source functionality."""
 
-    def test_get_sources_returns_response(self, api_client: CatalogAPIClient):
+    def test_get_sources_returns_response(self, api_client: CatalogAPIClient, suppress_ssl_warnings: None):
         """Test that getting sources returns a response with items."""
         response = api_client.get_sources()
         assert isinstance(response, dict)
         assert "items" in response
         assert isinstance(response["items"], list)
 
-    def test_sources_exist(self, api_client: CatalogAPIClient):
+    def test_sources_exist(self, api_client: CatalogAPIClient, suppress_ssl_warnings: None):
         """Test that at least one source is configured."""
         response = api_client.get_sources()
         assert len(response["items"]) > 0, "Expected at least one source"
 
-    def test_source_required_fields(self, api_client: CatalogAPIClient):
+    def test_source_required_fields(self, api_client: CatalogAPIClient, suppress_ssl_warnings: None):
         """Test that sources have all required fields."""
         response = api_client.get_sources()
         assert response.get("items"), "No sources found"
@@ -41,7 +41,7 @@ class TestSourceBasics:
             # Required: status indicator
             assert "enabled" in source or "status" in source, f"Source {source.get('id')} missing status indicator"
 
-    def test_source_ids_are_unique(self, api_client: CatalogAPIClient):
+    def test_source_ids_are_unique(self, api_client: CatalogAPIClient, suppress_ssl_warnings: None):
         """Test that sources have unique IDs."""
         response = api_client.get_sources()
         assert response.get("items"), "No sources found"
@@ -51,7 +51,7 @@ class TestSourceBasics:
 
         assert len(source_ids) == len(unique_ids), f"Duplicate source IDs found: {source_ids}"
 
-    def test_source_pagination_fields(self, api_client: CatalogAPIClient):
+    def test_source_pagination_fields(self, api_client: CatalogAPIClient, suppress_ssl_warnings: None):
         """Test that sources response includes pagination fields."""
         response = api_client.get_sources()
         # Response should have pagination info (size or pageSize)
@@ -62,7 +62,7 @@ class TestSourceBasics:
 class TestSourceStatus:
     """Test suite for source status functionality."""
 
-    def test_sources_have_status_field(self, api_client: CatalogAPIClient):
+    def test_sources_have_status_field(self, api_client: CatalogAPIClient, suppress_ssl_warnings: None):
         """Test that sources have a status field."""
         response = api_client.get_sources()
         assert response.get("items"), "No sources found"
@@ -71,7 +71,7 @@ class TestSourceStatus:
             assert isinstance(source, dict)
             assert "status" in source or "enabled" in source
 
-    def test_enabled_source_returns_models(self, api_client: CatalogAPIClient):
+    def test_enabled_source_returns_models(self, api_client: CatalogAPIClient, suppress_ssl_warnings: None):
         """Test that enabled sources return models."""
         sources = api_client.get_sources()
         assert sources.get("items"), "No sources found"
@@ -98,7 +98,7 @@ class TestSourceStatus:
         assert "items" in models
         assert len(models.get("items", [])) > 0, f"Expected models from enabled source {source_id}"
 
-    def test_disabled_source_excluded_from_models(self, api_client: CatalogAPIClient):
+    def test_disabled_source_excluded_from_models(self, api_client: CatalogAPIClient, suppress_ssl_warnings: None):
         """Test that disabled sources are excluded from model results."""
         sources = api_client.get_sources()
         if not sources.get("items"):
@@ -133,7 +133,7 @@ class TestSourceStatus:
                 f"Model {model.get('name')} from disabled source {disabled_source_id} should not appear in results"
             )
 
-    def test_source_status_values(self, api_client: CatalogAPIClient):
+    def test_source_status_values(self, api_client: CatalogAPIClient, suppress_ssl_warnings: None):
         """Test that source status has expected values."""
         sources = api_client.get_sources()
         assert sources.get("items"), "No sources found"
@@ -148,7 +148,7 @@ class TestSourceStatus:
                 valid_statuses = {"available", "disabled", "error", "loading", "pending"}
                 assert status in valid_statuses, f"Unexpected status: {status}"
 
-    def test_enabled_and_status_consistency(self, api_client: CatalogAPIClient):
+    def test_enabled_and_status_consistency(self, api_client: CatalogAPIClient, suppress_ssl_warnings: None):
         """Test that enabled flag and status are consistent."""
         sources = api_client.get_sources()
         assert sources.get("items"), "No sources found"
@@ -163,7 +163,7 @@ class TestSourceStatus:
                 if enabled is False:
                     assert status == "disabled", f"Source {source.get('id')} has enabled=False but status={status}"
 
-    def test_disabled_sources_in_response(self, api_client: CatalogAPIClient):
+    def test_disabled_sources_in_response(self, api_client: CatalogAPIClient, suppress_ssl_warnings: None):
         """Test that disabled sources appear in response with correct status."""
         response = api_client.get_sources()
         if not response.get("items"):
@@ -185,13 +185,13 @@ class TestSourceStatus:
 class TestSourcePaths:
     """Test suite for source path configurations."""
 
-    def test_sources_are_loaded(self, api_client: CatalogAPIClient):
+    def test_sources_are_loaded(self, api_client: CatalogAPIClient, suppress_ssl_warnings: None):
         """Test that sources configured with paths are properly loaded."""
         response = api_client.get_sources()
         assert response.get("items"), "No sources found"
         assert len(response["items"]) > 0
 
-    def test_source_status_indicates_path_resolution(self, api_client: CatalogAPIClient):
+    def test_source_status_indicates_path_resolution(self, api_client: CatalogAPIClient, suppress_ssl_warnings: None):
         """Test that source status indicates whether paths were resolved correctly."""
         response = api_client.get_sources()
 
@@ -203,7 +203,7 @@ class TestSourcePaths:
             if status == "error":
                 assert error is not None, f"Source {source.get('id')} has error status but no error message"
 
-    def test_available_sources_exist(self, api_client: CatalogAPIClient):
+    def test_available_sources_exist(self, api_client: CatalogAPIClient, suppress_ssl_warnings: None):
         """Test that available sources exist (paths resolved correctly)."""
         response = api_client.get_sources()
         assert response.get("items"), "No sources found"
@@ -211,7 +211,7 @@ class TestSourcePaths:
         available_sources = [s for s in response["items"] if s.get("status") == "available"]
         assert len(available_sources) > 0, "No available sources found"
 
-    def test_models_from_path_configured_sources(self, api_client: CatalogAPIClient):
+    def test_models_from_path_configured_sources(self, api_client: CatalogAPIClient, suppress_ssl_warnings: None):
         """Test that models are loaded from path-configured sources."""
         sources = api_client.get_sources()
         models = api_client.get_models()
@@ -221,7 +221,7 @@ class TestSourcePaths:
         if available_sources:
             assert models.get("items"), "Expected models from available sources"
 
-    def test_source_error_messages_are_helpful(self, api_client: CatalogAPIClient):
+    def test_source_error_messages_are_helpful(self, api_client: CatalogAPIClient, suppress_ssl_warnings: None):
         """Test that source error messages indicate path issues."""
         response = api_client.get_sources()
 
@@ -232,7 +232,7 @@ class TestSourcePaths:
                 assert isinstance(error, str)
                 assert len(error) > 0
 
-    def test_source_error_field_consistency(self, api_client: CatalogAPIClient):
+    def test_source_error_field_consistency(self, api_client: CatalogAPIClient, suppress_ssl_warnings: None):
         """Test that error field is consistent with source status."""
         response = api_client.get_sources()
         assert response.get("items"), "No sources found"
@@ -258,7 +258,7 @@ class TestSourcePaths:
 class TestSourceMerge:
     """Test suite for source merge functionality."""
 
-    def test_source_merge_priority(self, api_client: CatalogAPIClient):
+    def test_source_merge_priority(self, api_client: CatalogAPIClient, suppress_ssl_warnings: None):
         """Test that source merge respects priority ordering."""
         response = api_client.get_sources()
         assert response.get("items"), "No sources found"
@@ -268,11 +268,13 @@ class TestSourceMerge:
             status = source.get("status")
 
             if enabled is True:
-                assert status in ["available", "error", None], f"Source {source.get('id')} has enabled=True but status={status}"
+                assert status in ["available", "error", None], (
+                    f"Source {source.get('id')} has enabled=True but status={status}"
+                )
             if enabled is False:
                 assert status in ["disabled", None], f"Source {source.get('id')} has enabled=False but status={status}"
 
-    def test_source_merge_labels(self, api_client: CatalogAPIClient):
+    def test_source_merge_labels(self, api_client: CatalogAPIClient, suppress_ssl_warnings: None):
         """Test that source merge correctly handles labels."""
         response = api_client.get_sources()
 
@@ -282,7 +284,7 @@ class TestSourceMerge:
             for label in labels:
                 assert isinstance(label, str)
 
-    def test_enabled_sources_return_models(self, api_client: CatalogAPIClient):
+    def test_enabled_sources_return_models(self, api_client: CatalogAPIClient, suppress_ssl_warnings: None):
         """Test that enabled merged sources return models."""
         sources = api_client.get_sources()
         assert sources.get("items"), "No sources found"

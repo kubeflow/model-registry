@@ -20,7 +20,7 @@ class TestSourcePreview:
     without modifying the running service state.
     """
 
-    def test_preview_valid_source_config(self, api_client: CatalogAPIClient):
+    def test_preview_valid_source_config(self, api_client: CatalogAPIClient, suppress_ssl_warnings: None):
         """Test previewing a valid source configuration."""
         # Preview expects a flat config with inline catalog data
         config_content = """
@@ -40,7 +40,7 @@ models:
         assert "items" in response
 
     @pytest.mark.huggingface
-    def test_preview_huggingface_source(self, api_client: CatalogAPIClient):
+    def test_preview_huggingface_source(self, api_client: CatalogAPIClient, suppress_ssl_warnings: None):
         """Test previewing a HuggingFace source configuration.
 
         HuggingFace preview works without credentials for public models.
@@ -65,7 +65,7 @@ includedModels:
         model_names = [item.get("name") for item in items]
         assert "openai-community/gpt2" in model_names
 
-    def test_preview_yaml_source(self, api_client: CatalogAPIClient):
+    def test_preview_yaml_source(self, api_client: CatalogAPIClient, suppress_ssl_warnings: None):
         """Test previewing a YAML catalog source with inline data."""
         # Preview expects a flat config, not the full sources.yaml structure
         config_content = """
@@ -89,13 +89,13 @@ models:
         model_names = [m.get("name") for m in items]
         assert "preview-model" in model_names, f"Expected 'preview-model' in {model_names}"
 
-    def test_preview_invalid_config_returns_error(self, api_client: CatalogAPIClient):
+    def test_preview_invalid_config_returns_error(self, api_client: CatalogAPIClient, suppress_ssl_warnings: None):
         """Test that previewing invalid config returns an error."""
         invalid_config = "not: valid: yaml: config: [[[]]"
         with pytest.raises((CatalogValidationError, CatalogAPIError)):
             api_client.preview_source(config_content=invalid_config)
 
-    def test_preview_empty_config(self, api_client: CatalogAPIClient):
+    def test_preview_empty_config(self, api_client: CatalogAPIClient, suppress_ssl_warnings: None):
         """Test previewing with empty/minimal config.
 
         The server may either:
@@ -117,7 +117,7 @@ catalogs: []
             # Server may reject empty catalogs as invalid - this is acceptable
             pass
 
-    def test_preview_response_structure(self, api_client: CatalogAPIClient):
+    def test_preview_response_structure(self, api_client: CatalogAPIClient, suppress_ssl_warnings: None):
         """Test that preview response has expected structure."""
         # Preview expects a flat config, not the full sources.yaml structure
         config_content = """
