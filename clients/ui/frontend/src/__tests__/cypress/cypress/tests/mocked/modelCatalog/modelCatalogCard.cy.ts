@@ -1,6 +1,7 @@
 import { modelCatalog } from '~/__tests__/cypress/cypress/pages/modelCatalog';
 import {
   setupModelCatalogIntercepts,
+  interceptPerformanceArtifactsWithFilterCheck,
   type ModelCatalogInterceptOptions,
 } from '~/__tests__/cypress/cypress/support/interceptHelpers/modelCatalog';
 import { PERFORMANCE_FILTER_TEST_IDS } from '~/__tests__/cypress/cypress/support/constants';
@@ -166,6 +167,39 @@ describe('ModelCatalogCard Component', () => {
           // Navigate back
           modelCatalog.findValidatedModelBenchmarkPrev().click();
           modelCatalog.findValidatedModelHardware().should('contain.text', '33 x RTX 4090');
+        });
+      });
+    });
+
+    describe('Benchmark count consistency', () => {
+      it('should show same benchmark count with toggle OFF as with toggle ON', () => {
+        // Use dynamic mock that returns different counts based on filterQuery presence
+        // Returns 3 artifacts when filterQuery present, 5 when absent
+        setupModelCatalogIntercepts({ useValidatedModel: true });
+        interceptPerformanceArtifactsWithFilterCheck();
+
+        modelCatalog.visit();
+
+        // Turn toggle ON to apply default filters
+        modelCatalog.togglePerformanceView();
+        modelCatalog.findLoadingState().should('not.exist');
+
+        // Verify benchmark count with toggle ON (shows "X of 3 benchmarks")
+        cy.wait('@getCatalogSourceModelArtifacts');
+        modelCatalog.findFirstModelCatalogCard().within(() => {
+          modelCatalog.findValidatedModelBenchmarksCount().should('contain.text', '3 benchmarks');
+        });
+
+        // Turn toggle OFF - should still show same count (filters still passed)
+        modelCatalog.togglePerformanceView();
+        modelCatalog.findLoadingState().should('not.exist');
+
+        // Verify benchmark count with toggle OFF (shows "View 3 benchmarks")
+        cy.wait('@getCatalogSourceModelArtifacts');
+        modelCatalog.findFirstModelCatalogCard().within(() => {
+          modelCatalog
+            .findValidatedModelBenchmarkLink()
+            .should('contain.text', 'View 3 benchmarks');
         });
       });
     });
