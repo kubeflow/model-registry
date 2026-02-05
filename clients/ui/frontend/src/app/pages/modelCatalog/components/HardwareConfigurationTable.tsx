@@ -32,32 +32,17 @@ const HardwareConfigurationTable: React.FC<HardwareConfigurationTableProps> = ({
   // Use the custom hook that combines manage columns with latency filter effects
   const { columns, manageColumnsResult } = useHardwareConfigColumns(activeLatencyField);
 
-  // When a latency filter is active sort by the corresponding latency column in ASC
-  const { sortColumn, sortIndex } = React.useMemo(() => {
+  // When a latency filter is active, set the default sort column to the corresponding latency column
+  const sortIndex = React.useMemo(() => {
     if (!activeLatencyField) {
-      return { sortColumn: null, sortIndex: 0 };
+      return 0;
     }
 
     const { propertyKey } = parseLatencyFilterKey(activeLatencyField);
     const index = columns.findIndex((col) => col.field === propertyKey);
 
-    return {
-      sortColumn: index !== -1 ? columns[index] : null,
-      sortIndex: index !== -1 ? index : 0,
-    };
+    return index !== -1 ? index : 0;
   }, [activeLatencyField, columns]);
-
-  // Pre-sort the data by the active latency column as a fallback
-  const sortedData = React.useMemo(() => {
-    if (!sortColumn) {
-      return performanceArtifacts;
-    }
-    const sortFn = sortColumn.sortable;
-    if (typeof sortFn !== 'function') {
-      return performanceArtifacts;
-    }
-    return [...performanceArtifacts].toSorted((a, b) => sortFn(a, b, sortColumn.field));
-  }, [sortColumn, performanceArtifacts]);
 
   if (isLoading) {
     return <Spinner size="lg" />;
@@ -95,7 +80,7 @@ const HardwareConfigurationTable: React.FC<HardwareConfigurationTableProps> = ({
           variant="compact"
           isStickyHeader
           hasStickyColumns
-          data={sortedData}
+          data={performanceArtifacts}
           columns={columns}
           toolbarContent={toolbarContent}
           onClearFilters={handleClearFilters}
