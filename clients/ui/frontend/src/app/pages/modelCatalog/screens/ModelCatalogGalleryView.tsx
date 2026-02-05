@@ -13,6 +13,7 @@ import { ChartBarIcon, SearchIcon } from '@patternfly/react-icons';
 import React from 'react';
 import { ModelCatalogContext } from '~/app/context/modelCatalog/ModelCatalogContext';
 import { useCatalogModelsBySources } from '~/app/hooks/modelCatalog/useCatalogModelsBySource';
+import { useHasVisibleFiltersApplied } from '~/app/hooks/modelCatalog/useHasVisibleFiltersApplied';
 import { CatalogModel, CategoryName, SourceLabel } from '~/app/modelCatalogTypes';
 import ModelCatalogCard from '~/app/pages/modelCatalog/components/ModelCatalogCard';
 import {
@@ -52,9 +53,7 @@ const ModelCatalogGalleryView: React.FC<ModelCatalogPageProps> = ({
     performanceViewEnabled,
     sortBy,
   } = React.useContext(ModelCatalogContext);
-  const filtersApplied = performanceViewEnabled
-    ? hasFiltersApplied(filterData)
-    : hasFiltersApplied(filterData, BASIC_FILTER_KEYS);
+  const filtersApplied = useHasVisibleFiltersApplied();
 
   // When performance view is disabled, exclude performance filters from API queries
   // Memoize to prevent infinite re-fetching
