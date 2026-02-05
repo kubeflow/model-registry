@@ -161,8 +161,6 @@ def verify_ssl() -> bool:
 def suppress_ssl_warnings(verify_ssl: bool) -> None:
     """Suppress urllib3 SSL warnings when SSL verification is disabled."""
     if not verify_ssl:
-        import urllib3
-
         urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 
