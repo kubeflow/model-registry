@@ -119,9 +119,11 @@ class TestArtifacts:
                 assert acc is not None, "Accuracy value is None"
                 assert acc > 0.9, f"Expected accuracy > 0.9, got {acc}"
 
-    def test_filter_artifacts_with_and_logic(self, api_client: CatalogAPIClient, model_with_artifacts: tuple[str, str], 
-                                             suppress_ssl_warnings: None) -> None:
+    def test_filter_artifacts_with_and_logic(self, api_client: CatalogAPIClient, model_with_artifacts: tuple[str, str],
+                                             kind_cluster: bool) -> None:
         """Test filtering artifacts with AND logic combining multiple conditions."""
+        if not kind_cluster:
+            pytest.skip("This test would be skipped on non-kind cluster")
         source_id, model_name = model_with_artifacts
 
         # Test combining filters with AND
@@ -150,8 +152,10 @@ class TestArtifacts:
             assert acc is not None and acc > 0.5, f"Expected accuracy > 0.5, got {acc}"
 
     def test_filter_artifacts_with_or_logic(self, api_client: CatalogAPIClient, model_with_artifacts: tuple[str, str],
-                                           suppress_ssl_warnings: None) -> None:
+                                           kind_cluster: bool) -> None:
         """Test filtering artifacts with OR logic combining multiple conditions."""
+        if not kind_cluster:
+            pytest.skip("This test would be skipped on non-kind cluster")
         source_id, model_name = model_with_artifacts
 
         # Test combining filters with OR using existing frameworks in test data
@@ -327,7 +331,8 @@ class TestArtifacts:
         ],
     )
     def test_filter_artifacts_by_artifact_type(
-        self, api_client: CatalogAPIClient, model_with_artifacts: tuple[str, str], artifact_type: str | list[str]
+        self, api_client: CatalogAPIClient, model_with_artifacts: tuple[str, str], suppress_ssl_warnings: None,
+            artifact_type: str | list[str]
     ) -> None:
         """Test filtering artifacts by single or multiple artifact types."""
         source_id, model_name = model_with_artifacts
@@ -397,6 +402,7 @@ class TestNegativeArtifacts:
         api_client: CatalogAPIClient,
         model_with_artifacts: tuple[str, str],
         invalid_filter_query: str,
+        suppress_ssl_warnings: None,
     ) -> None:
         """Test that search artifacts by invalid filter query raises a validation error."""
         source_id, model_name = model_with_artifacts
