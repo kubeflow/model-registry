@@ -12,6 +12,7 @@ import {
 } from '@patternfly/react-core';
 import { ChartBarIcon } from '@patternfly/react-icons';
 import { ModelCatalogContext } from '~/app/context/modelCatalog/ModelCatalogContext';
+import './ModelPerformanceViewToggleCard.scss';
 
 const ModelPerformanceViewToggleCard: React.FC = () => {
   const { performanceViewEnabled, setPerformanceViewEnabled, filterOptionsLoaded } =
@@ -22,9 +23,12 @@ const ModelPerformanceViewToggleCard: React.FC = () => {
       <CardBody>
         <Stack hasGutter>
           <StackItem>
-            <Flex>
+            <Flex
+              alignItems={{ default: 'alignItemsCenter' }}
+              spaceItems={{ default: 'spaceItemsXs' }}
+            >
               <FlexItem>
-                <ChartBarIcon />
+                <ChartBarIcon color="var(--pf-t--global--icon--color--status--info--default)" />
               </FlexItem>
               <FlexItem>
                 <Switch
@@ -35,6 +39,7 @@ const ModelPerformanceViewToggleCard: React.FC = () => {
                   isDisabled={!filterOptionsLoaded}
                   onChange={(_event, checked) => setPerformanceViewEnabled(checked)}
                   data-testid="model-performance-view-toggle"
+                  className="model-performance-switch"
                 />
               </FlexItem>
             </Flex>
