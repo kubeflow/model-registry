@@ -248,8 +248,6 @@ def model_with_artifacts(api_client: CatalogAPIClient, verify_ssl: bool) -> tupl
         pytest.fail: If no models are available or no model has artifacts.
     """
     if not verify_ssl:
-        import urllib3
-
         urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
     models = api_client.get_models()
