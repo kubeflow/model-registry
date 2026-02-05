@@ -16,20 +16,20 @@ from model_catalog import CatalogAPIClient
 class TestFilterOptions:
     """Test suite for filter options functionality."""
 
-    def test_get_filter_options_returns_response(self, api_client: CatalogAPIClient):
+    def test_get_filter_options_returns_response(self, api_client: CatalogAPIClient, suppress_ssl_warnings: None):
         """Test that filter options endpoint returns a response."""
         response = api_client.get_filter_options()
         assert response is not None, "Filter options response should not be None"
         assert isinstance(response, dict)
 
-    def test_filter_options_has_filters_field(self, api_client: CatalogAPIClient):
+    def test_filter_options_has_filters_field(self, api_client: CatalogAPIClient, suppress_ssl_warnings: None):
         """Test that filter options response has filters field."""
         response = api_client.get_filter_options()
         filters = response["filters"]
         assert isinstance(filters, dict)
         assert len(filters) > 0, "Filters object should not be empty"
 
-    def test_filter_options_contains_field_types(self, api_client: CatalogAPIClient):
+    def test_filter_options_contains_field_types(self, api_client: CatalogAPIClient, suppress_ssl_warnings: None):
         """Test that filter options contains field type information."""
         response = api_client.get_filter_options()
         filters = response.get("filters", {})
@@ -45,7 +45,7 @@ class TestFilterOptions:
                 f"Field {field_name} has unknown type '{field_info['type']}'. Known types: {known_types}"
             )
 
-    def test_string_filters_have_values(self, api_client: CatalogAPIClient):
+    def test_string_filters_have_values(self, api_client: CatalogAPIClient, suppress_ssl_warnings: None):
         """Test that string type filters have available values."""
         response = api_client.get_filter_options()
         filters = response.get("filters", {})
@@ -55,7 +55,7 @@ class TestFilterOptions:
                 assert "values" in field_info, f"String field {field_name} missing values"
                 assert isinstance(field_info["values"], list)
 
-    def test_number_filters_have_range(self, api_client: CatalogAPIClient):
+    def test_number_filters_have_range(self, api_client: CatalogAPIClient, suppress_ssl_warnings: None):
         """Test that number type filters have range information."""
         response = api_client.get_filter_options()
         filters = response.get("filters", {})
@@ -71,7 +71,7 @@ class TestFilterOptions:
 class TestFilterValidation:
     """Test suite for filter validation."""
 
-    def test_filter_types_are_valid(self, api_client: CatalogAPIClient):
+    def test_filter_types_are_valid(self, api_client: CatalogAPIClient, suppress_ssl_warnings: None):
         """Test that filter types are valid enumeration values."""
         response = api_client.get_filter_options()
         filters = response.get("filters", {})
@@ -85,7 +85,7 @@ class TestFilterValidation:
                 f"Unknown type '{field_type}' for field {field_name}. Known types: {known_types}"
             )
 
-    def test_number_ranges_are_valid(self, api_client: CatalogAPIClient):
+    def test_number_ranges_are_valid(self, api_client: CatalogAPIClient, suppress_ssl_warnings: None):
         """Test that number ranges have valid min <= max."""
         response = api_client.get_filter_options()
         filters = response.get("filters", {})
@@ -99,7 +99,7 @@ class TestFilterValidation:
                 if min_val is not None and max_val is not None:
                     assert min_val <= max_val, f"Invalid range for {field_name}: min={min_val}, max={max_val}"
 
-    def test_string_values_are_non_empty(self, api_client: CatalogAPIClient):
+    def test_string_values_are_non_empty(self, api_client: CatalogAPIClient, suppress_ssl_warnings: None):
         """Test that string filter values are non-empty lists of strings."""
         response = api_client.get_filter_options()
         filters = response.get("filters", {})
@@ -109,10 +109,12 @@ class TestFilterValidation:
                 values = field_info.get("values", [])
                 assert isinstance(values, list), f"Values for {field_name} should be a list"
                 for idx, val in enumerate(values):
-                    assert isinstance(val, str), f"Value at index {idx} in {field_name} should be string, got {type(val)}"
+                    assert isinstance(val, str), (
+                        f"Value at index {idx} in {field_name} should be string, got {type(val)}"
+                    )
                     assert val.strip(), f"Value at index {idx} in {field_name} should not be empty or whitespace"
 
-    def test_string_values_are_distinct(self, api_client: CatalogAPIClient):
+    def test_string_values_are_distinct(self, api_client: CatalogAPIClient, suppress_ssl_warnings: None):
         """Test that string filter values contain no duplicates."""
         response = api_client.get_filter_options()
         filters = response.get("filters", {})
@@ -124,7 +126,7 @@ class TestFilterValidation:
                     f"Values for '{field_name}' should be distinct (found duplicates)"
                 )
 
-    def test_filter_field_names_format(self, api_client: CatalogAPIClient):
+    def test_filter_field_names_format(self, api_client: CatalogAPIClient, suppress_ssl_warnings: None):
         """Test that filter field names follow expected format."""
         response = api_client.get_filter_options()
         filters = response.get("filters", {})
@@ -142,7 +144,7 @@ class TestFilterValidation:
 class TestNamedQueries:
     """Test suite for named queries functionality."""
 
-    def test_named_queries_structure(self, api_client: CatalogAPIClient):
+    def test_named_queries_structure(self, api_client: CatalogAPIClient, suppress_ssl_warnings: None):
         """Test that named queries have proper structure if present."""
         response = api_client.get_filter_options()
 
@@ -154,7 +156,7 @@ class TestNamedQueries:
                 assert isinstance(query_name, str)
                 assert isinstance(query_def, dict)
 
-    def test_named_queries_operators_are_valid(self, api_client: CatalogAPIClient):
+    def test_named_queries_operators_are_valid(self, api_client: CatalogAPIClient, suppress_ssl_warnings: None):
         """Test that named query operators are valid if present."""
         response = api_client.get_filter_options()
 
@@ -171,7 +173,7 @@ class TestNamedQueries:
                     if operator:
                         assert operator in valid_operators, f"Invalid operator '{operator}' in query {query_name}"
 
-    def test_filter_options_artifact_properties(self, api_client: CatalogAPIClient):
+    def test_filter_options_artifact_properties(self, api_client: CatalogAPIClient, suppress_ssl_warnings: None):
         """Test that artifact custom properties appear in filter options."""
         response = api_client.get_filter_options()
         filters = response.get("filters", {})

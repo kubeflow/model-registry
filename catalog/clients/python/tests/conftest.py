@@ -11,9 +11,10 @@ import time
 from collections.abc import Generator
 from pathlib import Path
 
-import yaml
 import pytest
 import requests
+import urllib3
+import yaml
 
 from model_catalog import CatalogAPIClient
 
@@ -156,6 +157,24 @@ def verify_ssl() -> bool:
     return get_verify_ssl(logger)
 
 
+@pytest.fixture(scope="function")
+def suppress_ssl_warnings(verify_ssl: bool) -> None:
+    """Suppress urllib3 SSL warnings when SSL verification is disabled."""
+    if not verify_ssl:
+        urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+
+
+@pytest.fixture(scope="session")
+def kind_cluster() -> bool:
+    """Get KIND_CLUSTER environment variable value.
+
+    Returns:
+        True if KIND_CLUSTER is not set or set to 'True', False if set to 'False'.
+    """
+    kind_cluster_env = os.getenv("KIND_CLUSTER", "True")
+    return kind_cluster_env.lower() in ("true", "1", "yes")
+
+
 def poll_for_ready(user_token: str | None, verify_ssl: bool) -> None:
     """Wait for catalog service to be ready using exponential backoff.
 
@@ -164,8 +183,15 @@ def poll_for_ready(user_token: str | None, verify_ssl: bool) -> None:
         verify_ssl: Whether to verify SSL certificates.
     """
     url = f"{CATALOG_URL}{API_BASE_PATH}/sources"
-    headers = {"Authorization": f"Bearer {user_token}"} if user_token else None
-
+    params = {
+        "url": url,
+        "headers": {
+            "Authorization": f"Bearer {user_token}",
+        }
+        if user_token
+        else None,
+        "verify": verify_ssl,
+    }
     # Exponential backoff: start at POLL_INTERVAL, double each time, cap at MAX_BACKOFF
     backoff = POLL_INTERVAL
     poll_start = time.time()
@@ -178,7 +204,7 @@ def poll_for_ready(user_token: str | None, verify_ssl: bool) -> None:
             raise TimeoutError(msg)
         logger.info("Attempting to connect to server %s", url)
         try:
-            response = requests.get(url, headers=headers, verify=verify_ssl, timeout=MAX_BACKOFF)
+            response = requests.get(**params, timeout=MAX_BACKOFF)
             if response.status_code < 500:  # Accept any non-5xx response
                 logger.info("Server is up!")
                 return
@@ -198,13 +224,18 @@ def api_client(user_token: str | None, verify_ssl: bool) -> Generator[CatalogAPI
 
     Timeout is configurable via CATALOG_CLIENT_TIMEOUT env var (default 30s).
     """
+    if not verify_ssl:
+        urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+
     poll_for_ready(user_token=user_token, verify_ssl=verify_ssl)
-    with CatalogAPIClient(CATALOG_URL, timeout=CLIENT_TIMEOUT, verify_ssl=verify_ssl) as client:
+    with CatalogAPIClient(
+        CATALOG_URL, timeout=CLIENT_TIMEOUT, verify_ssl=verify_ssl, access_token=user_token
+    ) as client:
         yield client
 
 
 @pytest.fixture(scope="session")
-def model_with_artifacts(api_client: CatalogAPIClient) -> tuple[str, str]:
+def model_with_artifacts(api_client: CatalogAPIClient, verify_ssl: bool) -> tuple[str, str]:
     """Get a model that has artifacts for testing.
 
     Searches available models to find one with artifacts.
@@ -216,6 +247,9 @@ def model_with_artifacts(api_client: CatalogAPIClient) -> tuple[str, str]:
     Raises:
         pytest.fail: If no models are available or no model has artifacts.
     """
+    if not verify_ssl:
+        urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+
     models = api_client.get_models()
     if not models.get("items"):
         pytest.fail("No models available - test data may not be loaded")
@@ -263,14 +297,7 @@ def test_catalog_data(root: Path) -> dict:
         Dictionary containing the test catalog YAML data.
     """
     test_catalog_path = (
-        root
-        / "manifests"
-        / "kustomize"
-        / "options"
-        / "catalog"
-        / "overlays"
-        / "e2e"
-        / "test-catalog.yaml"
+        root / "manifests" / "kustomize" / "options" / "catalog" / "overlays" / "e2e" / "test-catalog.yaml"
     )
     with open(test_catalog_path) as f:
         return yaml.safe_load(f)

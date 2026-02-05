@@ -82,7 +82,9 @@ class FilterOptionsList(BaseModel):
         if self.named_queries:
             for _key_named_queries in self.named_queries:
                 if self.named_queries[_key_named_queries]:
-                    _field_dict[_key_named_queries] = self.named_queries[_key_named_queries].to_dict()
+                    _field_dict[_key_named_queries] = self.named_queries[_key_named_queries] if isinstance(
+                        self.named_queries[_key_named_queries], dict) else self.named_queries[
+                        _key_named_queries].to_dict()
             _dict["namedQueries"] = _field_dict
         return _dict
 
