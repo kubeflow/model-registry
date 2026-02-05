@@ -5,6 +5,10 @@ models:
   # Models with artifacts and accuracy for ordering/filtering tests
   - name: test-model-1
     description: Primary test model with high accuracy
+    createTimeSinceEpoch: "1700000000000"
+    lastUpdateTimeSinceEpoch: "1700100000000"
+    tasks:
+      - text-generation
     customProperties:
       size:
         metadataType: MetadataStringValue
@@ -31,6 +35,10 @@ models:
 
   - name: test-model-2
     description: Secondary test model with medium accuracy
+    createTimeSinceEpoch: "1700200000000"
+    lastUpdateTimeSinceEpoch: "1700300000000"
+    tasks:
+      - text-generation
     customProperties:
       size:
         metadataType: MetadataStringValue
@@ -57,6 +65,10 @@ models:
 
   - name: test-model-3
     description: Third test model with low accuracy
+    createTimeSinceEpoch: "1700400000000"
+    lastUpdateTimeSinceEpoch: "1700250000000"
+    tasks:
+      - text-generation
     artifacts:
       - name: tensorrt-artifact
         uri: s3://bucket/test-model-3.tar.gz
