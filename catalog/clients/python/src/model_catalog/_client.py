@@ -87,11 +87,11 @@ def _handle_api_errors(func: Callable[..., T]) -> Callable[..., T]:
     def wrapper(*args: Any, **kwargs: Any) -> T:
         try:
             return func(*args, **kwargs)
-        except (ImportError, ValueError, NotImplementedError, TypeError, AttributeError):
+        except (ImportError, NotImplementedError, TypeError, AttributeError):
             # Programming errors - re-raise unchanged
             raise
         except Exception as e:
-            # Runtime errors (network, API) - convert to CatalogError hierarchy
+            # Runtime errors (network, API, validation) - convert to CatalogError hierarchy
             _convert_exception(e)  # Always raises
             raise  # Unreachable, but satisfies mypy
 
@@ -145,17 +145,30 @@ def _convert_exception(e: Exception) -> None:
         msg = f"Unexpected error: {e}"
         raise CatalogError(msg, cause=e) from e
 
+    # Handle Pydantic validation errors (from OpenAPI client parameter validation)
+    try:
+        from pydantic import ValidationError as PydanticValidationError
+
+        if isinstance(e, PydanticValidationError):
+            msg = f"Validation error: {e}"
+            raise CatalogValidationError(msg, cause=e) from e
+    except ImportError:
+        pass
+
     # Handle API exceptions
     if isinstance(e, NotFoundException):
-        msg = f"Resource not found: {e.reason or e.body}"
+        # Include both reason and body for complete error details
+        msg = f"Resource not found: {e.body if e.body else e.reason}"
         raise CatalogNotFoundError(msg, status_code=e.status, cause=e) from e
 
     if isinstance(e, (BadRequestException, UnprocessableEntityException)):
-        msg = f"Validation error: {e.reason or e.body}"
+        # Include both reason and body for complete error details
+        msg = f"Validation error: {e.body if e.body else e.reason}"
         raise CatalogValidationError(msg, status_code=e.status, cause=e) from e
 
     if isinstance(e, ApiException):
-        msg = f"API error ({e.status}): {e.reason or e.body}"
+        # Include both reason and body for complete error details
+        msg = f"API error ({e.status}): {e.body if e.body else e.reason}"
         raise CatalogAPIError(msg, status_code=e.status, cause=e) from e
 
     # Handle network/connection errors using proper isinstance checks
@@ -355,6 +368,7 @@ class CatalogAPIClient:
         self,
         source_id: str,
         model_name: str,
+        artifact_type: str | list[str] | None = None,
         filter_query: str | None = None,
         page_size: int | None = None,
         next_page_token: str | None = None,
@@ -364,6 +378,9 @@ class CatalogAPIClient:
         Args:
             source_id: The source ID containing the model.
             model_name: The model name.
+            artifact_type: Optional artifact type(s) to filter by.
+                Accepts "model-artifact", "metrics-artifact", or a list of these values.
+                Can be a single string or list of strings.
             filter_query: Optional filter query.
             page_size: Optional page size.
             next_page_token: Optional pagination token.
@@ -371,10 +388,19 @@ class CatalogAPIClient:
         Returns:
             Dict with artifacts response.
         """
+        # Convert artifact_type to list format expected by OpenAPI client
+        artifact_type_list = None
+        if artifact_type is not None:
+            if isinstance(artifact_type, str):
+                artifact_type_list = [artifact_type]
+            else:
+                artifact_type_list = artifact_type
+
         page_size_str = str(page_size) if page_size is not None else None
         response = self.catalog_api.get_all_model_artifacts(
             source_id=_encode_path_param(source_id),
             model_name=_encode_path_param(model_name),
+            artifact_type=artifact_type_list,
             filter_query=filter_query,
             page_size=page_size_str,
             next_page_token=next_page_token,
