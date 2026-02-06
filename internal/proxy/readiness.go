@@ -84,8 +84,8 @@ func (d *DatabaseHealthChecker) Check() HealthCheck {
 	}
 
 	// Check database connector
-	dbConnector, ok := db.GetConnector()
-	if !ok {
+	dbConnector := db.GetConnector()
+	if dbConnector == nil {
 		check.Status = StatusFail
 		check.Message = "database connector not initialized"
 		return check
