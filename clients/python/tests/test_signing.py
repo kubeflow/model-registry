@@ -4,7 +4,14 @@ from pathlib import Path
 
 import pytest
 
-from model_registry.signing import ImageSigner, InitializationError, SigningError, VerificationError
+from model_registry.signing import ImageSigner, InitializationError, ModelSigner, SigningError, VerificationError
+
+TUF_URL = "https://tuf.example.com"
+ROOT_URL = f"{TUF_URL}/root.json"
+FULCIO_URL = "https://fulcio.example.com"
+REKOR_URL = "https://rekor.example.com"
+TSA_URL = "https://tsa.example.com"
+OIDC_ISSUER = "https://oidc.example.com"
 
 
 class TestImageSigner:
@@ -20,8 +27,8 @@ class TestImageSigner:
         mocker.patch.object(signer, "_get_sigstore_dir", return_value=tmp_path / ".sigstore")
 
         signer.initialize(
-            tuf_url="https://tuf.example.com",
-            root="https://tuf.example.com/root.json",
+            tuf_url=TUF_URL,
+            root=ROOT_URL,
             root_checksum="abc123"
         )
 
@@ -30,7 +37,7 @@ class TestImageSigner:
         assert cmd == [
             "cosign", "initialize",
             "--mirror", "https://tuf.example.com",
-            "--root", "https://tuf.example.com/root.json",
+            "--root", ROOT_URL,
             "--root-checksum", "abc123"
         ]
 
@@ -146,8 +153,8 @@ class TestImageSigner:
         signer.sign(
             image="quay.io/example/image@sha256:abc123",
             identity_token_path=str(token_file),
-            fulcio_url="https://fulcio.example.com",
-            rekor_url="https://rekor.example.com"
+            fulcio_url=FULCIO_URL,
+            rekor_url=REKOR_URL
         )
 
         mock_runner.run.assert_called_once()
@@ -155,8 +162,8 @@ class TestImageSigner:
         assert cmd == [
             "cosign", "sign", "-y",
             "--identity-token", str(token_file),
-            "--fulcio-url", "https://fulcio.example.com",
-            "--rekor-url", "https://rekor.example.com",
+            "--fulcio-url", FULCIO_URL,
+            "--rekor-url", REKOR_URL,
             "quay.io/example/image@sha256:abc123"
         ]
 
@@ -195,7 +202,7 @@ class TestImageSigner:
         signer.sign(
             image="quay.io/example/image@sha256:abc123",
             identity_token_path=Path(token_file),
-            fulcio_url="https://fulcio.example.com",
+            fulcio_url=FULCIO_URL,
         )
 
         mock_runner.run.assert_called_once()
@@ -229,7 +236,7 @@ class TestImageSigner:
         signer.verify(
             image="quay.io/example/image@sha256:abc123",
             certificate_identity="https://kubernetes.io/namespaces/test/serviceaccounts/default",
-            oidc_issuer="https://oidc.example.com"
+            oidc_issuer=OIDC_ISSUER
         )
 
         mock_runner.run.assert_called_once()
@@ -237,7 +244,7 @@ class TestImageSigner:
         assert cmd == [
             "cosign", "verify",
             "--certificate-identity", "https://kubernetes.io/namespaces/test/serviceaccounts/default",
-            "--certificate-oidc-issuer", "https://oidc.example.com",
+            "--certificate-oidc-issuer", OIDC_ISSUER,
             "quay.io/example/image@sha256:abc123"
         ]
 
@@ -346,3 +353,75 @@ class TestImageSigner:
                 image="quay.io/example/image@sha256:abc123",
                 certificate_identity="https://kubernetes.io/namespaces/test/serviceaccounts/default"
             )
+
+
+class TestModelSigner:
+    """Test ModelSigner class."""
+
+    def test_get_trust_config_path_with_tuf_url(self, tmp_path):
+        """Test get_trust_config_path returns correct path when tuf_url is set."""
+        signer = ModelSigner(
+            tuf_url=TUF_URL,
+            cache_dir=tmp_path
+        )
+
+        result = signer.get_trust_config_path()
+
+        # Should return path within cache_dir
+        assert result.parent.parent == tmp_path
+        assert result.name == "trust_config.json"
+        assert "https%3A%2F%2Ftuf.example.com" in str(result)
+
+    def test_get_trust_config_path_without_tuf_url_raises_error(self):
+        """Test get_trust_config_path raises SigningError when tuf_url not set."""
+        signer = ModelSigner()
+
+        with pytest.raises(SigningError, match="tuf_url is not configured"):
+            signer.get_trust_config_path()
+
+    def test_ensure_trust_initialized_creates_config_if_missing(self, tmp_path, mocker):
+        """Test _ensure_trust_initialized calls initialize if config doesn't exist."""
+        signer = ModelSigner(
+            tuf_url=TUF_URL,
+            fulcio_url=FULCIO_URL,
+            rekor_url=REKOR_URL,
+            tsa_url=TSA_URL,
+            oidc_issuer=OIDC_ISSUER,
+            cache_dir=tmp_path
+        )
+
+        # Mock initialize method
+        mock_initialize = mocker.patch.object(signer, "initialize")
+
+        # Call _ensure_trust_initialized
+        signer._ensure_trust_initialized()
+
+        # Should have called initialize
+        mock_initialize.assert_called_once_with(
+            fulcio_url=FULCIO_URL,
+            rekor_url=REKOR_URL,
+            tsa_url=TSA_URL,
+            oidc_issuer=OIDC_ISSUER,
+            force=True
+        )
+
+    def test_ensure_trust_initialized_skips_if_config_exists(self, tmp_path, mocker):
+        """Test _ensure_trust_initialized doesn't call initialize if config exists."""
+        signer = ModelSigner(
+            tuf_url=TUF_URL,
+            cache_dir=tmp_path
+        )
+
+        # Create the trust config file
+        config_path = signer.get_trust_config_path()
+        config_path.parent.mkdir(parents=True, exist_ok=True)
+        config_path.write_text('{"test": "config"}')
+
+        # Mock initialize method
+        mock_initialize = mocker.patch.object(signer, "initialize")
+
+        # Call _ensure_trust_initialized
+        signer._ensure_trust_initialized()
+
+        # Should NOT have called initialize
+        mock_initialize.assert_not_called()

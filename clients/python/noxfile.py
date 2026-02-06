@@ -53,7 +53,7 @@ def mypy(session: Session) -> None:
 def tests(session: Session) -> None:
     """Run the test suite."""
     session.install(
-        ".",
+        ".[signing]",
         "requests",
         "pytest",
         "pytest-asyncio",
@@ -73,7 +73,7 @@ def tests(session: Session) -> None:
 def e2e_tests(session: Session) -> None:
     """Run the test suite."""
     packages = [
-        ".",
+        ".[signing]",
         "ray",
         "requests",
         "pytest",

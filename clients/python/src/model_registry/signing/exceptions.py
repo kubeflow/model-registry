@@ -1,13 +1,17 @@
 """Exceptions for signing operations."""
 
 
-class SigningError(Exception):
-    """Raised when image signing fails."""
+class BaseSigningError(Exception):
+    """Base exception for signing operations."""
 
 
-class VerificationError(Exception):
-    """Raised when image verification fails."""
+class SigningError(BaseSigningError):
+    """Raised when signing fails."""
 
 
-class InitializationError(Exception):
-    """Raised when sigstore initialization fails."""
+class VerificationError(BaseSigningError):
+    """Raised when verification fails."""
+
+
+class InitializationError(BaseSigningError):
+    """Raised when initialization fails."""
