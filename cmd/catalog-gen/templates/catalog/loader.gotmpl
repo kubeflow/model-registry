@@ -8,11 +8,18 @@ import (
 	"context"
 {{if .HasArtifacts}}	"fmt"
 {{end}}
+	"github.com/golang/glog"
 	"github.com/kubeflow/model-registry/pkg/catalog"
 	sharedmodels "github.com/kubeflow/model-registry/internal/db/models"
 	"{{.Package}}/internal/db/models"
 	"{{.Package}}/internal/db/service"
 )
+
+// glogLogger implements catalog.LoaderLogger using glog.
+type glogLogger struct{}
+
+func (glogLogger) Infof(format string, args ...any)  { glog.Infof(format, args...) }
+func (glogLogger) Errorf(format string, args ...any) { glog.Errorf(format, args...) }
 {{if .HasArtifacts}}
 // Artifact is a union interface for all artifact types in this catalog.
 type Artifact interface {
@@ -30,6 +37,7 @@ func NewLoader(services service.Services, paths []string, registry *catalog.Prov
 	cfg := catalog.LoaderConfig[models.{{.EntityName}}, {{.ArtifactType}}]{
 		Paths:            paths,
 		ProviderRegistry: registry,
+		Logger:           glogLogger{},
 		SaveEntity: func(entity models.{{.EntityName}}) (models.{{.EntityName}}, error) {
 			return services.{{.EntityName}}Repository.Save(entity)
 		},

@@ -2,34 +2,61 @@
 # To regenerate: catalog-gen generate
 # Source: catalog.yaml
 #
-# To add custom schemas, edit api/openapi/src/openapi.yaml instead.
+# Entity schemas are composed using allOf with BaseResource.
 components:
   schemas:
-    {{.EntityName}}:
-      type: object
-      required:
-{{.RequiredFields}}      properties:
-        id:
-          type: string
-          readOnly: true
-        name:
-          type: string
-        externalId:
-          type: string
-        createTimeSinceEpoch:
-          type: string
-        lastUpdateTimeSinceEpoch:
-          type: string
-{{.Properties}}
-    {{.EntityName}}List:
+    # Base schemas shared across all catalog entities
+    BaseResource:
       type: object
       properties:
-        items:
-          type: array
-          items:
-            $ref: '#/components/schemas/{{.EntityName}}'
+        id:
+          type: string
+          description: Unique identifier
+        name:
+          type: string
+          description: Resource name
+        externalId:
+          type: string
+          description: External identifier
+        description:
+          type: string
+          description: Resource description
+        customProperties:
+          type: object
+          additionalProperties: true
+          description: Custom properties
+        createTimeSinceEpoch:
+          type: string
+          description: Creation timestamp
+        lastUpdateTimeSinceEpoch:
+          type: string
+          description: Last update timestamp
+
+    BaseResourceList:
+      type: object
+      properties:
         nextPageToken:
           type: string
+          description: Token for next page
         size:
           type: integer
+          description: Total size
+
+    {{.EntityName}}:
+      allOf:
+        - $ref: '#/components/schemas/BaseResource'
+        - type: object
+          required:
+            - name
+{{.RequiredFields}}          properties:
+{{.Properties}}
+    {{.EntityName}}List:
+      allOf:
+        - $ref: '#/components/schemas/BaseResourceList'
+        - type: object
+          properties:
+            items:
+              type: array
+              items:
+                $ref: '#/components/schemas/{{.EntityName}}'
 {{.ArtifactSchemas}}

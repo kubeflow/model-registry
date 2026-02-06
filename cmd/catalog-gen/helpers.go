@@ -58,21 +58,6 @@ func capitalize(s string) string {
 	return strings.ToUpper(s[:1]) + s[1:]
 }
 
-// toCamelCase converts snake_case to camelCase.
-func toCamelCase(s string) string {
-	parts := strings.Split(s, "_")
-	if len(parts) == 1 {
-		return strings.ToLower(s[:1]) + s[1:]
-	}
-	result := strings.ToLower(parts[0])
-	for _, part := range parts[1:] {
-		if part != "" {
-			result += strings.ToUpper(part[:1]) + part[1:]
-		}
-	}
-	return result
-}
-
 // goTypeFromSpec converts a spec type to a Go type.
 func goTypeFromSpec(specType string) string {
 	switch specType {

@@ -16,10 +16,11 @@ import (
 
 // yaml{{.EntityName}} represents a {{.EntityName}} entry in the YAML catalog file.
 type yaml{{.EntityName}} struct {
-	Name        string  `json:"name" yaml:"name"`
-	Description *string `json:"description,omitempty" yaml:"description,omitempty"`
-	// TODO: Add additional fields from catalog.yaml properties
-}
+	Name             string         `json:"name" yaml:"name"`
+	ExternalId       string         `json:"externalId,omitempty" yaml:"externalId,omitempty"`
+	Description      *string        `json:"description,omitempty" yaml:"description,omitempty"`
+	CustomProperties map[string]any `json:"customProperties,omitempty" yaml:"customProperties,omitempty"`
+{{.EntityPropertyFields}}}
 
 // yaml{{.EntityName}}Catalog is the structure of the YAML catalog file.
 type yaml{{.EntityName}}Catalog struct {
@@ -93,11 +94,16 @@ func parse{{.EntityName}}Catalog(catalogData, artifactsData []byte) ([]pkgcatalo
 	records := make([]pkgcatalog.Record[models.{{.EntityName}}, {{.ArtifactType}}], 0, len(entityCatalog.{{.EntityName}}s))
 	for _, item := range entityCatalog.{{.EntityName}}s {
 		name := item.Name
+		var externalID *string
+		if item.ExternalId != "" {
+			externalID = &item.ExternalId
+		}
 		entity := models.New{{.EntityName}}(&models.{{.EntityName}}Attributes{
 			Name:        &name,
+			ExternalID:  externalID,
 			Description: item.Description,
 		})
-		record := pkgcatalog.Record[models.{{.EntityName}}, {{.ArtifactType}}]{Entity: entity}
+{{.EntityPropertyAssignments}}		record := pkgcatalog.Record[models.{{.EntityName}}, {{.ArtifactType}}]{Entity: entity}
 {{.ArtifactMatchCode}}
 		records = append(records, record)
 	}

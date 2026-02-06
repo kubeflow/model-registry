@@ -37,6 +37,7 @@ Usage:
 	rootCmd.AddCommand(newAddProviderCmd())
 	rootCmd.AddCommand(newAddArtifactCmd())
 	rootCmd.AddCommand(newGenerateCmd())
+	rootCmd.AddCommand(newGenTestdataCmd())
 
 	if err := rootCmd.Execute(); err != nil {
 		fmt.Fprintf(os.Stderr, "Error: %v\n", err)

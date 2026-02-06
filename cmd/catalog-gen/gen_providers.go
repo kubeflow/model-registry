@@ -147,15 +147,60 @@ type yaml%sArtifactsCatalog struct {
 `)
 	}
 
+	// Build entity property struct fields for yaml struct
+	var entityPropertyFields strings.Builder
+	var entityPropertyAssignments strings.Builder
+	for _, prop := range config.Spec.Entity.Properties {
+		if prop.Name == "description" || prop.Name == "externalId" || prop.Name == "name" || prop.Name == "customProperties" {
+			continue // Skip base fields already in template
+		}
+		goType := goTypeFromSpec(prop.Type)
+		// For yaml struct, use non-pointer types with omitempty
+		yamlGoType := strings.TrimPrefix(goType, "*")
+		if prop.Type == "array" {
+			// Determine array item type from items field
+			itemType := "string" // default
+			if prop.Items != nil && prop.Items.Type != "" {
+				itemType = strings.TrimPrefix(goTypeFromSpec(prop.Items.Type), "*")
+			}
+			yamlGoType = "[]" + itemType
+		}
+		propName := capitalize(prop.Name)
+		entityPropertyFields.WriteString(fmt.Sprintf("\t%s %s `json:\"%s,omitempty\" yaml:\"%s,omitempty\"`\n",
+			propName, yamlGoType, prop.Name, prop.Name))
+		// Generate assignment code - handle pointers and arrays
+		if prop.Type == "array" {
+			entityPropertyAssignments.WriteString(fmt.Sprintf(`		// Handle %s (array -> comma-separated string)
+		if len(item.%s) > 0 {
+			%sStr := ""
+			for i, v := range item.%s {
+				if i > 0 {
+					%sStr += ","
+				}
+				%sStr += v
+			}
+			entity.GetAttributes().%s = &%sStr
+		}
+`, propName, propName, prop.Name, propName, prop.Name, prop.Name, propName, prop.Name))
+		} else if strings.HasPrefix(goType, "*") {
+			// Pointer type - take address
+			entityPropertyAssignments.WriteString(fmt.Sprintf("\t\tentity.GetAttributes().%s = &item.%s\n", propName, propName))
+		} else {
+			entityPropertyAssignments.WriteString(fmt.Sprintf("\t\tentity.GetAttributes().%s = item.%s\n", propName, propName))
+		}
+	}
+
 	data := map[string]any{
-		"Package":           config.Spec.Package,
-		"EntityName":        entityName,
-		"EntityNameLower":   lowerName,
-		"HasArtifacts":      hasArtifacts,
-		"ArtifactType":      artifactType,
-		"ArtifactStructs":   artifactStructs.String(),
-		"ArtifactParseCode": artifactParseCode.String(),
-		"ArtifactMatchCode": artifactMatchCode.String(),
+		"Package":                     config.Spec.Package,
+		"EntityName":                  entityName,
+		"EntityNameLower":             lowerName,
+		"HasArtifacts":                hasArtifacts,
+		"ArtifactType":                artifactType,
+		"ArtifactStructs":             artifactStructs.String(),
+		"ArtifactParseCode":           artifactParseCode.String(),
+		"ArtifactMatchCode":           artifactMatchCode.String(),
+		"EntityPropertyFields":        entityPropertyFields.String(),
+		"EntityPropertyAssignments":   entityPropertyAssignments.String(),
 	}
 
 	providerPath := filepath.Join(providersDir, "yaml_provider.go")

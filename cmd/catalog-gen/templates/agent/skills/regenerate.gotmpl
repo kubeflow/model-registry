@@ -1,0 +1,35 @@
+# Regenerate {{.EntityName}} Catalog
+
+## Steps
+
+### Step 1: Regenerate from catalog.yaml
+
+```bash
+catalog-gen generate
+```
+
+This regenerates:
+- `internal/db/models/{{.EntityNameLower}}.go`
+- `internal/db/service/spec.go`
+- `api/openapi/src/generated/components.yaml`
+- `internal/catalog/loader.go`
+- `plugin.go`, `register.go`
+
+### Step 2: Generate OpenAPI Handlers
+
+```bash
+make gen/openapi-server
+```
+
+### Step 3: Verify Build
+
+```bash
+go build ./...
+```
+
+### Step 4: Fix Issues
+
+If build fails, check:
+1. Service implementation matches new model fields
+2. YAML provider matches new properties
+3. OpenAPI service impl has correct type conversions

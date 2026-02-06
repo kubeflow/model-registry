@@ -7,66 +7,70 @@ import (
 )
 
 // generateOpenAPIComponents generates the OpenAPI components file.
+// The generated components use allOf composition with BaseResource from common.yaml.
 func generateOpenAPIComponents(config CatalogConfig) error {
 	entityName := config.Spec.Entity.Name
 
-	// Build properties for OpenAPI and collect required fields (skip built-in fields)
-	builtinFields := map[string]bool{
-		"name": true, "externalid": true, "createtimesinceepoch": true,
-		"lastupdatetimesinceepoch": true, "id": true,
+	// Base properties that come from BaseResource - skip these in entity definition
+	// These are defined in api/openapi/src/lib/common.yaml
+	baseResourceProperties := map[string]bool{
+		"name":                     true,
+		"id":                       true,
+		"externalid":               true,
+		"description":              true,
+		"customproperties":         true,
+		"createtimesinceepoch":     true,
+		"lastupdatetimesinceepoch": true,
 	}
+
 	var propDefs strings.Builder
 	var requiredFields strings.Builder
-	requiredFields.WriteString("        - name\n") // name is always required
 	for _, prop := range config.Spec.Entity.Properties {
-		if builtinFields[strings.ToLower(prop.Name)] {
+		if baseResourceProperties[strings.ToLower(prop.Name)] {
 			continue
 		}
-		propDefs.WriteString(generateOpenAPIPropertyDef(prop, 8))
+		// Use 12 spaces for properties inside allOf structure
+		propDefs.WriteString(generateOpenAPIPropertyDef(prop, 12))
 		if prop.Required {
-			requiredFields.WriteString(fmt.Sprintf("        - %s\n", prop.Name))
+			fmt.Fprintf(&requiredFields, "            - %s\n", prop.Name)
 		}
 	}
 
 	// Build artifact schemas if artifacts are configured
+	// Artifacts also use allOf composition with BaseResource
 	var artifactSchemas strings.Builder
 	if len(config.Spec.Artifacts) > 0 {
-		// Generate individual artifact schemas
+		// Generate individual artifact schemas using allOf composition
 		for _, artifact := range config.Spec.Artifacts {
-			artifactSchemas.WriteString(fmt.Sprintf("    %s%sArtifact:\n", entityName, artifact.Name))
-			artifactSchemas.WriteString("      type: object\n")
-			artifactSchemas.WriteString("      properties:\n")
-			artifactSchemas.WriteString("        id:\n")
-			artifactSchemas.WriteString("          type: string\n")
-			artifactSchemas.WriteString("          readOnly: true\n")
-			artifactSchemas.WriteString("        name:\n")
-			artifactSchemas.WriteString("          type: string\n")
-			artifactSchemas.WriteString("        artifactType:\n")
-			artifactSchemas.WriteString("          type: string\n")
+			fmt.Fprintf(&artifactSchemas, "    %s%sArtifact:\n", entityName, artifact.Name)
+			artifactSchemas.WriteString("      allOf:\n")
+			artifactSchemas.WriteString("        - $ref: '#/components/schemas/BaseResource'\n")
+			artifactSchemas.WriteString("        - type: object\n")
+			artifactSchemas.WriteString("          properties:\n")
+			artifactSchemas.WriteString("            artifactType:\n")
+			artifactSchemas.WriteString("              type: string\n")
 			for _, prop := range artifact.Properties {
-				artifactSchemas.WriteString(generateOpenAPIPropertyDef(prop, 8))
+				artifactSchemas.WriteString(generateOpenAPIPropertyDef(prop, 12))
 			}
 		}
 
-		// Generate artifact list schema
-		artifactSchemas.WriteString(fmt.Sprintf("    %sArtifactList:\n", entityName))
-		artifactSchemas.WriteString("      type: object\n")
-		artifactSchemas.WriteString("      properties:\n")
-		artifactSchemas.WriteString("        items:\n")
-		artifactSchemas.WriteString("          type: array\n")
-		artifactSchemas.WriteString("          items:\n")
+		// Generate artifact list schema using allOf composition
+		fmt.Fprintf(&artifactSchemas, "    %sArtifactList:\n", entityName)
+		artifactSchemas.WriteString("      allOf:\n")
+		artifactSchemas.WriteString("        - $ref: '#/components/schemas/BaseResourceList'\n")
+		artifactSchemas.WriteString("        - type: object\n")
+		artifactSchemas.WriteString("          properties:\n")
+		artifactSchemas.WriteString("            items:\n")
+		artifactSchemas.WriteString("              type: array\n")
+		artifactSchemas.WriteString("              items:\n")
 		if len(config.Spec.Artifacts) == 1 {
-			artifactSchemas.WriteString(fmt.Sprintf("            $ref: '#/components/schemas/%s%sArtifact'\n", entityName, config.Spec.Artifacts[0].Name))
+			fmt.Fprintf(&artifactSchemas, "                $ref: '#/components/schemas/%s%sArtifact'\n", entityName, config.Spec.Artifacts[0].Name)
 		} else {
-			artifactSchemas.WriteString("            oneOf:\n")
+			artifactSchemas.WriteString("                oneOf:\n")
 			for _, artifact := range config.Spec.Artifacts {
-				artifactSchemas.WriteString(fmt.Sprintf("              - $ref: '#/components/schemas/%s%sArtifact'\n", entityName, artifact.Name))
+				fmt.Fprintf(&artifactSchemas, "                  - $ref: '#/components/schemas/%s%sArtifact'\n", entityName, artifact.Name)
 			}
 		}
-		artifactSchemas.WriteString("        nextPageToken:\n")
-		artifactSchemas.WriteString("          type: string\n")
-		artifactSchemas.WriteString("        size:\n")
-		artifactSchemas.WriteString("          type: integer\n")
 	}
 
 	data := map[string]any{

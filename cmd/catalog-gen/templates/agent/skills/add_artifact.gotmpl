@@ -1,0 +1,51 @@
+# Add Artifact to {{.EntityName}}
+
+## Arguments
+- `ArtifactName`: Name of the artifact (PascalCase, e.g., Weights, Metrics)
+
+## Steps
+
+### Step 1: Update catalog.yaml
+
+Add the artifact under `spec.artifacts`:
+
+```yaml
+spec:
+  artifacts:
+    - name: <ArtifactName>
+      properties:
+        - name: uri
+          type: string
+        - name: format
+          type: string
+```
+
+### Step 2: Regenerate Code
+
+```bash
+catalog-gen generate
+make gen/openapi-server
+```
+
+### Step 3: Update OpenAPI Spec
+
+Edit `api/openapi/src/openapi.yaml` to add artifact endpoints:
+
+```yaml
+paths:
+  /{{.EntityNameLower}}s/{name}/artifacts:
+    get:
+      summary: List artifacts for a {{.EntityName}}
+      ...
+```
+
+### Step 4: Implement Artifact Service
+
+Create or update artifact handling in service implementation.
+
+### Step 5: Verify
+
+```bash
+go build ./...
+go test ./...
+```
