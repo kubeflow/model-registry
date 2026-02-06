@@ -110,12 +110,13 @@ const ModelCatalogGalleryView: React.FC<ModelCatalogPageProps> = ({
 
   const isNoLabelsSection = selectedSourceLabel === SourceLabel.other;
 
-  const areOnlyDefaultFiltersApplied = React.useMemo(
+  // when no basic filers and search term, the performance empty state is shown.
+  const areAllFiltersAtDefaults = React.useMemo(
     () => !hasFiltersApplied(filterData, BASIC_FILTER_KEYS),
     [filterData],
   );
 
-  const noUserFiltersOrSearch = areOnlyDefaultFiltersApplied && !searchTerm;
+  const noUserFiltersOrSearch = areAllFiltersAtDefaults && !searchTerm;
 
   const shouldShowPerformanceEmptyState = React.useMemo(() => {
     const isEmptyResult = catalogModels.items.length === 0;
