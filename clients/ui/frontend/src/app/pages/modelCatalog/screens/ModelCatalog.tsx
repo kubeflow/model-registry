@@ -4,17 +4,16 @@ import { ApplicationsPage, ProjectObjectType, TitleWithIcon } from 'mod-arch-sha
 import ScrollViewOnMount from '~/app/shared/components/ScrollViewOnMount';
 import ModelCatalogFilters from '~/app/pages/modelCatalog/components/ModelCatalogFilters';
 import { ModelCatalogContext } from '~/app/context/modelCatalog/ModelCatalogContext';
-import { hasFiltersApplied } from '~/app/pages/modelCatalog/utils/modelCatalogUtils';
 import { CategoryName } from '~/app/modelCatalogTypes';
+import { useHasVisibleFiltersApplied } from '~/app/hooks/modelCatalog/useHasVisibleFiltersApplied';
 import ModelCatalogSourceLabelSelectorNavigator from './ModelCatalogSourceLabelSelectorNavigator';
 import ModelCatalogAllModelsView from './ModelCatalogAllModelsView';
 import ModelCatalogGalleryView from './ModelCatalogGalleryView';
 
 const ModelCatalog: React.FC = () => {
   const [searchTerm, setSearchTerm] = React.useState('');
-  const { selectedSourceLabel, filterData, clearAllFilters } =
-    React.useContext(ModelCatalogContext);
-  const filtersApplied = hasFiltersApplied(filterData);
+  const { selectedSourceLabel, clearAllFilters } = React.useContext(ModelCatalogContext);
+  const filtersApplied = useHasVisibleFiltersApplied();
   const isAllModelsView =
     selectedSourceLabel === CategoryName.allModels && !searchTerm && !filtersApplied;
 
