@@ -5,8 +5,6 @@ import (
 	"fmt"
 	"maps"
 	"slices"
-
-	"gorm.io/gorm"
 )
 
 var (
@@ -17,7 +15,7 @@ var (
 type Connector interface {
 	Type() string
 	Connect(spec *Spec) (RepoSet, error)
-	DB() (*gorm.DB, error)
+	RunMigrations(spec *Spec) error
 }
 
 var connectorTypes map[string]func(any) (Connector, error)

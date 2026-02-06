@@ -99,11 +99,9 @@ type Loader struct {
 	loadedSources map[string]bool // tracks which source IDs have been loaded
 
 	// Leader state management
-	leaderMu       sync.RWMutex
-	leaderStop     chan struct{}  // closed when StopLeader is called
-	leaderStopOnce sync.Once      // ensures channel closed exactly once
-	isLeader       bool           // true when in leader mode
-	writesWG       sync.WaitGroup // tracks number of database write operations in progress
+	leaderMu sync.RWMutex
+	isLeader bool           // true when in leader mode
+	writesWG sync.WaitGroup // tracks number of database write operations in progress
 
 	// File watcher state
 	watchersMu      sync.Mutex
@@ -190,14 +188,13 @@ func (l *Loader) StartReadOnly(ctx context.Context) error {
 	return nil
 }
 
-// StartLeader transitions the loader to leader mode and blocks until StopLeader
-// is called or the context cancels.
+// StartLeader transitions the loader to leader mode and blocks until the
+// context is cancelled (leadership lost or pod shutdown).
 //
 // Performs database writes (fetches models, writes to database, cleans up orphans).
 // Can be called multiple times as leadership changes.
 //
-// Pass the program-level context (canceled on pod shutdown).
-// Leadership changes are signaled via StopLeader(), not context cancellation.
+// Pass the leadership context (canceled when leadership is lost).
 func (l *Loader) StartLeader(ctx context.Context) error {
 	l.leaderMu.Lock()
 	if l.isLeader {
@@ -205,9 +202,6 @@ func (l *Loader) StartLeader(ctx context.Context) error {
 		return fmt.Errorf("already in leader mode")
 	}
 	l.isLeader = true
-	l.leaderStop = make(chan struct{})
-	l.leaderStopOnce = sync.Once{} // Reset for new leadership term
-	stopChan := l.leaderStop
 	l.leaderMu.Unlock()
 
 	glog.Info("Transitioning to leader mode (read-write)")
@@ -215,56 +209,24 @@ func (l *Loader) StartLeader(ctx context.Context) error {
 	if err := l.performLeaderOperations(ctx); err != nil {
 		l.leaderMu.Lock()
 		l.isLeader = false
-		l.leaderStop = nil
 		l.leaderMu.Unlock()
 		return fmt.Errorf("failed to perform leader operations: %w", err)
 	}
 
 	glog.Info("Leader mode active")
 
-	select {
-	case <-stopChan:
-		glog.Info("StopLeader called, cleaning up...")
-	case <-ctx.Done():
-		glog.Info("Context cancelled while leader, cleaning up...")
-		return ctx.Err()
-	}
+	// Just wait for context cancellation
+	<-ctx.Done()
+	glog.Info("Leadership context cancelled, cleaning up...")
 
 	l.waitForInflightWrites(5 * time.Second)
 
-	// Clear leader state (defensive: only if not already cleared by StopLeader)
 	l.leaderMu.Lock()
-	if l.isLeader {
-		l.isLeader = false
-	}
-	l.leaderStop = nil
+	l.isLeader = false
 	l.leaderMu.Unlock()
 
 	glog.Info("Leader mode stopped")
-	return nil
-}
-
-// StopLeader signals the leader to stop operations and transition back to
-// read-only mode. Called when leadership is lost.
-//
-// Returns immediately after signaling StartLeader to stop.
-// For synchronous shutdown, wait for StartLeader to return.
-func (l *Loader) StopLeader() error {
-	l.leaderMu.Lock()
-	defer l.leaderMu.Unlock()
-
-	if !l.isLeader {
-		// Already stopped or never started
-		return nil
-	}
-
-	l.isLeader = false
-	l.leaderStopOnce.Do(func() {
-		close(l.leaderStop)
-	})
-
-	glog.Info("Signaled leader to stop")
-	return nil
+	return ctx.Err()
 }
 
 // Shutdown gracefully shuts down the loader, stopping file watchers and
@@ -272,10 +234,8 @@ func (l *Loader) StopLeader() error {
 func (l *Loader) Shutdown() error {
 	glog.Info("Shutting down loader...")
 
-	// Stop leader operations if active
-	if err := l.StopLeader(); err != nil {
-		glog.Errorf("Error stopping leader: %v", err)
-	}
+	// Note: Leader operations stop when leaderCtx is cancelled by the elector.
+	// No need to explicitly stop here.
 
 	// Stop file watchers
 	l.watchersMu.Lock()

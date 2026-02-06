@@ -2,6 +2,7 @@ package catalog
 
 import (
 	"context"
+	"errors"
 	"sync"
 	"testing"
 	"time"
@@ -330,9 +331,13 @@ func TestLoader_StartWithLeaderElection(t *testing.T) {
 		err = loader.StartReadOnly(ctx)
 		assert.NoError(t, err)
 
+		// Create cancellable context for leader mode
+		leaderCtx, cancelLeader := context.WithCancel(ctx)
+		defer cancelLeader()
+
 		// Start leader mode in background
 		go func() {
-			if err := loader.StartLeader(ctx); err != nil {
+			if err := loader.StartLeader(leaderCtx); err != nil && !errors.Is(err, context.Canceled) {
 				t.Logf("StartLeader error: %v", err)
 			}
 		}()
@@ -349,12 +354,12 @@ func TestLoader_StartWithLeaderElection(t *testing.T) {
 		// Verify database writes occurred in leader mode
 		assert.NotEmpty(t, mockModelRepo.SavedModels, "Leader mode should write models to database")
 
-		// Clean up
-		loader.StopLeader()
+		// Clean up by cancelling context
+		cancelLeader()
 		time.Sleep(100 * time.Millisecond)
 	})
 
-	t.Run("stopping leader prevents database writes", func(t *testing.T) {
+	t.Run("cancelling context prevents database writes", func(t *testing.T) {
 		// Reset mock repositories
 		mockModelRepo.SavedModels = []dbmodels.CatalogModel{}
 		mockModelArtifactRepo.SavedArtifacts = []dbmodels.CatalogModelArtifact{}
@@ -371,9 +376,12 @@ func TestLoader_StartWithLeaderElection(t *testing.T) {
 		err = loader.StartReadOnly(ctx)
 		assert.NoError(t, err)
 
+		// Create cancellable context for leader mode
+		leaderCtx, cancelLeader := context.WithCancel(ctx)
+
 		// Start leader mode in background
 		go func() {
-			if err := loader.StartLeader(ctx); err != nil {
+			if err := loader.StartLeader(leaderCtx); err != nil && !errors.Is(err, context.Canceled) {
 				t.Logf("StartLeader error: %v", err)
 			}
 		}()
@@ -381,20 +389,19 @@ func TestLoader_StartWithLeaderElection(t *testing.T) {
 		// Wait for leader mode to activate
 		time.Sleep(100 * time.Millisecond)
 
-		// Stop leader to simulate leadership loss
-		err = loader.StopLeader()
-		assert.NoError(t, err)
+		// Cancel context to simulate leadership loss
+		cancelLeader()
 
-		// Wait a moment for stop to propagate
+		// Wait a moment for cancellation to propagate
 		time.Sleep(100 * time.Millisecond)
 
-		// Verify shouldWriteDatabase returns false after stopping
-		assert.False(t, loader.shouldWriteDatabase(), "shouldWriteDatabase should return false after StopLeader")
+		// Verify shouldWriteDatabase returns false after context cancellation
+		assert.False(t, loader.shouldWriteDatabase(), "shouldWriteDatabase should return false after context cancellation")
 	})
 
 	t.Run("race-free leader transitions", func(t *testing.T) {
 		// This test verifies that concurrent access to shouldWriteDatabase()
-		// and StopLeader() is race-free
+		// and context cancellation is race-free
 
 		loader := NewLoader(services, []string{})
 		ctx := context.Background()
@@ -407,11 +414,14 @@ func TestLoader_StartWithLeaderElection(t *testing.T) {
 		err = loader.StartReadOnly(ctx)
 		assert.NoError(t, err)
 
+		// Create cancellable context for leader mode
+		leaderCtx, cancelLeader := context.WithCancel(ctx)
+
 		// Start leader mode in background
 		leaderDone := make(chan struct{})
 		go func() {
 			defer close(leaderDone)
-			if err := loader.StartLeader(ctx); err != nil {
+			if err := loader.StartLeader(leaderCtx); err != nil && !errors.Is(err, context.Canceled) {
 				t.Logf("StartLeader error: %v", err)
 			}
 		}()
@@ -434,10 +444,10 @@ func TestLoader_StartWithLeaderElection(t *testing.T) {
 			done <- true
 		}()
 
-		// Goroutine 2: Stop leader after a brief delay
+		// Goroutine 2: Cancel context after a brief delay
 		go func() {
 			time.Sleep(50 * time.Millisecond)
-			loader.StopLeader()
+			cancelLeader()
 			done <- true
 		}()
 
@@ -455,12 +465,12 @@ func TestLoader_StartWithLeaderElection(t *testing.T) {
 			t.Fatal("Timeout waiting for StartLeader to complete")
 		}
 
-		// Final verification: after stop completes, should always return false
-		assert.False(t, loader.shouldWriteDatabase(), "shouldWriteDatabase should return false after StopLeader")
+		// Final verification: after context cancellation completes, should always return false
+		assert.False(t, loader.shouldWriteDatabase(), "shouldWriteDatabase should return false after context cancellation")
 	})
 
-	t.Run("concurrent StopLeader calls do not panic", func(t *testing.T) {
-		// This test verifies the fix for the double-close panic bug
+	t.Run("concurrent context cancellations do not panic", func(t *testing.T) {
+		// This test verifies that concurrent context cancellations are handled gracefully
 		loader := NewLoader(services, []string{})
 		ctx := context.Background()
 
@@ -472,11 +482,14 @@ func TestLoader_StartWithLeaderElection(t *testing.T) {
 		err = loader.StartReadOnly(ctx)
 		assert.NoError(t, err)
 
+		// Create cancellable context for leader mode
+		leaderCtx, cancelLeader := context.WithCancel(ctx)
+
 		// Start leader mode in background
 		leaderDone := make(chan struct{})
 		go func() {
 			defer close(leaderDone)
-			if err := loader.StartLeader(ctx); err != nil {
+			if err := loader.StartLeader(leaderCtx); err != nil && !errors.Is(err, context.Canceled) {
 				t.Logf("StartLeader error: %v", err)
 			}
 		}()
@@ -484,15 +497,14 @@ func TestLoader_StartWithLeaderElection(t *testing.T) {
 		// Wait for leader mode to activate
 		time.Sleep(100 * time.Millisecond)
 
-		// Call StopLeader concurrently from multiple goroutines
-		// This should NOT panic with "close of closed channel"
+		// Cancel context concurrently from multiple goroutines
+		// Context cancellation is safe to call multiple times
 		var wg sync.WaitGroup
 		for i := 0; i < 10; i++ {
 			wg.Add(1)
 			go func() {
 				defer wg.Done()
-				err := loader.StopLeader()
-				assert.NoError(t, err)
+				cancelLeader()
 			}()
 		}
 
@@ -507,6 +519,6 @@ func TestLoader_StartWithLeaderElection(t *testing.T) {
 		}
 
 		// Verify we're no longer leader
-		assert.False(t, loader.shouldWriteDatabase(), "Should not be leader after concurrent StopLeader calls")
+		assert.False(t, loader.shouldWriteDatabase(), "Should not be leader after context cancellation")
 	})
 }

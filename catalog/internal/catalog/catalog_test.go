@@ -381,18 +381,19 @@ func TestLoadCatalogSourcesWithMockRepositories(t *testing.T) {
 		t.Fatalf("StartReadOnly() error = %v", err)
 	}
 
+	// Create cancellable context for leader mode
+	leaderCtx, cancelLeader := context.WithCancel(ctx)
+	defer cancelLeader()
+
 	// Start leader mode to perform database writes
 	go func() {
-		if err := l.StartLeader(ctx); err != nil {
+		if err := l.StartLeader(leaderCtx); err != nil {
 			t.Logf("StartLeader error: %v", err)
 		}
 	}()
 
 	// Wait for leader mode to activate and process
 	time.Sleep(300 * time.Millisecond)
-
-	// Clean up
-	defer l.StopLeader()
 
 	// Verify that the model was saved
 	savedModels := mockModelRepo.GetSavedModels()
@@ -568,18 +569,19 @@ func TestLoadCatalogSourcesWithNilEnabled(t *testing.T) {
 		t.Fatalf("StartReadOnly() error = %v", err)
 	}
 
+	// Create cancellable context for leader mode
+	leaderCtx, cancelLeader := context.WithCancel(ctx)
+	defer cancelLeader()
+
 	// Start leader mode to perform database writes
 	go func() {
-		if err := l.StartLeader(ctx); err != nil {
+		if err := l.StartLeader(leaderCtx); err != nil {
 			t.Logf("StartLeader error: %v", err)
 		}
 	}()
 
 	// Wait for leader mode to activate and process
 	time.Sleep(300 * time.Millisecond)
-
-	// Clean up
-	defer l.StopLeader()
 
 	// Verify that the model WAS saved (because nil Enabled is treated as enabled)
 	savedModels := mockModelRepo.GetSavedModels()

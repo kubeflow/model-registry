@@ -19,6 +19,7 @@ import (
 	"github.com/kubeflow/model-registry/catalog/internal/server/openapi"
 	"github.com/kubeflow/model-registry/internal/datastore"
 	"github.com/kubeflow/model-registry/internal/datastore/embedmd"
+	"github.com/kubeflow/model-registry/internal/db"
 	"github.com/spf13/cobra"
 	"golang.org/x/sync/errgroup"
 )
@@ -89,13 +90,43 @@ func init() {
 }
 
 func runCatalogServer(cmd *cobra.Command, args []string) error {
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	err := db.Init(
+		"postgres", // We only support postgres right now
+		"",         // Empty DSN, see https://www.postgresql.org/docs/current/libpq-envars.html
+		nil,        // Default TLS config
+	)
+	if err != nil {
+		return fmt.Errorf("error creating datastore: %w", err)
+	}
+	gormDB, err := db.GetConnector().Connect()
+	if err != nil {
+		return fmt.Errorf("error connecting to database: %w", err)
+	}
+
 	ds, err := datastore.NewConnector("embedmd", &embedmd.EmbedMDConfig{
-		DatabaseType: "postgres", // We only support postgres right now
-		DatabaseDSN:  "",         // Empty DSN, see https://www.postgresql.org/docs/current/libpq-envars.html
+		DB:                gormDB,
+		WaitForMigrations: true,
 	})
 	if err != nil {
 		return fmt.Errorf("error creating datastore: %w", err)
 	}
+
+	lockDuration, heartbeat := getLeaderElectionConfig()
+	glog.Infof("Leader election configured: lock duration=%v, heartbeat=%v", lockDuration, heartbeat)
+
+	elector, err := leader.NewLeaderElector(gormDB, ctx, leaderLockName, lockDuration, heartbeat)
+	if err != nil {
+		return fmt.Errorf("error creating leader elector: %w", err)
+	}
+	elector.OnBecomeLeader(func(leaderCtx context.Context) {
+		err := ds.RunMigrations(service.DatastoreSpec())
+		if err != nil {
+			glog.Errorf("unable to run migrations: %v", err)
+		}
+	})
 
 	repoSet, err := ds.Connect(service.DatastoreSpec())
 	if err != nil {
@@ -119,14 +150,13 @@ func runCatalogServer(cmd *cobra.Command, args []string) error {
 	}
 	loader.RegisterEventHandler(perfLoader.Load)
 
-	poRefresher := models.NewPropertyOptionsRefresher(context.Background(), services.PropertyOptionsRepository, time.Second)
-	loader.RegisterEventHandler(func(ctx context.Context, record catalog.ModelProviderRecord) error {
-		poRefresher.Trigger()
-		return nil
+	elector.OnBecomeLeader(func(leaderCtx context.Context) {
+		poRefresher := models.NewPropertyOptionsRefresher(leaderCtx, services.PropertyOptionsRepository, time.Second)
+		loader.RegisterEventHandler(func(ctx context.Context, record catalog.ModelProviderRecord) error {
+			poRefresher.Trigger()
+			return nil
+		})
 	})
-
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
 
 	sigCh := make(chan os.Signal, 1)
 	signal.Notify(sigCh, syscall.SIGTERM, syscall.SIGINT)
@@ -178,48 +208,19 @@ func runCatalogServer(cmd *cobra.Command, args []string) error {
 		return nil
 	})
 
-	gormDB, err := ds.DB()
-	if err != nil {
-		return fmt.Errorf("error getting database connection: %w", err)
-	}
+	elector.OnBecomeLeader(func(leaderCtx context.Context) {
+		glog.Info("Became leader - starting leader-only operations")
 
-	lockDuration, heartbeat := getLeaderElectionConfig()
-	glog.Infof("Leader election configured: lock duration=%v, heartbeat=%v", lockDuration, heartbeat)
+		// StartLeader blocks until leaderCtx is cancelled (leadership lost)
+		if err := loader.StartLeader(leaderCtx); err != nil && !errors.Is(err, context.Canceled) {
+			glog.Errorf("StartLeader exited with error: %v", err)
+		}
 
-	elector, err := leader.NewLeaderElector(
-		gormDB,
-		ctx,
-		leaderLockName,
-		lockDuration,
-		heartbeat,
-		func(leaderCtx context.Context) {
-			glog.Info("Became leader - starting leader-only operations")
+		glog.Info("Leader callback complete")
+	})
 
-			// Monitor leaderCtx in separate goroutine and call StopLeader when lost
-			go func() {
-				<-leaderCtx.Done()
-				glog.Info("Lost leadership, stopping leader operations...")
-				if err := loader.StopLeader(); err != nil {
-					glog.Errorf("Error stopping leader: %v", err)
-				}
-			}()
-
-			// StartLeader blocks until StopLeader is called or ctx cancels
-			// Pass program context (ctx), NOT leaderCtx
-			if err := loader.StartLeader(ctx); err != nil && !errors.Is(err, context.Canceled) {
-				glog.Errorf("StartLeader exited with error: %v", err)
-			}
-
-			glog.Info("Leader callback complete")
-		},
-	)
-	if err != nil {
-		return fmt.Errorf("error creating leader elector: %w", err)
-	}
-
-	// Leader elector goroutine
 	g.Go(func() error {
-		if err := elector.Run(ctx); err != nil {
+		if err := elector.Wait(); err != nil {
 			return fmt.Errorf("leader elector failed: %w", err)
 		}
 		return nil

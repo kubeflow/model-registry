@@ -41,39 +41,21 @@ func TestLeaderElector_Run(t *testing.T) {
 		"test-lock",
 		10*time.Second,
 		1*time.Second,
-		onBecomeLeader,
 	)
 	require.NoError(t, err)
+	elector.OnBecomeLeader(onBecomeLeader)
 
-	errCh := make(chan error, 1)
-	go func() {
-		err := elector.Run(ctx)
-		if err != nil {
-			t.Logf("Run returned error: %v", err)
-		}
-		errCh <- err
-	}()
-
-	// Wait for leadership acquisition
+	// Wait for leadership acquisition (background goroutine auto-started)
 	require.Eventually(t, func() bool {
-		select {
-		case err := <-errCh:
-			t.Fatalf("Run exited early with error: %v", err)
-		default:
-		}
 		return becameLeader.Load()
 	}, 3*time.Second, 100*time.Millisecond, "Should acquire leadership")
 
 	// Cancel context to trigger leadership loss
 	cancel()
 
-	// Wait for graceful shutdown
-	select {
-	case err := <-errCh:
-		assert.ErrorIs(t, err, context.Canceled)
-	case <-time.After(2 * time.Second):
-		t.Fatal("Timeout waiting for Run to complete")
-	}
+	// Wait for graceful shutdown using Wait()
+	err = elector.Wait()
+	assert.ErrorIs(t, err, context.Canceled)
 
 	assert.True(t, lostLeadership.Load(), "Should have lost leadership gracefully")
 }
@@ -113,54 +95,41 @@ func TestMultiPodLeaderElection(t *testing.T) {
 		t.Log("Pod 2 lost leadership")
 	}
 
+	// Create contexts for each pod
+	ctx1, cancel1 := context.WithCancel(ctx)
+	defer cancel1()
+	ctx2, cancel2 := context.WithCancel(ctx)
+	defer cancel2()
+
 	// Create two leader electors (simulating two pods)
+	// Background goroutines start automatically
 	elector1, err := leader.NewLeaderElector(
 		db,
-		ctx,
+		ctx1,
 		"catalog-leader",
 		5*time.Second, // Lock duration
 		1*time.Second, // Heartbeat frequency
-		onBecomeLeaderPod1,
 	)
 	require.NoError(t, err)
-
-	elector2, err := leader.NewLeaderElector(
-		db,
-		ctx,
-		"catalog-leader", // Same lock name
-		5*time.Second,
-		1*time.Second,
-		onBecomeLeaderPod2,
-	)
-	require.NoError(t, err)
-
-	// Start pod 1 attempting to acquire leadership
-	errCh1 := make(chan error, 1)
-	ctx1, cancel1 := context.WithCancel(ctx)
-	defer cancel1()
-	go func() {
-		errCh1 <- elector1.Run(ctx1)
-	}()
+	elector1.OnBecomeLeader(onBecomeLeaderPod1)
 
 	// Wait for pod 1 to become leader
 	require.Eventually(t, func() bool {
-		select {
-		case err := <-errCh1:
-			t.Fatalf("Pod 1 Run exited early with error: %v", err)
-		default:
-		}
 		return pod1BecameLeader.Load()
 	}, 3*time.Second, 100*time.Millisecond, "Pod 1 should acquire leadership")
 
 	assert.Equal(t, int32(1), currentLeader.Load(), "Pod 1 should be the leader")
 
 	// Start pod 2 attempting to acquire leadership (should block since pod 1 holds the lock)
-	errCh2 := make(chan error, 1)
-	ctx2, cancel2 := context.WithCancel(ctx)
-	defer cancel2()
-	go func() {
-		errCh2 <- elector2.Run(ctx2)
-	}()
+	elector2, err := leader.NewLeaderElector(
+		db,
+		ctx2,
+		"catalog-leader", // Same lock name
+		5*time.Second,
+		1*time.Second,
+	)
+	require.NoError(t, err)
+	elector2.OnBecomeLeader(onBecomeLeaderPod2)
 
 	// Give pod 2 some time to attempt acquisition - it should not become leader
 	time.Sleep(2 * time.Second)
@@ -171,22 +140,13 @@ func TestMultiPodLeaderElection(t *testing.T) {
 	t.Log("Releasing pod 1's leadership")
 	cancel1()
 
-	// Wait for pod 1's Run to complete
-	select {
-	case err := <-errCh1:
-		assert.ErrorIs(t, err, context.Canceled, "Pod 1 should exit with context.Canceled")
-	case <-time.After(3 * time.Second):
-		t.Fatal("Timeout waiting for pod 1 to release leadership")
-	}
+	// Wait for pod 1's Wait to complete
+	err = elector1.Wait()
+	assert.ErrorIs(t, err, context.Canceled, "Pod 1 should exit with context.Canceled")
 
 	// Now pod 2 should be able to acquire leadership
 	t.Log("Waiting for pod 2 to acquire leadership...")
 	require.Eventually(t, func() bool {
-		select {
-		case err := <-errCh2:
-			t.Fatalf("Pod 2 Run exited early with error: %v", err)
-		default:
-		}
 		acquired := pod2BecameLeader.Load()
 		if !acquired {
 			t.Log("Pod 2 has not yet acquired leadership, waiting...")
@@ -198,10 +158,285 @@ func TestMultiPodLeaderElection(t *testing.T) {
 
 	// Clean up pod 2
 	cancel2()
-	select {
-	case err := <-errCh2:
-		assert.ErrorIs(t, err, context.Canceled, "Pod 2 should exit with context.Canceled")
-	case <-time.After(3 * time.Second):
-		t.Fatal("Timeout waiting for pod 2 to release leadership")
+	err = elector2.Wait()
+	assert.ErrorIs(t, err, context.Canceled, "Pod 2 should exit with context.Canceled")
+}
+
+// TestLeaderElector_MultipleCallbacks verifies that multiple registered callbacks
+// are all invoked concurrently when leadership is acquired.
+func TestLeaderElector_MultipleCallbacks(t *testing.T) {
+	db, cleanup := testutils.SetupPostgresWithMigrations(t, service.DatastoreSpec())
+	defer cleanup()
+
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	var callback1Started, callback2Started, callback3Started atomic.Bool
+	var callback1Done, callback2Done, callback3Done atomic.Bool
+
+	callback1 := func(ctx context.Context) {
+		callback1Started.Store(true)
+		<-ctx.Done()
+		callback1Done.Store(true)
 	}
+
+	callback2 := func(ctx context.Context) {
+		callback2Started.Store(true)
+		<-ctx.Done()
+		callback2Done.Store(true)
+	}
+
+	callback3 := func(ctx context.Context) {
+		callback3Started.Store(true)
+		<-ctx.Done()
+		callback3Done.Store(true)
+	}
+
+	elector, err := leader.NewLeaderElector(
+		db,
+		ctx,
+		"test-lock-multi",
+		10*time.Second,
+		1*time.Second,
+	)
+	require.NoError(t, err)
+
+	// Register multiple callbacks
+	elector.OnBecomeLeader(callback1)
+	elector.OnBecomeLeader(callback2)
+	elector.OnBecomeLeader(callback3)
+
+	// Wait for all callbacks to start (background goroutine auto-started)
+	require.Eventually(t, func() bool {
+		return callback1Started.Load() && callback2Started.Load() && callback3Started.Load()
+	}, 3*time.Second, 100*time.Millisecond, "All callbacks should start")
+
+	// Cancel context to trigger leadership loss
+	cancel()
+
+	// Wait for graceful shutdown using Wait()
+	err = elector.Wait()
+	assert.ErrorIs(t, err, context.Canceled)
+
+	// Verify all callbacks completed
+	assert.True(t, callback1Done.Load(), "Callback 1 should complete")
+	assert.True(t, callback2Done.Load(), "Callback 2 should complete")
+	assert.True(t, callback3Done.Load(), "Callback 3 should complete")
+}
+
+// TestLeaderElector_CallbackPanic verifies that a panic in one callback
+// doesn't affect other callbacks or crash the leader elector.
+func TestLeaderElector_CallbackPanic(t *testing.T) {
+	db, cleanup := testutils.SetupPostgresWithMigrations(t, service.DatastoreSpec())
+	defer cleanup()
+
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	var goodCallbackStarted, goodCallbackDone atomic.Bool
+
+	panicCallback := func(ctx context.Context) {
+		panic("intentional panic for testing")
+	}
+
+	goodCallback := func(ctx context.Context) {
+		goodCallbackStarted.Store(true)
+		<-ctx.Done()
+		goodCallbackDone.Store(true)
+	}
+
+	elector, err := leader.NewLeaderElector(
+		db,
+		ctx,
+		"test-lock-panic",
+		10*time.Second,
+		1*time.Second,
+	)
+	require.NoError(t, err)
+
+	elector.OnBecomeLeader(panicCallback)
+	elector.OnBecomeLeader(goodCallback)
+
+	// Wait for good callback to start (despite panic in other callback)
+	require.Eventually(t, func() bool {
+		return goodCallbackStarted.Load()
+	}, 3*time.Second, 100*time.Millisecond, "Good callback should start despite panic")
+
+	// Cancel context
+	cancel()
+
+	// Wait for graceful shutdown using Wait()
+	err = elector.Wait()
+	assert.ErrorIs(t, err, context.Canceled)
+
+	assert.True(t, goodCallbackDone.Load(), "Good callback should complete")
+}
+
+// TestLeaderElector_CallbackEarlyExit verifies that if callbacks exit early,
+// leadership continues (keeps the lock) until context is cancelled.
+// This is the new behavior per the plan - no longer releases lock when callbacks exit.
+func TestLeaderElector_CallbackEarlyExit(t *testing.T) {
+	db, cleanup := testutils.SetupPostgresWithMigrations(t, service.DatastoreSpec())
+	defer cleanup()
+
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	var earlyExitStarted atomic.Bool
+
+	earlyExitCallback := func(ctx context.Context) {
+		earlyExitStarted.Store(true)
+		// Exit immediately without waiting for context
+	}
+
+	elector, err := leader.NewLeaderElector(
+		db,
+		ctx,
+		"test-lock-early",
+		10*time.Second,
+		1*time.Second,
+	)
+	require.NoError(t, err)
+
+	elector.OnBecomeLeader(earlyExitCallback)
+
+	// Wait for callback to start
+	require.Eventually(t, func() bool {
+		return earlyExitStarted.Load()
+	}, 3*time.Second, 100*time.Millisecond, "Callback should start")
+
+	// Give some time to ensure leadership continues despite early exit
+	// In the old behavior, this would cause the lock to be released
+	// In the new behavior, the lock is kept until context cancels
+	time.Sleep(1 * time.Second)
+
+	// Cancel context to trigger shutdown
+	cancel()
+
+	// Wait for graceful shutdown using Wait()
+	err = elector.Wait()
+	assert.ErrorIs(t, err, context.Canceled)
+}
+
+// TestLeaderElector_CallbackRegisteredAfterLeadership verifies that callbacks
+// registered after leadership is already acquired are invoked immediately.
+func TestLeaderElector_CallbackRegisteredAfterLeadership(t *testing.T) {
+	db, cleanup := testutils.SetupPostgresWithMigrations(t, service.DatastoreSpec())
+	defer cleanup()
+
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	var callback1Started, callback2Started atomic.Bool
+	var callback1Done, callback2Done atomic.Bool
+
+	callback1 := func(ctx context.Context) {
+		callback1Started.Store(true)
+		<-ctx.Done()
+		callback1Done.Store(true)
+	}
+
+	callback2 := func(ctx context.Context) {
+		callback2Started.Store(true)
+		<-ctx.Done()
+		callback2Done.Store(true)
+	}
+
+	elector, err := leader.NewLeaderElector(
+		db,
+		ctx,
+		"test-lock-late-register",
+		10*time.Second,
+		1*time.Second,
+	)
+	require.NoError(t, err)
+
+	// Register first callback
+	elector.OnBecomeLeader(callback1)
+
+	// Wait for leadership acquisition
+	require.Eventually(t, func() bool {
+		return callback1Started.Load()
+	}, 3*time.Second, 100*time.Millisecond, "Callback 1 should start")
+
+	// Now register a second callback while already leader
+	elector.OnBecomeLeader(callback2)
+
+	// The second callback should start immediately
+	require.Eventually(t, func() bool {
+		return callback2Started.Load()
+	}, 1*time.Second, 50*time.Millisecond, "Callback 2 should start immediately after registration")
+
+	// Cancel context
+	cancel()
+
+	// Wait for graceful shutdown
+	err = elector.Wait()
+	assert.ErrorIs(t, err, context.Canceled)
+
+	// Both callbacks should have completed
+	assert.True(t, callback1Done.Load(), "Callback 1 should complete")
+	assert.True(t, callback2Done.Load(), "Callback 2 should complete")
+}
+
+// TestLeaderElector_WaitReturnsCorrectError verifies that Wait() returns
+// the correct error from the background goroutine.
+func TestLeaderElector_WaitReturnsCorrectError(t *testing.T) {
+	db, cleanup := testutils.SetupPostgresWithMigrations(t, service.DatastoreSpec())
+	defer cleanup()
+
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	elector, err := leader.NewLeaderElector(
+		db,
+		ctx,
+		"test-lock-wait-error",
+		10*time.Second,
+		1*time.Second,
+	)
+	require.NoError(t, err)
+
+	// Cancel immediately
+	cancel()
+
+	// Wait should return context.Canceled
+	err = elector.Wait()
+	assert.ErrorIs(t, err, context.Canceled)
+}
+
+// TestLeaderElector_GoroutineStartsImmediately verifies that the background
+// goroutine starts immediately from the constructor.
+func TestLeaderElector_GoroutineStartsImmediately(t *testing.T) {
+	db, cleanup := testutils.SetupPostgresWithMigrations(t, service.DatastoreSpec())
+	defer cleanup()
+
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	var becameLeader atomic.Bool
+
+	elector, err := leader.NewLeaderElector(
+		db,
+		ctx,
+		"test-lock-immediate",
+		10*time.Second,
+		1*time.Second,
+	)
+	require.NoError(t, err)
+
+	// Register callback after construction
+	elector.OnBecomeLeader(func(ctx context.Context) {
+		becameLeader.Store(true)
+		<-ctx.Done()
+	})
+
+	// Should acquire leadership without explicitly calling Run()
+	require.Eventually(t, func() bool {
+		return becameLeader.Load()
+	}, 3*time.Second, 100*time.Millisecond, "Should acquire leadership automatically")
+
+	cancel()
+	err = elector.Wait()
+	assert.ErrorIs(t, err, context.Canceled)
 }
