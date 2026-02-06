@@ -132,7 +132,7 @@ func (p *{{.EntityName}}CatalogPlugin) Init(ctx context.Context, cfg plugin.Conf
 func (p *{{.EntityName}}CatalogPlugin) initServices(db *gorm.DB) (service.Services, error) {
 	spec := service.DatastoreSpec()
 
-	connector, err := datastore.NewConnector("embedmd", &embedmd.EmbedMDConfig{DB: db})
+	connector, err := datastore.NewConnector("embedmd", &embedmd.EmbedMDConfig{DB: db, SkipMigrations: true})
 	if err != nil {
 		return service.Services{}, fmt.Errorf("failed to create connector: %w", err)
 	}

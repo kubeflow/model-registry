@@ -180,7 +180,7 @@ func (p *ModelCatalogPlugin) initServices(db *gorm.DB) (service.Services, error)
 // This uses the embedmd connector logic to initialize repositories.
 func (p *ModelCatalogPlugin) createRepoSet(db *gorm.DB, spec *datastore.Spec) (datastore.RepoSet, error) {
 	// Create a connector that uses the existing database
-	connector, err := datastore.NewConnector("embedmd", &embedmd.EmbedMDConfig{DB: db})
+	connector, err := datastore.NewConnector("embedmd", &embedmd.EmbedMDConfig{DB: db, SkipMigrations: true})
 	if err != nil {
 		return nil, fmt.Errorf("failed to create connector: %w", err)
 	}
