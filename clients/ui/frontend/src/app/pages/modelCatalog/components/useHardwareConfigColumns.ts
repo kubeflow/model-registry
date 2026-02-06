@@ -20,11 +20,24 @@ import {
   HARDWARE_CONFIG_COLUMNS_STORAGE_KEY,
 } from './HardwareConfigurationTableColumns';
 
+/** Controlled sort props for the Table component */
+export interface ControlledTableSortProps {
+  sortIndex: number;
+  sortDirection: 'asc' | 'desc';
+  onSortIndexChange: (index: number) => void;
+  onSortDirectionChange: (direction: 'asc' | 'desc') => void;
+}
+
 interface UseHardwareConfigColumnsResult {
   /** Final columns to render in the table (sticky + visible managed columns) */
   columns: HardwareConfigColumn[];
   /** Result from useManageColumns hook, to be passed directly to ManageColumnsModal */
   manageColumnsResult: UseManageColumnsResult<CatalogPerformanceMetricsArtifact>;
+  /**
+   * Lifted sort state.
+   * Simplified by reusing the interface we'll use for the Table assertion.
+   */
+  sortState: ControlledTableSortProps;
 }
 
 /**
@@ -55,6 +68,10 @@ export const useHardwareConfigColumns = (
   // Track the previous latency filter to detect changes
   const prevLatencyFieldRef = React.useRef<LatencyMetricFieldName | undefined>(undefined);
 
+  // sort state
+  const [sortIndex, setSortIndex] = React.useState<number>(0);
+  const [sortDirection, setSortDirection] = React.useState<'asc' | 'desc'>('asc');
+
   // Separate sticky columns (always visible) from manageable columns
   const { stickyColumns, manageableColumns } = React.useMemo(() => {
     const sticky = hardwareConfigColumns.filter((col) => STICKY_COLUMN_FIELDS.includes(col.field));
@@ -74,7 +91,13 @@ export const useHardwareConfigColumns = (
     defaultVisibleColumnIds: DEFAULT_VISIBLE_COLUMN_FIELDS,
   });
 
-  // Effect to update visible columns when latency filter changes
+  // Combine sticky + visible managed columns
+  const columns = React.useMemo(
+    (): HardwareConfigColumn[] => [...stickyColumns, ...manageColumnsResult.visibleColumns],
+    [stickyColumns, manageColumnsResult.visibleColumns],
+  );
+
+  // Combined effect to update visible columns AND sort when latency filter changes
   React.useEffect(() => {
     // Only react to changes, not initial mount
     if (prevLatencyFieldRef.current === activeLatencyField) {
@@ -96,33 +119,59 @@ export const useHardwareConfigColumns = (
     // - Keep all non-latency/non-TPS columns
     // - Remove all latency and TPS columns
     // - Add the active latency column and matching TPS column
-    const newVisibleIds = manageColumnsResult.visibleColumnIds.filter((id) => {
-      const isLatencyColumn = isLatencyColumnField(id);
-      const isTpsColumn = isTpsColumnField(id);
-      return !isLatencyColumn && !isTpsColumn;
-    });
+    const newVisibleIds = manageColumnsResult.visibleColumnIds.filter(
+      (id) => !isLatencyColumnField(id) && !isTpsColumnField(id),
+    );
 
-    // Add the active latency column (if not already present)
-    if (!newVisibleIds.includes(activePropertyKey)) {
-      newVisibleIds.push(activePropertyKey);
+    // Use a Set to ensure uniqueness without manual .includes() checks
+    const updatedIds = Array.from(
+      new Set([...newVisibleIds, activePropertyKey, matchingTpsPropertyKey]),
+    );
+
+    manageColumnsResult.setVisibleColumnIds(updatedIds);
+
+    const finalColumns = [
+      ...stickyColumns,
+      ...manageableColumns.filter((c) => updatedIds.includes(c.field)),
+    ];
+    const newIndex = finalColumns.findIndex((col) => col.field === activePropertyKey);
+
+    if (newIndex !== -1) {
+      setSortIndex(newIndex);
+      setSortDirection('asc');
+    }
+  }, [activeLatencyField, manageColumnsResult, stickyColumns, manageableColumns]);
+
+  // Ensure sort is set correctly when columns are ready (handles initial mount case)
+  React.useEffect(() => {
+    if (!activeLatencyField || columns.length === 0) {
+      return;
     }
 
-    // Add the matching TPS column (if not already present)
-    if (!newVisibleIds.includes(matchingTpsPropertyKey)) {
-      newVisibleIds.push(matchingTpsPropertyKey);
+    const parsed = parseLatencyFilterKey(activeLatencyField);
+    const activePropertyKey = parsed.propertyKey;
+    const currentIndex = columns.findIndex((col) => col.field === activePropertyKey);
+
+    // Only update if the column exists and sort isn't already set correctly
+    if (currentIndex !== -1 && (sortIndex !== currentIndex || sortDirection !== 'asc')) {
+      setSortIndex(currentIndex);
+      setSortDirection('asc');
     }
+  }, [activeLatencyField, columns, sortIndex, sortDirection]);
 
-    manageColumnsResult.setVisibleColumnIds(newVisibleIds);
-  }, [activeLatencyField, manageColumnsResult]);
-
-  // Combine sticky + visible managed columns
-  const columns = React.useMemo(
-    (): HardwareConfigColumn[] => [...stickyColumns, ...manageColumnsResult.visibleColumns],
-    [stickyColumns, manageColumnsResult.visibleColumns],
+  const sortState = React.useMemo(
+    () => ({
+      sortIndex,
+      sortDirection,
+      onSortIndexChange: setSortIndex,
+      onSortDirectionChange: setSortDirection,
+    }),
+    [sortIndex, sortDirection],
   );
 
   return {
     columns,
     manageColumnsResult,
+    sortState,
   };
 };
