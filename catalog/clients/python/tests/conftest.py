@@ -113,7 +113,7 @@ _MAX_PARENT_LEVELS = 10
 
 
 @pytest.fixture(scope="session")
-def root(request) -> Path:
+def root(request) -> Path | None:
     """Get repository root directory.
 
     Navigates up from catalog/clients/python to find the repo root.
@@ -122,6 +122,7 @@ def root(request) -> Path:
     Raises:
         RuntimeError: If the repository root cannot be found.
     """
+
     current = request.config.rootpath
     # Walk up looking for .git directory (repo root marker)
     for _ in range(_MAX_PARENT_LEVELS):
@@ -290,14 +291,15 @@ def local_testdata_dir() -> Path:
 
 
 @pytest.fixture(scope="session")
-def test_catalog_data(root: Path) -> dict:
+def test_catalog_data(pytestconfig: pytest.Config, kind_cluster: bool) -> dict | None:
     """Load test catalog data used by E2E tests.
 
     Returns:
         Dictionary containing the test catalog YAML data.
     """
-    test_catalog_path = (
-        root / "manifests" / "kustomize" / "options" / "catalog" / "overlays" / "e2e" / "test-catalog.yaml"
-    )
-    with open(test_catalog_path) as f:
-        return yaml.safe_load(f)
+    if kind_cluster:
+        test_catalog_path = (
+            Path(pytestconfig.rootpath) / "../../.." / "manifests" / "kustomize" / "options" / "catalog" / "overlays" / "e2e" / "test-catalog.yaml"
+        )
+        with open(test_catalog_path) as f:
+            return yaml.safe_load(f)
