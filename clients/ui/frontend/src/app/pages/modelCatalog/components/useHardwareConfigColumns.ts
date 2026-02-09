@@ -69,7 +69,7 @@ export const useHardwareConfigColumns = (
   const prevLatencyFieldRef = React.useRef<LatencyMetricFieldName | undefined>(undefined);
 
   // sort state
-  const [sortIndex, setSortIndex] = React.useState<number>(0);
+  const [sortColumnField, setSortColumnField] = React.useState<string | null>(null);
   const [sortDirection, setSortDirection] = React.useState<'asc' | 'desc'>('asc');
 
   // Separate sticky columns (always visible) from manageable columns
@@ -130,16 +130,8 @@ export const useHardwareConfigColumns = (
 
     manageColumnsResult.setVisibleColumnIds(updatedIds);
 
-    const finalColumns = [
-      ...stickyColumns,
-      ...manageableColumns.filter((c) => updatedIds.includes(c.field)),
-    ];
-    const newIndex = finalColumns.findIndex((col) => col.field === activePropertyKey);
-
-    if (newIndex !== -1) {
-      setSortIndex(newIndex);
-      setSortDirection('asc');
-    }
+    setSortColumnField(activePropertyKey);
+    setSortDirection('asc');
   }, [activeLatencyField, manageColumnsResult, stickyColumns, manageableColumns]);
 
   // Ensure sort is set correctly when columns are ready (handles initial mount case)
@@ -150,24 +142,35 @@ export const useHardwareConfigColumns = (
 
     const parsed = parseLatencyFilterKey(activeLatencyField);
     const activePropertyKey = parsed.propertyKey;
-    const currentIndex = columns.findIndex((col) => col.field === activePropertyKey);
 
     // Only update if the column exists and sort isn't already set correctly
-    if (currentIndex !== -1 && (sortIndex !== currentIndex || sortDirection !== 'asc')) {
-      setSortIndex(currentIndex);
+    const columnExists = columns.some((col) => col.field === activePropertyKey);
+    if (columnExists && (sortColumnField !== activePropertyKey || sortDirection !== 'asc')) {
+      setSortColumnField(activePropertyKey);
       setSortDirection('asc');
     }
-  }, [activeLatencyField, columns, sortIndex, sortDirection]);
+  }, [activeLatencyField, columns, sortColumnField, sortDirection]);
 
-  const sortState = React.useMemo(
-    () => ({
-      sortIndex,
+  const sortState = React.useMemo(() => {
+    const sortIndex =
+      sortColumnField !== null ? columns.findIndex((col) => col.field === sortColumnField) : -1;
+
+    // Translate sortIndex back to sortColumnField when Table calls the callback
+    const onSortIndexChange = (index: number) => {
+      if (index >= 0 && index < columns.length) {
+        setSortColumnField(columns[index].field);
+      } else {
+        setSortColumnField(null);
+      }
+    };
+
+    return {
+      sortIndex: sortIndex >= 0 ? sortIndex : 0,
       sortDirection,
-      onSortIndexChange: setSortIndex,
+      onSortIndexChange,
       onSortDirectionChange: setSortDirection,
-    }),
-    [sortIndex, sortDirection],
-  );
+    };
+  }, [sortColumnField, sortDirection, columns]);
 
   return {
     columns,
