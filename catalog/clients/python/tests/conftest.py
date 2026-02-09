@@ -291,15 +291,14 @@ def local_testdata_dir() -> Path:
 
 
 @pytest.fixture(scope="session")
-def test_catalog_data(pytestconfig: pytest.Config, kind_cluster: bool) -> dict | None:
+def test_catalog_data(pytestconfig: pytest.Config) -> dict | None:
     """Load test catalog data used by E2E tests.
 
     Returns:
         Dictionary containing the test catalog YAML data.
     """
-    if kind_cluster:
-        test_catalog_path = (
-            Path(pytestconfig.rootpath) / "../../.." / "manifests" / "kustomize" / "options" / "catalog" / "overlays" / "e2e" / "test-catalog.yaml"
-        )
-        with open(test_catalog_path) as f:
-            return yaml.safe_load(f)
+    test_catalog_path = (
+        Path(pytestconfig.rootpath) / "../../.." / "manifests" / "kustomize" / "options" / "catalog" / "overlays" / "e2e" / "test-catalog.yaml"
+    )
+    with open(test_catalog_path) as f:
+        return yaml.safe_load(f)
