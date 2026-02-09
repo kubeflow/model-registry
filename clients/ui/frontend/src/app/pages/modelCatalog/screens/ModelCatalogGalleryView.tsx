@@ -5,7 +5,8 @@ import {
   EmptyState,
   EmptyStateVariant,
   Flex,
-  Gallery,
+  Grid,
+  GridItem,
   Spinner,
   Title,
 } from '@patternfly/react-core';
@@ -222,16 +223,17 @@ const ModelCatalogGalleryView: React.FC<ModelCatalogPageProps> = ({
   return (
     <>
       <ScrollViewOnMount shouldScroll scrollToTop />
-      <Gallery hasGutter minWidths={{ default: '300px' }}>
+      <Grid hasGutter>
         {catalogModels.items.map((model: CatalogModel) => (
-          <ModelCatalogCard
-            key={`${model.name}/${model.source_id}`}
-            model={model}
-            source={getSourceFromSourceId(model.source_id || '', catalogSources)}
-            truncate
-          />
+          <GridItem key={`${model.name}/${model.source_id}`} sm={6} md={6} lg={6} xl={6} xl2={3}>
+            <ModelCatalogCard
+              model={model}
+              source={getSourceFromSourceId(model.source_id || '', catalogSources)}
+              truncate
+            />
+          </GridItem>
         ))}
-      </Gallery>
+      </Grid>
       {catalogModels.hasMore && (
         <Bullseye className="pf-v6-u-mt-lg">
           {catalogModels.isLoadingMore ? (
