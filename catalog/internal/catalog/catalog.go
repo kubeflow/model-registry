@@ -9,20 +9,13 @@ import (
 )
 
 type ListModelsParams struct {
-	Query                 string
-	FilterQuery           string
-	SourceIDs             []string
-	SourceLabels          []string
-	PageSize              int32
-	OrderBy               model.OrderByField
-	SortOrder             model.SortOrder
-	NextPageToken         *string
-	Recommended           bool
-	TargetRPS             int32
-	LatencyProperty       string
-	RPSProperty           string
-	HardwareCountProperty string
-	HardwareTypeProperty  string
+	Query         string
+	FilterQuery   string
+	SourceIDs     []string
+	PageSize      int32
+	OrderBy       model.OrderByField
+	SortOrder     model.SortOrder
+	NextPageToken *string
 }
 
 type ListArtifactsParams struct {
@@ -63,7 +56,8 @@ type APIProvider interface {
 	// FindModelsWithRecommendedLatency returns models sorted by recommended latency using Pareto filtering.
 	// Models without computable latency appear at the end of results.
 	// If sourceIDs is provided, filter models by source IDs.
-	FindModelsWithRecommendedLatency(ctx context.Context, pagination mrmodels.Pagination, paretoParams dbmodels.ParetoFilteringParams, sourceIDs []string) (*model.CatalogModelList, error)
+	// If query is provided, filter models by text search.
+	FindModelsWithRecommendedLatency(ctx context.Context, pagination mrmodels.Pagination, paretoParams dbmodels.ParetoFilteringParams, sourceIDs []string, query string) (*model.CatalogModelList, error)
 
 	// GetArtifacts returns all artifacts for a particular model. If no
 	// model is found with that name, it returns nil. If the model is

@@ -229,6 +229,21 @@ func (m *ModelCatalogServiceAPIService) FindModels(ctx context.Context, recommen
 		return ErrorResponse(http.StatusBadRequest, err), err
 	}
 
+	// Convert sourceLabels to sourceIDs
+	if len(sourceIDs) == 0 && len(sourceLabels) > 0 {
+		sources := m.sources.ByLabel(sourceLabels)
+		if len(sources) == 0 {
+			return Response(http.StatusOK, model.CatalogModelList{
+				Items:    []model.CatalogModel{},
+				PageSize: pageSizeInt,
+			}), nil
+		}
+		sourceIDs = make([]string, len(sources))
+		for i, source := range sources {
+			sourceIDs[i] = source.Id
+		}
+	}
+
 	// Handle recommended latency sorting
 	if recommended {
 		// Build Pareto filtering parameters with defaults
@@ -272,7 +287,7 @@ func (m *ModelCatalogServiceAPIService) FindModels(ctx context.Context, recommen
 		}
 
 		// Use recommended latency sorting (ignores orderBy)
-		models, err := m.provider.FindModelsWithRecommendedLatency(ctx, pagination, paretoParams, sourceIDs)
+		models, err := m.provider.FindModelsWithRecommendedLatency(ctx, pagination, paretoParams, sourceIDs, q)
 		if err != nil {
 			return ErrorResponse(http.StatusInternalServerError, fmt.Errorf("failed to find models with recommended latency: %w", err)), err
 		}
@@ -286,20 +301,13 @@ func (m *ModelCatalogServiceAPIService) FindModels(ctx context.Context, recommen
 	}
 
 	listModelsParams := catalog.ListModelsParams{
-		Query:                 q,
-		FilterQuery:           filterQuery,
-		SourceIDs:             sourceIDs,
-		SourceLabels:          sourceLabels,
-		PageSize:              pageSizeInt,
-		OrderBy:               orderBy,
-		SortOrder:             sortOrder,
-		NextPageToken:         &nextPageToken,
-		Recommended:           recommended,
-		TargetRPS:             targetRPS,
-		LatencyProperty:       latencyProperty,
-		RPSProperty:           rpsProperty,
-		HardwareCountProperty: hardwareCountProperty,
-		HardwareTypeProperty:  hardwareTypeProperty,
+		Query:         q,
+		FilterQuery:   filterQuery,
+		SourceIDs:     sourceIDs,
+		PageSize:      pageSizeInt,
+		OrderBy:       orderBy,
+		SortOrder:     sortOrder,
+		NextPageToken: &nextPageToken,
 	}
 
 	models, err := m.provider.ListModels(ctx, listModelsParams)
