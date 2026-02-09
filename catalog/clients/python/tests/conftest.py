@@ -113,7 +113,7 @@ _MAX_PARENT_LEVELS = 10
 
 
 @pytest.fixture(scope="session")
-def root(request) -> Path | None:
+def root(request) -> Path:
     """Get repository root directory.
 
     Navigates up from catalog/clients/python to find the repo root.
@@ -291,7 +291,7 @@ def local_testdata_dir() -> Path:
 
 
 @pytest.fixture(scope="session")
-def test_catalog_data(pytestconfig: pytest.Config) -> dict | None:
+def test_catalog_data(pytestconfig: pytest.Config) -> dict:
     """Load test catalog data used by E2E tests.
 
     Returns:

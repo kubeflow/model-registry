@@ -115,6 +115,7 @@ class TestModelSearch:
         assert "items" in response
 
         if kind_cluster:
+            # Validate against test data only for Kind clusters
             is_valid, errors = validate_search_results_against_test_data(
                 api_response=response,
                 search_term=search_term,
