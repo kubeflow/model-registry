@@ -258,6 +258,30 @@ paths:
         "500":
           $ref: "#/components/responses/InternalServerError"
       operationId: findMcpServersFilterOptions
+  /api/model_catalog/v1alpha1/mcp_servers/{server_id}:
+    description: >-
+      The REST endpoint/path used to get an `McpServer`.
+    get:
+      summary: Get an `McpServer`.
+      tags:
+        - ModelCatalogService
+      responses:
+        "200":
+          $ref: "#/components/responses/McpServerResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+      operationId: getMcpServer
+    parameters:
+      - name: server_id
+        description: A unique identifier for an `McpServer`.
+        schema:
+          type: string
+        in: path
+        required: true
   /api/model_catalog/v1alpha1/sources/{source_id}/models/{model_name+}:
     description: >-
       The REST endpoint/path used to get a `CatalogModel`.
@@ -963,6 +987,12 @@ components:
           schema:
             $ref: "#/components/schemas/McpServerList"
       description: A response containing a list of MCP server entities.
+    McpServerResponse:
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/McpServer"
+      description: A response containing an `McpServer` entity.
     FilterOptionsResponse:
       content:
         application/json:
