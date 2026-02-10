@@ -46,6 +46,7 @@ class RESTResponse(io.IOBase):
 
 class RESTClientObject:
     def __init__(self, configuration) -> None:
+
         # maxsize is number of requests to host that are allowed in parallel
         self.maxsize = configuration.connection_pool_maxsize
 
