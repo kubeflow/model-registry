@@ -290,7 +290,7 @@ paths:
       tags:
         - ModelCatalogService
       parameters:
-        - $ref: "#/components/parameters/filterQuery"
+        - $ref: "#/components/parameters/mcpToolFilterQuery"
         - $ref: "#/components/parameters/pageSize"
         - $ref: "#/components/parameters/orderBy"
         - $ref: "#/components/parameters/sortOrder"
@@ -992,6 +992,7 @@ components:
       properties:
         uri:
           type: string
+          format: uri
           description: OCI image URI for local deployment.
     McpEndpoints:
       type: object
@@ -1347,7 +1348,7 @@ components:
     mcpServerFilterQuery:
       examples:
         mcpServerFilterQuery:
-          value: "license='Apache 2.0' AND verifiedSource=true"
+          value: "license='Apache 2.0' AND securityIndicators.verifiedSource=true"
       name: filterQuery
       description: |
         A SQL-like query string to filter MCP servers.
@@ -1364,6 +1365,30 @@ components:
         - `verifiedSource = true`
         - `provider ILIKE "%local%"`
         - `(license = "Apache 2.0" OR license = "MIT") AND verifiedSource = true`
+      schema:
+        type: string
+      in: query
+      required: false
+    mcpToolFilterQuery:
+      examples:
+        mcpToolFilterQuery:
+          value: "accessType='read_only' AND name ILIKE '%list%'"
+      name: filterQuery
+      description: |
+        A SQL-like query string to filter MCP tools for a specific MCP server.
+
+        **Supported Operators:**
+        - Comparison: `=`, `!=`, `<>`, `>`, `<`, `>=`, `<=`
+        - Pattern matching: `LIKE`, `ILIKE` (case-insensitive)
+        - Set membership: `IN`
+        - Logical: `AND`, `OR`
+        - Grouping: `()` for complex expressions
+
+        **Examples:**
+        - `name = "list_models"`
+        - `accessType = "read_only"`
+        - `name ILIKE "%search%"`
+        - `(accessType = "read_only" OR accessType = "execute") AND name LIKE "%model%"`
       schema:
         type: string
       in: query
