@@ -5,6 +5,8 @@ import {
   CatalogArtifactType,
   CatalogFilterOptions,
   CatalogFilterOptionsList,
+  CatalogLabel,
+  CatalogLabelList,
   CatalogModel,
   CatalogModelArtifact,
   CatalogModelDetailsParams,
@@ -14,6 +16,7 @@ import {
   ModelCatalogStringFilterValueType,
   MetricsType,
   ModelCatalogFilterKey,
+  SourceLabel,
 } from '~/app/modelCatalogTypes';
 import { getLabels } from '~/app/pages/modelRegistry/screens/utils';
 import {
@@ -638,3 +641,111 @@ export const hasSourcesWithModels = (catalogSources: CatalogSourceList | null): 
 
 export const generateCategoryName = (name: string): string =>
   name.toLowerCase().endsWith('models') ? name : `${name} models`;
+
+/**
+ * Finds a label from the catalog labels list that matches the given source label name.
+ * Handles the special case where sourceLabel is 'null' (other/unlabeled sources).
+ * @param sourceLabel The label string from a source (or SourceLabel.other for unlabeled sources)
+ * @param catalogLabels The list of catalog labels from the API
+ * @returns The matching CatalogLabel or undefined if not found
+ */
+export const findLabelData = (
+  sourceLabel: string | undefined,
+  catalogLabels: CatalogLabelList | null,
+): CatalogLabel | undefined => {
+  if (!catalogLabels?.items || !sourceLabel) {
+    return undefined;
+  }
+
+  // Special case: sourceLabel is 'null' (SourceLabel.other) - look for label with name: null
+  if (sourceLabel === SourceLabel.other) {
+    return catalogLabels.items.find((label) => label.name === null);
+  }
+
+  // Normal case: find label with matching name
+  return catalogLabels.items.find((label) => label.name === sourceLabel);
+};
+
+/**
+ * Gets the display name for a source label, using the catalog labels data if available.
+ * Falls back to the raw label name with " models" appended if no display name is found.
+ * @param sourceLabel The label string from a source (or SourceLabel.other for unlabeled sources)
+ * @param catalogLabels The list of catalog labels from the API
+ * @returns The display name to show in the UI
+ */
+export const getLabelDisplayName = (
+  sourceLabel: string | undefined,
+  catalogLabels: CatalogLabelList | null,
+): string => {
+  if (!sourceLabel) {
+    return '';
+  }
+
+  const labelData = findLabelData(sourceLabel, catalogLabels);
+
+  // If we have a displayName from the API, use it
+  if (labelData?.displayName) {
+    return labelData.displayName;
+  }
+
+  // Otherwise fall back to generating a name from the label
+  // For SourceLabel.other, this should not happen if the API is working correctly
+  // but we handle it gracefully
+  if (sourceLabel === SourceLabel.other) {
+    return 'Other models'; // fallback for the special null case
+  }
+
+  return generateCategoryName(sourceLabel);
+};
+
+/**
+ * Gets the description for a source label from the catalog labels data.
+ * @param sourceLabel The label string from a source (or SourceLabel.other for unlabeled sources)
+ * @param catalogLabels The list of catalog labels from the API
+ * @returns The description text or undefined if not found
+ */
+export const getLabelDescription = (
+  sourceLabel: string | undefined,
+  catalogLabels: CatalogLabelList | null,
+): string | undefined => {
+  const labelData = findLabelData(sourceLabel, catalogLabels);
+  return labelData?.description;
+};
+
+/**
+ * Orders source labels according to the order in the catalog labels list.
+ * Labels that appear in catalogLabels are ordered first (in the order they appear in the API),
+ * followed by any labels found on sources that don't appear in catalogLabels.
+ * @param sourceLabels Array of unique source labels from the sources
+ * @param catalogLabels The list of catalog labels from the API
+ * @returns Ordered array of source labels
+ */
+export const orderLabelsByPriority = (
+  sourceLabels: string[],
+  catalogLabels: CatalogLabelList | null,
+): string[] => {
+  if (!catalogLabels?.items) {
+    return sourceLabels;
+  }
+
+  const orderedLabels: string[] = [];
+  const remainingLabels = new Set(sourceLabels);
+
+  // First, add labels in the order they appear in catalogLabels
+  catalogLabels.items.forEach((catalogLabel) => {
+    // Skip the null entry (it's handled separately as "other models")
+    if (catalogLabel.name === null) {
+      return;
+    }
+
+    if (remainingLabels.has(catalogLabel.name)) {
+      orderedLabels.push(catalogLabel.name);
+      remainingLabels.delete(catalogLabel.name);
+    }
+  });
+
+  // Then add any remaining labels that weren't in catalogLabels
+  orderedLabels.push(...Array.from(remainingLabels));
+
+  return orderedLabels;
+};
