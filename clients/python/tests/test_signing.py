@@ -434,17 +434,18 @@ class TestSigningConfig:
     """Test SigningConfig class."""
 
     def test_loads_environment_variables(self, monkeypatch):
-        """Test constructor loads configuration from environment variables."""
-        monkeypatch.setenv("SIGNING_TUF_URL", "https://env-tuf.example.com")
-        monkeypatch.setenv("SIGNING_FULCIO_URL", "https://env-fulcio.example.com")
-        expected_path = "/etc/signing/oidc.jwt"
-        monkeypatch.setenv("SIGNING_IDENTITY_TOKEN_PATH", expected_path)
+        """Test constructor loads configuration from environment variables for the 4 service URLs."""
+        monkeypatch.setenv("SIGSTORE_TUF_URL", "https://env-tuf.example.com")
+        monkeypatch.setenv("SIGSTORE_FULCIO_URL", "https://env-fulcio.example.com")
+        monkeypatch.setenv("SIGSTORE_REKOR_URL", "https://env-rekor.example.com")
+        monkeypatch.setenv("SIGSTORE_TSA_URL", "https://env-tsa.example.com")
 
-        config = SigningConfig.from_env()
+        config = SigningConfig.create()
 
         assert config.tuf_url == "https://env-tuf.example.com"
         assert config.fulcio_url == "https://env-fulcio.example.com"
-        assert config.identity_token_path == Path(expected_path)
+        assert config.rekor_url == "https://env-rekor.example.com"
+        assert config.tsa_url == "https://env-tsa.example.com"
 
     def test_creates_config_from_kwargs(self):
         """Test creating config from keyword arguments."""
@@ -491,22 +492,20 @@ class TestSigningConfig:
         assert result["tuf_url"] == "https://tuf.example.com"
 
     def test_empty_string_env_vars_treated_as_none(self, monkeypatch):
-        """Test empty string environment variables are treated as None."""
-        # Set some env vars to empty strings
-        monkeypatch.setenv("SIGNING_TUF_URL", "")
-        monkeypatch.setenv("SIGNING_FULCIO_URL", "")
-        monkeypatch.setenv("SIGNING_IDENTITY_TOKEN_PATH", "")
-        monkeypatch.setenv("SIGNING_CACHE_DIR", "")
+        """Test empty string environment variables are treated as None for the 4 URL env vars."""
+        # Set URL env vars to empty strings (only these 4 use env vars now)
+        monkeypatch.setenv("SIGSTORE_TUF_URL", "")
+        monkeypatch.setenv("SIGSTORE_FULCIO_URL", "")
+        monkeypatch.setenv("SIGSTORE_TSA_URL", "")
         # Set one to a real value to verify it still works
-        monkeypatch.setenv("SIGNING_REKOR_URL", "https://rekor.example.com")
+        monkeypatch.setenv("SIGSTORE_REKOR_URL", "https://rekor.example.com")
 
-        config = SigningConfig.from_env()
+        config = SigningConfig.create()
 
         # Empty string env vars should be None
         assert config.tuf_url is None
         assert config.fulcio_url is None
-        assert config.identity_token_path is None
-        assert config.cache_dir is None
+        assert config.tsa_url is None
         # Non-empty env var should work
         assert config.rekor_url == "https://rekor.example.com"
 
@@ -524,17 +523,17 @@ class TestSigner:
         assert signer.config.tuf_url == "https://tuf.example.com"
         assert signer.config.fulcio_url == "https://fulcio.example.com"
 
-    def test_init_loads_from_env(self, monkeypatch):
+    def test_init_loads_create(self, monkeypatch):
         """Test __init__ loads from environment variables."""
-        monkeypatch.setenv("SIGNING_TUF_URL", "https://env-tuf.example.com")
+        monkeypatch.setenv("SIGSTORE_TUF_URL", "https://env-tuf.example.com")
         signer = Signer()
 
         assert signer.config.tuf_url == "https://env-tuf.example.com"
 
     def test_init_with_overrides(self, monkeypatch):
         """Test __init__ with override arguments over environment."""
-        monkeypatch.setenv("SIGNING_TUF_URL", "https://env-tuf.example.com")
-        monkeypatch.setenv("SIGNING_FULCIO_URL", "https://env-fulcio.example.com")
+        monkeypatch.setenv("SIGSTORE_TUF_URL", "https://env-tuf.example.com")
+        monkeypatch.setenv("SIGSTORE_FULCIO_URL", "https://env-fulcio.example.com")
 
         signer = Signer(
             fulcio_url="https://override-fulcio.example.com",
@@ -728,3 +727,212 @@ class TestImageSignerFromConfig:
 
         # ImageSigner uses 'root' not 'root_url'
         assert signer.root == "https://tuf.example.com/root.json"
+
+    def test_default_root_url_from_tuf_url(self, monkeypatch):
+        """Test root_url defaults to {tuf_url}/root.json."""
+        monkeypatch.setenv("SIGSTORE_TUF_URL", "https://tuf.example.com")
+
+        config = SigningConfig.create()
+
+        assert config.tuf_url == "https://tuf.example.com"
+        assert config.root_url == "https://tuf.example.com/root.json"
+
+    def test_explicit_root_url_overrides_default(self, monkeypatch):
+        """Test explicit root_url overrides the default."""
+        monkeypatch.setenv("SIGSTORE_TUF_URL", "https://tuf.example.com")
+
+        config = SigningConfig.create(root_url="https://custom.example.com/custom-root.json")
+
+        assert config.tuf_url == "https://tuf.example.com"
+        assert config.root_url == "https://custom.example.com/custom-root.json"
+
+    def test_default_k8s_token_path(self, tmp_path, monkeypatch):
+        """Test identity_token_path defaults to k8s service account token if it exists."""
+        # Create a fake k8s token file
+        k8s_token_dir = tmp_path / "var" / "run" / "secrets" / "kubernetes.io" / "serviceaccount"
+        k8s_token_dir.mkdir(parents=True)
+        k8s_token_path = k8s_token_dir / "token"
+        k8s_token_path.write_text("fake-k8s-token")
+
+        # Mock Path to use our temp directory
+        import model_registry.signing.config as config_module
+        original_path = config_module.Path
+
+        class MockPath(type(tmp_path)):  # type: ignore[misc]
+            def __new__(cls, *args):
+                if args and args[0] == "/var/run/secrets/kubernetes.io/serviceaccount/token":
+                    return original_path(k8s_token_path)
+                return original_path(*args)
+
+        monkeypatch.setattr(config_module, "Path", MockPath)
+
+        config = SigningConfig.create()
+
+        assert config.identity_token_path == k8s_token_path
+
+    def test_extract_values_from_token(self, tmp_path):
+        """Test extracting oidc_issuer, client_id, and certificate_identity from token."""
+        # Create a fake JWT token with the claims we want to extract
+        import base64
+        import json
+
+        header = base64.urlsafe_b64encode(b'{"alg":"RS256"}').decode().rstrip("=")
+        payload_dict = {
+            "iss": "https://issuer.example.com",
+            "aud": ["client-123", "client-456"],
+            "email": "user@example.com",
+            "sub": "user-subject-id",
+        }
+        payload = base64.urlsafe_b64encode(json.dumps(payload_dict).encode()).decode().rstrip("=")
+        signature = base64.urlsafe_b64encode(b"fake-signature").decode().rstrip("=")
+        token = f"{header}.{payload}.{signature}"
+
+        # Write token to a file
+        token_file = tmp_path / "token"
+        token_file.write_text(token)
+
+        config = SigningConfig.create(identity_token_path=token_file)
+
+        assert config.oidc_issuer == "https://issuer.example.com"
+        assert config.client_id == "client-123"  # First element of aud array
+        assert config.certificate_identity == "user@example.com"  # Prefers email over sub
+
+    def test_extract_sub_when_no_email_in_token(self, tmp_path):
+        """Test certificate_identity falls back to sub when email is not present."""
+        import base64
+        import json
+
+        header = base64.urlsafe_b64encode(b'{"alg":"RS256"}').decode().rstrip("=")
+        payload_dict = {
+            "iss": "https://issuer.example.com",
+            "aud": "client-123",
+            "sub": "user-subject-id",
+        }
+        payload = base64.urlsafe_b64encode(json.dumps(payload_dict).encode()).decode().rstrip("=")
+        signature = base64.urlsafe_b64encode(b"fake-signature").decode().rstrip("=")
+        token = f"{header}.{payload}.{signature}"
+
+        token_file = tmp_path / "token"
+        token_file.write_text(token)
+
+        config = SigningConfig.create(identity_token_path=token_file)
+
+        assert config.certificate_identity == "user-subject-id"  # Falls back to sub
+
+    def test_explicit_values_override_token_extraction(self, tmp_path):
+        """Test explicit values override token extraction."""
+        import base64
+        import json
+
+        header = base64.urlsafe_b64encode(b'{"alg":"RS256"}').decode().rstrip("=")
+        payload_dict = {
+            "iss": "https://issuer.example.com",
+            "aud": "client-123",
+            "email": "user@example.com",
+        }
+        payload = base64.urlsafe_b64encode(json.dumps(payload_dict).encode()).decode().rstrip("=")
+        signature = base64.urlsafe_b64encode(b"fake-signature").decode().rstrip("=")
+        token = f"{header}.{payload}.{signature}"
+
+        token_file = tmp_path / "token"
+        token_file.write_text(token)
+
+        config = SigningConfig.create(
+            identity_token_path=token_file,
+            oidc_issuer="https://custom-issuer.example.com",
+            client_id="custom-client",
+            certificate_identity="custom@example.com",
+        )
+
+        # Explicit values should win
+        assert config.oidc_issuer == "https://custom-issuer.example.com"
+        assert config.client_id == "custom-client"
+        assert config.certificate_identity == "custom@example.com"
+
+
+    def test_k8s_token_uses_sub_for_certificate_identity(self, tmp_path):
+        """Test Kubernetes service account token converts sub to certificate SAN format."""
+        import base64
+        import json
+
+        header = base64.urlsafe_b64encode(b'{"alg":"RS256"}').decode().rstrip("=")
+        payload_dict = {
+            "iss": "https://kubernetes.default.svc.cluster.local",
+            "aud": ["https://kubernetes.default.svc.cluster.local"],
+            "sub": "system:serviceaccount:my-namespace:my-serviceaccount",
+            "kubernetes.io": {
+                "namespace": "my-namespace",
+                "serviceaccount": {"name": "my-serviceaccount"},
+            },
+        }
+        payload = base64.urlsafe_b64encode(json.dumps(payload_dict).encode()).decode().rstrip("=")
+        signature = base64.urlsafe_b64encode(b"fake-signature").decode().rstrip("=")
+        token = f"{header}.{payload}.{signature}"
+
+        token_file = tmp_path / "token"
+        token_file.write_text(token)
+
+        config = SigningConfig.create(identity_token_path=token_file)
+
+        # For K8s tokens, should convert sub to certificate SAN format
+        assert config.certificate_identity == "https://kubernetes.io/namespaces/my-namespace/serviceaccounts/my-serviceaccount"
+        assert config.oidc_issuer == "https://kubernetes.default.svc.cluster.local"
+
+    def test_k8s_token_prefers_sub_over_email(self, tmp_path):
+        """Test Kubernetes token prefers sub over email even if email is present."""
+        import base64
+        import json
+
+        header = base64.urlsafe_b64encode(b'{"alg":"RS256"}').decode().rstrip("=")
+        payload_dict = {
+            "iss": "https://kubernetes.default.svc.cluster.local",
+            "aud": "https://kubernetes.default.svc.cluster.local",
+            "sub": "system:serviceaccount:my-namespace:my-serviceaccount",
+            "email": "user@example.com",  # This should be ignored for K8s tokens
+            "kubernetes.io": {
+                "namespace": "my-namespace",
+                "serviceaccount": {"name": "my-serviceaccount"},
+            },
+        }
+        payload = base64.urlsafe_b64encode(json.dumps(payload_dict).encode()).decode().rstrip("=")
+        signature = base64.urlsafe_b64encode(b"fake-signature").decode().rstrip("=")
+        token = f"{header}.{payload}.{signature}"
+
+        token_file = tmp_path / "token"
+        token_file.write_text(token)
+
+        config = SigningConfig.create(identity_token_path=token_file)
+
+        # Should use converted sub, not email, for K8s tokens
+        assert config.certificate_identity == "https://kubernetes.io/namespaces/my-namespace/serviceaccounts/my-serviceaccount"
+
+
+
+class TestTokenUtils:
+    """Test token utility functions."""
+
+    def test_k8s_sub_to_certificate_identity(self):
+        """Test converting Kubernetes sub claim to certificate SAN format."""
+        from model_registry.signing.token import k8s_sub_to_certificate_identity
+
+        result = k8s_sub_to_certificate_identity("system:serviceaccount:project2:wb2")
+        assert result == "https://kubernetes.io/namespaces/project2/serviceaccounts/wb2"
+
+    def test_k8s_sub_to_certificate_identity_with_different_namespace(self):
+        """Test conversion with different namespace and service account."""
+        from model_registry.signing.token import k8s_sub_to_certificate_identity
+
+        result = k8s_sub_to_certificate_identity("system:serviceaccount:my-namespace:my-serviceaccount")
+        assert result == "https://kubernetes.io/namespaces/my-namespace/serviceaccounts/my-serviceaccount"
+
+    def test_k8s_sub_to_certificate_identity_invalid_format(self):
+        """Test conversion with invalid format returns as-is."""
+        from model_registry.signing.token import k8s_sub_to_certificate_identity
+
+        # Not a K8s format
+        result = k8s_sub_to_certificate_identity("user@example.com")
+        assert result == "user@example.com"
+
+        # Missing parts
+        result = k8s_sub_to_certificate_identity("system:serviceaccount:namespace")
+        assert result == "system:serviceaccount:namespace"

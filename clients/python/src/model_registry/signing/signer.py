@@ -53,18 +53,18 @@ class Signer:
             signature_filename: Default signature filename (default: model.sig)
             ignore_paths: Default paths to ignore during signing
         """
-        self.config = SigningConfig.from_env(
+        self.config = SigningConfig.create(
             tuf_url=tuf_url,
             root_url=root_url,
             root_checksum=root_checksum,
-            identity_token_path=Path(identity_token_path) if identity_token_path is not None else None,
+            identity_token_path=identity_token_path,
             fulcio_url=fulcio_url,
             rekor_url=rekor_url,
             tsa_url=tsa_url,
             certificate_identity=certificate_identity,
             oidc_issuer=oidc_issuer,
             client_id=client_id,
-            cache_dir=Path(cache_dir) if cache_dir is not None else None,
+            cache_dir=cache_dir,
             signature_filename=signature_filename,
             ignore_paths=ignore_paths,
         )
