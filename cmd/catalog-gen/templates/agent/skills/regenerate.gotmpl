@@ -1,11 +1,16 @@
 # Regenerate {{.EntityName}} Catalog
 
+## Binary locations
+
+Both `catalog-gen` and `openapi-generator-cli` are in the repo's `bin/` directory.
+Resolve the repo root with `git rev-parse --show-toplevel` and use that to build paths.
+
 ## Steps
 
 ### Step 1: Regenerate from catalog.yaml
 
 ```bash
-catalog-gen generate
+"$(git rev-parse --show-toplevel)/bin/catalog-gen" generate
 ```
 
 This regenerates:

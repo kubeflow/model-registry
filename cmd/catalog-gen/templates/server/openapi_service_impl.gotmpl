@@ -27,12 +27,15 @@ var _ DefaultAPIServicer = &{{.EntityName}}CatalogServiceAPIService{}
 
 // List{{.EntityName}}s implements DefaultAPIServicer.List{{.EntityName}}s
 // This returns a paginated list of {{.EntityName}} entities.
-func (s *{{.EntityName}}CatalogServiceAPIService) List{{.EntityName}}s(ctx context.Context, pageSize int32, pageToken string, q string) (ImplResponse, error) {
+func (s *{{.EntityName}}CatalogServiceAPIService) List{{.EntityName}}s(ctx context.Context, pageSize int32, pageToken string, q string, filterQuery string, orderBy string, sortOrder string) (ImplResponse, error) {
 	listOptions := models.{{.EntityName}}ListOptions{
 		Query: &q,
 	}
 	listOptions.PageSize = &pageSize
 	listOptions.NextPageToken = &pageToken
+	listOptions.FilterQuery = &filterQuery
+	listOptions.OrderBy = &orderBy
+	listOptions.SortOrder = &sortOrder
 
 	result, err := s.services.{{.EntityName}}Repository.List(listOptions)
 	if err != nil {
@@ -87,6 +90,38 @@ func convertToOpenAPIModel(entity models.{{.EntityName}}) {{.EntityName}} {
 	}
 	if entity.GetID() != nil {
 		result.Id = fmt.Sprintf("%d", *entity.GetID())
+	}
+
+	// Extract base properties (description)
+	if entity.GetProperties() != nil {
+		for _, prop := range *entity.GetProperties() {
+			switch prop.Name {
+			case "description":
+				if prop.StringValue != nil {
+					result.Description = *prop.StringValue
+				}
+			}
+		}
+	}
+
+	// Extract custom properties
+	if entity.GetCustomProperties() != nil {
+		customProps := make(map[string]interface{})
+		for _, prop := range *entity.GetCustomProperties() {
+			switch {
+			case prop.StringValue != nil:
+				customProps[prop.Name] = *prop.StringValue
+			case prop.IntValue != nil:
+				customProps[prop.Name] = *prop.IntValue
+			case prop.DoubleValue != nil:
+				customProps[prop.Name] = *prop.DoubleValue
+			case prop.BoolValue != nil:
+				customProps[prop.Name] = *prop.BoolValue
+			}
+		}
+		if len(customProps) > 0 {
+			result.CustomProperties = customProps
+		}
 	}
 {{.PropConversions}}
 	return result

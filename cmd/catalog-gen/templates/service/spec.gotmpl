@@ -18,8 +18,8 @@ const (
 func DatastoreSpec() *datastore.Spec {
 	return datastore.NewSpec().
 		AddContext({{.EntityName}}TypeName, datastore.NewSpecType(New{{.EntityName}}Repository).
-			AddString("source_id").
-{{.PropertyDefs}}
+			AddString("source_id"){{if .PropertyDefs}}.
+{{.PropertyDefs}}{{else}},{{end}}
 		){{.ContextTrailingDot}}
 {{.ArtifactSpecs}}}
 

@@ -22,7 +22,7 @@ import (
 	"github.com/kubeflow/model-registry/pkg/catalog/plugin"
 
 	// Import plugins - their init() registers them
-	_ "github.com/kubeflow/model-registry/catalog/plugins/models"
+	_ "github.com/kubeflow/model-registry/catalog/plugins/model"
 	_ "github.com/kubeflow/model-registry/catalog/plugins/mcp"
 	// _ "github.com/kubeflow/model-registry/catalog/plugins/datasets"  // future
 )

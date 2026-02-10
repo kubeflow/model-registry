@@ -75,7 +75,7 @@ func generateOpenAPIComponents(config CatalogConfig) error {
 
 	data := map[string]any{
 		"EntityName":      entityName,
-		"Properties":      propDefs.String(),
+		"Properties":      strings.TrimSpace(propDefs.String()),
 		"RequiredFields":  requiredFields.String(),
 		"ArtifactSchemas": artifactSchemas.String(),
 	}

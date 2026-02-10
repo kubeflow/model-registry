@@ -28,6 +28,9 @@ catalog-gen generate
 make gen/openapi-server
 ```
 
+The regeneration automatically updates filter mappings so the new property
+is available in filterQuery expressions (e.g., `?filterQuery=newProp='value'`).
+
 ### Step 3: Update YAML Provider (if using YAML source)
 
 Edit `internal/catalog/providers/yaml_provider.go`:

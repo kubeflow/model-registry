@@ -70,6 +70,11 @@ func generate() error {
 		return fmt.Errorf("failed to generate datastore spec: %w", err)
 	}
 
+	// Generate filter mappings for filterQuery support
+	if err := generateFilterMappings(config); err != nil {
+		return fmt.Errorf("failed to generate filter mappings: %w", err)
+	}
+
 	// Generate OpenAPI components
 	if err := generateOpenAPIComponents(config); err != nil {
 		return fmt.Errorf("failed to generate OpenAPI components: %w", err)

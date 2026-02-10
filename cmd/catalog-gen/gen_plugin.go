@@ -9,6 +9,17 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
+// sanitizeCatalogName extracts a clean slug from a catalog name.
+// For example, "catalog/plugins/mcp" becomes "mcp", and "test-widgets" stays "test-widgets".
+// Slashes and dots are stripped, keeping only the last segment.
+func sanitizeCatalogName(name string) string {
+	// Take the last path segment if name contains slashes
+	name = filepath.Base(name)
+	// Replace any remaining non-alphanumeric chars (except hyphens/underscores) with underscores
+	name = strings.ReplaceAll(name, ".", "_")
+	return name
+}
+
 // initCatalogPlugin initializes a new catalog plugin for the unified catalog server.
 func initCatalogPlugin(name, entityName, packageName, outputDir string) error {
 	fmt.Printf("Initializing catalog: %s\n", name)
@@ -39,21 +50,19 @@ func initCatalogPlugin(name, entityName, packageName, outputDir string) error {
 		APIVersion: "catalog.kubeflow.org/v1alpha1",
 		Kind:       "CatalogConfig",
 		Metadata: CatalogMetadata{
-			Name: name,
+			Name: sanitizeCatalogName(name),
 		},
 		Spec: CatalogSpec{
 			Package: packageName,
 			Entity: EntityConfig{
-				Name: entityName,
-				Properties: []PropertyConfig{
-					{Name: "description", Type: "string"},
-				},
+				Name:       entityName,
+				Properties: []PropertyConfig{},
 			},
 			Providers: []ProviderConfig{
 				{Type: "yaml"},
 			},
 			API: APIConfig{
-				BasePath: fmt.Sprintf("/api/%s/v1alpha1", name),
+				BasePath: fmt.Sprintf("/api/%s_catalog/v1alpha1", sanitizeCatalogName(name)),
 				Port:     8081,
 			},
 		},
@@ -70,6 +79,16 @@ func initCatalogPlugin(name, entityName, packageName, outputDir string) error {
 	encoder.SetIndent(2)
 	if err := encoder.Encode(config); err != nil {
 		return fmt.Errorf("failed to write config: %w", err)
+	}
+	// Append a comment about BaseResource fields (YAML encoder doesn't support comments)
+	comment := `
+# The following fields are already included from BaseResource and should NOT
+# be added to properties above:
+#   name, id, externalId, description, customProperties,
+#   createTimeSinceEpoch, lastUpdateTimeSinceEpoch
+`
+	if _, err := configFile.WriteString(comment); err != nil {
+		return fmt.Errorf("failed to write config comment: %w", err)
 	}
 
 	// Change to output directory to use generate functions
@@ -158,6 +177,11 @@ func initCatalogPlugin(name, entityName, packageName, outputDir string) error {
 		return fmt.Errorf("failed to generate datastore spec: %w", err)
 	}
 
+	// Generate filter mappings for filterQuery support
+	if err := generateFilterMappings(config); err != nil {
+		return fmt.Errorf("failed to generate filter mappings: %w", err)
+	}
+
 	// Generate OpenAPI components
 	if err := generateOpenAPIComponents(config); err != nil {
 		return fmt.Errorf("failed to generate OpenAPI components: %w", err)
@@ -224,13 +248,19 @@ func generatePluginMakefile(config CatalogConfig) error {
 PACKAGE := %s
 CATALOG_NAME := %s
 PROJECT_ROOT := $(shell pwd)
+REPO_ROOT := $(shell git rev-parse --show-toplevel)
 
-# Use Docker by default, but allow local binary if available
-OPENAPI_GENERATOR ?= docker run --rm -v $(PROJECT_ROOT):/local -w /local openapitools/openapi-generator-cli:v7.13.0
+# Use local binary from repo bin/ if available, fall back to Docker
+OPENAPI_GENERATOR ?= $(if $(wildcard $(REPO_ROOT)/bin/openapi-generator-cli),$(REPO_ROOT)/bin/openapi-generator-cli,docker run --rm -v $(PROJECT_ROOT):/local -w /local openapitools/openapi-generator-cli:v7.13.0)
+CATALOG_GEN ?= $(if $(wildcard $(REPO_ROOT)/bin/catalog-gen),$(REPO_ROOT)/bin/catalog-gen,catalog-gen)
 
-.PHONY: all build test gen/openapi gen/openapi-server gen/openapi-client clean
+.PHONY: all build test gen/catalog gen/openapi gen/openapi-server gen/openapi-client clean
 
 all: gen/openapi-server build
+
+# Regenerate code from catalog.yaml
+gen/catalog:
+	$(CATALOG_GEN) generate
 
 build:
 	go build ./...
@@ -290,6 +320,37 @@ clean:
 
 // generatePluginREADME generates a README.md for the plugin.
 func generatePluginREADME(config CatalogConfig) error {
+	entityName := config.Spec.Entity.Name
+	lowerEntity := strings.ToLower(entityName)
+
+	// Build list of filterable properties
+	filterableProps := []string{"name", "externalId"}
+	for _, prop := range config.Spec.Entity.Properties {
+		lowerName := strings.ToLower(prop.Name)
+		if lowerName == "name" || lowerName == "externalid" || lowerName == "id" ||
+			lowerName == "createtimesinceepoch" || lowerName == "lastupdatetimesinceepoch" {
+			continue
+		}
+		filterableProps = append(filterableProps, prop.Name)
+	}
+
+	// Pick first custom property for example, or fallback
+	exampleProp := "name"
+	exampleValue := "'example'"
+	if len(config.Spec.Entity.Properties) > 0 {
+		for _, prop := range config.Spec.Entity.Properties {
+			if strings.ToLower(prop.Name) != "name" && strings.ToLower(prop.Name) != "externalid" {
+				exampleProp = prop.Name
+				if prop.Type == "integer" || prop.Type == "int" || prop.Type == "int64" || prop.Type == "number" {
+					exampleValue = "5"
+				} else {
+					exampleValue = "'example'"
+				}
+				break
+			}
+		}
+	}
+
 	content := fmt.Sprintf(`# %s Catalog Plugin
 
 This is a catalog plugin generated by catalog-gen for the unified catalog server.
@@ -341,6 +402,28 @@ go build ./cmd/catalog-server
 ./catalog-server --sources=./sources.yaml --listen=:8080
 `+"```"+`
 
+## Filtering
+
+List endpoints support advanced filtering via `+"`filterQuery`"+`:
+
+`+"```bash"+`
+# Filter by property
+curl "http://localhost:8080%s/%ss?filterQuery=%s=%s"
+
+# Multiple conditions
+curl "http://localhost:8080%s/%ss?filterQuery=%s=%s AND name LIKE '%%25server%%25'"
+
+# Pattern matching
+curl "http://localhost:8080%s/%ss?filterQuery=name LIKE '%%25server%%25'"
+
+# Ordering
+curl "http://localhost:8080%s/%ss?orderBy=name&sortOrder=DESC"
+`+"```"+`
+
+Supported operators: `+"`` = ``"+`, `+"`` != ``"+`, `+"`` > ``"+`, `+"`` < ``"+`, `+"`` >= ``"+`, `+"`` <= ``"+`, `+"`` LIKE ``"+`, `+"`` ILIKE ``"+`, `+"`` IN ``"+`, `+"`` AND ``"+`, `+"`` OR ``"+`
+
+Filterable properties: %s
+
 ## Development
 
 ### Adding Properties
@@ -367,9 +450,14 @@ catalog-gen add-artifact MyArtifact
 | `+"`internal/db/service/`"+` | Repository implementations |
 | `+"`internal/catalog/`"+` | Data loader and providers |
 | `+"`internal/server/openapi/`"+` | API handler implementations |
-`, config.Metadata.Name, config.Spec.Entity.Name, config.Spec.Package,
+`, config.Metadata.Name, entityName, config.Spec.Package,
 		config.Spec.API.BasePath, config.Spec.Package, config.Metadata.Name,
-		strings.ToLower(config.Spec.Entity.Name))
+		lowerEntity,
+		config.Spec.API.BasePath, lowerEntity, exampleProp, exampleValue,
+		config.Spec.API.BasePath, lowerEntity, exampleProp, exampleValue,
+		config.Spec.API.BasePath, lowerEntity,
+		config.Spec.API.BasePath, lowerEntity,
+		strings.Join(filterableProps, ", "))
 
 	return os.WriteFile("README.md", []byte(content), 0644)
 }
@@ -384,6 +472,7 @@ func generateClaudeSkills(config CatalogConfig) error {
 		"EntityName":      entityName,
 		"EntityNameLower": entityNameLower,
 		"Package":         config.Spec.Package,
+		"BasePath":        config.Spec.API.BasePath,
 		"HasArtifacts":    len(config.Spec.Artifacts) > 0,
 	}
 
@@ -408,6 +497,7 @@ func generateClaudeSkills(config CatalogConfig) error {
 		{TmplAgentCmdAddArtifactProp, ".claude/commands/add-artifact-property.md"},
 		{TmplAgentCmdRegenerate, ".claude/commands/regenerate.md"},
 		{TmplAgentCmdFixBuild, ".claude/commands/fix-build.md"},
+		{TmplAgentCmdGenTestdata, ".claude/commands/gen-testdata.md"},
 	}
 	for _, cmd := range commands {
 		if err := executeTemplate(cmd.tmpl, cmd.file, data); err != nil {
@@ -422,6 +512,7 @@ func generateClaudeSkills(config CatalogConfig) error {
 		{TmplAgentSkillAddArtifact, ".claude/skills/add-artifact.md"},
 		{TmplAgentSkillAddArtifactProp, ".claude/skills/add-artifact-property.md"},
 		{TmplAgentSkillRegenerate, ".claude/skills/regenerate.md"},
+		{TmplAgentSkillGenTestdata, ".claude/skills/gen-testdata.md"},
 	}
 	for _, skill := range skills {
 		if err := executeTemplate(skill.tmpl, skill.file, data); err != nil {

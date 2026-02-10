@@ -1,0 +1,10 @@
+Generate sample test data for {{.EntityName}}.
+
+Usage: /gen-testdata
+
+This will run `catalog-gen gen-testdata` to create:
+- testdata/{{.EntityNameLower}}s.yaml (sample entity data)
+- testdata/{{.EntityNameLower}}-sources.yaml (loader config)
+- testdata/test-sources.yaml (catalog server config)
+
+Follow the instructions in .claude/skills/gen-testdata.md

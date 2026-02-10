@@ -1,6 +1,6 @@
-// Package models provides the model catalog plugin for the unified catalog server.
+// Package model provides the model catalog plugin for the unified catalog server.
 // This plugin wraps the existing catalog internals and exposes them via the plugin interface.
-package models
+package model
 
 import (
 	"context"
@@ -24,7 +24,7 @@ import (
 
 const (
 	// PluginName is the identifier for this plugin.
-	PluginName = "models"
+	PluginName = "model"
 
 	// PluginVersion is the API version.
 	PluginVersion = "v1alpha1"
@@ -46,6 +46,11 @@ type ModelCatalogPlugin struct {
 // Name returns the plugin name.
 func (p *ModelCatalogPlugin) Name() string {
 	return PluginName
+}
+
+// SourceKey returns the config key used in sources.yaml catalogs map.
+func (p *ModelCatalogPlugin) SourceKey() string {
+	return "models"
 }
 
 // Version returns the plugin API version.

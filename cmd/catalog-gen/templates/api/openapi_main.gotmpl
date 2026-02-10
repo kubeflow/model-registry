@@ -27,6 +27,23 @@ paths:
           schema:
             type: string
           description: Search query
+        - name: filterQuery
+          in: query
+          schema:
+            type: string
+          description: SQL-like filter expression (e.g., "protocol = 'http' AND toolCount > 5")
+        - name: orderBy
+          in: query
+          schema:
+            type: string
+          description: Field to order results by
+        - name: sortOrder
+          in: query
+          schema:
+            type: string
+            enum: [ASC, DESC]
+            default: ASC
+          description: Sort direction
       responses:
         '200':
           description: Successful response

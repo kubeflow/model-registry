@@ -83,26 +83,34 @@ func generateSampleEntityData(config CatalogConfig, outputPath string) error {
 	var content strings.Builder
 	content.WriteString(fmt.Sprintf("%ss:\n", entityNameLower))
 
+	// Track which shared fields the user already declared as custom properties
+	declaredProps := make(map[string]bool)
+	for _, prop := range config.Spec.Entity.Properties {
+		declaredProps[strings.ToLower(prop.Name)] = true
+	}
+
 	// Generate 3 sample entities
 	for i := 1; i <= 3; i++ {
+		// BaseResource shared fields
 		content.WriteString(fmt.Sprintf("  - name: \"sample-%s-%d\"\n", entityNameLower, i))
 		content.WriteString(fmt.Sprintf("    externalId: \"ext-%s-%d\"\n", entityNameLower, i))
+		content.WriteString(fmt.Sprintf("    description: \"Sample %s %d description\"\n", entityName, i))
 
-		// Add properties with sample values
+		// Add custom properties from catalog.yaml
 		for _, prop := range config.Spec.Entity.Properties {
-			if prop.Name == "name" || prop.Name == "externalId" {
+			lower := strings.ToLower(prop.Name)
+			// Skip fields already emitted as BaseResource shared fields
+			if lower == "name" || lower == "externalid" || lower == "description" {
 				continue
 			}
 
 			switch prop.Type {
 			case "string":
-				if prop.Name == "description" {
-					content.WriteString(fmt.Sprintf("    %s: \"Sample %s %d description\"\n", prop.Name, entityName, i))
-				} else {
-					content.WriteString(fmt.Sprintf("    %s: \"sample-%s-value-%d\"\n", prop.Name, prop.Name, i))
-				}
+				content.WriteString(fmt.Sprintf("    %s: \"sample-%s-value-%d\"\n", prop.Name, prop.Name, i))
 			case "integer", "int":
 				content.WriteString(fmt.Sprintf("    %s: %d\n", prop.Name, i*10))
+			case "int64":
+				content.WriteString(fmt.Sprintf("    %s: %d\n", prop.Name, i*1000))
 			case "boolean", "bool":
 				content.WriteString(fmt.Sprintf("    %s: %t\n", prop.Name, i%2 == 0))
 			case "number", "float", "double":

@@ -56,6 +56,15 @@ type BasePathProvider interface {
 	BasePath() string
 }
 
+// SourceKeyProvider is an optional interface that plugins can implement
+// to specify which key in the sources.yaml "catalogs" map they respond to.
+// If not implemented, the plugin name is used as the config key.
+// This allows the plugin name and config key to differ (e.g., plugin "model"
+// can read from the "models" config section).
+type SourceKeyProvider interface {
+	SourceKey() string
+}
+
 // Migration represents a database migration for a plugin.
 type Migration struct {
 	// Version is a unique identifier for this migration (e.g., "001", "20240101_initial").

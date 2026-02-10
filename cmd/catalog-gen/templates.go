@@ -21,6 +21,7 @@ const (
 	TmplServiceRepository         = "templates/service/repository.gotmpl"
 	TmplServiceArtifactRepository = "templates/service/artifact_repository.gotmpl"
 	TmplServiceSpec               = "templates/service/spec.gotmpl"
+	TmplServiceFilterMappings     = "templates/service/filter_mappings.gotmpl"
 
 	// server templates
 	TmplServerOpenAPIServiceImpl = "templates/server/openapi_service_impl.gotmpl"
@@ -55,6 +56,8 @@ const (
 	TmplAgentSkillAddArtifact     = "templates/agent/skills/add_artifact.gotmpl"
 	TmplAgentSkillAddArtifactProp = "templates/agent/skills/add_artifact_property.gotmpl"
 	TmplAgentSkillRegenerate      = "templates/agent/skills/regenerate.gotmpl"
+	TmplAgentCmdGenTestdata       = "templates/agent/commands/gen_testdata.gotmpl"
+	TmplAgentSkillGenTestdata     = "templates/agent/skills/gen_testdata.gotmpl"
 )
 
 // executeTemplate reads a template from the embedded filesystem and executes it to a file.

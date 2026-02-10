@@ -41,6 +41,7 @@ func New{{.EntityName}}Repository(db *gorm.DB, typeID int32) models.{{.EntityNam
 		IsNewEntity:             func(entity models.{{.EntityName}}) bool { return entity.GetID() == nil },
 		HasCustomProperties:     func(entity models.{{.EntityName}}) bool { return entity.GetCustomProperties() != nil },
 		PreserveHistoricalTimes: true,
+		EntityMappingFuncs:      &entityMappings{},
 	})
 
 	return r
@@ -169,9 +170,9 @@ func mapContextTo{{.EntityName}}(ctx schema.Context, props []schema.ContextPrope
 
 func map{{.EntityName}}ToContextProperties(entity models.{{.EntityName}}, entityID int32) []schema.ContextProperty {
 	var props []schema.ContextProperty
-	attrs := entity.GetAttributes()
+{{if .PropWriteStatements}}	attrs := entity.GetAttributes()
 
-{{.PropWriteStatements}}
+{{.PropWriteStatements}}{{end}}
 	// Add other properties
 	if entity.GetProperties() != nil {
 		for _, p := range *entity.GetProperties() {

@@ -46,9 +46,15 @@ func (s *Server) Init(ctx context.Context) error {
 	defer s.mu.Unlock()
 
 	for _, p := range All() {
-		section, ok := s.config.Catalogs[p.Name()]
+		// Use SourceKey if the plugin provides one, otherwise fall back to plugin name
+		configKey := p.Name()
+		if skp, ok := p.(SourceKeyProvider); ok {
+			configKey = skp.SourceKey()
+		}
+
+		section, ok := s.config.Catalogs[configKey]
 		if !ok {
-			s.logger.Info("plugin has no sources configured", "plugin", p.Name())
+			s.logger.Info("plugin has no sources configured", "plugin", p.Name(), "configKey", configKey)
 			section = CatalogSection{}
 		}
 

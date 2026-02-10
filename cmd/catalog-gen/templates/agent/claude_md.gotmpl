@@ -19,6 +19,7 @@ Use these slash commands for common tasks:
 - `/add-artifact <name>` - Add a new artifact type
 - `/add-artifact-property <artifact> <name> <type>` - Add property to artifact
 - `/regenerate` - Regenerate code from catalog.yaml
+- `/gen-testdata` - Generate sample test data in testdata/
 - `/fix-build` - Fix compilation errors
 
 ## Workflow
@@ -38,3 +39,14 @@ Use these slash commands for common tasks:
 | boolean | *bool | boolean |
 | number | *float64 | number |
 | array | []string | array |
+
+## Filtering
+
+All list endpoints support `filterQuery` parameter with SQL-like syntax:
+- `?filterQuery=protocol='http'`
+- `?filterQuery=toolCount>5 AND protocol='stdio'`
+- `?filterQuery=name LIKE '%server%'`
+- Supported operators: =, !=, >, <, >=, <=, LIKE, ILIKE, IN, AND, OR
+
+Results can be ordered with `orderBy` and `sortOrder` parameters:
+- `?orderBy=name&sortOrder=DESC`

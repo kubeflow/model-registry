@@ -5,8 +5,12 @@
 package models
 
 import (
+	"github.com/kubeflow/model-registry/internal/db/filter"
 	"github.com/kubeflow/model-registry/internal/db/models"
 )
+
+// RestEntity{{.EntityName}} is the filter.RestEntityType constant for {{.EntityName}} entities.
+const RestEntity{{.EntityName}} filter.RestEntityType = "{{.EntityName}}"
 
 // {{.EntityName}}Attributes contains the attributes for a {{.EntityName}} entity.
 type {{.EntityName}}Attributes struct {
@@ -40,6 +44,11 @@ type {{.EntityName}}ListOptions struct {
 	ExternalID *string
 	SourceIDs  *[]string
 	Query      *string
+}
+
+// GetRestEntityType implements the FilterApplier interface for advanced filtering.
+func (o *{{.EntityName}}ListOptions) GetRestEntityType() filter.RestEntityType {
+	return RestEntity{{.EntityName}}
 }
 
 // {{.EntityName}}Repository is the interface for {{.EntityName}} data access.

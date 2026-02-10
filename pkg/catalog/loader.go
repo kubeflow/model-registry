@@ -6,6 +6,7 @@ import (
 	"os"
 	"path/filepath"
 	"sync"
+	"time"
 
 	"k8s.io/apimachinery/pkg/util/yaml"
 )
@@ -191,7 +192,32 @@ func (l *Loader[E, A]) Start(ctx context.Context) error {
 		return err
 	}
 
+	// Phase 3: Watch config files for hot-reload
+	for _, path := range l.config.Paths {
+		watcher := NewFileWatcher(path, 5*time.Second)
+		changes := watcher.Watch(ctx)
+		go func(p string) {
+			for range changes {
+				l.logger.Infof("Config file changed: %s, reloading...", p)
+				if err := l.Reload(ctx); err != nil {
+					l.logger.Errorf("Failed to reload after config change %s: %v", p, err)
+				}
+			}
+		}(path)
+	}
+
 	return nil
+}
+
+// Reload re-parses config files, cleans up missing sources, and reloads all entities.
+func (l *Loader[E, A]) Reload(ctx context.Context) error {
+	for _, path := range l.config.Paths {
+		if err := l.parseAndMerge(path); err != nil {
+			l.logger.Errorf("failed to reload config %s: %v", path, err)
+		}
+	}
+	_ = l.removeEntitiesFromMissingSources()
+	return l.loadAllEntities(ctx)
 }
 
 // parseAndMerge parses a config file and merges its sources into the collection.

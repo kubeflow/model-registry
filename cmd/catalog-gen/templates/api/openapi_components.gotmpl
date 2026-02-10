@@ -48,8 +48,9 @@ components:
         - type: object
           required:
             - name
-{{.RequiredFields}}          properties:
-{{.Properties}}
+{{.RequiredFields}}{{if gt (len .Properties) 0}}
+          properties:
+{{.Properties}}{{end}}
     {{.EntityName}}List:
       allOf:
         - $ref: '#/components/schemas/BaseResourceList'
