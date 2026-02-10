@@ -1009,6 +1009,46 @@ components:
       description: An MCP tool exposed by an MCP server.
       allOf:
         - $ref: "#/components/schemas/BaseResource"
+        - type: object
+          required:
+            - name
+            - accessType
+          properties:
+            name:
+              type: string
+              description: Tool identifier.
+            accessType:
+              type: string
+              description: Access mode supported by this tool.
+              enum:
+                - read_only
+                - read_write
+                - execute
+            parameters:
+              type: array
+              description: Input parameters accepted by this tool.
+              items:
+                $ref: "#/components/schemas/McpToolParameter"
+    McpToolParameter:
+      type: object
+      description: Metadata describing a single MCP tool parameter.
+      required:
+        - name
+        - type
+        - required
+      properties:
+        name:
+          type: string
+          description: Parameter name.
+        type:
+          type: string
+          description: Parameter type.
+        required:
+          type: boolean
+          description: Whether this parameter is required.
+        description:
+          type: string
+          description: Parameter purpose.
     McpToolsList:
       description: List of MCP tool entities.
       allOf:
