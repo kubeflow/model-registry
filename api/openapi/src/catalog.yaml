@@ -875,6 +875,86 @@ components:
       description: An MCP server in the model catalog.
       allOf:
         - $ref: "#/components/schemas/BaseResource"
+        - type: object
+          required:
+            - name
+          properties:
+            name:
+              type: string
+              description: Human-readable MCP server name. Must be unique within a source.
+            source_id:
+              type: string
+              description: Catalog source that provides this server.
+            provider:
+              type: string
+              description: Organization providing the server.
+            version:
+              type: string
+              description: Semantic version string of the MCP server.
+            tags:
+              type: array
+              description: Categorization tags for this MCP server.
+              items:
+                type: string
+            license:
+              type: string
+              description: SPDX identifier for the server license.
+            license_link:
+              type: string
+              format: uri
+              description: URL to the full license text.
+            tools:
+              type: array
+              description: Array of tools exposed by this MCP server.
+              items:
+                $ref: "#/components/schemas/McpTool"
+            securityIndicators:
+              $ref: "#/components/schemas/McpSecurityIndicator"
+            deploymentMode:
+              type: string
+              description: Deployment mode for the MCP server.
+              enum:
+                - local
+                - remote
+            transports:
+              type: array
+              description: Supported transport protocols.
+              items:
+                type: string
+                enum:
+                  - stdio
+                  - http
+                  - sse
+            artifacts:
+              type: array
+              description: OCI artifacts used for local deployment.
+              items:
+                $ref: "#/components/schemas/McpArtifact"
+            endpoints:
+              $ref: "#/components/schemas/McpEndpoints"
+            readme:
+              type: string
+              description: Full Markdown documentation for this MCP server.
+            documentationUrl:
+              type: string
+              format: uri
+              description: URL to external documentation.
+            repositoryUrl:
+              type: string
+              format: uri
+              description: URL to source repository.
+            sourceCode:
+              type: string
+              format: uri
+              description: URL to browsable source code.
+            publishedDate:
+              type: string
+              format: date-time
+              description: Initial publication timestamp for the server.
+            lastUpdated:
+              type: string
+              format: date-time
+              description: Last update timestamp for the server metadata.
     McpServerList:
       description: List of MCP server entities.
       allOf:
@@ -888,6 +968,43 @@ components:
           required:
             - items
         - $ref: "#/components/schemas/BaseResourceList"
+    McpSecurityIndicator:
+      type: object
+      description: Security posture metadata for an MCP server.
+      properties:
+        verifiedSource:
+          type: boolean
+          description: Whether the source of this server has been verified.
+        secureEndpoint:
+          type: boolean
+          description: Whether the server exposes secure communication endpoints.
+        sast:
+          type: boolean
+          description: Whether static analysis has been performed.
+        readOnlyTools:
+          type: boolean
+          description: Whether all exposed tools are read-only.
+    McpArtifact:
+      type: object
+      description: Artifact metadata for local MCP server deployment.
+      required:
+        - uri
+      properties:
+        uri:
+          type: string
+          description: OCI image URI for local deployment.
+    McpEndpoints:
+      type: object
+      description: Remote endpoint metadata for MCP server access.
+      properties:
+        http:
+          type: string
+          format: uri
+          description: HTTP endpoint URL for the MCP server.
+        sse:
+          type: string
+          format: uri
+          description: SSE endpoint URL for the MCP server.
     McpTool:
       description: An MCP tool exposed by an MCP server.
       allOf:
