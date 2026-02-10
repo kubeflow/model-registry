@@ -242,6 +242,22 @@ paths:
         "500":
           $ref: "#/components/responses/InternalServerError"
       operationId: findMcpServers
+  /api/model_catalog/v1alpha1/mcp_servers/filter_options:
+    description: Lists options for `filterQuery` when listing MCP servers.
+    get:
+      summary: Lists fields, values, and named queries that can be used in `filterQuery` on the list MCP servers endpoint.
+      tags:
+        - ModelCatalogService
+      responses:
+        "200":
+          $ref: "#/components/responses/FilterOptionsResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+      operationId: findMcpServersFilterOptions
   /api/model_catalog/v1alpha1/sources/{source_id}/models/{model_name+}:
     description: >-
       The REST endpoint/path used to get a `CatalogModel`.
