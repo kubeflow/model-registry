@@ -424,6 +424,219 @@ func AssertFilterOptionsListRequired(obj model.FilterOptionsList) error {
 	return nil
 }
 
+// AssertMcpArtifactConstraints checks if the values respects the defined constraints
+func AssertMcpArtifactConstraints(obj model.McpArtifact) error {
+	return nil
+}
+
+// AssertMcpArtifactRequired checks if the required fields are not zero-ed
+func AssertMcpArtifactRequired(obj model.McpArtifact) error {
+	elements := map[string]interface{}{
+		"uri": obj.Uri,
+	}
+	for name, el := range elements {
+		if isZero := IsZeroValue(el); isZero {
+			return &RequiredError{Field: name}
+		}
+	}
+
+	return nil
+}
+
+// AssertMcpEndpointsConstraints checks if the values respects the defined constraints
+func AssertMcpEndpointsConstraints(obj model.McpEndpoints) error {
+	return nil
+}
+
+// AssertMcpEndpointsRequired checks if the required fields are not zero-ed
+func AssertMcpEndpointsRequired(obj model.McpEndpoints) error {
+	return nil
+}
+
+// AssertMcpSecurityIndicatorConstraints checks if the values respects the defined constraints
+func AssertMcpSecurityIndicatorConstraints(obj model.McpSecurityIndicator) error {
+	return nil
+}
+
+// AssertMcpSecurityIndicatorRequired checks if the required fields are not zero-ed
+func AssertMcpSecurityIndicatorRequired(obj model.McpSecurityIndicator) error {
+	return nil
+}
+
+// AssertMcpServerConstraints checks if the values respects the defined constraints
+func AssertMcpServerConstraints(obj model.McpServer) error {
+	for _, el := range obj.Tools {
+		if err := AssertMcpToolConstraints(el); err != nil {
+			return err
+		}
+	}
+	if obj.SecurityIndicators != nil {
+		if err := AssertMcpSecurityIndicatorConstraints(*obj.SecurityIndicators); err != nil {
+			return err
+		}
+	}
+	for _, el := range obj.Artifacts {
+		if err := AssertMcpArtifactConstraints(el); err != nil {
+			return err
+		}
+	}
+	if obj.Endpoints != nil {
+		if err := AssertMcpEndpointsConstraints(*obj.Endpoints); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// AssertMcpServerListConstraints checks if the values respects the defined constraints
+func AssertMcpServerListConstraints(obj model.McpServerList) error {
+	for _, el := range obj.Items {
+		if err := AssertMcpServerConstraints(el); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// AssertMcpServerListRequired checks if the required fields are not zero-ed
+func AssertMcpServerListRequired(obj model.McpServerList) error {
+	elements := map[string]interface{}{
+		"nextPageToken": obj.NextPageToken,
+		"pageSize":      obj.PageSize,
+		"size":          obj.Size,
+		"items":         obj.Items,
+	}
+	for name, el := range elements {
+		if isZero := IsZeroValue(el); isZero {
+			return &RequiredError{Field: name}
+		}
+	}
+
+	for _, el := range obj.Items {
+		if err := AssertMcpServerRequired(el); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// AssertMcpServerRequired checks if the required fields are not zero-ed
+func AssertMcpServerRequired(obj model.McpServer) error {
+	elements := map[string]interface{}{
+		"name": obj.Name,
+	}
+	for name, el := range elements {
+		if isZero := IsZeroValue(el); isZero {
+			return &RequiredError{Field: name}
+		}
+	}
+
+	for _, el := range obj.Tools {
+		if err := AssertMcpToolRequired(el); err != nil {
+			return err
+		}
+	}
+	if obj.SecurityIndicators != nil {
+		if err := AssertMcpSecurityIndicatorRequired(*obj.SecurityIndicators); err != nil {
+			return err
+		}
+	}
+	for _, el := range obj.Artifacts {
+		if err := AssertMcpArtifactRequired(el); err != nil {
+			return err
+		}
+	}
+	if obj.Endpoints != nil {
+		if err := AssertMcpEndpointsRequired(*obj.Endpoints); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// AssertMcpToolConstraints checks if the values respects the defined constraints
+func AssertMcpToolConstraints(obj model.McpTool) error {
+	for _, el := range obj.Parameters {
+		if err := AssertMcpToolParameterConstraints(el); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// AssertMcpToolParameterConstraints checks if the values respects the defined constraints
+func AssertMcpToolParameterConstraints(obj model.McpToolParameter) error {
+	return nil
+}
+
+// AssertMcpToolParameterRequired checks if the required fields are not zero-ed
+func AssertMcpToolParameterRequired(obj model.McpToolParameter) error {
+	elements := map[string]interface{}{
+		"name":     obj.Name,
+		"type":     obj.Type,
+		"required": obj.Required,
+	}
+	for name, el := range elements {
+		if isZero := IsZeroValue(el); isZero {
+			return &RequiredError{Field: name}
+		}
+	}
+
+	return nil
+}
+
+// AssertMcpToolRequired checks if the required fields are not zero-ed
+func AssertMcpToolRequired(obj model.McpTool) error {
+	elements := map[string]interface{}{
+		"name":       obj.Name,
+		"accessType": obj.AccessType,
+	}
+	for name, el := range elements {
+		if isZero := IsZeroValue(el); isZero {
+			return &RequiredError{Field: name}
+		}
+	}
+
+	for _, el := range obj.Parameters {
+		if err := AssertMcpToolParameterRequired(el); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// AssertMcpToolsListConstraints checks if the values respects the defined constraints
+func AssertMcpToolsListConstraints(obj model.McpToolsList) error {
+	for _, el := range obj.Items {
+		if err := AssertMcpToolConstraints(el); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// AssertMcpToolsListRequired checks if the required fields are not zero-ed
+func AssertMcpToolsListRequired(obj model.McpToolsList) error {
+	elements := map[string]interface{}{
+		"nextPageToken": obj.NextPageToken,
+		"pageSize":      obj.PageSize,
+		"size":          obj.Size,
+		"items":         obj.Items,
+	}
+	for name, el := range elements {
+		if isZero := IsZeroValue(el); isZero {
+			return &RequiredError{Field: name}
+		}
+	}
+
+	for _, el := range obj.Items {
+		if err := AssertMcpToolRequired(el); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
 // AssertMetadataBoolValueConstraints checks if the values respects the defined constraints
 func AssertMetadataBoolValueConstraints(obj model.MetadataBoolValue) error {
 	return nil

@@ -23,6 +23,11 @@ import (
 // pass the data to a ModelCatalogServiceAPIServicer to perform the required actions, then write the service results to the http response.
 type ModelCatalogServiceAPIRouter interface {
 	FindLabels(http.ResponseWriter, *http.Request)
+	FindMcpServers(http.ResponseWriter, *http.Request)
+	FindMcpServersFilterOptions(http.ResponseWriter, *http.Request)
+	GetMcpServer(http.ResponseWriter, *http.Request)
+	FindMcpServerTools(http.ResponseWriter, *http.Request)
+	GetMcpServerTool(http.ResponseWriter, *http.Request)
 	FindModels(http.ResponseWriter, *http.Request)
 	FindModelsFilterOptions(http.ResponseWriter, *http.Request)
 	FindSources(http.ResponseWriter, *http.Request)
@@ -38,6 +43,11 @@ type ModelCatalogServiceAPIRouter interface {
 // and updated with the logic required for the API.
 type ModelCatalogServiceAPIServicer interface {
 	FindLabels(context.Context, string, string, model.SortOrder, string) (ImplResponse, error)
+	FindMcpServers(context.Context, string, string, string, string, bool, int32, string, model.OrderByField, model.SortOrder, string) (ImplResponse, error)
+	FindMcpServersFilterOptions(context.Context) (ImplResponse, error)
+	GetMcpServer(context.Context, string) (ImplResponse, error)
+	FindMcpServerTools(context.Context, string, string, string, model.OrderByField, model.SortOrder, string) (ImplResponse, error)
+	GetMcpServerTool(context.Context, string, string) (ImplResponse, error)
 	FindModels(context.Context, bool, int32, string, string, string, string, []string, string, []string, string, string, model.OrderByField, model.SortOrder, string) (ImplResponse, error)
 	FindModelsFilterOptions(context.Context) (ImplResponse, error)
 	FindSources(context.Context, string, string, model.OrderByField, model.SortOrder, string) (ImplResponse, error)

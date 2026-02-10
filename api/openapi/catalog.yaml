@@ -36,6 +36,144 @@ paths:
           $ref: "#/components/responses/InternalServerError"
       operationId: findLabels
       description: Gets a list of all `CatalogLabel` entities.
+  /api/model_catalog/v1alpha1/mcp_servers:
+    description: >-
+      The REST endpoint/path used to list zero or more `McpServer` entities.
+    get:
+      summary: List MCP servers.
+      tags:
+        - ModelCatalogService
+      parameters:
+        - name: name
+          description: Filter MCP servers by server name using SQL LIKE pattern matching.
+          schema:
+            type: string
+          in: query
+          required: false
+        - name: q
+          description: Free-form keyword search across name, description, and provider.
+          schema:
+            type: string
+          in: query
+          required: false
+        - $ref: "#/components/parameters/mcpServerFilterQuery"
+        - $ref: "#/components/parameters/namedQuery"
+        - $ref: "#/components/parameters/includeTools"
+        - $ref: "#/components/parameters/toolLimit"
+        - $ref: "#/components/parameters/pageSize"
+        - $ref: "#/components/parameters/orderBy"
+        - $ref: "#/components/parameters/sortOrder"
+        - $ref: "#/components/parameters/nextPageToken"
+      responses:
+        "200":
+          $ref: "#/components/responses/McpServerListResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+      operationId: findMcpServers
+  /api/model_catalog/v1alpha1/mcp_servers/filter_options:
+    description: Lists options for `filterQuery` when listing MCP servers.
+    get:
+      summary: Lists fields, values, and named queries that can be used in `filterQuery` on the list MCP servers endpoint.
+      tags:
+        - ModelCatalogService
+      responses:
+        "200":
+          $ref: "#/components/responses/FilterOptionsResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+      operationId: findMcpServersFilterOptions
+  /api/model_catalog/v1alpha1/mcp_servers/{server_id}:
+    description: >-
+      The REST endpoint/path used to get an `McpServer`.
+    get:
+      summary: Get an `McpServer`.
+      tags:
+        - ModelCatalogService
+      responses:
+        "200":
+          $ref: "#/components/responses/McpServerResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+      operationId: getMcpServer
+    parameters:
+      - name: server_id
+        description: A unique identifier for an `McpServer`.
+        schema:
+          type: string
+        in: path
+        required: true
+  /api/model_catalog/v1alpha1/mcp_servers/{server_id}/tools:
+    description: >-
+      The REST endpoint/path used to list zero or more `McpTool` entities for an `McpServer`.
+    get:
+      summary: List tools exposed by an `McpServer`.
+      tags:
+        - ModelCatalogService
+      parameters:
+        - $ref: "#/components/parameters/mcpToolFilterQuery"
+        - $ref: "#/components/parameters/pageSize"
+        - $ref: "#/components/parameters/orderBy"
+        - $ref: "#/components/parameters/sortOrder"
+        - $ref: "#/components/parameters/nextPageToken"
+      responses:
+        "200":
+          $ref: "#/components/responses/McpToolsListResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+      operationId: findMcpServerTools
+    parameters:
+      - name: server_id
+        description: A unique identifier for an `McpServer`.
+        schema:
+          type: string
+        in: path
+        required: true
+  /api/model_catalog/v1alpha1/mcp_servers/{server_id}/tools/{tool_name}:
+    description: >-
+      The REST endpoint/path used to get a specific `McpTool` from an `McpServer`.
+    get:
+      summary: Get an `McpTool` from an `McpServer`.
+      tags:
+        - ModelCatalogService
+      responses:
+        "200":
+          $ref: "#/components/responses/McpToolResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+      operationId: getMcpServerTool
+    parameters:
+      - name: server_id
+        description: A unique identifier for an `McpServer`.
+        schema:
+          type: string
+        in: path
+        required: true
+      - name: tool_name
+        description: A unique identifier for an `McpTool` within the MCP server.
+        schema:
+          type: string
+        in: path
+        required: true
   /api/model_catalog/v1alpha1/models:
     description: >-
       The REST endpoint/path used to list zero or more `CatalogModel` entities from all `CatalogSources`.
@@ -951,6 +1089,198 @@ components:
             type: object
             additionalProperties:
               $ref: "#/components/schemas/FieldFilter"
+    McpArtifact:
+      type: object
+      description: Artifact metadata for local MCP server deployment.
+      required:
+        - uri
+      properties:
+        uri:
+          type: string
+          format: uri
+          description: OCI image URI for local deployment.
+    McpEndpoints:
+      type: object
+      description: Remote endpoint metadata for MCP server access.
+      properties:
+        http:
+          type: string
+          format: uri
+          description: HTTP endpoint URL for the MCP server.
+        sse:
+          type: string
+          format: uri
+          description: SSE endpoint URL for the MCP server.
+    McpSecurityIndicator:
+      type: object
+      description: Security posture metadata for an MCP server.
+      properties:
+        verifiedSource:
+          type: boolean
+          description: Whether the source of this server has been verified.
+        secureEndpoint:
+          type: boolean
+          description: Whether the server exposes secure communication endpoints.
+        sast:
+          type: boolean
+          description: Whether static analysis has been performed.
+        readOnlyTools:
+          type: boolean
+          description: Whether all exposed tools are read-only.
+    McpServer:
+      description: An MCP server in the model catalog.
+      allOf:
+        - $ref: "#/components/schemas/BaseResource"
+        - type: object
+          required:
+            - name
+          properties:
+            name:
+              type: string
+              description: Human-readable MCP server name. Must be unique within a source.
+            source_id:
+              type: string
+              description: Catalog source that provides this server.
+            provider:
+              type: string
+              description: Organization providing the server.
+            version:
+              type: string
+              description: Semantic version string of the MCP server.
+            tags:
+              type: array
+              description: Categorization tags for this MCP server.
+              items:
+                type: string
+            license:
+              type: string
+              description: SPDX identifier for the server license.
+            license_link:
+              type: string
+              format: uri
+              description: URL to the full license text.
+            tools:
+              type: array
+              description: Array of tools exposed by this MCP server.
+              items:
+                $ref: "#/components/schemas/McpTool"
+            securityIndicators:
+              $ref: "#/components/schemas/McpSecurityIndicator"
+            deploymentMode:
+              type: string
+              description: Deployment mode for the MCP server.
+              enum:
+                - local
+                - remote
+            transports:
+              type: array
+              description: Supported transport protocols.
+              items:
+                type: string
+                enum:
+                  - stdio
+                  - http
+                  - sse
+            artifacts:
+              type: array
+              description: OCI artifacts used for local deployment.
+              items:
+                $ref: "#/components/schemas/McpArtifact"
+            endpoints:
+              $ref: "#/components/schemas/McpEndpoints"
+            readme:
+              type: string
+              description: Full Markdown documentation for this MCP server.
+            documentationUrl:
+              type: string
+              format: uri
+              description: URL to external documentation.
+            repositoryUrl:
+              type: string
+              format: uri
+              description: URL to source repository.
+            sourceCode:
+              type: string
+              format: uri
+              description: URL to browsable source code.
+            publishedDate:
+              type: string
+              format: date-time
+              description: Initial publication timestamp for the server.
+            lastUpdated:
+              type: string
+              format: date-time
+              description: Last update timestamp for the server metadata.
+    McpServerList:
+      description: List of MCP server entities.
+      allOf:
+        - type: object
+          properties:
+            items:
+              description: Array of `McpServer` entities.
+              type: array
+              items:
+                $ref: "#/components/schemas/McpServer"
+          required:
+            - items
+        - $ref: "#/components/schemas/BaseResourceList"
+    McpTool:
+      description: An MCP tool exposed by an MCP server.
+      allOf:
+        - $ref: "#/components/schemas/BaseResource"
+        - type: object
+          required:
+            - name
+            - accessType
+          properties:
+            name:
+              type: string
+              description: Tool identifier.
+            accessType:
+              type: string
+              description: Access mode supported by this tool.
+              enum:
+                - read_only
+                - read_write
+                - execute
+            parameters:
+              type: array
+              description: Input parameters accepted by this tool.
+              items:
+                $ref: "#/components/schemas/McpToolParameter"
+    McpToolParameter:
+      type: object
+      description: Metadata describing a single MCP tool parameter.
+      required:
+        - name
+        - type
+        - required
+      properties:
+        name:
+          type: string
+          description: Parameter name.
+        type:
+          type: string
+          description: Parameter type.
+        required:
+          type: boolean
+          description: Whether this parameter is required.
+        description:
+          type: string
+          description: Parameter purpose.
+    McpToolsList:
+      description: List of MCP tool entities.
+      allOf:
+        - type: object
+          properties:
+            items:
+              description: Array of `McpTool` entities.
+              type: array
+              items:
+                $ref: "#/components/schemas/McpTool"
+          required:
+            - items
+        - $ref: "#/components/schemas/BaseResourceList"
     MetadataBoolValue:
       description: A bool property value.
       type: object
@@ -1247,6 +1577,30 @@ components:
           schema:
             $ref: "#/components/schemas/Error"
       description: Unexpected internal server error
+    McpServerListResponse:
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/McpServerList"
+      description: A response containing a list of MCP server entities.
+    McpServerResponse:
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/McpServer"
+      description: A response containing an `McpServer` entity.
+    McpToolResponse:
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/McpTool"
+      description: A response containing an `McpTool` entity.
+    McpToolsListResponse:
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/McpToolsList"
+      description: A response containing a list of MCP tool entities.
     NotFound:
       content:
         application/json:
@@ -1272,6 +1626,54 @@ components:
             $ref: "#/components/schemas/Error"
       description: Unprocessable Entity error
   parameters:
+    mcpServerFilterQuery:
+      examples:
+        mcpServerFilterQuery:
+          value: "license='Apache 2.0' AND securityIndicators.verifiedSource=true"
+      name: filterQuery
+      description: |
+        A SQL-like query string to filter MCP servers.
+
+        **Supported Operators:**
+        - Comparison: `=`, `!=`, `<>`, `>`, `<`, `>=`, `<=`
+        - Pattern matching: `LIKE`, `ILIKE` (case-insensitive)
+        - Set membership: `IN`
+        - Logical: `AND`, `OR`
+        - Grouping: `()` for complex expressions
+
+        **Examples:**
+        - `license = "Apache 2.0"`
+        - `verifiedSource = true`
+        - `provider ILIKE "%local%"`
+        - `(license = "Apache 2.0" OR license = "MIT") AND verifiedSource = true`
+      schema:
+        type: string
+      in: query
+      required: false
+    mcpToolFilterQuery:
+      examples:
+        mcpToolFilterQuery:
+          value: "accessType='read_only' AND name ILIKE '%list%'"
+      name: filterQuery
+      description: |
+        A SQL-like query string to filter MCP tools for a specific MCP server.
+
+        **Supported Operators:**
+        - Comparison: `=`, `!=`, `<>`, `>`, `<`, `>=`, `<=`
+        - Pattern matching: `LIKE`, `ILIKE` (case-insensitive)
+        - Set membership: `IN`
+        - Logical: `AND`, `OR`
+        - Grouping: `()` for complex expressions
+
+        **Examples:**
+        - `name = "list_models"`
+        - `accessType = "read_only"`
+        - `name ILIKE "%search%"`
+        - `(accessType = "read_only" OR accessType = "execute") AND name LIKE "%model%"`
+      schema:
+        type: string
+      in: query
+      required: false
     filterQuery:
       examples:
         filterQuery:
@@ -1424,6 +1826,40 @@ components:
         their original order and appear after labels that do contain the key.
       schema:
         type: string
+      in: query
+      required: false
+    namedQuery:
+      examples:
+        namedQuery:
+          value: secure_servers
+      name: namedQuery
+      description: Predefined filter template name to apply when listing MCP servers.
+      schema:
+        type: string
+      in: query
+      required: false
+    includeTools:
+      examples:
+        includeTools:
+          value: true
+      name: includeTools
+      description: Whether to include the tools array in each MCP server result.
+      schema:
+        type: boolean
+        default: false
+      in: query
+      required: false
+    toolLimit:
+      examples:
+        toolLimit:
+          value: 10
+      name: toolLimit
+      description: Maximum number of tools to include when includeTools is true.
+      schema:
+        type: integer
+        format: int32
+        default: 10
+        maximum: 100
       in: query
       required: false
     artifactType:
