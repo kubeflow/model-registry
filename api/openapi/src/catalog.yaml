@@ -282,6 +282,36 @@ paths:
           type: string
         in: path
         required: true
+  /api/model_catalog/v1alpha1/mcp_servers/{server_id}/tools:
+    description: >-
+      The REST endpoint/path used to list zero or more `McpTool` entities for an `McpServer`.
+    get:
+      summary: List tools exposed by an `McpServer`.
+      tags:
+        - ModelCatalogService
+      parameters:
+        - $ref: "#/components/parameters/filterQuery"
+        - $ref: "#/components/parameters/pageSize"
+        - $ref: "#/components/parameters/orderBy"
+        - $ref: "#/components/parameters/sortOrder"
+        - $ref: "#/components/parameters/nextPageToken"
+      responses:
+        "200":
+          $ref: "#/components/responses/McpToolsListResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+      operationId: findMcpServerTools
+    parameters:
+      - name: server_id
+        description: A unique identifier for an `McpServer`.
+        schema:
+          type: string
+        in: path
+        required: true
   /api/model_catalog/v1alpha1/sources/{source_id}/models/{model_name+}:
     description: >-
       The REST endpoint/path used to get a `CatalogModel`.
@@ -828,6 +858,23 @@ components:
           required:
             - items
         - $ref: "#/components/schemas/BaseResourceList"
+    McpTool:
+      description: An MCP tool exposed by an MCP server.
+      allOf:
+        - $ref: "#/components/schemas/BaseResource"
+    McpToolsList:
+      description: List of MCP tool entities.
+      allOf:
+        - type: object
+          properties:
+            items:
+              description: Array of `McpTool` entities.
+              type: array
+              items:
+                $ref: "#/components/schemas/McpTool"
+          required:
+            - items
+        - $ref: "#/components/schemas/BaseResourceList"
     CatalogSourcePreviewResponse:
       description: Response containing models and their inclusion/exclusion status.
       allOf:
@@ -993,6 +1040,12 @@ components:
           schema:
             $ref: "#/components/schemas/McpServer"
       description: A response containing an `McpServer` entity.
+    McpToolsListResponse:
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/McpToolsList"
+      description: A response containing a list of MCP tool entities.
     FilterOptionsResponse:
       content:
         application/json:
