@@ -204,6 +204,44 @@ paths:
           $ref: "#/components/responses/InternalServerError"
       operationId: findSources
       description: Gets a list of all `CatalogSource` entities.
+  /api/model_catalog/v1alpha1/mcp_servers:
+    description: >-
+      The REST endpoint/path used to list zero or more `McpServer` entities.
+    get:
+      summary: List MCP servers.
+      tags:
+        - ModelCatalogService
+      parameters:
+        - name: name
+          description: Filter MCP servers by server name using SQL LIKE pattern matching.
+          schema:
+            type: string
+          in: query
+          required: false
+        - name: q
+          description: Free-form keyword search across name, description, and provider.
+          schema:
+            type: string
+          in: query
+          required: false
+        - $ref: "#/components/parameters/mcpServerFilterQuery"
+        - $ref: "#/components/parameters/namedQuery"
+        - $ref: "#/components/parameters/includeTools"
+        - $ref: "#/components/parameters/toolLimit"
+        - $ref: "#/components/parameters/pageSize"
+        - $ref: "#/components/parameters/orderBy"
+        - $ref: "#/components/parameters/sortOrder"
+        - $ref: "#/components/parameters/nextPageToken"
+      responses:
+        "200":
+          $ref: "#/components/responses/McpServerListResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+      operationId: findMcpServers
   /api/model_catalog/v1alpha1/sources/{source_id}/models/{model_name+}:
     description: >-
       The REST endpoint/path used to get a `CatalogModel`.
@@ -733,6 +771,23 @@ components:
           required:
             - items
         - $ref: "#/components/schemas/BaseResourceList"
+    McpServer:
+      description: An MCP server in the model catalog.
+      allOf:
+        - $ref: "#/components/schemas/BaseResource"
+    McpServerList:
+      description: List of MCP server entities.
+      allOf:
+        - type: object
+          properties:
+            items:
+              description: Array of `McpServer` entities.
+              type: array
+              items:
+                $ref: "#/components/schemas/McpServer"
+          required:
+            - items
+        - $ref: "#/components/schemas/BaseResourceList"
     CatalogSourcePreviewResponse:
       description: Response containing models and their inclusion/exclusion status.
       allOf:
@@ -886,6 +941,12 @@ components:
           schema:
             $ref: "#/components/schemas/CatalogSource"
       description: A response containing a `CatalogSource` entity.
+    McpServerListResponse:
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/McpServerList"
+      description: A response containing a list of MCP server entities.
     FilterOptionsResponse:
       content:
         application/json:
@@ -991,6 +1052,30 @@ components:
         status based on the provided catalog source configuration.
 
   parameters:
+    mcpServerFilterQuery:
+      examples:
+        mcpServerFilterQuery:
+          value: "license='Apache 2.0' AND verifiedSource=true"
+      name: filterQuery
+      description: |
+        A SQL-like query string to filter MCP servers.
+
+        **Supported Operators:**
+        - Comparison: `=`, `!=`, `<>`, `>`, `<`, `>=`, `<=`
+        - Pattern matching: `LIKE`, `ILIKE` (case-insensitive)
+        - Set membership: `IN`
+        - Logical: `AND`, `OR`
+        - Grouping: `()` for complex expressions
+
+        **Examples:**
+        - `license = "Apache 2.0"`
+        - `verifiedSource = true`
+        - `provider ILIKE "%local%"`
+        - `(license = "Apache 2.0" OR license = "MIT") AND verifiedSource = true`
+      schema:
+        type: string
+      in: query
+      required: false
     filterQuery:
       examples:
         filterQuery:
@@ -1147,6 +1232,40 @@ components:
         their original order and appear after labels that do contain the key.
       schema:
         type: string
+      in: query
+      required: false
+    namedQuery:
+      examples:
+        namedQuery:
+          value: secure_servers
+      name: namedQuery
+      description: Predefined filter template name to apply when listing MCP servers.
+      schema:
+        type: string
+      in: query
+      required: false
+    includeTools:
+      examples:
+        includeTools:
+          value: true
+      name: includeTools
+      description: Whether to include the tools array in each MCP server result.
+      schema:
+        type: boolean
+        default: false
+      in: query
+      required: false
+    toolLimit:
+      examples:
+        toolLimit:
+          value: 10
+      name: toolLimit
+      description: Maximum number of tools to include when includeTools is true.
+      schema:
+        type: integer
+        format: int32
+        default: 10
+        maximum: 100
       in: query
       required: false
     artifactType:
