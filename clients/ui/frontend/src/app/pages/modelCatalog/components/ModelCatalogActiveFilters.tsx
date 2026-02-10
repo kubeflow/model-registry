@@ -12,6 +12,7 @@ import {
   MODEL_CATALOG_TASK_NAME_MAPPING,
   AllLanguageCodesMap,
   MODEL_CATALOG_FILTER_CATEGORY_NAMES,
+  MODEL_CATALOG_FILTER_CHIP_PREFIXES,
   ModelCatalogProvider,
   ModelCatalogLicense,
   ModelCatalogTask,
@@ -20,11 +21,13 @@ import {
   isCatalogFilterKey,
   isPerformanceFilterKey,
   parseLatencyFilterKey,
+  isLatencyFilterKey,
+  LatencyFilterKey,
 } from '~/concepts/modelCatalog/const';
 import { ModelCatalogFilterKey } from '~/app/modelCatalogTypes';
 import {
-  USE_CASE_OPTIONS,
   isUseCaseOptionValue,
+  getUseCaseDisplayLabel,
 } from '~/app/pages/modelCatalog/utils/workloadTypeUtils';
 import { isValueDifferentFromDefault } from '~/app/pages/modelCatalog/utils/modelCatalogUtils';
 import { formatLatency } from '~/app/pages/modelCatalog/utils/performanceMetricsUtils';
@@ -87,6 +90,37 @@ const ModelCatalogActiveFilters: React.FC<ModelCatalogActiveFiltersProps> = ({ f
     }
   };
 
+  const createLatencyChipLabels = (
+    filterKey: LatencyFilterKey,
+    parsed: ReturnType<typeof parseLatencyFilterKey>,
+    formattedValue: string,
+  ): ToolbarLabel[] => [
+    {
+      key: `${filterKey}-metric`,
+      node: (
+        <span data-testid={`${filterKey}-filter-chip-metric`} data-has-default="true">
+          {MODEL_CATALOG_FILTER_CHIP_PREFIXES.LATENCY_METRIC} {parsed.metric}
+        </span>
+      ),
+    },
+    {
+      key: `${filterKey}-percentile`,
+      node: (
+        <span data-testid={`${filterKey}-filter-chip-percentile`} data-has-default="true">
+          {MODEL_CATALOG_FILTER_CHIP_PREFIXES.LATENCY_PERCENTILE} {parsed.percentile}
+        </span>
+      ),
+    },
+    {
+      key: `${filterKey}-threshold`,
+      node: (
+        <span data-testid={`${filterKey}-filter-chip-threshold`} data-has-default="true">
+          {MODEL_CATALOG_FILTER_CHIP_PREFIXES.LATENCY_THRESHOLD} {formattedValue}
+        </span>
+      ),
+    },
+  ];
+
   /**
    * Gets the display label for a filter value based on the filter key type
    */
@@ -115,11 +149,9 @@ const ModelCatalogActiveFilters: React.FC<ModelCatalogActiveFiltersProps> = ({ f
         }
         case ModelCatalogStringFilterKey.USE_CASE: {
           // Show same format as menu toggle but without bold
+          // Reuse getUseCaseDisplayLabel for consistency with dropdown
           if (isUseCaseOptionValue(valueStr)) {
-            const option = USE_CASE_OPTIONS.find((opt) => opt.value === valueStr);
-            if (option) {
-              return `${option.label} (${option.inputTokens} input | ${option.outputTokens} output tokens)`;
-            }
+            return `${MODEL_CATALOG_FILTER_CHIP_PREFIXES.SCENARIO} ${getUseCaseDisplayLabel(valueStr)}`;
           }
           return valueStr;
         }
@@ -134,13 +166,15 @@ const ModelCatalogActiveFilters: React.FC<ModelCatalogActiveFiltersProps> = ({ f
       switch (filterKey) {
         // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
         case ModelCatalogNumberFilterKey.MAX_RPS:
-          return `≤${value} requests/sec`;
+          return `${MODEL_CATALOG_FILTER_CHIP_PREFIXES.MAX_RPS} ${value}`;
         default:
           return String(value);
       }
     }
 
     // Handle latency field names - type is already narrowed to LatencyMetricFieldName
+    // Latency chips are handled separately - this shouldn't be called for latency filters
+    // but keeping for backwards compatibility
     const parsed = parseLatencyFilterKey(filterKey);
     const formattedValue = typeof value === 'number' ? formatLatency(value) : `${value}ms`;
     return `${parsed.metric} | ${parsed.percentile} | ${formattedValue}`;
@@ -170,7 +204,47 @@ const ModelCatalogActiveFilters: React.FC<ModelCatalogActiveFiltersProps> = ({ f
           }
         }
 
-        // Normalize to array for consistent handling
+        // Special handling for latency filters - show as 3 separate chips
+        if (isLatencyFilterKey(filterKey)) {
+          // Type narrowing: filterKey is now LatencyFilterKey
+          const latencyFilterKey: LatencyFilterKey = filterKey;
+          const parsed = parseLatencyFilterKey(latencyFilterKey);
+          const formattedValue =
+            typeof filterValue === 'number' ? formatLatency(filterValue) : `${filterValue}ms`;
+
+          // Create 3 separate chips for latency group using extracted helper
+          const latencyLabels = createLatencyChipLabels(latencyFilterKey, parsed, formattedValue);
+
+          const categoryLabelGroup: ToolbarLabelGroup = {
+            key: filterKey,
+            name: MODEL_CATALOG_FILTER_CATEGORY_NAMES[filterKey],
+          };
+
+          // For latency chips: clicking any individual chip OR the group reset should reset the entire filter
+          return (
+            <ToolbarFilter
+              key={filterKey}
+              categoryName={categoryLabelGroup}
+              labels={latencyLabels}
+              deleteLabel={(category) => {
+                // Individual chip click - reset entire latency filter to default
+                // Note: label param not used since all latency chips reset the entire group
+                const categoryKeyValue = typeof category === 'string' ? category : category.key;
+                handleClearCategory(categoryKeyValue);
+              }}
+              deleteLabelGroup={(category) => {
+                // Group reset button click - reset entire latency filter to default
+                const categoryKeyValue = typeof category === 'string' ? category : category.key;
+                handleClearCategory(categoryKeyValue);
+              }}
+              data-testid={`${filterKey}-filter-container`}
+            >
+              {null}
+            </ToolbarFilter>
+          );
+        }
+
+        // Normalize to array for consistent handling (non-latency filters)
         const filterValues = Array.isArray(filterValue) ? filterValue : [filterValue];
 
         const categoryName = MODEL_CATALOG_FILTER_CATEGORY_NAMES[filterKey];
