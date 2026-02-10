@@ -51,7 +51,7 @@ coverage = { extras = ["toml"], version = "^7.3.2" }
 pytest-cov = ">=4.1,<8.0"
 pytest-mock = ">=3.7.0"
 pytest-xdist = "^3.5.0"
-ruff = ">=0.5.2,<0.15.0"
+ruff = ">=0.5.2,<0.16.0"
 mypy = "^1.7.0"
 # E2E test using Ray in compatible py environments:
 ray = "^2.52.1"
