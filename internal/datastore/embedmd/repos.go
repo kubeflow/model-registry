@@ -10,6 +10,15 @@ import (
 	"gorm.io/gorm"
 )
 
+type ErrMissingType string
+
+func (t ErrMissingType) Error() string {
+	if string(t) == "" {
+		return "no types available"
+	}
+	return fmt.Sprintf("required type '%s' not found in database. Please ensure all migrations have been applied", string(t))
+}
+
 var _ datastore.RepoSet = (*repoSetImpl)(nil)
 
 type repoSetImpl struct {
@@ -26,7 +35,7 @@ func newRepoSet(db *gorm.DB, spec *datastore.Spec) (datastore.RepoSet, error) {
 
 	types, err := typeRepository.GetAll()
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("%w: %w", ErrMissingType(""), err)
 	}
 
 	nameIDMap := make(map[string]int32, len(types))
@@ -46,7 +55,7 @@ func newRepoSet(db *gorm.DB, spec *datastore.Spec) (datastore.RepoSet, error) {
 	requiredTypes := spec.AllNames()
 	for _, requiredType := range requiredTypes {
 		if _, exists := nameIDMap[requiredType]; !exists {
-			return nil, fmt.Errorf("required type '%s' not found in database. Please ensure all migrations have been applied", requiredType)
+			return nil, ErrMissingType(requiredType)
 		}
 	}
 
