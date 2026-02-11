@@ -177,6 +177,7 @@ describe('Model Catalog Performance Filters API Behavior', () => {
         // If latency filter is active, verify short property key format (e.g., 'ttft_p90')
         if (url.includes('latencyProperty=')) {
           const latencyMatch = url.match(/latencyProperty=([^&]+)/);
+          // eslint-disable-next-line @typescript-eslint/no-unused-expressions
           expect(latencyMatch).to.not.be.null;
           const latencyValue = latencyMatch ? latencyMatch[1] : '';
           // latencyProperty value should not include 'artifacts.' prefix or '.double_value' suffix
