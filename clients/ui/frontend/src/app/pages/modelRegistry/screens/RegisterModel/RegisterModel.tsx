@@ -10,6 +10,7 @@ import {
 import { useParams, useNavigate } from 'react-router';
 import { Link } from 'react-router-dom';
 import { ApplicationsPage, FormSection } from 'mod-arch-shared';
+import { useModelRegistryNamespace } from '~/app/hooks/useModelRegistryNamespace';
 import { modelRegistryUrl, modelVersionUrl } from '~/app/pages/modelRegistry/screens/routeUtils';
 import { ModelRegistryContext } from '~/app/context/ModelRegistryContext';
 import { AppContext } from '~/app/context/AppContext';
@@ -29,6 +30,7 @@ import RegisterModelDetailsFormSection from './RegisterModelDetailsFormSection';
 
 const RegisterModel: React.FC = () => {
   const { modelRegistry: mrName } = useParams();
+  const registryNamespace = useModelRegistryNamespace();
   const navigate = useNavigate();
   const { apiState } = React.useContext(ModelRegistryContext);
   const { user } = React.useContext(AppContext);
@@ -107,6 +109,8 @@ const RegisterModel: React.FC = () => {
                 formData={formData}
                 setData={setData}
                 isFirstVersion
+                registryName={mrName}
+                registryNamespace={registryNamespace}
               />
             </StackItem>
           </Stack>

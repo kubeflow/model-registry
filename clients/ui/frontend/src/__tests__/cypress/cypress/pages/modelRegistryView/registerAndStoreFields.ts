@@ -1,12 +1,13 @@
 import { TempDevFeature } from '~/app/hooks/useTempDevFeatureAvailable';
 
 class RegisterAndStoreFields {
-  visit(enableRegistryStorageFeature = true) {
+  visit(enableRegistryStorageFeature = true, registryNamespace?: string) {
     if (enableRegistryStorageFeature) {
       window.localStorage.setItem(TempDevFeature.RegistryStorage, 'true');
     }
     const preferredModelRegistry = 'modelregistry-sample';
-    cy.visit(`/model-registry/${preferredModelRegistry}/register/model`);
+    const query = registryNamespace ? `?namespace=${encodeURIComponent(registryNamespace)}` : '';
+    cy.visit(`/model-registry/${preferredModelRegistry}/register/model${query}`);
   }
 
   findNamespaceFormGroup() {
@@ -15,6 +16,16 @@ class RegisterAndStoreFields {
 
   findNamespaceSelector() {
     return cy.findByTestId('form-namespace-selector');
+  }
+
+  /** Wrapper that contains the namespace Select trigger - use for disabled check */
+  findNamespaceSelectTrigger() {
+    return cy.findByTestId('form-namespace-selector-trigger');
+  }
+
+  /** MUI Select combobox inside form namespace selector - use to open/close dropdown */
+  findNamespaceSelectCombobox() {
+    return this.findNamespaceSelector().find('[role="combobox"]');
   }
 
   findOriginLocationSection() {
@@ -38,7 +49,7 @@ class RegisterAndStoreFields {
   }
 
   selectNamespace(name: string) {
-    this.findNamespaceSelector().click();
+    this.findNamespaceSelectCombobox().scrollIntoView().click({ force: true });
     cy.findByRole('option', { name }).click();
   }
 
@@ -56,11 +67,11 @@ class RegisterAndStoreFields {
   }
 
   shouldHaveNamespaceOptions(namespaces: string[]) {
-    this.findNamespaceSelector().click();
+    this.findNamespaceSelectCombobox().scrollIntoView().click({ force: true });
     namespaces.forEach((namespace) => {
       cy.findByRole('option', { name: namespace }).should('exist');
     });
-    this.findNamespaceSelector().click();
+    this.findNamespaceSelectCombobox().scrollIntoView().click({ force: true });
     return this;
   }
 
@@ -103,6 +114,27 @@ class RegisterAndStoreFields {
     this.findRegisterAndStoreToggleButton()
       .find('button')
       .should('have.attr', 'aria-pressed', 'true');
+    return this;
+  }
+
+  findNamespaceRegistryAccessAlert() {
+    return cy.findByTestId('namespace-registry-access-alert');
+  }
+
+  shouldShowNamespaceLabel() {
+    this.findNamespaceFormGroup().find('label').should('contain.text', 'Namespace');
+    return this;
+  }
+
+  shouldBeNamespaceSelectorDisabled() {
+    this.findNamespaceSelectTrigger().find('[aria-disabled="true"]').should('exist');
+    return this;
+  }
+
+  shouldShowNoAccessWarning() {
+    this.findNamespaceRegistryAccessAlert()
+      .should('be.visible')
+      .and('contain.text', 'The selected namespace does not have access to this model registry');
     return this;
   }
 }

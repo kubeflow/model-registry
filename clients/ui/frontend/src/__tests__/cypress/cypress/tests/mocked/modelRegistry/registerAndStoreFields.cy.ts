@@ -134,8 +134,30 @@ describe('Register and Store Fields - NamespaceSelector', () => {
     registerAndStoreFields.selectRegisterAndStoreMode();
 
     registerAndStoreFields.findNamespaceSelector().should('exist');
-    registerAndStoreFields.findNamespaceSelector().should('be.disabled');
+    registerAndStoreFields.shouldBeNamespaceSelectorDisabled();
 
     registerAndStoreFields.shouldShowPlaceholder('Select a namespace');
+  });
+});
+
+describe('Register and Store Fields - Namespace access validation', () => {
+  beforeEach(() => {
+    initIntercepts({});
+    cy.intercept('POST', '**/api/v1/check-namespace-registry-access', {
+      statusCode: 200,
+      body: { data: { hasAccess: false } },
+    }).as('checkNamespaceAccess');
+    registerAndStoreFields.visit(true, 'namespace-1');
+    registerAndStoreFields.selectRegisterAndStoreMode();
+  });
+
+  it('Should show "Namespace" label', () => {
+    registerAndStoreFields.shouldShowNamespaceLabel();
+  });
+
+  it('Should show warning when selected namespace has no access to registry', () => {
+    registerAndStoreFields.selectNamespace('namespace-1');
+    cy.wait('@checkNamespaceAccess');
+    registerAndStoreFields.shouldShowNoAccessWarning();
   });
 });

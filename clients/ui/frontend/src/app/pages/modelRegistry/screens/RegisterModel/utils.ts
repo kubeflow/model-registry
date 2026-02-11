@@ -141,9 +141,17 @@ const isSubmitDisabledForCommonFields = (formData: RegistrationCommonFormData): 
     registrationMode,
     modelLocationPath,
     namespace,
+    namespaceHasAccess,
   } = formData;
 
   if (registrationMode === RegistrationMode.RegisterAndStore && !namespace) {
+    return true;
+  }
+  if (
+    registrationMode === RegistrationMode.RegisterAndStore &&
+    namespace &&
+    namespaceHasAccess === false
+  ) {
     return true;
   }
   return (

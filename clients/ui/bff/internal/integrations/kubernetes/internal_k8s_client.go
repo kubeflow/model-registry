@@ -114,6 +114,38 @@ func (kc *InternalKubernetesClient) CanAccessServiceInNamespace(ctx context.Cont
 	return true, nil
 }
 
+func (kc *InternalKubernetesClient) CanNamespaceAccessRegistry(ctx context.Context, _ *RequestIdentity, jobNamespace, registryName, registryNamespace string) (bool, error) {
+	ctx, cancel := context.WithTimeout(ctx, 30*time.Second)
+	defer cancel()
+
+	saSubject := "system:serviceaccount:" + jobNamespace + ":default"
+	sar := &authv1.SubjectAccessReview{
+		Spec: authv1.SubjectAccessReviewSpec{
+			User: saSubject,
+			ResourceAttributes: &authv1.ResourceAttributes{
+				Verb:      "get",
+				Resource:  "services",
+				Namespace: registryNamespace,
+				Name:      registryName,
+			},
+		},
+	}
+
+	response, err := kc.Client.AuthorizationV1().SubjectAccessReviews().Create(ctx, sar, metav1.CreateOptions{})
+	if err != nil {
+		return false, fmt.Errorf("SAR failed: %w", err)
+	}
+	if !response.Status.Allowed {
+		kc.Logger.Warn("access denied for namespace registry access",
+			"jobNamespace", jobNamespace,
+			"registry", registryName,
+			"registryNamespace", registryNamespace,
+		)
+		return false, nil
+	}
+	return true, nil
+}
+
 // GetSelfSubjectRulesReview gets the rules for what a user can access in a namespace
 func (kc *InternalKubernetesClient) GetSelfSubjectRulesReview(ctx context.Context, identity *RequestIdentity, namespace string) ([]string, error) {
 	kc.Logger.Warn("GetSelfSubjectRulesReview not fully implemented for internal client",

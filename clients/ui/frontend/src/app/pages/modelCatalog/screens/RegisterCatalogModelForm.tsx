@@ -1,6 +1,7 @@
 import { Alert, Form, FormGroup, PageSection, Stack, StackItem } from '@patternfly/react-core';
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useModelRegistryNamespace } from '~/app/hooks/useModelRegistryNamespace';
 import {
   ModelLocationType,
   RegisterCatalogModelFormData,
@@ -50,6 +51,7 @@ const RegisterCatalogModelForm: React.FC<RegisterCatalogModelFormProps> = ({
   removeChildrenTopPadding,
 }) => {
   const navigate = useNavigate();
+  const registryNamespace = useModelRegistryNamespace();
   const { apiState } = React.useContext(ModelRegistryContext);
   const [registeredModels, registeredModelsLoaded] = useRegisteredModels();
   const user = useUser();
@@ -203,6 +205,8 @@ const RegisterCatalogModelForm: React.FC<RegisterCatalogModelFormProps> = ({
                 setData={setData}
                 isFirstVersion={false}
                 isCatalogModel
+                registryName={preferredModelRegistry.name}
+                registryNamespace={registryNamespace}
               />
             </StackItem>
           </Stack>
