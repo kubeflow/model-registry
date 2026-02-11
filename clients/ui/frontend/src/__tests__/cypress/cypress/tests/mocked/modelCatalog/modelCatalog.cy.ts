@@ -362,7 +362,10 @@ describe('Performance Empty State', () => {
 
       modelCatalog.findCategoryToggle('no-labels').click();
 
-      modelCatalog.findPerformanceEmptyState().should('be.visible');
+      modelCatalog
+        .findPerformanceEmptyState()
+        .should('be.visible')
+        .and('contain.text', 'No performance data available in selected category');
       modelCatalog.findModelCatalogCards().should('not.exist');
     });
 
