@@ -67,13 +67,18 @@ api/openapi/model-registry.yaml: api/openapi/src/model-registry.yaml api/openapi
 api/openapi/catalog.yaml: api/openapi/src/catalog.yaml api/openapi/src/lib/*.yaml bin/yq
 	scripts/merge_openapi.sh catalog.yaml
 
+api/openapi/catalog-spec.yaml: api/openapi/catalog.yaml $(wildcard catalog/plugins/*/api/openapi/openapi.yaml) bin/yq scripts/merge_catalog_specs.sh
+	scripts/merge_catalog_specs.sh catalog-spec.yaml
+
 # validate the openapi schema
 .PHONY: openapi/validate
 openapi/validate: bin/openapi-generator-cli bin/yq
 	@scripts/merge_openapi.sh --check model-registry.yaml || (echo "api/openapi/model-registry.yaml is incorrectly formatted. Run 'make api/openapi/model-registry.yaml' to fix it."; exit 1)
 	@scripts/merge_openapi.sh --check catalog.yaml || (echo "$< is incorrectly formatted. Run 'make api/openapi/catalog.yaml' to fix it."; exit 1)
+	@scripts/merge_catalog_specs.sh --check catalog-spec.yaml || (echo "api/openapi/catalog-spec.yaml is incorrectly formatted. Run 'make api/openapi/catalog-spec.yaml' to fix it."; exit 1)
 	$(OPENAPI_GENERATOR) validate -i api/openapi/model-registry.yaml
 	$(OPENAPI_GENERATOR) validate -i api/openapi/catalog.yaml
+	$(OPENAPI_GENERATOR) validate -i api/openapi/catalog-spec.yaml
 
 # generate the openapi server implementation
 .PHONY: gen/openapi-server
@@ -85,7 +90,7 @@ internal/server/openapi/api_model_registry_service.go: bin/openapi-generator-cli
 
 # generate the openapi schema model and client
 .PHONY: gen/openapi
-gen/openapi: bin/openapi-generator-cli api/openapi/model-registry.yaml api/openapi/catalog.yaml openapi/validate pkg/openapi/client.go
+gen/openapi: bin/openapi-generator-cli api/openapi/model-registry.yaml api/openapi/catalog.yaml api/openapi/catalog-spec.yaml openapi/validate pkg/openapi/client.go
 	make -C catalog $@
 
 pkg/openapi/client.go: bin/openapi-generator-cli api/openapi/model-registry.yaml clean-pkg-openapi bin/goimports

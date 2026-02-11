@@ -1,0 +1,1545 @@
+openapi: 3.0.3
+info:
+  title: Model Catalog REST API
+  version: v1alpha1
+  description: REST API for Model Registry to create and manage ML model metadata
+  license:
+    name: Apache 2.0
+    url: "https://www.apache.org/licenses/LICENSE-2.0"
+servers:
+  - url: "https://localhost:8080"
+  - url: "http://localhost:8080"
+paths:
+  /api/model_catalog/v1alpha1/labels:
+    summary: Path used to get the list of catalog labels.
+    description: >-
+      The REST endpoint/path used to list zero or more `CatalogLabel` entities.
+    get:
+      summary: List All CatalogLabels
+      tags:
+        - ModelCatalogService
+      parameters:
+        - $ref: "#/components/parameters/pageSize"
+        - $ref: "#/components/parameters/labelOrderBy"
+        - $ref: "#/components/parameters/sortOrder"
+        - $ref: "#/components/parameters/nextPageToken"
+      responses:
+        "200":
+          $ref: "#/components/responses/CatalogLabelListResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+      operationId: findLabels
+      description: Gets a list of all `CatalogLabel` entities.
+  /api/model_catalog/v1alpha1/models:
+    description: >-
+      The REST endpoint/path used to list zero or more `CatalogModel` entities from all `CatalogSources`.
+    get:
+      summary: Search catalog models across sources.
+      tags:
+        - ModelCatalogService
+      parameters:
+        - name: recommendations
+          in: query
+          description: Sort models by lowest recommended latency using Pareto filtering
+          required: false
+          schema:
+            type: boolean
+            default: false
+        - name: targetRPS
+          in: query
+          description: Target requests per second for latency calculations
+          required: false
+          schema:
+            type: integer
+            format: int32
+        - name: latencyProperty
+          in: query
+          description: Property name for latency metric
+          required: false
+          schema:
+            type: string
+            default: "ttft_p90"
+        - name: rpsProperty
+          in: query
+          description: Property name for RPS metric
+          required: false
+          schema:
+            type: string
+            default: "requests_per_second"
+        - name: hardwareCountProperty
+          in: query
+          description: Property name for hardware count
+          required: false
+          schema:
+            type: string
+            default: "hardware_count"
+        - name: hardwareTypeProperty
+          in: query
+          description: Property name for hardware type grouping
+          required: false
+          schema:
+            type: string
+            default: "hardware_type"
+        - name: source
+          description: |-
+            Filter models by source. Multiple values can be separated by commas
+            to filter by multiple sources (OR logic). For example:
+            ?source=huggingface,local will return models from either
+            huggingface OR local sources.
+          schema:
+            type: array
+            items:
+              type: string
+          style: form
+          explode: true
+          in: query
+          required: false
+        - name: q
+          description: Free-form keyword search used to filter the response.
+          schema:
+            type: string
+          in: query
+          required: false
+        - name: sourceLabel
+          description: |-
+            Filter models by the label associated with the source. Multiple
+            values can be separated by commas. If one of the values is the
+            string `null`, then models from every source without a label will
+            be returned.
+          schema:
+            type: array
+            items:
+              type: string
+          in: query
+          required: false
+        - $ref: "#/components/parameters/filterQuery"
+        - $ref: "#/components/parameters/pageSize"
+        - name: orderBy
+          style: form
+          explode: true
+          examples:
+            orderBy:
+              value: ID
+          description: |-
+            Specifies the order by criteria for listing entities.
+
+            Supported values are:
+            - CREATE_TIME
+            - LAST_UPDATE_TIME
+            - ID
+            - NAME
+            - ACCURACY
+
+            Defaults to `NAME`.
+
+            The `ACCURACY` sort will sort by the `overall_average` property in any linked metrics artifact.
+
+            In addition, models can be sorted by properties. For example:
+            - `provider.string_value` sorts by provider name
+            - `artifacts.ifeval.double_value` sorts by the min/max value a property called ifeval across all associated artifacts
+          schema:
+            $ref: "#/components/schemas/OrderByField"
+          in: query
+          required: false
+        - $ref: "#/components/parameters/sortOrder"
+        - $ref: "#/components/parameters/nextPageToken"
+      responses:
+        "200":
+          $ref: "#/components/responses/CatalogModelListResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+      operationId: findModels
+  /api/model_catalog/v1alpha1/models/filter_options:
+    description: Lists options for `filterQuery` when listing models.
+    get:
+      summary: Lists fields and available options that can be used in `filterQuery` on the list models endpoint.
+      tags:
+        - ModelCatalogService
+      responses:
+        "200":
+          $ref: "#/components/responses/FilterOptionsResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+      operationId: findModelsFilterOptions
+  /api/model_catalog/v1alpha1/sources:
+    summary: Path used to get the list of catalog sources.
+    description: >-
+      The REST endpoint/path used to list zero or more `CatalogSource` entities.
+    get:
+      summary: List All CatalogSources
+      tags:
+        - ModelCatalogService
+      parameters:
+        - $ref: "#/components/parameters/name"
+        - $ref: "#/components/parameters/pageSize"
+        - $ref: "#/components/parameters/orderBy"
+        - $ref: "#/components/parameters/sortOrder"
+        - $ref: "#/components/parameters/nextPageToken"
+      responses:
+        "200":
+          $ref: "#/components/responses/CatalogSourceListResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+      operationId: findSources
+      description: Gets a list of all `CatalogSource` entities.
+  /api/model_catalog/v1alpha1/sources/preview:
+    description: >-
+      The REST endpoint/path used to preview a catalog source configuration. This endpoint accepts a catalog source definition and returns a list of models with their inclusion/exclusion status based on the configured filters.
+    post:
+      summary: Preview catalog source configuration
+      description: |-
+        Accepts a catalog source configuration and returns a list of models showing
+        which would be included or excluded based on the configured filters. This allows
+        users to test and validate their source configurations before applying them.
+
+        **Two modes of operation:**
+
+        1. **Stateless mode (recommended for new sources):** Upload both `config` and
+           `catalogData` files via multipart form. The models are read directly from
+           the uploaded `catalogData`, enabling preview of new sources before saving
+           anything to the server. This is ideal for testing configurations.
+
+        2. **Path mode (for existing sources):** Upload only `config` with a `yamlCatalogPath`
+           property. The models are read from the specified file path on the server.
+           Use this for previewing changes to existing saved sources.
+      tags:
+        - ModelCatalogService
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required:
+                - config
+              properties:
+                config:
+                  type: string
+                  format: binary
+                  description: |-
+                    YAML file containing the catalog source configuration.
+                    The file should contain a source definition with type and properties
+                    fields, including optional includedModels and excludedModels filters.
+
+                    Model filter patterns support the `*` wildcard only and are case-insensitive.
+                    Patterns match the entire model name (e.g., `ibm-granite/*` matches all
+                    models starting with "ibm-granite/").
+                catalogData:
+                  type: string
+                  format: binary
+                  description: |-
+                    Optional YAML file containing the catalog data (models).
+
+                    This field enables stateless preview of new sources before saving them.
+                    When provided, the catalog data is read directly from this file instead of
+                    from the `yamlCatalogPath` property in the config.
+
+                    **Two modes of operation:**
+                    1. **Stateless mode (recommended for new sources):** Upload both `config` and
+                       `catalogData` files. The models are read from `catalogData`, allowing preview
+                       without saving anything to the server.
+                    2. **Path mode (for existing sources):** Upload only `config` with a `yamlCatalogPath`
+                       property pointing to a catalog file on the server filesystem.
+
+                    If both `catalogData` and `yamlCatalogPath` are provided, `catalogData` takes precedence.
+            examples:
+              statelessPreview:
+                summary: Stateless preview with uploaded catalog data
+                description: |-
+                  Upload both config and catalogData files to preview a new source
+                  before saving. This is the recommended approach for testing new configurations.
+                value: |
+                  # config file content:
+                  type: yaml
+                  includedModels:
+                    - "ibm-granite/*"
+                    - "meta-llama/*"
+                  excludedModels:
+                    - "*-draft"
+                    - "*-experimental"
+
+                  # catalogData file content (separate file):
+                  models:
+                    - name: ibm-granite/granite-3.0-8b-instruct
+                      description: Granite 8B Instruct model
+                    - name: ibm-granite/granite-3.0-2b-draft
+                      description: Draft version
+                    - name: meta-llama/Llama-2-7b-hf
+                      description: Llama 2 7B
+              pathBasedPreview:
+                summary: Path-based preview using server-side catalog
+                description: |-
+                  Upload only config file with yamlCatalogPath pointing to an
+                  existing catalog file on the server. Use this for previewing
+                  changes to existing saved sources.
+                value: |
+                  type: yaml
+                  includedModels:
+                    - "ibm-granite/*"
+                    - "meta-llama/*"
+                    - "mistralai/*"
+                  excludedModels:
+                    - "*-draft"
+                    - "*-experimental"
+                  properties:
+                    yamlCatalogPath: "models-catalog.yaml"
+              huggingfaceSource:
+                summary: HuggingFace catalog source
+                description: |-
+                  Upload configuration for HuggingFace source with API credentials.
+                  The API key is passed per-request and not persisted anywhere.
+                value: |
+                  type: hf
+                  includedModels:
+                    - "microsoft/*"
+                    - "google/*"
+                  excludedModels:
+                    - "*-gguf"
+                  properties:
+                    apiKey: "your-huggingface-api-key-here" # notsecret
+                    modelLimit: 100
+      parameters:
+        - $ref: "#/components/parameters/pageSize"
+        - $ref: "#/components/parameters/nextPageToken"
+        - name: filterStatus
+          description: |-
+            Filter the response to show specific model statuses:
+            - `all` (default): Show all models regardless of inclusion status
+            - `included`: Show only models that pass the configured filters
+            - `excluded`: Show only models that are filtered out
+          schema:
+            type: string
+            enum:
+              - all
+              - included
+              - excluded
+            default: all
+          in: query
+          required: false
+      responses:
+        "200":
+          $ref: "#/components/responses/CatalogSourcePreviewResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "422":
+          description: Unprocessable Entity - Invalid source configuration
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+      operationId: previewCatalogSource
+  /api/model_catalog/v1alpha1/sources/{source_id}/models/{model_name+}:
+    description: >-
+      The REST endpoint/path used to get a `CatalogModel`.
+    get:
+      summary: Get a `CatalogModel`.
+      tags:
+        - ModelCatalogService
+      responses:
+        "200":
+          $ref: "#/components/responses/CatalogModelResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+      operationId: getModel
+    parameters:
+      - name: source_id
+        description: A unique identifier for a `CatalogSource`.
+        schema:
+          type: string
+        in: path
+        required: true
+      - name: model_name+
+        description: A unique identifier for the model.
+        schema:
+          type: string
+        in: path
+        required: true
+  /api/model_catalog/v1alpha1/sources/{source_id}/models/{model_name}/artifacts:
+    description: >-
+      The REST endpoint/path used to list `CatalogArtifacts`.
+    get:
+      summary: List CatalogArtifacts.
+      tags:
+        - ModelCatalogService
+      responses:
+        "200":
+          $ref: "#/components/responses/CatalogArtifactListResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+      operationId: getAllModelArtifacts
+    parameters:
+      - name: source_id
+        description: A unique identifier for a `CatalogSource`.
+        schema:
+          type: string
+        in: path
+        required: true
+      - name: model_name
+        description: A unique identifier for the model.
+        schema:
+          type: string
+        in: path
+        required: true
+      - $ref: "#/components/parameters/artifactType"
+      - $ref: "#/components/parameters/artifact_type"
+      - $ref: "#/components/parameters/artifactFilterQuery"
+      - $ref: "#/components/parameters/pageSize"
+      - $ref: "#/components/parameters/artifactOrderBy"
+      - $ref: "#/components/parameters/sortOrder"
+      - $ref: "#/components/parameters/nextPageToken"
+  /api/model_catalog/v1alpha1/sources/{source_id}/models/{model_name}/artifacts/performance:
+    description: >-
+      Lists performance metrics artifacts (that is, artifacts of type `CatalogMetricsArtifact` where `metricsType` is `performance-metrics`).
+    get:
+      summary: List CatalogArtifacts.
+      tags:
+        - ModelCatalogService
+      responses:
+        "200":
+          $ref: "#/components/responses/CatalogArtifactListResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+      operationId: getAllModelPerformanceArtifacts
+    parameters:
+      - name: source_id
+        description: A unique identifier for a `CatalogSource`.
+        schema:
+          type: string
+        in: path
+        required: true
+      - name: model_name
+        description: A unique identifier for the model.
+        schema:
+          type: string
+        in: path
+        required: true
+      - name: targetRPS
+        description: |-
+          Target requests per second. If specified, values for `replicas` and
+          `total_requests_per_second` will be calculated and returned as custom
+          properties.
+        schema:
+          type: integer
+        in: query
+      - name: recommendations
+        description: Filter records that are less optimal based on approximate cost to run and latency.
+        schema:
+          type: boolean
+          default: false
+        in: query
+      - name: rpsProperty
+        description: Custom property name for requests per second metric.
+        schema:
+          type: string
+          default: "requests_per_second"
+        in: query
+      - name: latencyProperty
+        description: Custom property name for latency metric (e.g., ttft_p90, p90_latency).
+        schema:
+          type: string
+          default: "ttft_p90"
+        in: query
+      - name: hardwareCountProperty
+        description: Custom property name for hardware count metric.
+        schema:
+          type: string
+          default: "hardware_count"
+        in: query
+      - name: hardwareTypeProperty
+        description: Custom property name for hardware type grouping.
+        schema:
+          type: string
+          default: "hardware_type"
+        in: query
+      - $ref: "#/components/parameters/artifactFilterQuery"
+      - $ref: "#/components/parameters/pageSize"
+      - $ref: "#/components/parameters/artifactOrderBy"
+      - $ref: "#/components/parameters/sortOrder"
+      - $ref: "#/components/parameters/nextPageToken"
+components:
+  schemas:
+    ArtifactTypeQueryParam:
+      description: Supported artifact types for querying.
+      enum:
+        - model-artifact
+        - metrics-artifact
+      type: string
+    BaseModel:
+      type: object
+      properties:
+        description:
+          type: string
+          description: Human-readable description of the model.
+        readme:
+          type: string
+          description: Model documentation in Markdown.
+        maturity:
+          type: string
+          description: Maturity level of the model.
+          example: Generally Available
+        language:
+          type: array
+          description: List of supported languages (https://en.wikipedia.org/wiki/List_of_ISO_639_language_codes).
+          items:
+            type: string
+          example:
+            - en
+            - es
+            - cz
+        tasks:
+          type: array
+          description: List of tasks the model is designed for.
+          items:
+            type: string
+          example:
+            - text-generation
+        provider:
+          type: string
+          description: Name of the organization or entity that provides the model.
+          example: IBM
+        logo:
+          type: string
+          format: uri
+          description: |-
+            URL to the model's logo. A [data
+            URL](https://developer.mozilla.org/en-US/docs/Web/URI/Schemes/data)
+            is recommended.
+        license:
+          type: string
+          description: Short name of the model's license.
+          example: apache-2.0
+        licenseLink:
+          type: string
+          format: uri
+          description: URL to the license text.
+        libraryName:
+          type: string
+          example: transformers
+        customProperties:
+          description: User provided custom properties which are not defined by its type.
+          type: object
+          additionalProperties:
+            $ref: "#/components/schemas/MetadataValue"
+    BaseResource:
+      allOf:
+        - type: object
+          properties:
+            customProperties:
+              description: User provided custom properties which are not defined by its type.
+              type: object
+              additionalProperties:
+                $ref: "#/components/schemas/MetadataValue"
+            description:
+              description: |-
+                An optional description about the resource.
+              type: string
+            externalId:
+              description: |-
+                The external id that come from the clients’ system. This field is optional.
+                If set, it must be unique among all resources within a database instance.
+              type: string
+            name:
+              description: |-
+                The client provided name of the artifact. This field is optional. If set,
+                it must be unique among all the artifacts of the same artifact type within
+                a database instance and cannot be changed once set.
+              type: string
+            id:
+              format: int64
+              description: The unique server generated id of the resource.
+              type: string
+        - $ref: "#/components/schemas/BaseResourceDates"
+    BaseResourceDates:
+      description: Common timestamp fields for resources
+      type: object
+      properties:
+        createTimeSinceEpoch:
+          format: int64
+          description: Output only. Create time of the resource in millisecond since epoch.
+          type: string
+          readOnly: true
+        lastUpdateTimeSinceEpoch:
+          format: int64
+          description: Output only. Last update time of the resource since epoch in millisecond since epoch.
+          type: string
+          readOnly: true
+    BaseResourceList:
+      required:
+        - nextPageToken
+        - pageSize
+        - size
+      type: object
+      properties:
+        nextPageToken:
+          description: Token to use to retrieve next page of results.
+          type: string
+        pageSize:
+          format: int32
+          description: Maximum number of resources to return in the result.
+          type: integer
+        size:
+          format: int32
+          description: Number of items in result list.
+          type: integer
+    CatalogArtifact:
+      description: A single artifact in the catalog API.
+      oneOf:
+        - $ref: "#/components/schemas/CatalogModelArtifact"
+        - $ref: "#/components/schemas/CatalogMetricsArtifact"
+      discriminator:
+        propertyName: artifactType
+        mapping:
+          model-artifact: "#/components/schemas/CatalogModelArtifact"
+          metrics-artifact: "#/components/schemas/CatalogMetricsArtifact"
+    CatalogArtifactList:
+      description: List of CatalogModel entities.
+      allOf:
+        - type: object
+          properties:
+            items:
+              description: Array of `CatalogArtifact` entities.
+              type: array
+              items:
+                $ref: "#/components/schemas/CatalogArtifact"
+          required:
+            - items
+        - $ref: "#/components/schemas/BaseResourceList"
+    CatalogLabel:
+      description: A catalog label. Labels are used to categorize catalog sources. Represented as a flexible map of string key-value pairs with a required 'name' field.
+      type: object
+      required:
+        - name
+      properties:
+        name:
+          type: string
+          nullable: true
+          description: The unique name identifier for the label.
+        displayName:
+          type: string
+          description: An optional human-readable name to show in place of `name`.
+      additionalProperties:
+        type: string
+      example:
+        name: huggingface
+        displayName: HuggingFace Hub
+        description: HuggingFace models with full support and legal indemnification.
+    CatalogLabelList:
+      description: List of CatalogLabel entities.
+      allOf:
+        - type: object
+          properties:
+            items:
+              description: Array of `CatalogLabel` entities.
+              type: array
+              items:
+                $ref: "#/components/schemas/CatalogLabel"
+          required:
+            - items
+        - $ref: "#/components/schemas/BaseResourceList"
+    CatalogMetricsArtifact:
+      description: A metadata Artifact Entity.
+      allOf:
+        - type: object
+          required:
+            - artifactType
+            - metricsType
+          properties:
+            artifactType:
+              type: string
+              default: metrics-artifact
+            metricsType:
+              type: string
+              enum:
+                - performance-metrics
+                - accuracy-metrics
+            customProperties:
+              description: User provided custom properties which are not defined by its type.
+              type: object
+              additionalProperties:
+                $ref: "#/components/schemas/MetadataValue"
+        - $ref: "#/components/schemas/BaseResource"
+    CatalogModel:
+      description: A model in the model catalog.
+      allOf:
+        - type: object
+          required:
+            - name
+          properties:
+            name:
+              type: string
+              description: Name of the model. Must be unique within a source.
+              example: ibm-granite/granite-3.1-8b-base
+            source_id:
+              type: string
+              description: ID of the source this model belongs to.
+        - $ref: "#/components/schemas/BaseModel"
+        - $ref: "#/components/schemas/BaseResource"
+    CatalogModelArtifact:
+      description: A Catalog Model Artifact Entity.
+      allOf:
+        - type: object
+          required:
+            - artifactType
+            - uri
+          properties:
+            artifactType:
+              type: string
+              default: model-artifact
+            uri:
+              type: string
+              format: uri
+              description: URI where the model can be retrieved.
+            customProperties:
+              description: User provided custom properties which are not defined by its type.
+              type: object
+              additionalProperties:
+                $ref: "#/components/schemas/MetadataValue"
+        - $ref: "#/components/schemas/BaseResource"
+    CatalogModelList:
+      description: List of CatalogModel entities.
+      allOf:
+        - type: object
+          properties:
+            items:
+              description: Array of `CatalogModel` entities.
+              type: array
+              items:
+                $ref: "#/components/schemas/CatalogModel"
+          required:
+            - items
+        - $ref: "#/components/schemas/BaseResourceList"
+    CatalogSource:
+      description: A catalog source. A catalog source has CatalogModel children.
+      required:
+        - id
+        - name
+        - labels
+      type: object
+      properties:
+        id:
+          description: A unique identifier for a `CatalogSource`.
+          type: string
+        name:
+          description: The name of the catalog source.
+          type: string
+        enabled:
+          description: Whether the catalog source is enabled.
+          type: boolean
+          default: true
+        labels:
+          description: Labels for the catalog source.
+          type: array
+          items:
+            type: string
+        status:
+          $ref: "#/components/schemas/CatalogSourceStatus"
+          description: Current operational status of the catalog source.
+        error:
+          description: |-
+            Detailed error information when the status is "Error".
+            This field is null or empty when the source is functioning normally.
+          type: string
+          nullable: true
+        includedModels:
+          description: |-
+            Optional list of glob patterns for models to include. If specified, only models matching
+            at least one pattern will be included. If omitted, all models are considered for inclusion.
+
+            Pattern Syntax:
+            - Only the `*` wildcard is supported (matches zero or more characters)
+            - Patterns are case-insensitive (e.g., `Granite/*` matches `granite/model` and `GRANITE/model`)
+            - Patterns match the entire model name (anchored at start and end)
+            - Wildcards can appear anywhere: `Granite/*`, `*-beta`, `*deprecated*`, `*/old*`
+
+            Examples:
+            - `ibm-granite/*` - matches all models starting with "ibm-granite/"
+            - `meta-llama/*` - matches all models in the meta-llama namespace
+            - `*` - matches all models
+
+            Constraints:
+            - Patterns cannot be empty or whitespace-only
+            - A pattern cannot appear in both includedModels and excludedModels
+          type: array
+          items:
+            type: string
+        excludedModels:
+          description: |-
+            Optional list of glob patterns for models to exclude. Models matching any pattern
+            will be excluded even if they match an includedModels pattern. Exclusions take
+            precedence over inclusions.
+
+            Pattern Syntax:
+            - Only the `*` wildcard is supported (matches zero or more characters)
+            - Patterns are case-insensitive
+            - Patterns match the entire model name (anchored at start and end)
+            - Wildcards can appear anywhere in the pattern
+
+            Examples:
+            - `*-draft` - excludes all models ending with "-draft"
+            - `*-experimental` - excludes experimental models
+            - `*deprecated*` - excludes models with "deprecated" anywhere in the name
+            - `*/beta-*` - excludes models with "/beta-" in the path
+
+            Constraints:
+            - Patterns cannot be empty or whitespace-only
+            - A pattern cannot appear in both includedModels and excludedModels
+          type: array
+          items:
+            type: string
+    CatalogSourceList:
+      description: List of CatalogSource entities.
+      allOf:
+        - type: object
+          properties:
+            items:
+              description: Array of `CatalogSource` entities.
+              type: array
+              items:
+                $ref: "#/components/schemas/CatalogSource"
+          required:
+            - items
+        - $ref: "#/components/schemas/BaseResourceList"
+    CatalogSourcePreviewResponse:
+      description: Response containing models and their inclusion/exclusion status.
+      allOf:
+        - type: object
+          properties:
+            items:
+              description: Array of model preview results.
+              type: array
+              items:
+                $ref: "#/components/schemas/ModelPreviewResult"
+            summary:
+              description: Summary of the preview results
+              type: object
+              properties:
+                totalModels:
+                  type: integer
+                  description: Total number of models evaluated
+                  example: 1500
+                includedModels:
+                  type: integer
+                  description: Number of models that would be included
+                  example: 850
+                excludedModels:
+                  type: integer
+                  description: Number of models that would be excluded
+                  example: 650
+              required:
+                - totalModels
+                - includedModels
+                - excludedModels
+          required:
+            - items
+            - summary
+        - $ref: "#/components/schemas/BaseResourceList"
+    CatalogSourceStatus:
+      description: |-
+        Operational status of a catalog source.
+        - `available`: The source is functioning correctly and models can be retrieved
+        - `error`: The source is experiencing issues and cannot provide models
+        - `disabled`: The source has been intentionally disabled
+      enum:
+        - available
+        - error
+        - disabled
+      type: string
+    Error:
+      description: Error code and message.
+      required:
+        - code
+        - message
+      type: object
+      properties:
+        code:
+          description: Error code
+          type: string
+        message:
+          description: Error message
+          type: string
+    FieldFilter:
+      type: object
+      required:
+        - operator
+        - value
+      properties:
+        operator:
+          type: string
+          description: Filter operator (e.g., '<', '=', '>', 'IN')
+          example: '<'
+        value:
+          description: Filter value (can be number, string, or array)
+          example: 70
+    FilterOption:
+      type: object
+      required:
+        - type
+      properties:
+        type:
+          type: string
+          description: The data type of the filter option
+          enum:
+            - string
+            - number
+        values:
+          type: array
+          description: Known values of the property for string types with a small number of possible options.
+          items: {}
+        range:
+          $ref: "#/components/schemas/FilterOptionRange"
+    FilterOptionRange:
+      type: object
+      description: Min and max values for number types.
+      properties:
+        min:
+          type: number
+          format: double
+        max:
+          type: number
+          format: double
+    FilterOptionsList:
+      description: List of FilterOptions
+      type: object
+      properties:
+        filters:
+          type: object
+          description: A single filter option.
+          additionalProperties:
+            $ref: "#/components/schemas/FilterOption"
+        namedQueries:
+          type: object
+          description: Predefined named queries for common filtering scenarios
+          additionalProperties:
+            type: object
+            additionalProperties:
+              $ref: "#/components/schemas/FieldFilter"
+    MetadataBoolValue:
+      description: A bool property value.
+      type: object
+      required:
+        - metadataType
+        - bool_value
+      properties:
+        bool_value:
+          type: boolean
+        metadataType:
+          type: string
+          example: MetadataBoolValue
+          default: MetadataBoolValue
+    MetadataDoubleValue:
+      description: A double property value.
+      type: object
+      required:
+        - metadataType
+        - double_value
+      properties:
+        double_value:
+          format: double
+          type: number
+        metadataType:
+          type: string
+          example: MetadataDoubleValue
+          default: MetadataDoubleValue
+    MetadataIntValue:
+      description: An integer (int64) property value.
+      type: object
+      required:
+        - metadataType
+        - int_value
+      properties:
+        int_value:
+          format: int64
+          type: string
+        metadataType:
+          type: string
+          example: MetadataIntValue
+          default: MetadataIntValue
+    MetadataProtoValue:
+      description: A proto property value.
+      type: object
+      required:
+        - metadataType
+        - type
+        - proto_value
+      properties:
+        type:
+          description: url describing proto value
+          type: string
+        proto_value:
+          description: Base64 encoded bytes for proto value
+          type: string
+        metadataType:
+          type: string
+          example: MetadataProtoValue
+          default: MetadataProtoValue
+    MetadataStringValue:
+      description: A string property value.
+      type: object
+      required:
+        - metadataType
+        - string_value
+      properties:
+        string_value:
+          type: string
+        metadataType:
+          type: string
+          example: MetadataStringValue
+          default: MetadataStringValue
+    MetadataStructValue:
+      description: A struct property value.
+      type: object
+      required:
+        - metadataType
+        - struct_value
+      properties:
+        struct_value:
+          description: Base64 encoded bytes for struct value
+          type: string
+        metadataType:
+          type: string
+          example: MetadataStructValue
+          default: MetadataStructValue
+    MetadataValue:
+      oneOf:
+        - $ref: "#/components/schemas/MetadataIntValue"
+        - $ref: "#/components/schemas/MetadataDoubleValue"
+        - $ref: "#/components/schemas/MetadataStringValue"
+        - $ref: "#/components/schemas/MetadataStructValue"
+        - $ref: "#/components/schemas/MetadataProtoValue"
+        - $ref: "#/components/schemas/MetadataBoolValue"
+      discriminator:
+        propertyName: metadataType
+        mapping:
+          MetadataBoolValue: "#/components/schemas/MetadataBoolValue"
+          MetadataDoubleValue: "#/components/schemas/MetadataDoubleValue"
+          MetadataIntValue: "#/components/schemas/MetadataIntValue"
+          MetadataProtoValue: "#/components/schemas/MetadataProtoValue"
+          MetadataStringValue: "#/components/schemas/MetadataStringValue"
+          MetadataStructValue: "#/components/schemas/MetadataStructValue"
+      description: A value in properties.
+      example:
+        string_value: my_value
+        metadataType: MetadataStringValue
+    ModelPreviewResult:
+      description: |-
+        A model with its inclusion/exclusion status based on the
+        configured catalog source filters.
+      type: object
+      required:
+        - name
+        - included
+      properties:
+        name:
+          type: string
+          description: Name of the model
+          example: microsoft/DialoGPT-medium
+        included:
+          type: boolean
+          description: Whether this model would be included based on the source configuration
+    OrderByField:
+      description: |-
+        Supported fields for ordering result entities.
+      enum:
+        - CREATE_TIME
+        - LAST_UPDATE_TIME
+        - ID
+        - NAME
+      type: string
+    SortOrder:
+      description: Supported sort direction for ordering result entities.
+      enum:
+        - ASC
+        - DESC
+      type: string
+  responses:
+    BadRequest:
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+      description: Bad Request parameters
+    CatalogArtifactListResponse:
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/CatalogArtifactList"
+      description: A response containing a list of CatalogArtifact entities.
+    CatalogLabelListResponse:
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/CatalogLabelList"
+      description: A response containing a list of CatalogLabel entities.
+    CatalogModelListResponse:
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/CatalogModelList"
+      description: A response containing a list of CatalogModel entities.
+    CatalogModelResponse:
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/CatalogModel"
+      description: A response containing a `CatalogModel` entity.
+    CatalogSourceListResponse:
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/CatalogSourceList"
+      description: A response containing a list of CatalogSource entities.
+    CatalogSourcePreviewResponse:
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/CatalogSourcePreviewResponse"
+          examples:
+            allModels:
+              summary: All models with inclusion status
+              description: Response showing all models when filterStatus=all
+              value:
+                nextPageToken: ""
+                pageSize: 10
+                size: 5
+                items:
+                  - name: "ibm-granite/granite-3.0-8b-instruct"
+                    included: true
+                  - name: "ibm-granite/granite-3.0-2b-instruct"
+                    included: true
+                  - name: "meta-llama/Llama-2-7b-hf"
+                    included: true
+                  - name: "mistralai/Mistral-7B-v0.1-draft"
+                    included: false
+                  - name: "microsoft/phi-2-experimental"
+                    included: false
+                summary:
+                  totalModels: 5
+                  includedModels: 3
+                  excludedModels: 2
+            includedOnly:
+              summary: Only included models
+              description: Response when filterStatus=included
+              value:
+                nextPageToken: ""
+                pageSize: 10
+                size: 3
+                items:
+                  - name: "ibm-granite/granite-3.0-8b-instruct"
+                    included: true
+                  - name: "ibm-granite/granite-3.0-2b-instruct"
+                    included: true
+                  - name: "meta-llama/Llama-2-7b-hf"
+                    included: true
+                summary:
+                  totalModels: 5
+                  includedModels: 3
+                  excludedModels: 2
+            excludedOnly:
+              summary: Only excluded models
+              description: Response when filterStatus=excluded
+              value:
+                nextPageToken: ""
+                pageSize: 10
+                size: 2
+                items:
+                  - name: "mistralai/Mistral-7B-v0.1-draft"
+                    included: false
+                  - name: "microsoft/phi-2-experimental"
+                    included: false
+                summary:
+                  totalModels: 5
+                  includedModels: 3
+                  excludedModels: 2
+            withPagination:
+              summary: Paginated response
+              description: Response with pagination when pageSize is smaller than total
+              value:
+                nextPageToken: "eyJvZmZzZXQiOjEwfQ==" # notsecret
+                pageSize: 10
+                size: 10
+                items:
+                  - name: "ibm-granite/granite-3.0-8b-instruct"
+                    included: true
+                  - name: "ibm-granite/granite-3.0-2b-instruct"
+                    included: true
+                  - name: "meta-llama/Llama-2-7b-hf"
+                    included: true
+                  - name: "meta-llama/Llama-2-13b-hf"
+                    included: true
+                  - name: "mistralai/Mistral-7B-Instruct-v0.3"
+                    included: true
+                  - name: "mistralai/Mistral-7B-v0.1"
+                    included: true
+                  - name: "microsoft/phi-2"
+                    included: true
+                  - name: "google/gemma-7b"
+                    included: true
+                  - name: "mistralai/Mistral-7B-v0.1-draft"
+                    included: false
+                  - name: "microsoft/phi-2-experimental"
+                    included: false
+                summary:
+                  totalModels: 150
+                  includedModels: 85
+                  excludedModels: 65
+      description: |-
+        A response containing a list of models with their inclusion/exclusion
+        status based on the provided catalog source configuration.
+    CatalogSourceResponse:
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/CatalogSource"
+      description: A response containing a `CatalogSource` entity.
+    Conflict:
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+      description: Conflict with current state of target resource
+    FilterOptionsResponse:
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/FilterOptionsList"
+      description: A response containing options for a `filterQuery` parameter.
+    InternalServerError:
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+      description: Unexpected internal server error
+    NotFound:
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+      description: The specified resource was not found
+    ServiceUnavailable:
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+      description: Service is unavailable
+    Unauthorized:
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+      description: Unauthorized
+    UnprocessableEntity:
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+      description: Unprocessable Entity error
+  parameters:
+    artifactFilterQuery:
+      examples:
+        artifactFilterQuery:
+          value: "name='my-artifact' AND uri LIKE '%s3%'"
+      name: filterQuery
+      description: |
+        A SQL-like query string to filter catalog artifacts. The query supports rich filtering capabilities with automatic type inference.
+
+        **Supported Operators:**
+        - Comparison: `=`, `!=`, `<>`, `>`, `<`, `>=`, `<=`
+        - Pattern matching: `LIKE`, `ILIKE` (case-insensitive)
+        - Set membership: `IN`
+        - Logical: `AND`, `OR`
+        - Grouping: `()` for complex expressions
+
+        **Data Types:**
+        - Strings: `"value"` or `'value'`
+        - Numbers: `42`, `3.14`, `1e-5`
+        - Booleans: `true`, `false` (case-insensitive)
+
+        **Property Access (Artifacts):**
+        - Standard properties: `name`, `id`, `uri`, `artifactType`, `createTimeSinceEpoch`
+        - Custom properties: Any user-defined property name in `customProperties`
+        - Escaped properties: Use backticks for special characters: `` `custom-property` ``
+        - Type-specific access: `property.string_value`, `property.double_value`, `property.int_value`, `property.bool_value`
+
+        **Examples:**
+        - Basic: `name = "my-artifact"`
+        - Comparison: `ttft_mean > 90`
+        - Pattern: `uri LIKE "%s3.amazonaws.com%"`
+        - Complex: `(artifactType = "model-artifact" OR artifactType = "metrics-artifact") AND name LIKE "%pytorch%"`
+        - Custom property: `format.string_value = "pytorch"`
+        - Escaped property: `` `custom-key` = "value" ``
+      schema:
+        type: string
+      in: query
+      required: false
+    artifactOrderBy:
+      style: form
+      explode: true
+      examples:
+        standardField:
+          value: ID
+          summary: Order by standard field
+        customPropertyDouble:
+          value: mmlu.double_value
+          summary: Order by custom double property
+        customPropertyString:
+          value: framework_type.string_value
+          summary: Order by custom string property
+        customPropertyInt:
+          value: hardware_count.int_value
+          summary: Order by custom integer property
+      name: orderBy
+      description: |
+        Specifies the order by criteria for listing artifacts.
+
+        **Standard Fields:**
+        - `ID` - Order by artifact ID
+        - `NAME` - Order by artifact name
+        - `CREATE_TIME` - Order by creation timestamp
+        - `LAST_UPDATE_TIME` - Order by last update timestamp
+
+        **Custom Property Ordering:**
+
+        Artifacts can be ordered by custom properties using the format: `<property_name>.<value_type>`
+
+        Supported value types:
+        - `double_value` - For numeric (floating-point) properties
+        - `int_value` - For integer properties
+        - `string_value` - For string properties
+
+        Examples:
+        - `mmlu.double_value` - Order by the 'mmlu' benchmark score
+        - `accuracy.double_value` - Order by accuracy metric
+        - `framework_type.string_value` - Order by framework type
+        - `hardware_count.int_value` - Order by hardware count
+        - `ttft_mean.double_value` - Order by time-to-first-token mean
+
+        **Behavior:**
+        - If an invalid value type is specified (e.g., `accuracy.invalid_type`), an error is returned
+        - If an invalid format is used (e.g., `accuracy` without `.value_type`), it falls back to ID ordering
+        - If a property doesn't exist, it falls back to ID ordering
+        - Artifacts with the specified property are ordered first (by the property value), followed by artifacts without the property (ordered by ID)
+        - Empty property names (e.g., `.double_value`) return an error
+      schema:
+        type: string
+      in: query
+      required: false
+    artifactType:
+      style: form
+      explode: true
+      examples:
+        artifactType:
+          value: model-artifact
+      name: artifactType
+      description: "Specifies the artifact type for listing artifacts."
+      schema:
+        type: array
+        items:
+          $ref: "#/components/schemas/ArtifactTypeQueryParam"
+      in: query
+      required: false
+    artifact_type:
+      deprecated: true
+      style: form
+      explode: true
+      examples:
+        artifact_type:
+          value: model-artifact
+      name: artifact_type
+      description: "Specifies the artifact type for listing artifacts."
+      schema:
+        type: array
+        items:
+          $ref: "#/components/schemas/ArtifactTypeQueryParam"
+      in: query
+      required: false
+    externalId:
+      examples:
+        externalId:
+          value: "10"
+      name: externalId
+      description: External ID of entity to search.
+      schema:
+        type: string
+      in: query
+      required: false
+    filterQuery:
+      examples:
+        filterQuery:
+          value: "name='my-model' AND state='LIVE'"
+      name: filterQuery
+      description: |
+        A SQL-like query string to filter the list of entities. The query supports rich filtering capabilities with automatic type inference.
+
+        **Supported Operators:**
+        - Comparison: `=`, `!=`, `<>`, `>`, `<`, `>=`, `<=`
+        - Pattern matching: `LIKE`, `ILIKE` (case-insensitive)
+        - Set membership: `IN`
+        - Logical: `AND`, `OR`
+        - Grouping: `()` for complex expressions
+
+        **Data Types:**
+        - Strings: `"value"` or `'value'`
+        - Numbers: `42`, `3.14`, `1e-5`
+        - Booleans: `true`, `false` (case-insensitive)
+
+        **Property Access:**
+        - Standard properties: `name`, `id`, `state`, `createTimeSinceEpoch`
+        - Custom properties: Any user-defined property name
+        - Escaped properties: Use backticks for special characters: `` `custom-property` ``
+        - Type-specific access: `property.string_value`, `property.double_value`, `property.int_value`, `property.bool_value`
+
+        **Examples:**
+        - Basic: `name = "my-model"`
+        - Comparison: `accuracy > 0.95`
+        - Pattern: `name LIKE "%tensorflow%"`
+        - Complex: `(name = "model-a" OR name = "model-b") AND state = "LIVE"`
+        - Custom property: `framework.string_value = "pytorch"`
+        - Escaped property: `` `mlflow.source.type` = "notebook" ``
+      schema:
+        type: string
+      in: query
+      required: false
+    id:
+      name: id
+      description: The ID of resource.
+      schema:
+        type: string
+      in: path
+      required: true
+    labelOrderBy:
+      style: form
+      explode: true
+      examples:
+        labelOrderBy:
+          value: name
+      name: orderBy
+      description: |
+        Specifies the key to order catalog labels by. You can provide any string key
+        that may exist in the label maps. Labels that contain the specified key will
+        be sorted by that key's value. Labels that don't contain the key will maintain
+        their original order and appear after labels that do contain the key.
+      schema:
+        type: string
+      in: query
+      required: false
+    name:
+      examples:
+        name:
+          value: entity-name
+      name: name
+      description: Name of entity to search.
+      schema:
+        type: string
+      in: query
+      required: false
+    nextPageToken:
+      name: nextPageToken
+      description: Token to use to retrieve next page of results.
+      schema:
+        type: string
+      in: query
+      required: false
+    orderBy:
+      style: form
+      explode: true
+      examples:
+        orderBy:
+          value: ID
+      name: orderBy
+      description: Specifies the order by criteria for listing entities.
+      schema:
+        $ref: "#/components/schemas/OrderByField"
+      in: query
+      required: false
+    pageSize:
+      examples:
+        pageSize:
+          value: "100"
+      name: pageSize
+      description: Number of entities in each page.
+      schema:
+        type: string
+      in: query
+      required: false
+    parentResourceId:
+      examples:
+        parentResourceId:
+          value: "10"
+      name: parentResourceId
+      description: ID of the parent resource to use for search.
+      schema:
+        type: string
+      in: query
+      required: false
+    sortOrder:
+      style: form
+      explode: true
+      examples:
+        sortOrder:
+          value: DESC
+      name: sortOrder
+      description: "Specifies the sort order for listing entities, defaults to ASC."
+      schema:
+        $ref: "#/components/schemas/SortOrder"
+      in: query
+      required: false
+    stepIds:
+      style: form
+      explode: true
+      examples:
+        stepIds:
+          value: "1,2,3"
+      name: stepIds
+      description: "Comma-separated list of step IDs to filter metrics by."
+      schema:
+        type: string
+      in: query
+      required: false
+  securitySchemes:
+    Bearer:
+      scheme: bearer
+      bearerFormat: JWT
+      type: http
+      description: Bearer JWT scheme
+security:
+  - Bearer: []
+tags: []
+x-catalog-plugins: null

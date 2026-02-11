@@ -43,6 +43,10 @@ type EmbedMDConfig struct {
 	// DB is an already connected database instance that, if provided, will
 	// be used instead of making a new connection.
 	DB *gorm.DB
+
+	// SkipMigrations skips running database migrations during Connect.
+	// Use this when migrations have already been run (e.g., by the server at startup).
+	SkipMigrations bool
 }
 
 func (c *EmbedMDConfig) Validate() error {
@@ -97,7 +101,8 @@ func (c *EmbedMDConfig) Validate() error {
 }
 
 type EmbedMDService struct {
-	dbConnector db.Connector
+	dbConnector    db.Connector
+	skipMigrations bool
 }
 
 func NewEmbedMDService(cfg *EmbedMDConfig) (*EmbedMDService, error) {
@@ -116,7 +121,8 @@ func NewEmbedMDService(cfg *EmbedMDConfig) (*EmbedMDService, error) {
 	}
 
 	return &EmbedMDService{
-		dbConnector: dbConnector,
+		dbConnector:    dbConnector,
+		skipMigrations: cfg.SkipMigrations,
 	}, nil
 }
 
@@ -130,19 +136,21 @@ func (s *EmbedMDService) Connect(spec *datastore.Spec) (datastore.RepoSet, error
 
 	glog.Infof("Connected to EmbedMD service")
 
-	migrator, err := db.NewDBMigrator(connectedDB)
-	if err != nil {
-		return nil, err
+	if !s.skipMigrations {
+		migrator, err := db.NewDBMigrator(connectedDB)
+		if err != nil {
+			return nil, err
+		}
+
+		glog.Infof("Running migrations...")
+
+		err = migrator.Migrate()
+		if err != nil {
+			return nil, err
+		}
+
+		glog.Infof("Migrations completed")
 	}
-
-	glog.Infof("Running migrations...")
-
-	err = migrator.Migrate()
-	if err != nil {
-		return nil, err
-	}
-
-	glog.Infof("Migrations completed")
 
 	glog.Infof("Syncing types...")
 	err = s.syncTypes(connectedDB, spec)

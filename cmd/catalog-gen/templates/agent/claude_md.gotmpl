@@ -1,0 +1,52 @@
+# {{.EntityName}} Catalog Plugin
+
+This is a catalog plugin for the unified catalog server.
+
+## Structure
+
+- `catalog.yaml` - Plugin configuration (entity, properties, artifacts)
+- `plugin.go` - Plugin implementation
+- `internal/db/models/` - Entity and artifact models
+- `internal/db/service/` - Repository implementations
+- `internal/server/openapi/` - API handlers
+- `internal/catalog/providers/` - Data providers
+
+## Development Commands
+
+Use these slash commands for common tasks:
+
+- `/add-property <name> <type>` - Add a property to {{.EntityName}}
+- `/add-artifact <name>` - Add a new artifact type
+- `/add-artifact-property <artifact> <name> <type>` - Add property to artifact
+- `/regenerate` - Regenerate code from catalog.yaml
+- `/gen-testdata` - Generate sample test data in testdata/
+- `/fix-build` - Fix compilation errors
+
+## Workflow
+
+1. Edit `catalog.yaml` to define schema
+2. Run `/regenerate` or `catalog-gen generate`
+3. Run `make gen/openapi-server` to generate OpenAPI handlers
+4. Implement business logic in `internal/server/openapi/api_*_service_impl.go`
+
+## Property Types
+
+| YAML Type | Go Type | OpenAPI Type |
+|-----------|---------|--------------|
+| string | *string | string |
+| integer | *int32 | integer |
+| int64 | *int64 | integer (format: int64) |
+| boolean | *bool | boolean |
+| number | *float64 | number |
+| array | []string | array |
+
+## Filtering
+
+All list endpoints support `filterQuery` parameter with SQL-like syntax:
+- `?filterQuery=protocol='http'`
+- `?filterQuery=toolCount>5 AND protocol='stdio'`
+- `?filterQuery=name LIKE '%server%'`
+- Supported operators: =, !=, >, <, >=, <=, LIKE, ILIKE, IN, AND, OR
+
+Results can be ordered with `orderBy` and `sortOrder` parameters:
+- `?orderBy=name&sortOrder=DESC`
