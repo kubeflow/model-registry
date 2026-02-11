@@ -137,6 +137,13 @@ class RegisterAndStoreFields {
       .and('contain.text', 'The selected namespace does not have access to this model registry');
     return this;
   }
+
+  shouldShowNoNamespacesMessage() {
+    this.findNamespaceRegistryAccessAlert()
+      .should('be.visible')
+      .and('contain.text', 'You do not have access to any namespaces');
+    return this;
+  }
 }
 
 export const registerAndStoreFields = new RegisterAndStoreFields();

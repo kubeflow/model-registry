@@ -116,9 +116,13 @@ describe('Register and Store Fields - NamespaceSelector', () => {
     registerAndStoreFields.shouldHideOriginLocationSection().shouldHideDestinationLocationSection();
   });
 
-  it('Should show form sections after namespace selection', () => {
+  it('Should show form sections after namespace selection when namespace has access', () => {
+    cy.intercept('POST', '**/api/v1/check-namespace-registry-access', {
+      statusCode: 200,
+      body: { data: { hasAccess: true } },
+    }).as('checkNamespaceAccess');
     registerAndStoreFields.selectNamespace('namespace-1');
-
+    cy.wait('@checkNamespaceAccess');
     registerAndStoreFields.shouldShowOriginLocationSection();
     registerAndStoreFields.shouldShowDestinationLocationSection();
   });
@@ -135,8 +139,18 @@ describe('Register and Store Fields - NamespaceSelector', () => {
 
     registerAndStoreFields.findNamespaceSelector().should('exist');
     registerAndStoreFields.shouldBeNamespaceSelectorDisabled();
-
+    registerAndStoreFields.shouldShowNoNamespacesMessage();
     registerAndStoreFields.shouldShowPlaceholder('Select a namespace');
+  });
+
+  it('Should show no-access message and keep dropdown disabled when no namespaces', () => {
+    initIntercepts({ namespaces: [] });
+    registerAndStoreFields.visit();
+    registerAndStoreFields.selectRegisterAndStoreMode();
+
+    registerAndStoreFields.findNamespaceSelector().should('exist');
+    registerAndStoreFields.shouldBeNamespaceSelectorDisabled();
+    registerAndStoreFields.shouldShowNoNamespacesMessage();
   });
 });
 
@@ -159,5 +173,11 @@ describe('Register and Store Fields - Namespace access validation', () => {
     registerAndStoreFields.selectNamespace('namespace-1');
     cy.wait('@checkNamespaceAccess');
     registerAndStoreFields.shouldShowNoAccessWarning();
+  });
+
+  it('Should not show form sections when selected namespace has no access to registry', () => {
+    registerAndStoreFields.selectNamespace('namespace-1');
+    cy.wait('@checkNamespaceAccess');
+    registerAndStoreFields.shouldHideOriginLocationSection().shouldHideDestinationLocationSection();
   });
 });
