@@ -81,6 +81,7 @@ filterwarnings = [
     "error",
     "ignore::DeprecationWarning",
     "ignore::PendingDeprecationWarning",
+    "ignore:Slow code in plugin.+:hypothesis.errors.HypothesisSideeffectWarning"
 ]
 
 [tool.ruff]

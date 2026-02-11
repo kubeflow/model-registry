@@ -211,12 +211,12 @@ The following Hugging Face task types are mapped to model types:
 
 Search for all generative AI models:
 ```bash
-GET /api/model_catalog/v1alpha1/models?source=my-catalog&filterQuery=.model_type.string_value='generative'
+GET /api/model_catalog/v1alpha1/models?source=my-catalog&filterQuery=model_type.string_value='generative'
 ```
 
 Search for predictive models:
 ```bash
-GET /api/model_catalog/v1alpha1/models?source=my-catalog&filterQuery=.model_type.string_value='predictive'
+GET /api/model_catalog/v1alpha1/models?source=my-catalog&filterQuery=model_type.string_value='predictive'
 ```
 
 #### Combining Filters
@@ -224,10 +224,10 @@ GET /api/model_catalog/v1alpha1/models?source=my-catalog&filterQuery=.model_type
 Filter by model type and other criteria:
 ```bash
 # Generative models with production maturity
-GET /api/model_catalog/v1alpha1/models?source=my-catalog&filterQuery=customProperties.model_type.string_value='generative' AND maturity='Production'
+GET /api/model_catalog/v1alpha1/models?source=my-catalog&filterQuery=model_type.string_value='generative' AND maturity='Production'
 
 # Predictive models for specific tasks
-GET /api/model_catalog/v1alpha1/models?source=my-catalog&filterQuery=customProperties.model_type.string_value='predictive' AND tasks CONTAINS 'regression'
+GET /api/model_catalog/v1alpha1/models?source=my-catalog&filterQuery=model_type.string_value='predictive' AND tasks CONTAINS 'regression'
 ```
 
 ### Additional Custom Properties Examples

@@ -258,6 +258,7 @@ class ModelRegistryServiceApi:
         _headers,
         _host_index,
     ) -> RequestSerialized:
+
         _host = None
 
         _collection_formats: dict[str, str] = {}
@@ -525,6 +526,7 @@ class ModelRegistryServiceApi:
         _headers,
         _host_index,
     ) -> RequestSerialized:
+
         _host = None
 
         _collection_formats: dict[str, str] = {}
@@ -766,6 +768,7 @@ class ModelRegistryServiceApi:
         _headers,
         _host_index,
     ) -> RequestSerialized:
+
         _host = None
 
         _collection_formats: dict[str, str] = {}
@@ -1021,6 +1024,7 @@ class ModelRegistryServiceApi:
         _headers,
         _host_index,
     ) -> RequestSerialized:
+
         _host = None
 
         _collection_formats: dict[str, str] = {}
@@ -1271,6 +1275,7 @@ class ModelRegistryServiceApi:
         _headers,
         _host_index,
     ) -> RequestSerialized:
+
         _host = None
 
         _collection_formats: dict[str, str] = {}
@@ -1516,6 +1521,7 @@ class ModelRegistryServiceApi:
         _headers,
         _host_index,
     ) -> RequestSerialized:
+
         _host = None
 
         _collection_formats: dict[str, str] = {}
@@ -1777,6 +1783,7 @@ class ModelRegistryServiceApi:
         _headers,
         _host_index,
     ) -> RequestSerialized:
+
         _host = None
 
         _collection_formats: dict[str, str] = {}
@@ -2024,6 +2031,7 @@ class ModelRegistryServiceApi:
         _headers,
         _host_index,
     ) -> RequestSerialized:
+
         _host = None
 
         _collection_formats: dict[str, str] = {}
@@ -2266,6 +2274,7 @@ class ModelRegistryServiceApi:
         _headers,
         _host_index,
     ) -> RequestSerialized:
+
         _host = None
 
         _collection_formats: dict[str, str] = {}
@@ -2511,6 +2520,7 @@ class ModelRegistryServiceApi:
         _headers,
         _host_index,
     ) -> RequestSerialized:
+
         _host = None
 
         _collection_formats: dict[str, str] = {}
@@ -2766,6 +2776,7 @@ class ModelRegistryServiceApi:
         _headers,
         _host_index,
     ) -> RequestSerialized:
+
         _host = None
 
         _collection_formats: dict[str, str] = {}
@@ -3013,6 +3024,7 @@ class ModelRegistryServiceApi:
         _headers,
         _host_index,
     ) -> RequestSerialized:
+
         _host = None
 
         _collection_formats: dict[str, str] = {}
@@ -3284,6 +3296,7 @@ class ModelRegistryServiceApi:
         _headers,
         _host_index,
     ) -> RequestSerialized:
+
         _host = None
 
         _collection_formats: dict[str, str] = {}
@@ -3532,6 +3545,7 @@ class ModelRegistryServiceApi:
         _headers,
         _host_index,
     ) -> RequestSerialized:
+
         _host = None
 
         _collection_formats: dict[str, str] = {}
@@ -3799,6 +3813,7 @@ class ModelRegistryServiceApi:
         _headers,
         _host_index,
     ) -> RequestSerialized:
+
         _host = None
 
         _collection_formats: dict[str, str] = {}
@@ -4069,6 +4084,7 @@ class ModelRegistryServiceApi:
         _headers,
         _host_index,
     ) -> RequestSerialized:
+
         _host = None
 
         _collection_formats: dict[str, str] = {}
@@ -4339,6 +4355,7 @@ class ModelRegistryServiceApi:
         _headers,
         _host_index,
     ) -> RequestSerialized:
+
         _host = None
 
         _collection_formats: dict[str, str] = {}
@@ -4609,6 +4626,7 @@ class ModelRegistryServiceApi:
         _headers,
         _host_index,
     ) -> RequestSerialized:
+
         _host = None
 
         _collection_formats: dict[str, str] = {}
@@ -4857,6 +4875,7 @@ class ModelRegistryServiceApi:
         _headers,
         _host_index,
     ) -> RequestSerialized:
+
         _host = None
 
         _collection_formats: dict[str, str] = {}
@@ -5102,6 +5121,7 @@ class ModelRegistryServiceApi:
         _headers,
         _host_index,
     ) -> RequestSerialized:
+
         _host = None
 
         _collection_formats: dict[str, str] = {}
@@ -5325,6 +5345,7 @@ class ModelRegistryServiceApi:
         _headers,
         _host_index,
     ) -> RequestSerialized:
+
         _host = None
 
         _collection_formats: dict[str, str] = {}
@@ -5660,6 +5681,7 @@ class ModelRegistryServiceApi:
         _headers,
         _host_index,
     ) -> RequestSerialized:
+
         _host = None
 
         _collection_formats: dict[str, str] = {}
@@ -6034,6 +6056,7 @@ class ModelRegistryServiceApi:
         _headers,
         _host_index,
     ) -> RequestSerialized:
+
         _host = None
 
         _collection_formats: dict[str, str] = {}
@@ -6283,6 +6306,7 @@ class ModelRegistryServiceApi:
         _headers,
         _host_index,
     ) -> RequestSerialized:
+
         _host = None
 
         _collection_formats: dict[str, str] = {}
@@ -6635,6 +6659,7 @@ class ModelRegistryServiceApi:
         _headers,
         _host_index,
     ) -> RequestSerialized:
+
         _host = None
 
         _collection_formats: dict[str, str] = {}
@@ -6884,6 +6909,7 @@ class ModelRegistryServiceApi:
         _headers,
         _host_index,
     ) -> RequestSerialized:
+
         _host = None
 
         _collection_formats: dict[str, str] = {}
@@ -7249,6 +7275,7 @@ class ModelRegistryServiceApi:
         _headers,
         _host_index,
     ) -> RequestSerialized:
+
         _host = None
 
         _collection_formats: dict[str, str] = {}
@@ -7631,6 +7658,7 @@ class ModelRegistryServiceApi:
         _headers,
         _host_index,
     ) -> RequestSerialized:
+
         _host = None
 
         _collection_formats: dict[str, str] = {}
@@ -7962,6 +7990,7 @@ class ModelRegistryServiceApi:
         _headers,
         _host_index,
     ) -> RequestSerialized:
+
         _host = None
 
         _collection_formats: dict[str, str] = {}
@@ -8320,6 +8349,7 @@ class ModelRegistryServiceApi:
         _headers,
         _host_index,
     ) -> RequestSerialized:
+
         _host = None
 
         _collection_formats: dict[str, str] = {}
@@ -8649,6 +8679,7 @@ class ModelRegistryServiceApi:
         _headers,
         _host_index,
     ) -> RequestSerialized:
+
         _host = None
 
         _collection_formats: dict[str, str] = {}
@@ -8890,6 +8921,7 @@ class ModelRegistryServiceApi:
         _headers,
         _host_index,
     ) -> RequestSerialized:
+
         _host = None
 
         _collection_formats: dict[str, str] = {}
@@ -9118,6 +9150,7 @@ class ModelRegistryServiceApi:
         _headers,
         _host_index,
     ) -> RequestSerialized:
+
         _host = None
 
         _collection_formats: dict[str, str] = {}
@@ -9470,6 +9503,7 @@ class ModelRegistryServiceApi:
         _headers,
         _host_index,
     ) -> RequestSerialized:
+
         _host = None
 
         _collection_formats: dict[str, str] = {}
@@ -9719,6 +9753,7 @@ class ModelRegistryServiceApi:
         _headers,
         _host_index,
     ) -> RequestSerialized:
+
         _host = None
 
         _collection_formats: dict[str, str] = {}
@@ -10035,6 +10070,7 @@ class ModelRegistryServiceApi:
         _headers,
         _host_index,
     ) -> RequestSerialized:
+
         _host = None
 
         _collection_formats: dict[str, str] = {}
@@ -10276,6 +10312,7 @@ class ModelRegistryServiceApi:
         _headers,
         _host_index,
     ) -> RequestSerialized:
+
         _host = None
 
         _collection_formats: dict[str, str] = {}
@@ -10592,6 +10629,7 @@ class ModelRegistryServiceApi:
         _headers,
         _host_index,
     ) -> RequestSerialized:
+
         _host = None
 
         _collection_formats: dict[str, str] = {}
@@ -10833,6 +10871,7 @@ class ModelRegistryServiceApi:
         _headers,
         _host_index,
     ) -> RequestSerialized:
+
         _host = None
 
         _collection_formats: dict[str, str] = {}
@@ -11198,6 +11237,7 @@ class ModelRegistryServiceApi:
         _headers,
         _host_index,
     ) -> RequestSerialized:
+
         _host = None
 
         _collection_formats: dict[str, str] = {}
@@ -11532,6 +11572,7 @@ class ModelRegistryServiceApi:
         _headers,
         _host_index,
     ) -> RequestSerialized:
+
         _host = None
 
         _collection_formats: dict[str, str] = {}
@@ -11773,6 +11814,7 @@ class ModelRegistryServiceApi:
         _headers,
         _host_index,
     ) -> RequestSerialized:
+
         _host = None
 
         _collection_formats: dict[str, str] = {}
@@ -12125,6 +12167,7 @@ class ModelRegistryServiceApi:
         _headers,
         _host_index,
     ) -> RequestSerialized:
+
         _host = None
 
         _collection_formats: dict[str, str] = {}
@@ -12456,6 +12499,7 @@ class ModelRegistryServiceApi:
         _headers,
         _host_index,
     ) -> RequestSerialized:
+
         _host = None
 
         _collection_formats: dict[str, str] = {}
@@ -12703,6 +12747,7 @@ class ModelRegistryServiceApi:
         _headers,
         _host_index,
     ) -> RequestSerialized:
+
         _host = None
 
         _collection_formats: dict[str, str] = {}
@@ -13013,6 +13058,7 @@ class ModelRegistryServiceApi:
         _headers,
         _host_index,
     ) -> RequestSerialized:
+
         _host = None
 
         _collection_formats: dict[str, str] = {}
@@ -13270,6 +13316,7 @@ class ModelRegistryServiceApi:
         _headers,
         _host_index,
     ) -> RequestSerialized:
+
         _host = None
 
         _collection_formats: dict[str, str] = {}
@@ -13524,6 +13571,7 @@ class ModelRegistryServiceApi:
         _headers,
         _host_index,
     ) -> RequestSerialized:
+
         _host = None
 
         _collection_formats: dict[str, str] = {}
@@ -13784,6 +13832,7 @@ class ModelRegistryServiceApi:
         _headers,
         _host_index,
     ) -> RequestSerialized:
+
         _host = None
 
         _collection_formats: dict[str, str] = {}
@@ -14044,6 +14093,7 @@ class ModelRegistryServiceApi:
         _headers,
         _host_index,
     ) -> RequestSerialized:
+
         _host = None
 
         _collection_formats: dict[str, str] = {}
@@ -14304,6 +14354,7 @@ class ModelRegistryServiceApi:
         _headers,
         _host_index,
     ) -> RequestSerialized:
+
         _host = None
 
         _collection_formats: dict[str, str] = {}
@@ -14558,6 +14609,7 @@ class ModelRegistryServiceApi:
         _headers,
         _host_index,
     ) -> RequestSerialized:
+
         _host = None
 
         _collection_formats: dict[str, str] = {}
@@ -14818,6 +14870,7 @@ class ModelRegistryServiceApi:
         _headers,
         _host_index,
     ) -> RequestSerialized:
+
         _host = None
 
         _collection_formats: dict[str, str] = {}
@@ -15084,6 +15137,7 @@ class ModelRegistryServiceApi:
         _headers,
         _host_index,
     ) -> RequestSerialized:
+
         _host = None
 
         _collection_formats: dict[str, str] = {}
@@ -15350,6 +15404,7 @@ class ModelRegistryServiceApi:
         _headers,
         _host_index,
     ) -> RequestSerialized:
+
         _host = None
 
         _collection_formats: dict[str, str] = {}
@@ -15616,6 +15671,7 @@ class ModelRegistryServiceApi:
         _headers,
         _host_index,
     ) -> RequestSerialized:
+
         _host = None
 
         _collection_formats: dict[str, str] = {}

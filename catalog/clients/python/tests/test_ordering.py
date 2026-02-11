@@ -154,6 +154,7 @@ class TestFieldOrdering:
         order_by: str,
         sort_order: str,
         api_client: CatalogAPIClient,
+        suppress_ssl_warnings: None,
     ):
         """Test models endpoint sorts correctly by field and order.
 
@@ -292,6 +293,7 @@ class TestAccuracyOrdering:
         sort_order: str,
         filter_query: str,
         api_client: CatalogAPIClient,
+        suppress_ssl_warnings: None,
     ):
         """Test accuracy sorting works correctly with filter applied.
 

@@ -108,18 +108,21 @@ class TestModelSearch:
         test_catalog_data: dict,
         search_term: str,
         suppress_ssl_warnings: None,
+        kind_cluster: bool,
     ):
         """Test search with term that should return no results."""
         response = api_client.get_models(q=search_term)
         assert "items" in response
 
-        is_valid, errors = validate_search_results_against_test_data(
-            api_response=response,
-            search_term=search_term,
-            catalog_data=test_catalog_data,
-        )
+        if kind_cluster:
+            # Validate against test data only for Kind clusters
+            is_valid, errors = validate_search_results_against_test_data(
+                api_response=response,
+                search_term=search_term,
+                catalog_data=test_catalog_data,
+            )
 
-        assert is_valid, f"API search results do not match test data for '{search_term}': {errors}"
+            assert is_valid, f"API search results do not match test data for '{search_term}': {errors}"
         models = response.get("items", [])
         assert len(models) == 0
 
