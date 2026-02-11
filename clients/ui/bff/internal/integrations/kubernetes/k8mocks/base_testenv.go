@@ -176,6 +176,24 @@ func setupMock(mockK8sClient kubernetes.Interface, ctx context.Context) error {
 		return fmt.Errorf("failed to create namespace default SA registry access RBAC: %w", err)
 	}
 
+	err = createNamespaceDefaultSARegistryAccessRBAC(mockK8sClient, ctx, "kubeflow", "model-registry")
+	if err != nil {
+		return fmt.Errorf("failed to create kubeflow default SA registry access RBAC: %w", err)
+	}
+	err = createCrossNamespaceRegistryAccessBinding(mockK8sClient, ctx, "kubeflow", "namespace-sa-registry-access", "dora-namespace")
+	if err != nil {
+		return fmt.Errorf("failed to create dora-namespace cross-namespace access to model-registry: %w", err)
+	}
+
+	err = createNamespaceDefaultSARegistryAccessRBAC(mockK8sClient, ctx, "bella-namespace", "model-registry-bella")
+	if err != nil {
+		return fmt.Errorf("failed to create bella-namespace default SA registry access RBAC: %w", err)
+	}
+	err = createCrossNamespaceRegistryAccessBinding(mockK8sClient, ctx, "bella-namespace", "namespace-sa-registry-access", "dora-namespace")
+	if err != nil {
+		return fmt.Errorf("failed to create dora-namespace cross-namespace access to model-registry-bella: %w", err)
+	}
+
 	err = createGroupNamespaceAccessRBAC(mockK8sClient, ctx, DefaultTestUsers[1].Groups[0], "dora-namespace")
 	if err != nil {
 		return fmt.Errorf("failed to set up group access to namespace: %w", err)
@@ -532,6 +550,36 @@ func createNamespaceDefaultSARegistryAccessRBAC(k8sClient kubernetes.Interface, 
 	_, err = k8sClient.RbacV1().RoleBindings(namespace).Create(ctx, roleBinding, metav1.CreateOptions{})
 	if err != nil {
 		return fmt.Errorf("failed to create RoleBinding for namespace default SA: %w", err)
+	}
+	return nil
+}
+
+// createCrossNamespaceRegistryAccessBinding grants the default ServiceAccount of jobNamespace
+// access to an existing Role (roleName) in registryNamespace. Use so that when the user selects
+// jobNamespace in "Register and store", hasAccess is true for the registry in registryNamespace.
+func createCrossNamespaceRegistryAccessBinding(k8sClient kubernetes.Interface, ctx context.Context, registryNamespace, roleName, jobNamespace string) error {
+	bindingName := "registry-access-binding-" + strings.ReplaceAll(jobNamespace, ":", "-")
+	roleBinding := &rbacv1.RoleBinding{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      bindingName,
+			Namespace: registryNamespace,
+		},
+		Subjects: []rbacv1.Subject{
+			{
+				Kind:      "ServiceAccount",
+				Name:      "default",
+				Namespace: jobNamespace,
+			},
+		},
+		RoleRef: rbacv1.RoleRef{
+			Kind:     "Role",
+			Name:     roleName,
+			APIGroup: "rbac.authorization.k8s.io",
+		},
+	}
+	_, err := k8sClient.RbacV1().RoleBindings(registryNamespace).Create(ctx, roleBinding, metav1.CreateOptions{})
+	if err != nil {
+		return fmt.Errorf("failed to create cross-namespace registry access RoleBinding: %w", err)
 	}
 	return nil
 }
