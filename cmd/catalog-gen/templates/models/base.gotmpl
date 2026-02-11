@@ -1,0 +1,32 @@
+package models
+
+// Property represents a key-value property.
+type Property struct {
+	Name      string
+	ValueType string
+	Value     any
+}
+
+// Pagination contains pagination parameters for list operations.
+type Pagination struct {
+	PageSize  int32
+	PageToken string
+	OrderBy   string
+	SortOrder string
+}
+
+// ListWrapper wraps a list of items with pagination info.
+type ListWrapper[T any] struct {
+	Items         []T
+	NextPageToken string
+	Size          int32
+}
+
+// NewListWrapper creates a new ListWrapper.
+func NewListWrapper[T any](items []T, nextPageToken string) *ListWrapper[T] {
+	return &ListWrapper[T]{
+		Items:         items,
+		NextPageToken: nextPageToken,
+		Size:          int32(len(items)),
+	}
+}

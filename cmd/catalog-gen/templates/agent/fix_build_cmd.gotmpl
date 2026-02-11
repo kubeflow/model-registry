@@ -1,0 +1,13 @@
+Fix build errors in this catalog project.
+
+First, run: go build ./...
+
+Then analyze the errors and fix them:
+
+Common issues:
+1. Missing imports - Add required import statements
+2. Undefined types - Check if models were regenerated with catalog-gen generate
+3. Method signature mismatches - Update method signatures to match interfaces
+4. Property mapping errors - Update converters in internal/db/service/{{.EntityNameLower}}.go
+{{.ArtifactSection}}
+After fixing, verify with: go build ./...
