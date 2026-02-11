@@ -1,18 +1,24 @@
 """ModelSigner for signing and verifying ML models with Sigstore."""
 
+from __future__ import annotations
+
 import logging
 import os
 from collections.abc import Iterable
 from pathlib import Path
-from typing import TypeAlias
+from typing import TYPE_CHECKING, TypeAlias
 
 from model_signing import signing, verifying
+from typing_extensions import Self
 
 from model_registry.signing import sign_sigstore
 
 from .exceptions import InitializationError, SigningError, VerificationError
 from .token import decode_jwt_payload, extract_client_id
 from .trust_manager import TrustManager
+
+if TYPE_CHECKING:
+    from .config import SigningConfig
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
@@ -39,7 +45,7 @@ class ModelSigner:
         certificate_identity: str | None = None,
         oidc_issuer: str | None = None,
         cache_dir: PathLike | None = None,
-        signature_filename: str = "model.sig",
+        signature_filename: str | None = None,
         ignore_paths: Iterable[PathLike] | None = None,
     ):
         """Initialize ModelSigner with optional default parameters.
@@ -68,11 +74,28 @@ class ModelSigner:
         self.tsa_url = tsa_url
         self.certificate_identity = certificate_identity
         self.oidc_issuer = oidc_issuer
-        self.signature_filename = signature_filename
+        self.signature_filename = signature_filename if signature_filename is not None else "model.sig"
         self.ignore_paths = ignore_paths
-
         # Create trust initializer
         self.trust_manager = TrustManager(cache_dir)
+
+    @classmethod
+    def from_config(cls, config: SigningConfig) -> Self:
+        """Create ModelSigner from a SigningConfig instance."""
+        return cls(
+            tuf_url=config.tuf_url,
+            root_url=config.root_url,
+            root_checksum=config.root_checksum,
+            identity_token_path=config.identity_token_path,
+            fulcio_url=config.fulcio_url,
+            rekor_url=config.rekor_url,
+            tsa_url=config.tsa_url,
+            certificate_identity=config.certificate_identity,
+            oidc_issuer=config.oidc_issuer,
+            cache_dir=config.cache_dir,
+            signature_filename=config.signature_filename,
+            ignore_paths=config.ignore_paths,
+        )
 
     def get_trust_config_path(self) -> Path:
         """Get the path to the cached trust configuration file.
