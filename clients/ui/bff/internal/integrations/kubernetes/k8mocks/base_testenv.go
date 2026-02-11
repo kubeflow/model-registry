@@ -56,7 +56,7 @@ func SetupEnvTest(input TestEnvInput) (*envtest.Environment, kubernetes.Interfac
 	if envDir := os.Getenv("ENVTEST_ASSETS_DIR"); envDir != "" {
 		// Construct full path with OS/ARCH suffix
 		binaryAssetsDir = filepath.Join(envDir, "k8s",
-			fmt.Sprintf("1.29.0-%s-%s", runtime.GOOS, runtime.GOARCH))
+			fmt.Sprintf("1.29.3-%s-%s", runtime.GOOS, runtime.GOARCH))
 	} else {
 		// Fall back to project root detection (local development)
 		projectRoot, err := getProjectRoot()
@@ -66,7 +66,7 @@ func SetupEnvTest(input TestEnvInput) (*envtest.Environment, kubernetes.Interfac
 			os.Exit(1)
 		}
 		binaryAssetsDir = filepath.Join(projectRoot, "bin", "k8s",
-			fmt.Sprintf("1.29.0-%s-%s", runtime.GOOS, runtime.GOARCH))
+			fmt.Sprintf("1.29.3-%s-%s", runtime.GOOS, runtime.GOARCH))
 	}
 
 	testEnv := &envtest.Environment{
