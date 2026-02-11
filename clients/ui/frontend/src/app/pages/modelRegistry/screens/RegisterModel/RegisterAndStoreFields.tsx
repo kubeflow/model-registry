@@ -105,7 +105,7 @@ const RegisterAndStoreFields = <D extends RegistrationCommonFormData>({
         registryNamespace={registryNamespace}
         onAccessChange={handleNamespaceAccessChange}
       />
-      {formData.namespace && (
+      {formData.namespace && formData.namespaceHasAccess === true && (
         <>
           <FormSection
             data-testid="model-origin-location-section"
