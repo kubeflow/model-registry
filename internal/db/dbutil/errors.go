@@ -73,3 +73,33 @@ func EnhanceFilterQueryError(err error, filterQuery string) error {
 	// Default: return the original error with a generic message
 	return fmt.Errorf("invalid filter query syntax: %v", err)
 }
+
+// IsDuplicateKeyError checks if a database error is caused by a unique constraint violation.
+// This helps identify when an insert/update fails due to duplicate key conflicts.
+// Returns true for both MySQL and PostgreSQL unique constraint errors.
+func IsDuplicateKeyError(err error) bool {
+	if err == nil {
+		return false
+	}
+
+	errStr := strings.ToLower(err.Error())
+
+	// MySQL: "Duplicate entry" or "duplicate key"
+	// PostgreSQL: "duplicate key value violates unique constraint" or "unique_violation"
+	duplicatePatterns := []string{
+		"duplicate entry",
+		"duplicate key",
+		"unique constraint",
+		"unique_violation",
+		"violates unique",
+	}
+
+	for _, pattern := range duplicatePatterns {
+		if strings.Contains(errStr, pattern) {
+			return true
+		}
+	}
+
+	return false
+}
+

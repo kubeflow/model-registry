@@ -39,6 +39,7 @@ func setupIntegrationTestProvider(t *testing.T, ctx context.Context, sharedDB *g
 		metricsArtifactRepo,
 		catalogSourceRepo,
 		service.NewPropertyOptionsRepository(sharedDB),
+		nil, // McpServerRepository
 	)
 
 	// Insert test data:
@@ -180,6 +181,7 @@ func setupBenchmarkProvider(b *testing.B, ctx context.Context, sharedDB *gorm.DB
 		metricsArtifactRepo,
 		catalogSourceRepo,
 		service.NewPropertyOptionsRepository(sharedDB),
+		nil, // McpServerRepository
 	)
 
 	// Insert 100+ models with performance data for benchmarking
