@@ -352,13 +352,26 @@ func (kc *SharedClientLogic) GetAllModelTransferJobs(
 	return modelTransferJobList, nil
 }
 
+func (kc *SharedClientLogic) GetModelTransferJob(ctx context.Context, namespace string, jobName string) (*batchv1.Job, error) {
+	if namespace == "" {
+		return &batchv1.Job{}, fmt.Errorf("namespace cannot be empty")
+	}
+
+	sessionLogger := ctx.Value(constants.TraceLoggerKey).(*slog.Logger)
+
+	job, err := kc.Client.BatchV1().Jobs(namespace).Get(ctx, jobName, metav1.GetOptions{})
+	if err != nil {
+		sessionLogger.Error("failed to get job", "namespace", namespace, "jobName", jobName, "error", err)
+		return nil, fmt.Errorf("failed to get job %s: %w", jobName, err)
+	}
+
+	return job, nil
+}
+
 func (kc *SharedClientLogic) CreateModelTransferJob(ctx context.Context, namespace string, job *batchv1.Job) error {
 	sessionLogger := ctx.Value(constants.TraceLoggerKey).(*slog.Logger)
 
 	_, err := kc.Client.BatchV1().Jobs(namespace).Create(ctx, job, metav1.CreateOptions{})
-
-	// TODO: After creating the Job, patch ConfigMap and Secrets to add ownerReferences
-	// pointing to the Job's UID so they are garbage collected when the Job is deleted.
 
 	if err != nil {
 		sessionLogger.Error("failed to create job",
@@ -376,6 +389,7 @@ func (kc *SharedClientLogic) CreateModelTransferJob(ctx context.Context, namespa
 
 	return nil
 }
+
 
 func (kc *SharedClientLogic) UpdateModelTransferJob(ctx context.Context, namespace string, jobId string, data map[string]string) error {
 	sessionLogger := ctx.Value(constants.TraceLoggerKey).(*slog.Logger)
@@ -411,18 +425,18 @@ func (kc *SharedClientLogic) UpdateModelTransferJob(ctx context.Context, namespa
 
 }
 
-// DeleteModelTransferJob deletes the K8s Job by its resource name (job name from the list response).
-func (kc *SharedClientLogic) DeleteModelTransferJob(ctx context.Context, namespace string, jobName string) error {
+func (kc *SharedClientLogic) DeleteModelTransferJob(ctx context.Context, namespace string, jobId string) error {
 	sessionLogger := ctx.Value(constants.TraceLoggerKey).(*slog.Logger)
 
-	err := kc.Client.BatchV1().Jobs(namespace).Delete(ctx, jobName, metav1.DeleteOptions{})
+	err := kc.Client.BatchV1().Jobs(namespace).Delete(ctx, jobId, metav1.DeleteOptions{})
+
 	if err != nil {
-		sessionLogger.Warn("failed to delete model transfer job",
-			"namespace", namespace,
-			"jobName", jobName,
-			"error", err,
-		)
-		return fmt.Errorf("failed to delete model transfer job %s: %w", jobName, err)
+		if apierrors.IsNotFound(err) {
+			sessionLogger.Info("job not found, nothing to delete", "namespace", namespace, "jobId", jobId)
+			return nil
+		}
+		sessionLogger.Error("failed to delete job", "namespace", namespace, "jobId", jobId, "error", err)
+		return fmt.Errorf("failed to delete job %s: %w", jobId, err)
 	}
 
 	sessionLogger.Info("successfully deleted model transfer job",
@@ -431,6 +445,30 @@ func (kc *SharedClientLogic) DeleteModelTransferJob(ctx context.Context, namespa
 	)
 
 	return nil
+}
+
+func (kc *SharedClientLogic) GetSecret(ctx context.Context, namespace string, name string) (*corev1.Secret, error) {
+	sessionLogger := ctx.Value(constants.TraceLoggerKey).(*slog.Logger)
+
+	secret, err := kc.Client.CoreV1().Secrets(namespace).Get(ctx, name, metav1.GetOptions{})
+	if err != nil {
+		sessionLogger.Error("failed to get secret", "namespace", namespace, "name", name, "error", err)
+		return nil, fmt.Errorf("failed to get secret %s: %w", name, err)
+	}
+
+	return secret, nil
+}
+
+func (kc *SharedClientLogic) GetConfigMap(ctx context.Context, namespace string, name string) (*corev1.ConfigMap, error) {
+	sessionLogger := ctx.Value(constants.TraceLoggerKey).(*slog.Logger)
+
+	configMap, err := kc.Client.CoreV1().ConfigMaps(namespace).Get(ctx, name, metav1.GetOptions{})
+	if err != nil {
+		sessionLogger.Error("failed to get configmap", "namespace", namespace, "name", name, "error", err)
+		return nil, fmt.Errorf("failed to get configmap %s: %w", name, err)
+	}
+
+	return configMap, nil
 }
 
 func (kc *SharedClientLogic) CreateConfigMap(ctx context.Context, namespace string, configMap *corev1.ConfigMap) error {

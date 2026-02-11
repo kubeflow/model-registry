@@ -2562,20 +2562,33 @@ components:
           type: string
         registry:
           type: string
+        awsAccessKeyId:
+          type: string
+          description: S3 access key ID (request only, never returned)
+        awsSecretAccessKey:
+          type: string
+          description: S3 secret access key (request only, never returned)
+        secretName:
+          type: string
+          description: Name of created K8s secret (response only)
     ModelTransferJobDestination:
       description: Destination configuration for a transfer job.
       type: object
       properties:
         type:
           $ref: "#/components/schemas/ModelTransferJobDestinationType"
-        bucket:
+        username:
           type: string
-        key:
+          description: OCI registry username (request only, never returned)
+        password:
           type: string
-        region:
+          description: OCI registry password (request only, never returned)
+        email:
           type: string
-        endpoint:
+          description: OCI registry email (request only, never returned)
+        secretName:
           type: string
+          description: Name of created K8s secret (response only)
         uri:
           type: string
         registry:
@@ -3270,9 +3283,9 @@ components:
           - metrics-artifact
       in: query
       required: false
-    modelTransferJobId:
-      name: modelTransferJobId
-      description: A unique identifier for a `ModelTransferJob`.
+    modelTransferJobName:
+      name: modelTransferJobName
+      description: The name of a `ModelTransferJob` (K8s resource name).
       schema:
         type: string
       in: path

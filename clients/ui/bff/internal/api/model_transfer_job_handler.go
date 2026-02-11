@@ -65,7 +65,7 @@ func (app *App) GetAllModelTransferJobsHandler(w http.ResponseWriter, r *http.Re
 	}
 }
 
-func (app *App) CreateModelTransferJobHandler(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
+func (app *App) CreateModelTransferJobHandler(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 	ctx := r.Context()
 	namespace, client, ok := app.getModelTransferJobNamespaceAndClient(w, r)
 	if !ok {
@@ -74,26 +74,27 @@ func (app *App) CreateModelTransferJobHandler(w http.ResponseWriter, r *http.Req
 
 	var envelope ModelTransferJobEnvelope
 	if err := json.NewDecoder(r.Body).Decode(&envelope); err != nil {
-		app.serverErrorResponse(w, r, fmt.Errorf("error decoding JSON: %v", err.Error()))
+		app.serverErrorResponse(w, r, fmt.Errorf("error decoding JSON: %w", err))
 		return
 	}
 	payload := *envelope.Data
 
-	err := app.repositories.ModelRegistry.CreateModelTransferJob(ctx, client, namespace, payload)
+	modelRegistryID := ps.ByName(ModelRegistryId)
+
+	newJob, err := app.repositories.ModelRegistry.CreateModelTransferJob(ctx, client, namespace, payload, modelRegistryID)
 	if err != nil {
+		if errors.Is(err, repositories.ErrJobValidationFailed) {
+			app.badRequestResponse(w, r, err)
+			return
+		}
 		app.serverErrorResponse(w, r, err)
 		return
 	}
 
-	response := ModelTransferJobEnvelope{Data: &payload}
+	modelTransferJob := ModelTransferJobEnvelope{Data: newJob}
 
-	// TODO: uncomment the following when we implement the actual logic
-	// modelTransferJob := ModelTransferJobEnvelope{
-	// 	Data: newModelTransferJob,
-	// }
-
-	// w.Header().Set("Location", r.URL.JoinPath(modelTransferJob.Data.Id).String())
-	writeErr := app.WriteJSON(w, http.StatusCreated, response, nil)
+	w.Header().Set("Location", r.URL.JoinPath(modelTransferJob.Data.Name).String())
+	writeErr := app.WriteJSON(w, http.StatusCreated, modelTransferJob, nil)
 	if writeErr != nil {
 		app.serverErrorResponse(w, r, fmt.Errorf("error writing JSON"))
 		return
@@ -102,31 +103,54 @@ func (app *App) CreateModelTransferJobHandler(w http.ResponseWriter, r *http.Req
 
 func (app *App) UpdateModelTransferJobHandler(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 	ctx := r.Context()
-	namespace, client, ok := app.getModelTransferJobNamespaceAndClient(w, r)
-	if !ok {
+
+	namespace, ok := ctx.Value(constants.NamespaceHeaderParameterKey).(string)
+	if !ok || namespace == "" {
+		app.badRequestResponse(w, r, fmt.Errorf("missing namespace in context"))
 		return
 	}
 
-	var updates map[string]string
-	if err := json.NewDecoder(r.Body).Decode(&updates); err != nil {
+	client, err := app.kubernetesClientFactory.GetClient(ctx)
+	if err != nil {
+		app.serverErrorResponse(w, r, errors.New("kubernetes client not found"))
+		return
+	}
+
+	var envelope ModelTransferJobEnvelope
+	if err := json.NewDecoder(r.Body).Decode(&envelope); err != nil {
 		app.badRequestResponse(w, r, err)
 		return
 	}
+	payload := *envelope.Data
 
-	jobId := ps.ByName(ModelTransferJobId)
+	jobName := ps.ByName(ModelTransferJobName)
+	modelRegistryID := ps.ByName(ModelRegistryId)
+	deleteOldJob := r.URL.Query().Get("deleteOldJob") == "true"
 
-	err := app.repositories.ModelRegistry.UpdateModelTransferJob(ctx, client, namespace, jobId, updates)
+	updatedJob, err := app.repositories.ModelRegistry.UpdateModelTransferJob(
+		ctx, client, namespace, jobName, payload, deleteOldJob, modelRegistryID)
 	if err != nil {
+		if errors.Is(err, repositories.ErrJobNotFound) {
+			app.notFoundResponse(w, r)
+			return
+		}
+		if errors.Is(err, repositories.ErrJobValidationFailed) {
+			app.badRequestResponse(w, r, err)
+			return
+		}
 		app.serverErrorResponse(w, r, err)
 		return
 	}
 
-	// TODO: uncomment the following when we implement the actual logic
-	// modelTransferJob := ModelTransferJobEnvelope{
-	// 	Data: updatedModelTransferJob,
-	// }
+	modelTransferJob := ModelTransferJobEnvelope{
+		Data: updatedJob,
+	}
 
-	app.writeModelTransferJobOperationStatus(w, r, "updated")
+	err = app.WriteJSON(w, http.StatusOK, modelTransferJob, nil)
+	if err != nil {
+		app.serverErrorResponse(w, r, err)
+		return
+	}
 }
 
 func (app *App) DeleteModelTransferJobHandler(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
@@ -139,14 +163,27 @@ func (app *App) DeleteModelTransferJobHandler(w http.ResponseWriter, r *http.Req
 	jobName := ps.ByName(ModelTransferJobId)
 	err := app.repositories.ModelRegistry.DeleteModelTransferJob(ctx, client, namespace, jobName)
 	if err != nil {
-		if errors.Is(err, repositories.ErrModelTransferJobNotFound) {
+		app.serverErrorResponse(w, r, errors.New("kubernetes client not found"))
+		return
+	}
+
+	jobName := ps.ByName(ModelTransferJobName)
+
+	deletedJob, err := app.repositories.ModelRegistry.DeleteModelTransferJob(ctx, client, namespace, jobName)
+	if err != nil {
+		if errors.Is(err, repositories.ErrJobNotFound) {
 			app.notFoundResponse(w, r)
 			return
 		}
 		app.serverErrorResponse(w, r, err)
 		return
 	}
-	// Return 200 with JSON body so the frontend HTTP client can parse the response.
-	// 204 No Content has no body and causes "Error communicating with server" when the client calls response.json().
-	app.writeModelTransferJobOperationStatus(w, r, "deleted")
+
+	response := Envelope[*models.ModelTransferJob, any]{
+		Data: deletedJob,
+	}
+	err = app.WriteJSON(w, http.StatusOK, response, nil)
+	if err != nil {
+		app.serverErrorResponse(w, r, err)
+	}
 }

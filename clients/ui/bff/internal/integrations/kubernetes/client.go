@@ -46,8 +46,10 @@ type KubernetesClientInterface interface {
 	// Model transfer jobs
 	GetAllModelTransferJobs(ctx context.Context, namespace string) (*batchv1.JobList, error)
 	CreateModelTransferJob(ctx context.Context, namespace string, job *batchv1.Job) error
-	UpdateModelTransferJob(ctx context.Context, namespace string, jobId string, data map[string]string) error
-	DeleteModelTransferJob(ctx context.Context, namespace string, jobName string) error
+	DeleteModelTransferJob(ctx context.Context, namespace string, jobId string) error
 	CreateConfigMap(ctx context.Context, namespace string, configMap *corev1.ConfigMap) error
 	DeleteConfigMap(ctx context.Context, namespace string, name string) error
+	GetModelTransferJob(ctx context.Context, namespace string, jobName string) (*batchv1.Job, error)
+	GetConfigMap(ctx context.Context, namespace string, name string) (*corev1.ConfigMap, error)
+	GetSecret(ctx context.Context, namespace string, name string) (*corev1.Secret, error)
 }
