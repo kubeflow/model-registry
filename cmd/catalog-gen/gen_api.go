@@ -11,6 +11,9 @@ import (
 func generateOpenAPIComponents(config CatalogConfig) error {
 	entityName := config.Spec.Entity.Name
 
+	// Detect if we're in a plugin context to determine reference type
+	isPlugin := isPluginContext()
+
 	// Base properties that come from BaseResource - skip these in entity definition
 	// These are defined in api/openapi/src/lib/common.yaml
 	baseResourceProperties := map[string]bool{
@@ -44,7 +47,11 @@ func generateOpenAPIComponents(config CatalogConfig) error {
 		for _, artifact := range config.Spec.Artifacts {
 			fmt.Fprintf(&artifactSchemas, "    %s%sArtifact:\n", entityName, artifact.Name)
 			artifactSchemas.WriteString("      allOf:\n")
-			artifactSchemas.WriteString("        - $ref: '#/components/schemas/BaseResource'\n")
+			if isPlugin {
+				artifactSchemas.WriteString("        - $ref: 'lib/common.yaml#/components/schemas/BaseResource'\n")
+			} else {
+				artifactSchemas.WriteString("        - $ref: '#/components/schemas/BaseResource'\n")
+			}
 			artifactSchemas.WriteString("        - type: object\n")
 			artifactSchemas.WriteString("          properties:\n")
 			artifactSchemas.WriteString("            artifactType:\n")
@@ -57,7 +64,11 @@ func generateOpenAPIComponents(config CatalogConfig) error {
 		// Generate artifact list schema using allOf composition
 		fmt.Fprintf(&artifactSchemas, "    %sArtifactList:\n", entityName)
 		artifactSchemas.WriteString("      allOf:\n")
-		artifactSchemas.WriteString("        - $ref: '#/components/schemas/BaseResourceList'\n")
+		if isPlugin {
+			artifactSchemas.WriteString("        - $ref: 'lib/common.yaml#/components/schemas/BaseResourceList'\n")
+		} else {
+			artifactSchemas.WriteString("        - $ref: '#/components/schemas/BaseResourceList'\n")
+		}
 		artifactSchemas.WriteString("        - type: object\n")
 		artifactSchemas.WriteString("          properties:\n")
 		artifactSchemas.WriteString("            items:\n")
@@ -78,6 +89,7 @@ func generateOpenAPIComponents(config CatalogConfig) error {
 		"Properties":      strings.TrimSpace(propDefs.String()),
 		"RequiredFields":  requiredFields.String(),
 		"ArtifactSchemas": artifactSchemas.String(),
+		"IsPlugin":        isPlugin,
 	}
 
 	generatedDir := filepath.Join("api", "openapi", "src", "generated")

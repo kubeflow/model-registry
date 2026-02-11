@@ -165,6 +165,11 @@ func initCatalogPlugin(name, entityName, packageName, outputDir string) error {
 		return fmt.Errorf("failed to generate Claude skills: %w", err)
 	}
 
+	// Create symlink to shared common schemas (BaseResource, etc.)
+	if err := ensureCommonLibSymlink(); err != nil {
+		return fmt.Errorf("failed to create common lib symlink: %w", err)
+	}
+
 	fmt.Println("\n=== Generating auto-regenerated files ===")
 
 	// Generate entity model

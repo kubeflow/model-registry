@@ -75,6 +75,11 @@ func generate() error {
 		return fmt.Errorf("failed to generate filter mappings: %w", err)
 	}
 
+	// Ensure symlink to shared common schemas exists (for plugin contexts)
+	if err := ensureCommonLibSymlink(); err != nil {
+		return fmt.Errorf("failed to create common lib symlink: %w", err)
+	}
+
 	// Generate OpenAPI components
 	if err := generateOpenAPIComponents(config); err != nil {
 		return fmt.Errorf("failed to generate OpenAPI components: %w", err)

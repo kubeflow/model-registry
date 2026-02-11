@@ -4,7 +4,7 @@
 #
 # Entity schemas are composed using allOf with BaseResource.
 components:
-  schemas:
+  schemas:{{if not .IsPlugin}}
     # Base schemas shared across all catalog entities
     BaseResource:
       type: object
@@ -41,10 +41,11 @@ components:
         size:
           type: integer
           description: Total size
-
+{{end}}
     {{.EntityName}}:
-      allOf:
-        - $ref: '#/components/schemas/BaseResource'
+      allOf:{{if .IsPlugin}}
+        - $ref: 'lib/common.yaml#/components/schemas/BaseResource'{{else}}
+        - $ref: '#/components/schemas/BaseResource'{{end}}
         - type: object
           required:
             - name
@@ -52,8 +53,9 @@ components:
           properties:
 {{.Properties}}{{end}}
     {{.EntityName}}List:
-      allOf:
-        - $ref: '#/components/schemas/BaseResourceList'
+      allOf:{{if .IsPlugin}}
+        - $ref: 'lib/common.yaml#/components/schemas/BaseResourceList'{{else}}
+        - $ref: '#/components/schemas/BaseResourceList'{{end}}
         - type: object
           properties:
             items:

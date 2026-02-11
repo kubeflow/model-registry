@@ -3,6 +3,8 @@ package main
 import (
 	"fmt"
 	"os"
+	"os/exec"
+	"path/filepath"
 	"strings"
 
 	"gopkg.in/yaml.v3"
@@ -48,6 +50,68 @@ func saveConfig(config CatalogConfig) error {
 // ensureDir creates a directory if it doesn't exist.
 func ensureDir(path string) error {
 	return os.MkdirAll(path, 0755)
+}
+
+// isPluginContext detects if we're running in a plugin context by checking the current working directory.
+func isPluginContext() bool {
+	wd, err := os.Getwd()
+	if err != nil {
+		return false
+	}
+	// We're in a plugin if the working directory contains "/catalog/plugins/"
+	return strings.Contains(wd, "/catalog/plugins/")
+}
+
+// ensureCommonLibSymlink creates a symlink at api/openapi/src/lib pointing to the
+// shared common schemas in the repo root. This allows plugin OpenAPI specs to reference
+// shared schemas (BaseResource, etc.) via relative paths like 'lib/common.yaml'.
+// The symlink is only created in plugin contexts and is a no-op otherwise.
+func ensureCommonLibSymlink() error {
+	if !isPluginContext() {
+		return nil
+	}
+
+	symlinkPath := filepath.Join("api", "openapi", "src", "lib")
+
+	// If the symlink (or directory) already exists, nothing to do
+	if _, err := os.Lstat(symlinkPath); err == nil {
+		return nil
+	}
+
+	// Find the repo root via git
+	out, err := exec.Command("git", "rev-parse", "--show-toplevel").Output()
+	if err != nil {
+		return fmt.Errorf("failed to find git repo root: %w", err)
+	}
+	repoRoot := strings.TrimSpace(string(out))
+
+	// Target is the shared lib directory at the repo root
+	target := filepath.Join(repoRoot, "api", "openapi", "src", "lib")
+	if _, err := os.Stat(target); os.IsNotExist(err) {
+		return fmt.Errorf("common lib directory not found at %s", target)
+	}
+
+	// Ensure parent directory exists
+	if err := ensureDir(filepath.Dir(symlinkPath)); err != nil {
+		return err
+	}
+
+	// Compute relative path from the symlink's parent to the target
+	symlinkParent, err := filepath.Abs(filepath.Dir(symlinkPath))
+	if err != nil {
+		return fmt.Errorf("failed to resolve symlink parent: %w", err)
+	}
+	relTarget, err := filepath.Rel(symlinkParent, target)
+	if err != nil {
+		return fmt.Errorf("failed to compute relative path: %w", err)
+	}
+
+	if err := os.Symlink(relTarget, symlinkPath); err != nil {
+		return fmt.Errorf("failed to create lib symlink: %w", err)
+	}
+
+	fmt.Printf("  Created symlink: %s -> %s\n", symlinkPath, relTarget)
+	return nil
 }
 
 // capitalize returns the string with the first letter uppercased.
