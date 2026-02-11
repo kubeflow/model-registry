@@ -204,7 +204,7 @@ paths:
           $ref: "#/components/responses/InternalServerError"
       operationId: findSources
       description: Gets a list of all `CatalogSource` entities.
-  /api/model_catalog/v1alpha1/mcp_servers:
+  /api/mcp_catalog/v1alpha1/mcp_servers:
     description: >-
       The REST endpoint/path used to list zero or more `McpServer` entities.
     get:
@@ -242,7 +242,7 @@ paths:
         "500":
           $ref: "#/components/responses/InternalServerError"
       operationId: findMcpServers
-  /api/model_catalog/v1alpha1/mcp_servers/filter_options:
+  /api/mcp_catalog/v1alpha1/mcp_servers/filter_options:
     description: Lists options for `filterQuery` when listing MCP servers.
     get:
       summary: Lists fields, values, and named queries that can be used in `filterQuery` on the list MCP servers endpoint.
@@ -258,7 +258,7 @@ paths:
         "500":
           $ref: "#/components/responses/InternalServerError"
       operationId: findMcpServersFilterOptions
-  /api/model_catalog/v1alpha1/mcp_servers/{server_id}:
+  /api/mcp_catalog/v1alpha1/mcp_servers/{server_id}:
     description: >-
       The REST endpoint/path used to get an `McpServer`.
     get:
@@ -282,7 +282,7 @@ paths:
           type: string
         in: path
         required: true
-  /api/model_catalog/v1alpha1/mcp_servers/{server_id}/tools:
+  /api/mcp_catalog/v1alpha1/mcp_servers/{server_id}/tools:
     description: >-
       The REST endpoint/path used to list zero or more `McpTool` entities for an `McpServer`.
     get:
@@ -312,7 +312,7 @@ paths:
           type: string
         in: path
         required: true
-  /api/model_catalog/v1alpha1/mcp_servers/{server_id}/tools/{tool_name}:
+  /api/mcp_catalog/v1alpha1/mcp_servers/{server_id}/tools/{tool_name}:
     description: >-
       The REST endpoint/path used to get a specific `McpTool` from an `McpServer`.
     get:

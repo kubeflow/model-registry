@@ -283,7 +283,7 @@ func (a *ModelCatalogServiceAPIService) FindMcpServerToolsExecute(r ApiFindMcpSe
 		return localVarReturnValue, nil, &GenericOpenAPIError{error: err.Error()}
 	}
 
-	localVarPath := localBasePath + "/api/model_catalog/v1alpha1/mcp_servers/{server_id}/tools"
+	localVarPath := localBasePath + "/api/mcp_catalog/v1alpha1/mcp_servers/{server_id}/tools"
 	localVarPath = strings.Replace(localVarPath, "{"+"server_id"+"}", url.PathEscape(parameterValueToString(r.serverId, "serverId")), -1)
 
 	localVarHeaderParams := make(map[string]string)
@@ -499,7 +499,7 @@ func (a *ModelCatalogServiceAPIService) FindMcpServersExecute(r ApiFindMcpServer
 		return localVarReturnValue, nil, &GenericOpenAPIError{error: err.Error()}
 	}
 
-	localVarPath := localBasePath + "/api/model_catalog/v1alpha1/mcp_servers"
+	localVarPath := localBasePath + "/api/mcp_catalog/v1alpha1/mcp_servers"
 
 	localVarHeaderParams := make(map[string]string)
 	localVarQueryParams := url.Values{}
@@ -667,7 +667,7 @@ func (a *ModelCatalogServiceAPIService) FindMcpServersFilterOptionsExecute(r Api
 		return localVarReturnValue, nil, &GenericOpenAPIError{error: err.Error()}
 	}
 
-	localVarPath := localBasePath + "/api/model_catalog/v1alpha1/mcp_servers/filter_options"
+	localVarPath := localBasePath + "/api/mcp_catalog/v1alpha1/mcp_servers/filter_options"
 
 	localVarHeaderParams := make(map[string]string)
 	localVarQueryParams := url.Values{}
@@ -1933,7 +1933,7 @@ func (a *ModelCatalogServiceAPIService) GetMcpServerExecute(r ApiGetMcpServerReq
 		return localVarReturnValue, nil, &GenericOpenAPIError{error: err.Error()}
 	}
 
-	localVarPath := localBasePath + "/api/model_catalog/v1alpha1/mcp_servers/{server_id}"
+	localVarPath := localBasePath + "/api/mcp_catalog/v1alpha1/mcp_servers/{server_id}"
 	localVarPath = strings.Replace(localVarPath, "{"+"server_id"+"}", url.PathEscape(parameterValueToString(r.serverId, "serverId")), -1)
 
 	localVarHeaderParams := make(map[string]string)
@@ -2070,7 +2070,7 @@ func (a *ModelCatalogServiceAPIService) GetMcpServerToolExecute(r ApiGetMcpServe
 		return localVarReturnValue, nil, &GenericOpenAPIError{error: err.Error()}
 	}
 
-	localVarPath := localBasePath + "/api/model_catalog/v1alpha1/mcp_servers/{server_id}/tools/{tool_name}"
+	localVarPath := localBasePath + "/api/mcp_catalog/v1alpha1/mcp_servers/{server_id}/tools/{tool_name}"
 	localVarPath = strings.Replace(localVarPath, "{"+"server_id"+"}", url.PathEscape(parameterValueToString(r.serverId, "serverId")), -1)
 	localVarPath = strings.Replace(localVarPath, "{"+"tool_name"+"}", url.PathEscape(parameterValueToString(r.toolName, "toolName")), -1)
 

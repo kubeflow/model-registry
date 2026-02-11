@@ -53,41 +53,41 @@ func NewModelCatalogServiceAPIController(s ModelCatalogServiceAPIServicer, opts 
 // Routes returns all the api routes for the ModelCatalogServiceAPIController
 func (c *ModelCatalogServiceAPIController) Routes() Routes {
 	return Routes{
-		"FindLabels": Route{
-			"FindLabels",
-			strings.ToUpper("Get"),
-			"/api/model_catalog/v1alpha1/labels",
-			c.FindLabels,
-		},
 		"FindMcpServers": Route{
 			"FindMcpServers",
 			strings.ToUpper("Get"),
-			"/api/model_catalog/v1alpha1/mcp_servers",
+			"/api/mcp_catalog/v1alpha1/mcp_servers",
 			c.FindMcpServers,
 		},
 		"FindMcpServersFilterOptions": Route{
 			"FindMcpServersFilterOptions",
 			strings.ToUpper("Get"),
-			"/api/model_catalog/v1alpha1/mcp_servers/filter_options",
+			"/api/mcp_catalog/v1alpha1/mcp_servers/filter_options",
 			c.FindMcpServersFilterOptions,
 		},
 		"GetMcpServer": Route{
 			"GetMcpServer",
 			strings.ToUpper("Get"),
-			"/api/model_catalog/v1alpha1/mcp_servers/{server_id}",
+			"/api/mcp_catalog/v1alpha1/mcp_servers/{server_id}",
 			c.GetMcpServer,
 		},
 		"FindMcpServerTools": Route{
 			"FindMcpServerTools",
 			strings.ToUpper("Get"),
-			"/api/model_catalog/v1alpha1/mcp_servers/{server_id}/tools",
+			"/api/mcp_catalog/v1alpha1/mcp_servers/{server_id}/tools",
 			c.FindMcpServerTools,
 		},
 		"GetMcpServerTool": Route{
 			"GetMcpServerTool",
 			strings.ToUpper("Get"),
-			"/api/model_catalog/v1alpha1/mcp_servers/{server_id}/tools/{tool_name}",
+			"/api/mcp_catalog/v1alpha1/mcp_servers/{server_id}/tools/{tool_name}",
 			c.GetMcpServerTool,
+		},
+		"FindLabels": Route{
+			"FindLabels",
+			strings.ToUpper("Get"),
+			"/api/model_catalog/v1alpha1/labels",
+			c.FindLabels,
 		},
 		"FindModels": Route{
 			"FindModels",
@@ -138,40 +138,40 @@ func (c *ModelCatalogServiceAPIController) Routes() Routes {
 func (c *ModelCatalogServiceAPIController) OrderedRoutes() []Route {
 	return []Route{
 		Route{
-			"FindLabels",
-			strings.ToUpper("Get"),
-			"/api/model_catalog/v1alpha1/labels",
-			c.FindLabels,
-		},
-		Route{
 			"FindMcpServers",
 			strings.ToUpper("Get"),
-			"/api/model_catalog/v1alpha1/mcp_servers",
+			"/api/mcp_catalog/v1alpha1/mcp_servers",
 			c.FindMcpServers,
 		},
 		Route{
 			"FindMcpServersFilterOptions",
 			strings.ToUpper("Get"),
-			"/api/model_catalog/v1alpha1/mcp_servers/filter_options",
+			"/api/mcp_catalog/v1alpha1/mcp_servers/filter_options",
 			c.FindMcpServersFilterOptions,
 		},
 		Route{
 			"GetMcpServer",
 			strings.ToUpper("Get"),
-			"/api/model_catalog/v1alpha1/mcp_servers/{server_id}",
+			"/api/mcp_catalog/v1alpha1/mcp_servers/{server_id}",
 			c.GetMcpServer,
 		},
 		Route{
 			"FindMcpServerTools",
 			strings.ToUpper("Get"),
-			"/api/model_catalog/v1alpha1/mcp_servers/{server_id}/tools",
+			"/api/mcp_catalog/v1alpha1/mcp_servers/{server_id}/tools",
 			c.FindMcpServerTools,
 		},
 		Route{
 			"GetMcpServerTool",
 			strings.ToUpper("Get"),
-			"/api/model_catalog/v1alpha1/mcp_servers/{server_id}/tools/{tool_name}",
+			"/api/mcp_catalog/v1alpha1/mcp_servers/{server_id}/tools/{tool_name}",
 			c.GetMcpServerTool,
+		},
+		Route{
+			"FindLabels",
+			strings.ToUpper("Get"),
+			"/api/model_catalog/v1alpha1/labels",
+			c.FindLabels,
 		},
 		Route{
 			"FindModels",
@@ -216,51 +216,6 @@ func (c *ModelCatalogServiceAPIController) OrderedRoutes() []Route {
 			c.GetAllModelPerformanceArtifacts,
 		},
 	}
-}
-
-// FindLabels - List All CatalogLabels
-func (c *ModelCatalogServiceAPIController) FindLabels(w http.ResponseWriter, r *http.Request) {
-	query, err := parseQuery(r.URL.RawQuery)
-	if err != nil {
-		c.errorHandler(w, r, &ParsingError{Err: err}, nil)
-		return
-	}
-	var pageSizeParam string
-	if query.Has("pageSize") {
-		param := query.Get("pageSize")
-
-		pageSizeParam = param
-	} else {
-	}
-	var orderByParam string
-	if query.Has("orderBy") {
-		param := query.Get("orderBy")
-
-		orderByParam = param
-	} else {
-	}
-	var sortOrderParam model.SortOrder
-	if query.Has("sortOrder") {
-		param := model.SortOrder(query.Get("sortOrder"))
-
-		sortOrderParam = param
-	} else {
-	}
-	var nextPageTokenParam string
-	if query.Has("nextPageToken") {
-		param := query.Get("nextPageToken")
-
-		nextPageTokenParam = param
-	} else {
-	}
-	result, err := c.service.FindLabels(r.Context(), pageSizeParam, orderByParam, sortOrderParam, nextPageTokenParam)
-	// If an error occurred, encode the error with the status code
-	if err != nil {
-		c.errorHandler(w, r, err, &result)
-		return
-	}
-	// If no error, encode the body and the result code
-	_ = EncodeJSONResponse(result.Body, &result.Code, w)
 }
 
 // FindMcpServers - List MCP servers.
@@ -468,6 +423,51 @@ func (c *ModelCatalogServiceAPIController) GetMcpServerTool(w http.ResponseWrite
 		return
 	}
 	result, err := c.service.GetMcpServerTool(r.Context(), serverIdParam, toolNameParam)
+	// If an error occurred, encode the error with the status code
+	if err != nil {
+		c.errorHandler(w, r, err, &result)
+		return
+	}
+	// If no error, encode the body and the result code
+	_ = EncodeJSONResponse(result.Body, &result.Code, w)
+}
+
+// FindLabels - List All CatalogLabels
+func (c *ModelCatalogServiceAPIController) FindLabels(w http.ResponseWriter, r *http.Request) {
+	query, err := parseQuery(r.URL.RawQuery)
+	if err != nil {
+		c.errorHandler(w, r, &ParsingError{Err: err}, nil)
+		return
+	}
+	var pageSizeParam string
+	if query.Has("pageSize") {
+		param := query.Get("pageSize")
+
+		pageSizeParam = param
+	} else {
+	}
+	var orderByParam string
+	if query.Has("orderBy") {
+		param := query.Get("orderBy")
+
+		orderByParam = param
+	} else {
+	}
+	var sortOrderParam model.SortOrder
+	if query.Has("sortOrder") {
+		param := model.SortOrder(query.Get("sortOrder"))
+
+		sortOrderParam = param
+	} else {
+	}
+	var nextPageTokenParam string
+	if query.Has("nextPageToken") {
+		param := query.Get("nextPageToken")
+
+		nextPageTokenParam = param
+	} else {
+	}
+	result, err := c.service.FindLabels(r.Context(), pageSizeParam, orderByParam, sortOrderParam, nextPageTokenParam)
 	// If an error occurred, encode the error with the status code
 	if err != nil {
 		c.errorHandler(w, r, err, &result)
