@@ -192,6 +192,12 @@ export const isModelNameExisting = (name: string, registeredModels: RegisteredMo
   registeredModels.items.some((model) => model.name === name);
 
 // Helper function to build ModelTransferJob payload from form data
+// TODO: When ModelTransferJob API is extended, add support for:
+//   - Credentials: formData.modelLocationS3AccessKeyId, formData.modelLocationS3SecretAccessKey
+//                  formData.destinationOciUsername, formData.destinationOciPassword, formData.destinationOciEmail
+//   - Model metadata: formData.modelDescription (for CREATE_MODEL), formData.versionDescription
+//   - Model format: formData.sourceModelFormat, formData.sourceModelFormatVersion
+//   - Custom properties: formData.modelCustomProperties, formData.versionCustomProperties
 export const buildModelTransferJobPayload = (
   formData: RegisterModelFormData | RegisterVersionFormData,
   author: string,
