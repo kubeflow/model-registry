@@ -107,13 +107,13 @@ class RegisterAndStoreFields {
     return this;
   }
 
-  // Destination field finders
+  // Destination field finders (using id selectors since these inputs use id, not data-testid)
   findDestinationOciRegistryInput() {
-    return cy.findByTestId('destination-oci-registry');
+    return cy.get('#destination-oci-registry');
   }
 
   findDestinationOciUriInput() {
-    return cy.findByTestId('destination-oci-uri');
+    return cy.get('#destination-oci-uri');
   }
 
   // Submit button
