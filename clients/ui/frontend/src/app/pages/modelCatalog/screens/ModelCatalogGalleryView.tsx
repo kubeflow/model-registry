@@ -14,23 +14,25 @@ import { ChartBarIcon, SearchIcon } from '@patternfly/react-icons';
 import React from 'react';
 import { ModelCatalogContext } from '~/app/context/modelCatalog/ModelCatalogContext';
 import { useCatalogModelsBySources } from '~/app/hooks/modelCatalog/useCatalogModelsBySource';
-import { useHasVisibleFiltersApplied } from '~/app/hooks/modelCatalog/useHasVisibleFiltersApplied';
 import { CatalogModel, CategoryName, SourceLabel } from '~/app/modelCatalogTypes';
 import ModelCatalogCard from '~/app/pages/modelCatalog/components/ModelCatalogCard';
 import {
   getSourceFromSourceId,
-  hasFiltersApplied,
   getBasicFiltersOnly,
   getActiveLatencyFieldName,
   getSortParams,
   generateCategoryName,
+  hasFiltersApplied,
+  isValueDifferentFromDefault,
 } from '~/app/pages/modelCatalog/utils/modelCatalogUtils';
 import EmptyModelCatalogState from '~/app/pages/modelCatalog/EmptyModelCatalogState';
 import ScrollViewOnMount from '~/app/shared/components/ScrollViewOnMount';
 import {
-  BASIC_FILTER_KEYS,
   ModelCatalogNumberFilterKey,
+  ModelCatalogStringFilterKey,
   parseLatencyFilterKey,
+  BASIC_FILTER_KEYS,
+  PERFORMANCE_FILTER_KEYS,
 } from '~/concepts/modelCatalog/const';
 
 type ModelCatalogPageProps = {
@@ -53,8 +55,8 @@ const ModelCatalogGalleryView: React.FC<ModelCatalogPageProps> = ({
     updateSelectedSourceLabel,
     performanceViewEnabled,
     sortBy,
+    getPerformanceFilterDefaultValue,
   } = React.useContext(ModelCatalogContext);
-  const filtersApplied = useHasVisibleFiltersApplied();
 
   // When performance view is disabled, exclude performance filters from API queries
   // Memoize to prevent infinite re-fetching
@@ -111,13 +113,52 @@ const ModelCatalogGalleryView: React.FC<ModelCatalogPageProps> = ({
 
   const isNoLabelsSection = selectedSourceLabel === SourceLabel.other;
 
-  // when no basic filers and search term, the performance empty state is shown.
-  const areAllFiltersAtDefaults = React.useMemo(
-    () => !hasFiltersApplied(filterData, BASIC_FILTER_KEYS),
+  // Check if basic filters are applied
+  const hasBasicFiltersApplied = React.useMemo(
+    () => hasFiltersApplied(filterData, BASIC_FILTER_KEYS),
     [filterData],
   );
 
-  const noUserFiltersOrSearch = areAllFiltersAtDefaults && !searchTerm;
+  // Check if Hardware Configuration filter is applied
+  const hasHardwareConfigurationApplied = React.useMemo(() => {
+    const hardwareConfig = filterData[ModelCatalogStringFilterKey.HARDWARE_CONFIGURATION];
+    return Array.isArray(hardwareConfig) && hardwareConfig.length > 0;
+  }, [filterData]);
+
+  // When performance view is enabled, performance filters have default values.
+  const hasPerformanceFiltersChanged = React.useMemo(() => {
+    if (!performanceViewEnabled) {
+      return false;
+    }
+    return PERFORMANCE_FILTER_KEYS.some((filterKey) => {
+      const filterValue = filterData[filterKey];
+      const defaultValue = getPerformanceFilterDefaultValue(filterKey);
+
+      if (filterValue === undefined) {
+        return false;
+      }
+
+      if (Array.isArray(filterValue) && filterValue.length === 0) {
+        return false;
+      }
+
+      return isValueDifferentFromDefault(filterValue, defaultValue);
+    });
+  }, [performanceViewEnabled, filterData, getPerformanceFilterDefaultValue]);
+
+  const noUserFiltersOrSearch = React.useMemo(
+    () =>
+      !hasBasicFiltersApplied &&
+      !hasHardwareConfigurationApplied &&
+      !hasPerformanceFiltersChanged &&
+      !searchTerm,
+    [
+      hasBasicFiltersApplied,
+      hasHardwareConfigurationApplied,
+      hasPerformanceFiltersChanged,
+      searchTerm,
+    ],
+  );
 
   const shouldShowPerformanceEmptyState = React.useMemo(() => {
     const isEmptyResult = catalogModels.items.length === 0;
@@ -198,7 +239,7 @@ const ModelCatalogGalleryView: React.FC<ModelCatalogPageProps> = ({
     );
   }
 
-  if (catalogModels.items.length === 0 && !searchTerm && !filtersApplied) {
+  if (catalogModels.items.length === 0 && noUserFiltersOrSearch) {
     return (
       <EmptyModelCatalogState
         testid="empty-model-catalog-state"
@@ -209,7 +250,7 @@ const ModelCatalogGalleryView: React.FC<ModelCatalogPageProps> = ({
     );
   }
 
-  if (catalogModels.items.length === 0 && (searchTerm || filtersApplied)) {
+  if (catalogModels.items.length === 0 && !noUserFiltersOrSearch) {
     return (
       <EmptyModelCatalogState
         testid="empty-model-catalog-state"

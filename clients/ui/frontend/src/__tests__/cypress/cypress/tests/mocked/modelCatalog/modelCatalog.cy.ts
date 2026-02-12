@@ -391,13 +391,16 @@ describe('Performance Empty State', () => {
         sources: [mockCatalogSource({ labels: ['Provider one'] })],
         hasValidatedModels: false,
       });
+      // No user filters/search; this scenario should hit the special "No performance data" state.
       setupFilteredModelsIntercept({ returnModelsForFilters: false });
       modelCatalog.visit();
 
       modelCatalog.togglePerformanceView();
+      modelCatalog.findPerformanceViewToggleValue().should('be.checked');
       modelCatalog.findCategoryToggle('label-Provider one').click();
 
       modelCatalog.findPerformanceEmptyState().should('be.visible');
+      modelCatalog.findModelCatalogEmptyState().should('not.exist');
     });
 
     it('should show models when toggle is OFF', () => {
@@ -486,6 +489,7 @@ describe('Performance Empty State', () => {
       modelCatalog.findFilterShowMoreButton('Task').click();
       modelCatalog.findFilterCheckbox('Task', 'audio-to-text').click();
 
+      modelCatalog.findPerformanceEmptyState().should('not.exist');
       modelCatalog.findModelCatalogEmptyState().should('contain.text', 'No result found');
 
       modelCatalog.findEmptyStateResetFiltersButton().click();
