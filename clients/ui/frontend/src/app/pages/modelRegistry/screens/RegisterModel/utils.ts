@@ -5,6 +5,13 @@ import {
   ModelVersion,
   RegisteredModel,
   RegisteredModelList,
+  ModelTransferJob,
+  ModelTransferJobSource,
+  ModelTransferJobSourceType,
+  ModelTransferJobDestinationType,
+  ModelTransferJobOCIDestination,
+  ModelTransferJobUploadIntent,
+  ModelTransferJobStatus,
 } from '~/app/types';
 import { ModelRegistryAPIState } from '~/app/hooks/useModelRegistryAPIState';
 import { objectStorageFieldsToUri } from '~/app/utils';
@@ -141,11 +148,18 @@ const isSubmitDisabledForCommonFields = (formData: RegistrationCommonFormData): 
     registrationMode,
     modelLocationPath,
     namespace,
+    destinationOciRegistry,
+    destinationOciUri,
+    jobResourceName,
   } = formData;
 
-  if (registrationMode === RegistrationMode.RegisterAndStore && !namespace) {
-    return true;
+  // RegisterAndStore mode validation - require destination fields and job name
+  if (registrationMode === RegistrationMode.RegisterAndStore) {
+    if (!namespace || !destinationOciRegistry || !destinationOciUri || !jobResourceName) {
+      return true;
+    }
   }
+
   return (
     !versionName ||
     (modelLocationType === ModelLocationType.URI && !modelLocationURI) ||
@@ -176,3 +190,100 @@ export const isNameValid = (name: string): boolean => name.length <= MR_CHARACTE
 
 export const isModelNameExisting = (name: string, registeredModels: RegisteredModelList): boolean =>
   registeredModels.items.some((model) => model.name === name);
+
+// Helper function to build ModelTransferJob payload from form data
+export const buildModelTransferJobPayload = (
+  formData: RegisterModelFormData | RegisterVersionFormData,
+  author: string,
+  uploadIntent: ModelTransferJobUploadIntent,
+  registeredModelId?: string,
+  registeredModelName?: string,
+): ModelTransferJob => {
+  // Build source based on modelLocationType
+  const source: ModelTransferJobSource =
+    formData.modelLocationType === ModelLocationType.ObjectStorage
+      ? {
+          type: ModelTransferJobSourceType.S3,
+          bucket: formData.modelLocationBucket,
+          key: formData.modelLocationPath,
+          region: formData.modelLocationRegion || undefined,
+          endpoint: formData.modelLocationEndpoint || undefined,
+        }
+      : {
+          type: ModelTransferJobSourceType.URI,
+          uri: formData.modelLocationURI,
+        };
+
+  // Build OCI destination
+  const destination: ModelTransferJobOCIDestination = {
+    type: ModelTransferJobDestinationType.OCI,
+    uri: formData.destinationOciUri,
+    registry: formData.destinationOciRegistry || undefined,
+  };
+
+  // Get model name from form data (different field for RegisterModel vs RegisterVersion)
+  const modelName = 'modelName' in formData ? formData.modelName : registeredModelName;
+
+  return {
+    id: '', // Server generates
+    name: formData.jobResourceName,
+    source,
+    destination,
+    uploadIntent,
+    registeredModelId,
+    registeredModelName: modelName,
+    modelVersionName: formData.versionName,
+    namespace: formData.namespace,
+    author,
+    status: ModelTransferJobStatus.PENDING,
+    createTimeSinceEpoch: '',
+    lastUpdateTimeSinceEpoch: '',
+  };
+};
+
+// Result type for transfer job creation
+export type CreateTransferJobResult = {
+  transferJob?: ModelTransferJob;
+  error?: Error;
+};
+
+// Create transfer job for registering a new model (CREATE_MODEL intent)
+export const createModelTransferJobForRegistration = async (
+  apiState: ModelRegistryAPIState,
+  formData: RegisterModelFormData,
+  author: string,
+): Promise<CreateTransferJobResult> => {
+  try {
+    const payload = buildModelTransferJobPayload(
+      formData,
+      author,
+      ModelTransferJobUploadIntent.CREATE_MODEL,
+    );
+    const transferJob = await apiState.api.createModelTransferJob({}, payload);
+    return { transferJob };
+  } catch (e) {
+    return { error: e instanceof Error ? e : new Error('Failed to create transfer job') };
+  }
+};
+
+// Create transfer job for registering a new version (CREATE_VERSION intent)
+export const createModelTransferJobForVersion = async (
+  apiState: ModelRegistryAPIState,
+  formData: RegisterVersionFormData,
+  registeredModel: RegisteredModel,
+  author: string,
+): Promise<CreateTransferJobResult> => {
+  try {
+    const payload = buildModelTransferJobPayload(
+      formData,
+      author,
+      ModelTransferJobUploadIntent.CREATE_VERSION,
+      registeredModel.id,
+      registeredModel.name,
+    );
+    const transferJob = await apiState.api.createModelTransferJob({}, payload);
+    return { transferJob };
+  } catch (e) {
+    return { error: e instanceof Error ? e : new Error('Failed to create transfer job') };
+  }
+};
