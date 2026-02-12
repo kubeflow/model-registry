@@ -38,13 +38,8 @@ type PerformanceInsightsViewProps = {
 const PerformanceInsightsView: React.FC<PerformanceInsightsViewProps> = ({ model }) => {
   const params = useParams<CatalogModelDetailsParams>();
   const decodedParams = decodeParams(params);
-  const {
-    filterData,
-    filterOptions,
-    filterOptionsLoaded,
-    setPerformanceFiltersChangedOnDetailsPage,
-    setFilterData,
-  } = React.useContext(ModelCatalogContext);
+  const { filterData, filterOptions, filterOptionsLoaded, setFilterData, setLastViewedModelName } =
+    React.useContext(ModelCatalogContext);
 
   // Apply default performance filters on mount if they don't have values yet
   // Details page should always have default filters applied (regardless of toggle state)
@@ -97,9 +92,10 @@ const PerformanceInsightsView: React.FC<PerformanceInsightsViewProps> = ({ model
       filterOptions,
     );
 
+  // Set the last viewed model name in the context
   React.useEffect(() => {
-    setPerformanceFiltersChangedOnDetailsPage(false);
-  }, [setPerformanceFiltersChangedOnDetailsPage]);
+    setLastViewedModelName(model.name);
+  }, [setLastViewedModelName, model.name]);
 
   if (performanceArtifactsError) {
     return (

@@ -19,6 +19,8 @@ import {
   getLatencyFilterKey,
   ALL_LATENCY_FILTER_KEYS,
   parseLatencyFilterKey,
+  LatencyMetricLabels,
+  latencyMetricDescriptions,
 } from '~/concepts/modelCatalog/const';
 import { ModelCatalogContext } from '~/app/context/modelCatalog/ModelCatalogContext';
 import {
@@ -34,13 +36,21 @@ type LatencyFilterState = {
   percentile: LatencyPercentile;
   value: number;
 };
+type MetricOption = {
+  value: LatencyMetric;
+  label: string;
+  description: string;
+};
 
-// TPS is excluded from filter options for now (will be renamed/reworked in a future ticket)
-const METRIC_OPTIONS: { value: LatencyMetric; label: LatencyMetric }[] = [
-  LatencyMetric.E2E,
+const METRIC_OPTIONS: MetricOption[] = [
   LatencyMetric.TTFT,
+  LatencyMetric.E2E,
   LatencyMetric.ITL,
-].map((metric) => ({ value: metric, label: metric }));
+].map((metric) => ({
+  value: metric,
+  label: LatencyMetricLabels[metric] ?? metric,
+  description: latencyMetricDescriptions[metric] ?? '',
+}));
 
 const PERCENTILE_OPTIONS: { value: LatencyPercentile; label: LatencyPercentile }[] = Object.values(
   LatencyPercentile,
@@ -258,6 +268,7 @@ const LatencyFilter: React.FC = () => {
                       key={option.value}
                       value={option.value}
                       data-testid={`latency-metric-option-${option.value}`}
+                      description={option.description}
                     >
                       {option.label}
                     </SelectOption>

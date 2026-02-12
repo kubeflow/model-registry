@@ -54,6 +54,8 @@ export type ModelCatalogContextType = {
   setPerformanceViewEnabled: (enabled: boolean) => void;
   performanceFiltersChangedOnDetailsPage: boolean;
   setPerformanceFiltersChangedOnDetailsPage: (changed: boolean) => void;
+  lastViewedModelName: string | null;
+  setLastViewedModelName: (modelName: string | null) => void;
   clearAllFilters: () => void;
   resetPerformanceFiltersToDefaults: () => void;
   resetSinglePerformanceFilterToDefault: (filterKey: keyof ModelCatalogFilterStates) => void;
@@ -98,6 +100,8 @@ export const ModelCatalogContext = React.createContext<ModelCatalogContextType>(
   setPerformanceViewEnabled: () => undefined,
   performanceFiltersChangedOnDetailsPage: false,
   setPerformanceFiltersChangedOnDetailsPage: () => undefined,
+  lastViewedModelName: null,
+  setLastViewedModelName: () => undefined,
   clearAllFilters: () => undefined,
   resetPerformanceFiltersToDefaults: () => undefined,
   resetSinglePerformanceFilterToDefault: () => undefined,
@@ -135,6 +139,7 @@ export const ModelCatalogContextProvider: React.FC<ModelCatalogContextProviderPr
   const [basePerformanceViewEnabled, setBasePerformanceViewEnabled] = React.useState(false);
   const [performanceFiltersChangedOnDetailsPage, setPerformanceFiltersChangedOnDetailsPage] =
     React.useState(false);
+  const [lastViewedModelName, setLastViewedModelName] = React.useState<string | null>(null);
   const [sortBy, setSortBy] = React.useState<ModelCatalogSortOption | null>(null);
 
   const location = useLocation();
@@ -304,6 +309,8 @@ export const ModelCatalogContextProvider: React.FC<ModelCatalogContextProviderPr
       setPerformanceViewEnabled,
       performanceFiltersChangedOnDetailsPage,
       setPerformanceFiltersChangedOnDetailsPage,
+      lastViewedModelName,
+      setLastViewedModelName,
       clearAllFilters,
       resetPerformanceFiltersToDefaults,
       resetSinglePerformanceFilterToDefault,
@@ -328,6 +335,8 @@ export const ModelCatalogContextProvider: React.FC<ModelCatalogContextProviderPr
       setPerformanceViewEnabled,
       performanceFiltersChangedOnDetailsPage,
       setPerformanceFiltersChangedOnDetailsPage,
+      lastViewedModelName,
+      setLastViewedModelName,
       clearAllFilters,
       resetPerformanceFiltersToDefaults,
       resetSinglePerformanceFilterToDefault,
