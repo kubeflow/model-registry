@@ -141,6 +141,92 @@ describe('Register and Store Fields - NamespaceSelector', () => {
   });
 });
 
+describe('Register and Store Fields - Credential Validation', () => {
+  beforeEach(() => {
+    initIntercepts({});
+    registerAndStoreFields.visit();
+    registerAndStoreFields.selectRegisterAndStoreMode();
+    registerAndStoreFields.selectNamespace('namespace-1');
+  });
+
+  it('Should have submit button disabled when S3 access key ID is missing', () => {
+    // Fill all fields except S3 access key ID
+    registerAndStoreFields.fillModelName('test-model');
+    registerAndStoreFields.fillVersionName('v1.0.0');
+    registerAndStoreFields.fillJobName('my-transfer-job');
+    registerAndStoreFields.fillSourceEndpoint('https://s3.amazonaws.com');
+    registerAndStoreFields.fillSourceBucket('test-bucket');
+    registerAndStoreFields.fillSourcePath('models/test');
+    // Skip: fillSourceS3AccessKeyId
+    registerAndStoreFields.fillSourceS3SecretAccessKey('wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY');
+    registerAndStoreFields.fillDestinationOciRegistry('quay.io');
+    registerAndStoreFields.fillDestinationOciUri('quay.io/my-org/my-model:v1');
+    registerAndStoreFields.fillDestinationOciUsername('testuser');
+    registerAndStoreFields.fillDestinationOciPassword('testpassword123');
+
+    registerAndStoreFields.findSubmitButton().should('be.disabled');
+  });
+
+  it('Should have submit button disabled when S3 secret access key is missing', () => {
+    // Fill all fields except S3 secret access key
+    registerAndStoreFields.fillModelName('test-model');
+    registerAndStoreFields.fillVersionName('v1.0.0');
+    registerAndStoreFields.fillJobName('my-transfer-job');
+    registerAndStoreFields.fillSourceEndpoint('https://s3.amazonaws.com');
+    registerAndStoreFields.fillSourceBucket('test-bucket');
+    registerAndStoreFields.fillSourcePath('models/test');
+    registerAndStoreFields.fillSourceS3AccessKeyId('AKIAIOSFODNN7EXAMPLE');
+    // Skip: fillSourceS3SecretAccessKey
+    registerAndStoreFields.fillDestinationOciRegistry('quay.io');
+    registerAndStoreFields.fillDestinationOciUri('quay.io/my-org/my-model:v1');
+    registerAndStoreFields.fillDestinationOciUsername('testuser');
+    registerAndStoreFields.fillDestinationOciPassword('testpassword123');
+
+    registerAndStoreFields.findSubmitButton().should('be.disabled');
+  });
+
+  it('Should have submit button disabled when OCI username is missing', () => {
+    // Fill all fields except OCI username
+    registerAndStoreFields.fillModelName('test-model');
+    registerAndStoreFields.fillVersionName('v1.0.0');
+    registerAndStoreFields.fillJobName('my-transfer-job');
+    registerAndStoreFields.fillSourceEndpoint('https://s3.amazonaws.com');
+    registerAndStoreFields.fillSourceBucket('test-bucket');
+    registerAndStoreFields.fillSourcePath('models/test');
+    registerAndStoreFields.fillSourceS3AccessKeyId('AKIAIOSFODNN7EXAMPLE');
+    registerAndStoreFields.fillSourceS3SecretAccessKey('wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY');
+    registerAndStoreFields.fillDestinationOciRegistry('quay.io');
+    registerAndStoreFields.fillDestinationOciUri('quay.io/my-org/my-model:v1');
+    // Skip: fillDestinationOciUsername
+    registerAndStoreFields.fillDestinationOciPassword('testpassword123');
+
+    registerAndStoreFields.findSubmitButton().should('be.disabled');
+  });
+
+  it('Should have submit button disabled when OCI password is missing', () => {
+    // Fill all fields except OCI password
+    registerAndStoreFields.fillModelName('test-model');
+    registerAndStoreFields.fillVersionName('v1.0.0');
+    registerAndStoreFields.fillJobName('my-transfer-job');
+    registerAndStoreFields.fillSourceEndpoint('https://s3.amazonaws.com');
+    registerAndStoreFields.fillSourceBucket('test-bucket');
+    registerAndStoreFields.fillSourcePath('models/test');
+    registerAndStoreFields.fillSourceS3AccessKeyId('AKIAIOSFODNN7EXAMPLE');
+    registerAndStoreFields.fillSourceS3SecretAccessKey('wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY');
+    registerAndStoreFields.fillDestinationOciRegistry('quay.io');
+    registerAndStoreFields.fillDestinationOciUri('quay.io/my-org/my-model:v1');
+    registerAndStoreFields.fillDestinationOciUsername('testuser');
+    // Skip: fillDestinationOciPassword
+
+    registerAndStoreFields.findSubmitButton().should('be.disabled');
+  });
+
+  it('Should enable submit button when all credentials are provided', () => {
+    registerAndStoreFields.fillAllRequiredFields();
+    registerAndStoreFields.findSubmitButton().should('not.be.disabled');
+  });
+});
+
 describe('Register and Store Fields - Form Submission', () => {
   beforeEach(() => {
     initIntercepts({});

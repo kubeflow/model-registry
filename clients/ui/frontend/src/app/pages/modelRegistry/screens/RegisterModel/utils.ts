@@ -145,17 +145,33 @@ const isSubmitDisabledForCommonFields = (formData: RegistrationCommonFormData): 
     modelLocationURI,
     modelLocationBucket,
     modelLocationEndpoint,
-    registrationMode,
     modelLocationPath,
+    modelLocationS3AccessKeyId,
+    modelLocationS3SecretAccessKey,
+    registrationMode,
     namespace,
     destinationOciRegistry,
     destinationOciUri,
+    destinationOciUsername,
+    destinationOciPassword,
     jobResourceName,
   } = formData;
 
-  // RegisterAndStore mode validation - require destination fields and job name
+  // RegisterAndStore mode validation - require destination fields, credentials, and job name
   if (registrationMode === RegistrationMode.RegisterAndStore) {
+    // Base requirements for register-and-store mode
     if (!namespace || !destinationOciRegistry || !destinationOciUri || !jobResourceName) {
+      return true;
+    }
+    // Destination credentials are required
+    if (!destinationOciUsername || !destinationOciPassword) {
+      return true;
+    }
+    // Source credentials are required for S3/ObjectStorage
+    if (
+      modelLocationType === ModelLocationType.ObjectStorage &&
+      (!modelLocationS3AccessKeyId || !modelLocationS3SecretAccessKey)
+    ) {
       return true;
     }
   }

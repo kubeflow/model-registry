@@ -116,6 +116,23 @@ class RegisterAndStoreFields {
     return cy.get('#destination-oci-uri');
   }
 
+  findDestinationOciUsernameInput() {
+    return cy.get('#destination-oci-username');
+  }
+
+  findDestinationOciPasswordInput() {
+    return cy.get('#destination-oci-password');
+  }
+
+  // Source credential field finders
+  findSourceS3AccessKeyIdInput() {
+    return cy.get('#location-s3-access-key-id');
+  }
+
+  findSourceS3SecretAccessKeyInput() {
+    return cy.get('#location-s3-secret-access-key');
+  }
+
   // Submit button
   findSubmitButton() {
     return cy.findByTestId('create-button');
@@ -162,6 +179,26 @@ class RegisterAndStoreFields {
     this.findDestinationOciUriInput().type(uri);
   }
 
+  fillDestinationOciUsername(username: string) {
+    this.findDestinationOciUsernameInput().clear();
+    this.findDestinationOciUsernameInput().type(username);
+  }
+
+  fillDestinationOciPassword(password: string) {
+    this.findDestinationOciPasswordInput().clear();
+    this.findDestinationOciPasswordInput().type(password);
+  }
+
+  fillSourceS3AccessKeyId(accessKeyId: string) {
+    this.findSourceS3AccessKeyIdInput().clear();
+    this.findSourceS3AccessKeyIdInput().type(accessKeyId);
+  }
+
+  fillSourceS3SecretAccessKey(secretAccessKey: string) {
+    this.findSourceS3SecretAccessKeyInput().clear();
+    this.findSourceS3SecretAccessKeyInput().type(secretAccessKey);
+  }
+
   // Convenience method to fill all required fields for submission
   fillAllRequiredFields() {
     this.fillModelName('test-model');
@@ -170,8 +207,12 @@ class RegisterAndStoreFields {
     this.fillSourceEndpoint('https://s3.amazonaws.com');
     this.fillSourceBucket('test-bucket');
     this.fillSourcePath('models/test');
+    this.fillSourceS3AccessKeyId('AKIAIOSFODNN7EXAMPLE');
+    this.fillSourceS3SecretAccessKey('wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY');
     this.fillDestinationOciRegistry('quay.io');
     this.fillDestinationOciUri('quay.io/my-org/my-model:v1');
+    this.fillDestinationOciUsername('testuser');
+    this.fillDestinationOciPassword('testpassword123');
   }
 }
 
