@@ -180,7 +180,11 @@ describe('Register and Store Fields - Form Submission', () => {
     registerAndStoreFields.findSubmitButton().click();
 
     cy.wait('@createTransferJob').then((interception) => {
-      const body = interception.request.body as ModelTransferJob;
+      // Body might be a string if Content-Type isn't detected correctly
+      const body: ModelTransferJob =
+        typeof interception.request.body === 'string'
+          ? JSON.parse(interception.request.body)
+          : interception.request.body;
       expect(body.namespace).to.equal('namespace-1');
       expect(body.destination.uri).to.equal('quay.io/my-org/my-model:v1');
     });
@@ -191,13 +195,11 @@ describe('Register and Store Fields - Form Submission', () => {
   });
 
   it('Should show error when transfer job creation fails', () => {
-    cy.interceptApi(
-      'POST /api/:apiVersion/model_registry/:modelRegistryName/model_transfer_jobs',
+    // Use raw cy.intercept for error responses to avoid mockModArchResponse wrapper
+    cy.intercept(
       {
-        path: {
-          apiVersion: MODEL_REGISTRY_API_VERSION,
-          modelRegistryName: 'modelregistry-sample',
-        },
+        method: 'POST',
+        pathname: `/model-registry/api/${MODEL_REGISTRY_API_VERSION}/model_registry/modelregistry-sample/model_transfer_jobs`,
       },
       { statusCode: 500, body: { error: 'Failed to create transfer job' } },
     ).as('createTransferJobError');
