@@ -176,15 +176,19 @@ describe('Register and Store Fields - Form Submission', () => {
 
     registerAndStoreFields.selectRegisterAndStoreMode();
     registerAndStoreFields.selectNamespace('namespace-1');
+    // Verify namespace is selected before filling other fields
+    registerAndStoreFields.shouldShowSelectedNamespace('namespace-1');
     registerAndStoreFields.fillAllRequiredFields();
     registerAndStoreFields.findSubmitButton().click();
 
     cy.wait('@createTransferJob').then((interception) => {
       // Body might be a string if Content-Type isn't detected correctly
-      const body: ModelTransferJob =
+      const rawBody =
         typeof interception.request.body === 'string'
           ? JSON.parse(interception.request.body)
           : interception.request.body;
+      // assembleModArchBody wraps the payload in { data: ... }
+      const body: ModelTransferJob = rawBody.data || rawBody;
       expect(body.namespace).to.equal('namespace-1');
       expect(body.destination.uri).to.equal('quay.io/my-org/my-model:v1');
     });
