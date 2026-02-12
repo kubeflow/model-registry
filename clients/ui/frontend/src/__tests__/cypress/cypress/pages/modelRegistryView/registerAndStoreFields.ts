@@ -1,4 +1,5 @@
 import { TempDevFeature } from '~/app/hooks/useTempDevFeatureAvailable';
+import { FormFieldSelector } from './registerModelPage';
 
 class RegisterAndStoreFields {
   visit(enableRegistryStorageFeature = true) {
@@ -104,6 +105,73 @@ class RegisterAndStoreFields {
       .find('button')
       .should('have.attr', 'aria-pressed', 'true');
     return this;
+  }
+
+  // Destination field finders
+  findDestinationOciRegistryInput() {
+    return cy.findByTestId('destination-oci-registry');
+  }
+
+  findDestinationOciUriInput() {
+    return cy.findByTestId('destination-oci-uri');
+  }
+
+  // Submit button
+  findSubmitButton() {
+    return cy.findByTestId('create-button');
+  }
+
+  // Fill form helper methods
+  fillModelName(name: string) {
+    cy.get(FormFieldSelector.MODEL_NAME).clear();
+    cy.get(FormFieldSelector.MODEL_NAME).type(name);
+  }
+
+  fillVersionName(name: string) {
+    cy.get(FormFieldSelector.VERSION_NAME).clear();
+    cy.get(FormFieldSelector.VERSION_NAME).type(name);
+  }
+
+  fillJobName(name: string) {
+    cy.get(FormFieldSelector.JOB_NAME).clear();
+    cy.get(FormFieldSelector.JOB_NAME).type(name);
+  }
+
+  fillSourceEndpoint(endpoint: string) {
+    cy.get(FormFieldSelector.LOCATION_ENDPOINT).clear();
+    cy.get(FormFieldSelector.LOCATION_ENDPOINT).type(endpoint);
+  }
+
+  fillSourceBucket(bucket: string) {
+    cy.get(FormFieldSelector.LOCATION_BUCKET).clear();
+    cy.get(FormFieldSelector.LOCATION_BUCKET).type(bucket);
+  }
+
+  fillSourcePath(path: string) {
+    cy.get(FormFieldSelector.LOCATION_PATH).clear();
+    cy.get(FormFieldSelector.LOCATION_PATH).type(path);
+  }
+
+  fillDestinationOciRegistry(registry: string) {
+    this.findDestinationOciRegistryInput().clear();
+    this.findDestinationOciRegistryInput().type(registry);
+  }
+
+  fillDestinationOciUri(uri: string) {
+    this.findDestinationOciUriInput().clear();
+    this.findDestinationOciUriInput().type(uri);
+  }
+
+  // Convenience method to fill all required fields for submission
+  fillAllRequiredFields() {
+    this.fillModelName('test-model');
+    this.fillVersionName('v1.0.0');
+    this.fillJobName('my-transfer-job');
+    this.fillSourceEndpoint('https://s3.amazonaws.com');
+    this.fillSourceBucket('test-bucket');
+    this.fillSourcePath('models/test');
+    this.fillDestinationOciRegistry('quay.io');
+    this.fillDestinationOciUri('quay.io/my-org/my-model:v1');
   }
 }
 

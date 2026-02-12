@@ -4,8 +4,9 @@ import { mockNamespace } from '~/__mocks__/mockNamespace';
 import { mockModelRegistry } from '~/__mocks__/mockModelRegistry';
 import { registerAndStoreFields } from '~/__tests__/cypress/cypress/pages/modelRegistryView/registerAndStoreFields';
 import { MODEL_REGISTRY_API_VERSION } from '~/__tests__/cypress/cypress/support/commands/api';
-import type { ModelRegistry, RegisteredModel } from '~/app/types';
+import type { ModelRegistry, ModelTransferJob, RegisteredModel } from '~/app/types';
 import { mockRegisteredModelList } from '~/__mocks__/mockRegisteredModelsList';
+import { mockModelTransferJob } from '~/__mocks__/mockModelTransferJob';
 
 type HandlersProps = {
   modelRegistries?: ModelRegistry[];
@@ -137,5 +138,110 @@ describe('Register and Store Fields - NamespaceSelector', () => {
     registerAndStoreFields.findNamespaceSelector().should('be.disabled');
 
     registerAndStoreFields.shouldShowPlaceholder('Select a namespace');
+  });
+});
+
+describe('Register and Store Fields - Form Submission', () => {
+  beforeEach(() => {
+    initIntercepts({});
+    registerAndStoreFields.visit();
+  });
+
+  it('Should have submit button disabled when required fields are empty', () => {
+    registerAndStoreFields.selectRegisterAndStoreMode();
+    registerAndStoreFields.selectNamespace('namespace-1');
+    registerAndStoreFields.findSubmitButton().should('be.disabled');
+  });
+
+  it('Should enable submit button when all required fields are filled', () => {
+    registerAndStoreFields.selectRegisterAndStoreMode();
+    registerAndStoreFields.selectNamespace('namespace-1');
+    registerAndStoreFields.fillAllRequiredFields();
+    registerAndStoreFields.findSubmitButton().should('not.be.disabled');
+  });
+
+  it('Should create transfer job and navigate to model list on success', () => {
+    const mockJob = mockModelTransferJob({ id: 'new-job-id' });
+
+    cy.interceptApi(
+      'POST /api/:apiVersion/model_registry/:modelRegistryName/model_transfer_jobs',
+      {
+        path: {
+          apiVersion: MODEL_REGISTRY_API_VERSION,
+          modelRegistryName: 'modelregistry-sample',
+        },
+      },
+      mockJob,
+    ).as('createTransferJob');
+
+    registerAndStoreFields.selectRegisterAndStoreMode();
+    registerAndStoreFields.selectNamespace('namespace-1');
+    registerAndStoreFields.fillAllRequiredFields();
+    registerAndStoreFields.findSubmitButton().click();
+
+    cy.wait('@createTransferJob').then((interception) => {
+      const body = interception.request.body as ModelTransferJob;
+      expect(body.namespace).to.equal('namespace-1');
+      expect(body.destination.uri).to.equal('quay.io/my-org/my-model:v1');
+    });
+
+    // Should navigate to model list (not version page)
+    cy.url().should('include', '/model-registry/modelregistry-sample');
+    cy.url().should('not.include', '/register');
+  });
+
+  it('Should show error when transfer job creation fails', () => {
+    cy.interceptApi(
+      'POST /api/:apiVersion/model_registry/:modelRegistryName/model_transfer_jobs',
+      {
+        path: {
+          apiVersion: MODEL_REGISTRY_API_VERSION,
+          modelRegistryName: 'modelregistry-sample',
+        },
+      },
+      { statusCode: 500, body: { error: 'Failed to create transfer job' } },
+    ).as('createTransferJobError');
+
+    registerAndStoreFields.selectRegisterAndStoreMode();
+    registerAndStoreFields.selectNamespace('namespace-1');
+    registerAndStoreFields.fillAllRequiredFields();
+    registerAndStoreFields.findSubmitButton().click();
+
+    cy.wait('@createTransferJobError');
+    cy.url().should('include', '/register');
+  });
+
+  it('Should NOT call registerModel API in Register and Store mode', () => {
+    const mockJob = mockModelTransferJob({ id: 'new-job-id' });
+
+    cy.interceptApi(
+      'POST /api/:apiVersion/model_registry/:modelRegistryName/model_transfer_jobs',
+      {
+        path: {
+          apiVersion: MODEL_REGISTRY_API_VERSION,
+          modelRegistryName: 'modelregistry-sample',
+        },
+      },
+      mockJob,
+    ).as('createTransferJob');
+
+    cy.interceptApi(
+      'POST /api/:apiVersion/model_registry/:modelRegistryName/registered_models',
+      {
+        path: {
+          apiVersion: MODEL_REGISTRY_API_VERSION,
+          modelRegistryName: 'modelregistry-sample',
+        },
+      },
+      {} as RegisteredModel,
+    ).as('createRegisteredModel');
+
+    registerAndStoreFields.selectRegisterAndStoreMode();
+    registerAndStoreFields.selectNamespace('namespace-1');
+    registerAndStoreFields.fillAllRequiredFields();
+    registerAndStoreFields.findSubmitButton().click();
+
+    cy.wait('@createTransferJob');
+    cy.get('@createRegisteredModel.all').should('have.length', 0);
   });
 });
