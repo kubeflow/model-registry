@@ -66,7 +66,6 @@ export type NamespaceSelectorFieldProps = {
   onAccessChange?: (hasAccess: boolean | undefined) => void;
 };
 
-
 const NamespaceSelectorField: React.FC<NamespaceSelectorFieldProps> = ({
   selectedNamespace,
   onSelect,
