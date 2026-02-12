@@ -12,6 +12,7 @@ import { Link } from 'react-router-dom';
 import { ApplicationsPage, FormSection } from 'mod-arch-shared';
 import { modelRegistryUrl, modelVersionUrl } from '~/app/pages/modelRegistry/screens/routeUtils';
 import { RegistrationMode } from '~/app/pages/modelRegistry/screens/const';
+import { ModelTransferJobUploadIntent } from '~/app/types';
 import { ModelRegistryContext } from '~/app/context/ModelRegistryContext';
 import { AppContext } from '~/app/context/AppContext';
 import useRegisteredModels from '~/app/hooks/useRegisteredModels';
@@ -21,7 +22,7 @@ import {
   isNameValid,
   isRegisterModelSubmitDisabled,
   registerModel,
-  createModelTransferJobForRegistration,
+  registerViaTransferJob,
 } from './utils';
 import RegistrationCommonFormSections from './RegistrationCommonFormSections';
 import RegistrationFormFooter from './RegistrationFormFooter';
@@ -60,11 +61,10 @@ const RegisterModel: React.FC = () => {
     // Branch based on registration mode
     if (formData.registrationMode === RegistrationMode.RegisterAndStore) {
       // Register and Store: Only create transfer job (async registration)
-      const { transferJob, error } = await createModelTransferJobForRegistration(
-        apiState,
+      const { transferJob, error } = await registerViaTransferJob(apiState, author, {
+        intent: ModelTransferJobUploadIntent.CREATE_MODEL,
         formData,
-        author,
-      );
+      });
 
       if (transferJob) {
         // Success - navigate back to model list

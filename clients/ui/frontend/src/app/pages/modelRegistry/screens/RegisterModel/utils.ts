@@ -227,7 +227,8 @@ export const buildModelTransferJobPayload = (
     registry: formData.destinationOciRegistry || undefined,
   };
 
-  // Get model name from form data (different field for RegisterModel vs RegisterVersion)
+  // RegisterModelFormData has modelName (user-provided for new model).
+  // RegisterVersionFormData omits it since the model already exists; we use registeredModelName instead.
   const modelName = 'modelName' in formData ? formData.modelName : registeredModelName;
 
   return {
@@ -248,45 +249,40 @@ export const buildModelTransferJobPayload = (
 };
 
 // Result type for transfer job creation
-export type CreateTransferJobResult = {
+export type RegisterViaTransferJobResult = {
   transferJob?: ModelTransferJob;
   error?: Error;
 };
 
-// Create transfer job for registering a new model (CREATE_MODEL intent)
-export const createModelTransferJobForRegistration = async (
-  apiState: ModelRegistryAPIState,
-  formData: RegisterModelFormData,
-  author: string,
-): Promise<CreateTransferJobResult> => {
-  try {
-    const payload = buildModelTransferJobPayload(
-      formData,
-      author,
-      ModelTransferJobUploadIntent.CREATE_MODEL,
-    );
-    const transferJob = await apiState.api.createModelTransferJob({}, payload);
-    return { transferJob };
-  } catch (e) {
-    return { error: e instanceof Error ? e : new Error('Failed to create transfer job') };
-  }
-};
+// Options for registerViaTransferJob based on intent
+type RegisterViaTransferJobOptions =
+  | {
+      intent: typeof ModelTransferJobUploadIntent.CREATE_MODEL;
+      formData: RegisterModelFormData;
+    }
+  | {
+      intent: typeof ModelTransferJobUploadIntent.CREATE_VERSION;
+      formData: RegisterVersionFormData;
+      registeredModel: RegisteredModel;
+    };
 
-// Create transfer job for registering a new version (CREATE_VERSION intent)
-export const createModelTransferJobForVersion = async (
+// Create transfer job for async model registration (handles both new models and new versions)
+export const registerViaTransferJob = async (
   apiState: ModelRegistryAPIState,
-  formData: RegisterVersionFormData,
-  registeredModel: RegisteredModel,
   author: string,
-): Promise<CreateTransferJobResult> => {
+  options: RegisterViaTransferJobOptions,
+): Promise<RegisterViaTransferJobResult> => {
   try {
-    const payload = buildModelTransferJobPayload(
-      formData,
-      author,
-      ModelTransferJobUploadIntent.CREATE_VERSION,
-      registeredModel.id,
-      registeredModel.name,
-    );
+    const payload =
+      options.intent === ModelTransferJobUploadIntent.CREATE_MODEL
+        ? buildModelTransferJobPayload(options.formData, author, options.intent)
+        : buildModelTransferJobPayload(
+            options.formData,
+            author,
+            options.intent,
+            options.registeredModel.id,
+            options.registeredModel.name,
+          );
     const transferJob = await apiState.api.createModelTransferJob({}, payload);
     return { transferJob };
   } catch (e) {

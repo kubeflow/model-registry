@@ -20,16 +20,13 @@ import {
   registeredModelUrl,
 } from '~/app/pages/modelRegistry/screens/routeUtils';
 import { RegistrationMode } from '~/app/pages/modelRegistry/screens/const';
+import { ModelTransferJobUploadIntent } from '~/app/types';
 import useRegisteredModels from '~/app/hooks/useRegisteredModels';
 import { filterLiveModels } from '~/app/utils';
 import { ModelRegistryContext } from '~/app/context/ModelRegistryContext';
 import { AppContext } from '~/app/context/AppContext';
 import { useRegisterVersionData } from './useRegisterModelData';
-import {
-  isRegisterVersionSubmitDisabled,
-  registerVersion,
-  createModelTransferJobForVersion,
-} from './utils';
+import { isRegisterVersionSubmitDisabled, registerVersion, registerViaTransferJob } from './utils';
 import RegistrationCommonFormSections from './RegistrationCommonFormSections';
 import PrefilledModelRegistryField from './PrefilledModelRegistryField';
 import RegistrationFormFooter from './RegistrationFormFooter';
@@ -75,12 +72,11 @@ const RegisterVersion: React.FC = () => {
     // Branch based on registration mode
     if (formData.registrationMode === RegistrationMode.RegisterAndStore) {
       // Register and Store: Only create transfer job (async registration)
-      const { transferJob, error } = await createModelTransferJobForVersion(
-        apiState,
+      const { transferJob, error } = await registerViaTransferJob(apiState, author, {
+        intent: ModelTransferJobUploadIntent.CREATE_VERSION,
         formData,
         registeredModel,
-        author,
-      );
+      });
 
       if (transferJob) {
         // Success - navigate back to registered model page
