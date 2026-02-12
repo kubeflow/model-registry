@@ -156,7 +156,7 @@ describe('RegisterModel utils', () => {
       expect(payload.name).toBe('test-job-resource');
     });
 
-    it('should set PENDING status and empty timestamps', () => {
+    it('should set PENDING status and omit server-generated fields', () => {
       const formData = { ...baseFormData, modelName: 'Test Model', modelDescription: '' };
       const payload = buildModelTransferJobPayload(
         formData,
@@ -165,8 +165,9 @@ describe('RegisterModel utils', () => {
       );
 
       expect(payload.status).toBe(ModelTransferJobStatus.PENDING);
-      expect(payload.createTimeSinceEpoch).toBe('');
-      expect(payload.lastUpdateTimeSinceEpoch).toBe('');
+      expect(payload.id).toBeUndefined();
+      expect(payload.createTimeSinceEpoch).toBeUndefined();
+      expect(payload.lastUpdateTimeSinceEpoch).toBeUndefined();
     });
   });
 });

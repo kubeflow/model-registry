@@ -232,7 +232,6 @@ export const buildModelTransferJobPayload = (
   const modelName = 'modelName' in formData ? formData.modelName : registeredModelName;
 
   return {
-    id: '', // Server generates
     name: formData.jobResourceName,
     source,
     destination,
@@ -243,8 +242,6 @@ export const buildModelTransferJobPayload = (
     namespace: formData.namespace,
     author,
     status: ModelTransferJobStatus.PENDING,
-    createTimeSinceEpoch: '',
-    lastUpdateTimeSinceEpoch: '',
   };
 };
 

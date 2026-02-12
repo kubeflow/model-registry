@@ -315,7 +315,7 @@ export type ModelTransferJobDestination =
   | ModelTransferJobOCIDestination;
 
 export type ModelTransferJob = {
-  id: string;
+  id?: string;
   name: string;
   description?: string;
   source: ModelTransferJobSource;
@@ -330,8 +330,8 @@ export type ModelTransferJob = {
   namespace?: string;
   author?: string;
   status: ModelTransferJobStatus;
-  createTimeSinceEpoch: string;
-  lastUpdateTimeSinceEpoch: string;
+  createTimeSinceEpoch?: string;
+  lastUpdateTimeSinceEpoch?: string;
   errorMessage?: string;
 };
 
