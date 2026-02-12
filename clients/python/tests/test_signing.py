@@ -66,9 +66,9 @@ class TestImageSigner:
         signer.initialize()
 
         cmd = mock_runner.run.call_args[0][0]
-        assert "https://default-tuf.example.com" in cmd
-        assert "https://default-tuf.example.com/root.json" in cmd
-        assert "def456" in cmd
+        assert cmd.count("https://default-tuf.example.com") == 1
+        assert cmd.count("https://default-tuf.example.com/root.json") == 1
+        assert cmd.count("def456") == 1
 
     def test_initialize_method_args_override_defaults(self, tmp_path, mocker):
         """Test method arguments override instance defaults."""
@@ -88,10 +88,10 @@ class TestImageSigner:
         )
 
         cmd = mock_runner.run.call_args[0][0]
-        assert "https://override-tuf.example.com" in cmd
-        assert "override-checksum" in cmd
-        assert "https://default-tuf.example.com" not in cmd
-        assert "default-checksum" not in cmd
+        assert cmd.count("https://override-tuf.example.com") == 1
+        assert cmd.count("override-checksum") == 1
+        assert cmd.count("https://default-tuf.example.com") == 0
+        assert cmd.count("default-checksum") == 0
 
     def test_initialize_raises_if_dir_exists_without_force(self, tmp_path, mocker):
         """Test initialize raises FileExistsError if directory exists and force=False."""
@@ -193,9 +193,9 @@ class TestImageSigner:
         signer.sign(image="quay.io/example/image@sha256:abc123")
 
         cmd = mock_runner.run.call_args[0][0]
-        assert "test-token" in cmd
-        assert "https://default-fulcio.example.com" in cmd
-        assert "https://default-rekor.example.com" in cmd
+        assert cmd.count("test-token") == 1
+        assert cmd.count("https://default-fulcio.example.com") == 1
+        assert cmd.count("https://default-rekor.example.com") == 1
 
     def test_sign_accepts_pathlike(self, tmp_path, mocker):
         """Test sign accepts PathLike objects."""
@@ -217,7 +217,7 @@ class TestImageSigner:
         mock_runner.run.assert_called_once()
         cmd = mock_runner.run.call_args[0][0]
         # File content should be read and passed
-        assert "test-token" in cmd
+        assert cmd.count("test-token") == 1
 
     def test_sign_raises_if_token_file_not_found(self, mocker):
         """Test sign raises FileNotFoundError if token file doesn't exist."""
@@ -269,8 +269,8 @@ class TestImageSigner:
         signer.verify(image="quay.io/example/image@sha256:abc123")
 
         cmd = mock_runner.run.call_args[0][0]
-        assert "https://kubernetes.io/namespaces/default/serviceaccounts/default" in cmd
-        assert "https://default-oidc.example.com" in cmd
+        assert cmd.count("https://kubernetes.io/namespaces/default/serviceaccounts/default") == 1
+        assert cmd.count("https://default-oidc.example.com") == 1
 
     def test_initialize_with_no_args_sends_minimal_command(self, tmp_path, mocker):
         """Test initialize with no arguments sends minimal command."""
@@ -373,7 +373,7 @@ class TestModelSigner:
         # Should return path within cache_dir
         assert result.parent.parent == tmp_path
         assert result.name == "trust_config.json"
-        assert "https%3A%2F%2Ftuf.example.com" in str(result)
+        assert str(result).count("https%3A%2F%2Ftuf.example.com") == 1
 
     def test_get_trust_config_path_without_tuf_url_raises_error(self):
         """Test get_trust_config_path raises SigningError when tuf_url not set."""
