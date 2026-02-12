@@ -18,12 +18,10 @@ class RegisterAndStoreFields {
     return cy.findByTestId('form-namespace-selector');
   }
 
-  /** Wrapper that contains the namespace Select trigger - use for disabled check */
   findNamespaceSelectTrigger() {
     return cy.findByTestId('form-namespace-selector-trigger');
   }
 
-  /** MUI Select combobox inside form namespace selector - use to open/close dropdown */
   findNamespaceSelectCombobox() {
     return this.findNamespaceSelector().find('[role="combobox"]');
   }
@@ -142,6 +140,44 @@ class RegisterAndStoreFields {
     this.findNamespaceRegistryAccessAlert()
       .should('be.visible')
       .and('contain.text', 'You do not have access to any namespaces');
+    return this;
+  }
+
+  findWhoIsMyAdminTrigger() {
+    return cy.findByTestId('who-is-my-admin-trigger');
+  }
+
+  openWhoIsMyAdminPopover() {
+    this.findWhoIsMyAdminTrigger().click();
+    return this;
+  }
+
+  shouldShowWhoIsMyAdminPopoverWithNamespaceWording() {
+    cy.contains('Your administrator might be').should('be.visible');
+    cy.contains('namespaces that you have permission to access').should('be.visible');
+    return this;
+  }
+
+  shouldShowNoAccessWarningWithAdminLink() {
+    this.findNamespaceRegistryAccessAlert().should('be.visible');
+    cy.findByRole('link', { name: 'Go to Model registry settings' }).should('exist');
+    return this;
+  }
+
+  shouldShowNoAccessWarningWithoutAdminLink() {
+    this.findNamespaceRegistryAccessAlert()
+      .should('be.visible')
+      .and('contain.text', 'Contact your administrator to grant access');
+    cy.findByRole('link', { name: 'Go to Model registry settings' }).should('not.exist');
+    return this;
+  }
+
+  findCreateButton() {
+    return cy.findByTestId('create-button');
+  }
+
+  shouldHaveCreateButtonDisabled() {
+    this.findCreateButton().should('be.disabled');
     return this;
   }
 }

@@ -22,20 +22,25 @@ import {
 import { useNamespaceSelector } from 'mod-arch-core';
 import { useThemeContext } from 'mod-arch-kubeflow';
 import { useCheckNamespaceRegistryAccess } from '~/app/hooks/useCheckNamespaceRegistryAccess';
+import useUser from '~/app/hooks/useUser';
 
 const NAMESPACE_SELECTOR_TOOLTIP =
-  'This list includes only projects that you and the selected model registry have permission to access. To request access to a new or existing project, contact your administrator.';
+  'This list includes only namespaces that you and the selected model registry have permission to access. To request access to a new or existing namespace, contact your administrator.';
 
 const NAMESPACE_NO_ACCESS_MESSAGE =
   'You do not have access to any namespaces. To request access to a new or existing namespace, contact your administrator.';
 
-const SELECTED_NAMESPACE_NO_ACCESS_MESSAGE =
-  'The selected namespace does not have access to this model registry. Please contact your administrator to grant access or select a different namespace.';
+const SELECTED_NAMESPACE_NO_ACCESS_MESSAGE_ADMIN =
+  'The selected namespace does not have access to this model registry. To grant access, click Manage permissions for this registry on the Model registry settings page.';
+const SELECTED_NAMESPACE_NO_ACCESS_MESSAGE_USER =
+  'The selected namespace does not have access to this model registry. Contact your administrator to grant access.';
+const MODEL_REGISTRY_SETTINGS_LINK_LABEL = 'Go to Model registry settings';
 
 const WHO_IS_MY_ADMIN_POPOVER_CONTENT = (
   <Stack hasGutter>
     <StackItem>
-      To request access to a new or existing namespace, contact your administrator.
+      This list includes only namespaces that you have permission to access. To request access to a
+      new or existing namespace, contact your administrator.
     </StackItem>
     <StackItem>
       <strong>Your administrator might be:</strong>
@@ -61,11 +66,7 @@ export type NamespaceSelectorFieldProps = {
   onAccessChange?: (hasAccess: boolean | undefined) => void;
 };
 
-/**
- * Namespace selector field with registry access validation (SSAR).
- * Renders a FormGroup with label help, MUI Select for namespace choice, and optional alerts for no access / error.
- * Use in register-and-store flows; syncs access result to parent via onAccessChange.
- */
+
 const NamespaceSelectorField: React.FC<NamespaceSelectorFieldProps> = ({
   selectedNamespace,
   onSelect,
@@ -74,6 +75,7 @@ const NamespaceSelectorField: React.FC<NamespaceSelectorFieldProps> = ({
   onAccessChange,
 }) => {
   const labelHelpRef = useRef<HTMLSpanElement>(null);
+  const { clusterAdmin } = useUser();
   const { hasAccess, isLoading, error } = useCheckNamespaceRegistryAccess(
     registryName,
     registryNamespace,
@@ -179,6 +181,7 @@ const NamespaceSelectorField: React.FC<NamespaceSelectorFieldProps> = ({
                 component="button"
                 type="button"
                 variant="body2"
+                data-testid="who-is-my-admin-trigger"
                 sx={{
                   display: 'inline',
                   p: 0,
@@ -206,13 +209,17 @@ const NamespaceSelectorField: React.FC<NamespaceSelectorFieldProps> = ({
         <Alert
           isInline
           variant="warning"
-          title={SELECTED_NAMESPACE_NO_ACCESS_MESSAGE}
+          title={
+            clusterAdmin
+              ? SELECTED_NAMESPACE_NO_ACCESS_MESSAGE_ADMIN
+              : SELECTED_NAMESPACE_NO_ACCESS_MESSAGE_USER
+          }
           data-testid="namespace-registry-access-alert"
           className="pf-v6-u-mt-sm"
         >
-          {registryName && (
+          {clusterAdmin && (
             <Link to="/model-registry-settings" target="_blank" rel="noopener noreferrer">
-              Configure namespace access in Model Registry settings
+              {MODEL_REGISTRY_SETTINGS_LINK_LABEL}
             </Link>
           )}
         </Alert>

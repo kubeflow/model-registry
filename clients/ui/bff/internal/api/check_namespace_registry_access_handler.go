@@ -11,7 +11,6 @@ import (
 
 const CheckNamespaceRegistryAccessPath = ApiPathPrefix + "/check-namespace-registry-access"
 
-// CheckNamespaceRegistryAccessRequest is the request body for the namespace registry access check.
 type CheckNamespaceRegistryAccessRequest struct {
 	Namespace         string `json:"namespace"`
 	RegistryName      string `json:"registryName"`
@@ -20,16 +19,12 @@ type CheckNamespaceRegistryAccessRequest struct {
 
 type CheckNamespaceRegistryAccessRequestEnvelope Envelope[CheckNamespaceRegistryAccessRequest, None]
 
-// CheckNamespaceRegistryAccessResponse is the response body.
 type CheckNamespaceRegistryAccessResponse struct {
 	HasAccess bool `json:"hasAccess"`
 }
 
 type CheckNamespaceRegistryAccessEnvelope Envelope[CheckNamespaceRegistryAccessResponse, None]
 
-// CheckNamespaceRegistryAccessHandler checks if the default SA in the given namespace
-// can get the model registry service in the registry namespace (SubjectAccessReview).
-// Uses the logged-in user's token (no privilege elevation).
 func (app *App) CheckNamespaceRegistryAccessHandler(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 	ctx := r.Context()
 

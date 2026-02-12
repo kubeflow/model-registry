@@ -554,9 +554,6 @@ func createNamespaceDefaultSARegistryAccessRBAC(k8sClient kubernetes.Interface, 
 	return nil
 }
 
-// createCrossNamespaceRegistryAccessBinding grants the default ServiceAccount of jobNamespace
-// access to an existing Role (roleName) in registryNamespace. Use so that when the user selects
-// jobNamespace in "Register and store", hasAccess is true for the registry in registryNamespace.
 func createCrossNamespaceRegistryAccessBinding(k8sClient kubernetes.Interface, ctx context.Context, registryNamespace, roleName, jobNamespace string) error {
 	bindingName := "registry-access-binding-" + strings.ReplaceAll(jobNamespace, ":", "-")
 	roleBinding := &rbacv1.RoleBinding{

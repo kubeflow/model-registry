@@ -130,7 +130,6 @@ var _ = Describe("CheckNamespaceRegistryAccessHandler", func() {
 			body := CheckNamespaceRegistryAccessRequestEnvelope{
 				Data: CheckNamespaceRegistryAccessRequest{
 					Namespace: "dora-namespace",
-					// RegistryName and RegistryNamespace missing
 				},
 			}
 			bodyBytes, _ := json.Marshal(body)
