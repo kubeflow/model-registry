@@ -19,10 +19,29 @@ import (
 
 // Source status constants matching the OpenAPI enum values
 const (
-	SourceStatusAvailable = "available"
-	SourceStatusError     = "error"
-	SourceStatusDisabled  = "disabled"
+	SourceStatusAvailable          = "available"
+	SourceStatusPartiallyAvailable = "partially-available"
+	SourceStatusError              = "error"
+	SourceStatusDisabled           = "disabled"
 )
+
+// PartiallyAvailableError indicates that a source loaded some models successfully
+// but encountered errors with others.
+type PartiallyAvailableError struct {
+	FailedModels []string
+}
+
+func (e *PartiallyAvailableError) Error() string {
+	return fmt.Sprintf("Failed to fetch some models, ensure models exist and are accessible with given credentials. Failed models: %v", e.FailedModels)
+}
+
+func (e *PartiallyAvailableError) Is(target error) bool {
+	_, ok := target.(*PartiallyAvailableError)
+	return ok
+}
+
+// ErrPartiallyAvailable is used with errors.Is() to check for this error type.
+var ErrPartiallyAvailable error = &PartiallyAvailableError{}
 
 // ModelProviderRecord contains one model and its associated artifacts.
 type ModelProviderRecord struct {
@@ -450,9 +469,9 @@ func (l *Loader) readProviderRecords(ctx context.Context) <-chan ModelProviderRe
 					// Only save status if context is still valid (no reload in progress)
 					if ctx.Err() == nil {
 						// Check if there was a partial error (some models failed to load)
-						if r.Error != nil {
-							glog.Errorf("%s: partial error after loading models: %v", sourceID, r.Error)
-							l.saveSourceStatus(sourceID, SourceStatusError, r.Error.Error())
+						if errors.Is(r.Error, ErrPartiallyAvailable) {
+							glog.Warningf("%s: partial error after loading models: %v", sourceID, r.Error)
+							l.saveSourceStatus(sourceID, SourceStatusPartiallyAvailable, r.Error.Error())
 						} else {
 							l.saveSourceStatus(sourceID, SourceStatusAvailable, "")
 						}
@@ -620,7 +639,7 @@ func (l *Loader) removeOrphanedModelsFromSource(sourceID string, valid mapset.Se
 func (l *Loader) saveSourceStatus(sourceID, status string, errorMsg string) {
 	// Validate status is a valid enum value
 	switch status {
-	case SourceStatusAvailable, SourceStatusError, SourceStatusDisabled:
+	case SourceStatusAvailable, SourceStatusPartiallyAvailable, SourceStatusError, SourceStatusDisabled:
 		// valid
 	default:
 		glog.Errorf("invalid status %q for source %s", status, sourceID)
