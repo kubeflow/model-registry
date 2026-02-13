@@ -44,6 +44,7 @@ const ModelCatalogSourceLabelSelector: React.FC<ModelCatalogSourceLabelSelectorP
     performanceViewEnabled,
     performanceFiltersChangedOnDetailsPage,
     setPerformanceFiltersChangedOnDetailsPage,
+    lastViewedModelName,
   } = React.useContext(ModelCatalogContext);
 
   // Only show basic filters in the main chip bar - performance filters have their own section
@@ -204,7 +205,11 @@ const ModelCatalogSourceLabelSelector: React.FC<ModelCatalogSourceLabelSelectorP
             variant="info"
             isInline
             className="pf-v6-u-mb-lg"
-            title="The results list has been updated to match the latest performance criteria set on the model details page."
+            title={
+              lastViewedModelName
+                ? `The performance constraints and results have been updated to match the constraints you applied to the ${lastViewedModelName} model details page.`
+                : 'The performance constraints and results have been updated to match the constraints you applied to the model details page.'
+            }
             actionClose={
               <AlertActionCloseButton
                 onClose={() => {
