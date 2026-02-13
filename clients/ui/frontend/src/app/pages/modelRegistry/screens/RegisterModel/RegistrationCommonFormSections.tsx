@@ -31,6 +31,8 @@ type RegistrationCommonFormSectionsProps<D extends RegistrationCommonFormData> =
   isFirstVersion: boolean;
   latestVersion?: ModelVersion;
   isCatalogModel?: boolean;
+  registryName?: string;
+  registryNamespace?: string;
 };
 
 const RegistrationCommonFormSections = <D extends RegistrationCommonFormData>({
@@ -39,6 +41,8 @@ const RegistrationCommonFormSections = <D extends RegistrationCommonFormData>({
   isFirstVersion,
   latestVersion,
   isCatalogModel,
+  registryName,
+  registryNamespace,
 }: RegistrationCommonFormSectionsProps<D>): React.ReactNode => {
   const isVersionNameValid = isNameValid(formData.versionName);
   const isRegistryStorageFeatureAvailable = useTempDevFeatureAvailable(
@@ -191,6 +195,8 @@ const RegistrationCommonFormSections = <D extends RegistrationCommonFormData>({
             formData={formData}
             setData={setData}
             isCatalogModel={isCatalogModel}
+            registryName={registryName}
+            registryNamespace={registryNamespace}
           />
         )}
       </FormSection>

@@ -2,6 +2,7 @@
 import type { Namespace } from 'mod-arch-core';
 import { mockNamespace } from '~/__mocks__/mockNamespace';
 import { mockModelRegistry } from '~/__mocks__/mockModelRegistry';
+import { mockUserSettings } from '~/__mocks__/mockUserSettings';
 import { registerAndStoreFields } from '~/__tests__/cypress/cypress/pages/modelRegistryView/registerAndStoreFields';
 import { MODEL_REGISTRY_API_VERSION } from '~/__tests__/cypress/cypress/support/commands/api';
 import type { ModelRegistry, RegisteredModel } from '~/app/types';
@@ -116,9 +117,13 @@ describe('Register and Store Fields - NamespaceSelector', () => {
     registerAndStoreFields.shouldHideOriginLocationSection().shouldHideDestinationLocationSection();
   });
 
-  it('Should show form sections after namespace selection', () => {
+  it('Should show form sections after namespace selection when namespace has access', () => {
+    cy.intercept('POST', '**/api/v1/check-namespace-registry-access', {
+      statusCode: 200,
+      body: { data: { hasAccess: true } },
+    }).as('checkNamespaceAccess');
     registerAndStoreFields.selectNamespace('namespace-1');
-
+    cy.wait('@checkNamespaceAccess');
     registerAndStoreFields.shouldShowOriginLocationSection();
     registerAndStoreFields.shouldShowDestinationLocationSection();
   });
@@ -134,8 +139,95 @@ describe('Register and Store Fields - NamespaceSelector', () => {
     registerAndStoreFields.selectRegisterAndStoreMode();
 
     registerAndStoreFields.findNamespaceSelector().should('exist');
-    registerAndStoreFields.findNamespaceSelector().should('be.disabled');
-
+    registerAndStoreFields.shouldBeNamespaceSelectorDisabled();
+    registerAndStoreFields.shouldShowNoNamespacesMessage();
     registerAndStoreFields.shouldShowPlaceholder('Select a namespace');
+  });
+
+  it('Should show no-access message and keep dropdown disabled when no namespaces', () => {
+    initIntercepts({ namespaces: [] });
+    registerAndStoreFields.visit();
+    registerAndStoreFields.selectRegisterAndStoreMode();
+
+    registerAndStoreFields.findNamespaceSelector().should('exist');
+    registerAndStoreFields.shouldBeNamespaceSelectorDisabled();
+    registerAndStoreFields.shouldShowNoNamespacesMessage();
+  });
+});
+
+describe('Register and Store Fields - Namespace access validation', () => {
+  beforeEach(() => {
+    initIntercepts({});
+    cy.intercept('POST', '**/api/v1/check-namespace-registry-access', {
+      statusCode: 200,
+      body: { data: { hasAccess: false } },
+    }).as('checkNamespaceAccess');
+    registerAndStoreFields.visit(true, 'namespace-1');
+    registerAndStoreFields.selectRegisterAndStoreMode();
+  });
+
+  it('Should show "Namespace" label', () => {
+    registerAndStoreFields.shouldShowNamespaceLabel();
+  });
+
+  it('Should show warning when selected namespace has no access to registry', () => {
+    registerAndStoreFields.selectNamespace('namespace-1');
+    cy.wait('@checkNamespaceAccess');
+    registerAndStoreFields.shouldShowNoAccessWarning();
+  });
+
+  it('Should not show form sections when selected namespace has no access to registry', () => {
+    registerAndStoreFields.selectNamespace('namespace-1');
+    cy.wait('@checkNamespaceAccess');
+    registerAndStoreFields.shouldHideOriginLocationSection().shouldHideDestinationLocationSection();
+  });
+
+  it('Should show admin link in no-access alert when user is cluster admin', () => {
+    registerAndStoreFields.selectNamespace('namespace-1');
+    cy.wait('@checkNamespaceAccess');
+    registerAndStoreFields.shouldShowNoAccessWarningWithAdminLink();
+  });
+
+  it('Should keep Create button disabled when selected namespace has no access', () => {
+    registerAndStoreFields.selectNamespace('namespace-1');
+    cy.wait('@checkNamespaceAccess');
+    registerAndStoreFields.shouldHaveCreateButtonDisabled();
+  });
+});
+
+describe('Register and Store Fields - Namespace access validation (non-admin user)', () => {
+  beforeEach(() => {
+    initIntercepts({});
+    cy.interceptApi(
+      'GET /api/:apiVersion/user',
+      { path: { apiVersion: MODEL_REGISTRY_API_VERSION } },
+      mockUserSettings({ clusterAdmin: false }),
+    );
+    cy.intercept('POST', '**/api/v1/check-namespace-registry-access', {
+      statusCode: 200,
+      body: { data: { hasAccess: false } },
+    }).as('checkNamespaceAccess');
+    registerAndStoreFields.visit(true, 'namespace-1');
+    registerAndStoreFields.selectRegisterAndStoreMode();
+  });
+
+  it('Should show no-access alert without admin link when user is not cluster admin', () => {
+    registerAndStoreFields.selectNamespace('namespace-1');
+    cy.wait('@checkNamespaceAccess');
+    registerAndStoreFields.shouldShowNoAccessWarningWithoutAdminLink();
+  });
+});
+
+describe('Register and Store Fields - Who is my admin popover (namespace wording)', () => {
+  beforeEach(() => {
+    initIntercepts({ namespaces: [] });
+    registerAndStoreFields.visit();
+    registerAndStoreFields.selectRegisterAndStoreMode();
+  });
+
+  it('Should show Who is my admin popover with namespace wording when no namespaces', () => {
+    registerAndStoreFields.shouldShowNoNamespacesMessage();
+    registerAndStoreFields.openWhoIsMyAdminPopover();
+    registerAndStoreFields.shouldShowWhoIsMyAdminPopoverWithNamespaceWording();
   });
 });

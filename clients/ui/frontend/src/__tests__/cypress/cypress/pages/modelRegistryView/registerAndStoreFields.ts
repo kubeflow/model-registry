@@ -1,12 +1,13 @@
 import { TempDevFeature } from '~/app/hooks/useTempDevFeatureAvailable';
 
 class RegisterAndStoreFields {
-  visit(enableRegistryStorageFeature = true) {
+  visit(enableRegistryStorageFeature = true, registryNamespace?: string) {
     if (enableRegistryStorageFeature) {
       window.localStorage.setItem(TempDevFeature.RegistryStorage, 'true');
     }
     const preferredModelRegistry = 'modelregistry-sample';
-    cy.visit(`/model-registry/${preferredModelRegistry}/register/model`);
+    const query = registryNamespace ? `?namespace=${encodeURIComponent(registryNamespace)}` : '';
+    cy.visit(`/model-registry/${preferredModelRegistry}/register/model${query}`);
   }
 
   findNamespaceFormGroup() {
@@ -15,6 +16,14 @@ class RegisterAndStoreFields {
 
   findNamespaceSelector() {
     return cy.findByTestId('form-namespace-selector');
+  }
+
+  findNamespaceSelectTrigger() {
+    return cy.findByTestId('form-namespace-selector-trigger');
+  }
+
+  findNamespaceSelectCombobox() {
+    return this.findNamespaceSelector().find('[role="combobox"]');
   }
 
   findOriginLocationSection() {
@@ -38,7 +47,7 @@ class RegisterAndStoreFields {
   }
 
   selectNamespace(name: string) {
-    this.findNamespaceSelector().click();
+    this.findNamespaceSelectCombobox().scrollIntoView().click({ force: true });
     cy.findByRole('option', { name }).click();
   }
 
@@ -56,11 +65,11 @@ class RegisterAndStoreFields {
   }
 
   shouldHaveNamespaceOptions(namespaces: string[]) {
-    this.findNamespaceSelector().click();
+    this.findNamespaceSelectCombobox().scrollIntoView().click({ force: true });
     namespaces.forEach((namespace) => {
       cy.findByRole('option', { name: namespace }).should('exist');
     });
-    this.findNamespaceSelector().click();
+    this.findNamespaceSelectCombobox().scrollIntoView().click({ force: true });
     return this;
   }
 
@@ -103,6 +112,72 @@ class RegisterAndStoreFields {
     this.findRegisterAndStoreToggleButton()
       .find('button')
       .should('have.attr', 'aria-pressed', 'true');
+    return this;
+  }
+
+  findNamespaceRegistryAccessAlert() {
+    return cy.findByTestId('namespace-registry-access-alert');
+  }
+
+  shouldShowNamespaceLabel() {
+    this.findNamespaceFormGroup().find('label').should('contain.text', 'Namespace');
+    return this;
+  }
+
+  shouldBeNamespaceSelectorDisabled() {
+    this.findNamespaceSelectTrigger().find('[aria-disabled="true"]').should('exist');
+    return this;
+  }
+
+  shouldShowNoAccessWarning() {
+    this.findNamespaceRegistryAccessAlert()
+      .should('be.visible')
+      .and('contain.text', 'The selected namespace does not have access to this model registry');
+    return this;
+  }
+
+  shouldShowNoNamespacesMessage() {
+    this.findNamespaceRegistryAccessAlert()
+      .should('be.visible')
+      .and('contain.text', 'You do not have access to any namespaces');
+    return this;
+  }
+
+  findWhoIsMyAdminTrigger() {
+    return cy.findByTestId('who-is-my-admin-trigger');
+  }
+
+  openWhoIsMyAdminPopover() {
+    this.findWhoIsMyAdminTrigger().click();
+    return this;
+  }
+
+  shouldShowWhoIsMyAdminPopoverWithNamespaceWording() {
+    cy.contains('Your administrator might be').should('be.visible');
+    cy.contains('namespaces that you have permission to access').should('be.visible');
+    return this;
+  }
+
+  shouldShowNoAccessWarningWithAdminLink() {
+    this.findNamespaceRegistryAccessAlert().should('be.visible');
+    cy.findByRole('link', { name: 'Go to Model registry settings' }).should('exist');
+    return this;
+  }
+
+  shouldShowNoAccessWarningWithoutAdminLink() {
+    this.findNamespaceRegistryAccessAlert()
+      .should('be.visible')
+      .and('contain.text', 'Contact your administrator to grant access');
+    cy.findByRole('link', { name: 'Go to Model registry settings' }).should('not.exist');
+    return this;
+  }
+
+  findCreateButton() {
+    return cy.findByTestId('create-button');
+  }
+
+  shouldHaveCreateButtonDisabled() {
+    this.findCreateButton().should('be.disabled');
     return this;
   }
 }
