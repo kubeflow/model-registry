@@ -176,9 +176,14 @@ describe('Model Catalog Performance Filters API Behavior', () => {
 
         // If latency filter is active, verify short property key format (e.g., 'ttft_p90')
         if (url.includes('latencyProperty=')) {
-          expect(url).to.not.include('latencyProperty=artifacts.');
-          expect(url).to.not.include('.double_value');
-          expect(url).to.match(/latencyProperty=[a-z]+_p\d+|latencyProperty=[a-z]+_mean/);
+          const latencyMatch = url.match(/latencyProperty=([^&]+)/);
+          // eslint-disable-next-line @typescript-eslint/no-unused-expressions
+          expect(latencyMatch).to.not.be.null;
+          const latencyValue = latencyMatch ? latencyMatch[1] : '';
+          // latencyProperty value should not include 'artifacts.' prefix or '.double_value' suffix
+          expect(latencyValue).to.not.include('artifacts.');
+          expect(latencyValue).to.not.include('.double_value');
+          expect(latencyValue).to.match(/^[a-z]+_p\d+$|^[a-z]+_mean$/);
         }
       });
     });
