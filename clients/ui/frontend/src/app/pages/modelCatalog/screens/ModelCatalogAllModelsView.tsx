@@ -5,6 +5,7 @@ import {
   filterEnabledCatalogSources,
   getUniqueSourceLabels,
   hasSourcesWithoutLabels,
+  orderLabelsByPriority,
 } from '~/app/pages/modelCatalog/utils/modelCatalogUtils';
 import { CategoryName, SourceLabel } from '~/app/modelCatalogTypes';
 import CatalogCategorySection from './CatalogCategorySection';
@@ -14,12 +15,15 @@ type ModelCatalogAllModelsViewProps = {
 };
 
 const ModelCatalogAllModelsView: React.FC<ModelCatalogAllModelsViewProps> = ({ searchTerm }) => {
-  const { catalogSources, updateSelectedSourceLabel } = React.useContext(ModelCatalogContext);
+  const { catalogSources, catalogLabels, updateSelectedSourceLabel } =
+    React.useContext(ModelCatalogContext);
 
   const sourceLabels = React.useMemo(() => {
     const enabledSources = filterEnabledCatalogSources(catalogSources);
-    return getUniqueSourceLabels(enabledSources);
-  }, [catalogSources]);
+    const uniqueLabels = getUniqueSourceLabels(enabledSources);
+    // Order labels according to catalogLabels priority
+    return orderLabelsByPriority(uniqueLabels, catalogLabels);
+  }, [catalogSources, catalogLabels]);
 
   const hasSourcesWithoutLabelsValue = React.useMemo(
     () => hasSourcesWithoutLabels(catalogSources),
@@ -53,7 +57,6 @@ const ModelCatalogAllModelsView: React.FC<ModelCatalogAllModelsViewProps> = ({ s
           pageSize={4}
           catalogSources={catalogSources}
           onShowMore={handleShowMoreCategory}
-          displayName={CategoryName.otherModels}
         />
       )}
     </Stack>

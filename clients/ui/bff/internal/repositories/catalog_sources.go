@@ -11,6 +11,7 @@ import (
 
 const sourcesPath = "/sources"
 const filterOptionPath = "/models/filter_options"
+const labelsPath = "/labels"
 
 type CatalogSourcesInterface interface {
 	GetAllCatalogSources(client httpclient.HTTPClientInterface, pageValues url.Values) (*models.CatalogSourceList, error)
@@ -18,6 +19,7 @@ type CatalogSourcesInterface interface {
 	GetCatalogSourceModelArtifacts(client httpclient.HTTPClientInterface, sourceId string, modelName string, pageValues url.Values) (*models.CatalogModelArtifactList, error)
 	GetCatalogFilterOptions(client httpclient.HTTPClientInterface) (*models.FilterOptionsList, error)
 	GetCatalogModelPerformanceArtifacts(client httpclient.HTTPClientInterface, sourceId string, modelName string, pageValues url.Values) (*models.CatalogModelArtifactList, error)
+	GetCatalogLabels(client httpclient.HTTPClientInterface, pageValues url.Values) (*models.CatalogLabelList, error)
 }
 
 type CatalogSources struct {
@@ -109,4 +111,19 @@ func (a CatalogSources) GetCatalogModelPerformanceArtifacts(client httpclient.HT
 		return nil, fmt.Errorf("error decoding response data: %w", err)
 	}
 	return &catalogModelArtifacts, nil
+}
+
+func (a CatalogSources) GetCatalogLabels(client httpclient.HTTPClientInterface, pageValues url.Values) (*models.CatalogLabelList, error) {
+	responseData, err := client.GET(UrlWithPageParams(labelsPath, pageValues))
+	if err != nil {
+		return nil, fmt.Errorf("error fetching labels: %w", err)
+	}
+
+	var labels models.CatalogLabelList
+
+	if err := json.Unmarshal(responseData, &labels); err != nil {
+		return nil, fmt.Errorf("error decoding response data: %w", err)
+	}
+
+	return &labels, nil
 }
