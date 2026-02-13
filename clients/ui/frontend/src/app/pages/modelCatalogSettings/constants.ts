@@ -72,7 +72,10 @@ export const getExcludedModelsHelp = (organization?: string): string =>
     ? `Enter the names of ${organization} models to exclude from this source. These models will not appear in the model catalog.`
     : 'Enter the names of models to exclude from this source. These models will not appear in the model catalog.';
 
-export const getModelsFieldHelperText = (isHuggingFaceSource: boolean): string =>
-  isHuggingFaceSource
-    ? 'Separate model names using commas. Use an asterisk for prefix matching. Example: Llama*'
-    : 'Separate model names using commas, including the organization prefix. Use an asterisk for prefix matching. Example: Google/gemma*';
+/** Same for HF and YAML sources. */
+export const getIncludedModelsFieldHelperText =
+  'Separate model names using commas. To include all models with a specific prefix, enter the prefix followed by an asterisk. Example, Llama*';
+
+/** Same for HF and YAML sources. */
+export const getExcludedModelsFieldHelperText =
+  'Separate model names using commas. To exclude models matching a pattern, use an asterisk at the beginning, end, or both sides of a name. Example, *Llama*, Llama*Instruct';
