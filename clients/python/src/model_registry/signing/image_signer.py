@@ -119,6 +119,15 @@ class ImageSigner:
         """
         return Path.home() / ".sigstore"
 
+    def _ensure_initialized(self):
+        """Ensure sigstore configuration is initialized.
+
+        Auto-initializes sigstore config if not already present using instance defaults.
+        """
+        sigstore_dir = self._get_sigstore_dir()
+        if not sigstore_dir.exists():
+            self.initialize()
+
     def initialize(  # noqa: C901
         self,
         tuf_url: str | None = None,
@@ -206,6 +215,8 @@ class ImageSigner:
             msg = f"Identity token file not found: {identity_token_path}"
             raise FileNotFoundError(msg)
 
+        self._ensure_initialized()
+
         cmd = ["cosign", "sign", "-y"]
 
         if identity_token_path is not None:
@@ -245,6 +256,8 @@ class ImageSigner:
             certificate_identity = self.certificate_identity
         if oidc_issuer is None:
             oidc_issuer = self.oidc_issuer
+
+        self._ensure_initialized()
 
         cmd = ["cosign", "verify"]
 

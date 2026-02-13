@@ -159,6 +159,11 @@ class TestImageSigner:
         mock_runner = mocker.MagicMock()
         signer.runner = mock_runner
 
+        # Mock _get_sigstore_dir to return existing directory so initialization is skipped
+        sigstore_dir = tmp_path / ".sigstore"
+        sigstore_dir.mkdir()
+        mocker.patch.object(signer, "_get_sigstore_dir", return_value=sigstore_dir)
+
         signer.sign(
             image="quay.io/example/image@sha256:abc123",
             identity_token_path=str(token_file),
@@ -207,6 +212,11 @@ class TestImageSigner:
         mock_runner = mocker.MagicMock()
         signer.runner = mock_runner
 
+        # Mock _get_sigstore_dir to return existing directory so initialization is skipped
+        sigstore_dir = tmp_path / ".sigstore"
+        sigstore_dir.mkdir()
+        mocker.patch.object(signer, "_get_sigstore_dir", return_value=sigstore_dir)
+
         # Pass Path object instead of string
         signer.sign(
             image="quay.io/example/image@sha256:abc123",
@@ -236,11 +246,16 @@ class TestImageSigner:
         with pytest.raises(FileNotFoundError, match="Identity token file not found"):
             ImageSigner(identity_token_path="/nonexistent/token/file")  # noqa: S106
 
-    def test_verify_with_all_args(self, mocker):
+    def test_verify_with_all_args(self, tmp_path, mocker):
         """Test verify with all arguments provided."""
         signer = ImageSigner()
         mock_runner = mocker.MagicMock()
         signer.runner = mock_runner
+
+        # Mock _get_sigstore_dir to return existing directory so initialization is skipped
+        sigstore_dir = tmp_path / ".sigstore"
+        sigstore_dir.mkdir()
+        mocker.patch.object(signer, "_get_sigstore_dir", return_value=sigstore_dir)
 
         signer.verify(
             image="quay.io/example/image@sha256:abc123",
@@ -331,6 +346,11 @@ class TestImageSigner:
 
         signer = ImageSigner()
 
+        # Mock _get_sigstore_dir to return existing directory so initialization is skipped
+        sigstore_dir = tmp_path / ".sigstore"
+        sigstore_dir.mkdir()
+        mocker.patch.object(signer, "_get_sigstore_dir", return_value=sigstore_dir)
+
         # Mock runner to raise CalledProcessError
         mock_runner = mocker.MagicMock()
         mock_runner.run.side_effect = subprocess.CalledProcessError(1, ["cosign", "sign"])
@@ -342,9 +362,14 @@ class TestImageSigner:
                 identity_token_path=str(token_file)
             )
 
-    def test_verify_raises_verification_error_on_command_failure(self, mocker):
+    def test_verify_raises_verification_error_on_command_failure(self, tmp_path, mocker):
         """Test verify raises VerificationError when cosign command fails."""
         signer = ImageSigner()
+
+        # Mock _get_sigstore_dir to return existing directory so initialization is skipped
+        sigstore_dir = tmp_path / ".sigstore"
+        sigstore_dir.mkdir()
+        mocker.patch.object(signer, "_get_sigstore_dir", return_value=sigstore_dir)
 
         # Mock runner to raise CalledProcessError
         mock_runner = mocker.MagicMock()
