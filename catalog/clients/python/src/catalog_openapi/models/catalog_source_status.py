@@ -19,13 +19,14 @@ from typing_extensions import Self
 
 
 class CatalogSourceStatus(str, Enum):
-    """Operational status of a catalog source. - `available`: The source is functioning correctly and models can be retrieved - `error`: The source is experiencing issues and cannot provide models - `disabled`: The source has been intentionally disabled
+    """Operational status of a catalog source. - `available`: The source is functioning correctly and models can be retrieved - `partially-available`: The source loaded some models successfully but encountered errors with others - `error`: The source is experiencing issues and cannot provide models - `disabled`: The source has been intentionally disabled
     """
 
     """
     allowed enum values
     """
     AVAILABLE = "available"
+    PARTIALLY_MINUS_AVAILABLE = "partially-available"
     ERROR = "error"
     DISABLED = "disabled"
 

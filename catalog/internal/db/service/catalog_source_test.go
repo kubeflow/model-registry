@@ -265,6 +265,7 @@ func TestCatalogSourceRepository(t *testing.T) {
 			hasError bool
 		}{
 			{"status-available", "available", "", false},
+			{"status-partially-available", "partially-available", "some models failed to load", true},
 			{"status-error", "error", "connection timeout", true},
 			{"status-disabled", "disabled", "", false},
 		}

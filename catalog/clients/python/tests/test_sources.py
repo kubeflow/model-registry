@@ -145,7 +145,7 @@ class TestSourceStatus:
             assert status is not None or enabled is not None
 
             if status:
-                valid_statuses = {"available", "disabled", "error", "loading", "pending"}
+                valid_statuses = {"available", "partially-available", "disabled", "error", "loading", "pending"}
                 assert status in valid_statuses, f"Unexpected status: {status}"
 
     def test_enabled_and_status_consistency(self, api_client: CatalogAPIClient, suppress_ssl_warnings: None):

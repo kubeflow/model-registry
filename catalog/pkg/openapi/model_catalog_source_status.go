@@ -15,19 +15,21 @@ import (
 	"fmt"
 )
 
-// CatalogSourceStatus Operational status of a catalog source. - `available`: The source is functioning correctly and models can be retrieved - `error`: The source is experiencing issues and cannot provide models - `disabled`: The source has been intentionally disabled
+// CatalogSourceStatus Operational status of a catalog source. - `available`: The source is functioning correctly and models can be retrieved - `partially-available`: The source loaded some models successfully but encountered errors with others - `error`: The source is experiencing issues and cannot provide models - `disabled`: The source has been intentionally disabled
 type CatalogSourceStatus string
 
 // List of CatalogSourceStatus
 const (
-	CATALOGSOURCESTATUS_AVAILABLE CatalogSourceStatus = "available"
-	CATALOGSOURCESTATUS_ERROR     CatalogSourceStatus = "error"
-	CATALOGSOURCESTATUS_DISABLED  CatalogSourceStatus = "disabled"
+	CATALOGSOURCESTATUS_AVAILABLE           CatalogSourceStatus = "available"
+	CATALOGSOURCESTATUS_PARTIALLY_AVAILABLE CatalogSourceStatus = "partially-available"
+	CATALOGSOURCESTATUS_ERROR               CatalogSourceStatus = "error"
+	CATALOGSOURCESTATUS_DISABLED            CatalogSourceStatus = "disabled"
 )
 
 // All allowed values of CatalogSourceStatus enum
 var AllowedCatalogSourceStatusEnumValues = []CatalogSourceStatus{
 	"available",
+	"partially-available",
 	"error",
 	"disabled",
 }
