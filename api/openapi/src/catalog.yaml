@@ -1063,14 +1063,6 @@ components:
               description: Input parameters accepted by this tool.
               items:
                 $ref: "#/components/schemas/McpToolParameter"
-            revoked:
-              type: boolean
-              default: false
-              description: Whether this tool has been revoked
-            revokedReason:
-              type: string
-              description: Human-readable reason why the tool was revoked
-              example: Security vulnerability CVE-2025-XXXX - pending patch
     McpToolWithServer:
       type: object
       required:

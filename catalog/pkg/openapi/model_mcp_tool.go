@@ -37,10 +37,6 @@ type McpTool struct {
 	AccessType string `json:"accessType"`
 	// Input parameters accepted by this tool.
 	Parameters []McpToolParameter `json:"parameters,omitempty"`
-	// Whether this tool has been revoked
-	Revoked *bool `json:"revoked,omitempty"`
-	// Human-readable reason why the tool was revoked
-	RevokedReason *string `json:"revokedReason,omitempty"`
 }
 
 type _McpTool McpTool
@@ -53,8 +49,6 @@ func NewMcpTool(name string, accessType string) *McpTool {
 	this := McpTool{}
 	this.Name = name
 	this.AccessType = accessType
-	var revoked bool = false
-	this.Revoked = &revoked
 	return &this
 }
 
@@ -63,8 +57,6 @@ func NewMcpTool(name string, accessType string) *McpTool {
 // but it doesn't guarantee that properties required by API are set
 func NewMcpToolWithDefaults() *McpTool {
 	this := McpTool{}
-	var revoked bool = false
-	this.Revoked = &revoked
 	return &this
 }
 
@@ -340,70 +332,6 @@ func (o *McpTool) SetParameters(v []McpToolParameter) {
 	o.Parameters = v
 }
 
-// GetRevoked returns the Revoked field value if set, zero value otherwise.
-func (o *McpTool) GetRevoked() bool {
-	if o == nil || IsNil(o.Revoked) {
-		var ret bool
-		return ret
-	}
-	return *o.Revoked
-}
-
-// GetRevokedOk returns a tuple with the Revoked field value if set, nil otherwise
-// and a boolean to check if the value has been set.
-func (o *McpTool) GetRevokedOk() (*bool, bool) {
-	if o == nil || IsNil(o.Revoked) {
-		return nil, false
-	}
-	return o.Revoked, true
-}
-
-// HasRevoked returns a boolean if a field has been set.
-func (o *McpTool) HasRevoked() bool {
-	if o != nil && !IsNil(o.Revoked) {
-		return true
-	}
-
-	return false
-}
-
-// SetRevoked gets a reference to the given bool and assigns it to the Revoked field.
-func (o *McpTool) SetRevoked(v bool) {
-	o.Revoked = &v
-}
-
-// GetRevokedReason returns the RevokedReason field value if set, zero value otherwise.
-func (o *McpTool) GetRevokedReason() string {
-	if o == nil || IsNil(o.RevokedReason) {
-		var ret string
-		return ret
-	}
-	return *o.RevokedReason
-}
-
-// GetRevokedReasonOk returns a tuple with the RevokedReason field value if set, nil otherwise
-// and a boolean to check if the value has been set.
-func (o *McpTool) GetRevokedReasonOk() (*string, bool) {
-	if o == nil || IsNil(o.RevokedReason) {
-		return nil, false
-	}
-	return o.RevokedReason, true
-}
-
-// HasRevokedReason returns a boolean if a field has been set.
-func (o *McpTool) HasRevokedReason() bool {
-	if o != nil && !IsNil(o.RevokedReason) {
-		return true
-	}
-
-	return false
-}
-
-// SetRevokedReason gets a reference to the given string and assigns it to the RevokedReason field.
-func (o *McpTool) SetRevokedReason(v string) {
-	o.RevokedReason = &v
-}
-
 func (o McpTool) MarshalJSON() ([]byte, error) {
 	toSerialize, err := o.ToMap()
 	if err != nil {
@@ -436,12 +364,6 @@ func (o McpTool) ToMap() (map[string]interface{}, error) {
 	toSerialize["accessType"] = o.AccessType
 	if !IsNil(o.Parameters) {
 		toSerialize["parameters"] = o.Parameters
-	}
-	if !IsNil(o.Revoked) {
-		toSerialize["revoked"] = o.Revoked
-	}
-	if !IsNil(o.RevokedReason) {
-		toSerialize["revokedReason"] = o.RevokedReason
 	}
 	return toSerialize, nil
 }
