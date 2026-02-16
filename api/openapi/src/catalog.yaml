@@ -210,7 +210,7 @@ paths:
     get:
       summary: List MCP servers.
       tags:
-        - ModelCatalogService
+        - McpCatalogService
       parameters:
         - name: name
           description: Filter MCP servers by server name using SQL LIKE pattern matching.
@@ -247,7 +247,7 @@ paths:
     get:
       summary: Lists fields, values, and named queries that can be used in `filterQuery` on the list MCP servers endpoint.
       tags:
-        - ModelCatalogService
+        - McpCatalogService
       responses:
         "200":
           $ref: "#/components/responses/FilterOptionsResponse"
@@ -264,7 +264,7 @@ paths:
     get:
       summary: Get an `McpServer`.
       tags:
-        - ModelCatalogService
+        - McpCatalogService
       responses:
         "200":
           $ref: "#/components/responses/McpServerResponse"
@@ -282,13 +282,14 @@ paths:
           type: string
         in: path
         required: true
+      - $ref: "#/components/parameters/includeTools"
   /api/mcp_catalog/v1alpha1/mcp_servers/{server_id}/tools:
     description: >-
       The REST endpoint/path used to list zero or more `McpTool` entities for an `McpServer`.
     get:
       summary: List tools exposed by an `McpServer`.
       tags:
-        - ModelCatalogService
+        - McpCatalogService
       parameters:
         - $ref: "#/components/parameters/mcpToolFilterQuery"
         - $ref: "#/components/parameters/pageSize"
@@ -318,10 +319,10 @@ paths:
     get:
       summary: Get an `McpTool` from an `McpServer`.
       tags:
-        - ModelCatalogService
+        - McpCatalogService
       responses:
         "200":
-          $ref: "#/components/responses/McpToolResponse"
+          $ref: "#/components/responses/McpToolWithServerResponse"
         "401":
           $ref: "#/components/responses/Unauthorized"
         "404":
@@ -847,6 +848,12 @@ components:
           type: array
           items:
             type: string
+        assetType:
+          $ref: "#/components/schemas/CatalogAssetType"
+          description: |-
+            The type of assets this source manages. Defaults to "models" if not specified.
+            This field determines which loader processes the source and which API endpoints
+            return the assets.
     CatalogSourceStatus:
       description: |-
         Operational status of a catalog source.
@@ -871,6 +878,12 @@ components:
           required:
             - items
         - $ref: "#/components/schemas/BaseResourceList"
+    CatalogAssetType:
+      type: string
+      enum:
+        - models
+        - mcp_servers
+      default: models
     McpServer:
       description: An MCP server in the model catalog.
       allOf:
@@ -878,6 +891,7 @@ components:
         - type: object
           required:
             - name
+            - toolCount
           properties:
             name:
               type: string
@@ -888,12 +902,19 @@ components:
             provider:
               type: string
               description: Organization providing the server.
+            logo:
+              type: string
+              description: MCP server logo.
             version:
               type: string
               description: Semantic version string of the MCP server.
             tags:
               type: array
               description: Categorization tags for this MCP server.
+              example:
+                - observability
+                - monitoring
+                - apm
               items:
                 type: string
             license:
@@ -903,6 +924,10 @@ components:
               type: string
               format: uri
               description: URL to the full license text.
+            toolCount:
+              type: integer
+              description: Number of tools exposed by this MCP server.
+              example: 15
             tools:
               type: array
               description: Array of tools exposed by this MCP server.
@@ -955,6 +980,12 @@ components:
               type: string
               format: date-time
               description: Last update timestamp for the server metadata.
+            runtimeMetadata:
+              $ref: "#/components/schemas/McpRuntimeMetadata"
+              description: |-
+                Runtime metadata for deploying this MCP server via MCPServer CRDs.
+                Provides defaults, recommendations, and requirements for creating deployments.
+                This is discovery metadata, not actual deployment configuration.
     McpServerList:
       description: List of MCP server entities.
       allOf:
@@ -985,15 +1016,17 @@ components:
           type: boolean
           description: Whether all exposed tools are read-only.
     McpArtifact:
-      type: object
       description: Artifact metadata for local MCP server deployment.
-      required:
-        - uri
-      properties:
-        uri:
-          type: string
-          format: uri
-          description: OCI image URI for local deployment.
+      allOf:
+        - $ref: "#/components/schemas/BaseResourceDates"
+        - type: object
+          required:
+            - uri
+          properties:
+            uri:
+              type: string
+              format: uri
+              description: OCI image URI for local deployment.
     McpEndpoints:
       type: object
       description: Remote endpoint metadata for MCP server access.
@@ -1030,6 +1063,31 @@ components:
               description: Input parameters accepted by this tool.
               items:
                 $ref: "#/components/schemas/McpToolParameter"
+            revoked:
+              type: boolean
+              default: false
+              description: Whether this tool has been revoked
+            revokedReason:
+              type: string
+              description: Human-readable reason why the tool was revoked
+              example: Security vulnerability CVE-2025-XXXX - pending patch
+    McpToolWithServer:
+      type: object
+      required:
+        - serverId
+        - serverName
+        - tool
+      properties:
+        serverId:
+          type: string
+          description: ID of the MCP server that exposes this tool
+          example: prometheus-mcp
+        serverName:
+          type: string
+          description: Human-readable name of the MCP server
+          example: Prometheus MCP Server
+        tool:
+          $ref: "#/components/schemas/McpTool"
     McpToolParameter:
       type: object
       description: Metadata describing a single MCP tool parameter.
@@ -1063,6 +1121,142 @@ components:
           required:
             - items
         - $ref: "#/components/schemas/BaseResourceList"
+    McpRuntimeMetadata:
+      type: object
+      properties:
+        defaultPort:
+          type: integer
+          description: |-
+            Default port the MCP server listens on. Maps to MCPServer.spec.mcpPort.
+            Should align with the primary transport type.
+          example: 8080
+          minimum: 1
+          maximum: 65535
+        defaultArgs:
+          type: array
+          description: |-
+            Default command-line arguments for the MCP server.
+            Users can override or extend these in the MCPServer CRD.
+          items:
+            type: string
+          example: ["--log-level", "info", "--metrics-enabled"]
+        requiredEnvironmentVariables:
+          type: array
+          description: |-
+            Environment variables that MUST be set for the server to function.
+            Documents the names and purposes - values come from user's Secrets/ConfigMaps.
+          items:
+            $ref: "#/components/schemas/McpEnvVarMetadata"
+        optionalEnvironmentVariables:
+          type: array
+          description: |-
+            Optional environment variables that configure server behavior.
+            Documents the names, purposes, and default values.
+          items:
+            $ref: "#/components/schemas/McpEnvVarMetadata"
+        recommendedResources:
+          $ref: "#/components/schemas/McpResourceRecommendation"
+          description: |-
+            Recommended CPU and memory resources based on typical workloads.
+            Users should adjust based on their specific usage patterns.
+        healthEndpoints:
+          type: object
+          description: Health check endpoint paths
+          properties:
+            liveness:
+              type: string
+              description: Liveness probe endpoint path
+              example: /health
+            readiness:
+              type: string
+              description: Readiness probe endpoint path
+              example: /ready
+        capabilities:
+          type: object
+          description: |-
+            Runtime capabilities and requirements for this MCP server.
+            Helps users understand what the server needs to run properly.
+          properties:
+            requiresNetwork:
+              type: boolean
+              description: Whether server requires network access
+              default: true
+            requiresFileSystem:
+              type: boolean
+              description: Whether server requires writable filesystem
+              default: false
+            requiresGPU:
+              type: boolean
+              description: Whether server requires GPU access
+              default: false
+    McpEnvVarMetadata:
+      type: object
+      required:
+        - name
+        - description
+      properties:
+        name:
+          type: string
+          description: Environment variable name
+          example: API_KEY
+        description:
+          type: string
+          description: Purpose and usage of this variable
+          example: API key for authenticating with external service
+        required:
+          type: boolean
+          description: Whether this variable must be set
+          default: false
+        defaultValue:
+          type: string
+          description: |-
+            Default value if not provided. Only for optional variables.
+            Secrets should NEVER have default values.
+          example: info
+        type:
+          type: string
+          enum: [string, int, boolean, secret]
+          description: Expected variable type
+          default: string
+        example:
+          type: string
+          description: Example value for documentation purposes
+          example: my-api-key-123
+    McpResourceRecommendation:
+      type: object
+      properties:
+        minimal:
+          type: object
+          description: Minimum viable resources for low-traffic scenarios
+          properties:
+            cpu:
+              type: string
+              description: CPU request (e.g., 50m, 0.1, 1)
+              example: 50m
+            memory:
+              type: string
+              description: Memory request (e.g., 64Mi, 128Mi, 1Gi)
+              example: 64Mi
+        recommended:
+          type: object
+          description: Recommended resources for typical production use
+          properties:
+            cpu:
+              type: string
+              example: 100m
+            memory:
+              type: string
+              example: 128Mi
+        high:
+          type: object
+          description: Resources for high-traffic or compute-intensive scenarios
+          properties:
+            cpu:
+              type: string
+              example: 500m
+            memory:
+              type: string
+              example: 512Mi
     CatalogSourcePreviewResponse:
       description: Response containing models and their inclusion/exclusion status.
       allOf:
@@ -1240,6 +1434,12 @@ components:
           schema:
             $ref: "#/components/schemas/McpTool"
       description: A response containing an `McpTool` entity.
+    McpToolWithServerResponse:
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/McpToolWithServer"
+      description: A response containing an `McpToolWithServer` entity.
     FilterOptionsResponse:
       content:
         application/json:

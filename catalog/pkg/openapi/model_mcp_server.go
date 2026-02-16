@@ -38,6 +38,8 @@ type McpServer struct {
 	SourceId *string `json:"source_id,omitempty"`
 	// Organization providing the server.
 	Provider *string `json:"provider,omitempty"`
+	// MCP server logo.
+	Logo *string `json:"logo,omitempty"`
 	// Semantic version string of the MCP server.
 	Version *string `json:"version,omitempty"`
 	// Categorization tags for this MCP server.
@@ -46,6 +48,8 @@ type McpServer struct {
 	License *string `json:"license,omitempty"`
 	// URL to the full license text.
 	LicenseLink *string `json:"license_link,omitempty"`
+	// Number of tools exposed by this MCP server.
+	ToolCount int32 `json:"toolCount"`
 	// Array of tools exposed by this MCP server.
 	Tools              []McpTool             `json:"tools,omitempty"`
 	SecurityIndicators *McpSecurityIndicator `json:"securityIndicators,omitempty"`
@@ -67,7 +71,8 @@ type McpServer struct {
 	// Initial publication timestamp for the server.
 	PublishedDate *time.Time `json:"publishedDate,omitempty"`
 	// Last update timestamp for the server metadata.
-	LastUpdated *time.Time `json:"lastUpdated,omitempty"`
+	LastUpdated     *time.Time          `json:"lastUpdated,omitempty"`
+	RuntimeMetadata *McpRuntimeMetadata `json:"runtimeMetadata,omitempty"`
 }
 
 type _McpServer McpServer
@@ -76,9 +81,10 @@ type _McpServer McpServer
 // This constructor will assign default values to properties that have it defined,
 // and makes sure properties required by API are set, but the set of arguments
 // will change when the set of required properties is changed
-func NewMcpServer(name string) *McpServer {
+func NewMcpServer(name string, toolCount int32) *McpServer {
 	this := McpServer{}
 	this.Name = name
+	this.ToolCount = toolCount
 	return &this
 }
 
@@ -370,6 +376,38 @@ func (o *McpServer) SetProvider(v string) {
 	o.Provider = &v
 }
 
+// GetLogo returns the Logo field value if set, zero value otherwise.
+func (o *McpServer) GetLogo() string {
+	if o == nil || IsNil(o.Logo) {
+		var ret string
+		return ret
+	}
+	return *o.Logo
+}
+
+// GetLogoOk returns a tuple with the Logo field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+func (o *McpServer) GetLogoOk() (*string, bool) {
+	if o == nil || IsNil(o.Logo) {
+		return nil, false
+	}
+	return o.Logo, true
+}
+
+// HasLogo returns a boolean if a field has been set.
+func (o *McpServer) HasLogo() bool {
+	if o != nil && !IsNil(o.Logo) {
+		return true
+	}
+
+	return false
+}
+
+// SetLogo gets a reference to the given string and assigns it to the Logo field.
+func (o *McpServer) SetLogo(v string) {
+	o.Logo = &v
+}
+
 // GetVersion returns the Version field value if set, zero value otherwise.
 func (o *McpServer) GetVersion() string {
 	if o == nil || IsNil(o.Version) {
@@ -496,6 +534,30 @@ func (o *McpServer) HasLicenseLink() bool {
 // SetLicenseLink gets a reference to the given string and assigns it to the LicenseLink field.
 func (o *McpServer) SetLicenseLink(v string) {
 	o.LicenseLink = &v
+}
+
+// GetToolCount returns the ToolCount field value
+func (o *McpServer) GetToolCount() int32 {
+	if o == nil {
+		var ret int32
+		return ret
+	}
+
+	return o.ToolCount
+}
+
+// GetToolCountOk returns a tuple with the ToolCount field value
+// and a boolean to check if the value has been set.
+func (o *McpServer) GetToolCountOk() (*int32, bool) {
+	if o == nil {
+		return nil, false
+	}
+	return &o.ToolCount, true
+}
+
+// SetToolCount sets field value
+func (o *McpServer) SetToolCount(v int32) {
+	o.ToolCount = v
 }
 
 // GetTools returns the Tools field value if set, zero value otherwise.
@@ -882,6 +944,38 @@ func (o *McpServer) SetLastUpdated(v time.Time) {
 	o.LastUpdated = &v
 }
 
+// GetRuntimeMetadata returns the RuntimeMetadata field value if set, zero value otherwise.
+func (o *McpServer) GetRuntimeMetadata() McpRuntimeMetadata {
+	if o == nil || IsNil(o.RuntimeMetadata) {
+		var ret McpRuntimeMetadata
+		return ret
+	}
+	return *o.RuntimeMetadata
+}
+
+// GetRuntimeMetadataOk returns a tuple with the RuntimeMetadata field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+func (o *McpServer) GetRuntimeMetadataOk() (*McpRuntimeMetadata, bool) {
+	if o == nil || IsNil(o.RuntimeMetadata) {
+		return nil, false
+	}
+	return o.RuntimeMetadata, true
+}
+
+// HasRuntimeMetadata returns a boolean if a field has been set.
+func (o *McpServer) HasRuntimeMetadata() bool {
+	if o != nil && !IsNil(o.RuntimeMetadata) {
+		return true
+	}
+
+	return false
+}
+
+// SetRuntimeMetadata gets a reference to the given McpRuntimeMetadata and assigns it to the RuntimeMetadata field.
+func (o *McpServer) SetRuntimeMetadata(v McpRuntimeMetadata) {
+	o.RuntimeMetadata = &v
+}
+
 func (o McpServer) MarshalJSON() ([]byte, error) {
 	toSerialize, err := o.ToMap()
 	if err != nil {
@@ -917,6 +1011,9 @@ func (o McpServer) ToMap() (map[string]interface{}, error) {
 	if !IsNil(o.Provider) {
 		toSerialize["provider"] = o.Provider
 	}
+	if !IsNil(o.Logo) {
+		toSerialize["logo"] = o.Logo
+	}
 	if !IsNil(o.Version) {
 		toSerialize["version"] = o.Version
 	}
@@ -929,6 +1026,7 @@ func (o McpServer) ToMap() (map[string]interface{}, error) {
 	if !IsNil(o.LicenseLink) {
 		toSerialize["license_link"] = o.LicenseLink
 	}
+	toSerialize["toolCount"] = o.ToolCount
 	if !IsNil(o.Tools) {
 		toSerialize["tools"] = o.Tools
 	}
@@ -964,6 +1062,9 @@ func (o McpServer) ToMap() (map[string]interface{}, error) {
 	}
 	if !IsNil(o.LastUpdated) {
 		toSerialize["lastUpdated"] = o.LastUpdated
+	}
+	if !IsNil(o.RuntimeMetadata) {
+		toSerialize["runtimeMetadata"] = o.RuntimeMetadata
 	}
 	return toSerialize, nil
 }

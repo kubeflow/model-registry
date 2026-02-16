@@ -13,6 +13,8 @@
 package openapi
 
 import (
+	"errors"
+
 	model "github.com/kubeflow/model-registry/catalog/pkg/openapi"
 )
 
@@ -106,6 +108,16 @@ func AssertCatalogArtifactListRequired(obj model.CatalogArtifactList) error {
 			return err
 		}
 	}
+	return nil
+}
+
+// AssertCatalogAssetTypeConstraints checks if the values respects the defined constraints
+func AssertCatalogAssetTypeConstraints(obj model.CatalogAssetType) error {
+	return nil
+}
+
+// AssertCatalogAssetTypeRequired checks if the required fields are not zero-ed
+func AssertCatalogAssetTypeRequired(obj model.CatalogAssetType) error {
 	return nil
 }
 
@@ -453,6 +465,182 @@ func AssertMcpEndpointsRequired(obj model.McpEndpoints) error {
 	return nil
 }
 
+// AssertMcpEnvVarMetadataConstraints checks if the values respects the defined constraints
+func AssertMcpEnvVarMetadataConstraints(obj model.McpEnvVarMetadata) error {
+	return nil
+}
+
+// AssertMcpEnvVarMetadataRequired checks if the required fields are not zero-ed
+func AssertMcpEnvVarMetadataRequired(obj model.McpEnvVarMetadata) error {
+	elements := map[string]interface{}{
+		"name":        obj.Name,
+		"description": obj.Description,
+	}
+	for name, el := range elements {
+		if isZero := IsZeroValue(el); isZero {
+			return &RequiredError{Field: name}
+		}
+	}
+
+	return nil
+}
+
+// AssertMcpResourceRecommendationConstraints checks if the values respects the defined constraints
+func AssertMcpResourceRecommendationConstraints(obj model.McpResourceRecommendation) error {
+	if obj.Minimal != nil {
+		if err := AssertMcpResourceRecommendationMinimalConstraints(*obj.Minimal); err != nil {
+			return err
+		}
+	}
+	if obj.Recommended != nil {
+		if err := AssertMcpResourceRecommendationRecommendedConstraints(*obj.Recommended); err != nil {
+			return err
+		}
+	}
+	if obj.High != nil {
+		if err := AssertMcpResourceRecommendationHighConstraints(*obj.High); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// AssertMcpResourceRecommendationHighConstraints checks if the values respects the defined constraints
+func AssertMcpResourceRecommendationHighConstraints(obj model.McpResourceRecommendationHigh) error {
+	return nil
+}
+
+// AssertMcpResourceRecommendationHighRequired checks if the required fields are not zero-ed
+func AssertMcpResourceRecommendationHighRequired(obj model.McpResourceRecommendationHigh) error {
+	return nil
+}
+
+// AssertMcpResourceRecommendationMinimalConstraints checks if the values respects the defined constraints
+func AssertMcpResourceRecommendationMinimalConstraints(obj model.McpResourceRecommendationMinimal) error {
+	return nil
+}
+
+// AssertMcpResourceRecommendationMinimalRequired checks if the required fields are not zero-ed
+func AssertMcpResourceRecommendationMinimalRequired(obj model.McpResourceRecommendationMinimal) error {
+	return nil
+}
+
+// AssertMcpResourceRecommendationRecommendedConstraints checks if the values respects the defined constraints
+func AssertMcpResourceRecommendationRecommendedConstraints(obj model.McpResourceRecommendationRecommended) error {
+	return nil
+}
+
+// AssertMcpResourceRecommendationRecommendedRequired checks if the required fields are not zero-ed
+func AssertMcpResourceRecommendationRecommendedRequired(obj model.McpResourceRecommendationRecommended) error {
+	return nil
+}
+
+// AssertMcpResourceRecommendationRequired checks if the required fields are not zero-ed
+func AssertMcpResourceRecommendationRequired(obj model.McpResourceRecommendation) error {
+	if obj.Minimal != nil {
+		if err := AssertMcpResourceRecommendationMinimalRequired(*obj.Minimal); err != nil {
+			return err
+		}
+	}
+	if obj.Recommended != nil {
+		if err := AssertMcpResourceRecommendationRecommendedRequired(*obj.Recommended); err != nil {
+			return err
+		}
+	}
+	if obj.High != nil {
+		if err := AssertMcpResourceRecommendationHighRequired(*obj.High); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// AssertMcpRuntimeMetadataCapabilitiesConstraints checks if the values respects the defined constraints
+func AssertMcpRuntimeMetadataCapabilitiesConstraints(obj model.McpRuntimeMetadataCapabilities) error {
+	return nil
+}
+
+// AssertMcpRuntimeMetadataCapabilitiesRequired checks if the required fields are not zero-ed
+func AssertMcpRuntimeMetadataCapabilitiesRequired(obj model.McpRuntimeMetadataCapabilities) error {
+	return nil
+}
+
+// AssertMcpRuntimeMetadataConstraints checks if the values respects the defined constraints
+func AssertMcpRuntimeMetadataConstraints(obj model.McpRuntimeMetadata) error {
+	if obj.DefaultPort != nil && *obj.DefaultPort < 1 {
+		return &ParsingError{Param: "DefaultPort", Err: errors.New(errMsgMinValueConstraint)}
+	}
+	if obj.DefaultPort != nil && *obj.DefaultPort > 65535 {
+		return &ParsingError{Param: "DefaultPort", Err: errors.New(errMsgMaxValueConstraint)}
+	}
+	for _, el := range obj.RequiredEnvironmentVariables {
+		if err := AssertMcpEnvVarMetadataConstraints(el); err != nil {
+			return err
+		}
+	}
+	for _, el := range obj.OptionalEnvironmentVariables {
+		if err := AssertMcpEnvVarMetadataConstraints(el); err != nil {
+			return err
+		}
+	}
+	if obj.RecommendedResources != nil {
+		if err := AssertMcpResourceRecommendationConstraints(*obj.RecommendedResources); err != nil {
+			return err
+		}
+	}
+	if obj.HealthEndpoints != nil {
+		if err := AssertMcpRuntimeMetadataHealthEndpointsConstraints(*obj.HealthEndpoints); err != nil {
+			return err
+		}
+	}
+	if obj.Capabilities != nil {
+		if err := AssertMcpRuntimeMetadataCapabilitiesConstraints(*obj.Capabilities); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// AssertMcpRuntimeMetadataHealthEndpointsConstraints checks if the values respects the defined constraints
+func AssertMcpRuntimeMetadataHealthEndpointsConstraints(obj model.McpRuntimeMetadataHealthEndpoints) error {
+	return nil
+}
+
+// AssertMcpRuntimeMetadataHealthEndpointsRequired checks if the required fields are not zero-ed
+func AssertMcpRuntimeMetadataHealthEndpointsRequired(obj model.McpRuntimeMetadataHealthEndpoints) error {
+	return nil
+}
+
+// AssertMcpRuntimeMetadataRequired checks if the required fields are not zero-ed
+func AssertMcpRuntimeMetadataRequired(obj model.McpRuntimeMetadata) error {
+	for _, el := range obj.RequiredEnvironmentVariables {
+		if err := AssertMcpEnvVarMetadataRequired(el); err != nil {
+			return err
+		}
+	}
+	for _, el := range obj.OptionalEnvironmentVariables {
+		if err := AssertMcpEnvVarMetadataRequired(el); err != nil {
+			return err
+		}
+	}
+	if obj.RecommendedResources != nil {
+		if err := AssertMcpResourceRecommendationRequired(*obj.RecommendedResources); err != nil {
+			return err
+		}
+	}
+	if obj.HealthEndpoints != nil {
+		if err := AssertMcpRuntimeMetadataHealthEndpointsRequired(*obj.HealthEndpoints); err != nil {
+			return err
+		}
+	}
+	if obj.Capabilities != nil {
+		if err := AssertMcpRuntimeMetadataCapabilitiesRequired(*obj.Capabilities); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
 // AssertMcpSecurityIndicatorConstraints checks if the values respects the defined constraints
 func AssertMcpSecurityIndicatorConstraints(obj model.McpSecurityIndicator) error {
 	return nil
@@ -482,6 +670,11 @@ func AssertMcpServerConstraints(obj model.McpServer) error {
 	}
 	if obj.Endpoints != nil {
 		if err := AssertMcpEndpointsConstraints(*obj.Endpoints); err != nil {
+			return err
+		}
+	}
+	if obj.RuntimeMetadata != nil {
+		if err := AssertMcpRuntimeMetadataConstraints(*obj.RuntimeMetadata); err != nil {
 			return err
 		}
 	}
@@ -523,7 +716,8 @@ func AssertMcpServerListRequired(obj model.McpServerList) error {
 // AssertMcpServerRequired checks if the required fields are not zero-ed
 func AssertMcpServerRequired(obj model.McpServer) error {
 	elements := map[string]interface{}{
-		"name": obj.Name,
+		"name":      obj.Name,
+		"toolCount": obj.ToolCount,
 	}
 	for name, el := range elements {
 		if isZero := IsZeroValue(el); isZero {
@@ -548,6 +742,11 @@ func AssertMcpServerRequired(obj model.McpServer) error {
 	}
 	if obj.Endpoints != nil {
 		if err := AssertMcpEndpointsRequired(*obj.Endpoints); err != nil {
+			return err
+		}
+	}
+	if obj.RuntimeMetadata != nil {
+		if err := AssertMcpRuntimeMetadataRequired(*obj.RuntimeMetadata); err != nil {
 			return err
 		}
 	}
@@ -601,6 +800,33 @@ func AssertMcpToolRequired(obj model.McpTool) error {
 		if err := AssertMcpToolParameterRequired(el); err != nil {
 			return err
 		}
+	}
+	return nil
+}
+
+// AssertMcpToolWithServerConstraints checks if the values respects the defined constraints
+func AssertMcpToolWithServerConstraints(obj model.McpToolWithServer) error {
+	if err := AssertMcpToolConstraints(obj.Tool); err != nil {
+		return err
+	}
+	return nil
+}
+
+// AssertMcpToolWithServerRequired checks if the required fields are not zero-ed
+func AssertMcpToolWithServerRequired(obj model.McpToolWithServer) error {
+	elements := map[string]interface{}{
+		"serverId":   obj.ServerId,
+		"serverName": obj.ServerName,
+		"tool":       obj.Tool,
+	}
+	for name, el := range elements {
+		if isZero := IsZeroValue(el); isZero {
+			return &RequiredError{Field: name}
+		}
+	}
+
+	if err := AssertMcpToolRequired(obj.Tool); err != nil {
+		return err
 	}
 	return nil
 }

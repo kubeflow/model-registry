@@ -107,12 +107,12 @@ func Assert{{classname}}Required(obj model.{{classname}}) error {
 func Assert{{classname}}Constraints(obj model.{{classname}}) error {
 {{#Vars}}
 {{#minimum}}
-	if {{#isNullable}}obj.{{name}} != nil && *{{/isNullable}}obj.{{name}} < {{minimum}} {
+	if {{#isNullable}}obj.{{name}} != nil && *{{/isNullable}}{{^isNullable}}{{^required}}obj.{{name}} != nil && *{{/required}}{{/isNullable}}obj.{{name}} < {{minimum}} {
 		return &ParsingError{Param: "{{name}}", Err: errors.New(errMsgMinValueConstraint)}
 	}
 {{/minimum}}
 {{#maximum}}
-	if {{#isNullable}}obj.{{name}} != nil && *{{/isNullable}}obj.{{name}} > {{maximum}} {
+	if {{#isNullable}}obj.{{name}} != nil && *{{/isNullable}}{{^isNullable}}{{^required}}obj.{{name}} != nil && *{{/required}}{{/isNullable}}obj.{{name}} > {{maximum}} {
 		return &ParsingError{Param: "{{name}}", Err: errors.New(errMsgMaxValueConstraint)}
 	}
 {{/maximum}}
