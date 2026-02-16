@@ -165,9 +165,10 @@ describe('RegisterModel utils', () => {
       );
 
       expect(payload.status).toBe(ModelTransferJobStatus.PENDING);
-      expect(payload.id).toBeUndefined();
-      expect(payload.createTimeSinceEpoch).toBeUndefined();
-      expect(payload.lastUpdateTimeSinceEpoch).toBeUndefined();
+      // id, createTimeSinceEpoch, lastUpdateTimeSinceEpoch are omitted by CreateModelTransferJobData type
+      expect('id' in payload).toBe(false);
+      expect('createTimeSinceEpoch' in payload).toBe(false);
+      expect('lastUpdateTimeSinceEpoch' in payload).toBe(false);
     });
   });
 });

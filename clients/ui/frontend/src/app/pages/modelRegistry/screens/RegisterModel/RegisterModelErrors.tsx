@@ -115,6 +115,16 @@ const RegisterModelErrors: React.FC<RegisterModelErrorProp> = ({
     );
   }
 
+  if (registrationErrorType === RegistrationErrorType.TRANSFER_JOB) {
+    return (
+      <StackItem>
+        <Alert isInline variant="danger" title="Failed to create transfer job">
+          {submitError.message}
+        </Alert>
+      </StackItem>
+    );
+  }
+
   return (
     <StackItem>
       <Alert isInline variant="danger" title={`Failed to register ${modelName} model`}>

@@ -6,6 +6,7 @@ import {
   RegisteredModel,
   RegisteredModelList,
   ModelTransferJob,
+  CreateModelTransferJobData,
   ModelTransferJobSource,
   ModelTransferJobSourceType,
   ModelTransferJobDestinationType,
@@ -220,7 +221,7 @@ export const buildModelTransferJobPayload = (
   uploadIntent: ModelTransferJobUploadIntent,
   registeredModelId?: string,
   registeredModelName?: string,
-): ModelTransferJob => {
+): CreateModelTransferJobData => {
   // Build source based on modelLocationType
   const source: ModelTransferJobSource =
     formData.modelLocationType === ModelLocationType.ObjectStorage
