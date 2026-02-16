@@ -707,8 +707,9 @@ func createModelTransferJob(k8sClient kubernetes.Interface, ctx context.Context,
 			Name:      "transfer-job-001",
 			Namespace: namespace,
 			Labels: map[string]string{
-				"modelregistry.kubeflow.org/job-type": "async-upload",
-				"modelregistry.kubeflow.org/job-id":   "001",
+				"modelregistry.kubeflow.org/job-type":            "async-upload",
+				"modelregistry.kubeflow.org/job-id":              "001",
+				"modelregistry.kubeflow.org/model-registry-name": "model-registry",
 			},
 			Annotations: map[string]string{
 				"modelregistry.kubeflow.org/registered-model-id": "1",

@@ -24,8 +24,12 @@ var (
 	ErrJobValidationFailed = errors.New("validation failed")
 )
 
-func (m *ModelRegistryRepository) GetAllModelTransferJobs(ctx context.Context, client k8s.KubernetesClientInterface, namespace string) (*models.ModelTransferJobList, error) {
-	jobList, err := client.GetAllModelTransferJobs(ctx, namespace)
+func (m *ModelRegistryRepository) GetAllModelTransferJobs(ctx context.Context, client k8s.KubernetesClientInterface, namespace string, modelRegistryID string) (*models.ModelTransferJobList, error) {
+	if modelRegistryID == "" {
+		return &models.ModelTransferJobList{Items: nil, Size: 0, PageSize: 0}, nil
+	}
+
+	jobList, err := client.GetAllModelTransferJobs(ctx, namespace, modelRegistryID)
 	if err != nil {
 		return nil, fmt.Errorf("failed to fetch model transfer jobs: %w", err)
 	}
@@ -107,7 +111,7 @@ func (m *ModelRegistryRepository) createModelTransferJobResources(
 		}
 	}
 
-	job := buildK8sJob(jobName, namespace, jobID, payload, configMapName, sourceSecretName, destSecretName, modelRegistryAddress)
+	job := buildK8sJob(jobName, namespace, jobID, payload, configMapName, sourceSecretName, destSecretName, modelRegistryAddress, modelRegistryID)
 	if err := client.CreateModelTransferJob(ctx, namespace, job); err != nil {
 		cleanupCreatedResources(ctx, client, namespace, configMapName, sourceSecretName, destSecretName)
 		if apierrors.IsAlreadyExists(err) {
@@ -193,6 +197,11 @@ func (m *ModelRegistryRepository) UpdateModelTransferJob(
 	oldAnnotations := oldJob.Annotations
 	if oldAnnotations == nil {
 		oldAnnotations = map[string]string{}
+	}
+
+	jobRegistry := oldJob.Labels["modelregistry.kubeflow.org/model-registry-name"]
+	if jobRegistry != modelRegistryID {
+		return nil, fmt.Errorf("%w: %s", ErrJobNotFound, oldJobName)
 	}
 
 	oldConfigMapName := oldAnnotations["modelregistry.kubeflow.org/configmap-name"]
@@ -334,13 +343,21 @@ func (m *ModelRegistryRepository) UpdateModelTransferJob(
 	return result, err
 }
 
-func (m *ModelRegistryRepository) DeleteModelTransferJob(ctx context.Context, client k8s.KubernetesClientInterface, namespace string, jobName string) (*models.ModelTransferJob, error) {
+func (m *ModelRegistryRepository) DeleteModelTransferJob(ctx context.Context, client k8s.KubernetesClientInterface, namespace string, jobName string, modelRegistryID string) (*models.ModelTransferJob, error) {
+	if modelRegistryID == "" {
+		return nil, fmt.Errorf("%w: model registry name is required", ErrJobNotFound)
+	}
 	job, err := client.GetModelTransferJob(ctx, namespace, jobName)
 	if err != nil {
 		if apierrors.IsNotFound(err) {
 			return nil, fmt.Errorf("%w: %s", ErrJobNotFound, jobName)
 		}
 		return nil, fmt.Errorf("failed to get job: %w", err)
+	}
+
+	jobRegistry := job.Labels["modelregistry.kubeflow.org/model-registry-name"]
+	if jobRegistry != modelRegistryID {
+		return nil, fmt.Errorf("%w: %s", ErrJobNotFound, jobName)
 	}
 
 	if err := client.DeleteModelTransferJob(ctx, namespace, jobName); err != nil {
@@ -363,7 +380,7 @@ func (m *ModelRegistryRepository) getModelRegistryAddress(ctx context.Context, c
 }
 
 func buildK8sJob(jobName, namespace, jobID string, payload models.ModelTransferJob,
-	configMapName, sourceSecretName, destSecretName, modelRegistryAddress string) *batchv1.Job {
+	configMapName, sourceSecretName, destSecretName, modelRegistryAddress, modelRegistryID string) *batchv1.Job {
 
 	backoffLimit := int32(3)
 	baseImage := models.DefaultOCIBaseImage
@@ -449,12 +466,14 @@ func buildK8sJob(jobName, namespace, jobID string, payload models.ModelTransferJ
 		annotations["modelregistry.kubeflow.org/source-bucket"] = payload.Source.Bucket
 		annotations["modelregistry.kubeflow.org/source-key"] = payload.Source.Key
 		annotations["modelregistry.kubeflow.org/source-secret"] = sourceSecretName
+		annotations["modelregistry.kubeflow.org/model-registry-name"] = modelRegistryID
 
 	case models.ModelTransferJobSourceTypeURI:
 		envVars = append(envVars,
 			corev1.EnvVar{Name: "MODEL_SYNC_SOURCE_URI", Value: payload.Source.URI},
 		)
 		annotations["modelregistry.kubeflow.org/source-uri"] = payload.Source.URI
+		annotations["modelregistry.kubeflow.org/model-registry-name"] = modelRegistryID
 	}
 
 	return &batchv1.Job{
@@ -462,8 +481,9 @@ func buildK8sJob(jobName, namespace, jobID string, payload models.ModelTransferJ
 			Name:      jobName,
 			Namespace: namespace,
 			Labels: map[string]string{
-				"modelregistry.kubeflow.org/job-type": "async-upload",
-				"modelregistry.kubeflow.org/job-id":   jobID,
+				"modelregistry.kubeflow.org/job-type":            "async-upload",
+				"modelregistry.kubeflow.org/job-id":              jobID,
+				"modelregistry.kubeflow.org/model-registry-name": modelRegistryID,
 			},
 			Annotations: annotations,
 		},
@@ -606,6 +626,16 @@ func buildModelMetadataConfigMap(name, namespace string, payload models.ModelTra
 }
 
 func buildSourceSecret(name, namespace string, payload models.ModelTransferJob, jobID string) *corev1.Secret {
+	stringData := map[string]string{
+		"AWS_ACCESS_KEY_ID":     payload.Source.AwsAccessKeyId,
+		"AWS_SECRET_ACCESS_KEY": payload.Source.AwsSecretAccessKey,
+		"AWS_S3_ENDPOINT":       payload.Source.Endpoint,
+		"AWS_S3_BUCKET":         payload.Source.Bucket,
+	}
+
+	if payload.Source.Region != "" {
+		stringData["AWS_DEFAULT_REGION"] = payload.Source.Region
+	}
 	return &corev1.Secret{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      name,
@@ -615,14 +645,8 @@ func buildSourceSecret(name, namespace string, payload models.ModelTransferJob, 
 				"modelregistry.kubeflow.org/job-id":   jobID,
 			},
 		},
-		Type: corev1.SecretTypeOpaque,
-		StringData: map[string]string{
-			"AWS_ACCESS_KEY_ID":     payload.Source.AwsAccessKeyId,
-			"AWS_SECRET_ACCESS_KEY": payload.Source.AwsSecretAccessKey,
-			"AWS_DEFAULT_REGION":    payload.Source.Region,
-			"AWS_S3_ENDPOINT":       payload.Source.Endpoint,
-			"AWS_S3_BUCKET":         payload.Source.Bucket,
-		},
+		Type:       corev1.SecretTypeOpaque,
+		StringData: stringData,
 	}
 }
 

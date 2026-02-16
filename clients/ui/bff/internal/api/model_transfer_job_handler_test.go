@@ -1046,6 +1046,23 @@ var _ = Describe("TestModelTransferJob", func() {
 			Expect(rs.StatusCode).To(Equal(http.StatusBadRequest))
 		})
 
+		It("PATCH returns 404 when job exists but belongs to different registry", func() {
+			payload := ModelTransferJobEnvelope{
+				Data: &models.ModelTransferJob{
+					Name: "new-job-name",
+				},
+			}
+			_, rs, err := setupApiTest[Envelope[any, any]](
+				http.MethodPatch,
+				"/api/v1/model_registry/other-registry/model_transfer_jobs/transfer-job-001?namespace=kubeflow",
+				payload,
+				kubernetesMockedStaticClientFactory,
+				requestIdentity,
+				"kubeflow",
+			)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(rs.StatusCode).To(Equal(http.StatusNotFound))
+		})
 	})
 
 	Context("deleting model transfer job", func() {
@@ -1073,6 +1090,46 @@ var _ = Describe("TestModelTransferJob", func() {
 			)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(rs.StatusCode).To(Equal(http.StatusNotFound))
+		})
+
+		It("DELETE returns 404 when job exists but belongs to different registry", func() {
+			_, rs, err := setupApiTest[Envelope[any, any]](
+				http.MethodDelete,
+				"/api/v1/model_registry/other-registry/model_transfer_jobs/transfer-job-001?namespace=kubeflow",
+				nil,
+				kubernetesMockedStaticClientFactory,
+				requestIdentity,
+				"kubeflow",
+			)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(rs.StatusCode).To(Equal(http.StatusNotFound))
+		})
+	})
+})
+
+var _ = Describe("TestModelTransferJob registry filtering", func() {
+	var requestIdentity kubernetes.RequestIdentity
+
+	BeforeEach(func() {
+		requestIdentity = kubernetes.RequestIdentity{
+			UserID: "user@example.com",
+		}
+	})
+
+	Context("GET list filtered by registry", func() {
+		It("GET list for other registry returns 200 with empty items", func() {
+			envelope, rs, err := setupApiTest[ModelTransferJobListEnvelope](
+				http.MethodGet,
+				"/api/v1/model_registry/other-registry/model_transfer_jobs?namespace=kubeflow",
+				nil,
+				kubernetesMockedStaticClientFactory,
+				requestIdentity,
+				"kubeflow",
+			)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(rs.StatusCode).To(Equal(http.StatusOK))
+			Expect(envelope.Data).NotTo(BeNil())
+			Expect(envelope.Data.Items).To(BeEmpty())
 		})
 	})
 })

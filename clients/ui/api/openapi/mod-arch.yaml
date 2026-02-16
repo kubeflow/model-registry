@@ -2556,6 +2556,7 @@ components:
           type: string
         region:
           type: string
+          description: Optional. AWS region for S3 source.
         endpoint:
           type: string
         uri:

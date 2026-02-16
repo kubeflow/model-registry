@@ -45,7 +45,7 @@ type KubernetesClientInterface interface {
 	DeleteSecret(ctx context.Context, namespace string, secretName string) error
 
 	// Model transfer jobs
-	GetAllModelTransferJobs(ctx context.Context, namespace string) (*batchv1.JobList, error)
+	GetAllModelTransferJobs(ctx context.Context, namespace string, modelRegistryID string) (*batchv1.JobList, error)
 	CreateModelTransferJob(ctx context.Context, namespace string, job *batchv1.Job) error
 	DeleteModelTransferJob(ctx context.Context, namespace string, jobName string) error
 	CreateConfigMap(ctx context.Context, namespace string, configMap *corev1.ConfigMap) error

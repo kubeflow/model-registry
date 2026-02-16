@@ -330,14 +330,19 @@ func (kc *SharedClientLogic) UpdateCatalogSourceConfig(
 func (kc *SharedClientLogic) GetAllModelTransferJobs(
 	ctx context.Context,
 	namespace string,
+	modelRegistryID string,
 ) (*batchv1.JobList, error) {
 	if namespace == "" {
 		return &batchv1.JobList{}, fmt.Errorf("namespace cannot be empty")
 	}
 
+	if modelRegistryID == "" {
+		return &batchv1.JobList{}, fmt.Errorf("model registry name is required")
+	}
+
 	sessionLogger := ctx.Value(constants.TraceLoggerKey).(*slog.Logger)
 
-	labelSelector := "modelregistry.kubeflow.org/job-type=async-upload"
+	labelSelector := "modelregistry.kubeflow.org/job-type=async-upload,modelregistry.kubeflow.org/model-registry-name=" + modelRegistryID
 
 	modelTransferJobList, err := kc.Client.BatchV1().Jobs(namespace).List(ctx, metav1.ListOptions{
 		LabelSelector: labelSelector,

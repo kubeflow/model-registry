@@ -8,7 +8,6 @@ import (
 
 	"github.com/julienschmidt/httprouter"
 	"github.com/kubeflow/model-registry/ui/bff/internal/constants"
-	k8s "github.com/kubeflow/model-registry/ui/bff/internal/integrations/kubernetes"
 	"github.com/kubeflow/model-registry/ui/bff/internal/models"
 	"github.com/kubeflow/model-registry/ui/bff/internal/repositories"
 )
@@ -17,9 +16,7 @@ type ModelTransferJobListEnvelope Envelope[*models.ModelTransferJobList, None]
 type ModelTransferJobEnvelope Envelope[*models.ModelTransferJob, None]
 type ModelTransferJobOperationStatusEnvelope Envelope[models.ModelTransferJobOperationStatus, None]
 
-// getModelTransferJobNamespaceAndClient returns namespace and K8s client from request context.
-// On failure it writes the error response and returns ok == false.
-func (app *App) getModelTransferJobNamespaceAndClient(w http.ResponseWriter, r *http.Request) (namespace string, client k8s.KubernetesClientInterface, ok bool) {
+func (app *App) GetAllModelTransferJobsHandler(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 	ctx := r.Context()
 	namespace, ok = ctx.Value(constants.NamespaceHeaderParameterKey).(string)
 	if !ok || namespace == "" {
@@ -49,7 +46,12 @@ func (app *App) GetAllModelTransferJobsHandler(w http.ResponseWriter, r *http.Re
 		return
 	}
 
-	transferJobs, err := app.repositories.ModelRegistry.GetAllModelTransferJobs(ctx, client, namespace)
+	modelRegistryID := ps.ByName(ModelRegistryId)
+	if modelRegistryID == "" {
+		app.badRequestResponse(w, r, fmt.Errorf("model registry name is required"))
+		return
+	}
+	transferJobs, err := app.repositories.ModelRegistry.GetAllModelTransferJobs(ctx, client, namespace, modelRegistryID)
 	if err != nil {
 		app.serverErrorResponse(w, r, err)
 		return
@@ -196,7 +198,13 @@ func (app *App) DeleteModelTransferJobHandler(w http.ResponseWriter, r *http.Req
 		return
 	}
 
-	deletedJob, err := app.repositories.ModelRegistry.DeleteModelTransferJob(ctx, client, namespace, jobName)
+	modelRegistryID := ps.ByName(ModelRegistryId)
+	if modelRegistryID == "" {
+		app.badRequestResponse(w, r, fmt.Errorf("model registry name is required"))
+		return
+	}
+
+	deletedJob, err := app.repositories.ModelRegistry.DeleteModelTransferJob(ctx, client, namespace, jobName, modelRegistryID)
 	if err != nil {
 		if errors.Is(err, repositories.ErrJobNotFound) {
 			app.notFoundResponse(w, r)
