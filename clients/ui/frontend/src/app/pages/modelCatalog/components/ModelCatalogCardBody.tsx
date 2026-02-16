@@ -4,8 +4,6 @@ import {
   Content,
   ContentVariants,
   Flex,
-  List,
-  ListItem,
   Popover,
   Skeleton,
   Stack,
@@ -24,6 +22,8 @@ import {
   ModelDetailsTab,
   ModelCatalogNumberFilterKey,
   LatencyMetric,
+  LatencyMetricLabels,
+  latencyMetricDescriptions,
   parseLatencyFilterKey,
   SortOrder,
 } from '~/concepts/modelCatalog/const';
@@ -198,7 +198,7 @@ const ModelCatalogCardBody: React.FC<ModelCatalogCardBodyProps> = ({
     const activeLatencyField = latencyFieldName;
     const latencyValue =
       getLatencyValue(metrics.latencyMetrics, activeLatencyField) ?? metrics.ttftMean;
-    const latencyLabel = activeLatencyField
+    const latencyLabel: LatencyMetric = activeLatencyField
       ? parseLatencyFilterKey(activeLatencyField).metric
       : LatencyMetric.TTFT;
 
@@ -227,27 +227,12 @@ const ModelCatalogCardBody: React.FC<ModelCatalogCardBodyProps> = ({
               <Flex alignItems={{ default: 'alignItemsBaseline' }} gap={{ default: 'gapXs' }}>
                 <Content component={ContentVariants.small}>{latencyLabel}</Content>
                 <Popover
-                  headerContent="Latency"
                   bodyContent={
                     <div>
                       <p>
-                        The delay (in milliseconds) between sending a request and receiving the
-                        first response.
+                        <strong>{LatencyMetricLabels[latencyLabel] ?? latencyLabel}:</strong>{' '}
+                        {latencyMetricDescriptions[latencyLabel] ?? ''}
                       </p>
-                      <List>
-                        <ListItem>
-                          <strong>TTFT (Time to First Token)</strong> - Time until the model starts
-                          responding. Best for interactive experiences.
-                        </ListItem>
-                        <ListItem>
-                          <strong>ITL (Inter-Token Latency)</strong> - Time between tokens during
-                          generation. Important for smooth streaming and audio.
-                        </ListItem>
-                        <ListItem>
-                          <strong>E2E (End-to-End latency)</strong> - Total time to generate the
-                          full response. Best for summarization, batch jobs, and code generation.
-                        </ListItem>
-                      </List>
                     </div>
                   }
                 >

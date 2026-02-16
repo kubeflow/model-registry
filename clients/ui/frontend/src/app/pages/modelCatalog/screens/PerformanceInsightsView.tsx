@@ -42,8 +42,9 @@ const PerformanceInsightsView: React.FC<PerformanceInsightsViewProps> = ({ model
     filterData,
     filterOptions,
     filterOptionsLoaded,
-    setPerformanceFiltersChangedOnDetailsPage,
     setFilterData,
+    setLastViewedModelName,
+    setPerformanceFiltersChangedOnDetailsPage,
   } = React.useContext(ModelCatalogContext);
 
   // Apply default performance filters on mount if they don't have values yet
@@ -97,9 +98,21 @@ const PerformanceInsightsView: React.FC<PerformanceInsightsViewProps> = ({ model
       filterOptions,
     );
 
+  // After defaults are applied on the details page, clear the "changed on details page" flag
+  // and record the last viewed model name for the landing page alert content.
   React.useEffect(() => {
+    if (!filterOptionsLoaded) {
+      return;
+    }
+
     setPerformanceFiltersChangedOnDetailsPage(false);
-  }, [setPerformanceFiltersChangedOnDetailsPage]);
+    setLastViewedModelName(model.name);
+  }, [
+    filterOptionsLoaded,
+    setPerformanceFiltersChangedOnDetailsPage,
+    setLastViewedModelName,
+    model.name,
+  ]);
 
   if (performanceArtifactsError) {
     return (

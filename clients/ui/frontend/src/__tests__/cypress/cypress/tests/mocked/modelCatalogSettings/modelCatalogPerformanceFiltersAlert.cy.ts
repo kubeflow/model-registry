@@ -71,8 +71,8 @@ describe('Model Catalog Performance Filters Alert', () => {
       modelCatalog
         .findPerformanceFiltersUpdatedAlert()
         .should(
-          'contain.text',
-          'Info alert:The results list has been updated to match the latest performance criteria set on the model details page.',
+          'include.text',
+          'The performance constraints and results have been updated to match the constraints you applied to the',
         );
     });
 
