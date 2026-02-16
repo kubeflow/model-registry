@@ -343,10 +343,12 @@ export type CreateModelTransferJobData = Omit<
 export type ModelTransferJobList = ModelRegistryListParams & { items: ModelTransferJob[] };
 
 export type GetListModelTransferJobs = (opts: APIOptions) => Promise<ModelTransferJobList>;
+
 export type CreateModelTransferJob = (
   opts: APIOptions,
   data: ModelTransferJob,
 ) => Promise<ModelTransferJob>;
+
 export type UpdateModelTransferJob = (
   opts: APIOptions,
   jobId: string,
