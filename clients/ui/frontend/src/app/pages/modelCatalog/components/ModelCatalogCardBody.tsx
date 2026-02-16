@@ -227,11 +227,10 @@ const ModelCatalogCardBody: React.FC<ModelCatalogCardBodyProps> = ({
               <Flex alignItems={{ default: 'alignItemsBaseline' }} gap={{ default: 'gapXs' }}>
                 <Content component={ContentVariants.small}>{latencyLabel}</Content>
                 <Popover
-                  headerContent="Latency"
                   bodyContent={
                     <div>
                       <p>
-                        <strong>{LatencyMetricLabels[latencyLabel] ?? latencyLabel}</strong> -{' '}
+                        <strong>{LatencyMetricLabels[latencyLabel] ?? latencyLabel}:</strong>{' '}
                         {latencyMetricDescriptions[latencyLabel] ?? ''}
                       </p>
                     </div>
