@@ -85,21 +85,6 @@ func (d *dbCatalogImpl) ListModels(ctx context.Context, params ListModelsParams)
 	}
 
 	sourceIDs := params.SourceIDs
-	if len(sourceIDs) == 0 && len(params.SourceLabels) > 0 {
-		sources := d.sources.ByLabel(params.SourceLabels)
-		if len(sources) == 0 {
-			// No matching sources, so no matching models.
-			return apimodels.CatalogModelList{
-				Items:    make([]apimodels.CatalogModel, 0),
-				PageSize: pageSize,
-			}, nil
-		}
-
-		sourceIDs = make([]string, len(sources))
-		for i, source := range sources {
-			sourceIDs[i] = source.Id
-		}
-	}
 
 	modelsList, err := d.catalogModelRepository.List(dbmodels.CatalogModelListOptions{
 		SourceIDs: &sourceIDs,
@@ -684,6 +669,7 @@ func (d *dbCatalogImpl) FindModelsWithRecommendedLatency(
 	pagination mrmodels.Pagination,
 	paretoParams dbmodels.ParetoFilteringParams,
 	sourceIDs []string,
+	query string,
 ) (*apimodels.CatalogModelList, error) {
 	// Get all models first (without pagination)
 	var sourceIDsPtr *[]string
@@ -691,8 +677,14 @@ func (d *dbCatalogImpl) FindModelsWithRecommendedLatency(
 		sourceIDsPtr = &sourceIDs
 	}
 
+	var queryPtr *string
+	if query != "" {
+		queryPtr = &query
+	}
+
 	allModels, err := d.catalogModelRepository.List(dbmodels.CatalogModelListOptions{
 		SourceIDs: sourceIDsPtr,
+		Query:     queryPtr,
 		Pagination: mrmodels.Pagination{
 			FilterQuery: pagination.FilterQuery,
 			PageSize:    apiutils.Of(int32(0)), // Get all models

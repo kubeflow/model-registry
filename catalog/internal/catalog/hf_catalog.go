@@ -549,7 +549,7 @@ func (p *hfModelProvider) getModelsFromHF(ctx context.Context) ([]ModelProviderR
 	}
 
 	if len(failedModels) > 0 {
-		return records, fmt.Errorf("Failed to fetch some models, ensure models exist and are accessible with given credentials. Failed models: %v", failedModels)
+		return records, &PartiallyAvailableError{FailedModels: failedModels}
 	}
 
 	return records, nil

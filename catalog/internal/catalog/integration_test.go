@@ -150,7 +150,7 @@ func BenchmarkRecommendedLatencySorting(b *testing.B) {
 	for i := 0; i < b.N; i++ {
 		_, err := provider.FindModelsWithRecommendedLatency(ctx, mr_models.Pagination{
 			PageSize: apiutils.Of(int32(20)),
-		}, paretoParams, []string{"benchmark-source"})
+		}, paretoParams, []string{"benchmark-source"}, "")
 
 		require.NoError(b, err)
 	}

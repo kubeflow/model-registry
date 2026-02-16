@@ -537,7 +537,7 @@ func (m *mockPerformanceProvider) GetFilterOptions(ctx context.Context) (*model.
 	return &model.FilterOptionsList{}, nil
 }
 
-func (m *mockPerformanceProvider) FindModelsWithRecommendedLatency(ctx context.Context, pagination mrmodels.Pagination, paretoParams dbmodels.ParetoFilteringParams, sourceIDs []string) (*model.CatalogModelList, error) {
+func (m *mockPerformanceProvider) FindModelsWithRecommendedLatency(ctx context.Context, pagination mrmodels.Pagination, paretoParams dbmodels.ParetoFilteringParams, sourceIDs []string, query string) (*model.CatalogModelList, error) {
 	// Basic mock implementation - just return models sorted by name
 	var allModels []*model.CatalogModel
 	for _, mdl := range m.models {

@@ -2091,6 +2091,7 @@ func TestFindModelsWithRecommendedLatency(t *testing.T) {
 		pagination,
 		paretoParams,
 		[]string{"latency-test-source"}, // Filter by this test's source ID
+		"",                              // No query filter
 	)
 
 	require.NoError(t, err)

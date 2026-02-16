@@ -1160,9 +1160,6 @@ func (m *mockModelProvider) GetModel(ctx context.Context, name string, sourceID 
 }
 
 func (m *mockProviderThatFailsOnRecommended) ListModels(ctx context.Context, params catalog.ListModelsParams) (model.CatalogModelList, error) {
-	if params.Recommended {
-		return model.CatalogModelList{}, fmt.Errorf("recommended sorting not implemented")
-	}
 	return m.mockModelProvider.ListModels(ctx, params)
 }
 
@@ -1182,7 +1179,7 @@ func (m *mockProviderThatFailsOnRecommended) GetFilterOptions(ctx context.Contex
 	return m.mockModelProvider.GetFilterOptions(ctx)
 }
 
-func (m *mockProviderThatFailsOnRecommended) FindModelsWithRecommendedLatency(ctx context.Context, pagination mrmodels.Pagination, paretoParams dbmodels.ParetoFilteringParams, sourceIDs []string) (*model.CatalogModelList, error) {
+func (m *mockProviderThatFailsOnRecommended) FindModelsWithRecommendedLatency(ctx context.Context, pagination mrmodels.Pagination, paretoParams dbmodels.ParetoFilteringParams, sourceIDs []string, query string) (*model.CatalogModelList, error) {
 	return nil, fmt.Errorf("recommended sorting not implemented")
 }
 
@@ -1275,7 +1272,7 @@ func (m *mockModelProvider) GetFilterOptions(ctx context.Context) (*model.Filter
 	return &model.FilterOptionsList{Filters: &emptyFilters}, nil
 }
 
-func (m *mockModelProvider) FindModelsWithRecommendedLatency(ctx context.Context, pagination mrmodels.Pagination, paretoParams dbmodels.ParetoFilteringParams, sourceIDs []string) (*model.CatalogModelList, error) {
+func (m *mockModelProvider) FindModelsWithRecommendedLatency(ctx context.Context, pagination mrmodels.Pagination, paretoParams dbmodels.ParetoFilteringParams, sourceIDs []string, query string) (*model.CatalogModelList, error) {
 	// Basic mock implementation - just return models sorted by name
 	var allModels []*model.CatalogModel
 	for _, mdl := range m.models {

@@ -1,13 +1,21 @@
 """Cosign signing and verification for container images."""
 
+from __future__ import annotations
+
 import os
 import shutil
 import subprocess
 import sys
 from functools import partial
 from pathlib import Path
+from typing import TYPE_CHECKING
+
+from typing_extensions import Self
 
 from model_registry.signing.exceptions import InitializationError, SigningError, VerificationError
+
+if TYPE_CHECKING:
+    from .config import SigningConfig
 
 
 class CommandRunner:
@@ -33,7 +41,8 @@ class CommandRunner:
         Raises:
             subprocess.CalledProcessError: If the command fails
         """
-        result = self._run(cmd)
+        # Explicitly pass current environment to ensure DOCKER_CONFIG and other vars are inherited
+        result = self._run(cmd, env=os.environ.copy())
         if result.stderr:
             print(result.stderr, file=sys.stderr)
         return result
@@ -52,6 +61,7 @@ class ImageSigner:
         rekor_url: str | None = None,
         certificate_identity: str | None = None,
         oidc_issuer: str | None = None,
+        client_id: str | None = None,
     ):
         """Initialize ImageSigner tool.
 
@@ -64,6 +74,7 @@ class ImageSigner:
             rekor_url: Default Rekor server URL
             certificate_identity: Default certificate identity
             oidc_issuer: Default OIDC issuer URL
+            client_id: Default OIDC client ID
 
         Raises:
             FileNotFoundError: If identity_token_path is provided but doesn't exist
@@ -83,6 +94,22 @@ class ImageSigner:
         self.rekor_url = rekor_url
         self.certificate_identity = certificate_identity
         self.oidc_issuer = oidc_issuer
+        self.client_id = client_id
+
+    @classmethod
+    def from_config(cls, config: SigningConfig) -> Self:
+        """Create ImageSigner from a SigningConfig instance."""
+        return cls(
+            tuf_url=config.tuf_url,
+            root=config.root_url,
+            root_checksum=config.root_checksum,
+            identity_token_path=config.identity_token_path,
+            fulcio_url=config.fulcio_url,
+            rekor_url=config.rekor_url,
+            certificate_identity=config.certificate_identity,
+            oidc_issuer=config.oidc_issuer,
+            client_id=config.client_id,
+        )
 
     def _get_sigstore_dir(self) -> Path:
         """Get the sigstore directory path.
@@ -91,6 +118,15 @@ class ImageSigner:
             Path to the sigstore directory
         """
         return Path.home() / ".sigstore"
+
+    def _ensure_initialized(self):
+        """Ensure sigstore configuration is initialized.
+
+        Auto-initializes sigstore config if not already present using instance defaults.
+        """
+        sigstore_dir = self._get_sigstore_dir()
+        if not sigstore_dir.exists():
+            self.initialize()
 
     def initialize(  # noqa: C901
         self,
@@ -150,6 +186,7 @@ class ImageSigner:
         identity_token_path: str | os.PathLike[str] | None = None,
         fulcio_url: str | None = None,
         rekor_url: str | None = None,
+        client_id: str | None = None,
     ):
         """Sign a container image and upload the signature.
 
@@ -158,6 +195,7 @@ class ImageSigner:
             identity_token_path: Path to OIDC identity token file (optional, overrides instance default)
             fulcio_url: Fulcio server URL (optional, overrides instance default)
             rekor_url: Rekor server URL (optional, overrides instance default)
+            client_id: OIDC client ID (optional, overrides instance default)
 
         Raises:
             FileNotFoundError: If identity_token_path is provided but doesn't exist
@@ -169,22 +207,33 @@ class ImageSigner:
             fulcio_url = self.fulcio_url
         if rekor_url is None:
             rekor_url = self.rekor_url
+        if client_id is None:
+            client_id = self.client_id
 
         # Validate identity token path if provided
         if identity_token_path is not None and not os.path.exists(identity_token_path):
             msg = f"Identity token file not found: {identity_token_path}"
             raise FileNotFoundError(msg)
 
+        self._ensure_initialized()
+
         cmd = ["cosign", "sign", "-y"]
 
         if identity_token_path is not None:
-            cmd.extend(["--identity-token", os.fspath(identity_token_path)])
+            # Read token content from file (cosign doesn't actually accept file paths despite docs)
+            with open(identity_token_path) as f:
+                token_content = f.read().strip()
+            cmd.extend(["--identity-token", token_content])
 
         if fulcio_url is not None:
             cmd.extend(["--fulcio-url", fulcio_url])
 
         if rekor_url is not None:
             cmd.extend(["--rekor-url", rekor_url])
+
+        # Use oidc_issuer for --oidc-client-id parameter (matches cosign behavior)
+        if self.oidc_issuer is not None:
+            cmd.extend(["--oidc-client-id", self.oidc_issuer])
 
         cmd.append(image)
 
@@ -207,6 +256,8 @@ class ImageSigner:
             certificate_identity = self.certificate_identity
         if oidc_issuer is None:
             oidc_issuer = self.oidc_issuer
+
+        self._ensure_initialized()
 
         cmd = ["cosign", "verify"]
 

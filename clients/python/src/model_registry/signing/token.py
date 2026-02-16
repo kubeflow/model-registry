@@ -57,3 +57,29 @@ def extract_client_id(claims: dict) -> str | None:
     if isinstance(aud, list):
         return aud[0] if aud else None
     return aud
+
+
+def k8s_sub_to_certificate_identity(sub: str) -> str:
+    """Convert Kubernetes service account sub claim to certificate SAN format.
+
+    Converts from: system:serviceaccount:namespace:serviceaccount
+    To: https://kubernetes.io/namespaces/namespace/serviceaccounts/serviceaccount
+
+    Args:
+        sub: The sub claim from a Kubernetes service account token
+
+    Returns:
+        Certificate identity in SAN format
+
+    Example:
+        >>> k8s_sub_to_certificate_identity("system:serviceaccount:project2:wb2")
+        'https://kubernetes.io/namespaces/project2/serviceaccounts/wb2'
+    """
+    # Format: system:serviceaccount:namespace:serviceaccount
+    parts = sub.split(":")
+    if len(parts) == 4 and parts[0] == "system" and parts[1] == "serviceaccount":
+        namespace = parts[2]
+        serviceaccount = parts[3]
+        return f"https://kubernetes.io/namespaces/{namespace}/serviceaccounts/{serviceaccount}"
+    # If not in expected format, return as-is
+    return sub
