@@ -414,6 +414,49 @@ curl -i -H "kubeflow-userid: user@example.com" -X DELETE "http://localhost:4000/
 curl -i -H "Authorization: Bearer $TOKEN" -X DELETE "http://localhost:4000/api/v1/settings/model_catalog/source_configs/test-catalog?namespace=kubeflow"
 ```
 
+//model-transfer-job
+
+```
+# GET api/v1/model_registry/model-registry/model_transfer_jobs
+curl -i -H "kubeflow-userid: user@example.com" "http://localhost:4000/api/v1/model_registry/model-registry/model_transfer_jobs?namespace=kubeflow"
+curl -i -H "Authorization: Bearer $TOKEN" "http://localhost:4000/api/v1/model_registry/model-registry/model_transfer_jobs?namespace=kubeflow"
+```
+
+```
+# POST /api/v1/model_registry/model-registry/model_transfer_jobs
+curl -i \
+-H "kubeflow-userid: user@example.com" \
+-X POST "http://localhost:4000/api/v1/model_registry/model-registry/model_transfer_jobs?namespace=kubeflow" \
+-H "Content-Type: application/json" \
+-d '{"data": {"name": "my-job", "source": {"type": "s3"}, "destination": {"type": "oci"}, "uploadIntent": "create_model"}}'
+
+curl -i -H "Authorization: Bearer $TOKEN" \
+-X POST "http://localhost:4000/api/v1/model_registry/model-registry/model_transfer_jobs?namespace=kubeflow" \
+-H "Content-Type: application/json" \
+-d '{"data": {"name": "my-job", "source": {"type": "s3"}, "destination": {"type": "oci"}, "uploadIntent": "create_model"}}'
+```
+
+```
+# PATCH api/v1/model_registry/model-registry/model_transfer_jobs/{job_name}
+curl -i \
+-H "kubeflow-userid: user@example.com" \
+-X PATCH "http://localhost:4000/api/v1/model_registry/model-registry/model_transfer_jobs/transfer-job-001?namespace=bella-namespace" \
+-H "Content-Type: application/json" \
+-d '{"data": {"name": "my-job"}}'
+
+curl -i -H "Authorization: Bearer $TOKEN" \
+-X PATCH "http://localhost:4000/api/v1/model_registry/model-registry/model_transfer_jobs/transfer-job-002?namespace=bella-namespace" \
+-H "Content-Type: application/json" \
+-d '{"data": {"name": "my-job"}}'
+
+```
+
+```
+# DELETE api/v1/model_registry/model-registry/model_transfer_jobs/{job_name}
+curl -i -H "kubeflow-userid: user@example.com" -X DELETE "http://localhost:4000/api/v1/model_registry/model-registry/model_transfer_jobs/transfer-job-001?namespace=kubeflow"
+curl -i -H "Authorization: Bearer $TOKEN" -X DELETE "http://localhost:4000/api/v1/model_registry/model-registry/model_transfer_jobs/transfer-job-001?namespace=kubeflow"
+```
+
 ### Pagination
 
 The following query parameters are supported by "Get All" style endpoints to control pagination.
@@ -460,13 +503,11 @@ You can view the complete Model Registry service manifest [here](https://github.
 The mock Kubernetes environment is activated when the environment variable `MOCK_K8S_CLIENT` is set to `true`. It is based on `env-test` and is designed to simulate a realistic Kubernetes setup for testing. The mock has the following characteristics:
 
 - **Namespaces**:
-
   - `kubeflow`
   - `dora-namespace`
   - `bella-namespace`
 
 - **Users**:
-
   - `user@example.com` (has `cluster-admin` privileges)
   - `doraNonAdmin@example.com` (restricted to the `dora-namespace`)
   - `bellaNonAdmin@example.com` (restricted to the `bella-namespace`)
@@ -505,7 +546,6 @@ There are two review mechanisms depending on the authentication mode:
 ##### Authorization logic
 
 - Access to Model Registry List (/v1/model_registry):
-
   - Checks for get and list on services in the target namespace.
   - If the user (or groups, in internal mode) has permission, access is granted.
 

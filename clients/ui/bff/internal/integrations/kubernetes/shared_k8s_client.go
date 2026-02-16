@@ -2,6 +2,7 @@ package kubernetes
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"log/slog"
 	"strings"
@@ -12,6 +13,7 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/client-go/kubernetes"
 )
 
@@ -391,14 +393,14 @@ func (kc *SharedClientLogic) CreateModelTransferJob(ctx context.Context, namespa
 }
 
 
-func (kc *SharedClientLogic) UpdateModelTransferJob(ctx context.Context, namespace string, jobId string, data map[string]string) error {
+func (kc *SharedClientLogic) DeleteModelTransferJob(ctx context.Context, namespace string, jobName string) error {
 	sessionLogger := ctx.Value(constants.TraceLoggerKey).(*slog.Logger)
 
-	modelTransferJob, err := kc.Client.BatchV1().Jobs(namespace).Get(ctx, jobId, metav1.GetOptions{})
+	modelTransferJob, err := kc.Client.BatchV1().Jobs(namespace).Get(ctx, jobName, metav1.GetOptions{})
 	if err != nil {
 		sessionLogger.Error("failed to get job for patching",
 			"namespace", namespace,
-			"jobId", jobId,
+			"jobName", jobName,
 			"error", err,
 		)
 		return err
@@ -425,22 +427,23 @@ func (kc *SharedClientLogic) UpdateModelTransferJob(ctx context.Context, namespa
 
 }
 
-func (kc *SharedClientLogic) DeleteModelTransferJob(ctx context.Context, namespace string, jobId string) error {
+func (kc *SharedClientLogic) DeleteModelTransferJob(ctx context.Context, namespace string, jobName string) error {
 	sessionLogger := ctx.Value(constants.TraceLoggerKey).(*slog.Logger)
 
-	err := kc.Client.BatchV1().Jobs(namespace).Delete(ctx, jobId, metav1.DeleteOptions{})
+	err := kc.Client.BatchV1().Jobs(namespace).Delete(ctx, jobName, metav1.DeleteOptions{})
 
 	if err != nil {
 		if apierrors.IsNotFound(err) {
-			sessionLogger.Info("job not found, nothing to delete", "namespace", namespace, "jobId", jobId)
-			return nil
+			sessionLogger.Info("job not found, nothing to delete", "namespace", namespace, "jobName", jobName)
+			return err
 		}
-		sessionLogger.Error("failed to delete job", "namespace", namespace, "jobId", jobId, "error", err)
-		return fmt.Errorf("failed to delete job %s: %w", jobId, err)
+		sessionLogger.Error("failed to delete job", "namespace", namespace, "jobName", jobName, "error", err)
+		return fmt.Errorf("failed to delete job %s: %w", jobName, err)
 	}
 
 	sessionLogger.Info("successfully deleted model transfer job",
 		"namespace", namespace,
+		"jobName", jobName,
 		"jobName", jobName,
 	)
 
@@ -512,6 +515,81 @@ func (kc *SharedClientLogic) DeleteConfigMap(ctx context.Context, namespace stri
 		"name", name,
 	)
 
+	return nil
+
+}
+
+func (kc *SharedClientLogic) PatchConfigMapOwnerReference(ctx context.Context, namespace string, name string, ownerRef metav1.OwnerReference) error {
+	sessionLogger := ctx.Value(constants.TraceLoggerKey).(*slog.Logger)
+
+	patch := map[string]interface{}{
+		"metadata": map[string]interface{}{
+			"ownerReferences": []metav1.OwnerReference{ownerRef},
+		},
+	}
+
+	patchBytes, err := json.Marshal(patch)
+	if err != nil {
+		sessionLogger.Error("failed to marshal patch for configmap",
+			"namespace", namespace,
+			"name", name,
+			"error", err)
+		return fmt.Errorf("failed to marshal patch: %w", err)
+	}
+
+	_, err = kc.Client.CoreV1().ConfigMaps(namespace).Patch(
+		ctx,
+		name,
+		types.StrategicMergePatchType,
+		patchBytes,
+		metav1.PatchOptions{},
+	)
+	if err != nil {
+		sessionLogger.Error("failed to patch configmap owner reference",
+			"namespace", namespace,
+			"name", name,
+			"error", err)
+		return fmt.Errorf("failed to patch configmap owner reference: %w", err)
+	}
+
+	sessionLogger.Info("successfully patched configmap owner reference", "name", name)
+	return nil
+}
+
+func (kc *SharedClientLogic) PatchSecretOwnerReference(ctx context.Context, namespace string, name string, ownerRef metav1.OwnerReference) error {
+	sessionLogger := ctx.Value(constants.TraceLoggerKey).(*slog.Logger)
+
+	patch := map[string]interface{}{
+		"metadata": map[string]interface{}{
+			"ownerReferences": []metav1.OwnerReference{ownerRef},
+		},
+	}
+
+	patchBytes, err := json.Marshal(patch)
+	if err != nil {
+		sessionLogger.Error("failed to marshal patch for secret",
+			"namespace", namespace,
+			"name", name,
+			"error", err)
+		return fmt.Errorf("failed to marshal patch: %w", err)
+	}
+
+	_, err = kc.Client.CoreV1().Secrets(namespace).Patch(
+		ctx,
+		name,
+		types.StrategicMergePatchType,
+		patchBytes,
+		metav1.PatchOptions{},
+	)
+	if err != nil {
+		sessionLogger.Error("failed to patch secret owner reference",
+			"namespace", namespace,
+			"name", name,
+			"error", err)
+		return fmt.Errorf("failed to patch secret owner reference: %w", err)
+	}
+
+	sessionLogger.Info("successfully patched secret owner reference", "name", name)
 	return nil
 
 }

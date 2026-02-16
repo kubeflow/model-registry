@@ -74,12 +74,23 @@ func (app *App) CreateModelTransferJobHandler(w http.ResponseWriter, r *http.Req
 
 	var envelope ModelTransferJobEnvelope
 	if err := json.NewDecoder(r.Body).Decode(&envelope); err != nil {
-		app.serverErrorResponse(w, r, fmt.Errorf("error decoding JSON: %w", err))
+		app.badRequestResponse(w, r, fmt.Errorf("error decoding JSON: %w", err))
 		return
 	}
+
+	if envelope.Data == nil {
+		app.badRequestResponse(w, r, fmt.Errorf("data is required"))
+		return
+	}
+
 	payload := *envelope.Data
 
 	modelRegistryID := ps.ByName(ModelRegistryId)
+
+	if modelRegistryID == "" {
+		app.badRequestResponse(w, r, fmt.Errorf("model registry name is required"))
+		return
+	}
 
 	newJob, err := app.repositories.ModelRegistry.CreateModelTransferJob(ctx, client, namespace, payload, modelRegistryID)
 	if err != nil {
@@ -96,7 +107,7 @@ func (app *App) CreateModelTransferJobHandler(w http.ResponseWriter, r *http.Req
 	w.Header().Set("Location", r.URL.JoinPath(modelTransferJob.Data.Name).String())
 	writeErr := app.WriteJSON(w, http.StatusCreated, modelTransferJob, nil)
 	if writeErr != nil {
-		app.serverErrorResponse(w, r, fmt.Errorf("error writing JSON"))
+		app.serverErrorResponse(w, r, fmt.Errorf("error writing JSON: %w", writeErr))
 		return
 	}
 }
@@ -118,13 +129,26 @@ func (app *App) UpdateModelTransferJobHandler(w http.ResponseWriter, r *http.Req
 
 	var envelope ModelTransferJobEnvelope
 	if err := json.NewDecoder(r.Body).Decode(&envelope); err != nil {
-		app.badRequestResponse(w, r, err)
+		app.badRequestResponse(w, r, fmt.Errorf("error decoding JSON: %w", err))
 		return
 	}
-	payload := *envelope.Data
+	if envelope.Data == nil {
+    app.badRequestResponse(w, r, fmt.Errorf("data is required"))
+    return
+}
+payload := *envelope.Data
+
 
 	jobName := ps.ByName(ModelTransferJobName)
-	modelRegistryID := ps.ByName(ModelRegistryId)
+if jobName == "" {
+    app.badRequestResponse(w, r, fmt.Errorf("job name is required"))
+    return
+}
+modelRegistryID := ps.ByName(ModelRegistryId)
+if modelRegistryID == "" {
+    app.badRequestResponse(w, r, fmt.Errorf("model registry name is required"))
+    return
+}
 	deleteOldJob := r.URL.Query().Get("deleteOldJob") == "true"
 
 	updatedJob, err := app.repositories.ModelRegistry.UpdateModelTransferJob(
@@ -168,6 +192,10 @@ func (app *App) DeleteModelTransferJobHandler(w http.ResponseWriter, r *http.Req
 	}
 
 	jobName := ps.ByName(ModelTransferJobName)
+	if jobName == "" {
+		app.badRequestResponse(w, r, fmt.Errorf("job name is required"))
+		return
+	}
 
 	deletedJob, err := app.repositories.ModelRegistry.DeleteModelTransferJob(ctx, client, namespace, jobName)
 	if err != nil {

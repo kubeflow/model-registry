@@ -4,6 +4,8 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"net/url"
+	"strconv"
 	"strings"
 
 	"github.com/google/uuid"
@@ -18,17 +20,8 @@ import (
 )
 
 var (
-	ErrJobNotFound          = errors.New("model transfer job not found")
-	ErrJobValidationFailed  = errors.New("validation failed")
-	ErrJobNameRequired      = errors.New("job name is required")
-	ErrJobNameTooLong       = errors.New("job name exceeds maximum length")
-	ErrJobNameInvalid       = errors.New("job name contains invalid characters")
-	ErrSourceTypeRequired   = errors.New("source type is required")
-	ErrSourceTypeInvalid    = errors.New("invalid source type")
-	ErrDestTypeRequired     = errors.New("destination type is required")
-	ErrDestTypeInvalid      = errors.New("invalid destination type")
-	ErrUploadIntentRequired = errors.New("upload intent is required")
-	ErrUploadIntentInvalid  = errors.New("invalid upload intent")
+	ErrJobNotFound         = errors.New("model transfer job not found")
+	ErrJobValidationFailed = errors.New("validation failed")
 )
 
 func (m *ModelRegistryRepository) GetAllModelTransferJobs(ctx context.Context, client k8s.KubernetesClientInterface, namespace string) (*models.ModelTransferJobList, error) {
@@ -55,6 +48,10 @@ func (m *ModelRegistryRepository) CreateModelTransferJob(ctx context.Context, cl
 		return nil, fmt.Errorf("validation error: %w", err)
 	}
 
+	if payload.Destination.Registry == "" && payload.Destination.URI != "" {
+		payload.Destination.Registry, _ = extractRegistryFromURI(payload.Destination.URI)
+	}
+
 	logger := helper.GetContextLogger(ctx)
 
 	modelRegistryAddress, err := m.getModelRegistryAddress(ctx, client, namespace, modelRegistryID)
@@ -62,13 +59,13 @@ func (m *ModelRegistryRepository) CreateModelTransferJob(ctx context.Context, cl
 		return nil, err
 	}
 
-	jobId := uuid.NewString()
+	jobID := uuid.NewString()
 	jobName := payload.Name
 
-	configMapName := fmt.Sprintf("%s-metadata", jobName)
+	configMapName := fmt.Sprintf("%s-metadata-configmap", jobName)
 	destSecretName := fmt.Sprintf("%s-dest-creds", jobName)
 
-	configMap := buildModelMetadataConfigMap(configMapName, namespace, payload, jobId)
+	configMap := buildModelMetadataConfigMap(configMapName, namespace, payload, jobID)
 	if err := client.CreateConfigMap(ctx, namespace, configMap); err != nil {
 		return nil, fmt.Errorf("failed to create metadata configmap: %w", err)
 	}
@@ -76,35 +73,29 @@ func (m *ModelRegistryRepository) CreateModelTransferJob(ctx context.Context, cl
 	var sourceSecretName string
 	if payload.Source.Type == models.ModelTransferJobSourceTypeS3 {
 		sourceSecretName = fmt.Sprintf("%s-source-creds", jobName)
-		sourceSecret := buildSourceSecret(sourceSecretName, namespace, payload, jobId)
+		sourceSecret := buildSourceSecret(sourceSecretName, namespace, payload, jobID)
 		if err := client.CreateSecret(ctx, namespace, sourceSecret); err != nil {
-			if delErr := client.DeleteConfigMap(ctx, namespace, configMapName); delErr != nil {
-				logger.Error("failed to cleanup configmap after error", "name", configMapName, "error", delErr)
-			}
+			cleanupCreatedResources(ctx, client, namespace, configMapName, "", "")
 			return nil, fmt.Errorf("failed to create source secret: %w", err)
 		}
-
 	}
 
-	destSecret, err := buildDestinationSecret(destSecretName, namespace, payload, jobId)
+	destSecret, err := buildDestinationSecret(destSecretName, namespace, payload, jobID)
+	if err != nil {
+		cleanupCreatedResources(ctx, client, namespace, configMapName, sourceSecretName, "")
+		return nil, fmt.Errorf("failed to build destination secret: %w", err)
+	}
 	if err := client.CreateSecret(ctx, namespace, destSecret); err != nil {
-
-		client.DeleteConfigMap(ctx, namespace, configMapName)
-
-		if sourceSecretName != "" {
-			client.DeleteSecret(ctx, namespace, sourceSecretName)
-		}
+		cleanupCreatedResources(ctx, client, namespace, configMapName, sourceSecretName, "")
 		return nil, fmt.Errorf("failed to create destination secret: %w", err)
 	}
 
-	job := buildFullK8sJob(jobName, namespace, jobId, payload, configMapName, sourceSecretName, destSecretName, modelRegistryAddress)
+	job := buildK8sJob(jobName, namespace, jobID, payload, configMapName, sourceSecretName, destSecretName, modelRegistryAddress)
 	if err := client.CreateModelTransferJob(ctx, namespace, job); err != nil {
-
-		client.DeleteConfigMap(ctx, namespace, configMapName)
-		if sourceSecretName != "" {
-			client.DeleteSecret(ctx, namespace, sourceSecretName)
+		cleanupCreatedResources(ctx, client, namespace, configMapName, sourceSecretName, destSecretName)
+		if apierrors.IsAlreadyExists(err) {
+			return nil, fmt.Errorf("%w: job '%s' already exists", ErrJobValidationFailed, jobName)
 		}
-		client.DeleteSecret(ctx, namespace, destSecretName)
 		return nil, fmt.Errorf("failed to create job: %w", err)
 	}
 
@@ -112,13 +103,39 @@ func (m *ModelRegistryRepository) CreateModelTransferJob(ctx context.Context, cl
 	if err != nil {
 		logger.Warn("job created but failed to retrieve", "error", err)
 		return &models.ModelTransferJob{
-			Id:   jobId,
+			Id:   jobID,
 			Name: jobName,
 		}, nil
 	}
 
-	result := convertK8sJobToModel(createdJob)
+	if createdJob == nil {
+		logger.Error("job retrieved successfully but is nil - unexpected K8s client behavior")
+		return &models.ModelTransferJob{
+			Id:   jobID,
+			Name: jobName,
+		}, nil
+	}
 
+	ownerRef := metav1.OwnerReference{
+		APIVersion: "batch/v1",
+		Kind:       "Job",
+		Name:       createdJob.Name,
+		UID:        createdJob.UID,
+	}
+
+	if err := client.PatchConfigMapOwnerReference(ctx, namespace, configMapName, ownerRef); err != nil {
+		logger.Warn("failed to set ownerReference on configmap", "error", err)
+	}
+	if sourceSecretName != "" {
+		if err := client.PatchSecretOwnerReference(ctx, namespace, sourceSecretName, ownerRef); err != nil {
+			logger.Warn("failed to set ownerReference on source secret", "error", err)
+		}
+	}
+	if err := client.PatchSecretOwnerReference(ctx, namespace, destSecretName, ownerRef); err != nil {
+		logger.Warn("failed to set ownerReference on destination secret", "error", err)
+	}
+
+	result := convertK8sJobToModel(createdJob)
 	return &result, nil
 }
 
@@ -131,15 +148,21 @@ func (m *ModelRegistryRepository) UpdateModelTransferJob(
 	deleteOldJob bool,
 	modelRegistryID string,
 ) (*models.ModelTransferJob, error) {
+
 	logger := helper.GetContextLogger(ctx)
-	if newPayload.Name == "" {
+
+	newJobName := newPayload.Name
+	if newJobName == "" {
 		return nil, fmt.Errorf("%w: new job name is required", ErrJobValidationFailed)
 	}
-	if len(newPayload.Name) > 50 {
+	if len(newJobName) > 50 {
 		return nil, fmt.Errorf("%w: job name must be 50 characters or less", ErrJobValidationFailed)
 	}
-	if errs := validation.IsDNS1123Subdomain(newPayload.Name); len(errs) > 0 {
-		return nil, fmt.Errorf("%w: %s", ErrJobValidationFailed, strings.Join(errs, ", "))
+	if errs := validation.IsDNS1123Subdomain(newJobName); len(errs) > 0 {
+		return nil, fmt.Errorf("%w: invalid job name: %s", ErrJobValidationFailed, strings.Join(errs, ", "))
+	}
+	if newJobName == oldJobName {
+		return nil, fmt.Errorf("%w: new job name must be different from old job name", ErrJobValidationFailed)
 	}
 
 	oldJob, err := client.GetModelTransferJob(ctx, namespace, oldJobName)
@@ -157,117 +180,153 @@ func (m *ModelRegistryRepository) UpdateModelTransferJob(
 
 	oldConfigMapName := oldAnnotations["modelregistry.kubeflow.org/configmap-name"]
 	if oldConfigMapName == "" {
-		return nil, fmt.Errorf("old job is missing required annotation: modelregistry.kubeflow.org/configmap-name")
+		return nil, fmt.Errorf("old job missing required annotation: configmap-name (job may not have been created via this API)")
 	}
 
 	oldDestSecretName := oldAnnotations["modelregistry.kubeflow.org/dest-secret"]
 	if oldDestSecretName == "" {
-		return nil, fmt.Errorf("old job is missing required annotation: modelregistry.kubeflow.org/dest-secret")
+		return nil, fmt.Errorf("old job missing required annotation: dest-secret")
 	}
 
 	oldSourceSecretName := oldAnnotations["modelregistry.kubeflow.org/source-secret"]
 
-	if deleteOldJob {
-		oldSourceSecret, _ := client.GetSecret(ctx, namespace, oldSourceSecretName)
-		oldDestSecret, _ := client.GetSecret(ctx, namespace, oldDestSecretName)
-		oldConfigMap, _ := client.GetConfigMap(ctx, namespace, oldConfigMapName)
+	if newPayload.Source.Type == "" {
+		if sourceType := oldAnnotations["modelregistry.kubeflow.org/source-type"]; sourceType != "" {
+			newPayload.Source.Type = models.ModelTransferJobSourceType(sourceType)
+		}
+	}
+	if newPayload.Source.Bucket == "" {
+		newPayload.Source.Bucket = oldAnnotations["modelregistry.kubeflow.org/source-bucket"]
+	}
+	if newPayload.Source.Key == "" {
+		newPayload.Source.Key = oldAnnotations["modelregistry.kubeflow.org/source-key"]
+	}
+	if newPayload.Source.URI == "" {
+		newPayload.Source.URI = oldAnnotations["modelregistry.kubeflow.org/source-uri"]
+	}
+	if newPayload.Destination.Type == "" {
+		if destType := oldAnnotations["modelregistry.kubeflow.org/dest-type"]; destType != "" {
+			newPayload.Destination.Type = models.ModelTransferJobDestinationType(destType)
+		}
+	}
+	if newPayload.Destination.Registry == "" {
+		newPayload.Destination.Registry = oldAnnotations["modelregistry.kubeflow.org/dest-registry"]
+	}
+	if newPayload.Destination.URI == "" {
+		newPayload.Destination.URI = oldAnnotations["modelregistry.kubeflow.org/dest-uri"]
+	}
+	if newPayload.UploadIntent == "" {
+		newPayload.UploadIntent = models.ModelTransferJobUploadIntent(oldAnnotations["modelregistry.kubeflow.org/upload-intent"])
+	}
+	if newPayload.RegisteredModelName == "" {
+		newPayload.RegisteredModelName = oldAnnotations["modelregistry.kubeflow.org/model-name"]
+	}
+	if newPayload.ModelVersionName == "" {
+		newPayload.ModelVersionName = oldAnnotations["modelregistry.kubeflow.org/version-name"]
+	}
 
+	oldConfigMap, err := client.GetConfigMap(ctx, namespace, oldConfigMapName)
+	if err != nil {
+		logger.Warn("failed to get old configmap", "name", oldConfigMapName, "error", err)
+	}
+
+	var oldSourceSecret *corev1.Secret
+	if oldSourceSecretName != "" {
+		oldSourceSecret, err = client.GetSecret(ctx, namespace, oldSourceSecretName)
+		if err != nil {
+			logger.Warn("failed to get old source secret", "name", oldSourceSecretName, "error", err)
+		}
+	}
+
+	oldDestSecret, err := client.GetSecret(ctx, namespace, oldDestSecretName)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get old dest secret: %w", err)
+	}
+
+	if newPayload.Source.Type == models.ModelTransferJobSourceTypeS3 {
+		if newPayload.Source.AwsAccessKeyId == "" && oldSourceSecret != nil && oldSourceSecret.Data != nil {
+			if val, ok := oldSourceSecret.Data["AWS_ACCESS_KEY_ID"]; ok {
+				newPayload.Source.AwsAccessKeyId = string(val)
+			}
+
+			if val, ok := oldSourceSecret.Data["AWS_SECRET_ACCESS_KEY"]; ok {
+				newPayload.Source.AwsSecretAccessKey = string(val)
+			}
+
+			if newPayload.Source.Region == "" {
+				if val, ok := oldSourceSecret.Data["AWS_DEFAULT_REGION"]; ok {
+					newPayload.Source.Region = string(val)
+				}
+			}
+			if newPayload.Source.Endpoint == "" {
+				if val, ok := oldSourceSecret.Data["AWS_S3_ENDPOINT"]; ok {
+					newPayload.Source.Endpoint = string(val)
+				}
+			}
+		}
+	}
+
+	// we need to find a way to clone the dest secret insted of accessing the creds.
+	if newPayload.Destination.Username == "" && oldDestSecret != nil && oldDestSecret.Data != nil {
+		if val, ok := oldDestSecret.Data["username"]; ok {
+			newPayload.Destination.Username = string(val)
+		}
+		if val, ok := oldDestSecret.Data["password"]; ok {
+			newPayload.Destination.Password = string(val)
+		}
+		if val, ok := oldDestSecret.Data["email"]; ok {
+			newPayload.Destination.Email = string(val)
+		}
+	}
+
+	if newPayload.ModelArtifactName == "" && oldConfigMap != nil && oldConfigMap.Data != nil {
+		if val, ok := oldConfigMap.Data["ModelArtifact.name"]; ok {
+			newPayload.ModelArtifactName = val
+		}
+	}
+
+	if err := validateCreatePayload(newPayload); err != nil {
+		return nil, fmt.Errorf("validation error: %w", err)
+	}
+
+	// if owner reference is set, why do we need to delete the configmap and secret seperately?
+	if deleteOldJob {
 		if err := client.DeleteModelTransferJob(ctx, namespace, oldJobName); err != nil {
 			logger.Warn("failed to delete old job", "name", oldJobName, "error", err)
 		}
-		if oldConfigMapName != "" {
-			if err := client.DeleteConfigMap(ctx, namespace, oldConfigMapName); err != nil {
-				logger.Warn("failed to delete old configmap", "name", oldConfigMapName, "error", err)
-			}
+
+		if err := client.DeleteConfigMap(ctx, namespace, oldConfigMapName); err != nil {
+			logger.Warn("failed to delete old configmap", "name", oldConfigMapName, "error", err)
 		}
+
 		if oldSourceSecretName != "" {
 			if err := client.DeleteSecret(ctx, namespace, oldSourceSecretName); err != nil {
 				logger.Warn("failed to delete old source secret", "name", oldSourceSecretName, "error", err)
 			}
 		}
-		if oldDestSecretName != "" {
-			if err := client.DeleteSecret(ctx, namespace, oldDestSecretName); err != nil {
-				logger.Warn("failed to delete old dest secret", "name", oldDestSecretName, "error", err)
-			}
+
+		if err := client.DeleteSecret(ctx, namespace, oldDestSecretName); err != nil {
+			logger.Warn("failed to delete old dest secret", "name", oldDestSecretName, "error", err)
 		}
-
-		mergedPayload := mergePayloadWithOldData(newPayload, oldJob, oldSourceSecret, oldDestSecret, oldConfigMap)
-
-		return m.CreateModelTransferJob(ctx, client, namespace, mergedPayload, modelRegistryID)
-	} else {
-
-		newJobName := newPayload.Name
-
-		if newJobName == oldJobName {
-			return nil, fmt.Errorf("new job name must be different from old job name (%s)", oldJobName)
-		}
-
-		newJobId := uuid.NewString()
-
-		modelRegistryAddress, err := m.getModelRegistryAddress(ctx, client, namespace, modelRegistryID)
-		if err != nil {
-			return nil, err
-		}
-
-		job := buildFullK8sJob(newJobName, namespace, newJobId, newPayload,
-			oldConfigMapName, oldSourceSecretName, oldDestSecretName, modelRegistryAddress)
-
-		if err := client.CreateModelTransferJob(ctx, namespace, job); err != nil {
-			return nil, fmt.Errorf("failed to create new job: %w", err)
-		}
-
-		createdJob, err := client.GetModelTransferJob(ctx, namespace, newJobName)
-		if err != nil {
-			return nil, fmt.Errorf("failed to get created job: %w", err)
-		}
-
-		result := convertK8sJobToModel(createdJob)
-		return &result, nil
 	}
+
+	return m.CreateModelTransferJob(ctx, client, namespace, newPayload, modelRegistryID)
 }
 
 func (m *ModelRegistryRepository) DeleteModelTransferJob(ctx context.Context, client k8s.KubernetesClientInterface, namespace string, jobName string) (*models.ModelTransferJob, error) {
-	var errs []string
-
 	job, err := client.GetModelTransferJob(ctx, namespace, jobName)
 	if err != nil {
 		if apierrors.IsNotFound(err) {
 			return nil, fmt.Errorf("%w: %s", ErrJobNotFound, jobName)
 		}
-		errs = append(errs, fmt.Sprintf("could not get job for cleanup: %v", err))
-	}
-
-	var configMapName, sourceSecretName, destSecretName string
-	if job != nil && job.Annotations != nil {
-		configMapName = job.Annotations["modelregistry.kubeflow.org/configmap-name"]
-		sourceSecretName = job.Annotations["modelregistry.kubeflow.org/source-secret"]
-		destSecretName = job.Annotations["modelregistry.kubeflow.org/dest-secret"]
+		return nil, fmt.Errorf("failed to get job: %w", err)
 	}
 
 	if err := client.DeleteModelTransferJob(ctx, namespace, jobName); err != nil {
+		if apierrors.IsNotFound(err) {
+			return nil, fmt.Errorf("%w: %s", ErrJobNotFound, jobName)
+		}
 		return nil, fmt.Errorf("failed to delete model transfer job %s: %w", jobName, err)
-	}
-
-	if configMapName != "" {
-		if err := client.DeleteConfigMap(ctx, namespace, configMapName); err != nil {
-			errs = append(errs, fmt.Sprintf("failed to delete configmap %s: %v", configMapName, err))
-		}
-	}
-	if sourceSecretName != "" {
-		if err := client.DeleteSecret(ctx, namespace, sourceSecretName); err != nil {
-			errs = append(errs, fmt.Sprintf("failed to delete source secret %s: %v", sourceSecretName, err))
-		}
-	}
-	if destSecretName != "" {
-		if err := client.DeleteSecret(ctx, namespace, destSecretName); err != nil {
-			errs = append(errs, fmt.Sprintf("failed to delete destination secret %s: %v", destSecretName, err))
-		}
-	}
-
-	if len(errs) > 0 {
-		result := convertK8sJobToModel(job)
-
-		return &result, fmt.Errorf("job deleted but cleanup had errors: %s", strings.Join(errs, "; "))
 	}
 
 	result := convertK8sJobToModel(job)
@@ -282,7 +341,7 @@ func (m *ModelRegistryRepository) getModelRegistryAddress(ctx context.Context, c
 	return modelRegistry.ServerAddress, nil
 }
 
-func buildFullK8sJob(jobName, namespace, jobId string, payload models.ModelTransferJob,
+func buildK8sJob(jobName, namespace, jobID string, payload models.ModelTransferJob,
 	configMapName, sourceSecretName, destSecretName, modelRegistryAddress string) *batchv1.Job {
 
 	backoffLimit := int32(3)
@@ -316,6 +375,7 @@ func buildFullK8sJob(jobName, namespace, jobId string, payload models.ModelTrans
 		{Name: "destination-credentials", MountPath: "/opt/creds/destination", ReadOnly: true},
 		{Name: "model-metadata", MountPath: "/etc/model-metadata", ReadOnly: true},
 	}
+	registryPort, registrySecure := parseRegistryServerAddress(modelRegistryAddress)
 	envVars := []corev1.EnvVar{
 		{Name: "MODEL_SYNC_SOURCE_TYPE", Value: string(payload.Source.Type)},
 		{Name: "MODEL_SYNC_DESTINATION_TYPE", Value: string(payload.Destination.Type)},
@@ -324,22 +384,28 @@ func buildFullK8sJob(jobName, namespace, jobId string, payload models.ModelTrans
 		{Name: "MODEL_SYNC_DESTINATION_OCI_BASE_IMAGE", Value: baseImage},
 		{Name: "MODEL_SYNC_DESTINATION_OCI_CREDENTIALS_PATH", Value: "/opt/creds/destination/.dockerconfigjson"},
 		{Name: "MODEL_SYNC_REGISTRY_SERVER_ADDRESS", Value: modelRegistryAddress},
+		{Name: "MODEL_SYNC_REGISTRY_PORT", Value: registryPort},
+		{Name: "MODEL_SYNC_REGISTRY_IS_SECURE", Value: strconv.FormatBool(registrySecure)},
 		{Name: "MODEL_SYNC_METADATA_CONFIGMAP_PATH", Value: "/etc/model-metadata"},
 		{Name: "MODEL_SYNC_MODEL_UPLOAD_INTENT", Value: string(payload.UploadIntent)},
 	}
 
 	annotations := map[string]string{
-		"modelregistry.kubeflow.org/source-type":    string(payload.Source.Type),
-		"modelregistry.kubeflow.org/dest-type":      string(payload.Destination.Type),
-		"modelregistry.kubeflow.org/dest-uri":       payload.Destination.URI,
-		"modelregistry.kubeflow.org/dest-registry":  payload.Destination.Registry,
-		"modelregistry.kubeflow.org/upload-intent":  string(payload.UploadIntent),
-		"modelregistry.kubeflow.org/model-name":     payload.RegisteredModelName,
-		"modelregistry.kubeflow.org/version-name":   payload.ModelVersionName,
-		"modelregistry.kubeflow.org/description":    payload.Description,
-		"modelregistry.kubeflow.org/author":         payload.Author,
-		"modelregistry.kubeflow.org/configmap-name": configMapName,
-		"modelregistry.kubeflow.org/dest-secret":    destSecretName,
+		"modelregistry.kubeflow.org/source-type":         string(payload.Source.Type),
+		"modelregistry.kubeflow.org/dest-type":           string(payload.Destination.Type),
+		"modelregistry.kubeflow.org/dest-uri":            payload.Destination.URI,
+		"modelregistry.kubeflow.org/dest-registry":       payload.Destination.Registry,
+		"modelregistry.kubeflow.org/upload-intent":       string(payload.UploadIntent),
+		"modelregistry.kubeflow.org/model-name":          payload.RegisteredModelName,
+		"modelregistry.kubeflow.org/version-name":        payload.ModelVersionName,
+		"modelregistry.kubeflow.org/artifact-name":       payload.ModelVersionName,
+		"modelregistry.kubeflow.org/description":         payload.Description,
+		"modelregistry.kubeflow.org/author":              payload.Author,
+		"modelregistry.kubeflow.org/configmap-name":      configMapName,
+		"modelregistry.kubeflow.org/dest-secret":         destSecretName,
+		"modelregistry.kubeflow.org/registered-model-id": payload.RegisteredModelId,
+		"modelregistry.kubeflow.org/model-version-id":    payload.ModelVersionId,
+		"modelregistry.kubeflow.org/model-artifact-id":   payload.ModelArtifactId,
 	}
 
 	switch payload.Source.Type {
@@ -376,7 +442,7 @@ func buildFullK8sJob(jobName, namespace, jobId string, payload models.ModelTrans
 			Namespace: namespace,
 			Labels: map[string]string{
 				"modelregistry.kubeflow.org/job-type": "async-upload",
-				"modelregistry.kubeflow.org/job-id":   jobId,
+				"modelregistry.kubeflow.org/job-id":   jobID,
 			},
 			Annotations: annotations,
 		},
@@ -472,6 +538,7 @@ func convertK8sJobToModel(job *batchv1.Job) models.ModelTransferJob {
 		UploadIntent:             models.ModelTransferJobUploadIntent(annotations["modelregistry.kubeflow.org/upload-intent"]),
 		RegisteredModelName:      annotations["modelregistry.kubeflow.org/model-name"],
 		ModelVersionName:         annotations["modelregistry.kubeflow.org/version-name"],
+		ModelArtifactName:        annotations["modelregistry.kubeflow.org/version-name"],
 		RegisteredModelId:        annotations["modelregistry.kubeflow.org/registered-model-id"],
 		ModelVersionId:           annotations["modelregistry.kubeflow.org/model-version-id"],
 		ModelArtifactId:          annotations["modelregistry.kubeflow.org/model-artifact-id"],
@@ -484,35 +551,47 @@ func convertK8sJobToModel(job *batchv1.Job) models.ModelTransferJob {
 	}
 }
 
-func buildModelMetadataConfigMap(name, namespace string, payload models.ModelTransferJob, jobId string) *corev1.ConfigMap {
+func buildModelMetadataConfigMap(name, namespace string, payload models.ModelTransferJob, jobID string) *corev1.ConfigMap {
+	data := map[string]string{
+		"ModelVersion.name":   payload.ModelVersionName,
+		"ModelVersion.author": payload.Author,
+		"ModelArtifact.name":  payload.ModelVersionName,
+	}
+
+	switch payload.UploadIntent {
+	case models.ModelTransferJobUploadIntentCreateModel:
+		data["RegisteredModel.name"] = payload.RegisteredModelName
+		data["RegisteredModel.description"] = payload.Description
+		data["RegisteredModel.owner"] = payload.Author
+	case models.ModelTransferJobUploadIntentCreateVersion:
+		data["RegisteredModel.id"] = payload.RegisteredModelId
+	case models.ModelTransferJobUploadIntentUpdateArtifact:
+		data["RegisteredModel.id"] = payload.RegisteredModelId
+		data["ModelVersion.id"] = payload.ModelVersionId
+		data["ModelArtifact.id"] = payload.ModelArtifactId
+	}
+
 	return &corev1.ConfigMap{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      name,
 			Namespace: namespace,
 			Labels: map[string]string{
 				"modelregistry.kubeflow.org/job-type": "async-upload",
-				"modelregistry.kubeflow.org/job-id":   jobId,
+				"modelregistry.kubeflow.org/job-id":   jobID,
 			},
 		},
-		Data: map[string]string{
-			"RegisteredModel.name":        payload.RegisteredModelName,
-			"RegisteredModel.description": payload.Description,
-			"RegisteredModel.owner":       payload.Author,
-			"ModelVersion.name":           payload.ModelVersionName,
-			"ModelVersion.author":         payload.Author,
-			"ModelArtifact.name":          payload.ModelArtifactName,
-		},
+		Data: data,
 	}
 }
 
-func buildSourceSecret(name, namespace string, payload models.ModelTransferJob, jobId string) *corev1.Secret {
+func buildSourceSecret(name, namespace string, payload models.ModelTransferJob, jobID string) *corev1.Secret {
 	return &corev1.Secret{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      name,
 			Namespace: namespace,
 			Labels: map[string]string{
 				"modelregistry.kubeflow.org/job-type": "async-upload",
-				"modelregistry.kubeflow.org/job-id":   jobId,
+				"modelregistry.kubeflow.org/job-id":   jobID,
 			},
 		},
 		Type: corev1.SecretTypeOpaque,
@@ -526,19 +605,13 @@ func buildSourceSecret(name, namespace string, payload models.ModelTransferJob, 
 	}
 }
 
-func buildDestinationSecret(name, namespace string, payload models.ModelTransferJob, jobId string) (*corev1.Secret, error) {
-	// Build docker config JSON for OCI authentication
+func buildDestinationSecret(name, namespace string, payload models.ModelTransferJob, jobID string) (*corev1.Secret, error) {
 	// NOTE: Due to async-upload bug, auth is NOT base64 encoded here
 	auth := fmt.Sprintf("%s:%s", payload.Destination.Username, payload.Destination.Password)
 
 	registry := payload.Destination.Registry
 	if registry == "" {
-		parts := strings.Split(payload.Destination.URI, "/")
-		if len(parts) > 0 && parts[0] != "" {
-			registry = parts[0]
-		} else {
-			return nil, fmt.Errorf("cannot determine registry from destination URI: %s", payload.Destination.URI)
-		}
+		registry, _ = extractRegistryFromURI(payload.Destination.URI)
 	}
 
 	dockerConfig := fmt.Sprintf(`{"auths":{"%s":{"auth":"%s","email":"%s"}}}`,
@@ -550,118 +623,18 @@ func buildDestinationSecret(name, namespace string, payload models.ModelTransfer
 			Namespace: namespace,
 			Labels: map[string]string{
 				"modelregistry.kubeflow.org/job-type": "async-upload",
-				"modelregistry.kubeflow.org/job-id":   jobId,
+				"modelregistry.kubeflow.org/job-id":   jobID,
 			},
 		},
 		Type: corev1.SecretTypeDockerConfigJson,
 		StringData: map[string]string{
 			".dockerconfigjson": dockerConfig,
+			"username":          payload.Destination.Username,
+			"password":          payload.Destination.Password,
+			"email":             payload.Destination.Email,
+			"registry":          registry,
 		},
 	}, nil
-}
-
-func mergePayloadWithOldData(newPayload models.ModelTransferJob,
-	oldJob *batchv1.Job,
-	oldSourceSecret *corev1.Secret, oldDestSecret *corev1.Secret,
-	oldConfigMap *corev1.ConfigMap) models.ModelTransferJob {
-
-	oldAnnotations := map[string]string{}
-	if oldJob != nil && oldJob.Annotations != nil {
-		oldAnnotations = oldJob.Annotations
-	}
-
-	if newPayload.Source.Type == "" {
-		newPayload.Source.Type = models.ModelTransferJobSourceType(
-			oldAnnotations["modelregistry.kubeflow.org/source-type"])
-	}
-
-	if newPayload.Source.Key == "" {
-		newPayload.Source.Key = oldAnnotations["modelregistry.kubeflow.org/source-key"]
-	}
-
-	if newPayload.Source.URI == "" {
-		newPayload.Source.URI = oldAnnotations["modelregistry.kubeflow.org/source-uri"]
-	}
-
-	if newPayload.Destination.URI == "" {
-		newPayload.Destination.URI = oldAnnotations["modelregistry.kubeflow.org/dest-uri"]
-	}
-
-	if newPayload.Destination.Type == "" {
-		newPayload.Destination.Type = models.ModelTransferJobDestinationType(
-			oldAnnotations["modelregistry.kubeflow.org/dest-type"])
-	}
-
-	if newPayload.UploadIntent == "" {
-		newPayload.UploadIntent = models.ModelTransferJobUploadIntent(
-			oldAnnotations["modelregistry.kubeflow.org/upload-intent"])
-	}
-
-	if newPayload.Source.AwsAccessKeyId == "" && oldSourceSecret != nil && oldSourceSecret.Data != nil {
-		if val, ok := oldSourceSecret.Data["AWS_ACCESS_KEY_ID"]; ok {
-			newPayload.Source.AwsAccessKeyId = string(val)
-		}
-		if val, ok := oldSourceSecret.Data["AWS_SECRET_ACCESS_KEY"]; ok {
-			newPayload.Source.AwsSecretAccessKey = string(val)
-		}
-		if newPayload.Source.Region == "" {
-			if val, ok := oldSourceSecret.Data["AWS_DEFAULT_REGION"]; ok {
-				newPayload.Source.Region = string(val)
-			}
-		}
-		if newPayload.Source.Endpoint == "" {
-			if val, ok := oldSourceSecret.Data["AWS_S3_ENDPOINT"]; ok {
-				newPayload.Source.Endpoint = string(val)
-			}
-		}
-		if newPayload.Source.Bucket == "" {
-			if val, ok := oldSourceSecret.Data["AWS_S3_BUCKET"]; ok {
-				newPayload.Source.Bucket = string(val)
-			}
-		}
-	}
-
-	if newPayload.Destination.Username == "" && oldDestSecret != nil && oldDestSecret.Data != nil {
-		if val, ok := oldDestSecret.Data["username"]; ok {
-			newPayload.Destination.Username = string(val)
-		}
-		if val, ok := oldDestSecret.Data["password"]; ok {
-			newPayload.Destination.Password = string(val)
-		}
-		if val, ok := oldDestSecret.Data["email"]; ok {
-			newPayload.Destination.Email = string(val)
-		}
-		if newPayload.Destination.Registry == "" {
-			if val, ok := oldDestSecret.Data["registry"]; ok {
-				newPayload.Destination.Registry = string(val)
-			}
-		}
-	}
-
-	if oldConfigMap != nil && oldConfigMap.Data != nil {
-		if newPayload.RegisteredModelName == "" {
-			if val, ok := oldConfigMap.Data["RegisteredModel.name"]; ok {
-				newPayload.RegisteredModelName = val
-			}
-		}
-		if newPayload.ModelVersionName == "" {
-			if val, ok := oldConfigMap.Data["ModelVersion.name"]; ok {
-				newPayload.ModelVersionName = val
-			}
-		}
-		if newPayload.Description == "" {
-			if val, ok := oldConfigMap.Data["RegisteredModel.description"]; ok {
-				newPayload.Description = val
-			}
-		}
-		if newPayload.Author == "" {
-			if val, ok := oldConfigMap.Data["ModelVersion.author"]; ok {
-				newPayload.Author = val
-			}
-		}
-	}
-
-	return newPayload
 }
 
 func validateCreatePayload(payload models.ModelTransferJob) error {
@@ -709,13 +682,14 @@ func validateCreatePayload(payload models.ModelTransferJob) error {
 		if payload.Destination.URI == "" {
 			return fmt.Errorf("%w: destination URI is required for OCI destination type", ErrJobValidationFailed)
 		}
+
 		registry := payload.Destination.Registry
 		if registry == "" {
-			parts := strings.Split(payload.Destination.URI, "/")
-			if len(parts) == 0 || parts[0] == "" {
-				return fmt.Errorf("invalid destination URI: cannot extract registry from %s", payload.Destination.URI)
+			if _, err := extractRegistryFromURI(payload.Destination.URI); err != nil {
+				return fmt.Errorf("%w: cannot extract registry from destination URI: %w", ErrJobValidationFailed, err)
 			}
 		}
+
 		if payload.Destination.Username == "" {
 			return fmt.Errorf("%w: destination username is required for OCI destination type", ErrJobValidationFailed)
 		}
@@ -760,4 +734,71 @@ func validateCreatePayload(payload models.ModelTransferJob) error {
 	}
 
 	return nil
+}
+
+func cleanupCreatedResources(ctx context.Context, client k8s.KubernetesClientInterface, namespace, configMapName, sourceSecretName, destSecretName string) {
+	logger := helper.GetContextLogger(ctx)
+
+	if configMapName != "" {
+		if err := client.DeleteConfigMap(ctx, namespace, configMapName); err != nil {
+			logger.Warn("failed to cleanup configmap", "name", configMapName, "error", err)
+		}
+	}
+	if sourceSecretName != "" {
+		if err := client.DeleteSecret(ctx, namespace, sourceSecretName); err != nil {
+			logger.Warn("failed to cleanup source secret", "name", sourceSecretName, "error", err)
+		}
+	}
+	if destSecretName != "" {
+		if err := client.DeleteSecret(ctx, namespace, destSecretName); err != nil {
+			logger.Warn("failed to cleanup dest secret", "name", destSecretName, "error", err)
+		}
+	}
+}
+
+func extractRegistryFromURI(uri string) (string, error) {
+	parts := strings.Split(uri, "/")
+	if len(parts) > 0 && parts[0] != "" {
+		return parts[0], nil
+	}
+	return "", fmt.Errorf("cannot extract registry from URI: %s", uri)
+}
+
+func parseRegistryServerAddress(serverAddress string) (port string, isSecure bool) {
+	u, err := url.Parse(serverAddress)
+	if err != nil {
+		return "8080", false
+	}
+	port = u.Port()
+	if port == "" {
+		if strings.ToLower(u.Scheme) == "https" {
+			port = "443"
+		} else {
+			port = "80"
+		}
+	}
+	isSecure = strings.ToLower(u.Scheme) == "https"
+	return port, isSecure
+}
+
+func cloneDestSecretFromExisting(newName, namespace, jobID string, oldSecret *corev1.Secret) *corev1.Secret {
+    if oldSecret == nil {
+        return nil
+    }
+    data := make(map[string][]byte)
+    for k, v := range oldSecret.Data {
+        data[k] = append([]byte(nil), v...)
+    }
+    return &corev1.Secret{
+        ObjectMeta: metav1.ObjectMeta{
+            Name:      newName,
+            Namespace: namespace,
+            Labels: map[string]string{
+                "modelregistry.kubeflow.org/job-type": "async-upload",
+                "modelregistry.kubeflow.org/job-id":   jobID,
+            },
+        },
+        Type: corev1.SecretTypeDockerConfigJson,
+        Data: data,
+    }
 }

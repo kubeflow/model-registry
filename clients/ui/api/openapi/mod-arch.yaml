@@ -1154,7 +1154,7 @@ paths:
       operationId: createModelTransferJob
       summary: Create a Model Transfer Job
       description: Creates a new instance of a `ModelTransferJob`.
-  /api/v1/model_registry/{modelRegistryName}/model_transfer_jobs/{modelTransferJobId}:
+  /api/v1/model_registry/{modelRegistryName}/model_transfer_jobs/{modelTransferJobName}:
     summary: Path used to manage a single ModelTransferJob.
     description: >-
       The REST endpoint/path used to update and delete single instances of a `ModelTransferJob`.
@@ -1177,7 +1177,7 @@ paths:
       parameters:
         - $ref: "#/components/parameters/modelRegistryName"
         - $ref: "#/components/parameters/kubeflowUserId"
-        - $ref: "#/components/parameters/modelTransferJobId"
+        - $ref: "#/components/parameters/modelTransferJobName"
       responses:
         "200":
           $ref: "#/components/responses/ModelTransferJobResponse"
@@ -1198,7 +1198,7 @@ paths:
       parameters:
         - $ref: "#/components/parameters/modelRegistryName"
         - $ref: "#/components/parameters/kubeflowUserId"
-        - $ref: "#/components/parameters/modelTransferJobId"
+        - $ref: "#/components/parameters/modelTransferJobName"
       responses:
         "204":
           description: Successfully deleted
