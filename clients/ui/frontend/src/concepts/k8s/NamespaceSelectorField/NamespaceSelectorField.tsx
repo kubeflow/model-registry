@@ -1,5 +1,4 @@
 import React, { useRef } from 'react';
-import { Link } from 'react-router-dom';
 import {
   Box,
   FormControl,
@@ -22,7 +21,6 @@ import {
 import { useNamespaceSelector } from 'mod-arch-core';
 import { useThemeContext } from 'mod-arch-kubeflow';
 import { useCheckNamespaceRegistryAccess } from '~/app/hooks/useCheckNamespaceRegistryAccess';
-import useUser from '~/app/hooks/useUser';
 
 const NAMESPACE_SELECTOR_TOOLTIP =
   'This list includes only namespaces that you and the selected model registry have permission to access. To request access to a new or existing namespace, contact your administrator.';
@@ -30,11 +28,8 @@ const NAMESPACE_SELECTOR_TOOLTIP =
 const NAMESPACE_NO_ACCESS_MESSAGE =
   'You do not have access to any namespaces. To request access to a new or existing namespace, contact your administrator.';
 
-const SELECTED_NAMESPACE_NO_ACCESS_MESSAGE_ADMIN =
-  'The selected namespace does not have access to this model registry. To grant access, click Manage permissions for this registry on the Model registry settings page.';
-const SELECTED_NAMESPACE_NO_ACCESS_MESSAGE_USER =
+const SELECTED_NAMESPACE_NO_ACCESS_MESSAGE =
   'The selected namespace does not have access to this model registry. Contact your administrator to grant access.';
-const MODEL_REGISTRY_SETTINGS_LINK_LABEL = 'Go to Model registry settings';
 
 const WHO_IS_MY_ADMIN_POPOVER_CONTENT = (
   <Stack hasGutter>
@@ -74,7 +69,6 @@ const NamespaceSelectorField: React.FC<NamespaceSelectorFieldProps> = ({
   onAccessChange,
 }) => {
   const labelHelpRef = useRef<HTMLSpanElement>(null);
-  const { clusterAdmin } = useUser();
   const { hasAccess, isLoading, error } = useCheckNamespaceRegistryAccess(
     registryName,
     registryNamespace,
@@ -208,20 +202,10 @@ const NamespaceSelectorField: React.FC<NamespaceSelectorFieldProps> = ({
         <Alert
           isInline
           variant="warning"
-          title={
-            clusterAdmin
-              ? SELECTED_NAMESPACE_NO_ACCESS_MESSAGE_ADMIN
-              : SELECTED_NAMESPACE_NO_ACCESS_MESSAGE_USER
-          }
+          title={SELECTED_NAMESPACE_NO_ACCESS_MESSAGE}
           data-testid="namespace-registry-access-alert"
           className="pf-v6-u-mt-sm"
-        >
-          {clusterAdmin && (
-            <Link to="/model-registry-settings" target="_blank" rel="noopener noreferrer">
-              {MODEL_REGISTRY_SETTINGS_LINK_LABEL}
-            </Link>
-          )}
-        </Alert>
+        />
       )}
       {error && (
         <Alert

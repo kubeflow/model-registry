@@ -158,20 +158,6 @@ class RegisterAndStoreFields {
     return this;
   }
 
-  shouldShowNoAccessWarningWithAdminLink() {
-    this.findNamespaceRegistryAccessAlert().should('be.visible');
-    cy.findByRole('link', { name: 'Go to Model registry settings' }).should('exist');
-    return this;
-  }
-
-  shouldShowNoAccessWarningWithoutAdminLink() {
-    this.findNamespaceRegistryAccessAlert()
-      .should('be.visible')
-      .and('contain.text', 'Contact your administrator to grant access');
-    cy.findByRole('link', { name: 'Go to Model registry settings' }).should('not.exist');
-    return this;
-  }
-
   findCreateButton() {
     return cy.findByTestId('create-button');
   }
