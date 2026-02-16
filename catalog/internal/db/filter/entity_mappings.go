@@ -12,8 +12,8 @@ type CatalogRestEntityType string
 const (
 	RestEntityCatalogModel    CatalogRestEntityType = "CatalogModel"
 	RestEntityCatalogArtifact CatalogRestEntityType = "CatalogArtifact"
-	RestEntityMcpServer       CatalogRestEntityType = "McpServer"
-	RestEntityMcpServerTool   CatalogRestEntityType = "McpServerTool"
+	RestEntityMCPServer       CatalogRestEntityType = "MCPServer"
+	RestEntityMCPServerTool   CatalogRestEntityType = "MCPServerTool"
 )
 
 // catalogEntityMappings implements EntityMappingFunctions for the catalog package
@@ -29,7 +29,7 @@ func (c *catalogEntityMappings) GetMLMDEntityType(restEntityType filter.RestEnti
 	switch restEntityType {
 	case filter.RestEntityType(RestEntityCatalogArtifact):
 		return filter.EntityTypeArtifact
-	case filter.RestEntityType(RestEntityMcpServerTool):
+	case filter.RestEntityType(RestEntityMCPServerTool):
 		return filter.EntityTypeArtifact
 	default:
 		return filter.EntityTypeContext
@@ -68,14 +68,14 @@ func (c *catalogEntityMappings) GetPropertyDefinitionForRestEntity(restEntityTyp
 		}
 	}
 
-	if restEntityType == filter.RestEntityType(RestEntityMcpServer) {
+	if restEntityType == filter.RestEntityType(RestEntityMCPServer) {
 		if _, isWellKnown := mcpServerProperties[propertyName]; isWellKnown {
 			// Use the well-known property definition
 			return mcpServerProperties[propertyName]
 		}
 	}
 
-	if restEntityType == filter.RestEntityType(RestEntityMcpServerTool) {
+	if restEntityType == filter.RestEntityType(RestEntityMCPServerTool) {
 		if _, isWellKnown := mcpServerToolProperties[propertyName]; isWellKnown {
 			// Use the well-known property definition
 			return mcpServerToolProperties[propertyName]
@@ -135,7 +135,7 @@ var catalogArtifactProperties = map[string]filter.PropertyDefinition{
 	"artifactType": {Location: filter.PropertyTable, ValueType: filter.StringValueType, Column: "artifactType"},
 }
 
-// mcpServerProperties defines the allowed properties for McpServer entities.
+// mcpServerProperties defines the allowed properties for MCPServer entities.
 // This follows the same pattern as catalogModelProperties - only properties that are:
 // 1. Entity table columns (required for core identity)
 // 2. Key filterable dimensions that need explicit type handling (arrays, bools)
@@ -186,7 +186,7 @@ var mcpServerProperties = map[string]filter.PropertyDefinition{
 	"runtimeMetadata": {Location: filter.PropertyTable, ValueType: filter.StringValueType, Column: "runtimeMetadata"},
 }
 
-// mcpServerToolProperties defines the allowed properties for McpServerTool entities
+// mcpServerToolProperties defines the allowed properties for MCPServerTool entities
 var mcpServerToolProperties = map[string]filter.PropertyDefinition{
 	// Common Artifact properties
 	"id":                       {Location: filter.EntityTable, ValueType: filter.IntValueType, Column: "id"},
@@ -194,7 +194,7 @@ var mcpServerToolProperties = map[string]filter.PropertyDefinition{
 	"createTimeSinceEpoch":     {Location: filter.EntityTable, ValueType: filter.IntValueType, Column: "create_time_since_epoch"},
 	"lastUpdateTimeSinceEpoch": {Location: filter.EntityTable, ValueType: filter.IntValueType, Column: "last_update_time_since_epoch"},
 
-	// McpServerTool-specific properties stored in ArtifactProperty table
+	// MCPServerTool-specific properties stored in ArtifactProperty table
 	"description": {Location: filter.PropertyTable, ValueType: filter.StringValueType, Column: "description"},
 	"accessType":  {Location: filter.PropertyTable, ValueType: filter.StringValueType, Column: "accessType"},
 }

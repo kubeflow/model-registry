@@ -18,15 +18,15 @@ import (
 	model "github.com/kubeflow/model-registry/catalog/pkg/openapi"
 )
 
-// McpCatalogServiceAPIRouter defines the required methods for binding the api requests to a responses for the McpCatalogServiceAPI
-// The McpCatalogServiceAPIRouter implementation should parse necessary information from the http request,
-// pass the data to a McpCatalogServiceAPIServicer to perform the required actions, then write the service results to the http response.
-type McpCatalogServiceAPIRouter interface {
-	FindMcpServers(http.ResponseWriter, *http.Request)
-	FindMcpServersFilterOptions(http.ResponseWriter, *http.Request)
-	GetMcpServer(http.ResponseWriter, *http.Request)
-	FindMcpServerTools(http.ResponseWriter, *http.Request)
-	GetMcpServerTool(http.ResponseWriter, *http.Request)
+// MCPCatalogServiceAPIRouter defines the required methods for binding the api requests to a responses for the MCPCatalogServiceAPI
+// The MCPCatalogServiceAPIRouter implementation should parse necessary information from the http request,
+// pass the data to a MCPCatalogServiceAPIServicer to perform the required actions, then write the service results to the http response.
+type MCPCatalogServiceAPIRouter interface {
+	FindMCPServers(http.ResponseWriter, *http.Request)
+	FindMCPServersFilterOptions(http.ResponseWriter, *http.Request)
+	GetMCPServer(http.ResponseWriter, *http.Request)
+	FindMCPServerTools(http.ResponseWriter, *http.Request)
+	GetMCPServerTool(http.ResponseWriter, *http.Request)
 }
 
 // ModelCatalogServiceAPIRouter defines the required methods for binding the api requests to a responses for the ModelCatalogServiceAPI
@@ -43,16 +43,16 @@ type ModelCatalogServiceAPIRouter interface {
 	GetAllModelPerformanceArtifacts(http.ResponseWriter, *http.Request)
 }
 
-// McpCatalogServiceAPIServicer defines the api actions for the McpCatalogServiceAPI service
+// MCPCatalogServiceAPIServicer defines the api actions for the MCPCatalogServiceAPI service
 // This interface intended to stay up to date with the openapi yaml used to generate it,
 // while the service implementation can be ignored with the .openapi-generator-ignore file
 // and updated with the logic required for the API.
-type McpCatalogServiceAPIServicer interface {
-	FindMcpServers(context.Context, string, string, string, string, bool, int32, string, model.OrderByField, model.SortOrder, string) (ImplResponse, error)
-	FindMcpServersFilterOptions(context.Context) (ImplResponse, error)
-	GetMcpServer(context.Context, string, bool) (ImplResponse, error)
-	FindMcpServerTools(context.Context, string, string, string, model.OrderByField, model.SortOrder, string) (ImplResponse, error)
-	GetMcpServerTool(context.Context, string, string) (ImplResponse, error)
+type MCPCatalogServiceAPIServicer interface {
+	FindMCPServers(context.Context, string, string, string, string, bool, int32, string, model.OrderByField, model.SortOrder, string) (ImplResponse, error)
+	FindMCPServersFilterOptions(context.Context) (ImplResponse, error)
+	GetMCPServer(context.Context, string, bool) (ImplResponse, error)
+	FindMCPServerTools(context.Context, string, string, string, model.OrderByField, model.SortOrder, string) (ImplResponse, error)
+	GetMCPServerTool(context.Context, string, string) (ImplResponse, error)
 }
 
 // ModelCatalogServiceAPIServicer defines the api actions for the ModelCatalogServiceAPI service

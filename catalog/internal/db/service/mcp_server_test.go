@@ -20,18 +20,18 @@ import (
 	"gorm.io/gorm"
 )
 
-func TestMcpServerRepository(t *testing.T) {
+func TestMCPServerRepository(t *testing.T) {
 	sharedDB, cleanup := testutils.SetupPostgresWithMigrations(t, service.DatastoreSpec())
 	defer cleanup()
 
-	// Create or get the McpServer type ID
-	typeID := getMcpServerTypeID(t, sharedDB)
-	repo := service.NewMcpServerRepository(sharedDB, typeID)
+	// Create or get the MCPServer type ID
+	typeID := getMCPServerTypeID(t, sharedDB)
+	repo := service.NewMCPServerRepository(sharedDB, typeID)
 
 	t.Run("TestSave_Create", func(t *testing.T) {
 		// Test creating a new MCP server
-		mcpServer := &models.McpServerImpl{
-			Attributes: &models.McpServerAttributes{
+		mcpServer := &models.MCPServerImpl{
+			Attributes: &models.MCPServerAttributes{
 				Name:       apiutils.Of("test-mcp-server"),
 				ExternalID: apiutils.Of("mcp-ext-123"),
 			},
@@ -75,8 +75,8 @@ func TestMcpServerRepository(t *testing.T) {
 
 	t.Run("TestSave_Update", func(t *testing.T) {
 		// Create initial server
-		mcpServer := &models.McpServerImpl{
-			Attributes: &models.McpServerAttributes{
+		mcpServer := &models.MCPServerImpl{
+			Attributes: &models.MCPServerAttributes{
 				Name: apiutils.Of("update-test-server"),
 			},
 			Properties: &[]dbmodels.Properties{
@@ -96,9 +96,9 @@ func TestMcpServerRepository(t *testing.T) {
 		require.NotNil(t, saved.GetID())
 
 		// Update the server
-		updateServer := &models.McpServerImpl{
+		updateServer := &models.MCPServerImpl{
 			ID: saved.GetID(),
-			Attributes: &models.McpServerAttributes{
+			Attributes: &models.MCPServerAttributes{
 				Name:                     apiutils.Of("update-test-server"),
 				CreateTimeSinceEpoch:     saved.GetAttributes().CreateTimeSinceEpoch,
 			},
@@ -140,8 +140,8 @@ func TestMcpServerRepository(t *testing.T) {
 
 	t.Run("TestSave_UpsertByNameAndVersion_SameVersion", func(t *testing.T) {
 		// Create first server with name and version
-		server1 := &models.McpServerImpl{
-			Attributes: &models.McpServerAttributes{
+		server1 := &models.MCPServerImpl{
+			Attributes: &models.MCPServerAttributes{
 				Name: apiutils.Of("upsert-server"),
 			},
 			Properties: &[]dbmodels.Properties{
@@ -166,8 +166,8 @@ func TestMcpServerRepository(t *testing.T) {
 
 		// Save another server with same name and version (without ID)
 		// This should UPDATE the existing server
-		server2 := &models.McpServerImpl{
-			Attributes: &models.McpServerAttributes{
+		server2 := &models.MCPServerImpl{
+			Attributes: &models.MCPServerAttributes{
 				Name: apiutils.Of("upsert-server"),
 			},
 			Properties: &[]dbmodels.Properties{
@@ -205,8 +205,8 @@ func TestMcpServerRepository(t *testing.T) {
 
 	t.Run("TestSave_UpsertByNameAndVersion_DifferentVersions", func(t *testing.T) {
 		// Create first server with version 1.0.0
-		server1 := &models.McpServerImpl{
-			Attributes: &models.McpServerAttributes{
+		server1 := &models.MCPServerImpl{
+			Attributes: &models.MCPServerAttributes{
 				Name: apiutils.Of("multi-version-server"),
 			},
 			Properties: &[]dbmodels.Properties{
@@ -227,8 +227,8 @@ func TestMcpServerRepository(t *testing.T) {
 
 		// Save server with same name but different version (2.0.0)
 		// This should CREATE a new server
-		server2 := &models.McpServerImpl{
-			Attributes: &models.McpServerAttributes{
+		server2 := &models.MCPServerImpl{
+			Attributes: &models.MCPServerAttributes{
 				Name: apiutils.Of("multi-version-server"),
 			},
 			Properties: &[]dbmodels.Properties{
@@ -259,8 +259,8 @@ func TestMcpServerRepository(t *testing.T) {
 
 	t.Run("TestGetByID", func(t *testing.T) {
 		// Create a server
-		mcpServer := &models.McpServerImpl{
-			Attributes: &models.McpServerAttributes{
+		mcpServer := &models.MCPServerImpl{
+			Attributes: &models.MCPServerAttributes{
 				Name: apiutils.Of("get-by-id-test"),
 			},
 			Properties: &[]dbmodels.Properties{
@@ -284,13 +284,13 @@ func TestMcpServerRepository(t *testing.T) {
 
 		// Test non-existent ID
 		_, err = repo.GetByID(99999)
-		assert.ErrorIs(t, err, service.ErrMcpServerNotFound)
+		assert.ErrorIs(t, err, service.ErrMCPServerNotFound)
 	})
 
 	t.Run("TestGetByNameAndVersion_WithVersion", func(t *testing.T) {
 		// Create a server with version
-		mcpServer := &models.McpServerImpl{
-			Attributes: &models.McpServerAttributes{
+		mcpServer := &models.MCPServerImpl{
+			Attributes: &models.MCPServerAttributes{
 				Name: apiutils.Of("versioned-server"),
 			},
 			Properties: &[]dbmodels.Properties{
@@ -318,17 +318,17 @@ func TestMcpServerRepository(t *testing.T) {
 
 		// Test non-existent version
 		_, err = repo.GetByNameAndVersion("versioned-server", "2.0.0")
-		assert.ErrorIs(t, err, service.ErrMcpServerNotFound)
+		assert.ErrorIs(t, err, service.ErrMCPServerNotFound)
 
 		// Test non-existent name
 		_, err = repo.GetByNameAndVersion("non-existent-server", "1.0.0")
-		assert.ErrorIs(t, err, service.ErrMcpServerNotFound)
+		assert.ErrorIs(t, err, service.ErrMCPServerNotFound)
 	})
 
 	t.Run("TestGetByNameAndVersion_NoVersion", func(t *testing.T) {
 		// Create a server without version
-		mcpServer := &models.McpServerImpl{
-			Attributes: &models.McpServerAttributes{
+		mcpServer := &models.MCPServerImpl{
+			Attributes: &models.MCPServerAttributes{
 				Name: apiutils.Of("unversioned-server"),
 			},
 			Properties: &[]dbmodels.Properties{
@@ -356,14 +356,14 @@ func TestMcpServerRepository(t *testing.T) {
 
 		// Test non-existent name with no version
 		_, err = repo.GetByNameAndVersion("non-existent-unversioned", "")
-		assert.ErrorIs(t, err, service.ErrMcpServerNotFound)
+		assert.ErrorIs(t, err, service.ErrMCPServerNotFound)
 	})
 
 	t.Run("TestList_Basic", func(t *testing.T) {
 		// Create multiple servers
-		testServers := []*models.McpServerImpl{
+		testServers := []*models.MCPServerImpl{
 			{
-				Attributes: &models.McpServerAttributes{
+				Attributes: &models.MCPServerAttributes{
 					Name: apiutils.Of("list-server-1"),
 				},
 				Properties: &[]dbmodels.Properties{
@@ -378,7 +378,7 @@ func TestMcpServerRepository(t *testing.T) {
 				},
 			},
 			{
-				Attributes: &models.McpServerAttributes{
+				Attributes: &models.MCPServerAttributes{
 					Name: apiutils.Of("list-server-2"),
 				},
 				Properties: &[]dbmodels.Properties{
@@ -400,7 +400,7 @@ func TestMcpServerRepository(t *testing.T) {
 		}
 
 		// List all
-		listOptions := models.McpServerListOptions{}
+		listOptions := models.MCPServerListOptions{}
 		result, err := repo.List(listOptions)
 		require.NoError(t, err)
 		require.NotNil(t, result)
@@ -409,8 +409,8 @@ func TestMcpServerRepository(t *testing.T) {
 
 	t.Run("TestList_FilterByName", func(t *testing.T) {
 		// Create a unique server
-		mcpServer := &models.McpServerImpl{
-			Attributes: &models.McpServerAttributes{
+		mcpServer := &models.MCPServerImpl{
+			Attributes: &models.MCPServerAttributes{
 				Name: apiutils.Of("filter-by-name-unique"),
 			},
 			Properties: &[]dbmodels.Properties{
@@ -426,7 +426,7 @@ func TestMcpServerRepository(t *testing.T) {
 
 		// Filter by name
 		nameFilter := "filter-by-name-unique"
-		listOptions := models.McpServerListOptions{
+		listOptions := models.MCPServerListOptions{
 			Name: &nameFilter,
 		}
 		result, err := repo.List(listOptions)
@@ -437,9 +437,9 @@ func TestMcpServerRepository(t *testing.T) {
 
 	t.Run("TestList_FilterByQuery", func(t *testing.T) {
 		// Create servers with searchable content
-		testServers := []*models.McpServerImpl{
+		testServers := []*models.MCPServerImpl{
 			{
-				Attributes: &models.McpServerAttributes{
+				Attributes: &models.MCPServerAttributes{
 					Name: apiutils.Of("query-test-server-xyz"),
 				},
 				Properties: &[]dbmodels.Properties{
@@ -454,7 +454,7 @@ func TestMcpServerRepository(t *testing.T) {
 				},
 			},
 			{
-				Attributes: &models.McpServerAttributes{
+				Attributes: &models.MCPServerAttributes{
 					Name: apiutils.Of("another-server"),
 				},
 				Properties: &[]dbmodels.Properties{
@@ -477,7 +477,7 @@ func TestMcpServerRepository(t *testing.T) {
 
 		// Search for "special" (should find both: one in description, one in provider)
 		query := "special"
-		listOptions := models.McpServerListOptions{
+		listOptions := models.MCPServerListOptions{
 			Query: &query,
 		}
 		result, err := repo.List(listOptions)
@@ -487,9 +487,9 @@ func TestMcpServerRepository(t *testing.T) {
 
 	t.Run("TestList_FilterBySourceIDs", func(t *testing.T) {
 		// Create servers with different source IDs
-		testServers := []*models.McpServerImpl{
+		testServers := []*models.MCPServerImpl{
 			{
-				Attributes: &models.McpServerAttributes{
+				Attributes: &models.MCPServerAttributes{
 					Name: apiutils.Of("source-filter-server-1"),
 				},
 				Properties: &[]dbmodels.Properties{
@@ -500,7 +500,7 @@ func TestMcpServerRepository(t *testing.T) {
 				},
 			},
 			{
-				Attributes: &models.McpServerAttributes{
+				Attributes: &models.MCPServerAttributes{
 					Name: apiutils.Of("source-filter-server-2"),
 				},
 				Properties: &[]dbmodels.Properties{
@@ -511,7 +511,7 @@ func TestMcpServerRepository(t *testing.T) {
 				},
 			},
 			{
-				Attributes: &models.McpServerAttributes{
+				Attributes: &models.MCPServerAttributes{
 					Name: apiutils.Of("source-filter-server-3"),
 				},
 				Properties: &[]dbmodels.Properties{
@@ -530,7 +530,7 @@ func TestMcpServerRepository(t *testing.T) {
 
 		// Filter by specific source IDs
 		sourceIDs := []string{"source-alpha", "source-beta"}
-		listOptions := models.McpServerListOptions{
+		listOptions := models.MCPServerListOptions{
 			SourceIDs: &sourceIDs,
 		}
 		result, err := repo.List(listOptions)
@@ -557,9 +557,9 @@ func TestMcpServerRepository(t *testing.T) {
 	t.Run("TestDeleteBySource", func(t *testing.T) {
 		// Create servers from the same source
 		sourceID := "delete-test-source"
-		testServers := []*models.McpServerImpl{
+		testServers := []*models.MCPServerImpl{
 			{
-				Attributes: &models.McpServerAttributes{
+				Attributes: &models.MCPServerAttributes{
 					Name: apiutils.Of("delete-source-server-1"),
 				},
 				Properties: &[]dbmodels.Properties{
@@ -570,7 +570,7 @@ func TestMcpServerRepository(t *testing.T) {
 				},
 			},
 			{
-				Attributes: &models.McpServerAttributes{
+				Attributes: &models.MCPServerAttributes{
 					Name: apiutils.Of("delete-source-server-2"),
 				},
 				Properties: &[]dbmodels.Properties{
@@ -593,7 +593,7 @@ func TestMcpServerRepository(t *testing.T) {
 
 		// Verify they're deleted
 		sourceIDs := []string{sourceID}
-		listOptions := models.McpServerListOptions{
+		listOptions := models.MCPServerListOptions{
 			SourceIDs: &sourceIDs,
 		}
 		result, err := repo.List(listOptions)
@@ -603,8 +603,8 @@ func TestMcpServerRepository(t *testing.T) {
 
 	t.Run("TestDeleteByID", func(t *testing.T) {
 		// Create a server
-		mcpServer := &models.McpServerImpl{
-			Attributes: &models.McpServerAttributes{
+		mcpServer := &models.MCPServerImpl{
+			Attributes: &models.MCPServerAttributes{
 				Name: apiutils.Of("delete-by-id-test"),
 			},
 			Properties: &[]dbmodels.Properties{
@@ -625,7 +625,7 @@ func TestMcpServerRepository(t *testing.T) {
 
 		// Verify it's deleted
 		_, err = repo.GetByID(*saved.GetID())
-		assert.ErrorIs(t, err, service.ErrMcpServerNotFound)
+		assert.ErrorIs(t, err, service.ErrMCPServerNotFound)
 
 		// Test deleting non-existent ID
 		err = repo.DeleteByID(99999)
@@ -634,9 +634,9 @@ func TestMcpServerRepository(t *testing.T) {
 
 	t.Run("TestGetDistinctSourceIDs", func(t *testing.T) {
 		// Create servers with different source IDs
-		testServers := []*models.McpServerImpl{
+		testServers := []*models.MCPServerImpl{
 			{
-				Attributes: &models.McpServerAttributes{
+				Attributes: &models.MCPServerAttributes{
 					Name: apiutils.Of("distinct-source-1"),
 				},
 				Properties: &[]dbmodels.Properties{
@@ -647,7 +647,7 @@ func TestMcpServerRepository(t *testing.T) {
 				},
 			},
 			{
-				Attributes: &models.McpServerAttributes{
+				Attributes: &models.MCPServerAttributes{
 					Name: apiutils.Of("distinct-source-2"),
 				},
 				Properties: &[]dbmodels.Properties{
@@ -658,7 +658,7 @@ func TestMcpServerRepository(t *testing.T) {
 				},
 			},
 			{
-				Attributes: &models.McpServerAttributes{
+				Attributes: &models.MCPServerAttributes{
 					Name: apiutils.Of("distinct-source-3"),
 				},
 				Properties: &[]dbmodels.Properties{
@@ -697,8 +697,8 @@ func TestMcpServerRepository(t *testing.T) {
 	t.Run("TestPagination", func(t *testing.T) {
 		// Create multiple servers for pagination testing
 		for i := 0; i < 5; i++ {
-			mcpServer := &models.McpServerImpl{
-				Attributes: &models.McpServerAttributes{
+			mcpServer := &models.MCPServerImpl{
+				Attributes: &models.MCPServerAttributes{
 					Name: apiutils.Of(fmt.Sprintf("pagination-server-%d", i)),
 				},
 				Properties: &[]dbmodels.Properties{
@@ -714,7 +714,7 @@ func TestMcpServerRepository(t *testing.T) {
 
 		// Test first page
 		pageSize := int32(2)
-		listOptions := models.McpServerListOptions{
+		listOptions := models.MCPServerListOptions{
 			Pagination: dbmodels.Pagination{
 				PageSize: &pageSize,
 			},
@@ -734,8 +734,8 @@ func TestMcpServerRepository(t *testing.T) {
 
 	t.Run("TestValidation_BaseNameContainsAtSymbol", func(t *testing.T) {
 		// Test that base_name cannot contain @ symbol
-		server := &models.McpServerImpl{
-			Attributes: &models.McpServerAttributes{
+		server := &models.MCPServerImpl{
+			Attributes: &models.MCPServerAttributes{
 				Name: apiutils.Of("invalid@name"),
 			},
 			Properties: &[]dbmodels.Properties{
@@ -753,8 +753,8 @@ func TestMcpServerRepository(t *testing.T) {
 
 	t.Run("TestValidation_EmptyBaseName", func(t *testing.T) {
 		// Test that base_name cannot be empty
-		server := &models.McpServerImpl{
-			Attributes: &models.McpServerAttributes{
+		server := &models.MCPServerImpl{
+			Attributes: &models.MCPServerAttributes{
 				Name: apiutils.Of(""),
 			},
 			Properties: &[]dbmodels.Properties{
@@ -771,8 +771,8 @@ func TestMcpServerRepository(t *testing.T) {
 
 	t.Run("TestValidation_WhitespaceOnlyBaseName", func(t *testing.T) {
 		// Test that base_name with only whitespace is treated as empty
-		server := &models.McpServerImpl{
-			Attributes: &models.McpServerAttributes{
+		server := &models.MCPServerImpl{
+			Attributes: &models.MCPServerAttributes{
 				Name: apiutils.Of("   "),
 			},
 			Properties: &[]dbmodels.Properties{
@@ -790,8 +790,8 @@ func TestMcpServerRepository(t *testing.T) {
 	t.Run("TestValidation_BaseNameTooLong", func(t *testing.T) {
 		// Test that base_name exceeding 255 characters is rejected
 		longName := strings.Repeat("a", 256)
-		server := &models.McpServerImpl{
-			Attributes: &models.McpServerAttributes{
+		server := &models.MCPServerImpl{
+			Attributes: &models.MCPServerAttributes{
 				Name: apiutils.Of(longName),
 			},
 			Properties: &[]dbmodels.Properties{
@@ -809,8 +809,8 @@ func TestMcpServerRepository(t *testing.T) {
 	t.Run("TestValidation_VersionTooLong", func(t *testing.T) {
 		// Test that version exceeding 100 characters is rejected
 		longVersion := strings.Repeat("1", 101)
-		server := &models.McpServerImpl{
-			Attributes: &models.McpServerAttributes{
+		server := &models.MCPServerImpl{
+			Attributes: &models.MCPServerAttributes{
 				Name: apiutils.Of("test-server"),
 			},
 			Properties: &[]dbmodels.Properties{
@@ -831,8 +831,8 @@ func TestMcpServerRepository(t *testing.T) {
 
 	t.Run("TestValidation_ValidBaseNameWithSpecialChars", func(t *testing.T) {
 		// Test that base_name with other special characters (not @) is allowed
-		server := &models.McpServerImpl{
-			Attributes: &models.McpServerAttributes{
+		server := &models.MCPServerImpl{
+			Attributes: &models.MCPServerAttributes{
 				Name: apiutils.Of("test-server_v1.0"),
 			},
 			Properties: &[]dbmodels.Properties{
@@ -850,8 +850,8 @@ func TestMcpServerRepository(t *testing.T) {
 
 	t.Run("TestValidation_BaseNameTrimming", func(t *testing.T) {
 		// Test that base_name is trimmed of leading/trailing whitespace
-		server := &models.McpServerImpl{
-			Attributes: &models.McpServerAttributes{
+		server := &models.MCPServerImpl{
+			Attributes: &models.MCPServerAttributes{
 				Name: apiutils.Of("  trimmed-server  "),
 			},
 			Properties: &[]dbmodels.Properties{
@@ -873,8 +873,8 @@ func TestMcpServerRepository(t *testing.T) {
 
 	t.Run("TestValidation_VersionContainsAtSymbol", func(t *testing.T) {
 		// Test that version cannot contain @ symbol
-		server := &models.McpServerImpl{
-			Attributes: &models.McpServerAttributes{
+		server := &models.MCPServerImpl{
+			Attributes: &models.MCPServerAttributes{
 				Name: apiutils.Of("test-server"),
 			},
 			Properties: &[]dbmodels.Properties{
@@ -895,15 +895,15 @@ func TestMcpServerRepository(t *testing.T) {
 	})
 }
 
-// Helper function to get or create the McpServer type ID
-func getMcpServerTypeID(t *testing.T, db *gorm.DB) int32 {
+// Helper function to get or create the MCPServer type ID
+func getMCPServerTypeID(t *testing.T, db *gorm.DB) int32 {
 	var typeRecord schema.Type
-	err := db.Where("name = ?", service.McpServerTypeName).First(&typeRecord).Error
+	err := db.Where("name = ?", service.MCPServerTypeName).First(&typeRecord).Error
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			// Create the type if it doesn't exist
 			typeRecord = schema.Type{
-				Name: service.McpServerTypeName,
+				Name: service.MCPServerTypeName,
 			}
 			err = db.Create(&typeRecord).Error
 			require.NoError(t, err)
@@ -918,15 +918,15 @@ func getMcpServerTypeID(t *testing.T, db *gorm.DB) int32 {
 // Converter Unit Tests
 // ==============================================================================
 
-func TestConvertOpenapiMcpServerToDb(t *testing.T) {
+func TestConvertOpenapiMCPServerToDb(t *testing.T) {
 	t.Run("Minimal_RequiredFieldsOnly", func(t *testing.T) {
 		// Test with only required fields
-		openapiServer := &openapi.McpServer{
+		openapiServer := &openapi.MCPServer{
 			Name:      "minimal-server",
 			ToolCount: 5,
 		}
 
-		dbServer := service.ConvertOpenapiMcpServerToDb(openapiServer)
+		dbServer := service.ConvertOpenapiMCPServerToDb(openapiServer)
 		require.NotNil(t, dbServer)
 
 		attrs := dbServer.GetAttributes()
@@ -940,7 +940,7 @@ func TestConvertOpenapiMcpServerToDb(t *testing.T) {
 
 	t.Run("AllSimpleFields", func(t *testing.T) {
 		// Test with all simple string fields
-		openapiServer := &openapi.McpServer{
+		openapiServer := &openapi.MCPServer{
 			Name:             "full-server",
 			ToolCount:        10,
 			SourceId:         apiutils.Of("test-source"),
@@ -957,7 +957,7 @@ func TestConvertOpenapiMcpServerToDb(t *testing.T) {
 			Description:      apiutils.Of("A test MCP server"),
 		}
 
-		dbServer := service.ConvertOpenapiMcpServerToDb(openapiServer)
+		dbServer := service.ConvertOpenapiMCPServerToDb(openapiServer)
 		props := dbServer.GetProperties()
 		require.NotNil(t, props)
 
@@ -985,14 +985,14 @@ func TestConvertOpenapiMcpServerToDb(t *testing.T) {
 
 	t.Run("ArrayFields", func(t *testing.T) {
 		// Test array fields (tags, transports)
-		openapiServer := &openapi.McpServer{
+		openapiServer := &openapi.MCPServer{
 			Name:       "array-server",
 			ToolCount:  3,
 			Tags:       []string{"monitoring", "observability", "apm"},
 			Transports: []string{"stdio", "http"},
 		}
 
-		dbServer := service.ConvertOpenapiMcpServerToDb(openapiServer)
+		dbServer := service.ConvertOpenapiMCPServerToDb(openapiServer)
 		props := dbServer.GetProperties()
 		require.NotNil(t, props)
 
@@ -1020,14 +1020,14 @@ func TestConvertOpenapiMcpServerToDb(t *testing.T) {
 		publishedDate := time.Date(2024, 1, 10, 0, 0, 0, 0, time.UTC)
 		lastUpdated := time.Date(2024, 1, 20, 12, 30, 0, 0, time.UTC)
 
-		openapiServer := &openapi.McpServer{
+		openapiServer := &openapi.MCPServer{
 			Name:          "time-server",
 			ToolCount:     1,
 			PublishedDate: &publishedDate,
 			LastUpdated:   &lastUpdated,
 		}
 
-		dbServer := service.ConvertOpenapiMcpServerToDb(openapiServer)
+		dbServer := service.ConvertOpenapiMCPServerToDb(openapiServer)
 		props := dbServer.GetProperties()
 		require.NotNil(t, props)
 
@@ -1051,10 +1051,10 @@ func TestConvertOpenapiMcpServerToDb(t *testing.T) {
 
 	t.Run("SecurityIndicators", func(t *testing.T) {
 		// Test SecurityIndicators expansion to 4 boolean properties
-		openapiServer := &openapi.McpServer{
+		openapiServer := &openapi.MCPServer{
 			Name:      "secure-server",
 			ToolCount: 2,
-			SecurityIndicators: &openapi.McpSecurityIndicator{
+			SecurityIndicators: &openapi.MCPSecurityIndicator{
 				VerifiedSource: apiutils.Of(true),
 				SecureEndpoint: apiutils.Of(true),
 				Sast:           apiutils.Of(false),
@@ -1062,7 +1062,7 @@ func TestConvertOpenapiMcpServerToDb(t *testing.T) {
 			},
 		}
 
-		dbServer := service.ConvertOpenapiMcpServerToDb(openapiServer)
+		dbServer := service.ConvertOpenapiMCPServerToDb(openapiServer)
 		props := dbServer.GetProperties()
 		require.NotNil(t, props)
 
@@ -1082,25 +1082,25 @@ func TestConvertOpenapiMcpServerToDb(t *testing.T) {
 
 	t.Run("ComplexObjects_JSON", func(t *testing.T) {
 		// Test complex objects stored as JSON
-		openapiServer := &openapi.McpServer{
+		openapiServer := &openapi.MCPServer{
 			Name:      "json-server",
 			ToolCount: 1,
-			Endpoints: &openapi.McpEndpoints{
+			Endpoints: &openapi.MCPEndpoints{
 				Http: apiutils.Of("http://localhost:8080"),
 				Sse:  apiutils.Of("http://localhost:8080/events"),
 			},
-			Artifacts: []openapi.McpArtifact{
+			Artifacts: []openapi.MCPArtifact{
 				{
 					Uri: "oci://registry.example.com/server:v1.0.0",
 				},
 			},
-			RuntimeMetadata: &openapi.McpRuntimeMetadata{
+			RuntimeMetadata: &openapi.MCPRuntimeMetadata{
 				DefaultPort: apiutils.Of(int32(8080)),
 				DefaultArgs: []string{"--log-level", "info"},
 			},
 		}
 
-		dbServer := service.ConvertOpenapiMcpServerToDb(openapiServer)
+		dbServer := service.ConvertOpenapiMCPServerToDb(openapiServer)
 		props := dbServer.GetProperties()
 		require.NotNil(t, props)
 
@@ -1120,12 +1120,12 @@ func TestConvertOpenapiMcpServerToDb(t *testing.T) {
 	})
 }
 
-func TestConvertDbMcpServerToOpenapi(t *testing.T) {
+func TestConvertDbMCPServerToOpenapi(t *testing.T) {
 	t.Run("BasicFields", func(t *testing.T) {
 		// Test basic field conversion
-		dbServer := &models.McpServerImpl{
+		dbServer := &models.MCPServerImpl{
 			ID: apiutils.Of(int32(123)),
-			Attributes: &models.McpServerAttributes{
+			Attributes: &models.MCPServerAttributes{
 				Name:                     apiutils.Of("test-server"),
 				ExternalID:               apiutils.Of("ext-123"),
 				CreateTimeSinceEpoch:     apiutils.Of(int64(1704067200000)),
@@ -1139,7 +1139,7 @@ func TestConvertDbMcpServerToOpenapi(t *testing.T) {
 			},
 		}
 
-		openapiServer := service.ConvertDbMcpServerToOpenapi(dbServer)
+		openapiServer := service.ConvertDbMCPServerToOpenapi(dbServer)
 		require.NotNil(t, openapiServer)
 
 		assert.Equal(t, "test-server", openapiServer.Name)
@@ -1156,8 +1156,8 @@ func TestConvertDbMcpServerToOpenapi(t *testing.T) {
 
 	t.Run("ArrayFields", func(t *testing.T) {
 		// Test array field decoding from JSON
-		dbServer := &models.McpServerImpl{
-			Attributes: &models.McpServerAttributes{
+		dbServer := &models.MCPServerImpl{
+			Attributes: &models.MCPServerAttributes{
 				Name: apiutils.Of("array-server"),
 			},
 			Properties: &[]dbmodels.Properties{
@@ -1166,7 +1166,7 @@ func TestConvertDbMcpServerToOpenapi(t *testing.T) {
 			},
 		}
 
-		openapiServer := service.ConvertDbMcpServerToOpenapi(dbServer)
+		openapiServer := service.ConvertDbMCPServerToOpenapi(dbServer)
 		require.NotNil(t, openapiServer)
 
 		require.Len(t, openapiServer.Tags, 2)
@@ -1185,8 +1185,8 @@ func TestConvertDbMcpServerToOpenapi(t *testing.T) {
 		publishedStr := "2024-01-10T00:00:00Z"
 		updatedStr := "2024-01-20T12:30:00Z"
 
-		dbServer := &models.McpServerImpl{
-			Attributes: &models.McpServerAttributes{
+		dbServer := &models.MCPServerImpl{
+			Attributes: &models.MCPServerAttributes{
 				Name: apiutils.Of("time-server"),
 			},
 			Properties: &[]dbmodels.Properties{
@@ -1195,7 +1195,7 @@ func TestConvertDbMcpServerToOpenapi(t *testing.T) {
 			},
 		}
 
-		openapiServer := service.ConvertDbMcpServerToOpenapi(dbServer)
+		openapiServer := service.ConvertDbMCPServerToOpenapi(dbServer)
 		require.NotNil(t, openapiServer)
 
 		require.NotNil(t, openapiServer.PublishedDate)
@@ -1209,8 +1209,8 @@ func TestConvertDbMcpServerToOpenapi(t *testing.T) {
 
 	t.Run("SecurityIndicators", func(t *testing.T) {
 		// Test SecurityIndicators reconstruction from 4 boolean properties
-		dbServer := &models.McpServerImpl{
-			Attributes: &models.McpServerAttributes{
+		dbServer := &models.MCPServerImpl{
+			Attributes: &models.MCPServerAttributes{
 				Name: apiutils.Of("secure-server"),
 			},
 			Properties: &[]dbmodels.Properties{
@@ -1221,7 +1221,7 @@ func TestConvertDbMcpServerToOpenapi(t *testing.T) {
 			},
 		}
 
-		openapiServer := service.ConvertDbMcpServerToOpenapi(dbServer)
+		openapiServer := service.ConvertDbMCPServerToOpenapi(dbServer)
 		require.NotNil(t, openapiServer)
 		require.NotNil(t, openapiServer.SecurityIndicators)
 
@@ -1237,8 +1237,8 @@ func TestConvertDbMcpServerToOpenapi(t *testing.T) {
 		artifactsJSON := `[{"uri":"oci://registry.example.com/server:v1.0.0"}]`
 		runtimeJSON := `{"defaultPort":8080,"defaultArgs":["--log-level","info"]}`
 
-		dbServer := &models.McpServerImpl{
-			Attributes: &models.McpServerAttributes{
+		dbServer := &models.MCPServerImpl{
+			Attributes: &models.MCPServerAttributes{
 				Name: apiutils.Of("json-server"),
 			},
 			Properties: &[]dbmodels.Properties{
@@ -1248,7 +1248,7 @@ func TestConvertDbMcpServerToOpenapi(t *testing.T) {
 			},
 		}
 
-		openapiServer := service.ConvertDbMcpServerToOpenapi(dbServer)
+		openapiServer := service.ConvertDbMCPServerToOpenapi(dbServer)
 		require.NotNil(t, openapiServer)
 
 		// Verify endpoints
@@ -1269,8 +1269,8 @@ func TestConvertDbMcpServerToOpenapi(t *testing.T) {
 
 	t.Run("NoSecurityIndicators_WhenAllFalse", func(t *testing.T) {
 		// Test that SecurityIndicators is nil when no properties exist
-		dbServer := &models.McpServerImpl{
-			Attributes: &models.McpServerAttributes{
+		dbServer := &models.MCPServerImpl{
+			Attributes: &models.MCPServerAttributes{
 				Name: apiutils.Of("no-security-server"),
 			},
 			Properties: &[]dbmodels.Properties{
@@ -1278,7 +1278,7 @@ func TestConvertDbMcpServerToOpenapi(t *testing.T) {
 			},
 		}
 
-		openapiServer := service.ConvertDbMcpServerToOpenapi(dbServer)
+		openapiServer := service.ConvertDbMCPServerToOpenapi(dbServer)
 		require.NotNil(t, openapiServer)
 		assert.Nil(t, openapiServer.SecurityIndicators)
 	})
@@ -1291,7 +1291,7 @@ func TestRoundTrip_OpenapiToDbToOpenapi(t *testing.T) {
 		publishedDate := time.Date(2024, 1, 10, 0, 0, 0, 0, time.UTC)
 		lastUpdated := time.Date(2024, 1, 20, 12, 30, 0, 0, time.UTC)
 
-		original := &openapi.McpServer{
+		original := &openapi.MCPServer{
 			Name:             "roundtrip-server",
 			ToolCount:        15,
 			SourceId:         apiutils.Of("source-123"),
@@ -1310,24 +1310,24 @@ func TestRoundTrip_OpenapiToDbToOpenapi(t *testing.T) {
 			Transports:       []string{"stdio", "http", "sse"},
 			PublishedDate:    &publishedDate,
 			LastUpdated:      &lastUpdated,
-			SecurityIndicators: &openapi.McpSecurityIndicator{
+			SecurityIndicators: &openapi.MCPSecurityIndicator{
 				VerifiedSource: apiutils.Of(true),
 				SecureEndpoint: apiutils.Of(true),
 				Sast:           apiutils.Of(true),
 				ReadOnlyTools:  apiutils.Of(false),
 			},
-			Endpoints: &openapi.McpEndpoints{
+			Endpoints: &openapi.MCPEndpoints{
 				Http: apiutils.Of("https://api.example.com"),
 				Sse:  apiutils.Of("https://api.example.com/events"),
 			},
 		}
 
 		// Convert to DB
-		dbServer := service.ConvertOpenapiMcpServerToDb(original)
+		dbServer := service.ConvertOpenapiMCPServerToDb(original)
 		require.NotNil(t, dbServer)
 
 		// Convert back to OpenAPI
-		result := service.ConvertDbMcpServerToOpenapi(dbServer)
+		result := service.ConvertDbMCPServerToOpenapi(dbServer)
 		require.NotNil(t, result)
 
 		// Verify all fields preserved (except toolCount which is computed)
@@ -1364,13 +1364,13 @@ func TestRoundTrip_OpenapiToDbToOpenapi(t *testing.T) {
 
 	t.Run("MinimalServer_RoundTrip", func(t *testing.T) {
 		// Test with minimal fields to ensure nil handling
-		original := &openapi.McpServer{
+		original := &openapi.MCPServer{
 			Name:      "minimal",
 			ToolCount: 0,
 		}
 
-		dbServer := service.ConvertOpenapiMcpServerToDb(original)
-		result := service.ConvertDbMcpServerToOpenapi(dbServer)
+		dbServer := service.ConvertOpenapiMCPServerToDb(original)
+		result := service.ConvertDbMCPServerToOpenapi(dbServer)
 
 		assert.Equal(t, original.Name, result.Name)
 		assert.Nil(t, result.SourceId)
@@ -1380,15 +1380,15 @@ func TestRoundTrip_OpenapiToDbToOpenapi(t *testing.T) {
 	})
 }
 
-func TestConvertOpenapiMcpToolToDb(t *testing.T) {
+func TestConvertOpenapiMCPToolToDb(t *testing.T) {
 	t.Run("Minimal_RequiredFieldsOnly", func(t *testing.T) {
 		// Test with only required fields: name and accessType
-		openapiTool := &openapi.McpTool{
+		openapiTool := &openapi.MCPTool{
 			Name:       "test-tool",
 			AccessType: "read-only",
 		}
 
-		dbTool := service.ConvertOpenapiMcpToolToDb(openapiTool)
+		dbTool := service.ConvertOpenapiMCPToolToDb(openapiTool)
 		require.NotNil(t, dbTool)
 
 		attr := dbTool.GetAttributes()
@@ -1412,13 +1412,13 @@ func TestConvertOpenapiMcpToolToDb(t *testing.T) {
 	t.Run("WithDescription", func(t *testing.T) {
 		// Test with description field
 		description := "A tool that reads data"
-		openapiTool := &openapi.McpTool{
+		openapiTool := &openapi.MCPTool{
 			Name:        "read-tool",
 			AccessType:  "read-only",
 			Description: &description,
 		}
 
-		dbTool := service.ConvertOpenapiMcpToolToDb(openapiTool)
+		dbTool := service.ConvertOpenapiMCPToolToDb(openapiTool)
 		props := dbTool.GetProperties()
 		require.NotNil(t, props)
 
@@ -1433,10 +1433,10 @@ func TestConvertOpenapiMcpToolToDb(t *testing.T) {
 
 	t.Run("WithParameters", func(t *testing.T) {
 		// Test with parameters array
-		openapiTool := &openapi.McpTool{
+		openapiTool := &openapi.MCPTool{
 			Name:       "param-tool",
 			AccessType: "read-write",
-			Parameters: []openapi.McpToolParameter{
+			Parameters: []openapi.MCPToolParameter{
 				{
 					Name:     "input",
 					Type:     "string",
@@ -1450,7 +1450,7 @@ func TestConvertOpenapiMcpToolToDb(t *testing.T) {
 			},
 		}
 
-		dbTool := service.ConvertOpenapiMcpToolToDb(openapiTool)
+		dbTool := service.ConvertOpenapiMCPToolToDb(openapiTool)
 		props := dbTool.GetProperties()
 		require.NotNil(t, props)
 
@@ -1464,7 +1464,7 @@ func TestConvertOpenapiMcpToolToDb(t *testing.T) {
 		assert.NotEmpty(t, paramsJSON)
 
 		// Verify JSON can be parsed back
-		var params []openapi.McpToolParameter
+		var params []openapi.MCPToolParameter
 		err := json.Unmarshal([]byte(paramsJSON), &params)
 		require.NoError(t, err)
 		assert.Len(t, params, 2)
@@ -1475,13 +1475,13 @@ func TestConvertOpenapiMcpToolToDb(t *testing.T) {
 	t.Run("WithExternalId", func(t *testing.T) {
 		// Test with ExternalId field
 		externalId := "ext-tool-123"
-		openapiTool := &openapi.McpTool{
+		openapiTool := &openapi.MCPTool{
 			Name:       "external-tool",
 			AccessType: "read-only",
 			ExternalId: &externalId,
 		}
 
-		dbTool := service.ConvertOpenapiMcpToolToDb(openapiTool)
+		dbTool := service.ConvertOpenapiMCPToolToDb(openapiTool)
 		props := dbTool.GetProperties()
 		require.NotNil(t, props)
 
@@ -1495,11 +1495,11 @@ func TestConvertOpenapiMcpToolToDb(t *testing.T) {
 	})
 }
 
-func TestConvertDbMcpToolToOpenapi(t *testing.T) {
+func TestConvertDbMCPToolToOpenapi(t *testing.T) {
 	t.Run("BasicFields", func(t *testing.T) {
 		// Test basic conversion from DB to OpenAPI
-		dbTool := &models.McpServerToolImpl{
-			Attributes: &models.McpServerToolAttributes{
+		dbTool := &models.MCPServerToolImpl{
+			Attributes: &models.MCPServerToolAttributes{
 				Name: apiutils.Of("db-tool"),
 			},
 			Properties: &[]dbmodels.Properties{
@@ -1511,7 +1511,7 @@ func TestConvertDbMcpToolToOpenapi(t *testing.T) {
 		id := int32(42)
 		dbTool.ID = &id
 
-		openapiTool := service.ConvertDbMcpToolToOpenapi(dbTool)
+		openapiTool := service.ConvertDbMCPToolToOpenapi(dbTool)
 		require.NotNil(t, openapiTool)
 		assert.Equal(t, "db-tool", openapiTool.Name)
 		assert.Equal(t, "read-write", openapiTool.AccessType)
@@ -1520,8 +1520,8 @@ func TestConvertDbMcpToolToOpenapi(t *testing.T) {
 	})
 
 	t.Run("WithDescription", func(t *testing.T) {
-		dbTool := &models.McpServerToolImpl{
-			Attributes: &models.McpServerToolAttributes{
+		dbTool := &models.MCPServerToolImpl{
+			Attributes: &models.MCPServerToolAttributes{
 				Name: apiutils.Of("desc-tool"),
 			},
 			Properties: &[]dbmodels.Properties{
@@ -1530,7 +1530,7 @@ func TestConvertDbMcpToolToOpenapi(t *testing.T) {
 			},
 		}
 
-		openapiTool := service.ConvertDbMcpToolToOpenapi(dbTool)
+		openapiTool := service.ConvertDbMCPToolToOpenapi(dbTool)
 		require.NotNil(t, openapiTool)
 		require.NotNil(t, openapiTool.Description)
 		assert.Equal(t, "Test description", *openapiTool.Description)
@@ -1539,8 +1539,8 @@ func TestConvertDbMcpToolToOpenapi(t *testing.T) {
 	t.Run("WithParameters", func(t *testing.T) {
 		// Store parameters as JSON
 		paramsJSON := `[{"name":"input","type":"string","required":true},{"name":"count","type":"integer"}]`
-		dbTool := &models.McpServerToolImpl{
-			Attributes: &models.McpServerToolAttributes{
+		dbTool := &models.MCPServerToolImpl{
+			Attributes: &models.MCPServerToolAttributes{
 				Name: apiutils.Of("param-tool"),
 			},
 			Properties: &[]dbmodels.Properties{
@@ -1549,7 +1549,7 @@ func TestConvertDbMcpToolToOpenapi(t *testing.T) {
 			},
 		}
 
-		openapiTool := service.ConvertDbMcpToolToOpenapi(dbTool)
+		openapiTool := service.ConvertDbMCPToolToOpenapi(dbTool)
 		require.NotNil(t, openapiTool)
 		require.NotNil(t, openapiTool.Parameters)
 		assert.Len(t, openapiTool.Parameters, 2)
@@ -1561,8 +1561,8 @@ func TestConvertDbMcpToolToOpenapi(t *testing.T) {
 		createTime := int64(1704067200000)
 		updateTime := int64(1704153600000)
 
-		dbTool := &models.McpServerToolImpl{
-			Attributes: &models.McpServerToolAttributes{
+		dbTool := &models.MCPServerToolImpl{
+			Attributes: &models.MCPServerToolAttributes{
 				Name:                     apiutils.Of("time-tool"),
 				CreateTimeSinceEpoch:     &createTime,
 				LastUpdateTimeSinceEpoch: &updateTime,
@@ -1572,7 +1572,7 @@ func TestConvertDbMcpToolToOpenapi(t *testing.T) {
 			},
 		}
 
-		openapiTool := service.ConvertDbMcpToolToOpenapi(dbTool)
+		openapiTool := service.ConvertDbMCPToolToOpenapi(dbTool)
 		require.NotNil(t, openapiTool)
 		require.NotNil(t, openapiTool.CreateTimeSinceEpoch)
 		require.NotNil(t, openapiTool.LastUpdateTimeSinceEpoch)
@@ -1586,12 +1586,12 @@ func TestRoundTrip_OpenapiToolToDbToOpenapi(t *testing.T) {
 		// Create a fully populated tool
 		description := "Full test tool"
 		externalId := "ext-123"
-		original := &openapi.McpTool{
+		original := &openapi.MCPTool{
 			Name:        "roundtrip-tool",
 			AccessType:  "read-write",
 			Description: &description,
 			ExternalId:  &externalId,
-			Parameters: []openapi.McpToolParameter{
+			Parameters: []openapi.MCPToolParameter{
 				{
 					Name:        "param1",
 					Type:        "string",
@@ -1602,8 +1602,8 @@ func TestRoundTrip_OpenapiToolToDbToOpenapi(t *testing.T) {
 		}
 
 		// Convert to DB and back
-		dbTool := service.ConvertOpenapiMcpToolToDb(original)
-		result := service.ConvertDbMcpToolToOpenapi(dbTool)
+		dbTool := service.ConvertOpenapiMCPToolToDb(original)
+		result := service.ConvertDbMCPToolToOpenapi(dbTool)
 
 		// Verify all fields match
 		assert.Equal(t, original.Name, result.Name)
@@ -1619,13 +1619,13 @@ func TestRoundTrip_OpenapiToolToDbToOpenapi(t *testing.T) {
 
 	t.Run("MinimalTool_RoundTrip", func(t *testing.T) {
 		// Test with minimal required fields
-		original := &openapi.McpTool{
+		original := &openapi.MCPTool{
 			Name:       "minimal-tool",
 			AccessType: "read-only",
 		}
 
-		dbTool := service.ConvertOpenapiMcpToolToDb(original)
-		result := service.ConvertDbMcpToolToOpenapi(dbTool)
+		dbTool := service.ConvertOpenapiMCPToolToDb(original)
+		result := service.ConvertDbMCPToolToOpenapi(dbTool)
 
 		assert.Equal(t, original.Name, result.Name)
 		assert.Equal(t, original.AccessType, result.AccessType)
@@ -1635,10 +1635,10 @@ func TestRoundTrip_OpenapiToolToDbToOpenapi(t *testing.T) {
 	})
 }
 
-func TestConvertDbMcpServerWithToolsToOpenapi(t *testing.T) {
+func TestConvertDbMCPServerWithToolsToOpenapi(t *testing.T) {
 	t.Run("WithTools_CorrectToolCountAndToolsArray", func(t *testing.T) {
-		dbServer := &models.McpServerImpl{
-			Attributes: &models.McpServerAttributes{
+		dbServer := &models.MCPServerImpl{
+			Attributes: &models.MCPServerAttributes{
 				Name: apiutils.Of("test-server"),
 			},
 			Properties: &[]dbmodels.Properties{
@@ -1648,9 +1648,9 @@ func TestConvertDbMcpServerWithToolsToOpenapi(t *testing.T) {
 		}
 
 		// Create test tools
-		tools := []models.McpServerTool{
-			&models.McpServerToolImpl{
-				Attributes: &models.McpServerToolAttributes{
+		tools := []models.MCPServerTool{
+			&models.MCPServerToolImpl{
+				Attributes: &models.MCPServerToolAttributes{
 					Name: apiutils.Of("read-tool"),
 				},
 				Properties: &[]dbmodels.Properties{
@@ -1658,8 +1658,8 @@ func TestConvertDbMcpServerWithToolsToOpenapi(t *testing.T) {
 					{Name: "description", StringValue: apiutils.Of("Reads data")},
 				},
 			},
-			&models.McpServerToolImpl{
-				Attributes: &models.McpServerToolAttributes{
+			&models.MCPServerToolImpl{
+				Attributes: &models.MCPServerToolAttributes{
 					Name: apiutils.Of("write-tool"),
 				},
 				Properties: &[]dbmodels.Properties{
@@ -1667,8 +1667,8 @@ func TestConvertDbMcpServerWithToolsToOpenapi(t *testing.T) {
 					{Name: "description", StringValue: apiutils.Of("Writes data")},
 				},
 			},
-			&models.McpServerToolImpl{
-				Attributes: &models.McpServerToolAttributes{
+			&models.MCPServerToolImpl{
+				Attributes: &models.MCPServerToolAttributes{
 					Name: apiutils.Of("admin-tool"),
 				},
 				Properties: &[]dbmodels.Properties{
@@ -1677,7 +1677,7 @@ func TestConvertDbMcpServerWithToolsToOpenapi(t *testing.T) {
 			},
 		}
 
-		openapiServer := service.ConvertDbMcpServerWithToolsToOpenapi(dbServer, tools)
+		openapiServer := service.ConvertDbMCPServerWithToolsToOpenapi(dbServer, tools)
 
 		require.NotNil(t, openapiServer)
 		assert.Equal(t, "test-server", openapiServer.Name)
@@ -1699,8 +1699,8 @@ func TestConvertDbMcpServerWithToolsToOpenapi(t *testing.T) {
 	})
 
 	t.Run("WithNilTools_ZeroToolCount", func(t *testing.T) {
-		dbServer := &models.McpServerImpl{
-			Attributes: &models.McpServerAttributes{
+		dbServer := &models.MCPServerImpl{
+			Attributes: &models.MCPServerAttributes{
 				Name: apiutils.Of("empty-server"),
 			},
 			Properties: &[]dbmodels.Properties{
@@ -1708,7 +1708,7 @@ func TestConvertDbMcpServerWithToolsToOpenapi(t *testing.T) {
 			},
 		}
 
-		openapiServer := service.ConvertDbMcpServerWithToolsToOpenapi(dbServer, nil)
+		openapiServer := service.ConvertDbMCPServerWithToolsToOpenapi(dbServer, nil)
 
 		require.NotNil(t, openapiServer)
 		assert.Equal(t, "empty-server", openapiServer.Name)
@@ -1717,8 +1717,8 @@ func TestConvertDbMcpServerWithToolsToOpenapi(t *testing.T) {
 	})
 
 	t.Run("WithEmptyToolsSlice_ZeroToolCount", func(t *testing.T) {
-		dbServer := &models.McpServerImpl{
-			Attributes: &models.McpServerAttributes{
+		dbServer := &models.MCPServerImpl{
+			Attributes: &models.MCPServerAttributes{
 				Name: apiutils.Of("empty-server"),
 			},
 			Properties: &[]dbmodels.Properties{
@@ -1726,7 +1726,7 @@ func TestConvertDbMcpServerWithToolsToOpenapi(t *testing.T) {
 			},
 		}
 
-		openapiServer := service.ConvertDbMcpServerWithToolsToOpenapi(dbServer, []models.McpServerTool{})
+		openapiServer := service.ConvertDbMCPServerWithToolsToOpenapi(dbServer, []models.MCPServerTool{})
 
 		require.NotNil(t, openapiServer)
 		assert.Equal(t, "empty-server", openapiServer.Name)
@@ -1735,8 +1735,8 @@ func TestConvertDbMcpServerWithToolsToOpenapi(t *testing.T) {
 	})
 
 	t.Run("WithSingleTool_ToolCountOne", func(t *testing.T) {
-		dbServer := &models.McpServerImpl{
-			Attributes: &models.McpServerAttributes{
+		dbServer := &models.MCPServerImpl{
+			Attributes: &models.MCPServerAttributes{
 				Name: apiutils.Of("single-tool-server"),
 			},
 			Properties: &[]dbmodels.Properties{
@@ -1744,9 +1744,9 @@ func TestConvertDbMcpServerWithToolsToOpenapi(t *testing.T) {
 			},
 		}
 
-		tools := []models.McpServerTool{
-			&models.McpServerToolImpl{
-				Attributes: &models.McpServerToolAttributes{
+		tools := []models.MCPServerTool{
+			&models.MCPServerToolImpl{
+				Attributes: &models.MCPServerToolAttributes{
 					Name: apiutils.Of("only-tool"),
 				},
 				Properties: &[]dbmodels.Properties{
@@ -1755,7 +1755,7 @@ func TestConvertDbMcpServerWithToolsToOpenapi(t *testing.T) {
 			},
 		}
 
-		openapiServer := service.ConvertDbMcpServerWithToolsToOpenapi(dbServer, tools)
+		openapiServer := service.ConvertDbMCPServerWithToolsToOpenapi(dbServer, tools)
 
 		require.NotNil(t, openapiServer)
 		assert.Equal(t, int32(1), openapiServer.ToolCount)
@@ -1765,9 +1765,9 @@ func TestConvertDbMcpServerWithToolsToOpenapi(t *testing.T) {
 	})
 
 	t.Run("SimpleConverter_ReturnsZeroToolCount", func(t *testing.T) {
-		// Test that the simple ConvertDbMcpServerToOpenapi (without tools) returns 0
-		dbServer := &models.McpServerImpl{
-			Attributes: &models.McpServerAttributes{
+		// Test that the simple ConvertDbMCPServerToOpenapi (without tools) returns 0
+		dbServer := &models.MCPServerImpl{
+			Attributes: &models.MCPServerAttributes{
 				Name: apiutils.Of("test-server"),
 			},
 			Properties: &[]dbmodels.Properties{
@@ -1775,7 +1775,7 @@ func TestConvertDbMcpServerWithToolsToOpenapi(t *testing.T) {
 			},
 		}
 
-		openapiServer := service.ConvertDbMcpServerToOpenapi(dbServer)
+		openapiServer := service.ConvertDbMCPServerToOpenapi(dbServer)
 
 		require.NotNil(t, openapiServer)
 		assert.Equal(t, "test-server", openapiServer.Name)
@@ -1785,21 +1785,21 @@ func TestConvertDbMcpServerWithToolsToOpenapi(t *testing.T) {
 
 	t.Run("ToolConversionSkipsNilTools", func(t *testing.T) {
 		// Test that nil tools in the slice are skipped
-		dbServer := &models.McpServerImpl{
-			Attributes: &models.McpServerAttributes{
+		dbServer := &models.MCPServerImpl{
+			Attributes: &models.MCPServerAttributes{
 				Name: apiutils.Of("test-server"),
 			},
 		}
 
 		// Create a tool with missing required name (will return nil from converter)
-		tools := []models.McpServerTool{
-			&models.McpServerToolImpl{
-				Attributes: &models.McpServerToolAttributes{
+		tools := []models.MCPServerTool{
+			&models.MCPServerToolImpl{
+				Attributes: &models.MCPServerToolAttributes{
 					Name: nil, // Missing required field
 				},
 			},
-			&models.McpServerToolImpl{
-				Attributes: &models.McpServerToolAttributes{
+			&models.MCPServerToolImpl{
+				Attributes: &models.MCPServerToolAttributes{
 					Name: apiutils.Of("valid-tool"),
 				},
 				Properties: &[]dbmodels.Properties{
@@ -1808,7 +1808,7 @@ func TestConvertDbMcpServerWithToolsToOpenapi(t *testing.T) {
 			},
 		}
 
-		openapiServer := service.ConvertDbMcpServerWithToolsToOpenapi(dbServer, tools)
+		openapiServer := service.ConvertDbMCPServerWithToolsToOpenapi(dbServer, tools)
 
 		require.NotNil(t, openapiServer)
 		// Only the valid tool should be included

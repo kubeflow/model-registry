@@ -14,36 +14,36 @@ import (
 	"encoding/json"
 )
 
-// checks if the McpResourceRecommendationMinimal type satisfies the MappedNullable interface at compile time
-var _ MappedNullable = &McpResourceRecommendationMinimal{}
+// checks if the MCPResourceRecommendationMinimal type satisfies the MappedNullable interface at compile time
+var _ MappedNullable = &MCPResourceRecommendationMinimal{}
 
-// McpResourceRecommendationMinimal Minimum viable resources for low-traffic scenarios
-type McpResourceRecommendationMinimal struct {
+// MCPResourceRecommendationMinimal Minimum viable resources for low-traffic scenarios
+type MCPResourceRecommendationMinimal struct {
 	// CPU request (e.g., 50m, 0.1, 1)
 	Cpu *string `json:"cpu,omitempty"`
 	// Memory request (e.g., 64Mi, 128Mi, 1Gi)
 	Memory *string `json:"memory,omitempty"`
 }
 
-// NewMcpResourceRecommendationMinimal instantiates a new McpResourceRecommendationMinimal object
+// NewMCPResourceRecommendationMinimal instantiates a new MCPResourceRecommendationMinimal object
 // This constructor will assign default values to properties that have it defined,
 // and makes sure properties required by API are set, but the set of arguments
 // will change when the set of required properties is changed
-func NewMcpResourceRecommendationMinimal() *McpResourceRecommendationMinimal {
-	this := McpResourceRecommendationMinimal{}
+func NewMCPResourceRecommendationMinimal() *MCPResourceRecommendationMinimal {
+	this := MCPResourceRecommendationMinimal{}
 	return &this
 }
 
-// NewMcpResourceRecommendationMinimalWithDefaults instantiates a new McpResourceRecommendationMinimal object
+// NewMCPResourceRecommendationMinimalWithDefaults instantiates a new MCPResourceRecommendationMinimal object
 // This constructor will only assign default values to properties that have it defined,
 // but it doesn't guarantee that properties required by API are set
-func NewMcpResourceRecommendationMinimalWithDefaults() *McpResourceRecommendationMinimal {
-	this := McpResourceRecommendationMinimal{}
+func NewMCPResourceRecommendationMinimalWithDefaults() *MCPResourceRecommendationMinimal {
+	this := MCPResourceRecommendationMinimal{}
 	return &this
 }
 
 // GetCpu returns the Cpu field value if set, zero value otherwise.
-func (o *McpResourceRecommendationMinimal) GetCpu() string {
+func (o *MCPResourceRecommendationMinimal) GetCpu() string {
 	if o == nil || IsNil(o.Cpu) {
 		var ret string
 		return ret
@@ -53,7 +53,7 @@ func (o *McpResourceRecommendationMinimal) GetCpu() string {
 
 // GetCpuOk returns a tuple with the Cpu field value if set, nil otherwise
 // and a boolean to check if the value has been set.
-func (o *McpResourceRecommendationMinimal) GetCpuOk() (*string, bool) {
+func (o *MCPResourceRecommendationMinimal) GetCpuOk() (*string, bool) {
 	if o == nil || IsNil(o.Cpu) {
 		return nil, false
 	}
@@ -61,7 +61,7 @@ func (o *McpResourceRecommendationMinimal) GetCpuOk() (*string, bool) {
 }
 
 // HasCpu returns a boolean if a field has been set.
-func (o *McpResourceRecommendationMinimal) HasCpu() bool {
+func (o *MCPResourceRecommendationMinimal) HasCpu() bool {
 	if o != nil && !IsNil(o.Cpu) {
 		return true
 	}
@@ -70,12 +70,12 @@ func (o *McpResourceRecommendationMinimal) HasCpu() bool {
 }
 
 // SetCpu gets a reference to the given string and assigns it to the Cpu field.
-func (o *McpResourceRecommendationMinimal) SetCpu(v string) {
+func (o *MCPResourceRecommendationMinimal) SetCpu(v string) {
 	o.Cpu = &v
 }
 
 // GetMemory returns the Memory field value if set, zero value otherwise.
-func (o *McpResourceRecommendationMinimal) GetMemory() string {
+func (o *MCPResourceRecommendationMinimal) GetMemory() string {
 	if o == nil || IsNil(o.Memory) {
 		var ret string
 		return ret
@@ -85,7 +85,7 @@ func (o *McpResourceRecommendationMinimal) GetMemory() string {
 
 // GetMemoryOk returns a tuple with the Memory field value if set, nil otherwise
 // and a boolean to check if the value has been set.
-func (o *McpResourceRecommendationMinimal) GetMemoryOk() (*string, bool) {
+func (o *MCPResourceRecommendationMinimal) GetMemoryOk() (*string, bool) {
 	if o == nil || IsNil(o.Memory) {
 		return nil, false
 	}
@@ -93,7 +93,7 @@ func (o *McpResourceRecommendationMinimal) GetMemoryOk() (*string, bool) {
 }
 
 // HasMemory returns a boolean if a field has been set.
-func (o *McpResourceRecommendationMinimal) HasMemory() bool {
+func (o *MCPResourceRecommendationMinimal) HasMemory() bool {
 	if o != nil && !IsNil(o.Memory) {
 		return true
 	}
@@ -102,11 +102,11 @@ func (o *McpResourceRecommendationMinimal) HasMemory() bool {
 }
 
 // SetMemory gets a reference to the given string and assigns it to the Memory field.
-func (o *McpResourceRecommendationMinimal) SetMemory(v string) {
+func (o *MCPResourceRecommendationMinimal) SetMemory(v string) {
 	o.Memory = &v
 }
 
-func (o McpResourceRecommendationMinimal) MarshalJSON() ([]byte, error) {
+func (o MCPResourceRecommendationMinimal) MarshalJSON() ([]byte, error) {
 	toSerialize, err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
@@ -114,7 +114,7 @@ func (o McpResourceRecommendationMinimal) MarshalJSON() ([]byte, error) {
 	return json.Marshal(toSerialize)
 }
 
-func (o McpResourceRecommendationMinimal) ToMap() (map[string]interface{}, error) {
+func (o MCPResourceRecommendationMinimal) ToMap() (map[string]interface{}, error) {
 	toSerialize := map[string]interface{}{}
 	if !IsNil(o.Cpu) {
 		toSerialize["cpu"] = o.Cpu
@@ -125,38 +125,38 @@ func (o McpResourceRecommendationMinimal) ToMap() (map[string]interface{}, error
 	return toSerialize, nil
 }
 
-type NullableMcpResourceRecommendationMinimal struct {
-	value *McpResourceRecommendationMinimal
+type NullableMCPResourceRecommendationMinimal struct {
+	value *MCPResourceRecommendationMinimal
 	isSet bool
 }
 
-func (v NullableMcpResourceRecommendationMinimal) Get() *McpResourceRecommendationMinimal {
+func (v NullableMCPResourceRecommendationMinimal) Get() *MCPResourceRecommendationMinimal {
 	return v.value
 }
 
-func (v *NullableMcpResourceRecommendationMinimal) Set(val *McpResourceRecommendationMinimal) {
+func (v *NullableMCPResourceRecommendationMinimal) Set(val *MCPResourceRecommendationMinimal) {
 	v.value = val
 	v.isSet = true
 }
 
-func (v NullableMcpResourceRecommendationMinimal) IsSet() bool {
+func (v NullableMCPResourceRecommendationMinimal) IsSet() bool {
 	return v.isSet
 }
 
-func (v *NullableMcpResourceRecommendationMinimal) Unset() {
+func (v *NullableMCPResourceRecommendationMinimal) Unset() {
 	v.value = nil
 	v.isSet = false
 }
 
-func NewNullableMcpResourceRecommendationMinimal(val *McpResourceRecommendationMinimal) *NullableMcpResourceRecommendationMinimal {
-	return &NullableMcpResourceRecommendationMinimal{value: val, isSet: true}
+func NewNullableMCPResourceRecommendationMinimal(val *MCPResourceRecommendationMinimal) *NullableMCPResourceRecommendationMinimal {
+	return &NullableMCPResourceRecommendationMinimal{value: val, isSet: true}
 }
 
-func (v NullableMcpResourceRecommendationMinimal) MarshalJSON() ([]byte, error) {
+func (v NullableMCPResourceRecommendationMinimal) MarshalJSON() ([]byte, error) {
 	return json.Marshal(v.value)
 }
 
-func (v *NullableMcpResourceRecommendationMinimal) UnmarshalJSON(src []byte) error {
+func (v *NullableMCPResourceRecommendationMinimal) UnmarshalJSON(src []byte) error {
 	v.isSet = true
 	return json.Unmarshal(src, &v.value)
 }

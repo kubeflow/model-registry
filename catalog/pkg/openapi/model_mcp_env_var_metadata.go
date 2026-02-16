@@ -14,11 +14,11 @@ import (
 	"encoding/json"
 )
 
-// checks if the McpEnvVarMetadata type satisfies the MappedNullable interface at compile time
-var _ MappedNullable = &McpEnvVarMetadata{}
+// checks if the MCPEnvVarMetadata type satisfies the MappedNullable interface at compile time
+var _ MappedNullable = &MCPEnvVarMetadata{}
 
-// McpEnvVarMetadata struct for McpEnvVarMetadata
-type McpEnvVarMetadata struct {
+// MCPEnvVarMetadata struct for MCPEnvVarMetadata
+type MCPEnvVarMetadata struct {
 	// Environment variable name
 	Name string `json:"name"`
 	// Purpose and usage of this variable
@@ -33,14 +33,14 @@ type McpEnvVarMetadata struct {
 	Example *string `json:"example,omitempty"`
 }
 
-type _McpEnvVarMetadata McpEnvVarMetadata
+type _MCPEnvVarMetadata MCPEnvVarMetadata
 
-// NewMcpEnvVarMetadata instantiates a new McpEnvVarMetadata object
+// NewMCPEnvVarMetadata instantiates a new MCPEnvVarMetadata object
 // This constructor will assign default values to properties that have it defined,
 // and makes sure properties required by API are set, but the set of arguments
 // will change when the set of required properties is changed
-func NewMcpEnvVarMetadata(name string, description string) *McpEnvVarMetadata {
-	this := McpEnvVarMetadata{}
+func NewMCPEnvVarMetadata(name string, description string) *MCPEnvVarMetadata {
+	this := MCPEnvVarMetadata{}
 	this.Name = name
 	this.Description = description
 	var required bool = false
@@ -50,11 +50,11 @@ func NewMcpEnvVarMetadata(name string, description string) *McpEnvVarMetadata {
 	return &this
 }
 
-// NewMcpEnvVarMetadataWithDefaults instantiates a new McpEnvVarMetadata object
+// NewMCPEnvVarMetadataWithDefaults instantiates a new MCPEnvVarMetadata object
 // This constructor will only assign default values to properties that have it defined,
 // but it doesn't guarantee that properties required by API are set
-func NewMcpEnvVarMetadataWithDefaults() *McpEnvVarMetadata {
-	this := McpEnvVarMetadata{}
+func NewMCPEnvVarMetadataWithDefaults() *MCPEnvVarMetadata {
+	this := MCPEnvVarMetadata{}
 	var required bool = false
 	this.Required = &required
 	var type_ string = "string"
@@ -63,7 +63,7 @@ func NewMcpEnvVarMetadataWithDefaults() *McpEnvVarMetadata {
 }
 
 // GetName returns the Name field value
-func (o *McpEnvVarMetadata) GetName() string {
+func (o *MCPEnvVarMetadata) GetName() string {
 	if o == nil {
 		var ret string
 		return ret
@@ -74,7 +74,7 @@ func (o *McpEnvVarMetadata) GetName() string {
 
 // GetNameOk returns a tuple with the Name field value
 // and a boolean to check if the value has been set.
-func (o *McpEnvVarMetadata) GetNameOk() (*string, bool) {
+func (o *MCPEnvVarMetadata) GetNameOk() (*string, bool) {
 	if o == nil {
 		return nil, false
 	}
@@ -82,12 +82,12 @@ func (o *McpEnvVarMetadata) GetNameOk() (*string, bool) {
 }
 
 // SetName sets field value
-func (o *McpEnvVarMetadata) SetName(v string) {
+func (o *MCPEnvVarMetadata) SetName(v string) {
 	o.Name = v
 }
 
 // GetDescription returns the Description field value
-func (o *McpEnvVarMetadata) GetDescription() string {
+func (o *MCPEnvVarMetadata) GetDescription() string {
 	if o == nil {
 		var ret string
 		return ret
@@ -98,7 +98,7 @@ func (o *McpEnvVarMetadata) GetDescription() string {
 
 // GetDescriptionOk returns a tuple with the Description field value
 // and a boolean to check if the value has been set.
-func (o *McpEnvVarMetadata) GetDescriptionOk() (*string, bool) {
+func (o *MCPEnvVarMetadata) GetDescriptionOk() (*string, bool) {
 	if o == nil {
 		return nil, false
 	}
@@ -106,12 +106,12 @@ func (o *McpEnvVarMetadata) GetDescriptionOk() (*string, bool) {
 }
 
 // SetDescription sets field value
-func (o *McpEnvVarMetadata) SetDescription(v string) {
+func (o *MCPEnvVarMetadata) SetDescription(v string) {
 	o.Description = v
 }
 
 // GetRequired returns the Required field value if set, zero value otherwise.
-func (o *McpEnvVarMetadata) GetRequired() bool {
+func (o *MCPEnvVarMetadata) GetRequired() bool {
 	if o == nil || IsNil(o.Required) {
 		var ret bool
 		return ret
@@ -121,7 +121,7 @@ func (o *McpEnvVarMetadata) GetRequired() bool {
 
 // GetRequiredOk returns a tuple with the Required field value if set, nil otherwise
 // and a boolean to check if the value has been set.
-func (o *McpEnvVarMetadata) GetRequiredOk() (*bool, bool) {
+func (o *MCPEnvVarMetadata) GetRequiredOk() (*bool, bool) {
 	if o == nil || IsNil(o.Required) {
 		return nil, false
 	}
@@ -129,7 +129,7 @@ func (o *McpEnvVarMetadata) GetRequiredOk() (*bool, bool) {
 }
 
 // HasRequired returns a boolean if a field has been set.
-func (o *McpEnvVarMetadata) HasRequired() bool {
+func (o *MCPEnvVarMetadata) HasRequired() bool {
 	if o != nil && !IsNil(o.Required) {
 		return true
 	}
@@ -138,12 +138,12 @@ func (o *McpEnvVarMetadata) HasRequired() bool {
 }
 
 // SetRequired gets a reference to the given bool and assigns it to the Required field.
-func (o *McpEnvVarMetadata) SetRequired(v bool) {
+func (o *MCPEnvVarMetadata) SetRequired(v bool) {
 	o.Required = &v
 }
 
 // GetDefaultValue returns the DefaultValue field value if set, zero value otherwise.
-func (o *McpEnvVarMetadata) GetDefaultValue() string {
+func (o *MCPEnvVarMetadata) GetDefaultValue() string {
 	if o == nil || IsNil(o.DefaultValue) {
 		var ret string
 		return ret
@@ -153,7 +153,7 @@ func (o *McpEnvVarMetadata) GetDefaultValue() string {
 
 // GetDefaultValueOk returns a tuple with the DefaultValue field value if set, nil otherwise
 // and a boolean to check if the value has been set.
-func (o *McpEnvVarMetadata) GetDefaultValueOk() (*string, bool) {
+func (o *MCPEnvVarMetadata) GetDefaultValueOk() (*string, bool) {
 	if o == nil || IsNil(o.DefaultValue) {
 		return nil, false
 	}
@@ -161,7 +161,7 @@ func (o *McpEnvVarMetadata) GetDefaultValueOk() (*string, bool) {
 }
 
 // HasDefaultValue returns a boolean if a field has been set.
-func (o *McpEnvVarMetadata) HasDefaultValue() bool {
+func (o *MCPEnvVarMetadata) HasDefaultValue() bool {
 	if o != nil && !IsNil(o.DefaultValue) {
 		return true
 	}
@@ -170,12 +170,12 @@ func (o *McpEnvVarMetadata) HasDefaultValue() bool {
 }
 
 // SetDefaultValue gets a reference to the given string and assigns it to the DefaultValue field.
-func (o *McpEnvVarMetadata) SetDefaultValue(v string) {
+func (o *MCPEnvVarMetadata) SetDefaultValue(v string) {
 	o.DefaultValue = &v
 }
 
 // GetType returns the Type field value if set, zero value otherwise.
-func (o *McpEnvVarMetadata) GetType() string {
+func (o *MCPEnvVarMetadata) GetType() string {
 	if o == nil || IsNil(o.Type) {
 		var ret string
 		return ret
@@ -185,7 +185,7 @@ func (o *McpEnvVarMetadata) GetType() string {
 
 // GetTypeOk returns a tuple with the Type field value if set, nil otherwise
 // and a boolean to check if the value has been set.
-func (o *McpEnvVarMetadata) GetTypeOk() (*string, bool) {
+func (o *MCPEnvVarMetadata) GetTypeOk() (*string, bool) {
 	if o == nil || IsNil(o.Type) {
 		return nil, false
 	}
@@ -193,7 +193,7 @@ func (o *McpEnvVarMetadata) GetTypeOk() (*string, bool) {
 }
 
 // HasType returns a boolean if a field has been set.
-func (o *McpEnvVarMetadata) HasType() bool {
+func (o *MCPEnvVarMetadata) HasType() bool {
 	if o != nil && !IsNil(o.Type) {
 		return true
 	}
@@ -202,12 +202,12 @@ func (o *McpEnvVarMetadata) HasType() bool {
 }
 
 // SetType gets a reference to the given string and assigns it to the Type field.
-func (o *McpEnvVarMetadata) SetType(v string) {
+func (o *MCPEnvVarMetadata) SetType(v string) {
 	o.Type = &v
 }
 
 // GetExample returns the Example field value if set, zero value otherwise.
-func (o *McpEnvVarMetadata) GetExample() string {
+func (o *MCPEnvVarMetadata) GetExample() string {
 	if o == nil || IsNil(o.Example) {
 		var ret string
 		return ret
@@ -217,7 +217,7 @@ func (o *McpEnvVarMetadata) GetExample() string {
 
 // GetExampleOk returns a tuple with the Example field value if set, nil otherwise
 // and a boolean to check if the value has been set.
-func (o *McpEnvVarMetadata) GetExampleOk() (*string, bool) {
+func (o *MCPEnvVarMetadata) GetExampleOk() (*string, bool) {
 	if o == nil || IsNil(o.Example) {
 		return nil, false
 	}
@@ -225,7 +225,7 @@ func (o *McpEnvVarMetadata) GetExampleOk() (*string, bool) {
 }
 
 // HasExample returns a boolean if a field has been set.
-func (o *McpEnvVarMetadata) HasExample() bool {
+func (o *MCPEnvVarMetadata) HasExample() bool {
 	if o != nil && !IsNil(o.Example) {
 		return true
 	}
@@ -234,11 +234,11 @@ func (o *McpEnvVarMetadata) HasExample() bool {
 }
 
 // SetExample gets a reference to the given string and assigns it to the Example field.
-func (o *McpEnvVarMetadata) SetExample(v string) {
+func (o *MCPEnvVarMetadata) SetExample(v string) {
 	o.Example = &v
 }
 
-func (o McpEnvVarMetadata) MarshalJSON() ([]byte, error) {
+func (o MCPEnvVarMetadata) MarshalJSON() ([]byte, error) {
 	toSerialize, err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
@@ -246,7 +246,7 @@ func (o McpEnvVarMetadata) MarshalJSON() ([]byte, error) {
 	return json.Marshal(toSerialize)
 }
 
-func (o McpEnvVarMetadata) ToMap() (map[string]interface{}, error) {
+func (o MCPEnvVarMetadata) ToMap() (map[string]interface{}, error) {
 	toSerialize := map[string]interface{}{}
 	toSerialize["name"] = o.Name
 	toSerialize["description"] = o.Description
@@ -265,38 +265,38 @@ func (o McpEnvVarMetadata) ToMap() (map[string]interface{}, error) {
 	return toSerialize, nil
 }
 
-type NullableMcpEnvVarMetadata struct {
-	value *McpEnvVarMetadata
+type NullableMCPEnvVarMetadata struct {
+	value *MCPEnvVarMetadata
 	isSet bool
 }
 
-func (v NullableMcpEnvVarMetadata) Get() *McpEnvVarMetadata {
+func (v NullableMCPEnvVarMetadata) Get() *MCPEnvVarMetadata {
 	return v.value
 }
 
-func (v *NullableMcpEnvVarMetadata) Set(val *McpEnvVarMetadata) {
+func (v *NullableMCPEnvVarMetadata) Set(val *MCPEnvVarMetadata) {
 	v.value = val
 	v.isSet = true
 }
 
-func (v NullableMcpEnvVarMetadata) IsSet() bool {
+func (v NullableMCPEnvVarMetadata) IsSet() bool {
 	return v.isSet
 }
 
-func (v *NullableMcpEnvVarMetadata) Unset() {
+func (v *NullableMCPEnvVarMetadata) Unset() {
 	v.value = nil
 	v.isSet = false
 }
 
-func NewNullableMcpEnvVarMetadata(val *McpEnvVarMetadata) *NullableMcpEnvVarMetadata {
-	return &NullableMcpEnvVarMetadata{value: val, isSet: true}
+func NewNullableMCPEnvVarMetadata(val *MCPEnvVarMetadata) *NullableMCPEnvVarMetadata {
+	return &NullableMCPEnvVarMetadata{value: val, isSet: true}
 }
 
-func (v NullableMcpEnvVarMetadata) MarshalJSON() ([]byte, error) {
+func (v NullableMCPEnvVarMetadata) MarshalJSON() ([]byte, error) {
 	return json.Marshal(v.value)
 }
 
-func (v *NullableMcpEnvVarMetadata) UnmarshalJSON(src []byte) error {
+func (v *NullableMCPEnvVarMetadata) UnmarshalJSON(src []byte) error {
 	v.isSet = true
 	return json.Unmarshal(src, &v.value)
 }

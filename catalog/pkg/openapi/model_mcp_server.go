@@ -15,11 +15,11 @@ import (
 	"time"
 )
 
-// checks if the McpServer type satisfies the MappedNullable interface at compile time
-var _ MappedNullable = &McpServer{}
+// checks if the MCPServer type satisfies the MappedNullable interface at compile time
+var _ MappedNullable = &MCPServer{}
 
-// McpServer An MCP server in the model catalog.
-type McpServer struct {
+// MCPServer An MCP server in the model catalog.
+type MCPServer struct {
 	// User provided custom properties which are not defined by its type.
 	CustomProperties map[string]MetadataValue `json:"customProperties,omitempty"`
 	// An optional description about the resource.
@@ -51,15 +51,15 @@ type McpServer struct {
 	// Number of tools exposed by this MCP server.
 	ToolCount int32 `json:"toolCount"`
 	// Array of tools exposed by this MCP server.
-	Tools              []McpTool             `json:"tools,omitempty"`
-	SecurityIndicators *McpSecurityIndicator `json:"securityIndicators,omitempty"`
+	Tools              []MCPTool             `json:"tools,omitempty"`
+	SecurityIndicators *MCPSecurityIndicator `json:"securityIndicators,omitempty"`
 	// Deployment mode for the MCP server.
 	DeploymentMode *string `json:"deploymentMode,omitempty"`
 	// Supported transport protocols.
 	Transports []string `json:"transports,omitempty"`
 	// OCI artifacts used for local deployment.
-	Artifacts []McpArtifact `json:"artifacts,omitempty"`
-	Endpoints *McpEndpoints `json:"endpoints,omitempty"`
+	Artifacts []MCPArtifact `json:"artifacts,omitempty"`
+	Endpoints *MCPEndpoints `json:"endpoints,omitempty"`
 	// Full Markdown documentation for this MCP server.
 	Readme *string `json:"readme,omitempty"`
 	// URL to external documentation.
@@ -72,32 +72,32 @@ type McpServer struct {
 	PublishedDate *time.Time `json:"publishedDate,omitempty"`
 	// Last update timestamp for the server metadata.
 	LastUpdated     *time.Time          `json:"lastUpdated,omitempty"`
-	RuntimeMetadata *McpRuntimeMetadata `json:"runtimeMetadata,omitempty"`
+	RuntimeMetadata *MCPRuntimeMetadata `json:"runtimeMetadata,omitempty"`
 }
 
-type _McpServer McpServer
+type _MCPServer MCPServer
 
-// NewMcpServer instantiates a new McpServer object
+// NewMCPServer instantiates a new MCPServer object
 // This constructor will assign default values to properties that have it defined,
 // and makes sure properties required by API are set, but the set of arguments
 // will change when the set of required properties is changed
-func NewMcpServer(name string, toolCount int32) *McpServer {
-	this := McpServer{}
+func NewMCPServer(name string, toolCount int32) *MCPServer {
+	this := MCPServer{}
 	this.Name = name
 	this.ToolCount = toolCount
 	return &this
 }
 
-// NewMcpServerWithDefaults instantiates a new McpServer object
+// NewMCPServerWithDefaults instantiates a new MCPServer object
 // This constructor will only assign default values to properties that have it defined,
 // but it doesn't guarantee that properties required by API are set
-func NewMcpServerWithDefaults() *McpServer {
-	this := McpServer{}
+func NewMCPServerWithDefaults() *MCPServer {
+	this := MCPServer{}
 	return &this
 }
 
 // GetCustomProperties returns the CustomProperties field value if set, zero value otherwise.
-func (o *McpServer) GetCustomProperties() map[string]MetadataValue {
+func (o *MCPServer) GetCustomProperties() map[string]MetadataValue {
 	if o == nil || IsNil(o.CustomProperties) {
 		var ret map[string]MetadataValue
 		return ret
@@ -107,7 +107,7 @@ func (o *McpServer) GetCustomProperties() map[string]MetadataValue {
 
 // GetCustomPropertiesOk returns a tuple with the CustomProperties field value if set, nil otherwise
 // and a boolean to check if the value has been set.
-func (o *McpServer) GetCustomPropertiesOk() (map[string]MetadataValue, bool) {
+func (o *MCPServer) GetCustomPropertiesOk() (map[string]MetadataValue, bool) {
 	if o == nil || IsNil(o.CustomProperties) {
 		return map[string]MetadataValue{}, false
 	}
@@ -115,7 +115,7 @@ func (o *McpServer) GetCustomPropertiesOk() (map[string]MetadataValue, bool) {
 }
 
 // HasCustomProperties returns a boolean if a field has been set.
-func (o *McpServer) HasCustomProperties() bool {
+func (o *MCPServer) HasCustomProperties() bool {
 	if o != nil && !IsNil(o.CustomProperties) {
 		return true
 	}
@@ -124,12 +124,12 @@ func (o *McpServer) HasCustomProperties() bool {
 }
 
 // SetCustomProperties gets a reference to the given map[string]MetadataValue and assigns it to the CustomProperties field.
-func (o *McpServer) SetCustomProperties(v map[string]MetadataValue) {
+func (o *MCPServer) SetCustomProperties(v map[string]MetadataValue) {
 	o.CustomProperties = v
 }
 
 // GetDescription returns the Description field value if set, zero value otherwise.
-func (o *McpServer) GetDescription() string {
+func (o *MCPServer) GetDescription() string {
 	if o == nil || IsNil(o.Description) {
 		var ret string
 		return ret
@@ -139,7 +139,7 @@ func (o *McpServer) GetDescription() string {
 
 // GetDescriptionOk returns a tuple with the Description field value if set, nil otherwise
 // and a boolean to check if the value has been set.
-func (o *McpServer) GetDescriptionOk() (*string, bool) {
+func (o *MCPServer) GetDescriptionOk() (*string, bool) {
 	if o == nil || IsNil(o.Description) {
 		return nil, false
 	}
@@ -147,7 +147,7 @@ func (o *McpServer) GetDescriptionOk() (*string, bool) {
 }
 
 // HasDescription returns a boolean if a field has been set.
-func (o *McpServer) HasDescription() bool {
+func (o *MCPServer) HasDescription() bool {
 	if o != nil && !IsNil(o.Description) {
 		return true
 	}
@@ -156,12 +156,12 @@ func (o *McpServer) HasDescription() bool {
 }
 
 // SetDescription gets a reference to the given string and assigns it to the Description field.
-func (o *McpServer) SetDescription(v string) {
+func (o *MCPServer) SetDescription(v string) {
 	o.Description = &v
 }
 
 // GetExternalId returns the ExternalId field value if set, zero value otherwise.
-func (o *McpServer) GetExternalId() string {
+func (o *MCPServer) GetExternalId() string {
 	if o == nil || IsNil(o.ExternalId) {
 		var ret string
 		return ret
@@ -171,7 +171,7 @@ func (o *McpServer) GetExternalId() string {
 
 // GetExternalIdOk returns a tuple with the ExternalId field value if set, nil otherwise
 // and a boolean to check if the value has been set.
-func (o *McpServer) GetExternalIdOk() (*string, bool) {
+func (o *MCPServer) GetExternalIdOk() (*string, bool) {
 	if o == nil || IsNil(o.ExternalId) {
 		return nil, false
 	}
@@ -179,7 +179,7 @@ func (o *McpServer) GetExternalIdOk() (*string, bool) {
 }
 
 // HasExternalId returns a boolean if a field has been set.
-func (o *McpServer) HasExternalId() bool {
+func (o *MCPServer) HasExternalId() bool {
 	if o != nil && !IsNil(o.ExternalId) {
 		return true
 	}
@@ -188,12 +188,12 @@ func (o *McpServer) HasExternalId() bool {
 }
 
 // SetExternalId gets a reference to the given string and assigns it to the ExternalId field.
-func (o *McpServer) SetExternalId(v string) {
+func (o *MCPServer) SetExternalId(v string) {
 	o.ExternalId = &v
 }
 
 // GetName returns the Name field value
-func (o *McpServer) GetName() string {
+func (o *MCPServer) GetName() string {
 	if o == nil {
 		var ret string
 		return ret
@@ -204,7 +204,7 @@ func (o *McpServer) GetName() string {
 
 // GetNameOk returns a tuple with the Name field value
 // and a boolean to check if the value has been set.
-func (o *McpServer) GetNameOk() (*string, bool) {
+func (o *MCPServer) GetNameOk() (*string, bool) {
 	if o == nil {
 		return nil, false
 	}
@@ -212,12 +212,12 @@ func (o *McpServer) GetNameOk() (*string, bool) {
 }
 
 // SetName sets field value
-func (o *McpServer) SetName(v string) {
+func (o *MCPServer) SetName(v string) {
 	o.Name = v
 }
 
 // GetId returns the Id field value if set, zero value otherwise.
-func (o *McpServer) GetId() string {
+func (o *MCPServer) GetId() string {
 	if o == nil || IsNil(o.Id) {
 		var ret string
 		return ret
@@ -227,7 +227,7 @@ func (o *McpServer) GetId() string {
 
 // GetIdOk returns a tuple with the Id field value if set, nil otherwise
 // and a boolean to check if the value has been set.
-func (o *McpServer) GetIdOk() (*string, bool) {
+func (o *MCPServer) GetIdOk() (*string, bool) {
 	if o == nil || IsNil(o.Id) {
 		return nil, false
 	}
@@ -235,7 +235,7 @@ func (o *McpServer) GetIdOk() (*string, bool) {
 }
 
 // HasId returns a boolean if a field has been set.
-func (o *McpServer) HasId() bool {
+func (o *MCPServer) HasId() bool {
 	if o != nil && !IsNil(o.Id) {
 		return true
 	}
@@ -244,12 +244,12 @@ func (o *McpServer) HasId() bool {
 }
 
 // SetId gets a reference to the given string and assigns it to the Id field.
-func (o *McpServer) SetId(v string) {
+func (o *MCPServer) SetId(v string) {
 	o.Id = &v
 }
 
 // GetCreateTimeSinceEpoch returns the CreateTimeSinceEpoch field value if set, zero value otherwise.
-func (o *McpServer) GetCreateTimeSinceEpoch() string {
+func (o *MCPServer) GetCreateTimeSinceEpoch() string {
 	if o == nil || IsNil(o.CreateTimeSinceEpoch) {
 		var ret string
 		return ret
@@ -259,7 +259,7 @@ func (o *McpServer) GetCreateTimeSinceEpoch() string {
 
 // GetCreateTimeSinceEpochOk returns a tuple with the CreateTimeSinceEpoch field value if set, nil otherwise
 // and a boolean to check if the value has been set.
-func (o *McpServer) GetCreateTimeSinceEpochOk() (*string, bool) {
+func (o *MCPServer) GetCreateTimeSinceEpochOk() (*string, bool) {
 	if o == nil || IsNil(o.CreateTimeSinceEpoch) {
 		return nil, false
 	}
@@ -267,7 +267,7 @@ func (o *McpServer) GetCreateTimeSinceEpochOk() (*string, bool) {
 }
 
 // HasCreateTimeSinceEpoch returns a boolean if a field has been set.
-func (o *McpServer) HasCreateTimeSinceEpoch() bool {
+func (o *MCPServer) HasCreateTimeSinceEpoch() bool {
 	if o != nil && !IsNil(o.CreateTimeSinceEpoch) {
 		return true
 	}
@@ -276,12 +276,12 @@ func (o *McpServer) HasCreateTimeSinceEpoch() bool {
 }
 
 // SetCreateTimeSinceEpoch gets a reference to the given string and assigns it to the CreateTimeSinceEpoch field.
-func (o *McpServer) SetCreateTimeSinceEpoch(v string) {
+func (o *MCPServer) SetCreateTimeSinceEpoch(v string) {
 	o.CreateTimeSinceEpoch = &v
 }
 
 // GetLastUpdateTimeSinceEpoch returns the LastUpdateTimeSinceEpoch field value if set, zero value otherwise.
-func (o *McpServer) GetLastUpdateTimeSinceEpoch() string {
+func (o *MCPServer) GetLastUpdateTimeSinceEpoch() string {
 	if o == nil || IsNil(o.LastUpdateTimeSinceEpoch) {
 		var ret string
 		return ret
@@ -291,7 +291,7 @@ func (o *McpServer) GetLastUpdateTimeSinceEpoch() string {
 
 // GetLastUpdateTimeSinceEpochOk returns a tuple with the LastUpdateTimeSinceEpoch field value if set, nil otherwise
 // and a boolean to check if the value has been set.
-func (o *McpServer) GetLastUpdateTimeSinceEpochOk() (*string, bool) {
+func (o *MCPServer) GetLastUpdateTimeSinceEpochOk() (*string, bool) {
 	if o == nil || IsNil(o.LastUpdateTimeSinceEpoch) {
 		return nil, false
 	}
@@ -299,7 +299,7 @@ func (o *McpServer) GetLastUpdateTimeSinceEpochOk() (*string, bool) {
 }
 
 // HasLastUpdateTimeSinceEpoch returns a boolean if a field has been set.
-func (o *McpServer) HasLastUpdateTimeSinceEpoch() bool {
+func (o *MCPServer) HasLastUpdateTimeSinceEpoch() bool {
 	if o != nil && !IsNil(o.LastUpdateTimeSinceEpoch) {
 		return true
 	}
@@ -308,12 +308,12 @@ func (o *McpServer) HasLastUpdateTimeSinceEpoch() bool {
 }
 
 // SetLastUpdateTimeSinceEpoch gets a reference to the given string and assigns it to the LastUpdateTimeSinceEpoch field.
-func (o *McpServer) SetLastUpdateTimeSinceEpoch(v string) {
+func (o *MCPServer) SetLastUpdateTimeSinceEpoch(v string) {
 	o.LastUpdateTimeSinceEpoch = &v
 }
 
 // GetSourceId returns the SourceId field value if set, zero value otherwise.
-func (o *McpServer) GetSourceId() string {
+func (o *MCPServer) GetSourceId() string {
 	if o == nil || IsNil(o.SourceId) {
 		var ret string
 		return ret
@@ -323,7 +323,7 @@ func (o *McpServer) GetSourceId() string {
 
 // GetSourceIdOk returns a tuple with the SourceId field value if set, nil otherwise
 // and a boolean to check if the value has been set.
-func (o *McpServer) GetSourceIdOk() (*string, bool) {
+func (o *MCPServer) GetSourceIdOk() (*string, bool) {
 	if o == nil || IsNil(o.SourceId) {
 		return nil, false
 	}
@@ -331,7 +331,7 @@ func (o *McpServer) GetSourceIdOk() (*string, bool) {
 }
 
 // HasSourceId returns a boolean if a field has been set.
-func (o *McpServer) HasSourceId() bool {
+func (o *MCPServer) HasSourceId() bool {
 	if o != nil && !IsNil(o.SourceId) {
 		return true
 	}
@@ -340,12 +340,12 @@ func (o *McpServer) HasSourceId() bool {
 }
 
 // SetSourceId gets a reference to the given string and assigns it to the SourceId field.
-func (o *McpServer) SetSourceId(v string) {
+func (o *MCPServer) SetSourceId(v string) {
 	o.SourceId = &v
 }
 
 // GetProvider returns the Provider field value if set, zero value otherwise.
-func (o *McpServer) GetProvider() string {
+func (o *MCPServer) GetProvider() string {
 	if o == nil || IsNil(o.Provider) {
 		var ret string
 		return ret
@@ -355,7 +355,7 @@ func (o *McpServer) GetProvider() string {
 
 // GetProviderOk returns a tuple with the Provider field value if set, nil otherwise
 // and a boolean to check if the value has been set.
-func (o *McpServer) GetProviderOk() (*string, bool) {
+func (o *MCPServer) GetProviderOk() (*string, bool) {
 	if o == nil || IsNil(o.Provider) {
 		return nil, false
 	}
@@ -363,7 +363,7 @@ func (o *McpServer) GetProviderOk() (*string, bool) {
 }
 
 // HasProvider returns a boolean if a field has been set.
-func (o *McpServer) HasProvider() bool {
+func (o *MCPServer) HasProvider() bool {
 	if o != nil && !IsNil(o.Provider) {
 		return true
 	}
@@ -372,12 +372,12 @@ func (o *McpServer) HasProvider() bool {
 }
 
 // SetProvider gets a reference to the given string and assigns it to the Provider field.
-func (o *McpServer) SetProvider(v string) {
+func (o *MCPServer) SetProvider(v string) {
 	o.Provider = &v
 }
 
 // GetLogo returns the Logo field value if set, zero value otherwise.
-func (o *McpServer) GetLogo() string {
+func (o *MCPServer) GetLogo() string {
 	if o == nil || IsNil(o.Logo) {
 		var ret string
 		return ret
@@ -387,7 +387,7 @@ func (o *McpServer) GetLogo() string {
 
 // GetLogoOk returns a tuple with the Logo field value if set, nil otherwise
 // and a boolean to check if the value has been set.
-func (o *McpServer) GetLogoOk() (*string, bool) {
+func (o *MCPServer) GetLogoOk() (*string, bool) {
 	if o == nil || IsNil(o.Logo) {
 		return nil, false
 	}
@@ -395,7 +395,7 @@ func (o *McpServer) GetLogoOk() (*string, bool) {
 }
 
 // HasLogo returns a boolean if a field has been set.
-func (o *McpServer) HasLogo() bool {
+func (o *MCPServer) HasLogo() bool {
 	if o != nil && !IsNil(o.Logo) {
 		return true
 	}
@@ -404,12 +404,12 @@ func (o *McpServer) HasLogo() bool {
 }
 
 // SetLogo gets a reference to the given string and assigns it to the Logo field.
-func (o *McpServer) SetLogo(v string) {
+func (o *MCPServer) SetLogo(v string) {
 	o.Logo = &v
 }
 
 // GetVersion returns the Version field value if set, zero value otherwise.
-func (o *McpServer) GetVersion() string {
+func (o *MCPServer) GetVersion() string {
 	if o == nil || IsNil(o.Version) {
 		var ret string
 		return ret
@@ -419,7 +419,7 @@ func (o *McpServer) GetVersion() string {
 
 // GetVersionOk returns a tuple with the Version field value if set, nil otherwise
 // and a boolean to check if the value has been set.
-func (o *McpServer) GetVersionOk() (*string, bool) {
+func (o *MCPServer) GetVersionOk() (*string, bool) {
 	if o == nil || IsNil(o.Version) {
 		return nil, false
 	}
@@ -427,7 +427,7 @@ func (o *McpServer) GetVersionOk() (*string, bool) {
 }
 
 // HasVersion returns a boolean if a field has been set.
-func (o *McpServer) HasVersion() bool {
+func (o *MCPServer) HasVersion() bool {
 	if o != nil && !IsNil(o.Version) {
 		return true
 	}
@@ -436,12 +436,12 @@ func (o *McpServer) HasVersion() bool {
 }
 
 // SetVersion gets a reference to the given string and assigns it to the Version field.
-func (o *McpServer) SetVersion(v string) {
+func (o *MCPServer) SetVersion(v string) {
 	o.Version = &v
 }
 
 // GetTags returns the Tags field value if set, zero value otherwise.
-func (o *McpServer) GetTags() []string {
+func (o *MCPServer) GetTags() []string {
 	if o == nil || IsNil(o.Tags) {
 		var ret []string
 		return ret
@@ -451,7 +451,7 @@ func (o *McpServer) GetTags() []string {
 
 // GetTagsOk returns a tuple with the Tags field value if set, nil otherwise
 // and a boolean to check if the value has been set.
-func (o *McpServer) GetTagsOk() ([]string, bool) {
+func (o *MCPServer) GetTagsOk() ([]string, bool) {
 	if o == nil || IsNil(o.Tags) {
 		return nil, false
 	}
@@ -459,7 +459,7 @@ func (o *McpServer) GetTagsOk() ([]string, bool) {
 }
 
 // HasTags returns a boolean if a field has been set.
-func (o *McpServer) HasTags() bool {
+func (o *MCPServer) HasTags() bool {
 	if o != nil && !IsNil(o.Tags) {
 		return true
 	}
@@ -468,12 +468,12 @@ func (o *McpServer) HasTags() bool {
 }
 
 // SetTags gets a reference to the given []string and assigns it to the Tags field.
-func (o *McpServer) SetTags(v []string) {
+func (o *MCPServer) SetTags(v []string) {
 	o.Tags = v
 }
 
 // GetLicense returns the License field value if set, zero value otherwise.
-func (o *McpServer) GetLicense() string {
+func (o *MCPServer) GetLicense() string {
 	if o == nil || IsNil(o.License) {
 		var ret string
 		return ret
@@ -483,7 +483,7 @@ func (o *McpServer) GetLicense() string {
 
 // GetLicenseOk returns a tuple with the License field value if set, nil otherwise
 // and a boolean to check if the value has been set.
-func (o *McpServer) GetLicenseOk() (*string, bool) {
+func (o *MCPServer) GetLicenseOk() (*string, bool) {
 	if o == nil || IsNil(o.License) {
 		return nil, false
 	}
@@ -491,7 +491,7 @@ func (o *McpServer) GetLicenseOk() (*string, bool) {
 }
 
 // HasLicense returns a boolean if a field has been set.
-func (o *McpServer) HasLicense() bool {
+func (o *MCPServer) HasLicense() bool {
 	if o != nil && !IsNil(o.License) {
 		return true
 	}
@@ -500,12 +500,12 @@ func (o *McpServer) HasLicense() bool {
 }
 
 // SetLicense gets a reference to the given string and assigns it to the License field.
-func (o *McpServer) SetLicense(v string) {
+func (o *MCPServer) SetLicense(v string) {
 	o.License = &v
 }
 
 // GetLicenseLink returns the LicenseLink field value if set, zero value otherwise.
-func (o *McpServer) GetLicenseLink() string {
+func (o *MCPServer) GetLicenseLink() string {
 	if o == nil || IsNil(o.LicenseLink) {
 		var ret string
 		return ret
@@ -515,7 +515,7 @@ func (o *McpServer) GetLicenseLink() string {
 
 // GetLicenseLinkOk returns a tuple with the LicenseLink field value if set, nil otherwise
 // and a boolean to check if the value has been set.
-func (o *McpServer) GetLicenseLinkOk() (*string, bool) {
+func (o *MCPServer) GetLicenseLinkOk() (*string, bool) {
 	if o == nil || IsNil(o.LicenseLink) {
 		return nil, false
 	}
@@ -523,7 +523,7 @@ func (o *McpServer) GetLicenseLinkOk() (*string, bool) {
 }
 
 // HasLicenseLink returns a boolean if a field has been set.
-func (o *McpServer) HasLicenseLink() bool {
+func (o *MCPServer) HasLicenseLink() bool {
 	if o != nil && !IsNil(o.LicenseLink) {
 		return true
 	}
@@ -532,12 +532,12 @@ func (o *McpServer) HasLicenseLink() bool {
 }
 
 // SetLicenseLink gets a reference to the given string and assigns it to the LicenseLink field.
-func (o *McpServer) SetLicenseLink(v string) {
+func (o *MCPServer) SetLicenseLink(v string) {
 	o.LicenseLink = &v
 }
 
 // GetToolCount returns the ToolCount field value
-func (o *McpServer) GetToolCount() int32 {
+func (o *MCPServer) GetToolCount() int32 {
 	if o == nil {
 		var ret int32
 		return ret
@@ -548,7 +548,7 @@ func (o *McpServer) GetToolCount() int32 {
 
 // GetToolCountOk returns a tuple with the ToolCount field value
 // and a boolean to check if the value has been set.
-func (o *McpServer) GetToolCountOk() (*int32, bool) {
+func (o *MCPServer) GetToolCountOk() (*int32, bool) {
 	if o == nil {
 		return nil, false
 	}
@@ -556,14 +556,14 @@ func (o *McpServer) GetToolCountOk() (*int32, bool) {
 }
 
 // SetToolCount sets field value
-func (o *McpServer) SetToolCount(v int32) {
+func (o *MCPServer) SetToolCount(v int32) {
 	o.ToolCount = v
 }
 
 // GetTools returns the Tools field value if set, zero value otherwise.
-func (o *McpServer) GetTools() []McpTool {
+func (o *MCPServer) GetTools() []MCPTool {
 	if o == nil || IsNil(o.Tools) {
-		var ret []McpTool
+		var ret []MCPTool
 		return ret
 	}
 	return o.Tools
@@ -571,7 +571,7 @@ func (o *McpServer) GetTools() []McpTool {
 
 // GetToolsOk returns a tuple with the Tools field value if set, nil otherwise
 // and a boolean to check if the value has been set.
-func (o *McpServer) GetToolsOk() ([]McpTool, bool) {
+func (o *MCPServer) GetToolsOk() ([]MCPTool, bool) {
 	if o == nil || IsNil(o.Tools) {
 		return nil, false
 	}
@@ -579,7 +579,7 @@ func (o *McpServer) GetToolsOk() ([]McpTool, bool) {
 }
 
 // HasTools returns a boolean if a field has been set.
-func (o *McpServer) HasTools() bool {
+func (o *MCPServer) HasTools() bool {
 	if o != nil && !IsNil(o.Tools) {
 		return true
 	}
@@ -587,15 +587,15 @@ func (o *McpServer) HasTools() bool {
 	return false
 }
 
-// SetTools gets a reference to the given []McpTool and assigns it to the Tools field.
-func (o *McpServer) SetTools(v []McpTool) {
+// SetTools gets a reference to the given []MCPTool and assigns it to the Tools field.
+func (o *MCPServer) SetTools(v []MCPTool) {
 	o.Tools = v
 }
 
 // GetSecurityIndicators returns the SecurityIndicators field value if set, zero value otherwise.
-func (o *McpServer) GetSecurityIndicators() McpSecurityIndicator {
+func (o *MCPServer) GetSecurityIndicators() MCPSecurityIndicator {
 	if o == nil || IsNil(o.SecurityIndicators) {
-		var ret McpSecurityIndicator
+		var ret MCPSecurityIndicator
 		return ret
 	}
 	return *o.SecurityIndicators
@@ -603,7 +603,7 @@ func (o *McpServer) GetSecurityIndicators() McpSecurityIndicator {
 
 // GetSecurityIndicatorsOk returns a tuple with the SecurityIndicators field value if set, nil otherwise
 // and a boolean to check if the value has been set.
-func (o *McpServer) GetSecurityIndicatorsOk() (*McpSecurityIndicator, bool) {
+func (o *MCPServer) GetSecurityIndicatorsOk() (*MCPSecurityIndicator, bool) {
 	if o == nil || IsNil(o.SecurityIndicators) {
 		return nil, false
 	}
@@ -611,7 +611,7 @@ func (o *McpServer) GetSecurityIndicatorsOk() (*McpSecurityIndicator, bool) {
 }
 
 // HasSecurityIndicators returns a boolean if a field has been set.
-func (o *McpServer) HasSecurityIndicators() bool {
+func (o *MCPServer) HasSecurityIndicators() bool {
 	if o != nil && !IsNil(o.SecurityIndicators) {
 		return true
 	}
@@ -619,13 +619,13 @@ func (o *McpServer) HasSecurityIndicators() bool {
 	return false
 }
 
-// SetSecurityIndicators gets a reference to the given McpSecurityIndicator and assigns it to the SecurityIndicators field.
-func (o *McpServer) SetSecurityIndicators(v McpSecurityIndicator) {
+// SetSecurityIndicators gets a reference to the given MCPSecurityIndicator and assigns it to the SecurityIndicators field.
+func (o *MCPServer) SetSecurityIndicators(v MCPSecurityIndicator) {
 	o.SecurityIndicators = &v
 }
 
 // GetDeploymentMode returns the DeploymentMode field value if set, zero value otherwise.
-func (o *McpServer) GetDeploymentMode() string {
+func (o *MCPServer) GetDeploymentMode() string {
 	if o == nil || IsNil(o.DeploymentMode) {
 		var ret string
 		return ret
@@ -635,7 +635,7 @@ func (o *McpServer) GetDeploymentMode() string {
 
 // GetDeploymentModeOk returns a tuple with the DeploymentMode field value if set, nil otherwise
 // and a boolean to check if the value has been set.
-func (o *McpServer) GetDeploymentModeOk() (*string, bool) {
+func (o *MCPServer) GetDeploymentModeOk() (*string, bool) {
 	if o == nil || IsNil(o.DeploymentMode) {
 		return nil, false
 	}
@@ -643,7 +643,7 @@ func (o *McpServer) GetDeploymentModeOk() (*string, bool) {
 }
 
 // HasDeploymentMode returns a boolean if a field has been set.
-func (o *McpServer) HasDeploymentMode() bool {
+func (o *MCPServer) HasDeploymentMode() bool {
 	if o != nil && !IsNil(o.DeploymentMode) {
 		return true
 	}
@@ -652,12 +652,12 @@ func (o *McpServer) HasDeploymentMode() bool {
 }
 
 // SetDeploymentMode gets a reference to the given string and assigns it to the DeploymentMode field.
-func (o *McpServer) SetDeploymentMode(v string) {
+func (o *MCPServer) SetDeploymentMode(v string) {
 	o.DeploymentMode = &v
 }
 
 // GetTransports returns the Transports field value if set, zero value otherwise.
-func (o *McpServer) GetTransports() []string {
+func (o *MCPServer) GetTransports() []string {
 	if o == nil || IsNil(o.Transports) {
 		var ret []string
 		return ret
@@ -667,7 +667,7 @@ func (o *McpServer) GetTransports() []string {
 
 // GetTransportsOk returns a tuple with the Transports field value if set, nil otherwise
 // and a boolean to check if the value has been set.
-func (o *McpServer) GetTransportsOk() ([]string, bool) {
+func (o *MCPServer) GetTransportsOk() ([]string, bool) {
 	if o == nil || IsNil(o.Transports) {
 		return nil, false
 	}
@@ -675,7 +675,7 @@ func (o *McpServer) GetTransportsOk() ([]string, bool) {
 }
 
 // HasTransports returns a boolean if a field has been set.
-func (o *McpServer) HasTransports() bool {
+func (o *MCPServer) HasTransports() bool {
 	if o != nil && !IsNil(o.Transports) {
 		return true
 	}
@@ -684,14 +684,14 @@ func (o *McpServer) HasTransports() bool {
 }
 
 // SetTransports gets a reference to the given []string and assigns it to the Transports field.
-func (o *McpServer) SetTransports(v []string) {
+func (o *MCPServer) SetTransports(v []string) {
 	o.Transports = v
 }
 
 // GetArtifacts returns the Artifacts field value if set, zero value otherwise.
-func (o *McpServer) GetArtifacts() []McpArtifact {
+func (o *MCPServer) GetArtifacts() []MCPArtifact {
 	if o == nil || IsNil(o.Artifacts) {
-		var ret []McpArtifact
+		var ret []MCPArtifact
 		return ret
 	}
 	return o.Artifacts
@@ -699,7 +699,7 @@ func (o *McpServer) GetArtifacts() []McpArtifact {
 
 // GetArtifactsOk returns a tuple with the Artifacts field value if set, nil otherwise
 // and a boolean to check if the value has been set.
-func (o *McpServer) GetArtifactsOk() ([]McpArtifact, bool) {
+func (o *MCPServer) GetArtifactsOk() ([]MCPArtifact, bool) {
 	if o == nil || IsNil(o.Artifacts) {
 		return nil, false
 	}
@@ -707,7 +707,7 @@ func (o *McpServer) GetArtifactsOk() ([]McpArtifact, bool) {
 }
 
 // HasArtifacts returns a boolean if a field has been set.
-func (o *McpServer) HasArtifacts() bool {
+func (o *MCPServer) HasArtifacts() bool {
 	if o != nil && !IsNil(o.Artifacts) {
 		return true
 	}
@@ -715,15 +715,15 @@ func (o *McpServer) HasArtifacts() bool {
 	return false
 }
 
-// SetArtifacts gets a reference to the given []McpArtifact and assigns it to the Artifacts field.
-func (o *McpServer) SetArtifacts(v []McpArtifact) {
+// SetArtifacts gets a reference to the given []MCPArtifact and assigns it to the Artifacts field.
+func (o *MCPServer) SetArtifacts(v []MCPArtifact) {
 	o.Artifacts = v
 }
 
 // GetEndpoints returns the Endpoints field value if set, zero value otherwise.
-func (o *McpServer) GetEndpoints() McpEndpoints {
+func (o *MCPServer) GetEndpoints() MCPEndpoints {
 	if o == nil || IsNil(o.Endpoints) {
-		var ret McpEndpoints
+		var ret MCPEndpoints
 		return ret
 	}
 	return *o.Endpoints
@@ -731,7 +731,7 @@ func (o *McpServer) GetEndpoints() McpEndpoints {
 
 // GetEndpointsOk returns a tuple with the Endpoints field value if set, nil otherwise
 // and a boolean to check if the value has been set.
-func (o *McpServer) GetEndpointsOk() (*McpEndpoints, bool) {
+func (o *MCPServer) GetEndpointsOk() (*MCPEndpoints, bool) {
 	if o == nil || IsNil(o.Endpoints) {
 		return nil, false
 	}
@@ -739,7 +739,7 @@ func (o *McpServer) GetEndpointsOk() (*McpEndpoints, bool) {
 }
 
 // HasEndpoints returns a boolean if a field has been set.
-func (o *McpServer) HasEndpoints() bool {
+func (o *MCPServer) HasEndpoints() bool {
 	if o != nil && !IsNil(o.Endpoints) {
 		return true
 	}
@@ -747,13 +747,13 @@ func (o *McpServer) HasEndpoints() bool {
 	return false
 }
 
-// SetEndpoints gets a reference to the given McpEndpoints and assigns it to the Endpoints field.
-func (o *McpServer) SetEndpoints(v McpEndpoints) {
+// SetEndpoints gets a reference to the given MCPEndpoints and assigns it to the Endpoints field.
+func (o *MCPServer) SetEndpoints(v MCPEndpoints) {
 	o.Endpoints = &v
 }
 
 // GetReadme returns the Readme field value if set, zero value otherwise.
-func (o *McpServer) GetReadme() string {
+func (o *MCPServer) GetReadme() string {
 	if o == nil || IsNil(o.Readme) {
 		var ret string
 		return ret
@@ -763,7 +763,7 @@ func (o *McpServer) GetReadme() string {
 
 // GetReadmeOk returns a tuple with the Readme field value if set, nil otherwise
 // and a boolean to check if the value has been set.
-func (o *McpServer) GetReadmeOk() (*string, bool) {
+func (o *MCPServer) GetReadmeOk() (*string, bool) {
 	if o == nil || IsNil(o.Readme) {
 		return nil, false
 	}
@@ -771,7 +771,7 @@ func (o *McpServer) GetReadmeOk() (*string, bool) {
 }
 
 // HasReadme returns a boolean if a field has been set.
-func (o *McpServer) HasReadme() bool {
+func (o *MCPServer) HasReadme() bool {
 	if o != nil && !IsNil(o.Readme) {
 		return true
 	}
@@ -780,12 +780,12 @@ func (o *McpServer) HasReadme() bool {
 }
 
 // SetReadme gets a reference to the given string and assigns it to the Readme field.
-func (o *McpServer) SetReadme(v string) {
+func (o *MCPServer) SetReadme(v string) {
 	o.Readme = &v
 }
 
 // GetDocumentationUrl returns the DocumentationUrl field value if set, zero value otherwise.
-func (o *McpServer) GetDocumentationUrl() string {
+func (o *MCPServer) GetDocumentationUrl() string {
 	if o == nil || IsNil(o.DocumentationUrl) {
 		var ret string
 		return ret
@@ -795,7 +795,7 @@ func (o *McpServer) GetDocumentationUrl() string {
 
 // GetDocumentationUrlOk returns a tuple with the DocumentationUrl field value if set, nil otherwise
 // and a boolean to check if the value has been set.
-func (o *McpServer) GetDocumentationUrlOk() (*string, bool) {
+func (o *MCPServer) GetDocumentationUrlOk() (*string, bool) {
 	if o == nil || IsNil(o.DocumentationUrl) {
 		return nil, false
 	}
@@ -803,7 +803,7 @@ func (o *McpServer) GetDocumentationUrlOk() (*string, bool) {
 }
 
 // HasDocumentationUrl returns a boolean if a field has been set.
-func (o *McpServer) HasDocumentationUrl() bool {
+func (o *MCPServer) HasDocumentationUrl() bool {
 	if o != nil && !IsNil(o.DocumentationUrl) {
 		return true
 	}
@@ -812,12 +812,12 @@ func (o *McpServer) HasDocumentationUrl() bool {
 }
 
 // SetDocumentationUrl gets a reference to the given string and assigns it to the DocumentationUrl field.
-func (o *McpServer) SetDocumentationUrl(v string) {
+func (o *MCPServer) SetDocumentationUrl(v string) {
 	o.DocumentationUrl = &v
 }
 
 // GetRepositoryUrl returns the RepositoryUrl field value if set, zero value otherwise.
-func (o *McpServer) GetRepositoryUrl() string {
+func (o *MCPServer) GetRepositoryUrl() string {
 	if o == nil || IsNil(o.RepositoryUrl) {
 		var ret string
 		return ret
@@ -827,7 +827,7 @@ func (o *McpServer) GetRepositoryUrl() string {
 
 // GetRepositoryUrlOk returns a tuple with the RepositoryUrl field value if set, nil otherwise
 // and a boolean to check if the value has been set.
-func (o *McpServer) GetRepositoryUrlOk() (*string, bool) {
+func (o *MCPServer) GetRepositoryUrlOk() (*string, bool) {
 	if o == nil || IsNil(o.RepositoryUrl) {
 		return nil, false
 	}
@@ -835,7 +835,7 @@ func (o *McpServer) GetRepositoryUrlOk() (*string, bool) {
 }
 
 // HasRepositoryUrl returns a boolean if a field has been set.
-func (o *McpServer) HasRepositoryUrl() bool {
+func (o *MCPServer) HasRepositoryUrl() bool {
 	if o != nil && !IsNil(o.RepositoryUrl) {
 		return true
 	}
@@ -844,12 +844,12 @@ func (o *McpServer) HasRepositoryUrl() bool {
 }
 
 // SetRepositoryUrl gets a reference to the given string and assigns it to the RepositoryUrl field.
-func (o *McpServer) SetRepositoryUrl(v string) {
+func (o *MCPServer) SetRepositoryUrl(v string) {
 	o.RepositoryUrl = &v
 }
 
 // GetSourceCode returns the SourceCode field value if set, zero value otherwise.
-func (o *McpServer) GetSourceCode() string {
+func (o *MCPServer) GetSourceCode() string {
 	if o == nil || IsNil(o.SourceCode) {
 		var ret string
 		return ret
@@ -859,7 +859,7 @@ func (o *McpServer) GetSourceCode() string {
 
 // GetSourceCodeOk returns a tuple with the SourceCode field value if set, nil otherwise
 // and a boolean to check if the value has been set.
-func (o *McpServer) GetSourceCodeOk() (*string, bool) {
+func (o *MCPServer) GetSourceCodeOk() (*string, bool) {
 	if o == nil || IsNil(o.SourceCode) {
 		return nil, false
 	}
@@ -867,7 +867,7 @@ func (o *McpServer) GetSourceCodeOk() (*string, bool) {
 }
 
 // HasSourceCode returns a boolean if a field has been set.
-func (o *McpServer) HasSourceCode() bool {
+func (o *MCPServer) HasSourceCode() bool {
 	if o != nil && !IsNil(o.SourceCode) {
 		return true
 	}
@@ -876,12 +876,12 @@ func (o *McpServer) HasSourceCode() bool {
 }
 
 // SetSourceCode gets a reference to the given string and assigns it to the SourceCode field.
-func (o *McpServer) SetSourceCode(v string) {
+func (o *MCPServer) SetSourceCode(v string) {
 	o.SourceCode = &v
 }
 
 // GetPublishedDate returns the PublishedDate field value if set, zero value otherwise.
-func (o *McpServer) GetPublishedDate() time.Time {
+func (o *MCPServer) GetPublishedDate() time.Time {
 	if o == nil || IsNil(o.PublishedDate) {
 		var ret time.Time
 		return ret
@@ -891,7 +891,7 @@ func (o *McpServer) GetPublishedDate() time.Time {
 
 // GetPublishedDateOk returns a tuple with the PublishedDate field value if set, nil otherwise
 // and a boolean to check if the value has been set.
-func (o *McpServer) GetPublishedDateOk() (*time.Time, bool) {
+func (o *MCPServer) GetPublishedDateOk() (*time.Time, bool) {
 	if o == nil || IsNil(o.PublishedDate) {
 		return nil, false
 	}
@@ -899,7 +899,7 @@ func (o *McpServer) GetPublishedDateOk() (*time.Time, bool) {
 }
 
 // HasPublishedDate returns a boolean if a field has been set.
-func (o *McpServer) HasPublishedDate() bool {
+func (o *MCPServer) HasPublishedDate() bool {
 	if o != nil && !IsNil(o.PublishedDate) {
 		return true
 	}
@@ -908,12 +908,12 @@ func (o *McpServer) HasPublishedDate() bool {
 }
 
 // SetPublishedDate gets a reference to the given time.Time and assigns it to the PublishedDate field.
-func (o *McpServer) SetPublishedDate(v time.Time) {
+func (o *MCPServer) SetPublishedDate(v time.Time) {
 	o.PublishedDate = &v
 }
 
 // GetLastUpdated returns the LastUpdated field value if set, zero value otherwise.
-func (o *McpServer) GetLastUpdated() time.Time {
+func (o *MCPServer) GetLastUpdated() time.Time {
 	if o == nil || IsNil(o.LastUpdated) {
 		var ret time.Time
 		return ret
@@ -923,7 +923,7 @@ func (o *McpServer) GetLastUpdated() time.Time {
 
 // GetLastUpdatedOk returns a tuple with the LastUpdated field value if set, nil otherwise
 // and a boolean to check if the value has been set.
-func (o *McpServer) GetLastUpdatedOk() (*time.Time, bool) {
+func (o *MCPServer) GetLastUpdatedOk() (*time.Time, bool) {
 	if o == nil || IsNil(o.LastUpdated) {
 		return nil, false
 	}
@@ -931,7 +931,7 @@ func (o *McpServer) GetLastUpdatedOk() (*time.Time, bool) {
 }
 
 // HasLastUpdated returns a boolean if a field has been set.
-func (o *McpServer) HasLastUpdated() bool {
+func (o *MCPServer) HasLastUpdated() bool {
 	if o != nil && !IsNil(o.LastUpdated) {
 		return true
 	}
@@ -940,14 +940,14 @@ func (o *McpServer) HasLastUpdated() bool {
 }
 
 // SetLastUpdated gets a reference to the given time.Time and assigns it to the LastUpdated field.
-func (o *McpServer) SetLastUpdated(v time.Time) {
+func (o *MCPServer) SetLastUpdated(v time.Time) {
 	o.LastUpdated = &v
 }
 
 // GetRuntimeMetadata returns the RuntimeMetadata field value if set, zero value otherwise.
-func (o *McpServer) GetRuntimeMetadata() McpRuntimeMetadata {
+func (o *MCPServer) GetRuntimeMetadata() MCPRuntimeMetadata {
 	if o == nil || IsNil(o.RuntimeMetadata) {
-		var ret McpRuntimeMetadata
+		var ret MCPRuntimeMetadata
 		return ret
 	}
 	return *o.RuntimeMetadata
@@ -955,7 +955,7 @@ func (o *McpServer) GetRuntimeMetadata() McpRuntimeMetadata {
 
 // GetRuntimeMetadataOk returns a tuple with the RuntimeMetadata field value if set, nil otherwise
 // and a boolean to check if the value has been set.
-func (o *McpServer) GetRuntimeMetadataOk() (*McpRuntimeMetadata, bool) {
+func (o *MCPServer) GetRuntimeMetadataOk() (*MCPRuntimeMetadata, bool) {
 	if o == nil || IsNil(o.RuntimeMetadata) {
 		return nil, false
 	}
@@ -963,7 +963,7 @@ func (o *McpServer) GetRuntimeMetadataOk() (*McpRuntimeMetadata, bool) {
 }
 
 // HasRuntimeMetadata returns a boolean if a field has been set.
-func (o *McpServer) HasRuntimeMetadata() bool {
+func (o *MCPServer) HasRuntimeMetadata() bool {
 	if o != nil && !IsNil(o.RuntimeMetadata) {
 		return true
 	}
@@ -971,12 +971,12 @@ func (o *McpServer) HasRuntimeMetadata() bool {
 	return false
 }
 
-// SetRuntimeMetadata gets a reference to the given McpRuntimeMetadata and assigns it to the RuntimeMetadata field.
-func (o *McpServer) SetRuntimeMetadata(v McpRuntimeMetadata) {
+// SetRuntimeMetadata gets a reference to the given MCPRuntimeMetadata and assigns it to the RuntimeMetadata field.
+func (o *MCPServer) SetRuntimeMetadata(v MCPRuntimeMetadata) {
 	o.RuntimeMetadata = &v
 }
 
-func (o McpServer) MarshalJSON() ([]byte, error) {
+func (o MCPServer) MarshalJSON() ([]byte, error) {
 	toSerialize, err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
@@ -984,7 +984,7 @@ func (o McpServer) MarshalJSON() ([]byte, error) {
 	return json.Marshal(toSerialize)
 }
 
-func (o McpServer) ToMap() (map[string]interface{}, error) {
+func (o MCPServer) ToMap() (map[string]interface{}, error) {
 	toSerialize := map[string]interface{}{}
 	if !IsNil(o.CustomProperties) {
 		toSerialize["customProperties"] = o.CustomProperties
@@ -1069,38 +1069,38 @@ func (o McpServer) ToMap() (map[string]interface{}, error) {
 	return toSerialize, nil
 }
 
-type NullableMcpServer struct {
-	value *McpServer
+type NullableMCPServer struct {
+	value *MCPServer
 	isSet bool
 }
 
-func (v NullableMcpServer) Get() *McpServer {
+func (v NullableMCPServer) Get() *MCPServer {
 	return v.value
 }
 
-func (v *NullableMcpServer) Set(val *McpServer) {
+func (v *NullableMCPServer) Set(val *MCPServer) {
 	v.value = val
 	v.isSet = true
 }
 
-func (v NullableMcpServer) IsSet() bool {
+func (v NullableMCPServer) IsSet() bool {
 	return v.isSet
 }
 
-func (v *NullableMcpServer) Unset() {
+func (v *NullableMCPServer) Unset() {
 	v.value = nil
 	v.isSet = false
 }
 
-func NewNullableMcpServer(val *McpServer) *NullableMcpServer {
-	return &NullableMcpServer{value: val, isSet: true}
+func NewNullableMCPServer(val *MCPServer) *NullableMCPServer {
+	return &NullableMCPServer{value: val, isSet: true}
 }
 
-func (v NullableMcpServer) MarshalJSON() ([]byte, error) {
+func (v NullableMCPServer) MarshalJSON() ([]byte, error) {
 	return json.Marshal(v.value)
 }
 
-func (v *NullableMcpServer) UnmarshalJSON(src []byte) error {
+func (v *NullableMCPServer) UnmarshalJSON(src []byte) error {
 	v.isSet = true
 	return json.Unmarshal(src, &v.value)
 }

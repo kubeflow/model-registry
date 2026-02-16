@@ -6,8 +6,8 @@ import (
 	"github.com/kubeflow/model-registry/internal/db/models"
 )
 
-// McpServerListOptions holds the options for listing MCP servers.
-type McpServerListOptions struct {
+// MCPServerListOptions holds the options for listing MCP servers.
+type MCPServerListOptions struct {
 	models.Pagination
 	Name        *string
 	SourceIDs   *[]string
@@ -17,40 +17,40 @@ type McpServerListOptions struct {
 }
 
 // GetRestEntityType implements the FilterApplier interface.
-func (c *McpServerListOptions) GetRestEntityType() filter.RestEntityType {
-	return filter.RestEntityType(catalogfilter.RestEntityMcpServer)
+func (c *MCPServerListOptions) GetRestEntityType() filter.RestEntityType {
+	return filter.RestEntityType(catalogfilter.RestEntityMCPServer)
 }
 
 // GetFilterQuery returns the filter query string for advanced filtering.
-func (c *McpServerListOptions) GetFilterQuery() string {
+func (c *MCPServerListOptions) GetFilterQuery() string {
 	if c.FilterQuery == nil {
 		return ""
 	}
 	return *c.FilterQuery
 }
 
-// McpServerAttributes holds the attributes for an MCP server record.
-type McpServerAttributes struct {
+// MCPServerAttributes holds the attributes for an MCP server record.
+type MCPServerAttributes struct {
 	Name                     *string
 	ExternalID               *string
 	CreateTimeSinceEpoch     *int64
 	LastUpdateTimeSinceEpoch *int64
 }
 
-// McpServer represents an MCP server stored in the database.
-type McpServer interface {
-	models.Entity[McpServerAttributes]
+// MCPServer represents an MCP server stored in the database.
+type MCPServer interface {
+	models.Entity[MCPServerAttributes]
 }
 
-// McpServerImpl is the concrete implementation of McpServer.
-type McpServerImpl = models.BaseEntity[McpServerAttributes]
+// MCPServerImpl is the concrete implementation of MCPServer.
+type MCPServerImpl = models.BaseEntity[MCPServerAttributes]
 
-// McpServerRepository defines the interface for MCP server persistence.
-type McpServerRepository interface {
-	GetByID(id int32) (McpServer, error)
-	GetByNameAndVersion(name string, version string) (McpServer, error)
-	List(listOptions McpServerListOptions) (*models.ListWrapper[McpServer], error)
-	Save(server McpServer) (McpServer, error)
+// MCPServerRepository defines the interface for MCP server persistence.
+type MCPServerRepository interface {
+	GetByID(id int32) (MCPServer, error)
+	GetByNameAndVersion(name string, version string) (MCPServer, error)
+	List(listOptions MCPServerListOptions) (*models.ListWrapper[MCPServer], error)
+	Save(server MCPServer) (MCPServer, error)
 	DeleteBySource(sourceID string) error
 	DeleteByID(id int32) error
 	GetDistinctSourceIDs() ([]string, error)

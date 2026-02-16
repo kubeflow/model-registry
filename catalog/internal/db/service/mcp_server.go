@@ -21,7 +21,7 @@ import (
 )
 
 var (
-	ErrMcpServerNotFound       = errors.New("MCP server by id not found")
+	ErrMCPServerNotFound       = errors.New("MCP server by id not found")
 	ErrInvalidBaseName         = errors.New("base_name validation failed")
 	ErrBaseNameContainsAtSign  = errors.New("base_name cannot contain '@' character")
 	ErrBaseNameEmpty           = errors.New("base_name cannot be empty")
@@ -30,29 +30,29 @@ var (
 	ErrVersionContainsAtSign   = errors.New("version cannot contain '@' character")
 )
 
-// McpServerRepositoryImpl implements McpServerRepository using GORM.
-type McpServerRepositoryImpl struct {
-	*service.GenericRepository[models.McpServer, schema.Context, schema.ContextProperty, *models.McpServerListOptions]
+// MCPServerRepositoryImpl implements MCPServerRepository using GORM.
+type MCPServerRepositoryImpl struct {
+	*service.GenericRepository[models.MCPServer, schema.Context, schema.ContextProperty, *models.MCPServerListOptions]
 }
 
-// NewMcpServerRepository creates a new McpServerRepository.
-func NewMcpServerRepository(db *gorm.DB, typeID int32) models.McpServerRepository {
-	r := &McpServerRepositoryImpl{}
+// NewMCPServerRepository creates a new MCPServerRepository.
+func NewMCPServerRepository(db *gorm.DB, typeID int32) models.MCPServerRepository {
+	r := &MCPServerRepositoryImpl{}
 
-	r.GenericRepository = service.NewGenericRepository(service.GenericRepositoryConfig[models.McpServer, schema.Context, schema.ContextProperty, *models.McpServerListOptions]{
+	r.GenericRepository = service.NewGenericRepository(service.GenericRepositoryConfig[models.MCPServer, schema.Context, schema.ContextProperty, *models.MCPServerListOptions]{
 		DB:                      db,
 		TypeID:                  typeID,
-		EntityToSchema:          mapMcpServerToContext,
-		SchemaToEntity:          mapDataLayerToMcpServer,
-		EntityToProperties:      mapMcpServerToContextProperties,
-		NotFoundError:           ErrMcpServerNotFound,
+		EntityToSchema:          mapMCPServerToContext,
+		SchemaToEntity:          mapDataLayerToMCPServer,
+		EntityToProperties:      mapMCPServerToContextProperties,
+		NotFoundError:           ErrMCPServerNotFound,
 		EntityName:              "MCP server",
 		PropertyFieldName:       "context_id",
-		ApplyListFilters:        applyMcpServerListFilters,
+		ApplyListFilters:        applyMCPServerListFilters,
 		CreatePaginationToken:   r.createPaginationToken,
 		ApplyCustomOrdering:     r.applyCustomOrdering,
-		IsNewEntity:             func(entity models.McpServer) bool { return entity.GetID() == nil },
-		HasCustomProperties:     func(entity models.McpServer) bool { return entity.GetCustomProperties() != nil },
+		IsNewEntity:             func(entity models.MCPServer) bool { return entity.GetID() == nil },
+		HasCustomProperties:     func(entity models.MCPServer) bool { return entity.GetCustomProperties() != nil },
 		EntityMappingFuncs:      filter.NewCatalogEntityMappings(),
 		PreserveHistoricalTimes: true, // Preserve timestamps from YAML source data
 	})
@@ -63,7 +63,7 @@ func NewMcpServerRepository(db *gorm.DB, typeID int32) models.McpServerRepositor
 // Save creates or updates an MCP server.
 // Uses (base_name, version) as the unique identifier.
 // Stores composite name (base_name@version) in Context.name field.
-func (r *McpServerRepositoryImpl) Save(server models.McpServer) (models.McpServer, error) {
+func (r *MCPServerRepositoryImpl) Save(server models.MCPServer) (models.MCPServer, error) {
 	config := r.GetConfig()
 	if server.GetTypeID() == nil {
 		if config.TypeID > 0 {
@@ -134,7 +134,7 @@ func (r *McpServerRepositoryImpl) Save(server models.McpServer) (models.McpServe
 				},
 			}
 			// Use type assertion to set properties on the impl
-			if impl, ok := server.(*models.McpServerImpl); ok {
+			if impl, ok := server.(*models.MCPServerImpl); ok {
 				impl.Properties = &newProps
 			}
 		}
@@ -143,7 +143,7 @@ func (r *McpServerRepositoryImpl) Save(server models.McpServer) (models.McpServe
 		if server.GetID() == nil {
 			existing, err := r.GetByNameAndVersion(baseName, version)
 			if err != nil {
-				if !errors.Is(err, ErrMcpServerNotFound) {
+				if !errors.Is(err, ErrMCPServerNotFound) {
 					return nil, fmt.Errorf("error finding existing MCP server named %s version %s: %w", baseName, version, err)
 				}
 				// If not found, continue with create
@@ -182,7 +182,7 @@ func (r *McpServerRepositoryImpl) Save(server models.McpServer) (models.McpServe
 
 // extractVersionProperty extracts the version property value from an MCP server.
 // Returns empty string if no version property exists.
-func extractVersionProperty(server models.McpServer) string {
+func extractVersionProperty(server models.MCPServer) string {
 	if server.GetProperties() == nil {
 		return ""
 	}
@@ -224,14 +224,14 @@ func parseCompositeName(compositeName string) (string, string) {
 }
 
 // List returns a paginated list of MCP servers.
-func (r *McpServerRepositoryImpl) List(listOptions models.McpServerListOptions) (*dbmodels.ListWrapper[models.McpServer], error) {
+func (r *MCPServerRepositoryImpl) List(listOptions models.MCPServerListOptions) (*dbmodels.ListWrapper[models.MCPServer], error) {
 	return r.GenericRepository.List(&listOptions)
 }
 
 // GetByNameAndVersion retrieves an MCP server by its base name and version.
 // Uses composite name (base_name@version) stored in Context.name field.
-func (r *McpServerRepositoryImpl) GetByNameAndVersion(baseName string, version string) (models.McpServer, error) {
-	var zeroEntity models.McpServer
+func (r *MCPServerRepositoryImpl) GetByNameAndVersion(baseName string, version string) (models.MCPServer, error) {
+	var zeroEntity models.MCPServer
 	entity, err := r.lookupServerByNameAndVersion(baseName, version)
 	if err != nil {
 		return zeroEntity, err
@@ -251,7 +251,7 @@ func (r *McpServerRepositoryImpl) GetByNameAndVersion(baseName string, version s
 }
 
 // lookupServerByNameAndVersion finds an MCP server by base name and version using composite name.
-func (r *McpServerRepositoryImpl) lookupServerByNameAndVersion(baseName string, version string) (*schema.Context, error) {
+func (r *MCPServerRepositoryImpl) lookupServerByNameAndVersion(baseName string, version string) (*schema.Context, error) {
 	config := r.GetConfig()
 
 	// Build composite name
@@ -270,7 +270,7 @@ func (r *McpServerRepositoryImpl) lookupServerByNameAndVersion(baseName string, 
 }
 
 // DeleteBySource deletes all MCP servers from a given source.
-func (r *McpServerRepositoryImpl) DeleteBySource(sourceID string) error {
+func (r *MCPServerRepositoryImpl) DeleteBySource(sourceID string) error {
 	config := r.GetConfig()
 
 	// Build subquery to find matching context IDs
@@ -289,7 +289,7 @@ func (r *McpServerRepositoryImpl) DeleteBySource(sourceID string) error {
 }
 
 // DeleteByID deletes an MCP server by its ID.
-func (r *McpServerRepositoryImpl) DeleteByID(id int32) error {
+func (r *MCPServerRepositoryImpl) DeleteByID(id int32) error {
 	config := r.GetConfig()
 
 	result := config.DB.Where("id = ? AND type_id = ?", id, config.TypeID).Delete(&schema.Context{})
@@ -306,7 +306,7 @@ func (r *McpServerRepositoryImpl) DeleteByID(id int32) error {
 }
 
 // GetDistinctSourceIDs retrieves all unique source_id values from MCP servers.
-func (r *McpServerRepositoryImpl) GetDistinctSourceIDs() ([]string, error) {
+func (r *MCPServerRepositoryImpl) GetDistinctSourceIDs() ([]string, error) {
 	config := r.GetConfig()
 
 	var sourceIDs []string
@@ -328,8 +328,8 @@ func (r *McpServerRepositoryImpl) GetDistinctSourceIDs() ([]string, error) {
 	return sourceIDs, nil
 }
 
-// applyMcpServerListFilters applies list filters to the query.
-func applyMcpServerListFilters(query *gorm.DB, listOptions *models.McpServerListOptions) *gorm.DB {
+// applyMCPServerListFilters applies list filters to the query.
+func applyMCPServerListFilters(query *gorm.DB, listOptions *models.MCPServerListOptions) *gorm.DB {
 	contextTable := utils.GetTableName(query.Statement.DB, &schema.Context{})
 
 	if listOptions.Name != nil {
@@ -374,8 +374,8 @@ func applyMcpServerListFilters(query *gorm.DB, listOptions *models.McpServerList
 	return query
 }
 
-// mapMcpServerToContext maps an McpServer entity to a Context schema.
-func mapMcpServerToContext(server models.McpServer) schema.Context {
+// mapMCPServerToContext maps an MCPServer entity to a Context schema.
+func mapMCPServerToContext(server models.MCPServer) schema.Context {
 	attrs := server.GetAttributes()
 	context := schema.Context{}
 
@@ -403,8 +403,8 @@ func mapMcpServerToContext(server models.McpServer) schema.Context {
 	return context
 }
 
-// mapMcpServerToContextProperties maps an McpServer entity to ContextProperty schema.
-func mapMcpServerToContextProperties(server models.McpServer, contextID int32) []schema.ContextProperty {
+// mapMCPServerToContextProperties maps an MCPServer entity to ContextProperty schema.
+func mapMCPServerToContextProperties(server models.MCPServer, contextID int32) []schema.ContextProperty {
 	var properties []schema.ContextProperty
 
 	if server.GetProperties() != nil {
@@ -422,15 +422,15 @@ func mapMcpServerToContextProperties(server models.McpServer, contextID int32) [
 	return properties
 }
 
-// mapDataLayerToMcpServer maps database schema to an McpServer entity.
-func mapDataLayerToMcpServer(serverCtx schema.Context, propertiesCtx []schema.ContextProperty) models.McpServer {
+// mapDataLayerToMCPServer maps database schema to an MCPServer entity.
+func mapDataLayerToMCPServer(serverCtx schema.Context, propertiesCtx []schema.ContextProperty) models.MCPServer {
 	// Parse composite name to get base name
 	baseName, _ := parseCompositeName(serverCtx.Name)
 
-	mcpServer := &models.McpServerImpl{
+	mcpServer := &models.MCPServerImpl{
 		ID:     &serverCtx.ID,
 		TypeID: &serverCtx.TypeID,
-		Attributes: &models.McpServerAttributes{
+		Attributes: &models.MCPServerAttributes{
 			Name:                     &baseName, // Use base name, not composite
 			ExternalID:               serverCtx.ExternalID,
 			CreateTimeSinceEpoch:     &serverCtx.CreateTimeSinceEpoch,
@@ -458,7 +458,7 @@ func mapDataLayerToMcpServer(serverCtx schema.Context, propertiesCtx []schema.Co
 }
 
 // applyCustomOrdering applies custom ordering logic.
-func (r *McpServerRepositoryImpl) applyCustomOrdering(query *gorm.DB, listOptions *models.McpServerListOptions) *gorm.DB {
+func (r *MCPServerRepositoryImpl) applyCustomOrdering(query *gorm.DB, listOptions *models.MCPServerListOptions) *gorm.DB {
 	db := r.GetConfig().DB
 	contextTable := utils.GetTableName(db, &schema.Context{})
 	orderBy := listOptions.GetOrderBy()
@@ -469,11 +469,11 @@ func (r *McpServerRepositoryImpl) applyCustomOrdering(query *gorm.DB, listOption
 	}
 
 	// Fall back to standard pagination
-	return r.ApplyStandardPagination(query, listOptions, []models.McpServer{})
+	return r.ApplyStandardPagination(query, listOptions, []models.MCPServer{})
 }
 
 // ApplyStandardPagination overrides the base implementation.
-func (r *McpServerRepositoryImpl) ApplyStandardPagination(query *gorm.DB, listOptions *models.McpServerListOptions, entities any) *gorm.DB {
+func (r *MCPServerRepositoryImpl) ApplyStandardPagination(query *gorm.DB, listOptions *models.MCPServerListOptions, entities any) *gorm.DB {
 	pageSize := listOptions.GetPageSize()
 	orderBy := listOptions.GetOrderBy()
 	sortOrder := listOptions.GetSortOrder()
@@ -490,7 +490,7 @@ func (r *McpServerRepositoryImpl) ApplyStandardPagination(query *gorm.DB, listOp
 }
 
 // createPaginationToken creates a pagination token for the last item.
-func (r *McpServerRepositoryImpl) createPaginationToken(lastItem schema.Context, listOptions *models.McpServerListOptions) string {
+func (r *MCPServerRepositoryImpl) createPaginationToken(lastItem schema.Context, listOptions *models.MCPServerListOptions) string {
 	if listOptions.GetOrderBy() == "NAME" {
 		return CreateNamePaginationToken(lastItem.ID, &lastItem.Name)
 	}
@@ -511,11 +511,11 @@ var McpOrderByColumns = map[string]string{
 // OpenAPI <-> Database Model Converters
 // ==============================================================================
 
-// ConvertOpenapiMcpServerToDb converts an OpenAPI McpServer to a database McpServer model.
+// ConvertOpenapiMCPServerToDb converts an OpenAPI MCPServer to a database MCPServer model.
 // This sets all properties from the OpenAPI struct into the database model's Properties field.
-func ConvertOpenapiMcpServerToDb(openapiServer *openapi.McpServer) models.McpServer {
-	dbServer := &models.McpServerImpl{
-		Attributes: &models.McpServerAttributes{
+func ConvertOpenapiMCPServerToDb(openapiServer *openapi.MCPServer) models.MCPServer {
+	dbServer := &models.MCPServerImpl{
+		Attributes: &models.MCPServerAttributes{
 			Name:                     &openapiServer.Name,
 			ExternalID:               openapiServer.ExternalId,
 			CreateTimeSinceEpoch:     parseEpochString(openapiServer.CreateTimeSinceEpoch),
@@ -588,16 +588,16 @@ func ConvertOpenapiMcpServerToDb(openapiServer *openapi.McpServer) models.McpSer
 	return dbServer
 }
 
-// ConvertDbMcpServerToOpenapi converts a database McpServer model to an OpenAPI McpServer.
+// ConvertDbMCPServerToOpenapi converts a database MCPServer model to an OpenAPI MCPServer.
 // This extracts all properties from the database model and populates the OpenAPI struct.
 //
-// NOTE: The returned McpServer will have ToolCount=0. Use ConvertDbMcpServerWithToolsToOpenapi
+// NOTE: The returned MCPServer will have ToolCount=0. Use ConvertDbMCPServerWithToolsToOpenapi
 // if you have loaded the associated tools and need an accurate tool count.
-func ConvertDbMcpServerToOpenapi(dbServer models.McpServer) *openapi.McpServer {
-	return convertDbMcpServerToOpenapiInternal(dbServer, nil)
+func ConvertDbMCPServerToOpenapi(dbServer models.MCPServer) *openapi.MCPServer {
+	return convertDbMCPServerToOpenapiInternal(dbServer, nil)
 }
 
-// ConvertDbMcpServerWithToolsToOpenapi converts a database McpServer to OpenAPI representation
+// ConvertDbMCPServerWithToolsToOpenapi converts a database MCPServer to OpenAPI representation
 // with accurate tool count and tools array populated from the provided tools.
 //
 // Parameters:
@@ -605,19 +605,19 @@ func ConvertDbMcpServerToOpenapi(dbServer models.McpServer) *openapi.McpServer {
 //   - tools: Associated tools (can be nil or empty for toolCount=0)
 //
 // This is the preferred method when tools have been loaded via repository queries.
-func ConvertDbMcpServerWithToolsToOpenapi(dbServer models.McpServer, tools []models.McpServerTool) *openapi.McpServer {
-	openapiTools := make([]openapi.McpTool, 0, len(tools))
+func ConvertDbMCPServerWithToolsToOpenapi(dbServer models.MCPServer, tools []models.MCPServerTool) *openapi.MCPServer {
+	openapiTools := make([]openapi.MCPTool, 0, len(tools))
 	for _, tool := range tools {
-		if converted := ConvertDbMcpToolToOpenapi(tool); converted != nil {
+		if converted := ConvertDbMCPToolToOpenapi(tool); converted != nil {
 			openapiTools = append(openapiTools, *converted)
 		}
 	}
-	return convertDbMcpServerToOpenapiInternal(dbServer, openapiTools)
+	return convertDbMCPServerToOpenapiInternal(dbServer, openapiTools)
 }
 
-// convertDbMcpServerToOpenapiInternal is the shared implementation for server conversion.
+// convertDbMCPServerToOpenapiInternal is the shared implementation for server conversion.
 // If tools is nil, toolCount is set to 0. Otherwise, it's set to len(tools).
-func convertDbMcpServerToOpenapiInternal(dbServer models.McpServer, tools []openapi.McpTool) *openapi.McpServer {
+func convertDbMCPServerToOpenapiInternal(dbServer models.MCPServer, tools []openapi.MCPTool) *openapi.MCPServer {
 	attrs := dbServer.GetAttributes()
 	props := dbServer.GetProperties()
 
@@ -637,7 +637,7 @@ func convertDbMcpServerToOpenapiInternal(dbServer models.McpServer, tools []open
 		toolCount = int32(len(tools))
 	}
 
-	openapiServer := &openapi.McpServer{
+	openapiServer := &openapi.MCPServer{
 		Name:      baseName,
 		ToolCount: toolCount,
 	}
@@ -684,7 +684,7 @@ func convertDbMcpServerToOpenapiInternal(dbServer models.McpServer, tools []open
 
 	// Extract security indicators
 	if pa.HasAny("verifiedSource", "secureEndpoint", "sast", "readOnlyTools") {
-		openapiServer.SecurityIndicators = &openapi.McpSecurityIndicator{
+		openapiServer.SecurityIndicators = &openapi.MCPSecurityIndicator{
 			VerifiedSource: pa.GetBoolPtr("verifiedSource"),
 			SecureEndpoint: pa.GetBoolPtr("secureEndpoint"),
 			Sast:           pa.GetBoolPtr("sast"),
@@ -694,7 +694,7 @@ func convertDbMcpServerToOpenapiInternal(dbServer models.McpServer, tools []open
 
 	// Extract complex objects from JSON
 	if endpointsJSON := pa.GetString("endpoints"); endpointsJSON != "" {
-		var endpoints openapi.McpEndpoints
+		var endpoints openapi.MCPEndpoints
 		if err := json.Unmarshal([]byte(endpointsJSON), &endpoints); err != nil {
 			glog.Warningf("Failed to unmarshal endpoints JSON: %v", err)
 		} else {
@@ -702,7 +702,7 @@ func convertDbMcpServerToOpenapiInternal(dbServer models.McpServer, tools []open
 		}
 	}
 	if artifactsJSON := pa.GetString("artifacts"); artifactsJSON != "" {
-		var artifacts []openapi.McpArtifact
+		var artifacts []openapi.MCPArtifact
 		if err := json.Unmarshal([]byte(artifactsJSON), &artifacts); err != nil {
 			glog.Warningf("Failed to unmarshal artifacts JSON: %v", err)
 		} else {
@@ -710,7 +710,7 @@ func convertDbMcpServerToOpenapiInternal(dbServer models.McpServer, tools []open
 		}
 	}
 	if runtimeJSON := pa.GetString("runtimeMetadata"); runtimeJSON != "" {
-		var runtimeMetadata openapi.McpRuntimeMetadata
+		var runtimeMetadata openapi.MCPRuntimeMetadata
 		if err := json.Unmarshal([]byte(runtimeJSON), &runtimeMetadata); err == nil {
 			openapiServer.RuntimeMetadata = &runtimeMetadata
 		}
@@ -895,10 +895,10 @@ func convertPropertyToMetadataValue(prop dbmodels.Properties) openapi.MetadataVa
 	return metadataValue
 }
 
-// ConvertOpenapiMcpToolToDb converts an OpenAPI McpTool to database McpServerTool.
-func ConvertOpenapiMcpToolToDb(openapiTool *openapi.McpTool) models.McpServerTool {
-	dbTool := &models.McpServerToolImpl{
-		Attributes: &models.McpServerToolAttributes{
+// ConvertOpenapiMCPToolToDb converts an OpenAPI MCPTool to database MCPServerTool.
+func ConvertOpenapiMCPToolToDb(openapiTool *openapi.MCPTool) models.MCPServerTool {
+	dbTool := &models.MCPServerToolImpl{
+		Attributes: &models.MCPServerToolAttributes{
 			Name:                     &openapiTool.Name,
 			CreateTimeSinceEpoch:     parseEpochString(openapiTool.CreateTimeSinceEpoch),
 			LastUpdateTimeSinceEpoch: parseEpochString(openapiTool.LastUpdateTimeSinceEpoch),
@@ -920,7 +920,7 @@ func ConvertOpenapiMcpToolToDb(openapiTool *openapi.McpTool) models.McpServerToo
 		addJSONProperty(&properties, "parameters", openapiTool.Parameters)
 	}
 
-	// Handle ExternalID if present (store as property since McpServerToolAttributes doesn't have this field)
+	// Handle ExternalID if present (store as property since MCPServerToolAttributes doesn't have this field)
 	if openapiTool.ExternalId != nil {
 		addStringProperty(&properties, "externalId", openapiTool.ExternalId)
 	}
@@ -938,8 +938,8 @@ func ConvertOpenapiMcpToolToDb(openapiTool *openapi.McpTool) models.McpServerToo
 	return dbTool
 }
 
-// ConvertDbMcpToolToOpenapi converts a database McpServerTool to OpenAPI McpTool.
-func ConvertDbMcpToolToOpenapi(dbTool models.McpServerTool) *openapi.McpTool {
+// ConvertDbMCPToolToOpenapi converts a database MCPServerTool to OpenAPI MCPTool.
+func ConvertDbMCPToolToOpenapi(dbTool models.MCPServerTool) *openapi.MCPTool {
 	attr := dbTool.GetAttributes()
 	if attr == nil || attr.Name == nil {
 		return nil
@@ -957,7 +957,7 @@ func ConvertDbMcpToolToOpenapi(dbTool models.McpServerTool) *openapi.McpTool {
 	}
 
 	// Create OpenAPI tool with required fields
-	openapiTool := openapi.NewMcpTool(*attr.Name, accessType)
+	openapiTool := openapi.NewMCPTool(*attr.Name, accessType)
 
 	// Set ID if available
 	if id := dbTool.GetID(); id != nil {
@@ -977,7 +977,7 @@ func ConvertDbMcpToolToOpenapi(dbTool models.McpServerTool) *openapi.McpTool {
 
 	// Extract parameters (JSON array)
 	if paramsJSON := pa.GetString("parameters"); paramsJSON != "" {
-		var parameters []openapi.McpToolParameter
+		var parameters []openapi.MCPToolParameter
 		if err := json.Unmarshal([]byte(paramsJSON), &parameters); err != nil {
 			glog.Warningf("Failed to unmarshal tool parameters JSON: %v", err)
 		} else {

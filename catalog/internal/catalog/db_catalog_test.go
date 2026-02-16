@@ -52,7 +52,7 @@ func TestDBCatalog(t *testing.T) {
 		metricsArtifactRepo,
 		catalogSourceRepo,
 		service.NewPropertyOptionsRepository(sharedDB),
-		nil, // McpServerRepository
+		nil, // MCPServerRepository
 	)
 
 	// Create DB catalog instance
@@ -1438,7 +1438,7 @@ func TestDBCatalog_GetPerformanceArtifactsWithService(t *testing.T) {
 		metricsArtifactRepo,
 		catalogSourceRepo,
 		service.NewPropertyOptionsRepository(sharedDB),
-		nil, // McpServerRepository
+		nil, // MCPServerRepository
 	)
 
 	sources := NewSourceCollection()
@@ -1991,7 +1991,7 @@ func TestFindModelsWithRecommendedLatency(t *testing.T) {
 		metricsArtifactRepo,
 		catalogSourceRepo,
 		service.NewPropertyOptionsRepository(sharedDB),
-		nil, // McpServerRepository
+		nil, // MCPServerRepository
 	)
 
 	// Create DB catalog instance

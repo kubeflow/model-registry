@@ -10,8 +10,8 @@ const (
 	CatalogModelArtifactTypeName   = "kf.CatalogModelArtifact"
 	CatalogMetricsArtifactTypeName = "kf.CatalogMetricsArtifact"
 	CatalogSourceTypeName          = "kf.CatalogSource"
-	McpServerTypeName              = "kf.McpServer"
-	McpServerToolTypeName          = "kf.McpServerTool"
+	MCPServerTypeName              = "kf.MCPServer"
+	MCPServerToolTypeName          = "kf.MCPServerTool"
 )
 
 func DatastoreSpec() *datastore.Spec {
@@ -35,7 +35,7 @@ func DatastoreSpec() *datastore.Spec {
 			AddString("status").
 			AddString("error"),
 		).
-		AddContext(McpServerTypeName, datastore.NewSpecType(NewMcpServerRepository).
+		AddContext(MCPServerTypeName, datastore.NewSpecType(NewMCPServerRepository).
 			AddString("source_id").
 			AddString("base_name").
 			AddString("description").
@@ -70,7 +70,7 @@ type Services struct {
 	CatalogMetricsArtifactRepository models.CatalogMetricsArtifactRepository
 	CatalogSourceRepository          models.CatalogSourceRepository
 	PropertyOptionsRepository        models.PropertyOptionsRepository
-	McpServerRepository              models.McpServerRepository
+	MCPServerRepository              models.MCPServerRepository
 }
 
 func NewServices(
@@ -80,7 +80,7 @@ func NewServices(
 	catalogMetricsArtifactRepository models.CatalogMetricsArtifactRepository,
 	catalogSourceRepository models.CatalogSourceRepository,
 	propertyOptionsRepository models.PropertyOptionsRepository,
-	mcpServerRepository models.McpServerRepository,
+	mcpServerRepository models.MCPServerRepository,
 ) Services {
 	return Services{
 		CatalogModelRepository:           catalogModelRepository,
@@ -89,6 +89,6 @@ func NewServices(
 		CatalogMetricsArtifactRepository: catalogMetricsArtifactRepository,
 		CatalogSourceRepository:          catalogSourceRepository,
 		PropertyOptionsRepository:        propertyOptionsRepository,
-		McpServerRepository:              mcpServerRepository,
+		MCPServerRepository:              mcpServerRepository,
 	}
 }

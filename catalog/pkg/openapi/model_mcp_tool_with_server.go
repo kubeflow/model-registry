@@ -14,42 +14,42 @@ import (
 	"encoding/json"
 )
 
-// checks if the McpToolWithServer type satisfies the MappedNullable interface at compile time
-var _ MappedNullable = &McpToolWithServer{}
+// checks if the MCPToolWithServer type satisfies the MappedNullable interface at compile time
+var _ MappedNullable = &MCPToolWithServer{}
 
-// McpToolWithServer struct for McpToolWithServer
-type McpToolWithServer struct {
+// MCPToolWithServer struct for MCPToolWithServer
+type MCPToolWithServer struct {
 	// ID of the MCP server that exposes this tool
 	ServerId string `json:"serverId"`
 	// Human-readable name of the MCP server
 	ServerName string  `json:"serverName"`
-	Tool       McpTool `json:"tool"`
+	Tool       MCPTool `json:"tool"`
 }
 
-type _McpToolWithServer McpToolWithServer
+type _MCPToolWithServer MCPToolWithServer
 
-// NewMcpToolWithServer instantiates a new McpToolWithServer object
+// NewMCPToolWithServer instantiates a new MCPToolWithServer object
 // This constructor will assign default values to properties that have it defined,
 // and makes sure properties required by API are set, but the set of arguments
 // will change when the set of required properties is changed
-func NewMcpToolWithServer(serverId string, serverName string, tool McpTool) *McpToolWithServer {
-	this := McpToolWithServer{}
+func NewMCPToolWithServer(serverId string, serverName string, tool MCPTool) *MCPToolWithServer {
+	this := MCPToolWithServer{}
 	this.ServerId = serverId
 	this.ServerName = serverName
 	this.Tool = tool
 	return &this
 }
 
-// NewMcpToolWithServerWithDefaults instantiates a new McpToolWithServer object
+// NewMCPToolWithServerWithDefaults instantiates a new MCPToolWithServer object
 // This constructor will only assign default values to properties that have it defined,
 // but it doesn't guarantee that properties required by API are set
-func NewMcpToolWithServerWithDefaults() *McpToolWithServer {
-	this := McpToolWithServer{}
+func NewMCPToolWithServerWithDefaults() *MCPToolWithServer {
+	this := MCPToolWithServer{}
 	return &this
 }
 
 // GetServerId returns the ServerId field value
-func (o *McpToolWithServer) GetServerId() string {
+func (o *MCPToolWithServer) GetServerId() string {
 	if o == nil {
 		var ret string
 		return ret
@@ -60,7 +60,7 @@ func (o *McpToolWithServer) GetServerId() string {
 
 // GetServerIdOk returns a tuple with the ServerId field value
 // and a boolean to check if the value has been set.
-func (o *McpToolWithServer) GetServerIdOk() (*string, bool) {
+func (o *MCPToolWithServer) GetServerIdOk() (*string, bool) {
 	if o == nil {
 		return nil, false
 	}
@@ -68,12 +68,12 @@ func (o *McpToolWithServer) GetServerIdOk() (*string, bool) {
 }
 
 // SetServerId sets field value
-func (o *McpToolWithServer) SetServerId(v string) {
+func (o *MCPToolWithServer) SetServerId(v string) {
 	o.ServerId = v
 }
 
 // GetServerName returns the ServerName field value
-func (o *McpToolWithServer) GetServerName() string {
+func (o *MCPToolWithServer) GetServerName() string {
 	if o == nil {
 		var ret string
 		return ret
@@ -84,7 +84,7 @@ func (o *McpToolWithServer) GetServerName() string {
 
 // GetServerNameOk returns a tuple with the ServerName field value
 // and a boolean to check if the value has been set.
-func (o *McpToolWithServer) GetServerNameOk() (*string, bool) {
+func (o *MCPToolWithServer) GetServerNameOk() (*string, bool) {
 	if o == nil {
 		return nil, false
 	}
@@ -92,14 +92,14 @@ func (o *McpToolWithServer) GetServerNameOk() (*string, bool) {
 }
 
 // SetServerName sets field value
-func (o *McpToolWithServer) SetServerName(v string) {
+func (o *MCPToolWithServer) SetServerName(v string) {
 	o.ServerName = v
 }
 
 // GetTool returns the Tool field value
-func (o *McpToolWithServer) GetTool() McpTool {
+func (o *MCPToolWithServer) GetTool() MCPTool {
 	if o == nil {
-		var ret McpTool
+		var ret MCPTool
 		return ret
 	}
 
@@ -108,7 +108,7 @@ func (o *McpToolWithServer) GetTool() McpTool {
 
 // GetToolOk returns a tuple with the Tool field value
 // and a boolean to check if the value has been set.
-func (o *McpToolWithServer) GetToolOk() (*McpTool, bool) {
+func (o *MCPToolWithServer) GetToolOk() (*MCPTool, bool) {
 	if o == nil {
 		return nil, false
 	}
@@ -116,11 +116,11 @@ func (o *McpToolWithServer) GetToolOk() (*McpTool, bool) {
 }
 
 // SetTool sets field value
-func (o *McpToolWithServer) SetTool(v McpTool) {
+func (o *MCPToolWithServer) SetTool(v MCPTool) {
 	o.Tool = v
 }
 
-func (o McpToolWithServer) MarshalJSON() ([]byte, error) {
+func (o MCPToolWithServer) MarshalJSON() ([]byte, error) {
 	toSerialize, err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
@@ -128,7 +128,7 @@ func (o McpToolWithServer) MarshalJSON() ([]byte, error) {
 	return json.Marshal(toSerialize)
 }
 
-func (o McpToolWithServer) ToMap() (map[string]interface{}, error) {
+func (o MCPToolWithServer) ToMap() (map[string]interface{}, error) {
 	toSerialize := map[string]interface{}{}
 	toSerialize["serverId"] = o.ServerId
 	toSerialize["serverName"] = o.ServerName
@@ -136,38 +136,38 @@ func (o McpToolWithServer) ToMap() (map[string]interface{}, error) {
 	return toSerialize, nil
 }
 
-type NullableMcpToolWithServer struct {
-	value *McpToolWithServer
+type NullableMCPToolWithServer struct {
+	value *MCPToolWithServer
 	isSet bool
 }
 
-func (v NullableMcpToolWithServer) Get() *McpToolWithServer {
+func (v NullableMCPToolWithServer) Get() *MCPToolWithServer {
 	return v.value
 }
 
-func (v *NullableMcpToolWithServer) Set(val *McpToolWithServer) {
+func (v *NullableMCPToolWithServer) Set(val *MCPToolWithServer) {
 	v.value = val
 	v.isSet = true
 }
 
-func (v NullableMcpToolWithServer) IsSet() bool {
+func (v NullableMCPToolWithServer) IsSet() bool {
 	return v.isSet
 }
 
-func (v *NullableMcpToolWithServer) Unset() {
+func (v *NullableMCPToolWithServer) Unset() {
 	v.value = nil
 	v.isSet = false
 }
 
-func NewNullableMcpToolWithServer(val *McpToolWithServer) *NullableMcpToolWithServer {
-	return &NullableMcpToolWithServer{value: val, isSet: true}
+func NewNullableMCPToolWithServer(val *MCPToolWithServer) *NullableMCPToolWithServer {
+	return &NullableMCPToolWithServer{value: val, isSet: true}
 }
 
-func (v NullableMcpToolWithServer) MarshalJSON() ([]byte, error) {
+func (v NullableMCPToolWithServer) MarshalJSON() ([]byte, error) {
 	return json.Marshal(v.value)
 }
 
-func (v *NullableMcpToolWithServer) UnmarshalJSON(src []byte) error {
+func (v *NullableMCPToolWithServer) UnmarshalJSON(src []byte) error {
 	v.isSet = true
 	return json.Unmarshal(src, &v.value)
 }

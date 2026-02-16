@@ -14,34 +14,34 @@ import (
 	"encoding/json"
 )
 
-// checks if the McpResourceRecommendationRecommended type satisfies the MappedNullable interface at compile time
-var _ MappedNullable = &McpResourceRecommendationRecommended{}
+// checks if the MCPResourceRecommendationRecommended type satisfies the MappedNullable interface at compile time
+var _ MappedNullable = &MCPResourceRecommendationRecommended{}
 
-// McpResourceRecommendationRecommended Recommended resources for typical production use
-type McpResourceRecommendationRecommended struct {
+// MCPResourceRecommendationRecommended Recommended resources for typical production use
+type MCPResourceRecommendationRecommended struct {
 	Cpu    *string `json:"cpu,omitempty"`
 	Memory *string `json:"memory,omitempty"`
 }
 
-// NewMcpResourceRecommendationRecommended instantiates a new McpResourceRecommendationRecommended object
+// NewMCPResourceRecommendationRecommended instantiates a new MCPResourceRecommendationRecommended object
 // This constructor will assign default values to properties that have it defined,
 // and makes sure properties required by API are set, but the set of arguments
 // will change when the set of required properties is changed
-func NewMcpResourceRecommendationRecommended() *McpResourceRecommendationRecommended {
-	this := McpResourceRecommendationRecommended{}
+func NewMCPResourceRecommendationRecommended() *MCPResourceRecommendationRecommended {
+	this := MCPResourceRecommendationRecommended{}
 	return &this
 }
 
-// NewMcpResourceRecommendationRecommendedWithDefaults instantiates a new McpResourceRecommendationRecommended object
+// NewMCPResourceRecommendationRecommendedWithDefaults instantiates a new MCPResourceRecommendationRecommended object
 // This constructor will only assign default values to properties that have it defined,
 // but it doesn't guarantee that properties required by API are set
-func NewMcpResourceRecommendationRecommendedWithDefaults() *McpResourceRecommendationRecommended {
-	this := McpResourceRecommendationRecommended{}
+func NewMCPResourceRecommendationRecommendedWithDefaults() *MCPResourceRecommendationRecommended {
+	this := MCPResourceRecommendationRecommended{}
 	return &this
 }
 
 // GetCpu returns the Cpu field value if set, zero value otherwise.
-func (o *McpResourceRecommendationRecommended) GetCpu() string {
+func (o *MCPResourceRecommendationRecommended) GetCpu() string {
 	if o == nil || IsNil(o.Cpu) {
 		var ret string
 		return ret
@@ -51,7 +51,7 @@ func (o *McpResourceRecommendationRecommended) GetCpu() string {
 
 // GetCpuOk returns a tuple with the Cpu field value if set, nil otherwise
 // and a boolean to check if the value has been set.
-func (o *McpResourceRecommendationRecommended) GetCpuOk() (*string, bool) {
+func (o *MCPResourceRecommendationRecommended) GetCpuOk() (*string, bool) {
 	if o == nil || IsNil(o.Cpu) {
 		return nil, false
 	}
@@ -59,7 +59,7 @@ func (o *McpResourceRecommendationRecommended) GetCpuOk() (*string, bool) {
 }
 
 // HasCpu returns a boolean if a field has been set.
-func (o *McpResourceRecommendationRecommended) HasCpu() bool {
+func (o *MCPResourceRecommendationRecommended) HasCpu() bool {
 	if o != nil && !IsNil(o.Cpu) {
 		return true
 	}
@@ -68,12 +68,12 @@ func (o *McpResourceRecommendationRecommended) HasCpu() bool {
 }
 
 // SetCpu gets a reference to the given string and assigns it to the Cpu field.
-func (o *McpResourceRecommendationRecommended) SetCpu(v string) {
+func (o *MCPResourceRecommendationRecommended) SetCpu(v string) {
 	o.Cpu = &v
 }
 
 // GetMemory returns the Memory field value if set, zero value otherwise.
-func (o *McpResourceRecommendationRecommended) GetMemory() string {
+func (o *MCPResourceRecommendationRecommended) GetMemory() string {
 	if o == nil || IsNil(o.Memory) {
 		var ret string
 		return ret
@@ -83,7 +83,7 @@ func (o *McpResourceRecommendationRecommended) GetMemory() string {
 
 // GetMemoryOk returns a tuple with the Memory field value if set, nil otherwise
 // and a boolean to check if the value has been set.
-func (o *McpResourceRecommendationRecommended) GetMemoryOk() (*string, bool) {
+func (o *MCPResourceRecommendationRecommended) GetMemoryOk() (*string, bool) {
 	if o == nil || IsNil(o.Memory) {
 		return nil, false
 	}
@@ -91,7 +91,7 @@ func (o *McpResourceRecommendationRecommended) GetMemoryOk() (*string, bool) {
 }
 
 // HasMemory returns a boolean if a field has been set.
-func (o *McpResourceRecommendationRecommended) HasMemory() bool {
+func (o *MCPResourceRecommendationRecommended) HasMemory() bool {
 	if o != nil && !IsNil(o.Memory) {
 		return true
 	}
@@ -100,11 +100,11 @@ func (o *McpResourceRecommendationRecommended) HasMemory() bool {
 }
 
 // SetMemory gets a reference to the given string and assigns it to the Memory field.
-func (o *McpResourceRecommendationRecommended) SetMemory(v string) {
+func (o *MCPResourceRecommendationRecommended) SetMemory(v string) {
 	o.Memory = &v
 }
 
-func (o McpResourceRecommendationRecommended) MarshalJSON() ([]byte, error) {
+func (o MCPResourceRecommendationRecommended) MarshalJSON() ([]byte, error) {
 	toSerialize, err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
@@ -112,7 +112,7 @@ func (o McpResourceRecommendationRecommended) MarshalJSON() ([]byte, error) {
 	return json.Marshal(toSerialize)
 }
 
-func (o McpResourceRecommendationRecommended) ToMap() (map[string]interface{}, error) {
+func (o MCPResourceRecommendationRecommended) ToMap() (map[string]interface{}, error) {
 	toSerialize := map[string]interface{}{}
 	if !IsNil(o.Cpu) {
 		toSerialize["cpu"] = o.Cpu
@@ -123,38 +123,38 @@ func (o McpResourceRecommendationRecommended) ToMap() (map[string]interface{}, e
 	return toSerialize, nil
 }
 
-type NullableMcpResourceRecommendationRecommended struct {
-	value *McpResourceRecommendationRecommended
+type NullableMCPResourceRecommendationRecommended struct {
+	value *MCPResourceRecommendationRecommended
 	isSet bool
 }
 
-func (v NullableMcpResourceRecommendationRecommended) Get() *McpResourceRecommendationRecommended {
+func (v NullableMCPResourceRecommendationRecommended) Get() *MCPResourceRecommendationRecommended {
 	return v.value
 }
 
-func (v *NullableMcpResourceRecommendationRecommended) Set(val *McpResourceRecommendationRecommended) {
+func (v *NullableMCPResourceRecommendationRecommended) Set(val *MCPResourceRecommendationRecommended) {
 	v.value = val
 	v.isSet = true
 }
 
-func (v NullableMcpResourceRecommendationRecommended) IsSet() bool {
+func (v NullableMCPResourceRecommendationRecommended) IsSet() bool {
 	return v.isSet
 }
 
-func (v *NullableMcpResourceRecommendationRecommended) Unset() {
+func (v *NullableMCPResourceRecommendationRecommended) Unset() {
 	v.value = nil
 	v.isSet = false
 }
 
-func NewNullableMcpResourceRecommendationRecommended(val *McpResourceRecommendationRecommended) *NullableMcpResourceRecommendationRecommended {
-	return &NullableMcpResourceRecommendationRecommended{value: val, isSet: true}
+func NewNullableMCPResourceRecommendationRecommended(val *MCPResourceRecommendationRecommended) *NullableMCPResourceRecommendationRecommended {
+	return &NullableMCPResourceRecommendationRecommended{value: val, isSet: true}
 }
 
-func (v NullableMcpResourceRecommendationRecommended) MarshalJSON() ([]byte, error) {
+func (v NullableMCPResourceRecommendationRecommended) MarshalJSON() ([]byte, error) {
 	return json.Marshal(v.value)
 }
 
-func (v *NullableMcpResourceRecommendationRecommended) UnmarshalJSON(src []byte) error {
+func (v *NullableMCPResourceRecommendationRecommended) UnmarshalJSON(src []byte) error {
 	v.isSet = true
 	return json.Unmarshal(src, &v.value)
 }

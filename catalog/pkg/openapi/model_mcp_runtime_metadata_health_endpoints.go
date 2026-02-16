@@ -14,36 +14,36 @@ import (
 	"encoding/json"
 )
 
-// checks if the McpRuntimeMetadataHealthEndpoints type satisfies the MappedNullable interface at compile time
-var _ MappedNullable = &McpRuntimeMetadataHealthEndpoints{}
+// checks if the MCPRuntimeMetadataHealthEndpoints type satisfies the MappedNullable interface at compile time
+var _ MappedNullable = &MCPRuntimeMetadataHealthEndpoints{}
 
-// McpRuntimeMetadataHealthEndpoints Health check endpoint paths
-type McpRuntimeMetadataHealthEndpoints struct {
+// MCPRuntimeMetadataHealthEndpoints Health check endpoint paths
+type MCPRuntimeMetadataHealthEndpoints struct {
 	// Liveness probe endpoint path
 	Liveness *string `json:"liveness,omitempty"`
 	// Readiness probe endpoint path
 	Readiness *string `json:"readiness,omitempty"`
 }
 
-// NewMcpRuntimeMetadataHealthEndpoints instantiates a new McpRuntimeMetadataHealthEndpoints object
+// NewMCPRuntimeMetadataHealthEndpoints instantiates a new MCPRuntimeMetadataHealthEndpoints object
 // This constructor will assign default values to properties that have it defined,
 // and makes sure properties required by API are set, but the set of arguments
 // will change when the set of required properties is changed
-func NewMcpRuntimeMetadataHealthEndpoints() *McpRuntimeMetadataHealthEndpoints {
-	this := McpRuntimeMetadataHealthEndpoints{}
+func NewMCPRuntimeMetadataHealthEndpoints() *MCPRuntimeMetadataHealthEndpoints {
+	this := MCPRuntimeMetadataHealthEndpoints{}
 	return &this
 }
 
-// NewMcpRuntimeMetadataHealthEndpointsWithDefaults instantiates a new McpRuntimeMetadataHealthEndpoints object
+// NewMCPRuntimeMetadataHealthEndpointsWithDefaults instantiates a new MCPRuntimeMetadataHealthEndpoints object
 // This constructor will only assign default values to properties that have it defined,
 // but it doesn't guarantee that properties required by API are set
-func NewMcpRuntimeMetadataHealthEndpointsWithDefaults() *McpRuntimeMetadataHealthEndpoints {
-	this := McpRuntimeMetadataHealthEndpoints{}
+func NewMCPRuntimeMetadataHealthEndpointsWithDefaults() *MCPRuntimeMetadataHealthEndpoints {
+	this := MCPRuntimeMetadataHealthEndpoints{}
 	return &this
 }
 
 // GetLiveness returns the Liveness field value if set, zero value otherwise.
-func (o *McpRuntimeMetadataHealthEndpoints) GetLiveness() string {
+func (o *MCPRuntimeMetadataHealthEndpoints) GetLiveness() string {
 	if o == nil || IsNil(o.Liveness) {
 		var ret string
 		return ret
@@ -53,7 +53,7 @@ func (o *McpRuntimeMetadataHealthEndpoints) GetLiveness() string {
 
 // GetLivenessOk returns a tuple with the Liveness field value if set, nil otherwise
 // and a boolean to check if the value has been set.
-func (o *McpRuntimeMetadataHealthEndpoints) GetLivenessOk() (*string, bool) {
+func (o *MCPRuntimeMetadataHealthEndpoints) GetLivenessOk() (*string, bool) {
 	if o == nil || IsNil(o.Liveness) {
 		return nil, false
 	}
@@ -61,7 +61,7 @@ func (o *McpRuntimeMetadataHealthEndpoints) GetLivenessOk() (*string, bool) {
 }
 
 // HasLiveness returns a boolean if a field has been set.
-func (o *McpRuntimeMetadataHealthEndpoints) HasLiveness() bool {
+func (o *MCPRuntimeMetadataHealthEndpoints) HasLiveness() bool {
 	if o != nil && !IsNil(o.Liveness) {
 		return true
 	}
@@ -70,12 +70,12 @@ func (o *McpRuntimeMetadataHealthEndpoints) HasLiveness() bool {
 }
 
 // SetLiveness gets a reference to the given string and assigns it to the Liveness field.
-func (o *McpRuntimeMetadataHealthEndpoints) SetLiveness(v string) {
+func (o *MCPRuntimeMetadataHealthEndpoints) SetLiveness(v string) {
 	o.Liveness = &v
 }
 
 // GetReadiness returns the Readiness field value if set, zero value otherwise.
-func (o *McpRuntimeMetadataHealthEndpoints) GetReadiness() string {
+func (o *MCPRuntimeMetadataHealthEndpoints) GetReadiness() string {
 	if o == nil || IsNil(o.Readiness) {
 		var ret string
 		return ret
@@ -85,7 +85,7 @@ func (o *McpRuntimeMetadataHealthEndpoints) GetReadiness() string {
 
 // GetReadinessOk returns a tuple with the Readiness field value if set, nil otherwise
 // and a boolean to check if the value has been set.
-func (o *McpRuntimeMetadataHealthEndpoints) GetReadinessOk() (*string, bool) {
+func (o *MCPRuntimeMetadataHealthEndpoints) GetReadinessOk() (*string, bool) {
 	if o == nil || IsNil(o.Readiness) {
 		return nil, false
 	}
@@ -93,7 +93,7 @@ func (o *McpRuntimeMetadataHealthEndpoints) GetReadinessOk() (*string, bool) {
 }
 
 // HasReadiness returns a boolean if a field has been set.
-func (o *McpRuntimeMetadataHealthEndpoints) HasReadiness() bool {
+func (o *MCPRuntimeMetadataHealthEndpoints) HasReadiness() bool {
 	if o != nil && !IsNil(o.Readiness) {
 		return true
 	}
@@ -102,11 +102,11 @@ func (o *McpRuntimeMetadataHealthEndpoints) HasReadiness() bool {
 }
 
 // SetReadiness gets a reference to the given string and assigns it to the Readiness field.
-func (o *McpRuntimeMetadataHealthEndpoints) SetReadiness(v string) {
+func (o *MCPRuntimeMetadataHealthEndpoints) SetReadiness(v string) {
 	o.Readiness = &v
 }
 
-func (o McpRuntimeMetadataHealthEndpoints) MarshalJSON() ([]byte, error) {
+func (o MCPRuntimeMetadataHealthEndpoints) MarshalJSON() ([]byte, error) {
 	toSerialize, err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
@@ -114,7 +114,7 @@ func (o McpRuntimeMetadataHealthEndpoints) MarshalJSON() ([]byte, error) {
 	return json.Marshal(toSerialize)
 }
 
-func (o McpRuntimeMetadataHealthEndpoints) ToMap() (map[string]interface{}, error) {
+func (o MCPRuntimeMetadataHealthEndpoints) ToMap() (map[string]interface{}, error) {
 	toSerialize := map[string]interface{}{}
 	if !IsNil(o.Liveness) {
 		toSerialize["liveness"] = o.Liveness
@@ -125,38 +125,38 @@ func (o McpRuntimeMetadataHealthEndpoints) ToMap() (map[string]interface{}, erro
 	return toSerialize, nil
 }
 
-type NullableMcpRuntimeMetadataHealthEndpoints struct {
-	value *McpRuntimeMetadataHealthEndpoints
+type NullableMCPRuntimeMetadataHealthEndpoints struct {
+	value *MCPRuntimeMetadataHealthEndpoints
 	isSet bool
 }
 
-func (v NullableMcpRuntimeMetadataHealthEndpoints) Get() *McpRuntimeMetadataHealthEndpoints {
+func (v NullableMCPRuntimeMetadataHealthEndpoints) Get() *MCPRuntimeMetadataHealthEndpoints {
 	return v.value
 }
 
-func (v *NullableMcpRuntimeMetadataHealthEndpoints) Set(val *McpRuntimeMetadataHealthEndpoints) {
+func (v *NullableMCPRuntimeMetadataHealthEndpoints) Set(val *MCPRuntimeMetadataHealthEndpoints) {
 	v.value = val
 	v.isSet = true
 }
 
-func (v NullableMcpRuntimeMetadataHealthEndpoints) IsSet() bool {
+func (v NullableMCPRuntimeMetadataHealthEndpoints) IsSet() bool {
 	return v.isSet
 }
 
-func (v *NullableMcpRuntimeMetadataHealthEndpoints) Unset() {
+func (v *NullableMCPRuntimeMetadataHealthEndpoints) Unset() {
 	v.value = nil
 	v.isSet = false
 }
 
-func NewNullableMcpRuntimeMetadataHealthEndpoints(val *McpRuntimeMetadataHealthEndpoints) *NullableMcpRuntimeMetadataHealthEndpoints {
-	return &NullableMcpRuntimeMetadataHealthEndpoints{value: val, isSet: true}
+func NewNullableMCPRuntimeMetadataHealthEndpoints(val *MCPRuntimeMetadataHealthEndpoints) *NullableMCPRuntimeMetadataHealthEndpoints {
+	return &NullableMCPRuntimeMetadataHealthEndpoints{value: val, isSet: true}
 }
 
-func (v NullableMcpRuntimeMetadataHealthEndpoints) MarshalJSON() ([]byte, error) {
+func (v NullableMCPRuntimeMetadataHealthEndpoints) MarshalJSON() ([]byte, error) {
 	return json.Marshal(v.value)
 }
 
-func (v *NullableMcpRuntimeMetadataHealthEndpoints) UnmarshalJSON(src []byte) error {
+func (v *NullableMCPRuntimeMetadataHealthEndpoints) UnmarshalJSON(src []byte) error {
 	v.isSet = true
 	return json.Unmarshal(src, &v.value)
 }
