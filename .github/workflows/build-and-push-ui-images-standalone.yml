@@ -79,6 +79,7 @@ jobs:
       with:
         context: ./clients/ui
         file: ./clients/ui/Dockerfile.standalone
+        target: release
         platforms: ${{ env.PLATFORMS }}
         push: true
         tags: ${{ steps.meta.outputs.tags }}
