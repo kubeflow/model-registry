@@ -1,0 +1,60 @@
+openapi: 3.0.3
+info:
+  title: {{.Name}} Catalog API
+  version: v1alpha1
+  description: API for the {{.Name}} catalog service
+
+servers:
+  - url: {{.BasePath}}
+
+paths:
+  /{{.EntityNameLower}}s:
+    get:
+      summary: List {{.EntityName}} entities
+      operationId: list{{.EntityName}}s
+      parameters:
+        - name: pageSize
+          in: query
+          schema:
+            type: integer
+            default: 20
+        - name: pageToken
+          in: query
+          schema:
+            type: string
+        - name: q
+          in: query
+          schema:
+            type: string
+          description: Search query
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/{{.EntityName}}List'
+
+  /{{.EntityNameLower}}s/{name}:
+    get:
+      summary: Get a {{.EntityName}} by name
+      operationId: get{{.EntityName}}
+      parameters:
+        - name: name
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/{{.EntityName}}'
+        '404':
+          description: Not found
+{{.ArtifactRoutes}}
+# You can add custom paths, parameters, and responses below.
+# Schemas are defined in ./generated/components.yaml and merged via 'make api/openapi'.
+# Use local $refs like '#/components/schemas/YourSchema' - they resolve after merge.

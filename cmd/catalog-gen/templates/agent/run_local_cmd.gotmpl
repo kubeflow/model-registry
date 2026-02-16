@@ -1,0 +1,36 @@
+Start the {{.CatalogName}} catalog server locally for testing.
+
+## Prerequisites
+
+Make sure the project builds:
+```bash
+go build ./...
+```
+
+## Start the Server
+
+Run with the dev configuration:
+```bash
+go run ./cmd/{{.CatalogName}}.go --catalogs-path=manifests/kustomize/overlays/dev/sources.yaml
+```
+
+Or build and run:
+```bash
+go build -o {{.CatalogName}} ./cmd/{{.CatalogName}}.go
+./{{.CatalogName}} --catalogs-path=manifests/kustomize/overlays/dev/sources.yaml
+```
+
+## Server Info
+
+- **Port**: {{.Port}}
+- **Base URL**: http://localhost:{{.Port}}/api/{{.CatalogName}}/v1alpha1
+- **Health Check**: http://localhost:{{.Port}}/healthz
+
+## Quick Test
+
+Once the server is running, test with:
+```bash
+curl http://localhost:{{.Port}}/api/{{.CatalogName}}/v1alpha1/{{.EntityNameLower}}s
+```
+
+For more API tests, run: /test-api

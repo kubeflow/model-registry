@@ -1,0 +1,29 @@
+package providers
+
+import (
+	"context"
+	"net/http"
+
+	"github.com/kubeflow/model-registry/pkg/catalog"
+	httpprovider "github.com/kubeflow/model-registry/pkg/catalog/providers/http"
+)
+
+// New{{.EntityName}}HTTPProvider creates an HTTP provider for {{.EntityName}} entities.
+func New{{.EntityName}}HTTPProvider() catalog.ProviderFunc[*{{.EntityName}}, *{{.EntityName}}Artifact] {
+	config := httpprovider.Config[*{{.EntityName}}, *{{.EntityName}}Artifact]{
+		BaseURLKey:     "url",
+		DefaultBaseURL: "", // Set a default URL if applicable
+		FetchRecords:   fetch{{.EntityName}}Records,
+	}
+	return httpprovider.NewProviderFunc(config)
+}
+
+func fetch{{.EntityName}}Records(ctx context.Context, client *http.Client, baseURL string, source *catalog.Source) ([]catalog.Record[*{{.EntityName}}, *{{.EntityName}}Artifact], error) {
+	// TODO: Implement HTTP fetching logic
+	// 1. Build API URL from baseURL and source.Properties
+	// 2. Make HTTP request
+	// 3. Parse response
+	// 4. Convert to catalog.Record
+
+	return nil, nil
+}
