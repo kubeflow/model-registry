@@ -411,15 +411,44 @@ func (kc *SharedClientLogic) UpdateModelTransferJob(ctx context.Context, namespa
 
 }
 
+// DeleteModelTransferJob deletes the K8s Job identified by jobId. The API uses job-id from the list
+// response (label modelregistry.kubeflow.org/job-id); the K8s Job resource name may differ. We resolve
+// the Job by label, then delete by its Name.
 func (kc *SharedClientLogic) DeleteModelTransferJob(ctx context.Context, namespace string, jobId string) error {
 	sessionLogger := ctx.Value(constants.TraceLoggerKey).(*slog.Logger)
 
-	err := kc.Client.BatchV1().Jobs(namespace).Delete(ctx, jobId, metav1.DeleteOptions{})
-
+	labelSelector := fmt.Sprintf("modelregistry.kubeflow.org/job-type=async-upload,modelregistry.kubeflow.org/job-id=%s", jobId)
+	list, err := kc.Client.BatchV1().Jobs(namespace).List(ctx, metav1.ListOptions{LabelSelector: labelSelector})
 	if err != nil {
-		sessionLogger.Warn("failed to delete job (may not exist)",
+		sessionLogger.Error("failed to list job by id",
 			"namespace", namespace,
 			"jobId", jobId,
+			"error", err,
+		)
+		return fmt.Errorf("failed to list model transfer job %s: %w", jobId, err)
+	}
+	if len(list.Items) == 0 {
+		sessionLogger.Warn("no job found for id",
+			"namespace", namespace,
+			"jobId", jobId,
+		)
+		return fmt.Errorf("model transfer job not found: %s", jobId)
+	}
+	jobName := list.Items[0].Name
+	if len(list.Items) > 1 {
+		sessionLogger.Warn("multiple jobs found for id, deleting first",
+			"namespace", namespace,
+			"jobId", jobId,
+			"jobName", jobName,
+		)
+	}
+
+	err = kc.Client.BatchV1().Jobs(namespace).Delete(ctx, jobName, metav1.DeleteOptions{})
+	if err != nil {
+		sessionLogger.Warn("failed to delete job",
+			"namespace", namespace,
+			"jobId", jobId,
+			"jobName", jobName,
 			"error", err,
 		)
 		return fmt.Errorf("failed to delete job %s: %w", jobId, err)
@@ -428,6 +457,7 @@ func (kc *SharedClientLogic) DeleteModelTransferJob(ctx context.Context, namespa
 	sessionLogger.Info("successfully deleted job",
 		"namespace", namespace,
 		"jobId", jobId,
+		"jobName", jobName,
 	)
 
 	return nil

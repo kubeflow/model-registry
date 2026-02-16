@@ -91,6 +91,11 @@ func setupApiTest[T any](method string, url string, body interface{}, k8Factory 
 		return *new(T), nil, err
 	}
 
+	// 204 No Content has no body; do not attempt to unmarshal
+	if rs.StatusCode == http.StatusNoContent && len(respBody) == 0 {
+		return *new(T), rs, nil
+	}
+
 	var entity T
 	err = json.Unmarshal(respBody, &entity)
 	if err != nil {
