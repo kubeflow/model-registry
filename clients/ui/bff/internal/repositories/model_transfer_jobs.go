@@ -241,6 +241,15 @@ func (m *ModelRegistryRepository) UpdateModelTransferJob(
 	if newPayload.ModelVersionName == "" {
 		newPayload.ModelVersionName = oldAnnotations["modelregistry.kubeflow.org/version-name"]
 	}
+	if newPayload.RegisteredModelId == "" {
+		newPayload.RegisteredModelId = oldAnnotations["modelregistry.kubeflow.org/registered-model-id"]
+	}
+	if newPayload.ModelVersionId == "" {
+		newPayload.ModelVersionId = oldAnnotations["modelregistry.kubeflow.org/model-version-id"]
+	}
+	if newPayload.ModelArtifactId == "" {
+		newPayload.ModelArtifactId = oldAnnotations["modelregistry.kubeflow.org/model-artifact-id"]
+	}
 
 	oldConfigMap, err := client.GetConfigMap(ctx, namespace, oldConfigMapName)
 	if err != nil {
