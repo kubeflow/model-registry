@@ -51,9 +51,18 @@ func Assert{{classname}}Required(obj model.{{classname}}) error {
 		{{/isArray}}
 	{{/isNullable}}
 	{{#isModel}}
+		{{#required}}
 {{#isNullable}}	{{/isNullable}}	if err := Assert{{baseType}}Required({{#isNullable}}*{{/isNullable}}obj.{{name}}); err != nil {
 {{#isNullable}}	{{/isNullable}}		return err
 {{#isNullable}}	{{/isNullable}}	}
+		{{/required}}
+		{{^required}}
+{{#isNullable}}	{{/isNullable}}	if obj.{{name}} != nil {
+{{#isNullable}}	{{/isNullable}}		if err := Assert{{baseType}}Required(*obj.{{name}}); err != nil {
+{{#isNullable}}	{{/isNullable}}			return err
+{{#isNullable}}	{{/isNullable}}		}
+{{#isNullable}}	{{/isNullable}}	}
+		{{/required}}
 	{{/isModel}}
 	{{#isArray}}
 		{{#items.isModel}}
@@ -98,12 +107,12 @@ func Assert{{classname}}Required(obj model.{{classname}}) error {
 func Assert{{classname}}Constraints(obj model.{{classname}}) error {
 {{#Vars}}
 {{#minimum}}
-	if {{#isNullable}}obj.{{name}} != nil && *{{/isNullable}}obj.{{name}} < {{minimum}} {
+	if {{#isNullable}}obj.{{name}} != nil && *{{/isNullable}}{{^isNullable}}{{^required}}obj.{{name}} != nil && *{{/required}}{{/isNullable}}obj.{{name}} < {{minimum}} {
 		return &ParsingError{Param: "{{name}}", Err: errors.New(errMsgMinValueConstraint)}
 	}
 {{/minimum}}
 {{#maximum}}
-	if {{#isNullable}}obj.{{name}} != nil && *{{/isNullable}}obj.{{name}} > {{maximum}} {
+	if {{#isNullable}}obj.{{name}} != nil && *{{/isNullable}}{{^isNullable}}{{^required}}obj.{{name}} != nil && *{{/required}}{{/isNullable}}obj.{{name}} > {{maximum}} {
 		return &ParsingError{Param: "{{name}}", Err: errors.New(errMsgMaxValueConstraint)}
 	}
 {{/maximum}}
@@ -118,9 +127,18 @@ func Assert{{classname}}Constraints(obj model.{{classname}}) error {
 {{/isArray}}
 {{/isNullable}}
 {{#isModel}}
+{{#required}}
 {{#isNullable}}     {{/isNullable}}	if err := Assert{{baseType}}Constraints({{#isNullable}}*{{/isNullable}}obj.{{name}}); err != nil {
 {{#isNullable}}     {{/isNullable}}		return err
 {{#isNullable}}     {{/isNullable}}	}
+{{/required}}
+{{^required}}
+{{#isNullable}}     {{/isNullable}}	if obj.{{name}} != nil {
+{{#isNullable}}     {{/isNullable}}		if err := Assert{{baseType}}Constraints(*obj.{{name}}); err != nil {
+{{#isNullable}}     {{/isNullable}}			return err
+{{#isNullable}}     {{/isNullable}}		}
+{{#isNullable}}     {{/isNullable}}	}
+{{/required}}
 {{/isModel}}
 {{#isArray}}
 {{#items.isModel}}
