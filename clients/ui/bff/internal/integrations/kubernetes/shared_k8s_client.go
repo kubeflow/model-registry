@@ -411,52 +411,22 @@ func (kc *SharedClientLogic) UpdateModelTransferJob(ctx context.Context, namespa
 
 }
 
-// DeleteModelTransferJob deletes the K8s Job identified by jobId. The API uses job-id from the list
-// response (label modelregistry.kubeflow.org/job-id); the K8s Job resource name may differ. We resolve
-// the Job by label, then delete by its Name.
-func (kc *SharedClientLogic) DeleteModelTransferJob(ctx context.Context, namespace string, jobId string) error {
+// DeleteModelTransferJob deletes the K8s Job by its resource name (job name from the list response).
+func (kc *SharedClientLogic) DeleteModelTransferJob(ctx context.Context, namespace string, jobName string) error {
 	sessionLogger := ctx.Value(constants.TraceLoggerKey).(*slog.Logger)
 
-	labelSelector := fmt.Sprintf("modelregistry.kubeflow.org/job-type=async-upload,modelregistry.kubeflow.org/job-id=%s", jobId)
-	list, err := kc.Client.BatchV1().Jobs(namespace).List(ctx, metav1.ListOptions{LabelSelector: labelSelector})
+	err := kc.Client.BatchV1().Jobs(namespace).Delete(ctx, jobName, metav1.DeleteOptions{})
 	if err != nil {
-		sessionLogger.Error("failed to list job by id",
+		sessionLogger.Warn("failed to delete model transfer job",
 			"namespace", namespace,
-			"jobId", jobId,
-			"error", err,
-		)
-		return fmt.Errorf("failed to list model transfer job %s: %w", jobId, err)
-	}
-	if len(list.Items) == 0 {
-		sessionLogger.Warn("no job found for id",
-			"namespace", namespace,
-			"jobId", jobId,
-		)
-		return fmt.Errorf("model transfer job not found: %s", jobId)
-	}
-	jobName := list.Items[0].Name
-	if len(list.Items) > 1 {
-		sessionLogger.Warn("multiple jobs found for id, deleting first",
-			"namespace", namespace,
-			"jobId", jobId,
-			"jobName", jobName,
-		)
-	}
-
-	err = kc.Client.BatchV1().Jobs(namespace).Delete(ctx, jobName, metav1.DeleteOptions{})
-	if err != nil {
-		sessionLogger.Warn("failed to delete job",
-			"namespace", namespace,
-			"jobId", jobId,
 			"jobName", jobName,
 			"error", err,
 		)
-		return fmt.Errorf("failed to delete job %s: %w", jobId, err)
+		return fmt.Errorf("failed to delete model transfer job %s: %w", jobName, err)
 	}
 
-	sessionLogger.Info("successfully deleted job",
+	sessionLogger.Info("successfully deleted model transfer job",
 		"namespace", namespace,
-		"jobId", jobId,
 		"jobName", jobName,
 	)
 

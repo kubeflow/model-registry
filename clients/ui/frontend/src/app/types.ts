@@ -354,4 +354,4 @@ export type UpdateModelTransferJob = (
   jobId: string,
   data: Partial<ModelTransferJob>,
 ) => Promise<ModelTransferJob>;
-export type DeleteModelTransferJob = (opts: APIOptions, jobId: string) => Promise<void>;
+export type DeleteModelTransferJob = (opts: APIOptions, jobName: string) => Promise<void>;

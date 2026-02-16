@@ -56,12 +56,12 @@ var _ = Describe("Model transfer job handler", func() {
 	})
 
 	Describe("DELETE", func() {
-		It("should delete model transfer job by job id and return 200", func() {
-			// Path param is job id (from list response); BFF resolves by label job-id then deletes by K8s Job name.
+		It("should delete model transfer job by job name and return 200", func() {
+			// Path param is job name (K8s Job resource name from list response). BFF deletes by name.
 			// BFF returns 200 with JSON body so the frontend can parse the response (204 No Content breaks response.json()).
 			actual, rs, err := setupApiTest[ModelTransferJobOperationStatusEnvelope](
 				http.MethodDelete,
-				"/api/v1/model_registry/model-registry/model_transfer_jobs/001?namespace=bella-namespace",
+				"/api/v1/model_registry/model-registry/model_transfer_jobs/transfer-job-001?namespace=bella-namespace",
 				nil,
 				kubernetesMockedStaticClientFactory,
 				requestIdentity,
@@ -72,7 +72,7 @@ var _ = Describe("Model transfer job handler", func() {
 			Expect(actual.Data.Status).To(Equal("deleted"))
 		})
 
-		It("should return error when deleting non-existent job", func() {
+		It("should return 404 when deleting non-existent job", func() {
 			_, rs, err := setupApiTest[ModelTransferJobListEnvelope](
 				http.MethodDelete,
 				"/api/v1/model_registry/model-registry/model_transfer_jobs/nonexistent-job?namespace=bella-namespace",
@@ -82,15 +82,14 @@ var _ = Describe("Model transfer job handler", func() {
 				"bella-namespace",
 			)
 			Expect(err).NotTo(HaveOccurred())
-			// BFF returns 500 when K8s delete fails (job not found)
-			Expect(rs.StatusCode).To(Equal(http.StatusInternalServerError))
+			Expect(rs.StatusCode).To(Equal(http.StatusNotFound))
 		})
 
 		It("should return 400 when namespace is missing", func() {
 			// Omit namespace query param so AttachNamespace middleware returns 400
 			_, rs, err := setupApiTest[ModelTransferJobListEnvelope](
 				http.MethodDelete,
-				"/api/v1/model_registry/model-registry/model_transfer_jobs/001",
+				"/api/v1/model_registry/model-registry/model_transfer_jobs/transfer-job-001",
 				nil,
 				kubernetesMockedStaticClientFactory,
 				requestIdentity,

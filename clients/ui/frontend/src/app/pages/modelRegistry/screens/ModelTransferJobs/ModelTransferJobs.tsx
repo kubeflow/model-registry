@@ -29,7 +29,7 @@ const ModelTransferJobs: React.FC<ModelTransferJobsProps> = ({ ...pageProps }) =
       if (!apiAvailable) {
         throw new Error('API not available');
       }
-      await api.deleteModelTransferJob({}, job.id);
+      await api.deleteModelTransferJob({}, job.name);
       setJobToDelete(null);
       await refetchJobs();
     },

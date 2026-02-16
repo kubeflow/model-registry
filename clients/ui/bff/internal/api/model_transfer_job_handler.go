@@ -10,6 +10,7 @@ import (
 	"github.com/kubeflow/model-registry/ui/bff/internal/constants"
 	k8s "github.com/kubeflow/model-registry/ui/bff/internal/integrations/kubernetes"
 	"github.com/kubeflow/model-registry/ui/bff/internal/models"
+	"github.com/kubeflow/model-registry/ui/bff/internal/repositories"
 )
 
 type ModelTransferJobListEnvelope Envelope[*models.ModelTransferJobList, None]
@@ -134,9 +135,13 @@ func (app *App) DeleteModelTransferJobHandler(w http.ResponseWriter, r *http.Req
 		return
 	}
 
-	jobId := ps.ByName(ModelTransferJobId)
-	err := app.repositories.ModelRegistry.DeleteModelTransferJob(ctx, client, namespace, jobId)
+	jobName := ps.ByName(ModelTransferJobId)
+	err := app.repositories.ModelRegistry.DeleteModelTransferJob(ctx, client, namespace, jobName)
 	if err != nil {
+		if errors.Is(err, repositories.ErrModelTransferJobNotFound) {
+			app.notFoundResponse(w, r)
+			return
+		}
 		app.serverErrorResponse(w, r, err)
 		return
 	}

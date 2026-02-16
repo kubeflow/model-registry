@@ -2,6 +2,7 @@ package repositories
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	"github.com/kubeflow/model-registry/ui/bff/internal/constants"
@@ -10,8 +11,12 @@ import (
 	"github.com/kubeflow/model-registry/ui/bff/internal/models"
 	batchv1 "k8s.io/api/batch/v1"
 	corev1 "k8s.io/api/core/v1"
+	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
+
+// ErrModelTransferJobNotFound is returned when the model transfer job does not exist.
+var ErrModelTransferJobNotFound = errors.New("model transfer job not found")
 
 type ModelRegistryRepository struct {
 }
@@ -175,10 +180,13 @@ func (m *ModelRegistryRepository) UpdateModelTransferJob(ctx context.Context, cl
 	return nil
 }
 
-func (m *ModelRegistryRepository) DeleteModelTransferJob(ctx context.Context, client k8s.KubernetesClientInterface, namespace string, jobId string) error {
-	err := client.DeleteModelTransferJob(ctx, namespace, jobId)
+func (m *ModelRegistryRepository) DeleteModelTransferJob(ctx context.Context, client k8s.KubernetesClientInterface, namespace string, jobName string) error {
+	err := client.DeleteModelTransferJob(ctx, namespace, jobName)
 	if err != nil {
-		return fmt.Errorf("failed to delete model transfer job %s: %w", jobId, err)
+		if apierrors.IsNotFound(err) {
+			return fmt.Errorf("%w: %s", ErrModelTransferJobNotFound, jobName)
+		}
+		return fmt.Errorf("failed to delete model transfer job %s: %w", jobName, err)
 	}
 	return nil
 }
