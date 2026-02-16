@@ -133,22 +133,21 @@ func (app *App) UpdateModelTransferJobHandler(w http.ResponseWriter, r *http.Req
 		return
 	}
 	if envelope.Data == nil {
-    app.badRequestResponse(w, r, fmt.Errorf("data is required"))
-    return
-}
-payload := *envelope.Data
-
+		app.badRequestResponse(w, r, fmt.Errorf("data is required"))
+		return
+	}
+	payload := *envelope.Data
 
 	jobName := ps.ByName(ModelTransferJobName)
-if jobName == "" {
-    app.badRequestResponse(w, r, fmt.Errorf("job name is required"))
-    return
-}
-modelRegistryID := ps.ByName(ModelRegistryId)
-if modelRegistryID == "" {
-    app.badRequestResponse(w, r, fmt.Errorf("model registry name is required"))
-    return
-}
+	if jobName == "" {
+		app.badRequestResponse(w, r, fmt.Errorf("job name is required"))
+		return
+	}
+	modelRegistryID := ps.ByName(ModelRegistryId)
+	if modelRegistryID == "" {
+		app.badRequestResponse(w, r, fmt.Errorf("model registry name is required"))
+		return
+	}
 	deleteOldJob := r.URL.Query().Get("deleteOldJob") == "true"
 
 	updatedJob, err := app.repositories.ModelRegistry.UpdateModelTransferJob(

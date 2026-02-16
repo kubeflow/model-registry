@@ -76,7 +76,7 @@ const (
 	ModelCatalogSettingsSourceConfigPath     = ModelCatalogSettingsSourceConfigListPath + "/:" + CatalogSourceId
 	CatalogSourcePreviewPath                 = ModelCatalogSettingsPathPrefix + "/source_preview"
 
-	// Model Transfer Jobs (scoped by model registry instance, like registered_models, model_versions, etc.)
+	// Model Transfer Jobs
 	ModelTransferJobName     = "job_name"
 	ModelTransferJobListPath = ModelRegistryPath + "/model_transfer_jobs"
 	ModelTransferJobPath     = ModelTransferJobListPath + "/:" + ModelTransferJobName
