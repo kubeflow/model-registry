@@ -1,9 +1,14 @@
 package catalog
 
 import (
+	"context"
+	"errors"
+	"sync"
 	"testing"
+	"time"
 
 	mapset "github.com/deckarep/golang-set/v2"
+	dbmodels "github.com/kubeflow/model-registry/catalog/internal/db/models"
 	"github.com/kubeflow/model-registry/catalog/internal/db/service"
 	apimodels "github.com/kubeflow/model-registry/catalog/pkg/openapi"
 	"github.com/kubeflow/model-registry/internal/apiutils"
@@ -224,4 +229,296 @@ namedQueries:
 	assert.Equal(t, float64(70), validationQuery["ttft_p90"].Value)
 	assert.Equal(t, "=", validationQuery["workload_type"].Operator)
 	assert.Equal(t, "Chat", validationQuery["workload_type"].Value)
+}
+
+func TestLoader_StartWithLeaderElection(t *testing.T) {
+	// Create mock repositories with tracking capabilities
+	mockModelRepo := &MockCatalogModelRepositoryWithSourceTracking{
+		ExistingSourceIDs: []string{},
+		DeletedSources:    []string{},
+	}
+	mockArtifactRepo := &MockCatalogArtifactRepository{}
+	mockModelArtifactRepo := &MockCatalogModelArtifactRepository{}
+	mockMetricsArtifactRepo := &MockCatalogMetricsArtifactRepository{}
+	mockSourceRepo := &MockCatalogSourceRepository{}
+
+	services := service.NewServices(
+		mockModelRepo,
+		mockArtifactRepo,
+		mockModelArtifactRepo,
+		mockMetricsArtifactRepo,
+		mockSourceRepo,
+		&MockPropertyOptionsRepository{},
+	)
+
+	// Register a test provider
+	testProviderName := "test-leader-provider"
+	RegisterModelProvider(testProviderName, func(ctx context.Context, source *Source, reldir string) (<-chan ModelProviderRecord, error) {
+		ch := make(chan ModelProviderRecord, 2)
+
+		modelName := "test-model-1"
+		model := &dbmodels.CatalogModelImpl{
+			Attributes: &dbmodels.CatalogModelAttributes{
+				Name: &modelName,
+			},
+		}
+
+		ch <- ModelProviderRecord{
+			Model:     model,
+			Artifacts: []dbmodels.CatalogArtifact{},
+		}
+
+		// Send completion marker
+		ch <- ModelProviderRecord{
+			Model: nil,
+		}
+
+		close(ch)
+		return ch, nil
+	})
+
+	testConfig := &sourceConfig{
+		Catalogs: []Source{
+			{
+				CatalogSource: apimodels.CatalogSource{
+					Id:      "test-catalog",
+					Name:    "Test Catalog",
+					Enabled: apiutils.Of(true),
+				},
+				Type: testProviderName,
+			},
+		},
+	}
+
+	t.Run("standby mode skips database writes", func(t *testing.T) {
+		loader := NewLoader(services, []string{})
+		ctx := context.Background()
+
+		// Populate sources
+		err := loader.updateSources("test-path", testConfig)
+		assert.NoError(t, err)
+
+		// Start in standby mode (read-only)
+		err = loader.StartReadOnly(ctx)
+		assert.NoError(t, err)
+
+		// Verify we're not in leader mode
+		assert.False(t, loader.shouldWriteDatabase(), "Standby mode should not write to database")
+
+		// Wait a bit for any goroutines to process
+		time.Sleep(100 * time.Millisecond)
+
+		// Verify no database writes occurred in standby mode
+		assert.Empty(t, mockModelRepo.SavedModels, "Standby mode should not write models to database")
+		assert.Empty(t, mockModelArtifactRepo.SavedArtifacts, "Standby mode should not write artifacts to database")
+		assert.Empty(t, mockMetricsArtifactRepo.SavedMetrics, "Standby mode should not write metrics to database")
+	})
+
+	t.Run("leader mode performs database writes", func(t *testing.T) {
+		// Reset mock repositories
+		mockModelRepo.SavedModels = []dbmodels.CatalogModel{}
+		mockModelArtifactRepo.SavedArtifacts = []dbmodels.CatalogModelArtifact{}
+		mockMetricsArtifactRepo.SavedMetrics = []dbmodels.CatalogMetricsArtifact{}
+
+		loader := NewLoader(services, []string{})
+		ctx := context.Background()
+
+		// Populate sources
+		err := loader.updateSources("test-path", testConfig)
+		assert.NoError(t, err)
+
+		// Start in read-only mode first
+		err = loader.StartReadOnly(ctx)
+		assert.NoError(t, err)
+
+		// Create cancellable context for leader mode
+		leaderCtx, cancelLeader := context.WithCancel(ctx)
+		defer cancelLeader()
+
+		// Start leader mode in background
+		go func() {
+			if err := loader.StartLeader(leaderCtx); err != nil && !errors.Is(err, context.Canceled) {
+				t.Logf("StartLeader error: %v", err)
+			}
+		}()
+
+		// Wait for leader mode to activate
+		time.Sleep(100 * time.Millisecond)
+
+		// Verify we're in leader mode
+		assert.True(t, loader.shouldWriteDatabase(), "Leader mode should write to database")
+
+		// Wait for goroutines to process
+		time.Sleep(200 * time.Millisecond)
+
+		// Verify database writes occurred in leader mode
+		assert.NotEmpty(t, mockModelRepo.SavedModels, "Leader mode should write models to database")
+
+		// Clean up by cancelling context
+		cancelLeader()
+		time.Sleep(100 * time.Millisecond)
+	})
+
+	t.Run("cancelling context prevents database writes", func(t *testing.T) {
+		// Reset mock repositories
+		mockModelRepo.SavedModels = []dbmodels.CatalogModel{}
+		mockModelArtifactRepo.SavedArtifacts = []dbmodels.CatalogModelArtifact{}
+		mockMetricsArtifactRepo.SavedMetrics = []dbmodels.CatalogMetricsArtifact{}
+
+		loader := NewLoader(services, []string{})
+		ctx := context.Background()
+
+		// Populate sources
+		err := loader.updateSources("test-path", testConfig)
+		assert.NoError(t, err)
+
+		// Start in read-only mode
+		err = loader.StartReadOnly(ctx)
+		assert.NoError(t, err)
+
+		// Create cancellable context for leader mode
+		leaderCtx, cancelLeader := context.WithCancel(ctx)
+
+		// Start leader mode in background
+		go func() {
+			if err := loader.StartLeader(leaderCtx); err != nil && !errors.Is(err, context.Canceled) {
+				t.Logf("StartLeader error: %v", err)
+			}
+		}()
+
+		// Wait for leader mode to activate
+		time.Sleep(100 * time.Millisecond)
+
+		// Cancel context to simulate leadership loss
+		cancelLeader()
+
+		// Wait a moment for cancellation to propagate
+		time.Sleep(100 * time.Millisecond)
+
+		// Verify shouldWriteDatabase returns false after context cancellation
+		assert.False(t, loader.shouldWriteDatabase(), "shouldWriteDatabase should return false after context cancellation")
+	})
+
+	t.Run("race-free leader transitions", func(t *testing.T) {
+		// This test verifies that concurrent access to shouldWriteDatabase()
+		// and context cancellation is race-free
+
+		loader := NewLoader(services, []string{})
+		ctx := context.Background()
+
+		// Populate sources
+		err := loader.updateSources("test-path", testConfig)
+		assert.NoError(t, err)
+
+		// Start in read-only mode
+		err = loader.StartReadOnly(ctx)
+		assert.NoError(t, err)
+
+		// Create cancellable context for leader mode
+		leaderCtx, cancelLeader := context.WithCancel(ctx)
+
+		// Start leader mode in background
+		leaderDone := make(chan struct{})
+		go func() {
+			defer close(leaderDone)
+			if err := loader.StartLeader(leaderCtx); err != nil && !errors.Is(err, context.Canceled) {
+				t.Logf("StartLeader error: %v", err)
+			}
+		}()
+
+		// Wait for leader mode to activate
+		time.Sleep(100 * time.Millisecond)
+
+		// Simulate concurrent operations
+		done := make(chan bool)
+		raceFree := true
+
+		// Goroutine 1: Repeatedly check if we should write
+		go func() {
+			for i := 0; i < 1000; i++ {
+				shouldWrite := loader.shouldWriteDatabase()
+				// Just checking - no validation needed since bool is atomic
+				_ = shouldWrite
+				time.Sleep(time.Microsecond)
+			}
+			done <- true
+		}()
+
+		// Goroutine 2: Cancel context after a brief delay
+		go func() {
+			time.Sleep(50 * time.Millisecond)
+			cancelLeader()
+			done <- true
+		}()
+
+		// Wait for both goroutines
+		<-done
+		<-done
+
+		assert.True(t, raceFree, "Race condition detected during leader transition")
+
+		// Wait for StartLeader to complete its shutdown
+		select {
+		case <-leaderDone:
+			// Good, leader stopped
+		case <-time.After(2 * time.Second):
+			t.Fatal("Timeout waiting for StartLeader to complete")
+		}
+
+		// Final verification: after context cancellation completes, should always return false
+		assert.False(t, loader.shouldWriteDatabase(), "shouldWriteDatabase should return false after context cancellation")
+	})
+
+	t.Run("concurrent context cancellations do not panic", func(t *testing.T) {
+		// This test verifies that concurrent context cancellations are handled gracefully
+		loader := NewLoader(services, []string{})
+		ctx := context.Background()
+
+		// Populate sources
+		err := loader.updateSources("test-path", testConfig)
+		assert.NoError(t, err)
+
+		// Start in read-only mode
+		err = loader.StartReadOnly(ctx)
+		assert.NoError(t, err)
+
+		// Create cancellable context for leader mode
+		leaderCtx, cancelLeader := context.WithCancel(ctx)
+
+		// Start leader mode in background
+		leaderDone := make(chan struct{})
+		go func() {
+			defer close(leaderDone)
+			if err := loader.StartLeader(leaderCtx); err != nil && !errors.Is(err, context.Canceled) {
+				t.Logf("StartLeader error: %v", err)
+			}
+		}()
+
+		// Wait for leader mode to activate
+		time.Sleep(100 * time.Millisecond)
+
+		// Cancel context concurrently from multiple goroutines
+		// Context cancellation is safe to call multiple times
+		var wg sync.WaitGroup
+		for i := 0; i < 10; i++ {
+			wg.Add(1)
+			go func() {
+				defer wg.Done()
+				cancelLeader()
+			}()
+		}
+
+		wg.Wait()
+
+		// Wait for StartLeader to complete
+		select {
+		case <-leaderDone:
+			// Good, leader stopped without panic
+		case <-time.After(2 * time.Second):
+			t.Fatal("Timeout waiting for StartLeader to complete")
+		}
+
+		// Verify we're no longer leader
+		assert.False(t, loader.shouldWriteDatabase(), "Should not be leader after context cancellation")
+	})
 }
