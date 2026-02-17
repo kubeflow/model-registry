@@ -11,6 +11,8 @@ import { useParams, useNavigate } from 'react-router';
 import { Link } from 'react-router-dom';
 import { ApplicationsPage, FormSection } from 'mod-arch-shared';
 import { modelRegistryUrl, modelVersionUrl } from '~/app/pages/modelRegistry/screens/routeUtils';
+import { RegistrationMode } from '~/app/pages/modelRegistry/screens/const';
+import { ModelTransferJobUploadIntent } from '~/app/types';
 import { ModelRegistryContext } from '~/app/context/ModelRegistryContext';
 import { AppContext } from '~/app/context/AppContext';
 import useRegisteredModels from '~/app/hooks/useRegisteredModels';
@@ -20,10 +22,11 @@ import {
   isNameValid,
   isRegisterModelSubmitDisabled,
   registerModel,
+  registerViaTransferJob,
 } from './utils';
 import RegistrationCommonFormSections from './RegistrationCommonFormSections';
 import RegistrationFormFooter from './RegistrationFormFooter';
-import { SubmitLabel } from './const';
+import { SubmitLabel, RegistrationErrorType } from './const';
 import PrefilledModelRegistryField from './PrefilledModelRegistryField';
 import RegisterModelDetailsFormSection from './RegisterModelDetailsFormSection';
 
@@ -55,19 +58,39 @@ const RegisterModel: React.FC = () => {
     setIsSubmitting(true);
     setSubmitError(undefined);
 
-    const {
-      data: { registeredModel, modelVersion, modelArtifact },
-      errors,
-    } = await registerModel(apiState, formData, author);
-    if (registeredModel && modelVersion && modelArtifact) {
-      navigate(modelVersionUrl(modelVersion.id, registeredModel.id, mrName));
-    } else if (Object.keys(errors).length > 0) {
-      setIsSubmitting(false);
-      setSubmittedRegisteredModelName(formData.modelName);
-      setSubmittedVersionName(formData.versionName);
-      const resourceName = Object.keys(errors)[0];
-      setRegistrationErrorType(resourceName);
-      setSubmitError(errors[resourceName]);
+    // Branch based on registration mode
+    if (formData.registrationMode === RegistrationMode.RegisterAndStore) {
+      // Register and Store: Only create transfer job (async registration)
+      const { transferJob, error } = await registerViaTransferJob(apiState, author, {
+        intent: ModelTransferJobUploadIntent.CREATE_MODEL,
+        formData,
+      });
+
+      if (transferJob) {
+        // Success - navigate back to model list
+        navigate(modelRegistryUrl(mrName));
+      } else if (error) {
+        setIsSubmitting(false);
+        setRegistrationErrorType(RegistrationErrorType.TRANSFER_JOB);
+        setSubmitError(error);
+      }
+    } else {
+      // Register mode: Existing synchronous registration flow
+      const {
+        data: { registeredModel, modelVersion, modelArtifact },
+        errors,
+      } = await registerModel(apiState, formData, author);
+
+      if (registeredModel && modelVersion && modelArtifact) {
+        navigate(modelVersionUrl(modelVersion.id, registeredModel.id, mrName));
+      } else if (Object.keys(errors).length > 0) {
+        setIsSubmitting(false);
+        setSubmittedRegisteredModelName(formData.modelName);
+        setSubmittedVersionName(formData.versionName);
+        const resourceName = Object.keys(errors)[0];
+        setRegistrationErrorType(resourceName);
+        setSubmitError(errors[resourceName]);
+      }
     }
   };
   const onCancel = () => {
