@@ -83,6 +83,8 @@ describe('ModelCatalogCard Component', () => {
           modelCatalog.findModelCatalogDescription().should('be.visible');
 
           // Should show "View X benchmarks" link
+          // Scroll to ensure the link is in view before checking visibility
+          modelCatalog.findValidatedModelBenchmarkLink().scrollIntoView();
           modelCatalog.findValidatedModelBenchmarkLink().should('be.visible');
           modelCatalog
             .findValidatedModelBenchmarkLink()

@@ -1,6 +1,7 @@
 import {
   Alert,
   Button,
+  Content,
   Flex,
   FlexItem,
   Grid,
@@ -15,10 +16,12 @@ import { CatalogSourceList } from '~/app/modelCatalogTypes';
 import { useCatalogModelsBySources } from '~/app/hooks/modelCatalog/useCatalogModelsBySource';
 import EmptyModelCatalogState from '~/app/pages/modelCatalog/EmptyModelCatalogState';
 import {
-  generateCategoryName,
+  getLabelDescription,
+  getLabelDisplayName,
   getSourceFromSourceId,
 } from '~/app/pages/modelCatalog/utils/modelCatalogUtils';
 import ModelCatalogCard from '~/app/pages/modelCatalog/components/ModelCatalogCard';
+import { ModelCatalogContext } from '~/app/context/modelCatalog/ModelCatalogContext';
 
 type CategorySectionProps = {
   label: string;
@@ -26,7 +29,6 @@ type CategorySectionProps = {
   pageSize: number;
   catalogSources: CatalogSourceList | null;
   onShowMore: (label: string) => void;
-  displayName?: string;
 };
 
 const CatalogCategorySection: React.FC<CategorySectionProps> = ({
@@ -35,8 +37,8 @@ const CatalogCategorySection: React.FC<CategorySectionProps> = ({
   pageSize,
   catalogSources,
   onShowMore,
-  displayName,
 }) => {
+  const { catalogLabels } = React.useContext(ModelCatalogContext);
   const { catalogModels, catalogModelsLoaded, catalogModelsLoadError } = useCatalogModelsBySources(
     undefined,
     label,
@@ -46,9 +48,9 @@ const CatalogCategorySection: React.FC<CategorySectionProps> = ({
 
   const itemsToDisplay = catalogModels.items.slice(0, pageSize);
 
-  // Helper to format category title - only append "models" if not already present
-  const name = displayName ?? label;
-  const categoryTitle = generateCategoryName(name);
+  // Get display name and description from labels API
+  const categoryTitle = getLabelDisplayName(label, catalogLabels);
+  const description = getLabelDescription(label, catalogLabels);
 
   return (
     <>
@@ -62,6 +64,11 @@ const CatalogCategorySection: React.FC<CategorySectionProps> = ({
             <Title headingLevel="h3" size="lg" data-testid={`title ${label}`}>
               {categoryTitle}
             </Title>
+            {description && (
+              <Content component="p" className="pf-v6-u-color-200 pf-v6-u-mt-sm">
+                {description}
+              </Content>
+            )}
           </FlexItem>
 
           {catalogModels.items.length >= 4 && (

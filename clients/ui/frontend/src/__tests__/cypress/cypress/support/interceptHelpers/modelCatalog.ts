@@ -5,6 +5,7 @@
  */
 import { mockModArchResponse } from 'mod-arch-core';
 import {
+  mockCatalogLabelList,
   mockCatalogModel,
   mockCatalogModelList,
   mockCatalogPerformanceMetricsArtifact,
@@ -16,7 +17,7 @@ import {
 import { mockCatalogPerformanceMetricsArtifactList } from '~/__mocks__/mockCatalogModelArtifactList';
 import { mockCatalogFilterOptionsList } from '~/__mocks__/mockCatalogFilterOptionsList';
 import { mockModelRegistry } from '~/__mocks__/mockModelRegistry';
-import type { CatalogModel, CatalogSource } from '~/app/modelCatalogTypes';
+import type { CatalogLabelList, CatalogModel, CatalogSource } from '~/app/modelCatalogTypes';
 import type { ModelRegistryCustomProperties } from '~/app/types';
 import { ModelRegistryMetadataType } from '~/app/types';
 import { MODEL_CATALOG_API_VERSION } from '~/__tests__/cypress/cypress/support/commands/api';
@@ -63,6 +64,19 @@ export const interceptSources = (sources: CatalogSource[]): void => {
     mockCatalogSourceList({
       items: sources,
     }),
+  );
+};
+
+/**
+ * Intercepts the GET /model_catalog/labels endpoint
+ */
+export const interceptLabels = (labels?: Partial<CatalogLabelList>): void => {
+  cy.interceptApi(
+    `GET /api/:apiVersion/model_catalog/labels`,
+    {
+      path: { apiVersion: MODEL_CATALOG_API_VERSION },
+    },
+    mockCatalogLabelList(labels),
   );
 };
 
@@ -450,8 +464,9 @@ export const setupModelCatalogIntercepts = (options: ModelCatalogInterceptOption
     customNonValidatedModel,
   } = options;
 
-  // Always intercept sources
+  // Always intercept sources and labels
   interceptSources(sources);
+  interceptLabels();
 
   // Intercept models by label
   interceptModelsByLabel(sources, modelsPerCategory, useValidatedModel);

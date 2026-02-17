@@ -3,12 +3,14 @@ import useGenericObjectState from 'mod-arch-core/dist/utilities/useGenericObject
 import * as React from 'react';
 import { useLocation } from 'react-router-dom';
 import { useCatalogFilterOptionList } from '~/app/hooks/modelCatalog/useCatalogFilterOptionList';
+import { useCatalogLabels } from '~/app/hooks/modelCatalog/useCatalogLabels';
 import { useCatalogSources } from '~/app/hooks/modelCatalog/useCatalogSources';
 import useModelCatalogAPIState, {
   ModelCatalogAPIState,
 } from '~/app/hooks/modelCatalog/useModelCatalogAPIState';
 import {
   CatalogFilterOptionsList,
+  CatalogLabelList,
   CatalogSource,
   CatalogSourceList,
   CategoryName,
@@ -36,6 +38,9 @@ export type ModelCatalogContextType = {
   catalogSourcesLoaded: boolean;
   catalogSourcesLoadError?: Error;
   catalogSources: CatalogSourceList | null;
+  catalogLabels: CatalogLabelList | null;
+  catalogLabelsLoaded: boolean;
+  catalogLabelsLoadError?: Error;
   selectedSource: CatalogSource | undefined;
   updateSelectedSource: (source: CatalogSource | undefined) => void;
   selectedSourceLabel: string | undefined;
@@ -74,6 +79,9 @@ export const ModelCatalogContext = React.createContext<ModelCatalogContextType>(
   catalogSourcesLoaded: false,
   catalogSourcesLoadError: undefined,
   catalogSources: null,
+  catalogLabels: null,
+  catalogLabelsLoaded: false,
+  catalogLabelsLoadError: undefined,
   selectedSource: undefined,
   filterData: {
     [ModelCatalogStringFilterKey.TASK]: [],
@@ -118,6 +126,7 @@ export const ModelCatalogContextProvider: React.FC<ModelCatalogContextProviderPr
   const [apiState, refreshAPIState] = useModelCatalogAPIState(hostPath, queryParams);
   const [catalogSources, catalogSourcesLoaded, catalogSourcesLoadError] =
     useCatalogSources(apiState);
+  const [catalogLabels, catalogLabelsLoaded, catalogLabelsLoadError] = useCatalogLabels(apiState);
   const [selectedSource, setSelectedSource] =
     React.useState<ModelCatalogContextType['selectedSource']>(undefined);
   const [filterData, baseSetFilterData] = useGenericObjectState<ModelCatalogFilterStates>({
@@ -310,6 +319,9 @@ export const ModelCatalogContextProvider: React.FC<ModelCatalogContextProviderPr
       catalogSourcesLoaded,
       catalogSourcesLoadError,
       catalogSources,
+      catalogLabels,
+      catalogLabelsLoaded,
+      catalogLabelsLoadError,
       selectedSource: selectedSource ?? undefined,
       updateSelectedSource: setSelectedSource,
       selectedSourceLabel: selectedSourceLabel ?? undefined,
@@ -338,6 +350,9 @@ export const ModelCatalogContextProvider: React.FC<ModelCatalogContextProviderPr
       catalogSourcesLoaded,
       catalogSourcesLoadError,
       catalogSources,
+      catalogLabels,
+      catalogLabelsLoaded,
+      catalogLabelsLoadError,
       selectedSource,
       apiState,
       refreshAPIState,

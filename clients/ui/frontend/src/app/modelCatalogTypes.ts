@@ -75,6 +75,14 @@ export enum SourceLabel {
   other = 'null',
 }
 
+export type CatalogLabel = {
+  name: string | null;
+  displayName?: string;
+  description?: string;
+};
+
+export type CatalogLabelList = ModelCatalogListParams & { items: CatalogLabel[] };
+
 export enum CatalogSourceType {
   YAML = 'yaml',
   HUGGING_FACE = 'hf',
@@ -215,6 +223,8 @@ export type GetArtifactFilterOptions = (
 
 export type GetCatalogFilterOptionList = (opts: APIOptions) => Promise<CatalogFilterOptionsList>;
 
+export type GetCatalogLabels = (opts: APIOptions) => Promise<CatalogLabelList>;
+
 export type ModelCatalogAPIs = {
   getCatalogModelsBySource: GetCatalogModelsBySource;
   getListSources: GetListSources;
@@ -222,6 +232,7 @@ export type ModelCatalogAPIs = {
   getListCatalogModelArtifacts: GetListCatalogModelArtifacts;
   getCatalogFilterOptionList: GetCatalogFilterOptionList;
   getPerformanceArtifacts: GetPerformanceArtifacts;
+  getCatalogLabels: GetCatalogLabels;
 };
 
 export type CatalogModelDetailsParams = {
