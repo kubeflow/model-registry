@@ -1,0 +1,215 @@
+package service
+
+import (
+	"errors"
+	"fmt"
+
+	"gorm.io/gorm"
+
+	"{{.Package}}/internal/db/models"
+	"github.com/kubeflow/model-registry/internal/db/schema"
+	sharedmodels "github.com/kubeflow/model-registry/internal/db/models"
+	"github.com/kubeflow/model-registry/internal/db/service"
+)
+
+var Err{{.EntityName}}NotFound = errors.New("{{.EntityNameLower}} not found")
+
+// {{.EntityName}}RepositoryImpl uses the shared GenericRepository for MLMD-based storage.
+type {{.EntityName}}RepositoryImpl struct {
+	*service.GenericRepository[models.{{.EntityName}}, schema.Context, schema.ContextProperty, *models.{{.EntityName}}ListOptions]
+}
+
+// New{{.EntityName}}Repository creates a new {{.EntityName}} repository.
+func New{{.EntityName}}Repository(db *gorm.DB, typeID int32) models.{{.EntityName}}Repository {
+	r := &{{.EntityName}}RepositoryImpl{}
+
+	r.GenericRepository = service.NewGenericRepository(service.GenericRepositoryConfig[
+		models.{{.EntityName}},
+		schema.Context,
+		schema.ContextProperty,
+		*models.{{.EntityName}}ListOptions,
+	]{
+		DB:                      db,
+		TypeID:                  typeID,
+		EntityToSchema:          map{{.EntityName}}ToContext,
+		SchemaToEntity:          mapContextTo{{.EntityName}},
+		EntityToProperties:      map{{.EntityName}}ToContextProperties,
+		NotFoundError:           Err{{.EntityName}}NotFound,
+		EntityName:              "{{.EntityNameLower}}",
+		PropertyFieldName:       "context_id",
+		ApplyListFilters:        apply{{.EntityName}}ListFilters,
+		IsNewEntity:             func(entity models.{{.EntityName}}) bool { return entity.GetID() == nil },
+		HasCustomProperties:     func(entity models.{{.EntityName}}) bool { return entity.GetCustomProperties() != nil },
+		PreserveHistoricalTimes: true,
+		EntityMappingFuncs:      &entityMappings{},
+	})
+
+	return r
+}
+
+// Save saves or updates an entity.
+func (r *{{.EntityName}}RepositoryImpl) Save(entity models.{{.EntityName}}) (models.{{.EntityName}}, error) {
+	config := r.GetConfig()
+	if entity.GetTypeID() == nil {
+		if config.TypeID > 0 {
+			entity.SetTypeID(config.TypeID)
+		}
+	}
+
+	// Check for existing entity by name if this is a new entity
+	attr := entity.GetAttributes()
+	if entity.GetID() == nil && attr != nil && attr.Name != nil {
+		existing, err := r.GenericRepository.GetByName(*attr.Name)
+		if err == nil {
+			entity.SetID(*existing.GetID())
+		} else if !errors.Is(err, Err{{.EntityName}}NotFound) {
+			return nil, fmt.Errorf("error finding existing entity: %w", err)
+		}
+	}
+
+	return r.GenericRepository.Save(entity, nil)
+}
+
+// List returns entities matching the options.
+func (r *{{.EntityName}}RepositoryImpl) List(options models.{{.EntityName}}ListOptions) (*sharedmodels.ListWrapper[models.{{.EntityName}}], error) {
+	return r.GenericRepository.List(&options)
+}
+
+// DeleteBySource deletes all entities with the given source ID.
+func (r *{{.EntityName}}RepositoryImpl) DeleteBySource(sourceID string) error {
+	config := r.GetConfig()
+
+	return config.DB.Transaction(func(tx *gorm.DB) error {
+		// Delete Context records where there's a ContextProperty with name='source_id' and matching value
+		deleteContextQuery := `DELETE FROM "Context" WHERE id IN (
+			SELECT "Context".id
+			FROM "Context"
+			INNER JOIN "ContextProperty" ON "Context".id="ContextProperty".context_id
+				AND "ContextProperty".name='source_id'
+				AND "ContextProperty".string_value=?
+			WHERE "Context".type_id=?
+		)`
+		if err := tx.Exec(deleteContextQuery, sourceID, config.TypeID).Error; err != nil {
+			return fmt.Errorf("error deleting {{.EntityNameLower}}s by source: %w", err)
+		}
+		return nil
+	})
+}
+
+// DeleteByID deletes an entity by ID.
+func (r *{{.EntityName}}RepositoryImpl) DeleteByID(id int32) error {
+	config := r.GetConfig()
+	return config.DB.Where("id = ? AND type_id = ?", id, config.TypeID).Delete(&schema.Context{}).Error
+}
+
+// GetDistinctSourceIDs retrieves all unique source_id values.
+func (r *{{.EntityName}}RepositoryImpl) GetDistinctSourceIDs() ([]string, error) {
+	config := r.GetConfig()
+	var sourceIDs []string
+
+	query := `SELECT DISTINCT string_value FROM "ContextProperty"
+		WHERE name='source_id'
+		AND context_id IN (SELECT id FROM "Context" WHERE type_id=?)`
+	if err := config.DB.Raw(query, config.TypeID).Scan(&sourceIDs).Error; err != nil {
+		return nil, fmt.Errorf("error getting distinct source IDs: %w", err)
+	}
+	return sourceIDs, nil
+}
+
+func map{{.EntityName}}ToContext(entity models.{{.EntityName}}) schema.Context {
+	ctx := schema.Context{}
+	if entity.GetID() != nil {
+		ctx.ID = *entity.GetID()
+	}
+	if entity.GetTypeID() != nil {
+		ctx.TypeID = *entity.GetTypeID()
+	}
+	if attrs := entity.GetAttributes(); attrs != nil {
+		if attrs.Name != nil {
+			ctx.Name = *attrs.Name
+		}
+		if attrs.ExternalID != nil {
+			ctx.ExternalID = attrs.ExternalID
+		}
+		if attrs.CreateTimeSinceEpoch != nil {
+			ctx.CreateTimeSinceEpoch = *attrs.CreateTimeSinceEpoch
+		}
+		if attrs.LastUpdateTimeSinceEpoch != nil {
+			ctx.LastUpdateTimeSinceEpoch = *attrs.LastUpdateTimeSinceEpoch
+		}
+	}
+	return ctx
+}
+
+func mapContextTo{{.EntityName}}(ctx schema.Context, props []schema.ContextProperty) models.{{.EntityName}} {
+	// Convert schema properties to model properties and extract known attributes
+	var modelProps []sharedmodels.Properties
+{{.PropVarDecls}}
+	for _, p := range props {
+		switch p.Name {
+{{.PropReadCases}}
+		}
+		modelProps = append(modelProps, service.MapContextPropertyToProperties(p))
+	}
+
+	entity := &models.{{.EntityName}}Impl{
+		ID:     &ctx.ID,
+		TypeID: &ctx.TypeID,
+		Attributes: &models.{{.EntityName}}Attributes{
+			Name:                     &ctx.Name,
+			ExternalID:               ctx.ExternalID,
+			CreateTimeSinceEpoch:     &ctx.CreateTimeSinceEpoch,
+			LastUpdateTimeSinceEpoch: &ctx.LastUpdateTimeSinceEpoch,
+{{.PropAttrAssignments}}
+		},
+		Properties: &modelProps,
+	}
+
+	return entity
+}
+
+func map{{.EntityName}}ToContextProperties(entity models.{{.EntityName}}, entityID int32) []schema.ContextProperty {
+	var props []schema.ContextProperty
+{{if .PropWriteStatements}}	attrs := entity.GetAttributes()
+
+{{.PropWriteStatements}}{{end}}
+	// Add other properties
+	if entity.GetProperties() != nil {
+		for _, p := range *entity.GetProperties() {
+			props = append(props, service.MapPropertiesToContextProperty(p, entityID, p.IsCustomProperty))
+		}
+	}
+
+	return props
+}
+
+func apply{{.EntityName}}ListFilters(db *gorm.DB, opts *models.{{.EntityName}}ListOptions) *gorm.DB {
+	if opts == nil {
+		return db
+	}
+
+	if opts.Name != nil && *opts.Name != "" {
+		db = db.Where("name LIKE ?", "%"+*opts.Name+"%")
+	}
+
+	if opts.ExternalID != nil && *opts.ExternalID != "" {
+		db = db.Where("external_id = ?", *opts.ExternalID)
+	}
+
+	// Filter by source IDs using context properties
+	var nonEmptySourceIDs []string
+	if opts.SourceIDs != nil {
+		for _, sourceID := range *opts.SourceIDs {
+			if sourceID != "" {
+				nonEmptySourceIDs = append(nonEmptySourceIDs, sourceID)
+			}
+		}
+	}
+
+	if len(nonEmptySourceIDs) > 0 {
+		db = db.Joins("JOIN \"ContextProperty\" cp ON \"Context\".id = cp.context_id").
+			Where("cp.name = ? AND cp.string_value IN ?", "source_id", nonEmptySourceIDs)
+	}
+
+	return db
+}

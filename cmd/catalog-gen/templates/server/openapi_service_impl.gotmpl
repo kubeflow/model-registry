@@ -1,0 +1,128 @@
+package openapi
+
+import (
+	"context"
+	"errors"
+	"fmt"
+	"net/http"
+
+	"{{.Package}}/internal/db/models"
+	"{{.Package}}/internal/db/service"
+)
+
+// {{.EntityName}}CatalogServiceAPIService implements the business logic for the {{.EntityName}} Catalog API.
+type {{.EntityName}}CatalogServiceAPIService struct {
+	services service.Services
+}
+
+// New{{.EntityName}}CatalogServiceAPIService creates a new service instance.
+func New{{.EntityName}}CatalogServiceAPIService(services service.Services) *{{.EntityName}}CatalogServiceAPIService {
+	return &{{.EntityName}}CatalogServiceAPIService{
+		services: services,
+	}
+}
+
+// Ensure we implement the DefaultAPIServicer interface.
+var _ DefaultAPIServicer = &{{.EntityName}}CatalogServiceAPIService{}
+
+// List{{.EntityName}}s implements DefaultAPIServicer.List{{.EntityName}}s
+// This returns a paginated list of {{.EntityName}} entities.
+func (s *{{.EntityName}}CatalogServiceAPIService) List{{.EntityName}}s(ctx context.Context, pageSize int32, pageToken string, q string, filterQuery string, orderBy string, sortOrder string) (ImplResponse, error) {
+	listOptions := models.{{.EntityName}}ListOptions{
+		Query: &q,
+	}
+	listOptions.PageSize = &pageSize
+	listOptions.NextPageToken = &pageToken
+	listOptions.FilterQuery = &filterQuery
+	listOptions.OrderBy = &orderBy
+	listOptions.SortOrder = &sortOrder
+
+	result, err := s.services.{{.EntityName}}Repository.List(listOptions)
+	if err != nil {
+		return Response(http.StatusInternalServerError, nil), err
+	}
+
+	// Convert to OpenAPI model types
+	items := make([]{{.EntityName}}, len(result.Items))
+	for i, item := range result.Items {
+		items[i] = convertToOpenAPIModel(item)
+	}
+
+	response := {{.EntityName}}List{
+		Items:         items,
+		NextPageToken: result.NextPageToken,
+		Size:          int32(len(items)),
+	}
+
+	return Response(http.StatusOK, response), nil
+}
+
+// Get{{.EntityName}} implements DefaultAPIServicer.Get{{.EntityName}}
+// This returns a single {{.EntityName}} by name.
+func (s *{{.EntityName}}CatalogServiceAPIService) Get{{.EntityName}}(ctx context.Context, name string) (ImplResponse, error) {
+	entity, err := s.services.{{.EntityName}}Repository.GetByName(name)
+	if err != nil {
+		if errors.Is(err, service.Err{{.EntityName}}NotFound) {
+			return Response(http.StatusNotFound, nil), err
+		}
+		return Response(http.StatusInternalServerError, nil), err
+	}
+
+	return Response(http.StatusOK, convertToOpenAPIModel(entity)), nil
+}
+
+// convertToOpenAPIModel converts a database entity to the OpenAPI model type.
+func convertToOpenAPIModel(entity models.{{.EntityName}}) {{.EntityName}} {
+	attrs := entity.GetAttributes()
+	result := {{.EntityName}}{}
+
+	if attrs.Name != nil {
+		result.Name = *attrs.Name
+	}
+	if attrs.ExternalID != nil {
+		result.ExternalId = *attrs.ExternalID
+	}
+	if attrs.CreateTimeSinceEpoch != nil {
+		result.CreateTimeSinceEpoch = fmt.Sprintf("%d", *attrs.CreateTimeSinceEpoch)
+	}
+	if attrs.LastUpdateTimeSinceEpoch != nil {
+		result.LastUpdateTimeSinceEpoch = fmt.Sprintf("%d", *attrs.LastUpdateTimeSinceEpoch)
+	}
+	if entity.GetID() != nil {
+		result.Id = fmt.Sprintf("%d", *entity.GetID())
+	}
+
+	// Extract base properties (description)
+	if entity.GetProperties() != nil {
+		for _, prop := range *entity.GetProperties() {
+			switch prop.Name {
+			case "description":
+				if prop.StringValue != nil {
+					result.Description = *prop.StringValue
+				}
+			}
+		}
+	}
+
+	// Extract custom properties
+	if entity.GetCustomProperties() != nil {
+		customProps := make(map[string]interface{})
+		for _, prop := range *entity.GetCustomProperties() {
+			switch {
+			case prop.StringValue != nil:
+				customProps[prop.Name] = *prop.StringValue
+			case prop.IntValue != nil:
+				customProps[prop.Name] = *prop.IntValue
+			case prop.DoubleValue != nil:
+				customProps[prop.Name] = *prop.DoubleValue
+			case prop.BoolValue != nil:
+				customProps[prop.Name] = *prop.BoolValue
+			}
+		}
+		if len(customProps) > 0 {
+			result.CustomProperties = customProps
+		}
+	}
+{{.PropConversions}}
+	return result
+}

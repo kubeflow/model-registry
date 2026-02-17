@@ -1,0 +1,39 @@
+# Add Property to Artifact
+
+## Arguments
+- `ArtifactName`: Name of the artifact (PascalCase)
+- `property-name`: Name of the property (camelCase)
+- `type`: One of: string, integer, int64, boolean, number, array
+
+## Steps
+
+### Step 1: Update catalog.yaml
+
+Add the property under the artifact's properties:
+
+```yaml
+spec:
+  artifacts:
+    - name: <ArtifactName>
+      properties:
+        # ... existing properties ...
+        - name: <property-name>
+          type: <type>
+```
+
+### Step 2: Regenerate Code
+
+```bash
+catalog-gen generate
+make gen/openapi-server
+```
+
+### Step 3: Update YAML Provider
+
+If using YAML source, update the artifact struct and parsing.
+
+### Step 4: Verify
+
+```bash
+go build ./...
+```

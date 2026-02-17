@@ -1,0 +1,41 @@
+# Generate Test Data for {{.EntityName}}
+
+## Usage
+
+Run `catalog-gen gen-testdata` from the plugin root directory.
+
+## What It Does
+
+Generates sample data files in `testdata/` based on the current `catalog.yaml`:
+
+1. **`testdata/{{.EntityNameLower}}s.yaml`** - Sample entities with all fields populated
+   (includes BaseResource fields: name, externalId, description, plus all custom properties)
+2. **`testdata/{{.EntityNameLower}}-sources.yaml`** - Loader configuration pointing to the sample data
+3. **`testdata/test-sources.yaml`** - Catalog server configuration for local testing
+
+## Steps
+
+### Step 1: Generate test data
+
+```bash
+catalog-gen gen-testdata
+```
+
+### Step 2: Run the catalog server locally
+
+```bash
+./catalog-server --sources=testdata/test-sources.yaml --listen=:8080 --db-dsn="<your-dsn>"
+```
+
+### Step 3: Test the API
+
+```bash
+curl -s http://localhost:8080{{.BasePath}}/{{.EntityNameLower}}s | jq
+```
+
+## Notes
+
+- Regenerate test data after adding properties: `catalog-gen gen-testdata`
+- The generated YAML includes all BaseResource fields (name, externalId, description)
+  plus all custom properties defined in `catalog.yaml`
+- Sample data contains 3 entities with varied values for testing

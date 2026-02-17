@@ -3,7 +3,10 @@ on:
   pull_request:
     paths:
       - ".github/workflows/**"
-      - "api/openapi/model-registry.yaml"
+      - "api/openapi/**"
+      - "catalog/plugins/*/api/openapi/**"
+      - "scripts/merge_openapi.sh"
+      - "scripts/merge_catalog_specs.sh"
 
 permissions: # set contents: read at top-level, per OpenSSF ScoreCard rule TokenPermissionsID
   contents: read
