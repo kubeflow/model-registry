@@ -3,6 +3,7 @@ import { mockModArchResponse } from 'mod-arch-core';
 import { modelCatalog } from '~/__tests__/cypress/cypress/pages/modelCatalog';
 import {
   mockCatalogAccuracyMetricsArtifact,
+  mockCatalogLabelList,
   mockCatalogModel,
   mockCatalogModelArtifact,
   mockCatalogModelList,
@@ -102,6 +103,14 @@ const initIntercepts = ({
     mockCatalogSourceList({
       items: sources,
     }),
+  );
+
+  cy.intercept(
+    {
+      method: 'GET',
+      url: new RegExp(`/api/${MODEL_CATALOG_API_VERSION}/model_catalog/labels`),
+    },
+    mockModArchResponse(mockCatalogLabelList()),
   );
 
   sources.forEach((source) => {
