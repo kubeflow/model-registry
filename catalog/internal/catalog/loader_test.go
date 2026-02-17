@@ -250,6 +250,7 @@ func TestLoader_StartWithLeaderElection(t *testing.T) {
 		mockMetricsArtifactRepo,
 		mockSourceRepo,
 		&MockPropertyOptionsRepository{},
+		nil, // MCPServerRepository
 	)
 
 	// Register a test provider
