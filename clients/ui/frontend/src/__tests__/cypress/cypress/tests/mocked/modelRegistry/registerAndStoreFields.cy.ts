@@ -206,9 +206,14 @@ describe('Register and Store Fields - Who is my admin popover (namespace wording
 describe('Register and Store Fields - Credential Validation', () => {
   beforeEach(() => {
     initIntercepts({});
+    cy.intercept('POST', '**/api/v1/check-namespace-registry-access', {
+      statusCode: 200,
+      body: { data: { hasAccess: true } },
+    }).as('checkNamespaceAccess');
     registerAndStoreFields.visit();
     registerAndStoreFields.selectRegisterAndStoreMode();
     registerAndStoreFields.selectNamespace('namespace-1');
+    cy.wait('@checkNamespaceAccess');
   });
 
   it('Should have submit button disabled when S3 access key ID is missing', () => {
@@ -292,18 +297,24 @@ describe('Register and Store Fields - Credential Validation', () => {
 describe('Register and Store Fields - Form Submission', () => {
   beforeEach(() => {
     initIntercepts({});
+    cy.intercept('POST', '**/api/v1/check-namespace-registry-access', {
+      statusCode: 200,
+      body: { data: { hasAccess: true } },
+    }).as('checkNamespaceAccess');
     registerAndStoreFields.visit();
   });
 
   it('Should have submit button disabled when required fields are empty', () => {
     registerAndStoreFields.selectRegisterAndStoreMode();
     registerAndStoreFields.selectNamespace('namespace-1');
+    cy.wait('@checkNamespaceAccess');
     registerAndStoreFields.findSubmitButton().should('be.disabled');
   });
 
   it('Should enable submit button when all required fields are filled', () => {
     registerAndStoreFields.selectRegisterAndStoreMode();
     registerAndStoreFields.selectNamespace('namespace-1');
+    cy.wait('@checkNamespaceAccess');
     registerAndStoreFields.fillAllRequiredFields();
     registerAndStoreFields.findSubmitButton().should('not.be.disabled');
   });
@@ -324,7 +335,7 @@ describe('Register and Store Fields - Form Submission', () => {
 
     registerAndStoreFields.selectRegisterAndStoreMode();
     registerAndStoreFields.selectNamespace('namespace-1');
-    // Verify namespace is selected before filling other fields
+    cy.wait('@checkNamespaceAccess');
     registerAndStoreFields.shouldShowSelectedNamespace('namespace-1');
     registerAndStoreFields.fillAllRequiredFields();
     registerAndStoreFields.findSubmitButton().click();
@@ -358,6 +369,7 @@ describe('Register and Store Fields - Form Submission', () => {
 
     registerAndStoreFields.selectRegisterAndStoreMode();
     registerAndStoreFields.selectNamespace('namespace-1');
+    cy.wait('@checkNamespaceAccess');
     registerAndStoreFields.fillAllRequiredFields();
     registerAndStoreFields.findSubmitButton().click();
 
@@ -392,6 +404,7 @@ describe('Register and Store Fields - Form Submission', () => {
 
     registerAndStoreFields.selectRegisterAndStoreMode();
     registerAndStoreFields.selectNamespace('namespace-1');
+    cy.wait('@checkNamespaceAccess');
     registerAndStoreFields.fillAllRequiredFields();
     registerAndStoreFields.findSubmitButton().click();
 
