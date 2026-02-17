@@ -19,18 +19,20 @@ import {
   modelVersionUrl,
   registeredModelUrl,
 } from '~/app/pages/modelRegistry/screens/routeUtils';
+import { RegistrationMode } from '~/app/pages/modelRegistry/screens/const';
+import { ModelTransferJobUploadIntent } from '~/app/types';
 import useRegisteredModels from '~/app/hooks/useRegisteredModels';
 import { filterLiveModels } from '~/app/utils';
 import { ModelRegistryContext } from '~/app/context/ModelRegistryContext';
 import { AppContext } from '~/app/context/AppContext';
 import { useRegisterVersionData } from './useRegisterModelData';
-import { isRegisterVersionSubmitDisabled, registerVersion } from './utils';
+import { isRegisterVersionSubmitDisabled, registerVersion, registerViaTransferJob } from './utils';
 import RegistrationCommonFormSections from './RegistrationCommonFormSections';
 import PrefilledModelRegistryField from './PrefilledModelRegistryField';
 import RegistrationFormFooter from './RegistrationFormFooter';
 import RegisteredModelSelector from './RegisteredModelSelector';
 import { usePrefillRegisterVersionFields } from './usePrefillRegisterVersionFields';
-import { SubmitLabel } from './const';
+import { SubmitLabel, RegistrationErrorType } from './const';
 
 const RegisterVersion: React.FC = () => {
   const { modelRegistry: mrName, registeredModelId: prefilledRegisteredModelId } = useParams();
@@ -67,19 +69,39 @@ const RegisterVersion: React.FC = () => {
     setIsSubmitting(true);
     setSubmitError(undefined);
 
-    const {
-      data: { modelVersion, modelArtifact },
-      errors,
-    } = await registerVersion(apiState, registeredModel, formData, author);
+    // Branch based on registration mode
+    if (formData.registrationMode === RegistrationMode.RegisterAndStore) {
+      // Register and Store: Only create transfer job (async registration)
+      const { transferJob, error } = await registerViaTransferJob(apiState, author, {
+        intent: ModelTransferJobUploadIntent.CREATE_VERSION,
+        formData,
+        registeredModel,
+      });
 
-    if (modelVersion && modelArtifact) {
-      navigate(modelVersionUrl(modelVersion.id, registeredModel.id, mrName));
-    } else if (Object.keys(errors).length > 0) {
-      const resourceName = Object.keys(errors)[0];
-      setSubmittedVersionName(formData.versionName);
-      setRegistrationErrorType(resourceName);
-      setSubmitError(errors[resourceName]);
-      setIsSubmitting(false);
+      if (transferJob) {
+        // Success - navigate back to registered model page
+        navigate(registeredModelUrl(registeredModel.id, mrName));
+      } else if (error) {
+        setIsSubmitting(false);
+        setRegistrationErrorType(RegistrationErrorType.TRANSFER_JOB);
+        setSubmitError(error);
+      }
+    } else {
+      // Register mode: Existing synchronous registration flow
+      const {
+        data: { modelVersion, modelArtifact },
+        errors,
+      } = await registerVersion(apiState, registeredModel, formData, author);
+
+      if (modelVersion && modelArtifact) {
+        navigate(modelVersionUrl(modelVersion.id, registeredModel.id, mrName));
+      } else if (Object.keys(errors).length > 0) {
+        const resourceName = Object.keys(errors)[0];
+        setSubmittedVersionName(formData.versionName);
+        setRegistrationErrorType(resourceName);
+        setSubmitError(errors[resourceName]);
+        setIsSubmitting(false);
+      }
     }
   };
 

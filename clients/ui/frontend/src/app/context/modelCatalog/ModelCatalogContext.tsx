@@ -289,6 +289,22 @@ export const ModelCatalogContextProvider: React.FC<ModelCatalogContextProviderPr
     [baseSetFilterData, isOnDetailsPage],
   );
 
+  // Apply default performance filters on initial load if none are set
+  React.useEffect(() => {
+    if (
+      filterOptionsLoaded &&
+      filterOptions?.namedQueries?.[DEFAULT_PERFORMANCE_FILTERS_QUERY_NAME] &&
+      filterData[ModelCatalogStringFilterKey.USE_CASE].length === 0
+    ) {
+      resetPerformanceFiltersToDefaults();
+    }
+  }, [
+    filterOptionsLoaded,
+    filterOptions?.namedQueries,
+    filterData,
+    resetPerformanceFiltersToDefaults,
+  ]);
+
   const contextValue = React.useMemo(
     () => ({
       catalogSourcesLoaded,

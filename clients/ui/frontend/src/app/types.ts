@@ -213,6 +213,19 @@ export type PatchModelArtifact = (
   modelartifactId: string,
 ) => Promise<ModelArtifact>;
 
+export type CreateModelTransferJob = (
+  opts: APIOptions,
+  data: CreateModelTransferJobData,
+) => Promise<ModelTransferJob>;
+
+export type UpdateModelTransferJob = (
+  opts: APIOptions,
+  jobId: string,
+  data: Partial<ModelTransferJob>,
+) => Promise<ModelTransferJob>;
+
+export type DeleteModelTransferJob = (opts: APIOptions, jobId: string) => Promise<void>;
+
 export type ModelRegistryAPIs = {
   createRegisteredModel: CreateRegisteredModel;
   createModelVersionForRegisteredModel: CreateModelVersionForRegisteredModel;
@@ -227,6 +240,9 @@ export type ModelRegistryAPIs = {
   patchModelVersion: PatchModelVersion;
   patchModelArtifact: PatchModelArtifact;
   listModelTransferJobs: GetListModelTransferJobs;
+  createModelTransferJob: CreateModelTransferJob;
+  updateModelTransferJob: UpdateModelTransferJob;
+  deleteModelTransferJob: DeleteModelTransferJob;
 };
 
 // Model Transfer Job Types
@@ -318,6 +334,11 @@ export type ModelTransferJob = {
   lastUpdateTimeSinceEpoch: string;
   errorMessage?: string;
 };
+
+export type CreateModelTransferJobData = Omit<
+  ModelTransferJob,
+  'id' | 'createTimeSinceEpoch' | 'lastUpdateTimeSinceEpoch'
+>;
 
 export type ModelTransferJobList = ModelRegistryListParams & { items: ModelTransferJob[] };
 

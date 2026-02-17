@@ -7,6 +7,7 @@ import (
 	"os"
 	"path/filepath"
 	"sync"
+	"time"
 
 	mapset "github.com/deckarep/golang-set/v2"
 	"github.com/golang/glog"
@@ -115,6 +116,16 @@ type Loader struct {
 	closer        func() // cancels the current model loading goroutines
 	handlers      []LoaderEventHandler
 	loadedSources map[string]bool // tracks which source IDs have been loaded
+
+	// Leader state management
+	leaderMu sync.RWMutex
+	isLeader bool           // true when in leader mode
+	writesWG sync.WaitGroup // tracks number of database write operations in progress
+
+	// File watcher state
+	watchersMu      sync.Mutex
+	watchersStarted bool
+	watchersCancel  context.CancelFunc // cancels file watchers on shutdown
 }
 
 func NewLoader(services service.Services, paths []string) *Loader {
@@ -140,54 +151,181 @@ func NewLoader(services service.Services, paths []string) *Loader {
 }
 
 // RegisterEventHandler adds a function that will be called for every
-// successfully processed record. This should be called before Start.
+// successfully processed record. This should be called before StartReadOnly.
 //
 // Handlers are called in the order they are registered.
 func (l *Loader) RegisterEventHandler(fn LoaderEventHandler) {
 	l.handlers = append(l.handlers, fn)
 }
 
-// Start processes the sources YAML files. Background goroutines will be
-// stopped when the context is canceled.
-func (l *Loader) Start(ctx context.Context) error {
-	// Phase 1: Parse all config files and merge sources/labels
-	// This must happen BEFORE loading models so that sparse overrides work correctly
+// StartReadOnly initializes the loader in read-only mode (standby pod).
+// Call once at pod startup.
+//
+// Behavior:
+// - Parses all config files into in-memory collections (Sources, Labels)
+// - Sets up file watchers that reload config when files change
+// - Skips database writes (leader-only operation)
+// - File watchers run until ctx cancels (pod shutdown)
+//
+// Returns immediately after setup; non-blocking.
+func (l *Loader) StartReadOnly(ctx context.Context) error {
+	l.watchersMu.Lock()
+	if l.watchersStarted {
+		l.watchersMu.Unlock()
+		return fmt.Errorf("StartReadOnly already called")
+	}
+	l.watchersStarted = true
+
+	watcherCtx, cancel := context.WithCancel(ctx)
+	l.watchersCancel = cancel
+	l.watchersMu.Unlock()
+
+	glog.Info("Starting loader in read-only mode (standby)")
+
 	for _, path := range l.paths {
-		err := l.parseAndMerge(path)
-		if err != nil {
+		if err := l.parseAndMerge(path); err != nil {
 			return fmt.Errorf("%s: %w", path, err)
 		}
 	}
 
-	// Delete models from unknown or disabled sources
-	err := l.removeModelsFromMissingSources()
-	if err != nil {
-		return fmt.Errorf("failed to remove models from missing sources: %w", err)
-	}
-
-	// Phase 2: Load models from merged sources (once, after all merging is complete)
-	err = l.loadAllModels(ctx)
-	if err != nil {
-		return err
-	}
-
-	// Phase 3: Set up file watchers for hot-reload
 	for _, path := range l.paths {
 		go func(path string) {
-			changes, err := getMonitor().Path(ctx, path)
+			changes, err := getMonitor().Path(watcherCtx, path)
 			if err != nil {
 				glog.Errorf("unable to watch sources file (%s): %v", path, err)
 				return
 			}
 
 			for range changes {
-				glog.Infof("Reloading sources %s", path)
-				l.reloadAll(ctx)
+				glog.Infof("Config file changed, reloading: %s", path)
+				l.reloadConfig(watcherCtx)
 			}
 		}(path)
 	}
 
+	glog.Info("Read-only mode initialized successfully")
 	return nil
+}
+
+// StartLeader transitions the loader to leader mode and blocks until the
+// context is cancelled (leadership lost or pod shutdown).
+//
+// Performs database writes (fetches models, writes to database, cleans up orphans).
+// Can be called multiple times as leadership changes.
+//
+// Pass the leadership context (canceled when leadership is lost).
+func (l *Loader) StartLeader(ctx context.Context) error {
+	l.leaderMu.Lock()
+	if l.isLeader {
+		l.leaderMu.Unlock()
+		return fmt.Errorf("already in leader mode")
+	}
+	l.isLeader = true
+	l.leaderMu.Unlock()
+
+	glog.Info("Transitioning to leader mode (read-write)")
+
+	if err := l.performLeaderOperations(ctx); err != nil {
+		l.leaderMu.Lock()
+		l.isLeader = false
+		l.leaderMu.Unlock()
+		return fmt.Errorf("failed to perform leader operations: %w", err)
+	}
+
+	glog.Info("Leader mode active")
+
+	// Just wait for context cancellation
+	<-ctx.Done()
+	glog.Info("Leadership context cancelled, cleaning up...")
+
+	l.waitForInflightWrites(5 * time.Second)
+
+	l.leaderMu.Lock()
+	l.isLeader = false
+	l.leaderMu.Unlock()
+
+	glog.Info("Leader mode stopped")
+	return ctx.Err()
+}
+
+// Shutdown gracefully shuts down the loader, stopping file watchers and
+// waiting for any inflight operations.
+func (l *Loader) Shutdown() error {
+	glog.Info("Shutting down loader...")
+
+	// Note: Leader operations stop when leaderCtx is cancelled by the elector.
+	// No need to explicitly stop here.
+
+	// Stop file watchers
+	l.watchersMu.Lock()
+	if l.watchersCancel != nil {
+		l.watchersCancel()
+	}
+	l.watchersMu.Unlock()
+
+	// Wait for inflight writes
+	l.waitForInflightWrites(10 * time.Second)
+
+	glog.Info("Loader shutdown complete")
+	return nil
+}
+
+// performLeaderWrites executes database write operations: removing orphaned
+// models and loading all models from sources.
+func (l *Loader) performLeaderWrites(ctx context.Context) error {
+	if err := l.removeModelsFromMissingSources(); err != nil {
+		return fmt.Errorf("failed to remove models from missing sources: %w", err)
+	}
+	return l.loadAllModels(ctx)
+}
+
+// performLeaderOperations executes the database operations that only the leader performs.
+func (l *Loader) performLeaderOperations(ctx context.Context) error {
+	return l.performLeaderWrites(ctx)
+}
+
+// shouldWriteDatabase returns true when in leader mode.
+func (l *Loader) shouldWriteDatabase() bool {
+	l.leaderMu.RLock()
+	defer l.leaderMu.RUnlock()
+	return l.isLeader
+}
+
+// reloadConfig handles config file changes.
+// Re-parses all config files and reloads models when leader.
+func (l *Loader) reloadConfig(ctx context.Context) {
+	// Re-parse all config files (both leader and standby)
+	for _, path := range l.paths {
+		if err := l.parseAndMerge(path); err != nil {
+			glog.Errorf("unable to reload sources from %s: %v", path, err)
+		}
+	}
+
+	// Database writes (leader only)
+	if l.shouldWriteDatabase() {
+		if err := l.performLeaderWrites(ctx); err != nil {
+			glog.Errorf("unable to perform leader writes: %v", err)
+		}
+	}
+}
+
+// waitForInflightWrites waits for all inflight database writes to complete
+// with a timeout.
+func (l *Loader) waitForInflightWrites(timeout time.Duration) {
+	glog.Info("Waiting for inflight writes to complete...")
+
+	done := make(chan struct{})
+	go func() {
+		l.writesWG.Wait()
+		close(done)
+	}()
+
+	select {
+	case <-done:
+		glog.Info("All inflight writes completed")
+	case <-time.After(timeout):
+		glog.Warningf("Timeout waiting for inflight writes to complete")
+	}
 }
 
 // parseAndMerge parses a config file and merges its sources/labels into the collections.
@@ -209,33 +347,10 @@ func (l *Loader) parseAndMerge(path string) error {
 	return l.updateLabels(path, config)
 }
 
-// loadAllModels loads models from all merged sources.
 func (l *Loader) loadAllModels(ctx context.Context) error {
-	// Clear the loaded sources tracker for a fresh load
 	l.loadedSources = map[string]bool{}
 
 	return l.updateDatabase(ctx)
-}
-
-// reloadAll re-parses all config files and reloads all models.
-// Called when any config file changes.
-func (l *Loader) reloadAll(ctx context.Context) {
-	// Re-parse all config files
-	for _, path := range l.paths {
-		if err := l.parseAndMerge(path); err != nil {
-			glog.Errorf("unable to reload sources from %s: %v", path, err)
-		}
-	}
-
-	// Clean up models and sources that are no longer in config
-	if err := l.removeModelsFromMissingSources(); err != nil {
-		glog.Errorf("unable to remove models from missing sources: %v", err)
-	}
-
-	// Reload all models
-	if err := l.loadAllModels(ctx); err != nil {
-		glog.Errorf("unable to reload models: %v", err)
-	}
 }
 
 func (l *Loader) read(path string) (*sourceConfig, error) {
@@ -323,13 +438,22 @@ func (l *Loader) updateDatabase(ctx context.Context) error {
 	l.closer = cancel
 	l.closersMu.Unlock()
 
-	// Use merged sources from SourceCollection instead of per-file config.
-	// This enables sparse overrides to work: a user can enable a disabled source
-	// with just "id" and "enabled: true", inheriting Type and Properties from the base.
 	records := l.readProviderRecords(ctx)
 
 	go func() {
 		for record := range records {
+			// Check if we're still the leader before each write
+			if !l.shouldWriteDatabase() {
+				glog.Info("No longer leader, stopping database writes")
+				return
+			}
+
+			// Check context cancellation
+			if ctx.Err() != nil {
+				glog.Info("Context cancelled, stopping database writes")
+				return
+			}
+
 			if record.Model == nil {
 				continue
 			}
@@ -337,6 +461,10 @@ func (l *Loader) updateDatabase(ctx context.Context) error {
 			if attr == nil || attr.Name == nil {
 				continue
 			}
+
+			// Track this write operation
+			l.writesWG.Add(1)
+			defer l.writesWG.Done()
 
 			glog.Infof("Loading model %s with %d artifact(s)", *attr.Name, len(record.Artifacts))
 
@@ -390,7 +518,6 @@ func (l *Loader) updateDatabase(ctx context.Context) error {
 // been loaded yet, and merges the returned channels together. The returned
 // channel is closed when the last provider channel is closed.
 func (l *Loader) readProviderRecords(ctx context.Context) <-chan ModelProviderRecord {
-
 	ch := make(chan ModelProviderRecord)
 	var wg sync.WaitGroup
 
