@@ -23,8 +23,9 @@ class RegisterAndStoreFields {
     return cy.findByTestId('form-namespace-selector-trigger');
   }
 
+  /** PatternFly SimpleSelect renders a MenuToggle button (not role="combobox"); use the same trigger for opening the dropdown */
   findNamespaceSelectCombobox() {
-    return this.findNamespaceSelector().find('[role="combobox"]');
+    return this.findNamespaceSelector();
   }
 
   findOriginLocationSection() {
@@ -126,7 +127,15 @@ class RegisterAndStoreFields {
   }
 
   shouldBeNamespaceSelectorDisabled() {
-    this.findNamespaceSelectTrigger().find('[aria-disabled="true"]').should('exist');
+    // PatternFly SimpleSelect (MenuToggle) may use disabled, aria-disabled, or class pf-m-disabled
+    this.findNamespaceSelectTrigger()
+      .find('button')
+      .should(
+        ($btn) =>
+          $btn.prop('disabled') === true ||
+          $btn.attr('aria-disabled') === 'true' ||
+          $btn.hasClass('pf-m-disabled'),
+      );
     return this;
   }
 

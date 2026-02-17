@@ -139,7 +139,11 @@ export const registerVersion = async (
   return { data: { modelVersion, modelArtifact }, errors };
 };
 
-const isSubmitDisabledForCommonFields = (formData: RegistrationCommonFormData): boolean => {
+const isSubmitDisabledForCommonFields = (
+  formData: RegistrationCommonFormData,
+  namespaceHasAccess?: boolean,
+  isNamespaceAccessLoading?: boolean,
+): boolean => {
   const {
     versionName,
     modelLocationType,
@@ -151,7 +155,6 @@ const isSubmitDisabledForCommonFields = (formData: RegistrationCommonFormData): 
     modelLocationS3SecretAccessKey,
     registrationMode,
     namespace,
-    namespaceHasAccess,
     destinationOciRegistry,
     destinationOciUri,
     destinationOciUsername,
@@ -176,13 +179,14 @@ const isSubmitDisabledForCommonFields = (formData: RegistrationCommonFormData): 
     ) {
       return true;
     }
-  }
-  if (
-    registrationMode === RegistrationMode.RegisterAndStore &&
-    namespace &&
-    namespaceHasAccess === false
-  ) {
-    return true;
+    // Disable submit while access check is in progress (avoid submitting with stale/wrong value)
+    if (namespace && isNamespaceAccessLoading) {
+      return true;
+    }
+    // Disable submit when namespace has no access to the registry
+    if (namespace && namespaceHasAccess === false) {
+      return true;
+    }
   }
   return (
     !versionName ||
@@ -196,19 +200,34 @@ const isSubmitDisabledForCommonFields = (formData: RegistrationCommonFormData): 
 export const isRegisterModelSubmitDisabled = (
   formData: RegisterModelFormData,
   registeredModels: RegisteredModelList,
+  namespaceHasAccess?: boolean,
+  isNamespaceAccessLoading?: boolean,
 ): boolean =>
   !formData.modelName ||
-  isSubmitDisabledForCommonFields(formData) ||
+  isSubmitDisabledForCommonFields(formData, namespaceHasAccess, isNamespaceAccessLoading) ||
   !isNameValid(formData.modelName) ||
   isModelNameExisting(formData.modelName, registeredModels);
 
-export const isRegisterVersionSubmitDisabled = (formData: RegisterVersionFormData): boolean =>
-  !formData.registeredModelId || isSubmitDisabledForCommonFields(formData);
+export const isRegisterVersionSubmitDisabled = (
+  formData: RegisterVersionFormData,
+  namespaceHasAccess?: boolean,
+  isNamespaceAccessLoading?: boolean,
+): boolean =>
+  !formData.registeredModelId ||
+  isSubmitDisabledForCommonFields(formData, namespaceHasAccess, isNamespaceAccessLoading);
 
 export const isRegisterCatalogModelSubmitDisabled = (
   formData: RegisterCatalogModelFormData,
   registeredModels: RegisteredModelList,
-): boolean => isRegisterModelSubmitDisabled(formData, registeredModels) || !formData.modelRegistry;
+  namespaceHasAccess?: boolean,
+  isNamespaceAccessLoading?: boolean,
+): boolean =>
+  isRegisterModelSubmitDisabled(
+    formData,
+    registeredModels,
+    namespaceHasAccess,
+    isNamespaceAccessLoading,
+  ) || !formData.modelRegistry;
 
 export const isNameValid = (name: string): boolean => name.length <= MR_CHARACTER_LIMIT;
 

@@ -1,26 +1,18 @@
 import React, { useRef } from 'react';
 import {
-  Box,
-  FormControl,
-  IconButton,
-  MenuItem,
-  Select,
-  SelectChangeEvent,
-  Typography,
-} from '@mui/material';
-import ErrorIcon from '@mui/icons-material/Error';
-import HelpOutlineIcon from '@mui/icons-material/HelpOutline';
-import {
   Alert,
+  Button,
   FormGroup,
   FormGroupLabelHelp,
+  HelperText,
+  HelperTextItem,
   Popover,
   Stack,
   StackItem,
 } from '@patternfly/react-core';
 import { useNamespaceSelector } from 'mod-arch-core';
-import { useThemeContext } from 'mod-arch-kubeflow';
 import { useCheckNamespaceRegistryAccess } from '~/app/hooks/useCheckNamespaceRegistryAccess';
+import NamespaceSelector from '~/app/standalone/NamespaceSelector';
 
 const NAMESPACE_SELECTOR_TOOLTIP =
   'This list includes only namespaces that you and the selected model registry have permission to access. To request access to a new or existing namespace, contact your administrator.';
@@ -80,56 +72,18 @@ const NamespaceSelectorField: React.FC<NamespaceSelectorFieldProps> = ({
   }, [hasAccess, onAccessChange]);
 
   const { namespaces = [] } = useNamespaceSelector();
-  const { isMUITheme } = useThemeContext();
   const isDisabled = namespaces.length === 0;
 
-  const handleChange = (event: SelectChangeEvent<string>) => {
-    const { value } = event.target;
-    if (value) {
-      onSelect(value);
-    }
-  };
-
-  const selectControl = (
-    <FormControl fullWidth size="medium" disabled={isDisabled} required>
-      <Select
-        displayEmpty
-        value={selectedNamespace || ''}
-        onChange={handleChange}
-        renderValue={(value) => value || 'Select a namespace'}
-      >
-        <MenuItem value="" disabled>
-          Select a namespace
-        </MenuItem>
-        {namespaces.map((ns) => (
-          <MenuItem key={ns.name} value={ns.name}>
-            {ns.name}
-          </MenuItem>
-        ))}
-      </Select>
-    </FormControl>
-  );
-
   const namespaceSelectorElement = (
-    <div data-testid="form-namespace-selector">
-      {isMUITheme ? (
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-          <div data-testid="form-namespace-selector-trigger" style={{ flex: 1, minWidth: 0 }}>
-            {selectControl}
-          </div>
-          <Popover bodyContent={NAMESPACE_SELECTOR_TOOLTIP} aria-label={NAMESPACE_SELECTOR_TOOLTIP}>
-            <IconButton
-              size="small"
-              aria-label="More info for namespace field"
-              sx={{ flexShrink: 0 }}
-            >
-              <HelpOutlineIcon fontSize="small" />
-            </IconButton>
-          </Popover>
-        </Box>
-      ) : (
-        <div data-testid="form-namespace-selector-trigger">{selectControl}</div>
-      )}
+    <div data-testid="form-namespace-selector-trigger">
+      <NamespaceSelector
+        isGlobalSelector={false}
+        selectedNamespace={selectedNamespace}
+        onSelect={onSelect}
+        isDisabled={isDisabled}
+        placeholderText="Select a namespace"
+        isFullWidth
+      />
     </div>
   );
 
@@ -144,59 +98,41 @@ const NamespaceSelectorField: React.FC<NamespaceSelectorFieldProps> = ({
       isRequired
       data-testid="namespace-form-group"
       labelHelp={
-        !isMUITheme ? (
-          <Popover
-            triggerRef={labelHelpRef}
-            bodyContent={NAMESPACE_SELECTOR_TOOLTIP}
-            aria-label={NAMESPACE_SELECTOR_TOOLTIP}
-          >
-            <FormGroupLabelHelp ref={labelHelpRef} aria-label="More info for namespace field" />
-          </Popover>
-        ) : undefined
+        <Popover
+          triggerRef={labelHelpRef}
+          bodyContent={NAMESPACE_SELECTOR_TOOLTIP}
+          aria-label={NAMESPACE_SELECTOR_TOOLTIP}
+        >
+          <FormGroupLabelHelp ref={labelHelpRef} aria-label="More info for namespace field" />
+        </Popover>
       }
     >
       {namespaceSelectorElement}
+      {selectedNamespace && isLoading && (
+        <HelperText>
+          <HelperTextItem>Checking access...</HelperTextItem>
+        </HelperText>
+      )}
       {showNoAccessMessage && (
-        <Box
+        <Alert
+          isInline
+          variant="warning"
+          title={NAMESPACE_NO_ACCESS_MESSAGE}
           data-testid="namespace-registry-access-alert"
-          sx={{
-            display: 'flex',
-            alignItems: 'flex-start',
-            gap: 1,
-            mt: 1.5,
-          }}
+          className="pf-v6-u-mt-sm"
         >
-          <ErrorIcon sx={{ color: 'error.main', fontSize: 20, flexShrink: 0 }} aria-hidden />
-          <Typography variant="body2" component="span" sx={{ flex: 1, minWidth: 0 }}>
-            {NAMESPACE_NO_ACCESS_MESSAGE}{' '}
-            <Popover bodyContent={WHO_IS_MY_ADMIN_POPOVER_CONTENT} aria-label="Who is my admin?">
-              <Typography
-                component="button"
-                type="button"
-                variant="body2"
-                data-testid="who-is-my-admin-trigger"
-                sx={{
-                  display: 'inline',
-                  p: 0,
-                  border: 'none',
-                  background: 'none',
-                  cursor: 'pointer',
-                  color: 'primary.main',
-                  textDecoration: 'underline',
-                  font: 'inherit',
-                  '&:hover': { color: 'primary.dark' },
-                }}
-                aria-label="Who is my admin?"
-              >
-                <HelpOutlineIcon
-                  sx={{ fontSize: 16, verticalAlign: 'middle', mr: 0.25 }}
-                  aria-hidden
-                />
-                Who is my admin
-              </Typography>
-            </Popover>
-          </Typography>
-        </Box>
+          <Popover bodyContent={WHO_IS_MY_ADMIN_POPOVER_CONTENT} aria-label="Who is my admin?">
+            <Button
+              variant="link"
+              isInline
+              component="button"
+              data-testid="who-is-my-admin-trigger"
+              aria-label="Who is my admin?"
+            >
+              Who is my admin
+            </Button>
+          </Popover>
+        </Alert>
       )}
       {showNoAccessAlert && (
         <Alert

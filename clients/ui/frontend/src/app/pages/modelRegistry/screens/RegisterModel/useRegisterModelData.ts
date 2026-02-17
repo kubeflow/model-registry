@@ -27,7 +27,6 @@ export type RegistrationCommonFormData = {
   destinationOciUri: string;
   destinationOciEmail: string;
   namespace?: string;
-  namespaceHasAccess?: boolean;
   registrationMode?: RegistrationMode.Register | RegistrationMode.RegisterAndStore;
   jobName: string;
   jobResourceName: string;
@@ -68,7 +67,6 @@ const registrationCommonFormDataDefaults: RegistrationCommonFormData = {
   destinationOciUri: '',
   destinationOciEmail: '',
   namespace: '',
-  namespaceHasAccess: undefined,
   registrationMode: RegistrationMode.Register,
   jobName: '',
   jobResourceName: '',

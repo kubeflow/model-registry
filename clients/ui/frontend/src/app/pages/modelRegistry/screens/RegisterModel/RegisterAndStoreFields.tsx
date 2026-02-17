@@ -21,6 +21,8 @@ type RegisterAndStoreFieldsProps<D extends RegistrationCommonFormData> = {
   isCatalogModel?: boolean;
   registryName?: string;
   registryNamespace?: string;
+  /** Access result from useCheckNamespaceRegistryAccess (single source of truth, passed from parent) */
+  namespaceHasAccess?: boolean;
 };
 
 const RegisterAndStoreFields = <D extends RegistrationCommonFormData>({
@@ -29,6 +31,7 @@ const RegisterAndStoreFields = <D extends RegistrationCommonFormData>({
   isCatalogModel,
   registryName: registryNameProp,
   registryNamespace: registryNamespaceProp,
+  namespaceHasAccess,
 }: RegisterAndStoreFieldsProps<D>): React.ReactNode => {
   const { modelRegistry: mrFromParams } = useParams<{ modelRegistry?: string }>();
   const queryParams = useQueryParamNamespaces();
@@ -36,16 +39,6 @@ const RegisterAndStoreFields = <D extends RegistrationCommonFormData>({
   const registryNamespace =
     registryNamespaceProp ??
     (typeof queryParams.namespace === 'string' ? queryParams.namespace : undefined);
-
-  const handleNamespaceAccessChange = React.useCallback(
-    (hasAccess: boolean | undefined) => {
-      if (hasAccess !== undefined && 'namespaceHasAccess' in formData) {
-        const key: keyof RegistrationCommonFormData = 'namespaceHasAccess';
-        setData(key, hasAccess);
-      }
-    },
-    [setData, formData],
-  );
 
   // Build data structure from parent form state - controlled component pattern
   const data = React.useMemo<K8sNameDescriptionFieldData>(() => {
@@ -103,9 +96,8 @@ const RegisterAndStoreFields = <D extends RegistrationCommonFormData>({
         onSelect={handleNamespaceSelect}
         registryName={registryName}
         registryNamespace={registryNamespace}
-        onAccessChange={handleNamespaceAccessChange}
       />
-      {formData.namespace && formData.namespaceHasAccess === true && (
+      {formData.namespace && namespaceHasAccess === true && (
         <>
           <FormSection
             data-testid="model-origin-location-section"
