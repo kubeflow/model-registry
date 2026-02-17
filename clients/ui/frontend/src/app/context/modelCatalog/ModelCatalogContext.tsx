@@ -216,10 +216,7 @@ export const ModelCatalogContextProvider: React.FC<ModelCatalogContextProviderPr
         }
         return currentSortBy;
       });
-
-      if (!enabled) {
-        setPerformanceFiltersChangedOnDetailsPage(false);
-      }
+      setPerformanceFiltersChangedOnDetailsPage(false);
     },
     [resetPerformanceFiltersToDefaults],
   );
