@@ -167,7 +167,7 @@ class RegisterAndStoreFields {
     this.findCreateButton().should('be.disabled');
     return this;
   }
-  
+
   // Destination field finders (using id selectors since these inputs use id, not data-testid)
   findDestinationOciRegistryInput() {
     return cy.get('#destination-oci-registry');
