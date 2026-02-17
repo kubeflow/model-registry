@@ -33,7 +33,8 @@ type CatalogSource struct {
 	// Optional list of glob patterns for models to include. If specified, only models matching at least one pattern will be included. If omitted, all models are considered for inclusion.  Pattern Syntax: - Only the `*` wildcard is supported (matches zero or more characters) - Patterns are case-insensitive (e.g., `Granite/_*` matches `granite/model` and `GRANITE/model`) - Patterns match the entire model name (anchored at start and end) - Wildcards can appear anywhere: `Granite/_*`, `*-beta`, `*deprecated*`, `*_/old*`  Examples: - `ibm-granite/_*` - matches all models starting with \"ibm-granite/\" - `meta-llama/_*` - matches all models in the meta-llama namespace - `*` - matches all models  Constraints: - Patterns cannot be empty or whitespace-only - A pattern cannot appear in both includedModels and excludedModels
 	IncludedModels []string `json:"includedModels,omitempty"`
 	// Optional list of glob patterns for models to exclude. Models matching any pattern will be excluded even if they match an includedModels pattern. Exclusions take precedence over inclusions.  Pattern Syntax: - Only the `*` wildcard is supported (matches zero or more characters) - Patterns are case-insensitive - Patterns match the entire model name (anchored at start and end) - Wildcards can appear anywhere in the pattern  Examples: - `*-draft` - excludes all models ending with \"-draft\" - `*-experimental` - excludes experimental models - `*deprecated*` - excludes models with \"deprecated\" anywhere in the name - `*_/beta-*` - excludes models with \"/beta-\" in the path  Constraints: - Patterns cannot be empty or whitespace-only - A pattern cannot appear in both includedModels and excludedModels
-	ExcludedModels []string `json:"excludedModels,omitempty"`
+	ExcludedModels []string          `json:"excludedModels,omitempty"`
+	AssetType      *CatalogAssetType `json:"assetType,omitempty"`
 }
 
 type _CatalogSource CatalogSource
@@ -49,6 +50,8 @@ func NewCatalogSource(id string, name string, labels []string) *CatalogSource {
 	var enabled bool = true
 	this.Enabled = &enabled
 	this.Labels = labels
+	var assetType CatalogAssetType = CATALOGASSETTYPE_MODELS
+	this.AssetType = &assetType
 	return &this
 }
 
@@ -59,6 +62,8 @@ func NewCatalogSourceWithDefaults() *CatalogSource {
 	this := CatalogSource{}
 	var enabled bool = true
 	this.Enabled = &enabled
+	var assetType CatalogAssetType = CATALOGASSETTYPE_MODELS
+	this.AssetType = &assetType
 	return &this
 }
 
@@ -305,6 +310,38 @@ func (o *CatalogSource) SetExcludedModels(v []string) {
 	o.ExcludedModels = v
 }
 
+// GetAssetType returns the AssetType field value if set, zero value otherwise.
+func (o *CatalogSource) GetAssetType() CatalogAssetType {
+	if o == nil || IsNil(o.AssetType) {
+		var ret CatalogAssetType
+		return ret
+	}
+	return *o.AssetType
+}
+
+// GetAssetTypeOk returns a tuple with the AssetType field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+func (o *CatalogSource) GetAssetTypeOk() (*CatalogAssetType, bool) {
+	if o == nil || IsNil(o.AssetType) {
+		return nil, false
+	}
+	return o.AssetType, true
+}
+
+// HasAssetType returns a boolean if a field has been set.
+func (o *CatalogSource) HasAssetType() bool {
+	if o != nil && !IsNil(o.AssetType) {
+		return true
+	}
+
+	return false
+}
+
+// SetAssetType gets a reference to the given CatalogAssetType and assigns it to the AssetType field.
+func (o *CatalogSource) SetAssetType(v CatalogAssetType) {
+	o.AssetType = &v
+}
+
 func (o CatalogSource) MarshalJSON() ([]byte, error) {
 	toSerialize, err := o.ToMap()
 	if err != nil {
@@ -332,6 +369,9 @@ func (o CatalogSource) ToMap() (map[string]interface{}, error) {
 	}
 	if !IsNil(o.ExcludedModels) {
 		toSerialize["excludedModels"] = o.ExcludedModels
+	}
+	if !IsNil(o.AssetType) {
+		toSerialize["assetType"] = o.AssetType
 	}
 	return toSerialize, nil
 }

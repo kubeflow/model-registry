@@ -1,4 +1,5 @@
 api.go
+api_mcp_catalog_service.go
 api_model_catalog_service.go
 error.go
 helpers.go
@@ -11,6 +12,7 @@ model_base_resource_dates.go
 model_base_resource_list.go
 model_catalog_artifact.go
 model_catalog_artifact_list.go
+model_catalog_asset_type.go
 model_catalog_label.go
 model_catalog_label_list.go
 model_catalog_metrics_artifact.go
@@ -27,6 +29,23 @@ model_field_filter.go
 model_filter_option.go
 model_filter_option_range.go
 model_filter_options_list.go
+model_mcp_artifact.go
+model_mcp_endpoints.go
+model_mcp_env_var_metadata.go
+model_mcp_resource_recommendation.go
+model_mcp_resource_recommendation_high.go
+model_mcp_resource_recommendation_minimal.go
+model_mcp_resource_recommendation_recommended.go
+model_mcp_runtime_metadata.go
+model_mcp_runtime_metadata_capabilities.go
+model_mcp_runtime_metadata_health_endpoints.go
+model_mcp_security_indicator.go
+model_mcp_server.go
+model_mcp_server_list.go
+model_mcp_tool.go
+model_mcp_tool_parameter.go
+model_mcp_tool_with_server.go
+model_mcp_tools_list.go
 model_metadata_bool_value.go
 model_metadata_double_value.go
 model_metadata_int_value.go

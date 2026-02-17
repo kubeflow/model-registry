@@ -12,6 +12,7 @@ import {
   CreateModelArtifactData,
   CreateModelVersionData,
   CreateRegisteredModelData,
+  CreateModelTransferJobData,
   ModelArtifact,
   ModelArtifactList,
   ModelVersionList,
@@ -247,7 +248,7 @@ export const getListModelTransferJobs =
 
 export const createModelTransferJob =
   (hostPath: string, queryParams: Record<string, unknown> = {}) =>
-  (opts: APIOptions, data: ModelTransferJob): Promise<ModelTransferJob> =>
+  (opts: APIOptions, data: CreateModelTransferJobData): Promise<ModelTransferJob> =>
     handleRestFailures(
       restCREATE(hostPath, '/model_transfer_jobs', assembleModArchBody(data), queryParams, opts),
     ).then((response) => {

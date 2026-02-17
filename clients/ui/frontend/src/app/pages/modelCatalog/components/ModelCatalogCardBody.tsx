@@ -4,8 +4,6 @@ import {
   Content,
   ContentVariants,
   Flex,
-  List,
-  ListItem,
   Popover,
   Skeleton,
   Stack,
@@ -24,6 +22,8 @@ import {
   ModelDetailsTab,
   ModelCatalogNumberFilterKey,
   LatencyMetric,
+  LatencyMetricLabels,
+  latencyMetricDescriptions,
   parseLatencyFilterKey,
   SortOrder,
 } from '~/concepts/modelCatalog/const';
@@ -62,21 +62,18 @@ const ModelCatalogCardBody: React.FC<ModelCatalogCardBodyProps> = ({
   };
 
   // Get performance-specific filter params for the /performance_artifacts endpoint
-  // Only apply performance filters when toggle is ON
-  const targetRPS = performanceViewEnabled
-    ? filterData[ModelCatalogNumberFilterKey.MAX_RPS]
-    : undefined;
+  // Always apply performance filters to get accurate benchmark counts, regardless of toggle state
+  const targetRPS = filterData[ModelCatalogNumberFilterKey.MAX_RPS];
   // Get full filter key for display purposes
-  const latencyFieldName = performanceViewEnabled
-    ? getActiveLatencyFieldName(filterData)
-    : undefined;
+  const latencyFieldName = getActiveLatencyFieldName(filterData);
   // Use short property key (e.g., 'ttft_p90') for the catalog API, not the full filter key
   const latencyProperty = latencyFieldName
     ? parseLatencyFilterKey(latencyFieldName).propertyKey
     : undefined;
 
   // Fetch performance artifacts from the new endpoint with server-side filtering
-  // When toggle is OFF, don't pass filterData so no perf filters are applied
+  // Always pass filterData so perf filters are applied - this ensures accurate benchmark counts
+  // The toggle only controls display, not the artifact fetch filters
   const [performanceArtifactsList, performanceArtifactsLoaded, performanceArtifactsError] =
     useCatalogPerformanceArtifacts(
       source?.id || '',
@@ -94,8 +91,8 @@ const ModelCatalogCardBody: React.FC<ModelCatalogCardBodyProps> = ({
           sortOrder: SortOrder.ASC,
         }),
       },
-      performanceViewEnabled ? filterData : undefined,
-      performanceViewEnabled ? filterOptions : undefined,
+      filterData,
+      filterOptions,
       isValidated, // Only fetch if validated
     );
 
@@ -198,7 +195,7 @@ const ModelCatalogCardBody: React.FC<ModelCatalogCardBodyProps> = ({
     const activeLatencyField = latencyFieldName;
     const latencyValue =
       getLatencyValue(metrics.latencyMetrics, activeLatencyField) ?? metrics.ttftMean;
-    const latencyLabel = activeLatencyField
+    const latencyLabel: LatencyMetric = activeLatencyField
       ? parseLatencyFilterKey(activeLatencyField).metric
       : LatencyMetric.TTFT;
 
@@ -227,27 +224,12 @@ const ModelCatalogCardBody: React.FC<ModelCatalogCardBodyProps> = ({
               <Flex alignItems={{ default: 'alignItemsBaseline' }} gap={{ default: 'gapXs' }}>
                 <Content component={ContentVariants.small}>{latencyLabel}</Content>
                 <Popover
-                  headerContent="Latency"
                   bodyContent={
                     <div>
                       <p>
-                        The delay (in milliseconds) between sending a request and receiving the
-                        first response.
+                        <strong>{LatencyMetricLabels[latencyLabel] ?? latencyLabel}:</strong>{' '}
+                        {latencyMetricDescriptions[latencyLabel] ?? ''}
                       </p>
-                      <List>
-                        <ListItem>
-                          <strong>TTFT (Time to First Token)</strong> - Time until the model starts
-                          responding. Best for interactive experiences.
-                        </ListItem>
-                        <ListItem>
-                          <strong>ITL (Inter-Token Latency)</strong> - Time between tokens during
-                          generation. Important for smooth streaming and audio.
-                        </ListItem>
-                        <ListItem>
-                          <strong>E2E (End-to-End latency)</strong> - Total time to generate the
-                          full response. Best for summarization, batch jobs, and code generation.
-                        </ListItem>
-                      </List>
                     </div>
                   }
                 >
