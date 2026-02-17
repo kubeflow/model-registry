@@ -202,32 +202,7 @@ func (kc *TokenKubernetesClient) CanAccessServiceInNamespace(ctx context.Context
 }
 
 func (kc *TokenKubernetesClient) CanNamespaceAccessRegistry(ctx context.Context, _ *RequestIdentity, jobNamespace, registryName, registryNamespace string) (bool, error) {
-	ctx, cancel := context.WithTimeout(ctx, 30*time.Second)
-	defer cancel()
-
-	saSubject := "system:serviceaccount:" + jobNamespace + ":default"
-	sar := &authv1.SubjectAccessReview{
-		Spec: authv1.SubjectAccessReviewSpec{
-			User: saSubject,
-			ResourceAttributes: &authv1.ResourceAttributes{
-				Verb:      "get",
-				Resource:  "services",
-				Namespace: registryNamespace,
-				Name:      registryName,
-			},
-		},
-	}
-
-	resp, err := kc.Client.AuthorizationV1().SubjectAccessReviews().Create(ctx, sar, metav1.CreateOptions{})
-	if err != nil {
-		kc.Logger.Error("SAR failed for namespace registry access", "jobNamespace", jobNamespace, "registry", registryName, "registryNamespace", registryNamespace, "error", err)
-		return false, err
-	}
-	if !resp.Status.Allowed {
-		kc.Logger.Info("SAR denied: namespace does not have registry access", "jobNamespace", jobNamespace, "registry", registryName, "registryNamespace", registryNamespace)
-		return false, nil
-	}
-	return true, nil
+	return CanNamespaceAccessRegistry(ctx, kc.Client, kc.Logger, jobNamespace, registryName, registryNamespace)
 }
 
 // RequestIdentity is unused because the token already represents the user identity.
