@@ -1,10 +1,13 @@
 package dbutil
 
 import (
+	"errors"
 	"fmt"
 	"strings"
 
+	"github.com/go-sql-driver/mysql"
 	"github.com/golang/glog"
+	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/kubeflow/model-registry/pkg/api"
 )
 
@@ -75,31 +78,33 @@ func EnhanceFilterQueryError(err error, filterQuery string) error {
 }
 
 // IsDuplicateKeyError checks if a database error is caused by a unique constraint violation.
-// This helps identify when an insert/update fails due to duplicate key conflicts.
+// Uses database-specific error codes for reliable detection across versions and locales.
 // Returns true for both MySQL and PostgreSQL unique constraint errors.
+//
+// Error codes used:
+//   - PostgreSQL: 23505 (unique_violation)
+//   - MySQL: 1062 (ER_DUP_ENTRY - duplicate entry for key)
+//
+// References:
+//   - PostgreSQL: https://www.postgresql.org/docs/current/errcodes-appendix.html
+//   - MySQL: https://dev.mysql.com/doc/mysql-errors/8.0/en/server-error-reference.html
+//   - pgx: https://github.com/jackc/pgx/wiki/Error-Handling
 func IsDuplicateKeyError(err error) bool {
 	if err == nil {
 		return false
 	}
 
-	errStr := strings.ToLower(err.Error())
-
-	// MySQL: "Duplicate entry" or "duplicate key"
-	// PostgreSQL: "duplicate key value violates unique constraint" or "unique_violation"
-	duplicatePatterns := []string{
-		"duplicate entry",
-		"duplicate key",
-		"unique constraint",
-		"unique_violation",
-		"violates unique",
+	// PostgreSQL: Check for unique_violation error code (23505)
+	var pgErr *pgconn.PgError
+	if errors.As(err, &pgErr) {
+		return pgErr.Code == "23505" // unique_violation
 	}
 
-	for _, pattern := range duplicatePatterns {
-		if strings.Contains(errStr, pattern) {
-			return true
-		}
+	// MySQL: Check for ER_DUP_ENTRY error code (1062)
+	var mysqlErr *mysql.MySQLError
+	if errors.As(err, &mysqlErr) {
+		return mysqlErr.Number == 1062 // ER_DUP_ENTRY
 	}
 
 	return false
 }
-

@@ -1,9 +1,9 @@
-package service_test
+package converter_test
 
 import (
 	"testing"
 
-	"github.com/kubeflow/model-registry/catalog/internal/db/service"
+	"github.com/kubeflow/model-registry/catalog/internal/converter"
 	"github.com/kubeflow/model-registry/internal/apiutils"
 	dbmodels "github.com/kubeflow/model-registry/internal/db/models"
 	"github.com/stretchr/testify/assert"
@@ -17,7 +17,7 @@ func TestPropertyAccessor_GetString(t *testing.T) {
 			{Name: "key2", StringValue: apiutils.Of("value2")},
 		}
 
-		pa := service.NewPropertyAccessor(props)
+		pa := converter.NewPropertyAccessor(props)
 		assert.Equal(t, "value1", pa.GetString("key1"))
 		assert.Equal(t, "value2", pa.GetString("key2"))
 	})
@@ -27,7 +27,7 @@ func TestPropertyAccessor_GetString(t *testing.T) {
 			{Name: "key1", StringValue: apiutils.Of("value1")},
 		}
 
-		pa := service.NewPropertyAccessor(props)
+		pa := converter.NewPropertyAccessor(props)
 		assert.Equal(t, "", pa.GetString("nonexistent"))
 	})
 
@@ -36,18 +36,18 @@ func TestPropertyAccessor_GetString(t *testing.T) {
 			{Name: "key1", StringValue: nil},
 		}
 
-		pa := service.NewPropertyAccessor(props)
+		pa := converter.NewPropertyAccessor(props)
 		assert.Equal(t, "", pa.GetString("key1"))
 	})
 
 	t.Run("NilPropertiesSlice", func(t *testing.T) {
-		pa := service.NewPropertyAccessor(nil)
+		pa := converter.NewPropertyAccessor(nil)
 		assert.Equal(t, "", pa.GetString("any"))
 	})
 
 	t.Run("EmptyPropertiesSlice", func(t *testing.T) {
 		props := &[]dbmodels.Properties{}
-		pa := service.NewPropertyAccessor(props)
+		pa := converter.NewPropertyAccessor(props)
 		assert.Equal(t, "", pa.GetString("any"))
 	})
 }
@@ -58,7 +58,7 @@ func TestPropertyAccessor_GetStringPtr(t *testing.T) {
 			{Name: "key1", StringValue: apiutils.Of("value1")},
 		}
 
-		pa := service.NewPropertyAccessor(props)
+		pa := converter.NewPropertyAccessor(props)
 		result := pa.GetStringPtr("key1")
 		require.NotNil(t, result)
 		assert.Equal(t, "value1", *result)
@@ -69,7 +69,7 @@ func TestPropertyAccessor_GetStringPtr(t *testing.T) {
 			{Name: "key1", StringValue: apiutils.Of("value1")},
 		}
 
-		pa := service.NewPropertyAccessor(props)
+		pa := converter.NewPropertyAccessor(props)
 		assert.Nil(t, pa.GetStringPtr("nonexistent"))
 	})
 
@@ -78,7 +78,7 @@ func TestPropertyAccessor_GetStringPtr(t *testing.T) {
 			{Name: "key1", StringValue: apiutils.Of("")},
 		}
 
-		pa := service.NewPropertyAccessor(props)
+		pa := converter.NewPropertyAccessor(props)
 		assert.Nil(t, pa.GetStringPtr("key1"))
 	})
 }
@@ -89,7 +89,7 @@ func TestPropertyAccessor_GetBoolPtr(t *testing.T) {
 			{Name: "enabled", BoolValue: apiutils.Of(true)},
 		}
 
-		pa := service.NewPropertyAccessor(props)
+		pa := converter.NewPropertyAccessor(props)
 		result := pa.GetBoolPtr("enabled")
 		require.NotNil(t, result)
 		assert.True(t, *result)
@@ -100,7 +100,7 @@ func TestPropertyAccessor_GetBoolPtr(t *testing.T) {
 			{Name: "disabled", BoolValue: apiutils.Of(false)},
 		}
 
-		pa := service.NewPropertyAccessor(props)
+		pa := converter.NewPropertyAccessor(props)
 		result := pa.GetBoolPtr("disabled")
 		require.NotNil(t, result)
 		assert.False(t, *result)
@@ -111,7 +111,7 @@ func TestPropertyAccessor_GetBoolPtr(t *testing.T) {
 			{Name: "enabled", BoolValue: apiutils.Of(true)},
 		}
 
-		pa := service.NewPropertyAccessor(props)
+		pa := converter.NewPropertyAccessor(props)
 		assert.Nil(t, pa.GetBoolPtr("nonexistent"))
 	})
 }
@@ -123,13 +123,13 @@ func TestPropertyAccessor_GetInt(t *testing.T) {
 			{Name: "count", IntValue: &intVal},
 		}
 
-		pa := service.NewPropertyAccessor(props)
+		pa := converter.NewPropertyAccessor(props)
 		assert.Equal(t, int64(42), pa.GetInt("count"))
 	})
 
 	t.Run("NonExistentProperty_ReturnsZero", func(t *testing.T) {
 		props := &[]dbmodels.Properties{}
-		pa := service.NewPropertyAccessor(props)
+		pa := converter.NewPropertyAccessor(props)
 		assert.Equal(t, int64(0), pa.GetInt("nonexistent"))
 	})
 }
@@ -141,7 +141,7 @@ func TestPropertyAccessor_GetStringArray(t *testing.T) {
 			{Name: "tags", StringValue: &jsonStr},
 		}
 
-		pa := service.NewPropertyAccessor(props)
+		pa := converter.NewPropertyAccessor(props)
 		result := pa.GetStringArray("tags")
 		require.NotNil(t, result)
 		assert.Len(t, result, 3)
@@ -156,7 +156,7 @@ func TestPropertyAccessor_GetStringArray(t *testing.T) {
 			{Name: "tags", StringValue: &jsonStr},
 		}
 
-		pa := service.NewPropertyAccessor(props)
+		pa := converter.NewPropertyAccessor(props)
 		result := pa.GetStringArray("tags")
 		require.NotNil(t, result)
 		assert.Len(t, result, 0)
@@ -168,14 +168,14 @@ func TestPropertyAccessor_GetStringArray(t *testing.T) {
 			{Name: "tags", StringValue: &jsonStr},
 		}
 
-		pa := service.NewPropertyAccessor(props)
+		pa := converter.NewPropertyAccessor(props)
 		result := pa.GetStringArray("tags")
 		assert.Nil(t, result)
 	})
 
 	t.Run("NonExistentProperty_ReturnsNil", func(t *testing.T) {
 		props := &[]dbmodels.Properties{}
-		pa := service.NewPropertyAccessor(props)
+		pa := converter.NewPropertyAccessor(props)
 		assert.Nil(t, pa.GetStringArray("tags"))
 	})
 
@@ -185,7 +185,7 @@ func TestPropertyAccessor_GetStringArray(t *testing.T) {
 			{Name: "tags", StringValue: &emptyStr},
 		}
 
-		pa := service.NewPropertyAccessor(props)
+		pa := converter.NewPropertyAccessor(props)
 		assert.Nil(t, pa.GetStringArray("tags"))
 	})
 }
@@ -197,7 +197,7 @@ func TestPropertyAccessor_HasAny(t *testing.T) {
 			{Name: "prop2", StringValue: apiutils.Of("value2")},
 		}
 
-		pa := service.NewPropertyAccessor(props)
+		pa := converter.NewPropertyAccessor(props)
 		assert.True(t, pa.HasAny("prop1", "nonexistent"))
 	})
 
@@ -207,7 +207,7 @@ func TestPropertyAccessor_HasAny(t *testing.T) {
 			{Name: "prop2", StringValue: apiutils.Of("value2")},
 		}
 
-		pa := service.NewPropertyAccessor(props)
+		pa := converter.NewPropertyAccessor(props)
 		assert.True(t, pa.HasAny("prop1", "prop2"))
 	})
 
@@ -216,7 +216,7 @@ func TestPropertyAccessor_HasAny(t *testing.T) {
 			{Name: "prop1", StringValue: apiutils.Of("value1")},
 		}
 
-		pa := service.NewPropertyAccessor(props)
+		pa := converter.NewPropertyAccessor(props)
 		assert.False(t, pa.HasAny("nonexistent1", "nonexistent2"))
 	})
 
@@ -225,7 +225,7 @@ func TestPropertyAccessor_HasAny(t *testing.T) {
 			{Name: "prop1", StringValue: apiutils.Of("value1")},
 		}
 
-		pa := service.NewPropertyAccessor(props)
+		pa := converter.NewPropertyAccessor(props)
 		assert.False(t, pa.HasAny())
 	})
 }
@@ -236,7 +236,7 @@ func TestPropertyAccessor_MultipleAccesses(t *testing.T) {
 			{Name: "key1", StringValue: apiutils.Of("value1")},
 		}
 
-		pa := service.NewPropertyAccessor(props)
+		pa := converter.NewPropertyAccessor(props)
 
 		// Access the same property multiple times
 		assert.Equal(t, "value1", pa.GetString("key1"))
@@ -254,7 +254,7 @@ func TestPropertyAccessor_MultipleAccesses(t *testing.T) {
 			{Name: "arrayProp", StringValue: &jsonArray},
 		}
 
-		pa := service.NewPropertyAccessor(props)
+		pa := converter.NewPropertyAccessor(props)
 
 		assert.Equal(t, "text", pa.GetString("stringProp"))
 		assert.True(t, *pa.GetBoolPtr("boolProp"))

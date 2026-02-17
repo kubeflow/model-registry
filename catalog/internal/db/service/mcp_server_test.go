@@ -8,6 +8,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/kubeflow/model-registry/catalog/internal/converter"
 	"github.com/kubeflow/model-registry/catalog/internal/db/models"
 	"github.com/kubeflow/model-registry/catalog/internal/db/service"
 	"github.com/kubeflow/model-registry/catalog/pkg/openapi"
@@ -53,8 +54,8 @@ func TestMCPServerRepository(t *testing.T) {
 					StringValue: apiutils.Of("1.0.0"),
 				},
 				{
-					Name:       "verifiedSource",
-					BoolValue:  apiutils.Of(true),
+					Name:      "verifiedSource",
+					BoolValue: apiutils.Of(true),
 				},
 			},
 			CustomProperties: &[]dbmodels.Properties{
@@ -99,8 +100,8 @@ func TestMCPServerRepository(t *testing.T) {
 		updateServer := &models.MCPServerImpl{
 			ID: saved.GetID(),
 			Attributes: &models.MCPServerAttributes{
-				Name:                     apiutils.Of("update-test-server"),
-				CreateTimeSinceEpoch:     saved.GetAttributes().CreateTimeSinceEpoch,
+				Name:                 apiutils.Of("update-test-server"),
+				CreateTimeSinceEpoch: saved.GetAttributes().CreateTimeSinceEpoch,
 			},
 			Properties: &[]dbmodels.Properties{
 				{
@@ -926,7 +927,7 @@ func TestConvertOpenapiMCPServerToDb(t *testing.T) {
 			ToolCount: 5,
 		}
 
-		dbServer := service.ConvertOpenapiMCPServerToDb(openapiServer)
+		dbServer := converter.ConvertOpenapiMCPServerToDb(openapiServer)
 		require.NotNil(t, dbServer)
 
 		attrs := dbServer.GetAttributes()
@@ -957,7 +958,7 @@ func TestConvertOpenapiMCPServerToDb(t *testing.T) {
 			Description:      apiutils.Of("A test MCP server"),
 		}
 
-		dbServer := service.ConvertOpenapiMCPServerToDb(openapiServer)
+		dbServer := converter.ConvertOpenapiMCPServerToDb(openapiServer)
 		props := dbServer.GetProperties()
 		require.NotNil(t, props)
 
@@ -992,7 +993,7 @@ func TestConvertOpenapiMCPServerToDb(t *testing.T) {
 			Transports: []string{"stdio", "http"},
 		}
 
-		dbServer := service.ConvertOpenapiMCPServerToDb(openapiServer)
+		dbServer := converter.ConvertOpenapiMCPServerToDb(openapiServer)
 		props := dbServer.GetProperties()
 		require.NotNil(t, props)
 
@@ -1027,7 +1028,7 @@ func TestConvertOpenapiMCPServerToDb(t *testing.T) {
 			LastUpdated:   &lastUpdated,
 		}
 
-		dbServer := service.ConvertOpenapiMCPServerToDb(openapiServer)
+		dbServer := converter.ConvertOpenapiMCPServerToDb(openapiServer)
 		props := dbServer.GetProperties()
 		require.NotNil(t, props)
 
@@ -1062,7 +1063,7 @@ func TestConvertOpenapiMCPServerToDb(t *testing.T) {
 			},
 		}
 
-		dbServer := service.ConvertOpenapiMCPServerToDb(openapiServer)
+		dbServer := converter.ConvertOpenapiMCPServerToDb(openapiServer)
 		props := dbServer.GetProperties()
 		require.NotNil(t, props)
 
@@ -1100,7 +1101,7 @@ func TestConvertOpenapiMCPServerToDb(t *testing.T) {
 			},
 		}
 
-		dbServer := service.ConvertOpenapiMCPServerToDb(openapiServer)
+		dbServer := converter.ConvertOpenapiMCPServerToDb(openapiServer)
 		props := dbServer.GetProperties()
 		require.NotNil(t, props)
 
@@ -1139,7 +1140,7 @@ func TestConvertDbMCPServerToOpenapi(t *testing.T) {
 			},
 		}
 
-		openapiServer := service.ConvertDbMCPServerToOpenapi(dbServer)
+		openapiServer := converter.ConvertDbMCPServerToOpenapi(dbServer)
 		require.NotNil(t, openapiServer)
 
 		assert.Equal(t, "test-server", openapiServer.Name)
@@ -1166,7 +1167,7 @@ func TestConvertDbMCPServerToOpenapi(t *testing.T) {
 			},
 		}
 
-		openapiServer := service.ConvertDbMCPServerToOpenapi(dbServer)
+		openapiServer := converter.ConvertDbMCPServerToOpenapi(dbServer)
 		require.NotNil(t, openapiServer)
 
 		require.Len(t, openapiServer.Tags, 2)
@@ -1195,7 +1196,7 @@ func TestConvertDbMCPServerToOpenapi(t *testing.T) {
 			},
 		}
 
-		openapiServer := service.ConvertDbMCPServerToOpenapi(dbServer)
+		openapiServer := converter.ConvertDbMCPServerToOpenapi(dbServer)
 		require.NotNil(t, openapiServer)
 
 		require.NotNil(t, openapiServer.PublishedDate)
@@ -1221,7 +1222,7 @@ func TestConvertDbMCPServerToOpenapi(t *testing.T) {
 			},
 		}
 
-		openapiServer := service.ConvertDbMCPServerToOpenapi(dbServer)
+		openapiServer := converter.ConvertDbMCPServerToOpenapi(dbServer)
 		require.NotNil(t, openapiServer)
 		require.NotNil(t, openapiServer.SecurityIndicators)
 
@@ -1248,7 +1249,7 @@ func TestConvertDbMCPServerToOpenapi(t *testing.T) {
 			},
 		}
 
-		openapiServer := service.ConvertDbMCPServerToOpenapi(dbServer)
+		openapiServer := converter.ConvertDbMCPServerToOpenapi(dbServer)
 		require.NotNil(t, openapiServer)
 
 		// Verify endpoints
@@ -1278,7 +1279,7 @@ func TestConvertDbMCPServerToOpenapi(t *testing.T) {
 			},
 		}
 
-		openapiServer := service.ConvertDbMCPServerToOpenapi(dbServer)
+		openapiServer := converter.ConvertDbMCPServerToOpenapi(dbServer)
 		require.NotNil(t, openapiServer)
 		assert.Nil(t, openapiServer.SecurityIndicators)
 	})
@@ -1323,11 +1324,11 @@ func TestRoundTrip_OpenapiToDbToOpenapi(t *testing.T) {
 		}
 
 		// Convert to DB
-		dbServer := service.ConvertOpenapiMCPServerToDb(original)
+		dbServer := converter.ConvertOpenapiMCPServerToDb(original)
 		require.NotNil(t, dbServer)
 
 		// Convert back to OpenAPI
-		result := service.ConvertDbMCPServerToOpenapi(dbServer)
+		result := converter.ConvertDbMCPServerToOpenapi(dbServer)
 		require.NotNil(t, result)
 
 		// Verify all fields preserved (except toolCount which is computed)
@@ -1369,8 +1370,8 @@ func TestRoundTrip_OpenapiToDbToOpenapi(t *testing.T) {
 			ToolCount: 0,
 		}
 
-		dbServer := service.ConvertOpenapiMCPServerToDb(original)
-		result := service.ConvertDbMCPServerToOpenapi(dbServer)
+		dbServer := converter.ConvertOpenapiMCPServerToDb(original)
+		result := converter.ConvertDbMCPServerToOpenapi(dbServer)
 
 		assert.Equal(t, original.Name, result.Name)
 		assert.Nil(t, result.SourceId)
@@ -1388,7 +1389,7 @@ func TestConvertOpenapiMCPToolToDb(t *testing.T) {
 			AccessType: "read-only",
 		}
 
-		dbTool := service.ConvertOpenapiMCPToolToDb(openapiTool)
+		dbTool := converter.ConvertOpenapiMCPToolToDb(openapiTool)
 		require.NotNil(t, dbTool)
 
 		attr := dbTool.GetAttributes()
@@ -1418,7 +1419,7 @@ func TestConvertOpenapiMCPToolToDb(t *testing.T) {
 			Description: &description,
 		}
 
-		dbTool := service.ConvertOpenapiMCPToolToDb(openapiTool)
+		dbTool := converter.ConvertOpenapiMCPToolToDb(openapiTool)
 		props := dbTool.GetProperties()
 		require.NotNil(t, props)
 
@@ -1450,7 +1451,7 @@ func TestConvertOpenapiMCPToolToDb(t *testing.T) {
 			},
 		}
 
-		dbTool := service.ConvertOpenapiMCPToolToDb(openapiTool)
+		dbTool := converter.ConvertOpenapiMCPToolToDb(openapiTool)
 		props := dbTool.GetProperties()
 		require.NotNil(t, props)
 
@@ -1481,7 +1482,7 @@ func TestConvertOpenapiMCPToolToDb(t *testing.T) {
 			ExternalId: &externalId,
 		}
 
-		dbTool := service.ConvertOpenapiMCPToolToDb(openapiTool)
+		dbTool := converter.ConvertOpenapiMCPToolToDb(openapiTool)
 		props := dbTool.GetProperties()
 		require.NotNil(t, props)
 
@@ -1511,7 +1512,7 @@ func TestConvertDbMCPToolToOpenapi(t *testing.T) {
 		id := int32(42)
 		dbTool.ID = &id
 
-		openapiTool := service.ConvertDbMCPToolToOpenapi(dbTool)
+		openapiTool := converter.ConvertDbMCPToolToOpenapi(dbTool)
 		require.NotNil(t, openapiTool)
 		assert.Equal(t, "db-tool", openapiTool.Name)
 		assert.Equal(t, "read-write", openapiTool.AccessType)
@@ -1530,7 +1531,7 @@ func TestConvertDbMCPToolToOpenapi(t *testing.T) {
 			},
 		}
 
-		openapiTool := service.ConvertDbMCPToolToOpenapi(dbTool)
+		openapiTool := converter.ConvertDbMCPToolToOpenapi(dbTool)
 		require.NotNil(t, openapiTool)
 		require.NotNil(t, openapiTool.Description)
 		assert.Equal(t, "Test description", *openapiTool.Description)
@@ -1549,7 +1550,7 @@ func TestConvertDbMCPToolToOpenapi(t *testing.T) {
 			},
 		}
 
-		openapiTool := service.ConvertDbMCPToolToOpenapi(dbTool)
+		openapiTool := converter.ConvertDbMCPToolToOpenapi(dbTool)
 		require.NotNil(t, openapiTool)
 		require.NotNil(t, openapiTool.Parameters)
 		assert.Len(t, openapiTool.Parameters, 2)
@@ -1572,7 +1573,7 @@ func TestConvertDbMCPToolToOpenapi(t *testing.T) {
 			},
 		}
 
-		openapiTool := service.ConvertDbMCPToolToOpenapi(dbTool)
+		openapiTool := converter.ConvertDbMCPToolToOpenapi(dbTool)
 		require.NotNil(t, openapiTool)
 		require.NotNil(t, openapiTool.CreateTimeSinceEpoch)
 		require.NotNil(t, openapiTool.LastUpdateTimeSinceEpoch)
@@ -1602,8 +1603,8 @@ func TestRoundTrip_OpenapiToolToDbToOpenapi(t *testing.T) {
 		}
 
 		// Convert to DB and back
-		dbTool := service.ConvertOpenapiMCPToolToDb(original)
-		result := service.ConvertDbMCPToolToOpenapi(dbTool)
+		dbTool := converter.ConvertOpenapiMCPToolToDb(original)
+		result := converter.ConvertDbMCPToolToOpenapi(dbTool)
 
 		// Verify all fields match
 		assert.Equal(t, original.Name, result.Name)
@@ -1624,8 +1625,8 @@ func TestRoundTrip_OpenapiToolToDbToOpenapi(t *testing.T) {
 			AccessType: "read-only",
 		}
 
-		dbTool := service.ConvertOpenapiMCPToolToDb(original)
-		result := service.ConvertDbMCPToolToOpenapi(dbTool)
+		dbTool := converter.ConvertOpenapiMCPToolToDb(original)
+		result := converter.ConvertDbMCPToolToOpenapi(dbTool)
 
 		assert.Equal(t, original.Name, result.Name)
 		assert.Equal(t, original.AccessType, result.AccessType)
@@ -1677,7 +1678,7 @@ func TestConvertDbMCPServerWithToolsToOpenapi(t *testing.T) {
 			},
 		}
 
-		openapiServer := service.ConvertDbMCPServerWithToolsToOpenapi(dbServer, tools)
+		openapiServer := converter.ConvertDbMCPServerWithToolsToOpenapi(dbServer, tools)
 
 		require.NotNil(t, openapiServer)
 		assert.Equal(t, "test-server", openapiServer.Name)
@@ -1708,7 +1709,7 @@ func TestConvertDbMCPServerWithToolsToOpenapi(t *testing.T) {
 			},
 		}
 
-		openapiServer := service.ConvertDbMCPServerWithToolsToOpenapi(dbServer, nil)
+		openapiServer := converter.ConvertDbMCPServerWithToolsToOpenapi(dbServer, nil)
 
 		require.NotNil(t, openapiServer)
 		assert.Equal(t, "empty-server", openapiServer.Name)
@@ -1726,7 +1727,7 @@ func TestConvertDbMCPServerWithToolsToOpenapi(t *testing.T) {
 			},
 		}
 
-		openapiServer := service.ConvertDbMCPServerWithToolsToOpenapi(dbServer, []models.MCPServerTool{})
+		openapiServer := converter.ConvertDbMCPServerWithToolsToOpenapi(dbServer, []models.MCPServerTool{})
 
 		require.NotNil(t, openapiServer)
 		assert.Equal(t, "empty-server", openapiServer.Name)
@@ -1755,7 +1756,7 @@ func TestConvertDbMCPServerWithToolsToOpenapi(t *testing.T) {
 			},
 		}
 
-		openapiServer := service.ConvertDbMCPServerWithToolsToOpenapi(dbServer, tools)
+		openapiServer := converter.ConvertDbMCPServerWithToolsToOpenapi(dbServer, tools)
 
 		require.NotNil(t, openapiServer)
 		assert.Equal(t, int32(1), openapiServer.ToolCount)
@@ -1775,7 +1776,7 @@ func TestConvertDbMCPServerWithToolsToOpenapi(t *testing.T) {
 			},
 		}
 
-		openapiServer := service.ConvertDbMCPServerToOpenapi(dbServer)
+		openapiServer := converter.ConvertDbMCPServerToOpenapi(dbServer)
 
 		require.NotNil(t, openapiServer)
 		assert.Equal(t, "test-server", openapiServer.Name)
@@ -1808,7 +1809,7 @@ func TestConvertDbMCPServerWithToolsToOpenapi(t *testing.T) {
 			},
 		}
 
-		openapiServer := service.ConvertDbMCPServerWithToolsToOpenapi(dbServer, tools)
+		openapiServer := converter.ConvertDbMCPServerWithToolsToOpenapi(dbServer, tools)
 
 		require.NotNil(t, openapiServer)
 		// Only the valid tool should be included
