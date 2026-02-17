@@ -278,7 +278,13 @@ export const updateModelTransferJob =
 
 export const deleteModelTransferJob =
   (hostPath: string, queryParams: Record<string, unknown> = {}) =>
-  (opts: APIOptions, jobId: string): Promise<void> =>
+  (opts: APIOptions, jobName: string): Promise<void> =>
     handleRestFailures(
-      restDELETE(hostPath, `/model_transfer_jobs/${jobId}`, {}, queryParams, opts),
+      restDELETE(
+        hostPath,
+        `/model_transfer_jobs/${encodeURIComponent(jobName)}`,
+        {},
+        queryParams,
+        opts,
+      ),
     );

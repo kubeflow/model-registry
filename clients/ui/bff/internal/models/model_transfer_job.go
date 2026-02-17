@@ -88,3 +88,9 @@ type ModelTransferJobList struct {
 	PageSize      int                `json:"pageSize"`
 	NextPageToken string             `json:"nextPageToken"`
 }
+
+// ModelTransferJobOperationStatus is the response body for delete and update operations.
+// TODO: Remove this type when the actual implementation returns the real resource in the response.
+type ModelTransferJobOperationStatus struct {
+	Status string `json:"status"`
+}
