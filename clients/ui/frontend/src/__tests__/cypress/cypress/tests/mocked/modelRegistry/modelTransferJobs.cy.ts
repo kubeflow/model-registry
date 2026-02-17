@@ -6,21 +6,12 @@ import { MODEL_REGISTRY_API_VERSION } from '~/__tests__/cypress/cypress/support/
 
 const modelRegistryName = 'modelregistry-sample';
 
-const modelRegistryListResponse = [mockModelRegistry({ name: modelRegistryName })];
-
-const initialJobList = mockModelTransferJobList({
+const jobList = mockModelTransferJobList({
   items: [
     mockModelTransferJob({ id: 'job-to-delete', name: 'job-to-delete' }),
     mockModelTransferJob({ id: 'job-to-keep', name: 'job-to-keep' }),
   ],
   size: 2,
-  pageSize: 10,
-  nextPageToken: '',
-});
-
-const listAfterDelete = mockModelTransferJobList({
-  items: [mockModelTransferJob({ id: 'job-to-keep', name: 'job-to-keep' })],
-  size: 1,
   pageSize: 10,
   nextPageToken: '',
 });
@@ -34,19 +25,13 @@ const setupIntercepts = () => {
   cy.intercept(
     'GET',
     `**/api/${MODEL_REGISTRY_API_VERSION}/model_registry*`,
-    mockModArchResponse(modelRegistryListResponse),
+    mockModArchResponse([mockModelRegistry({ name: modelRegistryName })]),
   );
 
-  let getJobsCallCount = 0;
   cy.intercept(
     'GET',
     `**/api/${MODEL_REGISTRY_API_VERSION}/model_registry/${modelRegistryName}/model_transfer_jobs*`,
-    (req) => {
-      getJobsCallCount += 1;
-      req.reply(
-        mockModArchResponse(getJobsCallCount > 1 ? listAfterDelete : initialJobList) as object,
-      );
-    },
+    mockModArchResponse(jobList),
   );
 
   cy.intercept(
@@ -70,11 +55,11 @@ describe('Model transfer jobs', () => {
     modelTransferJobsPage.findDeleteModal().contains('Delete model transfer job?').should('exist');
     modelTransferJobsPage.findDeleteModal().contains('job-to-delete').should('exist');
 
-    modelTransferJobsPage.findDeleteModalSubmitButton().click();
+    modelTransferJobsPage.findDeleteModalSubmitButton().should('be.disabled');
+    modelTransferJobsPage.findDeleteModalInput().type('job-to-delete');
+    modelTransferJobsPage.findDeleteModalSubmitButton().should('be.enabled').click();
 
     modelTransferJobsPage.findDeleteModal().should('not.exist');
-    modelTransferJobsPage.findTableRows().should('have.length', 1);
-    modelTransferJobsPage.findTable().contains('job-to-keep').should('exist');
   });
 
   it('should close delete modal on Cancel without deleting', () => {

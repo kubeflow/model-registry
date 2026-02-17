@@ -34,6 +34,7 @@ func (app *App) getModelTransferJobNamespaceAndClient(w http.ResponseWriter, r *
 	return namespace, client, true
 }
 
+// TODO: Remove this helper when the actual implementation returns the real resource in the response.
 func (app *App) writeModelTransferJobOperationStatus(w http.ResponseWriter, r *http.Request, status string) {
 	response := ModelTransferJobOperationStatusEnvelope{Data: models.ModelTransferJobOperationStatus{Status: status}}
 	if err := app.WriteJSON(w, http.StatusOK, response, nil); err != nil {

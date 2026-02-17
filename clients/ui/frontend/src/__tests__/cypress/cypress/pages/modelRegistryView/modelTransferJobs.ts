@@ -47,12 +47,16 @@ class ModelTransferJobsPage {
     return cy.findByTestId('delete-model-transfer-job-modal');
   }
 
+  findDeleteModalInput() {
+    return this.findDeleteModal().findByTestId('delete-modal-input');
+  }
+
   findDeleteModalSubmitButton() {
-    return cy.findByTestId('delete-model-transfer-job-submit');
+    return this.findDeleteModal().find('button.pf-m-danger');
   }
 
   findDeleteModalCancelButton() {
-    return cy.findByTestId('delete-model-transfer-job-cancel');
+    return this.findDeleteModal().findByRole('button', { name: 'Cancel' });
   }
 
   findEmptyState() {
