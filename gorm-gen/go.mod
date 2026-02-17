@@ -1,6 +1,6 @@
 module github.com/kubeflow/model-registry/gorm-gen
 
-go 1.25.5
+go 1.25.7
 
 require (
 	github.com/spf13/cobra v1.9.1
