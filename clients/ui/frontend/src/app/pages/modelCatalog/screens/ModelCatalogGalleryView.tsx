@@ -49,6 +49,8 @@ const ModelCatalogGalleryView: React.FC<ModelCatalogPageProps> = ({
     filterOptionsLoaded,
     filterOptionsLoadError,
     catalogSources,
+    catalogLabelsLoaded,
+    catalogLabelsLoadError,
     setPerformanceViewEnabled,
     updateSelectedSourceLabel,
     performanceViewEnabled,
@@ -106,8 +108,8 @@ const ModelCatalogGalleryView: React.FC<ModelCatalogPageProps> = ({
     performanceParams,
   );
 
-  const loaded = catalogModelsLoaded && filterOptionsLoaded;
-  const loadError = catalogModelsLoadError || filterOptionsLoadError;
+  const loaded = catalogModelsLoaded && filterOptionsLoaded && catalogLabelsLoaded;
+  const loadError = catalogModelsLoadError || filterOptionsLoadError || catalogLabelsLoadError;
 
   const isNoLabelsSection = selectedSourceLabel === SourceLabel.other;
 
