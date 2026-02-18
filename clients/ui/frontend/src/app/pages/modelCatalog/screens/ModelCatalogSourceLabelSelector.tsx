@@ -137,7 +137,6 @@ const ModelCatalogSourceLabelSelector: React.FC<ModelCatalogSourceLabelSelectorP
                   <ToolbarItem>
                     <ThemeAwareSearchInput
                       dara-testid="search-input"
-                      fieldLabel="Filter by name, description and provider"
                       aria-label="Search with submit button"
                       className="toolbar-fieldset-wrapper"
                       placeholder="Filter by name, description and provider"
