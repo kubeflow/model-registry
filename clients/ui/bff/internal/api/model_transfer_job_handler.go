@@ -197,6 +197,10 @@ func (app *App) DeleteModelTransferJobHandler(w http.ResponseWriter, r *http.Req
 
 	modelRegistryID := ps.ByName(ModelRegistryId)
 	if modelRegistryID == "" {
+		if errors.Is(err, repositories.ErrJobValidationFailed) {
+			app.badRequestResponse(w, r, err)
+			return
+		}
 		app.badRequestResponse(w, r, fmt.Errorf("model registry name is required"))
 		return
 	}

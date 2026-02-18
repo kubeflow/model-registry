@@ -63,6 +63,12 @@ func (m *ModelRegistryRepository) createModelTransferJobResources(
 	modelRegistryID string,
 	existingDestSecretName string,
 ) (*models.ModelTransferJob, error) {
+	payload.Source.Bucket = strings.TrimSpace(payload.Source.Bucket)
+	payload.Source.Key = strings.TrimSpace(payload.Source.Key)
+	payload.Source.URI = strings.TrimSpace(payload.Source.URI)
+	payload.Destination.URI = strings.TrimSpace(payload.Destination.URI)
+	payload.Destination.Registry = strings.TrimSpace(payload.Destination.Registry)
+
 	skipDestCredsValidation := existingDestSecretName != ""
 	if err := validateCreatePayload(payload, skipDestCredsValidation); err != nil {
 		return nil, fmt.Errorf("validation error: %w", err)
@@ -116,7 +122,8 @@ func (m *ModelRegistryRepository) createModelTransferJobResources(
 	}
 
 	job := buildK8sJob(jobName, namespace, jobID, payload, configMapName, sourceSecretName, destSecretName, modelRegistryAddress, modelRegistryID)
-	if err := client.CreateModelTransferJob(ctx, namespace, job); err != nil {
+	createdJob, err := client.CreateModelTransferJob(ctx, namespace, job)
+	if err != nil {
 		cleanupCreatedResources(ctx, client, namespace, configMapName, sourceSecretName, destSecretName)
 		if apierrors.IsAlreadyExists(err) {
 			return nil, fmt.Errorf("%w: job '%s' already exists", ErrJobValidationFailed, jobName)
@@ -124,17 +131,8 @@ func (m *ModelRegistryRepository) createModelTransferJobResources(
 		return nil, fmt.Errorf("failed to create job: %w", err)
 	}
 
-	createdJob, err := client.GetModelTransferJob(ctx, namespace, jobName)
-	if err != nil {
-		logger.Warn("job created but failed to retrieve", "error", err)
-		return &models.ModelTransferJob{
-			Id:   jobID,
-			Name: jobName,
-		}, nil
-	}
-
 	if createdJob == nil {
-		logger.Error("job retrieved successfully but is nil - unexpected K8s client behavior")
+		logger.Error("created job is nil - unexpected K8s client behavio")
 		return &models.ModelTransferJob{
 			Id:   jobID,
 			Name: jobName,
@@ -393,7 +391,6 @@ func buildK8sJob(jobName, namespace, jobID string, payload models.ModelTransferJ
 	configMapName, sourceSecretName, destSecretName, modelRegistryAddress, modelRegistryID string) *batchv1.Job {
 
 	backoffLimit := int32(3)
-	baseImage := models.DefaultOCIBaseImage
 
 	volumes := []corev1.Volume{
 		{
@@ -429,13 +426,15 @@ func buildK8sJob(jobName, namespace, jobID string, payload models.ModelTransferJ
 		{Name: "MODEL_SYNC_DESTINATION_TYPE", Value: string(payload.Destination.Type)},
 		{Name: "MODEL_SYNC_DESTINATION_OCI_URI", Value: payload.Destination.URI},
 		{Name: "MODEL_SYNC_DESTINATION_OCI_REGISTRY", Value: payload.Destination.Registry},
-		{Name: "MODEL_SYNC_DESTINATION_OCI_BASE_IMAGE", Value: baseImage},
 		{Name: "MODEL_SYNC_DESTINATION_OCI_CREDENTIALS_PATH", Value: "/opt/creds/destination/.dockerconfigjson"},
 		{Name: "MODEL_SYNC_REGISTRY_SERVER_ADDRESS", Value: registryOriginOnly(modelRegistryAddress)},
 		{Name: "MODEL_SYNC_REGISTRY_PORT", Value: registryPort},
 		{Name: "MODEL_SYNC_REGISTRY_IS_SECURE", Value: strconv.FormatBool(registrySecure)},
 		{Name: "MODEL_SYNC_METADATA_CONFIGMAP_PATH", Value: "/etc/model-metadata"},
 		{Name: "MODEL_SYNC_MODEL_UPLOAD_INTENT", Value: string(payload.UploadIntent)},
+	}
+	if payload.Destination.Type == models.ModelTransferJobDestinationTypeOCI && payload.Destination.Registry == "quay.io" {
+		envVars = append(envVars, corev1.EnvVar{Name: "MODEL_SYNC_DESTINATION_OCI_BASE_IMAGE", Value: "quay.io/quay/busybox:latest"})
 	}
 
 	annotations := map[string]string{
@@ -599,6 +598,8 @@ func convertK8sJobToModel(job *batchv1.Job) models.ModelTransferJob {
 		CreateTimeSinceEpoch:     fmt.Sprintf("%d", job.CreationTimestamp.UnixMilli()),
 		LastUpdateTimeSinceEpoch: lastUpdateTime,
 		Namespace:                job.Namespace,
+		SourceSecretName:         annotations["modelregistry.kubeflow.org/source-secret"],
+		DestSecretName:           annotations["modelregistry.kubeflow.org/dest-secret"],
 	}
 }
 

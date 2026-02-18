@@ -83,6 +83,8 @@ type ModelTransferJob struct {
 	SourceModelFormatVersion string                       `json:"sourceModelFormatVersion,omitempty"`
 	ModelCustomProperties    map[string]interface{}       `json:"modelCustomProperties,omitempty"`
 	VersionCustomProperties  map[string]interface{}       `json:"versionCustomProperties,omitempty"`
+	SourceSecretName         string                       `json:"sourceSecretName,omitempty"`
+	DestSecretName           string                       `json:"destSecretName,omitempty"`
 }
 
 // ModelTransferJobList represents a list of model transfer jobs
@@ -92,6 +94,3 @@ type ModelTransferJobList struct {
 	PageSize      int                `json:"pageSize"`
 	NextPageToken string             `json:"nextPageToken"`
 }
-
-// TODO - check what should be the value of baseimage
-const DefaultOCIBaseImage = "quay.io/quay/busybox:latest"

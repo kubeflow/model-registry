@@ -375,10 +375,10 @@ func (kc *SharedClientLogic) GetModelTransferJob(ctx context.Context, namespace 
 	return job, nil
 }
 
-func (kc *SharedClientLogic) CreateModelTransferJob(ctx context.Context, namespace string, job *batchv1.Job) error {
+func (kc *SharedClientLogic) CreateModelTransferJob(ctx context.Context, namespace string, job *batchv1.Job) (*batchv1.Job, error) {
 	sessionLogger := ctx.Value(constants.TraceLoggerKey).(*slog.Logger)
 
-	_, err := kc.Client.BatchV1().Jobs(namespace).Create(ctx, job, metav1.CreateOptions{})
+	createdJob, err := kc.Client.BatchV1().Jobs(namespace).Create(ctx, job, metav1.CreateOptions{})
 
 	if err != nil {
 		sessionLogger.Error("failed to create job",
@@ -386,7 +386,7 @@ func (kc *SharedClientLogic) CreateModelTransferJob(ctx context.Context, namespa
 			"name", job.Name,
 			"error", err,
 		)
-		return fmt.Errorf("failed to create job %s: %w", job.Name, err)
+		return nil, fmt.Errorf("failed to create job %s: %w", job.Name, err)
 	}
 
 	sessionLogger.Info("successfully created job",
@@ -394,7 +394,7 @@ func (kc *SharedClientLogic) CreateModelTransferJob(ctx context.Context, namespa
 		"name", job.Name,
 	)
 
-	return nil
+	return createdJob, nil
 }
 
 func (kc *SharedClientLogic) DeleteModelTransferJob(ctx context.Context, namespace string, jobName string) error {

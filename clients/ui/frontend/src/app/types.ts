@@ -347,6 +347,8 @@ export type ModelTransferJob = {
   errorMessage?: string;
   modelCustomProperties?: ModelRegistryCustomProperties;
   versionCustomProperties?: ModelRegistryCustomProperties;
+  sourceSecretName?: string;
+  destSecretName?: string;
 };
 
 export type CreateModelTransferJobData = Omit<
