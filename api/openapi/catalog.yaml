@@ -12,11 +12,11 @@ servers:
 paths:
   /api/mcp_catalog/v1alpha1/mcp_servers:
     description: >-
-      The REST endpoint/path used to list zero or more `McpServer` entities.
+      The REST endpoint/path used to list zero or more `MCPServer` entities.
     get:
       summary: List MCP servers.
       tags:
-        - McpCatalogService
+        - MCPCatalogService
       parameters:
         - name: name
           description: Filter MCP servers by server name using SQL LIKE pattern matching.
@@ -40,20 +40,20 @@ paths:
         - $ref: "#/components/parameters/nextPageToken"
       responses:
         "200":
-          $ref: "#/components/responses/McpServerListResponse"
+          $ref: "#/components/responses/MCPServerListResponse"
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
           $ref: "#/components/responses/Unauthorized"
         "500":
           $ref: "#/components/responses/InternalServerError"
-      operationId: findMcpServers
+      operationId: findMCPServers
   /api/mcp_catalog/v1alpha1/mcp_servers/filter_options:
     description: Lists options for `filterQuery` when listing MCP servers.
     get:
       summary: Lists fields, values, and named queries that can be used in `filterQuery` on the list MCP servers endpoint.
       tags:
-        - McpCatalogService
+        - MCPCatalogService
       responses:
         "200":
           $ref: "#/components/responses/FilterOptionsResponse"
@@ -63,27 +63,27 @@ paths:
           $ref: "#/components/responses/Unauthorized"
         "500":
           $ref: "#/components/responses/InternalServerError"
-      operationId: findMcpServersFilterOptions
+      operationId: findMCPServersFilterOptions
   /api/mcp_catalog/v1alpha1/mcp_servers/{server_id}:
     description: >-
-      The REST endpoint/path used to get an `McpServer`.
+      The REST endpoint/path used to get an `MCPServer`.
     get:
-      summary: Get an `McpServer`.
+      summary: Get an `MCPServer`.
       tags:
-        - McpCatalogService
+        - MCPCatalogService
       responses:
         "200":
-          $ref: "#/components/responses/McpServerResponse"
+          $ref: "#/components/responses/MCPServerResponse"
         "401":
           $ref: "#/components/responses/Unauthorized"
         "404":
           $ref: "#/components/responses/NotFound"
         "500":
           $ref: "#/components/responses/InternalServerError"
-      operationId: getMcpServer
+      operationId: getMCPServer
     parameters:
       - name: server_id
-        description: A unique identifier for an `McpServer`.
+        description: A unique identifier for an `MCPServer`.
         schema:
           type: string
         in: path
@@ -91,11 +91,11 @@ paths:
       - $ref: "#/components/parameters/includeTools"
   /api/mcp_catalog/v1alpha1/mcp_servers/{server_id}/tools:
     description: >-
-      The REST endpoint/path used to list zero or more `McpTool` entities for an `McpServer`.
+      The REST endpoint/path used to list zero or more `MCPTool` entities for an `MCPServer`.
     get:
-      summary: List tools exposed by an `McpServer`.
+      summary: List tools exposed by an `MCPServer`.
       tags:
-        - McpCatalogService
+        - MCPCatalogService
       parameters:
         - $ref: "#/components/parameters/mcpToolFilterQuery"
         - $ref: "#/components/parameters/pageSize"
@@ -104,47 +104,47 @@ paths:
         - $ref: "#/components/parameters/nextPageToken"
       responses:
         "200":
-          $ref: "#/components/responses/McpToolsListResponse"
+          $ref: "#/components/responses/MCPToolsListResponse"
         "401":
           $ref: "#/components/responses/Unauthorized"
         "404":
           $ref: "#/components/responses/NotFound"
         "500":
           $ref: "#/components/responses/InternalServerError"
-      operationId: findMcpServerTools
+      operationId: findMCPServerTools
     parameters:
       - name: server_id
-        description: A unique identifier for an `McpServer`.
+        description: A unique identifier for an `MCPServer`.
         schema:
           type: string
         in: path
         required: true
   /api/mcp_catalog/v1alpha1/mcp_servers/{server_id}/tools/{tool_name}:
     description: >-
-      The REST endpoint/path used to get a specific `McpTool` from an `McpServer`.
+      The REST endpoint/path used to get a specific `MCPTool` from an `MCPServer`.
     get:
-      summary: Get an `McpTool` from an `McpServer`.
+      summary: Get an `MCPTool` from an `MCPServer`.
       tags:
-        - McpCatalogService
+        - MCPCatalogService
       responses:
         "200":
-          $ref: "#/components/responses/McpToolWithServerResponse"
+          $ref: "#/components/responses/MCPToolWithServerResponse"
         "401":
           $ref: "#/components/responses/Unauthorized"
         "404":
           $ref: "#/components/responses/NotFound"
         "500":
           $ref: "#/components/responses/InternalServerError"
-      operationId: getMcpServerTool
+      operationId: getMCPServerTool
     parameters:
       - name: server_id
-        description: A unique identifier for an `McpServer`.
+        description: A unique identifier for an `MCPServer`.
         schema:
           type: string
         in: path
         required: true
       - name: tool_name
-        description: A unique identifier for an `McpTool` within the MCP server.
+        description: A unique identifier for an `MCPTool` within the MCP server.
         schema:
           type: string
         in: path
@@ -1104,7 +1104,7 @@ components:
             type: object
             additionalProperties:
               $ref: "#/components/schemas/FieldFilter"
-    McpArtifact:
+    MCPArtifact:
       description: Artifact metadata for local MCP server deployment.
       allOf:
         - $ref: "#/components/schemas/BaseResourceDates"
@@ -1116,7 +1116,7 @@ components:
               type: string
               format: uri
               description: OCI image URI for local deployment.
-    McpEndpoints:
+    MCPEndpoints:
       type: object
       description: Remote endpoint metadata for MCP server access.
       properties:
@@ -1128,7 +1128,7 @@ components:
           type: string
           format: uri
           description: SSE endpoint URL for the MCP server.
-    McpEnvVarMetadata:
+    MCPEnvVarMetadata:
       type: object
       required:
         - name
@@ -1161,7 +1161,7 @@ components:
           type: string
           description: Example value for documentation purposes
           example: my-api-key-123
-    McpResourceRecommendation:
+    MCPResourceRecommendation:
       type: object
       properties:
         minimal:
@@ -1196,7 +1196,7 @@ components:
             memory:
               type: string
               example: 512Mi
-    McpRuntimeMetadata:
+    MCPRuntimeMetadata:
       type: object
       properties:
         defaultPort:
@@ -1221,16 +1221,16 @@ components:
             Environment variables that MUST be set for the server to function.
             Documents the names and purposes - values come from user's Secrets/ConfigMaps.
           items:
-            $ref: "#/components/schemas/McpEnvVarMetadata"
+            $ref: "#/components/schemas/MCPEnvVarMetadata"
         optionalEnvironmentVariables:
           type: array
           description: |-
             Optional environment variables that configure server behavior.
             Documents the names, purposes, and default values.
           items:
-            $ref: "#/components/schemas/McpEnvVarMetadata"
+            $ref: "#/components/schemas/MCPEnvVarMetadata"
         recommendedResources:
-          $ref: "#/components/schemas/McpResourceRecommendation"
+          $ref: "#/components/schemas/MCPResourceRecommendation"
           description: |-
             Recommended CPU and memory resources based on typical workloads.
             Users should adjust based on their specific usage patterns.
@@ -1264,7 +1264,7 @@ components:
               type: boolean
               description: Whether server requires GPU access
               default: false
-    McpSecurityIndicator:
+    MCPSecurityIndicator:
       type: object
       description: Security posture metadata for an MCP server.
       properties:
@@ -1280,7 +1280,7 @@ components:
         readOnlyTools:
           type: boolean
           description: Whether all exposed tools are read-only.
-    McpServer:
+    MCPServer:
       description: An MCP server in the model catalog.
       allOf:
         - $ref: "#/components/schemas/BaseResource"
@@ -1328,9 +1328,9 @@ components:
               type: array
               description: Array of tools exposed by this MCP server.
               items:
-                $ref: "#/components/schemas/McpTool"
+                $ref: "#/components/schemas/MCPTool"
             securityIndicators:
-              $ref: "#/components/schemas/McpSecurityIndicator"
+              $ref: "#/components/schemas/MCPSecurityIndicator"
             deploymentMode:
               type: string
               description: Deployment mode for the MCP server.
@@ -1350,9 +1350,9 @@ components:
               type: array
               description: OCI artifacts used for local deployment.
               items:
-                $ref: "#/components/schemas/McpArtifact"
+                $ref: "#/components/schemas/MCPArtifact"
             endpoints:
-              $ref: "#/components/schemas/McpEndpoints"
+              $ref: "#/components/schemas/MCPEndpoints"
             readme:
               type: string
               description: Full Markdown documentation for this MCP server.
@@ -1377,25 +1377,25 @@ components:
               format: date-time
               description: Last update timestamp for the server metadata.
             runtimeMetadata:
-              $ref: "#/components/schemas/McpRuntimeMetadata"
+              $ref: "#/components/schemas/MCPRuntimeMetadata"
               description: |-
                 Runtime metadata for deploying this MCP server via MCPServer CRDs.
                 Provides defaults, recommendations, and requirements for creating deployments.
                 This is discovery metadata, not actual deployment configuration.
-    McpServerList:
+    MCPServerList:
       description: List of MCP server entities.
       allOf:
         - type: object
           properties:
             items:
-              description: Array of `McpServer` entities.
+              description: Array of `MCPServer` entities.
               type: array
               items:
-                $ref: "#/components/schemas/McpServer"
+                $ref: "#/components/schemas/MCPServer"
           required:
             - items
         - $ref: "#/components/schemas/BaseResourceList"
-    McpTool:
+    MCPTool:
       description: An MCP tool exposed by an MCP server.
       allOf:
         - $ref: "#/components/schemas/BaseResource"
@@ -1418,8 +1418,8 @@ components:
               type: array
               description: Input parameters accepted by this tool.
               items:
-                $ref: "#/components/schemas/McpToolParameter"
-    McpToolParameter:
+                $ref: "#/components/schemas/MCPToolParameter"
+    MCPToolParameter:
       type: object
       description: Metadata describing a single MCP tool parameter.
       required:
@@ -1439,7 +1439,7 @@ components:
         description:
           type: string
           description: Parameter purpose.
-    McpToolWithServer:
+    MCPToolWithServer:
       type: object
       required:
         - serverId
@@ -1455,17 +1455,17 @@ components:
           description: Human-readable name of the MCP server
           example: Prometheus MCP Server
         tool:
-          $ref: "#/components/schemas/McpTool"
-    McpToolsList:
+          $ref: "#/components/schemas/MCPTool"
+    MCPToolsList:
       description: List of MCP tool entities.
       allOf:
         - type: object
           properties:
             items:
-              description: Array of `McpTool` entities.
+              description: Array of `MCPTool` entities.
               type: array
               items:
-                $ref: "#/components/schemas/McpTool"
+                $ref: "#/components/schemas/MCPTool"
           required:
             - items
         - $ref: "#/components/schemas/BaseResourceList"
@@ -1765,35 +1765,35 @@ components:
           schema:
             $ref: "#/components/schemas/Error"
       description: Unexpected internal server error
-    McpServerListResponse:
+    MCPServerListResponse:
       content:
         application/json:
           schema:
-            $ref: "#/components/schemas/McpServerList"
+            $ref: "#/components/schemas/MCPServerList"
       description: A response containing a list of MCP server entities.
-    McpServerResponse:
+    MCPServerResponse:
       content:
         application/json:
           schema:
-            $ref: "#/components/schemas/McpServer"
-      description: A response containing an `McpServer` entity.
-    McpToolResponse:
+            $ref: "#/components/schemas/MCPServer"
+      description: A response containing an `MCPServer` entity.
+    MCPToolResponse:
       content:
         application/json:
           schema:
-            $ref: "#/components/schemas/McpTool"
-      description: A response containing an `McpTool` entity.
-    McpToolWithServerResponse:
+            $ref: "#/components/schemas/MCPTool"
+      description: A response containing an `MCPTool` entity.
+    MCPToolWithServerResponse:
       content:
         application/json:
           schema:
-            $ref: "#/components/schemas/McpToolWithServer"
-      description: A response containing an `McpToolWithServer` entity.
-    McpToolsListResponse:
+            $ref: "#/components/schemas/MCPToolWithServer"
+      description: A response containing an `MCPToolWithServer` entity.
+    MCPToolsListResponse:
       content:
         application/json:
           schema:
-            $ref: "#/components/schemas/McpToolsList"
+            $ref: "#/components/schemas/MCPToolsList"
       description: A response containing a list of MCP tool entities.
     NotFound:
       content:

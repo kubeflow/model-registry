@@ -110,6 +110,8 @@ func TestRemoveModelsFromMissingSources(t *testing.T) {
 				&MockCatalogMetricsArtifactRepository{},
 				&MockCatalogSourceRepository{},
 				&MockPropertyOptionsRepository{},
+				nil, // MCPServerRepository
+				nil, // MCPServerToolRepository
 			)
 
 			// Create loader and populate sources
@@ -249,6 +251,8 @@ func TestLoader_StartWithLeaderElection(t *testing.T) {
 		mockMetricsArtifactRepo,
 		mockSourceRepo,
 		&MockPropertyOptionsRepository{},
+		nil, // MCPServerRepository
+		nil, // MCPServerToolRepository
 	)
 
 	// Register a test provider
@@ -378,6 +382,7 @@ func TestLoader_StartWithLeaderElection(t *testing.T) {
 
 		// Create cancellable context for leader mode
 		leaderCtx, cancelLeader := context.WithCancel(ctx)
+		defer cancelLeader()
 
 		// Start leader mode in background
 		go func() {
@@ -416,6 +421,7 @@ func TestLoader_StartWithLeaderElection(t *testing.T) {
 
 		// Create cancellable context for leader mode
 		leaderCtx, cancelLeader := context.WithCancel(ctx)
+		defer cancelLeader()
 
 		// Start leader mode in background
 		leaderDone := make(chan struct{})
@@ -484,6 +490,7 @@ func TestLoader_StartWithLeaderElection(t *testing.T) {
 
 		// Create cancellable context for leader mode
 		leaderCtx, cancelLeader := context.WithCancel(ctx)
+		defer cancelLeader()
 
 		// Start leader mode in background
 		leaderDone := make(chan struct{})

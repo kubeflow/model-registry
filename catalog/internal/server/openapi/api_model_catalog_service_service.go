@@ -204,24 +204,24 @@ func (m *ModelCatalogServiceAPIService) FindLabels(ctx context.Context, pageSize
 	return Response(http.StatusOK, res), nil
 }
 
-func (m *ModelCatalogServiceAPIService) FindMcpServers(ctx context.Context, name string, q string, filterQuery string, namedQuery string, includeTools bool, toolLimit int32, pageSize string, orderBy model.OrderByField, sortOrder model.SortOrder, nextPageToken string) (ImplResponse, error) {
-	return ErrorResponse(http.StatusNotImplemented, errors.New("FindMcpServers not implemented")), nil
+func (m *ModelCatalogServiceAPIService) FindMCPServers(ctx context.Context, name string, q string, filterQuery string, namedQuery string, includeTools bool, toolLimit int32, pageSize string, orderBy model.OrderByField, sortOrder model.SortOrder, nextPageToken string) (ImplResponse, error) {
+	return ErrorResponse(http.StatusNotImplemented, errors.New("FindMCPServers not implemented")), nil
 }
 
-func (m *ModelCatalogServiceAPIService) FindMcpServersFilterOptions(ctx context.Context) (ImplResponse, error) {
-	return ErrorResponse(http.StatusNotImplemented, errors.New("FindMcpServersFilterOptions not implemented")), nil
+func (m *ModelCatalogServiceAPIService) FindMCPServersFilterOptions(ctx context.Context) (ImplResponse, error) {
+	return ErrorResponse(http.StatusNotImplemented, errors.New("FindMCPServersFilterOptions not implemented")), nil
 }
 
-func (m *ModelCatalogServiceAPIService) GetMcpServer(ctx context.Context, serverID string) (ImplResponse, error) {
-	return ErrorResponse(http.StatusNotImplemented, errors.New("GetMcpServer not implemented")), nil
+func (m *ModelCatalogServiceAPIService) GetMCPServer(ctx context.Context, serverID string) (ImplResponse, error) {
+	return ErrorResponse(http.StatusNotImplemented, errors.New("GetMCPServer not implemented")), nil
 }
 
-func (m *ModelCatalogServiceAPIService) FindMcpServerTools(ctx context.Context, serverID string, filterQuery string, pageSize string, orderBy model.OrderByField, sortOrder model.SortOrder, nextPageToken string) (ImplResponse, error) {
-	return ErrorResponse(http.StatusNotImplemented, errors.New("FindMcpServerTools not implemented")), nil
+func (m *ModelCatalogServiceAPIService) FindMCPServerTools(ctx context.Context, serverID string, filterQuery string, pageSize string, orderBy model.OrderByField, sortOrder model.SortOrder, nextPageToken string) (ImplResponse, error) {
+	return ErrorResponse(http.StatusNotImplemented, errors.New("FindMCPServerTools not implemented")), nil
 }
 
-func (m *ModelCatalogServiceAPIService) GetMcpServerTool(ctx context.Context, serverID string, toolName string) (ImplResponse, error) {
-	return ErrorResponse(http.StatusNotImplemented, errors.New("GetMcpServerTool not implemented")), nil
+func (m *ModelCatalogServiceAPIService) GetMCPServerTool(ctx context.Context, serverID string, toolName string) (ImplResponse, error) {
+	return ErrorResponse(http.StatusNotImplemented, errors.New("GetMCPServerTool not implemented")), nil
 }
 
 func (m *ModelCatalogServiceAPIService) FindModels(ctx context.Context, recommended bool, targetRPS int32, latencyProperty string, rpsProperty string, hardwareCountProperty string, hardwareTypeProperty string, sourceIDs []string, q string, sourceLabels []string, filterQuery string, pageSize string, orderBy model.OrderByField, sortOrder model.SortOrder, nextPageToken string) (ImplResponse, error) {

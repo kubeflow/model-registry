@@ -140,6 +140,8 @@ func runCatalogServer(cmd *cobra.Command, args []string) error {
 		getRepo[models.CatalogMetricsArtifactRepository](repoSet),
 		getRepo[models.CatalogSourceRepository](repoSet),
 		getRepo[models.PropertyOptionsRepository](repoSet),
+		getRepo[models.MCPServerRepository](repoSet),
+		getRepo[models.MCPServerToolRepository](repoSet),
 	)
 
 	loader := catalog.NewLoader(services, catalogCfg.ConfigPath)

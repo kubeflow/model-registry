@@ -14,11 +14,11 @@ import (
 	"encoding/json"
 )
 
-// checks if the McpToolParameter type satisfies the MappedNullable interface at compile time
-var _ MappedNullable = &McpToolParameter{}
+// checks if the MCPToolParameter type satisfies the MappedNullable interface at compile time
+var _ MappedNullable = &MCPToolParameter{}
 
-// McpToolParameter Metadata describing a single MCP tool parameter.
-type McpToolParameter struct {
+// MCPToolParameter Metadata describing a single MCP tool parameter.
+type MCPToolParameter struct {
 	// Parameter name.
 	Name string `json:"name"`
 	// Parameter type.
@@ -29,30 +29,30 @@ type McpToolParameter struct {
 	Description *string `json:"description,omitempty"`
 }
 
-type _McpToolParameter McpToolParameter
+type _MCPToolParameter MCPToolParameter
 
-// NewMcpToolParameter instantiates a new McpToolParameter object
+// NewMCPToolParameter instantiates a new MCPToolParameter object
 // This constructor will assign default values to properties that have it defined,
 // and makes sure properties required by API are set, but the set of arguments
 // will change when the set of required properties is changed
-func NewMcpToolParameter(name string, type_ string, required bool) *McpToolParameter {
-	this := McpToolParameter{}
+func NewMCPToolParameter(name string, type_ string, required bool) *MCPToolParameter {
+	this := MCPToolParameter{}
 	this.Name = name
 	this.Type = type_
 	this.Required = required
 	return &this
 }
 
-// NewMcpToolParameterWithDefaults instantiates a new McpToolParameter object
+// NewMCPToolParameterWithDefaults instantiates a new MCPToolParameter object
 // This constructor will only assign default values to properties that have it defined,
 // but it doesn't guarantee that properties required by API are set
-func NewMcpToolParameterWithDefaults() *McpToolParameter {
-	this := McpToolParameter{}
+func NewMCPToolParameterWithDefaults() *MCPToolParameter {
+	this := MCPToolParameter{}
 	return &this
 }
 
 // GetName returns the Name field value
-func (o *McpToolParameter) GetName() string {
+func (o *MCPToolParameter) GetName() string {
 	if o == nil {
 		var ret string
 		return ret
@@ -63,7 +63,7 @@ func (o *McpToolParameter) GetName() string {
 
 // GetNameOk returns a tuple with the Name field value
 // and a boolean to check if the value has been set.
-func (o *McpToolParameter) GetNameOk() (*string, bool) {
+func (o *MCPToolParameter) GetNameOk() (*string, bool) {
 	if o == nil {
 		return nil, false
 	}
@@ -71,12 +71,12 @@ func (o *McpToolParameter) GetNameOk() (*string, bool) {
 }
 
 // SetName sets field value
-func (o *McpToolParameter) SetName(v string) {
+func (o *MCPToolParameter) SetName(v string) {
 	o.Name = v
 }
 
 // GetType returns the Type field value
-func (o *McpToolParameter) GetType() string {
+func (o *MCPToolParameter) GetType() string {
 	if o == nil {
 		var ret string
 		return ret
@@ -87,7 +87,7 @@ func (o *McpToolParameter) GetType() string {
 
 // GetTypeOk returns a tuple with the Type field value
 // and a boolean to check if the value has been set.
-func (o *McpToolParameter) GetTypeOk() (*string, bool) {
+func (o *MCPToolParameter) GetTypeOk() (*string, bool) {
 	if o == nil {
 		return nil, false
 	}
@@ -95,12 +95,12 @@ func (o *McpToolParameter) GetTypeOk() (*string, bool) {
 }
 
 // SetType sets field value
-func (o *McpToolParameter) SetType(v string) {
+func (o *MCPToolParameter) SetType(v string) {
 	o.Type = v
 }
 
 // GetRequired returns the Required field value
-func (o *McpToolParameter) GetRequired() bool {
+func (o *MCPToolParameter) GetRequired() bool {
 	if o == nil {
 		var ret bool
 		return ret
@@ -111,7 +111,7 @@ func (o *McpToolParameter) GetRequired() bool {
 
 // GetRequiredOk returns a tuple with the Required field value
 // and a boolean to check if the value has been set.
-func (o *McpToolParameter) GetRequiredOk() (*bool, bool) {
+func (o *MCPToolParameter) GetRequiredOk() (*bool, bool) {
 	if o == nil {
 		return nil, false
 	}
@@ -119,12 +119,12 @@ func (o *McpToolParameter) GetRequiredOk() (*bool, bool) {
 }
 
 // SetRequired sets field value
-func (o *McpToolParameter) SetRequired(v bool) {
+func (o *MCPToolParameter) SetRequired(v bool) {
 	o.Required = v
 }
 
 // GetDescription returns the Description field value if set, zero value otherwise.
-func (o *McpToolParameter) GetDescription() string {
+func (o *MCPToolParameter) GetDescription() string {
 	if o == nil || IsNil(o.Description) {
 		var ret string
 		return ret
@@ -134,7 +134,7 @@ func (o *McpToolParameter) GetDescription() string {
 
 // GetDescriptionOk returns a tuple with the Description field value if set, nil otherwise
 // and a boolean to check if the value has been set.
-func (o *McpToolParameter) GetDescriptionOk() (*string, bool) {
+func (o *MCPToolParameter) GetDescriptionOk() (*string, bool) {
 	if o == nil || IsNil(o.Description) {
 		return nil, false
 	}
@@ -142,7 +142,7 @@ func (o *McpToolParameter) GetDescriptionOk() (*string, bool) {
 }
 
 // HasDescription returns a boolean if a field has been set.
-func (o *McpToolParameter) HasDescription() bool {
+func (o *MCPToolParameter) HasDescription() bool {
 	if o != nil && !IsNil(o.Description) {
 		return true
 	}
@@ -151,11 +151,11 @@ func (o *McpToolParameter) HasDescription() bool {
 }
 
 // SetDescription gets a reference to the given string and assigns it to the Description field.
-func (o *McpToolParameter) SetDescription(v string) {
+func (o *MCPToolParameter) SetDescription(v string) {
 	o.Description = &v
 }
 
-func (o McpToolParameter) MarshalJSON() ([]byte, error) {
+func (o MCPToolParameter) MarshalJSON() ([]byte, error) {
 	toSerialize, err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
@@ -163,7 +163,7 @@ func (o McpToolParameter) MarshalJSON() ([]byte, error) {
 	return json.Marshal(toSerialize)
 }
 
-func (o McpToolParameter) ToMap() (map[string]interface{}, error) {
+func (o MCPToolParameter) ToMap() (map[string]interface{}, error) {
 	toSerialize := map[string]interface{}{}
 	toSerialize["name"] = o.Name
 	toSerialize["type"] = o.Type
@@ -174,38 +174,38 @@ func (o McpToolParameter) ToMap() (map[string]interface{}, error) {
 	return toSerialize, nil
 }
 
-type NullableMcpToolParameter struct {
-	value *McpToolParameter
+type NullableMCPToolParameter struct {
+	value *MCPToolParameter
 	isSet bool
 }
 
-func (v NullableMcpToolParameter) Get() *McpToolParameter {
+func (v NullableMCPToolParameter) Get() *MCPToolParameter {
 	return v.value
 }
 
-func (v *NullableMcpToolParameter) Set(val *McpToolParameter) {
+func (v *NullableMCPToolParameter) Set(val *MCPToolParameter) {
 	v.value = val
 	v.isSet = true
 }
 
-func (v NullableMcpToolParameter) IsSet() bool {
+func (v NullableMCPToolParameter) IsSet() bool {
 	return v.isSet
 }
 
-func (v *NullableMcpToolParameter) Unset() {
+func (v *NullableMCPToolParameter) Unset() {
 	v.value = nil
 	v.isSet = false
 }
 
-func NewNullableMcpToolParameter(val *McpToolParameter) *NullableMcpToolParameter {
-	return &NullableMcpToolParameter{value: val, isSet: true}
+func NewNullableMCPToolParameter(val *MCPToolParameter) *NullableMCPToolParameter {
+	return &NullableMCPToolParameter{value: val, isSet: true}
 }
 
-func (v NullableMcpToolParameter) MarshalJSON() ([]byte, error) {
+func (v NullableMCPToolParameter) MarshalJSON() ([]byte, error) {
 	return json.Marshal(v.value)
 }
 
-func (v *NullableMcpToolParameter) UnmarshalJSON(src []byte) error {
+func (v *NullableMCPToolParameter) UnmarshalJSON(src []byte) error {
 	v.isSet = true
 	return json.Unmarshal(src, &v.value)
 }
