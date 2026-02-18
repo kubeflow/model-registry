@@ -219,6 +219,19 @@ const ModelCatalogActiveFilters: React.FC<ModelCatalogActiveFiltersProps> = ({ f
         // All other filters
         const filterValues = Array.isArray(filterValue) ? filterValue : [filterValue];
 
+        // Single-value performance filters (Workload Type, Max RPS) use "single" to show
+        // the undo icon on the chip's own close button (inside the chip).
+        // Multi-chip groups (Latency) use "group" to show undo on the group close button.
+        const isSingleValuePerformanceFilter =
+          filterKey === ModelCatalogStringFilterKey.USE_CASE ||
+          filterKey === ModelCatalogNumberFilterKey.MAX_RPS;
+
+        const hasDefaultAttr = filterHasDefault
+          ? isSingleValuePerformanceFilter
+            ? 'single'
+            : 'group'
+          : undefined;
+
         const labels: ToolbarLabel[] = filterValues.map((value) => {
           const valueStr = String(value);
           const labelText = getFilterLabel(filterKey, value);
@@ -227,7 +240,7 @@ const ModelCatalogActiveFilters: React.FC<ModelCatalogActiveFiltersProps> = ({ f
             node: (
               <span
                 data-testid={`${filterKey}-filter-chip-${valueStr}`}
-                {...(filterHasDefault && { 'data-has-default': 'true' })}
+                {...(hasDefaultAttr && { 'data-has-default': hasDefaultAttr })}
               >
                 {labelText}
               </span>
@@ -235,14 +248,8 @@ const ModelCatalogActiveFilters: React.FC<ModelCatalogActiveFiltersProps> = ({ f
           };
         });
 
-        // Single-value performance filters (Workload Type, Max RPS): empty name removes
-        // the category box/border while keeping the filter key for proper callback handling.
-        // PF's LabelGroup only applies the category modifier class when categoryName is truthy.
-        // The chip labels already include their prefix text ("Workload type:", "Max RPS:").
-        const isSingleValuePerformanceFilter =
-          filterKey === ModelCatalogStringFilterKey.USE_CASE ||
-          filterKey === ModelCatalogNumberFilterKey.MAX_RPS;
-
+        // Empty name removes the category box/border. PF's LabelGroup only applies
+        // the category modifier class when categoryName is truthy.
         const categoryLabelGroup: ToolbarLabelGroup = {
           key: filterKey,
           name: isSingleValuePerformanceFilter
@@ -250,6 +257,8 @@ const ModelCatalogActiveFilters: React.FC<ModelCatalogActiveFiltersProps> = ({ f
             : MODEL_CATALOG_FILTER_CATEGORY_NAMES[filterKey],
         };
 
+        // Single-value performance filters: use deleteLabel only (undo icon on chip itself).
+        // Multi-chip/basic filters: use both deleteLabel and deleteLabelGroup.
         return (
           <ToolbarFilter
             key={filterKey}
@@ -260,10 +269,12 @@ const ModelCatalogActiveFilters: React.FC<ModelCatalogActiveFiltersProps> = ({ f
               const labelKey = typeof label === 'string' ? label : label.key;
               handleRemoveFilter(categoryKeyValue, labelKey);
             }}
-            deleteLabelGroup={(category) => {
-              const categoryKeyValue = typeof category === 'string' ? category : category.key;
-              handleClearCategory(categoryKeyValue);
-            }}
+            {...(!isSingleValuePerformanceFilter && {
+              deleteLabelGroup: (category: string | ToolbarLabelGroup) => {
+                const categoryKeyValue = typeof category === 'string' ? category : category.key;
+                handleClearCategory(categoryKeyValue);
+              },
+            })}
             data-testid={`${filterKey}-filter-container`}
           >
             {null}
