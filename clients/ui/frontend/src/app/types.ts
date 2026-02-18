@@ -226,6 +226,11 @@ export type UpdateModelTransferJob = (
 
 export type DeleteModelTransferJob = (opts: APIOptions, jobId: string) => Promise<void>;
 
+export type GetModelTransferJobsByNamespace = (
+  opts: APIOptions,
+  namespace: string,
+) => Promise<ModelTransferJobList>;
+
 export type ModelRegistryAPIs = {
   createRegisteredModel: CreateRegisteredModel;
   createModelVersionForRegisteredModel: CreateModelVersionForRegisteredModel;
@@ -240,6 +245,7 @@ export type ModelRegistryAPIs = {
   patchModelVersion: PatchModelVersion;
   patchModelArtifact: PatchModelArtifact;
   listModelTransferJobs: GetListModelTransferJobs;
+  getModelTransferJobsByNamespace: GetModelTransferJobsByNamespace;
   createModelTransferJob: CreateModelTransferJob;
   updateModelTransferJob: UpdateModelTransferJob;
   deleteModelTransferJob: DeleteModelTransferJob;

@@ -5,7 +5,7 @@ import {
   ModelRegistryMetadataType,
 } from '~/app/types';
 import { CatalogModel, CatalogModelDetailsParams } from '~/app/modelCatalogTypes';
-import { ModelSourceKind, ModelSourceProperties } from './types';
+import { ModelSourceKind, ModelSourceProperties, TransferJobParams } from './types';
 
 /**
  * Converts model source properties to catalog parameters
@@ -28,6 +28,36 @@ export const modelSourcePropertiesToCatalogParams = (
     modelName: properties.modelSourceName,
   };
 };
+
+/**
+ * Converts model source properties to transfer job parameters
+ * @param properties - The model source properties
+ * @returns TransferJobParams object or null if not a transfer job source or if required properties are missing
+ */
+export const modelSourcePropertiesToTransferJobParams = (
+  properties: ModelSourceProperties,
+): TransferJobParams | null => {
+  if (
+    properties.modelSourceKind !== ModelSourceKind.TRANSFER_JOB ||
+    !properties.modelSourceGroup ||
+    !properties.modelSourceName
+  ) {
+    return null;
+  }
+
+  return {
+    jobNamespace: properties.modelSourceGroup,
+    jobName: properties.modelSourceName,
+  };
+};
+
+export const transferJobParamsToModelSourceProperties = (
+  params: TransferJobParams,
+): ModelSourceProperties => ({
+  modelSourceKind: ModelSourceKind.TRANSFER_JOB,
+  modelSourceGroup: params.jobNamespace,
+  modelSourceName: params.jobName,
+});
 
 export const catalogParamsToModelSourceProperties = (
   params: CatalogModelDetailsParams,

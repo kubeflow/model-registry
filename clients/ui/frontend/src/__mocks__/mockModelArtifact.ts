@@ -1,4 +1,5 @@
 import { ModelArtifact } from '~/app/types';
+import { ModelSourceKind } from '~/concepts/modelRegistry/types';
 
 export const mockModelArtifact = (partial?: Partial<ModelArtifact>): ModelArtifact => ({
   createTimeSinceEpoch: '1712234877179',
@@ -13,5 +14,20 @@ export const mockModelArtifact = (partial?: Partial<ModelArtifact>): ModelArtifa
   uri: 's3://test-bucket/demo-models/test-path?endpoint=test-endpoint&defaultRegion=test-region',
   modelFormatName: 'test model format',
   modelFormatVersion: 'test version 1',
+  ...partial,
+});
+
+/**
+ * Creates a mock model artifact that was registered via a transfer job (Register + Store flow).
+ * The modelSource* properties reference the transfer job that performed the registration.
+ */
+export const mockModelArtifactWithTransferJob = (
+  partial?: Partial<ModelArtifact>,
+): ModelArtifact => ({
+  ...mockModelArtifact(),
+  uri: 'oci://registry.redhat.io/rhelai1/modelcar-granite-7b-starter:1.4.0',
+  modelSourceKind: ModelSourceKind.TRANSFER_JOB,
+  modelSourceGroup: 'my-project-1',
+  modelSourceName: 'model-transfer-job-1',
   ...partial,
 });
