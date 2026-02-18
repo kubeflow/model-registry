@@ -78,6 +78,11 @@ type ModelTransferJob struct {
 	CreateTimeSinceEpoch     string                       `json:"createTimeSinceEpoch"`
 	LastUpdateTimeSinceEpoch string                       `json:"lastUpdateTimeSinceEpoch"`
 	ErrorMessage             string                       `json:"errorMessage,omitempty"`
+	VersionDescription       string                       `json:"versionDescription,omitempty"`
+	SourceModelFormat        string                       `json:"sourceModelFormat,omitempty"`
+	SourceModelFormatVersion string                       `json:"sourceModelFormatVersion,omitempty"`
+	ModelCustomProperties    map[string]interface{}       `json:"modelCustomProperties,omitempty"`
+	VersionCustomProperties  map[string]interface{}       `json:"versionCustomProperties,omitempty"`
 }
 
 // ModelTransferJobList represents a list of model transfer jobs

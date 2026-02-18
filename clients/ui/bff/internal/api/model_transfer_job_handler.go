@@ -100,6 +100,10 @@ func (app *App) CreateModelTransferJobHandler(w http.ResponseWriter, r *http.Req
 			app.badRequestResponse(w, r, err)
 			return
 		}
+		if errors.Is(err, repositories.ErrModelRegistryNotFound) {
+			app.notFoundResponse(w, r)
+			return
+		}
 		app.serverErrorResponse(w, r, err)
 		return
 	}

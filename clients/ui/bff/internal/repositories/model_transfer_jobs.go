@@ -2,6 +2,7 @@ package repositories
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"net/url"
@@ -20,13 +21,14 @@ import (
 )
 
 var (
-	ErrJobNotFound         = errors.New("model transfer job not found")
-	ErrJobValidationFailed = errors.New("validation failed")
+	ErrJobNotFound            = errors.New("model transfer job not found")
+	ErrJobValidationFailed    = errors.New("validation failed")
+	ErrModelRegistryNotFound  = errors.New("model registry not found in the selected namespace")
 )
 
 func (m *ModelRegistryRepository) GetAllModelTransferJobs(ctx context.Context, client k8s.KubernetesClientInterface, namespace string, modelRegistryID string) (*models.ModelTransferJobList, error) {
 	if modelRegistryID == "" {
-		return &models.ModelTransferJobList{Items: nil, Size: 0, PageSize: 0}, nil
+		return &models.ModelTransferJobList{Items: []models.ModelTransferJob{}, Size: 0, PageSize: 0}, nil
 	}
 
 	jobList, err := client.GetAllModelTransferJobs(ctx, namespace, modelRegistryID)
@@ -34,7 +36,7 @@ func (m *ModelRegistryRepository) GetAllModelTransferJobs(ctx context.Context, c
 		return nil, fmt.Errorf("failed to fetch model transfer jobs: %w", err)
 	}
 
-	var transferJobs []models.ModelTransferJob
+	transferJobs := make([]models.ModelTransferJob, 0, len(jobList.Items))
 	for _, job := range jobList.Items {
 		transferJobs = append(transferJobs, convertK8sJobToModel(&job))
 	}
@@ -44,7 +46,6 @@ func (m *ModelRegistryRepository) GetAllModelTransferJobs(ctx context.Context, c
 		Size:     len(transferJobs),
 		PageSize: len(transferJobs),
 	}, nil
-
 }
 
 func (m *ModelRegistryRepository) CreateModelTransferJob(ctx context.Context, client k8s.KubernetesClientInterface, namespace string, payload models.ModelTransferJob, modelRegistryID string) (*models.ModelTransferJob, error) {
@@ -84,7 +85,7 @@ func (m *ModelRegistryRepository) createModelTransferJobResources(
 		destSecretName = existingDestSecretName
 	}
 
-	configMap := buildModelMetadataConfigMap(configMapName, namespace, payload, jobID)
+	configMap := buildModelMetadataConfigMap(configMapName, namespace, payload, jobID, jobName)
 	if err := client.CreateConfigMap(ctx, namespace, configMap); err != nil {
 		return nil, fmt.Errorf("failed to create metadata configmap: %w", err)
 	}
@@ -374,6 +375,9 @@ func (m *ModelRegistryRepository) DeleteModelTransferJob(ctx context.Context, cl
 func (m *ModelRegistryRepository) getModelRegistryAddress(ctx context.Context, client k8s.KubernetesClientInterface, namespace, modelRegistryID string) (string, error) {
 	modelRegistry, err := m.GetModelRegistry(ctx, client, namespace, modelRegistryID)
 	if err != nil {
+		if apierrors.IsNotFound(err) {
+			return "", ErrModelRegistryNotFound
+		}
 		return "", fmt.Errorf("failed to get model registry: %w", err)
 	}
 	return modelRegistry.ServerAddress, nil
@@ -421,7 +425,7 @@ func buildK8sJob(jobName, namespace, jobID string, payload models.ModelTransferJ
 		{Name: "MODEL_SYNC_DESTINATION_OCI_REGISTRY", Value: payload.Destination.Registry},
 		{Name: "MODEL_SYNC_DESTINATION_OCI_BASE_IMAGE", Value: baseImage},
 		{Name: "MODEL_SYNC_DESTINATION_OCI_CREDENTIALS_PATH", Value: "/opt/creds/destination/.dockerconfigjson"},
-		{Name: "MODEL_SYNC_REGISTRY_SERVER_ADDRESS", Value: modelRegistryAddress},
+		{Name: "MODEL_SYNC_REGISTRY_SERVER_ADDRESS", Value: registryOriginOnly(modelRegistryAddress)},
 		{Name: "MODEL_SYNC_REGISTRY_PORT", Value: registryPort},
 		{Name: "MODEL_SYNC_REGISTRY_IS_SECURE", Value: strconv.FormatBool(registrySecure)},
 		{Name: "MODEL_SYNC_METADATA_CONFIGMAP_PATH", Value: "/etc/model-metadata"},
@@ -592,11 +596,33 @@ func convertK8sJobToModel(job *batchv1.Job) models.ModelTransferJob {
 	}
 }
 
-func buildModelMetadataConfigMap(name, namespace string, payload models.ModelTransferJob, jobID string) *corev1.ConfigMap {
+func buildModelMetadataConfigMap(name, namespace string, payload models.ModelTransferJob, jobID string, jobName string) *corev1.ConfigMap {
 	data := map[string]string{
 		"ModelVersion.name":   payload.ModelVersionName,
 		"ModelVersion.author": payload.Author,
 		"ModelArtifact.name":  payload.ModelVersionName,
+	}
+
+	if payload.VersionDescription != "" {
+		data["ModelVersion.description"] = payload.VersionDescription
+		data["ModelArtifact.description"] = payload.VersionDescription
+	}
+	if payload.SourceModelFormat != "" {
+		data["ModelArtifact.modelFormatName"] = payload.SourceModelFormat
+	}
+	if payload.SourceModelFormatVersion != "" {
+		data["ModelArtifact.modelFormatVersion"] = payload.SourceModelFormatVersion
+	}
+	if len(payload.ModelCustomProperties) > 0 {
+		if b, err := json.Marshal(payload.ModelCustomProperties); err == nil {
+			data["RegisteredModel.customProperties"] = string(b)
+		}
+	}
+	if len(payload.VersionCustomProperties) > 0 {
+		if b, err := json.Marshal(payload.VersionCustomProperties); err == nil {
+			data["ModelVersion.customProperties"] = string(b)
+			data["ModelArtifact.customProperties"] = string(b)
+		}
 	}
 
 	switch payload.UploadIntent {
@@ -611,6 +637,11 @@ func buildModelMetadataConfigMap(name, namespace string, payload models.ModelTra
 		data["ModelVersion.id"] = payload.ModelVersionId
 		data["ModelArtifact.id"] = payload.ModelArtifactId
 	}
+
+	data["ModelArtifact.model_source_kind"] = "Job"
+	data["ModelArtifact.model_source_class"] = "async-upload"
+	data["ModelArtifact.model_source_group"] = "batch/v1"
+	data["ModelArtifact.model_source_name"] = jobName
 
 	return &corev1.ConfigMap{
 		ObjectMeta: metav1.ObjectMeta{
@@ -822,6 +853,25 @@ func parseRegistryServerAddress(serverAddress string) (port string, isSecure boo
 	}
 	isSecure = strings.ToLower(u.Scheme) == "https"
 	return port, isSecure
+}
+
+// registryOriginOnly returns only scheme + host (no port, no path). The async-upload image
+// adds the port from MODEL_SYNC_REGISTRY_PORT and the API path itself; including port here
+// would produce host:8080:8080 and break.
+func registryOriginOnly(serverAddress string) string {
+	u, err := url.Parse(serverAddress)
+	if err != nil {
+		return serverAddress
+	}
+	host := u.Hostname()
+	if host == "" {
+		return serverAddress
+	}
+	scheme := u.Scheme
+	if scheme == "" {
+		scheme = "http"
+	}
+	return scheme + "://" + host
 }
 
 func cloneDestSecretFromExisting(newName, namespace, jobID string, oldSecret *corev1.Secret) *corev1.Secret {

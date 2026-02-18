@@ -56,7 +56,7 @@ const ModelTransferJobsListView: React.FC<ModelTransferJobsListViewProps> = ({
 
   const onClearFilters = React.useCallback(() => setFilterData(initialFilterData), [setFilterData]);
 
-  // Filter jobs based on all filter criteria
+  const jobsList = jobs ?? [];
   const filteredJobs = React.useMemo(() => {
     const jobNameFilter = filterData[ModelTransferJobsFilterOptions.jobName]?.toLowerCase();
     const modelNameFilter = filterData[ModelTransferJobsFilterOptions.modelName]?.toLowerCase();
@@ -65,7 +65,7 @@ const ModelTransferJobsListView: React.FC<ModelTransferJobsListViewProps> = ({
     const authorFilter = filterData[ModelTransferJobsFilterOptions.author]?.toLowerCase();
     const statusFilter = filterData[ModelTransferJobsFilterOptions.status]?.toLowerCase();
 
-    return jobs.filter((job) => {
+    return jobsList.filter((job) => {
       if (jobNameFilter && !job.name.toLowerCase().includes(jobNameFilter)) {
         return false;
       }
@@ -86,9 +86,9 @@ const ModelTransferJobsListView: React.FC<ModelTransferJobsListViewProps> = ({
       }
       return true;
     });
-  }, [jobs, filterData]);
+  }, [jobsList, filterData]);
 
-  if (jobs.length === 0) {
+  if (jobsList.length === 0) {
     return (
       <EmptyModelRegistryState
         testid="empty-model-transfer-jobs"
