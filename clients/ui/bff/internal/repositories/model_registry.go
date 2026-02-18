@@ -2,7 +2,6 @@ package repositories
 
 import (
 	"context"
-	"errors"
 	"fmt"
 
 	"github.com/kubeflow/model-registry/ui/bff/internal/constants"
@@ -10,9 +9,6 @@ import (
 	k8s "github.com/kubeflow/model-registry/ui/bff/internal/integrations/kubernetes"
 	"github.com/kubeflow/model-registry/ui/bff/internal/models"
 )
-
-// ErrModelTransferJobNotFound is returned when the model transfer job does not exist.
-var ErrModelTransferJobNotFound = errors.New("model transfer job not found")
 
 type ModelRegistryRepository struct {
 }

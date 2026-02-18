@@ -397,41 +397,6 @@ func (kc *SharedClientLogic) CreateModelTransferJob(ctx context.Context, namespa
 	return nil
 }
 
-
-func (kc *SharedClientLogic) DeleteModelTransferJob(ctx context.Context, namespace string, jobName string) error {
-	sessionLogger := ctx.Value(constants.TraceLoggerKey).(*slog.Logger)
-
-	modelTransferJob, err := kc.Client.BatchV1().Jobs(namespace).Get(ctx, jobName, metav1.GetOptions{})
-	if err != nil {
-		sessionLogger.Error("failed to get job for patching",
-			"namespace", namespace,
-			"jobName", jobName,
-			"error", err,
-		)
-		return err
-	}
-
-	// TODO: Add logic to construct the job to update the model transfer job
-
-	_, err = kc.Client.BatchV1().Jobs(namespace).Update(ctx, modelTransferJob, metav1.UpdateOptions{})
-
-	if err != nil {
-		sessionLogger.Error("failed to patch job",
-			"namespace", namespace,
-			"jobId", jobId,
-			"error", err,
-		)
-		return fmt.Errorf("failed to patch job %s: %w", jobId, err)
-	}
-
-	sessionLogger.Info("successfully patched job",
-		"namespace", namespace,
-		"jobId", jobId,
-	)
-	return nil
-
-}
-
 func (kc *SharedClientLogic) DeleteModelTransferJob(ctx context.Context, namespace string, jobName string) error {
 	sessionLogger := ctx.Value(constants.TraceLoggerKey).(*slog.Logger)
 
@@ -448,7 +413,6 @@ func (kc *SharedClientLogic) DeleteModelTransferJob(ctx context.Context, namespa
 
 	sessionLogger.Info("successfully deleted model transfer job",
 		"namespace", namespace,
-		"jobName", jobName,
 		"jobName", jobName,
 	)
 

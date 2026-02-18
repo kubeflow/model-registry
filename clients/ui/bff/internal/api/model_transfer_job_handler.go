@@ -14,35 +14,19 @@ import (
 
 type ModelTransferJobListEnvelope Envelope[*models.ModelTransferJobList, None]
 type ModelTransferJobEnvelope Envelope[*models.ModelTransferJob, None]
-type ModelTransferJobOperationStatusEnvelope Envelope[models.ModelTransferJobOperationStatus, None]
 
 func (app *App) GetAllModelTransferJobsHandler(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 	ctx := r.Context()
-	namespace, ok = ctx.Value(constants.NamespaceHeaderParameterKey).(string)
+
+	namespace, ok := ctx.Value(constants.NamespaceHeaderParameterKey).(string)
 	if !ok || namespace == "" {
 		app.badRequestResponse(w, r, fmt.Errorf("missing namespace in context"))
-		return "", nil, false
+		return
 	}
+
 	client, err := app.kubernetesClientFactory.GetClient(ctx)
 	if err != nil {
 		app.serverErrorResponse(w, r, errors.New("kubernetes client not found"))
-		return "", nil, false
-	}
-	return namespace, client, true
-}
-
-// TODO: Remove this helper when the actual implementation returns the real resource in the response.
-func (app *App) writeModelTransferJobOperationStatus(w http.ResponseWriter, r *http.Request, status string) {
-	response := ModelTransferJobOperationStatusEnvelope{Data: models.ModelTransferJobOperationStatus{Status: status}}
-	if err := app.WriteJSON(w, http.StatusOK, response, nil); err != nil {
-		app.serverErrorResponse(w, r, fmt.Errorf("error writing JSON"))
-	}
-}
-
-func (app *App) GetAllModelTransferJobsHandler(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
-	ctx := r.Context()
-	namespace, client, ok := app.getModelTransferJobNamespaceAndClient(w, r)
-	if !ok {
 		return
 	}
 
@@ -69,8 +53,16 @@ func (app *App) GetAllModelTransferJobsHandler(w http.ResponseWriter, r *http.Re
 
 func (app *App) CreateModelTransferJobHandler(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 	ctx := r.Context()
-	namespace, client, ok := app.getModelTransferJobNamespaceAndClient(w, r)
-	if !ok {
+
+	namespace, ok := ctx.Value(constants.NamespaceHeaderParameterKey).(string)
+	if !ok || namespace == "" {
+		app.badRequestResponse(w, r, fmt.Errorf("missing namespace in context"))
+		return
+	}
+
+	client, err := app.kubernetesClientFactory.GetClient(ctx)
+	if err != nil {
+		app.serverErrorResponse(w, r, errors.New("kubernetes client not found"))
 		return
 	}
 
@@ -184,13 +176,14 @@ func (app *App) UpdateModelTransferJobHandler(w http.ResponseWriter, r *http.Req
 
 func (app *App) DeleteModelTransferJobHandler(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 	ctx := r.Context()
-	namespace, client, ok := app.getModelTransferJobNamespaceAndClient(w, r)
-	if !ok {
+
+	namespace, ok := ctx.Value(constants.NamespaceHeaderParameterKey).(string)
+	if !ok || namespace == "" {
+		app.badRequestResponse(w, r, fmt.Errorf("missing namespace in context"))
 		return
 	}
 
-	jobName := ps.ByName(ModelTransferJobId)
-	err := app.repositories.ModelRegistry.DeleteModelTransferJob(ctx, client, namespace, jobName)
+	client, err := app.kubernetesClientFactory.GetClient(ctx)
 	if err != nil {
 		app.serverErrorResponse(w, r, errors.New("kubernetes client not found"))
 		return

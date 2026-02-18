@@ -21,9 +21,9 @@ import (
 )
 
 var (
-	ErrJobNotFound            = errors.New("model transfer job not found")
-	ErrJobValidationFailed    = errors.New("validation failed")
-	ErrModelRegistryNotFound  = errors.New("model registry not found in the selected namespace")
+	ErrJobNotFound           = errors.New("model transfer job not found")
+	ErrJobValidationFailed   = errors.New("validation failed")
+	ErrModelRegistryNotFound = errors.New("model registry not found in the selected namespace")
 )
 
 func (m *ModelRegistryRepository) GetAllModelTransferJobs(ctx context.Context, client k8s.KubernetesClientInterface, namespace string, modelRegistryID string) (*models.ModelTransferJobList, error) {
@@ -38,6 +38,9 @@ func (m *ModelRegistryRepository) GetAllModelTransferJobs(ctx context.Context, c
 
 	transferJobs := make([]models.ModelTransferJob, 0, len(jobList.Items))
 	for _, job := range jobList.Items {
+		if job.DeletionTimestamp != nil {
+			continue
+		}
 		transferJobs = append(transferJobs, convertK8sJobToModel(&job))
 	}
 
