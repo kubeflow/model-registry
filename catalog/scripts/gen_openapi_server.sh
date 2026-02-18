@@ -10,9 +10,16 @@ PROJECT_ROOT=$(realpath "$(dirname "$0")"/..)
 SRC="$PROJECT_ROOT/${1:-../api/openapi/catalog.yaml}"
 DST="$PROJECT_ROOT/${2:-internal/server/openapi}"
 
+# Model name mappings to preserve Go acronym casing conventions
+# openapi-generator's go-server generator converts MCPArtifact to McpArtifact
+# but Go convention is to keep acronyms uppercase (https://go.dev/wiki/CodeReviewComments#initialisms)
+# Map from OpenAPI schema name to desired Go type name (includes both top-level and inline schemas)
+MCP_MODEL_MAPPINGS="MCPArtifact=MCPArtifact,MCPEndpoints=MCPEndpoints,MCPEnvVarMetadata=MCPEnvVarMetadata,MCPResourceRecommendation=MCPResourceRecommendation,MCPResourceRecommendation_high=MCPResourceRecommendationHigh,MCPResourceRecommendation_minimal=MCPResourceRecommendationMinimal,MCPResourceRecommendation_recommended=MCPResourceRecommendationRecommended,MCPRuntimeMetadata=MCPRuntimeMetadata,MCPRuntimeMetadata_capabilities=MCPRuntimeMetadataCapabilities,MCPRuntimeMetadata_healthEndpoints=MCPRuntimeMetadataHealthEndpoints,MCPSecurityIndicator=MCPSecurityIndicator,MCPServer=MCPServer,MCPServerList=MCPServerList,MCPTool=MCPTool,MCPToolParameter=MCPToolParameter,MCPToolWithServer=MCPToolWithServer,MCPToolsList=MCPToolsList"
+
 "$OPENAPI_GENERATOR" generate \
     -i "$SRC" -g go-server -o "$DST" --package-name openapi \
     --ignore-file-override "$PROJECT_ROOT"/.openapi-generator-ignore --additional-properties=outputAsLibrary=true,enumClassPrefix=true,router=chi,sourceFolder=,onlyInterfaces=true,isGoSubmodule=true,enumClassPrefix=true,useOneOfDiscriminatorLookup=true,featureCORS=true \
+    --model-name-mappings="$MCP_MODEL_MAPPINGS" \
     --template-dir "$PROJECT_ROOT"/../templates/go-server
 
 # Python-based regex replace function

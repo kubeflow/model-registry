@@ -14,29 +14,29 @@ import (
 	"encoding/json"
 )
 
-// checks if the McpToolsList type satisfies the MappedNullable interface at compile time
-var _ MappedNullable = &McpToolsList{}
+// checks if the MCPToolsList type satisfies the MappedNullable interface at compile time
+var _ MappedNullable = &MCPToolsList{}
 
-// McpToolsList List of MCP tool entities.
-type McpToolsList struct {
+// MCPToolsList List of MCP tool entities.
+type MCPToolsList struct {
 	// Token to use to retrieve next page of results.
 	NextPageToken string `json:"nextPageToken"`
 	// Maximum number of resources to return in the result.
 	PageSize int32 `json:"pageSize"`
 	// Number of items in result list.
 	Size int32 `json:"size"`
-	// Array of `McpTool` entities.
-	Items []McpTool `json:"items"`
+	// Array of `MCPTool` entities.
+	Items []MCPTool `json:"items"`
 }
 
-type _McpToolsList McpToolsList
+type _MCPToolsList MCPToolsList
 
-// NewMcpToolsList instantiates a new McpToolsList object
+// NewMCPToolsList instantiates a new MCPToolsList object
 // This constructor will assign default values to properties that have it defined,
 // and makes sure properties required by API are set, but the set of arguments
 // will change when the set of required properties is changed
-func NewMcpToolsList(nextPageToken string, pageSize int32, size int32, items []McpTool) *McpToolsList {
-	this := McpToolsList{}
+func NewMCPToolsList(nextPageToken string, pageSize int32, size int32, items []MCPTool) *MCPToolsList {
+	this := MCPToolsList{}
 	this.NextPageToken = nextPageToken
 	this.PageSize = pageSize
 	this.Size = size
@@ -44,16 +44,16 @@ func NewMcpToolsList(nextPageToken string, pageSize int32, size int32, items []M
 	return &this
 }
 
-// NewMcpToolsListWithDefaults instantiates a new McpToolsList object
+// NewMCPToolsListWithDefaults instantiates a new MCPToolsList object
 // This constructor will only assign default values to properties that have it defined,
 // but it doesn't guarantee that properties required by API are set
-func NewMcpToolsListWithDefaults() *McpToolsList {
-	this := McpToolsList{}
+func NewMCPToolsListWithDefaults() *MCPToolsList {
+	this := MCPToolsList{}
 	return &this
 }
 
 // GetNextPageToken returns the NextPageToken field value
-func (o *McpToolsList) GetNextPageToken() string {
+func (o *MCPToolsList) GetNextPageToken() string {
 	if o == nil {
 		var ret string
 		return ret
@@ -64,7 +64,7 @@ func (o *McpToolsList) GetNextPageToken() string {
 
 // GetNextPageTokenOk returns a tuple with the NextPageToken field value
 // and a boolean to check if the value has been set.
-func (o *McpToolsList) GetNextPageTokenOk() (*string, bool) {
+func (o *MCPToolsList) GetNextPageTokenOk() (*string, bool) {
 	if o == nil {
 		return nil, false
 	}
@@ -72,12 +72,12 @@ func (o *McpToolsList) GetNextPageTokenOk() (*string, bool) {
 }
 
 // SetNextPageToken sets field value
-func (o *McpToolsList) SetNextPageToken(v string) {
+func (o *MCPToolsList) SetNextPageToken(v string) {
 	o.NextPageToken = v
 }
 
 // GetPageSize returns the PageSize field value
-func (o *McpToolsList) GetPageSize() int32 {
+func (o *MCPToolsList) GetPageSize() int32 {
 	if o == nil {
 		var ret int32
 		return ret
@@ -88,7 +88,7 @@ func (o *McpToolsList) GetPageSize() int32 {
 
 // GetPageSizeOk returns a tuple with the PageSize field value
 // and a boolean to check if the value has been set.
-func (o *McpToolsList) GetPageSizeOk() (*int32, bool) {
+func (o *MCPToolsList) GetPageSizeOk() (*int32, bool) {
 	if o == nil {
 		return nil, false
 	}
@@ -96,12 +96,12 @@ func (o *McpToolsList) GetPageSizeOk() (*int32, bool) {
 }
 
 // SetPageSize sets field value
-func (o *McpToolsList) SetPageSize(v int32) {
+func (o *MCPToolsList) SetPageSize(v int32) {
 	o.PageSize = v
 }
 
 // GetSize returns the Size field value
-func (o *McpToolsList) GetSize() int32 {
+func (o *MCPToolsList) GetSize() int32 {
 	if o == nil {
 		var ret int32
 		return ret
@@ -112,7 +112,7 @@ func (o *McpToolsList) GetSize() int32 {
 
 // GetSizeOk returns a tuple with the Size field value
 // and a boolean to check if the value has been set.
-func (o *McpToolsList) GetSizeOk() (*int32, bool) {
+func (o *MCPToolsList) GetSizeOk() (*int32, bool) {
 	if o == nil {
 		return nil, false
 	}
@@ -120,14 +120,14 @@ func (o *McpToolsList) GetSizeOk() (*int32, bool) {
 }
 
 // SetSize sets field value
-func (o *McpToolsList) SetSize(v int32) {
+func (o *MCPToolsList) SetSize(v int32) {
 	o.Size = v
 }
 
 // GetItems returns the Items field value
-func (o *McpToolsList) GetItems() []McpTool {
+func (o *MCPToolsList) GetItems() []MCPTool {
 	if o == nil {
-		var ret []McpTool
+		var ret []MCPTool
 		return ret
 	}
 
@@ -136,7 +136,7 @@ func (o *McpToolsList) GetItems() []McpTool {
 
 // GetItemsOk returns a tuple with the Items field value
 // and a boolean to check if the value has been set.
-func (o *McpToolsList) GetItemsOk() ([]McpTool, bool) {
+func (o *MCPToolsList) GetItemsOk() ([]MCPTool, bool) {
 	if o == nil {
 		return nil, false
 	}
@@ -144,11 +144,11 @@ func (o *McpToolsList) GetItemsOk() ([]McpTool, bool) {
 }
 
 // SetItems sets field value
-func (o *McpToolsList) SetItems(v []McpTool) {
+func (o *MCPToolsList) SetItems(v []MCPTool) {
 	o.Items = v
 }
 
-func (o McpToolsList) MarshalJSON() ([]byte, error) {
+func (o MCPToolsList) MarshalJSON() ([]byte, error) {
 	toSerialize, err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
@@ -156,7 +156,7 @@ func (o McpToolsList) MarshalJSON() ([]byte, error) {
 	return json.Marshal(toSerialize)
 }
 
-func (o McpToolsList) ToMap() (map[string]interface{}, error) {
+func (o MCPToolsList) ToMap() (map[string]interface{}, error) {
 	toSerialize := map[string]interface{}{}
 	toSerialize["nextPageToken"] = o.NextPageToken
 	toSerialize["pageSize"] = o.PageSize
@@ -165,38 +165,38 @@ func (o McpToolsList) ToMap() (map[string]interface{}, error) {
 	return toSerialize, nil
 }
 
-type NullableMcpToolsList struct {
-	value *McpToolsList
+type NullableMCPToolsList struct {
+	value *MCPToolsList
 	isSet bool
 }
 
-func (v NullableMcpToolsList) Get() *McpToolsList {
+func (v NullableMCPToolsList) Get() *MCPToolsList {
 	return v.value
 }
 
-func (v *NullableMcpToolsList) Set(val *McpToolsList) {
+func (v *NullableMCPToolsList) Set(val *MCPToolsList) {
 	v.value = val
 	v.isSet = true
 }
 
-func (v NullableMcpToolsList) IsSet() bool {
+func (v NullableMCPToolsList) IsSet() bool {
 	return v.isSet
 }
 
-func (v *NullableMcpToolsList) Unset() {
+func (v *NullableMCPToolsList) Unset() {
 	v.value = nil
 	v.isSet = false
 }
 
-func NewNullableMcpToolsList(val *McpToolsList) *NullableMcpToolsList {
-	return &NullableMcpToolsList{value: val, isSet: true}
+func NewNullableMCPToolsList(val *MCPToolsList) *NullableMCPToolsList {
+	return &NullableMCPToolsList{value: val, isSet: true}
 }
 
-func (v NullableMcpToolsList) MarshalJSON() ([]byte, error) {
+func (v NullableMCPToolsList) MarshalJSON() ([]byte, error) {
 	return json.Marshal(v.value)
 }
 
-func (v *NullableMcpToolsList) UnmarshalJSON(src []byte) error {
+func (v *NullableMCPToolsList) UnmarshalJSON(src []byte) error {
 	v.isSet = true
 	return json.Unmarshal(src, &v.value)
 }

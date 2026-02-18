@@ -19,12 +19,12 @@ import (
 	"strings"
 )
 
-// McpCatalogServiceAPIService McpCatalogServiceAPI service
-type McpCatalogServiceAPIService service
+// MCPCatalogServiceAPIService MCPCatalogServiceAPI service
+type MCPCatalogServiceAPIService service
 
-type ApiFindMcpServerToolsRequest struct {
+type ApiFindMCPServerToolsRequest struct {
 	ctx           context.Context
-	ApiService    *McpCatalogServiceAPIService
+	ApiService    *MCPCatalogServiceAPIService
 	serverId      string
 	filterQuery   *string
 	pageSize      *string
@@ -34,48 +34,48 @@ type ApiFindMcpServerToolsRequest struct {
 }
 
 // A SQL-like query string to filter MCP tools for a specific MCP server.  **Supported Operators:** - Comparison: &#x60;&#x3D;&#x60;, &#x60;!&#x3D;&#x60;, &#x60;&lt;&gt;&#x60;, &#x60;&gt;&#x60;, &#x60;&lt;&#x60;, &#x60;&gt;&#x3D;&#x60;, &#x60;&lt;&#x3D;&#x60; - Pattern matching: &#x60;LIKE&#x60;, &#x60;ILIKE&#x60; (case-insensitive) - Set membership: &#x60;IN&#x60; - Logical: &#x60;AND&#x60;, &#x60;OR&#x60; - Grouping: &#x60;()&#x60; for complex expressions  **Examples:** - &#x60;name &#x3D; \&quot;list_models\&quot;&#x60; - &#x60;accessType &#x3D; \&quot;read_only\&quot;&#x60; - &#x60;name ILIKE \&quot;%search%\&quot;&#x60; - &#x60;(accessType &#x3D; \&quot;read_only\&quot; OR accessType &#x3D; \&quot;execute\&quot;) AND name LIKE \&quot;%model%\&quot;&#x60;
-func (r ApiFindMcpServerToolsRequest) FilterQuery(filterQuery string) ApiFindMcpServerToolsRequest {
+func (r ApiFindMCPServerToolsRequest) FilterQuery(filterQuery string) ApiFindMCPServerToolsRequest {
 	r.filterQuery = &filterQuery
 	return r
 }
 
 // Number of entities in each page.
-func (r ApiFindMcpServerToolsRequest) PageSize(pageSize string) ApiFindMcpServerToolsRequest {
+func (r ApiFindMCPServerToolsRequest) PageSize(pageSize string) ApiFindMCPServerToolsRequest {
 	r.pageSize = &pageSize
 	return r
 }
 
 // Specifies the order by criteria for listing entities.
-func (r ApiFindMcpServerToolsRequest) OrderBy(orderBy OrderByField) ApiFindMcpServerToolsRequest {
+func (r ApiFindMCPServerToolsRequest) OrderBy(orderBy OrderByField) ApiFindMCPServerToolsRequest {
 	r.orderBy = &orderBy
 	return r
 }
 
 // Specifies the sort order for listing entities, defaults to ASC.
-func (r ApiFindMcpServerToolsRequest) SortOrder(sortOrder SortOrder) ApiFindMcpServerToolsRequest {
+func (r ApiFindMCPServerToolsRequest) SortOrder(sortOrder SortOrder) ApiFindMCPServerToolsRequest {
 	r.sortOrder = &sortOrder
 	return r
 }
 
 // Token to use to retrieve next page of results.
-func (r ApiFindMcpServerToolsRequest) NextPageToken(nextPageToken string) ApiFindMcpServerToolsRequest {
+func (r ApiFindMCPServerToolsRequest) NextPageToken(nextPageToken string) ApiFindMCPServerToolsRequest {
 	r.nextPageToken = &nextPageToken
 	return r
 }
 
-func (r ApiFindMcpServerToolsRequest) Execute() (*McpToolsList, *http.Response, error) {
-	return r.ApiService.FindMcpServerToolsExecute(r)
+func (r ApiFindMCPServerToolsRequest) Execute() (*MCPToolsList, *http.Response, error) {
+	return r.ApiService.FindMCPServerToolsExecute(r)
 }
 
 /*
-FindMcpServerTools List tools exposed by an `McpServer`.
+FindMCPServerTools List tools exposed by an `MCPServer`.
 
 	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
-	@param serverId A unique identifier for an `McpServer`.
-	@return ApiFindMcpServerToolsRequest
+	@param serverId A unique identifier for an `MCPServer`.
+	@return ApiFindMCPServerToolsRequest
 */
-func (a *McpCatalogServiceAPIService) FindMcpServerTools(ctx context.Context, serverId string) ApiFindMcpServerToolsRequest {
-	return ApiFindMcpServerToolsRequest{
+func (a *MCPCatalogServiceAPIService) FindMCPServerTools(ctx context.Context, serverId string) ApiFindMCPServerToolsRequest {
+	return ApiFindMCPServerToolsRequest{
 		ApiService: a,
 		ctx:        ctx,
 		serverId:   serverId,
@@ -84,16 +84,16 @@ func (a *McpCatalogServiceAPIService) FindMcpServerTools(ctx context.Context, se
 
 // Execute executes the request
 //
-//	@return McpToolsList
-func (a *McpCatalogServiceAPIService) FindMcpServerToolsExecute(r ApiFindMcpServerToolsRequest) (*McpToolsList, *http.Response, error) {
+//	@return MCPToolsList
+func (a *MCPCatalogServiceAPIService) FindMCPServerToolsExecute(r ApiFindMCPServerToolsRequest) (*MCPToolsList, *http.Response, error) {
 	var (
 		localVarHTTPMethod  = http.MethodGet
 		localVarPostBody    interface{}
 		formFiles           []formFile
-		localVarReturnValue *McpToolsList
+		localVarReturnValue *MCPToolsList
 	)
 
-	localBasePath, err := a.client.cfg.ServerURLWithContext(r.ctx, "McpCatalogServiceAPIService.FindMcpServerTools")
+	localBasePath, err := a.client.cfg.ServerURLWithContext(r.ctx, "MCPCatalogServiceAPIService.FindMCPServerTools")
 	if err != nil {
 		return localVarReturnValue, nil, &GenericOpenAPIError{error: err.Error()}
 	}
@@ -206,9 +206,9 @@ func (a *McpCatalogServiceAPIService) FindMcpServerToolsExecute(r ApiFindMcpServ
 	return localVarReturnValue, localVarHTTPResponse, nil
 }
 
-type ApiFindMcpServersRequest struct {
+type ApiFindMCPServersRequest struct {
 	ctx           context.Context
-	ApiService    *McpCatalogServiceAPIService
+	ApiService    *MCPCatalogServiceAPIService
 	name          *string
 	q             *string
 	filterQuery   *string
@@ -222,77 +222,77 @@ type ApiFindMcpServersRequest struct {
 }
 
 // Filter MCP servers by server name using SQL LIKE pattern matching.
-func (r ApiFindMcpServersRequest) Name(name string) ApiFindMcpServersRequest {
+func (r ApiFindMCPServersRequest) Name(name string) ApiFindMCPServersRequest {
 	r.name = &name
 	return r
 }
 
 // Free-form keyword search across name, description, and provider.
-func (r ApiFindMcpServersRequest) Q(q string) ApiFindMcpServersRequest {
+func (r ApiFindMCPServersRequest) Q(q string) ApiFindMCPServersRequest {
 	r.q = &q
 	return r
 }
 
 // A SQL-like query string to filter MCP servers.  **Supported Operators:** - Comparison: &#x60;&#x3D;&#x60;, &#x60;!&#x3D;&#x60;, &#x60;&lt;&gt;&#x60;, &#x60;&gt;&#x60;, &#x60;&lt;&#x60;, &#x60;&gt;&#x3D;&#x60;, &#x60;&lt;&#x3D;&#x60; - Pattern matching: &#x60;LIKE&#x60;, &#x60;ILIKE&#x60; (case-insensitive) - Set membership: &#x60;IN&#x60; - Logical: &#x60;AND&#x60;, &#x60;OR&#x60; - Grouping: &#x60;()&#x60; for complex expressions  **Examples:** - &#x60;license &#x3D; \&quot;Apache 2.0\&quot;&#x60; - &#x60;verifiedSource &#x3D; true&#x60; - &#x60;provider ILIKE \&quot;%local%\&quot;&#x60; - &#x60;(license &#x3D; \&quot;Apache 2.0\&quot; OR license &#x3D; \&quot;MIT\&quot;) AND verifiedSource &#x3D; true&#x60;
-func (r ApiFindMcpServersRequest) FilterQuery(filterQuery string) ApiFindMcpServersRequest {
+func (r ApiFindMCPServersRequest) FilterQuery(filterQuery string) ApiFindMCPServersRequest {
 	r.filterQuery = &filterQuery
 	return r
 }
 
 // Predefined filter template name to apply when listing MCP servers.
-func (r ApiFindMcpServersRequest) NamedQuery(namedQuery string) ApiFindMcpServersRequest {
+func (r ApiFindMCPServersRequest) NamedQuery(namedQuery string) ApiFindMCPServersRequest {
 	r.namedQuery = &namedQuery
 	return r
 }
 
 // Whether to include the tools array in each MCP server result.
-func (r ApiFindMcpServersRequest) IncludeTools(includeTools bool) ApiFindMcpServersRequest {
+func (r ApiFindMCPServersRequest) IncludeTools(includeTools bool) ApiFindMCPServersRequest {
 	r.includeTools = &includeTools
 	return r
 }
 
 // Maximum number of tools to include when includeTools is true.
-func (r ApiFindMcpServersRequest) ToolLimit(toolLimit int32) ApiFindMcpServersRequest {
+func (r ApiFindMCPServersRequest) ToolLimit(toolLimit int32) ApiFindMCPServersRequest {
 	r.toolLimit = &toolLimit
 	return r
 }
 
 // Number of entities in each page.
-func (r ApiFindMcpServersRequest) PageSize(pageSize string) ApiFindMcpServersRequest {
+func (r ApiFindMCPServersRequest) PageSize(pageSize string) ApiFindMCPServersRequest {
 	r.pageSize = &pageSize
 	return r
 }
 
 // Specifies the order by criteria for listing entities.
-func (r ApiFindMcpServersRequest) OrderBy(orderBy OrderByField) ApiFindMcpServersRequest {
+func (r ApiFindMCPServersRequest) OrderBy(orderBy OrderByField) ApiFindMCPServersRequest {
 	r.orderBy = &orderBy
 	return r
 }
 
 // Specifies the sort order for listing entities, defaults to ASC.
-func (r ApiFindMcpServersRequest) SortOrder(sortOrder SortOrder) ApiFindMcpServersRequest {
+func (r ApiFindMCPServersRequest) SortOrder(sortOrder SortOrder) ApiFindMCPServersRequest {
 	r.sortOrder = &sortOrder
 	return r
 }
 
 // Token to use to retrieve next page of results.
-func (r ApiFindMcpServersRequest) NextPageToken(nextPageToken string) ApiFindMcpServersRequest {
+func (r ApiFindMCPServersRequest) NextPageToken(nextPageToken string) ApiFindMCPServersRequest {
 	r.nextPageToken = &nextPageToken
 	return r
 }
 
-func (r ApiFindMcpServersRequest) Execute() (*McpServerList, *http.Response, error) {
-	return r.ApiService.FindMcpServersExecute(r)
+func (r ApiFindMCPServersRequest) Execute() (*MCPServerList, *http.Response, error) {
+	return r.ApiService.FindMCPServersExecute(r)
 }
 
 /*
-FindMcpServers List MCP servers.
+FindMCPServers List MCP servers.
 
 	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
-	@return ApiFindMcpServersRequest
+	@return ApiFindMCPServersRequest
 */
-func (a *McpCatalogServiceAPIService) FindMcpServers(ctx context.Context) ApiFindMcpServersRequest {
-	return ApiFindMcpServersRequest{
+func (a *MCPCatalogServiceAPIService) FindMCPServers(ctx context.Context) ApiFindMCPServersRequest {
+	return ApiFindMCPServersRequest{
 		ApiService: a,
 		ctx:        ctx,
 	}
@@ -300,16 +300,16 @@ func (a *McpCatalogServiceAPIService) FindMcpServers(ctx context.Context) ApiFin
 
 // Execute executes the request
 //
-//	@return McpServerList
-func (a *McpCatalogServiceAPIService) FindMcpServersExecute(r ApiFindMcpServersRequest) (*McpServerList, *http.Response, error) {
+//	@return MCPServerList
+func (a *MCPCatalogServiceAPIService) FindMCPServersExecute(r ApiFindMCPServersRequest) (*MCPServerList, *http.Response, error) {
 	var (
 		localVarHTTPMethod  = http.MethodGet
 		localVarPostBody    interface{}
 		formFiles           []formFile
-		localVarReturnValue *McpServerList
+		localVarReturnValue *MCPServerList
 	)
 
-	localBasePath, err := a.client.cfg.ServerURLWithContext(r.ctx, "McpCatalogServiceAPIService.FindMcpServers")
+	localBasePath, err := a.client.cfg.ServerURLWithContext(r.ctx, "MCPCatalogServiceAPIService.FindMCPServers")
 	if err != nil {
 		return localVarReturnValue, nil, &GenericOpenAPIError{error: err.Error()}
 	}
@@ -444,23 +444,23 @@ func (a *McpCatalogServiceAPIService) FindMcpServersExecute(r ApiFindMcpServersR
 	return localVarReturnValue, localVarHTTPResponse, nil
 }
 
-type ApiFindMcpServersFilterOptionsRequest struct {
+type ApiFindMCPServersFilterOptionsRequest struct {
 	ctx        context.Context
-	ApiService *McpCatalogServiceAPIService
+	ApiService *MCPCatalogServiceAPIService
 }
 
-func (r ApiFindMcpServersFilterOptionsRequest) Execute() (*FilterOptionsList, *http.Response, error) {
-	return r.ApiService.FindMcpServersFilterOptionsExecute(r)
+func (r ApiFindMCPServersFilterOptionsRequest) Execute() (*FilterOptionsList, *http.Response, error) {
+	return r.ApiService.FindMCPServersFilterOptionsExecute(r)
 }
 
 /*
-FindMcpServersFilterOptions Lists fields, values, and named queries that can be used in `filterQuery` on the list MCP servers endpoint.
+FindMCPServersFilterOptions Lists fields, values, and named queries that can be used in `filterQuery` on the list MCP servers endpoint.
 
 	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
-	@return ApiFindMcpServersFilterOptionsRequest
+	@return ApiFindMCPServersFilterOptionsRequest
 */
-func (a *McpCatalogServiceAPIService) FindMcpServersFilterOptions(ctx context.Context) ApiFindMcpServersFilterOptionsRequest {
-	return ApiFindMcpServersFilterOptionsRequest{
+func (a *MCPCatalogServiceAPIService) FindMCPServersFilterOptions(ctx context.Context) ApiFindMCPServersFilterOptionsRequest {
+	return ApiFindMCPServersFilterOptionsRequest{
 		ApiService: a,
 		ctx:        ctx,
 	}
@@ -469,7 +469,7 @@ func (a *McpCatalogServiceAPIService) FindMcpServersFilterOptions(ctx context.Co
 // Execute executes the request
 //
 //	@return FilterOptionsList
-func (a *McpCatalogServiceAPIService) FindMcpServersFilterOptionsExecute(r ApiFindMcpServersFilterOptionsRequest) (*FilterOptionsList, *http.Response, error) {
+func (a *MCPCatalogServiceAPIService) FindMCPServersFilterOptionsExecute(r ApiFindMCPServersFilterOptionsRequest) (*FilterOptionsList, *http.Response, error) {
 	var (
 		localVarHTTPMethod  = http.MethodGet
 		localVarPostBody    interface{}
@@ -477,7 +477,7 @@ func (a *McpCatalogServiceAPIService) FindMcpServersFilterOptionsExecute(r ApiFi
 		localVarReturnValue *FilterOptionsList
 	)
 
-	localBasePath, err := a.client.cfg.ServerURLWithContext(r.ctx, "McpCatalogServiceAPIService.FindMcpServersFilterOptions")
+	localBasePath, err := a.client.cfg.ServerURLWithContext(r.ctx, "MCPCatalogServiceAPIService.FindMCPServersFilterOptions")
 	if err != nil {
 		return localVarReturnValue, nil, &GenericOpenAPIError{error: err.Error()}
 	}
@@ -574,32 +574,32 @@ func (a *McpCatalogServiceAPIService) FindMcpServersFilterOptionsExecute(r ApiFi
 	return localVarReturnValue, localVarHTTPResponse, nil
 }
 
-type ApiGetMcpServerRequest struct {
+type ApiGetMCPServerRequest struct {
 	ctx          context.Context
-	ApiService   *McpCatalogServiceAPIService
+	ApiService   *MCPCatalogServiceAPIService
 	serverId     string
 	includeTools *bool
 }
 
 // Whether to include the tools array in each MCP server result.
-func (r ApiGetMcpServerRequest) IncludeTools(includeTools bool) ApiGetMcpServerRequest {
+func (r ApiGetMCPServerRequest) IncludeTools(includeTools bool) ApiGetMCPServerRequest {
 	r.includeTools = &includeTools
 	return r
 }
 
-func (r ApiGetMcpServerRequest) Execute() (*McpServer, *http.Response, error) {
-	return r.ApiService.GetMcpServerExecute(r)
+func (r ApiGetMCPServerRequest) Execute() (*MCPServer, *http.Response, error) {
+	return r.ApiService.GetMCPServerExecute(r)
 }
 
 /*
-GetMcpServer Get an `McpServer`.
+GetMCPServer Get an `MCPServer`.
 
 	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
-	@param serverId A unique identifier for an `McpServer`.
-	@return ApiGetMcpServerRequest
+	@param serverId A unique identifier for an `MCPServer`.
+	@return ApiGetMCPServerRequest
 */
-func (a *McpCatalogServiceAPIService) GetMcpServer(ctx context.Context, serverId string) ApiGetMcpServerRequest {
-	return ApiGetMcpServerRequest{
+func (a *MCPCatalogServiceAPIService) GetMCPServer(ctx context.Context, serverId string) ApiGetMCPServerRequest {
+	return ApiGetMCPServerRequest{
 		ApiService: a,
 		ctx:        ctx,
 		serverId:   serverId,
@@ -608,16 +608,16 @@ func (a *McpCatalogServiceAPIService) GetMcpServer(ctx context.Context, serverId
 
 // Execute executes the request
 //
-//	@return McpServer
-func (a *McpCatalogServiceAPIService) GetMcpServerExecute(r ApiGetMcpServerRequest) (*McpServer, *http.Response, error) {
+//	@return MCPServer
+func (a *MCPCatalogServiceAPIService) GetMCPServerExecute(r ApiGetMCPServerRequest) (*MCPServer, *http.Response, error) {
 	var (
 		localVarHTTPMethod  = http.MethodGet
 		localVarPostBody    interface{}
 		formFiles           []formFile
-		localVarReturnValue *McpServer
+		localVarReturnValue *MCPServer
 	)
 
-	localBasePath, err := a.client.cfg.ServerURLWithContext(r.ctx, "McpCatalogServiceAPIService.GetMcpServer")
+	localBasePath, err := a.client.cfg.ServerURLWithContext(r.ctx, "MCPCatalogServiceAPIService.GetMCPServer")
 	if err != nil {
 		return localVarReturnValue, nil, &GenericOpenAPIError{error: err.Error()}
 	}
@@ -722,27 +722,27 @@ func (a *McpCatalogServiceAPIService) GetMcpServerExecute(r ApiGetMcpServerReque
 	return localVarReturnValue, localVarHTTPResponse, nil
 }
 
-type ApiGetMcpServerToolRequest struct {
+type ApiGetMCPServerToolRequest struct {
 	ctx        context.Context
-	ApiService *McpCatalogServiceAPIService
+	ApiService *MCPCatalogServiceAPIService
 	serverId   string
 	toolName   string
 }
 
-func (r ApiGetMcpServerToolRequest) Execute() (*McpToolWithServer, *http.Response, error) {
-	return r.ApiService.GetMcpServerToolExecute(r)
+func (r ApiGetMCPServerToolRequest) Execute() (*MCPToolWithServer, *http.Response, error) {
+	return r.ApiService.GetMCPServerToolExecute(r)
 }
 
 /*
-GetMcpServerTool Get an `McpTool` from an `McpServer`.
+GetMCPServerTool Get an `MCPTool` from an `MCPServer`.
 
 	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
-	@param serverId A unique identifier for an `McpServer`.
-	@param toolName A unique identifier for an `McpTool` within the MCP server.
-	@return ApiGetMcpServerToolRequest
+	@param serverId A unique identifier for an `MCPServer`.
+	@param toolName A unique identifier for an `MCPTool` within the MCP server.
+	@return ApiGetMCPServerToolRequest
 */
-func (a *McpCatalogServiceAPIService) GetMcpServerTool(ctx context.Context, serverId string, toolName string) ApiGetMcpServerToolRequest {
-	return ApiGetMcpServerToolRequest{
+func (a *MCPCatalogServiceAPIService) GetMCPServerTool(ctx context.Context, serverId string, toolName string) ApiGetMCPServerToolRequest {
+	return ApiGetMCPServerToolRequest{
 		ApiService: a,
 		ctx:        ctx,
 		serverId:   serverId,
@@ -752,16 +752,16 @@ func (a *McpCatalogServiceAPIService) GetMcpServerTool(ctx context.Context, serv
 
 // Execute executes the request
 //
-//	@return McpToolWithServer
-func (a *McpCatalogServiceAPIService) GetMcpServerToolExecute(r ApiGetMcpServerToolRequest) (*McpToolWithServer, *http.Response, error) {
+//	@return MCPToolWithServer
+func (a *MCPCatalogServiceAPIService) GetMCPServerToolExecute(r ApiGetMCPServerToolRequest) (*MCPToolWithServer, *http.Response, error) {
 	var (
 		localVarHTTPMethod  = http.MethodGet
 		localVarPostBody    interface{}
 		formFiles           []formFile
-		localVarReturnValue *McpToolWithServer
+		localVarReturnValue *MCPToolWithServer
 	)
 
-	localBasePath, err := a.client.cfg.ServerURLWithContext(r.ctx, "McpCatalogServiceAPIService.GetMcpServerTool")
+	localBasePath, err := a.client.cfg.ServerURLWithContext(r.ctx, "MCPCatalogServiceAPIService.GetMCPServerTool")
 	if err != nil {
 		return localVarReturnValue, nil, &GenericOpenAPIError{error: err.Error()}
 	}

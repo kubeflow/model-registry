@@ -19,25 +19,25 @@ import (
 	model "github.com/kubeflow/model-registry/catalog/pkg/openapi"
 )
 
-// McpCatalogServiceAPIController binds http requests to an api service and writes the service results to the http response
-type McpCatalogServiceAPIController struct {
-	service      McpCatalogServiceAPIServicer
+// MCPCatalogServiceAPIController binds http requests to an api service and writes the service results to the http response
+type MCPCatalogServiceAPIController struct {
+	service      MCPCatalogServiceAPIServicer
 	errorHandler ErrorHandler
 }
 
-// McpCatalogServiceAPIOption for how the controller is set up.
-type McpCatalogServiceAPIOption func(*McpCatalogServiceAPIController)
+// MCPCatalogServiceAPIOption for how the controller is set up.
+type MCPCatalogServiceAPIOption func(*MCPCatalogServiceAPIController)
 
-// WithMcpCatalogServiceAPIErrorHandler inject ErrorHandler into controller
-func WithMcpCatalogServiceAPIErrorHandler(h ErrorHandler) McpCatalogServiceAPIOption {
-	return func(c *McpCatalogServiceAPIController) {
+// WithMCPCatalogServiceAPIErrorHandler inject ErrorHandler into controller
+func WithMCPCatalogServiceAPIErrorHandler(h ErrorHandler) MCPCatalogServiceAPIOption {
+	return func(c *MCPCatalogServiceAPIController) {
 		c.errorHandler = h
 	}
 }
 
-// NewMcpCatalogServiceAPIController creates a default api controller
-func NewMcpCatalogServiceAPIController(s McpCatalogServiceAPIServicer, opts ...McpCatalogServiceAPIOption) *McpCatalogServiceAPIController {
-	controller := &McpCatalogServiceAPIController{
+// NewMCPCatalogServiceAPIController creates a default api controller
+func NewMCPCatalogServiceAPIController(s MCPCatalogServiceAPIServicer, opts ...MCPCatalogServiceAPIOption) *MCPCatalogServiceAPIController {
+	controller := &MCPCatalogServiceAPIController{
 		service:      s,
 		errorHandler: DefaultErrorHandler,
 	}
@@ -49,80 +49,80 @@ func NewMcpCatalogServiceAPIController(s McpCatalogServiceAPIServicer, opts ...M
 	return controller
 }
 
-// Routes returns all the api routes for the McpCatalogServiceAPIController
-func (c *McpCatalogServiceAPIController) Routes() Routes {
+// Routes returns all the api routes for the MCPCatalogServiceAPIController
+func (c *MCPCatalogServiceAPIController) Routes() Routes {
 	return Routes{
-		"FindMcpServers": Route{
-			"FindMcpServers",
+		"FindMCPServers": Route{
+			"FindMCPServers",
 			strings.ToUpper("Get"),
 			"/api/mcp_catalog/v1alpha1/mcp_servers",
-			c.FindMcpServers,
+			c.FindMCPServers,
 		},
-		"FindMcpServersFilterOptions": Route{
-			"FindMcpServersFilterOptions",
+		"FindMCPServersFilterOptions": Route{
+			"FindMCPServersFilterOptions",
 			strings.ToUpper("Get"),
 			"/api/mcp_catalog/v1alpha1/mcp_servers/filter_options",
-			c.FindMcpServersFilterOptions,
+			c.FindMCPServersFilterOptions,
 		},
-		"GetMcpServer": Route{
-			"GetMcpServer",
+		"GetMCPServer": Route{
+			"GetMCPServer",
 			strings.ToUpper("Get"),
 			"/api/mcp_catalog/v1alpha1/mcp_servers/{server_id}",
-			c.GetMcpServer,
+			c.GetMCPServer,
 		},
-		"FindMcpServerTools": Route{
-			"FindMcpServerTools",
+		"FindMCPServerTools": Route{
+			"FindMCPServerTools",
 			strings.ToUpper("Get"),
 			"/api/mcp_catalog/v1alpha1/mcp_servers/{server_id}/tools",
-			c.FindMcpServerTools,
+			c.FindMCPServerTools,
 		},
-		"GetMcpServerTool": Route{
-			"GetMcpServerTool",
+		"GetMCPServerTool": Route{
+			"GetMCPServerTool",
 			strings.ToUpper("Get"),
 			"/api/mcp_catalog/v1alpha1/mcp_servers/{server_id}/tools/{tool_name}",
-			c.GetMcpServerTool,
+			c.GetMCPServerTool,
 		},
 	}
 }
 
-// OrderedRoutes returns all the api routes in a deterministic order for the McpCatalogServiceAPIController
-func (c *McpCatalogServiceAPIController) OrderedRoutes() []Route {
+// OrderedRoutes returns all the api routes in a deterministic order for the MCPCatalogServiceAPIController
+func (c *MCPCatalogServiceAPIController) OrderedRoutes() []Route {
 	return []Route{
 		Route{
-			"FindMcpServers",
+			"FindMCPServers",
 			strings.ToUpper("Get"),
 			"/api/mcp_catalog/v1alpha1/mcp_servers",
-			c.FindMcpServers,
+			c.FindMCPServers,
 		},
 		Route{
-			"FindMcpServersFilterOptions",
+			"FindMCPServersFilterOptions",
 			strings.ToUpper("Get"),
 			"/api/mcp_catalog/v1alpha1/mcp_servers/filter_options",
-			c.FindMcpServersFilterOptions,
+			c.FindMCPServersFilterOptions,
 		},
 		Route{
-			"GetMcpServer",
+			"GetMCPServer",
 			strings.ToUpper("Get"),
 			"/api/mcp_catalog/v1alpha1/mcp_servers/{server_id}",
-			c.GetMcpServer,
+			c.GetMCPServer,
 		},
 		Route{
-			"FindMcpServerTools",
+			"FindMCPServerTools",
 			strings.ToUpper("Get"),
 			"/api/mcp_catalog/v1alpha1/mcp_servers/{server_id}/tools",
-			c.FindMcpServerTools,
+			c.FindMCPServerTools,
 		},
 		Route{
-			"GetMcpServerTool",
+			"GetMCPServerTool",
 			strings.ToUpper("Get"),
 			"/api/mcp_catalog/v1alpha1/mcp_servers/{server_id}/tools/{tool_name}",
-			c.GetMcpServerTool,
+			c.GetMCPServerTool,
 		},
 	}
 }
 
-// FindMcpServers - List MCP servers.
-func (c *McpCatalogServiceAPIController) FindMcpServers(w http.ResponseWriter, r *http.Request) {
+// FindMCPServers - List MCP servers.
+func (c *MCPCatalogServiceAPIController) FindMCPServers(w http.ResponseWriter, r *http.Request) {
 	query, err := parseQuery(r.URL.RawQuery)
 	if err != nil {
 		c.errorHandler(w, r, &ParsingError{Err: err}, nil)
@@ -217,7 +217,7 @@ func (c *McpCatalogServiceAPIController) FindMcpServers(w http.ResponseWriter, r
 		nextPageTokenParam = param
 	} else {
 	}
-	result, err := c.service.FindMcpServers(r.Context(), nameParam, qParam, filterQueryParam, namedQueryParam, includeToolsParam, toolLimitParam, pageSizeParam, orderByParam, sortOrderParam, nextPageTokenParam)
+	result, err := c.service.FindMCPServers(r.Context(), nameParam, qParam, filterQueryParam, namedQueryParam, includeToolsParam, toolLimitParam, pageSizeParam, orderByParam, sortOrderParam, nextPageTokenParam)
 	// If an error occurred, encode the error with the status code
 	if err != nil {
 		c.errorHandler(w, r, err, &result)
@@ -227,9 +227,9 @@ func (c *McpCatalogServiceAPIController) FindMcpServers(w http.ResponseWriter, r
 	_ = EncodeJSONResponse(result.Body, &result.Code, w)
 }
 
-// FindMcpServersFilterOptions - Lists fields, values, and named queries that can be used in `filterQuery` on the list MCP servers endpoint.
-func (c *McpCatalogServiceAPIController) FindMcpServersFilterOptions(w http.ResponseWriter, r *http.Request) {
-	result, err := c.service.FindMcpServersFilterOptions(r.Context())
+// FindMCPServersFilterOptions - Lists fields, values, and named queries that can be used in `filterQuery` on the list MCP servers endpoint.
+func (c *MCPCatalogServiceAPIController) FindMCPServersFilterOptions(w http.ResponseWriter, r *http.Request) {
+	result, err := c.service.FindMCPServersFilterOptions(r.Context())
 	// If an error occurred, encode the error with the status code
 	if err != nil {
 		c.errorHandler(w, r, err, &result)
@@ -239,8 +239,8 @@ func (c *McpCatalogServiceAPIController) FindMcpServersFilterOptions(w http.Resp
 	_ = EncodeJSONResponse(result.Body, &result.Code, w)
 }
 
-// GetMcpServer - Get an `McpServer`.
-func (c *McpCatalogServiceAPIController) GetMcpServer(w http.ResponseWriter, r *http.Request) {
+// GetMCPServer - Get an `MCPServer`.
+func (c *MCPCatalogServiceAPIController) GetMCPServer(w http.ResponseWriter, r *http.Request) {
 	query, err := parseQuery(r.URL.RawQuery)
 	if err != nil {
 		c.errorHandler(w, r, &ParsingError{Err: err}, nil)
@@ -267,7 +267,7 @@ func (c *McpCatalogServiceAPIController) GetMcpServer(w http.ResponseWriter, r *
 		var param bool = false
 		includeToolsParam = param
 	}
-	result, err := c.service.GetMcpServer(r.Context(), serverIdParam, includeToolsParam)
+	result, err := c.service.GetMCPServer(r.Context(), serverIdParam, includeToolsParam)
 	// If an error occurred, encode the error with the status code
 	if err != nil {
 		c.errorHandler(w, r, err, &result)
@@ -277,8 +277,8 @@ func (c *McpCatalogServiceAPIController) GetMcpServer(w http.ResponseWriter, r *
 	_ = EncodeJSONResponse(result.Body, &result.Code, w)
 }
 
-// FindMcpServerTools - List tools exposed by an `McpServer`.
-func (c *McpCatalogServiceAPIController) FindMcpServerTools(w http.ResponseWriter, r *http.Request) {
+// FindMCPServerTools - List tools exposed by an `MCPServer`.
+func (c *MCPCatalogServiceAPIController) FindMCPServerTools(w http.ResponseWriter, r *http.Request) {
 	query, err := parseQuery(r.URL.RawQuery)
 	if err != nil {
 		c.errorHandler(w, r, &ParsingError{Err: err}, nil)
@@ -324,7 +324,7 @@ func (c *McpCatalogServiceAPIController) FindMcpServerTools(w http.ResponseWrite
 		nextPageTokenParam = param
 	} else {
 	}
-	result, err := c.service.FindMcpServerTools(r.Context(), serverIdParam, filterQueryParam, pageSizeParam, orderByParam, sortOrderParam, nextPageTokenParam)
+	result, err := c.service.FindMCPServerTools(r.Context(), serverIdParam, filterQueryParam, pageSizeParam, orderByParam, sortOrderParam, nextPageTokenParam)
 	// If an error occurred, encode the error with the status code
 	if err != nil {
 		c.errorHandler(w, r, err, &result)
@@ -334,8 +334,8 @@ func (c *McpCatalogServiceAPIController) FindMcpServerTools(w http.ResponseWrite
 	_ = EncodeJSONResponse(result.Body, &result.Code, w)
 }
 
-// GetMcpServerTool - Get an `McpTool` from an `McpServer`.
-func (c *McpCatalogServiceAPIController) GetMcpServerTool(w http.ResponseWriter, r *http.Request) {
+// GetMCPServerTool - Get an `MCPTool` from an `MCPServer`.
+func (c *MCPCatalogServiceAPIController) GetMCPServerTool(w http.ResponseWriter, r *http.Request) {
 	serverIdParam := chi.URLParam(r, "server_id")
 	if serverIdParam == "" {
 		c.errorHandler(w, r, &RequiredError{"server_id"}, nil)
@@ -346,7 +346,7 @@ func (c *McpCatalogServiceAPIController) GetMcpServerTool(w http.ResponseWriter,
 		c.errorHandler(w, r, &RequiredError{"tool_name"}, nil)
 		return
 	}
-	result, err := c.service.GetMcpServerTool(r.Context(), serverIdParam, toolNameParam)
+	result, err := c.service.GetMCPServerTool(r.Context(), serverIdParam, toolNameParam)
 	// If an error occurred, encode the error with the status code
 	if err != nil {
 		c.errorHandler(w, r, err, &result)

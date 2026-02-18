@@ -46,6 +46,14 @@ jest.mock('~/app/hooks/modelCatalog/useCatalogFilterOptionList', () => ({
   useCatalogFilterOptionList: jest.fn(() => [null, true, undefined]),
 }));
 
+jest.mock('~/app/hooks/modelCatalog/useCatalogLabels', () => ({
+  useCatalogLabels: jest.fn(() => [
+    { items: [], size: 0, pageSize: 0, nextPageToken: '' },
+    true,
+    undefined,
+  ]),
+}));
+
 jest.mock('~/app/hooks/modelCatalog/useModelCatalogAPIState', () => ({
   __esModule: true,
   default: jest.fn(() => [
@@ -58,6 +66,7 @@ jest.mock('~/app/hooks/modelCatalog/useModelCatalogAPIState', () => ({
         getCatalogModelPerformanceArtifacts: jest.fn(),
         getAllCatalogSources: jest.fn(),
         getCatalogFilterOptions: jest.fn(),
+        getCatalogLabels: jest.fn(),
         createCatalogSourcePreview: jest.fn(),
       },
     },

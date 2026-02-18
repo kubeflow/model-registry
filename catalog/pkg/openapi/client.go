@@ -48,7 +48,7 @@ type APIClient struct {
 
 	// API Services
 
-	McpCatalogServiceAPI *McpCatalogServiceAPIService
+	MCPCatalogServiceAPI *MCPCatalogServiceAPIService
 
 	ModelCatalogServiceAPI *ModelCatalogServiceAPIService
 }
@@ -69,7 +69,7 @@ func NewAPIClient(cfg *Configuration) *APIClient {
 	c.common.client = c
 
 	// API Services
-	c.McpCatalogServiceAPI = (*McpCatalogServiceAPIService)(&c.common)
+	c.MCPCatalogServiceAPI = (*MCPCatalogServiceAPIService)(&c.common)
 	c.ModelCatalogServiceAPI = (*ModelCatalogServiceAPIService)(&c.common)
 
 	return c

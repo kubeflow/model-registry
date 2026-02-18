@@ -10,6 +10,8 @@ const (
 	CatalogModelArtifactTypeName   = "kf.CatalogModelArtifact"
 	CatalogMetricsArtifactTypeName = "kf.CatalogMetricsArtifact"
 	CatalogSourceTypeName          = "kf.CatalogSource"
+	MCPServerTypeName              = "kf.MCPServer"
+	MCPServerToolTypeName          = "kf.MCPServerTool"
 )
 
 func DatastoreSpec() *datastore.Spec {
@@ -33,6 +35,30 @@ func DatastoreSpec() *datastore.Spec {
 			AddString("status").
 			AddString("error"),
 		).
+		AddContext(MCPServerTypeName, datastore.NewSpecType(NewMCPServerRepository).
+			AddString("source_id").
+			AddString("base_name").
+			AddString("description").
+			AddString("provider").
+			AddString("license").
+			AddString("license_link").
+			AddString("logo").
+			AddString("readme").
+			AddString("version").
+			AddStruct("tags").
+			AddStruct("transports").
+			AddString("deploymentMode").
+			AddBoolean("verifiedSource").
+			AddBoolean("secureEndpoint").
+			AddBoolean("sast").
+			AddBoolean("readOnlyTools"),
+		).
+		AddExecution(MCPServerToolTypeName, datastore.NewSpecType(NewMCPServerToolRepository).
+			AddString("accessType").
+			AddString("description").
+			AddString("externalId").
+			AddString("parameters"),
+		).
 		AddArtifact(CatalogModelArtifactTypeName, datastore.NewSpecType(NewCatalogModelArtifactRepository).
 			AddString("uri"),
 		).
@@ -50,6 +76,8 @@ type Services struct {
 	CatalogMetricsArtifactRepository models.CatalogMetricsArtifactRepository
 	CatalogSourceRepository          models.CatalogSourceRepository
 	PropertyOptionsRepository        models.PropertyOptionsRepository
+	MCPServerRepository              models.MCPServerRepository
+	MCPServerToolRepository          models.MCPServerToolRepository
 }
 
 func NewServices(
@@ -59,6 +87,8 @@ func NewServices(
 	catalogMetricsArtifactRepository models.CatalogMetricsArtifactRepository,
 	catalogSourceRepository models.CatalogSourceRepository,
 	propertyOptionsRepository models.PropertyOptionsRepository,
+	mcpServerRepository models.MCPServerRepository,
+	mcpServerToolRepository models.MCPServerToolRepository,
 ) Services {
 	return Services{
 		CatalogModelRepository:           catalogModelRepository,
@@ -67,5 +97,7 @@ func NewServices(
 		CatalogMetricsArtifactRepository: catalogMetricsArtifactRepository,
 		CatalogSourceRepository:          catalogSourceRepository,
 		PropertyOptionsRepository:        propertyOptionsRepository,
+		MCPServerRepository:              mcpServerRepository,
+		MCPServerToolRepository:          mcpServerToolRepository,
 	}
 }

@@ -14,34 +14,34 @@ import (
 	"encoding/json"
 )
 
-// checks if the McpResourceRecommendationHigh type satisfies the MappedNullable interface at compile time
-var _ MappedNullable = &McpResourceRecommendationHigh{}
+// checks if the MCPResourceRecommendationHigh type satisfies the MappedNullable interface at compile time
+var _ MappedNullable = &MCPResourceRecommendationHigh{}
 
-// McpResourceRecommendationHigh Resources for high-traffic or compute-intensive scenarios
-type McpResourceRecommendationHigh struct {
+// MCPResourceRecommendationHigh Resources for high-traffic or compute-intensive scenarios
+type MCPResourceRecommendationHigh struct {
 	Cpu    *string `json:"cpu,omitempty"`
 	Memory *string `json:"memory,omitempty"`
 }
 
-// NewMcpResourceRecommendationHigh instantiates a new McpResourceRecommendationHigh object
+// NewMCPResourceRecommendationHigh instantiates a new MCPResourceRecommendationHigh object
 // This constructor will assign default values to properties that have it defined,
 // and makes sure properties required by API are set, but the set of arguments
 // will change when the set of required properties is changed
-func NewMcpResourceRecommendationHigh() *McpResourceRecommendationHigh {
-	this := McpResourceRecommendationHigh{}
+func NewMCPResourceRecommendationHigh() *MCPResourceRecommendationHigh {
+	this := MCPResourceRecommendationHigh{}
 	return &this
 }
 
-// NewMcpResourceRecommendationHighWithDefaults instantiates a new McpResourceRecommendationHigh object
+// NewMCPResourceRecommendationHighWithDefaults instantiates a new MCPResourceRecommendationHigh object
 // This constructor will only assign default values to properties that have it defined,
 // but it doesn't guarantee that properties required by API are set
-func NewMcpResourceRecommendationHighWithDefaults() *McpResourceRecommendationHigh {
-	this := McpResourceRecommendationHigh{}
+func NewMCPResourceRecommendationHighWithDefaults() *MCPResourceRecommendationHigh {
+	this := MCPResourceRecommendationHigh{}
 	return &this
 }
 
 // GetCpu returns the Cpu field value if set, zero value otherwise.
-func (o *McpResourceRecommendationHigh) GetCpu() string {
+func (o *MCPResourceRecommendationHigh) GetCpu() string {
 	if o == nil || IsNil(o.Cpu) {
 		var ret string
 		return ret
@@ -51,7 +51,7 @@ func (o *McpResourceRecommendationHigh) GetCpu() string {
 
 // GetCpuOk returns a tuple with the Cpu field value if set, nil otherwise
 // and a boolean to check if the value has been set.
-func (o *McpResourceRecommendationHigh) GetCpuOk() (*string, bool) {
+func (o *MCPResourceRecommendationHigh) GetCpuOk() (*string, bool) {
 	if o == nil || IsNil(o.Cpu) {
 		return nil, false
 	}
@@ -59,7 +59,7 @@ func (o *McpResourceRecommendationHigh) GetCpuOk() (*string, bool) {
 }
 
 // HasCpu returns a boolean if a field has been set.
-func (o *McpResourceRecommendationHigh) HasCpu() bool {
+func (o *MCPResourceRecommendationHigh) HasCpu() bool {
 	if o != nil && !IsNil(o.Cpu) {
 		return true
 	}
@@ -68,12 +68,12 @@ func (o *McpResourceRecommendationHigh) HasCpu() bool {
 }
 
 // SetCpu gets a reference to the given string and assigns it to the Cpu field.
-func (o *McpResourceRecommendationHigh) SetCpu(v string) {
+func (o *MCPResourceRecommendationHigh) SetCpu(v string) {
 	o.Cpu = &v
 }
 
 // GetMemory returns the Memory field value if set, zero value otherwise.
-func (o *McpResourceRecommendationHigh) GetMemory() string {
+func (o *MCPResourceRecommendationHigh) GetMemory() string {
 	if o == nil || IsNil(o.Memory) {
 		var ret string
 		return ret
@@ -83,7 +83,7 @@ func (o *McpResourceRecommendationHigh) GetMemory() string {
 
 // GetMemoryOk returns a tuple with the Memory field value if set, nil otherwise
 // and a boolean to check if the value has been set.
-func (o *McpResourceRecommendationHigh) GetMemoryOk() (*string, bool) {
+func (o *MCPResourceRecommendationHigh) GetMemoryOk() (*string, bool) {
 	if o == nil || IsNil(o.Memory) {
 		return nil, false
 	}
@@ -91,7 +91,7 @@ func (o *McpResourceRecommendationHigh) GetMemoryOk() (*string, bool) {
 }
 
 // HasMemory returns a boolean if a field has been set.
-func (o *McpResourceRecommendationHigh) HasMemory() bool {
+func (o *MCPResourceRecommendationHigh) HasMemory() bool {
 	if o != nil && !IsNil(o.Memory) {
 		return true
 	}
@@ -100,11 +100,11 @@ func (o *McpResourceRecommendationHigh) HasMemory() bool {
 }
 
 // SetMemory gets a reference to the given string and assigns it to the Memory field.
-func (o *McpResourceRecommendationHigh) SetMemory(v string) {
+func (o *MCPResourceRecommendationHigh) SetMemory(v string) {
 	o.Memory = &v
 }
 
-func (o McpResourceRecommendationHigh) MarshalJSON() ([]byte, error) {
+func (o MCPResourceRecommendationHigh) MarshalJSON() ([]byte, error) {
 	toSerialize, err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
@@ -112,7 +112,7 @@ func (o McpResourceRecommendationHigh) MarshalJSON() ([]byte, error) {
 	return json.Marshal(toSerialize)
 }
 
-func (o McpResourceRecommendationHigh) ToMap() (map[string]interface{}, error) {
+func (o MCPResourceRecommendationHigh) ToMap() (map[string]interface{}, error) {
 	toSerialize := map[string]interface{}{}
 	if !IsNil(o.Cpu) {
 		toSerialize["cpu"] = o.Cpu
@@ -123,38 +123,38 @@ func (o McpResourceRecommendationHigh) ToMap() (map[string]interface{}, error) {
 	return toSerialize, nil
 }
 
-type NullableMcpResourceRecommendationHigh struct {
-	value *McpResourceRecommendationHigh
+type NullableMCPResourceRecommendationHigh struct {
+	value *MCPResourceRecommendationHigh
 	isSet bool
 }
 
-func (v NullableMcpResourceRecommendationHigh) Get() *McpResourceRecommendationHigh {
+func (v NullableMCPResourceRecommendationHigh) Get() *MCPResourceRecommendationHigh {
 	return v.value
 }
 
-func (v *NullableMcpResourceRecommendationHigh) Set(val *McpResourceRecommendationHigh) {
+func (v *NullableMCPResourceRecommendationHigh) Set(val *MCPResourceRecommendationHigh) {
 	v.value = val
 	v.isSet = true
 }
 
-func (v NullableMcpResourceRecommendationHigh) IsSet() bool {
+func (v NullableMCPResourceRecommendationHigh) IsSet() bool {
 	return v.isSet
 }
 
-func (v *NullableMcpResourceRecommendationHigh) Unset() {
+func (v *NullableMCPResourceRecommendationHigh) Unset() {
 	v.value = nil
 	v.isSet = false
 }
 
-func NewNullableMcpResourceRecommendationHigh(val *McpResourceRecommendationHigh) *NullableMcpResourceRecommendationHigh {
-	return &NullableMcpResourceRecommendationHigh{value: val, isSet: true}
+func NewNullableMCPResourceRecommendationHigh(val *MCPResourceRecommendationHigh) *NullableMCPResourceRecommendationHigh {
+	return &NullableMCPResourceRecommendationHigh{value: val, isSet: true}
 }
 
-func (v NullableMcpResourceRecommendationHigh) MarshalJSON() ([]byte, error) {
+func (v NullableMCPResourceRecommendationHigh) MarshalJSON() ([]byte, error) {
 	return json.Marshal(v.value)
 }
 
-func (v *NullableMcpResourceRecommendationHigh) UnmarshalJSON(src []byte) error {
+func (v *NullableMCPResourceRecommendationHigh) UnmarshalJSON(src []byte) error {
 	v.isSet = true
 	return json.Unmarshal(src, &v.value)
 }

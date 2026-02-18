@@ -66,6 +66,7 @@ const (
 	CatalogModelListPath                = CatalogPathPrefix + "/models"
 	CatalogFilterOptionListPath         = CatalogPathPrefix + "/models/filter_options"
 	CatalogSourceListPath               = CatalogPathPrefix + "/sources"
+	CatalogLabelsPath                   = CatalogPathPrefix + "/labels"
 	CatalogSourceModelCatchAllPath      = CatalogPathPrefix + "/sources/:" + CatalogSourceId + "/models/*" + CatalogModelName
 	CatalogSourceModelArtifactsCatchAll = CatalogPathPrefix + "/sources/:" + CatalogSourceId + "/artifacts/*" + CatalogModelName
 	CatalogModelPerformanceArtifacts    = CatalogPathPrefix + "/sources/:" + CatalogSourceId + "/performance_artifacts/*" + CatalogModelName
@@ -245,6 +246,7 @@ func (app *App) Routes() http.Handler {
 	// Model catalog HTTP client routes (requests that we forward to Model Catalog API)
 	apiRouter.GET(CatalogModelListPath, app.AttachNamespace(app.AttachModelCatalogRESTClient(app.GetAllCatalogModelsAcrossSourcesHandler)))
 	apiRouter.GET(CatalogSourceListPath, app.AttachNamespace(app.AttachModelCatalogRESTClient(app.GetAllCatalogSourcesHandler)))
+	apiRouter.GET(CatalogLabelsPath, app.AttachNamespace(app.AttachModelCatalogRESTClient(app.GetCatalogLabelsHandler)))
 	apiRouter.GET(CatalogFilterOptionListPath, app.AttachNamespace(app.AttachModelCatalogRESTClient(app.GetCatalogFilterListHandler)))
 	apiRouter.GET(CatalogSourceModelCatchAllPath, app.AttachNamespace(app.AttachModelCatalogRESTClient(app.GetCatalogSourceModelHandler)))
 	apiRouter.GET(CatalogSourceModelArtifactsCatchAll, app.AttachNamespace(app.AttachModelCatalogRESTClient(app.GetCatalogSourceModelArtifactsHandler)))

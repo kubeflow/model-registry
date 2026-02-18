@@ -14,37 +14,37 @@ import (
 	"encoding/json"
 )
 
-// checks if the McpResourceRecommendation type satisfies the MappedNullable interface at compile time
-var _ MappedNullable = &McpResourceRecommendation{}
+// checks if the MCPResourceRecommendation type satisfies the MappedNullable interface at compile time
+var _ MappedNullable = &MCPResourceRecommendation{}
 
-// McpResourceRecommendation struct for McpResourceRecommendation
-type McpResourceRecommendation struct {
-	Minimal     *McpResourceRecommendationMinimal     `json:"minimal,omitempty"`
-	Recommended *McpResourceRecommendationRecommended `json:"recommended,omitempty"`
-	High        *McpResourceRecommendationHigh        `json:"high,omitempty"`
+// MCPResourceRecommendation struct for MCPResourceRecommendation
+type MCPResourceRecommendation struct {
+	Minimal     *MCPResourceRecommendationMinimal     `json:"minimal,omitempty"`
+	Recommended *MCPResourceRecommendationRecommended `json:"recommended,omitempty"`
+	High        *MCPResourceRecommendationHigh        `json:"high,omitempty"`
 }
 
-// NewMcpResourceRecommendation instantiates a new McpResourceRecommendation object
+// NewMCPResourceRecommendation instantiates a new MCPResourceRecommendation object
 // This constructor will assign default values to properties that have it defined,
 // and makes sure properties required by API are set, but the set of arguments
 // will change when the set of required properties is changed
-func NewMcpResourceRecommendation() *McpResourceRecommendation {
-	this := McpResourceRecommendation{}
+func NewMCPResourceRecommendation() *MCPResourceRecommendation {
+	this := MCPResourceRecommendation{}
 	return &this
 }
 
-// NewMcpResourceRecommendationWithDefaults instantiates a new McpResourceRecommendation object
+// NewMCPResourceRecommendationWithDefaults instantiates a new MCPResourceRecommendation object
 // This constructor will only assign default values to properties that have it defined,
 // but it doesn't guarantee that properties required by API are set
-func NewMcpResourceRecommendationWithDefaults() *McpResourceRecommendation {
-	this := McpResourceRecommendation{}
+func NewMCPResourceRecommendationWithDefaults() *MCPResourceRecommendation {
+	this := MCPResourceRecommendation{}
 	return &this
 }
 
 // GetMinimal returns the Minimal field value if set, zero value otherwise.
-func (o *McpResourceRecommendation) GetMinimal() McpResourceRecommendationMinimal {
+func (o *MCPResourceRecommendation) GetMinimal() MCPResourceRecommendationMinimal {
 	if o == nil || IsNil(o.Minimal) {
-		var ret McpResourceRecommendationMinimal
+		var ret MCPResourceRecommendationMinimal
 		return ret
 	}
 	return *o.Minimal
@@ -52,7 +52,7 @@ func (o *McpResourceRecommendation) GetMinimal() McpResourceRecommendationMinima
 
 // GetMinimalOk returns a tuple with the Minimal field value if set, nil otherwise
 // and a boolean to check if the value has been set.
-func (o *McpResourceRecommendation) GetMinimalOk() (*McpResourceRecommendationMinimal, bool) {
+func (o *MCPResourceRecommendation) GetMinimalOk() (*MCPResourceRecommendationMinimal, bool) {
 	if o == nil || IsNil(o.Minimal) {
 		return nil, false
 	}
@@ -60,7 +60,7 @@ func (o *McpResourceRecommendation) GetMinimalOk() (*McpResourceRecommendationMi
 }
 
 // HasMinimal returns a boolean if a field has been set.
-func (o *McpResourceRecommendation) HasMinimal() bool {
+func (o *MCPResourceRecommendation) HasMinimal() bool {
 	if o != nil && !IsNil(o.Minimal) {
 		return true
 	}
@@ -68,15 +68,15 @@ func (o *McpResourceRecommendation) HasMinimal() bool {
 	return false
 }
 
-// SetMinimal gets a reference to the given McpResourceRecommendationMinimal and assigns it to the Minimal field.
-func (o *McpResourceRecommendation) SetMinimal(v McpResourceRecommendationMinimal) {
+// SetMinimal gets a reference to the given MCPResourceRecommendationMinimal and assigns it to the Minimal field.
+func (o *MCPResourceRecommendation) SetMinimal(v MCPResourceRecommendationMinimal) {
 	o.Minimal = &v
 }
 
 // GetRecommended returns the Recommended field value if set, zero value otherwise.
-func (o *McpResourceRecommendation) GetRecommended() McpResourceRecommendationRecommended {
+func (o *MCPResourceRecommendation) GetRecommended() MCPResourceRecommendationRecommended {
 	if o == nil || IsNil(o.Recommended) {
-		var ret McpResourceRecommendationRecommended
+		var ret MCPResourceRecommendationRecommended
 		return ret
 	}
 	return *o.Recommended
@@ -84,7 +84,7 @@ func (o *McpResourceRecommendation) GetRecommended() McpResourceRecommendationRe
 
 // GetRecommendedOk returns a tuple with the Recommended field value if set, nil otherwise
 // and a boolean to check if the value has been set.
-func (o *McpResourceRecommendation) GetRecommendedOk() (*McpResourceRecommendationRecommended, bool) {
+func (o *MCPResourceRecommendation) GetRecommendedOk() (*MCPResourceRecommendationRecommended, bool) {
 	if o == nil || IsNil(o.Recommended) {
 		return nil, false
 	}
@@ -92,7 +92,7 @@ func (o *McpResourceRecommendation) GetRecommendedOk() (*McpResourceRecommendati
 }
 
 // HasRecommended returns a boolean if a field has been set.
-func (o *McpResourceRecommendation) HasRecommended() bool {
+func (o *MCPResourceRecommendation) HasRecommended() bool {
 	if o != nil && !IsNil(o.Recommended) {
 		return true
 	}
@@ -100,15 +100,15 @@ func (o *McpResourceRecommendation) HasRecommended() bool {
 	return false
 }
 
-// SetRecommended gets a reference to the given McpResourceRecommendationRecommended and assigns it to the Recommended field.
-func (o *McpResourceRecommendation) SetRecommended(v McpResourceRecommendationRecommended) {
+// SetRecommended gets a reference to the given MCPResourceRecommendationRecommended and assigns it to the Recommended field.
+func (o *MCPResourceRecommendation) SetRecommended(v MCPResourceRecommendationRecommended) {
 	o.Recommended = &v
 }
 
 // GetHigh returns the High field value if set, zero value otherwise.
-func (o *McpResourceRecommendation) GetHigh() McpResourceRecommendationHigh {
+func (o *MCPResourceRecommendation) GetHigh() MCPResourceRecommendationHigh {
 	if o == nil || IsNil(o.High) {
-		var ret McpResourceRecommendationHigh
+		var ret MCPResourceRecommendationHigh
 		return ret
 	}
 	return *o.High
@@ -116,7 +116,7 @@ func (o *McpResourceRecommendation) GetHigh() McpResourceRecommendationHigh {
 
 // GetHighOk returns a tuple with the High field value if set, nil otherwise
 // and a boolean to check if the value has been set.
-func (o *McpResourceRecommendation) GetHighOk() (*McpResourceRecommendationHigh, bool) {
+func (o *MCPResourceRecommendation) GetHighOk() (*MCPResourceRecommendationHigh, bool) {
 	if o == nil || IsNil(o.High) {
 		return nil, false
 	}
@@ -124,7 +124,7 @@ func (o *McpResourceRecommendation) GetHighOk() (*McpResourceRecommendationHigh,
 }
 
 // HasHigh returns a boolean if a field has been set.
-func (o *McpResourceRecommendation) HasHigh() bool {
+func (o *MCPResourceRecommendation) HasHigh() bool {
 	if o != nil && !IsNil(o.High) {
 		return true
 	}
@@ -132,12 +132,12 @@ func (o *McpResourceRecommendation) HasHigh() bool {
 	return false
 }
 
-// SetHigh gets a reference to the given McpResourceRecommendationHigh and assigns it to the High field.
-func (o *McpResourceRecommendation) SetHigh(v McpResourceRecommendationHigh) {
+// SetHigh gets a reference to the given MCPResourceRecommendationHigh and assigns it to the High field.
+func (o *MCPResourceRecommendation) SetHigh(v MCPResourceRecommendationHigh) {
 	o.High = &v
 }
 
-func (o McpResourceRecommendation) MarshalJSON() ([]byte, error) {
+func (o MCPResourceRecommendation) MarshalJSON() ([]byte, error) {
 	toSerialize, err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
@@ -145,7 +145,7 @@ func (o McpResourceRecommendation) MarshalJSON() ([]byte, error) {
 	return json.Marshal(toSerialize)
 }
 
-func (o McpResourceRecommendation) ToMap() (map[string]interface{}, error) {
+func (o MCPResourceRecommendation) ToMap() (map[string]interface{}, error) {
 	toSerialize := map[string]interface{}{}
 	if !IsNil(o.Minimal) {
 		toSerialize["minimal"] = o.Minimal
@@ -159,38 +159,38 @@ func (o McpResourceRecommendation) ToMap() (map[string]interface{}, error) {
 	return toSerialize, nil
 }
 
-type NullableMcpResourceRecommendation struct {
-	value *McpResourceRecommendation
+type NullableMCPResourceRecommendation struct {
+	value *MCPResourceRecommendation
 	isSet bool
 }
 
-func (v NullableMcpResourceRecommendation) Get() *McpResourceRecommendation {
+func (v NullableMCPResourceRecommendation) Get() *MCPResourceRecommendation {
 	return v.value
 }
 
-func (v *NullableMcpResourceRecommendation) Set(val *McpResourceRecommendation) {
+func (v *NullableMCPResourceRecommendation) Set(val *MCPResourceRecommendation) {
 	v.value = val
 	v.isSet = true
 }
 
-func (v NullableMcpResourceRecommendation) IsSet() bool {
+func (v NullableMCPResourceRecommendation) IsSet() bool {
 	return v.isSet
 }
 
-func (v *NullableMcpResourceRecommendation) Unset() {
+func (v *NullableMCPResourceRecommendation) Unset() {
 	v.value = nil
 	v.isSet = false
 }
 
-func NewNullableMcpResourceRecommendation(val *McpResourceRecommendation) *NullableMcpResourceRecommendation {
-	return &NullableMcpResourceRecommendation{value: val, isSet: true}
+func NewNullableMCPResourceRecommendation(val *MCPResourceRecommendation) *NullableMCPResourceRecommendation {
+	return &NullableMCPResourceRecommendation{value: val, isSet: true}
 }
 
-func (v NullableMcpResourceRecommendation) MarshalJSON() ([]byte, error) {
+func (v NullableMCPResourceRecommendation) MarshalJSON() ([]byte, error) {
 	return json.Marshal(v.value)
 }
 
-func (v *NullableMcpResourceRecommendation) UnmarshalJSON(src []byte) error {
+func (v *NullableMCPResourceRecommendation) UnmarshalJSON(src []byte) error {
 	v.isSet = true
 	return json.Unmarshal(src, &v.value)
 }

@@ -14,43 +14,43 @@ import (
 	"encoding/json"
 )
 
-// checks if the McpRuntimeMetadata type satisfies the MappedNullable interface at compile time
-var _ MappedNullable = &McpRuntimeMetadata{}
+// checks if the MCPRuntimeMetadata type satisfies the MappedNullable interface at compile time
+var _ MappedNullable = &MCPRuntimeMetadata{}
 
-// McpRuntimeMetadata struct for McpRuntimeMetadata
-type McpRuntimeMetadata struct {
+// MCPRuntimeMetadata struct for MCPRuntimeMetadata
+type MCPRuntimeMetadata struct {
 	// Default port the MCP server listens on. Maps to MCPServer.spec.mcpPort. Should align with the primary transport type.
 	DefaultPort *int32 `json:"defaultPort,omitempty"`
 	// Default command-line arguments for the MCP server. Users can override or extend these in the MCPServer CRD.
 	DefaultArgs []string `json:"defaultArgs,omitempty"`
 	// Environment variables that MUST be set for the server to function. Documents the names and purposes - values come from user's Secrets/ConfigMaps.
-	RequiredEnvironmentVariables []McpEnvVarMetadata `json:"requiredEnvironmentVariables,omitempty"`
+	RequiredEnvironmentVariables []MCPEnvVarMetadata `json:"requiredEnvironmentVariables,omitempty"`
 	// Optional environment variables that configure server behavior. Documents the names, purposes, and default values.
-	OptionalEnvironmentVariables []McpEnvVarMetadata                `json:"optionalEnvironmentVariables,omitempty"`
-	RecommendedResources         *McpResourceRecommendation         `json:"recommendedResources,omitempty"`
-	HealthEndpoints              *McpRuntimeMetadataHealthEndpoints `json:"healthEndpoints,omitempty"`
-	Capabilities                 *McpRuntimeMetadataCapabilities    `json:"capabilities,omitempty"`
+	OptionalEnvironmentVariables []MCPEnvVarMetadata                `json:"optionalEnvironmentVariables,omitempty"`
+	RecommendedResources         *MCPResourceRecommendation         `json:"recommendedResources,omitempty"`
+	HealthEndpoints              *MCPRuntimeMetadataHealthEndpoints `json:"healthEndpoints,omitempty"`
+	Capabilities                 *MCPRuntimeMetadataCapabilities    `json:"capabilities,omitempty"`
 }
 
-// NewMcpRuntimeMetadata instantiates a new McpRuntimeMetadata object
+// NewMCPRuntimeMetadata instantiates a new MCPRuntimeMetadata object
 // This constructor will assign default values to properties that have it defined,
 // and makes sure properties required by API are set, but the set of arguments
 // will change when the set of required properties is changed
-func NewMcpRuntimeMetadata() *McpRuntimeMetadata {
-	this := McpRuntimeMetadata{}
+func NewMCPRuntimeMetadata() *MCPRuntimeMetadata {
+	this := MCPRuntimeMetadata{}
 	return &this
 }
 
-// NewMcpRuntimeMetadataWithDefaults instantiates a new McpRuntimeMetadata object
+// NewMCPRuntimeMetadataWithDefaults instantiates a new MCPRuntimeMetadata object
 // This constructor will only assign default values to properties that have it defined,
 // but it doesn't guarantee that properties required by API are set
-func NewMcpRuntimeMetadataWithDefaults() *McpRuntimeMetadata {
-	this := McpRuntimeMetadata{}
+func NewMCPRuntimeMetadataWithDefaults() *MCPRuntimeMetadata {
+	this := MCPRuntimeMetadata{}
 	return &this
 }
 
 // GetDefaultPort returns the DefaultPort field value if set, zero value otherwise.
-func (o *McpRuntimeMetadata) GetDefaultPort() int32 {
+func (o *MCPRuntimeMetadata) GetDefaultPort() int32 {
 	if o == nil || IsNil(o.DefaultPort) {
 		var ret int32
 		return ret
@@ -60,7 +60,7 @@ func (o *McpRuntimeMetadata) GetDefaultPort() int32 {
 
 // GetDefaultPortOk returns a tuple with the DefaultPort field value if set, nil otherwise
 // and a boolean to check if the value has been set.
-func (o *McpRuntimeMetadata) GetDefaultPortOk() (*int32, bool) {
+func (o *MCPRuntimeMetadata) GetDefaultPortOk() (*int32, bool) {
 	if o == nil || IsNil(o.DefaultPort) {
 		return nil, false
 	}
@@ -68,7 +68,7 @@ func (o *McpRuntimeMetadata) GetDefaultPortOk() (*int32, bool) {
 }
 
 // HasDefaultPort returns a boolean if a field has been set.
-func (o *McpRuntimeMetadata) HasDefaultPort() bool {
+func (o *MCPRuntimeMetadata) HasDefaultPort() bool {
 	if o != nil && !IsNil(o.DefaultPort) {
 		return true
 	}
@@ -77,12 +77,12 @@ func (o *McpRuntimeMetadata) HasDefaultPort() bool {
 }
 
 // SetDefaultPort gets a reference to the given int32 and assigns it to the DefaultPort field.
-func (o *McpRuntimeMetadata) SetDefaultPort(v int32) {
+func (o *MCPRuntimeMetadata) SetDefaultPort(v int32) {
 	o.DefaultPort = &v
 }
 
 // GetDefaultArgs returns the DefaultArgs field value if set, zero value otherwise.
-func (o *McpRuntimeMetadata) GetDefaultArgs() []string {
+func (o *MCPRuntimeMetadata) GetDefaultArgs() []string {
 	if o == nil || IsNil(o.DefaultArgs) {
 		var ret []string
 		return ret
@@ -92,7 +92,7 @@ func (o *McpRuntimeMetadata) GetDefaultArgs() []string {
 
 // GetDefaultArgsOk returns a tuple with the DefaultArgs field value if set, nil otherwise
 // and a boolean to check if the value has been set.
-func (o *McpRuntimeMetadata) GetDefaultArgsOk() ([]string, bool) {
+func (o *MCPRuntimeMetadata) GetDefaultArgsOk() ([]string, bool) {
 	if o == nil || IsNil(o.DefaultArgs) {
 		return nil, false
 	}
@@ -100,7 +100,7 @@ func (o *McpRuntimeMetadata) GetDefaultArgsOk() ([]string, bool) {
 }
 
 // HasDefaultArgs returns a boolean if a field has been set.
-func (o *McpRuntimeMetadata) HasDefaultArgs() bool {
+func (o *MCPRuntimeMetadata) HasDefaultArgs() bool {
 	if o != nil && !IsNil(o.DefaultArgs) {
 		return true
 	}
@@ -109,14 +109,14 @@ func (o *McpRuntimeMetadata) HasDefaultArgs() bool {
 }
 
 // SetDefaultArgs gets a reference to the given []string and assigns it to the DefaultArgs field.
-func (o *McpRuntimeMetadata) SetDefaultArgs(v []string) {
+func (o *MCPRuntimeMetadata) SetDefaultArgs(v []string) {
 	o.DefaultArgs = v
 }
 
 // GetRequiredEnvironmentVariables returns the RequiredEnvironmentVariables field value if set, zero value otherwise.
-func (o *McpRuntimeMetadata) GetRequiredEnvironmentVariables() []McpEnvVarMetadata {
+func (o *MCPRuntimeMetadata) GetRequiredEnvironmentVariables() []MCPEnvVarMetadata {
 	if o == nil || IsNil(o.RequiredEnvironmentVariables) {
-		var ret []McpEnvVarMetadata
+		var ret []MCPEnvVarMetadata
 		return ret
 	}
 	return o.RequiredEnvironmentVariables
@@ -124,7 +124,7 @@ func (o *McpRuntimeMetadata) GetRequiredEnvironmentVariables() []McpEnvVarMetada
 
 // GetRequiredEnvironmentVariablesOk returns a tuple with the RequiredEnvironmentVariables field value if set, nil otherwise
 // and a boolean to check if the value has been set.
-func (o *McpRuntimeMetadata) GetRequiredEnvironmentVariablesOk() ([]McpEnvVarMetadata, bool) {
+func (o *MCPRuntimeMetadata) GetRequiredEnvironmentVariablesOk() ([]MCPEnvVarMetadata, bool) {
 	if o == nil || IsNil(o.RequiredEnvironmentVariables) {
 		return nil, false
 	}
@@ -132,7 +132,7 @@ func (o *McpRuntimeMetadata) GetRequiredEnvironmentVariablesOk() ([]McpEnvVarMet
 }
 
 // HasRequiredEnvironmentVariables returns a boolean if a field has been set.
-func (o *McpRuntimeMetadata) HasRequiredEnvironmentVariables() bool {
+func (o *MCPRuntimeMetadata) HasRequiredEnvironmentVariables() bool {
 	if o != nil && !IsNil(o.RequiredEnvironmentVariables) {
 		return true
 	}
@@ -140,15 +140,15 @@ func (o *McpRuntimeMetadata) HasRequiredEnvironmentVariables() bool {
 	return false
 }
 
-// SetRequiredEnvironmentVariables gets a reference to the given []McpEnvVarMetadata and assigns it to the RequiredEnvironmentVariables field.
-func (o *McpRuntimeMetadata) SetRequiredEnvironmentVariables(v []McpEnvVarMetadata) {
+// SetRequiredEnvironmentVariables gets a reference to the given []MCPEnvVarMetadata and assigns it to the RequiredEnvironmentVariables field.
+func (o *MCPRuntimeMetadata) SetRequiredEnvironmentVariables(v []MCPEnvVarMetadata) {
 	o.RequiredEnvironmentVariables = v
 }
 
 // GetOptionalEnvironmentVariables returns the OptionalEnvironmentVariables field value if set, zero value otherwise.
-func (o *McpRuntimeMetadata) GetOptionalEnvironmentVariables() []McpEnvVarMetadata {
+func (o *MCPRuntimeMetadata) GetOptionalEnvironmentVariables() []MCPEnvVarMetadata {
 	if o == nil || IsNil(o.OptionalEnvironmentVariables) {
-		var ret []McpEnvVarMetadata
+		var ret []MCPEnvVarMetadata
 		return ret
 	}
 	return o.OptionalEnvironmentVariables
@@ -156,7 +156,7 @@ func (o *McpRuntimeMetadata) GetOptionalEnvironmentVariables() []McpEnvVarMetada
 
 // GetOptionalEnvironmentVariablesOk returns a tuple with the OptionalEnvironmentVariables field value if set, nil otherwise
 // and a boolean to check if the value has been set.
-func (o *McpRuntimeMetadata) GetOptionalEnvironmentVariablesOk() ([]McpEnvVarMetadata, bool) {
+func (o *MCPRuntimeMetadata) GetOptionalEnvironmentVariablesOk() ([]MCPEnvVarMetadata, bool) {
 	if o == nil || IsNil(o.OptionalEnvironmentVariables) {
 		return nil, false
 	}
@@ -164,7 +164,7 @@ func (o *McpRuntimeMetadata) GetOptionalEnvironmentVariablesOk() ([]McpEnvVarMet
 }
 
 // HasOptionalEnvironmentVariables returns a boolean if a field has been set.
-func (o *McpRuntimeMetadata) HasOptionalEnvironmentVariables() bool {
+func (o *MCPRuntimeMetadata) HasOptionalEnvironmentVariables() bool {
 	if o != nil && !IsNil(o.OptionalEnvironmentVariables) {
 		return true
 	}
@@ -172,15 +172,15 @@ func (o *McpRuntimeMetadata) HasOptionalEnvironmentVariables() bool {
 	return false
 }
 
-// SetOptionalEnvironmentVariables gets a reference to the given []McpEnvVarMetadata and assigns it to the OptionalEnvironmentVariables field.
-func (o *McpRuntimeMetadata) SetOptionalEnvironmentVariables(v []McpEnvVarMetadata) {
+// SetOptionalEnvironmentVariables gets a reference to the given []MCPEnvVarMetadata and assigns it to the OptionalEnvironmentVariables field.
+func (o *MCPRuntimeMetadata) SetOptionalEnvironmentVariables(v []MCPEnvVarMetadata) {
 	o.OptionalEnvironmentVariables = v
 }
 
 // GetRecommendedResources returns the RecommendedResources field value if set, zero value otherwise.
-func (o *McpRuntimeMetadata) GetRecommendedResources() McpResourceRecommendation {
+func (o *MCPRuntimeMetadata) GetRecommendedResources() MCPResourceRecommendation {
 	if o == nil || IsNil(o.RecommendedResources) {
-		var ret McpResourceRecommendation
+		var ret MCPResourceRecommendation
 		return ret
 	}
 	return *o.RecommendedResources
@@ -188,7 +188,7 @@ func (o *McpRuntimeMetadata) GetRecommendedResources() McpResourceRecommendation
 
 // GetRecommendedResourcesOk returns a tuple with the RecommendedResources field value if set, nil otherwise
 // and a boolean to check if the value has been set.
-func (o *McpRuntimeMetadata) GetRecommendedResourcesOk() (*McpResourceRecommendation, bool) {
+func (o *MCPRuntimeMetadata) GetRecommendedResourcesOk() (*MCPResourceRecommendation, bool) {
 	if o == nil || IsNil(o.RecommendedResources) {
 		return nil, false
 	}
@@ -196,7 +196,7 @@ func (o *McpRuntimeMetadata) GetRecommendedResourcesOk() (*McpResourceRecommenda
 }
 
 // HasRecommendedResources returns a boolean if a field has been set.
-func (o *McpRuntimeMetadata) HasRecommendedResources() bool {
+func (o *MCPRuntimeMetadata) HasRecommendedResources() bool {
 	if o != nil && !IsNil(o.RecommendedResources) {
 		return true
 	}
@@ -204,15 +204,15 @@ func (o *McpRuntimeMetadata) HasRecommendedResources() bool {
 	return false
 }
 
-// SetRecommendedResources gets a reference to the given McpResourceRecommendation and assigns it to the RecommendedResources field.
-func (o *McpRuntimeMetadata) SetRecommendedResources(v McpResourceRecommendation) {
+// SetRecommendedResources gets a reference to the given MCPResourceRecommendation and assigns it to the RecommendedResources field.
+func (o *MCPRuntimeMetadata) SetRecommendedResources(v MCPResourceRecommendation) {
 	o.RecommendedResources = &v
 }
 
 // GetHealthEndpoints returns the HealthEndpoints field value if set, zero value otherwise.
-func (o *McpRuntimeMetadata) GetHealthEndpoints() McpRuntimeMetadataHealthEndpoints {
+func (o *MCPRuntimeMetadata) GetHealthEndpoints() MCPRuntimeMetadataHealthEndpoints {
 	if o == nil || IsNil(o.HealthEndpoints) {
-		var ret McpRuntimeMetadataHealthEndpoints
+		var ret MCPRuntimeMetadataHealthEndpoints
 		return ret
 	}
 	return *o.HealthEndpoints
@@ -220,7 +220,7 @@ func (o *McpRuntimeMetadata) GetHealthEndpoints() McpRuntimeMetadataHealthEndpoi
 
 // GetHealthEndpointsOk returns a tuple with the HealthEndpoints field value if set, nil otherwise
 // and a boolean to check if the value has been set.
-func (o *McpRuntimeMetadata) GetHealthEndpointsOk() (*McpRuntimeMetadataHealthEndpoints, bool) {
+func (o *MCPRuntimeMetadata) GetHealthEndpointsOk() (*MCPRuntimeMetadataHealthEndpoints, bool) {
 	if o == nil || IsNil(o.HealthEndpoints) {
 		return nil, false
 	}
@@ -228,7 +228,7 @@ func (o *McpRuntimeMetadata) GetHealthEndpointsOk() (*McpRuntimeMetadataHealthEn
 }
 
 // HasHealthEndpoints returns a boolean if a field has been set.
-func (o *McpRuntimeMetadata) HasHealthEndpoints() bool {
+func (o *MCPRuntimeMetadata) HasHealthEndpoints() bool {
 	if o != nil && !IsNil(o.HealthEndpoints) {
 		return true
 	}
@@ -236,15 +236,15 @@ func (o *McpRuntimeMetadata) HasHealthEndpoints() bool {
 	return false
 }
 
-// SetHealthEndpoints gets a reference to the given McpRuntimeMetadataHealthEndpoints and assigns it to the HealthEndpoints field.
-func (o *McpRuntimeMetadata) SetHealthEndpoints(v McpRuntimeMetadataHealthEndpoints) {
+// SetHealthEndpoints gets a reference to the given MCPRuntimeMetadataHealthEndpoints and assigns it to the HealthEndpoints field.
+func (o *MCPRuntimeMetadata) SetHealthEndpoints(v MCPRuntimeMetadataHealthEndpoints) {
 	o.HealthEndpoints = &v
 }
 
 // GetCapabilities returns the Capabilities field value if set, zero value otherwise.
-func (o *McpRuntimeMetadata) GetCapabilities() McpRuntimeMetadataCapabilities {
+func (o *MCPRuntimeMetadata) GetCapabilities() MCPRuntimeMetadataCapabilities {
 	if o == nil || IsNil(o.Capabilities) {
-		var ret McpRuntimeMetadataCapabilities
+		var ret MCPRuntimeMetadataCapabilities
 		return ret
 	}
 	return *o.Capabilities
@@ -252,7 +252,7 @@ func (o *McpRuntimeMetadata) GetCapabilities() McpRuntimeMetadataCapabilities {
 
 // GetCapabilitiesOk returns a tuple with the Capabilities field value if set, nil otherwise
 // and a boolean to check if the value has been set.
-func (o *McpRuntimeMetadata) GetCapabilitiesOk() (*McpRuntimeMetadataCapabilities, bool) {
+func (o *MCPRuntimeMetadata) GetCapabilitiesOk() (*MCPRuntimeMetadataCapabilities, bool) {
 	if o == nil || IsNil(o.Capabilities) {
 		return nil, false
 	}
@@ -260,7 +260,7 @@ func (o *McpRuntimeMetadata) GetCapabilitiesOk() (*McpRuntimeMetadataCapabilitie
 }
 
 // HasCapabilities returns a boolean if a field has been set.
-func (o *McpRuntimeMetadata) HasCapabilities() bool {
+func (o *MCPRuntimeMetadata) HasCapabilities() bool {
 	if o != nil && !IsNil(o.Capabilities) {
 		return true
 	}
@@ -268,12 +268,12 @@ func (o *McpRuntimeMetadata) HasCapabilities() bool {
 	return false
 }
 
-// SetCapabilities gets a reference to the given McpRuntimeMetadataCapabilities and assigns it to the Capabilities field.
-func (o *McpRuntimeMetadata) SetCapabilities(v McpRuntimeMetadataCapabilities) {
+// SetCapabilities gets a reference to the given MCPRuntimeMetadataCapabilities and assigns it to the Capabilities field.
+func (o *MCPRuntimeMetadata) SetCapabilities(v MCPRuntimeMetadataCapabilities) {
 	o.Capabilities = &v
 }
 
-func (o McpRuntimeMetadata) MarshalJSON() ([]byte, error) {
+func (o MCPRuntimeMetadata) MarshalJSON() ([]byte, error) {
 	toSerialize, err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
@@ -281,7 +281,7 @@ func (o McpRuntimeMetadata) MarshalJSON() ([]byte, error) {
 	return json.Marshal(toSerialize)
 }
 
-func (o McpRuntimeMetadata) ToMap() (map[string]interface{}, error) {
+func (o MCPRuntimeMetadata) ToMap() (map[string]interface{}, error) {
 	toSerialize := map[string]interface{}{}
 	if !IsNil(o.DefaultPort) {
 		toSerialize["defaultPort"] = o.DefaultPort
@@ -307,38 +307,38 @@ func (o McpRuntimeMetadata) ToMap() (map[string]interface{}, error) {
 	return toSerialize, nil
 }
 
-type NullableMcpRuntimeMetadata struct {
-	value *McpRuntimeMetadata
+type NullableMCPRuntimeMetadata struct {
+	value *MCPRuntimeMetadata
 	isSet bool
 }
 
-func (v NullableMcpRuntimeMetadata) Get() *McpRuntimeMetadata {
+func (v NullableMCPRuntimeMetadata) Get() *MCPRuntimeMetadata {
 	return v.value
 }
 
-func (v *NullableMcpRuntimeMetadata) Set(val *McpRuntimeMetadata) {
+func (v *NullableMCPRuntimeMetadata) Set(val *MCPRuntimeMetadata) {
 	v.value = val
 	v.isSet = true
 }
 
-func (v NullableMcpRuntimeMetadata) IsSet() bool {
+func (v NullableMCPRuntimeMetadata) IsSet() bool {
 	return v.isSet
 }
 
-func (v *NullableMcpRuntimeMetadata) Unset() {
+func (v *NullableMCPRuntimeMetadata) Unset() {
 	v.value = nil
 	v.isSet = false
 }
 
-func NewNullableMcpRuntimeMetadata(val *McpRuntimeMetadata) *NullableMcpRuntimeMetadata {
-	return &NullableMcpRuntimeMetadata{value: val, isSet: true}
+func NewNullableMCPRuntimeMetadata(val *MCPRuntimeMetadata) *NullableMCPRuntimeMetadata {
+	return &NullableMCPRuntimeMetadata{value: val, isSet: true}
 }
 
-func (v NullableMcpRuntimeMetadata) MarshalJSON() ([]byte, error) {
+func (v NullableMCPRuntimeMetadata) MarshalJSON() ([]byte, error) {
 	return json.Marshal(v.value)
 }
 
-func (v *NullableMcpRuntimeMetadata) UnmarshalJSON(src []byte) error {
+func (v *NullableMCPRuntimeMetadata) UnmarshalJSON(src []byte) error {
 	v.isSet = true
 	return json.Unmarshal(src, &v.value)
 }

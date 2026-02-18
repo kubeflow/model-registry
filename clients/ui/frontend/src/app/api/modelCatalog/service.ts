@@ -2,6 +2,7 @@ import { APIOptions, handleRestFailures, isModArchResponse, restGET } from 'mod-
 import {
   CatalogArtifactList,
   CatalogFilterOptionsList,
+  CatalogLabelList,
   CatalogModel,
   CatalogModelList,
   CatalogPerformanceArtifactList,
@@ -142,3 +143,13 @@ export const getPerformanceArtifacts =
       throw new Error('Invalid response format');
     });
   };
+
+export const getCatalogLabels =
+  (hostPath: string, queryParams: Record<string, unknown> = {}) =>
+  (opts: APIOptions): Promise<CatalogLabelList> =>
+    handleRestFailures(restGET(hostPath, '/labels', queryParams, opts)).then((response) => {
+      if (isModArchResponse<CatalogLabelList>(response)) {
+        return response.data;
+      }
+      throw new Error('Invalid response format');
+    });

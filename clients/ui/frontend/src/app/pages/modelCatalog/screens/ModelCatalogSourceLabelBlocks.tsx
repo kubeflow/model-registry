@@ -6,6 +6,8 @@ import {
   getUniqueSourceLabels,
   filterEnabledCatalogSources,
   hasSourcesWithoutLabels,
+  orderLabelsByPriority,
+  getLabelDisplayName,
 } from '~/app/pages/modelCatalog/utils/modelCatalogUtils';
 
 type SourceLabelBlock = {
@@ -15,7 +17,7 @@ type SourceLabelBlock = {
 };
 
 const ModelCatalogSourceLabelBlocks: React.FC = () => {
-  const { catalogSources, updateSelectedSourceLabel, selectedSourceLabel } =
+  const { catalogSources, catalogLabels, updateSelectedSourceLabel, selectedSourceLabel } =
     React.useContext(ModelCatalogContext);
 
   const blocks: SourceLabelBlock[] = React.useMemo(() => {
@@ -27,16 +29,19 @@ const ModelCatalogSourceLabelBlocks: React.FC = () => {
     const uniqueLabels = getUniqueSourceLabels(enabledSources);
     const hasNoLabels = hasSourcesWithoutLabels(enabledSources);
 
+    // Order labels according to catalogLabels priority
+    const orderedLabels = orderLabelsByPriority(uniqueLabels, catalogLabels);
+
     const allBlock: SourceLabelBlock = {
       id: 'all',
       label: CategoryName.allModels,
       displayName: CategoryName.allModels,
     };
 
-    const labelBlocks: SourceLabelBlock[] = uniqueLabels.map((label) => ({
+    const labelBlocks: SourceLabelBlock[] = orderedLabels.map((label) => ({
       id: `label-${label}`,
       label,
-      displayName: `${label} models`,
+      displayName: getLabelDisplayName(label, catalogLabels),
     }));
 
     const blocksToReturn: SourceLabelBlock[] = [allBlock, ...labelBlocks];
@@ -45,13 +50,13 @@ const ModelCatalogSourceLabelBlocks: React.FC = () => {
       const noLabelsBlock: SourceLabelBlock = {
         id: 'no-labels',
         label: SourceLabel.other,
-        displayName: CategoryName.otherModels,
+        displayName: getLabelDisplayName(SourceLabel.other, catalogLabels),
       };
       blocksToReturn.push(noLabelsBlock);
     }
 
     return blocksToReturn;
-  }, [catalogSources]);
+  }, [catalogSources, catalogLabels]);
 
   if (!catalogSources) {
     return null;

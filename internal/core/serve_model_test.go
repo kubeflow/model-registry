@@ -1085,7 +1085,6 @@ func TestServeModelRoundTrip(t *testing.T) {
 	})
 }
 
-
 func TestUpsertServeModel_HFModelValidation(t *testing.T) {
 	_service, cleanup := SetupModelRegistryService(t)
 	defer cleanup()

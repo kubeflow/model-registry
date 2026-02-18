@@ -14,11 +14,11 @@ import (
 	"encoding/json"
 )
 
-// checks if the McpRuntimeMetadataCapabilities type satisfies the MappedNullable interface at compile time
-var _ MappedNullable = &McpRuntimeMetadataCapabilities{}
+// checks if the MCPRuntimeMetadataCapabilities type satisfies the MappedNullable interface at compile time
+var _ MappedNullable = &MCPRuntimeMetadataCapabilities{}
 
-// McpRuntimeMetadataCapabilities Runtime capabilities and requirements for this MCP server. Helps users understand what the server needs to run properly.
-type McpRuntimeMetadataCapabilities struct {
+// MCPRuntimeMetadataCapabilities Runtime capabilities and requirements for this MCP server. Helps users understand what the server needs to run properly.
+type MCPRuntimeMetadataCapabilities struct {
 	// Whether server requires network access
 	RequiresNetwork *bool `json:"requiresNetwork,omitempty"`
 	// Whether server requires writable filesystem
@@ -27,12 +27,12 @@ type McpRuntimeMetadataCapabilities struct {
 	RequiresGPU *bool `json:"requiresGPU,omitempty"`
 }
 
-// NewMcpRuntimeMetadataCapabilities instantiates a new McpRuntimeMetadataCapabilities object
+// NewMCPRuntimeMetadataCapabilities instantiates a new MCPRuntimeMetadataCapabilities object
 // This constructor will assign default values to properties that have it defined,
 // and makes sure properties required by API are set, but the set of arguments
 // will change when the set of required properties is changed
-func NewMcpRuntimeMetadataCapabilities() *McpRuntimeMetadataCapabilities {
-	this := McpRuntimeMetadataCapabilities{}
+func NewMCPRuntimeMetadataCapabilities() *MCPRuntimeMetadataCapabilities {
+	this := MCPRuntimeMetadataCapabilities{}
 	var requiresNetwork bool = true
 	this.RequiresNetwork = &requiresNetwork
 	var requiresFileSystem bool = false
@@ -42,11 +42,11 @@ func NewMcpRuntimeMetadataCapabilities() *McpRuntimeMetadataCapabilities {
 	return &this
 }
 
-// NewMcpRuntimeMetadataCapabilitiesWithDefaults instantiates a new McpRuntimeMetadataCapabilities object
+// NewMCPRuntimeMetadataCapabilitiesWithDefaults instantiates a new MCPRuntimeMetadataCapabilities object
 // This constructor will only assign default values to properties that have it defined,
 // but it doesn't guarantee that properties required by API are set
-func NewMcpRuntimeMetadataCapabilitiesWithDefaults() *McpRuntimeMetadataCapabilities {
-	this := McpRuntimeMetadataCapabilities{}
+func NewMCPRuntimeMetadataCapabilitiesWithDefaults() *MCPRuntimeMetadataCapabilities {
+	this := MCPRuntimeMetadataCapabilities{}
 	var requiresNetwork bool = true
 	this.RequiresNetwork = &requiresNetwork
 	var requiresFileSystem bool = false
@@ -57,7 +57,7 @@ func NewMcpRuntimeMetadataCapabilitiesWithDefaults() *McpRuntimeMetadataCapabili
 }
 
 // GetRequiresNetwork returns the RequiresNetwork field value if set, zero value otherwise.
-func (o *McpRuntimeMetadataCapabilities) GetRequiresNetwork() bool {
+func (o *MCPRuntimeMetadataCapabilities) GetRequiresNetwork() bool {
 	if o == nil || IsNil(o.RequiresNetwork) {
 		var ret bool
 		return ret
@@ -67,7 +67,7 @@ func (o *McpRuntimeMetadataCapabilities) GetRequiresNetwork() bool {
 
 // GetRequiresNetworkOk returns a tuple with the RequiresNetwork field value if set, nil otherwise
 // and a boolean to check if the value has been set.
-func (o *McpRuntimeMetadataCapabilities) GetRequiresNetworkOk() (*bool, bool) {
+func (o *MCPRuntimeMetadataCapabilities) GetRequiresNetworkOk() (*bool, bool) {
 	if o == nil || IsNil(o.RequiresNetwork) {
 		return nil, false
 	}
@@ -75,7 +75,7 @@ func (o *McpRuntimeMetadataCapabilities) GetRequiresNetworkOk() (*bool, bool) {
 }
 
 // HasRequiresNetwork returns a boolean if a field has been set.
-func (o *McpRuntimeMetadataCapabilities) HasRequiresNetwork() bool {
+func (o *MCPRuntimeMetadataCapabilities) HasRequiresNetwork() bool {
 	if o != nil && !IsNil(o.RequiresNetwork) {
 		return true
 	}
@@ -84,12 +84,12 @@ func (o *McpRuntimeMetadataCapabilities) HasRequiresNetwork() bool {
 }
 
 // SetRequiresNetwork gets a reference to the given bool and assigns it to the RequiresNetwork field.
-func (o *McpRuntimeMetadataCapabilities) SetRequiresNetwork(v bool) {
+func (o *MCPRuntimeMetadataCapabilities) SetRequiresNetwork(v bool) {
 	o.RequiresNetwork = &v
 }
 
 // GetRequiresFileSystem returns the RequiresFileSystem field value if set, zero value otherwise.
-func (o *McpRuntimeMetadataCapabilities) GetRequiresFileSystem() bool {
+func (o *MCPRuntimeMetadataCapabilities) GetRequiresFileSystem() bool {
 	if o == nil || IsNil(o.RequiresFileSystem) {
 		var ret bool
 		return ret
@@ -99,7 +99,7 @@ func (o *McpRuntimeMetadataCapabilities) GetRequiresFileSystem() bool {
 
 // GetRequiresFileSystemOk returns a tuple with the RequiresFileSystem field value if set, nil otherwise
 // and a boolean to check if the value has been set.
-func (o *McpRuntimeMetadataCapabilities) GetRequiresFileSystemOk() (*bool, bool) {
+func (o *MCPRuntimeMetadataCapabilities) GetRequiresFileSystemOk() (*bool, bool) {
 	if o == nil || IsNil(o.RequiresFileSystem) {
 		return nil, false
 	}
@@ -107,7 +107,7 @@ func (o *McpRuntimeMetadataCapabilities) GetRequiresFileSystemOk() (*bool, bool)
 }
 
 // HasRequiresFileSystem returns a boolean if a field has been set.
-func (o *McpRuntimeMetadataCapabilities) HasRequiresFileSystem() bool {
+func (o *MCPRuntimeMetadataCapabilities) HasRequiresFileSystem() bool {
 	if o != nil && !IsNil(o.RequiresFileSystem) {
 		return true
 	}
@@ -116,12 +116,12 @@ func (o *McpRuntimeMetadataCapabilities) HasRequiresFileSystem() bool {
 }
 
 // SetRequiresFileSystem gets a reference to the given bool and assigns it to the RequiresFileSystem field.
-func (o *McpRuntimeMetadataCapabilities) SetRequiresFileSystem(v bool) {
+func (o *MCPRuntimeMetadataCapabilities) SetRequiresFileSystem(v bool) {
 	o.RequiresFileSystem = &v
 }
 
 // GetRequiresGPU returns the RequiresGPU field value if set, zero value otherwise.
-func (o *McpRuntimeMetadataCapabilities) GetRequiresGPU() bool {
+func (o *MCPRuntimeMetadataCapabilities) GetRequiresGPU() bool {
 	if o == nil || IsNil(o.RequiresGPU) {
 		var ret bool
 		return ret
@@ -131,7 +131,7 @@ func (o *McpRuntimeMetadataCapabilities) GetRequiresGPU() bool {
 
 // GetRequiresGPUOk returns a tuple with the RequiresGPU field value if set, nil otherwise
 // and a boolean to check if the value has been set.
-func (o *McpRuntimeMetadataCapabilities) GetRequiresGPUOk() (*bool, bool) {
+func (o *MCPRuntimeMetadataCapabilities) GetRequiresGPUOk() (*bool, bool) {
 	if o == nil || IsNil(o.RequiresGPU) {
 		return nil, false
 	}
@@ -139,7 +139,7 @@ func (o *McpRuntimeMetadataCapabilities) GetRequiresGPUOk() (*bool, bool) {
 }
 
 // HasRequiresGPU returns a boolean if a field has been set.
-func (o *McpRuntimeMetadataCapabilities) HasRequiresGPU() bool {
+func (o *MCPRuntimeMetadataCapabilities) HasRequiresGPU() bool {
 	if o != nil && !IsNil(o.RequiresGPU) {
 		return true
 	}
@@ -148,11 +148,11 @@ func (o *McpRuntimeMetadataCapabilities) HasRequiresGPU() bool {
 }
 
 // SetRequiresGPU gets a reference to the given bool and assigns it to the RequiresGPU field.
-func (o *McpRuntimeMetadataCapabilities) SetRequiresGPU(v bool) {
+func (o *MCPRuntimeMetadataCapabilities) SetRequiresGPU(v bool) {
 	o.RequiresGPU = &v
 }
 
-func (o McpRuntimeMetadataCapabilities) MarshalJSON() ([]byte, error) {
+func (o MCPRuntimeMetadataCapabilities) MarshalJSON() ([]byte, error) {
 	toSerialize, err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
@@ -160,7 +160,7 @@ func (o McpRuntimeMetadataCapabilities) MarshalJSON() ([]byte, error) {
 	return json.Marshal(toSerialize)
 }
 
-func (o McpRuntimeMetadataCapabilities) ToMap() (map[string]interface{}, error) {
+func (o MCPRuntimeMetadataCapabilities) ToMap() (map[string]interface{}, error) {
 	toSerialize := map[string]interface{}{}
 	if !IsNil(o.RequiresNetwork) {
 		toSerialize["requiresNetwork"] = o.RequiresNetwork
@@ -174,38 +174,38 @@ func (o McpRuntimeMetadataCapabilities) ToMap() (map[string]interface{}, error) 
 	return toSerialize, nil
 }
 
-type NullableMcpRuntimeMetadataCapabilities struct {
-	value *McpRuntimeMetadataCapabilities
+type NullableMCPRuntimeMetadataCapabilities struct {
+	value *MCPRuntimeMetadataCapabilities
 	isSet bool
 }
 
-func (v NullableMcpRuntimeMetadataCapabilities) Get() *McpRuntimeMetadataCapabilities {
+func (v NullableMCPRuntimeMetadataCapabilities) Get() *MCPRuntimeMetadataCapabilities {
 	return v.value
 }
 
-func (v *NullableMcpRuntimeMetadataCapabilities) Set(val *McpRuntimeMetadataCapabilities) {
+func (v *NullableMCPRuntimeMetadataCapabilities) Set(val *MCPRuntimeMetadataCapabilities) {
 	v.value = val
 	v.isSet = true
 }
 
-func (v NullableMcpRuntimeMetadataCapabilities) IsSet() bool {
+func (v NullableMCPRuntimeMetadataCapabilities) IsSet() bool {
 	return v.isSet
 }
 
-func (v *NullableMcpRuntimeMetadataCapabilities) Unset() {
+func (v *NullableMCPRuntimeMetadataCapabilities) Unset() {
 	v.value = nil
 	v.isSet = false
 }
 
-func NewNullableMcpRuntimeMetadataCapabilities(val *McpRuntimeMetadataCapabilities) *NullableMcpRuntimeMetadataCapabilities {
-	return &NullableMcpRuntimeMetadataCapabilities{value: val, isSet: true}
+func NewNullableMCPRuntimeMetadataCapabilities(val *MCPRuntimeMetadataCapabilities) *NullableMCPRuntimeMetadataCapabilities {
+	return &NullableMCPRuntimeMetadataCapabilities{value: val, isSet: true}
 }
 
-func (v NullableMcpRuntimeMetadataCapabilities) MarshalJSON() ([]byte, error) {
+func (v NullableMCPRuntimeMetadataCapabilities) MarshalJSON() ([]byte, error) {
 	return json.Marshal(v.value)
 }
 
-func (v *NullableMcpRuntimeMetadataCapabilities) UnmarshalJSON(src []byte) error {
+func (v *NullableMCPRuntimeMetadataCapabilities) UnmarshalJSON(src []byte) error {
 	v.isSet = true
 	return json.Unmarshal(src, &v.value)
 }
