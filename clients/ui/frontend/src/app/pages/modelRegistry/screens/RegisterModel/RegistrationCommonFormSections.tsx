@@ -31,10 +31,9 @@ type RegistrationCommonFormSectionsProps<D extends RegistrationCommonFormData> =
   isFirstVersion: boolean;
   latestVersion?: ModelVersion;
   isCatalogModel?: boolean;
-  registryName?: string;
-  registryNamespace?: string;
-  /** When in Register and Store mode, access result from useCheckNamespaceRegistryAccess (single source of truth) */
   namespaceHasAccess?: boolean;
+  isNamespaceAccessLoading?: boolean;
+  namespaceAccessError?: Error | undefined;
 };
 
 const RegistrationCommonFormSections = <D extends RegistrationCommonFormData>({
@@ -43,9 +42,9 @@ const RegistrationCommonFormSections = <D extends RegistrationCommonFormData>({
   isFirstVersion,
   latestVersion,
   isCatalogModel,
-  registryName,
-  registryNamespace,
   namespaceHasAccess,
+  isNamespaceAccessLoading,
+  namespaceAccessError,
 }: RegistrationCommonFormSectionsProps<D>): React.ReactNode => {
   const isVersionNameValid = isNameValid(formData.versionName);
   const isRegistryStorageFeatureAvailable = useTempDevFeatureAvailable(
@@ -198,9 +197,9 @@ const RegistrationCommonFormSections = <D extends RegistrationCommonFormData>({
             formData={formData}
             setData={setData}
             isCatalogModel={isCatalogModel}
-            registryName={registryName}
-            registryNamespace={registryNamespace}
             namespaceHasAccess={namespaceHasAccess}
+            isNamespaceAccessLoading={isNamespaceAccessLoading}
+            namespaceAccessError={namespaceAccessError}
           />
         )}
       </FormSection>

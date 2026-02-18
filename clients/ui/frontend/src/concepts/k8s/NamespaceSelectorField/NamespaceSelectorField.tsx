@@ -10,7 +10,6 @@ import {
   StackItem,
 } from '@patternfly/react-core';
 import { useNamespaceSelector } from 'mod-arch-core';
-import { useCheckNamespaceRegistryAccess } from '~/app/hooks/useCheckNamespaceRegistryAccess';
 import ThemeAwareFormGroupWrapper from '~/app/pages/settings/components/ThemeAwareFormGroupWrapper';
 import NamespaceSelector from '~/app/standalone/NamespaceSelector';
 
@@ -48,29 +47,20 @@ const WHO_IS_MY_ADMIN_POPOVER_CONTENT = (
 export type NamespaceSelectorFieldProps = {
   selectedNamespace: string;
   onSelect: (namespace: string) => void;
-  registryName?: string;
-  registryNamespace?: string;
-  onAccessChange?: (hasAccess: boolean | undefined) => void;
+  /** Access check result from parent (useCheckNamespaceRegistryAccess); single source of truth to avoid duplicate network calls */
+  hasAccess?: boolean | undefined;
+  isLoading?: boolean;
+  error?: Error | undefined;
 };
 
 const NamespaceSelectorField: React.FC<NamespaceSelectorFieldProps> = ({
   selectedNamespace,
   onSelect,
-  registryName,
-  registryNamespace,
-  onAccessChange,
+  hasAccess,
+  isLoading,
+  error,
 }) => {
   const labelHelpRef = useRef<HTMLSpanElement>(null);
-  const { hasAccess, isLoading, error } = useCheckNamespaceRegistryAccess(
-    registryName,
-    registryNamespace,
-    selectedNamespace,
-  );
-
-  React.useEffect(() => {
-    onAccessChange?.(hasAccess);
-  }, [hasAccess, onAccessChange]);
-
   const { namespaces = [] } = useNamespaceSelector();
   const isDisabled = namespaces.length === 0;
 

@@ -50,8 +50,11 @@ const RegisterModel: React.FC = () => {
   );
   const [registeredModels, registeredModelsLoaded, registeredModelsLoadError] =
     useRegisteredModels();
-  const { hasAccess: namespaceHasAccess, isLoading: isNamespaceAccessLoading } =
-    useCheckNamespaceRegistryAccess(mrName, registryNamespace, formData.namespace ?? '');
+  const {
+    hasAccess: namespaceHasAccess,
+    isLoading: isNamespaceAccessLoading,
+    error: namespaceAccessError,
+  } = useCheckNamespaceRegistryAccess(mrName, registryNamespace, formData.namespace ?? '');
 
   const isModelNameValid = isNameValid(formData.modelName);
   const isModelNameDuplicate = isModelNameExisting(formData.modelName, registeredModels);
@@ -141,9 +144,9 @@ const RegisterModel: React.FC = () => {
                 formData={formData}
                 setData={setData}
                 isFirstVersion
-                registryName={mrName}
-                registryNamespace={registryNamespace}
                 namespaceHasAccess={namespaceHasAccess}
+                isNamespaceAccessLoading={isNamespaceAccessLoading}
+                namespaceAccessError={namespaceAccessError}
               />
             </StackItem>
           </Stack>

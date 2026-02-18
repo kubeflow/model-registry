@@ -45,8 +45,11 @@ const RegisterVersion: React.FC = () => {
   const author = user.userId || '';
   const [isSubmitting, setIsSubmitting] = React.useState(false);
   const [formData, setData] = useRegisterVersionData(prefilledRegisteredModelId);
-  const { hasAccess: namespaceHasAccess, isLoading: isNamespaceAccessLoading } =
-    useCheckNamespaceRegistryAccess(mrName, registryNamespace, formData.namespace ?? '');
+  const {
+    hasAccess: namespaceHasAccess,
+    isLoading: isNamespaceAccessLoading,
+    error: namespaceAccessError,
+  } = useCheckNamespaceRegistryAccess(mrName, registryNamespace, formData.namespace ?? '');
   const isSubmitDisabled =
     isSubmitting ||
     isRegisterVersionSubmitDisabled(formData, namespaceHasAccess, isNamespaceAccessLoading);
@@ -175,9 +178,9 @@ const RegisterVersion: React.FC = () => {
                 setData={setData}
                 isFirstVersion={false}
                 latestVersion={latestVersion}
-                registryName={mrName}
-                registryNamespace={registryNamespace}
                 namespaceHasAccess={namespaceHasAccess}
+                isNamespaceAccessLoading={isNamespaceAccessLoading}
+                namespaceAccessError={namespaceAccessError}
               />
             </StackItem>
           </Stack>
