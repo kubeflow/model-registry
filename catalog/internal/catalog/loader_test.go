@@ -380,6 +380,7 @@ func TestLoader_StartWithLeaderElection(t *testing.T) {
 
 		// Create cancellable context for leader mode
 		leaderCtx, cancelLeader := context.WithCancel(ctx)
+		defer cancelLeader()
 
 		// Start leader mode in background
 		go func() {
@@ -418,6 +419,7 @@ func TestLoader_StartWithLeaderElection(t *testing.T) {
 
 		// Create cancellable context for leader mode
 		leaderCtx, cancelLeader := context.WithCancel(ctx)
+		defer cancelLeader()
 
 		// Start leader mode in background
 		leaderDone := make(chan struct{})
@@ -486,6 +488,7 @@ func TestLoader_StartWithLeaderElection(t *testing.T) {
 
 		// Create cancellable context for leader mode
 		leaderCtx, cancelLeader := context.WithCancel(ctx)
+		defer cancelLeader()
 
 		// Start leader mode in background
 		leaderDone := make(chan struct{})
