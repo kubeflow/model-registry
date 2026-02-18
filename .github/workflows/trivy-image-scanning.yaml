@@ -34,7 +34,7 @@ jobs:
           echo "Sanitized image name: ${SANITIZED_NAME}"
 
       - name: trivy scan for github security tab
-        uses: aquasecurity/trivy-action@0.33.1
+        uses: aquasecurity/trivy-action@0.34.0
         with:
           image-ref: '${{ matrix.IMAGE }}'
           format: 'sarif'
