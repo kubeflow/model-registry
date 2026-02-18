@@ -29,9 +29,9 @@ var _ = Describe("Model transfer jobs repository", func() {
 					Name:      "active-job",
 					Namespace: "kubeflow",
 					Labels: map[string]string{
-						"modelregistry.kubeflow.org/job-type":             "async-upload",
+						"modelregistry.kubeflow.org/job-type":            "async-upload",
 						"modelregistry.kubeflow.org/model-registry-name": "model-registry",
-						"modelregistry.kubeflow.org/job-id":               "id-active",
+						"modelregistry.kubeflow.org/job-id":              "id-active",
 					},
 					CreationTimestamp: metav1.Now(),
 				},
@@ -43,9 +43,9 @@ var _ = Describe("Model transfer jobs repository", func() {
 					Namespace:         "kubeflow",
 					DeletionTimestamp: &now,
 					Labels: map[string]string{
-						"modelregistry.kubeflow.org/job-type":             "async-upload",
+						"modelregistry.kubeflow.org/job-type":            "async-upload",
 						"modelregistry.kubeflow.org/model-registry-name": "model-registry",
-						"modelregistry.kubeflow.org/job-id":               "id-deleting",
+						"modelregistry.kubeflow.org/job-id":              "id-deleting",
 					},
 					CreationTimestamp: metav1.Now(),
 				},

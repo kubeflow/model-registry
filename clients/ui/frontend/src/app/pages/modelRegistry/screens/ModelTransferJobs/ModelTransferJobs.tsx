@@ -77,7 +77,7 @@ const ModelTransferJobs: React.FC<ModelTransferJobsProps> = ({ ...pageProps }) =
         />
       }
     >
-      <ModelTransferJobsListView jobs={jobs?.items ?? []} onRequestDelete={onRequestDelete} />
+      <ModelTransferJobsListView jobs={jobs.items} onRequestDelete={onRequestDelete} />
       {jobToDelete && (
         <DeleteModal
           title="Delete model transfer job?"

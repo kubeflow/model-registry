@@ -332,24 +332,27 @@ func (m *ModelRegistryRepository) UpdateModelTransferJob(
 		return nil, fmt.Errorf("validation error: %w", err)
 	}
 
+	result, err := m.createModelTransferJobResources(ctx, client, namespace, newPayload, modelRegistryID, existingDestSecretName)
+	if err != nil {
+		if reuseDestCreds && existingDestSecretName != "" {
+			if delErr := client.DeleteSecret(ctx, namespace, existingDestSecretName); delErr != nil {
+				logger.Warn("failed to cleanup cloned destination secret after create failure", "name", existingDestSecretName, "error", delErr)
+			}
+		}
+		return nil, err
+	}
+
 	if deleteOldJob {
 		if err := client.DeleteModelTransferJob(ctx, namespace, oldJobName); err != nil {
 			logger.Warn("failed to delete old job", "name", oldJobName, "error", err)
 		}
 	}
-
-	result, err := m.createModelTransferJobResources(ctx, client, namespace, newPayload, modelRegistryID, existingDestSecretName)
-	if err != nil && reuseDestCreds && existingDestSecretName != "" {
-		if delErr := client.DeleteSecret(ctx, namespace, existingDestSecretName); delErr != nil {
-			logger.Warn("failed to cleanup cloned destination secret after create failure", "name", existingDestSecretName, "error", delErr)
-		}
-	}
-	return result, err
+	return result, nil
 }
 
 func (m *ModelRegistryRepository) DeleteModelTransferJob(ctx context.Context, client k8s.KubernetesClientInterface, namespace string, jobName string, modelRegistryID string) (*models.ModelTransferJob, error) {
 	if modelRegistryID == "" {
-		return nil, fmt.Errorf("%w: model registry name is required", ErrJobNotFound)
+		return nil, fmt.Errorf("%w: model registry name is required", ErrJobValidationFailed)
 	}
 	job, err := client.GetModelTransferJob(ctx, namespace, jobName)
 	if err != nil {
