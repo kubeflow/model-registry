@@ -17,24 +17,15 @@ var (
 	ErrMCPServerToolNameEmpty = errors.New("MCP server tool name cannot be empty")
 )
 
-// MCPServerToolListOptions is a placeholder for list options (tools use simple List interface).
-type MCPServerToolListOptions struct{}
-
-func (o *MCPServerToolListOptions) GetPageSize() int32         { return 0 }
-func (o *MCPServerToolListOptions) GetOrderBy() string         { return "" }
-func (o *MCPServerToolListOptions) GetSortOrder() string       { return "" }
-func (o *MCPServerToolListOptions) GetNextPageToken() string   { return "" }
-func (o *MCPServerToolListOptions) SetNextPageToken(s *string) {}
-func (o *MCPServerToolListOptions) GetFilterQuery() string     { return "" }
-
 // MCPServerToolRepositoryImpl implements MCPServerToolRepository using GORM with Execution schema.
+// Note: Uses models.Pagination for GenericRepository type parameter, though List method is overridden.
 type MCPServerToolRepositoryImpl struct {
-	*service.GenericRepository[models.MCPServerTool, schema.Execution, schema.ExecutionProperty, *MCPServerToolListOptions]
+	*service.GenericRepository[models.MCPServerTool, schema.Execution, schema.ExecutionProperty, *dbmodels.Pagination]
 }
 
 // NewMCPServerToolRepository creates a new MCPServerToolRepository.
 func NewMCPServerToolRepository(db *gorm.DB, typeID int32) models.MCPServerToolRepository {
-	config := service.GenericRepositoryConfig[models.MCPServerTool, schema.Execution, schema.ExecutionProperty, *MCPServerToolListOptions]{
+	config := service.GenericRepositoryConfig[models.MCPServerTool, schema.Execution, schema.ExecutionProperty, *dbmodels.Pagination]{
 		DB:                      db,
 		TypeID:                  typeID,
 		EntityToSchema:          mapMCPServerToolToExecution,
