@@ -179,11 +179,9 @@ const isSubmitDisabledForCommonFields = (
     ) {
       return true;
     }
-    // Disable submit while access check is in progress (avoid submitting with stale/wrong value)
     if (namespace && isNamespaceAccessLoading) {
       return true;
     }
-    // Disable submit when namespace has no access to the registry
     if (namespace && namespaceHasAccess === false) {
       return true;
     }

@@ -2,7 +2,6 @@ import React, { useRef } from 'react';
 import {
   Alert,
   Button,
-  FormGroup,
   FormGroupLabelHelp,
   HelperText,
   HelperTextItem,
@@ -12,6 +11,7 @@ import {
 } from '@patternfly/react-core';
 import { useNamespaceSelector } from 'mod-arch-core';
 import { useCheckNamespaceRegistryAccess } from '~/app/hooks/useCheckNamespaceRegistryAccess';
+import ThemeAwareFormGroupWrapper from '~/app/pages/settings/components/ThemeAwareFormGroupWrapper';
 import NamespaceSelector from '~/app/standalone/NamespaceSelector';
 
 const NAMESPACE_SELECTOR_TOOLTIP =
@@ -91,23 +91,18 @@ const NamespaceSelectorField: React.FC<NamespaceSelectorFieldProps> = ({
   const showNoAccessAlert =
     namespaces.length > 0 && selectedNamespace && !isLoading && hasAccess === false;
 
-  return (
-    <FormGroup
-      label="Namespace"
-      fieldId="namespace-select"
-      isRequired
-      data-testid="namespace-form-group"
-      labelHelp={
-        <Popover
-          triggerRef={labelHelpRef}
-          bodyContent={NAMESPACE_SELECTOR_TOOLTIP}
-          aria-label={NAMESPACE_SELECTOR_TOOLTIP}
-        >
-          <FormGroupLabelHelp ref={labelHelpRef} aria-label="More info for namespace field" />
-        </Popover>
-      }
+  const labelHelp = (
+    <Popover
+      triggerRef={labelHelpRef}
+      bodyContent={NAMESPACE_SELECTOR_TOOLTIP}
+      aria-label={NAMESPACE_SELECTOR_TOOLTIP}
     >
-      {namespaceSelectorElement}
+      <FormGroupLabelHelp ref={labelHelpRef} aria-label="More info for namespace field" />
+    </Popover>
+  );
+
+  const helperTextNode = (
+    <>
       {selectedNamespace && isLoading && (
         <HelperText>
           <HelperTextItem>Checking access...</HelperTextItem>
@@ -154,7 +149,20 @@ const NamespaceSelectorField: React.FC<NamespaceSelectorFieldProps> = ({
           {error.message}
         </Alert>
       )}
-    </FormGroup>
+    </>
+  );
+
+  return (
+    <ThemeAwareFormGroupWrapper
+      label="Namespace"
+      fieldId="namespace-select"
+      isRequired
+      labelHelp={labelHelp}
+      helperTextNode={helperTextNode}
+      data-testid="namespace-form-group"
+    >
+      {namespaceSelectorElement}
+    </ThemeAwareFormGroupWrapper>
   );
 };
 
