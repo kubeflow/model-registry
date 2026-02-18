@@ -80,6 +80,7 @@ func TestIntegration_PreservedRecommendationAlgorithm(t *testing.T) {
 		catalogSourceRepo,
 		service.NewPropertyOptionsRepository(sharedDB),
 		nil, // MCPServerRepository
+		nil, // MCPServerToolRepository
 	)
 
 	provider := catalog.NewDBCatalog(services, nil)
@@ -370,6 +371,7 @@ func TestIntegration_ServiceLayerBehavior(t *testing.T) {
 		catalogSourceRepo,
 		service.NewPropertyOptionsRepository(sharedDB),
 		nil, // MCPServerRepository
+		nil, // MCPServerToolRepository
 	)
 
 	provider := catalog.NewDBCatalog(services, nil)
@@ -542,6 +544,7 @@ func TestIntegration_ConfigurableProperties(t *testing.T) {
 		catalogSourceRepo,
 		service.NewPropertyOptionsRepository(sharedDB),
 		nil, // MCPServerRepository
+		nil, // MCPServerToolRepository
 	)
 
 	provider := catalog.NewDBCatalog(services, nil)

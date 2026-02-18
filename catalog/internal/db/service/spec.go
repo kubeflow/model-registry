@@ -53,6 +53,12 @@ func DatastoreSpec() *datastore.Spec {
 			AddBoolean("sast").
 			AddBoolean("readOnlyTools"),
 		).
+		AddExecution(MCPServerToolTypeName, datastore.NewSpecType(NewMCPServerToolRepository).
+			AddString("accessType").
+			AddString("description").
+			AddString("externalId").
+			AddString("parameters"),
+		).
 		AddArtifact(CatalogModelArtifactTypeName, datastore.NewSpecType(NewCatalogModelArtifactRepository).
 			AddString("uri"),
 		).
@@ -71,6 +77,7 @@ type Services struct {
 	CatalogSourceRepository          models.CatalogSourceRepository
 	PropertyOptionsRepository        models.PropertyOptionsRepository
 	MCPServerRepository              models.MCPServerRepository
+	MCPServerToolRepository          models.MCPServerToolRepository
 }
 
 func NewServices(
@@ -81,6 +88,7 @@ func NewServices(
 	catalogSourceRepository models.CatalogSourceRepository,
 	propertyOptionsRepository models.PropertyOptionsRepository,
 	mcpServerRepository models.MCPServerRepository,
+	mcpServerToolRepository models.MCPServerToolRepository,
 ) Services {
 	return Services{
 		CatalogModelRepository:           catalogModelRepository,
@@ -90,5 +98,6 @@ func NewServices(
 		CatalogSourceRepository:          catalogSourceRepository,
 		PropertyOptionsRepository:        propertyOptionsRepository,
 		MCPServerRepository:              mcpServerRepository,
+		MCPServerToolRepository:          mcpServerToolRepository,
 	}
 }

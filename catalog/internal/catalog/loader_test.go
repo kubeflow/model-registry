@@ -111,6 +111,7 @@ func TestRemoveModelsFromMissingSources(t *testing.T) {
 				&MockCatalogSourceRepository{},
 				&MockPropertyOptionsRepository{},
 				nil, // MCPServerRepository
+				nil, // MCPServerToolRepository
 			)
 
 			// Create loader and populate sources
@@ -251,6 +252,7 @@ func TestLoader_StartWithLeaderElection(t *testing.T) {
 		mockSourceRepo,
 		&MockPropertyOptionsRepository{},
 		nil, // MCPServerRepository
+		nil, // MCPServerToolRepository
 	)
 
 	// Register a test provider

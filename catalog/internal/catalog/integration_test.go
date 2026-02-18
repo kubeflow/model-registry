@@ -40,6 +40,7 @@ func setupIntegrationTestProvider(t *testing.T, ctx context.Context, sharedDB *g
 		catalogSourceRepo,
 		service.NewPropertyOptionsRepository(sharedDB),
 		nil, // MCPServerRepository
+		nil, // MCPServerToolRepository
 	)
 
 	// Insert test data:
@@ -182,6 +183,7 @@ func setupBenchmarkProvider(b *testing.B, ctx context.Context, sharedDB *gorm.DB
 		catalogSourceRepo,
 		service.NewPropertyOptionsRepository(sharedDB),
 		nil, // MCPServerRepository
+		nil, // MCPServerToolRepository
 	)
 
 	// Insert 100+ models with performance data for benchmarking
