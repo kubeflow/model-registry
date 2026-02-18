@@ -97,7 +97,11 @@ const HardwareConfigurationFilterToolbar: React.FC<HardwareConfigurationFilterTo
   }
 
   return (
-    <Toolbar>
+    <Toolbar
+      {...(onResetAllFilters && hasVisibleChips
+        ? { clearAllFilters: onResetAllFilters, clearFiltersButtonText: 'Reset all filters' }
+        : {})}
+    >
       <ToolbarContent rowWrap={{ default: 'wrap' }}>
         <ToolbarGroup rowWrap={{ default: 'wrap' }}>
           <ToolbarItem>
@@ -188,17 +192,6 @@ const HardwareConfigurationFilterToolbar: React.FC<HardwareConfigurationFilterTo
           )}
         </ToolbarGroup>
         <ModelCatalogActiveFilters filtersToShow={filtersToShow} />
-        {onResetAllFilters && hasVisibleChips && (
-          <ToolbarItem>
-            <Button
-              variant="link"
-              onClick={onResetAllFilters}
-              data-testid="clear-all-filters-button"
-            >
-              Reset all defaults
-            </Button>
-          </ToolbarItem>
-        )}
       </ToolbarContent>
     </Toolbar>
   );

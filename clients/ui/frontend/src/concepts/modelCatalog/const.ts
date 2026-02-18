@@ -599,7 +599,7 @@ export const MODEL_CATALOG_FILTER_CATEGORY_NAMES: Record<ModelCatalogFilterKey, 
 };
 
 export const MODEL_CATALOG_FILTER_CHIP_PREFIXES = {
-  SCENARIO: 'Scenario:',
+  WORKLOAD_TYPE: 'Workload type:',
   MAX_RPS: 'Max RPS:',
   LATENCY_METRIC: 'Metric:',
   LATENCY_PERCENTILE: 'Percentile:',

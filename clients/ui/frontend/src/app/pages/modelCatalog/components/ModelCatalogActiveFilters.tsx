@@ -1,17 +1,9 @@
 import React from 'react';
-import {
-  Button,
-  Flex,
-  FlexItem,
-  Label,
-  LabelGroup,
-  ToolbarFilter,
-  ToolbarItem,
-  ToolbarLabelGroup,
-  ToolbarLabel,
-} from '@patternfly/react-core';
-import { UndoIcon } from '@patternfly/react-icons';
+import { ToolbarFilter, ToolbarLabelGroup, ToolbarLabel } from '@patternfly/react-core';
 import { isEnumMember } from 'mod-arch-core';
+import { Theme } from 'mod-arch-kubeflow';
+import { STYLE_THEME } from '~/app/utilities/const';
+import './ModelCatalogActiveFilters.css';
 import { ModelCatalogContext } from '~/app/context/modelCatalog/ModelCatalogContext';
 import {
   ModelCatalogStringFilterKey,
@@ -44,14 +36,6 @@ type ModelCatalogActiveFiltersProps = {
   filtersToShow: ModelCatalogFilterKey[];
 };
 
-/**
- * Custom close button using PatternFly's UndoIcon.
- * Used for performance filters that reset to default instead of clearing.
- */
-const undoCloseButton = (onClick: (event: React.MouseEvent) => void) => (
-  <Button variant="plain" aria-label="Reset to default" onClick={onClick} icon={<UndoIcon />} />
-);
-
 const ModelCatalogActiveFilters: React.FC<ModelCatalogActiveFiltersProps> = ({ filtersToShow }) => {
   const {
     filterData,
@@ -60,18 +44,18 @@ const ModelCatalogActiveFilters: React.FC<ModelCatalogActiveFiltersProps> = ({ f
     getPerformanceFilterDefaultValue,
   } = React.useContext(ModelCatalogContext);
 
+  const isPatternfly = STYLE_THEME === Theme.Patternfly;
+
   const handleRemoveFilter = (categoryKey: string, labelKey: string) => {
     if (!isCatalogFilterKey(categoryKey)) {
       return;
     }
 
-    // Performance filters always reset to default (they should always have a value)
     if (isPerformanceFilterKey(categoryKey)) {
       resetSinglePerformanceFilterToDefault(categoryKey);
       return;
     }
 
-    // Basic filters: remove the specific value
     if (isEnumMember(categoryKey, ModelCatalogStringFilterKey)) {
       const currentValues = filterData[categoryKey];
       if (Array.isArray(currentValues)) {
@@ -79,7 +63,6 @@ const ModelCatalogActiveFilters: React.FC<ModelCatalogActiveFiltersProps> = ({ f
         setFilterData(categoryKey, newValues);
       }
     } else {
-      // For number filters, clear the value
       setFilterData(categoryKey, undefined);
     }
   };
@@ -89,17 +72,14 @@ const ModelCatalogActiveFilters: React.FC<ModelCatalogActiveFiltersProps> = ({ f
       return;
     }
 
-    // Performance filters always reset to default (they should always have a value)
     if (isPerformanceFilterKey(categoryKey)) {
       resetSinglePerformanceFilterToDefault(categoryKey);
       return;
     }
 
-    // Basic filters: clear completely
     if (isEnumMember(categoryKey, ModelCatalogStringFilterKey)) {
       setFilterData(categoryKey, []);
     } else {
-      // For number filters, clear the value
       setFilterData(categoryKey, undefined);
     }
   };
@@ -108,7 +88,6 @@ const ModelCatalogActiveFilters: React.FC<ModelCatalogActiveFiltersProps> = ({ f
    * Gets the display label for a filter value based on the filter key type
    */
   const getFilterLabel = (filterKey: ModelCatalogFilterKey, value: string | number): string => {
-    // Handle string filter keys
     if (isEnumMember(filterKey, ModelCatalogStringFilterKey)) {
       const valueStr = String(value);
       switch (filterKey) {
@@ -131,10 +110,8 @@ const ModelCatalogActiveFilters: React.FC<ModelCatalogActiveFiltersProps> = ({ f
           return isEnumMember(valueStr, AllLanguageCode) ? AllLanguageCodesMap[valueStr] : valueStr;
         }
         case ModelCatalogStringFilterKey.USE_CASE: {
-          // Show same format as menu toggle but without bold
-          // Reuse getUseCaseDisplayLabel for consistency with dropdown
           if (isUseCaseOptionValue(valueStr)) {
-            return `${MODEL_CATALOG_FILTER_CHIP_PREFIXES.SCENARIO} ${getUseCaseDisplayLabel(valueStr)}`;
+            return `${MODEL_CATALOG_FILTER_CHIP_PREFIXES.WORKLOAD_TYPE} ${getUseCaseDisplayLabel(valueStr)}`;
           }
           return valueStr;
         }
@@ -143,7 +120,6 @@ const ModelCatalogActiveFilters: React.FC<ModelCatalogActiveFiltersProps> = ({ f
       }
     }
 
-    // Handle number filter keys
     if (isEnumMember(filterKey, ModelCatalogNumberFilterKey)) {
       switch (filterKey) {
         // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
@@ -154,134 +130,93 @@ const ModelCatalogActiveFilters: React.FC<ModelCatalogActiveFiltersProps> = ({ f
       }
     }
 
-    // Handle latency field names - kept for backwards compatibility
     const parsed = parseLatencyFilterKey(filterKey);
     const formattedValue = typeof value === 'number' ? formatLatency(value) : `${value}ms`;
     return `${parsed.metric} | ${parsed.percentile} | ${formattedValue}`;
   };
 
-  /**
-   * Checks if a filter should be skipped (no value or matches default).
-   */
-  const shouldSkipFilter = (filterKey: ModelCatalogFilterKey): boolean => {
-    const filterValue = filterData[filterKey];
-
-    if (!filterValue) {
-      return true;
-    }
-
-    if (Array.isArray(filterValue) && filterValue.length === 0) {
-      return true;
-    }
-
-    const defaultValue = getPerformanceFilterDefaultValue(filterKey);
-    if (defaultValue !== undefined && !isValueDifferentFromDefault(filterValue, defaultValue)) {
-      return true;
-    }
-
-    return false;
-  };
-
-  /**
-   * Renders a single-chip performance filter (Workload Type, Max RPS)
-   * using PatternFly Label with UndoIcon close button.
-   */
-  const renderSingleChipPerformanceFilter = (filterKey: ModelCatalogFilterKey) => {
-    const rawValue = filterData[filterKey];
-    const firstValue = Array.isArray(rawValue) ? rawValue[0] : rawValue;
-
-    if (firstValue === undefined) {
-      return null;
-    }
-
-    const labelText = getFilterLabel(filterKey, firstValue);
-
-    return (
-      <ToolbarItem key={filterKey}>
-        <LabelGroup data-testid={`${filterKey}-filter-container`}>
-          <Label
-            data-testid={`${filterKey}-filter-chip-${firstValue}`}
-            onClose={() => resetSinglePerformanceFilterToDefault(filterKey)}
-            closeBtn={undoCloseButton(() => resetSinglePerformanceFilterToDefault(filterKey))}
-            closeBtnAriaLabel="Reset to default"
-          >
-            {labelText}
-          </Label>
-        </LabelGroup>
-      </ToolbarItem>
-    );
-  };
-
-  /**
-   * Renders the latency filter as a group of 3 chips (Metric, Percentile, Threshold)
-   * with a single group-level UndoIcon close button.
-   */
-  const renderLatencyChipGroup = (filterKey: LatencyFilterKey) => {
-    const filterValue = filterData[filterKey];
-    const parsed = parseLatencyFilterKey(filterKey);
-    const formattedValue =
-      typeof filterValue === 'number' ? formatLatency(filterValue) : `${filterValue}ms`;
-
-    const chips = [
-      {
-        key: 'metric',
-        label: `${MODEL_CATALOG_FILTER_CHIP_PREFIXES.LATENCY_METRIC} ${parsed.metric}`,
-      },
-      {
-        key: 'percentile',
-        label: `${MODEL_CATALOG_FILTER_CHIP_PREFIXES.LATENCY_PERCENTILE} ${parsed.percentile}`,
-      },
-      {
-        key: 'threshold',
-        label: `${MODEL_CATALOG_FILTER_CHIP_PREFIXES.LATENCY_THRESHOLD} ${formattedValue}`,
-      },
-    ];
-
-    return (
-      <ToolbarItem key={filterKey}>
-        <Flex alignItems={{ default: 'alignItemsCenter' }} spaceItems={{ default: 'spaceItemsXs' }}>
-          <FlexItem>
-            <LabelGroup
-              categoryName={MODEL_CATALOG_FILTER_CATEGORY_NAMES[filterKey]}
-              data-testid={`${filterKey}-filter-container`}
-            >
-              {chips.map((chip) => (
-                <Label key={chip.key} data-testid={`${filterKey}-filter-chip-${chip.key}`}>
-                  {chip.label}
-                </Label>
-              ))}
-            </LabelGroup>
-          </FlexItem>
-          <FlexItem>
-            {undoCloseButton(() => resetSinglePerformanceFilterToDefault(filterKey))}
-          </FlexItem>
-        </Flex>
-      </ToolbarItem>
-    );
-  };
-
   return (
     <>
       {filtersToShow.map((filterKey) => {
-        if (shouldSkipFilter(filterKey)) {
+        const filterValue = filterData[filterKey];
+
+        if (!filterValue) {
           return null;
         }
 
-        // Latency: 3 chips in a group with group-level undo icon
+        if (Array.isArray(filterValue) && filterValue.length === 0) {
+          return null;
+        }
+
+        const defaultValue = getPerformanceFilterDefaultValue(filterKey);
+        if (defaultValue !== undefined && !isValueDifferentFromDefault(filterValue, defaultValue)) {
+          return null;
+        }
+
+        // Performance filter chips use data-has-default to trigger undo icon styling via CSS
+        const filterHasDefault =
+          isPatternfly &&
+          isPerformanceFilterKey(filterKey) &&
+          getPerformanceFilterDefaultValue(filterKey) !== undefined;
+
+        // Latency: 3 separate chips in a group
         if (isLatencyFilterKey(filterKey)) {
-          return renderLatencyChipGroup(filterKey);
+          const latencyFilterKey: LatencyFilterKey = filterKey;
+          const parsed = parseLatencyFilterKey(latencyFilterKey);
+          const formattedValue =
+            typeof filterValue === 'number' ? formatLatency(filterValue) : `${filterValue}ms`;
+
+          const latencyLabels: ToolbarLabel[] = [
+            {
+              key: `${filterKey}-metric`,
+              node: (
+                <span data-testid={`${filterKey}-filter-chip-metric`} data-has-default="true">
+                  {MODEL_CATALOG_FILTER_CHIP_PREFIXES.LATENCY_METRIC} {parsed.metric}
+                </span>
+              ),
+            },
+            {
+              key: `${filterKey}-percentile`,
+              node: (
+                <span data-testid={`${filterKey}-filter-chip-percentile`} data-has-default="true">
+                  {MODEL_CATALOG_FILTER_CHIP_PREFIXES.LATENCY_PERCENTILE} {parsed.percentile}
+                </span>
+              ),
+            },
+            {
+              key: `${filterKey}-threshold`,
+              node: (
+                <span data-testid={`${filterKey}-filter-chip-threshold`} data-has-default="true">
+                  {MODEL_CATALOG_FILTER_CHIP_PREFIXES.LATENCY_THRESHOLD} {formattedValue}
+                </span>
+              ),
+            },
+          ];
+
+          return (
+            <ToolbarFilter
+              key={filterKey}
+              categoryName={{
+                key: filterKey,
+                name: MODEL_CATALOG_FILTER_CATEGORY_NAMES[filterKey],
+              }}
+              labels={latencyLabels}
+              deleteLabel={(category) => {
+                const categoryKeyValue = typeof category === 'string' ? category : category.key;
+                handleClearCategory(categoryKeyValue);
+              }}
+              deleteLabelGroup={(category) => {
+                const categoryKeyValue = typeof category === 'string' ? category : category.key;
+                handleClearCategory(categoryKeyValue);
+              }}
+              data-testid={`${filterKey}-filter-container`}
+            >
+              {null}
+            </ToolbarFilter>
+          );
         }
 
-        // Workload Type and Max RPS: single chip with undo icon
-        if (
-          filterKey === ModelCatalogStringFilterKey.USE_CASE ||
-          filterKey === ModelCatalogNumberFilterKey.MAX_RPS
-        ) {
-          return renderSingleChipPerformanceFilter(filterKey);
-        }
-
-        // Basic filters and Hardware: standard chips with X icons via ToolbarFilter
-        const filterValue = filterData[filterKey];
+        // All other filters
         const filterValues = Array.isArray(filterValue) ? filterValue : [filterValue];
 
         const labels: ToolbarLabel[] = filterValues.map((value) => {
@@ -289,13 +224,30 @@ const ModelCatalogActiveFilters: React.FC<ModelCatalogActiveFiltersProps> = ({ f
           const labelText = getFilterLabel(filterKey, value);
           return {
             key: valueStr,
-            node: <span data-testid={`${filterKey}-filter-chip-${valueStr}`}>{labelText}</span>,
+            node: (
+              <span
+                data-testid={`${filterKey}-filter-chip-${valueStr}`}
+                {...(filterHasDefault && { 'data-has-default': 'true' })}
+              >
+                {labelText}
+              </span>
+            ),
           };
         });
 
+        // Single-value performance filters (Workload Type, Max RPS): empty name removes
+        // the category box/border while keeping the filter key for proper callback handling.
+        // PF's LabelGroup only applies the category modifier class when categoryName is truthy.
+        // The chip labels already include their prefix text ("Workload type:", "Max RPS:").
+        const isSingleValuePerformanceFilter =
+          filterKey === ModelCatalogStringFilterKey.USE_CASE ||
+          filterKey === ModelCatalogNumberFilterKey.MAX_RPS;
+
         const categoryLabelGroup: ToolbarLabelGroup = {
           key: filterKey,
-          name: MODEL_CATALOG_FILTER_CATEGORY_NAMES[filterKey],
+          name: isSingleValuePerformanceFilter
+            ? ''
+            : MODEL_CATALOG_FILTER_CATEGORY_NAMES[filterKey],
         };
 
         return (
