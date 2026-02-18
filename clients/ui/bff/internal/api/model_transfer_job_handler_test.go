@@ -98,6 +98,41 @@ var _ = Describe("TestModelTransferJob", func() {
 			Expect(rs.StatusCode).To(Equal(http.StatusBadRequest))
 		})
 
+		It("POST returns 404 when model registry not found in namespace", func() {
+			payload := ModelTransferJobEnvelope{
+				Data: &models.ModelTransferJob{
+					Name: "test-job-404",
+					Source: models.ModelTransferJobSource{
+						Type:               models.ModelTransferJobSourceTypeS3,
+						Bucket:             "test-bucket",
+						Key:                "models/test",
+						AwsAccessKeyId:     "test-key",
+						AwsSecretAccessKey: "test-secret",
+					},
+					Destination: models.ModelTransferJobDestination{
+						Type:     models.ModelTransferJobDestinationTypeOCI,
+						URI:      "quay.io/test/model:v1",
+						Registry: "quay.io",
+						Username: "user",
+						Password: "pass",
+					},
+					UploadIntent:        models.ModelTransferJobUploadIntentCreateModel,
+					RegisteredModelName: "Test Model",
+					ModelVersionName:    "v1.0.0",
+				},
+			}
+			_, rs, err := setupApiTest[Envelope[any, any]](
+				http.MethodPost,
+				"/api/v1/model_registry/model-registry/model_transfer_jobs?namespace=no-namespace",
+				payload,
+				kubernetesMockedStaticClientFactory,
+				requestIdentity,
+				"no-namespace",
+			)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(rs.StatusCode).To(Equal(http.StatusNotFound))
+		})
+
 		It("POST returns 400 for missing job name", func() {
 			payload := ModelTransferJobEnvelope{
 				Data: &models.ModelTransferJob{

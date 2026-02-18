@@ -425,64 +425,66 @@ curl -i -H "Authorization: Bearer $TOKEN" "http://localhost:4000/api/v1/model_re
 ```
 # POST /api/v1/model_registry/model-registry/model_transfer_jobs
 curl -i \
--H "kubeflow-userid: user@example.com" \
--X POST "http://localhost:4000/api/v1/model_registry/model-registry/model_transfer_jobs?namespace=kubeflow" \
--H "Content-Type: application/json" \
--d '{
-    "data": {
-      "name": "my-job",
-      "source": {
-        "type": "s3",
-        "bucket": "my-bucket",
-        "key": "path/to/model",
-        "awsAccessKeyId": "accessKeyId",
-        "awsSecretAccessKey": "secretKey"
-      },
-      "destination": {
-        "type": "oci",
-        "uri": "quay.io/myorg/myimage:v1",
-        "username": "myuser",
-        "password": "mypassword"
-      },
-      "uploadIntent": "create_model",
-      "registeredModelName": "My Model",
-      "modelVersionName": "v1.0.0"
-    }
-  }'
+  -H "kubeflow-userid: user@example.com" \
+  -H "Content-Type: application/json" \
+  -X POST "http://localhost:4000/api/v1/model_registry/model-registry-service/model_transfer_jobs?namespace=kubeflow" \
+  -d '{
+  "data": {
+    "name": "my-test-job",
+    "source": {
+      "type": "s3",
+      "bucket": "my-bucket",
+      "key": "models/path",
+      "awsAccessKeyId": "key",
+      "awsSecretAccessKey": "secret"
+    },
+    "destination": {
+      "type": "oci",
+      "uri": "quay.io/myorg/model:v1",
+      "registry": "quay.io",
+      "username": "user",
+      "password": "pass"
+    },
+    "uploadIntent": "create_model",
+    "registeredModelName": "My Model",
+    "modelVersionName": "v1.0.0"
+  }
+}'
 
 curl -i -H "Authorization: Bearer $TOKEN" \
 -X POST "http://localhost:4000/api/v1/model_registry/model-registry/model_transfer_jobs?namespace=kubeflow" \
 -H "Content-Type: application/json" \
 -d '{
-    "data": {
-      "name": "my-job",
-      "source": {
-        "type": "s3",
-        "bucket": "my-bucket",
-        "key": "path/to/model",
-        "awsAccessKeyId": "accessKeyId",
-        "awsSecretAccessKey": "secretKey"
-      },
-      "destination": {
-        "type": "oci",
-        "uri": "quay.io/myorg/myimage:v1",
-        "username": "myuser",
-        "password": "mypassword"
-      },
-      "uploadIntent": "create_model",
-      "registeredModelName": "My Model",
-      "modelVersionName": "v1.0.0"
-    }
-  }'
+  "data": {
+    "name": "my-test-job",
+    "source": {
+      "type": "s3",
+      "bucket": "my-bucket",
+      "key": "models/path",
+      "awsAccessKeyId": "key",
+      "awsSecretAccessKey": "secret"
+    },
+    "destination": {
+      "type": "oci",
+      "uri": "quay.io/myorg/model:v1",
+      "registry": "quay.io",
+      "username": "user",
+      "password": "pass"
+    },
+    "uploadIntent": "create_model",
+    "registeredModelName": "My Model",
+    "modelVersionName": "v1.0.0"
+  }
+}'
 ```
 
 ```
 # PATCH api/v1/model_registry/model-registry/model_transfer_jobs/{job_name}
 curl -i \
--H "kubeflow-userid: user@example.com" \
--X PATCH "http://localhost:4000/api/v1/model_registry/model-registry/model_transfer_jobs/transfer-job-001?namespace=bella-namespace" \
--H "Content-Type: application/json" \
--d '{"data": {"name": "my-job"}}'
+  -H "kubeflow-userid: user@example.com" \
+  -H "Content-Type: application/json" \
+  -X PATCH "http://localhost:4000/api/v1/model_registry/model-registry/model_transfer_jobs/my-job?namespace=kubeflow" \
+  -d '{"data": {"name": "my-job-2"}}'
 
 curl -i -H "Authorization: Bearer $TOKEN" \
 -X PATCH "http://localhost:4000/api/v1/model_registry/model-registry/model_transfer_jobs/transfer-job-002?namespace=bella-namespace" \
