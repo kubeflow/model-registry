@@ -138,7 +138,7 @@ func GetModelArtifactMocks() []openapi.ModelArtifact {
 		CustomProperties:         newCustomProperties(),
 		Description:              stringToPointer("This artifact can do more than you would expect"),
 		ExternalId:               stringToPointer("1000001"),
-		Uri:                      stringToPointer("http://localhost/artifacts/1"),
+		Uri:                      stringToPointer("oci://registry.redhat.io/rhelai1/modelcar-granite-7b-starter:1.4.0"),
 		State:                    stateToPointer(openapi.ARTIFACTSTATE_LIVE),
 		Name:                     stringToPointer("Artifact One"),
 		Id:                       stringToPointer("1"),
@@ -149,6 +149,9 @@ func GetModelArtifactMocks() []openapi.ModelArtifact {
 		StoragePath:              stringToPointer("/artifacts/1"),
 		ModelFormatVersion:       stringToPointer("1.0.0"),
 		ServiceAccountName:       stringToPointer("service-1"),
+		ModelSourceKind:          stringToPointer("transfer_job"),
+		ModelSourceGroup:         stringToPointer("kubeflow"),
+		ModelSourceName:          stringToPointer("transfer-job-001"),
 	}
 
 	artifact2 := openapi.ModelArtifact{

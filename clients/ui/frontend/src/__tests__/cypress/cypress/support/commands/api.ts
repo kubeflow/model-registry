@@ -7,6 +7,7 @@ import type {
   ModelArtifactList,
   ModelRegistry,
   ModelTransferJob,
+  ModelTransferJobList,
   ModelVersion,
   ModelVersionList,
   RegisteredModel,
@@ -178,6 +179,11 @@ declare global {
           type: 'GET /api/:apiVersion/model_catalog/models/filter_options',
           options: { path: { apiVersion: string }; query: { namespace: string } },
           response: ApiResponse<CatalogFilterOptionsList>,
+        ) => Cypress.Chainable<null>) &
+        ((
+          type: 'GET /api/:apiVersion/model_registry/:modelRegistryName/model_transfer_jobs',
+          options: { path: { modelRegistryName: string; apiVersion: string } },
+          response: ApiResponse<ModelTransferJobList>,
         ) => Cypress.Chainable<null>) &
         ((
           type: 'POST /api/:apiVersion/model_registry/:modelRegistryName/model_transfer_jobs',
