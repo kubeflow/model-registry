@@ -98,11 +98,11 @@ const HardwareConfigurationFilterToolbar: React.FC<HardwareConfigurationFilterTo
 
   return (
     <Toolbar
-      // Suppress default second-row clear button so "Clear all" stays on same line as filters
+      // Suppress default second-row clear button so "Clear all filters" stays on same line as filters
       {...(onResetAllFilters
         ? {
             clearAllFilters: onResetAllFilters,
-            clearFiltersButtonText: 'Clear all',
+            clearFiltersButtonText: 'Clear all filters',
             customLabelGroupContent: <></>,
           }
         : {})}
@@ -205,9 +205,9 @@ const HardwareConfigurationFilterToolbar: React.FC<HardwareConfigurationFilterTo
                   isDisabled={!hasVisibleChips}
                   onClick={onResetAllFilters}
                   data-testid="reset-all-defaults-button"
-                  aria-label="Clear all"
+                  aria-label="Clear all filters"
                 >
-                  Clear all
+                  Clear all filters
                 </Button>
               </ToolbarItem>
             </>
