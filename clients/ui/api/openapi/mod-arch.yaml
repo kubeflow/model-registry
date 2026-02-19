@@ -1154,7 +1154,7 @@ paths:
       operationId: createModelTransferJob
       summary: Create a Model Transfer Job
       description: Creates a new instance of a `ModelTransferJob`.
-  /api/v1/model_registry/{modelRegistryName}/model_transfer_jobs/{modelTransferJobId}:
+  /api/v1/model_registry/{modelRegistryName}/model_transfer_jobs/{modelTransferJobName}:
     summary: Path used to manage a single ModelTransferJob.
     description: >-
       The REST endpoint/path used to update and delete single instances of a `ModelTransferJob`.
@@ -1177,7 +1177,7 @@ paths:
       parameters:
         - $ref: "#/components/parameters/modelRegistryName"
         - $ref: "#/components/parameters/kubeflowUserId"
-        - $ref: "#/components/parameters/modelTransferJobId"
+        - $ref: "#/components/parameters/modelTransferJobName"
       responses:
         "200":
           $ref: "#/components/responses/ModelTransferJobResponse"
@@ -1198,7 +1198,7 @@ paths:
       parameters:
         - $ref: "#/components/parameters/modelRegistryName"
         - $ref: "#/components/parameters/kubeflowUserId"
-        - $ref: "#/components/parameters/modelTransferJobId"
+        - $ref: "#/components/parameters/modelTransferJobName"
       responses:
         "204":
           description: Successfully deleted
@@ -2556,26 +2556,40 @@ components:
           type: string
         region:
           type: string
+          description: Optional. AWS region for S3 source.
         endpoint:
           type: string
         uri:
           type: string
         registry:
           type: string
+        awsAccessKeyId:
+          type: string
+          description: S3 access key ID (request only, never returned)
+        awsSecretAccessKey:
+          type: string
+          description: S3 secret access key (request only, never returned)
+        secretName:
+          type: string
+          description: Name of created K8s secret (response only)
     ModelTransferJobDestination:
       description: Destination configuration for a transfer job.
       type: object
       properties:
         type:
           $ref: "#/components/schemas/ModelTransferJobDestinationType"
-        bucket:
+        username:
           type: string
-        key:
+          description: OCI registry username (request only, never returned)
+        password:
           type: string
-        region:
+          description: OCI registry password (request only, never returned)
+        email:
           type: string
-        endpoint:
+          description: OCI registry email (request only, never returned)
+        secretName:
           type: string
+          description: Name of created K8s secret (response only)
         uri:
           type: string
         registry:
@@ -3270,9 +3284,9 @@ components:
           - metrics-artifact
       in: query
       required: false
-    modelTransferJobId:
-      name: modelTransferJobId
-      description: A unique identifier for a `ModelTransferJob`.
+    modelTransferJobName:
+      name: modelTransferJobName
+      description: The name of a `ModelTransferJob` (K8s resource name).
       schema:
         type: string
       in: path

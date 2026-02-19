@@ -56,7 +56,6 @@ const ModelTransferJobsListView: React.FC<ModelTransferJobsListViewProps> = ({
 
   const onClearFilters = React.useCallback(() => setFilterData(initialFilterData), [setFilterData]);
 
-  // Filter jobs based on all filter criteria
   const filteredJobs = React.useMemo(() => {
     const jobNameFilter = filterData[ModelTransferJobsFilterOptions.jobName]?.toLowerCase();
     const modelNameFilter = filterData[ModelTransferJobsFilterOptions.modelName]?.toLowerCase();

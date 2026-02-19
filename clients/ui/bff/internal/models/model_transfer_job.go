@@ -5,7 +5,6 @@ type ModelTransferJobSourceType string
 
 const (
 	ModelTransferJobSourceTypeS3  ModelTransferJobSourceType = "s3"
-	ModelTransferJobSourceTypeOCI ModelTransferJobSourceType = "oci"
 	ModelTransferJobSourceTypeURI ModelTransferJobSourceType = "uri"
 )
 
@@ -13,7 +12,6 @@ const (
 type ModelTransferJobDestinationType string
 
 const (
-	ModelTransferJobDestinationTypeS3  ModelTransferJobDestinationType = "s3"
 	ModelTransferJobDestinationTypeOCI ModelTransferJobDestinationType = "oci"
 )
 
@@ -39,22 +37,23 @@ const (
 
 // ModelTransferJobSource represents the source configuration for a transfer job
 type ModelTransferJobSource struct {
-	Type     ModelTransferJobSourceType `json:"type"`
-	Bucket   string                     `json:"bucket,omitempty"`
-	Key      string                     `json:"key,omitempty"`
-	Region   string                     `json:"region,omitempty"`
-	Endpoint string                     `json:"endpoint,omitempty"`
-	URI      string                     `json:"uri,omitempty"`
-	Registry string                     `json:"registry,omitempty"`
+	Type               ModelTransferJobSourceType `json:"type"`
+	Bucket             string                     `json:"bucket,omitempty"`
+	Key                string                     `json:"key,omitempty"`
+	Region             string                     `json:"region,omitempty"`
+	Endpoint           string                     `json:"endpoint,omitempty"`
+	URI                string                     `json:"uri,omitempty"`
+	Registry           string                     `json:"registry,omitempty"`
+	AwsAccessKeyId     string                     `json:"awsAccessKeyId,omitempty"`
+	AwsSecretAccessKey string                     `json:"awsSecretAccessKey,omitempty"`
 }
 
 // ModelTransferJobDestination represents the destination configuration for a transfer job
 type ModelTransferJobDestination struct {
 	Type     ModelTransferJobDestinationType `json:"type"`
-	Bucket   string                          `json:"bucket,omitempty"`
-	Key      string                          `json:"key,omitempty"`
-	Region   string                          `json:"region,omitempty"`
-	Endpoint string                          `json:"endpoint,omitempty"`
+	Username string                          `json:"username,omitempty"`
+	Password string                          `json:"password,omitempty"`
+	Email    string                          `json:"email,omitempty"`
 	URI      string                          `json:"uri,omitempty"`
 	Registry string                          `json:"registry,omitempty"`
 }
@@ -79,6 +78,13 @@ type ModelTransferJob struct {
 	CreateTimeSinceEpoch     string                       `json:"createTimeSinceEpoch"`
 	LastUpdateTimeSinceEpoch string                       `json:"lastUpdateTimeSinceEpoch"`
 	ErrorMessage             string                       `json:"errorMessage,omitempty"`
+	VersionDescription       string                       `json:"versionDescription,omitempty"`
+	SourceModelFormat        string                       `json:"sourceModelFormat,omitempty"`
+	SourceModelFormatVersion string                       `json:"sourceModelFormatVersion,omitempty"`
+	ModelCustomProperties    map[string]interface{}       `json:"modelCustomProperties,omitempty"`
+	VersionCustomProperties  map[string]interface{}       `json:"versionCustomProperties,omitempty"`
+	SourceSecretName         string                       `json:"sourceSecretName,omitempty"`
+	DestSecretName           string                       `json:"destSecretName,omitempty"`
 }
 
 // ModelTransferJobList represents a list of model transfer jobs
@@ -87,10 +93,4 @@ type ModelTransferJobList struct {
 	Size          int                `json:"size"`
 	PageSize      int                `json:"pageSize"`
 	NextPageToken string             `json:"nextPageToken"`
-}
-
-// ModelTransferJobOperationStatus is the response body for delete and update operations.
-// TODO: Remove this type when the actual implementation returns the real resource in the response.
-type ModelTransferJobOperationStatus struct {
-	Status string `json:"status"`
 }
