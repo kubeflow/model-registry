@@ -114,6 +114,10 @@ func (kc *InternalKubernetesClient) CanAccessServiceInNamespace(ctx context.Cont
 	return true, nil
 }
 
+func (kc *InternalKubernetesClient) CanNamespaceAccessRegistry(ctx context.Context, _ *RequestIdentity, jobNamespace, registryName, registryNamespace string) (bool, error) {
+	return CanNamespaceAccessRegistry(ctx, kc.Client, kc.Logger, jobNamespace, registryName, registryNamespace)
+}
+
 // GetSelfSubjectRulesReview gets the rules for what a user can access in a namespace
 func (kc *InternalKubernetesClient) GetSelfSubjectRulesReview(ctx context.Context, identity *RequestIdentity, namespace string) ([]string, error) {
 	kc.Logger.Warn("GetSelfSubjectRulesReview not fully implemented for internal client",

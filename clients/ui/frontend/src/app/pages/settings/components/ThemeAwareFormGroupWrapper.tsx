@@ -11,6 +11,8 @@ type ThemeAwareFormGroupWrapperProps = {
   isRequired?: boolean;
   helperTextNode?: React.ReactNode; // The pre-rendered HelperText component or null
   className?: string; // Optional className for the outer FormGroup
+  labelHelp?: React.ReactElement;
+  'data-testid'?: string;
 };
 
 const ThemeAwareFormGroupWrapper: React.FC<ThemeAwareFormGroupWrapperProps> = ({
@@ -20,6 +22,8 @@ const ThemeAwareFormGroupWrapper: React.FC<ThemeAwareFormGroupWrapperProps> = ({
   isRequired,
   helperTextNode,
   className,
+  labelHelp,
+  'data-testid': dataTestId,
 }) => {
   const { isMUITheme } = useThemeContext();
   const hasError = !!helperTextNode; // Determine error state based on helper text presence
@@ -34,6 +38,8 @@ const ThemeAwareFormGroupWrapper: React.FC<ThemeAwareFormGroupWrapperProps> = ({
           label={label}
           isRequired={isRequired}
           fieldId={fieldId}
+          labelHelp={labelHelp}
+          data-testid={dataTestId}
         >
           <FormFieldset component={children} field={label} />
         </FormGroup>
@@ -50,6 +56,8 @@ const ThemeAwareFormGroupWrapper: React.FC<ThemeAwareFormGroupWrapperProps> = ({
         label={label}
         isRequired={isRequired}
         fieldId={fieldId}
+        labelHelp={labelHelp}
+        data-testid={dataTestId}
       >
         {children}
         {helperTextNode}

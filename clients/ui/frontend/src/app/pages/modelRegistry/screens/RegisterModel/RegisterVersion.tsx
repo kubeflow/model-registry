@@ -1,5 +1,6 @@
 import React from 'react';
 import {
+  AlertVariant,
   Breadcrumb,
   BreadcrumbItem,
   Form,
@@ -14,6 +15,7 @@ import spacing from '@patternfly/react-styles/css/utilities/Spacing/spacing';
 import { useParams, useNavigate } from 'react-router';
 import { Link } from 'react-router-dom';
 import { ApplicationsPage } from 'mod-arch-shared';
+import { useThemeContext } from 'mod-arch-kubeflow';
 import {
   modelRegistryUrl,
   modelVersionUrl,
@@ -21,7 +23,10 @@ import {
 } from '~/app/pages/modelRegistry/screens/routeUtils';
 import { RegistrationMode } from '~/app/pages/modelRegistry/screens/const';
 import { ModelTransferJobUploadIntent } from '~/app/types';
+import { useCheckNamespaceRegistryAccess } from '~/app/hooks/useCheckNamespaceRegistryAccess';
+import { useModelRegistryNamespace } from '~/app/hooks/useModelRegistryNamespace';
 import useRegisteredModels from '~/app/hooks/useRegisteredModels';
+import { useNotification } from '~/app/hooks/useNotification';
 import { filterLiveModels } from '~/app/utils';
 import { ModelRegistryContext } from '~/app/context/ModelRegistryContext';
 import { AppContext } from '~/app/context/AppContext';
@@ -30,22 +35,42 @@ import { isRegisterVersionSubmitDisabled, registerVersion, registerViaTransferJo
 import RegistrationCommonFormSections from './RegistrationCommonFormSections';
 import PrefilledModelRegistryField from './PrefilledModelRegistryField';
 import RegistrationFormFooter from './RegistrationFormFooter';
+import type { RegistrationInlineAlert } from './RegistrationFormFooter';
 import RegisteredModelSelector from './RegisteredModelSelector';
 import { usePrefillRegisterVersionFields } from './usePrefillRegisterVersionFields';
 import { SubmitLabel, RegistrationErrorType } from './const';
+import {
+  REGISTRATION_TOAST_TITLES,
+  getRegistrationToastMessageSubmitting,
+  getRegistrationToastMessageSuccess,
+  getRegistrationToastMessageError,
+} from './registrationToastMessages';
 
 const RegisterVersion: React.FC = () => {
   const { modelRegistry: mrName, registeredModelId: prefilledRegisteredModelId } = useParams();
+  const registryNamespace = useModelRegistryNamespace();
   const navigate = useNavigate();
   const { apiState } = React.useContext(ModelRegistryContext);
   const { user } = React.useContext(AppContext);
+  const { isMUITheme } = useThemeContext();
+  const notification = useNotification();
   const author = user.userId || '';
   const [isSubmitting, setIsSubmitting] = React.useState(false);
   const [formData, setData] = useRegisterVersionData(prefilledRegisteredModelId);
-  const isSubmitDisabled = isSubmitting || isRegisterVersionSubmitDisabled(formData);
+  const {
+    hasAccess: namespaceHasAccess,
+    isLoading: isNamespaceAccessLoading,
+    error: namespaceAccessError,
+  } = useCheckNamespaceRegistryAccess(mrName, registryNamespace, formData.namespace ?? '');
+  const isSubmitDisabled =
+    isSubmitting ||
+    isRegisterVersionSubmitDisabled(formData, namespaceHasAccess, isNamespaceAccessLoading);
   const [submitError, setSubmitError] = React.useState<Error | undefined>(undefined);
   const [submittedVersionName, setSubmittedVersionName] = React.useState<string>('');
   const [registrationErrorType, setRegistrationErrorType] = React.useState<string | undefined>(
+    undefined,
+  );
+  const [inlineAlert, setInlineAlert] = React.useState<RegistrationInlineAlert | undefined>(
     undefined,
   );
 
@@ -68,6 +93,22 @@ const RegisterVersion: React.FC = () => {
     }
     setIsSubmitting(true);
     setSubmitError(undefined);
+    setInlineAlert(undefined);
+
+    const versionModelName = `${registeredModel.name} / ${formData.versionName}`;
+    const toastParams = { versionModelName, mrName: mrName ?? '' };
+
+    notification.info(
+      REGISTRATION_TOAST_TITLES.SUBMITTING,
+      getRegistrationToastMessageSubmitting(toastParams),
+    );
+    if (!isMUITheme) {
+      setInlineAlert({
+        variant: AlertVariant.info,
+        title: REGISTRATION_TOAST_TITLES.SUBMITTING,
+        message: getRegistrationToastMessageSubmitting(toastParams),
+      });
+    }
 
     // Branch based on registration mode
     if (formData.registrationMode === RegistrationMode.RegisterAndStore) {
@@ -94,6 +135,25 @@ const RegisterVersion: React.FC = () => {
       } = await registerVersion(apiState, registeredModel, formData, author);
 
       if (modelVersion && modelArtifact) {
+        notification.success(
+          REGISTRATION_TOAST_TITLES.SUCCESS,
+          getRegistrationToastMessageSuccess({
+            ...toastParams,
+            modelVersionId: modelVersion.id,
+            registeredModelId: registeredModel.id,
+          }),
+        );
+        if (!isMUITheme) {
+          setInlineAlert({
+            variant: AlertVariant.success,
+            title: REGISTRATION_TOAST_TITLES.SUCCESS,
+            message: getRegistrationToastMessageSuccess({
+              ...toastParams,
+              modelVersionId: modelVersion.id,
+              registeredModelId: registeredModel.id,
+            }),
+          });
+        }
         navigate(modelVersionUrl(modelVersion.id, registeredModel.id, mrName));
       } else if (Object.keys(errors).length > 0) {
         const resourceName = Object.keys(errors)[0];
@@ -101,6 +161,17 @@ const RegisterVersion: React.FC = () => {
         setRegistrationErrorType(resourceName);
         setSubmitError(errors[resourceName]);
         setIsSubmitting(false);
+        notification.error(
+          REGISTRATION_TOAST_TITLES.ERROR,
+          getRegistrationToastMessageError(toastParams),
+        );
+        if (!isMUITheme) {
+          setInlineAlert({
+            variant: AlertVariant.danger,
+            title: REGISTRATION_TOAST_TITLES.ERROR,
+            message: getRegistrationToastMessageError(toastParams),
+          });
+        }
       }
     }
   };
@@ -168,6 +239,9 @@ const RegisterVersion: React.FC = () => {
                 setData={setData}
                 isFirstVersion={false}
                 latestVersion={latestVersion}
+                namespaceHasAccess={namespaceHasAccess}
+                isNamespaceAccessLoading={isNamespaceAccessLoading}
+                namespaceAccessError={namespaceAccessError}
               />
             </StackItem>
           </Stack>
@@ -182,6 +256,7 @@ const RegisterVersion: React.FC = () => {
         onSubmit={handleSubmit}
         onCancel={onCancel}
         versionName={submittedVersionName}
+        inlineAlert={!isMUITheme ? inlineAlert : undefined}
       />
     </ApplicationsPage>
   );
