@@ -58,6 +58,14 @@ type ModelTransferJobDestination struct {
 	Registry string                          `json:"registry,omitempty"`
 }
 
+// ModelTransferJobEvent represents a single K8s event related to a transfer job pod
+type ModelTransferJobEvent struct {
+	Timestamp string `json:"timestamp"`
+	Type      string `json:"type"`
+	Reason    string `json:"reason"`
+	Message   string `json:"message"`
+}
+
 // ModelTransferJob represents a model transfer job
 type ModelTransferJob struct {
 	Id                       string                       `json:"id"`
@@ -85,6 +93,8 @@ type ModelTransferJob struct {
 	VersionCustomProperties  map[string]interface{}       `json:"versionCustomProperties,omitempty"`
 	SourceSecretName         string                       `json:"sourceSecretName,omitempty"`
 	DestSecretName           string                       `json:"destSecretName,omitempty"`
+	ErrorDescription         string                       `json:"errorDescription,omitempty"`
+	Events                   []ModelTransferJobEvent      `json:"events"`
 }
 
 // ModelTransferJobList represents a list of model transfer jobs
