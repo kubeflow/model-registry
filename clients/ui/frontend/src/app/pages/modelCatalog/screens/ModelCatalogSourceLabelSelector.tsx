@@ -120,12 +120,12 @@ const ModelCatalogSourceLabelSelector: React.FC<ModelCatalogSourceLabelSelectorP
     <Stack>
       <StackItem>
         <Toolbar
-          // Suppress the default second-row clear button so "Clear all" stays on same line as search
+          // Suppress the default second-row clear button so "Clear all filters" stays on same line as search
           customLabelGroupContent={onResetAllFilters ? <></> : undefined}
           {...(onResetAllFilters
             ? {
                 clearAllFilters: handleClearAllFilters,
-                clearFiltersButtonText: 'Clear all',
+                clearFiltersButtonText: 'Clear all filters',
               }
             : { clearAllFilters: undefined, clearFiltersButtonText: '' })}
         >
@@ -164,7 +164,7 @@ const ModelCatalogSourceLabelSelector: React.FC<ModelCatalogSourceLabelSelectorP
                   </ToolbarItem>
                 </ToolbarGroup>
               </ToolbarToggleGroup>
-              {/* Clear all: always on same line as search; disabled when no filters applied */}
+              {/* Clear all filters: always on same line as search; disabled when no filters applied */}
               {onResetAllFilters && (
                 <ToolbarItem>
                   <Button
@@ -174,7 +174,7 @@ const ModelCatalogSourceLabelSelector: React.FC<ModelCatalogSourceLabelSelectorP
                     data-testid="clear-all-filters-button"
                     aria-label="Clear all filters"
                   >
-                    Clear all
+                    Clear all filters
                   </Button>
                 </ToolbarItem>
               )}
