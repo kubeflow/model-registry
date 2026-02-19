@@ -171,6 +171,29 @@ func setupMock(mockK8sClient kubernetes.Interface, ctx context.Context) error {
 		return fmt.Errorf("failed to create group-based RBAC: %w", err)
 	}
 
+	err = createNamespaceDefaultSARegistryAccessRBAC(mockK8sClient, ctx, "dora-namespace", "model-registry-dora")
+	if err != nil {
+		return fmt.Errorf("failed to create namespace default SA registry access RBAC: %w", err)
+	}
+
+	err = createNamespaceDefaultSARegistryAccessRBAC(mockK8sClient, ctx, "kubeflow", "model-registry")
+	if err != nil {
+		return fmt.Errorf("failed to create kubeflow default SA registry access RBAC: %w", err)
+	}
+	err = createCrossNamespaceRegistryAccessBinding(mockK8sClient, ctx, "kubeflow", "namespace-sa-registry-access", "dora-namespace")
+	if err != nil {
+		return fmt.Errorf("failed to create dora-namespace cross-namespace access to model-registry: %w", err)
+	}
+
+	err = createNamespaceDefaultSARegistryAccessRBAC(mockK8sClient, ctx, "bella-namespace", "model-registry-bella")
+	if err != nil {
+		return fmt.Errorf("failed to create bella-namespace default SA registry access RBAC: %w", err)
+	}
+	err = createCrossNamespaceRegistryAccessBinding(mockK8sClient, ctx, "bella-namespace", "namespace-sa-registry-access", "dora-namespace")
+	if err != nil {
+		return fmt.Errorf("failed to create dora-namespace cross-namespace access to model-registry-bella: %w", err)
+	}
+
 	err = createGroupNamespaceAccessRBAC(mockK8sClient, ctx, DefaultTestUsers[1].Groups[0], "dora-namespace")
 	if err != nil {
 		return fmt.Errorf("failed to set up group access to namespace: %w", err)
@@ -483,6 +506,77 @@ func createGroupAccessRBAC(k8sClient kubernetes.Interface, ctx context.Context, 
 	_, err = k8sClient.RbacV1().RoleBindings(namespace).Create(ctx, roleBinding, metav1.CreateOptions{})
 	if err != nil {
 		return fmt.Errorf("failed to create RoleBinding for group: %w", err)
+	}
+	return nil
+}
+
+func createNamespaceDefaultSARegistryAccessRBAC(k8sClient kubernetes.Interface, ctx context.Context, namespace, serviceName string) error {
+	role := &rbacv1.Role{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "namespace-sa-registry-access",
+			Namespace: namespace,
+		},
+		Rules: []rbacv1.PolicyRule{
+			{
+				APIGroups:     []string{""},
+				Resources:     []string{"services"},
+				Verbs:         []string{"get"},
+				ResourceNames: []string{serviceName},
+			},
+		},
+	}
+	_, err := k8sClient.RbacV1().Roles(namespace).Create(ctx, role, metav1.CreateOptions{})
+	if err != nil {
+		return fmt.Errorf("failed to create Role for namespace default SA: %w", err)
+	}
+	roleBinding := &rbacv1.RoleBinding{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "namespace-sa-registry-access-binding",
+			Namespace: namespace,
+		},
+		Subjects: []rbacv1.Subject{
+			{
+				Kind:      "ServiceAccount",
+				Name:      "default",
+				Namespace: namespace,
+			},
+		},
+		RoleRef: rbacv1.RoleRef{
+			Kind:     "Role",
+			Name:     "namespace-sa-registry-access",
+			APIGroup: "rbac.authorization.k8s.io",
+		},
+	}
+	_, err = k8sClient.RbacV1().RoleBindings(namespace).Create(ctx, roleBinding, metav1.CreateOptions{})
+	if err != nil {
+		return fmt.Errorf("failed to create RoleBinding for namespace default SA: %w", err)
+	}
+	return nil
+}
+
+func createCrossNamespaceRegistryAccessBinding(k8sClient kubernetes.Interface, ctx context.Context, registryNamespace, roleName, jobNamespace string) error {
+	bindingName := "registry-access-binding-" + strings.ReplaceAll(jobNamespace, ":", "-")
+	roleBinding := &rbacv1.RoleBinding{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      bindingName,
+			Namespace: registryNamespace,
+		},
+		Subjects: []rbacv1.Subject{
+			{
+				Kind:      "ServiceAccount",
+				Name:      "default",
+				Namespace: jobNamespace,
+			},
+		},
+		RoleRef: rbacv1.RoleRef{
+			Kind:     "Role",
+			Name:     roleName,
+			APIGroup: "rbac.authorization.k8s.io",
+		},
+	}
+	_, err := k8sClient.RbacV1().RoleBindings(registryNamespace).Create(ctx, roleBinding, metav1.CreateOptions{})
+	if err != nil {
+		return fmt.Errorf("failed to create cross-namespace registry access RoleBinding: %w", err)
 	}
 	return nil
 }

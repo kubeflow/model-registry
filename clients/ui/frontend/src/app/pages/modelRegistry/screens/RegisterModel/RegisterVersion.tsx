@@ -21,6 +21,8 @@ import {
 } from '~/app/pages/modelRegistry/screens/routeUtils';
 import { RegistrationMode } from '~/app/pages/modelRegistry/screens/const';
 import { ModelTransferJobUploadIntent } from '~/app/types';
+import { useCheckNamespaceRegistryAccess } from '~/app/hooks/useCheckNamespaceRegistryAccess';
+import { useModelRegistryNamespace } from '~/app/hooks/useModelRegistryNamespace';
 import useRegisteredModels from '~/app/hooks/useRegisteredModels';
 import { filterLiveModels } from '~/app/utils';
 import { ModelRegistryContext } from '~/app/context/ModelRegistryContext';
@@ -36,13 +38,21 @@ import { SubmitLabel, RegistrationErrorType } from './const';
 
 const RegisterVersion: React.FC = () => {
   const { modelRegistry: mrName, registeredModelId: prefilledRegisteredModelId } = useParams();
+  const registryNamespace = useModelRegistryNamespace();
   const navigate = useNavigate();
   const { apiState } = React.useContext(ModelRegistryContext);
   const { user } = React.useContext(AppContext);
   const author = user.userId || '';
   const [isSubmitting, setIsSubmitting] = React.useState(false);
   const [formData, setData] = useRegisterVersionData(prefilledRegisteredModelId);
-  const isSubmitDisabled = isSubmitting || isRegisterVersionSubmitDisabled(formData);
+  const {
+    hasAccess: namespaceHasAccess,
+    isLoading: isNamespaceAccessLoading,
+    error: namespaceAccessError,
+  } = useCheckNamespaceRegistryAccess(mrName, registryNamespace, formData.namespace ?? '');
+  const isSubmitDisabled =
+    isSubmitting ||
+    isRegisterVersionSubmitDisabled(formData, namespaceHasAccess, isNamespaceAccessLoading);
   const [submitError, setSubmitError] = React.useState<Error | undefined>(undefined);
   const [submittedVersionName, setSubmittedVersionName] = React.useState<string>('');
   const [registrationErrorType, setRegistrationErrorType] = React.useState<string | undefined>(
@@ -168,6 +178,9 @@ const RegisterVersion: React.FC = () => {
                 setData={setData}
                 isFirstVersion={false}
                 latestVersion={latestVersion}
+                namespaceHasAccess={namespaceHasAccess}
+                isNamespaceAccessLoading={isNamespaceAccessLoading}
+                namespaceAccessError={namespaceAccessError}
               />
             </StackItem>
           </Stack>
