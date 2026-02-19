@@ -1,0 +1,32 @@
+// Plugin hooks - created once by catalog-gen, you can modify this file.
+// These hooks are called by the generated plugin.go at specific lifecycle points.
+// Use them to register event handlers, custom loaders, or any plugin-specific initialization.
+
+package {{.PackageName}}
+
+import (
+	"github.com/kubeflow/model-registry/pkg/catalog/plugin"
+)
+
+// initHooks is called at the end of Init(), after the loader and services are created.
+// Use this to register event handlers, set up custom loaders, or read plugin config.
+//
+// Available fields on the plugin struct:
+//   - p.loader    — the catalog loader (call p.loader.RegisterEventHandler(...) to add hooks)
+//   - p.services  — the service layer with repositories
+//   - p.cfg       — the plugin config (p.cfg.Section.Config for plugin-specific settings)
+//   - p.logger    — structured logger
+func (p *{{.EntityName}}CatalogPlugin) initHooks(cfg plugin.Config) error {
+	// Example: register an event handler
+	// p.loader.RegisterEventHandler(func(ctx context.Context, record catalog.Record[models.{{.EntityName}}, any]) error {
+	//     p.logger.Info("entity loaded", "name", record.Entity.GetAttributes().Name)
+	//     return nil
+	// })
+
+	// Example: read plugin-specific config from sources.yaml
+	// if val, ok := cfg.Section.Config["myCustomSetting"]; ok {
+	//     p.logger.Info("custom setting", "value", val)
+	// }
+
+	return nil
+}

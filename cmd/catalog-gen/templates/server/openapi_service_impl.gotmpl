@@ -106,17 +106,17 @@ func convertToOpenAPIModel(entity models.{{.EntityName}}) {{.EntityName}} {
 
 	// Extract custom properties
 	if entity.GetCustomProperties() != nil {
-		customProps := make(map[string]interface{})
+		customProps := make(map[string]MetadataValue)
 		for _, prop := range *entity.GetCustomProperties() {
 			switch {
 			case prop.StringValue != nil:
-				customProps[prop.Name] = *prop.StringValue
+				customProps[prop.Name] = MetadataValue{StringValue: *prop.StringValue, MetadataType: "MetadataStringValue"}
 			case prop.IntValue != nil:
-				customProps[prop.Name] = *prop.IntValue
+				customProps[prop.Name] = MetadataValue{IntValue: fmt.Sprintf("%d", *prop.IntValue), MetadataType: "MetadataIntValue"}
 			case prop.DoubleValue != nil:
-				customProps[prop.Name] = *prop.DoubleValue
+				customProps[prop.Name] = MetadataValue{DoubleValue: *prop.DoubleValue, MetadataType: "MetadataDoubleValue"}
 			case prop.BoolValue != nil:
-				customProps[prop.Name] = *prop.BoolValue
+				customProps[prop.Name] = MetadataValue{BoolValue: *prop.BoolValue, MetadataType: "MetadataBoolValue"}
 			}
 		}
 		if len(customProps) > 0 {

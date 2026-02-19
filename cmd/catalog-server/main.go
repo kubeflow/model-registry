@@ -39,6 +39,9 @@ func main() {
 	flag.StringVar(&sourcesPath, "sources", "/config/sources.yaml", "Path to catalog sources config")
 	flag.StringVar(&databaseType, "db-type", "postgres", "Database type (postgres or mysql)")
 	flag.StringVar(&databaseDSN, "db-dsn", "", "Database connection string")
+
+	// Let plugins register their custom flags before parsing
+	plugin.RegisterAllFlags(flag.CommandLine)
 	flag.Parse()
 
 	// Initialize glog for backwards compatibility

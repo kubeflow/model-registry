@@ -5,6 +5,7 @@ package plugin
 
 import (
 	"context"
+	"flag"
 	"log/slog"
 
 	"github.com/go-chi/chi/v5"
@@ -63,6 +64,25 @@ type BasePathProvider interface {
 // can read from the "models" config section).
 type SourceKeyProvider interface {
 	SourceKey() string
+}
+
+// CatalogLoader defines the interface for data loading strategies.
+// The core Loader[E, A] implements this by default. Plugins can
+// register multiple loaders (e.g., core + custom).
+type CatalogLoader interface {
+	// Start begins loading data and sets up any watchers/background operations.
+	Start(ctx context.Context) error
+
+	// Stop gracefully shuts down the loader.
+	Stop(ctx context.Context) error
+}
+
+// FlagProvider is an optional interface that plugins can implement
+// to register custom CLI flags before flag parsing.
+type FlagProvider interface {
+	// RegisterFlags registers custom CLI flags for this plugin.
+	// Called before flag.Parse() during server startup.
+	RegisterFlags(fs *flag.FlagSet)
 }
 
 // Migration represents a database migration for a plugin.

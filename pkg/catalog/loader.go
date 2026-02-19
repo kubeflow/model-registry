@@ -209,6 +209,17 @@ func (l *Loader[E, A]) Start(ctx context.Context) error {
 	return nil
 }
 
+// Stop gracefully shuts down the loader by canceling any background operations.
+func (l *Loader[E, A]) Stop(ctx context.Context) error {
+	l.closersMu.Lock()
+	defer l.closersMu.Unlock()
+	if l.closer != nil {
+		l.closer()
+		l.closer = nil
+	}
+	return nil
+}
+
 // Reload re-parses config files, cleans up missing sources, and reloads all entities.
 func (l *Loader[E, A]) Reload(ctx context.Context) error {
 	for _, path := range l.config.Paths {

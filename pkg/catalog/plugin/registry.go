@@ -1,6 +1,7 @@
 package plugin
 
 import (
+	"flag"
 	"fmt"
 	"sync"
 )
@@ -70,6 +71,16 @@ func Count() int {
 	defer globalRegistry.mu.RUnlock()
 
 	return len(globalRegistry.plugins)
+}
+
+// RegisterAllFlags iterates all registered plugins and calls RegisterFlags
+// on those implementing FlagProvider. Call this before flag.Parse().
+func RegisterAllFlags(fs *flag.FlagSet) {
+	for _, p := range All() {
+		if fp, ok := p.(FlagProvider); ok {
+			fp.RegisterFlags(fs)
+		}
+	}
 }
 
 // Reset clears the global registry. For testing only.

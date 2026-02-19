@@ -277,6 +277,7 @@ test:
 api/openapi/openapi.yaml: api/openapi/src/openapi.yaml api/openapi/src/generated/components.yaml
 	@echo "Merging OpenAPI specs..."
 	@mkdir -p api/openapi
+	@test -e api/openapi/lib || ln -s src/lib api/openapi/lib
 	@cat api/openapi/src/openapi.yaml > api/openapi/openapi.yaml
 	@echo "" >> api/openapi/openapi.yaml
 	@cat api/openapi/src/generated/components.yaml >> api/openapi/openapi.yaml
