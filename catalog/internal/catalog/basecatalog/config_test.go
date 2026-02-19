@@ -16,7 +16,7 @@ func TestSourceConfig_GetModelCatalogs(t *testing.T) {
 		{
 			name: "only model_catalogs",
 			config: &SourceConfig{
-				ModelCatalogs: []Source{
+				ModelCatalogs: []ModelSource{
 					{CatalogSource: apimodels.CatalogSource{Id: "model1", Name: "Model 1"}},
 					{CatalogSource: apimodels.CatalogSource{Id: "model2", Name: "Model 2"}},
 				},
@@ -26,7 +26,7 @@ func TestSourceConfig_GetModelCatalogs(t *testing.T) {
 		{
 			name: "only deprecated catalogs",
 			config: &SourceConfig{
-				Catalogs: []Source{
+				Catalogs: []ModelSource{
 					{CatalogSource: apimodels.CatalogSource{Id: "cat1", Name: "Catalog 1"}},
 				},
 			},
@@ -35,10 +35,10 @@ func TestSourceConfig_GetModelCatalogs(t *testing.T) {
 		{
 			name: "both fields - model_catalogs takes precedence on conflict",
 			config: &SourceConfig{
-				ModelCatalogs: []Source{
+				ModelCatalogs: []ModelSource{
 					{CatalogSource: apimodels.CatalogSource{Id: "shared", Name: "New Name"}},
 				},
-				Catalogs: []Source{
+				Catalogs: []ModelSource{
 					{CatalogSource: apimodels.CatalogSource{Id: "shared", Name: "Old Name"}},
 					{CatalogSource: apimodels.CatalogSource{Id: "unique", Name: "Unique"}},
 				},
@@ -59,7 +59,7 @@ func TestSourceConfig_GetModelCatalogs(t *testing.T) {
 
 			// For the precedence test, verify model_catalogs wins
 			if tt.name == "both fields - model_catalogs takes precedence on conflict" {
-				var sharedSource *Source
+				var sharedSource *ModelSource
 				for _, s := range result {
 					if s.Id == "shared" {
 						sharedSource = &s
@@ -82,7 +82,7 @@ func TestSourceConfig_HasDeprecatedCatalogs(t *testing.T) {
 		{
 			name: "has deprecated catalogs",
 			config: &SourceConfig{
-				Catalogs: []Source{
+				Catalogs: []ModelSource{
 					{CatalogSource: apimodels.CatalogSource{Id: "cat1", Name: "Catalog 1"}},
 				},
 			},
@@ -91,7 +91,7 @@ func TestSourceConfig_HasDeprecatedCatalogs(t *testing.T) {
 		{
 			name: "no deprecated catalogs",
 			config: &SourceConfig{
-				ModelCatalogs: []Source{
+				ModelCatalogs: []ModelSource{
 					{CatalogSource: apimodels.CatalogSource{Id: "model1", Name: "Model 1"}},
 				},
 			},
@@ -122,8 +122,17 @@ func TestSourceConfig_Validate(t *testing.T) {
 		{
 			name: "valid config with model catalogs",
 			config: &SourceConfig{
-				ModelCatalogs: []Source{
+				ModelCatalogs: []ModelSource{
 					{CatalogSource: apimodels.CatalogSource{Id: "model1", Name: "Model 1"}},
+				},
+			},
+			expectErr: false,
+		},
+		{
+			name: "valid config with MCP catalogs",
+			config: &SourceConfig{
+				MCPCatalogs: []MCPSource{
+					{ID: "mcp1", Name: "MCP 1", Type: "yaml"},
 				},
 			},
 			expectErr: false,
@@ -131,7 +140,7 @@ func TestSourceConfig_Validate(t *testing.T) {
 		{
 			name: "duplicate model catalog IDs",
 			config: &SourceConfig{
-				ModelCatalogs: []Source{
+				ModelCatalogs: []ModelSource{
 					{CatalogSource: apimodels.CatalogSource{Id: "dup", Name: "Model 1"}},
 					{CatalogSource: apimodels.CatalogSource{Id: "dup", Name: "Model 2"}},
 				},
@@ -140,14 +149,48 @@ func TestSourceConfig_Validate(t *testing.T) {
 			errMsg:    "duplicate model catalog id: dup",
 		},
 		{
+			name: "duplicate MCP catalog IDs",
+			config: &SourceConfig{
+				MCPCatalogs: []MCPSource{
+					{ID: "dup", Name: "MCP 1", Type: "yaml"},
+					{ID: "dup", Name: "MCP 2", Type: "yaml"},
+				},
+			},
+			expectErr: true,
+			errMsg:    "duplicate MCP catalog id: dup",
+		},
+		{
 			name: "missing model catalog ID",
 			config: &SourceConfig{
-				ModelCatalogs: []Source{
+				ModelCatalogs: []ModelSource{
 					{CatalogSource: apimodels.CatalogSource{Name: "Model 1"}},
 				},
 			},
 			expectErr: true,
 			errMsg:    "model catalog source missing id",
+		},
+		{
+			name: "missing MCP catalog ID",
+			config: &SourceConfig{
+				MCPCatalogs: []MCPSource{
+					{Name: "MCP 1", Type: "yaml"},
+				},
+			},
+			expectErr: true,
+			errMsg:    "MCP catalog source missing id",
+		},
+		{
+			name: "cross-type ID collision between model and MCP catalogs",
+			config: &SourceConfig{
+				ModelCatalogs: []ModelSource{
+					{CatalogSource: apimodels.CatalogSource{Id: "shared", Name: "Model 1"}},
+				},
+				MCPCatalogs: []MCPSource{
+					{ID: "shared", Name: "MCP 1", Type: "yaml"},
+				},
+			},
+			expectErr: true,
+			errMsg:    `id "shared" used in both model_catalogs and mcp_catalogs`,
 		},
 	}
 
@@ -155,8 +198,9 @@ func TestSourceConfig_Validate(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			err := tt.config.Validate()
 			if tt.expectErr {
-				assert.Error(t, err)
-				assert.Contains(t, err.Error(), tt.errMsg)
+				if assert.Error(t, err) {
+					assert.Contains(t, err.Error(), tt.errMsg)
+				}
 			} else {
 				assert.NoError(t, err)
 			}

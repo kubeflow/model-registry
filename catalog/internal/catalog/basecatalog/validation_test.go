@@ -74,7 +74,7 @@ func TestLoaderValidationIntegration(t *testing.T) {
 
 	// Test with a valid config
 	validConfig := &SourceConfig{
-		Catalogs: []Source{},
+		Catalogs: []ModelSource{},
 		NamedQueries: map[string]map[string]FieldFilter{
 			"valid-query": {
 				"field1": {Operator: "=", Value: "value"},
@@ -88,7 +88,7 @@ func TestLoaderValidationIntegration(t *testing.T) {
 
 	// Test with an invalid config
 	invalidConfig := &SourceConfig{
-		Catalogs: []Source{},
+		Catalogs: []ModelSource{},
 		NamedQueries: map[string]map[string]FieldFilter{
 			"invalid-query": {
 				"field1": {Operator: "INVALID_OP", Value: "value"},

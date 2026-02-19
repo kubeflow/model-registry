@@ -2,7 +2,34 @@ package basecatalog
 
 import (
 	"fmt"
+	"os"
+
+	"github.com/golang/glog"
+	"k8s.io/apimachinery/pkg/util/yaml"
 )
+
+// ReadSourceConfig reads, parses, and validates a sources configuration file.
+func ReadSourceConfig(path string) (*SourceConfig, error) {
+	bytes, err := os.ReadFile(path)
+	if err != nil {
+		return nil, err
+	}
+
+	config := &SourceConfig{}
+	if err = yaml.UnmarshalStrict(bytes, config); err != nil {
+		return nil, err
+	}
+
+	if config.HasDeprecatedCatalogs() {
+		glog.Warningf("Configuration file %s uses deprecated 'catalogs' field. Please rename to 'model_catalogs'.", path)
+	}
+
+	if err := config.Validate(); err != nil {
+		return nil, fmt.Errorf("invalid configuration in %s: %w", path, err)
+	}
+
+	return config, nil
+}
 
 // SourceConfig represents the configuration format for model catalogs.
 //
@@ -22,7 +49,10 @@ import (
 //	# catalogs: []
 type SourceConfig struct {
 	// ModelCatalogs contains model catalog source definitions
-	ModelCatalogs []Source `yaml:"model_catalogs,omitempty" json:"model_catalogs,omitempty"`
+	ModelCatalogs []ModelSource `yaml:"model_catalogs,omitempty" json:"model_catalogs,omitempty"`
+
+	// MCPCatalogs contains MCP catalog source definitions
+	MCPCatalogs []MCPSource `yaml:"mcp_catalogs,omitempty" json:"mcp_catalogs,omitempty"`
 
 	// Labels contains label definitions for the catalogs
 	Labels []map[string]any `yaml:"labels,omitempty" json:"labels,omitempty"`
@@ -32,13 +62,13 @@ type SourceConfig struct {
 
 	// DEPRECATED: Use ModelCatalogs instead
 	// This field is maintained for backwards compatibility
-	Catalogs []Source `yaml:"catalogs,omitempty" json:"catalogs,omitempty"`
+	Catalogs []ModelSource `yaml:"catalogs,omitempty" json:"catalogs,omitempty"`
 }
 
 // GetModelCatalogs returns the merged list of model catalogs, combining the
 // new model_catalogs field with the deprecated catalogs field.
 // If there are ID conflicts, model_catalogs takes precedence.
-func (c *SourceConfig) GetModelCatalogs() []Source {
+func (c *SourceConfig) GetModelCatalogs() []ModelSource {
 	if len(c.Catalogs) == 0 {
 		return c.ModelCatalogs
 	}
@@ -51,7 +81,7 @@ func (c *SourceConfig) GetModelCatalogs() []Source {
 	// ModelCatalogs coming before Catalogs), and remove duplicate entries
 	// from Catalogs.
 
-	merged := make([]Source, len(c.ModelCatalogs), len(c.ModelCatalogs)+len(c.Catalogs))
+	merged := make([]ModelSource, len(c.ModelCatalogs), len(c.ModelCatalogs)+len(c.Catalogs))
 	copy(merged, c.ModelCatalogs)
 
 	mcIDs := make(map[string]struct{}, len(merged))
@@ -87,6 +117,22 @@ func (c *SourceConfig) Validate() error {
 			return fmt.Errorf("duplicate model catalog id: %s", id)
 		}
 		seen[id] = true
+	}
+
+	// Check for duplicate IDs within MCP catalogs, and cross-type collisions with model catalogs
+	mcpSeen := make(map[string]bool)
+	for _, source := range c.MCPCatalogs {
+		id := source.GetId()
+		if id == "" {
+			return fmt.Errorf("MCP catalog source missing id")
+		}
+		if mcpSeen[id] {
+			return fmt.Errorf("duplicate MCP catalog id: %s", id)
+		}
+		if seen[id] {
+			return fmt.Errorf("id %q used in both model_catalogs and mcp_catalogs", id)
+		}
+		mcpSeen[id] = true
 	}
 
 	return nil

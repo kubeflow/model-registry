@@ -464,7 +464,7 @@ models:
 
 	// Test that absolute paths work correctly (bug fix)
 	t.Run("absolute path works correctly", func(t *testing.T) {
-		source := &basecatalog.Source{
+		source := &basecatalog.ModelSource{
 			Properties: map[string]interface{}{
 				yamlCatalogPathKey: absolutePath, // Use absolute path to existing file
 			},
@@ -485,7 +485,7 @@ models:
 		reldir := tempDir
 		relativePath := "catalog.yaml"
 
-		source := &basecatalog.Source{
+		source := &basecatalog.ModelSource{
 			Properties: map[string]interface{}{
 				yamlCatalogPathKey: relativePath,
 			},
@@ -501,7 +501,7 @@ models:
 func TestYamlModelProviderFiltersApplied(t *testing.T) {
 	catalogPath := writeMiniCatalog(t, []string{"Granite/alpha", "Granite/beta-release", "DeepSeek/v1"})
 
-	source := &basecatalog.Source{
+	source := &basecatalog.ModelSource{
 		CatalogSource: model.CatalogSource{
 			Id:             "test",
 			Name:           "Test source",
@@ -521,7 +521,7 @@ func TestYamlModelProviderFiltersApplied(t *testing.T) {
 func TestYamlModelProviderLegacyExcludesMerged(t *testing.T) {
 	catalogPath := writeMiniCatalog(t, []string{"Granite/alpha", "Granite/beta-release", "DeepSeek/v1"})
 
-	source := &basecatalog.Source{
+	source := &basecatalog.ModelSource{
 		CatalogSource: model.CatalogSource{
 			Id:             "test",
 			Name:           "Test source",
@@ -547,7 +547,7 @@ func TestYamlModelProviderLegacyExcludesMerged(t *testing.T) {
 func TestYamlModelProviderInvalidPattern(t *testing.T) {
 	catalogPath := writeMiniCatalog(t, []string{"Granite/alpha"})
 
-	source := &basecatalog.Source{
+	source := &basecatalog.ModelSource{
 		CatalogSource: model.CatalogSource{
 			Id:             "test",
 			Name:           "Test source",
