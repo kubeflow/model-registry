@@ -2,8 +2,10 @@ package repositories
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
+	"log/slog"
 
 	"github.com/kubeflow/model-registry/ui/bff/internal/constants"
 	helper "github.com/kubeflow/model-registry/ui/bff/internal/helpers"
@@ -141,17 +143,79 @@ func (m *ModelRegistryRepository) ResolveServerAddress(clusterIP string, httpPor
 	return url
 }
 
-// GetAllModelTransferJobs returns just one mock sample to unblock the UI work and the rest of the logic will be added in followup PR
-// TODO: Replace with actual implementation for all the methods
 func (m *ModelRegistryRepository) GetAllModelTransferJobs(ctx context.Context, client k8s.KubernetesClientInterface, namespace string) (*models.ModelTransferJobList, error) {
+	logger := helper.GetContextLogger(ctx)
+
 	jobList, err := client.GetAllModelTransferJobs(ctx, namespace)
 	if err != nil {
 		return nil, fmt.Errorf("failed to fetch model transfer jobs: %w", err)
 	}
 
+	jobNames := make([]string, 0, len(jobList.Items))
+	for _, job := range jobList.Items {
+		jobNames = append(jobNames, job.Name)
+	}
+
+	podsByJob := map[string][]corev1.Pod{}
+	podNameToJobName := map[string]string{}
+	if len(jobNames) > 0 {
+		podList, podErr := client.GetTransferJobPods(ctx, namespace, jobNames)
+		if podErr != nil {
+			logger.Warn("failed to fetch transfer job pods, continuing without pod data", slog.Any("error", podErr))
+		} else {
+			for i := range podList.Items {
+				pod := podList.Items[i]
+				jobName := pod.Labels["job-name"]
+				if jobName != "" {
+					podsByJob[jobName] = append(podsByJob[jobName], pod)
+					podNameToJobName[pod.Name] = jobName
+				}
+			}
+		}
+	}
+
+	eventsByJob := map[string][]models.ModelTransferJobEvent{}
+	if len(podNameToJobName) > 0 {
+		podNames := make([]string, 0, len(podNameToJobName))
+		for podName := range podNameToJobName {
+			podNames = append(podNames, podName)
+		}
+		eventList, eventErr := client.GetEventsForPods(ctx, namespace, podNames)
+		if eventErr != nil {
+			logger.Warn("failed to fetch events for transfer job pods, continuing without events", slog.Any("error", eventErr))
+		} else {
+			for _, event := range eventList.Items {
+				jobName := podNameToJobName[event.InvolvedObject.Name]
+				if jobName == "" {
+					continue
+				}
+				ts := event.LastTimestamp.UTC().Format("2006-01-02T15:04:05Z")
+				if event.LastTimestamp.IsZero() && !event.EventTime.IsZero() {
+					ts = event.EventTime.UTC().Format("2006-01-02T15:04:05Z")
+				}
+				eventsByJob[jobName] = append(eventsByJob[jobName], models.ModelTransferJobEvent{
+					Timestamp: ts,
+					Type:      event.Type,
+					Reason:    event.Reason,
+					Message:   event.Message,
+				})
+			}
+		}
+	}
+
 	var transferJobs []models.ModelTransferJob
 	for _, job := range jobList.Items {
-		transferJobs = append(transferJobs, convertK8sJobToModel(&job))
+		transferJob := convertK8sJobToModel(&job)
+		if pods, ok := podsByJob[job.Name]; ok {
+			enrichJobFromPods(&transferJob, pods, logger)
+		}
+		if events, ok := eventsByJob[job.Name]; ok {
+			transferJob.Events = events
+		}
+		if transferJob.Events == nil {
+			transferJob.Events = []models.ModelTransferJobEvent{}
+		}
+		transferJobs = append(transferJobs, transferJob)
 	}
 
 	return &models.ModelTransferJobList{
@@ -159,7 +223,6 @@ func (m *ModelRegistryRepository) GetAllModelTransferJobs(ctx context.Context, c
 		Size:     len(transferJobs),
 		PageSize: len(transferJobs),
 	}, nil
-
 }
 
 func (m *ModelRegistryRepository) CreateModelTransferJob(ctx context.Context, client k8s.KubernetesClientInterface, namespace string, payload models.ModelTransferJob) error {
@@ -238,10 +301,18 @@ func convertK8sJobToModel(job *batchv1.Job) models.ModelTransferJob {
 	}
 
 	status := models.ModelTransferJobStatusPending
+	var errorMessage, errorDescription string
 	if job.Status.Succeeded > 0 {
 		status = models.ModelTransferJobStatusCompleted
 	} else if job.Status.Failed > 0 {
 		status = models.ModelTransferJobStatusFailed
+		for _, condition := range job.Status.Conditions {
+			if condition.Type == batchv1.JobFailed && condition.Status == corev1.ConditionTrue {
+				errorMessage = condition.Reason
+				errorDescription = condition.Message
+				break
+			}
+		}
 	} else if job.Status.Active > 0 {
 		status = models.ModelTransferJobStatusRunning
 	}
@@ -257,7 +328,60 @@ func convertK8sJobToModel(job *batchv1.Job) models.ModelTransferJob {
 		ModelArtifactId:      annotations["modelregistry.kubeflow.org/model-artifact-id"],
 		Author:               annotations["modelregistry.kubeflow.org/author"],
 		Status:               status,
+		ErrorMessage:         errorMessage,
+		ErrorDescription:     errorDescription,
 		CreateTimeSinceEpoch: fmt.Sprintf("%d", job.CreationTimestamp.UnixMilli()),
 		Namespace:            job.Namespace,
+	}
+}
+
+type terminationMessageIDs struct {
+	RegisteredModel struct {
+		ID string `json:"id"`
+	} `json:"RegisteredModel"`
+	ModelVersion struct {
+		ID string `json:"id"`
+	} `json:"ModelVersion"`
+	ModelArtifact struct {
+		ID string `json:"id"`
+	} `json:"ModelArtifact"`
+}
+
+func enrichJobFromPods(job *models.ModelTransferJob, pods []corev1.Pod, logger *slog.Logger) {
+	for _, pod := range pods {
+		for _, cs := range pod.Status.ContainerStatuses {
+			if cs.State.Terminated == nil {
+				continue
+			}
+			msg := cs.State.Terminated.Message
+			if msg == "" {
+				continue
+			}
+
+			if cs.State.Terminated.ExitCode == 0 {
+				var ids terminationMessageIDs
+				if err := json.Unmarshal([]byte(msg), &ids); err != nil {
+					logger.Debug("failed to parse termination message as JSON",
+						slog.String("pod", pod.Name),
+						slog.Any("error", err))
+					continue
+				}
+				if ids.RegisteredModel.ID != "" {
+					job.RegisteredModelId = ids.RegisteredModel.ID
+				}
+				if ids.ModelVersion.ID != "" {
+					job.ModelVersionId = ids.ModelVersion.ID
+				}
+				if ids.ModelArtifact.ID != "" {
+					job.ModelArtifactId = ids.ModelArtifact.ID
+				}
+				return
+			}
+
+			if job.ErrorMessage == "" {
+				job.ErrorMessage = msg
+			}
+			return
+		}
 	}
 }

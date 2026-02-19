@@ -352,6 +352,69 @@ func (kc *SharedClientLogic) GetAllModelTransferJobs(
 	return modelTransferJobList, nil
 }
 
+func (kc *SharedClientLogic) GetTransferJobPods(
+	ctx context.Context,
+	namespace string,
+	jobNames []string,
+) (*corev1.PodList, error) {
+	if namespace == "" {
+		return &corev1.PodList{}, fmt.Errorf("namespace cannot be empty")
+	}
+	if len(jobNames) == 0 {
+		return &corev1.PodList{}, nil
+	}
+
+	sessionLogger := ctx.Value(constants.TraceLoggerKey).(*slog.Logger)
+
+	labelSelector := fmt.Sprintf("job-name in (%s)", strings.Join(jobNames, ","))
+	podList, err := kc.Client.CoreV1().Pods(namespace).List(ctx, metav1.ListOptions{
+		LabelSelector: labelSelector,
+	})
+	if err != nil {
+		sessionLogger.Error("failed to fetch transfer job pods",
+			"namespace", namespace,
+			"error", err,
+		)
+		return &corev1.PodList{}, fmt.Errorf("failed to list transfer job pods: %w", err)
+	}
+
+	return podList, nil
+}
+
+func (kc *SharedClientLogic) GetEventsForPods(
+	ctx context.Context,
+	namespace string,
+	podNames []string,
+) (*corev1.EventList, error) {
+	if namespace == "" {
+		return &corev1.EventList{}, fmt.Errorf("namespace cannot be empty")
+	}
+	if len(podNames) == 0 {
+		return &corev1.EventList{}, nil
+	}
+
+	sessionLogger := ctx.Value(constants.TraceLoggerKey).(*slog.Logger)
+
+	var allEvents []corev1.Event
+	for _, podName := range podNames {
+		fieldSelector := fmt.Sprintf("involvedObject.name=%s,involvedObject.kind=Pod", podName)
+		eventList, err := kc.Client.CoreV1().Events(namespace).List(ctx, metav1.ListOptions{
+			FieldSelector: fieldSelector,
+		})
+		if err != nil {
+			sessionLogger.Warn("failed to fetch events for pod",
+				"namespace", namespace,
+				"pod", podName,
+				"error", err,
+			)
+			continue
+		}
+		allEvents = append(allEvents, eventList.Items...)
+	}
+
+	return &corev1.EventList{Items: allEvents}, nil
+}
+
 func (kc *SharedClientLogic) CreateModelTransferJob(ctx context.Context, namespace string, job *batchv1.Job) error {
 	sessionLogger := ctx.Value(constants.TraceLoggerKey).(*slog.Logger)
 
