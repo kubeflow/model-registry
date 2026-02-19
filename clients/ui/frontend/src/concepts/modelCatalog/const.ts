@@ -249,6 +249,13 @@ export enum CatalogModelCustomPropertyKey {
   TENSOR_TYPE = 'tensor_type',
   SIZE = 'size',
   ARCHITECTURE = 'architecture',
+  MODEL_TYPE = 'model_type',
+}
+
+export enum ModelType {
+  GENERATIVE = 'generative',
+  PREDICTIVE = 'predictive',
+  UNKNOWN = 'unknown',
 }
 
 export enum ModelCatalogLicense {
