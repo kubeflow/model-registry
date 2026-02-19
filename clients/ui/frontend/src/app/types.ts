@@ -314,6 +314,13 @@ export type ModelTransferJobDestination =
   | ModelTransferJobS3Destination
   | ModelTransferJobOCIDestination;
 
+export type ModelTransferJobEvent = {
+  timestamp: string;
+  type: string;
+  reason: string;
+  message: string;
+};
+
 export type ModelTransferJob = {
   id: string;
   name: string;
@@ -333,6 +340,8 @@ export type ModelTransferJob = {
   createTimeSinceEpoch: string;
   lastUpdateTimeSinceEpoch: string;
   errorMessage?: string;
+  errorDescription?: string;
+  events?: ModelTransferJobEvent[];
 };
 
 export type CreateModelTransferJobData = Omit<
