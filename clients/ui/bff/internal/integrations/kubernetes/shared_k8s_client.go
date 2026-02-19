@@ -411,23 +411,23 @@ func (kc *SharedClientLogic) UpdateModelTransferJob(ctx context.Context, namespa
 
 }
 
-func (kc *SharedClientLogic) DeleteModelTransferJob(ctx context.Context, namespace string, jobId string) error {
+// DeleteModelTransferJob deletes the K8s Job by its resource name (job name from the list response).
+func (kc *SharedClientLogic) DeleteModelTransferJob(ctx context.Context, namespace string, jobName string) error {
 	sessionLogger := ctx.Value(constants.TraceLoggerKey).(*slog.Logger)
 
-	err := kc.Client.BatchV1().Jobs(namespace).Delete(ctx, jobId, metav1.DeleteOptions{})
-
+	err := kc.Client.BatchV1().Jobs(namespace).Delete(ctx, jobName, metav1.DeleteOptions{})
 	if err != nil {
-		sessionLogger.Warn("failed to delete job (may not exist)",
+		sessionLogger.Warn("failed to delete model transfer job",
 			"namespace", namespace,
-			"jobId", jobId,
+			"jobName", jobName,
 			"error", err,
 		)
-		return fmt.Errorf("failed to delete job %s: %w", jobId, err)
+		return fmt.Errorf("failed to delete model transfer job %s: %w", jobName, err)
 	}
 
-	sessionLogger.Info("successfully deleted job",
+	sessionLogger.Info("successfully deleted model transfer job",
 		"namespace", namespace,
-		"jobId", jobId,
+		"jobName", jobName,
 	)
 
 	return nil

@@ -2,7 +2,7 @@
 
 ## Requirements
 
-- Go >= 1.25
+- Go >= 1.25.7
 - Helm >= 3.16.1
 - Python >= 3.8
 - Node >= 20

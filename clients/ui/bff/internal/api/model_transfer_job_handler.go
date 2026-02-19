@@ -8,24 +8,44 @@ import (
 
 	"github.com/julienschmidt/httprouter"
 	"github.com/kubeflow/model-registry/ui/bff/internal/constants"
+	k8s "github.com/kubeflow/model-registry/ui/bff/internal/integrations/kubernetes"
 	"github.com/kubeflow/model-registry/ui/bff/internal/models"
+	"github.com/kubeflow/model-registry/ui/bff/internal/repositories"
 )
 
 type ModelTransferJobListEnvelope Envelope[*models.ModelTransferJobList, None]
 type ModelTransferJobEnvelope Envelope[*models.ModelTransferJob, None]
+type ModelTransferJobOperationStatusEnvelope Envelope[models.ModelTransferJobOperationStatus, None]
 
-func (app *App) GetAllModelTransferJobsHandler(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
+// getModelTransferJobNamespaceAndClient returns namespace and K8s client from request context.
+// On failure it writes the error response and returns ok == false.
+func (app *App) getModelTransferJobNamespaceAndClient(w http.ResponseWriter, r *http.Request) (namespace string, client k8s.KubernetesClientInterface, ok bool) {
 	ctx := r.Context()
-
-	namespace, ok := ctx.Value(constants.NamespaceHeaderParameterKey).(string)
+	namespace, ok = ctx.Value(constants.NamespaceHeaderParameterKey).(string)
 	if !ok || namespace == "" {
 		app.badRequestResponse(w, r, fmt.Errorf("missing namespace in context"))
-		return
+		return "", nil, false
 	}
-
 	client, err := app.kubernetesClientFactory.GetClient(ctx)
 	if err != nil {
 		app.serverErrorResponse(w, r, errors.New("kubernetes client not found"))
+		return "", nil, false
+	}
+	return namespace, client, true
+}
+
+// TODO: Remove this helper when the actual implementation returns the real resource in the response.
+func (app *App) writeModelTransferJobOperationStatus(w http.ResponseWriter, r *http.Request, status string) {
+	response := ModelTransferJobOperationStatusEnvelope{Data: models.ModelTransferJobOperationStatus{Status: status}}
+	if err := app.WriteJSON(w, http.StatusOK, response, nil); err != nil {
+		app.serverErrorResponse(w, r, fmt.Errorf("error writing JSON"))
+	}
+}
+
+func (app *App) GetAllModelTransferJobsHandler(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
+	ctx := r.Context()
+	namespace, client, ok := app.getModelTransferJobNamespaceAndClient(w, r)
+	if !ok {
 		return
 	}
 
@@ -47,16 +67,8 @@ func (app *App) GetAllModelTransferJobsHandler(w http.ResponseWriter, r *http.Re
 
 func (app *App) CreateModelTransferJobHandler(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 	ctx := r.Context()
-
-	namespace, ok := ctx.Value(constants.NamespaceHeaderParameterKey).(string)
-	if !ok || namespace == "" {
-		app.badRequestResponse(w, r, fmt.Errorf("missing namespace in context"))
-		return
-	}
-
-	client, err := app.kubernetesClientFactory.GetClient(ctx)
-	if err != nil {
-		app.serverErrorResponse(w, r, errors.New("kubernetes client not found"))
+	namespace, client, ok := app.getModelTransferJobNamespaceAndClient(w, r)
+	if !ok {
 		return
 	}
 
@@ -67,8 +79,7 @@ func (app *App) CreateModelTransferJobHandler(w http.ResponseWriter, r *http.Req
 	}
 	payload := *envelope.Data
 
-	err = app.repositories.ModelRegistry.CreateModelTransferJob(ctx, client, namespace, payload)
-
+	err := app.repositories.ModelRegistry.CreateModelTransferJob(ctx, client, namespace, payload)
 	if err != nil {
 		app.serverErrorResponse(w, r, err)
 		return
@@ -91,16 +102,8 @@ func (app *App) CreateModelTransferJobHandler(w http.ResponseWriter, r *http.Req
 
 func (app *App) UpdateModelTransferJobHandler(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 	ctx := r.Context()
-
-	namespace, ok := ctx.Value(constants.NamespaceHeaderParameterKey).(string)
-	if !ok || namespace == "" {
-		app.badRequestResponse(w, r, fmt.Errorf("missing namespace in context"))
-		return
-	}
-
-	client, err := app.kubernetesClientFactory.GetClient(ctx)
-	if err != nil {
-		app.serverErrorResponse(w, r, errors.New("kubernetes client not found"))
+	namespace, client, ok := app.getModelTransferJobNamespaceAndClient(w, r)
+	if !ok {
 		return
 	}
 
@@ -112,8 +115,7 @@ func (app *App) UpdateModelTransferJobHandler(w http.ResponseWriter, r *http.Req
 
 	jobId := ps.ByName(ModelTransferJobId)
 
-	err = app.repositories.ModelRegistry.UpdateModelTransferJob(ctx, client, namespace, jobId, updates)
-
+	err := app.repositories.ModelRegistry.UpdateModelTransferJob(ctx, client, namespace, jobId, updates)
 	if err != nil {
 		app.serverErrorResponse(w, r, err)
 		return
@@ -124,45 +126,27 @@ func (app *App) UpdateModelTransferJobHandler(w http.ResponseWriter, r *http.Req
 	// 	Data: updatedModelTransferJob,
 	// }
 
-	err = app.WriteJSON(w, http.StatusOK, map[string]string{"status": "updated"}, nil)
-	if err != nil {
-		app.serverErrorResponse(w, r, fmt.Errorf("error writing JSON"))
-		return
-	}
+	app.writeModelTransferJobOperationStatus(w, r, "updated")
 }
 
 func (app *App) DeleteModelTransferJobHandler(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 	ctx := r.Context()
-
-	namespace, ok := ctx.Value(constants.NamespaceHeaderParameterKey).(string)
-	if !ok || namespace == "" {
-		app.badRequestResponse(w, r, fmt.Errorf("missing namespace in context"))
+	namespace, client, ok := app.getModelTransferJobNamespaceAndClient(w, r)
+	if !ok {
 		return
 	}
 
-	client, err := app.kubernetesClientFactory.GetClient(ctx)
+	jobName := ps.ByName(ModelTransferJobId)
+	err := app.repositories.ModelRegistry.DeleteModelTransferJob(ctx, client, namespace, jobName)
 	if err != nil {
-		app.serverErrorResponse(w, r, errors.New("kubernetes client not found"))
-		return
-	}
-
-	jobId := ps.ByName(ModelTransferJobId)
-	err = app.repositories.ModelRegistry.DeleteModelTransferJob(ctx, client, namespace, jobId)
-
-	if err != nil {
+		if errors.Is(err, repositories.ErrModelTransferJobNotFound) {
+			app.notFoundResponse(w, r)
+			return
+		}
 		app.serverErrorResponse(w, r, err)
 		return
 	}
-	w.WriteHeader(http.StatusNoContent)
-
-	// TODO: uncomment the following when we implement the actual logic
-	// modelTransferJob := ModelTransferJobEnvelope{
-	// 	Data: deletedModelTransferJob,
-	// }
-
-	// err = app.WriteJSON(w, http.StatusCreated, modelTransferJob, nil)
-	// if err != nil {
-	// 	app.serverErrorResponse(w, r, fmt.Errorf("error writing JSON"))
-	// 	return
-	// }
+	// Return 200 with JSON body so the frontend HTTP client can parse the response.
+	// 204 No Content has no body and causes "Error communicating with server" when the client calls response.json().
+	app.writeModelTransferJobOperationStatus(w, r, "deleted")
 }

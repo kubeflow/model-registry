@@ -15,6 +15,7 @@ var (
 type Connector interface {
 	Type() string
 	Connect(spec *Spec) (RepoSet, error)
+	RunMigrations(spec *Spec) error
 }
 
 var connectorTypes map[string]func(any) (Connector, error)

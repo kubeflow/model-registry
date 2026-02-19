@@ -47,11 +47,11 @@ func SetDB(connectedDB *gorm.DB) {
 	_connectorInstance = ConnectedConnector{ConnectedDB: connectedDB}
 }
 
-func GetConnector() (Connector, bool) {
+func GetConnector() Connector {
 	connectorMutex.RLock()
 	defer connectorMutex.RUnlock()
 
-	return _connectorInstance, _connectorInstance != nil
+	return _connectorInstance
 }
 
 func ClearConnector() {

@@ -25,6 +25,7 @@ import { EMPTY_CUSTOM_PROPERTY_VALUE } from '~/concepts/modelCatalog/const';
 
 type ModelTransferJobTableRowProps = {
   job: ModelTransferJob;
+  onRequestDelete?: (job: ModelTransferJob) => void;
 };
 
 const getStatusLabel = (
@@ -46,7 +47,10 @@ const getStatusLabel = (
   }
 };
 
-const ModelTransferJobTableRow: React.FC<ModelTransferJobTableRowProps> = ({ job }) => {
+const ModelTransferJobTableRow: React.FC<ModelTransferJobTableRowProps> = ({
+  job,
+  onRequestDelete,
+}) => {
   const navigate = useNavigate();
   const { preferredModelRegistry } = React.useContext(ModelRegistrySelectorContext);
 
@@ -83,12 +87,12 @@ const ModelTransferJobTableRow: React.FC<ModelTransferJobTableRowProps> = ({ job
     items.push({
       title: 'Delete',
       onClick: () => {
-        // TODO: Implement delete functionality
+        onRequestDelete?.(job);
       },
     });
 
     return items;
-  }, [job.status]);
+  }, [job, onRequestDelete]);
 
   return (
     <Tr>

@@ -14,11 +14,11 @@ import (
 	"encoding/json"
 )
 
-// checks if the McpTool type satisfies the MappedNullable interface at compile time
-var _ MappedNullable = &McpTool{}
+// checks if the MCPTool type satisfies the MappedNullable interface at compile time
+var _ MappedNullable = &MCPTool{}
 
-// McpTool An MCP tool exposed by an MCP server.
-type McpTool struct {
+// MCPTool An MCP tool exposed by an MCP server.
+type MCPTool struct {
 	// User provided custom properties which are not defined by its type.
 	CustomProperties map[string]MetadataValue `json:"customProperties,omitempty"`
 	// An optional description about the resource.
@@ -36,32 +36,32 @@ type McpTool struct {
 	// Access mode supported by this tool.
 	AccessType string `json:"accessType"`
 	// Input parameters accepted by this tool.
-	Parameters []McpToolParameter `json:"parameters,omitempty"`
+	Parameters []MCPToolParameter `json:"parameters,omitempty"`
 }
 
-type _McpTool McpTool
+type _MCPTool MCPTool
 
-// NewMcpTool instantiates a new McpTool object
+// NewMCPTool instantiates a new MCPTool object
 // This constructor will assign default values to properties that have it defined,
 // and makes sure properties required by API are set, but the set of arguments
 // will change when the set of required properties is changed
-func NewMcpTool(name string, accessType string) *McpTool {
-	this := McpTool{}
+func NewMCPTool(name string, accessType string) *MCPTool {
+	this := MCPTool{}
 	this.Name = name
 	this.AccessType = accessType
 	return &this
 }
 
-// NewMcpToolWithDefaults instantiates a new McpTool object
+// NewMCPToolWithDefaults instantiates a new MCPTool object
 // This constructor will only assign default values to properties that have it defined,
 // but it doesn't guarantee that properties required by API are set
-func NewMcpToolWithDefaults() *McpTool {
-	this := McpTool{}
+func NewMCPToolWithDefaults() *MCPTool {
+	this := MCPTool{}
 	return &this
 }
 
 // GetCustomProperties returns the CustomProperties field value if set, zero value otherwise.
-func (o *McpTool) GetCustomProperties() map[string]MetadataValue {
+func (o *MCPTool) GetCustomProperties() map[string]MetadataValue {
 	if o == nil || IsNil(o.CustomProperties) {
 		var ret map[string]MetadataValue
 		return ret
@@ -71,7 +71,7 @@ func (o *McpTool) GetCustomProperties() map[string]MetadataValue {
 
 // GetCustomPropertiesOk returns a tuple with the CustomProperties field value if set, nil otherwise
 // and a boolean to check if the value has been set.
-func (o *McpTool) GetCustomPropertiesOk() (map[string]MetadataValue, bool) {
+func (o *MCPTool) GetCustomPropertiesOk() (map[string]MetadataValue, bool) {
 	if o == nil || IsNil(o.CustomProperties) {
 		return map[string]MetadataValue{}, false
 	}
@@ -79,7 +79,7 @@ func (o *McpTool) GetCustomPropertiesOk() (map[string]MetadataValue, bool) {
 }
 
 // HasCustomProperties returns a boolean if a field has been set.
-func (o *McpTool) HasCustomProperties() bool {
+func (o *MCPTool) HasCustomProperties() bool {
 	if o != nil && !IsNil(o.CustomProperties) {
 		return true
 	}
@@ -88,12 +88,12 @@ func (o *McpTool) HasCustomProperties() bool {
 }
 
 // SetCustomProperties gets a reference to the given map[string]MetadataValue and assigns it to the CustomProperties field.
-func (o *McpTool) SetCustomProperties(v map[string]MetadataValue) {
+func (o *MCPTool) SetCustomProperties(v map[string]MetadataValue) {
 	o.CustomProperties = v
 }
 
 // GetDescription returns the Description field value if set, zero value otherwise.
-func (o *McpTool) GetDescription() string {
+func (o *MCPTool) GetDescription() string {
 	if o == nil || IsNil(o.Description) {
 		var ret string
 		return ret
@@ -103,7 +103,7 @@ func (o *McpTool) GetDescription() string {
 
 // GetDescriptionOk returns a tuple with the Description field value if set, nil otherwise
 // and a boolean to check if the value has been set.
-func (o *McpTool) GetDescriptionOk() (*string, bool) {
+func (o *MCPTool) GetDescriptionOk() (*string, bool) {
 	if o == nil || IsNil(o.Description) {
 		return nil, false
 	}
@@ -111,7 +111,7 @@ func (o *McpTool) GetDescriptionOk() (*string, bool) {
 }
 
 // HasDescription returns a boolean if a field has been set.
-func (o *McpTool) HasDescription() bool {
+func (o *MCPTool) HasDescription() bool {
 	if o != nil && !IsNil(o.Description) {
 		return true
 	}
@@ -120,12 +120,12 @@ func (o *McpTool) HasDescription() bool {
 }
 
 // SetDescription gets a reference to the given string and assigns it to the Description field.
-func (o *McpTool) SetDescription(v string) {
+func (o *MCPTool) SetDescription(v string) {
 	o.Description = &v
 }
 
 // GetExternalId returns the ExternalId field value if set, zero value otherwise.
-func (o *McpTool) GetExternalId() string {
+func (o *MCPTool) GetExternalId() string {
 	if o == nil || IsNil(o.ExternalId) {
 		var ret string
 		return ret
@@ -135,7 +135,7 @@ func (o *McpTool) GetExternalId() string {
 
 // GetExternalIdOk returns a tuple with the ExternalId field value if set, nil otherwise
 // and a boolean to check if the value has been set.
-func (o *McpTool) GetExternalIdOk() (*string, bool) {
+func (o *MCPTool) GetExternalIdOk() (*string, bool) {
 	if o == nil || IsNil(o.ExternalId) {
 		return nil, false
 	}
@@ -143,7 +143,7 @@ func (o *McpTool) GetExternalIdOk() (*string, bool) {
 }
 
 // HasExternalId returns a boolean if a field has been set.
-func (o *McpTool) HasExternalId() bool {
+func (o *MCPTool) HasExternalId() bool {
 	if o != nil && !IsNil(o.ExternalId) {
 		return true
 	}
@@ -152,12 +152,12 @@ func (o *McpTool) HasExternalId() bool {
 }
 
 // SetExternalId gets a reference to the given string and assigns it to the ExternalId field.
-func (o *McpTool) SetExternalId(v string) {
+func (o *MCPTool) SetExternalId(v string) {
 	o.ExternalId = &v
 }
 
 // GetName returns the Name field value
-func (o *McpTool) GetName() string {
+func (o *MCPTool) GetName() string {
 	if o == nil {
 		var ret string
 		return ret
@@ -168,7 +168,7 @@ func (o *McpTool) GetName() string {
 
 // GetNameOk returns a tuple with the Name field value
 // and a boolean to check if the value has been set.
-func (o *McpTool) GetNameOk() (*string, bool) {
+func (o *MCPTool) GetNameOk() (*string, bool) {
 	if o == nil {
 		return nil, false
 	}
@@ -176,12 +176,12 @@ func (o *McpTool) GetNameOk() (*string, bool) {
 }
 
 // SetName sets field value
-func (o *McpTool) SetName(v string) {
+func (o *MCPTool) SetName(v string) {
 	o.Name = v
 }
 
 // GetId returns the Id field value if set, zero value otherwise.
-func (o *McpTool) GetId() string {
+func (o *MCPTool) GetId() string {
 	if o == nil || IsNil(o.Id) {
 		var ret string
 		return ret
@@ -191,7 +191,7 @@ func (o *McpTool) GetId() string {
 
 // GetIdOk returns a tuple with the Id field value if set, nil otherwise
 // and a boolean to check if the value has been set.
-func (o *McpTool) GetIdOk() (*string, bool) {
+func (o *MCPTool) GetIdOk() (*string, bool) {
 	if o == nil || IsNil(o.Id) {
 		return nil, false
 	}
@@ -199,7 +199,7 @@ func (o *McpTool) GetIdOk() (*string, bool) {
 }
 
 // HasId returns a boolean if a field has been set.
-func (o *McpTool) HasId() bool {
+func (o *MCPTool) HasId() bool {
 	if o != nil && !IsNil(o.Id) {
 		return true
 	}
@@ -208,12 +208,12 @@ func (o *McpTool) HasId() bool {
 }
 
 // SetId gets a reference to the given string and assigns it to the Id field.
-func (o *McpTool) SetId(v string) {
+func (o *MCPTool) SetId(v string) {
 	o.Id = &v
 }
 
 // GetCreateTimeSinceEpoch returns the CreateTimeSinceEpoch field value if set, zero value otherwise.
-func (o *McpTool) GetCreateTimeSinceEpoch() string {
+func (o *MCPTool) GetCreateTimeSinceEpoch() string {
 	if o == nil || IsNil(o.CreateTimeSinceEpoch) {
 		var ret string
 		return ret
@@ -223,7 +223,7 @@ func (o *McpTool) GetCreateTimeSinceEpoch() string {
 
 // GetCreateTimeSinceEpochOk returns a tuple with the CreateTimeSinceEpoch field value if set, nil otherwise
 // and a boolean to check if the value has been set.
-func (o *McpTool) GetCreateTimeSinceEpochOk() (*string, bool) {
+func (o *MCPTool) GetCreateTimeSinceEpochOk() (*string, bool) {
 	if o == nil || IsNil(o.CreateTimeSinceEpoch) {
 		return nil, false
 	}
@@ -231,7 +231,7 @@ func (o *McpTool) GetCreateTimeSinceEpochOk() (*string, bool) {
 }
 
 // HasCreateTimeSinceEpoch returns a boolean if a field has been set.
-func (o *McpTool) HasCreateTimeSinceEpoch() bool {
+func (o *MCPTool) HasCreateTimeSinceEpoch() bool {
 	if o != nil && !IsNil(o.CreateTimeSinceEpoch) {
 		return true
 	}
@@ -240,12 +240,12 @@ func (o *McpTool) HasCreateTimeSinceEpoch() bool {
 }
 
 // SetCreateTimeSinceEpoch gets a reference to the given string and assigns it to the CreateTimeSinceEpoch field.
-func (o *McpTool) SetCreateTimeSinceEpoch(v string) {
+func (o *MCPTool) SetCreateTimeSinceEpoch(v string) {
 	o.CreateTimeSinceEpoch = &v
 }
 
 // GetLastUpdateTimeSinceEpoch returns the LastUpdateTimeSinceEpoch field value if set, zero value otherwise.
-func (o *McpTool) GetLastUpdateTimeSinceEpoch() string {
+func (o *MCPTool) GetLastUpdateTimeSinceEpoch() string {
 	if o == nil || IsNil(o.LastUpdateTimeSinceEpoch) {
 		var ret string
 		return ret
@@ -255,7 +255,7 @@ func (o *McpTool) GetLastUpdateTimeSinceEpoch() string {
 
 // GetLastUpdateTimeSinceEpochOk returns a tuple with the LastUpdateTimeSinceEpoch field value if set, nil otherwise
 // and a boolean to check if the value has been set.
-func (o *McpTool) GetLastUpdateTimeSinceEpochOk() (*string, bool) {
+func (o *MCPTool) GetLastUpdateTimeSinceEpochOk() (*string, bool) {
 	if o == nil || IsNil(o.LastUpdateTimeSinceEpoch) {
 		return nil, false
 	}
@@ -263,7 +263,7 @@ func (o *McpTool) GetLastUpdateTimeSinceEpochOk() (*string, bool) {
 }
 
 // HasLastUpdateTimeSinceEpoch returns a boolean if a field has been set.
-func (o *McpTool) HasLastUpdateTimeSinceEpoch() bool {
+func (o *MCPTool) HasLastUpdateTimeSinceEpoch() bool {
 	if o != nil && !IsNil(o.LastUpdateTimeSinceEpoch) {
 		return true
 	}
@@ -272,12 +272,12 @@ func (o *McpTool) HasLastUpdateTimeSinceEpoch() bool {
 }
 
 // SetLastUpdateTimeSinceEpoch gets a reference to the given string and assigns it to the LastUpdateTimeSinceEpoch field.
-func (o *McpTool) SetLastUpdateTimeSinceEpoch(v string) {
+func (o *MCPTool) SetLastUpdateTimeSinceEpoch(v string) {
 	o.LastUpdateTimeSinceEpoch = &v
 }
 
 // GetAccessType returns the AccessType field value
-func (o *McpTool) GetAccessType() string {
+func (o *MCPTool) GetAccessType() string {
 	if o == nil {
 		var ret string
 		return ret
@@ -288,7 +288,7 @@ func (o *McpTool) GetAccessType() string {
 
 // GetAccessTypeOk returns a tuple with the AccessType field value
 // and a boolean to check if the value has been set.
-func (o *McpTool) GetAccessTypeOk() (*string, bool) {
+func (o *MCPTool) GetAccessTypeOk() (*string, bool) {
 	if o == nil {
 		return nil, false
 	}
@@ -296,14 +296,14 @@ func (o *McpTool) GetAccessTypeOk() (*string, bool) {
 }
 
 // SetAccessType sets field value
-func (o *McpTool) SetAccessType(v string) {
+func (o *MCPTool) SetAccessType(v string) {
 	o.AccessType = v
 }
 
 // GetParameters returns the Parameters field value if set, zero value otherwise.
-func (o *McpTool) GetParameters() []McpToolParameter {
+func (o *MCPTool) GetParameters() []MCPToolParameter {
 	if o == nil || IsNil(o.Parameters) {
-		var ret []McpToolParameter
+		var ret []MCPToolParameter
 		return ret
 	}
 	return o.Parameters
@@ -311,7 +311,7 @@ func (o *McpTool) GetParameters() []McpToolParameter {
 
 // GetParametersOk returns a tuple with the Parameters field value if set, nil otherwise
 // and a boolean to check if the value has been set.
-func (o *McpTool) GetParametersOk() ([]McpToolParameter, bool) {
+func (o *MCPTool) GetParametersOk() ([]MCPToolParameter, bool) {
 	if o == nil || IsNil(o.Parameters) {
 		return nil, false
 	}
@@ -319,7 +319,7 @@ func (o *McpTool) GetParametersOk() ([]McpToolParameter, bool) {
 }
 
 // HasParameters returns a boolean if a field has been set.
-func (o *McpTool) HasParameters() bool {
+func (o *MCPTool) HasParameters() bool {
 	if o != nil && !IsNil(o.Parameters) {
 		return true
 	}
@@ -327,12 +327,12 @@ func (o *McpTool) HasParameters() bool {
 	return false
 }
 
-// SetParameters gets a reference to the given []McpToolParameter and assigns it to the Parameters field.
-func (o *McpTool) SetParameters(v []McpToolParameter) {
+// SetParameters gets a reference to the given []MCPToolParameter and assigns it to the Parameters field.
+func (o *MCPTool) SetParameters(v []MCPToolParameter) {
 	o.Parameters = v
 }
 
-func (o McpTool) MarshalJSON() ([]byte, error) {
+func (o MCPTool) MarshalJSON() ([]byte, error) {
 	toSerialize, err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
@@ -340,7 +340,7 @@ func (o McpTool) MarshalJSON() ([]byte, error) {
 	return json.Marshal(toSerialize)
 }
 
-func (o McpTool) ToMap() (map[string]interface{}, error) {
+func (o MCPTool) ToMap() (map[string]interface{}, error) {
 	toSerialize := map[string]interface{}{}
 	if !IsNil(o.CustomProperties) {
 		toSerialize["customProperties"] = o.CustomProperties
@@ -368,38 +368,38 @@ func (o McpTool) ToMap() (map[string]interface{}, error) {
 	return toSerialize, nil
 }
 
-type NullableMcpTool struct {
-	value *McpTool
+type NullableMCPTool struct {
+	value *MCPTool
 	isSet bool
 }
 
-func (v NullableMcpTool) Get() *McpTool {
+func (v NullableMCPTool) Get() *MCPTool {
 	return v.value
 }
 
-func (v *NullableMcpTool) Set(val *McpTool) {
+func (v *NullableMCPTool) Set(val *MCPTool) {
 	v.value = val
 	v.isSet = true
 }
 
-func (v NullableMcpTool) IsSet() bool {
+func (v NullableMCPTool) IsSet() bool {
 	return v.isSet
 }
 
-func (v *NullableMcpTool) Unset() {
+func (v *NullableMCPTool) Unset() {
 	v.value = nil
 	v.isSet = false
 }
 
-func NewNullableMcpTool(val *McpTool) *NullableMcpTool {
-	return &NullableMcpTool{value: val, isSet: true}
+func NewNullableMCPTool(val *MCPTool) *NullableMCPTool {
+	return &NullableMCPTool{value: val, isSet: true}
 }
 
-func (v NullableMcpTool) MarshalJSON() ([]byte, error) {
+func (v NullableMCPTool) MarshalJSON() ([]byte, error) {
 	return json.Marshal(v.value)
 }
 
-func (v *NullableMcpTool) UnmarshalJSON(src []byte) error {
+func (v *NullableMCPTool) UnmarshalJSON(src []byte) error {
 	v.isSet = true
 	return json.Unmarshal(src, &v.value)
 }

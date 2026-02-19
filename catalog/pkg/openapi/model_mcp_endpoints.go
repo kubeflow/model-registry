@@ -14,36 +14,36 @@ import (
 	"encoding/json"
 )
 
-// checks if the McpEndpoints type satisfies the MappedNullable interface at compile time
-var _ MappedNullable = &McpEndpoints{}
+// checks if the MCPEndpoints type satisfies the MappedNullable interface at compile time
+var _ MappedNullable = &MCPEndpoints{}
 
-// McpEndpoints Remote endpoint metadata for MCP server access.
-type McpEndpoints struct {
+// MCPEndpoints Remote endpoint metadata for MCP server access.
+type MCPEndpoints struct {
 	// HTTP endpoint URL for the MCP server.
 	Http *string `json:"http,omitempty"`
 	// SSE endpoint URL for the MCP server.
 	Sse *string `json:"sse,omitempty"`
 }
 
-// NewMcpEndpoints instantiates a new McpEndpoints object
+// NewMCPEndpoints instantiates a new MCPEndpoints object
 // This constructor will assign default values to properties that have it defined,
 // and makes sure properties required by API are set, but the set of arguments
 // will change when the set of required properties is changed
-func NewMcpEndpoints() *McpEndpoints {
-	this := McpEndpoints{}
+func NewMCPEndpoints() *MCPEndpoints {
+	this := MCPEndpoints{}
 	return &this
 }
 
-// NewMcpEndpointsWithDefaults instantiates a new McpEndpoints object
+// NewMCPEndpointsWithDefaults instantiates a new MCPEndpoints object
 // This constructor will only assign default values to properties that have it defined,
 // but it doesn't guarantee that properties required by API are set
-func NewMcpEndpointsWithDefaults() *McpEndpoints {
-	this := McpEndpoints{}
+func NewMCPEndpointsWithDefaults() *MCPEndpoints {
+	this := MCPEndpoints{}
 	return &this
 }
 
 // GetHttp returns the Http field value if set, zero value otherwise.
-func (o *McpEndpoints) GetHttp() string {
+func (o *MCPEndpoints) GetHttp() string {
 	if o == nil || IsNil(o.Http) {
 		var ret string
 		return ret
@@ -53,7 +53,7 @@ func (o *McpEndpoints) GetHttp() string {
 
 // GetHttpOk returns a tuple with the Http field value if set, nil otherwise
 // and a boolean to check if the value has been set.
-func (o *McpEndpoints) GetHttpOk() (*string, bool) {
+func (o *MCPEndpoints) GetHttpOk() (*string, bool) {
 	if o == nil || IsNil(o.Http) {
 		return nil, false
 	}
@@ -61,7 +61,7 @@ func (o *McpEndpoints) GetHttpOk() (*string, bool) {
 }
 
 // HasHttp returns a boolean if a field has been set.
-func (o *McpEndpoints) HasHttp() bool {
+func (o *MCPEndpoints) HasHttp() bool {
 	if o != nil && !IsNil(o.Http) {
 		return true
 	}
@@ -70,12 +70,12 @@ func (o *McpEndpoints) HasHttp() bool {
 }
 
 // SetHttp gets a reference to the given string and assigns it to the Http field.
-func (o *McpEndpoints) SetHttp(v string) {
+func (o *MCPEndpoints) SetHttp(v string) {
 	o.Http = &v
 }
 
 // GetSse returns the Sse field value if set, zero value otherwise.
-func (o *McpEndpoints) GetSse() string {
+func (o *MCPEndpoints) GetSse() string {
 	if o == nil || IsNil(o.Sse) {
 		var ret string
 		return ret
@@ -85,7 +85,7 @@ func (o *McpEndpoints) GetSse() string {
 
 // GetSseOk returns a tuple with the Sse field value if set, nil otherwise
 // and a boolean to check if the value has been set.
-func (o *McpEndpoints) GetSseOk() (*string, bool) {
+func (o *MCPEndpoints) GetSseOk() (*string, bool) {
 	if o == nil || IsNil(o.Sse) {
 		return nil, false
 	}
@@ -93,7 +93,7 @@ func (o *McpEndpoints) GetSseOk() (*string, bool) {
 }
 
 // HasSse returns a boolean if a field has been set.
-func (o *McpEndpoints) HasSse() bool {
+func (o *MCPEndpoints) HasSse() bool {
 	if o != nil && !IsNil(o.Sse) {
 		return true
 	}
@@ -102,11 +102,11 @@ func (o *McpEndpoints) HasSse() bool {
 }
 
 // SetSse gets a reference to the given string and assigns it to the Sse field.
-func (o *McpEndpoints) SetSse(v string) {
+func (o *MCPEndpoints) SetSse(v string) {
 	o.Sse = &v
 }
 
-func (o McpEndpoints) MarshalJSON() ([]byte, error) {
+func (o MCPEndpoints) MarshalJSON() ([]byte, error) {
 	toSerialize, err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
@@ -114,7 +114,7 @@ func (o McpEndpoints) MarshalJSON() ([]byte, error) {
 	return json.Marshal(toSerialize)
 }
 
-func (o McpEndpoints) ToMap() (map[string]interface{}, error) {
+func (o MCPEndpoints) ToMap() (map[string]interface{}, error) {
 	toSerialize := map[string]interface{}{}
 	if !IsNil(o.Http) {
 		toSerialize["http"] = o.Http
@@ -125,38 +125,38 @@ func (o McpEndpoints) ToMap() (map[string]interface{}, error) {
 	return toSerialize, nil
 }
 
-type NullableMcpEndpoints struct {
-	value *McpEndpoints
+type NullableMCPEndpoints struct {
+	value *MCPEndpoints
 	isSet bool
 }
 
-func (v NullableMcpEndpoints) Get() *McpEndpoints {
+func (v NullableMCPEndpoints) Get() *MCPEndpoints {
 	return v.value
 }
 
-func (v *NullableMcpEndpoints) Set(val *McpEndpoints) {
+func (v *NullableMCPEndpoints) Set(val *MCPEndpoints) {
 	v.value = val
 	v.isSet = true
 }
 
-func (v NullableMcpEndpoints) IsSet() bool {
+func (v NullableMCPEndpoints) IsSet() bool {
 	return v.isSet
 }
 
-func (v *NullableMcpEndpoints) Unset() {
+func (v *NullableMCPEndpoints) Unset() {
 	v.value = nil
 	v.isSet = false
 }
 
-func NewNullableMcpEndpoints(val *McpEndpoints) *NullableMcpEndpoints {
-	return &NullableMcpEndpoints{value: val, isSet: true}
+func NewNullableMCPEndpoints(val *MCPEndpoints) *NullableMCPEndpoints {
+	return &NullableMCPEndpoints{value: val, isSet: true}
 }
 
-func (v NullableMcpEndpoints) MarshalJSON() ([]byte, error) {
+func (v NullableMCPEndpoints) MarshalJSON() ([]byte, error) {
 	return json.Marshal(v.value)
 }
 
-func (v *NullableMcpEndpoints) UnmarshalJSON(src []byte) error {
+func (v *NullableMCPEndpoints) UnmarshalJSON(src []byte) error {
 	v.isSet = true
 	return json.Unmarshal(src, &v.value)
 }

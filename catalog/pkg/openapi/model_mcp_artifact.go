@@ -14,11 +14,11 @@ import (
 	"encoding/json"
 )
 
-// checks if the McpArtifact type satisfies the MappedNullable interface at compile time
-var _ MappedNullable = &McpArtifact{}
+// checks if the MCPArtifact type satisfies the MappedNullable interface at compile time
+var _ MappedNullable = &MCPArtifact{}
 
-// McpArtifact Artifact metadata for local MCP server deployment.
-type McpArtifact struct {
+// MCPArtifact Artifact metadata for local MCP server deployment.
+type MCPArtifact struct {
 	// Output only. Create time of the resource in millisecond since epoch.
 	CreateTimeSinceEpoch *string `json:"createTimeSinceEpoch,omitempty"`
 	// Output only. Last update time of the resource since epoch in millisecond since epoch.
@@ -27,28 +27,28 @@ type McpArtifact struct {
 	Uri string `json:"uri"`
 }
 
-type _McpArtifact McpArtifact
+type _MCPArtifact MCPArtifact
 
-// NewMcpArtifact instantiates a new McpArtifact object
+// NewMCPArtifact instantiates a new MCPArtifact object
 // This constructor will assign default values to properties that have it defined,
 // and makes sure properties required by API are set, but the set of arguments
 // will change when the set of required properties is changed
-func NewMcpArtifact(uri string) *McpArtifact {
-	this := McpArtifact{}
+func NewMCPArtifact(uri string) *MCPArtifact {
+	this := MCPArtifact{}
 	this.Uri = uri
 	return &this
 }
 
-// NewMcpArtifactWithDefaults instantiates a new McpArtifact object
+// NewMCPArtifactWithDefaults instantiates a new MCPArtifact object
 // This constructor will only assign default values to properties that have it defined,
 // but it doesn't guarantee that properties required by API are set
-func NewMcpArtifactWithDefaults() *McpArtifact {
-	this := McpArtifact{}
+func NewMCPArtifactWithDefaults() *MCPArtifact {
+	this := MCPArtifact{}
 	return &this
 }
 
 // GetCreateTimeSinceEpoch returns the CreateTimeSinceEpoch field value if set, zero value otherwise.
-func (o *McpArtifact) GetCreateTimeSinceEpoch() string {
+func (o *MCPArtifact) GetCreateTimeSinceEpoch() string {
 	if o == nil || IsNil(o.CreateTimeSinceEpoch) {
 		var ret string
 		return ret
@@ -58,7 +58,7 @@ func (o *McpArtifact) GetCreateTimeSinceEpoch() string {
 
 // GetCreateTimeSinceEpochOk returns a tuple with the CreateTimeSinceEpoch field value if set, nil otherwise
 // and a boolean to check if the value has been set.
-func (o *McpArtifact) GetCreateTimeSinceEpochOk() (*string, bool) {
+func (o *MCPArtifact) GetCreateTimeSinceEpochOk() (*string, bool) {
 	if o == nil || IsNil(o.CreateTimeSinceEpoch) {
 		return nil, false
 	}
@@ -66,7 +66,7 @@ func (o *McpArtifact) GetCreateTimeSinceEpochOk() (*string, bool) {
 }
 
 // HasCreateTimeSinceEpoch returns a boolean if a field has been set.
-func (o *McpArtifact) HasCreateTimeSinceEpoch() bool {
+func (o *MCPArtifact) HasCreateTimeSinceEpoch() bool {
 	if o != nil && !IsNil(o.CreateTimeSinceEpoch) {
 		return true
 	}
@@ -75,12 +75,12 @@ func (o *McpArtifact) HasCreateTimeSinceEpoch() bool {
 }
 
 // SetCreateTimeSinceEpoch gets a reference to the given string and assigns it to the CreateTimeSinceEpoch field.
-func (o *McpArtifact) SetCreateTimeSinceEpoch(v string) {
+func (o *MCPArtifact) SetCreateTimeSinceEpoch(v string) {
 	o.CreateTimeSinceEpoch = &v
 }
 
 // GetLastUpdateTimeSinceEpoch returns the LastUpdateTimeSinceEpoch field value if set, zero value otherwise.
-func (o *McpArtifact) GetLastUpdateTimeSinceEpoch() string {
+func (o *MCPArtifact) GetLastUpdateTimeSinceEpoch() string {
 	if o == nil || IsNil(o.LastUpdateTimeSinceEpoch) {
 		var ret string
 		return ret
@@ -90,7 +90,7 @@ func (o *McpArtifact) GetLastUpdateTimeSinceEpoch() string {
 
 // GetLastUpdateTimeSinceEpochOk returns a tuple with the LastUpdateTimeSinceEpoch field value if set, nil otherwise
 // and a boolean to check if the value has been set.
-func (o *McpArtifact) GetLastUpdateTimeSinceEpochOk() (*string, bool) {
+func (o *MCPArtifact) GetLastUpdateTimeSinceEpochOk() (*string, bool) {
 	if o == nil || IsNil(o.LastUpdateTimeSinceEpoch) {
 		return nil, false
 	}
@@ -98,7 +98,7 @@ func (o *McpArtifact) GetLastUpdateTimeSinceEpochOk() (*string, bool) {
 }
 
 // HasLastUpdateTimeSinceEpoch returns a boolean if a field has been set.
-func (o *McpArtifact) HasLastUpdateTimeSinceEpoch() bool {
+func (o *MCPArtifact) HasLastUpdateTimeSinceEpoch() bool {
 	if o != nil && !IsNil(o.LastUpdateTimeSinceEpoch) {
 		return true
 	}
@@ -107,12 +107,12 @@ func (o *McpArtifact) HasLastUpdateTimeSinceEpoch() bool {
 }
 
 // SetLastUpdateTimeSinceEpoch gets a reference to the given string and assigns it to the LastUpdateTimeSinceEpoch field.
-func (o *McpArtifact) SetLastUpdateTimeSinceEpoch(v string) {
+func (o *MCPArtifact) SetLastUpdateTimeSinceEpoch(v string) {
 	o.LastUpdateTimeSinceEpoch = &v
 }
 
 // GetUri returns the Uri field value
-func (o *McpArtifact) GetUri() string {
+func (o *MCPArtifact) GetUri() string {
 	if o == nil {
 		var ret string
 		return ret
@@ -123,7 +123,7 @@ func (o *McpArtifact) GetUri() string {
 
 // GetUriOk returns a tuple with the Uri field value
 // and a boolean to check if the value has been set.
-func (o *McpArtifact) GetUriOk() (*string, bool) {
+func (o *MCPArtifact) GetUriOk() (*string, bool) {
 	if o == nil {
 		return nil, false
 	}
@@ -131,11 +131,11 @@ func (o *McpArtifact) GetUriOk() (*string, bool) {
 }
 
 // SetUri sets field value
-func (o *McpArtifact) SetUri(v string) {
+func (o *MCPArtifact) SetUri(v string) {
 	o.Uri = v
 }
 
-func (o McpArtifact) MarshalJSON() ([]byte, error) {
+func (o MCPArtifact) MarshalJSON() ([]byte, error) {
 	toSerialize, err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
@@ -143,7 +143,7 @@ func (o McpArtifact) MarshalJSON() ([]byte, error) {
 	return json.Marshal(toSerialize)
 }
 
-func (o McpArtifact) ToMap() (map[string]interface{}, error) {
+func (o MCPArtifact) ToMap() (map[string]interface{}, error) {
 	toSerialize := map[string]interface{}{}
 	if !IsNil(o.CreateTimeSinceEpoch) {
 		toSerialize["createTimeSinceEpoch"] = o.CreateTimeSinceEpoch
@@ -155,38 +155,38 @@ func (o McpArtifact) ToMap() (map[string]interface{}, error) {
 	return toSerialize, nil
 }
 
-type NullableMcpArtifact struct {
-	value *McpArtifact
+type NullableMCPArtifact struct {
+	value *MCPArtifact
 	isSet bool
 }
 
-func (v NullableMcpArtifact) Get() *McpArtifact {
+func (v NullableMCPArtifact) Get() *MCPArtifact {
 	return v.value
 }
 
-func (v *NullableMcpArtifact) Set(val *McpArtifact) {
+func (v *NullableMCPArtifact) Set(val *MCPArtifact) {
 	v.value = val
 	v.isSet = true
 }
 
-func (v NullableMcpArtifact) IsSet() bool {
+func (v NullableMCPArtifact) IsSet() bool {
 	return v.isSet
 }
 
-func (v *NullableMcpArtifact) Unset() {
+func (v *NullableMCPArtifact) Unset() {
 	v.value = nil
 	v.isSet = false
 }
 
-func NewNullableMcpArtifact(val *McpArtifact) *NullableMcpArtifact {
-	return &NullableMcpArtifact{value: val, isSet: true}
+func NewNullableMCPArtifact(val *MCPArtifact) *NullableMCPArtifact {
+	return &NullableMCPArtifact{value: val, isSet: true}
 }
 
-func (v NullableMcpArtifact) MarshalJSON() ([]byte, error) {
+func (v NullableMCPArtifact) MarshalJSON() ([]byte, error) {
 	return json.Marshal(v.value)
 }
 
-func (v *NullableMcpArtifact) UnmarshalJSON(src []byte) error {
+func (v *NullableMCPArtifact) UnmarshalJSON(src []byte) error {
 	v.isSet = true
 	return json.Unmarshal(src, &v.value)
 }

@@ -246,6 +246,11 @@ func (m *ModelCatalogClientMock) GetCatalogFilterOptions(client httpclient.HTTPC
 	return &filterOptions, nil
 }
 
+func (m *ModelCatalogClientMock) GetCatalogLabels(client httpclient.HTTPClientInterface, pageValues url.Values) (*models.CatalogLabelList, error) {
+	labels := GetCatalogLabelListMock()
+	return &labels, nil
+}
+
 func (m *ModelCatalogClientMock) CreateCatalogSourcePreview(client httpclient.HTTPClientInterface, sourcePreviewPayload models.CatalogSourcePreviewRequest, pageValues url.Values) (*models.CatalogSourcePreviewResult, error) {
 	filterStatus := pageValues.Get("filterStatus")
 	if filterStatus == "" {

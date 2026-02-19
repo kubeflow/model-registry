@@ -935,6 +935,68 @@ func GetCatalogSourceListMock() models.CatalogSourceList {
 	}
 }
 
+func GetCatalogLabelListMock() models.CatalogLabelList {
+	redHatAI := "Red Hat AI"
+	redHatAIValidated := "Red Hat AI Validated"
+	sampleCategory1 := "Sample category 1"
+	sampleCategory2 := "Sample category 2"
+	community := "Community"
+	otherModels := "Other models"
+
+	redHatAIDisplay := "Red Hat AI models"
+	redHatAIValidatedDisplay := "Red Hat AI Validated models"
+	sampleCategory1Display := "Sample Category 1"
+	sampleCategory2Display := "Sample Category 2"
+	communityDisplay := "Community models"
+
+	redHatAIDesc := "Red Hat AI models are curated and optimized for performance on Red Hat platforms."
+	redHatAIValidatedDesc := "Validated models are benchmarked for performance and quality using leading open source evaluation datasets."
+	sampleCategory1Desc := "Sample category 1 description"
+	sampleCategory2Desc := "Sample category 2 description"
+	communityDesc := "Community contributed models from various sources."
+	otherModelsDesc := "Models without a specific category label."
+
+	labels := []models.CatalogLabel{
+		{
+			Name:        &redHatAI,
+			DisplayName: &redHatAIDisplay,
+			Description: &redHatAIDesc,
+		},
+		{
+			Name:        &redHatAIValidated,
+			DisplayName: &redHatAIValidatedDisplay,
+			Description: &redHatAIValidatedDesc,
+		},
+		{
+			Name:        &sampleCategory1,
+			DisplayName: &sampleCategory1Display,
+			Description: &sampleCategory1Desc,
+		},
+		{
+			Name:        &sampleCategory2,
+			DisplayName: &sampleCategory2Display,
+			Description: &sampleCategory2Desc,
+		},
+		{
+			Name:        &community,
+			DisplayName: &communityDisplay,
+			Description: &communityDesc,
+		},
+		{
+			Name:        nil,
+			DisplayName: &otherModels,
+			Description: &otherModelsDesc,
+		},
+	}
+
+	return models.CatalogLabelList{
+		Items:         labels,
+		Size:          int32(len(labels)),
+		PageSize:      int32(10),
+		NextPageToken: "",
+	}
+}
+
 func GetCatalogModelArtifactMock() []models.CatalogArtifact {
 	architecturesJSON, _ := json.Marshal([]string{"amd64", "arm64", "s390x", "ppc64le"})
 	customProps := newCustomProperties()

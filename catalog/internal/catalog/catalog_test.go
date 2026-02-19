@@ -43,11 +43,15 @@ func TestLoadCatalogSources(t *testing.T) {
 				&MockCatalogMetricsArtifactRepository{},
 				&MockCatalogSourceRepository{},
 				&MockPropertyOptionsRepository{},
+				nil, // MCPServerRepository
+				nil, // MCPServerToolRepository
 			)
 			loader := NewLoader(services, []string{tt.args.catalogsPath})
-			err := loader.Start(context.Background())
+			ctx := context.Background()
+			// StartReadOnly parses config and populates Sources/Labels
+			err := loader.StartReadOnly(ctx)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("NewLoader().Start() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("StartReadOnly() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 			gotKeys := make([]string, 0, len(loader.Sources.All()))
@@ -104,11 +108,13 @@ func TestLoadCatalogSourcesEnabledDisabled(t *testing.T) {
 				&MockCatalogMetricsArtifactRepository{},
 				&MockCatalogSourceRepository{},
 				&MockPropertyOptionsRepository{},
+				nil, // MCPServerRepository
+				nil, // MCPServerToolRepository
 			)
 			loader := NewLoader(services, []string{tt.args.catalogsPath})
-			err := loader.Start(context.Background())
+			err := loader.StartReadOnly(context.Background())
 			if (err != nil) != tt.wantErr {
-				t.Errorf("NewLoader().Start() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("StartReadOnly() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 			if err != nil {
@@ -116,7 +122,7 @@ func TestLoadCatalogSourcesEnabledDisabled(t *testing.T) {
 			}
 
 			if !reflect.DeepEqual(loader.Sources.All(), tt.want) {
-				t.Errorf("NewLoader().Start() got metadata = %#v, want %#v", loader.Sources.All(), tt.want)
+				t.Errorf("StartReadOnly() got metadata = %#v, want %#v", loader.Sources.All(), tt.want)
 			}
 		})
 	}
@@ -131,6 +137,8 @@ func TestLabelsValidation(t *testing.T) {
 		&MockCatalogMetricsArtifactRepository{},
 		&MockCatalogSourceRepository{},
 		&MockPropertyOptionsRepository{},
+		nil, // MCPServerRepository
+		nil, // MCPServerToolRepository
 	)
 
 	tests := []struct {
@@ -262,11 +270,13 @@ func TestCatalogSourceLabelsDefaultToEmptySlice(t *testing.T) {
 				&MockCatalogMetricsArtifactRepository{},
 				&MockCatalogSourceRepository{},
 				&MockPropertyOptionsRepository{},
+				nil, // MCPServerRepository
+				nil, // MCPServerToolRepository
 			)
 			loader := NewLoader(services, []string{tt.args.catalogsPath})
-			err := loader.Start(context.Background())
+			err := loader.StartReadOnly(context.Background())
 			if err != nil {
-				t.Errorf("NewLoader().Start() error = %v", err)
+				t.Errorf("StartReadOnly() error = %v", err)
 				return
 			}
 
@@ -301,6 +311,8 @@ func TestLoadCatalogSourcesWithMockRepositories(t *testing.T) {
 		mockMetricsArtifactRepo,
 		&MockCatalogSourceRepository{},
 		&MockPropertyOptionsRepository{},
+		nil, // MCPServerRepository
+		nil, // MCPServerToolRepository
 	)
 
 	// Register a test provider that will create some test data
@@ -363,24 +375,35 @@ func TestLoadCatalogSourcesWithMockRepositories(t *testing.T) {
 		},
 	}
 
-	// Create a loader and test the database update directly
+	// Create a loader and test the database update
 	l := NewLoader(services, []string{})
 	ctx := context.Background()
 
 	// First call updateSources to populate the SourceCollection
-	// (updateDatabase now uses merged sources from the collection)
 	err := l.updateSources("test-path", testConfig)
 	if err != nil {
 		t.Fatalf("updateSources() error = %v", err)
 	}
 
-	err = l.updateDatabase(ctx)
+	// Start in read-only mode
+	err = l.StartReadOnly(ctx)
 	if err != nil {
-		t.Fatalf("updateDatabase() error = %v", err)
+		t.Fatalf("StartReadOnly() error = %v", err)
 	}
 
-	// Wait a bit for the goroutine to process
-	time.Sleep(100 * time.Millisecond)
+	// Create cancellable context for leader mode
+	leaderCtx, cancelLeader := context.WithCancel(ctx)
+	defer cancelLeader()
+
+	// Start leader mode to perform database writes
+	go func() {
+		if err := l.StartLeader(leaderCtx); err != nil {
+			t.Logf("StartLeader error: %v", err)
+		}
+	}()
+
+	// Wait for leader mode to activate and process
+	time.Sleep(300 * time.Millisecond)
 
 	// Verify that the model was saved
 	savedModels := mockModelRepo.GetSavedModels()
@@ -429,6 +452,8 @@ func TestLoadCatalogSourcesWithRepositoryErrors(t *testing.T) {
 		mockMetricsArtifactRepo,
 		&MockCatalogSourceRepository{},
 		&MockPropertyOptionsRepository{},
+		nil, // MCPServerRepository
+		nil, // MCPServerToolRepository
 	)
 
 	// Register a test provider
@@ -505,6 +530,8 @@ func TestLoadCatalogSourcesWithNilEnabled(t *testing.T) {
 		mockMetricsArtifactRepo,
 		&MockCatalogSourceRepository{},
 		&MockPropertyOptionsRepository{},
+		nil, // MCPServerRepository
+		nil, // MCPServerToolRepository
 	)
 
 	// Register a test provider
@@ -550,13 +577,25 @@ func TestLoadCatalogSourcesWithNilEnabled(t *testing.T) {
 		t.Fatalf("updateSources() error = %v", err)
 	}
 
-	err = l.updateDatabase(ctx)
+	// Start in read-only mode
+	err = l.StartReadOnly(ctx)
 	if err != nil {
-		t.Fatalf("updateDatabase() error = %v", err)
+		t.Fatalf("StartReadOnly() error = %v", err)
 	}
 
-	// Wait for processing
-	time.Sleep(100 * time.Millisecond)
+	// Create cancellable context for leader mode
+	leaderCtx, cancelLeader := context.WithCancel(ctx)
+	defer cancelLeader()
+
+	// Start leader mode to perform database writes
+	go func() {
+		if err := l.StartLeader(leaderCtx); err != nil {
+			t.Logf("StartLeader error: %v", err)
+		}
+	}()
+
+	// Wait for leader mode to activate and process
+	time.Sleep(300 * time.Millisecond)
 
 	// Verify that the model WAS saved (because nil Enabled is treated as enabled)
 	savedModels := mockModelRepo.GetSavedModels()
@@ -1086,6 +1125,8 @@ func TestAPIProviderGetPerformanceArtifacts(t *testing.T) {
 		&MockCatalogMetricsArtifactRepository{},
 		&MockCatalogSourceRepository{},
 		&MockPropertyOptionsRepository{},
+		nil, // MCPServerRepository
+		nil, // MCPServerToolRepository
 	)
 	provider := NewDBCatalog(services, nil)
 
@@ -1114,6 +1155,8 @@ func TestAPIProviderInterface(t *testing.T) {
 		&MockCatalogMetricsArtifactRepository{},
 		&MockCatalogSourceRepository{},
 		&MockPropertyOptionsRepository{},
+		nil, // MCPServerRepository
+		nil, // MCPServerToolRepository
 	)
 	var provider APIProvider = NewDBCatalog(services, nil)
 

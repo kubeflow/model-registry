@@ -14,11 +14,11 @@ import (
 	"encoding/json"
 )
 
-// checks if the McpSecurityIndicator type satisfies the MappedNullable interface at compile time
-var _ MappedNullable = &McpSecurityIndicator{}
+// checks if the MCPSecurityIndicator type satisfies the MappedNullable interface at compile time
+var _ MappedNullable = &MCPSecurityIndicator{}
 
-// McpSecurityIndicator Security posture metadata for an MCP server.
-type McpSecurityIndicator struct {
+// MCPSecurityIndicator Security posture metadata for an MCP server.
+type MCPSecurityIndicator struct {
 	// Whether the source of this server has been verified.
 	VerifiedSource *bool `json:"verifiedSource,omitempty"`
 	// Whether the server exposes secure communication endpoints.
@@ -29,25 +29,25 @@ type McpSecurityIndicator struct {
 	ReadOnlyTools *bool `json:"readOnlyTools,omitempty"`
 }
 
-// NewMcpSecurityIndicator instantiates a new McpSecurityIndicator object
+// NewMCPSecurityIndicator instantiates a new MCPSecurityIndicator object
 // This constructor will assign default values to properties that have it defined,
 // and makes sure properties required by API are set, but the set of arguments
 // will change when the set of required properties is changed
-func NewMcpSecurityIndicator() *McpSecurityIndicator {
-	this := McpSecurityIndicator{}
+func NewMCPSecurityIndicator() *MCPSecurityIndicator {
+	this := MCPSecurityIndicator{}
 	return &this
 }
 
-// NewMcpSecurityIndicatorWithDefaults instantiates a new McpSecurityIndicator object
+// NewMCPSecurityIndicatorWithDefaults instantiates a new MCPSecurityIndicator object
 // This constructor will only assign default values to properties that have it defined,
 // but it doesn't guarantee that properties required by API are set
-func NewMcpSecurityIndicatorWithDefaults() *McpSecurityIndicator {
-	this := McpSecurityIndicator{}
+func NewMCPSecurityIndicatorWithDefaults() *MCPSecurityIndicator {
+	this := MCPSecurityIndicator{}
 	return &this
 }
 
 // GetVerifiedSource returns the VerifiedSource field value if set, zero value otherwise.
-func (o *McpSecurityIndicator) GetVerifiedSource() bool {
+func (o *MCPSecurityIndicator) GetVerifiedSource() bool {
 	if o == nil || IsNil(o.VerifiedSource) {
 		var ret bool
 		return ret
@@ -57,7 +57,7 @@ func (o *McpSecurityIndicator) GetVerifiedSource() bool {
 
 // GetVerifiedSourceOk returns a tuple with the VerifiedSource field value if set, nil otherwise
 // and a boolean to check if the value has been set.
-func (o *McpSecurityIndicator) GetVerifiedSourceOk() (*bool, bool) {
+func (o *MCPSecurityIndicator) GetVerifiedSourceOk() (*bool, bool) {
 	if o == nil || IsNil(o.VerifiedSource) {
 		return nil, false
 	}
@@ -65,7 +65,7 @@ func (o *McpSecurityIndicator) GetVerifiedSourceOk() (*bool, bool) {
 }
 
 // HasVerifiedSource returns a boolean if a field has been set.
-func (o *McpSecurityIndicator) HasVerifiedSource() bool {
+func (o *MCPSecurityIndicator) HasVerifiedSource() bool {
 	if o != nil && !IsNil(o.VerifiedSource) {
 		return true
 	}
@@ -74,12 +74,12 @@ func (o *McpSecurityIndicator) HasVerifiedSource() bool {
 }
 
 // SetVerifiedSource gets a reference to the given bool and assigns it to the VerifiedSource field.
-func (o *McpSecurityIndicator) SetVerifiedSource(v bool) {
+func (o *MCPSecurityIndicator) SetVerifiedSource(v bool) {
 	o.VerifiedSource = &v
 }
 
 // GetSecureEndpoint returns the SecureEndpoint field value if set, zero value otherwise.
-func (o *McpSecurityIndicator) GetSecureEndpoint() bool {
+func (o *MCPSecurityIndicator) GetSecureEndpoint() bool {
 	if o == nil || IsNil(o.SecureEndpoint) {
 		var ret bool
 		return ret
@@ -89,7 +89,7 @@ func (o *McpSecurityIndicator) GetSecureEndpoint() bool {
 
 // GetSecureEndpointOk returns a tuple with the SecureEndpoint field value if set, nil otherwise
 // and a boolean to check if the value has been set.
-func (o *McpSecurityIndicator) GetSecureEndpointOk() (*bool, bool) {
+func (o *MCPSecurityIndicator) GetSecureEndpointOk() (*bool, bool) {
 	if o == nil || IsNil(o.SecureEndpoint) {
 		return nil, false
 	}
@@ -97,7 +97,7 @@ func (o *McpSecurityIndicator) GetSecureEndpointOk() (*bool, bool) {
 }
 
 // HasSecureEndpoint returns a boolean if a field has been set.
-func (o *McpSecurityIndicator) HasSecureEndpoint() bool {
+func (o *MCPSecurityIndicator) HasSecureEndpoint() bool {
 	if o != nil && !IsNil(o.SecureEndpoint) {
 		return true
 	}
@@ -106,12 +106,12 @@ func (o *McpSecurityIndicator) HasSecureEndpoint() bool {
 }
 
 // SetSecureEndpoint gets a reference to the given bool and assigns it to the SecureEndpoint field.
-func (o *McpSecurityIndicator) SetSecureEndpoint(v bool) {
+func (o *MCPSecurityIndicator) SetSecureEndpoint(v bool) {
 	o.SecureEndpoint = &v
 }
 
 // GetSast returns the Sast field value if set, zero value otherwise.
-func (o *McpSecurityIndicator) GetSast() bool {
+func (o *MCPSecurityIndicator) GetSast() bool {
 	if o == nil || IsNil(o.Sast) {
 		var ret bool
 		return ret
@@ -121,7 +121,7 @@ func (o *McpSecurityIndicator) GetSast() bool {
 
 // GetSastOk returns a tuple with the Sast field value if set, nil otherwise
 // and a boolean to check if the value has been set.
-func (o *McpSecurityIndicator) GetSastOk() (*bool, bool) {
+func (o *MCPSecurityIndicator) GetSastOk() (*bool, bool) {
 	if o == nil || IsNil(o.Sast) {
 		return nil, false
 	}
@@ -129,7 +129,7 @@ func (o *McpSecurityIndicator) GetSastOk() (*bool, bool) {
 }
 
 // HasSast returns a boolean if a field has been set.
-func (o *McpSecurityIndicator) HasSast() bool {
+func (o *MCPSecurityIndicator) HasSast() bool {
 	if o != nil && !IsNil(o.Sast) {
 		return true
 	}
@@ -138,12 +138,12 @@ func (o *McpSecurityIndicator) HasSast() bool {
 }
 
 // SetSast gets a reference to the given bool and assigns it to the Sast field.
-func (o *McpSecurityIndicator) SetSast(v bool) {
+func (o *MCPSecurityIndicator) SetSast(v bool) {
 	o.Sast = &v
 }
 
 // GetReadOnlyTools returns the ReadOnlyTools field value if set, zero value otherwise.
-func (o *McpSecurityIndicator) GetReadOnlyTools() bool {
+func (o *MCPSecurityIndicator) GetReadOnlyTools() bool {
 	if o == nil || IsNil(o.ReadOnlyTools) {
 		var ret bool
 		return ret
@@ -153,7 +153,7 @@ func (o *McpSecurityIndicator) GetReadOnlyTools() bool {
 
 // GetReadOnlyToolsOk returns a tuple with the ReadOnlyTools field value if set, nil otherwise
 // and a boolean to check if the value has been set.
-func (o *McpSecurityIndicator) GetReadOnlyToolsOk() (*bool, bool) {
+func (o *MCPSecurityIndicator) GetReadOnlyToolsOk() (*bool, bool) {
 	if o == nil || IsNil(o.ReadOnlyTools) {
 		return nil, false
 	}
@@ -161,7 +161,7 @@ func (o *McpSecurityIndicator) GetReadOnlyToolsOk() (*bool, bool) {
 }
 
 // HasReadOnlyTools returns a boolean if a field has been set.
-func (o *McpSecurityIndicator) HasReadOnlyTools() bool {
+func (o *MCPSecurityIndicator) HasReadOnlyTools() bool {
 	if o != nil && !IsNil(o.ReadOnlyTools) {
 		return true
 	}
@@ -170,11 +170,11 @@ func (o *McpSecurityIndicator) HasReadOnlyTools() bool {
 }
 
 // SetReadOnlyTools gets a reference to the given bool and assigns it to the ReadOnlyTools field.
-func (o *McpSecurityIndicator) SetReadOnlyTools(v bool) {
+func (o *MCPSecurityIndicator) SetReadOnlyTools(v bool) {
 	o.ReadOnlyTools = &v
 }
 
-func (o McpSecurityIndicator) MarshalJSON() ([]byte, error) {
+func (o MCPSecurityIndicator) MarshalJSON() ([]byte, error) {
 	toSerialize, err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
@@ -182,7 +182,7 @@ func (o McpSecurityIndicator) MarshalJSON() ([]byte, error) {
 	return json.Marshal(toSerialize)
 }
 
-func (o McpSecurityIndicator) ToMap() (map[string]interface{}, error) {
+func (o MCPSecurityIndicator) ToMap() (map[string]interface{}, error) {
 	toSerialize := map[string]interface{}{}
 	if !IsNil(o.VerifiedSource) {
 		toSerialize["verifiedSource"] = o.VerifiedSource
@@ -199,38 +199,38 @@ func (o McpSecurityIndicator) ToMap() (map[string]interface{}, error) {
 	return toSerialize, nil
 }
 
-type NullableMcpSecurityIndicator struct {
-	value *McpSecurityIndicator
+type NullableMCPSecurityIndicator struct {
+	value *MCPSecurityIndicator
 	isSet bool
 }
 
-func (v NullableMcpSecurityIndicator) Get() *McpSecurityIndicator {
+func (v NullableMCPSecurityIndicator) Get() *MCPSecurityIndicator {
 	return v.value
 }
 
-func (v *NullableMcpSecurityIndicator) Set(val *McpSecurityIndicator) {
+func (v *NullableMCPSecurityIndicator) Set(val *MCPSecurityIndicator) {
 	v.value = val
 	v.isSet = true
 }
 
-func (v NullableMcpSecurityIndicator) IsSet() bool {
+func (v NullableMCPSecurityIndicator) IsSet() bool {
 	return v.isSet
 }
 
-func (v *NullableMcpSecurityIndicator) Unset() {
+func (v *NullableMCPSecurityIndicator) Unset() {
 	v.value = nil
 	v.isSet = false
 }
 
-func NewNullableMcpSecurityIndicator(val *McpSecurityIndicator) *NullableMcpSecurityIndicator {
-	return &NullableMcpSecurityIndicator{value: val, isSet: true}
+func NewNullableMCPSecurityIndicator(val *MCPSecurityIndicator) *NullableMCPSecurityIndicator {
+	return &NullableMCPSecurityIndicator{value: val, isSet: true}
 }
 
-func (v NullableMcpSecurityIndicator) MarshalJSON() ([]byte, error) {
+func (v NullableMCPSecurityIndicator) MarshalJSON() ([]byte, error) {
 	return json.Marshal(v.value)
 }
 
-func (v *NullableMcpSecurityIndicator) UnmarshalJSON(src []byte) error {
+func (v *NullableMCPSecurityIndicator) UnmarshalJSON(src []byte) error {
 	v.isSet = true
 	return json.Unmarshal(src, &v.value)
 }

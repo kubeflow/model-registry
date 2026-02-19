@@ -14,29 +14,29 @@ import (
 	"encoding/json"
 )
 
-// checks if the McpServerList type satisfies the MappedNullable interface at compile time
-var _ MappedNullable = &McpServerList{}
+// checks if the MCPServerList type satisfies the MappedNullable interface at compile time
+var _ MappedNullable = &MCPServerList{}
 
-// McpServerList List of MCP server entities.
-type McpServerList struct {
+// MCPServerList List of MCP server entities.
+type MCPServerList struct {
 	// Token to use to retrieve next page of results.
 	NextPageToken string `json:"nextPageToken"`
 	// Maximum number of resources to return in the result.
 	PageSize int32 `json:"pageSize"`
 	// Number of items in result list.
 	Size int32 `json:"size"`
-	// Array of `McpServer` entities.
-	Items []McpServer `json:"items"`
+	// Array of `MCPServer` entities.
+	Items []MCPServer `json:"items"`
 }
 
-type _McpServerList McpServerList
+type _MCPServerList MCPServerList
 
-// NewMcpServerList instantiates a new McpServerList object
+// NewMCPServerList instantiates a new MCPServerList object
 // This constructor will assign default values to properties that have it defined,
 // and makes sure properties required by API are set, but the set of arguments
 // will change when the set of required properties is changed
-func NewMcpServerList(nextPageToken string, pageSize int32, size int32, items []McpServer) *McpServerList {
-	this := McpServerList{}
+func NewMCPServerList(nextPageToken string, pageSize int32, size int32, items []MCPServer) *MCPServerList {
+	this := MCPServerList{}
 	this.NextPageToken = nextPageToken
 	this.PageSize = pageSize
 	this.Size = size
@@ -44,16 +44,16 @@ func NewMcpServerList(nextPageToken string, pageSize int32, size int32, items []
 	return &this
 }
 
-// NewMcpServerListWithDefaults instantiates a new McpServerList object
+// NewMCPServerListWithDefaults instantiates a new MCPServerList object
 // This constructor will only assign default values to properties that have it defined,
 // but it doesn't guarantee that properties required by API are set
-func NewMcpServerListWithDefaults() *McpServerList {
-	this := McpServerList{}
+func NewMCPServerListWithDefaults() *MCPServerList {
+	this := MCPServerList{}
 	return &this
 }
 
 // GetNextPageToken returns the NextPageToken field value
-func (o *McpServerList) GetNextPageToken() string {
+func (o *MCPServerList) GetNextPageToken() string {
 	if o == nil {
 		var ret string
 		return ret
@@ -64,7 +64,7 @@ func (o *McpServerList) GetNextPageToken() string {
 
 // GetNextPageTokenOk returns a tuple with the NextPageToken field value
 // and a boolean to check if the value has been set.
-func (o *McpServerList) GetNextPageTokenOk() (*string, bool) {
+func (o *MCPServerList) GetNextPageTokenOk() (*string, bool) {
 	if o == nil {
 		return nil, false
 	}
@@ -72,12 +72,12 @@ func (o *McpServerList) GetNextPageTokenOk() (*string, bool) {
 }
 
 // SetNextPageToken sets field value
-func (o *McpServerList) SetNextPageToken(v string) {
+func (o *MCPServerList) SetNextPageToken(v string) {
 	o.NextPageToken = v
 }
 
 // GetPageSize returns the PageSize field value
-func (o *McpServerList) GetPageSize() int32 {
+func (o *MCPServerList) GetPageSize() int32 {
 	if o == nil {
 		var ret int32
 		return ret
@@ -88,7 +88,7 @@ func (o *McpServerList) GetPageSize() int32 {
 
 // GetPageSizeOk returns a tuple with the PageSize field value
 // and a boolean to check if the value has been set.
-func (o *McpServerList) GetPageSizeOk() (*int32, bool) {
+func (o *MCPServerList) GetPageSizeOk() (*int32, bool) {
 	if o == nil {
 		return nil, false
 	}
@@ -96,12 +96,12 @@ func (o *McpServerList) GetPageSizeOk() (*int32, bool) {
 }
 
 // SetPageSize sets field value
-func (o *McpServerList) SetPageSize(v int32) {
+func (o *MCPServerList) SetPageSize(v int32) {
 	o.PageSize = v
 }
 
 // GetSize returns the Size field value
-func (o *McpServerList) GetSize() int32 {
+func (o *MCPServerList) GetSize() int32 {
 	if o == nil {
 		var ret int32
 		return ret
@@ -112,7 +112,7 @@ func (o *McpServerList) GetSize() int32 {
 
 // GetSizeOk returns a tuple with the Size field value
 // and a boolean to check if the value has been set.
-func (o *McpServerList) GetSizeOk() (*int32, bool) {
+func (o *MCPServerList) GetSizeOk() (*int32, bool) {
 	if o == nil {
 		return nil, false
 	}
@@ -120,14 +120,14 @@ func (o *McpServerList) GetSizeOk() (*int32, bool) {
 }
 
 // SetSize sets field value
-func (o *McpServerList) SetSize(v int32) {
+func (o *MCPServerList) SetSize(v int32) {
 	o.Size = v
 }
 
 // GetItems returns the Items field value
-func (o *McpServerList) GetItems() []McpServer {
+func (o *MCPServerList) GetItems() []MCPServer {
 	if o == nil {
-		var ret []McpServer
+		var ret []MCPServer
 		return ret
 	}
 
@@ -136,7 +136,7 @@ func (o *McpServerList) GetItems() []McpServer {
 
 // GetItemsOk returns a tuple with the Items field value
 // and a boolean to check if the value has been set.
-func (o *McpServerList) GetItemsOk() ([]McpServer, bool) {
+func (o *MCPServerList) GetItemsOk() ([]MCPServer, bool) {
 	if o == nil {
 		return nil, false
 	}
@@ -144,11 +144,11 @@ func (o *McpServerList) GetItemsOk() ([]McpServer, bool) {
 }
 
 // SetItems sets field value
-func (o *McpServerList) SetItems(v []McpServer) {
+func (o *MCPServerList) SetItems(v []MCPServer) {
 	o.Items = v
 }
 
-func (o McpServerList) MarshalJSON() ([]byte, error) {
+func (o MCPServerList) MarshalJSON() ([]byte, error) {
 	toSerialize, err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
@@ -156,7 +156,7 @@ func (o McpServerList) MarshalJSON() ([]byte, error) {
 	return json.Marshal(toSerialize)
 }
 
-func (o McpServerList) ToMap() (map[string]interface{}, error) {
+func (o MCPServerList) ToMap() (map[string]interface{}, error) {
 	toSerialize := map[string]interface{}{}
 	toSerialize["nextPageToken"] = o.NextPageToken
 	toSerialize["pageSize"] = o.PageSize
@@ -165,38 +165,38 @@ func (o McpServerList) ToMap() (map[string]interface{}, error) {
 	return toSerialize, nil
 }
 
-type NullableMcpServerList struct {
-	value *McpServerList
+type NullableMCPServerList struct {
+	value *MCPServerList
 	isSet bool
 }
 
-func (v NullableMcpServerList) Get() *McpServerList {
+func (v NullableMCPServerList) Get() *MCPServerList {
 	return v.value
 }
 
-func (v *NullableMcpServerList) Set(val *McpServerList) {
+func (v *NullableMCPServerList) Set(val *MCPServerList) {
 	v.value = val
 	v.isSet = true
 }
 
-func (v NullableMcpServerList) IsSet() bool {
+func (v NullableMCPServerList) IsSet() bool {
 	return v.isSet
 }
 
-func (v *NullableMcpServerList) Unset() {
+func (v *NullableMCPServerList) Unset() {
 	v.value = nil
 	v.isSet = false
 }
 
-func NewNullableMcpServerList(val *McpServerList) *NullableMcpServerList {
-	return &NullableMcpServerList{value: val, isSet: true}
+func NewNullableMCPServerList(val *MCPServerList) *NullableMCPServerList {
+	return &NullableMCPServerList{value: val, isSet: true}
 }
 
-func (v NullableMcpServerList) MarshalJSON() ([]byte, error) {
+func (v NullableMCPServerList) MarshalJSON() ([]byte, error) {
 	return json.Marshal(v.value)
 }
 
-func (v *NullableMcpServerList) UnmarshalJSON(src []byte) error {
+func (v *NullableMCPServerList) UnmarshalJSON(src []byte) error {
 	v.isSet = true
 	return json.Unmarshal(src, &v.value)
 }
