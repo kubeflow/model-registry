@@ -128,7 +128,7 @@ const ModelCatalogSourceLabelSelector: React.FC<ModelCatalogSourceLabelSelectorP
                 clearAllFilters: handleClearAllFilters,
                 clearFiltersButtonText: 'Reset all filters',
               }
-            : {})}
+            : { clearAllFilters: undefined, clearFiltersButtonText: '' })}
         >
           <ToolbarContent rowWrap={{ default: 'wrap' }}>
             <Flex>

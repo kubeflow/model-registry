@@ -611,6 +611,14 @@ export const MODEL_CATALOG_FILTER_CATEGORY_NAMES: Record<ModelCatalogFilterKey, 
   >),
 };
 
+export const MODEL_CATALOG_FILTER_CHIP_PREFIXES = {
+  WORKLOAD_TYPE: 'Workload type:',
+  MAX_RPS: 'Max RPS:',
+  LATENCY_METRIC: 'Metric:',
+  LATENCY_PERCENTILE: 'Percentile:',
+  LATENCY_THRESHOLD: 'Under',
+} as const;
+
 export enum ModelDetailsTab {
   OVERVIEW = 'overview',
   PERFORMANCE_INSIGHTS = 'performance-insights',
