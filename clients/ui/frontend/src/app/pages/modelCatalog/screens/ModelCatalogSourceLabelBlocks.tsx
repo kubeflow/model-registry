@@ -67,7 +67,7 @@ const ModelCatalogSourceLabelBlocks: React.FC = () => {
   };
 
   return (
-    <ToggleGroup aria-label="Source label selection" className="pf-v6-u-pb-xl pf-v6-u-pt-xl">
+    <ToggleGroup aria-label="Source label selection" className="pf-v6-u-py-md">
       {blocks.map((block) => (
         <ToggleGroupItem
           buttonId={block.id}
