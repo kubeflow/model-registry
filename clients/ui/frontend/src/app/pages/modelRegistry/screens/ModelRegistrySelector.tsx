@@ -25,11 +25,12 @@ import {
 import { useBrowserStorage } from 'mod-arch-core';
 import { useThemeContext } from 'mod-arch-kubeflow';
 import { SimpleSelectOption } from 'mod-arch-shared/dist/components/SimpleSelect';
-import { ModelRegistrySelectorContext } from '~/app/context/ModelRegistrySelectorContext';
+import {
+  ModelRegistrySelectorContext,
+  MODEL_REGISTRY_FAVORITE_STORAGE_KEY,
+} from '~/app/context/ModelRegistrySelectorContext';
 import { ModelRegistry } from '~/app/types';
 import { getServerAddress } from './utils';
-
-const MODEL_REGISTRY_FAVORITE_STORAGE_KEY = 'kubeflow.dashboard.model.registry.favorite';
 
 type ModelRegistrySelectorProps = {
   modelRegistry: string;
