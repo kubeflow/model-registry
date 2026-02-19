@@ -144,8 +144,7 @@ const ModelCatalogActiveFilters: React.FC<ModelCatalogActiveFiltersProps> = ({ f
         // PF's ToolbarFilter lacks componentWillUnmount cleanup for its internal
         // filter count, so we must keep every ToolbarFilter mounted and pass
         // labels={[]} instead of returning null.
-        const hasValue =
-          !!filterValue && !(Array.isArray(filterValue) && filterValue.length === 0);
+        const hasValue = !!filterValue && !(Array.isArray(filterValue) && filterValue.length === 0);
         const defaultValue = getPerformanceFilterDefaultValue(filterKey);
         const isAtDefault =
           hasValue &&
@@ -181,10 +180,7 @@ const ModelCatalogActiveFilters: React.FC<ModelCatalogActiveFiltersProps> = ({ f
               {
                 key: `${filterKey}-percentile`,
                 node: (
-                  <span
-                    data-testid={`${filterKey}-filter-chip-percentile`}
-                    data-has-default="true"
-                  >
+                  <span data-testid={`${filterKey}-filter-chip-percentile`} data-has-default="true">
                     {MODEL_CATALOG_FILTER_CHIP_PREFIXES.LATENCY_PERCENTILE} {parsed.percentile}
                   </span>
                 ),
@@ -192,10 +188,7 @@ const ModelCatalogActiveFilters: React.FC<ModelCatalogActiveFiltersProps> = ({ f
               {
                 key: `${filterKey}-threshold`,
                 node: (
-                  <span
-                    data-testid={`${filterKey}-filter-chip-threshold`}
-                    data-has-default="true"
-                  >
+                  <span data-testid={`${filterKey}-filter-chip-threshold`} data-has-default="true">
                     {MODEL_CATALOG_FILTER_CHIP_PREFIXES.LATENCY_THRESHOLD} {formattedValue}
                   </span>
                 ),
