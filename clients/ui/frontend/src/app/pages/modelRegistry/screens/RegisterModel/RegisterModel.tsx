@@ -84,23 +84,22 @@ const RegisterModel: React.FC = () => {
     const versionModelName = `${formData.modelName} / ${formData.versionName}`;
     const toastParams = { versionModelName, mrName: mrName ?? '' };
 
-    registrationNotification.showRegisterAndStoreSubmitting(toastParams);
-
     // Branch based on registration mode
     if (formData.registrationMode === RegistrationMode.RegisterAndStore) {
-      // Register and Store: Only create transfer job (async registration)
+      registrationNotification.showRegisterAndStoreSubmitting(toastParams);
       const { transferJob, error } = await registerViaTransferJob(apiState, author, {
         intent: ModelTransferJobUploadIntent.CREATE_MODEL,
         formData,
       });
 
       if (transferJob) {
-        // Success - navigate back to model list
+        registrationNotification.showRegisterAndStoreSuccess(toastParams);
         navigate(modelRegistryUrl(mrName));
       } else if (error) {
         setIsSubmitting(false);
         setRegistrationErrorType(RegistrationErrorType.TRANSFER_JOB);
         setSubmitError(error);
+        registrationNotification.showRegisterAndStoreError(toastParams);
       }
     } else {
       // Register mode: Existing synchronous registration flow
@@ -110,11 +109,6 @@ const RegisterModel: React.FC = () => {
       } = await registerModel(apiState, formData, author);
 
       if (registeredModel && modelVersion && modelArtifact) {
-        registrationNotification.showRegisterOnlySuccess({
-          ...toastParams,
-          modelVersionId: modelVersion.id,
-          registeredModelId: registeredModel.id,
-        });
         navigate(modelVersionUrl(modelVersion.id, registeredModel.id, mrName));
       } else if (Object.keys(errors).length > 0) {
         setIsSubmitting(false);
@@ -123,7 +117,6 @@ const RegisterModel: React.FC = () => {
         const resourceName = Object.keys(errors)[0];
         setRegistrationErrorType(resourceName);
         setSubmitError(errors[resourceName]);
-        registrationNotification.showRegisterOnlyError(toastParams);
       }
     }
   };

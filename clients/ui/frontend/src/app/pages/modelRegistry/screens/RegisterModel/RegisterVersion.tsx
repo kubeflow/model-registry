@@ -103,26 +103,21 @@ const RegisterVersion: React.FC = () => {
 
       if (transferJob) {
         // Success - navigate back to registered model page
+        registrationNotification.showRegisterAndStoreSuccess(toastParams);
         navigate(registeredModelUrl(registeredModel.id, mrName));
       } else if (error) {
         setIsSubmitting(false);
         setRegistrationErrorType(RegistrationErrorType.TRANSFER_JOB);
         setSubmitError(error);
+        registrationNotification.showRegisterAndStoreError(toastParams);
       }
     } else {
-      registrationNotification.showRegisterOnlySubmitting();
-
       const {
         data: { modelVersion, modelArtifact },
         errors,
       } = await registerVersion(apiState, registeredModel, formData, author);
 
       if (modelVersion && modelArtifact) {
-        registrationNotification.showRegisterOnlySuccess({
-          ...toastParams,
-          modelVersionId: modelVersion.id,
-          registeredModelId: registeredModel.id,
-        });
         navigate(modelVersionUrl(modelVersion.id, registeredModel.id, mrName));
       } else if (Object.keys(errors).length > 0) {
         const resourceName = Object.keys(errors)[0];
@@ -130,7 +125,6 @@ const RegisterVersion: React.FC = () => {
         setRegistrationErrorType(resourceName);
         setSubmitError(errors[resourceName]);
         setIsSubmitting(false);
-        registrationNotification.showRegisterOnlyError(toastParams);
       }
     }
   };

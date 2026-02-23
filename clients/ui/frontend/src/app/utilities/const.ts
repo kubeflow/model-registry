@@ -43,9 +43,6 @@ export const REGISTRATION_TOAST_TITLES = {
   REGISTER_AND_STORE_SUBMITTING: 'Model transfer job started',
   REGISTER_AND_STORE_SUCCESS: 'Model transfer job complete',
   REGISTER_AND_STORE_ERROR: 'Model transfer job failed',
-  REGISTER_ONLY_SUBMITTING: 'Registering model started',
-  REGISTER_ONLY_SUCCESS: 'Model registered',
-  REGISTER_ONLY_ERROR: 'Model registration failed',
 } as const;
 
 export const FindAdministratorOptions = [
