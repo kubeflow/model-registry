@@ -1,4 +1,3 @@
-import * as React from 'react';
 import { useQueryParamNamespaces } from 'mod-arch-core';
 import { MODEL_REGISTRY_NAMESPACE } from '~/app/utilities/const';
 
@@ -16,5 +15,5 @@ import { MODEL_REGISTRY_NAMESPACE } from '~/app/utilities/const';
 export function useModelRegistryNamespace(): string | undefined {
   const queryParams = useQueryParamNamespaces();
   const fromQuery = typeof queryParams.namespace === 'string' ? queryParams.namespace : undefined;
-  return React.useMemo(() => MODEL_REGISTRY_NAMESPACE ?? fromQuery, [fromQuery]);
+  return MODEL_REGISTRY_NAMESPACE ?? fromQuery;
 }
