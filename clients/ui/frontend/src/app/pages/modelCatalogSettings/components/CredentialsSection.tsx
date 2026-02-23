@@ -14,6 +14,7 @@ import { UpdateObjectAtPropAndValue } from 'mod-arch-shared';
 import PasswordInput from '~/app/shared/components/PasswordInput';
 import FormFieldset from '~/app/pages/modelRegistry/screens/components/FormFieldset';
 import FormSection from '~/app/pages/modelRegistry/components/pf-overrides/FormSection';
+import ThemeAwareFormGroupWrapper from '~/app/pages/settings/components/ThemeAwareFormGroupWrapper';
 import { ManageSourceFormData } from '~/app/pages/modelCatalogSettings/useManageSourceData';
 import { validateOrganization } from '~/app/pages/modelCatalogSettings/utils/validation';
 import {
@@ -63,23 +64,31 @@ const CredentialsSection: React.FC<CredentialsSectionProps> = ({
   );
 
   const organizationFormGroup = (
-    <FormGroup label={FORM_LABELS.ORGANIZATION} isRequired fieldId="organization">
-      <FormHelperText>
-        <HelperText>
-          <HelperTextItem>{HELP_TEXT.ORGANIZATION}</HelperTextItem>
-        </HelperText>
-      </FormHelperText>
-      <FormFieldset component={organizationInput} field="Allowed organization" />
-      {isOrganizationTouched && !isOrganizationValid && (
-        <FormHelperText>
-          <HelperText>
-            <HelperTextItem variant="error" data-testid="organization-error">
-              {VALIDATION_MESSAGES.ORGANIZATION_REQUIRED}
-            </HelperTextItem>
-          </HelperText>
-        </FormHelperText>
-      )}
-    </FormGroup>
+    <ThemeAwareFormGroupWrapper
+      label={FORM_LABELS.ORGANIZATION}
+      fieldId="organization"
+      isRequired
+      helperTextNode={
+        <>
+          <FormHelperText>
+            <HelperText>
+              <HelperTextItem>{HELP_TEXT.ORGANIZATION}</HelperTextItem>
+            </HelperText>
+          </FormHelperText>
+          {isOrganizationTouched && !isOrganizationValid && (
+            <FormHelperText>
+              <HelperText>
+                <HelperTextItem variant="error" data-testid="organization-error">
+                  {VALIDATION_MESSAGES.ORGANIZATION_REQUIRED}
+                </HelperTextItem>
+              </HelperText>
+            </FormHelperText>
+          )}
+        </>
+      }
+    >
+      {organizationInput}
+    </ThemeAwareFormGroupWrapper>
   );
 
   const accessTokenInput = (
