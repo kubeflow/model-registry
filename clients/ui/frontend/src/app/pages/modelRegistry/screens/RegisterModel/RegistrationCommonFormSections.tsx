@@ -72,7 +72,7 @@ const RegistrationCommonFormSections = <D extends RegistrationCommonFormData>({
       setData('namespace', '');
     }
   }, [isRegistryStorageFeatureAvailable, registrationMode, setData]);
-  
+
   const versionNameInput = (
     <TextInput
       isRequired
