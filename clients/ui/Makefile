@@ -82,6 +82,10 @@ docker-build:
 docker-build-standalone:
 	$(CONTAINER_TOOL) build -f Dockerfile.standalone --build-arg DEPLOYMENT_MODE=standalone --build-arg STYLE_THEME=mui-theme -t ${IMG_UI_STANDALONE} .
 
+.PHONY: docker-build-standalone-release
+docker-build-standalone-release:
+	$(CONTAINER_TOOL) build -f Dockerfile.standalone --target release --build-arg DEPLOYMENT_MODE=standalone --build-arg STYLE_THEME=mui-theme -t ${IMG_UI_STANDALONE} .
+
 .PHONY: docker-build-federated
 docker-build-federated:
 	$(CONTAINER_TOOL) build --build-arg DEPLOYMENT_MODE=federated --build-arg STYLE_THEME=patternfly -t ${IMG_UI_FEDERATED} .

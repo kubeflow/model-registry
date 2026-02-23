@@ -30,6 +30,15 @@ export {
   COMPANY_URI,
 };
 
+export const NamespaceSelectorMessages = {
+  SELECTOR_TOOLTIP:
+    'This list includes only namespaces that you and the selected model registry have permission to access. To request access to a new or existing namespace, contact your administrator.',
+  NO_ACCESS:
+    'You do not have access to any namespaces. To request access to a new or existing namespace, contact your administrator.',
+  SELECTED_NAMESPACE_NO_ACCESS:
+    'The selected namespace does not have access to this model registry. Contact your administrator to grant access.',
+} as const;
+
 export const FindAdministratorOptions = [
   'The person who gave you your username, or who helped you to log in for the first time',
   'Someone in your IT department or help desk',

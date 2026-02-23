@@ -12,15 +12,7 @@ import {
 import { useNamespaceSelector } from 'mod-arch-core';
 import ThemeAwareFormGroupWrapper from '~/app/pages/settings/components/ThemeAwareFormGroupWrapper';
 import NamespaceSelector from '~/app/standalone/NamespaceSelector';
-
-const NAMESPACE_SELECTOR_TOOLTIP =
-  'This list includes only namespaces that you and the selected model registry have permission to access. To request access to a new or existing namespace, contact your administrator.';
-
-const NAMESPACE_NO_ACCESS_MESSAGE =
-  'You do not have access to any namespaces. To request access to a new or existing namespace, contact your administrator.';
-
-const SELECTED_NAMESPACE_NO_ACCESS_MESSAGE =
-  'The selected namespace does not have access to this model registry. Contact your administrator to grant access.';
+import { NamespaceSelectorMessages } from '~/app/utilities/const';
 
 const WHO_IS_MY_ADMIN_POPOVER_CONTENT = (
   <Stack hasGutter>
@@ -32,7 +24,7 @@ const WHO_IS_MY_ADMIN_POPOVER_CONTENT = (
       <strong>Your administrator might be:</strong>
     </StackItem>
     <StackItem>
-      <ul style={{ margin: 0, paddingLeft: '1.25rem' }}>
+      <ul>
         <li>
           The person who assigned you your username, or who helped you log in for the first time
         </li>
@@ -47,7 +39,6 @@ const WHO_IS_MY_ADMIN_POPOVER_CONTENT = (
 export type NamespaceSelectorFieldProps = {
   selectedNamespace: string;
   onSelect: (namespace: string) => void;
-  /** Access check result from parent (useCheckNamespaceRegistryAccess); single source of truth to avoid duplicate network calls */
   hasAccess?: boolean | undefined;
   isLoading?: boolean;
   error?: Error | undefined;
@@ -84,8 +75,8 @@ const NamespaceSelectorField: React.FC<NamespaceSelectorFieldProps> = ({
   const labelHelp = (
     <Popover
       triggerRef={labelHelpRef}
-      bodyContent={NAMESPACE_SELECTOR_TOOLTIP}
-      aria-label={NAMESPACE_SELECTOR_TOOLTIP}
+      bodyContent={NamespaceSelectorMessages.SELECTOR_TOOLTIP}
+      aria-label={NamespaceSelectorMessages.SELECTOR_TOOLTIP}
     >
       <FormGroupLabelHelp ref={labelHelpRef} aria-label="More info for namespace field" />
     </Popover>
@@ -102,7 +93,7 @@ const NamespaceSelectorField: React.FC<NamespaceSelectorFieldProps> = ({
         <Alert
           isInline
           variant="warning"
-          title={NAMESPACE_NO_ACCESS_MESSAGE}
+          title={NamespaceSelectorMessages.NO_ACCESS}
           data-testid="namespace-registry-access-alert"
           className="pf-v6-u-mt-sm"
         >
@@ -123,7 +114,7 @@ const NamespaceSelectorField: React.FC<NamespaceSelectorFieldProps> = ({
         <Alert
           isInline
           variant="warning"
-          title={SELECTED_NAMESPACE_NO_ACCESS_MESSAGE}
+          title={NamespaceSelectorMessages.SELECTED_NAMESPACE_NO_ACCESS}
           data-testid="namespace-registry-access-alert"
           className="pf-v6-u-mt-sm"
         />
