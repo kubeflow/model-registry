@@ -63,29 +63,32 @@ const CredentialsSection: React.FC<CredentialsSectionProps> = ({
     />
   );
 
+  const organizationHelperTextNode = (
+    <>
+      <FormHelperText>
+        <HelperText>
+          <HelperTextItem>{HELP_TEXT.ORGANIZATION}</HelperTextItem>
+        </HelperText>
+      </FormHelperText>
+      {isOrganizationTouched && !isOrganizationValid && (
+        <FormHelperText>
+          <HelperText>
+            <HelperTextItem variant='error' data-testid="organizatrion-error">
+              {VALIDATION_MESSAGES.ORGANIZATION_REQUIRED}
+            </HelperTextItem>
+          </HelperText>
+        </FormHelperText>
+      )}
+    </>
+  )
+
   const organizationFormGroup = (
     <ThemeAwareFormGroupWrapper
       label={FORM_LABELS.ORGANIZATION}
       fieldId="organization"
       isRequired
-      helperTextNode={
-        <>
-          <FormHelperText>
-            <HelperText>
-              <HelperTextItem>{HELP_TEXT.ORGANIZATION}</HelperTextItem>
-            </HelperText>
-          </FormHelperText>
-          {isOrganizationTouched && !isOrganizationValid && (
-            <FormHelperText>
-              <HelperText>
-                <HelperTextItem variant="error" data-testid="organization-error">
-                  {VALIDATION_MESSAGES.ORGANIZATION_REQUIRED}
-                </HelperTextItem>
-              </HelperText>
-            </FormHelperText>
-          )}
-        </>
-      }
+      helperTextNode={organizationHelperTextNode}
+      isInvalid={isOrganizationTouched && !isOrganizationValid}
     >
       {organizationInput}
     </ThemeAwareFormGroupWrapper>

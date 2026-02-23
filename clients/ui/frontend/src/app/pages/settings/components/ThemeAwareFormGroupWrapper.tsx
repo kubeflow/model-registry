@@ -10,6 +10,7 @@ type ThemeAwareFormGroupWrapperProps = {
   fieldId: string;
   isRequired?: boolean;
   helperTextNode?: React.ReactNode; // The pre-rendered HelperText component or null
+  isInvalid?: boolean; // Optional to verifiy if is dirty when access it
   className?: string; // Optional className for the outer FormGroup
   labelHelp?: React.ReactElement;
   'data-testid'?: string;
@@ -21,12 +22,13 @@ const ThemeAwareFormGroupWrapper: React.FC<ThemeAwareFormGroupWrapperProps> = ({
   fieldId,
   isRequired,
   helperTextNode,
+  isInvalid,
   className,
   labelHelp,
   'data-testid': dataTestId,
 }) => {
   const { isMUITheme } = useThemeContext();
-  const hasError = !!helperTextNode; // Determine error state based on helper text presence
+  const hasError = isInvalid !== undefined ? isInvalid : !!helperTextNode; // Determine error state based on helper text presence
 
   if (isMUITheme) {
     // For MUI theme, render FormGroup -> FormFieldset -> Input
