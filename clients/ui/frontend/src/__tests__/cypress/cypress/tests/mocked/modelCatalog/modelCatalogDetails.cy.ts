@@ -16,7 +16,7 @@ describe('Model Catalog Details Page', () => {
     cy.intercept('GET', '/model-registry/api/v1/model_registry*', [
       mockModelRegistry({ name: 'modelregistry-sample' }),
     ]).as('getModelRegistries');
-    
+
     setupModelCatalogIntercepts({});
     modelCatalog.visit();
   });
