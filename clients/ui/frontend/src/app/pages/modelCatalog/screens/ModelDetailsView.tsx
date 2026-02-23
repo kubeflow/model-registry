@@ -152,7 +152,9 @@ const ModelDetailsView: React.FC<ModelDetailsViewProps> = ({
                 </DescriptionListGroup>
                 <DescriptionListGroup>
                   <DescriptionListTerm>Model type</DescriptionListTerm>
-                  <DescriptionListDescription>{modelTypeDisplay}</DescriptionListDescription>
+                  <DescriptionListDescription data-testid="model-type">
+                    {modelTypeDisplay}
+                  </DescriptionListDescription>
                 </DescriptionListGroup>
                 <DescriptionListGroup>
                   <DescriptionListTerm>Tensor type</DescriptionListTerm>

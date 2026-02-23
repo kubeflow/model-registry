@@ -16,7 +16,7 @@ describe('Model Catalog Details Page', () => {
     cy.intercept('GET', '/model-registry/api/v1/model_registry*', [
       mockModelRegistry({ name: 'modelregistry-sample' }),
     ]).as('getModelRegistries');
-
+    
     setupModelCatalogIntercepts({});
     modelCatalog.visit();
   });
@@ -27,6 +27,13 @@ describe('Model Catalog Details Page', () => {
     modelCatalog.findBreadcrumb().should('exist');
     modelCatalog.findDetailsProviderText().should('be.visible');
     modelCatalog.findDetailsDescription().should('exist');
+  });
+
+  it('shows formatted model type in details', () => {
+    modelCatalog.findLoadingState().should('not.exist');
+    modelCatalog.findModelCatalogDetailLink().first().click();
+    modelCatalog.findModelType().should('be.visible');
+    modelCatalog.findModelType().should('contain.text', 'Generative AI model (Example, LLM)');
   });
 
   it('does not show architecture field when no architectures are available', () => {
