@@ -3,9 +3,11 @@ import React from 'react';
 import { render, screen } from '@testing-library/react';
 import {
   REGISTRATION_TOAST_TITLES,
-  getRegistrationToastMessageSubmitting,
+  getRegisterAndStoreToastMessageSubmitting,
+  getRegisterOnlyToastMessageSubmitting,
   getRegistrationToastMessageSuccess,
-  getRegistrationToastMessageError,
+  getRegisterAndStoreToastMessageError,
+  getRegisterOnlyToastMessageError,
 } from '~/app/pages/modelRegistry/screens/RegisterModel/registrationToastMessages';
 
 jest.mock('~/app/pages/modelRegistry/screens/routeUtils', () => ({
@@ -27,17 +29,29 @@ jest.mock('react-router-dom', () => ({
 
 describe('registrationToastMessages', () => {
   describe('REGISTRATION_TOAST_TITLES', () => {
-    it('should have expected title constants', () => {
-      expect(REGISTRATION_TOAST_TITLES.SUBMITTING).toBe('Model transfer job started');
-      expect(REGISTRATION_TOAST_TITLES.SUCCESS).toBe('Model transfer job complete');
-      expect(REGISTRATION_TOAST_TITLES.ERROR).toBe('Model transfer job failed');
+    it('should have expected title constants for Register and Store flow', () => {
+      expect(REGISTRATION_TOAST_TITLES.REGISTER_AND_STORE_SUBMITTING).toBe(
+        'Model transfer job started',
+      );
+      expect(REGISTRATION_TOAST_TITLES.REGISTER_AND_STORE_SUCCESS).toBe(
+        'Model transfer job complete',
+      );
+      expect(REGISTRATION_TOAST_TITLES.REGISTER_AND_STORE_ERROR).toBe('Model transfer job failed');
+    });
+
+    it('should have expected title constants for Register only flow', () => {
+      expect(REGISTRATION_TOAST_TITLES.REGISTER_ONLY_SUBMITTING).toBe(
+        'Registering version started',
+      );
+      expect(REGISTRATION_TOAST_TITLES.REGISTER_ONLY_SUCCESS).toBe('Version registered');
+      expect(REGISTRATION_TOAST_TITLES.REGISTER_ONLY_ERROR).toBe('Version registration failed');
     });
   });
 
-  describe('getRegistrationToastMessageSubmitting', () => {
+  describe('getRegisterAndStoreToastMessageSubmitting', () => {
     it('should render message with version name and link to transfer jobs', () => {
       const params = { versionModelName: 'My Model / v1', mrName: 'mr-sample' };
-      const node = getRegistrationToastMessageSubmitting(params);
+      const node = getRegisterAndStoreToastMessageSubmitting(params);
       render(<>{node}</>);
 
       expect(screen.getByText(/To view/)).toBeInTheDocument();
@@ -45,6 +59,14 @@ describe('registrationToastMessages', () => {
       const link = screen.getByRole('link', { name: 'Model transfer jobs' });
       expect(link).toBeInTheDocument();
       expect(link).toHaveAttribute('href', '/model-registry/mr-sample/jobs');
+    });
+  });
+
+  describe('getRegisterOnlyToastMessageSubmitting', () => {
+    it('should return please wait message', () => {
+      const node = getRegisterOnlyToastMessageSubmitting();
+      render(<>{node}</>);
+      expect(screen.getByText('Please wait.')).toBeInTheDocument();
     });
   });
 
@@ -78,10 +100,10 @@ describe('registrationToastMessages', () => {
     });
   });
 
-  describe('getRegistrationToastMessageError', () => {
+  describe('getRegisterAndStoreToastMessageError', () => {
     it('should render message with version name and link to transfer jobs', () => {
       const params = { versionModelName: 'My Model / v1', mrName: 'mr-sample' };
-      const node = getRegistrationToastMessageError(params);
+      const node = getRegisterAndStoreToastMessageError(params);
       render(<>{node}</>);
 
       expect(screen.getByText(/To view/)).toBeInTheDocument();
@@ -89,6 +111,19 @@ describe('registrationToastMessages', () => {
       const link = screen.getByRole('link', { name: 'Model transfer jobs' });
       expect(link).toBeInTheDocument();
       expect(link).toHaveAttribute('href', '/model-registry/mr-sample/jobs');
+    });
+  });
+
+  describe('getRegisterOnlyToastMessageError', () => {
+    it('should render message with version name and no transfer job link', () => {
+      const params = { versionModelName: 'My Model / v1' };
+      const node = getRegisterOnlyToastMessageError(params);
+      render(<>{node}</>);
+
+      expect(screen.getByText(/Registration failed for/)).toBeInTheDocument();
+      expect(screen.getByText('My Model / v1')).toBeInTheDocument();
+      expect(screen.getByText(/Please try again or contact your administrator/)).toBeInTheDocument();
+      expect(screen.queryByRole('link')).not.toBeInTheDocument();
     });
   });
 });

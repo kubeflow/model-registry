@@ -37,9 +37,9 @@ import PrefilledModelRegistryField from './PrefilledModelRegistryField';
 import RegisterModelDetailsFormSection from './RegisterModelDetailsFormSection';
 import {
   REGISTRATION_TOAST_TITLES,
-  getRegistrationToastMessageSubmitting,
+  getRegisterAndStoreToastMessageSubmitting,
   getRegistrationToastMessageSuccess,
-  getRegistrationToastMessageError,
+  getRegisterOnlyToastMessageError,
 } from './registrationToastMessages';
 
 const RegisterModel: React.FC = () => {
@@ -92,14 +92,14 @@ const RegisterModel: React.FC = () => {
     const toastParams = { versionModelName, mrName: mrName ?? '' };
 
     notification.info(
-      REGISTRATION_TOAST_TITLES.SUBMITTING,
-      getRegistrationToastMessageSubmitting(toastParams),
+      REGISTRATION_TOAST_TITLES.REGISTER_AND_STORE_SUBMITTING,
+      getRegisterAndStoreToastMessageSubmitting(toastParams),
     );
     if (!isMUITheme) {
       setInlineAlert({
         variant: AlertVariant.info,
-        title: REGISTRATION_TOAST_TITLES.SUBMITTING,
-        message: getRegistrationToastMessageSubmitting(toastParams),
+        title: REGISTRATION_TOAST_TITLES.REGISTER_AND_STORE_SUBMITTING,
+        message: getRegisterAndStoreToastMessageSubmitting(toastParams),
       });
     }
 
@@ -128,7 +128,7 @@ const RegisterModel: React.FC = () => {
 
       if (registeredModel && modelVersion && modelArtifact) {
         notification.success(
-          REGISTRATION_TOAST_TITLES.SUCCESS,
+          REGISTRATION_TOAST_TITLES.REGISTER_ONLY_SUCCESS,
           getRegistrationToastMessageSuccess({
             ...toastParams,
             modelVersionId: modelVersion.id,
@@ -138,7 +138,7 @@ const RegisterModel: React.FC = () => {
         if (!isMUITheme) {
           setInlineAlert({
             variant: AlertVariant.success,
-            title: REGISTRATION_TOAST_TITLES.SUCCESS,
+            title: REGISTRATION_TOAST_TITLES.REGISTER_ONLY_SUCCESS,
             message: getRegistrationToastMessageSuccess({
               ...toastParams,
               modelVersionId: modelVersion.id,
@@ -155,14 +155,14 @@ const RegisterModel: React.FC = () => {
         setRegistrationErrorType(resourceName);
         setSubmitError(errors[resourceName]);
         notification.error(
-          REGISTRATION_TOAST_TITLES.ERROR,
-          getRegistrationToastMessageError(toastParams),
+          REGISTRATION_TOAST_TITLES.REGISTER_ONLY_ERROR,
+          getRegisterOnlyToastMessageError(toastParams),
         );
         if (!isMUITheme) {
           setInlineAlert({
             variant: AlertVariant.danger,
-            title: REGISTRATION_TOAST_TITLES.ERROR,
-            message: getRegistrationToastMessageError(toastParams),
+            title: REGISTRATION_TOAST_TITLES.REGISTER_ONLY_ERROR,
+            message: getRegisterOnlyToastMessageError(toastParams),
           });
         }
       }

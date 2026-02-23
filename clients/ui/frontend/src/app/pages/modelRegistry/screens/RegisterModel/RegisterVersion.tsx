@@ -41,9 +41,10 @@ import { usePrefillRegisterVersionFields } from './usePrefillRegisterVersionFiel
 import { SubmitLabel, RegistrationErrorType } from './const';
 import {
   REGISTRATION_TOAST_TITLES,
-  getRegistrationToastMessageSubmitting,
+  getRegisterAndStoreToastMessageSubmitting,
+  getRegisterOnlyToastMessageSubmitting,
   getRegistrationToastMessageSuccess,
-  getRegistrationToastMessageError,
+  getRegisterOnlyToastMessageError,
 } from './registrationToastMessages';
 
 const RegisterVersion: React.FC = () => {
@@ -98,20 +99,19 @@ const RegisterVersion: React.FC = () => {
     const versionModelName = `${registeredModel.name} / ${formData.versionName}`;
     const toastParams = { versionModelName, mrName: mrName ?? '' };
 
-    notification.info(
-      REGISTRATION_TOAST_TITLES.SUBMITTING,
-      getRegistrationToastMessageSubmitting(toastParams),
-    );
-    if (!isMUITheme) {
-      setInlineAlert({
-        variant: AlertVariant.info,
-        title: REGISTRATION_TOAST_TITLES.SUBMITTING,
-        message: getRegistrationToastMessageSubmitting(toastParams),
-      });
-    }
-
     // Branch based on registration mode
     if (formData.registrationMode === RegistrationMode.RegisterAndStore) {
+      notification.info(
+        REGISTRATION_TOAST_TITLES.REGISTER_AND_STORE_SUBMITTING,
+        getRegisterAndStoreToastMessageSubmitting(toastParams),
+      );
+      if (!isMUITheme) {
+        setInlineAlert({
+          variant: AlertVariant.info,
+          title: REGISTRATION_TOAST_TITLES.REGISTER_AND_STORE_SUBMITTING,
+          message: getRegisterAndStoreToastMessageSubmitting(toastParams),
+        });
+      }
       // Register and Store: Only create transfer job (async registration)
       const { transferJob, error } = await registerViaTransferJob(apiState, author, {
         intent: ModelTransferJobUploadIntent.CREATE_VERSION,
@@ -128,7 +128,18 @@ const RegisterVersion: React.FC = () => {
         setSubmitError(error);
       }
     } else {
-      // Register mode: Existing synchronous registration flow
+      notification.info(
+        REGISTRATION_TOAST_TITLES.REGISTER_ONLY_SUBMITTING,
+        getRegisterOnlyToastMessageSubmitting(),
+      );
+      if (!isMUITheme) {
+        setInlineAlert({
+          variant: AlertVariant.info,
+          title: REGISTRATION_TOAST_TITLES.REGISTER_ONLY_SUBMITTING,
+          message: getRegisterOnlyToastMessageSubmitting(),
+        });
+      }
+
       const {
         data: { modelVersion, modelArtifact },
         errors,
@@ -136,7 +147,7 @@ const RegisterVersion: React.FC = () => {
 
       if (modelVersion && modelArtifact) {
         notification.success(
-          REGISTRATION_TOAST_TITLES.SUCCESS,
+          REGISTRATION_TOAST_TITLES.REGISTER_ONLY_SUCCESS,
           getRegistrationToastMessageSuccess({
             ...toastParams,
             modelVersionId: modelVersion.id,
@@ -146,7 +157,7 @@ const RegisterVersion: React.FC = () => {
         if (!isMUITheme) {
           setInlineAlert({
             variant: AlertVariant.success,
-            title: REGISTRATION_TOAST_TITLES.SUCCESS,
+            title: REGISTRATION_TOAST_TITLES.REGISTER_ONLY_SUCCESS,
             message: getRegistrationToastMessageSuccess({
               ...toastParams,
               modelVersionId: modelVersion.id,
@@ -162,14 +173,14 @@ const RegisterVersion: React.FC = () => {
         setSubmitError(errors[resourceName]);
         setIsSubmitting(false);
         notification.error(
-          REGISTRATION_TOAST_TITLES.ERROR,
-          getRegistrationToastMessageError(toastParams),
+          REGISTRATION_TOAST_TITLES.REGISTER_ONLY_ERROR,
+          getRegisterOnlyToastMessageError(toastParams),
         );
         if (!isMUITheme) {
           setInlineAlert({
             variant: AlertVariant.danger,
-            title: REGISTRATION_TOAST_TITLES.ERROR,
-            message: getRegistrationToastMessageError(toastParams),
+            title: REGISTRATION_TOAST_TITLES.REGISTER_ONLY_ERROR,
+            message: getRegisterOnlyToastMessageError(toastParams),
           });
         }
       }

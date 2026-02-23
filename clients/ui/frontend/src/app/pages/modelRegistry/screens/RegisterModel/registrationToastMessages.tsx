@@ -6,9 +6,12 @@ import {
 } from '~/app/pages/modelRegistry/screens/routeUtils';
 
 export const REGISTRATION_TOAST_TITLES = {
-  SUBMITTING: 'Model transfer job started',
-  SUCCESS: 'Model transfer job complete',
-  ERROR: 'Model transfer job failed',
+  REGISTER_AND_STORE_SUBMITTING: 'Model transfer job started',
+  REGISTER_AND_STORE_SUCCESS: 'Model transfer job complete',
+  REGISTER_AND_STORE_ERROR: 'Model transfer job failed',
+  REGISTER_ONLY_SUBMITTING: 'Registering model started',
+  REGISTER_ONLY_SUCCESS: 'Model registered',
+  REGISTER_ONLY_ERROR: 'Model registration failed',
 } as const;
 
 type RegistrationToastMessagesParams = {
@@ -18,7 +21,7 @@ type RegistrationToastMessagesParams = {
   registeredModelId?: string;
 };
 
-export const getRegistrationToastMessageSubmitting = ({
+export const getRegisterAndStoreToastMessageSubmitting = ({
   versionModelName,
   mrName,
 }: RegistrationToastMessagesParams): React.ReactNode => (
@@ -27,6 +30,8 @@ export const getRegistrationToastMessageSubmitting = ({
     <Link to={modelTransferJobsUrl(mrName)}>Model transfer jobs</Link>.
   </>
 );
+
+export const getRegisterOnlyToastMessageSubmitting = (): React.ReactNode => 'Please wait.';
 
 export const getRegistrationToastMessageSuccess = ({
   versionModelName,
@@ -48,12 +53,21 @@ export const getRegistrationToastMessageSuccess = ({
   );
 };
 
-export const getRegistrationToastMessageError = ({
+export const getRegisterAndStoreToastMessageError = ({
   versionModelName,
   mrName,
 }: RegistrationToastMessagesParams): React.ReactNode => (
   <>
     To view <strong>{versionModelName}</strong> job details, go to{' '}
     <Link to={modelTransferJobsUrl(mrName)}>Model transfer jobs</Link>.
+  </>
+);
+
+export const getRegisterOnlyToastMessageError = ({
+  versionModelName,
+}: Pick<RegistrationToastMessagesParams, 'versionModelName'>): React.ReactNode => (
+  <>
+    Registration failed for <strong>{versionModelName}</strong>. Please try again or contact your
+    administrator.
   </>
 );
