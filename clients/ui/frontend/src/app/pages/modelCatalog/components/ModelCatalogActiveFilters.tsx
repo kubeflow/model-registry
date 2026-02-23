@@ -141,9 +141,10 @@ const ModelCatalogActiveFilters: React.FC<ModelCatalogActiveFiltersProps> = ({ f
         const filterValue = filterData[filterKey];
 
         // Determine whether this filter has visible chips.
-        // PF's ToolbarFilter lacks componentWillUnmount cleanup for its internal
-        // filter count, so we must keep every ToolbarFilter mounted and pass
-        // labels={[]} instead of returning null.
+        // TODO: PF's ToolbarFilter lacks componentWillUnmount cleanup for its internal
+        // filter count (https://github.com/patternfly/patternfly-react/issues/12247).
+        // Once fixed upstream, we can return null for empty filters instead of keeping
+        // every ToolbarFilter mounted with labels={[]}.
         const hasValue = !!filterValue && !(Array.isArray(filterValue) && filterValue.length === 0);
         const defaultValue = getPerformanceFilterDefaultValue(filterKey);
         const isAtDefault =
