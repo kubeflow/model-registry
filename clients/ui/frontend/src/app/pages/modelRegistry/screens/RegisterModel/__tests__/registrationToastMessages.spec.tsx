@@ -40,11 +40,9 @@ describe('registrationToastMessages', () => {
     });
 
     it('should have expected title constants for Register only flow', () => {
-      expect(REGISTRATION_TOAST_TITLES.REGISTER_ONLY_SUBMITTING).toBe(
-        'Registering version started',
-      );
-      expect(REGISTRATION_TOAST_TITLES.REGISTER_ONLY_SUCCESS).toBe('Version registered');
-      expect(REGISTRATION_TOAST_TITLES.REGISTER_ONLY_ERROR).toBe('Version registration failed');
+      expect(REGISTRATION_TOAST_TITLES.REGISTER_ONLY_SUBMITTING).toBe('Registering model started');
+      expect(REGISTRATION_TOAST_TITLES.REGISTER_ONLY_SUCCESS).toBe('Model registered');
+      expect(REGISTRATION_TOAST_TITLES.REGISTER_ONLY_ERROR).toBe('Model registration failed');
     });
   });
 
@@ -122,7 +120,9 @@ describe('registrationToastMessages', () => {
 
       expect(screen.getByText(/Registration failed for/)).toBeInTheDocument();
       expect(screen.getByText('My Model / v1')).toBeInTheDocument();
-      expect(screen.getByText(/Please try again or contact your administrator/)).toBeInTheDocument();
+      expect(
+        screen.getByText(/Please try again or contact your administrator/),
+      ).toBeInTheDocument();
       expect(screen.queryByRole('link')).not.toBeInTheDocument();
     });
   });

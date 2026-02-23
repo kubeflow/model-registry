@@ -1,6 +1,5 @@
 import React from 'react';
 import {
-  AlertVariant,
   Breadcrumb,
   BreadcrumbItem,
   Form,
@@ -26,7 +25,6 @@ import { ModelTransferJobUploadIntent } from '~/app/types';
 import { useCheckNamespaceRegistryAccess } from '~/app/hooks/useCheckNamespaceRegistryAccess';
 import { useModelRegistryNamespace } from '~/app/hooks/useModelRegistryNamespace';
 import useRegisteredModels from '~/app/hooks/useRegisteredModels';
-import { useNotification } from '~/app/hooks/useNotification';
 import { filterLiveModels } from '~/app/utils';
 import { ModelRegistryContext } from '~/app/context/ModelRegistryContext';
 import { AppContext } from '~/app/context/AppContext';
@@ -39,13 +37,7 @@ import type { RegistrationInlineAlert } from './RegistrationFormFooter';
 import RegisteredModelSelector from './RegisteredModelSelector';
 import { usePrefillRegisterVersionFields } from './usePrefillRegisterVersionFields';
 import { SubmitLabel, RegistrationErrorType } from './const';
-import {
-  REGISTRATION_TOAST_TITLES,
-  getRegisterAndStoreToastMessageSubmitting,
-  getRegisterOnlyToastMessageSubmitting,
-  getRegistrationToastMessageSuccess,
-  getRegisterOnlyToastMessageError,
-} from './registrationToastMessages';
+import { useRegistrationNotification } from './useRegistrationNotification';
 
 const RegisterVersion: React.FC = () => {
   const { modelRegistry: mrName, registeredModelId: prefilledRegisteredModelId } = useParams();
@@ -54,7 +46,6 @@ const RegisterVersion: React.FC = () => {
   const { apiState } = React.useContext(ModelRegistryContext);
   const { user } = React.useContext(AppContext);
   const { isMUITheme } = useThemeContext();
-  const notification = useNotification();
   const author = user.userId || '';
   const [isSubmitting, setIsSubmitting] = React.useState(false);
   const [formData, setData] = useRegisterVersionData(prefilledRegisteredModelId);
@@ -74,6 +65,7 @@ const RegisterVersion: React.FC = () => {
   const [inlineAlert, setInlineAlert] = React.useState<RegistrationInlineAlert | undefined>(
     undefined,
   );
+  const registrationNotification = useRegistrationNotification(setInlineAlert);
 
   const { registeredModelId } = formData;
 
@@ -101,17 +93,7 @@ const RegisterVersion: React.FC = () => {
 
     // Branch based on registration mode
     if (formData.registrationMode === RegistrationMode.RegisterAndStore) {
-      notification.info(
-        REGISTRATION_TOAST_TITLES.REGISTER_AND_STORE_SUBMITTING,
-        getRegisterAndStoreToastMessageSubmitting(toastParams),
-      );
-      if (!isMUITheme) {
-        setInlineAlert({
-          variant: AlertVariant.info,
-          title: REGISTRATION_TOAST_TITLES.REGISTER_AND_STORE_SUBMITTING,
-          message: getRegisterAndStoreToastMessageSubmitting(toastParams),
-        });
-      }
+      registrationNotification.showRegisterAndStoreSubmitting(toastParams);
       // Register and Store: Only create transfer job (async registration)
       const { transferJob, error } = await registerViaTransferJob(apiState, author, {
         intent: ModelTransferJobUploadIntent.CREATE_VERSION,
@@ -128,17 +110,7 @@ const RegisterVersion: React.FC = () => {
         setSubmitError(error);
       }
     } else {
-      notification.info(
-        REGISTRATION_TOAST_TITLES.REGISTER_ONLY_SUBMITTING,
-        getRegisterOnlyToastMessageSubmitting(),
-      );
-      if (!isMUITheme) {
-        setInlineAlert({
-          variant: AlertVariant.info,
-          title: REGISTRATION_TOAST_TITLES.REGISTER_ONLY_SUBMITTING,
-          message: getRegisterOnlyToastMessageSubmitting(),
-        });
-      }
+      registrationNotification.showRegisterOnlySubmitting();
 
       const {
         data: { modelVersion, modelArtifact },
@@ -146,25 +118,11 @@ const RegisterVersion: React.FC = () => {
       } = await registerVersion(apiState, registeredModel, formData, author);
 
       if (modelVersion && modelArtifact) {
-        notification.success(
-          REGISTRATION_TOAST_TITLES.REGISTER_ONLY_SUCCESS,
-          getRegistrationToastMessageSuccess({
-            ...toastParams,
-            modelVersionId: modelVersion.id,
-            registeredModelId: registeredModel.id,
-          }),
-        );
-        if (!isMUITheme) {
-          setInlineAlert({
-            variant: AlertVariant.success,
-            title: REGISTRATION_TOAST_TITLES.REGISTER_ONLY_SUCCESS,
-            message: getRegistrationToastMessageSuccess({
-              ...toastParams,
-              modelVersionId: modelVersion.id,
-              registeredModelId: registeredModel.id,
-            }),
-          });
-        }
+        registrationNotification.showRegisterOnlySuccess({
+          ...toastParams,
+          modelVersionId: modelVersion.id,
+          registeredModelId: registeredModel.id,
+        });
         navigate(modelVersionUrl(modelVersion.id, registeredModel.id, mrName));
       } else if (Object.keys(errors).length > 0) {
         const resourceName = Object.keys(errors)[0];
@@ -172,17 +130,7 @@ const RegisterVersion: React.FC = () => {
         setRegistrationErrorType(resourceName);
         setSubmitError(errors[resourceName]);
         setIsSubmitting(false);
-        notification.error(
-          REGISTRATION_TOAST_TITLES.REGISTER_ONLY_ERROR,
-          getRegisterOnlyToastMessageError(toastParams),
-        );
-        if (!isMUITheme) {
-          setInlineAlert({
-            variant: AlertVariant.danger,
-            title: REGISTRATION_TOAST_TITLES.REGISTER_ONLY_ERROR,
-            message: getRegisterOnlyToastMessageError(toastParams),
-          });
-        }
+        registrationNotification.showRegisterOnlyError(toastParams);
       }
     }
   };
