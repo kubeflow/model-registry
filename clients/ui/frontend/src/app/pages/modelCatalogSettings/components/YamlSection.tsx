@@ -87,20 +87,20 @@ const YamlSection: React.FC<YamlSectionProps> = ({
       <div style={{ position: 'relative' }}>
         <FormGroup label={FORM_LABELS.YAML_CONTENT} isRequired fieldId="yaml-content">
           <FormFieldset component={yamlInput} field="YAML" />
-        <FormHelperText>
-          <HelperText>
-            <HelperTextItem>{HELP_TEXT.YAML}</HelperTextItem>
-          </HelperText>
-        </FormHelperText>
-        {isYamlTouched && !isYamlContentValid && (
           <FormHelperText>
             <HelperText>
-              <HelperTextItem variant="error" data-testid="yaml-content-error">
-                {VALIDATION_MESSAGES.YAML_CONTENT_REQUIRED}
-              </HelperTextItem>
+              <HelperTextItem>{HELP_TEXT.YAML}</HelperTextItem>
             </HelperText>
           </FormHelperText>
-        )}
+          {isYamlTouched && !isYamlContentValid && (
+            <FormHelperText>
+              <HelperText>
+                <HelperTextItem variant="error" data-testid="yaml-content-error">
+                  {VALIDATION_MESSAGES.YAML_CONTENT_REQUIRED}
+                </HelperTextItem>
+              </HelperText>
+            </FormHelperText>
+          )}
         </FormGroup>
         {onOpenExpectedFormatDrawer && (
           <Button
