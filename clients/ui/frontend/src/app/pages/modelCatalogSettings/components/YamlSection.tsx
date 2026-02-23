@@ -1,11 +1,13 @@
 import * as React from 'react';
 import {
+  Button,
   FormGroup,
   FileUpload,
   FormHelperText,
   HelperText,
   HelperTextItem,
 } from '@patternfly/react-core';
+import { OpenDrawerRightIcon } from '@patternfly/react-icons';
 import { UpdateObjectAtPropAndValue } from 'mod-arch-shared';
 import FormFieldset from '~/app/pages/modelRegistry/screens/components/FormFieldset';
 import FormSection from '~/app/pages/modelRegistry/components/pf-overrides/FormSection';
@@ -17,12 +19,19 @@ import {
   HELP_TEXT,
 } from '~/app/pages/modelCatalogSettings/constants';
 
+const EXPECTED_FORMAT_LINK_TEXT = 'View expected file format';
+
 type YamlSectionProps = {
   formData: ManageSourceFormData;
   setData: UpdateObjectAtPropAndValue<ManageSourceFormData>;
+  onOpenExpectedFormatDrawer?: () => void;
 };
 
-const YamlSection: React.FC<YamlSectionProps> = ({ formData, setData }) => {
+const YamlSection: React.FC<YamlSectionProps> = ({
+  formData,
+  setData,
+  onOpenExpectedFormatDrawer,
+}) => {
   const [isYamlTouched, setIsYamlTouched] = React.useState(false);
   const [filename, setFilename] = React.useState('');
   const isYamlContentValid = validateYamlContent(formData.yamlContent);
@@ -75,8 +84,9 @@ const YamlSection: React.FC<YamlSectionProps> = ({ formData, setData }) => {
 
   return (
     <FormSection data-testid="yaml-section">
-      <FormGroup label={FORM_LABELS.YAML_CONTENT} isRequired fieldId="yaml-content">
-        <FormFieldset component={yamlInput} field="YAML" />
+      <div style={{ position: 'relative' }}>
+        <FormGroup label={FORM_LABELS.YAML_CONTENT} isRequired fieldId="yaml-content">
+          <FormFieldset component={yamlInput} field="YAML" />
         <FormHelperText>
           <HelperText>
             <HelperTextItem>{HELP_TEXT.YAML}</HelperTextItem>
@@ -91,7 +101,26 @@ const YamlSection: React.FC<YamlSectionProps> = ({ formData, setData }) => {
             </HelperText>
           </FormHelperText>
         )}
-      </FormGroup>
+        </FormGroup>
+        {onOpenExpectedFormatDrawer && (
+          <Button
+            variant="link"
+            isInline
+            onClick={onOpenExpectedFormatDrawer}
+            data-testid="view-expected-yaml-format-link"
+            component="button"
+            icon={<OpenDrawerRightIcon />}
+            iconPosition="end"
+            style={{
+              position: 'absolute',
+              top: 0,
+              right: 0,
+            }}
+          >
+            {EXPECTED_FORMAT_LINK_TEXT}
+          </Button>
+        )}
+      </div>
     </FormSection>
   );
 };
