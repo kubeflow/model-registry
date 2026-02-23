@@ -139,7 +139,11 @@ export const registerVersion = async (
   return { data: { modelVersion, modelArtifact }, errors };
 };
 
-const isSubmitDisabledForCommonFields = (formData: RegistrationCommonFormData): boolean => {
+const isSubmitDisabledForCommonFields = (
+  formData: RegistrationCommonFormData,
+  namespaceHasAccess?: boolean,
+  isNamespaceAccessLoading?: boolean,
+): boolean => {
   const {
     versionName,
     modelLocationType,
@@ -175,8 +179,13 @@ const isSubmitDisabledForCommonFields = (formData: RegistrationCommonFormData): 
     ) {
       return true;
     }
+    if (namespace && isNamespaceAccessLoading) {
+      return true;
+    }
+    if (namespace && namespaceHasAccess === false) {
+      return true;
+    }
   }
-
   return (
     !versionName ||
     (modelLocationType === ModelLocationType.URI && !modelLocationURI) ||
@@ -189,19 +198,34 @@ const isSubmitDisabledForCommonFields = (formData: RegistrationCommonFormData): 
 export const isRegisterModelSubmitDisabled = (
   formData: RegisterModelFormData,
   registeredModels: RegisteredModelList,
+  namespaceHasAccess?: boolean,
+  isNamespaceAccessLoading?: boolean,
 ): boolean =>
   !formData.modelName ||
-  isSubmitDisabledForCommonFields(formData) ||
+  isSubmitDisabledForCommonFields(formData, namespaceHasAccess, isNamespaceAccessLoading) ||
   !isNameValid(formData.modelName) ||
   isModelNameExisting(formData.modelName, registeredModels);
 
-export const isRegisterVersionSubmitDisabled = (formData: RegisterVersionFormData): boolean =>
-  !formData.registeredModelId || isSubmitDisabledForCommonFields(formData);
+export const isRegisterVersionSubmitDisabled = (
+  formData: RegisterVersionFormData,
+  namespaceHasAccess?: boolean,
+  isNamespaceAccessLoading?: boolean,
+): boolean =>
+  !formData.registeredModelId ||
+  isSubmitDisabledForCommonFields(formData, namespaceHasAccess, isNamespaceAccessLoading);
 
 export const isRegisterCatalogModelSubmitDisabled = (
   formData: RegisterCatalogModelFormData,
   registeredModels: RegisteredModelList,
-): boolean => isRegisterModelSubmitDisabled(formData, registeredModels) || !formData.modelRegistry;
+  namespaceHasAccess?: boolean,
+  isNamespaceAccessLoading?: boolean,
+): boolean =>
+  isRegisterModelSubmitDisabled(
+    formData,
+    registeredModels,
+    namespaceHasAccess,
+    isNamespaceAccessLoading,
+  ) || !formData.modelRegistry;
 
 export const isNameValid = (name: string): boolean => name.length <= MR_CHARACTER_LIMIT;
 

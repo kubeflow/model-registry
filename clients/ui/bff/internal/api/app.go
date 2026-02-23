@@ -253,6 +253,7 @@ func (app *App) Routes() http.Handler {
 	apiRouter.GET(CatalogModelPerformanceArtifacts, app.AttachNamespace(app.AttachModelCatalogRESTClient(app.GetCatalogModelPerformanceArtifactsHandler)))
 	// Kubernetes routes
 	apiRouter.GET(UserPath, app.UserHandler)
+	apiRouter.POST(CheckNamespaceRegistryAccessPath, app.CheckNamespaceRegistryAccessHandler)
 	apiRouter.GET(ModelRegistryListPath, app.AttachNamespace(app.RequireListServiceAccessInNamespace(app.GetAllModelRegistriesHandler)))
 
 	// Enable these routes in all cases except Kubeflow integration mode

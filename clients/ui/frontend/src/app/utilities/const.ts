@@ -10,6 +10,7 @@ const KUBEFLOW_USERNAME = process.env.KUBEFLOW_USERNAME || 'user@example.com';
 const IMAGE_DIR = process.env.IMAGE_DIR || 'images';
 const LOGO_LIGHT = process.env.LOGO || 'logo-light-theme.svg';
 const MANDATORY_NAMESPACE = process.env.MANDATORY_NAMESPACE || undefined;
+const MODEL_REGISTRY_NAMESPACE = process.env.MODEL_REGISTRY_NAMESPACE || undefined;
 const URL_PREFIX = '/model-registry';
 const BFF_API_VERSION = 'v1';
 const COMPANY_URI = process.env.COMPANY_URI || 'oci://kubeflow.io';
@@ -25,8 +26,18 @@ export {
   DEPLOYMENT_MODE,
   BFF_API_VERSION,
   MANDATORY_NAMESPACE,
+  MODEL_REGISTRY_NAMESPACE,
   COMPANY_URI,
 };
+
+export const NamespaceSelectorMessages = {
+  SELECTOR_TOOLTIP:
+    'This list includes only namespaces that you and the selected model registry have permission to access. To request access to a new or existing namespace, contact your administrator.',
+  NO_ACCESS:
+    'You do not have access to any namespaces. To request access to a new or existing namespace, contact your administrator.',
+  SELECTED_NAMESPACE_NO_ACCESS:
+    'The selected namespace does not have access to this model registry. Contact your administrator to grant access.',
+} as const;
 
 export const FindAdministratorOptions = [
   'The person who gave you your username, or who helped you to log in for the first time',

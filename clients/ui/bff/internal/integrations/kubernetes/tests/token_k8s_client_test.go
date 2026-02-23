@@ -113,6 +113,40 @@ var _ = Describe("KubernetesClient SSAR Test", func() {
 
 	})
 
+	Context("CanNamespaceAccessRegistry", func() {
+		It("should return true when namespace default SA has access to the registry", func() {
+			identity := &kubernetes.RequestIdentity{
+				Token: k8mocks.DefaultTestUsers[0].Token,
+			}
+			ctx := context.WithValue(context.Background(), constants.RequestIdentityKey, identity)
+
+			kubernetesMockedTokenClientFactory, err := k8mocks.NewTokenClientFactory(clientset, restConfig, logger)
+			Expect(err).NotTo(HaveOccurred())
+			tokenK8client, err := kubernetesMockedTokenClientFactory.GetClient(ctx)
+			Expect(err).NotTo(HaveOccurred())
+
+			allowed, err := tokenK8client.CanNamespaceAccessRegistry(ctx, identity, "dora-namespace", "model-registry-dora", "dora-namespace")
+			Expect(err).NotTo(HaveOccurred())
+			Expect(allowed).To(BeTrue())
+		})
+
+		It("should return false when namespace default SA has no access to the registry", func() {
+			identity := &kubernetes.RequestIdentity{
+				Token: k8mocks.DefaultTestUsers[0].Token,
+			}
+			ctx := context.WithValue(context.Background(), constants.RequestIdentityKey, identity)
+
+			kubernetesMockedTokenClientFactory, err := k8mocks.NewTokenClientFactory(clientset, restConfig, logger)
+			Expect(err).NotTo(HaveOccurred())
+			tokenK8client, err := kubernetesMockedTokenClientFactory.GetClient(ctx)
+			Expect(err).NotTo(HaveOccurred())
+
+			allowed, err := tokenK8client.CanNamespaceAccessRegistry(ctx, identity, "bella-namespace", "model-registry-dora", "dora-namespace")
+			Expect(err).NotTo(HaveOccurred())
+			Expect(allowed).To(BeFalse())
+		})
+	})
+
 	Context("GetNamespaces", func() {
 
 		It("should allow allowed user to get namespaces", func() {

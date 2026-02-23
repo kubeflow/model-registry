@@ -10,6 +10,8 @@ import {
 import { useParams, useNavigate } from 'react-router';
 import { Link } from 'react-router-dom';
 import { ApplicationsPage, FormSection } from 'mod-arch-shared';
+import { useCheckNamespaceRegistryAccess } from '~/app/hooks/useCheckNamespaceRegistryAccess';
+import { useModelRegistryNamespace } from '~/app/hooks/useModelRegistryNamespace';
 import { modelRegistryUrl, modelVersionUrl } from '~/app/pages/modelRegistry/screens/routeUtils';
 import { RegistrationMode } from '~/app/pages/modelRegistry/screens/const';
 import { ModelTransferJobUploadIntent } from '~/app/types';
@@ -32,6 +34,7 @@ import RegisterModelDetailsFormSection from './RegisterModelDetailsFormSection';
 
 const RegisterModel: React.FC = () => {
   const { modelRegistry: mrName } = useParams();
+  const registryNamespace = useModelRegistryNamespace();
   const navigate = useNavigate();
   const { apiState } = React.useContext(ModelRegistryContext);
   const { user } = React.useContext(AppContext);
@@ -47,12 +50,23 @@ const RegisterModel: React.FC = () => {
   );
   const [registeredModels, registeredModelsLoaded, registeredModelsLoadError] =
     useRegisteredModels();
+  const {
+    hasAccess: namespaceHasAccess,
+    isLoading: isNamespaceAccessLoading,
+    error: namespaceAccessError,
+  } = useCheckNamespaceRegistryAccess(mrName, registryNamespace, formData.namespace ?? '');
 
   const isModelNameValid = isNameValid(formData.modelName);
   const isModelNameDuplicate = isModelNameExisting(formData.modelName, registeredModels);
   const hasModelNameError = !isModelNameValid || isModelNameDuplicate;
   const isSubmitDisabled =
-    isSubmitting || isRegisterModelSubmitDisabled(formData, registeredModels);
+    isSubmitting ||
+    isRegisterModelSubmitDisabled(
+      formData,
+      registeredModels,
+      namespaceHasAccess,
+      isNamespaceAccessLoading,
+    );
 
   const handleSubmit = async () => {
     setIsSubmitting(true);
@@ -130,6 +144,9 @@ const RegisterModel: React.FC = () => {
                 formData={formData}
                 setData={setData}
                 isFirstVersion
+                namespaceHasAccess={namespaceHasAccess}
+                isNamespaceAccessLoading={isNamespaceAccessLoading}
+                namespaceAccessError={namespaceAccessError}
               />
             </StackItem>
           </Stack>
