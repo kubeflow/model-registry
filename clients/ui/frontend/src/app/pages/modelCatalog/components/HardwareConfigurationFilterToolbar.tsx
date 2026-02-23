@@ -100,7 +100,7 @@ const HardwareConfigurationFilterToolbar: React.FC<HardwareConfigurationFilterTo
     <Toolbar
       {...(onResetAllFilters && hasVisibleChips
         ? { clearAllFilters: onResetAllFilters, clearFiltersButtonText: 'Reset all filters' }
-        : { clearAllFilters: undefined, clearFiltersButtonText: '' })}
+        : {})}
     >
       <ToolbarContent rowWrap={{ default: 'wrap' }}>
         <ToolbarGroup rowWrap={{ default: 'wrap' }}>
