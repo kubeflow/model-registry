@@ -39,6 +39,12 @@ export const NamespaceSelectorMessages = {
     'The selected namespace does not have access to this model registry. Contact your administrator to grant access.',
 } as const;
 
+export const REGISTRATION_TOAST_TITLES = {
+  REGISTER_AND_STORE_SUBMITTING: 'Model transfer job started',
+  REGISTER_AND_STORE_SUCCESS: 'Model transfer job complete',
+  REGISTER_AND_STORE_ERROR: 'Model transfer job failed',
+} as const;
+
 export const FindAdministratorOptions = [
   'The person who gave you your username, or who helped you to log in for the first time',
   'Someone in your IT department or help desk',

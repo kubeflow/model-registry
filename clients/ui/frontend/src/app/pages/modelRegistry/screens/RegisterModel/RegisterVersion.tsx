@@ -14,6 +14,7 @@ import spacing from '@patternfly/react-styles/css/utilities/Spacing/spacing';
 import { useParams, useNavigate } from 'react-router';
 import { Link } from 'react-router-dom';
 import { ApplicationsPage } from 'mod-arch-shared';
+import { useThemeContext } from 'mod-arch-kubeflow';
 import {
   modelRegistryUrl,
   modelVersionUrl,
@@ -32,9 +33,11 @@ import { isRegisterVersionSubmitDisabled, registerVersion, registerViaTransferJo
 import RegistrationCommonFormSections from './RegistrationCommonFormSections';
 import PrefilledModelRegistryField from './PrefilledModelRegistryField';
 import RegistrationFormFooter from './RegistrationFormFooter';
+import type { RegistrationInlineAlert } from './RegistrationFormFooter';
 import RegisteredModelSelector from './RegisteredModelSelector';
 import { usePrefillRegisterVersionFields } from './usePrefillRegisterVersionFields';
 import { SubmitLabel, RegistrationErrorType } from './const';
+import { useRegistrationNotification } from './useRegistrationNotification';
 
 const RegisterVersion: React.FC = () => {
   const { modelRegistry: mrName, registeredModelId: prefilledRegisteredModelId } = useParams();
@@ -42,6 +45,7 @@ const RegisterVersion: React.FC = () => {
   const navigate = useNavigate();
   const { apiState } = React.useContext(ModelRegistryContext);
   const { user } = React.useContext(AppContext);
+  const { isMUITheme } = useThemeContext();
   const author = user.userId || '';
   const [isSubmitting, setIsSubmitting] = React.useState(false);
   const [formData, setData] = useRegisterVersionData(prefilledRegisteredModelId);
@@ -58,6 +62,10 @@ const RegisterVersion: React.FC = () => {
   const [registrationErrorType, setRegistrationErrorType] = React.useState<string | undefined>(
     undefined,
   );
+  const [inlineAlert, setInlineAlert] = React.useState<RegistrationInlineAlert | undefined>(
+    undefined,
+  );
+  const registrationNotification = useRegistrationNotification(setInlineAlert);
 
   const { registeredModelId } = formData;
 
@@ -78,9 +86,14 @@ const RegisterVersion: React.FC = () => {
     }
     setIsSubmitting(true);
     setSubmitError(undefined);
+    setInlineAlert(undefined);
+
+    const versionModelName = `${registeredModel.name} / ${formData.versionName}`;
+    const toastParams = { versionModelName, mrName: mrName ?? '' };
 
     // Branch based on registration mode
     if (formData.registrationMode === RegistrationMode.RegisterAndStore) {
+      registrationNotification.showRegisterAndStoreSubmitting(toastParams);
       // Register and Store: Only create transfer job (async registration)
       const { transferJob, error } = await registerViaTransferJob(apiState, author, {
         intent: ModelTransferJobUploadIntent.CREATE_VERSION,
@@ -90,14 +103,15 @@ const RegisterVersion: React.FC = () => {
 
       if (transferJob) {
         // Success - navigate back to registered model page
+        registrationNotification.showRegisterAndStoreSuccess(toastParams);
         navigate(registeredModelUrl(registeredModel.id, mrName));
       } else if (error) {
         setIsSubmitting(false);
         setRegistrationErrorType(RegistrationErrorType.TRANSFER_JOB);
         setSubmitError(error);
+        registrationNotification.showRegisterAndStoreError(toastParams);
       }
     } else {
-      // Register mode: Existing synchronous registration flow
       const {
         data: { modelVersion, modelArtifact },
         errors,
@@ -195,6 +209,7 @@ const RegisterVersion: React.FC = () => {
         onSubmit={handleSubmit}
         onCancel={onCancel}
         versionName={submittedVersionName}
+        inlineAlert={!isMUITheme ? inlineAlert : undefined}
       />
     </ApplicationsPage>
   );

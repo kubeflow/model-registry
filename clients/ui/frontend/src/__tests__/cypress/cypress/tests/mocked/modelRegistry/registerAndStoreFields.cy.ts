@@ -319,6 +319,28 @@ describe('Register and Store Fields - Form Submission', () => {
     registerAndStoreFields.findSubmitButton().should('not.be.disabled');
   });
 
+  it('Should show submitting notification when Create is clicked in Register and Store mode', () => {
+    const mockJob = mockModelTransferJob({ id: 'new-job-id' });
+    cy.interceptApi(
+      'POST /api/:apiVersion/model_registry/:modelRegistryName/model_transfer_jobs',
+      {
+        path: {
+          apiVersion: MODEL_REGISTRY_API_VERSION,
+          modelRegistryName: 'modelregistry-sample',
+        },
+      },
+      mockJob,
+    ).as('createTransferJob');
+
+    registerAndStoreFields.selectRegisterAndStoreMode();
+    registerAndStoreFields.selectNamespace('namespace-1');
+    cy.wait('@checkNamespaceAccess');
+    registerAndStoreFields.fillAllRequiredFields();
+    registerAndStoreFields.findSubmitButton().click();
+
+    cy.contains(/Model transfer job started/).should('be.visible');
+  });
+
   it('Should create transfer job and navigate to model list on success', () => {
     const mockJob = mockModelTransferJob({ id: 'new-job-id' });
 
@@ -340,6 +362,7 @@ describe('Register and Store Fields - Form Submission', () => {
     registerAndStoreFields.fillAllRequiredFields();
     registerAndStoreFields.findSubmitButton().click();
 
+    cy.contains(/Model transfer job started/).should('be.visible');
     cy.wait('@createTransferJob').then((interception) => {
       // Body might be a string if Content-Type isn't detected correctly
       const rawBody =
@@ -375,6 +398,7 @@ describe('Register and Store Fields - Form Submission', () => {
 
     cy.wait('@createTransferJobError');
     cy.url().should('include', '/register');
+    cy.contains(/Failed to create transfer job/).should('be.visible');
   });
 
   it('Should NOT call registerModel API in Register and Store mode', () => {
