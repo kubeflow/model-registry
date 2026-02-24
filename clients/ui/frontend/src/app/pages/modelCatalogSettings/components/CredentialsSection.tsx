@@ -73,7 +73,7 @@ const CredentialsSection: React.FC<CredentialsSectionProps> = ({
       {isOrganizationTouched && !isOrganizationValid && (
         <FormHelperText>
           <HelperText>
-            <HelperTextItem variant='error' data-testid="organizatrion-error">
+            <HelperTextItem variant='error' data-testid="organization-error">
               {VALIDATION_MESSAGES.ORGANIZATION_REQUIRED}
             </HelperTextItem>
           </HelperText>
