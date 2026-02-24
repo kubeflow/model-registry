@@ -1,3 +1,5 @@
+import * as React from 'react';
+
 export const FORM_LABELS = {
   NAME: 'Name',
   SOURCE_TYPE: 'Source type',
@@ -59,18 +61,33 @@ export const PAGE_TITLES = {
   PREVIEW_MODELS: 'Preview models',
 } as const;
 
-export const getFilterInfoWithOrg = (organization: string): string =>
-  `Optionally filter which ${organization} models from your source appear in the model catalog. If no filters are set, all ${organization} models from the source will be visible.`;
+export const getFilterInfoWithOrg = (organization: string): React.ReactNode => (
+  <>
+    Optionally filter which <strong>{organization}</strong> models from your source appear in the
+    model catalog. If no filters are set, all <strong>{organization}</strong> models from the source
+    will be visible.
+  </>
+);
 
-export const getAllowedModelsHelp = (organization?: string): string =>
-  organization
-    ? `Enter the names of ${organization} models to include from this source. These models will appear in the model catalog.`
-    : 'Enter the names of models to include from this source. These models will appear in the model catalog.';
+export const getAllowedModelsHelp = (organization?: string): React.ReactNode =>
+  organization ? (
+    <>
+      Enter the names of <strong>{organization}</strong> models to include from this source. These
+      models will appear in the model catalog.
+    </>
+  ) : (
+    'Enter the names of models to include from this source. These models will appear in the model catalog.'
+  );
 
-export const getExcludedModelsHelp = (organization?: string): string =>
-  organization
-    ? `Enter the names of ${organization} models to exclude from this source. These models will not appear in the model catalog.`
-    : 'Enter the names of models to exclude from this source. These models will not appear in the model catalog.';
+export const getExcludedModelsHelp = (organization?: string): React.ReactNode =>
+  organization ? (
+    <>
+      Enter the names of <strong>{organization}</strong> models to exclude from this source. These
+      models will not appear in the model catalog.
+    </>
+  ) : (
+    'Enter the names of models to exclude from this source. These models will not appear in the model catalog.'
+  );
 
 /** Same for HF and YAML sources. */
 export const getIncludedModelsFieldHelperText =

@@ -10,7 +10,7 @@ export const CATALOG_SOURCE_TYPE_LABELS: Record<CatalogSourceType, string> = {
 };
 
 export enum ModelVisibilityBadgeColor {
-  FILTERED = 'blue',
+  FILTERED = 'purple',
   UNFILTERED = 'grey',
 }
 

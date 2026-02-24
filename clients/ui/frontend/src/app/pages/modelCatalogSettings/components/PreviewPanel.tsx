@@ -18,7 +18,7 @@ import {
   Button,
   AlertActionLink,
 } from '@patternfly/react-core';
-import { CubesIcon, CheckCircleIcon, TimesCircleIcon } from '@patternfly/react-icons';
+import { CheckCircleIcon, TimesCircleIcon } from '@patternfly/react-icons';
 import { PAGE_TITLES } from '~/app/pages/modelCatalogSettings/constants';
 import {
   UseSourcePreviewResult,
@@ -78,11 +78,7 @@ const PreviewPanel: React.FC<PreviewPanelProps> = ({ preview }) => {
     }
 
     return (
-      <EmptyState
-        icon={CubesIcon}
-        titleText={PAGE_TITLES.PREVIEW_MODELS}
-        variant={EmptyStateVariant.sm}
-      >
+      <EmptyState titleText={PAGE_TITLES.PREVIEW_MODELS} variant={EmptyStateVariant.sm}>
         <EmptyStateBody>
           To view the models from this source that will appear in the model catalog with your
           current configuration, complete all required fields, then click <strong>Preview</strong>.

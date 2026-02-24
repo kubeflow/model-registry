@@ -921,6 +921,21 @@ func GetCatalogSourceMocks() []models.CatalogSource {
 			Labels:  []string{"No Performance"},
 			Status:  &availableStatus,
 		},
+		{
+			Id:      "custom_yaml_models",
+			Name:    "Custom yaml",
+			Enabled: &enabled,
+			Labels:  []string{},
+			Status:  &errorStatus,
+			Error:   &invalidCredentialError,
+		},
+		{
+			Id:      "hugging_face_source",
+			Name:    "Hugging face source",
+			Enabled: &enabled,
+			Labels:  []string{},
+			Status:  &availableStatus,
+		},
 	}
 }
 
