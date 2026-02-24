@@ -10,7 +10,7 @@ type ThemeAwareFormGroupWrapperProps = {
   fieldId: string;
   isRequired?: boolean;
   helperTextNode?: React.ReactNode; // The pre-rendered HelperText component or null
-  isInvalid?: boolean; // Optional to verifiy if is dirty when access it
+  isInvalid?: boolean; // Optional to verify if is dirty when access it
   className?: string; // Optional className for the outer FormGroup
   labelHelp?: React.ReactElement;
   'data-testid'?: string;
