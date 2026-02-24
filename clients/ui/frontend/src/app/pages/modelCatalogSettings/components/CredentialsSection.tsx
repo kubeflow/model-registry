@@ -63,7 +63,7 @@ const CredentialsSection: React.FC<CredentialsSectionProps> = ({
     />
   );
 
-  const organizationHelperTextNode = (
+  const organizationDescriptionTxtNode = (
     <>
       <FormHelperText>
         <HelperText>
@@ -87,8 +87,7 @@ const CredentialsSection: React.FC<CredentialsSectionProps> = ({
       label={FORM_LABELS.ORGANIZATION}
       fieldId="organization"
       isRequired
-      helperTextNode={organizationHelperTextNode}
-      isInvalid={isOrganizationTouched && !isOrganizationValid}
+      descriptionTextNode={organizationDescriptionTxtNode}
     >
       {organizationInput}
     </ThemeAwareFormGroupWrapper>
