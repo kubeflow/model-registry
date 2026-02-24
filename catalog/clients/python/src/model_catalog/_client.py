@@ -12,6 +12,7 @@ from collections.abc import Callable
 from functools import wraps
 from typing import Any, TypeVar
 from urllib.parse import quote
+from catalog_openapi.models import OrderByField, SortOrder
 
 logger = logging.getLogger(__name__)
 
@@ -338,7 +339,6 @@ class CatalogAPIClient:
         Returns:
             Dict with models response.
         """
-        from catalog_openapi.models import OrderByField, SortOrder
 
         source_list = [source] if source else None
         page_size_str = str(page_size) if page_size is not None else None
@@ -370,6 +370,8 @@ class CatalogAPIClient:
         model_name: str,
         artifact_type: str | list[str] | None = None,
         filter_query: str | None = None,
+        order_by: str | None = None,
+        sort_order: str | None = None,
         page_size: int | None = None,
         next_page_token: str | None = None,
     ) -> dict[str, Any]:
@@ -382,12 +384,16 @@ class CatalogAPIClient:
                 Accepts "model-artifact", "metrics-artifact", or a list of these values.
                 Can be a single string or list of strings.
             filter_query: Optional filter query.
+            order_by: Optional field to order by (ID, NAME, CREATE_TIME, LAST_UPDATE_TIME,
+                or custom property path like "accuracy.double_value").
+            sort_order: Optional sort order (ASC or DESC).
             page_size: Optional page size.
             next_page_token: Optional pagination token.
 
         Returns:
             Dict with artifacts response.
         """
+
         # Convert artifact_type to list format expected by OpenAPI client
         artifact_type_list = None
         if artifact_type is not None:
@@ -396,12 +402,18 @@ class CatalogAPIClient:
             else:
                 artifact_type_list = artifact_type
 
+        sort_order_enum: SortOrder | None = None
+        if sort_order:
+            sort_order_enum = SortOrder(sort_order.upper())
+
         page_size_str = str(page_size) if page_size is not None else None
         response = self.catalog_api.get_all_model_artifacts(
             source_id=_encode_path_param(source_id),
             model_name=_encode_path_param(model_name),
             artifact_type=artifact_type_list,
             filter_query=filter_query,
+            order_by=order_by,
+            sort_order=sort_order_enum,
             page_size=page_size_str,
             next_page_token=next_page_token,
         )

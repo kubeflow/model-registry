@@ -15,7 +15,7 @@ import pytest
 
 from model_catalog import CatalogAPIClient
 
-from tests.sorting_utils import get_field_value, validate_items_sorted_correctly
+from tests.sorting_utils import get_field_value, sort_items_by_field
 
 
 def _assert_response_valid(response: dict[str, Any]) -> None:
@@ -172,7 +172,7 @@ class TestFieldOrdering:
 
         items = response["items"]
 
-        assert validate_items_sorted_correctly(items, order_by, sort_order), (
+        assert items == sort_items_by_field(items, order_by, sort_order), (
             f"Models not sorted correctly by {order_by} {sort_order}"
         )
 
