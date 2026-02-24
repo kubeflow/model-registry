@@ -62,6 +62,17 @@ const RegistrationCommonFormSections = <D extends RegistrationCommonFormData>({
     }
   };
 
+  React.useEffect(() => {
+    if (
+      !isRegistryStorageFeatureAvailable &&
+      registrationMode === RegistrationMode.RegisterAndStore
+    ) {
+      // When the feature is turned off, force the mode back to "Register"
+      setData('registrationMode', RegistrationMode.Register);
+      setData('namespace', '');
+    }
+  }, [isRegistryStorageFeatureAvailable, registrationMode, setData]);
+
   const versionNameInput = (
     <TextInput
       isRequired
