@@ -9,7 +9,7 @@ type ThemeAwareFormGroupWrapperProps = {
   label: string;
   fieldId: string;
   isRequired?: boolean;
-  descriptionTextNode?: React.ReactNode;    // Always-visible help text
+  descriptionTextNode?: React.ReactNode; // Always-visible help text
   helperTextNode?: React.ReactNode; // Error-only helper text
   className?: string; // Optional className for the outer FormGroup
   labelHelp?: React.ReactElement;
