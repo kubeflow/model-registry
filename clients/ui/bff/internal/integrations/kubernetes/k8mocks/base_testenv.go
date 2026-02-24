@@ -803,7 +803,7 @@ func createModelTransferJob(k8sClient kubernetes.Interface, ctx context.Context,
 			Labels: map[string]string{
 				"modelregistry.kubeflow.org/job-type":            "async-upload",
 				"modelregistry.kubeflow.org/job-id":              "001",
-				"modelregistry.kubeflow.org/model-registry-name": "model-registry",
+				"modelregistry.kubeflow.org/model-registry-name": "model-registry-bella",
 			},
 			Annotations: map[string]string{
 				"modelregistry.kubeflow.org/registered-model-id": "1",
@@ -929,8 +929,9 @@ func createModelTransferJob(k8sClient kubernetes.Interface, ctx context.Context,
 			Name:      "transfer-job-002",
 			Namespace: namespace,
 			Labels: map[string]string{
-				"modelregistry.kubeflow.org/job-type": "async-upload",
-				"modelregistry.kubeflow.org/job-id":   "002",
+				"modelregistry.kubeflow.org/job-type":            "async-upload",
+				"modelregistry.kubeflow.org/job-id":              "002",
+				"modelregistry.kubeflow.org/model-registry-name": "model-registry-bella",
 			},
 			Annotations: map[string]string{
 				"modelregistry.kubeflow.org/registered-model-id": "2",
@@ -1004,8 +1005,9 @@ func createModelTransferJob(k8sClient kubernetes.Interface, ctx context.Context,
 			Name:      "transfer-job-003",
 			Namespace: namespace,
 			Labels: map[string]string{
-				"modelregistry.kubeflow.org/job-type": "async-upload",
-				"modelregistry.kubeflow.org/job-id":   "003",
+				"modelregistry.kubeflow.org/job-type":            "async-upload",
+				"modelregistry.kubeflow.org/job-id":              "003",
+				"modelregistry.kubeflow.org/model-registry-name": "model-registry-bella",
 			},
 			Annotations: map[string]string{
 				"modelregistry.kubeflow.org/registered-model-id": "1",
