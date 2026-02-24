@@ -39,11 +39,13 @@ const initialFilterData: ModelTransferJobsFilterDataType = {
 type ModelTransferJobsListViewProps = {
   jobs: ModelTransferJob[];
   onRequestDelete?: (job: ModelTransferJob) => void;
+  onRequestRetry?: (job: ModelTransferJob) => void;
 };
 
 const ModelTransferJobsListView: React.FC<ModelTransferJobsListViewProps> = ({
   jobs,
   onRequestDelete,
+  onRequestRetry,
 }) => {
   const [filterData, setFilterData] =
     React.useState<ModelTransferJobsFilterDataType>(initialFilterData);
@@ -170,6 +172,7 @@ const ModelTransferJobsListView: React.FC<ModelTransferJobsListViewProps> = ({
       clearFilters={onClearFilters}
       toolbarContent={toggleGroupItems}
       onRequestDelete={onRequestDelete}
+      onRequestRetry={onRequestRetry}
     />
   );
 };
