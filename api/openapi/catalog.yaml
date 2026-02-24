@@ -326,6 +326,7 @@ paths:
         - ModelCatalogService
       parameters:
         - $ref: "#/components/parameters/name"
+        - $ref: "#/components/parameters/assetType"
         - $ref: "#/components/parameters/pageSize"
         - $ref: "#/components/parameters/orderBy"
         - $ref: "#/components/parameters/sortOrder"
@@ -2054,6 +2055,13 @@ components:
         format: int32
         default: 10
         maximum: 100
+      in: query
+      required: false
+    assetType:
+      name: assetType
+      description: Filter sources by asset type.
+      schema:
+        $ref: "#/components/schemas/CatalogAssetType"
       in: query
       required: false
     artifactType:

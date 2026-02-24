@@ -754,6 +754,7 @@ func TestFindSources(t *testing.T) {
 			resp, err := service.FindSources(
 				context.Background(),
 				tc.nameFilter,
+				"",
 				tc.pageSize,
 				tc.orderBy,
 				tc.sortOrder,
