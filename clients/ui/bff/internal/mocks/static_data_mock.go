@@ -150,7 +150,7 @@ func GetModelArtifactMocks() []openapi.ModelArtifact {
 		ModelFormatVersion:       stringToPointer("1.0.0"),
 		ServiceAccountName:       stringToPointer("service-1"),
 		ModelSourceKind:          stringToPointer("transfer_job"),
-		ModelSourceGroup:         stringToPointer("kubeflow"),
+		ModelSourceGroup:         stringToPointer("bella-namespace"),
 		ModelSourceName:          stringToPointer("transfer-job-001"),
 	}
 

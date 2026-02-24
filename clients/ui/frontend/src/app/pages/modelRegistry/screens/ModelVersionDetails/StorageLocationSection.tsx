@@ -17,10 +17,7 @@ import {
   StackItem,
 } from '@patternfly/react-core';
 import { OutlinedQuestionCircleIcon, FolderIcon } from '@patternfly/react-icons';
-import {
-  DashboardDescriptionListGroup,
-  InlineTruncatedClipboardCopy,
-} from 'mod-arch-shared';
+import { DashboardDescriptionListGroup, InlineTruncatedClipboardCopy } from 'mod-arch-shared';
 import { ModelTransferJob, ModelTransferJobSourceType } from '~/app/types';
 import { FindAdministratorOptions } from '~/app/utilities/const';
 import {
@@ -121,10 +118,12 @@ const StorageLocationSection: React.FC<StorageLocationSectionProps> = ({
 
   // TODO: Replace string matching with structured error status codes from the BFF
   // once the BFF returns proper error types for permission issues.
+  const errorMessage = transferJobError?.message ?? '';
   const hasAccessError =
-    transferJobError?.message?.includes('403') ||
-    transferJobError?.message?.includes('forbidden') ||
-    transferJobError?.message?.includes('Forbidden');
+    !!transferJobError &&
+    (errorMessage.includes('403') ||
+      errorMessage.includes('forbidden') ||
+      errorMessage.includes('Forbidden'));
 
   if (!transferJobLoaded) {
     return (
@@ -165,8 +164,7 @@ const StorageLocationSection: React.FC<StorageLocationSectionProps> = ({
   const destinationUri = getDestinationUri(transferJob);
   const sourcePath = getSourcePath(transferJob);
   const sourceLabel =
-    sourceType === ModelTransferJobSourceType.S3 ||
-    sourceType === ModelTransferJobSourceType.URI
+    sourceType === ModelTransferJobSourceType.S3 || sourceType === ModelTransferJobSourceType.URI
       ? 'Path'
       : 'URI';
 

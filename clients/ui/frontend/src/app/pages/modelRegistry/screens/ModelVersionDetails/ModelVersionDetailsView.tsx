@@ -57,9 +57,10 @@ const ModelVersionDetailsView: React.FC<ModelVersionDetailsViewProps> = ({
   const modelArtifact = modelArtifacts.items.length ? modelArtifacts.items[0] : null;
   const { apiState } = React.useContext(ModelRegistryContext);
   const storageFields = uriToStorageFields(modelArtifact?.uri || '');
-  const isTransferJobSource = modelArtifact
-    ? !!modelSourcePropertiesToTransferJobParams(modelArtifact)
-    : false;
+  const transferJobParams = modelArtifact
+    ? modelSourcePropertiesToTransferJobParams(modelArtifact)
+    : null;
+  const isTransferJobSource = !!transferJobParams;
   const [transferJob, transferJobLoaded, transferJobError] =
     useModelTransferJobForArtifact(modelArtifact);
 
@@ -169,10 +170,7 @@ const ModelVersionDetailsView: React.FC<ModelVersionDetailsViewProps> = ({
                 )}
                 {isTransferJobSource && modelArtifact ? (
                   <StorageLocationSection
-                    fallbackNamespace={
-                      modelSourcePropertiesToTransferJobParams(modelArtifact)
-                        ?.jobNamespace || ''
-                    }
+                    fallbackNamespace={transferJobParams.jobNamespace}
                     transferJob={transferJob}
                     transferJobLoaded={transferJobLoaded}
                     transferJobError={transferJobError}
@@ -323,9 +321,7 @@ const ModelVersionDetailsView: React.FC<ModelVersionDetailsViewProps> = ({
                       isEmpty={!transferJob.lastUpdateTimeSinceEpoch}
                       contentWhenEmpty="Unknown"
                     >
-                      <ModelTimestamp
-                        timeSinceEpoch={transferJob.lastUpdateTimeSinceEpoch}
-                      />
+                      <ModelTimestamp timeSinceEpoch={transferJob.lastUpdateTimeSinceEpoch} />
                     </DashboardDescriptionListGroup>
                   )}
                 </DescriptionList>
