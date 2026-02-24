@@ -402,6 +402,12 @@ func (m *ModelRegistryRepository) UpdateModelTransferJob(
 	if newPayload.ModelArtifactId == "" {
 		newPayload.ModelArtifactId = oldAnnotations["modelregistry.kubeflow.org/model-artifact-id"]
 	}
+	if newPayload.Author == "" {
+		newPayload.Author = oldAnnotations["modelregistry.kubeflow.org/author"]
+	}
+	if newPayload.Description == "" {
+		newPayload.Description = oldAnnotations["modelregistry.kubeflow.org/description"]
+	}
 
 	oldConfigMap, err := client.GetConfigMap(ctx, namespace, oldConfigMapName)
 	if err != nil {
@@ -461,9 +467,43 @@ func (m *ModelRegistryRepository) UpdateModelTransferJob(
 		existingDestSecretName = destSecretCreated.Name
 	}
 
-	if newPayload.ModelArtifactName == "" && oldConfigMap != nil && oldConfigMap.Data != nil {
-		if val, ok := oldConfigMap.Data["ModelArtifact.name"]; ok {
-			newPayload.ModelArtifactName = val
+	if oldConfigMap != nil && oldConfigMap.Data != nil {
+		if newPayload.ModelArtifactName == "" {
+			if val, ok := oldConfigMap.Data["ModelArtifact.name"]; ok {
+				newPayload.ModelArtifactName = val
+			}
+		}
+		if newPayload.VersionDescription == "" {
+			if val, ok := oldConfigMap.Data["ModelVersion.description"]; ok {
+				newPayload.VersionDescription = val
+			}
+		}
+		if newPayload.SourceModelFormat == "" {
+			if val, ok := oldConfigMap.Data["ModelArtifact.modelFormatName"]; ok {
+				newPayload.SourceModelFormat = val
+			}
+		}
+		if newPayload.SourceModelFormatVersion == "" {
+			if val, ok := oldConfigMap.Data["ModelArtifact.modelFormatVersion"]; ok {
+				newPayload.SourceModelFormatVersion = val
+			}
+		}
+		// Recover custom properties if not provided in new payload
+		if newPayload.ModelCustomProperties == nil {
+			if val, ok := oldConfigMap.Data["RegisteredModel.customProperties"]; ok && val != "" {
+				var props map[string]interface{}
+				if err := json.Unmarshal([]byte(val), &props); err == nil {
+					newPayload.ModelCustomProperties = props
+				}
+			}
+		}
+		if newPayload.VersionCustomProperties == nil {
+			if val, ok := oldConfigMap.Data["ModelVersion.customProperties"]; ok && val != "" {
+				var props map[string]interface{}
+				if err := json.Unmarshal([]byte(val), &props); err == nil {
+					newPayload.VersionCustomProperties = props
+				}
+			}
 		}
 	}
 
