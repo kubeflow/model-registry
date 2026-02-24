@@ -12,6 +12,7 @@ from collections.abc import Callable
 from functools import wraps
 from typing import Any, TypeVar
 from urllib.parse import quote
+from catalog_openapi.models import OrderByField, SortOrder
 
 logger = logging.getLogger(__name__)
 
@@ -338,7 +339,6 @@ class CatalogAPIClient:
         Returns:
             Dict with models response.
         """
-        from catalog_openapi.models import OrderByField, SortOrder
 
         source_list = [source] if source else None
         page_size_str = str(page_size) if page_size is not None else None
@@ -393,7 +393,6 @@ class CatalogAPIClient:
         Returns:
             Dict with artifacts response.
         """
-        from catalog_openapi.models import SortOrder
 
         # Convert artifact_type to list format expected by OpenAPI client
         artifact_type_list = None

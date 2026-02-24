@@ -12,7 +12,7 @@ To run these tests:
 import pytest
 
 from model_catalog import CatalogAPIClient, CatalogValidationError
-from tests.sorting_utils import validate_custom_property_sorted, validate_items_sorted_correctly
+from tests.sorting_utils import sort_items_by_custom_property, sort_items_by_field
 
 
 class TestArtifacts:
@@ -462,7 +462,7 @@ class TestArtifactsSorting:
 
         items = response["items"]
         assert len(items) >= 2, "Need at least 2 artifacts to validate sorting"
-        assert validate_items_sorted_correctly(items, order_by, sort_order)
+        assert items == sort_items_by_field(items, order_by, sort_order)
 
     @pytest.mark.parametrize(
         "order_by,sort_order",
@@ -490,7 +490,7 @@ class TestArtifactsSorting:
 
         items = response["items"]
         assert len(items) >= 2, "Need at least 2 artifacts to validate sorting"
-        assert validate_custom_property_sorted(items, order_by, sort_order)
+        assert items == sort_items_by_custom_property(items, order_by, sort_order)
 
     def test_sorting_by_non_existing_property_falls_back_to_id(
         self,
@@ -511,4 +511,4 @@ class TestArtifactsSorting:
         assert len(items) >= 2, "Need at least 2 artifacts to validate sorting"
 
         # No artifacts have this property, so all should fall back to ID ASC
-        assert validate_items_sorted_correctly(items, "ID", "ASC")
+        assert items == sort_items_by_field(items, "ID", "ASC")
