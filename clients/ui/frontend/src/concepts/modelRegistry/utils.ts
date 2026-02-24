@@ -51,14 +51,6 @@ export const modelSourcePropertiesToTransferJobParams = (
   };
 };
 
-export const transferJobParamsToModelSourceProperties = (
-  params: TransferJobParams,
-): ModelSourceProperties => ({
-  modelSourceKind: ModelSourceKind.TRANSFER_JOB,
-  modelSourceGroup: params.jobNamespace,
-  modelSourceName: params.jobName,
-});
-
 export const catalogParamsToModelSourceProperties = (
   params: CatalogModelDetailsParams,
 ): ModelSourceProperties => ({

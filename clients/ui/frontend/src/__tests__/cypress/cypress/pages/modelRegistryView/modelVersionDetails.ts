@@ -165,6 +165,34 @@ class ModelVersionDetails {
   findSaveLabelsButton() {
     return cy.findByTestId('editable-labels-group-save');
   }
+
+  findStorageLocationSection() {
+    return cy.findByTestId('storage-location-section');
+  }
+
+  findStorageLocationTitle() {
+    return cy.findByTestId('storage-location-title');
+  }
+
+  findStorageLocationPopoverButton() {
+    return cy.findByTestId('storage-location-popover-button');
+  }
+
+  findStorageLocationUri() {
+    return cy.findByTestId('storage-location-uri');
+  }
+
+  findStorageConnectionDisplay() {
+    return cy.findAllByTestId('storage-connection-display');
+  }
+
+  findStorageSourceDetails() {
+    return cy.findByTestId('storage-source-details');
+  }
+
+  findStorageSourcePath() {
+    return cy.findByTestId('storage-source-path');
+  }
 }
 
 class PropertyRow extends TableRow {}

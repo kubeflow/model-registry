@@ -249,14 +249,14 @@ export const getListModelTransferJobs =
 export const getModelTransferJobsByNamespace =
   (hostPath: string) =>
   (opts: APIOptions, namespace: string): Promise<ModelTransferJobList> =>
-    handleRestFailures(
-      restGET(hostPath, `/model_transfer_jobs`, { namespace }, opts),
-    ).then((response) => {
-      if (isModArchResponse<ModelTransferJobList>(response)) {
-        return response.data;
-      }
-      throw new Error('Invalid response format');
-    });
+    handleRestFailures(restGET(hostPath, `/model_transfer_jobs`, { namespace }, opts)).then(
+      (response) => {
+        if (isModArchResponse<ModelTransferJobList>(response)) {
+          return response.data;
+        }
+        throw new Error('Invalid response format');
+      },
+    );
 
 export const createModelTransferJob =
   (hostPath: string, queryParams: Record<string, unknown> = {}) =>

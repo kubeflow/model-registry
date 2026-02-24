@@ -24,12 +24,10 @@ const useModelTransferJobForArtifact = (
       }
       // TODO: Replace with a GET single job endpoint when the BFF supports it,
       // to avoid fetching the full job list and filtering client-side.
-      return api
-        .getModelTransferJobsByNamespace(opts, jobNamespace)
-        .then((jobList) => {
-          const job = jobList.items.find((j) => j.name === jobName);
-          return job ?? null;
-        });
+      return api.getModelTransferJobsByNamespace(opts, jobNamespace).then((jobList) => {
+        const job = jobList.items.find((j) => j.name === jobName);
+        return job ?? null;
+      });
     },
     [api, apiAvailable, jobNamespace, jobName],
   );

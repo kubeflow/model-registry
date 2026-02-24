@@ -24,6 +24,8 @@ export const mockModelTransferJob = (partial?: Partial<ModelTransferJob>): Model
     type: ModelTransferJobDestinationType.OCI,
     uri: 'registry.redhat.io/rhelai1/modelcar-granite-7b-starter:1.4.0',
     registry: 'registry.redhat.io',
+    username: 'username',
+    password: 'password',
   },
   uploadIntent: ModelTransferJobUploadIntent.CREATE_VERSION,
   registeredModelId: '1',
