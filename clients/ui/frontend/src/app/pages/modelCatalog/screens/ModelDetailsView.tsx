@@ -41,6 +41,7 @@ import {
   getModelArtifactUri,
   hasModelArtifacts,
   isModelValidated,
+  formatModelTypeDisplay,
 } from '~/app/pages/modelCatalog/utils/modelCatalogUtils';
 import { CatalogModelCustomPropertyKey } from '~/concepts/modelCatalog/const';
 
@@ -63,6 +64,16 @@ const ModelDetailsView: React.FC<ModelDetailsViewProps> = ({
 
   // Extract validated_on platforms
   const validatedOnPlatforms = getValidatedOnPlatforms(model.customProperties);
+
+  // Extract model type from customProperties
+  const modelTypeRaw = model.customProperties
+    ? getCustomPropString(model.customProperties, CatalogModelCustomPropertyKey.MODEL_TYPE)
+    : null;
+
+  const modelTypeDisplay = React.useMemo(
+    () => formatModelTypeDisplay(modelTypeRaw),
+    [modelTypeRaw],
+  );
 
   // Extract tensor type and size from customProperties
   const tensorType = model.customProperties
@@ -137,6 +148,12 @@ const ModelDetailsView: React.FC<ModelDetailsViewProps> = ({
                       labels={allLabels.filter((label) => label !== 'validated')}
                       numLabels={isValidated ? 2 : 3}
                     />
+                  </DescriptionListDescription>
+                </DescriptionListGroup>
+                <DescriptionListGroup>
+                  <DescriptionListTerm>Model type</DescriptionListTerm>
+                  <DescriptionListDescription data-testid="model-type">
+                    {modelTypeDisplay}
                   </DescriptionListDescription>
                 </DescriptionListGroup>
                 <DescriptionListGroup>

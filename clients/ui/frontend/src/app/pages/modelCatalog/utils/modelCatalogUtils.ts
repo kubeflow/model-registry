@@ -1,4 +1,5 @@
 import React from 'react';
+import { capitalize } from '@patternfly/react-core';
 import { ModelCatalogContext } from '~/app/context/modelCatalog/ModelCatalogContext';
 import {
   CatalogArtifacts,
@@ -31,6 +32,7 @@ import {
   SortOrder,
   SortField,
   CatalogModelCustomPropertyKey,
+  ModelType,
 } from '~/concepts/modelCatalog/const';
 import { CatalogSourceStatus } from '~/concepts/modelCatalogSettings/const';
 import { ModelRegistryMetadataType } from '~/app/types';
@@ -748,4 +750,29 @@ export const orderLabelsByPriority = (
   orderedLabels.push(...Array.from(remainingLabels));
 
   return orderedLabels;
+};
+
+/**
+ * Formats model type value for display in the UI.
+ * Converts raw API values (generative, predictive, unknown) to user-friendly display labels.
+ *
+ * @param modelTypeRaw The raw model type value from customProperties, or null if not set
+ * @returns Formatted display string for the model type
+ */
+export const formatModelTypeDisplay = (modelTypeRaw: string | null): string => {
+  if (!modelTypeRaw || modelTypeRaw.trim() === '') {
+    return 'Unknown';
+  }
+  const normalized = modelTypeRaw.toLowerCase().trim();
+  if (normalized === ModelType.GENERATIVE) {
+    return 'Generative AI model (Example, LLM)';
+  }
+  if (normalized === ModelType.PREDICTIVE) {
+    return 'Predictive Model';
+  }
+  if (normalized === ModelType.UNKNOWN) {
+    return 'Unknown';
+  }
+  // Fallback: capitalize whatever value we got
+  return capitalize(modelTypeRaw.trim());
 };

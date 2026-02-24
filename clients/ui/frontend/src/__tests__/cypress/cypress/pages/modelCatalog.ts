@@ -172,6 +172,10 @@ class ModelCatalog {
     return cy.findByTestId('model-architecture');
   }
 
+  findModelType() {
+    return cy.findByTestId('model-type');
+  }
+
   // Tabs functionality
   findModelDetailsTabs() {
     return cy.findByTestId('model-details-page-tabs');

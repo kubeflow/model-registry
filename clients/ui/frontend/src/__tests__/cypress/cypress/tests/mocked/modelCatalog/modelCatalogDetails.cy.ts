@@ -29,6 +29,13 @@ describe('Model Catalog Details Page', () => {
     modelCatalog.findDetailsDescription().should('exist');
   });
 
+  it('shows formatted model type in details', () => {
+    modelCatalog.findLoadingState().should('not.exist');
+    modelCatalog.findModelCatalogDetailLink().first().click();
+    modelCatalog.findModelType().should('be.visible');
+    modelCatalog.findModelType().should('contain.text', 'Generative AI model (Example, LLM)');
+  });
+
   it('does not show architecture field when no architectures are available', () => {
     modelCatalog.findLoadingState().should('not.exist');
     modelCatalog.findModelCatalogDetailLink().first().click();

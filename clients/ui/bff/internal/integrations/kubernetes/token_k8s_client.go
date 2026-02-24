@@ -201,6 +201,10 @@ func (kc *TokenKubernetesClient) CanAccessServiceInNamespace(ctx context.Context
 	return true, nil
 }
 
+func (kc *TokenKubernetesClient) CanNamespaceAccessRegistry(ctx context.Context, _ *RequestIdentity, jobNamespace, registryName, registryNamespace string) (bool, error) {
+	return CanNamespaceAccessRegistry(ctx, kc.Client, kc.Logger, jobNamespace, registryName, registryNamespace)
+}
+
 // RequestIdentity is unused because the token already represents the user identity.
 // This endpoint is used only on dev mode that is why is safe to ignore permissions errors
 func (kc *TokenKubernetesClient) GetNamespaces(ctx context.Context, _ *RequestIdentity) ([]corev1.Namespace, error) {
