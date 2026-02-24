@@ -35,7 +35,7 @@ deploy-local-registry:
 
 .PHONY: dev-load-image
 dev-load-image:
-	docker buildx build --load -t $(JOB_IMG) .
+	docker buildx build --network=host --load -t $(JOB_IMG) .
 	kind load docker-image $(JOB_IMG) -n $(CLUSTER_NAME)
 
 .PHONY: test
