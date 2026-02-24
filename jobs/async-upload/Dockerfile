@@ -2,7 +2,7 @@
 #  Asynchronous Model-Sync Job image for Kubeflow Model Registry (https://github.com/kubeflow/model-registry/issues/1108)
 ###############################################################################
 
-FROM quay.io/securesign/cosign:redhat-v2.1.1 AS cosign
+FROM registry.redhat.io/rhtas/cosign-rhel9:1.2.2 AS cosign
 FROM registry.access.redhat.com/ubi9/python-312-minimal AS base
 
 USER 0
