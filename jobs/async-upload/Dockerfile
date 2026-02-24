@@ -2,6 +2,8 @@
 #  Asynchronous Model-Sync Job image for Kubeflow Model Registry (https://github.com/kubeflow/model-registry/issues/1108)
 ###############################################################################
 
+FROM quay.io/securesign/cli-cosign@sha256:a8289d488491991d454a32784de19476f2c984917eb7a33b4544e55512f2747c AS cosign
+
 FROM registry.access.redhat.com/ubi9/python-312-minimal AS base
 
 USER 0
@@ -11,6 +13,8 @@ RUN microdnf update -y && \
     microdnf install -y skopeo && \
     microdnf clean all
 
+COPY --from=cosign /usr/local/bin/cosign /usr/local/bin/cosign
+
 # security/env hardening
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
@@ -19,6 +23,8 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 
 WORKDIR /app
 COPY ./poetry.lock ./pyproject.toml ./requirements.txt ./
+
+RUN cosign version
 
 RUN python -m pip install -r requirements.txt \
     && echo "Installation completed" \
