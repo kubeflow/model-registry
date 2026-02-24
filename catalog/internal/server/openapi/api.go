@@ -48,7 +48,7 @@ type ModelCatalogServiceAPIRouter interface {
 // while the service implementation can be ignored with the .openapi-generator-ignore file
 // and updated with the logic required for the API.
 type MCPCatalogServiceAPIServicer interface {
-	FindMCPServers(context.Context, string, string, string, string, bool, int32, string, model.OrderByField, model.SortOrder, string) (ImplResponse, error)
+	FindMCPServers(context.Context, string, string, []string, string, string, bool, int32, string, model.OrderByField, model.SortOrder, string) (ImplResponse, error)
 	FindMCPServersFilterOptions(context.Context) (ImplResponse, error)
 	GetMCPServer(context.Context, string, bool) (ImplResponse, error)
 	FindMCPServerTools(context.Context, string, string, string, model.OrderByField, model.SortOrder, string) (ImplResponse, error)
