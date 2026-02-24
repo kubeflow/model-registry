@@ -760,7 +760,7 @@ func createModelTransferJob(k8sClient kubernetes.Interface, ctx context.Context,
 		StringData: map[string]string{
 			"AWS_ACCESS_KEY_ID":     "mock-access-key",
 			"AWS_SECRET_ACCESS_KEY": "mock-secret-key",
-			"AWS_REGION":            "us-east-1",
+			"AWS_DEFAULT_REGION":    "us-east-1",
 			"AWS_S3_BUCKET":         "source-bucket",
 		},
 	}
@@ -782,6 +782,10 @@ func createModelTransferJob(k8sClient kubernetes.Interface, ctx context.Context,
 		Type: corev1.SecretTypeDockerConfigJson,
 		StringData: map[string]string{
 			".dockerconfigjson": `{"auths":{"quay.io":{"auth":"bW9jazptb2Nr","email":"test@example.com"}}}`,
+			"username":          "",
+			"password":          "",
+			"email":             "",
+			"registry":          "",
 		},
 	}
 
@@ -797,8 +801,9 @@ func createModelTransferJob(k8sClient kubernetes.Interface, ctx context.Context,
 			Name:      "transfer-job-001",
 			Namespace: namespace,
 			Labels: map[string]string{
-				"modelregistry.kubeflow.org/job-type": "async-upload",
-				"modelregistry.kubeflow.org/job-id":   "001",
+				"modelregistry.kubeflow.org/job-type":            "async-upload",
+				"modelregistry.kubeflow.org/job-id":              "001",
+				"modelregistry.kubeflow.org/model-registry-name": "model-registry",
 			},
 			Annotations: map[string]string{
 				"modelregistry.kubeflow.org/registered-model-id": "1",
@@ -811,6 +816,11 @@ func createModelTransferJob(k8sClient kubernetes.Interface, ctx context.Context,
 				"modelregistry.kubeflow.org/dest-type":           "oci",
 				"modelregistry.kubeflow.org/dest-uri":            "quay.io/test/model:v1",
 				"modelregistry.kubeflow.org/upload-intent":       "create_model",
+				"modelregistry.kubeflow.org/author":              "Sherlock Holmes",
+				"modelregistry.kubeflow.org/description":         "Transfer job for Model One",
+				"modelregistry.kubeflow.org/configmap-name":      "transfer-job-001-config",
+				"modelregistry.kubeflow.org/source-secret":       "transfer-job-001-source-secret",
+				"modelregistry.kubeflow.org/dest-secret":         "transfer-job-001-dest-secret",
 			},
 		},
 		Spec: batchv1.JobSpec{

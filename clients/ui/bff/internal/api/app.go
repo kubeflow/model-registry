@@ -77,9 +77,9 @@ const (
 	CatalogSourcePreviewPath                 = ModelCatalogSettingsPathPrefix + "/source_preview"
 
 	// Model Transfer Jobs
-	ModelTransferJobId       = "job_id"
+	ModelTransferJobName     = "job_name"
 	ModelTransferJobListPath = ModelRegistryPath + "/model_transfer_jobs"
-	ModelTransferJobPath     = ModelTransferJobListPath + "/:" + ModelTransferJobId
+	ModelTransferJobPath     = ModelTransferJobListPath + "/:" + ModelTransferJobName
 )
 
 type App struct {

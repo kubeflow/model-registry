@@ -20,7 +20,11 @@ import { useNavigate } from 'react-router-dom';
 import ModelTimestamp from '~/app/pages/modelRegistry/screens/components/ModelTimestamp';
 import { ModelRegistrySelectorContext } from '~/app/context/ModelRegistrySelectorContext';
 import { registeredModelUrl, modelVersionUrl } from '~/app/pages/modelRegistry/screens/routeUtils';
-import { ModelTransferJob, ModelTransferJobStatus } from '~/app/types';
+import {
+  ModelTransferJob,
+  ModelTransferJobStatus,
+  ModelTransferJobUploadIntent,
+} from '~/app/types';
 import { EMPTY_CUSTOM_PROPERTY_VALUE } from '~/concepts/modelCatalog/const';
 
 type ModelTransferJobTableRowProps = {
@@ -108,18 +112,29 @@ const ModelTransferJobTableRow: React.FC<ModelTransferJobTableRowProps> = ({
       </Td>
       <Td dataLabel="Model name">
         {job.registeredModelName ? (
-          <Button variant="link" isInline onClick={handleModelNameClick}>
+          job.uploadIntent === ModelTransferJobUploadIntent.CREATE_MODEL &&
+          job.status === ModelTransferJobStatus.COMPLETED ? (
+            <Button variant="link" isInline onClick={handleModelNameClick}>
+              <Truncate content={job.registeredModelName} />
+            </Button>
+          ) : (
             <Truncate content={job.registeredModelName} />
-          </Button>
+          )
         ) : (
           EMPTY_CUSTOM_PROPERTY_VALUE
         )}
       </Td>
       <Td dataLabel="Model version name">
         {job.modelVersionName ? (
-          <Button variant="link" isInline onClick={handleVersionNameClick}>
+          (job.uploadIntent === ModelTransferJobUploadIntent.CREATE_MODEL ||
+            job.uploadIntent === ModelTransferJobUploadIntent.CREATE_VERSION) &&
+          job.status === ModelTransferJobStatus.COMPLETED ? (
+            <Button variant="link" isInline onClick={handleVersionNameClick}>
+              <Truncate content={job.modelVersionName} />
+            </Button>
+          ) : (
             <Truncate content={job.modelVersionName} />
-          </Button>
+          )
         ) : (
           EMPTY_CUSTOM_PROPERTY_VALUE
         )}

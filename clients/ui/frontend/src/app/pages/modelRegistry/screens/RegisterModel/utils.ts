@@ -232,13 +232,6 @@ export const isNameValid = (name: string): boolean => name.length <= MR_CHARACTE
 export const isModelNameExisting = (name: string, registeredModels: RegisteredModelList): boolean =>
   registeredModels.items.some((model) => model.name === name);
 
-// Helper function to build ModelTransferJob payload from form data
-// TODO: When ModelTransferJob API is extended, add support for:
-//   - Credentials: formData.modelLocationS3AccessKeyId, formData.modelLocationS3SecretAccessKey
-//                  formData.destinationOciUsername, formData.destinationOciPassword, formData.destinationOciEmail
-//   - Model metadata: formData.modelDescription (for CREATE_MODEL), formData.versionDescription
-//   - Model format: formData.sourceModelFormat, formData.sourceModelFormatVersion
-//   - Custom properties: formData.modelCustomProperties, formData.versionCustomProperties
 export const buildModelTransferJobPayload = (
   formData: RegisterModelFormData | RegisterVersionFormData,
   author: string,
@@ -255,6 +248,8 @@ export const buildModelTransferJobPayload = (
           key: formData.modelLocationPath,
           region: formData.modelLocationRegion || undefined,
           endpoint: formData.modelLocationEndpoint || undefined,
+          awsAccessKeyId: formData.modelLocationS3AccessKeyId,
+          awsSecretAccessKey: formData.modelLocationS3SecretAccessKey,
         }
       : {
           type: ModelTransferJobSourceType.URI,
@@ -266,11 +261,19 @@ export const buildModelTransferJobPayload = (
     type: ModelTransferJobDestinationType.OCI,
     uri: formData.destinationOciUri,
     registry: formData.destinationOciRegistry || undefined,
+    username: formData.destinationOciUsername,
+    password: formData.destinationOciPassword,
+    email: formData.destinationOciEmail || undefined,
   };
 
   // RegisterModelFormData has modelName (user-provided for new model).
   // RegisterVersionFormData omits it since the model already exists; we use registeredModelName instead.
   const modelName = 'modelName' in formData ? formData.modelName : registeredModelName;
+
+  const description =
+    uploadIntent === ModelTransferJobUploadIntent.CREATE_MODEL && 'modelDescription' in formData
+      ? formData.modelDescription
+      : formData.versionDescription;
 
   return {
     name: formData.jobResourceName,
@@ -279,7 +282,13 @@ export const buildModelTransferJobPayload = (
     uploadIntent,
     registeredModelId,
     registeredModelName: modelName,
+    description: description || undefined,
+    versionDescription: formData.versionDescription || undefined,
     modelVersionName: formData.versionName,
+    sourceModelFormat: formData.sourceModelFormat || undefined,
+    sourceModelFormatVersion: formData.sourceModelFormatVersion || undefined,
+    modelCustomProperties: formData.modelCustomProperties ?? undefined,
+    versionCustomProperties: formData.versionCustomProperties ?? undefined,
     namespace: formData.namespace,
     author,
     status: ModelTransferJobStatus.PENDING,
