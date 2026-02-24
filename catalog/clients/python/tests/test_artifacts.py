@@ -12,6 +12,7 @@ To run these tests:
 import pytest
 
 from model_catalog import CatalogAPIClient, CatalogValidationError
+from tests.sorting_utils import validate_custom_property_sorted, validate_items_sorted_correctly
 
 
 class TestArtifacts:
@@ -429,3 +430,85 @@ class TestNegativeArtifacts:
                 model_name=model_name,
                 artifact_type=invalid_artifact_type,
             )
+
+
+@pytest.mark.parametrize("model_with_artifacts", [2], indirect=True)
+class TestArtifactsSorting:
+    """Basic sorting coverage for artifact endpoints. Thorough testing is done downstream."""
+
+    @pytest.mark.parametrize(
+        "order_by,sort_order",
+        [
+            pytest.param("ID", "ASC", id="id_asc"),
+            pytest.param("ID", "DESC", id="id_desc"),
+        ],
+    )
+    def test_artifacts_sorting_by_id(
+        self,
+        api_client: CatalogAPIClient,
+        model_with_artifacts: tuple[str, str],
+        order_by: str,
+        sort_order: str,
+    ) -> None:
+        """Test artifacts endpoint sorts correctly by ID."""
+        source_id, model_name = model_with_artifacts
+
+        response = api_client.get_artifacts(
+            source_id=source_id,
+            model_name=model_name,
+            order_by=order_by,
+            sort_order=sort_order,
+        )
+
+        items = response["items"]
+        assert len(items) >= 2, "Need at least 2 artifacts to validate sorting"
+        assert validate_items_sorted_correctly(items, order_by, sort_order)
+
+    @pytest.mark.parametrize(
+        "order_by,sort_order",
+        [
+            pytest.param("accuracy.double_value", "ASC", id="accuracy_asc"),
+            pytest.param("accuracy.double_value", "DESC", id="accuracy_desc"),
+        ],
+    )
+    def test_artifacts_sorting_by_custom_property(
+        self,
+        api_client: CatalogAPIClient,
+        model_with_artifacts: tuple[str, str],
+        order_by: str,
+        sort_order: str,
+    ) -> None:
+        """Test artifacts endpoint sorts correctly by custom property values."""
+        source_id, model_name = model_with_artifacts
+
+        response = api_client.get_artifacts(
+            source_id=source_id,
+            model_name=model_name,
+            order_by=order_by,
+            sort_order=sort_order,
+        )
+
+        items = response["items"]
+        assert len(items) >= 2, "Need at least 2 artifacts to validate sorting"
+        assert validate_custom_property_sorted(items, order_by, sort_order)
+
+    def test_sorting_by_non_existing_property_falls_back_to_id(
+        self,
+        api_client: CatalogAPIClient,
+        model_with_artifacts: tuple[str, str],
+    ) -> None:
+        """Test that sorting by a non-existing property falls back to ID ASC."""
+        source_id, model_name = model_with_artifacts
+
+        response = api_client.get_artifacts(
+            source_id=source_id,
+            model_name=model_name,
+            order_by="non_existing_property.double_value",
+            sort_order="DESC",
+        )
+
+        items = response["items"]
+        assert len(items) >= 2, "Need at least 2 artifacts to validate sorting"
+
+        # No artifacts have this property, so all should fall back to ID ASC
+        assert validate_items_sorted_correctly(items, "ID", "ASC")
