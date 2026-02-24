@@ -132,11 +132,12 @@ func (m *ModelRegistryRepository) createModelTransferJobResources(
 	}
 
 	if createdJob == nil {
-		logger.Error("created job is nil - unexpected K8s client behavio")
-		return &models.ModelTransferJob{
-			Id:   jobID,
-			Name: jobName,
-		}, nil
+		logger.Error("created job is nil - unexpected K8s client behavior")
+		cleanupCreatedResources(ctx, client, namespace, configMapName, sourceSecretName, destSecretName)
+		if err := client.DeleteModelTransferJob(ctx, namespace, jobName); err != nil && !apierrors.IsNotFound(err) {
+			logger.Warn("failed to cleanup job after nil response", "jobName", jobName, "error", err)
+		}
+		return nil, fmt.Errorf("unexpected Kubernetes API behavior: created job object was nil")
 	}
 
 	ownerRef := metav1.OwnerReference{

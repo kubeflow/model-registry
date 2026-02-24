@@ -403,8 +403,6 @@ curl -i -H "kubeflow-userid: user@example.com" -X DELETE "http://localhost:4000/
 curl -i -H "Authorization: Bearer $TOKEN" -X DELETE "http://localhost:4000/api/v1/settings/model_catalog/source_configs/test-catalog?namespace=kubeflow"
 ```
 
-//model-transfer-job
-
 ```
 # GET api/v1/model_registry/model-registry/model_transfer_jobs
 curl -i -H "kubeflow-userid: user@example.com" "http://localhost:4000/api/v1/model_registry/model-registry/model_transfer_jobs?namespace=kubeflow"
