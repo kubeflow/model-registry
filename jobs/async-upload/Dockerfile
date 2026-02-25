@@ -2,7 +2,9 @@
 #  Asynchronous Model-Sync Job image for Kubeflow Model Registry (https://github.com/kubeflow/model-registry/issues/1108)
 ###############################################################################
 
-FROM registry.redhat.io/rhtas/cosign-rhel9:1.2.2 AS cosign
+# Red Hat SecureSign cosign binary (multi-platform manifest: amd64, arm64, ppc64le, s390x)
+FROM quay.io/securesign/cli-cosign@sha256:be5e46d0bdfa19585df2a3168ba2ce5690449fb35d6ffb8f0f0b1c8e5acb8404 AS cosign
+
 FROM registry.access.redhat.com/ubi9/python-312-minimal AS base
 
 USER 0
@@ -12,7 +14,7 @@ RUN microdnf update -y && \
     microdnf install -y skopeo && \
     microdnf clean all
 
-# Copy Red Hat cosign binary from cosign image
+# Copy Red Hat cosign binary (Docker automatically selects correct platform from manifest)
 COPY --from=cosign /usr/local/bin/cosign /usr/local/bin/cosign
 
 # security/env hardening
