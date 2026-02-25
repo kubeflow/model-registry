@@ -18,7 +18,12 @@ import {
   ModelRegistryCustomPropertyInt,
   ModelRegistryCustomPropertyDouble,
 } from './types';
-import { McpServer, McpServerList, McpToolList } from './mcpServerCatalogTypes';
+import {
+  McpServer,
+  McpServerList,
+  McpServerListParams,
+  McpToolList,
+} from './mcpServerCatalogTypes';
 
 export type CatalogSource = {
   id: string;
@@ -53,6 +58,12 @@ export type ModelCatalogListParams = {
   size: number;
   pageSize: number;
   nextPageToken: string;
+};
+
+export type CatalogAssetType = 'models' | 'mcp_servers';
+
+export type CatalogSourceListParams = {
+  assetType?: CatalogAssetType;
 };
 
 export type CatalogModelList = ModelCatalogListParams & { items: CatalogModel[] };
@@ -192,7 +203,10 @@ export type GetCatalogModelsBySource = (
   },
 ) => Promise<CatalogModelList>;
 
-export type GetListSources = (opts: APIOptions) => Promise<CatalogSourceList>;
+export type GetListSources = (
+  opts: APIOptions,
+  listParams?: CatalogSourceListParams,
+) => Promise<CatalogSourceList>;
 
 export type GetCatalogModel = (
   opts: APIOptions,
@@ -226,7 +240,10 @@ export type GetCatalogFilterOptionList = (opts: APIOptions) => Promise<CatalogFi
 
 export type GetCatalogLabels = (opts: APIOptions) => Promise<CatalogLabelList>;
 
-export type GetMcpServerList = (opts: APIOptions, sourceLabel?: string) => Promise<McpServerList>;
+export type GetMcpServerList = (
+  opts: APIOptions,
+  listParams?: McpServerListParams,
+) => Promise<McpServerList>;
 
 export type GetMcpServerFilterOptionList = (opts: APIOptions) => Promise<CatalogFilterOptionsList>;
 

@@ -70,7 +70,7 @@ export type McpListParams = {
   nextPageToken: string;
 };
 
-export type McpServerList = McpListParams & { items: McpServer[] };
+export type McpServerList = McpListParams & { items?: McpServer[] };
 
 export type McpToolWithServer = {
   serverId: string;
@@ -78,4 +78,18 @@ export type McpToolWithServer = {
   tool: McpTool;
 };
 
-export type McpToolList = McpListParams & { items: McpToolWithServer[] };
+export type McpToolList = McpListParams & { items?: McpToolWithServer[] };
+
+export type McpServerListParams = {
+  sourceLabel?: string;
+  pageSize?: number | string;
+  nextPageToken?: string;
+  filterQuery?: string;
+  namedQuery?: string;
+  includeTools?: boolean;
+  toolLimit?: number;
+  orderBy?: string;
+  sortOrder?: string;
+  name?: string;
+  q?: string;
+};

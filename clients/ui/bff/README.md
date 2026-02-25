@@ -610,7 +610,7 @@ If you need to enable CORS for any reasons you can add origins to the allow-list
 
 ##### Via the make command
 
-Add the following parameter to your command: `ALLOWED_ORIGINS` this takes a comma separated list of origins to permit serving to, alterantively you can specify the value `*` to allow all origins, **Note this is not recommended in production deployments as it poses a security risk**
+Add the following parameter to your command: `ALLOWED_ORIGINS` this takes a comma separated list of origins to permit serving to, alternatively you can specify the value `*` to allow all origins, **Note this is not recommended in production deployments as it poses a security risk**
 
 Examples:
 

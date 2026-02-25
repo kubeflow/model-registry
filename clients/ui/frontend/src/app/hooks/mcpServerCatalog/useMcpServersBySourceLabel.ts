@@ -1,7 +1,7 @@
-import { McpServer, McpServerList } from '~/app/mcpServerCatalogTypes';
-import { useModelCatalogAPI } from '../modelCatalog/useModelCatalogAPI';
 import React from 'react';
 import { FetchStateCallbackPromise, useFetchState } from 'mod-arch-core';
+import { McpServer, McpServerList, McpServerListParams } from '~/app/mcpServerCatalogTypes';
+import { useModelCatalogAPI } from '~/app/hooks/modelCatalog/useModelCatalogAPI';
 
 type PaginatedMcpServerList = {
   items: McpServer[];
@@ -21,13 +21,49 @@ type McpServers = {
   refresh: () => void;
 };
 
-export const useMcpServersBySourceLabel = (sourceLabel?: string): McpServers => {
+export const useMcpServersBySourceLabel = (
+  sourceLabel?: string,
+  pageSize = 10,
+  searchQuery = '',
+  filterQuery?: string,
+  namedQuery?: string,
+  includeTools?: boolean,
+  toolLimit?: number,
+  sortBy?: string | null,
+  sortOrder?: string,
+): McpServers => {
   const { api, apiAvailable } = useModelCatalogAPI();
 
   const [allItems, setAllItems] = React.useState<McpServer[]>([]);
   const [totalSize, setTotalSize] = React.useState(0);
-  const [nextPageToken, setNextPageToken] = React.useState('');
+  const [nextPageTokenValue, setNextPageTokenValue] = React.useState('');
   const [isLoadingMore, setIsLoadingMore] = React.useState(false);
+
+  const buildMcpServerListParams = React.useCallback(
+    (nextPageToken?: string): McpServerListParams => ({
+      sourceLabel,
+      pageSize: pageSize.toString(),
+      ...(nextPageToken !== undefined && nextPageToken !== '' && { nextPageToken }),
+      q: searchQuery.trim() || undefined,
+      filterQuery,
+      namedQuery,
+      includeTools,
+      toolLimit,
+      orderBy: sortBy ?? undefined,
+      sortOrder,
+    }),
+    [
+      sourceLabel,
+      pageSize,
+      searchQuery,
+      filterQuery,
+      namedQuery,
+      includeTools,
+      toolLimit,
+      sortBy,
+      sortOrder,
+    ],
+  );
 
   const fetchMcpServers = React.useCallback<FetchStateCallbackPromise<McpServerList>>(
     (opts) => {
@@ -35,9 +71,9 @@ export const useMcpServersBySourceLabel = (sourceLabel?: string): McpServers => 
         return Promise.reject(new Error('API not yet available'));
       }
 
-      return api.getMcpServerList(opts, sourceLabel);
+      return api.getMcpServerList(opts, buildMcpServerListParams());
     },
-    [api, apiAvailable, sourceLabel],
+    [api, apiAvailable, buildMcpServerListParams],
   );
 
   const [firstPageData, loaded, error, refetch] = useFetchState(
@@ -47,26 +83,26 @@ export const useMcpServersBySourceLabel = (sourceLabel?: string): McpServers => 
   );
 
   React.useEffect(() => {
-    if (loaded && !error && firstPageData.items.length > 0) {
-      setAllItems(firstPageData.items);
+    if (loaded && !error) {
+      setAllItems(firstPageData.items ?? []);
       setTotalSize(firstPageData.size);
-      setNextPageToken(firstPageData.nextPageToken);
+      setNextPageTokenValue(firstPageData.nextPageToken);
     }
   }, [firstPageData, loaded, error]);
 
   const loadMore = React.useCallback(async () => {
-    if (!nextPageToken || isLoadingMore || !apiAvailable) {
+    if (!nextPageTokenValue || isLoadingMore || !apiAvailable) {
       return;
     }
 
     setIsLoadingMore(true);
 
     try {
-      const response = await api.getMcpServerList({}, sourceLabel);
+      const response = await api.getMcpServerList({}, buildMcpServerListParams(nextPageTokenValue));
 
-      setAllItems((prev) => [...prev, ...response.items]);
+      setAllItems((prev) => [...prev, ...(response.items ?? [])]);
       setTotalSize(response.size);
-      setNextPageToken(response.nextPageToken);
+      setNextPageTokenValue(response.nextPageToken);
     } catch (err) {
       throw new Error(
         `Failed to load more servers: ${err instanceof Error ? err.message : String(err)}`,
@@ -74,19 +110,29 @@ export const useMcpServersBySourceLabel = (sourceLabel?: string): McpServers => 
     } finally {
       setIsLoadingMore(false);
     }
-  }, [api, apiAvailable, nextPageToken, isLoadingMore, sourceLabel]);
+  }, [api, apiAvailable, buildMcpServerListParams, isLoadingMore, nextPageTokenValue]);
 
   React.useEffect(() => {
     setAllItems([]);
     setTotalSize(0);
-    setNextPageToken('');
+    setNextPageTokenValue('');
     setIsLoadingMore(false);
-  }, [sourceLabel]);
+  }, [
+    sourceLabel,
+    pageSize,
+    searchQuery,
+    filterQuery,
+    namedQuery,
+    includeTools,
+    toolLimit,
+    sortBy,
+    sortOrder,
+  ]);
 
   const refresh = React.useCallback(() => {
     setAllItems([]);
     setTotalSize(0);
-    setNextPageToken('');
+    setNextPageTokenValue('');
     setIsLoadingMore(false);
     refetch();
   }, [refetch]);
@@ -95,10 +141,10 @@ export const useMcpServersBySourceLabel = (sourceLabel?: string): McpServers => 
     items: allItems,
     size: totalSize,
     pageSize: firstPageData.pageSize,
-    nextPageToken,
+    nextPageToken: nextPageTokenValue,
     loadMore,
     isLoadingMore,
-    hasMore: Boolean(nextPageToken),
+    hasMore: Boolean(nextPageTokenValue),
     refresh,
   };
 

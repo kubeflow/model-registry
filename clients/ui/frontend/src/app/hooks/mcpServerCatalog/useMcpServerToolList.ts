@@ -1,8 +1,7 @@
-import { McpToolList } from '~/app/mcpServerCatalogTypes';
-import { ModelCatalogAPIState } from '../modelCatalog/useModelCatalogAPIState';
 import { FetchState, FetchStateCallbackPromise, NotReadyError, useFetchState } from 'mod-arch-core';
 import React from 'react';
-import { useModelCatalogAPI } from '../modelCatalog/useModelCatalogAPI';
+import { McpToolList } from '~/app/mcpServerCatalogTypes';
+import { useModelCatalogAPI } from '~/app/hooks/modelCatalog/useModelCatalogAPI';
 
 export const useMcpServerToolList = (serverId: string): FetchState<McpToolList> => {
   const { api, apiAvailable } = useModelCatalogAPI();

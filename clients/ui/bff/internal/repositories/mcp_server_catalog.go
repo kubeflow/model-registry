@@ -10,7 +10,7 @@ import (
 )
 
 const mcpServerPath = "/mcp_servers"
-const mcpfilterOptionPath = "/mcp_servers/filter_options"
+const mcpFilterOptionPath = "/mcp_servers/filter_options"
 
 type McpServerCatalogInterface interface {
 	GetAllMcpServers(client httpclient.HTTPClientInterface, pageValues url.Values) (*models.McpServerList, error)
@@ -41,10 +41,10 @@ func (a *CatalogSources) GetAllMcpServers(client httpclient.HTTPClientInterface,
 }
 
 func (a *CatalogSources) GetMcpServersFilter(client httpclient.HTTPClientInterface) (*models.FilterOptionsList, error) {
-	responseData, err := client.GET(mcpfilterOptionPath)
+	responseData, err := client.GET(mcpFilterOptionPath)
 
 	if err != nil {
-		return nil, fmt.Errorf("error fetching mcpfilterOptionPath: %w", err)
+		return nil, fmt.Errorf("error fetching mcpFilterOptionPath: %w", err)
 	}
 
 	var filters models.FilterOptionsList

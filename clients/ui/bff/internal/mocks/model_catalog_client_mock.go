@@ -175,7 +175,14 @@ func (m *ModelCatalogClientMock) GetCatalogSourceModel(client httpclient.HTTPCli
 }
 
 func (m *ModelCatalogClientMock) GetAllCatalogSources(client httpclient.HTTPClientInterface, pageValues url.Values) (*models.CatalogSourceList, error) {
-	allMockSources := GetCatalogSourceListMock()
+	var allMockSources models.CatalogSourceList
+	assetType := pageValues.Get("assetType")
+
+	if assetType == "mcp_servers" {
+		allMockSources = GetMcpServerCatalogSourceListMock()
+	} else {
+		allMockSources = GetCatalogSourceListMock()
+	}
 	var filteredMockSources []models.CatalogSource
 
 	name := pageValues.Get("name")

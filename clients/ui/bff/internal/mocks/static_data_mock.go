@@ -2658,3 +2658,45 @@ func GetMcpFilterOptionsListMock() models.FilterOptionsList {
 		NamedQueries: &mcpNamedQueries,
 	}
 }
+
+func GetMcpServerCatalogSourceMocks() []models.CatalogSource {
+	enabled := true
+	disabledBool := false
+
+	return []models.CatalogSource{
+		{
+			Id:      "sample-mcp-server-source",
+			Name:    "Sample mocked mcp source",
+			Enabled: &enabled,
+			Labels:  []string{"Sample category 1", "Sample category 2", "Sample category"},
+		},
+		{
+			Id:      "admin-mcp-sever-1",
+			Name:    "Admin mcp server 1",
+			Enabled: &enabled,
+			Labels:  []string{},
+		},
+		{
+			Id:      "sample-mcp-2",
+			Name:    "Admin mcp server 2",
+			Enabled: &disabledBool,
+			Labels:  []string{"Sample category 1"},
+		},
+		{
+			Id:     "sample-mcp-3",
+			Name:   "Dora source",
+			Labels: []string{},
+		},
+	}
+}
+
+func GetMcpServerCatalogSourceListMock() models.CatalogSourceList {
+	allSources := GetMcpServerCatalogSourceMocks()
+
+	return models.CatalogSourceList{
+		Items:         allSources,
+		Size:          int32(len(allSources)),
+		PageSize:      int32(10),
+		NextPageToken: "",
+	}
+}

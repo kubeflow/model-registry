@@ -768,6 +768,7 @@ paths:
       parameters:
         - $ref: "#/components/parameters/kubeflowUserId"
         - $ref: "#/components/parameters/name"
+        - $ref: "#/components/parameters/assetType"
         - $ref: "#/components/parameters/pageSize"
         - $ref: "#/components/parameters/orderBy"
         - $ref: "#/components/parameters/sortOrder"
@@ -2427,6 +2428,15 @@ components:
               items:
                 $ref: "#/components/schemas/CatalogSource"
         - $ref: "#/components/schemas/BaseResourceList"
+    assetType:
+      type: string
+      enum:
+        - models
+        - mcp_servers
+      default: models
+      description: |-
+        The type of assets a source manages. Filters sources by asset type.
+        "models" for model catalog sources, "mcp_servers" for MCP server catalog sources.
     FieldFilter:
       type: object
       required:
@@ -3441,6 +3451,13 @@ components:
       description: Name of entity to search.
       schema:
         type: string
+      in: query
+      required: false
+    assetType:
+      name: assetType
+      description: Filter sources by asset type (models or mcp_servers).
+      schema:
+        $ref: "#/components/schemas/assetType"
       in: query
       required: false
     externalId:
