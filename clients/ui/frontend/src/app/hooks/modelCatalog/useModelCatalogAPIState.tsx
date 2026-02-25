@@ -1,6 +1,12 @@
 import { APIState, useAPIState } from 'mod-arch-core';
 import React from 'react';
 import {
+  getMcpServerFilterOptionList,
+  getMcpServer,
+  getMcpServerList,
+  getMcpServerToolList,
+} from '~/app/api/mcpServerCatalog/service';
+import {
   getCatalogFilterOptionList,
   getCatalogLabels,
   getCatalogModel,
@@ -26,6 +32,10 @@ const useModelCatalogAPIState = (
       getCatalogFilterOptionList: getCatalogFilterOptionList(path, queryParameters),
       getPerformanceArtifacts: getPerformanceArtifacts(path, queryParameters),
       getCatalogLabels: getCatalogLabels(path, queryParameters),
+      getMcpServerList: getMcpServerList(path, queryParameters),
+      getMcpServerFilterOptionList: getMcpServerFilterOptionList(path, queryParameters),
+      getMcpServer: getMcpServer(path, queryParameters),
+      getMcpServerToolList: getMcpServerToolList(path, queryParameters),
     }),
     [queryParameters],
   );
