@@ -139,7 +139,11 @@ export const registerVersion = async (
   return { data: { modelVersion, modelArtifact }, errors };
 };
 
-const isSubmitDisabledForCommonFields = (formData: RegistrationCommonFormData): boolean => {
+const isSubmitDisabledForCommonFields = (
+  formData: RegistrationCommonFormData,
+  namespaceHasAccess?: boolean,
+  isNamespaceAccessLoading?: boolean,
+): boolean => {
   const {
     versionName,
     modelLocationType,
@@ -175,8 +179,13 @@ const isSubmitDisabledForCommonFields = (formData: RegistrationCommonFormData): 
     ) {
       return true;
     }
+    if (namespace && isNamespaceAccessLoading) {
+      return true;
+    }
+    if (namespace && namespaceHasAccess === false) {
+      return true;
+    }
   }
-
   return (
     !versionName ||
     (modelLocationType === ModelLocationType.URI && !modelLocationURI) ||
@@ -189,32 +198,40 @@ const isSubmitDisabledForCommonFields = (formData: RegistrationCommonFormData): 
 export const isRegisterModelSubmitDisabled = (
   formData: RegisterModelFormData,
   registeredModels: RegisteredModelList,
+  namespaceHasAccess?: boolean,
+  isNamespaceAccessLoading?: boolean,
 ): boolean =>
   !formData.modelName ||
-  isSubmitDisabledForCommonFields(formData) ||
+  isSubmitDisabledForCommonFields(formData, namespaceHasAccess, isNamespaceAccessLoading) ||
   !isNameValid(formData.modelName) ||
   isModelNameExisting(formData.modelName, registeredModels);
 
-export const isRegisterVersionSubmitDisabled = (formData: RegisterVersionFormData): boolean =>
-  !formData.registeredModelId || isSubmitDisabledForCommonFields(formData);
+export const isRegisterVersionSubmitDisabled = (
+  formData: RegisterVersionFormData,
+  namespaceHasAccess?: boolean,
+  isNamespaceAccessLoading?: boolean,
+): boolean =>
+  !formData.registeredModelId ||
+  isSubmitDisabledForCommonFields(formData, namespaceHasAccess, isNamespaceAccessLoading);
 
 export const isRegisterCatalogModelSubmitDisabled = (
   formData: RegisterCatalogModelFormData,
   registeredModels: RegisteredModelList,
-): boolean => isRegisterModelSubmitDisabled(formData, registeredModels) || !formData.modelRegistry;
+  namespaceHasAccess?: boolean,
+  isNamespaceAccessLoading?: boolean,
+): boolean =>
+  isRegisterModelSubmitDisabled(
+    formData,
+    registeredModels,
+    namespaceHasAccess,
+    isNamespaceAccessLoading,
+  ) || !formData.modelRegistry;
 
 export const isNameValid = (name: string): boolean => name.length <= MR_CHARACTER_LIMIT;
 
 export const isModelNameExisting = (name: string, registeredModels: RegisteredModelList): boolean =>
   registeredModels.items.some((model) => model.name === name);
 
-// Helper function to build ModelTransferJob payload from form data
-// TODO: When ModelTransferJob API is extended, add support for:
-//   - Credentials: formData.modelLocationS3AccessKeyId, formData.modelLocationS3SecretAccessKey
-//                  formData.destinationOciUsername, formData.destinationOciPassword, formData.destinationOciEmail
-//   - Model metadata: formData.modelDescription (for CREATE_MODEL), formData.versionDescription
-//   - Model format: formData.sourceModelFormat, formData.sourceModelFormatVersion
-//   - Custom properties: formData.modelCustomProperties, formData.versionCustomProperties
 export const buildModelTransferJobPayload = (
   formData: RegisterModelFormData | RegisterVersionFormData,
   author: string,
@@ -231,6 +248,8 @@ export const buildModelTransferJobPayload = (
           key: formData.modelLocationPath,
           region: formData.modelLocationRegion || undefined,
           endpoint: formData.modelLocationEndpoint || undefined,
+          awsAccessKeyId: formData.modelLocationS3AccessKeyId,
+          awsSecretAccessKey: formData.modelLocationS3SecretAccessKey,
         }
       : {
           type: ModelTransferJobSourceType.URI,
@@ -242,11 +261,19 @@ export const buildModelTransferJobPayload = (
     type: ModelTransferJobDestinationType.OCI,
     uri: formData.destinationOciUri,
     registry: formData.destinationOciRegistry || undefined,
+    username: formData.destinationOciUsername,
+    password: formData.destinationOciPassword,
+    email: formData.destinationOciEmail || undefined,
   };
 
   // RegisterModelFormData has modelName (user-provided for new model).
   // RegisterVersionFormData omits it since the model already exists; we use registeredModelName instead.
   const modelName = 'modelName' in formData ? formData.modelName : registeredModelName;
+
+  const description =
+    uploadIntent === ModelTransferJobUploadIntent.CREATE_MODEL && 'modelDescription' in formData
+      ? formData.modelDescription
+      : formData.versionDescription;
 
   return {
     name: formData.jobResourceName,
@@ -255,7 +282,13 @@ export const buildModelTransferJobPayload = (
     uploadIntent,
     registeredModelId,
     registeredModelName: modelName,
+    description: description || undefined,
+    versionDescription: formData.versionDescription || undefined,
     modelVersionName: formData.versionName,
+    sourceModelFormat: formData.sourceModelFormat || undefined,
+    sourceModelFormatVersion: formData.sourceModelFormatVersion || undefined,
+    modelCustomProperties: formData.modelCustomProperties ?? undefined,
+    versionCustomProperties: formData.versionCustomProperties ?? undefined,
     namespace: formData.namespace,
     author,
     status: ModelTransferJobStatus.PENDING,

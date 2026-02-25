@@ -371,7 +371,7 @@ func (m *ModelCatalogServiceAPIService) GetModel(ctx context.Context, sourceID, 
 	return Response(http.StatusOK, model), nil
 }
 
-func (m *ModelCatalogServiceAPIService) FindSources(ctx context.Context, name string, strPageSize string, orderBy model.OrderByField, sortOrder model.SortOrder, nextPageToken string) (ImplResponse, error) {
+func (m *ModelCatalogServiceAPIService) FindSources(ctx context.Context, name string, assetType model.CatalogAssetType, strPageSize string, orderBy model.OrderByField, sortOrder model.SortOrder, nextPageToken string) (ImplResponse, error) {
 	sources := m.sources.All()
 	if len(sources) > math.MaxInt32 {
 		err := errors.New("too many registered models")
@@ -396,10 +396,18 @@ func (m *ModelCatalogServiceAPIService) FindSources(ctx context.Context, name st
 
 	items := make([]model.CatalogSource, 0, len(sources))
 
+	if assetType == "" {
+		assetType = model.CATALOGASSETTYPE_MODELS
+	}
+
 	name = strings.ToLower(name)
 
 	for _, v := range sources {
 		if !strings.Contains(strings.ToLower(v.Name), name) {
+			continue
+		}
+
+		if v.HasAssetType() && v.GetAssetType() != assetType {
 			continue
 		}
 

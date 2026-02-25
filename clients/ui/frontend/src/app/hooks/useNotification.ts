@@ -1,4 +1,4 @@
-import React, { useContext } from 'react';
+import React, { useContext, useRef } from 'react';
 import { AlertVariant } from '@patternfly/react-core';
 import { NotificationContext, NotificationActionTypes } from 'mod-arch-core';
 
@@ -22,74 +22,45 @@ interface NotificationFunc extends NotificationTypeFunc {
 }
 
 export const useNotification = (): NotificationFunc => {
-  const { notificationCount, updateNotificationCount, dispatch } = useContext(NotificationContext);
+  const { updateNotificationCount, dispatch } = useContext(NotificationContext);
+  const nextIdRef = useRef(0);
 
-  const success: NotificationProps = React.useCallback(
-    (title, message?) => {
-      updateNotificationCount(notificationCount + 1);
+  const addNotification = React.useCallback(
+    (status: AlertVariant, title: string, message?: React.ReactNode) => {
+      const id = nextIdRef.current++;
+      updateNotificationCount(id);
       dispatch({
         type: NotificationActionTypes.ADD_NOTIFICATION,
         payload: {
-          status: AlertVariant.success,
+          status,
           title,
           timestamp: new Date(),
           message,
-          id: notificationCount,
+          id,
         },
       });
     },
-    [dispatch, notificationCount, updateNotificationCount],
+    [dispatch, updateNotificationCount],
+  );
+
+  const success: NotificationProps = React.useCallback(
+    (title, message?) => addNotification(AlertVariant.success, title, message),
+    [addNotification],
   );
 
   const warning: NotificationProps = React.useCallback(
-    (title, message?) => {
-      updateNotificationCount(notificationCount + 1);
-      dispatch({
-        type: NotificationActionTypes.ADD_NOTIFICATION,
-        payload: {
-          status: AlertVariant.warning,
-          title,
-          timestamp: new Date(),
-          message,
-          id: notificationCount,
-        },
-      });
-    },
-    [dispatch, notificationCount, updateNotificationCount],
+    (title, message?) => addNotification(AlertVariant.warning, title, message),
+    [addNotification],
   );
 
   const error: NotificationProps = React.useCallback(
-    (title, message?) => {
-      updateNotificationCount(notificationCount + 1);
-      dispatch({
-        type: NotificationActionTypes.ADD_NOTIFICATION,
-        payload: {
-          status: AlertVariant.danger,
-          title,
-          timestamp: new Date(),
-          message,
-          id: notificationCount,
-        },
-      });
-    },
-    [dispatch, notificationCount, updateNotificationCount],
+    (title, message?) => addNotification(AlertVariant.danger, title, message),
+    [addNotification],
   );
 
   const info: NotificationProps = React.useCallback(
-    (title, message?) => {
-      updateNotificationCount(notificationCount + 1);
-      dispatch({
-        type: NotificationActionTypes.ADD_NOTIFICATION,
-        payload: {
-          status: AlertVariant.info,
-          title,
-          timestamp: new Date(),
-          message,
-          id: notificationCount,
-        },
-      });
-    },
-    [dispatch, notificationCount, updateNotificationCount],
+    (title, message?) => addNotification(AlertVariant.info, title, message),
+    [addNotification],
   );
 
   const remove: NotificationRemoveProps = React.useCallback(

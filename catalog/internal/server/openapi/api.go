@@ -63,7 +63,7 @@ type ModelCatalogServiceAPIServicer interface {
 	FindLabels(context.Context, string, string, model.SortOrder, string) (ImplResponse, error)
 	FindModels(context.Context, bool, int32, string, string, string, string, []string, string, []string, string, string, model.OrderByField, model.SortOrder, string) (ImplResponse, error)
 	FindModelsFilterOptions(context.Context) (ImplResponse, error)
-	FindSources(context.Context, string, string, model.OrderByField, model.SortOrder, string) (ImplResponse, error)
+	FindSources(context.Context, string, model.CatalogAssetType, string, model.OrderByField, model.SortOrder, string) (ImplResponse, error)
 	PreviewCatalogSource(context.Context, *os.File, string, string, string, *os.File) (ImplResponse, error)
 	GetModel(context.Context, string, string) (ImplResponse, error)
 	GetAllModelArtifacts(context.Context, string, string, []model.ArtifactTypeQueryParam, []model.ArtifactTypeQueryParam, string, string, string, model.SortOrder, string) (ImplResponse, error)

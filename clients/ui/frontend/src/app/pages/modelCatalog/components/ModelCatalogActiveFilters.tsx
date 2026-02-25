@@ -140,18 +140,18 @@ const ModelCatalogActiveFilters: React.FC<ModelCatalogActiveFiltersProps> = ({ f
       {filtersToShow.map((filterKey) => {
         const filterValue = filterData[filterKey];
 
-        if (!filterValue) {
-          return null;
-        }
-
-        if (Array.isArray(filterValue) && filterValue.length === 0) {
-          return null;
-        }
-
+        // Determine whether this filter has visible chips.
+        // TODO: PF's ToolbarFilter lacks componentWillUnmount cleanup for its internal
+        // filter count (https://github.com/patternfly/patternfly-react/issues/12247).
+        // Once fixed upstream, we can return null for empty filters instead of keeping
+        // every ToolbarFilter mounted with labels={[]}.
+        const hasValue = !!filterValue && !(Array.isArray(filterValue) && filterValue.length === 0);
         const defaultValue = getPerformanceFilterDefaultValue(filterKey);
-        if (defaultValue !== undefined && !isValueDifferentFromDefault(filterValue, defaultValue)) {
-          return null;
-        }
+        const isAtDefault =
+          hasValue &&
+          defaultValue !== undefined &&
+          !isValueDifferentFromDefault(filterValue, defaultValue);
+        const isVisible = hasValue && !isAtDefault;
 
         // Performance filter chips use data-has-default to trigger undo icon styling via CSS
         const filterHasDefault =
@@ -161,37 +161,41 @@ const ModelCatalogActiveFilters: React.FC<ModelCatalogActiveFiltersProps> = ({ f
 
         // Latency: 3 separate chips in a group
         if (isLatencyFilterKey(filterKey)) {
-          const latencyFilterKey: LatencyFilterKey = filterKey;
-          const parsed = parseLatencyFilterKey(latencyFilterKey);
-          const formattedValue =
-            typeof filterValue === 'number' ? formatLatency(filterValue) : `${filterValue}ms`;
+          let latencyLabels: ToolbarLabel[] = [];
 
-          const latencyLabels: ToolbarLabel[] = [
-            {
-              key: `${filterKey}-metric`,
-              node: (
-                <span data-testid={`${filterKey}-filter-chip-metric`} data-has-default="true">
-                  {MODEL_CATALOG_FILTER_CHIP_PREFIXES.LATENCY_METRIC} {parsed.metric}
-                </span>
-              ),
-            },
-            {
-              key: `${filterKey}-percentile`,
-              node: (
-                <span data-testid={`${filterKey}-filter-chip-percentile`} data-has-default="true">
-                  {MODEL_CATALOG_FILTER_CHIP_PREFIXES.LATENCY_PERCENTILE} {parsed.percentile}
-                </span>
-              ),
-            },
-            {
-              key: `${filterKey}-threshold`,
-              node: (
-                <span data-testid={`${filterKey}-filter-chip-threshold`} data-has-default="true">
-                  {MODEL_CATALOG_FILTER_CHIP_PREFIXES.LATENCY_THRESHOLD} {formattedValue}
-                </span>
-              ),
-            },
-          ];
+          if (isVisible) {
+            const latencyFilterKey: LatencyFilterKey = filterKey;
+            const parsed = parseLatencyFilterKey(latencyFilterKey);
+            const formattedValue =
+              typeof filterValue === 'number' ? formatLatency(filterValue) : `${filterValue}ms`;
+
+            latencyLabels = [
+              {
+                key: `${filterKey}-metric`,
+                node: (
+                  <span data-testid={`${filterKey}-filter-chip-metric`} data-has-default="true">
+                    {MODEL_CATALOG_FILTER_CHIP_PREFIXES.LATENCY_METRIC} {parsed.metric}
+                  </span>
+                ),
+              },
+              {
+                key: `${filterKey}-percentile`,
+                node: (
+                  <span data-testid={`${filterKey}-filter-chip-percentile`} data-has-default="true">
+                    {MODEL_CATALOG_FILTER_CHIP_PREFIXES.LATENCY_PERCENTILE} {parsed.percentile}
+                  </span>
+                ),
+              },
+              {
+                key: `${filterKey}-threshold`,
+                node: (
+                  <span data-testid={`${filterKey}-filter-chip-threshold`} data-has-default="true">
+                    {MODEL_CATALOG_FILTER_CHIP_PREFIXES.LATENCY_THRESHOLD} {formattedValue}
+                  </span>
+                ),
+              },
+            ];
+          }
 
           return (
             <ToolbarFilter
@@ -217,36 +221,37 @@ const ModelCatalogActiveFilters: React.FC<ModelCatalogActiveFiltersProps> = ({ f
         }
 
         // All other filters
-        const filterValues = Array.isArray(filterValue) ? filterValue : [filterValue];
-
-        // Single-value performance filters (Workload Type, Max RPS) use "single" to show
-        // the undo icon on the chip's own close button (inside the chip).
-        // Multi-chip groups (Latency) use "group" to show undo on the group close button.
         const isSingleValuePerformanceFilter =
           filterKey === ModelCatalogStringFilterKey.USE_CASE ||
           filterKey === ModelCatalogNumberFilterKey.MAX_RPS;
 
-        const hasDefaultAttr = filterHasDefault
-          ? isSingleValuePerformanceFilter
-            ? 'single'
-            : 'group'
-          : undefined;
+        let labels: ToolbarLabel[] = [];
 
-        const labels: ToolbarLabel[] = filterValues.map((value) => {
-          const valueStr = String(value);
-          const labelText = getFilterLabel(filterKey, value);
-          return {
-            key: valueStr,
-            node: (
-              <span
-                data-testid={`${filterKey}-filter-chip-${valueStr}`}
-                {...(hasDefaultAttr && { 'data-has-default': hasDefaultAttr })}
-              >
-                {labelText}
-              </span>
-            ),
-          };
-        });
+        if (isVisible) {
+          const filterValues = Array.isArray(filterValue) ? filterValue : [filterValue];
+
+          const hasDefaultAttr = filterHasDefault
+            ? isSingleValuePerformanceFilter
+              ? 'single'
+              : 'group'
+            : undefined;
+
+          labels = filterValues.map((value) => {
+            const valueStr = String(value);
+            const labelText = getFilterLabel(filterKey, value);
+            return {
+              key: valueStr,
+              node: (
+                <span
+                  data-testid={`${filterKey}-filter-chip-${valueStr}`}
+                  {...(hasDefaultAttr && { 'data-has-default': hasDefaultAttr })}
+                >
+                  {labelText}
+                </span>
+              ),
+            };
+          });
+        }
 
         // Empty name removes the category box/border. PF's LabelGroup only applies
         // the category modifier class when categoryName is truthy.
@@ -257,8 +262,6 @@ const ModelCatalogActiveFilters: React.FC<ModelCatalogActiveFiltersProps> = ({ f
             : MODEL_CATALOG_FILTER_CATEGORY_NAMES[filterKey],
         };
 
-        // Single-value performance filters: use deleteLabel only (undo icon on chip itself).
-        // Multi-chip/basic filters: use both deleteLabel and deleteLabelGroup.
         return (
           <ToolbarFilter
             key={filterKey}
