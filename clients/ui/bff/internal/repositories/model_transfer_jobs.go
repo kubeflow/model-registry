@@ -54,9 +54,15 @@ func (m *ModelRegistryRepository) GetAllModelTransferJobs(ctx context.Context, c
 			logger.Warn("failed to fetch pods for transfer jobs", "error", err)
 		} else if len(podList.Items) > 0 {
 			type terminationResult struct {
-				RegisteredModel *struct{ ID string `json:"id"` } `json:"RegisteredModel"`
-				ModelVersion    *struct{ ID string `json:"id"` } `json:"ModelVersion"`
-				ModelArtifact   *struct{ ID string `json:"id"` } `json:"ModelArtifact"`
+				RegisteredModel *struct {
+					ID string `json:"id"`
+				} `json:"RegisteredModel"`
+				ModelVersion *struct {
+					ID string `json:"id"`
+				} `json:"ModelVersion"`
+				ModelArtifact *struct {
+					ID string `json:"id"`
+				} `json:"ModelArtifact"`
 			}
 
 			podNamesByJob := make(map[string][]string)
