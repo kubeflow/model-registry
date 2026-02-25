@@ -177,6 +177,42 @@ func TestIsChildEntity(t *testing.T) {
 	assert.False(t, reg.IsChildEntity("UnknownEntity"))
 }
 
+func TestRegisterOverwrite(t *testing.T) {
+	reg := NewCatalogEntityRegistry()
+	reg.Register("Entity", EntityTypeDefinition{
+		MLMDEntityType: filter.EntityTypeContext,
+		Properties: map[string]filter.PropertyDefinition{
+			"old": {Location: filter.PropertyTable, ValueType: filter.StringValueType, Column: "old"},
+		},
+	})
+	reg.Register("Entity", EntityTypeDefinition{
+		MLMDEntityType: filter.EntityTypeArtifact,
+		Properties: map[string]filter.PropertyDefinition{
+			"new": {Location: filter.PropertyTable, ValueType: filter.StringValueType, Column: "new"},
+		},
+	})
+
+	// MLMD type should be overwritten
+	assert.Equal(t, filter.EntityTypeArtifact, reg.GetMLMDEntityType("Entity"))
+
+	// "old" property should no longer be found (custom fallback)
+	oldDef := reg.GetPropertyDefinitionForRestEntity("Entity", "old")
+	assert.Equal(t, filter.Custom, oldDef.Location)
+
+	// "new" property should be present
+	newDef := reg.GetPropertyDefinitionForRestEntity("Entity", "new")
+	assert.Equal(t, filter.PropertyTable, newDef.Location)
+	assert.Equal(t, "new", newDef.Column)
+}
+
+func TestRelatedEntityPrefixExactMatch(t *testing.T) {
+	reg := buildTestRegistry()
+
+	// "artifacts." with nothing after should fall through to custom, not produce an empty RelatedProperty
+	def := reg.GetPropertyDefinitionForRestEntity("TestContext", "artifacts.")
+	assert.Equal(t, filter.Custom, def.Location, "bare prefix should fall through to custom fallback")
+}
+
 func TestRegistryImplementsInterface(t *testing.T) {
 	// Compile-time check that CatalogEntityRegistry implements EntityMappingFunctions.
 	var _ filter.EntityMappingFunctions = (*CatalogEntityRegistry)(nil)

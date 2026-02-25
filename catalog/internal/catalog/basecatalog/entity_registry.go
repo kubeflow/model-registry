@@ -83,7 +83,7 @@ func (r *CatalogEntityRegistry) GetPropertyDefinitionForRestEntity(restEntityTyp
 
 	// 2. Related entity prefix
 	if def.RelatedEntityPrefix != "" {
-		if relatedPath, found := strings.CutPrefix(propertyName, def.RelatedEntityPrefix); found {
+		if relatedPath, found := strings.CutPrefix(propertyName, def.RelatedEntityPrefix); found && relatedPath != "" {
 			joinTable := def.RelatedEntityJoinTable
 			if joinTable == "" {
 				joinTable = "Attribution"

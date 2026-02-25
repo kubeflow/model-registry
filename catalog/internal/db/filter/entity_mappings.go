@@ -1,6 +1,8 @@
 package filter
 
 import (
+	"sync"
+
 	"github.com/kubeflow/model-registry/catalog/internal/catalog/basecatalog"
 	"github.com/kubeflow/model-registry/internal/db/filter"
 )
@@ -15,13 +17,21 @@ const (
 	RestEntityMCPServerTool   CatalogRestEntityType = "MCPServerTool"
 )
 
+var (
+	defaultReg     *basecatalog.CatalogEntityRegistry
+	defaultRegOnce sync.Once
+)
+
 // NewCatalogEntityMappings creates a new instance of catalog entity mappings
 func NewCatalogEntityMappings() filter.EntityMappingFunctions {
-	return defaultRegistry()
+	defaultRegOnce.Do(func() {
+		defaultReg = buildDefaultRegistry()
+	})
+	return defaultReg
 }
 
-// defaultRegistry builds the catalog entity registry with all known entity types.
-func defaultRegistry() *basecatalog.CatalogEntityRegistry {
+// buildDefaultRegistry builds the catalog entity registry with all known entity types.
+func buildDefaultRegistry() *basecatalog.CatalogEntityRegistry {
 	reg := basecatalog.NewCatalogEntityRegistry()
 
 	reg.Register(filter.RestEntityType(RestEntityCatalogModel), basecatalog.EntityTypeDefinition{
