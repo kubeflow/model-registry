@@ -76,31 +76,31 @@ dev-bff-federated:
 
 .PHONY: docker-build
 docker-build:
-	$(CONTAINER_TOOL) build --build-arg DEPLOYMENT_MODE=kubeflow --build-arg STYLE_THEME=mui-theme -t ${IMG_UI} .
+	$(CONTAINER_TOOL) build -f Dockerfile --build-arg UI_SOURCE_CODE=clients/ui/frontend --build-arg BFF_SOURCE_CODE=clients/ui/bff --build-arg DEPLOYMENT_MODE=kubeflow --build-arg STYLE_THEME=mui-theme -t ${IMG_UI} ../..
 
 .PHONY: docker-build-standalone
 docker-build-standalone:
-	$(CONTAINER_TOOL) build -f Dockerfile.standalone --build-arg DEPLOYMENT_MODE=standalone --build-arg STYLE_THEME=mui-theme -t ${IMG_UI_STANDALONE} .
+	$(CONTAINER_TOOL) build -f Dockerfile.standalone --build-arg UI_SOURCE_CODE=clients/ui/frontend --build-arg BFF_SOURCE_CODE=clients/ui/bff --build-arg DEPLOYMENT_MODE=standalone --build-arg STYLE_THEME=mui-theme -t ${IMG_UI_STANDALONE} ../..
 
 .PHONY: docker-build-standalone-release
 docker-build-standalone-release:
-	$(CONTAINER_TOOL) build -f Dockerfile.standalone --target release --build-arg DEPLOYMENT_MODE=standalone --build-arg STYLE_THEME=mui-theme -t ${IMG_UI_STANDALONE} .
+	$(CONTAINER_TOOL) build -f Dockerfile.standalone --target release --build-arg UI_SOURCE_CODE=clients/ui/frontend --build-arg BFF_SOURCE_CODE=clients/ui/bff --build-arg DEPLOYMENT_MODE=standalone --build-arg STYLE_THEME=mui-theme -t ${IMG_UI_STANDALONE} ../..
 
 .PHONY: docker-build-federated
 docker-build-federated:
-	$(CONTAINER_TOOL) build --build-arg DEPLOYMENT_MODE=federated --build-arg STYLE_THEME=patternfly -t ${IMG_UI_FEDERATED} .
+	$(CONTAINER_TOOL) build -f Dockerfile --build-arg UI_SOURCE_CODE=clients/ui/frontend --build-arg BFF_SOURCE_CODE=clients/ui/bff --build-arg DEPLOYMENT_MODE=federated --build-arg STYLE_THEME=patternfly -t ${IMG_UI_FEDERATED} ../..
 
 .PHONY: docker-buildx
 docker-buildx:
-	docker buildx build --build-arg DEPLOYMENT_MODE=kubeflow --build-arg STYLE_THEME=mui-theme --platform ${PLATFORM} -t ${IMG_UI} --push .
+	docker buildx build -f Dockerfile --build-arg UI_SOURCE_CODE=clients/ui/frontend --build-arg BFF_SOURCE_CODE=clients/ui/bff --build-arg DEPLOYMENT_MODE=kubeflow --build-arg STYLE_THEME=mui-theme --platform ${PLATFORM} -t ${IMG_UI} --push ../..
 
 .PHONY: docker-buildx-standalone
 docker-buildx-standalone:
-	docker buildx build -f Dockerfile.standalone --build-arg DEPLOYMENT_MODE=standalone --build-arg STYLE_THEME=mui-theme --platform ${PLATFORM} -t ${IMG_UI_STANDALONE} --push .
+	docker buildx build -f Dockerfile.standalone --build-arg UI_SOURCE_CODE=clients/ui/frontend --build-arg BFF_SOURCE_CODE=clients/ui/bff --build-arg DEPLOYMENT_MODE=standalone --build-arg STYLE_THEME=mui-theme --platform ${PLATFORM} -t ${IMG_UI_STANDALONE} --push ../..
 
 .PHONY: docker-buildx-federated
 docker-buildx-federated:
-	docker buildx build --build-arg DEPLOYMENT_MODE=federated --build-arg STYLE_THEME=patternfly --platform ${PLATFORM} -t ${IMG_UI_FEDERATED} --push .
+	docker buildx build -f Dockerfile --build-arg UI_SOURCE_CODE=clients/ui/frontend --build-arg BFF_SOURCE_CODE=clients/ui/bff --build-arg DEPLOYMENT_MODE=federated --build-arg STYLE_THEME=patternfly --platform ${PLATFORM} -t ${IMG_UI_FEDERATED} --push ../..
 
 ############ Push ############
 

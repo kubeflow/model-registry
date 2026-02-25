@@ -19,9 +19,13 @@ WORKDIR /usr/src/app
 # Copy the source code to the container
 COPY ${UI_SOURCE_CODE} /usr/src/app
 
+# Copy sample-catalog.yaml so @repo/manifests/... resolves at build time (when context is repo root)
+COPY manifests/kustomize/options/catalog/base/sample-catalog.yaml /usr/src/app/manifests/kustomize/options/catalog/base/sample-catalog.yaml
+
 # Install the dependencies and build
 RUN npm cache clean --force
 RUN npm ci --omit=optional
+ENV REPO_ROOT_FOR_CATALOG=/usr/src/app
 RUN DEPLOYMENT_MODE=${DEPLOYMENT_MODE} STYLE_THEME=${STYLE_THEME} npm run build:prod
 
 # BFF build stage

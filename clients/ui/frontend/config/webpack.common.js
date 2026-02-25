@@ -237,7 +237,9 @@ module.exports = (env) => ({
     extensions: ['.js', '.ts', '.tsx', '.jsx', '.yaml'],
     alias: {
       '~': path.resolve(SRC_DIR),
-      '@repo': path.resolve(RELATIVE_DIRNAME, '..', '..', '..'),
+      '@repo':
+        process.env.REPO_ROOT_FOR_CATALOG ||
+        path.resolve(RELATIVE_DIRNAME, '..', '..', '..'),
     },
     symlinks: false,
     cacheWithContext: false,
