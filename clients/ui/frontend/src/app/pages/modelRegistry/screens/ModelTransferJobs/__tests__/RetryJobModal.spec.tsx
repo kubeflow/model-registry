@@ -5,6 +5,8 @@ import {
   ModelTransferJob,
   ModelTransferJobStatus,
   ModelTransferJobUploadIntent,
+  ModelTransferJobSourceType,
+  ModelTransferJobDestinationType,
 } from '~/app/types';
 import RetryJobModal from '~/app/pages/modelRegistry/screens/ModelTransferJobs/RetryJobModal';
 
@@ -21,6 +23,17 @@ describe('RetryJobModal', () => {
     registeredModelName: 'test-model',
     modelVersionName: 'v1.0.0',
     createTimeSinceEpoch: Date.now().toString(),
+    lastUpdateTimeSinceEpoch: Date.now().toString(),
+    source: {
+      type: ModelTransferJobSourceType.URI,
+      uri: 'https://example.com/model.tar.gz',
+    },
+    destination: {
+      type: ModelTransferJobDestinationType.OCI,
+      uri: 'oci://registry.example.com/models/test-model:v1',
+      username: 'user',
+      password: 'pass',
+    },
   };
 
   beforeEach(() => {
