@@ -2,7 +2,7 @@ import * as React from 'react';
 import { createPortal } from 'react-dom';
 import { Button, CodeBlock, CodeBlockCode } from '@patternfly/react-core';
 import { TimesIcon } from '@patternfly/react-icons';
-import { EXPECTED_YAML_FORMAT_CONTENT } from '~/app/pages/modelCatalogSettings/expectedYamlFormatContent';
+import sampleCatalogYamlContent from '@repo/manifests/kustomize/options/catalog/base/sample-catalog.yaml';
 
 const DRAWER_TITLE = 'View expected file format';
 const PRIMARY_APP_CONTAINER_ID = 'primary-app-container';
@@ -148,7 +148,7 @@ const ExpectedYamlFormatDrawer: React.FC<ExpectedYamlFormatDrawerProps> = ({ isO
           }}
         >
           <CodeBlock>
-            <CodeBlockCode>{EXPECTED_YAML_FORMAT_CONTENT}</CodeBlockCode>
+            <CodeBlockCode>{sampleCatalogYamlContent}</CodeBlockCode>
           </CodeBlock>
         </div>
       </div>

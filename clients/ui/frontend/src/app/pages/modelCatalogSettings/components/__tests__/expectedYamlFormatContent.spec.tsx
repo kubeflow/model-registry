@@ -79,8 +79,7 @@ describe('ExpectedYamlFormatDrawer', () => {
       expect(screen.getByRole('region', { name: DRAWER_TITLE })).toBeInTheDocument();
     });
 
-    expect(document.body.textContent).toContain('all:');
-    expect(document.body.textContent).toContain('children:');
-    expect(document.body.textContent).toContain('control_nodes:');
+    expect(document.body.textContent).toContain('source:');
+    expect(document.body.textContent).toContain('models:');
   });
 });

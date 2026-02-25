@@ -19,7 +19,13 @@ module.exports = {
     '\\.(css|less|sass|scss)$': '<rootDir>/config/transform.style.js',
     '\\.(jpg|jpeg|png|gif|eot|otf|webp|svg|ttf|woff|woff2|mp4|webm|wav|mp3|m4a|aac|oga)$':
       '<rootDir>/config/transform.file.js',
+    '^@repo/(.*)$': '<rootDir>/../../../$1',
     '~/(.*)': '<rootDir>/src/$1',
+  },
+
+  transform: {
+    '\\.(ts|tsx|js|jsx)$': 'ts-jest',
+    '\\.yaml$': '<rootDir>/config/transform.yaml.js',
   },
 
   // The test environment that will be used for testing.
