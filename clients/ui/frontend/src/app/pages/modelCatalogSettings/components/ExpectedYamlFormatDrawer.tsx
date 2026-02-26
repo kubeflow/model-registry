@@ -11,7 +11,9 @@ import {
   DrawerPanelBody,
   DrawerPanelContent,
 } from '@patternfly/react-core';
+import { useThemeContext } from 'mod-arch-kubeflow';
 import sampleCatalogYamlContent from '@repo/manifests/kustomize/options/catalog/base/sample-catalog.yaml';
+import ThemeAwareFormGroupWrapper from '~/app/pages/settings/components/ThemeAwareFormGroupWrapper';
 
 export const EXPECTED_FORMAT_DRAWER_TITLE = 'View expected file format';
 
@@ -89,6 +91,7 @@ function useContainerBounds(
 }
 
 const ExpectedYamlFormatDrawer: React.FC<ExpectedYamlFormatDrawerProps> = ({ isOpen, onClose }) => {
+  const { isMUITheme } = useThemeContext();
   const container =
     typeof document !== 'undefined' ? document.getElementById(PRIMARY_APP_CONTAINER_ID) : null;
   const bounds = useContainerBounds(container, isOpen);
@@ -98,37 +101,44 @@ const ExpectedYamlFormatDrawer: React.FC<ExpectedYamlFormatDrawerProps> = ({ isO
   }
 
   const drawerNode = (
-    <div
-      style={{
-        position: 'fixed',
-        top: bounds.top,
-        left: bounds.left,
-        width: bounds.width,
-        height: bounds.height,
-        zIndex: 100,
-        pointerEvents: 'auto',
-        overflow: 'hidden',
-        display: 'flex',
-        flexDirection: 'column',
-        boxSizing: 'border-box',
-      }}
+    <ThemeAwareFormGroupWrapper
+      label={EXPECTED_FORMAT_DRAWER_TITLE}
+      fieldId="expected-yaml-format-drawer"
+      data-testid="expected-format-drawer-wrapper"
     >
-      <Drawer
-        isExpanded
-        position="end"
+      <div
         style={{
-          flex: 1,
-          minHeight: 0,
+          position: 'fixed',
+          top: bounds.top,
+          left: bounds.left,
+          width: bounds.width,
+          height: bounds.height,
+          zIndex: 100,
+          pointerEvents: 'auto',
           overflow: 'hidden',
           display: 'flex',
           flexDirection: 'column',
+          boxSizing: 'border-box',
+          ...(isMUITheme && { '--mui-drawer__panel--MaxWidth': 'none' }),
         }}
       >
-        <DrawerContent panelContent={<ExpectedYamlFormatDrawerPanel onClose={onClose} />}>
-          <div />
-        </DrawerContent>
-      </Drawer>
-    </div>
+        <Drawer
+          isExpanded
+          position="end"
+          style={{
+            flex: 1,
+            minHeight: 0,
+            overflow: 'hidden',
+            display: 'flex',
+            flexDirection: 'column',
+          }}
+        >
+          <DrawerContent panelContent={<ExpectedYamlFormatDrawerPanel onClose={onClose} />}>
+            <div />
+          </DrawerContent>
+        </Drawer>
+      </div>
+    </ThemeAwareFormGroupWrapper>
   );
 
   return createPortal(drawerNode, document.body);
