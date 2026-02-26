@@ -237,9 +237,11 @@ module.exports = (env) => ({
     extensions: ['.js', '.ts', '.tsx', '.jsx', '.yaml'],
     alias: {
       '~': path.resolve(SRC_DIR),
-      '@repo':
-        process.env.REPO_ROOT_FOR_CATALOG ||
-        path.resolve(RELATIVE_DIRNAME, '..', '..', '..'),
+      ...(process.env.SAMPLE_CATALOG_YAML_PATH && {
+        '~/app/pages/modelCatalogSettings/sample-catalog.yaml': path.resolve(
+          process.env.SAMPLE_CATALOG_YAML_PATH,
+        ),
+      }),
     },
     symlinks: false,
     cacheWithContext: false,

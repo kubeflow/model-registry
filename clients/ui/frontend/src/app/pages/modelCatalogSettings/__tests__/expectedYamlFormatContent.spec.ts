@@ -1,4 +1,4 @@
-import sampleCatalogYamlContent from '@repo/manifests/kustomize/options/catalog/base/sample-catalog.yaml';
+import sampleCatalogYamlContent from '~/app/pages/modelCatalogSettings/sample-catalog.yaml';
 
 describe('sample-catalog.yaml content', () => {
   it('exports a non-empty string', () => {

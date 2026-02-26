@@ -12,7 +12,7 @@ import {
   DrawerPanelContent,
 } from '@patternfly/react-core';
 import { useThemeContext } from 'mod-arch-kubeflow';
-import sampleCatalogYamlContent from '@repo/manifests/kustomize/options/catalog/base/sample-catalog.yaml';
+import sampleCatalogYamlContent from '~/app/pages/modelCatalogSettings/sample-catalog.yaml';
 import ThemeAwareFormGroupWrapper from '~/app/pages/settings/components/ThemeAwareFormGroupWrapper';
 
 export const EXPECTED_FORMAT_DRAWER_TITLE = 'View expected file format';
