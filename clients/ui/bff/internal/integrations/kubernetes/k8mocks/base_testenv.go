@@ -8,6 +8,7 @@ import (
 	"path/filepath"
 	"runtime"
 	"strings"
+	"time"
 
 	k8s "github.com/kubeflow/model-registry/ui/bff/internal/integrations/kubernetes"
 	batchv1 "k8s.io/api/batch/v1"
@@ -235,6 +236,26 @@ func setupMock(mockK8sClient kubernetes.Interface, ctx context.Context) error {
 	}
 
 	err = createModelTransferJob(mockK8sClient, ctx, "bella-namespace", "model-registry-bella")
+	if err != nil {
+		return err
+	}
+
+	err = createTransferJobPods(mockK8sClient, ctx, "kubeflow")
+	if err != nil {
+		return err
+	}
+
+	err = createTransferJobPods(mockK8sClient, ctx, "bella-namespace")
+	if err != nil {
+		return err
+	}
+
+	err = createTransferJobPodEvents(mockK8sClient, ctx, "kubeflow")
+	if err != nil {
+		return err
+	}
+
+	err = createTransferJobPodEvents(mockK8sClient, ctx, "bella-namespace")
 	if err != nil {
 		return err
 	}
@@ -1052,6 +1073,236 @@ func createModelTransferJob(k8sClient kubernetes.Interface, ctx context.Context,
 	_, err = k8sClient.BatchV1().Jobs(namespace).UpdateStatus(ctx, createdJob3, metav1.UpdateOptions{})
 	if err != nil {
 		return fmt.Errorf("failed to update job3 status: %w", err)
+	}
+
+	return nil
+}
+
+func createTransferJobPods(k8sClient kubernetes.Interface, ctx context.Context, namespace string) error {
+	// Pod for job1 (RUNNING) - active pod, no termination message
+	pod1 := &corev1.Pod{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "transfer-job-001-pod-abc12",
+			Namespace: namespace,
+			Labels: map[string]string{
+				"job-name":                            "transfer-job-001",
+				"modelregistry.kubeflow.org/job-type": "async-upload",
+				"batch.kubernetes.io/job-name":        "transfer-job-001",
+				"batch.kubernetes.io/controller-uid":  "uid-001",
+			},
+		},
+		Spec: corev1.PodSpec{
+			RestartPolicy: corev1.RestartPolicyNever,
+			Containers: []corev1.Container{
+				{
+					Name:  "async-upload",
+					Image: "quay.io/opendatahub/model-registry-job-async-upload:latest",
+				},
+			},
+		},
+	}
+
+	createdPod1, err := k8sClient.CoreV1().Pods(namespace).Create(ctx, pod1, metav1.CreateOptions{})
+	if err != nil {
+		return fmt.Errorf("failed to create pod for job1: %w", err)
+	}
+
+	createdPod1.Status = corev1.PodStatus{
+		Phase: corev1.PodRunning,
+		ContainerStatuses: []corev1.ContainerStatus{
+			{
+				Name:  "async-upload",
+				State: corev1.ContainerState{Running: &corev1.ContainerStateRunning{}},
+			},
+		},
+	}
+	_, err = k8sClient.CoreV1().Pods(namespace).UpdateStatus(ctx, createdPod1, metav1.UpdateOptions{})
+	if err != nil {
+		return fmt.Errorf("failed to update pod1 status: %w", err)
+	}
+
+	// Pod for job2 (COMPLETED) - succeeded with termination message containing created IDs
+	pod2 := &corev1.Pod{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "transfer-job-002-pod-def34",
+			Namespace: namespace,
+			Labels: map[string]string{
+				"job-name":                            "transfer-job-002",
+				"modelregistry.kubeflow.org/job-type": "async-upload",
+				"batch.kubernetes.io/job-name":        "transfer-job-002",
+				"batch.kubernetes.io/controller-uid":  "uid-002",
+			},
+		},
+		Spec: corev1.PodSpec{
+			RestartPolicy: corev1.RestartPolicyNever,
+			Containers: []corev1.Container{
+				{
+					Name:  "async-upload",
+					Image: "quay.io/opendatahub/model-registry-job-async-upload:latest",
+				},
+			},
+		},
+	}
+
+	createdPod2, err := k8sClient.CoreV1().Pods(namespace).Create(ctx, pod2, metav1.CreateOptions{})
+	if err != nil {
+		return fmt.Errorf("failed to create pod for job2: %w", err)
+	}
+
+	createdPod2.Status = corev1.PodStatus{
+		Phase: corev1.PodSucceeded,
+		ContainerStatuses: []corev1.ContainerStatus{
+			{
+				Name: "async-upload",
+				State: corev1.ContainerState{
+					Terminated: &corev1.ContainerStateTerminated{
+						ExitCode: 0,
+						Message:  `{"RegisteredModel":{"id":"2"},"ModelVersion":{"id":"3"},"ModelArtifact":{"id":"5"}}`,
+					},
+				},
+			},
+		},
+	}
+	_, err = k8sClient.CoreV1().Pods(namespace).UpdateStatus(ctx, createdPod2, metav1.UpdateOptions{})
+	if err != nil {
+		return fmt.Errorf("failed to update pod2 status: %w", err)
+	}
+
+	// Pod for job3 (FAILED) - failed with error in termination message
+	pod3 := &corev1.Pod{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "transfer-job-003-pod-ghi56",
+			Namespace: namespace,
+			Labels: map[string]string{
+				"job-name":                            "transfer-job-003",
+				"modelregistry.kubeflow.org/job-type": "async-upload",
+				"batch.kubernetes.io/job-name":        "transfer-job-003",
+				"batch.kubernetes.io/controller-uid":  "uid-003",
+			},
+		},
+		Spec: corev1.PodSpec{
+			RestartPolicy: corev1.RestartPolicyNever,
+			Containers: []corev1.Container{
+				{
+					Name:  "async-upload",
+					Image: "quay.io/opendatahub/model-registry-job-async-upload:latest",
+				},
+			},
+		},
+	}
+
+	createdPod3, err := k8sClient.CoreV1().Pods(namespace).Create(ctx, pod3, metav1.CreateOptions{})
+	if err != nil {
+		return fmt.Errorf("failed to create pod for job3: %w", err)
+	}
+
+	createdPod3.Status = corev1.PodStatus{
+		Phase: corev1.PodFailed,
+		ContainerStatuses: []corev1.ContainerStatus{
+			{
+				Name: "async-upload",
+				State: corev1.ContainerState{
+					Terminated: &corev1.ContainerStateTerminated{
+						ExitCode: 1,
+						Message:  "Connection timeout: failed to push model artifact to quay.io/test/model-one:v2 after 3 retries",
+					},
+				},
+			},
+		},
+	}
+	_, err = k8sClient.CoreV1().Pods(namespace).UpdateStatus(ctx, createdPod3, metav1.UpdateOptions{})
+	if err != nil {
+		return fmt.Errorf("failed to update pod3 status: %w", err)
+	}
+
+	return nil
+}
+
+func createTransferJobPodEvents(k8sClient kubernetes.Interface, ctx context.Context, namespace string) error {
+	baseTime := time.Date(2025, 5, 27, 15, 38, 28, 0, time.UTC)
+
+	podEvents := []struct {
+		podName   string
+		eventName string
+		events    []struct {
+			reason  string
+			evType  string
+			message string
+			offset  time.Duration
+		}
+	}{
+		{
+			podName:   "transfer-job-001-pod-abc12",
+			eventName: "transfer-job-001-pod-abc12",
+			events: []struct {
+				reason  string
+				evType  string
+				message string
+				offset  time.Duration
+			}{
+				{"Pulling", "Normal", "Pulling image \"quay.io/opendatahub/model-registry-job-async-upload:latest\"", 0},
+				{"Pulled", "Normal", "Successfully pulled image \"quay.io/opendatahub/model-registry-job-async-upload:latest\"", 5 * time.Second},
+				{"Created", "Normal", "Created container async-upload", 6 * time.Second},
+				{"Started", "Normal", "Started container async-upload", 7 * time.Second},
+			},
+		},
+		{
+			podName:   "transfer-job-002-pod-def34",
+			eventName: "transfer-job-002-pod-def34",
+			events: []struct {
+				reason  string
+				evType  string
+				message string
+				offset  time.Duration
+			}{
+				{"Pulling", "Normal", "Pulling image \"quay.io/opendatahub/model-registry-job-async-upload:latest\"", 0},
+				{"Pulled", "Normal", "Successfully pulled image \"quay.io/opendatahub/model-registry-job-async-upload:latest\"", 4 * time.Second},
+				{"Created", "Normal", "Created container async-upload", 5 * time.Second},
+				{"Started", "Normal", "Started container async-upload", 6 * time.Second},
+			},
+		},
+		{
+			podName:   "transfer-job-003-pod-ghi56",
+			eventName: "transfer-job-003-pod-ghi56",
+			events: []struct {
+				reason  string
+				evType  string
+				message string
+				offset  time.Duration
+			}{
+				{"Pulling", "Normal", "Pulling image \"quay.io/opendatahub/model-registry-job-async-upload:latest\"", 0},
+				{"Pulled", "Normal", "Successfully pulled image \"quay.io/opendatahub/model-registry-job-async-upload:latest\"", 3 * time.Second},
+				{"Created", "Normal", "Created container async-upload", 4 * time.Second},
+				{"Started", "Normal", "Started container async-upload", 5 * time.Second},
+				{"BackOff", "Warning", "Back-off restarting failed container async-upload", 30 * time.Second},
+			},
+		},
+	}
+
+	for _, pe := range podEvents {
+		for i, ev := range pe.events {
+			eventTime := baseTime.Add(ev.offset)
+			event := &corev1.Event{
+				ObjectMeta: metav1.ObjectMeta{
+					Name:      fmt.Sprintf("%s-event-%d", pe.eventName, i),
+					Namespace: namespace,
+				},
+				InvolvedObject: corev1.ObjectReference{
+					Kind:      "Pod",
+					Name:      pe.podName,
+					Namespace: namespace,
+				},
+				Reason:         ev.reason,
+				Message:        ev.message,
+				Type:           ev.evType,
+				LastTimestamp:  metav1.NewTime(eventTime),
+				FirstTimestamp: metav1.NewTime(eventTime),
+			}
+			_, err := k8sClient.CoreV1().Events(namespace).Create(ctx, event, metav1.CreateOptions{})
+			if err != nil {
+				return fmt.Errorf("failed to create event for pod %s: %w", pe.podName, err)
+			}
+		}
 	}
 
 	return nil

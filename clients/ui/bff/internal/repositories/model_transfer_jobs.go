@@ -31,17 +31,138 @@ func (m *ModelRegistryRepository) GetAllModelTransferJobs(ctx context.Context, c
 		return &models.ModelTransferJobList{Items: []models.ModelTransferJob{}, Size: 0, PageSize: 0}, nil
 	}
 
+	logger := helper.GetContextLogger(ctx)
+
 	jobList, err := client.GetAllModelTransferJobs(ctx, namespace, modelRegistryID)
 	if err != nil {
 		return nil, fmt.Errorf("failed to fetch model transfer jobs: %w", err)
 	}
 
 	transferJobs := make([]models.ModelTransferJob, 0, len(jobList.Items))
+	jobNames := make([]string, 0, len(jobList.Items))
 	for _, job := range jobList.Items {
 		if job.DeletionTimestamp != nil {
 			continue
 		}
 		transferJobs = append(transferJobs, convertK8sJobToModel(&job))
+		jobNames = append(jobNames, job.Name)
+	}
+
+	if len(jobNames) > 0 {
+		podList, err := client.GetTransferJobPods(ctx, namespace, jobNames)
+		if err != nil {
+			logger.Warn("failed to fetch pods for transfer jobs", "error", err)
+		} else if len(podList.Items) > 0 {
+			type terminationResult struct {
+				RegisteredModel *struct {
+					ID string `json:"id"`
+				} `json:"RegisteredModel"`
+				ModelVersion *struct {
+					ID string `json:"id"`
+				} `json:"ModelVersion"`
+				ModelArtifact *struct {
+					ID string `json:"id"`
+				} `json:"ModelArtifact"`
+			}
+
+			podNamesByJob := make(map[string][]string)
+			podErrorsByJob := make(map[string]string)
+			podTerminationByJob := make(map[string]*terminationResult)
+			allPodNames := make([]string, 0, len(podList.Items))
+			for _, pod := range podList.Items {
+				jobName := pod.Labels["job-name"]
+				podNamesByJob[jobName] = append(podNamesByJob[jobName], pod.Name)
+				allPodNames = append(allPodNames, pod.Name)
+
+				for _, cs := range pod.Status.ContainerStatuses {
+					if cs.State.Waiting != nil {
+						reason := cs.State.Waiting.Reason
+						if reason == "ImagePullBackOff" || reason == "ErrImagePull" ||
+							reason == "CrashLoopBackOff" || reason == "CreateContainerConfigError" ||
+							reason == "InvalidImageName" {
+							msg := cs.State.Waiting.Message
+							if msg == "" {
+								msg = reason
+							}
+							podErrorsByJob[jobName] = fmt.Sprintf("%s: %s", reason, msg)
+							break
+						}
+					}
+					if cs.State.Terminated != nil {
+						if cs.State.Terminated.ExitCode != 0 {
+							msg := cs.State.Terminated.Message
+							if msg == "" {
+								msg = cs.State.Terminated.Reason
+							}
+							podErrorsByJob[jobName] = fmt.Sprintf("Container exited with code %d: %s", cs.State.Terminated.ExitCode, msg)
+						}
+						if cs.State.Terminated.Message != "" {
+							var result terminationResult
+							if err := json.Unmarshal([]byte(cs.State.Terminated.Message), &result); err == nil {
+								podTerminationByJob[jobName] = &result
+							}
+						}
+						break
+					}
+				}
+			}
+
+			for i := range transferJobs {
+				if errMsg, ok := podErrorsByJob[transferJobs[i].Name]; ok {
+					if transferJobs[i].Status == models.ModelTransferJobStatusRunning ||
+						transferJobs[i].Status == models.ModelTransferJobStatusPending {
+						transferJobs[i].Status = models.ModelTransferJobStatusFailed
+						if transferJobs[i].ErrorMessage == "" {
+							transferJobs[i].ErrorMessage = errMsg
+						}
+					}
+				}
+				if result, ok := podTerminationByJob[transferJobs[i].Name]; ok {
+					if result.RegisteredModel != nil && result.RegisteredModel.ID != "" {
+						transferJobs[i].RegisteredModelId = result.RegisteredModel.ID
+					}
+					if result.ModelVersion != nil && result.ModelVersion.ID != "" {
+						transferJobs[i].ModelVersionId = result.ModelVersion.ID
+					}
+					if result.ModelArtifact != nil && result.ModelArtifact.ID != "" {
+						transferJobs[i].ModelArtifactId = result.ModelArtifact.ID
+					}
+				}
+			}
+
+			eventList, err := client.GetEventsForPods(ctx, namespace, allPodNames)
+			if err != nil {
+				logger.Warn("failed to fetch events for pods", "error", err)
+			} else {
+				eventsByPod := make(map[string][]models.ModelTransferJobEvent)
+				for _, event := range eventList.Items {
+					podName := event.InvolvedObject.Name
+					ts := event.LastTimestamp.Time
+					if ts.IsZero() {
+						ts = event.EventTime.Time
+					}
+					if ts.IsZero() {
+						ts = event.FirstTimestamp.Time
+					}
+					eventsByPod[podName] = append(eventsByPod[podName], models.ModelTransferJobEvent{
+						Timestamp: ts.Format("2006-01-02T15:04:05Z"),
+						Type:      event.Type,
+						Reason:    event.Reason,
+						Message:   event.Message,
+					})
+				}
+
+				for i := range transferJobs {
+					var jobEvents []models.ModelTransferJobEvent
+					for _, podName := range podNamesByJob[transferJobs[i].Name] {
+						jobEvents = append(jobEvents, eventsByPod[podName]...)
+					}
+					if jobEvents != nil {
+						transferJobs[i].Events = jobEvents
+					}
+				}
+			}
+		}
 	}
 
 	return &models.ModelTransferJobList{

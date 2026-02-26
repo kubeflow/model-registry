@@ -525,6 +525,49 @@ func (kc *SharedClientLogic) PatchConfigMapOwnerReference(ctx context.Context, n
 	return nil
 }
 
+func (kc *SharedClientLogic) GetTransferJobPods(ctx context.Context, namespace string, jobNames []string) (*corev1.PodList, error) {
+	if namespace == "" || len(jobNames) == 0 {
+		return &corev1.PodList{}, nil
+	}
+
+	sessionLogger := ctx.Value(constants.TraceLoggerKey).(*slog.Logger)
+
+	labelSelector := "job-name in (" + strings.Join(jobNames, ",") + ")"
+
+	podList, err := kc.Client.CoreV1().Pods(namespace).List(ctx, metav1.ListOptions{
+		LabelSelector: labelSelector,
+	})
+	if err != nil {
+		sessionLogger.Error("failed to list pods for jobs", "namespace", namespace, "jobNames", jobNames, "error", err)
+		return &corev1.PodList{}, fmt.Errorf("failed to list pods for jobs: %w", err)
+	}
+
+	return podList, nil
+}
+
+func (kc *SharedClientLogic) GetEventsForPods(ctx context.Context, namespace string, podNames []string) (*corev1.EventList, error) {
+	if namespace == "" || len(podNames) == 0 {
+		return &corev1.EventList{}, nil
+	}
+
+	sessionLogger := ctx.Value(constants.TraceLoggerKey).(*slog.Logger)
+
+	var allEvents []corev1.Event
+	for _, podName := range podNames {
+		fieldSelector := fmt.Sprintf("involvedObject.name=%s,involvedObject.kind=Pod", podName)
+		events, err := kc.Client.CoreV1().Events(namespace).List(ctx, metav1.ListOptions{
+			FieldSelector: fieldSelector,
+		})
+		if err != nil {
+			sessionLogger.Warn("failed to list events for pod", "pod", podName, "error", err)
+			continue
+		}
+		allEvents = append(allEvents, events.Items...)
+	}
+
+	return &corev1.EventList{Items: allEvents}, nil
+}
+
 func (kc *SharedClientLogic) PatchSecretOwnerReference(ctx context.Context, namespace string, name string, ownerRef metav1.OwnerReference) error {
 	sessionLogger := ctx.Value(constants.TraceLoggerKey).(*slog.Logger)
 

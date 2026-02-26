@@ -1,12 +1,4 @@
-import {
-  Button,
-  Content,
-  ContentVariants,
-  HelperText,
-  HelperTextItem,
-  Label,
-  Truncate,
-} from '@patternfly/react-core';
+import { Button, Content, ContentVariants, Label, Truncate } from '@patternfly/react-core';
 import { ActionsColumn, Td, Tr } from '@patternfly/react-table';
 import {
   CheckCircleIcon,
@@ -26,15 +18,20 @@ import {
   ModelTransferJobUploadIntent,
 } from '~/app/types';
 import { EMPTY_CUSTOM_PROPERTY_VALUE } from '~/concepts/modelCatalog/const';
+import ModelTransferJobStatusModal from './ModelTransferJobStatusModal';
 
 type ModelTransferJobTableRowProps = {
   job: ModelTransferJob;
   onRequestDelete?: (job: ModelTransferJob) => void;
 };
 
-const getStatusLabel = (
+export const getStatusLabel = (
   status: ModelTransferJobStatus,
-): { label: string; color: React.ComponentProps<typeof Label>['color']; icon: React.ReactNode } => {
+): {
+  label: string;
+  color: React.ComponentProps<typeof Label>['color'];
+  icon: React.ReactNode;
+} => {
   switch (status) {
     case ModelTransferJobStatus.COMPLETED:
       return { label: 'Complete', color: 'green', icon: <CheckCircleIcon /> };
@@ -57,6 +54,7 @@ const ModelTransferJobTableRow: React.FC<ModelTransferJobTableRowProps> = ({
 }) => {
   const navigate = useNavigate();
   const { preferredModelRegistry } = React.useContext(ModelRegistrySelectorContext);
+  const [isStatusModalOpen, setIsStatusModalOpen] = React.useState(false);
 
   const handleModelNameClick = () => {
     if (job.registeredModelId) {
@@ -74,29 +72,17 @@ const ModelTransferJobTableRow: React.FC<ModelTransferJobTableRowProps> = ({
 
   const statusInfo = getStatusLabel(job.status);
 
-  const actions = React.useMemo(() => {
-    const items = [];
-
-    // Show Retry action for failed jobs
-    if (job.status === ModelTransferJobStatus.FAILED) {
-      items.push({
-        title: 'Retry',
+  const actions = React.useMemo(
+    () => [
+      {
+        title: 'Delete',
         onClick: () => {
-          // TODO: Implement retry functionality
+          onRequestDelete?.(job);
         },
-      });
-    }
-
-    // Always show Delete action
-    items.push({
-      title: 'Delete',
-      onClick: () => {
-        onRequestDelete?.(job);
       },
-    });
-
-    return items;
-  }, [job, onRequestDelete]);
+    ],
+    [job, onRequestDelete],
+  );
 
   return (
     <Tr>
@@ -153,22 +139,26 @@ const ModelTransferJobTableRow: React.FC<ModelTransferJobTableRowProps> = ({
         </Content>
       </Td>
       <Td dataLabel="Transfer job status">
-        <div>
-          <Label color={statusInfo.color} icon={statusInfo.icon} data-testid="job-status">
-            {statusInfo.label}
-          </Label>
-          {job.status === ModelTransferJobStatus.FAILED && job.errorMessage && (
-            <HelperText data-testid="job-error-message">
-              <HelperTextItem variant="error">
-                <Truncate content={job.errorMessage} />
-              </HelperTextItem>
-            </HelperText>
-          )}
-        </div>
+        <Label
+          color={statusInfo.color}
+          icon={statusInfo.icon}
+          data-testid="job-status"
+          isClickable
+          onClick={() => setIsStatusModalOpen(true)}
+        >
+          {statusInfo.label}
+        </Label>
       </Td>
       <Td isActionCell>
         <ActionsColumn items={actions} />
       </Td>
+      {isStatusModalOpen && (
+        <ModelTransferJobStatusModal
+          job={job}
+          isOpen={isStatusModalOpen}
+          onClose={() => setIsStatusModalOpen(false)}
+        />
+      )}
     </Tr>
   );
 };
