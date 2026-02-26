@@ -11,7 +11,7 @@ import {
   catalogSettingsUrl,
 } from '~/app/routes/modelCatalogSettings/modelCatalogSettings';
 import ManageSourceForm from '~/app/pages/modelCatalogSettings/components/ManageSourceForm';
-import ExpectedYamlFormatDrawer from '~/app/pages/modelCatalogSettings/components/expectedYamlFormatContent';
+import ExpectedYamlFormatDrawer from '~/app/pages/modelCatalogSettings/components/ExpectedYamlFormatDrawer';
 import { useCatalogSourceConfigBySourceId } from '~/app/hooks/modelCatalogSettings/useCatalogSourceConfigBySourceId';
 
 const ManageSourcePage: React.FC = () => {

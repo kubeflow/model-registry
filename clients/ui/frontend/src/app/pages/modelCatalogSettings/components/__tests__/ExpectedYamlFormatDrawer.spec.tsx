@@ -2,9 +2,11 @@ import React from 'react';
 import { screen, render, waitFor } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
 import '@testing-library/jest-dom';
-import ExpectedYamlFormatDrawer from '~/app/pages/modelCatalogSettings/components/expectedYamlFormatContent';
+import ExpectedYamlFormatDrawer, {
+  EXPECTED_FORMAT_DRAWER_TITLE,
+} from '~/app/pages/modelCatalogSettings/components/ExpectedYamlFormatDrawer';
 
-const DRAWER_TITLE = 'View expected file format';
+const DRAWER_TITLE = EXPECTED_FORMAT_DRAWER_TITLE;
 const PRIMARY_APP_CONTAINER_ID = 'primary-app-container';
 
 describe('ExpectedYamlFormatDrawer', () => {
@@ -21,17 +23,6 @@ describe('ExpectedYamlFormatDrawer', () => {
     container = document.createElement('div');
     container.id = PRIMARY_APP_CONTAINER_ID;
     document.body.appendChild(container);
-    container.getBoundingClientRect = jest.fn().mockReturnValue({
-      top: 0,
-      left: 0,
-      width: 800,
-      height: 600,
-      bottom: 600,
-      right: 800,
-      x: 0,
-      y: 0,
-      toJSON: () => ({}),
-    });
   });
 
   afterEach(() => {
@@ -40,11 +31,8 @@ describe('ExpectedYamlFormatDrawer', () => {
     }
   });
 
-  it('returns null when isOpen is false', () => {
-    const { container: renderContainer } = render(
-      <ExpectedYamlFormatDrawer isOpen={false} onClose={onClose} />,
-    );
-    expect(renderContainer.firstChild).toBeNull();
+  it('does not render drawer panel when isOpen is false', () => {
+    render(<ExpectedYamlFormatDrawer isOpen={false} onClose={onClose} />);
     expect(screen.queryByRole('region', { name: DRAWER_TITLE })).not.toBeInTheDocument();
   });
 
@@ -64,10 +52,10 @@ describe('ExpectedYamlFormatDrawer', () => {
     render(<ExpectedYamlFormatDrawer isOpen onClose={onClose} />);
 
     await waitFor(() => {
-      expect(screen.getByTestId('expected-format-drawer-close')).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: 'Close drawer' })).toBeInTheDocument();
     });
 
-    await user.click(screen.getByTestId('expected-format-drawer-close'));
+    await user.click(screen.getByRole('button', { name: 'Close drawer' }));
 
     expect(onClose).toHaveBeenCalledTimes(1);
   });
