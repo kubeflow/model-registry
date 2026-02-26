@@ -2,6 +2,7 @@ package embedmd
 
 import (
 	"fmt"
+	"maps"
 	"reflect"
 
 	"github.com/golang/glog"
@@ -190,9 +191,7 @@ func (rs *repoSetImpl) Repository(t reflect.Type) (any, error) {
 
 func (rs *repoSetImpl) TypeMap() map[string]int32 {
 	clone := make(map[string]int32, len(rs.nameIDMap))
-	for k, v := range rs.nameIDMap {
-		clone[k] = v
-	}
+	maps.Copy(clone, rs.nameIDMap)
 	return clone
 }
 

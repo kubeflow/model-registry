@@ -6,6 +6,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"maps"
 	"os"
 	"path/filepath"
 	"strings"
@@ -76,9 +77,7 @@ func (er *evaluationRecord) UnmarshalJSON(data []byte) error {
 	}
 
 	// Copy all fields to CustomProperties, including the core ones
-	for key, value := range raw {
-		er.CustomProperties[key] = value
-	}
+	maps.Copy(er.CustomProperties, raw)
 
 	return nil
 }
@@ -118,9 +117,7 @@ func (pr *performanceRecord) UnmarshalJSON(data []byte) error {
 	}
 
 	// Copy all fields to CustomProperties, including the core ones
-	for key, value := range raw {
-		pr.CustomProperties[key] = value
-	}
+	maps.Copy(pr.CustomProperties, raw)
 
 	return nil
 }
