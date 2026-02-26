@@ -506,12 +506,11 @@ func createSecretForHuggingFace(ctx context.Context,
 			ApiKey: apiKey,
 		},
 	}
-	err := client.CreateSecret(ctx, namespace, secret)
+	secretCreated, err := client.CreateSecret(ctx, namespace, secret)
 	if err != nil {
 		return "", fmt.Errorf("failed to create secret '%s': %w", secretName, err)
 	}
-
-	return secretName, nil
+	return secretCreated.Name, nil
 
 }
 
