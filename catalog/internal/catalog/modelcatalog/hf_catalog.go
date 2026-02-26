@@ -1182,8 +1182,7 @@ func parseNextCursor(linkHeader string) string {
 			if start >= 0 && end > start {
 				nextURL := link[start+1 : end]
 				// Extract cursor parameter from URL
-				if _, after, ok := strings.Cut(nextURL, "cursor="); ok {
-					cursor := after
+				if _, cursor, ok := strings.Cut(nextURL, "cursor="); ok {
 					// Handle if there are more parameters after cursor
 					if ampIdx := strings.Index(cursor, "&"); ampIdx >= 0 {
 						cursor = cursor[:ampIdx]
