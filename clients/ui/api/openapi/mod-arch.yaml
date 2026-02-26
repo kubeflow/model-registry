@@ -1157,7 +1157,28 @@ paths:
   /api/v1/model_registry/{modelRegistryName}/model_transfer_jobs/{modelTransferJobName}:
     summary: Path used to manage a single ModelTransferJob.
     description: >-
-      The REST endpoint/path used to update and delete single instances of a `ModelTransferJob`.
+      The REST endpoint/path used to get, update and delete single instances of a `ModelTransferJob`.
+    get:
+      tags:
+        - K8SOperation
+      parameters:
+        - $ref: "#/components/parameters/modelRegistryName"
+        - $ref: "#/components/parameters/kubeflowUserId"
+        - $ref: "#/components/parameters/modelTransferJobName"
+      responses:
+        "200":
+          $ref: "#/components/responses/ModelTransferJobResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+      operationId: getModelTransferJob
+      summary: Get a Model Transfer Job
+      description: Gets a single `ModelTransferJob` by name.
     patch:
       requestBody:
         description: Updated `ModelTransferJob` information.

@@ -51,6 +51,28 @@ func (m *ModelRegistryRepository) GetAllModelTransferJobs(ctx context.Context, c
 	}, nil
 }
 
+func (m *ModelRegistryRepository) GetModelTransferJob(ctx context.Context, client k8s.KubernetesClientInterface, namespace string, jobName string, modelRegistryID string) (*models.ModelTransferJob, error) {
+	if modelRegistryID == "" {
+		return nil, fmt.Errorf("%w: model registry name is required", ErrJobValidationFailed)
+	}
+
+	job, err := client.GetModelTransferJob(ctx, namespace, jobName)
+	if err != nil {
+		if apierrors.IsNotFound(err) {
+			return nil, fmt.Errorf("%w: %s", ErrJobNotFound, jobName)
+		}
+		return nil, fmt.Errorf("failed to get job: %w", err)
+	}
+
+	jobRegistry := job.Labels["modelregistry.kubeflow.org/model-registry-name"]
+	if jobRegistry != modelRegistryID {
+		return nil, fmt.Errorf("%w: %s", ErrJobNotFound, jobName)
+	}
+
+	result := convertK8sJobToModel(job)
+	return &result, nil
+}
+
 func (m *ModelRegistryRepository) CreateModelTransferJob(ctx context.Context, client k8s.KubernetesClientInterface, namespace string, payload models.ModelTransferJob, modelRegistryID string) (*models.ModelTransferJob, error) {
 	return m.createModelTransferJobResources(ctx, client, namespace, payload, modelRegistryID, "")
 }
