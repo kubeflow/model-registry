@@ -159,7 +159,7 @@ func (f *ModelFilter) Allows(name string) bool {
 }
 
 // NewModelFilterFromSource composes a ModelFilter using the source-level configuration and any legacy additions.
-func NewModelFilterFromSource(source *basecatalog.Source, extraIncluded, extraExcluded []string) (*ModelFilter, error) {
+func NewModelFilterFromSource(source *basecatalog.ModelSource, extraIncluded, extraExcluded []string) (*ModelFilter, error) {
 	if source == nil {
 		return nil, fmt.Errorf("source cannot be nil when building filters")
 	}

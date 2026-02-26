@@ -4,10 +4,8 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"os"
 	"path/filepath"
 	"sync"
-	"time"
 
 	mapset "github.com/deckarep/golang-set/v2"
 	"github.com/golang/glog"
@@ -15,15 +13,6 @@ import (
 	dbmodels "github.com/kubeflow/model-registry/catalog/internal/db/models"
 	"github.com/kubeflow/model-registry/catalog/internal/db/service"
 	mrmodels "github.com/kubeflow/model-registry/internal/db/models"
-	"k8s.io/apimachinery/pkg/util/yaml"
-)
-
-// Source status constants matching the OpenAPI enum values
-const (
-	SourceStatusAvailable          = "available"
-	SourceStatusPartiallyAvailable = "partially-available"
-	SourceStatusError              = "error"
-	SourceStatusDisabled           = "disabled"
 )
 
 // PartiallyAvailableError indicates that a source loaded some models successfully
@@ -59,7 +48,7 @@ type ModelProviderRecord struct {
 //
 // The function may emit a record with a nil Model to indicate that the
 // complete set of models has been sent.
-type ModelProviderFunc func(ctx context.Context, source *basecatalog.Source, reldir string) (<-chan ModelProviderRecord, error)
+type ModelProviderFunc func(ctx context.Context, source *basecatalog.ModelSource, reldir string) (<-chan ModelProviderRecord, error)
 
 var registeredModelProviders = map[string]ModelProviderFunc{}
 
@@ -74,8 +63,10 @@ func RegisterModelProvider(name string, callback ModelProviderFunc) error {
 // LoaderEventHandler is the definition of a function called after a model is loaded.
 type LoaderEventHandler func(ctx context.Context, record ModelProviderRecord) error
 
-type Loader struct {
-	*basecatalog.BaseLoader // Embedded for shared functionality
+// ModelLoader is the delegate loader for model catalogs.
+// It uses external state (LoaderState) for leader operations and write tracking.
+type ModelLoader struct {
+	state basecatalog.LoaderState
 
 	// Sources contains current source information loaded from the configuration files.
 	Sources *SourceCollection
@@ -88,7 +79,9 @@ type Loader struct {
 	loadedSources map[string]bool // tracks which source IDs have been loaded
 }
 
-func NewLoader(services service.Services, paths []string) *Loader {
+// NewModelLoader creates a new ModelLoader with external state
+func NewModelLoader(services service.Services, state basecatalog.LoaderState) *ModelLoader {
+	paths := state.Paths()
 	// Convert paths to absolute for consistent origin ordering.
 	// This matches how loadOne converts paths before calling Merge.
 	absPaths := make([]string, 0, len(paths))
@@ -101,8 +94,8 @@ func NewLoader(services service.Services, paths []string) *Loader {
 		absPaths = append(absPaths, absPath)
 	}
 
-	return &Loader{
-		BaseLoader:    basecatalog.NewBaseLoader(paths),
+	return &ModelLoader{
+		state:         state,
 		Sources:       NewSourceCollection(absPaths...),
 		Labels:        NewLabelCollection(),
 		services:      services,
@@ -111,141 +104,53 @@ func NewLoader(services service.Services, paths []string) *Loader {
 }
 
 // RegisterEventHandler adds a function that will be called for every
-// successfully processed record. This should be called before StartReadOnly.
+// successfully processed record. This should be called before initialization.
 //
 // Handlers are called in the order they are registered.
-func (l *Loader) RegisterEventHandler(fn LoaderEventHandler) {
+func (l *ModelLoader) RegisterEventHandler(fn LoaderEventHandler) {
 	l.handlers = append(l.handlers, fn)
 }
 
-// StartReadOnly initializes the loader in read-only mode (standby pod).
-// Call once at pod startup.
-//
-// Behavior:
-// - Parses all config files into in-memory collections (Sources, Labels)
-// - Sets up file watchers that reload config when files change
-// - Skips database writes (leader-only operation)
-// - File watchers run until ctx cancels (pod shutdown)
-//
-// Returns immediately after setup; non-blocking.
-func (l *Loader) StartReadOnly(ctx context.Context) error {
-	watcherCtx, err := l.SetupFileWatchers(ctx)
-	if err != nil {
-		return err
-	}
-
-	glog.Info("Starting loader in read-only mode (standby)")
-
-	for _, path := range l.Paths() {
+// ParseAllConfigs parses all config files into in-memory collections.
+// This is called by the unified loader during initialization.
+func (l *ModelLoader) ParseAllConfigs() error {
+	for _, path := range l.state.Paths() {
 		if err := l.parseAndMerge(path); err != nil {
 			return fmt.Errorf("%s: %w", path, err)
 		}
 	}
-
-	for _, path := range l.Paths() {
-		go func(path string) {
-			changes, err := basecatalog.GetMonitor().Path(watcherCtx, path)
-			if err != nil {
-				glog.Errorf("unable to watch sources file (%s): %v", path, err)
-				return
-			}
-
-			for range changes {
-				glog.Infof("Config file changed, reloading: %s", path)
-				l.reloadConfig(watcherCtx)
-			}
-		}(path)
-	}
-
-	glog.Info("Read-only mode initialized successfully")
 	return nil
 }
 
-// StartLeader transitions the loader to leader mode and blocks until the
-// context is cancelled (leadership lost or pod shutdown).
-//
-// Performs database writes (fetches models, writes to database, cleans up orphans).
-// Can be called multiple times as leadership changes.
-//
-// Pass the leadership context (canceled when leadership is lost).
-func (l *Loader) StartLeader(ctx context.Context) error {
-	if l.IsLeader() {
-		return fmt.Errorf("already in leader mode")
-	}
-	l.SetLeader(true)
-
-	glog.Info("Transitioning to leader mode (read-write)")
-
-	if err := l.performLeaderOperations(ctx); err != nil {
-		l.SetLeader(false)
-		return fmt.Errorf("failed to perform leader operations: %w", err)
-	}
-
-	glog.Info("Leader mode active")
-
-	// Just wait for context cancellation
-	<-ctx.Done()
-	glog.Info("Leadership context cancelled, cleaning up...")
-
-	l.WaitForInflightWrites(5 * time.Second)
-	l.SetLeader(false)
-
-	glog.Info("Leader mode stopped")
-	return ctx.Err()
+// PerformLeaderOperations executes database write operations.
+// allKnownSourceIDs is the union of model and MCP source IDs, used to prevent
+// cross-contamination when cleaning up shared CatalogSource records.
+// This is called by the unified loader when becoming leader.
+func (l *ModelLoader) PerformLeaderOperations(ctx context.Context, allKnownSourceIDs mapset.Set[string]) error {
+	return l.performLeaderWrites(ctx, allKnownSourceIDs)
 }
 
-// Shutdown gracefully shuts down the loader, stopping file watchers and
-// waiting for any inflight operations.
-func (l *Loader) Shutdown() error {
-	glog.Info("Shutting down loader...")
-
-	// Note: Leader operations stop when leaderCtx is cancelled by the elector.
-	// No need to explicitly stop here.
-
-	// Stop file watchers
-	l.StopFileWatchers()
-
-	// Wait for inflight writes
-	l.WaitForInflightWrites(10 * time.Second)
-
-	glog.Info("Loader shutdown complete")
-	return nil
+// ReloadParsing re-parses all config files into in-memory collections.
+// Called by the unified loader before computing combined source IDs for leader writes.
+func (l *ModelLoader) ReloadParsing() {
+	for _, path := range l.state.Paths() {
+		if err := l.parseAndMerge(path); err != nil {
+			glog.Errorf("unable to reload model sources from %s: %v", path, err)
+		}
+	}
 }
 
 // performLeaderWrites executes database write operations: removing orphaned
 // models and loading all models from sources.
-func (l *Loader) performLeaderWrites(ctx context.Context) error {
-	if err := l.removeModelsFromMissingSources(); err != nil {
+func (l *ModelLoader) performLeaderWrites(ctx context.Context, allKnownSourceIDs mapset.Set[string]) error {
+	if err := l.removeModelsFromMissingSources(allKnownSourceIDs); err != nil {
 		return fmt.Errorf("failed to remove models from missing sources: %w", err)
 	}
 	return l.loadAllModels(ctx)
 }
 
-// performLeaderOperations executes the database operations that only the leader performs.
-func (l *Loader) performLeaderOperations(ctx context.Context) error {
-	return l.performLeaderWrites(ctx)
-}
-
-// reloadConfig handles config file changes.
-// Re-parses all config files and reloads models when leader.
-func (l *Loader) reloadConfig(ctx context.Context) {
-	// Re-parse all config files (both leader and standby)
-	for _, path := range l.Paths() {
-		if err := l.parseAndMerge(path); err != nil {
-			glog.Errorf("unable to reload sources from %s: %v", path, err)
-		}
-	}
-
-	// Database writes (leader only)
-	if l.ShouldWriteDatabase() {
-		if err := l.performLeaderWrites(ctx); err != nil {
-			glog.Errorf("unable to perform leader writes: %v", err)
-		}
-	}
-}
-
 // parseAndMerge parses a config file and merges its sources/labels into the collections.
-func (l *Loader) parseAndMerge(path string) error {
+func (l *ModelLoader) parseAndMerge(path string) error {
 	path, err := filepath.Abs(path)
 	if err != nil {
 		return fmt.Errorf("failed to get absolute path for %s: %v", path, err)
@@ -263,31 +168,16 @@ func (l *Loader) parseAndMerge(path string) error {
 	return l.updateLabels(path, config)
 }
 
-func (l *Loader) loadAllModels(ctx context.Context) error {
+func (l *ModelLoader) loadAllModels(ctx context.Context) error {
 	l.loadedSources = map[string]bool{}
 
 	return l.updateDatabase(ctx)
 }
 
-func (l *Loader) read(path string) (*basecatalog.SourceConfig, error) {
-	config := &basecatalog.SourceConfig{}
-	bytes, err := os.ReadFile(path)
+func (l *ModelLoader) read(path string) (*basecatalog.SourceConfig, error) {
+	config, err := basecatalog.ReadSourceConfig(path)
 	if err != nil {
 		return nil, err
-	}
-
-	if err = yaml.UnmarshalStrict(bytes, &config); err != nil {
-		return nil, err
-	}
-
-	// Log deprecation warning if using old "catalogs" field
-	if config.HasDeprecatedCatalogs() {
-		glog.Warningf("Configuration file %s uses deprecated 'catalogs' field. Please rename to 'model_catalogs'.", path)
-	}
-
-	// Validate the configuration
-	if err := config.Validate(); err != nil {
-		return nil, fmt.Errorf("invalid configuration in %s: %w", path, err)
 	}
 
 	// Validate named queries if present
@@ -305,9 +195,9 @@ func (l *Loader) read(path string) (*basecatalog.SourceConfig, error) {
 	return config, nil
 }
 
-func (l *Loader) updateSources(path string, config *basecatalog.SourceConfig) error {
+func (l *ModelLoader) updateSources(path string, config *basecatalog.SourceConfig) error {
 	modelCatalogs := config.GetModelCatalogs()
-	sources := make(map[string]basecatalog.Source, len(modelCatalogs))
+	sources := make(map[string]basecatalog.ModelSource, len(modelCatalogs))
 
 	for _, source := range modelCatalogs {
 		glog.Infof("reading config type %s...", source.Type)
@@ -338,7 +228,7 @@ func (l *Loader) updateSources(path string, config *basecatalog.SourceConfig) er
 	return l.Sources.Merge(path, sources)
 }
 
-func (l *Loader) updateLabels(path string, config *basecatalog.SourceConfig) error {
+func (l *ModelLoader) updateLabels(path string, config *basecatalog.SourceConfig) error {
 	// Merge labels from config into the label collection
 	if config.Labels == nil {
 		// No labels in config, but we still need to clear any previous labels from this origin
@@ -355,16 +245,16 @@ func (l *Loader) updateLabels(path string, config *basecatalog.SourceConfig) err
 	return l.Labels.Merge(path, config.Labels)
 }
 
-func (l *Loader) updateDatabase(ctx context.Context) error {
+func (l *ModelLoader) updateDatabase(ctx context.Context) error {
 	ctx, cancel := context.WithCancel(ctx)
-	l.SetCloser(cancel)
+	l.state.SetCloser(cancel)
 
 	records := l.readProviderRecords(ctx)
 
 	go func() {
 		for record := range records {
 			// Check if we're still the leader before each write
-			if !l.ShouldWriteDatabase() {
+			if !l.state.ShouldWriteDatabase() {
 				glog.Info("No longer leader, stopping database writes")
 				return
 			}
@@ -385,8 +275,8 @@ func (l *Loader) updateDatabase(ctx context.Context) error {
 
 			func() {
 				// Track this write operation
-				l.TrackWrite()
-				defer l.WriteComplete()
+				l.state.TrackWrite()
+				defer l.state.WriteComplete()
 
 				glog.Infof("Loading model %s with %d artifact(s)", *attr.Name, len(record.Artifacts))
 
@@ -440,7 +330,7 @@ func (l *Loader) updateDatabase(ctx context.Context) error {
 // readProviderRecords calls the provider for every merged source that hasn't
 // been loaded yet, and merges the returned channels together. The returned
 // channel is closed when the last provider channel is closed.
-func (l *Loader) readProviderRecords(ctx context.Context) <-chan ModelProviderRecord {
+func (l *ModelLoader) readProviderRecords(ctx context.Context) <-chan ModelProviderRecord {
 	ch := make(chan ModelProviderRecord)
 	var wg sync.WaitGroup
 
@@ -454,7 +344,7 @@ func (l *Loader) readProviderRecords(ctx context.Context) <-chan ModelProviderRe
 		// Per OpenAPI spec, enabled defaults to true, so nil is treated as enabled
 		if source.Enabled != nil && !*source.Enabled {
 			// Persist disabled status
-			l.saveSourceStatus(source.Id, SourceStatusDisabled, "")
+			basecatalog.SaveSourceStatus(l.services.CatalogSourceRepository, source.Id, basecatalog.SourceStatusDisabled, "")
 			continue
 		}
 
@@ -465,7 +355,7 @@ func (l *Loader) readProviderRecords(ctx context.Context) <-chan ModelProviderRe
 
 		if source.Type == "" {
 			glog.Errorf("source %s has no type defined, skipping", source.Id)
-			l.saveSourceStatus(source.Id, SourceStatusError, "source has no type defined")
+			basecatalog.SaveSourceStatus(l.services.CatalogSourceRepository, source.Id, basecatalog.SourceStatusError, "source has no type defined")
 			continue
 		}
 
@@ -477,7 +367,7 @@ func (l *Loader) readProviderRecords(ctx context.Context) <-chan ModelProviderRe
 		registerFunc, ok := registeredModelProviders[source.Type]
 		if !ok {
 			glog.Errorf("catalog type %s not registered", source.Type)
-			l.saveSourceStatus(source.Id, SourceStatusError, fmt.Sprintf("catalog type %q not registered", source.Type))
+			basecatalog.SaveSourceStatus(l.services.CatalogSourceRepository, source.Id, basecatalog.SourceStatusError, fmt.Sprintf("catalog type %q not registered", source.Type))
 			continue
 		}
 
@@ -489,7 +379,7 @@ func (l *Loader) readProviderRecords(ctx context.Context) <-chan ModelProviderRe
 		records, err := registerFunc(ctx, &source, sourceDir)
 		if err != nil {
 			glog.Errorf("error reading catalog type %s with id %s: %v", source.Type, source.Id, err)
-			l.saveSourceStatus(source.Id, SourceStatusError, err.Error())
+			basecatalog.SaveSourceStatus(l.services.CatalogSourceRepository, source.Id, basecatalog.SourceStatusError, err.Error())
 			continue
 		}
 
@@ -521,9 +411,9 @@ func (l *Loader) readProviderRecords(ctx context.Context) <-chan ModelProviderRe
 						// Check if there was a partial error (some models failed to load)
 						if errors.Is(r.Error, ErrPartiallyAvailable) {
 							glog.Warningf("%s: partial error after loading models: %v", sourceID, r.Error)
-							l.saveSourceStatus(sourceID, SourceStatusPartiallyAvailable, r.Error.Error())
+							basecatalog.SaveSourceStatus(l.services.CatalogSourceRepository, sourceID, basecatalog.SourceStatusPartiallyAvailable, r.Error.Error())
 						} else {
-							l.saveSourceStatus(sourceID, SourceStatusAvailable, "")
+							basecatalog.SaveSourceStatus(l.services.CatalogSourceRepository, sourceID, basecatalog.SourceStatusAvailable, "")
 						}
 						statusSaved = true
 					}
@@ -543,7 +433,7 @@ func (l *Loader) readProviderRecords(ctx context.Context) <-chan ModelProviderRe
 			// If the channel closed without a nil Model marker and status wasn't already saved,
 			// save available status if context is still valid and we processed some models
 			if !statusSaved && ctx.Err() == nil && len(modelNames) > 0 {
-				l.saveSourceStatus(sourceID, SourceStatusAvailable, "")
+				basecatalog.SaveSourceStatus(l.services.CatalogSourceRepository, sourceID, basecatalog.SourceStatusAvailable, "")
 			}
 		}(ctx, source.Id)
 	}
@@ -556,7 +446,7 @@ func (l *Loader) readProviderRecords(ctx context.Context) <-chan ModelProviderRe
 	return ch
 }
 
-func (l *Loader) setModelSourceID(model dbmodels.CatalogModel, sourceID string) {
+func (l *ModelLoader) setModelSourceID(model dbmodels.CatalogModel, sourceID string) {
 	if model == nil {
 		return
 	}
@@ -587,11 +477,11 @@ func (l *Loader) setModelSourceID(model dbmodels.CatalogModel, sourceID string) 
 	*props = append(*props, mrmodels.NewStringProperty("source_id", sourceID, false))
 }
 
-func (l *Loader) removeModelsFromMissingSources() error {
+func (l *ModelLoader) removeModelsFromMissingSources(allKnownSourceIDs mapset.Set[string]) error {
 	enabledSourceIDs := mapset.NewSet[string]()
-	allSourceIDs := mapset.NewSet[string]()
+	modelSourceIDs := mapset.NewSet[string]()
 	for id, source := range l.Sources.AllSources() {
-		allSourceIDs.Add(id)
+		modelSourceIDs.Add(id)
 		if source.Enabled == nil || *source.Enabled {
 			enabledSourceIDs.Add(id)
 		}
@@ -610,50 +500,28 @@ func (l *Loader) removeModelsFromMissingSources() error {
 			return fmt.Errorf("unable to remove models from source %q: %w", oldSource, err)
 		}
 
-		// If the source is completely gone from config (not just disabled), remove its status too
-		if !allSourceIDs.Contains(oldSource) {
-			glog.Infof("Removing status for source %s (no longer in config)", oldSource)
+		// If the source is completely gone from model config (not just disabled), remove its status too.
+		// We check model-only IDs here since existingSourceIDs comes from CatalogModelRepository.
+		if !modelSourceIDs.Contains(oldSource) {
+			glog.Infof("Removing status for source %s (no longer in model config)", oldSource)
 			if delErr := l.services.CatalogSourceRepository.Delete(oldSource); delErr != nil {
 				glog.Errorf("failed to delete status for source %s: %v", oldSource, delErr)
 			}
 		}
 	}
 
-	// Also clean up CatalogSource records for sources that are no longer in config
-	// This handles sources that never loaded models (e.g., error sources, disabled sources)
-	if err := l.cleanupOrphanedCatalogSources(allSourceIDs); err != nil {
+	// Clean up CatalogSource records for sources no longer in any loader's config.
+	// The protected set is the union of this loader's own source IDs and the combined
+	// known source IDs from all loaders, preventing cross-contamination.
+	protectedSourceIDs := modelSourceIDs.Union(allKnownSourceIDs)
+	if err := basecatalog.CleanupOrphanedCatalogSources(l.services.CatalogSourceRepository, protectedSourceIDs); err != nil {
 		glog.Errorf("failed to cleanup orphaned catalog sources: %v", err)
 	}
 
 	return nil
 }
 
-// cleanupOrphanedCatalogSources removes CatalogSource records for sources that are no longer in the config.
-func (l *Loader) cleanupOrphanedCatalogSources(currentSourceIDs mapset.Set[string]) error {
-	existingSources, err := l.services.CatalogSourceRepository.GetAll()
-	if err != nil {
-		return fmt.Errorf("unable to get existing catalog sources: %w", err)
-	}
-
-	for _, source := range existingSources {
-		attrs := source.GetAttributes()
-		if attrs == nil || attrs.Name == nil {
-			continue
-		}
-
-		sourceID := *attrs.Name
-		if !currentSourceIDs.Contains(sourceID) {
-			glog.Infof("Removing orphaned catalog source %s (no longer in config)", sourceID)
-			if delErr := l.services.CatalogSourceRepository.Delete(sourceID); delErr != nil {
-				glog.Errorf("failed to delete orphaned catalog source %s: %v", sourceID, delErr)
-			}
-		}
-	}
-
-	return nil
-}
-
-func (l *Loader) removeOrphanedModelsFromSource(sourceID string, valid mapset.Set[string]) (int, error) {
+func (l *ModelLoader) removeOrphanedModelsFromSource(sourceID string, valid mapset.Set[string]) (int, error) {
 	list, err := l.services.CatalogModelRepository.List(dbmodels.CatalogModelListOptions{
 		SourceIDs: &[]string{sourceID},
 	})
@@ -682,40 +550,4 @@ func (l *Loader) removeOrphanedModelsFromSource(sourceID string, valid mapset.Se
 	}
 
 	return count, nil
-}
-
-// saveSourceStatus persists the operational status of a source to the database.
-// This allows status to be consistent across multiple pods.
-func (l *Loader) saveSourceStatus(sourceID, status string, errorMsg string) {
-	// Validate status is a valid enum value
-	switch status {
-	case SourceStatusAvailable, SourceStatusPartiallyAvailable, SourceStatusError, SourceStatusDisabled:
-		// valid
-	default:
-		glog.Errorf("invalid status %q for source %s", status, sourceID)
-		return
-	}
-
-	source := &dbmodels.CatalogSourceImpl{
-		Attributes: &dbmodels.CatalogSourceAttributes{
-			Name: &sourceID,
-		},
-	}
-
-	// Set status property
-	props := []mrmodels.Properties{
-		mrmodels.NewStringProperty("status", status, false),
-	}
-
-	// Only store error property when non-empty
-	if errorMsg != "" {
-		props = append(props, mrmodels.NewStringProperty("error", errorMsg, false))
-	}
-
-	source.Properties = &props
-
-	_, err := l.services.CatalogSourceRepository.Save(source)
-	if err != nil {
-		glog.Errorf("failed to save status for source %s: %v", sourceID, err)
-	}
 }

@@ -384,7 +384,7 @@ func (p *yamlModelProvider) emit(ctx context.Context, catalog *yamlCatalog, out 
 	}
 }
 
-func newYamlModelProvider(ctx context.Context, source *basecatalog.Source, reldir string) (<-chan ModelProviderRecord, error) {
+func newYamlModelProvider(ctx context.Context, source *basecatalog.ModelSource, reldir string) (<-chan ModelProviderRecord, error) {
 	p := &yamlModelProvider{}
 
 	path, exists := source.Properties[yamlCatalogPathKey].(string)
