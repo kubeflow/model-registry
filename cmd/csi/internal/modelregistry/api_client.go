@@ -5,7 +5,7 @@ import (
 	"log"
 	"strings"
 
-	"github.com/kubeflow/model-registry/internal/csi/constants"
+	"github.com/kubeflow/model-registry/cmd/csi/internal/constants"
 	"github.com/kubeflow/model-registry/pkg/openapi"
 )
 

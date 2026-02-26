@@ -253,7 +253,7 @@ build/prepare/csi: build/prepare lint/csi
 
 .PHONY: build/compile/csi
 build/compile/csi:
-	${GO} build -buildvcs=false -o mr-storage-initializer ${CSI_PATH}/main.go
+	cd ${CSI_PATH} && ${GO} build -buildvcs=false -o ../../mr-storage-initializer .
 
 .PHONY: build/csi
 build/csi: build/prepare/csi build/compile/csi
@@ -268,8 +268,7 @@ lint: bin/golangci-lint
 
 .PHONY: lint/csi
 lint/csi: bin/golangci-lint
-	${GOLANGCI_LINT} run ${CSI_PATH}/main.go
-	${GOLANGCI_LINT} run internal/csi/...
+	cd ${CSI_PATH} && ${GOLANGCI_LINT} run ./...
 
 .PHONY: test
 test:
@@ -347,33 +346,36 @@ all: model-registry
 
 .PHONY: controller/manifests
 controller/manifests: bin/controller-gen ## Generate WebhookConfiguration, ClusterRole and CustomResourceDefinition objects.
-	$(CONTROLLER_GEN) rbac:roleName=model-registry-manager-role crd webhook paths="{./cmd/controller/..., ./internal/controller/...}" output:crd:artifacts:config=manifests/options/controller/crd/bases output:rbac:dir=manifests/kustomize/options/controller/rbac
+	$(CONTROLLER_GEN) rbac:roleName=model-registry-manager-role crd webhook paths="{./cmd/controller/...}" output:crd:artifacts:config=manifests/options/controller/crd/bases output:rbac:dir=manifests/kustomize/options/controller/rbac
 
 .PHONY: controller/generate
 controller/generate: bin/controller-gen ## Generate code containing DeepCopy, DeepCopyInto, and DeepCopyObject method implementations.
-	$(CONTROLLER_GEN) object:headerFile="./cmd/controller/hack/boilerplate.go.txt" paths="{./cmd/controller/..., ./internal/controller/...}"
+	$(CONTROLLER_GEN) object:headerFile="./cmd/controller/hack/boilerplate.go.txt" paths="{./cmd/controller/...}"
 
 .PHONY: controller/fmt
 controller/fmt: ## Run go fmt against code.
-	go fmt ./cmd/controller/... ./internal/controller/...
+	cd cmd/controller && go fmt ./...
 
 .PHONY: controller/vet
 controller/vet: ## Run go vet against code.
-	go vet ./cmd/controller/... ./internal/controller/...
+	cd cmd/controller && go vet ./...
 
 .PHONY: controller/test
 controller/test: controller/manifests controller/generate controller/fmt controller/vet bin/envtest ## Run tests.
-	KUBEBUILDER_ASSETS="$(shell $(ENVTEST) use $(ENVTEST_K8S_VERSION) --bin-dir $(PROJECT_BIN) -p path)" go test $$(go list ./internal/controller/... ./pkg/inferenceservice-controller/... | grep -vF /e2e) -coverprofile cover.out
+	cd cmd/controller && \
+	KUBEBUILDER_ASSETS="$(shell $(ENVTEST) use $(ENVTEST_K8S_VERSION) --bin-dir $(PROJECT_BIN) -p path)" go test $$(go list ./... | grep -vF /e2e) -coverprofile cover.out
+	cd pkg/inferenceservice-controller && \
+	KUBEBUILDER_ASSETS="$(shell $(ENVTEST) use $(ENVTEST_K8S_VERSION) --bin-dir $(PROJECT_BIN) -p path)" go test ./... -coverprofile cover.out
 
 ##@ Build
 
 .PHONY: controller/build
 controller/build: controller/manifests controller/generate controller/fmt controller/vet ## Build manager binary.
-	go build -o bin/manager cmd/controller/main.go
+	cd cmd/controller && go build -o ../../bin/manager
 
 .PHONY: controller/run
 controller/run: controller/manifests controller/generate controller/fmt controller/vet ## Run a controller from your host.
-	go run ./cmd/controller/main.go
+	cd cmd/controller && go run main.go
 
 # If you wish to build the manager image targeting other platforms you can use the --platform flag.
 # (i.e. docker build --platform linux/arm64). However, you must enable docker buildKit for it.
