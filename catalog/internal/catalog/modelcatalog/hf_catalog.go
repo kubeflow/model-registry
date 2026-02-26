@@ -244,10 +244,9 @@ func (hfm *hfModel) populateFromHFInfo(ctx context.Context, provider *hfModelPro
 	if len(hfInfo.Tags) > 0 {
 		filteredTags = make([]string, 0, len(hfInfo.Tags))
 		for _, tag := range hfInfo.Tags {
-			if after, ok := strings.CutPrefix(tag, "license:"); ok {
+			if license, ok := strings.CutPrefix(tag, "license:"); ok {
 				// Extract license (only first one)
 				if hfm.License == nil {
-					license := after
 					if license != "" {
 						license = basecatalog.TransformLicenseToHumanReadable(license)
 						hfm.License = &license
@@ -1023,8 +1022,7 @@ func parseModelPattern(pattern string) (PatternType, string, string) {
 	}
 
 	// Check if it's an org/* pattern
-	if before, ok := strings.CutSuffix(pattern, "/*"); ok {
-		org := before
+	if org, ok := strings.CutSuffix(pattern, "/*"); ok {
 		// Ensure org is not empty or just whitespace
 		if org == "" || strings.TrimSpace(org) == "" {
 			return PatternInvalid, "", ""
@@ -1049,8 +1047,7 @@ func parseModelPattern(pattern string) (PatternType, string, string) {
 	}
 
 	// Check if it has a wildcard after org/prefix
-	if before, ok := strings.CutSuffix(model, "*"); ok {
-		prefix := before
+	if prefix, ok := strings.CutSuffix(model, "*"); ok {
 		if prefix != "" {
 			return PatternOrgPrefix, org, prefix
 		}

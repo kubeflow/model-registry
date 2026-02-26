@@ -86,8 +86,7 @@ func (c *EmbedMDConfig) Validate() error {
 				// key=value format: find dbname=...
 				parts := strings.Fields(c.DatabaseDSN)
 				for _, p := range parts {
-					if after, ok := strings.CutPrefix(p, "dbname="); ok {
-						name := after
+					if name, ok := strings.CutPrefix(p, "dbname="); ok {
 						if strings.Contains(name, "?") {
 							return fmt.Errorf("invalid PostgreSQL DSN: database name must not contain '?' characters; do not put query parameters in the database name")
 						}
