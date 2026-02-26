@@ -2,6 +2,8 @@ import * as React from 'react';
 import {
   Alert,
   Button,
+  Flex,
+  FlexItem,
   Label,
   Modal,
   ModalBody,
@@ -36,12 +38,14 @@ const ModelTransferJobStatusModal: React.FC<ModelTransferJobStatusModalProps> = 
   }
 
   const title = (
-    <span style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}>
-      Model version status{' '}
-      <Label color={statusInfo.color} icon={statusInfo.icon}>
-        {statusInfo.label}
-      </Label>
-    </span>
+    <Flex spaceItems={{ default: 'spaceItemsSm' }} alignItems={{ default: 'alignItemsCenter' }}>
+      <FlexItem>Model version status</FlexItem>
+      <FlexItem>
+        <Label color={statusInfo.color} icon={statusInfo.icon}>
+          {statusInfo.label}
+        </Label>
+      </FlexItem>
+    </Flex>
   );
 
   return (

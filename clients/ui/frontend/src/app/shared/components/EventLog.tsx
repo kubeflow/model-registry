@@ -24,8 +24,10 @@ const EventLog: React.FC<EventLogProps> = ({
   maxHeight = '300px',
   'data-testid': dataTestId = 'event-log',
 }) => {
-  const sortedEvents = events.toSorted(
-    (a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime(),
+  const sortedEvents = React.useMemo(
+    () =>
+      events.toSorted((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()),
+    [events],
   );
 
   return (

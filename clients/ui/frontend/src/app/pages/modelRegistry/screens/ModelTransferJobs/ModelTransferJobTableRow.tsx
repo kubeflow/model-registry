@@ -143,7 +143,7 @@ const ModelTransferJobTableRow: React.FC<ModelTransferJobTableRowProps> = ({
           color={statusInfo.color}
           icon={statusInfo.icon}
           data-testid="job-status"
-          style={{ cursor: 'pointer' }}
+          isClickable
           onClick={() => setIsStatusModalOpen(true)}
         >
           {statusInfo.label}
