@@ -479,12 +479,12 @@ func (m *ModelRegistryRepository) UpdateModelTransferJob(
 			}
 		}
 		if newPayload.SourceModelFormat == "" {
-			if val, ok := oldConfigMap.Data["ModelArtifact.modelFormatName"]; ok {
+			if val, ok := oldConfigMap.Data["ModelArtifact.model_format_name"]; ok {
 				newPayload.SourceModelFormat = val
 			}
 		}
 		if newPayload.SourceModelFormatVersion == "" {
-			if val, ok := oldConfigMap.Data["ModelArtifact.modelFormatVersion"]; ok {
+			if val, ok := oldConfigMap.Data["ModelArtifact.model_format_version"]; ok {
 				newPayload.SourceModelFormatVersion = val
 			}
 		}

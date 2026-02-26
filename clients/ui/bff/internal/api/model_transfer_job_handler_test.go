@@ -1321,9 +1321,9 @@ var _ = Describe("TestModelTransferJob retry metadata preservation", func() {
 			// The job was created successfully, which means credentials were properly cloned
 			Expect(envelope.Data.Name).To(Equal("retry-job-with-creds"))
 
-			// Verify secret names are set (pointing to new secrets, not the old ones)
-			Expect(envelope.Data.SourceSecretName).To(Equal("retry-job-with-creds-source-creds"))
-			Expect(envelope.Data.DestSecretName).To(Equal("retry-job-with-creds-dest-creds"))
+			// Verify secret names are set with expected prefix (GenerateName adds random suffix)
+			Expect(envelope.Data.SourceSecretName).To(HavePrefix("retry-job-with-creds-source-creds-"))
+			Expect(envelope.Data.DestSecretName).To(HavePrefix("retry-job-with-creds-dest-creds-"))
 		})
 	})
 })
