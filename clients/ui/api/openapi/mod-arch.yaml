@@ -927,7 +927,7 @@ paths:
 
   # Model catalog settings endpoints
   /api/v1/settings/model_catalog/source_configs:
-    summary: Path used to managae Model catalog sources.
+    summary: Path used to manage Model catalog sources.
     description: The REST endpoint/path used to list and create model catalog sources.
     get:
       tags:

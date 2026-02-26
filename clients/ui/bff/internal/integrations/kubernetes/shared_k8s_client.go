@@ -209,28 +209,30 @@ func (kc *SharedClientLogic) CreateSecret(
 	ctx context.Context,
 	namespace string,
 	secret *corev1.Secret,
-) error {
+) (*corev1.Secret, error) {
 	sessionLogger := ctx.Value(constants.TraceLoggerKey).(*slog.Logger)
 
-	_, err := kc.Client.CoreV1().
+	secretCreated, err := kc.Client.CoreV1().
 		Secrets(namespace).
 		Create(ctx, secret, metav1.CreateOptions{})
-
 	if err != nil {
+		nameForLog := secret.Name
+		if nameForLog == "" {
+			nameForLog = secret.GenerateName + "<generated>"
+		}
 		sessionLogger.Error("failed to create secret",
 			"namespace", namespace,
-			"name", secret.Name,
+			"name", nameForLog,
 			"error", err,
 		)
-		return fmt.Errorf("failed to create secret %s: %w", secret.Name, err)
+		return nil, fmt.Errorf("failed to create secret %s: %w", nameForLog, err)
 	}
 
 	sessionLogger.Info("successfully created secret",
 		"namespace", namespace,
-		"name", secret.Name,
+		"name", secretCreated.Name,
 	)
-
-	return nil
+	return secretCreated, nil
 }
 
 func (kc *SharedClientLogic) PatchSecret(ctx context.Context, namespace string, secretName string,
@@ -378,8 +380,7 @@ func (kc *SharedClientLogic) GetModelTransferJob(ctx context.Context, namespace 
 func (kc *SharedClientLogic) CreateModelTransferJob(ctx context.Context, namespace string, job *batchv1.Job) (*batchv1.Job, error) {
 	sessionLogger := ctx.Value(constants.TraceLoggerKey).(*slog.Logger)
 
-	createdJob, err := kc.Client.BatchV1().Jobs(namespace).Create(ctx, job, metav1.CreateOptions{})
-
+	jobCreated, err := kc.Client.BatchV1().Jobs(namespace).Create(ctx, job, metav1.CreateOptions{})
 	if err != nil {
 		sessionLogger.Error("failed to create job",
 			"namespace", namespace,
@@ -388,13 +389,11 @@ func (kc *SharedClientLogic) CreateModelTransferJob(ctx context.Context, namespa
 		)
 		return nil, fmt.Errorf("failed to create job %s: %w", job.Name, err)
 	}
-
 	sessionLogger.Info("successfully created job",
 		"namespace", namespace,
 		"name", job.Name,
 	)
-
-	return createdJob, nil
+	return jobCreated, nil
 }
 
 func (kc *SharedClientLogic) DeleteModelTransferJob(ctx context.Context, namespace string, jobName string) error {
@@ -424,7 +423,11 @@ func (kc *SharedClientLogic) GetSecret(ctx context.Context, namespace string, na
 
 	secret, err := kc.Client.CoreV1().Secrets(namespace).Get(ctx, name, metav1.GetOptions{})
 	if err != nil {
-		sessionLogger.Error("failed to get secret", "namespace", namespace, "name", name, "error", err)
+		if apierrors.IsNotFound(err) {
+			sessionLogger.Debug("secret not found (may be expected when probing for free name)", "namespace", namespace, "name", name)
+		} else {
+			sessionLogger.Error("failed to get secret", "namespace", namespace, "name", name, "error", err)
+		}
 		return nil, fmt.Errorf("failed to get secret %s: %w", name, err)
 	}
 
@@ -436,33 +439,39 @@ func (kc *SharedClientLogic) GetConfigMap(ctx context.Context, namespace string,
 
 	configMap, err := kc.Client.CoreV1().ConfigMaps(namespace).Get(ctx, name, metav1.GetOptions{})
 	if err != nil {
-		sessionLogger.Error("failed to get configmap", "namespace", namespace, "name", name, "error", err)
+		if apierrors.IsNotFound(err) {
+			sessionLogger.Debug("configmap not found (may be expected when probing for free name)", "namespace", namespace, "name", name)
+		} else {
+			sessionLogger.Error("failed to get configmap", "namespace", namespace, "name", name, "error", err)
+		}
 		return nil, fmt.Errorf("failed to get configmap %s: %w", name, err)
 	}
 
 	return configMap, nil
 }
 
-func (kc *SharedClientLogic) CreateConfigMap(ctx context.Context, namespace string, configMap *corev1.ConfigMap) error {
+func (kc *SharedClientLogic) CreateConfigMap(ctx context.Context, namespace string, configMap *corev1.ConfigMap) (*corev1.ConfigMap, error) {
 	sessionLogger := ctx.Value(constants.TraceLoggerKey).(*slog.Logger)
 
-	_, err := kc.Client.CoreV1().ConfigMaps(namespace).Create(ctx, configMap, metav1.CreateOptions{})
-
+	configMapCreated, err := kc.Client.CoreV1().ConfigMaps(namespace).Create(ctx, configMap, metav1.CreateOptions{})
 	if err != nil {
+		nameForLog := configMap.Name
+		if nameForLog == "" {
+			nameForLog = configMap.GenerateName + "<generated>"
+		}
 		sessionLogger.Error("failed to create configMap",
 			"namespace", namespace,
-			"name", configMap.Name,
+			"name", nameForLog,
 			"error", err,
 		)
-		return fmt.Errorf("failed to create configMap %s: %w", configMap.Name, err)
+		return nil, fmt.Errorf("failed to create configMap %s: %w", nameForLog, err)
 	}
 
 	sessionLogger.Info("successfully created configMap",
 		"namespace", namespace,
-		"name", configMap.Name,
+		"name", configMapCreated.Name,
 	)
-
-	return nil
+	return configMapCreated, nil
 }
 
 func (kc *SharedClientLogic) DeleteConfigMap(ctx context.Context, namespace string, name string) error {

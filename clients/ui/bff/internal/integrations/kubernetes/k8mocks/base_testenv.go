@@ -836,7 +836,7 @@ func createModelTransferJob(k8sClient kubernetes.Interface, ctx context.Context,
 					Containers: []corev1.Container{
 						{
 							Name:  "async-upload",
-							Image: "quay.io/opendatahub/model-registry-job-async-upload:latest",
+							Image: "ghcr.io/kubeflow/model-registry/job/async-upload:latest",
 							Env: []corev1.EnvVar{
 								{Name: "MODEL_SYNC_SOURCE_TYPE", Value: "s3"},
 								{Name: "MODEL_SYNC_SOURCE_AWS_KEY", Value: "models/my-model"},
@@ -954,7 +954,7 @@ func createModelTransferJob(k8sClient kubernetes.Interface, ctx context.Context,
 					Containers: []corev1.Container{
 						{
 							Name:  "async-upload",
-							Image: "quay.io/opendatahub/model-registry-job-async-upload:latest",
+							Image: "ghcr.io/kubeflow/model-registry/job/async-upload:latest",
 						},
 					},
 				},
@@ -1030,7 +1030,7 @@ func createModelTransferJob(k8sClient kubernetes.Interface, ctx context.Context,
 					Containers: []corev1.Container{
 						{
 							Name:  "async-upload",
-							Image: "quay.io/opendatahub/model-registry-job-async-upload:latest",
+							Image: "ghcr.io/kubeflow/model-registry/job/async-upload:latest",
 						},
 					},
 				},
