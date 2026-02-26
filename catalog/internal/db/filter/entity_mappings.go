@@ -4,17 +4,8 @@ import (
 	"sync"
 
 	"github.com/kubeflow/model-registry/catalog/internal/catalog/basecatalog"
+	catalogmodels "github.com/kubeflow/model-registry/catalog/internal/db/models"
 	"github.com/kubeflow/model-registry/internal/db/filter"
-)
-
-// CatalogRestEntityType represents catalog-specific REST API entity types
-type CatalogRestEntityType string
-
-const (
-	RestEntityCatalogModel    CatalogRestEntityType = "CatalogModel"
-	RestEntityCatalogArtifact CatalogRestEntityType = "CatalogArtifact"
-	RestEntityMCPServer       CatalogRestEntityType = "MCPServer"
-	RestEntityMCPServerTool   CatalogRestEntityType = "MCPServerTool"
 )
 
 var (
@@ -34,7 +25,7 @@ func NewCatalogEntityMappings() filter.EntityMappingFunctions {
 func buildDefaultRegistry() *basecatalog.CatalogEntityRegistry {
 	reg := basecatalog.NewCatalogEntityRegistry()
 
-	reg.Register(filter.RestEntityType(RestEntityCatalogModel), basecatalog.EntityTypeDefinition{
+	reg.Register(filter.RestEntityType(catalogmodels.RestEntityCatalogModel), basecatalog.EntityTypeDefinition{
 		MLMDEntityType: filter.EntityTypeContext,
 		Properties: basecatalog.MergeProperties(
 			basecatalog.CommonContextProperties(),
@@ -45,7 +36,7 @@ func buildDefaultRegistry() *basecatalog.CatalogEntityRegistry {
 		RelatedEntityType:   filter.RelatedEntityArtifact,
 	})
 
-	reg.Register(filter.RestEntityType(RestEntityCatalogArtifact), basecatalog.EntityTypeDefinition{
+	reg.Register(filter.RestEntityType(catalogmodels.RestEntityCatalogArtifact), basecatalog.EntityTypeDefinition{
 		MLMDEntityType: filter.EntityTypeArtifact,
 		Properties: basecatalog.MergeProperties(
 			basecatalog.CommonArtifactProperties(),
@@ -53,7 +44,7 @@ func buildDefaultRegistry() *basecatalog.CatalogEntityRegistry {
 		),
 	})
 
-	reg.Register(filter.RestEntityType(RestEntityMCPServer), basecatalog.EntityTypeDefinition{
+	reg.Register(filter.RestEntityType(catalogmodels.RestEntityMCPServer), basecatalog.EntityTypeDefinition{
 		MLMDEntityType: filter.EntityTypeContext,
 		Properties: basecatalog.MergeProperties(
 			basecatalog.CommonContextProperties(),
@@ -62,7 +53,7 @@ func buildDefaultRegistry() *basecatalog.CatalogEntityRegistry {
 		),
 	})
 
-	reg.Register(filter.RestEntityType(RestEntityMCPServerTool), basecatalog.EntityTypeDefinition{
+	reg.Register(filter.RestEntityType(catalogmodels.RestEntityMCPServerTool), basecatalog.EntityTypeDefinition{
 		MLMDEntityType: filter.EntityTypeArtifact,
 		Properties: basecatalog.MergeProperties(
 			mcpServerToolEntityProperties,

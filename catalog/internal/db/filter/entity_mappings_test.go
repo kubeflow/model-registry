@@ -3,6 +3,7 @@ package filter
 import (
 	"testing"
 
+	catalogmodels "github.com/kubeflow/model-registry/catalog/internal/db/models"
 	"github.com/kubeflow/model-registry/internal/db/filter"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -85,7 +86,7 @@ var expectedMCPServerToolProperties = map[string]filter.PropertyDefinition{
 
 func TestBackwardCompat_CatalogModel(t *testing.T) {
 	mappings := NewCatalogEntityMappings()
-	entityType := filter.RestEntityType(RestEntityCatalogModel)
+	entityType := filter.RestEntityType(catalogmodels.RestEntityCatalogModel)
 
 	// Verify MLMD entity type
 	assert.Equal(t, filter.EntityTypeContext, mappings.GetMLMDEntityType(entityType))
@@ -110,7 +111,7 @@ func TestBackwardCompat_CatalogModel(t *testing.T) {
 
 func TestBackwardCompat_CatalogArtifact(t *testing.T) {
 	mappings := NewCatalogEntityMappings()
-	entityType := filter.RestEntityType(RestEntityCatalogArtifact)
+	entityType := filter.RestEntityType(catalogmodels.RestEntityCatalogArtifact)
 
 	assert.Equal(t, filter.EntityTypeArtifact, mappings.GetMLMDEntityType(entityType))
 
@@ -126,7 +127,7 @@ func TestBackwardCompat_CatalogArtifact(t *testing.T) {
 
 func TestBackwardCompat_MCPServer(t *testing.T) {
 	mappings := NewCatalogEntityMappings()
-	entityType := filter.RestEntityType(RestEntityMCPServer)
+	entityType := filter.RestEntityType(catalogmodels.RestEntityMCPServer)
 
 	assert.Equal(t, filter.EntityTypeContext, mappings.GetMLMDEntityType(entityType))
 
@@ -142,7 +143,7 @@ func TestBackwardCompat_MCPServer(t *testing.T) {
 
 func TestBackwardCompat_MCPServerTool(t *testing.T) {
 	mappings := NewCatalogEntityMappings()
-	entityType := filter.RestEntityType(RestEntityMCPServerTool)
+	entityType := filter.RestEntityType(catalogmodels.RestEntityMCPServerTool)
 
 	assert.Equal(t, filter.EntityTypeArtifact, mappings.GetMLMDEntityType(entityType))
 
@@ -158,7 +159,7 @@ func TestBackwardCompat_MCPServerTool(t *testing.T) {
 
 func TestBackwardCompat_ArtifactPrefix(t *testing.T) {
 	mappings := NewCatalogEntityMappings()
-	entityType := filter.RestEntityType(RestEntityCatalogModel)
+	entityType := filter.RestEntityType(catalogmodels.RestEntityCatalogModel)
 
 	tests := []struct {
 		name            string
