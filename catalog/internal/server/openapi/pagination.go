@@ -106,7 +106,7 @@ type stringCursor struct {
 }
 
 func (c *stringCursor) String() string {
-	return base64.StdEncoding.EncodeToString([]byte(fmt.Sprintf("%s:%s", c.Value, c.ID)))
+	return base64.StdEncoding.EncodeToString(fmt.Appendf(nil, "%s:%s", c.Value, c.ID))
 }
 
 func decodeStringCursor(encoded string) *stringCursor {
