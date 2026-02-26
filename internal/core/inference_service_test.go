@@ -376,7 +376,7 @@ func TestUpsertInferenceService(t *testing.T) {
 
 		// Create 15 inference services for pagination testing
 		var createdServices []string
-		for i := 0; i < 15; i++ {
+		for i := range 15 {
 			serviceName := "paging-test-inference-service-" + fmt.Sprintf("%02d", i)
 			input := &openapi.InferenceService{
 				Name:                 apiutils.Of(serviceName),
@@ -908,7 +908,7 @@ func TestGetInferenceServices(t *testing.T) {
 		require.NoError(t, err)
 
 		// Create several inference services for pagination testing
-		for i := 0; i < 5; i++ {
+		for i := range 5 {
 			infSvc := &openapi.InferenceService{
 				Name:                 apiutils.Of("pagination-inference-service-" + string(rune('A'+i))),
 				ExternalId:           apiutils.Of("pagination-ext-" + string(rune('A'+i))),

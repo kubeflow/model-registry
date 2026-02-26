@@ -486,7 +486,7 @@ func TestUpsertServeModel(t *testing.T) {
 
 		// Create 15 serve models to test pagination
 		var createdServeModels []string
-		for i := 0; i < 15; i++ {
+		for i := range 15 {
 			input := &openapi.ServeModel{
 				Name:           apiutils.Of(fmt.Sprintf("paging-test-serve-model-%02d", i)),
 				Description:    apiutils.Of(fmt.Sprintf("Test serve model %d for pagination", i)),
@@ -864,7 +864,7 @@ func TestGetServeModels(t *testing.T) {
 		require.NoError(t, err)
 
 		// Create several serve models for pagination testing
-		for i := 0; i < 5; i++ {
+		for i := range 5 {
 			srvModel := &openapi.ServeModel{
 				Name:           apiutils.Of("pagination-serve-model-" + string(rune('A'+i))),
 				ExternalId:     apiutils.Of("pagination-ext-" + string(rune('A'+i))),

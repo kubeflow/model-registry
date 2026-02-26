@@ -320,7 +320,7 @@ func TestUpsertModelVersion(t *testing.T) {
 
 		// Create 15 model versions for pagination testing
 		var createdVersions []string
-		for i := 0; i < 15; i++ {
+		for i := range 15 {
 			versionName := "paging-test-model-version-" + fmt.Sprintf("%02d", i)
 			inputVersion := &openapi.ModelVersion{
 				Name:              versionName,
@@ -784,7 +784,7 @@ func TestGetModelVersions(t *testing.T) {
 
 	t.Run("list all versions without registered model filter", func(t *testing.T) {
 		// Create multiple registered models with versions
-		for i := 0; i < 2; i++ {
+		for i := range 2 {
 			registeredModel := &openapi.RegisteredModel{
 				Name: "all-versions-model-" + string(rune('A'+i)),
 			}
@@ -817,7 +817,7 @@ func TestGetModelVersions(t *testing.T) {
 		require.NoError(t, err)
 
 		// Create several versions for pagination testing
-		for i := 0; i < 5; i++ {
+		for i := range 5 {
 			version := &openapi.ModelVersion{
 				Name:              "pagination-version-" + string(rune('A'+i)),
 				ExternalId:        apiutils.Of("pagination-ext-" + string(rune('A'+i))),

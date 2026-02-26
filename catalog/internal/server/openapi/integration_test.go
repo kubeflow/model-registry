@@ -209,7 +209,7 @@ func TestPerformanceArtifactsEndToEnd(t *testing.T) {
 	t.Run("pageSize parameter handling", func(t *testing.T) {
 		// Setup - create multiple artifacts
 		artifacts := make([]model.CatalogArtifact, 5)
-		for i := 0; i < 5; i++ {
+		for i := range 5 {
 			name := "perf-artifact-" + string(rune('1'+i))
 			artifacts[i] = model.CatalogArtifact{
 				CatalogMetricsArtifact: &model.CatalogMetricsArtifact{
