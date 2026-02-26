@@ -142,8 +142,7 @@ func ValidateStepIds(stepIds string) error {
 		return nil
 	}
 
-	parts := strings.SplitSeq(stepIds, ",")
-	for part := range parts {
+	for part := range strings.SplitSeq(stepIds, ",") {
 		part = strings.TrimSpace(part)
 		if part == "" {
 			continue // skip empty parts
