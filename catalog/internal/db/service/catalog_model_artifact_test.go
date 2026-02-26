@@ -422,7 +422,7 @@ func TestCatalogModelArtifactRepository(t *testing.T) {
 		require.NoError(t, err)
 
 		// Create multiple artifacts for pagination testing
-		for i := 0; i < 5; i++ {
+		for i := range 5 {
 			artifact := &models.CatalogModelArtifactImpl{
 				TypeID: apiutils.Of(int32(typeID)),
 				Attributes: &models.CatalogModelArtifactAttributes{

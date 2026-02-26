@@ -178,7 +178,7 @@ func TestDBCatalog(t *testing.T) {
 		sourceIDs := []string{"pagination-test-source"}
 
 		// Create multiple models
-		for i := 0; i < 5; i++ {
+		for i := range 5 {
 			model := &models.CatalogModelImpl{
 				TypeID: apiutils.Of(int32(catalogModelTypeID)),
 				Attributes: &models.CatalogModelAttributes{

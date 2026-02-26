@@ -1182,7 +1182,7 @@ func TestMetadataJSONEdgeCases(t *testing.T) {
 func generateLongString(length int) string {
 	result := ""
 	char := "a"
-	for i := 0; i < length; i++ {
+	for range length {
 		result += char
 	}
 	return result

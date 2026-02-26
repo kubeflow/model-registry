@@ -396,7 +396,7 @@ func TestUpsertArtifact(t *testing.T) {
 	t.Run("pagination with 10+ artifacts", func(t *testing.T) {
 		// Create 15 artifacts for pagination testing
 		var createdArtifacts []string
-		for i := 0; i < 15; i++ {
+		for i := range 15 {
 			artifactName := "paging-test-artifact-" + fmt.Sprintf("%02d", i)
 			modelArtifact := &openapi.ModelArtifact{
 				Name:        apiutils.Of(artifactName),
@@ -746,7 +746,7 @@ func TestUpsertModelVersionArtifact(t *testing.T) {
 
 		// Create 15 model version artifacts for pagination testing
 		var createdArtifacts []string
-		for i := 0; i < 15; i++ {
+		for i := range 15 {
 			artifactName := "paging-test-version-artifact-" + fmt.Sprintf("%02d", i)
 			modelArtifact := &openapi.ModelArtifact{
 				Name:        apiutils.Of(artifactName),
@@ -1474,7 +1474,7 @@ func TestGetArtifacts(t *testing.T) {
 		require.NoError(t, err)
 
 		// Create artifacts for this model version
-		for i := 0; i < 3; i++ {
+		for i := range 3 {
 			artifact := &openapi.Artifact{
 				ModelArtifact: &openapi.ModelArtifact{
 					Name: apiutils.Of("version-artifact-" + string(rune('1'+i))),
@@ -1649,7 +1649,7 @@ func TestUpsertModelArtifact(t *testing.T) {
 
 	t.Run("pagination test", func(t *testing.T) {
 		// Create multiple model artifacts for pagination testing
-		for i := 0; i < 15; i++ {
+		for i := range 15 {
 			modelArtifact := &openapi.ModelArtifact{
 				Name: apiutils.Of(fmt.Sprintf("paging-test-direct-model-artifact-%d", i+1)),
 				Uri:  apiutils.Of(fmt.Sprintf("s3://bucket/paging-direct-model-%d.pkl", i+1)),
@@ -1969,7 +1969,7 @@ func TestGetModelArtifacts(t *testing.T) {
 
 	t.Run("successful list all model artifacts", func(t *testing.T) {
 		// Create multiple model artifacts
-		for i := 0; i < 3; i++ {
+		for i := range 3 {
 			modelArtifact := &openapi.ModelArtifact{
 				Name: apiutils.Of("list-model-artifact-" + string(rune('1'+i))),
 				Uri:  apiutils.Of("s3://bucket/model" + string(rune('1'+i)) + ".pkl"),
@@ -2007,7 +2007,7 @@ func TestGetModelArtifacts(t *testing.T) {
 		require.NoError(t, err)
 
 		// Create model artifacts for this model version
-		for i := 0; i < 2; i++ {
+		for i := range 2 {
 			modelArtifact := &openapi.ModelArtifact{
 				Name: apiutils.Of("version-model-artifact-" + string(rune('1'+i))),
 				Uri:  apiutils.Of("s3://bucket/version-model" + string(rune('1'+i)) + ".pkl"),

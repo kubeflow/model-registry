@@ -193,7 +193,7 @@ func TestUpsertServingEnvironment(t *testing.T) {
 	t.Run("pagination with 10+ environments", func(t *testing.T) {
 		// Create 15 environments to test pagination
 		var createdEnvironments []string
-		for i := 0; i < 15; i++ {
+		for i := range 15 {
 			input := &openapi.ServingEnvironment{
 				Name:        fmt.Sprintf("paging-test-env-%02d", i),
 				Description: apiutils.Of(fmt.Sprintf("Test environment %d for pagination", i)),
@@ -443,7 +443,7 @@ func TestGetServingEnvironments(t *testing.T) {
 
 	t.Run("pagination and ordering", func(t *testing.T) {
 		// Create several environments for pagination testing
-		for i := 0; i < 5; i++ {
+		for i := range 5 {
 			env := &openapi.ServingEnvironment{
 				Name:       "pagination-serving-env-" + string(rune('A'+i)),
 				ExternalId: apiutils.Of("pagination-ext-" + string(rune('A'+i))),

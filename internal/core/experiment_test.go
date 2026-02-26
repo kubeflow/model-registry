@@ -184,7 +184,7 @@ func TestGetExperiments(t *testing.T) {
 	defer cleanup()
 
 	// Create multiple test experiments
-	for i := 0; i < 5; i++ {
+	for i := range 5 {
 		experiment := &openapi.Experiment{
 			Name:        fmt.Sprintf("list-test-experiment-%d", i),
 			Description: apiutils.Of(fmt.Sprintf("List test description %d", i)),

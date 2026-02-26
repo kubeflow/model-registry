@@ -220,7 +220,7 @@ func TestUpsertRegisteredModel(t *testing.T) {
 	t.Run("pagination with 10+ models", func(t *testing.T) {
 		// Create 15 models to test pagination
 		var createdModels []string
-		for i := 0; i < 15; i++ {
+		for i := range 15 {
 			input := &openapi.RegisteredModel{
 				Name:        fmt.Sprintf("paging-test-model-%02d", i),
 				Description: apiutils.Of(fmt.Sprintf("Test model %d for pagination", i)),
@@ -541,7 +541,7 @@ func TestGetRegisteredModels(t *testing.T) {
 
 	t.Run("pagination and ordering", func(t *testing.T) {
 		// Create several models for pagination testing
-		for i := 0; i < 5; i++ {
+		for i := range 5 {
 			model := &openapi.RegisteredModel{
 				Name:       "pagination-model-" + string(rune('A'+i)),
 				ExternalId: apiutils.Of("pagination-ext-" + string(rune('A'+i))),

@@ -697,7 +697,7 @@ func TestMCPServerRepository(t *testing.T) {
 
 	t.Run("TestPagination", func(t *testing.T) {
 		// Create multiple servers for pagination testing
-		for i := 0; i < 5; i++ {
+		for i := range 5 {
 			mcpServer := &models.MCPServerImpl{
 				Attributes: &models.MCPServerAttributes{
 					Name: apiutils.Of(fmt.Sprintf("pagination-server-%d", i)),

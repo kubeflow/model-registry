@@ -351,7 +351,7 @@ func TestGetExperimentRuns(t *testing.T) {
 	require.NoError(t, err)
 
 	// Create multiple test experiment runs for first experiment
-	for i := 0; i < 3; i++ {
+	for i := range 3 {
 		experimentRun := &openapi.ExperimentRun{
 			Name:        apiutils.Of(fmt.Sprintf("list-test-run-exp1-%d", i)),
 			Description: apiutils.Of(fmt.Sprintf("List test description exp1-%d", i)),
@@ -362,7 +362,7 @@ func TestGetExperimentRuns(t *testing.T) {
 	}
 
 	// Create experiment runs for second experiment
-	for i := 0; i < 2; i++ {
+	for i := range 2 {
 		experimentRun := &openapi.ExperimentRun{
 			Name:        apiutils.Of(fmt.Sprintf("list-test-run-exp2-%d", i)),
 			Description: apiutils.Of(fmt.Sprintf("List test description exp2-%d", i)),
