@@ -2,6 +2,7 @@ package modelcatalog
 
 import (
 	"encoding/json"
+	"strings"
 	"testing"
 )
 
@@ -1180,10 +1181,10 @@ func TestMetadataJSONEdgeCases(t *testing.T) {
 }
 
 func generateLongString(length int) string {
-	result := ""
+	var result strings.Builder
 	char := "a"
 	for range length {
-		result += char
+		result.WriteString(char)
 	}
-	return result
+	return result.String()
 }
