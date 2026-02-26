@@ -2,6 +2,7 @@ package core_test
 
 import (
 	"fmt"
+	"slices"
 	"strings"
 	"testing"
 
@@ -453,11 +454,8 @@ func TestUpsertInferenceService(t *testing.T) {
 		// Count our test services in the results
 		foundCount := 0
 		for _, item := range allItems.Items {
-			for _, createdId := range createdServices {
-				if *item.Id == createdId {
-					foundCount++
-					break
-				}
+			if slices.Contains(createdServices, *item.Id) {
+				foundCount++
 			}
 		}
 		assert.Equal(t, 15, foundCount, "Should find all 15 created inference services")
@@ -766,11 +764,8 @@ func TestGetInferenceServices(t *testing.T) {
 		// Verify our inference services are in the result
 		foundServices := 0
 		for _, item := range result.Items {
-			for _, createdId := range createdIds {
-				if *item.Id == createdId {
-					foundServices++
-					break
-				}
+			if slices.Contains(createdIds, *item.Id) {
+				foundServices++
 			}
 		}
 		assert.Equal(t, 3, foundServices, "All created inference services should be found in the list")

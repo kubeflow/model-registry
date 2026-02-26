@@ -2,6 +2,7 @@ package core_test
 
 import (
 	"fmt"
+	"slices"
 	"testing"
 
 	"github.com/kubeflow/model-registry/internal/apiutils"
@@ -529,11 +530,8 @@ func TestGetRegisteredModels(t *testing.T) {
 		// Verify our models are in the result
 		foundModels := 0
 		for _, item := range result.Items {
-			for _, createdId := range createdIds {
-				if *item.Id == createdId {
-					foundModels++
-					break
-				}
+			if slices.Contains(createdIds, *item.Id) {
+				foundModels++
 			}
 		}
 		assert.Equal(t, 3, foundModels, "All created models should be found in the list")
@@ -842,11 +840,8 @@ func TestGetRegisteredModelsWithFilterQuery(t *testing.T) {
 			// Extract names from results
 			var actualNames []string
 			for _, item := range result.Items {
-				for _, expectedName := range tc.expectedNames {
-					if item.Name == expectedName {
-						actualNames = append(actualNames, item.Name)
-						break
-					}
+				if slices.Contains(tc.expectedNames, item.Name) {
+					actualNames = append(actualNames, item.Name)
 				}
 			}
 
