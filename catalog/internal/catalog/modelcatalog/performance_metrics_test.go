@@ -292,7 +292,7 @@ func TestOverallAccuracyToOverallAverage(t *testing.T) {
 	t.Run("artifact has overall_average when overall_accuracy provided", func(t *testing.T) {
 		overallAccuracy := 87.5
 		evalRecords := []evaluationRecord{
-			{Benchmark: "mmlu", CustomProperties: map[string]interface{}{"score": 90.0}},
+			{Benchmark: "mmlu", CustomProperties: map[string]any{"score": 90.0}},
 		}
 
 		artifact := createAccuracyMetricsArtifact(evalRecords, 1, 100, &overallAccuracy, nil, nil)
@@ -314,7 +314,7 @@ func TestOverallAccuracyToOverallAverage(t *testing.T) {
 
 	t.Run("artifact has no overall_average when overall_accuracy is nil", func(t *testing.T) {
 		evalRecords := []evaluationRecord{
-			{Benchmark: "mmlu", CustomProperties: map[string]interface{}{"score": 90.0}},
+			{Benchmark: "mmlu", CustomProperties: map[string]any{"score": 90.0}},
 		}
 
 		artifact := createAccuracyMetricsArtifact(evalRecords, 1, 100, nil, nil, nil)
@@ -333,7 +333,7 @@ func TestEvaluationRecordUnmarshalJSON(t *testing.T) {
 		jsonData         string
 		wantModelID      string
 		wantBenchmark    string
-		wantCustomProps  map[string]interface{}
+		wantCustomProps  map[string]any
 		wantErr          bool
 		checkCustomProps bool
 	}{
@@ -348,7 +348,7 @@ func TestEvaluationRecordUnmarshalJSON(t *testing.T) {
 			}`,
 			wantModelID:   "test-model-123",
 			wantBenchmark: "aime24",
-			wantCustomProps: map[string]interface{}{
+			wantCustomProps: map[string]any{
 				"model_id":   "test-model-123",
 				"benchmark":  "aime24",
 				"score":      63.3333,
@@ -366,7 +366,7 @@ func TestEvaluationRecordUnmarshalJSON(t *testing.T) {
 			}`,
 			wantModelID:   "minimal-model",
 			wantBenchmark: "test-benchmark",
-			wantCustomProps: map[string]interface{}{
+			wantCustomProps: map[string]any{
 				"model_id":  "minimal-model",
 				"benchmark": "test-benchmark",
 			},
@@ -386,7 +386,7 @@ func TestEvaluationRecordUnmarshalJSON(t *testing.T) {
 			}`,
 			wantModelID:   "custom-model",
 			wantBenchmark: "custom-bench",
-			wantCustomProps: map[string]interface{}{
+			wantCustomProps: map[string]any{
 				"model_id":            "custom-model",
 				"benchmark":           "custom-bench",
 				"score":               95.5,
@@ -424,7 +424,7 @@ func TestEvaluationRecordUnmarshalJSON(t *testing.T) {
 			}`,
 			wantModelID:   "null-model",
 			wantBenchmark: "null-bench",
-			wantCustomProps: map[string]interface{}{
+			wantCustomProps: map[string]any{
 				"model_id":   "null-model",
 				"benchmark":  "null-bench",
 				"null_field": nil,
@@ -526,7 +526,7 @@ func TestPerformanceRecordUnmarshalJSON(t *testing.T) {
 		jsonData         string
 		wantID           string
 		wantModelID      string
-		wantCustomProps  map[string]interface{}
+		wantCustomProps  map[string]any
 		wantErr          bool
 		checkCustomProps bool
 	}{
@@ -544,7 +544,7 @@ func TestPerformanceRecordUnmarshalJSON(t *testing.T) {
 			}`,
 			wantID:      "perf-123",
 			wantModelID: "test-model-456",
-			wantCustomProps: map[string]interface{}{
+			wantCustomProps: map[string]any{
 				"id":          "perf-123",
 				"model_id":    "test-model-456",
 				"throughput":  1000.5,
@@ -565,7 +565,7 @@ func TestPerformanceRecordUnmarshalJSON(t *testing.T) {
 			}`,
 			wantID:      "minimal-perf",
 			wantModelID: "minimal-model",
-			wantCustomProps: map[string]interface{}{
+			wantCustomProps: map[string]any{
 				"id":       "minimal-perf",
 				"model_id": "minimal-model",
 			},
@@ -585,7 +585,7 @@ func TestPerformanceRecordUnmarshalJSON(t *testing.T) {
 			}`,
 			wantID:      "custom-perf",
 			wantModelID: "custom-model",
-			wantCustomProps: map[string]interface{}{
+			wantCustomProps: map[string]any{
 				"id":                  "custom-perf",
 				"model_id":            "custom-model",
 				"throughput":          500.0,
@@ -623,7 +623,7 @@ func TestPerformanceRecordUnmarshalJSON(t *testing.T) {
 			}`,
 			wantID:      "null-perf",
 			wantModelID: "null-model",
-			wantCustomProps: map[string]interface{}{
+			wantCustomProps: map[string]any{
 				"id":         "null-perf",
 				"model_id":   "null-model",
 				"null_field": nil,
@@ -666,7 +666,7 @@ func TestPerformanceRecordUnmarshalJSON(t *testing.T) {
 			}`,
 			wantID:      "zero-perf",
 			wantModelID: "zero-model",
-			wantCustomProps: map[string]interface{}{
+			wantCustomProps: map[string]any{
 				"id":          "zero-perf",
 				"model_id":    "zero-model",
 				"throughput":  float64(0),

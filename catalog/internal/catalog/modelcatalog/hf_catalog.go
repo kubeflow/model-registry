@@ -137,7 +137,7 @@ type hfConfig struct {
 }
 
 type hfCard struct {
-	Data map[string]interface{} `json:"data,omitempty"`
+	Data map[string]any `json:"data,omitempty"`
 }
 
 //go:embed assets/catalog_logo.svg
@@ -287,7 +287,7 @@ func (hfm *hfModel) populateFromHFInfo(ctx context.Context, provider *hfModelPro
 		}
 
 		// Extract language from cardData if available
-		if langData, ok := hfInfo.CardData.Data["language"].([]interface{}); ok && len(langData) > 0 {
+		if langData, ok := hfInfo.CardData.Data["language"].([]any); ok && len(langData) > 0 {
 			languages := make([]string, 0, len(langData))
 			for _, lang := range langData {
 				if langStr, ok := lang.(string); ok && langStr != "" {

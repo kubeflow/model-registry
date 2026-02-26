@@ -830,7 +830,7 @@ func (qb *QueryBuilder) buildOperatorCondition(column string, operator string, v
 		return conditionResult{condition: fmt.Sprintf("%s LIKE ?", column), args: []any{value}}
 	case "IN":
 		// Handle IN operator with array values
-		if valueSlice, ok := value.([]interface{}); ok {
+		if valueSlice, ok := value.([]any); ok {
 			if len(valueSlice) == 0 {
 				// Empty list should return false condition
 				return conditionResult{condition: "1 = 0", args: []any{}}

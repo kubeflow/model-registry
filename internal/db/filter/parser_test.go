@@ -13,7 +13,7 @@ func exprToString(expr *FilterExpression) string {
 
 	if expr.IsLeaf {
 		// Handle arrays for IN operator
-		if slice, ok := expr.Value.([]interface{}); ok {
+		if slice, ok := expr.Value.([]any); ok {
 			return fmt.Sprintf("%s %s %v", expr.Property, expr.Operator, slice)
 		}
 		return fmt.Sprintf("%s %s %v", expr.Property, expr.Operator, expr.Value)

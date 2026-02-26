@@ -1105,7 +1105,7 @@ func TestFindLabels(t *testing.T) {
 						ok1 = val1 != nil
 						ok2 = val2 != nil
 					} else {
-						var v1, v2 interface{}
+						var v1, v2 any
 						v1, ok1 = labelList.Items[i].AdditionalProperties[tc.checkOrderByKey]
 						v2, ok2 = labelList.Items[i+1].AdditionalProperties[tc.checkOrderByKey]
 						if ok1 {

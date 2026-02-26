@@ -126,7 +126,7 @@ type FilterExpression struct {
 	Right    *FilterExpression
 	Operator string
 	Property string
-	Value    interface{}
+	Value    any
 	IsLeaf   bool
 }
 
@@ -265,7 +265,7 @@ func convertPropertyRef(prop *PropertyRef, value *Value) *PropertyReference {
 	}
 }
 
-func convertValue(val *Value) interface{} {
+func convertValue(val *Value) any {
 	if val.String != nil {
 		return unquoteStringValue(*val.String)
 	}
@@ -294,7 +294,7 @@ func convertValue(val *Value) interface{} {
 	return nil
 }
 
-func convertSingleValue(val *SingleValue) interface{} {
+func convertSingleValue(val *SingleValue) any {
 	if val.String != nil {
 		return unquoteStringValue(*val.String)
 	}
