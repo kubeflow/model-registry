@@ -1297,10 +1297,12 @@ var _ = Describe("TestModelTransferJob retry metadata preservation", func() {
 			Expect(envelope.Data.Description).To(Equal("Transfer job for Model One"))
 		})
 
-		It("PATCH preserves credentials by reusing secrets from old job", func() {
+		It("PATCH clones credentials from old job into new secrets", func() {
 			// This test verifies that the retry creates a new job even though
-			// we're not providing credentials in the payload - they should be
-			// cloned from the old job's secrets
+			// we're not providing credentials in the payload - credentials are
+			// cloned from the old job's secrets into NEW secret objects.
+			// IMPORTANT: We create new Secret objects (not reuse existing ones)
+			// so that deleting the old job doesn't affect the new job's secrets.
 			payload := ModelTransferJobEnvelope{
 				Data: &models.ModelTransferJob{
 					Name: "retry-job-with-creds",
