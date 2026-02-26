@@ -466,7 +466,7 @@ models:
 	// Test that absolute paths work correctly (bug fix)
 	t.Run("absolute path works correctly", func(t *testing.T) {
 		source := &basecatalog.ModelSource{
-			Properties: map[string]interface{}{
+			Properties: map[string]any{
 				yamlCatalogPathKey: absolutePath, // Use absolute path to existing file
 			},
 		}
@@ -487,7 +487,7 @@ models:
 		relativePath := "catalog.yaml"
 
 		source := &basecatalog.ModelSource{
-			Properties: map[string]interface{}{
+			Properties: map[string]any{
 				yamlCatalogPathKey: relativePath,
 			},
 		}

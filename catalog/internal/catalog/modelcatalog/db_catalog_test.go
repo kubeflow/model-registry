@@ -1672,7 +1672,7 @@ func TestApplyMinMax(t *testing.T) {
 			inputOptions: map[string]model.FilterOption{
 				"status": {
 					Type:   "string",
-					Values: []interface{}{"active", "inactive"},
+					Values: []any{"active", "inactive"},
 				},
 			},
 			expectedQuery: map[string]model.FieldFilter{
@@ -1883,7 +1883,7 @@ func TestApplyMinMax(t *testing.T) {
 				},
 				"status": {
 					Type:   "string",
-					Values: []interface{}{"running", "stopped"},
+					Values: []any{"running", "stopped"},
 				},
 			},
 			expectedQuery: map[string]model.FieldFilter{

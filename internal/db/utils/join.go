@@ -10,7 +10,7 @@ import (
 // Helper functions for building JOINs that respect GORM's naming strategy
 
 // getTableName returns the properly quoted table name using GORM's naming strategy
-func getTableName(db *gorm.DB, model interface{}) string {
+func getTableName(db *gorm.DB, model any) string {
 	stmt := &gorm.Statement{DB: db}
 	err := stmt.Parse(model)
 	if err != nil {
@@ -70,12 +70,12 @@ func BuildContextPropertyJoin(db *gorm.DB, propertyName string) string {
 }
 
 // GetColumnRef returns properly quoted column references
-func GetColumnRef(db *gorm.DB, model interface{}, column string) string {
+func GetColumnRef(db *gorm.DB, model any, column string) string {
 	tableName := getTableName(db, model)
 	return fmt.Sprintf("%s.%s", tableName, db.NamingStrategy.ColumnName("", column))
 }
 
 // GetTableName returns the properly quoted table name (exported version for external use)
-func GetTableName(db *gorm.DB, model interface{}) string {
+func GetTableName(db *gorm.DB, model any) string {
 	return getTableName(db, model)
 }

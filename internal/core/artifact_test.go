@@ -1059,7 +1059,7 @@ func TestGetArtifactByParams(t *testing.T) {
 			artifactName    string
 			createArtifact1 *openapi.Artifact
 			createArtifact2 *openapi.Artifact
-			checkField      func(*openapi.Artifact) interface{}
+			checkField      func(*openapi.Artifact) any
 			getDescription  func(*openapi.Artifact) string
 		}{
 			{
@@ -1079,7 +1079,7 @@ func TestGetArtifactByParams(t *testing.T) {
 						Description: apiutils.Of("Model artifact for version 2"),
 					},
 				},
-				checkField: func(a *openapi.Artifact) interface{} { return a.ModelArtifact },
+				checkField: func(a *openapi.Artifact) any { return a.ModelArtifact },
 				getDescription: func(a *openapi.Artifact) string {
 					if a.ModelArtifact != nil && a.ModelArtifact.Description != nil {
 						return *a.ModelArtifact.Description
@@ -1104,7 +1104,7 @@ func TestGetArtifactByParams(t *testing.T) {
 						Description: apiutils.Of("Doc artifact for version 2"),
 					},
 				},
-				checkField: func(a *openapi.Artifact) interface{} { return a.DocArtifact },
+				checkField: func(a *openapi.Artifact) any { return a.DocArtifact },
 				getDescription: func(a *openapi.Artifact) string {
 					if a.DocArtifact != nil && a.DocArtifact.Description != nil {
 						return *a.DocArtifact.Description
@@ -1129,7 +1129,7 @@ func TestGetArtifactByParams(t *testing.T) {
 						Description: apiutils.Of("Dataset for version 2"),
 					},
 				},
-				checkField: func(a *openapi.Artifact) interface{} { return a.DataSet },
+				checkField: func(a *openapi.Artifact) any { return a.DataSet },
 				getDescription: func(a *openapi.Artifact) string {
 					if a.DataSet != nil && a.DataSet.Description != nil {
 						return *a.DataSet.Description
@@ -1154,7 +1154,7 @@ func TestGetArtifactByParams(t *testing.T) {
 						Description: apiutils.Of("Metric for version 2"),
 					},
 				},
-				checkField: func(a *openapi.Artifact) interface{} { return a.Metric },
+				checkField: func(a *openapi.Artifact) any { return a.Metric },
 				getDescription: func(a *openapi.Artifact) string {
 					if a.Metric != nil && a.Metric.Description != nil {
 						return *a.Metric.Description
@@ -1179,7 +1179,7 @@ func TestGetArtifactByParams(t *testing.T) {
 						Description: apiutils.Of("Parameter for version 2"),
 					},
 				},
-				checkField: func(a *openapi.Artifact) interface{} { return a.Parameter },
+				checkField: func(a *openapi.Artifact) any { return a.Parameter },
 				getDescription: func(a *openapi.Artifact) string {
 					if a.Parameter != nil && a.Parameter.Description != nil {
 						return *a.Parameter.Description
@@ -1250,7 +1250,7 @@ func TestGetArtifactByParams(t *testing.T) {
 			artifactName    string
 			createArtifact1 *openapi.Artifact
 			createArtifact2 *openapi.Artifact
-			checkField      func(*openapi.Artifact) interface{}
+			checkField      func(*openapi.Artifact) any
 			getDescription  func(*openapi.Artifact) string
 		}{
 			{
@@ -1270,7 +1270,7 @@ func TestGetArtifactByParams(t *testing.T) {
 						Description: apiutils.Of("Model artifact for run 2"),
 					},
 				},
-				checkField: func(a *openapi.Artifact) interface{} { return a.ModelArtifact },
+				checkField: func(a *openapi.Artifact) any { return a.ModelArtifact },
 				getDescription: func(a *openapi.Artifact) string {
 					if a.ModelArtifact != nil && a.ModelArtifact.Description != nil {
 						return *a.ModelArtifact.Description
@@ -1295,7 +1295,7 @@ func TestGetArtifactByParams(t *testing.T) {
 						Description: apiutils.Of("Doc artifact for run 2"),
 					},
 				},
-				checkField: func(a *openapi.Artifact) interface{} { return a.DocArtifact },
+				checkField: func(a *openapi.Artifact) any { return a.DocArtifact },
 				getDescription: func(a *openapi.Artifact) string {
 					if a.DocArtifact != nil && a.DocArtifact.Description != nil {
 						return *a.DocArtifact.Description
@@ -1320,7 +1320,7 @@ func TestGetArtifactByParams(t *testing.T) {
 						Description: apiutils.Of("Dataset for run 2"),
 					},
 				},
-				checkField: func(a *openapi.Artifact) interface{} { return a.DataSet },
+				checkField: func(a *openapi.Artifact) any { return a.DataSet },
 				getDescription: func(a *openapi.Artifact) string {
 					if a.DataSet != nil && a.DataSet.Description != nil {
 						return *a.DataSet.Description
@@ -1345,7 +1345,7 @@ func TestGetArtifactByParams(t *testing.T) {
 						Description: apiutils.Of("Metric for run 2"),
 					},
 				},
-				checkField: func(a *openapi.Artifact) interface{} { return a.Metric },
+				checkField: func(a *openapi.Artifact) any { return a.Metric },
 				getDescription: func(a *openapi.Artifact) string {
 					if a.Metric != nil && a.Metric.Description != nil {
 						return *a.Metric.Description
@@ -1370,7 +1370,7 @@ func TestGetArtifactByParams(t *testing.T) {
 						Description: apiutils.Of("Parameter for run 2"),
 					},
 				},
-				checkField: func(a *openapi.Artifact) interface{} { return a.Parameter },
+				checkField: func(a *openapi.Artifact) any { return a.Parameter },
 				getDescription: func(a *openapi.Artifact) string {
 					if a.Parameter != nil && a.Parameter.Description != nil {
 						return *a.Parameter.Description

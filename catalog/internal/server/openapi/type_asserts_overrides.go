@@ -18,7 +18,7 @@ func AssertCatalogArtifactConstraints(obj model.CatalogArtifact) error {
 
 // AssertFilterOptionRequired checks if the required fields are not zero-ed
 func AssertFilterOptionRequired(obj model.FilterOption) error {
-	elements := map[string]interface{}{
+	elements := map[string]any{
 		"type": obj.Type,
 	}
 	for name, el := range elements {
