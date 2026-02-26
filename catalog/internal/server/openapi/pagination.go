@@ -75,10 +75,7 @@ func (p *paginator[T]) Paginate(items []T) ([]T, *paginator[T]) {
 	var pagedItems []T
 	var next *paginator[T]
 
-	endIndex := startIndex + int(p.PageSize)
-	if endIndex > len(items) {
-		endIndex = len(items)
-	}
+	endIndex := min(startIndex+int(p.PageSize), len(items))
 	pagedItems = items[startIndex:endIndex]
 
 	if endIndex < len(items) {
