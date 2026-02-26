@@ -850,7 +850,7 @@ func (p *hfModelProvider) validateCredentials(ctx context.Context) error {
 	return nil
 }
 
-func newHFModelProvider(ctx context.Context, source *basecatalog.Source, reldir string) (<-chan ModelProviderRecord, error) {
+func newHFModelProvider(ctx context.Context, source *basecatalog.ModelSource, reldir string) (<-chan ModelProviderRecord, error) {
 	p := &hfModelProvider{}
 	p.client = &http.Client{Timeout: 30 * time.Second}
 

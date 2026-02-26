@@ -9,11 +9,16 @@ import (
 	"github.com/golang/glog"
 )
 
-// CatalogLoader interface for unified handling of different loader types
-type CatalogLoader interface {
-	StartReadOnly(ctx context.Context) error
-	StartLeader(ctx context.Context) error
-	Shutdown() error
+// LoaderState provides access to shared loader state for child loaders.
+// This interface allows delegate loaders to share leader state, write tracking,
+// and file paths without embedding BaseLoader.
+type LoaderState interface {
+	IsLeader() bool
+	ShouldWriteDatabase() bool
+	TrackWrite()
+	WriteComplete()
+	SetCloser(closer func())
+	Paths() []string
 }
 
 // BaseLoader provides common functionality for all catalog loaders.

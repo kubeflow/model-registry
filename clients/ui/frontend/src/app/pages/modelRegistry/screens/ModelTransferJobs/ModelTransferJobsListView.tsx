@@ -106,7 +106,6 @@ const ModelTransferJobsListView: React.FC<ModelTransferJobsListViewProps> = ({
           [ModelTransferJobsFilterOptions.jobName]: ({ onChange, ...props }) => (
             <ThemeAwareSearchInput
               {...props}
-              fieldLabel="Filter by job name"
               placeholder="Filter by job name"
               className="toolbar-fieldset-wrapper"
               style={{ minWidth: '270px' }}
@@ -116,7 +115,6 @@ const ModelTransferJobsListView: React.FC<ModelTransferJobsListViewProps> = ({
           [ModelTransferJobsFilterOptions.modelName]: ({ onChange, ...props }) => (
             <ThemeAwareSearchInput
               {...props}
-              fieldLabel="Filter by model name"
               placeholder="Filter by model name"
               className="toolbar-fieldset-wrapper"
               style={{ minWidth: '270px' }}
@@ -126,7 +124,6 @@ const ModelTransferJobsListView: React.FC<ModelTransferJobsListViewProps> = ({
           [ModelTransferJobsFilterOptions.versionName]: ({ onChange, ...props }) => (
             <ThemeAwareSearchInput
               {...props}
-              fieldLabel="Filter by version name"
               placeholder="Filter by version name"
               className="toolbar-fieldset-wrapper"
               style={{ minWidth: '270px' }}
@@ -136,7 +133,6 @@ const ModelTransferJobsListView: React.FC<ModelTransferJobsListViewProps> = ({
           [ModelTransferJobsFilterOptions.namespace]: ({ onChange, ...props }) => (
             <ThemeAwareSearchInput
               {...props}
-              fieldLabel="Filter by namespace"
               placeholder="Filter by namespace"
               className="toolbar-fieldset-wrapper"
               style={{ minWidth: '270px' }}
@@ -146,7 +142,6 @@ const ModelTransferJobsListView: React.FC<ModelTransferJobsListViewProps> = ({
           [ModelTransferJobsFilterOptions.author]: ({ onChange, ...props }) => (
             <ThemeAwareSearchInput
               {...props}
-              fieldLabel="Filter by author"
               placeholder="Filter by author"
               className="toolbar-fieldset-wrapper"
               style={{ minWidth: '270px' }}
@@ -156,7 +151,6 @@ const ModelTransferJobsListView: React.FC<ModelTransferJobsListViewProps> = ({
           [ModelTransferJobsFilterOptions.status]: ({ onChange, ...props }) => (
             <ThemeAwareSearchInput
               {...props}
-              fieldLabel="Filter by status"
               placeholder="Filter by status"
               className="toolbar-fieldset-wrapper"
               style={{ minWidth: '270px' }}
