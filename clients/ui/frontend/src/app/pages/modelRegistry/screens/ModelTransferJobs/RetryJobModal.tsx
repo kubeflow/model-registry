@@ -67,7 +67,7 @@ const RetryJobModal: React.FC<RetryJobModalProps> = ({ job, onClose, onRetry }) 
         <Stack hasGutter>
           <StackItem>
             A new transfer job will be created for the{' '}
-            <strong>{job.modelVersionName || 'model version'}</strong>.
+            <strong>{job.modelVersionName}</strong> model version.
           </StackItem>
 
           <StackItem>
