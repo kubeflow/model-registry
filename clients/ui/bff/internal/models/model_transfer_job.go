@@ -93,7 +93,6 @@ type ModelTransferJob struct {
 	VersionCustomProperties  map[string]interface{}       `json:"versionCustomProperties,omitempty"`
 	SourceSecretName         string                       `json:"sourceSecretName,omitempty"`
 	DestSecretName           string                       `json:"destSecretName,omitempty"`
-	ErrorDescription         string                       `json:"errorDescription,omitempty"`
 	Events                   []ModelTransferJobEvent      `json:"events"`
 }
 

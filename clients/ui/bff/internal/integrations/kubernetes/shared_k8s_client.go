@@ -568,32 +568,6 @@ func (kc *SharedClientLogic) GetEventsForPods(ctx context.Context, namespace str
 	return &corev1.EventList{Items: allEvents}, nil
 }
 
-func (kc *SharedClientLogic) UpdateModelTransferJob(ctx context.Context, namespace string, jobId string, data map[string]string) error {
-	sessionLogger := ctx.Value(constants.TraceLoggerKey).(*slog.Logger)
-
-	job, err := kc.Client.BatchV1().Jobs(namespace).Get(ctx, jobId, metav1.GetOptions{})
-	if err != nil {
-		sessionLogger.Error("failed to get job for update", "namespace", namespace, "jobId", jobId, "error", err)
-		return fmt.Errorf("failed to get job %s: %w", jobId, err)
-	}
-
-	if job.Annotations == nil {
-		job.Annotations = make(map[string]string)
-	}
-	for k, v := range data {
-		job.Annotations[k] = v
-	}
-
-	_, err = kc.Client.BatchV1().Jobs(namespace).Update(ctx, job, metav1.UpdateOptions{})
-	if err != nil {
-		sessionLogger.Error("failed to update job", "namespace", namespace, "jobId", jobId, "error", err)
-		return fmt.Errorf("failed to update job %s: %w", jobId, err)
-	}
-
-	sessionLogger.Info("successfully updated job", "namespace", namespace, "jobId", jobId)
-	return nil
-}
-
 func (kc *SharedClientLogic) PatchSecretOwnerReference(ctx context.Context, namespace string, name string, ownerRef metav1.OwnerReference) error {
 	sessionLogger := ctx.Value(constants.TraceLoggerKey).(*slog.Logger)
 

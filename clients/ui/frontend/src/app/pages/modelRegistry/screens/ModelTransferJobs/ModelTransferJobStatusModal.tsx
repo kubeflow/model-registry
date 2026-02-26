@@ -15,7 +15,11 @@ import {
   Tabs,
   TabTitleText,
 } from '@patternfly/react-core';
-import { ModelTransferJob, ModelTransferJobStatus } from '~/app/types';
+import {
+  ModelTransferJob,
+  ModelTransferJobStatus,
+  ModelTransferJobUploadIntent,
+} from '~/app/types';
 import EventLog from '~/app/shared/components/EventLog';
 import { getStatusLabel } from './ModelTransferJobTableRow';
 
@@ -37,9 +41,20 @@ const ModelTransferJobStatusModal: React.FC<ModelTransferJobStatusModalProps> = 
     return null;
   }
 
+  const getModalTitle = (intent: ModelTransferJobUploadIntent): string => {
+    switch (intent) {
+      case ModelTransferJobUploadIntent.CREATE_MODEL:
+        return 'Model creation status';
+      case ModelTransferJobUploadIntent.CREATE_VERSION:
+        return 'Model version status';
+      default:
+        return 'Transfer job status';
+    }
+  };
+
   const title = (
     <Flex spaceItems={{ default: 'spaceItemsSm' }} alignItems={{ default: 'alignItemsCenter' }}>
-      <FlexItem>Model version status</FlexItem>
+      <FlexItem>{getModalTitle(job.uploadIntent)}</FlexItem>
       <FlexItem>
         <Label color={statusInfo.color} icon={statusInfo.icon}>
           {statusInfo.label}
@@ -59,9 +74,7 @@ const ModelTransferJobStatusModal: React.FC<ModelTransferJobStatusModalProps> = 
             title={job.errorMessage || 'Failure reason (unknown)'}
             className="pf-v6-u-mb-md"
             data-testid="transfer-job-failure-alert"
-          >
-            {job.errorDescription && <p>{job.errorDescription}</p>}
-          </Alert>
+          />
         )}
         <Tabs
           activeKey={activeTabKey}

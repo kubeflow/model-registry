@@ -1,21 +1,15 @@
 import * as React from 'react';
 import { List, ListItem, Panel, PanelMain, PanelMainBody } from '@patternfly/react-core';
-
-type EventLogEvent = {
-  timestamp: string;
-  type: string;
-  reason: string;
-  message: string;
-};
+import { ModelTransferJobEvent } from '~/app/types';
 
 type EventLogProps = {
-  events: EventLogEvent[];
+  events: ModelTransferJobEvent[];
   emptyMessage?: string;
   maxHeight?: string;
   'data-testid'?: string;
 };
 
-const getEventFullMessage = (event: EventLogEvent): string =>
+const getEventFullMessage = (event: ModelTransferJobEvent): string =>
   `${event.timestamp} [${event.reason}] [${event.type}] ${event.message}`;
 
 const EventLog: React.FC<EventLogProps> = ({

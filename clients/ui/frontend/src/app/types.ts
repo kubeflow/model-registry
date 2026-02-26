@@ -356,7 +356,6 @@ export type ModelTransferJob = {
   versionCustomProperties?: ModelRegistryCustomProperties;
   sourceSecretName?: string;
   destSecretName?: string;
-  errorDescription?: string;
   events?: ModelTransferJobEvent[];
 };
 
