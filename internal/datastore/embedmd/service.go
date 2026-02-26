@@ -84,7 +84,7 @@ func (c *EmbedMDConfig) Validate() error {
 				}
 			} else {
 				// key=value format: find dbname=...
-				parts := strings.Fields(c.DatabaseDSN)
+				parts := strings.FieldsSeq(c.DatabaseDSN)
 				for _, p := range parts {
 					if name, ok := strings.CutPrefix(p, "dbname="); ok {
 						if strings.Contains(name, "?") {
