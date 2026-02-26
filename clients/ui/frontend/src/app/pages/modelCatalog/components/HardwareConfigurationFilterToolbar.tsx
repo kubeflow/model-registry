@@ -205,9 +205,9 @@ const HardwareConfigurationFilterToolbar: React.FC<HardwareConfigurationFilterTo
                   isDisabled={!hasVisibleChips}
                   onClick={onResetAllFilters}
                   data-testid="reset-all-defaults-button"
-                  aria-label="Clear all filters"
+                  aria-label="Reset all defaults"
                 >
-                  Clear all filters
+                  Reset all defaults
                 </Button>
               </ToolbarItem>
             </>
