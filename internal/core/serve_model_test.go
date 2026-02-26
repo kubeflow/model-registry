@@ -2,6 +2,7 @@ package core_test
 
 import (
 	"fmt"
+	"slices"
 	"testing"
 
 	"github.com/kubeflow/model-registry/internal/apiutils"
@@ -747,11 +748,8 @@ func TestGetServeModels(t *testing.T) {
 		// Verify our serve models are in the result
 		foundModels := 0
 		for _, item := range result.Items {
-			for _, createdId := range createdIds {
-				if *item.Id == createdId {
-					foundModels++
-					break
-				}
+			if slices.Contains(createdIds, *item.Id) {
+				foundModels++
 			}
 		}
 		assert.Equal(t, 3, foundModels, "All created serve models should be found in the list")

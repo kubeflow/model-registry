@@ -2,6 +2,7 @@ package core_test
 
 import (
 	"fmt"
+	"slices"
 	"testing"
 
 	"github.com/kubeflow/model-registry/internal/apiutils"
@@ -431,11 +432,8 @@ func TestGetServingEnvironments(t *testing.T) {
 		// Verify our environments are in the result
 		foundEnvironments := 0
 		for _, item := range result.Items {
-			for _, createdId := range createdIds {
-				if *item.Id == createdId {
-					foundEnvironments++
-					break
-				}
+			if slices.Contains(createdIds, *item.Id) {
+				foundEnvironments++
 			}
 		}
 		assert.Equal(t, 3, foundEnvironments, "All created environments should be found in the list")

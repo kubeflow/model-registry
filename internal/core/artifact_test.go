@@ -2,6 +2,7 @@ package core_test
 
 import (
 	"fmt"
+	"slices"
 	"strings"
 	"testing"
 
@@ -504,11 +505,8 @@ func TestUpsertArtifact(t *testing.T) {
 				artifactId = *item.DocArtifact.Id
 			}
 
-			for _, createdId := range createdArtifacts {
-				if artifactId == createdId {
-					foundCount++
-					break
-				}
+			if slices.Contains(createdArtifacts, artifactId) {
+				foundCount++
 			}
 		}
 		assert.Equal(t, 15, foundCount, "Should find all 15 created artifacts")
@@ -832,11 +830,8 @@ func TestUpsertModelVersionArtifact(t *testing.T) {
 		foundCount := 0
 		for _, item := range allItems.Items {
 			if item.ModelArtifact != nil {
-				for _, createdId := range createdArtifacts {
-					if *item.ModelArtifact.Id == createdId {
-						foundCount++
-						break
-					}
+				if slices.Contains(createdArtifacts, *item.ModelArtifact.Id) {
+					foundCount++
 				}
 			}
 		}

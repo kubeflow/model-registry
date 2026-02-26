@@ -2,6 +2,7 @@ package core_test
 
 import (
 	"fmt"
+	"slices"
 	"strconv"
 	"strings"
 	"testing"
@@ -751,11 +752,8 @@ func TestGetExperimentRunsWithFilterQuery(t *testing.T) {
 			// Extract names from results
 			var actualNames []string
 			for _, item := range result.Items {
-				for _, expectedName := range tc.expectedNames {
-					if *item.Name == expectedName {
-						actualNames = append(actualNames, *item.Name)
-						break
-					}
+				if slices.Contains(tc.expectedNames, *item.Name) {
+					actualNames = append(actualNames, *item.Name)
 				}
 			}
 
