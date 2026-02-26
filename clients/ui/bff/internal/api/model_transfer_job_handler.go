@@ -85,6 +85,10 @@ func (app *App) GetModelTransferJobHandler(w http.ResponseWriter, r *http.Reques
 			app.notFoundResponse(w, r)
 			return
 		}
+		if errors.Is(err, repositories.ErrJobValidationFailed) {
+			app.badRequestResponse(w, r, err)
+			return
+		}
 		app.serverErrorResponse(w, r, err)
 		return
 	}

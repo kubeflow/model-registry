@@ -52,10 +52,6 @@ func (m *ModelRegistryRepository) GetAllModelTransferJobs(ctx context.Context, c
 }
 
 func (m *ModelRegistryRepository) GetModelTransferJob(ctx context.Context, client k8s.KubernetesClientInterface, namespace string, jobName string, modelRegistryID string) (*models.ModelTransferJob, error) {
-	if modelRegistryID == "" {
-		return nil, fmt.Errorf("%w: model registry name is required", ErrJobValidationFailed)
-	}
-
 	job, err := client.GetModelTransferJob(ctx, namespace, jobName)
 	if err != nil {
 		if apierrors.IsNotFound(err) {
