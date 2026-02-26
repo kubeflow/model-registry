@@ -1,7 +1,6 @@
 package models
 
 import (
-	"github.com/kubeflow/model-registry/catalog/internal/db/filter"
 	dbfilter "github.com/kubeflow/model-registry/internal/db/filter"
 	"github.com/kubeflow/model-registry/internal/db/models"
 )
@@ -18,7 +17,7 @@ type CatalogArtifactListOptions struct {
 // GetRestEntityType implements the FilterApplier interface
 // This enables advanced filtering support for catalog artifacts
 func (c *CatalogArtifactListOptions) GetRestEntityType() dbfilter.RestEntityType {
-	return dbfilter.RestEntityType(filter.RestEntityCatalogArtifact)
+	return dbfilter.RestEntityType(RestEntityCatalogArtifact)
 }
 
 // CatalogArtifact is a discriminated union that can hold different catalog artifact types

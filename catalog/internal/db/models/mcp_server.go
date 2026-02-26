@@ -1,7 +1,6 @@
 package models
 
 import (
-	catalogfilter "github.com/kubeflow/model-registry/catalog/internal/db/filter"
 	"github.com/kubeflow/model-registry/internal/db/filter"
 	"github.com/kubeflow/model-registry/internal/db/models"
 )
@@ -18,7 +17,7 @@ type MCPServerListOptions struct {
 
 // GetRestEntityType implements the FilterApplier interface.
 func (c *MCPServerListOptions) GetRestEntityType() filter.RestEntityType {
-	return filter.RestEntityType(catalogfilter.RestEntityMCPServer)
+	return filter.RestEntityType(RestEntityMCPServer)
 }
 
 // GetFilterQuery returns the filter query string for advanced filtering.
