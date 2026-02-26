@@ -114,9 +114,8 @@ func parseCipherSuites(cipherStr string) ([]uint16, error) {
 	}
 
 	var cipherSuites []uint16
-	ciphers := strings.SplitSeq(strings.TrimSpace(cipherStr), ":")
 
-	for cipher := range ciphers {
+	for cipher := range strings.SplitSeq(strings.TrimSpace(cipherStr), ":") {
 		cipher = strings.TrimSpace(cipher)
 
 		for _, insecureCipher := range tls.InsecureCipherSuites() {
