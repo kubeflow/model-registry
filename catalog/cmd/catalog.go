@@ -182,9 +182,14 @@ func runCatalogServer(cmd *cobra.Command, args []string) error {
 	)
 	ctrl := openapi.NewModelCatalogServiceAPIController(svc)
 
+	// Create MCP provider and service
+	mcpProvider := catalog.NewDBMCPCatalog(services)
+	mcpSvc := openapi.NewMCPCatalogServiceAPIService(mcpProvider)
+	mcpCtrl := openapi.NewMCPCatalogServiceAPIController(mcpSvc)
+
 	server := &http.Server{
 		Addr:    catalogCfg.ListenAddress,
-		Handler: openapi.NewRouter(ctrl),
+		Handler: openapi.NewRouter(ctrl, mcpCtrl),
 	}
 
 	g, gctx := errgroup.WithContext(ctx)

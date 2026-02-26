@@ -11,6 +11,7 @@ import (
 	mapset "github.com/deckarep/golang-set/v2"
 	"github.com/kubeflow/model-registry/catalog/internal/catalog/basecatalog"
 	"github.com/kubeflow/model-registry/catalog/internal/catalog/modelcatalog"
+	"github.com/kubeflow/model-registry/catalog/internal/db/models"
 	"github.com/kubeflow/model-registry/catalog/internal/db/service"
 	"github.com/kubeflow/model-registry/internal/db/schema"
 	"github.com/kubeflow/model-registry/internal/testutils"
@@ -185,7 +186,7 @@ func TestMCPLoaderBasicLoad(t *testing.T) {
 
 	// Verify tools were persisted to the database
 	require.NotNil(t, server.GetID())
-	tools, err := services.MCPServerToolRepository.List(*server.GetID())
+	tools, err := services.MCPServerToolRepository.List(models.MCPServerToolListOptions{ParentID: *server.GetID()})
 	require.NoError(t, err)
 	require.Len(t, tools, 1)
 	toolAttrs := tools[0].GetAttributes()
