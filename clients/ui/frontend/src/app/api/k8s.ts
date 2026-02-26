@@ -53,6 +53,37 @@ export const getUser =
       throw new Error('Invalid response format');
     });
 
+export type CheckNamespaceRegistryAccessRequest = {
+  namespace: string;
+  registryName: string;
+  registryNamespace: string;
+};
+
+export type CheckNamespaceRegistryAccessResponse = {
+  hasAccess: boolean;
+};
+
+export const checkNamespaceRegistryAccess =
+  (hostPath: string) =>
+  (
+    opts: APIOptions,
+    body: CheckNamespaceRegistryAccessRequest,
+  ): Promise<CheckNamespaceRegistryAccessResponse> =>
+    handleRestFailures(
+      restCREATE(
+        hostPath,
+        `${URL_PREFIX}/api/${BFF_API_VERSION}/check-namespace-registry-access`,
+        assembleModArchBody(body),
+        {},
+        opts,
+      ),
+    ).then((response) => {
+      if (isModArchResponse<CheckNamespaceRegistryAccessResponse>(response)) {
+        return response.data;
+      }
+      throw new Error('Invalid response format');
+    });
+
 export const getNamespaces =
   (hostPath: string) =>
   (opts: APIOptions): Promise<NamespaceKind[]> =>

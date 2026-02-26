@@ -2,6 +2,8 @@ import os
 import random
 import tempfile
 import shutil
+import base64
+import json
 from pathlib import Path
 import pytest
 from job.config import get_config
@@ -131,6 +133,16 @@ def uri_credentials_folder(tmp_path):
     uri_file.write_text(uri_value)
 
     return tmp_path, {"uri": uri_value}
+
+
+@pytest.fixture
+def create_oci_credentials_file(tmp_path):
+    """Factory fixture to create OCI credentials file (.dockerconfigjson) from a docker config dict"""
+    def _create_file(dockerconfigjson):
+        config_file = tmp_path / ".dockerconfigjson"
+        config_file.write_text(json.dumps(dockerconfigjson))
+        return config_file
+    return _create_file
 
 
 def test_s3_file_to_oci_env_config(
@@ -397,5 +409,105 @@ def test_uri_credentials_env_var_support(uri_credentials_folder, update_artifact
     assert isinstance(config.source, URISourceStorageConfig)
     assert config.source.uri == expected_credentials["uri"]
     assert config.source.credentials_path == str(tmp_path)
+
+
+@pytest.mark.parametrize("dockerconfigjson,expected", [
+    pytest.param(
+        {
+            "auths": {
+                "registry.example.com": {
+                    "auth": base64.b64encode(b"testuser:testpass123").decode(),
+                    "email": "test@example.com"
+                }
+            }
+        },
+        {
+            "username": "testuser",
+            "password": "testpass123",
+            "email": "test@example.com",
+            "registry": "registry.example.com",
+        },
+        id="base64-encoded"
+    ),
+    pytest.param(
+        {
+            "auths": {
+                "registry.example.com": {
+                    "auth": "plainuser:plainpass456",
+                    "email": "plain@example.com"
+                }
+            }
+        },
+        {
+            "username": "plainuser",
+            "password": "plainpass456",
+            "email": "plain@example.com",
+            "registry": "registry.example.com",
+        },
+        id="plaintext"
+    ),
+    pytest.param(
+        {
+            "auths": {
+                "registry.example.com": {
+                    "auth": "",
+                    "email": "user@example.com"
+                }
+            }
+        },
+        {
+            "username": None,
+            "password": None,
+            "email": "user@example.com",
+            "registry": "registry.example.com",
+        },
+        id="empty-auth"
+    ),
+])
+def test_oci_credentials_file_loading(
+    dockerconfigjson,
+    expected,
+    create_oci_credentials_file,
+    monkeypatch
+):
+    """
+    Test OCI credentials loaded from .dockerconfigjson file for both source and destination.
+
+    Test cases:
+    - base64-encoded: Docker spec compliant (base64-encoded "username:password")
+    - plaintext: Backwards compatibility (plain "username:password")
+    - empty-auth: Edge case (empty string)
+    """
+    config_file = create_oci_credentials_file(dockerconfigjson)
+
+    # Set OCI source env vars
+    monkeypatch.setenv("MODEL_SYNC_SOURCE_TYPE", "oci")
+    monkeypatch.setenv("MODEL_SYNC_SOURCE_OCI_URI", f"{expected['registry']}/source/model")
+    monkeypatch.setenv("MODEL_SYNC_SOURCE_OCI_REGISTRY", expected["registry"])
+
+    # Set OCI destination env vars
+    monkeypatch.setenv("MODEL_SYNC_DESTINATION_TYPE", "oci")
+    monkeypatch.setenv("MODEL_SYNC_DESTINATION_OCI_URI", f"{expected['registry']}/dest/model")
+    monkeypatch.setenv("MODEL_SYNC_DESTINATION_OCI_REGISTRY", expected["registry"])
+
+    monkeypatch.setenv("MODEL_SYNC_REGISTRY_SERVER_ADDRESS", "https://registry.example.com")
+
+    config = get_config([
+        "--source-oci-credentials-path", str(config_file),
+        "--destination-oci-credentials-path", str(config_file),
+        "--model-artifact-id", "123"
+    ])
+
+    # Verify source OCI credentials
+    assert isinstance(config.source, OCIStorageConfig)
+    assert config.source.username == expected["username"]
+    assert config.source.password == expected["password"]
+    assert config.source.email == expected["email"]
+
+    # Verify destination OCI credentials
+    assert isinstance(config.destination, OCIStorageConfig)
+    assert config.destination.username == expected["username"]
+    assert config.destination.password == expected["password"]
+    assert config.destination.email == expected["email"]
 
 

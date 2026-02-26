@@ -48,7 +48,7 @@ type ModelCatalogServiceAPIRouter interface {
 // while the service implementation can be ignored with the .openapi-generator-ignore file
 // and updated with the logic required for the API.
 type MCPCatalogServiceAPIServicer interface {
-	FindMCPServers(context.Context, string, string, string, string, bool, int32, string, model.OrderByField, model.SortOrder, string) (ImplResponse, error)
+	FindMCPServers(context.Context, string, string, []string, string, string, bool, int32, string, model.OrderByField, model.SortOrder, string) (ImplResponse, error)
 	FindMCPServersFilterOptions(context.Context) (ImplResponse, error)
 	GetMCPServer(context.Context, string, bool) (ImplResponse, error)
 	FindMCPServerTools(context.Context, string, string, string, model.OrderByField, model.SortOrder, string) (ImplResponse, error)
@@ -63,7 +63,7 @@ type ModelCatalogServiceAPIServicer interface {
 	FindLabels(context.Context, string, string, model.SortOrder, string) (ImplResponse, error)
 	FindModels(context.Context, bool, int32, string, string, string, string, []string, string, []string, string, string, model.OrderByField, model.SortOrder, string) (ImplResponse, error)
 	FindModelsFilterOptions(context.Context) (ImplResponse, error)
-	FindSources(context.Context, string, string, model.OrderByField, model.SortOrder, string) (ImplResponse, error)
+	FindSources(context.Context, string, model.CatalogAssetType, string, model.OrderByField, model.SortOrder, string) (ImplResponse, error)
 	PreviewCatalogSource(context.Context, *os.File, string, string, string, *os.File) (ImplResponse, error)
 	GetModel(context.Context, string, string) (ImplResponse, error)
 	GetAllModelArtifacts(context.Context, string, string, []model.ArtifactTypeQueryParam, []model.ArtifactTypeQueryParam, string, string, string, model.SortOrder, string) (ImplResponse, error)

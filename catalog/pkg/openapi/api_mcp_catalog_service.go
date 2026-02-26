@@ -16,6 +16,7 @@ import (
 	"io"
 	"net/http"
 	"net/url"
+	"reflect"
 	"strings"
 )
 
@@ -211,6 +212,7 @@ type ApiFindMCPServersRequest struct {
 	ApiService    *MCPCatalogServiceAPIService
 	name          *string
 	q             *string
+	sourceLabel   *[]string
 	filterQuery   *string
 	namedQuery    *string
 	includeTools  *bool
@@ -230,6 +232,12 @@ func (r ApiFindMCPServersRequest) Name(name string) ApiFindMCPServersRequest {
 // Free-form keyword search across name, description, and provider.
 func (r ApiFindMCPServersRequest) Q(q string) ApiFindMCPServersRequest {
 	r.q = &q
+	return r
+}
+
+// Filter MCP servers by the label associated with the source. Multiple values can be separated by commas. If one of the values is the string &#x60;null&#x60;, then MCP servers from every source without a label will be returned.
+func (r ApiFindMCPServersRequest) SourceLabel(sourceLabel []string) ApiFindMCPServersRequest {
+	r.sourceLabel = &sourceLabel
 	return r
 }
 
@@ -325,6 +333,17 @@ func (a *MCPCatalogServiceAPIService) FindMCPServersExecute(r ApiFindMCPServersR
 	}
 	if r.q != nil {
 		parameterAddToHeaderOrQuery(localVarQueryParams, "q", r.q, "form", "")
+	}
+	if r.sourceLabel != nil {
+		t := *r.sourceLabel
+		if reflect.TypeOf(t).Kind() == reflect.Slice {
+			s := reflect.ValueOf(t)
+			for i := 0; i < s.Len(); i++ {
+				parameterAddToHeaderOrQuery(localVarQueryParams, "sourceLabel", s.Index(i).Interface(), "form", "multi")
+			}
+		} else {
+			parameterAddToHeaderOrQuery(localVarQueryParams, "sourceLabel", t, "form", "multi")
+		}
 	}
 	if r.filterQuery != nil {
 		parameterAddToHeaderOrQuery(localVarQueryParams, "filterQuery", r.filterQuery, "form", "")

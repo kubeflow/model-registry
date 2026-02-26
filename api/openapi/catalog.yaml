@@ -30,6 +30,18 @@ paths:
             type: string
           in: query
           required: false
+        - name: sourceLabel
+          description: |-
+            Filter MCP servers by the label associated with the source. Multiple
+            values can be separated by commas. If one of the values is the
+            string `null`, then MCP servers from every source without a label will
+            be returned.
+          schema:
+            type: array
+            items:
+              type: string
+          in: query
+          required: false
         - $ref: "#/components/parameters/mcpServerFilterQuery"
         - $ref: "#/components/parameters/namedQuery"
         - $ref: "#/components/parameters/includeTools"
@@ -326,6 +338,7 @@ paths:
         - ModelCatalogService
       parameters:
         - $ref: "#/components/parameters/name"
+        - $ref: "#/components/parameters/assetType"
         - $ref: "#/components/parameters/pageSize"
         - $ref: "#/components/parameters/orderBy"
         - $ref: "#/components/parameters/sortOrder"
@@ -2054,6 +2067,13 @@ components:
         format: int32
         default: 10
         maximum: 100
+      in: query
+      required: false
+    assetType:
+      name: assetType
+      description: Filter sources by asset type.
+      schema:
+        $ref: "#/components/schemas/CatalogAssetType"
       in: query
       required: false
     artifactType:

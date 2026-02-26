@@ -13,7 +13,7 @@ import (
 )
 
 var (
-	ErrMCPServerToolNotFound = errors.New("MCP server tool by id not found")
+	ErrMCPServerToolNotFound  = errors.New("MCP server tool by id not found")
 	ErrMCPServerToolNameEmpty = errors.New("MCP server tool name cannot be empty")
 )
 

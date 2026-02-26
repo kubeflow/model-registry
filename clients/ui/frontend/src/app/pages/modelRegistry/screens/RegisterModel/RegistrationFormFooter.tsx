@@ -1,5 +1,7 @@
 import React from 'react';
 import {
+  Alert,
+  AlertVariant,
   PageSection,
   Stack,
   StackItem,
@@ -9,6 +11,12 @@ import {
   ActionListGroup,
 } from '@patternfly/react-core';
 import RegisterModelErrors from './RegisterModelErrors';
+
+export type RegistrationInlineAlert = {
+  variant: AlertVariant;
+  title: string;
+  message: React.ReactNode;
+};
 
 type RegistrationFormFooterProps = {
   submitLabel: string;
@@ -20,6 +28,7 @@ type RegistrationFormFooterProps = {
   registrationErrorType?: string;
   versionName?: string;
   modelName?: string;
+  inlineAlert?: RegistrationInlineAlert;
 };
 
 const RegistrationFormFooter: React.FC<RegistrationFormFooterProps> = ({
@@ -32,9 +41,17 @@ const RegistrationFormFooter: React.FC<RegistrationFormFooterProps> = ({
   registrationErrorType,
   versionName,
   modelName,
+  inlineAlert,
 }) => (
   <PageSection hasBodyWrapper={false} stickyOnBreakpoint={{ default: 'bottom' }}>
     <Stack hasGutter>
+      {inlineAlert && (
+        <StackItem>
+          <Alert isInline variant={inlineAlert.variant} title={inlineAlert.title} component="div">
+            {inlineAlert.message}
+          </Alert>
+        </StackItem>
+      )}
       {submitError && (
         <RegisterModelErrors
           submitLabel={submitLabel}

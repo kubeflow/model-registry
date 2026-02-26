@@ -31,6 +31,9 @@ type RegistrationCommonFormSectionsProps<D extends RegistrationCommonFormData> =
   isFirstVersion: boolean;
   latestVersion?: ModelVersion;
   isCatalogModel?: boolean;
+  namespaceHasAccess?: boolean;
+  isNamespaceAccessLoading?: boolean;
+  namespaceAccessError?: Error | undefined;
 };
 
 const RegistrationCommonFormSections = <D extends RegistrationCommonFormData>({
@@ -39,6 +42,9 @@ const RegistrationCommonFormSections = <D extends RegistrationCommonFormData>({
   isFirstVersion,
   latestVersion,
   isCatalogModel,
+  namespaceHasAccess,
+  isNamespaceAccessLoading,
+  namespaceAccessError,
 }: RegistrationCommonFormSectionsProps<D>): React.ReactNode => {
   const isVersionNameValid = isNameValid(formData.versionName);
   const isRegistryStorageFeatureAvailable = useTempDevFeatureAvailable(
@@ -55,6 +61,17 @@ const RegistrationCommonFormSections = <D extends RegistrationCommonFormData>({
       setData('namespace', '');
     }
   };
+
+  React.useEffect(() => {
+    if (
+      !isRegistryStorageFeatureAvailable &&
+      registrationMode === RegistrationMode.RegisterAndStore
+    ) {
+      // When the feature is turned off, force the mode back to "Register"
+      setData('registrationMode', RegistrationMode.Register);
+      setData('namespace', '');
+    }
+  }, [isRegistryStorageFeatureAvailable, registrationMode, setData]);
 
   const versionNameInput = (
     <TextInput
@@ -191,6 +208,9 @@ const RegistrationCommonFormSections = <D extends RegistrationCommonFormData>({
             formData={formData}
             setData={setData}
             isCatalogModel={isCatalogModel}
+            namespaceHasAccess={namespaceHasAccess}
+            isNamespaceAccessLoading={isNamespaceAccessLoading}
+            namespaceAccessError={namespaceAccessError}
           />
         )}
       </FormSection>

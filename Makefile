@@ -38,9 +38,11 @@ else
 endif
 
 # Change Dockerfile path depending on IMG_REPO
+# UI image uses repo root as context so COPY manifests/... for sample-catalog.yaml works
 ifeq ($(IMG_REPO),model-registry/ui)
     DOCKERFILE := $(UI_PATH)/Dockerfile
-	BUILD_PATH := $(UI_PATH)
+	BUILD_PATH := $(PROJECT_PATH)
+	ARGS := --build-arg UI_SOURCE_CODE=clients/ui/frontend --build-arg BFF_SOURCE_CODE=clients/ui/bff $(ARGS)
 endif
 
 # The BUILD_PATH is still the root
