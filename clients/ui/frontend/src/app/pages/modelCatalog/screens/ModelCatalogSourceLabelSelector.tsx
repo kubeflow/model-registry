@@ -136,8 +136,7 @@ const ModelCatalogSourceLabelSelector: React.FC<ModelCatalogSourceLabelSelectorP
                 <ToolbarGroup variant="filter-group" gap={{ default: 'gapMd' }} alignItems="center">
                   <ToolbarItem>
                     <ThemeAwareSearchInput
-                      dara-testid="search-input"
-                      fieldLabel="Filter by name, description and provider"
+                      data-testid="search-input"
                       aria-label="Search with submit button"
                       className="toolbar-fieldset-wrapper"
                       placeholder="Filter by name, description and provider"
