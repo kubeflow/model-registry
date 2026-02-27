@@ -9,7 +9,8 @@ type ThemeAwareFormGroupWrapperProps = {
   label: string;
   fieldId: string;
   isRequired?: boolean;
-  helperTextNode?: React.ReactNode; // The pre-rendered HelperText component or null
+  descriptionTextNode?: React.ReactNode; // Always-visible help text
+  helperTextNode?: React.ReactNode; // Error-only helper text
   className?: string; // Optional className for the outer FormGroup
   labelHelp?: React.ReactElement;
   'data-testid'?: string;
@@ -20,6 +21,7 @@ const ThemeAwareFormGroupWrapper: React.FC<ThemeAwareFormGroupWrapperProps> = ({
   label,
   fieldId,
   isRequired,
+  descriptionTextNode,
   helperTextNode,
   className,
   labelHelp,
@@ -33,6 +35,7 @@ const ThemeAwareFormGroupWrapper: React.FC<ThemeAwareFormGroupWrapperProps> = ({
     // Helper text is rendered *after* the FormGroup wrapper
     return (
       <>
+        {descriptionTextNode}
         <FormGroup
           className={`${className || ''} ${hasError ? 'pf-m-error' : ''}`.trim()} // Apply className and error state class
           label={label}
@@ -59,6 +62,7 @@ const ThemeAwareFormGroupWrapper: React.FC<ThemeAwareFormGroupWrapperProps> = ({
         labelHelp={labelHelp}
         data-testid={dataTestId}
       >
+        {descriptionTextNode}
         {children}
         {helperTextNode}
       </FormGroup>
