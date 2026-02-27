@@ -27,7 +27,7 @@ describe('updateTimestamps', () => {
     patchModelVersion: jest.fn(),
     patchModelArtifact: jest.fn(),
     listModelTransferJobs: jest.fn(),
-    getModelTransferJobsByNamespace: jest.fn(),
+    getModelTransferJobByName: jest.fn(),
     createModelTransferJob: jest.fn(),
     updateModelTransferJob: jest.fn(),
     deleteModelTransferJob: jest.fn(),
