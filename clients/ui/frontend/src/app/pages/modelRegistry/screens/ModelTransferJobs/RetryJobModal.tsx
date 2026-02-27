@@ -14,8 +14,8 @@ import {
   ModalHeader,
   ModalFooter,
 } from '@patternfly/react-core';
-import { ModelTransferJob } from '~/app/types';
-import ResourceNameDefinitionTooltip from '~/concepts/k8s/ResourceNameDefinitionTootip';
+import { ModelTransferJob, ModelTransferJobUploadIntent } from '~/app/types';
+import ResourceNameDefinitionTooltip from '~/concepts/k8s/ResourceNameDefinitionTooltip';
 import { checkValidK8sName } from '~/concepts/k8s/K8sNameDescriptionField/utils';
 
 /**
@@ -66,8 +66,17 @@ const RetryJobModal: React.FC<RetryJobModalProps> = ({ job, onClose, onRetry }) 
       <ModalBody>
         <Stack hasGutter>
           <StackItem>
-            A new transfer job will be created for the{' '}
-            <strong>{job.modelVersionName}</strong> model version.
+            {job.uploadIntent === ModelTransferJobUploadIntent.CREATE_MODEL ? (
+              <>
+                A new transfer job will be created for the{' '}
+                <strong>{job.registeredModelName}</strong> model.
+              </>
+            ) : (
+              <>
+                A new transfer job will be created for the <strong>{job.modelVersionName}</strong>{' '}
+                version of <strong>{job.registeredModelName}</strong>.
+              </>
+            )}
           </StackItem>
 
           <StackItem>

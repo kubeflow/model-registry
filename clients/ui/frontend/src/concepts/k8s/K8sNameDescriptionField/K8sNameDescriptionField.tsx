@@ -7,7 +7,7 @@ import {
   TextArea,
   TextInput,
 } from '@patternfly/react-core';
-import ResourceNameDefinitionTooltip from '~/concepts/k8s/ResourceNameDefinitionTootip';
+import ResourceNameDefinitionTooltip from '~/concepts/k8s/ResourceNameDefinitionTooltip';
 import FormFieldset from '~/app/pages/modelRegistry/screens/components/FormFieldset';
 import {
   K8sNameDescriptionFieldData,

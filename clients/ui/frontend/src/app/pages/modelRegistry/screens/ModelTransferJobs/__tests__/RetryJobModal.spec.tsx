@@ -48,10 +48,24 @@ describe('RetryJobModal', () => {
     expect(screen.getByText('Retry model transfer job?')).toBeInTheDocument();
   });
 
-  it('should display the model version name in the description', () => {
+  it('should display model name in description for CREATE_MODEL intent', () => {
     render(<RetryJobModal job={mockJob} onClose={mockOnClose} onRetry={mockOnRetry} />);
 
+    expect(screen.getByText('test-model')).toBeInTheDocument();
+    expect(screen.getByText(/model\.$/)).toBeInTheDocument();
+  });
+
+  it('should display version and model name in description for CREATE_VERSION intent', () => {
+    const createVersionJob: ModelTransferJob = {
+      ...mockJob,
+      uploadIntent: ModelTransferJobUploadIntent.CREATE_VERSION,
+    };
+
+    render(<RetryJobModal job={createVersionJob} onClose={mockOnClose} onRetry={mockOnRetry} />);
+
     expect(screen.getByText('v1.0.0')).toBeInTheDocument();
+    expect(screen.getByText(/version of/)).toBeInTheDocument();
+    expect(screen.getByText('test-model')).toBeInTheDocument();
   });
 
   it('should auto-generate a retry job name with -2 suffix', () => {
