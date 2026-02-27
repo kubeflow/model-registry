@@ -15,12 +15,14 @@ import {
 } from '@patternfly/react-core';
 import text from '@patternfly/react-styles/css/utilities/Text/text';
 import truncateStyles from '@patternfly/react-styles/css/components/Truncate/truncate';
-import { InfoCircleIcon, BlueprintIcon } from '@patternfly/react-icons';
+import { InfoCircleIcon } from '@patternfly/react-icons';
 import {
   WhosMyAdministrator,
   KubeflowDocs,
   SimpleSelect,
   InlineTruncatedClipboardCopy,
+  TypedObjectIcon,
+  ProjectObjectType,
 } from 'mod-arch-shared';
 import { useBrowserStorage } from 'mod-arch-core';
 import { useThemeContext } from 'mod-arch-kubeflow';
@@ -147,11 +149,9 @@ const ModelRegistrySelector: React.FC<ModelRegistrySelectorProps> = ({
 
   return (
     <Flex spaceItems={{ default: 'spaceItemsSm' }} alignItems={{ default: 'alignItemsCenter' }}>
-      <FlexItem>
-        <Icon>
-          <BlueprintIcon />
-        </Icon>
-      </FlexItem>
+      <Icon iconSize="xl" isInline>
+        <TypedObjectIcon resourceType={ProjectObjectType.modelRegistryNavigator} />
+      </Icon>
       <FlexItem>
         <Bullseye>Model registry</Bullseye>
       </FlexItem>
