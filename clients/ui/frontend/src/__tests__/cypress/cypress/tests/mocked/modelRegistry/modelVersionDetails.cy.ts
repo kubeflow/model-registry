@@ -7,7 +7,7 @@ import { mockModelVersionList } from '~/__mocks__/mockModelVersionList';
 import { mockModelVersion } from '~/__mocks__/mockModelVersion';
 import { mockModelArtifactList } from '~/__mocks__/mockModelArtifactList';
 import { mockModelArtifactWithTransferJob } from '~/__mocks__/mockModelArtifact';
-import { mockModelTransferJobList } from '~/__mocks__/mockModelTransferJob';
+import { mockModelTransferJob } from '~/__mocks__/mockModelTransferJob';
 import { ModelRegistryMetadataType, ModelState, type ModelRegistry } from '~/app/types';
 import { MODEL_REGISTRY_API_VERSION } from '~/__tests__/cypress/cypress/support/commands/api';
 import {
@@ -584,14 +584,15 @@ describe('Model version details', () => {
       );
 
       cy.interceptApi(
-        `GET /api/:apiVersion/model_registry/:modelRegistryName/model_transfer_jobs`,
+        `GET /api/:apiVersion/model_registry/:modelRegistryName/model_transfer_jobs/:modelTransferJobId`,
         {
           path: {
             modelRegistryName: 'modelregistry-sample',
             apiVersion: MODEL_REGISTRY_API_VERSION,
+            modelTransferJobId: 'model-transfer-job-1',
           },
         },
-        mockModelTransferJobList(),
+        mockModelTransferJob(),
       );
     };
 
