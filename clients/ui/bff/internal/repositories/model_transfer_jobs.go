@@ -107,61 +107,28 @@ func (m *ModelRegistryRepository) GetAllModelTransferJobs(ctx context.Context, c
 				}
 			}
 
-			for i := range transferJobs {
-				if errMsg, ok := podErrorsByJob[transferJobs[i].Name]; ok {
-					if transferJobs[i].Status == models.ModelTransferJobStatusRunning ||
-						transferJobs[i].Status == models.ModelTransferJobStatusPending {
-						transferJobs[i].Status = models.ModelTransferJobStatusFailed
-						if transferJobs[i].ErrorMessage == "" {
-							transferJobs[i].ErrorMessage = errMsg
-						}
-					}
-				}
-				if result, ok := podTerminationByJob[transferJobs[i].Name]; ok {
-					if result.RegisteredModel != nil && result.RegisteredModel.ID != "" {
-						transferJobs[i].RegisteredModelId = result.RegisteredModel.ID
-					}
-					if result.ModelVersion != nil && result.ModelVersion.ID != "" {
-						transferJobs[i].ModelVersionId = result.ModelVersion.ID
-					}
-					if result.ModelArtifact != nil && result.ModelArtifact.ID != "" {
-						transferJobs[i].ModelArtifactId = result.ModelArtifact.ID
+		for i := range transferJobs {
+			if errMsg, ok := podErrorsByJob[transferJobs[i].Name]; ok {
+				if transferJobs[i].Status == models.ModelTransferJobStatusRunning ||
+					transferJobs[i].Status == models.ModelTransferJobStatusPending {
+					transferJobs[i].Status = models.ModelTransferJobStatusFailed
+					if transferJobs[i].ErrorMessage == "" {
+						transferJobs[i].ErrorMessage = errMsg
 					}
 				}
 			}
-
-			eventList, err := client.GetEventsForPods(ctx, namespace, allPodNames)
-			if err != nil {
-				logger.Warn("failed to fetch events for pods", "error", err)
-			} else {
-				eventsByPod := make(map[string][]models.ModelTransferJobEvent)
-				for _, event := range eventList.Items {
-					podName := event.InvolvedObject.Name
-					ts := event.LastTimestamp.Time
-					if ts.IsZero() {
-						ts = event.EventTime.Time
-					}
-					if ts.IsZero() {
-						ts = event.FirstTimestamp.Time
-					}
-					eventsByPod[podName] = append(eventsByPod[podName], models.ModelTransferJobEvent{
-						Timestamp: ts.Format("2006-01-02T15:04:05Z"),
-						Type:      event.Type,
-						Reason:    event.Reason,
-						Message:   event.Message,
-					})
+			if result, ok := podTerminationByJob[transferJobs[i].Name]; ok {
+				if result.RegisteredModel != nil && result.RegisteredModel.ID != "" {
+					transferJobs[i].RegisteredModelId = result.RegisteredModel.ID
 				}
-
-				for i := range transferJobs {
-					var jobEvents []models.ModelTransferJobEvent
-					for _, podName := range podNamesByJob[transferJobs[i].Name] {
-						jobEvents = append(jobEvents, eventsByPod[podName]...)
-					}
-					if jobEvents != nil {
-						transferJobs[i].Events = jobEvents
-					}
+				if result.ModelVersion != nil && result.ModelVersion.ID != "" {
+					transferJobs[i].ModelVersionId = result.ModelVersion.ID
+				}
+				if result.ModelArtifact != nil && result.ModelArtifact.ID != "" {
+					transferJobs[i].ModelArtifactId = result.ModelArtifact.ID
 				}
 			}
+		}
 		}
 	}
 
@@ -188,6 +155,66 @@ func (m *ModelRegistryRepository) GetModelTransferJob(ctx context.Context, clien
 
 	result := convertK8sJobToModel(job)
 	return &result, nil
+}
+
+func (m *ModelRegistryRepository) GetModelTransferJobEvents(ctx context.Context, client k8s.KubernetesClientInterface, namespace string, jobName string, modelRegistryID string) ([]models.ModelTransferJobEvent, error) {
+	logger := helper.GetContextLogger(ctx)
+
+	job, err := client.GetModelTransferJob(ctx, namespace, jobName)
+	if err != nil {
+		if apierrors.IsNotFound(err) {
+			return nil, fmt.Errorf("%w: %s", ErrJobNotFound, jobName)
+		}
+		return nil, fmt.Errorf("failed to get job: %w", err)
+	}
+
+	jobRegistry := job.Labels["modelregistry.kubeflow.org/model-registry-name"]
+	if jobRegistry != modelRegistryID {
+		return nil, fmt.Errorf("%w: %s", ErrJobNotFound, jobName)
+	}
+
+	podList, err := client.GetTransferJobPods(ctx, namespace, []string{jobName})
+	if err != nil {
+		logger.Warn("failed to fetch pods for transfer job", "error", err)
+		return []models.ModelTransferJobEvent{}, nil
+	}
+
+	if len(podList.Items) == 0 {
+		return []models.ModelTransferJobEvent{}, nil
+	}
+
+	podNames := make([]string, 0, len(podList.Items))
+	for _, pod := range podList.Items {
+		podNames = append(podNames, pod.Name)
+	}
+
+	eventList, err := client.GetEventsForPods(ctx, namespace, podNames)
+	if err != nil {
+		logger.Warn("failed to fetch events for pods", "error", err)
+		return []models.ModelTransferJobEvent{}, nil
+	}
+
+	return convertK8sEventsToModelEvents(eventList), nil
+}
+
+func convertK8sEventsToModelEvents(eventList *corev1.EventList) []models.ModelTransferJobEvent {
+	events := make([]models.ModelTransferJobEvent, 0, len(eventList.Items))
+	for _, event := range eventList.Items {
+		ts := event.LastTimestamp.Time
+		if ts.IsZero() {
+			ts = event.EventTime.Time
+		}
+		if ts.IsZero() {
+			ts = event.FirstTimestamp.Time
+		}
+		events = append(events, models.ModelTransferJobEvent{
+			Timestamp: ts.Format("2006-01-02T15:04:05Z"),
+			Type:      event.Type,
+			Reason:    event.Reason,
+			Message:   event.Message,
+		})
+	}
+	return events
 }
 
 func (m *ModelRegistryRepository) CreateModelTransferJob(ctx context.Context, client k8s.KubernetesClientInterface, namespace string, payload models.ModelTransferJob, modelRegistryID string) (*models.ModelTransferJob, error) {
