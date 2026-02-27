@@ -4,8 +4,8 @@ import (
 	"log"
 	"os"
 
-	"github.com/kubeflow/model-registry/internal/csi/modelregistry"
-	"github.com/kubeflow/model-registry/internal/csi/storage"
+	"github.com/kubeflow/model-registry/cmd/csi/internal/modelregistry"
+	"github.com/kubeflow/model-registry/cmd/csi/internal/storage"
 	"github.com/kubeflow/model-registry/pkg/openapi"
 )
 

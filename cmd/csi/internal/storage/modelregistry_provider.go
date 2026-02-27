@@ -9,8 +9,7 @@ import (
 	"strings"
 
 	kserve "github.com/kserve/kserve/pkg/agent/storage"
-	"github.com/kubeflow/model-registry/internal/apiutils"
-	"github.com/kubeflow/model-registry/internal/csi/constants"
+	"github.com/kubeflow/model-registry/cmd/csi/internal/constants"
 	"github.com/kubeflow/model-registry/pkg/openapi"
 )
 
@@ -57,10 +56,10 @@ func (p *ModelRegistryProvider) DownloadModel(modelDir string, modelName string,
 		storageUri,
 		p.Client.GetConfig().Host,
 		registeredModelName,
-		apiutils.SafeString(versionName),
+		safeString(versionName),
 	)
 
-	log.Printf("Fetching model: registeredModelName=%s, versionName=%v", registeredModelName, apiutils.SafeString(versionName))
+	log.Printf("Fetching model: registeredModelName=%s, versionName=%v", registeredModelName, safeString(versionName))
 
 	// Fetch the registered model
 	model, _, err := p.Client.ModelRegistryServiceAPI.FindRegisteredModel(context.Background()).Name(registeredModelName).Execute()
@@ -100,7 +99,7 @@ func (p *ModelRegistryProvider) DownloadModel(modelDir string, modelName string,
 		return fmt.Errorf("%w %s", ErrModelArtifactEmptyURI, *modelArtifact.Id)
 	}
 
-	log.Printf("Extracting protocol from model artifact URI: %s", apiutils.SafeString(modelArtifact.Uri))
+	log.Printf("Extracting protocol from model artifact URI: %s", safeString(modelArtifact.Uri))
 	protocol, err := p.extractProtocol(*modelArtifact.Uri)
 	if err != nil {
 		return err
@@ -112,7 +111,7 @@ func (p *ModelRegistryProvider) DownloadModel(modelDir string, modelName string,
 		return err
 	}
 
-	log.Printf("Delegating to KServe provider to download model with: modelDir=%s, storageUri=%s", modelDir, apiutils.SafeString(modelArtifact.Uri))
+	log.Printf("Delegating to KServe provider to download model with: modelDir=%s, storageUri=%s", modelDir, safeString(modelArtifact.Uri))
 	return provider.DownloadModel(modelDir, "", *modelArtifact.Uri)
 }
 
@@ -204,4 +203,14 @@ func (*ModelRegistryProvider) extractProtocol(storageURI string) (kserve.Protoco
 //  2. There's no way to determine which underlying KServe provider to delegate to
 func (p *ModelRegistryProvider) UploadObject(bucket string, key string, object []byte) error {
 	return fmt.Errorf("uploading objects is currently not supported when using the model-registry protocol")
+}
+
+// safeString returns a string representation of a string pointer.
+// Useful for logging or printing values that may be nil. For Zero values, you can refer to ZeroIfNil instead.
+// Returns "<nil>" if the input is nil
+func safeString(s *string) string {
+	if s == nil {
+		return "<nil>"
+	}
+	return *s
 }
