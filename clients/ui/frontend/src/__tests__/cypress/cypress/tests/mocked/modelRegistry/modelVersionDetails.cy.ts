@@ -614,7 +614,7 @@ describe('Model version details', () => {
 
       modelVersionDetails
         .findStorageLocationUri()
-        .should('contain.text', 'registry.redhat.io/rhelai1/modelcar-granite-7b-starter:1.4.0');
+        .should('contain.text', 'quay.io/my-org/my-model:v1.0.0');
     });
 
     it('should show expandable source details with origin location', () => {

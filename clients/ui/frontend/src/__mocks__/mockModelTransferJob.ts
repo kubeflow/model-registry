@@ -22,8 +22,8 @@ export const mockModelTransferJob = (partial?: Partial<ModelTransferJob>): Model
   },
   destination: {
     type: ModelTransferJobDestinationType.OCI,
-    uri: 'registry.redhat.io/rhelai1/modelcar-granite-7b-starter:1.4.0',
-    registry: 'registry.redhat.io',
+    uri: 'quay.io/my-org/my-model:v1.0.0',
+    registry: 'quay.io',
     username: 'username',
     password: 'password',
   },
