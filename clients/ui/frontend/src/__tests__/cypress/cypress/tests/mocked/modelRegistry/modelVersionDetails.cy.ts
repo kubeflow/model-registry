@@ -6,6 +6,8 @@ import { mockRegisteredModel } from '~/__mocks__/mockRegisteredModel';
 import { mockModelVersionList } from '~/__mocks__/mockModelVersionList';
 import { mockModelVersion } from '~/__mocks__/mockModelVersion';
 import { mockModelArtifactList } from '~/__mocks__/mockModelArtifactList';
+import { mockModelArtifactWithTransferJob } from '~/__mocks__/mockModelArtifact';
+import { mockModelTransferJob } from '~/__mocks__/mockModelTransferJob';
 import { ModelRegistryMetadataType, ModelState, type ModelRegistry } from '~/app/types';
 import { MODEL_REGISTRY_API_VERSION } from '~/__tests__/cypress/cypress/support/commands/api';
 import {
@@ -557,6 +559,105 @@ describe('Model version details', () => {
         '/model-registry/modelregistry-sample/registered-models/1/versions',
       );
       cy.findByTestId('model-versions-tab-content').should('exist');
+    });
+  });
+
+  describe('Storage location (Register + Store)', () => {
+    const transferJobArtifact = mockModelArtifactWithTransferJob({
+      modelSourceGroup: 'my-project-1',
+      modelSourceName: 'model-transfer-job-1',
+    });
+
+    const initStorageLocationIntercepts = () => {
+      initIntercepts({});
+
+      cy.interceptApi(
+        `GET /api/:apiVersion/model_registry/:modelRegistryName/model_versions/:modelVersionId/artifacts`,
+        {
+          path: {
+            modelRegistryName: 'modelregistry-sample',
+            apiVersion: MODEL_REGISTRY_API_VERSION,
+            modelVersionId: 1,
+          },
+        },
+        mockModelArtifactList({ items: [transferJobArtifact] }),
+      );
+
+      cy.interceptApi(
+        `GET /api/:apiVersion/model_registry/:modelRegistryName/model_transfer_jobs/:modelTransferJobId`,
+        {
+          path: {
+            modelRegistryName: 'modelregistry-sample',
+            apiVersion: MODEL_REGISTRY_API_VERSION,
+            modelTransferJobId: 'model-transfer-job-1',
+          },
+        },
+        mockModelTransferJob(),
+      );
+    };
+
+    it('should show Storage location section for transfer job artifacts', () => {
+      initStorageLocationIntercepts();
+      modelVersionDetails.visit();
+
+      modelVersionDetails.findStorageLocationTitle().should('contain.text', 'Storage location');
+    });
+
+    it('should show destination connection info and Model URI', () => {
+      initStorageLocationIntercepts();
+      modelVersionDetails.visit();
+
+      modelVersionDetails
+        .findStorageConnectionDisplay()
+        .first()
+        .should('contain.text', 'OCI storage')
+        .and('contain.text', 'my-project-1');
+
+      modelVersionDetails
+        .findStorageLocationUri()
+        .should('contain.text', 'quay.io/my-org/my-model:v1.0.0');
+    });
+
+    it('should show expandable source details with origin location', () => {
+      initStorageLocationIntercepts();
+      modelVersionDetails.visit();
+
+      modelVersionDetails.findStorageSourceDetails().find('button').first().click();
+
+      modelVersionDetails
+        .findStorageConnectionDisplay()
+        .last()
+        .should('contain.text', 'S3 storage')
+        .and('contain.text', 'my-project-1');
+
+      modelVersionDetails
+        .findStorageSourcePath()
+        .should('contain.text', 'models/model-v1/model.tar.gz');
+    });
+
+    it('should show Stored timestamp for transfer job artifacts', () => {
+      initStorageLocationIntercepts();
+      modelVersionDetails.visit();
+
+      cy.contains('Stored').should('exist');
+    });
+
+    it('should not show Model location section for transfer job artifacts', () => {
+      initStorageLocationIntercepts();
+      modelVersionDetails.visit();
+
+      cy.contains('Model location').should('not.exist');
+    });
+  });
+
+  describe('Model location (Register only)', () => {
+    it('should show Model location section for non-transfer job artifacts', () => {
+      initIntercepts({});
+      modelVersionDetails.visit();
+
+      cy.contains('Model location').should('exist');
+      cy.contains('Storage location').should('not.exist');
+      cy.contains('Stored').should('not.exist');
     });
   });
 });

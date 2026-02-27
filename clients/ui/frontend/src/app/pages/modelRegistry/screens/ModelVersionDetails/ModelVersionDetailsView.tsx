@@ -31,6 +31,9 @@ import { bumpBothTimestamps, bumpRegisteredModelTimestamp } from '~/app/api/upda
 import { uriToStorageFields } from '~/app/utils';
 import ModelDetailsCard from '~/app/pages/modelRegistry/screens/ModelVersions/ModelDetailsCard';
 import ModelVersionRegisteredFromLink from '~/app/pages/modelRegistry/screens/components/ModelVersionRegisteredFromLink';
+import useModelTransferJobForArtifact from '~/app/hooks/useModelTransferJobForArtifact';
+import { modelSourcePropertiesToTransferJobParams } from '~/concepts/modelRegistry/utils';
+import StorageLocationSection from './StorageLocationSection';
 
 type ModelVersionDetailsViewProps = {
   registeredModel: RegisteredModel | null;
@@ -54,6 +57,12 @@ const ModelVersionDetailsView: React.FC<ModelVersionDetailsViewProps> = ({
   const modelArtifact = modelArtifacts.items.length ? modelArtifacts.items[0] : null;
   const { apiState } = React.useContext(ModelRegistryContext);
   const storageFields = uriToStorageFields(modelArtifact?.uri || '');
+  const transferJobParams = modelArtifact
+    ? modelSourcePropertiesToTransferJobParams(modelArtifact)
+    : null;
+  const isTransferJobSource = !!transferJobParams;
+  const [transferJob, transferJobLoaded, transferJobError] =
+    useModelTransferJobForArtifact(modelArtifact);
 
   if (!modelArtifactsLoaded) {
     return (
@@ -159,62 +168,69 @@ const ModelVersionDetailsView: React.FC<ModelVersionDetailsViewProps> = ({
                     isModelCatalogAvailable
                   />
                 )}
-                <Title style={{ margin: '1em 0' }} headingLevel={ContentVariants.h3}>
-                  Model location
-                </Title>
-                {modelArtifactsLoadError ? (
-                  <Alert variant="danger" isInline title={modelArtifactsLoadError.name}>
-                    {modelArtifactsLoadError.message}
-                  </Alert>
+                {isTransferJobSource && modelArtifact ? (
+                  <StorageLocationSection
+                    fallbackNamespace={transferJobParams.jobNamespace}
+                    transferJob={transferJob}
+                    transferJobLoaded={transferJobLoaded}
+                    transferJobError={transferJobError}
+                  />
                 ) : (
                   <>
-                    <DescriptionList>
-                      {storageFields?.s3Fields && (
-                        <>
-                          <DashboardDescriptionListGroup
-                            title="Endpoint"
-                            isEmpty={!storageFields.s3Fields.endpoint}
-                            contentWhenEmpty="No endpoint"
-                          >
-                            <InlineTruncatedClipboardCopy
-                              testId="storage-endpoint"
-                              textToCopy={storageFields.s3Fields.endpoint}
-                            />
-                          </DashboardDescriptionListGroup>
-                          <DashboardDescriptionListGroup
-                            title="Region"
-                            isEmpty={!storageFields.s3Fields.region}
-                            contentWhenEmpty="No region"
-                          >
-                            <InlineTruncatedClipboardCopy
-                              testId="storage-region"
-                              textToCopy={storageFields.s3Fields.region || ''}
-                            />
-                          </DashboardDescriptionListGroup>
-                          <DashboardDescriptionListGroup
-                            title="Bucket"
-                            isEmpty={!storageFields.s3Fields.bucket}
-                            contentWhenEmpty="No bucket"
-                          >
-                            <InlineTruncatedClipboardCopy
-                              testId="storage-bucket"
-                              textToCopy={storageFields.s3Fields.bucket}
-                            />
-                          </DashboardDescriptionListGroup>
-                          <DashboardDescriptionListGroup
-                            title="Path"
-                            isEmpty={!storageFields.s3Fields.path}
-                            contentWhenEmpty="No path"
-                          >
-                            <InlineTruncatedClipboardCopy
-                              testId="storage-path"
-                              textToCopy={storageFields.s3Fields.path}
-                            />
-                          </DashboardDescriptionListGroup>
-                        </>
-                      )}
-                      {(storageFields?.uri || storageFields?.ociUri) && (
-                        <>
+                    <Title style={{ margin: '1em 0' }} headingLevel={ContentVariants.h3}>
+                      Model location
+                    </Title>
+                    {modelArtifactsLoadError ? (
+                      <Alert variant="danger" isInline title={modelArtifactsLoadError.name}>
+                        {modelArtifactsLoadError.message}
+                      </Alert>
+                    ) : (
+                      <DescriptionList>
+                        {storageFields?.s3Fields && (
+                          <>
+                            <DashboardDescriptionListGroup
+                              title="Endpoint"
+                              isEmpty={!storageFields.s3Fields.endpoint}
+                              contentWhenEmpty="No endpoint"
+                            >
+                              <InlineTruncatedClipboardCopy
+                                testId="storage-endpoint"
+                                textToCopy={storageFields.s3Fields.endpoint}
+                              />
+                            </DashboardDescriptionListGroup>
+                            <DashboardDescriptionListGroup
+                              title="Region"
+                              isEmpty={!storageFields.s3Fields.region}
+                              contentWhenEmpty="No region"
+                            >
+                              <InlineTruncatedClipboardCopy
+                                testId="storage-region"
+                                textToCopy={storageFields.s3Fields.region || ''}
+                              />
+                            </DashboardDescriptionListGroup>
+                            <DashboardDescriptionListGroup
+                              title="Bucket"
+                              isEmpty={!storageFields.s3Fields.bucket}
+                              contentWhenEmpty="No bucket"
+                            >
+                              <InlineTruncatedClipboardCopy
+                                testId="storage-bucket"
+                                textToCopy={storageFields.s3Fields.bucket}
+                              />
+                            </DashboardDescriptionListGroup>
+                            <DashboardDescriptionListGroup
+                              title="Path"
+                              isEmpty={!storageFields.s3Fields.path}
+                              contentWhenEmpty="No path"
+                            >
+                              <InlineTruncatedClipboardCopy
+                                testId="storage-path"
+                                textToCopy={storageFields.s3Fields.path}
+                              />
+                            </DashboardDescriptionListGroup>
+                          </>
+                        )}
+                        {(storageFields?.uri || storageFields?.ociUri) && (
                           <DashboardDescriptionListGroup
                             title="URI"
                             isEmpty={!modelArtifact?.uri}
@@ -225,48 +241,48 @@ const ModelVersionDetailsView: React.FC<ModelVersionDetailsViewProps> = ({
                               textToCopy={modelArtifact?.uri || ''}
                             />
                           </DashboardDescriptionListGroup>
-                        </>
-                      )}
-                    </DescriptionList>
-                    <Divider style={{ marginTop: '1em' }} />
-                    <DescriptionList>
-                      <EditableTextDescriptionListGroup
-                        editableVariant="TextInput"
-                        baseTestId="source-model-format"
-                        isArchive={isArchiveVersion}
-                        value={modelArtifact?.modelFormatName || ''}
-                        saveEditedValue={(value) =>
-                          handleArtifactUpdate(
-                            apiState.api.patchModelArtifact(
-                              {},
-                              { modelFormatName: value },
-                              modelArtifact?.id || '',
-                            ),
-                          )
-                        }
-                        title="Model format"
-                        contentWhenEmpty="No model format specified"
-                      />
-                      <EditableTextDescriptionListGroup
-                        editableVariant="TextInput"
-                        baseTestId="source-model-version"
-                        value={modelArtifact?.modelFormatVersion || ''}
-                        isArchive={isArchiveVersion}
-                        saveEditedValue={(newVersion) =>
-                          handleArtifactUpdate(
-                            apiState.api.patchModelArtifact(
-                              {},
-                              { modelFormatVersion: newVersion },
-                              modelArtifact?.id || '',
-                            ),
-                          )
-                        }
-                        title="Model format version"
-                        contentWhenEmpty="No model format version"
-                      />
-                    </DescriptionList>
+                        )}
+                      </DescriptionList>
+                    )}
                   </>
                 )}
+                <Divider style={{ marginTop: '1em' }} />
+                <DescriptionList>
+                  <EditableTextDescriptionListGroup
+                    editableVariant="TextInput"
+                    baseTestId="source-model-format"
+                    isArchive={isArchiveVersion}
+                    value={modelArtifact?.modelFormatName || ''}
+                    saveEditedValue={(value) =>
+                      handleArtifactUpdate(
+                        apiState.api.patchModelArtifact(
+                          {},
+                          { modelFormatName: value },
+                          modelArtifact?.id || '',
+                        ),
+                      )
+                    }
+                    title="Model format"
+                    contentWhenEmpty="No model format specified"
+                  />
+                  <EditableTextDescriptionListGroup
+                    editableVariant="TextInput"
+                    baseTestId="source-model-version"
+                    value={modelArtifact?.modelFormatVersion || ''}
+                    isArchive={isArchiveVersion}
+                    saveEditedValue={(newVersion) =>
+                      handleArtifactUpdate(
+                        apiState.api.patchModelArtifact(
+                          {},
+                          { modelFormatVersion: newVersion },
+                          modelArtifact?.id || '',
+                        ),
+                      )
+                    }
+                    title="Model format version"
+                    contentWhenEmpty="No model format version"
+                  />
+                </DescriptionList>
                 <Divider style={{ marginTop: '1em' }} />
                 <DescriptionList isFillColumns style={{ marginTop: '1em' }}>
                   <DashboardDescriptionListGroup
@@ -284,6 +300,7 @@ const ModelVersionDetailsView: React.FC<ModelVersionDetailsViewProps> = ({
                   </DashboardDescriptionListGroup>
                   <DashboardDescriptionListGroup
                     title="Last modified"
+                    popover="When the model's metadata or details were last updated."
                     isEmpty={!mv.lastUpdateTimeSinceEpoch}
                     contentWhenEmpty="Unknown"
                   >
@@ -291,11 +308,22 @@ const ModelVersionDetailsView: React.FC<ModelVersionDetailsViewProps> = ({
                   </DashboardDescriptionListGroup>
                   <DashboardDescriptionListGroup
                     title="Registered"
+                    popover="When the model was first registered in the model registry."
                     isEmpty={!mv.createTimeSinceEpoch}
                     contentWhenEmpty="Unknown"
                   >
                     <ModelTimestamp timeSinceEpoch={mv.createTimeSinceEpoch} />
                   </DashboardDescriptionListGroup>
+                  {isTransferJobSource && transferJob && (
+                    <DashboardDescriptionListGroup
+                      title="Stored"
+                      popover="When the model artifact was successfully stored in the specified model location."
+                      isEmpty={!transferJob.lastUpdateTimeSinceEpoch}
+                      contentWhenEmpty="Unknown"
+                    >
+                      <ModelTimestamp timeSinceEpoch={transferJob.lastUpdateTimeSinceEpoch} />
+                    </DashboardDescriptionListGroup>
+                  )}
                 </DescriptionList>
               </SidebarPanel>
             </Sidebar>
