@@ -77,9 +77,10 @@ const (
 	CatalogSourcePreviewPath                 = ModelCatalogSettingsPathPrefix + "/source_preview"
 
 	// Model Transfer Jobs
-	ModelTransferJobName     = "job_name"
-	ModelTransferJobListPath = ModelRegistryPath + "/model_transfer_jobs"
-	ModelTransferJobPath     = ModelTransferJobListPath + "/:" + ModelTransferJobName
+	ModelTransferJobName       = "job_name"
+	ModelTransferJobListPath   = ModelRegistryPath + "/model_transfer_jobs"
+	ModelTransferJobPath       = ModelTransferJobListPath + "/:" + ModelTransferJobName
+	ModelTransferJobEventsPath = ModelTransferJobPath + "/events"
 )
 
 type App struct {
@@ -240,6 +241,7 @@ func (app *App) Routes() http.Handler {
 	// Model Transfer Jobs
 	apiRouter.GET(ModelTransferJobListPath, app.AttachNamespace(app.RequireAccessToMRService(app.GetAllModelTransferJobsHandler)))
 	apiRouter.GET(ModelTransferJobPath, app.AttachNamespace(app.RequireAccessToMRService(app.GetModelTransferJobHandler)))
+	apiRouter.GET(ModelTransferJobEventsPath, app.AttachNamespace(app.RequireAccessToMRService(app.GetModelTransferJobEventsHandler)))
 	apiRouter.POST(ModelTransferJobListPath, app.AttachNamespace(app.RequireAccessToMRService(app.CreateModelTransferJobHandler)))
 	apiRouter.PATCH(ModelTransferJobPath, app.AttachNamespace(app.RequireAccessToMRService(app.UpdateModelTransferJobHandler)))
 	apiRouter.DELETE(ModelTransferJobPath, app.AttachNamespace(app.RequireAccessToMRService(app.DeleteModelTransferJobHandler)))

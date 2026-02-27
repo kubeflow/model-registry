@@ -1208,6 +1208,63 @@ var _ = Describe("TestModelTransferJob", func() {
 			Expect(rs.StatusCode).To(Equal(http.StatusNotFound))
 		})
 	})
+
+	Context("fetching model transfer job events", func() {
+		It("GET events returns 200 for existing job", func() {
+			envelope, rs, err := setupApiTest[Envelope[struct {
+				Events []models.ModelTransferJobEvent `json:"events"`
+			}, None]](
+				http.MethodGet,
+				"/api/v1/model_registry/model-registry/model_transfer_jobs/transfer-job-001/events?namespace=kubeflow",
+				nil,
+				kubernetesMockedStaticClientFactory,
+				requestIdentity,
+				"kubeflow",
+			)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(rs.StatusCode).To(Equal(http.StatusOK))
+			Expect(envelope.Data.Events).NotTo(BeNil())
+		})
+
+		It("GET events returns 404 for non-existent job", func() {
+			_, rs, err := setupApiTest[Envelope[any, any]](
+				http.MethodGet,
+				"/api/v1/model_registry/model-registry/model_transfer_jobs/does-not-exist/events?namespace=kubeflow",
+				nil,
+				kubernetesMockedStaticClientFactory,
+				requestIdentity,
+				"kubeflow",
+			)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(rs.StatusCode).To(Equal(http.StatusNotFound))
+		})
+
+		It("GET events returns 404 when job belongs to different registry", func() {
+			_, rs, err := setupApiTest[Envelope[any, any]](
+				http.MethodGet,
+				"/api/v1/model_registry/other-registry/model_transfer_jobs/transfer-job-001/events?namespace=kubeflow",
+				nil,
+				kubernetesMockedStaticClientFactory,
+				requestIdentity,
+				"kubeflow",
+			)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(rs.StatusCode).To(Equal(http.StatusNotFound))
+		})
+
+		It("GET events returns 400 when namespace is missing", func() {
+			_, rs, err := setupApiTest[Envelope[any, any]](
+				http.MethodGet,
+				"/api/v1/model_registry/model-registry/model_transfer_jobs/transfer-job-001/events",
+				nil,
+				kubernetesMockedStaticClientFactory,
+				requestIdentity,
+				"",
+			)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(rs.StatusCode).To(Equal(http.StatusBadRequest))
+		})
+	})
 })
 
 var _ = Describe("TestModelTransferJob registry filtering", func() {

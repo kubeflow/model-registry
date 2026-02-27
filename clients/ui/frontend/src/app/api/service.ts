@@ -21,6 +21,7 @@ import {
   RegisteredModel,
   ModelTransferJobList,
   ModelTransferJob,
+  ModelTransferJobEvent,
 } from '~/app/types';
 import { bumpRegisteredModelTimestamp } from '~/app/api/updateTimestamps';
 
@@ -288,3 +289,23 @@ export const deleteModelTransferJob =
         opts,
       ),
     );
+
+export const getModelTransferJobEvents =
+  (hostPath: string, queryParams: Record<string, unknown> = {}) =>
+  (opts: APIOptions, jobName: string): Promise<ModelTransferJobEvent[]> =>
+    handleRestFailures(
+      restGET(
+        hostPath,
+        `/model_transfer_jobs/${encodeURIComponent(jobName)}/events`,
+        queryParams,
+        opts,
+      ),
+    ).then((response) => {
+      if (
+        isModArchResponse<{ events: ModelTransferJobEvent[] }>(response) &&
+        Array.isArray(response.data.events)
+      ) {
+        return response.data.events;
+      }
+      throw new Error('Invalid response format');
+    });
