@@ -13,8 +13,8 @@ import (
 	"strings"
 
 	"github.com/kubeflow/model-registry/catalog/internal/catalog"
+	"github.com/kubeflow/model-registry/catalog/internal/catalog/modelcatalog"
 	"github.com/kubeflow/model-registry/catalog/internal/db/models"
-	dbmodels "github.com/kubeflow/model-registry/catalog/internal/db/models"
 	model "github.com/kubeflow/model-registry/catalog/pkg/openapi"
 	mrmodels "github.com/kubeflow/model-registry/internal/db/models"
 	"github.com/kubeflow/model-registry/pkg/api"
@@ -272,7 +272,7 @@ func (m *ModelCatalogServiceAPIService) FindModels(ctx context.Context, recommen
 			hardwareTypeProp = "hardware_type"
 		}
 
-		paretoParams := dbmodels.ParetoFilteringParams{
+		paretoParams := modelcatalog.ParetoFilteringParams{
 			TargetRPS:             targetRPSPtr,
 			LatencyProperty:       latencyProp,
 			RpsProperty:           rpsProp,

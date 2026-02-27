@@ -8,7 +8,9 @@ import (
 	"testing"
 
 	"github.com/kubeflow/model-registry/catalog/internal/catalog/basecatalog"
-	"github.com/kubeflow/model-registry/catalog/internal/db/models"
+	"github.com/kubeflow/model-registry/catalog/internal/catalog/modelcatalog/models"
+	modelservice "github.com/kubeflow/model-registry/catalog/internal/catalog/modelcatalog/service"
+	sharedmodels "github.com/kubeflow/model-registry/catalog/internal/db/models"
 	"github.com/kubeflow/model-registry/catalog/internal/db/service"
 	model "github.com/kubeflow/model-registry/catalog/pkg/openapi"
 	"github.com/kubeflow/model-registry/internal/apiutils"
@@ -35,13 +37,13 @@ func TestDBCatalog(t *testing.T) {
 	catalogSourceTypeID := GetCatalogSourceTypeIDForDBTest(t, sharedDB)
 
 	// Create repositories
-	catalogModelRepo := service.NewCatalogModelRepository(sharedDB, catalogModelTypeID)
+	catalogModelRepo := modelservice.NewCatalogModelRepository(sharedDB, catalogModelTypeID)
 	catalogArtifactRepo := service.NewCatalogArtifactRepository(sharedDB, map[string]int32{
 		service.CatalogModelArtifactTypeName:   modelArtifactTypeID,
 		service.CatalogMetricsArtifactTypeName: metricsArtifactTypeID,
 	})
-	modelArtifactRepo := service.NewCatalogModelArtifactRepository(sharedDB, modelArtifactTypeID)
-	metricsArtifactRepo := service.NewCatalogMetricsArtifactRepository(sharedDB, metricsArtifactTypeID)
+	modelArtifactRepo := modelservice.NewCatalogModelArtifactRepository(sharedDB, modelArtifactTypeID)
+	metricsArtifactRepo := modelservice.NewCatalogMetricsArtifactRepository(sharedDB, metricsArtifactTypeID)
 	catalogSourceRepo := service.NewCatalogSourceRepository(sharedDB, catalogSourceTypeID)
 
 	svcs := service.NewServices(
@@ -737,7 +739,7 @@ func TestDBCatalog(t *testing.T) {
 				},
 			}
 
-			catalogArtifact := models.CatalogArtifact{
+			catalogArtifact := sharedmodels.CatalogArtifact{
 				CatalogModelArtifact: catalogModelArtifact,
 			}
 
@@ -761,7 +763,7 @@ func TestDBCatalog(t *testing.T) {
 				},
 			}
 
-			catalogArtifact2 := models.CatalogArtifact{
+			catalogArtifact2 := sharedmodels.CatalogArtifact{
 				CatalogMetricsArtifact: catalogMetricsArtifact,
 			}
 
@@ -777,7 +779,7 @@ func TestDBCatalog(t *testing.T) {
 
 		t.Run("TestMapCatalogArtifact_EmptyArtifact", func(t *testing.T) {
 			// Test with empty catalog artifact
-			emptyCatalogArtifact := models.CatalogArtifact{}
+			emptyCatalogArtifact := sharedmodels.CatalogArtifact{}
 
 			_, err := mapDBArtifactToAPIArtifact(emptyCatalogArtifact)
 			require.Error(t, err)
@@ -869,8 +871,8 @@ func TestDBCatalog(t *testing.T) {
 		_, err = catalogModelRepo.Save(model3)
 		require.NoError(t, err)
 
-		require.NoError(t, dbCatalog.(*dbCatalogImpl).propertyOptionsRepository.Refresh(models.ContextPropertyOptionType))
-		require.NoError(t, dbCatalog.(*dbCatalogImpl).propertyOptionsRepository.Refresh(models.ArtifactPropertyOptionType))
+		require.NoError(t, dbCatalog.(*dbCatalogImpl).propertyOptionsRepository.Refresh(sharedmodels.ContextPropertyOptionType))
+		require.NoError(t, dbCatalog.(*dbCatalogImpl).propertyOptionsRepository.Refresh(sharedmodels.ArtifactPropertyOptionType))
 
 		// Test GetFilterOptions
 		filterOptions, err := dbCatalog.GetFilterOptions(ctx)
@@ -1413,13 +1415,13 @@ func TestDBCatalog_GetPerformanceArtifactsWithService(t *testing.T) {
 	catalogSourceTypeID := GetCatalogSourceTypeIDForDBTest(t, sharedDB)
 
 	// Create repositories
-	catalogModelRepo := service.NewCatalogModelRepository(sharedDB, catalogModelTypeID)
+	catalogModelRepo := modelservice.NewCatalogModelRepository(sharedDB, catalogModelTypeID)
 	catalogArtifactRepo := service.NewCatalogArtifactRepository(sharedDB, map[string]int32{
 		service.CatalogModelArtifactTypeName:   modelArtifactTypeID,
 		service.CatalogMetricsArtifactTypeName: metricsArtifactTypeID,
 	})
-	modelArtifactRepo := service.NewCatalogModelArtifactRepository(sharedDB, modelArtifactTypeID)
-	metricsArtifactRepo := service.NewCatalogMetricsArtifactRepository(sharedDB, metricsArtifactTypeID)
+	modelArtifactRepo := modelservice.NewCatalogModelArtifactRepository(sharedDB, modelArtifactTypeID)
+	metricsArtifactRepo := modelservice.NewCatalogMetricsArtifactRepository(sharedDB, metricsArtifactTypeID)
 	catalogSourceRepo := service.NewCatalogSourceRepository(sharedDB, catalogSourceTypeID)
 
 	services := service.NewServices(
@@ -1567,18 +1569,18 @@ func TestGetFilterOptionsWithNamedQueries(t *testing.T) {
 // Mock repository for testing
 type mockPropertyRepository struct{}
 
-func (m *mockPropertyRepository) List(optionType models.PropertyOptionType, limit int32) ([]models.PropertyOption, error) {
-	return []models.PropertyOption{}, nil
+func (m *mockPropertyRepository) List(optionType sharedmodels.PropertyOptionType, limit int32) ([]sharedmodels.PropertyOption, error) {
+	return []sharedmodels.PropertyOption{}, nil
 }
 
-func (m *mockPropertyRepository) Refresh(optionType models.PropertyOptionType) error {
+func (m *mockPropertyRepository) Refresh(optionType sharedmodels.PropertyOptionType) error {
 	return nil
 }
 
 // Mock repository that provides filter options with numeric ranges for testing min/max transformation
 type mockPropertyRepositoryWithRanges struct{}
 
-func (m *mockPropertyRepositoryWithRanges) List(optionType models.PropertyOptionType, limit int32) ([]models.PropertyOption, error) {
+func (m *mockPropertyRepositoryWithRanges) List(optionType sharedmodels.PropertyOptionType, limit int32) ([]sharedmodels.PropertyOption, error) {
 	// Return property options with numeric ranges that match the fields used in the test
 	minLatency := int64(10)
 	maxLatency := int64(500)
@@ -1587,7 +1589,7 @@ func (m *mockPropertyRepositoryWithRanges) List(optionType models.PropertyOption
 	minMemory := int64(0)
 	maxMemory := int64(2048)
 
-	return []models.PropertyOption{
+	return []sharedmodels.PropertyOption{
 		{
 			Name:        "latency_ms",
 			MinIntValue: &minLatency,
@@ -1606,7 +1608,7 @@ func (m *mockPropertyRepositoryWithRanges) List(optionType models.PropertyOption
 	}, nil
 }
 
-func (m *mockPropertyRepositoryWithRanges) Refresh(optionType models.PropertyOptionType) error {
+func (m *mockPropertyRepositoryWithRanges) Refresh(optionType sharedmodels.PropertyOptionType) error {
 	return nil
 }
 
@@ -1940,13 +1942,13 @@ func TestFindModelsWithRecommendedLatency(t *testing.T) {
 	catalogSourceTypeID := GetCatalogSourceTypeIDForDBTest(t, sharedDB)
 
 	// Create repositories
-	catalogModelRepo := service.NewCatalogModelRepository(sharedDB, catalogModelTypeID)
+	catalogModelRepo := modelservice.NewCatalogModelRepository(sharedDB, catalogModelTypeID)
 	catalogArtifactRepo := service.NewCatalogArtifactRepository(sharedDB, map[string]int32{
 		service.CatalogModelArtifactTypeName:   modelArtifactTypeID,
 		service.CatalogMetricsArtifactTypeName: metricsArtifactTypeID,
 	})
-	modelArtifactRepo := service.NewCatalogModelArtifactRepository(sharedDB, modelArtifactTypeID)
-	metricsArtifactRepo := service.NewCatalogMetricsArtifactRepository(sharedDB, metricsArtifactTypeID)
+	modelArtifactRepo := modelservice.NewCatalogModelArtifactRepository(sharedDB, modelArtifactTypeID)
+	metricsArtifactRepo := modelservice.NewCatalogMetricsArtifactRepository(sharedDB, metricsArtifactTypeID)
 	catalogSourceRepo := service.NewCatalogSourceRepository(sharedDB, catalogSourceTypeID)
 
 	svcs := service.NewServices(
@@ -2051,7 +2053,7 @@ func TestFindModelsWithRecommendedLatency(t *testing.T) {
 		PageSize: apiutils.Of(int32(10)),
 	}
 
-	paretoParams := models.ParetoFilteringParams{
+	paretoParams := ParetoFilteringParams{
 		LatencyProperty: "ttft_p90",
 	}
 

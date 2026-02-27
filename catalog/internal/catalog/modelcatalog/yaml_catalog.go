@@ -12,7 +12,8 @@ import (
 
 	"github.com/golang/glog"
 	"github.com/kubeflow/model-registry/catalog/internal/catalog/basecatalog"
-	dbmodels "github.com/kubeflow/model-registry/catalog/internal/db/models"
+	catalogmodels "github.com/kubeflow/model-registry/catalog/internal/catalog/modelcatalog/models"
+	sharedmodels "github.com/kubeflow/model-registry/catalog/internal/db/models"
 	apimodels "github.com/kubeflow/model-registry/catalog/pkg/openapi"
 	"github.com/kubeflow/model-registry/internal/db/models"
 )
@@ -79,8 +80,8 @@ type yamlArtifact struct {
 }
 
 // convertModelAttributes converts basic model attributes and timestamps
-func (ym *yamlModel) convertModelAttributes() *dbmodels.CatalogModelAttributes {
-	attrs := &dbmodels.CatalogModelAttributes{
+func (ym *yamlModel) convertModelAttributes() *catalogmodels.CatalogModelAttributes {
+	attrs := &catalogmodels.CatalogModelAttributes{
 		Name: &ym.Name,
 	}
 
@@ -159,11 +160,11 @@ func (ym *yamlModel) convertModelProperties() ([]models.Properties, []models.Pro
 }
 
 // convertModelArtifact converts a CatalogModelArtifact to database format
-func convertModelArtifact(artifact *apimodels.CatalogModelArtifact) *dbmodels.CatalogArtifact {
-	modelArtifact := &dbmodels.CatalogModelArtifactImpl{}
+func convertModelArtifact(artifact *apimodels.CatalogModelArtifact) *sharedmodels.CatalogArtifact {
+	modelArtifact := &catalogmodels.CatalogModelArtifactImpl{}
 
 	// Set basic attributes
-	attrs := &dbmodels.CatalogModelArtifactAttributes{
+	attrs := &catalogmodels.CatalogModelArtifactAttributes{
 		URI: &artifact.Uri,
 	}
 
@@ -191,18 +192,18 @@ func convertModelArtifact(artifact *apimodels.CatalogModelArtifact) *dbmodels.Ca
 
 	modelArtifact.Properties = &artifactProperties
 
-	return &dbmodels.CatalogArtifact{
+	return &sharedmodels.CatalogArtifact{
 		CatalogModelArtifact: modelArtifact,
 	}
 }
 
 // convertMetricsArtifact converts a CatalogMetricsArtifact to database format
-func convertMetricsArtifact(artifact *apimodels.CatalogMetricsArtifact) *dbmodels.CatalogArtifact {
-	metricsArtifact := &dbmodels.CatalogMetricsArtifactImpl{}
+func convertMetricsArtifact(artifact *apimodels.CatalogMetricsArtifact) *sharedmodels.CatalogArtifact {
+	metricsArtifact := &catalogmodels.CatalogMetricsArtifactImpl{}
 
 	// Set basic attributes
-	attrs := &dbmodels.CatalogMetricsArtifactAttributes{
-		MetricsType: dbmodels.MetricsType(artifact.MetricsType),
+	attrs := &catalogmodels.CatalogMetricsArtifactAttributes{
+		MetricsType: catalogmodels.MetricsType(artifact.MetricsType),
 	}
 
 	// Convert timestamps
@@ -230,14 +231,14 @@ func convertMetricsArtifact(artifact *apimodels.CatalogMetricsArtifact) *dbmodel
 
 	metricsArtifact.Properties = &artifactProperties
 
-	return &dbmodels.CatalogArtifact{
+	return &sharedmodels.CatalogArtifact{
 		CatalogMetricsArtifact: metricsArtifact,
 	}
 }
 
 func (ym *yamlModel) ToModelProviderRecord() ModelProviderRecord {
-	model := dbmodels.CatalogModelImpl{}
-	artifacts := make([]dbmodels.CatalogArtifact, len(ym.Artifacts))
+	model := catalogmodels.CatalogModelImpl{}
+	artifacts := make([]sharedmodels.CatalogArtifact, len(ym.Artifacts))
 
 	// Convert model attributes
 	model.Attributes = ym.convertModelAttributes()

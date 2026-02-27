@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"github.com/golang/glog"
-	"github.com/kubeflow/model-registry/catalog/internal/db/models"
+	"github.com/kubeflow/model-registry/catalog/internal/catalog/mcpcatalog/models"
 	"github.com/kubeflow/model-registry/catalog/pkg/openapi"
 	dbmodels "github.com/kubeflow/model-registry/internal/db/models"
 )

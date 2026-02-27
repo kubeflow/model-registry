@@ -10,8 +10,8 @@ import (
 	"strings"
 
 	"github.com/golang/glog"
-	"github.com/kubeflow/model-registry/catalog/internal/db/models"
-	dbmodels "github.com/kubeflow/model-registry/catalog/internal/db/models"
+	"github.com/kubeflow/model-registry/catalog/internal/catalog/modelcatalog/models"
+	sharedmodels "github.com/kubeflow/model-registry/catalog/internal/db/models"
 	"github.com/kubeflow/model-registry/catalog/internal/db/service"
 	apimodels "github.com/kubeflow/model-registry/catalog/pkg/openapi"
 	"github.com/kubeflow/model-registry/internal/apiutils"
@@ -22,10 +22,10 @@ import (
 )
 
 type dbCatalogImpl struct {
-	catalogModelRepository    dbmodels.CatalogModelRepository
-	catalogArtifactRepository dbmodels.CatalogArtifactRepository
-	propertyOptionsRepository dbmodels.PropertyOptionsRepository
-	performanceService        *dbmodels.PerformanceArtifactService
+	catalogModelRepository    models.CatalogModelRepository
+	catalogArtifactRepository sharedmodels.CatalogArtifactRepository
+	propertyOptionsRepository sharedmodels.PropertyOptionsRepository
+	performanceService        *PerformanceArtifactService
 	sources                   *SourceCollection
 }
 
@@ -34,13 +34,13 @@ func NewDBCatalog(services service.Services, sources *SourceCollection) APIProvi
 		catalogArtifactRepository: services.CatalogArtifactRepository,
 		catalogModelRepository:    services.CatalogModelRepository,
 		propertyOptionsRepository: services.PropertyOptionsRepository,
-		performanceService:        dbmodels.NewPerformanceArtifactService(services.CatalogArtifactRepository, services.CatalogModelRepository),
-		sources:                   sources,
+		performanceService: NewPerformanceArtifactService(services.CatalogArtifactRepository, services.CatalogModelRepository),
+		sources:            sources,
 	}
 }
 
 func (d *dbCatalogImpl) GetModel(ctx context.Context, modelName string, sourceID string) (*apimodels.CatalogModel, error) {
-	modelsList, err := d.catalogModelRepository.List(dbmodels.CatalogModelListOptions{
+	modelsList, err := d.catalogModelRepository.List(models.CatalogModelListOptions{
 		Name:      &modelName,
 		SourceIDs: &[]string{sourceID},
 	})
@@ -86,7 +86,7 @@ func (d *dbCatalogImpl) ListModels(ctx context.Context, params ListModelsParams)
 
 	sourceIDs := params.SourceIDs
 
-	modelsList, err := d.catalogModelRepository.List(dbmodels.CatalogModelListOptions{
+	modelsList, err := d.catalogModelRepository.List(models.CatalogModelListOptions{
 		SourceIDs: &sourceIDs,
 		Query:     queryPtr,
 		Pagination: mrmodels.Pagination{
@@ -152,7 +152,7 @@ func (d *dbCatalogImpl) GetArtifacts(ctx context.Context, modelName string, sour
 		filterQueryPtr = &params.FilterQuery
 	}
 
-	artifactsList, err := d.catalogArtifactRepository.List(dbmodels.CatalogArtifactListOptions{
+	artifactsList, err := d.catalogArtifactRepository.List(sharedmodels.CatalogArtifactListOptions{
 		ParentResourceID:    &parentResourceID32,
 		ArtifactTypesFilter: params.ArtifactTypesFilter,
 		Pagination: mrmodels.Pagination{
@@ -187,11 +187,11 @@ func (d *dbCatalogImpl) GetArtifacts(ctx context.Context, modelName string, sour
 }
 
 func (d *dbCatalogImpl) GetFilterOptions(ctx context.Context) (*apimodels.FilterOptionsList, error) {
-	contextProperties, err := d.propertyOptionsRepository.List(models.ContextPropertyOptionType, 0)
+	contextProperties, err := d.propertyOptionsRepository.List(sharedmodels.ContextPropertyOptionType, 0)
 	if err != nil {
 		return nil, err
 	}
-	artifactProperties, err := d.propertyOptionsRepository.List(models.ArtifactPropertyOptionType, 0)
+	artifactProperties, err := d.propertyOptionsRepository.List(sharedmodels.ArtifactPropertyOptionType, 0)
 	if err != nil {
 		return nil, err
 	}
@@ -287,7 +287,7 @@ func (d *dbCatalogImpl) applyMinMax(query map[string]apimodels.FieldFilter, opti
 
 func (d *dbCatalogImpl) GetPerformanceArtifacts(ctx context.Context, modelName string, sourceID string, params ListPerformanceArtifactsParams) (apimodels.CatalogArtifactList, error) {
 	// Get the model to validate it exists and get its ID
-	modelsList, err := d.catalogModelRepository.List(dbmodels.CatalogModelListOptions{
+	modelsList, err := d.catalogModelRepository.List(models.CatalogModelListOptions{
 		Name:      &modelName,
 		SourceIDs: &[]string{sourceID},
 	})
@@ -305,7 +305,7 @@ func (d *dbCatalogImpl) GetPerformanceArtifacts(ctx context.Context, modelName s
 
 	model := modelsList.Items[0]
 
-	serviceParams := dbmodels.PerformanceArtifactParams{
+	serviceParams := PerformanceArtifactParams{
 		ModelID:               *model.GetID(),
 		TargetRPS:             params.TargetRPS,
 		Recommendations:       params.Recommendations,
@@ -330,7 +330,7 @@ func (d *dbCatalogImpl) GetPerformanceArtifacts(ctx context.Context, modelName s
 	}
 
 	for _, artifact := range artifactsList.Items {
-		mappedArtifact, err := mapDBArtifactToAPIArtifact(dbmodels.CatalogArtifact{
+		mappedArtifact, err := mapDBArtifactToAPIArtifact(sharedmodels.CatalogArtifact{
 			CatalogMetricsArtifact: artifact,
 		})
 		if err != nil {
@@ -346,11 +346,11 @@ func (d *dbCatalogImpl) GetPerformanceArtifacts(ctx context.Context, modelName s
 	return *artifactList, nil
 }
 
-func dbPropToAPIOption(prop dbmodels.PropertyOption) *apimodels.FilterOption {
+func dbPropToAPIOption(prop sharedmodels.PropertyOption) *apimodels.FilterOption {
 	var option apimodels.FilterOption
 
 	switch prop.ValueField() {
-	case dbmodels.StringValueField:
+	case sharedmodels.StringValueField:
 		if len(prop.StringValue) == 0 {
 			return nil
 		}
@@ -358,7 +358,7 @@ func dbPropToAPIOption(prop dbmodels.PropertyOption) *apimodels.FilterOption {
 		sort.Strings(prop.StringValue)
 		option.Values = anySlice(prop.StringValue)
 
-	case dbmodels.ArrayValueField:
+	case sharedmodels.ArrayValueField:
 		if len(prop.ArrayValue) == 0 {
 			return nil
 		}
@@ -366,7 +366,7 @@ func dbPropToAPIOption(prop dbmodels.PropertyOption) *apimodels.FilterOption {
 		sort.Strings(prop.ArrayValue)
 		option.Values = anySlice(prop.ArrayValue)
 
-	case dbmodels.IntValueField:
+	case sharedmodels.IntValueField:
 		if prop.MinIntValue == nil || prop.MaxIntValue == nil {
 			return nil
 		}
@@ -377,7 +377,7 @@ func dbPropToAPIOption(prop dbmodels.PropertyOption) *apimodels.FilterOption {
 			Max: apiutils.Of(float64(*prop.MaxIntValue)),
 		}
 
-	case dbmodels.DoubleValueField:
+	case sharedmodels.DoubleValueField:
 		if prop.MinDoubleValue == nil || prop.MaxDoubleValue == nil {
 			return nil
 		}
@@ -400,7 +400,7 @@ func anySlice[T any](s []T) []any {
 	return as
 }
 
-func mapDBModelToAPIModel(m dbmodels.CatalogModel) apimodels.CatalogModel {
+func mapDBModelToAPIModel(m models.CatalogModel) apimodels.CatalogModel {
 	res := apimodels.CatalogModel{}
 
 	id := strconv.FormatInt(int64(*m.GetID()), 10)
@@ -495,20 +495,28 @@ func mapDBModelToAPIModel(m dbmodels.CatalogModel) apimodels.CatalogModel {
 	return res
 }
 
-func mapDBArtifactToAPIArtifact(a dbmodels.CatalogArtifact) (apimodels.CatalogArtifact, error) {
+func mapDBArtifactToAPIArtifact(a sharedmodels.CatalogArtifact) (apimodels.CatalogArtifact, error) {
 	if a.CatalogModelArtifact != nil {
-		return mapToModelArtifact(a.CatalogModelArtifact)
+		modelArtifact, ok := a.CatalogModelArtifact.(models.CatalogModelArtifact)
+		if !ok {
+			return apimodels.CatalogArtifact{}, fmt.Errorf("invalid catalog model artifact type: %T", a.CatalogModelArtifact)
+		}
+		return mapToModelArtifact(modelArtifact)
 	} else if a.CatalogMetricsArtifact != nil {
-		metricsTypeValue := string(a.CatalogMetricsArtifact.GetAttributes().MetricsType)
-		return mapToMetricsArtifact(a.CatalogMetricsArtifact, metricsTypeValue)
+		metricsArtifact, ok := a.CatalogMetricsArtifact.(models.CatalogMetricsArtifact)
+		if !ok {
+			return apimodels.CatalogArtifact{}, fmt.Errorf("invalid catalog metrics artifact type: %T", a.CatalogMetricsArtifact)
+		}
+		metricsTypeValue := string(metricsArtifact.GetAttributes().MetricsType)
+		return mapToMetricsArtifact(metricsArtifact, metricsTypeValue)
 	}
 
 	return apimodels.CatalogArtifact{}, fmt.Errorf("invalid catalog artifact type: %v", a)
 }
 
-func mapToModelArtifact(a dbmodels.CatalogModelArtifact) (apimodels.CatalogArtifact, error) {
+func mapToModelArtifact(a models.CatalogModelArtifact) (apimodels.CatalogArtifact, error) {
 	catalogModelArtifact := &apimodels.CatalogModelArtifact{
-		ArtifactType: dbmodels.CatalogModelArtifactType,
+		ArtifactType: models.CatalogModelArtifactType,
 	}
 
 	if a.GetID() != nil {
@@ -568,9 +576,9 @@ func mapToModelArtifact(a dbmodels.CatalogModelArtifact) (apimodels.CatalogArtif
 	}, nil
 }
 
-func mapToMetricsArtifact(a dbmodels.CatalogMetricsArtifact, metricsType string) (apimodels.CatalogArtifact, error) {
+func mapToMetricsArtifact(a models.CatalogMetricsArtifact, metricsType string) (apimodels.CatalogArtifact, error) {
 	catalogMetricsArtifact := &apimodels.CatalogMetricsArtifact{
-		ArtifactType: dbmodels.CatalogMetricsArtifactType,
+		ArtifactType: models.CatalogMetricsArtifactType,
 		MetricsType:  metricsType,
 	}
 
@@ -667,7 +675,7 @@ func convertMetadataValueMap(source map[string]openapi.MetadataValue) map[string
 func (d *dbCatalogImpl) FindModelsWithRecommendedLatency(
 	ctx context.Context,
 	pagination mrmodels.Pagination,
-	paretoParams dbmodels.ParetoFilteringParams,
+	paretoParams ParetoFilteringParams,
 	sourceIDs []string,
 	query string,
 ) (*apimodels.CatalogModelList, error) {
@@ -682,7 +690,7 @@ func (d *dbCatalogImpl) FindModelsWithRecommendedLatency(
 		queryPtr = &query
 	}
 
-	allModels, err := d.catalogModelRepository.List(dbmodels.CatalogModelListOptions{
+	allModels, err := d.catalogModelRepository.List(models.CatalogModelListOptions{
 		SourceIDs: sourceIDsPtr,
 		Query:     queryPtr,
 		Pagination: mrmodels.Pagination{

@@ -5,8 +5,7 @@ import (
 	"fmt"
 
 	"github.com/kubeflow/model-registry/catalog/internal/converter"
-	"github.com/kubeflow/model-registry/catalog/internal/db/models"
-	dbmodels "github.com/kubeflow/model-registry/catalog/internal/db/models"
+	"github.com/kubeflow/model-registry/catalog/internal/catalog/mcpcatalog/models"
 	"github.com/kubeflow/model-registry/catalog/internal/db/service"
 	openapi "github.com/kubeflow/model-registry/catalog/pkg/openapi"
 	"github.com/kubeflow/model-registry/internal/apiutils"
@@ -14,8 +13,8 @@ import (
 )
 
 type dbMCPCatalogImpl struct {
-	mcpServerRepo     dbmodels.MCPServerRepository
-	mcpServerToolRepo dbmodels.MCPServerToolRepository
+	mcpServerRepo     models.MCPServerRepository
+	mcpServerToolRepo models.MCPServerToolRepository
 }
 
 func NewDBMCPCatalog(services service.Services) MCPCatalogProvider {

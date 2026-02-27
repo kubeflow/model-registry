@@ -7,7 +7,8 @@ import (
 
 	mapset "github.com/deckarep/golang-set/v2"
 	"github.com/kubeflow/model-registry/catalog/internal/catalog/basecatalog"
-	dbmodels "github.com/kubeflow/model-registry/catalog/internal/db/models"
+	"github.com/kubeflow/model-registry/catalog/internal/catalog/modelcatalog/models"
+	sharedmodels "github.com/kubeflow/model-registry/catalog/internal/db/models"
 	"github.com/kubeflow/model-registry/catalog/internal/db/service"
 	apimodels "github.com/kubeflow/model-registry/catalog/pkg/openapi"
 	"github.com/kubeflow/model-registry/internal/apiutils"
@@ -260,15 +261,15 @@ func TestLoader_StartWithLeaderElection(t *testing.T) {
 		ch := make(chan ModelProviderRecord, 2)
 
 		modelName := "test-model-1"
-		model := &dbmodels.CatalogModelImpl{
-			Attributes: &dbmodels.CatalogModelAttributes{
+		model := &models.CatalogModelImpl{
+			Attributes: &models.CatalogModelAttributes{
 				Name: &modelName,
 			},
 		}
 
 		ch <- ModelProviderRecord{
 			Model:     model,
-			Artifacts: []dbmodels.CatalogArtifact{},
+			Artifacts: []sharedmodels.CatalogArtifact{},
 		}
 
 		// Send completion marker
@@ -319,9 +320,9 @@ func TestLoader_StartWithLeaderElection(t *testing.T) {
 
 	t.Run("leader mode performs database writes", func(t *testing.T) {
 		// Reset mock repositories
-		mockModelRepo.SavedModels = []dbmodels.CatalogModel{}
-		mockModelArtifactRepo.SavedArtifacts = []dbmodels.CatalogModelArtifact{}
-		mockMetricsArtifactRepo.SavedMetrics = []dbmodels.CatalogMetricsArtifact{}
+		mockModelRepo.SavedModels = []models.CatalogModel{}
+		mockModelArtifactRepo.SavedArtifacts = []models.CatalogModelArtifact{}
+		mockMetricsArtifactRepo.SavedMetrics = []models.CatalogMetricsArtifact{}
 
 		baseLoader := basecatalog.NewBaseLoader([]string{})
 		loader := NewModelLoader(services, baseLoader)

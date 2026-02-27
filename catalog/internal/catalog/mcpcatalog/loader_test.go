@@ -10,8 +10,10 @@ import (
 
 	mapset "github.com/deckarep/golang-set/v2"
 	"github.com/kubeflow/model-registry/catalog/internal/catalog/basecatalog"
+	mcpmodels "github.com/kubeflow/model-registry/catalog/internal/catalog/mcpcatalog/models"
+	mcpcatalogservice "github.com/kubeflow/model-registry/catalog/internal/catalog/mcpcatalog/service"
 	"github.com/kubeflow/model-registry/catalog/internal/catalog/modelcatalog"
-	"github.com/kubeflow/model-registry/catalog/internal/db/models"
+	modelcatalogservice "github.com/kubeflow/model-registry/catalog/internal/catalog/modelcatalog/service"
 	"github.com/kubeflow/model-registry/catalog/internal/db/service"
 	"github.com/kubeflow/model-registry/internal/db/schema"
 	"github.com/kubeflow/model-registry/internal/testutils"
@@ -72,16 +74,16 @@ func setupMCPLoaderTest(t *testing.T) (*gorm.DB, service.Services, func()) {
 	mcpServerToolTypeID := getMCPServerToolTypeIDForTest(t, sharedDB)
 
 	// Create repositories
-	catalogModelRepo := service.NewCatalogModelRepository(sharedDB, catalogModelTypeID)
+	catalogModelRepo := modelcatalogservice.NewCatalogModelRepository(sharedDB, catalogModelTypeID)
 	catalogArtifactRepo := service.NewCatalogArtifactRepository(sharedDB, map[string]int32{
 		service.CatalogModelArtifactTypeName:   modelArtifactTypeID,
 		service.CatalogMetricsArtifactTypeName: metricsArtifactTypeID,
 	})
-	modelArtifactRepo := service.NewCatalogModelArtifactRepository(sharedDB, modelArtifactTypeID)
-	metricsArtifactRepo := service.NewCatalogMetricsArtifactRepository(sharedDB, metricsArtifactTypeID)
+	modelArtifactRepo := modelcatalogservice.NewCatalogModelArtifactRepository(sharedDB, modelArtifactTypeID)
+	metricsArtifactRepo := modelcatalogservice.NewCatalogMetricsArtifactRepository(sharedDB, metricsArtifactTypeID)
 	catalogSourceRepo := service.NewCatalogSourceRepository(sharedDB, catalogSourceTypeID)
-	mcpServerRepo := service.NewMCPServerRepository(sharedDB, mcpServerTypeID)
-	mcpServerToolRepo := service.NewMCPServerToolRepository(sharedDB, mcpServerToolTypeID)
+	mcpServerRepo := mcpcatalogservice.NewMCPServerRepository(sharedDB, mcpServerTypeID)
+	mcpServerToolRepo := mcpcatalogservice.NewMCPServerToolRepository(sharedDB, mcpServerToolTypeID)
 
 	services := service.NewServices(
 		catalogModelRepo,
@@ -186,7 +188,7 @@ func TestMCPLoaderBasicLoad(t *testing.T) {
 
 	// Verify tools were persisted to the database
 	require.NotNil(t, server.GetID())
-	tools, err := services.MCPServerToolRepository.List(models.MCPServerToolListOptions{ParentID: *server.GetID()})
+	tools, err := services.MCPServerToolRepository.List(mcpmodels.MCPServerToolListOptions{ParentID: *server.GetID()})
 	require.NoError(t, err)
 	require.Len(t, tools, 1)
 	toolAttrs := tools[0].GetAttributes()

@@ -1,32 +1,29 @@
-package service_test
+package service
 
 import (
 	"fmt"
 	"testing"
 	"time"
 
-	"github.com/kubeflow/model-registry/catalog/internal/db/models"
-	"github.com/kubeflow/model-registry/catalog/internal/db/service"
+	"github.com/kubeflow/model-registry/catalog/internal/catalog/modelcatalog/models"
 	"github.com/kubeflow/model-registry/internal/apiutils"
 	dbmodels "github.com/kubeflow/model-registry/internal/db/models"
-	"github.com/kubeflow/model-registry/internal/db/schema"
 	"github.com/kubeflow/model-registry/internal/testutils"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"gorm.io/gorm"
 )
 
 func TestCatalogMetricsArtifactRepository(t *testing.T) {
-	sharedDB, cleanup := testutils.SetupPostgresWithMigrations(t, service.DatastoreSpec())
+	sharedDB, cleanup := testutils.SetupPostgresWithMigrations(t, testDatastoreSpec())
 	defer cleanup()
 
 	// Get the CatalogMetricsArtifact type ID
 	typeID := getCatalogMetricsArtifactTypeID(t, sharedDB)
-	repo := service.NewCatalogMetricsArtifactRepository(sharedDB, typeID)
+	repo := NewCatalogMetricsArtifactRepository(sharedDB, typeID)
 
 	// Also get CatalogModel type ID for creating parent entities
 	catalogModelTypeID := getCatalogModelTypeID(t, sharedDB)
-	catalogModelRepo := service.NewCatalogModelRepository(sharedDB, catalogModelTypeID)
+	catalogModelRepo := NewCatalogModelRepository(sharedDB, catalogModelTypeID)
 
 	t.Run("TestSave", func(t *testing.T) {
 		// First create a catalog model for attribution
@@ -118,7 +115,7 @@ func TestCatalogMetricsArtifactRepository(t *testing.T) {
 
 		// Test retrieving non-existent ID
 		_, err = repo.GetByID(99999)
-		assert.ErrorIs(t, err, service.ErrCatalogMetricsArtifactNotFound)
+		assert.ErrorIs(t, err, ErrCatalogMetricsArtifactNotFound)
 	})
 
 	t.Run("TestList", func(t *testing.T) {
@@ -626,15 +623,4 @@ func TestCatalogMetricsArtifactRepository(t *testing.T) {
 		require.Error(t, err)
 		assert.Contains(t, err.Error(), "unknown metrics type")
 	})
-}
-
-// Helper function to get or create CatalogMetricsArtifact type ID
-func getCatalogMetricsArtifactTypeID(t *testing.T, db *gorm.DB) int32 {
-	var typeRecord schema.Type
-	err := db.Where("name = ?", service.CatalogMetricsArtifactTypeName).First(&typeRecord).Error
-	if err != nil {
-		require.NoError(t, err, "Failed to query CatalogMetricsArtifact type")
-	}
-
-	return typeRecord.ID
 }

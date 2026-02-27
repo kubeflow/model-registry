@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/kubeflow/model-registry/catalog/internal/catalog/mcpcatalog/models"
 	"github.com/kubeflow/model-registry/catalog/internal/db/filter"
-	"github.com/kubeflow/model-registry/catalog/internal/db/models"
 	"github.com/kubeflow/model-registry/internal/db/dbutil"
 	dbmodels "github.com/kubeflow/model-registry/internal/db/models"
 	"github.com/kubeflow/model-registry/internal/db/schema"

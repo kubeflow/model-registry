@@ -10,7 +10,7 @@ import (
 	mapset "github.com/deckarep/golang-set/v2"
 	"github.com/golang/glog"
 	"github.com/kubeflow/model-registry/catalog/internal/catalog/basecatalog"
-	dbmodels "github.com/kubeflow/model-registry/catalog/internal/db/models"
+	"github.com/kubeflow/model-registry/catalog/internal/catalog/mcpcatalog/models"
 	"github.com/kubeflow/model-registry/catalog/internal/db/service"
 	mrmodels "github.com/kubeflow/model-registry/internal/db/models"
 )
@@ -320,7 +320,7 @@ func (ml *MCPLoader) loadServersFromProvider(ctx context.Context, sourceID strin
 }
 
 // setServerSourceID sets the source_id property on an MCP server
-func (ml *MCPLoader) setServerSourceID(server *dbmodels.MCPServerImpl, sourceID string) {
+func (ml *MCPLoader) setServerSourceID(server *models.MCPServerImpl, sourceID string) {
 	sourceIDProp := mrmodels.NewStringProperty("source_id", sourceID, false)
 
 	if server.Properties == nil {
@@ -376,7 +376,7 @@ func (ml *MCPLoader) updateDatabase(ctx context.Context, record MCPServerProvide
 
 // buildMCPServerTool constructs a MCPServerTool entity from a MCPToolRecord.
 // The tool name is qualified with the server's composite name (base_name@version).
-func buildMCPServerTool(server dbmodels.MCPServer, toolRecord MCPToolRecord) dbmodels.MCPServerTool {
+func buildMCPServerTool(server models.MCPServer, toolRecord MCPToolRecord) models.MCPServerTool {
 	name := toolRecord.Name
 
 	attr := server.GetAttributes()
@@ -394,8 +394,8 @@ func buildMCPServerTool(server dbmodels.MCPServer, toolRecord MCPToolRecord) dbm
 		name = fmt.Sprintf("%s:%s", serverName, toolRecord.Name)
 	}
 
-	impl := &dbmodels.MCPServerToolImpl{
-		Attributes: &dbmodels.MCPServerToolAttributes{
+	impl := &models.MCPServerToolImpl{
+		Attributes: &models.MCPServerToolAttributes{
 			Name: &name,
 		},
 	}
@@ -428,7 +428,7 @@ func (ml *MCPLoader) removeServersFromMissingSources(enabledSourceIDs, allSource
 		if !enabledSourceIDs.Contains(dbSourceID) {
 			glog.Infof("Removing MCP servers from source: %s", dbSourceID)
 			// List servers from this source to delete their tools first
-			listOptions := dbmodels.MCPServerListOptions{
+			listOptions := models.MCPServerListOptions{
 				SourceIDs: &[]string{dbSourceID},
 			}
 			result, listErr := ml.services.MCPServerRepository.List(listOptions)
@@ -470,7 +470,7 @@ func (ml *MCPLoader) removeServersFromMissingSources(enabledSourceIDs, allSource
 // removeOrphanedServersFromSource removes servers that are no longer in the source
 func (ml *MCPLoader) removeOrphanedServersFromSource(sourceID string, validServerNames mapset.Set[string]) error {
 	// Get all servers from this source
-	listOptions := dbmodels.MCPServerListOptions{
+	listOptions := models.MCPServerListOptions{
 		SourceIDs: &[]string{sourceID},
 	}
 

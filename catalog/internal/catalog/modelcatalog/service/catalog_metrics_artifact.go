@@ -5,7 +5,8 @@ import (
 	"fmt"
 	"math"
 
-	"github.com/kubeflow/model-registry/catalog/internal/db/models"
+	"github.com/kubeflow/model-registry/catalog/internal/catalog/modelcatalog/models"
+	sharedmodels "github.com/kubeflow/model-registry/catalog/internal/db/models"
 	"github.com/kubeflow/model-registry/internal/apiutils"
 	dbmodels "github.com/kubeflow/model-registry/internal/db/models"
 	"github.com/kubeflow/model-registry/internal/db/schema"
@@ -13,6 +14,13 @@ import (
 	"github.com/kubeflow/model-registry/internal/db/utils"
 	"gorm.io/gorm"
 )
+
+// Register the mapping function for CatalogMetricsArtifact
+func init() {
+	sharedmodels.RegisterArtifactMapper("kf.CatalogMetricsArtifact", func(artifact schema.Artifact, properties []schema.ArtifactProperty) interface{} {
+		return mapDataLayerToCatalogMetricsArtifact(artifact, properties)
+	})
+}
 
 var ErrCatalogMetricsArtifactNotFound = errors.New("catalog metrics artifact by id not found")
 

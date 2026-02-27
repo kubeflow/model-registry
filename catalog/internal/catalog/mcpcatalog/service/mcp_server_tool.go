@@ -4,8 +4,8 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/kubeflow/model-registry/catalog/internal/catalog/mcpcatalog/models"
 	"github.com/kubeflow/model-registry/catalog/internal/db/filter"
-	"github.com/kubeflow/model-registry/catalog/internal/db/models"
 	dbmodels "github.com/kubeflow/model-registry/internal/db/models"
 	"github.com/kubeflow/model-registry/internal/db/schema"
 	"github.com/kubeflow/model-registry/internal/db/service"

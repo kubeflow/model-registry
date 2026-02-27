@@ -1,19 +1,15 @@
-package service_test
+package service
 
 import (
-	"errors"
 	"fmt"
 	"testing"
 
-	"github.com/kubeflow/model-registry/catalog/internal/db/models"
-	"github.com/kubeflow/model-registry/catalog/internal/db/service"
+	"github.com/kubeflow/model-registry/catalog/internal/catalog/mcpcatalog/models"
 	"github.com/kubeflow/model-registry/internal/apiutils"
 	dbmodels "github.com/kubeflow/model-registry/internal/db/models"
-	"github.com/kubeflow/model-registry/internal/db/schema"
 	"github.com/kubeflow/model-registry/internal/testutils"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"gorm.io/gorm"
 )
 
 // ==============================================================================
@@ -21,13 +17,13 @@ import (
 // ==============================================================================
 
 func TestMCPServerToolRepository(t *testing.T) {
-	sharedDB, cleanup := testutils.SetupPostgresWithMigrations(t, service.DatastoreSpec())
+	sharedDB, cleanup := testutils.SetupPostgresWithMigrations(t, testDatastoreSpec())
 	defer cleanup()
 
 	mcpServerTypeID := getMCPServerTypeID(t, sharedDB)
 	mcpToolTypeID := getMCPServerToolTypeID(t, sharedDB)
-	serverRepo := service.NewMCPServerRepository(sharedDB, mcpServerTypeID)
-	toolRepo := service.NewMCPServerToolRepository(sharedDB, mcpToolTypeID)
+	serverRepo := NewMCPServerRepository(sharedDB, mcpServerTypeID)
+	toolRepo := NewMCPServerToolRepository(sharedDB, mcpToolTypeID)
 
 	t.Run("TestSaveTool_Create", func(t *testing.T) {
 		// Create parent MCP server
@@ -121,7 +117,7 @@ func TestMCPServerToolRepository(t *testing.T) {
 
 		// Test non-existent ID
 		_, err = toolRepo.GetByID(99999)
-		assert.ErrorIs(t, err, service.ErrMCPServerToolNotFound)
+		assert.ErrorIs(t, err, ErrMCPServerToolNotFound)
 	})
 
 	t.Run("TestListToolsByParent", func(t *testing.T) {
@@ -265,12 +261,12 @@ func TestMCPServerToolRepository(t *testing.T) {
 
 		// Verify deletion
 		_, err = toolRepo.GetByID(toolID)
-		assert.ErrorIs(t, err, service.ErrMCPServerToolNotFound)
+		assert.ErrorIs(t, err, ErrMCPServerToolNotFound)
 
 		// Attempt to delete non-existent tool
 		err = toolRepo.DeleteByID(99999)
 		assert.Error(t, err)
-		assert.ErrorIs(t, err, service.ErrMCPServerToolNotFound)
+		assert.ErrorIs(t, err, ErrMCPServerToolNotFound)
 	})
 
 	t.Run("TestDeleteToolsByParentID", func(t *testing.T) {
@@ -359,9 +355,9 @@ func TestMCPServerToolRepository(t *testing.T) {
 
 		// Verify tools are deleted
 		_, err = toolRepo.GetByID(*savedTool1.GetID())
-		assert.ErrorIs(t, err, service.ErrMCPServerToolNotFound)
+		assert.ErrorIs(t, err, ErrMCPServerToolNotFound)
 		_, err = toolRepo.GetByID(*savedTool2.GetID())
-		assert.ErrorIs(t, err, service.ErrMCPServerToolNotFound)
+		assert.ErrorIs(t, err, ErrMCPServerToolNotFound)
 
 		// Now delete parent server
 		err = serverRepo.DeleteByID(parentID)
@@ -475,7 +471,7 @@ func TestMCPServerToolRepository(t *testing.T) {
 		}
 
 		_, err = toolRepo.Save(tool, &parentID)
-		assert.ErrorIs(t, err, service.ErrMCPServerToolNameEmpty)
+		assert.ErrorIs(t, err, ErrMCPServerToolNameEmpty)
 	})
 
 	t.Run("TestSaveToolWithEmptyName", func(t *testing.T) {
@@ -501,7 +497,7 @@ func TestMCPServerToolRepository(t *testing.T) {
 		}
 
 		_, err = toolRepo.Save(tool, &parentID)
-		assert.ErrorIs(t, err, service.ErrMCPServerToolNameEmpty)
+		assert.ErrorIs(t, err, ErrMCPServerToolNameEmpty)
 	})
 
 	t.Run("TestSaveToolWithNilAttributes", func(t *testing.T) {
@@ -526,7 +522,7 @@ func TestMCPServerToolRepository(t *testing.T) {
 		}
 
 		_, err = toolRepo.Save(tool, &parentID)
-		assert.ErrorIs(t, err, service.ErrMCPServerToolNameEmpty)
+		assert.ErrorIs(t, err, ErrMCPServerToolNameEmpty)
 	})
 
 	t.Run("TestListToolsForNonExistentParent", func(t *testing.T) {
@@ -543,22 +539,4 @@ func TestMCPServerToolRepository(t *testing.T) {
 		err := toolRepo.DeleteByParentID(nonExistentParentID)
 		require.NoError(t, err, "DeleteByParentID should be idempotent")
 	})
-}
-
-func getMCPServerToolTypeID(t *testing.T, db *gorm.DB) int32 {
-	var typeRecord schema.Type
-	err := db.Where("name = ?", service.MCPServerToolTypeName).First(&typeRecord).Error
-	if err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			// Create the type if it doesn't exist
-			typeRecord = schema.Type{
-				Name: service.MCPServerToolTypeName,
-			}
-			err = db.Create(&typeRecord).Error
-			require.NoError(t, err)
-		} else {
-			require.NoError(t, err)
-		}
-	}
-	return typeRecord.ID
 }

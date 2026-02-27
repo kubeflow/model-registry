@@ -6,8 +6,8 @@ import (
 	"strings"
 
 	"github.com/golang/glog"
+	"github.com/kubeflow/model-registry/catalog/internal/catalog/modelcatalog/models"
 	"github.com/kubeflow/model-registry/catalog/internal/db/filter"
-	"github.com/kubeflow/model-registry/catalog/internal/db/models"
 	"github.com/kubeflow/model-registry/internal/db/dbutil"
 	dbfilter "github.com/kubeflow/model-registry/internal/db/filter"
 	dbmodels "github.com/kubeflow/model-registry/internal/db/models"
