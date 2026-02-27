@@ -131,11 +131,11 @@ func (v *visitor) checkEntities() {
 	}
 
 	if len(errorMsgs) > 0 {
-		missingFieldsMsg := ""
+		var missingFieldsMsg strings.Builder
 		for k, fields := range errorMsgs {
-			missingFieldsMsg += fmt.Sprintf("%s: %v\n", k, fields)
+			missingFieldsMsg.WriteString(fmt.Sprintf("%s: %v\n", k, fields))
 		}
-		v.t.Errorf("missing fields to be ignored for OverrideNotEditableFor* goverter methods:\n%v", missingFieldsMsg)
+		v.t.Errorf("missing fields to be ignored for OverrideNotEditableFor* goverter methods:\n%v", missingFieldsMsg.String())
 	}
 }
 

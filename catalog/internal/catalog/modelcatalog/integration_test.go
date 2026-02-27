@@ -198,7 +198,7 @@ func insertBenchmarkData(b *testing.B, ctx context.Context, svcs service.Service
 	var modelIDs []int32
 
 	// Create 100 test models
-	for i := 0; i < numModels; i++ {
+	for i := range numModels {
 		model := &models.CatalogModelImpl{
 			TypeID: apiutils.Of(catalogModelTypeID),
 			Attributes: &models.CatalogModelAttributes{

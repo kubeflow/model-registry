@@ -55,7 +55,7 @@ type HealthCheck struct {
 	Name    string
 	Status  string
 	Message string
-	Details map[string]interface{}
+	Details map[string]any
 }
 
 // HealthStatus represents the overall health status
@@ -80,7 +80,7 @@ func NewDatabaseHealthChecker() *DatabaseHealthChecker {
 func (d *DatabaseHealthChecker) Check() HealthCheck {
 	check := HealthCheck{
 		Name:    HealthCheckDatabase,
-		Details: make(map[string]interface{}),
+		Details: make(map[string]any),
 	}
 
 	// Check database connector
@@ -140,7 +140,7 @@ func NewModelRegistryHealthChecker(service api.ModelRegistryApi) *ModelRegistryH
 func (m *ModelRegistryHealthChecker) Check() HealthCheck {
 	check := HealthCheck{
 		Name:    HealthCheckModelRegistry,
-		Details: make(map[string]interface{}),
+		Details: make(map[string]any),
 	}
 
 	if m.service == nil {
@@ -270,7 +270,7 @@ func GeneralReadinessHandler(additionalCheckers ...HealthChecker) http.Handler {
 			health.Checks[HealthCheckMeta] = HealthCheck{
 				Name:   HealthCheckMeta,
 				Status: StatusPass,
-				Details: map[string]interface{}{
+				Details: map[string]any{
 					detailCheckDurationMs: duration.Milliseconds(),
 					detailTimestamp:       time.Now().UTC().Format(time.RFC3339),
 				},

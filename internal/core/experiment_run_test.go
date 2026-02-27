@@ -2,6 +2,7 @@ package core_test
 
 import (
 	"fmt"
+	"slices"
 	"strconv"
 	"strings"
 	"testing"
@@ -351,7 +352,7 @@ func TestGetExperimentRuns(t *testing.T) {
 	require.NoError(t, err)
 
 	// Create multiple test experiment runs for first experiment
-	for i := 0; i < 3; i++ {
+	for i := range 3 {
 		experimentRun := &openapi.ExperimentRun{
 			Name:        apiutils.Of(fmt.Sprintf("list-test-run-exp1-%d", i)),
 			Description: apiutils.Of(fmt.Sprintf("List test description exp1-%d", i)),
@@ -362,7 +363,7 @@ func TestGetExperimentRuns(t *testing.T) {
 	}
 
 	// Create experiment runs for second experiment
-	for i := 0; i < 2; i++ {
+	for i := range 2 {
 		experimentRun := &openapi.ExperimentRun{
 			Name:        apiutils.Of(fmt.Sprintf("list-test-run-exp2-%d", i)),
 			Description: apiutils.Of(fmt.Sprintf("List test description exp2-%d", i)),
@@ -751,11 +752,8 @@ func TestGetExperimentRunsWithFilterQuery(t *testing.T) {
 			// Extract names from results
 			var actualNames []string
 			for _, item := range result.Items {
-				for _, expectedName := range tc.expectedNames {
-					if *item.Name == expectedName {
-						actualNames = append(actualNames, *item.Name)
-						break
-					}
+				if slices.Contains(tc.expectedNames, *item.Name) {
+					actualNames = append(actualNames, *item.Name)
 				}
 			}
 

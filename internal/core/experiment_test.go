@@ -2,6 +2,7 @@ package core_test
 
 import (
 	"fmt"
+	"slices"
 	"testing"
 	"time"
 
@@ -184,7 +185,7 @@ func TestGetExperiments(t *testing.T) {
 	defer cleanup()
 
 	// Create multiple test experiments
-	for i := 0; i < 5; i++ {
+	for i := range 5 {
 		experiment := &openapi.Experiment{
 			Name:        fmt.Sprintf("list-test-experiment-%d", i),
 			Description: apiutils.Of(fmt.Sprintf("List test description %d", i)),
@@ -650,11 +651,8 @@ func TestGetExperimentsWithFilterQuery(t *testing.T) {
 			// Extract names from results
 			var actualNames []string
 			for _, item := range result.Items {
-				for _, expectedName := range tc.expectedNames {
-					if item.Name == expectedName {
-						actualNames = append(actualNames, item.Name)
-						break
-					}
+				if slices.Contains(tc.expectedNames, item.Name) {
+					actualNames = append(actualNames, item.Name)
 				}
 			}
 

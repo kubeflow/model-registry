@@ -266,7 +266,7 @@ func TestCatalogArtifactRepository(t *testing.T) {
 
 	t.Run("List_WithPagination", func(t *testing.T) {
 		// Create multiple artifacts for pagination testing
-		for i := 0; i < 5; i++ {
+		for i := range 5 {
 			artifact := &models.CatalogModelArtifactImpl{
 				TypeID: apiutils.Of(int32(modelArtifactTypeID)),
 				Attributes: &models.CatalogModelArtifactAttributes{

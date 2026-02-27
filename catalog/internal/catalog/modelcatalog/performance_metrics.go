@@ -6,6 +6,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"maps"
 	"os"
 	"path/filepath"
 	"strings"
@@ -51,13 +52,13 @@ type evaluationRecord struct {
 	Benchmark string `json:"benchmark"`
 
 	// CustomProperties captures all other fields dynamically
-	CustomProperties map[string]interface{} `json:"-"`
+	CustomProperties map[string]any `json:"-"`
 }
 
 // UnmarshalJSON implements custom JSON unmarshaling to capture all undefined fields as CustomProperties
 func (er *evaluationRecord) UnmarshalJSON(data []byte) error {
 	// First unmarshal into a generic map to get all fields
-	var raw map[string]interface{}
+	var raw map[string]any
 	if err := json.Unmarshal(data, &raw); err != nil {
 		return err
 	}
@@ -72,13 +73,11 @@ func (er *evaluationRecord) UnmarshalJSON(data []byte) error {
 
 	// Initialize CustomProperties if nil
 	if er.CustomProperties == nil {
-		er.CustomProperties = make(map[string]interface{})
+		er.CustomProperties = make(map[string]any)
 	}
 
 	// Copy all fields to CustomProperties, including the core ones
-	for key, value := range raw {
-		er.CustomProperties[key] = value
-	}
+	maps.Copy(er.CustomProperties, raw)
 
 	return nil
 }
@@ -91,13 +90,13 @@ type performanceRecord struct {
 	ModelID string `json:"model_id"`
 
 	// CustomProperties captures remaining fields dynamically
-	CustomProperties map[string]interface{} `json:"-"`
+	CustomProperties map[string]any `json:"-"`
 }
 
 // UnmarshalJSON implements custom JSON unmarshaling to capture all undefined fields as CustomProperties
 func (pr *performanceRecord) UnmarshalJSON(data []byte) error {
 	// First unmarshal into a generic map to get all fields
-	var raw map[string]interface{}
+	var raw map[string]any
 	decoder := json.NewDecoder(bytes.NewReader(data))
 	decoder.UseNumber()
 	if err := decoder.Decode(&raw); err != nil {
@@ -114,13 +113,11 @@ func (pr *performanceRecord) UnmarshalJSON(data []byte) error {
 
 	// Initialize CustomProperties if nil
 	if pr.CustomProperties == nil {
-		pr.CustomProperties = make(map[string]interface{})
+		pr.CustomProperties = make(map[string]any)
 	}
 
 	// Copy all fields to CustomProperties, including the core ones
-	for key, value := range raw {
-		pr.CustomProperties[key] = value
-	}
+	maps.Copy(pr.CustomProperties, raw)
 
 	return nil
 }

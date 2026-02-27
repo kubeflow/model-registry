@@ -209,7 +209,7 @@ func TestPerformanceArtifactsEndToEnd(t *testing.T) {
 	t.Run("pageSize parameter handling", func(t *testing.T) {
 		// Setup - create multiple artifacts
 		artifacts := make([]model.CatalogArtifact, 5)
-		for i := 0; i < 5; i++ {
+		for i := range 5 {
 			name := "perf-artifact-" + string(rune('1'+i))
 			artifacts[i] = model.CatalogArtifact{
 				CatalogMetricsArtifact: &model.CatalogMetricsArtifact{
@@ -478,10 +478,9 @@ func (m *mockPerformanceProvider) GetPerformanceArtifacts(ctx context.Context, m
 				}
 
 				// Add calculated replicas
-				replicas := params.TargetRPS / 50 // Simple calculation for testing
-				if replicas < 1 {
-					replicas = 1
-				}
+				replicas := max(
+					// Simple calculation for testing
+					params.TargetRPS/50, 1)
 				replicasStr := strconv.FormatInt(int64(replicas), 10)
 				artifact.CatalogMetricsArtifact.CustomProperties["replicas"] = model.MetadataValue{
 					MetadataIntValue: &model.MetadataIntValue{
@@ -514,10 +513,7 @@ func (m *mockPerformanceProvider) GetPerformanceArtifacts(ctx context.Context, m
 	}
 
 	// Apply pagination
-	endIndex := int(pageSize)
-	if endIndex > len(processedArtifacts) {
-		endIndex = len(processedArtifacts)
-	}
+	endIndex := min(int(pageSize), len(processedArtifacts))
 	pagedArtifacts := processedArtifacts[:endIndex]
 
 	nextPageToken := ""

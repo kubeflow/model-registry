@@ -1105,7 +1105,7 @@ func TestFindLabels(t *testing.T) {
 						ok1 = val1 != nil
 						ok2 = val2 != nil
 					} else {
-						var v1, v2 interface{}
+						var v1, v2 any
 						v1, ok1 = labelList.Items[i].AdditionalProperties[tc.checkOrderByKey]
 						v2, ok2 = labelList.Items[i+1].AdditionalProperties[tc.checkOrderByKey]
 						if ok1 {
@@ -1225,10 +1225,7 @@ func (m *mockModelProvider) ListModels(ctx context.Context, params catalog.ListM
 	}
 
 	// Apply pagination - limit items to page size
-	endIndex := int(pageSize)
-	if endIndex > len(filteredModels) {
-		endIndex = len(filteredModels)
-	}
+	endIndex := min(int(pageSize), len(filteredModels))
 
 	pagedModels := filteredModels[:endIndex]
 	items := make([]model.CatalogModel, len(pagedModels))
@@ -1323,10 +1320,7 @@ func (m *mockModelProvider) GetPerformanceArtifacts(ctx context.Context, modelNa
 				if performanceArtifacts[i].CatalogMetricsArtifact.CustomProperties == nil {
 					performanceArtifacts[i].CatalogMetricsArtifact.CustomProperties = make(map[string]model.MetadataValue)
 				}
-				replicas := int32(params.TargetRPS / 50)
-				if replicas < 1 {
-					replicas = 1
-				}
+				replicas := max(int32(params.TargetRPS/50), 1)
 				totalRPS := float64(params.TargetRPS)
 				replicasStr := strconv.FormatInt(int64(replicas), 10)
 				performanceArtifacts[i].CatalogMetricsArtifact.CustomProperties["replicas"] = model.MetadataIntValueAsMetadataValue(&model.MetadataIntValue{IntValue: replicasStr, MetadataType: "int"})

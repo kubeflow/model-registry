@@ -771,10 +771,7 @@ func (d *dbCatalogImpl) FindModelsWithRecommendedLatency(
 		start = len(modelsWithLatency)
 	}
 
-	end := start + int(pageSize)
-	if end > len(modelsWithLatency) {
-		end = len(modelsWithLatency)
-	}
+	end := min(start+int(pageSize), len(modelsWithLatency))
 
 	paginatedItems := make([]apimodels.CatalogModel, 0, end-start)
 	for i := start; i < end; i++ {

@@ -137,7 +137,7 @@ type hfConfig struct {
 }
 
 type hfCard struct {
-	Data map[string]interface{} `json:"data,omitempty"`
+	Data map[string]any `json:"data,omitempty"`
 }
 
 //go:embed assets/catalog_logo.svg
@@ -244,10 +244,9 @@ func (hfm *hfModel) populateFromHFInfo(ctx context.Context, provider *hfModelPro
 	if len(hfInfo.Tags) > 0 {
 		filteredTags = make([]string, 0, len(hfInfo.Tags))
 		for _, tag := range hfInfo.Tags {
-			if strings.HasPrefix(tag, "license:") {
+			if license, ok := strings.CutPrefix(tag, "license:"); ok {
 				// Extract license (only first one)
 				if hfm.License == nil {
-					license := strings.TrimPrefix(tag, "license:")
 					if license != "" {
 						license = basecatalog.TransformLicenseToHumanReadable(license)
 						hfm.License = &license
@@ -287,7 +286,7 @@ func (hfm *hfModel) populateFromHFInfo(ctx context.Context, provider *hfModelPro
 		}
 
 		// Extract language from cardData if available
-		if langData, ok := hfInfo.CardData.Data["language"].([]interface{}); ok && len(langData) > 0 {
+		if langData, ok := hfInfo.CardData.Data["language"].([]any); ok && len(langData) > 0 {
 			languages := make([]string, 0, len(langData))
 			for _, lang := range langData {
 				if langStr, ok := lang.(string); ok && langStr != "" {
@@ -1023,8 +1022,7 @@ func parseModelPattern(pattern string) (PatternType, string, string) {
 	}
 
 	// Check if it's an org/* pattern
-	if strings.HasSuffix(pattern, "/*") {
-		org := strings.TrimSuffix(pattern, "/*")
+	if org, ok := strings.CutSuffix(pattern, "/*"); ok {
 		// Ensure org is not empty or just whitespace
 		if org == "" || strings.TrimSpace(org) == "" {
 			return PatternInvalid, "", ""
@@ -1049,8 +1047,7 @@ func parseModelPattern(pattern string) (PatternType, string, string) {
 	}
 
 	// Check if it has a wildcard after org/prefix
-	if strings.HasSuffix(model, "*") {
-		prefix := strings.TrimSuffix(model, "*")
+	if prefix, ok := strings.CutSuffix(model, "*"); ok {
 		if prefix != "" {
 			return PatternOrgPrefix, org, prefix
 		}
@@ -1173,7 +1170,7 @@ func parseNextCursor(linkHeader string) string {
 	}
 
 	// Parse Link header for rel="next"
-	for _, link := range strings.Split(linkHeader, ",") {
+	for link := range strings.SplitSeq(linkHeader, ",") {
 		link = strings.TrimSpace(link)
 		if strings.Contains(link, `rel="next"`) {
 			// Extract URL between < and >
@@ -1182,8 +1179,7 @@ func parseNextCursor(linkHeader string) string {
 			if start >= 0 && end > start {
 				nextURL := link[start+1 : end]
 				// Extract cursor parameter from URL
-				if idx := strings.Index(nextURL, "cursor="); idx >= 0 {
-					cursor := nextURL[idx+7:]
+				if _, cursor, ok := strings.Cut(nextURL, "cursor="); ok {
 					// Handle if there are more parameters after cursor
 					if ampIdx := strings.Index(cursor, "&"); ampIdx >= 0 {
 						cursor = cursor[:ampIdx]

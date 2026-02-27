@@ -2,6 +2,7 @@ package modelcatalog
 
 import (
 	"regexp"
+	"slices"
 	"strings"
 	"testing"
 
@@ -351,13 +352,7 @@ func TestFilterQueryToSQLGeneration(t *testing.T) {
 			if len(tt.expectedArgs) > 0 {
 				// Check that all expected args are present (order may vary due to JOINs)
 				for _, expectedArg := range tt.expectedArgs {
-					found := false
-					for _, actualArg := range queryArgs {
-						if actualArg == expectedArg {
-							found = true
-							break
-						}
-					}
+					found := slices.Contains(queryArgs, expectedArg)
 					assert.True(t, found, "Expected argument %v not found in actual args: %v",
 						expectedArg, queryArgs)
 				}

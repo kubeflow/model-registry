@@ -2,6 +2,7 @@ package core_test
 
 import (
 	"fmt"
+	"slices"
 	"testing"
 
 	"github.com/kubeflow/model-registry/internal/apiutils"
@@ -486,7 +487,7 @@ func TestUpsertServeModel(t *testing.T) {
 
 		// Create 15 serve models to test pagination
 		var createdServeModels []string
-		for i := 0; i < 15; i++ {
+		for i := range 15 {
 			input := &openapi.ServeModel{
 				Name:           apiutils.Of(fmt.Sprintf("paging-test-serve-model-%02d", i)),
 				Description:    apiutils.Of(fmt.Sprintf("Test serve model %d for pagination", i)),
@@ -747,11 +748,8 @@ func TestGetServeModels(t *testing.T) {
 		// Verify our serve models are in the result
 		foundModels := 0
 		for _, item := range result.Items {
-			for _, createdId := range createdIds {
-				if *item.Id == createdId {
-					foundModels++
-					break
-				}
+			if slices.Contains(createdIds, *item.Id) {
+				foundModels++
 			}
 		}
 		assert.Equal(t, 3, foundModels, "All created serve models should be found in the list")
@@ -864,7 +862,7 @@ func TestGetServeModels(t *testing.T) {
 		require.NoError(t, err)
 
 		// Create several serve models for pagination testing
-		for i := 0; i < 5; i++ {
+		for i := range 5 {
 			srvModel := &openapi.ServeModel{
 				Name:           apiutils.Of("pagination-serve-model-" + string(rune('A'+i))),
 				ExternalId:     apiutils.Of("pagination-ext-" + string(rune('A'+i))),

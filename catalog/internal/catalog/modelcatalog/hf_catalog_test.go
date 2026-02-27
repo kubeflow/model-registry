@@ -54,7 +54,7 @@ func TestPopulateFromHFInfo(t *testing.T) {
 					ModelType:     "gpt2",
 				},
 				CardData: &hfCard{
-					Data: map[string]interface{}{
+					Data: map[string]any{
 						"description": "A test model description",
 					},
 				},
@@ -125,7 +125,7 @@ func TestPopulateFromHFInfo(t *testing.T) {
 			hfInfo: &hfModelInfo{
 				ID: "test/desc-model",
 				CardData: &hfCard{
-					Data: map[string]interface{}{
+					Data: map[string]any{
 						"description": "This is a test description",
 					},
 				},
@@ -339,7 +339,7 @@ func TestConvertHFModelToRecord(t *testing.T) {
 				LibraryName: "transformers",
 				Task:        "text-generation",
 				CardData: &hfCard{
-					Data: map[string]interface{}{
+					Data: map[string]any{
 						"description": "A complete test model",
 					},
 				},
@@ -768,16 +768,16 @@ func TestListModelsByAuthor(t *testing.T) {
 			switch cursor {
 			case "":
 				// First page - return 100 items to simulate full page (triggers pagination)
-				models := make([]map[string]interface{}, 100)
+				models := make([]map[string]any, 100)
 				for i := range 100 {
-					models[i] = map[string]interface{}{"id": fmt.Sprintf("test-org/model-%d", i+1)}
+					models[i] = map[string]any{"id": fmt.Sprintf("test-org/model-%d", i+1)}
 				}
 				// Add Link header for next page
 				w.Header().Set("Link", `<https://huggingface.co/api/models?author=test-org&cursor=page2>; rel="next"`)
 				_ = json.NewEncoder(w).Encode(models)
 			case "page2":
 				// Second page (last) - return fewer than 100 to indicate end
-				models := []map[string]interface{}{
+				models := []map[string]any{
 					{"id": "test-org/model-101"},
 					{"id": "test-org/model-102"},
 				}
@@ -785,14 +785,14 @@ func TestListModelsByAuthor(t *testing.T) {
 			}
 		} else if author == "search-org" && search != "" {
 			// Search results
-			models := []map[string]interface{}{
+			models := []map[string]any{
 				{"id": "search-org/" + search + "-match1"},
 				{"id": "search-org/" + search + "-match2"},
 				{"id": "search-org/other-model"}, // Should be filtered out
 			}
 			_ = json.NewEncoder(w).Encode(models)
 		} else {
-			_ = json.NewEncoder(w).Encode([]map[string]interface{}{})
+			_ = json.NewEncoder(w).Encode([]map[string]any{})
 		}
 	})
 
@@ -932,19 +932,19 @@ func TestFetchModelNamesForPreviewWithPatterns(t *testing.T) {
 	mux.HandleFunc("/api/models", func(w http.ResponseWriter, r *http.Request) {
 		author := r.URL.Query().Get("author")
 		if author == "test-org" {
-			models := []map[string]interface{}{
+			models := []map[string]any{
 				{"id": "test-org/model-a"},
 				{"id": "test-org/model-b"},
 			}
 			_ = json.NewEncoder(w).Encode(models)
 		} else {
-			_ = json.NewEncoder(w).Encode([]map[string]interface{}{})
+			_ = json.NewEncoder(w).Encode([]map[string]any{})
 		}
 	})
 
 	// Mock individual model endpoints
 	mux.HandleFunc("/api/models/exact-org/exact-model", func(w http.ResponseWriter, r *http.Request) {
-		_ = json.NewEncoder(w).Encode(map[string]interface{}{"id": "exact-org/exact-model"})
+		_ = json.NewEncoder(w).Encode(map[string]any{"id": "exact-org/exact-model"})
 	})
 
 	server := httptest.NewServer(mux)
@@ -1050,14 +1050,14 @@ func TestPreviewSourceModelsWithHFPatterns(t *testing.T) {
 	mux.HandleFunc("/api/models", func(w http.ResponseWriter, r *http.Request) {
 		author := r.URL.Query().Get("author")
 		if author == "test-org" {
-			models := []map[string]interface{}{
+			models := []map[string]any{
 				{"id": "test-org/model-stable"},
 				{"id": "test-org/model-experimental"},
 				{"id": "test-org/model-draft"},
 			}
 			_ = json.NewEncoder(w).Encode(models)
 		} else {
-			_ = json.NewEncoder(w).Encode([]map[string]interface{}{})
+			_ = json.NewEncoder(w).Encode([]map[string]any{})
 		}
 	})
 
@@ -1246,7 +1246,7 @@ func TestHfModelProvider_Models_WithWildcardPattern(t *testing.T) {
 		case strings.Contains(r.URL.RawQuery, "author=test-org"):
 			// Mock response for list API (used by listModelsByAuthor)
 			// HF API returns an array of models directly
-			models := []map[string]interface{}{
+			models := []map[string]any{
 				{"id": "test-org/model-1", "author": "test-org"},
 				{"id": "test-org/model-2", "author": "test-org"},
 			}
@@ -1313,7 +1313,7 @@ func TestHfModelProvider_Models_WithMixedPatterns(t *testing.T) {
 	mockServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch {
 		case strings.Contains(r.URL.RawQuery, "author=test-org"):
-			models := []map[string]interface{}{
+			models := []map[string]any{
 				{"id": "test-org/wildcard-model", "author": "test-org"},
 			}
 			json.NewEncoder(w).Encode(models)
@@ -1424,7 +1424,7 @@ func TestHfModelProvider_expandModelNames_PartialWildcardFailure(t *testing.T) {
 		switch {
 		case strings.Contains(r.URL.RawQuery, "author=good-org"):
 			// Mock successful response for good-org
-			models := []map[string]interface{}{
+			models := []map[string]any{
 				{"id": "good-org/model-1", "author": "good-org"},
 			}
 			json.NewEncoder(w).Encode(models)

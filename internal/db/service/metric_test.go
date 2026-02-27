@@ -540,7 +540,7 @@ func TestMetricRepository(t *testing.T) {
 
 	t.Run("TestPagination", func(t *testing.T) {
 		// Create multiple metrics for pagination testing
-		for i := 0; i < 5; i++ {
+		for i := range 5 {
 			metric := &models.MetricImpl{
 				TypeID: apiutils.Of(int32(typeID)),
 				Attributes: &models.MetricAttributes{
