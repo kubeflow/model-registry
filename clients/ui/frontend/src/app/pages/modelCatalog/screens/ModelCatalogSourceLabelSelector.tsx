@@ -117,21 +117,20 @@ const ModelCatalogSourceLabelSelector: React.FC<ModelCatalogSourceLabelSelectorP
   };
 
   return (
-    <Stack hasGutter>
+    <Stack>
       <StackItem>
         <Toolbar
-          // Use PatternFly's native clearAllFilters - it automatically shows/hides based on ToolbarFilter labels
-          // When performance view is OFF, show reset button for basic filters
-          // When performance view is ON, the HardwareConfigurationFilterToolbar handles resetting
-          {...(onResetAllFilters && !performanceViewEnabled && hasBasicFiltersApplied
+          // Suppress the default second-row clear button so "Clear all filters" stays on same line as search
+          customLabelGroupContent={onResetAllFilters ? <></> : undefined}
+          {...(onResetAllFilters
             ? {
                 clearAllFilters: handleClearAllFilters,
-                clearFiltersButtonText: 'Reset all filters',
+                clearFiltersButtonText: 'Clear all filters',
               }
             : {})}
         >
           <ToolbarContent rowWrap={{ default: 'wrap' }}>
-            <Flex>
+            <Flex alignItems={{ default: 'alignItemsCenter' }} gap={{ default: 'gapMd' }}>
               <ToolbarToggleGroup breakpoint="md" toggleIcon={<FilterIcon />}>
                 <ToolbarGroup variant="filter-group" gap={{ default: 'gapMd' }} alignItems="center">
                   <ToolbarItem>
@@ -164,6 +163,20 @@ const ModelCatalogSourceLabelSelector: React.FC<ModelCatalogSourceLabelSelectorP
                   </ToolbarItem>
                 </ToolbarGroup>
               </ToolbarToggleGroup>
+              {/* Clear all filters: always on same line as search; disabled when no filters applied */}
+              {onResetAllFilters && (
+                <ToolbarItem>
+                  <Button
+                    variant="link"
+                    isDisabled={!hasBasicFiltersApplied}
+                    onClick={handleClearAllFilters}
+                    data-testid="clear-all-filters-button"
+                    aria-label="Clear all filters"
+                  >
+                    Clear all filters
+                  </Button>
+                </ToolbarItem>
+              )}
               {/* When toggle is OFF, show basic filter chips in the main toolbar */}
               {/* When toggle is ON, all chips are shown in HardwareConfigurationFilterToolbar below */}
               {!performanceViewEnabled && onResetAllFilters && hasBasicFiltersApplied && (
