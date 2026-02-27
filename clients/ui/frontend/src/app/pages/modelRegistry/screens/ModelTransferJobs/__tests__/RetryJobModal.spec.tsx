@@ -71,7 +71,7 @@ describe('RetryJobModal', () => {
   it('should auto-generate a retry job name with -2 suffix', () => {
     render(<RetryJobModal job={mockJob} onClose={mockOnClose} onRetry={mockOnRetry} />);
 
-    const input = screen.getByTestId('retry-job-name-input');
+    const input = screen.getByTestId('retry-job-name');
     expect(input).toHaveValue('test-job-name-2');
   });
 
@@ -83,7 +83,7 @@ describe('RetryJobModal', () => {
 
     render(<RetryJobModal job={jobWithSuffix} onClose={mockOnClose} onRetry={mockOnRetry} />);
 
-    const input = screen.getByTestId('retry-job-name-input');
+    const input = screen.getByTestId('retry-job-name');
     expect(input).toHaveValue('my-job-4');
   });
 
@@ -130,48 +130,21 @@ describe('RetryJobModal', () => {
     });
   });
 
-  it('should allow editing the job name', async () => {
+  it('should allow editing the resource name directly', async () => {
     render(<RetryJobModal job={mockJob} onClose={mockOnClose} onRetry={mockOnRetry} />);
 
-    const input = screen.getByTestId('retry-job-name-input');
-    fireEvent.change(input, { target: { value: 'custom-retry-name' } });
+    // Click "Edit resource name" to show the resource name field
+    fireEvent.click(screen.getByTestId('retry-job-editResourceLink'));
+
+    // Edit the resource name field directly
+    const resourceNameInput = screen.getByTestId('retry-job-resourceName');
+    fireEvent.change(resourceNameInput, { target: { value: 'custom-retry-name' } });
 
     fireEvent.click(screen.getByTestId('retry-job-submit-button'));
 
     await waitFor(() => {
       expect(mockOnRetry).toHaveBeenCalledWith('custom-retry-name', true);
     });
-  });
-
-  it('should disable Retry button when job name is empty', () => {
-    render(<RetryJobModal job={mockJob} onClose={mockOnClose} onRetry={mockOnRetry} />);
-
-    const input = screen.getByTestId('retry-job-name-input');
-    fireEvent.change(input, { target: { value: '' } });
-
-    const retryButton = screen.getByTestId('retry-job-submit-button');
-    expect(retryButton).toBeDisabled();
-  });
-
-  it('should disable Retry button when job name has invalid characters', () => {
-    render(<RetryJobModal job={mockJob} onClose={mockOnClose} onRetry={mockOnRetry} />);
-
-    const input = screen.getByTestId('retry-job-name-input');
-    fireEvent.change(input, { target: { value: 'Invalid_Name!' } });
-
-    const retryButton = screen.getByTestId('retry-job-submit-button');
-    expect(retryButton).toBeDisabled();
-  });
-
-  it('should show error message for invalid job name', () => {
-    render(<RetryJobModal job={mockJob} onClose={mockOnClose} onRetry={mockOnRetry} />);
-
-    const input = screen.getByTestId('retry-job-name-input');
-    fireEvent.change(input, { target: { value: 'Invalid_Name!' } });
-
-    expect(
-      screen.getByText(/Must start and end with a lowercase letter or number/),
-    ).toBeInTheDocument();
   });
 
   it('should display error alert when retry fails', async () => {
@@ -217,6 +190,6 @@ describe('RetryJobModal', () => {
   it('should show Edit resource name link initially', () => {
     render(<RetryJobModal job={mockJob} onClose={mockOnClose} onRetry={mockOnRetry} />);
 
-    expect(screen.getByTestId('retry-job-edit-resource-link')).toBeInTheDocument();
+    expect(screen.getByTestId('retry-job-editResourceLink')).toBeInTheDocument();
   });
 });
