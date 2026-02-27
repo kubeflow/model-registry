@@ -145,7 +145,7 @@ func TestBackwardCompat_MCPServerTool(t *testing.T) {
 	mappings := NewCatalogEntityMappings()
 	entityType := filter.RestEntityType(catalogmodels.RestEntityMCPServerTool)
 
-	assert.Equal(t, filter.EntityTypeArtifact, mappings.GetMLMDEntityType(entityType))
+	assert.Equal(t, filter.EntityTypeExecution, mappings.GetMLMDEntityType(entityType))
 
 	for prop, expected := range expectedMCPServerToolProperties {
 		t.Run(prop, func(t *testing.T) {

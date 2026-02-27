@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/kubeflow/model-registry/catalog/internal/db/filter"
 	"github.com/kubeflow/model-registry/catalog/internal/db/models"
 	dbmodels "github.com/kubeflow/model-registry/internal/db/models"
 	"github.com/kubeflow/model-registry/internal/db/schema"
@@ -18,26 +19,25 @@ var (
 )
 
 // MCPServerToolRepositoryImpl implements MCPServerToolRepository using GORM with Execution schema.
-// Note: Uses models.Pagination for GenericRepository type parameter, though List method is overridden.
 type MCPServerToolRepositoryImpl struct {
-	*service.GenericRepository[models.MCPServerTool, schema.Execution, schema.ExecutionProperty, *dbmodels.Pagination]
+	*service.GenericRepository[models.MCPServerTool, schema.Execution, schema.ExecutionProperty, *models.MCPServerToolListOptions]
 }
 
 // NewMCPServerToolRepository creates a new MCPServerToolRepository.
 func NewMCPServerToolRepository(db *gorm.DB, typeID int32) models.MCPServerToolRepository {
-	config := service.GenericRepositoryConfig[models.MCPServerTool, schema.Execution, schema.ExecutionProperty, *dbmodels.Pagination]{
-		DB:                      db,
-		TypeID:                  typeID,
-		EntityToSchema:          mapMCPServerToolToExecution,
-		SchemaToEntity:          mapDataLayerToMCPServerTool,
-		EntityToProperties:      mapMCPServerToolToExecutionProperties,
-		NotFoundError:           ErrMCPServerToolNotFound,
-		EntityName:              "MCP server tool",
-		PropertyFieldName:       "execution_id",
-		ApplyListFilters:        nil, // No filters needed for simple list
-		IsNewEntity:             func(entity models.MCPServerTool) bool { return entity.GetID() == nil },
-		HasCustomProperties:     func(entity models.MCPServerTool) bool { return entity.GetCustomProperties() != nil },
-		PreserveHistoricalTimes: true, // Preserve timestamps from YAML source data
+	config := service.GenericRepositoryConfig[models.MCPServerTool, schema.Execution, schema.ExecutionProperty, *models.MCPServerToolListOptions]{
+		DB:                  db,
+		TypeID:              typeID,
+		EntityToSchema:      mapMCPServerToolToExecution,
+		SchemaToEntity:      mapDataLayerToMCPServerTool,
+		EntityToProperties:  mapMCPServerToolToExecutionProperties,
+		NotFoundError:       ErrMCPServerToolNotFound,
+		EntityName:          "MCP server tool",
+		PropertyFieldName:   "execution_id",
+		ApplyListFilters:    applyMCPServerToolListFilters,
+		IsNewEntity:         func(entity models.MCPServerTool) bool { return entity.GetID() == nil },
+		HasCustomProperties: func(entity models.MCPServerTool) bool { return entity.GetCustomProperties() != nil },
+		EntityMappingFuncs:  filter.NewCatalogEntityMappings(),
 	}
 
 	return &MCPServerToolRepositoryImpl{
@@ -50,27 +50,34 @@ func (r *MCPServerToolRepositoryImpl) GetByID(id int32) (models.MCPServerTool, e
 	return r.GenericRepository.GetByID(id)
 }
 
-// List retrieves all tools for a given parent MCP server.
-func (r *MCPServerToolRepositoryImpl) List(parentID int32) ([]models.MCPServerTool, error) {
+// List retrieves all tools for a given parent MCP server with optional filterQuery support.
+func (r *MCPServerToolRepositoryImpl) List(listOptions models.MCPServerToolListOptions) ([]models.MCPServerTool, error) {
 	config := r.GetConfig()
 
-	// Query executions linked to parent via Association table
+	// 1. Build base query with Association join
 	var executions []schema.Execution
 	associationTable := utils.GetTableName(config.DB, &schema.Association{})
 	executionTable := utils.GetTableName(config.DB, &schema.Execution{})
 
-	err := config.DB.Table(executionTable).
+	query := config.DB.Table(executionTable).
 		Joins(fmt.Sprintf("INNER JOIN %s ON %s.execution_id = %s.id",
 			associationTable, associationTable, executionTable)).
 		Where(fmt.Sprintf("%s.context_id = ? AND %s.type_id = ?",
-			associationTable, executionTable), parentID, config.TypeID).
-		Find(&executions).Error
+			associationTable, executionTable), listOptions.ParentID, config.TypeID)
 
+	// 2. Apply filterQuery
+	query, err := service.ApplyFilterQuery(query, &listOptions, filter.NewCatalogEntityMappings())
+	if err != nil {
+		return nil, fmt.Errorf("error applying filter query: %w", err)
+	}
+
+	// 3. Execute query
+	err = query.Find(&executions).Error
 	if err != nil {
 		return nil, fmt.Errorf("error listing %s by parent: %w", config.EntityName, err)
 	}
 
-	// Load properties for each execution
+	// 4. Load properties for each execution
 	var tools []models.MCPServerTool
 	for _, exec := range executions {
 		var properties []schema.ExecutionProperty
@@ -83,6 +90,21 @@ func (r *MCPServerToolRepositoryImpl) List(parentID int32) ([]models.MCPServerTo
 	}
 
 	return tools, nil
+}
+
+// applyMCPServerToolListFilters applies list filters to the query for MCP server tools.
+func applyMCPServerToolListFilters(query *gorm.DB, listOptions *models.MCPServerToolListOptions) *gorm.DB {
+	executionTable := utils.GetTableName(query.Statement.DB, &schema.Execution{})
+
+	// Filter by parent ID (this should already be handled by the join, but we can add it here for completeness)
+	// Note: For MCPServerTool, filtering is primarily done through the Association join,
+	// but we can add property-based filters here if needed
+
+	// Example: Add text search in tool properties if Query field is added to ListOptions in the future
+	// This is a placeholder for future expansion
+	_ = executionTable // Prevent unused variable warning
+
+	return query
 }
 
 // Save creates or updates an MCP server tool.
