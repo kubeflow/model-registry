@@ -65,14 +65,10 @@ func (m *ModelRegistryRepository) GetAllModelTransferJobs(ctx context.Context, c
 				} `json:"ModelArtifact"`
 			}
 
-			podNamesByJob := make(map[string][]string)
-			podErrorsByJob := make(map[string]string)
-			podTerminationByJob := make(map[string]*terminationResult)
-			allPodNames := make([]string, 0, len(podList.Items))
-			for _, pod := range podList.Items {
-				jobName := pod.Labels["job-name"]
-				podNamesByJob[jobName] = append(podNamesByJob[jobName], pod.Name)
-				allPodNames = append(allPodNames, pod.Name)
+		podErrorsByJob := make(map[string]string)
+		podTerminationByJob := make(map[string]*terminationResult)
+		for _, pod := range podList.Items {
+			jobName := pod.Labels["job-name"]
 
 				for _, cs := range pod.Status.ContainerStatuses {
 					if cs.State.Waiting != nil {
