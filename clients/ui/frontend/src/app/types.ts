@@ -222,6 +222,7 @@ export type UpdateModelTransferJob = (
   opts: APIOptions,
   jobId: string,
   data: Partial<ModelTransferJob>,
+  additionalQueryParams?: Record<string, unknown>,
 ) => Promise<ModelTransferJob>;
 
 export type DeleteModelTransferJob = (opts: APIOptions, jobId: string) => Promise<void>;

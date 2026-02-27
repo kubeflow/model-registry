@@ -260,13 +260,18 @@ export const createModelTransferJob =
 
 export const updateModelTransferJob =
   (hostPath: string, queryParams: Record<string, unknown> = {}) =>
-  (opts: APIOptions, jobId: string, data: Partial<ModelTransferJob>): Promise<ModelTransferJob> =>
+  (
+    opts: APIOptions,
+    jobId: string,
+    data: Partial<ModelTransferJob>,
+    additionalQueryParams?: Record<string, unknown>,
+  ): Promise<ModelTransferJob> =>
     handleRestFailures(
       restPATCH(
         hostPath,
         `/model_transfer_jobs/${jobId}`,
         assembleModArchBody(data),
-        queryParams,
+        { ...queryParams, ...additionalQueryParams },
         opts,
       ),
     ).then((response) => {

@@ -1236,3 +1236,96 @@ var _ = Describe("TestModelTransferJob registry filtering", func() {
 		})
 	})
 })
+
+var _ = Describe("TestModelTransferJob retry metadata preservation", func() {
+	var requestIdentity kubernetes.RequestIdentity
+
+	BeforeEach(func() {
+		requestIdentity = kubernetes.RequestIdentity{
+			UserID: "user@example.com",
+		}
+	})
+
+	Context("retrying a job preserves metadata", func() {
+		It("PATCH with only new name preserves source, destination, and metadata from old job", func() {
+			// transfer-job-001 in mock has:
+			// - Source: s3, bucket=source-bucket, key=models/my-model
+			// - Destination: oci, uri=quay.io/test/model:v1
+			// - UploadIntent: create_model
+			// - Author: Sherlock Holmes
+			// - Description: Transfer job for Model One
+			// - RegisteredModelName: Model One
+			// - ModelVersionName: Version One
+			payload := ModelTransferJobEnvelope{
+				Data: &models.ModelTransferJob{
+					Name: "retry-job-001",
+				},
+			}
+			envelope, rs, err := setupApiTest[ModelTransferJobEnvelope](
+				http.MethodPatch,
+				"/api/v1/model_registry/model-registry/model_transfer_jobs/transfer-job-001?namespace=kubeflow",
+				payload,
+				kubernetesMockedStaticClientFactory,
+				requestIdentity,
+				"kubeflow",
+			)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(rs.StatusCode).To(Equal(http.StatusOK))
+			Expect(envelope.Data).NotTo(BeNil())
+
+			// Verify the new job has the expected name
+			Expect(envelope.Data.Name).To(Equal("retry-job-001"))
+
+			// Verify source metadata was preserved
+			Expect(envelope.Data.Source.Type).To(Equal(models.ModelTransferJobSourceTypeS3))
+			Expect(envelope.Data.Source.Bucket).To(Equal("source-bucket"))
+			Expect(envelope.Data.Source.Key).To(Equal("models/my-model"))
+
+			// Verify destination metadata was preserved
+			Expect(envelope.Data.Destination.Type).To(Equal(models.ModelTransferJobDestinationTypeOCI))
+			Expect(envelope.Data.Destination.URI).To(Equal("quay.io/test/model:v1"))
+
+			// Verify upload intent was preserved
+			Expect(envelope.Data.UploadIntent).To(Equal(models.ModelTransferJobUploadIntentCreateModel))
+
+			// Verify model metadata was preserved
+			Expect(envelope.Data.RegisteredModelName).To(Equal("Model One"))
+			Expect(envelope.Data.ModelVersionName).To(Equal("Version One"))
+
+			// Verify author and description were preserved (this is what we fixed)
+			Expect(envelope.Data.Author).To(Equal("Sherlock Holmes"))
+			Expect(envelope.Data.Description).To(Equal("Transfer job for Model One"))
+		})
+
+		It("PATCH clones credentials from old job into new secrets", func() {
+			// This test verifies that the retry creates a new job even though
+			// we're not providing credentials in the payload - credentials are
+			// cloned from the old job's secrets into NEW secret objects.
+			// IMPORTANT: We create new Secret objects (not reuse existing ones)
+			// so that deleting the old job doesn't affect the new job's secrets.
+			payload := ModelTransferJobEnvelope{
+				Data: &models.ModelTransferJob{
+					Name: "retry-job-with-creds",
+				},
+			}
+			envelope, rs, err := setupApiTest[ModelTransferJobEnvelope](
+				http.MethodPatch,
+				"/api/v1/model_registry/model-registry/model_transfer_jobs/transfer-job-001?namespace=kubeflow",
+				payload,
+				kubernetesMockedStaticClientFactory,
+				requestIdentity,
+				"kubeflow",
+			)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(rs.StatusCode).To(Equal(http.StatusOK))
+			Expect(envelope.Data).NotTo(BeNil())
+
+			// The job was created successfully, which means credentials were properly cloned
+			Expect(envelope.Data.Name).To(Equal("retry-job-with-creds"))
+
+			// Verify secret names are set with expected prefix (GenerateName adds random suffix)
+			Expect(envelope.Data.SourceSecretName).To(HavePrefix("retry-job-with-creds-source-creds-"))
+			Expect(envelope.Data.DestSecretName).To(HavePrefix("retry-job-with-creds-dest-creds-"))
+		})
+	})
+})

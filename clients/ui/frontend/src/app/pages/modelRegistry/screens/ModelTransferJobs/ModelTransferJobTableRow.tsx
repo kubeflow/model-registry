@@ -1,4 +1,12 @@
-import { Button, Content, ContentVariants, Label, Truncate } from '@patternfly/react-core';
+import {
+  Button,
+  Content,
+  ContentVariants,
+  Flex,
+  FlexItem,
+  Label,
+  Truncate,
+} from '@patternfly/react-core';
 import { ActionsColumn, Td, Tr } from '@patternfly/react-table';
 import {
   CheckCircleIcon,
@@ -23,6 +31,7 @@ import ModelTransferJobStatusModal from './ModelTransferJobStatusModal';
 type ModelTransferJobTableRowProps = {
   job: ModelTransferJob;
   onRequestDelete?: (job: ModelTransferJob) => void;
+  onRequestRetry?: (job: ModelTransferJob) => void;
 };
 
 export const getStatusLabel = (
@@ -51,6 +60,7 @@ export const getStatusLabel = (
 const ModelTransferJobTableRow: React.FC<ModelTransferJobTableRowProps> = ({
   job,
   onRequestDelete,
+  onRequestRetry,
 }) => {
   const navigate = useNavigate();
   const { preferredModelRegistry } = React.useContext(ModelRegistrySelectorContext);
@@ -72,6 +82,7 @@ const ModelTransferJobTableRow: React.FC<ModelTransferJobTableRowProps> = ({
 
   const statusInfo = getStatusLabel(job.status);
 
+  // Actions menu - just Delete (retry is handled via button in status column)
   const actions = React.useMemo(
     () => [
       {
@@ -139,15 +150,31 @@ const ModelTransferJobTableRow: React.FC<ModelTransferJobTableRowProps> = ({
         </Content>
       </Td>
       <Td dataLabel="Transfer job status">
-        <Label
-          color={statusInfo.color}
-          icon={statusInfo.icon}
-          data-testid="job-status"
-          isClickable
-          onClick={() => setIsStatusModalOpen(true)}
-        >
-          {statusInfo.label}
-        </Label>
+        <Flex alignItems={{ default: 'alignItemsCenter' }} spaceItems={{ default: 'spaceItemsSm' }}>
+          <FlexItem>
+            <Label
+              color={statusInfo.color}
+              icon={statusInfo.icon}
+              data-testid="job-status"
+              isClickable
+              onClick={() => setIsStatusModalOpen(true)}
+            >
+              {statusInfo.label}
+            </Label>
+          </FlexItem>
+          {job.status === ModelTransferJobStatus.FAILED && onRequestRetry && (
+            <FlexItem>
+              <Button
+                variant="link"
+                isInline
+                onClick={() => onRequestRetry(job)}
+                data-testid="job-retry-button"
+              >
+                Retry
+              </Button>
+            </FlexItem>
+          )}
+        </Flex>
       </Td>
       <Td isActionCell>
         <ActionsColumn items={actions} />
