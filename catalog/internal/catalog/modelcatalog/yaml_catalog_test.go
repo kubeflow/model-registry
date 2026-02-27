@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"github.com/kubeflow/model-registry/catalog/internal/catalog/basecatalog"
+	catalogmodels "github.com/kubeflow/model-registry/catalog/internal/catalog/modelcatalog/models"
 	model "github.com/kubeflow/model-registry/catalog/pkg/openapi"
 	"github.com/kubeflow/model-registry/internal/apiutils"
 	"github.com/kubeflow/model-registry/internal/db/models"
@@ -190,7 +191,7 @@ func TestYamlModelToModelProviderRecord(t *testing.T) {
 				assert.Nil(t, modelArtifact.CatalogMetricsArtifact)
 
 				// Check CatalogModelArtifact attributes
-				modelAttrs := modelArtifact.CatalogModelArtifact.GetAttributes()
+				modelAttrs := modelArtifact.CatalogModelArtifact.(catalogmodels.CatalogModelArtifact).GetAttributes()
 				assert.Equal(t, "https://example.com/model.tar.gz", *modelAttrs.URI)
 				assert.Equal(t, int64(1678886400000), *modelAttrs.CreateTimeSinceEpoch)
 				assert.Equal(t, int64(1681564800000), *modelAttrs.LastUpdateTimeSinceEpoch)
@@ -226,7 +227,7 @@ func TestYamlModelToModelProviderRecord(t *testing.T) {
 				assert.Nil(t, metricsArtifact.CatalogModelArtifact)
 
 				// Check CatalogMetricsArtifact attributes
-				metricsAttrs := metricsArtifact.CatalogMetricsArtifact.GetAttributes()
+				metricsAttrs := metricsArtifact.CatalogMetricsArtifact.(catalogmodels.CatalogMetricsArtifact).GetAttributes()
 				assert.Equal(t, "evaluation-metrics", string(metricsAttrs.MetricsType))
 				assert.Equal(t, int64(1678886400000), *metricsAttrs.CreateTimeSinceEpoch)
 				assert.Equal(t, int64(1681564800000), *metricsAttrs.LastUpdateTimeSinceEpoch)
@@ -317,7 +318,7 @@ func TestYamlModelToModelProviderRecord(t *testing.T) {
 				require.NotNil(t, artifact.CatalogModelArtifact)
 				assert.Nil(t, artifact.CatalogMetricsArtifact)
 
-				attrs := artifact.CatalogModelArtifact.GetAttributes()
+				attrs := artifact.CatalogModelArtifact.(catalogmodels.CatalogModelArtifact).GetAttributes()
 				assert.Equal(t, "s3://bucket/model.bin", *attrs.URI)
 				assert.Nil(t, attrs.CreateTimeSinceEpoch)
 				assert.Nil(t, attrs.LastUpdateTimeSinceEpoch)
@@ -362,7 +363,7 @@ func TestYamlModelToModelProviderRecord(t *testing.T) {
 				assert.Nil(t, artifact.CatalogModelArtifact)
 				require.NotNil(t, artifact.CatalogMetricsArtifact)
 
-				attrs := artifact.CatalogMetricsArtifact.GetAttributes()
+				attrs := artifact.CatalogMetricsArtifact.(catalogmodels.CatalogMetricsArtifact).GetAttributes()
 				assert.Equal(t, "performance-metrics", string(attrs.MetricsType))
 				assert.Nil(t, attrs.CreateTimeSinceEpoch)
 				assert.Nil(t, attrs.LastUpdateTimeSinceEpoch)
@@ -408,7 +409,7 @@ func TestYamlModelToModelProviderRecord(t *testing.T) {
 				artifact := record.Artifacts[0]
 				require.NotNil(t, artifact.CatalogModelArtifact)
 
-				attrs := artifact.CatalogModelArtifact.GetAttributes()
+				attrs := artifact.CatalogModelArtifact.(catalogmodels.CatalogModelArtifact).GetAttributes()
 				assert.Equal(t, "https://example.com/model.bin", *attrs.URI)
 				// Invalid timestamps should be ignored (not set)
 				assert.Nil(t, attrs.CreateTimeSinceEpoch)

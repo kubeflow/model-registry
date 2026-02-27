@@ -2,13 +2,13 @@ package models
 
 import (
 	"github.com/kubeflow/model-registry/internal/db/filter"
-	"github.com/kubeflow/model-registry/internal/db/models"
+	dbmodels "github.com/kubeflow/model-registry/internal/db/models"
 )
 
 const CatalogModelArtifactType = "model-artifact"
 
 type CatalogModelArtifactListOptions struct {
-	models.Pagination
+	dbmodels.Pagination
 	Name             *string
 	ExternalID       *string
 	ParentResourceID *int32
@@ -29,13 +29,13 @@ type CatalogModelArtifactAttributes struct {
 }
 
 type CatalogModelArtifact interface {
-	models.Entity[CatalogModelArtifactAttributes]
+	dbmodels.Entity[CatalogModelArtifactAttributes]
 }
 
-type CatalogModelArtifactImpl = models.BaseEntity[CatalogModelArtifactAttributes]
+type CatalogModelArtifactImpl = dbmodels.BaseEntity[CatalogModelArtifactAttributes]
 
 type CatalogModelArtifactRepository interface {
 	GetByID(id int32) (CatalogModelArtifact, error)
-	List(listOptions CatalogModelArtifactListOptions) (*models.ListWrapper[CatalogModelArtifact], error)
+	List(listOptions CatalogModelArtifactListOptions) (*dbmodels.ListWrapper[CatalogModelArtifact], error)
 	Save(modelArtifact CatalogModelArtifact, parentResourceID *int32) (CatalogModelArtifact, error)
 }

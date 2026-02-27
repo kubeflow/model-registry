@@ -12,7 +12,7 @@ import (
 	"time"
 
 	"github.com/golang/glog"
-	dbmodels "github.com/kubeflow/model-registry/catalog/internal/db/models"
+	dbmodels "github.com/kubeflow/model-registry/catalog/internal/catalog/modelcatalog/models"
 	"github.com/kubeflow/model-registry/catalog/internal/db/service"
 	"github.com/kubeflow/model-registry/internal/apiutils"
 	"github.com/kubeflow/model-registry/internal/db/models"

@@ -4,7 +4,8 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/kubeflow/model-registry/catalog/internal/db/models"
+	"github.com/kubeflow/model-registry/catalog/internal/catalog/modelcatalog/models"
+	sharedmodels "github.com/kubeflow/model-registry/catalog/internal/db/models"
 	"github.com/kubeflow/model-registry/internal/apiutils"
 	dbmodels "github.com/kubeflow/model-registry/internal/db/models"
 	"github.com/kubeflow/model-registry/internal/db/schema"
@@ -12,6 +13,13 @@ import (
 	"github.com/kubeflow/model-registry/internal/db/utils"
 	"gorm.io/gorm"
 )
+
+// Register the mapping function for CatalogModelArtifact
+func init() {
+	sharedmodels.RegisterArtifactMapper("kf.CatalogModelArtifact", func(artifact schema.Artifact, properties []schema.ArtifactProperty) interface{} {
+		return mapDataLayerToCatalogModelArtifact(artifact, properties)
+	})
+}
 
 var ErrCatalogModelArtifactNotFound = errors.New("catalog model artifact by id not found")
 

@@ -245,11 +245,26 @@ func (r *CatalogArtifactRepositoryImpl) mapDataLayerToCatalogArtifact(artifact s
 
 	typeName := r.idToName[artifact.TypeID]
 
+	mapper, exists := models.GetArtifactMapper(typeName)
+	if !exists {
+		return models.CatalogArtifact{}, fmt.Errorf("no mapper registered for artifact type: %s", typeName)
+	}
+
+	mapped := mapper(artifact, properties)
+
 	switch typeName {
 	case CatalogModelArtifactTypeName:
-		artToReturn.CatalogModelArtifact = mapDataLayerToCatalogModelArtifact(artifact, properties)
+		if entity, ok := mapped.(models.CatalogArtifactEntity); ok {
+			artToReturn.CatalogModelArtifact = entity
+		} else {
+			return models.CatalogArtifact{}, fmt.Errorf("mapper for %s returned incompatible type", typeName)
+		}
 	case CatalogMetricsArtifactTypeName:
-		artToReturn.CatalogMetricsArtifact = mapDataLayerToCatalogMetricsArtifact(artifact, properties)
+		if entity, ok := mapped.(models.CatalogArtifactEntity); ok {
+			artToReturn.CatalogMetricsArtifact = entity
+		} else {
+			return models.CatalogArtifact{}, fmt.Errorf("mapper for %s returned incompatible type", typeName)
+		}
 	default:
 		return models.CatalogArtifact{}, fmt.Errorf("invalid catalog artifact type: %s=%d (expected: %v)", typeName, artifact.TypeID, r.idToName)
 	}

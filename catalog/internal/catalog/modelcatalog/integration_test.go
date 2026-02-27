@@ -5,7 +5,8 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/kubeflow/model-registry/catalog/internal/db/models"
+	"github.com/kubeflow/model-registry/catalog/internal/catalog/modelcatalog/models"
+	modelservice "github.com/kubeflow/model-registry/catalog/internal/catalog/modelcatalog/service"
 	"github.com/kubeflow/model-registry/catalog/internal/db/service"
 	"github.com/kubeflow/model-registry/internal/apiutils"
 	mr_models "github.com/kubeflow/model-registry/internal/db/models"
@@ -23,13 +24,13 @@ func setupIntegrationTestProvider(t *testing.T, ctx context.Context, sharedDB *g
 	catalogSourceTypeID := GetCatalogSourceTypeIDForDBTest(t, sharedDB)
 
 	// Create repositories
-	catalogModelRepo := service.NewCatalogModelRepository(sharedDB, catalogModelTypeID)
+	catalogModelRepo := modelservice.NewCatalogModelRepository(sharedDB, catalogModelTypeID)
 	catalogArtifactRepo := service.NewCatalogArtifactRepository(sharedDB, map[string]int32{
 		service.CatalogModelArtifactTypeName:   modelArtifactTypeID,
 		service.CatalogMetricsArtifactTypeName: metricsArtifactTypeID,
 	})
-	modelArtifactRepo := service.NewCatalogModelArtifactRepository(sharedDB, modelArtifactTypeID)
-	metricsArtifactRepo := service.NewCatalogMetricsArtifactRepository(sharedDB, metricsArtifactTypeID)
+	modelArtifactRepo := modelservice.NewCatalogModelArtifactRepository(sharedDB, modelArtifactTypeID)
+	metricsArtifactRepo := modelservice.NewCatalogMetricsArtifactRepository(sharedDB, metricsArtifactTypeID)
 	catalogSourceRepo := service.NewCatalogSourceRepository(sharedDB, catalogSourceTypeID)
 
 	svcs := service.NewServices(
@@ -143,7 +144,7 @@ func BenchmarkRecommendedLatencySorting(b *testing.B) {
 	ctx := context.Background()
 	provider := setupBenchmarkProvider(b, ctx, sharedDB) // Setup with 100+ models
 
-	paretoParams := models.ParetoFilteringParams{
+	paretoParams := ParetoFilteringParams{
 		LatencyProperty: "ttft_p90",
 	}
 
@@ -166,13 +167,13 @@ func setupBenchmarkProvider(b *testing.B, ctx context.Context, sharedDB *gorm.DB
 	catalogSourceTypeID := getCatalogSourceTypeIDFromDB(sharedDB)
 
 	// Create repositories
-	catalogModelRepo := service.NewCatalogModelRepository(sharedDB, catalogModelTypeID)
+	catalogModelRepo := modelservice.NewCatalogModelRepository(sharedDB, catalogModelTypeID)
 	catalogArtifactRepo := service.NewCatalogArtifactRepository(sharedDB, map[string]int32{
 		service.CatalogModelArtifactTypeName:   modelArtifactTypeID,
 		service.CatalogMetricsArtifactTypeName: metricsArtifactTypeID,
 	})
-	modelArtifactRepo := service.NewCatalogModelArtifactRepository(sharedDB, modelArtifactTypeID)
-	metricsArtifactRepo := service.NewCatalogMetricsArtifactRepository(sharedDB, metricsArtifactTypeID)
+	modelArtifactRepo := modelservice.NewCatalogModelArtifactRepository(sharedDB, modelArtifactTypeID)
+	metricsArtifactRepo := modelservice.NewCatalogMetricsArtifactRepository(sharedDB, metricsArtifactTypeID)
 	catalogSourceRepo := service.NewCatalogSourceRepository(sharedDB, catalogSourceTypeID)
 
 	svcs := service.NewServices(

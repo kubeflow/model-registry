@@ -1,4 +1,4 @@
-package service_test
+package service
 
 import (
 	"errors"
@@ -6,24 +6,22 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/kubeflow/model-registry/catalog/internal/db/models"
-	"github.com/kubeflow/model-registry/catalog/internal/db/service"
+	"github.com/kubeflow/model-registry/catalog/internal/catalog/modelcatalog/models"
 	"github.com/kubeflow/model-registry/internal/apiutils"
 	dbmodels "github.com/kubeflow/model-registry/internal/db/models"
 	"github.com/kubeflow/model-registry/internal/db/schema"
 	"github.com/kubeflow/model-registry/internal/testutils"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"gorm.io/gorm"
 )
 
 func TestCatalogModelRepository(t *testing.T) {
-	sharedDB, cleanup := testutils.SetupPostgresWithMigrations(t, service.DatastoreSpec())
+	sharedDB, cleanup := testutils.SetupPostgresWithMigrations(t, testDatastoreSpec())
 	defer cleanup()
 
 	// Create or get the CatalogModel type ID
 	typeID := getCatalogModelTypeID(t, sharedDB)
-	repo := service.NewCatalogModelRepository(sharedDB, typeID)
+	repo := NewCatalogModelRepository(sharedDB, typeID)
 
 	t.Run("TestSave", func(t *testing.T) {
 		// Test creating a new catalog model
@@ -89,7 +87,7 @@ func TestCatalogModelRepository(t *testing.T) {
 
 		// Test retrieving non-existent ID
 		_, err = repo.GetByID(99999)
-		assert.ErrorIs(t, err, service.ErrCatalogModelNotFound)
+		assert.ErrorIs(t, err, ErrCatalogModelNotFound)
 	})
 
 	t.Run("TestList", func(t *testing.T) {
@@ -170,7 +168,7 @@ func TestCatalogModelRepository(t *testing.T) {
 
 		// Test retrieving non-existent name
 		_, err = repo.GetByName("non-existent-model")
-		assert.ErrorIs(t, err, service.ErrCatalogModelNotFound)
+		assert.ErrorIs(t, err, ErrCatalogModelNotFound)
 	})
 
 	t.Run("TestUpdateWithID", func(t *testing.T) {
@@ -344,7 +342,7 @@ func TestCatalogModelRepository(t *testing.T) {
 	t.Run("TestAccuracySorting", func(t *testing.T) {
 		// Get the CatalogMetricsArtifact type ID for creating accuracy metrics
 		metricsTypeID := getCatalogMetricsArtifactTypeID(t, sharedDB)
-		metricsRepo := service.NewCatalogMetricsArtifactRepository(sharedDB, metricsTypeID)
+		metricsRepo := NewCatalogMetricsArtifactRepository(sharedDB, metricsTypeID)
 
 		// Create test models with different accuracy scores
 		testModels := []struct {
@@ -495,7 +493,7 @@ func TestCatalogModelRepository(t *testing.T) {
 	t.Run("TestAccuracySortingPagination", func(t *testing.T) {
 		// Get the CatalogMetricsArtifact type ID for creating accuracy metrics
 		metricsTypeID := getCatalogMetricsArtifactTypeID(t, sharedDB)
-		metricsRepo := service.NewCatalogMetricsArtifactRepository(sharedDB, metricsTypeID)
+		metricsRepo := NewCatalogMetricsArtifactRepository(sharedDB, metricsTypeID)
 
 		// Create 5 test models with accuracy scores for pagination testing
 		// Use unique names to avoid interference with other tests
@@ -898,11 +896,11 @@ func TestCatalogModelRepository(t *testing.T) {
 		// Verify models from source1 are deleted
 		_, err = repo.GetByID(*saved1.GetID())
 		assert.Error(t, err)
-		assert.True(t, errors.Is(err, service.ErrCatalogModelNotFound))
+		assert.True(t, errors.Is(err, ErrCatalogModelNotFound))
 
 		_, err = repo.GetByID(*saved2.GetID())
 		assert.Error(t, err)
-		assert.True(t, errors.Is(err, service.ErrCatalogModelNotFound))
+		assert.True(t, errors.Is(err, ErrCatalogModelNotFound))
 
 		// Verify model from source2 still exists
 		retrieved, err := repo.GetByID(*saved3.GetID())
@@ -934,7 +932,7 @@ func TestCatalogModelRepository(t *testing.T) {
 		// Verify model is deleted
 		_, err = repo.GetByID(*saved.GetID())
 		assert.Error(t, err)
-		assert.True(t, errors.Is(err, service.ErrCatalogModelNotFound))
+		assert.True(t, errors.Is(err, ErrCatalogModelNotFound))
 	})
 
 	t.Run("TestDeleteBySourceNonExistent", func(t *testing.T) {
@@ -947,7 +945,7 @@ func TestCatalogModelRepository(t *testing.T) {
 		// Test deleting non-existent ID - should return NotFoundError
 		err := repo.DeleteByID(999999)
 		require.Error(t, err)
-		assert.True(t, errors.Is(err, service.ErrCatalogModelNotFound))
+		assert.True(t, errors.Is(err, ErrCatalogModelNotFound))
 	})
 
 	t.Run("TestGetDistinctSourceIDs", func(t *testing.T) {
@@ -1028,7 +1026,7 @@ func TestCatalogModelRepository(t *testing.T) {
 		// Verify model is deleted
 		_, err = repo.GetByID(modelID)
 		assert.Error(t, err)
-		assert.True(t, errors.Is(err, service.ErrCatalogModelNotFound))
+		assert.True(t, errors.Is(err, ErrCatalogModelNotFound))
 
 		// Verify orphaned artifact is deleted
 		var orphanedArtifactExists int64
@@ -1084,7 +1082,7 @@ func TestCatalogModelRepository(t *testing.T) {
 		// Verify model is deleted
 		_, err = repo.GetByID(modelID)
 		assert.Error(t, err)
-		assert.True(t, errors.Is(err, service.ErrCatalogModelNotFound))
+		assert.True(t, errors.Is(err, ErrCatalogModelNotFound))
 
 		// Verify orphaned artifact is deleted
 		var orphanedArtifactExists int64
@@ -1152,11 +1150,11 @@ func TestCatalogModelRepository(t *testing.T) {
 		// Verify both models are deleted
 		_, err = repo.GetByID(*savedModel1.GetID())
 		assert.Error(t, err)
-		assert.True(t, errors.Is(err, service.ErrCatalogModelNotFound))
+		assert.True(t, errors.Is(err, ErrCatalogModelNotFound))
 
 		_, err = repo.GetByID(*savedModel2.GetID())
 		assert.Error(t, err)
-		assert.True(t, errors.Is(err, service.ErrCatalogModelNotFound))
+		assert.True(t, errors.Is(err, ErrCatalogModelNotFound))
 
 		// Verify orphaned artifact is deleted
 		var orphanedExists int64
@@ -1175,7 +1173,7 @@ func TestCatalogModelRepository(t *testing.T) {
 		// Test deleting non-existent model ID - should return NotFoundError and not affect any artifacts
 		err := repo.DeleteByID(999999)
 		require.Error(t, err)
-		assert.True(t, errors.Is(err, service.ErrCatalogModelNotFound))
+		assert.True(t, errors.Is(err, ErrCatalogModelNotFound))
 	})
 }
 
@@ -1198,97 +1196,12 @@ func createTestCatalogModelWithSourceID(t *testing.T, sourceID string) models.Ca
 	return model
 }
 
-// Helper function to get or create CatalogModel type ID
-func getCatalogModelTypeID(t *testing.T, db *gorm.DB) int32 {
-	var typeRecord schema.Type
-	err := db.Where("name = ?", service.CatalogModelTypeName).First(&typeRecord).Error
-	if err != nil {
-		require.NoError(t, err, "Failed to query CatalogModel type")
-	}
-
-	return typeRecord.ID
-}
-
-// Helper function to create or get execution type ID for testing
-func getOrCreateExecutionTypeID(t *testing.T, db *gorm.DB) int32 {
-	typeName := "test.Execution"
-	var typeRecord schema.Type
-	err := db.Where("name = ?", typeName).First(&typeRecord).Error
-	if err != nil {
-		// Create the type if it doesn't exist
-		typeRecord = schema.Type{
-			Name: typeName,
-		}
-		err = db.Create(&typeRecord).Error
-		require.NoError(t, err, "Failed to create test execution type")
-	}
-	return typeRecord.ID
-}
-
-// Helper function to create a test artifact
-func createTestArtifact(t *testing.T, db *gorm.DB, typeID int32, name string) *schema.Artifact {
-	artifact := &schema.Artifact{
-		TypeID:                   typeID,
-		Name:                     &name,
-		CreateTimeSinceEpoch:     1000,
-		LastUpdateTimeSinceEpoch: 1000,
-	}
-	err := db.Create(artifact).Error
-	require.NoError(t, err, "Failed to create test artifact")
-	return artifact
-}
-
-// Helper function to create attribution between context and artifact
-func createAttribution(t *testing.T, db *gorm.DB, contextID, artifactID int32) {
-	attribution := &schema.Attribution{
-		ContextID:  contextID,
-		ArtifactID: artifactID,
-	}
-	err := db.Create(attribution).Error
-	require.NoError(t, err, "Failed to create attribution")
-}
-
-// Helper function to create a test execution
-func createTestExecution(t *testing.T, db *gorm.DB, typeID int32, name string) *schema.Execution {
-	execution := &schema.Execution{
-		TypeID:                   typeID,
-		Name:                     &name,
-		CreateTimeSinceEpoch:     1000,
-		LastUpdateTimeSinceEpoch: 1000,
-	}
-	err := db.Create(execution).Error
-	require.NoError(t, err, "Failed to create test execution")
-	return execution
-}
-
-// Helper function to create a test event
-func createTestEvent(t *testing.T, db *gorm.DB, artifactID, executionID int32) *schema.Event {
-	event := &schema.Event{
-		ArtifactID:  artifactID,
-		ExecutionID: executionID,
-		Type:        1, // INPUT event type
-	}
-	err := db.Create(event).Error
-	require.NoError(t, err, "Failed to create test event")
-	return event
-}
-
-// Helper function to find index of string in slice
-func findIndex(slice []string, target string) int {
-	for i, item := range slice {
-		if item == target {
-			return i
-		}
-	}
-	return -1
-}
-
 func TestCatalogModelRepository_TimestampPreservation(t *testing.T) {
-	sharedDB, cleanup := testutils.SetupPostgresWithMigrations(t, service.DatastoreSpec())
+	sharedDB, cleanup := testutils.SetupPostgresWithMigrations(t, testDatastoreSpec())
 	defer cleanup()
 
 	typeID := getCatalogModelTypeID(t, sharedDB)
-	repo := service.NewCatalogModelRepository(sharedDB, typeID)
+	repo := NewCatalogModelRepository(sharedDB, typeID)
 
 	t.Run("Preserve historical timestamps from YAML catalog", func(t *testing.T) {
 		// Simulate loading a model from YAML with historical timestamps
@@ -1416,7 +1329,7 @@ func TestCatalogModelRepository_TimestampPreservation(t *testing.T) {
 // Expected: Model B (0.75) before Model A (0.65) - considering only active artifacts
 // Actual: Model A before Model B - sorting uses 0.95 value from deprecated artifact
 func TestSortingFilteringInconsistency(t *testing.T) {
-	sharedDB, cleanup := testutils.SetupPostgresWithMigrations(t, service.DatastoreSpec())
+	sharedDB, cleanup := testutils.SetupPostgresWithMigrations(t, testDatastoreSpec())
 	defer cleanup()
 	defer testutils.CleanupPostgresTestData(t, sharedDB)
 
@@ -1425,10 +1338,10 @@ func TestSortingFilteringInconsistency(t *testing.T) {
 
 	// Setup repositories
 	catalogModelTypeID := getCatalogModelTypeID(t, sharedDB)
-	modelRepo := service.NewCatalogModelRepository(sharedDB, catalogModelTypeID)
+	modelRepo := NewCatalogModelRepository(sharedDB, catalogModelTypeID)
 
 	modelArtifactTypeID := getCatalogModelArtifactTypeID(t, sharedDB)
-	modelArtifactRepo := service.NewCatalogModelArtifactRepository(sharedDB, modelArtifactTypeID)
+	modelArtifactRepo := NewCatalogModelArtifactRepository(sharedDB, modelArtifactTypeID)
 
 	// Test case: Create Model A with high accuracy deprecated artifact + low accuracy active artifact
 	t.Run("TestBugReproduction", func(t *testing.T) {
@@ -1570,7 +1483,7 @@ func TestSortingFilteringInconsistency(t *testing.T) {
 
 // TestSortingFilteringEdgeCases tests edge cases for the sorting/filtering consistency fix
 func TestSortingFilteringEdgeCases(t *testing.T) {
-	sharedDB, cleanup := testutils.SetupPostgresWithMigrations(t, service.DatastoreSpec())
+	sharedDB, cleanup := testutils.SetupPostgresWithMigrations(t, testDatastoreSpec())
 	defer cleanup()
 	defer testutils.CleanupPostgresTestData(t, sharedDB)
 
@@ -1579,10 +1492,10 @@ func TestSortingFilteringEdgeCases(t *testing.T) {
 
 	// Setup repositories
 	catalogModelTypeID := getCatalogModelTypeID(t, sharedDB)
-	modelRepo := service.NewCatalogModelRepository(sharedDB, catalogModelTypeID)
+	modelRepo := NewCatalogModelRepository(sharedDB, catalogModelTypeID)
 
 	modelArtifactTypeID := getCatalogModelArtifactTypeID(t, sharedDB)
-	modelArtifactRepo := service.NewCatalogModelArtifactRepository(sharedDB, modelArtifactTypeID)
+	modelArtifactRepo := NewCatalogModelArtifactRepository(sharedDB, modelArtifactTypeID)
 
 	// Create test models with various artifact scenarios
 	modelA := &models.CatalogModelImpl{

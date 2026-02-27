@@ -1,13 +1,14 @@
 package models
 
 import (
+	"github.com/kubeflow/model-registry/catalog/internal/db/models"
 	"github.com/kubeflow/model-registry/internal/db/filter"
-	"github.com/kubeflow/model-registry/internal/db/models"
+	dbmodels "github.com/kubeflow/model-registry/internal/db/models"
 )
 
 // MCPServerListOptions holds the options for listing MCP servers.
 type MCPServerListOptions struct {
-	models.Pagination
+	dbmodels.Pagination
 	Name        *string
 	SourceIDs   *[]string
 	Query       *string
@@ -17,7 +18,7 @@ type MCPServerListOptions struct {
 
 // GetRestEntityType implements the FilterApplier interface.
 func (c *MCPServerListOptions) GetRestEntityType() filter.RestEntityType {
-	return filter.RestEntityType(RestEntityMCPServer)
+	return filter.RestEntityType(models.RestEntityMCPServer)
 }
 
 // GetFilterQuery returns the filter query string for advanced filtering.
@@ -38,17 +39,17 @@ type MCPServerAttributes struct {
 
 // MCPServer represents an MCP server stored in the database.
 type MCPServer interface {
-	models.Entity[MCPServerAttributes]
+	dbmodels.Entity[MCPServerAttributes]
 }
 
 // MCPServerImpl is the concrete implementation of MCPServer.
-type MCPServerImpl = models.BaseEntity[MCPServerAttributes]
+type MCPServerImpl = dbmodels.BaseEntity[MCPServerAttributes]
 
 // MCPServerRepository defines the interface for MCP server persistence.
 type MCPServerRepository interface {
 	GetByID(id int32) (MCPServer, error)
 	GetByNameAndVersion(name string, version string) (MCPServer, error)
-	List(listOptions MCPServerListOptions) (*models.ListWrapper[MCPServer], error)
+	List(listOptions MCPServerListOptions) (*dbmodels.ListWrapper[MCPServer], error)
 	Save(server MCPServer) (MCPServer, error)
 	DeleteBySource(sourceID string) error
 	DeleteByID(id int32) error
