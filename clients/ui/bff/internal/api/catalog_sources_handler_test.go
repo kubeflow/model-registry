@@ -49,6 +49,45 @@ var _ = Describe("TestGetAllCatalogSourcesHandler", func() {
 			Expect(actual.Data.Items[0].Name).To(Equal(data.Items[4].Name))
 		})
 
+		It("should retrieve catalog sources with assetType query param", func() {
+			By("fetching catalog sources with assetType=models")
+			data := mocks.GetCatalogSourceListMock()
+			requestIdentity := kubernetes.RequestIdentity{
+				UserID: "user@example.com",
+			}
+
+			expected := CatalogSourceListEnvelope{Data: &data}
+			actual, rs, err := setupApiTest[CatalogSourceListEnvelope](http.MethodGet, "/api/v1/model_catalog/sources?namespace=kubeflow&assetType=models", nil, kubernetesMockedStaticClientFactory, requestIdentity, "kubeflow")
+			Expect(err).NotTo(HaveOccurred())
+
+			By("should return 200 and envelope with catalog sources")
+			Expect(rs.StatusCode).To(Equal(http.StatusOK))
+			Expect(actual.Data).NotTo(BeNil())
+			Expect(actual.Data.Size).To(Equal(expected.Data.Size))
+			Expect(actual.Data.PageSize).To(Equal(expected.Data.PageSize))
+			Expect(len(actual.Data.Items)).To(Equal(len(expected.Data.Items)))
+		})
+
+		It("should retrieve catalog sources filtered by assetType=mcp_servers", func() {
+			By("fetching catalog sources with assetType=mcp_servers")
+			data := mocks.GetMcpServerCatalogSourceListMock()
+			requestIdentity := kubernetes.RequestIdentity{
+				UserID: "user@example.com",
+			}
+
+			expected := CatalogSourceListEnvelope{Data: &data}
+			actual, rs, err := setupApiTest[CatalogSourceListEnvelope](http.MethodGet, "/api/v1/model_catalog/sources?namespace=kubeflow&assetType=mcp_servers", nil, kubernetesMockedStaticClientFactory, requestIdentity, "kubeflow")
+			Expect(err).NotTo(HaveOccurred())
+
+			By("should return 200 and envelope with MCP server catalog sources")
+			Expect(rs.StatusCode).To(Equal(http.StatusOK))
+			Expect(actual.Data).NotTo(BeNil())
+			Expect(actual.Data.Size).To(Equal(expected.Data.Size))
+			Expect(actual.Data.PageSize).To(Equal(expected.Data.PageSize))
+			Expect(len(actual.Data.Items)).To(Equal(len(expected.Data.Items)))
+			Expect(actual.Data.Items).To(Equal(expected.Data.Items))
+		})
+
 		It("should retrieve catalog sources model", func() {
 			By("fetching catalog sources models")
 			data := mocks.GetCatalogModelMocks()[0]
