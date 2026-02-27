@@ -35,6 +35,7 @@ const ThemeAwareFormGroupWrapper: React.FC<ThemeAwareFormGroupWrapperProps> = ({
     // Helper text is rendered *after* the FormGroup wrapper
     return (
       <>
+        {descriptionTextNode}
         <FormGroup
           className={`${className || ''} ${hasError ? 'pf-m-error' : ''}`.trim()} // Apply className and error state class
           label={label}
@@ -45,7 +46,6 @@ const ThemeAwareFormGroupWrapper: React.FC<ThemeAwareFormGroupWrapperProps> = ({
         >
           <FormFieldset component={children} field={label} />
         </FormGroup>
-        {descriptionTextNode}
         {helperTextNode}
       </>
     );
@@ -62,8 +62,8 @@ const ThemeAwareFormGroupWrapper: React.FC<ThemeAwareFormGroupWrapperProps> = ({
         labelHelp={labelHelp}
         data-testid={dataTestId}
       >
-        {children}
         {descriptionTextNode}
+        {children}
         {helperTextNode}
       </FormGroup>
     </>
