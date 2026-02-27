@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { Breadcrumb, BreadcrumbItem } from '@patternfly/react-core';
+import { Breadcrumb, BreadcrumbItem, PageSection } from '@patternfly/react-core';
 import { ApplicationsPage } from 'mod-arch-shared';
 import {
   CATALOG_SETTINGS_PAGE_TITLE,
@@ -11,6 +11,7 @@ import {
   catalogSettingsUrl,
 } from '~/app/routes/modelCatalogSettings/modelCatalogSettings';
 import ManageSourceForm from '~/app/pages/modelCatalogSettings/components/ManageSourceForm';
+import ExpectedYamlFormatDrawer from '~/app/pages/modelCatalogSettings/components/ExpectedYamlFormatDrawer';
 import { useCatalogSourceConfigBySourceId } from '~/app/hooks/modelCatalogSettings/useCatalogSourceConfigBySourceId';
 
 const ManageSourcePage: React.FC = () => {
@@ -22,6 +23,7 @@ const ManageSourcePage: React.FC = () => {
 
   const state = useCatalogSourceConfigBySourceId(catalogSourceId || '');
   const [existingSourceConfig, existingSourceConfigLoaded, existingSourceConfigLoadError] = state;
+  const [isExpectedFormatDrawerOpen, setIsExpectedFormatDrawerOpen] = React.useState(false);
 
   return (
     <ApplicationsPage
@@ -42,9 +44,34 @@ const ManageSourcePage: React.FC = () => {
       loaded={catalogSourceId ? existingSourceConfigLoaded : true}
       provideChildrenPadding
     >
-      <ManageSourceForm
-        existingSourceConfig={existingSourceConfig || undefined}
-        isEditMode={!isAddMode}
+      <PageSection
+        component="main"
+        isFilled
+        hasOverflowScroll={false}
+        padding={{ default: 'noPadding' }}
+        aria-label="Manage source content"
+        style={{ minHeight: 0, display: 'flex', flexDirection: 'column', position: 'relative' }}
+      >
+        <div
+          style={{
+            position: 'relative',
+            flex: 1,
+            minHeight: 0,
+            display: 'flex',
+            flexDirection: 'column',
+            width: '100%',
+          }}
+        >
+          <ManageSourceForm
+            existingSourceConfig={existingSourceConfig || undefined}
+            isEditMode={!isAddMode}
+            onOpenExpectedFormatDrawer={() => setIsExpectedFormatDrawerOpen((prev) => !prev)}
+          />
+        </div>
+      </PageSection>
+      <ExpectedYamlFormatDrawer
+        isOpen={isExpectedFormatDrawerOpen}
+        onClose={() => setIsExpectedFormatDrawerOpen(false)}
       />
     </ApplicationsPage>
   );
