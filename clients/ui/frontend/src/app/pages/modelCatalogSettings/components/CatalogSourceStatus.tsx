@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { Button, Label, Spinner, Stack, StackItem, Truncate } from '@patternfly/react-core';
-import { CheckCircleIcon, ExclamationCircleIcon, InProgressIcon } from '@patternfly/react-icons';
+import { InProgressIcon } from '@patternfly/react-icons';
 import { CatalogSourceConfig } from '~/app/modelCatalogTypes';
 import { ModelCatalogSettingsContext } from '~/app/context/modelCatalogSettings/ModelCatalogSettingsContext';
 import { CatalogSourceStatus as CatalogSourceStatusEnum } from '~/concepts/modelCatalogSettings/const';
@@ -53,11 +53,7 @@ const CatalogSourceStatus: React.FC<CatalogSourceStatusProps> = ({ catalogSource
   switch (matchingSource.status) {
     case CatalogSourceStatusEnum.AVAILABLE:
       return (
-        <Label
-          color="green"
-          icon={<CheckCircleIcon />}
-          data-testid={`source-status-connected-${catalogSourceConfig.id}`}
-        >
+        <Label status="success" data-testid={`source-status-connected-${catalogSourceConfig.id}`}>
           Connected
         </Label>
       );
@@ -69,11 +65,7 @@ const CatalogSourceStatus: React.FC<CatalogSourceStatusProps> = ({ catalogSource
         <>
           <Stack hasGutter>
             <StackItem>
-              <Label
-                color="red"
-                icon={<ExclamationCircleIcon />}
-                data-testid={`source-status-failed-${catalogSourceConfig.id}`}
-              >
+              <Label status="danger" data-testid={`source-status-failed-${catalogSourceConfig.id}`}>
                 Failed
               </Label>
             </StackItem>
