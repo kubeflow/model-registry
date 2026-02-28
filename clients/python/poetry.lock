@@ -3353,14 +3353,14 @@ crt = ["botocore[crt] (>=1.37.4,<2.0a.0)"]
 
 [[package]]
 name = "schemathesis"
-version = "4.10.0"
+version = "4.10.2"
 description = "Property-based testing framework for Open API and GraphQL based apps"
 optional = false
 python-versions = ">=3.10"
 groups = ["dev"]
 files = [
-    {file = "schemathesis-4.10.0-py3-none-any.whl", hash = "sha256:ee8cde97aa5954003b4b21c0e1c8142394cf503c1740ed0fcd54fe13cf160452"},
-    {file = "schemathesis-4.10.0.tar.gz", hash = "sha256:9eedca55fdd909cbdcb203caccc8c5016d76dc8bad9fb70e6c38f40d691415c4"},
+    {file = "schemathesis-4.10.2-py3-none-any.whl", hash = "sha256:47a1f32a81dd237dbeb1da4374e48dd4402813c4c75fa23091a4f0986a8616be"},
+    {file = "schemathesis-4.10.2.tar.gz", hash = "sha256:ad69508a9dd1a5b6fd6f4891abe86a9fc5f3f0d7a1133353359aadfd9522ac1f"},
 ]
 
 [package.dependencies]
@@ -4400,4 +4400,4 @@ signing = ["platformdirs", "rh-model-signing"]
 [metadata]
 lock-version = "2.1"
 python-versions = ">= 3.10, < 4.0"
-content-hash = "8bc4a445580848182cbe17d11a9c1978f523f9a23881134bd0a082ffc3f2cd35"
+content-hash = "392bbd9788f83e80b18fcc3c91bf8ac3dc719e4d2870cf6bda3c0416ef0f72f1"
