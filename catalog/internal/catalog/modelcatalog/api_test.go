@@ -9,6 +9,7 @@ import (
 	"testing"
 	"time"
 
+	mapset "github.com/deckarep/golang-set/v2"
 	"github.com/kubeflow/model-registry/catalog/internal/catalog/basecatalog"
 	dbmodels "github.com/kubeflow/model-registry/catalog/internal/db/models"
 	"github.com/kubeflow/model-registry/catalog/internal/db/service"
@@ -47,10 +48,9 @@ func TestLoadCatalogSources(t *testing.T) {
 				nil, // MCPServerRepository
 				nil, // MCPServerToolRepository
 			)
-			loader := NewLoader(services, []string{tt.args.catalogsPath})
-			ctx := context.Background()
-			// StartReadOnly parses config and populates Sources/Labels
-			err := loader.StartReadOnly(ctx)
+			loader := NewModelLoader(services, basecatalog.NewBaseLoader([]string{tt.args.catalogsPath}))
+			// Parse config and populate Sources/Labels
+			err := loader.ParseAllConfigs()
 			if (err != nil) != tt.wantErr {
 				t.Errorf("StartReadOnly() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -112,8 +112,8 @@ func TestLoadCatalogSourcesEnabledDisabled(t *testing.T) {
 				nil, // MCPServerRepository
 				nil, // MCPServerToolRepository
 			)
-			loader := NewLoader(services, []string{tt.args.catalogsPath})
-			err := loader.StartReadOnly(context.Background())
+			loader := NewModelLoader(services, basecatalog.NewBaseLoader([]string{tt.args.catalogsPath}))
+			err := loader.ParseAllConfigs()
 			if (err != nil) != tt.wantErr {
 				t.Errorf("StartReadOnly() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -151,7 +151,7 @@ func TestLabelsValidation(t *testing.T) {
 		{
 			name: "valid labels with name field",
 			config: &basecatalog.SourceConfig{
-				ModelCatalogs: []basecatalog.Source{},
+				ModelCatalogs: []basecatalog.ModelSource{},
 				Labels: []map[string]any{
 					{"name": "labelNameOne", "displayName": "Label Name One"},
 					{"name": "labelNameTwo", "displayName": "Label Name Two"},
@@ -162,7 +162,7 @@ func TestLabelsValidation(t *testing.T) {
 		{
 			name: "invalid label missing name field",
 			config: &basecatalog.SourceConfig{
-				ModelCatalogs: []basecatalog.Source{},
+				ModelCatalogs: []basecatalog.ModelSource{},
 				Labels: []map[string]any{
 					{"name": "labelNameOne", "displayName": "Label Name One"},
 					{"displayName": "Label Name Two"}, // Missing "name"
@@ -174,7 +174,7 @@ func TestLabelsValidation(t *testing.T) {
 		{
 			name: "invalid label with empty name",
 			config: &basecatalog.SourceConfig{
-				ModelCatalogs: []basecatalog.Source{},
+				ModelCatalogs: []basecatalog.ModelSource{},
 				Labels: []map[string]any{
 					{"name": "", "displayName": "Empty Name"},
 				},
@@ -185,7 +185,7 @@ func TestLabelsValidation(t *testing.T) {
 		{
 			name: "duplicate label names within same origin",
 			config: &basecatalog.SourceConfig{
-				ModelCatalogs: []basecatalog.Source{},
+				ModelCatalogs: []basecatalog.ModelSource{},
 				Labels: []map[string]any{
 					{"name": "labelNameOne", "displayName": "Label Name One 1"},
 					{"name": "labelNameTwo", "displayName": "Label Name Two"},
@@ -198,7 +198,7 @@ func TestLabelsValidation(t *testing.T) {
 		{
 			name: "nil labels should not error",
 			config: &basecatalog.SourceConfig{
-				ModelCatalogs: []basecatalog.Source{},
+				ModelCatalogs: []basecatalog.ModelSource{},
 				Labels:        nil,
 			},
 			wantErr: false,
@@ -206,7 +206,7 @@ func TestLabelsValidation(t *testing.T) {
 		{
 			name: "empty labels array should not error",
 			config: &basecatalog.SourceConfig{
-				ModelCatalogs: []basecatalog.Source{},
+				ModelCatalogs: []basecatalog.ModelSource{},
 				Labels:        []map[string]any{},
 			},
 			wantErr: false,
@@ -215,7 +215,7 @@ func TestLabelsValidation(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			loader := NewLoader(services, []string{})
+			loader := NewModelLoader(services, basecatalog.NewBaseLoader([]string{}))
 			err := loader.updateLabels("test-path", tt.config)
 
 			if tt.wantErr {
@@ -274,8 +274,8 @@ func TestCatalogSourceLabelsDefaultToEmptySlice(t *testing.T) {
 				nil, // MCPServerRepository
 				nil, // MCPServerToolRepository
 			)
-			loader := NewLoader(services, []string{tt.args.catalogsPath})
-			err := loader.StartReadOnly(context.Background())
+			loader := NewModelLoader(services, basecatalog.NewBaseLoader([]string{tt.args.catalogsPath}))
+			err := loader.ParseAllConfigs()
 			if err != nil {
 				t.Errorf("StartReadOnly() error = %v", err)
 				return
@@ -318,7 +318,7 @@ func TestLoadCatalogSourcesWithMockRepositories(t *testing.T) {
 
 	// Register a test provider that will create some test data
 	testProviderName := "test-provider"
-	RegisterModelProvider(testProviderName, func(ctx context.Context, source *basecatalog.Source, reldir string) (<-chan ModelProviderRecord, error) {
+	RegisterModelProvider(testProviderName, func(ctx context.Context, source *basecatalog.ModelSource, reldir string) (<-chan ModelProviderRecord, error) {
 		ch := make(chan ModelProviderRecord, 1)
 
 		// Create a test model
@@ -361,7 +361,7 @@ func TestLoadCatalogSourcesWithMockRepositories(t *testing.T) {
 
 	// Create test config content (use in-memory instead of file)
 	testConfig := &basecatalog.SourceConfig{
-		ModelCatalogs: []basecatalog.Source{
+		ModelCatalogs: []basecatalog.ModelSource{
 			{
 				CatalogSource: apimodels.CatalogSource{
 					Id:      "test-catalog",
@@ -377,7 +377,8 @@ func TestLoadCatalogSourcesWithMockRepositories(t *testing.T) {
 	}
 
 	// Create a loader and test the database update
-	l := NewLoader(services, []string{})
+	baseLoader := basecatalog.NewBaseLoader([]string{})
+	l := NewModelLoader(services, baseLoader)
 	ctx := context.Background()
 
 	// First call updateSources to populate the SourceCollection
@@ -386,20 +387,19 @@ func TestLoadCatalogSourcesWithMockRepositories(t *testing.T) {
 		t.Fatalf("updateSources() error = %v", err)
 	}
 
-	// Start in read-only mode
-	err = l.StartReadOnly(ctx)
+	// Parse configs
+	err = l.ParseAllConfigs()
 	if err != nil {
-		t.Fatalf("StartReadOnly() error = %v", err)
+		t.Fatalf("ParseAllConfigs() error = %v", err)
 	}
 
-	// Create cancellable context for leader mode
-	leaderCtx, cancelLeader := context.WithCancel(ctx)
-	defer cancelLeader()
+	// Set leader mode and perform leader operations
+	baseLoader.SetLeader(true)
 
-	// Start leader mode to perform database writes
+	// Perform leader operations to perform database writes
 	go func() {
-		if err := l.StartLeader(leaderCtx); err != nil {
-			t.Logf("StartLeader error: %v", err)
+		if err := l.PerformLeaderOperations(ctx, mapset.NewSet[string]()); err != nil {
+			t.Logf("PerformLeaderOperations error: %v", err)
 		}
 	}()
 
@@ -459,7 +459,7 @@ func TestLoadCatalogSourcesWithRepositoryErrors(t *testing.T) {
 
 	// Register a test provider
 	testProviderName := "test-error-provider"
-	RegisterModelProvider(testProviderName, func(ctx context.Context, source *basecatalog.Source, reldir string) (<-chan ModelProviderRecord, error) {
+	RegisterModelProvider(testProviderName, func(ctx context.Context, source *basecatalog.ModelSource, reldir string) (<-chan ModelProviderRecord, error) {
 		ch := make(chan ModelProviderRecord, 1)
 
 		modelName := "test-model"
@@ -479,7 +479,7 @@ func TestLoadCatalogSourcesWithRepositoryErrors(t *testing.T) {
 	})
 
 	testConfig := &basecatalog.SourceConfig{
-		ModelCatalogs: []basecatalog.Source{
+		ModelCatalogs: []basecatalog.ModelSource{
 			{
 				CatalogSource: apimodels.CatalogSource{
 					Id:      "test-catalog",
@@ -491,7 +491,7 @@ func TestLoadCatalogSourcesWithRepositoryErrors(t *testing.T) {
 		},
 	}
 
-	l := NewLoader(services, []string{})
+	l := NewModelLoader(services, basecatalog.NewBaseLoader([]string{}))
 	ctx := context.Background()
 
 	// First call updateSources to populate the SourceCollection
@@ -537,7 +537,7 @@ func TestLoadCatalogSourcesWithNilEnabled(t *testing.T) {
 
 	// Register a test provider
 	testProviderName := "test-nil-enabled-provider"
-	RegisterModelProvider(testProviderName, func(ctx context.Context, source *basecatalog.Source, reldir string) (<-chan ModelProviderRecord, error) {
+	RegisterModelProvider(testProviderName, func(ctx context.Context, source *basecatalog.ModelSource, reldir string) (<-chan ModelProviderRecord, error) {
 		ch := make(chan ModelProviderRecord, 1)
 
 		modelName := "test-model-nil-enabled"
@@ -557,7 +557,7 @@ func TestLoadCatalogSourcesWithNilEnabled(t *testing.T) {
 	})
 
 	testConfig := &basecatalog.SourceConfig{
-		ModelCatalogs: []basecatalog.Source{
+		ModelCatalogs: []basecatalog.ModelSource{
 			{
 				CatalogSource: apimodels.CatalogSource{
 					Id:      "test-catalog-nil-enabled",
@@ -569,7 +569,8 @@ func TestLoadCatalogSourcesWithNilEnabled(t *testing.T) {
 		},
 	}
 
-	l := NewLoader(services, []string{})
+	baseLoader := basecatalog.NewBaseLoader([]string{})
+	l := NewModelLoader(services, baseLoader)
 	ctx := context.Background()
 
 	// First call updateSources to populate the SourceCollection
@@ -578,20 +579,19 @@ func TestLoadCatalogSourcesWithNilEnabled(t *testing.T) {
 		t.Fatalf("updateSources() error = %v", err)
 	}
 
-	// Start in read-only mode
-	err = l.StartReadOnly(ctx)
+	// Parse configs
+	err = l.ParseAllConfigs()
 	if err != nil {
-		t.Fatalf("StartReadOnly() error = %v", err)
+		t.Fatalf("ParseAllConfigs() error = %v", err)
 	}
 
-	// Create cancellable context for leader mode
-	leaderCtx, cancelLeader := context.WithCancel(ctx)
-	defer cancelLeader()
+	// Set leader mode and perform leader operations
+	baseLoader.SetLeader(true)
 
-	// Start leader mode to perform database writes
+	// Perform leader operations to perform database writes
 	go func() {
-		if err := l.StartLeader(leaderCtx); err != nil {
-			t.Logf("StartLeader error: %v", err)
+		if err := l.PerformLeaderOperations(ctx, mapset.NewSet[string]()); err != nil {
+			t.Logf("PerformLeaderOperations error: %v", err)
 		}
 	}()
 

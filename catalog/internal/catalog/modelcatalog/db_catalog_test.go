@@ -1434,7 +1434,7 @@ func TestDBCatalog_GetPerformanceArtifactsWithService(t *testing.T) {
 	)
 
 	sources := NewSourceCollection()
-	err := sources.Merge("test-origin", map[string]basecatalog.Source{
+	err := sources.Merge("test-origin", map[string]basecatalog.ModelSource{
 		"test-source": {
 			CatalogSource: model.CatalogSource{
 				Id:   "test-source",
@@ -1524,7 +1524,7 @@ func TestGetFilterOptionsWithNamedQueries(t *testing.T) {
 		},
 	}
 
-	err := sources.MergeWithNamedQueries("test", map[string]basecatalog.Source{}, namedQueries)
+	err := sources.MergeWithNamedQueries("test", map[string]basecatalog.ModelSource{}, namedQueries)
 	require.NoError(t, err)
 
 	// Create catalog with mocked dependencies that provide filter options with ranges

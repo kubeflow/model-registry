@@ -13,7 +13,7 @@ import (
 func TestSourceCollection_ByLabel(t *testing.T) {
 	// Create test sources with various labels
 	// Note: source3 is disabled and should not appear in results
-	sources := map[string]basecatalog.Source{
+	sources := map[string]basecatalog.ModelSource{
 		"source1": {
 			CatalogSource: model.CatalogSource{
 				Id:      "source1",
@@ -182,7 +182,7 @@ func TestSourceCollection_ByLabel_NilLabels(t *testing.T) {
 	sc := NewSourceCollection()
 
 	// Add a source with nil labels (edge case)
-	sources := map[string]basecatalog.Source{
+	sources := map[string]basecatalog.ModelSource{
 		"source1": {
 			CatalogSource: model.CatalogSource{
 				Id:      "source1",
@@ -231,7 +231,7 @@ func TestSourceCollection_MergeOverride(t *testing.T) {
 		originOrder   []string
 		mergeSequence []struct {
 			origin  string
-			sources map[string]basecatalog.Source
+			sources map[string]basecatalog.ModelSource
 		}
 		expectedSources map[string]model.CatalogSource
 	}{
@@ -240,11 +240,11 @@ func TestSourceCollection_MergeOverride(t *testing.T) {
 			originOrder: []string{"default.yaml", "user.yaml"},
 			mergeSequence: []struct {
 				origin  string
-				sources map[string]basecatalog.Source
+				sources map[string]basecatalog.ModelSource
 			}{
 				{
 					origin: "default.yaml",
-					sources: map[string]basecatalog.Source{
+					sources: map[string]basecatalog.ModelSource{
 						"hf": {CatalogSource: model.CatalogSource{
 							Id:             "hf",
 							Name:           "Hugging Face",
@@ -256,7 +256,7 @@ func TestSourceCollection_MergeOverride(t *testing.T) {
 				},
 				{
 					origin: "user.yaml",
-					sources: map[string]basecatalog.Source{
+					sources: map[string]basecatalog.ModelSource{
 						"hf": {CatalogSource: model.CatalogSource{
 							Id:             "hf",
 							Name:           "Hugging Face Custom",
@@ -282,11 +282,11 @@ func TestSourceCollection_MergeOverride(t *testing.T) {
 			originOrder: []string{"default.yaml", "user.yaml"},
 			mergeSequence: []struct {
 				origin  string
-				sources map[string]basecatalog.Source
+				sources map[string]basecatalog.ModelSource
 			}{
 				{
 					origin: "default.yaml",
-					sources: map[string]basecatalog.Source{
+					sources: map[string]basecatalog.ModelSource{
 						"hf": {CatalogSource: model.CatalogSource{
 							Id:      "hf",
 							Name:    "Hugging Face",
@@ -297,7 +297,7 @@ func TestSourceCollection_MergeOverride(t *testing.T) {
 				},
 				{
 					origin:  "user.yaml",
-					sources: map[string]basecatalog.Source{},
+					sources: map[string]basecatalog.ModelSource{},
 				},
 			},
 			expectedSources: map[string]model.CatalogSource{
@@ -314,11 +314,11 @@ func TestSourceCollection_MergeOverride(t *testing.T) {
 			originOrder: []string{"default.yaml", "user.yaml"},
 			mergeSequence: []struct {
 				origin  string
-				sources map[string]basecatalog.Source
+				sources map[string]basecatalog.ModelSource
 			}{
 				{
 					origin: "default.yaml",
-					sources: map[string]basecatalog.Source{
+					sources: map[string]basecatalog.ModelSource{
 						"hf": {CatalogSource: model.CatalogSource{
 							Id:      "hf",
 							Name:    "Hugging Face",
@@ -335,7 +335,7 @@ func TestSourceCollection_MergeOverride(t *testing.T) {
 				},
 				{
 					origin: "user.yaml",
-					sources: map[string]basecatalog.Source{
+					sources: map[string]basecatalog.ModelSource{
 						"hf": {CatalogSource: model.CatalogSource{
 							Id:             "hf",
 							Name:           "Hugging Face",
@@ -367,11 +367,11 @@ func TestSourceCollection_MergeOverride(t *testing.T) {
 			originOrder: []string{"base.yaml", "team.yaml", "user.yaml"},
 			mergeSequence: []struct {
 				origin  string
-				sources map[string]basecatalog.Source
+				sources map[string]basecatalog.ModelSource
 			}{
 				{
 					origin: "base.yaml",
-					sources: map[string]basecatalog.Source{
+					sources: map[string]basecatalog.ModelSource{
 						"hf": {CatalogSource: model.CatalogSource{
 							Id:      "hf",
 							Name:    "Base HF",
@@ -382,7 +382,7 @@ func TestSourceCollection_MergeOverride(t *testing.T) {
 				},
 				{
 					origin: "team.yaml",
-					sources: map[string]basecatalog.Source{
+					sources: map[string]basecatalog.ModelSource{
 						"hf": {CatalogSource: model.CatalogSource{
 							Id:      "hf",
 							Name:    "Team HF",
@@ -393,7 +393,7 @@ func TestSourceCollection_MergeOverride(t *testing.T) {
 				},
 				{
 					origin: "user.yaml",
-					sources: map[string]basecatalog.Source{
+					sources: map[string]basecatalog.ModelSource{
 						"hf": {CatalogSource: model.CatalogSource{
 							Id:      "hf",
 							Name:    "User HF",
@@ -417,11 +417,11 @@ func TestSourceCollection_MergeOverride(t *testing.T) {
 			originOrder: []string{"default.yaml", "user.yaml"},
 			mergeSequence: []struct {
 				origin  string
-				sources map[string]basecatalog.Source
+				sources map[string]basecatalog.ModelSource
 			}{
 				{
 					origin: "default.yaml",
-					sources: map[string]basecatalog.Source{
+					sources: map[string]basecatalog.ModelSource{
 						"hf": {CatalogSource: model.CatalogSource{
 							Id:      "hf",
 							Name:    "Hugging Face",
@@ -432,7 +432,7 @@ func TestSourceCollection_MergeOverride(t *testing.T) {
 				},
 				{
 					origin: "user.yaml",
-					sources: map[string]basecatalog.Source{
+					sources: map[string]basecatalog.ModelSource{
 						"hf": {CatalogSource: model.CatalogSource{
 							Id:      "hf",
 							Name:    "Hugging Face",
@@ -457,11 +457,11 @@ func TestSourceCollection_MergeOverride(t *testing.T) {
 			originOrder: []string{"default.yaml", "user.yaml"},
 			mergeSequence: []struct {
 				origin  string
-				sources map[string]basecatalog.Source
+				sources map[string]basecatalog.ModelSource
 			}{
 				{
 					origin: "default.yaml",
-					sources: map[string]basecatalog.Source{
+					sources: map[string]basecatalog.ModelSource{
 						"models_x": {CatalogSource: model.CatalogSource{
 							Id:             "models_x",
 							Name:           "Models X Catalog",
@@ -474,7 +474,7 @@ func TestSourceCollection_MergeOverride(t *testing.T) {
 				},
 				{
 					origin: "user.yaml",
-					sources: map[string]basecatalog.Source{
+					sources: map[string]basecatalog.ModelSource{
 						// Sparse override: only id and enabled
 						"models_x": {CatalogSource: model.CatalogSource{
 							Id:      "models_x",
@@ -500,11 +500,11 @@ func TestSourceCollection_MergeOverride(t *testing.T) {
 			originOrder: []string{"default.yaml", "user.yaml"},
 			mergeSequence: []struct {
 				origin  string
-				sources map[string]basecatalog.Source
+				sources map[string]basecatalog.ModelSource
 			}{
 				{
 					origin: "default.yaml",
-					sources: map[string]basecatalog.Source{
+					sources: map[string]basecatalog.ModelSource{
 						"hf": {CatalogSource: model.CatalogSource{
 							Id:             "hf",
 							Name:           "Hugging Face",
@@ -516,7 +516,7 @@ func TestSourceCollection_MergeOverride(t *testing.T) {
 				},
 				{
 					origin: "user.yaml",
-					sources: map[string]basecatalog.Source{
+					sources: map[string]basecatalog.ModelSource{
 						"hf": {CatalogSource: model.CatalogSource{
 							Id: "hf",
 							// Only override ExcludedModels
@@ -540,11 +540,11 @@ func TestSourceCollection_MergeOverride(t *testing.T) {
 			originOrder: []string{"default.yaml", "user.yaml"},
 			mergeSequence: []struct {
 				origin  string
-				sources map[string]basecatalog.Source
+				sources map[string]basecatalog.ModelSource
 			}{
 				{
 					origin: "default.yaml",
-					sources: map[string]basecatalog.Source{
+					sources: map[string]basecatalog.ModelSource{
 						"hf": {CatalogSource: model.CatalogSource{
 							Id:      "hf",
 							Name:    "Hugging Face",
@@ -555,7 +555,7 @@ func TestSourceCollection_MergeOverride(t *testing.T) {
 				},
 				{
 					origin: "user.yaml",
-					sources: map[string]basecatalog.Source{
+					sources: map[string]basecatalog.ModelSource{
 						"hf": {CatalogSource: model.CatalogSource{
 							Id:     "hf",
 							Labels: []string{}, // Explicitly clear labels
@@ -577,11 +577,11 @@ func TestSourceCollection_MergeOverride(t *testing.T) {
 			originOrder: []string{"default.yaml"},
 			mergeSequence: []struct {
 				origin  string
-				sources map[string]basecatalog.Source
+				sources map[string]basecatalog.ModelSource
 			}{
 				{
 					origin: "default.yaml",
-					sources: map[string]basecatalog.Source{
+					sources: map[string]basecatalog.ModelSource{
 						"hf": {CatalogSource: model.CatalogSource{
 							Id:   "hf",
 							Name: "Hugging Face",
@@ -604,11 +604,11 @@ func TestSourceCollection_MergeOverride(t *testing.T) {
 			originOrder: []string{"default.yaml", "user.yaml"},
 			mergeSequence: []struct {
 				origin  string
-				sources map[string]basecatalog.Source
+				sources map[string]basecatalog.ModelSource
 			}{
 				{
 					origin: "default.yaml",
-					sources: map[string]basecatalog.Source{
+					sources: map[string]basecatalog.ModelSource{
 						"models_x": {
 							CatalogSource: model.CatalogSource{
 								Id:      "models_x",
@@ -625,7 +625,7 @@ func TestSourceCollection_MergeOverride(t *testing.T) {
 				},
 				{
 					origin: "user.yaml",
-					sources: map[string]basecatalog.Source{
+					sources: map[string]basecatalog.ModelSource{
 						// Sparse override: only id and enabled
 						"models_x": {
 							CatalogSource: model.CatalogSource{
@@ -695,7 +695,7 @@ func TestSourceCollection_MergeOverride_Get(t *testing.T) {
 	sc := NewSourceCollection("default.yaml", "user.yaml")
 
 	// Merge default config
-	err := sc.Merge("default.yaml", map[string]basecatalog.Source{
+	err := sc.Merge("default.yaml", map[string]basecatalog.ModelSource{
 		"hf": {CatalogSource: model.CatalogSource{
 			Id:      "hf",
 			Name:    "Hugging Face Default",
@@ -708,7 +708,7 @@ func TestSourceCollection_MergeOverride_Get(t *testing.T) {
 	}
 
 	// Merge user config that overrides
-	err = sc.Merge("user.yaml", map[string]basecatalog.Source{
+	err = sc.Merge("user.yaml", map[string]basecatalog.ModelSource{
 		"hf": {CatalogSource: model.CatalogSource{
 			Id:             "hf",
 			Name:           "Hugging Face User",
@@ -738,7 +738,7 @@ func TestSourceCollection_MergeOverride_DynamicOrigin(t *testing.T) {
 	// Test that origins not in the initial order are appended
 	sc := NewSourceCollection("default.yaml")
 
-	err := sc.Merge("default.yaml", map[string]basecatalog.Source{
+	err := sc.Merge("default.yaml", map[string]basecatalog.ModelSource{
 		"hf": {CatalogSource: model.CatalogSource{Id: "hf", Name: "Default", Enabled: apiutils.Of(true), Labels: []string{}}},
 	})
 	if err != nil {
@@ -746,7 +746,7 @@ func TestSourceCollection_MergeOverride_DynamicOrigin(t *testing.T) {
 	}
 
 	// Dynamic origin not in initial order
-	err = sc.Merge("extra.yaml", map[string]basecatalog.Source{
+	err = sc.Merge("extra.yaml", map[string]basecatalog.ModelSource{
 		"hf": {CatalogSource: model.CatalogSource{Id: "hf", Name: "Extra", Enabled: apiutils.Of(true), Labels: []string{}}},
 	})
 	if err != nil {
@@ -764,7 +764,7 @@ func TestSourceCollection_MergeOverride_TypeAndProperties(t *testing.T) {
 	sc := NewSourceCollection("default.yaml", "user.yaml")
 
 	// Merge default config with full source definition
-	err := sc.Merge("default.yaml", map[string]basecatalog.Source{
+	err := sc.Merge("default.yaml", map[string]basecatalog.ModelSource{
 		"models_x": {
 			CatalogSource: model.CatalogSource{
 				Id:      "models_x",
@@ -784,7 +784,7 @@ func TestSourceCollection_MergeOverride_TypeAndProperties(t *testing.T) {
 	}
 
 	// Merge sparse user config that only enables the source
-	err = sc.Merge("user.yaml", map[string]basecatalog.Source{
+	err = sc.Merge("user.yaml", map[string]basecatalog.ModelSource{
 		"models_x": {
 			CatalogSource: model.CatalogSource{
 				Id:      "models_x",
@@ -839,7 +839,7 @@ func TestSourceCollection_MergeOverride_Origin(t *testing.T) {
 		originOrder   []string
 		mergeSequence []struct {
 			origin  string
-			sources map[string]basecatalog.Source
+			sources map[string]basecatalog.ModelSource
 		}
 		expectedOrigins map[string]string // sourceId -> expected origin
 	}{
@@ -848,11 +848,11 @@ func TestSourceCollection_MergeOverride_Origin(t *testing.T) {
 			originOrder: []string{"/config/default.yaml", "/user-config/user.yaml"},
 			mergeSequence: []struct {
 				origin  string
-				sources map[string]basecatalog.Source
+				sources map[string]basecatalog.ModelSource
 			}{
 				{
 					origin: "/config/default.yaml",
-					sources: map[string]basecatalog.Source{
+					sources: map[string]basecatalog.ModelSource{
 						"hf": {
 							CatalogSource: model.CatalogSource{
 								Id:      "hf",
@@ -869,7 +869,7 @@ func TestSourceCollection_MergeOverride_Origin(t *testing.T) {
 				},
 				{
 					origin: "/user-config/user.yaml",
-					sources: map[string]basecatalog.Source{
+					sources: map[string]basecatalog.ModelSource{
 						// Sparse override: only enable and change name
 						"hf": {
 							CatalogSource: model.CatalogSource{
@@ -893,11 +893,11 @@ func TestSourceCollection_MergeOverride_Origin(t *testing.T) {
 			originOrder: []string{"/config/default.yaml", "/user-config/user.yaml"},
 			mergeSequence: []struct {
 				origin  string
-				sources map[string]basecatalog.Source
+				sources map[string]basecatalog.ModelSource
 			}{
 				{
 					origin: "/config/default.yaml",
-					sources: map[string]basecatalog.Source{
+					sources: map[string]basecatalog.ModelSource{
 						"local": {
 							CatalogSource: model.CatalogSource{
 								Id:      "local",
@@ -914,7 +914,7 @@ func TestSourceCollection_MergeOverride_Origin(t *testing.T) {
 				},
 				{
 					origin: "/user-config/user.yaml",
-					sources: map[string]basecatalog.Source{
+					sources: map[string]basecatalog.ModelSource{
 						"local": {
 							CatalogSource: model.CatalogSource{
 								Id:      "local",
@@ -939,11 +939,11 @@ func TestSourceCollection_MergeOverride_Origin(t *testing.T) {
 			originOrder: []string{"/admin/sources.yaml", "/user/sources.yaml"},
 			mergeSequence: []struct {
 				origin  string
-				sources map[string]basecatalog.Source
+				sources map[string]basecatalog.ModelSource
 			}{
 				{
 					origin: "/admin/sources.yaml",
-					sources: map[string]basecatalog.Source{
+					sources: map[string]basecatalog.ModelSource{
 						"admin-catalog": {
 							CatalogSource: model.CatalogSource{
 								Id:      "admin-catalog",
@@ -960,7 +960,7 @@ func TestSourceCollection_MergeOverride_Origin(t *testing.T) {
 				},
 				{
 					origin: "/user/sources.yaml",
-					sources: map[string]basecatalog.Source{
+					sources: map[string]basecatalog.ModelSource{
 						"user-catalog": {
 							CatalogSource: model.CatalogSource{
 								Id:      "user-catalog",
@@ -1014,7 +1014,7 @@ func TestSourceCollection_MergeOverride_Origin(t *testing.T) {
 func TestSourceCollection_ByLabel_NullBehavior(t *testing.T) {
 	// Create test sources with various label configurations to test "null" behavior
 	// Note: disabled sources are filtered out and not returned
-	sources := map[string]basecatalog.Source{
+	sources := map[string]basecatalog.ModelSource{
 		"source_with_labels": {
 			CatalogSource: model.CatalogSource{
 				Id:      "source_with_labels",
@@ -1141,7 +1141,7 @@ func TestSourceCollection_ByLabel_NullBehavior(t *testing.T) {
 func TestSourceCollection_NamedQueries(t *testing.T) {
 	sc := NewSourceCollection()
 
-	sources := map[string]basecatalog.Source{
+	sources := map[string]basecatalog.ModelSource{
 		"test1": {CatalogSource: model.CatalogSource{Id: "test1"}},
 	}
 	namedQueries := map[string]map[string]basecatalog.FieldFilter{

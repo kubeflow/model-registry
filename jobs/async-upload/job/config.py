@@ -1,4 +1,5 @@
 from __future__ import annotations
+import base64
 import json
 import logging
 import configargparse as cap
@@ -220,6 +221,9 @@ def _load_oci_credentials(
         // ...
     }
     ```
+
+    The auth field should be base64-encoded per Docker spec, but this function
+    also handles plain text for backwards compatibility.
     """
     logger.info(f"🔍 Loading OCI credentials from {path}")
     # Validate the path is a file
@@ -237,11 +241,36 @@ def _load_oci_credentials(
     # Load the credentials from the docker config, the URI passed in via config is used as a key to find the correct credentials
     registry = store.registry
     auth = docker_config["auths"][registry]["auth"]
-    # TODO: This might not be the correct way to parse this
-    username, password = auth.split(":") if auth else (None, None)
+
+    if auth:
+        # Try to decode as base64 first (Docker spec)
+        try:
+            decoded_auth = base64.b64decode(auth).decode("utf-8")
+            # Verify it looks like username:password format
+            if ":" in decoded_auth:
+                username, password = decoded_auth.split(":", 1)
+            else:
+                # If no colon after decode, fall back to plain text
+                raise ValueError("Decoded auth doesn't contain colon")
+        except Exception:
+            # If base64 decode fails or decoded value is invalid,
+            # try treating it as plain text (backwards compatibility)
+            if ":" in auth:
+                username, password = auth.split(":", 1)
+                logger.warning(
+                    "Detected plain text credentials in .dockerconfigjson auth field. "
+                    "This format is DEPRECATED. Please use base64-encoded 'username:password' "
+                    "per Docker specification."
+                )
+            else:
+                # Auth field exists but is malformed
+                username, password = None, None
+    else:
+        username, password = None, None
+
     store.username = username
     store.password = password
-    store.email = docker_config["auths"][registry]["email"]
+    store.email = docker_config["auths"][registry].get("email")
 
 
 def _load_uri_credentials(path: str | Path, store: URISourceConfig) -> None:

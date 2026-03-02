@@ -44,6 +44,74 @@ var _ = Describe("TestModelTransferJob", func() {
 			Expect(err).NotTo(HaveOccurred())
 			Expect(rs.StatusCode).To(Equal(http.StatusBadRequest))
 		})
+
+		It("GET single job returns 200 when job exists", func() {
+			envelope, rs, err := setupApiTest[ModelTransferJobEnvelope](
+				http.MethodGet,
+				"/api/v1/model_registry/model-registry/model_transfer_jobs/transfer-job-001?namespace=kubeflow",
+				nil,
+				kubernetesMockedStaticClientFactory,
+				requestIdentity,
+				"kubeflow",
+			)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(rs.StatusCode).To(Equal(http.StatusOK))
+			Expect(envelope.Data).NotTo(BeNil())
+			Expect(envelope.Data.Name).To(Equal("transfer-job-001"))
+			Expect(envelope.Data.RegisteredModelName).To(Equal("Model One"))
+		})
+
+		It("GET single job returns 404 for non-existent job", func() {
+			_, rs, err := setupApiTest[Envelope[any, any]](
+				http.MethodGet,
+				"/api/v1/model_registry/model-registry/model_transfer_jobs/does-not-exist?namespace=kubeflow",
+				nil,
+				kubernetesMockedStaticClientFactory,
+				requestIdentity,
+				"kubeflow",
+			)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(rs.StatusCode).To(Equal(http.StatusNotFound))
+		})
+
+		It("GET single job returns 400 when namespace is missing", func() {
+			_, rs, err := setupApiTest[Envelope[any, any]](
+				http.MethodGet,
+				"/api/v1/model_registry/model-registry/model_transfer_jobs/transfer-job-001",
+				nil,
+				kubernetesMockedStaticClientFactory,
+				requestIdentity,
+				"", // empty namespace
+			)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(rs.StatusCode).To(Equal(http.StatusBadRequest))
+		})
+
+		It("GET single job returns 404 when job exists but belongs to different registry", func() {
+			_, rs, err := setupApiTest[Envelope[any, any]](
+				http.MethodGet,
+				"/api/v1/model_registry/other-registry/model_transfer_jobs/transfer-job-001?namespace=kubeflow",
+				nil,
+				kubernetesMockedStaticClientFactory,
+				requestIdentity,
+				"kubeflow",
+			)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(rs.StatusCode).To(Equal(http.StatusNotFound))
+		})
+
+		It("GET single job returns 404 when namespace has no jobs", func() {
+			_, rs, err := setupApiTest[Envelope[any, any]](
+				http.MethodGet,
+				"/api/v1/model_registry/model-registry/model_transfer_jobs/transfer-job-001?namespace=no-namespace",
+				nil,
+				kubernetesMockedStaticClientFactory,
+				requestIdentity,
+				"no-namespace",
+			)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(rs.StatusCode).To(Equal(http.StatusNotFound))
+		})
 	})
 
 	Context("creating model transfer job", func() {

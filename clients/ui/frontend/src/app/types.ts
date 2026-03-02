@@ -322,6 +322,13 @@ export type ModelTransferJobDestination =
   | ModelTransferJobS3Destination
   | ModelTransferJobOCIDestination;
 
+export type ModelTransferJobEvent = {
+  timestamp: string;
+  type: string;
+  reason: string;
+  message: string;
+};
+
 export type ModelTransferJob = {
   id: string;
   name: string;
@@ -349,6 +356,7 @@ export type ModelTransferJob = {
   versionCustomProperties?: ModelRegistryCustomProperties;
   sourceSecretName?: string;
   destSecretName?: string;
+  events?: ModelTransferJobEvent[];
 };
 
 export type CreateModelTransferJobData = Omit<

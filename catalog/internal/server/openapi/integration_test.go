@@ -408,7 +408,7 @@ func TestPerformanceArtifactsEndToEnd(t *testing.T) {
 func setupTestServer(t *testing.T, provider catalog.APIProvider) (chi.Router, openapi.ModelCatalogServiceAPIServicer) {
 	// Create source collection
 	sources := catalog.NewSourceCollection()
-	sources.Merge("", map[string]catalog.Source{
+	sources.Merge("", map[string]catalog.ModelSource{
 		"test-source": {
 			CatalogSource: model.CatalogSource{Id: "test-source", Name: "Test Source"},
 		},

@@ -175,9 +175,9 @@ func runCatalogServer(cmd *cobra.Command, args []string) error {
 
 	// Set up HTTP server (runs continuously regardless of leadership)
 	svc := openapi.NewModelCatalogServiceAPIService(
-		catalog.NewDBCatalog(services, loader.Sources),
-		loader.Sources,
-		loader.Labels,
+		catalog.NewDBCatalog(services, loader.Sources()),
+		loader.Sources(),
+		loader.Labels(),
 		services.CatalogSourceRepository,
 	)
 	ctrl := openapi.NewModelCatalogServiceAPIController(svc)

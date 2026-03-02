@@ -1,4 +1,4 @@
-catalogs:
+model_catalogs:
   - name: "Organization AI Models"
     id: organization_ai_models
     type: yaml
@@ -21,3 +21,19 @@ catalogs:
     enabled: true
     properties:
       yamlCatalogPath: dev-community-models.yaml
+
+mcp_catalogs:
+  - name: "Organization MCP Servers"
+    id: organization_mcp_servers
+    type: yaml
+    enabled: true
+    properties:
+      yamlCatalogPath: dev-organization-mcp-servers.yaml
+    labels:
+      - Organization MCP
+  - name: "Community and Custom MCP Servers"
+    id: community_mcp_servers
+    type: yaml
+    enabled: true
+    properties:
+      yamlCatalogPath: dev-community-mcp-servers.yaml

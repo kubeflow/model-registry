@@ -14,7 +14,7 @@ import (
 // originEntry holds sources from a single origin (config file).
 type originEntry struct {
 	origin  string
-	sources map[string]basecatalog.Source
+	sources map[string]basecatalog.ModelSource
 }
 
 // SourceCollection manages catalog sources from multiple origins with priority-based merging.
@@ -48,14 +48,14 @@ func NewSourceCollection(originOrder ...string) *SourceCollection {
 // higher-priority origins (listed later in entries) override fields from
 // lower-priority origins. Fields that are not set (zero value for strings,
 // nil for pointers/slices/maps) in the override are inherited from the base.
-func (sc *SourceCollection) Merge(origin string, sources map[string]basecatalog.Source) error {
+func (sc *SourceCollection) Merge(origin string, sources map[string]basecatalog.ModelSource) error {
 	sc.mu.Lock()
 	defer sc.mu.Unlock()
 	return sc.mergeSourcesInternal(origin, sources)
 }
 
 // MergeWithNamedQueries adds sources and named queries from one origin.
-func (sc *SourceCollection) MergeWithNamedQueries(origin string, sources map[string]basecatalog.Source, namedQueries map[string]map[string]basecatalog.FieldFilter) error {
+func (sc *SourceCollection) MergeWithNamedQueries(origin string, sources map[string]basecatalog.ModelSource, namedQueries map[string]map[string]basecatalog.FieldFilter) error {
 	sc.mu.Lock()
 	defer sc.mu.Unlock()
 
@@ -69,16 +69,14 @@ func (sc *SourceCollection) MergeWithNamedQueries(origin string, sources map[str
 		if sc.namedQueries[queryName] == nil {
 			sc.namedQueries[queryName] = make(map[string]basecatalog.FieldFilter)
 		}
-		for fieldName, filter := range fieldFilters {
-			sc.namedQueries[queryName][fieldName] = filter
-		}
+		maps.Copy(sc.namedQueries[queryName], fieldFilters)
 	}
 
 	return nil
 }
 
 // mergeSourcesInternal extracts the internal logic from Merge
-func (sc *SourceCollection) mergeSourcesInternal(origin string, sources map[string]basecatalog.Source) error {
+func (sc *SourceCollection) mergeSourcesInternal(origin string, sources map[string]basecatalog.ModelSource) error {
 	// Find existing entry for this origin
 	for i := range sc.entries {
 		if sc.entries[i].origin == origin {
@@ -101,9 +99,7 @@ func (sc *SourceCollection) GetNamedQueries() map[string]map[string]basecatalog.
 	result := make(map[string]map[string]basecatalog.FieldFilter, len(sc.namedQueries))
 	for queryName, fieldFilters := range sc.namedQueries {
 		result[queryName] = make(map[string]basecatalog.FieldFilter, len(fieldFilters))
-		for fieldName, filter := range fieldFilters {
-			result[queryName][fieldName] = filter
-		}
+		maps.Copy(result[queryName], fieldFilters)
 	}
 	return result
 }
@@ -115,59 +111,37 @@ func (sc *SourceCollection) GetNamedQueries() map[string]map[string]basecatalog.
 // - For pointers: non-nil
 // - For slices: non-nil (empty slice is considered explicitly set to "no items")
 // - For maps: non-nil (empty map is considered explicitly set)
-func mergeSources(base, override basecatalog.Source) basecatalog.Source {
+func mergeSources(base, override basecatalog.ModelSource) basecatalog.ModelSource {
 	result := base
 
 	// Id is always taken from override (it's the key)
 	result.Id = override.Id
 
-	// Name: override if non-empty
-	if override.Name != "" {
-		result.Name = override.Name
-	}
+	// Merge shared fields using the common helper
+	common := basecatalog.MergeCommonSourceFields(
+		basecatalog.CommonSourceFields{Name: base.Name, Enabled: base.Enabled, Labels: base.Labels, Type: base.Type, Properties: base.Properties, Origin: base.Origin},
+		basecatalog.CommonSourceFields{Name: override.Name, Enabled: override.Enabled, Labels: override.Labels, Type: override.Type, Properties: override.Properties, Origin: override.Origin},
+	)
+	result.Name = common.Name
+	result.Enabled = common.Enabled
+	result.Labels = common.Labels
+	result.Type = common.Type
+	result.Properties = common.Properties
+	result.Origin = common.Origin
 
-	// Enabled: override if non-nil
-	if override.Enabled != nil {
-		result.Enabled = override.Enabled
-	}
-
-	// Labels: override if non-nil (empty slice means "explicitly no labels")
-	if override.Labels != nil {
-		result.Labels = override.Labels
-	}
-
-	// IncludedModels: override if non-nil
+	// Model-specific fields
 	if override.IncludedModels != nil {
 		result.IncludedModels = override.IncludedModels
 	}
-
-	// ExcludedModels: override if non-nil
 	if override.ExcludedModels != nil {
 		result.ExcludedModels = override.ExcludedModels
-	}
-
-	// Type: override if non-empty
-	if override.Type != "" {
-		result.Type = override.Type
-	}
-
-	// Properties: override if non-nil (complete replacement, not deep merge)
-	if override.Properties != nil {
-		result.Properties = override.Properties
-	}
-
-	// Origin: use override's origin if Properties are overridden (since relative
-	// paths in Properties should resolve relative to where they were defined).
-	// Otherwise, keep base origin (where Type and original Properties came from).
-	if override.Properties != nil && override.Origin != "" {
-		result.Origin = override.Origin
 	}
 
 	return result
 }
 
 // applyDefaults applies default values to an Source for fields that are not set.
-func applyDefaults(source basecatalog.Source) basecatalog.Source {
+func applyDefaults(source basecatalog.ModelSource) basecatalog.ModelSource {
 	// Default Enabled to true if not set
 	if source.Enabled == nil {
 		source.Enabled = apiutils.Of(true)
@@ -183,8 +157,8 @@ func applyDefaults(source basecatalog.Source) basecatalog.Source {
 
 // merged computes the merged view of all sources with field-level merging.
 // Must be called with lock held.
-func (sc *SourceCollection) merged() map[string]basecatalog.Source {
-	result := map[string]basecatalog.Source{}
+func (sc *SourceCollection) merged() map[string]basecatalog.ModelSource {
+	result := map[string]basecatalog.ModelSource{}
 
 	for _, entry := range sc.entries {
 		for id, source := range entry.sources {
@@ -208,14 +182,12 @@ func (sc *SourceCollection) merged() map[string]basecatalog.Source {
 // AllSources returns all merged sources including Type and Properties.
 // This is used by the loader to get complete source information.
 // All sources are returned regardless of enabled status.
-func (sc *SourceCollection) AllSources() map[string]basecatalog.Source {
+func (sc *SourceCollection) AllSources() map[string]basecatalog.ModelSource {
 	sc.mu.RLock()
 	defer sc.mu.RUnlock()
 
-	result := map[string]basecatalog.Source{}
-	for id, source := range sc.merged() {
-		result[id] = source
-	}
+	result := map[string]basecatalog.ModelSource{}
+	maps.Copy(result, sc.merged())
 	return result
 }
 

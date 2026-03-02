@@ -40,7 +40,7 @@ func TestModelFilterConflictsAndValidation(t *testing.T) {
 }
 
 func TestNewModelFilterFromSourceMergesLegacy(t *testing.T) {
-	source := &basecatalog.Source{
+	source := &basecatalog.ModelSource{
 		CatalogSource: apimodels.CatalogSource{
 			Id:             "test",
 			Name:           "Test source",

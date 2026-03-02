@@ -17,6 +17,7 @@ helm_resource(
     chart="oci://ghcr.io/kserve/charts/kserve-crd",
     flags=["--version=v0.14.1"],
     labels="kserve",
+    namespace="default",
 )
 
 # Deploy Model Registry Controller
