@@ -17,6 +17,12 @@ import {
   Spinner,
 } from '@patternfly/react-core';
 import {
+  useFetchState,
+  FetchStateCallbackPromise,
+  NotReadyError,
+  POLL_INTERVAL,
+} from 'mod-arch-core';
+import {
   ModelTransferJob,
   ModelTransferJobEvent,
   ModelTransferJobStatus,
@@ -38,29 +44,30 @@ const ModelTransferJobStatusModal: React.FC<ModelTransferJobStatusModalProps> = 
   onClose,
 }) => {
   const [activeTabKey, setActiveTabKey] = React.useState(0);
-  const [events, setEvents] = React.useState<ModelTransferJobEvent[]>([]);
-  const [isLoadingEvents, setIsLoadingEvents] = React.useState(false);
-  const [eventsError, setEventsError] = React.useState<string | null>(null);
   const statusInfo = getStatusLabel(job.status);
   const { api, apiAvailable } = useModelRegistryAPI();
 
-  React.useEffect(() => {
-    if (isOpen && apiAvailable) {
-      setIsLoadingEvents(true);
-      setEventsError(null);
-      api
-        .getModelTransferJobEvents({}, job.name)
-        .then((fetchedEvents: React.SetStateAction<ModelTransferJobEvent[]>) => {
-          setEvents(fetchedEvents);
-          setIsLoadingEvents(false);
-        })
-        .catch((error: { message: string }) => {
-          setEventsError(error.message || 'Failed to load events');
-          setIsLoadingEvents(false);
-        });
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isOpen, job.name]);
+  // Determine if we should poll for event updates (only for active jobs)
+  const shouldPollEvents =
+    isOpen &&
+    (job.status === ModelTransferJobStatus.PENDING ||
+      job.status === ModelTransferJobStatus.RUNNING);
+
+  // Fetch events with useFetchState - memoized by job name
+  const fetchEvents = React.useCallback<FetchStateCallbackPromise<ModelTransferJobEvent[]>>(
+    (opts) => {
+      if (!isOpen || !apiAvailable) {
+        return Promise.reject(new NotReadyError('Modal is closed or API not available'));
+      }
+      return api.getModelTransferJobEvents(opts, job.name);
+    },
+    [isOpen, apiAvailable, api, job.name],
+  );
+
+  const [events, eventsLoaded, eventsLoadError] = useFetchState(fetchEvents, [], {
+    initialPromisePurity: true,
+    refreshRate: shouldPollEvents ? POLL_INTERVAL : undefined,
+  });
 
   if (!isOpen) {
     return null;
@@ -109,13 +116,13 @@ const ModelTransferJobStatusModal: React.FC<ModelTransferJobStatusModalProps> = 
           <Tab eventKey={0} title={<TabTitleText>Event log</TabTitleText>}>
             <TabContent id="event-log-tab" activeKey={activeTabKey} eventKey={0}>
               <TabContentBody hasPadding>
-                {isLoadingEvents ? (
+                {!eventsLoaded ? (
                   <Flex justifyContent={{ default: 'justifyContentCenter' }}>
                     <Spinner size="lg" />
                   </Flex>
-                ) : eventsError ? (
+                ) : eventsLoadError ? (
                   <Alert variant="danger" isInline title="Failed to load events">
-                    {eventsError}
+                    {eventsLoadError.message}
                   </Alert>
                 ) : (
                   <EventLog events={events} data-testid="transfer-job-event-log" />
