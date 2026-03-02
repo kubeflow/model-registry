@@ -91,3 +91,26 @@ def validate_search_results_against_test_data(
 
     is_valid = len(errors) == 0
     return is_valid, errors
+
+
+def get_expected_models_for_filter_query(
+    catalog_data: dict, name_pattern: str, task: str, sizes: tuple[str, ...]
+) -> set[str]:
+    """Get model names from catalog data matching name ILIKE, task, and size IN criteria.
+
+    Args:
+        catalog_data: Dictionary containing catalog YAML data with 'models' key.
+        name_pattern: Substring to match in model name (case-insensitive).
+        task: Task value that must be present in the model's tasks list.
+        sizes: Tuple of allowed size values for the IN operator.
+
+    Returns:
+        Set of model names matching all criteria.
+    """
+    return {
+        model["name"]
+        for model in catalog_data.get("models", [])
+        if name_pattern.lower() in model["name"].lower()
+        and task in model["tasks"]
+        and model.get("customProperties", {}).get("size", {}).get("string_value") in sizes
+    }
