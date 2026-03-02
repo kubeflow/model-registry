@@ -192,4 +192,33 @@ describe('RetryJobModal', () => {
 
     expect(screen.getByTestId('retry-job-editResourceLink')).toBeInTheDocument();
   });
+
+  it('should disable retry when resource name exceeds 63 characters', () => {
+    render(<RetryJobModal job={mockJob} onClose={mockOnClose} onRetry={mockOnRetry} />);
+
+    // Show the resource name field
+    fireEvent.click(screen.getByTestId('retry-job-editResourceLink'));
+
+    // Enter a name longer than 63 characters (DNS-1123 label limit for pod labels)
+    const longName = 'a'.repeat(64);
+    const resourceNameInput = screen.getByTestId('retry-job-resourceName');
+    fireEvent.change(resourceNameInput, { target: { value: longName } });
+
+    expect(screen.getByTestId('retry-job-submit-button')).toBeDisabled();
+    expect(screen.getByText('Cannot exceed 63 characters')).toBeInTheDocument();
+  });
+
+  it('should allow resource names up to 63 characters', () => {
+    render(<RetryJobModal job={mockJob} onClose={mockOnClose} onRetry={mockOnRetry} />);
+
+    // Show the resource name field
+    fireEvent.click(screen.getByTestId('retry-job-editResourceLink'));
+
+    // Enter a name exactly 63 characters long
+    const maxName = 'a'.repeat(63);
+    const resourceNameInput = screen.getByTestId('retry-job-resourceName');
+    fireEvent.change(resourceNameInput, { target: { value: maxName } });
+
+    expect(screen.getByTestId('retry-job-submit-button')).not.toBeDisabled();
+  });
 });

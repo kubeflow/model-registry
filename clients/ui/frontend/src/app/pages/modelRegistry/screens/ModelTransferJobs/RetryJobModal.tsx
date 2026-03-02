@@ -39,6 +39,7 @@ const RetryJobModal: React.FC<RetryJobModalProps> = ({ job, onClose, onRetry }) 
   const { data: fieldData, onDataChange } = useK8sNameDescriptionFieldData({
     initialData: { name: generatedName },
     editableK8sName: true,
+    maxK8sNameLength: 63,
   });
   const [deleteOldJob, setDeleteOldJob] = React.useState(true);
   const [isRetrying, setIsRetrying] = React.useState(false);
