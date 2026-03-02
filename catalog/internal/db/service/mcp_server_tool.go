@@ -26,18 +26,19 @@ type MCPServerToolRepositoryImpl struct {
 // NewMCPServerToolRepository creates a new MCPServerToolRepository.
 func NewMCPServerToolRepository(db *gorm.DB, typeID int32) models.MCPServerToolRepository {
 	config := service.GenericRepositoryConfig[models.MCPServerTool, schema.Execution, schema.ExecutionProperty, *models.MCPServerToolListOptions]{
-		DB:                  db,
-		TypeID:              typeID,
-		EntityToSchema:      mapMCPServerToolToExecution,
-		SchemaToEntity:      mapDataLayerToMCPServerTool,
-		EntityToProperties:  mapMCPServerToolToExecutionProperties,
-		NotFoundError:       ErrMCPServerToolNotFound,
-		EntityName:          "MCP server tool",
-		PropertyFieldName:   "execution_id",
-		ApplyListFilters:    applyMCPServerToolListFilters,
-		IsNewEntity:         func(entity models.MCPServerTool) bool { return entity.GetID() == nil },
-		HasCustomProperties: func(entity models.MCPServerTool) bool { return entity.GetCustomProperties() != nil },
-		EntityMappingFuncs:  filter.NewCatalogEntityMappings(),
+		DB:                      db,
+		TypeID:                  typeID,
+		EntityToSchema:          mapMCPServerToolToExecution,
+		SchemaToEntity:          mapDataLayerToMCPServerTool,
+		EntityToProperties:      mapMCPServerToolToExecutionProperties,
+		NotFoundError:           ErrMCPServerToolNotFound,
+		EntityName:              "MCP server tool",
+		PropertyFieldName:       "execution_id",
+		ApplyListFilters:        applyMCPServerToolListFilters,
+		IsNewEntity:             func(entity models.MCPServerTool) bool { return entity.GetID() == nil },
+		HasCustomProperties:     func(entity models.MCPServerTool) bool { return entity.GetCustomProperties() != nil },
+		EntityMappingFuncs:      filter.NewCatalogEntityMappings(),
+		PreserveHistoricalTimes: true,
 	}
 
 	return &MCPServerToolRepositoryImpl{

@@ -3,17 +3,8 @@ package filter
 import (
 	"strings"
 
+	catalogmodels "github.com/kubeflow/model-registry/catalog/internal/db/models"
 	"github.com/kubeflow/model-registry/internal/db/filter"
-)
-
-// CatalogRestEntityType represents catalog-specific REST API entity types
-type CatalogRestEntityType string
-
-const (
-	RestEntityCatalogModel    CatalogRestEntityType = "CatalogModel"
-	RestEntityCatalogArtifact CatalogRestEntityType = "CatalogArtifact"
-	RestEntityMCPServer       CatalogRestEntityType = "MCPServer"
-	RestEntityMCPServerTool   CatalogRestEntityType = "MCPServerTool"
 )
 
 // catalogEntityMappings implements EntityMappingFunctions for the catalog package
@@ -27,9 +18,9 @@ func NewCatalogEntityMappings() filter.EntityMappingFunctions {
 // GetMLMDEntityType maps catalog REST entity types to their underlying MLMD entity type
 func (c *catalogEntityMappings) GetMLMDEntityType(restEntityType filter.RestEntityType) filter.EntityType {
 	switch restEntityType {
-	case filter.RestEntityType(RestEntityCatalogArtifact):
+	case filter.RestEntityType(catalogmodels.RestEntityCatalogArtifact):
 		return filter.EntityTypeArtifact
-	case filter.RestEntityType(RestEntityMCPServerTool):
+	case filter.RestEntityType(catalogmodels.RestEntityMCPServerTool):
 		return filter.EntityTypeExecution
 	default:
 		return filter.EntityTypeContext
@@ -39,7 +30,7 @@ func (c *catalogEntityMappings) GetMLMDEntityType(restEntityType filter.RestEnti
 // GetPropertyDefinitionForRestEntity returns property definition for a catalog REST entity type
 func (c *catalogEntityMappings) GetPropertyDefinitionForRestEntity(restEntityType filter.RestEntityType, propertyName string) filter.PropertyDefinition {
 	// Check if this is a well-known property for catalog entities
-	if restEntityType == filter.RestEntityType(RestEntityCatalogModel) {
+	if restEntityType == filter.RestEntityType(catalogmodels.RestEntityCatalogModel) {
 		if _, isWellKnown := catalogModelProperties[propertyName]; isWellKnown {
 			// Use the well-known property definition
 			return catalogModelProperties[propertyName]
@@ -61,21 +52,21 @@ func (c *catalogEntityMappings) GetPropertyDefinitionForRestEntity(restEntityTyp
 		}
 	}
 
-	if restEntityType == filter.RestEntityType(RestEntityCatalogArtifact) {
+	if restEntityType == filter.RestEntityType(catalogmodels.RestEntityCatalogArtifact) {
 		if _, isWellKnown := catalogArtifactProperties[propertyName]; isWellKnown {
 			// Use the well-known property definition
 			return catalogArtifactProperties[propertyName]
 		}
 	}
 
-	if restEntityType == filter.RestEntityType(RestEntityMCPServer) {
+	if restEntityType == filter.RestEntityType(catalogmodels.RestEntityMCPServer) {
 		if _, isWellKnown := mcpServerProperties[propertyName]; isWellKnown {
 			// Use the well-known property definition
 			return mcpServerProperties[propertyName]
 		}
 	}
 
-	if restEntityType == filter.RestEntityType(RestEntityMCPServerTool) {
+	if restEntityType == filter.RestEntityType(catalogmodels.RestEntityMCPServerTool) {
 		if _, isWellKnown := mcpServerToolProperties[propertyName]; isWellKnown {
 			// Use the well-known property definition
 			return mcpServerToolProperties[propertyName]

@@ -3,13 +3,12 @@ package openapi
 import (
 	"context"
 	"errors"
-	"fmt"
 	"net/http"
 	"strconv"
-	"strings"
 
 	"github.com/kubeflow/model-registry/catalog/internal/catalog"
 	model "github.com/kubeflow/model-registry/catalog/pkg/openapi"
+	"github.com/kubeflow/model-registry/pkg/api"
 )
 
 // MCPCatalogServiceAPIService is a service that implements the logic for the MCPCatalogServiceAPIServicer
@@ -28,7 +27,6 @@ func NewMCPCatalogServiceAPIService(mcpProvider catalog.MCPProvider) MCPCatalogS
 
 // FindMCPServers - List MCP servers.
 func (m *MCPCatalogServiceAPIService) FindMCPServers(ctx context.Context, name string, q string, sourceLabel []string, filterQuery string, namedQuery string, includeTools bool, toolLimit int32, pageSize string, orderBy model.OrderByField, sortOrder model.SortOrder, nextPageToken string) (ImplResponse, error) {
-	var err error
 	pageSizeInt := int32(10)
 
 	if pageSize != "" {
@@ -55,7 +53,7 @@ func (m *MCPCatalogServiceAPIService) FindMCPServers(ctx context.Context, name s
 
 	servers, err := m.mcpProvider.ListMCPServers(ctx, params)
 	if err != nil {
-		return ErrorResponse(http.StatusInternalServerError, err), err
+		return ErrorResponse(api.ErrToStatus(err), err), err
 	}
 
 	return Response(http.StatusOK, servers), nil
@@ -70,13 +68,7 @@ func (m *MCPCatalogServiceAPIService) FindMCPServersFilterOptions(ctx context.Co
 func (m *MCPCatalogServiceAPIService) GetMCPServer(ctx context.Context, serverID string, includeTools bool) (ImplResponse, error) {
 	server, err := m.mcpProvider.GetMCPServer(ctx, serverID, includeTools)
 	if err != nil {
-		statusCode := http.StatusInternalServerError
-		if strings.Contains(fmt.Sprintf("%v", err), "not found") {
-			statusCode = http.StatusNotFound
-		} else if strings.Contains(fmt.Sprintf("%v", err), "invalid") {
-			statusCode = http.StatusBadRequest
-		}
-		return ErrorResponse(statusCode, err), err
+		return ErrorResponse(api.ErrToStatus(err), err), err
 	}
 
 	if server == nil {
@@ -88,7 +80,6 @@ func (m *MCPCatalogServiceAPIService) GetMCPServer(ctx context.Context, serverID
 
 // FindMCPServerTools - List MCP server tools.
 func (m *MCPCatalogServiceAPIService) FindMCPServerTools(ctx context.Context, serverID string, filterQuery string, pageSize string, orderBy model.OrderByField, sortOrder model.SortOrder, nextPageToken string) (ImplResponse, error) {
-	var err error
 	pageSizeInt := int32(10)
 
 	if pageSize != "" {
@@ -110,13 +101,7 @@ func (m *MCPCatalogServiceAPIService) FindMCPServerTools(ctx context.Context, se
 
 	tools, err := m.mcpProvider.ListMCPServerTools(ctx, serverID, params)
 	if err != nil {
-		statusCode := http.StatusInternalServerError
-		if strings.Contains(fmt.Sprintf("%v", err), "not found") {
-			statusCode = http.StatusNotFound
-		} else if strings.Contains(fmt.Sprintf("%v", err), "invalid") {
-			statusCode = http.StatusBadRequest
-		}
-		return ErrorResponse(statusCode, err), err
+		return ErrorResponse(api.ErrToStatus(err), err), err
 	}
 
 	return Response(http.StatusOK, tools), nil
@@ -126,13 +111,7 @@ func (m *MCPCatalogServiceAPIService) FindMCPServerTools(ctx context.Context, se
 func (m *MCPCatalogServiceAPIService) GetMCPServerTool(ctx context.Context, serverID string, toolName string) (ImplResponse, error) {
 	tool, err := m.mcpProvider.GetMCPServerTool(ctx, serverID, toolName)
 	if err != nil {
-		statusCode := http.StatusInternalServerError
-		if strings.Contains(fmt.Sprintf("%v", err), "not found") {
-			statusCode = http.StatusNotFound
-		} else if strings.Contains(fmt.Sprintf("%v", err), "invalid") {
-			statusCode = http.StatusBadRequest
-		}
-		return ErrorResponse(statusCode, err), err
+		return ErrorResponse(api.ErrToStatus(err), err), err
 	}
 
 	if tool == nil {
