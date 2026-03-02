@@ -37,12 +37,18 @@ type RetryJobModalProps = {
 const RetryJobModal: React.FC<RetryJobModalProps> = ({ job, onClose, onRetry }) => {
   const generatedName = generateRetryJobName(job.name);
   const { data: fieldData, onDataChange } = useK8sNameDescriptionFieldData({
-    initialData: { name: generatedName, k8sName: generatedName },
+    initialData: { name: generatedName },
     editableK8sName: true,
   });
   const [deleteOldJob, setDeleteOldJob] = React.useState(true);
   const [isRetrying, setIsRetrying] = React.useState(false);
   const [error, setError] = React.useState<Error | undefined>();
+
+  // Trigger initial k8sName generation from name on mount
+  React.useEffect(() => {
+    onDataChange('name', generatedName);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const { k8sName } = fieldData;
   const isNameValid =
