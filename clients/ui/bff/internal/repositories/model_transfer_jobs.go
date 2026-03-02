@@ -81,10 +81,10 @@ func (m *ModelRegistryRepository) GetAllModelTransferJobs(ctx context.Context, c
 				} `json:"ModelArtifact"`
 			}
 
-		podErrorsByJob := make(map[string]string)
-		podTerminationByJob := make(map[string]*terminationResult)
-		for _, pod := range podList.Items {
-			jobName := pod.Labels["job-name"]
+			podErrorsByJob := make(map[string]string)
+			podTerminationByJob := make(map[string]*terminationResult)
+			for _, pod := range podList.Items {
+				jobName := pod.Labels["job-name"]
 
 				for _, cs := range pod.Status.ContainerStatuses {
 					if cs.State.Waiting != nil {
@@ -119,28 +119,28 @@ func (m *ModelRegistryRepository) GetAllModelTransferJobs(ctx context.Context, c
 				}
 			}
 
-		for i := range transferJobs {
-			if errMsg, ok := podErrorsByJob[transferJobs[i].Name]; ok {
-				if transferJobs[i].Status == models.ModelTransferJobStatusRunning ||
-					transferJobs[i].Status == models.ModelTransferJobStatusPending {
-					transferJobs[i].Status = models.ModelTransferJobStatusFailed
-					if transferJobs[i].ErrorMessage == "" {
-						transferJobs[i].ErrorMessage = errMsg
+			for i := range transferJobs {
+				if errMsg, ok := podErrorsByJob[transferJobs[i].Name]; ok {
+					if transferJobs[i].Status == models.ModelTransferJobStatusRunning ||
+						transferJobs[i].Status == models.ModelTransferJobStatusPending {
+						transferJobs[i].Status = models.ModelTransferJobStatusFailed
+						if transferJobs[i].ErrorMessage == "" {
+							transferJobs[i].ErrorMessage = errMsg
+						}
+					}
+				}
+				if result, ok := podTerminationByJob[transferJobs[i].Name]; ok {
+					if result.RegisteredModel != nil && result.RegisteredModel.ID != "" {
+						transferJobs[i].RegisteredModelId = result.RegisteredModel.ID
+					}
+					if result.ModelVersion != nil && result.ModelVersion.ID != "" {
+						transferJobs[i].ModelVersionId = result.ModelVersion.ID
+					}
+					if result.ModelArtifact != nil && result.ModelArtifact.ID != "" {
+						transferJobs[i].ModelArtifactId = result.ModelArtifact.ID
 					}
 				}
 			}
-			if result, ok := podTerminationByJob[transferJobs[i].Name]; ok {
-				if result.RegisteredModel != nil && result.RegisteredModel.ID != "" {
-					transferJobs[i].RegisteredModelId = result.RegisteredModel.ID
-				}
-				if result.ModelVersion != nil && result.ModelVersion.ID != "" {
-					transferJobs[i].ModelVersionId = result.ModelVersion.ID
-				}
-				if result.ModelArtifact != nil && result.ModelArtifact.ID != "" {
-					transferJobs[i].ModelArtifactId = result.ModelArtifact.ID
-				}
-			}
-		}
 		}
 	}
 
