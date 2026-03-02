@@ -8,6 +8,7 @@ import (
 	"github.com/golang/glog"
 	catalogfilter "github.com/kubeflow/model-registry/catalog/internal/db/filter"
 	"github.com/kubeflow/model-registry/catalog/internal/db/models"
+	catpagination "github.com/kubeflow/model-registry/catalog/internal/db/pagination"
 	"github.com/kubeflow/model-registry/internal/datastore"
 	"github.com/kubeflow/model-registry/internal/db/dbutil"
 	dbmodels "github.com/kubeflow/model-registry/internal/db/models"
@@ -163,8 +164,8 @@ func (r *CatalogArtifactRepositoryImpl) List(listOptions models.CatalogArtifactL
 	// Handle NAME ordering specially (catalog-specific) to avoid string-to-integer cast issues
 	if orderBy == "NAME" {
 		artifactTable := utils.GetTableName(query, &schema.Artifact{})
-		query = ApplyNameOrdering(query, artifactTable, sortOrder, nextPageToken, pageSize)
-	} else if _, isAllowedColumn := CatalogOrderByColumns[orderBy]; isAllowedColumn {
+		query = catpagination.ApplyNameOrdering(query, artifactTable, sortOrder, nextPageToken, pageSize)
+	} else if _, isAllowedColumn := catpagination.CatalogOrderByColumns[orderBy]; isAllowedColumn {
 		// Handle standard allowed columns (ID, CREATE_TIME, LAST_UPDATE_TIME)
 		pagination := &dbmodels.Pagination{
 			PageSize:      &pageSize,
@@ -174,7 +175,7 @@ func (r *CatalogArtifactRepositoryImpl) List(listOptions models.CatalogArtifactL
 		}
 
 		// Use catalog-specific allowed columns
-		query = query.Scopes(scopes.PaginateWithOptions(artifactsArt, pagination, r.db, "Artifact", CatalogOrderByColumns))
+		query = query.Scopes(scopes.PaginateWithOptions(artifactsArt, pagination, r.db, "Artifact", catpagination.CatalogOrderByColumns))
 	} else {
 		// Assume it's a custom property ordering (e.g., accuracy.double_value, timestamp.string_value)
 		query, err = r.applyCustomOrdering(query, &listOptions)
@@ -278,7 +279,7 @@ func (r *CatalogArtifactRepositoryImpl) createPaginationToken(artifact schema.Ar
 
 	// Handle NAME ordering (catalog-specific)
 	if orderBy == "NAME" {
-		return CreateNamePaginationToken(artifact.ID, artifact.Name)
+		return catpagination.CreateNamePaginationToken(artifact.ID, artifact.Name)
 	}
 
 	// Handle custom property ordering
@@ -382,7 +383,7 @@ func (r *CatalogArtifactRepositoryImpl) applyCustomOrdering(query *gorm.DB, list
 
 	// Handle NAME ordering specially (catalog-specific)
 	if orderBy == "NAME" {
-		return ApplyNameOrdering(query, artifactTable, listOptions.GetSortOrder(), listOptions.GetNextPageToken(), listOptions.GetPageSize()), nil
+		return catpagination.ApplyNameOrdering(query, artifactTable, listOptions.GetSortOrder(), listOptions.GetNextPageToken(), listOptions.GetPageSize()), nil
 	}
 
 	subquery, sortColumn, err := r.sortValueQuery(listOptions, artifactTable+".id")
@@ -392,7 +393,7 @@ func (r *CatalogArtifactRepositoryImpl) applyCustomOrdering(query *gorm.DB, list
 	}
 	if subquery == nil {
 		// Fall back to standard pagination with catalog-specific allowed columns
-		// If the orderBy is not in CatalogOrderByColumns, PaginateWithOptions will default to ID ordering
+		// If the orderBy is not in catpagination.CatalogOrderByColumns, PaginateWithOptions will default to ID ordering
 		// This handles invalid custom property formats (e.g., "accuracy" without ".double_value")
 		pageSize := listOptions.GetPageSize()
 		sortOrder := listOptions.GetSortOrder()
@@ -403,7 +404,7 @@ func (r *CatalogArtifactRepositoryImpl) applyCustomOrdering(query *gorm.DB, list
 			SortOrder:     &sortOrder,
 			NextPageToken: &nextPageToken,
 		}
-		return query.Scopes(scopes.PaginateWithOptions([]schema.Artifact{}, pagination, r.db, "Artifact", CatalogOrderByColumns)), nil
+		return query.Scopes(scopes.PaginateWithOptions([]schema.Artifact{}, pagination, r.db, "Artifact", catpagination.CatalogOrderByColumns)), nil
 	}
 	subquery = subquery.Group(artifactTable + ".id")
 

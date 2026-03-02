@@ -8,6 +8,7 @@ import (
 	"github.com/golang/glog"
 	"github.com/kubeflow/model-registry/catalog/internal/catalog/modelcatalog/models"
 	"github.com/kubeflow/model-registry/catalog/internal/db/filter"
+	catpagination "github.com/kubeflow/model-registry/catalog/internal/db/pagination"
 	"github.com/kubeflow/model-registry/internal/db/dbutil"
 	dbfilter "github.com/kubeflow/model-registry/internal/db/filter"
 	dbmodels "github.com/kubeflow/model-registry/internal/db/models"
@@ -86,7 +87,7 @@ func (r *CatalogModelRepositoryImpl) ApplyStandardPagination(query *gorm.DB, lis
 	}
 
 	// Use catalog-specific allowed columns (includes NAME)
-	return query.Scopes(scopes.PaginateWithOptions(entities, pagination, r.GetConfig().DB, "Context", CatalogOrderByColumns))
+	return query.Scopes(scopes.PaginateWithOptions(entities, pagination, r.GetConfig().DB, "Context", catpagination.CatalogOrderByColumns))
 }
 
 func (r *CatalogModelRepositoryImpl) List(listOptions models.CatalogModelListOptions) (*dbmodels.ListWrapper[models.CatalogModel], error) {
@@ -394,7 +395,7 @@ func (r *CatalogModelRepositoryImpl) applyCustomOrdering(query *gorm.DB, listOpt
 
 	// Handle NAME ordering specially (catalog-specific)
 	if orderBy == "NAME" {
-		return ApplyNameOrdering(query, contextTable, listOptions.GetSortOrder(), listOptions.GetNextPageToken(), listOptions.GetPageSize())
+		return catpagination.ApplyNameOrdering(query, contextTable, listOptions.GetSortOrder(), listOptions.GetNextPageToken(), listOptions.GetPageSize())
 	}
 
 	subquery, sortColumn := r.sortValueQuery(listOptions, contextTable+".id")
@@ -458,7 +459,7 @@ func (r *CatalogModelRepositoryImpl) applyCursorPagination(query *gorm.DB, curso
 func (r *CatalogModelRepositoryImpl) createPaginationToken(lastItem schema.Context, listOptions *models.CatalogModelListOptions) string {
 	// Handle NAME ordering (catalog-specific)
 	if listOptions.GetOrderBy() == "NAME" {
-		return CreateNamePaginationToken(lastItem.ID, &lastItem.Name)
+		return catpagination.CreateNamePaginationToken(lastItem.ID, &lastItem.Name)
 	}
 
 	sortValueQuery, column := r.sortValueQuery(listOptions)

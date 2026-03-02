@@ -390,7 +390,7 @@ func TestCatalogArtifactRepository(t *testing.T) {
 		// Try to retrieve using incomplete repo - should get mapping error
 		_, err = incompleteRepo.GetByID(*savedMetricsArtifact.GetID())
 		require.Error(t, err)
-		assert.Contains(t, err.Error(), "invalid catalog artifact type")
+		assert.Contains(t, err.Error(), "no mapper registered for artifact type")
 	})
 
 	t.Run("TestNameOrdering", func(t *testing.T) {
