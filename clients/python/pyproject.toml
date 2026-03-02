@@ -21,8 +21,8 @@ pydantic = "^2.7.4"
 python-dateutil = "^2.9.0.post0"
 aiohttp = "^3.9.5"
 aiohttp-retry = "^2.8.3"
-# allows for reentrant event loops (used for sync client)
-nest-asyncio = "^1.6.0"
+# allows for reentrant event loops (used for sync client) - Python 3.14 compatible
+nest-asyncio2 = "^1.7.1"
 
 huggingface-hub = { version = ">=0.20.1,<1.5.0", optional = true }
 olot = { version = "^0.1.6", optional = true }
