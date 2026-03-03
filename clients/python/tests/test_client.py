@@ -838,9 +838,9 @@ def test_custom_async_runner_with_ray(
 
             loop.run_until_complete(verify_uvloop())
 
-            # Mock nest_asyncio.apply to prevent conflicts with uvloop
-            monkeypatch.setattr("nest_asyncio.apply", lambda *args, **kwargs: "patched")
-            # Import here to avoid the nest_asyncio.apply() call during module loading
+            # Mock nest_asyncio2.apply to prevent conflicts with uvloop
+            monkeypatch.setattr("nest_asyncio2.apply", lambda *args, **kwargs: "patched")
+            # Import here to avoid the nest_asyncio2.apply() call during module loading
             from tests.extras.async_task_runner import AsyncTaskRunner
 
             @ray.remote
