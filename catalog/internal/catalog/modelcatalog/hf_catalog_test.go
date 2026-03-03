@@ -14,6 +14,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	catalogmodels "github.com/kubeflow/model-registry/catalog/internal/catalog/modelcatalog/models"
 	apimodels "github.com/kubeflow/model-registry/catalog/pkg/openapi"
 	"github.com/kubeflow/model-registry/internal/db/models"
 )
@@ -378,10 +379,10 @@ func TestConvertHFModelToRecord(t *testing.T) {
 					if artifact.CatalogModelArtifact == nil {
 						t.Error("CatalogModelArtifact should not be nil")
 					}
-					if artifact.CatalogModelArtifact.GetAttributes().URI == nil {
+					if artifact.CatalogModelArtifact.(catalogmodels.CatalogModelArtifact).GetAttributes().URI == nil {
 						t.Error("Artifact URI should not be nil")
-					} else if !strings.HasPrefix(*artifact.CatalogModelArtifact.GetAttributes().URI, "hf://") {
-						t.Errorf("Artifact URI should start with hf://, got %s", *artifact.CatalogModelArtifact.GetAttributes().URI)
+					} else if !strings.HasPrefix(*artifact.CatalogModelArtifact.(catalogmodels.CatalogModelArtifact).GetAttributes().URI, "hf://") {
+						t.Errorf("Artifact URI should start with hf://, got %s", *artifact.CatalogModelArtifact.(catalogmodels.CatalogModelArtifact).GetAttributes().URI)
 					}
 				}
 			},
@@ -1183,9 +1184,9 @@ func TestConvertHFModelToRecord_CreatesArtifactWithHFProtocol(t *testing.T) {
 				// Verify artifact structure
 				artifact := record.Artifacts[0]
 				require.NotNil(t, artifact.CatalogModelArtifact)
-				require.NotNil(t, artifact.CatalogModelArtifact.GetAttributes())
+				require.NotNil(t, artifact.CatalogModelArtifact.(catalogmodels.CatalogModelArtifact).GetAttributes())
 
-				attrs := artifact.CatalogModelArtifact.GetAttributes()
+				attrs := artifact.CatalogModelArtifact.(catalogmodels.CatalogModelArtifact).GetAttributes()
 
 				// Check URI has hf:// prefix
 				require.NotNil(t, attrs.URI)
@@ -1225,7 +1226,7 @@ func TestConvertHFModelToRecord_ArtifactTimestamps(t *testing.T) {
 
 	require.Len(t, record.Artifacts, 1)
 	artifact := record.Artifacts[0]
-	attrs := artifact.CatalogModelArtifact.GetAttributes()
+	attrs := artifact.CatalogModelArtifact.(catalogmodels.CatalogModelArtifact).GetAttributes()
 
 	// Verify timestamps are copied from model
 	require.NotNil(t, attrs.CreateTimeSinceEpoch)

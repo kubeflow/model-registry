@@ -10,7 +10,8 @@ import (
 	mapset "github.com/deckarep/golang-set/v2"
 	"github.com/golang/glog"
 	"github.com/kubeflow/model-registry/catalog/internal/catalog/basecatalog"
-	dbmodels "github.com/kubeflow/model-registry/catalog/internal/db/models"
+	"github.com/kubeflow/model-registry/catalog/internal/catalog/modelcatalog/models"
+	sharedmodels "github.com/kubeflow/model-registry/catalog/internal/db/models"
 	"github.com/kubeflow/model-registry/catalog/internal/db/service"
 	mrmodels "github.com/kubeflow/model-registry/internal/db/models"
 )
@@ -35,8 +36,8 @@ var ErrPartiallyAvailable error = &PartiallyAvailableError{}
 
 // ModelProviderRecord contains one model and its associated artifacts.
 type ModelProviderRecord struct {
-	Model     dbmodels.CatalogModel
-	Artifacts []dbmodels.CatalogArtifact
+	Model     models.CatalogModel
+	Artifacts []sharedmodels.CatalogArtifact
 	// Error can be set here to emit successfully loaded models before updating source status err.
 	Error error
 }
@@ -305,9 +306,17 @@ func (l *ModelLoader) updateDatabase(ctx context.Context) error {
 				for i, artifact := range record.Artifacts {
 					switch {
 					case artifact.CatalogModelArtifact != nil:
-						_, err = l.services.CatalogModelArtifactRepository.Save(artifact.CatalogModelArtifact, modelID)
+						if ma, ok := artifact.CatalogModelArtifact.(models.CatalogModelArtifact); ok {
+							_, err = l.services.CatalogModelArtifactRepository.Save(ma, modelID)
+						} else {
+							err = fmt.Errorf("invalid model artifact type: %T", artifact.CatalogModelArtifact)
+						}
 					case artifact.CatalogMetricsArtifact != nil:
-						_, err = l.services.CatalogMetricsArtifactRepository.Save(artifact.CatalogMetricsArtifact, modelID)
+						if ma, ok := artifact.CatalogMetricsArtifact.(models.CatalogMetricsArtifact); ok {
+							_, err = l.services.CatalogMetricsArtifactRepository.Save(ma, modelID)
+						} else {
+							err = fmt.Errorf("invalid metrics artifact type: %T", artifact.CatalogMetricsArtifact)
+						}
 					default:
 						err = errors.New("unknown artifact type")
 					}
@@ -446,7 +455,7 @@ func (l *ModelLoader) readProviderRecords(ctx context.Context) <-chan ModelProvi
 	return ch
 }
 
-func (l *ModelLoader) setModelSourceID(model dbmodels.CatalogModel, sourceID string) {
+func (l *ModelLoader) setModelSourceID(model models.CatalogModel, sourceID string) {
 	if model == nil {
 		return
 	}
@@ -456,7 +465,7 @@ func (l *ModelLoader) setModelSourceID(model dbmodels.CatalogModel, sourceID str
 
 	props := model.GetProperties()
 	if props == nil {
-		if modelImpl, ok := model.(*dbmodels.CatalogModelImpl); ok {
+		if modelImpl, ok := model.(*models.CatalogModelImpl); ok {
 			newProps := make([]mrmodels.Properties, 0, 1)
 			modelImpl.Properties = &newProps
 			props = &newProps
@@ -522,7 +531,7 @@ func (l *ModelLoader) removeModelsFromMissingSources(allKnownSourceIDs mapset.Se
 }
 
 func (l *ModelLoader) removeOrphanedModelsFromSource(sourceID string, valid mapset.Set[string]) (int, error) {
-	list, err := l.services.CatalogModelRepository.List(dbmodels.CatalogModelListOptions{
+	list, err := l.services.CatalogModelRepository.List(models.CatalogModelListOptions{
 		SourceIDs: &[]string{sourceID},
 	})
 	if err != nil {

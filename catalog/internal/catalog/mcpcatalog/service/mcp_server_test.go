@@ -1,33 +1,29 @@
-package service_test
+package service
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 	"strings"
 	"testing"
 	"time"
 
+	"github.com/kubeflow/model-registry/catalog/internal/catalog/mcpcatalog/models"
 	"github.com/kubeflow/model-registry/catalog/internal/converter"
-	"github.com/kubeflow/model-registry/catalog/internal/db/models"
-	"github.com/kubeflow/model-registry/catalog/internal/db/service"
 	"github.com/kubeflow/model-registry/catalog/pkg/openapi"
 	"github.com/kubeflow/model-registry/internal/apiutils"
 	dbmodels "github.com/kubeflow/model-registry/internal/db/models"
-	"github.com/kubeflow/model-registry/internal/db/schema"
 	"github.com/kubeflow/model-registry/internal/testutils"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"gorm.io/gorm"
 )
 
 func TestMCPServerRepository(t *testing.T) {
-	sharedDB, cleanup := testutils.SetupPostgresWithMigrations(t, service.DatastoreSpec())
+	sharedDB, cleanup := testutils.SetupPostgresWithMigrations(t, testDatastoreSpec())
 	defer cleanup()
 
 	// Create or get the MCPServer type ID
 	typeID := getMCPServerTypeID(t, sharedDB)
-	repo := service.NewMCPServerRepository(sharedDB, typeID)
+	repo := NewMCPServerRepository(sharedDB, typeID)
 
 	t.Run("TestSave_Create", func(t *testing.T) {
 		// Test creating a new MCP server
@@ -285,7 +281,7 @@ func TestMCPServerRepository(t *testing.T) {
 
 		// Test non-existent ID
 		_, err = repo.GetByID(99999)
-		assert.ErrorIs(t, err, service.ErrMCPServerNotFound)
+		assert.ErrorIs(t, err, ErrMCPServerNotFound)
 	})
 
 	t.Run("TestGetByNameAndVersion_WithVersion", func(t *testing.T) {
@@ -319,11 +315,11 @@ func TestMCPServerRepository(t *testing.T) {
 
 		// Test non-existent version
 		_, err = repo.GetByNameAndVersion("versioned-server", "2.0.0")
-		assert.ErrorIs(t, err, service.ErrMCPServerNotFound)
+		assert.ErrorIs(t, err, ErrMCPServerNotFound)
 
 		// Test non-existent name
 		_, err = repo.GetByNameAndVersion("non-existent-server", "1.0.0")
-		assert.ErrorIs(t, err, service.ErrMCPServerNotFound)
+		assert.ErrorIs(t, err, ErrMCPServerNotFound)
 	})
 
 	t.Run("TestGetByNameAndVersion_NoVersion", func(t *testing.T) {
@@ -357,7 +353,7 @@ func TestMCPServerRepository(t *testing.T) {
 
 		// Test non-existent name with no version
 		_, err = repo.GetByNameAndVersion("non-existent-unversioned", "")
-		assert.ErrorIs(t, err, service.ErrMCPServerNotFound)
+		assert.ErrorIs(t, err, ErrMCPServerNotFound)
 	})
 
 	t.Run("TestList_Basic", func(t *testing.T) {
@@ -626,7 +622,7 @@ func TestMCPServerRepository(t *testing.T) {
 
 		// Verify it's deleted
 		_, err = repo.GetByID(*saved.GetID())
-		assert.ErrorIs(t, err, service.ErrMCPServerNotFound)
+		assert.ErrorIs(t, err, ErrMCPServerNotFound)
 
 		// Test deleting non-existent ID
 		err = repo.DeleteByID(99999)
@@ -748,7 +744,7 @@ func TestMCPServerRepository(t *testing.T) {
 		}
 		_, err := repo.Save(server)
 		require.Error(t, err)
-		assert.ErrorIs(t, err, service.ErrBaseNameContainsAtSign)
+		assert.ErrorIs(t, err, ErrBaseNameContainsAtSign)
 		assert.Contains(t, err.Error(), "@")
 	})
 
@@ -767,7 +763,7 @@ func TestMCPServerRepository(t *testing.T) {
 		}
 		_, err := repo.Save(server)
 		require.Error(t, err)
-		assert.ErrorIs(t, err, service.ErrBaseNameEmpty)
+		assert.ErrorIs(t, err, ErrBaseNameEmpty)
 	})
 
 	t.Run("TestValidation_WhitespaceOnlyBaseName", func(t *testing.T) {
@@ -785,7 +781,7 @@ func TestMCPServerRepository(t *testing.T) {
 		}
 		_, err := repo.Save(server)
 		require.Error(t, err)
-		assert.ErrorIs(t, err, service.ErrBaseNameEmpty)
+		assert.ErrorIs(t, err, ErrBaseNameEmpty)
 	})
 
 	t.Run("TestValidation_BaseNameTooLong", func(t *testing.T) {
@@ -804,7 +800,7 @@ func TestMCPServerRepository(t *testing.T) {
 		}
 		_, err := repo.Save(server)
 		require.Error(t, err)
-		assert.ErrorIs(t, err, service.ErrBaseNameTooLong)
+		assert.ErrorIs(t, err, ErrBaseNameTooLong)
 	})
 
 	t.Run("TestValidation_VersionTooLong", func(t *testing.T) {
@@ -827,7 +823,7 @@ func TestMCPServerRepository(t *testing.T) {
 		}
 		_, err := repo.Save(server)
 		require.Error(t, err)
-		assert.ErrorIs(t, err, service.ErrVersionTooLong)
+		assert.ErrorIs(t, err, ErrVersionTooLong)
 	})
 
 	t.Run("TestValidation_ValidBaseNameWithSpecialChars", func(t *testing.T) {
@@ -891,28 +887,9 @@ func TestMCPServerRepository(t *testing.T) {
 		}
 		_, err := repo.Save(server)
 		require.Error(t, err)
-		assert.ErrorIs(t, err, service.ErrVersionContainsAtSign)
+		assert.ErrorIs(t, err, ErrVersionContainsAtSign)
 		assert.Contains(t, err.Error(), "@")
 	})
-}
-
-// Helper function to get or create the MCPServer type ID
-func getMCPServerTypeID(t *testing.T, db *gorm.DB) int32 {
-	var typeRecord schema.Type
-	err := db.Where("name = ?", service.MCPServerTypeName).First(&typeRecord).Error
-	if err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			// Create the type if it doesn't exist
-			typeRecord = schema.Type{
-				Name: service.MCPServerTypeName,
-			}
-			err = db.Create(&typeRecord).Error
-			require.NoError(t, err)
-		} else {
-			require.NoError(t, err)
-		}
-	}
-	return typeRecord.ID
 }
 
 // ==============================================================================

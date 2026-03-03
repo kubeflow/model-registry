@@ -3,6 +3,8 @@ package service_test
 import (
 	"testing"
 
+	modelcatalogmodels "github.com/kubeflow/model-registry/catalog/internal/catalog/modelcatalog/models"
+	modelcatalogservice "github.com/kubeflow/model-registry/catalog/internal/catalog/modelcatalog/service"
 	"github.com/kubeflow/model-registry/catalog/internal/db/models"
 	"github.com/kubeflow/model-registry/catalog/internal/db/service"
 	"github.com/kubeflow/model-registry/internal/apiutils"
@@ -81,8 +83,8 @@ func TestPropertyOptionsRepository(t *testing.T) {
 	modelArtifactTypeID := getCatalogModelArtifactTypeID(t, sharedDB)
 
 	// Create test repositories for setting up data
-	catalogModelRepo := service.NewCatalogModelRepository(sharedDB, catalogModelTypeID)
-	artifactRepo := service.NewCatalogModelArtifactRepository(sharedDB, modelArtifactTypeID)
+	catalogModelRepo := modelcatalogservice.NewCatalogModelRepository(sharedDB, catalogModelTypeID)
+	artifactRepo := modelcatalogservice.NewCatalogModelArtifactRepository(sharedDB, modelArtifactTypeID)
 
 	t.Run("Refresh_ContextPropertyOptions", func(t *testing.T) {
 		// Test refreshing context property options materialized view
@@ -164,9 +166,9 @@ func TestPropertyOptionsRepository(t *testing.T) {
 
 	t.Run("List_ContextPropertyOptions_WithData", func(t *testing.T) {
 		// Create a catalog model with properties to populate the materialized view
-		catalogModel := &models.CatalogModelImpl{
+		catalogModel := &modelcatalogmodels.CatalogModelImpl{
 			TypeID: apiutils.Of(int32(catalogModelTypeID)),
-			Attributes: &models.CatalogModelAttributes{
+			Attributes: &modelcatalogmodels.CatalogModelAttributes{
 				Name:       apiutils.Of("test-model-for-context-properties"),
 				ExternalID: apiutils.Of("context-props-test-123"),
 			},
@@ -220,9 +222,9 @@ func TestPropertyOptionsRepository(t *testing.T) {
 
 	t.Run("List_ArtifactPropertyOptions_WithData", func(t *testing.T) {
 		// First create a catalog model as parent
-		catalogModel := &models.CatalogModelImpl{
+		catalogModel := &modelcatalogmodels.CatalogModelImpl{
 			TypeID: apiutils.Of(int32(catalogModelTypeID)),
-			Attributes: &models.CatalogModelAttributes{
+			Attributes: &modelcatalogmodels.CatalogModelAttributes{
 				Name:       apiutils.Of("test-model-for-artifact-properties"),
 				ExternalID: apiutils.Of("artifact-props-test-123"),
 			},
@@ -231,9 +233,9 @@ func TestPropertyOptionsRepository(t *testing.T) {
 		require.NoError(t, err)
 
 		// Create an artifact with properties
-		artifact := &models.CatalogModelArtifactImpl{
+		artifact := &modelcatalogmodels.CatalogModelArtifactImpl{
 			TypeID: apiutils.Of(int32(modelArtifactTypeID)),
-			Attributes: &models.CatalogModelArtifactAttributes{
+			Attributes: &modelcatalogmodels.CatalogModelArtifactAttributes{
 				Name:       apiutils.Of("test-artifact-with-properties"),
 				ExternalID: apiutils.Of("artifact-props-test-456"),
 				URI:        apiutils.Of("s3://bucket/model.pkl"),

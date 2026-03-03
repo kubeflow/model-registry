@@ -11,7 +11,7 @@ import (
 	"time"
 
 	"github.com/kubeflow/model-registry/catalog/internal/catalog"
-	dbmodels "github.com/kubeflow/model-registry/catalog/internal/db/models"
+	"github.com/kubeflow/model-registry/catalog/internal/catalog/modelcatalog"
 	model "github.com/kubeflow/model-registry/catalog/pkg/openapi"
 	mrmodels "github.com/kubeflow/model-registry/internal/db/models"
 	"github.com/stretchr/testify/assert"
@@ -1180,7 +1180,7 @@ func (m *mockProviderThatFailsOnRecommended) GetFilterOptions(ctx context.Contex
 	return m.mockModelProvider.GetFilterOptions(ctx)
 }
 
-func (m *mockProviderThatFailsOnRecommended) FindModelsWithRecommendedLatency(ctx context.Context, pagination mrmodels.Pagination, paretoParams dbmodels.ParetoFilteringParams, sourceIDs []string, query string) (*model.CatalogModelList, error) {
+func (m *mockProviderThatFailsOnRecommended) FindModelsWithRecommendedLatency(ctx context.Context, pagination mrmodels.Pagination, paretoParams modelcatalog.ParetoFilteringParams, sourceIDs []string, query string) (*model.CatalogModelList, error) {
 	return nil, fmt.Errorf("recommended sorting not implemented")
 }
 
@@ -1273,7 +1273,7 @@ func (m *mockModelProvider) GetFilterOptions(ctx context.Context) (*model.Filter
 	return &model.FilterOptionsList{Filters: &emptyFilters}, nil
 }
 
-func (m *mockModelProvider) FindModelsWithRecommendedLatency(ctx context.Context, pagination mrmodels.Pagination, paretoParams dbmodels.ParetoFilteringParams, sourceIDs []string, query string) (*model.CatalogModelList, error) {
+func (m *mockModelProvider) FindModelsWithRecommendedLatency(ctx context.Context, pagination mrmodels.Pagination, paretoParams modelcatalog.ParetoFilteringParams, sourceIDs []string, query string) (*model.CatalogModelList, error) {
 	// Basic mock implementation - just return models sorted by name
 	var allModels []*model.CatalogModel
 	for _, mdl := range m.models {
