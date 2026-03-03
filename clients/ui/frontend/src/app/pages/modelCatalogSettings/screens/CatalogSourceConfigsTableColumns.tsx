@@ -13,7 +13,10 @@ export const catalogSourceConfigsColumns: SortableData<CatalogSourceConfig>[] = 
   {
     field: 'allowedOrganization',
     label: 'Organization',
-    sortable: false,
+    sortable: (a, b) =>
+      ('allowedOrganization' in a ? (a.allowedOrganization ?? '') : '').localeCompare(
+        'allowedOrganization' in b ? (b.allowedOrganization ?? '') : '',
+      ),
     info: {
       popover:
         'Applies only to Hugging Face sources. Shows the organization the source syncs models from (for example, google). Only models within this organization are included in the catalog.',
@@ -23,7 +26,11 @@ export const catalogSourceConfigsColumns: SortableData<CatalogSourceConfig>[] = 
   {
     field: 'filters',
     label: 'Model visibility',
-    sortable: false,
+    sortable: (a: CatalogSourceConfig, b: CatalogSourceConfig): number => {
+      const aFiltered = (a.includedModels?.length ?? 0) + (a.excludedModels?.length ?? 0);
+      const bFiltered = (b.includedModels?.length ?? 0) + (b.excludedModels?.length ?? 0);
+      return aFiltered - bFiltered;
+    },
     info: {
       popover: (
         <div>
@@ -54,7 +61,7 @@ export const catalogSourceConfigsColumns: SortableData<CatalogSourceConfig>[] = 
   {
     field: 'enabled',
     label: 'Enable',
-    sortable: false,
+    sortable: (a, b) => Number(a.enabled ?? true) - Number(b.enabled ?? true),
     info: {
       popover:
         'Enable a source to make its models available to users in your organization from the model catalog.',
