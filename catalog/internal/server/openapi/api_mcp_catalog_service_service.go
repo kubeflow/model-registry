@@ -7,6 +7,7 @@ import (
 	"strconv"
 
 	"github.com/kubeflow/model-registry/catalog/internal/catalog"
+	"github.com/kubeflow/model-registry/catalog/internal/catalog/mcpcatalog"
 	model "github.com/kubeflow/model-registry/catalog/pkg/openapi"
 	"github.com/kubeflow/model-registry/pkg/api"
 )
@@ -14,14 +15,16 @@ import (
 // MCPCatalogServiceAPIService is a service that implements the logic for the MCPCatalogServiceAPIServicer
 type MCPCatalogServiceAPIService struct {
 	mcpProvider catalog.MCPProvider
+	mcpSources  *mcpcatalog.MCPSourceCollection
 }
 
 var _ MCPCatalogServiceAPIServicer = &MCPCatalogServiceAPIService{}
 
 // NewMCPCatalogServiceAPIService creates a default api service
-func NewMCPCatalogServiceAPIService(mcpProvider catalog.MCPProvider) MCPCatalogServiceAPIServicer {
+func NewMCPCatalogServiceAPIService(mcpProvider catalog.MCPProvider, mcpSources *mcpcatalog.MCPSourceCollection) MCPCatalogServiceAPIServicer {
 	return &MCPCatalogServiceAPIService{
 		mcpProvider: mcpProvider,
+		mcpSources:  mcpSources,
 	}
 }
 
@@ -61,7 +64,24 @@ func (m *MCPCatalogServiceAPIService) FindMCPServers(ctx context.Context, name s
 
 // FindMCPServersFilterOptions - Lists fields, values, and named queries that can be used in `filterQuery` on the list MCP servers endpoint.
 func (m *MCPCatalogServiceAPIService) FindMCPServersFilterOptions(ctx context.Context) (ImplResponse, error) {
-	return ErrorResponse(http.StatusNotImplemented, errors.New("FindMCPServersFilterOptions not implemented")), nil
+	if m.mcpSources == nil {
+		return Response(http.StatusOK, model.FilterOptionsList{}), nil
+	}
+
+	srcQueries := m.mcpSources.GetNamedQueries()
+	converted := make(map[string]map[string]model.FieldFilter, len(srcQueries))
+	for queryName, fieldFilters := range srcQueries {
+		inner := make(map[string]model.FieldFilter, len(fieldFilters))
+		for field, ff := range fieldFilters {
+			inner[field] = model.FieldFilter{
+				Operator: ff.Operator,
+				Value:    ff.Value,
+			}
+		}
+		converted[queryName] = inner
+	}
+
+	return Response(http.StatusOK, model.FilterOptionsList{NamedQueries: &converted}), nil
 }
 
 // GetMCPServer - Get an `MCPServer`.
