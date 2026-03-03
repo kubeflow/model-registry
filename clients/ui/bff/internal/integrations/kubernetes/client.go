@@ -20,6 +20,7 @@ type KubernetesClientInterface interface {
 	GetServiceNames(ctx context.Context, namespace string) ([]string, error)
 	GetServiceDetailsByName(ctx context.Context, namespace, serviceName string, serviceType string) (ServiceDetails, error)
 	GetServiceDetails(ctx context.Context, namespace string) ([]ServiceDetails, error)
+	GetServiceEndpoints(ctx context.Context, namespace, serviceName string) (*corev1.Endpoints, error)
 
 	// Namespace access
 	GetNamespaces(ctx context.Context, identity *RequestIdentity) ([]corev1.Namespace, error)

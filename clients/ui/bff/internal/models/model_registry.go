@@ -6,6 +6,7 @@ type ModelRegistryModel struct {
 	Description   string `json:"description"`
 	ServerAddress string `json:"serverAddress"`
 	IsHTTPS       bool   `json:"isHttps"`
+	IsAvailable   bool   `json:"isAvailable"` // true if Endpoints has ready addresses
 }
 
 // ServiceAuthorizationContext holds the authorization decision context
