@@ -54,17 +54,34 @@ func (m *ModelRegistryRepository) GetAllModelRegistriesWithMode(sessionCtx conte
 	var registries = []models.ModelRegistryModel{}
 	for _, s := range resources {
 		serverAddress := m.ResolveServerAddress(s.ClusterIP, s.HTTPPort, s.IsHTTPS, s.ExternalAddressRest, isFederatedMode)
+		isAvailable := m.isRegistryAvailable(sessionCtx, client, namespace, s.Name)
 		registry := models.ModelRegistryModel{
 			Name:          s.Name,
 			Description:   s.Description,
 			DisplayName:   s.DisplayName,
 			ServerAddress: serverAddress,
 			IsHTTPS:       s.IsHTTPS,
+			IsAvailable:   isAvailable,
 		}
 		registries = append(registries, registry)
 	}
 
 	return registries, nil
+}
+
+// isRegistryAvailable returns true if the service's Endpoints resource has at least one ready address.
+func (m *ModelRegistryRepository) isRegistryAvailable(sessionCtx context.Context, client k8s.KubernetesClientInterface, namespace, serviceName string) bool {
+	logger := helper.GetContextLogger(sessionCtx)
+	endpoints, err := client.GetServiceEndpoints(sessionCtx, namespace, serviceName)
+	if err != nil {
+		logger.Debug("registry not available: failed to get endpoints", "serviceName", serviceName, "namespace", namespace, "error", err)
+		return false
+	}
+	if !k8s.EndpointsHasReadyAddresses(endpoints) {
+		logger.Debug("registry not available: no ready addresses in endpoints", "serviceName", serviceName, "namespace", namespace)
+		return false
+	}
+	return true
 }
 
 // getSpecificServiceDetails fetches details for specific services by name
@@ -111,6 +128,7 @@ func (m *ModelRegistryRepository) GetModelRegistryWithMode(sessionCtx context.Co
 		DisplayName:   s.DisplayName,
 		ServerAddress: m.ResolveServerAddress(s.ClusterIP, s.HTTPPort, s.IsHTTPS, s.ExternalAddressRest, isFederatedMode),
 		IsHTTPS:       s.IsHTTPS,
+		IsAvailable:   m.isRegistryAvailable(sessionCtx, client, namespace, modelRegistryID),
 	}
 
 	return modelRegistry, nil

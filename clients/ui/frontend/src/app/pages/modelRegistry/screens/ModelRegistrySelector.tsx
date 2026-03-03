@@ -156,7 +156,7 @@ const ModelRegistrySelector: React.FC<ModelRegistrySelectorProps> = ({
         <Bullseye>Model registry</Bullseye>
       </FlexItem>
       <FlexItem>{selector}</FlexItem>
-      {selection && (
+      {selection && selection.isAvailable !== false && (
         <FlexItem>
           <Popover
             aria-label="Model registry description popover"

@@ -21,6 +21,8 @@ export type ModelRegistry = {
   displayName: string;
   description: string;
   serverAddress?: string;
+  /** True if the registry's Service Endpoints have ready addresses; false when starting or misconfigured. */
+  isAvailable?: boolean;
 };
 
 export type ModelRegistryPayload = {
