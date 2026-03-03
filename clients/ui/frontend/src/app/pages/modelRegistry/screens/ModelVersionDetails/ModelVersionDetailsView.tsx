@@ -62,7 +62,7 @@ const ModelVersionDetailsView: React.FC<ModelVersionDetailsViewProps> = ({
     : null;
   const isTransferJobSource = !!transferJobParams;
   const [transferJob, transferJobLoaded, transferJobError] =
-    useModelTransferJobForArtifact(modelArtifact);
+    useModelTransferJobForArtifact(transferJobParams);
 
   if (!modelArtifactsLoaded) {
     return (

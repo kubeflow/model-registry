@@ -124,7 +124,7 @@ export const getDoubleValue = <T extends ModelRegistryCustomProperties>(
   return 0;
 };
 
-export const getStorageTypeLabel = (type: StorageType | string): string => {
+export const getStorageTypeLabel = (type: StorageType): string => {
   switch (type) {
     case ModelTransferJobSourceType.S3:
     case ModelTransferJobDestinationType.S3:
@@ -139,7 +139,7 @@ export const getStorageTypeLabel = (type: StorageType | string): string => {
   }
 };
 
-export const getModelUriPopoverContent = (destType: StorageType | string): string => {
+export const getModelUriPopoverContent = (destType: StorageType): string => {
   switch (destType) {
     case ModelTransferJobDestinationType.OCI:
       return 'The URI of the OCI connection that is currently being used as the model storage location.';
@@ -150,7 +150,7 @@ export const getModelUriPopoverContent = (destType: StorageType | string): strin
   }
 };
 
-export const getModelUriLabel = (destType: StorageType | string): string => {
+export const getModelUriLabel = (destType: StorageType): string => {
   switch (destType) {
     case ModelTransferJobDestinationType.S3:
       return 'Path';

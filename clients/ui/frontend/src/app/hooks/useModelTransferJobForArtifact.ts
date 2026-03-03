@@ -1,16 +1,13 @@
 import * as React from 'react';
 import { useFetchState, FetchState, FetchStateCallbackPromise } from 'mod-arch-core';
-import { ModelArtifact, ModelTransferJob } from '~/app/types';
+import { ModelTransferJob } from '~/app/types';
 import { useModelRegistryAPI } from '~/app/hooks/useModelRegistryAPI';
-import { modelSourcePropertiesToTransferJobParams } from '~/concepts/modelRegistry/utils';
+import { TransferJobParams } from '~/concepts/modelRegistry/types';
 
 const useModelTransferJobForArtifact = (
-  modelArtifact: ModelArtifact | null,
+  transferJobParams: TransferJobParams | null,
 ): FetchState<ModelTransferJob | null> => {
   const { api, apiAvailable } = useModelRegistryAPI();
-  const transferJobParams = modelArtifact
-    ? modelSourcePropertiesToTransferJobParams(modelArtifact)
-    : null;
   const jobNamespace = transferJobParams?.jobNamespace;
   const jobName = transferJobParams?.jobName;
 

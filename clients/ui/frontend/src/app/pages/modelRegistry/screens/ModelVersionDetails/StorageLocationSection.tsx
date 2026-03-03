@@ -18,9 +18,11 @@ import {
 } from '@patternfly/react-core';
 import { OutlinedQuestionCircleIcon, FolderIcon } from '@patternfly/react-icons';
 import { DashboardDescriptionListGroup, InlineTruncatedClipboardCopy } from 'mod-arch-shared';
+import { useNamespaceSelector } from 'mod-arch-core';
 import { ModelTransferJob, ModelTransferJobSourceType } from '~/app/types';
 import { FindAdministratorOptions } from '~/app/utilities/const';
 import {
+  StorageType,
   getStorageTypeLabel,
   getModelUriLabel,
   getModelUriPopoverContent,
@@ -67,14 +69,18 @@ const NoAccessPopover: React.FC<{ namespace: string }> = ({ namespace }) => (
 );
 
 const ConnectionDisplay: React.FC<{
-  storageType: string;
+  secretName?: string;
+  storageType?: StorageType;
   namespace: string;
   hasAccess?: boolean;
-}> = ({ storageType, namespace, hasAccess = true }) => (
+}> = ({ secretName, storageType, namespace, hasAccess = true }) => (
   <Content component={ContentVariants.p} data-testid="storage-connection-display">
-    {storageType && (
+    {(secretName || storageType) && (
       <>
-        <strong>{getStorageTypeLabel(storageType)} storage</strong> connection in{' '}
+        <strong>
+          {secretName || (storageType && `${getStorageTypeLabel(storageType)} storage`)}
+        </strong>{' '}
+        connection in{' '}
       </>
     )}
     <Icon size="sm" isInline>
@@ -108,6 +114,20 @@ const StorageLocationTitle: React.FC = () => (
   </Title>
 );
 
+const isAccessError = (error: Error | undefined, jobNamespace: string): boolean => {
+  if (!error) {
+    return false;
+  }
+  const { message } = error;
+  return (
+    message.includes('403') ||
+    message.includes('forbidden') ||
+    message.includes('Forbidden') ||
+    message.includes('not have access') ||
+    message.includes(jobNamespace)
+  );
+};
+
 const StorageLocationSection: React.FC<StorageLocationSectionProps> = ({
   fallbackNamespace,
   transferJob,
@@ -115,15 +135,12 @@ const StorageLocationSection: React.FC<StorageLocationSectionProps> = ({
   transferJobError,
 }) => {
   const [isSourceDetailsExpanded, setIsSourceDetailsExpanded] = React.useState(false);
+  const { namespaces = [] } = useNamespaceSelector();
 
-  // TODO: Replace string matching with structured error status codes from the BFF
-  // once the BFF returns proper error types for permission issues.
-  const errorMessage = transferJobError?.message ?? '';
+  const userHasNamespaceAccess = namespaces.some((ns) => ns.name === fallbackNamespace);
   const hasAccessError =
-    !!transferJobError &&
-    (errorMessage.includes('403') ||
-      errorMessage.includes('forbidden') ||
-      errorMessage.includes('Forbidden'));
+    (!userHasNamespaceAccess && !!transferJobError) ||
+    isAccessError(transferJobError, fallbackNamespace);
 
   if (!transferJobLoaded) {
     return (
@@ -148,7 +165,7 @@ const StorageLocationSection: React.FC<StorageLocationSectionProps> = ({
           <StorageLocationTitle />
         </StackItem>
         <StackItem>
-          <ConnectionDisplay storageType="" namespace={fallbackNamespace} hasAccess={false} />
+          <ConnectionDisplay namespace={fallbackNamespace} hasAccess={false} />
         </StackItem>
       </Stack>
     );
@@ -175,7 +192,12 @@ const StorageLocationSection: React.FC<StorageLocationSectionProps> = ({
       </StackItem>
 
       <StackItem>
-        <ConnectionDisplay storageType={destType} namespace={namespace} hasAccess />
+        <ConnectionDisplay
+          secretName={transferJob.destSecretName}
+          storageType={destType}
+          namespace={namespace}
+          hasAccess
+        />
       </StackItem>
 
       <StackItem>
@@ -214,7 +236,11 @@ const StorageLocationSection: React.FC<StorageLocationSectionProps> = ({
                   title="Model origin location"
                   popover="The connection that was used to store the model at the time it was registered."
                 >
-                  <ConnectionDisplay storageType={sourceType} namespace={namespace} />
+                  <ConnectionDisplay
+                    secretName={transferJob.sourceSecretName}
+                    storageType={sourceType}
+                    namespace={namespace}
+                  />
                 </DashboardDescriptionListGroup>
               </DescriptionList>
             </StackItem>
