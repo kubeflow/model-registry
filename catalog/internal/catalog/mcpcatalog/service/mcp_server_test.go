@@ -1314,7 +1314,7 @@ func TestRoundTrip_OpenapiToDbToOpenapi(t *testing.T) {
 		assert.Equal(t, original.Provider, result.Provider)
 		assert.Equal(t, original.Logo, result.Logo)
 		assert.Equal(t, original.Version, result.Version)
-		assert.Equal(t, original.License, result.License)
+		assert.Equal(t, apiutils.Of("Apache 2.0"), result.License, "License should be transformed to human-readable display name")
 		assert.Equal(t, original.LicenseLink, result.LicenseLink)
 		assert.Equal(t, original.Readme, result.Readme)
 		assert.Equal(t, original.DeploymentMode, result.DeploymentMode)

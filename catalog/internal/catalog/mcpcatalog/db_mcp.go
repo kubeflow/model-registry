@@ -50,6 +50,12 @@ func (d *dbMCPCatalogImpl) ListMCPServers(ctx context.Context, params ListMCPSer
 		filterQuery = mergeFilterQueries(filterQuery, resolved)
 	}
 
+	// Transform license display names to SPDX identifiers in filter queries
+	// This allows users to filter by either SPDX IDs or human-readable names
+	if filterQuery != "" {
+		filterQuery = basecatalog.TransformLicenseNamesInFilterQuery(filterQuery)
+	}
+
 	// Build MCPServerListOptions from params
 	listOptions := models.MCPServerListOptions{
 		Query:       &params.Query,

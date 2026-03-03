@@ -10,6 +10,7 @@ import (
 	"strings"
 
 	"github.com/golang/glog"
+	"github.com/kubeflow/model-registry/catalog/internal/catalog/basecatalog"
 	"github.com/kubeflow/model-registry/catalog/internal/catalog/modelcatalog/models"
 	sharedmodels "github.com/kubeflow/model-registry/catalog/internal/db/models"
 	"github.com/kubeflow/model-registry/catalog/internal/db/service"
@@ -34,8 +35,8 @@ func NewDBCatalog(services service.Services, sources *SourceCollection) APIProvi
 		catalogArtifactRepository: services.CatalogArtifactRepository,
 		catalogModelRepository:    services.CatalogModelRepository,
 		propertyOptionsRepository: services.PropertyOptionsRepository,
-		performanceService: NewPerformanceArtifactService(services.CatalogArtifactRepository, services.CatalogModelRepository),
-		sources:            sources,
+		performanceService:        NewPerformanceArtifactService(services.CatalogArtifactRepository, services.CatalogModelRepository),
+		sources:                   sources,
 	}
 }
 
@@ -86,11 +87,18 @@ func (d *dbCatalogImpl) ListModels(ctx context.Context, params ListModelsParams)
 
 	sourceIDs := params.SourceIDs
 
+	// Transform license display names to SPDX identifiers in filter queries
+	// This allows users to filter by either SPDX IDs or human-readable names
+	filterQuery := params.FilterQuery
+	if filterQuery != "" {
+		filterQuery = basecatalog.TransformLicenseNamesInFilterQuery(filterQuery)
+	}
+
 	modelsList, err := d.catalogModelRepository.List(models.CatalogModelListOptions{
 		SourceIDs: &sourceIDs,
 		Query:     queryPtr,
 		Pagination: mrmodels.Pagination{
-			FilterQuery:   &params.FilterQuery,
+			FilterQuery:   &filterQuery,
 			PageSize:      &pageSize,
 			OrderBy:       &orderBy,
 			SortOrder:     &sortOrder,

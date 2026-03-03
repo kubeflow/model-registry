@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/golang/glog"
+	"github.com/kubeflow/model-registry/catalog/internal/catalog/basecatalog"
 	"github.com/kubeflow/model-registry/catalog/internal/catalog/mcpcatalog/models"
 	"github.com/kubeflow/model-registry/catalog/pkg/openapi"
 	dbmodels "github.com/kubeflow/model-registry/internal/db/models"
@@ -169,7 +170,13 @@ func convertDbMCPServerToOpenapiInternal(dbServer models.MCPServer, tools []open
 	openapiServer.Provider = pa.GetStringPtr("provider")
 	openapiServer.Logo = pa.GetStringPtr("logo")
 	openapiServer.Version = &version
-	openapiServer.License = pa.GetStringPtr("license")
+
+	// Transform SPDX identifier to human-readable display name
+	if license := pa.GetString("license"); license != "" {
+		transformed := basecatalog.TransformLicenseToHumanReadable(license)
+		openapiServer.License = &transformed
+	}
+
 	openapiServer.LicenseLink = pa.GetStringPtr("license_link")
 	openapiServer.Readme = pa.GetStringPtr("readme")
 	openapiServer.DeploymentMode = pa.GetStringPtr("deploymentMode")
