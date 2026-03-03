@@ -1,4 +1,4 @@
-package service
+package pagination
 
 import (
 	"fmt"
@@ -21,7 +21,7 @@ var CatalogOrderByColumns = map[string]string{
 // If name is nil, it falls back to using the entity ID.
 func CreateNamePaginationToken(entityID int32, name *string) string {
 	if name != nil {
-		return scopes.CreateNextPageToken(entityID, name)
+		return scopes.CreateNextPageToken(entityID, *name)
 	}
 	// Fallback to ID if name is nil
 	return scopes.CreateNextPageToken(entityID, fmt.Sprintf("%d", entityID))

@@ -1,19 +1,20 @@
 package models
 
 import (
+	"github.com/kubeflow/model-registry/catalog/internal/db/models"
 	"github.com/kubeflow/model-registry/internal/db/filter"
-	"github.com/kubeflow/model-registry/internal/db/models"
+	dbmodels "github.com/kubeflow/model-registry/internal/db/models"
 )
 
 // MCPServerToolListOptions holds the options for listing MCP server tools.
 type MCPServerToolListOptions struct {
-	models.Pagination
+	dbmodels.Pagination
 	ParentID int32
 }
 
 // GetRestEntityType implements the FilterApplier interface.
 func (o *MCPServerToolListOptions) GetRestEntityType() filter.RestEntityType {
-	return filter.RestEntityType(RestEntityMCPServerTool)
+	return filter.RestEntityType(models.RestEntityMCPServerTool)
 }
 
 // MCPServerToolAttributes holds the attributes for an MCP server tool record.
@@ -25,11 +26,11 @@ type MCPServerToolAttributes struct {
 
 // MCPServerTool represents an MCP server tool stored in the database.
 type MCPServerTool interface {
-	models.Entity[MCPServerToolAttributes]
+	dbmodels.Entity[MCPServerToolAttributes]
 }
 
 // MCPServerToolImpl is the concrete implementation of MCPServerTool.
-type MCPServerToolImpl = models.BaseEntity[MCPServerToolAttributes]
+type MCPServerToolImpl = dbmodels.BaseEntity[MCPServerToolAttributes]
 
 // MCPServerToolRepository defines the interface for MCP server tool persistence.
 type MCPServerToolRepository interface {

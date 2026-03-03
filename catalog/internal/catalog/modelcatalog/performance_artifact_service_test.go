@@ -1,4 +1,4 @@
-package models
+package modelcatalog
 
 import (
 	"context"
@@ -6,87 +6,82 @@ import (
 	"math"
 	"testing"
 
+	"github.com/kubeflow/model-registry/catalog/internal/catalog/modelcatalog/models"
+	sharedmodels "github.com/kubeflow/model-registry/catalog/internal/db/models"
 	"github.com/kubeflow/model-registry/internal/apiutils"
 	dbmodels "github.com/kubeflow/model-registry/internal/db/models"
-	mrmodels "github.com/kubeflow/model-registry/internal/db/models"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 )
 
-// MockCatalogArtifactRepository is a mock implementation for testing
-type MockCatalogArtifactRepository struct {
+// mockPerfArtifactRepo is a testify mock implementation of CatalogArtifactRepository for performance tests
+type mockPerfArtifactRepo struct {
 	mock.Mock
 }
 
-// MockCatalogModelRepository is a mock implementation for testing
-type MockCatalogModelRepository struct {
+// mockPerfModelRepo is a testify mock implementation of CatalogModelRepository for performance tests
+type mockPerfModelRepo struct {
 	mock.Mock
 }
 
-func (m *MockCatalogModelRepository) GetByName(name string) (CatalogModel, error) {
+func (m *mockPerfModelRepo) GetByName(name string) (models.CatalogModel, error) {
 	args := m.Called(name)
-	return args.Get(0).(CatalogModel), args.Error(1)
+	return args.Get(0).(models.CatalogModel), args.Error(1)
 }
 
-func (m *MockCatalogModelRepository) GetByID(id int32) (CatalogModel, error) {
+func (m *mockPerfModelRepo) GetByID(id int32) (models.CatalogModel, error) {
+	return nil, nil
+}
+
+func (m *mockPerfModelRepo) List(opts models.CatalogModelListOptions) (*dbmodels.ListWrapper[models.CatalogModel], error) {
+	return nil, nil
+}
+
+func (m *mockPerfModelRepo) Save(model models.CatalogModel) (models.CatalogModel, error) {
+	return nil, nil
+}
+
+func (m *mockPerfModelRepo) DeleteBySource(sourceID string) error {
+	return nil
+}
+
+func (m *mockPerfModelRepo) DeleteByID(id int32) error {
+	return nil
+}
+
+func (m *mockPerfModelRepo) GetDistinctSourceIDs() ([]string, error) {
+	return nil, nil
+}
+
+func (m *mockPerfArtifactRepo) GetByID(id int32) (sharedmodels.CatalogArtifact, error) {
 	args := m.Called(id)
-	return args.Get(0).(CatalogModel), args.Error(1)
+	return args.Get(0).(sharedmodels.CatalogArtifact), args.Error(1)
 }
 
-func (m *MockCatalogModelRepository) List(listOptions CatalogModelListOptions) (*mrmodels.ListWrapper[CatalogModel], error) {
+func (m *mockPerfArtifactRepo) List(listOptions sharedmodels.CatalogArtifactListOptions) (*dbmodels.ListWrapper[sharedmodels.CatalogArtifact], error) {
 	args := m.Called(listOptions)
-	return args.Get(0).(*mrmodels.ListWrapper[CatalogModel]), args.Error(1)
+	return args.Get(0).(*dbmodels.ListWrapper[sharedmodels.CatalogArtifact]), args.Error(1)
 }
 
-func (m *MockCatalogModelRepository) Save(model CatalogModel) (CatalogModel, error) {
-	args := m.Called(model)
-	return args.Get(0).(CatalogModel), args.Error(1)
-}
-
-func (m *MockCatalogModelRepository) DeleteBySource(sourceID string) error {
-	args := m.Called(sourceID)
-	return args.Error(0)
-}
-
-func (m *MockCatalogModelRepository) DeleteByID(id int32) error {
-	args := m.Called(id)
-	return args.Error(0)
-}
-
-func (m *MockCatalogModelRepository) GetDistinctSourceIDs() ([]string, error) {
-	args := m.Called()
-	return args.Get(0).([]string), args.Error(1)
-}
-
-func (m *MockCatalogArtifactRepository) GetByID(id int32) (CatalogArtifact, error) {
-	args := m.Called(id)
-	return args.Get(0).(CatalogArtifact), args.Error(1)
-}
-
-func (m *MockCatalogArtifactRepository) List(listOptions CatalogArtifactListOptions) (*mrmodels.ListWrapper[CatalogArtifact], error) {
-	args := m.Called(listOptions)
-	return args.Get(0).(*mrmodels.ListWrapper[CatalogArtifact]), args.Error(1)
-}
-
-func (m *MockCatalogArtifactRepository) DeleteByParentID(artifactType string, parentResourceID int32) error {
+func (m *mockPerfArtifactRepo) DeleteByParentID(artifactType string, parentResourceID int32) error {
 	args := m.Called(artifactType, parentResourceID)
 	return args.Error(0)
 }
 
 func TestPerformanceArtifactService_GetArtifacts(t *testing.T) {
 	// Mock repository for testing
-	mockArtifactRepo := &MockCatalogArtifactRepository{}
+	mockArtifactRepo := &mockPerfArtifactRepo{}
 	service := NewPerformanceArtifactService(mockArtifactRepo, nil)
 
 	// Setup mock to return test artifacts with performance metrics
 	id := int32(1)
-	testArtifacts := []CatalogArtifact{
+	testArtifacts := []sharedmodels.CatalogArtifact{
 		{
-			CatalogMetricsArtifact: &CatalogMetricsArtifactImpl{
-				Attributes: &CatalogMetricsArtifactAttributes{
+			CatalogMetricsArtifact: &dbmodels.BaseEntity[models.CatalogMetricsArtifactAttributes]{
+				Attributes: &models.CatalogMetricsArtifactAttributes{
 					Name:        apiutils.Of("test-perf-artifact"),
-					MetricsType: MetricsTypePerformance,
+					MetricsType: models.MetricsTypePerformance,
 				},
 				Properties: &[]dbmodels.Properties{},
 				CustomProperties: &[]dbmodels.Properties{
@@ -99,7 +94,7 @@ func TestPerformanceArtifactService_GetArtifacts(t *testing.T) {
 	testArtifacts[0].CatalogMetricsArtifact.SetID(id)
 
 	mockArtifactRepo.On("List", mock.AnythingOfType("models.CatalogArtifactListOptions")).
-		Return(&mrmodels.ListWrapper[CatalogArtifact]{
+		Return(&dbmodels.ListWrapper[sharedmodels.CatalogArtifact]{
 			Items: testArtifacts,
 		}, nil)
 
@@ -116,21 +111,21 @@ func TestPerformanceArtifactService_GetArtifacts(t *testing.T) {
 	require.Len(t, result.Items, 1)
 
 	// Verify repository was called with correct performance filtering
-	mockArtifactRepo.AssertCalled(t, "List", mock.MatchedBy(func(opts CatalogArtifactListOptions) bool {
+	mockArtifactRepo.AssertCalled(t, "List", mock.MatchedBy(func(opts sharedmodels.CatalogArtifactListOptions) bool {
 		return opts.ParentResourceID != nil && *opts.ParentResourceID == 123
 	}))
 }
 
 func TestPerformanceArtifactService_ProcessWithTargetRPSAndRecommendataion(t *testing.T) {
-	mockArtifactRepo := &MockCatalogArtifactRepository{}
+	mockArtifactRepo := &mockPerfArtifactRepo{}
 	service := NewPerformanceArtifactService(mockArtifactRepo, nil)
 
 	// Mock repository to return test artifacts with performance data
 	id := int32(1)
-	testDBMetrics := &CatalogMetricsArtifactImpl{
-		Attributes: &CatalogMetricsArtifactAttributes{
+	testDBMetrics := &dbmodels.BaseEntity[models.CatalogMetricsArtifactAttributes]{
+		Attributes: &models.CatalogMetricsArtifactAttributes{
 			Name:        apiutils.Of("test-perf-artifact"),
-			MetricsType: MetricsTypePerformance,
+			MetricsType: models.MetricsTypePerformance,
 		},
 		Properties: &[]dbmodels.Properties{},
 		CustomProperties: &[]dbmodels.Properties{
@@ -142,8 +137,8 @@ func TestPerformanceArtifactService_ProcessWithTargetRPSAndRecommendataion(t *te
 	}
 	testDBMetrics.SetID(id)
 
-	testDBResult := &mrmodels.ListWrapper[CatalogArtifact]{
-		Items: []CatalogArtifact{
+	testDBResult := &dbmodels.ListWrapper[sharedmodels.CatalogArtifact]{
+		Items: []sharedmodels.CatalogArtifact{
 			{CatalogMetricsArtifact: testDBMetrics},
 		},
 	}
@@ -211,9 +206,9 @@ func TestPerformanceArtifactService_Recommendataions(t *testing.T) {
 
 	id1 := int32(1)
 	id2 := int32(2)
-	artifacts := []CatalogMetricsArtifact{
-		&CatalogMetricsArtifactImpl{
-			Attributes: &CatalogMetricsArtifactAttributes{
+	artifacts := []sharedmodels.CatalogMetricsArtifact{
+		&dbmodels.BaseEntity[models.CatalogMetricsArtifactAttributes]{
+			Attributes: &models.CatalogMetricsArtifactAttributes{
 				Name: apiutils.Of("fast-expensive"),
 			},
 			CustomProperties: &[]dbmodels.Properties{
@@ -223,8 +218,8 @@ func TestPerformanceArtifactService_Recommendataions(t *testing.T) {
 				dbmodels.NewIntProperty("replicas", 3, true),
 			},
 		},
-		&CatalogMetricsArtifactImpl{
-			Attributes: &CatalogMetricsArtifactAttributes{
+		&dbmodels.BaseEntity[models.CatalogMetricsArtifactAttributes]{
+			Attributes: &models.CatalogMetricsArtifactAttributes{
 				Name: apiutils.Of("slow-cheap"),
 			},
 			CustomProperties: &[]dbmodels.Properties{
@@ -251,16 +246,16 @@ func TestPropertyValidation(t *testing.T) {
 	service := NewPerformanceArtifactService(nil, nil)
 
 	// Test case: empty artifacts should pass validation (not an error condition)
-	err := service.validateCustomProperties([]CatalogMetricsArtifact{}, "rps", "latency", "hw_count", "hw_type")
+	err := service.validateCustomProperties([]sharedmodels.CatalogMetricsArtifact{}, "rps", "latency", "hw_count", "hw_type")
 	require.NoError(t, err, "Empty artifacts should not cause validation error")
 
 	// Test case: property exists in some artifacts
 	id1 := int32(1)
 	id2 := int32(2)
-	artifacts := []CatalogMetricsArtifact{
+	artifacts := []sharedmodels.CatalogMetricsArtifact{
 		// artifact with custom property
-		&CatalogMetricsArtifactImpl{
-			Attributes: &CatalogMetricsArtifactAttributes{
+		&dbmodels.BaseEntity[models.CatalogMetricsArtifactAttributes]{
+			Attributes: &models.CatalogMetricsArtifactAttributes{
 				Name: apiutils.Of("artifact-with-prop"),
 			},
 			CustomProperties: &[]dbmodels.Properties{
@@ -271,8 +266,8 @@ func TestPropertyValidation(t *testing.T) {
 			},
 		},
 		// artifact without custom property
-		&CatalogMetricsArtifactImpl{
-			Attributes: &CatalogMetricsArtifactAttributes{
+		&dbmodels.BaseEntity[models.CatalogMetricsArtifactAttributes]{
+			Attributes: &models.CatalogMetricsArtifactAttributes{
 				Name: apiutils.Of("artifact-without-prop"),
 			},
 			CustomProperties: &[]dbmodels.Properties{
@@ -305,16 +300,16 @@ func TestPropertyValidation(t *testing.T) {
 
 // TestGetArtifactsWithValidation tests that GetArtifacts validates custom properties
 func TestGetArtifactsWithValidation(t *testing.T) {
-	mockArtifactRepo := &MockCatalogArtifactRepository{}
+	mockArtifactRepo := &mockPerfArtifactRepo{}
 	service := NewPerformanceArtifactService(mockArtifactRepo, nil)
 
 	id1 := int32(1)
-	testArtifacts := []CatalogArtifact{
+	testArtifacts := []sharedmodels.CatalogArtifact{
 		{
-			CatalogMetricsArtifact: &CatalogMetricsArtifactImpl{
-				Attributes: &CatalogMetricsArtifactAttributes{
+			CatalogMetricsArtifact: &dbmodels.BaseEntity[models.CatalogMetricsArtifactAttributes]{
+				Attributes: &models.CatalogMetricsArtifactAttributes{
 					Name:        apiutils.Of("test-artifact"),
-					MetricsType: MetricsTypePerformance,
+					MetricsType: models.MetricsTypePerformance,
 				},
 				CustomProperties: &[]dbmodels.Properties{
 					dbmodels.NewDoubleProperty("custom_rps", 100.0, true),
@@ -326,7 +321,7 @@ func TestGetArtifactsWithValidation(t *testing.T) {
 	testArtifacts[0].CatalogMetricsArtifact.SetID(id1)
 
 	mockArtifactRepo.On("List", mock.AnythingOfType("models.CatalogArtifactListOptions")).
-		Return(&mrmodels.ListWrapper[CatalogArtifact]{Items: testArtifacts}, nil)
+		Return(&dbmodels.ListWrapper[sharedmodels.CatalogArtifact]{Items: testArtifacts}, nil)
 
 	// Test with valid custom properties
 	params := PerformanceArtifactParams{
@@ -357,8 +352,8 @@ func TestConfigurablePropertyUsage(t *testing.T) {
 
 	// Create test artifact with custom property names
 	id := int32(1)
-	artifact := &CatalogMetricsArtifactImpl{
-		Attributes: &CatalogMetricsArtifactAttributes{
+	artifact := &dbmodels.BaseEntity[models.CatalogMetricsArtifactAttributes]{
+		Attributes: &models.CatalogMetricsArtifactAttributes{
 			Name: apiutils.Of("test-artifact"),
 		},
 		CustomProperties: &[]dbmodels.Properties{
@@ -370,7 +365,7 @@ func TestConfigurablePropertyUsage(t *testing.T) {
 	}
 	artifact.SetID(id)
 
-	artifacts := []CatalogMetricsArtifact{artifact}
+	artifacts := []sharedmodels.CatalogMetricsArtifact{artifact}
 
 	params := PerformanceArtifactParams{
 		TargetRPS:             100,
@@ -400,10 +395,10 @@ func TestConfigurableRecommendataion(t *testing.T) {
 	id1 := int32(1)
 	id2 := int32(2)
 	id3 := int32(3)
-	artifacts := []CatalogMetricsArtifact{
+	artifacts := []sharedmodels.CatalogMetricsArtifact{
 		// Dominated artifact: slower AND more expensive
-		&CatalogMetricsArtifactImpl{
-			Attributes: &CatalogMetricsArtifactAttributes{
+		&dbmodels.BaseEntity[models.CatalogMetricsArtifactAttributes]{
+			Attributes: &models.CatalogMetricsArtifactAttributes{
 				Name: apiutils.Of("artifact-slow-expensive"),
 			},
 			CustomProperties: &[]dbmodels.Properties{
@@ -414,8 +409,8 @@ func TestConfigurableRecommendataion(t *testing.T) {
 			},
 		},
 		// Fast but expensive
-		&CatalogMetricsArtifactImpl{
-			Attributes: &CatalogMetricsArtifactAttributes{
+		&dbmodels.BaseEntity[models.CatalogMetricsArtifactAttributes]{
+			Attributes: &models.CatalogMetricsArtifactAttributes{
 				Name: apiutils.Of("artifact-fast-expensive"),
 			},
 			CustomProperties: &[]dbmodels.Properties{
@@ -426,8 +421,8 @@ func TestConfigurableRecommendataion(t *testing.T) {
 			},
 		},
 		// Cheapest option (but slower than artifact-fast-expensive)
-		&CatalogMetricsArtifactImpl{
-			Attributes: &CatalogMetricsArtifactAttributes{
+		&dbmodels.BaseEntity[models.CatalogMetricsArtifactAttributes]{
+			Attributes: &models.CatalogMetricsArtifactAttributes{
 				Name: apiutils.Of("artifact-cheap"),
 			},
 			CustomProperties: &[]dbmodels.Properties{
@@ -527,8 +522,8 @@ type testArtifactRow struct {
 }
 
 // createArtifactsFromRows converts simple test data into full CatalogMetricsArtifact objects
-func createArtifactsFromRows(rows []testArtifactRow, targetRPS int32) []CatalogMetricsArtifact {
-	artifacts := make([]CatalogMetricsArtifact, len(rows))
+func createArtifactsFromRows(rows []testArtifactRow, targetRPS int32) []sharedmodels.CatalogMetricsArtifact {
+	artifacts := make([]sharedmodels.CatalogMetricsArtifact, len(rows))
 
 	for i, row := range rows {
 		id := int32(i + 1)
@@ -538,8 +533,8 @@ func createArtifactsFromRows(rows []testArtifactRow, targetRPS int32) []CatalogM
 		}
 		replicas := int32(math.Ceil(float64(targetRPS) / float64(row.requestsPerSecond)))
 
-		artifact := &CatalogMetricsArtifactImpl{
-			Attributes: &CatalogMetricsArtifactAttributes{
+		artifact := &dbmodels.BaseEntity[models.CatalogMetricsArtifactAttributes]{
+			Attributes: &models.CatalogMetricsArtifactAttributes{
 				Name: apiutils.Of(fmt.Sprintf("artifact-%d", i)),
 			},
 			CustomProperties: &[]dbmodels.Properties{
@@ -558,7 +553,7 @@ func createArtifactsFromRows(rows []testArtifactRow, targetRPS int32) []CatalogM
 }
 
 // verifyExpectedArtifacts checks that only the expected artifacts remain after filtering
-func verifyExpectedArtifacts(t *testing.T, originalArtifacts []CatalogMetricsArtifact, filteredResult []CatalogMetricsArtifact, expectedIndices []int) {
+func verifyExpectedArtifacts(t *testing.T, originalArtifacts []sharedmodels.CatalogMetricsArtifact, filteredResult []sharedmodels.CatalogMetricsArtifact, expectedIndices []int) {
 	require.Len(t, filteredResult, len(expectedIndices), "Unexpected number of artifacts after filtering")
 
 	// Create a set of expected IDs
@@ -579,24 +574,25 @@ func verifyExpectedArtifacts(t *testing.T, originalArtifacts []CatalogMetricsArt
 
 func TestGetMinimumRecommendedLatency(t *testing.T) {
 	// Mock repositories for testing
-	mockArtifactRepo := &MockCatalogArtifactRepository{}
-	mockModelRepo := &MockCatalogModelRepository{}
-	service := NewPerformanceArtifactService(mockArtifactRepo, mockModelRepo)
+	mockArtifactRepo := &mockPerfArtifactRepo{}
+	mockModelRepo := &mockPerfModelRepo{}
 
 	// Setup mock model repository to return a model with ID
 	testModelID := int32(42)
-	mockModelRepo.On("GetByName", "test-model").Return(&CatalogModelImpl{
+	mockModelRepo.On("GetByName", "test-model").Return(&dbmodels.BaseEntity[models.CatalogModelAttributes]{
 		ID: apiutils.Of(testModelID),
 	}, nil)
 
+	service := NewPerformanceArtifactService(mockArtifactRepo, mockModelRepo)
+
 	// Setup mock to return test artifacts with performance data
 	id := int32(1)
-	testArtifacts := []CatalogArtifact{
+	testArtifacts := []sharedmodels.CatalogArtifact{
 		{
-			CatalogMetricsArtifact: &CatalogMetricsArtifactImpl{
-				Attributes: &CatalogMetricsArtifactAttributes{
+			CatalogMetricsArtifact: &dbmodels.BaseEntity[models.CatalogMetricsArtifactAttributes]{
+				Attributes: &models.CatalogMetricsArtifactAttributes{
 					Name:        apiutils.Of("test-perf-artifact"),
-					MetricsType: MetricsTypePerformance,
+					MetricsType: models.MetricsTypePerformance,
 				},
 				Properties: &[]dbmodels.Properties{},
 				CustomProperties: &[]dbmodels.Properties{
@@ -612,7 +608,7 @@ func TestGetMinimumRecommendedLatency(t *testing.T) {
 	testArtifacts[0].CatalogMetricsArtifact.SetID(id)
 
 	mockArtifactRepo.On("List", mock.AnythingOfType("models.CatalogArtifactListOptions")).
-		Return(&mrmodels.ListWrapper[CatalogArtifact]{
+		Return(&dbmodels.ListWrapper[sharedmodels.CatalogArtifact]{
 			Items: testArtifacts,
 		}, nil)
 
@@ -637,20 +633,21 @@ func TestGetMinimumRecommendedLatency(t *testing.T) {
 
 func TestGetMinimumRecommendedLatency_NoArtifacts(t *testing.T) {
 	// Mock repositories for testing
-	mockArtifactRepo := &MockCatalogArtifactRepository{}
-	mockModelRepo := &MockCatalogModelRepository{}
-	service := NewPerformanceArtifactService(mockArtifactRepo, mockModelRepo)
+	mockArtifactRepo := &mockPerfArtifactRepo{}
+	mockModelRepo := &mockPerfModelRepo{}
 
 	// Setup mock model repository to return a model with ID
 	testModelID := int32(42)
-	mockModelRepo.On("GetByName", "nonexistent-model").Return(&CatalogModelImpl{
+	mockModelRepo.On("GetByName", "nonexistent-model").Return(&dbmodels.BaseEntity[models.CatalogModelAttributes]{
 		ID: apiutils.Of(testModelID),
 	}, nil)
 
+	service := NewPerformanceArtifactService(mockArtifactRepo, mockModelRepo)
+
 	// Setup mock to return empty result
 	mockArtifactRepo.On("List", mock.AnythingOfType("models.CatalogArtifactListOptions")).
-		Return(&mrmodels.ListWrapper[CatalogArtifact]{
-			Items: []CatalogArtifact{},
+		Return(&dbmodels.ListWrapper[sharedmodels.CatalogArtifact]{
+			Items: []sharedmodels.CatalogArtifact{},
 		}, nil)
 
 	// Test with model that has no performance artifacts

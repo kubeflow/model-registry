@@ -5,8 +5,9 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/kubeflow/model-registry/catalog/internal/catalog/mcpcatalog/models"
 	"github.com/kubeflow/model-registry/catalog/internal/db/filter"
-	"github.com/kubeflow/model-registry/catalog/internal/db/models"
+	"github.com/kubeflow/model-registry/catalog/internal/db/pagination"
 	"github.com/kubeflow/model-registry/internal/db/dbutil"
 	dbmodels "github.com/kubeflow/model-registry/internal/db/models"
 	"github.com/kubeflow/model-registry/internal/db/schema"
@@ -461,7 +462,7 @@ func (r *MCPServerRepositoryImpl) applyCustomOrdering(query *gorm.DB, listOption
 
 	// Handle NAME ordering
 	if orderBy == "NAME" {
-		return ApplyNameOrdering(query, contextTable, listOptions.GetSortOrder(), listOptions.GetNextPageToken(), listOptions.GetPageSize())
+		return pagination.ApplyNameOrdering(query, contextTable, listOptions.GetSortOrder(), listOptions.GetNextPageToken(), listOptions.GetPageSize())
 	}
 
 	// Fall back to standard pagination
@@ -488,7 +489,7 @@ func (r *MCPServerRepositoryImpl) ApplyStandardPagination(query *gorm.DB, listOp
 // createPaginationToken creates a pagination token for the last item.
 func (r *MCPServerRepositoryImpl) createPaginationToken(lastItem schema.Context, listOptions *models.MCPServerListOptions) string {
 	if listOptions.GetOrderBy() == "NAME" {
-		return CreateNamePaginationToken(lastItem.ID, &lastItem.Name)
+		return pagination.CreateNamePaginationToken(lastItem.ID, &lastItem.Name)
 	}
 
 	return r.CreateDefaultPaginationToken(lastItem, listOptions)

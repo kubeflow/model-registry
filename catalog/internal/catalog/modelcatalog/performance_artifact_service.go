@@ -1,4 +1,4 @@
-package models
+package modelcatalog
 
 import (
 	"cmp"
@@ -7,7 +7,9 @@ import (
 	"math"
 	"slices"
 
-	"github.com/kubeflow/model-registry/internal/db/models"
+	"github.com/kubeflow/model-registry/catalog/internal/catalog/modelcatalog/models"
+	sharedmodels "github.com/kubeflow/model-registry/catalog/internal/db/models"
+	dbmodels "github.com/kubeflow/model-registry/internal/db/models"
 	"github.com/kubeflow/model-registry/internal/db/scopes"
 )
 
@@ -35,26 +37,26 @@ type ParetoFilteringParams struct {
 }
 
 type PerformanceArtifactService struct {
-	artifactRepo CatalogArtifactRepository
-	modelRepo    CatalogModelRepository
+	artifactRepo sharedmodels.CatalogArtifactRepository
+	modelRepo    models.CatalogModelRepository
 }
 
-func NewPerformanceArtifactService(artifactRepo CatalogArtifactRepository, modelRepo CatalogModelRepository) *PerformanceArtifactService {
+func NewPerformanceArtifactService(artifactRepo sharedmodels.CatalogArtifactRepository, modelRepo models.CatalogModelRepository) *PerformanceArtifactService {
 	return &PerformanceArtifactService{
 		artifactRepo: artifactRepo,
 		modelRepo:    modelRepo,
 	}
 }
 
-func (s *PerformanceArtifactService) GetArtifacts(params PerformanceArtifactParams) (*models.ListWrapper[CatalogMetricsArtifact], error) {
+func (s *PerformanceArtifactService) GetArtifacts(params PerformanceArtifactParams) (*dbmodels.ListWrapper[sharedmodels.CatalogMetricsArtifact], error) {
 	// Build filter query to include only performance-metrics
 	filterQuery := s.buildPerformanceFilterQuery(params.FilterQuery)
 
 	// Configure repository options
-	listOptions := CatalogArtifactListOptions{
+	listOptions := sharedmodels.CatalogArtifactListOptions{
 		ParentResourceID:    &params.ModelID,
 		ArtifactTypesFilter: []string{"metrics-artifact"},
-		Pagination: models.Pagination{
+		Pagination: dbmodels.Pagination{
 			FilterQuery:   &filterQuery,
 			PageSize:      &params.PageSize,
 			OrderBy:       &params.OrderBy,
@@ -75,7 +77,7 @@ func (s *PerformanceArtifactService) GetArtifacts(params PerformanceArtifactPara
 		return nil, fmt.Errorf("failed to list artifacts: %w", err)
 	}
 
-	artifacts := make([]CatalogMetricsArtifact, len(dbResult.Items))
+	artifacts := make([]sharedmodels.CatalogMetricsArtifact, len(dbResult.Items))
 	for i := range dbResult.Items {
 		artifacts[i] = dbResult.Items[i].CatalogMetricsArtifact
 	}
@@ -88,7 +90,7 @@ func (s *PerformanceArtifactService) GetArtifacts(params PerformanceArtifactPara
 	// Apply performance-specific processing
 	artifacts = s.processArtifacts(artifacts, params)
 
-	list := &models.ListWrapper[CatalogMetricsArtifact]{
+	list := &dbmodels.ListWrapper[sharedmodels.CatalogMetricsArtifact]{
 		Items:         artifacts,
 		PageSize:      dbResult.PageSize,
 		Size:          dbResult.Size,
@@ -111,7 +113,7 @@ func (s *PerformanceArtifactService) buildPerformanceFilterQuery(userFilter stri
 	return fmt.Sprintf("(%s) AND (%s)", userFilter, performanceFilter)
 }
 
-func (s *PerformanceArtifactService) processArtifacts(artifacts []CatalogMetricsArtifact, params PerformanceArtifactParams) []CatalogMetricsArtifact {
+func (s *PerformanceArtifactService) processArtifacts(artifacts []sharedmodels.CatalogMetricsArtifact, params PerformanceArtifactParams) []sharedmodels.CatalogMetricsArtifact {
 	if params.Recommendations && params.TargetRPS <= 0 {
 		params.TargetRPS = 1
 	}
@@ -149,7 +151,7 @@ func (s *PerformanceArtifactService) processArtifacts(artifacts []CatalogMetrics
 }
 
 // addTargetRPSCalculations adds replicas and total_requests_per_second custom properties
-func (s *PerformanceArtifactService) addTargetRPSCalculations(artifact CatalogMetricsArtifact, targetRPS int32, rpsProperty string) {
+func (s *PerformanceArtifactService) addTargetRPSCalculations(artifact sharedmodels.CatalogMetricsArtifact, targetRPS int32, rpsProperty string) {
 	customProperties := artifact.GetCustomProperties()
 	if customProperties == nil {
 		return
@@ -171,12 +173,12 @@ func (s *PerformanceArtifactService) addTargetRPSCalculations(artifact CatalogMe
 
 	// Initialize custom properties if nil
 	if *customProperties == nil {
-		*customProperties = []models.Properties{}
+		*customProperties = []dbmodels.Properties{}
 	}
 
 	*customProperties = append(*customProperties,
-		models.NewIntProperty("replicas", int32(replicas), true),
-		models.NewDoubleProperty("total_requests_per_second", totalRPS, true))
+		dbmodels.NewIntProperty("replicas", int32(replicas), true),
+		dbmodels.NewDoubleProperty("total_requests_per_second", totalRPS, true))
 }
 
 const (
@@ -186,7 +188,7 @@ const (
 )
 
 // generateRecommended removes duplicates based on cost estimates
-func (s *PerformanceArtifactService) generateRecommended(artifacts []CatalogMetricsArtifact, latencyProperty, hardwareCountProperty, hardwareTypeProperty string) []CatalogMetricsArtifact {
+func (s *PerformanceArtifactService) generateRecommended(artifacts []sharedmodels.CatalogMetricsArtifact, latencyProperty, hardwareCountProperty, hardwareTypeProperty string) []sharedmodels.CatalogMetricsArtifact {
 	keepIDs := map[int32]struct{}{}
 
 	// Group the full list by hardware_type
@@ -197,7 +199,7 @@ func (s *PerformanceArtifactService) generateRecommended(artifacts []CatalogMetr
 		// options seen before.
 		s.sortArtifacts(subArtifacts, latencyProperty, hardwareCountProperty)
 		cheapest := int32(math.MaxInt32)
-		filtered := []CatalogMetricsArtifact{}
+		filtered := []sharedmodels.CatalogMetricsArtifact{}
 		for i, artifact := range subArtifacts {
 			hwCount := s.extractCustomPropertiesIntValue(artifact.GetCustomProperties(), hardwareCountProperty, 1)
 			replicas := s.extractCustomPropertiesIntValue(artifact.GetCustomProperties(), "replicas", 1)
@@ -247,7 +249,7 @@ func (s *PerformanceArtifactService) generateRecommended(artifacts []CatalogMetr
 	}
 
 	// Build the filtered list in the order we received it.
-	result := make([]CatalogMetricsArtifact, 0, len(keepIDs))
+	result := make([]sharedmodels.CatalogMetricsArtifact, 0, len(keepIDs))
 	for _, artifact := range artifacts {
 		id := artifact.GetID()
 		if id == nil {
@@ -262,7 +264,7 @@ func (s *PerformanceArtifactService) generateRecommended(artifacts []CatalogMetr
 
 // validateCustomProperties ensures at least one artifact contains each custom property
 // When there are no artifacts, validation passes (empty result is valid)
-func (s *PerformanceArtifactService) validateCustomProperties(artifacts []CatalogMetricsArtifact, rpsProperty, latencyProperty, hardwareCountProperty, hardwareTypeProperty string) error {
+func (s *PerformanceArtifactService) validateCustomProperties(artifacts []sharedmodels.CatalogMetricsArtifact, rpsProperty, latencyProperty, hardwareCountProperty, hardwareTypeProperty string) error {
 	// If there are no artifacts, validation passes - empty result is valid
 	if len(artifacts) == 0 {
 		return nil
@@ -304,8 +306,8 @@ func (s *PerformanceArtifactService) validateCustomProperties(artifacts []Catalo
 	return nil
 }
 
-func (s *PerformanceArtifactService) groupArtifactsByStringProperty(artifacts []CatalogMetricsArtifact, property string) map[string][]CatalogMetricsArtifact {
-	results := map[string][]CatalogMetricsArtifact{}
+func (s *PerformanceArtifactService) groupArtifactsByStringProperty(artifacts []sharedmodels.CatalogMetricsArtifact, property string) map[string][]sharedmodels.CatalogMetricsArtifact {
+	results := map[string][]sharedmodels.CatalogMetricsArtifact{}
 
 	for i, artifact := range artifacts {
 		value := s.extractCustomPropertiesStringValue(artifact.GetCustomProperties(), property)
@@ -316,8 +318,8 @@ func (s *PerformanceArtifactService) groupArtifactsByStringProperty(artifacts []
 }
 
 // sortArtifacts sorts a list of performance artifacts by latency, and hardware count as a tie-breaker.
-func (s *PerformanceArtifactService) sortArtifacts(artifacts []CatalogMetricsArtifact, latencyProperty string, hardwareCountProperty string) {
-	slices.SortFunc(artifacts, func(a CatalogMetricsArtifact, b CatalogMetricsArtifact) int {
+func (s *PerformanceArtifactService) sortArtifacts(artifacts []sharedmodels.CatalogMetricsArtifact, latencyProperty string, hardwareCountProperty string) {
+	slices.SortFunc(artifacts, func(a sharedmodels.CatalogMetricsArtifact, b sharedmodels.CatalogMetricsArtifact) int {
 		defaultLatency := math.MaxFloat64
 		aLatency := s.extractCustomPropertiesDoubleValue(a.GetCustomProperties(), latencyProperty, defaultLatency)
 		if aLatency <= 0 {
@@ -348,7 +350,7 @@ func (s *PerformanceArtifactService) sortArtifacts(artifacts []CatalogMetricsArt
 	})
 }
 
-func (s *PerformanceArtifactService) extractCustomPropertiesDoubleValue(props *[]models.Properties, name string, def float64) float64 {
+func (s *PerformanceArtifactService) extractCustomPropertiesDoubleValue(props *[]dbmodels.Properties, name string, def float64) float64 {
 	value := def
 	if props != nil {
 		for _, prop := range *props {
@@ -363,7 +365,7 @@ func (s *PerformanceArtifactService) extractCustomPropertiesDoubleValue(props *[
 	return value
 }
 
-func (s *PerformanceArtifactService) extractCustomPropertiesIntValue(props *[]models.Properties, name string, def int32) int32 {
+func (s *PerformanceArtifactService) extractCustomPropertiesIntValue(props *[]dbmodels.Properties, name string, def int32) int32 {
 	value := def
 	if props != nil {
 		for _, prop := range *props {
@@ -378,7 +380,7 @@ func (s *PerformanceArtifactService) extractCustomPropertiesIntValue(props *[]mo
 	return value
 }
 
-func (s *PerformanceArtifactService) extractCustomPropertiesStringValue(props *[]models.Properties, name string) string {
+func (s *PerformanceArtifactService) extractCustomPropertiesStringValue(props *[]dbmodels.Properties, name string) string {
 	if props != nil {
 		for _, prop := range *props {
 			if prop.Name == name {
@@ -392,7 +394,7 @@ func (s *PerformanceArtifactService) extractCustomPropertiesStringValue(props *[
 	return ""
 }
 
-func (s *PerformanceArtifactService) paginate(list *models.ListWrapper[CatalogMetricsArtifact], pageSize int32, nextPageToken *string) {
+func (s *PerformanceArtifactService) paginate(list *dbmodels.ListWrapper[sharedmodels.CatalogMetricsArtifact], pageSize int32, nextPageToken *string) {
 	var cursor *scopes.Cursor
 	if nextPageToken != nil {
 		// If there's an error parsing the token, return the first page.
@@ -467,10 +469,10 @@ func (s *PerformanceArtifactService) GetMinimumRecommendedLatency(
 		ModelID:               *model.GetID(),
 		TargetRPS:             targetRPS,
 		Recommendations:       true,                   // Enable Pareto filtering
-		FilterQuery:           filterQuery,            // Apply same filter as performance artifacts API
-		PageSize:              100,                    // Get all Pareto-filtered artifacts (reasonable limit)
-		OrderBy:               params.LatencyProperty, // Sort by latency property (e.g., "ttft_p90")
-		SortOrder:             "ASC",                  // Ascending order to get minimum first
+		FilterQuery:           filterQuery,             // Apply same filter as performance artifacts API
+		PageSize:              100,                     // Get all Pareto-filtered artifacts (reasonable limit)
+		OrderBy:               params.LatencyProperty,  // Sort by latency property (e.g., "ttft_p90")
+		SortOrder:             "ASC",                   // Ascending order to get minimum first
 		RPSProperty:           params.RpsProperty,
 		LatencyProperty:       params.LatencyProperty,
 		HardwareCountProperty: params.HardwareCountProperty,

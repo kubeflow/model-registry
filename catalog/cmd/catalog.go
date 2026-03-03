@@ -13,6 +13,8 @@ import (
 
 	"github.com/golang/glog"
 	"github.com/kubeflow/model-registry/catalog/internal/catalog"
+	mcpcatalogmodels "github.com/kubeflow/model-registry/catalog/internal/catalog/mcpcatalog/models"
+	modelcatalogmodels "github.com/kubeflow/model-registry/catalog/internal/catalog/modelcatalog/models"
 	"github.com/kubeflow/model-registry/catalog/internal/db/models"
 	"github.com/kubeflow/model-registry/catalog/internal/db/service"
 	"github.com/kubeflow/model-registry/catalog/internal/leader"
@@ -134,14 +136,14 @@ func runCatalogServer(cmd *cobra.Command, args []string) error {
 	}
 
 	services := service.NewServices(
-		getRepo[models.CatalogModelRepository](repoSet),
+		getRepo[modelcatalogmodels.CatalogModelRepository](repoSet),
 		getRepo[models.CatalogArtifactRepository](repoSet),
-		getRepo[models.CatalogModelArtifactRepository](repoSet),
-		getRepo[models.CatalogMetricsArtifactRepository](repoSet),
+		getRepo[modelcatalogmodels.CatalogModelArtifactRepository](repoSet),
+		getRepo[modelcatalogmodels.CatalogMetricsArtifactRepository](repoSet),
 		getRepo[models.CatalogSourceRepository](repoSet),
 		getRepo[models.PropertyOptionsRepository](repoSet),
-		getRepo[models.MCPServerRepository](repoSet),
-		getRepo[models.MCPServerToolRepository](repoSet),
+		getRepo[mcpcatalogmodels.MCPServerRepository](repoSet),
+		getRepo[mcpcatalogmodels.MCPServerToolRepository](repoSet),
 	)
 
 	loader := catalog.NewLoader(services, catalogCfg.ConfigPath)
