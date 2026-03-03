@@ -167,7 +167,7 @@ func TestMCPServerToolRepository(t *testing.T) {
 		require.NoError(t, err)
 
 		// List all tools for parent
-		tools, err := toolRepo.List(parentID)
+		tools, err := toolRepo.List(models.MCPServerToolListOptions{ParentID: parentID})
 		require.NoError(t, err)
 		assert.Len(t, tools, 3)
 
@@ -301,7 +301,7 @@ func TestMCPServerToolRepository(t *testing.T) {
 		}
 
 		// Verify 5 tools exist
-		tools, err := toolRepo.List(parentID)
+		tools, err := toolRepo.List(models.MCPServerToolListOptions{ParentID: parentID})
 		require.NoError(t, err)
 		assert.Len(t, tools, 5)
 
@@ -310,7 +310,7 @@ func TestMCPServerToolRepository(t *testing.T) {
 		require.NoError(t, err)
 
 		// Verify all tools are deleted
-		tools, err = toolRepo.List(parentID)
+		tools, err = toolRepo.List(models.MCPServerToolListOptions{ParentID: parentID})
 		require.NoError(t, err)
 		assert.Empty(t, tools)
 	})
@@ -348,7 +348,7 @@ func TestMCPServerToolRepository(t *testing.T) {
 		require.NoError(t, err)
 
 		// Verify tools exist
-		tools, err := toolRepo.List(parentID)
+		tools, err := toolRepo.List(models.MCPServerToolListOptions{ParentID: parentID})
 		require.NoError(t, err)
 		assert.Len(t, tools, 2)
 
@@ -532,7 +532,7 @@ func TestMCPServerToolRepository(t *testing.T) {
 	t.Run("TestListToolsForNonExistentParent", func(t *testing.T) {
 		// List tools for a non-existent parent ID
 		nonExistentParentID := int32(999999)
-		tools, err := toolRepo.List(nonExistentParentID)
+		tools, err := toolRepo.List(models.MCPServerToolListOptions{ParentID: nonExistentParentID})
 		require.NoError(t, err)
 		assert.Empty(t, tools, "Should return empty slice for non-existent parent")
 	})

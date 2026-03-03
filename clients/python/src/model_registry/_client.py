@@ -118,7 +118,7 @@ class ModelRegistry:
                 raise ValueError(msg)
             self._user_async_runner = async_runner
         else:
-            import nest_asyncio
+            import nest_asyncio2 as nest_asyncio
 
             logger.debug("Setting up reentrant async event loop")
             nest_asyncio.apply()

@@ -1,8 +1,20 @@
 package models
 
 import (
+	"github.com/kubeflow/model-registry/internal/db/filter"
 	"github.com/kubeflow/model-registry/internal/db/models"
 )
+
+// MCPServerToolListOptions holds the options for listing MCP server tools.
+type MCPServerToolListOptions struct {
+	models.Pagination
+	ParentID int32
+}
+
+// GetRestEntityType implements the FilterApplier interface.
+func (o *MCPServerToolListOptions) GetRestEntityType() filter.RestEntityType {
+	return filter.RestEntityType(RestEntityMCPServerTool)
+}
 
 // MCPServerToolAttributes holds the attributes for an MCP server tool record.
 type MCPServerToolAttributes struct {
@@ -22,7 +34,7 @@ type MCPServerToolImpl = models.BaseEntity[MCPServerToolAttributes]
 // MCPServerToolRepository defines the interface for MCP server tool persistence.
 type MCPServerToolRepository interface {
 	GetByID(id int32) (MCPServerTool, error)
-	List(parentID int32) ([]MCPServerTool, error)
+	List(listOptions MCPServerToolListOptions) ([]MCPServerTool, error)
 	Save(tool MCPServerTool, parentID *int32) (MCPServerTool, error)
 	DeleteByParentID(parentID int32) error
 	DeleteByID(id int32) error
