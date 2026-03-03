@@ -248,10 +248,15 @@ export const getListModelTransferJobs =
     );
 
 export const getModelTransferJobByName =
-  (hostPath: string) =>
+  (hostPath: string, queryParams: Record<string, unknown> = {}) =>
   (opts: APIOptions, namespace: string, jobName: string): Promise<ModelTransferJob> =>
     handleRestFailures(
-      restGET(hostPath, `/model_transfer_jobs/${encodeURIComponent(jobName)}`, { namespace }, opts),
+      restGET(
+        hostPath,
+        `/model_transfer_jobs/${encodeURIComponent(jobName)}`,
+        { ...queryParams, namespace },
+        opts,
+      ),
     ).then((response) => {
       if (isModArchResponse<ModelTransferJob>(response)) {
         return response.data;

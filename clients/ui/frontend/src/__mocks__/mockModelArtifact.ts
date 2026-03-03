@@ -28,6 +28,6 @@ export const mockModelArtifactWithTransferJob = (
   uri: 'oci://quay.io/my-org/my-model:v1.0.0',
   modelSourceKind: ModelSourceKind.TRANSFER_JOB,
   modelSourceGroup: 'my-project-1',
-  modelSourceName: 'model-transfer-job-1',
+  modelSourceName: 'model-transfer-job-oci-1',
   ...partial,
 });

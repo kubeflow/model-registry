@@ -7,7 +7,7 @@ import { mockModelVersionList } from '~/__mocks__/mockModelVersionList';
 import { mockModelVersion } from '~/__mocks__/mockModelVersion';
 import { mockModelArtifactList } from '~/__mocks__/mockModelArtifactList';
 import { mockModelArtifactWithTransferJob } from '~/__mocks__/mockModelArtifact';
-import { mockModelTransferJob } from '~/__mocks__/mockModelTransferJob';
+import { mockModelTransferJobOCI } from '~/__mocks__/mockModelTransferJob';
 import { ModelRegistryMetadataType, ModelState, type ModelRegistry } from '~/app/types';
 import { MODEL_REGISTRY_API_VERSION } from '~/__tests__/cypress/cypress/support/commands/api';
 import {
@@ -565,7 +565,7 @@ describe('Model version details', () => {
   describe('Storage location (Register + Store)', () => {
     const transferJobArtifact = mockModelArtifactWithTransferJob({
       modelSourceGroup: 'my-project-1',
-      modelSourceName: 'model-transfer-job-1',
+      modelSourceName: 'model-transfer-job-oci-1',
     });
 
     const initStorageLocationIntercepts = () => {
@@ -589,10 +589,10 @@ describe('Model version details', () => {
           path: {
             modelRegistryName: 'modelregistry-sample',
             apiVersion: MODEL_REGISTRY_API_VERSION,
-            modelTransferJobId: 'model-transfer-job-1',
+            modelTransferJobId: 'model-transfer-job-oci-1',
           },
         },
-        mockModelTransferJob(),
+        mockModelTransferJobOCI(),
       );
     };
 

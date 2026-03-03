@@ -50,7 +50,7 @@ const useModelRegistryAPIState = (
       patchModelArtifact: patchModelArtifact(path, queryParameters),
       getModelTransferJob: getModelTransferJob(path, queryParameters),
       listModelTransferJobs: getListModelTransferJobs(path, queryParameters),
-      getModelTransferJobByName: getModelTransferJobByName(path),
+      getModelTransferJobByName: getModelTransferJobByName(path, queryParameters),
       createModelTransferJob: createModelTransferJob(path, queryParameters),
       updateModelTransferJob: updateModelTransferJob(path, queryParameters),
       deleteModelTransferJob: deleteModelTransferJob(path, queryParameters),
