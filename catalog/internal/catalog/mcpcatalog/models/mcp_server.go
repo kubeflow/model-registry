@@ -53,4 +53,5 @@ type MCPServerRepository interface {
 	DeleteBySource(sourceID string) error
 	DeleteByID(id int32) error
 	GetDistinctSourceIDs() ([]string, error)
+	GetTypeID() int32
 }
