@@ -75,10 +75,7 @@ func (p *paginator[T]) Paginate(items []T) ([]T, *paginator[T]) {
 	var pagedItems []T
 	var next *paginator[T]
 
-	endIndex := startIndex + int(p.PageSize)
-	if endIndex > len(items) {
-		endIndex = len(items)
-	}
+	endIndex := min(startIndex+int(p.PageSize), len(items))
 	pagedItems = items[startIndex:endIndex]
 
 	if endIndex < len(items) {
@@ -106,7 +103,7 @@ type stringCursor struct {
 }
 
 func (c *stringCursor) String() string {
-	return base64.StdEncoding.EncodeToString([]byte(fmt.Sprintf("%s:%s", c.Value, c.ID)))
+	return base64.StdEncoding.EncodeToString(fmt.Appendf(nil, "%s:%s", c.Value, c.ID))
 }
 
 func decodeStringCursor(encoded string) *stringCursor {

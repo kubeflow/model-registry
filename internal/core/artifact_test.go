@@ -2,6 +2,7 @@ package core_test
 
 import (
 	"fmt"
+	"slices"
 	"strings"
 	"testing"
 
@@ -396,7 +397,7 @@ func TestUpsertArtifact(t *testing.T) {
 	t.Run("pagination with 10+ artifacts", func(t *testing.T) {
 		// Create 15 artifacts for pagination testing
 		var createdArtifacts []string
-		for i := 0; i < 15; i++ {
+		for i := range 15 {
 			artifactName := "paging-test-artifact-" + fmt.Sprintf("%02d", i)
 			modelArtifact := &openapi.ModelArtifact{
 				Name:        apiutils.Of(artifactName),
@@ -504,11 +505,8 @@ func TestUpsertArtifact(t *testing.T) {
 				artifactId = *item.DocArtifact.Id
 			}
 
-			for _, createdId := range createdArtifacts {
-				if artifactId == createdId {
-					foundCount++
-					break
-				}
+			if slices.Contains(createdArtifacts, artifactId) {
+				foundCount++
 			}
 		}
 		assert.Equal(t, 15, foundCount, "Should find all 15 created artifacts")
@@ -746,7 +744,7 @@ func TestUpsertModelVersionArtifact(t *testing.T) {
 
 		// Create 15 model version artifacts for pagination testing
 		var createdArtifacts []string
-		for i := 0; i < 15; i++ {
+		for i := range 15 {
 			artifactName := "paging-test-version-artifact-" + fmt.Sprintf("%02d", i)
 			modelArtifact := &openapi.ModelArtifact{
 				Name:        apiutils.Of(artifactName),
@@ -832,11 +830,8 @@ func TestUpsertModelVersionArtifact(t *testing.T) {
 		foundCount := 0
 		for _, item := range allItems.Items {
 			if item.ModelArtifact != nil {
-				for _, createdId := range createdArtifacts {
-					if *item.ModelArtifact.Id == createdId {
-						foundCount++
-						break
-					}
+				if slices.Contains(createdArtifacts, *item.ModelArtifact.Id) {
+					foundCount++
 				}
 			}
 		}
@@ -1059,7 +1054,7 @@ func TestGetArtifactByParams(t *testing.T) {
 			artifactName    string
 			createArtifact1 *openapi.Artifact
 			createArtifact2 *openapi.Artifact
-			checkField      func(*openapi.Artifact) interface{}
+			checkField      func(*openapi.Artifact) any
 			getDescription  func(*openapi.Artifact) string
 		}{
 			{
@@ -1079,7 +1074,7 @@ func TestGetArtifactByParams(t *testing.T) {
 						Description: apiutils.Of("Model artifact for version 2"),
 					},
 				},
-				checkField: func(a *openapi.Artifact) interface{} { return a.ModelArtifact },
+				checkField: func(a *openapi.Artifact) any { return a.ModelArtifact },
 				getDescription: func(a *openapi.Artifact) string {
 					if a.ModelArtifact != nil && a.ModelArtifact.Description != nil {
 						return *a.ModelArtifact.Description
@@ -1104,7 +1099,7 @@ func TestGetArtifactByParams(t *testing.T) {
 						Description: apiutils.Of("Doc artifact for version 2"),
 					},
 				},
-				checkField: func(a *openapi.Artifact) interface{} { return a.DocArtifact },
+				checkField: func(a *openapi.Artifact) any { return a.DocArtifact },
 				getDescription: func(a *openapi.Artifact) string {
 					if a.DocArtifact != nil && a.DocArtifact.Description != nil {
 						return *a.DocArtifact.Description
@@ -1129,7 +1124,7 @@ func TestGetArtifactByParams(t *testing.T) {
 						Description: apiutils.Of("Dataset for version 2"),
 					},
 				},
-				checkField: func(a *openapi.Artifact) interface{} { return a.DataSet },
+				checkField: func(a *openapi.Artifact) any { return a.DataSet },
 				getDescription: func(a *openapi.Artifact) string {
 					if a.DataSet != nil && a.DataSet.Description != nil {
 						return *a.DataSet.Description
@@ -1154,7 +1149,7 @@ func TestGetArtifactByParams(t *testing.T) {
 						Description: apiutils.Of("Metric for version 2"),
 					},
 				},
-				checkField: func(a *openapi.Artifact) interface{} { return a.Metric },
+				checkField: func(a *openapi.Artifact) any { return a.Metric },
 				getDescription: func(a *openapi.Artifact) string {
 					if a.Metric != nil && a.Metric.Description != nil {
 						return *a.Metric.Description
@@ -1179,7 +1174,7 @@ func TestGetArtifactByParams(t *testing.T) {
 						Description: apiutils.Of("Parameter for version 2"),
 					},
 				},
-				checkField: func(a *openapi.Artifact) interface{} { return a.Parameter },
+				checkField: func(a *openapi.Artifact) any { return a.Parameter },
 				getDescription: func(a *openapi.Artifact) string {
 					if a.Parameter != nil && a.Parameter.Description != nil {
 						return *a.Parameter.Description
@@ -1250,7 +1245,7 @@ func TestGetArtifactByParams(t *testing.T) {
 			artifactName    string
 			createArtifact1 *openapi.Artifact
 			createArtifact2 *openapi.Artifact
-			checkField      func(*openapi.Artifact) interface{}
+			checkField      func(*openapi.Artifact) any
 			getDescription  func(*openapi.Artifact) string
 		}{
 			{
@@ -1270,7 +1265,7 @@ func TestGetArtifactByParams(t *testing.T) {
 						Description: apiutils.Of("Model artifact for run 2"),
 					},
 				},
-				checkField: func(a *openapi.Artifact) interface{} { return a.ModelArtifact },
+				checkField: func(a *openapi.Artifact) any { return a.ModelArtifact },
 				getDescription: func(a *openapi.Artifact) string {
 					if a.ModelArtifact != nil && a.ModelArtifact.Description != nil {
 						return *a.ModelArtifact.Description
@@ -1295,7 +1290,7 @@ func TestGetArtifactByParams(t *testing.T) {
 						Description: apiutils.Of("Doc artifact for run 2"),
 					},
 				},
-				checkField: func(a *openapi.Artifact) interface{} { return a.DocArtifact },
+				checkField: func(a *openapi.Artifact) any { return a.DocArtifact },
 				getDescription: func(a *openapi.Artifact) string {
 					if a.DocArtifact != nil && a.DocArtifact.Description != nil {
 						return *a.DocArtifact.Description
@@ -1320,7 +1315,7 @@ func TestGetArtifactByParams(t *testing.T) {
 						Description: apiutils.Of("Dataset for run 2"),
 					},
 				},
-				checkField: func(a *openapi.Artifact) interface{} { return a.DataSet },
+				checkField: func(a *openapi.Artifact) any { return a.DataSet },
 				getDescription: func(a *openapi.Artifact) string {
 					if a.DataSet != nil && a.DataSet.Description != nil {
 						return *a.DataSet.Description
@@ -1345,7 +1340,7 @@ func TestGetArtifactByParams(t *testing.T) {
 						Description: apiutils.Of("Metric for run 2"),
 					},
 				},
-				checkField: func(a *openapi.Artifact) interface{} { return a.Metric },
+				checkField: func(a *openapi.Artifact) any { return a.Metric },
 				getDescription: func(a *openapi.Artifact) string {
 					if a.Metric != nil && a.Metric.Description != nil {
 						return *a.Metric.Description
@@ -1370,7 +1365,7 @@ func TestGetArtifactByParams(t *testing.T) {
 						Description: apiutils.Of("Parameter for run 2"),
 					},
 				},
-				checkField: func(a *openapi.Artifact) interface{} { return a.Parameter },
+				checkField: func(a *openapi.Artifact) any { return a.Parameter },
 				getDescription: func(a *openapi.Artifact) string {
 					if a.Parameter != nil && a.Parameter.Description != nil {
 						return *a.Parameter.Description
@@ -1474,7 +1469,7 @@ func TestGetArtifacts(t *testing.T) {
 		require.NoError(t, err)
 
 		// Create artifacts for this model version
-		for i := 0; i < 3; i++ {
+		for i := range 3 {
 			artifact := &openapi.Artifact{
 				ModelArtifact: &openapi.ModelArtifact{
 					Name: apiutils.Of("version-artifact-" + string(rune('1'+i))),
@@ -1649,7 +1644,7 @@ func TestUpsertModelArtifact(t *testing.T) {
 
 	t.Run("pagination test", func(t *testing.T) {
 		// Create multiple model artifacts for pagination testing
-		for i := 0; i < 15; i++ {
+		for i := range 15 {
 			modelArtifact := &openapi.ModelArtifact{
 				Name: apiutils.Of(fmt.Sprintf("paging-test-direct-model-artifact-%d", i+1)),
 				Uri:  apiutils.Of(fmt.Sprintf("s3://bucket/paging-direct-model-%d.pkl", i+1)),
@@ -1969,7 +1964,7 @@ func TestGetModelArtifacts(t *testing.T) {
 
 	t.Run("successful list all model artifacts", func(t *testing.T) {
 		// Create multiple model artifacts
-		for i := 0; i < 3; i++ {
+		for i := range 3 {
 			modelArtifact := &openapi.ModelArtifact{
 				Name: apiutils.Of("list-model-artifact-" + string(rune('1'+i))),
 				Uri:  apiutils.Of("s3://bucket/model" + string(rune('1'+i)) + ".pkl"),
@@ -2007,7 +2002,7 @@ func TestGetModelArtifacts(t *testing.T) {
 		require.NoError(t, err)
 
 		// Create model artifacts for this model version
-		for i := 0; i < 2; i++ {
+		for i := range 2 {
 			modelArtifact := &openapi.ModelArtifact{
 				Name: apiutils.Of("version-model-artifact-" + string(rune('1'+i))),
 				Uri:  apiutils.Of("s3://bucket/version-model" + string(rune('1'+i)) + ".pkl"),

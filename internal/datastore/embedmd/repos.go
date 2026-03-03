@@ -2,6 +2,7 @@ package embedmd
 
 import (
 	"fmt"
+	"maps"
 	"reflect"
 
 	"github.com/golang/glog"
@@ -73,10 +74,10 @@ func newRepoSet(db *gorm.DB, spec *datastore.Spec) (datastore.RepoSet, error) {
 	executionTypes := makeTypeMap[datastore.ExecutionTypeMap](spec.ExecutionTypes, nameIDMap)
 
 	args := map[reflect.Type]any{
-		reflect.TypeOf(db):             db,
-		reflect.TypeOf(artifactTypes):  artifactTypes,
-		reflect.TypeOf(contextTypes):   contextTypes,
-		reflect.TypeOf(executionTypes): executionTypes,
+		reflect.TypeFor[*gorm.DB]():                   db,
+		reflect.TypeFor[datastore.ArtifactTypeMap]():  artifactTypes,
+		reflect.TypeFor[datastore.ContextTypeMap]():   contextTypes,
+		reflect.TypeFor[datastore.ExecutionTypeMap](): executionTypes,
 	}
 
 	for i, fn := range spec.Others {
@@ -88,7 +89,7 @@ func newRepoSet(db *gorm.DB, spec *datastore.Spec) (datastore.RepoSet, error) {
 	}
 
 	for name, specType := range spec.ArtifactTypes {
-		args[reflect.TypeOf(nameIDMap[name])] = nameIDMap[name]
+		args[reflect.TypeFor[int32]()] = nameIDMap[name]
 
 		repo, err := rs.call(specType.InitFn, args)
 		if err != nil {
@@ -98,7 +99,7 @@ func newRepoSet(db *gorm.DB, spec *datastore.Spec) (datastore.RepoSet, error) {
 	}
 
 	for name, specType := range spec.ContextTypes {
-		args[reflect.TypeOf(nameIDMap[name])] = nameIDMap[name]
+		args[reflect.TypeFor[int32]()] = nameIDMap[name]
 
 		repo, err := rs.call(specType.InitFn, args)
 		if err != nil {
@@ -108,7 +109,7 @@ func newRepoSet(db *gorm.DB, spec *datastore.Spec) (datastore.RepoSet, error) {
 	}
 
 	for name, specType := range spec.ExecutionTypes {
-		args[reflect.TypeOf(nameIDMap[name])] = nameIDMap[name]
+		args[reflect.TypeFor[int32]()] = nameIDMap[name]
 		repo, err := rs.call(specType.InitFn, args)
 		if err != nil {
 			return nil, fmt.Errorf("embedmd: %s: %w", name, err)
@@ -190,9 +191,7 @@ func (rs *repoSetImpl) Repository(t reflect.Type) (any, error) {
 
 func (rs *repoSetImpl) TypeMap() map[string]int32 {
 	clone := make(map[string]int32, len(rs.nameIDMap))
-	for k, v := range rs.nameIDMap {
-		clone[k] = v
-	}
+	maps.Copy(clone, rs.nameIDMap)
 	return clone
 }
 

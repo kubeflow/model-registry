@@ -357,7 +357,7 @@ func TestGetExperimentRunMetricHistoryWithPagination(t *testing.T) {
 	require.NoError(t, err)
 
 	// Create multiple metrics for pagination test
-	for i := 0; i < 5; i++ {
+	for i := range 5 {
 		metric := &openapi.Metric{
 			Name:      apiutils.Of(fmt.Sprintf("metric_%d", i)),
 			Value:     apiutils.Of(float64(i) * 0.1),

@@ -515,7 +515,7 @@ func TestExperimentRunRepository(t *testing.T) {
 		require.NoError(t, err)
 
 		// Create multiple experiment runs for pagination testing
-		for i := 0; i < 5; i++ {
+		for i := range 5 {
 			experimentRun := &models.ExperimentRunImpl{
 				TypeID: apiutils.Of(int32(typeID)),
 				Attributes: &models.ExperimentRunAttributes{

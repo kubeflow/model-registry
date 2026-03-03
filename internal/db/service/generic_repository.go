@@ -336,7 +336,7 @@ func (r *GenericRepository[TEntity, TSchema, TProp, TListOpts]) Save(entity TEnt
 func (r *GenericRepository[TEntity, TSchema, TProp, TListOpts]) buildBaseQuery() *gorm.DB {
 	var schemaEntity TSchema
 	var tableName string
-	var model interface{}
+	var model any
 
 	// Determine table name and model based on schema entity type
 	switch any(schemaEntity).(type) {

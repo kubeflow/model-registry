@@ -124,19 +124,19 @@ func TestNewRepoSet_Success(t *testing.T) {
 	assert.NotNil(t, repoSet)
 
 	// Verify we can get repositories by type
-	mockArtifact, err := repoSet.Repository(reflect.TypeOf(&mockArtifactRepo{}))
+	mockArtifact, err := repoSet.Repository(reflect.TypeFor[*mockArtifactRepo]())
 	require.NoError(t, err)
 	assert.NotNil(t, mockArtifact)
 
-	mockContext, err := repoSet.Repository(reflect.TypeOf(&mockContextRepo{}))
+	mockContext, err := repoSet.Repository(reflect.TypeFor[*mockContextRepo]())
 	require.NoError(t, err)
 	assert.NotNil(t, mockContext)
 
-	mockExecution, err := repoSet.Repository(reflect.TypeOf(&mockExecutionRepo{}))
+	mockExecution, err := repoSet.Repository(reflect.TypeFor[*mockExecutionRepo]())
 	require.NoError(t, err)
 	assert.NotNil(t, mockExecution)
 
-	mockOther, err := repoSet.Repository(reflect.TypeOf(&mockOtherRepo{}))
+	mockOther, err := repoSet.Repository(reflect.TypeFor[*mockOtherRepo]())
 	require.NoError(t, err)
 	assert.NotNil(t, mockOther)
 
@@ -200,7 +200,7 @@ func TestRepoSetImpl_Repository_InterfaceMatch(t *testing.T) {
 	require.NoError(t, err)
 
 	// Should be able to get repository by interface type
-	repo, err := repoSet.Repository(reflect.TypeOf((*TestInterface)(nil)).Elem())
+	repo, err := repoSet.Repository(reflect.TypeFor[TestInterface]())
 	require.NoError(t, err)
 	assert.NotNil(t, repo)
 
@@ -222,7 +222,7 @@ func TestRepoSetImpl_Repository_UnknownType(t *testing.T) {
 
 	// Try to get a repository type that doesn't exist
 	type unknownType struct{}
-	repo, err := repoSet.Repository(reflect.TypeOf(&unknownType{}))
+	repo, err := repoSet.Repository(reflect.TypeFor[*unknownType]())
 	assert.Error(t, err)
 	assert.Nil(t, repo)
 	assert.Contains(t, err.Error(), "unknown repository type")
@@ -237,7 +237,7 @@ func TestRepoSetImpl_Call_InvalidInitializer(t *testing.T) {
 	}
 
 	args := map[reflect.Type]any{
-		reflect.TypeOf(db): db,
+		reflect.TypeFor[*gorm.DB](): db,
 	}
 
 	// Test with non-function
@@ -277,8 +277,8 @@ func TestRepoSetImpl_Call_ValidInitializers(t *testing.T) {
 	}
 
 	args := map[reflect.Type]any{
-		reflect.TypeOf(db):       db,
-		reflect.TypeOf(int32(0)): int32(42),
+		reflect.TypeFor[*gorm.DB](): db,
+		reflect.TypeFor[int32]():    int32(42),
 	}
 
 	// Test function with one return value
@@ -389,15 +389,15 @@ func TestRepoSetImpl_WithRealRepositories(t *testing.T) {
 	assert.NotNil(t, repoSet)
 
 	// Verify we can get the real repositories
-	modelRepo, err := repoSet.Repository(reflect.TypeOf((*models.ModelArtifactRepository)(nil)).Elem())
+	modelRepo, err := repoSet.Repository(reflect.TypeFor[models.ModelArtifactRepository]())
 	require.NoError(t, err)
 	assert.NotNil(t, modelRepo)
 
-	docRepo, err := repoSet.Repository(reflect.TypeOf((*models.DocArtifactRepository)(nil)).Elem())
+	docRepo, err := repoSet.Repository(reflect.TypeFor[models.DocArtifactRepository]())
 	require.NoError(t, err)
 	assert.NotNil(t, docRepo)
 
-	artifactRepo, err := repoSet.Repository(reflect.TypeOf((*models.ArtifactRepository)(nil)).Elem())
+	artifactRepo, err := repoSet.Repository(reflect.TypeFor[models.ArtifactRepository]())
 	require.NoError(t, err)
 	assert.NotNil(t, artifactRepo)
 }
