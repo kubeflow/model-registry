@@ -37,3 +37,36 @@ mcp_catalogs:
     enabled: true
     properties:
       yamlCatalogPath: dev-community-mcp-servers.yaml
+
+# namedQueries define reusable server-side filter presets that clients can
+# reference by name via the `namedQuery` API parameter. Multiple config files
+# can contribute queries; later files override individual fields within a query
+# of the same name.
+namedQueries:
+  # read_only_servers: servers whose tools only perform read operations.
+  # Useful for environments where write-capable tools require additional approval.
+  read_only_servers:
+    readOnlyTools:
+      operator: "="
+      value: true
+
+  # fully_audited: servers that have a verified source, a secure endpoint,
+  # and have passed static analysis security testing (SAST). These are the
+  # highest-trust servers in the catalog.
+  fully_audited:
+    verifiedSource:
+      operator: "="
+      value: true
+    secureEndpoint:
+      operator: "="
+      value: true
+    sast:
+      operator: "="
+      value: true
+
+  # remote_servers: servers hosted externally and accessed via a network
+  # endpoint rather than deployed locally.
+  remote_servers:
+    deploymentMode:
+      operator: "="
+      value: "remote"

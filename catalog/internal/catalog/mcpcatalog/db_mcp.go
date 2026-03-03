@@ -4,32 +4,56 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/kubeflow/model-registry/catalog/internal/converter"
+	"github.com/kubeflow/model-registry/catalog/internal/catalog/basecatalog"
 	"github.com/kubeflow/model-registry/catalog/internal/catalog/mcpcatalog/models"
+	"github.com/kubeflow/model-registry/catalog/internal/converter"
 	"github.com/kubeflow/model-registry/catalog/internal/db/service"
 	openapi "github.com/kubeflow/model-registry/catalog/pkg/openapi"
 	"github.com/kubeflow/model-registry/internal/apiutils"
 	"github.com/kubeflow/model-registry/pkg/api"
 )
 
+// NamedQueryResolver resolves a named query name to its field filters.
+// Returns (filters, true) if found, or (nil, false) if unknown.
+type NamedQueryResolver func(name string) (map[string]basecatalog.FieldFilter, bool)
+
 type dbMCPCatalogImpl struct {
 	mcpServerRepo     models.MCPServerRepository
 	mcpServerToolRepo models.MCPServerToolRepository
+	resolveNamedQuery NamedQueryResolver
 }
 
-func NewDBMCPCatalog(services service.Services) MCPCatalogProvider {
+func NewDBMCPCatalog(services service.Services, resolver NamedQueryResolver) MCPCatalogProvider {
 	return &dbMCPCatalogImpl{
 		mcpServerRepo:     services.MCPServerRepository,
 		mcpServerToolRepo: services.MCPServerToolRepository,
+		resolveNamedQuery: resolver,
 	}
 }
 
 func (d *dbMCPCatalogImpl) ListMCPServers(ctx context.Context, params ListMCPServersParams) (openapi.MCPServerList, error) {
+	filterQuery := params.FilterQuery
+
+	// Resolve named query server-side and merge with any user-provided filterQuery.
+	if params.NamedQuery != "" {
+		if d.resolveNamedQuery == nil {
+			return openapi.MCPServerList{}, fmt.Errorf("named query %q is not supported: no resolver configured: %w", params.NamedQuery, api.ErrBadRequest)
+		}
+		filters, found := d.resolveNamedQuery(params.NamedQuery)
+		if !found {
+			return openapi.MCPServerList{}, fmt.Errorf("unknown named query %q: %w", params.NamedQuery, api.ErrBadRequest)
+		}
+		resolved, err := basecatalog.FieldFiltersToFilterQuery(filters)
+		if err != nil {
+			return openapi.MCPServerList{}, fmt.Errorf("named query %q has invalid filter: %w", params.NamedQuery, err)
+		}
+		filterQuery = mergeFilterQueries(filterQuery, resolved)
+	}
+
 	// Build MCPServerListOptions from params
 	listOptions := models.MCPServerListOptions{
 		Query:       &params.Query,
-		FilterQuery: &params.FilterQuery,
-		NamedQuery:  &params.NamedQuery,
+		FilterQuery: &filterQuery,
 	}
 
 	if params.Name != "" {
@@ -81,6 +105,20 @@ func (d *dbMCPCatalogImpl) ListMCPServers(ctx context.Context, params ListMCPSer
 		PageSize:      params.PageSize,
 		NextPageToken: serversList.NextPageToken,
 	}, nil
+}
+
+// mergeFilterQueries combines two filterQuery strings with AND.
+// Empty strings are ignored. If both are non-empty, each is wrapped in parentheses
+// to preserve operator precedence.
+func mergeFilterQueries(a, b string) string {
+	switch {
+	case a == "":
+		return b
+	case b == "":
+		return a
+	default:
+		return fmt.Sprintf("(%s) AND (%s)", a, b)
+	}
 }
 
 func (d *dbMCPCatalogImpl) GetMCPServer(ctx context.Context, serverID string, includeTools bool) (*openapi.MCPServer, error) {

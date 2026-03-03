@@ -9,6 +9,8 @@ import (
 	"time"
 
 	"github.com/kubeflow/model-registry/catalog/internal/catalog"
+	"github.com/kubeflow/model-registry/catalog/internal/catalog/basecatalog"
+	"github.com/kubeflow/model-registry/catalog/internal/catalog/mcpcatalog"
 	model "github.com/kubeflow/model-registry/catalog/pkg/openapi"
 	"github.com/kubeflow/model-registry/pkg/api"
 	"github.com/stretchr/testify/assert"
@@ -24,6 +26,9 @@ type mockMCPProvider struct {
 	shouldErrorOnGetServer   bool
 	shouldErrorOnListTools   bool
 	shouldErrorOnGetTool     bool
+	// namedQueryErr simulates an error returned by the provider for a specific named query.
+	// This is used to verify the service correctly propagates provider errors.
+	namedQueryErr map[string]error
 }
 
 func newMockMCPProvider() *mockMCPProvider {
@@ -52,6 +57,12 @@ func (m *mockMCPProvider) addTool(serverID string, toolName string, tool *model.
 func (m *mockMCPProvider) ListMCPServers(ctx context.Context, params catalog.ListMCPServersParams) (model.MCPServerList, error) {
 	if m.shouldErrorOnListServers {
 		return model.MCPServerList{}, fmt.Errorf("mock error in ListMCPServers")
+	}
+
+	if params.NamedQuery != "" {
+		if err, ok := m.namedQueryErr[params.NamedQuery]; ok {
+			return model.MCPServerList{}, err
+		}
 	}
 
 	var items []model.MCPServer
@@ -316,6 +327,57 @@ func TestFindMCPServers(t *testing.T) {
 			expectedStatus: http.StatusInternalServerError,
 			expectError:    true,
 		},
+		{
+			name: "Unknown named query returns bad request",
+			mockSetup: func(provider *mockMCPProvider) {
+				provider.namedQueryErr = map[string]error{
+					"unknown_query": fmt.Errorf("unknown named query %q: %w", "unknown_query", api.ErrBadRequest),
+				}
+			},
+			namedQuery:     "unknown_query",
+			pageSize:       "10",
+			expectedStatus: http.StatusBadRequest,
+			expectError:    true,
+		},
+		{
+			name: "Known named query is forwarded to provider",
+			mockSetup: func(provider *mockMCPProvider) {
+				provider.addServer("1", openAIServer)
+				// production_ready is a known query — no error entry means success
+				provider.namedQueryErr = map[string]error{}
+			},
+			namedQuery:     "production_ready",
+			pageSize:       "10",
+			expectedStatus: http.StatusOK,
+			expectedServerList: &model.MCPServerList{
+				Items: []model.MCPServer{
+					func() model.MCPServer { s := *openAIServer; s.Id = stringPointer("1"); return s }(),
+				},
+				Size:          1,
+				PageSize:      10,
+				NextPageToken: "",
+			},
+		},
+		{
+			name: "Named query combined with filterQuery both forwarded",
+			mockSetup: func(provider *mockMCPProvider) {
+				provider.addServer("1", openAIServer)
+				provider.addServer("2", githubServer)
+				provider.namedQueryErr = map[string]error{}
+			},
+			namedQuery:     "production_ready",
+			filterQuery:    "provider = 'OpenAI'",
+			pageSize:       "10",
+			expectedStatus: http.StatusOK,
+			expectedServerList: &model.MCPServerList{
+				Items: []model.MCPServer{
+					func() model.MCPServer { s := *openAIServer; s.Id = stringPointer("1"); return s }(),
+				},
+				Size:          1,
+				PageSize:      10,
+				NextPageToken: "",
+			},
+		},
 	}
 
 	for _, tc := range testCases {
@@ -323,7 +385,7 @@ func TestFindMCPServers(t *testing.T) {
 			mockProvider := newMockMCPProvider()
 			tc.mockSetup(mockProvider)
 
-			service := NewMCPCatalogServiceAPIService(mockProvider)
+			service := NewMCPCatalogServiceAPIService(mockProvider, nil)
 			ctx := context.Background()
 
 			result, err := service.FindMCPServers(
@@ -436,7 +498,7 @@ func TestGetMCPServer(t *testing.T) {
 			mockProvider := newMockMCPProvider()
 			tc.mockSetup(mockProvider)
 
-			service := NewMCPCatalogServiceAPIService(mockProvider)
+			service := NewMCPCatalogServiceAPIService(mockProvider, nil)
 			ctx := context.Background()
 
 			result, err := service.GetMCPServer(ctx, tc.serverID, tc.includeTools)
@@ -559,7 +621,7 @@ func TestFindMCPServerTools(t *testing.T) {
 			mockProvider := newMockMCPProvider()
 			tc.mockSetup(mockProvider)
 
-			service := NewMCPCatalogServiceAPIService(mockProvider)
+			service := NewMCPCatalogServiceAPIService(mockProvider, nil)
 			ctx := context.Background()
 
 			result, err := service.FindMCPServerTools(
@@ -653,7 +715,7 @@ func TestGetMCPServerTool(t *testing.T) {
 			mockProvider := newMockMCPProvider()
 			tc.mockSetup(mockProvider)
 
-			service := NewMCPCatalogServiceAPIService(mockProvider)
+			service := NewMCPCatalogServiceAPIService(mockProvider, nil)
 			ctx := context.Background()
 
 			result, err := service.GetMCPServerTool(ctx, tc.serverID, tc.toolName)
@@ -677,14 +739,51 @@ func TestGetMCPServerTool(t *testing.T) {
 }
 
 func TestFindMCPServersFilterOptions(t *testing.T) {
-	mockProvider := newMockMCPProvider()
-	service := NewMCPCatalogServiceAPIService(mockProvider)
 	ctx := context.Background()
 
-	result, err := service.FindMCPServersFilterOptions(ctx)
+	t.Run("nil mcpSources returns empty FilterOptionsList", func(t *testing.T) {
+		service := NewMCPCatalogServiceAPIService(newMockMCPProvider(), nil)
+		result, err := service.FindMCPServersFilterOptions(ctx)
 
-	// Should return 501 Not Implemented as per the implementation
-	assert.Equal(t, http.StatusNotImplemented, result.Code)
-	// The function returns an error, but err should be nil as it's handled in the response
-	assert.NoError(t, err)
+		assert.NoError(t, err)
+		assert.Equal(t, http.StatusOK, result.Code)
+		body, ok := result.Body.(model.FilterOptionsList)
+		require.True(t, ok)
+		assert.Nil(t, body.NamedQueries)
+	})
+
+	t.Run("named queries from mcpSources are returned", func(t *testing.T) {
+		sources := mcpcatalog.NewMCPSourceCollection()
+		err := sources.MergeWithNamedQueries("test", nil, map[string]map[string]basecatalog.FieldFilter{
+			"production_ready": {
+				"maturity": {Operator: "=", Value: "production"},
+			},
+		})
+		require.NoError(t, err)
+
+		service := NewMCPCatalogServiceAPIService(newMockMCPProvider(), sources)
+		result, err := service.FindMCPServersFilterOptions(ctx)
+
+		assert.NoError(t, err)
+		assert.Equal(t, http.StatusOK, result.Code)
+		body, ok := result.Body.(model.FilterOptionsList)
+		require.True(t, ok)
+		require.NotNil(t, body.NamedQueries)
+		nq := *body.NamedQueries
+		require.Contains(t, nq, "production_ready")
+		assert.Equal(t, model.FieldFilter{Operator: "=", Value: "production"}, nq["production_ready"]["maturity"])
+	})
+
+	t.Run("empty named queries returns empty map", func(t *testing.T) {
+		sources := mcpcatalog.NewMCPSourceCollection()
+		service := NewMCPCatalogServiceAPIService(newMockMCPProvider(), sources)
+		result, err := service.FindMCPServersFilterOptions(ctx)
+
+		assert.NoError(t, err)
+		assert.Equal(t, http.StatusOK, result.Code)
+		body, ok := result.Body.(model.FilterOptionsList)
+		require.True(t, ok)
+		require.NotNil(t, body.NamedQueries)
+		assert.Empty(t, *body.NamedQueries)
+	})
 }
