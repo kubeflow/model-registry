@@ -12,7 +12,6 @@ import (
 )
 
 type McpServerListEnvelope Envelope[*models.McpServerList, None]
-type McpServerFilterOptionEnvelope Envelope[*models.FilterOption, None]
 type McpServerFilterOptionsListEnvelope Envelope[*models.FilterOptionsList, None]
 type McpServerEnvelope Envelope[*models.McpServer, None]
 type McpServerToolsListEnvelope Envelope[*models.McpToolList, None]

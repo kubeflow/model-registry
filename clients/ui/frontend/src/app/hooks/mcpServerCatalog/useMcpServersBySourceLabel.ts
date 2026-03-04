@@ -12,6 +12,7 @@ type PaginatedMcpServerList = {
   isLoadingMore: boolean;
   hasMore: boolean;
   refresh: () => void;
+  loadMoreError?: Error;
 };
 
 type McpServers = {
@@ -38,6 +39,9 @@ export const useMcpServersBySourceLabel = (
   const [totalSize, setTotalSize] = React.useState(0);
   const [nextPageTokenValue, setNextPageTokenValue] = React.useState('');
   const [isLoadingMore, setIsLoadingMore] = React.useState(false);
+  const [loadMoreError, setLoadMoreError] = React.useState<Error | undefined>();
+
+  const resetJustRanRef = React.useRef(false);
 
   const buildMcpServerListParams = React.useCallback(
     (nextPageToken?: string): McpServerListParams => ({
@@ -84,6 +88,10 @@ export const useMcpServersBySourceLabel = (
 
   React.useEffect(() => {
     if (loaded && !error) {
+      if (resetJustRanRef.current) {
+        resetJustRanRef.current = false;
+        return;
+      }
       setAllItems(firstPageData.items ?? []);
       setTotalSize(firstPageData.size);
       setNextPageTokenValue(firstPageData.nextPageToken);
@@ -96,6 +104,7 @@ export const useMcpServersBySourceLabel = (
     }
 
     setIsLoadingMore(true);
+    setLoadMoreError(undefined);
 
     try {
       const response = await api.getMcpServerList({}, buildMcpServerListParams(nextPageTokenValue));
@@ -103,9 +112,12 @@ export const useMcpServersBySourceLabel = (
       setAllItems((prev) => [...prev, ...(response.items ?? [])]);
       setTotalSize(response.size);
       setNextPageTokenValue(response.nextPageToken);
+      setLoadMoreError(undefined);
     } catch (err) {
-      throw new Error(
-        `Failed to load more servers: ${err instanceof Error ? err.message : String(err)}`,
+      setLoadMoreError(
+        new Error(
+          `Failed to load more servers: ${err instanceof Error ? err.message : String(err)}`,
+        ),
       );
     } finally {
       setIsLoadingMore(false);
@@ -117,6 +129,8 @@ export const useMcpServersBySourceLabel = (
     setTotalSize(0);
     setNextPageTokenValue('');
     setIsLoadingMore(false);
+    setLoadMoreError(undefined);
+    resetJustRanRef.current = true;
   }, [
     sourceLabel,
     pageSize,
@@ -134,6 +148,7 @@ export const useMcpServersBySourceLabel = (
     setTotalSize(0);
     setNextPageTokenValue('');
     setIsLoadingMore(false);
+    setLoadMoreError(undefined);
     refetch();
   }, [refetch]);
 
@@ -146,6 +161,7 @@ export const useMcpServersBySourceLabel = (
     isLoadingMore,
     hasMore: Boolean(nextPageTokenValue),
     refresh,
+    loadMoreError,
   };
 
   return {

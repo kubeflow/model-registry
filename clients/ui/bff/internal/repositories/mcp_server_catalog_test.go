@@ -17,7 +17,7 @@ func TestGetAllMcpServers_Success(t *testing.T) {
 	responseJSON := `{"size": 2, "pageSize": 10, "nextPageToken": "", "items": [{"id": 1, "name": "Server 1", "toolCount": 5}, {"id": 2, "name": "Server 2", "toolCount": 3}]}`
 	mockClient.On("GET", "/mcp_servers").Return([]byte(responseJSON), nil)
 
-	repo := CatalogSources{}
+	repo := McpServerCatalog{}
 	pageValues := url.Values{}
 	result, err := repo.GetAllMcpServers(mockClient, pageValues)
 
@@ -39,7 +39,7 @@ func TestGetAllMcpServers_WithQueryParams(t *testing.T) {
 			strings.Contains(path, "name=test")
 	})).Return([]byte(responseJSON), nil)
 
-	repo := CatalogSources{}
+	repo := McpServerCatalog{}
 	pageValues := url.Values{}
 	pageValues.Set("name", "test")
 	result, err := repo.GetAllMcpServers(mockClient, pageValues)
@@ -62,7 +62,7 @@ func TestGetAllMcpServers_ClientError(t *testing.T) {
 	}
 	mockClient.On("GET", "/mcp_servers").Return([]byte(nil), expectedErr)
 
-	repo := CatalogSources{}
+	repo := McpServerCatalog{}
 	result, err := repo.GetAllMcpServers(mockClient, url.Values{})
 
 	assert.Nil(t, result)
@@ -75,7 +75,7 @@ func TestGetAllMcpServers_InvalidJSON(t *testing.T) {
 	mockClient := &mocks.MockHTTPClient{}
 	mockClient.On("GET", "/mcp_servers").Return([]byte("not valid json"), nil)
 
-	repo := CatalogSources{}
+	repo := McpServerCatalog{}
 	result, err := repo.GetAllMcpServers(mockClient, url.Values{})
 
 	assert.Nil(t, result)
@@ -89,7 +89,7 @@ func TestGetMcpServersFilter_Success(t *testing.T) {
 	responseJSON := `{"filters": {}, "namedQueries": {}}`
 	mockClient.On("GET", "/mcp_servers/filter_options").Return([]byte(responseJSON), nil)
 
-	repo := CatalogSources{}
+	repo := McpServerCatalog{}
 	result, err := repo.GetMcpServersFilter(mockClient)
 
 	assert.NoError(t, err)
@@ -102,7 +102,7 @@ func TestGetMcpServersFilter_ClientError(t *testing.T) {
 	expectedErr := errors.New("network failure")
 	mockClient.On("GET", "/mcp_servers/filter_options").Return([]byte(nil), expectedErr)
 
-	repo := CatalogSources{}
+	repo := McpServerCatalog{}
 	result, err := repo.GetMcpServersFilter(mockClient)
 
 	assert.Nil(t, result)
@@ -116,7 +116,7 @@ func TestGetMcpServer_Success(t *testing.T) {
 	responseJSON := `{"id": 1, "name": "Test MCP Server", "toolCount": 5}`
 	mockClient.On("GET", "/mcp_servers/server-1").Return([]byte(responseJSON), nil)
 
-	repo := CatalogSources{}
+	repo := McpServerCatalog{}
 	result, err := repo.GetMcpServer(mockClient, "server-1")
 
 	assert.NoError(t, err)
@@ -131,7 +131,7 @@ func TestGetMcpServer_ClientError(t *testing.T) {
 	expectedErr := &httpclient.HTTPError{StatusCode: 404}
 	mockClient.On("GET", "/mcp_servers/missing").Return([]byte(nil), expectedErr)
 
-	repo := CatalogSources{}
+	repo := McpServerCatalog{}
 	result, err := repo.GetMcpServer(mockClient, "missing")
 
 	assert.Nil(t, result)
@@ -144,7 +144,7 @@ func TestGetMcpServersTools_Success(t *testing.T) {
 	responseJSON := `{"size": 2, "pageSize": 10, "nextPageToken": "", "items": []}`
 	mockClient.On("GET", "/mcp_servers/server-1/tools").Return([]byte(responseJSON), nil)
 
-	repo := CatalogSources{}
+	repo := McpServerCatalog{}
 	result, err := repo.GetMcpServersTools(mockClient, "server-1")
 
 	assert.NoError(t, err)
@@ -159,7 +159,7 @@ func TestGetMcpServersTools_ClientError(t *testing.T) {
 	expectedErr := errors.New("fetch failed")
 	mockClient.On("GET", "/mcp_servers/bad/tools").Return([]byte(nil), expectedErr)
 
-	repo := CatalogSources{}
+	repo := McpServerCatalog{}
 	result, err := repo.GetMcpServersTools(mockClient, "bad")
 
 	assert.Nil(t, result)

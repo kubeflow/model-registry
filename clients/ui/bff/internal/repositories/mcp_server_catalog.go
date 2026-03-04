@@ -23,7 +23,7 @@ type McpServerCatalog struct {
 	McpServerCatalogInterface
 }
 
-func (a *CatalogSources) GetAllMcpServers(client httpclient.HTTPClientInterface, pageValues url.Values) (*models.McpServerList, error) {
+func (a *McpServerCatalog) GetAllMcpServers(client httpclient.HTTPClientInterface, pageValues url.Values) (*models.McpServerList, error) {
 	responseData, err := client.GET(UrlWithPageParams(mcpServerPath, pageValues))
 
 	if err != nil {
@@ -40,7 +40,7 @@ func (a *CatalogSources) GetAllMcpServers(client httpclient.HTTPClientInterface,
 
 }
 
-func (a *CatalogSources) GetMcpServersFilter(client httpclient.HTTPClientInterface) (*models.FilterOptionsList, error) {
+func (a *McpServerCatalog) GetMcpServersFilter(client httpclient.HTTPClientInterface) (*models.FilterOptionsList, error) {
 	responseData, err := client.GET(mcpFilterOptionPath)
 
 	if err != nil {
@@ -55,7 +55,7 @@ func (a *CatalogSources) GetMcpServersFilter(client httpclient.HTTPClientInterfa
 	return &filters, nil
 }
 
-func (a *CatalogSources) GetMcpServer(client httpclient.HTTPClientInterface, serverId string) (*models.McpServer, error) {
+func (a *McpServerCatalog) GetMcpServer(client httpclient.HTTPClientInterface, serverId string) (*models.McpServer, error) {
 	path, err := url.JoinPath(mcpServerPath, serverId)
 
 	if err != nil {
@@ -77,7 +77,7 @@ func (a *CatalogSources) GetMcpServer(client httpclient.HTTPClientInterface, ser
 	return &mcpServer, nil
 }
 
-func (a *CatalogSources) GetMcpServersTools(client httpclient.HTTPClientInterface, serverId string) (*models.McpToolList, error) {
+func (a *McpServerCatalog) GetMcpServersTools(client httpclient.HTTPClientInterface, serverId string) (*models.McpToolList, error) {
 	path, err := url.JoinPath(mcpServerPath, serverId, "tools")
 
 	if err != nil {

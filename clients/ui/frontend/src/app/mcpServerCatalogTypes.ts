@@ -1,3 +1,5 @@
+import { PaginationParams } from './modelCatalogTypes';
+
 export type McpDeploymentMode = 'local' | 'remote';
 
 export type McpTransportType = 'stdio' | 'sse' | 'http';
@@ -64,13 +66,7 @@ export type McpServer = {
   endpoints?: McpEndpoints;
 };
 
-export type McpListParams = {
-  size: number;
-  pageSize: number;
-  nextPageToken: string;
-};
-
-export type McpServerList = McpListParams & { items?: McpServer[] };
+export type McpServerList = PaginationParams & { items?: McpServer[] };
 
 export type McpToolWithServer = {
   serverId: string;
@@ -78,7 +74,7 @@ export type McpToolWithServer = {
   tool: McpTool;
 };
 
-export type McpToolList = McpListParams & { items?: McpToolWithServer[] };
+export type McpToolList = PaginationParams & { items?: McpToolWithServer[] };
 
 export type McpServerListParams = {
   sourceLabel?: string;
