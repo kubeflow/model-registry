@@ -3,6 +3,7 @@ package converter
 import (
 	"encoding/json"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/golang/glog"
@@ -297,8 +298,15 @@ func ConvertDbMCPToolToOpenapi(dbTool models.MCPServerTool) *openapi.MCPTool {
 		accessType = "read_only" // default fallback to prevent API contract violation
 	}
 
+	// Strip internal qualified prefix (serverName@version:) from tool name before returning to API.
+	// The DB stores tools as "server@version:toolName" for uniqueness, but the API should return just "toolName".
+	toolName := *attr.Name
+	if idx := strings.LastIndex(toolName, ":"); idx != -1 {
+		toolName = toolName[idx+1:]
+	}
+
 	// Create OpenAPI tool with required fields
-	openapiTool := openapi.NewMCPTool(*attr.Name, accessType)
+	openapiTool := openapi.NewMCPTool(toolName, accessType)
 
 	// Set ID if available
 	if id := dbTool.GetID(); id != nil {
