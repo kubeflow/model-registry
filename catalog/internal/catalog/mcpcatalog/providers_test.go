@@ -2,6 +2,7 @@ package mcpcatalog
 
 import (
 	"context"
+	"encoding/json"
 	"os"
 	"path/filepath"
 	"strings"
@@ -260,6 +261,169 @@ func TestYamlMCPProviderInvalidFile(t *testing.T) {
 	require.Len(t, records, 1, "expected one error record for unreadable file")
 	assert.NotNil(t, records[0].Error, "error record should have non-nil Error")
 	assert.Nil(t, records[0].Server, "error record should have nil Server")
+}
+
+func TestYamlMCPEndpointsValidation(t *testing.T) {
+	tests := []struct {
+		name        string
+		server      *yamlMCPServer
+		wantErr     bool
+		errContains string
+	}{
+		{
+			name: "remote server with valid HTTP endpoint passes",
+			server: &yamlMCPServer{
+				Name:           "remote-http",
+				DeploymentMode: strPtr("remote"),
+				Endpoints:      &yamlMCPEndpoints{HTTP: strPtr("https://api.example.com/mcp")},
+			},
+		},
+		{
+			name: "remote server with valid SSE endpoint passes",
+			server: &yamlMCPServer{
+				Name:           "remote-sse",
+				DeploymentMode: strPtr("remote"),
+				Endpoints:      &yamlMCPEndpoints{SSE: strPtr("https://api.example.com/mcp/events")},
+			},
+		},
+		{
+			name: "remote server with both endpoints passes",
+			server: &yamlMCPServer{
+				Name:           "remote-both",
+				DeploymentMode: strPtr("remote"),
+				Endpoints: &yamlMCPEndpoints{
+					HTTP: strPtr("https://api.example.com/mcp"),
+					SSE:  strPtr("https://api.example.com/mcp/events"),
+				},
+			},
+		},
+		{
+			name: "remote server with no endpoints is rejected",
+			server: &yamlMCPServer{
+				Name:           "remote-no-endpoints",
+				DeploymentMode: strPtr("remote"),
+			},
+			wantErr:     true,
+			errContains: "no endpoints defined",
+		},
+		{
+			name: "remote server with empty endpoints struct is rejected",
+			server: &yamlMCPServer{
+				Name:           "remote-empty-endpoints",
+				DeploymentMode: strPtr("remote"),
+				Endpoints:      &yamlMCPEndpoints{},
+			},
+			wantErr:     true,
+			errContains: "no endpoints defined",
+		},
+		{
+			name: "local server without endpoints passes",
+			server: &yamlMCPServer{
+				Name:           "local-no-endpoints",
+				DeploymentMode: strPtr("local"),
+			},
+		},
+		{
+			name: "local server with endpoints passes (hybrid)",
+			server: &yamlMCPServer{
+				Name:           "local-with-endpoints",
+				DeploymentMode: strPtr("local"),
+				Endpoints:      &yamlMCPEndpoints{HTTP: strPtr("https://api.example.com/mcp")},
+			},
+		},
+		{
+			name: "non-HTTP URL in HTTP endpoint is rejected",
+			server: &yamlMCPServer{
+				Name:           "bad-url-scheme",
+				DeploymentMode: strPtr("remote"),
+				Endpoints:      &yamlMCPEndpoints{HTTP: strPtr("ftp://example.com/mcp")},
+			},
+			wantErr:     true,
+			errContains: "must be a valid URL",
+		},
+		{
+			name: "malformed URL is rejected",
+			server: &yamlMCPServer{
+				Name:           "malformed-url",
+				DeploymentMode: strPtr("remote"),
+				Endpoints:      &yamlMCPEndpoints{HTTP: strPtr("not-a-url-at-all")},
+			},
+			wantErr:     true,
+			errContains: "must be a valid URL",
+		},
+		{
+			name: "plain http URL is accepted",
+			server: &yamlMCPServer{
+				Name:           "plain-http",
+				DeploymentMode: strPtr("remote"),
+				Endpoints:      &yamlMCPEndpoints{HTTP: strPtr("http://api.example.com/mcp")},
+			},
+		},
+		{
+			name: "websocket-only remote server passes",
+			server: &yamlMCPServer{
+				Name:           "remote-ws",
+				DeploymentMode: strPtr("remote"),
+				Endpoints:      &yamlMCPEndpoints{WebSocket: strPtr("wss://api.example.com/ws")},
+			},
+		},
+		{
+			name: "ws scheme accepted for websocket endpoint",
+			server: &yamlMCPServer{
+				Name:           "remote-ws-plain",
+				DeploymentMode: strPtr("remote"),
+				Endpoints:      &yamlMCPEndpoints{WebSocket: strPtr("ws://api.example.com/ws")},
+			},
+		},
+		{
+			name: "ftp scheme rejected for websocket endpoint",
+			server: &yamlMCPServer{
+				Name:           "bad-ws-scheme",
+				DeploymentMode: strPtr("remote"),
+				Endpoints:      &yamlMCPEndpoints{WebSocket: strPtr("ftp://example.com/ws")},
+			},
+			wantErr:     true,
+			errContains: "must be a valid URL",
+		},
+		{
+			name: "server with no deploymentMode and endpoints passes",
+			server: &yamlMCPServer{
+				Name:      "no-mode-with-endpoints",
+				Endpoints: &yamlMCPEndpoints{HTTP: strPtr("https://api.example.com/mcp")},
+			},
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			record := tc.server.ToMCPServerProviderRecord()
+			if tc.wantErr {
+				assert.NotNil(t, record.Error, "expected an error but got none")
+				if tc.errContains != "" {
+					assert.Contains(t, record.Error.Error(), tc.errContains)
+				}
+			} else {
+				assert.Nil(t, record.Error, "expected no error but got: %v", record.Error)
+				assert.NotNil(t, record.Server)
+			}
+		})
+	}
+}
+
+func TestYamlMCPEndpointsJSONKeys(t *testing.T) {
+	endpoints := &yamlMCPEndpoints{
+		HTTP: strPtr("https://api.example.com/mcp"),
+		SSE:  strPtr("https://api.example.com/mcp/events"),
+	}
+
+	jsonBytes, err := json.Marshal(endpoints)
+	require.NoError(t, err)
+
+	jsonStr := string(jsonBytes)
+	assert.Contains(t, jsonStr, `"http":`, "JSON key should be lowercase 'http'")
+	assert.Contains(t, jsonStr, `"sse":`, "JSON key should be lowercase 'sse'")
+	assert.NotContains(t, jsonStr, `"HTTP":`, "JSON key must not be uppercase 'HTTP'")
+	assert.NotContains(t, jsonStr, `"SSE":`, "JSON key must not be uppercase 'SSE'")
 }
 
 // Helper function
