@@ -119,7 +119,8 @@ func ConvertDbMCPServerWithToolsToOpenapi(dbServer models.MCPServer, tools []mod
 }
 
 // convertDbMCPServerToOpenapiInternal is the shared implementation for server conversion.
-// If tools is nil, toolCount is set to 0. Otherwise, it's set to len(tools).
+// ToolCount is derived from len(tools) here as a preliminary value; callers MUST
+// override it with the accurate total from CountByParentID when a ToolLimit is applied.
 func convertDbMCPServerToOpenapiInternal(dbServer models.MCPServer, tools []openapi.MCPTool) *openapi.MCPServer {
 	attrs := dbServer.GetAttributes()
 	props := dbServer.GetProperties()
