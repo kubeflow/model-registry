@@ -83,7 +83,7 @@ func (a CatalogSources) GetCatalogFilterOptions(client httpclient.HTTPClientInte
 	responseData, err := client.GET(filterOptionPath)
 
 	if err != nil {
-		return nil, fmt.Errorf("error fetching sourcesPath: %w", err)
+		return nil, fmt.Errorf("error fetching filterOptionPath: %w", err)
 	}
 
 	var sources models.FilterOptionsList

@@ -18,6 +18,12 @@ import {
   ModelRegistryCustomPropertyInt,
   ModelRegistryCustomPropertyDouble,
 } from './types';
+import {
+  McpServer,
+  McpServerList,
+  McpServerListParams,
+  McpToolList,
+} from './mcpServerCatalogTypes';
 
 export type CatalogSource = {
   id: string;
@@ -28,7 +34,7 @@ export type CatalogSource = {
   error?: string;
 };
 
-export type CatalogSourceList = ModelCatalogListParams & { items?: CatalogSource[] };
+export type CatalogSourceList = PaginationParams & { items?: CatalogSource[] };
 
 export type CatalogModel = {
   source_id?: string;
@@ -48,13 +54,19 @@ export type CatalogModel = {
   customProperties?: ModelRegistryCustomProperties;
 };
 
-export type ModelCatalogListParams = {
+export type PaginationParams = {
   size: number;
   pageSize: number;
   nextPageToken: string;
 };
 
-export type CatalogModelList = ModelCatalogListParams & { items: CatalogModel[] };
+export type CatalogAssetType = 'models' | 'mcp_servers';
+
+export type CatalogSourceListParams = {
+  assetType?: CatalogAssetType;
+};
+
+export type CatalogModelList = PaginationParams & { items: CatalogModel[] };
 
 export enum CatalogArtifactType {
   modelArtifact = 'model-artifact',
@@ -81,7 +93,7 @@ export type CatalogLabel = {
   description?: string;
 };
 
-export type CatalogLabelList = ModelCatalogListParams & { items: CatalogLabel[] };
+export type CatalogLabelList = PaginationParams & { items: CatalogLabel[] };
 
 export enum CatalogSourceType {
   YAML = 'yaml',
@@ -151,9 +163,9 @@ export type CatalogMetricsArtifact =
 
 export type CatalogArtifacts = CatalogModelArtifact | CatalogMetricsArtifact;
 
-export type CatalogArtifactList = ModelCatalogListParams & { items: CatalogArtifacts[] };
+export type CatalogArtifactList = PaginationParams & { items: CatalogArtifacts[] };
 
-export type CatalogPerformanceArtifactList = ModelCatalogListParams & {
+export type CatalogPerformanceArtifactList = PaginationParams & {
   items: CatalogPerformanceMetricsArtifact[];
 };
 
@@ -191,7 +203,10 @@ export type GetCatalogModelsBySource = (
   },
 ) => Promise<CatalogModelList>;
 
-export type GetListSources = (opts: APIOptions) => Promise<CatalogSourceList>;
+export type GetListSources = (
+  opts: APIOptions,
+  listParams?: CatalogSourceListParams,
+) => Promise<CatalogSourceList>;
 
 export type GetCatalogModel = (
   opts: APIOptions,
@@ -225,6 +240,17 @@ export type GetCatalogFilterOptionList = (opts: APIOptions) => Promise<CatalogFi
 
 export type GetCatalogLabels = (opts: APIOptions) => Promise<CatalogLabelList>;
 
+export type GetMcpServerList = (
+  opts: APIOptions,
+  listParams?: McpServerListParams,
+) => Promise<McpServerList>;
+
+export type GetMcpServerFilterOptionList = (opts: APIOptions) => Promise<CatalogFilterOptionsList>;
+
+export type GetMcpServer = (opts: APIOptions, serverId: string) => Promise<McpServer>;
+
+export type GetMcpServerToolList = (opts: APIOptions, serverId: string) => Promise<McpToolList>;
+
 export type ModelCatalogAPIs = {
   getCatalogModelsBySource: GetCatalogModelsBySource;
   getListSources: GetListSources;
@@ -233,6 +259,10 @@ export type ModelCatalogAPIs = {
   getCatalogFilterOptionList: GetCatalogFilterOptionList;
   getPerformanceArtifacts: GetPerformanceArtifacts;
   getCatalogLabels: GetCatalogLabels;
+  getMcpServerList: GetMcpServerList;
+  getMcpServerFilterOptionList: GetMcpServerFilterOptionList;
+  getMcpServer: GetMcpServer;
+  getMcpServerToolList: GetMcpServerToolList;
 };
 
 export type CatalogModelDetailsParams = {

@@ -53,18 +53,18 @@ func (app *App) GetCatalogSourceModelHandler(w http.ResponseWriter, r *http.Requ
 
 	newModelName := url.PathEscape(modelName)
 
-	catalogModel, err := app.repositories.ModelCatalogClient.GetCatalogSourceModel(client, ps.ByName(CatalogSourceId), newModelName)
+	model, err := app.repositories.ModelCatalogClient.GetCatalogSourceModel(client, ps.ByName(CatalogSourceId), newModelName)
 
 	if err != nil {
 		app.serverErrorResponse(w, r, err)
 		return
 	}
 
-	sourcesList := CatalogModelEnvelope{
-		Data: catalogModel,
+	catalogModel := CatalogModelEnvelope{
+		Data: model,
 	}
 
-	err = app.WriteJSON(w, http.StatusOK, sourcesList, nil)
+	err = app.WriteJSON(w, http.StatusOK, catalogModel, nil)
 	if err != nil {
 		app.serverErrorResponse(w, r, err)
 	}
