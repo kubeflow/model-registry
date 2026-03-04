@@ -102,8 +102,9 @@ func (m *mockMCPServerToolRepo) GetByID(_ int32) (models.MCPServerTool, error) {
 func (m *mockMCPServerToolRepo) Save(_ models.MCPServerTool, _ *int32) (models.MCPServerTool, error) {
 	return nil, errors.New("not implemented")
 }
-func (m *mockMCPServerToolRepo) DeleteByParentID(_ int32) error { return errors.New("not implemented") }
-func (m *mockMCPServerToolRepo) DeleteByID(_ int32) error       { return errors.New("not implemented") }
+func (m *mockMCPServerToolRepo) CountByParentID(_ int32) (int32, error) { return 0, nil }
+func (m *mockMCPServerToolRepo) DeleteByParentID(_ int32) error         { return errors.New("not implemented") }
+func (m *mockMCPServerToolRepo) DeleteByID(_ int32) error               { return errors.New("not implemented") }
 
 // --- ListMCPServers named query tests ---
 

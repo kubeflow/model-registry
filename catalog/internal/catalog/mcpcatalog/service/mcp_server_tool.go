@@ -126,6 +126,27 @@ func (r *MCPServerToolRepositoryImpl) Save(tool models.MCPServerTool, parentID *
 	return r.GenericRepository.Save(tool, parentID)
 }
 
+// CountByParentID returns the number of tools belonging to a parent MCP server.
+func (r *MCPServerToolRepositoryImpl) CountByParentID(parentID int32) (int32, error) {
+	config := r.GetConfig()
+
+	associationTable := utils.GetTableName(config.DB, &schema.Association{})
+	executionTable := utils.GetTableName(config.DB, &schema.Execution{})
+
+	var count int64
+	err := config.DB.Table(executionTable).
+		Joins(fmt.Sprintf("INNER JOIN %s ON %s.execution_id = %s.id",
+			associationTable, associationTable, executionTable)).
+		Where(fmt.Sprintf("%s.context_id = ? AND %s.type_id = ?",
+			associationTable, executionTable), parentID, config.TypeID).
+		Count(&count).Error
+	if err != nil {
+		return 0, fmt.Errorf("error counting %s by parent: %w", config.EntityName, err)
+	}
+
+	return int32(count), nil
+}
+
 // DeleteByParentID deletes all tools belonging to a parent MCP server.
 func (r *MCPServerToolRepositoryImpl) DeleteByParentID(parentID int32) error {
 	config := r.GetConfig()
