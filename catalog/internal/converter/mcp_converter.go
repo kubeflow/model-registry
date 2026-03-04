@@ -94,9 +94,8 @@ func ConvertOpenapiMCPServerToDb(openapiServer *openapi.MCPServer) models.MCPSer
 
 // ConvertDbMCPServerToOpenapi converts a database MCPServer model to an OpenAPI MCPServer.
 // This extracts all properties from the database model and populates the OpenAPI struct.
-//
-// NOTE: The returned MCPServer will have ToolCount=0. Use ConvertDbMCPServerWithToolsToOpenapi
-// if you have loaded the associated tools and need an accurate tool count.
+// It does NOT populate ToolCount or the Tools array — callers MUST set ToolCount
+// (e.g. via CountByParentID) to avoid returning an incorrect zero value.
 func ConvertDbMCPServerToOpenapi(dbServer models.MCPServer) *openapi.MCPServer {
 	return convertDbMCPServerToOpenapiInternal(dbServer, nil)
 }
