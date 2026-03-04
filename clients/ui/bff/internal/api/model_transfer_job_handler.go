@@ -73,13 +73,19 @@ func (app *App) GetModelTransferJobHandler(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
+	jobNamespace := r.URL.Query().Get("jobNamespace")
+	if jobNamespace == "" {
+		app.badRequestResponse(w, r, fmt.Errorf("missing required query parameter: jobNamespace"))
+		return
+	}
+
 	modelRegistryID := ps.ByName(ModelRegistryId)
 	if modelRegistryID == "" {
 		app.badRequestResponse(w, r, fmt.Errorf("model registry name is required"))
 		return
 	}
 
-	modelTransferJob, err := app.repositories.ModelRegistry.GetModelTransferJob(ctx, client, namespace, jobName, modelRegistryID)
+	modelTransferJob, err := app.repositories.ModelRegistry.GetModelTransferJob(ctx, client, jobNamespace, jobName, modelRegistryID)
 
 	if err != nil {
 		if errors.Is(err, repositories.ErrJobNotFound) {
@@ -246,13 +252,19 @@ func (app *App) DeleteModelTransferJobHandler(w http.ResponseWriter, r *http.Req
 		return
 	}
 
+	jobNamespace := r.URL.Query().Get("jobNamespace")
+	if jobNamespace == "" {
+		app.badRequestResponse(w, r, fmt.Errorf("missing required query parameter: jobNamespace"))
+		return
+	}
+
 	modelRegistryID := ps.ByName(ModelRegistryId)
 	if modelRegistryID == "" {
 		app.badRequestResponse(w, r, fmt.Errorf("model registry name is required"))
 		return
 	}
 
-	deletedJob, err := app.repositories.ModelRegistry.DeleteModelTransferJob(ctx, client, namespace, jobName, modelRegistryID)
+	deletedJob, err := app.repositories.ModelRegistry.DeleteModelTransferJob(ctx, client, jobNamespace, jobName, modelRegistryID)
 	if err != nil {
 		if errors.Is(err, repositories.ErrJobNotFound) {
 			app.notFoundResponse(w, r)

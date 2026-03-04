@@ -69,6 +69,7 @@ type ModelTransferJobEvent struct {
 type ModelTransferJob struct {
 	Id                       string                       `json:"id"`
 	Name                     string                       `json:"name"`
+	JobDisplayName           string                       `json:"jobDisplayName"`
 	Description              string                       `json:"description,omitempty"`
 	Source                   ModelTransferJobSource       `json:"source"`
 	Destination              ModelTransferJobDestination  `json:"destination"`

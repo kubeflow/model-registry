@@ -29,14 +29,18 @@ const ModelTransferJobs: React.FC<ModelTransferJobsProps> = ({ ...pageProps }) =
   const [jobToRetry, setJobToRetry] = React.useState<ModelTransferJob | null>(null);
 
   const onRetryTransferJob = React.useCallback(
-    async (newJobName: string, deleteOldJob: boolean) => {
+    async (newJobName: string, newJobDisplayName: string, deleteOldJob: boolean) => {
       if (!jobToRetry?.name || !apiAvailable) {
         return;
       }
       await api.updateModelTransferJob(
         {},
         jobToRetry.name,
-        { name: newJobName },
+        {
+          name: newJobName,
+          namespace: jobToRetry.namespace,
+          jobDisplayName: newJobDisplayName,
+        },
         { deleteOldJob: deleteOldJob.toString() },
       );
       await refetchJobs();
@@ -59,7 +63,7 @@ const ModelTransferJobs: React.FC<ModelTransferJobsProps> = ({ ...pageProps }) =
     setIsDeleting(true);
     setDeleteError(undefined);
     try {
-      await api.deleteModelTransferJob({}, jobToDelete.name);
+      await api.deleteModelTransferJob({}, jobToDelete.name, jobToDelete.namespace);
       setJobToDelete(null);
       await refetchJobs();
     } catch (e) {

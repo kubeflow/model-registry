@@ -276,6 +276,7 @@ export const buildModelTransferJobPayload = (
 
   return {
     name: formData.jobResourceName,
+    jobDisplayName: formData.jobName,
     source,
     destination,
     uploadIntent,
