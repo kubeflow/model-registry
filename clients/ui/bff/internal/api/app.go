@@ -77,9 +77,9 @@ const (
 	CatalogSourcePreviewPath                 = ModelCatalogSettingsPathPrefix + "/source_preview"
 
 	// Model Transfer Jobs
-	ModelTransferJobName     = "job_name"
-	ModelTransferJobListPath = ModelRegistryPath + "/model_transfer_jobs"
-	ModelTransferJobPath     = ModelTransferJobListPath + "/:" + ModelTransferJobName
+	ModelTransferJobName       = "job_name"
+	ModelTransferJobListPath   = ModelRegistryPath + "/model_transfer_jobs"
+	ModelTransferJobPath       = ModelTransferJobListPath + "/:" + ModelTransferJobName
 	ModelTransferJobEventsPath = ModelTransferJobPath + "/events"
 
 	// MCP server catalog
