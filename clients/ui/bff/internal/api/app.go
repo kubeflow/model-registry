@@ -80,6 +80,10 @@ const (
 	ModelTransferJobName     = "job_name"
 	ModelTransferJobListPath = ModelRegistryPath + "/model_transfer_jobs"
 	ModelTransferJobPath     = ModelTransferJobListPath + "/:" + ModelTransferJobName
+
+	// Swagger UI (interactive API docs)
+	SwaggerPath    = ApiPathPrefix + "/swagger"
+	SwaggerDocPath = SwaggerPath + "/doc.json"
 )
 
 type App struct {
@@ -256,6 +260,9 @@ func (app *App) Routes() http.Handler {
 	apiRouter.GET(UserPath, app.UserHandler)
 	apiRouter.POST(CheckNamespaceRegistryAccessPath, app.CheckNamespaceRegistryAccessHandler)
 	apiRouter.GET(ModelRegistryListPath, app.AttachNamespace(app.RequireListServiceAccessInNamespace(app.GetAllModelRegistriesHandler)))
+
+	// Swagger UI (interactive API docs)
+	apiRouter.GET(SwaggerPath+"/*filepath", app.GetSwaggerHandler)
 
 	// Enable these routes in all cases except Kubeflow integration mode
 	// (Kubeflow integration mode is when DeploymentMode is kubeflow)
