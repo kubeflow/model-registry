@@ -474,7 +474,7 @@ func TestMetricHistoryRepository(t *testing.T) {
 
 	t.Run("TestPagination", func(t *testing.T) {
 		// Create multiple metric histories for pagination testing
-		for i := 0; i < 5; i++ {
+		for i := range 5 {
 			metricHistory := &models.MetricHistoryImpl{
 				TypeID: apiutils.Of(int32(typeID)),
 				Attributes: &models.MetricHistoryAttributes{

@@ -302,6 +302,11 @@ func (r *MCPServerRepositoryImpl) DeleteByID(id int32) error {
 	return nil
 }
 
+// GetTypeID returns the MLMD type ID for the kf.MCPServer context type.
+func (r *MCPServerRepositoryImpl) GetTypeID() int32 {
+	return r.GetConfig().TypeID
+}
+
 // GetDistinctSourceIDs retrieves all unique source_id values from MCP servers.
 func (r *MCPServerRepositoryImpl) GetDistinctSourceIDs() ([]string, error) {
 	config := r.GetConfig()

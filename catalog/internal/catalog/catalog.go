@@ -8,6 +8,7 @@ import (
 
 type (
 	ModelSource = basecatalog.ModelSource
+	FieldFilter = basecatalog.FieldFilter
 )
 
 type (
@@ -20,9 +21,9 @@ type (
 	ListPerformanceArtifactsParams = modelcatalog.ListPerformanceArtifactsParams
 
 	// MCP catalog types
-	MCPProvider                   = mcpcatalog.MCPCatalogProvider
-	ListMCPServersParams          = mcpcatalog.ListMCPServersParams
-	ListMCPServerToolsParams      = mcpcatalog.ListMCPServerToolsParams
+	MCPProvider              = mcpcatalog.MCPCatalogProvider
+	ListMCPServersParams     = mcpcatalog.ListMCPServersParams
+	ListMCPServerToolsParams = mcpcatalog.ListMCPServerToolsParams
 )
 
 var (

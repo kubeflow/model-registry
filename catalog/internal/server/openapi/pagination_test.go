@@ -17,7 +17,7 @@ func createCatalogSource(id int) model.CatalogSource {
 
 func createCatalogSources(count int) []model.CatalogSource {
 	sources := make([]model.CatalogSource, count)
-	for i := 0; i < count; i++ {
+	for i := range count {
 		sources[i] = createCatalogSource(i)
 	}
 	return sources

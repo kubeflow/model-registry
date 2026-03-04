@@ -706,3 +706,64 @@ func TestMCPLoaderSavesErrorSourceStatus(t *testing.T) {
 	assert.True(t, foundStatus, "status property should be set to 'error'")
 	assert.True(t, foundError, "error property should be set")
 }
+
+func TestMCPLoader_NamedQueriesFromConfig(t *testing.T) {
+	_, services, cleanup := setupMCPLoaderTest(t)
+	defer cleanup()
+
+	tmpDir := t.TempDir()
+
+	// A sources file that includes named queries
+	sourcesFile := filepath.Join(tmpDir, "sources.yaml")
+	err := os.WriteFile(sourcesFile, []byte(`mcp_catalogs: []
+namedQueries:
+  production_ready:
+    verifiedSource:
+      operator: "="
+      value: true
+    version:
+      operator: ">="
+      value: "2"
+`), 0644)
+	require.NoError(t, err)
+
+	baseLoader := basecatalog.NewBaseLoader([]string{sourcesFile})
+	loader := NewMCPLoaderWithState(services, baseLoader)
+
+	err = loader.ParseAllConfigs()
+	require.NoError(t, err)
+
+	queries := loader.Sources.GetNamedQueries()
+	require.Len(t, queries, 1, "should have one named query")
+
+	pq, ok := queries["production_ready"]
+	require.True(t, ok, "production_ready named query should exist")
+	assert.Equal(t, "=", pq["verifiedSource"].Operator)
+	assert.Equal(t, true, pq["verifiedSource"].Value)
+	assert.Equal(t, ">=", pq["version"].Operator)
+	assert.Equal(t, "2", pq["version"].Value)
+}
+
+func TestMCPLoader_InvalidNamedQueriesRejected(t *testing.T) {
+	_, services, cleanup := setupMCPLoaderTest(t)
+	defer cleanup()
+
+	tmpDir := t.TempDir()
+
+	sourcesFile := filepath.Join(tmpDir, "sources.yaml")
+	err := os.WriteFile(sourcesFile, []byte(`mcp_catalogs: []
+namedQueries:
+  bad_query:
+    name:
+      operator: "INVALID_OP"
+      value: "something"
+`), 0644)
+	require.NoError(t, err)
+
+	baseLoader := basecatalog.NewBaseLoader([]string{sourcesFile})
+	loader := NewMCPLoaderWithState(services, baseLoader)
+
+	err = loader.ParseAllConfigs()
+	require.Error(t, err, "invalid named query operator should be rejected")
+	assert.Contains(t, err.Error(), "INVALID_OP")
+}

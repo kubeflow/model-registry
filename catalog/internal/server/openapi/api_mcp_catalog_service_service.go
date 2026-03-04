@@ -61,7 +61,11 @@ func (m *MCPCatalogServiceAPIService) FindMCPServers(ctx context.Context, name s
 
 // FindMCPServersFilterOptions - Lists fields, values, and named queries that can be used in `filterQuery` on the list MCP servers endpoint.
 func (m *MCPCatalogServiceAPIService) FindMCPServersFilterOptions(ctx context.Context) (ImplResponse, error) {
-	return ErrorResponse(http.StatusNotImplemented, errors.New("FindMCPServersFilterOptions not implemented")), nil
+	filterOptions, err := m.mcpProvider.GetFilterOptions(ctx)
+	if err != nil {
+		return ErrorResponse(http.StatusInternalServerError, err), err
+	}
+	return Response(http.StatusOK, *filterOptions), nil
 }
 
 // GetMCPServer - Get an `MCPServer`.

@@ -460,7 +460,7 @@ func TestExperimentRepository(t *testing.T) {
 
 	t.Run("TestPagination", func(t *testing.T) {
 		// Create multiple experiments for pagination testing
-		for i := 0; i < 5; i++ {
+		for i := range 5 {
 			experiment := &models.ExperimentImpl{
 				TypeID: apiutils.Of(int32(typeID)),
 				Attributes: &models.ExperimentAttributes{

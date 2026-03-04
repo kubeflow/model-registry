@@ -1,6 +1,7 @@
 package mcpcatalog
 
 import (
+	"maps"
 	"sync"
 
 	"github.com/kubeflow/model-registry/catalog/internal/catalog/basecatalog"
@@ -16,8 +17,9 @@ type mcpOriginEntry struct {
 // MCPSourceCollection manages MCP catalog sources from multiple origins with priority-based merging.
 // Later entries in the slice take precedence over earlier ones.
 type MCPSourceCollection struct {
-	mu      sync.RWMutex
-	entries []mcpOriginEntry
+	mu           sync.RWMutex
+	entries      []mcpOriginEntry
+	namedQueries map[string]map[string]basecatalog.FieldFilter
 }
 
 // NewMCPSourceCollection creates a new MCPSourceCollection with the given origin order.
@@ -30,7 +32,8 @@ func NewMCPSourceCollection(originOrder ...string) *MCPSourceCollection {
 		entries[i] = mcpOriginEntry{origin: origin, sources: nil}
 	}
 	return &MCPSourceCollection{
-		entries: entries,
+		entries:      entries,
+		namedQueries: make(map[string]map[string]basecatalog.FieldFilter),
 	}
 }
 
@@ -46,6 +49,76 @@ func (msc *MCPSourceCollection) Merge(origin string, sources map[string]basecata
 	msc.mu.Lock()
 	defer msc.mu.Unlock()
 
+	return msc.mergeSourcesInternal(origin, sources)
+}
+
+// MergeWithNamedQueries adds sources and named queries from one origin.
+// Later origins override earlier ones at the field level within a query.
+func (msc *MCPSourceCollection) MergeWithNamedQueries(origin string, sources map[string]basecatalog.MCPSource, namedQueries map[string]map[string]basecatalog.FieldFilter) error {
+	msc.mu.Lock()
+	defer msc.mu.Unlock()
+
+	if err := msc.mergeSourcesInternal(origin, sources); err != nil {
+		return err
+	}
+
+	// Merge named queries (later origins override earlier ones at field level)
+	for queryName, fieldFilters := range namedQueries {
+		if msc.namedQueries[queryName] == nil {
+			msc.namedQueries[queryName] = make(map[string]basecatalog.FieldFilter)
+		}
+		maps.Copy(msc.namedQueries[queryName], fieldFilters)
+	}
+
+	return nil
+}
+
+// GetNamedQuery returns a copy of a single named query by name.
+// Returns (filters, true) if found, or (nil, false) if unknown.
+// Slice values within each FieldFilter are cloned to prevent callers from
+// accidentally mutating internal state.
+func (msc *MCPSourceCollection) GetNamedQuery(name string) (map[string]basecatalog.FieldFilter, bool) {
+	msc.mu.RLock()
+	defer msc.mu.RUnlock()
+
+	fieldFilters, ok := msc.namedQueries[name]
+	if !ok {
+		return nil, false
+	}
+	result := make(map[string]basecatalog.FieldFilter, len(fieldFilters))
+	for field, ff := range fieldFilters {
+		result[field] = deepCopyFieldFilter(ff)
+	}
+	return result, true
+}
+
+// deepCopyFieldFilter returns a copy of ff where slice values are cloned.
+func deepCopyFieldFilter(ff basecatalog.FieldFilter) basecatalog.FieldFilter {
+	if vals, ok := ff.Value.([]any); ok {
+		cp := make([]any, len(vals))
+		copy(cp, vals)
+		ff.Value = cp
+	}
+	return ff
+}
+
+// GetNamedQueries returns a deep copy of all merged named queries.
+func (msc *MCPSourceCollection) GetNamedQueries() map[string]map[string]basecatalog.FieldFilter {
+	msc.mu.RLock()
+	defer msc.mu.RUnlock()
+
+	result := make(map[string]map[string]basecatalog.FieldFilter, len(msc.namedQueries))
+	for queryName, fieldFilters := range msc.namedQueries {
+		result[queryName] = make(map[string]basecatalog.FieldFilter, len(fieldFilters))
+		for field, ff := range fieldFilters {
+			result[queryName][field] = deepCopyFieldFilter(ff)
+		}
+	}
+	return result
+}
+
+// mergeSourcesInternal performs the source merge. Must be called with lock held.
+func (msc *MCPSourceCollection) mergeSourcesInternal(origin string, sources map[string]basecatalog.MCPSource) error {
 	// Find existing entry for this origin
 	for i := range msc.entries {
 		if msc.entries[i].origin == origin {

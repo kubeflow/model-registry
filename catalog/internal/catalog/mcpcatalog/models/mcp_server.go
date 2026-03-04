@@ -13,7 +13,6 @@ type MCPServerListOptions struct {
 	SourceIDs   *[]string
 	Query       *string
 	FilterQuery *string
-	NamedQuery  *string
 }
 
 // GetRestEntityType implements the FilterApplier interface.
@@ -54,4 +53,5 @@ type MCPServerRepository interface {
 	DeleteBySource(sourceID string) error
 	DeleteByID(id int32) error
 	GetDistinctSourceIDs() ([]string, error)
+	GetTypeID() int32
 }

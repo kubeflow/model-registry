@@ -11,10 +11,10 @@ import {
   ToolbarContent,
   ToolbarItem,
 } from '@patternfly/react-core';
-import { PlusCircleIcon } from '@patternfly/react-icons';
 import { Table } from 'mod-arch-shared';
 import { CatalogSourceConfig } from '~/app/modelCatalogTypes';
 import { ModelCatalogSettingsContext } from '~/app/context/modelCatalogSettings/ModelCatalogSettingsContext';
+import { ADD_SOURCE_TITLE } from '~/app/routes/modelCatalogSettings/modelCatalogSettings';
 import { catalogSourceConfigsColumns } from './CatalogSourceConfigsTableColumns';
 import CatalogSourceConfigsTableRow from './CatalogSourceConfigsTableRow';
 
@@ -30,7 +30,7 @@ const CatalogSourceConfigsTable: React.FC<CatalogSourceConfigsTableProps> = ({
   onDeleteSource,
 }) => {
   const [toggleError, setToggleError] = React.useState<Error | undefined>(undefined);
-  const [isUpdatingToggle, setIsUpdatingToggle] = React.useState(false);
+  const [updatingToggleId, setUpdatingToggleId] = React.useState<string | null>(null);
   const { apiState, refreshCatalogSourceConfigs, catalogSourcesLoadError } = React.useContext(
     ModelCatalogSettingsContext,
   );
@@ -40,7 +40,7 @@ const CatalogSourceConfigsTable: React.FC<CatalogSourceConfigsTableProps> = ({
       setToggleError(new Error('API is not available'));
       return;
     }
-    setIsUpdatingToggle(true);
+    setUpdatingToggleId(catalogSourceConfig.id);
     setToggleError(undefined);
 
     try {
@@ -54,7 +54,7 @@ const CatalogSourceConfigsTable: React.FC<CatalogSourceConfigsTableProps> = ({
         setToggleError(new Error(`Error enabling/disabling source ${catalogSourceConfig.name}`));
       }
     } finally {
-      setIsUpdatingToggle(false);
+      setUpdatingToggleId(null);
     }
   };
 
@@ -85,11 +85,10 @@ const CatalogSourceConfigsTable: React.FC<CatalogSourceConfigsTableProps> = ({
                     <ToolbarItem>
                       <Button
                         variant="primary"
-                        icon={<PlusCircleIcon />}
                         onClick={onAddSource}
                         data-testid="add-source-button"
                       >
-                        Add a source
+                        {ADD_SOURCE_TITLE}
                       </Button>
                     </ToolbarItem>
                   </ToolbarContent>
@@ -113,7 +112,7 @@ const CatalogSourceConfigsTable: React.FC<CatalogSourceConfigsTableProps> = ({
             <CatalogSourceConfigsTableRow
               key={config.id}
               catalogSourceConfig={config}
-              isUpdatingToggle={isUpdatingToggle}
+              isUpdatingToggle={updatingToggleId === config.id}
               onToggleUpdate={handleEnableToggle}
               onDeleteSource={onDeleteSource}
             />

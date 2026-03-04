@@ -180,7 +180,7 @@ func TestDBCatalog(t *testing.T) {
 		sourceIDs := []string{"pagination-test-source"}
 
 		// Create multiple models
-		for i := 0; i < 5; i++ {
+		for i := range 5 {
 			model := &models.CatalogModelImpl{
 				TypeID: apiutils.Of(int32(catalogModelTypeID)),
 				Attributes: &models.CatalogModelAttributes{
@@ -1672,7 +1672,7 @@ func TestApplyMinMax(t *testing.T) {
 			inputOptions: map[string]model.FilterOption{
 				"status": {
 					Type:   "string",
-					Values: []interface{}{"active", "inactive"},
+					Values: []any{"active", "inactive"},
 				},
 			},
 			expectedQuery: map[string]model.FieldFilter{
@@ -1883,7 +1883,7 @@ func TestApplyMinMax(t *testing.T) {
 				},
 				"status": {
 					Type:   "string",
-					Values: []interface{}{"running", "stopped"},
+					Values: []any{"running", "stopped"},
 				},
 			},
 			expectedQuery: map[string]model.FieldFilter{
@@ -1918,11 +1918,8 @@ func TestApplyMinMax(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			// Create a catalog instance to access the applyMinMax method
-			catalog := &dbCatalogImpl{}
-
-			// Apply the method
-			catalog.applyMinMax(tt.inputQuery, tt.inputOptions)
+			// Apply the shared helper
+			basecatalog.ApplyMinMax(tt.inputQuery, tt.inputOptions)
 
 			// Verify the query was modified correctly
 			assert.Equal(t, tt.expectedQuery, tt.inputQuery, tt.description)

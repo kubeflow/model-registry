@@ -161,6 +161,9 @@ func (ml *MCPLoader) updateSources(path string, config *basecatalog.SourceConfig
 		glog.Infof("loaded MCP source %s of type %s", source.ID, source.Type)
 	}
 
+	if config.NamedQueries != nil {
+		return ml.Sources.MergeWithNamedQueries(path, sources, config.NamedQueries)
+	}
 	return ml.Sources.Merge(path, sources)
 }
 

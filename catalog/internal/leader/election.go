@@ -120,9 +120,7 @@ func NewLeaderElector(
 
 // startCallback launches a callback in a goroutine with panic recovery and proper cleanup.
 func (e *LeaderElector) startCallback(leaderCtx context.Context, idx int, cb func(context.Context)) {
-	e.activeCallbacks.Add(1)
-	go func() {
-		defer e.activeCallbacks.Done()
+	e.activeCallbacks.Go(func() {
 		defer func() {
 			if r := recover(); r != nil {
 				glog.Errorf("Leader callback %d panicked: %v", idx, r)
@@ -133,7 +131,7 @@ func (e *LeaderElector) startCallback(leaderCtx context.Context, idx int, cb fun
 		if leaderCtx.Err() == nil {
 			glog.Warningf("Leader callback %d exited early", idx)
 		}
-	}()
+	})
 }
 
 // OnBecomeLeader registers a callback to be invoked when this instance becomes leader.
