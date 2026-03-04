@@ -61,11 +61,9 @@ const EnabledModelRegistrySelectorContextProvider: React.FC<
     ? (modelRegistries.find((mr) => mr.name === preferredModelRegistryName) ?? undefined)
     : undefined;
 
-  // Fallback: first favorite registry, then first available registry
+  // Fallback: first favorite registry (in user's favorited order), then first available registry
   const firstFavoriteRegistry =
-    favorites.length > 0
-      ? (modelRegistries.find((mr) => favorites.includes(mr.name)) ?? null)
-      : null;
+    favorites.length > 0 ? (modelRegistries.find((mr) => mr.name === favorites[0]) ?? null) : null;
   const firstModelRegistry = modelRegistries.length > 0 ? modelRegistries[0] : null;
 
   const updatePreferredModelRegistry = React.useCallback(
