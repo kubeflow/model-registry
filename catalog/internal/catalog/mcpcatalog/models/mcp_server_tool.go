@@ -36,6 +36,7 @@ type MCPServerToolImpl = dbmodels.BaseEntity[MCPServerToolAttributes]
 type MCPServerToolRepository interface {
 	GetByID(id int32) (MCPServerTool, error)
 	List(listOptions MCPServerToolListOptions) ([]MCPServerTool, error)
+	CountByParentIDs(parentIDs []int32) (map[int32]int32, error)
 	Save(tool MCPServerTool, parentID *int32) (MCPServerTool, error)
 	DeleteByParentID(parentID int32) error
 	DeleteByID(id int32) error

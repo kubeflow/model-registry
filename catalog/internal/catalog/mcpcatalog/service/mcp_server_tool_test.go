@@ -539,4 +539,98 @@ func TestMCPServerToolRepository(t *testing.T) {
 		err := toolRepo.DeleteByParentID(nonExistentParentID)
 		require.NoError(t, err, "DeleteByParentID should be idempotent")
 	})
+
+	// ==============================================================================
+	// CountByParentIDs Tests
+	// ==============================================================================
+
+	t.Run("TestCountByParentIDs_MultipleServers", func(t *testing.T) {
+		// Create two parent servers with different tool counts
+		server1 := &models.MCPServerImpl{
+			Attributes: &models.MCPServerAttributes{Name: apiutils.Of("count-server-1")},
+			Properties: &[]dbmodels.Properties{
+				{Name: "source_id", StringValue: apiutils.Of("source-count-1")},
+				{Name: "version", StringValue: apiutils.Of("1.0.0")},
+			},
+		}
+		server2 := &models.MCPServerImpl{
+			Attributes: &models.MCPServerAttributes{Name: apiutils.Of("count-server-2")},
+			Properties: &[]dbmodels.Properties{
+				{Name: "source_id", StringValue: apiutils.Of("source-count-2")},
+				{Name: "version", StringValue: apiutils.Of("1.0.0")},
+			},
+		}
+		savedServer1, err := serverRepo.Save(server1)
+		require.NoError(t, err)
+		parentID1 := *savedServer1.GetID()
+
+		savedServer2, err := serverRepo.Save(server2)
+		require.NoError(t, err)
+		parentID2 := *savedServer2.GetID()
+
+		// Add 3 tools to server1
+		for i := 1; i <= 3; i++ {
+			tool := &models.MCPServerToolImpl{
+				Attributes: &models.MCPServerToolAttributes{
+					Name: apiutils.Of(fmt.Sprintf("count-s1-tool-%d", i)),
+				},
+				Properties: &[]dbmodels.Properties{
+					{Name: "accessType", StringValue: apiutils.Of("read-only")},
+				},
+			}
+			_, err := toolRepo.Save(tool, &parentID1)
+			require.NoError(t, err)
+		}
+
+		// Add 1 tool to server2
+		tool := &models.MCPServerToolImpl{
+			Attributes: &models.MCPServerToolAttributes{Name: apiutils.Of("count-s2-tool-1")},
+			Properties: &[]dbmodels.Properties{
+				{Name: "accessType", StringValue: apiutils.Of("read-only")},
+			},
+		}
+		_, err = toolRepo.Save(tool, &parentID2)
+		require.NoError(t, err)
+
+		// Count tools for both servers in a single batch
+		counts, err := toolRepo.CountByParentIDs([]int32{parentID1, parentID2})
+		require.NoError(t, err)
+		assert.Equal(t, int32(3), counts[parentID1])
+		assert.Equal(t, int32(1), counts[parentID2])
+	})
+
+	t.Run("TestCountByParentIDs_ServerWithNoTools", func(t *testing.T) {
+		// Create a server with no tools
+		server := &models.MCPServerImpl{
+			Attributes: &models.MCPServerAttributes{Name: apiutils.Of("count-empty-server")},
+			Properties: &[]dbmodels.Properties{
+				{Name: "source_id", StringValue: apiutils.Of("source-count-empty")},
+				{Name: "version", StringValue: apiutils.Of("1.0.0")},
+			},
+		}
+		savedServer, err := serverRepo.Save(server)
+		require.NoError(t, err)
+		parentID := *savedServer.GetID()
+
+		counts, err := toolRepo.CountByParentIDs([]int32{parentID})
+		require.NoError(t, err)
+		assert.Equal(t, int32(0), counts[parentID], "Server with no tools should have count 0")
+	})
+
+	t.Run("TestCountByParentIDs_EmptyInput", func(t *testing.T) {
+		counts, err := toolRepo.CountByParentIDs([]int32{})
+		require.NoError(t, err)
+		assert.Empty(t, counts, "Empty input should return empty map")
+	})
+
+	t.Run("TestCountByParentIDs_NonExistentParent", func(t *testing.T) {
+		// Non-existent parent IDs should return count 0 (not an error).
+		// In practice, callers validate parent existence before reaching
+		// CountByParentIDs, so this just verifies the SQL GROUP BY gracefully
+		// handles IDs with no matching rows.
+		nonExistentID := int32(999999)
+		counts, err := toolRepo.CountByParentIDs([]int32{nonExistentID})
+		require.NoError(t, err)
+		assert.Equal(t, int32(0), counts[nonExistentID])
+	})
 }

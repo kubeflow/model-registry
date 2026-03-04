@@ -126,6 +126,48 @@ func (r *MCPServerToolRepositoryImpl) Save(tool models.MCPServerTool, parentID *
 	return r.GenericRepository.Save(tool, parentID)
 }
 
+// CountByParentIDs returns the tool counts for multiple parent MCP servers in a single query.
+// The returned map keys are parent IDs; parents with zero tools are included with count 0.
+func (r *MCPServerToolRepositoryImpl) CountByParentIDs(parentIDs []int32) (map[int32]int32, error) {
+	result := make(map[int32]int32, len(parentIDs))
+	if len(parentIDs) == 0 {
+		return result, nil
+	}
+
+	// Initialize all requested IDs to 0
+	for _, id := range parentIDs {
+		result[id] = 0
+	}
+
+	config := r.GetConfig()
+	associationTable := utils.GetTableName(config.DB, &schema.Association{})
+	executionTable := utils.GetTableName(config.DB, &schema.Execution{})
+
+	type countRow struct {
+		ContextID int32 `gorm:"column:context_id"`
+		Count     int32 `gorm:"column:count"`
+	}
+
+	var rows []countRow
+	err := config.DB.Table(executionTable).
+		Select(fmt.Sprintf("%s.context_id, COUNT(*) as count", associationTable)).
+		Joins(fmt.Sprintf("INNER JOIN %s ON %s.execution_id = %s.id",
+			associationTable, associationTable, executionTable)).
+		Where(fmt.Sprintf("%s.context_id IN ? AND %s.type_id = ?",
+			associationTable, executionTable), parentIDs, config.TypeID).
+		Group(fmt.Sprintf("%s.context_id", associationTable)).
+		Find(&rows).Error
+	if err != nil {
+		return nil, fmt.Errorf("error counting %s by parents: %w", config.EntityName, err)
+	}
+
+	for _, row := range rows {
+		result[row.ContextID] = row.Count
+	}
+
+	return result, nil
+}
+
 // DeleteByParentID deletes all tools belonging to a parent MCP server.
 func (r *MCPServerToolRepositoryImpl) DeleteByParentID(parentID int32) error {
 	config := r.GetConfig()
