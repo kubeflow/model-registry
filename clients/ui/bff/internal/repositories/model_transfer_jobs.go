@@ -20,6 +20,13 @@ import (
 	"k8s.io/apimachinery/pkg/util/validation"
 )
 
+const (
+	// DefaultAsyncUploadImage is the default container image for async-upload jobs.
+	DefaultAsyncUploadImage    = "ghcr.io/kubeflow/model-registry/job/async-upload:latest"
+	asyncUploadConfigMapName   = "model-registry-ui-config"
+	asyncUploadConfigMapKey    = "images-jobs-async-upload"
+)
+
 var (
 	ErrJobNotFound           = errors.New("model transfer job not found")
 	ErrJobValidationFailed   = errors.New("validation failed")
@@ -319,7 +326,8 @@ func (m *ModelRegistryRepository) createModelTransferJobResources(
 		destSecretName = destSecretCreated.Name
 	}
 
-	job := buildK8sJob(jobName, jobID, payload, configMapName, sourceSecretName, destSecretName, modelRegistryAddress, modelRegistryID)
+	imageURI := m.resolveAsyncUploadImage(ctx, client)
+	job := buildK8sJob(jobName, jobID, payload, configMapName, sourceSecretName, destSecretName, modelRegistryAddress, modelRegistryID, imageURI)
 	jobCreated, err := client.CreateModelTransferJob(ctx, payload.Namespace, job)
 	if err != nil {
 		cleanupCreatedResources(ctx, client, payload.Namespace, configMapName, sourceSecretName, destSecretName)
@@ -612,8 +620,27 @@ func (m *ModelRegistryRepository) getModelRegistryAddress(ctx context.Context, c
 	return modelRegistry.ServerAddress, nil
 }
 
+func (m *ModelRegistryRepository) resolveAsyncUploadImage(ctx context.Context, client k8s.KubernetesClientInterface) string {
+	if !m.IsFederatedMode || m.PodNamespace == "" {
+		return DefaultAsyncUploadImage
+	}
+	logger := helper.GetContextLogger(ctx)
+	cm, err := client.GetConfigMap(ctx, m.PodNamespace, asyncUploadConfigMapName)
+	if err != nil {
+		logger.Info("ConfigMap not found, using default async-upload image",
+			"configmap", asyncUploadConfigMapName, "error", err)
+		return DefaultAsyncUploadImage
+	}
+	if img, ok := cm.Data[asyncUploadConfigMapKey]; ok && img != "" {
+		return img
+	}
+	logger.Info("ConfigMap key not found, using default async-upload image",
+		"configmap", asyncUploadConfigMapName, "key", asyncUploadConfigMapKey)
+	return DefaultAsyncUploadImage
+}
+
 func buildK8sJob(jobName, jobID string, payload models.ModelTransferJob,
-	configMapName, sourceSecretName, destSecretName, modelRegistryAddress, modelRegistryID string) *batchv1.Job {
+	configMapName, sourceSecretName, destSecretName, modelRegistryAddress, modelRegistryID, imageURI string) *batchv1.Job {
 
 	backoffLimit := int32(3)
 
@@ -744,7 +771,7 @@ func buildK8sJob(jobName, jobID string, payload models.ModelTransferJob,
 					Containers: []corev1.Container{
 						{
 							Name:            "async-upload",
-							Image:           "ghcr.io/kubeflow/model-registry/job/async-upload:latest",
+							Image:           imageURI,
 							ImagePullPolicy: corev1.PullIfNotPresent,
 							VolumeMounts:    volumeMounts,
 							Env:             envVars,

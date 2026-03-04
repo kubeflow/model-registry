@@ -202,7 +202,7 @@ func NewApp(cfg config.EnvConfig, logger *slog.Logger) (*App, error) {
 		config:                  cfg,
 		logger:                  logger,
 		kubernetesClientFactory: k8sFactory,
-		repositories:            repositories.NewRepositories(mrClient, modelCatalogClient),
+		repositories:            repositories.NewRepositories(mrClient, modelCatalogClient, cfg.DeploymentMode.IsFederatedMode(), getPodNamespace()),
 		testEnv:                 testEnv,
 		rootCAs:                 rootCAs,
 	}
@@ -217,6 +217,14 @@ func (app *App) Shutdown() error {
 	//shutdown the envtest control plane when we are in the mock mode.
 	app.logger.Info("shutting env test...")
 	return app.testEnv.Stop()
+}
+
+func getPodNamespace() string {
+	ns, err := os.ReadFile("/var/run/secrets/kubernetes.io/serviceaccount/namespace")
+	if err != nil {
+		return ""
+	}
+	return strings.TrimSpace(string(ns))
 }
 
 func (app *App) Routes() http.Handler {

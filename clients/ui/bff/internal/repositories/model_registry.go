@@ -11,10 +11,15 @@ import (
 )
 
 type ModelRegistryRepository struct {
+	IsFederatedMode bool
+	PodNamespace    string
 }
 
-func NewModelRegistryRepository() *ModelRegistryRepository {
-	return &ModelRegistryRepository{}
+func NewModelRegistryRepository(isFederatedMode bool, podNamespace string) *ModelRegistryRepository {
+	return &ModelRegistryRepository{
+		IsFederatedMode: isFederatedMode,
+		PodNamespace:    podNamespace,
+	}
 }
 
 func (m *ModelRegistryRepository) GetAllModelRegistries(sessionCtx context.Context, client k8s.KubernetesClientInterface, namespace string) ([]models.ModelRegistryModel, error) {

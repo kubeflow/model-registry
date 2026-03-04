@@ -17,7 +17,7 @@ var _ = Describe("TestFetchAllModelRegistry", func() {
 		It("should retrieve the get all kubeflow service successfully", func() {
 
 			By("fetching all model registries in the repository")
-			modelRegistryRepository := NewModelRegistryRepository()
+			modelRegistryRepository := NewModelRegistryRepository(false, "")
 			serviceAccountMockedK8client, err := kubernetesMockedStaticClientFactory.GetClient(mocks.NewMockSessionContextNoParent())
 			Expect(err).NotTo(HaveOccurred())
 
@@ -35,7 +35,7 @@ var _ = Describe("TestFetchAllModelRegistry", func() {
 		It("should retrieve the get all dora-namespace service successfully", func() {
 
 			By("fetching all model registries in the repository")
-			modelRegistryRepository := NewModelRegistryRepository()
+			modelRegistryRepository := NewModelRegistryRepository(false, "")
 			serviceAccountMockedK8client, err := kubernetesMockedStaticClientFactory.GetClient(mocks.NewMockSessionContextNoParent())
 			Expect(err).NotTo(HaveOccurred())
 
@@ -52,7 +52,7 @@ var _ = Describe("TestFetchAllModelRegistry", func() {
 		It("should not retrieve namespaces", func() {
 
 			By("fetching all model registries in the repository")
-			modelRegistryRepository := NewModelRegistryRepository()
+			modelRegistryRepository := NewModelRegistryRepository(false, "")
 			serviceAccountMockedK8client, err := kubernetesMockedStaticClientFactory.GetClient(mocks.NewMockSessionContextNoParent())
 			Expect(err).NotTo(HaveOccurred())
 
@@ -69,7 +69,7 @@ var _ = Describe("TestFetchAllModelRegistry", func() {
 		var serviceAccountMockedK8client k8s.KubernetesClientInterface
 
 		BeforeEach(func() {
-			modelRegistryRepository = NewModelRegistryRepository()
+			modelRegistryRepository = NewModelRegistryRepository(false, "")
 			var err error
 			serviceAccountMockedK8client, err = kubernetesMockedStaticClientFactory.GetClient(mocks.NewMockSessionContextNoParent())
 			Expect(err).NotTo(HaveOccurred())
@@ -213,7 +213,7 @@ var _ = Describe("TestFetchAllModelRegistry", func() {
 		var serviceAccountMockedK8client k8s.KubernetesClientInterface
 
 		BeforeEach(func() {
-			modelRegistryRepository = NewModelRegistryRepository()
+			modelRegistryRepository = NewModelRegistryRepository(false, "")
 			var err error
 			serviceAccountMockedK8client, err = kubernetesMockedStaticClientFactory.GetClient(mocks.NewMockSessionContextNoParent())
 			Expect(err).NotTo(HaveOccurred())
