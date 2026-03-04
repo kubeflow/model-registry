@@ -1211,9 +1211,7 @@ var _ = Describe("TestModelTransferJob", func() {
 
 	Context("fetching model transfer job events", func() {
 		It("GET events returns 200 for existing job", func() {
-			envelope, rs, err := setupApiTest[Envelope[struct {
-				Events []models.ModelTransferJobEvent `json:"events"`
-			}, None]](
+			envelope, rs, err := setupApiTest[ModelTransferJobEventsEnvelope](
 				http.MethodGet,
 				"/api/v1/model_registry/model-registry/model_transfer_jobs/transfer-job-001/events?namespace=kubeflow",
 				nil,

@@ -14,6 +14,7 @@ import (
 
 type ModelTransferJobListEnvelope Envelope[*models.ModelTransferJobList, None]
 type ModelTransferJobEnvelope Envelope[*models.ModelTransferJob, None]
+type ModelTransferJobEventsEnvelope Envelope[models.ModelTransferJobEventsResponse, None]
 
 func (app *App) GetAllModelTransferJobsHandler(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 	ctx := r.Context()
@@ -306,16 +307,13 @@ func (app *App) GetModelTransferJobEventsHandler(w http.ResponseWriter, r *http.
 		return
 	}
 
-	type EventsResponse struct {
-		Events []models.ModelTransferJobEvent `json:"events"`
-	}
-
-	response := Envelope[EventsResponse, None]{
-		Data: EventsResponse{Events: events},
+	response := ModelTransferJobEventsEnvelope{
+		Data: models.ModelTransferJobEventsResponse{Events: events},
 	}
 
 	err = app.WriteJSON(w, http.StatusOK, response, nil)
 	if err != nil {
 		app.serverErrorResponse(w, r, err)
+		return
 	}
 }

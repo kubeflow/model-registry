@@ -416,6 +416,12 @@ curl -i -H "Authorization: Bearer $TOKEN" "http://localhost:4000/api/v1/model_re
 ```
 
 ```
+# GET api/v1/model_registry/model-registry/model_transfer_jobs/{job_name}/events
+curl -i -H "kubeflow-userid: user@example.com" "http://localhost:4000/api/v1/model_registry/model-registry/model_transfer_jobs/test-job/events?namespace=kubeflow"
+curl -i -H "Authorization: Bearer $TOKEN" "http://localhost:4000/api/v1/model_registry/model-registry/model_transfer_jobs/test-job/events?namespace=kubeflow"
+```
+
+```
 # POST /api/v1/model_registry/model-registry/model_transfer_jobs
 curl -i \
   -H "kubeflow-userid: user@example.com" \

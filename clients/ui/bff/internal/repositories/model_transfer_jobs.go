@@ -170,8 +170,6 @@ func (m *ModelRegistryRepository) GetModelTransferJob(ctx context.Context, clien
 }
 
 func (m *ModelRegistryRepository) GetModelTransferJobEvents(ctx context.Context, client k8s.KubernetesClientInterface, namespace string, jobName string, modelRegistryID string) ([]models.ModelTransferJobEvent, error) {
-	logger := helper.GetContextLogger(ctx)
-
 	job, err := client.GetModelTransferJob(ctx, namespace, jobName)
 	if err != nil {
 		if apierrors.IsNotFound(err) {
@@ -187,8 +185,7 @@ func (m *ModelRegistryRepository) GetModelTransferJobEvents(ctx context.Context,
 
 	podList, err := client.GetTransferJobPods(ctx, namespace, []string{jobName})
 	if err != nil {
-		logger.Warn("failed to fetch pods for transfer job", "error", err)
-		return []models.ModelTransferJobEvent{}, nil
+		return nil, fmt.Errorf("failed to fetch pods for transfer job: %w", err)
 	}
 
 	if len(podList.Items) == 0 {
@@ -202,8 +199,7 @@ func (m *ModelRegistryRepository) GetModelTransferJobEvents(ctx context.Context,
 
 	eventList, err := client.GetEventsForPods(ctx, namespace, podNames)
 	if err != nil {
-		logger.Warn("failed to fetch events for pods", "error", err)
-		return []models.ModelTransferJobEvent{}, nil
+		return nil, fmt.Errorf("failed to fetch events for pods: %w", err)
 	}
 
 	return convertK8sEventsToModelEvents(eventList), nil
