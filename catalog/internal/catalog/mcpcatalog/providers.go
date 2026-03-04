@@ -285,7 +285,8 @@ func (ys *yamlMCPServer) ToMCPServerProviderRecord() MCPServerProviderRecord {
 		properties = append(properties, mrmodels.NewStringProperty("logo", *ys.Logo, false))
 	}
 	if ys.License != nil {
-		properties = append(properties, mrmodels.NewStringProperty("license", *ys.License, false))
+		humanReadableLicense := basecatalog.TransformLicenseToHumanReadable(*ys.License)
+		properties = append(properties, mrmodels.NewStringProperty("license", humanReadableLicense, false))
 	}
 	if ys.LicenseLink != nil {
 		properties = append(properties, mrmodels.NewStringProperty("license_link", *ys.LicenseLink, false))

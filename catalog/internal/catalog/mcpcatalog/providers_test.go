@@ -426,6 +426,189 @@ func TestYamlMCPEndpointsJSONKeys(t *testing.T) {
 	assert.NotContains(t, jsonStr, `"SSE":`, "JSON key must not be uppercase 'SSE'")
 }
 
+func TestYamlMCPServerLicenseTransformation(t *testing.T) {
+	tests := []struct {
+		name            string
+		inputLicense    string
+		expectedLicense string
+	}{
+		{
+			name:            "apache-2.0 SPDX transforms to human-readable",
+			inputLicense:    "apache-2.0",
+			expectedLicense: "Apache 2.0",
+		},
+		{
+			name:            "MIT SPDX transforms to human-readable",
+			inputLicense:    "mit",
+			expectedLicense: "MIT",
+		},
+		{
+			name:            "GPL-3.0 SPDX transforms to human-readable",
+			inputLicense:    "gpl-3.0",
+			expectedLicense: "GPL 3.0",
+		},
+		{
+			name:            "BSD-3-Clause SPDX transforms to human-readable",
+			inputLicense:    "bsd-3-clause",
+			expectedLicense: "BSD 3-Clause",
+		},
+		{
+			name:            "Llama3.1 custom license transforms",
+			inputLicense:    "llama3.1",
+			expectedLicense: "Llama 3.1 Community License",
+		},
+		{
+			name:            "Llama3 custom license transforms",
+			inputLicense:    "llama3",
+			expectedLicense: "Llama 3 Community License",
+		},
+		{
+			name:            "Gemma custom license transforms",
+			inputLicense:    "gemma",
+			expectedLicense: "Gemma License",
+		},
+		{
+			name:            "Creative Commons CC-BY-4.0 transforms",
+			inputLicense:    "cc-by-4.0",
+			expectedLicense: "Creative Commons Attribution 4.0 International",
+		},
+		{
+			name:            "Creative Commons CC0 transforms",
+			inputLicense:    "cc0-1.0",
+			expectedLicense: "Creative Commons Zero v1.0 Universal",
+		},
+		{
+			name:            "OpenRAIL license transforms",
+			inputLicense:    "openrail",
+			expectedLicense: "OpenRAIL License",
+		},
+		{
+			name:            "BigScience OpenRAIL-M transforms",
+			inputLicense:    "bigscience-openrail-m",
+			expectedLicense: "BigScience OpenRAIL-M License",
+		},
+		{
+			name:            "Uppercase APACHE-2.0 normalizes and transforms",
+			inputLicense:    "APACHE-2.0",
+			expectedLicense: "Apache 2.0",
+		},
+		{
+			name:            "Mixed case Mit normalizes and transforms",
+			inputLicense:    "Mit",
+			expectedLicense: "MIT",
+		},
+		{
+			name:            "GPL-2.0 SPDX transforms to human-readable",
+			inputLicense:    "gpl-2.0",
+			expectedLicense: "GPL 2.0",
+		},
+		{
+			name:            "LGPL-3.0 SPDX transforms to human-readable",
+			inputLicense:    "lgpl-3.0",
+			expectedLicense: "LGPL 3.0",
+		},
+		{
+			name:            "Unknown license passes through unchanged",
+			inputLicense:    "custom-proprietary-license-1.0",
+			expectedLicense: "custom-proprietary-license-1.0",
+		},
+		{
+			name:            "Empty license results in no license property",
+			inputLicense:    "",
+			expectedLicense: "",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			var yamlServer *yamlMCPServer
+			if tt.inputLicense == "" {
+				yamlServer = &yamlMCPServer{
+					Name:     "test-server",
+					License:  nil, // No license field
+					Provider: strPtr("Test Provider"),
+				}
+			} else {
+				yamlServer = &yamlMCPServer{
+					Name:     "test-server",
+					License:  &tt.inputLicense,
+					Provider: strPtr("Test Provider"),
+				}
+			}
+
+			record := yamlServer.ToMCPServerProviderRecord()
+
+			assert.Nil(t, record.Error, "expected no error converting server")
+			assert.NotNil(t, record.Server, "expected server to be created")
+
+			props := record.Server.GetProperties()
+			require.NotNil(t, props, "expected properties to be set")
+
+			// Find the license property
+			var foundLicense *string
+			for _, prop := range *props {
+				if prop.Name == "license" && prop.StringValue != nil {
+					foundLicense = prop.StringValue
+					break
+				}
+			}
+
+			if tt.expectedLicense == "" {
+				assert.Nil(t, foundLicense, "expected no license property for empty input")
+			} else {
+				require.NotNil(t, foundLicense, "expected license property to be set")
+				assert.Equal(t, tt.expectedLicense, *foundLicense,
+					"license should be transformed from %q to %q", tt.inputLicense, tt.expectedLicense)
+			}
+		})
+	}
+}
+
+func TestYamlMCPServerLicenseConsistencyWithModels(t *testing.T) {
+	// This test verifies that MCP servers apply the same license transformation
+	// as models to ensure API consistency
+	testLicenses := []string{
+		"apache-2.0",
+		"mit",
+		"llama3.1",
+		"cc-by-4.0",
+		"gpl-3.0",
+	}
+
+	for _, license := range testLicenses {
+		t.Run(license, func(t *testing.T) {
+			// Get the expected human-readable transformation
+			expectedHumanReadable := basecatalog.TransformLicenseToHumanReadable(license)
+
+			// Create MCP server with this license
+			yamlServer := &yamlMCPServer{
+				Name:    "test-server",
+				License: &license,
+			}
+
+			record := yamlServer.ToMCPServerProviderRecord()
+			require.Nil(t, record.Error)
+			require.NotNil(t, record.Server)
+
+			// Extract license from properties
+			props := record.Server.GetProperties()
+			require.NotNil(t, props)
+
+			var actualLicense *string
+			for _, prop := range *props {
+				if prop.Name == "license" && prop.StringValue != nil {
+					actualLicense = prop.StringValue
+					break
+				}
+			}
+
+			require.NotNil(t, actualLicense, "license property should be set")
+			assert.Equal(t, expectedHumanReadable, *actualLicense,
+				"MCP server license transformation should match model catalog transformation")
+		})
+	}
+}
+
 // Helper function
 func strPtr(s string) *string {
 	return &s
