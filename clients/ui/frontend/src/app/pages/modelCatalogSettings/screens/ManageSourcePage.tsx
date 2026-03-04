@@ -44,35 +44,36 @@ const ManageSourcePage: React.FC = () => {
       loaded={catalogSourceId ? existingSourceConfigLoaded : true}
       provideChildrenPadding
     >
-      <PageSection
-        component="main"
-        isFilled
-        hasOverflowScroll={false}
-        padding={{ default: 'noPadding' }}
-        aria-label="Manage source content"
-        style={{ minHeight: 0, display: 'flex', flexDirection: 'column', position: 'relative' }}
-      >
-        <div
-          style={{
-            position: 'relative',
-            flex: 1,
-            minHeight: 0,
-            display: 'flex',
-            flexDirection: 'column',
-            width: '100%',
-          }}
-        >
-          <ManageSourceForm
-            existingSourceConfig={existingSourceConfig || undefined}
-            isEditMode={!isAddMode}
-            onOpenExpectedFormatDrawer={() => setIsExpectedFormatDrawerOpen((prev) => !prev)}
-          />
-        </div>
-      </PageSection>
       <ExpectedYamlFormatDrawer
         isOpen={isExpectedFormatDrawerOpen}
         onClose={() => setIsExpectedFormatDrawerOpen(false)}
-      />
+      >
+        <PageSection
+          component="main"
+          isFilled
+          hasOverflowScroll={false}
+          padding={{ default: 'noPadding' }}
+          aria-label="Manage source content"
+          style={{ minHeight: 0, display: 'flex', flexDirection: 'column', position: 'relative' }}
+        >
+          <div
+            style={{
+              position: 'relative',
+              flex: 1,
+              minHeight: 0,
+              display: 'flex',
+              flexDirection: 'column',
+              width: '100%',
+            }}
+          >
+            <ManageSourceForm
+              existingSourceConfig={existingSourceConfig || undefined}
+              isEditMode={!isAddMode}
+              onOpenExpectedFormatDrawer={() => setIsExpectedFormatDrawerOpen((prev) => !prev)}
+            />
+          </div>
+        </PageSection>
+      </ExpectedYamlFormatDrawer>
     </ApplicationsPage>
   );
 };

@@ -32,12 +32,21 @@ describe('ExpectedYamlFormatDrawer', () => {
   });
 
   it('does not render drawer panel when isOpen is false', () => {
-    render(<ExpectedYamlFormatDrawer isOpen={false} onClose={onClose} />);
+    render(
+      <ExpectedYamlFormatDrawer isOpen={false} onClose={onClose}>
+        <div>Page content</div>
+      </ExpectedYamlFormatDrawer>,
+    );
     expect(screen.queryByRole('region', { name: DRAWER_TITLE })).not.toBeInTheDocument();
+    expect(screen.getByText('Page content')).toBeInTheDocument();
   });
 
   it('renders drawer with title and close button when isOpen is true', async () => {
-    render(<ExpectedYamlFormatDrawer isOpen onClose={onClose} />);
+    render(
+      <ExpectedYamlFormatDrawer isOpen onClose={onClose}>
+        <div>Page content</div>
+      </ExpectedYamlFormatDrawer>,
+    );
 
     await waitFor(() => {
       expect(screen.getByRole('region', { name: DRAWER_TITLE })).toBeInTheDocument();
@@ -49,7 +58,11 @@ describe('ExpectedYamlFormatDrawer', () => {
 
   it('calls onClose when close button is clicked', async () => {
     const user = userEvent.setup();
-    render(<ExpectedYamlFormatDrawer isOpen onClose={onClose} />);
+    render(
+      <ExpectedYamlFormatDrawer isOpen onClose={onClose}>
+        <div>Page content</div>
+      </ExpectedYamlFormatDrawer>,
+    );
 
     await waitFor(() => {
       expect(screen.getByRole('button', { name: 'Close drawer' })).toBeInTheDocument();
@@ -61,7 +74,11 @@ describe('ExpectedYamlFormatDrawer', () => {
   });
 
   it('displays expected YAML format content when open', async () => {
-    render(<ExpectedYamlFormatDrawer isOpen onClose={onClose} />);
+    render(
+      <ExpectedYamlFormatDrawer isOpen onClose={onClose}>
+        <div>Page content</div>
+      </ExpectedYamlFormatDrawer>,
+    );
 
     await waitFor(() => {
       expect(screen.getByRole('region', { name: DRAWER_TITLE })).toBeInTheDocument();

@@ -13,11 +13,8 @@ import {
 } from '@patternfly/react-core';
 import { useThemeContext } from 'mod-arch-kubeflow';
 import sampleCatalogYamlContent from '~/app/pages/modelCatalogSettings/sample-catalog.yaml';
-import ThemeAwareFormGroupWrapper from '~/app/pages/settings/components/ThemeAwareFormGroupWrapper';
 
 export const EXPECTED_FORMAT_DRAWER_TITLE = 'View expected file format';
-
-const PRIMARY_APP_CONTAINER_ID = 'primary-app-container';
 
 type ExpectedYamlFormatDrawerPanelProps = {
   onClose: () => void;
@@ -42,7 +39,7 @@ export const ExpectedYamlFormatDrawerPanel: React.FC<ExpectedYamlFormatDrawerPan
         />
       </DrawerActions>
     </DrawerHead>
-    <DrawerPanelBody style={{ flex: 1, minHeight: 0, overflow: 'auto' }}>
+    <DrawerPanelBody style={{ flex: 1, minHeight: 200, overflow: 'auto' }}>
       <CodeBlock>
         <CodeBlockCode>{sampleCatalogYamlContent}</CodeBlockCode>
       </CodeBlock>
@@ -50,10 +47,7 @@ export const ExpectedYamlFormatDrawerPanel: React.FC<ExpectedYamlFormatDrawerPan
   </DrawerPanelContent>
 );
 
-type ExpectedYamlFormatDrawerProps = {
-  isOpen: boolean;
-  onClose: () => void;
-};
+const PRIMARY_APP_CONTAINER_ID = 'primary-app-container';
 
 type ContainerBounds = { top: number; left: number; width: number; height: number };
 
@@ -90,58 +84,97 @@ function useContainerBounds(
   return bounds;
 }
 
-const ExpectedYamlFormatDrawer: React.FC<ExpectedYamlFormatDrawerProps> = ({ isOpen, onClose }) => {
+type ExpectedYamlFormatDrawerProps = {
+  isOpen: boolean;
+  onClose: () => void;
+  children: React.ReactNode;
+};
+
+const ExpectedYamlFormatDrawer: React.FC<ExpectedYamlFormatDrawerProps> = ({
+  isOpen,
+  onClose,
+  children,
+}) => {
   const { isMUITheme } = useThemeContext();
+  const wrapperRef = React.useRef<HTMLDivElement>(null);
   const container =
     typeof document !== 'undefined' ? document.getElementById(PRIMARY_APP_CONTAINER_ID) : null;
   const bounds = useContainerBounds(container, isOpen);
 
-  if (!isOpen || !container || !bounds) {
-    return null;
+  React.useEffect(() => {
+    const el = wrapperRef.current;
+    if (!el) {
+      return;
+    }
+    if (isMUITheme) {
+      el.style.setProperty('--mui-drawer__panel--MaxWidth', 'none');
+      const applyPanelMaxWidth = () => {
+        const panel = el.querySelector('.pf-v6-c-drawer__panel');
+        if (panel instanceof HTMLElement) {
+          panel.style.maxWidth = 'none';
+        }
+      };
+      applyPanelMaxWidth();
+      const id = window.setTimeout(applyPanelMaxWidth, 0);
+      const observer = new MutationObserver(applyPanelMaxWidth);
+      observer.observe(el, { childList: true, subtree: true });
+      return () => {
+        window.clearTimeout(id);
+        observer.disconnect();
+      };
+    }
+    el.style.removeProperty('--mui-drawer__panel--MaxWidth');
+    return undefined;
+  }, [isMUITheme, isOpen]);
+
+  if (!isOpen) {
+    return <>{children}</>;
   }
 
-  const drawerNode = (
-    <ThemeAwareFormGroupWrapper
-      label={EXPECTED_FORMAT_DRAWER_TITLE}
-      fieldId="expected-yaml-format-drawer"
-      data-testid="expected-format-drawer-wrapper"
+  if (!bounds) {
+    return <>{children}</>;
+  }
+
+  const overlay = (
+    <div
+      ref={wrapperRef}
+      style={{
+        position: 'fixed',
+        top: bounds.top,
+        left: bounds.left,
+        width: bounds.width,
+        height: bounds.height,
+        zIndex: 100,
+        pointerEvents: 'auto',
+        overflow: 'hidden',
+        display: 'flex',
+        flexDirection: 'column',
+      }}
     >
-      <div
+      <Drawer
+        isExpanded
+        position="end"
         style={{
-          position: 'fixed',
-          top: bounds.top,
-          left: bounds.left,
-          width: bounds.width,
-          height: bounds.height,
-          zIndex: 100,
-          pointerEvents: 'auto',
+          flex: 1,
+          minHeight: 0,
           overflow: 'hidden',
           display: 'flex',
           flexDirection: 'column',
-          boxSizing: 'border-box',
-          ...(isMUITheme && { '--mui-drawer__panel--MaxWidth': 'none' }),
         }}
       >
-        <Drawer
-          isExpanded
-          position="end"
-          style={{
-            flex: 1,
-            minHeight: 0,
-            overflow: 'hidden',
-            display: 'flex',
-            flexDirection: 'column',
-          }}
-        >
-          <DrawerContent panelContent={<ExpectedYamlFormatDrawerPanel onClose={onClose} />}>
-            <div />
-          </DrawerContent>
-        </Drawer>
-      </div>
-    </ThemeAwareFormGroupWrapper>
+        <DrawerContent panelContent={<ExpectedYamlFormatDrawerPanel onClose={onClose} />}>
+          <div />
+        </DrawerContent>
+      </Drawer>
+    </div>
   );
 
-  return createPortal(drawerNode, document.body);
+  return (
+    <>
+      {children}
+      {createPortal(overlay, document.body)}
+    </>
+  );
 };
 
 export default ExpectedYamlFormatDrawer;
