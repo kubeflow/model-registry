@@ -102,7 +102,7 @@ type mockMCPServerToolRepo struct {
 	countResult int32
 	countErr    error
 	// countByID allows per-parent-ID count results for multi-server tests.
-	// When set, CountByParentID uses this map instead of countResult.
+	// When set, CountByParentIDs uses this map instead of countResult.
 	countByID map[int32]int32
 }
 
@@ -115,14 +115,19 @@ func (m *mockMCPServerToolRepo) GetByID(_ int32) (models.MCPServerTool, error) {
 func (m *mockMCPServerToolRepo) Save(_ models.MCPServerTool, _ *int32) (models.MCPServerTool, error) {
 	return nil, errors.New("not implemented")
 }
-func (m *mockMCPServerToolRepo) CountByParentID(parentID int32) (int32, error) {
+func (m *mockMCPServerToolRepo) CountByParentIDs(parentIDs []int32) (map[int32]int32, error) {
 	if m.countErr != nil {
-		return 0, m.countErr
+		return nil, m.countErr
 	}
-	if m.countByID != nil {
-		return m.countByID[parentID], nil
+	result := make(map[int32]int32, len(parentIDs))
+	for _, id := range parentIDs {
+		if m.countByID != nil {
+			result[id] = m.countByID[id]
+		} else {
+			result[id] = m.countResult
+		}
 	}
-	return m.countResult, nil
+	return result, nil
 }
 func (m *mockMCPServerToolRepo) DeleteByParentID(_ int32) error { return errors.New("not implemented") }
 func (m *mockMCPServerToolRepo) DeleteByID(_ int32) error       { return errors.New("not implemented") }

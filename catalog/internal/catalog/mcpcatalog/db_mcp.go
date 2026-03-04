@@ -112,16 +112,20 @@ func (d *dbMCPCatalogImpl) ListMCPServers(ctx context.Context, params ListMCPSer
 		return openapi.MCPServerList{}, err
 	}
 
+	// Collect all server IDs and get tool counts in a single batch query
+	serverIDs := make([]int32, len(serversList.Items))
+	for i, dbServer := range serversList.Items {
+		serverIDs[i] = *dbServer.GetID()
+	}
+	toolCounts, err := d.mcpServerToolRepo.CountByParentIDs(serverIDs)
+	if err != nil {
+		return openapi.MCPServerList{}, fmt.Errorf("error counting tools: %w", err)
+	}
+
 	// Convert to OpenAPI models
 	apiServers := make([]openapi.MCPServer, 0) // Initialize as empty slice, not nil
 	for _, dbServer := range serversList.Items {
 		var apiServer *openapi.MCPServer
-
-		// Always get the accurate total tool count
-		toolCount, err := d.mcpServerToolRepo.CountByParentID(*dbServer.GetID())
-		if err != nil {
-			return openapi.MCPServerList{}, fmt.Errorf("error counting tools for server %d: %w", *dbServer.GetID(), err)
-		}
 
 		if params.IncludeTools {
 			// Load tools and convert with full tool data
@@ -141,7 +145,7 @@ func (d *dbMCPCatalogImpl) ListMCPServers(ctx context.Context, params ListMCPSer
 		} else {
 			apiServer = converter.ConvertDbMCPServerToOpenapi(dbServer)
 		}
-		apiServer.ToolCount = toolCount
+		apiServer.ToolCount = toolCounts[*dbServer.GetID()]
 
 		apiServers = append(apiServers, *apiServer)
 	}
@@ -180,8 +184,8 @@ func (d *dbMCPCatalogImpl) GetMCPServer(ctx context.Context, serverID string, in
 		return nil, fmt.Errorf("server not found with ID %s: %w", serverID, api.ErrNotFound)
 	}
 
-	// Always get the accurate total tool count
-	toolCount, err := d.mcpServerToolRepo.CountByParentID(*dbServer.GetID())
+	// Get the accurate total tool count
+	toolCounts, err := d.mcpServerToolRepo.CountByParentIDs([]int32{*dbServer.GetID()})
 	if err != nil {
 		return nil, fmt.Errorf("error counting tools for server %s: %w", serverID, err)
 	}
@@ -199,7 +203,7 @@ func (d *dbMCPCatalogImpl) GetMCPServer(ctx context.Context, serverID string, in
 	} else {
 		apiServer = converter.ConvertDbMCPServerToOpenapi(dbServer)
 	}
-	apiServer.ToolCount = toolCount
+	apiServer.ToolCount = toolCounts[*dbServer.GetID()]
 	return apiServer, nil
 }
 
