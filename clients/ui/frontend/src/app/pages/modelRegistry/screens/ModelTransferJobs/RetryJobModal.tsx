@@ -17,15 +17,30 @@ import K8sNameDescriptionField, {
 
 /**
  * Generates a retry job name by appending or incrementing a numeric suffix.
+ * Ensures the result doesn't exceed maxLength by truncating the base name if needed.
  * e.g., "my-job" -> "my-job-2", "my-job-2" -> "my-job-3"
+ * @param originalName The original job name
+ * @param maxLength Maximum length for the generated name (default: 63, DNS-1123 label limit)
  */
-const generateRetryJobName = (originalName: string): string => {
+const generateRetryJobName = (originalName: string, maxLength = 63): string => {
   const numericSuffixMatch = originalName.match(/^(.+)-(\d+)$/);
+
   if (numericSuffixMatch) {
     const [, baseName, numStr] = numericSuffixMatch;
-    return `${baseName}-${parseInt(numStr, 10) + 1}`;
+    const newSuffix = parseInt(numStr, 10) + 1;
+    const suffixStr = `-${newSuffix}`;
+    const maxBaseLength = maxLength - suffixStr.length;
+
+    // Truncate base name to fit within limit
+    const truncatedBase = baseName.slice(0, maxBaseLength);
+    // Remove trailing dashes from truncation (K8s names must end with alphanumeric)
+    return `${truncatedBase.replace(/-+$/, '')}${suffixStr}`;
   }
-  return `${originalName}-2`;
+
+  // For first retry: truncate to maxLength - 2 to leave room for "-2"
+  const maxBaseLength = maxLength - 2;
+  const truncatedName = originalName.slice(0, maxBaseLength);
+  return `${truncatedName.replace(/-+$/, '')}-2`;
 };
 
 type RetryJobModalProps = {

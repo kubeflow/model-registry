@@ -87,6 +87,49 @@ describe('RetryJobModal', () => {
     expect(input).toHaveValue('my-job-4');
   });
 
+  it('should truncate long job names to fit 63-character limit', () => {
+    const longJobName: ModelTransferJob = {
+      ...mockJob,
+      name: 'a'.repeat(62), // 62 chars
+    };
+
+    render(<RetryJobModal job={longJobName} onClose={mockOnClose} onRetry={mockOnRetry} />);
+
+    const input = screen.getByTestId('retry-job-name') as HTMLInputElement;
+    // Should truncate to 61 chars and add "-2", resulting in exactly 63 chars
+    expect(input.value).toHaveLength(63);
+    expect(input.value).toMatch(/^a+-2$/);
+  });
+
+  it('should handle multi-digit suffix increments', () => {
+    const jobWithLargeSuffix: ModelTransferJob = {
+      ...mockJob,
+      name: 'my-job-9',
+    };
+
+    render(<RetryJobModal job={jobWithLargeSuffix} onClose={mockOnClose} onRetry={mockOnRetry} />);
+
+    const input = screen.getByTestId('retry-job-name');
+    expect(input).toHaveValue('my-job-10');
+  });
+
+  it('should remove trailing dashes when truncating', () => {
+    // Create a 62-char name ending with dashes
+    const nameWithTrailingDashes: ModelTransferJob = {
+      ...mockJob,
+      name: `${'a'.repeat(59)}---`, // 62 chars total, ends with dashes
+    };
+
+    render(
+      <RetryJobModal job={nameWithTrailingDashes} onClose={mockOnClose} onRetry={mockOnRetry} />,
+    );
+
+    const input = screen.getByTestId('retry-job-name') as HTMLInputElement;
+    // Should remove trailing dashes after truncation, then add "-2"
+    expect(input.value).not.toMatch(/--2$/); // No double dash before suffix
+    expect(input.value).toMatch(/-2$/); // Ends with single dash and suffix
+  });
+
   it('should have delete checkbox checked by default', () => {
     render(<RetryJobModal job={mockJob} onClose={mockOnClose} onRetry={mockOnRetry} />);
 
