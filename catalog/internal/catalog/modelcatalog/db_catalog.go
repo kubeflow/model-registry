@@ -10,6 +10,7 @@ import (
 	"strings"
 
 	"github.com/golang/glog"
+	"github.com/kubeflow/model-registry/catalog/internal/catalog/basecatalog"
 	"github.com/kubeflow/model-registry/catalog/internal/catalog/modelcatalog/models"
 	sharedmodels "github.com/kubeflow/model-registry/catalog/internal/db/models"
 	"github.com/kubeflow/model-registry/catalog/internal/db/service"
@@ -34,8 +35,8 @@ func NewDBCatalog(services service.Services, sources *SourceCollection) APIProvi
 		catalogArtifactRepository: services.CatalogArtifactRepository,
 		catalogModelRepository:    services.CatalogModelRepository,
 		propertyOptionsRepository: services.PropertyOptionsRepository,
-		performanceService: NewPerformanceArtifactService(services.CatalogArtifactRepository, services.CatalogModelRepository),
-		sources:            sources,
+		performanceService:        NewPerformanceArtifactService(services.CatalogArtifactRepository, services.CatalogModelRepository),
+		sources:                   sources,
 	}
 }
 
@@ -206,7 +207,7 @@ func (d *dbCatalogImpl) GetFilterOptions(ctx context.Context) (*apimodels.Filter
 			continue
 		}
 
-		option := dbPropToAPIOption(prop)
+		option := basecatalog.DbPropToAPIOption(prop)
 		if option != nil {
 			options[prop.FullName("")] = *option
 		}
@@ -218,7 +219,7 @@ func (d *dbCatalogImpl) GetFilterOptions(ctx context.Context) (*apimodels.Filter
 		case "metricsType", "model_id":
 			continue
 		}
-		option := dbPropToAPIOption(prop)
+		option := basecatalog.DbPropToAPIOption(prop)
 		if option != nil {
 			options[prop.FullName("artifacts")] = *option
 		}
@@ -227,62 +228,13 @@ func (d *dbCatalogImpl) GetFilterOptions(ctx context.Context) (*apimodels.Filter
 	// Get named queries from sources configuration
 	var namedQueriesPtr *map[string]map[string]apimodels.FieldFilter
 	if d.sources != nil {
-		namedQueriesMap := d.sources.GetNamedQueries()
-
-		// Convert internal FieldFilter to API FieldFilter
-		apiNamedQueries := make(map[string]map[string]apimodels.FieldFilter, len(namedQueriesMap))
-		for queryName, fieldFilters := range namedQueriesMap {
-			apiFieldFilters := make(map[string]apimodels.FieldFilter, len(fieldFilters))
-			for fieldName, filter := range fieldFilters {
-				apiFieldFilters[fieldName] = apimodels.FieldFilter{
-					Operator: filter.Operator,
-					Value:    filter.Value,
-				}
-			}
-			d.applyMinMax(apiFieldFilters, options)
-			apiNamedQueries[queryName] = apiFieldFilters
-		}
-
-		if len(apiNamedQueries) > 0 {
-			namedQueriesPtr = &apiNamedQueries
-		}
+		namedQueriesPtr = basecatalog.ConvertNamedQueries(d.sources.GetNamedQueries(), options)
 	}
 
 	return &apimodels.FilterOptionsList{
 		Filters:      &options,
 		NamedQueries: namedQueriesPtr,
 	}, nil
-}
-
-func (d *dbCatalogImpl) applyMinMax(query map[string]apimodels.FieldFilter, options map[string]apimodels.FilterOption) {
-	// Find queries where the value is min or max and replace it with the
-	// actual min or max from the filter options.
-	for key, filter := range query {
-		// Find string values that are either min or max
-		value, ok := filter.Value.(string)
-		if !ok || (value != "min" && value != "max") {
-			continue
-		}
-
-		option, ok := options[key]
-		if !ok || option.Range == nil {
-			// Skip fields without a corresponding option or options without a range.
-			continue
-		}
-
-		switch value {
-		case "min":
-			if option.Range.Min != nil {
-				filter.Value = *option.Range.Min
-			}
-		case "max":
-			if option.Range.Max != nil {
-				filter.Value = *option.Range.Max
-			}
-		}
-
-		query[key] = filter
-	}
 }
 
 func (d *dbCatalogImpl) GetPerformanceArtifacts(ctx context.Context, modelName string, sourceID string, params ListPerformanceArtifactsParams) (apimodels.CatalogArtifactList, error) {
@@ -344,60 +296,6 @@ func (d *dbCatalogImpl) GetPerformanceArtifacts(ctx context.Context, modelName s
 	artifactList.Size = int32(len(artifactList.Items))
 
 	return *artifactList, nil
-}
-
-func dbPropToAPIOption(prop sharedmodels.PropertyOption) *apimodels.FilterOption {
-	var option apimodels.FilterOption
-
-	switch prop.ValueField() {
-	case sharedmodels.StringValueField:
-		if len(prop.StringValue) == 0 {
-			return nil
-		}
-		option.Type = "string"
-		sort.Strings(prop.StringValue)
-		option.Values = anySlice(prop.StringValue)
-
-	case sharedmodels.ArrayValueField:
-		if len(prop.ArrayValue) == 0 {
-			return nil
-		}
-		option.Type = "string"
-		sort.Strings(prop.ArrayValue)
-		option.Values = anySlice(prop.ArrayValue)
-
-	case sharedmodels.IntValueField:
-		if prop.MinIntValue == nil || prop.MaxIntValue == nil {
-			return nil
-		}
-
-		option.Type = "number"
-		option.Range = &apimodels.FilterOptionRange{
-			Min: apiutils.Of(float64(*prop.MinIntValue)),
-			Max: apiutils.Of(float64(*prop.MaxIntValue)),
-		}
-
-	case sharedmodels.DoubleValueField:
-		if prop.MinDoubleValue == nil || prop.MaxDoubleValue == nil {
-			return nil
-		}
-
-		option.Type = "number"
-		option.Range = &apimodels.FilterOptionRange{
-			Min: prop.MinDoubleValue,
-			Max: prop.MaxDoubleValue,
-		}
-	}
-
-	return &option
-}
-
-func anySlice[T any](s []T) []any {
-	as := make([]any, len(s))
-	for i, v := range s {
-		as[i] = v
-	}
-	return as
 }
 
 func mapDBModelToAPIModel(m models.CatalogModel) apimodels.CatalogModel {

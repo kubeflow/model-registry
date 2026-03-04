@@ -7,6 +7,7 @@ import (
 	"github.com/kubeflow/model-registry/catalog/internal/catalog/basecatalog"
 	"github.com/kubeflow/model-registry/catalog/internal/catalog/mcpcatalog/models"
 	"github.com/kubeflow/model-registry/catalog/internal/converter"
+	sharedmodels "github.com/kubeflow/model-registry/catalog/internal/db/models"
 	"github.com/kubeflow/model-registry/catalog/internal/db/service"
 	openapi "github.com/kubeflow/model-registry/catalog/pkg/openapi"
 	"github.com/kubeflow/model-registry/internal/apiutils"
@@ -18,17 +19,54 @@ import (
 type NamedQueryResolver func(name string) (map[string]basecatalog.FieldFilter, bool)
 
 type dbMCPCatalogImpl struct {
-	mcpServerRepo     models.MCPServerRepository
-	mcpServerToolRepo models.MCPServerToolRepository
-	resolveNamedQuery NamedQueryResolver
+	mcpServerRepo             models.MCPServerRepository
+	mcpServerToolRepo         models.MCPServerToolRepository
+	resolveNamedQuery         NamedQueryResolver
+	propertyOptionsRepository sharedmodels.PropertyOptionsRepository
+	mcpSources                *MCPSourceCollection
 }
 
-func NewDBMCPCatalog(services service.Services, resolver NamedQueryResolver) MCPCatalogProvider {
+func NewDBMCPCatalog(services service.Services, mcpSources *MCPSourceCollection, resolver NamedQueryResolver) MCPCatalogProvider {
 	return &dbMCPCatalogImpl{
-		mcpServerRepo:     services.MCPServerRepository,
-		mcpServerToolRepo: services.MCPServerToolRepository,
-		resolveNamedQuery: resolver,
+		mcpServerRepo:             services.MCPServerRepository,
+		mcpServerToolRepo:         services.MCPServerToolRepository,
+		resolveNamedQuery:         resolver,
+		propertyOptionsRepository: services.PropertyOptionsRepository,
+		mcpSources:                mcpSources,
 	}
+}
+
+func (d *dbMCPCatalogImpl) GetFilterOptions(ctx context.Context) (*openapi.FilterOptionsList, error) {
+	mcpServerTypeID := d.mcpServerRepo.GetTypeID()
+
+	contextProperties, err := d.propertyOptionsRepository.List(sharedmodels.ContextPropertyOptionType, mcpServerTypeID)
+	if err != nil {
+		return nil, err
+	}
+
+	options := make(map[string]openapi.FilterOption, len(contextProperties))
+
+	for _, prop := range contextProperties {
+		switch prop.Name {
+		case "artifacts", "base_name", "documentationUrl", "logo", "repositoryUrl", "sourceCode", "source_id", "tools", "version":
+			continue
+		}
+
+		option := basecatalog.DbPropToAPIOption(prop)
+		if option != nil {
+			options[prop.FullName("")] = *option
+		}
+	}
+
+	var namedQueriesPtr *map[string]map[string]openapi.FieldFilter
+	if d.mcpSources != nil {
+		namedQueriesPtr = basecatalog.ConvertNamedQueries(d.mcpSources.GetNamedQueries(), options)
+	}
+
+	return &openapi.FilterOptionsList{
+		Filters:      &options,
+		NamedQueries: namedQueriesPtr,
+	}, nil
 }
 
 func (d *dbMCPCatalogImpl) ListMCPServers(ctx context.Context, params ListMCPServersParams) (openapi.MCPServerList, error) {

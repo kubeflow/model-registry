@@ -1918,11 +1918,8 @@ func TestApplyMinMax(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			// Create a catalog instance to access the applyMinMax method
-			catalog := &dbCatalogImpl{}
-
-			// Apply the method
-			catalog.applyMinMax(tt.inputQuery, tt.inputOptions)
+			// Apply the shared helper
+			basecatalog.ApplyMinMax(tt.inputQuery, tt.inputOptions)
 
 			// Verify the query was modified correctly
 			assert.Equal(t, tt.expectedQuery, tt.inputQuery, tt.description)

@@ -9,8 +9,6 @@ import (
 	"time"
 
 	"github.com/kubeflow/model-registry/catalog/internal/catalog"
-	"github.com/kubeflow/model-registry/catalog/internal/catalog/basecatalog"
-	"github.com/kubeflow/model-registry/catalog/internal/catalog/mcpcatalog"
 	model "github.com/kubeflow/model-registry/catalog/pkg/openapi"
 	"github.com/kubeflow/model-registry/pkg/api"
 	"github.com/stretchr/testify/assert"
@@ -22,13 +20,16 @@ type mockMCPProvider struct {
 	servers map[string]*model.MCPServer
 	tools   map[string]map[string]*model.MCPTool // server_id -> tool_name -> tool
 	// error simulation
-	shouldErrorOnListServers bool
-	shouldErrorOnGetServer   bool
-	shouldErrorOnListTools   bool
-	shouldErrorOnGetTool     bool
+	shouldErrorOnListServers      bool
+	shouldErrorOnGetServer        bool
+	shouldErrorOnListTools        bool
+	shouldErrorOnGetTool          bool
+	shouldErrorOnGetFilterOptions bool
 	// namedQueryErr simulates an error returned by the provider for a specific named query.
 	// This is used to verify the service correctly propagates provider errors.
 	namedQueryErr map[string]error
+	// filterOptions is returned by GetFilterOptions.
+	filterOptions *model.FilterOptionsList
 }
 
 func newMockMCPProvider() *mockMCPProvider {
@@ -156,6 +157,16 @@ func (m *mockMCPProvider) ListMCPServerTools(ctx context.Context, serverID strin
 		PageSize:      params.PageSize,
 		NextPageToken: "",
 	}, nil
+}
+
+func (m *mockMCPProvider) GetFilterOptions(ctx context.Context) (*model.FilterOptionsList, error) {
+	if m.shouldErrorOnGetFilterOptions {
+		return nil, fmt.Errorf("mock error in GetFilterOptions")
+	}
+	if m.filterOptions != nil {
+		return m.filterOptions, nil
+	}
+	return &model.FilterOptionsList{}, nil
 }
 
 func (m *mockMCPProvider) GetMCPServerTool(ctx context.Context, serverID string, toolName string) (*model.MCPTool, error) {
@@ -385,7 +396,7 @@ func TestFindMCPServers(t *testing.T) {
 			mockProvider := newMockMCPProvider()
 			tc.mockSetup(mockProvider)
 
-			service := NewMCPCatalogServiceAPIService(mockProvider, nil)
+			service := NewMCPCatalogServiceAPIService(mockProvider)
 			ctx := context.Background()
 
 			result, err := service.FindMCPServers(
@@ -498,7 +509,7 @@ func TestGetMCPServer(t *testing.T) {
 			mockProvider := newMockMCPProvider()
 			tc.mockSetup(mockProvider)
 
-			service := NewMCPCatalogServiceAPIService(mockProvider, nil)
+			service := NewMCPCatalogServiceAPIService(mockProvider)
 			ctx := context.Background()
 
 			result, err := service.GetMCPServer(ctx, tc.serverID, tc.includeTools)
@@ -621,7 +632,7 @@ func TestFindMCPServerTools(t *testing.T) {
 			mockProvider := newMockMCPProvider()
 			tc.mockSetup(mockProvider)
 
-			service := NewMCPCatalogServiceAPIService(mockProvider, nil)
+			service := NewMCPCatalogServiceAPIService(mockProvider)
 			ctx := context.Background()
 
 			result, err := service.FindMCPServerTools(
@@ -715,7 +726,7 @@ func TestGetMCPServerTool(t *testing.T) {
 			mockProvider := newMockMCPProvider()
 			tc.mockSetup(mockProvider)
 
-			service := NewMCPCatalogServiceAPIService(mockProvider, nil)
+			service := NewMCPCatalogServiceAPIService(mockProvider)
 			ctx := context.Background()
 
 			result, err := service.GetMCPServerTool(ctx, tc.serverID, tc.toolName)
@@ -741,8 +752,9 @@ func TestGetMCPServerTool(t *testing.T) {
 func TestFindMCPServersFilterOptions(t *testing.T) {
 	ctx := context.Background()
 
-	t.Run("nil mcpSources returns empty FilterOptionsList", func(t *testing.T) {
-		service := NewMCPCatalogServiceAPIService(newMockMCPProvider(), nil)
+	t.Run("provider returns empty FilterOptionsList", func(t *testing.T) {
+		provider := newMockMCPProvider()
+		service := NewMCPCatalogServiceAPIService(provider)
 		result, err := service.FindMCPServersFilterOptions(ctx)
 
 		assert.NoError(t, err)
@@ -750,18 +762,25 @@ func TestFindMCPServersFilterOptions(t *testing.T) {
 		body, ok := result.Body.(model.FilterOptionsList)
 		require.True(t, ok)
 		assert.Nil(t, body.NamedQueries)
+		assert.Nil(t, body.Filters)
 	})
 
-	t.Run("named queries from mcpSources are returned", func(t *testing.T) {
-		sources := mcpcatalog.NewMCPSourceCollection()
-		err := sources.MergeWithNamedQueries("test", nil, map[string]map[string]basecatalog.FieldFilter{
+	t.Run("provider returns named queries and filters", func(t *testing.T) {
+		namedQueries := map[string]map[string]model.FieldFilter{
 			"production_ready": {
 				"maturity": {Operator: "=", Value: "production"},
 			},
-		})
-		require.NoError(t, err)
+		}
+		filters := map[string]model.FilterOption{
+			"provider": {Type: "string", Values: []any{"OpenAI", "GitHub"}},
+		}
+		provider := newMockMCPProvider()
+		provider.filterOptions = &model.FilterOptionsList{
+			NamedQueries: &namedQueries,
+			Filters:      &filters,
+		}
 
-		service := NewMCPCatalogServiceAPIService(newMockMCPProvider(), sources)
+		service := NewMCPCatalogServiceAPIService(provider)
 		result, err := service.FindMCPServersFilterOptions(ctx)
 
 		assert.NoError(t, err)
@@ -772,18 +791,18 @@ func TestFindMCPServersFilterOptions(t *testing.T) {
 		nq := *body.NamedQueries
 		require.Contains(t, nq, "production_ready")
 		assert.Equal(t, model.FieldFilter{Operator: "=", Value: "production"}, nq["production_ready"]["maturity"])
+		require.NotNil(t, body.Filters)
+		assert.Contains(t, *body.Filters, "provider")
 	})
 
-	t.Run("empty named queries returns empty map", func(t *testing.T) {
-		sources := mcpcatalog.NewMCPSourceCollection()
-		service := NewMCPCatalogServiceAPIService(newMockMCPProvider(), sources)
+	t.Run("provider error returns internal server error", func(t *testing.T) {
+		provider := newMockMCPProvider()
+		provider.shouldErrorOnGetFilterOptions = true
+
+		service := NewMCPCatalogServiceAPIService(provider)
 		result, err := service.FindMCPServersFilterOptions(ctx)
 
-		assert.NoError(t, err)
-		assert.Equal(t, http.StatusOK, result.Code)
-		body, ok := result.Body.(model.FilterOptionsList)
-		require.True(t, ok)
-		require.NotNil(t, body.NamedQueries)
-		assert.Empty(t, *body.NamedQueries)
+		assert.Error(t, err)
+		assert.Equal(t, http.StatusInternalServerError, result.Code)
 	})
 }

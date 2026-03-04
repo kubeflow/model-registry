@@ -43,4 +43,7 @@ type MCPCatalogProvider interface {
 	// GetMCPServerTool returns a specific tool by server ID and tool name.
 	// If nothing is found it returns nil, without an error.
 	GetMCPServerTool(ctx context.Context, serverID string, toolName string) (*openapi.MCPTool, error)
+
+	// GetFilterOptions returns filterable fields and named queries for the MCP servers endpoint.
+	GetFilterOptions(ctx context.Context) (*openapi.FilterOptionsList, error)
 }
