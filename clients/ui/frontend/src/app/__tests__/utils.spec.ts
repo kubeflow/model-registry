@@ -254,11 +254,15 @@ describe('Filter model version state', () => {
 
 describe('isRegistryUnavailable', () => {
   it('returns true when isAvailable is false', () => {
-    expect(isRegistryUnavailable({ name: 'a', displayName: 'A', description: '', isAvailable: false })).toBe(true);
+    expect(
+      isRegistryUnavailable({ name: 'a', displayName: 'A', description: '', isAvailable: false }),
+    ).toBe(true);
   });
 
   it('returns false when isAvailable is true', () => {
-    expect(isRegistryUnavailable({ name: 'a', displayName: 'A', description: '', isAvailable: true })).toBe(false);
+    expect(
+      isRegistryUnavailable({ name: 'a', displayName: 'A', description: '', isAvailable: true }),
+    ).toBe(false);
   });
 
   it('returns false when isAvailable is undefined (legacy BFF)', () => {
