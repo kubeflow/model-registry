@@ -23,10 +23,17 @@ export const ExpectedYamlFormatDrawerPanel: React.FC<ExpectedYamlFormatDrawerPan
   onClose,
 }) => (
   <DrawerPanelContent
-    widths={{ default: 'width_50' }}
+    widths={{ default: 'width_100' }}
     role="region"
     aria-label={EXPECTED_YAML_FORMAT_LABEL}
-    style={{ display: 'flex', flexDirection: 'column', minHeight: 0 }}
+    style={{
+      display: 'flex',
+      flexDirection: 'column',
+      minHeight: 0,
+      width: '100%',
+      maxWidth: 'none',
+      flexBasis: '100%',
+    }}
   >
     <DrawerHead>
       <span data-testid="expected-format-drawer-title">{EXPECTED_YAML_FORMAT_LABEL}</span>
@@ -134,14 +141,15 @@ const ExpectedYamlFormatDrawer: React.FC<ExpectedYamlFormatDrawerProps> = ({
     return <>{children}</>;
   }
 
+  const halfWidth = bounds.width / 2;
   const overlay = (
     <div
       ref={wrapperRef}
       style={{
         position: 'fixed',
         top: bounds.top,
-        left: bounds.left,
-        width: bounds.width,
+        left: bounds.left + halfWidth,
+        width: halfWidth,
         height: bounds.height,
         zIndex: 100,
         pointerEvents: 'auto',

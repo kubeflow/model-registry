@@ -23,13 +23,13 @@ import {
 type YamlSectionProps = {
   formData: ManageSourceFormData;
   setData: UpdateObjectAtPropAndValue<ManageSourceFormData>;
-  onOpenExpectedFormatDrawer?: () => void;
+  onToggleExpectedFormatDrawer?: () => void;
 };
 
 const YamlSection: React.FC<YamlSectionProps> = ({
   formData,
   setData,
-  onOpenExpectedFormatDrawer,
+  onToggleExpectedFormatDrawer,
 }) => {
   const [isYamlTouched, setIsYamlTouched] = React.useState(false);
   const [filename, setFilename] = React.useState('');
@@ -101,11 +101,11 @@ const YamlSection: React.FC<YamlSectionProps> = ({
             </FormHelperText>
           )}
         </FormGroup>
-        {onOpenExpectedFormatDrawer && (
+        {onToggleExpectedFormatDrawer && (
           <Button
             variant="link"
             isInline
-            onClick={onOpenExpectedFormatDrawer}
+            onClick={onToggleExpectedFormatDrawer}
             data-testid="view-expected-yaml-format-link"
             component="button"
             icon={<OpenDrawerRightIcon />}

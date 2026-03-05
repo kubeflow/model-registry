@@ -23,16 +23,16 @@ jest.mock('~/app/hooks/modelCatalogSettings/useCatalogSourceConfigBySourceId', (
 jest.mock('~/app/pages/modelCatalogSettings/components/ManageSourceForm', () => ({
   __esModule: true,
   default: function MockManageSourceForm({
-    onOpenExpectedFormatDrawer,
+    onToggleExpectedFormatDrawer,
   }: {
-    onOpenExpectedFormatDrawer?: () => void;
+    onToggleExpectedFormatDrawer?: () => void;
   }) {
     return (
       <div>
-        {onOpenExpectedFormatDrawer && (
+        {onToggleExpectedFormatDrawer && (
           <button
             type="button"
-            onClick={onOpenExpectedFormatDrawer}
+            onClick={onToggleExpectedFormatDrawer}
             data-testid="open-expected-format-drawer"
           >
             View expected format

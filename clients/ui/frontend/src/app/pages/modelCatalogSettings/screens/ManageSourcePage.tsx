@@ -69,7 +69,7 @@ const ManageSourcePage: React.FC = () => {
             <ManageSourceForm
               existingSourceConfig={existingSourceConfig || undefined}
               isEditMode={!isAddMode}
-              onOpenExpectedFormatDrawer={() => setIsExpectedFormatDrawerOpen((prev) => !prev)}
+              onToggleExpectedFormatDrawer={() => setIsExpectedFormatDrawerOpen((prev) => !prev)}
             />
           </div>
         </PageSection>

@@ -38,12 +38,12 @@ describe('YamlSection', () => {
     expect(screen.getByTestId('yaml-content-input')).toBeInTheDocument();
   });
 
-  it('shows "View expected file format" link when onOpenExpectedFormatDrawer is provided', () => {
+  it('shows "View expected file format" link when onToggleExpectedFormatDrawer is provided', () => {
     render(
       <YamlSection
         formData={createFormData()}
         setData={setData}
-        onOpenExpectedFormatDrawer={jest.fn()}
+        onToggleExpectedFormatDrawer={jest.fn()}
       />,
     );
     const link = screen.getByTestId('view-expected-yaml-format-link');
@@ -51,23 +51,23 @@ describe('YamlSection', () => {
     expect(link).toHaveTextContent(EXPECTED_YAML_FORMAT_LABEL);
   });
 
-  it('does not show the link when onOpenExpectedFormatDrawer is not provided', () => {
+  it('does not show the link when onToggleExpectedFormatDrawer is not provided', () => {
     render(<YamlSection formData={createFormData()} setData={setData} />);
     expect(screen.queryByTestId('view-expected-yaml-format-link')).not.toBeInTheDocument();
   });
 
-  it('calls onOpenExpectedFormatDrawer when the link is clicked', async () => {
+  it('calls onToggleExpectedFormatDrawer when the link is clicked', async () => {
     const user = userEvent.setup();
-    const onOpenExpectedFormatDrawer = jest.fn();
+    const onToggleExpectedFormatDrawer = jest.fn();
     render(
       <YamlSection
         formData={createFormData()}
         setData={setData}
-        onOpenExpectedFormatDrawer={onOpenExpectedFormatDrawer}
+        onToggleExpectedFormatDrawer={onToggleExpectedFormatDrawer}
       />,
     );
     const link = screen.getByTestId('view-expected-yaml-format-link');
     await user.click(link);
-    expect(onOpenExpectedFormatDrawer).toHaveBeenCalledTimes(1);
+    expect(onToggleExpectedFormatDrawer).toHaveBeenCalledTimes(1);
   });
 });

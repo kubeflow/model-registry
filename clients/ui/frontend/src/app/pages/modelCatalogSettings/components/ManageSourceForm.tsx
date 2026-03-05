@@ -33,13 +33,13 @@ import ManageSourceFormFooter from './ManageSourceFormFooter';
 type ManageSourceFormProps = {
   existingSourceConfig?: CatalogSourceConfig;
   isEditMode: boolean;
-  onOpenExpectedFormatDrawer?: () => void;
+  onToggleExpectedFormatDrawer?: () => void;
 };
 
 const ManageSourceForm: React.FC<ManageSourceFormProps> = ({
   existingSourceConfig,
   isEditMode,
-  onOpenExpectedFormatDrawer,
+  onToggleExpectedFormatDrawer,
 }) => {
   const navigate = useNavigate();
   const existingData = existingSourceConfig
@@ -125,7 +125,7 @@ const ManageSourceForm: React.FC<ManageSourceFormProps> = ({
                   <YamlSection
                     formData={formData}
                     setData={setData}
-                    onOpenExpectedFormatDrawer={onOpenExpectedFormatDrawer}
+                    onToggleExpectedFormatDrawer={onToggleExpectedFormatDrawer}
                   />
                 </StackItem>
               )}
