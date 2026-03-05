@@ -5,13 +5,13 @@ import {
   ProjectObjectType,
   typedEmptyImage,
   TitleWithIcon,
-  WhosMyAdministrator,
-  KubeflowDocs,
   ApplicationsPage,
 } from 'mod-arch-shared';
 import { useThemeContext } from 'mod-arch-kubeflow';
 import { ModelRegistrySelectorContext } from '~/app/context/ModelRegistrySelectorContext';
 import { ModelRegistryContextProvider } from '~/app/context/ModelRegistryContext';
+import { isRegistryUnavailable } from '~/app/types';
+import AdminHelpAction from './screens/components/AdminHelpAction';
 import EmptyModelRegistryState from './screens/components/EmptyModelRegistryState';
 import InvalidModelRegistry from './screens/InvalidModelRegistry';
 import ModelRegistrySelectorNavigator from './screens/ModelRegistrySelectorNavigator';
@@ -79,7 +79,7 @@ const ModelRegistryCoreLoader: React.FC<ModelRegistryCoreLoaderProps> = ({
           headerIcon={() => (
             <img src={typedEmptyImage(ProjectObjectType.registeredModels)} alt="" />
           )}
-          customAction={isMUITheme ? <KubeflowDocs /> : <WhosMyAdministrator />}
+          customAction={<AdminHelpAction />}
         />
       ),
       headerContent: null,
@@ -87,8 +87,7 @@ const ModelRegistryCoreLoader: React.FC<ModelRegistryCoreLoaderProps> = ({
   } else if (modelRegistry) {
     const foundModelRegistry = modelRegistries.find((mr) => mr.name === modelRegistry);
     if (foundModelRegistry) {
-      // Explicit false only; undefined (e.g. legacy BFF) is treated as available.
-      if (foundModelRegistry.isAvailable === false) {
+      if (isRegistryUnavailable(foundModelRegistry)) {
         renderStateProps = {
           empty: true,
           emptyStatePage: (

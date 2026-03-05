@@ -9,7 +9,7 @@ import {
   objectStorageFieldsToUri,
   uriToStorageFields,
 } from '~/app/utils';
-import { RegisteredModel, ModelState, ModelVersion } from '~/app/types';
+import { RegisteredModel, ModelState, ModelVersion, isRegistryUnavailable } from '~/app/types';
 
 describe('objectStorageFieldsToUri', () => {
   it('converts fields to URI with all fields present', () => {
@@ -249,5 +249,23 @@ describe('Filter model version state', () => {
       const result = filterLiveVersions([]);
       expect(result).toEqual([]);
     });
+  });
+});
+
+describe('isRegistryUnavailable', () => {
+  it('returns true when isAvailable is false', () => {
+    expect(isRegistryUnavailable({ name: 'a', displayName: 'A', description: '', isAvailable: false })).toBe(true);
+  });
+
+  it('returns false when isAvailable is true', () => {
+    expect(isRegistryUnavailable({ name: 'a', displayName: 'A', description: '', isAvailable: true })).toBe(false);
+  });
+
+  it('returns false when isAvailable is undefined (legacy BFF)', () => {
+    expect(isRegistryUnavailable({ name: 'a', displayName: 'A', description: '' })).toBe(false);
+  });
+
+  it('returns false when mr is undefined', () => {
+    expect(isRegistryUnavailable(undefined)).toBe(false);
   });
 });
