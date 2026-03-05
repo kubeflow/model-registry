@@ -53,7 +53,7 @@ const NamespaceSelectorField: React.FC<NamespaceSelectorFieldProps> = ({
   error,
 }) => {
   const labelHelpRef = useRef<HTMLSpanElement>(null);
-  const [namespaces] = useNamespaces();
+  const [namespaces, namespacesLoaded, namespacesLoadError] = useNamespaces();
   const isDisabled = namespaces.length === 0;
 
   const options: SimpleSelectOption[] = namespaces.map((ns) => ({
@@ -82,7 +82,7 @@ const NamespaceSelectorField: React.FC<NamespaceSelectorFieldProps> = ({
     </div>
   );
 
-  const showNoAccessMessage = namespaces.length === 0;
+  const showNoAccessMessage = namespacesLoaded && !namespacesLoadError && namespaces.length === 0;
   const showNoAccessAlert =
     namespaces.length > 0 && selectedNamespace && !isLoading && hasAccess === false;
 
@@ -98,6 +98,22 @@ const NamespaceSelectorField: React.FC<NamespaceSelectorFieldProps> = ({
 
   const helperTextNode = (
     <>
+      {!namespacesLoaded && !namespacesLoadError && (
+        <HelperText>
+          <HelperTextItem>Loading namespaces...</HelperTextItem>
+        </HelperText>
+      )}
+      {namespacesLoadError && (
+        <Alert
+          isInline
+          variant="danger"
+          title="Failed to load namespaces"
+          data-testid="namespace-load-error"
+          className="pf-v6-u-mt-sm"
+        >
+          {namespacesLoadError.message}
+        </Alert>
+      )}
       {selectedNamespace && isLoading && (
         <HelperText>
           <HelperTextItem>Checking access...</HelperTextItem>
