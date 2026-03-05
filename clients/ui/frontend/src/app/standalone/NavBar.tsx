@@ -21,7 +21,7 @@ import {
 import { BarsIcon } from '@patternfly/react-icons';
 import { useThemeContext } from 'mod-arch-kubeflow';
 import { images as sharedImages } from 'mod-arch-shared';
-import NamespaceSelector from './NamespaceSelector';
+import GlobalNamespaceSelector from './GlobalNamespaceSelector';
 
 interface NavBarProps {
   username?: string;
@@ -69,7 +69,7 @@ const NavBar: React.FC<NavBarProps> = ({ username, onLogout }) => {
           <ToolbarContent>
             <ToolbarGroup variant="action-group-plain" align={{ default: 'alignStart' }}>
               <ToolbarItem className="kubeflow-u-namespace-select">
-                <NamespaceSelector isGlobalSelector />
+                <GlobalNamespaceSelector />
               </ToolbarItem>
             </ToolbarGroup>
             {username && (
