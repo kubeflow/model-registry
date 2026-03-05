@@ -90,12 +90,13 @@ export const McpCatalogContextProvider: React.FC<McpCatalogContextProviderProps>
     return getUniqueSourceLabels(enabled);
   }, [catalogSources]);
 
-  const useMockLabels = !apiState.apiAvailable || !catalogSourcesLoaded;
-  const sourceLabels = useMockLabels
-    ? Array.from(
+  const mockSourceLabels = React.useMemo(
+    () =>
+      Array.from(
         new Set(mockMcpServers.map((s) => s.source_id).filter((id): id is string => Boolean(id))),
-      )
-    : sourceLabelsFromApi;
+      ),
+    [],
+  );
 
   const mcpServersResult = useMcpServersBySourceLabelWithAPI(apiState, {
     sourceLabel: selectedSourceLabel,
@@ -104,17 +105,20 @@ export const McpCatalogContextProvider: React.FC<McpCatalogContextProviderProps>
   });
 
   const useMockData = !apiState.apiAvailable;
+  const apiHasItems = mcpServersResult.mcpServers.items.length > 0;
+  const isShowingMockItems = useMockData || !apiHasItems;
+  const useMockLabels = isShowingMockItems || !catalogSourcesLoaded;
+  const sourceLabels = useMockLabels ? mockSourceLabels : sourceLabelsFromApi;
+
   const filteredMockItems = mockMcpServers.filter(
     (s) =>
       selectedSourceLabel === undefined || (s.source_id && s.source_id === selectedSourceLabel),
   );
-  const apiHasItems = mcpServersResult.mcpServers.items.length > 0;
   const rawItems = useMockData
     ? filteredMockItems
     : apiHasItems
       ? mcpServersResult.mcpServers.items
       : filteredMockItems;
-  const isShowingMockItems = useMockData || !apiHasItems;
   const itemsAfterSearch =
     isShowingMockItems && searchQuery.trim().length > 0
       ? filterMcpServersBySearchQuery(rawItems, searchQuery)

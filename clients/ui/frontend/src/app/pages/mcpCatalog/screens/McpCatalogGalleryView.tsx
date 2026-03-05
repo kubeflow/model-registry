@@ -1,15 +1,23 @@
 import * as React from 'react';
-import { EmptyState, EmptyStateBody, Grid, GridItem, Stack } from '@patternfly/react-core';
+import { EmptyState, EmptyStateBody, Stack } from '@patternfly/react-core';
 import { SearchIcon } from '@patternfly/react-icons';
 import { McpCatalogContext } from '~/app/context/mcpCatalog/McpCatalogContext';
-import McpCatalogCard from '~/app/pages/mcpCatalog/components/McpCatalogCard';
+import McpCatalogCategorySection from '~/app/pages/mcpCatalog/screens/McpCatalogCategorySection';
+
+function getCategoryDisplayName(sourceLabel: string): string {
+  if (!sourceLabel) {
+    return 'Other';
+  }
+  return sourceLabel.charAt(0).toUpperCase() + sourceLabel.slice(1).toLowerCase();
+}
 
 type McpCatalogGalleryViewProps = {
   searchTerm: string;
 };
 
 const McpCatalogGalleryView: React.FC<McpCatalogGalleryViewProps> = () => {
-  const { mcpServers, mcpServersLoaded, mcpServersLoadError } = React.useContext(McpCatalogContext);
+  const { mcpServers, mcpServersLoaded, mcpServersLoadError, selectedSourceLabel, sourceLabels } =
+    React.useContext(McpCatalogContext);
   const { items } = mcpServers;
 
   if (mcpServersLoadError) {
@@ -42,15 +50,44 @@ const McpCatalogGalleryView: React.FC<McpCatalogGalleryViewProps> = () => {
     return null;
   }
 
+  if (selectedSourceLabel !== undefined) {
+    return (
+      <Stack hasGutter>
+        <McpCatalogCategorySection
+          title={getCategoryDisplayName(selectedSourceLabel)}
+          servers={items}
+        />
+      </Stack>
+    );
+  }
+
+  const knownLabels = new Set(sourceLabels);
+  const uncategorized = items.filter((s) => !s.source_id || !knownLabels.has(s.source_id));
+  const hasUncategorized = uncategorized.length > 0;
+
+  if (sourceLabels.length === 0) {
+    return (
+      <Stack hasGutter>
+        <McpCatalogCategorySection title="Servers" servers={items} />
+      </Stack>
+    );
+  }
+
   return (
     <Stack hasGutter>
-      <Grid hasGutter>
-        {items.map((server) => (
-          <GridItem key={String(server.id)} sm={12} md={6} lg={4} xl2={4}>
-            <McpCatalogCard server={server} />
-          </GridItem>
-        ))}
-      </Grid>
+      {sourceLabels.map((label) => {
+        const sectionItems = items.filter((s) => s.source_id === label);
+        return (
+          <McpCatalogCategorySection
+            key={label}
+            title={getCategoryDisplayName(label)}
+            servers={sectionItems}
+          />
+        );
+      })}
+      {hasUncategorized && (
+        <McpCatalogCategorySection key="other" title="Other" servers={uncategorized} />
+      )}
     </Stack>
   );
 };
