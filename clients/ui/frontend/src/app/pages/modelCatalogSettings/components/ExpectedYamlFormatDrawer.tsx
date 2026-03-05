@@ -13,7 +13,10 @@ import {
 } from '@patternfly/react-core';
 import { useThemeContext } from 'mod-arch-kubeflow';
 import sampleCatalogYamlContent from '~/app/pages/modelCatalogSettings/sample-catalog.yaml';
-import { EXPECTED_YAML_FORMAT_LABEL } from '~/app/pages/modelCatalogSettings/constants';
+import {
+  EXPECTED_YAML_FORMAT_LABEL,
+  PRIMARY_APP_CONTAINER_ID,
+} from '~/app/pages/modelCatalogSettings/constants';
 
 type ExpectedYamlFormatDrawerPanelProps = {
   onClose: () => void;
@@ -52,8 +55,6 @@ export const ExpectedYamlFormatDrawerPanel: React.FC<ExpectedYamlFormatDrawerPan
     </DrawerPanelBody>
   </DrawerPanelContent>
 );
-
-const PRIMARY_APP_CONTAINER_ID = 'primary-app-container';
 
 type ContainerBounds = { top: number; left: number; width: number; height: number };
 
@@ -105,6 +106,16 @@ const ExpectedYamlFormatDrawer: React.FC<ExpectedYamlFormatDrawerProps> = ({
   const wrapperRef = React.useRef<HTMLDivElement>(null);
   const container =
     typeof document !== 'undefined' ? document.getElementById(PRIMARY_APP_CONTAINER_ID) : null;
+
+  React.useEffect(() => {
+    if (isOpen && !container) {
+      // eslint-disable-next-line no-console
+      console.warn(
+        `ExpectedYamlFormatDrawer: container #${PRIMARY_APP_CONTAINER_ID} not found. The drawer will not render.`,
+      );
+    }
+  }, [isOpen, container]);
+
   const bounds = useContainerBounds(container, isOpen);
 
   React.useEffect(() => {

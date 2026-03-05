@@ -4,9 +4,10 @@ import { userEvent } from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router-dom';
 import '@testing-library/jest-dom';
 import ManageSourcePage from '~/app/pages/modelCatalogSettings/screens/ManageSourcePage';
-import { EXPECTED_YAML_FORMAT_LABEL } from '~/app/pages/modelCatalogSettings/constants';
-
-const PRIMARY_APP_CONTAINER_ID = 'primary-app-container';
+import {
+  EXPECTED_YAML_FORMAT_LABEL,
+  PRIMARY_APP_CONTAINER_ID,
+} from '~/app/pages/modelCatalogSettings/constants';
 
 jest.mock('mod-arch-shared', () => ({
   ApplicationsPage: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,

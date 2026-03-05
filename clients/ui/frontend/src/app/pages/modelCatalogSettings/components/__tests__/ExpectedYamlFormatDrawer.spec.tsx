@@ -3,10 +3,12 @@ import { screen, render, waitFor } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
 import '@testing-library/jest-dom';
 import ExpectedYamlFormatDrawer from '~/app/pages/modelCatalogSettings/components/ExpectedYamlFormatDrawer';
-import { EXPECTED_YAML_FORMAT_LABEL } from '~/app/pages/modelCatalogSettings/constants';
+import {
+  EXPECTED_YAML_FORMAT_LABEL,
+  PRIMARY_APP_CONTAINER_ID,
+} from '~/app/pages/modelCatalogSettings/constants';
 
 const DRAWER_TITLE = EXPECTED_YAML_FORMAT_LABEL;
-const PRIMARY_APP_CONTAINER_ID = 'primary-app-container';
 
 const mockUseThemeContext = jest.fn(() => ({ isMUITheme: false }));
 jest.mock('mod-arch-kubeflow', () => ({
@@ -46,7 +48,8 @@ describe('ExpectedYamlFormatDrawer', () => {
     expect(screen.getByText('Page content')).toBeInTheDocument();
   });
 
-  it('when #primary-app-container is missing, renders only children and does not render drawer', () => {
+  it('when #primary-app-container is missing, renders only children, does not render drawer, and warns', () => {
+    const warnSpy = jest.spyOn(console, 'warn').mockImplementation();
     container.remove();
     render(
       <ExpectedYamlFormatDrawer isOpen onClose={onClose}>
@@ -55,6 +58,10 @@ describe('ExpectedYamlFormatDrawer', () => {
     );
     expect(screen.queryByRole('region', { name: DRAWER_TITLE })).not.toBeInTheDocument();
     expect(screen.getByText('Page content')).toBeInTheDocument();
+    expect(warnSpy).toHaveBeenCalledWith(
+      expect.stringContaining(PRIMARY_APP_CONTAINER_ID),
+    );
+    warnSpy.mockRestore();
   });
 
   it('renders drawer with title and close button when isOpen is true', async () => {
