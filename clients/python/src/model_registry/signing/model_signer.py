@@ -12,6 +12,7 @@ from model_signing import signing, verifying
 from typing_extensions import Self
 
 from model_registry.signing import sign_sigstore
+from model_registry.signing._logging import InstanceLevelAdapter, LogConfig
 
 from .exceptions import InitializationError, SigningError, VerificationError
 from .token import decode_jwt_payload, extract_client_id
@@ -21,7 +22,6 @@ if TYPE_CHECKING:
     from .config import SigningConfig
 
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.INFO)
 
 PathLike: TypeAlias = str | os.PathLike[str]
 
@@ -47,6 +47,7 @@ class ModelSigner:
         cache_dir: PathLike | None = None,
         signature_filename: str | None = None,
         ignore_paths: Iterable[PathLike] | None = None,
+        log_level: int | None = None,
     ):
         """Initialize ModelSigner with optional default parameters.
 
@@ -64,7 +65,12 @@ class ModelSigner:
                 Each TUF URL gets URL-encoded subdirectory for isolation
             signature_filename: Default filename for signatures (default: model.sig)
             ignore_paths: Default paths to ignore during signing (optional)
+            log_level: Log level for this instance (e.g. logging.DEBUG)
         """
+        self.logger = InstanceLevelAdapter(
+            logger,
+            LogConfig(instance_name=type(self).__name__, level=log_level),
+        )
         self.tuf_url = tuf_url
         self.root_url = root_url
         self.root_checksum = root_checksum
@@ -77,7 +83,7 @@ class ModelSigner:
         self.signature_filename = signature_filename if signature_filename is not None else "model.sig"
         self.ignore_paths = ignore_paths
         # Create trust initializer
-        self.trust_manager = TrustManager(cache_dir)
+        self.trust_manager = TrustManager(cache_dir, logger_adapter=self.logger)
 
     @classmethod
     def from_config(cls, config: SigningConfig) -> Self:
@@ -121,7 +127,7 @@ class ModelSigner:
         """
         trust_config_path = self.get_trust_config_path()
         if not trust_config_path.exists():
-            logger.info("Trust configuration not initialized. Auto-initializing...")
+            self.logger.debug("Trust configuration not initialized. Auto-initializing...")
             self.initialize(
                 fulcio_url=self.fulcio_url,
                 rekor_url=self.rekor_url,
@@ -257,14 +263,14 @@ class ModelSigner:
             raise SigningError(msg)
 
         try:
-            logger.info(f"Signing model: {model_path}")
-
             # Ensure trust configuration is initialized
             self._ensure_trust_initialized()
 
             # Load trust config path
-            logger.info("Initializing signing context...")
+            self.logger.debug("Initializing signing context...")
             trust_config_path = self.get_trust_config_path()
+
+            self.logger.info(f"Signing model: {model_path}")
 
             # Read and parse identity token
             token_str = token_path.read_text().strip()
@@ -299,7 +305,7 @@ class ModelSigner:
 
             config.sign(model_path, signature_path)
 
-            logger.info(f"Signed successfully: {signature_path}")
+            self.logger.info(f"Signed model successfully: {signature_path}")
             return signature_path
 
         except (FileNotFoundError, SigningError, ValueError):
@@ -357,7 +363,7 @@ class ModelSigner:
             raise VerificationError(msg)
 
         try:
-            logger.info(f"Verifying model: {model_path}")
+            self.logger.info(f"Verifying model: {model_path}")
 
             # Ensure trust configuration is initialized
             self._ensure_trust_initialized()
@@ -365,8 +371,8 @@ class ModelSigner:
             # Load trust config path
             trust_config_path = self.get_trust_config_path()
 
-            logger.info(f"Expected identity: {certificate_identity}")
-            logger.info(f"Expected issuer: {oidc_issuer}")
+            self.logger.debug(f"Expected identity: {certificate_identity}")
+            self.logger.debug(f"Expected issuer: {oidc_issuer}")
 
             # Verify using model_signing.verifying API
             verifying.Config().use_sigstore_verifier(
@@ -375,13 +381,13 @@ class ModelSigner:
                 trust_config=trust_config_path,
             ).verify(model_path, signature_path)
 
-            logger.info("Successfully verified model signature")
+            self.logger.info(f"Verified model successfully: {model_path}")
 
         except FileNotFoundError:
             raise
         except ValueError as e:
             # verifying.Config().verify() raises ValueError on verification failure
-            logger.error(f"Verification failed: {e}")
+            self.logger.error(f"Verification failed: {e}")
             msg = f"Verification failed: {e}"
             raise VerificationError(msg) from e
         except VerificationError:

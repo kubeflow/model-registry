@@ -2,38 +2,44 @@
 
 from __future__ import annotations
 
+import logging
 import os
 import shutil
 import subprocess
-import sys
 from functools import partial
 from pathlib import Path
 from typing import TYPE_CHECKING
 
 from typing_extensions import Self
 
+from model_registry.signing._logging import InstanceLevelAdapter, LogConfig
 from model_registry.signing.exceptions import InitializationError, SigningError, VerificationError
 
 if TYPE_CHECKING:
     from .config import SigningConfig
 
+logger = logging.getLogger(__name__)
+
 
 class CommandRunner:
     """Command execution wrapper for running CLI tools."""
 
-    def __init__(self, **kwargs):
+    def __init__(self, logger_adapter: logging.LoggerAdapter, **kwargs):
         """Initialize CommandRunner with default subprocess.run arguments.
 
         Args:
+            logger_adapter: Logger adapter for logging command output
             **kwargs: Additional default keyword arguments to pass to subprocess.run
         """
         self._run = partial(subprocess.run, check=True, capture_output=True, text=True, **kwargs)
+        self._logger: logging.LoggerAdapter = logger_adapter
 
-    def run(self, cmd: list[str]) -> subprocess.CompletedProcess:
-        """Run a CLI command and handle output.
+    def run(self, cmd: list[str], env: dict[str, str] | None = None) -> subprocess.CompletedProcess:
+        """Run a CLI command and log output.
 
         Args:
             cmd: Command and arguments as a list
+            env: Environment variables for the subprocess. Defaults to os.environ.copy().
 
         Returns:
             CompletedProcess instance
@@ -41,11 +47,21 @@ class CommandRunner:
         Raises:
             subprocess.CalledProcessError: If the command fails
         """
-        # Explicitly pass current environment to ensure DOCKER_CONFIG and other vars are inherited
-        result = self._run(cmd, env=os.environ.copy())
-        if result.stderr:
-            print(result.stderr, file=sys.stderr)
-        return result
+        try:
+            if env is None:
+                env = os.environ.copy()
+            result = self._run(cmd, env=env)
+            if result.stdout:
+                self._logger.debug(result.stdout.strip())
+            if result.stderr:
+                self._logger.debug(result.stderr.strip())
+            return result
+        except subprocess.CalledProcessError as e:
+            if e.stdout:
+                self._logger.error(e.stdout.strip())
+            if e.stderr:
+                self._logger.error(e.stderr.strip())
+            raise
 
 
 class ImageSigner:
@@ -62,6 +78,7 @@ class ImageSigner:
         certificate_identity: str | None = None,
         oidc_issuer: str | None = None,
         client_id: str | None = None,
+        log_level: int | None = None,
     ):
         """Initialize ImageSigner tool.
 
@@ -75,11 +92,16 @@ class ImageSigner:
             certificate_identity: Default certificate identity
             oidc_issuer: Default OIDC issuer URL
             client_id: Default OIDC client ID
+            log_level: Log level for this instance (e.g. logging.DEBUG)
 
         Raises:
             FileNotFoundError: If identity_token_path is provided but doesn't exist
         """
-        self.runner = CommandRunner()
+        self.logger = InstanceLevelAdapter(
+            logger,
+            LogConfig(instance_name=type(self).__name__, level=log_level),
+        )
+        self.runner = CommandRunner(logger_adapter=self.logger)
         self.tuf_url = tuf_url
         self.root = root
         self.root_checksum = root_checksum
@@ -175,9 +197,11 @@ class ImageSigner:
             cmd.extend(["--root-checksum", root_checksum])
 
         try:
+            self.logger.debug("Initializing sigstore configuration")
             self.runner.run(cmd)
+            self.logger.debug("Sigstore configuration initialized")
         except subprocess.CalledProcessError as e:
-            msg = f"Failed to initialize sigstore: {e}"
+            msg = f"Failed to initialize sigstore (exit code {e.returncode})"
             raise InitializationError(msg) from e
 
     def sign(  # noqa: C901
@@ -217,13 +241,14 @@ class ImageSigner:
 
         self._ensure_initialized()
 
+        self.logger.info(f"Signing image: {image}")
         cmd = ["cosign", "sign", "-y"]
+        env = os.environ.copy()
 
         if identity_token_path is not None:
-            # Read token content from file (cosign doesn't actually accept file paths despite docs)
             with open(identity_token_path) as f:
                 token_content = f.read().strip()
-            cmd.extend(["--identity-token", token_content])
+            env["COSIGN_IDENTITY_TOKEN"] = token_content
 
         if fulcio_url is not None:
             cmd.extend(["--fulcio-url", fulcio_url])
@@ -238,9 +263,10 @@ class ImageSigner:
         cmd.append(image)
 
         try:
-            self.runner.run(cmd)
+            self.runner.run(cmd, env=env)
+            self.logger.info(f"Signed image successfully: {image}")
         except subprocess.CalledProcessError as e:
-            msg = f"Failed to sign image {image}: {e}"
+            msg = f"Failed to sign image {image} (exit code {e.returncode})"
             raise SigningError(msg) from e
 
     def verify(self, image: str, certificate_identity: str | None = None, oidc_issuer: str | None = None):
@@ -259,6 +285,7 @@ class ImageSigner:
 
         self._ensure_initialized()
 
+        self.logger.info(f"Verifying image: {image}")
         cmd = ["cosign", "verify"]
 
         if certificate_identity is not None:
@@ -271,6 +298,7 @@ class ImageSigner:
 
         try:
             self.runner.run(cmd)
+            self.logger.info(f"Verified image successfully: {image}")
         except subprocess.CalledProcessError as e:
-            msg = f"Failed to verify image {image}: {e}"
+            msg = f"Failed to verify image {image} (exit code {e.returncode})"
             raise VerificationError(msg) from e
