@@ -2,7 +2,7 @@ import {
   getSecurityIndicatorLabels,
   hasMcpFiltersApplied,
 } from '~/app/pages/mcpCatalog/utils/mcpCatalogUtils';
-import type { McpCatalogFiltersState } from '~/app/context/mcpCatalog/McpCatalogContext';
+import type { McpCatalogFiltersState } from '~/app/pages/mcpCatalog/types/mcpCatalogFilterOptions';
 
 describe('getSecurityIndicatorLabels', () => {
   it('returns empty array when securityIndicators is undefined or null', () => {

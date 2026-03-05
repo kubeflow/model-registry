@@ -5,6 +5,10 @@ export type McpFilterCategoryKey =
   | 'labels'
   | 'securityVerification';
 
+export type McpCatalogFiltersState = {
+  [K in McpFilterCategoryKey]?: string[];
+};
+
 export type McpCatalogFilterStringOption = {
   type: 'string';
   values?: string[];

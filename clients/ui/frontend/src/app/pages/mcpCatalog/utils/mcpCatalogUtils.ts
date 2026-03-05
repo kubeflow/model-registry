@@ -1,4 +1,4 @@
-import type { McpCatalogFiltersState } from '~/app/context/mcpCatalog/McpCatalogContext';
+import type { McpCatalogFiltersState } from '~/app/pages/mcpCatalog/types/mcpCatalogFilterOptions';
 import { MCP_FILTER_KEYS } from '~/app/pages/mcpCatalog/constants/mcpCatalogFilterChipNames';
 import type { McpSecurityIndicator } from '~/app/mcpServerCatalogTypes';
 

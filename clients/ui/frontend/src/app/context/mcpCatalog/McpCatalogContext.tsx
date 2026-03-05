@@ -9,43 +9,18 @@ import {
   filterEnabledCatalogSources,
   getUniqueSourceLabels,
 } from '~/app/pages/modelCatalog/utils/modelCatalogUtils';
-import type { CatalogFilterOptionsList } from '~/app/modelCatalogTypes';
+import type {
+  McpCatalogContextType,
+  McpCatalogPaginationState,
+} from '~/app/pages/mcpCatalog/types/mcpCatalogContext';
+import type { McpCatalogFiltersState } from '~/app/pages/mcpCatalog/types/mcpCatalogFilterOptions';
 import { mockMcpServers } from '~/app/pages/mcpCatalog/mocks/mockMcpServers';
 
-export type McpCatalogPaginationState = {
-  page: number;
-  pageSize: number;
-  totalItems: number;
-};
-
-export type McpCatalogFiltersState = Record<string, unknown>;
-
-export type McpCatalogContextType = {
-  filters: McpCatalogFiltersState;
-  setFilters: (
-    filters: McpCatalogFiltersState | ((prev: McpCatalogFiltersState) => McpCatalogFiltersState),
-  ) => void;
-  searchQuery: string;
-  setSearchQuery: (query: string) => void;
-  namedQuery: string | null;
-  setNamedQuery: (query: string | null) => void;
-  pagination: McpCatalogPaginationState;
-  setPage: (page: number) => void;
-  setPageSize: (pageSize: number) => void;
-  setTotalItems: (totalItems: number) => void;
-  selectedSourceLabel: string | undefined;
-  setSelectedSourceLabel: (label: string | undefined) => void;
-  clearAllFilters: () => void;
-  sourceLabels: string[];
-  catalogSourcesLoaded: boolean;
-  catalogSourcesLoadError: Error | undefined;
-  mcpServers: { items: import('~/app/mcpServerCatalogTypes').McpServer[] };
-  mcpServersLoaded: boolean;
-  mcpServersLoadError: Error | undefined;
-  filterOptions: CatalogFilterOptionsList | null;
-  filterOptionsLoaded: boolean;
-  filterOptionsLoadError: Error | undefined;
-};
+export type {
+  McpCatalogContextType,
+  McpCatalogPaginationState,
+} from '~/app/pages/mcpCatalog/types/mcpCatalogContext';
+export type { McpCatalogFiltersState } from '~/app/pages/mcpCatalog/types/mcpCatalogFilterOptions';
 
 type McpCatalogContextProviderProps = {
   children: React.ReactNode;
