@@ -11,7 +11,6 @@ from typing import TYPE_CHECKING, TypeAlias
 from model_signing import signing, verifying
 from typing_extensions import Self
 
-from model_registry.signing import sign_sigstore
 from model_registry.signing._logging import InstanceLevelAdapter, LogConfig
 
 from .exceptions import InitializationError, SigningError, VerificationError
@@ -269,6 +268,7 @@ class ModelSigner:
             # Load trust config path
             self.logger.debug("Initializing signing context...")
             trust_config_path = self.get_trust_config_path()
+            self.logger.debug(f"Using trust config: {trust_config_path}")
 
             self.logger.info(f"Signing model: {model_path}")
 
@@ -280,28 +280,24 @@ class ModelSigner:
                 claims = decode_jwt_payload(token_str)
                 client_id = extract_client_id(claims)
 
-            # Create signer with trust configuration
-            signer = sign_sigstore.Signer(
-                identity_token=token_str,
-                oidc_issuer=self.oidc_issuer,
-                client_id=client_id,
-                trust_config=trust_config_path,
-            )
-
             # Use provided signature_path or default to model_path/signature_filename
             signature_path = (
                 model_path / self.signature_filename if signature_path is None else Path(signature_path)
             ).absolute()
 
             # Sign using model-signing API
-            config = signing.Config()
+            config = signing.Config().use_sigstore_signer(
+                identity_token=token_str,
+                oidc_issuer=self.oidc_issuer,
+                client_id=client_id,
+                trust_config=trust_config_path,
+            )
 
             # paths added to _ignored_paths will be used only if they are a
             # subpath of the model_path dir
             config._hashing_config._ignored_paths |= {signature_path}
             if ignore_paths is not None:
                 config._hashing_config._ignored_paths |= {Path(p) for p in ignore_paths}
-            config._signer = signer
 
             config.sign(model_path, signature_path)
 
@@ -370,6 +366,7 @@ class ModelSigner:
 
             # Load trust config path
             trust_config_path = self.get_trust_config_path()
+            self.logger.debug(f"Using trust config: {trust_config_path}")
 
             self.logger.debug(f"Expected identity: {certificate_identity}")
             self.logger.debug(f"Expected issuer: {oidc_issuer}")
