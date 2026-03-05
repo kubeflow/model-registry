@@ -288,7 +288,7 @@ func (m *ModelCatalogClientMock) GetMcpServersFilter(client httpclient.HTTPClien
 	return &mcpFilterOptions, nil
 }
 
-func (m *ModelCatalogClientMock) GetMcpServer(client httpclient.HTTPClientInterface, serverId string) (*models.McpServer, error) {
+func (m *ModelCatalogClientMock) GetMcpServer(client httpclient.HTTPClientInterface, serverId string, pageValues url.Values) (*models.McpServer, error) {
 	mcpServer := GetMcpServerMocks()[0]
 
 	return &mcpServer, nil

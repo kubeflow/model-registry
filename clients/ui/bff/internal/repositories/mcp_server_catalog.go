@@ -15,7 +15,7 @@ const mcpFilterOptionPath = "/mcp_servers/filter_options"
 type McpServerCatalogInterface interface {
 	GetAllMcpServers(client httpclient.HTTPClientInterface, pageValues url.Values) (*models.McpServerList, error)
 	GetMcpServersFilter(client httpclient.HTTPClientInterface) (*models.FilterOptionsList, error)
-	GetMcpServer(client httpclient.HTTPClientInterface, serverId string) (*models.McpServer, error)
+	GetMcpServer(client httpclient.HTTPClientInterface, serverId string, pageValues url.Values) (*models.McpServer, error)
 	GetMcpServersTools(client httpclient.HTTPClientInterface, serverId string) (*models.McpToolList, error)
 }
 
@@ -55,14 +55,14 @@ func (a *McpServerCatalog) GetMcpServersFilter(client httpclient.HTTPClientInter
 	return &filters, nil
 }
 
-func (a *McpServerCatalog) GetMcpServer(client httpclient.HTTPClientInterface, serverId string) (*models.McpServer, error) {
+func (a *McpServerCatalog) GetMcpServer(client httpclient.HTTPClientInterface, serverId string, pageValues url.Values) (*models.McpServer, error) {
 	path, err := url.JoinPath(mcpServerPath, serverId)
 
 	if err != nil {
 		return nil, err
 	}
 
-	responseData, err := client.GET(path)
+	responseData, err := client.GET(UrlWithPageParams(path, pageValues))
 
 	if err != nil {
 		return nil, fmt.Errorf("error fetching mcpServerPath: %w", err)

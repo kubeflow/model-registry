@@ -117,7 +117,7 @@ func TestGetMcpServer_Success(t *testing.T) {
 	mockClient.On("GET", "/mcp_servers/server-1").Return([]byte(responseJSON), nil)
 
 	repo := McpServerCatalog{}
-	result, err := repo.GetMcpServer(mockClient, "server-1")
+	result, err := repo.GetMcpServer(mockClient, "server-1", url.Values{})
 
 	assert.NoError(t, err)
 	assert.NotNil(t, result)
@@ -132,7 +132,7 @@ func TestGetMcpServer_ClientError(t *testing.T) {
 	mockClient.On("GET", "/mcp_servers/missing").Return([]byte(nil), expectedErr)
 
 	repo := McpServerCatalog{}
-	result, err := repo.GetMcpServer(mockClient, "missing")
+	result, err := repo.GetMcpServer(mockClient, "missing", url.Values{})
 
 	assert.Nil(t, result)
 	assert.Error(t, err)
