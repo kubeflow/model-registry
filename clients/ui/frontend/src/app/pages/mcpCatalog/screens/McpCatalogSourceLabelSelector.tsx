@@ -47,7 +47,7 @@ const McpCatalogSourceLabelSelector: React.FC<McpCatalogSourceLabelSelectorProps
     }
   }, [hasFiltersAppliedValue, onResetAllFilters]);
 
-  const handleModelSearch = React.useCallback(() => {
+  const handleSearch = React.useCallback(() => {
     if (inputValue.trim() !== searchTerm) {
       onSearch(inputValue.trim());
     }
@@ -108,7 +108,7 @@ const McpCatalogSourceLabelSelector: React.FC<McpCatalogSourceLabelSelectorProps
                         variant="link"
                         icon={<ArrowRightIcon />}
                         iconPosition="right"
-                        onClick={handleModelSearch}
+                        onClick={handleSearch}
                       />
                     )}
                   </ToolbarItem>
