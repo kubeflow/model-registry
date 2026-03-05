@@ -1353,6 +1353,12 @@ paths:
         - $ref: "#/components/parameters/modelRegistryName"
         - $ref: "#/components/parameters/kubeflowUserId"
         - $ref: "#/components/parameters/modelTransferJobName"
+        - name: jobNamespace
+          description: The namespace where the job's pods are running, used to fetch pod events. Falls back to the job's own namespace if not provided.
+          schema:
+            type: string
+          in: query
+          required: false
       responses:
         "200":
           $ref: "#/components/responses/ModelTransferJobEventsResponse"
