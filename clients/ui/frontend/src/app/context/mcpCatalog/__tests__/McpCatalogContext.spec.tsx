@@ -1,5 +1,5 @@
 import '@testing-library/jest-dom';
-import React from 'react';
+import * as React from 'react';
 import { renderHook, act } from '@testing-library/react';
 import {
   McpCatalogContextProvider,
@@ -133,18 +133,24 @@ describe('McpCatalogContext', () => {
     expect(result.current.selectedSourceLabel).toBeUndefined();
   });
 
-  it('clearAllFilters resets searchQuery and filters', () => {
+  it('clearAllFilters resets searchQuery, filters, selectedSourceLabel and namedQuery', () => {
     const { result } = renderHook(() => React.useContext(McpCatalogContext), { wrapper });
     act(() => {
       result.current.setSearchQuery('q');
       result.current.setFilters({ deploymentMode: ['Local'] });
+      result.current.setSelectedSourceLabel('sample');
+      result.current.setNamedQuery('named');
     });
     expect(result.current.searchQuery).toBe('q');
     expect(result.current.filters).toEqual({ deploymentMode: ['Local'] });
+    expect(result.current.selectedSourceLabel).toBe('sample');
+    expect(result.current.namedQuery).toBe('named');
     act(() => {
       result.current.clearAllFilters();
     });
     expect(result.current.searchQuery).toBe('');
     expect(result.current.filters).toEqual({});
+    expect(result.current.selectedSourceLabel).toBeUndefined();
+    expect(result.current.namedQuery).toBeNull();
   });
 });

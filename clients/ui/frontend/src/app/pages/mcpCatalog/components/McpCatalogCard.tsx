@@ -11,7 +11,6 @@ import {
   Truncate,
 } from '@patternfly/react-core';
 import { ApplicationsIcon } from '@patternfly/react-icons';
-import { Link } from 'react-router-dom';
 import type { McpServer } from '~/app/mcpServerCatalogTypes';
 import { getSecurityIndicatorLabels } from '~/app/pages/mcpCatalog/utils/mcpCatalogUtils';
 import {
@@ -19,8 +18,6 @@ import {
   McpCardIconByLabel,
   getMcpCardIconConfig,
 } from '~/app/pages/mcpCatalog/constants/mcpCatalogCardIcons';
-
-const MCP_DETAILS_LINK_PLACEHOLDER = '#';
 
 type McpCatalogCardProps = {
   server: McpServer;
@@ -66,15 +63,14 @@ const McpCatalogCard: React.FC<McpCatalogCardProps> = ({ server }) => {
           </FlexItem>
         </Flex>
         <CardTitle>
-          <Link to={MCP_DETAILS_LINK_PLACEHOLDER}>
+          <span className="pf-v6-u-display-block">
             <Truncate
               content={server.name}
               position="middle"
               tooltipPosition="top"
               data-testid={`mcp-catalog-card-name-${serverId}`}
-              className="pf-v6-u-text-decoration-underline"
             />
-          </Link>
+          </span>
         </CardTitle>
       </CardHeader>
       <CardBody>

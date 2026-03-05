@@ -141,6 +141,8 @@ export const McpCatalogContextProvider: React.FC<McpCatalogContextProviderProps>
   const clearAllFilters = React.useCallback(() => {
     setSearchQuery('');
     setFilters({});
+    setSelectedSourceLabel(undefined);
+    setNamedQuery(null);
   }, []);
 
   const value = React.useMemo<McpCatalogContextType>(

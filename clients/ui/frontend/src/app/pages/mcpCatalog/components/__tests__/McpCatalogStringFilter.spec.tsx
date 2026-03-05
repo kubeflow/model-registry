@@ -1,5 +1,5 @@
 import '@testing-library/jest-dom';
-import React from 'react';
+import * as React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
 import McpCatalogStringFilter from '~/app/pages/mcpCatalog/components/McpCatalogStringFilter';
 import { McpCatalogContextProvider } from '~/app/context/mcpCatalog/McpCatalogContext';
