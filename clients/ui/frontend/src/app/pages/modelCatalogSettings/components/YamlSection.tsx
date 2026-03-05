@@ -17,9 +17,8 @@ import {
   FORM_LABELS,
   VALIDATION_MESSAGES,
   HELP_TEXT,
+  EXPECTED_YAML_FORMAT_LABEL,
 } from '~/app/pages/modelCatalogSettings/constants';
-
-const EXPECTED_FORMAT_LINK_TEXT = 'View expected file format';
 
 type YamlSectionProps = {
   formData: ManageSourceFormData;
@@ -117,7 +116,7 @@ const YamlSection: React.FC<YamlSectionProps> = ({
               right: 0,
             }}
           >
-            {EXPECTED_FORMAT_LINK_TEXT}
+            {EXPECTED_YAML_FORMAT_LABEL}
           </Button>
         )}
       </div>

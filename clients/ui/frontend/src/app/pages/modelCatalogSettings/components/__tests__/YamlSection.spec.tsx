@@ -5,9 +5,10 @@ import '@testing-library/jest-dom';
 import YamlSection from '~/app/pages/modelCatalogSettings/components/YamlSection';
 import { ManageSourceFormData } from '~/app/pages/modelCatalogSettings/useManageSourceData';
 import { CatalogSourceType } from '~/app/modelCatalogTypes';
-import { FORM_LABELS } from '~/app/pages/modelCatalogSettings/constants';
-
-const VIEW_EXPECTED_FORMAT_LINK_TEXT = 'View expected file format';
+import {
+  FORM_LABELS,
+  EXPECTED_YAML_FORMAT_LABEL,
+} from '~/app/pages/modelCatalogSettings/constants';
 
 const createFormData = (overrides: Partial<ManageSourceFormData> = {}): ManageSourceFormData => ({
   name: '',
@@ -47,7 +48,7 @@ describe('YamlSection', () => {
     );
     const link = screen.getByTestId('view-expected-yaml-format-link');
     expect(link).toBeInTheDocument();
-    expect(link).toHaveTextContent(VIEW_EXPECTED_FORMAT_LINK_TEXT);
+    expect(link).toHaveTextContent(EXPECTED_YAML_FORMAT_LABEL);
   });
 
   it('does not show the link when onOpenExpectedFormatDrawer is not provided', () => {

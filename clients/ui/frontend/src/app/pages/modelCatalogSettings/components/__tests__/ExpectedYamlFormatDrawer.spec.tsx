@@ -2,11 +2,10 @@ import React from 'react';
 import { screen, render, waitFor } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
 import '@testing-library/jest-dom';
-import ExpectedYamlFormatDrawer, {
-  EXPECTED_FORMAT_DRAWER_TITLE,
-} from '~/app/pages/modelCatalogSettings/components/ExpectedYamlFormatDrawer';
+import ExpectedYamlFormatDrawer from '~/app/pages/modelCatalogSettings/components/ExpectedYamlFormatDrawer';
+import { EXPECTED_YAML_FORMAT_LABEL } from '~/app/pages/modelCatalogSettings/constants';
 
-const DRAWER_TITLE = EXPECTED_FORMAT_DRAWER_TITLE;
+const DRAWER_TITLE = EXPECTED_YAML_FORMAT_LABEL;
 const PRIMARY_APP_CONTAINER_ID = 'primary-app-container';
 
 describe('ExpectedYamlFormatDrawer', () => {

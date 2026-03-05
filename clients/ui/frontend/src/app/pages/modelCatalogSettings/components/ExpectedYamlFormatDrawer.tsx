@@ -13,8 +13,7 @@ import {
 } from '@patternfly/react-core';
 import { useThemeContext } from 'mod-arch-kubeflow';
 import sampleCatalogYamlContent from '~/app/pages/modelCatalogSettings/sample-catalog.yaml';
-
-export const EXPECTED_FORMAT_DRAWER_TITLE = 'View expected file format';
+import { EXPECTED_YAML_FORMAT_LABEL } from '~/app/pages/modelCatalogSettings/constants';
 
 type ExpectedYamlFormatDrawerPanelProps = {
   onClose: () => void;
@@ -26,11 +25,11 @@ export const ExpectedYamlFormatDrawerPanel: React.FC<ExpectedYamlFormatDrawerPan
   <DrawerPanelContent
     widths={{ default: 'width_50' }}
     role="region"
-    aria-label={EXPECTED_FORMAT_DRAWER_TITLE}
+    aria-label={EXPECTED_YAML_FORMAT_LABEL}
     style={{ display: 'flex', flexDirection: 'column', minHeight: 0 }}
   >
     <DrawerHead>
-      <span data-testid="expected-format-drawer-title">{EXPECTED_FORMAT_DRAWER_TITLE}</span>
+      <span data-testid="expected-format-drawer-title">{EXPECTED_YAML_FORMAT_LABEL}</span>
       <DrawerActions>
         <DrawerCloseButton
           onClose={onClose}
