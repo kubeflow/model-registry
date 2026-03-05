@@ -19,6 +19,43 @@ var supportedOperators = map[string]bool{
 	"NOT IN": true,
 }
 
+// MCPServerFilterableFields is the set of valid field names that may be used in
+// named query filters targeting MCP servers. Field names not in this set are
+// rejected at config-parse time to catch typos early.
+var MCPServerFilterableFields = map[string]bool{
+	// Common Context properties
+	"id":                       true,
+	"name":                     true,
+	"externalId":               true,
+	"createTimeSinceEpoch":     true,
+	"lastUpdateTimeSinceEpoch": true,
+	// MCPServer-specific properties
+	"source_id":        true,
+	"base_name":        true,
+	"description":      true,
+	"provider":         true,
+	"license":          true,
+	"license_link":     true,
+	"logo":             true,
+	"readme":           true,
+	"version":          true,
+	"tags":             true,
+	"transports":       true,
+	"deploymentMode":   true,
+	"documentationUrl": true,
+	"repositoryUrl":    true,
+	"sourceCode":       true,
+	"publishedDate":    true,
+	"lastUpdated":      true,
+	"verifiedSource":   true,
+	"secureEndpoint":   true,
+	"sast":             true,
+	"readOnlyTools":    true,
+	"endpoints":        true,
+	"artifacts":        true,
+	"runtimeMetadata":  true,
+}
+
 // ValidateNamedQueries validates the structure and content of named queries
 func ValidateNamedQueries(namedQueries map[string]map[string]FieldFilter) error {
 	for queryName, fieldFilters := range namedQueries {
@@ -41,6 +78,20 @@ func ValidateNamedQueries(namedQueries map[string]map[string]FieldFilter) error 
 		}
 	}
 
+	return nil
+}
+
+// ValidateFieldNames checks that every field name used across all named queries
+// is present in allowedFields. This catches typos at config-parse time before
+// they silently produce empty results at runtime.
+func ValidateFieldNames(namedQueries map[string]map[string]FieldFilter, allowedFields map[string]bool) error {
+	for queryName, fieldFilters := range namedQueries {
+		for fieldName := range fieldFilters {
+			if !allowedFields[fieldName] {
+				return fmt.Errorf("unknown field %q in named query %q: not a filterable MCP server field", fieldName, queryName)
+			}
+		}
+	}
 	return nil
 }
 

@@ -3,10 +3,11 @@ package converter
 import (
 	"encoding/json"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/golang/glog"
-	"github.com/kubeflow/model-registry/catalog/internal/db/models"
+	"github.com/kubeflow/model-registry/catalog/internal/catalog/mcpcatalog/models"
 	"github.com/kubeflow/model-registry/catalog/pkg/openapi"
 	dbmodels "github.com/kubeflow/model-registry/internal/db/models"
 )
@@ -94,9 +95,8 @@ func ConvertOpenapiMCPServerToDb(openapiServer *openapi.MCPServer) models.MCPSer
 
 // ConvertDbMCPServerToOpenapi converts a database MCPServer model to an OpenAPI MCPServer.
 // This extracts all properties from the database model and populates the OpenAPI struct.
-//
-// NOTE: The returned MCPServer will have ToolCount=0. Use ConvertDbMCPServerWithToolsToOpenapi
-// if you have loaded the associated tools and need an accurate tool count.
+// It does NOT populate ToolCount or the Tools array — callers MUST set ToolCount
+// (e.g. via CountByParentIDs) to avoid returning an incorrect zero value.
 func ConvertDbMCPServerToOpenapi(dbServer models.MCPServer) *openapi.MCPServer {
 	return convertDbMCPServerToOpenapiInternal(dbServer, nil)
 }
@@ -120,7 +120,8 @@ func ConvertDbMCPServerWithToolsToOpenapi(dbServer models.MCPServer, tools []mod
 }
 
 // convertDbMCPServerToOpenapiInternal is the shared implementation for server conversion.
-// If tools is nil, toolCount is set to 0. Otherwise, it's set to len(tools).
+// ToolCount is derived from len(tools) here as a preliminary value; callers MUST
+// override it with the accurate total from CountByParentIDs when a ToolLimit is applied.
 func convertDbMCPServerToOpenapiInternal(dbServer models.MCPServer, tools []openapi.MCPTool) *openapi.MCPServer {
 	attrs := dbServer.GetAttributes()
 	props := dbServer.GetProperties()
@@ -297,8 +298,15 @@ func ConvertDbMCPToolToOpenapi(dbTool models.MCPServerTool) *openapi.MCPTool {
 		accessType = "read_only" // default fallback to prevent API contract violation
 	}
 
+	// Strip internal qualified prefix (serverName@version:) from tool name before returning to API.
+	// The DB stores tools as "server@version:toolName" for uniqueness, but the API should return just "toolName".
+	toolName := *attr.Name
+	if idx := strings.LastIndex(toolName, ":"); idx != -1 {
+		toolName = toolName[idx+1:]
+	}
+
 	// Create OpenAPI tool with required fields
-	openapiTool := openapi.NewMCPTool(*attr.Name, accessType)
+	openapiTool := openapi.NewMCPTool(toolName, accessType)
 
 	// Set ID if available
 	if id := dbTool.GetID(); id != nil {

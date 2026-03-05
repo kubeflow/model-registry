@@ -15,7 +15,8 @@ import (
 
 	"github.com/golang/glog"
 	"github.com/kubeflow/model-registry/catalog/internal/catalog/basecatalog"
-	dbmodels "github.com/kubeflow/model-registry/catalog/internal/db/models"
+	catalogmodels "github.com/kubeflow/model-registry/catalog/internal/catalog/modelcatalog/models"
+	sharedmodels "github.com/kubeflow/model-registry/catalog/internal/db/models"
 	apimodels "github.com/kubeflow/model-registry/catalog/pkg/openapi"
 	"github.com/kubeflow/model-registry/internal/db/models"
 )
@@ -137,7 +138,7 @@ type hfConfig struct {
 }
 
 type hfCard struct {
-	Data map[string]interface{} `json:"data,omitempty"`
+	Data map[string]any `json:"data,omitempty"`
 }
 
 //go:embed assets/catalog_logo.svg
@@ -244,10 +245,9 @@ func (hfm *hfModel) populateFromHFInfo(ctx context.Context, provider *hfModelPro
 	if len(hfInfo.Tags) > 0 {
 		filteredTags = make([]string, 0, len(hfInfo.Tags))
 		for _, tag := range hfInfo.Tags {
-			if strings.HasPrefix(tag, "license:") {
+			if license, ok := strings.CutPrefix(tag, "license:"); ok {
 				// Extract license (only first one)
 				if hfm.License == nil {
-					license := strings.TrimPrefix(tag, "license:")
 					if license != "" {
 						license = basecatalog.TransformLicenseToHumanReadable(license)
 						hfm.License = &license
@@ -287,7 +287,7 @@ func (hfm *hfModel) populateFromHFInfo(ctx context.Context, provider *hfModelPro
 		}
 
 		// Extract language from cardData if available
-		if langData, ok := hfInfo.CardData.Data["language"].([]interface{}); ok && len(langData) > 0 {
+		if langData, ok := hfInfo.CardData.Data["language"].([]any); ok && len(langData) > 0 {
 			languages := make([]string, 0, len(langData))
 			for _, lang := range langData {
 				if langStr, ok := lang.(string); ok && langStr != "" {
@@ -535,7 +535,7 @@ func (p *hfModelProvider) getModelsFromHF(ctx context.Context) ([]ModelProviderR
 
 		// Add last_synced property to the model
 		if record.Model != nil {
-			if modelImpl, ok := record.Model.(*dbmodels.CatalogModelImpl); ok {
+			if modelImpl, ok := record.Model.(*catalogmodels.CatalogModelImpl); ok {
 				customProps := modelImpl.CustomProperties
 				if customProps == nil {
 					customProps = &[]models.Properties{}
@@ -649,11 +649,11 @@ func (p *hfModelProvider) convertHFModelToRecord(ctx context.Context, hfInfo *hf
 	hfm.populateFromHFInfo(ctx, p, hfInfo, p.sourceId, originalModelName)
 
 	// Convert to database model
-	model := dbmodels.CatalogModelImpl{}
+	model := catalogmodels.CatalogModelImpl{}
 
 	// Convert model attributes
 	modelName := hfm.Name
-	attrs := &dbmodels.CatalogModelAttributes{
+	attrs := &catalogmodels.CatalogModelAttributes{
 		Name:       &modelName,
 		ExternalID: hfm.ExternalId,
 	}
@@ -682,7 +682,7 @@ func (p *hfModelProvider) convertHFModelToRecord(ctx context.Context, hfInfo *hf
 	}
 
 	// Create model artifact with hf:// protocol for KServe CSI deployment
-	artifacts := []dbmodels.CatalogArtifact{}
+	artifacts := []sharedmodels.CatalogArtifact{}
 	if hfm.ExternalId != nil && *hfm.ExternalId != "" {
 		// Construct hf:// URI using the Hugging Face model ID
 		hfUri := fmt.Sprintf("hf://%s", *hfm.ExternalId)
@@ -690,8 +690,8 @@ func (p *hfModelProvider) convertHFModelToRecord(ctx context.Context, hfInfo *hf
 		artifactName := fmt.Sprintf("%s-hf-artifact", modelName)
 
 		// Create CatalogModelArtifact
-		modelArtifact := &dbmodels.CatalogModelArtifactImpl{}
-		modelArtifact.Attributes = &dbmodels.CatalogModelArtifactAttributes{
+		modelArtifact := &catalogmodels.CatalogModelArtifactImpl{}
+		modelArtifact.Attributes = &catalogmodels.CatalogModelArtifactAttributes{
 			Name:         &artifactName,
 			URI:          &hfUri,
 			ArtifactType: &artifactType,
@@ -706,7 +706,7 @@ func (p *hfModelProvider) convertHFModelToRecord(ctx context.Context, hfInfo *hf
 			modelArtifact.Attributes.LastUpdateTimeSinceEpoch = attrs.LastUpdateTimeSinceEpoch
 		}
 
-		artifacts = append(artifacts, dbmodels.CatalogArtifact{
+		artifacts = append(artifacts, sharedmodels.CatalogArtifact{
 			CatalogModelArtifact: modelArtifact,
 		})
 	}
@@ -1023,8 +1023,7 @@ func parseModelPattern(pattern string) (PatternType, string, string) {
 	}
 
 	// Check if it's an org/* pattern
-	if strings.HasSuffix(pattern, "/*") {
-		org := strings.TrimSuffix(pattern, "/*")
+	if org, ok := strings.CutSuffix(pattern, "/*"); ok {
 		// Ensure org is not empty or just whitespace
 		if org == "" || strings.TrimSpace(org) == "" {
 			return PatternInvalid, "", ""
@@ -1049,8 +1048,7 @@ func parseModelPattern(pattern string) (PatternType, string, string) {
 	}
 
 	// Check if it has a wildcard after org/prefix
-	if strings.HasSuffix(model, "*") {
-		prefix := strings.TrimSuffix(model, "*")
+	if prefix, ok := strings.CutSuffix(model, "*"); ok {
 		if prefix != "" {
 			return PatternOrgPrefix, org, prefix
 		}
@@ -1173,7 +1171,7 @@ func parseNextCursor(linkHeader string) string {
 	}
 
 	// Parse Link header for rel="next"
-	for _, link := range strings.Split(linkHeader, ",") {
+	for link := range strings.SplitSeq(linkHeader, ",") {
 		link = strings.TrimSpace(link)
 		if strings.Contains(link, `rel="next"`) {
 			// Extract URL between < and >
@@ -1182,8 +1180,7 @@ func parseNextCursor(linkHeader string) string {
 			if start >= 0 && end > start {
 				nextURL := link[start+1 : end]
 				// Extract cursor parameter from URL
-				if idx := strings.Index(nextURL, "cursor="); idx >= 0 {
-					cursor := nextURL[idx+7:]
+				if _, cursor, ok := strings.Cut(nextURL, "cursor="); ok {
 					// Handle if there are more parameters after cursor
 					if ampIdx := strings.Index(cursor, "&"); ampIdx >= 0 {
 						cursor = cursor[:ampIdx]

@@ -101,6 +101,7 @@ const CatalogSourceConfigsTableRow: React.FC<CatalogSourceConfigsTableRowProps> 
             <Label
               color={ModelVisibilityBadgeColor.UNFILTERED}
               data-testid={`model-visibility-unfiltered-${catalogSourceConfig.id}`}
+              variant="outline"
             >
               All models
             </Label>

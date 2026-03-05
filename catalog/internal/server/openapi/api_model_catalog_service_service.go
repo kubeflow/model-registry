@@ -13,8 +13,8 @@ import (
 	"strings"
 
 	"github.com/kubeflow/model-registry/catalog/internal/catalog"
+	"github.com/kubeflow/model-registry/catalog/internal/catalog/modelcatalog"
 	"github.com/kubeflow/model-registry/catalog/internal/db/models"
-	dbmodels "github.com/kubeflow/model-registry/catalog/internal/db/models"
 	model "github.com/kubeflow/model-registry/catalog/pkg/openapi"
 	mrmodels "github.com/kubeflow/model-registry/internal/db/models"
 	"github.com/kubeflow/model-registry/pkg/api"
@@ -204,26 +204,6 @@ func (m *ModelCatalogServiceAPIService) FindLabels(ctx context.Context, pageSize
 	return Response(http.StatusOK, res), nil
 }
 
-func (m *ModelCatalogServiceAPIService) FindMCPServers(ctx context.Context, name string, q string, filterQuery string, namedQuery string, includeTools bool, toolLimit int32, pageSize string, orderBy model.OrderByField, sortOrder model.SortOrder, nextPageToken string) (ImplResponse, error) {
-	return ErrorResponse(http.StatusNotImplemented, errors.New("FindMCPServers not implemented")), nil
-}
-
-func (m *ModelCatalogServiceAPIService) FindMCPServersFilterOptions(ctx context.Context) (ImplResponse, error) {
-	return ErrorResponse(http.StatusNotImplemented, errors.New("FindMCPServersFilterOptions not implemented")), nil
-}
-
-func (m *ModelCatalogServiceAPIService) GetMCPServer(ctx context.Context, serverID string) (ImplResponse, error) {
-	return ErrorResponse(http.StatusNotImplemented, errors.New("GetMCPServer not implemented")), nil
-}
-
-func (m *ModelCatalogServiceAPIService) FindMCPServerTools(ctx context.Context, serverID string, filterQuery string, pageSize string, orderBy model.OrderByField, sortOrder model.SortOrder, nextPageToken string) (ImplResponse, error) {
-	return ErrorResponse(http.StatusNotImplemented, errors.New("FindMCPServerTools not implemented")), nil
-}
-
-func (m *ModelCatalogServiceAPIService) GetMCPServerTool(ctx context.Context, serverID string, toolName string) (ImplResponse, error) {
-	return ErrorResponse(http.StatusNotImplemented, errors.New("GetMCPServerTool not implemented")), nil
-}
-
 func (m *ModelCatalogServiceAPIService) FindModels(ctx context.Context, recommended bool, targetRPS int32, latencyProperty string, rpsProperty string, hardwareCountProperty string, hardwareTypeProperty string, sourceIDs []string, q string, sourceLabels []string, filterQuery string, pageSize string, orderBy model.OrderByField, sortOrder model.SortOrder, nextPageToken string) (ImplResponse, error) {
 	// Validate pagination parameters
 	var err error
@@ -292,7 +272,7 @@ func (m *ModelCatalogServiceAPIService) FindModels(ctx context.Context, recommen
 			hardwareTypeProp = "hardware_type"
 		}
 
-		paretoParams := dbmodels.ParetoFilteringParams{
+		paretoParams := modelcatalog.ParetoFilteringParams{
 			TargetRPS:             targetRPSPtr,
 			LatencyProperty:       latencyProp,
 			RpsProperty:           rpsProp,

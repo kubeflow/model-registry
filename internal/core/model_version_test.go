@@ -2,6 +2,7 @@ package core_test
 
 import (
 	"fmt"
+	"slices"
 	"strings"
 	"testing"
 
@@ -320,7 +321,7 @@ func TestUpsertModelVersion(t *testing.T) {
 
 		// Create 15 model versions for pagination testing
 		var createdVersions []string
-		for i := 0; i < 15; i++ {
+		for i := range 15 {
 			versionName := "paging-test-model-version-" + fmt.Sprintf("%02d", i)
 			inputVersion := &openapi.ModelVersion{
 				Name:              versionName,
@@ -396,11 +397,8 @@ func TestUpsertModelVersion(t *testing.T) {
 		// Count our test versions in the results
 		foundCount := 0
 		for _, item := range allItems.Items {
-			for _, createdId := range createdVersions {
-				if *item.Id == createdId {
-					foundCount++
-					break
-				}
+			if slices.Contains(createdVersions, *item.Id) {
+				foundCount++
 			}
 		}
 		assert.Equal(t, 15, foundCount, "Should find all 15 created model versions")
@@ -772,11 +770,8 @@ func TestGetModelVersions(t *testing.T) {
 		// Verify our versions are in the result
 		foundVersions := 0
 		for _, item := range result.Items {
-			for _, createdId := range createdIds {
-				if *item.Id == createdId {
-					foundVersions++
-					break
-				}
+			if slices.Contains(createdIds, *item.Id) {
+				foundVersions++
 			}
 		}
 		assert.Equal(t, 3, foundVersions, "All created versions should be found in the list")
@@ -784,7 +779,7 @@ func TestGetModelVersions(t *testing.T) {
 
 	t.Run("list all versions without registered model filter", func(t *testing.T) {
 		// Create multiple registered models with versions
-		for i := 0; i < 2; i++ {
+		for i := range 2 {
 			registeredModel := &openapi.RegisteredModel{
 				Name: "all-versions-model-" + string(rune('A'+i)),
 			}
@@ -817,7 +812,7 @@ func TestGetModelVersions(t *testing.T) {
 		require.NoError(t, err)
 
 		// Create several versions for pagination testing
-		for i := 0; i < 5; i++ {
+		for i := range 5 {
 			version := &openapi.ModelVersion{
 				Name:              "pagination-version-" + string(rune('A'+i)),
 				ExternalId:        apiutils.Of("pagination-ext-" + string(rune('A'+i))),
@@ -1186,11 +1181,8 @@ func TestGetModelVersionsWithFilterQuery(t *testing.T) {
 			// Extract names from results
 			var actualNames []string
 			for _, item := range result.Items {
-				for _, expectedName := range tc.expectedNames {
-					if item.Name == expectedName {
-						actualNames = append(actualNames, item.Name)
-						break
-					}
+				if slices.Contains(tc.expectedNames, item.Name) {
+					actualNames = append(actualNames, item.Name)
 				}
 			}
 

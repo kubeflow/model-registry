@@ -7,6 +7,7 @@ import {
   CATALOG_SETTINGS_PAGE_TITLE,
   CATALOG_SETTINGS_DESCRIPTION,
   addSourceUrl,
+  ADD_SOURCE_TITLE,
 } from '~/app/routes/modelCatalogSettings/modelCatalogSettings';
 import { ModelCatalogSettingsContext } from '~/app/context/modelCatalogSettings/ModelCatalogSettingsContext';
 import CatalogSourceConfigsTable from './CatalogSourceConfigsTable';
@@ -58,11 +59,10 @@ const ModelCatalogSettings: React.FC = () => {
           </EmptyStateBody>
           <Button
             variant="primary"
-            icon={<PlusCircleIcon />}
             onClick={() => navigate(addSourceUrl())}
             data-testid="add-source-button-empty"
           >
-            Add a source
+            {ADD_SOURCE_TITLE}
           </Button>
         </EmptyState>
       }

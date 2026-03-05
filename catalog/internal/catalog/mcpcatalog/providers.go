@@ -4,16 +4,18 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"net/url"
 	"os"
 	"path/filepath"
+	"slices"
 	"strconv"
 	"sync"
 
 	"github.com/golang/glog"
 	"github.com/kubeflow/model-registry/catalog/internal/catalog/basecatalog"
-	dbmodels "github.com/kubeflow/model-registry/catalog/internal/db/models"
+	"github.com/kubeflow/model-registry/catalog/internal/catalog/mcpcatalog/models"
 	apimodels "github.com/kubeflow/model-registry/catalog/pkg/openapi"
-	"github.com/kubeflow/model-registry/internal/db/models"
+	mrmodels "github.com/kubeflow/model-registry/internal/db/models"
 	"k8s.io/apimachinery/pkg/util/yaml"
 )
 
@@ -30,7 +32,7 @@ type MCPToolRecord struct {
 
 // MCPServerProviderRecord represents a single MCP server from a provider along with its tools
 type MCPServerProviderRecord struct {
-	Server *dbmodels.MCPServerImpl
+	Server *models.MCPServerImpl
 	Tools  []MCPToolRecord
 	Error  error
 }
@@ -123,9 +125,34 @@ type yamlMCPArtifact struct {
 
 // yamlMCPEndpoints represents MCP server endpoints
 type yamlMCPEndpoints struct {
-	HTTP      *string `yaml:"http,omitempty"`
-	SSE       *string `yaml:"sse,omitempty"`
-	WebSocket *string `yaml:"websocket,omitempty"`
+	HTTP      *string `yaml:"http,omitempty" json:"http,omitempty"`
+	SSE       *string `yaml:"sse,omitempty" json:"sse,omitempty"`
+	WebSocket *string `yaml:"websocket,omitempty" json:"websocket,omitempty"`
+}
+
+// validate checks that all non-nil endpoint URLs have valid schemes.
+// HTTP and SSE endpoints must use http/https; WebSocket endpoints also accept ws/wss.
+func (e *yamlMCPEndpoints) validate() error {
+	type endpointField struct {
+		name    string
+		url     *string
+		schemes []string
+	}
+	fields := []endpointField{
+		{"http", e.HTTP, []string{"http", "https"}},
+		{"sse", e.SSE, []string{"http", "https"}},
+		{"websocket", e.WebSocket, []string{"http", "https", "ws", "wss"}},
+	}
+	for _, f := range fields {
+		if f.url == nil {
+			continue
+		}
+		u, err := url.Parse(*f.url)
+		if err != nil || !slices.Contains(f.schemes, u.Scheme) {
+			return fmt.Errorf("%s endpoint %q must be a valid URL with one of the following schemes: %v", f.name, *f.url, f.schemes)
+		}
+	}
+	return nil
 }
 
 // yamlMCPCatalog represents a complete MCP catalog YAML file
@@ -220,7 +247,7 @@ func (yp *yamlMCPProvider) emit(ctx context.Context, path string, recordChan cha
 
 // ToMCPServerProviderRecord converts a yamlMCPServer to an MCPServerProviderRecord
 func (ys *yamlMCPServer) ToMCPServerProviderRecord() MCPServerProviderRecord {
-	attrs := &dbmodels.MCPServerAttributes{
+	attrs := &models.MCPServerAttributes{
 		Name:       &ys.Name,
 		ExternalID: ys.ExternalID,
 	}
@@ -238,60 +265,61 @@ func (ys *yamlMCPServer) ToMCPServerProviderRecord() MCPServerProviderRecord {
 		}
 	}
 
-	server := &dbmodels.MCPServerImpl{
+	server := &models.MCPServerImpl{
 		Attributes: attrs,
 	}
 
 	// Convert standard properties
-	properties := []models.Properties{}
+	properties := []mrmodels.Properties{}
 
 	if ys.Description != nil {
-		properties = append(properties, models.NewStringProperty("description", *ys.Description, false))
+		properties = append(properties, mrmodels.NewStringProperty("description", *ys.Description, false))
 	}
 	if ys.Provider != nil {
-		properties = append(properties, models.NewStringProperty("provider", *ys.Provider, false))
+		properties = append(properties, mrmodels.NewStringProperty("provider", *ys.Provider, false))
 	}
 	if ys.Version != nil {
-		properties = append(properties, models.NewStringProperty("version", *ys.Version, false))
+		properties = append(properties, mrmodels.NewStringProperty("version", *ys.Version, false))
 	}
 	if ys.Logo != nil {
-		properties = append(properties, models.NewStringProperty("logo", *ys.Logo, false))
+		properties = append(properties, mrmodels.NewStringProperty("logo", *ys.Logo, false))
 	}
 	if ys.License != nil {
-		properties = append(properties, models.NewStringProperty("license", *ys.License, false))
+		humanReadableLicense := basecatalog.TransformLicenseToHumanReadable(*ys.License)
+		properties = append(properties, mrmodels.NewStringProperty("license", humanReadableLicense, false))
 	}
 	if ys.LicenseLink != nil {
-		properties = append(properties, models.NewStringProperty("license_link", *ys.LicenseLink, false))
+		properties = append(properties, mrmodels.NewStringProperty("license_link", *ys.LicenseLink, false))
 	}
 	if ys.DocumentationUrl != nil {
-		properties = append(properties, models.NewStringProperty("documentationUrl", *ys.DocumentationUrl, false))
+		properties = append(properties, mrmodels.NewStringProperty("documentationUrl", *ys.DocumentationUrl, false))
 	}
 	if ys.RepositoryUrl != nil {
-		properties = append(properties, models.NewStringProperty("repositoryUrl", *ys.RepositoryUrl, false))
+		properties = append(properties, mrmodels.NewStringProperty("repositoryUrl", *ys.RepositoryUrl, false))
 	}
 	if ys.SourceCode != nil {
-		properties = append(properties, models.NewStringProperty("sourceCode", *ys.SourceCode, false))
+		properties = append(properties, mrmodels.NewStringProperty("sourceCode", *ys.SourceCode, false))
 	}
 	if ys.Readme != nil {
-		properties = append(properties, models.NewStringProperty("readme", *ys.Readme, false))
+		properties = append(properties, mrmodels.NewStringProperty("readme", *ys.Readme, false))
 	}
 	if ys.PublishedDate != nil {
-		properties = append(properties, models.NewStringProperty("publishedDate", *ys.PublishedDate, false))
+		properties = append(properties, mrmodels.NewStringProperty("publishedDate", *ys.PublishedDate, false))
 	}
 	if ys.DeploymentMode != nil {
-		properties = append(properties, models.NewStringProperty("deploymentMode", *ys.DeploymentMode, false))
+		properties = append(properties, mrmodels.NewStringProperty("deploymentMode", *ys.DeploymentMode, false))
 	}
 
 	// Convert array properties to JSON strings
 	if len(ys.Transports) > 0 {
 		if jsonBytes, err := json.Marshal(ys.Transports); err == nil {
-			properties = append(properties, models.NewStringProperty("transports", string(jsonBytes), false))
+			properties = append(properties, mrmodels.NewStringProperty("transports", string(jsonBytes), false))
 		}
 	}
 
 	if len(ys.Tags) > 0 {
 		if jsonBytes, err := json.Marshal(ys.Tags); err == nil {
-			properties = append(properties, models.NewStringProperty("tags", string(jsonBytes), false))
+			properties = append(properties, mrmodels.NewStringProperty("tags", string(jsonBytes), false))
 		}
 	}
 
@@ -308,14 +336,24 @@ func (ys *yamlMCPServer) ToMCPServerProviderRecord() MCPServerProviderRecord {
 	// Convert artifacts to JSON
 	if len(ys.Artifacts) > 0 {
 		if jsonBytes, err := json.Marshal(ys.Artifacts); err == nil {
-			properties = append(properties, models.NewStringProperty("artifacts", string(jsonBytes), false))
+			properties = append(properties, mrmodels.NewStringProperty("artifacts", string(jsonBytes), false))
+		}
+	}
+
+	// Validate remote servers have at least one endpoint
+	if ys.DeploymentMode != nil && *ys.DeploymentMode == "remote" {
+		if ys.Endpoints == nil || (ys.Endpoints.HTTP == nil && ys.Endpoints.SSE == nil && ys.Endpoints.WebSocket == nil) {
+			return MCPServerProviderRecord{Error: fmt.Errorf("server %q has deploymentMode 'remote' but no endpoints defined", ys.Name)}
 		}
 	}
 
 	// Convert endpoints to JSON
 	if ys.Endpoints != nil {
+		if err := ys.Endpoints.validate(); err != nil {
+			return MCPServerProviderRecord{Error: fmt.Errorf("server %q has invalid endpoints: %w", ys.Name, err)}
+		}
 		if jsonBytes, err := json.Marshal(ys.Endpoints); err == nil {
-			properties = append(properties, models.NewStringProperty("endpoints", string(jsonBytes), false))
+			properties = append(properties, mrmodels.NewStringProperty("endpoints", string(jsonBytes), false))
 		}
 	}
 
@@ -323,7 +361,7 @@ func (ys *yamlMCPServer) ToMCPServerProviderRecord() MCPServerProviderRecord {
 
 	// Convert custom properties
 	if ys.CustomProperties != nil {
-		customProps := []models.Properties{}
+		customProps := []mrmodels.Properties{}
 		for key, value := range *ys.CustomProperties {
 			customProps = append(customProps, convertMetadataValueToProperty(key, value))
 		}
@@ -338,29 +376,29 @@ func (ys *yamlMCPServer) ToMCPServerProviderRecord() MCPServerProviderRecord {
 }
 
 // convertMetadataValueToProperty converts a MetadataValue to a Properties object
-func convertMetadataValueToProperty(key string, value apimodels.MetadataValue) models.Properties {
+func convertMetadataValueToProperty(key string, value apimodels.MetadataValue) mrmodels.Properties {
 	// Handle different MetadataValue types
 	if value.MetadataStringValue != nil {
-		return models.NewStringProperty(key, value.MetadataStringValue.StringValue, true)
+		return mrmodels.NewStringProperty(key, value.MetadataStringValue.StringValue, true)
 	} else if value.MetadataIntValue != nil {
 		// MetadataIntValue.IntValue is a string, need to convert to int32
 		if intVal, err := strconv.ParseInt(value.MetadataIntValue.IntValue, 10, 32); err == nil {
-			return models.NewIntProperty(key, int32(intVal), true)
+			return mrmodels.NewIntProperty(key, int32(intVal), true)
 		} else {
 			// If parsing fails, store as string
-			return models.NewStringProperty(key, value.MetadataIntValue.IntValue, true)
+			return mrmodels.NewStringProperty(key, value.MetadataIntValue.IntValue, true)
 		}
 	} else if value.MetadataDoubleValue != nil {
-		return models.NewDoubleProperty(key, value.MetadataDoubleValue.DoubleValue, true)
+		return mrmodels.NewDoubleProperty(key, value.MetadataDoubleValue.DoubleValue, true)
 	} else if value.MetadataBoolValue != nil {
-		return models.NewBoolProperty(key, value.MetadataBoolValue.BoolValue, true)
+		return mrmodels.NewBoolProperty(key, value.MetadataBoolValue.BoolValue, true)
 	} else {
 		// For complex types, serialize to JSON
 		if jsonBytes, err := json.Marshal(value); err == nil {
-			return models.NewStringProperty(key, string(jsonBytes), true)
+			return mrmodels.NewStringProperty(key, string(jsonBytes), true)
 		}
 		// Fallback to empty string if JSON marshaling fails
-		return models.NewStringProperty(key, "", true)
+		return mrmodels.NewStringProperty(key, "", true)
 	}
 }
 

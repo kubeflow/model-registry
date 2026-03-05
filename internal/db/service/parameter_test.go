@@ -557,7 +557,7 @@ func TestParameterRepository(t *testing.T) {
 
 	t.Run("TestPagination", func(t *testing.T) {
 		// Create multiple parameters for pagination testing
-		for i := 0; i < 5; i++ {
+		for i := range 5 {
 			parameter := &models.ParameterImpl{
 				TypeID: apiutils.Of(int32(typeID)),
 				Attributes: &models.ParameterAttributes{

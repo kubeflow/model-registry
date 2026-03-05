@@ -80,6 +80,13 @@ const (
 	ModelTransferJobName     = "job_name"
 	ModelTransferJobListPath = ModelRegistryPath + "/model_transfer_jobs"
 	ModelTransferJobPath     = ModelTransferJobListPath + "/:" + ModelTransferJobName
+
+	// MCP server catalog
+	McpServerId                   = "server_id"
+	McpServerListPath             = CatalogPathPrefix + "/mcp_servers"
+	McpServerFilterOptionListPath = CatalogPathPrefix + "/mcp_servers_filter_options"
+	McpServerPath                 = McpServerListPath + "/:" + McpServerId
+	McpServersToolListPath        = McpServerPath + "/tools"
 )
 
 type App struct {
@@ -239,6 +246,7 @@ func (app *App) Routes() http.Handler {
 
 	// Model Transfer Jobs
 	apiRouter.GET(ModelTransferJobListPath, app.AttachNamespace(app.RequireAccessToMRService(app.GetAllModelTransferJobsHandler)))
+	apiRouter.GET(ModelTransferJobPath, app.AttachNamespace(app.RequireAccessToMRService(app.GetModelTransferJobHandler)))
 	apiRouter.POST(ModelTransferJobListPath, app.AttachNamespace(app.RequireAccessToMRService(app.CreateModelTransferJobHandler)))
 	apiRouter.PATCH(ModelTransferJobPath, app.AttachNamespace(app.RequireAccessToMRService(app.UpdateModelTransferJobHandler)))
 	apiRouter.DELETE(ModelTransferJobPath, app.AttachNamespace(app.RequireAccessToMRService(app.DeleteModelTransferJobHandler)))
@@ -296,6 +304,12 @@ func (app *App) Routes() http.Handler {
 		apiRouter.PATCH(ModelCatalogSettingsSourceConfigPath, app.AttachNamespace(app.UpdateCatalogSourceConfigHandler))
 		apiRouter.DELETE(ModelCatalogSettingsSourceConfigPath, app.AttachNamespace(app.DeleteCatalogSourceConfigHandler))
 		apiRouter.POST(CatalogSourcePreviewPath, app.AttachNamespace(app.AttachModelCatalogRESTClient(app.CreateCatalogSourcePreviewHandler)))
+
+		// MCP server catalog endpoints
+		apiRouter.GET(McpServerListPath, app.AttachNamespace(app.AttachModelCatalogRESTClient(app.GetAllMcpServersHandler)))
+		apiRouter.GET(McpServerFilterOptionListPath, app.AttachNamespace(app.AttachModelCatalogRESTClient(app.GetMcpServersFiltersHandler)))
+		apiRouter.GET(McpServerPath, app.AttachNamespace(app.AttachModelCatalogRESTClient(app.GetMcpServerHandler)))
+		apiRouter.GET(McpServersToolListPath, app.AttachNamespace(app.AttachModelCatalogRESTClient(app.GetMcpServersToolsHandler)))
 	}
 
 	// App Router

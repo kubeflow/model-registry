@@ -10,7 +10,10 @@ import (
 
 	mapset "github.com/deckarep/golang-set/v2"
 	"github.com/kubeflow/model-registry/catalog/internal/catalog/basecatalog"
+	mcpmodels "github.com/kubeflow/model-registry/catalog/internal/catalog/mcpcatalog/models"
+	mcpcatalogservice "github.com/kubeflow/model-registry/catalog/internal/catalog/mcpcatalog/service"
 	"github.com/kubeflow/model-registry/catalog/internal/catalog/modelcatalog"
+	modelcatalogservice "github.com/kubeflow/model-registry/catalog/internal/catalog/modelcatalog/service"
 	"github.com/kubeflow/model-registry/catalog/internal/db/service"
 	"github.com/kubeflow/model-registry/internal/db/schema"
 	"github.com/kubeflow/model-registry/internal/testutils"
@@ -71,16 +74,16 @@ func setupMCPLoaderTest(t *testing.T) (*gorm.DB, service.Services, func()) {
 	mcpServerToolTypeID := getMCPServerToolTypeIDForTest(t, sharedDB)
 
 	// Create repositories
-	catalogModelRepo := service.NewCatalogModelRepository(sharedDB, catalogModelTypeID)
+	catalogModelRepo := modelcatalogservice.NewCatalogModelRepository(sharedDB, catalogModelTypeID)
 	catalogArtifactRepo := service.NewCatalogArtifactRepository(sharedDB, map[string]int32{
 		service.CatalogModelArtifactTypeName:   modelArtifactTypeID,
 		service.CatalogMetricsArtifactTypeName: metricsArtifactTypeID,
 	})
-	modelArtifactRepo := service.NewCatalogModelArtifactRepository(sharedDB, modelArtifactTypeID)
-	metricsArtifactRepo := service.NewCatalogMetricsArtifactRepository(sharedDB, metricsArtifactTypeID)
+	modelArtifactRepo := modelcatalogservice.NewCatalogModelArtifactRepository(sharedDB, modelArtifactTypeID)
+	metricsArtifactRepo := modelcatalogservice.NewCatalogMetricsArtifactRepository(sharedDB, metricsArtifactTypeID)
 	catalogSourceRepo := service.NewCatalogSourceRepository(sharedDB, catalogSourceTypeID)
-	mcpServerRepo := service.NewMCPServerRepository(sharedDB, mcpServerTypeID)
-	mcpServerToolRepo := service.NewMCPServerToolRepository(sharedDB, mcpServerToolTypeID)
+	mcpServerRepo := mcpcatalogservice.NewMCPServerRepository(sharedDB, mcpServerTypeID)
+	mcpServerToolRepo := mcpcatalogservice.NewMCPServerToolRepository(sharedDB, mcpServerToolTypeID)
 
 	services := service.NewServices(
 		catalogModelRepo,
@@ -185,7 +188,7 @@ func TestMCPLoaderBasicLoad(t *testing.T) {
 
 	// Verify tools were persisted to the database
 	require.NotNil(t, server.GetID())
-	tools, err := services.MCPServerToolRepository.List(*server.GetID())
+	tools, err := services.MCPServerToolRepository.List(mcpmodels.MCPServerToolListOptions{ParentID: *server.GetID()})
 	require.NoError(t, err)
 	require.Len(t, tools, 1)
 	toolAttrs := tools[0].GetAttributes()
@@ -702,4 +705,65 @@ func TestMCPLoaderSavesErrorSourceStatus(t *testing.T) {
 	}
 	assert.True(t, foundStatus, "status property should be set to 'error'")
 	assert.True(t, foundError, "error property should be set")
+}
+
+func TestMCPLoader_NamedQueriesFromConfig(t *testing.T) {
+	_, services, cleanup := setupMCPLoaderTest(t)
+	defer cleanup()
+
+	tmpDir := t.TempDir()
+
+	// A sources file that includes named queries
+	sourcesFile := filepath.Join(tmpDir, "sources.yaml")
+	err := os.WriteFile(sourcesFile, []byte(`mcp_catalogs: []
+namedQueries:
+  production_ready:
+    verifiedSource:
+      operator: "="
+      value: true
+    version:
+      operator: ">="
+      value: "2"
+`), 0644)
+	require.NoError(t, err)
+
+	baseLoader := basecatalog.NewBaseLoader([]string{sourcesFile})
+	loader := NewMCPLoaderWithState(services, baseLoader)
+
+	err = loader.ParseAllConfigs()
+	require.NoError(t, err)
+
+	queries := loader.Sources.GetNamedQueries()
+	require.Len(t, queries, 1, "should have one named query")
+
+	pq, ok := queries["production_ready"]
+	require.True(t, ok, "production_ready named query should exist")
+	assert.Equal(t, "=", pq["verifiedSource"].Operator)
+	assert.Equal(t, true, pq["verifiedSource"].Value)
+	assert.Equal(t, ">=", pq["version"].Operator)
+	assert.Equal(t, "2", pq["version"].Value)
+}
+
+func TestMCPLoader_InvalidNamedQueriesRejected(t *testing.T) {
+	_, services, cleanup := setupMCPLoaderTest(t)
+	defer cleanup()
+
+	tmpDir := t.TempDir()
+
+	sourcesFile := filepath.Join(tmpDir, "sources.yaml")
+	err := os.WriteFile(sourcesFile, []byte(`mcp_catalogs: []
+namedQueries:
+  bad_query:
+    name:
+      operator: "INVALID_OP"
+      value: "something"
+`), 0644)
+	require.NoError(t, err)
+
+	baseLoader := basecatalog.NewBaseLoader([]string{sourcesFile})
+	loader := NewMCPLoaderWithState(services, baseLoader)
+
+	err = loader.ParseAllConfigs()
+	require.Error(t, err, "invalid named query operator should be rejected")
+	assert.Contains(t, err.Error(), "INVALID_OP")
 }

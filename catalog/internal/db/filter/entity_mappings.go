@@ -3,17 +3,8 @@ package filter
 import (
 	"strings"
 
+	catalogmodels "github.com/kubeflow/model-registry/catalog/internal/db/models"
 	"github.com/kubeflow/model-registry/internal/db/filter"
-)
-
-// CatalogRestEntityType represents catalog-specific REST API entity types
-type CatalogRestEntityType string
-
-const (
-	RestEntityCatalogModel    CatalogRestEntityType = "CatalogModel"
-	RestEntityCatalogArtifact CatalogRestEntityType = "CatalogArtifact"
-	RestEntityMCPServer       CatalogRestEntityType = "MCPServer"
-	RestEntityMCPServerTool   CatalogRestEntityType = "MCPServerTool"
 )
 
 // catalogEntityMappings implements EntityMappingFunctions for the catalog package
@@ -27,10 +18,10 @@ func NewCatalogEntityMappings() filter.EntityMappingFunctions {
 // GetMLMDEntityType maps catalog REST entity types to their underlying MLMD entity type
 func (c *catalogEntityMappings) GetMLMDEntityType(restEntityType filter.RestEntityType) filter.EntityType {
 	switch restEntityType {
-	case filter.RestEntityType(RestEntityCatalogArtifact):
+	case filter.RestEntityType(catalogmodels.RestEntityCatalogArtifact):
 		return filter.EntityTypeArtifact
-	case filter.RestEntityType(RestEntityMCPServerTool):
-		return filter.EntityTypeArtifact
+	case filter.RestEntityType(catalogmodels.RestEntityMCPServerTool):
+		return filter.EntityTypeExecution
 	default:
 		return filter.EntityTypeContext
 	}
@@ -39,7 +30,7 @@ func (c *catalogEntityMappings) GetMLMDEntityType(restEntityType filter.RestEnti
 // GetPropertyDefinitionForRestEntity returns property definition for a catalog REST entity type
 func (c *catalogEntityMappings) GetPropertyDefinitionForRestEntity(restEntityType filter.RestEntityType, propertyName string) filter.PropertyDefinition {
 	// Check if this is a well-known property for catalog entities
-	if restEntityType == filter.RestEntityType(RestEntityCatalogModel) {
+	if restEntityType == filter.RestEntityType(catalogmodels.RestEntityCatalogModel) {
 		if _, isWellKnown := catalogModelProperties[propertyName]; isWellKnown {
 			// Use the well-known property definition
 			return catalogModelProperties[propertyName]
@@ -61,21 +52,21 @@ func (c *catalogEntityMappings) GetPropertyDefinitionForRestEntity(restEntityTyp
 		}
 	}
 
-	if restEntityType == filter.RestEntityType(RestEntityCatalogArtifact) {
+	if restEntityType == filter.RestEntityType(catalogmodels.RestEntityCatalogArtifact) {
 		if _, isWellKnown := catalogArtifactProperties[propertyName]; isWellKnown {
 			// Use the well-known property definition
 			return catalogArtifactProperties[propertyName]
 		}
 	}
 
-	if restEntityType == filter.RestEntityType(RestEntityMCPServer) {
+	if restEntityType == filter.RestEntityType(catalogmodels.RestEntityMCPServer) {
 		if _, isWellKnown := mcpServerProperties[propertyName]; isWellKnown {
 			// Use the well-known property definition
 			return mcpServerProperties[propertyName]
 		}
 	}
 
-	if restEntityType == filter.RestEntityType(RestEntityMCPServerTool) {
+	if restEntityType == filter.RestEntityType(catalogmodels.RestEntityMCPServerTool) {
 		if _, isWellKnown := mcpServerToolProperties[propertyName]; isWellKnown {
 			// Use the well-known property definition
 			return mcpServerToolProperties[propertyName]
@@ -105,19 +96,21 @@ var catalogModelProperties = map[string]filter.PropertyDefinition{
 	"lastUpdateTimeSinceEpoch": {Location: filter.EntityTable, ValueType: filter.IntValueType, Column: "last_update_time_since_epoch"},
 
 	// CatalogModel-specific properties stored in ContextProperty table
-	"source_id":    {Location: filter.PropertyTable, ValueType: filter.StringValueType, Column: "source_id"},
-	"description":  {Location: filter.PropertyTable, ValueType: filter.StringValueType, Column: "description"},
-	"owner":        {Location: filter.PropertyTable, ValueType: filter.StringValueType, Column: "owner"},
-	"state":        {Location: filter.PropertyTable, ValueType: filter.StringValueType, Column: "state"},
-	"language":     {Location: filter.PropertyTable, ValueType: filter.ArrayValueType, Column: "language"},
-	"library_name": {Location: filter.PropertyTable, ValueType: filter.StringValueType, Column: "library_name"},
-	"license_link": {Location: filter.PropertyTable, ValueType: filter.StringValueType, Column: "license_link"},
-	"license":      {Location: filter.PropertyTable, ValueType: filter.StringValueType, Column: "license"},
-	"logo":         {Location: filter.PropertyTable, ValueType: filter.StringValueType, Column: "logo"},
-	"maturity":     {Location: filter.PropertyTable, ValueType: filter.StringValueType, Column: "maturity"},
-	"provider":     {Location: filter.PropertyTable, ValueType: filter.StringValueType, Column: "provider"},
-	"readme":       {Location: filter.PropertyTable, ValueType: filter.StringValueType, Column: "readme"},
-	"tasks":        {Location: filter.PropertyTable, ValueType: filter.ArrayValueType, Column: "tasks"},
+	"source_id":      {Location: filter.PropertyTable, ValueType: filter.StringValueType, Column: "source_id"},
+	"description":    {Location: filter.PropertyTable, ValueType: filter.StringValueType, Column: "description"},
+	"owner":          {Location: filter.PropertyTable, ValueType: filter.StringValueType, Column: "owner"},
+	"state":          {Location: filter.PropertyTable, ValueType: filter.StringValueType, Column: "state"},
+	"language":       {Location: filter.PropertyTable, ValueType: filter.ArrayValueType, Column: "language"},
+	"library_name":   {Location: filter.PropertyTable, ValueType: filter.StringValueType, Column: "library_name"},
+	"license_link":   {Location: filter.PropertyTable, ValueType: filter.StringValueType, Column: "license_link"},
+	"license":        {Location: filter.PropertyTable, ValueType: filter.StringValueType, Column: "license"},
+	"logo":           {Location: filter.PropertyTable, ValueType: filter.StringValueType, Column: "logo"},
+	"maturity":       {Location: filter.PropertyTable, ValueType: filter.StringValueType, Column: "maturity"},
+	"provider":       {Location: filter.PropertyTable, ValueType: filter.StringValueType, Column: "provider"},
+	"readme":         {Location: filter.PropertyTable, ValueType: filter.StringValueType, Column: "readme"},
+	"tasks":          {Location: filter.PropertyTable, ValueType: filter.ArrayValueType, Column: "tasks"},
+	"tags":           {Location: filter.PropertyTable, ValueType: filter.ArrayValueType, Column: "tags"},
+	"verifiedSource": {Location: filter.PropertyTable, ValueType: filter.BoolValueType, Column: "verifiedSource"},
 }
 
 // catalogArtifactProperties defines the allowed properties for CatalogArtifact entities
@@ -136,11 +129,6 @@ var catalogArtifactProperties = map[string]filter.PropertyDefinition{
 }
 
 // mcpServerProperties defines the allowed properties for MCPServer entities.
-// This follows the same pattern as catalogModelProperties - only properties that are:
-// 1. Entity table columns (required for core identity)
-// 2. Key filterable dimensions that need explicit type handling (arrays, bools)
-// 3. Common properties shared with CatalogModel for consistency
-// All other properties can be queried via custom property fallback.
 var mcpServerProperties = map[string]filter.PropertyDefinition{
 	// Common Context properties (Entity Table - required)
 	"id":                       {Location: filter.EntityTable, ValueType: filter.IntValueType, Column: "id"},
@@ -149,52 +137,42 @@ var mcpServerProperties = map[string]filter.PropertyDefinition{
 	"createTimeSinceEpoch":     {Location: filter.EntityTable, ValueType: filter.IntValueType, Column: "create_time_since_epoch"},
 	"lastUpdateTimeSinceEpoch": {Location: filter.EntityTable, ValueType: filter.IntValueType, Column: "last_update_time_since_epoch"},
 
-	// Core properties matching CatalogModel pattern
-	"source_id":    {Location: filter.PropertyTable, ValueType: filter.StringValueType, Column: "source_id"},
-	"base_name":    {Location: filter.PropertyTable, ValueType: filter.StringValueType, Column: "base_name"},
-	"description":  {Location: filter.PropertyTable, ValueType: filter.StringValueType, Column: "description"},
-	"provider":     {Location: filter.PropertyTable, ValueType: filter.StringValueType, Column: "provider"},
-	"license":      {Location: filter.PropertyTable, ValueType: filter.StringValueType, Column: "license"},
-	"license_link": {Location: filter.PropertyTable, ValueType: filter.StringValueType, Column: "license_link"},
-	"logo":         {Location: filter.PropertyTable, ValueType: filter.StringValueType, Column: "logo"},
-	"readme":       {Location: filter.PropertyTable, ValueType: filter.StringValueType, Column: "readme"},
-	"version":      {Location: filter.PropertyTable, ValueType: filter.StringValueType, Column: "version"},
-
-	// MCP-specific filterable dimensions (need explicit type for arrays)
-	"tags":           {Location: filter.PropertyTable, ValueType: filter.ArrayValueType, Column: "tags"},
-	"transports":     {Location: filter.PropertyTable, ValueType: filter.ArrayValueType, Column: "transports"},
-	"deploymentMode": {Location: filter.PropertyTable, ValueType: filter.StringValueType, Column: "deploymentMode"},
-
-	// URL fields (documentation, source code, repository)
+	// MCPServer-specific properties stored in ContextProperty table
+	"source_id":        {Location: filter.PropertyTable, ValueType: filter.StringValueType, Column: "source_id"},
+	"base_name":        {Location: filter.PropertyTable, ValueType: filter.StringValueType, Column: "base_name"},
+	"description":      {Location: filter.PropertyTable, ValueType: filter.StringValueType, Column: "description"},
+	"provider":         {Location: filter.PropertyTable, ValueType: filter.StringValueType, Column: "provider"},
+	"license":          {Location: filter.PropertyTable, ValueType: filter.StringValueType, Column: "license"},
+	"license_link":     {Location: filter.PropertyTable, ValueType: filter.StringValueType, Column: "license_link"},
+	"logo":             {Location: filter.PropertyTable, ValueType: filter.StringValueType, Column: "logo"},
+	"readme":           {Location: filter.PropertyTable, ValueType: filter.StringValueType, Column: "readme"},
+	"version":          {Location: filter.PropertyTable, ValueType: filter.StringValueType, Column: "version"},
+	"tags":             {Location: filter.PropertyTable, ValueType: filter.ArrayValueType, Column: "tags"},
+	"transports":       {Location: filter.PropertyTable, ValueType: filter.ArrayValueType, Column: "transports"},
+	"deploymentMode":   {Location: filter.PropertyTable, ValueType: filter.StringValueType, Column: "deploymentMode"},
 	"documentationUrl": {Location: filter.PropertyTable, ValueType: filter.StringValueType, Column: "documentationUrl"},
 	"repositoryUrl":    {Location: filter.PropertyTable, ValueType: filter.StringValueType, Column: "repositoryUrl"},
 	"sourceCode":       {Location: filter.PropertyTable, ValueType: filter.StringValueType, Column: "sourceCode"},
-
-	// Time fields (stored as ISO 8601 strings for consistency with other timestamps)
-	"publishedDate": {Location: filter.PropertyTable, ValueType: filter.StringValueType, Column: "publishedDate"},
-	"lastUpdated":   {Location: filter.PropertyTable, ValueType: filter.StringValueType, Column: "lastUpdated"},
-
-	// Security indicators (need explicit type for booleans)
-	"verifiedSource": {Location: filter.PropertyTable, ValueType: filter.BoolValueType, Column: "verifiedSource"},
-	"secureEndpoint": {Location: filter.PropertyTable, ValueType: filter.BoolValueType, Column: "secureEndpoint"},
-	"sast":           {Location: filter.PropertyTable, ValueType: filter.BoolValueType, Column: "sast"},
-	"readOnlyTools":  {Location: filter.PropertyTable, ValueType: filter.BoolValueType, Column: "readOnlyTools"},
-
-	// Complex objects stored as JSON (not directly filterable, but queryable for existence)
-	"endpoints":       {Location: filter.PropertyTable, ValueType: filter.StringValueType, Column: "endpoints"},
-	"artifacts":       {Location: filter.PropertyTable, ValueType: filter.StringValueType, Column: "artifacts"},
-	"runtimeMetadata": {Location: filter.PropertyTable, ValueType: filter.StringValueType, Column: "runtimeMetadata"},
+	"publishedDate":    {Location: filter.PropertyTable, ValueType: filter.StringValueType, Column: "publishedDate"},
+	"lastUpdated":      {Location: filter.PropertyTable, ValueType: filter.StringValueType, Column: "lastUpdated"},
+	"verifiedSource":   {Location: filter.PropertyTable, ValueType: filter.BoolValueType, Column: "verifiedSource"},
+	"secureEndpoint":   {Location: filter.PropertyTable, ValueType: filter.BoolValueType, Column: "secureEndpoint"},
+	"sast":             {Location: filter.PropertyTable, ValueType: filter.BoolValueType, Column: "sast"},
+	"readOnlyTools":    {Location: filter.PropertyTable, ValueType: filter.BoolValueType, Column: "readOnlyTools"},
+	"endpoints":        {Location: filter.PropertyTable, ValueType: filter.StringValueType, Column: "endpoints"},
+	"artifacts":        {Location: filter.PropertyTable, ValueType: filter.StringValueType, Column: "artifacts"},
+	"runtimeMetadata":  {Location: filter.PropertyTable, ValueType: filter.StringValueType, Column: "runtimeMetadata"},
 }
 
 // mcpServerToolProperties defines the allowed properties for MCPServerTool entities
 var mcpServerToolProperties = map[string]filter.PropertyDefinition{
-	// Common Artifact properties
+	// Common Execution properties (Entity Table - required)
 	"id":                       {Location: filter.EntityTable, ValueType: filter.IntValueType, Column: "id"},
 	"name":                     {Location: filter.EntityTable, ValueType: filter.StringValueType, Column: "name"},
 	"createTimeSinceEpoch":     {Location: filter.EntityTable, ValueType: filter.IntValueType, Column: "create_time_since_epoch"},
 	"lastUpdateTimeSinceEpoch": {Location: filter.EntityTable, ValueType: filter.IntValueType, Column: "last_update_time_since_epoch"},
 
-	// MCPServerTool-specific properties stored in ArtifactProperty table
+	// MCPServerTool-specific properties stored in ExecutionProperty table
 	"description": {Location: filter.PropertyTable, ValueType: filter.StringValueType, Column: "description"},
 	"accessType":  {Location: filter.PropertyTable, ValueType: filter.StringValueType, Column: "accessType"},
 }

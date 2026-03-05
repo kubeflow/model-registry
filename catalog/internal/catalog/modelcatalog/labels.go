@@ -2,6 +2,7 @@ package modelcatalog
 
 import (
 	"fmt"
+	"slices"
 	"sync"
 )
 
@@ -55,11 +56,8 @@ func (lc *LabelCollection) Merge(origin string, newLabels []map[string]any) erro
 		// Skip labels from this origin (they will be replaced)
 		isFromThisOrigin := false
 		if originExists {
-			for _, idx := range oldIndices {
-				if i == idx {
-					isFromThisOrigin = true
-					break
-				}
+			if slices.Contains(oldIndices, i) {
+				isFromThisOrigin = true
 			}
 		}
 

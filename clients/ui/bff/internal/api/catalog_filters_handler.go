@@ -10,7 +10,6 @@ import (
 	"github.com/kubeflow/model-registry/ui/bff/internal/models"
 )
 
-type CatalogFilterOptionEnvelope Envelope[*models.FilterOption, None]
 type CatalogFilterOptionsListEnvelope Envelope[*models.FilterOptionsList, None]
 
 func (app *App) GetCatalogFilterListHandler(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {

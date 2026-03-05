@@ -1,7 +1,11 @@
 package service
 
 import (
-	"github.com/kubeflow/model-registry/catalog/internal/db/models"
+	mcpcatalogmodels "github.com/kubeflow/model-registry/catalog/internal/catalog/mcpcatalog/models"
+	mcpcatalogservice "github.com/kubeflow/model-registry/catalog/internal/catalog/mcpcatalog/service"
+	modelcatalogmodels "github.com/kubeflow/model-registry/catalog/internal/catalog/modelcatalog/models"
+	modelcatalogservice "github.com/kubeflow/model-registry/catalog/internal/catalog/modelcatalog/service"
+	sharedmodels "github.com/kubeflow/model-registry/catalog/internal/db/models"
 	"github.com/kubeflow/model-registry/internal/datastore"
 )
 
@@ -16,7 +20,7 @@ const (
 
 func DatastoreSpec() *datastore.Spec {
 	return datastore.NewSpec().
-		AddContext(CatalogModelTypeName, datastore.NewSpecType(NewCatalogModelRepository).
+		AddContext(CatalogModelTypeName, datastore.NewSpecType(modelcatalogservice.NewCatalogModelRepository).
 			AddString("source_id").
 			AddString("description").
 			AddString("owner").
@@ -35,7 +39,7 @@ func DatastoreSpec() *datastore.Spec {
 			AddString("status").
 			AddString("error"),
 		).
-		AddContext(MCPServerTypeName, datastore.NewSpecType(NewMCPServerRepository).
+		AddContext(MCPServerTypeName, datastore.NewSpecType(mcpcatalogservice.NewMCPServerRepository).
 			AddString("source_id").
 			AddString("base_name").
 			AddString("description").
@@ -53,16 +57,16 @@ func DatastoreSpec() *datastore.Spec {
 			AddBoolean("sast").
 			AddBoolean("readOnlyTools"),
 		).
-		AddExecution(MCPServerToolTypeName, datastore.NewSpecType(NewMCPServerToolRepository).
+		AddExecution(MCPServerToolTypeName, datastore.NewSpecType(mcpcatalogservice.NewMCPServerToolRepository).
 			AddString("accessType").
 			AddString("description").
 			AddString("externalId").
 			AddString("parameters"),
 		).
-		AddArtifact(CatalogModelArtifactTypeName, datastore.NewSpecType(NewCatalogModelArtifactRepository).
+		AddArtifact(CatalogModelArtifactTypeName, datastore.NewSpecType(modelcatalogservice.NewCatalogModelArtifactRepository).
 			AddString("uri"),
 		).
-		AddArtifact(CatalogMetricsArtifactTypeName, datastore.NewSpecType(NewCatalogMetricsArtifactRepository).
+		AddArtifact(CatalogMetricsArtifactTypeName, datastore.NewSpecType(modelcatalogservice.NewCatalogMetricsArtifactRepository).
 			AddString("metricsType"),
 		).
 		AddOther(NewCatalogArtifactRepository).
@@ -70,25 +74,25 @@ func DatastoreSpec() *datastore.Spec {
 }
 
 type Services struct {
-	CatalogModelRepository           models.CatalogModelRepository
-	CatalogArtifactRepository        models.CatalogArtifactRepository
-	CatalogModelArtifactRepository   models.CatalogModelArtifactRepository
-	CatalogMetricsArtifactRepository models.CatalogMetricsArtifactRepository
-	CatalogSourceRepository          models.CatalogSourceRepository
-	PropertyOptionsRepository        models.PropertyOptionsRepository
-	MCPServerRepository              models.MCPServerRepository
-	MCPServerToolRepository          models.MCPServerToolRepository
+	CatalogModelRepository           modelcatalogmodels.CatalogModelRepository
+	CatalogArtifactRepository        sharedmodels.CatalogArtifactRepository
+	CatalogModelArtifactRepository   modelcatalogmodels.CatalogModelArtifactRepository
+	CatalogMetricsArtifactRepository modelcatalogmodels.CatalogMetricsArtifactRepository
+	CatalogSourceRepository          sharedmodels.CatalogSourceRepository
+	PropertyOptionsRepository        sharedmodels.PropertyOptionsRepository
+	MCPServerRepository              mcpcatalogmodels.MCPServerRepository
+	MCPServerToolRepository          mcpcatalogmodels.MCPServerToolRepository
 }
 
 func NewServices(
-	catalogModelRepository models.CatalogModelRepository,
-	catalogArtifactRepository models.CatalogArtifactRepository,
-	catalogModelArtifactRepository models.CatalogModelArtifactRepository,
-	catalogMetricsArtifactRepository models.CatalogMetricsArtifactRepository,
-	catalogSourceRepository models.CatalogSourceRepository,
-	propertyOptionsRepository models.PropertyOptionsRepository,
-	mcpServerRepository models.MCPServerRepository,
-	mcpServerToolRepository models.MCPServerToolRepository,
+	catalogModelRepository modelcatalogmodels.CatalogModelRepository,
+	catalogArtifactRepository sharedmodels.CatalogArtifactRepository,
+	catalogModelArtifactRepository modelcatalogmodels.CatalogModelArtifactRepository,
+	catalogMetricsArtifactRepository modelcatalogmodels.CatalogMetricsArtifactRepository,
+	catalogSourceRepository sharedmodels.CatalogSourceRepository,
+	propertyOptionsRepository sharedmodels.PropertyOptionsRepository,
+	mcpServerRepository mcpcatalogmodels.MCPServerRepository,
+	mcpServerToolRepository mcpcatalogmodels.MCPServerToolRepository,
 ) Services {
 	return Services{
 		CatalogModelRepository:           catalogModelRepository,

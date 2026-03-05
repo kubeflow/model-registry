@@ -410,6 +410,12 @@ curl -i -H "Authorization: Bearer $TOKEN" "http://localhost:4000/api/v1/model_re
 ```
 
 ```
+# GET api/v1/model_registry/model-registry/model_transfer_jobs/{job_name}
+curl -i -H "kubeflow-userid: user@example.com" "http://localhost:4000/api/v1/model_registry/model-registry/model_transfer_jobs/test-job?namespace=kubeflow"
+curl -i -H "Authorization: Bearer $TOKEN" "http://localhost:4000/api/v1/model_registry/model-registry/model_transfer_jobs/test-job?namespace=kubeflow"
+```
+
+```
 # POST /api/v1/model_registry/model-registry/model_transfer_jobs
 curl -i \
   -H "kubeflow-userid: user@example.com" \
@@ -610,7 +616,7 @@ If you need to enable CORS for any reasons you can add origins to the allow-list
 
 ##### Via the make command
 
-Add the following parameter to your command: `ALLOWED_ORIGINS` this takes a comma separated list of origins to permit serving to, alterantively you can specify the value `*` to allow all origins, **Note this is not recommended in production deployments as it poses a security risk**
+Add the following parameter to your command: `ALLOWED_ORIGINS` this takes a comma separated list of origins to permit serving to, alternatively you can specify the value `*` to allow all origins, **Note this is not recommended in production deployments as it poses a security risk**
 
 Examples:
 

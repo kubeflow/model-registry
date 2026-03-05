@@ -2,11 +2,13 @@ package modelcatalog
 
 import (
 	"regexp"
+	"slices"
 	"strings"
 	"testing"
 
 	"github.com/DATA-DOG/go-sqlmock"
 	catalogfilter "github.com/kubeflow/model-registry/catalog/internal/db/filter"
+	catalogmodels "github.com/kubeflow/model-registry/catalog/internal/db/models"
 	"github.com/kubeflow/model-registry/internal/db/filter"
 	"github.com/kubeflow/model-registry/internal/db/schema"
 	"github.com/stretchr/testify/assert"
@@ -317,7 +319,7 @@ func TestFilterQueryToSQLGeneration(t *testing.T) {
 
 			// Create a query builder for catalog models (Context entities)
 			queryBuilder := filter.NewQueryBuilderForRestEntity(
-				filter.RestEntityType(catalogfilter.RestEntityCatalogModel),
+				filter.RestEntityType(catalogmodels.RestEntityCatalogModel),
 				catalogfilter.NewCatalogEntityMappings(), // Use catalog-specific mappings
 			)
 
@@ -350,13 +352,7 @@ func TestFilterQueryToSQLGeneration(t *testing.T) {
 			if len(tt.expectedArgs) > 0 {
 				// Check that all expected args are present (order may vary due to JOINs)
 				for _, expectedArg := range tt.expectedArgs {
-					found := false
-					for _, actualArg := range queryArgs {
-						if actualArg == expectedArg {
-							found = true
-							break
-						}
-					}
+					found := slices.Contains(queryArgs, expectedArg)
 					assert.True(t, found, "Expected argument %v not found in actual args: %v",
 						expectedArg, queryArgs)
 				}
@@ -407,7 +403,7 @@ func TestPostgreSQLSpecificFeatures(t *testing.T) {
 			require.NoError(t, err)
 
 			queryBuilder := filter.NewQueryBuilderForRestEntity(
-				filter.RestEntityType(catalogfilter.RestEntityCatalogModel),
+				filter.RestEntityType(catalogmodels.RestEntityCatalogModel),
 				catalogfilter.NewCatalogEntityMappings(),
 			)
 
@@ -483,7 +479,7 @@ func TestFilterQuerySQLInjectionPrevention(t *testing.T) {
 
 			// Create query builder
 			queryBuilder := filter.NewQueryBuilderForRestEntity(
-				filter.RestEntityType(catalogfilter.RestEntityCatalogModel),
+				filter.RestEntityType(catalogmodels.RestEntityCatalogModel),
 				catalogfilter.NewCatalogEntityMappings(),
 			)
 
@@ -578,7 +574,7 @@ func TestComplexFilterQueryGeneration(t *testing.T) {
 
 			// Create query builder
 			queryBuilder := filter.NewQueryBuilderForRestEntity(
-				filter.RestEntityType(catalogfilter.RestEntityCatalogModel),
+				filter.RestEntityType(catalogmodels.RestEntityCatalogModel),
 				catalogfilter.NewCatalogEntityMappings(),
 			)
 
@@ -806,7 +802,7 @@ func TestArtifactFilteringCapability(t *testing.T) {
 
 			// Create a query builder for catalog models (Context entities)
 			queryBuilder := filter.NewQueryBuilderForRestEntity(
-				filter.RestEntityType(catalogfilter.RestEntityCatalogModel),
+				filter.RestEntityType(catalogmodels.RestEntityCatalogModel),
 				catalogfilter.NewCatalogEntityMappings(),
 			)
 
@@ -902,7 +898,7 @@ func TestArtifactFilteringSQLInjectionPrevention(t *testing.T) {
 
 			// Create query builder
 			queryBuilder := filter.NewQueryBuilderForRestEntity(
-				filter.RestEntityType(catalogfilter.RestEntityCatalogModel),
+				filter.RestEntityType(catalogmodels.RestEntityCatalogModel),
 				catalogfilter.NewCatalogEntityMappings(),
 			)
 
@@ -1217,7 +1213,7 @@ func TestArtifactFilteringEdgeCases(t *testing.T) {
 
 			// Create a query builder for catalog models
 			queryBuilder := filter.NewQueryBuilderForRestEntity(
-				filter.RestEntityType(catalogfilter.RestEntityCatalogModel),
+				filter.RestEntityType(catalogmodels.RestEntityCatalogModel),
 				catalogfilter.NewCatalogEntityMappings(),
 			)
 

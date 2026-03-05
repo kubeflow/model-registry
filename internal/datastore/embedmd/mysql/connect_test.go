@@ -281,7 +281,7 @@ func TestMySQLDBConnector_Connect_Secure(t *testing.T) {
 
 func TestMySQLDBConnector_Connect_ErrorCases(t *testing.T) {
 	t.Run("InvalidDSN", func(t *testing.T) {
-		connector := mysql.NewMySQLDBConnector("invalid-dsn", &_tls.TLSConfig{})
+		connector := mysql.NewMySQLDBConnector("invalid-dsn", &_tls.TLSConfig{}).WithMaxRetries(1)
 
 		db, err := connector.Connect()
 		assert.Error(t, err)

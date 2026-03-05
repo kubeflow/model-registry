@@ -11,7 +11,7 @@ import (
 	"time"
 
 	"github.com/kubeflow/model-registry/catalog/internal/catalog"
-	dbmodels "github.com/kubeflow/model-registry/catalog/internal/db/models"
+	"github.com/kubeflow/model-registry/catalog/internal/catalog/modelcatalog"
 	model "github.com/kubeflow/model-registry/catalog/pkg/openapi"
 	mrmodels "github.com/kubeflow/model-registry/internal/db/models"
 	"github.com/stretchr/testify/assert"
@@ -1105,7 +1105,7 @@ func TestFindLabels(t *testing.T) {
 						ok1 = val1 != nil
 						ok2 = val2 != nil
 					} else {
-						var v1, v2 interface{}
+						var v1, v2 any
 						v1, ok1 = labelList.Items[i].AdditionalProperties[tc.checkOrderByKey]
 						v2, ok2 = labelList.Items[i+1].AdditionalProperties[tc.checkOrderByKey]
 						if ok1 {
@@ -1180,7 +1180,7 @@ func (m *mockProviderThatFailsOnRecommended) GetFilterOptions(ctx context.Contex
 	return m.mockModelProvider.GetFilterOptions(ctx)
 }
 
-func (m *mockProviderThatFailsOnRecommended) FindModelsWithRecommendedLatency(ctx context.Context, pagination mrmodels.Pagination, paretoParams dbmodels.ParetoFilteringParams, sourceIDs []string, query string) (*model.CatalogModelList, error) {
+func (m *mockProviderThatFailsOnRecommended) FindModelsWithRecommendedLatency(ctx context.Context, pagination mrmodels.Pagination, paretoParams modelcatalog.ParetoFilteringParams, sourceIDs []string, query string) (*model.CatalogModelList, error) {
 	return nil, fmt.Errorf("recommended sorting not implemented")
 }
 
@@ -1225,10 +1225,7 @@ func (m *mockModelProvider) ListModels(ctx context.Context, params catalog.ListM
 	}
 
 	// Apply pagination - limit items to page size
-	endIndex := int(pageSize)
-	if endIndex > len(filteredModels) {
-		endIndex = len(filteredModels)
-	}
+	endIndex := min(int(pageSize), len(filteredModels))
 
 	pagedModels := filteredModels[:endIndex]
 	items := make([]model.CatalogModel, len(pagedModels))
@@ -1273,7 +1270,7 @@ func (m *mockModelProvider) GetFilterOptions(ctx context.Context) (*model.Filter
 	return &model.FilterOptionsList{Filters: &emptyFilters}, nil
 }
 
-func (m *mockModelProvider) FindModelsWithRecommendedLatency(ctx context.Context, pagination mrmodels.Pagination, paretoParams dbmodels.ParetoFilteringParams, sourceIDs []string, query string) (*model.CatalogModelList, error) {
+func (m *mockModelProvider) FindModelsWithRecommendedLatency(ctx context.Context, pagination mrmodels.Pagination, paretoParams modelcatalog.ParetoFilteringParams, sourceIDs []string, query string) (*model.CatalogModelList, error) {
 	// Basic mock implementation - just return models sorted by name
 	var allModels []*model.CatalogModel
 	for _, mdl := range m.models {
@@ -1323,10 +1320,7 @@ func (m *mockModelProvider) GetPerformanceArtifacts(ctx context.Context, modelNa
 				if performanceArtifacts[i].CatalogMetricsArtifact.CustomProperties == nil {
 					performanceArtifacts[i].CatalogMetricsArtifact.CustomProperties = make(map[string]model.MetadataValue)
 				}
-				replicas := int32(params.TargetRPS / 50)
-				if replicas < 1 {
-					replicas = 1
-				}
+				replicas := max(int32(params.TargetRPS/50), 1)
 				totalRPS := float64(params.TargetRPS)
 				replicasStr := strconv.FormatInt(int64(replicas), 10)
 				performanceArtifacts[i].CatalogMetricsArtifact.CustomProperties["replicas"] = model.MetadataIntValueAsMetadataValue(&model.MetadataIntValue{IntValue: replicasStr, MetadataType: "int"})

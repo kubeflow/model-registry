@@ -18,7 +18,7 @@ func TestMapOpenAPICustomPropertiesEmbedMD(t *testing.T) {
 	intValue := int32(1)
 	doubleValue := 1.0
 	stringValue := "test"
-	structValue := map[string]interface{}{
+	structValue := map[string]any{
 		"language": []string{"en", "es", "cz"},
 	}
 	structValueBytes, err := json.Marshal(structValue)
