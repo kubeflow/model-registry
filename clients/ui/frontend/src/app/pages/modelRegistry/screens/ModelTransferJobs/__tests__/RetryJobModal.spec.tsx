@@ -1,0 +1,267 @@
+import React from 'react';
+import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import '@testing-library/jest-dom';
+import {
+  ModelTransferJob,
+  ModelTransferJobStatus,
+  ModelTransferJobUploadIntent,
+  ModelTransferJobSourceType,
+  ModelTransferJobDestinationType,
+} from '~/app/types';
+import RetryJobModal from '~/app/pages/modelRegistry/screens/ModelTransferJobs/RetryJobModal';
+
+describe('RetryJobModal', () => {
+  const mockOnClose = jest.fn();
+  const mockOnRetry = jest.fn();
+
+  const mockJob: ModelTransferJob = {
+    id: 'test-job-id',
+    name: 'test-job-name',
+    status: ModelTransferJobStatus.FAILED,
+    uploadIntent: ModelTransferJobUploadIntent.CREATE_MODEL,
+    namespace: 'test-namespace',
+    registeredModelName: 'test-model',
+    modelVersionName: 'v1.0.0',
+    createTimeSinceEpoch: Date.now().toString(),
+    lastUpdateTimeSinceEpoch: Date.now().toString(),
+    source: {
+      type: ModelTransferJobSourceType.URI,
+      uri: 'https://example.com/model.tar.gz',
+    },
+    destination: {
+      type: ModelTransferJobDestinationType.OCI,
+      uri: 'oci://registry.example.com/models/test-model:v1',
+      username: 'user',
+      password: 'pass',
+    },
+  };
+
+  beforeEach(() => {
+    mockOnClose.mockClear();
+    mockOnRetry.mockClear();
+    mockOnRetry.mockResolvedValue(undefined);
+  });
+
+  it('should render the modal with correct title', () => {
+    render(<RetryJobModal job={mockJob} onClose={mockOnClose} onRetry={mockOnRetry} />);
+
+    expect(screen.getByText('Retry model transfer job?')).toBeInTheDocument();
+  });
+
+  it('should display model name in description for CREATE_MODEL intent', () => {
+    render(<RetryJobModal job={mockJob} onClose={mockOnClose} onRetry={mockOnRetry} />);
+
+    expect(screen.getByText('test-model')).toBeInTheDocument();
+    expect(screen.getByText(/model\.$/)).toBeInTheDocument();
+  });
+
+  it('should display version and model name in description for CREATE_VERSION intent', () => {
+    const createVersionJob: ModelTransferJob = {
+      ...mockJob,
+      uploadIntent: ModelTransferJobUploadIntent.CREATE_VERSION,
+    };
+
+    render(<RetryJobModal job={createVersionJob} onClose={mockOnClose} onRetry={mockOnRetry} />);
+
+    expect(screen.getByText('v1.0.0')).toBeInTheDocument();
+    expect(screen.getByText(/version of/)).toBeInTheDocument();
+    expect(screen.getByText('test-model')).toBeInTheDocument();
+  });
+
+  it('should auto-generate a retry job name with -2 suffix', () => {
+    render(<RetryJobModal job={mockJob} onClose={mockOnClose} onRetry={mockOnRetry} />);
+
+    const input = screen.getByTestId('retry-job-name');
+    expect(input).toHaveValue('test-job-name-2');
+  });
+
+  it('should increment existing numeric suffix', () => {
+    const jobWithSuffix: ModelTransferJob = {
+      ...mockJob,
+      name: 'my-job-3',
+    };
+
+    render(<RetryJobModal job={jobWithSuffix} onClose={mockOnClose} onRetry={mockOnRetry} />);
+
+    const input = screen.getByTestId('retry-job-name');
+    expect(input).toHaveValue('my-job-4');
+  });
+
+  it('should truncate long job names to fit 63-character limit', () => {
+    const longJobName: ModelTransferJob = {
+      ...mockJob,
+      name: 'a'.repeat(62), // 62 chars
+    };
+
+    render(<RetryJobModal job={longJobName} onClose={mockOnClose} onRetry={mockOnRetry} />);
+
+    const input = screen.getByTestId('retry-job-name') as HTMLInputElement;
+    // Should truncate to 61 chars and add "-2", resulting in exactly 63 chars
+    expect(input.value).toHaveLength(63);
+    expect(input.value).toMatch(/^a+-2$/);
+  });
+
+  it('should handle multi-digit suffix increments', () => {
+    const jobWithLargeSuffix: ModelTransferJob = {
+      ...mockJob,
+      name: 'my-job-9',
+    };
+
+    render(<RetryJobModal job={jobWithLargeSuffix} onClose={mockOnClose} onRetry={mockOnRetry} />);
+
+    const input = screen.getByTestId('retry-job-name');
+    expect(input).toHaveValue('my-job-10');
+  });
+
+  it('should remove trailing dashes when truncating', () => {
+    // Create a 62-char name ending with dashes
+    const nameWithTrailingDashes: ModelTransferJob = {
+      ...mockJob,
+      name: `${'a'.repeat(59)}---`, // 62 chars total, ends with dashes
+    };
+
+    render(
+      <RetryJobModal job={nameWithTrailingDashes} onClose={mockOnClose} onRetry={mockOnRetry} />,
+    );
+
+    const input = screen.getByTestId('retry-job-name') as HTMLInputElement;
+    // Should remove trailing dashes after truncation, then add "-2"
+    expect(input.value).not.toMatch(/--2$/); // No double dash before suffix
+    expect(input.value).toMatch(/-2$/); // Ends with single dash and suffix
+  });
+
+  it('should have delete checkbox checked by default', () => {
+    render(<RetryJobModal job={mockJob} onClose={mockOnClose} onRetry={mockOnRetry} />);
+
+    const checkbox = screen.getByTestId('delete-old-job-checkbox');
+    expect(checkbox).toBeChecked();
+  });
+
+  it('should display the old job name in the delete checkbox label', () => {
+    render(<RetryJobModal job={mockJob} onClose={mockOnClose} onRetry={mockOnRetry} />);
+
+    expect(screen.getByText('test-job-name')).toBeInTheDocument();
+  });
+
+  it('should call onClose when Cancel button is clicked', () => {
+    render(<RetryJobModal job={mockJob} onClose={mockOnClose} onRetry={mockOnRetry} />);
+
+    fireEvent.click(screen.getByText('Cancel'));
+    expect(mockOnClose).toHaveBeenCalledTimes(1);
+  });
+
+  it('should call onRetry with correct parameters when Retry button is clicked', async () => {
+    render(<RetryJobModal job={mockJob} onClose={mockOnClose} onRetry={mockOnRetry} />);
+
+    fireEvent.click(screen.getByTestId('retry-job-submit-button'));
+
+    await waitFor(() => {
+      expect(mockOnRetry).toHaveBeenCalledWith('test-job-name-2', true);
+    });
+  });
+
+  it('should call onRetry with deleteOldJob=false when checkbox is unchecked', async () => {
+    render(<RetryJobModal job={mockJob} onClose={mockOnClose} onRetry={mockOnRetry} />);
+
+    const checkbox = screen.getByTestId('delete-old-job-checkbox');
+    fireEvent.click(checkbox);
+
+    fireEvent.click(screen.getByTestId('retry-job-submit-button'));
+
+    await waitFor(() => {
+      expect(mockOnRetry).toHaveBeenCalledWith('test-job-name-2', false);
+    });
+  });
+
+  it('should allow editing the resource name directly', async () => {
+    render(<RetryJobModal job={mockJob} onClose={mockOnClose} onRetry={mockOnRetry} />);
+
+    // Click "Edit resource name" to show the resource name field
+    fireEvent.click(screen.getByTestId('retry-job-editResourceLink'));
+
+    // Edit the resource name field directly
+    const resourceNameInput = screen.getByTestId('retry-job-resourceName');
+    fireEvent.change(resourceNameInput, { target: { value: 'custom-retry-name' } });
+
+    fireEvent.click(screen.getByTestId('retry-job-submit-button'));
+
+    await waitFor(() => {
+      expect(mockOnRetry).toHaveBeenCalledWith('custom-retry-name', true);
+    });
+  });
+
+  it('should display error alert when retry fails', async () => {
+    const errorMessage = 'Failed to create retry job';
+    mockOnRetry.mockRejectedValue(new Error(errorMessage));
+
+    render(<RetryJobModal job={mockJob} onClose={mockOnClose} onRetry={mockOnRetry} />);
+
+    fireEvent.click(screen.getByTestId('retry-job-submit-button'));
+
+    await waitFor(() => {
+      expect(screen.getByTestId('retry-job-error-alert')).toBeInTheDocument();
+      expect(screen.getByText(errorMessage)).toBeInTheDocument();
+    });
+  });
+
+  it('should show loading state while retrying', async () => {
+    mockOnRetry.mockImplementation(
+      () =>
+        new Promise((resolve) => {
+          setTimeout(resolve, 1000);
+        }),
+    );
+
+    render(<RetryJobModal job={mockJob} onClose={mockOnClose} onRetry={mockOnRetry} />);
+
+    fireEvent.click(screen.getByTestId('retry-job-submit-button'));
+
+    // Button should be disabled while loading
+    expect(screen.getByTestId('retry-job-submit-button')).toBeDisabled();
+  });
+
+  it('should close modal after successful retry', async () => {
+    render(<RetryJobModal job={mockJob} onClose={mockOnClose} onRetry={mockOnRetry} />);
+
+    fireEvent.click(screen.getByTestId('retry-job-submit-button'));
+
+    await waitFor(() => {
+      expect(mockOnClose).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  it('should show Edit resource name link initially', () => {
+    render(<RetryJobModal job={mockJob} onClose={mockOnClose} onRetry={mockOnRetry} />);
+
+    expect(screen.getByTestId('retry-job-editResourceLink')).toBeInTheDocument();
+  });
+
+  it('should disable retry when resource name exceeds 63 characters', () => {
+    render(<RetryJobModal job={mockJob} onClose={mockOnClose} onRetry={mockOnRetry} />);
+
+    // Show the resource name field
+    fireEvent.click(screen.getByTestId('retry-job-editResourceLink'));
+
+    // Enter a name longer than 63 characters (DNS-1123 label limit for pod labels)
+    const longName = 'a'.repeat(64);
+    const resourceNameInput = screen.getByTestId('retry-job-resourceName');
+    fireEvent.change(resourceNameInput, { target: { value: longName } });
+
+    expect(screen.getByTestId('retry-job-submit-button')).toBeDisabled();
+    expect(screen.getByText('Cannot exceed 63 characters')).toBeInTheDocument();
+  });
+
+  it('should allow resource names up to 63 characters', () => {
+    render(<RetryJobModal job={mockJob} onClose={mockOnClose} onRetry={mockOnRetry} />);
+
+    // Show the resource name field
+    fireEvent.click(screen.getByTestId('retry-job-editResourceLink'));
+
+    // Enter a name exactly 63 characters long
+    const maxName = 'a'.repeat(63);
+    const resourceNameInput = screen.getByTestId('retry-job-resourceName');
+    fireEvent.change(resourceNameInput, { target: { value: maxName } });
+
+    expect(screen.getByTestId('retry-job-submit-button')).not.toBeDisabled();
+  });
+});
