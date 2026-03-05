@@ -28,10 +28,10 @@ type McpCatalogCardProps = {
 
 const SecurityTag: React.FC<{ label: string }> = ({ label }) => (
   <FlexItem>
-    <span className="pf-v5-u-display-inline-flex pf-v5-u-align-items-center">
-      <McpCardIconByLabel label={label} className="pf-v5-u-mr-xs" />
-      <span>{label}</span>
-    </span>
+    <Flex alignItems={{ default: 'alignItemsCenter' }} gap={{ default: 'gapXs' }}>
+      <McpCardIconByLabel label={label} />
+      <FlexItem>{label}</FlexItem>
+    </Flex>
   </FlexItem>
 );
 
@@ -43,22 +43,17 @@ const McpCatalogCard: React.FC<McpCatalogCardProps> = ({ server }) => {
   const serverId = String(server.id);
 
   return (
-    <Card
-      isFullHeight
-      style={{ minHeight: '296.58px' }}
-      data-testid={`mcp-catalog-card-${serverId}`}
-    >
+    <Card isFullHeight data-testid={`mcp-catalog-card-${serverId}`}>
       <CardHeader>
         <Flex
           alignItems={{ default: 'alignItemsFlexStart' }}
           justifyContent={{ default: 'justifyContentSpaceBetween' }}
-          style={{ gap: '4px' }}
+          gap={{ default: 'gapXs' }}
           className="pf-v6-u-mb-md"
         >
           <FlexItem>
             <span
-              className="pf-v5-u-display-inline-block"
-              style={{ fontSize: '2rem', color: 'var(--pf-v5-global--default-color--200)' }}
+              className="pf-v6-u-display-inline-block pf-v6-u-font-size-2xl pf-v6-u-color-200"
               aria-hidden
             >
               <ApplicationsIcon />
@@ -77,7 +72,7 @@ const McpCatalogCard: React.FC<McpCatalogCardProps> = ({ server }) => {
               position="middle"
               tooltipPosition="top"
               data-testid={`mcp-catalog-card-name-${serverId}`}
-              style={{ textDecoration: 'underline', color: 'var(--pf-v5-global--link--Color)' }}
+              className="pf-v6-u-text-decoration-underline"
             />
           </Link>
         </CardTitle>
@@ -85,7 +80,7 @@ const McpCatalogCard: React.FC<McpCatalogCardProps> = ({ server }) => {
       <CardBody>
         <Content
           component="p"
-          className="pf-v5-u-mb-md"
+          className="pf-v6-u-mb-md"
           data-testid={`mcp-catalog-card-description-${serverId}`}
         >
           {server.description ?? ''}
@@ -94,7 +89,7 @@ const McpCatalogCard: React.FC<McpCatalogCardProps> = ({ server }) => {
           <Flex
             direction={{ default: 'column' }}
             gap={{ default: 'gapSm' }}
-            className="pf-v5-u-mt-lg"
+            className="pf-v6-u-mt-lg"
           >
             {securityLabels.map((tag) => (
               <SecurityTag key={tag} label={tag} />
