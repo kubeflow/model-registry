@@ -1213,7 +1213,7 @@ var _ = Describe("TestModelTransferJob", func() {
 		It("GET events returns 200 for existing job", func() {
 			envelope, rs, err := setupApiTest[ModelTransferJobEventsEnvelope](
 				http.MethodGet,
-				"/api/v1/model_registry/model-registry/model_transfer_jobs/transfer-job-001/events?namespace=kubeflow",
+				"/api/v1/model_registry/model-registry/model_transfer_jobs/transfer-job-001/events?namespace=kubeflow&jobNamespace=kubeflow",
 				nil,
 				kubernetesMockedStaticClientFactory,
 				requestIdentity,
@@ -1227,7 +1227,7 @@ var _ = Describe("TestModelTransferJob", func() {
 		It("GET events returns 404 for non-existent job", func() {
 			_, rs, err := setupApiTest[Envelope[any, any]](
 				http.MethodGet,
-				"/api/v1/model_registry/model-registry/model_transfer_jobs/does-not-exist/events?namespace=kubeflow",
+				"/api/v1/model_registry/model-registry/model_transfer_jobs/does-not-exist/events?namespace=kubeflow&jobNamespace=kubeflow",
 				nil,
 				kubernetesMockedStaticClientFactory,
 				requestIdentity,

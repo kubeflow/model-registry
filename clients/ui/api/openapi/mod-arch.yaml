@@ -1353,12 +1353,7 @@ paths:
         - $ref: "#/components/parameters/modelRegistryName"
         - $ref: "#/components/parameters/kubeflowUserId"
         - $ref: "#/components/parameters/modelTransferJobName"
-        - name: jobNamespace
-          description: The namespace where the job's pods are running, used to fetch pod events. Falls back to the job's own namespace if not provided.
-          schema:
-            type: string
-          in: query
-          required: false
+        - $ref: "#/components/parameters/jobNamespace"
       responses:
         "200":
           $ref: "#/components/responses/ModelTransferJobEventsResponse"
@@ -3731,6 +3726,13 @@ components:
         type: string
       in: path
       required: true
+    jobNamespace:
+      name: jobNamespace
+      description: The namespace where the job's pods are running, used to fetch pod events. Falls back to the request namespace if not provided.
+      schema:
+        type: string
+      in: query
+      required: false
     serverId:
       name: server_id
       description: A unique identifier for an `McpServer`.

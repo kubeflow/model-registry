@@ -298,8 +298,11 @@ func (app *App) GetModelTransferJobEventsHandler(w http.ResponseWriter, r *http.
 	}
 
 	jobNamespace := r.URL.Query().Get("jobNamespace")
+	if jobNamespace == "" {
+		jobNamespace = namespace
+	}
 
-	events, err := app.repositories.ModelRegistry.GetModelTransferJobEvents(ctx, client, namespace, jobName, modelRegistryID, jobNamespace)
+	events, err := app.repositories.ModelRegistry.GetModelTransferJobEvents(ctx, client, jobNamespace, jobName, modelRegistryID)
 	if err != nil {
 		if errors.Is(err, repositories.ErrJobNotFound) {
 			app.notFoundResponse(w, r)
