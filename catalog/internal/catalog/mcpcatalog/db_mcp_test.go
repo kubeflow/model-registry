@@ -62,6 +62,8 @@ func TestMergeFilterQueries(t *testing.T) {
 type mockMCPServerRepo struct {
 	listResult *internalmodels.ListWrapper[models.MCPServer]
 	listErr    error
+	getResult  models.MCPServer
+	getErr     error
 	// capturedOptions stores the last MCPServerListOptions passed to List.
 	capturedOptions models.MCPServerListOptions
 }
@@ -72,6 +74,9 @@ func (m *mockMCPServerRepo) List(opts models.MCPServerListOptions) (*internalmod
 }
 
 func (m *mockMCPServerRepo) GetByID(_ int32) (models.MCPServer, error) {
+	if m.getResult != nil || m.getErr != nil {
+		return m.getResult, m.getErr
+	}
 	return nil, errors.New("not implemented")
 }
 
@@ -90,11 +95,19 @@ func (m *mockMCPServerRepo) GetDistinctSourceIDs() ([]string, error) {
 }
 func (m *mockMCPServerRepo) GetTypeID() int32 { return 0 }
 
-// mockMCPServerToolRepo is a minimal MCPServerToolRepository that always returns empty.
-type mockMCPServerToolRepo struct{}
+// mockMCPServerToolRepo is a configurable MCPServerToolRepository for unit testing.
+type mockMCPServerToolRepo struct {
+	listResult  []models.MCPServerTool
+	listErr     error
+	countResult int32
+	countErr    error
+	// countByID allows per-parent-ID count results for multi-server tests.
+	// When set, CountByParentIDs uses this map instead of countResult.
+	countByID map[int32]int32
+}
 
 func (m *mockMCPServerToolRepo) List(_ models.MCPServerToolListOptions) ([]models.MCPServerTool, error) {
-	return nil, nil
+	return m.listResult, m.listErr
 }
 func (m *mockMCPServerToolRepo) GetByID(_ int32) (models.MCPServerTool, error) {
 	return nil, errors.New("not implemented")
@@ -102,21 +115,68 @@ func (m *mockMCPServerToolRepo) GetByID(_ int32) (models.MCPServerTool, error) {
 func (m *mockMCPServerToolRepo) Save(_ models.MCPServerTool, _ *int32) (models.MCPServerTool, error) {
 	return nil, errors.New("not implemented")
 }
+func (m *mockMCPServerToolRepo) CountByParentIDs(parentIDs []int32) (map[int32]int32, error) {
+	if m.countErr != nil {
+		return nil, m.countErr
+	}
+	result := make(map[int32]int32, len(parentIDs))
+	for _, id := range parentIDs {
+		if m.countByID != nil {
+			result[id] = m.countByID[id]
+		} else {
+			result[id] = m.countResult
+		}
+	}
+	return result, nil
+}
 func (m *mockMCPServerToolRepo) DeleteByParentID(_ int32) error { return errors.New("not implemented") }
 func (m *mockMCPServerToolRepo) DeleteByID(_ int32) error       { return errors.New("not implemented") }
 
-// --- ListMCPServers named query tests ---
+// --- helpers ---
 
 func newTestCatalog(repo *mockMCPServerRepo, resolver NamedQueryResolver) *dbMCPCatalogImpl {
+	return newTestCatalogWithToolRepo(repo, &mockMCPServerToolRepo{}, resolver)
+}
+
+func newTestCatalogWithToolRepo(repo *mockMCPServerRepo, toolRepo *mockMCPServerToolRepo, resolver NamedQueryResolver) *dbMCPCatalogImpl {
 	return &dbMCPCatalogImpl{
 		mcpServerRepo:     repo,
-		mcpServerToolRepo: &mockMCPServerToolRepo{},
+		mcpServerToolRepo: toolRepo,
 		resolveNamedQuery: resolver,
 	}
 }
 
 func emptyList() *internalmodels.ListWrapper[models.MCPServer] {
 	return &internalmodels.ListWrapper[models.MCPServer]{Items: []models.MCPServer{}}
+}
+
+func serverID(id int32) *int32 { return &id }
+
+func serverName(name string) *string { return &name }
+
+func listWithServer(id int32, name string) *internalmodels.ListWrapper[models.MCPServer] {
+	server := &models.MCPServerImpl{
+		ID:         serverID(id),
+		Attributes: &models.MCPServerAttributes{Name: serverName(name)},
+	}
+	return &internalmodels.ListWrapper[models.MCPServer]{Items: []models.MCPServer{server}}
+}
+
+func listWithServers(servers ...struct{ id int32; name string }) *internalmodels.ListWrapper[models.MCPServer] {
+	items := make([]models.MCPServer, 0, len(servers))
+	for _, s := range servers {
+		items = append(items, &models.MCPServerImpl{
+			ID:         serverID(s.id),
+			Attributes: &models.MCPServerAttributes{Name: serverName(s.name)},
+		})
+	}
+	return &internalmodels.ListWrapper[models.MCPServer]{Items: items}
+}
+
+func makeTool(name string) models.MCPServerTool {
+	return &models.MCPServerToolImpl{
+		Attributes: &models.MCPServerToolAttributes{Name: serverName(name)},
+	}
 }
 
 func TestListMCPServers_NoNamedQuery(t *testing.T) {
@@ -273,4 +333,138 @@ func TestGetFilterOptions_PropertyOptionsError(t *testing.T) {
 
 	_, err := cat.GetFilterOptions(context.Background())
 	require.Error(t, err)
+}
+
+// --- ToolCount tests ---
+
+func TestListMCPServers_ToolCountWithoutIncludeTools(t *testing.T) {
+	repo := &mockMCPServerRepo{listResult: listWithServer(1, "test-server")}
+	toolRepo := &mockMCPServerToolRepo{countResult: 5}
+	cat := newTestCatalogWithToolRepo(repo, toolRepo, nil)
+
+	result, err := cat.ListMCPServers(context.Background(), ListMCPServersParams{
+		IncludeTools: false,
+	})
+	require.NoError(t, err)
+	require.Len(t, result.Items, 1)
+	assert.Equal(t, int32(5), result.Items[0].ToolCount)
+	assert.Empty(t, result.Items[0].Tools)
+}
+
+func TestListMCPServers_CountByParentIDError(t *testing.T) {
+	repo := &mockMCPServerRepo{listResult: listWithServer(1, "test-server")}
+	toolRepo := &mockMCPServerToolRepo{countErr: errors.New("db count error")}
+	cat := newTestCatalogWithToolRepo(repo, toolRepo, nil)
+
+	_, err := cat.ListMCPServers(context.Background(), ListMCPServersParams{
+		IncludeTools: false,
+	})
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "error counting tools")
+}
+
+func TestGetMCPServer_ToolCountWithoutIncludeTools(t *testing.T) {
+	serverEntity := &models.MCPServerImpl{
+		ID:         serverID(1),
+		Attributes: &models.MCPServerAttributes{Name: serverName("test-server")},
+	}
+	repo := &mockMCPServerRepo{getResult: serverEntity}
+	toolRepo := &mockMCPServerToolRepo{countResult: 7}
+	cat := newTestCatalogWithToolRepo(repo, toolRepo, nil)
+
+	result, err := cat.GetMCPServer(context.Background(), "1", false)
+	require.NoError(t, err)
+	require.NotNil(t, result)
+	assert.Equal(t, int32(7), result.ToolCount)
+	assert.Empty(t, result.Tools)
+}
+
+func TestGetMCPServer_CountByParentIDError(t *testing.T) {
+	serverEntity := &models.MCPServerImpl{
+		ID:         serverID(1),
+		Attributes: &models.MCPServerAttributes{Name: serverName("test-server")},
+	}
+	repo := &mockMCPServerRepo{getResult: serverEntity}
+	toolRepo := &mockMCPServerToolRepo{countErr: errors.New("db count error")}
+	cat := newTestCatalogWithToolRepo(repo, toolRepo, nil)
+
+	_, err := cat.GetMCPServer(context.Background(), "1", false)
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "error counting tools")
+}
+
+func TestListMCPServers_ToolCountZero(t *testing.T) {
+	repo := &mockMCPServerRepo{listResult: listWithServer(1, "no-tools-server")}
+	toolRepo := &mockMCPServerToolRepo{countResult: 0}
+	cat := newTestCatalogWithToolRepo(repo, toolRepo, nil)
+
+	result, err := cat.ListMCPServers(context.Background(), ListMCPServersParams{
+		IncludeTools: false,
+	})
+	require.NoError(t, err)
+	require.Len(t, result.Items, 1)
+	assert.Equal(t, int32(0), result.Items[0].ToolCount)
+	assert.Empty(t, result.Items[0].Tools)
+}
+
+func TestListMCPServers_MultipleServersWithDifferentToolCounts(t *testing.T) {
+	repo := &mockMCPServerRepo{
+		listResult: listWithServers(
+			struct{ id int32; name string }{1, "server-a"},
+			struct{ id int32; name string }{2, "server-b"},
+			struct{ id int32; name string }{3, "server-c"},
+		),
+	}
+	toolRepo := &mockMCPServerToolRepo{
+		countByID: map[int32]int32{1: 3, 2: 0, 3: 10},
+	}
+	cat := newTestCatalogWithToolRepo(repo, toolRepo, nil)
+
+	result, err := cat.ListMCPServers(context.Background(), ListMCPServersParams{
+		IncludeTools: false,
+	})
+	require.NoError(t, err)
+	require.Len(t, result.Items, 3)
+	assert.Equal(t, int32(3), result.Items[0].ToolCount)
+	assert.Equal(t, int32(0), result.Items[1].ToolCount)
+	assert.Equal(t, int32(10), result.Items[2].ToolCount)
+}
+
+func TestListMCPServers_IncludeToolsUsesAccurateCount(t *testing.T) {
+	repo := &mockMCPServerRepo{listResult: listWithServer(1, "test-server")}
+	toolRepo := &mockMCPServerToolRepo{
+		countResult: 5,
+		listResult:  []models.MCPServerTool{makeTool("tool-1"), makeTool("tool-2")},
+	}
+	cat := newTestCatalogWithToolRepo(repo, toolRepo, nil)
+
+	result, err := cat.ListMCPServers(context.Background(), ListMCPServersParams{
+		IncludeTools: true,
+		ToolLimit:    2,
+	})
+	require.NoError(t, err)
+	require.Len(t, result.Items, 1)
+	// toolCount should reflect total (5), not len(returned tools) (2)
+	assert.Equal(t, int32(5), result.Items[0].ToolCount)
+	assert.Len(t, result.Items[0].Tools, 2)
+}
+
+func TestGetMCPServer_IncludeToolsUsesAccurateCount(t *testing.T) {
+	serverEntity := &models.MCPServerImpl{
+		ID:         serverID(1),
+		Attributes: &models.MCPServerAttributes{Name: serverName("test-server")},
+	}
+	repo := &mockMCPServerRepo{getResult: serverEntity}
+	toolRepo := &mockMCPServerToolRepo{
+		countResult: 10,
+		listResult:  []models.MCPServerTool{makeTool("tool-1")},
+	}
+	cat := newTestCatalogWithToolRepo(repo, toolRepo, nil)
+
+	result, err := cat.GetMCPServer(context.Background(), "1", true)
+	require.NoError(t, err)
+	require.NotNil(t, result)
+	// toolCount should reflect total (10), not len(returned tools) (1)
+	assert.Equal(t, int32(10), result.ToolCount)
+	assert.Len(t, result.Tools, 1)
 }

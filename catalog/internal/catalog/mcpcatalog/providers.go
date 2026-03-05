@@ -4,8 +4,10 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"net/url"
 	"os"
 	"path/filepath"
+	"slices"
 	"strconv"
 	"sync"
 
@@ -123,9 +125,34 @@ type yamlMCPArtifact struct {
 
 // yamlMCPEndpoints represents MCP server endpoints
 type yamlMCPEndpoints struct {
-	HTTP      *string `yaml:"http,omitempty"`
-	SSE       *string `yaml:"sse,omitempty"`
-	WebSocket *string `yaml:"websocket,omitempty"`
+	HTTP      *string `yaml:"http,omitempty" json:"http,omitempty"`
+	SSE       *string `yaml:"sse,omitempty" json:"sse,omitempty"`
+	WebSocket *string `yaml:"websocket,omitempty" json:"websocket,omitempty"`
+}
+
+// validate checks that all non-nil endpoint URLs have valid schemes.
+// HTTP and SSE endpoints must use http/https; WebSocket endpoints also accept ws/wss.
+func (e *yamlMCPEndpoints) validate() error {
+	type endpointField struct {
+		name    string
+		url     *string
+		schemes []string
+	}
+	fields := []endpointField{
+		{"http", e.HTTP, []string{"http", "https"}},
+		{"sse", e.SSE, []string{"http", "https"}},
+		{"websocket", e.WebSocket, []string{"http", "https", "ws", "wss"}},
+	}
+	for _, f := range fields {
+		if f.url == nil {
+			continue
+		}
+		u, err := url.Parse(*f.url)
+		if err != nil || !slices.Contains(f.schemes, u.Scheme) {
+			return fmt.Errorf("%s endpoint %q must be a valid URL with one of the following schemes: %v", f.name, *f.url, f.schemes)
+		}
+	}
+	return nil
 }
 
 // yamlMCPCatalog represents a complete MCP catalog YAML file
@@ -258,7 +285,8 @@ func (ys *yamlMCPServer) ToMCPServerProviderRecord() MCPServerProviderRecord {
 		properties = append(properties, mrmodels.NewStringProperty("logo", *ys.Logo, false))
 	}
 	if ys.License != nil {
-		properties = append(properties, mrmodels.NewStringProperty("license", *ys.License, false))
+		humanReadableLicense := basecatalog.TransformLicenseToHumanReadable(*ys.License)
+		properties = append(properties, mrmodels.NewStringProperty("license", humanReadableLicense, false))
 	}
 	if ys.LicenseLink != nil {
 		properties = append(properties, mrmodels.NewStringProperty("license_link", *ys.LicenseLink, false))
@@ -312,8 +340,18 @@ func (ys *yamlMCPServer) ToMCPServerProviderRecord() MCPServerProviderRecord {
 		}
 	}
 
+	// Validate remote servers have at least one endpoint
+	if ys.DeploymentMode != nil && *ys.DeploymentMode == "remote" {
+		if ys.Endpoints == nil || (ys.Endpoints.HTTP == nil && ys.Endpoints.SSE == nil && ys.Endpoints.WebSocket == nil) {
+			return MCPServerProviderRecord{Error: fmt.Errorf("server %q has deploymentMode 'remote' but no endpoints defined", ys.Name)}
+		}
+	}
+
 	// Convert endpoints to JSON
 	if ys.Endpoints != nil {
+		if err := ys.Endpoints.validate(); err != nil {
+			return MCPServerProviderRecord{Error: fmt.Errorf("server %q has invalid endpoints: %w", ys.Name, err)}
+		}
 		if jsonBytes, err := json.Marshal(ys.Endpoints); err == nil {
 			properties = append(properties, mrmodels.NewStringProperty("endpoints", string(jsonBytes), false))
 		}

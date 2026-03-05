@@ -112,28 +112,41 @@ func (d *dbMCPCatalogImpl) ListMCPServers(ctx context.Context, params ListMCPSer
 		return openapi.MCPServerList{}, err
 	}
 
+	// Collect all server IDs and get tool counts in a single batch query
+	serverIDs := make([]int32, len(serversList.Items))
+	for i, dbServer := range serversList.Items {
+		serverIDs[i] = *dbServer.GetID()
+	}
+	toolCounts, err := d.mcpServerToolRepo.CountByParentIDs(serverIDs)
+	if err != nil {
+		return openapi.MCPServerList{}, fmt.Errorf("error counting tools: %w", err)
+	}
+
 	// Convert to OpenAPI models
 	apiServers := make([]openapi.MCPServer, 0) // Initialize as empty slice, not nil
 	for _, dbServer := range serversList.Items {
-		var tools []models.MCPServerTool
+		var apiServer *openapi.MCPServer
 
-		// Optionally include tools
 		if params.IncludeTools {
+			// Load tools and convert with full tool data
 			toolOptions := models.MCPServerToolListOptions{
 				ParentID: *dbServer.GetID(),
 			}
-			// Apply tool limit if specified
 			if params.ToolLimit > 0 {
 				toolOptions.Pagination.PageSize = &params.ToolLimit
 			}
 
-			tools, err = d.mcpServerToolRepo.List(toolOptions)
+			tools, err := d.mcpServerToolRepo.List(toolOptions)
 			if err != nil {
 				return openapi.MCPServerList{}, fmt.Errorf("error loading tools for server %d: %w", *dbServer.GetID(), err)
 			}
-		}
 
-		apiServer := converter.ConvertDbMCPServerWithToolsToOpenapi(dbServer, tools)
+			apiServer = converter.ConvertDbMCPServerWithToolsToOpenapi(dbServer, tools)
+		} else {
+			apiServer = converter.ConvertDbMCPServerToOpenapi(dbServer)
+		}
+		apiServer.ToolCount = toolCounts[*dbServer.GetID()]
+
 		apiServers = append(apiServers, *apiServer)
 	}
 
@@ -171,20 +184,26 @@ func (d *dbMCPCatalogImpl) GetMCPServer(ctx context.Context, serverID string, in
 		return nil, fmt.Errorf("server not found with ID %s: %w", serverID, api.ErrNotFound)
 	}
 
-	var tools []models.MCPServerTool
+	// Get the accurate total tool count
+	toolCounts, err := d.mcpServerToolRepo.CountByParentIDs([]int32{*dbServer.GetID()})
+	if err != nil {
+		return nil, fmt.Errorf("error counting tools for server %s: %w", serverID, err)
+	}
 
-	// Optionally include tools
+	var apiServer *openapi.MCPServer
 	if includeTools {
 		toolOptions := models.MCPServerToolListOptions{
 			ParentID: *dbServer.GetID(),
 		}
-		tools, err = d.mcpServerToolRepo.List(toolOptions)
+		tools, err := d.mcpServerToolRepo.List(toolOptions)
 		if err != nil {
 			return nil, fmt.Errorf("error loading tools for server %s: %w", serverID, err)
 		}
+		apiServer = converter.ConvertDbMCPServerWithToolsToOpenapi(dbServer, tools)
+	} else {
+		apiServer = converter.ConvertDbMCPServerToOpenapi(dbServer)
 	}
-
-	apiServer := converter.ConvertDbMCPServerWithToolsToOpenapi(dbServer, tools)
+	apiServer.ToolCount = toolCounts[*dbServer.GetID()]
 	return apiServer, nil
 }
 

@@ -26,6 +26,22 @@ var (
 	ErrModelRegistryNotFound = errors.New("model registry not found in the selected namespace")
 )
 
+// recoverFromAnnotation copies annotation value to target if target is empty
+func recoverFromAnnotation(target *string, annotations map[string]string, key string) {
+	if *target == "" {
+		*target = annotations[key]
+	}
+}
+
+// recoverEnumFromAnnotation copies annotation value to target enum if target is empty
+func recoverEnumFromAnnotation[T ~string](target *T, annotations map[string]string, key string) {
+	if *target == "" {
+		if val := annotations[key]; val != "" {
+			*target = T(val)
+		}
+	}
+}
+
 func (m *ModelRegistryRepository) GetAllModelTransferJobs(ctx context.Context, client k8s.KubernetesClientInterface, namespace string, modelRegistryID string) (*models.ModelTransferJobList, error) {
 	if modelRegistryID == "" {
 		return &models.ModelTransferJobList{Items: []models.ModelTransferJob{}, Size: 0, PageSize: 0}, nil
@@ -359,49 +375,22 @@ func (m *ModelRegistryRepository) UpdateModelTransferJob(
 
 	oldSourceSecretName := oldAnnotations["modelregistry.kubeflow.org/source-secret"]
 
-	if newPayload.Source.Type == "" {
-		if sourceType := oldAnnotations["modelregistry.kubeflow.org/source-type"]; sourceType != "" {
-			newPayload.Source.Type = models.ModelTransferJobSourceType(sourceType)
-		}
-	}
-	if newPayload.Source.Bucket == "" {
-		newPayload.Source.Bucket = oldAnnotations["modelregistry.kubeflow.org/source-bucket"]
-	}
-	if newPayload.Source.Key == "" {
-		newPayload.Source.Key = oldAnnotations["modelregistry.kubeflow.org/source-key"]
-	}
-	if newPayload.Source.URI == "" {
-		newPayload.Source.URI = oldAnnotations["modelregistry.kubeflow.org/source-uri"]
-	}
-	if newPayload.Destination.Type == "" {
-		if destType := oldAnnotations["modelregistry.kubeflow.org/dest-type"]; destType != "" {
-			newPayload.Destination.Type = models.ModelTransferJobDestinationType(destType)
-		}
-	}
-	if newPayload.Destination.Registry == "" {
-		newPayload.Destination.Registry = oldAnnotations["modelregistry.kubeflow.org/dest-registry"]
-	}
-	if newPayload.Destination.URI == "" {
-		newPayload.Destination.URI = oldAnnotations["modelregistry.kubeflow.org/dest-uri"]
-	}
-	if newPayload.UploadIntent == "" {
-		newPayload.UploadIntent = models.ModelTransferJobUploadIntent(oldAnnotations["modelregistry.kubeflow.org/upload-intent"])
-	}
-	if newPayload.RegisteredModelName == "" {
-		newPayload.RegisteredModelName = oldAnnotations["modelregistry.kubeflow.org/model-name"]
-	}
-	if newPayload.ModelVersionName == "" {
-		newPayload.ModelVersionName = oldAnnotations["modelregistry.kubeflow.org/version-name"]
-	}
-	if newPayload.RegisteredModelId == "" {
-		newPayload.RegisteredModelId = oldAnnotations["modelregistry.kubeflow.org/registered-model-id"]
-	}
-	if newPayload.ModelVersionId == "" {
-		newPayload.ModelVersionId = oldAnnotations["modelregistry.kubeflow.org/model-version-id"]
-	}
-	if newPayload.ModelArtifactId == "" {
-		newPayload.ModelArtifactId = oldAnnotations["modelregistry.kubeflow.org/model-artifact-id"]
-	}
+	// Recover metadata from annotations
+	recoverEnumFromAnnotation(&newPayload.Source.Type, oldAnnotations, "modelregistry.kubeflow.org/source-type")
+	recoverFromAnnotation(&newPayload.Source.Bucket, oldAnnotations, "modelregistry.kubeflow.org/source-bucket")
+	recoverFromAnnotation(&newPayload.Source.Key, oldAnnotations, "modelregistry.kubeflow.org/source-key")
+	recoverFromAnnotation(&newPayload.Source.URI, oldAnnotations, "modelregistry.kubeflow.org/source-uri")
+	recoverEnumFromAnnotation(&newPayload.Destination.Type, oldAnnotations, "modelregistry.kubeflow.org/dest-type")
+	recoverFromAnnotation(&newPayload.Destination.Registry, oldAnnotations, "modelregistry.kubeflow.org/dest-registry")
+	recoverFromAnnotation(&newPayload.Destination.URI, oldAnnotations, "modelregistry.kubeflow.org/dest-uri")
+	recoverEnumFromAnnotation(&newPayload.UploadIntent, oldAnnotations, "modelregistry.kubeflow.org/upload-intent")
+	recoverFromAnnotation(&newPayload.RegisteredModelName, oldAnnotations, "modelregistry.kubeflow.org/model-name")
+	recoverFromAnnotation(&newPayload.ModelVersionName, oldAnnotations, "modelregistry.kubeflow.org/version-name")
+	recoverFromAnnotation(&newPayload.RegisteredModelId, oldAnnotations, "modelregistry.kubeflow.org/registered-model-id")
+	recoverFromAnnotation(&newPayload.ModelVersionId, oldAnnotations, "modelregistry.kubeflow.org/model-version-id")
+	recoverFromAnnotation(&newPayload.ModelArtifactId, oldAnnotations, "modelregistry.kubeflow.org/model-artifact-id")
+	recoverFromAnnotation(&newPayload.Author, oldAnnotations, "modelregistry.kubeflow.org/author")
+	recoverFromAnnotation(&newPayload.Description, oldAnnotations, "modelregistry.kubeflow.org/description")
 
 	oldConfigMap, err := client.GetConfigMap(ctx, namespace, oldConfigMapName)
 	if err != nil {
@@ -461,9 +450,47 @@ func (m *ModelRegistryRepository) UpdateModelTransferJob(
 		existingDestSecretName = destSecretCreated.Name
 	}
 
-	if newPayload.ModelArtifactName == "" && oldConfigMap != nil && oldConfigMap.Data != nil {
-		if val, ok := oldConfigMap.Data["ModelArtifact.name"]; ok {
-			newPayload.ModelArtifactName = val
+	if oldConfigMap != nil && oldConfigMap.Data != nil {
+		if newPayload.ModelArtifactName == "" {
+			if val, ok := oldConfigMap.Data["ModelArtifact.name"]; ok {
+				newPayload.ModelArtifactName = val
+			}
+		}
+		if newPayload.VersionDescription == "" {
+			if val, ok := oldConfigMap.Data["ModelVersion.description"]; ok {
+				newPayload.VersionDescription = val
+			}
+		}
+		if newPayload.SourceModelFormat == "" {
+			if val, ok := oldConfigMap.Data["ModelArtifact.model_format_name"]; ok {
+				newPayload.SourceModelFormat = val
+			}
+		}
+		if newPayload.SourceModelFormatVersion == "" {
+			if val, ok := oldConfigMap.Data["ModelArtifact.model_format_version"]; ok {
+				newPayload.SourceModelFormatVersion = val
+			}
+		}
+		// Recover custom properties if not provided in new payload
+		if newPayload.ModelCustomProperties == nil {
+			if val, ok := oldConfigMap.Data["RegisteredModel.customProperties"]; ok && val != "" {
+				var props map[string]interface{}
+				if err := json.Unmarshal([]byte(val), &props); err == nil {
+					newPayload.ModelCustomProperties = props
+				} else {
+					logger.Warn("failed to unmarshal model custom properties", "key", "RegisteredModel.customProperties", "error", err)
+				}
+			}
+		}
+		if newPayload.VersionCustomProperties == nil {
+			if val, ok := oldConfigMap.Data["ModelVersion.customProperties"]; ok && val != "" {
+				var props map[string]interface{}
+				if err := json.Unmarshal([]byte(val), &props); err == nil {
+					newPayload.VersionCustomProperties = props
+				} else {
+					logger.Warn("failed to unmarshal version custom properties", "key", "ModelVersion.customProperties", "error", err)
+				}
+			}
 		}
 	}
 
