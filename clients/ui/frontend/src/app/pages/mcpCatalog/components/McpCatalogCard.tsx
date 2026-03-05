@@ -12,7 +12,8 @@ import {
 } from '@patternfly/react-core';
 import { ApplicationsIcon } from '@patternfly/react-icons';
 import { Link } from 'react-router-dom';
-import type { McpServerMock } from '~/app/pages/mcpCatalog/types/mcpServer';
+import type { McpServer } from '~/app/mcpServerCatalogTypes';
+import { getSecurityIndicatorLabels } from '~/app/pages/mcpCatalog/utils/mcpCatalogUtils';
 import {
   McpCardIconType,
   McpCardIconByLabel,
@@ -22,7 +23,7 @@ import {
 const MCP_DETAILS_LINK_PLACEHOLDER = '#';
 
 type McpCatalogCardProps = {
-  server: McpServerMock;
+  server: McpServer;
 };
 
 const SecurityTag: React.FC<{ label: string }> = ({ label }) => (
@@ -36,14 +37,16 @@ const SecurityTag: React.FC<{ label: string }> = ({ label }) => (
 
 const McpCatalogCard: React.FC<McpCatalogCardProps> = ({ server }) => {
   const deploymentType =
-    server.deploymentMode === 'Local' ? McpCardIconType.LOCAL_TO_CLUSTER : McpCardIconType.REMOTE;
+    server.deploymentMode === 'local' ? McpCardIconType.LOCAL_TO_CLUSTER : McpCardIconType.REMOTE;
   const deploymentConfig = getMcpCardIconConfig(deploymentType);
+  const securityLabels = getSecurityIndicatorLabels(server.securityIndicators);
+  const serverId = String(server.id);
 
   return (
     <Card
       isFullHeight
       style={{ minHeight: '296.58px' }}
-      data-testid={`mcp-catalog-card-${server.id}`}
+      data-testid={`mcp-catalog-card-${serverId}`}
     >
       <CardHeader>
         <Flex
@@ -62,7 +65,7 @@ const McpCatalogCard: React.FC<McpCatalogCardProps> = ({ server }) => {
             </span>
           </FlexItem>
           <FlexItem>
-            <Label variant="outline" data-testid={`mcp-catalog-card-deployment-${server.id}`}>
+            <Label variant="outline" data-testid={`mcp-catalog-card-deployment-${serverId}`}>
               {deploymentConfig.label}
             </Label>
           </FlexItem>
@@ -73,7 +76,7 @@ const McpCatalogCard: React.FC<McpCatalogCardProps> = ({ server }) => {
               content={server.name}
               position="middle"
               tooltipPosition="top"
-              data-testid={`mcp-catalog-card-name-${server.id}`}
+              data-testid={`mcp-catalog-card-name-${serverId}`}
               style={{ textDecoration: 'underline', color: 'var(--pf-v5-global--link--Color)' }}
             />
           </Link>
@@ -83,17 +86,17 @@ const McpCatalogCard: React.FC<McpCatalogCardProps> = ({ server }) => {
         <Content
           component="p"
           className="pf-v5-u-mb-md"
-          data-testid={`mcp-catalog-card-description-${server.id}`}
+          data-testid={`mcp-catalog-card-description-${serverId}`}
         >
-          {server.description}
+          {server.description ?? ''}
         </Content>
-        {server.securityVerification.length > 0 && (
+        {securityLabels.length > 0 && (
           <Flex
             direction={{ default: 'column' }}
             gap={{ default: 'gapSm' }}
             className="pf-v5-u-mt-lg"
           >
-            {server.securityVerification.map((tag) => (
+            {securityLabels.map((tag) => (
               <SecurityTag key={tag} label={tag} />
             ))}
           </Flex>

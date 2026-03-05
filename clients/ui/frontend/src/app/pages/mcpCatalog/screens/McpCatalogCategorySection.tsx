@@ -1,12 +1,12 @@
 import * as React from 'react';
 import { Content, Flex, FlexItem, Grid, GridItem, StackItem, Title } from '@patternfly/react-core';
-import type { McpServerMock } from '~/app/pages/mcpCatalog/types/mcpServer';
+import type { McpServer } from '~/app/mcpServerCatalogTypes';
 import McpCatalogCard from '~/app/pages/mcpCatalog/components/McpCatalogCard';
 
 type McpCatalogCategorySectionProps = {
   title: string;
   description?: string;
-  servers: McpServerMock[];
+  servers: McpServer[];
 };
 
 const McpCatalogCategorySection: React.FC<McpCatalogCategorySectionProps> = ({
@@ -38,7 +38,7 @@ const McpCatalogCategorySection: React.FC<McpCatalogCategorySectionProps> = ({
       </Flex>
       <Grid hasGutter>
         {servers.map((server) => (
-          <GridItem key={server.id} sm={12} md={6} lg={4} xl2={4}>
+          <GridItem key={String(server.id)} sm={12} md={6} lg={4} xl2={4}>
             <McpCatalogCard server={server} />
           </GridItem>
         ))}

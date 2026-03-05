@@ -1,5 +1,6 @@
 import * as React from 'react';
 import { Stack } from '@patternfly/react-core';
+import { McpCatalogContext } from '~/app/context/mcpCatalog/McpCatalogContext';
 import { mockMcpCatalogFilterOptions } from '~/app/pages/mcpCatalog/mocks/mockMcpCatalogFilterOptions';
 import DeploymentModeFilter from '~/app/pages/mcpCatalog/components/globalFilters/DeploymentModeFilter';
 import SupportedTransportsFilter from '~/app/pages/mcpCatalog/components/globalFilters/SupportedTransportsFilter';
@@ -8,7 +9,8 @@ import LabelsFilter from '~/app/pages/mcpCatalog/components/globalFilters/Labels
 import SecurityVerificationFilter from '~/app/pages/mcpCatalog/components/globalFilters/SecurityVerificationFilter';
 
 const McpCatalogFilters: React.FC = () => {
-  const { filters } = mockMcpCatalogFilterOptions;
+  const { filterOptions } = React.useContext(McpCatalogContext);
+  const filters = filterOptions?.filters ?? mockMcpCatalogFilterOptions.filters;
 
   const getFilterProps = () => filters;
 

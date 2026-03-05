@@ -4,6 +4,29 @@ import { render, screen, fireEvent } from '@testing-library/react';
 import McpCatalogStringFilter from '~/app/pages/mcpCatalog/components/McpCatalogStringFilter';
 import { McpCatalogContextProvider } from '~/app/context/mcpCatalog/McpCatalogContext';
 
+jest.mock('mod-arch-core', () => ({ useQueryParamNamespaces: () => ({}) }));
+jest.mock('~/app/utilities/const', () => ({
+  BFF_API_VERSION: 'v1',
+  URL_PREFIX: '/model-registry',
+}));
+jest.mock('~/app/hooks/modelCatalog/useModelCatalogAPIState', () => ({
+  __esModule: true,
+  default: () => [{ apiAvailable: false, api: {} }, jest.fn()],
+}));
+jest.mock('~/app/hooks/modelCatalog/useCatalogSources', () => ({
+  useCatalogSources: () => [{ items: [] }, true, undefined],
+}));
+jest.mock('~/app/hooks/mcpServerCatalog/useMcpServersBySourceLabel', () => ({
+  useMcpServersBySourceLabelWithAPI: () => ({
+    mcpServers: { items: [] },
+    mcpServersLoaded: true,
+    mcpServersLoadError: undefined,
+  }),
+}));
+jest.mock('~/app/hooks/mcpServerCatalog/useMcpServerFilterOptionList', () => ({
+  useMcpServerFilterOptionListWithAPI: () => [null, true, undefined],
+}));
+
 const wrapper = ({ children }: { children: React.ReactNode }) => (
   <McpCatalogContextProvider>{children}</McpCatalogContextProvider>
 );

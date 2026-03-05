@@ -2,11 +2,14 @@ import { FetchState, FetchStateCallbackPromise, useFetchState } from 'mod-arch-c
 import React from 'react';
 import { CatalogFilterOptionsList } from '~/app/modelCatalogTypes';
 import { useModelCatalogAPI } from '~/app/hooks/modelCatalog/useModelCatalogAPI';
+import type { ModelCatalogAPIState } from '~/app/hooks/modelCatalog/useModelCatalogAPIState';
 
 type State = CatalogFilterOptionsList | null;
 
-export const useMcpServerFilterOptionList = (): FetchState<State> => {
-  const { api, apiAvailable } = useModelCatalogAPI();
+export const useMcpServerFilterOptionListWithAPI = (
+  apiState: ModelCatalogAPIState,
+): FetchState<State> => {
+  const { api, apiAvailable } = apiState;
   const call = React.useCallback<FetchStateCallbackPromise<State>>(
     (opts) => {
       if (!apiAvailable) {
@@ -18,4 +21,9 @@ export const useMcpServerFilterOptionList = (): FetchState<State> => {
     [api, apiAvailable],
   );
   return useFetchState(call, null, { initialPromisePurity: true });
+};
+
+export const useMcpServerFilterOptionList = (): FetchState<State> => {
+  const { api, apiAvailable } = useModelCatalogAPI();
+  return useMcpServerFilterOptionListWithAPI({ api, apiAvailable });
 };

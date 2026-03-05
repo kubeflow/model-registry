@@ -6,6 +6,50 @@ import {
   McpCatalogContext,
 } from '~/app/context/mcpCatalog/McpCatalogContext';
 
+jest.mock('mod-arch-core', () => ({
+  useQueryParamNamespaces: jest.fn(() => ({})),
+  asEnumMember: jest.fn((val: unknown) => val),
+  DeploymentMode: {},
+}));
+
+jest.mock('~/app/utilities/const', () => ({
+  BFF_API_VERSION: 'v1',
+  URL_PREFIX: '/model-registry',
+}));
+
+jest.mock('~/app/hooks/modelCatalog/useModelCatalogAPIState', () => ({
+  __esModule: true,
+  default: jest.fn(() => [
+    {
+      apiAvailable: false,
+      api: {
+        getMcpServerList: jest.fn(),
+        getMcpServerFilterOptionList: jest.fn(),
+      },
+    },
+  ]),
+}));
+
+jest.mock('~/app/hooks/modelCatalog/useCatalogSources', () => ({
+  useCatalogSources: jest.fn(() => [
+    { items: [], size: 0, pageSize: 0, nextPageToken: '' },
+    true,
+    undefined,
+  ]),
+}));
+
+jest.mock('~/app/hooks/mcpServerCatalog/useMcpServersBySourceLabel', () => ({
+  useMcpServersBySourceLabelWithAPI: jest.fn(() => ({
+    mcpServers: { items: [] },
+    mcpServersLoaded: true,
+    mcpServersLoadError: undefined,
+  })),
+}));
+
+jest.mock('~/app/hooks/mcpServerCatalog/useMcpServerFilterOptionList', () => ({
+  useMcpServerFilterOptionListWithAPI: jest.fn(() => [null, true, undefined]),
+}));
+
 describe('McpCatalogContext', () => {
   const wrapper = ({ children }: { children: React.ReactNode }) => (
     <McpCatalogContextProvider>{children}</McpCatalogContextProvider>
@@ -16,7 +60,7 @@ describe('McpCatalogContext', () => {
     expect(result.current.filters).toEqual({});
     expect(result.current.searchQuery).toBe('');
     expect(result.current.namedQuery).toBeNull();
-    expect(result.current.selectedCategory).toBe('all');
+    expect(result.current.selectedSourceLabel).toBeUndefined();
     expect(result.current.pagination).toEqual({
       page: 1,
       pageSize: 10,
@@ -73,16 +117,20 @@ describe('McpCatalogContext', () => {
     expect(result.current.pagination.totalItems).toBe(50);
   });
 
-  it('updates selectedCategory via setSelectedCategory', () => {
+  it('updates selectedSourceLabel via setSelectedSourceLabel', () => {
     const { result } = renderHook(() => React.useContext(McpCatalogContext), { wrapper });
     act(() => {
-      result.current.setSelectedCategory('sample');
+      result.current.setSelectedSourceLabel('sample');
     });
-    expect(result.current.selectedCategory).toBe('sample');
+    expect(result.current.selectedSourceLabel).toBe('sample');
     act(() => {
-      result.current.setSelectedCategory('other');
+      result.current.setSelectedSourceLabel('other');
     });
-    expect(result.current.selectedCategory).toBe('other');
+    expect(result.current.selectedSourceLabel).toBe('other');
+    act(() => {
+      result.current.setSelectedSourceLabel(undefined);
+    });
+    expect(result.current.selectedSourceLabel).toBeUndefined();
   });
 
   it('clearAllFilters resets searchQuery and filters', () => {

@@ -1,46 +1,51 @@
-import type { McpServerMock } from '~/app/pages/mcpCatalog/types/mcpServer';
+/* eslint-disable camelcase */
+import type { McpServer } from '~/app/mcpServerCatalogTypes';
 
-export const mockMcpServers: McpServerMock[] = [
+export const mockMcpServers: McpServer[] = [
   {
-    id: 'kubernetes',
+    id: 1,
     name: 'Kubernetes',
     description:
       'Control and inspect Kubernetes clusters using natural language queries for health, resources, and deployments.',
-    deploymentMode: 'Local',
-    securityVerification: ['Verified source', 'SAST'],
-    category: 'sample',
+    deploymentMode: 'local',
+    securityIndicators: { verifiedSource: true, sast: true },
+    source_id: 'sample',
+    toolCount: 0,
   },
   {
-    id: 'github',
+    id: 2,
     name: 'GitHub',
     description:
       'Integrate with GitHub repositories, issues, and pull requests using natural language.',
-    deploymentMode: 'Remote',
-    securityVerification: ['Verified source', 'Secure endpoint'],
-    category: 'sample',
+    deploymentMode: 'remote',
+    securityIndicators: { verifiedSource: true, secureEndpoint: true },
+    source_id: 'sample',
+    toolCount: 0,
   },
   {
-    id: 'slack',
+    id: 3,
     name: 'Slack',
     description: 'Search and interact with Slack workspaces, channels, and messages.',
-    deploymentMode: 'Remote',
-    securityVerification: ['Verified source'],
-    category: 'sample',
+    deploymentMode: 'remote',
+    securityIndicators: { verifiedSource: true },
+    source_id: 'sample',
+    toolCount: 0,
   },
   {
-    id: 'postgresql',
+    id: 4,
     name: 'PostgreSQL',
     description: 'Query and manage PostgreSQL databases using natural language.',
-    deploymentMode: 'Local',
-    securityVerification: ['Read only tools'],
-    category: 'other',
+    deploymentMode: 'local',
+    securityIndicators: { readOnlyTools: true },
+    source_id: 'other',
+    toolCount: 0,
   },
   {
-    id: 'custom-mcp',
+    id: 5,
     name: 'Custom MCP Server',
     description: 'A custom MCP server for extended integrations and workflows.',
-    deploymentMode: 'Remote',
-    securityVerification: [],
-    category: 'other',
+    deploymentMode: 'remote',
+    source_id: 'other',
+    toolCount: 0,
   },
 ];

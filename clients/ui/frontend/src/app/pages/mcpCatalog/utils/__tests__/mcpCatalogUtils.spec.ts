@@ -1,5 +1,34 @@
-import { hasMcpFiltersApplied } from '~/app/pages/mcpCatalog/utils/mcpCatalogUtils';
+import {
+  getSecurityIndicatorLabels,
+  hasMcpFiltersApplied,
+} from '~/app/pages/mcpCatalog/utils/mcpCatalogUtils';
 import type { McpCatalogFiltersState } from '~/app/context/mcpCatalog/McpCatalogContext';
+
+describe('getSecurityIndicatorLabels', () => {
+  it('returns empty array when securityIndicators is undefined or null', () => {
+    expect(getSecurityIndicatorLabels(undefined)).toEqual([]);
+    expect(getSecurityIndicatorLabels(null)).toEqual([]);
+  });
+
+  it('returns labels for true boolean flags', () => {
+    expect(getSecurityIndicatorLabels({ verifiedSource: true, sast: true })).toEqual([
+      'Verified source',
+      'SAST',
+    ]);
+    expect(getSecurityIndicatorLabels({ secureEndpoint: true })).toEqual(['Secure endpoint']);
+    expect(getSecurityIndicatorLabels({ readOnlyTools: true })).toEqual(['Read only tools']);
+  });
+
+  it('ignores false or undefined flags', () => {
+    expect(
+      getSecurityIndicatorLabels({
+        verifiedSource: false,
+        secureEndpoint: true,
+        sast: undefined,
+      }),
+    ).toEqual(['Secure endpoint']);
+  });
+});
 
 describe('hasMcpFiltersApplied', () => {
   it('returns false when filters are empty and searchQuery is empty', () => {

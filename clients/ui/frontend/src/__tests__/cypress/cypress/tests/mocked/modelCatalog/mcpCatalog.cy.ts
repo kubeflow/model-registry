@@ -1,6 +1,35 @@
+import { mockModArchResponse } from 'mod-arch-core';
 import { mcpCatalog } from '~/__tests__/cypress/cypress/pages/mcpCatalog';
+import { mockMcpServers } from '~/app/pages/mcpCatalog/mocks/mockMcpServers';
+import { MODEL_CATALOG_API_VERSION } from '~/__tests__/cypress/cypress/support/commands/api';
+
+const MCP_SERVERS_RESPONSE = {
+  items: mockMcpServers,
+  size: mockMcpServers.length,
+  pageSize: 10,
+  nextPageToken: '',
+};
+
+const MCP_SERVERS_PATH = `/model-registry/api/${MODEL_CATALOG_API_VERSION}/model_catalog/mcp_servers`;
+
+const initMcpCatalogIntercepts = () => {
+  cy.intercept(
+    { method: 'GET', pathname: MCP_SERVERS_PATH },
+    mockModArchResponse(MCP_SERVERS_RESPONSE),
+  );
+  cy.intercept(
+    'GET',
+    `**/api/${MODEL_CATALOG_API_VERSION}/model_catalog/mcp_servers*`,
+    mockModArchResponse(MCP_SERVERS_RESPONSE),
+  );
+  cy.intercept('GET', '*mcp_servers*', mockModArchResponse(MCP_SERVERS_RESPONSE));
+};
 
 describe('MCP Catalog Page', () => {
+  beforeEach(() => {
+    initMcpCatalogIntercepts();
+  });
+
   it('MCP Catalog tab should be enabled in nav', () => {
     mcpCatalog.visit();
     mcpCatalog.tabEnabled();
@@ -14,7 +43,10 @@ describe('MCP Catalog Page', () => {
 
   it('should display MCP server cards', () => {
     mcpCatalog.visit();
-    mcpCatalog.findMcpCatalogCards().should('have.length.at.least', 1);
+    cy.get('[data-testid^="mcp-catalog-card-"]', { timeout: 15000 }).should(
+      'have.length.at.least',
+      1,
+    );
   });
 
   it('should display sidebar filters', () => {
@@ -40,9 +72,9 @@ describe('MCP Catalog Page', () => {
     cy.findByTestId('mcp-filter-labels-show-less').should('be.visible');
   });
 
-  it('should display known mock server cards by id', () => {
+  it('should display known mock server cards', () => {
     mcpCatalog.visit();
-    mcpCatalog.findMcpCatalogCard('kubernetes').should('be.visible');
-    mcpCatalog.findMcpCatalogCard('github').should('be.visible');
+    cy.get('[data-testid="mcp-catalog-card-1"]', { timeout: 15000 }).should('be.visible');
+    cy.get('[data-testid="mcp-catalog-card-2"]', { timeout: 15000 }).should('be.visible');
   });
 });
