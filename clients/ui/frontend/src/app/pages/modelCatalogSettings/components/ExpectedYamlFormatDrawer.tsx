@@ -3,13 +3,10 @@ import { createPortal } from 'react-dom';
 import {
   CodeBlock,
   CodeBlockCode,
-  Drawer,
   DrawerActions,
   DrawerCloseButton,
-  DrawerContent,
   DrawerHead,
   DrawerPanelBody,
-  DrawerPanelContent,
 } from '@patternfly/react-core';
 import { useThemeContext } from 'mod-arch-kubeflow';
 import sampleCatalogYamlContent from '~/app/pages/modelCatalogSettings/sample-catalog.yaml';
@@ -25,19 +22,7 @@ type ExpectedYamlFormatDrawerPanelProps = {
 export const ExpectedYamlFormatDrawerPanel: React.FC<ExpectedYamlFormatDrawerPanelProps> = ({
   onClose,
 }) => (
-  <DrawerPanelContent
-    widths={{ default: 'width_100' }}
-    role="region"
-    aria-label={EXPECTED_YAML_FORMAT_LABEL}
-    style={{
-      display: 'flex',
-      flexDirection: 'column',
-      minHeight: 0,
-      width: '100%',
-      maxWidth: 'none',
-      flexBasis: '100%',
-    }}
-  >
+  <>
     <DrawerHead>
       <span data-testid="expected-format-drawer-title">{EXPECTED_YAML_FORMAT_LABEL}</span>
       <DrawerActions>
@@ -48,48 +33,28 @@ export const ExpectedYamlFormatDrawerPanel: React.FC<ExpectedYamlFormatDrawerPan
         />
       </DrawerActions>
     </DrawerHead>
-    <DrawerPanelBody style={{ flex: 1, minHeight: 200, overflow: 'auto' }}>
+    <DrawerPanelBody style={{ flex: 1, minHeight: 0, overflow: 'auto' }}>
       <CodeBlock>
         <CodeBlockCode>{sampleCatalogYamlContent}</CodeBlockCode>
       </CodeBlock>
     </DrawerPanelBody>
-  </DrawerPanelContent>
+  </>
 );
 
-type ContainerBounds = { top: number; left: number; width: number; height: number };
-
-function useContainerBounds(
-  container: HTMLElement | null,
-  isActive: boolean,
-): ContainerBounds | null {
-  const [bounds, setBounds] = React.useState<ContainerBounds | null>(null);
-
-  React.useLayoutEffect(() => {
-    if (!isActive || !container) {
-      setBounds(null);
-      return;
-    }
-    const update = () => {
-      const rect = container.getBoundingClientRect();
-      setBounds({
-        top: rect.top,
-        left: rect.left,
-        width: rect.width,
-        height: rect.height,
-      });
-    };
-    update();
-    const ro = new ResizeObserver(update);
-    ro.observe(container);
-    window.addEventListener('scroll', update, true);
-    return () => {
-      ro.disconnect();
-      window.removeEventListener('scroll', update, true);
-    };
-  }, [isActive, container]);
-
-  return bounds;
-}
+const panelStyle: React.CSSProperties = {
+  position: 'absolute',
+  top: 0,
+  right: 0,
+  bottom: 0,
+  width: '50%',
+  zIndex: 400,
+  display: 'flex',
+  flexDirection: 'column',
+  overflow: 'hidden',
+  padding: 16,
+  backgroundColor: 'var(--pf-t--global--background--color--primary--default)',
+  boxShadow: 'var(--pf-t--global--box-shadow--lg--left)',
+};
 
 type ExpectedYamlFormatDrawerProps = {
   isOpen: boolean;
@@ -103,94 +68,43 @@ const ExpectedYamlFormatDrawer: React.FC<ExpectedYamlFormatDrawerProps> = ({
   children,
 }) => {
   const { isMUITheme } = useThemeContext();
-  const wrapperRef = React.useRef<HTMLDivElement>(null);
   const container =
     typeof document !== 'undefined' ? document.getElementById(PRIMARY_APP_CONTAINER_ID) : null;
 
   React.useEffect(() => {
-    if (isOpen && !container) {
-      // eslint-disable-next-line no-console
-      console.warn(
-        `ExpectedYamlFormatDrawer: container #${PRIMARY_APP_CONTAINER_ID} not found. The drawer will not render.`,
-      );
-    }
-  }, [isOpen, container]);
-
-  const bounds = useContainerBounds(container, isOpen);
-
-  React.useEffect(() => {
-    const el = wrapperRef.current;
-    if (!el) {
+    if (!isOpen || !container) {
       return;
     }
-    if (isMUITheme) {
-      el.style.setProperty('--mui-drawer__panel--MaxWidth', 'none');
-      const applyPanelMaxWidth = () => {
-        const panel = el.querySelector('.pf-v6-c-drawer__panel');
-        if (panel instanceof HTMLElement) {
-          panel.style.maxWidth = 'none';
-        }
-      };
-      applyPanelMaxWidth();
-      const id = window.setTimeout(applyPanelMaxWidth, 0);
-      const observer = new MutationObserver(applyPanelMaxWidth);
-      observer.observe(el, { childList: true, subtree: true });
-      return () => {
-        window.clearTimeout(id);
-        observer.disconnect();
-      };
+    const prev = container.style.position;
+    if (!prev || prev === 'static') {
+      container.style.position = 'relative';
     }
-    el.style.removeProperty('--mui-drawer__panel--MaxWidth');
-    return undefined;
-  }, [isMUITheme, isOpen]);
+    return () => {
+      container.style.position = prev;
+    };
+  }, [isOpen, container]);
 
-  if (!isOpen) {
-    return <>{children}</>;
-  }
-
-  if (!bounds) {
-    return <>{children}</>;
-  }
-
-  const halfWidth = bounds.width / 2;
-  const overlay = (
-    <div
-      ref={wrapperRef}
-      style={{
-        position: 'fixed',
-        top: bounds.top,
-        left: bounds.left + halfWidth,
-        width: halfWidth,
-        height: bounds.height,
-        zIndex: 100,
-        pointerEvents: 'auto',
-        overflow: 'hidden',
-        display: 'flex',
-        flexDirection: 'column',
-      }}
-    >
-      <Drawer
-        isExpanded
-        position="end"
-        style={{
-          flex: 1,
-          minHeight: 0,
-          overflow: 'hidden',
-          display: 'flex',
-          flexDirection: 'column',
-        }}
-      >
-        <DrawerContent panelContent={<ExpectedYamlFormatDrawerPanel onClose={onClose} />}>
-          <div />
-        </DrawerContent>
-      </Drawer>
-    </div>
-  );
+  const panel =
+    isOpen && container
+      ? createPortal(
+          <div
+            role="region"
+            aria-label={EXPECTED_YAML_FORMAT_LABEL}
+            style={{
+              ...panelStyle,
+              ...(isMUITheme && { maxWidth: 'none' }),
+            }}
+          >
+            <ExpectedYamlFormatDrawerPanel onClose={onClose} />
+          </div>,
+          container,
+        )
+      : null;
 
   return (
     <>
       {children}
-      {createPortal(overlay, document.body)}
+      {panel}
     </>
   );
 };

@@ -45,29 +45,26 @@ jest.mock('~/app/pages/modelCatalogSettings/components/ManageSourceForm', () => 
 }));
 
 describe('ManageSourcePage', () => {
+  let portalContainer: HTMLElement;
+
   beforeEach(() => {
     jest.clearAllMocks();
-    global.ResizeObserver = jest.fn().mockImplementation(() => ({
-      observe: jest.fn(),
-      unobserve: jest.fn(),
-      disconnect: jest.fn(),
-    }));
+    portalContainer = document.createElement('div');
+    portalContainer.id = PRIMARY_APP_CONTAINER_ID;
+    document.body.appendChild(portalContainer);
+  });
+
+  afterEach(() => {
+    portalContainer.remove();
   });
 
   it('form link button opens drawer and close button closes it (open/close state wiring)', async () => {
     const user = userEvent.setup();
-    const portalContainer = document.createElement('div');
-    portalContainer.id = PRIMARY_APP_CONTAINER_ID;
-    document.body.appendChild(portalContainer);
-    const { unmount } = render(
+    render(
       <MemoryRouter>
         <ManageSourcePage />
       </MemoryRouter>,
     );
-    const cleanup = () => {
-      unmount();
-      portalContainer.remove();
-    };
 
     expect(
       screen.queryByRole('region', { name: EXPECTED_YAML_FORMAT_LABEL }),
@@ -86,7 +83,5 @@ describe('ManageSourcePage', () => {
         screen.queryByRole('region', { name: EXPECTED_YAML_FORMAT_LABEL }),
       ).not.toBeInTheDocument();
     });
-
-    cleanup();
   });
 });

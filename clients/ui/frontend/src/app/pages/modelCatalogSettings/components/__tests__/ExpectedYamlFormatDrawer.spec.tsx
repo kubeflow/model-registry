@@ -1,5 +1,5 @@
 import React from 'react';
-import { screen, render, waitFor } from '@testing-library/react';
+import { screen, render } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
 import '@testing-library/jest-dom';
 import ExpectedYamlFormatDrawer from '~/app/pages/modelCatalogSettings/components/ExpectedYamlFormatDrawer';
@@ -22,20 +22,13 @@ describe('ExpectedYamlFormatDrawer', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockUseThemeContext.mockReturnValue({ isMUITheme: false });
-    global.ResizeObserver = jest.fn().mockImplementation(() => ({
-      observe: jest.fn(),
-      unobserve: jest.fn(),
-      disconnect: jest.fn(),
-    }));
     container = document.createElement('div');
     container.id = PRIMARY_APP_CONTAINER_ID;
     document.body.appendChild(container);
   });
 
   afterEach(() => {
-    if (container.parentNode) {
-      document.body.removeChild(container);
-    }
+    container.remove();
   });
 
   it('does not render drawer panel when isOpen is false', () => {
@@ -48,8 +41,7 @@ describe('ExpectedYamlFormatDrawer', () => {
     expect(screen.getByText('Page content')).toBeInTheDocument();
   });
 
-  it('when #primary-app-container is missing, renders only children, does not render drawer, and warns', () => {
-    const warnSpy = jest.spyOn(console, 'warn').mockImplementation();
+  it('when container is missing, renders only children and does not render drawer', () => {
     container.remove();
     render(
       <ExpectedYamlFormatDrawer isOpen onClose={onClose}>
@@ -58,23 +50,15 @@ describe('ExpectedYamlFormatDrawer', () => {
     );
     expect(screen.queryByRole('region', { name: DRAWER_TITLE })).not.toBeInTheDocument();
     expect(screen.getByText('Page content')).toBeInTheDocument();
-    expect(warnSpy).toHaveBeenCalledWith(
-      expect.stringContaining(PRIMARY_APP_CONTAINER_ID),
-    );
-    warnSpy.mockRestore();
   });
 
-  it('renders drawer with title and close button when isOpen is true', async () => {
+  it('renders drawer with title and close button when isOpen is true', () => {
     render(
       <ExpectedYamlFormatDrawer isOpen onClose={onClose}>
         <div>Page content</div>
       </ExpectedYamlFormatDrawer>,
     );
-
-    await waitFor(() => {
-      expect(screen.getByRole('region', { name: DRAWER_TITLE })).toBeInTheDocument();
-    });
-
+    expect(screen.getByRole('region', { name: DRAWER_TITLE })).toBeInTheDocument();
     expect(screen.getByTestId('expected-format-drawer-title')).toHaveTextContent(DRAWER_TITLE);
     expect(screen.getByRole('button', { name: 'Close drawer' })).toBeInTheDocument();
   });
@@ -86,47 +70,29 @@ describe('ExpectedYamlFormatDrawer', () => {
         <div>Page content</div>
       </ExpectedYamlFormatDrawer>,
     );
-
-    await waitFor(() => {
-      expect(screen.getByRole('button', { name: 'Close drawer' })).toBeInTheDocument();
-    });
-
     await user.click(screen.getByRole('button', { name: 'Close drawer' }));
-
     expect(onClose).toHaveBeenCalledTimes(1);
   });
 
-  it('displays expected YAML format content when open', async () => {
+  it('displays expected YAML format content when open', () => {
     render(
       <ExpectedYamlFormatDrawer isOpen onClose={onClose}>
         <div>Page content</div>
       </ExpectedYamlFormatDrawer>,
     );
-
-    await waitFor(() => {
-      expect(screen.getByRole('region', { name: DRAWER_TITLE })).toBeInTheDocument();
-    });
-
+    expect(screen.getByRole('region', { name: DRAWER_TITLE })).toBeInTheDocument();
     expect(document.body.textContent).toContain('source:');
     expect(document.body.textContent).toContain('models:');
   });
 
-  it('when MUI theme is enabled, drawer renders and MutationObserver is used for panel max-width override', async () => {
+  it('renders drawer when MUI theme is enabled', () => {
     mockUseThemeContext.mockReturnValue({ isMUITheme: true });
-    const observeSpy = jest.spyOn(MutationObserver.prototype, 'observe');
-
     render(
       <ExpectedYamlFormatDrawer isOpen onClose={onClose}>
         <div>Page content</div>
       </ExpectedYamlFormatDrawer>,
     );
-
-    await waitFor(() => {
-      expect(screen.getByRole('region', { name: DRAWER_TITLE })).toBeInTheDocument();
-    });
-
-    expect(observeSpy).toHaveBeenCalled();
-
-    observeSpy.mockRestore();
+    expect(screen.getByRole('region', { name: DRAWER_TITLE })).toBeInTheDocument();
+    expect(screen.getByTestId('expected-format-drawer-title')).toHaveTextContent(DRAWER_TITLE);
   });
 });
