@@ -297,7 +297,7 @@ func (m *ModelRegistryRepository) createModelTransferJobResources(
 	if existingDestSecretName == "" {
 		destSecret, err := buildDestinationSecret(jobName+"-dest-creds-", payload, jobID)
 		if err != nil {
-			cleanupCreatedResources(ctx, client, namespace, configMapName, sourceSecretName, "")
+			cleanupCreatedResources(ctx, client, payload.Namespace, configMapName, sourceSecretName, "")
 			return nil, fmt.Errorf("failed to build destination secret: %w", err)
 		}
 		destSecretCreated, err := client.CreateSecret(ctx, payload.Namespace, destSecret)

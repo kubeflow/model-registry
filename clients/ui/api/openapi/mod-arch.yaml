@@ -1310,7 +1310,6 @@ paths:
         - $ref: "#/components/parameters/modelRegistryName"
         - $ref: "#/components/parameters/kubeflowUserId"
         - $ref: "#/components/parameters/modelTransferJobName"
-        - $ref: "#/components/parameters/jobNamespace"
       responses:
         "200":
           $ref: "#/components/responses/ModelTransferJobResponse"
