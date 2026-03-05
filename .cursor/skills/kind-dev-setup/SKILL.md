@@ -67,9 +67,50 @@ DEPLOYMENT_MODE=standalone STYLE_THEME=patternfly npm run start:dev
 
 The frontend dev server proxies API requests to the BFF on port 4000.
 
+### RBAC Setup (real K8s only)
+
+When using the real K8s client, the BFF's namespace registry access check uses SubjectAccessReview with only the `User` field (no groups), so group-based RoleBindings don't take effect. Create a ClusterRoleBinding that directly binds each namespace's default ServiceAccount:
+
+```bash
+kubectl apply -f - <<EOF
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: model-registry-all-sa-service-access
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: model-registry-ui-services-reader
+subjects:
+- kind: ServiceAccount
+  name: default
+  namespace: default
+- kind: ServiceAccount
+  name: default
+  namespace: kubeflow
+- kind: ServiceAccount
+  name: default
+  namespace: minio
+- kind: ServiceAccount
+  name: default
+  namespace: kube-system
+- kind: ServiceAccount
+  name: default
+  namespace: kube-public
+- kind: ServiceAccount
+  name: default
+  namespace: kube-node-lease
+- kind: ServiceAccount
+  name: default
+  namespace: local-path-storage
+EOF
+```
+
+Without this, the UI shows "The selected namespace does not have access to this model registry" for every namespace.
+
 ### Switching Between Mock and Real K8s
 
-Kill the BFF process in Terminal 2 and restart with or without `--mock-k8s-client`.
+Kill the BFF process in Terminal 2 and restart with or without `--mock-k8s-client`. When switching to real K8s, ensure the RBAC ClusterRoleBinding above is applied.
 
 ## Optional: Performance Data (Model Catalog)
 
@@ -97,20 +138,29 @@ Then available at `http://localhost:8082`. The BFF connects to this on `--dev-mo
 
 ## Optional: MinIO (S3 Storage)
 
-Deploy MinIO for testing transfer jobs with S3 sources:
+Deploy MinIO for testing transfer jobs with S3 sources. All resources must be applied to the `minio` namespace explicitly (the manifests don't specify one):
 
 ```bash
-kubectl apply -f scripts/manifests/minio/deployment.yaml
+kubectl create namespace minio --dry-run=client -o yaml | kubectl apply -f -
+kubectl apply -n minio -f scripts/manifests/minio/deployment.yaml
 kubectl wait --for=condition=available deployment/minio -n minio --timeout=120s
-kubectl apply -f scripts/manifests/minio/create_bucket.yaml
+kubectl apply -n minio -f scripts/manifests/minio/create_bucket.yaml
+```
+
+**Important:** MinIO has no persistent volume — data is lost on pod restart. If the `minio-init` job already shows as "Complete" but the bucket is gone, delete and re-run:
+
+```bash
+kubectl delete job minio-init -n minio --ignore-not-found
+kubectl apply -n minio -f scripts/manifests/minio/create_bucket.yaml
 ```
 
 | Detail | Value |
 |--------|-------|
-| Internal endpoint | `http://minio.minio:9000` |
+| Internal endpoint | `http://minio.minio.svc.cluster.local:9000` |
 | Bucket | `default` |
 | Credentials | `minioadmin` / `minioadmin` |
 | Console NodePort | `30091` |
+| K8s Secret | `minio-secret` (namespace: `minio`) |
 
 Upload test data:
 
@@ -126,17 +176,9 @@ echo "sample model content" | mc --config-dir /tmp pipe local/default/models/sam
 
 Test S3-to-OCI model transfer jobs end-to-end. Requires MinIO (above) and a destination OCI registry (e.g. quay.io).
 
-### 1. ARM64 Image Build (Apple Silicon only)
+No local ARM64 image build is needed — upstream, midstream, and downstream each have their own async-upload images.
 
-The `quay.io/opendatahub/model-registry-job-async-upload:latest` image is amd64-only. Build for ARM64 and load into Kind:
-
-```bash
-cd jobs/async-upload
-docker build --platform linux/arm64 -t quay.io/opendatahub/model-registry-job-async-upload:latest .
-kind load docker-image quay.io/opendatahub/model-registry-job-async-upload:latest --name model-registry
-```
-
-### 2. Create a Transfer Job via UI
+### Create a Transfer Job via UI
 
 Use these values when filling the form:
 
@@ -152,7 +194,7 @@ Use these values when filling the form:
 | Destination URI | `quay.io/yourorg/yourrepo:tag` | OCI ref format, **no** `https://` |
 | Destination registry | `quay.io` | |
 
-### 3. Key Gotchas
+### Key Gotchas
 
 - **S3 key must be a directory prefix** (e.g. `models/dir/`), not a full file path. Using the exact file path causes an EBUSY error because `os.path.relpath` resolves to `.`.
 - **Destination URI must be an OCI reference** (`quay.io/org/repo:tag`), not a web URL (`https://quay.io/repository/...`). The upload code prepends `docker://`.
@@ -165,7 +207,10 @@ Use these values when filling the form:
 | Tilt refuses to start (production context) | `kubectl config use-context kind-model-registry` |
 | Port conflict (4000 or 10350) | `lsof -ti:PORT \| xargs kill -9` |
 | Frontend proxy `ECONNREFUSED` | BFF not ready yet; wait for it to start |
-| `ImagePullBackOff` on async-upload job | Build ARM64 image locally (see above) |
+| `ImagePullBackOff` on async-upload job | Verify the correct image is configured for your environment (upstream/midstream/downstream each have their own) |
+| "namespace does not have access to this model registry" | Apply the RBAC ClusterRoleBinding (see above). The BFF's SAR uses `User` only, not groups. |
+| MinIO nodePort 30091 already allocated | MinIO already exists in `minio` namespace. Don't apply without `-n minio` or it creates a duplicate in `default`. |
+| MinIO bucket missing after pod restart | MinIO has no PV. Delete the old job and re-apply: `kubectl delete job minio-init -n minio && kubectl apply -n minio -f scripts/manifests/minio/create_bucket.yaml` |
 | `envtest` port lock error in Go tests | `rm -f ~/Library/Caches/kubebuilder-envtest/port-*` |
 | Transfer job S3 download fails with EBUSY | Use directory prefix as source key, not full file path |
 | Transfer job OCI push "invalid reference" | Use OCI ref format `quay.io/org/repo:tag`, not web URL |

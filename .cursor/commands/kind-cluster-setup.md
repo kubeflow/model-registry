@@ -4,14 +4,13 @@ Set up the local Kind dev environment for model-registry UI development. Execute
 
 ## Arguments
 
-Options (space-separated after the command). If none specified, run core setup only with mock K8s.
+Options (space-separated after the command). If none specified, run core setup only with real K8s client.
 
 - **catalog** — Deploy Model Catalog with demo overlay via `./scripts/deploy_catalog_demo_on_kind.sh`
 - **perf-data** — Same as `catalog` (demo overlay includes performance data)
 - **minio** — Deploy MinIO S3 storage for testing transfer jobs
-- **oci-transfer** — Full OCI transfer job setup (includes MinIO + ARM64 image build + Kind image load)
-- **real-k8s** — Use real K8s client instead of mock (omit `--mock-k8s-client` from BFF)
-- **all** — Everything: core + catalog + minio + oci-transfer + real-k8s
+- **mock-k8s** — Use mock K8s client instead of real (add `--mock-k8s-client` to BFF). Skips RBAC setup.
+- **all** — Everything: core + catalog + minio (with real K8s)
 
 ## Core Setup (always runs)
 
@@ -25,9 +24,49 @@ cd devenv && ./bin/tilt up
 ### Terminal 2 - BFF
 ```
 cd clients/ui/bff
-go run ./cmd --port=4000 --dev-mode --dev-mode-model-registry-port=8080 --dev-mode-catalog-port=8082 --deployment-mode=standalone --mock-k8s-client
+go run ./cmd --port=4000 --dev-mode --dev-mode-model-registry-port=8080 --dev-mode-catalog-port=8082 --deployment-mode=standalone
 ```
-If `real-k8s` or `all` is specified, omit `--mock-k8s-client`.
+If `mock-k8s` is specified, add `--mock-k8s-client`.
+
+### RBAC Setup (real K8s only, skip if `mock-k8s`)
+
+The BFF's namespace registry access check uses SubjectAccessReview with only the `User` field (no groups), so group-based RoleBindings don't take effect. Create a ClusterRoleBinding that directly binds each namespace's default ServiceAccount:
+
+```
+kubectl apply -f - <<EOF
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: model-registry-all-sa-service-access
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: model-registry-ui-services-reader
+subjects:
+- kind: ServiceAccount
+  name: default
+  namespace: default
+- kind: ServiceAccount
+  name: default
+  namespace: kubeflow
+- kind: ServiceAccount
+  name: default
+  namespace: minio
+- kind: ServiceAccount
+  name: default
+  namespace: kube-system
+- kind: ServiceAccount
+  name: default
+  namespace: kube-public
+- kind: ServiceAccount
+  name: default
+  namespace: kube-node-lease
+- kind: ServiceAccount
+  name: default
+  namespace: local-path-storage
+EOF
+```
+Without this, the UI shows "The selected namespace does not have access to this model registry."
 
 ### Terminal 3 - Frontend
 ```
@@ -42,28 +81,30 @@ kubectl port-forward -n model-catalog svc/model-catalog-server 8082:8080
 ```
 
 ## Optional: minio
+
+Create namespace and deploy (all resources must go to the `minio` namespace):
 ```
-kubectl apply -f scripts/manifests/minio/deployment.yaml
+kubectl create namespace minio --dry-run=client -o yaml | kubectl apply -f -
+kubectl apply -n minio -f scripts/manifests/minio/deployment.yaml
 kubectl wait --for=condition=available deployment/minio -n minio --timeout=120s
-kubectl apply -f scripts/manifests/minio/create_bucket.yaml
+kubectl apply -n minio -f scripts/manifests/minio/create_bucket.yaml
 ```
-Then upload test data:
+
+MinIO has no persistent volume — data is lost on pod restart. If the `minio-init` job already exists but the bucket is gone, delete and re-run:
+```
+kubectl delete job minio-init -n minio --ignore-not-found
+kubectl apply -n minio -f scripts/manifests/minio/create_bucket.yaml
+```
+
+Upload test data:
 ```
 kubectl run minio-upload --rm -i --restart=Never -n minio --image=minio/mc --command -- sh -c 'mc --config-dir /tmp alias set local http://minio:9000 minioadmin minioadmin && echo "sample model content" | mc --config-dir /tmp pipe local/default/models/sample-model/model.txt'
 ```
 
-## Optional: oci-transfer (implies minio)
-Run minio setup above first, then:
-```
-cd jobs/async-upload
-docker build --platform linux/arm64 -t quay.io/opendatahub/model-registry-job-async-upload:latest .
-kind load docker-image quay.io/opendatahub/model-registry-job-async-upload:latest --name model-registry
-```
-
 ## Examples
 
-- `/kind-cluster-setup` — Core only
+- `/kind-cluster-setup` — Core only (real K8s)
+- `/kind-cluster-setup mock-k8s` — Core with mock K8s (no RBAC needed)
 - `/kind-cluster-setup catalog` — Core + Model Catalog
-- `/kind-cluster-setup minio oci-transfer` — Core + MinIO + OCI transfer
+- `/kind-cluster-setup minio` — Core + MinIO for transfer jobs
 - `/kind-cluster-setup all` — Everything
-- `/kind-cluster-setup real-k8s minio` — Core with real K8s + MinIO
