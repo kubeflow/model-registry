@@ -7,8 +7,16 @@ import {
   MCP_FILTER_CATEGORY_NAMES,
 } from '~/app/pages/mcpCatalog/constants/mcpCatalogFilterChipNames';
 
+const SEARCH_CHIP_CATEGORY = 'Search';
+
 const McpCatalogActiveFilters: React.FC = () => {
-  const { filters, setFilters } = React.useContext(McpCatalogContext);
+  const { filters, setFilters, searchQuery, setSearchQuery } = React.useContext(McpCatalogContext);
+
+  const hasSearchChip = searchQuery.trim().length > 0;
+
+  const handleClearSearch = React.useCallback(() => {
+    setSearchQuery('');
+  }, [setSearchQuery]);
 
   const handleRemoveFilter = React.useCallback(
     (categoryKey: McpFilterCategoryKey, valueKey: string) => {
@@ -31,6 +39,23 @@ const McpCatalogActiveFilters: React.FC = () => {
 
   return (
     <>
+      {hasSearchChip && (
+        <ToolbarFilter
+          key="search"
+          categoryName={{ key: 'search', name: SEARCH_CHIP_CATEGORY }}
+          labels={[
+            {
+              key: searchQuery.trim(),
+              node: <span data-testid="mcp-filter-chip-search">{searchQuery.trim()}</span>,
+            },
+          ]}
+          deleteLabel={handleClearSearch}
+          deleteLabelGroup={handleClearSearch}
+          data-testid="mcp-filter-container-search"
+        >
+          {null}
+        </ToolbarFilter>
+      )}
       {MCP_FILTER_KEYS.map((filterKey) => {
         const filterValue = filters[filterKey];
         const values = Array.isArray(filterValue) ? filterValue : [];

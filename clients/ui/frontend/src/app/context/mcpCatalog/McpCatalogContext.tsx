@@ -14,6 +14,10 @@ import type {
   McpCatalogPaginationState,
 } from '~/app/pages/mcpCatalog/types/mcpCatalogContext';
 import type { McpCatalogFiltersState } from '~/app/pages/mcpCatalog/types/mcpCatalogFilterOptions';
+import {
+  filterMcpServersByFilters,
+  filterMcpServersBySearchQuery,
+} from '~/app/pages/mcpCatalog/utils/mcpCatalogUtils';
 import { mockMcpServers } from '~/app/pages/mcpCatalog/mocks/mockMcpServers';
 
 export type {
@@ -105,11 +109,20 @@ export const McpCatalogContextProvider: React.FC<McpCatalogContextProviderProps>
       selectedSourceLabel === undefined || (s.source_id && s.source_id === selectedSourceLabel),
   );
   const apiHasItems = mcpServersResult.mcpServers.items.length > 0;
-  const mcpServers = useMockData
-    ? { items: filteredMockItems }
+  const rawItems = useMockData
+    ? filteredMockItems
     : apiHasItems
-      ? mcpServersResult.mcpServers
-      : { items: filteredMockItems };
+      ? mcpServersResult.mcpServers.items
+      : filteredMockItems;
+  const isShowingMockItems = useMockData || !apiHasItems;
+  const itemsAfterSearch =
+    isShowingMockItems && searchQuery.trim().length > 0
+      ? filterMcpServersBySearchQuery(rawItems, searchQuery)
+      : rawItems;
+  const mcpServers = React.useMemo(
+    () => ({ items: filterMcpServersByFilters(itemsAfterSearch, filters) }),
+    [itemsAfterSearch, filters],
+  );
   const mcpServersLoaded = useMockData ? true : mcpServersResult.mcpServersLoaded;
   const mcpServersLoadError = useMockData ? undefined : mcpServersResult.mcpServersLoadError;
 
@@ -148,7 +161,7 @@ export const McpCatalogContextProvider: React.FC<McpCatalogContextProviderProps>
       sourceLabels,
       catalogSourcesLoaded,
       catalogSourcesLoadError,
-      mcpServers: { items: mcpServers.items },
+      mcpServers,
       mcpServersLoaded,
       mcpServersLoadError,
       filterOptions,
@@ -164,7 +177,7 @@ export const McpCatalogContextProvider: React.FC<McpCatalogContextProviderProps>
       sourceLabels,
       catalogSourcesLoaded,
       catalogSourcesLoadError,
-      mcpServers.items,
+      mcpServers,
       mcpServersLoaded,
       mcpServersLoadError,
       filterOptions,

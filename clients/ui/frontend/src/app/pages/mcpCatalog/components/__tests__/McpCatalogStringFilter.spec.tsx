@@ -51,8 +51,10 @@ describe('McpCatalogStringFilter', () => {
       <McpCatalogStringFilter
         title="License"
         filterKey="license"
-        filters={{ type: 'string', values: ['MIT', 'Apache-2.0'] }}
-        showSearch
+        filters={{
+          type: 'string',
+          values: ['MIT', 'Apache-2.0', 'GPL', 'BSD', 'LGPL', 'AGPL'],
+        }}
       />,
       { wrapper },
     );
@@ -80,7 +82,7 @@ describe('McpCatalogStringFilter', () => {
     expect(localCheckbox).toBeChecked();
   });
 
-  it('shows Show more when values exceed MCP_FILTER_MAX_VISIBLE', () => {
+  it('shows Show more when values exceed max visible', () => {
     const values = ['a', 'b', 'c', 'd', 'e', 'f'];
     render(
       <McpCatalogStringFilter

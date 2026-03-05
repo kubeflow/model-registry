@@ -17,7 +17,7 @@ const LabelsFilter: React.FC<LabelsFilterProps> = ({ filters }) => {
   return (
     <>
       <StackItem>
-        <McpCatalogStringFilter title="Labels" filterKey={filterKey} filters={value} showSearch />
+        <McpCatalogStringFilter title="Labels" filterKey={filterKey} filters={value} />
       </StackItem>
       <Divider />
     </>

@@ -12,15 +12,13 @@ const McpCatalogFilters: React.FC = () => {
   const { filterOptions } = React.useContext(McpCatalogContext);
   const filters = filterOptions?.filters ?? mockMcpCatalogFilterOptions.filters;
 
-  const getFilterProps = () => filters;
-
   return (
     <Stack hasGutter>
-      <DeploymentModeFilter filters={getFilterProps()} />
-      <SupportedTransportsFilter filters={getFilterProps()} />
-      <McpLicenseFilter filters={getFilterProps()} />
-      <LabelsFilter filters={getFilterProps()} />
-      <SecurityVerificationFilter filters={getFilterProps()} />
+      <DeploymentModeFilter filters={filters} />
+      <SupportedTransportsFilter filters={filters} />
+      <McpLicenseFilter filters={filters} />
+      <LabelsFilter filters={filters} />
+      <SecurityVerificationFilter filters={filters} />
     </Stack>
   );
 };

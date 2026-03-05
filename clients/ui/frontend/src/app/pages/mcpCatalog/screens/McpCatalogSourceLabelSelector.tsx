@@ -68,16 +68,19 @@ const McpCatalogSourceLabelSelector: React.FC<McpCatalogSourceLabelSelectorProps
     [onSearch],
   );
 
+  const toolbarClearAllProps = hasFiltersAppliedValue
+    ? {
+        clearAllFilters: handleClearAllFilters,
+        clearFiltersButtonText: 'Reset all filters' as const,
+      }
+    : undefined;
+
   return (
     <Stack hasGutter>
       <StackItem>
         <Toolbar
-          {...(hasFiltersAppliedValue
-            ? {
-                clearAllFilters: handleClearAllFilters,
-                clearFiltersButtonText: 'Reset all filters',
-              }
-            : {})}
+          key={hasFiltersAppliedValue ? 'has-filters' : 'no-filters'}
+          {...(toolbarClearAllProps ?? {})}
         >
           <ToolbarContent rowWrap={{ default: 'wrap' }}>
             <Flex>
