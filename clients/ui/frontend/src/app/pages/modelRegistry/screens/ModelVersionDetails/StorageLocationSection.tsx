@@ -114,18 +114,12 @@ const StorageLocationTitle: React.FC = () => (
   </Title>
 );
 
-const isAccessError = (error: Error | undefined, jobNamespace: string): boolean => {
+const isAccessError = (error: Error | undefined): boolean => {
   if (!error) {
     return false;
   }
   const { message } = error;
-  return (
-    message.includes('403') ||
-    message.includes('forbidden') ||
-    message.includes('Forbidden') ||
-    message.includes('not have access') ||
-    message.includes(jobNamespace)
-  );
+  return message.includes('403') || message.includes('forbidden') || message.includes('Forbidden');
 };
 
 const StorageLocationSection: React.FC<StorageLocationSectionProps> = ({
@@ -139,8 +133,7 @@ const StorageLocationSection: React.FC<StorageLocationSectionProps> = ({
 
   const userHasNamespaceAccess = namespaces.some((ns) => ns.name === fallbackNamespace);
   const hasAccessError =
-    (!userHasNamespaceAccess && !!transferJobError) ||
-    isAccessError(transferJobError, fallbackNamespace);
+    (!userHasNamespaceAccess && !!transferJobError) || isAccessError(transferJobError);
 
   if (!transferJobLoaded) {
     return (
