@@ -297,7 +297,9 @@ func (app *App) GetModelTransferJobEventsHandler(w http.ResponseWriter, r *http.
 		return
 	}
 
-	events, err := app.repositories.ModelRegistry.GetModelTransferJobEvents(ctx, client, namespace, jobName, modelRegistryID)
+	jobNamespace := r.URL.Query().Get("jobNamespace")
+
+	events, err := app.repositories.ModelRegistry.GetModelTransferJobEvents(ctx, client, namespace, jobName, modelRegistryID, jobNamespace)
 	if err != nil {
 		if errors.Is(err, repositories.ErrJobNotFound) {
 			app.notFoundResponse(w, r)

@@ -373,4 +373,5 @@ export type GetListModelTransferJobs = (opts: APIOptions) => Promise<ModelTransf
 export type GetModelTransferJobEvents = (
   opts: APIOptions,
   jobName: string,
+  jobNamespace: string,
 ) => Promise<ModelTransferJobEvent[]>;

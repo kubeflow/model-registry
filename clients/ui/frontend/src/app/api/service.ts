@@ -297,12 +297,12 @@ export const deleteModelTransferJob =
 
 export const getModelTransferJobEvents =
   (hostPath: string, queryParams: Record<string, unknown> = {}) =>
-  (opts: APIOptions, jobName: string): Promise<ModelTransferJobEvent[]> =>
+  (opts: APIOptions, jobName: string, jobNamespace: string): Promise<ModelTransferJobEvent[]> =>
     handleRestFailures(
       restGET(
         hostPath,
         `/model_transfer_jobs/${encodeURIComponent(jobName)}/events`,
-        queryParams,
+        { ...queryParams, jobNamespace },
         opts,
       ),
     ).then((response) => {
