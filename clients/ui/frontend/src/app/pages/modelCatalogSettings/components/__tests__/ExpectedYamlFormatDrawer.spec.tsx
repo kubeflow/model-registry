@@ -8,12 +8,18 @@ import { EXPECTED_YAML_FORMAT_LABEL } from '~/app/pages/modelCatalogSettings/con
 const DRAWER_TITLE = EXPECTED_YAML_FORMAT_LABEL;
 const PRIMARY_APP_CONTAINER_ID = 'primary-app-container';
 
+const mockUseThemeContext = jest.fn(() => ({ isMUITheme: false }));
+jest.mock('mod-arch-kubeflow', () => ({
+  useThemeContext: () => mockUseThemeContext(),
+}));
+
 describe('ExpectedYamlFormatDrawer', () => {
   let container: HTMLElement;
   const onClose = jest.fn();
 
   beforeEach(() => {
     jest.clearAllMocks();
+    mockUseThemeContext.mockReturnValue({ isMUITheme: false });
     global.ResizeObserver = jest.fn().mockImplementation(() => ({
       observe: jest.fn(),
       unobserve: jest.fn(),
@@ -33,6 +39,17 @@ describe('ExpectedYamlFormatDrawer', () => {
   it('does not render drawer panel when isOpen is false', () => {
     render(
       <ExpectedYamlFormatDrawer isOpen={false} onClose={onClose}>
+        <div>Page content</div>
+      </ExpectedYamlFormatDrawer>,
+    );
+    expect(screen.queryByRole('region', { name: DRAWER_TITLE })).not.toBeInTheDocument();
+    expect(screen.getByText('Page content')).toBeInTheDocument();
+  });
+
+  it('when #primary-app-container is missing, renders only children and does not render drawer', () => {
+    container.remove();
+    render(
+      <ExpectedYamlFormatDrawer isOpen onClose={onClose}>
         <div>Page content</div>
       </ExpectedYamlFormatDrawer>,
     );
@@ -85,5 +102,24 @@ describe('ExpectedYamlFormatDrawer', () => {
 
     expect(document.body.textContent).toContain('source:');
     expect(document.body.textContent).toContain('models:');
+  });
+
+  it('when MUI theme is enabled, drawer renders and MutationObserver is used for panel max-width override', async () => {
+    mockUseThemeContext.mockReturnValue({ isMUITheme: true });
+    const observeSpy = jest.spyOn(MutationObserver.prototype, 'observe');
+
+    render(
+      <ExpectedYamlFormatDrawer isOpen onClose={onClose}>
+        <div>Page content</div>
+      </ExpectedYamlFormatDrawer>,
+    );
+
+    await waitFor(() => {
+      expect(screen.getByRole('region', { name: DRAWER_TITLE })).toBeInTheDocument();
+    });
+
+    expect(observeSpy).toHaveBeenCalled();
+
+    observeSpy.mockRestore();
   });
 });

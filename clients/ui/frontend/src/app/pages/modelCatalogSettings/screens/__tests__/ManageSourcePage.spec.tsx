@@ -1,0 +1,91 @@
+import React from 'react';
+import { screen, render, waitFor } from '@testing-library/react';
+import { userEvent } from '@testing-library/user-event';
+import { MemoryRouter } from 'react-router-dom';
+import '@testing-library/jest-dom';
+import ManageSourcePage from '~/app/pages/modelCatalogSettings/screens/ManageSourcePage';
+import { EXPECTED_YAML_FORMAT_LABEL } from '~/app/pages/modelCatalogSettings/constants';
+
+const PRIMARY_APP_CONTAINER_ID = 'primary-app-container';
+
+jest.mock('mod-arch-shared', () => ({
+  ApplicationsPage: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
+}));
+
+jest.mock('mod-arch-kubeflow', () => ({
+  useThemeContext: () => ({ isMUITheme: false }),
+}));
+
+jest.mock('~/app/hooks/modelCatalogSettings/useCatalogSourceConfigBySourceId', () => ({
+  useCatalogSourceConfigBySourceId: () => [undefined, true, undefined],
+}));
+
+jest.mock('~/app/pages/modelCatalogSettings/components/ManageSourceForm', () => ({
+  __esModule: true,
+  default: function MockManageSourceForm({
+    onOpenExpectedFormatDrawer,
+  }: {
+    onOpenExpectedFormatDrawer?: () => void;
+  }) {
+    return (
+      <div>
+        {onOpenExpectedFormatDrawer && (
+          <button
+            type="button"
+            onClick={onOpenExpectedFormatDrawer}
+            data-testid="open-expected-format-drawer"
+          >
+            View expected format
+          </button>
+        )}
+      </div>
+    );
+  },
+}));
+
+describe('ManageSourcePage', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    global.ResizeObserver = jest.fn().mockImplementation(() => ({
+      observe: jest.fn(),
+      unobserve: jest.fn(),
+      disconnect: jest.fn(),
+    }));
+  });
+
+  it('form link button opens drawer and close button closes it (open/close state wiring)', async () => {
+    const user = userEvent.setup();
+    const portalContainer = document.createElement('div');
+    portalContainer.id = PRIMARY_APP_CONTAINER_ID;
+    document.body.appendChild(portalContainer);
+    const { unmount } = render(
+      <MemoryRouter>
+        <ManageSourcePage />
+      </MemoryRouter>,
+    );
+    const cleanup = () => {
+      unmount();
+      portalContainer.remove();
+    };
+
+    expect(
+      screen.queryByRole('region', { name: EXPECTED_YAML_FORMAT_LABEL }),
+    ).not.toBeInTheDocument();
+
+    await user.click(screen.getByTestId('open-expected-format-drawer'));
+
+    await waitFor(() => {
+      expect(screen.getByRole('region', { name: EXPECTED_YAML_FORMAT_LABEL })).toBeInTheDocument();
+    });
+
+    await user.click(screen.getByRole('button', { name: 'Close drawer' }));
+
+    await waitFor(() => {
+      expect(
+        screen.queryByRole('region', { name: EXPECTED_YAML_FORMAT_LABEL }),
+      ).not.toBeInTheDocument();
+    });
+
+    cleanup();
+  });
+});
