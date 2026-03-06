@@ -124,14 +124,16 @@ class TestNameOrdering:
             _assert_response_valid(response2)
 
             if response["items"] and response2["items"]:
-                # Last item of first page should come before or equal to first item of second page.
-                # Equality is valid when models have identical names (e.g., same model from
-                # different sources) since the secondary sort order is undefined.
-                last_name_page1 = response["items"][-1]["name"].lower()
-                first_name_page2 = response2["items"][0]["name"].lower()
-                assert last_name_page1 <= first_name_page2, (
-                    f"Pagination order violated: last item of page 1 ('{last_name_page1}') "
-                    f"should come before or equal to first item of page 2 ('{first_name_page2}')"
+                # Backend orders by stored name (source_id:model_name). Reconstruct that key
+                # so we assert the same ordering the DB uses (API returns display name only).
+                def sort_key(m: dict[str, Any]) -> str:
+                    return f"{m.get('source_id', '')}:{m.get('name', '')}"
+
+                last_key_page1 = sort_key(response["items"][-1]).lower()
+                first_key_page2 = sort_key(response2["items"][0]).lower()
+                assert last_key_page1 <= first_key_page2, (
+                    f"Pagination order violated: last item of page 1 ('{last_key_page1}') "
+                    f"should come before or equal to first item of page 2 ('{first_key_page2}')"
                 )
 
 

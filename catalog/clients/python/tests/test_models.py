@@ -63,11 +63,11 @@ class TestModels:
             )
             assert "items" in response2
 
-            # Different pages should have different models
-            names1 = {m["name"] for m in response["items"]}
-            names2 = {m["name"] for m in response2["items"]}
+            # Different pages should have different models (identify by source_id + name)
+            keys1 = {(m["source_id"], m["name"]) for m in response["items"]}
+            keys2 = {(m["source_id"], m["name"]) for m in response2["items"]}
             # No overlap between pages
-            assert not names1.intersection(names2)
+            assert not keys1.intersection(keys2)
 
     def test_models_reference_valid_sources(self, api_client: CatalogAPIClient, suppress_ssl_warnings: None):
         """Test that all models reference valid enabled sources."""
@@ -140,7 +140,8 @@ class TestModels:
             custom_properties = model.get("customProperties")
             if errors := _validate_custom_property_structure(custom_properties=custom_properties,
                                                              kind_cluster=kind_cluster):
-                all_errors.append(f"Model '{model_name}': {'\n'.join(errors)}")
+                err_lines = "\n".join(errors)
+                all_errors.append(f"Model '{model_name}': {err_lines}")
         assert not all_errors, "\n".join(all_errors)
 
 
