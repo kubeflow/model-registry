@@ -164,7 +164,8 @@ func DecodeCursor(token string) (*Cursor, error) {
 		return nil, err
 	}
 
-	parts := strings.Split(string(decoded), ":")
+	// Split only on the first ":" so the value can contain colons (e.g. stored names "sourceId:modelName").
+	parts := strings.SplitN(string(decoded), ":", 2)
 	if len(parts) != 2 {
 		return nil, fmt.Errorf("invalid cursor format")
 	}

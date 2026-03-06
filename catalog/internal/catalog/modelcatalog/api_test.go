@@ -417,8 +417,8 @@ func TestLoadCatalogSourcesWithMockRepositories(t *testing.T) {
 		savedModel := savedModels[0]
 		if savedModel.GetAttributes() == nil || savedModel.GetAttributes().Name == nil {
 			t.Error("Saved model should have attributes with name")
-		} else if *savedModel.GetAttributes().Name != "test-model" {
-			t.Errorf("Expected model name 'test-model', got '%s'", *savedModel.GetAttributes().Name)
+		} else if DisplayName(savedModel) != "test-model" {
+			t.Errorf("Expected model name 'test-model', got '%s'", DisplayName(savedModel))
 		}
 	}
 
@@ -609,8 +609,8 @@ func TestLoadCatalogSourcesWithNilEnabled(t *testing.T) {
 		savedModel := savedModels[0]
 		if savedModel.GetAttributes() == nil || savedModel.GetAttributes().Name == nil {
 			t.Error("Saved model should have attributes with name")
-		} else if *savedModel.GetAttributes().Name != "test-model-nil-enabled" {
-			t.Errorf("Expected model name 'test-model-nil-enabled', got '%s'", *savedModel.GetAttributes().Name)
+		} else if DisplayName(savedModel) != "test-model-nil-enabled" {
+			t.Errorf("Expected model name 'test-model-nil-enabled', got '%s'", DisplayName(savedModel))
 		}
 	}
 }

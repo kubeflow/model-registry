@@ -41,8 +41,10 @@ func NewDBCatalog(services service.Services, sources *SourceCollection) APIProvi
 }
 
 func (d *dbCatalogImpl) GetModel(ctx context.Context, modelName string, sourceID string) (*apimodels.CatalogModel, error) {
+	// Resolve by namespaced identifier: sourceId:modelName
+	namespacedName := sourceID + ":" + modelName
 	modelsList, err := d.catalogModelRepository.List(models.CatalogModelListOptions{
-		Name:      &modelName,
+		Name:      &namespacedName,
 		SourceIDs: &[]string{sourceID},
 	})
 	if err != nil {
@@ -238,9 +240,11 @@ func (d *dbCatalogImpl) GetFilterOptions(ctx context.Context) (*apimodels.Filter
 }
 
 func (d *dbCatalogImpl) GetPerformanceArtifacts(ctx context.Context, modelName string, sourceID string, params ListPerformanceArtifactsParams) (apimodels.CatalogArtifactList, error) {
+	// Resolve by namespaced identifier: sourceId:modelName
+	namespacedName := sourceID + ":" + modelName
 	// Get the model to validate it exists and get its ID
 	modelsList, err := d.catalogModelRepository.List(models.CatalogModelListOptions{
-		Name:      &modelName,
+		Name:      &namespacedName,
 		SourceIDs: &[]string{sourceID},
 	})
 	if err != nil {
@@ -305,7 +309,10 @@ func mapDBModelToAPIModel(m models.CatalogModel) apimodels.CatalogModel {
 	res.Id = &id
 
 	if m.GetAttributes() != nil {
-		res.Name = *m.GetAttributes().Name
+		storedName := *m.GetAttributes().Name
+		// Return display name: strip "sourceId:" prefix so API shows model name only.
+		// Source is already exposed via source_id.
+		res.Name = DisplayNameFromStoredName(storedName)
 		res.ExternalId = m.GetAttributes().ExternalID
 
 		if m.GetAttributes().CreateTimeSinceEpoch != nil {
@@ -627,9 +634,14 @@ func (d *dbCatalogImpl) FindModelsWithRecommendedLatency(
 			filterQuery = strings.ReplaceAll(filterQuery, "artifacts.", "")
 		}
 
+		// Use stored (namespaced) name for lookup: sourceId:modelName
+		namespacedName := ""
+		if model.GetAttributes() != nil && model.GetAttributes().Name != nil {
+			namespacedName = *model.GetAttributes().Name
+		}
 		latency, err := d.performanceService.GetMinimumRecommendedLatency(
 			ctx,
-			apiModel.Name,
+			namespacedName,
 			sourceID,
 			paretoParams,
 			filterQuery,

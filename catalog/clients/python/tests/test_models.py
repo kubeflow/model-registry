@@ -140,7 +140,8 @@ class TestModels:
             custom_properties = model.get("customProperties")
             if errors := _validate_custom_property_structure(custom_properties=custom_properties,
                                                              kind_cluster=kind_cluster):
-                all_errors.append(f"Model '{model_name}': {'\n'.join(errors)}")
+                err_lines = "\n".join(errors)
+                all_errors.append(f"Model '{model_name}': {err_lines}")
         assert not all_errors, "\n".join(all_errors)
 
 
