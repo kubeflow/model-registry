@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/kubeflow/model-registry/catalog/internal/catalog/basecatalog"
+	model "github.com/kubeflow/model-registry/catalog/pkg/openapi"
 	"github.com/kubeflow/model-registry/internal/apiutils"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -384,7 +385,7 @@ func TestMCPSourceCollection_MergeOverride(t *testing.T) {
 			},
 		},
 		{
-			name:        "defaults applied: nil Enabled defaults to true, nil Labels defaults to empty slice",
+			name:        "defaults applied: nil Enabled defaults to true, nil Labels defaults to empty slice, nil AssetType defaults to mcp_servers",
 			originOrder: []string{"community.yaml"},
 			mergeSequence: []struct {
 				origin  string
@@ -397,18 +398,19 @@ func TestMCPSourceCollection_MergeOverride(t *testing.T) {
 							ID:   "mcp_github",
 							Name: "GitHub MCP Server",
 							Type: "sse",
-							// Enabled and Labels are nil - defaults should be applied
+							// Enabled, Labels, and AssetType are nil - defaults should be applied
 						},
 					},
 				},
 			},
 			expectedSources: map[string]basecatalog.MCPSource{
 				"mcp_github": {
-					ID:      "mcp_github",
-					Name:    "GitHub MCP Server",
-					Type:    "sse",
-					Enabled: apiutils.Of(true), // Default applied
-					Labels:  []string{},        // Default applied
+					ID:        "mcp_github",
+					Name:      "GitHub MCP Server",
+					Type:      "sse",
+					Enabled:   apiutils.Of(true),                      // Default applied
+					Labels:    []string{},                             // Default applied
+					AssetType: model.CATALOGASSETTYPE_MCP_SERVERS.Ptr(), // Default applied
 				},
 			},
 		},
@@ -505,6 +507,11 @@ func TestMCPSourceCollection_MergeOverride(t *testing.T) {
 				}
 				if !reflect.DeepEqual(got.Properties, expected.Properties) {
 					t.Errorf("source %s: Properties = %v, want %v", id, got.Properties, expected.Properties)
+				}
+				if got.AssetType == nil {
+					t.Errorf("source %s: AssetType is nil, expected mcp_servers default", id)
+				} else if *got.AssetType != model.CATALOGASSETTYPE_MCP_SERVERS {
+					t.Errorf("source %s: AssetType = %s, want %s", id, *got.AssetType, model.CATALOGASSETTYPE_MCP_SERVERS)
 				}
 			}
 		})

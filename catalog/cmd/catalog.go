@@ -175,8 +175,10 @@ func runCatalogServer(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("error starting loader in read-only mode: %v", err)
 	}
 
-	// Set up HTTP server (runs continuously regardless of leadership)
+	// Create MCP source collection first so it can be shared with the model catalog service.
 	mcpSources := loader.MCPSources()
+
+	// Set up HTTP server (runs continuously regardless of leadership)
 	svc := openapi.NewModelCatalogServiceAPIService(
 		catalog.NewDBCatalog(services, loader.Sources()),
 		loader.Sources(),
