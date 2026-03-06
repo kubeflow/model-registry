@@ -49,11 +49,11 @@ func TestIntegration_PreservedRecommendationAlgorithm(t *testing.T) {
 
 	provider := NewDBCatalog(services, nil)
 
-	// Create test model
+	// Create test model (stored name must be namespaced: sourceId:modelName)
 	testModel := &models.CatalogModelImpl{
 		TypeID: apiutils.Of(catalogModelTypeID),
 		Attributes: &models.CatalogModelAttributes{
-			Name:       apiutils.Of("algorithm-test-model"),
+			Name:       apiutils.Of("algorithm-test-source:algorithm-test-model"),
 			ExternalID: apiutils.Of("alg-test-model-789"),
 		},
 		Properties: &[]dbmodels.Properties{
@@ -307,10 +307,11 @@ func TestIntegration_ServiceLayerBehavior(t *testing.T) {
 
 	provider := NewDBCatalog(services, nil)
 
+	// Stored name must be namespaced: sourceId:modelName
 	testModel := &models.CatalogModelImpl{
 		TypeID: apiutils.Of(catalogModelTypeID),
 		Attributes: &models.CatalogModelAttributes{
-			Name:       apiutils.Of("service-test-model"),
+			Name:       apiutils.Of("service-test-source:service-test-model"),
 			ExternalID: apiutils.Of("service-model-123"),
 		},
 		Properties: &[]dbmodels.Properties{
@@ -470,10 +471,11 @@ func TestIntegration_ConfigurableProperties(t *testing.T) {
 
 	provider := NewDBCatalog(services, nil)
 
+	// Stored name must be namespaced: sourceId:modelName
 	testModel := &models.CatalogModelImpl{
 		TypeID: apiutils.Of(catalogModelTypeID),
 		Attributes: &models.CatalogModelAttributes{
-			Name:       apiutils.Of("configurable-props-model"),
+			Name:       apiutils.Of("configurable-props-source:configurable-props-model"),
 			ExternalID: apiutils.Of("config-model-999"),
 		},
 		Properties: &[]dbmodels.Properties{
