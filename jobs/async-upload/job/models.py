@@ -233,3 +233,5 @@ class AsyncUploadConfig(BaseModel):
     storage: StorageConfig = Field(default_factory=StorageConfig)
     registry: RegistryConfig
     metadata: ConfigMapMetadata | None = None  # Optional ConfigMap metadata
+    signing_enabled: bool = False
+    signing_identity_token_path: str | None = None

@@ -84,6 +84,8 @@ See asterisks below table for details
 | MODEL_SYNC_REGISTRY_CUSTOM_CA                | --registry-custom-ca                |                   |          |                                                                                                        |
 | MODEL_SYNC_REGISTRY_CUSTOM_CA_ENVVAR         | --registry-custom-ca-envvar         |                   |          |                                                                                                        |
 | MODEL_SYNC_REGISTRY_LOG_LEVEL                | --registry-log-level                |                   |          |                                                                                                        |
+| MODEL_SYNC_SIGN                              | --sign                              | (auto-detect)     |          | Enable or disable sigstore signing. See [Signing](#signing) below.                                     |
+| MODEL_SYNC_SIGNING_IDENTITY_TOKEN_PATH       | --signing-identity-token-path       |                   |          | Path to the identity token for sigstore signing. If not set, uses the Signer default.                  |
 
 ✅\*: Must be present in some form when the source/destination is `s3`. This might be from the parameter in the table, or from the credentials file(s) that was specified/provided.
 
@@ -170,6 +172,29 @@ spec:
         configMap:
           name: model-metadata
 ```
+
+## Signing
+
+The job can sign model files and OCI images using sigstore servers. Signing behavior is controlled by the `--sign` flag (env: `MODEL_SYNC_SIGN`):
+
+| Scenario | Behavior |
+| --- | --- |
+| `--sign` not set, all 3 `SIGSTORE_*` env vars present (`SIGSTORE_TUF_URL`, `SIGSTORE_FULCIO_URL`, `SIGSTORE_REKOR_URL`) | Signing **enabled** automatically |
+| `--sign` not set, none of the `SIGSTORE_*` env vars present | Signing **skipped** silently |
+| `--sign` not set, only some `SIGSTORE_*` env vars present | Signing **skipped** with a warning listing the missing vars |
+| `MODEL_SYNC_SIGN=true` | Signing **enabled** (explicit override) |
+| `MODEL_SYNC_SIGN=false` | Signing **disabled** (explicit override, even if `SIGSTORE_*` vars are set) |
+
+When signing is enabled, the job expects a service account token for identity-based signing. The token path can be configured via `MODEL_SYNC_SIGNING_IDENTITY_TOKEN_PATH`. If not set, the Signer defaults to the Kubernetes service account token at `/var/run/secrets/kubernetes.io/serviceaccount/token`.
+
+The following `SIGSTORE_*` environment variables configure the sigstore infrastructure endpoints:
+
+| Environment Variable   | Description                          |
+| ---------------------- | ------------------------------------ |
+| `SIGSTORE_TUF_URL`     | TUF root URL for trust verification  |
+| `SIGSTORE_FULCIO_URL`  | Fulcio CA URL for certificate signing |
+| `SIGSTORE_REKOR_URL`   | Rekor transparency log URL           |
+| `SIGSTORE_TSA_URL`     | Timestamp Authority URL (optional)   |
 
 ## References
 

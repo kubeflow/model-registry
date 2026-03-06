@@ -3,6 +3,8 @@ import json
 import logging
 import os
 
+from model_registry.signing import Signer
+
 from job.upload import perform_upload
 from .config import get_config
 from .mr_client import (
@@ -46,6 +48,40 @@ def record_error(exc):
     logger.error(message)
 
 
+class UploadJob:
+    """Orchestrates model upload workflow including signing operations."""
+
+    def __init__(self, signer, config):
+        self.signer = signer
+        self.config = config
+
+    def sign_model(self, model_path: str) -> None:
+        """Sign and verify model files locally.
+
+        Args:
+            model_path: Path to the model directory to sign
+        """
+        if self.signer is None:
+            return
+        logger.info("🔏 Signing model files...")
+        self.signer.sign_model(model_path)
+        self.signer.verify_model(model_path)
+        logger.info("✅ Model signature verified")
+
+    def sign_image(self, image_ref: str) -> None:
+        """Sign and verify OCI image.
+
+        Args:
+            image_ref: OCI image reference (without oci:// prefix)
+        """
+        if self.signer is None:
+            return
+        logger.info("🔏 Signing OCI image...")
+        self.signer.sign_image(image_ref)
+        self.signer.verify_image(image_ref)
+        logger.info("✅ OCI image signature verified")
+
+
 def write_success_result(entity_ids: CreatedEntityIds, intent_type: str) -> None:
     """Write success result with entity IDs to termination message path.
     
@@ -83,14 +119,34 @@ async def main() -> None:
 
         client = validate_and_get_model_registry_client(config.registry)
 
+        signer = None
+        if config.signing_enabled:
+            log_level = logging.INFO
+            if config.signing_identity_token_path:
+                signer = Signer(identity_token_path=config.signing_identity_token_path, log_level=log_level)
+            else:
+                signer = Signer(log_level=log_level)
+            logger.info("🔏 Signing is enabled")
+        else:
+            logger.info("⏭️ Signing is disabled")
+
+        job = UploadJob(signer, config)
+
         intent = config.model.intent
         entity_ids: CreatedEntityIds | None = None
-        
+
         if isinstance(intent, UpdateArtifactIntent):
             logger.info("📋 Processing update_artifact intent")
             await set_artifact_pending(client, intent.artifact_id)
             perform_download(config)
+
+            job.sign_model(config.storage.path)
             uri = perform_upload(config)
+
+            if uri.startswith("oci://"):
+                image_ref = uri.removeprefix("oci://")
+                job.sign_image(image_ref)
+
             # Pass through optional model_id and version_id if provided
             entity_ids = await update_model_artifact_uri(
                 client,
@@ -99,6 +155,7 @@ async def main() -> None:
                 registered_model_id=intent.model_id,
                 model_version_id=intent.version_id,
             )
+
         elif isinstance(intent, CreateModelIntent):
             logger.info("📋 Processing create_model intent")
             if not config.metadata:
@@ -107,7 +164,14 @@ async def main() -> None:
             logger.info("🔍 Validating create_model intent...")
             await validate_create_model_intent(client, config.metadata)
             perform_download(config)
+
+            job.sign_model(config.storage.path)
             uri = perform_upload(config)
+
+            if uri.startswith("oci://"):
+                image_ref = uri.removeprefix("oci://")
+                job.sign_image(image_ref)
+
             entity_ids = await create_model_and_artifact(client, config.metadata, uri)
         elif isinstance(intent, CreateVersionIntent):
             logger.info("📋 Processing create_version intent")
@@ -117,7 +181,14 @@ async def main() -> None:
             logger.info("🔍 Validating create_version intent...")
             await validate_create_version_intent(client, intent.model_id, config.metadata)
             perform_download(config)
+
+            job.sign_model(config.storage.path)
             uri = perform_upload(config)
+
+            if uri.startswith("oci://"):
+                image_ref = uri.removeprefix("oci://")
+                job.sign_image(image_ref)
+
             entity_ids = await create_version_and_artifact(client, intent.model_id, config.metadata, uri)
         else:
             raise ValueError(f"Unknown intent type: {type(intent)}")
