@@ -17,6 +17,7 @@ describe('RetryJobModal', () => {
   const mockJob: ModelTransferJob = {
     id: 'test-job-id',
     name: 'test-job-name',
+    jobDisplayName: 'test-job-name',
     status: ModelTransferJobStatus.FAILED,
     uploadIntent: ModelTransferJobUploadIntent.CREATE_MODEL,
     namespace: 'test-namespace',
@@ -156,7 +157,7 @@ describe('RetryJobModal', () => {
     fireEvent.click(screen.getByTestId('retry-job-submit-button'));
 
     await waitFor(() => {
-      expect(mockOnRetry).toHaveBeenCalledWith('test-job-name-2', true);
+      expect(mockOnRetry).toHaveBeenCalledWith('test-job-name-2', 'test-job-name-2', true);
     });
   });
 
@@ -169,7 +170,7 @@ describe('RetryJobModal', () => {
     fireEvent.click(screen.getByTestId('retry-job-submit-button'));
 
     await waitFor(() => {
-      expect(mockOnRetry).toHaveBeenCalledWith('test-job-name-2', false);
+      expect(mockOnRetry).toHaveBeenCalledWith('test-job-name-2', 'test-job-name-2', false);
     });
   });
 
@@ -186,7 +187,7 @@ describe('RetryJobModal', () => {
     fireEvent.click(screen.getByTestId('retry-job-submit-button'));
 
     await waitFor(() => {
-      expect(mockOnRetry).toHaveBeenCalledWith('custom-retry-name', true);
+      expect(mockOnRetry).toHaveBeenCalledWith('custom-retry-name', 'test-job-name-2', true);
     });
   });
 

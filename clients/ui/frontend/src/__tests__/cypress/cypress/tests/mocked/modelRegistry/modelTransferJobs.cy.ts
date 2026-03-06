@@ -8,8 +8,16 @@ const modelRegistryName = 'modelregistry-sample';
 
 const jobList = mockModelTransferJobList({
   items: [
-    mockModelTransferJob({ id: 'job-to-delete', name: 'job-to-delete' }),
-    mockModelTransferJob({ id: 'job-to-keep', name: 'job-to-keep' }),
+    mockModelTransferJob({
+      id: 'job-to-delete',
+      name: 'job-to-delete',
+      jobDisplayName: 'job-to-delete',
+    }),
+    mockModelTransferJob({
+      id: 'job-to-keep',
+      name: 'job-to-keep',
+      jobDisplayName: 'job-to-keep',
+    }),
   ],
   size: 2,
   pageSize: 10,

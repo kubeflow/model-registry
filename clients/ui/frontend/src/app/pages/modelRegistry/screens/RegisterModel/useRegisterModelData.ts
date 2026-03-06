@@ -26,7 +26,7 @@ export type RegistrationCommonFormData = {
   destinationOciPassword: string;
   destinationOciUri: string;
   destinationOciEmail: string;
-  namespace?: string;
+  namespace: string;
   registrationMode?: RegistrationMode.Register | RegistrationMode.RegisterAndStore;
   jobName: string;
   jobResourceName: string;

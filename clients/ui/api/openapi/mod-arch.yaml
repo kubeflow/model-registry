@@ -1275,6 +1275,7 @@ paths:
         - $ref: "#/components/parameters/modelRegistryName"
         - $ref: "#/components/parameters/kubeflowUserId"
         - $ref: "#/components/parameters/modelTransferJobName"
+        - $ref: "#/components/parameters/jobNamespace"
       responses:
         "200":
           $ref: "#/components/responses/ModelTransferJobResponse"
@@ -1330,6 +1331,7 @@ paths:
         - $ref: "#/components/parameters/modelRegistryName"
         - $ref: "#/components/parameters/kubeflowUserId"
         - $ref: "#/components/parameters/modelTransferJobName"
+        - $ref: "#/components/parameters/jobNamespace"
       responses:
         "204":
           description: Successfully deleted
@@ -2927,6 +2929,8 @@ components:
     ModelTransferJob:
       description: A model transfer job entity.
       type: object
+      required:
+        - name
       properties:
         id:
           type: string
@@ -3715,6 +3719,13 @@ components:
         type: string
       in: query
       required: false
+    jobNamespace:
+      name: jobNamespace
+      description: The namespace where the ModelTransferJob runs. Required for GET and DELETE of a single job.
+      schema:
+        type: string
+      in: query
+      required: true
 
   securitySchemes:
     Bearer:

@@ -53,7 +53,7 @@ const RegisterVersion: React.FC = () => {
     hasAccess: namespaceHasAccess,
     isLoading: isNamespaceAccessLoading,
     error: namespaceAccessError,
-  } = useCheckNamespaceRegistryAccess(mrName, registryNamespace, formData.namespace ?? '');
+  } = useCheckNamespaceRegistryAccess(mrName, registryNamespace, formData.namespace);
   const isSubmitDisabled =
     isSubmitting ||
     isRegisterVersionSubmitDisabled(formData, namespaceHasAccess, isNamespaceAccessLoading);

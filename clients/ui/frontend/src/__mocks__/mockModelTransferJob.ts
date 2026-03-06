@@ -10,6 +10,8 @@ import {
 export const mockModelTransferJob = (partial?: Partial<ModelTransferJob>): ModelTransferJob => ({
   id: '1',
   name: 'model-transfer-job-1',
+  jobDisplayName: 'model-transfer-job-1',
+  namespace: 'test-namespace',
   description: 'Transfer job for fraud detection model',
   source: {
     type: ModelTransferJobSourceType.S3,
