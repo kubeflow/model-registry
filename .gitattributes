@@ -4,6 +4,7 @@
 # Do not edit below this line. Edits will be overwritten by gen_gitattributes.sh
 
 catalog/clients/python/src/catalog_openapi/__init__.py linguist-generated=true
+catalog/clients/python/src/catalog_openapi/api/mcp_catalog_service_api.py linguist-generated=true
 catalog/clients/python/src/catalog_openapi/api/model_catalog_service_api.py linguist-generated=true
 catalog/clients/python/src/catalog_openapi/api_client.py linguist-generated=true
 catalog/clients/python/src/catalog_openapi/configuration.py linguist-generated=true
@@ -16,6 +17,7 @@ catalog/clients/python/src/catalog_openapi/models/base_resource_dates.py linguis
 catalog/clients/python/src/catalog_openapi/models/base_resource_list.py linguist-generated=true
 catalog/clients/python/src/catalog_openapi/models/catalog_artifact.py linguist-generated=true
 catalog/clients/python/src/catalog_openapi/models/catalog_artifact_list.py linguist-generated=true
+catalog/clients/python/src/catalog_openapi/models/catalog_asset_type.py linguist-generated=true
 catalog/clients/python/src/catalog_openapi/models/catalog_label.py linguist-generated=true
 catalog/clients/python/src/catalog_openapi/models/catalog_label_list.py linguist-generated=true
 catalog/clients/python/src/catalog_openapi/models/catalog_metrics_artifact.py linguist-generated=true
@@ -32,6 +34,23 @@ catalog/clients/python/src/catalog_openapi/models/field_filter.py linguist-gener
 catalog/clients/python/src/catalog_openapi/models/filter_option.py linguist-generated=true
 catalog/clients/python/src/catalog_openapi/models/filter_option_range.py linguist-generated=true
 catalog/clients/python/src/catalog_openapi/models/filter_options_list.py linguist-generated=true
+catalog/clients/python/src/catalog_openapi/models/mcp_artifact.py linguist-generated=true
+catalog/clients/python/src/catalog_openapi/models/mcp_endpoints.py linguist-generated=true
+catalog/clients/python/src/catalog_openapi/models/mcp_env_var_metadata.py linguist-generated=true
+catalog/clients/python/src/catalog_openapi/models/mcp_resource_recommendation.py linguist-generated=true
+catalog/clients/python/src/catalog_openapi/models/mcp_resource_recommendation_high.py linguist-generated=true
+catalog/clients/python/src/catalog_openapi/models/mcp_resource_recommendation_minimal.py linguist-generated=true
+catalog/clients/python/src/catalog_openapi/models/mcp_resource_recommendation_recommended.py linguist-generated=true
+catalog/clients/python/src/catalog_openapi/models/mcp_runtime_metadata.py linguist-generated=true
+catalog/clients/python/src/catalog_openapi/models/mcp_runtime_metadata_capabilities.py linguist-generated=true
+catalog/clients/python/src/catalog_openapi/models/mcp_runtime_metadata_health_endpoints.py linguist-generated=true
+catalog/clients/python/src/catalog_openapi/models/mcp_security_indicator.py linguist-generated=true
+catalog/clients/python/src/catalog_openapi/models/mcp_server.py linguist-generated=true
+catalog/clients/python/src/catalog_openapi/models/mcp_server_list.py linguist-generated=true
+catalog/clients/python/src/catalog_openapi/models/mcp_tool.py linguist-generated=true
+catalog/clients/python/src/catalog_openapi/models/mcp_tool_parameter.py linguist-generated=true
+catalog/clients/python/src/catalog_openapi/models/mcp_tool_with_server.py linguist-generated=true
+catalog/clients/python/src/catalog_openapi/models/mcp_tools_list.py linguist-generated=true
 catalog/clients/python/src/catalog_openapi/models/metadata_bool_value.py linguist-generated=true
 catalog/clients/python/src/catalog_openapi/models/metadata_double_value.py linguist-generated=true
 catalog/clients/python/src/catalog_openapi/models/metadata_int_value.py linguist-generated=true

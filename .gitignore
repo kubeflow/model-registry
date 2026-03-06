@@ -31,9 +31,7 @@ metadata.sqlite.db
 vendor
 coverage.*
 
-# Robot Framework files
-log.html
-output.xml
+# pytest generated files
 report.html
 __pycache__
 

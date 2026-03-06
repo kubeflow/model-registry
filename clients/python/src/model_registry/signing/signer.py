@@ -1,12 +1,16 @@
 """Unified signer interface for models and container images."""
 
+import logging
 import os
 from collections.abc import Iterable
 from pathlib import Path
 
+from model_registry.signing._logging import InstanceLevelAdapter, LogConfig
 from model_registry.signing.config import SigningConfig
 from model_registry.signing.image_signer import ImageSigner
 from model_registry.signing.model_signer import ModelSigner
+
+logger = logging.getLogger(__name__)
 
 PathLike = str | os.PathLike[str]
 
@@ -32,6 +36,7 @@ class Signer:
         cache_dir: PathLike | None = None,
         signature_filename: str = "model.sig",
         ignore_paths: Iterable[PathLike] | None = None,
+        log_level: int | None = None,
     ):
         """Initialize Signer with configuration.
 
@@ -52,7 +57,13 @@ class Signer:
             cache_dir: Cache directory
             signature_filename: Default signature filename (default: model.sig)
             ignore_paths: Default paths to ignore during signing
+            log_level: Log level for all signing components (e.g. logging.DEBUG)
         """
+        self.logger = InstanceLevelAdapter(
+            logger,
+            LogConfig(instance_name=type(self).__name__, level=log_level),
+        )
+
         self.config = SigningConfig.create(
             tuf_url=tuf_url,
             root_url=root_url,
@@ -70,6 +81,19 @@ class Signer:
         )
         self.model_signer: ModelSigner = ModelSigner.from_config(self.config)
         self.image_signer: ImageSigner = ImageSigner.from_config(self.config)
+
+        if log_level is not None:
+            self.set_log_level(log_level)
+
+    def set_log_level(self, level: int) -> None:
+        """Set the log level for this signer instance and its child signers.
+
+        Args:
+            level: Log level (e.g. logging.DEBUG, logging.INFO, logging.WARNING)
+        """
+        self.logger.set_log_level(level)
+        self.model_signer.logger.set_log_level(level)
+        self.image_signer.logger.set_log_level(level)
 
     def initialize(
         self,
@@ -96,6 +120,7 @@ class Signer:
             oidc_issuer: OIDC issuer (uses config default if not provided)
             force: If True, overwrite existing configuration
         """
+        self.logger.info("Initializing trust configuration")
         # Initialize model signer trust
         self.model_signer.initialize(
             tuf_url=tuf_url,

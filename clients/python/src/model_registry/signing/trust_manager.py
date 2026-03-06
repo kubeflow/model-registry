@@ -16,7 +16,6 @@ from sigstore._internal.tuf import TrustUpdater
 from .exceptions import InitializationError
 
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.INFO)
 
 
 class TrustManager:
@@ -26,13 +25,20 @@ class TrustManager:
     with support for explicit bootstrap (like cosign initialize).
     """
 
-    def __init__(self, cache_dir: str | os.PathLike[str] | None = None):
+    def __init__(
+        self,
+        cache_dir: str | os.PathLike[str] | None = None,
+        *,
+        logger_adapter: logging.LoggerAdapter,
+    ):
         """Initialize TrustManager.
 
         Args:
             cache_dir: Base cache directory (default: platformdirs user_data_dir)
                 Each TUF URL gets URL-encoded subdirectory for isolation
+            logger_adapter: Logger adapter for filtered logging
         """
+        self._logger: logging.LoggerAdapter = logger_adapter
         if cache_dir:
             self.base_cache_dir = Path(cache_dir)
         else:
@@ -113,11 +119,11 @@ class TrustManager:
         try:
             updater = TrustUpdater(url=tuf_url, offline=False)
             trusted_root_path = updater.get_trusted_root_path()
-            logger.info(f"Downloaded (TrustUpdater): {Path(trusted_root_path).name}")
+            self._logger.debug(f"Downloaded (TrustUpdater): {Path(trusted_root_path).name}")
             with open(trusted_root_path) as f:
                 return json.load(f)
         except Exception:
-            logger.info("Direct TrustUpdater failed, trying with bootstrap...")
+            self._logger.debug("Direct TrustUpdater failed, trying with bootstrap...")
             return None
 
     def _load_cached_root(self, cache_path: Path, checksum: str | None) -> bytes | None:
@@ -130,21 +136,21 @@ class TrustManager:
             if checksum:
                 cached_checksum = hashlib.sha256(cached_data).hexdigest()
                 if cached_checksum.lower() == checksum.lower():
-                    logger.info("Using cached root.json (checksum verified)")
+                    self._logger.debug("Using cached root.json (checksum verified)")
                     return cached_data
-                logger.info("Cached root.json checksum mismatch, re-downloading...")
+                self._logger.debug("Cached root.json checksum mismatch, re-downloading...")
                 return None
-            logger.info("Using cached root.json")
+            self._logger.debug("Using cached root.json")
             return cached_data
         except Exception as e:
-            logger.info(f"Could not use cached root.json: {e}, re-downloading...")
+            self._logger.debug(f"Could not use cached root.json: {e}, re-downloading...")
             return None
 
     def _download_root_json(self, urls: list[str]) -> bytes:
         """Download root.json from list of URLs."""
         for url in urls:
             try:
-                logger.info(f"Downloading from: {url}")
+                self._logger.debug(f"Downloading from: {url}")
                 with urllib.request.urlopen(url) as response:  # noqa: S310
                     return response.read()
             except urllib.error.HTTPError:
@@ -159,9 +165,9 @@ class TrustManager:
             if computed_checksum.lower() != expected_checksum.lower():
                 msg = f"Root.json checksum mismatch!\n  Expected: {expected_checksum}\n  Got:      {computed_checksum}"
                 raise InitializationError(msg)
-            logger.info(f"Checksum verified: {computed_checksum}")
+            self._logger.debug(f"Checksum verified: {computed_checksum}")
         else:
-            logger.info("No checksum provided (skipping validation)")
+            self._logger.debug("No checksum provided (skipping validation)")
 
     def _bootstrap_trust_updater(self, tuf_url: str, root_data: bytes) -> dict:
         """Bootstrap TrustUpdater with root.json and return trusted_root."""
@@ -171,7 +177,7 @@ class TrustManager:
 
             updater = TrustUpdater(url=tuf_url, offline=False, bootstrap_root=bootstrap_root)
             trusted_root_path = updater.get_trusted_root_path()
-            logger.info(f"Initialized TUF client: {Path(trusted_root_path).name}")
+            self._logger.debug(f"Initialized TUF client: {Path(trusted_root_path).name}")
 
             with open(trusted_root_path) as f:
                 return json.load(f)
@@ -200,14 +206,14 @@ class TrustManager:
         try:
             # Try direct TrustUpdater first (auto-detect mode only)
             if not root_url:
-                logger.info(f"Downloading trusted root from TUF: {tuf_url}")
+                self._logger.debug(f"Downloading trusted root from TUF: {tuf_url}")
                 result = self._try_direct_trust_updater(tuf_url)
                 if result:
                     return result
 
             # Prepare URLs to try
             if root_url:
-                logger.info(f"Downloading root.json from explicit URL: {root_url}")
+                self._logger.debug(f"Downloading root.json from explicit URL: {root_url}")
                 root_urls = [root_url]
             else:
                 tuf_url_clean = tuf_url.rstrip("/")
@@ -224,12 +230,12 @@ class TrustManager:
             if not root_data:
                 root_data = self._download_root_json(root_urls)
                 self._validate_checksum(root_data, root_checksum)
-                logger.info(f"Downloaded root.json ({len(root_data)} bytes)")
+                self._logger.debug(f"Downloaded root.json ({len(root_data)} bytes)")
 
                 # Cache for future use
                 root_cache_path.parent.mkdir(parents=True, exist_ok=True)
                 root_cache_path.write_bytes(root_data)
-                logger.info(f"Cached to: {root_cache_path}")
+                self._logger.debug(f"Cached to: {root_cache_path}")
 
             # Bootstrap TrustUpdater with root.json
             return self._bootstrap_trust_updater(tuf_url, root_data)
@@ -242,7 +248,7 @@ class TrustManager:
 
     def _transform_and_fix_trust_root(self, trusted_root: dict) -> dict:
         """Apply transformations to trusted root."""
-        logger.info("Transforming checkpointKeyId to logId...")
+        self._logger.debug("Transforming checkpointKeyId to logId...")
         return self._transform_checkpoint_to_logid(trusted_root)
 
     @staticmethod
@@ -341,8 +347,8 @@ class TrustManager:
         # Cache trusted root
         trusted_root = trust_config.get("trustedRoot", {})
         trust_root_path.write_text(json.dumps(trusted_root, indent=2))
-        logger.info(f"Cached trusted root to: {trust_root_path}")
+        self._logger.debug(f"Cached trusted root to: {trust_root_path}")
 
         # Cache complete trust config
         trust_config_path.write_text(json.dumps(trust_config, indent=2))
-        logger.info(f"Cached trust config to: {trust_config_path}")
+        self._logger.debug(f"Cached trust config to: {trust_config_path}")

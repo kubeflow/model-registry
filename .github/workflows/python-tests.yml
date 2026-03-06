@@ -110,6 +110,9 @@ jobs:
           - python: "3.10"
             kubernetes-version: "v1.33.7"
             manifest-db: "db"
+          - python: "3.13"
+            kubernetes-version: "v1.34.3"
+            manifest-db: "db"
     env:
       FORCE_COLOR: "1"
       IMG_REGISTRY: quay.io
