@@ -22,6 +22,11 @@ module.exports = {
     '~/(.*)': '<rootDir>/src/$1',
   },
 
+  transform: {
+    '\\.(ts|tsx|js|jsx)$': 'ts-jest',
+    '\\.yaml$': '<rootDir>/config/transform.yaml.js',
+  },
+
   // The test environment that will be used for testing.
   testEnvironment: 'jest-environment-jsdom',
 
