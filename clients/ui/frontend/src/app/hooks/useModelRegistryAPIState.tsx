@@ -19,6 +19,7 @@ import {
   createModelTransferJob,
   updateModelTransferJob,
   deleteModelTransferJob,
+  getModelTransferJobEvents,
 } from '~/app/api/service';
 
 export type ModelRegistryAPIState = APIState<ModelRegistryAPIs>;
@@ -49,6 +50,7 @@ const useModelRegistryAPIState = (
       createModelTransferJob: createModelTransferJob(path, queryParameters),
       updateModelTransferJob: updateModelTransferJob(path, queryParameters),
       deleteModelTransferJob: deleteModelTransferJob(path, queryParameters),
+      getModelTransferJobEvents: getModelTransferJobEvents(path, queryParameters),
     }),
     [queryParameters],
   );
