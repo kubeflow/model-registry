@@ -137,6 +137,18 @@ func setupMock(mockK8sClient kubernetes.Interface, ctx context.Context) error {
 	if err != nil {
 		return err
 	}
+	err = createService(mockK8sClient, ctx, "model-registry-bella-prod", "bella-namespace", "Bella Production Registry", "Production model registry for Bella team", "10.0.0.20", "model-registry")
+	if err != nil {
+		return err
+	}
+	err = createService(mockK8sClient, ctx, "model-registry-bella-staging", "bella-namespace", "Bella Staging Registry", "Staging model registry for Bella team", "10.0.0.21", "model-registry")
+	if err != nil {
+		return err
+	}
+	err = createService(mockK8sClient, ctx, "model-registry-bella-dev", "bella-namespace", "Bella Dev Registry", "Development model registry for Bella team", "10.0.0.22", "model-registry")
+	if err != nil {
+		return err
+	}
 	err = createService(mockK8sClient, ctx, "non-model-registry", "kubeflow", "Not a Model Registry", "Not a Model Registry Bella description", "10.0.0.14", "")
 	if err != nil {
 		return err
