@@ -1,0 +1,63 @@
+import type { McpCatalogFilterOptionsList } from '~/app/pages/mcpCatalog/types/mcpCatalogFilterOptions';
+
+export const mockMcpCatalogFilterOptions: McpCatalogFilterOptionsList = {
+  filters: {
+    deploymentMode: {
+      type: 'string',
+      values: ['Remote', 'Local'],
+    },
+    supportedTransports: {
+      type: 'string',
+      values: ['SSE', 'http-streaming'],
+    },
+    license: {
+      type: 'string',
+      values: ['MIT', 'Apache-2.0'],
+    },
+    labels: {
+      type: 'string',
+      values: [
+        'apm',
+        'automation',
+        'chatops',
+        'cluster-management',
+        'collaboration',
+        'crm',
+        'customer-support',
+        'database',
+        'development',
+        'dynatrace',
+        'git',
+        'github',
+        'healthcare',
+        'incident-management',
+        'infrastructure',
+        'integration',
+        'itsm',
+        'kubectl',
+        'kubernetes',
+        'logs',
+        'monitoring',
+        'observability',
+        'postgresql',
+        'repositories',
+        'saas',
+        'salesforce',
+        'security',
+        'servicenow',
+        'slack',
+        'soql',
+        'splunk',
+        'sql',
+        'tickets',
+        'vulnerability',
+        'workflows',
+        'zapier',
+      ],
+    },
+    securityVerification: {
+      type: 'string',
+      values: ['Verified source', 'Secure endpoint', 'SAST', 'Read only tools'],
+    },
+  },
+};
