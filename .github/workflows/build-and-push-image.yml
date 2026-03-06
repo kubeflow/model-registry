@@ -22,8 +22,7 @@ env:
   DOCKER_PWD: ${{ secrets.GITHUB_TOKEN }}
   PLATFORMS: linux/arm64,linux/amd64
 
-permissions: # set contents: read at top-level, per OpenSSF ScoreCard rule TokenPermissionsID
-  contents: read
+permissions: read-all
 
 jobs:
   prepare:
