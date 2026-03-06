@@ -19,7 +19,6 @@ const RegistrationDestinationLocationFields = <D extends RegistrationCommonFormD
     destinationOciUsername,
     destinationOciPassword,
     destinationOciUri,
-    destinationOciEmail,
   } = formData;
 
   // OCI fields
@@ -66,16 +65,6 @@ const RegistrationDestinationLocationFields = <D extends RegistrationCommonFormD
     />
   );
 
-  const ociEmailInput = (
-    <TextInput
-      type="email"
-      id="destination-oci-email"
-      name="destination-oci-email"
-      value={destinationOciEmail}
-      onChange={(_e, value) => setData('destinationOciEmail', value)}
-    />
-  );
-
   return (
     <>
       <FormGroup label="Registry" isRequired fieldId="destination-oci-registry">
@@ -86,9 +75,6 @@ const RegistrationDestinationLocationFields = <D extends RegistrationCommonFormD
       </FormGroup>
       <FormGroup label="Username" isRequired fieldId="destination-oci-username">
         <FormFieldset component={ociUsernameInput} field="Username" />
-      </FormGroup>
-      <FormGroup label="Email" fieldId="destination-oci-email">
-        <FormFieldset component={ociEmailInput} field="Email" />
       </FormGroup>
       <FormGroup label="Password" isRequired fieldId="destination-oci-password">
         <FormFieldset component={ociPasswordInput} field="Password" />

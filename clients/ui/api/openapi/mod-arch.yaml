@@ -2938,9 +2938,6 @@ components:
         password:
           type: string
           description: OCI registry password (request only, never returned)
-        email:
-          type: string
-          description: OCI registry email (request only, never returned)
         secretName:
           type: string
           description: Name of created K8s secret (response only)

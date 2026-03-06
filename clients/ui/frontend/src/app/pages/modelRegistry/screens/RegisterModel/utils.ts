@@ -263,7 +263,6 @@ export const buildModelTransferJobPayload = (
     registry: formData.destinationOciRegistry || undefined,
     username: formData.destinationOciUsername,
     password: formData.destinationOciPassword,
-    email: formData.destinationOciEmail || undefined,
   };
 
   // RegisterModelFormData has modelName (user-provided for new model).
