@@ -28,7 +28,7 @@ var _ = Describe("TestUserHandler", func() {
 			By("creating the test app")
 			testApp = App{
 				kubernetesClientFactory: kubernetesMockedStaticClientFactory,
-				repositories:            repositories.NewRepositories(mockMRClient, mockModelCatalogClient),
+				repositories:            repositories.NewRepositories(mockMRClient, mockModelCatalogClient, false, ""),
 				logger:                  logger,
 			}
 		})
