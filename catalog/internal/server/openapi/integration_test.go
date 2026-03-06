@@ -416,7 +416,7 @@ func setupTestServer(t *testing.T, provider catalog.APIProvider) (chi.Router, op
 	sourceLabels := catalog.NewLabelCollection()
 
 	// Create service and controller
-	service := openapi.NewModelCatalogServiceAPIService(provider, sources, sourceLabels, nil)
+	service := openapi.NewModelCatalogServiceAPIService(provider, sources, nil, sourceLabels, nil)
 	controller := openapi.NewModelCatalogServiceAPIController(service)
 
 	// Create router with proper routing
