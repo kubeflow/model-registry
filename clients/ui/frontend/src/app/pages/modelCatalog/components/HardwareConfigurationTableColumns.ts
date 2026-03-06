@@ -24,6 +24,14 @@ This prevents word wrapping into 3 lines (e.g., keeps "TTFT Latency" together in
 */
 const NBSP = '\u00A0';
 
+const TPS_INFO = {
+  popover:
+    'Throughput measured in tokens per second (tok/s). Higher values indicate faster token generation.',
+  popoverProps: {
+    position: 'left' as const,
+  },
+};
+
 export const hardwareConfigColumns: HardwareConfigColumn[] = [
   {
     field: PerformancePropertyKey.HARDWARE_CONFIGURATION,
@@ -46,7 +54,7 @@ export const hardwareConfigColumns: HardwareConfigColumn[] = [
         getStringValue(b.customProperties, PerformancePropertyKey.HARDWARE_CONFIGURATION),
       ),
     isStickyColumn: true,
-    stickyMinWidth: '162px',
+    stickyMinWidth: '200px',
     stickyLeftOffset: '0',
     modifier: 'wrap',
   },
@@ -59,7 +67,7 @@ export const hardwareConfigColumns: HardwareConfigColumn[] = [
     ): number => getWorkloadType(a).localeCompare(getWorkloadType(b)),
     isStickyColumn: true,
     stickyMinWidth: '132px',
-    stickyLeftOffset: '162px',
+    stickyLeftOffset: '200px',
     modifier: 'wrap',
     hasRightBorder: true,
   },
@@ -255,6 +263,7 @@ export const hardwareConfigColumns: HardwareConfigColumn[] = [
   {
     field: 'tps_mean',
     label: `TPS${NBSP}Mean`,
+    info: TPS_INFO,
     sortable: (
       a: CatalogPerformanceMetricsArtifact,
       b: CatalogPerformanceMetricsArtifact,
@@ -267,6 +276,7 @@ export const hardwareConfigColumns: HardwareConfigColumn[] = [
   {
     field: 'tps_p90',
     label: `TPS${NBSP}P90`,
+    info: TPS_INFO,
     sortable: (
       a: CatalogPerformanceMetricsArtifact,
       b: CatalogPerformanceMetricsArtifact,
@@ -278,6 +288,7 @@ export const hardwareConfigColumns: HardwareConfigColumn[] = [
   {
     field: 'tps_p95',
     label: `TPS${NBSP}P95`,
+    info: TPS_INFO,
     sortable: (
       a: CatalogPerformanceMetricsArtifact,
       b: CatalogPerformanceMetricsArtifact,
@@ -289,6 +300,7 @@ export const hardwareConfigColumns: HardwareConfigColumn[] = [
   {
     field: 'tps_p99',
     label: `TPS${NBSP}P99`,
+    info: TPS_INFO,
     sortable: (
       a: CatalogPerformanceMetricsArtifact,
       b: CatalogPerformanceMetricsArtifact,
