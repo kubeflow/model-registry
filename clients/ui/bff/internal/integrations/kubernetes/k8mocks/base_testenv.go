@@ -13,6 +13,7 @@ import (
 	k8s "github.com/kubeflow/model-registry/ui/bff/internal/integrations/kubernetes"
 	batchv1 "k8s.io/api/batch/v1"
 	corev1 "k8s.io/api/core/v1"
+	discoveryv1 "k8s.io/api/discovery/v1"
 	rbacv1 "k8s.io/api/rbac/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
@@ -122,6 +123,10 @@ func setupMock(mockK8sClient kubernetes.Interface, ctx context.Context) error {
 	}
 
 	err = createService(mockK8sClient, ctx, "model-registry", "kubeflow", "Model Registry", "Model Registry Description", "10.0.0.10", "model-registry")
+	if err != nil {
+		return err
+	}
+	err = createEndpointSlice(mockK8sClient, ctx, "kubeflow", "model-registry", true)
 	if err != nil {
 		return err
 	}
@@ -703,6 +708,31 @@ func createService(k8sClient kubernetes.Interface, ctx context.Context, name str
 	}
 
 	return nil
+}
+
+// createEndpointSlice creates an EndpointSlice for a service so that ServiceHasReadyEndpoints returns hasReady.
+func createEndpointSlice(k8sClient kubernetes.Interface, ctx context.Context, namespace, serviceName string, hasReady bool) error {
+	ready := hasReady
+	ep := &discoveryv1.EndpointSlice{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      serviceName + "-slice",
+			Namespace: namespace,
+			Labels: map[string]string{
+				k8s.EndpointSliceServiceNameLabel: serviceName,
+			},
+		},
+		AddressType: discoveryv1.AddressTypeIPv4,
+		Endpoints: []discoveryv1.Endpoint{
+			{
+				Addresses: []string{"10.0.0.1"},
+				Conditions: discoveryv1.EndpointConditions{
+					Ready: &ready,
+				},
+			},
+		},
+	}
+	_, err := k8sClient.DiscoveryV1().EndpointSlices(namespace).Create(ctx, ep, metav1.CreateOptions{})
+	return err
 }
 
 func createModelCatalogService(k8sClient kubernetes.Interface, ctx context.Context, name, namespace, clusterIP string) error {
