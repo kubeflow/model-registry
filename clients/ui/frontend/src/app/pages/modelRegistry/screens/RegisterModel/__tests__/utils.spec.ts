@@ -60,7 +60,7 @@ describe('RegisterModel utils', () => {
       destinationOciUsername: '',
       destinationOciPassword: '',
       destinationOciUri: 'quay.io/org/model:v1',
-      destinationOciEmail: '',
+
       jobName: 'test-job',
       jobResourceName: 'test-job-resource',
       versionCustomProperties: {},

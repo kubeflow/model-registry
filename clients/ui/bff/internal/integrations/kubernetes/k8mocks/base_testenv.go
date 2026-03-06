@@ -814,10 +814,9 @@ func createModelTransferJob(k8sClient kubernetes.Interface, ctx context.Context,
 		},
 		Type: corev1.SecretTypeDockerConfigJson,
 		StringData: map[string]string{
-			".dockerconfigjson": `{"auths":{"quay.io":{"auth":"bW9jazptb2Nr","email":"test@example.com"}}}`,
+			".dockerconfigjson": `{"auths":{"quay.io":{"auth":"bW9jazptb2Nr"}}}`,
 			"username":          "",
 			"password":          "",
-			"email":             "",
 			"registry":          "",
 		},
 	}

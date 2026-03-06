@@ -289,7 +289,6 @@ export type ModelTransferJobOCISource = {
   uri: string;
   username: string;
   password: string;
-  email?: string;
   registry?: string;
 };
 
@@ -316,7 +315,6 @@ export type ModelTransferJobOCIDestination = {
   uri: string;
   username: string;
   password: string;
-  email?: string;
   registry?: string;
 };
 
