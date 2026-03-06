@@ -10,6 +10,8 @@ To run these tests:
 
 import random
 
+import pytest
+
 from model_catalog import CatalogAPIClient
 
 
@@ -21,24 +23,34 @@ class TestMCPServerBasics:
         api_client: CatalogAPIClient,
         suppress_ssl_warnings: None,
         test_mcp_catalog_data: dict,
+        kind_cluster: bool,
     ):
         """Test that all expected MCP servers are loaded from YAML."""
         response = api_client.get_mcp_servers()
-        actual_names = {s["name"] for s in response.get("items", [])}
-        expected_names = {s["name"] for s in test_mcp_catalog_data["mcp_servers"]}
-        assert actual_names == expected_names
+        assert response["items"], "No MCP servers found"
+        actual_names = {s["name"] for s in response["items"]}
+
+        if kind_cluster:
+            expected_names = {s["name"] for s in test_mcp_catalog_data["mcp_servers"]}
+            assert actual_names == expected_names
 
     def test_mcp_server_providers(
         self,
         api_client: CatalogAPIClient,
         suppress_ssl_warnings: None,
         test_mcp_catalog_data: dict,
+        kind_cluster: bool,
     ):
         """Test that MCP server providers match expected values."""
         response = api_client.get_mcp_servers()
-        actual_providers = {s["name"]: s["provider"] for s in response["items"]}
-        expected_providers = {s["name"]: s["provider"] for s in test_mcp_catalog_data["mcp_servers"]}
-        assert actual_providers == expected_providers
+        assert response["items"], "No MCP servers found"
+        for server in response["items"]:
+            assert "provider" in server
+
+        if kind_cluster:
+            actual_providers = {s["name"]: s["provider"] for s in response["items"]}
+            expected_providers = {s["name"]: s["provider"] for s in test_mcp_catalog_data["mcp_servers"]}
+            assert actual_providers == expected_providers
 
     def test_mcp_server_get_by_id(
         self,
@@ -47,7 +59,7 @@ class TestMCPServerBasics:
     ):
         """Test that an MCP server can be retrieved by ID."""
         response = api_client.get_mcp_servers()
-        assert response.get("items"), "No MCP servers found"
+        assert response["items"], "No MCP servers found"
         server = random.choice(response["items"])
         single = api_client.get_mcp_server(server_id=server["id"])
         assert single["name"] == server["name"]
@@ -71,35 +83,50 @@ class TestMCPServerTools:
         api_client: CatalogAPIClient,
         suppress_ssl_warnings: None,
         test_mcp_catalog_data: dict,
+        kind_cluster: bool,
     ):
         """Test that toolCount reflects actual tools even without includeTools."""
         response = api_client.get_mcp_servers()
-        expected_counts = {
-            s["name"]: len(s.get("tools", [])) for s in test_mcp_catalog_data["mcp_servers"]
-        }
-        for server in response.get("items", []):
-            name = server["name"]
-            if name in expected_counts:
-                assert server.get("toolCount", 0) == expected_counts[name], (
-                    f"Server '{name}': expected toolCount {expected_counts[name]}, got {server.get('toolCount', 0)}"
-                )
+        assert response["items"], "No MCP servers found"
+        for server in response["items"]:
+            assert isinstance(server.get("toolCount", 0), int), (
+                f"Server '{server['name']}': toolCount should be an integer"
+            )
+
+        if kind_cluster:
+            expected_counts = {
+                s["name"]: len(s.get("tools", [])) for s in test_mcp_catalog_data["mcp_servers"]
+            }
+            for server in response["items"]:
+                name = server["name"]
+                if name in expected_counts:
+                    assert server.get("toolCount", 0) == expected_counts[name], (
+                        f"Server '{name}': expected toolCount {expected_counts[name]}, got {server.get('toolCount', 0)}"
+                    )
 
     def test_tools_included_when_requested(
         self,
         api_client: CatalogAPIClient,
         suppress_ssl_warnings: None,
         test_mcp_catalog_data: dict,
+        kind_cluster: bool,
     ):
         """Test that tools are returned when include_tools=True."""
         response = api_client.get_mcp_servers(include_tools=True)
-        expected_tools = {
-            s["name"]: [t["name"] for t in s.get("tools", [])] for s in test_mcp_catalog_data["mcp_servers"]
-        }
-        for server in response.get("items", []):
-            name = server["name"]
-            if name in expected_tools:
-                actual_tool_names = [t["name"] for t in server.get("tools", [])]
-                assert sorted(actual_tool_names) == sorted(expected_tools[name])
+        assert response["items"], "No MCP servers found"
+        for server in response["items"]:
+            assert "tools" in server, f"Server '{server['name']}' missing tools when includeTools=True"
+            assert isinstance(server["tools"], list)
+
+        if kind_cluster:
+            expected_tools = {
+                s["name"]: [t["name"] for t in s.get("tools", [])] for s in test_mcp_catalog_data["mcp_servers"]
+            }
+            for server in response["items"]:
+                name = server["name"]
+                if name in expected_tools:
+                    actual_tool_names = [t["name"] for t in server.get("tools", [])]
+                    assert sorted(actual_tool_names) == sorted(expected_tools[name])
 
 class TestMCPServerCustomProperties:
     """Test suite for MCP server custom properties."""
@@ -109,14 +136,20 @@ class TestMCPServerCustomProperties:
         api_client: CatalogAPIClient,
         suppress_ssl_warnings: None,
         test_mcp_catalog_data: dict,
+        kind_cluster: bool,
     ):
         """Test that customProperties are correctly loaded from YAML."""
         response = api_client.get_mcp_servers()
-        servers_by_name = {s["name"]: s for s in response.get("items", [])}
+        assert response["items"], "No MCP servers found"
+        for server in response["items"]:
+            if server.get("customProperties"):
+                assert isinstance(server["customProperties"], dict)
 
-        for yaml_server in test_mcp_catalog_data["mcp_servers"]:
-            name = yaml_server["name"]
-            expected_props = yaml_server.get("customProperties")
-            if expected_props:
-                assert name in servers_by_name
-                assert servers_by_name[name].get("customProperties") == expected_props
+        if kind_cluster:
+            servers_by_name = {s["name"]: s for s in response["items"]}
+            for yaml_server in test_mcp_catalog_data["mcp_servers"]:
+                name = yaml_server["name"]
+                expected_props = yaml_server.get("customProperties")
+                if expected_props:
+                    assert name in servers_by_name
+                    assert servers_by_name[name].get("customProperties") == expected_props
