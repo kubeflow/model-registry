@@ -7,6 +7,7 @@ The generated client is in catalog_openapi/ (committed to git).
 To regenerate after API changes: cd catalog/clients/python && make generate
 """
 
+import json
 import logging
 from collections.abc import Callable
 from functools import wraps
@@ -278,10 +279,16 @@ class CatalogAPIClient:
         )
 
     @_handle_api_errors
-    def get_sources(self, page_size: int | None = None, next_page_token: str | None = None) -> dict[str, Any]:
+    def get_sources(
+        self,
+        asset_type: str | None = None,
+        page_size: int | None = None,
+        next_page_token: str | None = None,
+    ) -> dict[str, Any]:
         """Get catalog sources.
 
         Args:
+            asset_type: Filter by asset type ('models' or 'mcp_servers').
             page_size: Number of items per page.
             next_page_token: Token for pagination.
 
@@ -289,8 +296,36 @@ class CatalogAPIClient:
             Dict with sources list and pagination info.
         """
         page_size_str = str(page_size) if page_size is not None else None
-        response = self.catalog_api.find_sources(page_size=page_size_str, next_page_token=next_page_token)
-        return response.to_dict()
+
+        # Build query params — always use the manual path so assetType and other
+        # new fields are preserved in the raw JSON (the generated Pydantic model
+        # does not yet include assetType and would silently drop it).
+        query_params: list[tuple[str, str]] = []
+        if asset_type is not None:
+            query_params.append(("assetType", asset_type))
+        if page_size_str is not None:
+            query_params.append(("pageSize", page_size_str))
+        if next_page_token is not None:
+            query_params.append(("nextPageToken", next_page_token))
+
+        _param = self.api_client.param_serialize(
+            method="GET",
+            resource_path="/api/model_catalog/v1alpha1/sources",
+            query_params=query_params,
+            header_params={"Accept": "application/json"},
+            auth_settings=["Bearer"],
+        )
+        response_data = self.api_client.call_api(*_param)
+        response_data.read()
+
+        # Let the generated client handle error status codes (raises ApiException).
+        self.api_client.response_deserialize(
+            response_data=response_data,
+            response_types_map={"200": "CatalogSourceList", "400": "Error", "401": "Error", "500": "Error"},
+        )
+
+        # Return the raw JSON to preserve fields not yet in the Pydantic model.
+        return json.loads(response_data.data)
 
     @_handle_api_errors
     def get_source_by_id(self, source_id: str) -> dict[str, Any]:

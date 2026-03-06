@@ -374,11 +374,11 @@ func (m *ModelCatalogServiceAPIService) FindSources(ctx context.Context, name st
 		return ErrorResponse(http.StatusBadRequest, err), err
 	}
 
-	items := make([]model.CatalogSource, 0, len(sources))
-
 	if assetType == "" {
 		assetType = model.CATALOGASSETTYPE_MODELS
 	}
+
+	items := make([]model.CatalogSource, 0, len(sources))
 
 	name = strings.ToLower(name)
 
@@ -387,7 +387,11 @@ func (m *ModelCatalogServiceAPIService) FindSources(ctx context.Context, name st
 			continue
 		}
 
-		if v.HasAssetType() && v.GetAssetType() != assetType {
+		sourceAssetType := v.GetAssetType()
+		if !v.HasAssetType() {
+			sourceAssetType = model.CATALOGASSETTYPE_MODELS
+		}
+		if sourceAssetType != assetType {
 			continue
 		}
 
