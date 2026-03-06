@@ -120,6 +120,28 @@ class RegisterAndStoreFields {
     return cy.findByTestId('namespace-registry-access-alert');
   }
 
+  findNamespaceLoadError() {
+    return cy.findByTestId('namespace-load-error');
+  }
+
+  shouldShowNamespaceLoadError() {
+    this.findNamespaceLoadError()
+      .should('be.visible')
+      .and('contain.text', 'Failed to load namespaces');
+    return this;
+  }
+
+  findNamespaceAccessCheckError() {
+    return cy.findByTestId('namespace-registry-access-error');
+  }
+
+  shouldShowNamespaceAccessCheckError() {
+    this.findNamespaceAccessCheckError()
+      .should('be.visible')
+      .and('contain.text', 'Could not verify namespace access');
+    return this;
+  }
+
   shouldShowNamespaceLabel() {
     this.findNamespaceFormGroup().find('label').should('contain.text', 'Namespace');
     return this;
