@@ -835,9 +835,9 @@ func buildModelMetadataConfigMap(generateNamePrefix, namespace string, payload m
 		data["ModelArtifact.id"] = payload.ModelArtifactId
 	}
 
-	data["ModelArtifact.model_source_kind"] = "Job"
+	data["ModelArtifact.model_source_kind"] = "transfer_job"
 	data["ModelArtifact.model_source_class"] = "async-upload"
-	data["ModelArtifact.model_source_group"] = "batch/v1"
+	data["ModelArtifact.model_source_group"] = namespace
 	data["ModelArtifact.model_source_name"] = jobName
 
 	return &corev1.ConfigMap{
