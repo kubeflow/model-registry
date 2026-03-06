@@ -13,8 +13,7 @@ on:
       - '!**.txt'
       - '.github/workflows/build-and-push-async-upload.yml' # self
 
-permissions: # set contents: read at top-level, per OpenSSF ScoreCard rule TokenPermissionsID
-  contents: read
+permissions: read-all
 
 env:
   IMG_REGISTRY: quay.io

@@ -1627,11 +1627,12 @@ version = "4.24.0"
 description = "An implementation of JSON Schema validation for Python"
 optional = false
 python-versions = ">=3.9"
-groups = ["dev"]
+groups = ["main", "dev"]
 files = [
     {file = "jsonschema-4.24.0-py3-none-any.whl", hash = "sha256:a462455f19f5faf404a7902952b6f0e3ce868f3ee09a359b05eca6673bd8412d"},
     {file = "jsonschema-4.24.0.tar.gz", hash = "sha256:0b4e8069eb12aedfa881333004bccaec24ecef5a8a6a4b6df142b2cc9599d196"},
 ]
+markers = {main = "extra == \"signing\""}
 
 [package.dependencies]
 attrs = ">=22.2.0"
@@ -1699,11 +1700,12 @@ version = "2025.4.1"
 description = "The JSON Schema meta-schemas and vocabularies, exposed as a Registry"
 optional = false
 python-versions = ">=3.9"
-groups = ["dev"]
+groups = ["main", "dev"]
 files = [
     {file = "jsonschema_specifications-2025.4.1-py3-none-any.whl", hash = "sha256:4653bffbd6584f7de83a67e0d620ef16900b390ddc7939d56684d6c81e33f1af"},
     {file = "jsonschema_specifications-2025.4.1.tar.gz", hash = "sha256:630159c9f4dbea161a6a2205c3011cc4f18ff381b189fff48bb39b9bf26ae608"},
 ]
+markers = {main = "extra == \"signing\""}
 
 [package.dependencies]
 referencing = ">=0.31.0"
@@ -2267,6 +2269,29 @@ pydantic = ">=2.10.3,<3.0.0"
 
 [package.extras]
 modelcar-base-image = ["modelcar-base-image (>=0.1.0,<0.2.0)"]
+
+[[package]]
+name = "oras"
+version = "0.2.41"
+description = "OCI Registry as Storage Python SDK"
+optional = true
+python-versions = "*"
+groups = ["main"]
+markers = "extra == \"signing\""
+files = [
+    {file = "oras-0.2.41-py3-none-any.whl", hash = "sha256:7346d2286cb0bf6f503e42929ed7635078af25d5b0cfc02e03d2c7304cc935b3"},
+    {file = "oras-0.2.41.tar.gz", hash = "sha256:8d45ae5482f447affc04bc5660cf464a749e3d4d10b31d183d28b647dfbf1e65"},
+]
+
+[package.dependencies]
+jsonschema = "*"
+requests = "*"
+
+[package.extras]
+all = ["boto3 (>=1.33.0)", "docker (==5.0.1)", "jsonschema", "pytest (>=4.6.2)", "requests"]
+docker = ["docker (==5.0.1)"]
+ecr = ["boto3 (>=1.33.0)"]
+tests = ["pytest (>=4.6.2)"]
 
 [[package]]
 name = "packaging"
@@ -3003,11 +3028,12 @@ version = "0.36.2"
 description = "JSON Referencing + Python"
 optional = false
 python-versions = ">=3.9"
-groups = ["dev"]
+groups = ["main", "dev"]
 files = [
     {file = "referencing-0.36.2-py3-none-any.whl", hash = "sha256:e8699adbbf8b5c7de96d8ffa0eb5c158b3beafce084968e2ea8bb08c6794dcd0"},
     {file = "referencing-0.36.2.tar.gz", hash = "sha256:df2e89862cd09deabbdba16944cc3f10feb6b3e6f18e902f7cc25609a34775aa"},
 ]
+markers = {main = "extra == \"signing\""}
 
 [package.dependencies]
 attrs = ">=22.2.0"
@@ -3116,15 +3142,15 @@ test = ["coverage", "pytest", "pytest-cov"]
 
 [[package]]
 name = "rh-model-signing"
-version = "0.0.3"
+version = "0.1.0"
 description = "A tool for signing and verifying ML models (Red Hat Tech Preview)"
 optional = true
 python-versions = ">=3.10"
 groups = ["main"]
 markers = "extra == \"signing\""
 files = [
-    {file = "rh_model_signing-0.0.3-py3-none-any.whl", hash = "sha256:50a4827483187e9b31e9e409a50830b08ba62caa3b13041fc534f83e8822f434"},
-    {file = "rh_model_signing-0.0.3.tar.gz", hash = "sha256:244327f6a6857ff8ed2fd19bab7d511d727a90dfad720467392daa1123a75545"},
+    {file = "rh_model_signing-0.1.0-py3-none-any.whl", hash = "sha256:004d1d9d07f135156b7f6865fc75a70e78b2fb58841127ab8fbd645a2e426f6a"},
+    {file = "rh_model_signing-0.1.0.tar.gz", hash = "sha256:9c34a81e901cd1a00cbfeb283d6c1c10f589272b9cf94b493e8a3b5e905e478e"},
 ]
 
 [package.dependencies]
@@ -3133,7 +3159,8 @@ blake3 = "*"
 click = "*"
 cryptography = "*"
 in-toto-attestation = "*"
-sigstore = ">=4.0"
+oras = ">=0.2.30"
+sigstore = ">=4.2"
 sigstore-models = ">=0.0.5"
 typing-extensions = "*"
 
@@ -3168,7 +3195,7 @@ version = "0.26.0"
 description = "Python bindings to Rust's persistent data structures (rpds)"
 optional = false
 python-versions = ">=3.9"
-groups = ["dev"]
+groups = ["main", "dev"]
 files = [
     {file = "rpds_py-0.26.0-cp310-cp310-macosx_10_12_x86_64.whl", hash = "sha256:4c70c70f9169692b36307a95f3d8c0a9fcd79f7b4a383aad5eaa0e9718b79b37"},
     {file = "rpds_py-0.26.0-cp310-cp310-macosx_11_0_arm64.whl", hash = "sha256:777c62479d12395bfb932944e61e915741e364c843afc3196b694db3d669fcd0"},
@@ -3315,6 +3342,7 @@ files = [
     {file = "rpds_py-0.26.0-pp39-pypy39_pp73-win_amd64.whl", hash = "sha256:69a607203441e07e9a8a529cff1d5b73f6a160f22db1097211e6212a68567d11"},
     {file = "rpds_py-0.26.0.tar.gz", hash = "sha256:20dae58a859b0906f0685642e591056f1e787f3a8b39c8e8749a45dc7d26bdb0"},
 ]
+markers = {main = "extra == \"signing\""}
 
 [[package]]
 name = "ruff"
@@ -4411,4 +4439,4 @@ signing = ["platformdirs", "rh-model-signing"]
 [metadata]
 lock-version = "2.1"
 python-versions = ">= 3.10, < 4.0"
-content-hash = "b044c4b73c7a70ef03cc2890f8815b367d95fd2cb0b6f4791235a8ac9cf61dca"
+content-hash = "f5259d6dbf7802d597f052698a8919b21a21076f64ad47f36264564a22bb5e72"
