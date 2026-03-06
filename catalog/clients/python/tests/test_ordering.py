@@ -112,14 +112,14 @@ class TestNameOrdering:
         is static during test execution. In production, tokens could become stale if
         underlying data changes between requests.
         """
-        # Get first page
-        response = api_client.get_models(order_by="name", sort_order="ASC", page_size=5)
+        # Get first page (use page_size=2 so we get two distinct pages when 3+ models exist)
+        response = api_client.get_models(order_by="name", sort_order="ASC", page_size=2)
         _assert_response_valid(response)
 
         if response.get("nextPageToken"):
             # Get second page using token from first response
             response2 = api_client.get_models(
-                order_by="name", sort_order="ASC", page_size=5, next_page_token=response["nextPageToken"]
+                order_by="name", sort_order="ASC", page_size=2, next_page_token=response["nextPageToken"]
             )
             _assert_response_valid(response2)
 

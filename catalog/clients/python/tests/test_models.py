@@ -54,11 +54,13 @@ class TestModels:
 
     def test_pagination_next_page(self, api_client: CatalogAPIClient, suppress_ssl_warnings: None):
         """Test getting next page of models."""
-        response = api_client.get_models(page_size=3)
+        # Use page_size=2 so we get two distinct pages when 3+ models exist
+        # (with page_size >= total count, some backends still return nextPageToken and repeat page 1)
+        response = api_client.get_models(page_size=2)
 
         if response.get("nextPageToken"):
             response2 = api_client.get_models(
-                page_size=3,
+                page_size=2,
                 next_page_token=response["nextPageToken"],
             )
             assert "items" in response2
