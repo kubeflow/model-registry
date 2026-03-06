@@ -54,22 +54,20 @@ class TestModels:
 
     def test_pagination_next_page(self, api_client: CatalogAPIClient, suppress_ssl_warnings: None):
         """Test getting next page of models."""
-        # Use page_size=2 so we get two distinct pages when 3+ models exist
-        # (with page_size >= total count, some backends still return nextPageToken and repeat page 1)
-        response = api_client.get_models(page_size=2)
+        response = api_client.get_models(page_size=3)
 
         if response.get("nextPageToken"):
             response2 = api_client.get_models(
-                page_size=2,
+                page_size=3,
                 next_page_token=response["nextPageToken"],
             )
             assert "items" in response2
 
-            # Different pages should have different models (identify by source_id + name)
-            keys1 = {(m["source_id"], m["name"]) for m in response["items"]}
-            keys2 = {(m["source_id"], m["name"]) for m in response2["items"]}
+            # Different pages should have different models
+            names1 = {m["name"] for m in response["items"]}
+            names2 = {m["name"] for m in response2["items"]}
             # No overlap between pages
-            assert not keys1.intersection(keys2)
+            assert not names1.intersection(names2)
 
     def test_models_reference_valid_sources(self, api_client: CatalogAPIClient, suppress_ssl_warnings: None):
         """Test that all models reference valid enabled sources."""

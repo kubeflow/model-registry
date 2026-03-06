@@ -112,28 +112,26 @@ class TestNameOrdering:
         is static during test execution. In production, tokens could become stale if
         underlying data changes between requests.
         """
-        # Get first page (use page_size=2 so we get two distinct pages when 3+ models exist)
-        response = api_client.get_models(order_by="name", sort_order="ASC", page_size=2)
+        # Get first page
+        response = api_client.get_models(order_by="name", sort_order="ASC", page_size=5)
         _assert_response_valid(response)
 
         if response.get("nextPageToken"):
             # Get second page using token from first response
             response2 = api_client.get_models(
-                order_by="name", sort_order="ASC", page_size=2, next_page_token=response["nextPageToken"]
+                order_by="name", sort_order="ASC", page_size=5, next_page_token=response["nextPageToken"]
             )
             _assert_response_valid(response2)
 
             if response["items"] and response2["items"]:
-                # Backend orders by stored name (source_id:model_name). Reconstruct that key
-                # so we assert the same ordering the DB uses (API returns display name only).
-                def sort_key(m: dict[str, Any]) -> str:
-                    return f"{m.get('source_id', '')}:{m.get('name', '')}"
-
-                last_key_page1 = sort_key(response["items"][-1]).lower()
-                first_key_page2 = sort_key(response2["items"][0]).lower()
-                assert last_key_page1 <= first_key_page2, (
-                    f"Pagination order violated: last item of page 1 ('{last_key_page1}') "
-                    f"should come before or equal to first item of page 2 ('{first_key_page2}')"
+                # Last item of first page should come before or equal to first item of second page.
+                # Equality is valid when models have identical names (e.g., same model from
+                # different sources) since the secondary sort order is undefined.
+                last_name_page1 = response["items"][-1]["name"].lower()
+                first_name_page2 = response2["items"][0]["name"].lower()
+                assert last_name_page1 <= first_name_page2, (
+                    f"Pagination order violated: last item of page 1 ('{last_name_page1}') "
+                    f"should come before or equal to first item of page 2 ('{first_name_page2}')"
                 )
 
 
