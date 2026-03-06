@@ -299,7 +299,8 @@ func (app *App) GetModelTransferJobEventsHandler(w http.ResponseWriter, r *http.
 
 	jobNamespace := r.URL.Query().Get("jobNamespace")
 	if jobNamespace == "" {
-		jobNamespace = namespace
+		app.badRequestResponse(w, r, fmt.Errorf("jobNamespace query parameter is required"))
+		return
 	}
 
 	events, err := app.repositories.ModelRegistry.GetModelTransferJobEvents(ctx, client, jobNamespace, jobName, modelRegistryID)

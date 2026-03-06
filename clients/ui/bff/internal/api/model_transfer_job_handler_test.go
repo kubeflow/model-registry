@@ -1240,7 +1240,7 @@ var _ = Describe("TestModelTransferJob", func() {
 		It("GET events returns 404 when job belongs to different registry", func() {
 			_, rs, err := setupApiTest[Envelope[any, any]](
 				http.MethodGet,
-				"/api/v1/model_registry/other-registry/model_transfer_jobs/transfer-job-001/events?namespace=kubeflow",
+				"/api/v1/model_registry/other-registry/model_transfer_jobs/transfer-job-001/events?namespace=kubeflow&jobNamespace=kubeflow",
 				nil,
 				kubernetesMockedStaticClientFactory,
 				requestIdentity,
@@ -1258,6 +1258,19 @@ var _ = Describe("TestModelTransferJob", func() {
 				kubernetesMockedStaticClientFactory,
 				requestIdentity,
 				"",
+			)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(rs.StatusCode).To(Equal(http.StatusBadRequest))
+		})
+
+		It("GET events returns 400 when jobNamespace is missing", func() {
+			_, rs, err := setupApiTest[Envelope[any, any]](
+				http.MethodGet,
+				"/api/v1/model_registry/model-registry/model_transfer_jobs/transfer-job-001/events?namespace=kubeflow",
+				nil,
+				kubernetesMockedStaticClientFactory,
+				requestIdentity,
+				"kubeflow",
 			)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(rs.StatusCode).To(Equal(http.StatusBadRequest))

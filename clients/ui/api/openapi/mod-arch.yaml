@@ -3728,11 +3728,11 @@ components:
       required: true
     jobNamespace:
       name: jobNamespace
-      description: The namespace where the job's pods are running, used to fetch pod events. Falls back to the request namespace if not provided.
+      description: The namespace where the job's pods are running, used to fetch pod events.
       schema:
         type: string
       in: query
-      required: false
+      required: true
     serverId:
       name: server_id
       description: A unique identifier for an `McpServer`.
