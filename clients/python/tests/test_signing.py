@@ -1,7 +1,9 @@
 """Tests for signing utilities."""
 
+import logging
 import subprocess
 from pathlib import Path
+from unittest.mock import MagicMock
 
 import pytest
 
@@ -14,6 +16,7 @@ from model_registry.signing import (
     SigningError,
     VerificationError,
 )
+from model_registry.signing._logging import InstanceLevelAdapter, LogConfig
 
 TUF_URL = "https://tuf.example.com"
 ROOT_URL = f"{TUF_URL}/root.json"
@@ -175,11 +178,12 @@ class TestImageSigner:
         cmd = mock_runner.run.call_args[0][0]
         assert cmd == [
             "cosign", "sign", "-y",
-            "--identity-token", "test-token",
             "--fulcio-url", FULCIO_URL,
             "--rekor-url", REKOR_URL,
             "quay.io/example/image@sha256:abc123"
         ]
+        env = mock_runner.run.call_args[1]["env"]
+        assert env["COSIGN_IDENTITY_TOKEN"] == "test-token"  # noqa: S105
 
     def test_sign_with_instance_defaults(self, tmp_path, mocker):
         """Test sign uses instance defaults when method args not provided."""
@@ -198,7 +202,8 @@ class TestImageSigner:
         signer.sign(image="quay.io/example/image@sha256:abc123")
 
         cmd = mock_runner.run.call_args[0][0]
-        assert cmd.count("test-token") == 1
+        env = mock_runner.run.call_args[1]["env"]
+        assert env["COSIGN_IDENTITY_TOKEN"] == "test-token"  # noqa: S105
         assert cmd.count("https://default-fulcio.example.com") == 1
         assert cmd.count("https://default-rekor.example.com") == 1
 
@@ -225,9 +230,9 @@ class TestImageSigner:
         )
 
         mock_runner.run.assert_called_once()
-        cmd = mock_runner.run.call_args[0][0]
-        # File content should be read and passed
-        assert cmd.count("test-token") == 1
+        # Token should be passed via env var, not CLI arg
+        env = mock_runner.run.call_args[1]["env"]
+        assert env["COSIGN_IDENTITY_TOKEN"] == "test-token"  # noqa: S105
 
     def test_sign_raises_if_token_file_not_found(self, mocker):
         """Test sign raises FileNotFoundError if token file doesn't exist."""
@@ -961,3 +966,39 @@ class TestTokenUtils:
         # Missing parts
         result = k8s_sub_to_certificate_identity("system:serviceaccount:namespace")
         assert result == "system:serviceaccount:namespace"
+
+
+class TestLogging:
+    """Test signing logging configuration."""
+
+    def test_adapter_filters_below_instance_level(self):
+        """Adapter suppresses messages below instance_level."""
+        mock_logger = MagicMock()
+        adapter = InstanceLevelAdapter(mock_logger, LogConfig(
+            instance_name="Test",
+            level=logging.WARNING,
+        ))
+
+        adapter.info("should be suppressed")
+        mock_logger.log.assert_not_called()
+
+        adapter.warning("should pass")
+        assert mock_logger.log.called
+
+    def test_signing_logger_does_not_propagate(self):
+        """Signing logger is independent of root logger."""
+        signing_logger = logging.getLogger("model_registry.signing")
+        assert signing_logger.propagate is False
+
+    def test_set_log_level_adjusts_instance(self):
+        """Signer.set_log_level adjusts the instance log level."""
+        signer = Signer(log_level=logging.INFO)
+        assert signer.logger.log_config.level == logging.INFO
+
+        signer.set_log_level(logging.DEBUG)
+        assert signer.logger.log_config.level == logging.DEBUG
+
+    def test_signer_accepts_log_level(self):
+        """Signer constructor accepts log_level parameter."""
+        signer = Signer(log_level=logging.DEBUG)
+        assert signer.logger.log_config.level == logging.DEBUG

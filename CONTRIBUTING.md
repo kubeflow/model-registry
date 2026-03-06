@@ -225,8 +225,6 @@ RUN groupmod --gid $USER_GID -o $GROUPNAME \
 RUN pip install -U pip setuptools
 RUN pip install -U poetry
 RUN pip install -U "ml-metadata==1.14.0"
-RUN pip install -U robotframework
-RUN pip install -U robotframework-requests
 RUN pip install -U PyYAML
 ```
 

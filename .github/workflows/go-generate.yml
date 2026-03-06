@@ -4,13 +4,14 @@ on:
   schedule:
     - cron: "0 0 * * 1" # Monday 12 AM UTC
 
-permissions:
-  contents: write
-  pull-requests: write
+permissions: read-all
 
 jobs:
   go-generate:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
     steps:
       - uses: actions/checkout@v6
       - name: Setup Go

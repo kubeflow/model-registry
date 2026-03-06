@@ -13,6 +13,7 @@ import (
 	"strings"
 
 	"github.com/kubeflow/model-registry/catalog/internal/catalog"
+	"github.com/kubeflow/model-registry/catalog/internal/catalog/basecatalog"
 	"github.com/kubeflow/model-registry/catalog/internal/catalog/modelcatalog"
 	"github.com/kubeflow/model-registry/catalog/internal/db/models"
 	model "github.com/kubeflow/model-registry/catalog/pkg/openapi"
@@ -26,6 +27,7 @@ import (
 type ModelCatalogServiceAPIService struct {
 	provider         catalog.APIProvider
 	sources          *catalog.SourceCollection
+	mcpSources       *catalog.MCPSourceCollection
 	labels           *catalog.LabelCollection
 	sourceRepository models.CatalogSourceRepository
 }
@@ -352,9 +354,17 @@ func (m *ModelCatalogServiceAPIService) GetModel(ctx context.Context, sourceID, 
 }
 
 func (m *ModelCatalogServiceAPIService) FindSources(ctx context.Context, name string, assetType model.CatalogAssetType, strPageSize string, orderBy model.OrderByField, sortOrder model.SortOrder, nextPageToken string) (ImplResponse, error) {
+	// Collect all sources (model + MCP) as CatalogSource objects
 	sources := m.sources.All()
+
+	if m.mcpSources != nil {
+		for id, mcpSrc := range m.mcpSources.AllSources() {
+			sources[id] = mcpSourceToCatalogSource(mcpSrc)
+		}
+	}
+
 	if len(sources) > math.MaxInt32 {
-		err := errors.New("too many registered models")
+		err := errors.New("too many registered sources")
 		return ErrorResponse(http.StatusInternalServerError, err), err
 	}
 
@@ -374,11 +384,11 @@ func (m *ModelCatalogServiceAPIService) FindSources(ctx context.Context, name st
 		return ErrorResponse(http.StatusBadRequest, err), err
 	}
 
-	items := make([]model.CatalogSource, 0, len(sources))
-
 	if assetType == "" {
 		assetType = model.CATALOGASSETTYPE_MODELS
 	}
+
+	items := make([]model.CatalogSource, 0, len(sources))
 
 	name = strings.ToLower(name)
 
@@ -387,7 +397,11 @@ func (m *ModelCatalogServiceAPIService) FindSources(ctx context.Context, name st
 			continue
 		}
 
-		if v.HasAssetType() && v.GetAssetType() != assetType {
+		sourceAssetType := v.GetAssetType()
+		if !v.HasAssetType() {
+			sourceAssetType = model.CATALOGASSETTYPE_MODELS
+		}
+		if sourceAssetType != assetType {
 			continue
 		}
 
@@ -424,6 +438,20 @@ func (m *ModelCatalogServiceAPIService) FindSources(ctx context.Context, name st
 		NextPageToken: next.Token(),
 	}
 	return Response(http.StatusOK, res), nil
+}
+
+// mcpSourceToCatalogSource converts an internal MCPSource to the API CatalogSource type.
+func mcpSourceToCatalogSource(src basecatalog.MCPSource) model.CatalogSource {
+	cs := model.CatalogSource{
+		Id:      src.ID,
+		Name:    src.Name,
+		Enabled: src.Enabled,
+		Labels:  src.Labels,
+	}
+	if src.AssetType != nil {
+		cs.AssetType = src.AssetType
+	}
+	return cs
 }
 
 func (m *ModelCatalogServiceAPIService) PreviewCatalogSource(ctx context.Context, configParam *os.File, pageSizeParam string, nextPageTokenParam string, filterStatusParam string, catalogDataParam *os.File) (ImplResponse, error) {
@@ -642,10 +670,11 @@ func genLabelCmpFunc(orderByKey string, sortOrder model.SortOrder) func(sortable
 var _ ModelCatalogServiceAPIServicer = &ModelCatalogServiceAPIService{}
 
 // NewModelCatalogServiceAPIService creates a default api service
-func NewModelCatalogServiceAPIService(provider catalog.APIProvider, sources *catalog.SourceCollection, labels *catalog.LabelCollection, sourceRepository models.CatalogSourceRepository) ModelCatalogServiceAPIServicer {
+func NewModelCatalogServiceAPIService(provider catalog.APIProvider, sources *catalog.SourceCollection, mcpSources *catalog.MCPSourceCollection, labels *catalog.LabelCollection, sourceRepository models.CatalogSourceRepository) ModelCatalogServiceAPIServicer {
 	return &ModelCatalogServiceAPIService{
 		provider:         provider,
 		sources:          sources,
+		mcpSources:       mcpSources,
 		labels:           labels,
 		sourceRepository: sourceRepository,
 	}

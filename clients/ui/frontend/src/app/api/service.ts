@@ -21,6 +21,7 @@ import {
   RegisteredModel,
   ModelTransferJobList,
   ModelTransferJob,
+  ModelTransferJobEvent,
 } from '~/app/types';
 import { bumpRegisteredModelTimestamp } from '~/app/api/updateTimestamps';
 
@@ -260,13 +261,18 @@ export const createModelTransferJob =
 
 export const updateModelTransferJob =
   (hostPath: string, queryParams: Record<string, unknown> = {}) =>
-  (opts: APIOptions, jobId: string, data: Partial<ModelTransferJob>): Promise<ModelTransferJob> =>
+  (
+    opts: APIOptions,
+    jobId: string,
+    data: Partial<ModelTransferJob>,
+    additionalQueryParams?: Record<string, unknown>,
+  ): Promise<ModelTransferJob> =>
     handleRestFailures(
       restPATCH(
         hostPath,
         `/model_transfer_jobs/${jobId}`,
         assembleModArchBody(data),
-        queryParams,
+        { ...queryParams, ...additionalQueryParams },
         opts,
       ),
     ).then((response) => {
@@ -288,3 +294,23 @@ export const deleteModelTransferJob =
         opts,
       ),
     );
+
+export const getModelTransferJobEvents =
+  (hostPath: string, queryParams: Record<string, unknown> = {}) =>
+  (opts: APIOptions, jobName: string, jobNamespace: string): Promise<ModelTransferJobEvent[]> =>
+    handleRestFailures(
+      restGET(
+        hostPath,
+        `/model_transfer_jobs/${encodeURIComponent(jobName)}/events`,
+        { ...queryParams, jobNamespace },
+        opts,
+      ),
+    ).then((response) => {
+      if (
+        isModArchResponse<{ events: ModelTransferJobEvent[] }>(response) &&
+        Array.isArray(response.data.events)
+      ) {
+        return response.data.events;
+      }
+      throw new Error('Invalid response format');
+    });

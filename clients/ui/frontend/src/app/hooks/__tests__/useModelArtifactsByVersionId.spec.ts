@@ -45,6 +45,7 @@ const mockModelRegistryAPIs: ModelRegistryAPIs = {
   createModelTransferJob: jest.fn(),
   updateModelTransferJob: jest.fn(),
   deleteModelTransferJob: jest.fn(),
+  getModelTransferJobEvents: jest.fn(),
 };
 
 describe('useModelArtifactsByVersionId', () => {

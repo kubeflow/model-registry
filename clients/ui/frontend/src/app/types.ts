@@ -222,6 +222,7 @@ export type UpdateModelTransferJob = (
   opts: APIOptions,
   jobId: string,
   data: Partial<ModelTransferJob>,
+  additionalQueryParams?: Record<string, unknown>,
 ) => Promise<ModelTransferJob>;
 
 export type DeleteModelTransferJob = (opts: APIOptions, jobId: string) => Promise<void>;
@@ -243,6 +244,7 @@ export type ModelRegistryAPIs = {
   createModelTransferJob: CreateModelTransferJob;
   updateModelTransferJob: UpdateModelTransferJob;
   deleteModelTransferJob: DeleteModelTransferJob;
+  getModelTransferJobEvents: GetModelTransferJobEvents;
 };
 
 // Model Transfer Job Types
@@ -367,3 +369,9 @@ export type CreateModelTransferJobData = Omit<
 export type ModelTransferJobList = ModelRegistryListParams & { items: ModelTransferJob[] };
 
 export type GetListModelTransferJobs = (opts: APIOptions) => Promise<ModelTransferJobList>;
+
+export type GetModelTransferJobEvents = (
+  opts: APIOptions,
+  jobName: string,
+  jobNamespace: string,
+) => Promise<ModelTransferJobEvent[]>;

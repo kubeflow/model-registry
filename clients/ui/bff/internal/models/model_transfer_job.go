@@ -96,6 +96,11 @@ type ModelTransferJob struct {
 	Events                   []ModelTransferJobEvent      `json:"events"`
 }
 
+// ModelTransferJobEventsResponse represents the response for transfer job events
+type ModelTransferJobEventsResponse struct {
+	Events []ModelTransferJobEvent `json:"events"`
+}
+
 // ModelTransferJobList represents a list of model transfer jobs
 type ModelTransferJobList struct {
 	Items         []ModelTransferJob `json:"items"`
