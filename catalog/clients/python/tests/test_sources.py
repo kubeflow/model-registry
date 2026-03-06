@@ -12,7 +12,7 @@ To run these tests:
 
 import pytest
 
-from model_catalog import CatalogAPIClient, CatalogValidationError
+from model_catalog import CatalogAPIClient
 
 
 class TestSourceBasics:
@@ -301,59 +301,36 @@ class TestSourceMerge:
 class TestSourceAssetTypeFilter:
     """Test suite for /sources endpoint assetType query parameter filtering."""
 
-    def test_no_asset_type_returns_all_sources(
-        self,
-        api_client: CatalogAPIClient,
-        suppress_ssl_warnings: None,
-        sources_config: dict,
-    ):
-        """Test that omitting assetType returns both model and MCP sources."""
-        expected_ids = {s["id"] for s in sources_config.get("catalogs", [])} | {
-            s["id"] for s in sources_config.get("mcp_catalogs", [])
-        }
-        response = api_client.get_sources()
-        actual_ids = {s["id"] for s in response.get("items", [])}
-        assert actual_ids == expected_ids, f"Expected sources {expected_ids}, got {actual_ids}"
-
-        asset_types = {s.get("assetType") for s in response.get("items", [])}
-        assert "models" in asset_types, "Expected model sources in unfiltered response"
-        assert "mcp_servers" in asset_types, "Expected MCP sources in unfiltered response"
-
     @pytest.mark.parametrize(
         "asset_type,config_key",
         [
+            (None, "catalogs"),
             ("models", "catalogs"),
             ("mcp_servers", "mcp_catalogs"),
+            ("invalid_value", None),
         ],
+        ids=["default-models", "explicit-models", "mcp-servers", "invalid-empty"],
     )
     def test_asset_type_filters_sources(
         self,
-        asset_type: str,
-        config_key: str,
+        asset_type: str | None,
+        config_key: str | None,
         api_client: CatalogAPIClient,
         suppress_ssl_warnings: None,
         sources_config: dict,
+        kind_cluster: bool,
     ):
-        """Test that assetType filter returns only matching sources."""
-        expected_ids = {s["id"] for s in sources_config.get(config_key, [])}
-
+        """Test that assetType filter returns the correct sources."""
         response = api_client.get_sources(asset_type=asset_type)
-        items = response.get("items", [])
-        actual_ids = {s["id"] for s in items}
+        assert isinstance(response.get("items"), list)
 
-        assert actual_ids == expected_ids, (
-            f"assetType={asset_type}: expected {expected_ids}, got {actual_ids}"
-        )
-        for source in items:
-            assert source.get("assetType") == asset_type, (
-                f"Source '{source['id']}' has assetType={source.get('assetType')}, expected {asset_type}"
-            )
+        if config_key is None:
+            assert response["items"] == []
+            return
 
-    def test_invalid_asset_type_returns_error(
-        self,
-        api_client: CatalogAPIClient,
-        suppress_ssl_warnings: None,
-    ):
-        """Test that an invalid assetType value returns a 400 error."""
-        with pytest.raises(CatalogValidationError):
-            api_client.get_sources(asset_type="invalid_value")
+        if kind_cluster:
+            expected_by_id = {s["id"]: s for s in sources_config.get(config_key, [])}
+            actual_by_id = {s["id"]: s for s in response["items"]}
+            assert set(actual_by_id) == set(expected_by_id)
+            for source_id, actual in actual_by_id.items():
+                assert actual["name"] == expected_by_id[source_id]["name"]

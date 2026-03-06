@@ -13,6 +13,7 @@ import (
 	"strings"
 
 	"github.com/kubeflow/model-registry/catalog/internal/catalog"
+	"github.com/kubeflow/model-registry/catalog/internal/catalog/mcpcatalog"
 	"github.com/kubeflow/model-registry/catalog/internal/catalog/modelcatalog"
 	"github.com/kubeflow/model-registry/catalog/internal/db/models"
 	model "github.com/kubeflow/model-registry/catalog/pkg/openapi"
@@ -26,6 +27,7 @@ import (
 type ModelCatalogServiceAPIService struct {
 	provider         catalog.APIProvider
 	sources          *catalog.SourceCollection
+	mcpSources       *mcpcatalog.MCPSourceCollection
 	labels           *catalog.LabelCollection
 	sourceRepository models.CatalogSourceRepository
 }
@@ -413,6 +415,39 @@ func (m *ModelCatalogServiceAPIService) FindSources(ctx context.Context, name st
 		items = append(items, v)
 	}
 
+	// Include MCP sources when filtering by mcp_servers asset type
+	if assetType == model.CATALOGASSETTYPE_MCP_SERVERS && m.mcpSources != nil {
+		for _, mcpSrc := range m.mcpSources.AllSources() {
+			if !strings.Contains(strings.ToLower(mcpSrc.Name), name) {
+				continue
+			}
+
+			cs := model.CatalogSource{
+				Id:      mcpSrc.ID,
+				Name:    mcpSrc.Name,
+				Enabled: mcpSrc.Enabled,
+				Labels:  mcpSrc.Labels,
+			}
+
+			// Merge status from database if available
+			if statuses != nil {
+				if status, ok := statuses[mcpSrc.ID]; ok {
+					if status.Status != "" {
+						statusEnum := model.CatalogSourceStatus(status.Status)
+						cs.Status = &statusEnum
+					}
+					if status.Error != "" {
+						cs.Error = *model.NewNullableString(&status.Error)
+					} else {
+						cs.Error = *model.NewNullableString(nil)
+					}
+				}
+			}
+
+			items = append(items, cs)
+		}
+	}
+
 	cmpFunc, err := genCatalogCmpFunc(orderBy, sortOrder)
 	if err != nil {
 		return ErrorResponse(http.StatusBadRequest, err), err
@@ -646,10 +681,11 @@ func genLabelCmpFunc(orderByKey string, sortOrder model.SortOrder) func(sortable
 var _ ModelCatalogServiceAPIServicer = &ModelCatalogServiceAPIService{}
 
 // NewModelCatalogServiceAPIService creates a default api service
-func NewModelCatalogServiceAPIService(provider catalog.APIProvider, sources *catalog.SourceCollection, labels *catalog.LabelCollection, sourceRepository models.CatalogSourceRepository) ModelCatalogServiceAPIServicer {
+func NewModelCatalogServiceAPIService(provider catalog.APIProvider, sources *catalog.SourceCollection, mcpSources *mcpcatalog.MCPSourceCollection, labels *catalog.LabelCollection, sourceRepository models.CatalogSourceRepository) ModelCatalogServiceAPIServicer {
 	return &ModelCatalogServiceAPIService{
 		provider:         provider,
 		sources:          sources,
+		mcpSources:       mcpSources,
 		labels:           labels,
 		sourceRepository: sourceRepository,
 	}
