@@ -408,9 +408,9 @@ func TestDBCatalog(t *testing.T) {
 		_, err = catalogModelRepo.Save(model3)
 		require.NoError(t, err)
 
-		// Test: Basic name filtering with exact match
+		// Test: Basic name filtering with exact match (filter uses stored namespaced name: source_id:model_name)
 		params := ListModelsParams{
-			FilterQuery:   "name = \"TensorFlow-ResNet50\"",
+			FilterQuery:   "name = \"filterquery-test-source:TensorFlow-ResNet50\"",
 			SourceIDs:     sourceIDs,
 			PageSize:      10,
 			OrderBy:       model.ORDERBYFIELD_NAME,
@@ -437,8 +437,8 @@ func TestDBCatalog(t *testing.T) {
 		assert.Equal(t, int32(1), result.Size, "Should return 1 model with case-insensitive ILIKE match")
 		assert.Contains(t, result.Items[0].Name, "Tensor")
 
-		// Test: OR logic
-		params.FilterQuery = "name = \"TensorFlow-ResNet50\" OR name = \"PyTorch-BERT\""
+		// Test: OR logic (use namespaced names for exact match)
+		params.FilterQuery = "name = \"filterquery-test-source:TensorFlow-ResNet50\" OR name = \"filterquery-test-source:PyTorch-BERT\""
 		result, err = dbCatalog.ListModels(ctx, params)
 		require.NoError(t, err)
 		assert.Equal(t, int32(2), result.Size, "Should return 2 models with OR logic")
@@ -492,8 +492,8 @@ func TestDBCatalog(t *testing.T) {
 		require.NoError(t, err)
 		assert.Equal(t, int32(2), result.Size, "Should return 2 models with complex query")
 
-		// Test: No matches
-		params.FilterQuery = "name = \"NonExistentModel\""
+		// Test: No matches (non-existent name; stored names are namespaced)
+		params.FilterQuery = "name = \"filterquery-test-source:NonExistentModel\""
 		result, err = dbCatalog.ListModels(ctx, params)
 		require.NoError(t, err)
 		assert.Equal(t, int32(0), result.Size, "Should return 0 models for non-existent name")
