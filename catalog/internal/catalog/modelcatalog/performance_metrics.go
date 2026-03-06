@@ -241,35 +241,35 @@ func (pml *PerformanceMetricsLoader) Load(ctx context.Context, record ModelProvi
 		return nil
 	}
 
-	modelName := *attrs.Name
-	glog.Infof("Loading performance metrics for %s", modelName)
-
-	// Look up the model directory in the cache
-	dirPath, found := pml.modelDirCache[modelName]
+	// Namespaced name is source_id:model_name
+	namespacedName := *attrs.Name
+	// Resolve directory from cache: cache is keyed by metadata.ID (display name)
+	displayName := DisplayNameFromStoredName(namespacedName)
+	dirPath, found := pml.modelDirCache[displayName]
 	if !found {
-		glog.V(2).Infof("No performance metrics directory found for model %s", modelName)
+		glog.V(2).Infof("No performance metrics directory found for model %s", namespacedName)
 		return nil
 	}
 
-	glog.V(2).Infof("Found cached directory for model %s: %s", modelName, dirPath)
+	glog.V(2).Infof("Found cached directory for model %s: %s", namespacedName, dirPath)
 
-	// Process this specific model directory using the cached path
-	artifactsCreated, err := processModelDirectory(dirPath, pml.modelRepo, pml.metricsArtifactRepo, pml.modelTypeID, pml.metricsArtifactTypeID)
+	// Process this specific model directory using the cached path (use namespaced name for DB lookup)
+	artifactsCreated, err := processModelDirectory(dirPath, pml.modelRepo, pml.metricsArtifactRepo, pml.modelTypeID, pml.metricsArtifactTypeID, namespacedName)
 	if err != nil {
-		return fmt.Errorf("failed to process metrics for model %s: %v", modelName, err)
+		return fmt.Errorf("failed to process metrics for model %s: %v", namespacedName, err)
 	}
 
 	if artifactsCreated > 0 {
-		glog.Infof("Loaded %d performance metrics artifacts for model %s", artifactsCreated, modelName)
+		glog.Infof("Loaded %d performance metrics artifacts for model %s", artifactsCreated, namespacedName)
 	}
 
 	return nil
 }
 
 // processModelDirectory processes a single model directory containing metadata.json and metric files
-// Only processes metrics for models that already exist in the database
-// Returns the number of artifacts created and any error encountered
-func processModelDirectory(dirPath string, modelRepo dbmodels.CatalogModelRepository, metricsArtifactRepo dbmodels.CatalogMetricsArtifactRepository, modelTypeID int32, metricsArtifactTypeID int32) (int, error) {
+// Only processes metrics for models that already exist in the database.
+// namespacedModelName is the stored model name (sourceId:modelName) used for GetByName lookup.
+func processModelDirectory(dirPath string, modelRepo dbmodels.CatalogModelRepository, metricsArtifactRepo dbmodels.CatalogMetricsArtifactRepository, modelTypeID int32, metricsArtifactTypeID int32, namespacedModelName string) (int, error) {
 	// Read and parse metadata.json to extract the model ID
 	metadataPath := filepath.Join(dirPath, "metadata.json")
 	metadataData, err := os.ReadFile(metadataPath)
@@ -283,26 +283,26 @@ func processModelDirectory(dirPath string, modelRepo dbmodels.CatalogModelReposi
 		return 0, fmt.Errorf("failed to parse metadata file %s: %v", metadataPath, err)
 	}
 
-	// Check if the model already exists - only process metrics for existing models
-	existingModel, err := modelRepo.GetByName(metadata.ID)
+	// Check if the model already exists - only process metrics for existing models (look up by namespaced name)
+	existingModel, err := modelRepo.GetByName(namespacedModelName)
 	if err != nil {
 		return 0, fmt.Errorf("failed to check for existing model: %v", err)
 	}
 
 	// Skip processing if model doesn't exist
 	if existingModel == nil {
-		glog.V(2).Infof("Model %s does not exist in database, skipping metrics processing", metadata.ID)
+		glog.V(2).Infof("Model %s does not exist in database, skipping metrics processing", namespacedModelName)
 		return 0, nil
 	}
 
 	// Enrich the model with metadata before processing metrics artifacts
 	if err := enrichCatalogModelFromMetadata(existingModel, metadata, modelRepo); err != nil {
-		glog.Warningf("Failed to enrich model %s with metadata: %v", metadata.ID, err)
+		glog.Warningf("Failed to enrich model %s with metadata: %v", namespacedModelName, err)
 		// Continue processing - don't fail the whole operation
 	}
 
 	modelID := *existingModel.GetID()
-	glog.V(2).Infof("Found existing model %s with ID %d, processing metrics", metadata.ID, modelID)
+	glog.V(2).Infof("Found existing model %s with ID %d, processing metrics", namespacedModelName, modelID)
 
 	// Use batch processing for all artifacts
 	return processModelArtifactsBatch(dirPath, modelID, metadata.ID, metadata.OverallAccuracy, metricsArtifactRepo, metricsArtifactTypeID)

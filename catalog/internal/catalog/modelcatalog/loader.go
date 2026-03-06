@@ -429,12 +429,13 @@ func (l *ModelLoader) readProviderRecords(ctx context.Context) <-chan ModelProvi
 					continue
 				}
 
+				// Set source_id and namespaced name on every returned model.
+				l.setModelSourceID(r.Model, sourceID)
+
 				if attr := r.Model.GetAttributes(); attr != nil && attr.Name != nil {
+					// Use namespaced name (source_id:model_name)so removeOrphanedModelsFromSource matches DB (which stores namespaced names).
 					modelNames = append(modelNames, *attr.Name)
 				}
-
-				// Set source_id on every returned model.
-				l.setModelSourceID(r.Model, sourceID)
 
 				ch <- r
 			}
@@ -475,15 +476,26 @@ func (l *ModelLoader) setModelSourceID(model models.CatalogModel, sourceID strin
 		}
 	}
 
+	found := false
 	for i := range *props {
 		if (*props)[i].Name == "source_id" {
 			// Already has a source_id, just update it
 			(*props)[i].StringValue = &sourceID
-			return
+			found = true
+			break
 		}
 	}
+	if !found {
+		*props = append(*props, mrmodels.NewStringProperty("source_id", sourceID, false))
+	}
 
-	*props = append(*props, mrmodels.NewStringProperty("source_id", sourceID, false))
+	// Prepend sourceId to the model name so DB uniqueness is (sourceId, modelName).
+	// Format: sourceId:modelName — must run for every model so DB and removeOrphanedModelsFromSource stay consistent.
+	attr := model.GetAttributes()
+	if attr != nil && attr.Name != nil && *attr.Name != "" {
+		namespacedName := sourceID + ":" + *attr.Name
+		attr.Name = &namespacedName
+	}
 }
 
 func (l *ModelLoader) removeModelsFromMissingSources(allKnownSourceIDs mapset.Set[string]) error {
