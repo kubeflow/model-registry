@@ -305,7 +305,7 @@ func TestFindModels(t *testing.T) {
 				models: tc.mockModels,
 			}
 
-			service := NewModelCatalogServiceAPIService(provider, sources, sourceLabels, nil)
+			service := NewModelCatalogServiceAPIService(provider, sources, nil, sourceLabels, nil)
 
 			resp, err := service.FindModels(
 				context.Background(),
@@ -748,7 +748,7 @@ func TestFindSources(t *testing.T) {
 			sources := catalog.NewSourceCollection()
 			sources.Merge("", tc.catalogs)
 			sourceLabels := catalog.NewLabelCollection()
-			service := NewModelCatalogServiceAPIService(&mockModelProvider{}, sources, sourceLabels, nil)
+			service := NewModelCatalogServiceAPIService(&mockModelProvider{}, sources, nil, sourceLabels, nil)
 
 			// Call FindSources
 			resp, err := service.FindSources(
@@ -1044,7 +1044,7 @@ func TestFindLabels(t *testing.T) {
 			labelCollection := catalog.NewLabelCollection()
 			labelCollection.Merge("test-source", tc.labels)
 
-			service := NewModelCatalogServiceAPIService(&mockModelProvider{}, sources, labelCollection, nil)
+			service := NewModelCatalogServiceAPIService(&mockModelProvider{}, sources, nil, labelCollection, nil)
 
 			// Call FindLabels
 			resp, err := service.FindLabels(
@@ -1419,7 +1419,7 @@ func TestGetModel(t *testing.T) {
 			sources := catalog.NewSourceCollection()
 			sources.Merge("", tc.sources)
 			sourceLabels := catalog.NewLabelCollection()
-			service := NewModelCatalogServiceAPIService(tc.provider, sources, sourceLabels, nil)
+			service := NewModelCatalogServiceAPIService(tc.provider, sources, nil, sourceLabels, nil)
 
 			// Call GetModel
 			resp, _ := service.GetModel(
@@ -1530,7 +1530,7 @@ func TestGetAllModelArtifacts(t *testing.T) {
 			sources := catalog.NewSourceCollection()
 			sources.Merge("", tc.sources)
 			sourceLabels := catalog.NewLabelCollection()
-			service := NewModelCatalogServiceAPIService(tc.provider, sources, sourceLabels, nil)
+			service := NewModelCatalogServiceAPIService(tc.provider, sources, nil, sourceLabels, nil)
 
 			// Call GetAllModelArtifacts
 			resp, _ := service.GetAllModelArtifacts(
@@ -1589,7 +1589,7 @@ func TestFindModelsFilterOptions(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			sources := catalog.NewSourceCollection()
 			sourceLabels := catalog.NewLabelCollection()
-			service := NewModelCatalogServiceAPIService(tc.provider, sources, sourceLabels, nil)
+			service := NewModelCatalogServiceAPIService(tc.provider, sources, nil, sourceLabels, nil)
 
 			resp, err := service.FindModelsFilterOptions(context.Background())
 
@@ -1749,7 +1749,7 @@ func TestGetAllModelPerformanceArtifacts(t *testing.T) {
 			})
 			sourceLabels := catalog.NewLabelCollection()
 
-			service := NewModelCatalogServiceAPIService(tc.provider, sources, sourceLabels, nil)
+			service := NewModelCatalogServiceAPIService(tc.provider, sources, nil, sourceLabels, nil)
 
 			resp, err := service.GetAllModelPerformanceArtifacts(
 				context.Background(),
@@ -1822,7 +1822,7 @@ func TestFindModelsRecommended(t *testing.T) {
 		},
 	}
 
-	service := NewModelCatalogServiceAPIService(provider, sources, sourceLabels, nil)
+	service := NewModelCatalogServiceAPIService(provider, sources, nil, sourceLabels, nil)
 
 	// Test recommended=true with default parameters
 	resp, err := service.FindModels(
@@ -1871,7 +1871,7 @@ func TestFindModelsRecommendedWithCustomParams(t *testing.T) {
 		},
 	}
 
-	service := NewModelCatalogServiceAPIService(provider, sources, sourceLabels, nil)
+	service := NewModelCatalogServiceAPIService(provider, sources, nil, sourceLabels, nil)
 
 	// Test with custom latency property and targetRPS
 	resp, err := service.FindModels(
@@ -1920,7 +1920,7 @@ func TestFindModelsRecommendedIgnoresOrderBy(t *testing.T) {
 		},
 	}
 
-	service := NewModelCatalogServiceAPIService(provider, sources, sourceLabels, nil)
+	service := NewModelCatalogServiceAPIService(provider, sources, nil, sourceLabels, nil)
 
 	// Test that orderBy is ignored when recommended=true
 	resp, err := service.FindModels(
@@ -2028,7 +2028,7 @@ func TestGetAllModelPerformanceArtifactsWithConfigurableProperties(t *testing.T)
 			})
 			sourceLabels := catalog.NewLabelCollection()
 
-			service := NewModelCatalogServiceAPIService(tc.provider, sources, sourceLabels, nil)
+			service := NewModelCatalogServiceAPIService(tc.provider, sources, nil, sourceLabels, nil)
 
 			resp, err := service.GetAllModelPerformanceArtifacts(
 				context.Background(),

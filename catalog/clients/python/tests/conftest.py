@@ -326,3 +326,25 @@ def test_mcp_catalog_data(pytestconfig: pytest.Config) -> dict:
     )
     with open(mcp_catalog_path) as f:
         return yaml.safe_load(f)
+
+
+@pytest.fixture(scope="session")
+def sources_config(pytestconfig: pytest.Config) -> dict:
+    """Load the sources.yaml configuration used by E2E tests.
+
+    Returns:
+        Dictionary containing the sources YAML data (catalogs + mcp_catalogs).
+    """
+    sources_path = (
+        Path(pytestconfig.rootpath)
+        / "../../.."
+        / "manifests"
+        / "kustomize"
+        / "options"
+        / "catalog"
+        / "overlays"
+        / "e2e"
+        / "sources.yaml"
+    )
+    with open(sources_path) as f:
+        return yaml.safe_load(f)
