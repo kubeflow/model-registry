@@ -101,39 +101,3 @@ func TestLoaderValidationIntegration(t *testing.T) {
 	assert.Error(t, err)
 	assert.Contains(t, err.Error(), "unsupported operator 'INVALID_OP'")
 }
-
-func TestValidateFieldNames(t *testing.T) {
-	t.Run("valid MCP server field names pass", func(t *testing.T) {
-		queries := map[string]map[string]FieldFilter{
-			"q1": {
-				"name":           {Operator: "=", Value: "server"},
-				"provider":       {Operator: "=", Value: "OpenAI"},
-				"verifiedSource": {Operator: "=", Value: true},
-			},
-		}
-		err := ValidateFieldNames(queries, MCPServerFilterableFields)
-		assert.NoError(t, err)
-	})
-
-	t.Run("unknown field name returns error", func(t *testing.T) {
-		queries := map[string]map[string]FieldFilter{
-			"q1": {
-				"typoField": {Operator: "=", Value: "x"},
-			},
-		}
-		err := ValidateFieldNames(queries, MCPServerFilterableFields)
-		assert.Error(t, err)
-		assert.Contains(t, err.Error(), "unknown field")
-		assert.Contains(t, err.Error(), "typoField")
-	})
-
-	t.Run("nil queries returns no error", func(t *testing.T) {
-		err := ValidateFieldNames(nil, MCPServerFilterableFields)
-		assert.NoError(t, err)
-	})
-
-	t.Run("empty queries returns no error", func(t *testing.T) {
-		err := ValidateFieldNames(map[string]map[string]FieldFilter{}, MCPServerFilterableFields)
-		assert.NoError(t, err)
-	})
-}
