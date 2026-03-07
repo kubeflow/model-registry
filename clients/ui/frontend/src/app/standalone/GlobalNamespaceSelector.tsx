@@ -48,6 +48,8 @@ const GlobalNamespaceSelector: React.FC<GlobalNamespaceSelectorProps> = ({
       className={className}
       onChange={handleChange}
       isDisabled={isDisabled}
+      isScrollable
+      maxMenuHeight="300px"
       popperProps={{ maxWidth: '400px' }}
       dataTestId="navbar-namespace-selector"
     />

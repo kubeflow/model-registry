@@ -77,6 +77,8 @@ const NamespaceSelectorField: React.FC<NamespaceSelectorFieldProps> = ({
         placeholder="Select a namespace"
         isDisabled={isDisabled}
         isFullWidth
+        isScrollable
+        maxMenuHeight="300px"
         dataTestId="form-namespace-selector"
       />
     </div>
