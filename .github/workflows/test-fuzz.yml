@@ -87,3 +87,71 @@ jobs:
         run: |
           echo "Starting fuzz tests..."
           make test-fuzz
+
+  test-fuzz-catalog:
+    name: Test Fuzz Catalog
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: catalog/clients/python
+    steps:
+      - name: Get PR details
+        id: pr
+        uses: actions/github-script@v8
+        with:
+          script: |
+            try {
+              const pr = await github.rest.pulls.get({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                pull_number: ${{ github.event.inputs.pr_number }}
+              });
+              return {
+                sha: pr.data.head.sha,
+                ref: pr.data.head.ref
+              };
+            } catch (error) {
+              console.log(`Error fetching PR #${{ github.event.inputs.pr_number }}: ${error.message}`);
+              throw error;
+            }
+
+      - name: Checkout PR
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ fromJson(steps.pr.outputs.result).sha }}
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+
+      - name: Install Poetry
+        run: |
+          pipx install poetry
+
+      - name: Install dependencies
+        run: |
+          poetry install
+
+      - name: Start Kind Cluster
+        uses: helm/kind-action@v1.13.0
+        with:
+          node_image: kindest/node:v1.33.7
+          cluster_name: catalog-fuzz
+          kubectl_version: v1.33.7
+
+      - name: Generate Tag
+        shell: bash
+        id: tags
+        run: |
+          commit_sha=${{ fromJson(steps.pr.outputs.result).sha }}
+          tag=fuzz-${commit_sha:0:7}
+          echo "tag=${tag}" | tee -a $GITHUB_OUTPUT
+
+      - name: Run Fuzz Catalog Tests
+        env:
+          IMG_VERSION: ${{ steps.tags.outputs.tag }}
+          CLUSTER_NAME: catalog-fuzz
+        run: |
+          echo "Starting fuzz tests..."
+          make test-fuzz
