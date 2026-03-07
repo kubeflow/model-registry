@@ -15,10 +15,11 @@ on:
     paths:
       - "cmd/controller/**"
       - ".github/workflows/**"
-      - "internal/controller/**"
+      - "pkg/inferenceservice-controller/**"
       - "internal/server/openapi/api_model_registry_service*"
       - "pkg/openapi/**"
-      - "go.mod"
+      - "cmd/controller/go.mod"
+      - "pkg/inferenceservice-controller/go.mod"
 
 permissions: # set contents: read at top-level, per OpenSSF ScoreCard rule TokenPermissionsID
   contents: read
@@ -48,7 +49,8 @@ jobs:
 
       - name: Running Tests
         run: |
-          go mod tidy
+          (cd cmd/controller && go mod tidy)
+          (cd pkg/inferenceservice-controller && go mod tidy)
           make controller/test
 
       - name: Build controller
