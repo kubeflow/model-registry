@@ -1,5 +1,6 @@
 import * as React from 'react';
 import {
+  Button,
   Card,
   CardBody,
   CardHeader,
@@ -11,6 +12,7 @@ import {
   Truncate,
 } from '@patternfly/react-core';
 import { ApplicationsIcon } from '@patternfly/react-icons';
+import { Link } from 'react-router-dom';
 import type { McpServer } from '~/app/mcpServerCatalogTypes';
 import { getSecurityIndicatorLabels } from '~/app/pages/mcpCatalog/utils/mcpCatalogUtils';
 import {
@@ -18,6 +20,7 @@ import {
   McpCardIconByLabel,
   getMcpCardIconConfig,
 } from '~/app/pages/mcpCatalog/constants/mcpCatalogCardIcons';
+import { mcpServerDetailsUrl } from '~/app/routes/mcpCatalog/mcpCatalog';
 
 type McpCatalogCardProps = {
   server: McpServer;
@@ -63,14 +66,25 @@ const McpCatalogCard: React.FC<McpCatalogCardProps> = ({ server }) => {
           </FlexItem>
         </Flex>
         <CardTitle>
-          <span className="pf-v6-u-display-block">
-            <Truncate
-              content={server.name}
-              position="middle"
-              tooltipPosition="top"
-              data-testid={`mcp-catalog-card-name-${serverId}`}
-            />
-          </span>
+          <Link to={mcpServerDetailsUrl(serverId)}>
+            <Button
+              data-testid={`mcp-catalog-card-detail-link-${serverId}`}
+              variant="link"
+              tabIndex={-1}
+              isInline
+              style={{
+                fontSize: 'var(--pf-t--global--font--size--body--default)',
+                fontWeight: 'var(--pf-t--global--font--weight--body--bold)',
+              }}
+            >
+              <Truncate
+                content={server.name}
+                position="middle"
+                tooltipPosition="top"
+                data-testid={`mcp-catalog-card-name-${serverId}`}
+              />
+            </Button>
+          </Link>
         </CardTitle>
       </CardHeader>
       <CardBody>

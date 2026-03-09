@@ -45,6 +45,83 @@ class McpCatalog {
   findMcpCatalogCard(serverId: string) {
     return cy.findByTestId(`mcp-catalog-card-${serverId}`);
   }
+
+  findCardDetailLink(serverId: string) {
+    return cy.findByTestId(`mcp-catalog-card-detail-link-${serverId}`);
+  }
+}
+
+class McpServerDetails {
+  visit(serverId: string) {
+    cy.visit(`/mcp-catalog/${serverId}`);
+    this.wait();
+  }
+
+  private wait() {
+    cy.findByTestId('app-page-title').should('exist');
+    cy.testA11y();
+  }
+
+  findBreadcrumbCatalogLink() {
+    return cy.get('.pf-v6-c-breadcrumb').contains('MCP Catalog');
+  }
+
+  findBreadcrumbServerName() {
+    return cy.findByTestId('breadcrumb-server-name');
+  }
+
+  findDeployButton() {
+    return cy.findByTestId('deploy-mcp-server-button');
+  }
+
+  findDescription() {
+    return cy.findByTestId('mcp-server-description');
+  }
+
+  findReadmeMarkdown() {
+    return cy.findByTestId('mcp-server-readme-markdown');
+  }
+
+  findNoReadme() {
+    return cy.findByTestId('mcp-server-no-readme');
+  }
+
+  findVersion() {
+    return cy.findByTestId('mcp-server-version');
+  }
+
+  findDeploymentMode() {
+    return cy.findByTestId('mcp-server-deployment-mode');
+  }
+
+  findTransportType() {
+    return cy.findByTestId('mcp-server-transport-type');
+  }
+
+  findProvider() {
+    return cy.findByTestId('mcp-server-provider');
+  }
+
+  findLicense() {
+    return cy.findByTestId('mcp-server-license');
+  }
+
+  findLicenseLink() {
+    return cy.findByTestId('mcp-server-license-link');
+  }
+
+  findLabels() {
+    return cy.get('[data-testid="mcp-server-detail-label"]');
+  }
+
+  findArtifactCopy() {
+    return cy.get('[data-testid="mcp-server-artifact-copy"]');
+  }
+
+  findSourceCodeLink() {
+    return cy.findByTestId('mcp-server-source-code-link');
+  }
 }
 
 export const mcpCatalog = new McpCatalog();
+export const mcpServerDetails = new McpServerDetails();
