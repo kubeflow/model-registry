@@ -42,7 +42,8 @@ export const checkValidK8sName = (
 export const setupDefaults = (
   configuration: UseK8sNameDescriptionDataConfiguration,
 ): K8sNameDescriptionFieldData => {
-  const { initialData, editableK8sName } = configuration;
+  const { initialData, editableK8sName, maxK8sNameLength } = configuration;
+  const maxLength = maxK8sNameLength ?? MAX_K8S_NAME_LENGTH;
 
   const name = initialData?.name ?? '';
   const description = initialData?.description ?? '';
@@ -56,8 +57,8 @@ export const setupDefaults = (
       state: {
         immutable: !!(k8sName && !editableK8sName),
         invalidCharacters: false,
-        invalidLength: k8sName.length > MAX_K8S_NAME_LENGTH,
-        maxLength: MAX_K8S_NAME_LENGTH,
+        invalidLength: k8sName.length > maxLength,
+        maxLength,
         touched: !!k8sName,
       },
     },
@@ -67,6 +68,8 @@ export const setupDefaults = (
 export const handleUpdateLogic =
   (currentData: K8sNameDescriptionFieldData): K8sNameDescriptionFieldUpdateFunctionInternal =>
   (key, value) => {
+    const { maxLength } = currentData.k8sName.state;
+
     if (key === 'k8sName') {
       const validation = checkValidK8sName(value);
       return {
@@ -76,7 +79,7 @@ export const handleUpdateLogic =
           state: {
             ...currentData.k8sName.state,
             invalidCharacters: !validation.valid && validation.invalidCharacters,
-            invalidLength: value.length > MAX_K8S_NAME_LENGTH,
+            invalidLength: value.length > maxLength,
             touched: true,
           },
         },
@@ -98,7 +101,7 @@ export const handleUpdateLogic =
           state: {
             ...currentData.k8sName.state,
             invalidCharacters: !validation.valid && validation.invalidCharacters,
-            invalidLength: k8sValue.length > MAX_K8S_NAME_LENGTH,
+            invalidLength: k8sValue.length > maxLength,
           },
         },
       };

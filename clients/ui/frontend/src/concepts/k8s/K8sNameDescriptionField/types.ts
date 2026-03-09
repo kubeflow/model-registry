@@ -29,6 +29,8 @@ export type UseK8sNameDescriptionDataConfiguration = {
   initialData?: K8sNameDescriptionType;
   /** allow the k8sName value to be edited even though it is pre-set */
   editableK8sName?: boolean;
+  /** Override the max K8s name length (default: 253 for DNS-1123 subdomain; use 63 for DNS-1123 label) */
+  maxK8sNameLength?: number;
 };
 
 type K8sNameDescriptionFieldUpdateFunctionTemplate<T> = (

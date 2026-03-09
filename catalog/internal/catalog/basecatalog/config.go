@@ -139,9 +139,5 @@ func (c *SourceConfig) Validate() error {
 		return fmt.Errorf("invalid named queries: %w", err)
 	}
 
-	if err := ValidateFieldNames(c.NamedQueries, MCPServerFilterableFields); err != nil {
-		return fmt.Errorf("invalid named queries: %w", err)
-	}
-
 	return nil
 }

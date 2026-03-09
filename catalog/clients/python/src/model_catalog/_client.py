@@ -7,11 +7,13 @@ The generated client is in catalog_openapi/ (committed to git).
 To regenerate after API changes: cd catalog/clients/python && make generate
 """
 
+import json
 import logging
 from collections.abc import Callable
 from functools import wraps
 from typing import Any, TypeVar
 from urllib.parse import quote
+
 from catalog_openapi.models import OrderByField, SortOrder
 
 logger = logging.getLogger(__name__)
@@ -213,6 +215,7 @@ class CatalogAPIClient:
 
         try:
             from catalog_openapi import ApiClient, Configuration
+            from catalog_openapi.api.mcp_catalog_service_api import MCPCatalogServiceApi
             from catalog_openapi.api.model_catalog_service_api import ModelCatalogServiceApi
         except ImportError as e:
             msg = (
@@ -233,6 +236,7 @@ class CatalogAPIClient:
         self.api_client = ApiClient(configuration=config)
         self._configure_timeout(config, timeout)
         self.catalog_api = ModelCatalogServiceApi(self.api_client)
+        self.mcp_api = MCPCatalogServiceApi(self.api_client)
 
     def _validate_base_url(self, base_url: str) -> None:
         """Validate the base URL parameter."""
@@ -275,10 +279,16 @@ class CatalogAPIClient:
         )
 
     @_handle_api_errors
-    def get_sources(self, page_size: int | None = None, next_page_token: str | None = None) -> dict[str, Any]:
+    def get_sources(
+        self,
+        asset_type: str | None = None,
+        page_size: int | None = None,
+        next_page_token: str | None = None,
+    ) -> dict[str, Any]:
         """Get catalog sources.
 
         Args:
+            asset_type: Filter by asset type ('models' or 'mcp_servers').
             page_size: Number of items per page.
             next_page_token: Token for pagination.
 
@@ -286,8 +296,36 @@ class CatalogAPIClient:
             Dict with sources list and pagination info.
         """
         page_size_str = str(page_size) if page_size is not None else None
-        response = self.catalog_api.find_sources(page_size=page_size_str, next_page_token=next_page_token)
-        return response.to_dict()
+
+        # Build query params — always use the manual path so assetType and other
+        # new fields are preserved in the raw JSON (the generated Pydantic model
+        # does not yet include assetType and would silently drop it).
+        query_params: list[tuple[str, str]] = []
+        if asset_type is not None:
+            query_params.append(("assetType", asset_type))
+        if page_size_str is not None:
+            query_params.append(("pageSize", page_size_str))
+        if next_page_token is not None:
+            query_params.append(("nextPageToken", next_page_token))
+
+        _param = self.api_client.param_serialize(
+            method="GET",
+            resource_path="/api/model_catalog/v1alpha1/sources",
+            query_params=query_params,
+            header_params={"Accept": "application/json"},
+            auth_settings=["Bearer"],
+        )
+        response_data = self.api_client.call_api(*_param)
+        response_data.read()
+
+        # Let the generated client handle error status codes (raises ApiException).
+        self.api_client.response_deserialize(
+            response_data=response_data,
+            response_types_map={"200": "CatalogSourceList", "400": "Error", "401": "Error", "500": "Error"},
+        )
+
+        # Return the raw JSON to preserve fields not yet in the Pydantic model.
+        return json.loads(response_data.data)
 
     @_handle_api_errors
     def get_source_by_id(self, source_id: str) -> dict[str, Any]:
@@ -339,7 +377,6 @@ class CatalogAPIClient:
         Returns:
             Dict with models response.
         """
-
         source_list = [source] if source else None
         page_size_str = str(page_size) if page_size is not None else None
 
@@ -393,7 +430,6 @@ class CatalogAPIClient:
         Returns:
             Dict with artifacts response.
         """
-
         # Convert artifact_type to list format expected by OpenAPI client
         artifact_type_list = None
         if artifact_type is not None:
@@ -468,6 +504,73 @@ class CatalogAPIClient:
             Dict with available filter fields and their options.
         """
         response = self.catalog_api.find_models_filter_options()
+        return response.to_dict()
+
+    @_handle_api_errors
+    def get_mcp_servers(
+        self,
+        include_tools: bool | None = None,
+        page_size: int | None = None,
+        next_page_token: str | None = None,
+    ) -> dict[str, Any]:
+        """Get MCP servers from catalog.
+
+        Args:
+            include_tools: Whether to include the tools array in each server result.
+            page_size: Number of items per page.
+            next_page_token: Token for pagination.
+
+        Returns:
+            Dict with MCP servers list and pagination info.
+        """
+        page_size_str = str(page_size) if page_size is not None else None
+        response = self.mcp_api.find_mcp_servers(
+            include_tools=include_tools,
+            page_size=page_size_str,
+            next_page_token=next_page_token,
+        )
+        return response.to_dict()
+
+    @_handle_api_errors
+    def get_mcp_server(self, server_id: str, include_tools: bool | None = None) -> dict[str, Any]:
+        """Get a specific MCP server by ID.
+
+        Args:
+            server_id: The MCP server identifier.
+            include_tools: Whether to include the tools array in the result.
+
+        Returns:
+            Dict with MCP server details.
+        """
+        response = self.mcp_api.get_mcp_server(
+            server_id=server_id,
+            include_tools=include_tools,
+        )
+        return response.to_dict()
+
+    @_handle_api_errors
+    def get_mcp_server_tools(
+        self,
+        server_id: str,
+        page_size: int | None = None,
+        next_page_token: str | None = None,
+    ) -> dict[str, Any]:
+        """Get tools for a specific MCP server.
+
+        Args:
+            server_id: The MCP server identifier.
+            page_size: Number of items per page.
+            next_page_token: Token for pagination.
+
+        Returns:
+            Dict with MCP server tools list and pagination info.
+        """
+        page_size_str = str(page_size) if page_size is not None else None
+        response = self.mcp_api.find_mcp_server_tools(
+            server_id=server_id,
+            page_size=page_size_str,
+            next_page_token=next_page_token,
+        )
         return response.to_dict()
 
     def get_named_queries(self, source: str | None = None) -> dict[str, Any]:

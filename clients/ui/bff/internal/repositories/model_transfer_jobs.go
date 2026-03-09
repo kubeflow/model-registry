@@ -26,6 +26,22 @@ var (
 	ErrModelRegistryNotFound = errors.New("model registry not found in the selected namespace")
 )
 
+// recoverFromAnnotation copies annotation value to target if target is empty
+func recoverFromAnnotation(target *string, annotations map[string]string, key string) {
+	if *target == "" {
+		*target = annotations[key]
+	}
+}
+
+// recoverEnumFromAnnotation copies annotation value to target enum if target is empty
+func recoverEnumFromAnnotation[T ~string](target *T, annotations map[string]string, key string) {
+	if *target == "" {
+		if val := annotations[key]; val != "" {
+			*target = T(val)
+		}
+	}
+}
+
 func (m *ModelRegistryRepository) GetAllModelTransferJobs(ctx context.Context, client k8s.KubernetesClientInterface, namespace string, modelRegistryID string) (*models.ModelTransferJobList, error) {
 	if modelRegistryID == "" {
 		return &models.ModelTransferJobList{Items: []models.ModelTransferJob{}, Size: 0, PageSize: 0}, nil
@@ -65,14 +81,10 @@ func (m *ModelRegistryRepository) GetAllModelTransferJobs(ctx context.Context, c
 				} `json:"ModelArtifact"`
 			}
 
-			podNamesByJob := make(map[string][]string)
 			podErrorsByJob := make(map[string]string)
 			podTerminationByJob := make(map[string]*terminationResult)
-			allPodNames := make([]string, 0, len(podList.Items))
 			for _, pod := range podList.Items {
 				jobName := pod.Labels["job-name"]
-				podNamesByJob[jobName] = append(podNamesByJob[jobName], pod.Name)
-				allPodNames = append(allPodNames, pod.Name)
 
 				for _, cs := range pod.Status.ContainerStatuses {
 					if cs.State.Waiting != nil {
@@ -129,39 +141,6 @@ func (m *ModelRegistryRepository) GetAllModelTransferJobs(ctx context.Context, c
 					}
 				}
 			}
-
-			eventList, err := client.GetEventsForPods(ctx, namespace, allPodNames)
-			if err != nil {
-				logger.Warn("failed to fetch events for pods", "error", err)
-			} else {
-				eventsByPod := make(map[string][]models.ModelTransferJobEvent)
-				for _, event := range eventList.Items {
-					podName := event.InvolvedObject.Name
-					ts := event.LastTimestamp.Time
-					if ts.IsZero() {
-						ts = event.EventTime.Time
-					}
-					if ts.IsZero() {
-						ts = event.FirstTimestamp.Time
-					}
-					eventsByPod[podName] = append(eventsByPod[podName], models.ModelTransferJobEvent{
-						Timestamp: ts.Format("2006-01-02T15:04:05Z"),
-						Type:      event.Type,
-						Reason:    event.Reason,
-						Message:   event.Message,
-					})
-				}
-
-				for i := range transferJobs {
-					var jobEvents []models.ModelTransferJobEvent
-					for _, podName := range podNamesByJob[transferJobs[i].Name] {
-						jobEvents = append(jobEvents, eventsByPod[podName]...)
-					}
-					if jobEvents != nil {
-						transferJobs[i].Events = jobEvents
-					}
-				}
-			}
 		}
 	}
 
@@ -188,6 +167,62 @@ func (m *ModelRegistryRepository) GetModelTransferJob(ctx context.Context, clien
 
 	result := convertK8sJobToModel(job)
 	return &result, nil
+}
+
+func (m *ModelRegistryRepository) GetModelTransferJobEvents(ctx context.Context, client k8s.KubernetesClientInterface, jobNamespace string, jobName string, modelRegistryID string) ([]models.ModelTransferJobEvent, error) {
+	job, err := client.GetModelTransferJob(ctx, jobNamespace, jobName)
+	if err != nil {
+		if apierrors.IsNotFound(err) {
+			return nil, fmt.Errorf("%w: %s", ErrJobNotFound, jobName)
+		}
+		return nil, fmt.Errorf("failed to get job: %w", err)
+	}
+
+	jobRegistry := job.Labels["modelregistry.kubeflow.org/model-registry-name"]
+	if jobRegistry != modelRegistryID {
+		return nil, fmt.Errorf("%w: %s", ErrJobNotFound, jobName)
+	}
+
+	podList, err := client.GetTransferJobPods(ctx, jobNamespace, []string{jobName})
+	if err != nil {
+		return nil, fmt.Errorf("failed to fetch pods for transfer job: %w", err)
+	}
+
+	if len(podList.Items) == 0 {
+		return []models.ModelTransferJobEvent{}, nil
+	}
+
+	podNames := make([]string, 0, len(podList.Items))
+	for _, pod := range podList.Items {
+		podNames = append(podNames, pod.Name)
+	}
+
+	eventList, err := client.GetEventsForPods(ctx, jobNamespace, podNames)
+	if err != nil {
+		return nil, fmt.Errorf("failed to fetch events for pods: %w", err)
+	}
+
+	return convertK8sEventsToModelEvents(eventList), nil
+}
+
+func convertK8sEventsToModelEvents(eventList *corev1.EventList) []models.ModelTransferJobEvent {
+	events := make([]models.ModelTransferJobEvent, 0, len(eventList.Items))
+	for _, event := range eventList.Items {
+		ts := event.LastTimestamp.Time
+		if ts.IsZero() {
+			ts = event.EventTime.Time
+		}
+		if ts.IsZero() {
+			ts = event.FirstTimestamp.Time
+		}
+		events = append(events, models.ModelTransferJobEvent{
+			Timestamp: ts.Format("2006-01-02T15:04:05Z"),
+			Type:      event.Type,
+			Reason:    event.Reason,
+			Message:   event.Message,
+		})
+	}
+	return events
 }
 
 func (m *ModelRegistryRepository) CreateModelTransferJob(ctx context.Context, client k8s.KubernetesClientInterface, namespace string, payload models.ModelTransferJob, modelRegistryID string) (*models.ModelTransferJob, error) {
@@ -359,49 +394,22 @@ func (m *ModelRegistryRepository) UpdateModelTransferJob(
 
 	oldSourceSecretName := oldAnnotations["modelregistry.kubeflow.org/source-secret"]
 
-	if newPayload.Source.Type == "" {
-		if sourceType := oldAnnotations["modelregistry.kubeflow.org/source-type"]; sourceType != "" {
-			newPayload.Source.Type = models.ModelTransferJobSourceType(sourceType)
-		}
-	}
-	if newPayload.Source.Bucket == "" {
-		newPayload.Source.Bucket = oldAnnotations["modelregistry.kubeflow.org/source-bucket"]
-	}
-	if newPayload.Source.Key == "" {
-		newPayload.Source.Key = oldAnnotations["modelregistry.kubeflow.org/source-key"]
-	}
-	if newPayload.Source.URI == "" {
-		newPayload.Source.URI = oldAnnotations["modelregistry.kubeflow.org/source-uri"]
-	}
-	if newPayload.Destination.Type == "" {
-		if destType := oldAnnotations["modelregistry.kubeflow.org/dest-type"]; destType != "" {
-			newPayload.Destination.Type = models.ModelTransferJobDestinationType(destType)
-		}
-	}
-	if newPayload.Destination.Registry == "" {
-		newPayload.Destination.Registry = oldAnnotations["modelregistry.kubeflow.org/dest-registry"]
-	}
-	if newPayload.Destination.URI == "" {
-		newPayload.Destination.URI = oldAnnotations["modelregistry.kubeflow.org/dest-uri"]
-	}
-	if newPayload.UploadIntent == "" {
-		newPayload.UploadIntent = models.ModelTransferJobUploadIntent(oldAnnotations["modelregistry.kubeflow.org/upload-intent"])
-	}
-	if newPayload.RegisteredModelName == "" {
-		newPayload.RegisteredModelName = oldAnnotations["modelregistry.kubeflow.org/model-name"]
-	}
-	if newPayload.ModelVersionName == "" {
-		newPayload.ModelVersionName = oldAnnotations["modelregistry.kubeflow.org/version-name"]
-	}
-	if newPayload.RegisteredModelId == "" {
-		newPayload.RegisteredModelId = oldAnnotations["modelregistry.kubeflow.org/registered-model-id"]
-	}
-	if newPayload.ModelVersionId == "" {
-		newPayload.ModelVersionId = oldAnnotations["modelregistry.kubeflow.org/model-version-id"]
-	}
-	if newPayload.ModelArtifactId == "" {
-		newPayload.ModelArtifactId = oldAnnotations["modelregistry.kubeflow.org/model-artifact-id"]
-	}
+	// Recover metadata from annotations
+	recoverEnumFromAnnotation(&newPayload.Source.Type, oldAnnotations, "modelregistry.kubeflow.org/source-type")
+	recoverFromAnnotation(&newPayload.Source.Bucket, oldAnnotations, "modelregistry.kubeflow.org/source-bucket")
+	recoverFromAnnotation(&newPayload.Source.Key, oldAnnotations, "modelregistry.kubeflow.org/source-key")
+	recoverFromAnnotation(&newPayload.Source.URI, oldAnnotations, "modelregistry.kubeflow.org/source-uri")
+	recoverEnumFromAnnotation(&newPayload.Destination.Type, oldAnnotations, "modelregistry.kubeflow.org/dest-type")
+	recoverFromAnnotation(&newPayload.Destination.Registry, oldAnnotations, "modelregistry.kubeflow.org/dest-registry")
+	recoverFromAnnotation(&newPayload.Destination.URI, oldAnnotations, "modelregistry.kubeflow.org/dest-uri")
+	recoverEnumFromAnnotation(&newPayload.UploadIntent, oldAnnotations, "modelregistry.kubeflow.org/upload-intent")
+	recoverFromAnnotation(&newPayload.RegisteredModelName, oldAnnotations, "modelregistry.kubeflow.org/model-name")
+	recoverFromAnnotation(&newPayload.ModelVersionName, oldAnnotations, "modelregistry.kubeflow.org/version-name")
+	recoverFromAnnotation(&newPayload.RegisteredModelId, oldAnnotations, "modelregistry.kubeflow.org/registered-model-id")
+	recoverFromAnnotation(&newPayload.ModelVersionId, oldAnnotations, "modelregistry.kubeflow.org/model-version-id")
+	recoverFromAnnotation(&newPayload.ModelArtifactId, oldAnnotations, "modelregistry.kubeflow.org/model-artifact-id")
+	recoverFromAnnotation(&newPayload.Author, oldAnnotations, "modelregistry.kubeflow.org/author")
+	recoverFromAnnotation(&newPayload.Description, oldAnnotations, "modelregistry.kubeflow.org/description")
 
 	oldConfigMap, err := client.GetConfigMap(ctx, namespace, oldConfigMapName)
 	if err != nil {
@@ -461,9 +469,47 @@ func (m *ModelRegistryRepository) UpdateModelTransferJob(
 		existingDestSecretName = destSecretCreated.Name
 	}
 
-	if newPayload.ModelArtifactName == "" && oldConfigMap != nil && oldConfigMap.Data != nil {
-		if val, ok := oldConfigMap.Data["ModelArtifact.name"]; ok {
-			newPayload.ModelArtifactName = val
+	if oldConfigMap != nil && oldConfigMap.Data != nil {
+		if newPayload.ModelArtifactName == "" {
+			if val, ok := oldConfigMap.Data["ModelArtifact.name"]; ok {
+				newPayload.ModelArtifactName = val
+			}
+		}
+		if newPayload.VersionDescription == "" {
+			if val, ok := oldConfigMap.Data["ModelVersion.description"]; ok {
+				newPayload.VersionDescription = val
+			}
+		}
+		if newPayload.SourceModelFormat == "" {
+			if val, ok := oldConfigMap.Data["ModelArtifact.model_format_name"]; ok {
+				newPayload.SourceModelFormat = val
+			}
+		}
+		if newPayload.SourceModelFormatVersion == "" {
+			if val, ok := oldConfigMap.Data["ModelArtifact.model_format_version"]; ok {
+				newPayload.SourceModelFormatVersion = val
+			}
+		}
+		// Recover custom properties if not provided in new payload
+		if newPayload.ModelCustomProperties == nil {
+			if val, ok := oldConfigMap.Data["RegisteredModel.customProperties"]; ok && val != "" {
+				var props map[string]interface{}
+				if err := json.Unmarshal([]byte(val), &props); err == nil {
+					newPayload.ModelCustomProperties = props
+				} else {
+					logger.Warn("failed to unmarshal model custom properties", "key", "RegisteredModel.customProperties", "error", err)
+				}
+			}
+		}
+		if newPayload.VersionCustomProperties == nil {
+			if val, ok := oldConfigMap.Data["ModelVersion.customProperties"]; ok && val != "" {
+				var props map[string]interface{}
+				if err := json.Unmarshal([]byte(val), &props); err == nil {
+					newPayload.VersionCustomProperties = props
+				} else {
+					logger.Warn("failed to unmarshal version custom properties", "key", "ModelVersion.customProperties", "error", err)
+				}
+			}
 		}
 	}
 
@@ -517,8 +563,11 @@ func (m *ModelRegistryRepository) DeleteModelTransferJob(ctx context.Context, cl
 	return &result, nil
 }
 
+// getModelRegistryAddress returns the registry address for use in transfer job env.
+// It uses federated/external address when available (e.g. Route URL from Service annotation)
+// so the job pod can reach the registry via the ingress path when NetworkPolicy restricts direct ClusterIP access.
 func (m *ModelRegistryRepository) getModelRegistryAddress(ctx context.Context, client k8s.KubernetesClientInterface, namespace, modelRegistryID string) (string, error) {
-	modelRegistry, err := m.GetModelRegistry(ctx, client, namespace, modelRegistryID)
+	modelRegistry, err := m.GetModelRegistryWithMode(ctx, client, namespace, modelRegistryID, true)
 	if err != nil {
 		if apierrors.IsNotFound(err) {
 			return "", ErrModelRegistryNotFound
@@ -838,8 +887,8 @@ func buildDestinationSecret(generateNamePrefix, namespace string, payload models
 		registry, _ = extractRegistryFromURI(payload.Destination.URI)
 	}
 
-	dockerConfig := fmt.Sprintf(`{"auths":{"%s":{"auth":"%s","email":"%s"}}}`,
-		registry, auth, payload.Destination.Email)
+	dockerConfig := fmt.Sprintf(`{"auths":{"%s":{"auth":"%s"}}}`,
+		registry, auth)
 
 	return &corev1.Secret{
 		ObjectMeta: metav1.ObjectMeta{

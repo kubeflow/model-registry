@@ -12,6 +12,7 @@ Todo:
 
 from __future__ import annotations  # noqa: I001
 
+import warnings
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 from typing import Any, TypeVar
@@ -270,6 +271,9 @@ class ModelArtifact(Artifact):
             if source.custom_properties
             else None,
         )
+
+
+warnings.filterwarnings("ignore", message='Field name "schema" in "DataSet" shadows an attribute')
 
 
 class DataSet(Artifact):

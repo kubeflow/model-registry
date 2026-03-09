@@ -21,6 +21,7 @@ type (
 	ListPerformanceArtifactsParams = modelcatalog.ListPerformanceArtifactsParams
 
 	// MCP catalog types
+	MCPSourceCollection      = mcpcatalog.MCPSourceCollection
 	MCPProvider              = mcpcatalog.MCPCatalogProvider
 	ListMCPServersParams     = mcpcatalog.ListMCPServersParams
 	ListMCPServerToolsParams = mcpcatalog.ListMCPServerToolsParams

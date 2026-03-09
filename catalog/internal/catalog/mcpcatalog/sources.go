@@ -5,6 +5,7 @@ import (
 	"sync"
 
 	"github.com/kubeflow/model-registry/catalog/internal/catalog/basecatalog"
+	model "github.com/kubeflow/model-registry/catalog/pkg/openapi"
 	"github.com/kubeflow/model-registry/internal/apiutils"
 )
 
@@ -147,8 +148,8 @@ func mergeMCPSources(base, override basecatalog.MCPSource) basecatalog.MCPSource
 
 	// Merge shared fields using the common helper
 	common := basecatalog.MergeCommonSourceFields(
-		basecatalog.CommonSourceFields{Name: base.Name, Enabled: base.Enabled, Labels: base.Labels, Type: base.Type, Properties: base.Properties, Origin: base.Origin},
-		basecatalog.CommonSourceFields{Name: override.Name, Enabled: override.Enabled, Labels: override.Labels, Type: override.Type, Properties: override.Properties, Origin: override.Origin},
+		basecatalog.CommonSourceFields{Name: base.Name, Enabled: base.Enabled, Labels: base.Labels, Type: base.Type, Properties: base.Properties, Origin: base.Origin, AssetType: base.AssetType},
+		basecatalog.CommonSourceFields{Name: override.Name, Enabled: override.Enabled, Labels: override.Labels, Type: override.Type, Properties: override.Properties, Origin: override.Origin, AssetType: override.AssetType},
 	)
 	result.Name = common.Name
 	result.Enabled = common.Enabled
@@ -156,22 +157,22 @@ func mergeMCPSources(base, override basecatalog.MCPSource) basecatalog.MCPSource
 	result.Type = common.Type
 	result.Properties = common.Properties
 	result.Origin = common.Origin
+	result.AssetType = common.AssetType
 
 	return result
 }
 
 // applyMCPDefaults applies default values to an MCPSource for fields that are not set.
 func applyMCPDefaults(source basecatalog.MCPSource) basecatalog.MCPSource {
-	// Default Enabled to true if not set
 	if source.Enabled == nil {
 		source.Enabled = apiutils.Of(true)
 	}
-
-	// Default Labels to empty slice if not set
 	if source.Labels == nil {
 		source.Labels = []string{}
 	}
-
+	if source.AssetType == nil {
+		source.AssetType = model.CATALOGASSETTYPE_MCP_SERVERS.Ptr()
+	}
 	return source
 }
 
