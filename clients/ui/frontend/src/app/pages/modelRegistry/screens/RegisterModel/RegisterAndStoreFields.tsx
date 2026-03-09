@@ -81,7 +81,7 @@ const RegisterAndStoreFields = <D extends RegistrationCommonFormData>({
         hideDescription
       />
       <NamespaceSelectorField
-        selectedNamespace={formData.namespace ?? ''}
+        selectedNamespace={formData.namespace}
         onSelect={handleNamespaceSelect}
         hasAccess={namespaceHasAccess}
         isLoading={isNamespaceAccessLoading}

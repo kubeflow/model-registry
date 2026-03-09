@@ -411,8 +411,8 @@ curl -i -H "Authorization: Bearer $TOKEN" "http://localhost:4000/api/v1/model_re
 
 ```
 # GET api/v1/model_registry/model-registry/model_transfer_jobs/{job_name}
-curl -i -H "kubeflow-userid: user@example.com" "http://localhost:4000/api/v1/model_registry/model-registry/model_transfer_jobs/test-job?namespace=kubeflow"
-curl -i -H "Authorization: Bearer $TOKEN" "http://localhost:4000/api/v1/model_registry/model-registry/model_transfer_jobs/test-job?namespace=kubeflow"
+curl -i -H "kubeflow-userid: user@example.com" "http://localhost:4000/api/v1/model_registry/model-registry/model_transfer_jobs/test-job?namespace=kubeflow&jobNamespace=kubeflow"
+curl -i -H "Authorization: Bearer $TOKEN" "http://localhost:4000/api/v1/model_registry/model-registry/model_transfer_jobs/test-job?namespace=kubeflow&jobNamespace=kubeflow"
 ```
 
 ```
@@ -483,19 +483,19 @@ curl -i \
   -H "kubeflow-userid: user@example.com" \
   -H "Content-Type: application/json" \
   -X PATCH "http://localhost:4000/api/v1/model_registry/model-registry/model_transfer_jobs/my-job?namespace=kubeflow" \
-  -d '{"data": {"name": "my-job-2"}}'
+  -d '{"data": {"name": "my-job-2", "namespace": "default", "jobDisplayName": "test-job"}}'
 
 curl -i -H "Authorization: Bearer $TOKEN" \
 -X PATCH "http://localhost:4000/api/v1/model_registry/model-registry/model_transfer_jobs/transfer-job-002?namespace=bella-namespace" \
 -H "Content-Type: application/json" \
--d '{"data": {"name": "my-job"}}'
+-d '{"data": {"name": "my-job",  "namespace": "default", "jobDisplayName": "test-job"}}'
 
 ```
 
 ```
 # DELETE api/v1/model_registry/model-registry/model_transfer_jobs/{job_name}
-curl -i -H "kubeflow-userid: user@example.com" -X DELETE "http://localhost:4000/api/v1/model_registry/model-registry/model_transfer_jobs/transfer-job-001?namespace=kubeflow"
-curl -i -H "Authorization: Bearer $TOKEN" -X DELETE "http://localhost:4000/api/v1/model_registry/model-registry/model_transfer_jobs/transfer-job-001?namespace=kubeflow"
+curl -i -H "kubeflow-userid: user@example.com" -X DELETE "http://localhost:4000/api/v1/model_registry/model-registry/model_transfer_jobs/transfer-job-001?namespace=kubeflow&jobNamespace=kubeflow"
+curl -i -H "Authorization: Bearer $TOKEN" -X DELETE "http://localhost:4000/api/v1/model_registry/model-registry/model_transfer_jobs/transfer-job-001?namespace=kubeflow&jobNamespace=kubeflow"
 ```
 
 ### Pagination

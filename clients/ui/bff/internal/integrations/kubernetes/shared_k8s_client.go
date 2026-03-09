@@ -346,7 +346,7 @@ func (kc *SharedClientLogic) GetAllModelTransferJobs(
 
 	labelSelector := "modelregistry.kubeflow.org/job-type=async-upload,modelregistry.kubeflow.org/model-registry-name=" + modelRegistryID
 
-	modelTransferJobList, err := kc.Client.BatchV1().Jobs(namespace).List(ctx, metav1.ListOptions{
+	modelTransferJobList, err := kc.Client.BatchV1().Jobs(metav1.NamespaceAll).List(ctx, metav1.ListOptions{
 		LabelSelector: labelSelector,
 	})
 
