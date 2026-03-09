@@ -58,4 +58,27 @@ describe('McpCatalogCard', () => {
     render(<McpCatalogCard server={mockServer} />, { wrapper });
     expect(screen.getByTestId('mcp-catalog-card-1')).toBeInTheDocument();
   });
+
+  it('renders clickable card name as link with href="#"', () => {
+    render(<McpCatalogCard server={mockServer} />, { wrapper });
+    const link = screen.getByTestId('mcp-catalog-card-detail-link-1');
+    expect(link).toBeInTheDocument();
+    expect(link.tagName).toBe('A');
+    expect(link).toHaveAttribute('href', '#');
+  });
+
+  it('renders description with TruncatedText wrapper', () => {
+    render(<McpCatalogCard server={mockServer} />, { wrapper });
+    const desc = screen.getByTestId('mcp-catalog-card-description-1');
+    expect(desc).toBeInTheDocument();
+    expect(desc.style.display).toBe('-webkit-box');
+  });
+
+  it('renders empty string when description is undefined', () => {
+    render(<McpCatalogCard server={{ ...mockServer, id: 4, description: undefined }} />, {
+      wrapper,
+    });
+    const desc = screen.getByTestId('mcp-catalog-card-description-4');
+    expect(desc).toBeInTheDocument();
+  });
 });

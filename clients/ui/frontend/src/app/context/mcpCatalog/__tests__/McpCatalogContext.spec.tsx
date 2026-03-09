@@ -39,11 +39,14 @@ jest.mock('~/app/hooks/modelCatalog/useCatalogSources', () => ({
   ]),
 }));
 
+const mockRefresh = jest.fn();
+
 jest.mock('~/app/hooks/mcpServerCatalog/useMcpServersBySourceLabel', () => ({
   useMcpServersBySourceLabelWithAPI: jest.fn(() => ({
     mcpServers: { items: [] },
     mcpServersLoaded: true,
     mcpServersLoadError: undefined,
+    refresh: mockRefresh,
   })),
 }));
 
@@ -134,6 +137,16 @@ describe('McpCatalogContext', () => {
       result.current.setSelectedSourceLabel(undefined);
     });
     expect(result.current.selectedSourceLabel).toBeUndefined();
+  });
+
+  it('exposes refreshMcpServers from the hook', () => {
+    const { result } = renderHook(() => React.useContext(McpCatalogContext), { wrapper });
+    expect(result.current.refreshMcpServers).toBe(mockRefresh);
+  });
+
+  it('provides sourceLabelNames as an object', () => {
+    const { result } = renderHook(() => React.useContext(McpCatalogContext), { wrapper });
+    expect(result.current.sourceLabelNames).toEqual({});
   });
 
   it('clearAllFilters resets searchQuery, filters, selectedSourceLabel and namedQuery', () => {

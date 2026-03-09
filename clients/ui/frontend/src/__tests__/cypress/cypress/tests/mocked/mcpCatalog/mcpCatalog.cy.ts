@@ -125,4 +125,71 @@ describe('MCP Catalog Page', () => {
     cy.get('[data-testid="mcp-catalog-card-1"]', { timeout: 15000 }).should('be.visible');
     cy.get('[data-testid="mcp-catalog-card-2"]', { timeout: 15000 }).should('be.visible');
   });
+
+  it('card name should be a clickable link with href="#"', () => {
+    mcpCatalog.visit();
+    cy.get('[data-testid="mcp-catalog-card-detail-link-1"]', { timeout: 15000 })
+      .should('be.visible')
+      .and('have.attr', 'href', '#');
+  });
+
+  it('card description should be truncated', () => {
+    mcpCatalog.visit();
+    cy.get('[data-testid="mcp-catalog-card-description-1"]', { timeout: 15000 })
+      .should('be.visible')
+      .and('have.css', '-webkit-line-clamp', '4');
+  });
+});
+
+describe('MCP Catalog Empty State', () => {
+  it('should show empty state with Reset filters when no results', () => {
+    cy.intercept(
+      'GET',
+      '*mcp_servers*',
+      mockModArchResponse({ items: [], size: 0, pageSize: 10, nextPageToken: '' }),
+    );
+    cy.intercept(
+      `GET`,
+      `**/api/${MODEL_CATALOG_API_VERSION}/model_catalog/mcp_servers*`,
+      mockModArchResponse({ items: [], size: 0, pageSize: 10, nextPageToken: '' }),
+    );
+    cy.interceptApi(
+      `GET /api/:apiVersion/model_catalog/sources`,
+      { path: { apiVersion: MODEL_CATALOG_API_VERSION } },
+      mockCatalogSourceList({ items: [mockCatalogSource({})] }),
+    );
+    cy.intercept(
+      { method: 'GET', pathname: MCP_FILTER_OPTIONS_PATH },
+      mockModArchResponse(testFilterOptions),
+    );
+    mcpCatalog.visit();
+    cy.findByTestId('mcp-catalog-empty-search', { timeout: 15000 }).should('be.visible');
+    cy.contains('No servers found').should('be.visible');
+    cy.findByTestId('mcp-catalog-reset-filters')
+      .should('be.visible')
+      .and('contain', 'Reset filters');
+  });
+});
+
+describe('MCP Catalog Error State', () => {
+  it('should show error state with Retry button on load failure', () => {
+    cy.intercept('GET', '*mcp_servers*', { statusCode: 500, body: 'Internal Server Error' });
+    cy.intercept(`GET`, `**/api/${MODEL_CATALOG_API_VERSION}/model_catalog/mcp_servers*`, {
+      statusCode: 500,
+      body: 'Internal Server Error',
+    });
+    cy.interceptApi(
+      `GET /api/:apiVersion/model_catalog/sources`,
+      { path: { apiVersion: MODEL_CATALOG_API_VERSION } },
+      mockCatalogSourceList({ items: [mockCatalogSource({})] }),
+    );
+    cy.intercept(
+      { method: 'GET', pathname: MCP_FILTER_OPTIONS_PATH },
+      mockModArchResponse(testFilterOptions),
+    );
+    mcpCatalog.visit();
+    cy.findByTestId('mcp-catalog-load-error', { timeout: 15000 }).should('be.visible');
+    cy.contains('Unable to load MCP servers').should('be.visible');
+    cy.findByTestId('mcp-catalog-retry').should('be.visible').and('contain', 'Retry');
+  });
 });
