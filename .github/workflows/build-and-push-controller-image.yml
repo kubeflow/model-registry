@@ -43,7 +43,7 @@ jobs:
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
+        uses: docker/setup-buildx-action@v4
       # set image version
       - name: Set main-branch environment
         if: env.BUILD_CONTEXT == 'main'
