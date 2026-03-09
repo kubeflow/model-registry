@@ -887,8 +887,8 @@ func buildDestinationSecret(generateNamePrefix, namespace string, payload models
 		registry, _ = extractRegistryFromURI(payload.Destination.URI)
 	}
 
-	dockerConfig := fmt.Sprintf(`{"auths":{"%s":{"auth":"%s","email":"%s"}}}`,
-		registry, auth, payload.Destination.Email)
+	dockerConfig := fmt.Sprintf(`{"auths":{"%s":{"auth":"%s"}}}`,
+		registry, auth)
 
 	return &corev1.Secret{
 		ObjectMeta: metav1.ObjectMeta{
