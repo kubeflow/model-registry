@@ -2952,10 +2952,14 @@ components:
       type: object
       required:
         - name
+        - jobDisplayName
+        - namespace
       properties:
         id:
           type: string
         name:
+          type: string
+        jobDisplayName:
           type: string
         description:
           type: string
