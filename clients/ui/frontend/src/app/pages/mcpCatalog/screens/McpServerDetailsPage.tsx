@@ -1,6 +1,6 @@
 import React from 'react';
 import { useParams } from 'react-router';
-import { Link, useLocation } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import {
   ActionList,
   ActionListGroup,
@@ -9,12 +9,15 @@ import {
   Button,
   Content,
   ContentVariants,
+  EmptyState,
+  EmptyStateBody,
+  EmptyStateFooter,
   Flex,
   FlexItem,
   Stack,
   StackItem,
 } from '@patternfly/react-core';
-import { ApplicationsIcon } from '@patternfly/react-icons';
+import { ApplicationsIcon, SearchIcon } from '@patternfly/react-icons';
 import { ApplicationsPage } from 'mod-arch-shared';
 import { useMcpServer } from '~/app/hooks/mcpServerCatalog/useMcpServer';
 import { McpCatalogContext } from '~/app/context/mcpCatalog/McpCatalogContext';
@@ -25,30 +28,36 @@ import McpServerDetailsView from './McpServerDetailsView';
 
 const McpServerDetailsPage: React.FC = () => {
   const { serverId = '' } = useParams<{ serverId: string }>();
-  const location = useLocation();
   const [apiServer, apiServerLoaded, apiServerLoadError] = useMcpServer(serverId);
   const { mcpServers, mcpServersLoaded } = React.useContext(McpCatalogContext);
 
-  const { server, serverLoaded } = React.useMemo(() => {
+  const { server, serverLoaded, serverLoadError } = React.useMemo(() => {
     if (apiServerLoaded && apiServer && !apiServerLoadError) {
-      return { server: apiServer, serverLoaded: true };
+      return { server: apiServer, serverLoaded: true, serverLoadError: undefined };
     }
 
     const contextMatch = mcpServers.items.find((s) => String(s.id) === serverId);
     if (contextMatch) {
-      return { server: contextMatch, serverLoaded: true };
+      return { server: contextMatch, serverLoaded: true, serverLoadError: undefined };
     }
 
     const mockMatch = mockMcpServers.find((s) => String(s.id) === serverId);
     if (mockMatch) {
-      return { server: mockMatch, serverLoaded: true };
+      return { server: mockMatch, serverLoaded: true, serverLoadError: undefined };
     }
 
     if (apiServerLoaded || mcpServersLoaded) {
-      return { server: undefined, serverLoaded: true };
+      // Context loads all servers; if it loaded and still no match, it's genuinely not found.
+      // Only propagate API errors when the context hasn't loaded yet (real failures like 500s).
+      const isNotFound = mcpServersLoaded;
+      return {
+        server: undefined,
+        serverLoaded: true,
+        serverLoadError: isNotFound ? undefined : apiServerLoadError,
+      };
     }
 
-    return { server: undefined, serverLoaded: false };
+    return { server: undefined, serverLoaded: false, serverLoadError: undefined };
   }, [
     apiServer,
     apiServerLoaded,
@@ -58,12 +67,6 @@ const McpServerDetailsPage: React.FC = () => {
     serverId,
   ]);
 
-  const catalogLink = React.useMemo(() => {
-    const searchParams = new URLSearchParams(location.search);
-    const base = mcpCatalogUrl();
-    return searchParams.toString() ? `${base}?${searchParams.toString()}` : base;
-  }, [location.search]);
-
   return (
     <>
       <ScrollViewOnMount shouldScroll scrollToTop />
@@ -71,7 +74,7 @@ const McpServerDetailsPage: React.FC = () => {
         breadcrumb={
           <Breadcrumb>
             <BreadcrumbItem>
-              <Link to={catalogLink}>MCP Catalog</Link>
+              <Link to={mcpCatalogUrl()}>MCP Catalog</Link>
             </BreadcrumbItem>
             <BreadcrumbItem isActive data-testid="breadcrumb-server-name">
               {server?.name || 'Details'}
@@ -112,15 +115,30 @@ const McpServerDetailsPage: React.FC = () => {
         empty={!server}
         emptyStatePage={
           !server ? (
-            <div>
-              Details not found. Return to <Link to={mcpCatalogUrl()}>MCP Catalog</Link>
-            </div>
+            <EmptyState
+              icon={SearchIcon}
+              titleText="MCP server not found"
+              data-testid="mcp-server-not-found"
+            >
+              <EmptyStateBody>The requested MCP server could not be found.</EmptyStateBody>
+              <EmptyStateFooter>
+                <Button
+                  variant="primary"
+                  component={(props) => <Link {...props} to={mcpCatalogUrl()} />}
+                >
+                  Return to MCP Catalog
+                </Button>
+              </EmptyStateFooter>
+            </EmptyState>
           ) : undefined
         }
+        loadError={serverLoadError}
         loaded={serverLoaded}
+        errorMessage="Unable to load MCP server details"
         provideChildrenPadding
         headerAction={
           serverLoaded &&
+          !serverLoadError &&
           server && (
             <ActionList>
               <ActionListGroup>

@@ -20,7 +20,7 @@ import {
   StackItem,
   Title,
 } from '@patternfly/react-core';
-import { OutlinedClockIcon } from '@patternfly/react-icons';
+import { GithubIcon, OutlinedClockIcon } from '@patternfly/react-icons';
 import type { McpServer } from '~/app/mcpServerCatalogTypes';
 import ExternalLink from '~/app/shared/components/ExternalLink';
 import MarkdownComponent from '~/app/shared/markdown/MarkdownComponent';
@@ -32,33 +32,36 @@ type McpServerDetailsViewProps = {
 
 const VISIBLE_LABELS = 3;
 
-const McpServerDetailsView: React.FC<McpServerDetailsViewProps> = ({ server }) => {
-  const deploymentModeLabel = React.useMemo(() => {
-    if (!server.deploymentMode) {
-      return 'N/A';
-    }
-    return server.deploymentMode === 'local' ? 'Local to cluster' : 'Remote';
-  }, [server.deploymentMode]);
+const getDeploymentModeLabel = (mode?: string): string => {
+  if (!mode) {
+    return 'N/A';
+  }
+  return mode === 'local' ? 'Local to cluster' : 'Remote';
+};
 
-  const transportTypeLabel = React.useMemo(() => {
-    if (!server.transports || server.transports.length === 0) {
-      return 'N/A';
-    }
-    return server.transports
-      .map((t) => {
-        switch (t) {
-          case 'http':
-            return 'http-streaming';
-          case 'sse':
-            return 'SSE';
-          case 'stdio':
-            return 'stdio';
-          default:
-            return t;
-        }
-      })
-      .join(', ');
-  }, [server.transports]);
+const getTransportTypeLabel = (transports?: string[]): string => {
+  if (!transports || transports.length === 0) {
+    return 'N/A';
+  }
+  return transports
+    .map((t) => {
+      switch (t) {
+        case 'http':
+          return 'http-streaming';
+        case 'sse':
+          return 'SSE';
+        case 'stdio':
+          return 'stdio';
+        default:
+          return t;
+      }
+    })
+    .join(', ');
+};
+
+const McpServerDetailsView: React.FC<McpServerDetailsViewProps> = ({ server }) => {
+  const deploymentModeLabel = getDeploymentModeLabel(server.deploymentMode);
+  const transportTypeLabel = getTransportTypeLabel(server.transports);
 
   return (
     <PageSection hasBodyWrapper={false} isFilled padding={{ default: 'noPadding' }}>
@@ -85,6 +88,9 @@ const McpServerDetailsView: React.FC<McpServerDetailsViewProps> = ({ server }) =
               <Card>
                 <CardHeader>
                   <Title headingLevel="h2" size="lg">
+                    <Icon isInline style={{ marginRight: '4px' }}>
+                      <GithubIcon />
+                    </Icon>
                     README
                   </Title>
                 </CardHeader>
@@ -155,12 +161,6 @@ const McpServerDetailsView: React.FC<McpServerDetailsViewProps> = ({ server }) =
                     {deploymentModeLabel}
                   </DescriptionListDescription>
                 </DescriptionListGroup>
-                <DescriptionListGroup>
-                  <DescriptionListTerm>Transport type</DescriptionListTerm>
-                  <DescriptionListDescription data-testid="mcp-server-transport-type">
-                    {transportTypeLabel}
-                  </DescriptionListDescription>
-                </DescriptionListGroup>
                 {server.artifacts && server.artifacts.length > 0 && (
                   <DescriptionListGroup>
                     <DescriptionListTerm>Artifacts</DescriptionListTerm>
@@ -182,14 +182,6 @@ const McpServerDetailsView: React.FC<McpServerDetailsViewProps> = ({ server }) =
                     </DescriptionListDescription>
                   </DescriptionListGroup>
                 )}
-                {server.provider && (
-                  <DescriptionListGroup>
-                    <DescriptionListTerm>Provider</DescriptionListTerm>
-                    <DescriptionListDescription data-testid="mcp-server-provider">
-                      {server.provider}
-                    </DescriptionListDescription>
-                  </DescriptionListGroup>
-                )}
                 {(server.sourceCode || server.repositoryUrl) && (
                   <DescriptionListGroup>
                     <DescriptionListTerm>Source Code</DescriptionListTerm>
@@ -206,11 +198,25 @@ const McpServerDetailsView: React.FC<McpServerDetailsViewProps> = ({ server }) =
                     </DescriptionListDescription>
                   </DescriptionListGroup>
                 )}
+                {server.provider && (
+                  <DescriptionListGroup>
+                    <DescriptionListTerm>Provider</DescriptionListTerm>
+                    <DescriptionListDescription data-testid="mcp-server-provider">
+                      {server.provider}
+                    </DescriptionListDescription>
+                  </DescriptionListGroup>
+                )}
+                <DescriptionListGroup>
+                  <DescriptionListTerm>Transport type</DescriptionListTerm>
+                  <DescriptionListDescription data-testid="mcp-server-transport-type">
+                    {transportTypeLabel}
+                  </DescriptionListDescription>
+                </DescriptionListGroup>
                 {server.lastUpdated && (
                   <DescriptionListGroup>
                     <DescriptionListTerm>Last modified</DescriptionListTerm>
                     <DescriptionListDescription>
-                      <Icon isInline style={{ marginRight: 4 }}>
+                      <Icon isInline style={{ marginRight: '4px' }}>
                         <OutlinedClockIcon />
                       </Icon>
                       <ModelTimestamp timeSinceEpoch={server.lastUpdated} />

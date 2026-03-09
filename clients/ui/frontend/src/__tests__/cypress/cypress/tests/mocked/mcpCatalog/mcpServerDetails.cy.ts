@@ -1,58 +1,9 @@
-import { mockModArchResponse } from 'mod-arch-core';
 import { mcpCatalog, mcpServerDetails } from '~/__tests__/cypress/cypress/pages/mcpCatalog';
 import { mockMcpServers } from '~/app/pages/mcpCatalog/mocks/mockMcpServers';
-import { mockMcpCatalogFilterOptions } from '~/app/pages/mcpCatalog/mocks/mockMcpCatalogFilterOptions';
-import { mockCatalogSource, mockCatalogSourceList } from '~/__mocks__';
-import { MODEL_CATALOG_API_VERSION } from '~/__tests__/cypress/cypress/support/commands/api';
-
-const MCP_SERVERS_RESPONSE = {
-  items: mockMcpServers,
-  size: mockMcpServers.length,
-  pageSize: 10,
-  nextPageToken: '',
-};
+import { initMcpCatalogIntercepts, initServerDetailIntercept } from './mcpCatalogTestUtils';
 
 const kubernetesServer = mockMcpServers[0];
 const customServer = mockMcpServers[4];
-
-const initMcpCatalogIntercepts = () => {
-  cy.intercept('GET', '*mcp_servers*', mockModArchResponse(MCP_SERVERS_RESPONSE));
-  cy.intercept(
-    'GET',
-    `**/api/${MODEL_CATALOG_API_VERSION}/model_catalog/mcp_servers*`,
-    mockModArchResponse(MCP_SERVERS_RESPONSE),
-  );
-  cy.intercept(
-    {
-      method: 'GET',
-      pathname: `/model-registry/api/${MODEL_CATALOG_API_VERSION}/model_catalog/mcp_servers`,
-    },
-    mockModArchResponse(MCP_SERVERS_RESPONSE),
-  );
-  cy.interceptApi(
-    `GET /api/:apiVersion/model_catalog/sources`,
-    { path: { apiVersion: MODEL_CATALOG_API_VERSION } },
-    mockCatalogSourceList({ items: [mockCatalogSource({})] }),
-  );
-  cy.intercept(
-    {
-      method: 'GET',
-      pathname: `/model-registry/api/${MODEL_CATALOG_API_VERSION}/model_catalog/mcp_servers_filter_options`,
-    },
-    mockModArchResponse(mockMcpCatalogFilterOptions),
-  );
-};
-
-const initServerDetailIntercept = (server: (typeof mockMcpServers)[number]) => {
-  cy.intercept(
-    {
-      method: 'GET',
-      pathname: `/model-registry/api/${MODEL_CATALOG_API_VERSION}/model_catalog/mcp_servers/${server.id}`,
-    },
-    mockModArchResponse(server),
-  );
-  cy.intercept('GET', `**/mcp_servers/${server.id}`, mockModArchResponse(server));
-};
 
 describe('MCP Server Details Page', () => {
   beforeEach(() => {
@@ -89,40 +40,31 @@ describe('MCP Server Details Page', () => {
     });
   });
 
-  describe('Server header', () => {
+  describe('Server header and description', () => {
     beforeEach(() => {
       initServerDetailIntercept(kubernetesServer);
     });
 
-    it('should display server name in the page title', () => {
+    it('should display server name, deploy button, and description', () => {
       mcpServerDetails.visit(String(kubernetesServer.id));
-      cy.findByTestId('app-page-title').should('contain.text', kubernetesServer.name);
-    });
 
-    it('should display Deploy MCP Server button', () => {
-      mcpServerDetails.visit(String(kubernetesServer.id));
+      cy.findByTestId('app-page-title').should('contain.text', kubernetesServer.name);
+
       mcpServerDetails.findDeployButton().should('be.visible');
       mcpServerDetails.findDeployButton().should('contain.text', 'Deploy MCP Server');
-    });
-  });
 
-  describe('Description card', () => {
-    beforeEach(() => {
-      initServerDetailIntercept(kubernetesServer);
-    });
-
-    it('should display the server description', () => {
-      mcpServerDetails.visit(String(kubernetesServer.id));
       mcpServerDetails.findDescription().should('contain.text', kubernetesServer.description);
     });
   });
 
   describe('README card', () => {
-    it('should render README markdown content', () => {
+    it('should render README with markdown elements', () => {
       initServerDetailIntercept(kubernetesServer);
       mcpServerDetails.visit(String(kubernetesServer.id));
       mcpServerDetails.findReadmeMarkdown().should('be.visible');
       mcpServerDetails.findReadmeMarkdown().should('contain.text', 'Kubernetes MCP Server');
+      mcpServerDetails.findReadmeMarkdown().find('h3').should('exist');
+      mcpServerDetails.findReadmeMarkdown().find('code').should('exist');
     });
 
     it('should display empty state when no README is available', () => {
@@ -138,54 +80,42 @@ describe('MCP Server Details Page', () => {
       initServerDetailIntercept(kubernetesServer);
     });
 
-    it('should display labels with truncation', () => {
+    it('should display labels, license, version, and deployment mode', () => {
       mcpServerDetails.visit(String(kubernetesServer.id));
-      mcpServerDetails.findLabels().should('have.length.at.least', 1);
-    });
 
-    it('should display license as external link', () => {
-      mcpServerDetails.visit(String(kubernetesServer.id));
+      mcpServerDetails.findLabels().should('have.length.at.least', 1);
+
       mcpServerDetails.findLicenseLink().should('be.visible');
       mcpServerDetails.findLicenseLink().should('contain.text', kubernetesServer.license);
-    });
 
-    it('should display version', () => {
-      mcpServerDetails.visit(String(kubernetesServer.id));
       mcpServerDetails.findVersion().should('contain.text', kubernetesServer.version);
-    });
 
-    it('should display deployment mode', () => {
-      mcpServerDetails.visit(String(kubernetesServer.id));
       mcpServerDetails.findDeploymentMode().should('contain.text', 'Local to cluster');
     });
 
-    it('should display transport type', () => {
+    it('should display artifacts, source code, provider, and transport type', () => {
       mcpServerDetails.visit(String(kubernetesServer.id));
-      mcpServerDetails.findTransportType().should('contain.text', 'http-streaming');
-    });
 
-    it('should display provider', () => {
-      mcpServerDetails.visit(String(kubernetesServer.id));
-      mcpServerDetails.findProvider().should('contain.text', kubernetesServer.provider);
-    });
+      mcpServerDetails.findArtifactCopy().should('be.visible');
+      mcpServerDetails
+        .findArtifactCopy()
+        .first()
+        .find('input')
+        .should('have.value', kubernetesServer.artifacts![0].uri);
 
-    it('should display source code link', () => {
-      mcpServerDetails.visit(String(kubernetesServer.id));
       mcpServerDetails.findSourceCodeLink().should('be.visible');
+
+      mcpServerDetails.findProvider().should('contain.text', kubernetesServer.provider);
+
+      mcpServerDetails.findTransportType().should('contain.text', 'http-streaming');
     });
   });
 
   describe('Error handling', () => {
-    it('should show error state for invalid server ID', () => {
-      cy.intercept(
-        {
-          method: 'GET',
-          url: '**/mcp_servers/999*',
-        },
-        { statusCode: 404, body: { error: 'Not found' } },
-      );
+    it('should show not-found state for invalid server ID', () => {
       cy.visit('/mcp-catalog/999');
-      cy.contains('Details not found').should('be.visible');
+      cy.findByTestId('mcp-server-not-found').should('be.visible');
+      cy.contains('MCP server not found').should('be.visible');
     });
   });
 
