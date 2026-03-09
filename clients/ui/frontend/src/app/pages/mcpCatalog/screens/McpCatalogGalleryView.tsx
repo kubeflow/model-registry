@@ -18,11 +18,7 @@ import McpCatalogCategorySection from '~/app/pages/mcpCatalog/screens/McpCatalog
 
 const CATEGORY_PAGE_SIZE = 6;
 
-type McpCatalogGalleryViewProps = {
-  searchTerm: string;
-};
-
-const McpCatalogGalleryView: React.FC<McpCatalogGalleryViewProps> = () => {
+const McpCatalogGalleryView: React.FC = () => {
   const {
     mcpServers,
     mcpServersLoaded,

@@ -27,14 +27,12 @@ describe('McpCatalogCard', () => {
     );
   });
 
-  it('renders deployment mode label for local', () => {
+  it('does not render deployment chip for local mode', () => {
     render(<McpCatalogCard server={mockServer} />, { wrapper });
-    expect(screen.getByTestId('mcp-catalog-card-deployment-1')).toHaveTextContent(
-      'Local to cluster',
-    );
+    expect(screen.queryByTestId('mcp-catalog-card-deployment-1')).not.toBeInTheDocument();
   });
 
-  it('renders deployment mode label for remote', () => {
+  it('renders deployment chip only for remote mode', () => {
     render(<McpCatalogCard server={{ ...mockServer, id: 2, deploymentMode: 'remote' }} />, {
       wrapper,
     });

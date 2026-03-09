@@ -52,7 +52,7 @@ const McpCatalog: React.FC = () => {
                 onResetAllFilters={handleResetAllFilters}
               />
               <PageSection isFilled padding={{ default: 'noPadding' }}>
-                <McpCatalogGalleryView searchTerm={searchQuery} />
+                <McpCatalogGalleryView />
               </PageSection>
             </Stack>
           </SidebarContent>

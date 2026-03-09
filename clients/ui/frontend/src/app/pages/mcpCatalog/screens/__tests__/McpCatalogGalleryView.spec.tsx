@@ -49,7 +49,7 @@ const renderWithContext = (overrides: Partial<McpCatalogContextType> = {}) => {
   return render(
     <MemoryRouter>
       <McpCatalogContext.Provider value={ctx}>
-        <McpCatalogGalleryView searchTerm="" />
+        <McpCatalogGalleryView />
       </McpCatalogContext.Provider>
     </MemoryRouter>,
   );

@@ -93,7 +93,7 @@ const McpCatalogSourceLabelSelector: React.FC<McpCatalogSourceLabelSelectorProps
                       className="toolbar-fieldset-wrapper"
                       placeholder="Search MCP servers..."
                       value={inputValue}
-                      style={{ minWidth: '600px' }}
+                      style={{ width: '100%', maxWidth: '600px' }}
                       onChange={handleSearchInputChange}
                       onSearch={handleSearchInputSearch}
                       onClear={handleClear}

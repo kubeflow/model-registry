@@ -57,11 +57,13 @@ const McpCatalogCard: React.FC<McpCatalogCardProps> = React.memo(({ server }) =>
               <ApplicationsIcon />
             </span>
           </FlexItem>
-          <FlexItem>
-            <Label variant="outline" data-testid={`mcp-catalog-card-deployment-${serverId}`}>
-              {deploymentConfig.label}
-            </Label>
-          </FlexItem>
+          {server.deploymentMode === 'remote' && (
+            <FlexItem>
+              <Label data-testid={`mcp-catalog-card-deployment-${serverId}`}>
+                {deploymentConfig.label}
+              </Label>
+            </FlexItem>
+          )}
         </Flex>
         <CardTitle>
           <Button

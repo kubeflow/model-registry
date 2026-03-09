@@ -52,12 +52,6 @@ const MCP_SERVERS_PATH = `/model-registry/api/${MODEL_CATALOG_API_VERSION}/model
 const MCP_FILTER_OPTIONS_PATH = `/model-registry/api/${MODEL_CATALOG_API_VERSION}/model_catalog/mcp_servers_filter_options`;
 
 const initMcpCatalogIntercepts = () => {
-  cy.intercept('GET', '*mcp_servers*', mockModArchResponse(MCP_SERVERS_RESPONSE));
-  cy.intercept(
-    'GET',
-    `**/api/${MODEL_CATALOG_API_VERSION}/model_catalog/mcp_servers*`,
-    mockModArchResponse(MCP_SERVERS_RESPONSE),
-  );
   cy.intercept(
     { method: 'GET', pathname: MCP_SERVERS_PATH },
     mockModArchResponse(MCP_SERVERS_RESPONSE),
@@ -144,13 +138,7 @@ describe('MCP Catalog Page', () => {
 describe('MCP Catalog Empty State', () => {
   it('should show empty state with Reset filters when no results', () => {
     cy.intercept(
-      'GET',
-      '*mcp_servers*',
-      mockModArchResponse({ items: [], size: 0, pageSize: 10, nextPageToken: '' }),
-    );
-    cy.intercept(
-      `GET`,
-      `**/api/${MODEL_CATALOG_API_VERSION}/model_catalog/mcp_servers*`,
+      { method: 'GET', pathname: MCP_SERVERS_PATH },
       mockModArchResponse({ items: [], size: 0, pageSize: 10, nextPageToken: '' }),
     );
     cy.interceptApi(
@@ -173,11 +161,10 @@ describe('MCP Catalog Empty State', () => {
 
 describe('MCP Catalog Error State', () => {
   it('should show error state with Retry button on load failure', () => {
-    cy.intercept('GET', '*mcp_servers*', { statusCode: 500, body: 'Internal Server Error' });
-    cy.intercept(`GET`, `**/api/${MODEL_CATALOG_API_VERSION}/model_catalog/mcp_servers*`, {
-      statusCode: 500,
-      body: 'Internal Server Error',
-    });
+    cy.intercept(
+      { method: 'GET', pathname: MCP_SERVERS_PATH },
+      { statusCode: 500, body: 'Internal Server Error' },
+    );
     cy.interceptApi(
       `GET /api/:apiVersion/model_catalog/sources`,
       { path: { apiVersion: MODEL_CATALOG_API_VERSION } },

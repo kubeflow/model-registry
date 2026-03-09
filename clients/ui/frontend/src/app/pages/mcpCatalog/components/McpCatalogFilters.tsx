@@ -1,11 +1,22 @@
 import * as React from 'react';
-import { Alert, Spinner, Stack } from '@patternfly/react-core';
+import { Alert, Divider, Spinner, Stack, StackItem } from '@patternfly/react-core';
 import { McpCatalogContext } from '~/app/context/mcpCatalog/McpCatalogContext';
-import DeploymentModeFilter from '~/app/pages/mcpCatalog/components/globalFilters/DeploymentModeFilter';
-import SupportedTransportsFilter from '~/app/pages/mcpCatalog/components/globalFilters/SupportedTransportsFilter';
-import McpLicenseFilter from '~/app/pages/mcpCatalog/components/globalFilters/McpLicenseFilter';
-import LabelsFilter from '~/app/pages/mcpCatalog/components/globalFilters/LabelsFilter';
-import SecurityVerificationFilter from '~/app/pages/mcpCatalog/components/globalFilters/SecurityVerificationFilter';
+import McpCatalogStringFilter from '~/app/pages/mcpCatalog/components/McpCatalogStringFilter';
+import type { McpFilterCategoryKey } from '~/app/pages/mcpCatalog/types/mcpCatalogFilterOptions';
+
+type FilterConfig = {
+  filterKey: McpFilterCategoryKey;
+  title: string;
+  hasDivider: boolean;
+};
+
+const FILTER_CONFIGS: FilterConfig[] = [
+  { filterKey: 'deploymentMode', title: 'Deployment mode', hasDivider: true },
+  { filterKey: 'supportedTransports', title: 'Supported transports', hasDivider: true },
+  { filterKey: 'license', title: 'License', hasDivider: true },
+  { filterKey: 'labels', title: 'Labels', hasDivider: true },
+  { filterKey: 'securityVerification', title: 'Security & Verification', hasDivider: false },
+];
 
 const McpCatalogFilters: React.FC = () => {
   const { filterOptions, filterOptionsLoaded, filterOptionsLoadError } =
@@ -27,11 +38,20 @@ const McpCatalogFilters: React.FC = () => {
 
   return (
     <Stack hasGutter>
-      <DeploymentModeFilter filters={filters} />
-      <SupportedTransportsFilter filters={filters} />
-      <McpLicenseFilter filters={filters} />
-      <LabelsFilter filters={filters} />
-      <SecurityVerificationFilter filters={filters} />
+      {FILTER_CONFIGS.map(({ filterKey, title, hasDivider }) => {
+        const value = filters?.[filterKey];
+        if (!value) {
+          return null;
+        }
+        return (
+          <React.Fragment key={filterKey}>
+            <StackItem>
+              <McpCatalogStringFilter title={title} filterKey={filterKey} filters={value} />
+            </StackItem>
+            {hasDivider && <Divider />}
+          </React.Fragment>
+        );
+      })}
     </Stack>
   );
 };

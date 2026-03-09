@@ -1,6 +1,8 @@
-import type { CatalogFilterOptionsList } from '~/app/modelCatalogTypes';
 import type { McpServer } from '~/app/mcpServerCatalogTypes';
-import type { McpCatalogFiltersState } from '~/app/pages/mcpCatalog/types/mcpCatalogFilterOptions';
+import type {
+  McpCatalogFilterOptionsList,
+  McpCatalogFiltersState,
+} from '~/app/pages/mcpCatalog/types/mcpCatalogFilterOptions';
 
 export type McpCatalogPaginationState = {
   page: number;
@@ -32,7 +34,7 @@ export type McpCatalogContextType = {
   mcpServersLoaded: boolean;
   mcpServersLoadError: Error | undefined;
   refreshMcpServers: () => void;
-  filterOptions: CatalogFilterOptionsList | null;
+  filterOptions: McpCatalogFilterOptionsList | null;
   filterOptionsLoaded: boolean;
   filterOptionsLoadError: Error | undefined;
 };
