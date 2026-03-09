@@ -20,6 +20,27 @@ const McpCatalogGalleryView: React.FC<McpCatalogGalleryViewProps> = () => {
     React.useContext(McpCatalogContext);
   const { items } = mcpServers;
 
+  const { itemsByLabel, uncategorizedItems } = React.useMemo(() => {
+    const knownLabels = new Set(sourceLabels);
+    const byLabel = new Map<string, typeof items>();
+    const uncategorized: typeof items = [];
+
+    for (const item of items) {
+      if (!item.source_id || !knownLabels.has(item.source_id)) {
+        uncategorized.push(item);
+      } else {
+        const group = byLabel.get(item.source_id);
+        if (group) {
+          group.push(item);
+        } else {
+          byLabel.set(item.source_id, [item]);
+        }
+      }
+    }
+
+    return { itemsByLabel: byLabel, uncategorizedItems: uncategorized };
+  }, [items, sourceLabels]);
+
   if (mcpServersLoadError) {
     return (
       <EmptyState
@@ -61,10 +82,6 @@ const McpCatalogGalleryView: React.FC<McpCatalogGalleryViewProps> = () => {
     );
   }
 
-  const knownLabels = new Set(sourceLabels);
-  const uncategorized = items.filter((s) => !s.source_id || !knownLabels.has(s.source_id));
-  const hasUncategorized = uncategorized.length > 0;
-
   if (sourceLabels.length === 0) {
     return (
       <Stack hasGutter>
@@ -75,18 +92,15 @@ const McpCatalogGalleryView: React.FC<McpCatalogGalleryViewProps> = () => {
 
   return (
     <Stack hasGutter>
-      {sourceLabels.map((label) => {
-        const sectionItems = items.filter((s) => s.source_id === label);
-        return (
-          <McpCatalogCategorySection
-            key={label}
-            title={getCategoryDisplayName(label)}
-            servers={sectionItems}
-          />
-        );
-      })}
-      {hasUncategorized && (
-        <McpCatalogCategorySection key="other" title="Other" servers={uncategorized} />
+      {sourceLabels.map((label) => (
+        <McpCatalogCategorySection
+          key={label}
+          title={getCategoryDisplayName(label)}
+          servers={itemsByLabel.get(label) ?? []}
+        />
+      ))}
+      {uncategorizedItems.length > 0 && (
+        <McpCatalogCategorySection key="other" title="Other" servers={uncategorizedItems} />
       )}
     </Stack>
   );

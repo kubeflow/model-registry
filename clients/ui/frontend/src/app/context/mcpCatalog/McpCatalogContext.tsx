@@ -104,29 +104,28 @@ export const McpCatalogContextProvider: React.FC<McpCatalogContextProviderProps>
     searchQuery,
   });
 
-  const useMockData = !apiState.apiAvailable;
-  const apiHasItems = mcpServersResult.mcpServers.items.length > 0;
-  const isShowingMockItems = useMockData || !apiHasItems;
-  const useMockLabels = isShowingMockItems || !catalogSourcesLoaded;
-  const sourceLabels = useMockLabels ? mockSourceLabels : sourceLabelsFromApi;
+  const apiReady =
+    catalogSourcesLoaded &&
+    !catalogSourcesLoadError &&
+    mcpServersResult.mcpServersLoaded &&
+    !mcpServersResult.mcpServersLoadError;
+  const useMockData = !apiReady;
+  const sourceLabels = useMockData ? mockSourceLabels : sourceLabelsFromApi;
 
-  const filteredMockItems = mockMcpServers.filter(
-    (s) =>
-      selectedSourceLabel === undefined || (s.source_id && s.source_id === selectedSourceLabel),
-  );
-  const rawItems = useMockData
-    ? filteredMockItems
-    : apiHasItems
-      ? mcpServersResult.mcpServers.items
-      : filteredMockItems;
-  const itemsAfterSearch =
-    isShowingMockItems && searchQuery.trim().length > 0
-      ? filterMcpServersBySearchQuery(rawItems, searchQuery)
-      : rawItems;
-  const mcpServers = React.useMemo(
-    () => ({ items: filterMcpServersByFilters(itemsAfterSearch, filters) }),
-    [itemsAfterSearch, filters],
-  );
+  const mcpServers = React.useMemo(() => {
+    if (useMockData) {
+      let items = mockMcpServers.filter(
+        (s) =>
+          selectedSourceLabel === undefined || (s.source_id && s.source_id === selectedSourceLabel),
+      );
+      if (searchQuery.trim().length > 0) {
+        items = filterMcpServersBySearchQuery(items, searchQuery);
+      }
+      return { items: filterMcpServersByFilters(items, filters) };
+    }
+    return { items: filterMcpServersByFilters(mcpServersResult.mcpServers.items, filters) };
+  }, [useMockData, selectedSourceLabel, searchQuery, filters, mcpServersResult.mcpServers.items]);
+
   const mcpServersLoaded = useMockData ? true : mcpServersResult.mcpServersLoaded;
   const mcpServersLoadError = useMockData ? undefined : mcpServersResult.mcpServersLoadError;
 

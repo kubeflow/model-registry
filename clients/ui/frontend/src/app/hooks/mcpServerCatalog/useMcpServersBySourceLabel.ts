@@ -58,8 +58,6 @@ export function useMcpServersBySourceLabelWithAPI(
   const [isLoadingMore, setIsLoadingMore] = React.useState(false);
   const [loadMoreError, setLoadMoreError] = React.useState<Error | undefined>();
 
-  const resetJustRanRef = React.useRef(false);
-
   const buildMcpServerListParams = React.useCallback(
     (nextPageToken?: string): McpServerListParams => ({
       sourceLabel,
@@ -104,11 +102,7 @@ export function useMcpServersBySourceLabelWithAPI(
   );
 
   React.useEffect(() => {
-    if (loaded && !error) {
-      if (resetJustRanRef.current) {
-        resetJustRanRef.current = false;
-        return;
-      }
+    if (loaded && !error && (firstPageData.items?.length ?? 0) > 0) {
       setAllItems(firstPageData.items ?? []);
       setTotalSize(firstPageData.size);
       setNextPageTokenValue(firstPageData.nextPageToken);
@@ -147,7 +141,6 @@ export function useMcpServersBySourceLabelWithAPI(
     setNextPageTokenValue('');
     setIsLoadingMore(false);
     setLoadMoreError(undefined);
-    resetJustRanRef.current = true;
   }, [
     sourceLabel,
     pageSize,
