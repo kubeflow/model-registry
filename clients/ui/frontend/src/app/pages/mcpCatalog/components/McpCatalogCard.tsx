@@ -5,12 +5,12 @@ import {
   CardBody,
   CardHeader,
   CardTitle,
-  Content,
   Flex,
   FlexItem,
   Label,
   Truncate,
 } from '@patternfly/react-core';
+import { TruncatedText } from 'mod-arch-shared';
 import { ApplicationsIcon } from '@patternfly/react-icons';
 import type { McpServer } from '~/app/mcpServerCatalogTypes';
 import { getSecurityIndicatorLabels } from '~/app/pages/mcpCatalog/utils/mcpCatalogUtils';
@@ -85,13 +85,11 @@ const McpCatalogCard: React.FC<McpCatalogCardProps> = React.memo(({ server }) =>
         </CardTitle>
       </CardHeader>
       <CardBody>
-        <Content
-          component="p"
-          className="pf-v6-u-mb-md"
+        <TruncatedText
+          content={server.description ?? ''}
+          maxLines={4}
           data-testid={`mcp-catalog-card-description-${serverId}`}
-        >
-          {server.description ?? ''}
-        </Content>
+        />
         {securityLabels.length > 0 && (
           <Flex
             direction={{ default: 'column' }}
