@@ -225,9 +225,15 @@ func TestCursorDecoding(t *testing.T) {
 		},
 		{
 			name:        "Cursor with invalid format",
-			token:       base64.StdEncoding.EncodeToString([]byte("invalid:format:extra")),
+			token:       base64.StdEncoding.EncodeToString([]byte("no-colon")),
 			expectError: true,
-			description: "Cursor with wrong format should return error",
+			description: "Cursor with no colon should return error",
+		},
+		{
+			name:        "Cursor with value containing colon",
+			token:       base64.StdEncoding.EncodeToString([]byte("123:source_id:model_name")),
+			expectError: false,
+			description: "Cursor value may contain colons (e.g. namespaced names)",
 		},
 		{
 			name:        "Cursor with non-numeric ID",
@@ -246,6 +252,10 @@ func TestCursorDecoding(t *testing.T) {
 			} else {
 				assert.NoError(t, err, tt.description)
 				assert.NotNil(t, cursor, "Cursor should not be nil on success")
+				if tt.name == "Cursor with value containing colon" {
+					assert.Equal(t, int32(123), cursor.ID)
+					assert.Equal(t, "source_id:model_name", cursor.Value)
+				}
 			}
 		})
 	}
