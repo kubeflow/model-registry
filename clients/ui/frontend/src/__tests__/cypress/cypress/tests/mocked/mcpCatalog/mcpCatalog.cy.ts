@@ -1,6 +1,7 @@
-import { mockModArchResponse } from 'mod-arch-core';
 import { mcpCatalog } from '~/__tests__/cypress/cypress/pages/mcpCatalog';
+import { mockModArchResponse } from 'mod-arch-core';
 import { mockCatalogSource, mockCatalogSourceList } from '~/__mocks__';
+import { initMcpCatalogIntercepts } from './mcpCatalogTestUtils';
 import { MODEL_CATALOG_API_VERSION } from '~/__tests__/cypress/cypress/support/commands/api';
 
 const testMcpServers = [
@@ -51,21 +52,6 @@ const MCP_SERVERS_PATH = `/model-registry/api/${MODEL_CATALOG_API_VERSION}/model
 
 const MCP_FILTER_OPTIONS_PATH = `/model-registry/api/${MODEL_CATALOG_API_VERSION}/model_catalog/mcp_servers_filter_options`;
 
-const initMcpCatalogIntercepts = () => {
-  cy.intercept(
-    { method: 'GET', pathname: MCP_SERVERS_PATH },
-    mockModArchResponse(MCP_SERVERS_RESPONSE),
-  );
-  cy.interceptApi(
-    `GET /api/:apiVersion/model_catalog/sources`,
-    { path: { apiVersion: MODEL_CATALOG_API_VERSION } },
-    mockCatalogSourceList({ items: [mockCatalogSource({})] }),
-  );
-  cy.intercept(
-    { method: 'GET', pathname: MCP_FILTER_OPTIONS_PATH },
-    mockModArchResponse(testFilterOptions),
-  );
-};
 
 describe('MCP Catalog Page', () => {
   beforeEach(() => {

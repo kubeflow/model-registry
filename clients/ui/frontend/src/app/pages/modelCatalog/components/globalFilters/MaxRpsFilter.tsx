@@ -74,7 +74,7 @@ const MaxRpsFilter: React.FC = () => {
       direction={{ default: 'column' }}
       spaceItems={{ default: 'spaceItemsSm' }}
       flexWrap={{ default: 'wrap' }}
-      style={{ width: '500px', padding: '16px' }}
+      style={{ minWidth: '400px', padding: '16px' }}
     >
       <FlexItem>Max requests per second (RPS)</FlexItem>
       <FlexItem>

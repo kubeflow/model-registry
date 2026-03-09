@@ -59,10 +59,21 @@ func (r *CatalogModelRepositoryImpl) Save(model models.CatalogModel) (models.Cat
 
 	attr := model.GetAttributes()
 	if model.GetID() == nil && attr != nil && attr.Name != nil {
-		existing, err := r.lookupModelByName(*attr.Name)
+		lookupName := *attr.Name
+		// When source_id is present, use namespaced name (sourceId:modelName) for uniqueness and storage.
+		// Only prefix if not already in sourceId:modelName form (avoid double-prefix; allow display names containing ":").
+		if sourceID := getSourceIDFromProperties(model); sourceID != "" {
+			prefix := sourceID + ":"
+			if !strings.HasPrefix(lookupName, prefix) {
+				namespacedName := prefix + lookupName
+				attr.Name = &namespacedName
+				lookupName = namespacedName
+			}
+		}
+		existing, err := r.lookupModelByName(lookupName)
 		if err != nil {
 			if !errors.Is(err, ErrCatalogModelNotFound) {
-				return nil, fmt.Errorf("error finding existing model named %s: %w", *attr.Name, err)
+				return nil, fmt.Errorf("error finding existing model named %s: %w", lookupName, err)
 			}
 		} else {
 			model.SetID(existing.ID)
@@ -70,6 +81,19 @@ func (r *CatalogModelRepositoryImpl) Save(model models.CatalogModel) (models.Cat
 	}
 
 	return r.GenericRepository.Save(model, nil)
+}
+
+// getSourceIDFromProperties returns the source_id property value if present.
+func getSourceIDFromProperties(model models.CatalogModel) string {
+	if model.GetProperties() == nil {
+		return ""
+	}
+	for _, p := range *model.GetProperties() {
+		if p.Name == "source_id" && p.StringValue != nil {
+			return *p.StringValue
+		}
+	}
+	return ""
 }
 
 // ApplyStandardPagination overrides the base implementation to use catalog-specific allowed columns

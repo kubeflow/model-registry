@@ -12,6 +12,7 @@ import {
 } from '@patternfly/react-core';
 import { TruncatedText } from 'mod-arch-shared';
 import { ApplicationsIcon } from '@patternfly/react-icons';
+import { Link, type LinkProps } from 'react-router-dom';
 import type { McpServer } from '~/app/mcpServerCatalogTypes';
 import { getSecurityIndicatorLabels } from '~/app/pages/mcpCatalog/utils/mcpCatalogUtils';
 import {
@@ -19,6 +20,7 @@ import {
   McpCardIconByLabel,
   getMcpCardIconConfig,
 } from '~/app/pages/mcpCatalog/constants/mcpCatalogCardIcons';
+import { mcpServerDetailsUrl } from '~/app/routes/mcpCatalog/mcpCatalog';
 
 type McpCatalogCardProps = {
   server: McpServer;
@@ -67,11 +69,10 @@ const McpCatalogCard: React.FC<McpCatalogCardProps> = React.memo(({ server }) =>
         </Flex>
         <CardTitle>
           <Button
+            data-testid={`mcp-catalog-card-detail-link-${serverId}`}
             variant="link"
             isInline
-            component="a"
-            href="#"
-            data-testid={`mcp-catalog-card-detail-link-${serverId}`}
+            component={(props: LinkProps) => <Link {...props} to={mcpServerDetailsUrl(serverId)} />}
             style={{
               fontSize: 'var(--pf-t--global--font--size--body--default)',
               fontWeight: 'var(--pf-t--global--font--weight--body--bold)',

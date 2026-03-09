@@ -186,7 +186,11 @@ export const ModelCatalogContextProvider: React.FC<ModelCatalogContextProviderPr
     if (defaultQuery) {
       applyNamedQueryDefaults(defaultQuery);
     }
-  }, [filterOptions?.namedQueries, applyNamedQueryDefaults, baseSetFilterData]);
+
+    if (!isOnDetailsPage) {
+      setPerformanceFiltersChangedOnDetailsPage(false);
+    }
+  }, [filterOptions?.namedQueries, applyNamedQueryDefaults, baseSetFilterData, isOnDetailsPage]);
 
   /**
    * Clears basic filters (Task, Provider, License, Language, Tensor Type) to empty.
@@ -263,8 +267,12 @@ export const ModelCatalogContextProvider: React.FC<ModelCatalogContextProviderPr
         const { value } = getSingleFilterDefault(filterOptions, filterKey);
         applyFilterValue(baseSetFilterData, filterKey, value);
       }
+
+      if (!isOnDetailsPage) {
+        setPerformanceFiltersChangedOnDetailsPage(false);
+      }
     },
-    [filterOptions, baseSetFilterData],
+    [filterOptions, baseSetFilterData, isOnDetailsPage],
   );
 
   /**

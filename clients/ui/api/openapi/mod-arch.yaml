@@ -2952,10 +2952,14 @@ components:
       type: object
       required:
         - name
+        - jobDisplayName
+        - namespace
       properties:
         id:
           type: string
         name:
+          type: string
+        jobDisplayName:
           type: string
         description:
           type: string
@@ -3729,7 +3733,7 @@ components:
       required: true
     jobNamespace:
       name: jobNamespace
-      description: The namespace where the job's pods are running, used to fetch pod events.
+      description: The namespace where the ModelTransferJob runs.
       schema:
         type: string
       in: query
@@ -3784,13 +3788,6 @@ components:
         type: string
       in: query
       required: false
-    jobNamespace:
-      name: jobNamespace
-      description: The namespace where the ModelTransferJob runs. Required for GET and DELETE of a single job.
-      schema:
-        type: string
-      in: query
-      required: true
 
   securitySchemes:
     Bearer:
