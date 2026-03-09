@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { useFetchState, FetchState, FetchStateCallbackPromise } from 'mod-arch-core';
+import { useFetchState, FetchState, FetchStateCallbackPromise, NotReadyError } from 'mod-arch-core';
 import { ModelTransferJob } from '~/app/types';
 import { useModelRegistryAPI } from '~/app/hooks/useModelRegistryAPI';
 import { TransferJobParams } from '~/concepts/modelRegistry/types';
@@ -14,10 +14,10 @@ const useModelTransferJobForArtifact = (
   const callback = React.useCallback<FetchStateCallbackPromise<ModelTransferJob | null>>(
     (opts) => {
       if (!apiAvailable) {
-        return Promise.reject(new Error('API not yet available'));
+        return Promise.reject(new NotReadyError('API not yet available'));
       }
       if (!jobNamespace || !jobName) {
-        return Promise.resolve(null);
+        return Promise.reject(new NotReadyError('No jobName or jobNamespace'));
       }
       return api.getModelTransferJobByName(opts, jobNamespace, jobName);
     },

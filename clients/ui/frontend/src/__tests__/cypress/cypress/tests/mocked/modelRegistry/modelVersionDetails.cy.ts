@@ -650,6 +650,49 @@ describe('Model version details', () => {
     });
   });
 
+  describe('Storage location error states', () => {
+    const transferJobArtifact = mockModelArtifactWithTransferJob({
+      modelSourceGroup: 'my-project-1',
+      modelSourceName: 'model-transfer-job-oci-1',
+    });
+
+    const initErrorIntercepts = () => {
+      initIntercepts({});
+
+      cy.interceptApi(
+        `GET /api/:apiVersion/model_registry/:modelRegistryName/model_versions/:modelVersionId/artifacts`,
+        {
+          path: {
+            modelRegistryName: 'modelregistry-sample',
+            apiVersion: MODEL_REGISTRY_API_VERSION,
+            modelVersionId: 1,
+          },
+        },
+        mockModelArtifactList({ items: [transferJobArtifact] }),
+      );
+    };
+
+    it('should show error alert with retry button when transfer job fetch fails', () => {
+      initErrorIntercepts();
+
+      cy.intercept(
+        {
+          method: 'GET',
+          pathname: `/model-registry/api/${MODEL_REGISTRY_API_VERSION}/model_registry/modelregistry-sample/model_transfer_jobs/model-transfer-job-oci-1`,
+        },
+        {
+          statusCode: 500,
+          body: { error: { message: 'Internal server error', statusCode: 500 } },
+        },
+      );
+
+      modelVersionDetails.visit();
+
+      cy.findByText('Failed to load storage location').should('exist');
+      cy.findByText('Retry').should('exist');
+    });
+  });
+
   describe('Model location (Register only)', () => {
     it('should show Model location section for non-transfer job artifacts', () => {
       initIntercepts({});

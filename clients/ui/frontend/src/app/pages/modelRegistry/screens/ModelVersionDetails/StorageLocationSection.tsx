@@ -35,6 +35,7 @@ type StorageLocationSectionProps = {
   transferJob: ModelTransferJob | null;
   transferJobLoaded: boolean;
   transferJobError: Error | undefined;
+  onRetry: () => void;
 };
 
 const NoAccessPopover: React.FC<{ namespace: string }> = ({ namespace }) => (
@@ -127,27 +128,38 @@ const StorageLocationSection: React.FC<StorageLocationSectionProps> = ({
   transferJob,
   transferJobLoaded,
   transferJobError,
+  onRetry,
 }) => {
   const [isSourceDetailsExpanded, setIsSourceDetailsExpanded] = React.useState(false);
   const { namespaces = [] } = useNamespaceSelector();
 
   const userHasNamespaceAccess = namespaces.some((ns) => ns.name === fallbackNamespace);
   const hasAccessError =
-    (!userHasNamespaceAccess && !!transferJobError) || isAccessError(transferJobError);
+    isAccessError(transferJobError) ||
+    (!userHasNamespaceAccess && transferJobLoaded && !transferJob && !transferJobError);
+
+  if (transferJobError && !hasAccessError) {
+    return (
+      <Alert
+        variant="danger"
+        isInline
+        title="Failed to load storage location"
+        actionLinks={
+          <Button variant="link" onClick={onRetry}>
+            Retry
+          </Button>
+        }
+      >
+        {transferJobError.message}
+      </Alert>
+    );
+  }
 
   if (!transferJobLoaded) {
     return (
       <Bullseye>
         <Spinner size="lg" />
       </Bullseye>
-    );
-  }
-
-  if (transferJobError && !hasAccessError) {
-    return (
-      <Alert variant="danger" isInline title="Failed to load storage location">
-        {transferJobError.message}
-      </Alert>
     );
   }
 
