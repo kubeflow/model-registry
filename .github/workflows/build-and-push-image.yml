@@ -63,7 +63,7 @@ jobs:
         run: |
           echo "VERSION=${{ github.ref_name }}" >> $GITHUB_ENV
       - name: Log in to the Container registry
-        uses: docker/login-action@v3
+        uses: docker/login-action@v4
         with:
           registry: ${{ env.IMG_REGISTRY }}
           username: ${{ env.DOCKER_USER }}
