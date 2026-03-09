@@ -19,7 +19,6 @@ import { ApplicationsIcon, SearchIcon } from '@patternfly/react-icons';
 import { ApplicationsPage } from 'mod-arch-shared';
 import { useMcpServer } from '~/app/hooks/mcpServerCatalog/useMcpServer';
 import { McpCatalogContext } from '~/app/context/mcpCatalog/McpCatalogContext';
-import { mockMcpServers } from '~/app/pages/mcpCatalog/mocks/mockMcpServers';
 import { mcpCatalogUrl } from '~/app/routes/mcpCatalog/mcpCatalog';
 import ScrollViewOnMount from '~/app/shared/components/ScrollViewOnMount';
 import McpServerDetailsView from './McpServerDetailsView';
@@ -39,14 +38,7 @@ const McpServerDetailsPage: React.FC = () => {
       return { server: contextMatch, serverLoaded: true, serverLoadError: undefined };
     }
 
-    const mockMatch = mockMcpServers.find((s) => String(s.id) === serverId);
-    if (mockMatch) {
-      return { server: mockMatch, serverLoaded: true, serverLoadError: undefined };
-    }
-
     if (apiServerLoaded || mcpServersLoaded) {
-      // Context loads all servers; if it loaded and still no match, it's genuinely not found.
-      // Only propagate API errors when the context hasn't loaded yet (real failures like 500s).
       const isNotFound = mcpServersLoaded;
       return {
         server: undefined,

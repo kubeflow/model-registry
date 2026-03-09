@@ -57,12 +57,12 @@ describe('McpCatalogCard', () => {
     expect(screen.getByTestId('mcp-catalog-card-1')).toBeInTheDocument();
   });
 
-  it('renders clickable card name as link with href="#"', () => {
+  it('renders clickable card name as link to details page', () => {
     render(<McpCatalogCard server={mockServer} />, { wrapper });
     const link = screen.getByTestId('mcp-catalog-card-detail-link-1');
     expect(link).toBeInTheDocument();
     expect(link.tagName).toBe('A');
-    expect(link).toHaveAttribute('href', '#');
+    expect(link).toHaveAttribute('href', '/mcp-catalog/1');
   });
 
   it('renders description with TruncatedText wrapper', () => {

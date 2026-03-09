@@ -1,57 +1,13 @@
-import { mcpCatalog } from '~/__tests__/cypress/cypress/pages/mcpCatalog';
 import { mockModArchResponse } from 'mod-arch-core';
 import { mockCatalogSource, mockCatalogSourceList } from '~/__mocks__';
-import { initMcpCatalogIntercepts } from './mcpCatalogTestUtils';
+import { mcpCatalog } from '~/__tests__/cypress/cypress/pages/mcpCatalog';
 import { MODEL_CATALOG_API_VERSION } from '~/__tests__/cypress/cypress/support/commands/api';
-
-const testMcpServers = [
-  {
-    id: 1,
-    name: 'Kubernetes',
-    description: 'Control and inspect Kubernetes clusters.',
-    deploymentMode: 'local',
-    securityIndicators: { verifiedSource: true, sast: true },
-    source_id: 'sample', // eslint-disable-line camelcase
-    toolCount: 0,
-  },
-  {
-    id: 2,
-    name: 'GitHub',
-    description: 'Integrate with GitHub repositories.',
-    deploymentMode: 'remote',
-    securityIndicators: { verifiedSource: true, secureEndpoint: true },
-    source_id: 'sample', // eslint-disable-line camelcase
-    toolCount: 0,
-  },
-];
-
-const testFilterOptions = {
-  filters: {
-    deploymentMode: { type: 'string', values: ['Remote', 'Local'] },
-    supportedTransports: { type: 'string', values: ['SSE', 'http-streaming'] },
-    license: { type: 'string', values: ['MIT', 'Apache-2.0'] },
-    labels: {
-      type: 'string',
-      values: ['kubernetes', 'github', 'database', 'monitoring', 'security', 'automation'],
-    },
-    securityVerification: {
-      type: 'string',
-      values: ['Verified source', 'Secure endpoint', 'SAST', 'Read only tools'],
-    },
-  },
-};
-
-const MCP_SERVERS_RESPONSE = {
-  items: testMcpServers,
-  size: testMcpServers.length,
-  pageSize: 10,
-  nextPageToken: '',
-};
-
-const MCP_SERVERS_PATH = `/model-registry/api/${MODEL_CATALOG_API_VERSION}/model_catalog/mcp_servers`;
-
-const MCP_FILTER_OPTIONS_PATH = `/model-registry/api/${MODEL_CATALOG_API_VERSION}/model_catalog/mcp_servers_filter_options`;
-
+import {
+  initMcpCatalogIntercepts,
+  MCP_FILTER_OPTIONS_PATH,
+  MCP_SERVERS_PATH,
+  testFilterOptions,
+} from './mcpCatalogTestUtils';
 
 describe('MCP Catalog Page', () => {
   beforeEach(() => {
@@ -106,11 +62,12 @@ describe('MCP Catalog Page', () => {
     cy.get('[data-testid="mcp-catalog-card-2"]', { timeout: 15000 }).should('be.visible');
   });
 
-  it('card name should be a clickable link with href="#"', () => {
+  it('card name should be a clickable link to details page', () => {
     mcpCatalog.visit();
     cy.get('[data-testid="mcp-catalog-card-detail-link-1"]', { timeout: 15000 })
       .should('be.visible')
-      .and('have.attr', 'href', '#');
+      .and('have.attr', 'href')
+      .and('contain', '/mcp-catalog/');
   });
 
   it('card description should be truncated', () => {
