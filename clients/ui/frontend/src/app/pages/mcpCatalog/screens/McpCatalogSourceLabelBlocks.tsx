@@ -7,7 +7,7 @@ const ALL_SERVERS_LABEL = 'All Servers';
 type SourceLabelBlock = { id: string; label?: string; displayName: string };
 
 const McpCatalogSourceLabelBlocks: React.FC = () => {
-  const { sourceLabels, selectedSourceLabel, setSelectedSourceLabel } =
+  const { sourceLabels, sourceLabelNames, selectedSourceLabel, setSelectedSourceLabel } =
     React.useContext(McpCatalogContext);
 
   const blocks = React.useMemo((): SourceLabelBlock[] => {
@@ -15,10 +15,10 @@ const McpCatalogSourceLabelBlocks: React.FC = () => {
     const labelBlocks: SourceLabelBlock[] = sourceLabels.map((label) => ({
       id: `label-${label}`,
       label,
-      displayName: label,
+      displayName: sourceLabelNames[label] || label,
     }));
     return [allBlock, ...labelBlocks];
-  }, [sourceLabels]);
+  }, [sourceLabels, sourceLabelNames]);
 
   const isSelected = (block: SourceLabelBlock) =>
     block.label === undefined

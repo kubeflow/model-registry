@@ -51,6 +51,7 @@ export const McpCatalogContext = React.createContext<McpCatalogContextType>({
   setSelectedSourceLabel: () => undefined,
   clearAllFilters: () => undefined,
   sourceLabels: [],
+  sourceLabelNames: {},
   catalogSourcesLoaded: false,
   catalogSourcesLoadError: undefined,
   mcpServers: { items: [] },
@@ -91,9 +92,21 @@ export const McpCatalogContextProvider: React.FC<McpCatalogContextProviderProps>
     syncToUrl({ searchQuery, filters, selectedSourceLabel });
   }, [searchQuery, filters, selectedSourceLabel, syncToUrl]);
 
-  const sourceLabels = React.useMemo(() => {
+  const { sourceLabels, sourceLabelNames } = React.useMemo(() => {
     const enabled = filterEnabledCatalogSources(catalogSources);
-    return getUniqueSourceLabels(enabled);
+    const labels = getUniqueSourceLabels(enabled);
+    const nameMap: Record<string, string> = {};
+    if (enabled?.items) {
+      for (const source of enabled.items) {
+        for (const label of source.labels) {
+          const trimmed = label.trim();
+          if (trimmed && !nameMap[trimmed]) {
+            nameMap[trimmed] = source.name;
+          }
+        }
+      }
+    }
+    return { sourceLabels: labels, sourceLabelNames: nameMap };
   }, [catalogSources]);
 
   const mcpServersResult = useMcpServersBySourceLabelWithAPI(apiState, {
@@ -104,12 +117,15 @@ export const McpCatalogContextProvider: React.FC<McpCatalogContextProviderProps>
 
   const mcpServers = React.useMemo(() => {
     const { items: rawItems } = mcpServersResult.mcpServers;
-    const searched =
-      searchQuery.trim().length > 0
-        ? filterMcpServersBySearchQuery(rawItems, searchQuery)
-        : rawItems;
-    return { items: filterMcpServersByFilters(searched, filters) };
-  }, [searchQuery, filters, mcpServersResult.mcpServers]);
+    let items = rawItems;
+    if (selectedSourceLabel !== undefined) {
+      items = items.filter((s) => s.source_id && s.source_id === selectedSourceLabel);
+    }
+    if (searchQuery.trim().length > 0) {
+      items = filterMcpServersBySearchQuery(items, searchQuery);
+    }
+    return { items: filterMcpServersByFilters(items, filters) };
+  }, [selectedSourceLabel, searchQuery, filters, mcpServersResult.mcpServers]);
 
   const { mcpServersLoaded, mcpServersLoadError } = mcpServersResult;
 
@@ -148,6 +164,7 @@ export const McpCatalogContextProvider: React.FC<McpCatalogContextProviderProps>
       setSelectedSourceLabel,
       clearAllFilters,
       sourceLabels,
+      sourceLabelNames,
       catalogSourcesLoaded,
       catalogSourcesLoadError,
       mcpServers,
@@ -164,6 +181,7 @@ export const McpCatalogContextProvider: React.FC<McpCatalogContextProviderProps>
       pagination,
       selectedSourceLabel,
       sourceLabels,
+      sourceLabelNames,
       catalogSourcesLoaded,
       catalogSourcesLoadError,
       mcpServers,

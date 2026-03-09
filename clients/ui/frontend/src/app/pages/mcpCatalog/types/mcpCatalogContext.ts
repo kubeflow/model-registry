@@ -25,6 +25,7 @@ export type McpCatalogContextType = {
   setSelectedSourceLabel: (label: string | undefined) => void;
   clearAllFilters: () => void;
   sourceLabels: string[];
+  sourceLabelNames: Record<string, string>;
   catalogSourcesLoaded: boolean;
   catalogSourcesLoadError: Error | undefined;
   mcpServers: { items: McpServer[] };

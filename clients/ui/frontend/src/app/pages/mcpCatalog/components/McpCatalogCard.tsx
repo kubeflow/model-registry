@@ -1,5 +1,6 @@
 import * as React from 'react';
 import {
+  Button,
   Card,
   CardBody,
   CardHeader,
@@ -32,7 +33,7 @@ const SecurityTag: React.FC<{ label: string }> = ({ label }) => (
   </FlexItem>
 );
 
-const McpCatalogCard: React.FC<McpCatalogCardProps> = ({ server }) => {
+const McpCatalogCard: React.FC<McpCatalogCardProps> = React.memo(({ server }) => {
   const deploymentType =
     server.deploymentMode === 'local' ? McpCardIconType.LOCAL_TO_CLUSTER : McpCardIconType.REMOTE;
   const deploymentConfig = getMcpCardIconConfig(deploymentType);
@@ -63,14 +64,24 @@ const McpCatalogCard: React.FC<McpCatalogCardProps> = ({ server }) => {
           </FlexItem>
         </Flex>
         <CardTitle>
-          <span className="pf-v6-u-display-block">
+          <Button
+            variant="link"
+            isInline
+            component="a"
+            href="#"
+            data-testid={`mcp-catalog-card-detail-link-${serverId}`}
+            style={{
+              fontSize: 'var(--pf-t--global--font--size--body--default)',
+              fontWeight: 'var(--pf-t--global--font--weight--body--bold)',
+            }}
+          >
             <Truncate
               content={server.name}
               position="middle"
               tooltipPosition="top"
               data-testid={`mcp-catalog-card-name-${serverId}`}
             />
-          </span>
+          </Button>
         </CardTitle>
       </CardHeader>
       <CardBody>
@@ -95,6 +106,7 @@ const McpCatalogCard: React.FC<McpCatalogCardProps> = ({ server }) => {
       </CardBody>
     </Card>
   );
-};
+});
+McpCatalogCard.displayName = 'McpCatalogCard';
 
 export default McpCatalogCard;

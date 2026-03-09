@@ -1,26 +1,43 @@
 import * as React from 'react';
-import { EmptyState, EmptyStateBody, Stack } from '@patternfly/react-core';
+import { Button, EmptyState, EmptyStateBody, Flex, Stack, StackItem } from '@patternfly/react-core';
 import { SearchIcon } from '@patternfly/react-icons';
 import { McpCatalogContext } from '~/app/context/mcpCatalog/McpCatalogContext';
 import McpCatalogCategorySection from '~/app/pages/mcpCatalog/screens/McpCatalogCategorySection';
 
-function getCategoryDisplayName(sourceLabel: string): string {
-  if (!sourceLabel) {
-    return 'Other';
-  }
-  return sourceLabel.charAt(0).toUpperCase() + sourceLabel.slice(1).toLowerCase();
-}
+const CATEGORY_PAGE_SIZE = 6;
 
 type McpCatalogGalleryViewProps = {
   searchTerm: string;
 };
 
 const McpCatalogGalleryView: React.FC<McpCatalogGalleryViewProps> = () => {
-  const { mcpServers, mcpServersLoaded, mcpServersLoadError, selectedSourceLabel, sourceLabels } =
-    React.useContext(McpCatalogContext);
+  const {
+    mcpServers,
+    mcpServersLoaded,
+    mcpServersLoadError,
+    selectedSourceLabel,
+    setSelectedSourceLabel,
+    sourceLabels,
+    sourceLabelNames,
+  } = React.useContext(McpCatalogContext);
+
+  const getDisplayName = React.useCallback(
+    (label: string): string => sourceLabelNames[label] || label,
+    [sourceLabelNames],
+  );
+  const isAllServersView = selectedSourceLabel === undefined;
   const { items } = mcpServers;
 
+  const [visibleCount, setVisibleCount] = React.useState(CATEGORY_PAGE_SIZE);
+
+  React.useEffect(() => {
+    setVisibleCount(CATEGORY_PAGE_SIZE);
+  }, [selectedSourceLabel]);
+
   const { itemsByLabel, uncategorizedItems } = React.useMemo(() => {
+    if (!isAllServersView) {
+      return { itemsByLabel: new Map(), uncategorizedItems: [] };
+    }
     const knownLabels = new Set(sourceLabels);
     const byLabel = new Map<string, typeof items>();
     const uncategorized: typeof items = [];
@@ -39,7 +56,7 @@ const McpCatalogGalleryView: React.FC<McpCatalogGalleryViewProps> = () => {
     }
 
     return { itemsByLabel: byLabel, uncategorizedItems: uncategorized };
-  }, [items, sourceLabels]);
+  }, [items, sourceLabels, isAllServersView]);
 
   if (mcpServersLoadError) {
     return (
@@ -72,12 +89,28 @@ const McpCatalogGalleryView: React.FC<McpCatalogGalleryViewProps> = () => {
   }
 
   if (selectedSourceLabel !== undefined) {
+    const visibleItems = items.slice(0, visibleCount);
+    const hasMore = items.length > visibleCount;
+
     return (
       <Stack hasGutter>
         <McpCatalogCategorySection
-          title={getCategoryDisplayName(selectedSourceLabel)}
-          servers={items}
+          title={getDisplayName(selectedSourceLabel)}
+          servers={visibleItems}
         />
+        {hasMore && (
+          <StackItem>
+            <Flex justifyContent={{ default: 'justifyContentCenter' }}>
+              <Button
+                variant="secondary"
+                data-testid="mcp-load-more-button"
+                onClick={() => setVisibleCount(items.length)}
+              >
+                Load more MCP servers
+              </Button>
+            </Flex>
+          </StackItem>
+        )}
       </Stack>
     );
   }
@@ -95,8 +128,10 @@ const McpCatalogGalleryView: React.FC<McpCatalogGalleryViewProps> = () => {
       {sourceLabels.map((label) => (
         <McpCatalogCategorySection
           key={label}
-          title={getCategoryDisplayName(label)}
+          title={getDisplayName(label)}
           servers={itemsByLabel.get(label) ?? []}
+          maxItems={isAllServersView ? 3 : undefined}
+          onShowAll={isAllServersView ? () => setSelectedSourceLabel(label) : undefined}
         />
       ))}
       {uncategorizedItems.length > 0 && (
