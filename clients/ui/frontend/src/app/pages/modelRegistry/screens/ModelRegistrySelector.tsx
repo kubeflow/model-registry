@@ -151,7 +151,7 @@ const ModelRegistrySelector: React.FC<ModelRegistrySelectorProps> = ({
   return (
     <Flex spaceItems={{ default: 'spaceItemsSm' }} alignItems={{ default: 'alignItemsCenter' }}>
       <Icon iconSize="xl" isInline>
-      <TypedObjectIcon resourceType={ProjectObjectType.modelRegistryNavigator} />
+        <TypedObjectIcon resourceType={ProjectObjectType.modelRegistryNavigator} />
       </Icon>
       <FlexItem>
         <Bullseye>Model registry</Bullseye>

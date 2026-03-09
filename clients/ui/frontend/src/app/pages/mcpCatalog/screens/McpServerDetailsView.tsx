@@ -139,9 +139,7 @@ const McpServerDetailsView: React.FC<McpServerDetailsViewProps> = ({ server }) =
                         testId="mcp-server-license-link"
                       />
                     ) : (
-                      <span data-testid="mcp-server-license">
-                        {server.license || 'N/A'}
-                      </span>
+                      <span data-testid="mcp-server-license">{server.license || 'N/A'}</span>
                     )}
                   </DescriptionListDescription>
                 </DescriptionListGroup>
@@ -203,9 +201,7 @@ const McpServerDetailsView: React.FC<McpServerDetailsViewProps> = ({ server }) =
                           testId="mcp-server-source-code-link"
                         />
                       ) : (
-                        <span data-testid="mcp-server-source-code">
-                          {server.sourceCode}
-                        </span>
+                        <span data-testid="mcp-server-source-code">{server.sourceCode}</span>
                       )}
                     </DescriptionListDescription>
                   </DescriptionListGroup>
