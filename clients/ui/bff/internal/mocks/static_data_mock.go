@@ -2400,6 +2400,10 @@ func GetMcpServerMocks() []models.McpServer {
 				URI: "oci://ghcr.io/prometheus-community/prometheus-mcp:0.9.2",
 			},
 		},
+		Readme:        stringToPointer("# Prometheus MCP Server\n\nThe Prometheus MCP Server enables AI assistants to query Prometheus metrics and alerts using natural language.\n\n## Quickstart\n\n```bash\nnpx -y @prometheus-community/prometheus-mcp-server\n```\n\n## Features\n\n- Execute PromQL queries\n- Retrieve active alerts\n- Query metric metadata\n- Range queries with configurable time windows\n"),
+		SourceCode:    stringToPointer("prometheus-community/prometheus-mcp"),
+		RepositoryURL: stringToPointer("https://github.com/prometheus-community/prometheus-mcp"),
+		LastUpdated:   stringToPointer("1706745600000"),
 	}
 
 	kubernetesMcp := models.McpServer{
@@ -2429,6 +2433,10 @@ func GetMcpServerMocks() []models.McpServer {
 				URI: "oci://ghcr.io/cncf/kubernetes-mcp:1.2.0",
 			},
 		},
+		Readme:        stringToPointer("# Kubernetes MCP Server\n\nThe Kubernetes MCP Server allows AI Assistants to interact with Kubernetes clusters, bringing real-time cluster management directly into your development workflow.\n\n**Note:** This product is not officially supported by CNCF.\n\nIf you need help, please contact us via GitHub Issues if you have feature requests, questions, or need help.\n\n## Quickstart\n\nYou can add this MCP server to your MCP Client like VSCode, Claude, Cursor, Amazon Q, Windsurf, ChatGPT, or GitHub Copilot via the command `npx -y @cncf/kubernetes-mcp-server` (type: stdio). For more details, please refer to the configuration section below.\n\n## Use Cases\n\n- **Real-time cluster management** - Query pod, deployment, and service status\n- **Resource operations** - Create, update, and delete Kubernetes resources\n- **Health monitoring** - Check cluster health and resource utilization\n- **Namespace management** - List and manage namespaces and their contents\n- **Debugging support** - Get pod logs and events for troubleshooting\n\n## Tools\n\n| Tool | Description |\n|------|-------------|\n| `get_pods` | List pods in a namespace |\n| `get_deployments` | List deployments |\n| `get_services` | List services |\n| `get_namespaces` | List all namespaces |\n| `get_pod_logs` | Retrieve pod logs |\n| `get_events` | Get cluster events |\n| `apply_manifest` | Apply a Kubernetes manifest |\n| `delete_resource` | Delete a Kubernetes resource |\n\n## Configuration\n\n```json\n{\n  \"mcpServers\": {\n    \"kubernetes\": {\n      \"command\": \"npx\",\n      \"args\": [\"-y\", \"@cncf/kubernetes-mcp-server\"],\n      \"env\": {\n        \"KUBECONFIG\": \"/path/to/kubeconfig\"\n      }\n    }\n  }\n}\n```\n\n## Requirements\n\n- Node.js 18+\n- Valid kubeconfig with cluster access\n- kubectl CLI (optional, for fallback operations)\n"),
+		SourceCode:    stringToPointer("cncf/kubernetes-mcp-server"),
+		RepositoryURL: stringToPointer("https://github.com/cncf/kubernetes-mcp-server"),
+		LastUpdated:   stringToPointer("1709913600000"),
 	}
 
 	elasticMcp := models.McpServer{
@@ -2480,6 +2488,8 @@ func GetMcpServerMocks() []models.McpServer {
 		SourceCode:       stringToPointer("dynatrace-oss/dynatrace-mcp-server"),
 		RepositoryURL:    stringToPointer("https://github.com/dynatrace-oss/dynatrace-mcp-server"),
 		DocumentationURL: stringToPointer("https://github.com/dynatrace-oss/dynatrace-mcp-server/blob/main/README.md"),
+		Readme:           stringToPointer("# Dynatrace MCP Server\n\nThe local Dynatrace MCP server allows AI Assistants to interact with the Dynatrace observability platform, bringing real-time observability data directly into your development workflow.\n\n**Note:** This product is not officially supported by Dynatrace.\n\nIf you need help, please contact us via GitHub Issues if you have feature requests, questions, or need help.\n\n## Quickstart\n\nYou can add this MCP server to your MCP Client like VSCode, Claude, Cursor, Amazon Q, Windsurf, ChatGPT, or GitHub Copilot via the command `npx -y @dynatrace-oss/dynatrace-mcp-server` (type: stdio). For more details, please refer to the configuration section below.\n\nFurthermore, you need to configure the URL to a Dynatrace environment:\n\n- `DT_ENVIRONMENT` (string, e.g., https://abc12345.apps.dynatrace.com) - URL to your Dynatrace Platform (do not use Dynatrace classic URLs like abc12345.live.dynatrace.com)\n\nOnce we are done, we recommend looking into example prompts, like \"Get all details of the entity 'my-service'\" or \"Show me error logs\". Please mind that these prompts lead to executing DQL statements which may incur costs in accordance to your licence.\n\n## Use Cases\n\n- **Real-time observability** - Fetch production-level data for early detection and proactive monitoring\n- **Contextual debugging** - Fix issues with full context from monitored exceptions, logs, and anomalies\n- **Security insights** - Get detailed vulnerability analysis and security problem tracking\n- **Natural language queries** - Use AI-powered DQL generation and explanation\n- **Multi-phase incident investigation** - Systematic 4-phase approach with automated impact assessment\n\n## Tools\n\n| Tool | Description |\n|------|-------------|\n| `execute_dql` | Execute Dynatrace Query Language (DQL) queries |\n| `get_problems` | Retrieve current problems and incidents |\n| `get_service_health` | Get health status of services |\n| `get_vulnerabilities` | Retrieve security vulnerability data |\n| `create_maintenance_window` | Create a maintenance window to suppress alerts |\n"),
+		LastUpdated:      stringToPointer("1704067200000"),
 	}
 
 	return []models.McpServer{prometheusMcp, kubernetesMcp, elasticMcp, dynatraceMcp}
