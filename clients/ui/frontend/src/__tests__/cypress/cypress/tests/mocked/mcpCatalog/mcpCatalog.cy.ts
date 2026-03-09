@@ -1,13 +1,48 @@
 import { mockModArchResponse } from 'mod-arch-core';
 import { mcpCatalog } from '~/__tests__/cypress/cypress/pages/mcpCatalog';
-import { mockMcpServers } from '~/app/pages/mcpCatalog/mocks/mockMcpServers';
-import { mockMcpCatalogFilterOptions } from '~/app/pages/mcpCatalog/mocks/mockMcpCatalogFilterOptions';
 import { mockCatalogSource, mockCatalogSourceList } from '~/__mocks__';
 import { MODEL_CATALOG_API_VERSION } from '~/__tests__/cypress/cypress/support/commands/api';
 
+const testMcpServers = [
+  {
+    id: 1,
+    name: 'Kubernetes',
+    description: 'Control and inspect Kubernetes clusters.',
+    deploymentMode: 'local',
+    securityIndicators: { verifiedSource: true, sast: true },
+    source_id: 'sample', // eslint-disable-line camelcase
+    toolCount: 0,
+  },
+  {
+    id: 2,
+    name: 'GitHub',
+    description: 'Integrate with GitHub repositories.',
+    deploymentMode: 'remote',
+    securityIndicators: { verifiedSource: true, secureEndpoint: true },
+    source_id: 'sample', // eslint-disable-line camelcase
+    toolCount: 0,
+  },
+];
+
+const testFilterOptions = {
+  filters: {
+    deploymentMode: { type: 'string', values: ['Remote', 'Local'] },
+    supportedTransports: { type: 'string', values: ['SSE', 'http-streaming'] },
+    license: { type: 'string', values: ['MIT', 'Apache-2.0'] },
+    labels: {
+      type: 'string',
+      values: ['kubernetes', 'github', 'database', 'monitoring', 'security', 'automation'],
+    },
+    securityVerification: {
+      type: 'string',
+      values: ['Verified source', 'Secure endpoint', 'SAST', 'Read only tools'],
+    },
+  },
+};
+
 const MCP_SERVERS_RESPONSE = {
-  items: mockMcpServers,
-  size: mockMcpServers.length,
+  items: testMcpServers,
+  size: testMcpServers.length,
   pageSize: 10,
   nextPageToken: '',
 };
@@ -34,7 +69,7 @@ const initMcpCatalogIntercepts = () => {
   );
   cy.intercept(
     { method: 'GET', pathname: MCP_FILTER_OPTIONS_PATH },
-    mockModArchResponse(mockMcpCatalogFilterOptions),
+    mockModArchResponse(testFilterOptions),
   );
 };
 

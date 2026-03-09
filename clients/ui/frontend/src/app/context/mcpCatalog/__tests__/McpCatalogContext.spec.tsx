@@ -1,6 +1,7 @@
 import '@testing-library/jest-dom';
 import * as React from 'react';
 import { renderHook, act } from '@testing-library/react';
+import { MemoryRouter } from 'react-router-dom';
 import {
   McpCatalogContextProvider,
   McpCatalogContext,
@@ -52,7 +53,9 @@ jest.mock('~/app/hooks/mcpServerCatalog/useMcpServerFilterOptionList', () => ({
 
 describe('McpCatalogContext', () => {
   const wrapper = ({ children }: { children: React.ReactNode }) => (
-    <McpCatalogContextProvider>{children}</McpCatalogContextProvider>
+    <MemoryRouter>
+      <McpCatalogContextProvider>{children}</McpCatalogContextProvider>
+    </MemoryRouter>
   );
 
   it('provides default filter state', () => {

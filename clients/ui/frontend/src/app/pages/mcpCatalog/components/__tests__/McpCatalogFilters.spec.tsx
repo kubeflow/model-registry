@@ -1,9 +1,19 @@
 import '@testing-library/jest-dom';
 import * as React from 'react';
 import { render, screen } from '@testing-library/react';
+import { MemoryRouter } from 'react-router-dom';
 import McpCatalogFilters from '~/app/pages/mcpCatalog/components/McpCatalogFilters';
 import { McpCatalogContextProvider } from '~/app/context/mcpCatalog/McpCatalogContext';
-import { mockMcpCatalogFilterOptions } from '~/app/pages/mcpCatalog/mocks/mockMcpCatalogFilterOptions';
+
+const testFilterOptions = {
+  filters: {
+    deploymentMode: { type: 'string' as const, values: ['Remote', 'Local'] },
+    supportedTransports: { type: 'string' as const, values: ['SSE', 'http-streaming'] },
+    license: { type: 'string' as const, values: ['MIT', 'Apache-2.0'] },
+    labels: { type: 'string' as const, values: ['kubernetes', 'github'] },
+    securityVerification: { type: 'string' as const, values: ['Verified source', 'SAST'] },
+  },
+};
 
 jest.mock('mod-arch-core', () => ({ useQueryParamNamespaces: () => ({}) }));
 jest.mock('~/app/utilities/const', () => ({
@@ -25,11 +35,13 @@ jest.mock('~/app/hooks/mcpServerCatalog/useMcpServersBySourceLabel', () => ({
   }),
 }));
 jest.mock('~/app/hooks/mcpServerCatalog/useMcpServerFilterOptionList', () => ({
-  useMcpServerFilterOptionListWithAPI: () => [mockMcpCatalogFilterOptions, true, undefined],
+  useMcpServerFilterOptionListWithAPI: () => [testFilterOptions, true, undefined],
 }));
 
 const wrapper = ({ children }: { children: React.ReactNode }) => (
-  <McpCatalogContextProvider>{children}</McpCatalogContextProvider>
+  <MemoryRouter>
+    <McpCatalogContextProvider>{children}</McpCatalogContextProvider>
+  </MemoryRouter>
 );
 
 describe('McpCatalogFilters', () => {
