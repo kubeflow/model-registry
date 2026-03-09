@@ -73,7 +73,7 @@ jobs:
             type=raw,value=main,enable=${{ env.BUILD_CONTEXT == 'main' }}
       - name: Build and push Docker image
         id: build-push
-        uses: docker/build-push-action@v6
+        uses: docker/build-push-action@v7
         with:
           context: .
           file: ./cmd/csi/Dockerfile.csi
