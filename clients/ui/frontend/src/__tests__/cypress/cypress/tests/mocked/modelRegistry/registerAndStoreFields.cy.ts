@@ -192,13 +192,22 @@ describe('Register and Store Fields - Namespace access validation', () => {
 describe('Register and Store Fields - Namespace loading error', () => {
   beforeEach(() => {
     initIntercepts({});
-    // Override the namespace intercept with an error (last registered wins in Cypress)
+    // Use a dynamic handler: the first call (from the app context/navbar) must succeed
+    // for the page to render; only the second call (from the form's useNamespaces) should fail.
+    let namespaceFetchCount = 0;
     cy.intercept(
       {
         method: 'GET',
         pathname: `/model-registry/api/${MODEL_REGISTRY_API_VERSION}/namespaces`,
       },
-      { statusCode: 500, body: { error: 'failed to list namespaces' } },
+      (req) => {
+        namespaceFetchCount += 1;
+        if (namespaceFetchCount <= 1) {
+          req.reply({ statusCode: 200, body: { data: [mockNamespace({})] } });
+        } else {
+          req.reply({ statusCode: 500, body: { error: 'failed to list namespaces' } });
+        }
+      },
     ).as('getNamespacesError');
     registerAndStoreFields.visit();
     registerAndStoreFields.selectRegisterAndStoreMode();
