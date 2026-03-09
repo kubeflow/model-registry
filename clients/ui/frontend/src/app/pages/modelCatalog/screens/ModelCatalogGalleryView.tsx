@@ -256,10 +256,16 @@ const ModelCatalogGalleryView: React.FC<ModelCatalogPageProps> = ({
     return (
       <EmptyModelCatalogState
         testid="empty-model-catalog-state"
-        title="No result found"
+        title="No results found"
         headerIcon={SearchIcon}
         description="Adjust your filters and try again."
-        primaryAction={<Button onClick={handleFilterReset}>Reset filters</Button>}
+        primaryAction={
+          <Button variant="link" onClick={handleFilterReset}>
+            {performanceViewEnabled && hasPerformanceFiltersChanged
+              ? 'Reset all defaults'
+              : 'Reset all filters'}
+          </Button>
+        }
       />
     );
   }

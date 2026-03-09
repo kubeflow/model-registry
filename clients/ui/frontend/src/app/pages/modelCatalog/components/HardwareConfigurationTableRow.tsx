@@ -3,6 +3,7 @@ import { Td, Tr } from '@patternfly/react-table';
 import { CatalogPerformanceMetricsArtifact } from '~/app/modelCatalogTypes';
 import {
   formatLatency,
+  formatTps,
   formatTokenValue,
   getWorkloadType,
 } from '~/app/pages/modelCatalog/utils/performanceMetricsUtils';
@@ -52,15 +53,16 @@ const HardwareConfigurationTableRow: React.FC<HardwareConfigurationTableRowProps
       case 'e2e_p90':
       case 'e2e_p95':
       case 'e2e_p99':
-      case 'tps_mean':
-      case 'tps_p90':
-      case 'tps_p95':
-      case 'tps_p99':
       case 'itl_mean':
       case 'itl_p90':
       case 'itl_p95':
       case 'itl_p99':
         return formatLatency(getDoubleValue(customProperties, field));
+      case 'tps_mean':
+      case 'tps_p90':
+      case 'tps_p95':
+      case 'tps_p99':
+        return formatTps(getDoubleValue(customProperties, field));
       case 'mean_input_tokens':
       case 'mean_output_tokens':
         return formatTokenValue(getDoubleValue(customProperties, field));

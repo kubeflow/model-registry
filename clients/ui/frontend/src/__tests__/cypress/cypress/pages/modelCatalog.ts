@@ -285,6 +285,14 @@ class ModelCatalog {
     return this;
   }
 
+  closeFilterChip(filterKey: string, value: string) {
+    cy.get(`[data-testid="${filterKey}-filter-chip-${value}"]`)
+      .closest('.pf-v6-c-label')
+      .find('button')
+      .click();
+    return this;
+  }
+
   // Model card content helpers for toggle-based display
   findValidatedModelBenchmarksCount() {
     return cy.findAllByTestId('validated-model-benchmarks');
@@ -333,7 +341,9 @@ class ModelCatalog {
   }
 
   findEmptyStateResetFiltersButton() {
-    return this.findModelCatalogEmptyState().findByRole('button', { name: /Reset filters/i });
+    return this.findModelCatalogEmptyState().findByRole('button', {
+      name: /Reset all (defaults|filters)/i,
+    });
   }
 
   clickApplyFilter() {
