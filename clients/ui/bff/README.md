@@ -482,13 +482,13 @@ curl -i -H "Authorization: Bearer $TOKEN" \
 curl -i \
   -H "kubeflow-userid: user@example.com" \
   -H "Content-Type: application/json" \
-  -X PATCH "http://localhost:4000/api/v1/model_registry/model-registry/model_transfer_jobs/my-job?namespace=kubeflow&jobNamespace=kubeflow" \
-  -d '{"data": {"name": "my-job-2"}}'
+  -X PATCH "http://localhost:4000/api/v1/model_registry/model-registry/model_transfer_jobs/my-job?namespace=kubeflow" \
+  -d '{"data": {"name": "my-job-2", "namespace": "default", "jobDisplayName": "test-job"}}'
 
 curl -i -H "Authorization: Bearer $TOKEN" \
--X PATCH "http://localhost:4000/api/v1/model_registry/model-registry/model_transfer_jobs/transfer-job-002?namespace=bella-namespace&jobNamespace=kubeflow" \
+-X PATCH "http://localhost:4000/api/v1/model_registry/model-registry/model_transfer_jobs/transfer-job-002?namespace=bella-namespace" \
 -H "Content-Type: application/json" \
--d '{"data": {"name": "my-job"}}'
+-d '{"data": {"name": "my-job",  "namespace": "default", "jobDisplayName": "test-job"}}'
 
 ```
 

@@ -92,10 +92,8 @@ func (m *ModelRegistryRepository) GetAllModelTransferJobs(ctx context.Context, c
 			} `json:"ModelArtifact"`
 		}
 
-		podNamesByJob := make(map[string][]string)
 		podErrorsByJob := make(map[string]string)
 		podTerminationByJob := make(map[string]*terminationResult)
-		allPodNamesByNamespace := make(map[string][]string)
 
 		for ns, jobNames := range jobNamesByNamespace {
 			podList, err := client.GetTransferJobPods(ctx, ns, jobNames)
@@ -109,8 +107,6 @@ func (m *ModelRegistryRepository) GetAllModelTransferJobs(ctx context.Context, c
 			for _, pod := range podList.Items {
 				jobName := pod.Labels["job-name"]
 				key := ns + "/" + jobName
-				podNamesByJob[key] = append(podNamesByJob[key], pod.Name)
-				allPodNamesByNamespace[ns] = append(allPodNamesByNamespace[ns], pod.Name)
 
 				for _, cs := range pod.Status.ContainerStatuses {
 					if cs.State.Waiting != nil {

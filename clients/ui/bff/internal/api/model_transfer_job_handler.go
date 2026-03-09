@@ -73,12 +73,11 @@ func (app *App) GetModelTransferJobHandler(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	jobNamespace := r.URL.Query().Get("jobNamespace")
-	if jobNamespace == "" {
-		app.badRequestResponse(w, r, fmt.Errorf("missing required query parameter: jobNamespace"))
+	jobNamespace, err := getRequiredJobNamespace(r)
+	if err != nil {
+		app.badRequestResponse(w, r, err)
 		return
 	}
-
 	modelRegistryID := ps.ByName(ModelRegistryId)
 	if modelRegistryID == "" {
 		app.badRequestResponse(w, r, fmt.Errorf("model registry name is required"))
@@ -252,9 +251,9 @@ func (app *App) DeleteModelTransferJobHandler(w http.ResponseWriter, r *http.Req
 		return
 	}
 
-	jobNamespace := r.URL.Query().Get("jobNamespace")
-	if jobNamespace == "" {
-		app.badRequestResponse(w, r, fmt.Errorf("missing required query parameter: jobNamespace"))
+	jobNamespace, err := getRequiredJobNamespace(r)
+	if err != nil {
+		app.badRequestResponse(w, r, err)
 		return
 	}
 
@@ -309,9 +308,9 @@ func (app *App) GetModelTransferJobEventsHandler(w http.ResponseWriter, r *http.
 		return
 	}
 
-	jobNamespace := r.URL.Query().Get("jobNamespace")
-	if jobNamespace == "" {
-		app.badRequestResponse(w, r, fmt.Errorf("jobNamespace query parameter is required"))
+	jobNamespace, err := getRequiredJobNamespace(r)
+	if err != nil {
+		app.badRequestResponse(w, r, err)
 		return
 	}
 
@@ -334,4 +333,12 @@ func (app *App) GetModelTransferJobEventsHandler(w http.ResponseWriter, r *http.
 		app.serverErrorResponse(w, r, err)
 		return
 	}
+}
+
+func getRequiredJobNamespace(r *http.Request) (string, error) {
+	jobNamespace := r.URL.Query().Get("jobNamespace")
+	if jobNamespace == "" {
+		return "", fmt.Errorf("missing required query parameter: jobNamespace")
+	}
+	return jobNamespace, nil
 }
