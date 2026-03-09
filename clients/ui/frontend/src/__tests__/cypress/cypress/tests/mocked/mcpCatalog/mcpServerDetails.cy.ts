@@ -2,8 +2,8 @@ import { mcpCatalog, mcpServerDetails } from '~/__tests__/cypress/cypress/pages/
 import { mockMcpServers } from '~/app/pages/mcpCatalog/mocks/mockMcpServers';
 import { initMcpCatalogIntercepts, initServerDetailIntercept } from './mcpCatalogTestUtils';
 
-const kubernetesServer = mockMcpServers[0];
-const customServer = mockMcpServers[4];
+const kubernetesServer = mockMcpServers.find((s) => s.name === 'Kubernetes')!;
+const customServer = mockMcpServers.find((s) => s.name === 'Custom MCP Server')!;
 
 describe('MCP Server Details Page', () => {
   beforeEach(() => {
@@ -45,13 +45,10 @@ describe('MCP Server Details Page', () => {
       initServerDetailIntercept(kubernetesServer);
     });
 
-    it('should display server name, deploy button, and description', () => {
+    it('should display server name and description', () => {
       mcpServerDetails.visit(String(kubernetesServer.id));
 
       cy.findByTestId('app-page-title').should('contain.text', kubernetesServer.name);
-
-      mcpServerDetails.findDeployButton().should('be.visible');
-      mcpServerDetails.findDeployButton().should('contain.text', 'Deploy MCP Server');
 
       mcpServerDetails.findDescription().should('contain.text', kubernetesServer.description);
     });

@@ -2,8 +2,6 @@ import React from 'react';
 import { useParams } from 'react-router';
 import { Link } from 'react-router-dom';
 import {
-  ActionList,
-  ActionListGroup,
   Breadcrumb,
   BreadcrumbItem,
   Button,
@@ -136,25 +134,6 @@ const McpServerDetailsPage: React.FC = () => {
         loaded={serverLoaded}
         errorMessage="Unable to load MCP server details"
         provideChildrenPadding
-        headerAction={
-          serverLoaded &&
-          !serverLoadError &&
-          server && (
-            <ActionList>
-              <ActionListGroup>
-                <Button
-                  variant="primary"
-                  data-testid="deploy-mcp-server-button"
-                  onClick={() => {
-                    // Stub handler for future story
-                  }}
-                >
-                  Deploy MCP Server
-                </Button>
-              </ActionListGroup>
-            </ActionList>
-          )
-        }
       >
         {server && <McpServerDetailsView server={server} />}
       </ApplicationsPage>
