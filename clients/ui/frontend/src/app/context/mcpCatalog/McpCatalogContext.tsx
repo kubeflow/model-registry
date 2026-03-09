@@ -57,6 +57,7 @@ export const McpCatalogContext = React.createContext<McpCatalogContextType>({
   mcpServers: { items: [] },
   mcpServersLoaded: false,
   mcpServersLoadError: undefined,
+  refreshMcpServers: () => undefined,
   filterOptions: null,
   filterOptionsLoaded: false,
   filterOptionsLoadError: undefined,
@@ -127,7 +128,7 @@ export const McpCatalogContextProvider: React.FC<McpCatalogContextProviderProps>
     return { items: filterMcpServersByFilters(items, filters) };
   }, [selectedSourceLabel, searchQuery, filters, mcpServersResult.mcpServers]);
 
-  const { mcpServersLoaded, mcpServersLoadError } = mcpServersResult;
+  const { mcpServersLoaded, mcpServersLoadError, refresh: refreshMcpServers } = mcpServersResult;
 
   const setPage = React.useCallback((page: number) => {
     setPaginationState((prev) => ({ ...prev, page }));
@@ -170,6 +171,7 @@ export const McpCatalogContextProvider: React.FC<McpCatalogContextProviderProps>
       mcpServers,
       mcpServersLoaded,
       mcpServersLoadError,
+      refreshMcpServers,
       filterOptions,
       filterOptionsLoaded,
       filterOptionsLoadError,
@@ -187,6 +189,7 @@ export const McpCatalogContextProvider: React.FC<McpCatalogContextProviderProps>
       mcpServers,
       mcpServersLoaded,
       mcpServersLoadError,
+      refreshMcpServers,
       filterOptions,
       filterOptionsLoaded,
       filterOptionsLoadError,

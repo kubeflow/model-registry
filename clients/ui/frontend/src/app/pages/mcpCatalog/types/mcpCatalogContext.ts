@@ -31,6 +31,7 @@ export type McpCatalogContextType = {
   mcpServers: { items: McpServer[] };
   mcpServersLoaded: boolean;
   mcpServersLoadError: Error | undefined;
+  refreshMcpServers: () => void;
   filterOptions: CatalogFilterOptionsList | null;
   filterOptionsLoaded: boolean;
   filterOptionsLoadError: Error | undefined;

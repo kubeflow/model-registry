@@ -1,6 +1,18 @@
 import * as React from 'react';
-import { Button, EmptyState, EmptyStateBody, Flex, Stack, StackItem } from '@patternfly/react-core';
-import { SearchIcon } from '@patternfly/react-icons';
+import {
+  Button,
+  EmptyState,
+  EmptyStateActions,
+  EmptyStateBody,
+  EmptyStateFooter,
+  Flex,
+  Grid,
+  GridItem,
+  Skeleton,
+  Stack,
+  StackItem,
+} from '@patternfly/react-core';
+import { ExclamationCircleIcon, SearchIcon } from '@patternfly/react-icons';
 import { McpCatalogContext } from '~/app/context/mcpCatalog/McpCatalogContext';
 import McpCatalogCategorySection from '~/app/pages/mcpCatalog/screens/McpCatalogCategorySection';
 
@@ -15,8 +27,10 @@ const McpCatalogGalleryView: React.FC<McpCatalogGalleryViewProps> = () => {
     mcpServers,
     mcpServersLoaded,
     mcpServersLoadError,
+    refreshMcpServers,
     selectedSourceLabel,
     setSelectedSourceLabel,
+    clearAllFilters,
     sourceLabels,
     sourceLabelNames,
   } = React.useContext(McpCatalogContext);
@@ -61,12 +75,19 @@ const McpCatalogGalleryView: React.FC<McpCatalogGalleryViewProps> = () => {
   if (mcpServersLoadError) {
     return (
       <EmptyState
-        icon={SearchIcon}
+        icon={ExclamationCircleIcon}
         headingLevel="h3"
         titleText="Unable to load MCP servers"
         data-testid="mcp-catalog-load-error"
       >
         <EmptyStateBody>{mcpServersLoadError.message}</EmptyStateBody>
+        <EmptyStateFooter>
+          <EmptyStateActions>
+            <Button variant="link" data-testid="mcp-catalog-retry" onClick={refreshMcpServers}>
+              Retry
+            </Button>
+          </EmptyStateActions>
+        </EmptyStateFooter>
       </EmptyState>
     );
   }
@@ -76,16 +97,40 @@ const McpCatalogGalleryView: React.FC<McpCatalogGalleryViewProps> = () => {
       <EmptyState
         icon={SearchIcon}
         headingLevel="h3"
-        titleText="No result found"
+        titleText="No servers found"
         data-testid="mcp-catalog-empty-search"
       >
         <EmptyStateBody>Adjust your filters and try again.</EmptyStateBody>
+        <EmptyStateFooter>
+          <EmptyStateActions>
+            <Button
+              variant="link"
+              data-testid="mcp-catalog-reset-filters"
+              onClick={clearAllFilters}
+            >
+              Reset filters
+            </Button>
+          </EmptyStateActions>
+        </EmptyStateFooter>
       </EmptyState>
     );
   }
 
   if (!mcpServersLoaded && items.length === 0) {
-    return null;
+    return (
+      <Grid hasGutter>
+        {Array.from({ length: 6 }).map((_, index) => (
+          <GridItem key={index} sm={12} md={6} lg={4} xl2={4}>
+            <Skeleton
+              height="280px"
+              width="100%"
+              screenreaderText="Loading MCP servers"
+              data-testid={`mcp-catalog-skeleton-${index}`}
+            />
+          </GridItem>
+        ))}
+      </Grid>
+    );
   }
 
   if (selectedSourceLabel !== undefined) {
