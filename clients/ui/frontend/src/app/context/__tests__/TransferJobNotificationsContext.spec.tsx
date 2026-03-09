@@ -40,6 +40,39 @@ jest.mock('~/app/pages/modelRegistry/screens/routeUtils', () => ({
   modelTransferJobsUrl: jest.fn((mrName: string) => `/model-registry/${mrName}/jobs`),
 }));
 
+const mockJobListResponse = (id: string, status: ModelTransferJobStatus) => ({
+  items: [{ id, name: `transfer-${id}`, status }],
+  size: 1,
+  pageSize: 10,
+  nextPageToken: '',
+});
+
+const renderWithWatcher = async (jobId: string) => {
+  function TestConsumer() {
+    const { watchJob } = React.useContext(TransferJobNotificationsContext);
+    React.useEffect(() => {
+      watchJob({
+        jobId,
+        registryName: 'mr-sample',
+        displayParams: { versionModelName: 'My Model / v1', mrName: 'mr-sample' },
+      });
+    }, [watchJob]);
+    return null;
+  }
+
+  await act(async () => {
+    render(
+      <TransferJobNotificationsProvider>
+        <TestConsumer />
+      </TransferJobNotificationsProvider>,
+    );
+  });
+
+  await act(async () => {
+    await Promise.resolve();
+  });
+};
+
 describe('TransferJobNotificationsContext', () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -50,59 +83,11 @@ describe('TransferJobNotificationsContext', () => {
     jest.useRealTimers();
   });
 
-  it('provides watchJob function', () => {
-    let contextValue: { watchJob: (job: never) => void } | undefined;
-    function Consumer() {
-      contextValue = React.useContext(TransferJobNotificationsContext);
-      return null;
-    }
-    render(
-      <TransferJobNotificationsProvider>
-        <Consumer />
-      </TransferJobNotificationsProvider>,
-    );
-    expect(contextValue).toBeDefined();
-    expect(typeof contextValue!.watchJob).toBe('function');
-  });
-
   it('shows success toast when a watched job completes', async () => {
-    mockListModelTransferJobs.mockResolvedValue({
-      items: [
-        {
-          id: 'job-1',
-          name: 'transfer-job-1',
-          status: ModelTransferJobStatus.COMPLETED,
-        },
-      ],
-      size: 1,
-      pageSize: 10,
-      nextPageToken: '',
-    });
-
-    function TestConsumer() {
-      const { watchJob } = React.useContext(TransferJobNotificationsContext);
-      React.useEffect(() => {
-        watchJob({
-          jobId: 'job-1',
-          registryName: 'mr-sample',
-          displayParams: { versionModelName: 'My Model / v1', mrName: 'mr-sample' },
-        });
-      }, [watchJob]);
-      return null;
-    }
-
-    await act(async () => {
-      render(
-        <TransferJobNotificationsProvider>
-          <TestConsumer />
-        </TransferJobNotificationsProvider>,
-      );
-    });
-
-    // The immediate poll should have fired
-    await act(async () => {
-      await Promise.resolve();
-    });
+    mockListModelTransferJobs.mockResolvedValue(
+      mockJobListResponse('job-1', ModelTransferJobStatus.COMPLETED),
+    );
+    await renderWithWatcher('job-1');
 
     expect(mockNotification.success).toHaveBeenCalledWith(
       'Model transfer job succeeded',
@@ -111,42 +96,10 @@ describe('TransferJobNotificationsContext', () => {
   });
 
   it('shows error toast when a watched job fails', async () => {
-    mockListModelTransferJobs.mockResolvedValue({
-      items: [
-        {
-          id: 'job-2',
-          name: 'transfer-job-2',
-          status: ModelTransferJobStatus.FAILED,
-        },
-      ],
-      size: 1,
-      pageSize: 10,
-      nextPageToken: '',
-    });
-
-    function TestConsumer() {
-      const { watchJob } = React.useContext(TransferJobNotificationsContext);
-      React.useEffect(() => {
-        watchJob({
-          jobId: 'job-2',
-          registryName: 'mr-sample',
-          displayParams: { versionModelName: 'My Model / v2', mrName: 'mr-sample' },
-        });
-      }, [watchJob]);
-      return null;
-    }
-
-    await act(async () => {
-      render(
-        <TransferJobNotificationsProvider>
-          <TestConsumer />
-        </TransferJobNotificationsProvider>,
-      );
-    });
-
-    await act(async () => {
-      await Promise.resolve();
-    });
+    mockListModelTransferJobs.mockResolvedValue(
+      mockJobListResponse('job-2', ModelTransferJobStatus.FAILED),
+    );
+    await renderWithWatcher('job-2');
 
     expect(mockNotification.error).toHaveBeenCalledWith(
       'Model transfer job failed',
@@ -154,60 +107,18 @@ describe('TransferJobNotificationsContext', () => {
     );
   });
 
-  it('does not show toast for running jobs and keeps polling', async () => {
-    mockListModelTransferJobs.mockResolvedValue({
-      items: [
-        {
-          id: 'job-3',
-          name: 'transfer-job-3',
-          status: ModelTransferJobStatus.RUNNING,
-        },
-      ],
-      size: 1,
-      pageSize: 10,
-      nextPageToken: '',
-    });
-
-    function TestConsumer() {
-      const { watchJob } = React.useContext(TransferJobNotificationsContext);
-      React.useEffect(() => {
-        watchJob({
-          jobId: 'job-3',
-          registryName: 'mr-sample',
-          displayParams: { versionModelName: 'My Model / v3', mrName: 'mr-sample' },
-        });
-      }, [watchJob]);
-      return null;
-    }
-
-    await act(async () => {
-      render(
-        <TransferJobNotificationsProvider>
-          <TestConsumer />
-        </TransferJobNotificationsProvider>,
-      );
-    });
-
-    await act(async () => {
-      await Promise.resolve();
-    });
+  it('does not show toast for running jobs and keeps polling until completion', async () => {
+    mockListModelTransferJobs.mockResolvedValue(
+      mockJobListResponse('job-3', ModelTransferJobStatus.RUNNING),
+    );
+    await renderWithWatcher('job-3');
 
     expect(mockNotification.success).not.toHaveBeenCalled();
     expect(mockNotification.error).not.toHaveBeenCalled();
 
-    // Simulate the job completing on next poll
-    mockListModelTransferJobs.mockResolvedValue({
-      items: [
-        {
-          id: 'job-3',
-          name: 'transfer-job-3',
-          status: ModelTransferJobStatus.COMPLETED,
-        },
-      ],
-      size: 1,
-      pageSize: 10,
-      nextPageToken: '',
-    });
+    mockListModelTransferJobs.mockResolvedValue(
+      mockJobListResponse('job-3', ModelTransferJobStatus.COMPLETED),
+    );
 
     await act(async () => {
       jest.advanceTimersByTime(1000);
@@ -221,42 +132,10 @@ describe('TransferJobNotificationsContext', () => {
   });
 
   it('silently removes cancelled jobs without showing toast', async () => {
-    mockListModelTransferJobs.mockResolvedValue({
-      items: [
-        {
-          id: 'job-4',
-          name: 'transfer-job-4',
-          status: ModelTransferJobStatus.CANCELLED,
-        },
-      ],
-      size: 1,
-      pageSize: 10,
-      nextPageToken: '',
-    });
-
-    function TestConsumer() {
-      const { watchJob } = React.useContext(TransferJobNotificationsContext);
-      React.useEffect(() => {
-        watchJob({
-          jobId: 'job-4',
-          registryName: 'mr-sample',
-          displayParams: { versionModelName: 'My Model / v4', mrName: 'mr-sample' },
-        });
-      }, [watchJob]);
-      return null;
-    }
-
-    await act(async () => {
-      render(
-        <TransferJobNotificationsProvider>
-          <TestConsumer />
-        </TransferJobNotificationsProvider>,
-      );
-    });
-
-    await act(async () => {
-      await Promise.resolve();
-    });
+    mockListModelTransferJobs.mockResolvedValue(
+      mockJobListResponse('job-4', ModelTransferJobStatus.CANCELLED),
+    );
+    await renderWithWatcher('job-4');
 
     expect(mockNotification.success).not.toHaveBeenCalled();
     expect(mockNotification.error).not.toHaveBeenCalled();
@@ -264,48 +143,14 @@ describe('TransferJobNotificationsContext', () => {
 
   it('handles API errors gracefully and continues polling', async () => {
     mockListModelTransferJobs.mockRejectedValueOnce(new Error('Network error'));
+    await renderWithWatcher('job-5');
 
-    function TestConsumer() {
-      const { watchJob } = React.useContext(TransferJobNotificationsContext);
-      React.useEffect(() => {
-        watchJob({
-          jobId: 'job-5',
-          registryName: 'mr-sample',
-          displayParams: { versionModelName: 'My Model / v5', mrName: 'mr-sample' },
-        });
-      }, [watchJob]);
-      return null;
-    }
-
-    await act(async () => {
-      render(
-        <TransferJobNotificationsProvider>
-          <TestConsumer />
-        </TransferJobNotificationsProvider>,
-      );
-    });
-
-    await act(async () => {
-      await Promise.resolve();
-    });
-
-    // No toast on error
     expect(mockNotification.success).not.toHaveBeenCalled();
     expect(mockNotification.error).not.toHaveBeenCalled();
 
-    // Should still poll on next interval
-    mockListModelTransferJobs.mockResolvedValue({
-      items: [
-        {
-          id: 'job-5',
-          name: 'transfer-job-5',
-          status: ModelTransferJobStatus.COMPLETED,
-        },
-      ],
-      size: 1,
-      pageSize: 10,
-      nextPageToken: '',
-    });
+    mockListModelTransferJobs.mockResolvedValue(
+      mockJobListResponse('job-5', ModelTransferJobStatus.COMPLETED),
+    );
 
     await act(async () => {
       jest.advanceTimersByTime(1000);
