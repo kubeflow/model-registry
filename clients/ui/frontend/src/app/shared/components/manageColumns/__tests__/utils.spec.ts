@@ -1,5 +1,4 @@
-import { ManagedColumn } from '~/app/shared/components/manageColumns/useManageColumns';
-import { reorderColumns } from '~/app/shared/components/manageColumns/utils';
+import { ManagedColumn, reorderColumns } from 'mod-arch-shared';
 
 const createColumn = (id: string, isVisible = true): ManagedColumn => ({
   id,

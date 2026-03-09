@@ -1,8 +1,12 @@
 import { act } from 'react';
 import { useBrowserStorage } from 'mod-arch-core';
-import { SortableData, checkboxTableColumn, kebabTableColumn } from 'mod-arch-shared';
+import {
+  SortableData,
+  checkboxTableColumn,
+  kebabTableColumn,
+  useManageColumns,
+} from 'mod-arch-shared';
 import { testHook } from '~/__tests__/unit/testUtils/hooks';
-import { useManageColumns } from '~/app/shared/components/manageColumns/useManageColumns';
 
 jest.mock('mod-arch-core', () => ({
   useBrowserStorage: jest.fn(),

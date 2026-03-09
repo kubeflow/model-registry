@@ -1,12 +1,11 @@
 import * as React from 'react';
-import { DashboardEmptyTableView, Table } from 'mod-arch-shared';
+import { DashboardEmptyTableView, Table, ManageColumnsModal } from 'mod-arch-shared';
 import { Button, Spinner } from '@patternfly/react-core';
 import { ColumnsIcon } from '@patternfly/react-icons';
 import { OuterScrollContainer } from '@patternfly/react-table';
 import { CatalogPerformanceMetricsArtifact } from '~/app/modelCatalogTypes';
 import { ModelCatalogContext } from '~/app/context/modelCatalog/ModelCatalogContext';
 import { getActiveLatencyFieldName } from '~/app/pages/modelCatalog/utils/modelCatalogUtils';
-import { ManageColumnsModal } from '~/app/shared/components/manageColumns/ManageColumnsModal';
 import HardwareConfigurationTableRow from './HardwareConfigurationTableRow';
 import HardwareConfigurationFilterToolbar from './HardwareConfigurationFilterToolbar';
 import { useHardwareConfigColumns, ControlledTableSortProps } from './useHardwareConfigColumns';

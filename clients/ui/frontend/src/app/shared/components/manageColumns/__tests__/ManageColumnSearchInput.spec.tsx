@@ -1,7 +1,7 @@
 import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
 import '@testing-library/jest-dom';
-import { ManageColumnSearchInput } from '~/app/shared/components/manageColumns/ManageColumnSearchInput';
+import { ManageColumnSearchInput } from 'mod-arch-shared';
 
 describe('ManageColumnSearchInput', () => {
   const mockOnSearch = jest.fn();
