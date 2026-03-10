@@ -19,10 +19,10 @@ import { ModelVersion } from '~/app/types';
 import FormSection from '~/app/pages/modelRegistry/components/pf-overrides/FormSection';
 import { useTempDevFeatureAvailable, TempDevFeature } from '~/app/hooks/useTempDevFeatureAvailable';
 import { RegistrationMode } from '~/app/pages/modelRegistry/screens/const';
-import { RegistrationCommonFormData } from './useRegisterModelData';
+import { ModelLocationType, RegistrationCommonFormData } from './useRegisterModelData';
 import RegistrationModelLocationFields from './RegistrationModelLocationFields';
 import RegisterAndStoreFields from './RegisterAndStoreFields';
-import { isNameValid } from './utils';
+import { isNameValid, isOciUri } from './utils';
 import { MR_CHARACTER_LIMIT } from './const';
 // import { ConnectionModal } from './ConnectionModal';
 
@@ -53,6 +53,11 @@ const RegistrationCommonFormSections = <D extends RegistrationCommonFormData>({
   );
   const registrationMode = formData.registrationMode || RegistrationMode.Register;
 
+  const isCatalogOciSource =
+    isCatalogModel &&
+    formData.modelLocationType === ModelLocationType.URI &&
+    isOciUri(formData.modelLocationURI);
+
   const { versionName, versionDescription, sourceModelFormat, sourceModelFormatVersion } = formData;
 
   const handleModeChange = (mode: RegistrationMode) => {
@@ -72,7 +77,11 @@ const RegistrationCommonFormSections = <D extends RegistrationCommonFormData>({
       setData('registrationMode', RegistrationMode.Register);
       setData('namespace', '');
     }
-  }, [isRegistryStorageFeatureAvailable, registrationMode, setData]);
+    if (registrationMode === RegistrationMode.RegisterAndStore && isCatalogOciSource) {
+      // From catalog: prevent OCI => OCI by forcing back to "Register"
+      setData('registrationMode', RegistrationMode.Register);
+    }
+  }, [isRegistryStorageFeatureAvailable, registrationMode, setData, isCatalogOciSource]);
 
   const versionNameInput = (
     <TextInput
@@ -178,7 +187,7 @@ const RegistrationCommonFormSections = <D extends RegistrationCommonFormData>({
         }
       >
         {/* eslint-disable-next-line @typescript-eslint/no-unnecessary-condition */}
-        {isRegistryStorageFeatureAvailable && (
+        {isRegistryStorageFeatureAvailable && !isCatalogOciSource && (
           <ToggleGroup
             aria-label="Registration mode"
             className={spacing.mtMd}
