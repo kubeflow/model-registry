@@ -27,10 +27,7 @@ describe('MCP Catalog Page', () => {
 
   it('should display MCP server cards', () => {
     mcpCatalog.visit();
-    cy.get('[data-testid^="mcp-catalog-card-"]', { timeout: 15000 }).should(
-      'have.length.at.least',
-      1,
-    );
+    mcpCatalog.findMcpCatalogCards().should('have.length.at.least', 1, { timeout: 15000 });
   });
 
   it('should display sidebar filters', () => {
@@ -58,22 +55,24 @@ describe('MCP Catalog Page', () => {
 
   it('should display known mock server cards', () => {
     mcpCatalog.visit();
-    cy.get('[data-testid="mcp-catalog-card-1"]', { timeout: 15000 }).should('be.visible');
-    cy.get('[data-testid="mcp-catalog-card-2"]', { timeout: 15000 }).should('be.visible');
+    mcpCatalog.findMcpCatalogCard('1').should('be.visible', { timeout: 15000 });
+    mcpCatalog.findMcpCatalogCard('2').should('be.visible', { timeout: 15000 });
   });
 
   it('card name should be a clickable link to details page', () => {
     mcpCatalog.visit();
-    cy.get('[data-testid="mcp-catalog-card-detail-link-1"]', { timeout: 15000 })
-      .should('be.visible')
-      .and('have.attr', 'href')
-      .and('contain', '/mcp-catalog/');
+    mcpCatalog
+      .findCardDetailLink('1')
+      .should('be.visible', { timeout: 15000 })
+      .invoke('attr', 'href')
+      .should('include', '/mcp-catalog/');
   });
 
   it('card description should be truncated', () => {
     mcpCatalog.visit();
-    cy.get('[data-testid="mcp-catalog-card-description-1"]', { timeout: 15000 })
-      .should('be.visible')
+    mcpCatalog
+      .findCardDescription('1')
+      .should('be.visible', { timeout: 15000 })
       .and('have.css', '-webkit-line-clamp', '4');
   });
 });
