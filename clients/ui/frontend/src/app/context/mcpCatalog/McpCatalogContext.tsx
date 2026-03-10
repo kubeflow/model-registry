@@ -117,16 +117,15 @@ export const McpCatalogContextProvider: React.FC<McpCatalogContextProviderProps>
   });
 
   const mcpServers = React.useMemo(() => {
-    const { items: rawItems } = mcpServersResult.mcpServers;
-    let items = rawItems;
-    if (selectedSourceLabel !== undefined) {
-      items = items.filter((s) => s.source_id && s.source_id === selectedSourceLabel);
-    }
+    const { items } = mcpServersResult.mcpServers;
+    let filtered = items;
     if (searchQuery.trim().length > 0) {
-      items = filterMcpServersBySearchQuery(items, searchQuery);
+      filtered = filterMcpServersBySearchQuery(filtered, searchQuery);
     }
-    return { items: filterMcpServersByFilters(items, filters) };
-  }, [selectedSourceLabel, searchQuery, filters, mcpServersResult.mcpServers]);
+    return { items: filterMcpServersByFilters(filtered, filters) };
+    // mcpServersResult.mcpServers is new each render; .items gives stable deps to avoid cascading re-renders
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedSourceLabel, searchQuery, filters, mcpServersResult.mcpServers.items]);
 
   const { mcpServersLoaded, mcpServersLoadError, refresh: refreshMcpServers } = mcpServersResult;
 
