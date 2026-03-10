@@ -725,7 +725,9 @@ func createService(k8sClient kubernetes.Interface, ctx context.Context, name str
 	return nil
 }
 
-// createEndpoints creates an Endpoints resource for a service so that EndpointsHasReadyAddresses returns hasReady (ODH operator grants RBAC for Endpoints).
+// createEndpoints creates an Endpoints resource for a service so that EndpointsHasReadyAddresses returns hasReady.
+//
+//nolint:staticcheck // intentionally using deprecated corev1.Endpoints for RBAC compatibility; see tech debt ticket for EndpointSlice migration
 func createEndpoints(k8sClient kubernetes.Interface, ctx context.Context, namespace, serviceName string, hasReady bool) error {
 	ep := &corev1.Endpoints{
 		ObjectMeta: metav1.ObjectMeta{

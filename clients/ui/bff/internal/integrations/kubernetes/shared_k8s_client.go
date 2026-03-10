@@ -153,7 +153,9 @@ func (kc *SharedClientLogic) GetServiceDetailsByName(sessionCtx context.Context,
 	return *details, nil
 }
 
-// GetServiceEndpoints returns the Endpoints for a service. Used to detect registry availability; ODH operator grants RBAC for Endpoints. Callers should treat fetch errors (e.g. Forbidden) as "assume available" to avoid new permission requirements upstream.
+// GetServiceEndpoints returns the Endpoints for a service. Used to detect registry availability. Callers should treat fetch errors (e.g. Forbidden) as "assume available" to avoid new permission requirements upstream.
+//
+//nolint:staticcheck // intentionally using deprecated corev1.Endpoints for RBAC compatibility; see tech debt ticket for EndpointSlice migration
 func (kc *SharedClientLogic) GetServiceEndpoints(ctx context.Context, namespace, serviceName string) (*corev1.Endpoints, error) {
 	if namespace == "" || serviceName == "" {
 		return nil, fmt.Errorf("namespace and serviceName cannot be empty")
@@ -170,6 +172,8 @@ func (kc *SharedClientLogic) GetServiceEndpoints(ctx context.Context, namespace,
 }
 
 // EndpointsHasReadyAddresses returns true if the Endpoints resource has at least one subset with ready addresses.
+//
+//nolint:staticcheck // intentionally using deprecated corev1.Endpoints for RBAC compatibility; see tech debt ticket for EndpointSlice migration
 func EndpointsHasReadyAddresses(endpoints *corev1.Endpoints) bool {
 	if endpoints == nil {
 		return false

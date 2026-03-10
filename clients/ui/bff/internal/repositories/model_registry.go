@@ -51,7 +51,7 @@ func (m *ModelRegistryRepository) GetAllModelRegistriesWithMode(sessionCtx conte
 		return nil, fmt.Errorf("error fetching model registries: %w", err)
 	}
 
-	// Per-registry GetServiceEndpoints (no list): non-admin users typically lack list Endpoints permission; ODH operator grants get-by-name. On fetch error we assume available to avoid new permission requirements upstream.
+	// Per-registry GetServiceEndpoints (no list): non-admin users typically lack list Endpoints permission. On fetch error we assume available to avoid new permission requirements upstream.
 	var registries = []models.ModelRegistryModel{}
 	for _, s := range resources {
 		serverAddress := m.ResolveServerAddress(s.ClusterIP, s.HTTPPort, s.IsHTTPS, s.ExternalAddressRest, isFederatedMode)
@@ -63,7 +63,7 @@ func (m *ModelRegistryRepository) GetAllModelRegistriesWithMode(sessionCtx conte
 	return registries, nil
 }
 
-// isRegistryAvailable returns true if the service's Endpoints have at least one ready address. On fetch error (e.g. Forbidden) returns true so we do not require new RBAC upstream; ODH operator grants Endpoints access.
+// isRegistryAvailable returns true if the service's Endpoints have at least one ready address. On fetch error (e.g. Forbidden) returns true so we do not require new RBAC upstream.
 func (m *ModelRegistryRepository) isRegistryAvailable(sessionCtx context.Context, client k8s.KubernetesClientInterface, namespace, serviceName string) bool {
 	logger := helper.GetContextLogger(sessionCtx)
 	endpoints, err := client.GetServiceEndpoints(sessionCtx, namespace, serviceName)
