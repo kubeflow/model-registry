@@ -55,6 +55,8 @@ func (m *InternalKubernetesClientMock) GetServiceDetailsByName(sessionCtx contex
 }
 
 // GetServiceEndpoints delegates to the embedded client.
+//
+//nolint:staticcheck // intentionally using deprecated corev1.Endpoints for RBAC compatibility; see tech debt ticket for EndpointSlice migration
 func (m *InternalKubernetesClientMock) GetServiceEndpoints(ctx context.Context, namespace, serviceName string) (*corev1.Endpoints, error) {
 	return m.InternalKubernetesClient.GetServiceEndpoints(ctx, namespace, serviceName)
 }
