@@ -31,6 +31,13 @@ type EntityMappingFunctions interface {
 	IsChildEntity(entityType RestEntityType) bool
 }
 
+// EqualityExpander is an optional interface that EntityMappingFunctions may implement
+// to expand equality conditions (e.g. match both exact and namespaced stored values).
+// If likeArg is returned with useExpansion true, the condition becomes (column = ? OR column LIKE ?).
+type EqualityExpander interface {
+	GetEqualityExpansion(restEntityType RestEntityType, propertyName string, value any) (likeArg any, useExpansion bool)
+}
+
 // QueryBuilder builds GORM queries from filter expressions
 // It handles special cases like prefixed names for child entities (e.g., ModelVersion, ExperimentRun)
 // where names are stored as "parentId:actualName" in the database
@@ -496,6 +503,16 @@ func (qb *QueryBuilder) buildEntityTablePropertyCondition(db *gorm.DB, propRef *
 	// Convert state string values to integers based on entity type
 	value = qb.ConvertStateValue(propRef.Name, value)
 
+	// Optional: expand equality to match both exact and namespaced stored values (e.g. catalog externalId)
+	if operator == "=" && qb.restEntityType != "" {
+		if expander, ok := qb.mappingFuncs.(EqualityExpander); ok {
+			if likeArg, use := expander.GetEqualityExpansion(qb.restEntityType, propRef.Name, value); use {
+				condition := fmt.Sprintf("(%s = ? OR %s LIKE ?)", column, column)
+				return db.Where(condition, value, likeArg)
+			}
+		}
+	}
+
 	// Handle prefixed names for child entities
 	if qb.restEntityType != "" && propRef.Name == "name" && qb.mappingFuncs.IsChildEntity(qb.restEntityType) {
 		if strValue, ok := value.(string); ok {
@@ -532,6 +549,15 @@ func (qb *QueryBuilder) buildEntityTablePropertyConditionString(propRef *Propert
 
 	// Convert state string values to integers based on entity type
 	value = qb.ConvertStateValue(propRef.Name, value)
+
+	// Optional: expand equality to match both exact and namespaced stored values (e.g. catalog externalId)
+	if operator == "=" && qb.restEntityType != "" {
+		if expander, ok := qb.mappingFuncs.(EqualityExpander); ok {
+			if likeArg, use := expander.GetEqualityExpansion(qb.restEntityType, propRef.Name, value); use {
+				return conditionResult{condition: fmt.Sprintf("(%s = ? OR %s LIKE ?)", column, column), args: []any{value, likeArg}}
+			}
+		}
+	}
 
 	// Handle prefixed names for child entities
 	if qb.restEntityType != "" && propRef.Name == "name" && qb.mappingFuncs.IsChildEntity(qb.restEntityType) {

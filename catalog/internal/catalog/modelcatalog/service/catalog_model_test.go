@@ -270,6 +270,90 @@ func TestCatalogModelRepository(t *testing.T) {
 		assert.Equal(t, sharedExternalID, *retrieved2.GetAttributes().ExternalID)
 	})
 
+	t.Run("TestListByExternalIDReturnsModelsFromAllSources", func(t *testing.T) {
+		// When external_id is namespaced in DB (sourceId:externalId), listing by raw external_id
+		// should return all models that match across any source (backward compatibility).
+		sharedExtID := "shared-ext-list-test"
+		model1 := &models.CatalogModelImpl{
+			Attributes: &models.CatalogModelAttributes{
+				Name:       apiutils.Of("list-ext-model-a"),
+				ExternalID: apiutils.Of(sharedExtID),
+			},
+			Properties: &[]dbmodels.Properties{
+				{Name: "source_id", StringValue: apiutils.Of("src-list-1")},
+			},
+		}
+		model2 := &models.CatalogModelImpl{
+			Attributes: &models.CatalogModelAttributes{
+				Name:       apiutils.Of("list-ext-model-b"),
+				ExternalID: apiutils.Of(sharedExtID),
+			},
+			Properties: &[]dbmodels.Properties{
+				{Name: "source_id", StringValue: apiutils.Of("src-list-2")},
+			},
+		}
+		_, err := repo.Save(model1)
+		require.NoError(t, err)
+		_, err = repo.Save(model2)
+		require.NoError(t, err)
+
+		listOptions := models.CatalogModelListOptions{
+			ExternalID: &sharedExtID,
+		}
+		result, err := repo.List(listOptions)
+		require.NoError(t, err)
+		require.NotNil(t, result)
+		assert.Len(t, result.Items, 2, "filtering by raw external_id should return all models from all sources")
+		extIDs := make([]string, len(result.Items))
+		for i, m := range result.Items {
+			require.NotNil(t, m.GetAttributes().ExternalID)
+			extIDs[i] = *m.GetAttributes().ExternalID
+		}
+		assert.ElementsMatch(t, extIDs, []string{sharedExtID, sharedExtID})
+	})
+
+	t.Run("TestFilterQueryExternalIDReturnsModelsFromAllSources", func(t *testing.T) {
+		// filterQuery externalId = "value" should match both exact and namespaced stored values.
+		sharedExtID := "filterquery-ext-shared"
+		model1 := &models.CatalogModelImpl{
+			Attributes: &models.CatalogModelAttributes{
+				Name:       apiutils.Of("fq-ext-model-a"),
+				ExternalID: apiutils.Of(sharedExtID),
+			},
+			Properties: &[]dbmodels.Properties{
+				{Name: "source_id", StringValue: apiutils.Of("src-fq-1")},
+			},
+		}
+		model2 := &models.CatalogModelImpl{
+			Attributes: &models.CatalogModelAttributes{
+				Name:       apiutils.Of("fq-ext-model-b"),
+				ExternalID: apiutils.Of(sharedExtID),
+			},
+			Properties: &[]dbmodels.Properties{
+				{Name: "source_id", StringValue: apiutils.Of("src-fq-2")},
+			},
+		}
+		_, err := repo.Save(model1)
+		require.NoError(t, err)
+		_, err = repo.Save(model2)
+		require.NoError(t, err)
+
+		filterQuery := `externalId = "` + sharedExtID + `"`
+		listOptions := models.CatalogModelListOptions{
+			Pagination: dbmodels.Pagination{
+				FilterQuery: &filterQuery,
+			},
+		}
+		result, err := repo.List(listOptions)
+		require.NoError(t, err)
+		require.NotNil(t, result)
+		assert.Len(t, result.Items, 2, "filterQuery externalId = value should return all models from all sources")
+		for _, m := range result.Items {
+			require.NotNil(t, m.GetAttributes().ExternalID)
+			assert.Equal(t, sharedExtID, *m.GetAttributes().ExternalID)
+		}
+	})
+
 	t.Run("TestUpdateWithID", func(t *testing.T) {
 		// First create a model
 		catalogModel := &models.CatalogModelImpl{

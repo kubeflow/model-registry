@@ -106,6 +106,21 @@ func getSourceIDFromContextProperties(propertiesCtx []schema.ContextProperty) st
 	return ""
 }
 
+// escapeLike escapes SQL LIKE metacharacters (%, _, \) in s so it can be used safely as a literal in a LIKE pattern.
+func escapeLike(s string) string {
+	var b strings.Builder
+	for _, c := range s {
+		switch c {
+		case '\\', '%', '_':
+			b.WriteRune('\\')
+			b.WriteRune(c)
+		default:
+			b.WriteRune(c)
+		}
+	}
+	return b.String()
+}
+
 // ApplyStandardPagination overrides the base implementation to use catalog-specific allowed columns
 func (r *CatalogModelRepositoryImpl) ApplyStandardPagination(query *gorm.DB, listOptions *models.CatalogModelListOptions, entities any) *gorm.DB {
 	pageSize := listOptions.GetPageSize()
@@ -297,7 +312,11 @@ func applyCatalogModelListFilters(query *gorm.DB, listOptions *models.CatalogMod
 	if listOptions.Name != nil {
 		query = query.Where(fmt.Sprintf("%s.name LIKE ?", contextTable), listOptions.Name)
 	} else if listOptions.ExternalID != nil {
-		query = query.Where(fmt.Sprintf("%s.external_id = ?", contextTable), listOptions.ExternalID)
+		extID := *listOptions.ExternalID
+		// Match both exact and namespaced (sourceId:externalId) so existing integrations
+		// that filter by external_id without source prefix still return all matching models.
+		namespacedPattern := "%:" + escapeLike(extID)
+		query = query.Where(fmt.Sprintf("(%s.external_id = ? OR %s.external_id LIKE ?)", contextTable, contextTable), extID, namespacedPattern)
 	}
 
 	if listOptions.Query != nil && *listOptions.Query != "" {
