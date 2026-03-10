@@ -11,14 +11,14 @@ import (
 )
 
 type ModelRegistryRepository struct {
-	IsFederatedMode bool
-	PodNamespace    string
+	isFederatedMode bool
+	podNamespace    string
 }
 
 func NewModelRegistryRepository(isFederatedMode bool, podNamespace string) *ModelRegistryRepository {
 	return &ModelRegistryRepository{
-		IsFederatedMode: isFederatedMode,
-		PodNamespace:    podNamespace,
+		isFederatedMode: isFederatedMode,
+		podNamespace:    podNamespace,
 	}
 }
 

@@ -621,20 +621,20 @@ func (m *ModelRegistryRepository) getModelRegistryAddress(ctx context.Context, c
 }
 
 func (m *ModelRegistryRepository) resolveAsyncUploadImage(ctx context.Context, client k8s.KubernetesClientInterface) string {
-	if !m.IsFederatedMode || m.PodNamespace == "" {
+	if !m.isFederatedMode || m.podNamespace == "" {
 		return DefaultAsyncUploadImage
 	}
 	logger := helper.GetContextLogger(ctx)
-	cm, err := client.GetConfigMap(ctx, m.PodNamespace, asyncUploadConfigMapName)
+	cm, err := client.GetConfigMap(ctx, m.podNamespace, asyncUploadConfigMapName)
 	if err != nil {
 		logger.Info("ConfigMap not found, using default async-upload image",
 			"configmap", asyncUploadConfigMapName, "error", err)
 		return DefaultAsyncUploadImage
 	}
-	if img, ok := cm.Data[asyncUploadConfigMapKey]; ok && img != "" {
-		return img
+	if img, ok := cm.Data[asyncUploadConfigMapKey]; ok && strings.TrimSpace(img) != "" {
+		return strings.TrimSpace(img)
 	}
-	logger.Info("ConfigMap key not found, using default async-upload image",
+	logger.Warn("ConfigMap key not found or empty, using default async-upload image",
 		"configmap", asyncUploadConfigMapName, "key", asyncUploadConfigMapKey)
 	return DefaultAsyncUploadImage
 }
