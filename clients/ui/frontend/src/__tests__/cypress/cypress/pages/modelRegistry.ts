@@ -95,6 +95,10 @@ class ModelRegistry {
     cy.findByTestId('empty-registered-models').should('exist');
   }
 
+  findEmptyStateTransferJobsButton() {
+    return cy.findByTestId('empty-model-registry-transfer-jobs-action');
+  }
+
   findViewDetailsButton() {
     return cy.findByTestId('view-details-button');
   }

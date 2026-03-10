@@ -1,16 +1,18 @@
 import * as React from 'react';
-import { ToolbarGroup } from '@patternfly/react-core';
+import { Button, ToolbarGroup } from '@patternfly/react-core';
 import { useNavigate } from 'react-router-dom';
 import { ProjectObjectType, typedEmptyImage } from 'mod-arch-shared';
 import { ModelVersion, RegisteredModel } from '~/app/types';
 import { ModelRegistrySelectorContext } from '~/app/context/ModelRegistrySelectorContext';
 import {
+  modelTransferJobsUrl,
   registeredModelArchiveUrl,
   registerModelUrl,
 } from '~/app/pages/modelRegistry/screens/routeUtils';
 import EmptyModelRegistryState from '~/app/pages/modelRegistry/screens/components/EmptyModelRegistryState';
 import { filterRegisteredModels } from '~/app/pages/modelRegistry/screens/utils';
 import { filterArchiveModels, filterLiveModels } from '~/app/utils';
+import { useTempDevFeatureAvailable, TempDevFeature } from '~/app/hooks/useTempDevFeatureAvailable';
 import {
   initialModelRegistryFilterData,
   ModelRegistryFilterDataType,
@@ -35,6 +37,7 @@ const RegisteredModelListView: React.FC<RegisteredModelListViewProps> = ({
 }) => {
   const navigate = useNavigate();
   const { preferredModelRegistry } = React.useContext(ModelRegistrySelectorContext);
+  const isModelTransferJobsAvailable = useTempDevFeatureAvailable(TempDevFeature.RegistryStorage);
   const [filterData, setFilterData] = React.useState<ModelRegistryFilterDataType>(
     initialModelRegistryFilterData,
   );
@@ -76,6 +79,17 @@ const RegisteredModelListView: React.FC<RegisteredModelListViewProps> = ({
         secondaryActionOnClick={() => {
           navigate(registeredModelArchiveUrl(preferredModelRegistry?.name));
         }}
+        customAction={
+          isModelTransferJobsAvailable ? (
+            <Button
+              data-testid="empty-model-registry-transfer-jobs-action"
+              variant="link"
+              onClick={() => navigate(modelTransferJobsUrl(preferredModelRegistry?.name))}
+            >
+              View model transfer jobs
+            </Button>
+          ) : undefined
+        }
       />
     );
   }
