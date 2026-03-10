@@ -215,6 +215,61 @@ func TestCatalogModelRepository(t *testing.T) {
 		assert.Equal(t, "source-b:"+sharedName, *retrievedB.GetAttributes().Name)
 	})
 
+	t.Run("TestSameModelAndExternalIDAcrossSources", func(t *testing.T) {
+		// Same display name and same external_id (e.g. same HF model in two sources) can both be saved.
+		// external_id is namespaced per source in the DB to satisfy UNIQUE(external_id).
+		sharedName := "Qwen/Qwen3.5-9B"
+		sharedExternalID := "Qwen/Qwen3.5-9B"
+		modelSource1 := &models.CatalogModelImpl{
+			Attributes: &models.CatalogModelAttributes{
+				Name:       apiutils.Of(sharedName),
+				ExternalID: apiutils.Of(sharedExternalID),
+			},
+			Properties: &[]dbmodels.Properties{
+				{Name: "source_id", StringValue: apiutils.Of("hugging_face_models")},
+			},
+		}
+		modelSource2 := &models.CatalogModelImpl{
+			Attributes: &models.CatalogModelAttributes{
+				Name:       apiutils.Of(sharedName),
+				ExternalID: apiutils.Of(sharedExternalID),
+			},
+			Properties: &[]dbmodels.Properties{
+				{Name: "source_id", StringValue: apiutils.Of("hugging_face_models_2")},
+			},
+		}
+
+		saved1, err := repo.Save(modelSource1)
+		require.NoError(t, err)
+		require.NotNil(t, saved1.GetID())
+
+		saved2, err := repo.Save(modelSource2)
+		require.NoError(t, err)
+		require.NotNil(t, saved2.GetID())
+
+		assert.NotEqual(t, *saved1.GetID(), *saved2.GetID(), "same model from different sources must be distinct rows")
+
+		// Both stored with namespaced name
+		assert.Equal(t, "hugging_face_models:"+sharedName, *saved1.GetAttributes().Name)
+		assert.Equal(t, "hugging_face_models_2:"+sharedName, *saved2.GetAttributes().Name)
+		// ExternalID returned in display form (no source prefix)
+		require.NotNil(t, saved1.GetAttributes().ExternalID)
+		assert.Equal(t, sharedExternalID, *saved1.GetAttributes().ExternalID)
+		require.NotNil(t, saved2.GetAttributes().ExternalID)
+		assert.Equal(t, sharedExternalID, *saved2.GetAttributes().ExternalID)
+
+		// GetByName with namespaced name returns the correct model
+		retrieved1, err := repo.GetByName("hugging_face_models:" + sharedName)
+		require.NoError(t, err)
+		assert.Equal(t, *saved1.GetID(), *retrieved1.GetID())
+		assert.Equal(t, sharedExternalID, *retrieved1.GetAttributes().ExternalID)
+
+		retrieved2, err := repo.GetByName("hugging_face_models_2:" + sharedName)
+		require.NoError(t, err)
+		assert.Equal(t, *saved2.GetID(), *retrieved2.GetID())
+		assert.Equal(t, sharedExternalID, *retrieved2.GetAttributes().ExternalID)
+	})
+
 	t.Run("TestUpdateWithID", func(t *testing.T) {
 		// First create a model
 		catalogModel := &models.CatalogModelImpl{
