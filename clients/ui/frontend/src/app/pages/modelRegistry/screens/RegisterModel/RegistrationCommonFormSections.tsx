@@ -78,8 +78,10 @@ const RegistrationCommonFormSections = <D extends RegistrationCommonFormData>({
       setData('namespace', '');
     }
     if (registrationMode === RegistrationMode.RegisterAndStore && isCatalogOciSource) {
-      // From catalog: prevent OCI => OCI by forcing back to "Register"
+      // From catalog: prevent OCI => OCI by forcing back to "Register".
+      // should be unreachable today as the toggle is hidden, but helps if the default mode or initial state ever change in the future.
       setData('registrationMode', RegistrationMode.Register);
+      setData('namespace', '');
     }
   }, [isRegistryStorageFeatureAvailable, registrationMode, setData, isCatalogOciSource]);
 
