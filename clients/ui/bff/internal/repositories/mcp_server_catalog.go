@@ -27,7 +27,7 @@ func (a *McpServerCatalog) GetAllMcpServers(client httpclient.HTTPClientInterfac
 	responseData, err := client.GET(UrlWithPageParams(mcpServerPath, pageValues))
 
 	if err != nil {
-		return nil, fmt.Errorf("error fetching mcpServerPath: %w", err)
+		return nil, fmt.Errorf("error fetching mcp servers list: %w", err)
 	}
 
 	var mcpServers models.McpServerList
@@ -65,7 +65,7 @@ func (a *McpServerCatalog) GetMcpServer(client httpclient.HTTPClientInterface, s
 	responseData, err := client.GET(UrlWithPageParams(path, pageValues))
 
 	if err != nil {
-		return nil, fmt.Errorf("error fetching mcpServerPath: %w", err)
+		return nil, fmt.Errorf("error fetching mcp server: %w", err)
 	}
 
 	var mcpServer models.McpServer
@@ -87,7 +87,7 @@ func (a *McpServerCatalog) GetMcpServersTools(client httpclient.HTTPClientInterf
 	responseData, err := client.GET(path)
 
 	if err != nil {
-		return nil, fmt.Errorf("error fetching mcpServerPath: %w", err)
+		return nil, fmt.Errorf("error fetching mcp server tools: %w", err)
 	}
 
 	var mcpServerTools models.McpToolList
