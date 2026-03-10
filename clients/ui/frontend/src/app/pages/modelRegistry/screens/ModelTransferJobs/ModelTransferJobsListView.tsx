@@ -67,7 +67,8 @@ const ModelTransferJobsListView: React.FC<ModelTransferJobsListViewProps> = ({
     const statusFilter = filterData[ModelTransferJobsFilterOptions.status]?.toLowerCase();
 
     return jobs.filter((job) => {
-      if (jobNameFilter && !job.name.toLowerCase().includes(jobNameFilter)) {
+      const jobNameForDisplay = (job.jobDisplayName || job.name || '').toLowerCase();
+      if (jobNameFilter && !jobNameForDisplay.includes(jobNameFilter)) {
         return false;
       }
       if (modelNameFilter && !job.registeredModelName?.toLowerCase().includes(modelNameFilter)) {
@@ -76,7 +77,7 @@ const ModelTransferJobsListView: React.FC<ModelTransferJobsListViewProps> = ({
       if (versionNameFilter && !job.modelVersionName?.toLowerCase().includes(versionNameFilter)) {
         return false;
       }
-      if (namespaceFilter && !job.namespace?.toLowerCase().includes(namespaceFilter)) {
+      if (namespaceFilter && !job.namespace.toLowerCase().includes(namespaceFilter)) {
         return false;
       }
       if (authorFilter && !job.author?.toLowerCase().includes(authorFilter)) {

@@ -70,11 +70,11 @@ func TestDBCatalog(t *testing.T) {
 	})
 
 	t.Run("TestGetModel_Success", func(t *testing.T) {
-		// Create test model
+		// Create test model with namespaced name (sourceId:modelName) as stored in DB
 		testModel := &models.CatalogModelImpl{
 			TypeID: apiutils.Of(int32(catalogModelTypeID)),
 			Attributes: &models.CatalogModelAttributes{
-				Name:       apiutils.Of("test-get-model"),
+				Name:       apiutils.Of("test-source-id:test-get-model"),
 				ExternalID: apiutils.Of("test-get-model-ext"),
 			},
 			Properties: &[]mr_models.Properties{
@@ -86,7 +86,7 @@ func TestDBCatalog(t *testing.T) {
 		savedModel, err := catalogModelRepo.Save(testModel)
 		require.NoError(t, err)
 
-		// Test GetModel
+		// Test GetModel (API passes display name and source_id; backend resolves by namespaced name)
 		retrievedModel, err := dbCatalog.GetModel(ctx, "test-get-model", "test-source-id")
 		require.NoError(t, err)
 		require.NotNil(t, retrievedModel)
@@ -184,7 +184,7 @@ func TestDBCatalog(t *testing.T) {
 			model := &models.CatalogModelImpl{
 				TypeID: apiutils.Of(int32(catalogModelTypeID)),
 				Attributes: &models.CatalogModelAttributes{
-					Name:       apiutils.Of(fmt.Sprintf("pagination-test-model-%d", i)),
+					Name:       apiutils.Of(fmt.Sprintf("pagination-test-source:pagination-test-model-%d", i)),
 					ExternalID: apiutils.Of(fmt.Sprintf("pagination-test-%d", i)),
 				},
 				Properties: &[]mr_models.Properties{
@@ -217,7 +217,7 @@ func TestDBCatalog(t *testing.T) {
 		model1 := &models.CatalogModelImpl{
 			TypeID: apiutils.Of(int32(catalogModelTypeID)),
 			Attributes: &models.CatalogModelAttributes{
-				Name:       apiutils.Of("BERT-base-model"),
+			Name:       apiutils.Of("query-test-source:BERT-base-model"),
 				ExternalID: apiutils.Of("bert-base-1"),
 			},
 			Properties: &[]mr_models.Properties{
@@ -231,7 +231,7 @@ func TestDBCatalog(t *testing.T) {
 		model2 := &models.CatalogModelImpl{
 			TypeID: apiutils.Of(int32(catalogModelTypeID)),
 			Attributes: &models.CatalogModelAttributes{
-				Name:       apiutils.Of("GPT-3.5-turbo"),
+			Name:       apiutils.Of("query-test-source:GPT-3.5-turbo"),
 				ExternalID: apiutils.Of("gpt-35-turbo-1"),
 			},
 			Properties: &[]mr_models.Properties{
@@ -245,7 +245,7 @@ func TestDBCatalog(t *testing.T) {
 		model3 := &models.CatalogModelImpl{
 			TypeID: apiutils.Of(int32(catalogModelTypeID)),
 			Attributes: &models.CatalogModelAttributes{
-				Name:       apiutils.Of("ResNet-50-image"),
+			Name:       apiutils.Of("query-test-source:ResNet-50-image"),
 				ExternalID: apiutils.Of("resnet-50-1"),
 			},
 			Properties: &[]mr_models.Properties{
@@ -356,7 +356,7 @@ func TestDBCatalog(t *testing.T) {
 		model1 := &models.CatalogModelImpl{
 			TypeID: apiutils.Of(int32(catalogModelTypeID)),
 			Attributes: &models.CatalogModelAttributes{
-				Name:       apiutils.Of("TensorFlow-ResNet50"),
+				Name:       apiutils.Of("filterquery-test-source:TensorFlow-ResNet50"),
 				ExternalID: apiutils.Of("tf-resnet50-1"),
 			},
 			Properties: &[]mr_models.Properties{
@@ -372,7 +372,7 @@ func TestDBCatalog(t *testing.T) {
 		model2 := &models.CatalogModelImpl{
 			TypeID: apiutils.Of(int32(catalogModelTypeID)),
 			Attributes: &models.CatalogModelAttributes{
-				Name:       apiutils.Of("PyTorch-BERT"),
+				Name:       apiutils.Of("filterquery-test-source:PyTorch-BERT"),
 				ExternalID: apiutils.Of("pt-bert-1"),
 			},
 			Properties: &[]mr_models.Properties{
@@ -388,7 +388,7 @@ func TestDBCatalog(t *testing.T) {
 		model3 := &models.CatalogModelImpl{
 			TypeID: apiutils.Of(int32(catalogModelTypeID)),
 			Attributes: &models.CatalogModelAttributes{
-				Name:       apiutils.Of("Scikit-learn-LogisticRegression"),
+				Name:       apiutils.Of("filterquery-test-source:Scikit-learn-LogisticRegression"),
 				ExternalID: apiutils.Of("sk-lr-1"),
 			},
 			Properties: &[]mr_models.Properties{
@@ -408,9 +408,9 @@ func TestDBCatalog(t *testing.T) {
 		_, err = catalogModelRepo.Save(model3)
 		require.NoError(t, err)
 
-		// Test: Basic name filtering with exact match
+		// Test: Basic name filtering with exact match (filter uses stored namespaced name: source_id:model_name)
 		params := ListModelsParams{
-			FilterQuery:   "name = \"TensorFlow-ResNet50\"",
+			FilterQuery:   "name = \"filterquery-test-source:TensorFlow-ResNet50\"",
 			SourceIDs:     sourceIDs,
 			PageSize:      10,
 			OrderBy:       model.ORDERBYFIELD_NAME,
@@ -437,8 +437,8 @@ func TestDBCatalog(t *testing.T) {
 		assert.Equal(t, int32(1), result.Size, "Should return 1 model with case-insensitive ILIKE match")
 		assert.Contains(t, result.Items[0].Name, "Tensor")
 
-		// Test: OR logic
-		params.FilterQuery = "name = \"TensorFlow-ResNet50\" OR name = \"PyTorch-BERT\""
+		// Test: OR logic (use namespaced names for exact match)
+		params.FilterQuery = "name = \"filterquery-test-source:TensorFlow-ResNet50\" OR name = \"filterquery-test-source:PyTorch-BERT\""
 		result, err = dbCatalog.ListModels(ctx, params)
 		require.NoError(t, err)
 		assert.Equal(t, int32(2), result.Size, "Should return 2 models with OR logic")
@@ -492,8 +492,8 @@ func TestDBCatalog(t *testing.T) {
 		require.NoError(t, err)
 		assert.Equal(t, int32(2), result.Size, "Should return 2 models with complex query")
 
-		// Test: No matches
-		params.FilterQuery = "name = \"NonExistentModel\""
+		// Test: No matches (non-existent name; stored names are namespaced)
+		params.FilterQuery = "name = \"filterquery-test-source:NonExistentModel\""
 		result, err = dbCatalog.ListModels(ctx, params)
 		require.NoError(t, err)
 		assert.Equal(t, int32(0), result.Size, "Should return 0 models for non-existent name")
@@ -525,7 +525,7 @@ func TestDBCatalog(t *testing.T) {
 		testModel := &models.CatalogModelImpl{
 			TypeID: apiutils.Of(int32(catalogModelTypeID)),
 			Attributes: &models.CatalogModelAttributes{
-				Name:       apiutils.Of("artifact-test-model"),
+				Name:       apiutils.Of("artifact-test-source:artifact-test-model"),
 				ExternalID: apiutils.Of("artifact-test-model-ext"),
 			},
 			Properties: &[]mr_models.Properties{
@@ -622,7 +622,7 @@ func TestDBCatalog(t *testing.T) {
 		testModel := &models.CatalogModelImpl{
 			TypeID: apiutils.Of(int32(catalogModelTypeID)),
 			Attributes: &models.CatalogModelAttributes{
-				Name:       apiutils.Of("custom-props-model"),
+				Name:       apiutils.Of("custom-props-source:custom-props-model"),
 				ExternalID: apiutils.Of("custom-props-model-ext"),
 			},
 			Properties: &[]mr_models.Properties{
@@ -697,7 +697,7 @@ func TestDBCatalog(t *testing.T) {
 				ID:     apiutils.Of(int32(123)),
 				TypeID: apiutils.Of(int32(catalogModelTypeID)),
 				Attributes: &models.CatalogModelAttributes{
-					Name:                     apiutils.Of("mapping-test-model"),
+					Name:                     apiutils.Of("test-source:mapping-test-model"),
 					ExternalID:               apiutils.Of("mapping-test-ext"),
 					CreateTimeSinceEpoch:     apiutils.Of(int64(1234567890)),
 					LastUpdateTimeSinceEpoch: apiutils.Of(int64(1234567891)),
@@ -814,7 +814,7 @@ func TestDBCatalog(t *testing.T) {
 		model1 := &models.CatalogModelImpl{
 			TypeID: apiutils.Of(int32(catalogModelTypeID)),
 			Attributes: &models.CatalogModelAttributes{
-				Name:       apiutils.Of("filter-options-model-1"),
+				Name:       apiutils.Of("filter-test-source:filter-options-model-1"),
 				ExternalID: apiutils.Of("filter-opt-1"),
 			},
 			Properties: &[]mr_models.Properties{
@@ -831,7 +831,7 @@ func TestDBCatalog(t *testing.T) {
 		model2 := &models.CatalogModelImpl{
 			TypeID: apiutils.Of(int32(catalogModelTypeID)),
 			Attributes: &models.CatalogModelAttributes{
-				Name:       apiutils.Of("filter-options-model-2"),
+				Name:       apiutils.Of("filter-test-source:filter-options-model-2"),
 				ExternalID: apiutils.Of("filter-opt-2"),
 			},
 			Properties: &[]mr_models.Properties{
@@ -849,7 +849,7 @@ func TestDBCatalog(t *testing.T) {
 		model3 := &models.CatalogModelImpl{
 			TypeID: apiutils.Of(int32(catalogModelTypeID)),
 			Attributes: &models.CatalogModelAttributes{
-				Name:       apiutils.Of("filter-options-model-3"),
+				Name:       apiutils.Of("filter-test-source:filter-options-model-3"),
 				ExternalID: apiutils.Of("filter-opt-3"),
 			},
 			Properties: &[]mr_models.Properties{
@@ -979,7 +979,7 @@ func TestDBCatalog(t *testing.T) {
 		testModel := &models.CatalogModelImpl{
 			TypeID: apiutils.Of(int32(catalogModelTypeID)),
 			Attributes: &models.CatalogModelAttributes{
-				Name:       apiutils.Of("perf-test-model"),
+				Name:       apiutils.Of("perf-test-source:perf-test-model"),
 				ExternalID: apiutils.Of("perf-test-model-ext"),
 			},
 			Properties: &[]mr_models.Properties{
@@ -1049,7 +1049,7 @@ func TestDBCatalog(t *testing.T) {
 		testModel := &models.CatalogModelImpl{
 			TypeID: apiutils.Of(int32(catalogModelTypeID)),
 			Attributes: &models.CatalogModelAttributes{
-				Name:       apiutils.Of("rps-test-model"),
+				Name:       apiutils.Of("rps-test-source:rps-test-model"),
 				ExternalID: apiutils.Of("rps-test-model-ext"),
 			},
 			Properties: &[]mr_models.Properties{
@@ -1122,7 +1122,7 @@ func TestDBCatalog(t *testing.T) {
 		testModel := &models.CatalogModelImpl{
 			TypeID: apiutils.Of(int32(catalogModelTypeID)),
 			Attributes: &models.CatalogModelAttributes{
-				Name:       apiutils.Of("dedup-test-model"),
+				Name:       apiutils.Of("dedup-test-source:dedup-test-model"),
 				ExternalID: apiutils.Of("dedup-test-model-ext"),
 			},
 			Properties: &[]mr_models.Properties{
@@ -1214,7 +1214,7 @@ func TestDBCatalog(t *testing.T) {
 		testModel := &models.CatalogModelImpl{
 			TypeID: apiutils.Of(int32(catalogModelTypeID)),
 			Attributes: &models.CatalogModelAttributes{
-				Name:       apiutils.Of("filterquery-artifact-test-model"),
+				Name:       apiutils.Of("filterquery-test-source:filterquery-artifact-test-model"),
 				ExternalID: apiutils.Of("filterquery-artifact-test-model-ext"),
 			},
 			Properties: &[]mr_models.Properties{
@@ -1452,7 +1452,7 @@ func TestDBCatalog_GetPerformanceArtifactsWithService(t *testing.T) {
 	testModel := &models.CatalogModelImpl{
 		TypeID: apiutils.Of(int32(catalogModelTypeID)),
 		Attributes: &models.CatalogModelAttributes{
-			Name:       apiutils.Of("performance-test-model"),
+			Name:       apiutils.Of("test-source:performance-test-model"),
 			ExternalID: apiutils.Of("perf-model-123"),
 		},
 		Properties: &[]mr_models.Properties{
@@ -1967,7 +1967,7 @@ func TestFindModelsWithRecommendedLatency(t *testing.T) {
 	model1 := &models.CatalogModelImpl{
 		TypeID: apiutils.Of(int32(catalogModelTypeID)),
 		Attributes: &models.CatalogModelAttributes{
-			Name:       apiutils.Of("latency-model-1"),
+			Name:       apiutils.Of("latency-test-source:latency-model-1"),
 			ExternalID: apiutils.Of("latency-model-1-ext"),
 		},
 		Properties: &[]mr_models.Properties{
@@ -1979,7 +1979,7 @@ func TestFindModelsWithRecommendedLatency(t *testing.T) {
 	model2 := &models.CatalogModelImpl{
 		TypeID: apiutils.Of(int32(catalogModelTypeID)),
 		Attributes: &models.CatalogModelAttributes{
-			Name:       apiutils.Of("latency-model-2"),
+			Name:       apiutils.Of("latency-test-source:latency-model-2"),
 			ExternalID: apiutils.Of("latency-model-2-ext"),
 		},
 		Properties: &[]mr_models.Properties{
@@ -1991,7 +1991,7 @@ func TestFindModelsWithRecommendedLatency(t *testing.T) {
 	model3 := &models.CatalogModelImpl{
 		TypeID: apiutils.Of(int32(catalogModelTypeID)),
 		Attributes: &models.CatalogModelAttributes{
-			Name:       apiutils.Of("latency-model-3"),
+			Name:       apiutils.Of("latency-test-source:latency-model-3"),
 			ExternalID: apiutils.Of("latency-model-3-ext"),
 		},
 		Properties: &[]mr_models.Properties{

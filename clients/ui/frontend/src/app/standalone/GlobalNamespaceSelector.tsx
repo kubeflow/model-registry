@@ -3,50 +3,36 @@ import { useNamespaceSelector, useModularArchContext } from 'mod-arch-core';
 import { SimpleSelect } from 'mod-arch-shared';
 import { SimpleSelectOption } from 'mod-arch-shared/dist/components/SimpleSelect';
 
-interface NamespaceSelectorProps {
+interface GlobalNamespaceSelectorProps {
   onSelect?: (namespace: string) => void;
   className?: string;
   isDisabled?: boolean;
-  selectedNamespace?: string;
-  placeholderText?: string;
-  isFullWidth?: boolean;
-  isGlobalSelector?: boolean;
-  ignoreMandatoryNamespace?: boolean;
 }
 
-const NamespaceSelector: React.FC<NamespaceSelectorProps> = ({
-  placeholderText,
+const GlobalNamespaceSelector: React.FC<GlobalNamespaceSelectorProps> = ({
   onSelect,
   className,
   isDisabled: externalDisabled,
-  selectedNamespace,
-  isFullWidth,
-  isGlobalSelector,
-  ignoreMandatoryNamespace,
 }) => {
   const { namespaces = [], preferredNamespace, updatePreferredNamespace } = useNamespaceSelector();
   const { config } = useModularArchContext();
 
-  // Check if mandatory namespace is configured
   const isMandatoryNamespace = Boolean(config.mandatoryNamespace);
+  const isDisabled = externalDisabled || isMandatoryNamespace || namespaces.length === 0;
 
-  const baseDisabled = externalDisabled || namespaces.length === 0;
-  const isDisabled = ignoreMandatoryNamespace ? baseDisabled : baseDisabled || isMandatoryNamespace;
   const options: SimpleSelectOption[] = namespaces.map((namespace) => ({
     key: namespace.name,
     label: namespace.name,
   }));
 
-  const selectedValue = !isGlobalSelector
-    ? selectedNamespace || ''
-    : preferredNamespace?.name || namespaces[0]?.name || '';
+  const selectedValue = preferredNamespace?.name || namespaces[0]?.name || '';
 
   const handleChange = (key: string, isPlaceholder: boolean) => {
     if (isPlaceholder || !key) {
       return;
     }
 
-    if (!isMandatoryNamespace && isGlobalSelector) {
+    if (!isMandatoryNamespace) {
       updatePreferredNamespace({ name: key });
     }
 
@@ -61,13 +47,13 @@ const NamespaceSelector: React.FC<NamespaceSelectorProps> = ({
       value={selectedValue}
       className={className}
       onChange={handleChange}
-      placeholder={placeholderText}
       isDisabled={isDisabled}
-      isFullWidth={isFullWidth}
+      isScrollable
+      maxMenuHeight="300px"
       popperProps={{ maxWidth: '400px' }}
-      dataTestId={isGlobalSelector ? 'navbar-namespace-selector' : 'form-namespace-selector'}
+      dataTestId="navbar-namespace-selector"
     />
   );
 };
 
-export default NamespaceSelector;
+export default GlobalNamespaceSelector;

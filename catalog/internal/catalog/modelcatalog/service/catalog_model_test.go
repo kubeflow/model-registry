@@ -171,6 +171,50 @@ func TestCatalogModelRepository(t *testing.T) {
 		assert.ErrorIs(t, err, ErrCatalogModelNotFound)
 	})
 
+	t.Run("TestSameNameDifferentSources", func(t *testing.T) {
+		// Allow multiple models with the same display name as long as they have different sources.
+		sharedName := "shared-model-name"
+		modelA := &models.CatalogModelImpl{
+			Attributes: &models.CatalogModelAttributes{
+				Name:       apiutils.Of(sharedName),
+				ExternalID: apiutils.Of("ext-a"),
+			},
+			Properties: &[]dbmodels.Properties{
+				{Name: "source_id", StringValue: apiutils.Of("source-a")},
+			},
+		}
+		modelB := &models.CatalogModelImpl{
+			Attributes: &models.CatalogModelAttributes{
+				Name:       apiutils.Of(sharedName),
+				ExternalID: apiutils.Of("ext-b"),
+			},
+			Properties: &[]dbmodels.Properties{
+				{Name: "source_id", StringValue: apiutils.Of("source-b")},
+			},
+		}
+
+		savedA, err := repo.Save(modelA)
+		require.NoError(t, err)
+		require.NotNil(t, savedA.GetID())
+
+		savedB, err := repo.Save(modelB)
+		require.NoError(t, err)
+		require.NotNil(t, savedB.GetID())
+
+		assert.NotEqual(t, *savedA.GetID(), *savedB.GetID(), "same display name from different sources must be distinct rows")
+
+		// Lookup by namespaced name returns the correct model
+		retrievedA, err := repo.GetByName("source-a:" + sharedName)
+		require.NoError(t, err)
+		assert.Equal(t, *savedA.GetID(), *retrievedA.GetID())
+		assert.Equal(t, "source-a:"+sharedName, *retrievedA.GetAttributes().Name)
+
+		retrievedB, err := repo.GetByName("source-b:" + sharedName)
+		require.NoError(t, err)
+		assert.Equal(t, *savedB.GetID(), *retrievedB.GetID())
+		assert.Equal(t, "source-b:"+sharedName, *retrievedB.GetAttributes().Name)
+	})
+
 	t.Run("TestUpdateWithID", func(t *testing.T) {
 		// First create a model
 		catalogModel := &models.CatalogModelImpl{
@@ -905,7 +949,8 @@ func TestCatalogModelRepository(t *testing.T) {
 		// Verify model from source2 still exists
 		retrieved, err := repo.GetByID(*saved3.GetID())
 		require.NoError(t, err)
-		assert.Equal(t, "model-source-2", *retrieved.GetAttributes().Name)
+		// Repository returns stored name (namespaced: sourceId:modelName)
+		assert.Equal(t, sourceID2+":model-source-2", *retrieved.GetAttributes().Name)
 	})
 
 	t.Run("TestDeleteByID", func(t *testing.T) {

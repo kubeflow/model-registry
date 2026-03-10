@@ -53,7 +53,6 @@ type ModelTransferJobDestination struct {
 	Type     ModelTransferJobDestinationType `json:"type"`
 	Username string                          `json:"username,omitempty"`
 	Password string                          `json:"password,omitempty"`
-	Email    string                          `json:"email,omitempty"`
 	URI      string                          `json:"uri,omitempty"`
 	Registry string                          `json:"registry,omitempty"`
 }
@@ -70,6 +69,7 @@ type ModelTransferJobEvent struct {
 type ModelTransferJob struct {
 	Id                       string                       `json:"id"`
 	Name                     string                       `json:"name"`
+	JobDisplayName           string                       `json:"jobDisplayName"`
 	Description              string                       `json:"description,omitempty"`
 	Source                   ModelTransferJobSource       `json:"source"`
 	Destination              ModelTransferJobDestination  `json:"destination"`

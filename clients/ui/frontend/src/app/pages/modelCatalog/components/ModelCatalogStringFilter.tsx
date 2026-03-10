@@ -1,5 +1,6 @@
-import { Button, Checkbox, Content, ContentVariants, SearchInput } from '@patternfly/react-core';
 import * as React from 'react';
+import CatalogStringFilter from '~/app/shared/components/catalog/CatalogStringFilter';
+import { ModelCatalogContext } from '~/app/context/modelCatalog/ModelCatalogContext';
 import {
   ModelCatalogStringFilterOptions,
   ModelCatalogStringFilterValueType,
@@ -7,7 +8,9 @@ import {
 import { ModelCatalogStringFilterKey } from '~/concepts/modelCatalog/const';
 import { useCatalogStringFilterState } from '~/app/pages/modelCatalog/utils/modelCatalogUtils';
 
-const MAX_VISIBLE_FILTERS = 5;
+function isFilterMappingKey<K extends string>(obj: Partial<Record<K, string>>, s: string): s is K {
+  return Object.hasOwn(obj, s);
+}
 
 type ModelCatalogStringFilterProps<K extends ModelCatalogStringFilterKey> = {
   title: string;
@@ -22,82 +25,30 @@ const ModelCatalogStringFilter = <K extends ModelCatalogStringFilterKey>({
   filterToNameMapping,
   filters,
 }: ModelCatalogStringFilterProps<K>): JSX.Element => {
-  const [showMore, setShowMore] = React.useState(false);
-  const [searchValue, setSearchValue] = React.useState('');
-  const { isSelected, setSelected } = useCatalogStringFilterState(filterKey);
+  const { filterData } = React.useContext(ModelCatalogContext);
+  const { setSelected } = useCatalogStringFilterState(filterKey);
+  const selectedValues = filterData[filterKey];
 
   const getLabel = React.useCallback(
-    (value: ModelCatalogStringFilterValueType[K]) => filterToNameMapping[value] ?? value,
+    (value: string): string =>
+      isFilterMappingKey(filterToNameMapping, value)
+        ? (filterToNameMapping[value] ?? value)
+        : value,
     [filterToNameMapping],
   );
 
   const filterValues = React.useMemo(() => filters?.values ?? [], [filters?.values]);
 
-  const valuesMatchingSearch = React.useMemo(
-    () =>
-      filterValues.filter((value) => {
-        const label = getLabel(value).toLowerCase();
-        return (
-          value.toLowerCase().includes(searchValue.trim().toLowerCase()) ||
-          label.includes(searchValue.trim().toLowerCase()) ||
-          isSelected(value)
-        );
-      }),
-    [filterValues, getLabel, isSelected, searchValue],
-  );
-
-  const onSearchChange = (newValue: string) => {
-    setSearchValue(newValue);
-  };
-
-  const visibleValues = showMore
-    ? valuesMatchingSearch
-    : valuesMatchingSearch.slice(0, MAX_VISIBLE_FILTERS);
-
   return (
-    <Content data-testid={`${title}-filter`}>
-      <Content component={ContentVariants.h6}>{title}</Content>
-      {filterValues.length > MAX_VISIBLE_FILTERS && (
-        <SearchInput
-          placeholder={`Search ${title.toLowerCase()}`}
-          data-testid={`${title}-filter-search`}
-          className="pf-v6-u-mb-sm"
-          value={searchValue}
-          onChange={(_event, newValue) => onSearchChange(newValue)}
-        />
-      )}
-      {visibleValues.length === 0 && (
-        <div data-testid={`${title}-filter-empty`}>No results found</div>
-      )}
-      {visibleValues.map((checkbox) => (
-        <Checkbox
-          data-testid={`${title}-${checkbox}-checkbox`}
-          label={getLabel(checkbox)}
-          id={checkbox}
-          key={checkbox}
-          isChecked={isSelected(checkbox)}
-          onChange={(_, checked) => setSelected(checkbox, checked)}
-        />
-      ))}
-      {!showMore && valuesMatchingSearch.length > MAX_VISIBLE_FILTERS && (
-        <Button
-          variant="link"
-          onClick={() => setShowMore(true)}
-          data-testid={`${title}-filter-show-more`}
-        >
-          Show more
-        </Button>
-      )}
-      {showMore && valuesMatchingSearch.length > MAX_VISIBLE_FILTERS && (
-        <Button
-          variant="link"
-          onClick={() => setShowMore(false)}
-          data-testid={`${title}-filter-show-less`}
-        >
-          Show less
-        </Button>
-      )}
-    </Content>
+    <CatalogStringFilter
+      title={title}
+      filterValues={filterValues}
+      selectedValues={selectedValues}
+      onToggle={setSelected}
+      getLabel={getLabel}
+      testIdBase={`${title}-filter`}
+      getCheckboxTestId={(value) => `${title}-${value}-checkbox`}
+    />
   );
 };
 

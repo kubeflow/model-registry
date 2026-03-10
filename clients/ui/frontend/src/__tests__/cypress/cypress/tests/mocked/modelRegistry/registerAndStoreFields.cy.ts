@@ -189,6 +189,79 @@ describe('Register and Store Fields - Namespace access validation', () => {
   });
 });
 
+describe('Register and Store Fields - Namespace loading error', () => {
+  beforeEach(() => {
+    initIntercepts({});
+    // Use a dynamic handler: the first call (from the app context/navbar) must succeed
+    // for the page to render; only the second call (from the form's useNamespaces) should fail.
+    let namespaceFetchCount = 0;
+    cy.intercept(
+      {
+        method: 'GET',
+        pathname: `/model-registry/api/${MODEL_REGISTRY_API_VERSION}/namespaces`,
+      },
+      (req) => {
+        namespaceFetchCount += 1;
+        if (namespaceFetchCount <= 1) {
+          req.reply({ statusCode: 200, body: { data: [mockNamespace({})] } });
+        } else {
+          req.reply({ statusCode: 500, body: { error: 'failed to list namespaces' } });
+        }
+      },
+    ).as('getNamespacesError');
+    registerAndStoreFields.visit();
+    registerAndStoreFields.selectRegisterAndStoreMode();
+  });
+
+  it('Should show error alert when namespace loading fails', () => {
+    registerAndStoreFields.shouldShowNamespaceLoadError();
+  });
+
+  it('Should disable namespace selector when loading fails', () => {
+    registerAndStoreFields.shouldBeNamespaceSelectorDisabled();
+  });
+
+  it('Should hide form sections when namespace loading fails', () => {
+    registerAndStoreFields.shouldHideOriginLocationSection();
+    registerAndStoreFields.shouldHideDestinationLocationSection();
+  });
+
+  it('Should keep Create button disabled when namespace loading fails', () => {
+    registerAndStoreFields.shouldHaveCreateButtonDisabled();
+  });
+});
+
+describe('Register and Store Fields - Namespace access check error', () => {
+  beforeEach(() => {
+    initIntercepts({});
+    cy.intercept('POST', '**/api/v1/check-namespace-registry-access', {
+      statusCode: 500,
+      body: { error: 'failed to check namespace access' },
+    }).as('checkNamespaceAccessError');
+    registerAndStoreFields.visit();
+    registerAndStoreFields.selectRegisterAndStoreMode();
+  });
+
+  it('Should show error alert when namespace access check fails', () => {
+    registerAndStoreFields.selectNamespace('namespace-1');
+    cy.wait('@checkNamespaceAccessError');
+    registerAndStoreFields.shouldShowNamespaceAccessCheckError();
+  });
+
+  it('Should hide form sections when access check fails', () => {
+    registerAndStoreFields.selectNamespace('namespace-1');
+    cy.wait('@checkNamespaceAccessError');
+    registerAndStoreFields.shouldHideOriginLocationSection();
+    registerAndStoreFields.shouldHideDestinationLocationSection();
+  });
+
+  it('Should keep Create button disabled when access check fails', () => {
+    registerAndStoreFields.selectNamespace('namespace-1');
+    cy.wait('@checkNamespaceAccessError');
+    registerAndStoreFields.shouldHaveCreateButtonDisabled();
+  });
+});
+
 describe('Register and Store Fields - Who is my admin popover (namespace wording)', () => {
   beforeEach(() => {
     initIntercepts({ namespaces: [] });

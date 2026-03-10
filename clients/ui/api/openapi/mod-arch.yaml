@@ -1275,6 +1275,7 @@ paths:
         - $ref: "#/components/parameters/modelRegistryName"
         - $ref: "#/components/parameters/kubeflowUserId"
         - $ref: "#/components/parameters/modelTransferJobName"
+        - $ref: "#/components/parameters/jobNamespace"
       responses:
         "200":
           $ref: "#/components/responses/ModelTransferJobResponse"
@@ -1330,6 +1331,7 @@ paths:
         - $ref: "#/components/parameters/modelRegistryName"
         - $ref: "#/components/parameters/kubeflowUserId"
         - $ref: "#/components/parameters/modelTransferJobName"
+        - $ref: "#/components/parameters/jobNamespace"
       responses:
         "204":
           description: Successfully deleted
@@ -2938,9 +2940,6 @@ components:
         password:
           type: string
           description: OCI registry password (request only, never returned)
-        email:
-          type: string
-          description: OCI registry email (request only, never returned)
         secretName:
           type: string
           description: Name of created K8s secret (response only)
@@ -2951,10 +2950,16 @@ components:
     ModelTransferJob:
       description: A model transfer job entity.
       type: object
+      required:
+        - name
+        - jobDisplayName
+        - namespace
       properties:
         id:
           type: string
         name:
+          type: string
+        jobDisplayName:
           type: string
         description:
           type: string
@@ -3728,7 +3733,7 @@ components:
       required: true
     jobNamespace:
       name: jobNamespace
-      description: The namespace where the job's pods are running, used to fetch pod events.
+      description: The namespace where the ModelTransferJob runs.
       schema:
         type: string
       in: query
