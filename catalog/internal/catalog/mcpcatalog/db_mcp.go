@@ -3,6 +3,7 @@ package mcpcatalog
 import (
 	"context"
 	"fmt"
+	"strings"
 
 	"github.com/kubeflow/model-registry/catalog/internal/catalog/basecatalog"
 	"github.com/kubeflow/model-registry/catalog/internal/catalog/mcpcatalog/models"
@@ -99,9 +100,11 @@ func (d *dbMCPCatalogImpl) ListMCPServers(ctx context.Context, params ListMCPSer
 	}
 
 	// Set pagination
+	orderBy := strings.ToUpper(string(params.OrderBy))
+	sortOrder := strings.ToUpper(string(params.SortOrder))
 	listOptions.Pagination.PageSize = &params.PageSize
-	listOptions.Pagination.OrderBy = (*string)(&params.OrderBy)
-	listOptions.Pagination.SortOrder = (*string)(&params.SortOrder)
+	listOptions.Pagination.OrderBy = &orderBy
+	listOptions.Pagination.SortOrder = &sortOrder
 	if params.NextPageToken != nil {
 		listOptions.Pagination.NextPageToken = params.NextPageToken
 	}
@@ -225,9 +228,11 @@ func (d *dbMCPCatalogImpl) ListMCPServerTools(ctx context.Context, serverID stri
 	}
 
 	// Set pagination
+	toolsOrderBy := strings.ToUpper(string(params.OrderBy))
+	toolsSortOrder := strings.ToUpper(string(params.SortOrder))
 	listOptions.Pagination.PageSize = &params.PageSize
-	listOptions.Pagination.OrderBy = (*string)(&params.OrderBy)
-	listOptions.Pagination.SortOrder = (*string)(&params.SortOrder)
+	listOptions.Pagination.OrderBy = &toolsOrderBy
+	listOptions.Pagination.SortOrder = &toolsSortOrder
 	if params.NextPageToken != nil {
 		listOptions.Pagination.NextPageToken = params.NextPageToken
 	}
