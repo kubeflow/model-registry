@@ -291,15 +291,15 @@ func (m *ModelCatalogClientMock) GetMcpServersFilter(client httpclient.HTTPClien
 func (m *ModelCatalogClientMock) GetMcpServer(client httpclient.HTTPClientInterface, serverId string, pageValues url.Values) (*models.McpServer, error) {
 	allMocks := GetMcpServerMocks()
 	id, err := strconv.ParseInt(serverId, 10, 64)
-	if err == nil {
-		for i := range allMocks {
-			if int64(allMocks[i].ID) == id {
-				return &allMocks[i], nil
-			}
+	if err != nil {
+		return nil, fmt.Errorf("server id doesn't exist: %w", err)
+	}
+	for i := range allMocks {
+		if int64(allMocks[i].ID) == id {
+			return &allMocks[i], nil
 		}
 	}
-
-	return nil, fmt.Errorf("server id doesn't exist: %w", err)
+	return nil, fmt.Errorf("server id doesn't exist: %s", serverId)
 }
 
 func (m *ModelCatalogClientMock) GetMcpServersTools(client httpclient.HTTPClientInterface, serverId string) (*models.McpToolList, error) {

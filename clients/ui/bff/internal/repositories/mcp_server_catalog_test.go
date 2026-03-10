@@ -126,6 +126,23 @@ func TestGetMcpServer_Success(t *testing.T) {
 	mockClient.AssertExpectations(t)
 }
 
+func TestGetMcpServer_WithIncludeTools(t *testing.T) {
+	mockClient := &mocks.MockHTTPClient{}
+	responseJSON := `{"id": 1, "name": "Test MCP Server", "toolCount": 5}`
+	mockClient.On("GET", "/mcp_servers/server-1?includeTools=true").Return([]byte(responseJSON), nil)
+
+	repo := McpServerCatalog{}
+	pageValues := url.Values{}
+	pageValues.Set("includeTools", "true")
+	result, err := repo.GetMcpServer(mockClient, "server-1", pageValues)
+
+	assert.NoError(t, err)
+	assert.NotNil(t, result)
+	assert.Equal(t, 1, result.ID)
+	assert.Equal(t, "Test MCP Server", result.Name)
+	mockClient.AssertExpectations(t)
+}
+
 func TestGetMcpServer_ClientError(t *testing.T) {
 	mockClient := &mocks.MockHTTPClient{}
 	expectedErr := &httpclient.HTTPError{StatusCode: 404}
