@@ -6,7 +6,7 @@ import (
 	"log/slog"
 
 	k8s "github.com/kubeflow/model-registry/ui/bff/internal/integrations/kubernetes"
-	discoveryv1 "k8s.io/api/discovery/v1"
+	corev1 "k8s.io/api/core/v1"
 	"k8s.io/client-go/kubernetes"
 )
 
@@ -54,9 +54,9 @@ func (m *InternalKubernetesClientMock) GetServiceDetailsByName(sessionCtx contex
 	return originalService, nil
 }
 
-// ListEndpointSlices delegates to the embedded client (envtest may have no slices; tests can override for IsAvailable: true).
-func (m *InternalKubernetesClientMock) ListEndpointSlices(ctx context.Context, namespace string) ([]discoveryv1.EndpointSlice, error) {
-	return m.InternalKubernetesClient.ListEndpointSlices(ctx, namespace)
+// GetServiceEndpoints delegates to the embedded client.
+func (m *InternalKubernetesClientMock) GetServiceEndpoints(ctx context.Context, namespace, serviceName string) (*corev1.Endpoints, error) {
+	return m.InternalKubernetesClient.GetServiceEndpoints(ctx, namespace, serviceName)
 }
 
 // BearerToken always returns a fake token for tests

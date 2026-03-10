@@ -51,22 +51,27 @@ func (m *ModelRegistryRepository) GetAllModelRegistriesWithMode(sessionCtx conte
 		return nil, fmt.Errorf("error fetching model registries: %w", err)
 	}
 
-	// Single batch list of endpoint slices for the namespace to avoid N+1 API calls.
-	endpointSlices, err := client.ListEndpointSlices(sessionCtx, namespace)
-	if err != nil {
-		logger.Debug("failed to list endpoint slices, treating all registries as unavailable", "namespace", namespace, "error", err)
-		endpointSlices = nil
-	}
-
+	// Per-registry GetServiceEndpoints (no list): non-admin users typically lack list Endpoints permission; ODH operator grants get-by-name. On fetch error we assume available to avoid new permission requirements upstream.
 	var registries = []models.ModelRegistryModel{}
 	for _, s := range resources {
 		serverAddress := m.ResolveServerAddress(s.ClusterIP, s.HTTPPort, s.IsHTTPS, s.ExternalAddressRest, isFederatedMode)
-		isAvailable := k8s.ServiceHasReadyEndpoints(endpointSlices, s.Name)
+		isAvailable := m.isRegistryAvailable(sessionCtx, client, namespace, s.Name)
 		registry := m.buildModelRegistryModel(s, serverAddress, isAvailable)
 		registries = append(registries, registry)
 	}
 
 	return registries, nil
+}
+
+// isRegistryAvailable returns true if the service's Endpoints have at least one ready address. On fetch error (e.g. Forbidden) returns true so we do not require new RBAC upstream; ODH operator grants Endpoints access.
+func (m *ModelRegistryRepository) isRegistryAvailable(sessionCtx context.Context, client k8s.KubernetesClientInterface, namespace, serviceName string) bool {
+	logger := helper.GetContextLogger(sessionCtx)
+	endpoints, err := client.GetServiceEndpoints(sessionCtx, namespace, serviceName)
+	if err != nil {
+		logger.Debug("assuming registry available (endpoints fetch failed, may be permission)", "serviceName", serviceName, "namespace", namespace, "error", err)
+		return true
+	}
+	return k8s.EndpointsHasReadyAddresses(endpoints)
 }
 
 // buildModelRegistryModel maps service details and availability into a ModelRegistryModel (DRY for list and get-by-name).
@@ -119,8 +124,7 @@ func (m *ModelRegistryRepository) GetModelRegistryWithMode(sessionCtx context.Co
 		return models.ModelRegistryModel{}, fmt.Errorf("error fetching model registry: %w", err)
 	}
 
-	endpointSlices, _ := client.ListEndpointSlices(sessionCtx, namespace)
-	isAvailable := k8s.ServiceHasReadyEndpoints(endpointSlices, modelRegistryID)
+	isAvailable := m.isRegistryAvailable(sessionCtx, client, namespace, modelRegistryID)
 	serverAddress := m.ResolveServerAddress(s.ClusterIP, s.HTTPPort, s.IsHTTPS, s.ExternalAddressRest, isFederatedMode)
 
 	return m.buildModelRegistryModel(s, serverAddress, isAvailable), nil

@@ -11,7 +11,6 @@ import (
 	"github.com/kubeflow/model-registry/ui/bff/internal/constants"
 	batchv1 "k8s.io/api/batch/v1"
 	corev1 "k8s.io/api/core/v1"
-	discoveryv1 "k8s.io/api/discovery/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
@@ -154,32 +153,30 @@ func (kc *SharedClientLogic) GetServiceDetailsByName(sessionCtx context.Context,
 	return *details, nil
 }
 
-// ListEndpointSlices returns all EndpointSlices in the namespace. Prefer this over the deprecated corev1.Endpoints API.
-func (kc *SharedClientLogic) ListEndpointSlices(ctx context.Context, namespace string) ([]discoveryv1.EndpointSlice, error) {
-	if namespace == "" {
-		return nil, fmt.Errorf("namespace cannot be empty")
+// GetServiceEndpoints returns the Endpoints for a service. Used to detect registry availability; ODH operator grants RBAC for Endpoints. Callers should treat fetch errors (e.g. Forbidden) as "assume available" to avoid new permission requirements upstream.
+func (kc *SharedClientLogic) GetServiceEndpoints(ctx context.Context, namespace, serviceName string) (*corev1.Endpoints, error) {
+	if namespace == "" || serviceName == "" {
+		return nil, fmt.Errorf("namespace and serviceName cannot be empty")
 	}
 
 	ctx, cancel := context.WithTimeout(ctx, 30*time.Second)
 	defer cancel()
 
-	list, err := kc.Client.DiscoveryV1().EndpointSlices(namespace).List(ctx, metav1.ListOptions{})
+	endpoints, err := kc.Client.CoreV1().Endpoints(namespace).Get(ctx, serviceName, metav1.GetOptions{})
 	if err != nil {
-		return nil, fmt.Errorf("failed to list endpoint slices in namespace %q: %w", namespace, err)
+		return nil, fmt.Errorf("failed to get endpoints for service %q in namespace %q: %w", serviceName, namespace, err)
 	}
-	return list.Items, nil
+	return endpoints, nil
 }
 
-// ServiceHasReadyEndpoints returns true if the given EndpointSlices for a service (by label kubernetes.io/service-name) have at least one ready endpoint.
-func ServiceHasReadyEndpoints(slices []discoveryv1.EndpointSlice, serviceName string) bool {
-	for _, es := range slices {
-		if es.Labels == nil || es.Labels[EndpointSliceServiceNameLabel] != serviceName {
-			continue
-		}
-		for _, ep := range es.Endpoints {
-			if ep.Conditions.Ready != nil && *ep.Conditions.Ready && len(ep.Addresses) > 0 {
-				return true
-			}
+// EndpointsHasReadyAddresses returns true if the Endpoints resource has at least one subset with ready addresses.
+func EndpointsHasReadyAddresses(endpoints *corev1.Endpoints) bool {
+	if endpoints == nil {
+		return false
+	}
+	for _, subset := range endpoints.Subsets {
+		if len(subset.Addresses) > 0 {
+			return true
 		}
 	}
 	return false

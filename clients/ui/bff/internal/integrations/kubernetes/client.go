@@ -5,7 +5,6 @@ import (
 
 	batchv1 "k8s.io/api/batch/v1"
 	corev1 "k8s.io/api/core/v1"
-	discoveryv1 "k8s.io/api/discovery/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -16,16 +15,13 @@ const CatalogSourceKey = "sources.yaml"
 const CatalogSourceDefaultConfigMapName = "model-catalog-default-sources"
 const CatalogSourceUserConfigMapName = "model-catalog-sources"
 
-// EndpointSliceServiceNameLabel is the label used to associate an EndpointSlice with a Service (k8s standard).
-const EndpointSliceServiceNameLabel = "kubernetes.io/service-name"
-
 type KubernetesClientInterface interface {
 	// Service discovery
 	GetServiceNames(ctx context.Context, namespace string) ([]string, error)
 	GetServiceDetailsByName(ctx context.Context, namespace, serviceName string, serviceType string) (ServiceDetails, error)
 	GetServiceDetails(ctx context.Context, namespace string) ([]ServiceDetails, error)
-	// ListEndpointSlices returns all EndpointSlices in the namespace (used to detect service availability without deprecated Endpoints API).
-	ListEndpointSlices(ctx context.Context, namespace string) ([]discoveryv1.EndpointSlice, error)
+	// GetServiceEndpoints returns the Endpoints for a service (used to detect availability). ODH operator grants RBAC for this. On permission error callers should treat the registry as available.
+	GetServiceEndpoints(ctx context.Context, namespace, serviceName string) (*corev1.Endpoints, error)
 
 	// Namespace access
 	GetNamespaces(ctx context.Context, identity *RequestIdentity) ([]corev1.Namespace, error)

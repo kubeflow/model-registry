@@ -13,7 +13,6 @@ import (
 	k8s "github.com/kubeflow/model-registry/ui/bff/internal/integrations/kubernetes"
 	batchv1 "k8s.io/api/batch/v1"
 	corev1 "k8s.io/api/core/v1"
-	discoveryv1 "k8s.io/api/discovery/v1"
 	rbacv1 "k8s.io/api/rbac/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
@@ -126,11 +125,15 @@ func setupMock(mockK8sClient kubernetes.Interface, ctx context.Context) error {
 	if err != nil {
 		return err
 	}
-	err = createEndpointSlice(mockK8sClient, ctx, "kubeflow", "model-registry", true)
+	err = createEndpoints(mockK8sClient, ctx, "kubeflow", "model-registry", true)
 	if err != nil {
 		return err
 	}
 	err = createService(mockK8sClient, ctx, "model-registry-one", "kubeflow", "Model Registry One", "Model Registry One description", "10.0.0.11", "model-registry")
+	if err != nil {
+		return err
+	}
+	err = createEndpoints(mockK8sClient, ctx, "kubeflow", "model-registry-one", false)
 	if err != nil {
 		return err
 	}
@@ -722,28 +725,21 @@ func createService(k8sClient kubernetes.Interface, ctx context.Context, name str
 	return nil
 }
 
-// createEndpointSlice creates an EndpointSlice for a service so that ServiceHasReadyEndpoints returns hasReady.
-func createEndpointSlice(k8sClient kubernetes.Interface, ctx context.Context, namespace, serviceName string, hasReady bool) error {
-	ready := hasReady
-	ep := &discoveryv1.EndpointSlice{
+// createEndpoints creates an Endpoints resource for a service so that EndpointsHasReadyAddresses returns hasReady (ODH operator grants RBAC for Endpoints).
+func createEndpoints(k8sClient kubernetes.Interface, ctx context.Context, namespace, serviceName string, hasReady bool) error {
+	ep := &corev1.Endpoints{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      serviceName + "-slice",
+			Name:      serviceName,
 			Namespace: namespace,
-			Labels: map[string]string{
-				k8s.EndpointSliceServiceNameLabel: serviceName,
-			},
 		},
-		AddressType: discoveryv1.AddressTypeIPv4,
-		Endpoints: []discoveryv1.Endpoint{
-			{
-				Addresses: []string{"10.0.0.1"},
-				Conditions: discoveryv1.EndpointConditions{
-					Ready: &ready,
-				},
-			},
-		},
+		Subsets: nil,
 	}
-	_, err := k8sClient.DiscoveryV1().EndpointSlices(namespace).Create(ctx, ep, metav1.CreateOptions{})
+	if hasReady {
+		ep.Subsets = []corev1.EndpointSubset{
+			{Addresses: []corev1.EndpointAddress{{IP: "10.0.0.1"}}},
+		}
+	}
+	_, err := k8sClient.CoreV1().Endpoints(namespace).Create(ctx, ep, metav1.CreateOptions{})
 	return err
 }
 
