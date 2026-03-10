@@ -86,6 +86,35 @@ func (c *catalogEntityMappings) IsChildEntity(entityType filter.RestEntityType) 
 	return false
 }
 
+// GetEqualityExpansion implements filter.EqualityExpander so externalId = "x" matches both
+// exact and namespaced (sourceId:x) stored values, returning all models regardless of source.
+func (c *catalogEntityMappings) GetEqualityExpansion(restEntityType filter.RestEntityType, propertyName string, value any) (likeArg any, useExpansion bool) {
+	if restEntityType != filter.RestEntityType(catalogmodels.RestEntityCatalogModel) || propertyName != "externalId" {
+		return nil, false
+	}
+	strVal, ok := value.(string)
+	if !ok || strVal == "" {
+		return nil, false
+	}
+	// Match any source prefix: sourceId:externalId
+	return "%:" + escapeLike(strVal), true
+}
+
+// escapeLike escapes SQL LIKE metacharacters (%, _, \) for safe use as a literal in a LIKE pattern.
+func escapeLike(s string) string {
+	var b strings.Builder
+	for _, r := range s {
+		switch r {
+		case '\\', '%', '_':
+			b.WriteRune('\\')
+			b.WriteRune(r)
+		default:
+			b.WriteRune(r)
+		}
+	}
+	return b.String()
+}
+
 // catalogModelProperties defines the allowed properties for CatalogModel entities
 var catalogModelProperties = map[string]filter.PropertyDefinition{
 	// Common Context properties
