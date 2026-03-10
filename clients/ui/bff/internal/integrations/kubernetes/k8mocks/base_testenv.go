@@ -125,7 +125,15 @@ func setupMock(mockK8sClient kubernetes.Interface, ctx context.Context) error {
 	if err != nil {
 		return err
 	}
+	err = createEndpoints(mockK8sClient, ctx, "kubeflow", "model-registry", true)
+	if err != nil {
+		return err
+	}
 	err = createService(mockK8sClient, ctx, "model-registry-one", "kubeflow", "Model Registry One", "Model Registry One description", "10.0.0.11", "model-registry")
+	if err != nil {
+		return err
+	}
+	err = createEndpoints(mockK8sClient, ctx, "kubeflow", "model-registry-one", false)
 	if err != nil {
 		return err
 	}
@@ -715,6 +723,26 @@ func createService(k8sClient kubernetes.Interface, ctx context.Context, name str
 	}
 
 	return nil
+}
+
+// createEndpoints creates an Endpoints resource for a service so that EndpointsHasReadyAddresses returns hasReady.
+//
+//nolint:staticcheck // intentionally using deprecated corev1.Endpoints for RBAC compatibility; see tech debt ticket for EndpointSlice migration
+func createEndpoints(k8sClient kubernetes.Interface, ctx context.Context, namespace, serviceName string, hasReady bool) error {
+	ep := &corev1.Endpoints{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      serviceName,
+			Namespace: namespace,
+		},
+		Subsets: nil,
+	}
+	if hasReady {
+		ep.Subsets = []corev1.EndpointSubset{
+			{Addresses: []corev1.EndpointAddress{{IP: "10.0.0.1"}}},
+		}
+	}
+	_, err := k8sClient.CoreV1().Endpoints(namespace).Create(ctx, ep, metav1.CreateOptions{})
+	return err
 }
 
 func createModelCatalogService(k8sClient kubernetes.Interface, ctx context.Context, name, namespace, clusterIP string) error {

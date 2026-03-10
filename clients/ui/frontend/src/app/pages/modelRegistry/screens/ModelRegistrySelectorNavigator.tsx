@@ -1,5 +1,7 @@
 import * as React from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
+import { ModelRegistrySelectorContext } from '~/app/context/ModelRegistrySelectorContext';
+import { isRegistryUnavailable } from '~/app/types';
 import ModelRegistrySelector from './ModelRegistrySelector';
 
 type ModelRegistrySelectorNavigatorProps = {
@@ -12,10 +14,15 @@ const ModelRegistrySelectorNavigator: React.FC<ModelRegistrySelectorNavigatorPro
 }) => {
   const navigate = useNavigate();
   const { modelRegistry: currentModelRegistry } = useParams<{ modelRegistry: string }>();
+  const { modelRegistries } = React.useContext(ModelRegistrySelectorContext);
+  const selection = modelRegistries.find((mr) => mr.name === (currentModelRegistry ?? ''));
+  // When parent passes hasError (e.g. CoreLoader for unavailable page), use it; otherwise derive from selection.
+  const hasError = modelRegistrySelectorProps.hasError ?? isRegistryUnavailable(selection);
 
   return (
     <ModelRegistrySelector
       {...modelRegistrySelectorProps}
+      hasError={hasError}
       onSelection={(modelRegistryName) => {
         if (modelRegistryName !== currentModelRegistry) {
           navigate(getRedirectPath(modelRegistryName));

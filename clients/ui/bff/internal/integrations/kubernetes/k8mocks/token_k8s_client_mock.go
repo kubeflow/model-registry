@@ -6,6 +6,7 @@ import (
 	"log/slog"
 
 	k8s "github.com/kubeflow/model-registry/ui/bff/internal/integrations/kubernetes"
+	corev1 "k8s.io/api/core/v1"
 	"k8s.io/client-go/kubernetes"
 )
 
@@ -56,6 +57,13 @@ func (m *TokenKubernetesClientMock) GetServiceDetailsByName(sessionCtx context.C
 	originalService.HTTPPort = 8080
 	originalService.IsHTTPS = false
 	return originalService, nil
+}
+
+// GetServiceEndpoints delegates to the embedded client.
+//
+//nolint:staticcheck // intentionally using deprecated corev1.Endpoints for RBAC compatibility; see tech debt ticket for EndpointSlice migration
+func (m *TokenKubernetesClientMock) GetServiceEndpoints(ctx context.Context, namespace, serviceName string) (*corev1.Endpoints, error) {
+	return m.TokenKubernetesClient.GetServiceEndpoints(ctx, namespace, serviceName)
 }
 
 // BearerToken always returns a fake token for tests
