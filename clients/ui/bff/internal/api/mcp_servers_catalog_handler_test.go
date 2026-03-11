@@ -20,7 +20,7 @@ var _ = Describe("TestMcpServersCatalogHandler", func() {
 			}
 
 			expected := McpServerListEnvelope{Data: &data}
-			actual, rs, err := setupApiTest[McpServerListEnvelope](http.MethodGet, "/api/v1/model_catalog/mcp_servers?namespace=kubeflow", nil, kubernetesMockedStaticClientFactory, requestIdentity, "kubeflow")
+			actual, rs, err := setupApiTest[McpServerListEnvelope](http.MethodGet, "/api/v1/mcp_catalog/mcp_servers?namespace=kubeflow", nil, kubernetesMockedStaticClientFactory, requestIdentity, "kubeflow")
 			Expect(err).NotTo(HaveOccurred())
 
 			By("should match the expected MCP server list")
@@ -40,7 +40,7 @@ var _ = Describe("TestMcpServersCatalogHandler", func() {
 			}
 
 			expected := McpServerFilterOptionsListEnvelope{Data: &data}
-			actual, rs, err := setupApiTest[McpServerFilterOptionsListEnvelope](http.MethodGet, "/api/v1/model_catalog/mcp_servers_filter_options?namespace=kubeflow", nil, kubernetesMockedStaticClientFactory, requestIdentity, "kubeflow")
+			actual, rs, err := setupApiTest[McpServerFilterOptionsListEnvelope](http.MethodGet, "/api/v1/mcp_catalog/mcp_servers_filter_options?namespace=kubeflow", nil, kubernetesMockedStaticClientFactory, requestIdentity, "kubeflow")
 			Expect(err).NotTo(HaveOccurred())
 
 			By("should match the expected filter options")
@@ -56,7 +56,7 @@ var _ = Describe("TestMcpServersCatalogHandler", func() {
 				UserID: "user@example.com",
 			}
 
-			actual, rs, err := setupApiTest[McpServerEnvelope](http.MethodGet, "/api/v1/model_catalog/mcp_servers/1?namespace=kubeflow", nil, kubernetesMockedStaticClientFactory, requestIdentity, "kubeflow")
+			actual, rs, err := setupApiTest[McpServerEnvelope](http.MethodGet, "/api/v1/mcp_catalog/mcp_servers/1?namespace=kubeflow", nil, kubernetesMockedStaticClientFactory, requestIdentity, "kubeflow")
 			Expect(err).NotTo(HaveOccurred())
 
 			By("should match the expected MCP server")
@@ -74,7 +74,7 @@ var _ = Describe("TestMcpServersCatalogHandler", func() {
 			}
 
 			expected := McpServerToolsListEnvelope{Data: &data}
-			actual, rs, err := setupApiTest[McpServerToolsListEnvelope](http.MethodGet, "/api/v1/model_catalog/mcp_servers/1/tools?namespace=kubeflow", nil, kubernetesMockedStaticClientFactory, requestIdentity, "kubeflow")
+			actual, rs, err := setupApiTest[McpServerToolsListEnvelope](http.MethodGet, "/api/v1/mcp_catalog/mcp_servers/1/tools?namespace=kubeflow", nil, kubernetesMockedStaticClientFactory, requestIdentity, "kubeflow")
 			Expect(err).NotTo(HaveOccurred())
 
 			By("should match the expected tool list")

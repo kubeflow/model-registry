@@ -84,8 +84,9 @@ const (
 
 	// MCP server catalog
 	McpServerId                   = "server_id"
-	McpServerListPath             = CatalogPathPrefix + "/mcp_servers"
-	McpServerFilterOptionListPath = CatalogPathPrefix + "/mcp_servers_filter_options"
+	McpServerCatalogPathPrefix    = ApiPathPrefix + "/mcp_catalog"
+	McpServerListPath             = McpServerCatalogPathPrefix + "/mcp_servers"
+	McpServerFilterOptionListPath = McpServerCatalogPathPrefix + "/mcp_servers_filter_options"
 	McpServerPath                 = McpServerListPath + "/:" + McpServerId
 	McpServersToolListPath        = McpServerPath + "/tools"
 )
