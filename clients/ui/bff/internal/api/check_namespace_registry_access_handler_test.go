@@ -24,7 +24,7 @@ var _ = Describe("CheckNamespaceRegistryAccessHandler", func() {
 			testApp = App{
 				config:                  config.EnvConfig{DevMode: true},
 				kubernetesClientFactory: kubernetesMockedStaticClientFactory,
-				repositories:            repositories.NewRepositories(mockMRClient, mockModelCatalogClient, false, ""),
+				repositories:            repositories.NewRepositories(mockMRClient, mockModelCatalogClient),
 				logger:                  logger,
 			}
 		})
@@ -103,7 +103,7 @@ var _ = Describe("CheckNamespaceRegistryAccessHandler", func() {
 			testApp = App{
 				config:                  config.EnvConfig{DevMode: true},
 				kubernetesClientFactory: kubernetesMockedStaticClientFactory,
-				repositories:            repositories.NewRepositories(mockMRClient, mockModelCatalogClient, false, ""),
+				repositories:            repositories.NewRepositories(mockMRClient, mockModelCatalogClient),
 				logger:                  logger,
 			}
 		})

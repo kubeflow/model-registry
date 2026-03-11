@@ -13,10 +13,10 @@ type Repositories struct {
 	Namespace                      *NamespaceRepository
 }
 
-func NewRepositories(modelRegistryClient ModelRegistryClientInterface, modelCatalogClient ModelCatalogClientInterface, isFederatedMode bool, podNamespace string) *Repositories {
+func NewRepositories(modelRegistryClient ModelRegistryClientInterface, modelCatalogClient ModelCatalogClientInterface) *Repositories {
 	return &Repositories{
 		HealthCheck:                    NewHealthCheckRepository(),
-		ModelRegistry:                  NewModelRegistryRepository(isFederatedMode, podNamespace),
+		ModelRegistry:                  NewModelRegistryRepository(),
 		ModelCatalog:                   NewCatalogRepository(),
 		ModelCatalogClient:             modelCatalogClient,
 		ModelRegistrySettings:          NewModelRegistrySettingsRepository(),

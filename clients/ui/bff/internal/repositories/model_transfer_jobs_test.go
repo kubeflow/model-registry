@@ -23,24 +23,21 @@ var _ = Describe("resolveAsyncUploadImage", func() {
 
 	Context("when not in federated mode", func() {
 		It("should return the default image", func() {
-			repo := NewModelRegistryRepository(false, "")
-			img := repo.resolveAsyncUploadImage(mockCtx, client)
+			img := resolveAsyncUploadImage(mockCtx, client, false, "")
 			Expect(img).To(Equal(DefaultAsyncUploadImage))
 		})
 	})
 
 	Context("when in federated mode with empty namespace", func() {
 		It("should return the default image", func() {
-			repo := NewModelRegistryRepository(true, "")
-			img := repo.resolveAsyncUploadImage(mockCtx, client)
+			img := resolveAsyncUploadImage(mockCtx, client, true, "")
 			Expect(img).To(Equal(DefaultAsyncUploadImage))
 		})
 	})
 
 	Context("when in federated mode with ConfigMap missing", func() {
 		It("should fall back to the default image", func() {
-			repo := NewModelRegistryRepository(true, "bento-namespace")
-			img := repo.resolveAsyncUploadImage(mockCtx, client)
+			img := resolveAsyncUploadImage(mockCtx, client, true, "bento-namespace")
 			Expect(img).To(Equal(DefaultAsyncUploadImage))
 		})
 	})
@@ -65,8 +62,7 @@ var _ = Describe("resolveAsyncUploadImage", func() {
 			_, err := client.CreateConfigMap(mockCtx, testNamespace, cm)
 			Expect(err).NotTo(HaveOccurred())
 
-			repo := NewModelRegistryRepository(true, testNamespace)
-			img := repo.resolveAsyncUploadImage(mockCtx, client)
+			img := resolveAsyncUploadImage(mockCtx, client, true, testNamespace)
 			Expect(img).To(Equal("registry.example.com/custom-image:v1"))
 		})
 
@@ -83,8 +79,7 @@ var _ = Describe("resolveAsyncUploadImage", func() {
 			_, err := client.CreateConfigMap(mockCtx, testNamespace, cm)
 			Expect(err).NotTo(HaveOccurred())
 
-			repo := NewModelRegistryRepository(true, testNamespace)
-			img := repo.resolveAsyncUploadImage(mockCtx, client)
+			img := resolveAsyncUploadImage(mockCtx, client, true, testNamespace)
 			Expect(img).To(Equal(DefaultAsyncUploadImage))
 		})
 
@@ -101,8 +96,7 @@ var _ = Describe("resolveAsyncUploadImage", func() {
 			_, err := client.CreateConfigMap(mockCtx, testNamespace, cm)
 			Expect(err).NotTo(HaveOccurred())
 
-			repo := NewModelRegistryRepository(true, testNamespace)
-			img := repo.resolveAsyncUploadImage(mockCtx, client)
+			img := resolveAsyncUploadImage(mockCtx, client, true, testNamespace)
 			Expect(img).To(Equal(DefaultAsyncUploadImage))
 		})
 
@@ -119,8 +113,7 @@ var _ = Describe("resolveAsyncUploadImage", func() {
 			_, err := client.CreateConfigMap(mockCtx, testNamespace, cm)
 			Expect(err).NotTo(HaveOccurred())
 
-			repo := NewModelRegistryRepository(true, testNamespace)
-			img := repo.resolveAsyncUploadImage(mockCtx, client)
+			img := resolveAsyncUploadImage(mockCtx, client, true, testNamespace)
 			Expect(img).To(Equal(DefaultAsyncUploadImage))
 		})
 	})

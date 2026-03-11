@@ -40,7 +40,7 @@ func setupApiTest[T any](method string, url string, body interface{}, k8Factory 
 		cfg.AuthMethod = config.AuthMethodUser
 	}
 	testApp := App{
-		repositories:            repositories.NewRepositories(mockMRClient, mockModelCatalogClient, false, ""),
+		repositories:            repositories.NewRepositories(mockMRClient, mockModelCatalogClient),
 		kubernetesClientFactory: k8Factory,
 		logger:                  slog.Default(),
 		config:                  cfg,

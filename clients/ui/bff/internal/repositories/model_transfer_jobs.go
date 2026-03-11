@@ -255,8 +255,8 @@ func convertK8sEventsToModelEvents(eventList *corev1.EventList) []models.ModelTr
 	return events
 }
 
-func (m *ModelRegistryRepository) CreateModelTransferJob(ctx context.Context, client k8s.KubernetesClientInterface, namespace string, payload models.ModelTransferJob, modelRegistryID string) (*models.ModelTransferJob, error) {
-	return m.createModelTransferJobResources(ctx, client, namespace, payload, modelRegistryID, "")
+func (m *ModelRegistryRepository) CreateModelTransferJob(ctx context.Context, client k8s.KubernetesClientInterface, namespace string, payload models.ModelTransferJob, modelRegistryID string, isFederatedMode bool, podNamespace string) (*models.ModelTransferJob, error) {
+	return m.createModelTransferJobResources(ctx, client, namespace, payload, modelRegistryID, "", isFederatedMode, podNamespace)
 }
 
 func (m *ModelRegistryRepository) createModelTransferJobResources(
@@ -266,6 +266,8 @@ func (m *ModelRegistryRepository) createModelTransferJobResources(
 	payload models.ModelTransferJob,
 	modelRegistryID string,
 	existingDestSecretName string,
+	isFederatedMode bool,
+	podNamespace string,
 ) (*models.ModelTransferJob, error) {
 	payload.Source.Bucket = strings.TrimSpace(payload.Source.Bucket)
 	payload.Source.Key = strings.TrimSpace(payload.Source.Key)
@@ -326,7 +328,7 @@ func (m *ModelRegistryRepository) createModelTransferJobResources(
 		destSecretName = destSecretCreated.Name
 	}
 
-	imageURI := m.resolveAsyncUploadImage(ctx, client)
+	imageURI := resolveAsyncUploadImage(ctx, client, isFederatedMode, podNamespace)
 	job := buildK8sJob(jobName, jobID, payload, configMapName, sourceSecretName, destSecretName, modelRegistryAddress, modelRegistryID, imageURI)
 	jobCreated, err := client.CreateModelTransferJob(ctx, payload.Namespace, job)
 	if err != nil {
@@ -377,6 +379,8 @@ func (m *ModelRegistryRepository) UpdateModelTransferJob(
 	newPayload models.ModelTransferJob,
 	deleteOldJob bool,
 	modelRegistryID string,
+	isFederatedMode bool,
+	podNamespace string,
 ) (*models.ModelTransferJob, error) {
 
 	logger := helper.GetContextLogger(ctx)
@@ -560,7 +564,7 @@ func (m *ModelRegistryRepository) UpdateModelTransferJob(
 		return nil, fmt.Errorf("validation error: %w", err)
 	}
 
-	result, err := m.createModelTransferJobResources(ctx, client, namespace, newPayload, modelRegistryID, existingDestSecretName)
+	result, err := m.createModelTransferJobResources(ctx, client, namespace, newPayload, modelRegistryID, existingDestSecretName, isFederatedMode, podNamespace)
 	if err != nil {
 		if reuseDestCreds && existingDestSecretName != "" {
 			if delErr := client.DeleteSecret(ctx, newPayload.Namespace, existingDestSecretName); delErr != nil {
@@ -620,12 +624,12 @@ func (m *ModelRegistryRepository) getModelRegistryAddress(ctx context.Context, c
 	return modelRegistry.ServerAddress, nil
 }
 
-func (m *ModelRegistryRepository) resolveAsyncUploadImage(ctx context.Context, client k8s.KubernetesClientInterface) string {
-	if !m.isFederatedMode || m.podNamespace == "" {
+func resolveAsyncUploadImage(ctx context.Context, client k8s.KubernetesClientInterface, isFederatedMode bool, podNamespace string) string {
+	if !isFederatedMode || podNamespace == "" {
 		return DefaultAsyncUploadImage
 	}
 	logger := helper.GetContextLogger(ctx)
-	cm, err := client.GetConfigMap(ctx, m.podNamespace, asyncUploadConfigMapName)
+	cm, err := client.GetConfigMap(ctx, podNamespace, asyncUploadConfigMapName)
 	if err != nil {
 		logger.Info("ConfigMap not found, using default async-upload image",
 			"configmap", asyncUploadConfigMapName, "error", err)

@@ -10,16 +10,10 @@ import (
 	"github.com/kubeflow/model-registry/ui/bff/internal/models"
 )
 
-type ModelRegistryRepository struct {
-	isFederatedMode bool
-	podNamespace    string
-}
+type ModelRegistryRepository struct{}
 
-func NewModelRegistryRepository(isFederatedMode bool, podNamespace string) *ModelRegistryRepository {
-	return &ModelRegistryRepository{
-		isFederatedMode: isFederatedMode,
-		podNamespace:    podNamespace,
-	}
+func NewModelRegistryRepository() *ModelRegistryRepository {
+	return &ModelRegistryRepository{}
 }
 
 func (m *ModelRegistryRepository) GetAllModelRegistries(sessionCtx context.Context, client k8s.KubernetesClientInterface, namespace string) ([]models.ModelRegistryModel, error) {

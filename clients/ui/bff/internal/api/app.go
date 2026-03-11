@@ -96,6 +96,7 @@ type App struct {
 	logger                  *slog.Logger
 	kubernetesClientFactory k8s.KubernetesClientFactory
 	repositories            *repositories.Repositories
+	podNamespace            string
 	//used only on mocked k8s client
 	testEnv *envtest.Environment
 	// rootCAs used for outbound TLS connections to Model Registry/Catalog
@@ -202,7 +203,8 @@ func NewApp(cfg config.EnvConfig, logger *slog.Logger) (*App, error) {
 		config:                  cfg,
 		logger:                  logger,
 		kubernetesClientFactory: k8sFactory,
-		repositories:            repositories.NewRepositories(mrClient, modelCatalogClient, cfg.DeploymentMode.IsFederatedMode(), getPodNamespace()),
+		repositories:            repositories.NewRepositories(mrClient, modelCatalogClient),
+		podNamespace:            getPodNamespace(),
 		testEnv:                 testEnv,
 		rootCAs:                 rootCAs,
 	}
