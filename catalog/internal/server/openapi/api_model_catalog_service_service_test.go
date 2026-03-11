@@ -847,6 +847,7 @@ func TestFindLabels(t *testing.T) {
 	testCases := []struct {
 		name            string
 		labels          []map[string]any
+		assetType       model.CatalogAssetType
 		pageSize        string
 		orderBy         string
 		sortOrder       model.SortOrder
@@ -1034,6 +1035,84 @@ func TestFindLabels(t *testing.T) {
 			expectedItems:   3,
 			expectNextToken: false,
 		},
+		{
+			name: "Default assetType returns model labels",
+			labels: []map[string]any{
+				{"name": "model-label", "assetType": "models"},
+				{"name": "mcp-label", "assetType": "mcp_servers"},
+				{"name": "implicit-model-label"},
+			},
+			assetType:       "",
+			pageSize:        "10",
+			expectedStatus:  http.StatusOK,
+			expectedSize:    2,
+			expectedItems:   2,
+			expectNextToken: false,
+		},
+		{
+			name: "Explicit assetType=models",
+			labels: []map[string]any{
+				{"name": "model-label", "assetType": "models"},
+				{"name": "mcp-label", "assetType": "mcp_servers"},
+				{"name": "implicit-model-label"},
+			},
+			assetType:       model.CATALOGASSETTYPE_MODELS,
+			pageSize:        "10",
+			expectedStatus:  http.StatusOK,
+			expectedSize:    2,
+			expectedItems:   2,
+			expectNextToken: false,
+		},
+		{
+			name: "assetType=mcp_servers",
+			labels: []map[string]any{
+				{"name": "model-label", "assetType": "models"},
+				{"name": "mcp-label-1", "assetType": "mcp_servers"},
+				{"name": "mcp-label-2", "assetType": "mcp_servers"},
+				{"name": "implicit-model-label"},
+			},
+			assetType:       model.CATALOGASSETTYPE_MCP_SERVERS,
+			pageSize:        "10",
+			expectedStatus:  http.StatusOK,
+			expectedSize:    2,
+			expectedItems:   2,
+			expectNextToken: false,
+		},
+		{
+			name: "Invalid assetType returns 400",
+			labels: []map[string]any{
+				{"name": "label1"},
+			},
+			assetType:      model.CatalogAssetType("invalid"),
+			pageSize:       "10",
+			expectedStatus: http.StatusBadRequest,
+		},
+		{
+			name: "Null label with assetType filtering",
+			labels: []map[string]any{
+				{"name": nil, "displayName": "Community models"},
+				{"name": "mcp-label", "displayName": "MCP label", "assetType": "mcp_servers"},
+			},
+			assetType:       model.CATALOGASSETTYPE_MCP_SERVERS,
+			pageSize:        "10",
+			expectedStatus:  http.StatusOK,
+			expectedSize:    1,
+			expectedItems:   1,
+			expectNextToken: false,
+		},
+		{
+			name: "Empty result when no labels match assetType",
+			labels: []map[string]any{
+				{"name": "model-label", "assetType": "models"},
+				{"name": "implicit-model-label"},
+			},
+			assetType:       model.CATALOGASSETTYPE_MCP_SERVERS,
+			pageSize:        "10",
+			expectedStatus:  http.StatusOK,
+			expectedSize:    0,
+			expectedItems:   0,
+			expectNextToken: false,
+		},
 	}
 
 	// Run test cases
@@ -1049,6 +1128,7 @@ func TestFindLabels(t *testing.T) {
 			// Call FindLabels
 			resp, err := service.FindLabels(
 				context.Background(),
+				tc.assetType,
 				tc.pageSize,
 				tc.orderBy,
 				tc.sortOrder,
