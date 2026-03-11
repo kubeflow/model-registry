@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { CheckCircleIcon, ClusterIcon, SecurityIcon, WrenchIcon } from '@patternfly/react-icons';
+import { CheckCircleIcon, ServerIcon, ShieldAltIcon, ToolsIcon } from '@patternfly/react-icons';
 
 export enum McpCardIconType {
   VERIFIED_SOURCE = 'Verified source',
@@ -7,26 +7,26 @@ export enum McpCardIconType {
   SAST = 'SAST',
   LOCAL_TO_CLUSTER = 'Local to cluster',
   READ_ONLY_TOOLS = 'Read only tools',
+  RED_HAT_PARTNER = 'Red Hat partner',
   REMOTE = 'Remote',
 }
 
 const GREEN_ICON_STYLE = { color: 'rgb(62, 134, 53)' };
 
-const iconMap: Record<
-  McpCardIconType,
-  {
-    Icon: React.ComponentType<{ className?: string; style?: React.CSSProperties }>;
-    label: string;
-    green?: boolean;
-  }
-> = {
+type IconConfig = {
+  Icon: React.ComponentType<{ className?: string; style?: React.CSSProperties }>;
+  label: string;
+  green?: boolean;
+};
+
+const iconMap: Record<McpCardIconType, IconConfig> = {
   [McpCardIconType.VERIFIED_SOURCE]: {
-    Icon: SecurityIcon,
+    Icon: ShieldAltIcon,
     label: 'Verified source',
     green: true,
   },
   [McpCardIconType.SECURE_ENDPOINT]: {
-    Icon: SecurityIcon,
+    Icon: ShieldAltIcon,
     label: 'Secure endpoint',
     green: true,
   },
@@ -36,17 +36,22 @@ const iconMap: Record<
     green: true,
   },
   [McpCardIconType.LOCAL_TO_CLUSTER]: {
-    Icon: ClusterIcon,
+    Icon: ServerIcon,
     label: 'Local to cluster',
     green: false,
   },
   [McpCardIconType.READ_ONLY_TOOLS]: {
-    Icon: WrenchIcon,
+    Icon: ToolsIcon,
     label: 'Read only tools',
     green: true,
   },
+  [McpCardIconType.RED_HAT_PARTNER]: {
+    Icon: CheckCircleIcon,
+    label: 'Red Hat partner',
+    green: true,
+  },
   [McpCardIconType.REMOTE]: {
-    Icon: ClusterIcon,
+    Icon: ServerIcon,
     label: 'Remote',
     green: false,
   },
@@ -55,13 +60,7 @@ const iconMap: Record<
 export const getMcpCardIconConfig = (type: McpCardIconType): (typeof iconMap)[McpCardIconType] =>
   iconMap[type];
 
-export const getMcpCardIconConfigByLabel = (
-  label: string,
-): {
-  Icon: React.ComponentType<{ className?: string; style?: React.CSSProperties }>;
-  label: string;
-  green?: boolean;
-} | null => {
+export const getMcpCardIconConfigByLabel = (label: string): IconConfig | null => {
   const entry = Object.values(iconMap).find((c) => c.label === label);
   return entry ?? null;
 };

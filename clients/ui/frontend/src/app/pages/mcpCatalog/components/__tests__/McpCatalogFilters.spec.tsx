@@ -1,9 +1,10 @@
 import '@testing-library/jest-dom';
 import * as React from 'react';
 import { render, screen } from '@testing-library/react';
+import { MemoryRouter } from 'react-router-dom';
+import { mockMcpCatalogFilterOptions } from '~/__mocks__';
 import McpCatalogFilters from '~/app/pages/mcpCatalog/components/McpCatalogFilters';
 import { McpCatalogContextProvider } from '~/app/context/mcpCatalog/McpCatalogContext';
-import { mockMcpCatalogFilterOptions } from '~/app/pages/mcpCatalog/mocks/mockMcpCatalogFilterOptions';
 
 jest.mock('mod-arch-core', () => ({ useQueryParamNamespaces: () => ({}) }));
 jest.mock('~/app/utilities/const', () => ({
@@ -25,11 +26,13 @@ jest.mock('~/app/hooks/mcpServerCatalog/useMcpServersBySourceLabel', () => ({
   }),
 }));
 jest.mock('~/app/hooks/mcpServerCatalog/useMcpServerFilterOptionList', () => ({
-  useMcpServerFilterOptionListWithAPI: () => [mockMcpCatalogFilterOptions, true, undefined],
+  useMcpServerFilterOptionListWithAPI: () => [mockMcpCatalogFilterOptions(), true, undefined],
 }));
 
 const wrapper = ({ children }: { children: React.ReactNode }) => (
-  <McpCatalogContextProvider>{children}</McpCatalogContextProvider>
+  <MemoryRouter>
+    <McpCatalogContextProvider>{children}</McpCatalogContextProvider>
+  </MemoryRouter>
 );
 
 describe('McpCatalogFilters', () => {

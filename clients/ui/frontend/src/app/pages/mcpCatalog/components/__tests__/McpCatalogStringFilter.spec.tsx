@@ -1,6 +1,7 @@
 import '@testing-library/jest-dom';
 import * as React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
+import { MemoryRouter } from 'react-router-dom';
 import McpCatalogStringFilter from '~/app/pages/mcpCatalog/components/McpCatalogStringFilter';
 import { McpCatalogContextProvider } from '~/app/context/mcpCatalog/McpCatalogContext';
 
@@ -28,7 +29,9 @@ jest.mock('~/app/hooks/mcpServerCatalog/useMcpServerFilterOptionList', () => ({
 }));
 
 const wrapper = ({ children }: { children: React.ReactNode }) => (
-  <McpCatalogContextProvider>{children}</McpCatalogContextProvider>
+  <MemoryRouter>
+    <McpCatalogContextProvider>{children}</McpCatalogContextProvider>
+  </MemoryRouter>
 );
 
 describe('McpCatalogStringFilter', () => {
