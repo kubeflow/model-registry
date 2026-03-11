@@ -1,11 +1,16 @@
 # Use the "local" overlay path if it exists, if not fall-back to "demo".
-localOverlayPath = "../../../manifests/kustomize/options/catalog/overlays/local"
-if os.path.exists(localOverlayPath):
-    manifests = kustomize(localOverlayPath)
-else:
-    manifests = kustomize("../../../manifests/kustomize/options/catalog/overlays/demo")
+catalogBasePath = "../../../manifests/kustomize/options/catalog/base"
+catalogOverlayPath = "../../../manifests/kustomize/options/catalog/overlays/local"
+if not os.path.exists(catalogOverlayPath):
+    catalogOverlayPath = "../../../manifests/kustomize/options/catalog/overlays/demo"
+
+manifests = kustomize(catalogOverlayPath)
 
 objects = decode_yaml_stream(manifests)
+
+config_objects = []
+pvc_objects = []
+workload_objects = []
 
 for o in objects:
     # Deploy catalog resources in kubeflow namespace to match where UI is looking for them
@@ -23,15 +28,58 @@ for o in objects:
         o["spec"]["template"]["spec"]["containers"][0]["imagePullPolicy"] = "Always"
         o["spec"]["template"]["spec"]["containers"][0]["args"].insert(0, "catalog")
 
-overridden_manifests = encode_yaml_stream(objects)
+    if o["kind"] in ["ConfigMap", "Secret"]:
+        config_objects.append(o)
+    elif o["kind"] == "PersistentVolumeClaim":
+        pvc_objects.append(o)
+    else:
+        workload_objects.append(o)
 
-k8s_yaml(overridden_manifests, allow_duplicates=True)
+k8s_yaml(encode_yaml_stream(config_objects), allow_duplicates=True)
+k8s_yaml(encode_yaml_stream(pvc_objects), allow_duplicates=True)
+k8s_yaml(encode_yaml_stream(workload_objects), allow_duplicates=True)
+
+k8s_resource(
+    new_name="catalog-pvc",
+    objects=[
+        "model-catalog-postgres:persistentvolumeclaim",
+    ],
+    labels="catalog",
+    resource_deps=["kubeflow-namespace"],
+    trigger_mode=TRIGGER_MODE_MANUAL,
+)
+
+k8s_resource(
+    new_name="catalog-config",
+    objects=[
+        "model-catalog-demo-perf-data:configmap",
+        "model-catalog-sources:configmap",
+        "model-catalog-hf-api-key:secret",
+        "model-catalog-postgres:secret",
+    ],
+    labels="catalog",
+    resource_deps=["kubeflow-namespace"],
+)
+
+local_resource(
+    "catalog-config-sync",
+    "kustomize build %s | yq 'select(.kind == \"ConfigMap\" or .kind == \"Secret\")' | sed 's/namespace: default/namespace: kubeflow/' | kubectl apply -n kubeflow -f -" % catalogOverlayPath,
+    deps=[
+        catalogBasePath + "/sources.yaml",
+        catalogBasePath + "/hf-api-key.env",
+        catalogBasePath + "/postgres.env",
+        catalogOverlayPath,
+    ],
+    labels="catalog",
+    resource_deps=["kubeflow-namespace", "catalog-config"],
+    trigger_mode=TRIGGER_MODE_AUTO,
+)
 
 k8s_resource(
     workload="model-catalog-server",
     new_name="catalog",
-    labels="backend",
-    resource_deps=["kubeflow-namespace"],
+    labels="catalog",
+    resource_deps=["kubeflow-namespace", "catalog-config", "catalog-pvc"],
     port_forwards="8082:8080",
     trigger_mode=TRIGGER_MODE_AUTO
 )
@@ -39,8 +87,8 @@ k8s_resource(
 k8s_resource(
     workload="model-catalog-postgres",
     new_name="catalog-db",
-    labels="backend",
-    resource_deps=["kubeflow-namespace"],
+    labels="catalog",
+    resource_deps=["kubeflow-namespace", "catalog-pvc", "catalog-config"],
     port_forwards="5432:5432",
     trigger_mode=TRIGGER_MODE_AUTO
 )
