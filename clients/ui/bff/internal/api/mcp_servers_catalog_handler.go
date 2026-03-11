@@ -81,7 +81,7 @@ func (app *App) GetMcpServerHandler(w http.ResponseWriter, r *http.Request, ps h
 		return
 	}
 
-	server, err := app.repositories.ModelCatalogClient.GetMcpServer(client, serverId)
+	server, err := app.repositories.ModelCatalogClient.GetMcpServer(client, serverId, r.URL.Query())
 
 	if err != nil {
 		app.serverErrorResponse(w, r, err)
