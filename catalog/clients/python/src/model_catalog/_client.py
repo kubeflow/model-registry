@@ -509,6 +509,7 @@ class CatalogAPIClient:
     @_handle_api_errors
     def get_mcp_servers(
         self,
+        name: str | None = None,
         include_tools: bool | None = None,
         page_size: int | None = None,
         next_page_token: str | None = None,
@@ -516,6 +517,7 @@ class CatalogAPIClient:
         """Get MCP servers from catalog.
 
         Args:
+            name: Filter by MCP server name.
             include_tools: Whether to include the tools array in each server result.
             page_size: Number of items per page.
             next_page_token: Token for pagination.
@@ -525,6 +527,7 @@ class CatalogAPIClient:
         """
         page_size_str = str(page_size) if page_size is not None else None
         response = self.mcp_api.find_mcp_servers(
+            name=name,
             include_tools=include_tools,
             page_size=page_size_str,
             next_page_token=next_page_token,

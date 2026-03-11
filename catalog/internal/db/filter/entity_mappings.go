@@ -161,7 +161,7 @@ var catalogArtifactProperties = map[string]filter.PropertyDefinition{
 var mcpServerProperties = map[string]filter.PropertyDefinition{
 	// Common Context properties (Entity Table - required)
 	"id":                       {Location: filter.EntityTable, ValueType: filter.IntValueType, Column: "id"},
-	"name":                     {Location: filter.EntityTable, ValueType: filter.StringValueType, Column: "name"},
+	"name":                     {Location: filter.PropertyTable, ValueType: filter.StringValueType, Column: "base_name"},
 	"externalId":               {Location: filter.EntityTable, ValueType: filter.StringValueType, Column: "external_id"},
 	"createTimeSinceEpoch":     {Location: filter.EntityTable, ValueType: filter.IntValueType, Column: "create_time_since_epoch"},
 	"lastUpdateTimeSinceEpoch": {Location: filter.EntityTable, ValueType: filter.IntValueType, Column: "last_update_time_since_epoch"},
