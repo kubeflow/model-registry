@@ -8,4 +8,5 @@ export * from './mockCatalogModelList';
 export * from './mockCatalogModelArtifactList';
 export * from './mockCatalogLabelList';
 export * from './mockMcpCatalogTestData';
+export * from './mockModelArtifact';
 export * from './mockModelTransferJob';
