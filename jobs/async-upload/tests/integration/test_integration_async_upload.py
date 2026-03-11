@@ -88,6 +88,7 @@ def apply_job_with_strategic_merge(
     env,
     tmp_path,
     configmap_data=None,
+    signing_token_secret=None,
 ) -> str:
     """Apply job using Kustomize strategic merge patches."""
 
@@ -101,9 +102,20 @@ def apply_job_with_strategic_merge(
         "env": patch_env_list,
     }
 
-    # Add volume mount for ConfigMap if provided
+    # Build optional volume mounts and volumes
+    volume_mounts = []
+    volumes = []
+
     if configmap_data:
-        container_patch["volumeMounts"] = [{"name": "metadata", "mountPath": "/etc/model-metadata", "readOnly": True}]
+        volume_mounts.append({"name": "metadata", "mountPath": "/etc/model-metadata", "readOnly": True})
+        volumes.append({"name": "metadata", "configMap": {"name": "model-metadata-configmap"}})
+
+    if signing_token_secret:
+        volume_mounts.append({"name": "signing-token", "mountPath": "/opt/creds/signing", "readOnly": True})
+        volumes.append({"name": "signing-token", "secret": {"secretName": "signing-identity-token"}})
+
+    if volume_mounts:
+        container_patch["volumeMounts"] = volume_mounts
 
     patch_obj = {
         "apiVersion": "batch/v1",
@@ -112,11 +124,8 @@ def apply_job_with_strategic_merge(
         "spec": {"template": {"spec": {"containers": [container_patch]}}},
     }
 
-    # Add ConfigMap volume if provided
-    if configmap_data:
-        patch_obj["spec"]["template"]["spec"]["volumes"] = [
-            {"name": "metadata", "configMap": {"name": "model-metadata-configmap"}}
-        ]
+    if volumes:
+        patch_obj["spec"]["template"]["spec"]["volumes"] = volumes
 
     patch_template = yaml.safe_dump(patch_obj, sort_keys=False)
 
@@ -127,6 +136,8 @@ def apply_job_with_strategic_merge(
     resources = ["sample_job_s3_to_oci.yaml"]
     if configmap_data:
         resources.append("configmap.yaml")
+    if signing_token_secret:
+        resources.append("signing-token-secret.yaml")
 
     # Kustomization template using relative path and modern patches syntax
     kustomization_obj = {
@@ -158,6 +169,12 @@ def apply_job_with_strategic_merge(
         configmap_file = manifest_dir / "configmap.yaml"
         with open(configmap_file, "w") as f:
             f.write(yaml.safe_dump(configmap_obj))
+
+    # Write signing token Secret if provided
+    if signing_token_secret:
+        secret_file = manifest_dir / "signing-token-secret.yaml"
+        with open(secret_file, "w") as f:
+            f.write(yaml.safe_dump(signing_token_secret))
 
     # Write the patch file
     patch_file = manifest_dir / "patch.yaml"
@@ -420,8 +437,31 @@ def _run_job_and_wait(env, tmp_path, k8s, configmap_data=None) -> JobResult:
     job_name = f"test-async-upload-job-{uuid.uuid4().hex[:8]}"
     namespace = "default"
 
-    if "MODEL_SYNC_DESTINATION_OCI_BASE_IMAGE" in os.environ:
-        env["MODEL_SYNC_DESTINATION_OCI_BASE_IMAGE"] = os.environ["MODEL_SYNC_DESTINATION_OCI_BASE_IMAGE"]
+    # Forward optional env vars from the host environment to the container
+    for var in (
+        "MODEL_SYNC_DESTINATION_OCI_BASE_IMAGE",
+        "MODEL_SYNC_SIGN",
+        "SIGSTORE_TUF_URL",
+        "SIGSTORE_FULCIO_URL",
+        "SIGSTORE_REKOR_URL",
+        "SIGSTORE_TSA_URL",
+    ):
+        if var in os.environ:
+            env[var] = os.environ[var]
+
+    # If a signing identity token file is specified on the host, read its content
+    # and create a Secret so it can be mounted into the pod.
+    signing_token_path = os.environ.get("MODEL_SYNC_SIGNING_IDENTITY_TOKEN_PATH")
+    signing_token_secret = None
+    if signing_token_path:
+        token_content = Path(signing_token_path).read_text()
+        signing_token_secret = {
+            "apiVersion": "v1",
+            "kind": "Secret",
+            "metadata": {"name": "signing-identity-token"},
+            "stringData": {"token": token_content},
+        }
+        env["MODEL_SYNC_SIGNING_IDENTITY_TOKEN_PATH"] = "/opt/creds/signing/token"
 
     # Apply the job with patches
     actual_job_name = apply_job_with_strategic_merge(
@@ -430,6 +470,7 @@ def _run_job_and_wait(env, tmp_path, k8s, configmap_data=None) -> JobResult:
         env=env,
         tmp_path=tmp_path,
         configmap_data=configmap_data,
+        signing_token_secret=signing_token_secret,
     )
 
     # Use the actual job name returned from kustomize

@@ -215,6 +215,145 @@ func TestCatalogModelRepository(t *testing.T) {
 		assert.Equal(t, "source-b:"+sharedName, *retrievedB.GetAttributes().Name)
 	})
 
+	t.Run("TestSameModelAndExternalIDAcrossSources", func(t *testing.T) {
+		// Same display name and same external_id (e.g. same HF model in two sources) can both be saved.
+		// external_id is namespaced per source in the DB to satisfy UNIQUE(external_id).
+		sharedName := "Qwen/Qwen3.5-9B"
+		sharedExternalID := "Qwen/Qwen3.5-9B"
+		modelSource1 := &models.CatalogModelImpl{
+			Attributes: &models.CatalogModelAttributes{
+				Name:       apiutils.Of(sharedName),
+				ExternalID: apiutils.Of(sharedExternalID),
+			},
+			Properties: &[]dbmodels.Properties{
+				{Name: "source_id", StringValue: apiutils.Of("hugging_face_models")},
+			},
+		}
+		modelSource2 := &models.CatalogModelImpl{
+			Attributes: &models.CatalogModelAttributes{
+				Name:       apiutils.Of(sharedName),
+				ExternalID: apiutils.Of(sharedExternalID),
+			},
+			Properties: &[]dbmodels.Properties{
+				{Name: "source_id", StringValue: apiutils.Of("hugging_face_models_2")},
+			},
+		}
+
+		saved1, err := repo.Save(modelSource1)
+		require.NoError(t, err)
+		require.NotNil(t, saved1.GetID())
+
+		saved2, err := repo.Save(modelSource2)
+		require.NoError(t, err)
+		require.NotNil(t, saved2.GetID())
+
+		assert.NotEqual(t, *saved1.GetID(), *saved2.GetID(), "same model from different sources must be distinct rows")
+
+		// Both stored with namespaced name
+		assert.Equal(t, "hugging_face_models:"+sharedName, *saved1.GetAttributes().Name)
+		assert.Equal(t, "hugging_face_models_2:"+sharedName, *saved2.GetAttributes().Name)
+		// ExternalID returned in display form (no source prefix)
+		require.NotNil(t, saved1.GetAttributes().ExternalID)
+		assert.Equal(t, sharedExternalID, *saved1.GetAttributes().ExternalID)
+		require.NotNil(t, saved2.GetAttributes().ExternalID)
+		assert.Equal(t, sharedExternalID, *saved2.GetAttributes().ExternalID)
+
+		// GetByName with namespaced name returns the correct model
+		retrieved1, err := repo.GetByName("hugging_face_models:" + sharedName)
+		require.NoError(t, err)
+		assert.Equal(t, *saved1.GetID(), *retrieved1.GetID())
+		assert.Equal(t, sharedExternalID, *retrieved1.GetAttributes().ExternalID)
+
+		retrieved2, err := repo.GetByName("hugging_face_models_2:" + sharedName)
+		require.NoError(t, err)
+		assert.Equal(t, *saved2.GetID(), *retrieved2.GetID())
+		assert.Equal(t, sharedExternalID, *retrieved2.GetAttributes().ExternalID)
+	})
+
+	t.Run("TestListByExternalIDReturnsModelsFromAllSources", func(t *testing.T) {
+		// When external_id is namespaced in DB (sourceId:externalId), listing by raw external_id
+		// should return all models that match across any source (backward compatibility).
+		sharedExtID := "shared-ext-list-test"
+		model1 := &models.CatalogModelImpl{
+			Attributes: &models.CatalogModelAttributes{
+				Name:       apiutils.Of("list-ext-model-a"),
+				ExternalID: apiutils.Of(sharedExtID),
+			},
+			Properties: &[]dbmodels.Properties{
+				{Name: "source_id", StringValue: apiutils.Of("src-list-1")},
+			},
+		}
+		model2 := &models.CatalogModelImpl{
+			Attributes: &models.CatalogModelAttributes{
+				Name:       apiutils.Of("list-ext-model-b"),
+				ExternalID: apiutils.Of(sharedExtID),
+			},
+			Properties: &[]dbmodels.Properties{
+				{Name: "source_id", StringValue: apiutils.Of("src-list-2")},
+			},
+		}
+		_, err := repo.Save(model1)
+		require.NoError(t, err)
+		_, err = repo.Save(model2)
+		require.NoError(t, err)
+
+		listOptions := models.CatalogModelListOptions{
+			ExternalID: &sharedExtID,
+		}
+		result, err := repo.List(listOptions)
+		require.NoError(t, err)
+		require.NotNil(t, result)
+		assert.Len(t, result.Items, 2, "filtering by raw external_id should return all models from all sources")
+		extIDs := make([]string, len(result.Items))
+		for i, m := range result.Items {
+			require.NotNil(t, m.GetAttributes().ExternalID)
+			extIDs[i] = *m.GetAttributes().ExternalID
+		}
+		assert.ElementsMatch(t, extIDs, []string{sharedExtID, sharedExtID})
+	})
+
+	t.Run("TestFilterQueryExternalIDReturnsModelsFromAllSources", func(t *testing.T) {
+		// filterQuery externalId = "value" should match both exact and namespaced stored values.
+		sharedExtID := "filterquery-ext-shared"
+		model1 := &models.CatalogModelImpl{
+			Attributes: &models.CatalogModelAttributes{
+				Name:       apiutils.Of("fq-ext-model-a"),
+				ExternalID: apiutils.Of(sharedExtID),
+			},
+			Properties: &[]dbmodels.Properties{
+				{Name: "source_id", StringValue: apiutils.Of("src-fq-1")},
+			},
+		}
+		model2 := &models.CatalogModelImpl{
+			Attributes: &models.CatalogModelAttributes{
+				Name:       apiutils.Of("fq-ext-model-b"),
+				ExternalID: apiutils.Of(sharedExtID),
+			},
+			Properties: &[]dbmodels.Properties{
+				{Name: "source_id", StringValue: apiutils.Of("src-fq-2")},
+			},
+		}
+		_, err := repo.Save(model1)
+		require.NoError(t, err)
+		_, err = repo.Save(model2)
+		require.NoError(t, err)
+
+		filterQuery := `externalId = "` + sharedExtID + `"`
+		listOptions := models.CatalogModelListOptions{
+			Pagination: dbmodels.Pagination{
+				FilterQuery: &filterQuery,
+			},
+		}
+		result, err := repo.List(listOptions)
+		require.NoError(t, err)
+		require.NotNil(t, result)
+		assert.Len(t, result.Items, 2, "filterQuery externalId = value should return all models from all sources")
+		for _, m := range result.Items {
+			require.NotNil(t, m.GetAttributes().ExternalID)
+			assert.Equal(t, sharedExtID, *m.GetAttributes().ExternalID)
+		}
+	})
+
 	t.Run("TestUpdateWithID", func(t *testing.T) {
 		// First create a model
 		catalogModel := &models.CatalogModelImpl{

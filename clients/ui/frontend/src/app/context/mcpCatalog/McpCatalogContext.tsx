@@ -63,20 +63,23 @@ export const McpCatalogContext = React.createContext<McpCatalogContextType>({
   filterOptionsLoadError: undefined,
 });
 
+const MODEL_CATALOG_PATH = `${URL_PREFIX}/api/${BFF_API_VERSION}/model_catalog`;
+const MCP_CATALOG_PATH = `${URL_PREFIX}/api/${BFF_API_VERSION}/mcp_catalog`;
+
 export const McpCatalogContextProvider: React.FC<McpCatalogContextProviderProps> = ({
   children,
 }) => {
-  const hostPath = `${URL_PREFIX}/api/${BFF_API_VERSION}/model_catalog`;
   const queryParams = useQueryParamNamespaces();
-  const [apiState] = useModelCatalogAPIState(hostPath, queryParams);
+  const [apiStateModelCatalog] = useModelCatalogAPIState(MODEL_CATALOG_PATH, queryParams);
+  const [apiStateMcpCatalog] = useModelCatalogAPIState(MCP_CATALOG_PATH, queryParams);
 
   const mcpListParams = React.useMemo(() => ({ assetType: 'mcp_servers' as const }), []);
   const [catalogSources, catalogSourcesLoaded, catalogSourcesLoadError] = useCatalogSources(
-    apiState,
+    apiStateModelCatalog,
     mcpListParams,
   );
   const [filterOptions, filterOptionsLoaded, filterOptionsLoadError] =
-    useMcpServerFilterOptionListWithAPI(apiState);
+    useMcpServerFilterOptionListWithAPI(apiStateMcpCatalog);
 
   const { initialState, syncToUrl } = useMcpUrlSync();
 
@@ -110,7 +113,7 @@ export const McpCatalogContextProvider: React.FC<McpCatalogContextProviderProps>
     return { sourceLabels: labels, sourceLabelNames: nameMap };
   }, [catalogSources]);
 
-  const mcpServersResult = useMcpServersBySourceLabelWithAPI(apiState, {
+  const mcpServersResult = useMcpServersBySourceLabelWithAPI(apiStateMcpCatalog, {
     sourceLabel: selectedSourceLabel,
     pageSize: pagination.pageSize,
     searchQuery,

@@ -91,8 +91,16 @@ class ModelRegistry {
     return cy.findByTestId('empty-model-registries-state');
   }
 
+  findUnavailableModelRegistryState() {
+    return cy.findByTestId('unavailable-model-registry');
+  }
+
   shouldregisteredModelsEmpty() {
     cy.findByTestId('empty-registered-models').should('exist');
+  }
+
+  findEmptyStateTransferJobsButton() {
+    return cy.findByTestId('empty-model-registry-transfer-jobs-action');
   }
 
   findViewDetailsButton() {

@@ -96,6 +96,31 @@ func getSourceIDFromProperties(model models.CatalogModel) string {
 	return ""
 }
 
+// getSourceIDFromContextProperties returns the source_id property value from DB context properties.
+func getSourceIDFromContextProperties(propertiesCtx []schema.ContextProperty) string {
+	for _, p := range propertiesCtx {
+		if p.Name == "source_id" && p.StringValue != nil {
+			return *p.StringValue
+		}
+	}
+	return ""
+}
+
+// escapeLike escapes SQL LIKE metacharacters (%, _, \) in s so it can be used safely as a literal in a LIKE pattern.
+func escapeLike(s string) string {
+	var b strings.Builder
+	for _, c := range s {
+		switch c {
+		case '\\', '%', '_':
+			b.WriteRune('\\')
+			b.WriteRune(c)
+		default:
+			b.WriteRune(c)
+		}
+	}
+	return b.String()
+}
+
 // ApplyStandardPagination overrides the base implementation to use catalog-specific allowed columns
 func (r *CatalogModelRepositoryImpl) ApplyStandardPagination(query *gorm.DB, listOptions *models.CatalogModelListOptions, entities any) *gorm.DB {
 	pageSize := listOptions.GetPageSize()
@@ -287,7 +312,11 @@ func applyCatalogModelListFilters(query *gorm.DB, listOptions *models.CatalogMod
 	if listOptions.Name != nil {
 		query = query.Where(fmt.Sprintf("%s.name LIKE ?", contextTable), listOptions.Name)
 	} else if listOptions.ExternalID != nil {
-		query = query.Where(fmt.Sprintf("%s.external_id = ?", contextTable), listOptions.ExternalID)
+		extID := *listOptions.ExternalID
+		// Match both exact and namespaced (sourceId:externalId) so existing integrations
+		// that filter by external_id without source prefix still return all matching models.
+		namespacedPattern := "%:" + escapeLike(extID)
+		query = query.Where(fmt.Sprintf("(%s.external_id = ? OR %s.external_id LIKE ?)", contextTable, contextTable), extID, namespacedPattern)
 	}
 
 	if listOptions.Query != nil && *listOptions.Query != "" {
@@ -350,6 +379,17 @@ func mapCatalogModelToContext(model models.CatalogModel) schema.Context {
 			context.Name = *attrs.Name
 		}
 		context.ExternalID = attrs.ExternalID
+		// When source_id is present, namespace external_id (sourceId:externalId) so the same
+		// model in multiple sources does not violate UNIQUE(external_id) on Context.
+		if context.ExternalID != nil && *context.ExternalID != "" {
+			if sourceID := getSourceIDFromProperties(model); sourceID != "" {
+				prefix := sourceID + ":"
+				if !strings.HasPrefix(*context.ExternalID, prefix) {
+					namespacedExtID := prefix + *context.ExternalID
+					context.ExternalID = &namespacedExtID
+				}
+			}
+		}
 		if attrs.CreateTimeSinceEpoch != nil {
 			context.CreateTimeSinceEpoch = *attrs.CreateTimeSinceEpoch
 		}
@@ -380,12 +420,23 @@ func mapCatalogModelToContextProperties(model models.CatalogModel, contextID int
 }
 
 func mapDataLayerToCatalogModel(modelCtx schema.Context, propertiesCtx []schema.ContextProperty) models.CatalogModel {
+	externalID := modelCtx.ExternalID
+	// When stored external_id is namespaced (sourceId:externalId), strip prefix for display/API.
+	if externalID != nil && *externalID != "" {
+		if sourceID := getSourceIDFromContextProperties(propertiesCtx); sourceID != "" {
+			prefix := sourceID + ":"
+			if strings.HasPrefix(*externalID, prefix) {
+				displayExtID := (*externalID)[len(prefix):]
+				externalID = &displayExtID
+			}
+		}
+	}
 	catalogModel := &models.CatalogModelImpl{
 		ID:     &modelCtx.ID,
 		TypeID: &modelCtx.TypeID,
 		Attributes: &models.CatalogModelAttributes{
 			Name:                     &modelCtx.Name,
-			ExternalID:               modelCtx.ExternalID,
+			ExternalID:               externalID,
 			CreateTimeSinceEpoch:     &modelCtx.CreateTimeSinceEpoch,
 			LastUpdateTimeSinceEpoch: &modelCtx.LastUpdateTimeSinceEpoch,
 		},
