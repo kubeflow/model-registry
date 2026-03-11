@@ -4,9 +4,11 @@ Set up the local Kind dev environment for model-registry UI development. Execute
 
 ## Arguments
 
+Prerequisites: Docker, Colima, Kind, kubectl, Go >= 1.25.7, Node.js >= 22.0.0 (Tilt is auto-downloaded by `make tilt-up`).
+
 Options (space-separated after the command). If none specified, run core setup only with real K8s client.
 
-- **catalog** — Deploy Model Catalog with demo overlay via `./scripts/deploy_catalog_demo_on_kind.sh`
+- **catalog** — Deploy Model Catalog with demo overlay (performance data included)
 - **perf-data** — Same as `catalog` (demo overlay includes performance data)
 - **minio** — Deploy MinIO S3 storage for testing transfer jobs
 - **mock-k8s** — Use mock K8s client instead of real (add `--mock-k8s-client` to BFF). Skips RBAC setup.
@@ -17,8 +19,9 @@ Options (space-separated after the command). If none specified, run core setup o
 ### Terminal 1 - Infrastructure
 ```
 colima start
+kind get clusters | grep -q '^model-registry$' || kind create cluster --name model-registry
 kubectl config use-context kind-model-registry
-cd devenv && ./bin/tilt up
+cd devenv && make tilt-up
 ```
 
 ### Terminal 2 - BFF
@@ -76,7 +79,10 @@ DEPLOYMENT_MODE=standalone STYLE_THEME=patternfly npm run start:dev
 
 ## Optional: catalog / perf-data
 ```
-./scripts/deploy_catalog_demo_on_kind.sh
+kubectl create namespace model-catalog --dry-run=client -o yaml | kubectl apply -f -
+kubectl apply -k manifests/kustomize/options/catalog/overlays/demo -n model-catalog
+kubectl wait --for=condition=ready pod -l app.kubernetes.io/name=postgres,app.kubernetes.io/part-of=model-catalog -n model-catalog --timeout=120s || true
+kubectl wait --for=condition=available deployment/model-catalog-server -n model-catalog --timeout=5m
 kubectl port-forward -n model-catalog svc/model-catalog-server 8082:8080
 ```
 
