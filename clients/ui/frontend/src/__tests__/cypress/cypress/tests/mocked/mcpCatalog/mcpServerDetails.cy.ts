@@ -2,11 +2,11 @@ import { mcpCatalog, mcpServerDetails } from '~/__tests__/cypress/cypress/pages/
 import {
   initMcpCatalogIntercepts,
   initServerDetailIntercept,
-  testMcpServers,
+  mockMcpServers,
 } from './mcpCatalogTestUtils';
 
-const kubernetesServer = testMcpServers.find((s) => s.name === 'Kubernetes')!;
-const customServer = testMcpServers.find((s) => s.name === 'Custom MCP Server')!;
+const kubernetesServer = mockMcpServers.find((s) => s.name === 'Kubernetes')!;
+const customServer = mockMcpServers.find((s) => s.name === 'Custom MCP Server')!;
 
 describe('MCP Server Details Page', () => {
   beforeEach(() => {

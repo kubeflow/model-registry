@@ -34,6 +34,10 @@ class McpCatalog {
     return cy.findByTestId(`mcp-filter-${filterKey}-show-more`);
   }
 
+  findFilterShowLess(filterKey: string) {
+    return cy.findByTestId(`mcp-filter-${filterKey}-show-less`);
+  }
+
   findFilterCheckbox(filterKey: string, value: string) {
     return cy.findByTestId(`mcp-filter-${filterKey}-${value}`);
   }
@@ -52,6 +56,22 @@ class McpCatalog {
 
   findCardDescription(serverId: string) {
     return cy.findByTestId(`mcp-catalog-card-description-${serverId}`);
+  }
+
+  findEmptyState() {
+    return cy.findByTestId('mcp-catalog-empty-search');
+  }
+
+  findResetFilters() {
+    return cy.findByTestId('mcp-catalog-reset-filters');
+  }
+
+  findLoadError() {
+    return cy.findByTestId('mcp-catalog-load-error');
+  }
+
+  findRetry() {
+    return cy.findByTestId('mcp-catalog-retry');
   }
 }
 

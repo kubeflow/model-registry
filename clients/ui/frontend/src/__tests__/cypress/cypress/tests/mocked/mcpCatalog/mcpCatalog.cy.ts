@@ -6,7 +6,7 @@ import {
   initMcpCatalogIntercepts,
   MCP_FILTER_OPTIONS_PATH,
   MCP_SERVERS_PATH,
-  testFilterOptions,
+  mockMcpCatalogFilterOptions,
 } from './mcpCatalogTestUtils';
 
 describe('MCP Catalog Page', () => {
@@ -49,8 +49,8 @@ describe('MCP Catalog Page', () => {
     mcpCatalog.visit();
     mcpCatalog.findFilterShowMore('labels').scrollIntoView();
     mcpCatalog.findFilterShowMore('labels').click();
-    cy.findByTestId('mcp-filter-labels-show-less').scrollIntoView();
-    cy.findByTestId('mcp-filter-labels-show-less').should('be.visible');
+    mcpCatalog.findFilterShowLess('labels').scrollIntoView();
+    mcpCatalog.findFilterShowLess('labels').should('be.visible');
   });
 
   it('should display known mock server cards', () => {
@@ -90,14 +90,12 @@ describe('MCP Catalog Empty State', () => {
     );
     cy.intercept(
       { method: 'GET', pathname: MCP_FILTER_OPTIONS_PATH },
-      mockModArchResponse(testFilterOptions),
+      mockModArchResponse(mockMcpCatalogFilterOptions()),
     );
     mcpCatalog.visit();
-    cy.findByTestId('mcp-catalog-empty-search', { timeout: 15000 }).should('be.visible');
+    mcpCatalog.findEmptyState().should('be.visible', { timeout: 15000 });
     cy.contains('No servers found').should('be.visible');
-    cy.findByTestId('mcp-catalog-reset-filters')
-      .should('be.visible')
-      .and('contain', 'Reset filters');
+    mcpCatalog.findResetFilters().should('be.visible').and('contain', 'Reset filters');
   });
 });
 
@@ -114,11 +112,11 @@ describe('MCP Catalog Error State', () => {
     );
     cy.intercept(
       { method: 'GET', pathname: MCP_FILTER_OPTIONS_PATH },
-      mockModArchResponse(testFilterOptions),
+      mockModArchResponse(mockMcpCatalogFilterOptions()),
     );
     mcpCatalog.visit();
-    cy.findByTestId('mcp-catalog-load-error', { timeout: 15000 }).should('be.visible');
+    mcpCatalog.findLoadError().should('be.visible', { timeout: 15000 });
     cy.contains('Unable to load MCP servers').should('be.visible');
-    cy.findByTestId('mcp-catalog-retry').should('be.visible').and('contain', 'Retry');
+    mcpCatalog.findRetry().should('be.visible').and('contain', 'Retry');
   });
 });

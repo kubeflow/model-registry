@@ -14,9 +14,17 @@ import {
 } from '@patternfly/react-core';
 import { ExclamationCircleIcon, SearchIcon } from '@patternfly/react-icons';
 import { McpCatalogContext } from '~/app/context/mcpCatalog/McpCatalogContext';
+import { SourceLabel } from '~/app/modelCatalogTypes';
+import { filterEnabledCatalogSources } from '~/app/pages/modelCatalog/utils/modelCatalogUtils';
+import { MCP_CATALOG_GALLERY } from '~/app/pages/mcpCatalog/const';
 import McpCatalogCategorySection from '~/app/pages/mcpCatalog/screens/McpCatalogCategorySection';
 
-const CATEGORY_PAGE_SIZE = 6;
+const hasActiveSearchOrFilters = (
+  searchQuery: string,
+  filters: Record<string, string[] | undefined>,
+): boolean =>
+  searchQuery.trim() !== '' ||
+  Object.values(filters).some((arr) => Array.isArray(arr) && arr.length > 0);
 
 const McpCatalogGalleryView: React.FC = () => {
   const {
@@ -27,46 +35,74 @@ const McpCatalogGalleryView: React.FC = () => {
     selectedSourceLabel,
     setSelectedSourceLabel,
     clearAllFilters,
+    searchQuery,
+    filters,
+    catalogSources,
     sourceLabels,
     sourceLabelNames,
+    hasNoLabelSources,
   } = React.useContext(McpCatalogContext);
 
   const getDisplayName = React.useCallback(
-    (label: string): string => sourceLabelNames[label] || label,
+    (label: string): string =>
+      label === SourceLabel.other ? 'Other MCP Servers' : sourceLabelNames[label] || label,
     [sourceLabelNames],
   );
   const isAllServersView = selectedSourceLabel === undefined;
   const { items } = mcpServers;
+  const hasSearchOrFilters = React.useMemo(
+    () => hasActiveSearchOrFilters(searchQuery, filters),
+    [searchQuery, filters],
+  );
 
-  const [visibleCount, setVisibleCount] = React.useState(CATEGORY_PAGE_SIZE);
+  const [visibleCount, setVisibleCount] = React.useState<number>(MCP_CATALOG_GALLERY.PAGE_SIZE);
 
   React.useEffect(() => {
-    setVisibleCount(CATEGORY_PAGE_SIZE);
-  }, [selectedSourceLabel]);
+    if (selectedSourceLabel !== undefined || hasSearchOrFilters) {
+      setVisibleCount(MCP_CATALOG_GALLERY.PAGE_SIZE);
+    }
+  }, [selectedSourceLabel, hasSearchOrFilters]);
 
   const { itemsByLabel, uncategorizedItems } = React.useMemo(() => {
     if (!isAllServersView) {
       return { itemsByLabel: new Map(), uncategorizedItems: [] };
     }
+    const enabled = filterEnabledCatalogSources(catalogSources);
+    const sourceIdToLabel = new Map<string, string>();
+    if (enabled?.items) {
+      for (const source of enabled.items) {
+        const label =
+          source.labels.length > 0
+            ? source.labels.map((l) => l.trim()).find(Boolean)
+            : SourceLabel.other;
+        if (label) {
+          sourceIdToLabel.set(source.id, label);
+        }
+      }
+    }
     const knownLabels = new Set(sourceLabels);
+    if (hasNoLabelSources) {
+      knownLabels.add(SourceLabel.other);
+    }
     const byLabel = new Map<string, typeof items>();
     const uncategorized: typeof items = [];
 
     for (const item of items) {
-      if (!item.source_id || !knownLabels.has(item.source_id)) {
-        uncategorized.push(item);
-      } else {
-        const group = byLabel.get(item.source_id);
+      const resolvedLabel = item.source_id ? sourceIdToLabel.get(item.source_id) : undefined;
+      if (resolvedLabel && knownLabels.has(resolvedLabel)) {
+        const group = byLabel.get(resolvedLabel);
         if (group) {
           group.push(item);
         } else {
-          byLabel.set(item.source_id, [item]);
+          byLabel.set(resolvedLabel, [item]);
         }
+      } else {
+        uncategorized.push(item);
       }
     }
 
     return { itemsByLabel: byLabel, uncategorizedItems: uncategorized };
-  }, [items, sourceLabels, isAllServersView]);
+  }, [items, catalogSources, sourceLabels, hasNoLabelSources, isAllServersView]);
 
   if (mcpServersLoadError) {
     return (
@@ -145,7 +181,42 @@ const McpCatalogGalleryView: React.FC = () => {
               <Button
                 variant="secondary"
                 data-testid="mcp-load-more-button"
-                onClick={() => setVisibleCount(items.length)}
+                onClick={() =>
+                  setVisibleCount((prev) =>
+                    Math.min(prev + MCP_CATALOG_GALLERY.PAGE_SIZE, items.length),
+                  )
+                }
+              >
+                Load more MCP servers
+              </Button>
+            </Flex>
+          </StackItem>
+        )}
+      </Stack>
+    );
+  }
+
+  if (isAllServersView && hasSearchOrFilters) {
+    const visibleItems = items.slice(0, visibleCount);
+    const hasMore = items.length > MCP_CATALOG_GALLERY.PAGE_SIZE && items.length > visibleCount;
+
+    return (
+      <Stack hasGutter>
+        <McpCatalogCategorySection
+          title={MCP_CATALOG_GALLERY.SECTION_TITLE}
+          servers={visibleItems}
+        />
+        {hasMore && (
+          <StackItem>
+            <Flex justifyContent={{ default: 'justifyContentCenter' }}>
+              <Button
+                variant="secondary"
+                data-testid="mcp-load-more-button"
+                onClick={() =>
+                  setVisibleCount((prev) =>
+                    Math.min(prev + MCP_CATALOG_GALLERY.PAGE_SIZE, items.length),
+                  )
+                }
               >
                 Load more MCP servers
               </Button>
@@ -159,10 +230,15 @@ const McpCatalogGalleryView: React.FC = () => {
   if (sourceLabels.length === 0) {
     return (
       <Stack hasGutter>
-        <McpCatalogCategorySection title="Servers" servers={items} />
+        <McpCatalogCategorySection title={MCP_CATALOG_GALLERY.SECTION_TITLE} servers={items} />
       </Stack>
     );
   }
+
+  const otherSectionServers = hasNoLabelSources
+    ? (itemsByLabel.get(SourceLabel.other) ?? []).concat(uncategorizedItems)
+    : uncategorizedItems;
+  const showOtherSection = otherSectionServers.length > 0;
 
   return (
     <Stack hasGutter>
@@ -175,8 +251,18 @@ const McpCatalogGalleryView: React.FC = () => {
           onShowAll={isAllServersView ? () => setSelectedSourceLabel(label) : undefined}
         />
       ))}
-      {uncategorizedItems.length > 0 && (
-        <McpCatalogCategorySection key="other" title="Other" servers={uncategorizedItems} />
+      {showOtherSection && (
+        <McpCatalogCategorySection
+          key="other"
+          title={hasNoLabelSources ? 'Other MCP Servers' : 'Other'}
+          servers={otherSectionServers}
+          maxItems={isAllServersView ? 3 : undefined}
+          onShowAll={
+            isAllServersView && hasNoLabelSources
+              ? () => setSelectedSourceLabel(SourceLabel.other)
+              : undefined
+          }
+        />
       )}
     </Stack>
   );

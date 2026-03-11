@@ -73,7 +73,7 @@ const McpCatalogCoreLoader: React.FC = () => {
             description={
               isMUITheme
                 ? 'To discover MCP servers, follow the instructions in the docs below.'
-                : 'There are no MCP sources to display. Request that your administrator configure model sources for the catalog.'
+                : 'There are no MCP sources to display. Request that your administrator configure MCP sources for the catalog.'
             }
             headerIcon={() => (
               <img src={typedEmptyImage(ProjectObjectType.modelRegistrySettings)} alt="" />

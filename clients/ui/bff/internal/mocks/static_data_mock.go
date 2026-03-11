@@ -2361,7 +2361,7 @@ func GetMcpServerMocks() []models.McpServer {
 	prometheusMcp := models.McpServer{
 		ID:          1,
 		Name:        "Prometheus MCP Server",
-		SourceID:    stringToPointer("community_mcp_servers"),
+		SourceID:    stringToPointer("community-mcp-source"),
 		Description: stringToPointer("Query Prometheus metrics and alerts directly from your agent"),
 		Provider:    stringToPointer("Prometheus Community"),
 		Version:     stringToPointer("0.9.2"),
@@ -2409,7 +2409,7 @@ func GetMcpServerMocks() []models.McpServer {
 	kubernetesMcp := models.McpServer{
 		ID:          2,
 		Name:        "Kubernetes MCP Server",
-		SourceID:    stringToPointer("community_mcp_servers"),
+		SourceID:    stringToPointer("community-mcp-source"),
 		Description: stringToPointer("Manage Kubernetes resources and query cluster state"),
 		Provider:    stringToPointer("CNCF"),
 		Version:     stringToPointer("1.2.0"),
@@ -2442,7 +2442,7 @@ func GetMcpServerMocks() []models.McpServer {
 	elasticMcp := models.McpServer{
 		ID:          3,
 		Name:        "Elasticsearch MCP Server",
-		SourceID:    stringToPointer("organization_mcp_servers"),
+		SourceID:    stringToPointer("organization-mcp-source"),
 		Description: stringToPointer("Search and analyze data in Elasticsearch clusters"),
 		Provider:    stringToPointer("Elastic"),
 		Version:     stringToPointer("2.0.5"),
@@ -2467,7 +2467,7 @@ func GetMcpServerMocks() []models.McpServer {
 	dynatraceMcp := models.McpServer{
 		ID:          4,
 		Name:        "Dynatrace MCP Server",
-		SourceID:    stringToPointer("organization_mcp_servers"),
+		SourceID:    stringToPointer("organization-mcp-source"),
 		Description: stringToPointer("Access Dynatrace observability data and perform actions"),
 		Provider:    stringToPointer("Dynatrace"),
 		Version:     stringToPointer("1.0.1"),
@@ -2495,7 +2495,7 @@ func GetMcpServerMocks() []models.McpServer {
 	grafanaMcp := models.McpServer{
 		ID:          5,
 		Name:        "Grafana MCP Server",
-		SourceID:    stringToPointer("community_mcp_servers"),
+		SourceID:    stringToPointer("community-mcp-source"),
 		Description: stringToPointer("Query Grafana dashboards, data sources and annotations via natural language"),
 		Provider:    stringToPointer("Grafana Labs"),
 		Version:     stringToPointer("1.1.0"),
@@ -2518,7 +2518,7 @@ func GetMcpServerMocks() []models.McpServer {
 	gitMcp := models.McpServer{
 		ID:          6,
 		Name:        "Git MCP Server",
-		SourceID:    stringToPointer("community_mcp_servers"),
+		SourceID:    stringToPointer("community-mcp-source"),
 		Description: stringToPointer("Interact with Git repositories, branches, commits and diffs through your agent"),
 		Provider:    stringToPointer("Git Community"),
 		Version:     stringToPointer("0.5.3"),
@@ -2540,7 +2540,7 @@ func GetMcpServerMocks() []models.McpServer {
 	postgresMcp := models.McpServer{
 		ID:          7,
 		Name:        "PostgreSQL MCP Server",
-		SourceID:    stringToPointer("organization_mcp_servers"),
+		SourceID:    stringToPointer("organization-mcp-source"),
 		Description: stringToPointer("Query and manage PostgreSQL databases using natural language"),
 		Provider:    stringToPointer("PostgreSQL Global Development Group"),
 		Version:     stringToPointer("1.3.0"),
@@ -2561,7 +2561,7 @@ func GetMcpServerMocks() []models.McpServer {
 	redisMcp := models.McpServer{
 		ID:          8,
 		Name:        "Redis MCP Server",
-		SourceID:    stringToPointer("organization_mcp_servers"),
+		SourceID:    stringToPointer("organization-mcp-source"),
 		Description: stringToPointer("Manage Redis key-value stores, caches and pub/sub channels"),
 		Provider:    stringToPointer("Redis Ltd"),
 		Version:     stringToPointer("0.8.1"),
@@ -2581,7 +2581,28 @@ func GetMcpServerMocks() []models.McpServer {
 		},
 	}
 
-	allBases := []models.McpServer{prometheusMcp, kubernetesMcp, grafanaMcp, gitMcp, elasticMcp, dynatraceMcp, postgresMcp, redisMcp}
+	standaloneMcp := models.McpServer{
+		ID:          9,
+		Name:        "Standalone MCP Server",
+		SourceID:    stringToPointer("standalone-mcp-source"),
+		Description: stringToPointer("MCP server with no category, available for use"),
+		Provider:    stringToPointer("Independent"),
+		Version:     stringToPointer("1.0.0"),
+		License:     stringToPointer("MIT"),
+		Tags:        []string{"standalone", "general"},
+		ToolCount:   5,
+		Transports:  []models.McpTransportType{models.McpTransportTypeStdio},
+		DeploymentMode: func() *models.McpDeploymentMode {
+			mode := models.McpDeploymentModeLocal
+			return &mode
+		}(),
+		SecurityIndicators: &models.McpSecurityIndicator{
+			VerifiedSource: &falseVal,
+			SecureEndpoint: &trueVal,
+		},
+	}
+
+	allBases := []models.McpServer{prometheusMcp, kubernetesMcp, grafanaMcp, gitMcp, elasticMcp, dynatraceMcp, postgresMcp, redisMcp, standaloneMcp}
 
 	var all []models.McpServer
 	nextID := len(allBases) + 1
@@ -2810,6 +2831,13 @@ func GetMcpServerCatalogSourceMocks() []models.CatalogSource {
 			Enabled: &enabled,
 			Status:  &availableStatus,
 			Labels:  []string{"organization_mcp_servers"},
+		},
+		{
+			Id:      "standalone-mcp-source",
+			Name:    "Other MCP Servers",
+			Enabled: &enabled,
+			Status:  &availableStatus,
+			Labels:  []string{},
 		},
 		{
 			Id:      "disabled-mcp-source",

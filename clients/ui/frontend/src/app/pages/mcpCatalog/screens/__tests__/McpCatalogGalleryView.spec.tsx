@@ -33,6 +33,8 @@ const defaultContext: McpCatalogContextType = {
   clearAllFilters: jest.fn(),
   sourceLabels: [],
   sourceLabelNames: {},
+  hasNoLabelSources: false,
+  catalogSources: null,
   catalogSourcesLoaded: true,
   catalogSourcesLoadError: undefined,
   mcpServers: { items: [] },
@@ -94,8 +96,8 @@ describe('McpCatalogGalleryView', () => {
     expect(clearFn).toHaveBeenCalledTimes(1);
   });
 
-  it('renders Load more button when category has more than 6 items', () => {
-    const servers = Array.from({ length: 8 }, (_, i) => buildServer(i + 1, 'cat-a'));
+  it('renders Load more button when category has more than 9 items', () => {
+    const servers = Array.from({ length: 11 }, (_, i) => buildServer(i + 1, 'cat-a'));
     renderWithContext({
       mcpServersLoaded: true,
       mcpServers: { items: servers },
@@ -105,11 +107,11 @@ describe('McpCatalogGalleryView', () => {
     });
     expect(screen.getByTestId('mcp-load-more-button')).toBeInTheDocument();
     expect(screen.getByText('Load more MCP servers')).toBeInTheDocument();
-    expect(screen.getAllByTestId(/^mcp-catalog-card-\d+$/)).toHaveLength(6);
+    expect(screen.getAllByTestId(/^mcp-catalog-card-\d+$/)).toHaveLength(9);
   });
 
   it('Load more button reveals all items when clicked', () => {
-    const servers = Array.from({ length: 8 }, (_, i) => buildServer(i + 1, 'cat-a'));
+    const servers = Array.from({ length: 11 }, (_, i) => buildServer(i + 1, 'cat-a'));
     renderWithContext({
       mcpServersLoaded: true,
       mcpServers: { items: servers },
@@ -118,11 +120,11 @@ describe('McpCatalogGalleryView', () => {
       sourceLabelNames: { 'cat-a': 'Category A' },
     });
     fireEvent.click(screen.getByTestId('mcp-load-more-button'));
-    expect(screen.getAllByTestId(/^mcp-catalog-card-\d+$/)).toHaveLength(8);
+    expect(screen.getAllByTestId(/^mcp-catalog-card-\d+$/)).toHaveLength(11);
     expect(screen.queryByTestId('mcp-load-more-button')).not.toBeInTheDocument();
   });
 
-  it('does not show Load more when category has 6 or fewer items', () => {
+  it('does not show Load more when category has 9 or fewer items', () => {
     const servers = Array.from({ length: 5 }, (_, i) => buildServer(i + 1, 'cat-a'));
     renderWithContext({
       mcpServersLoaded: true,
@@ -140,10 +142,32 @@ describe('McpCatalogGalleryView', () => {
       ...Array.from({ length: 5 }, (_, i) => buildServer(i + 1, 'cat-a')),
       ...Array.from({ length: 4 }, (_, i) => buildServer(10 + i, 'cat-b')),
     ];
+    const catalogSources = {
+      items: [
+        {
+          id: 'cat-a',
+          name: 'Category A',
+          labels: ['cat-a'],
+          enabled: true,
+          status: 'available' as const,
+        },
+        {
+          id: 'cat-b',
+          name: 'Category B',
+          labels: ['cat-b'],
+          enabled: true,
+          status: 'available' as const,
+        },
+      ],
+      size: 2,
+      pageSize: 10,
+      nextPageToken: '',
+    };
     renderWithContext({
       mcpServersLoaded: true,
       mcpServers: { items: servers },
       selectedSourceLabel: undefined,
+      catalogSources,
       sourceLabels: ['cat-a', 'cat-b'],
       sourceLabelNames: { 'cat-a': 'Category A', 'cat-b': 'Category B' },
     });

@@ -2,10 +2,7 @@ import * as React from 'react';
 import { ToolbarFilter, ToolbarLabel, ToolbarLabelGroup } from '@patternfly/react-core';
 import { McpCatalogContext } from '~/app/context/mcpCatalog/McpCatalogContext';
 import type { McpFilterCategoryKey } from '~/app/pages/mcpCatalog/types/mcpCatalogFilterOptions';
-import {
-  MCP_FILTER_KEYS,
-  MCP_FILTER_CATEGORY_NAMES,
-} from '~/app/pages/mcpCatalog/constants/mcpCatalogFilterChipNames';
+import { MCP_FILTER_KEYS, MCP_FILTER_CATEGORY_NAMES } from '~/app/pages/mcpCatalog/const';
 
 const McpCatalogActiveFilters: React.FC = () => {
   const { filters, setFilters } = React.useContext(McpCatalogContext);

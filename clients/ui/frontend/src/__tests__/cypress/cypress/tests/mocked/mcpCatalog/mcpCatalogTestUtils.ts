@@ -2,16 +2,16 @@ import { mockModArchResponse } from 'mod-arch-core';
 import {
   mockCatalogSource,
   mockCatalogSourceList,
-  testFilterOptions,
-  testMcpServers,
+  mockMcpCatalogFilterOptions,
+  mockMcpServers,
 } from '~/__mocks__';
 import { MODEL_CATALOG_API_VERSION } from '~/__tests__/cypress/cypress/support/commands/api';
 
-export { testMcpServers, testFilterOptions };
+export { mockMcpServers, mockMcpCatalogFilterOptions };
 
 export const MCP_SERVERS_RESPONSE = {
-  items: testMcpServers,
-  size: testMcpServers.length,
+  items: mockMcpServers,
+  size: mockMcpServers.length,
   pageSize: 10,
   nextPageToken: '',
 };
@@ -38,11 +38,11 @@ export const initMcpCatalogIntercepts = (): void => {
   );
   cy.intercept(
     { method: 'GET', pathname: MCP_FILTER_OPTIONS_PATH },
-    mockModArchResponse(testFilterOptions),
+    mockModArchResponse(mockMcpCatalogFilterOptions()),
   );
 };
 
-export const initServerDetailIntercept = (server: (typeof testMcpServers)[number]): void => {
+export const initServerDetailIntercept = (server: (typeof mockMcpServers)[number]): void => {
   cy.intercept(
     {
       method: 'GET',

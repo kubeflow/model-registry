@@ -1,3 +1,4 @@
+import type { CatalogSourceList } from '~/app/modelCatalogTypes';
 import type { McpServer } from '~/app/mcpServerCatalogTypes';
 import type {
   McpCatalogFilterOptionsList,
@@ -28,6 +29,8 @@ export type McpCatalogContextType = {
   clearAllFilters: () => void;
   sourceLabels: string[];
   sourceLabelNames: Record<string, string>;
+  hasNoLabelSources: boolean;
+  catalogSources: CatalogSourceList | null;
   catalogSourcesLoaded: boolean;
   catalogSourcesLoadError: Error | undefined;
   mcpServers: { items: McpServer[] };

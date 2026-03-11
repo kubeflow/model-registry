@@ -1,5 +1,10 @@
 import type { McpFilterCategoryKey } from '~/app/pages/mcpCatalog/types/mcpCatalogFilterOptions';
 
+export const MCP_CATALOG_GALLERY = {
+  PAGE_SIZE: 9,
+  SECTION_TITLE: 'MCP Servers',
+} as const;
+
 export const MCP_FILTER_CATEGORY_NAMES: Record<McpFilterCategoryKey, string> = {
   deploymentMode: 'Deployment mode',
   supportedTransports: 'Supported transports',

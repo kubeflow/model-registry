@@ -1,10 +1,7 @@
 import * as React from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { MCP_FILTER_KEYS } from '~/app/pages/mcpCatalog/constants/mcpCatalogFilterChipNames';
-import type {
-  McpFilterCategoryKey,
-  McpCatalogFiltersState,
-} from '~/app/pages/mcpCatalog/types/mcpCatalogFilterOptions';
+import { MCP_FILTER_KEYS } from '~/app/pages/mcpCatalog/const';
+import type { McpCatalogFiltersState } from '~/app/pages/mcpCatalog/types/mcpCatalogFilterOptions';
 
 const SEARCH_PARAM = 'q';
 const SOURCE_PARAM = 'source';
@@ -79,5 +76,3 @@ export function useMcpUrlSync(): UseMcpUrlSyncReturn {
 
   return { initialState, syncToUrl };
 }
-
-export const MCP_URL_FILTER_KEYS: McpFilterCategoryKey[] = MCP_FILTER_KEYS;

@@ -8,6 +8,7 @@ import { useMcpServerFilterOptionListWithAPI } from '~/app/hooks/mcpServerCatalo
 import {
   filterEnabledCatalogSources,
   getUniqueSourceLabels,
+  hasSourcesWithoutLabels,
 } from '~/app/pages/modelCatalog/utils/modelCatalogUtils';
 import type {
   McpCatalogContextType,
@@ -52,6 +53,8 @@ export const McpCatalogContext = React.createContext<McpCatalogContextType>({
   clearAllFilters: () => undefined,
   sourceLabels: [],
   sourceLabelNames: {},
+  hasNoLabelSources: false,
+  catalogSources: null,
   catalogSourcesLoaded: false,
   catalogSourcesLoadError: undefined,
   mcpServers: { items: [] },
@@ -96,7 +99,7 @@ export const McpCatalogContextProvider: React.FC<McpCatalogContextProviderProps>
     syncToUrl({ searchQuery, filters, selectedSourceLabel });
   }, [searchQuery, filters, selectedSourceLabel, syncToUrl]);
 
-  const { sourceLabels, sourceLabelNames } = React.useMemo(() => {
+  const { sourceLabels, sourceLabelNames, hasNoLabelSources } = React.useMemo(() => {
     const enabled = filterEnabledCatalogSources(catalogSources);
     const labels = getUniqueSourceLabels(enabled);
     const nameMap: Record<string, string> = {};
@@ -110,7 +113,11 @@ export const McpCatalogContextProvider: React.FC<McpCatalogContextProviderProps>
         }
       }
     }
-    return { sourceLabels: labels, sourceLabelNames: nameMap };
+    return {
+      sourceLabels: labels,
+      sourceLabelNames: nameMap,
+      hasNoLabelSources: hasSourcesWithoutLabels(enabled),
+    };
   }, [catalogSources]);
 
   const mcpServersResult = useMcpServersBySourceLabelWithAPI(apiStateMcpCatalog, {
@@ -168,6 +175,8 @@ export const McpCatalogContextProvider: React.FC<McpCatalogContextProviderProps>
       clearAllFilters,
       sourceLabels,
       sourceLabelNames,
+      hasNoLabelSources,
+      catalogSources,
       catalogSourcesLoaded,
       catalogSourcesLoadError,
       mcpServers,
@@ -186,6 +195,8 @@ export const McpCatalogContextProvider: React.FC<McpCatalogContextProviderProps>
       selectedSourceLabel,
       sourceLabels,
       sourceLabelNames,
+      hasNoLabelSources,
+      catalogSources,
       catalogSourcesLoaded,
       catalogSourcesLoadError,
       mcpServers,

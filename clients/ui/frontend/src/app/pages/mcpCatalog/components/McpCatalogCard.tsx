@@ -19,7 +19,7 @@ import {
   McpCardIconType,
   McpCardIconByLabel,
   getMcpCardIconConfig,
-} from '~/app/pages/mcpCatalog/constants/mcpCatalogCardIcons';
+} from '~/app/pages/mcpCatalog/components/McpCatalogCardIcons';
 import { mcpServerDetailsUrl } from '~/app/routes/mcpCatalog/mcpCatalog';
 
 type McpCatalogCardProps = {
