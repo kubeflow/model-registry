@@ -85,7 +85,7 @@ const McpServerToolsSection: React.FC<McpServerToolsSectionProps> = ({ server })
   }
 
   return (
-    <Card data-testid="mcp-server-tools">
+    <Card data-testid="mcp-server-tools" style={{ overflow: 'visible' }}>
       <CardHeader>
         <Flex
           justifyContent={{ default: 'justifyContentSpaceBetween' }}
