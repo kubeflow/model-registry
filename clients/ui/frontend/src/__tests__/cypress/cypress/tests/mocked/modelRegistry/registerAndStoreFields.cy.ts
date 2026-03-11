@@ -7,7 +7,7 @@ import { MODEL_REGISTRY_API_VERSION } from '~/__tests__/cypress/cypress/support/
 import { ModelTransferJobStatus } from '~/app/types';
 import type { ModelRegistry, ModelTransferJob, RegisteredModel } from '~/app/types';
 import { mockRegisteredModelList } from '~/__mocks__/mockRegisteredModelsList';
-import { mockModelTransferJob, mockModelTransferJobList } from '~/__mocks__/mockModelTransferJob';
+import { mockModelTransferJob } from '~/__mocks__/mockModelTransferJob';
 
 type HandlersProps = {
   modelRegistries?: ModelRegistry[];
@@ -514,6 +514,7 @@ describe('Register and Store Fields - Form Submission', () => {
   it('Should show succeeded toast when background poll detects job completed', () => {
     const mockJob = mockModelTransferJob({
       id: 'new-job-id',
+      name: 'new-transfer-job',
       status: ModelTransferJobStatus.PENDING,
     });
 
@@ -531,22 +532,18 @@ describe('Register and Store Fields - Form Submission', () => {
     cy.intercept(
       {
         method: 'GET',
-        pathname: `/model-registry/api/${MODEL_REGISTRY_API_VERSION}/model_registry/modelregistry-sample/model_transfer_jobs`,
+        pathname: `/model-registry/api/${MODEL_REGISTRY_API_VERSION}/model_registry/modelregistry-sample/model_transfer_jobs/${mockJob.name}`,
       },
       {
         body: {
-          data: mockModelTransferJobList({
-            items: [
-              mockModelTransferJob({
-                id: 'new-job-id',
-                status: ModelTransferJobStatus.COMPLETED,
-              }),
-            ],
-            size: 1,
+          data: mockModelTransferJob({
+            id: 'new-job-id',
+            name: 'new-transfer-job',
+            status: ModelTransferJobStatus.COMPLETED,
           }),
         },
       },
-    ).as('listTransferJobs');
+    ).as('getTransferJob');
 
     registerAndStoreFields.selectRegisterAndStoreMode();
     registerAndStoreFields.selectNamespace('namespace-1');
@@ -556,13 +553,14 @@ describe('Register and Store Fields - Form Submission', () => {
 
     cy.wait('@createTransferJob');
     cy.contains(/Model transfer job started/).should('be.visible');
-    cy.wait('@listTransferJobs');
+    cy.wait('@getTransferJob');
     cy.contains(/Model transfer job succeeded/).should('be.visible');
   });
 
   it('Should show failed toast when background poll detects job failed', () => {
     const mockJob = mockModelTransferJob({
       id: 'new-job-id',
+      name: 'new-transfer-job',
       status: ModelTransferJobStatus.PENDING,
     });
 
@@ -580,23 +578,19 @@ describe('Register and Store Fields - Form Submission', () => {
     cy.intercept(
       {
         method: 'GET',
-        pathname: `/model-registry/api/${MODEL_REGISTRY_API_VERSION}/model_registry/modelregistry-sample/model_transfer_jobs`,
+        pathname: `/model-registry/api/${MODEL_REGISTRY_API_VERSION}/model_registry/modelregistry-sample/model_transfer_jobs/${mockJob.name}`,
       },
       {
         body: {
-          data: mockModelTransferJobList({
-            items: [
-              mockModelTransferJob({
-                id: 'new-job-id',
-                status: ModelTransferJobStatus.FAILED,
-                errorMessage: 'Connection timeout',
-              }),
-            ],
-            size: 1,
+          data: mockModelTransferJob({
+            id: 'new-job-id',
+            name: 'new-transfer-job',
+            status: ModelTransferJobStatus.FAILED,
+            errorMessage: 'Connection timeout',
           }),
         },
       },
-    ).as('listTransferJobs');
+    ).as('getTransferJob');
 
     registerAndStoreFields.selectRegisterAndStoreMode();
     registerAndStoreFields.selectNamespace('namespace-1');
@@ -606,7 +600,7 @@ describe('Register and Store Fields - Form Submission', () => {
 
     cy.wait('@createTransferJob');
     cy.contains(/Model transfer job started/).should('be.visible');
-    cy.wait('@listTransferJobs');
+    cy.wait('@getTransferJob');
     cy.contains(/Model transfer job failed/).should('be.visible');
   });
 

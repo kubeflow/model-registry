@@ -19,10 +19,10 @@ jest.mock('~/app/hooks/useNotification', () => ({
   useNotification: () => mockNotification,
 }));
 
-const mockListModelTransferJobs = jest.fn();
+const mockGetModelTransferJob = jest.fn();
 
 jest.mock('~/app/api/service', () => ({
-  getListModelTransferJobs: () => mockListModelTransferJobs,
+  getModelTransferJob: () => mockGetModelTransferJob,
 }));
 
 jest.mock('~/app/utilities/const', () => ({
@@ -40,19 +40,18 @@ jest.mock('~/app/pages/modelRegistry/screens/routeUtils', () => ({
   modelTransferJobsUrl: jest.fn((mrName: string) => `/model-registry/${mrName}/jobs`),
 }));
 
-const mockJobListResponse = (id: string, status: ModelTransferJobStatus) => ({
-  items: [{ id, name: `transfer-${id}`, status }],
-  size: 1,
-  pageSize: 10,
-  nextPageToken: '',
+const mockJobResponse = (name: string, status: ModelTransferJobStatus) => ({
+  id: `id-${name}`,
+  name,
+  status,
 });
 
-const renderWithWatcher = async (jobId: string) => {
+const renderWithWatcher = async (jobName: string) => {
   function TestConsumer() {
     const { watchJob } = React.useContext(TransferJobNotificationsContext);
     React.useEffect(() => {
       watchJob({
-        jobId,
+        jobName,
         registryName: 'mr-sample',
         displayParams: { versionModelName: 'My Model / v1', mrName: 'mr-sample' },
       });
@@ -84,8 +83,8 @@ describe('TransferJobNotificationsContext', () => {
   });
 
   it('shows success toast when a watched job completes', async () => {
-    mockListModelTransferJobs.mockResolvedValue(
-      mockJobListResponse('job-1', ModelTransferJobStatus.COMPLETED),
+    mockGetModelTransferJob.mockResolvedValue(
+      mockJobResponse('job-1', ModelTransferJobStatus.COMPLETED),
     );
     await renderWithWatcher('job-1');
 
@@ -96,8 +95,8 @@ describe('TransferJobNotificationsContext', () => {
   });
 
   it('shows error toast when a watched job fails', async () => {
-    mockListModelTransferJobs.mockResolvedValue(
-      mockJobListResponse('job-2', ModelTransferJobStatus.FAILED),
+    mockGetModelTransferJob.mockResolvedValue(
+      mockJobResponse('job-2', ModelTransferJobStatus.FAILED),
     );
     await renderWithWatcher('job-2');
 
@@ -108,16 +107,16 @@ describe('TransferJobNotificationsContext', () => {
   });
 
   it('does not show toast for running jobs and keeps polling until completion', async () => {
-    mockListModelTransferJobs.mockResolvedValue(
-      mockJobListResponse('job-3', ModelTransferJobStatus.RUNNING),
+    mockGetModelTransferJob.mockResolvedValue(
+      mockJobResponse('job-3', ModelTransferJobStatus.RUNNING),
     );
     await renderWithWatcher('job-3');
 
     expect(mockNotification.success).not.toHaveBeenCalled();
     expect(mockNotification.error).not.toHaveBeenCalled();
 
-    mockListModelTransferJobs.mockResolvedValue(
-      mockJobListResponse('job-3', ModelTransferJobStatus.COMPLETED),
+    mockGetModelTransferJob.mockResolvedValue(
+      mockJobResponse('job-3', ModelTransferJobStatus.COMPLETED),
     );
 
     await act(async () => {
@@ -132,8 +131,8 @@ describe('TransferJobNotificationsContext', () => {
   });
 
   it('silently removes cancelled jobs without showing toast', async () => {
-    mockListModelTransferJobs.mockResolvedValue(
-      mockJobListResponse('job-4', ModelTransferJobStatus.CANCELLED),
+    mockGetModelTransferJob.mockResolvedValue(
+      mockJobResponse('job-4', ModelTransferJobStatus.CANCELLED),
     );
     await renderWithWatcher('job-4');
 
@@ -142,14 +141,14 @@ describe('TransferJobNotificationsContext', () => {
   });
 
   it('handles API errors gracefully and continues polling', async () => {
-    mockListModelTransferJobs.mockRejectedValueOnce(new Error('Network error'));
+    mockGetModelTransferJob.mockRejectedValueOnce(new Error('Network error'));
     await renderWithWatcher('job-5');
 
     expect(mockNotification.success).not.toHaveBeenCalled();
     expect(mockNotification.error).not.toHaveBeenCalled();
 
-    mockListModelTransferJobs.mockResolvedValue(
-      mockJobListResponse('job-5', ModelTransferJobStatus.COMPLETED),
+    mockGetModelTransferJob.mockResolvedValue(
+      mockJobResponse('job-5', ModelTransferJobStatus.COMPLETED),
     );
 
     await act(async () => {

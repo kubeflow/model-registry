@@ -43,6 +43,7 @@ const mockModelRegistryAPIs: ModelRegistryAPIs = {
   patchModelArtifact: jest.fn(),
   listModelTransferJobs: jest.fn(),
   createModelTransferJob: jest.fn(),
+  getModelTransferJob: jest.fn(),
   updateModelTransferJob: jest.fn(),
   deleteModelTransferJob: jest.fn(),
   getModelTransferJobEvents: jest.fn(),

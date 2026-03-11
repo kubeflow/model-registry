@@ -104,7 +104,7 @@ const RegisterVersion: React.FC = () => {
       if (transferJob) {
         registrationNotification.showRegisterAndStoreStarted(toastParams);
         watchJob({
-          jobId: transferJob.id,
+          jobName: transferJob.name,
           registryName: mrName ?? '',
           displayParams: toastParams,
         });
