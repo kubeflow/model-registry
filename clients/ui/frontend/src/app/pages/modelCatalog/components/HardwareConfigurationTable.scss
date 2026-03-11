@@ -1,0 +1,9 @@
+/* PatternFly DragDropSort (variant="default") renders each Draggable item as a
+   plain div wrapping a DragButton + content.  That div lacks flex layout, so the
+   grip handle drops to its own line.  Force it to a single row. */
+[data-testid='hardware-config-manage-columns'] {
+  div:has(> .pf-v6-c-button + .pf-v6-u-display-inline-block) {
+    display: flex;
+    align-items: center;
+  }
+}

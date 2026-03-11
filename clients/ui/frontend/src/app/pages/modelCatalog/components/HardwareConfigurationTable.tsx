@@ -8,6 +8,7 @@ import { ModelCatalogContext } from '~/app/context/modelCatalog/ModelCatalogCont
 import { getActiveLatencyFieldName } from '~/app/pages/modelCatalog/utils/modelCatalogUtils';
 import HardwareConfigurationTableRow from './HardwareConfigurationTableRow';
 import HardwareConfigurationFilterToolbar from './HardwareConfigurationFilterToolbar';
+import './HardwareConfigurationTable.scss';
 import { useHardwareConfigColumns, ControlledTableSortProps } from './useHardwareConfigColumns';
 
 type HardwareConfigurationTableProps = {
