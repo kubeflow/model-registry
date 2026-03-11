@@ -696,45 +696,24 @@ describe('Model version details', () => {
         cy.findByText('Retry').should('exist');
       });
 
-      it('should show no-access view when job not found and user lacks namespace access', () => {
+      it('should show error alert when job is not found', () => {
         initTransferJobArtifactIntercepts();
 
-        cy.interceptApi(
-          `GET /api/:apiVersion/model_registry/:modelRegistryName/model_transfer_jobs/:modelTransferJobId`,
+        cy.intercept(
           {
-            path: {
-              modelRegistryName: 'modelregistry-sample',
-              apiVersion: MODEL_REGISTRY_API_VERSION,
-              modelTransferJobId: 'model-transfer-job-oci-1',
-            },
+            method: 'GET',
+            pathname: `/model-registry/api/${MODEL_REGISTRY_API_VERSION}/model_registry/modelregistry-sample/model_transfer_jobs/model-transfer-job-oci-1`,
           },
-          { statusCode: 404, body: null },
+          {
+            statusCode: 404,
+            body: { error: { message: 'Transfer job not found', statusCode: 404 } },
+          },
         );
 
         modelVersionDetails.visit();
 
-        modelVersionDetails.findStorageLocationTitle().should('contain.text', 'Storage location');
-        cy.findByTestId('no-access-popover-button').should('exist');
-      });
-
-      it('should show storage unavailable when job not found', () => {
-        initTransferJobArtifactIntercepts();
-
-        cy.interceptApi(
-          `GET /api/:apiVersion/model_registry/:modelRegistryName/model_transfer_jobs/:modelTransferJobId`,
-          {
-            path: {
-              modelRegistryName: 'modelregistry-sample',
-              apiVersion: MODEL_REGISTRY_API_VERSION,
-              modelTransferJobId: 'model-transfer-job-oci-1',
-            },
-          },
-          { statusCode: 404, body: null },
-        );
-
-        modelVersionDetails.visit();
-
-        cy.findByText('Storage information unavailable.').should('exist');
+        cy.findByText('Failed to load storage location').should('exist');
+        cy.findByText('Retry').should('exist');
       });
     });
   });
