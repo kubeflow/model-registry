@@ -87,11 +87,9 @@ describe('McpCatalogCoreLoader', () => {
     const { useThemeContext } = jest.requireMock('mod-arch-kubeflow');
     useThemeContext.mockReturnValue({ isMUITheme: true });
     renderWithContext({ sourceLabels: [], catalogSourcesLoaded: true });
-    expect(screen.getByText('Deploy a model catalog')).toBeInTheDocument();
+    expect(screen.getByText('MCP catalog configuration required')).toBeInTheDocument();
     expect(
-      screen.getByText(
-        'To deploy model catalog and discover MCP servers, follow the instructions in the docs below.',
-      ),
+      screen.getByText('To discover MCP servers, follow the instructions in the docs below.'),
     ).toBeInTheDocument();
     useThemeContext.mockReturnValue({ isMUITheme: false });
   });

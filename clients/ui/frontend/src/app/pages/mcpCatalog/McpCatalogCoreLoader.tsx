@@ -69,10 +69,10 @@ const McpCatalogCoreLoader: React.FC = () => {
         emptyStatePage={
           <EmptyModelCatalogState
             testid="empty-mcp-catalog-state"
-            title={isMUITheme ? 'Deploy a model catalog' : 'MCP catalog configuration required'}
+            title="MCP catalog configuration required"
             description={
               isMUITheme
-                ? 'To deploy model catalog and discover MCP servers, follow the instructions in the docs below.'
+                ? 'To discover MCP servers, follow the instructions in the docs below.'
                 : 'There are no MCP sources to display. Request that your administrator configure model sources for the catalog.'
             }
             headerIcon={() => (
