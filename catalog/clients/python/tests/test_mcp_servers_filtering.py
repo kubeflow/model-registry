@@ -16,68 +16,48 @@ from model_catalog import CatalogAPIClient, CatalogAPIError, CatalogNotFoundErro
 class TestMCPServerFiltering:
     """Test suite for MCP server filterQuery functionality."""
 
-    def test_filter_by_provider(
+    @pytest.mark.parametrize(
+        "filter_query, expected_count, expected_names",
+        [
+            pytest.param(
+                "provider='Math Community'",
+                1,
+                {"calculator"},
+                id="single_provider",
+            ),
+            pytest.param(
+                "provider IN ('Weather Community','Math Community')",
+                2,
+                {"weather-api", "calculator"},
+                id="multiple_providers_in",
+            ),
+            pytest.param(
+                "verifiedSource=true AND sast=true",
+                1,
+                {"calculator"},
+                id="boolean_flags",
+            ),
+            pytest.param(
+                "license='MIT' AND (provider='Math Community' OR provider='Weather Community')",
+                2,
+                {"weather-api", "calculator"},
+                id="complex_and_or",
+            ),
+        ],
+    )
+    def test_filter_query(
         self,
         api_client: CatalogAPIClient,
         suppress_ssl_warnings: None,
-        test_mcp_catalog_data: dict,
-        kind_cluster: bool,
+        filter_query: str,
+        expected_count: int,
+        expected_names: set[str],
     ):
-        """Test filtering MCP servers by provider field."""
-        target_provider = "Math Community"
-        response = api_client.get_mcp_servers(filter_query=f"provider='{target_provider}'")
+        """Test filterQuery with various filter expressions."""
+        response = api_client.get_mcp_servers(filter_query=filter_query)
         items = response.get("items", [])
-        assert len(items) == 1, f"Expected 1 server from '{target_provider}', got {len(items)}"
-        assert items[0]["name"] == "calculator"
-        assert items[0]["provider"] == target_provider
-
-        if kind_cluster:
-            yaml_matches = [s["name"] for s in test_mcp_catalog_data["mcp_servers"] if s["provider"] == target_provider]
-            assert yaml_matches == ["calculator"]
-
-    def test_filter_by_multiple_providers_in(
-        self,
-        api_client: CatalogAPIClient,
-        suppress_ssl_warnings: None,
-        test_mcp_catalog_data: dict,
-        kind_cluster: bool,
-    ):
-        """Test filtering MCP servers using IN operator for multiple providers."""
-        target_providers = {"Weather Community", "Math Community"}
-        filter_expr = "provider IN ('Weather Community','Math Community')"
-        response = api_client.get_mcp_servers(filter_query=filter_expr)
-        items = response.get("items", [])
-        assert len(items) == 2, f"Expected 2 servers for IN filter, got {len(items)}"
-        assert all(s["provider"] in target_providers for s in items)
-
-        if kind_cluster:
-            yaml_matches = {s["name"] for s in test_mcp_catalog_data["mcp_servers"] if s["provider"] in target_providers}
-            actual_names = {s["name"] for s in items}
-            assert actual_names == yaml_matches
-
-    def test_filter_by_boolean(
-        self,
-        api_client: CatalogAPIClient,
-        suppress_ssl_warnings: None,
-    ):
-        """Test filtering MCP servers by boolean security indicators."""
-        response = api_client.get_mcp_servers(filter_query="verifiedSource=true AND sast=true")
-        items = response.get("items", [])
-        assert len(items) == 1, f"Expected 1 server with verifiedSource+sast, got {len(items)}"
-        assert items[0]["name"] == "calculator"
-
-    def test_complex_filter_and_or(
-        self,
-        api_client: CatalogAPIClient,
-        suppress_ssl_warnings: None,
-    ):
-        """Test complex filter with AND/OR boolean logic."""
-        filter_expr = "license='MIT' AND (provider='Math Community' OR provider='Weather Community')"
-        response = api_client.get_mcp_servers(filter_query=filter_expr)
-        items = response.get("items", [])
-        assert len(items) == 2, f"Expected 2 servers for complex filter, got {len(items)}"
-        actual_names = {s["name"] for s in items}
-        assert actual_names == {"weather-api", "calculator"}
+        assert len(items) == expected_count, f"Expected {expected_count} servers for '{filter_query}', got {len(items)}"
+        assert {s["name"] for s in items} == expected_names
 
 
 

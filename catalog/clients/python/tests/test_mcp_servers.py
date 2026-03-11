@@ -12,7 +12,7 @@ import random
 
 from model_catalog import CatalogAPIClient
 
-from .constants import MCP_SERVER_REQUIRED_FIELDS
+from tests.constants import MCP_SERVER_REQUIRED_FIELDS
 
 
 class TestMCPServerBasics:
@@ -27,8 +27,8 @@ class TestMCPServerBasics:
         """Test that all expected MCP servers are loaded with required fields."""
         response = api_client.get_mcp_servers()
         items = response.get("items", [])
-        actual_names = {s["name"] for s in items}
-        expected_names = {s["name"] for s in test_mcp_catalog_data["mcp_servers"]}
+        actual_names = {server["name"] for server in items}
+        expected_names = {server["name"] for server in test_mcp_catalog_data["mcp_servers"]}
         assert actual_names == expected_names
 
         for server in items:
@@ -69,7 +69,7 @@ class TestMCPServerBasics:
         test_mcp_catalog_data: dict,
     ):
         """Test pagination by iterating all servers with pageSize=1."""
-        expected_names = {s["name"] for s in test_mcp_catalog_data["mcp_servers"]}
+        expected_names = {server["name"] for server in test_mcp_catalog_data["mcp_servers"]}
         collected_names: set[str] = set()
         next_token = None
 
