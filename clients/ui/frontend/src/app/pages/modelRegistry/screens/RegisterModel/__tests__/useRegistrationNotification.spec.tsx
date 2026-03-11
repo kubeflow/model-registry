@@ -5,8 +5,7 @@ import { AlertVariant } from '@patternfly/react-core';
 import { useRegistrationNotification } from '~/app/pages/modelRegistry/screens/RegisterModel/useRegistrationNotification';
 
 const TITLES = {
-  REGISTER_AND_STORE_SUBMITTING: 'Model transfer job started',
-  REGISTER_AND_STORE_SUCCESS: 'Model transfer job complete',
+  REGISTER_AND_STORE_STARTED: 'Model transfer job started',
   REGISTER_AND_STORE_ERROR: 'Model transfer job failed',
 };
 
@@ -27,8 +26,7 @@ jest.mock('mod-arch-kubeflow', () => ({
 
 jest.mock('~/app/utilities/const', () => ({
   REGISTRATION_TOAST_TITLES: {
-    REGISTER_AND_STORE_SUBMITTING: 'Model transfer job started',
-    REGISTER_AND_STORE_SUCCESS: 'Model transfer job complete',
+    REGISTER_AND_STORE_STARTED: 'Model transfer job started',
     REGISTER_AND_STORE_ERROR: 'Model transfer job failed',
   },
 }));
@@ -50,55 +48,32 @@ describe('useRegistrationNotification', () => {
   it('returns Register and Store notification actions only', () => {
     function Wrapper() {
       const actions = useRegistrationNotification(setInlineAlert);
-      expect(actions).toHaveProperty('showRegisterAndStoreSubmitting');
-      expect(actions).toHaveProperty('showRegisterAndStoreSuccess');
+      expect(actions).toHaveProperty('showRegisterAndStoreStarted');
       expect(actions).toHaveProperty('showRegisterAndStoreError');
-      expect(typeof actions.showRegisterAndStoreSubmitting).toBe('function');
-      expect(typeof actions.showRegisterAndStoreSuccess).toBe('function');
+      expect(typeof actions.showRegisterAndStoreStarted).toBe('function');
       expect(typeof actions.showRegisterAndStoreError).toBe('function');
       return null;
     }
     render(<Wrapper />);
   });
 
-  it('showRegisterAndStoreSubmitting calls notification.info and setInlineAlert when not MUI theme', () => {
+  it('showRegisterAndStoreStarted calls notification.info and setInlineAlert when not MUI theme', () => {
     function TestWrapper() {
       const actions = useRegistrationNotification(setInlineAlert);
       React.useEffect(() => {
-        actions.showRegisterAndStoreSubmitting(toastParams);
+        actions.showRegisterAndStoreStarted(toastParams);
       }, [actions]);
       return null;
     }
     render(<TestWrapper />);
     expect(mockNotification.info).toHaveBeenCalledWith(
-      TITLES.REGISTER_AND_STORE_SUBMITTING,
+      TITLES.REGISTER_AND_STORE_STARTED,
       expect.anything(),
     );
     expect(setInlineAlert).toHaveBeenCalledWith(
       expect.objectContaining({
         variant: AlertVariant.info,
-        title: TITLES.REGISTER_AND_STORE_SUBMITTING,
-      }),
-    );
-  });
-
-  it('showRegisterAndStoreSuccess calls notification.success and setInlineAlert when not MUI theme', () => {
-    function TestWrapper() {
-      const actions = useRegistrationNotification(setInlineAlert);
-      React.useEffect(() => {
-        actions.showRegisterAndStoreSuccess(toastParams);
-      }, [actions]);
-      return null;
-    }
-    render(<TestWrapper />);
-    expect(mockNotification.success).toHaveBeenCalledWith(
-      TITLES.REGISTER_AND_STORE_SUCCESS,
-      expect.anything(),
-    );
-    expect(setInlineAlert).toHaveBeenCalledWith(
-      expect.objectContaining({
-        variant: AlertVariant.success,
-        title: TITLES.REGISTER_AND_STORE_SUCCESS,
+        title: TITLES.REGISTER_AND_STORE_STARTED,
       }),
     );
   });
@@ -129,7 +104,7 @@ describe('useRegistrationNotification', () => {
     function TestWrapper() {
       const actions = useRegistrationNotification(setInlineAlert);
       React.useEffect(() => {
-        actions.showRegisterAndStoreSubmitting(toastParams);
+        actions.showRegisterAndStoreStarted(toastParams);
       }, [actions]);
       return null;
     }

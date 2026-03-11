@@ -28,6 +28,7 @@ import useRegisteredModels from '~/app/hooks/useRegisteredModels';
 import { filterLiveModels } from '~/app/utils';
 import { ModelRegistryContext } from '~/app/context/ModelRegistryContext';
 import { AppContext } from '~/app/context/AppContext';
+import { TransferJobNotificationsContext } from '~/app/context/TransferJobNotificationsContext';
 import { useRegisterVersionData } from './useRegisterModelData';
 import { isRegisterVersionSubmitDisabled, registerVersion, registerViaTransferJob } from './utils';
 import RegistrationCommonFormSections from './RegistrationCommonFormSections';
@@ -45,6 +46,7 @@ const RegisterVersion: React.FC = () => {
   const navigate = useNavigate();
   const { apiState } = React.useContext(ModelRegistryContext);
   const { user } = React.useContext(AppContext);
+  const { watchJob } = React.useContext(TransferJobNotificationsContext);
   const { isMUITheme } = useThemeContext();
   const author = user.userId || '';
   const [isSubmitting, setIsSubmitting] = React.useState(false);
@@ -93,8 +95,6 @@ const RegisterVersion: React.FC = () => {
 
     // Branch based on registration mode
     if (formData.registrationMode === RegistrationMode.RegisterAndStore) {
-      registrationNotification.showRegisterAndStoreSubmitting(toastParams);
-      // Register and Store: Only create transfer job (async registration)
       const { transferJob, error } = await registerViaTransferJob(apiState, author, {
         intent: ModelTransferJobUploadIntent.CREATE_VERSION,
         formData,
@@ -102,8 +102,12 @@ const RegisterVersion: React.FC = () => {
       });
 
       if (transferJob) {
-        // Success - navigate back to registered model page
-        registrationNotification.showRegisterAndStoreSuccess(toastParams);
+        registrationNotification.showRegisterAndStoreStarted(toastParams);
+        watchJob({
+          jobName: transferJob.name,
+          registryName: mrName ?? '',
+          displayParams: toastParams,
+        });
         navigate(registeredModelUrl(registeredModel.id, mrName));
       } else if (error) {
         setIsSubmitting(false);

@@ -40,8 +40,8 @@ export const NamespaceSelectorMessages = {
 } as const;
 
 export const REGISTRATION_TOAST_TITLES = {
-  REGISTER_AND_STORE_SUBMITTING: 'Model transfer job started',
-  REGISTER_AND_STORE_SUCCESS: 'Model transfer job complete',
+  REGISTER_AND_STORE_STARTED: 'Model transfer job started',
+  REGISTER_AND_STORE_SUCCEEDED: 'Model transfer job succeeded',
   REGISTER_AND_STORE_ERROR: 'Model transfer job failed',
 } as const;
 

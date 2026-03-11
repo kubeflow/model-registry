@@ -5,20 +5,13 @@ import { useNotification } from '~/app/hooks/useNotification';
 import { REGISTRATION_TOAST_TITLES } from '~/app/utilities/const';
 import type { RegistrationInlineAlert } from './RegistrationFormFooter';
 import {
-  getRegisterAndStoreToastMessageSubmitting,
-  getRegisterAndStoreToastMessageSuccess,
-  getRegisterAndStoreToastMessageError,
+  getRegisterAndStoreToastMessage,
+  type RegistrationToastMessagesParams,
 } from './registrationToastMessages';
 
-export type RegistrationToastParams = {
-  versionModelName: string;
-  mrName: string;
-};
-
 export type RegistrationNotificationActions = {
-  showRegisterAndStoreSubmitting: (params: RegistrationToastParams) => void;
-  showRegisterAndStoreSuccess: (params: RegistrationToastParams) => void;
-  showRegisterAndStoreError: (params: RegistrationToastParams) => void;
+  showRegisterAndStoreStarted: (params: RegistrationToastMessagesParams) => void;
+  showRegisterAndStoreError: (params: RegistrationToastMessagesParams) => void;
 };
 
 /**
@@ -45,27 +38,20 @@ export function useRegistrationNotification(
     }
   };
 
-  const showRegisterAndStoreSubmitting = (params: RegistrationToastParams) => {
-    const title = REGISTRATION_TOAST_TITLES.REGISTER_AND_STORE_SUBMITTING;
-    const message = getRegisterAndStoreToastMessageSubmitting(params);
+  const showRegisterAndStoreStarted = (params: RegistrationToastMessagesParams) => {
+    const title = REGISTRATION_TOAST_TITLES.REGISTER_AND_STORE_STARTED;
+    const message = getRegisterAndStoreToastMessage(params);
     showAlert(AlertVariant.info, title, message);
   };
 
-  const showRegisterAndStoreSuccess = (params: RegistrationToastParams) => {
-    const title = REGISTRATION_TOAST_TITLES.REGISTER_AND_STORE_SUCCESS;
-    const message = getRegisterAndStoreToastMessageSuccess(params);
-    showAlert(AlertVariant.success, title, message);
-  };
-
-  const showRegisterAndStoreError = (params: RegistrationToastParams) => {
+  const showRegisterAndStoreError = (params: RegistrationToastMessagesParams) => {
     const title = REGISTRATION_TOAST_TITLES.REGISTER_AND_STORE_ERROR;
-    const message = getRegisterAndStoreToastMessageError(params);
+    const message = getRegisterAndStoreToastMessage(params);
     showAlert(AlertVariant.danger, title, message);
   };
 
   return {
-    showRegisterAndStoreSubmitting,
-    showRegisterAndStoreSuccess,
+    showRegisterAndStoreStarted,
     showRegisterAndStoreError,
   };
 }
