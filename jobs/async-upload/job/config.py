@@ -2,6 +2,7 @@ from __future__ import annotations
 import base64
 import json
 import logging
+import os
 import configargparse as cap
 from typing import Any, Dict
 from pathlib import Path
@@ -107,6 +108,10 @@ def _parser() -> cap.ArgumentParser:
     p.add_argument("--registry-custom-ca", default=None)
     p.add_argument("--registry-custom-ca-envvar", default=None)
     p.add_argument("--registry-log-level", default=logging.WARNING)
+
+    # --- signing ---
+    p.add_argument("--sign", default=None, type=str2bool)
+    p.add_argument("--signing-identity-token-path", default=None)
 
     # --- ConfigMap metadata ---
     p.add_argument("--metadata-configmap-path", default=None, help="Path to mounted ConfigMap with model metadata")
@@ -373,6 +378,35 @@ def str2bool(x):
     raise ValueError(f"Invalid boolean value: {x!r}")
 
 
+_SIGSTORE_ENV_VARS = ("SIGSTORE_TUF_URL", "SIGSTORE_FULCIO_URL", "SIGSTORE_REKOR_URL")
+
+
+def _resolve_signing(sign_flag: bool | None) -> bool:
+    """Resolve whether signing should be enabled.
+
+    If the --sign flag is explicitly set, use that value.
+    Otherwise, auto-detect from SIGSTORE environment variables:
+    - All set and non-empty → enabled
+    - None set → disabled silently
+    - Partial or empty → disabled with a warning
+    """
+    if sign_flag is not None:
+        logger.info("Signing explicitly %s.", "enabled" if sign_flag else "disabled")
+        return sign_flag
+
+    configured = {var for var in _SIGSTORE_ENV_VARS if os.environ.get(var)}
+    if configured == set(_SIGSTORE_ENV_VARS):
+        logger.info("Signing enabled, all SIGSTORE env vars are set.")
+        return True
+    if not configured:
+        logger.info("Signing disabled, no SIGSTORE env vars are set.")
+        return False
+
+    missing = sorted(set(_SIGSTORE_ENV_VARS) - configured)
+    logger.warning("Signing disabled, incomplete SIGSTORE configuration, missing: %s.", ", ".join(missing))
+    return False
+
+
 def get_config(argv: list[str] | None = None) -> AsyncUploadConfig:
     """
     Return a validated AsyncUploadConfig instance.
@@ -491,6 +525,8 @@ def get_config(argv: list[str] | None = None) -> AsyncUploadConfig:
             if not metadata.model_version or not metadata.model_artifact:
                 raise ValueError("create_version intent requires ModelVersion and ModelArtifact metadata")
 
+    signing_enabled = _resolve_signing(args.sign)
+
     try:
         config = AsyncUploadConfig(
             source=source_config,
@@ -513,6 +549,8 @@ def get_config(argv: list[str] | None = None) -> AsyncUploadConfig:
                 log_level=args.registry_log_level,
             ),
             metadata=metadata,
+            signing_enabled=signing_enabled,
+            signing_identity_token_path=args.signing_identity_token_path,
         )
     except Exception as e:
         logger.error("❌ Configuration validation failed: %s", e)
