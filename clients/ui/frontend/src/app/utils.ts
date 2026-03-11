@@ -159,6 +159,15 @@ export const getModelUriLabel = (destType: ModelTransferJobDestinationType): str
   }
 };
 
+export const getSourceLabel = (sourceType: ModelTransferJobSourceType): string => {
+  switch (sourceType) {
+    case ModelTransferJobSourceType.OCI:
+      return 'URI';
+    default:
+      return 'Path';
+  }
+};
+
 export const getDestinationUri = (job: ModelTransferJob): string => {
   const { destination } = job;
   if ('uri' in destination && destination.uri) {

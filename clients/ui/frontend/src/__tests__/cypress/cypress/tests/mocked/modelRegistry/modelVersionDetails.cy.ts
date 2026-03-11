@@ -562,13 +562,13 @@ describe('Model version details', () => {
     });
   });
 
-  describe('Storage location (Register + Store)', () => {
+  describe('Storage location', () => {
     const transferJobArtifact = mockModelArtifactWithTransferJob({
       modelSourceGroup: 'my-project-1',
       modelSourceName: 'model-transfer-job-oci-1',
     });
 
-    const initStorageLocationIntercepts = () => {
+    const initTransferJobArtifactIntercepts = () => {
       initIntercepts({});
 
       cy.interceptApi(
@@ -582,6 +582,10 @@ describe('Model version details', () => {
         },
         mockModelArtifactList({ items: [transferJobArtifact] }),
       );
+    };
+
+    const initStorageLocationIntercepts = () => {
+      initTransferJobArtifactIntercepts();
 
       cy.interceptApi(
         `GET /api/:apiVersion/model_registry/:modelRegistryName/model_transfer_jobs/:modelTransferJobId`,
@@ -596,100 +600,142 @@ describe('Model version details', () => {
       );
     };
 
-    it('should show Storage location section for transfer job artifacts', () => {
-      initStorageLocationIntercepts();
-      modelVersionDetails.visit();
+    describe('Register + Store', () => {
+      it('should show Storage location section for transfer job artifacts', () => {
+        initStorageLocationIntercepts();
+        modelVersionDetails.visit();
 
-      modelVersionDetails.findStorageLocationTitle().should('contain.text', 'Storage location');
+        modelVersionDetails.findStorageLocationTitle().should('contain.text', 'Storage location');
+      });
+
+      it('should show destination connection info and Model URI', () => {
+        initStorageLocationIntercepts();
+        modelVersionDetails.visit();
+
+        modelVersionDetails
+          .findStorageConnectionDisplay()
+          .first()
+          .should('contain.text', 'OCI storage')
+          .and('contain.text', 'my-project-1');
+
+        modelVersionDetails
+          .findStorageLocationUri()
+          .should('contain.text', 'quay.io/my-org/my-model:v1.0.0');
+      });
+
+      it('should show expandable source details with origin location', () => {
+        initStorageLocationIntercepts();
+        modelVersionDetails.visit();
+
+        modelVersionDetails.findStorageSourceDetails().find('button').first().click();
+
+        modelVersionDetails
+          .findStorageConnectionDisplay()
+          .last()
+          .should('contain.text', 'S3 storage')
+          .and('contain.text', 'my-project-1');
+
+        modelVersionDetails
+          .findStorageSourcePath()
+          .should('contain.text', 'models/model-v1/model.tar.gz');
+      });
+
+      it('should show Stored timestamp for transfer job artifacts', () => {
+        initStorageLocationIntercepts();
+        modelVersionDetails.visit();
+
+        cy.contains('Stored').should('exist');
+      });
+
+      it('should not show Model location section for transfer job artifacts', () => {
+        initStorageLocationIntercepts();
+        modelVersionDetails.visit();
+
+        cy.contains('Model location').should('not.exist');
+      });
     });
 
-    it('should show destination connection info and Model URI', () => {
-      initStorageLocationIntercepts();
-      modelVersionDetails.visit();
+    describe('error states', () => {
+      it('should show error alert with retry button on 500 error', () => {
+        initTransferJobArtifactIntercepts();
 
-      modelVersionDetails
-        .findStorageConnectionDisplay()
-        .first()
-        .should('contain.text', 'OCI storage')
-        .and('contain.text', 'my-project-1');
-
-      modelVersionDetails
-        .findStorageLocationUri()
-        .should('contain.text', 'quay.io/my-org/my-model:v1.0.0');
-    });
-
-    it('should show expandable source details with origin location', () => {
-      initStorageLocationIntercepts();
-      modelVersionDetails.visit();
-
-      modelVersionDetails.findStorageSourceDetails().find('button').first().click();
-
-      modelVersionDetails
-        .findStorageConnectionDisplay()
-        .last()
-        .should('contain.text', 'S3 storage')
-        .and('contain.text', 'my-project-1');
-
-      modelVersionDetails
-        .findStorageSourcePath()
-        .should('contain.text', 'models/model-v1/model.tar.gz');
-    });
-
-    it('should show Stored timestamp for transfer job artifacts', () => {
-      initStorageLocationIntercepts();
-      modelVersionDetails.visit();
-
-      cy.contains('Stored').should('exist');
-    });
-
-    it('should not show Model location section for transfer job artifacts', () => {
-      initStorageLocationIntercepts();
-      modelVersionDetails.visit();
-
-      cy.contains('Model location').should('not.exist');
-    });
-  });
-
-  describe('Storage location error states', () => {
-    const transferJobArtifact = mockModelArtifactWithTransferJob({
-      modelSourceGroup: 'my-project-1',
-      modelSourceName: 'model-transfer-job-oci-1',
-    });
-
-    const initErrorIntercepts = () => {
-      initIntercepts({});
-
-      cy.interceptApi(
-        `GET /api/:apiVersion/model_registry/:modelRegistryName/model_versions/:modelVersionId/artifacts`,
-        {
-          path: {
-            modelRegistryName: 'modelregistry-sample',
-            apiVersion: MODEL_REGISTRY_API_VERSION,
-            modelVersionId: 1,
+        cy.intercept(
+          {
+            method: 'GET',
+            pathname: `/model-registry/api/${MODEL_REGISTRY_API_VERSION}/model_registry/modelregistry-sample/model_transfer_jobs/model-transfer-job-oci-1`,
           },
-        },
-        mockModelArtifactList({ items: [transferJobArtifact] }),
-      );
-    };
+          {
+            statusCode: 500,
+            body: { error: { message: 'Internal server error', statusCode: 500 } },
+          },
+        );
 
-    it('should show error alert with retry button when transfer job fetch fails', () => {
-      initErrorIntercepts();
+        modelVersionDetails.visit();
 
-      cy.intercept(
-        {
-          method: 'GET',
-          pathname: `/model-registry/api/${MODEL_REGISTRY_API_VERSION}/model_registry/modelregistry-sample/model_transfer_jobs/model-transfer-job-oci-1`,
-        },
-        {
-          statusCode: 500,
-          body: { error: { message: 'Internal server error', statusCode: 500 } },
-        },
-      );
+        cy.findByText('Failed to load storage location').should('exist');
+        cy.findByText('Retry').should('exist');
+      });
 
-      modelVersionDetails.visit();
+      it('should show error alert with retry button on 403 error', () => {
+        initTransferJobArtifactIntercepts();
 
-      cy.findByText('Failed to load storage location').should('exist');
-      cy.findByText('Retry').should('exist');
+        cy.intercept(
+          {
+            method: 'GET',
+            pathname: `/model-registry/api/${MODEL_REGISTRY_API_VERSION}/model_registry/modelregistry-sample/model_transfer_jobs/model-transfer-job-oci-1`,
+          },
+          {
+            statusCode: 403,
+            body: { error: { message: 'Forbidden', statusCode: 403 } },
+          },
+        );
+
+        modelVersionDetails.visit();
+
+        cy.findByText('Failed to load storage location').should('exist');
+        cy.findByText('Retry').should('exist');
+      });
+
+      it('should show no-access view when job not found and user lacks namespace access', () => {
+        initTransferJobArtifactIntercepts();
+
+        cy.interceptApi(
+          `GET /api/:apiVersion/model_registry/:modelRegistryName/model_transfer_jobs/:modelTransferJobId`,
+          {
+            path: {
+              modelRegistryName: 'modelregistry-sample',
+              apiVersion: MODEL_REGISTRY_API_VERSION,
+              modelTransferJobId: 'model-transfer-job-oci-1',
+            },
+          },
+          { statusCode: 404, body: null },
+        );
+
+        modelVersionDetails.visit();
+
+        modelVersionDetails.findStorageLocationTitle().should('contain.text', 'Storage location');
+        cy.findByTestId('no-access-popover-button').should('exist');
+      });
+
+      it('should show storage unavailable when job not found', () => {
+        initTransferJobArtifactIntercepts();
+
+        cy.interceptApi(
+          `GET /api/:apiVersion/model_registry/:modelRegistryName/model_transfer_jobs/:modelTransferJobId`,
+          {
+            path: {
+              modelRegistryName: 'modelregistry-sample',
+              apiVersion: MODEL_REGISTRY_API_VERSION,
+              modelTransferJobId: 'model-transfer-job-oci-1',
+            },
+          },
+          { statusCode: 404, body: null },
+        );
+
+        modelVersionDetails.visit();
+
+        cy.findByText('Storage information unavailable.').should('exist');
+      });
     });
   });
 

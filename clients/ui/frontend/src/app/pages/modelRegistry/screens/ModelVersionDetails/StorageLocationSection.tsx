@@ -19,13 +19,14 @@ import {
 import { OutlinedQuestionCircleIcon, FolderIcon } from '@patternfly/react-icons';
 import { DashboardDescriptionListGroup, InlineTruncatedClipboardCopy } from 'mod-arch-shared';
 import { useNamespaceSelector } from 'mod-arch-core';
-import { ModelTransferJob, ModelTransferJobSourceType } from '~/app/types';
+import { ModelTransferJob } from '~/app/types';
 import { FindAdministratorOptions } from '~/app/utilities/const';
 import {
   StorageType,
   getStorageTypeLabel,
   getModelUriLabel,
   getModelUriPopoverContent,
+  getSourceLabel,
   getDestinationUri,
   getSourcePath,
 } from '~/app/utils';
@@ -115,14 +116,6 @@ const StorageLocationTitle: React.FC = () => (
   </Title>
 );
 
-const isAccessError = (error: Error | undefined): boolean => {
-  if (!error) {
-    return false;
-  }
-  const { message } = error;
-  return message.includes('403') || message.includes('forbidden') || message.includes('Forbidden');
-};
-
 const StorageLocationSection: React.FC<StorageLocationSectionProps> = ({
   fallbackNamespace,
   transferJob,
@@ -134,9 +127,7 @@ const StorageLocationSection: React.FC<StorageLocationSectionProps> = ({
   const { namespaces = [] } = useNamespaceSelector();
 
   const userHasNamespaceAccess = namespaces.some((ns) => ns.name === fallbackNamespace);
-  const hasAccessError =
-    isAccessError(transferJobError) ||
-    (!userHasNamespaceAccess && transferJobLoaded && !transferJob && !transferJobError);
+  const hasAccessError = !userHasNamespaceAccess && transferJobLoaded && !transferJob;
 
   if (transferJobError && !hasAccessError) {
     return (
@@ -177,7 +168,16 @@ const StorageLocationSection: React.FC<StorageLocationSectionProps> = ({
   }
 
   if (!transferJob) {
-    return null;
+    return (
+      <Stack hasGutter data-testid="storage-location-section">
+        <StackItem>
+          <StorageLocationTitle />
+        </StackItem>
+        <StackItem>
+          <Content component={ContentVariants.p}>Storage information unavailable.</Content>
+        </StackItem>
+      </Stack>
+    );
   }
 
   const destType = transferJob.destination.type;
@@ -185,10 +185,7 @@ const StorageLocationSection: React.FC<StorageLocationSectionProps> = ({
   const namespace = transferJob.namespace || '';
   const destinationUri = getDestinationUri(transferJob);
   const sourcePath = getSourcePath(transferJob);
-  const sourceLabel =
-    sourceType === ModelTransferJobSourceType.S3 || sourceType === ModelTransferJobSourceType.URI
-      ? 'Path'
-      : 'URI';
+  const sourceLabel = getSourceLabel(sourceType);
 
   return (
     <Stack hasGutter data-testid="storage-location-section">
