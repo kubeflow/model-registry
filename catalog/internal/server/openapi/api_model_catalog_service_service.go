@@ -138,16 +138,38 @@ func (m *ModelCatalogServiceAPIService) GetAllModelPerformanceArtifacts(ctx cont
 	return Response(http.StatusOK, artifacts), nil
 }
 
-func (m *ModelCatalogServiceAPIService) FindLabels(ctx context.Context, pageSize string, orderBy string, sortOrder model.SortOrder, nextPageToken string) (ImplResponse, error) {
+func (m *ModelCatalogServiceAPIService) FindLabels(ctx context.Context, assetType model.CatalogAssetType, pageSize string, orderBy string, sortOrder model.SortOrder, nextPageToken string) (ImplResponse, error) {
+	if assetType == "" {
+		assetType = model.CATALOGASSETTYPE_MODELS
+	} else if !assetType.IsValid() {
+		err := fmt.Errorf("invalid value '%s' for assetType: valid values are %v", assetType, model.AllowedCatalogAssetTypeEnumValues)
+		return ErrorResponse(http.StatusBadRequest, err), err
+	}
+
 	labels := m.labels.All()
 	if len(labels) > math.MaxInt32 {
 		err := errors.New("too many registered labels")
 		return ErrorResponse(http.StatusInternalServerError, err), err
 	}
 
+	// Filter labels by assetType
+	filtered := make([]map[string]any, 0, len(labels))
+	for _, label := range labels {
+		labelAssetType := model.CATALOGASSETTYPE_MODELS // default when not specified
+		if at, ok := label["assetType"]; ok {
+			if atStr, ok := at.(string); ok {
+				labelAssetType = model.CatalogAssetType(atStr)
+			}
+		}
+		if labelAssetType != assetType {
+			continue
+		}
+		filtered = append(filtered, label)
+	}
+
 	// Wrap labels to make them sortable
-	sortableLabels := make([]sortableLabel, len(labels))
-	for i, label := range labels {
+	sortableLabels := make([]sortableLabel, len(filtered))
+	for i, label := range filtered {
 		sortableLabels[i] = sortableLabel{
 			data:  label,
 			index: i, // Keep original index for stable sort
