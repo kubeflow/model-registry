@@ -1,11 +1,13 @@
 import * as React from 'react';
 import {
+  Button,
   FormGroup,
   FileUpload,
   FormHelperText,
   HelperText,
   HelperTextItem,
 } from '@patternfly/react-core';
+import { OpenDrawerRightIcon } from '@patternfly/react-icons';
 import { UpdateObjectAtPropAndValue } from 'mod-arch-shared';
 import FormFieldset from '~/app/pages/modelRegistry/screens/components/FormFieldset';
 import FormSection from '~/app/pages/modelRegistry/components/pf-overrides/FormSection';
@@ -15,14 +17,20 @@ import {
   FORM_LABELS,
   VALIDATION_MESSAGES,
   HELP_TEXT,
+  EXPECTED_YAML_FORMAT_LABEL,
 } from '~/app/pages/modelCatalogSettings/constants';
 
 type YamlSectionProps = {
   formData: ManageSourceFormData;
   setData: UpdateObjectAtPropAndValue<ManageSourceFormData>;
+  onToggleExpectedFormatDrawer?: () => void;
 };
 
-const YamlSection: React.FC<YamlSectionProps> = ({ formData, setData }) => {
+const YamlSection: React.FC<YamlSectionProps> = ({
+  formData,
+  setData,
+  onToggleExpectedFormatDrawer,
+}) => {
   const [isYamlTouched, setIsYamlTouched] = React.useState(false);
   const [filename, setFilename] = React.useState('');
   const isYamlContentValid = validateYamlContent(formData.yamlContent);
@@ -75,23 +83,43 @@ const YamlSection: React.FC<YamlSectionProps> = ({ formData, setData }) => {
 
   return (
     <FormSection data-testid="yaml-section">
-      <FormGroup label={FORM_LABELS.YAML_CONTENT} isRequired fieldId="yaml-content">
-        <FormFieldset component={yamlInput} field="YAML" />
-        <FormHelperText>
-          <HelperText>
-            <HelperTextItem>{HELP_TEXT.YAML}</HelperTextItem>
-          </HelperText>
-        </FormHelperText>
-        {isYamlTouched && !isYamlContentValid && (
+      <div style={{ position: 'relative' }}>
+        <FormGroup label={FORM_LABELS.YAML_CONTENT} isRequired fieldId="yaml-content">
+          <FormFieldset component={yamlInput} field="YAML" />
           <FormHelperText>
             <HelperText>
-              <HelperTextItem variant="error" data-testid="yaml-content-error">
-                {VALIDATION_MESSAGES.YAML_CONTENT_REQUIRED}
-              </HelperTextItem>
+              <HelperTextItem>{HELP_TEXT.YAML}</HelperTextItem>
             </HelperText>
           </FormHelperText>
+          {isYamlTouched && !isYamlContentValid && (
+            <FormHelperText>
+              <HelperText>
+                <HelperTextItem variant="error" data-testid="yaml-content-error">
+                  {VALIDATION_MESSAGES.YAML_CONTENT_REQUIRED}
+                </HelperTextItem>
+              </HelperText>
+            </FormHelperText>
+          )}
+        </FormGroup>
+        {onToggleExpectedFormatDrawer && (
+          <Button
+            variant="link"
+            isInline
+            onClick={onToggleExpectedFormatDrawer}
+            data-testid="view-expected-yaml-format-link"
+            component="button"
+            icon={<OpenDrawerRightIcon />}
+            iconPosition="end"
+            style={{
+              position: 'absolute',
+              top: 0,
+              right: 0,
+            }}
+          >
+            {EXPECTED_YAML_FORMAT_LABEL}
+          </Button>
         )}
-      </FormGroup>
+      </div>
     </FormSection>
   );
 };
