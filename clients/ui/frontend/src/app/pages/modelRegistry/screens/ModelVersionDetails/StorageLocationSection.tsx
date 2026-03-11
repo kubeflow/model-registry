@@ -43,13 +43,13 @@ const NoAccessPopover: React.FC<{ namespace: string }> = ({ namespace }) => (
   <Popover
     headerContent={
       <>
-        You don&apos;t have access to the <strong>{namespace}</strong> Project.
+        You don&apos;t have access to the <strong>{namespace}</strong> namespace.
       </>
     }
     bodyContent={
       <>
         <Content component={ContentVariants.p}>
-          To request access to a new or existing project, contact your administrator.
+          To request access to a new or existing namespace, contact your administrator.
         </Content>
         <Content component={ContentVariants.p}>Your administrator might be:</Content>
         <List>
@@ -62,7 +62,7 @@ const NoAccessPopover: React.FC<{ namespace: string }> = ({ namespace }) => (
   >
     <Button
       variant="plain"
-      aria-label="More info about project access"
+      aria-label="More info about namespace access"
       data-testid="no-access-popover-button"
     >
       <OutlinedQuestionCircleIcon />
@@ -70,19 +70,19 @@ const NoAccessPopover: React.FC<{ namespace: string }> = ({ namespace }) => (
   </Popover>
 );
 
-const ConnectionDisplay: React.FC<{
+const SecretDisplay: React.FC<{
   secretName?: string;
   storageType?: StorageType;
   namespace: string;
   hasAccess?: boolean;
 }> = ({ secretName, storageType, namespace, hasAccess = true }) => (
-  <Content component={ContentVariants.p} data-testid="storage-connection-display">
+  <Content component={ContentVariants.p} data-testid="storage-secret-display">
     {(secretName || storageType) && (
       <>
         <strong>
           {secretName || (storageType && `${getStorageTypeLabel(storageType)} storage`)}
         </strong>{' '}
-        connection in{' '}
+        secret in{' '}
       </>
     )}
     <Icon size="sm" isInline>
@@ -100,7 +100,7 @@ const StorageLocationTitle: React.FC = () => (
       headerContent="Storage location"
       bodyContent={
         <Content component={ContentVariants.p}>
-          The connection currently being used to store this model and its artifacts. This is the{' '}
+          The secret currently being used to store this model and its artifacts. This is the{' '}
           <strong>Model destination location</strong> specified during registration.
         </Content>
       }
@@ -163,7 +163,7 @@ const StorageLocationSection: React.FC<StorageLocationSectionProps> = ({
           <StorageLocationTitle />
         </StackItem>
         <StackItem>
-          <ConnectionDisplay namespace={fallbackNamespace} hasAccess={false} />
+          <SecretDisplay namespace={fallbackNamespace} hasAccess={false} />
         </StackItem>
       </Stack>
     );
@@ -196,7 +196,7 @@ const StorageLocationSection: React.FC<StorageLocationSectionProps> = ({
       </StackItem>
 
       <StackItem>
-        <ConnectionDisplay
+        <SecretDisplay
           secretName={transferJob.destSecretName}
           storageType={destType}
           namespace={namespace}
@@ -230,7 +230,7 @@ const StorageLocationSection: React.FC<StorageLocationSectionProps> = ({
           <Stack hasGutter>
             <StackItem>
               <Content component={ContentVariants.p}>
-                Details of the connection used to store the model before it was registered.
+                Details of the secret used to store the model before it was registered.
               </Content>
             </StackItem>
 
@@ -238,9 +238,9 @@ const StorageLocationSection: React.FC<StorageLocationSectionProps> = ({
               <DescriptionList>
                 <DashboardDescriptionListGroup
                   title="Model origin location"
-                  popover="The connection that was used to store the model at the time it was registered."
+                  popover="The secret that was used to store the model at the time it was registered."
                 >
-                  <ConnectionDisplay
+                  <SecretDisplay
                     secretName={transferJob.sourceSecretName}
                     storageType={sourceType}
                     namespace={namespace}

@@ -608,12 +608,12 @@ describe('Model version details', () => {
         modelVersionDetails.findStorageLocationTitle().should('contain.text', 'Storage location');
       });
 
-      it('should show destination connection info and Model URI', () => {
+      it('should show destination secret info and Model URI', () => {
         initStorageLocationIntercepts();
         modelVersionDetails.visit();
 
         modelVersionDetails
-          .findStorageConnectionDisplay()
+          .findStorageSecretDisplay()
           .first()
           .should('contain.text', 'OCI storage')
           .and('contain.text', 'my-project-1');
@@ -630,7 +630,7 @@ describe('Model version details', () => {
         modelVersionDetails.findStorageSourceDetails().find('button').first().click();
 
         modelVersionDetails
-          .findStorageConnectionDisplay()
+          .findStorageSecretDisplay()
           .last()
           .should('contain.text', 'S3 storage')
           .and('contain.text', 'my-project-1');

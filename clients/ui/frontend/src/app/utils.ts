@@ -142,11 +142,11 @@ export const getStorageTypeLabel = (type: StorageType): string => {
 export const getModelUriPopoverContent = (destType: ModelTransferJobDestinationType): string => {
   switch (destType) {
     case ModelTransferJobDestinationType.OCI:
-      return 'The URI of the OCI connection that is currently being used as the model storage location.';
+      return 'The URI of the OCI secret that is currently being used as the model storage location.';
     case ModelTransferJobDestinationType.S3:
-      return 'The path of the S3-compatible object storage connection that is currently being used as the model storage location.';
+      return 'The path of the S3-compatible object storage secret that is currently being used as the model storage location.';
     default:
-      return 'The URI of the connection that is currently being used as the model storage location.';
+      return 'The URI of the secret that is currently being used as the model storage location.';
   }
 };
 

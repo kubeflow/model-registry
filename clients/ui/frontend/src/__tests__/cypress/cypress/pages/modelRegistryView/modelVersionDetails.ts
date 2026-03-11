@@ -182,8 +182,8 @@ class ModelVersionDetails {
     return cy.findByTestId('storage-location-uri');
   }
 
-  findStorageConnectionDisplay() {
-    return cy.findAllByTestId('storage-connection-display');
+  findStorageSecretDisplay() {
+    return cy.findAllByTestId('storage-secret-display');
   }
 
   findStorageSourceDetails() {
