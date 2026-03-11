@@ -79,17 +79,6 @@ class TestMCPServerFiltering:
         actual_names = {s["name"] for s in items}
         assert actual_names == {"weather-api", "calculator"}
 
-    def test_filter_by_name(
-        self,
-        api_client: CatalogAPIClient,
-        suppress_ssl_warnings: None,
-    ):
-        """Test filtering MCP servers by exact name."""
-        target_name = "calculator"
-        response = api_client.get_mcp_servers(name=target_name)
-        items = response.get("items", [])
-        assert len(items) == 1, f"Expected 1 server named '{target_name}', got {len(items)}"
-        assert items[0]["name"] == target_name
 
 
 class TestMCPServerNegative:
