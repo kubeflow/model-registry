@@ -18,8 +18,8 @@ import {
 } from '@patternfly/react-core';
 import { OutlinedQuestionCircleIcon, FolderIcon } from '@patternfly/react-icons';
 import { DashboardDescriptionListGroup, InlineTruncatedClipboardCopy } from 'mod-arch-shared';
-import { useNamespaceSelector } from 'mod-arch-core';
 import { ModelTransferJob } from '~/app/types';
+import { useNamespaces } from '~/app/hooks/useNamespaces';
 import { FindAdministratorOptions } from '~/app/utilities/const';
 import {
   StorageType,
@@ -124,10 +124,12 @@ const StorageLocationSection: React.FC<StorageLocationSectionProps> = ({
   onRetry,
 }) => {
   const [isSourceDetailsExpanded, setIsSourceDetailsExpanded] = React.useState(false);
-  const { namespaces = [] } = useNamespaceSelector();
+  const [namespaces, namespacesLoaded] = useNamespaces();
 
-  const userHasNamespaceAccess = namespaces.some((ns) => ns.name === fallbackNamespace);
-  const hasAccessError = !userHasNamespaceAccess && transferJobLoaded && !transferJob;
+  const userHasNamespaceAccess =
+    namespacesLoaded && namespaces.some((ns) => ns.name === fallbackNamespace);
+  const hasAccessError =
+    namespacesLoaded && !userHasNamespaceAccess && transferJobLoaded && !transferJob;
 
   if (transferJobError && !hasAccessError) {
     return (
@@ -146,7 +148,7 @@ const StorageLocationSection: React.FC<StorageLocationSectionProps> = ({
     );
   }
 
-  if (!transferJobLoaded) {
+  if (!transferJobLoaded || !namespacesLoaded) {
     return (
       <Bullseye>
         <Spinner size="lg" />

@@ -266,7 +266,7 @@ export const getModelTransferJobByName =
       restGET(
         hostPath,
         `/model_transfer_jobs/${encodeURIComponent(jobName)}`,
-        { ...queryParams, namespace },
+        { ...queryParams, jobNamespace: namespace },
         opts,
       ),
     ).then((response) => {
