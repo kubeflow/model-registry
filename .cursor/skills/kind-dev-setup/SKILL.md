@@ -9,7 +9,12 @@ Set up a local Kubernetes dev environment for model-registry using Colima, Kind,
 
 ## Prerequisites
 
-- Docker, Colima, Kind, Tilt, Go, Node.js installed
+- Docker and Colima installed
+- [Kind](https://kind.sigs.k8s.io/) installed
+- Tilt v0.33.22+ (auto-downloaded by `make tilt-up` if not present)
+- Go >= 1.25.7
+- Node.js >= 22.0.0
+- kubectl installed
 - Workspace at the model-registry repo root
 
 ## Core Setup (3 Terminals)
@@ -22,21 +27,27 @@ Set up a local Kubernetes dev environment for model-registry using Colima, Kind,
 colima start
 ```
 
-2. Verify/switch kubectl context to `kind-model-registry`:
+2. Create the Kind cluster if it doesn't already exist:
+
+```bash
+kind get clusters | grep -q '^model-registry$' || kind create cluster --name model-registry
+```
+
+3. Switch kubectl context to `kind-model-registry`:
 
 ```bash
 kubectl config use-context kind-model-registry
 ```
 
-3. Start Tilt:
+4. Start Tilt (the Makefile downloads tilt automatically if not present):
 
 ```bash
-cd devenv && ./bin/tilt up
+cd devenv && make tilt-up
 ```
 
 If port 10350 is occupied: `lsof -ti:10350 | xargs kill -9`
 
-4. Wait for Tilt resources to become healthy before proceeding.
+5. Wait for Tilt resources to become healthy before proceeding.
 
 ### Terminal 2: BFF
 
@@ -114,19 +125,16 @@ Kill the BFF process in Terminal 2 and restart with or without `--mock-k8s-clien
 
 ## Optional: Performance Data (Model Catalog)
 
-Deploy the Model Catalog with demo performance data (evaluations, metrics) using the provided script:
+Deploy the Model Catalog with demo performance data (evaluations, metrics):
 
 ```bash
-./scripts/deploy_catalog_demo_on_kind.sh
+kubectl create namespace model-catalog --dry-run=client -o yaml | kubectl apply -f -
+kubectl apply -k manifests/kustomize/options/catalog/overlays/demo -n model-catalog
+kubectl wait --for=condition=ready pod -l app.kubernetes.io/name=postgres,app.kubernetes.io/part-of=model-catalog -n model-catalog --timeout=120s || true
+kubectl wait --for=condition=available deployment/model-catalog-server -n model-catalog --timeout=5m
 ```
 
-This script:
-- Creates/reuses the `model-registry` Kind cluster
-- Creates the `model-catalog` namespace
-- Deploys the catalog with the `demo` kustomize overlay including perf data
-- Waits for Postgres and the catalog server to be ready
-
-The demo overlay loads performance data from `manifests/kustomize/options/catalog/overlays/demo/perf-data/` which contains evaluation and performance ndjson files for certified models.
+This deploys the catalog with the `demo` kustomize overlay, which loads performance data from `manifests/kustomize/options/catalog/overlays/demo/dev-validated-perf-data.tar.gz` (mounted as a ConfigMap and extracted by an init container at startup).
 
 To access the catalog API after deployment:
 
@@ -199,6 +207,37 @@ Use these values when filling the form:
 - **S3 key must be a directory prefix** (e.g. `models/dir/`), not a full file path. Using the exact file path causes an EBUSY error because `os.path.relpath` resolves to `.`.
 - **Destination URI must be an OCI reference** (`quay.io/org/repo:tag`), not a web URL (`https://quay.io/repository/...`). The upload code prepends `docker://`.
 - Sample job manifests are in `jobs/async-upload/samples/` (`create_model_example.yaml`, `create_version_example.yaml`, `sample_job_s3_to_oci.yaml`).
+
+## Teardown
+
+Stop all running dev environment processes. Run in order:
+
+1. Kill the Frontend (port 9000) and BFF (port 4000):
+
+```bash
+lsof -ti:9000 | xargs kill -9 2>/dev/null || true
+lsof -ti:4000 | xargs kill -9 2>/dev/null || true
+```
+
+2. Bring down Tilt:
+
+```bash
+cd devenv && make tilt-down
+```
+
+3. (Optional) Delete the Kind cluster entirely:
+
+```bash
+kind delete cluster --name model-registry
+```
+
+4. (Optional) Stop Colima:
+
+```bash
+colima stop
+```
+
+Steps 3 and 4 are optional — skip them if you plan to restart the dev environment soon, since recreating the cluster takes time.
 
 ## Troubleshooting
 
