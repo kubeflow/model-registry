@@ -258,7 +258,6 @@ export type ModelRegistryAPIs = {
   patchRegisteredModel: PatchRegisteredModel;
   patchModelVersion: PatchModelVersion;
   patchModelArtifact: PatchModelArtifact;
-  getModelTransferJob: GetModelTransferJob;
   listModelTransferJobs: GetListModelTransferJobs;
   getModelTransferJobByName: GetModelTransferJobByName;
   createModelTransferJob: CreateModelTransferJob;
@@ -385,8 +384,6 @@ export type CreateModelTransferJobData = Omit<
 >;
 
 export type ModelTransferJobList = ModelRegistryListParams & { items: ModelTransferJob[] };
-
-export type GetModelTransferJob = (opts: APIOptions, jobName: string) => Promise<ModelTransferJob>;
 
 export type GetModelTransferJobEvents = (
   opts: APIOptions,

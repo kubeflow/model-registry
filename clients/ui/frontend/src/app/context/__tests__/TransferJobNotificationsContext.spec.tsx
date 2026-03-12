@@ -19,6 +19,10 @@ jest.mock('~/app/hooks/useNotification', () => ({
   useNotification: () => mockNotification,
 }));
 
+jest.mock('mod-arch-core', () => ({
+  useQueryParamNamespaces: () => ({}),
+}));
+
 const mockGetModelTransferJob = jest.fn();
 
 jest.mock('~/app/api/service', () => ({
