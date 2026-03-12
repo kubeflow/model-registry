@@ -17,6 +17,7 @@ func withLogger(ctx context.Context) context.Context {
 }
 
 func TestGetTransferJobPods_FiltersByJobNameAndHandlesEmptyInputs(t *testing.T) {
+	//nolint:staticcheck // fake.NewSimpleClientset is sufficient for unit tests; field management is not required here.
 	clientset := fake.NewSimpleClientset()
 	logic := &SharedClientLogic{
 		Client: clientset,
@@ -92,6 +93,7 @@ func TestGetTransferJobPods_FiltersByJobNameAndHandlesEmptyInputs(t *testing.T) 
 }
 
 func TestGetEventsForPods_FiltersByPodNamesAndHandlesEmptyInputs(t *testing.T) {
+	//nolint:staticcheck // fake.NewSimpleClientset is sufficient for unit tests; field management is not required here.
 	clientset := fake.NewSimpleClientset()
 	logic := &SharedClientLogic{
 		Client: clientset,

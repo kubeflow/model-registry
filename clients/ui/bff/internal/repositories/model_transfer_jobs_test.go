@@ -55,6 +55,7 @@ func (f *fakeKubernetesClient) GetServiceDetails(ctx context.Context, namespace 
 	return nil, nil
 }
 
+//nolint:staticcheck // Use corev1.Endpoints here to satisfy the existing KubernetesClientInterface, consistent with production code.
 func (f *fakeKubernetesClient) GetServiceEndpoints(ctx context.Context, namespace, serviceName string) (*corev1.Endpoints, error) {
 	return nil, nil
 }
