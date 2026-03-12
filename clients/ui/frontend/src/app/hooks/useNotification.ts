@@ -3,6 +3,8 @@ import { AlertVariant } from '@patternfly/react-core';
 import { NotificationContext, NotificationActionTypes } from 'mod-arch-core';
 import type { Notification } from 'mod-arch-core';
 
+export type NotificationLinkOptions = Pick<Notification, 'linkUrl' | 'linkLabel' | 'messageText'>;
+
 enum NotificationTypes {
   SUCCESS = 'success',
   ERROR = 'error',
@@ -13,7 +15,7 @@ enum NotificationTypes {
 type NotificationProps = (
   title: string,
   message?: React.ReactNode,
-  options?: Pick<Notification, 'linkUrl' | 'linkLabel' | 'messageText'>,
+  options?: NotificationLinkOptions,
 ) => void;
 
 type NotificationRemoveProps = (id: number | undefined) => void;
@@ -35,7 +37,7 @@ export const useNotification = (): NotificationFunc => {
       status: AlertVariant,
       title: string,
       message?: React.ReactNode,
-      options?: Pick<Notification, 'linkUrl' | 'linkLabel' | 'messageText'>,
+      options?: NotificationLinkOptions,
     ) => {
       const id = nextIdRef.current++;
       updateNotificationCount(id);
