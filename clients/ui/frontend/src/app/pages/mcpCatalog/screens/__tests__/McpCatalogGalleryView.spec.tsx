@@ -5,6 +5,7 @@ import { MemoryRouter } from 'react-router-dom';
 import { McpCatalogContext } from '~/app/context/mcpCatalog/McpCatalogContext';
 import type { McpCatalogContextType } from '~/app/pages/mcpCatalog/types/mcpCatalogContext';
 import type { McpServer } from '~/app/mcpServerCatalogTypes';
+import { MCP_CATALOG_GALLERY } from '~/app/pages/mcpCatalog/const';
 import McpCatalogGalleryView from '~/app/pages/mcpCatalog/screens/McpCatalogGalleryView';
 
 const buildServer = (id: number, sourceId: string): McpServer => ({
@@ -58,9 +59,10 @@ const renderWithContext = (overrides: Partial<McpCatalogContextType> = {}) => {
 };
 
 describe('McpCatalogGalleryView', () => {
-  it('renders 6 skeleton cards when loading', () => {
+  it('renders skeleton cards when loading', () => {
+    const skeletonCount = MCP_CATALOG_GALLERY.CARDS_PER_ROW * 2;
     renderWithContext({ mcpServersLoaded: false, mcpServers: { items: [] } });
-    for (let i = 0; i < 6; i++) {
+    for (let i = 0; i < skeletonCount; i++) {
       expect(screen.getByTestId(`mcp-catalog-skeleton-${i}`)).toBeInTheDocument();
     }
   });
@@ -96,8 +98,9 @@ describe('McpCatalogGalleryView', () => {
     expect(clearFn).toHaveBeenCalledTimes(1);
   });
 
-  it('renders Load more button when category has more than 9 items', () => {
-    const servers = Array.from({ length: 11 }, (_, i) => buildServer(i + 1, 'cat-a'));
+  it('renders Load more button when category has more than PAGE_SIZE items', () => {
+    const totalServers = MCP_CATALOG_GALLERY.PAGE_SIZE + 2;
+    const servers = Array.from({ length: totalServers }, (_, i) => buildServer(i + 1, 'cat-a'));
     renderWithContext({
       mcpServersLoaded: true,
       mcpServers: { items: servers },
@@ -107,11 +110,14 @@ describe('McpCatalogGalleryView', () => {
     });
     expect(screen.getByTestId('mcp-load-more-button')).toBeInTheDocument();
     expect(screen.getByText('Load more MCP servers')).toBeInTheDocument();
-    expect(screen.getAllByTestId(/^mcp-catalog-card-\d+$/)).toHaveLength(9);
+    expect(screen.getAllByTestId(/^mcp-catalog-card-\d+$/)).toHaveLength(
+      MCP_CATALOG_GALLERY.PAGE_SIZE,
+    );
   });
 
-  it('Load more button reveals all items when clicked', () => {
-    const servers = Array.from({ length: 11 }, (_, i) => buildServer(i + 1, 'cat-a'));
+  it('Load more button pages through batches and reveals all items after multiple clicks', () => {
+    const totalServers = MCP_CATALOG_GALLERY.PAGE_SIZE * 2 + 1;
+    const servers = Array.from({ length: totalServers }, (_, i) => buildServer(i + 1, 'cat-a'));
     renderWithContext({
       mcpServersLoaded: true,
       mcpServers: { items: servers },
@@ -119,12 +125,20 @@ describe('McpCatalogGalleryView', () => {
       sourceLabels: ['cat-a'],
       sourceLabelNames: { 'cat-a': 'Category A' },
     });
+    expect(screen.getAllByTestId(/^mcp-catalog-card-\d+$/)).toHaveLength(
+      MCP_CATALOG_GALLERY.PAGE_SIZE,
+    );
     fireEvent.click(screen.getByTestId('mcp-load-more-button'));
-    expect(screen.getAllByTestId(/^mcp-catalog-card-\d+$/)).toHaveLength(11);
+    expect(screen.getAllByTestId(/^mcp-catalog-card-\d+$/)).toHaveLength(
+      MCP_CATALOG_GALLERY.PAGE_SIZE * 2,
+    );
+    expect(screen.getByTestId('mcp-load-more-button')).toBeInTheDocument();
+    fireEvent.click(screen.getByTestId('mcp-load-more-button'));
+    expect(screen.getAllByTestId(/^mcp-catalog-card-\d+$/)).toHaveLength(totalServers);
     expect(screen.queryByTestId('mcp-load-more-button')).not.toBeInTheDocument();
   });
 
-  it('does not show Load more when category has 9 or fewer items', () => {
+  it('does not show Load more when category has PAGE_SIZE or fewer items', () => {
     const servers = Array.from({ length: 5 }, (_, i) => buildServer(i + 1, 'cat-a'));
     renderWithContext({
       mcpServersLoaded: true,
@@ -137,10 +151,11 @@ describe('McpCatalogGalleryView', () => {
     expect(screen.getAllByTestId(/^mcp-catalog-card-\d+$/)).toHaveLength(5);
   });
 
-  it('renders Show all link in All Servers view with max 3 items per category', () => {
+  it('renders Show all link in All Servers view with max CARDS_PER_ROW items per category', () => {
+    const minItemsForShowAll = MCP_CATALOG_GALLERY.CARDS_PER_ROW + 1;
     const servers = [
-      ...Array.from({ length: 5 }, (_, i) => buildServer(i + 1, 'cat-a')),
-      ...Array.from({ length: 4 }, (_, i) => buildServer(10 + i, 'cat-b')),
+      ...Array.from({ length: minItemsForShowAll }, (_, i) => buildServer(i + 1, 'cat-a')),
+      ...Array.from({ length: minItemsForShowAll }, (_, i) => buildServer(10 + i, 'cat-b')),
     ];
     const catalogSources = {
       items: [

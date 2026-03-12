@@ -1,14 +1,30 @@
 import '@testing-library/jest-dom';
 import { renderHook, act } from '@testing-library/react';
 import * as React from 'react';
-import { MemoryRouter } from 'react-router-dom';
+import { MemoryRouter, useSearchParams } from 'react-router-dom';
 import { useMcpUrlSync } from '~/app/pages/mcpCatalog/hooks/useMcpUrlSync';
+
+const searchParamsRef = { current: new URLSearchParams() };
+
+function SearchParamsCapture({ children }: { children: React.ReactNode }) {
+  const [params] = useSearchParams();
+  searchParamsRef.current = params;
+  return React.createElement(React.Fragment, null, children);
+}
 
 function createWrapper(initialEntry = '/') {
   const Wrapper = ({ children }: { children: React.ReactNode }) =>
-    React.createElement(MemoryRouter, { initialEntries: [initialEntry] }, children);
+    React.createElement(
+      MemoryRouter,
+      { initialEntries: [initialEntry] },
+      React.createElement(SearchParamsCapture, null, children),
+    );
   Wrapper.displayName = 'TestRouterWrapper';
   return Wrapper;
+}
+
+function getSearchParams(): URLSearchParams {
+  return searchParamsRef.current;
 }
 
 describe('useMcpUrlSync', () => {
@@ -69,7 +85,10 @@ describe('useMcpUrlSync', () => {
         filters: { deploymentMode: ['Local'] },
       });
     });
-    expect(result.current.initialState.searchQuery).toBe('');
+    const params = getSearchParams();
+    expect(params.get('q')).toBe('my-query');
+    expect(params.get('source')).toBe('source-1');
+    expect(params.get('deploymentMode')).toBe('Local');
   });
 
   it('syncToUrl removes empty params', () => {
@@ -83,6 +102,9 @@ describe('useMcpUrlSync', () => {
         filters: {},
       });
     });
-    expect(result.current.initialState.searchQuery).toBe('old');
+    const params = getSearchParams();
+    expect(params.get('q')).toBeNull();
+    expect(params.get('source')).toBeNull();
+    expect(params.get('deploymentMode')).toBeNull();
   });
 });

@@ -11,6 +11,7 @@ import {
 } from '@patternfly/react-core';
 import { ArrowRightIcon } from '@patternfly/react-icons';
 import type { McpServer } from '~/app/mcpServerCatalogTypes';
+import { MCP_CATALOG_GRID_SPAN } from '~/app/pages/mcpCatalog/const';
 import McpCatalogCard from '~/app/pages/mcpCatalog/components/McpCatalogCard';
 
 type McpCatalogCategorySectionProps = {
@@ -65,7 +66,13 @@ const McpCatalogCategorySection: React.FC<McpCatalogCategorySectionProps> = Reac
         </Flex>
         <Grid hasGutter>
           {displayItems.map((server) => (
-            <GridItem key={String(server.id)} sm={12} md={6} lg={4} xl2={4}>
+            <GridItem
+              key={String(server.id)}
+              sm={MCP_CATALOG_GRID_SPAN.sm}
+              md={MCP_CATALOG_GRID_SPAN.md}
+              lg={MCP_CATALOG_GRID_SPAN.lg}
+              xl2={MCP_CATALOG_GRID_SPAN.xl2}
+            >
               <McpCatalogCard server={server} />
             </GridItem>
           ))}
