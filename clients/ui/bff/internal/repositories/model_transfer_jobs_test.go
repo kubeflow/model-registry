@@ -24,6 +24,60 @@ type fakeKubernetesClient struct {
 	eventsByNamespace map[string]*corev1.EventList
 }
 
+func mustGetSingleJob(t *testing.T, repo *ModelRegistryRepository, client k8s.KubernetesClientInterface, namespace, modelRegistryID string) models.ModelTransferJob {
+	t.Helper()
+
+	list, err := repo.GetAllModelTransferJobs(context.Background(), client, namespace, modelRegistryID)
+	if err != nil {
+		t.Fatalf("GetAllModelTransferJobs returned error: %v", err)
+	}
+	if len(list.Items) != 1 {
+		t.Fatalf("expected 1 job, got %d", len(list.Items))
+	}
+
+	return list.Items[0]
+}
+
+func buildSingleJobFixture(jobName string, jobStatus batchv1.JobStatus, containerState corev1.ContainerState) *fakeKubernetesClient {
+	job := batchv1.Job{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      jobName,
+			Namespace: "kubeflow",
+		},
+		Status: jobStatus,
+	}
+
+	jobs := &batchv1.JobList{
+		Items: []batchv1.Job{job},
+	}
+
+	pod := corev1.Pod{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      jobName + "-pod",
+			Namespace: "kubeflow",
+			Labels: map[string]string{
+				"job-name": job.Name,
+			},
+		},
+		Status: corev1.PodStatus{
+			ContainerStatuses: []corev1.ContainerStatus{
+				{
+					State: containerState,
+				},
+			},
+		},
+	}
+
+	return &fakeKubernetesClient{
+		jobs: jobs,
+		podsByNamespace: map[string]*corev1.PodList{
+			"kubeflow": {
+				Items: []corev1.Pod{pod},
+			},
+		},
+	}
+}
+
 func (f *fakeKubernetesClient) GetAllModelTransferJobs(ctx context.Context, namespace string, modelRegistryID string) (*batchv1.JobList, error) {
 	if f.jobs == nil {
 		return &batchv1.JobList{}, nil
@@ -176,60 +230,19 @@ func TestGetAllModelTransferJobs_PodWaitingFailuresOverrideStatusToFailed(t *tes
 
 	for _, reason := range waitReasons {
 		t.Run(reason, func(t *testing.T) {
-			job := batchv1.Job{
-				ObjectMeta: metav1.ObjectMeta{
-					Name:      "job-waiting-" + reason,
-					Namespace: "kubeflow",
-				},
-				Status: batchv1.JobStatus{
-					Active: 1, // initial status: Running
-				},
+			jobStatus := batchv1.JobStatus{
+				Active: 1, // initial status: Running
 			}
-
-			jobs := &batchv1.JobList{
-				Items: []batchv1.Job{job},
-			}
-
-			pod := corev1.Pod{
-				ObjectMeta: metav1.ObjectMeta{
-					Name:      "pod-1",
-					Namespace: "kubeflow",
-					Labels: map[string]string{
-						"job-name": job.Name,
-					},
-				},
-				Status: corev1.PodStatus{
-					ContainerStatuses: []corev1.ContainerStatus{
-						{
-							State: corev1.ContainerState{
-								Waiting: &corev1.ContainerStateWaiting{
-									Reason:  reason,
-									Message: "simulated waiting error",
-								},
-							},
-						},
-					},
+			containerState := corev1.ContainerState{
+				Waiting: &corev1.ContainerStateWaiting{
+					Reason:  reason,
+					Message: "simulated waiting error",
 				},
 			}
 
-			client := &fakeKubernetesClient{
-				jobs: jobs,
-				podsByNamespace: map[string]*corev1.PodList{
-					"kubeflow": {
-						Items: []corev1.Pod{pod},
-					},
-				},
-			}
+			client := buildSingleJobFixture("job-waiting-"+reason, jobStatus, containerState)
 
-			list, err := repo.GetAllModelTransferJobs(context.Background(), client, "kubeflow", "model-registry-id")
-			if err != nil {
-				t.Fatalf("GetAllModelTransferJobs returned error: %v", err)
-			}
-			if len(list.Items) != 1 {
-				t.Fatalf("expected 1 job, got %d", len(list.Items))
-			}
-
-			jobModel := list.Items[0]
+			jobModel := mustGetSingleJob(t, repo, client, "kubeflow", "model-registry-id")
 			if jobModel.Status != models.ModelTransferJobStatusFailed {
 				t.Fatalf("expected job status Failed, got %s", jobModel.Status)
 			}
@@ -243,61 +256,20 @@ func TestGetAllModelTransferJobs_PodWaitingFailuresOverrideStatusToFailed(t *tes
 func TestGetAllModelTransferJobs_TerminatedNonZeroExitCodeOverridesStatusAndMessage(t *testing.T) {
 	repo := NewModelRegistryRepository()
 
-	job := batchv1.Job{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      "job-terminated",
-			Namespace: "kubeflow",
-		},
-		Status: batchv1.JobStatus{
-			Active: 1, // initial status: Running
-		},
+	jobStatus := batchv1.JobStatus{
+		Active: 1, // initial status: Running
 	}
-
-	jobs := &batchv1.JobList{
-		Items: []batchv1.Job{job},
-	}
-
-	pod := corev1.Pod{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      "pod-terminated",
-			Namespace: "kubeflow",
-			Labels: map[string]string{
-				"job-name": job.Name,
-			},
-		},
-		Status: corev1.PodStatus{
-			ContainerStatuses: []corev1.ContainerStatus{
-				{
-					State: corev1.ContainerState{
-						Terminated: &corev1.ContainerStateTerminated{
-							ExitCode: 1,
-							Message:  "terminated due to error",
-							Reason:   "Error",
-						},
-					},
-				},
-			},
+	containerState := corev1.ContainerState{
+		Terminated: &corev1.ContainerStateTerminated{
+			ExitCode: 1,
+			Message:  "terminated due to error",
+			Reason:   "Error",
 		},
 	}
 
-	client := &fakeKubernetesClient{
-		jobs: jobs,
-		podsByNamespace: map[string]*corev1.PodList{
-			"kubeflow": {
-				Items: []corev1.Pod{pod},
-			},
-		},
-	}
+	client := buildSingleJobFixture("job-terminated", jobStatus, containerState)
 
-	list, err := repo.GetAllModelTransferJobs(context.Background(), client, "kubeflow", "model-registry-id")
-	if err != nil {
-		t.Fatalf("GetAllModelTransferJobs returned error: %v", err)
-	}
-	if len(list.Items) != 1 {
-		t.Fatalf("expected 1 job, got %d", len(list.Items))
-	}
-
-	jobModel := list.Items[0]
+	jobModel := mustGetSingleJob(t, repo, client, "kubeflow", "model-registry-id")
 	if jobModel.Status != models.ModelTransferJobStatusFailed {
 		t.Fatalf("expected job status Failed, got %s", jobModel.Status)
 	}
@@ -310,66 +282,25 @@ func TestGetAllModelTransferJobs_TerminatedNonZeroExitCodeOverridesStatusAndMess
 func TestGetAllModelTransferJobs_TerminationMessageParsesIDs(t *testing.T) {
 	repo := NewModelRegistryRepository()
 
-	job := batchv1.Job{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      "job-with-termination-json",
-			Namespace: "kubeflow",
-		},
-		Status: batchv1.JobStatus{
-			Succeeded: 1, // Completed job
-		},
-	}
-
-	jobs := &batchv1.JobList{
-		Items: []batchv1.Job{job},
-	}
-
 	terminationJSON := `{
   "RegisteredModel": { "id": "rm-123" },
   "ModelVersion":   { "id": "mv-456" },
   "ModelArtifact":  { "id": "ma-789" }
 }`
 
-	pod := corev1.Pod{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      "pod-termination-json",
-			Namespace: "kubeflow",
-			Labels: map[string]string{
-				"job-name": job.Name,
-			},
-		},
-		Status: corev1.PodStatus{
-			ContainerStatuses: []corev1.ContainerStatus{
-				{
-					State: corev1.ContainerState{
-						Terminated: &corev1.ContainerStateTerminated{
-							ExitCode: 0,
-							Message:  terminationJSON,
-						},
-					},
-				},
-			},
+	jobStatus := batchv1.JobStatus{
+		Succeeded: 1, // Completed job
+	}
+	containerState := corev1.ContainerState{
+		Terminated: &corev1.ContainerStateTerminated{
+			ExitCode: 0,
+			Message:  terminationJSON,
 		},
 	}
 
-	client := &fakeKubernetesClient{
-		jobs: jobs,
-		podsByNamespace: map[string]*corev1.PodList{
-			"kubeflow": {
-				Items: []corev1.Pod{pod},
-			},
-		},
-	}
+	client := buildSingleJobFixture("job-with-termination-json", jobStatus, containerState)
 
-	list, err := repo.GetAllModelTransferJobs(context.Background(), client, "kubeflow", "model-registry-id")
-	if err != nil {
-		t.Fatalf("GetAllModelTransferJobs returned error: %v", err)
-	}
-	if len(list.Items) != 1 {
-		t.Fatalf("expected 1 job, got %d", len(list.Items))
-	}
-
-	jobModel := list.Items[0]
+	jobModel := mustGetSingleJob(t, repo, client, "kubeflow", "model-registry-id")
 	if jobModel.RegisteredModelId != "rm-123" {
 		t.Fatalf("expected RegisteredModelId rm-123, got %q", jobModel.RegisteredModelId)
 	}
@@ -384,126 +315,45 @@ func TestGetAllModelTransferJobs_TerminationMessageParsesIDs(t *testing.T) {
 func TestGetAllModelTransferJobs_TerminationMessageMalformedJSONHandledGracefully(t *testing.T) {
 	repo := NewModelRegistryRepository()
 
-	job := batchv1.Job{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      "job-malformed-json",
-			Namespace: "kubeflow",
+	jobStatus := batchv1.JobStatus{
+		Succeeded: 1,
+	}
+
+	cases := []struct {
+		name    string
+		jobName string
+		message string
+	}{
+		{
+			name:    "malformed JSON",
+			jobName: "job-malformed-json",
+			message: "{not valid json",
 		},
-		Status: batchv1.JobStatus{
-			Succeeded: 1,
+		{
+			name:    "empty message",
+			jobName: "job-empty-message",
+			message: "",
 		},
 	}
 
-	jobs := &batchv1.JobList{
-		Items: []batchv1.Job{job},
-	}
-
-	pod := corev1.Pod{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      "pod-malformed-json",
-			Namespace: "kubeflow",
-			Labels: map[string]string{
-				"job-name": job.Name,
-			},
-		},
-		Status: corev1.PodStatus{
-			ContainerStatuses: []corev1.ContainerStatus{
-				{
-					State: corev1.ContainerState{
-						Terminated: &corev1.ContainerStateTerminated{
-							ExitCode: 0,
-							Message:  "{not valid json",
-						},
-					},
+	for _, tc := range cases {
+		tc := tc
+		t.Run(tc.name, func(t *testing.T) {
+			containerState := corev1.ContainerState{
+				Terminated: &corev1.ContainerStateTerminated{
+					ExitCode: 0,
+					Message:  tc.message,
 				},
-			},
-		},
-	}
+			}
 
-	client := &fakeKubernetesClient{
-		jobs: jobs,
-		podsByNamespace: map[string]*corev1.PodList{
-			"kubeflow": {
-				Items: []corev1.Pod{pod},
-			},
-		},
-	}
+			client := buildSingleJobFixture(tc.jobName, jobStatus, containerState)
 
-	list, err := repo.GetAllModelTransferJobs(context.Background(), client, "kubeflow", "model-registry-id")
-	if err != nil {
-		t.Fatalf("GetAllModelTransferJobs returned error: %v", err)
-	}
-	if len(list.Items) != 1 {
-		t.Fatalf("expected 1 job, got %d", len(list.Items))
-	}
-
-	jobModel := list.Items[0]
-	if jobModel.RegisteredModelId != "" || jobModel.ModelVersionId != "" || jobModel.ModelArtifactId != "" {
-		t.Fatalf("expected no IDs to be set for malformed JSON, got rm=%q mv=%q ma=%q",
-			jobModel.RegisteredModelId, jobModel.ModelVersionId, jobModel.ModelArtifactId)
-	}
-}
-
-func TestGetAllModelTransferJobs_TerminationMessageEmptyHandledGracefully(t *testing.T) {
-	repo := NewModelRegistryRepository()
-
-	job := batchv1.Job{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      "job-empty-message",
-			Namespace: "kubeflow",
-		},
-		Status: batchv1.JobStatus{
-			Succeeded: 1,
-		},
-	}
-
-	jobs := &batchv1.JobList{
-		Items: []batchv1.Job{job},
-	}
-
-	pod := corev1.Pod{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      "pod-empty-message",
-			Namespace: "kubeflow",
-			Labels: map[string]string{
-				"job-name": job.Name,
-			},
-		},
-		Status: corev1.PodStatus{
-			ContainerStatuses: []corev1.ContainerStatus{
-				{
-					State: corev1.ContainerState{
-						Terminated: &corev1.ContainerStateTerminated{
-							ExitCode: 0,
-							Message:  "",
-						},
-					},
-				},
-			},
-		},
-	}
-
-	client := &fakeKubernetesClient{
-		jobs: jobs,
-		podsByNamespace: map[string]*corev1.PodList{
-			"kubeflow": {
-				Items: []corev1.Pod{pod},
-			},
-		},
-	}
-
-	list, err := repo.GetAllModelTransferJobs(context.Background(), client, "kubeflow", "model-registry-id")
-	if err != nil {
-		t.Fatalf("GetAllModelTransferJobs returned error: %v", err)
-	}
-	if len(list.Items) != 1 {
-		t.Fatalf("expected 1 job, got %d", len(list.Items))
-	}
-
-	jobModel := list.Items[0]
-	if jobModel.RegisteredModelId != "" || jobModel.ModelVersionId != "" || jobModel.ModelArtifactId != "" {
-		t.Fatalf("expected no IDs to be set for empty termination message, got rm=%q mv=%q ma=%q",
-			jobModel.RegisteredModelId, jobModel.ModelVersionId, jobModel.ModelArtifactId)
+			jobModel := mustGetSingleJob(t, repo, client, "kubeflow", "model-registry-id")
+			if jobModel.RegisteredModelId != "" || jobModel.ModelVersionId != "" || jobModel.ModelArtifactId != "" {
+				t.Fatalf("expected no IDs to be set for termination message %q, got rm=%q mv=%q ma=%q",
+					tc.message, jobModel.RegisteredModelId, jobModel.ModelVersionId, jobModel.ModelArtifactId)
+			}
+		})
 	}
 }
 
@@ -673,15 +523,7 @@ func TestGetAllModelTransferJobs_NormalRunningJobNotOverridden(t *testing.T) {
 		},
 	}
 
-	list, err := repo.GetAllModelTransferJobs(context.Background(), client, "kubeflow", "model-registry-id")
-	if err != nil {
-		t.Fatalf("GetAllModelTransferJobs returned error: %v", err)
-	}
-	if len(list.Items) != 1 {
-		t.Fatalf("expected 1 job, got %d", len(list.Items))
-	}
-
-	jobModel := list.Items[0]
+	jobModel := mustGetSingleJob(t, repo, client, "kubeflow", "model-registry-id")
 	if jobModel.Status != models.ModelTransferJobStatusRunning {
 		t.Fatalf("expected job status Running to be preserved, got %s", jobModel.Status)
 	}

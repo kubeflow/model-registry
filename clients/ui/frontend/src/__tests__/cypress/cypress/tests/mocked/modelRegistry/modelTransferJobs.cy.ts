@@ -1,5 +1,5 @@
 import { mockModArchResponse } from 'mod-arch-core';
-import { ModelTransferJobStatus } from '~/app/types';
+import { ModelTransferJobStatus, ModelTransferJobUploadIntent } from '~/app/types';
 import { mockModelTransferJob, mockModelTransferJobList } from '~/__mocks__/mockModelTransferJob';
 import { mockModelRegistry } from '~/__mocks__/mockModelRegistry';
 import { modelTransferJobsPage } from '~/__tests__/cypress/cypress/pages/modelRegistryView/modelTransferJobs';
@@ -24,6 +24,44 @@ const jobList = mockModelTransferJobList({
   pageSize: 10,
   nextPageToken: '',
 });
+
+const interceptWithSingleFailedJob = (id: string, errorMessage: string) => {
+  const failedJobList = mockModelTransferJobList({
+    items: [
+      mockModelTransferJob({
+        id,
+        name: id,
+        jobDisplayName: id,
+        status: ModelTransferJobStatus.FAILED,
+        namespace: 'kubeflow',
+        errorMessage,
+      }),
+    ],
+    size: 1,
+    pageSize: 10,
+    nextPageToken: '',
+  });
+
+  cy.intercept(
+    'GET',
+    `**/api/${MODEL_REGISTRY_API_VERSION}/model_registry/${modelRegistryName}/model_transfer_jobs*`,
+    mockModArchResponse(failedJobList),
+  );
+};
+
+const buildFailedJobWithIntent = (
+  id: string,
+  intent: ModelTransferJobUploadIntent,
+  errorMessage: string,
+) =>
+  mockModelTransferJob({
+    id,
+    name: id,
+    jobDisplayName: id,
+    status: ModelTransferJobStatus.FAILED,
+    uploadIntent: intent,
+    errorMessage,
+  });
 
 function visitAndWaitForJobsTable() {
   modelTransferJobsPage.visit(modelRegistryName);
@@ -221,19 +259,26 @@ describe('Model transfer jobs', () => {
     cy.findByTestId('transfer-job-status-modal').should('not.exist');
   });
 
-  it('should show failure alert and render event log entries for a failed job', () => {
-    const failedJobList = mockModelTransferJobList({
+  it('should render the correct modal title for each upload intent', () => {
+    const jobsWithIntents = mockModelTransferJobList({
       items: [
-        mockModelTransferJob({
-          id: 'job-failed-events',
-          name: 'job-failed-events',
-          jobDisplayName: 'job-failed-events',
-          status: ModelTransferJobStatus.FAILED,
-          namespace: 'kubeflow',
-          errorMessage: 'Connection timeout while uploading',
-        }),
+        buildFailedJobWithIntent(
+          'job-create-model',
+          ModelTransferJobUploadIntent.CREATE_MODEL,
+          'Create model failed',
+        ),
+        buildFailedJobWithIntent(
+          'job-create-version',
+          ModelTransferJobUploadIntent.CREATE_VERSION,
+          'Create version failed',
+        ),
+        buildFailedJobWithIntent(
+          'job-update-artifact',
+          ModelTransferJobUploadIntent.UPDATE_ARTIFACT,
+          'Update artifact failed',
+        ),
       ],
-      size: 1,
+      size: 3,
       pageSize: 10,
       nextPageToken: '',
     });
@@ -241,8 +286,27 @@ describe('Model transfer jobs', () => {
     cy.intercept(
       'GET',
       `**/api/${MODEL_REGISTRY_API_VERSION}/model_registry/${modelRegistryName}/model_transfer_jobs*`,
-      mockModArchResponse(failedJobList),
+      mockModArchResponse(jobsWithIntents),
     );
+
+    modelTransferJobsPage.visit(modelRegistryName);
+    modelTransferJobsPage.findTableRows().should('have.length', 3);
+
+    const assertModalTitleForJob = (jobName: string, expectedTitle: string) => {
+      const row = modelTransferJobsPage.getRow(jobName);
+      row.find().findByTestId('job-status').click();
+      cy.findByTestId('transfer-job-status-modal').contains(expectedTitle).should('be.visible');
+      cy.findByLabelText('Close').click();
+      cy.findByTestId('transfer-job-status-modal').should('not.exist');
+    };
+
+    assertModalTitleForJob('job-create-model', 'Model creation status');
+    assertModalTitleForJob('job-create-version', 'Model version status');
+    assertModalTitleForJob('job-update-artifact', 'Transfer job status');
+  });
+
+  it('should show failure alert and render event log entries for a failed job', () => {
+    interceptWithSingleFailedJob('job-failed-events', 'Connection timeout while uploading');
 
     const events = [
       {
@@ -291,16 +355,16 @@ describe('Model transfer jobs', () => {
       });
   });
 
-  it('should show empty message when there are no events', () => {
+  it('should fall back to unknown failure reason when errorMessage is missing', () => {
     const failedJobList = mockModelTransferJobList({
       items: [
         mockModelTransferJob({
-          id: 'job-failed-no-events',
-          name: 'job-failed-no-events',
-          jobDisplayName: 'job-failed-no-events',
+          id: 'job-failed-no-message',
+          name: 'job-failed-no-message',
+          jobDisplayName: 'job-failed-no-message',
           status: ModelTransferJobStatus.FAILED,
           namespace: 'kubeflow',
-          errorMessage: 'Some failure',
+          errorMessage: undefined,
         }),
       ],
       size: 1,
@@ -313,6 +377,20 @@ describe('Model transfer jobs', () => {
       `**/api/${MODEL_REGISTRY_API_VERSION}/model_registry/${modelRegistryName}/model_transfer_jobs*`,
       mockModArchResponse(failedJobList),
     );
+
+    modelTransferJobsPage.visit(modelRegistryName);
+
+    const failedRow = modelTransferJobsPage.getRow('job-failed-no-message');
+    failedRow.find().findByTestId('job-status').click();
+
+    cy.findByTestId('transfer-job-status-modal').should('be.visible');
+    cy.findByTestId('transfer-job-failure-alert')
+      .should('be.visible')
+      .and('contain.text', 'Failure reason (unknown)');
+  });
+
+  it('should show empty message when there are no events', () => {
+    interceptWithSingleFailedJob('job-failed-no-events', 'Some failure');
 
     cy.intercept(
       'GET',
@@ -336,27 +414,7 @@ describe('Model transfer jobs', () => {
   });
 
   it('should keep showing spinner and not render event entries when the events API fails', () => {
-    const failedJobList = mockModelTransferJobList({
-      items: [
-        mockModelTransferJob({
-          id: 'job-failed-error-events',
-          name: 'job-failed-error-events',
-          jobDisplayName: 'job-failed-error-events',
-          status: ModelTransferJobStatus.FAILED,
-          namespace: 'kubeflow',
-          errorMessage: 'Unexpected failure',
-        }),
-      ],
-      size: 1,
-      pageSize: 10,
-      nextPageToken: '',
-    });
-
-    cy.intercept(
-      'GET',
-      `**/api/${MODEL_REGISTRY_API_VERSION}/model_registry/${modelRegistryName}/model_transfer_jobs*`,
-      mockModArchResponse(failedJobList),
-    );
+    interceptWithSingleFailedJob('job-failed-error-events', 'Unexpected failure');
 
     cy.intercept('GET', '**/model_transfer_jobs/job-failed-error-events/events*', {
       forceNetworkError: true,

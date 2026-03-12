@@ -45,6 +45,30 @@ const mockModelRegistryAPIs: ModelRegistryAPIs = {
   getModelTransferJobEvents: jest.fn(),
 };
 
+type FetchStateCapture = {
+  getCapturedCallback: () => ((opts: unknown) => Promise<ModelTransferJobList>) | undefined;
+  optionsCalls: Array<{ refreshRate?: number }>;
+};
+
+const setupFetchStateCapture = (): FetchStateCapture => {
+  let capturedCallback: ((opts: unknown) => Promise<ModelTransferJobList>) | undefined;
+  const optionsCalls: Array<{ refreshRate?: number }> = [];
+
+  // The concrete types here are not important for the test; relax them to avoid clashing with useFetchState's generics.
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  mockUseFetchState.mockImplementation((cb: any, initialData: any, options: any) => {
+    capturedCallback = cb as typeof capturedCallback;
+    optionsCalls.push({ refreshRate: (options as { refreshRate?: number }).refreshRate });
+    // Return a basic useFetchState tuple
+    return [initialData, true, undefined, jest.fn()];
+  });
+
+  return {
+    getCapturedCallback: () => capturedCallback,
+    optionsCalls,
+  };
+};
+
 describe('useModelTransferJobs', () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -93,17 +117,7 @@ describe('useModelTransferJobs', () => {
     listModelTransferJobsMock.mockResolvedValue(activeJobsList);
 
     // Capture the callback and options passed into useFetchState
-    let capturedCallback: ((opts: unknown) => Promise<ModelTransferJobList>) | undefined;
-    const optionsCalls: Array<{ refreshRate?: number }> = [];
-
-    // The concrete types here are not important for the test; relax them to avoid clashing with useFetchState's generics.
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    mockUseFetchState.mockImplementation((cb: any, initialData: any, options: any) => {
-      capturedCallback = cb as typeof capturedCallback;
-      optionsCalls.push({ refreshRate: (options as { refreshRate?: number }).refreshRate });
-      // Return a basic useFetchState tuple
-      return [initialData, true, undefined, jest.fn()];
-    });
+    const { getCapturedCallback, optionsCalls } = setupFetchStateCapture();
 
     const renderResult = testHook(useModelTransferJobs)();
 
@@ -114,6 +128,7 @@ describe('useModelTransferJobs', () => {
 
     // Simulate the fetch callback resolving with active jobs, which should
     // toggle hasActiveJobs to true and cause a re-render with refreshRate = POLL_INTERVAL.
+    const capturedCallback = getCapturedCallback();
     expect(capturedCallback).toBeDefined();
     await capturedCallback?.({});
 
@@ -162,21 +177,13 @@ describe('useModelTransferJobs', () => {
 
     listModelTransferJobsMock.mockResolvedValue(terminalJobsList);
 
-    let capturedCallback: ((opts: unknown) => Promise<ModelTransferJobList>) | undefined;
-    const optionsCalls: Array<{ refreshRate?: number }> = [];
-
-    // The concrete types here are not important for the test; relax them to avoid clashing with useFetchState's generics.
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    mockUseFetchState.mockImplementation((cb: any, initialData: any, options: any) => {
-      capturedCallback = cb as typeof capturedCallback;
-      optionsCalls.push({ refreshRate: (options as { refreshRate?: number }).refreshRate });
-      return [initialData, true, undefined, jest.fn()];
-    });
+    const { getCapturedCallback, optionsCalls } = setupFetchStateCapture();
 
     testHook(useModelTransferJobs)();
 
     // Simulate fetch resolving with only terminal jobs; hasActiveJobs should stay false,
     // so refreshRate should remain undefined (no need to wait for another update).
+    const capturedCallback = getCapturedCallback();
     expect(capturedCallback).toBeDefined();
     await capturedCallback?.({});
 
