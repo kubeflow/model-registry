@@ -1,5 +1,6 @@
 import type { CatalogSourceList } from '~/app/modelCatalogTypes';
 import type { McpServer } from '~/app/mcpServerCatalogTypes';
+import type { ModelCatalogAPIState } from '~/app/hooks/modelCatalog/useModelCatalogAPIState';
 import type {
   McpCatalogFilterOptionsList,
   McpCatalogFiltersState,
@@ -12,6 +13,7 @@ export type McpCatalogPaginationState = {
 };
 
 export type McpCatalogContextType = {
+  apiState: ModelCatalogAPIState;
   filters: McpCatalogFiltersState;
   setFilters: (
     filters: McpCatalogFiltersState | ((prev: McpCatalogFiltersState) => McpCatalogFiltersState),

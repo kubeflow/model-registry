@@ -1,7 +1,9 @@
 import * as React from 'react';
 import { useQueryParamNamespaces } from 'mod-arch-core';
 import { BFF_API_VERSION, URL_PREFIX } from '~/app/utilities/const';
-import useModelCatalogAPIState from '~/app/hooks/modelCatalog/useModelCatalogAPIState';
+import useModelCatalogAPIState, {
+  ModelCatalogAPIState,
+} from '~/app/hooks/modelCatalog/useModelCatalogAPIState';
 import { useCatalogSources } from '~/app/hooks/modelCatalog/useCatalogSources';
 import { useMcpServersBySourceLabelWithAPI } from '~/app/hooks/mcpServerCatalog/useMcpServersBySourceLabel';
 import { useMcpServerFilterOptionListWithAPI } from '~/app/hooks/mcpServerCatalog/useMcpServerFilterOptionList';
@@ -38,6 +40,8 @@ const defaultPagination: McpCatalogPaginationState = {
 };
 
 export const McpCatalogContext = React.createContext<McpCatalogContextType>({
+  // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
+  apiState: { apiAvailable: false, api: null as unknown as ModelCatalogAPIState['api'] },
   filters: {},
   setFilters: () => undefined,
   searchQuery: '',
@@ -160,6 +164,7 @@ export const McpCatalogContextProvider: React.FC<McpCatalogContextProviderProps>
 
   const value = React.useMemo<McpCatalogContextType>(
     () => ({
+      apiState: apiStateMcpCatalog,
       filters,
       setFilters,
       searchQuery,
@@ -188,6 +193,7 @@ export const McpCatalogContextProvider: React.FC<McpCatalogContextProviderProps>
       filterOptionsLoadError,
     }),
     [
+      apiStateMcpCatalog,
       filters,
       searchQuery,
       namedQuery,
