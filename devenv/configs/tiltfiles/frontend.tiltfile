@@ -60,6 +60,7 @@ k8s_resource(
        "model-registry-ui-namespaces-reader-binding:clusterrolebinding",
        "model-registry-ui-services-reader-binding:clusterrolebinding",
        "service-access-cluster-binding:clusterrolebinding",
+       "auth-proxy-config:configmap",
     ],
     labels="requirements",
     resource_deps=["kubeflow-namespace", "ui-rbac-reqs"],

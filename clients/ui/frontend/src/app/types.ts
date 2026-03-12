@@ -239,6 +239,12 @@ export type DeleteModelTransferJob = (
   jobNamespace: string,
 ) => Promise<void>;
 
+export type GetModelTransferJobByName = (
+  opts: APIOptions,
+  namespace: string,
+  jobName: string,
+) => Promise<ModelTransferJob>;
+
 export type ModelRegistryAPIs = {
   createRegisteredModel: CreateRegisteredModel;
   createModelVersionForRegisteredModel: CreateModelVersionForRegisteredModel;
@@ -254,6 +260,7 @@ export type ModelRegistryAPIs = {
   patchModelArtifact: PatchModelArtifact;
   getModelTransferJob: GetModelTransferJob;
   listModelTransferJobs: GetListModelTransferJobs;
+  getModelTransferJobByName: GetModelTransferJobByName;
   createModelTransferJob: CreateModelTransferJob;
   updateModelTransferJob: UpdateModelTransferJob;
   deleteModelTransferJob: DeleteModelTransferJob;

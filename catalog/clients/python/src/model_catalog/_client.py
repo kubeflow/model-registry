@@ -510,15 +510,25 @@ class CatalogAPIClient:
     def get_mcp_servers(
         self,
         name: str | None = None,
+        q: str | None = None,
+        filter_query: str | None = None,
+        order_by: str | None = None,
+        sort_order: str | None = None,
         include_tools: bool | None = None,
+        tool_limit: int | None = None,
         page_size: int | None = None,
         next_page_token: str | None = None,
     ) -> dict[str, Any]:
         """Get MCP servers from catalog.
 
         Args:
-            name: Filter by MCP server name.
+            name: Filter by server name.
+            q: Keyword search query.
+            filter_query: SQL-like filter expression (e.g. "provider='Math Community'").
+            order_by: Field to order results by (e.g. "CREATE_TIME", "LAST_UPDATE_TIME", "NAME").
+            sort_order: Sort direction ("ASC" or "DESC").
             include_tools: Whether to include the tools array in each server result.
+            tool_limit: Maximum number of tools to include per server.
             page_size: Number of items per page.
             next_page_token: Token for pagination.
 
@@ -526,9 +536,20 @@ class CatalogAPIClient:
             Dict with MCP servers list and pagination info.
         """
         page_size_str = str(page_size) if page_size is not None else None
+        order_by_enum: OrderByField | None = None
+        if order_by:
+            order_by_enum = OrderByField(order_by.upper())
+        sort_order_enum: SortOrder | None = None
+        if sort_order:
+            sort_order_enum = SortOrder(sort_order.upper())
         response = self.mcp_api.find_mcp_servers(
             name=name,
+            q=q,
+            filter_query=filter_query,
+            order_by=order_by_enum,
+            sort_order=sort_order_enum,
             include_tools=include_tools,
+            tool_limit=tool_limit,
             page_size=page_size_str,
             next_page_token=next_page_token,
         )

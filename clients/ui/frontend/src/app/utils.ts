@@ -3,9 +3,14 @@ import {
   ModelRegistryMetadataType,
   ModelState,
   ModelVersion,
+  ModelTransferJob,
+  ModelTransferJobSourceType,
+  ModelTransferJobDestinationType,
   RegisteredModel,
 } from '~/app/types';
 import { EMPTY_CUSTOM_PROPERTY_VALUE } from '~/concepts/modelCatalog/const';
+
+export type StorageType = ModelTransferJobSourceType | ModelTransferJobDestinationType;
 
 export type ObjectStorageFields = {
   endpoint: string;
@@ -117,4 +122,70 @@ export const getDoubleValue = <T extends ModelRegistryCustomProperties>(
     return prop.double_value;
   }
   return 0;
+};
+
+export const getStorageTypeLabel = (type: StorageType): string => {
+  switch (type) {
+    case ModelTransferJobSourceType.S3:
+    case ModelTransferJobDestinationType.S3:
+      return 'S3';
+    case ModelTransferJobSourceType.OCI:
+    case ModelTransferJobDestinationType.OCI:
+      return 'OCI';
+    case ModelTransferJobSourceType.URI:
+      return 'URI';
+    default:
+      return type;
+  }
+};
+
+export const getModelUriPopoverContent = (destType: ModelTransferJobDestinationType): string => {
+  switch (destType) {
+    case ModelTransferJobDestinationType.OCI:
+      return 'The URI of the OCI secret that is currently being used as the model storage location.';
+    case ModelTransferJobDestinationType.S3:
+      return 'The path of the S3-compatible object storage secret that is currently being used as the model storage location.';
+    default:
+      return 'The URI of the secret that is currently being used as the model storage location.';
+  }
+};
+
+export const getModelUriLabel = (destType: ModelTransferJobDestinationType): string => {
+  switch (destType) {
+    case ModelTransferJobDestinationType.S3:
+      return 'Path';
+    default:
+      return 'Model URI';
+  }
+};
+
+export const getSourceLabel = (sourceType: ModelTransferJobSourceType): string => {
+  switch (sourceType) {
+    case ModelTransferJobSourceType.OCI:
+      return 'URI';
+    default:
+      return 'Path';
+  }
+};
+
+export const getDestinationUri = (job: ModelTransferJob): string => {
+  const { destination } = job;
+  if ('uri' in destination && destination.uri) {
+    return destination.uri;
+  }
+  if ('key' in destination && destination.key) {
+    return destination.key;
+  }
+  return '';
+};
+
+export const getSourcePath = (job: ModelTransferJob): string => {
+  const { source } = job;
+  if (source.type === ModelTransferJobSourceType.S3 && 'key' in source) {
+    return source.key || '';
+  }
+  if ('uri' in source && source.uri) {
+    return source.uri;
+  }
+  return '';
 };
