@@ -10,7 +10,7 @@ export const MCP_FILTER_CATEGORY_NAMES: Record<McpFilterCategoryKey, string> = {
   supportedTransports: 'Supported transports',
   license: 'License',
   labels: 'Labels',
-  securityVerification: 'Security & Verification',
+  securityIndicators: 'Security & Verification',
 };
 
 export const MCP_FILTER_KEYS: McpFilterCategoryKey[] = [
@@ -18,5 +18,5 @@ export const MCP_FILTER_KEYS: McpFilterCategoryKey[] = [
   'supportedTransports',
   'license',
   'labels',
-  'securityVerification',
+  'securityIndicators',
 ];

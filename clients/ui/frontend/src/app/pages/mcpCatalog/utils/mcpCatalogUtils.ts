@@ -137,7 +137,7 @@ export function filterMcpServersByFilters(
     license: licenseFilter,
     labels: labelsFilter,
     supportedTransports: transportsFilter,
-    securityVerification: securityFilter,
+    securityIndicators: securityFilter,
   } = filters;
   return items.filter((server) => {
     if (deploymentModeFilter?.length && !matchesDeploymentMode(server, deploymentModeFilter)) {

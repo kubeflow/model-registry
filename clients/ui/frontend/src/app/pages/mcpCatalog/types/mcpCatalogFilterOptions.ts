@@ -3,7 +3,7 @@ export type McpFilterCategoryKey =
   | 'supportedTransports'
   | 'license'
   | 'labels'
-  | 'securityVerification';
+  | 'securityIndicators';
 
 export type McpCatalogFiltersState = {
   [K in McpFilterCategoryKey]?: string[];

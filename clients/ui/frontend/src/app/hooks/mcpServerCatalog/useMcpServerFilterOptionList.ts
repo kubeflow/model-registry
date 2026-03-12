@@ -3,8 +3,55 @@ import React from 'react';
 import { CatalogFilterOptionsList } from '~/app/modelCatalogTypes';
 import { useModelCatalogAPI } from '~/app/hooks/modelCatalog/useModelCatalogAPI';
 import type { ModelCatalogAPIState } from '~/app/hooks/modelCatalog/useModelCatalogAPIState';
+import type {
+  McpCatalogFilterOptionsList,
+  McpCatalogFilterStringOption,
+  McpFilterCategoryKey,
+} from '~/app/pages/mcpCatalog/types/mcpCatalogFilterOptions';
 
-type State = CatalogFilterOptionsList | null;
+/** Maps backend filter keys to frontend McpFilterCategoryKey names. */
+export const BACKEND_TO_FRONTEND_KEY: Record<string, string> = {
+  transports: 'supportedTransports',
+  tags: 'labels',
+};
+
+const MCP_FILTER_CATEGORY_KEYS: McpFilterCategoryKey[] = [
+  'deploymentMode',
+  'supportedTransports',
+  'license',
+  'labels',
+  'securityIndicators',
+];
+
+function isMcpFilterCategoryKey(s: string): s is McpFilterCategoryKey {
+  return MCP_FILTER_CATEGORY_KEYS.some((k) => k === s);
+}
+
+function isMcpFilterStringOption(v: unknown): v is McpCatalogFilterStringOption {
+  if (typeof v !== 'object' || v === null || !('type' in v)) {
+    return false;
+  }
+  const typeVal = Object.getOwnPropertyDescriptor(v, 'type')?.value;
+  return typeVal === 'string';
+}
+
+export function mapBackendFilterOptions(
+  raw: CatalogFilterOptionsList,
+): McpCatalogFilterOptionsList {
+  if (!raw.filters) {
+    return { filters: undefined };
+  }
+  const mapped: McpCatalogFilterOptionsList['filters'] = {};
+  for (const [key, value] of Object.entries(raw.filters)) {
+    const frontendKey = BACKEND_TO_FRONTEND_KEY[key] ?? key;
+    if (isMcpFilterCategoryKey(frontendKey) && isMcpFilterStringOption(value)) {
+      mapped[frontendKey] = value;
+    }
+  }
+  return { filters: mapped };
+}
+
+type State = McpCatalogFilterOptionsList | null;
 
 export const useMcpServerFilterOptionListWithAPI = (
   apiState: ModelCatalogAPIState,
@@ -16,7 +63,7 @@ export const useMcpServerFilterOptionListWithAPI = (
         return Promise.reject(new Error('API not yet available'));
       }
 
-      return api.getMcpServerFilterOptionList(opts);
+      return api.getMcpServerFilterOptionList(opts).then(mapBackendFilterOptions);
     },
     [api, apiAvailable],
   );
