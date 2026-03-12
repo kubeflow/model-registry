@@ -188,4 +188,3 @@ func TestGetEventsForPods_FiltersByPodNamesAndHandlesEmptyInputs(t *testing.T) {
 		t.Fatalf("expected no events for empty podNames, got %d", len(eventList.Items))
 	}
 }
-

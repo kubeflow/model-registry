@@ -18,9 +18,9 @@ import (
 // implements the methods used by GetAllModelTransferJobs. All other methods either return
 // zero values or panic if unexpectedly called.
 type fakeKubernetesClient struct {
-	jobs             *batchv1.JobList
-	podsByNamespace  map[string]*corev1.PodList
-	jobsByNamespace  map[string]map[string]*batchv1.Job
+	jobs              *batchv1.JobList
+	podsByNamespace   map[string]*corev1.PodList
+	jobsByNamespace   map[string]map[string]*batchv1.Job
 	eventsByNamespace map[string]*corev1.EventList
 }
 
@@ -627,7 +627,6 @@ func TestGetModelTransferJobEvents_UsesTimestampFallbacks(t *testing.T) {
 	}
 }
 
-
 func TestGetAllModelTransferJobs_NormalRunningJobNotOverridden(t *testing.T) {
 	repo := NewModelRegistryRepository()
 
@@ -690,4 +689,3 @@ func TestGetAllModelTransferJobs_NormalRunningJobNotOverridden(t *testing.T) {
 		t.Fatalf("expected no error message for normal running job, got %q", jobModel.ErrorMessage)
 	}
 }
-
