@@ -286,7 +286,7 @@ func (m *ModelRegistryRepository) createModelTransferJobResources(
 
 	logger := helper.GetContextLogger(ctx)
 
-	modelRegistryAddress, err := m.getModelRegistryAddress(ctx, client, namespace, modelRegistryID)
+	modelRegistryAddress, err := m.getModelRegistryAddress(ctx, client, namespace, modelRegistryID, isFederatedMode)
 	if err != nil {
 		return nil, err
 	}
@@ -613,8 +613,8 @@ func (m *ModelRegistryRepository) DeleteModelTransferJob(ctx context.Context, cl
 // getModelRegistryAddress returns the registry address for use in transfer job env.
 // It uses federated/external address when available (e.g. Route URL from Service annotation)
 // so the job pod can reach the registry via the ingress path when NetworkPolicy restricts direct ClusterIP access.
-func (m *ModelRegistryRepository) getModelRegistryAddress(ctx context.Context, client k8s.KubernetesClientInterface, namespace, modelRegistryID string) (string, error) {
-	modelRegistry, err := m.GetModelRegistryWithMode(ctx, client, namespace, modelRegistryID, true)
+func (m *ModelRegistryRepository) getModelRegistryAddress(ctx context.Context, client k8s.KubernetesClientInterface, namespace, modelRegistryID string, isFederatedMode bool) (string, error) {
+	modelRegistry, err := m.GetModelRegistryWithMode(ctx, client, namespace, modelRegistryID, isFederatedMode)
 	if err != nil {
 		if apierrors.IsNotFound(err) {
 			return "", ErrModelRegistryNotFound
