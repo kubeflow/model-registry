@@ -4,6 +4,7 @@ import {
   AccordionContent,
   AccordionItem,
   AccordionToggle,
+  Bullseye,
   Button,
   Card,
   CardBody,
@@ -14,15 +15,14 @@ import {
   Icon,
   Label,
   SearchInput,
+  Spinner,
   Stack,
   StackItem,
   Title,
 } from '@patternfly/react-core';
 import { AngleLeftIcon, AngleRightIcon, WrenchIcon } from '@patternfly/react-icons';
-import type { McpServer, McpTool, McpToolAccessType } from '~/app/mcpServerCatalogTypes';
-// TODO: re-enable when BFF tools endpoint is live
-// import { useMcpServerToolList } from '~/app/hooks/mcpServerCatalog/useMcpServerToolList';
-import { mockMcpTools } from '~/app/pages/mcpCatalog/mocks/mockMcpTools';
+import type { McpTool, McpToolAccessType } from '~/app/mcpServerCatalogTypes';
+import { useMcpServerToolList } from '~/app/hooks/mcpServerCatalog/useMcpServerToolList';
 
 const TOOLS_PAGE_SIZE = 5;
 
@@ -40,18 +40,16 @@ const getAccessTypeConfig = (
 };
 
 type McpServerToolsSectionProps = {
-  server: McpServer;
+  serverId: string;
 };
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-const McpServerToolsSection: React.FC<McpServerToolsSectionProps> = ({ server }) => {
-  // TODO: replace mockMcpTools with API data once BFF tools endpoint is live
-  // const serverId = String(server.id);
-  // const [toolList, toolsLoaded, toolsLoadError] = useMcpServerToolList(serverId);
-  // const tools = (toolList.items ?? []).length > 0
-  //   ? toolList.items!.map((t) => t.tool)
-  //   : (server.tools ?? []);
-  const tools: McpTool[] = mockMcpTools;
+const McpServerToolsSection: React.FC<McpServerToolsSectionProps> = ({ serverId }) => {
+  const [toolList, toolsLoaded, toolsLoadError] = useMcpServerToolList(serverId);
+
+  const tools: McpTool[] = React.useMemo(
+    () => (toolList.items ?? []).map((t) => t.tool),
+    [toolList.items],
+  );
 
   const [expanded, setExpanded] = React.useState<string[]>([]);
   const [filterText, setFilterText] = React.useState('');
@@ -79,6 +77,38 @@ const McpServerToolsSection: React.FC<McpServerToolsSectionProps> = ({ server })
   const toggle = (id: string) => {
     setExpanded((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]));
   };
+
+  const toolsCardShell = (children: React.ReactNode) => (
+    <Card data-testid="mcp-server-tools" style={{ overflow: 'visible' }}>
+      <CardHeader>
+        <Title headingLevel="h2" size="lg">
+          <Icon isInline className="pf-v6-u-mr-sm">
+            <WrenchIcon />
+          </Icon>
+          Tools
+        </Title>
+      </CardHeader>
+      <CardBody>{children}</CardBody>
+    </Card>
+  );
+
+  if (toolsLoadError) {
+    return toolsCardShell(
+      <Bullseye>
+        <Content component="p" data-testid="mcp-server-tools-error">
+          Unable to load tools.
+        </Content>
+      </Bullseye>,
+    );
+  }
+
+  if (!toolsLoaded) {
+    return toolsCardShell(
+      <Bullseye>
+        <Spinner size="lg" data-testid="mcp-server-tools-loading" />
+      </Bullseye>,
+    );
+  }
 
   if (tools.length === 0) {
     return null;
