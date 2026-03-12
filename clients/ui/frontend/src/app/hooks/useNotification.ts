@@ -1,6 +1,7 @@
 import React, { useContext, useRef } from 'react';
 import { AlertVariant } from '@patternfly/react-core';
 import { NotificationContext, NotificationActionTypes } from 'mod-arch-core';
+import type { Notification } from 'mod-arch-core';
 
 enum NotificationTypes {
   SUCCESS = 'success',
@@ -9,7 +10,11 @@ enum NotificationTypes {
   WARNING = 'warning',
 }
 
-type NotificationProps = (title: string, message?: React.ReactNode) => void;
+type NotificationProps = (
+  title: string,
+  message?: React.ReactNode,
+  options?: Pick<Notification, 'linkUrl' | 'linkLabel' | 'messageText'>,
+) => void;
 
 type NotificationRemoveProps = (id: number | undefined) => void;
 
@@ -26,7 +31,12 @@ export const useNotification = (): NotificationFunc => {
   const nextIdRef = useRef(0);
 
   const addNotification = React.useCallback(
-    (status: AlertVariant, title: string, message?: React.ReactNode) => {
+    (
+      status: AlertVariant,
+      title: string,
+      message?: React.ReactNode,
+      options?: Pick<Notification, 'linkUrl' | 'linkLabel' | 'messageText'>,
+    ) => {
       const id = nextIdRef.current++;
       updateNotificationCount(id);
       dispatch({
@@ -37,6 +47,7 @@ export const useNotification = (): NotificationFunc => {
           timestamp: new Date(),
           message,
           id,
+          ...options,
         },
       });
     },
@@ -44,22 +55,22 @@ export const useNotification = (): NotificationFunc => {
   );
 
   const success: NotificationProps = React.useCallback(
-    (title, message?) => addNotification(AlertVariant.success, title, message),
+    (title, message?, options?) => addNotification(AlertVariant.success, title, message, options),
     [addNotification],
   );
 
   const warning: NotificationProps = React.useCallback(
-    (title, message?) => addNotification(AlertVariant.warning, title, message),
+    (title, message?, options?) => addNotification(AlertVariant.warning, title, message, options),
     [addNotification],
   );
 
   const error: NotificationProps = React.useCallback(
-    (title, message?) => addNotification(AlertVariant.danger, title, message),
+    (title, message?, options?) => addNotification(AlertVariant.danger, title, message, options),
     [addNotification],
   );
 
   const info: NotificationProps = React.useCallback(
-    (title, message?) => addNotification(AlertVariant.info, title, message),
+    (title, message?, options?) => addNotification(AlertVariant.info, title, message, options),
     [addNotification],
   );
 

@@ -2,16 +2,24 @@ import React from 'react';
 import { AlertVariant } from '@patternfly/react-core';
 import { useThemeContext } from 'mod-arch-kubeflow';
 import { useNotification } from '~/app/hooks/useNotification';
+import { modelTransferJobsUrl } from '~/app/pages/modelRegistry/screens/routeUtils';
 import { REGISTRATION_TOAST_TITLES } from '~/app/utilities/const';
 import type { RegistrationInlineAlert } from './RegistrationFormFooter';
 import {
-  getRegisterAndStoreToastMessage,
-  type RegistrationToastMessagesParams,
+  getRegisterAndStoreToastMessageSubmitting,
+  getRegisterAndStoreToastMessageSuccess,
+  getRegisterAndStoreToastMessageError,
 } from './registrationToastMessages';
 
+export type RegistrationToastParams = {
+  versionModelName: string;
+  mrName: string;
+};
+
 export type RegistrationNotificationActions = {
-  showRegisterAndStoreStarted: (params: RegistrationToastMessagesParams) => void;
-  showRegisterAndStoreError: (params: RegistrationToastMessagesParams) => void;
+  showRegisterAndStoreSubmitting: (params: RegistrationToastParams) => void;
+  showRegisterAndStoreSuccess: (params: RegistrationToastParams) => void;
+  showRegisterAndStoreError: (params: RegistrationToastParams) => void;
 };
 
 /**
@@ -38,20 +46,34 @@ export function useRegistrationNotification(
     }
   };
 
-  const showRegisterAndStoreStarted = (params: RegistrationToastMessagesParams) => {
-    const title = REGISTRATION_TOAST_TITLES.REGISTER_AND_STORE_STARTED;
-    const message = getRegisterAndStoreToastMessage(params);
-    showAlert(AlertVariant.info, title, message);
+  const showRegisterAndStoreSubmitting = (params: RegistrationToastParams) => {
+    const title = REGISTRATION_TOAST_TITLES.REGISTER_AND_STORE_SUBMITTING;
+    const message = getRegisterAndStoreToastMessageSubmitting(params);
+    notification.info(title, message, {
+      linkUrl: modelTransferJobsUrl(params.mrName),
+      linkLabel: 'Model transfer jobs',
+      messageText: `To view ${params.versionModelName} job details, go to `,
+    });
+    if (!isMUITheme) {
+      setInlineAlert({ variant: AlertVariant.info, title, message });
+    }
   };
 
-  const showRegisterAndStoreError = (params: RegistrationToastMessagesParams) => {
+  const showRegisterAndStoreSuccess = (params: RegistrationToastParams) => {
+    const title = REGISTRATION_TOAST_TITLES.REGISTER_AND_STORE_SUCCESS;
+    const message = getRegisterAndStoreToastMessageSuccess(params);
+    showAlert(AlertVariant.success, title, message);
+  };
+
+  const showRegisterAndStoreError = (params: RegistrationToastParams) => {
     const title = REGISTRATION_TOAST_TITLES.REGISTER_AND_STORE_ERROR;
-    const message = getRegisterAndStoreToastMessage(params);
+    const message = getRegisterAndStoreToastMessageError(params);
     showAlert(AlertVariant.danger, title, message);
   };
 
   return {
-    showRegisterAndStoreStarted,
+    showRegisterAndStoreSubmitting,
+    showRegisterAndStoreSuccess,
     showRegisterAndStoreError,
   };
 }
