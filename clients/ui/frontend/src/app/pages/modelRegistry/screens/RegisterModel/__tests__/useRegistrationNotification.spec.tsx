@@ -57,7 +57,7 @@ describe('useRegistrationNotification', () => {
     render(<Wrapper />);
   });
 
-  it('showRegisterAndStoreStarted calls notification.info and setInlineAlert when not MUI theme', () => {
+  it('showRegisterAndStoreStarted calls notification.info with link options and setInlineAlert when not MUI theme', () => {
     function TestWrapper() {
       const actions = useRegistrationNotification(setInlineAlert);
       React.useEffect(() => {
@@ -69,6 +69,11 @@ describe('useRegistrationNotification', () => {
     expect(mockNotification.info).toHaveBeenCalledWith(
       TITLES.REGISTER_AND_STORE_STARTED,
       expect.anything(),
+      expect.objectContaining({
+        linkUrl: '/model-registry/mr-sample/jobs',
+        linkLabel: 'Model transfer jobs',
+        messageText: 'To view My Model / v1 job details, go to ',
+      }),
     );
     expect(setInlineAlert).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -90,6 +95,7 @@ describe('useRegistrationNotification', () => {
     expect(mockNotification.error).toHaveBeenCalledWith(
       TITLES.REGISTER_AND_STORE_ERROR,
       expect.anything(),
+      undefined,
     );
     expect(setInlineAlert).toHaveBeenCalledWith(
       expect.objectContaining({

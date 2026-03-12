@@ -1,8 +1,9 @@
 import React from 'react';
 import { AlertVariant } from '@patternfly/react-core';
 import { useThemeContext } from 'mod-arch-kubeflow';
-import { useNotification } from '~/app/hooks/useNotification';
+import { useNotification, type NotificationLinkOptions } from '~/app/hooks/useNotification';
 import { REGISTRATION_TOAST_TITLES } from '~/app/utilities/const';
+import { modelTransferJobsUrl } from '~/app/pages/modelRegistry/screens/routeUtils';
 import type { RegistrationInlineAlert } from './RegistrationFormFooter';
 import {
   getRegisterAndStoreToastMessage,
@@ -25,13 +26,18 @@ export function useRegistrationNotification(
   const notification = useNotification();
   const { isMUITheme } = useThemeContext();
 
-  const showAlert = (variant: AlertVariant, title: string, message: React.ReactNode) => {
+  const showAlert = (
+    variant: AlertVariant,
+    title: string,
+    message: React.ReactNode,
+    options?: NotificationLinkOptions,
+  ) => {
     if (variant === AlertVariant.info) {
-      notification.info(title, message);
+      notification.info(title, message, options);
     } else if (variant === AlertVariant.success) {
-      notification.success(title, message);
+      notification.success(title, message, options);
     } else {
-      notification.error(title, message);
+      notification.error(title, message, options);
     }
     if (!isMUITheme) {
       setInlineAlert({ variant, title, message });
@@ -41,7 +47,11 @@ export function useRegistrationNotification(
   const showRegisterAndStoreStarted = (params: RegistrationToastMessagesParams) => {
     const title = REGISTRATION_TOAST_TITLES.REGISTER_AND_STORE_STARTED;
     const message = getRegisterAndStoreToastMessage(params);
-    showAlert(AlertVariant.info, title, message);
+    showAlert(AlertVariant.info, title, message, {
+      linkUrl: modelTransferJobsUrl(params.mrName),
+      linkLabel: 'Model transfer jobs',
+      messageText: `To view ${params.versionModelName} job details, go to `,
+    });
   };
 
   const showRegisterAndStoreError = (params: RegistrationToastMessagesParams) => {
