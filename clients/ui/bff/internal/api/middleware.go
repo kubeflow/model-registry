@@ -117,6 +117,11 @@ func (app *App) AttachModelCatalogRESTClient(next func(http.ResponseWriter, *htt
 			modelCatalogBaseURL = app.repositories.ModelCatalog.ResolveServerAddress("localhost", int32(app.config.DevModeCatalogPort), modelCatalog.IsHTTPS, "", app.config.DeploymentMode.IsFederatedMode())
 		}
 
+		// MCP Catalog extends the Model Catalog API but with different API prefix.
+		if strings.HasPrefix(r.URL.Path, McpServerCatalogPathPrefix) {
+			modelCatalogBaseURL = strings.Replace(modelCatalogBaseURL, "/api/model_catalog/v1alpha1", "/api/mcp_catalog/v1alpha1", 1)
+		}
+
 		// Set up a child logger for the rest client that automatically adds the request id to all statements for
 		// tracing.
 		restClientLogger := app.logger
