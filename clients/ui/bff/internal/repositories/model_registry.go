@@ -10,8 +10,7 @@ import (
 	"github.com/kubeflow/model-registry/ui/bff/internal/models"
 )
 
-type ModelRegistryRepository struct {
-}
+type ModelRegistryRepository struct{}
 
 func NewModelRegistryRepository() *ModelRegistryRepository {
 	return &ModelRegistryRepository{}

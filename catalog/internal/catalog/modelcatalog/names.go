@@ -10,8 +10,8 @@ import (
 // Stored names use the format "sourceId:modelName" for DB uniqueness; this strips the prefix
 // so callers get the name without the source id prepended.
 func DisplayNameFromStoredName(storedName string) string {
-	if idx := strings.Index(storedName, ":"); idx >= 0 {
-		return storedName[idx+1:]
+	if _, after, ok := strings.Cut(storedName, ":"); ok {
+		return after
 	}
 	return storedName
 }

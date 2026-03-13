@@ -142,7 +142,7 @@ func (app *App) CreateModelTransferJobHandler(w http.ResponseWriter, r *http.Req
 		return
 	}
 
-	newJob, err := app.repositories.ModelRegistry.CreateModelTransferJob(ctx, client, namespace, payload, modelRegistryID)
+	newJob, err := app.repositories.ModelRegistry.CreateModelTransferJob(ctx, client, namespace, payload, modelRegistryID, app.config.DeploymentMode.IsFederatedMode(), app.podNamespace)
 	if err != nil {
 		if errors.Is(err, repositories.ErrJobValidationFailed) {
 			app.badRequestResponse(w, r, err)
@@ -205,7 +205,7 @@ func (app *App) UpdateModelTransferJobHandler(w http.ResponseWriter, r *http.Req
 	deleteOldJob := r.URL.Query().Get("deleteOldJob") == "true"
 
 	updatedJob, err := app.repositories.ModelRegistry.UpdateModelTransferJob(
-		ctx, client, namespace, jobName, payload, deleteOldJob, modelRegistryID)
+		ctx, client, namespace, jobName, payload, deleteOldJob, modelRegistryID, app.config.DeploymentMode.IsFederatedMode(), app.podNamespace)
 	if err != nil {
 		if errors.Is(err, repositories.ErrJobNotFound) {
 			app.notFoundResponse(w, r)

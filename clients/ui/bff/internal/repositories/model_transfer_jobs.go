@@ -20,6 +20,13 @@ import (
 	"k8s.io/apimachinery/pkg/util/validation"
 )
 
+const (
+	// DefaultAsyncUploadImage is the default container image for async-upload jobs.
+	DefaultAsyncUploadImage  = "ghcr.io/kubeflow/model-registry/job/async-upload:latest"
+	asyncUploadConfigMapName = "model-registry-ui-config"
+	asyncUploadConfigMapKey  = "images-jobs-async-upload"
+)
+
 var (
 	ErrJobNotFound           = errors.New("model transfer job not found")
 	ErrJobValidationFailed   = errors.New("validation failed")
@@ -248,8 +255,8 @@ func convertK8sEventsToModelEvents(eventList *corev1.EventList) []models.ModelTr
 	return events
 }
 
-func (m *ModelRegistryRepository) CreateModelTransferJob(ctx context.Context, client k8s.KubernetesClientInterface, namespace string, payload models.ModelTransferJob, modelRegistryID string) (*models.ModelTransferJob, error) {
-	return m.createModelTransferJobResources(ctx, client, namespace, payload, modelRegistryID, "")
+func (m *ModelRegistryRepository) CreateModelTransferJob(ctx context.Context, client k8s.KubernetesClientInterface, namespace string, payload models.ModelTransferJob, modelRegistryID string, isFederatedMode bool, podNamespace string) (*models.ModelTransferJob, error) {
+	return m.createModelTransferJobResources(ctx, client, namespace, payload, modelRegistryID, "", isFederatedMode, podNamespace)
 }
 
 func (m *ModelRegistryRepository) createModelTransferJobResources(
@@ -259,6 +266,8 @@ func (m *ModelRegistryRepository) createModelTransferJobResources(
 	payload models.ModelTransferJob,
 	modelRegistryID string,
 	existingDestSecretName string,
+	isFederatedMode bool,
+	podNamespace string,
 ) (*models.ModelTransferJob, error) {
 	payload.Source.Bucket = strings.TrimSpace(payload.Source.Bucket)
 	payload.Source.Key = strings.TrimSpace(payload.Source.Key)
@@ -277,7 +286,7 @@ func (m *ModelRegistryRepository) createModelTransferJobResources(
 
 	logger := helper.GetContextLogger(ctx)
 
-	modelRegistryAddress, err := m.getModelRegistryAddress(ctx, client, namespace, modelRegistryID)
+	modelRegistryAddress, err := m.getModelRegistryAddress(ctx, client, namespace, modelRegistryID, isFederatedMode)
 	if err != nil {
 		return nil, err
 	}
@@ -319,7 +328,8 @@ func (m *ModelRegistryRepository) createModelTransferJobResources(
 		destSecretName = destSecretCreated.Name
 	}
 
-	job := buildK8sJob(jobName, jobID, payload, configMapName, sourceSecretName, destSecretName, modelRegistryAddress, modelRegistryID)
+	imageURI := resolveAsyncUploadImage(ctx, client, isFederatedMode, podNamespace)
+	job := buildK8sJob(jobName, jobID, payload, configMapName, sourceSecretName, destSecretName, modelRegistryAddress, modelRegistryID, imageURI)
 	jobCreated, err := client.CreateModelTransferJob(ctx, payload.Namespace, job)
 	if err != nil {
 		cleanupCreatedResources(ctx, client, payload.Namespace, configMapName, sourceSecretName, destSecretName)
@@ -369,6 +379,8 @@ func (m *ModelRegistryRepository) UpdateModelTransferJob(
 	newPayload models.ModelTransferJob,
 	deleteOldJob bool,
 	modelRegistryID string,
+	isFederatedMode bool,
+	podNamespace string,
 ) (*models.ModelTransferJob, error) {
 
 	logger := helper.GetContextLogger(ctx)
@@ -552,7 +564,7 @@ func (m *ModelRegistryRepository) UpdateModelTransferJob(
 		return nil, fmt.Errorf("validation error: %w", err)
 	}
 
-	result, err := m.createModelTransferJobResources(ctx, client, namespace, newPayload, modelRegistryID, existingDestSecretName)
+	result, err := m.createModelTransferJobResources(ctx, client, namespace, newPayload, modelRegistryID, existingDestSecretName, isFederatedMode, podNamespace)
 	if err != nil {
 		if reuseDestCreds && existingDestSecretName != "" {
 			if delErr := client.DeleteSecret(ctx, newPayload.Namespace, existingDestSecretName); delErr != nil {
@@ -601,8 +613,8 @@ func (m *ModelRegistryRepository) DeleteModelTransferJob(ctx context.Context, cl
 // getModelRegistryAddress returns the registry address for use in transfer job env.
 // It uses federated/external address when available (e.g. Route URL from Service annotation)
 // so the job pod can reach the registry via the ingress path when NetworkPolicy restricts direct ClusterIP access.
-func (m *ModelRegistryRepository) getModelRegistryAddress(ctx context.Context, client k8s.KubernetesClientInterface, namespace, modelRegistryID string) (string, error) {
-	modelRegistry, err := m.GetModelRegistryWithMode(ctx, client, namespace, modelRegistryID, true)
+func (m *ModelRegistryRepository) getModelRegistryAddress(ctx context.Context, client k8s.KubernetesClientInterface, namespace, modelRegistryID string, isFederatedMode bool) (string, error) {
+	modelRegistry, err := m.GetModelRegistryWithMode(ctx, client, namespace, modelRegistryID, isFederatedMode)
 	if err != nil {
 		if apierrors.IsNotFound(err) {
 			return "", ErrModelRegistryNotFound
@@ -612,8 +624,27 @@ func (m *ModelRegistryRepository) getModelRegistryAddress(ctx context.Context, c
 	return modelRegistry.ServerAddress, nil
 }
 
+func resolveAsyncUploadImage(ctx context.Context, client k8s.KubernetesClientInterface, isFederatedMode bool, podNamespace string) string {
+	if !isFederatedMode || podNamespace == "" {
+		return DefaultAsyncUploadImage
+	}
+	logger := helper.GetContextLogger(ctx)
+	cm, err := client.GetConfigMap(ctx, podNamespace, asyncUploadConfigMapName)
+	if err != nil {
+		logger.Info("ConfigMap not found, using default async-upload image",
+			"configmap", asyncUploadConfigMapName, "error", err)
+		return DefaultAsyncUploadImage
+	}
+	if img, ok := cm.Data[asyncUploadConfigMapKey]; ok && strings.TrimSpace(img) != "" {
+		return strings.TrimSpace(img)
+	}
+	logger.Warn("ConfigMap key not found or empty, using default async-upload image",
+		"configmap", asyncUploadConfigMapName, "key", asyncUploadConfigMapKey)
+	return DefaultAsyncUploadImage
+}
+
 func buildK8sJob(jobName, jobID string, payload models.ModelTransferJob,
-	configMapName, sourceSecretName, destSecretName, modelRegistryAddress, modelRegistryID string) *batchv1.Job {
+	configMapName, sourceSecretName, destSecretName, modelRegistryAddress, modelRegistryID, imageURI string) *batchv1.Job {
 
 	backoffLimit := int32(3)
 
@@ -744,7 +775,7 @@ func buildK8sJob(jobName, jobID string, payload models.ModelTransferJob,
 					Containers: []corev1.Container{
 						{
 							Name:            "async-upload",
-							Image:           "ghcr.io/kubeflow/model-registry/job/async-upload:latest",
+							Image:           imageURI,
 							ImagePullPolicy: corev1.PullIfNotPresent,
 							VolumeMounts:    volumeMounts,
 							Env:             envVars,

@@ -83,13 +83,16 @@ func (s ModelSource) GetId() string {
 
 // MCPSource represents a source of MCP servers
 type MCPSource struct {
-	Name       string                     `json:"name" yaml:"name"`
-	ID         string                     `json:"id" yaml:"id"`
-	Type       string                     `json:"type" yaml:"type"`
-	Enabled    *bool                      `json:"enabled,omitempty" yaml:"enabled,omitempty"`
-	Properties map[string]any             `json:"properties" yaml:"properties"`
-	Labels     []string                   `json:"labels" yaml:"labels"`
+	Name       string                      `json:"name" yaml:"name"`
+	ID         string                      `json:"id" yaml:"id"`
+	Type       string                      `json:"type" yaml:"type"`
+	Enabled    *bool                       `json:"enabled,omitempty" yaml:"enabled,omitempty"`
+	Properties map[string]any              `json:"properties" yaml:"properties"`
+	Labels     []string                    `json:"labels" yaml:"labels"`
 	AssetType  *apimodels.CatalogAssetType `json:"assetType,omitempty" yaml:"assetType,omitempty"`
+
+	IncludedServers []string `json:"includedServers,omitempty" yaml:"includedServers,omitempty"`
+	ExcludedServers []string `json:"excludedServers,omitempty" yaml:"excludedServers,omitempty"`
 
 	// Origin is the absolute path of the config file this source was loaded from.
 	// This is set automatically during loading and used for resolving relative paths.

@@ -159,6 +159,13 @@ func mergeMCPSources(base, override basecatalog.MCPSource) basecatalog.MCPSource
 	result.Origin = common.Origin
 	result.AssetType = common.AssetType
 
+	if override.IncludedServers != nil {
+		result.IncludedServers = override.IncludedServers
+	}
+	if override.ExcludedServers != nil {
+		result.ExcludedServers = override.ExcludedServers
+	}
+
 	return result
 }
 
