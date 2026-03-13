@@ -27,14 +27,12 @@ describe('McpCatalogCard', () => {
     );
   });
 
-  it('renders deployment mode label for local', () => {
+  it('does not render deployment chip for local mode', () => {
     render(<McpCatalogCard server={mockServer} />, { wrapper });
-    expect(screen.getByTestId('mcp-catalog-card-deployment-1')).toHaveTextContent(
-      'Local to cluster',
-    );
+    expect(screen.queryByTestId('mcp-catalog-card-deployment-1')).not.toBeInTheDocument();
   });
 
-  it('renders deployment mode label for remote', () => {
+  it('renders deployment chip only for remote mode', () => {
     render(<McpCatalogCard server={{ ...mockServer, id: 2, deploymentMode: 'remote' }} />, {
       wrapper,
     });
@@ -57,5 +55,28 @@ describe('McpCatalogCard', () => {
   it('renders card with data-testid for the server id', () => {
     render(<McpCatalogCard server={mockServer} />, { wrapper });
     expect(screen.getByTestId('mcp-catalog-card-1')).toBeInTheDocument();
+  });
+
+  it('renders clickable card name as link to details page', () => {
+    render(<McpCatalogCard server={mockServer} />, { wrapper });
+    const link = screen.getByTestId('mcp-catalog-card-detail-link-1');
+    expect(link).toBeInTheDocument();
+    expect(link.tagName).toBe('A');
+    expect(link).toHaveAttribute('href', '/mcp-catalog/1');
+  });
+
+  it('renders description with TruncatedText wrapper', () => {
+    render(<McpCatalogCard server={mockServer} />, { wrapper });
+    const desc = screen.getByTestId('mcp-catalog-card-description-1');
+    expect(desc).toBeInTheDocument();
+    expect(desc.style.display).toBe('-webkit-box');
+  });
+
+  it('renders empty string when description is undefined', () => {
+    render(<McpCatalogCard server={{ ...mockServer, id: 4, description: undefined }} />, {
+      wrapper,
+    });
+    const desc = screen.getByTestId('mcp-catalog-card-description-4');
+    expect(desc).toBeInTheDocument();
   });
 });

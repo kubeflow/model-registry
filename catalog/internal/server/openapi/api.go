@@ -60,7 +60,7 @@ type MCPCatalogServiceAPIServicer interface {
 // while the service implementation can be ignored with the .openapi-generator-ignore file
 // and updated with the logic required for the API.
 type ModelCatalogServiceAPIServicer interface {
-	FindLabels(context.Context, string, string, model.SortOrder, string) (ImplResponse, error)
+	FindLabels(context.Context, model.CatalogAssetType, string, string, model.SortOrder, string) (ImplResponse, error)
 	FindModels(context.Context, bool, int32, string, string, string, string, []string, string, []string, string, string, model.OrderByField, model.SortOrder, string) (ImplResponse, error)
 	FindModelsFilterOptions(context.Context) (ImplResponse, error)
 	FindSources(context.Context, string, model.CatalogAssetType, string, model.OrderByField, model.SortOrder, string) (ImplResponse, error)

@@ -102,7 +102,7 @@ export function useMcpServersBySourceLabelWithAPI(
   );
 
   React.useEffect(() => {
-    if (loaded && !error && (firstPageData.items?.length ?? 0) > 0) {
+    if (loaded && !error) {
       setAllItems(firstPageData.items ?? []);
       setTotalSize(firstPageData.size);
       setNextPageTokenValue(firstPageData.nextPageToken);

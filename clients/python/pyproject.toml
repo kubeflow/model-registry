@@ -55,7 +55,8 @@ pytest-xdist = "^3.5.0"
 ruff = ">=0.5.2,<0.16.0"
 mypy = "^1.7.0"
 # E2E test using Ray in compatible py environments:
-ray = "^2.52.1"
+# TODO: add back ray for 3.14 once https://github.com/ray-project/ray/issues/56434 is resolved
+ray = {version = "^2.52.1", python = "<3.14"}
 uvloop = ">=0.21,<0.23"
 pytest-asyncio = "^1.1.0"
 requests = "^2.32.2"

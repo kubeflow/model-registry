@@ -247,6 +247,35 @@ export const getListModelTransferJobs =
       },
     );
 
+export const getModelTransferJob =
+  (hostPath: string, queryParams: Record<string, unknown> = {}) =>
+  (opts: APIOptions, jobName: string): Promise<ModelTransferJob> =>
+    handleRestFailures(
+      restGET(hostPath, `/model_transfer_jobs/${encodeURIComponent(jobName)}`, queryParams, opts),
+    ).then((response) => {
+      if (isModArchResponse<ModelTransferJob>(response)) {
+        return response.data;
+      }
+      throw new Error('Invalid response format');
+    });
+
+export const getModelTransferJobByName =
+  (hostPath: string, queryParams: Record<string, unknown> = {}) =>
+  (opts: APIOptions, namespace: string, jobName: string): Promise<ModelTransferJob> =>
+    handleRestFailures(
+      restGET(
+        hostPath,
+        `/model_transfer_jobs/${encodeURIComponent(jobName)}`,
+        { ...queryParams, jobNamespace: namespace },
+        opts,
+      ),
+    ).then((response) => {
+      if (isModArchResponse<ModelTransferJob>(response)) {
+        return response.data;
+      }
+      throw new Error('Invalid response format');
+    });
+
 export const createModelTransferJob =
   (hostPath: string, queryParams: Record<string, unknown> = {}) =>
   (opts: APIOptions, data: CreateModelTransferJobData): Promise<ModelTransferJob> =>

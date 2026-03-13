@@ -91,9 +91,9 @@ const McpCatalogSourceLabelSelector: React.FC<McpCatalogSourceLabelSelectorProps
                       data-testid="mcp-catalog-search-input"
                       aria-label="Search with submit button"
                       className="toolbar-fieldset-wrapper"
-                      placeholder="Filter by name, description and provider"
+                      placeholder="Search MCP servers..."
                       value={inputValue}
-                      style={{ minWidth: '600px' }}
+                      style={{ width: '100%', maxWidth: '600px' }}
                       onChange={handleSearchInputChange}
                       onSearch={handleSearchInputSearch}
                       onClear={handleClear}

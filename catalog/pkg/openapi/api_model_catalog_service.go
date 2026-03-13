@@ -27,10 +27,17 @@ type ModelCatalogServiceAPIService service
 type ApiFindLabelsRequest struct {
 	ctx           context.Context
 	ApiService    *ModelCatalogServiceAPIService
+	assetType     *CatalogAssetType
 	pageSize      *string
 	orderBy       *string
 	sortOrder     *SortOrder
 	nextPageToken *string
+}
+
+// Filter by asset type.
+func (r ApiFindLabelsRequest) AssetType(assetType CatalogAssetType) ApiFindLabelsRequest {
+	r.assetType = &assetType
+	return r
 }
 
 // Number of entities in each page.
@@ -98,6 +105,13 @@ func (a *ModelCatalogServiceAPIService) FindLabelsExecute(r ApiFindLabelsRequest
 	localVarQueryParams := url.Values{}
 	localVarFormParams := url.Values{}
 
+	if r.assetType != nil {
+		parameterAddToHeaderOrQuery(localVarQueryParams, "assetType", r.assetType, "form", "")
+	} else {
+		var defaultValue CatalogAssetType = "models"
+		parameterAddToHeaderOrQuery(localVarQueryParams, "assetType", defaultValue, "form", "")
+		r.assetType = &defaultValue
+	}
 	if r.pageSize != nil {
 		parameterAddToHeaderOrQuery(localVarQueryParams, "pageSize", r.pageSize, "form", "")
 	}
@@ -671,7 +685,7 @@ func (r ApiFindSourcesRequest) Name(name string) ApiFindSourcesRequest {
 	return r
 }
 
-// Filter sources by asset type.
+// Filter by asset type.
 func (r ApiFindSourcesRequest) AssetType(assetType CatalogAssetType) ApiFindSourcesRequest {
 	r.assetType = &assetType
 	return r

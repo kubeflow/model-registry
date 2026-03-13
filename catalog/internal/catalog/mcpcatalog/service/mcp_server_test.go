@@ -405,7 +405,8 @@ func TestMCPServerRepository(t *testing.T) {
 	})
 
 	t.Run("TestList_FilterByName", func(t *testing.T) {
-		// Create a unique server
+		// Create a server with a version so the composite name (base@version) differs from the display name.
+		// This validates that filtering by name matches the display name, not the internal composite.
 		mcpServer := &models.MCPServerImpl{
 			Attributes: &models.MCPServerAttributes{
 				Name: apiutils.Of("filter-by-name-unique"),
@@ -415,13 +416,17 @@ func TestMCPServerRepository(t *testing.T) {
 					Name:        "source_id",
 					StringValue: apiutils.Of("filter-source"),
 				},
+				{
+					Name:        "version",
+					StringValue: apiutils.Of("2.0.0"),
+				},
 			},
 		}
 
 		_, err := repo.Save(mcpServer)
 		require.NoError(t, err)
 
-		// Filter by name
+		// Filter by display name (without @version suffix) — must match even though DB stores "filter-by-name-unique@2.0.0"
 		nameFilter := "filter-by-name-unique"
 		listOptions := models.MCPServerListOptions{
 			Name: &nameFilter,
@@ -430,6 +435,56 @@ func TestMCPServerRepository(t *testing.T) {
 		require.NoError(t, err)
 		assert.Equal(t, 1, len(result.Items))
 		assert.Equal(t, "filter-by-name-unique", *result.Items[0].GetAttributes().Name)
+
+		// Verify the composite name does NOT return results when used as the display name filter
+		compositeFilter := "filter-by-name-unique@2.0.0"
+		compositeOptions := models.MCPServerListOptions{
+			Name: &compositeFilter,
+		}
+		compositeResult, err := repo.List(compositeOptions)
+		require.NoError(t, err)
+		assert.Equal(t, 0, len(compositeResult.Items))
+	})
+
+	t.Run("TestList_FilterByName_ViaFilterQuery", func(t *testing.T) {
+		// Create a server with a version to ensure the composite name differs from display name.
+		mcpServer := &models.MCPServerImpl{
+			Attributes: &models.MCPServerAttributes{
+				Name: apiutils.Of("filterquery-name-server"),
+			},
+			Properties: &[]dbmodels.Properties{
+				{
+					Name:        "source_id",
+					StringValue: apiutils.Of("fq-source"),
+				},
+				{
+					Name:        "version",
+					StringValue: apiutils.Of("3.1.0"),
+				},
+			},
+		}
+
+		_, err := repo.Save(mcpServer)
+		require.NoError(t, err)
+
+		// Use filterQuery with display name — must find the server even though DB stores "filterquery-name-server@3.1.0"
+		fq := `name = "filterquery-name-server"`
+		listOptions := models.MCPServerListOptions{
+			FilterQuery: &fq,
+		}
+		result, err := repo.List(listOptions)
+		require.NoError(t, err)
+		assert.Equal(t, 1, len(result.Items))
+		assert.Equal(t, "filterquery-name-server", *result.Items[0].GetAttributes().Name)
+
+		// Composite name in filterQuery must NOT match
+		fqComposite := `name = "filterquery-name-server@3.1.0"`
+		compositeOptions := models.MCPServerListOptions{
+			FilterQuery: &fqComposite,
+		}
+		compositeResult, err := repo.List(compositeOptions)
+		require.NoError(t, err)
+		assert.Equal(t, 0, len(compositeResult.Items))
 	})
 
 	t.Run("TestList_FilterByQuery", func(t *testing.T) {

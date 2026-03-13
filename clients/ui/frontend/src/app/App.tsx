@@ -24,6 +24,7 @@ import AppNavSidebar from '~/app/standalone/AppNavSidebar';
 import AppRoutes from '~/app/AppRoutes';
 import { AppContext } from '~/app/context/AppContext';
 import { ModelRegistrySelectorContextProvider } from '~/app/context/ModelRegistrySelectorContext';
+import { TransferJobNotificationsProvider } from '~/app/context/TransferJobNotificationsContext';
 
 const App: React.FC = () => {
   const {
@@ -95,28 +96,30 @@ const App: React.FC = () => {
     </Bullseye>
   ) : (
     <AppContext.Provider value={contextValue}>
-      <Page
-        mainContainerId="primary-app-container"
-        masthead={
-          isStandalone ? (
-            <NavBar
-              username={username}
-              onLogout={() => {
-                logout().then(() => window.location.reload());
-              }}
-            />
-          ) : (
-            ''
-          )
-        }
-        isManagedSidebar={isStandalone}
-        sidebar={isStandalone ? <AppNavSidebar /> : sidebar}
-      >
-        <ModelRegistrySelectorContextProvider>
-          <AppRoutes />
-        </ModelRegistrySelectorContextProvider>
-        <ToastNotifications />
-      </Page>
+      <TransferJobNotificationsProvider>
+        <Page
+          mainContainerId="primary-app-container"
+          masthead={
+            isStandalone ? (
+              <NavBar
+                username={username}
+                onLogout={() => {
+                  logout().then(() => window.location.reload());
+                }}
+              />
+            ) : (
+              ''
+            )
+          }
+          isManagedSidebar={isStandalone}
+          sidebar={isStandalone ? <AppNavSidebar /> : sidebar}
+        >
+          <ModelRegistrySelectorContextProvider>
+            <AppRoutes />
+          </ModelRegistrySelectorContextProvider>
+          <ToastNotifications />
+        </Page>
+      </TransferJobNotificationsProvider>
     </AppContext.Provider>
   );
 };
