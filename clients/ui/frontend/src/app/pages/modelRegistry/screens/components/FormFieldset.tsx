@@ -17,7 +17,11 @@ const FormFieldset: React.FC<FormFieldsetProps> = ({ component, field, className
   return (
     <div className={className ?? 'form-fieldset-wrapper'}>
       {component}
-      <fieldset aria-hidden="true" className="form-fieldset">
+      <fieldset
+        aria-hidden="true"
+        className="form-fieldset"
+        style={!field ? { insetBlockStart: '0' } : undefined}
+      >
         {field && (
           <legend className="form-fieldset-legend">
             <span>{field}</span>
