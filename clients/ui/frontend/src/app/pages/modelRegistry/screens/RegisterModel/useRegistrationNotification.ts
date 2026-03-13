@@ -33,7 +33,7 @@ export function useRegistrationNotification(
     options?: NotificationLinkOptions,
   ) => {
     if (variant === AlertVariant.info) {
-      notification.info(title, message);
+      notification.info(title, message, options);
     } else {
       notification.error(title, message, options);
     }
