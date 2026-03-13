@@ -232,6 +232,8 @@ export const isNameValid = (name: string): boolean => name.length <= MR_CHARACTE
 export const isModelNameExisting = (name: string, registeredModels: RegisteredModelList): boolean =>
   registeredModels.items.some((model) => model.name === name);
 
+export const isOciUri = (uri: string): boolean => uri.trim().toLowerCase().startsWith('oci://');
+
 export const buildModelTransferJobPayload = (
   formData: RegisterModelFormData | RegisterVersionFormData,
   author: string,
@@ -263,7 +265,6 @@ export const buildModelTransferJobPayload = (
     registry: formData.destinationOciRegistry || undefined,
     username: formData.destinationOciUsername,
     password: formData.destinationOciPassword,
-    email: formData.destinationOciEmail || undefined,
   };
 
   // RegisterModelFormData has modelName (user-provided for new model).
@@ -277,6 +278,7 @@ export const buildModelTransferJobPayload = (
 
   return {
     name: formData.jobResourceName,
+    jobDisplayName: formData.jobName,
     source,
     destination,
     uploadIntent,

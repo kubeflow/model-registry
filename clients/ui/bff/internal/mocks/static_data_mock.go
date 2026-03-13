@@ -138,7 +138,7 @@ func GetModelArtifactMocks() []openapi.ModelArtifact {
 		CustomProperties:         newCustomProperties(),
 		Description:              stringToPointer("This artifact can do more than you would expect"),
 		ExternalId:               stringToPointer("1000001"),
-		Uri:                      stringToPointer("http://localhost/artifacts/1"),
+		Uri:                      stringToPointer("oci://quay.io/my-org/my-model:v1.0.0"),
 		State:                    stateToPointer(openapi.ARTIFACTSTATE_LIVE),
 		Name:                     stringToPointer("Artifact One"),
 		Id:                       stringToPointer("1"),
@@ -149,6 +149,9 @@ func GetModelArtifactMocks() []openapi.ModelArtifact {
 		StoragePath:              stringToPointer("/artifacts/1"),
 		ModelFormatVersion:       stringToPointer("1.0.0"),
 		ServiceAccountName:       stringToPointer("service-1"),
+		ModelSourceKind:          stringToPointer("transfer_job"),
+		ModelSourceGroup:         stringToPointer("bella-namespace"),
+		ModelSourceName:          stringToPointer("transfer-job-001"),
 	}
 
 	artifact2 := openapi.ModelArtifact{
@@ -1687,8 +1690,8 @@ func GetFilterOptionMocks() map[string]models.FilterOption {
 		Type: FilterOptionTypeString,
 		Values: []interface{}{
 			"audio-to-text", "automatic-speech-recognition", "automatic-speech-translation",
-			"code-generation", "image-text-to-text", "image-to-text", "text-generation",
-			"text-to-text", "video-to-text",
+			"code-generation", "image-text-to-text", "image-to-text", "text-embedding",
+			"text-generation", "text-to-text", "tool-calling", "video-to-text",
 		},
 	}
 
@@ -2361,7 +2364,7 @@ func GetMcpServerMocks() []models.McpServer {
 	prometheusMcp := models.McpServer{
 		ID:          1,
 		Name:        "Prometheus MCP Server",
-		SourceID:    stringToPointer("community_mcp_servers"),
+		SourceID:    stringToPointer("community-mcp-source"),
 		Description: stringToPointer("Query Prometheus metrics and alerts directly from your agent"),
 		Provider:    stringToPointer("Prometheus Community"),
 		Version:     stringToPointer("0.9.2"),
@@ -2400,12 +2403,16 @@ func GetMcpServerMocks() []models.McpServer {
 				URI: "oci://ghcr.io/prometheus-community/prometheus-mcp:0.9.2",
 			},
 		},
+		Readme:        stringToPointer("# Prometheus MCP Server\n\nThe Prometheus MCP Server enables AI assistants to query Prometheus metrics and alerts using natural language.\n\n## Quickstart\n\n```bash\nnpx -y @prometheus-community/prometheus-mcp-server\n```\n\n## Features\n\n- Execute PromQL queries\n- Retrieve active alerts\n- Query metric metadata\n- Range queries with configurable time windows\n"),
+		SourceCode:    stringToPointer("prometheus-community/prometheus-mcp"),
+		RepositoryURL: stringToPointer("https://github.com/prometheus-community/prometheus-mcp"),
+		LastUpdated:   stringToPointer("1706745600000"),
 	}
 
 	kubernetesMcp := models.McpServer{
 		ID:          2,
 		Name:        "Kubernetes MCP Server",
-		SourceID:    stringToPointer("community_mcp_servers"),
+		SourceID:    stringToPointer("community-mcp-source"),
 		Description: stringToPointer("Manage Kubernetes resources and query cluster state"),
 		Provider:    stringToPointer("CNCF"),
 		Version:     stringToPointer("1.2.0"),
@@ -2429,12 +2436,16 @@ func GetMcpServerMocks() []models.McpServer {
 				URI: "oci://ghcr.io/cncf/kubernetes-mcp:1.2.0",
 			},
 		},
+		Readme:        stringToPointer("# Kubernetes MCP Server\n\nThe Kubernetes MCP Server allows AI Assistants to interact with Kubernetes clusters, bringing real-time cluster management directly into your development workflow.\n\n**Note:** This product is not officially supported by CNCF.\n\nIf you need help, please contact us via GitHub Issues if you have feature requests, questions, or need help.\n\n## Quickstart\n\nYou can add this MCP server to your MCP Client like VSCode, Claude, Cursor, Amazon Q, Windsurf, ChatGPT, or GitHub Copilot via the command `npx -y @cncf/kubernetes-mcp-server` (type: stdio). For more details, please refer to the configuration section below.\n\n## Use Cases\n\n- **Real-time cluster management** - Query pod, deployment, and service status\n- **Resource operations** - Create, update, and delete Kubernetes resources\n- **Health monitoring** - Check cluster health and resource utilization\n- **Namespace management** - List and manage namespaces and their contents\n- **Debugging support** - Get pod logs and events for troubleshooting\n\n## Tools\n\n| Tool | Description |\n|------|-------------|\n| `get_pods` | List pods in a namespace |\n| `get_deployments` | List deployments |\n| `get_services` | List services |\n| `get_namespaces` | List all namespaces |\n| `get_pod_logs` | Retrieve pod logs |\n| `get_events` | Get cluster events |\n| `apply_manifest` | Apply a Kubernetes manifest |\n| `delete_resource` | Delete a Kubernetes resource |\n\n## Configuration\n\n```json\n{\n  \"mcpServers\": {\n    \"kubernetes\": {\n      \"command\": \"npx\",\n      \"args\": [\"-y\", \"@cncf/kubernetes-mcp-server\"],\n      \"env\": {\n        \"KUBECONFIG\": \"/path/to/kubeconfig\"\n      }\n    }\n  }\n}\n```\n\n## Requirements\n\n- Node.js 18+\n- Valid kubeconfig with cluster access\n- kubectl CLI (optional, for fallback operations)\n"),
+		SourceCode:    stringToPointer("cncf/kubernetes-mcp-server"),
+		RepositoryURL: stringToPointer("https://github.com/cncf/kubernetes-mcp-server"),
+		LastUpdated:   stringToPointer("1709913600000"),
 	}
 
 	elasticMcp := models.McpServer{
 		ID:          3,
 		Name:        "Elasticsearch MCP Server",
-		SourceID:    stringToPointer("organization_mcp_servers"),
+		SourceID:    stringToPointer("organization-mcp-source"),
 		Description: stringToPointer("Search and analyze data in Elasticsearch clusters"),
 		Provider:    stringToPointer("Elastic"),
 		Version:     stringToPointer("2.0.5"),
@@ -2459,7 +2470,7 @@ func GetMcpServerMocks() []models.McpServer {
 	dynatraceMcp := models.McpServer{
 		ID:          4,
 		Name:        "Dynatrace MCP Server",
-		SourceID:    stringToPointer("organization_mcp_servers"),
+		SourceID:    stringToPointer("organization-mcp-source"),
 		Description: stringToPointer("Access Dynatrace observability data and perform actions"),
 		Provider:    stringToPointer("Dynatrace"),
 		Version:     stringToPointer("1.0.1"),
@@ -2480,9 +2491,139 @@ func GetMcpServerMocks() []models.McpServer {
 		SourceCode:       stringToPointer("dynatrace-oss/dynatrace-mcp-server"),
 		RepositoryURL:    stringToPointer("https://github.com/dynatrace-oss/dynatrace-mcp-server"),
 		DocumentationURL: stringToPointer("https://github.com/dynatrace-oss/dynatrace-mcp-server/blob/main/README.md"),
+		Readme:           stringToPointer("# Dynatrace MCP Server\n\nThe local Dynatrace MCP server allows AI Assistants to interact with the Dynatrace observability platform, bringing real-time observability data directly into your development workflow.\n\n**Note:** This product is not officially supported by Dynatrace.\n\nIf you need help, please contact us via GitHub Issues if you have feature requests, questions, or need help.\n\n## Quickstart\n\nYou can add this MCP server to your MCP Client like VSCode, Claude, Cursor, Amazon Q, Windsurf, ChatGPT, or GitHub Copilot via the command `npx -y @dynatrace-oss/dynatrace-mcp-server` (type: stdio). For more details, please refer to the configuration section below.\n\nFurthermore, you need to configure the URL to a Dynatrace environment:\n\n- `DT_ENVIRONMENT` (string, e.g., https://abc12345.apps.dynatrace.com) - URL to your Dynatrace Platform (do not use Dynatrace classic URLs like abc12345.live.dynatrace.com)\n\nOnce we are done, we recommend looking into example prompts, like \"Get all details of the entity 'my-service'\" or \"Show me error logs\". Please mind that these prompts lead to executing DQL statements which may incur costs in accordance to your licence.\n\n## Use Cases\n\n- **Real-time observability** - Fetch production-level data for early detection and proactive monitoring\n- **Contextual debugging** - Fix issues with full context from monitored exceptions, logs, and anomalies\n- **Security insights** - Get detailed vulnerability analysis and security problem tracking\n- **Natural language queries** - Use AI-powered DQL generation and explanation\n- **Multi-phase incident investigation** - Systematic 4-phase approach with automated impact assessment\n\n## Tools\n\n| Tool | Description |\n|------|-------------|\n| `execute_dql` | Execute Dynatrace Query Language (DQL) queries |\n| `get_problems` | Retrieve current problems and incidents |\n| `get_service_health` | Get health status of services |\n| `get_vulnerabilities` | Retrieve security vulnerability data |\n| `create_maintenance_window` | Create a maintenance window to suppress alerts |\n"),
+		LastUpdated:      stringToPointer("1704067200000"),
 	}
 
-	return []models.McpServer{prometheusMcp, kubernetesMcp, elasticMcp, dynatraceMcp}
+	grafanaMcp := models.McpServer{
+		ID:          5,
+		Name:        "Grafana MCP Server",
+		SourceID:    stringToPointer("community-mcp-source"),
+		Description: stringToPointer("Query Grafana dashboards, data sources and annotations via natural language"),
+		Provider:    stringToPointer("Grafana Labs"),
+		Version:     stringToPointer("1.1.0"),
+		License:     stringToPointer("AGPL-3.0"),
+		LicenseLink: stringToPointer("https://www.gnu.org/licenses/agpl-3.0.html"),
+		Tags:        []string{"dashboards", "visualization", "monitoring"},
+		ToolCount:   12,
+		Transports:  []models.McpTransportType{models.McpTransportTypeHTTP},
+		DeploymentMode: func() *models.McpDeploymentMode {
+			mode := models.McpDeploymentModeRemote
+			return &mode
+		}(),
+		SecurityIndicators: &models.McpSecurityIndicator{
+			VerifiedSource: &trueVal,
+			SecureEndpoint: &trueVal,
+			ReadOnlyTools:  &trueVal,
+		},
+	}
+
+	gitMcp := models.McpServer{
+		ID:          6,
+		Name:        "Git MCP Server",
+		SourceID:    stringToPointer("community-mcp-source"),
+		Description: stringToPointer("Interact with Git repositories, branches, commits and diffs through your agent"),
+		Provider:    stringToPointer("Git Community"),
+		Version:     stringToPointer("0.5.3"),
+		License:     stringToPointer("MIT"),
+		LicenseLink: stringToPointer("https://opensource.org/licenses/MIT"),
+		Tags:        []string{"git", "vcs", "repositories"},
+		ToolCount:   20,
+		Transports:  []models.McpTransportType{models.McpTransportTypeStdio},
+		DeploymentMode: func() *models.McpDeploymentMode {
+			mode := models.McpDeploymentModeLocal
+			return &mode
+		}(),
+		SecurityIndicators: &models.McpSecurityIndicator{
+			VerifiedSource: &trueVal,
+			SAST:           &trueVal,
+		},
+	}
+
+	postgresMcp := models.McpServer{
+		ID:          7,
+		Name:        "PostgreSQL MCP Server",
+		SourceID:    stringToPointer("organization-mcp-source"),
+		Description: stringToPointer("Query and manage PostgreSQL databases using natural language"),
+		Provider:    stringToPointer("PostgreSQL Global Development Group"),
+		Version:     stringToPointer("1.3.0"),
+		License:     stringToPointer("PostgreSQL License"),
+		Tags:        []string{"database", "sql", "postgresql"},
+		ToolCount:   10,
+		Transports:  []models.McpTransportType{models.McpTransportTypeHTTP},
+		DeploymentMode: func() *models.McpDeploymentMode {
+			mode := models.McpDeploymentModeLocal
+			return &mode
+		}(),
+		SecurityIndicators: &models.McpSecurityIndicator{
+			VerifiedSource: &trueVal,
+			ReadOnlyTools:  &trueVal,
+		},
+	}
+
+	redisMcp := models.McpServer{
+		ID:          8,
+		Name:        "Redis MCP Server",
+		SourceID:    stringToPointer("organization-mcp-source"),
+		Description: stringToPointer("Manage Redis key-value stores, caches and pub/sub channels"),
+		Provider:    stringToPointer("Redis Ltd"),
+		Version:     stringToPointer("0.8.1"),
+		License:     stringToPointer("BSD-3-Clause"),
+		LicenseLink: stringToPointer("https://opensource.org/licenses/BSD-3-Clause"),
+		Tags:        []string{"cache", "database", "messaging"},
+		ToolCount:   14,
+		Transports:  []models.McpTransportType{models.McpTransportTypeHTTP, models.McpTransportTypeSSE},
+		DeploymentMode: func() *models.McpDeploymentMode {
+			mode := models.McpDeploymentModeRemote
+			return &mode
+		}(),
+		SecurityIndicators: &models.McpSecurityIndicator{
+			VerifiedSource: &trueVal,
+			SecureEndpoint: &trueVal,
+			SAST:           &falseVal,
+		},
+	}
+
+	standaloneMcp := models.McpServer{
+		ID:          9,
+		Name:        "Standalone MCP Server",
+		SourceID:    stringToPointer("standalone-mcp-source"),
+		Description: stringToPointer("MCP server with no category, available for use"),
+		Provider:    stringToPointer("Independent"),
+		Version:     stringToPointer("1.0.0"),
+		License:     stringToPointer("MIT"),
+		Tags:        []string{"standalone", "general"},
+		ToolCount:   5,
+		Transports:  []models.McpTransportType{models.McpTransportTypeStdio},
+		DeploymentMode: func() *models.McpDeploymentMode {
+			mode := models.McpDeploymentModeLocal
+			return &mode
+		}(),
+		SecurityIndicators: &models.McpSecurityIndicator{
+			VerifiedSource: &falseVal,
+			SecureEndpoint: &trueVal,
+		},
+	}
+
+	allBases := []models.McpServer{prometheusMcp, kubernetesMcp, grafanaMcp, gitMcp, elasticMcp, dynatraceMcp, postgresMcp, redisMcp, standaloneMcp}
+
+	var all []models.McpServer
+	nextID := len(allBases) + 1
+	suffixes := []string{"-1", "-2", "-3"}
+
+	for _, base := range allBases {
+		for _, suffix := range suffixes {
+			s := base
+			s.Name = base.Name + suffix
+			if suffix != "-1" {
+				s.ID = nextID
+				nextID++
+			}
+			all = append(all, s)
+		}
+	}
+
+	return all
 }
 
 func GetMcpServerListMock() models.McpServerList {
@@ -2677,30 +2818,36 @@ func GetMcpFilterOptionsListMock() models.FilterOptionsList {
 func GetMcpServerCatalogSourceMocks() []models.CatalogSource {
 	enabled := true
 	disabledBool := false
+	availableStatus := "available"
 
 	return []models.CatalogSource{
 		{
-			Id:      "sample-mcp-server-source",
-			Name:    "Sample mocked mcp source",
+			Id:      "community-mcp-source",
+			Name:    "Community MCP Servers",
 			Enabled: &enabled,
-			Labels:  []string{"Sample category 1", "Sample category 2", "Sample category"},
+			Status:  &availableStatus,
+			Labels:  []string{"community_mcp_servers"},
 		},
 		{
-			Id:      "admin-mcp-sever-1",
-			Name:    "Admin mcp server 1",
+			Id:      "organization-mcp-source",
+			Name:    "Organization MCP Servers",
 			Enabled: &enabled,
+			Status:  &availableStatus,
+			Labels:  []string{"organization_mcp_servers"},
+		},
+		{
+			Id:      "standalone-mcp-source",
+			Name:    "Other MCP Servers",
+			Enabled: &enabled,
+			Status:  &availableStatus,
 			Labels:  []string{},
 		},
 		{
-			Id:      "sample-mcp-2",
-			Name:    "Admin mcp server 2",
+			Id:      "disabled-mcp-source",
+			Name:    "Disabled MCP source",
 			Enabled: &disabledBool,
-			Labels:  []string{"Sample category 1"},
-		},
-		{
-			Id:     "sample-mcp-3",
-			Name:   "Dora source",
-			Labels: []string{},
+			Status:  &availableStatus,
+			Labels:  []string{"disabled_servers"},
 		},
 	}
 }

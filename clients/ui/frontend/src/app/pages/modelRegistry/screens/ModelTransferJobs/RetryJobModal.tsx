@@ -46,7 +46,7 @@ const generateRetryJobName = (originalName: string, maxLength = 63): string => {
 type RetryJobModalProps = {
   job: ModelTransferJob;
   onClose: () => void;
-  onRetry: (newJobName: string, deleteOldJob: boolean) => Promise<void>;
+  onRetry: (newJobName: string, newJobDisplayName: string, deleteOldJob: boolean) => Promise<void>;
 };
 
 const RetryJobModal: React.FC<RetryJobModalProps> = ({ job, onClose, onRetry }) => {
@@ -74,7 +74,7 @@ const RetryJobModal: React.FC<RetryJobModalProps> = ({ job, onClose, onRetry }) 
     setIsRetrying(true);
     setError(undefined);
     try {
-      await onRetry(k8sName.value, deleteOldJob);
+      await onRetry(fieldData.k8sName.value, fieldData.name, deleteOldJob);
       onClose();
     } catch (e) {
       setError(e instanceof Error ? e : new Error(String(e)));

@@ -1,24 +1,18 @@
 import React from 'react';
 import { AlertVariant } from '@patternfly/react-core';
 import { useThemeContext } from 'mod-arch-kubeflow';
-import { useNotification } from '~/app/hooks/useNotification';
+import { useNotification, type NotificationLinkOptions } from '~/app/hooks/useNotification';
 import { REGISTRATION_TOAST_TITLES } from '~/app/utilities/const';
+import { modelTransferJobsUrl } from '~/app/pages/modelRegistry/screens/routeUtils';
 import type { RegistrationInlineAlert } from './RegistrationFormFooter';
 import {
-  getRegisterAndStoreToastMessageSubmitting,
-  getRegisterAndStoreToastMessageSuccess,
-  getRegisterAndStoreToastMessageError,
+  getRegisterAndStoreToastMessage,
+  type RegistrationToastMessagesParams,
 } from './registrationToastMessages';
 
-export type RegistrationToastParams = {
-  versionModelName: string;
-  mrName: string;
-};
-
 export type RegistrationNotificationActions = {
-  showRegisterAndStoreSubmitting: (params: RegistrationToastParams) => void;
-  showRegisterAndStoreSuccess: (params: RegistrationToastParams) => void;
-  showRegisterAndStoreError: (params: RegistrationToastParams) => void;
+  showRegisterAndStoreStarted: (params: RegistrationToastMessagesParams) => void;
+  showRegisterAndStoreError: (params: RegistrationToastMessagesParams) => void;
 };
 
 /**
@@ -32,40 +26,42 @@ export function useRegistrationNotification(
   const notification = useNotification();
   const { isMUITheme } = useThemeContext();
 
-  const showAlert = (variant: AlertVariant, title: string, message: React.ReactNode) => {
+  const showAlert = (
+    variant: AlertVariant,
+    title: string,
+    message: React.ReactNode,
+    options?: NotificationLinkOptions,
+  ) => {
     if (variant === AlertVariant.info) {
-      notification.info(title, message);
+      notification.info(title, message, options);
     } else if (variant === AlertVariant.success) {
-      notification.success(title, message);
+      notification.success(title, message, options);
     } else {
-      notification.error(title, message);
+      notification.error(title, message, options);
     }
     if (!isMUITheme) {
       setInlineAlert({ variant, title, message });
     }
   };
 
-  const showRegisterAndStoreSubmitting = (params: RegistrationToastParams) => {
-    const title = REGISTRATION_TOAST_TITLES.REGISTER_AND_STORE_SUBMITTING;
-    const message = getRegisterAndStoreToastMessageSubmitting(params);
-    showAlert(AlertVariant.info, title, message);
+  const showRegisterAndStoreStarted = (params: RegistrationToastMessagesParams) => {
+    const title = REGISTRATION_TOAST_TITLES.REGISTER_AND_STORE_STARTED;
+    const message = getRegisterAndStoreToastMessage(params);
+    showAlert(AlertVariant.info, title, message, {
+      linkUrl: modelTransferJobsUrl(params.mrName),
+      linkLabel: 'Model transfer jobs',
+      messageText: `To view ${params.versionModelName} job details, go to `,
+    });
   };
 
-  const showRegisterAndStoreSuccess = (params: RegistrationToastParams) => {
-    const title = REGISTRATION_TOAST_TITLES.REGISTER_AND_STORE_SUCCESS;
-    const message = getRegisterAndStoreToastMessageSuccess(params);
-    showAlert(AlertVariant.success, title, message);
-  };
-
-  const showRegisterAndStoreError = (params: RegistrationToastParams) => {
+  const showRegisterAndStoreError = (params: RegistrationToastMessagesParams) => {
     const title = REGISTRATION_TOAST_TITLES.REGISTER_AND_STORE_ERROR;
-    const message = getRegisterAndStoreToastMessageError(params);
+    const message = getRegisterAndStoreToastMessage(params);
     showAlert(AlertVariant.danger, title, message);
   };
 
   return {
-    showRegisterAndStoreSubmitting,
-    showRegisterAndStoreSuccess,
+    showRegisterAndStoreStarted,
     showRegisterAndStoreError,
   };
 }

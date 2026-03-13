@@ -19,6 +19,10 @@ POLL_INTERVAL = int(os.environ.get("CATALOG_POLL_INTERVAL", "1"))  # seconds (in
 MAX_BACKOFF = int(os.environ.get("CATALOG_MAX_BACKOFF", "10"))  # seconds (max backoff)
 
 
+# Required fields that every MCP server response must contain
+MCP_SERVER_REQUIRED_FIELDS: set[str] = {"id", "name", "provider", "description"}
+
+
 def get_verify_ssl(logger: logging.Logger | None = None) -> bool:
     """Get SSL verification setting from environment.
 

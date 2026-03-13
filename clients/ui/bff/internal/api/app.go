@@ -84,8 +84,9 @@ const (
 
 	// MCP server catalog
 	McpServerId                   = "server_id"
-	McpServerListPath             = CatalogPathPrefix + "/mcp_servers"
-	McpServerFilterOptionListPath = CatalogPathPrefix + "/mcp_servers_filter_options"
+	McpServerCatalogPathPrefix    = ApiPathPrefix + "/mcp_catalog"
+	McpServerListPath             = McpServerCatalogPathPrefix + "/mcp_servers"
+	McpServerFilterOptionListPath = McpServerCatalogPathPrefix + "/mcp_servers_filter_options"
 	McpServerPath                 = McpServerListPath + "/:" + McpServerId
 	McpServersToolListPath        = McpServerPath + "/tools"
 )
@@ -95,6 +96,7 @@ type App struct {
 	logger                  *slog.Logger
 	kubernetesClientFactory k8s.KubernetesClientFactory
 	repositories            *repositories.Repositories
+	podNamespace            string
 	//used only on mocked k8s client
 	testEnv *envtest.Environment
 	// rootCAs used for outbound TLS connections to Model Registry/Catalog
@@ -202,6 +204,7 @@ func NewApp(cfg config.EnvConfig, logger *slog.Logger) (*App, error) {
 		logger:                  logger,
 		kubernetesClientFactory: k8sFactory,
 		repositories:            repositories.NewRepositories(mrClient, modelCatalogClient),
+		podNamespace:            getPodNamespace(),
 		testEnv:                 testEnv,
 		rootCAs:                 rootCAs,
 	}
@@ -216,6 +219,14 @@ func (app *App) Shutdown() error {
 	//shutdown the envtest control plane when we are in the mock mode.
 	app.logger.Info("shutting env test...")
 	return app.testEnv.Stop()
+}
+
+func getPodNamespace() string {
+	ns, err := os.ReadFile("/var/run/secrets/kubernetes.io/serviceaccount/namespace")
+	if err != nil {
+		return ""
+	}
+	return strings.TrimSpace(string(ns))
 }
 
 func (app *App) Routes() http.Handler {

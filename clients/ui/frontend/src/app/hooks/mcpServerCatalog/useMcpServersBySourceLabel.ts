@@ -2,6 +2,7 @@ import React from 'react';
 import { FetchStateCallbackPromise, useFetchState } from 'mod-arch-core';
 import { McpServer, McpServerList, McpServerListParams } from '~/app/mcpServerCatalogTypes';
 import { useModelCatalogAPI } from '~/app/hooks/modelCatalog/useModelCatalogAPI';
+import type { ModelCatalogAPIState } from '~/app/hooks/modelCatalog/useModelCatalogAPIState';
 
 type PaginatedMcpServerList = {
   items: McpServer[];
@@ -15,33 +16,47 @@ type PaginatedMcpServerList = {
   loadMoreError?: Error;
 };
 
-type McpServers = {
+export type McpServersResult = {
   mcpServers: PaginatedMcpServerList;
   mcpServersLoaded: boolean;
   mcpServersLoadError: Error | undefined;
   refresh: () => void;
 };
 
-export const useMcpServersBySourceLabel = (
-  sourceLabel?: string,
-  pageSize = 10,
-  searchQuery = '',
-  filterQuery?: string,
-  namedQuery?: string,
-  includeTools?: boolean,
-  toolLimit?: number,
-  sortBy?: string | null,
-  sortOrder?: string,
-): McpServers => {
-  const { api, apiAvailable } = useModelCatalogAPI();
+type UseMcpServersBySourceLabelParams = {
+  sourceLabel?: string;
+  pageSize?: number;
+  searchQuery?: string;
+  filterQuery?: string;
+  namedQuery?: string;
+  includeTools?: boolean;
+  toolLimit?: number;
+  sortBy?: string | null;
+  sortOrder?: string;
+};
+
+export function useMcpServersBySourceLabelWithAPI(
+  apiState: ModelCatalogAPIState,
+  params: UseMcpServersBySourceLabelParams,
+): McpServersResult {
+  const {
+    sourceLabel,
+    pageSize = 10,
+    searchQuery = '',
+    filterQuery,
+    namedQuery,
+    includeTools,
+    toolLimit,
+    sortBy,
+    sortOrder,
+  } = params;
+  const { api, apiAvailable } = apiState;
 
   const [allItems, setAllItems] = React.useState<McpServer[]>([]);
   const [totalSize, setTotalSize] = React.useState(0);
   const [nextPageTokenValue, setNextPageTokenValue] = React.useState('');
   const [isLoadingMore, setIsLoadingMore] = React.useState(false);
   const [loadMoreError, setLoadMoreError] = React.useState<Error | undefined>();
-
-  const resetJustRanRef = React.useRef(false);
 
   const buildMcpServerListParams = React.useCallback(
     (nextPageToken?: string): McpServerListParams => ({
@@ -88,10 +103,6 @@ export const useMcpServersBySourceLabel = (
 
   React.useEffect(() => {
     if (loaded && !error) {
-      if (resetJustRanRef.current) {
-        resetJustRanRef.current = false;
-        return;
-      }
       setAllItems(firstPageData.items ?? []);
       setTotalSize(firstPageData.size);
       setNextPageTokenValue(firstPageData.nextPageToken);
@@ -130,7 +141,6 @@ export const useMcpServersBySourceLabel = (
     setNextPageTokenValue('');
     setIsLoadingMore(false);
     setLoadMoreError(undefined);
-    resetJustRanRef.current = true;
   }, [
     sourceLabel,
     pageSize,
@@ -170,4 +180,32 @@ export const useMcpServersBySourceLabel = (
     mcpServersLoadError: error,
     refresh,
   };
+}
+
+export const useMcpServersBySourceLabel = (
+  sourceLabel?: string,
+  pageSize = 10,
+  searchQuery = '',
+  filterQuery?: string,
+  namedQuery?: string,
+  includeTools?: boolean,
+  toolLimit?: number,
+  sortBy?: string | null,
+  sortOrder?: string,
+): McpServersResult => {
+  const { api, apiAvailable } = useModelCatalogAPI();
+  return useMcpServersBySourceLabelWithAPI(
+    { api, apiAvailable },
+    {
+      sourceLabel,
+      pageSize,
+      searchQuery,
+      filterQuery,
+      namedQuery,
+      includeTools,
+      toolLimit,
+      sortBy,
+      sortOrder,
+    },
+  );
 };

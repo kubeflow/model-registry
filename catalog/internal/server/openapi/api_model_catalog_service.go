@@ -165,6 +165,13 @@ func (c *ModelCatalogServiceAPIController) FindLabels(w http.ResponseWriter, r *
 		c.errorHandler(w, r, &ParsingError{Err: err}, nil)
 		return
 	}
+	var assetTypeParam model.CatalogAssetType
+	if query.Has("assetType") {
+		param := model.CatalogAssetType(query.Get("assetType"))
+
+		assetTypeParam = param
+	} else {
+	}
 	var pageSizeParam string
 	if query.Has("pageSize") {
 		param := query.Get("pageSize")
@@ -193,7 +200,7 @@ func (c *ModelCatalogServiceAPIController) FindLabels(w http.ResponseWriter, r *
 		nextPageTokenParam = param
 	} else {
 	}
-	result, err := c.service.FindLabels(r.Context(), pageSizeParam, orderByParam, sortOrderParam, nextPageTokenParam)
+	result, err := c.service.FindLabels(r.Context(), assetTypeParam, pageSizeParam, orderByParam, sortOrderParam, nextPageTokenParam)
 	// If an error occurred, encode the error with the status code
 	if err != nil {
 		c.errorHandler(w, r, err, &result)

@@ -18,6 +18,7 @@ import { RegistrationMode } from '~/app/pages/modelRegistry/screens/const';
 import { ModelTransferJobUploadIntent } from '~/app/types';
 import { ModelRegistryContext } from '~/app/context/ModelRegistryContext';
 import { AppContext } from '~/app/context/AppContext';
+import { TransferJobNotificationsContext } from '~/app/context/TransferJobNotificationsContext';
 import useRegisteredModels from '~/app/hooks/useRegisteredModels';
 import { useRegisterModelData } from './useRegisterModelData';
 import {
@@ -41,6 +42,7 @@ const RegisterModel: React.FC = () => {
   const navigate = useNavigate();
   const { apiState } = React.useContext(ModelRegistryContext);
   const { user } = React.useContext(AppContext);
+  const { watchJob } = React.useContext(TransferJobNotificationsContext);
   const { isMUITheme } = useThemeContext();
   const author = user.userId || '';
   const [isSubmitting, setIsSubmitting] = React.useState(false);
@@ -62,7 +64,7 @@ const RegisterModel: React.FC = () => {
     hasAccess: namespaceHasAccess,
     isLoading: isNamespaceAccessLoading,
     error: namespaceAccessError,
-  } = useCheckNamespaceRegistryAccess(mrName, registryNamespace, formData.namespace ?? '');
+  } = useCheckNamespaceRegistryAccess(mrName, registryNamespace, formData.namespace);
 
   const isModelNameValid = isNameValid(formData.modelName);
   const isModelNameDuplicate = isModelNameExisting(formData.modelName, registeredModels);
@@ -86,14 +88,18 @@ const RegisterModel: React.FC = () => {
 
     // Branch based on registration mode
     if (formData.registrationMode === RegistrationMode.RegisterAndStore) {
-      registrationNotification.showRegisterAndStoreSubmitting(toastParams);
       const { transferJob, error } = await registerViaTransferJob(apiState, author, {
         intent: ModelTransferJobUploadIntent.CREATE_MODEL,
         formData,
       });
 
       if (transferJob) {
-        registrationNotification.showRegisterAndStoreSuccess(toastParams);
+        registrationNotification.showRegisterAndStoreStarted(toastParams);
+        watchJob({
+          jobName: transferJob.name,
+          registryName: mrName ?? '',
+          displayParams: toastParams,
+        });
         navigate(modelRegistryUrl(mrName));
       } else if (error) {
         setIsSubmitting(false);

@@ -12,6 +12,8 @@ import random
 
 from model_catalog import CatalogAPIClient
 
+from tests.constants import MCP_SERVER_REQUIRED_FIELDS
+
 
 class TestMCPServerBasics:
     """Test suite for basic MCP server listing and retrieval."""
@@ -22,11 +24,16 @@ class TestMCPServerBasics:
         suppress_ssl_warnings: None,
         test_mcp_catalog_data: dict,
     ):
-        """Test that all expected MCP servers are loaded from YAML."""
+        """Test that all expected MCP servers are loaded with required fields."""
         response = api_client.get_mcp_servers()
-        actual_names = {s["name"] for s in response.get("items", [])}
-        expected_names = {s["name"] for s in test_mcp_catalog_data["mcp_servers"]}
+        items = response.get("items", [])
+        actual_names = {server["name"] for server in items}
+        expected_names = {server["name"] for server in test_mcp_catalog_data["mcp_servers"]}
         assert actual_names == expected_names
+
+        for server in items:
+            missing = MCP_SERVER_REQUIRED_FIELDS - server.keys()
+            assert not missing, f"Server '{server.get('name')}' missing fields: {missing}"
 
     def test_mcp_server_providers(
         self,
@@ -45,23 +52,53 @@ class TestMCPServerBasics:
         api_client: CatalogAPIClient,
         suppress_ssl_warnings: None,
     ):
-        """Test that an MCP server can be retrieved by ID."""
+        """Test that an MCP server can be retrieved by ID with all required fields."""
         response = api_client.get_mcp_servers()
         assert response.get("items"), "No MCP servers found"
         server = random.choice(response["items"])
         single = api_client.get_mcp_server(server_id=server["id"])
         assert single["name"] == server["name"]
 
-    def test_mcp_server_pagination_fields(
+        missing = MCP_SERVER_REQUIRED_FIELDS - single.keys()
+        assert not missing, f"Server '{single.get('name')}' missing fields: {missing}"
+
+    def test_mcp_server_pagination(
+        self,
+        api_client: CatalogAPIClient,
+        suppress_ssl_warnings: None,
+        test_mcp_catalog_data: dict,
+    ):
+        """Test pagination by iterating all servers with pageSize=1."""
+        expected_names = {server["name"] for server in test_mcp_catalog_data["mcp_servers"]}
+        collected_names: set[str] = set()
+        next_token = None
+
+        for _ in range(len(expected_names) + 1):
+            response = api_client.get_mcp_servers(page_size=1, next_page_token=next_token)
+            items = response.get("items", [])
+            assert len(items) == 1, f"Expected exactly 1 item per page, got {len(items)}"
+
+            name = items[0]["name"]
+            assert name not in collected_names, f"Duplicate server: {name}"
+            collected_names.add(name)
+
+            next_token = response.get("nextPageToken")
+            if not next_token:
+                break
+
+        assert collected_names == expected_names
+
+    def test_filter_by_name(
         self,
         api_client: CatalogAPIClient,
         suppress_ssl_warnings: None,
     ):
-        """Test that MCP servers response includes pagination fields."""
-        response = api_client.get_mcp_servers()
-        assert "size" in response
-        assert "pageSize" in response
-
+        """Test filtering MCP servers by exact name."""
+        target_name = "calculator"
+        response = api_client.get_mcp_servers(name=target_name)
+        items = response.get("items", [])
+        assert len(items) == 1, f"Expected 1 server named '{target_name}', got {len(items)}"
+        assert items[0]["name"] == target_name
 
 class TestMCPServerTools:
     """Test suite for MCP server tools functionality."""

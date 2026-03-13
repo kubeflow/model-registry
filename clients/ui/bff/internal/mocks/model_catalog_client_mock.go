@@ -42,6 +42,9 @@ func (m *ModelCatalogClientMock) GetAllCatalogModelsAcrossSources(client httpcli
 
 		if sourceLabel == "null" {
 			for _, source := range allSources {
+				if source.Enabled != nil && !*source.Enabled {
+					continue
+				}
 				if len(source.Labels) == 0 {
 					matchingSourceIds = append(matchingSourceIds, source.Id)
 				}
@@ -276,10 +279,59 @@ func (m *ModelCatalogClientMock) CreateCatalogSourcePreview(client httpclient.HT
 	return &catalogSourcePreview, nil
 }
 
-func (m *ModelCatalogClientMock) GetAllMcpServers(client httpclient.HTTPClientInterface, pageValues url.Values) (*models.McpServerList, error) {
-	mcpServers := GetMcpServerListMock()
+const mcpSourceLabelOther = "null"
 
-	return &mcpServers, nil
+func (m *ModelCatalogClientMock) GetAllMcpServers(client httpclient.HTTPClientInterface, pageValues url.Values) (*models.McpServerList, error) {
+	full := GetMcpServerListMock()
+	sourceLabel := pageValues.Get("sourceLabel")
+
+	var items []models.McpServer
+	if sourceLabel != "" {
+		sources := GetMcpServerCatalogSourceMocks()
+		var matchingSourceIDs []string
+		if sourceLabel == mcpSourceLabelOther {
+			for _, source := range sources {
+				if source.Enabled != nil && !*source.Enabled {
+					continue
+				}
+				if len(source.Labels) == 0 {
+					matchingSourceIDs = append(matchingSourceIDs, source.Id)
+				}
+			}
+		} else {
+			for _, source := range sources {
+				for _, label := range source.Labels {
+					if label == sourceLabel {
+						matchingSourceIDs = append(matchingSourceIDs, source.Id)
+						break
+					}
+				}
+			}
+		}
+		for _, s := range full.Items {
+			if s.SourceID == nil {
+				if sourceLabel == mcpSourceLabelOther {
+					items = append(items, s)
+				}
+				continue
+			}
+			for _, sid := range matchingSourceIDs {
+				if *s.SourceID == sid {
+					items = append(items, s)
+					break
+				}
+			}
+		}
+	} else {
+		items = full.Items
+	}
+
+	return &models.McpServerList{
+		Items:         items,
+		Size:          int32(len(items)),
+		PageSize:      full.PageSize,
+		NextPageToken: full.NextPageToken,
+	}, nil
 }
 
 func (m *ModelCatalogClientMock) GetMcpServersFilter(client httpclient.HTTPClientInterface) (*models.FilterOptionsList, error) {
@@ -288,10 +340,18 @@ func (m *ModelCatalogClientMock) GetMcpServersFilter(client httpclient.HTTPClien
 	return &mcpFilterOptions, nil
 }
 
-func (m *ModelCatalogClientMock) GetMcpServer(client httpclient.HTTPClientInterface, serverId string) (*models.McpServer, error) {
-	mcpServer := GetMcpServerMocks()[0]
-
-	return &mcpServer, nil
+func (m *ModelCatalogClientMock) GetMcpServer(client httpclient.HTTPClientInterface, serverId string, pageValues url.Values) (*models.McpServer, error) {
+	allMocks := GetMcpServerMocks()
+	id, err := strconv.ParseInt(serverId, 10, 64)
+	if err != nil {
+		return nil, fmt.Errorf("server id doesn't exist: %w", err)
+	}
+	for i := range allMocks {
+		if int64(allMocks[i].ID) == id {
+			return &allMocks[i], nil
+		}
+	}
+	return nil, fmt.Errorf("server id doesn't exist: %s", serverId)
 }
 
 func (m *ModelCatalogClientMock) GetMcpServersTools(client httpclient.HTTPClientInterface, serverId string) (*models.McpToolList, error) {

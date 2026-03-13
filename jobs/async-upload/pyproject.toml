@@ -9,9 +9,9 @@ packages = [{include = "job"}]
 [tool.poetry.dependencies]
 python = ">=3.11,<4.0"
 configargparse = ">=1.7.1,<2.0.0"
-model-registry = { version = ">=0.2.19,<0.4.0", extras = ["boto3", "olot"] }
+model-registry = { version = ">=0.3.7,<0.4.0", extras = ["boto3", "olot", "signing"] }
 pydantic = ">=2.0.0,<3.0.0"
-huggingface-hub = "^1.4.1"
+huggingface-hub = "^1.6.0"
 requests = "^2.32.5"
 
 [tool.poetry.group.dev.dependencies]

@@ -59,7 +59,7 @@ const ModelTransferJobStatusModal: React.FC<ModelTransferJobStatusModalProps> = 
       if (!isOpen || !apiAvailable || !job.name || !job.namespace) {
         return Promise.reject(new NotReadyError('Modal is closed or API not available'));
       }
-      return api.getModelTransferJobEvents(opts, job.name, job.namespace ?? '');
+      return api.getModelTransferJobEvents(opts, job.name, job.namespace);
     },
     [isOpen, apiAvailable, api, job.name, job.namespace],
   );

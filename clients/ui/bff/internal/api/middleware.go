@@ -94,6 +94,7 @@ func (app *App) AttachModelCatalogRESTClient(next func(http.ResponseWriter, *htt
 		namespace, ok := r.Context().Value(constants.NamespaceHeaderParameterKey).(string)
 		if !ok || namespace == "" {
 			app.badRequestResponse(w, r, fmt.Errorf("missing namespace in the context"))
+			return
 		}
 
 		client, err := app.kubernetesClientFactory.GetClient(r.Context())

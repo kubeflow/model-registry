@@ -927,14 +927,14 @@ paths:
       operationId: getPerformanceArtifacts
 
   # MCP server catalog endpoints
-  /api/v1/model_catalog/mcp_servers:
+  /api/v1/mcp_catalog/mcp_servers:
     summary: Path used to get the list of MCP servers.
     description: >-
       The REST endpoint/path used to list zero or more `McpServer` entities.
     get:
       summary: List MCP servers
       tags:
-        - ModelCatalogService
+        - MCPCatalogService
       parameters:
         - $ref: "#/components/parameters/kubeflowUserId"
         - $ref: "#/components/parameters/namespace"
@@ -964,14 +964,14 @@ paths:
           $ref: "#/components/responses/InternalServerError"
       operationId: getAllMcpServers
       description: Gets a list of all `McpServer` entities.
-  /api/v1/model_catalog/mcp_servers_filter_options:
+  /api/v1/mcp_catalog/mcp_servers_filter_options:
     summary: Path used to get filter options for MCP servers.
     description: >-
       The REST endpoint/path used to list filter options and named queries for listing MCP servers.
     get:
       summary: List MCP server filter options
       tags:
-        - ModelCatalogService
+        - MCPCatalogService
       parameters:
         - $ref: "#/components/parameters/kubeflowUserId"
         - $ref: "#/components/parameters/namespace"
@@ -984,13 +984,13 @@ paths:
           $ref: "#/components/responses/InternalServerError"
       operationId: getMcpServersFilterOptions
       description: Gets filter options for the list MCP servers endpoint.
-  /api/v1/model_catalog/mcp_servers/{server_id}:
+  /api/v1/mcp_catalog/mcp_servers/{server_id}:
     description: >-
       The REST endpoint/path used to get a single `McpServer`.
     get:
       summary: Get an MCP server
       tags:
-        - ModelCatalogService
+        - MCPCatalogService
       parameters:
         - $ref: "#/components/parameters/kubeflowUserId"
         - $ref: "#/components/parameters/namespace"
@@ -1007,13 +1007,13 @@ paths:
           $ref: "#/components/responses/InternalServerError"
       operationId: getMcpServer
       description: Gets a single `McpServer` by ID.
-  /api/v1/model_catalog/mcp_servers/{server_id}/tools:
+  /api/v1/mcp_catalog/mcp_servers/{server_id}/tools:
     description: >-
       The REST endpoint/path used to list tools exposed by an `McpServer`.
     get:
       summary: List tools for an MCP server
       tags:
-        - ModelCatalogService
+        - MCPCatalogService
       parameters:
         - $ref: "#/components/parameters/kubeflowUserId"
         - $ref: "#/components/parameters/namespace"
@@ -1275,6 +1275,7 @@ paths:
         - $ref: "#/components/parameters/modelRegistryName"
         - $ref: "#/components/parameters/kubeflowUserId"
         - $ref: "#/components/parameters/modelTransferJobName"
+        - $ref: "#/components/parameters/jobNamespace"
       responses:
         "200":
           $ref: "#/components/responses/ModelTransferJobResponse"
@@ -1330,6 +1331,7 @@ paths:
         - $ref: "#/components/parameters/modelRegistryName"
         - $ref: "#/components/parameters/kubeflowUserId"
         - $ref: "#/components/parameters/modelTransferJobName"
+        - $ref: "#/components/parameters/jobNamespace"
       responses:
         "204":
           description: Successfully deleted
@@ -2938,9 +2940,6 @@ components:
         password:
           type: string
           description: OCI registry password (request only, never returned)
-        email:
-          type: string
-          description: OCI registry email (request only, never returned)
         secretName:
           type: string
           description: Name of created K8s secret (response only)
@@ -2951,10 +2950,16 @@ components:
     ModelTransferJob:
       description: A model transfer job entity.
       type: object
+      required:
+        - name
+        - jobDisplayName
+        - namespace
       properties:
         id:
           type: string
         name:
+          type: string
+        jobDisplayName:
           type: string
         description:
           type: string
@@ -3728,7 +3733,7 @@ components:
       required: true
     jobNamespace:
       name: jobNamespace
-      description: The namespace where the job's pods are running, used to fetch pod events.
+      description: The namespace where the ModelTransferJob runs.
       schema:
         type: string
       in: query
@@ -3799,3 +3804,5 @@ tags:
     description: Operation performed in Kubernetes
   - name: ModelCatalogService
     description: Model Catalog REST API
+  - name: MCPCatalogService
+    description: MCP Catalog REST API

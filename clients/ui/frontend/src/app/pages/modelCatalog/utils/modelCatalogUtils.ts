@@ -188,7 +188,7 @@ export const useCatalogStringFilterState = <K extends ModelCatalogStringFilterKe
   filterKey: K,
 ): {
   isSelected: (value: ModelCatalogStringFilterValueType[K]) => boolean;
-  setSelected: (value: ModelCatalogStringFilterValueType[K], selected: boolean) => void;
+  setSelected: (value: string, selected: boolean) => void;
 } => {
   type Value = ModelCatalogStringFilterValueType[K];
   const { filterData, setFilterData } = React.useContext(ModelCatalogContext);
@@ -196,7 +196,7 @@ export const useCatalogStringFilterState = <K extends ModelCatalogStringFilterKe
   const isValidStringState = (state: string[]): state is ModelCatalogFilterStates[K] =>
     Object.values(ModelCatalogStringFilterKey).includes(filterKey);
   const isSelected = React.useCallback((value: Value) => selections.includes(value), [selections]);
-  const setSelected = (value: Value, selected: boolean) => {
+  const setSelected = (value: string, selected: boolean) => {
     const nextState = selected
       ? [...selections, value]
       : selections.filter((item) => item !== value);
