@@ -19,10 +19,14 @@ jest.mock('~/app/hooks/useNotification', () => ({
   useNotification: () => mockNotification,
 }));
 
-const mockGetModelTransferJob = jest.fn();
+jest.mock('mod-arch-core', () => ({
+  useQueryParamNamespaces: () => ({}),
+}));
+
+const mockGetModelTransferJobByName = jest.fn();
 
 jest.mock('~/app/api/service', () => ({
-  getModelTransferJob: () => mockGetModelTransferJob,
+  getModelTransferJobByName: () => mockGetModelTransferJobByName,
 }));
 
 jest.mock('~/app/utilities/const', () => ({
@@ -52,6 +56,7 @@ const renderWithWatcher = async (jobName: string) => {
     React.useEffect(() => {
       watchJob({
         jobName,
+        jobNamespace: 'test-namespace',
         registryName: 'mr-sample',
         displayParams: { versionModelName: 'My Model / v1', mrName: 'mr-sample' },
       });
@@ -83,7 +88,7 @@ describe('TransferJobNotificationsContext', () => {
   });
 
   it('shows success toast when a watched job completes', async () => {
-    mockGetModelTransferJob.mockResolvedValue(
+    mockGetModelTransferJobByName.mockResolvedValue(
       mockJobResponse('job-1', ModelTransferJobStatus.COMPLETED),
     );
     await renderWithWatcher('job-1');
@@ -95,7 +100,7 @@ describe('TransferJobNotificationsContext', () => {
   });
 
   it('shows error toast when a watched job fails', async () => {
-    mockGetModelTransferJob.mockResolvedValue(
+    mockGetModelTransferJobByName.mockResolvedValue(
       mockJobResponse('job-2', ModelTransferJobStatus.FAILED),
     );
     await renderWithWatcher('job-2');
@@ -107,7 +112,7 @@ describe('TransferJobNotificationsContext', () => {
   });
 
   it('does not show toast for running jobs and keeps polling until completion', async () => {
-    mockGetModelTransferJob.mockResolvedValue(
+    mockGetModelTransferJobByName.mockResolvedValue(
       mockJobResponse('job-3', ModelTransferJobStatus.RUNNING),
     );
     await renderWithWatcher('job-3');
@@ -115,7 +120,7 @@ describe('TransferJobNotificationsContext', () => {
     expect(mockNotification.success).not.toHaveBeenCalled();
     expect(mockNotification.error).not.toHaveBeenCalled();
 
-    mockGetModelTransferJob.mockResolvedValue(
+    mockGetModelTransferJobByName.mockResolvedValue(
       mockJobResponse('job-3', ModelTransferJobStatus.COMPLETED),
     );
 
@@ -131,7 +136,7 @@ describe('TransferJobNotificationsContext', () => {
   });
 
   it('silently removes cancelled jobs without showing toast', async () => {
-    mockGetModelTransferJob.mockResolvedValue(
+    mockGetModelTransferJobByName.mockResolvedValue(
       mockJobResponse('job-4', ModelTransferJobStatus.CANCELLED),
     );
     await renderWithWatcher('job-4');
@@ -141,13 +146,13 @@ describe('TransferJobNotificationsContext', () => {
   });
 
   it('handles API errors gracefully and continues polling', async () => {
-    mockGetModelTransferJob.mockRejectedValueOnce(new Error('Network error'));
+    mockGetModelTransferJobByName.mockRejectedValueOnce(new Error('Network error'));
     await renderWithWatcher('job-5');
 
     expect(mockNotification.success).not.toHaveBeenCalled();
     expect(mockNotification.error).not.toHaveBeenCalled();
 
-    mockGetModelTransferJob.mockResolvedValue(
+    mockGetModelTransferJobByName.mockResolvedValue(
       mockJobResponse('job-5', ModelTransferJobStatus.COMPLETED),
     );
 
