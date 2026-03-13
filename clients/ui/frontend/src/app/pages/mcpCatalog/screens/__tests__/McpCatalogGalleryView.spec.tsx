@@ -18,6 +18,7 @@ const buildServer = (id: number, sourceId: string): McpServer => ({
 });
 
 const defaultContext: McpCatalogContextType = {
+  apiState: { apiAvailable: false, api: {} as McpCatalogContextType['apiState']['api'] },
   filters: {},
   setFilters: jest.fn(),
   searchQuery: '',
