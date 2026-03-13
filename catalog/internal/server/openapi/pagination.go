@@ -7,7 +7,30 @@ import (
 	"strings"
 
 	model "github.com/kubeflow/model-registry/catalog/pkg/openapi"
+	"github.com/kubeflow/model-registry/internal/db/scopes"
 )
+
+// parsePaginationParams validates and parses pageSize and nextPageToken for DB-backed endpoints.
+// It returns the page size as int32, or an error if either parameter is invalid.
+func parsePaginationParams(pageSize string, nextPageToken string) (int32, error) {
+	pageSizeInt := int32(10)
+	if pageSize != "" {
+		parsed, err := strconv.ParseInt(pageSize, 10, 32)
+		if err != nil {
+			return 0, fmt.Errorf("invalid pageSize: %w", err)
+		}
+		if parsed < 1 {
+			return 0, fmt.Errorf("pageSize must be at least 1, got %d", parsed)
+		}
+		pageSizeInt = int32(parsed)
+	}
+	if nextPageToken != "" {
+		if _, err := scopes.DecodeCursor(nextPageToken); err != nil {
+			return 0, fmt.Errorf("invalid nextPageToken: %w", err)
+		}
+	}
+	return pageSizeInt, nil
+}
 
 type paginator[T model.Sortable] struct {
 	PageSize  int32
@@ -42,7 +65,11 @@ func newPaginator[T model.Sortable](pageSize string, orderBy model.OrderByField,
 	}
 
 	if nextPageToken != "" {
-		p.cursor = decodeStringCursor(nextPageToken)
+		cursor, err := decodeStringCursor(nextPageToken)
+		if err != nil {
+			return nil, fmt.Errorf("invalid nextPageToken: %w", err)
+		}
+		p.cursor = cursor
 	}
 
 	return p, nil
@@ -106,18 +133,17 @@ func (c *stringCursor) String() string {
 	return base64.StdEncoding.EncodeToString(fmt.Appendf(nil, "%s:%s", c.Value, c.ID))
 }
 
-func decodeStringCursor(encoded string) *stringCursor {
+func decodeStringCursor(encoded string) (*stringCursor, error) {
 	decoded, err := base64.StdEncoding.DecodeString(encoded)
 	if err != nil {
-		// Show the first page on a bad token.
-		return nil
+		return nil, fmt.Errorf("invalid token encoding: %w", err)
 	}
 	parts := strings.SplitN(string(decoded), ":", 2)
 	if len(parts) != 2 {
-		return nil
+		return nil, fmt.Errorf("invalid token format")
 	}
 	return &stringCursor{
 		Value: parts[0],
 		ID:    parts[1],
-	}
+	}, nil
 }

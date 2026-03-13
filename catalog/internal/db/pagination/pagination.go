@@ -51,16 +51,19 @@ func ApplyNameOrdering(query *gorm.DB, tableName string, sortOrder string, nextP
 
 	// Handle cursor-based pagination for NAME
 	if nextPageToken != "" {
-		if cursor, err := scopes.DecodeCursor(nextPageToken); err == nil {
-			// Cursor pagination based on name (string comparison)
-			cmp := ">"
-			if order == "DESC" {
-				cmp = "<"
-			}
-			// Use proper string comparison with name and ID as tie-breaker
-			query = query.Where(fmt.Sprintf("(%s.name %s ? OR (%s.name = ? AND %s.id > ?))", tableName, cmp, tableName, tableName),
-				cursor.Value, cursor.Value, cursor.ID)
+		cursor, err := scopes.DecodeCursor(nextPageToken)
+		if err != nil {
+			_ = query.AddError(fmt.Errorf("invalid nextPageToken: %w", err))
+			return query
 		}
+		// Cursor pagination based on name (string comparison)
+		cmp := ">"
+		if order == "DESC" {
+			cmp = "<"
+		}
+		// Use proper string comparison with name and ID as tie-breaker
+		query = query.Where(fmt.Sprintf("(%s.name %s ? OR (%s.name = ? AND %s.id > ?))", tableName, cmp, tableName, tableName),
+			cursor.Value, cursor.Value, cursor.ID)
 	}
 
 	// Apply pagination limit
