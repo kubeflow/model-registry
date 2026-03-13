@@ -57,7 +57,7 @@ venv/
 
 # Claude code
 CLAUDE.md
-.claude/
+.claude/settings.json
 
 **/go.work
 **/go.work.sum
