@@ -1690,8 +1690,8 @@ func GetFilterOptionMocks() map[string]models.FilterOption {
 		Type: FilterOptionTypeString,
 		Values: []interface{}{
 			"audio-to-text", "automatic-speech-recognition", "automatic-speech-translation",
-			"code-generation", "image-text-to-text", "image-to-text", "text-generation",
-			"text-to-text", "video-to-text",
+			"code-generation", "image-text-to-text", "image-to-text", "text-embedding",
+			"text-generation", "text-to-text", "tool-calling", "video-to-text",
 		},
 	}
 

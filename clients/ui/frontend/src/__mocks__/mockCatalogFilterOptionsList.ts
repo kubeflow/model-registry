@@ -77,6 +77,8 @@ export const mockCatalogFilterOptionsList = (
       values: [
         ModelCatalogTask.TEXT_GENERATION,
         ModelCatalogTask.TEXT_TO_TEXT,
+        ModelCatalogTask.TEXT_EMBEDDING,
+        ModelCatalogTask.TOOL_CALLING,
         ModelCatalogTask.IMAGE_TO_TEXT,
         ModelCatalogTask.IMAGE_TEXT_TO_TEXT,
         ModelCatalogTask.VIDEO_TO_TEXT,

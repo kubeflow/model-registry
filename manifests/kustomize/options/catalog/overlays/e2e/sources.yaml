@@ -31,3 +31,16 @@ mcp_catalogs:
     properties:
       yamlCatalogPath: /testdata/test-mcp-servers.yaml
 
+namedQueries:
+  production_ready:
+    verifiedSource:
+      operator: "="
+      value: true
+  security_focused:
+    sast:
+      operator: "="
+      value: true
+    readOnlyTools:
+      operator: "="
+      value: true
+

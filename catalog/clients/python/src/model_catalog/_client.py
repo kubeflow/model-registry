@@ -511,6 +511,7 @@ class CatalogAPIClient:
         self,
         name: str | None = None,
         q: str | None = None,
+        named_query: str | None = None,
         filter_query: str | None = None,
         order_by: str | None = None,
         sort_order: str | None = None,
@@ -524,6 +525,7 @@ class CatalogAPIClient:
         Args:
             name: Filter by server name.
             q: Keyword search query.
+            named_query: Predefined filter template name to apply (e.g. "production_ready").
             filter_query: SQL-like filter expression (e.g. "provider='Math Community'").
             order_by: Field to order results by (e.g. "CREATE_TIME", "LAST_UPDATE_TIME", "NAME").
             sort_order: Sort direction ("ASC" or "DESC").
@@ -545,6 +547,7 @@ class CatalogAPIClient:
         response = self.mcp_api.find_mcp_servers(
             name=name,
             q=q,
+            named_query=named_query,
             filter_query=filter_query,
             order_by=order_by_enum,
             sort_order=sort_order_enum,
