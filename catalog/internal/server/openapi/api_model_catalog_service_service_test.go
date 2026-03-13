@@ -339,7 +339,9 @@ func TestFindModels(t *testing.T) {
 			assert.Equal(t, tc.expectedModelList.Size, modelList.Size)
 			assert.Equal(t, tc.expectedModelList.PageSize, modelList.PageSize)
 			if !assert.Equal(t, tc.expectedModelList.NextPageToken, modelList.NextPageToken) && tc.expectedModelList.NextPageToken != "" {
-				assert.Equal(t, decodeStringCursor(tc.expectedModelList.NextPageToken), decodeStringCursor(modelList.NextPageToken))
+				expectedCursor, _ := decodeStringCursor(tc.expectedModelList.NextPageToken)
+				actualCursor, _ := decodeStringCursor(modelList.NextPageToken)
+				assert.Equal(t, expectedCursor, actualCursor)
 			}
 
 			// Deep equality check for items

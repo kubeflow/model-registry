@@ -495,11 +495,13 @@ func (r *CatalogModelRepositoryImpl) applyCustomOrdering(query *gorm.DB, listOpt
 	nextPageToken := listOptions.GetNextPageToken()
 	if nextPageToken != "" {
 		// Parse the cursor from the token
-		if cursor, err := scopes.DecodeCursor(nextPageToken); err == nil {
+		cursor, err := scopes.DecodeCursor(nextPageToken)
+		if err != nil {
+			_ = query.AddError(fmt.Errorf("invalid nextPageToken: %w", err))
+		} else {
 			// Apply WHERE clause for cursor-based pagination with ACCURACY
 			query = r.applyCursorPagination(query, cursor, sortColumn, sortOrder)
 		}
-		// If token parsing fails, fall back to no cursor (first page)
 	}
 
 	// Apply pagination limit
