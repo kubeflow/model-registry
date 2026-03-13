@@ -408,8 +408,8 @@ func TestMCPSourceCollection_MergeOverride(t *testing.T) {
 					ID:        "mcp_github",
 					Name:      "GitHub MCP Server",
 					Type:      "sse",
-					Enabled:   apiutils.Of(true),                      // Default applied
-					Labels:    []string{},                             // Default applied
+					Enabled:   apiutils.Of(true),                        // Default applied
+					Labels:    []string{},                               // Default applied
 					AssetType: model.CATALOGASSETTYPE_MCP_SERVERS.Ptr(), // Default applied
 				},
 			},
@@ -875,4 +875,101 @@ func TestMCPSourceCollection_Merge_WithoutNamedQueries(t *testing.T) {
 	all := coll.AllSources()
 	assert.Contains(t, all, "src1")
 	assert.Empty(t, coll.GetNamedQueries())
+}
+
+func TestMergeMCPSources_IncludedExcludedServers(t *testing.T) {
+	tests := []struct {
+		name         string
+		base         basecatalog.MCPSource
+		override     basecatalog.MCPSource
+		wantIncluded []string
+		wantExcluded []string
+	}{
+		{
+			name: "override replaces includedServers",
+			base: basecatalog.MCPSource{
+				ID:              "src",
+				IncludedServers: []string{"github*"},
+			},
+			override: basecatalog.MCPSource{
+				ID:              "src",
+				IncludedServers: []string{"slack*"},
+			},
+			wantIncluded: []string{"slack*"},
+			wantExcluded: nil,
+		},
+		{
+			name: "override replaces excludedServers",
+			base: basecatalog.MCPSource{
+				ID:              "src",
+				ExcludedServers: []string{"internal*"},
+			},
+			override: basecatalog.MCPSource{
+				ID:              "src",
+				ExcludedServers: []string{"private*"},
+			},
+			wantIncluded: nil,
+			wantExcluded: []string{"private*"},
+		},
+		{
+			name: "nil override inherits base includedServers",
+			base: basecatalog.MCPSource{
+				ID:              "src",
+				IncludedServers: []string{"github*"},
+			},
+			override: basecatalog.MCPSource{
+				ID: "src",
+				// IncludedServers nil -> inherit from base
+			},
+			wantIncluded: []string{"github*"},
+			wantExcluded: nil,
+		},
+		{
+			name: "nil override inherits base excludedServers",
+			base: basecatalog.MCPSource{
+				ID:              "src",
+				ExcludedServers: []string{"internal*"},
+			},
+			override: basecatalog.MCPSource{
+				ID: "src",
+				// ExcludedServers nil -> inherit from base
+			},
+			wantIncluded: nil,
+			wantExcluded: []string{"internal*"},
+		},
+		{
+			name: "empty slice override clears includedServers",
+			base: basecatalog.MCPSource{
+				ID:              "src",
+				IncludedServers: []string{"github*"},
+			},
+			override: basecatalog.MCPSource{
+				ID:              "src",
+				IncludedServers: []string{}, // explicitly clear
+			},
+			wantIncluded: []string{},
+			wantExcluded: nil,
+		},
+		{
+			name: "empty slice override clears excludedServers",
+			base: basecatalog.MCPSource{
+				ID:              "src",
+				ExcludedServers: []string{"internal*"},
+			},
+			override: basecatalog.MCPSource{
+				ID:              "src",
+				ExcludedServers: []string{}, // explicitly clear
+			},
+			wantIncluded: nil,
+			wantExcluded: []string{},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			result := mergeMCPSources(tt.base, tt.override)
+			assert.Equal(t, tt.wantIncluded, result.IncludedServers)
+			assert.Equal(t, tt.wantExcluded, result.ExcludedServers)
+		})
+	}
 }
