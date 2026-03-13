@@ -40,10 +40,8 @@ const ThemeAwareSearchInput: React.FC<ThemeAwareSearchInputProps> = ({
             data-testid={dataTestId}
             style={{
               ...style,
-              paddingBlockStart:
-                'var(--pf-t--global--spacer--control--vertical--default)',
-              paddingBlockEnd:
-                'var(--pf-t--global--spacer--control--vertical--default)',
+              paddingBlockStart: 'var(--pf-t--global--spacer--control--vertical--default)',
+              paddingBlockEnd: 'var(--pf-t--global--spacer--control--vertical--default)',
             }}
             onClick={onClick}
             placeholder={placeholder}
