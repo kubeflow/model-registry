@@ -42,7 +42,7 @@ describe('McpCatalogFilters', () => {
     expect(screen.getByTestId('mcp-filter-supportedTransports')).toBeInTheDocument();
     expect(screen.getByTestId('mcp-filter-license')).toBeInTheDocument();
     expect(screen.getByTestId('mcp-filter-labels')).toBeInTheDocument();
-    expect(screen.getByTestId('mcp-filter-securityVerification')).toBeInTheDocument();
+    expect(screen.getByTestId('mcp-filter-securityIndicators')).toBeInTheDocument();
   });
 
   it('renders Deployment mode filter with Local and Remote options', () => {

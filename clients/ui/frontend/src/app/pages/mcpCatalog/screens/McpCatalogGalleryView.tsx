@@ -5,18 +5,17 @@ import {
   EmptyStateActions,
   EmptyStateBody,
   EmptyStateFooter,
-  Flex,
   Grid,
   GridItem,
   Skeleton,
   Stack,
-  StackItem,
 } from '@patternfly/react-core';
 import { ExclamationCircleIcon, SearchIcon } from '@patternfly/react-icons';
 import { McpCatalogContext } from '~/app/context/mcpCatalog/McpCatalogContext';
 import { SourceLabel } from '~/app/modelCatalogTypes';
 import { filterEnabledCatalogSources } from '~/app/pages/modelCatalog/utils/modelCatalogUtils';
-import { MCP_CATALOG_GALLERY } from '~/app/pages/mcpCatalog/const';
+import { MCP_CATALOG_GALLERY, MCP_CATALOG_GRID_SPAN } from '~/app/pages/mcpCatalog/const';
+import McpCatalogLoadMoreSection from '~/app/pages/mcpCatalog/components/McpCatalogLoadMoreSection';
 import McpCatalogCategorySection from '~/app/pages/mcpCatalog/screens/McpCatalogCategorySection';
 
 const hasActiveSearchOrFilters = (
@@ -151,8 +150,16 @@ const McpCatalogGalleryView: React.FC = () => {
   if (!mcpServersLoaded && items.length === 0) {
     return (
       <Grid hasGutter>
-        {Array.from({ length: 6 }).map((_, index) => (
-          <GridItem key={index} sm={12} md={6} lg={4} xl2={4}>
+        {Array.from({
+          length: MCP_CATALOG_GALLERY.CARDS_PER_ROW * 2,
+        }).map((_, index) => (
+          <GridItem
+            key={index}
+            sm={MCP_CATALOG_GRID_SPAN.sm}
+            md={MCP_CATALOG_GRID_SPAN.md}
+            lg={MCP_CATALOG_GRID_SPAN.lg}
+            xl2={MCP_CATALOG_GRID_SPAN.xl2}
+          >
             <Skeleton
               height="280px"
               width="100%"
@@ -176,21 +183,13 @@ const McpCatalogGalleryView: React.FC = () => {
           servers={visibleItems}
         />
         {hasMore && (
-          <StackItem>
-            <Flex justifyContent={{ default: 'justifyContentCenter' }}>
-              <Button
-                variant="secondary"
-                data-testid="mcp-load-more-button"
-                onClick={() =>
-                  setVisibleCount((prev) =>
-                    Math.min(prev + MCP_CATALOG_GALLERY.PAGE_SIZE, items.length),
-                  )
-                }
-              >
-                Load more MCP servers
-              </Button>
-            </Flex>
-          </StackItem>
+          <McpCatalogLoadMoreSection
+            onLoadMore={() =>
+              setVisibleCount((prev) =>
+                Math.min(prev + MCP_CATALOG_GALLERY.PAGE_SIZE, items.length),
+              )
+            }
+          />
         )}
       </Stack>
     );
@@ -207,21 +206,13 @@ const McpCatalogGalleryView: React.FC = () => {
           servers={visibleItems}
         />
         {hasMore && (
-          <StackItem>
-            <Flex justifyContent={{ default: 'justifyContentCenter' }}>
-              <Button
-                variant="secondary"
-                data-testid="mcp-load-more-button"
-                onClick={() =>
-                  setVisibleCount((prev) =>
-                    Math.min(prev + MCP_CATALOG_GALLERY.PAGE_SIZE, items.length),
-                  )
-                }
-              >
-                Load more MCP servers
-              </Button>
-            </Flex>
-          </StackItem>
+          <McpCatalogLoadMoreSection
+            onLoadMore={() =>
+              setVisibleCount((prev) =>
+                Math.min(prev + MCP_CATALOG_GALLERY.PAGE_SIZE, items.length),
+              )
+            }
+          />
         )}
       </Stack>
     );
@@ -247,7 +238,7 @@ const McpCatalogGalleryView: React.FC = () => {
           key={label}
           title={getDisplayName(label)}
           servers={itemsByLabel.get(label) ?? []}
-          maxItems={isAllServersView ? 3 : undefined}
+          maxItems={isAllServersView ? MCP_CATALOG_GALLERY.CARDS_PER_ROW : undefined}
           onShowAll={isAllServersView ? () => setSelectedSourceLabel(label) : undefined}
         />
       ))}
@@ -256,7 +247,7 @@ const McpCatalogGalleryView: React.FC = () => {
           key="other"
           title={hasNoLabelSources ? 'Other MCP Servers' : 'Other'}
           servers={otherSectionServers}
-          maxItems={isAllServersView ? 3 : undefined}
+          maxItems={isAllServersView ? MCP_CATALOG_GALLERY.CARDS_PER_ROW : undefined}
           onShowAll={
             isAllServersView && hasNoLabelSources
               ? () => setSelectedSourceLabel(SourceLabel.other)
