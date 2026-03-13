@@ -19,8 +19,8 @@ var _ = Describe("TestModelTransferJob", func() {
 	})
 
 	Context("fetching model transfer jobs", func() {
-		It("GET ALL returns 200", func() {
-			_, rs, err := setupApiTest[ModelTransferJobListEnvelope](
+		It("GET ALL returns 200 and includes enriched jobs", func() {
+			envelope, rs, err := setupApiTest[ModelTransferJobListEnvelope](
 				http.MethodGet,
 				"/api/v1/model_registry/model-registry/model_transfer_jobs?namespace=kubeflow",
 				nil,
@@ -30,6 +30,21 @@ var _ = Describe("TestModelTransferJob", func() {
 			)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(rs.StatusCode).To(Equal(http.StatusOK))
+			Expect(envelope.Data).NotTo(BeNil())
+			// The mocked env creates several transfer jobs in kubeflow via createModelTransferJob
+			// and individual API calls in other tests; we only assert there is at least one.
+			Expect(envelope.Data.Size).To(BeNumerically(">", 0))
+			Expect(envelope.Data.Items).NotTo(BeEmpty())
+
+			// At least one job should be FAILED with a non-empty ErrorMessage coming from pod status enrichment.
+			var failedCount int
+			for _, job := range envelope.Data.Items {
+				if job.Status == models.ModelTransferJobStatusFailed {
+					failedCount++
+					Expect(job.ErrorMessage).NotTo(BeEmpty())
+				}
+			}
+			Expect(failedCount).To(BeNumerically(">", 0))
 		})
 
 		It("GET returns 400 when namespace is missing", func() {
@@ -1364,7 +1379,7 @@ var _ = Describe("TestModelTransferJob", func() {
 	})
 
 	Context("fetching model transfer job events", func() {
-		It("GET events returns 200 for existing job", func() {
+		It("GET events returns 200 for existing job and returns mapped events", func() {
 			envelope, rs, err := setupApiTest[ModelTransferJobEventsEnvelope](
 				http.MethodGet,
 				"/api/v1/model_registry/model-registry/model_transfer_jobs/transfer-job-001/events?namespace=kubeflow&jobNamespace=kubeflow",
@@ -1376,6 +1391,17 @@ var _ = Describe("TestModelTransferJob", func() {
 			Expect(err).NotTo(HaveOccurred())
 			Expect(rs.StatusCode).To(Equal(http.StatusOK))
 			Expect(envelope.Data.Events).NotTo(BeNil())
+			Expect(len(envelope.Data.Events)).To(BeNumerically(">", 0))
+
+			// The mocked env creates multiple events (Pulling/Pulled/Created/Started) for pods of transfer-job-001.
+			reasons := make([]string, 0, len(envelope.Data.Events))
+			types := make([]string, 0, len(envelope.Data.Events))
+			for _, ev := range envelope.Data.Events {
+				reasons = append(reasons, ev.Reason)
+				types = append(types, ev.Type)
+			}
+			Expect(reasons).To(ContainElement("Pulling"))
+			Expect(types).To(ContainElement("Normal"))
 		})
 
 		It("GET events returns 404 for non-existent job", func() {
