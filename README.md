@@ -72,7 +72,7 @@ For a high-level documentation of the Model Registry _logical model_, please che
 ## Model Registry Core
 
 The model registry core is the layer which implements the core/business logic by interacting with the underlying datastore internal service.
-It provides a model registry domain-specific [api](pkg/api/api.go) that is in charge to proxy all, appropriately transformed, requests to the datastore internal service.
+It provides a model registry domain-specific [api](pkg/api/api.go) that is in charge of proxying all, appropriately transformed, requests to the datastore internal service.
 
 ### Model registry library
 
