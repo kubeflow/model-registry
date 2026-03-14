@@ -55,6 +55,11 @@ const SourceDetailsSection: React.FC<SourceDetailsSectionProps> = ({
     />
   );
 
+  const sourceTypeLabel =
+    formData.sourceType === CatalogSourceType.HUGGING_FACE
+      ? SOURCE_TYPE_LABELS.HUGGING_FACE
+      : SOURCE_TYPE_LABELS.YAML;
+
   return (
     <FormSection>
       <FormGroup label={FORM_LABELS.NAME} isRequired fieldId="source-name">
@@ -82,10 +87,12 @@ const SourceDetailsSection: React.FC<SourceDetailsSectionProps> = ({
         aria-labelledby="source-type-label"
       >
         {isEditMode ? (
-          <span>
-            {formData.sourceType === CatalogSourceType.HUGGING_FACE
-              ? SOURCE_TYPE_LABELS.HUGGING_FACE
-              : SOURCE_TYPE_LABELS.YAML}
+          <span
+            id="source-type-readonly"
+            data-testid="source-type-readonly"
+            className="pf-v6-u-display-block pf-v6-u-mt-sm"
+          >
+            {sourceTypeLabel}
           </span>
         ) : (
           <Flex spaceItems={{ default: 'spaceItemsMd' }}>
