@@ -61,6 +61,7 @@ const renderWithContext = (overrides: Partial<McpCatalogContextType> = {}) => {
 describe('McpCatalogGalleryView', () => {
   it('renders skeleton cards when loading', () => {
     const skeletonCount = MCP_CATALOG_GALLERY.CARDS_PER_ROW * 2;
+    expect(skeletonCount).toBe(8);
     renderWithContext({ mcpServersLoaded: false, mcpServers: { items: [] } });
     for (let i = 0; i < skeletonCount; i++) {
       expect(screen.getByTestId(`mcp-catalog-skeleton-${i}`)).toBeInTheDocument();
@@ -110,9 +111,7 @@ describe('McpCatalogGalleryView', () => {
     });
     expect(screen.getByTestId('mcp-load-more-button')).toBeInTheDocument();
     expect(screen.getByText('Load more MCP servers')).toBeInTheDocument();
-    expect(screen.getAllByTestId(/^mcp-catalog-card-\d+$/)).toHaveLength(
-      MCP_CATALOG_GALLERY.PAGE_SIZE,
-    );
+    expect(screen.getAllByTestId(/^mcp-catalog-card-\d+$/)).toHaveLength(10);
   });
 
   it('Load more button pages through batches and reveals all items after multiple clicks', () => {
@@ -125,16 +124,12 @@ describe('McpCatalogGalleryView', () => {
       sourceLabels: ['cat-a'],
       sourceLabelNames: { 'cat-a': 'Category A' },
     });
-    expect(screen.getAllByTestId(/^mcp-catalog-card-\d+$/)).toHaveLength(
-      MCP_CATALOG_GALLERY.PAGE_SIZE,
-    );
+    expect(screen.getAllByTestId(/^mcp-catalog-card-\d+$/)).toHaveLength(10);
     fireEvent.click(screen.getByTestId('mcp-load-more-button'));
-    expect(screen.getAllByTestId(/^mcp-catalog-card-\d+$/)).toHaveLength(
-      MCP_CATALOG_GALLERY.PAGE_SIZE * 2,
-    );
+    expect(screen.getAllByTestId(/^mcp-catalog-card-\d+$/)).toHaveLength(20);
     expect(screen.getByTestId('mcp-load-more-button')).toBeInTheDocument();
     fireEvent.click(screen.getByTestId('mcp-load-more-button'));
-    expect(screen.getAllByTestId(/^mcp-catalog-card-\d+$/)).toHaveLength(totalServers);
+    expect(screen.getAllByTestId(/^mcp-catalog-card-\d+$/)).toHaveLength(21);
     expect(screen.queryByTestId('mcp-load-more-button')).not.toBeInTheDocument();
   });
 
@@ -153,6 +148,7 @@ describe('McpCatalogGalleryView', () => {
 
   it('renders Show all link in All Servers view with max CARDS_PER_ROW items per category', () => {
     const minItemsForShowAll = MCP_CATALOG_GALLERY.CARDS_PER_ROW + 1;
+    expect(minItemsForShowAll).toBe(5);
     const servers = [
       ...Array.from({ length: minItemsForShowAll }, (_, i) => buildServer(i + 1, 'cat-a')),
       ...Array.from({ length: minItemsForShowAll }, (_, i) => buildServer(10 + i, 'cat-b')),

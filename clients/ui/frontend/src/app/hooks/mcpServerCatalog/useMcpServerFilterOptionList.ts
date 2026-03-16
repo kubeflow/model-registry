@@ -3,28 +3,15 @@ import React from 'react';
 import { CatalogFilterOptionsList } from '~/app/modelCatalogTypes';
 import { useModelCatalogAPI } from '~/app/hooks/modelCatalog/useModelCatalogAPI';
 import type { ModelCatalogAPIState } from '~/app/hooks/modelCatalog/useModelCatalogAPIState';
+import { BACKEND_TO_FRONTEND_FILTER_KEY, MCP_FILTER_KEYS } from '~/app/pages/mcpCatalog/const';
 import type {
   McpCatalogFilterOptionsList,
   McpCatalogFilterStringOption,
   McpFilterCategoryKey,
 } from '~/app/pages/mcpCatalog/types/mcpCatalogFilterOptions';
 
-/** Maps backend filter keys to frontend McpFilterCategoryKey names. */
-export const BACKEND_TO_FRONTEND_KEY: Record<string, string> = {
-  transports: 'supportedTransports',
-  tags: 'labels',
-};
-
-const MCP_FILTER_CATEGORY_KEYS: McpFilterCategoryKey[] = [
-  'deploymentMode',
-  'supportedTransports',
-  'license',
-  'labels',
-  'securityIndicators',
-];
-
 function isMcpFilterCategoryKey(s: string): s is McpFilterCategoryKey {
-  return MCP_FILTER_CATEGORY_KEYS.some((k) => k === s);
+  return MCP_FILTER_KEYS.some((k) => k === s);
 }
 
 function isMcpFilterStringOption(v: unknown): v is McpCatalogFilterStringOption {
@@ -43,7 +30,7 @@ export function mapBackendFilterOptions(
   }
   const mapped: McpCatalogFilterOptionsList['filters'] = {};
   for (const [key, value] of Object.entries(raw.filters)) {
-    const frontendKey = BACKEND_TO_FRONTEND_KEY[key] ?? key;
+    const frontendKey = BACKEND_TO_FRONTEND_FILTER_KEY[key] ?? key;
     if (isMcpFilterCategoryKey(frontendKey) && isMcpFilterStringOption(value)) {
       mapped[frontendKey] = value;
     }

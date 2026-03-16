@@ -43,3 +43,8 @@ export const MCP_FILTER_KEYS: McpFilterCategoryKey[] = [
   'labels',
   'securityIndicators',
 ];
+
+export const BACKEND_TO_FRONTEND_FILTER_KEY: Record<string, McpFilterCategoryKey> = {
+  transports: 'supportedTransports',
+  tags: 'labels',
+};
