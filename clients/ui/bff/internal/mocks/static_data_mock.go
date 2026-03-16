@@ -2362,7 +2362,7 @@ func GetMcpServerMocks() []models.McpServer {
 	falseVal := false
 
 	prometheusMcp := models.McpServer{
-		ID:          1,
+		ID:          "1",
 		Name:        "Prometheus MCP Server",
 		SourceID:    stringToPointer("community-mcp-source"),
 		Description: stringToPointer("Query Prometheus metrics and alerts directly from your agent"),
@@ -2410,7 +2410,7 @@ func GetMcpServerMocks() []models.McpServer {
 	}
 
 	kubernetesMcp := models.McpServer{
-		ID:          2,
+		ID:          "2",
 		Name:        "Kubernetes MCP Server",
 		SourceID:    stringToPointer("community-mcp-source"),
 		Description: stringToPointer("Manage Kubernetes resources and query cluster state"),
@@ -2443,7 +2443,7 @@ func GetMcpServerMocks() []models.McpServer {
 	}
 
 	elasticMcp := models.McpServer{
-		ID:          3,
+		ID:          "3",
 		Name:        "Elasticsearch MCP Server",
 		SourceID:    stringToPointer("organization-mcp-source"),
 		Description: stringToPointer("Search and analyze data in Elasticsearch clusters"),
@@ -2468,7 +2468,7 @@ func GetMcpServerMocks() []models.McpServer {
 	}
 
 	dynatraceMcp := models.McpServer{
-		ID:          4,
+		ID:          "4",
 		Name:        "Dynatrace MCP Server",
 		SourceID:    stringToPointer("organization-mcp-source"),
 		Description: stringToPointer("Access Dynatrace observability data and perform actions"),
@@ -2496,7 +2496,7 @@ func GetMcpServerMocks() []models.McpServer {
 	}
 
 	grafanaMcp := models.McpServer{
-		ID:          5,
+		ID:          "5",
 		Name:        "Grafana MCP Server",
 		SourceID:    stringToPointer("community-mcp-source"),
 		Description: stringToPointer("Query Grafana dashboards, data sources and annotations via natural language"),
@@ -2519,7 +2519,7 @@ func GetMcpServerMocks() []models.McpServer {
 	}
 
 	gitMcp := models.McpServer{
-		ID:          6,
+		ID:          "6",
 		Name:        "Git MCP Server",
 		SourceID:    stringToPointer("community-mcp-source"),
 		Description: stringToPointer("Interact with Git repositories, branches, commits and diffs through your agent"),
@@ -2541,7 +2541,7 @@ func GetMcpServerMocks() []models.McpServer {
 	}
 
 	postgresMcp := models.McpServer{
-		ID:          7,
+		ID:          "7",
 		Name:        "PostgreSQL MCP Server",
 		SourceID:    stringToPointer("organization-mcp-source"),
 		Description: stringToPointer("Query and manage PostgreSQL databases using natural language"),
@@ -2562,7 +2562,7 @@ func GetMcpServerMocks() []models.McpServer {
 	}
 
 	redisMcp := models.McpServer{
-		ID:          8,
+		ID:          "8",
 		Name:        "Redis MCP Server",
 		SourceID:    stringToPointer("organization-mcp-source"),
 		Description: stringToPointer("Manage Redis key-value stores, caches and pub/sub channels"),
@@ -2585,7 +2585,7 @@ func GetMcpServerMocks() []models.McpServer {
 	}
 
 	standaloneMcp := models.McpServer{
-		ID:          9,
+		ID:          "9",
 		Name:        "Standalone MCP Server",
 		SourceID:    stringToPointer("standalone-mcp-source"),
 		Description: stringToPointer("MCP server with no category, available for use"),
@@ -2616,7 +2616,7 @@ func GetMcpServerMocks() []models.McpServer {
 			s := base
 			s.Name = base.Name + suffix
 			if suffix != "-1" {
-				s.ID = nextID
+				s.ID = fmt.Sprintf("%d", nextID)
 				nextID++
 			}
 			all = append(all, s)
@@ -2638,6 +2638,7 @@ func GetMcpServerListMock() models.McpServerList {
 }
 
 func GetMcpToolWithServerMocks() []models.McpToolWithServer {
+	trueVal := true
 	falseVal := false
 
 	queryTool := models.McpToolWithServer{
@@ -2951,7 +2952,6 @@ func GetMcpToolWithServerMocks() []models.McpToolWithServer {
 		},
 	}
 
-	trueVal := nil
 	legacyExport := models.McpToolWithServer{
 		ServerID:   "prometheus-mcp",
 		ServerName: "Prometheus MCP Server",

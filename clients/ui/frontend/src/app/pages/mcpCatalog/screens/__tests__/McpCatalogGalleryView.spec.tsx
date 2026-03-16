@@ -9,7 +9,7 @@ import { MCP_CATALOG_GALLERY } from '~/app/pages/mcpCatalog/const';
 import McpCatalogGalleryView from '~/app/pages/mcpCatalog/screens/McpCatalogGalleryView';
 
 const buildServer = (id: number, sourceId: string): McpServer => ({
-  id,
+  id: String(id),
   name: `Server ${id}`,
   description: `Description ${id}`,
   deploymentMode: 'local',
