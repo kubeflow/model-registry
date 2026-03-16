@@ -257,7 +257,14 @@ func (m *ModelCatalogClientMock) GetCatalogFilterOptions(client httpclient.HTTPC
 }
 
 func (m *ModelCatalogClientMock) GetCatalogLabels(client httpclient.HTTPClientInterface, pageValues url.Values) (*models.CatalogLabelList, error) {
-	labels := GetCatalogLabelListMock()
+	assetType := pageValues.Get("assetType")
+
+	var labels models.CatalogLabelList
+	if assetType == "mcp_servers" {
+		labels = GetMcpServerCatalogLabelListMock()
+	} else {
+		labels = GetCatalogLabelListMock()
+	}
 	return &labels, nil
 }
 

@@ -3161,3 +3161,42 @@ func GetMcpServerCatalogSourceListMock() models.CatalogSourceList {
 		NextPageToken: "",
 	}
 }
+
+func GetMcpServerCatalogLabelListMock() models.CatalogLabelList {
+	mcpCommunity := "MCP Community"
+	mcpVerified := "MCP Verified"
+	mcpEnterprise := "MCP Enterprise"
+
+	mcpCommunityDisplay := "Community MCP Servers"
+	mcpVerifiedDisplay := "Verified MCP Servers"
+	mcpEnterpriseDisplay := "Enterprise MCP Servers"
+
+	mcpCommunityDesc := "Community contributed MCP servers from various sources."
+	mcpVerifiedDesc := "MCP servers that have been verified for security and reliability."
+	mcpEnterpriseDesc := "Enterprise-grade MCP servers with production support."
+
+	labels := []models.CatalogLabel{
+		{
+			Name:        &mcpCommunity,
+			DisplayName: &mcpCommunityDisplay,
+			Description: &mcpCommunityDesc,
+		},
+		{
+			Name:        &mcpVerified,
+			DisplayName: &mcpVerifiedDisplay,
+			Description: &mcpVerifiedDesc,
+		},
+		{
+			Name:        &mcpEnterprise,
+			DisplayName: &mcpEnterpriseDisplay,
+			Description: &mcpEnterpriseDesc,
+		},
+	}
+
+	return models.CatalogLabelList{
+		Items:         labels,
+		Size:          int32(len(labels)),
+		PageSize:      int32(10),
+		NextPageToken: "",
+	}
+}
