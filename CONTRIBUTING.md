@@ -199,7 +199,7 @@ Define this `.devcontainer/devcontainer.json` file :
 }
 ```
 
-The `network=host` allows from _inside_ the devcontainer to reach any "service" exposed on your computer (host).
+The `network=host` allows reaching any "service" exposed on your computer (host) from _inside_ the devcontainer .
 This is helpful if other containers are started on your computer (eg: a PostgreSQL or DB in another container).
 
 The `customizations.vscode.extensions` pre-loads additional extensions needed in VSCode to be executing from *inside* the DevContainer.
