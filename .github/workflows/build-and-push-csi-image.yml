@@ -64,7 +64,7 @@ jobs:
           password: ${{ env.DOCKER_PWD }}
       - name: Extract metadata (tags, labels) for Docker
         id: meta
-        uses: docker/metadata-action@c299e40c65443455700f0fdfc63efafe5b349051 # v5
+        uses: docker/metadata-action@030e881283bb7a6894de51c315a6bfe6a94e05cf # v6.0.0
         with:
           images: "${{ env.IMG_REGISTRY }}/${{ env.IMG_ORG }}/${{ env.IMG_REPO }}"
           tags: |
@@ -85,7 +85,7 @@ jobs:
           cache-to: type=gha,mode=max
           provenance: mode=max
       - name: Install Cosign
-        uses: sigstore/cosign-installer@7e8b541eb2e61bf99390e1afd4be13a184e9ebc5 # v3
+        uses: sigstore/cosign-installer@ba7bc0a3fef59531c69a25acd34668d6d3fe6f22 # v3
       - name: Sign image with cosign
         run: |
           cosign sign --yes "${{ env.IMG_REGISTRY }}/${{ env.IMG_ORG }}/${{ env.IMG_REPO }}@${{ steps.build-push.outputs.digest }}"

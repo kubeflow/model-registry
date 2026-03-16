@@ -88,7 +88,9 @@ func PaginateWithOptions(value any, pagination *models.Pagination, db *gorm.DB, 
 
 		if nextPageToken != "" {
 			decodedCursor, err := DecodeCursor(nextPageToken)
-			if err == nil {
+			if err != nil {
+				_ = db.AddError(fmt.Errorf("invalid nextPageToken: %w", err))
+			} else {
 				db = buildWhereClause(db, decodedCursor, orderBy, sortOrder, tablePrefix)
 			}
 		}

@@ -2768,6 +2768,16 @@ func GetMcpFilterOptionMocks() map[string]models.FilterOption {
 		},
 	}
 
+	mcpFilters["securityIndicators"] = models.FilterOption{
+		Type: FilterOptionTypeString,
+		Values: []interface{}{
+			"Verified source",
+			"Secure endpoint",
+			"SAST",
+			"Read only tools",
+		},
+	}
+
 	return mcpFilters
 }
 

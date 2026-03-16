@@ -36,7 +36,7 @@ describe('MCP Catalog Page', () => {
     mcpCatalog.findFilter('supportedTransports').should('be.visible');
     mcpCatalog.findFilter('license').should('be.visible');
     mcpCatalog.findFilter('labels').should('be.visible');
-    mcpCatalog.findFilter('securityVerification').should('be.visible');
+    mcpCatalog.findFilter('securityIndicators').should('be.visible');
   });
 
   it('should display Deployment mode filter with Local and Remote options', () => {

@@ -45,15 +45,9 @@ func (m *ModelCatalogServiceAPIService) GetAllModelArtifacts(ctx context.Context
 		modelName = newName
 	}
 
-	var err error
-	pageSizeInt := int32(10)
-
-	if pageSize != "" {
-		parsed, err := strconv.ParseInt(pageSize, 10, 32)
-		if err != nil {
-			return Response(http.StatusBadRequest, err), err
-		}
-		pageSizeInt = int32(parsed)
+	pageSizeInt, err := parsePaginationParams(pageSize, nextPageToken)
+	if err != nil {
+		return ErrorResponse(http.StatusBadRequest, err), err
 	}
 
 	// Handle multiple artifact types
@@ -97,15 +91,9 @@ func (m *ModelCatalogServiceAPIService) GetAllModelPerformanceArtifacts(ctx cont
 		modelName = newName
 	}
 
-	var err error
-	pageSizeInt := int32(10)
-
-	if pageSize != "" {
-		parsed, err := strconv.ParseInt(pageSize, 10, 32)
-		if err != nil {
-			return Response(http.StatusBadRequest, err), err
-		}
-		pageSizeInt = int32(parsed)
+	pageSizeInt, err := parsePaginationParams(pageSize, nextPageToken)
+	if err != nil {
+		return ErrorResponse(http.StatusBadRequest, err), err
 	}
 
 	// Call the provider's GetPerformanceArtifacts method
@@ -230,15 +218,9 @@ func (m *ModelCatalogServiceAPIService) FindLabels(ctx context.Context, assetTyp
 
 func (m *ModelCatalogServiceAPIService) FindModels(ctx context.Context, recommended bool, targetRPS int32, latencyProperty string, rpsProperty string, hardwareCountProperty string, hardwareTypeProperty string, sourceIDs []string, q string, sourceLabels []string, filterQuery string, pageSize string, orderBy model.OrderByField, sortOrder model.SortOrder, nextPageToken string) (ImplResponse, error) {
 	// Validate pagination parameters
-	var err error
-	pageSizeInt := int32(10)
-
-	if pageSize != "" {
-		parsed, err := strconv.ParseInt(pageSize, 10, 32)
-		if err != nil {
-			return ErrorResponse(http.StatusBadRequest, fmt.Errorf("invalid pagination parameters: %w", err)), err
-		}
-		pageSizeInt = int32(parsed)
+	pageSizeInt, err := parsePaginationParams(pageSize, nextPageToken)
+	if err != nil {
+		return ErrorResponse(http.StatusBadRequest, err), err
 	}
 
 	if len(sourceIDs) == 1 && sourceIDs[0] == "" {

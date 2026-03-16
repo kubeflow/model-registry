@@ -97,6 +97,7 @@ const RegisterModel: React.FC = () => {
         registrationNotification.showRegisterAndStoreStarted(toastParams);
         watchJob({
           jobName: transferJob.name,
+          jobNamespace: transferJob.namespace,
           registryName: mrName ?? '',
           displayParams: toastParams,
         });

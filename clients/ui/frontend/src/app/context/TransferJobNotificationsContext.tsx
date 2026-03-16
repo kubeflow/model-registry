@@ -1,6 +1,7 @@
 import React from 'react';
+import { useQueryParamNamespaces } from 'mod-arch-core';
 import { useNotification } from '~/app/hooks/useNotification';
-import { getModelTransferJob } from '~/app/api/service';
+import { getModelTransferJobByName } from '~/app/api/service';
 import { ModelTransferJobStatus } from '~/app/types';
 import {
   BFF_API_VERSION,
@@ -15,6 +16,7 @@ import {
 
 type WatchedJob = {
   jobName: string;
+  jobNamespace: string;
   registryName: string;
   displayParams: RegistrationToastMessagesParams;
 };
@@ -40,6 +42,8 @@ export const TransferJobNotificationsProvider: React.FC<React.PropsWithChildren>
   const notification = useNotification();
   const notificationRef = React.useRef(notification);
   notificationRef.current = notification;
+
+  const queryParams = useQueryParamNamespaces();
 
   const watchedJobsRef = React.useRef<WatchedJob[]>([]);
   const [polling, setPolling] = React.useState(false);
@@ -68,10 +72,10 @@ export const TransferJobNotificationsProvider: React.FC<React.PropsWithChildren>
       await Promise.all(
         jobs.map(async (watched) => {
           const hostPath = `${URL_PREFIX}/api/${BFF_API_VERSION}/model_registry/${watched.registryName}`;
-          const fetchJob = getModelTransferJob(hostPath);
+          const fetchJob = getModelTransferJobByName(hostPath, queryParams);
 
           try {
-            const job = await fetchJob({}, watched.jobName);
+            const job = await fetchJob({}, watched.jobNamespace, watched.jobName);
             if (!TERMINAL_STATUSES.has(job.status)) {
               return;
             }
@@ -115,7 +119,7 @@ export const TransferJobNotificationsProvider: React.FC<React.PropsWithChildren>
       cancelled = true;
       clearInterval(interval);
     };
-  }, [polling]);
+  }, [polling, queryParams]);
 
   const contextValue = React.useMemo(() => ({ watchJob }), [watchJob]);
 

@@ -71,14 +71,13 @@ k8s_resource(
 
 local_resource(
     "controller-bin",
-    "CGO_ENABLED=0 GOOS=linux GOARCH=%s go build -o ./devenv/bin/manager cmd/controller/main.go" % goarch,
+    "cd cmd/controller && CGO_ENABLED=0 GOOS=linux GOARCH=%s go build -o ../../devenv/bin/manager ." % goarch,
     dir = "../../../",
     deps = [
         "../../../cmd/controller",
-        "../../../internal/controller",
         "../../../pkg/inferenceservice-controller",
-        "../../../go.mod",
-        "../../../go.sum",
+        "../../../cmd/controller/go.mod",
+        "../../../cmd/controller/go.sum",
     ],
     labels="controller",
     trigger_mode=TRIGGER_MODE_AUTO

@@ -50,7 +50,7 @@ describe('hasMcpFiltersApplied', () => {
       supportedTransports: [],
       license: [],
       labels: [],
-      securityVerification: [],
+      securityIndicators: [],
     };
     expect(hasMcpFiltersApplied(filters, '')).toBe(false);
   });
@@ -71,8 +71,8 @@ describe('hasMcpFiltersApplied', () => {
     expect(hasMcpFiltersApplied({ labels: ['Red Hat'] }, '')).toBe(true);
   });
 
-  it('returns true when securityVerification has values', () => {
-    expect(hasMcpFiltersApplied({ securityVerification: ['Verified'] }, '')).toBe(true);
+  it('returns true when securityIndicators has values', () => {
+    expect(hasMcpFiltersApplied({ securityIndicators: ['Verified'] }, '')).toBe(true);
   });
 
   it('returns true when multiple filter keys have values', () => {
@@ -123,13 +123,13 @@ describe('filterMcpServersByFilters', () => {
     expect(filterMcpServersByFilters(withLicense, { license: ['MIT'] })[0].name).toBe('X');
   });
 
-  it('filters by securityVerification label', () => {
+  it('filters by securityIndicators label', () => {
     const withSecurity: McpServer[] = [
       { id: 1, name: 'S1', securityIndicators: { verifiedSource: true }, toolCount: 0 },
       { id: 2, name: 'S2', securityIndicators: { sast: true }, toolCount: 0 },
     ];
     const result = filterMcpServersByFilters(withSecurity, {
-      securityVerification: ['Verified source'],
+      securityIndicators: ['Verified source'],
     });
     expect(result).toHaveLength(1);
     expect(result[0].name).toBe('S1');

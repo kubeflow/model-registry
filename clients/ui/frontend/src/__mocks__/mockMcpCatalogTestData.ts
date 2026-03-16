@@ -72,7 +72,7 @@ export const mockMcpCatalogFilterOptions = (
       type: 'string',
       values: ['kubernetes', 'github', 'database', 'monitoring', 'security', 'automation'],
     },
-    securityVerification: {
+    securityIndicators: {
       type: 'string',
       values: ['Verified source', 'Secure endpoint', 'SAST', 'Read only tools'],
     },
