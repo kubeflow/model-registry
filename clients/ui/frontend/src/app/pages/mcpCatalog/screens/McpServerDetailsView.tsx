@@ -25,7 +25,7 @@ import type { McpServer } from '~/app/mcpServerCatalogTypes';
 import ExternalLink from '~/app/shared/components/ExternalLink';
 import MarkdownComponent from '~/app/shared/markdown/MarkdownComponent';
 import ModelTimestamp from '~/app/pages/modelRegistry/screens/components/ModelTimestamp';
-import McpServerToolsSection from './McpServerToolsSection';
+import McpServerToolsSection from '~/app/pages/mcpCatalog/screens/McpServerToolsSection';
 
 type McpServerDetailsViewProps = {
   server: McpServer;
@@ -86,7 +86,7 @@ const McpServerDetailsView: React.FC<McpServerDetailsViewProps> = ({ server }) =
               </Card>
             </StackItem>
             <StackItem>
-              <McpServerToolsSection serverId={String(server.id)} />
+              <McpServerToolsSection serverId={server.id} />
             </StackItem>
             <StackItem>
               <Card>

@@ -201,6 +201,17 @@ const McpServerToolsSection: React.FC<McpServerToolsSectionProps> = ({ serverId 
                                 {accessConfig.text}
                               </Label>
                             </FlexItem>
+                            {tool.revoked && (
+                              <FlexItem>
+                                <Label
+                                  color="red"
+                                  isCompact
+                                  data-testid={`mcp-tool-revoked-${tool.name}`}
+                                >
+                                  revoked
+                                </Label>
+                              </FlexItem>
+                            )}
                           </Flex>
                           {tool.description && (
                             <FlexItem>
@@ -211,6 +222,16 @@ const McpServerToolsSection: React.FC<McpServerToolsSectionProps> = ({ serverId 
                       </AccordionToggle>
                       <AccordionContent id={`tool-content-${tool.name}`}>
                         <Stack hasGutter>
+                          {tool.revoked && tool.revokedReason && (
+                            <StackItem>
+                              <Content
+                                component="p"
+                                data-testid={`mcp-tool-revoked-reason-${tool.name}`}
+                              >
+                                <strong>Revoked:</strong> {tool.revokedReason}
+                              </Content>
+                            </StackItem>
+                          )}
                           {tool.description && (
                             <StackItem>
                               <Content component="p">{tool.description}</Content>

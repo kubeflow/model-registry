@@ -2951,6 +2951,20 @@ func GetMcpToolWithServerMocks() []models.McpToolWithServer {
 		},
 	}
 
+	trueVal := nil
+	legacyExport := models.McpToolWithServer{
+		ServerID:   "prometheus-mcp",
+		ServerName: "Prometheus MCP Server",
+		Tool: models.McpTool{
+			Name:          "legacy_export",
+			Description:   stringToPointer("Export metrics in legacy format (deprecated)"),
+			AccessType:    models.McpToolAccessTypeReadOnly,
+			Parameters:    []models.McpToolParameter{},
+			Revoked:       &trueVal,
+			RevokedReason: stringToPointer("This tool has been deprecated in favor of the new metrics API."),
+		},
+	}
+
 	return []models.McpToolWithServer{
 		createMaintenanceWindow,
 		executeDql,
@@ -2964,6 +2978,7 @@ func GetMcpToolWithServerMocks() []models.McpToolWithServer {
 		deleteAlertSilence,
 		getPodsTool,
 		deployModel,
+		legacyExport,
 	}
 }
 
