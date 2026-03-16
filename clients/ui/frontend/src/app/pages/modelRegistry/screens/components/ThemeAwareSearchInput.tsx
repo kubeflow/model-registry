@@ -24,12 +24,14 @@ const ThemeAwareSearchInput: React.FC<ThemeAwareSearchInputProps> = ({
   ...rest
 }) => {
   const { isMUITheme } = useThemeContext();
+  const isToolbarFieldset = className?.split(/\s+/).includes('toolbar-fieldset-wrapper');
 
   if (isMUITheme) {
     // Render MUI version using TextInput + FormFieldset
     return (
       <FormFieldset
         className={className}
+        fieldsetStyle={isToolbarFieldset ? { insetBlockStart: '0' } : undefined}
         component={
           <TextInput
             value={value}
