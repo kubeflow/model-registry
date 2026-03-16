@@ -5,30 +5,30 @@ ARG TARGETARCH
 
 WORKDIR /workspace
 # Copy the Go Modules manifests
-COPY go.mod go.mod
-COPY go.sum go.sum
-COPY pkg/openapi pkg/openapi
-COPY catalog/pkg/openapi catalog/pkg/openapi
+COPY ["cmd/controller/go.mod", "cmd/controller/go.sum", "./cmd/controller/"]
+COPY ["pkg/openapi/go.mod", "pkg/openapi/"]
+COPY ["pkg/inferenceservice-controller/go.mod", "pkg/inferenceservice-controller/"]
 
 # cache deps before building and copying source so that we don't need to re-download as much
 # and so that source changes don't invalidate our downloaded layer
-RUN go mod download
+RUN cd cmd/controller && go mod download
 
 # Copy the go source
-COPY cmd/controller/*.go cmd/controller/
-COPY api/ api/
-COPY internal/controller internal/controller
-COPY pkg/ pkg/
+COPY cmd/controller/ cmd/controller/
+COPY pkg/openapi/ pkg/openapi/
+COPY pkg/inferenceservice-controller/ pkg/inferenceservice-controller/
 
 # Build
 
 USER root
 
+WORKDIR cmd/controller
+
 # the GOARCH has not a default value to allow the binary be built according to the host where the command
 # was called. For example, if we call make docker-build in a local env which has the Apple Silicon M1 SO
 # the docker BUILDPLATFORM arg will be linux/arm64 when for Apple x86 it will be linux/amd64. Therefore,
 # by leaving it empty we can ensure that the container and binary shipped on it will have the same platform.
-RUN CGO_ENABLED=0 GOOS=${TARGETOS:-linux} GOARCH=${TARGETARCH} go build -a -o manager cmd/controller/main.go
+RUN CGO_ENABLED=0 GOOS=${TARGETOS:-linux} GOARCH=${TARGETARCH} go build -a -o ../../manager .
 
 FROM registry.access.redhat.com/ubi9/ubi-minimal:latest
 WORKDIR /
