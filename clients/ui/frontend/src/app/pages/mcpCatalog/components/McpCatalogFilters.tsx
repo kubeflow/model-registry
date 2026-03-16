@@ -15,7 +15,7 @@ const FILTER_CONFIGS: FilterConfig[] = [
   { filterKey: 'supportedTransports', title: 'Supported transports', hasDivider: true },
   { filterKey: 'license', title: 'License', hasDivider: true },
   { filterKey: 'labels', title: 'Labels', hasDivider: true },
-  { filterKey: 'securityVerification', title: 'Security & Verification', hasDivider: false },
+  { filterKey: 'securityIndicators', title: 'Security & Verification', hasDivider: false },
 ];
 
 const McpCatalogFilters: React.FC = () => {
