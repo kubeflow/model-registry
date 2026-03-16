@@ -163,7 +163,7 @@ describe('Register and Store Fields - Namespace access validation', () => {
       statusCode: 200,
       body: { data: { hasAccess: false } },
     }).as('checkNamespaceAccess');
-    registerAndStoreFields.visit(true, 'namespace-1');
+    registerAndStoreFields.visit('namespace-1');
     registerAndStoreFields.selectRegisterAndStoreMode();
   });
 
@@ -274,39 +274,6 @@ describe('Register and Store Fields - Who is my admin popover (namespace wording
     registerAndStoreFields.shouldShowNoNamespacesMessage();
     registerAndStoreFields.openWhoIsMyAdminPopover();
     registerAndStoreFields.shouldShowWhoIsMyAdminPopoverWithNamespaceWording();
-  });
-});
-
-describe('Register and Store Fields - Feature flag behavior', () => {
-  beforeEach(() => {
-    initIntercepts({});
-
-    cy.intercept('POST', '**/api/v1/check-namespace-registry-access', {
-      statusCode: 200,
-      body: { data: { hasAccess: true } },
-    }).as('checkNamespaceAccess');
-
-    registerAndStoreFields.visit();
-  });
-
-  it('Should hide Register and store sections when feature flag is disabled at runtime', () => {
-    registerAndStoreFields.shouldHaveRegistrationModeToggle();
-    registerAndStoreFields.selectRegisterAndStoreMode();
-    registerAndStoreFields.selectNamespace('namespace-1');
-    cy.wait('@checkNamespaceAccess');
-
-    registerAndStoreFields.shouldShowOriginLocationSection();
-    registerAndStoreFields.shouldShowDestinationLocationSection();
-
-    cy.window().then((win) => {
-      (
-        win as Window & { setTempDevRegistryStorageFeatureAvailable?: (enabled: boolean) => void }
-      ).setTempDevRegistryStorageFeatureAvailable?.(false);
-    });
-
-    registerAndStoreFields.findRegistrationModeToggleGroup().should('not.exist');
-
-    registerAndStoreFields.shouldHideOriginLocationSection().shouldHideDestinationLocationSection();
   });
 });
 
