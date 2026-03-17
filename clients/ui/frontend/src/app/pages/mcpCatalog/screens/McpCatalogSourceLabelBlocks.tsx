@@ -3,8 +3,8 @@ import { ToggleGroup, ToggleGroupItem } from '@patternfly/react-core';
 import { McpCatalogContext } from '~/app/context/mcpCatalog/McpCatalogContext';
 import { SourceLabel } from '~/app/modelCatalogTypes';
 
-const ALL_SERVERS_LABEL = 'All Servers';
-const OTHER_MCP_SERVERS_DISPLAY_NAME = 'Other MCP Servers';
+const ALL_SERVERS_LABEL = 'All MCP servers';
+const OTHER_MCP_SERVERS_DISPLAY_NAME = 'Other MCP servers';
 
 type SourceLabelBlock = { id: string; label?: string; displayName: string };
 
