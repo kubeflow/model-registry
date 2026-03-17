@@ -282,6 +282,91 @@ func TestGetAllModelTransferJobs_TerminatedNonZeroExitCodeOverridesStatusAndMess
 	}
 }
 
+func TestGetAllModelTransferJobs_AlreadyFailedJobGetsTerminationMessage(t *testing.T) {
+	repo := NewModelRegistryRepository()
+
+	jobStatus := batchv1.JobStatus{
+		Failed: 1, // K8s Job controller already marked it failed
+	}
+	containerState := corev1.ContainerState{
+		Terminated: &corev1.ContainerStateTerminated{
+			ExitCode: 1,
+			Message:  "terminated due to error",
+			Reason:   "Error",
+		},
+	}
+
+	client := buildSingleJobFixture("job-already-failed", jobStatus, containerState)
+
+	jobModel := mustGetSingleJob(t, repo, client, "kubeflow", "model-registry-id")
+	if jobModel.Status != models.ModelTransferJobStatusFailed {
+		t.Fatalf("expected job status Failed, got %s", jobModel.Status)
+	}
+	expectedPrefix := "Container exited with code 1:"
+	if jobModel.ErrorMessage == "" || jobModel.ErrorMessage[:len(expectedPrefix)] != expectedPrefix {
+		t.Fatalf("expected error message to start with %q, got %q", expectedPrefix, jobModel.ErrorMessage)
+	}
+}
+
+func TestGetAllModelTransferJobs_AlreadyFailedJobPrefersTerminationOverEmptyCondition(t *testing.T) {
+	repo := NewModelRegistryRepository()
+
+	job := batchv1.Job{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "job-failed-empty-condition",
+			Namespace: "kubeflow",
+		},
+		Status: batchv1.JobStatus{
+			Failed: 1,
+			Conditions: []batchv1.JobCondition{
+				{
+					Type:   batchv1.JobFailed,
+					Status: corev1.ConditionTrue,
+					// Message intentionally empty — common real-world case
+				},
+			},
+		},
+	}
+
+	jobs := &batchv1.JobList{Items: []batchv1.Job{job}}
+
+	pod := corev1.Pod{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "job-failed-empty-condition-pod",
+			Namespace: "kubeflow",
+			Labels:    map[string]string{"job-name": job.Name},
+		},
+		Status: corev1.PodStatus{
+			ContainerStatuses: []corev1.ContainerStatus{
+				{
+					State: corev1.ContainerState{
+						Terminated: &corev1.ContainerStateTerminated{
+							ExitCode: 1,
+							Message:  "specific error from container",
+						},
+					},
+				},
+			},
+		},
+	}
+
+	client := &fakeKubernetesClient{
+		jobs: jobs,
+		podsByNamespace: map[string]*corev1.PodList{
+			"kubeflow": {Items: []corev1.Pod{pod}},
+		},
+	}
+
+	jobModel := mustGetSingleJob(t, repo, client, "kubeflow", "model-registry-id")
+	if jobModel.Status != models.ModelTransferJobStatusFailed {
+		t.Fatalf("expected job status Failed, got %s", jobModel.Status)
+	}
+	expectedPrefix := "Container exited with code 1:"
+	if jobModel.ErrorMessage == "" || jobModel.ErrorMessage[:len(expectedPrefix)] != expectedPrefix {
+		t.Fatalf("expected error message from pod termination, got %q", jobModel.ErrorMessage)
+	}
+}
+
 func TestGetAllModelTransferJobs_TerminationMessageParsesIDs(t *testing.T) {
 	repo := NewModelRegistryRepository()
 
