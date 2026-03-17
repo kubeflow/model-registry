@@ -2633,7 +2633,7 @@ func GetMcpServerListMock() models.McpServerList {
 		Items:         allMcpServers,
 		Size:          int32(len(allMcpServers)),
 		PageSize:      int32(10),
-		NextPageToken: "10",
+		NextPageToken: "",
 	}
 }
 
@@ -3163,33 +3163,24 @@ func GetMcpServerCatalogSourceListMock() models.CatalogSourceList {
 }
 
 func GetMcpServerCatalogLabelListMock() models.CatalogLabelList {
-	mcpCommunity := "MCP Community"
-	mcpVerified := "MCP Verified"
-	mcpEnterprise := "MCP Enterprise"
+	communityName := "community_mcp_servers"
+	communityDisplay := "Community MCP Servers"
+	communityDesc := "Community contributed MCP servers from various sources."
 
-	mcpCommunityDisplay := "Community MCP Servers"
-	mcpVerifiedDisplay := "Verified MCP Servers"
-	mcpEnterpriseDisplay := "Enterprise MCP Servers"
-
-	mcpCommunityDesc := "Community contributed MCP servers from various sources."
-	mcpVerifiedDesc := "MCP servers that have been verified for security and reliability."
-	mcpEnterpriseDesc := "Enterprise-grade MCP servers with production support."
+	orgName := "organization_mcp_servers"
+	orgDisplay := "Organization MCP Servers"
+	orgDesc := "MCP servers provided and maintained by your organization."
 
 	labels := []models.CatalogLabel{
 		{
-			Name:        &mcpCommunity,
-			DisplayName: &mcpCommunityDisplay,
-			Description: &mcpCommunityDesc,
+			Name:        &communityName,
+			DisplayName: &communityDisplay,
+			Description: &communityDesc,
 		},
 		{
-			Name:        &mcpVerified,
-			DisplayName: &mcpVerifiedDisplay,
-			Description: &mcpVerifiedDesc,
-		},
-		{
-			Name:        &mcpEnterprise,
-			DisplayName: &mcpEnterpriseDisplay,
-			Description: &mcpEnterpriseDesc,
+			Name:        &orgName,
+			DisplayName: &orgDisplay,
+			Description: &orgDesc,
 		},
 	}
 

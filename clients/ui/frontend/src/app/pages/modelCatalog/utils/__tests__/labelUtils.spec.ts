@@ -5,6 +5,7 @@ import {
   orderLabelsByPriority,
 } from '~/app/pages/modelCatalog/utils/modelCatalogUtils';
 import { CatalogLabelList, SourceLabel } from '~/app/modelCatalogTypes';
+import { OTHER_MCP_SERVERS_DISPLAY_NAME } from '~/app/pages/mcpCatalog/const';
 
 const mockCatalogLabels: CatalogLabelList = {
   items: [
@@ -111,6 +112,21 @@ describe('Label Utilities', () => {
     it('should not append "models" if already present in label', () => {
       const result = getLabelDisplayName('Custom models', mockCatalogLabels);
       expect(result).toBe('Custom models');
+    });
+
+    it('should use custom otherFallback when provided for SourceLabel.other', () => {
+      const emptyLabels: CatalogLabelList = {
+        items: [],
+        size: 0,
+        pageSize: 10,
+        nextPageToken: '',
+      };
+      const result = getLabelDisplayName(
+        SourceLabel.other,
+        emptyLabels,
+        OTHER_MCP_SERVERS_DISPLAY_NAME,
+      );
+      expect(result).toBe('Other servers');
     });
 
     it('should return empty string for undefined sourceLabel', () => {

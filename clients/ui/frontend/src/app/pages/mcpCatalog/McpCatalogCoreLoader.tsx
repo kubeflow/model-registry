@@ -12,13 +12,14 @@ import { useThemeContext } from 'mod-arch-kubeflow';
 import { Outlet } from 'react-router-dom';
 import { McpCatalogContext } from '~/app/context/mcpCatalog/McpCatalogContext';
 import EmptyModelCatalogState from '~/app/pages/modelCatalog/EmptyModelCatalogState';
+import { hasSourcesWithModels } from '~/app/pages/modelCatalog/utils/modelCatalogUtils';
 
 const MCP_CATALOG_TITLE = 'MCP Catalog';
 const MCP_CATALOG_DESCRIPTION =
   'Browse and deploy MCP servers provided by Red Hat partners and other providers.';
 
 const McpCatalogCoreLoader: React.FC = () => {
-  const { catalogSourcesLoaded, catalogSourcesLoadError, sourceLabels } =
+  const { catalogSources, catalogSourcesLoaded, catalogSourcesLoadError } =
     React.useContext(McpCatalogContext);
   const { isMUITheme } = useThemeContext();
 
@@ -58,7 +59,7 @@ const McpCatalogCoreLoader: React.FC = () => {
     );
   }
 
-  if (sourceLabels.length === 0) {
+  if (catalogSources?.items?.length === 0 || !hasSourcesWithModels(catalogSources)) {
     return (
       <ApplicationsPage
         title={

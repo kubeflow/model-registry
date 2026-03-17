@@ -513,19 +513,19 @@ curl -i -H "Authorization: Bearer $TOKEN" "http://localhost:4000/api/v1/mcp_cata
 ```
 # GET /api/v1/mcp_catalog/mcp_servers
 curl -i -H "kubeflow-userid: user@example.com" "http://localhost:4000/api/v1/mcp_catalog/mcp_servers?namespace=kubeflow"
-curl -i -H "Authorization: Bearer $TOKEN" "http://localhost:4000//api/v1/mcp_catalog/mcp_servers?namespace=kubeflow"
+curl -i -H "Authorization: Bearer $TOKEN" "http://localhost:4000/api/v1/mcp_catalog/mcp_servers?namespace=kubeflow"
 ```
 
 ```
 # GET /api/v1/mcp_catalog/mcp_servers/{server_id}
-curl -i -H "kubeflow-userid: user@example.com" "http://localhost:4000//api/v1/mcp_catalog/mcp_servers/server-1?namespace=kubeflow"
-curl -i -H "Authorization: Bearer $TOKEN" "http://localhost:4000///api/v1/mcp_catalog/mcp_servers/server-1?namespace=kubeflow"
+curl -i -H "kubeflow-userid: user@example.com" "http://localhost:4000/api/v1/mcp_catalog/mcp_servers/server-1?namespace=kubeflow"
+curl -i -H "Authorization: Bearer $TOKEN" "http://localhost:4000/api/v1/mcp_catalog/mcp_servers/server-1?namespace=kubeflow"
 ```
 
 ```
 # GET /api/v1/mcp_catalog/mcp_servers/{server_id}/tools
-curl -i -H "kubeflow-userid: user@example.com" "http://localhost:4000///api/v1/mcp_catalog/mcp_servers/server-1/tools?namespace=kubeflow"
-curl -i -H "Authorization: Bearer $TOKEN" "http://localhost:4000////api/v1/mcp_catalog/mcp_servers/server-1/tools?namespace=kubeflow"
+curl -i -H "kubeflow-userid: user@example.com" "http://localhost:4000/api/v1/mcp_catalog/mcp_servers/server-1/tools?namespace=kubeflow"
+curl -i -H "Authorization: Bearer $TOKEN" "http://localhost:4000/api/v1/mcp_catalog/mcp_servers/server-1/tools?namespace=kubeflow"
 ```
 
 ### Pagination

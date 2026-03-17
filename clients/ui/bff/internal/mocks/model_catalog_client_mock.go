@@ -333,11 +333,54 @@ func (m *ModelCatalogClientMock) GetAllMcpServers(client httpclient.HTTPClientIn
 		items = full.Items
 	}
 
+	pageSizeStr := pageValues.Get("pageSize")
+	pageSize := 10
+	if pageSizeStr != "" {
+		if parsed, err := strconv.Atoi(pageSizeStr); err == nil && parsed > 0 {
+			pageSize = parsed
+		}
+	}
+
+	pageTokenStr := pageValues.Get("nextPageToken")
+	startIndex := 0
+	if pageTokenStr != "" {
+		if parsed, err := strconv.Atoi(pageTokenStr); err == nil && parsed > 0 {
+			startIndex = parsed
+		}
+	}
+
+	totalSize := len(items)
+	endIndex := startIndex + pageSize
+	if endIndex > totalSize {
+		endIndex = totalSize
+	}
+
+	var pagedItems []models.McpServer
+	if startIndex < totalSize {
+		pagedItems = items[startIndex:endIndex]
+	} else {
+		pagedItems = []models.McpServer{}
+	}
+
+	var nextPageToken string
+	if endIndex < totalSize {
+		nextPageToken = strconv.Itoa(endIndex)
+	}
+
+	size := len(pagedItems)
+	if size > math.MaxInt32 {
+		size = math.MaxInt32
+	}
+	ps := pageSize
+	if ps > math.MaxInt32 {
+		ps = math.MaxInt32
+	}
+
 	return &models.McpServerList{
-		Items:         items,
-		Size:          int32(len(items)),
-		PageSize:      full.PageSize,
-		NextPageToken: full.NextPageToken,
+		Items:         pagedItems,
+		Size:          int32(size),
+		PageSize:      int32(ps),
+		NextPageToken: nextPageToken,
 	}, nil
 }
 

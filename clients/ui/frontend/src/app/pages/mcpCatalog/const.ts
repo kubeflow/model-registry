@@ -48,3 +48,5 @@ export const BACKEND_TO_FRONTEND_FILTER_KEY: Record<string, McpFilterCategoryKey
   transports: 'supportedTransports',
   tags: 'labels',
 };
+
+export const OTHER_MCP_SERVERS_DISPLAY_NAME = 'Other MCP servers';

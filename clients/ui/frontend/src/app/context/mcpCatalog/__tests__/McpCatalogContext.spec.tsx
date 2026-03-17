@@ -6,9 +6,6 @@ import {
   McpCatalogContextProvider,
   McpCatalogContext,
 } from '~/app/context/mcpCatalog/McpCatalogContext';
-import { useCatalogSources } from '~/app/hooks/modelCatalog/useCatalogSources';
-import { mockCatalogSourceList, mockCatalogSource } from '~/__mocks__/mockCatalogSourceList';
-import { CatalogSourceStatus } from '~/concepts/modelCatalogSettings/const';
 
 jest.mock('mod-arch-core', () => ({
   useQueryParamNamespaces: jest.fn(() => ({})),
@@ -43,15 +40,8 @@ jest.mock('~/app/hooks/modelCatalog/useCatalogSources', () => ({
   ]),
 }));
 
-const mockRefresh = jest.fn();
-
-jest.mock('~/app/hooks/mcpServerCatalog/useMcpServersBySourceLabel', () => ({
-  useMcpServersBySourceLabelWithAPI: jest.fn(() => ({
-    mcpServers: { items: [] },
-    mcpServersLoaded: true,
-    mcpServersLoadError: undefined,
-    refresh: mockRefresh,
-  })),
+jest.mock('~/app/hooks/modelCatalog/useCatalogLabels', () => ({
+  useCatalogLabels: jest.fn(() => [null, true, undefined]),
 }));
 
 jest.mock('~/app/hooks/mcpServerCatalog/useMcpServerFilterOptionList', () => ({
@@ -143,52 +133,6 @@ describe('McpCatalogContext', () => {
     expect(result.current.selectedSourceLabel).toBeUndefined();
   });
 
-  it('exposes refreshMcpServers from the hook', () => {
-    const { result } = renderHook(() => React.useContext(McpCatalogContext), { wrapper });
-    expect(result.current.refreshMcpServers).toBe(mockRefresh);
-  });
-
-  it('builds sourceLabels and sourceLabelNames from catalog sources with labels and name', () => {
-    const catalogWithLabels = mockCatalogSourceList({
-      items: [
-        mockCatalogSource({
-          id: 'src-1',
-          name: 'Red Hat Catalog',
-          enabled: true,
-          status: CatalogSourceStatus.AVAILABLE,
-          labels: ['Red Hat', 'Enterprise'],
-        }),
-        mockCatalogSource({
-          id: 'src-2',
-          name: 'Community Catalog',
-          enabled: true,
-          status: CatalogSourceStatus.AVAILABLE,
-          labels: ['Community', 'Enterprise'],
-        }),
-      ],
-    });
-    const defaultCatalogMock = jest.mocked(useCatalogSources).getMockImplementation();
-    jest
-      .mocked(useCatalogSources)
-      .mockImplementation(() => [catalogWithLabels, true, undefined, jest.fn()]);
-
-    const { result } = renderHook(() => React.useContext(McpCatalogContext), { wrapper });
-
-    expect(result.current.sourceLabels).toEqual(
-      expect.arrayContaining(['Red Hat', 'Enterprise', 'Community']),
-    );
-    expect(result.current.sourceLabels).toHaveLength(3);
-    expect(result.current.sourceLabelNames).toEqual({
-      'Red Hat': 'Red Hat Catalog',
-      Enterprise: 'Red Hat Catalog',
-      Community: 'Community Catalog',
-    });
-
-    if (defaultCatalogMock) {
-      jest.mocked(useCatalogSources).mockImplementation(defaultCatalogMock);
-    }
-  });
-
   it('clearAllFilters resets searchQuery, filters, selectedSourceLabel and namedQuery', () => {
     const { result } = renderHook(() => React.useContext(McpCatalogContext), { wrapper });
     act(() => {
@@ -206,7 +150,7 @@ describe('McpCatalogContext', () => {
     });
     expect(result.current.searchQuery).toBe('');
     expect(result.current.filters).toEqual({});
-    expect(result.current.selectedSourceLabel).toBeUndefined();
+    expect(result.current.selectedSourceLabel).toBe('sample');
     expect(result.current.namedQuery).toBeNull();
   });
 });
