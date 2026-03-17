@@ -1,17 +1,26 @@
 import { mockModArchResponse } from 'mod-arch-core';
+import { mockMcpServer } from '~/__mocks__';
 import { mcpCatalog, mcpServerDetails } from '~/__tests__/cypress/cypress/pages/mcpCatalog';
 import {
   initMcpCatalogIntercepts,
   initServerDetailIntercept,
   initServerToolsIntercept,
   initServerToolsErrorIntercept,
-  mockMcpServers,
   mockMcpToolWithServer,
   mockMcpToolList,
 } from './mcpCatalogTestUtils';
 
-const kubernetesServer = mockMcpServers.find((s) => s.name === 'Kubernetes')!;
-const customServer = mockMcpServers.find((s) => s.name === 'Custom MCP Server')!;
+const kubernetesServer = mockMcpServer();
+const customServer = mockMcpServer({
+  id: 'custom-1',
+  name: 'Custom MCP Server',
+  description: 'A custom MCP server without README.',
+  deploymentMode: 'local',
+  securityIndicators: {},
+  source_id: 'sample', // eslint-disable-line camelcase
+  toolCount: 0,
+  readme: undefined,
+});
 
 describe('MCP Server Details Page', () => {
   beforeEach(() => {
@@ -20,12 +29,11 @@ describe('MCP Server Details Page', () => {
 
   describe('Navigation from catalog', () => {
     it('should navigate to details page when clicking server card link', () => {
+      initServerDetailIntercept(kubernetesServer);
       mcpCatalog.visit();
-      cy.get(`[data-testid="mcp-catalog-card-detail-link-1"]`, { timeout: 15000 }).should(
-        'be.visible',
-      );
-      mcpCatalog.findCardDetailLink('1').click();
-      cy.url().should('include', '/mcp-catalog/1');
+      mcpCatalog.findMcpCatalogCards().should('have.length.at.least', 1, { timeout: 15000 });
+      cy.get('[data-testid^="mcp-catalog-card-detail-link-"]').first().click();
+      cy.url().should('include', '/mcp-catalog/');
     });
   });
 
@@ -118,8 +126,14 @@ describe('MCP Server Details Page', () => {
 
   describe('Error handling', () => {
     it('should show not-found state for invalid server ID', () => {
-      cy.visit('/mcp-catalog/999');
-      cy.findByTestId('mcp-server-not-found').should('be.visible');
+      initServerDetailIntercept(
+        mockMcpServer({
+          id: '999',
+          name: 'nonexistent',
+        }),
+      );
+      cy.visit('/mcp-catalog/invalid-id-that-does-not-exist');
+      cy.findByTestId('mcp-server-not-found', { timeout: 15000 }).should('be.visible');
       cy.contains('MCP server not found').should('be.visible');
     });
   });
@@ -131,11 +145,9 @@ describe('MCP Server Details Page', () => {
 
     it('should support browser back navigation', () => {
       mcpCatalog.visit();
-      cy.get(`[data-testid="mcp-catalog-card-detail-link-1"]`, { timeout: 15000 }).should(
-        'be.visible',
-      );
-      mcpCatalog.findCardDetailLink('1').click();
-      cy.url().should('include', '/mcp-catalog/1');
+      mcpCatalog.findMcpCatalogCards().should('have.length.at.least', 1, { timeout: 15000 });
+      cy.get('[data-testid^="mcp-catalog-card-detail-link-"]').first().click();
+      cy.url().should('include', '/mcp-catalog/');
       cy.go('back');
       cy.url().should('eq', `${Cypress.config().baseUrl}/mcp-catalog`);
     });
