@@ -71,6 +71,8 @@ const RegistrationCommonFormSections = <D extends RegistrationCommonFormData>({
     }
   }, [registrationMode, setData, isCatalogOciSource]);
 
+  const isRegistryStorageAvailable = !isCatalogOciSource;
+
   const versionNameInput = (
     <TextInput
       isRequired
@@ -157,16 +159,20 @@ const RegistrationCommonFormSections = <D extends RegistrationCommonFormData>({
         </FormGroup>
       </FormSection>
       <FormSection
-        title="Model location and storage"
+        title={isRegistryStorageAvailable ? 'Model location and storage' : 'Model location'}
         description={
-          <>
-            Choose <strong>Register</strong> to use the model&apos;s original storage location for
-            artifact storage, or <strong>Register and store</strong> to specify a different artifact
-            storage location.
-          </>
+          isRegistryStorageAvailable ? (
+            <>
+              Choose <strong>Register</strong> to use the model&apos;s original storage location for
+              artifact storage, or <strong>Register and store</strong> to specify a different
+              artifact storage location.
+            </>
+          ) : (
+            'Specify the model location by providing either the object storage details or the URI.'
+          )
         }
       >
-        {!isCatalogOciSource && (
+        {isRegistryStorageAvailable && (
           <ToggleGroup
             aria-label="Registration mode"
             className={spacing.mtMd}
