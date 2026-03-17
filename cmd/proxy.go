@@ -201,21 +201,78 @@ func newModelRegistryService(ds datastore.Connector) (api.ModelRegistryApi, erro
 		return nil, err
 	}
 
+	artifactRepo, err := getRepo[models.ArtifactRepository](repoSet)
+	if err != nil {
+		return nil, err
+	}
+	modelArtifactRepo, err := getRepo[models.ModelArtifactRepository](repoSet)
+	if err != nil {
+		return nil, err
+	}
+	docArtifactRepo, err := getRepo[models.DocArtifactRepository](repoSet)
+	if err != nil {
+		return nil, err
+	}
+	registeredModelRepo, err := getRepo[models.RegisteredModelRepository](repoSet)
+	if err != nil {
+		return nil, err
+	}
+	modelVersionRepo, err := getRepo[models.ModelVersionRepository](repoSet)
+	if err != nil {
+		return nil, err
+	}
+	servingEnvRepo, err := getRepo[models.ServingEnvironmentRepository](repoSet)
+	if err != nil {
+		return nil, err
+	}
+	inferenceServiceRepo, err := getRepo[models.InferenceServiceRepository](repoSet)
+	if err != nil {
+		return nil, err
+	}
+	serveModelRepo, err := getRepo[models.ServeModelRepository](repoSet)
+	if err != nil {
+		return nil, err
+	}
+	experimentRepo, err := getRepo[models.ExperimentRepository](repoSet)
+	if err != nil {
+		return nil, err
+	}
+	experimentRunRepo, err := getRepo[models.ExperimentRunRepository](repoSet)
+	if err != nil {
+		return nil, err
+	}
+	dataSetRepo, err := getRepo[models.DataSetRepository](repoSet)
+	if err != nil {
+		return nil, err
+	}
+	metricRepo, err := getRepo[models.MetricRepository](repoSet)
+	if err != nil {
+		return nil, err
+	}
+	parameterRepo, err := getRepo[models.ParameterRepository](repoSet)
+	if err != nil {
+		return nil, err
+	}
+	metricHistoryRepo, err := getRepo[models.MetricHistoryRepository](repoSet)
+	if err != nil {
+		return nil, err
+	}
+
 	modelRegistryService := core.NewModelRegistryService(
-		getRepo[models.ArtifactRepository](repoSet),
-		getRepo[models.ModelArtifactRepository](repoSet),
-		getRepo[models.DocArtifactRepository](repoSet),
-		getRepo[models.RegisteredModelRepository](repoSet),
-		getRepo[models.ModelVersionRepository](repoSet),
-		getRepo[models.ServingEnvironmentRepository](repoSet),
-		getRepo[models.InferenceServiceRepository](repoSet),
-		getRepo[models.ServeModelRepository](repoSet),
-		getRepo[models.ExperimentRepository](repoSet),
-		getRepo[models.ExperimentRunRepository](repoSet),
-		getRepo[models.DataSetRepository](repoSet),
-		getRepo[models.MetricRepository](repoSet),
-		getRepo[models.ParameterRepository](repoSet),
-		getRepo[models.MetricHistoryRepository](repoSet),
+		artifactRepo,
+		modelArtifactRepo,
+		docArtifactRepo,
+		registeredModelRepo,
+		modelVersionRepo,
+		servingEnvRepo,
+		inferenceServiceRepo,
+		serveModelRepo,
+		experimentRepo,
+		experimentRunRepo,
+		dataSetRepo,
+		metricRepo,
+		parameterRepo,
+		metricHistoryRepo,
 		repoSet.TypeMap(),
 	)
 
@@ -224,13 +281,14 @@ func newModelRegistryService(ds datastore.Connector) (api.ModelRegistryApi, erro
 	return modelRegistryService, nil
 }
 
-func getRepo[T any](repoSet datastore.RepoSet) T {
+func getRepo[T any](repoSet datastore.RepoSet) (T, error) {
 	repo, err := repoSet.Repository(reflect.TypeFor[T]())
 	if err != nil {
-		panic(fmt.Sprintf("unable to get repository: %v", err))
+		var zero T
+		return zero, fmt.Errorf("unable to get repository: %w", err)
 	}
 
-	return repo.(T)
+	return repo.(T), nil
 }
 
 func init() {
