@@ -145,6 +145,50 @@ class McpServerDetails {
   findSourceCodeLink() {
     return cy.findByTestId('mcp-server-source-code-link');
   }
+
+  findToolsSection() {
+    return cy.findByTestId('mcp-server-tools');
+  }
+
+  findToolsError() {
+    return cy.findByTestId('mcp-server-tools-error');
+  }
+
+  findToolsLoading() {
+    return cy.findByTestId('mcp-server-tools-loading');
+  }
+
+  findToolsFilter() {
+    return cy.findByTestId('mcp-tools-filter');
+  }
+
+  findToolsEmptyFilter() {
+    return cy.findByTestId('mcp-tools-empty-filter');
+  }
+
+  findToolToggle(toolName: string) {
+    return cy.findByTestId(`mcp-tool-toggle-${toolName}`);
+  }
+
+  findToolsPageIndicator() {
+    return cy.findByTestId('mcp-tools-page-indicator');
+  }
+
+  findToolsPagePrev() {
+    return cy.findByTestId('mcp-tools-page-prev');
+  }
+
+  findToolsPageNext() {
+    return cy.findByTestId('mcp-tools-page-next');
+  }
+
+  findToolRevokedLabel(toolName: string) {
+    return cy.findByTestId(`mcp-tool-revoked-${toolName}`);
+  }
+
+  findToolRevokedReason(toolName: string) {
+    return cy.findByTestId(`mcp-tool-revoked-reason-${toolName}`);
+  }
 }
 
 export const mcpCatalog = new McpCatalog();

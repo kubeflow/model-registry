@@ -1,10 +1,11 @@
 import { FetchState, FetchStateCallbackPromise, NotReadyError, useFetchState } from 'mod-arch-core';
 import React from 'react';
 import { McpToolList } from '~/app/mcpServerCatalogTypes';
-import { useModelCatalogAPI } from '~/app/hooks/modelCatalog/useModelCatalogAPI';
+import { McpCatalogContext } from '~/app/context/mcpCatalog/McpCatalogContext';
 
 export const useMcpServerToolList = (serverId: string): FetchState<McpToolList> => {
-  const { api, apiAvailable } = useModelCatalogAPI();
+  const { apiState } = React.useContext(McpCatalogContext);
+  const { api, apiAvailable } = apiState;
   const call = React.useCallback<FetchStateCallbackPromise<McpToolList>>(
     (opts) => {
       if (!apiAvailable) {

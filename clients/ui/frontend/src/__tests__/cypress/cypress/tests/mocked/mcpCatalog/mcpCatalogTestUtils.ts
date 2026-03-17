@@ -4,10 +4,13 @@ import {
   mockCatalogSourceList,
   mockMcpCatalogFilterOptions,
   mockMcpServers,
+  mockMcpToolWithServer,
+  mockMcpToolList,
 } from '~/__mocks__';
+import type { McpToolList } from '~/app/mcpServerCatalogTypes';
 import { MODEL_CATALOG_API_VERSION } from '~/__tests__/cypress/cypress/support/commands/api';
 
-export { mockMcpServers, mockMcpCatalogFilterOptions };
+export { mockMcpServers, mockMcpCatalogFilterOptions, mockMcpToolWithServer, mockMcpToolList };
 
 export const MCP_SERVERS_RESPONSE = {
   items: mockMcpServers,
@@ -49,5 +52,25 @@ export const initServerDetailIntercept = (server: (typeof mockMcpServers)[number
       pathname: `${MCP_SERVERS_PATH}/${server.id}`,
     },
     mockModArchResponse(server),
+  );
+};
+
+export const initServerToolsIntercept = (serverId: string, toolList: McpToolList): void => {
+  cy.intercept(
+    {
+      method: 'GET',
+      pathname: `${MCP_SERVERS_PATH}/${serverId}/tools`,
+    },
+    mockModArchResponse(toolList),
+  );
+};
+
+export const initServerToolsErrorIntercept = (serverId: string): void => {
+  cy.intercept(
+    {
+      method: 'GET',
+      pathname: `${MCP_SERVERS_PATH}/${serverId}/tools`,
+    },
+    { statusCode: 500, body: { error: 'Internal server error' } },
   );
 };

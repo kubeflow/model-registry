@@ -92,9 +92,9 @@ describe('hasMcpFiltersApplied', () => {
 
 describe('filterMcpServersByFilters', () => {
   const servers: McpServer[] = [
-    { id: 1, name: 'A', deploymentMode: 'local', toolCount: 0 },
-    { id: 2, name: 'B', deploymentMode: 'remote', toolCount: 0 },
-    { id: 3, name: 'C', deploymentMode: 'remote', toolCount: 0 },
+    { id: '1', name: 'A', deploymentMode: 'local', toolCount: 0 },
+    { id: '2', name: 'B', deploymentMode: 'remote', toolCount: 0 },
+    { id: '3', name: 'C', deploymentMode: 'remote', toolCount: 0 },
   ];
 
   it('returns all items when filters are empty', () => {
@@ -116,8 +116,8 @@ describe('filterMcpServersByFilters', () => {
 
   it('filters by license when server has license', () => {
     const withLicense: McpServer[] = [
-      { id: 1, name: 'X', license: 'MIT', toolCount: 0 },
-      { id: 2, name: 'Y', license: 'Apache-2.0', toolCount: 0 },
+      { id: '1', name: 'X', license: 'MIT', toolCount: 0 },
+      { id: '2', name: 'Y', license: 'Apache-2.0', toolCount: 0 },
     ];
     expect(filterMcpServersByFilters(withLicense, { license: ['MIT'] })).toHaveLength(1);
     expect(filterMcpServersByFilters(withLicense, { license: ['MIT'] })[0].name).toBe('X');
@@ -125,8 +125,8 @@ describe('filterMcpServersByFilters', () => {
 
   it('filters by securityIndicators label', () => {
     const withSecurity: McpServer[] = [
-      { id: 1, name: 'S1', securityIndicators: { verifiedSource: true }, toolCount: 0 },
-      { id: 2, name: 'S2', securityIndicators: { sast: true }, toolCount: 0 },
+      { id: '1', name: 'S1', securityIndicators: { verifiedSource: true }, toolCount: 0 },
+      { id: '2', name: 'S2', securityIndicators: { sast: true }, toolCount: 0 },
     ];
     const result = filterMcpServersByFilters(withSecurity, {
       securityIndicators: ['Verified source'],
@@ -138,9 +138,9 @@ describe('filterMcpServersByFilters', () => {
 
 describe('filterMcpServersBySearchQuery', () => {
   const servers: McpServer[] = [
-    { id: 1, name: 'GitHub', description: 'Integrate with GitHub', toolCount: 0 },
-    { id: 2, name: 'Slack', description: 'Search and interact with Slack', toolCount: 0 },
-    { id: 3, name: 'PostgreSQL', description: 'Query databases', toolCount: 0 },
+    { id: '1', name: 'GitHub', description: 'Integrate with GitHub', toolCount: 0 },
+    { id: '2', name: 'Slack', description: 'Search and interact with Slack', toolCount: 0 },
+    { id: '3', name: 'PostgreSQL', description: 'Query databases', toolCount: 0 },
   ];
 
   it('returns all items when search is empty or whitespace', () => {

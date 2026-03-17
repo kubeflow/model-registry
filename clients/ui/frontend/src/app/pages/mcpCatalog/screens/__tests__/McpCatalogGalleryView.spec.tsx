@@ -8,7 +8,7 @@ import type { McpServer } from '~/app/mcpServerCatalogTypes';
 import { MCP_CATALOG_GALLERY } from '~/app/pages/mcpCatalog/const';
 import McpCatalogGalleryView from '~/app/pages/mcpCatalog/screens/McpCatalogGalleryView';
 
-const buildServer = (id: number, sourceId: string): McpServer => ({
+const buildServer = (id: string, sourceId: string): McpServer => ({
   id,
   name: `Server ${id}`,
   description: `Description ${id}`,
@@ -19,6 +19,7 @@ const buildServer = (id: number, sourceId: string): McpServer => ({
 });
 
 const defaultContext: McpCatalogContextType = {
+  apiState: { apiAvailable: false, api: {} as McpCatalogContextType['apiState']['api'] },
   filters: {},
   setFilters: jest.fn(),
   searchQuery: '',
@@ -101,7 +102,9 @@ describe('McpCatalogGalleryView', () => {
 
   it('renders Load more button when category has more than PAGE_SIZE items', () => {
     const totalServers = MCP_CATALOG_GALLERY.PAGE_SIZE + 2;
-    const servers = Array.from({ length: totalServers }, (_, i) => buildServer(i + 1, 'cat-a'));
+    const servers = Array.from({ length: totalServers }, (_, i) =>
+      buildServer(String(i + 1), 'cat-a'),
+    );
     renderWithContext({
       mcpServersLoaded: true,
       mcpServers: { items: servers },
@@ -116,7 +119,9 @@ describe('McpCatalogGalleryView', () => {
 
   it('Load more button pages through batches and reveals all items after multiple clicks', () => {
     const totalServers = MCP_CATALOG_GALLERY.PAGE_SIZE * 2 + 1;
-    const servers = Array.from({ length: totalServers }, (_, i) => buildServer(i + 1, 'cat-a'));
+    const servers = Array.from({ length: totalServers }, (_, i) =>
+      buildServer(String(i + 1), 'cat-a'),
+    );
     renderWithContext({
       mcpServersLoaded: true,
       mcpServers: { items: servers },
@@ -134,7 +139,7 @@ describe('McpCatalogGalleryView', () => {
   });
 
   it('does not show Load more when category has PAGE_SIZE or fewer items', () => {
-    const servers = Array.from({ length: 5 }, (_, i) => buildServer(i + 1, 'cat-a'));
+    const servers = Array.from({ length: 5 }, (_, i) => buildServer(String(i + 1), 'cat-a'));
     renderWithContext({
       mcpServersLoaded: true,
       mcpServers: { items: servers },
@@ -150,8 +155,8 @@ describe('McpCatalogGalleryView', () => {
     const minItemsForShowAll = MCP_CATALOG_GALLERY.CARDS_PER_ROW + 1;
     expect(minItemsForShowAll).toBe(5);
     const servers = [
-      ...Array.from({ length: minItemsForShowAll }, (_, i) => buildServer(i + 1, 'cat-a')),
-      ...Array.from({ length: minItemsForShowAll }, (_, i) => buildServer(10 + i, 'cat-b')),
+      ...Array.from({ length: minItemsForShowAll }, (_, i) => buildServer(String(i + 1), 'cat-a')),
+      ...Array.from({ length: minItemsForShowAll }, (_, i) => buildServer(String(10 + i), 'cat-b')),
     ];
     const catalogSources = {
       items: [

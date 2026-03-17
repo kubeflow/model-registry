@@ -67,7 +67,7 @@ const McpCatalogCategorySection: React.FC<McpCatalogCategorySectionProps> = Reac
         <Grid hasGutter>
           {displayItems.map((server) => (
             <GridItem
-              key={String(server.id)}
+              key={server.id}
               sm={MCP_CATALOG_GRID_SPAN.sm}
               md={MCP_CATALOG_GRID_SPAN.md}
               lg={MCP_CATALOG_GRID_SPAN.lg}

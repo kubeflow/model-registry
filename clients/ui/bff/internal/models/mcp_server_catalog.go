@@ -61,7 +61,7 @@ type McpTool struct {
 }
 
 type McpServer struct {
-	ID                 int                               `json:"id"`
+	ID                 string                            `json:"id"`
 	Name               string                            `json:"name"`
 	SourceID           *string                           `json:"source_id,omitempty"`
 	Description        *string                           `json:"description,omitempty"`

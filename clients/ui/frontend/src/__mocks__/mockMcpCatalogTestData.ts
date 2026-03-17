@@ -1,9 +1,14 @@
 /* eslint-disable camelcase */
-import type { McpServer, McpServerList } from '~/app/mcpServerCatalogTypes';
+import type {
+  McpServer,
+  McpServerList,
+  McpToolWithServer,
+  McpToolList,
+} from '~/app/mcpServerCatalogTypes';
 import type { McpCatalogFilterOptionsList } from '~/app/pages/mcpCatalog/types/mcpCatalogFilterOptions';
 
 export const mockMcpServer = (partial?: Partial<McpServer>): McpServer => ({
-  id: 1,
+  id: '1',
   name: 'Kubernetes',
   description: 'Control and inspect Kubernetes clusters.',
   deploymentMode: 'local',
@@ -34,7 +39,7 @@ export const mockMcpServerList = (partial?: Partial<McpServerList>): McpServerLi
 export const mockMcpServers = [
   mockMcpServer(),
   mockMcpServer({
-    id: 2,
+    id: '2',
     name: 'GitHub',
     description: 'Integrate with GitHub repositories.',
     deploymentMode: 'remote',
@@ -50,7 +55,7 @@ export const mockMcpServers = [
     tags: ['github', 'vcs'],
   }),
   mockMcpServer({
-    id: 3,
+    id: '3',
     name: 'Custom MCP Server',
     description: 'A custom MCP server without README.',
     deploymentMode: 'local',
@@ -60,6 +65,28 @@ export const mockMcpServers = [
     readme: undefined,
   }),
 ];
+
+export const mockMcpToolWithServer = (
+  serverId: string,
+  partial?: Partial<McpToolWithServer['tool']>,
+): McpToolWithServer => ({
+  serverId,
+  serverName: 'Test Server',
+  tool: {
+    name: 'test_tool',
+    description: 'A test tool',
+    accessType: 'read_only',
+    parameters: [],
+    ...partial,
+  },
+});
+
+export const mockMcpToolList = (items: McpToolWithServer[]): McpToolList => ({
+  items,
+  size: items.length,
+  pageSize: 25,
+  nextPageToken: '',
+});
 
 export const mockMcpCatalogFilterOptions = (
   partial?: Partial<McpCatalogFilterOptionsList>,
