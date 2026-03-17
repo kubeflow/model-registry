@@ -5,7 +5,7 @@ Tests filterQuery and negative cases.
 To run these tests:
 1. Start the catalog service with MCP test data loaded
 2. Set CATALOG_URL environment variable (default: http://localhost:8081)
-3. Run: pytest --e2e tests/test_mcp_servers_filtering.py
+3. Run: pytest --e2e tests/mcp_servers/test_filtering.py
 """
 
 import pytest
@@ -95,4 +95,3 @@ class TestMCPServerNegative:
         """Test that invalid filterQuery syntax raises an error."""
         with pytest.raises(CatalogAPIError, match="invalid filter query"):
             api_client.get_mcp_servers(filter_query=invalid_filter_query)
-

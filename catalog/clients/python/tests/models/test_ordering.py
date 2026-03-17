@@ -6,7 +6,7 @@ Consolidated from test_name_ordering.py and test_accuracy_sorting.py.
 To run these tests:
 1. Start the catalog service with test data loaded
 2. Set CATALOG_URL environment variable (default: http://localhost:8081)
-3. Run: pytest --e2e tests/test_ordering.py
+3. Run: pytest --e2e tests/models/test_ordering.py
 """
 
 from typing import Any
@@ -15,7 +15,7 @@ import pytest
 
 from model_catalog import CatalogAPIClient
 
-from tests.sorting_utils import get_field_value, sort_items_by_field
+from tests.models.sorting_utils import get_field_value, sort_items_by_field
 
 
 def _assert_response_valid(response: dict[str, Any]) -> None:

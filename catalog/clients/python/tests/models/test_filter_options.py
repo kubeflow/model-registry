@@ -7,7 +7,7 @@ and test_named_queries_validation.py.
 To run these tests:
 1. Start the catalog service with test data loaded
 2. Set CATALOG_URL environment variable (default: http://localhost:8081)
-3. Run: pytest --e2e tests/test_filter_options.py
+3. Run: pytest --e2e tests/models/test_filter_options.py
 """
 
 from model_catalog import CatalogAPIClient

@@ -6,13 +6,13 @@ Migrated from opendatahub-tests (RHOAIENG-45971).
 To run these tests:
 1. Start the catalog service with test data loaded
 2. Set CATALOG_URL environment variable (default: http://localhost:8081)
-3. Run: pytest --e2e tests/test_filter_query.py
+3. Run: pytest --e2e tests/models/test_filter_query.py
 """
 
 import pytest
 
 from model_catalog import CatalogAPIClient, CatalogAPIError
-from tests.search_utils import get_expected_models_for_filter_query
+from tests.models.search_utils import get_expected_models_for_filter_query
 
 
 class TestFilterQuery:
