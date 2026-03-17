@@ -10,7 +10,7 @@ const wrapper = ({ children }: { children: React.ReactNode }) => (
 );
 
 const mockServer: McpServer = {
-  id: 1,
+  id: '1',
   name: 'Test MCP Server',
   description: 'Test description for the server.',
   deploymentMode: 'local',
@@ -33,7 +33,7 @@ describe('McpCatalogCard', () => {
   });
 
   it('renders deployment chip only for remote mode', () => {
-    render(<McpCatalogCard server={{ ...mockServer, id: 2, deploymentMode: 'remote' }} />, {
+    render(<McpCatalogCard server={{ ...mockServer, id: '2', deploymentMode: 'remote' }} />, {
       wrapper,
     });
     expect(screen.getByTestId('mcp-catalog-card-deployment-2')).toHaveTextContent('Remote');
@@ -46,7 +46,7 @@ describe('McpCatalogCard', () => {
   });
 
   it('does not render security section when securityIndicators is empty', () => {
-    render(<McpCatalogCard server={{ ...mockServer, id: 3, securityIndicators: undefined }} />, {
+    render(<McpCatalogCard server={{ ...mockServer, id: '3', securityIndicators: undefined }} />, {
       wrapper,
     });
     expect(screen.queryByText('Verified source')).not.toBeInTheDocument();
@@ -73,7 +73,7 @@ describe('McpCatalogCard', () => {
   });
 
   it('renders empty string when description is undefined', () => {
-    render(<McpCatalogCard server={{ ...mockServer, id: 4, description: undefined }} />, {
+    render(<McpCatalogCard server={{ ...mockServer, id: '4', description: undefined }} />, {
       wrapper,
     });
     const desc = screen.getByTestId('mcp-catalog-card-description-4');

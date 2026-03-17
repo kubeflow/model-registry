@@ -41,7 +41,7 @@ export type McpTool = {
 };
 
 export type McpServer = {
-  id: number;
+  id: string;
   name: string;
   source_id?: string;
   description?: string;
