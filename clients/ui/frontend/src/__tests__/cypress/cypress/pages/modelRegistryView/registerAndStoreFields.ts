@@ -1,11 +1,7 @@
-import { TempDevFeature } from '~/app/hooks/useTempDevFeatureAvailable';
 import { FormFieldSelector } from './registerModelPage';
 
 class RegisterAndStoreFields {
-  visit(enableRegistryStorageFeature = true, registryNamespace?: string) {
-    if (enableRegistryStorageFeature) {
-      window.localStorage.setItem(TempDevFeature.RegistryStorage, 'true');
-    }
+  visit(registryNamespace?: string) {
     const preferredModelRegistry = 'modelregistry-sample';
     const query = registryNamespace ? `?namespace=${encodeURIComponent(registryNamespace)}` : '';
     cy.visit(`/model-registry/${preferredModelRegistry}/register/model${query}`);

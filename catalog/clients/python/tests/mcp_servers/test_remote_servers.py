@@ -5,7 +5,7 @@ Tests remote server fields, transport derivation, and deployment mode filtering.
 To run these tests:
 1. Start the catalog service with MCP test data loaded
 2. Set CATALOG_URL environment variable (default: http://localhost:8081)
-3. Run: pytest --e2e tests/test_mcp_remote_servers.py
+3. Run: pytest --e2e tests/mcp_servers/test_remote_servers.py
 """
 
 from typing import Self

@@ -15,7 +15,7 @@ import EmptyModelCatalogState from '~/app/pages/modelCatalog/EmptyModelCatalogSt
 
 const MCP_CATALOG_TITLE = 'MCP Catalog';
 const MCP_CATALOG_DESCRIPTION =
-  'Discover and manage MCP servers and tools available for your organization.';
+  'Browse and deploy MCP servers provided by Red Hat partners and other providers.';
 
 const McpCatalogCoreLoader: React.FC = () => {
   const { catalogSourcesLoaded, catalogSourcesLoadError, sourceLabels } =

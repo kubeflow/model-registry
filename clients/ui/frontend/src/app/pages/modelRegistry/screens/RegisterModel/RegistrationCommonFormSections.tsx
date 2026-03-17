@@ -17,7 +17,6 @@ import { UpdateObjectAtPropAndValue } from 'mod-arch-shared';
 import FormFieldset from '~/app/pages/modelRegistry/screens/components/FormFieldset';
 import { ModelVersion } from '~/app/types';
 import FormSection from '~/app/pages/modelRegistry/components/pf-overrides/FormSection';
-import { useTempDevFeatureAvailable, TempDevFeature } from '~/app/hooks/useTempDevFeatureAvailable';
 import { RegistrationMode } from '~/app/pages/modelRegistry/screens/const';
 import { ModelLocationType, RegistrationCommonFormData } from './useRegisterModelData';
 import RegistrationModelLocationFields from './RegistrationModelLocationFields';
@@ -48,9 +47,6 @@ const RegistrationCommonFormSections = <D extends RegistrationCommonFormData>({
   namespaceAccessError,
 }: RegistrationCommonFormSectionsProps<D>): React.ReactNode => {
   const isVersionNameValid = isNameValid(formData.versionName);
-  const isRegistryStorageFeatureAvailable = useTempDevFeatureAvailable(
-    TempDevFeature.RegistryStorage,
-  );
   const registrationMode = formData.registrationMode || RegistrationMode.Register;
 
   const isCatalogOciSource =
@@ -69,21 +65,13 @@ const RegistrationCommonFormSections = <D extends RegistrationCommonFormData>({
   };
 
   React.useEffect(() => {
-    if (
-      !isRegistryStorageFeatureAvailable &&
-      registrationMode === RegistrationMode.RegisterAndStore
-    ) {
-      // When the feature is turned off, force the mode back to "Register"
-      setData('registrationMode', RegistrationMode.Register);
-      setData('namespace', '');
-    }
     if (registrationMode === RegistrationMode.RegisterAndStore && isCatalogOciSource) {
-      // From catalog: prevent OCI => OCI by forcing back to "Register".
-      // should be unreachable today as the toggle is hidden, but helps if the default mode or initial state ever change in the future.
       setData('registrationMode', RegistrationMode.Register);
       setData('namespace', '');
     }
-  }, [isRegistryStorageFeatureAvailable, registrationMode, setData, isCatalogOciSource]);
+  }, [registrationMode, setData, isCatalogOciSource]);
+
+  const isRegistryStorageAvailable = !isCatalogOciSource;
 
   const versionNameInput = (
     <TextInput
@@ -171,13 +159,9 @@ const RegistrationCommonFormSections = <D extends RegistrationCommonFormData>({
         </FormGroup>
       </FormSection>
       <FormSection
-        title={
-          // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-          isRegistryStorageFeatureAvailable ? 'Model location and storage' : 'Model location'
-        }
+        title={isRegistryStorageAvailable ? 'Model location and storage' : 'Model location'}
         description={
-          // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-          isRegistryStorageFeatureAvailable ? (
+          isRegistryStorageAvailable ? (
             <>
               Choose <strong>Register</strong> to use the model&apos;s original storage location for
               artifact storage, or <strong>Register and store</strong> to specify a different
@@ -188,8 +172,7 @@ const RegistrationCommonFormSections = <D extends RegistrationCommonFormData>({
           )
         }
       >
-        {/* eslint-disable-next-line @typescript-eslint/no-unnecessary-condition */}
-        {isRegistryStorageFeatureAvailable && !isCatalogOciSource && (
+        {isRegistryStorageAvailable && (
           <ToggleGroup
             aria-label="Registration mode"
             className={spacing.mtMd}

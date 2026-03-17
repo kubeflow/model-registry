@@ -5,7 +5,7 @@ Tests namedQuery parameter for pre-defined filter templates.
 To run these tests:
 1. Start the catalog service with MCP test data and namedQueries loaded
 2. Set CATALOG_URL environment variable (default: http://localhost:8081)
-3. Run: pytest --e2e tests/test_named_queries.py
+3. Run: pytest --e2e tests/mcp_servers/test_named_queries.py
 """
 
 import pytest

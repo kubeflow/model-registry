@@ -40,7 +40,7 @@ const McpCatalogCard: React.FC<McpCatalogCardProps> = React.memo(({ server }) =>
     server.deploymentMode === 'local' ? McpCardIconType.LOCAL_TO_CLUSTER : McpCardIconType.REMOTE;
   const deploymentConfig = getMcpCardIconConfig(deploymentType);
   const securityLabels = getSecurityIndicatorLabels(server.securityIndicators);
-  const serverId = String(server.id);
+  const serverId = server.id;
 
   return (
     <Card isFullHeight data-testid={`mcp-catalog-card-${serverId}`}>

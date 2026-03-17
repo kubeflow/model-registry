@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { PageSection, Sidebar, SidebarContent, SidebarPanel, Stack } from '@patternfly/react-core';
-import { ApplicationsPage } from 'mod-arch-shared';
+import { ApplicationsPage, ProjectObjectType, TitleWithIcon } from 'mod-arch-shared';
 import ScrollViewOnMount from '~/app/shared/components/ScrollViewOnMount';
 import { McpCatalogContext } from '~/app/context/mcpCatalog/McpCatalogContext';
 import McpCatalogFilters from '~/app/pages/mcpCatalog/components/McpCatalogFilters';
@@ -9,7 +9,7 @@ import McpCatalogGalleryView from './McpCatalogGalleryView';
 
 const MCP_CATALOG_TITLE = 'MCP Catalog';
 const MCP_CATALOG_SUBTITLE =
-  'Discover and manage MCP servers and tools available for your organization.';
+  'Browse and deploy MCP servers provided by Red Hat partners and other providers.';
 
 const McpCatalog: React.FC = () => {
   const { searchQuery, setSearchQuery, clearAllFilters } = React.useContext(McpCatalogContext);
@@ -33,7 +33,9 @@ const McpCatalog: React.FC = () => {
     <>
       <ScrollViewOnMount shouldScroll scrollToTop />
       <ApplicationsPage
-        title={MCP_CATALOG_TITLE}
+        title={
+          <TitleWithIcon title={MCP_CATALOG_TITLE} objectType={ProjectObjectType.modelCatalog} />
+        }
         description={MCP_CATALOG_SUBTITLE}
         empty={false}
         loaded

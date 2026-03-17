@@ -33,7 +33,7 @@ const McpServerDetailsPage: React.FC = () => {
       return { server: apiServer, serverLoaded: true, serverLoadError: undefined };
     }
 
-    const contextMatch = mcpServers.items.find((s) => String(s.id) === serverId);
+    const contextMatch = mcpServers.items.find((s) => s.id === serverId);
     if (contextMatch) {
       return { server: contextMatch, serverLoaded: true, serverLoadError: undefined };
     }

@@ -14,7 +14,6 @@ import {
 import { be } from '~/__tests__/cypress/cypress/utils/should';
 import { MODEL_REGISTRY_API_VERSION } from '~/__tests__/cypress/cypress/support/commands/api';
 import { verifyRelativeURL } from '~/__tests__/cypress/cypress/utils/url';
-import { TempDevFeature } from '~/app/hooks/useTempDevFeatureAvailable';
 
 type HandlersProps = {
   modelRegistries?: ModelRegistry[];
@@ -231,30 +230,17 @@ describe('Model Registry core', () => {
     //   .should('exist');
   });
 
-  it('Empty state shows transfer jobs link when RegistryStorage feature is enabled', () => {
+  it('Empty state shows transfer jobs link', () => {
     initIntercepts({
       registeredModels: [],
     });
 
-    window.localStorage.setItem(TempDevFeature.RegistryStorage, 'true');
     modelRegistry.visit();
     modelRegistry.navigate();
     modelRegistry.shouldregisteredModelsEmpty();
     modelRegistry.findEmptyStateTransferJobsButton().should('exist');
     modelRegistry.findEmptyStateTransferJobsButton().click();
     verifyRelativeURL('/model-registry/modelregistry-sample/model-transfer-jobs');
-  });
-
-  it('Empty state hides transfer jobs link when RegistryStorage feature is disabled', () => {
-    initIntercepts({
-      registeredModels: [],
-    });
-
-    window.localStorage.removeItem(TempDevFeature.RegistryStorage);
-    modelRegistry.visit();
-    modelRegistry.navigate();
-    modelRegistry.shouldregisteredModelsEmpty();
-    modelRegistry.findEmptyStateTransferJobsButton().should('not.exist');
   });
 
   describe('Registered model table', () => {

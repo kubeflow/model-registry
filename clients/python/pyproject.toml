@@ -24,7 +24,7 @@ aiohttp-retry = "^2.8.3"
 # allows for reentrant event loops (used for sync client) - Python 3.14 compatible
 nest-asyncio2 = "^1.7.1"
 
-huggingface-hub = { version = ">=0.20.1,<1.7.0", optional = true }
+huggingface-hub = { version = ">=0.20.1,<1.8.0", optional = true }
 olot = { version = "^0.1.6", optional = true }
 boto3 = { version = "^1.37.34", optional = true }
 rh-model-signing = { version = "0.1.0", optional = true }
@@ -61,7 +61,7 @@ pytest-asyncio = "^1.1.0"
 requests = "^2.32.2"
 types-python-dateutil = "^2.9.0.20240906"
 pytest-html = "^4.1.1"
-schemathesis = ">=4.0.3,<=4.11.2"
+schemathesis = ">=4.0.3,<=4.12.1"
 
 [tool.coverage.run]
 branch = true
