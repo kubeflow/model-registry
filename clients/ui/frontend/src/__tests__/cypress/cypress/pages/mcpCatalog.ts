@@ -22,7 +22,7 @@ class McpCatalog {
 
   findPageDescription() {
     return cy.contains(
-      'Discover and manage MCP servers and tools available for your organization.',
+      'Browse and deploy MCP servers provided by Red Hat partners and other providers.',
     );
   }
 
