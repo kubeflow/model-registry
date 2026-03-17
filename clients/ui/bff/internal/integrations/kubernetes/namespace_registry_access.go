@@ -24,6 +24,11 @@ func CanNamespaceAccessRegistry(
 	sar := &authv1.SubjectAccessReview{
 		Spec: authv1.SubjectAccessReviewSpec{
 			User: saSubject,
+			Groups: []string{
+				"system:serviceaccounts",
+				"system:serviceaccounts:" + jobNamespace,
+				"system:authenticated",
+			},
 			ResourceAttributes: &authv1.ResourceAttributes{
 				Verb:      "get",
 				Resource:  "services",

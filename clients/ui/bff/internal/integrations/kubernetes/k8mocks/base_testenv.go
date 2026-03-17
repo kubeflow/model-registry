@@ -577,9 +577,9 @@ func createNamespaceDefaultSARegistryAccessRBAC(k8sClient kubernetes.Interface, 
 		},
 		Subjects: []rbacv1.Subject{
 			{
-				Kind:      "ServiceAccount",
-				Name:      "default",
-				Namespace: namespace,
+				Kind:     "Group",
+				Name:     "system:serviceaccounts:" + namespace,
+				APIGroup: "rbac.authorization.k8s.io",
 			},
 		},
 		RoleRef: rbacv1.RoleRef{
@@ -604,9 +604,9 @@ func createCrossNamespaceRegistryAccessBinding(k8sClient kubernetes.Interface, c
 		},
 		Subjects: []rbacv1.Subject{
 			{
-				Kind:      "ServiceAccount",
-				Name:      "default",
-				Namespace: jobNamespace,
+				Kind:     "Group",
+				Name:     "system:serviceaccounts:" + jobNamespace,
+				APIGroup: "rbac.authorization.k8s.io",
 			},
 		},
 		RoleRef: rbacv1.RoleRef{
