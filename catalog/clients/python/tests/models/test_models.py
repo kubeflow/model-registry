@@ -5,7 +5,7 @@ Tests model filtering, pagination, and basic operations.
 To run these tests:
 1. Start the catalog service with test data loaded
 2. Set CATALOG_URL environment variable (default: http://localhost:8081)
-3. Run: pytest --e2e tests/test_models.py
+3. Run: pytest --e2e tests/models/test_models.py
 """
 
 import pytest

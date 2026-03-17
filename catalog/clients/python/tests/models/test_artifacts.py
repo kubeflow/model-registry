@@ -6,13 +6,13 @@ Consolidated from test_artifact_filtering.py and test_artifacts_ordering.py.
 To run these tests:
 1. Start the catalog service with test data loaded
 2. Set CATALOG_URL environment variable (default: http://localhost:8081)
-3. Run: pytest --e2e tests/test_artifacts.py
+3. Run: pytest --e2e tests/models/test_artifacts.py
 """
 
 import pytest
 
 from model_catalog import CatalogAPIClient, CatalogValidationError
-from tests.sorting_utils import sort_items_by_custom_property, sort_items_by_field
+from tests.models.sorting_utils import sort_items_by_custom_property, sort_items_by_field
 
 
 class TestArtifacts:

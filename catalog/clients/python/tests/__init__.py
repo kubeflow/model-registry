@@ -1,10 +1,8 @@
 """E2E tests for the Model Catalog Python client.
 
 Test Structure:
-    - test_artifacts.py: Artifact filtering and ordering tests
-    - test_filter_options.py: Filter options and named queries tests
-    - test_models.py: Model listing and filtering tests
-    - test_ordering.py: Model ordering (NAME, ACCURACY) tests
+    - models/: Model-related tests (listing, search, filtering, ordering, artifacts)
+    - mcp_servers/: MCP server tests (listing, search, filtering, remote servers, named queries)
     - test_sources.py: Source management and status tests
     - test_source_preview.py: Source preview functionality tests
     - fuzz_api/: API fuzzing tests using Schemathesis

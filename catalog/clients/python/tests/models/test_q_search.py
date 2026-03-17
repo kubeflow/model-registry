@@ -5,13 +5,13 @@ Tests the 'q' search parameter for text-based model search.
 To run these tests:
 1. Start the catalog service with test data loaded
 2. Set CATALOG_URL environment variable (default: http://localhost:8081)
-3. Run: pytest --e2e tests/test_search.py
+3. Run: pytest --e2e tests/models/test_q_search.py
 """
 
 import pytest
 
 from model_catalog import CatalogAPIClient
-from tests.search_utils import (
+from tests.models.search_utils import (
     validate_model_contains_search_term,
     validate_search_results_against_test_data,
 )
