@@ -152,12 +152,12 @@ func (m *ModelRegistryRepository) GetAllModelTransferJobs(ctx context.Context, c
 		for i := range transferJobs {
 			key := transferJobs[i].Namespace + "/" + transferJobs[i].Name
 			if errMsg, ok := podErrorsByJob[key]; ok {
+				if transferJobs[i].ErrorMessage == "" {
+					transferJobs[i].ErrorMessage = errMsg
+				}
 				if transferJobs[i].Status == models.ModelTransferJobStatusRunning ||
 					transferJobs[i].Status == models.ModelTransferJobStatusPending {
 					transferJobs[i].Status = models.ModelTransferJobStatusFailed
-					if transferJobs[i].ErrorMessage == "" {
-						transferJobs[i].ErrorMessage = errMsg
-					}
 				}
 			}
 			if result, ok := podTerminationByJob[key]; ok {
