@@ -78,7 +78,7 @@ var rootCmd = &cobra.Command{
 This tool generates GORM model structs from database tables for the model-registry project.
 It supports multiple database types including MySQL, PostgreSQL, SQLite, and SQL Server.
 
-The generated models are placed in the ../internal/db/schema directory.`,
+The generated models are placed in the ../internal/platform/db/schema directory.`,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		return runGenerate()
 	},
@@ -117,7 +117,7 @@ func runGenerate() error {
 
 	// Initialize the generator with configuration for models only
 	config := gen.Config{
-		OutPath:           "../internal/db/schema",
+		OutPath:           "../internal/platform/db/schema",
 		ModelPkgPath:      "schema",
 		Mode:              0,
 		FieldNullable:     true,

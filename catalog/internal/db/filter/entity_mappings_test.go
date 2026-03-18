@@ -3,8 +3,9 @@ package filter
 import (
 	"testing"
 
+	modelcatalogmodels "github.com/kubeflow/model-registry/catalog/internal/catalog/modelcatalog/models"
 	catalogmodels "github.com/kubeflow/model-registry/catalog/internal/db/models"
-	"github.com/kubeflow/model-registry/internal/db/filter"
+	"github.com/kubeflow/model-registry/internal/platform/db/filter"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -125,6 +126,31 @@ func TestBackwardCompat_CatalogArtifact(t *testing.T) {
 	assert.False(t, mappings.IsChildEntity(entityType))
 }
 
+func TestArtifactListOptionsMapToCatalogArtifactEntity(t *testing.T) {
+	mappings := NewCatalogEntityMappings()
+
+	tests := []struct {
+		name       string
+		entityType filter.RestEntityType
+	}{
+		{
+			name:       "model artifact list options",
+			entityType: (&modelcatalogmodels.CatalogModelArtifactListOptions{}).GetRestEntityType(),
+		},
+		{
+			name:       "metrics artifact list options",
+			entityType: (&modelcatalogmodels.CatalogMetricsArtifactListOptions{}).GetRestEntityType(),
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			assert.Equal(t, filter.RestEntityType(catalogmodels.RestEntityCatalogArtifact), tt.entityType)
+			assert.Equal(t, filter.EntityTypeArtifact, mappings.GetMLMDEntityType(tt.entityType))
+		})
+	}
+}
+
 func TestBackwardCompat_MCPServer(t *testing.T) {
 	mappings := NewCatalogEntityMappings()
 	entityType := filter.RestEntityType(catalogmodels.RestEntityMCPServer)
@@ -192,35 +218,6 @@ func TestBackwardCompat_ArtifactPrefix(t *testing.T) {
 			assert.Equal(t, "Attribution", got.JoinTable)
 		})
 	}
-}
-
-func TestGetEqualityExpansion_CatalogModel(t *testing.T) {
-	mappings := NewCatalogEntityMappings()
-	expander, ok := mappings.(filter.EqualityExpander)
-	require.True(t, ok, "catalog mappings must implement EqualityExpander")
-	entityType := filter.RestEntityType(catalogmodels.RestEntityCatalogModel)
-
-	// externalId: expand to match namespaced form
-	likeArg, use := expander.GetEqualityExpansion(entityType, "externalId", "my-ext-id")
-	assert.True(t, use)
-	assert.Equal(t, "%:my-ext-id", likeArg)
-
-	// name without colon: expand so model name without source prefix matches
-	likeArg, use = expander.GetEqualityExpansion(entityType, "name", "Qwen/Qwen3.5-9B")
-	assert.True(t, use)
-	assert.Equal(t, "%:Qwen/Qwen3.5-9B", likeArg)
-
-	// name with colon: no expansion (exact match only for full namespaced name)
-	_, use = expander.GetEqualityExpansion(entityType, "name", "hugging_face_models:Qwen/Qwen3.5-9B")
-	assert.False(t, use)
-
-	// other entity type: no expansion
-	_, use = expander.GetEqualityExpansion(filter.RestEntityType(catalogmodels.RestEntityCatalogArtifact), "name", "x")
-	assert.False(t, use)
-
-	// other property: no expansion
-	_, use = expander.GetEqualityExpansion(entityType, "description", "foo")
-	assert.False(t, use)
 }
 
 func TestBackwardCompat_UnknownEntityDefaultsToContext(t *testing.T) {

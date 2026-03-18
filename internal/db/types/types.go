@@ -1,8 +1,8 @@
 package types
 
+import platformtypes "github.com/kubeflow/model-registry/internal/platform/db/types"
+
 const (
-	// DatabaseTypeMySQL represents MySQL database type
-	DatabaseTypeMySQL = "mysql"
-	// DatabaseTypePostgres represents PostgreSQL database type
-	DatabaseTypePostgres = "postgres"
+	DatabaseTypeMySQL    = platformtypes.DatabaseTypeMySQL
+	DatabaseTypePostgres = platformtypes.DatabaseTypePostgres
 )

@@ -6,10 +6,10 @@ import (
 	"time"
 
 	"github.com/kubeflow/model-registry/catalog/internal/db/models"
-	"github.com/kubeflow/model-registry/internal/db/dbutil"
-	dbmodels "github.com/kubeflow/model-registry/internal/db/models"
-	"github.com/kubeflow/model-registry/internal/db/schema"
-	"github.com/kubeflow/model-registry/internal/db/service"
+	"github.com/kubeflow/model-registry/internal/platform/db/dbutil"
+	dbmodels "github.com/kubeflow/model-registry/internal/platform/db/entity"
+	"github.com/kubeflow/model-registry/internal/platform/db/schema"
+	service "github.com/kubeflow/model-registry/internal/platform/db/repository"
 	"gorm.io/gorm"
 )
 

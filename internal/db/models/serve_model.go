@@ -1,7 +1,7 @@
 package models
 
 import (
-	"github.com/kubeflow/model-registry/internal/db/constants"
+	"github.com/kubeflow/model-registry/internal/platform/db/constants"
 	"github.com/kubeflow/model-registry/internal/db/filter"
 )
 

@@ -1,8 +1,5 @@
 package models
 
-type ListWrapper[T any] struct {
-	Items         []T
-	NextPageToken string
-	PageSize      int32
-	Size          int32
-}
+import "github.com/kubeflow/model-registry/internal/platform/db/entity"
+
+type ListWrapper[T any] = entity.ListWrapper[T]

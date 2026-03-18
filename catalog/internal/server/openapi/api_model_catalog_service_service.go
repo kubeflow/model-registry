@@ -17,7 +17,7 @@ import (
 	"github.com/kubeflow/model-registry/catalog/internal/catalog/modelcatalog"
 	"github.com/kubeflow/model-registry/catalog/internal/db/models"
 	model "github.com/kubeflow/model-registry/catalog/pkg/openapi"
-	mrmodels "github.com/kubeflow/model-registry/internal/db/models"
+	mrmodels "github.com/kubeflow/model-registry/internal/platform/db/entity"
 	"github.com/kubeflow/model-registry/pkg/api"
 )
 

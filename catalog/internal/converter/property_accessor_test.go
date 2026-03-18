@@ -4,8 +4,8 @@ import (
 	"testing"
 
 	"github.com/kubeflow/model-registry/catalog/internal/converter"
-	"github.com/kubeflow/model-registry/internal/apiutils"
-	dbmodels "github.com/kubeflow/model-registry/internal/db/models"
+	"github.com/kubeflow/model-registry/internal/platform/apiutils"
+	dbmodels "github.com/kubeflow/model-registry/internal/platform/db/entity"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )

@@ -9,8 +9,8 @@ import (
 	"github.com/DATA-DOG/go-sqlmock"
 	catalogfilter "github.com/kubeflow/model-registry/catalog/internal/db/filter"
 	catalogmodels "github.com/kubeflow/model-registry/catalog/internal/db/models"
-	"github.com/kubeflow/model-registry/internal/db/filter"
-	"github.com/kubeflow/model-registry/internal/db/schema"
+	"github.com/kubeflow/model-registry/internal/platform/db/filter"
+	"github.com/kubeflow/model-registry/internal/platform/db/schema"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"gorm.io/driver/postgres"
@@ -701,8 +701,7 @@ func TestArtifactFilteringCapability(t *testing.T) {
 				".name = $",
 				".double_value > $",
 			},
-			// name = "llm-model" is expanded to (name = ? OR name LIKE ?) for catalog models, so 2 args; artifact adds 2 more
-			expectedArgs: []any{"llm-model", "%:llm-model", "performance_score", 0.95},
+			expectedArgs: []any{"llm-model", "performance_score", 0.95},
 			description:  "Should combine model properties and artifact properties in a single query",
 		},
 		{

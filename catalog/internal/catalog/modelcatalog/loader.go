@@ -13,7 +13,7 @@ import (
 	"github.com/kubeflow/model-registry/catalog/internal/catalog/modelcatalog/models"
 	sharedmodels "github.com/kubeflow/model-registry/catalog/internal/db/models"
 	"github.com/kubeflow/model-registry/catalog/internal/db/service"
-	mrmodels "github.com/kubeflow/model-registry/internal/db/models"
+	mrmodels "github.com/kubeflow/model-registry/internal/platform/db/entity"
 )
 
 // PartiallyAvailableError indicates that a source loaded some models successfully
