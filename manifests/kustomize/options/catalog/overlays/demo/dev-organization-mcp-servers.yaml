@@ -38,7 +38,7 @@ mcp_servers:
     documentationUrl: https://docs.dynatrace.com/mcp
     repositoryUrl: https://github.com/dynatrace-oss/dynatrace-mcp-server
     sourceCode: dynatrace-oss/dynatrace-mcp-server
-    publishedDate: "2025-01-15"
+    publishedDate: "2025-01-15T00:00:00Z"
     tools:
       - name: execute_dql
         description: Execute Dynatrace Query Language (DQL) queries
@@ -125,7 +125,7 @@ mcp_servers:
     documentationUrl: https://docs.github.com/mcp
     repositoryUrl: https://github.com/github/github-mcp
     sourceCode: github/github-mcp
-    publishedDate: "2025-01-14"
+    publishedDate: "2025-01-14T00:00:00Z"
     tools:
       - name: search_code
         description: Search for code across repositories
@@ -233,7 +233,7 @@ mcp_servers:
     logo: data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIzOCIgaGVpZ2h0PSIzOCIgdmlld0JveD0iMCAwIDM4IDM4Ij4KICA8dGl0bGU+TUNQIFNlcnZlciBpY29uPC90aXRsZT4KICA8ZGVmcz4KICAgIDxzdHlsZT4KICAgICAgLmJne2ZpbGw6I2ZmZjt9CiAgICAgIC5ib3JkZXJ7ZmlsbDojZTBlMGUwO30KICAgICAgLmFjY2VudHtmaWxsOiMwMDY2Y2M7fQogICAgICAubm9kZXtmaWxsOiMwMDY2Y2M7fQogICAgPC9zdHlsZT4KICA8L2RlZnM+CiAgPHJlY3QgY2xhc3M9ImJvcmRlciIgeD0iMCIgeT0iMCIgd2lkdGg9IjM4IiBoZWlnaHQ9IjM4IiByeD0iNCIgcnk9IjQiLz4KICA8cmVjdCBjbGFzcz0iYmciIHg9IjEiIHk9IjEiIHdpZHRoPSIzNiIgaGVpZ2h0PSIzNiIgcng9IjMiIHJ5PSIzIi8+CiAgPGNpcmNsZSBjbGFzcz0ibm9kZSIgY3g9IjE5IiBjeT0iMTkiIHI9IjUiLz4KICA8Y2lyY2xlIGNsYXNzPSJub2RlIiBjeD0iMTkiIGN5PSI3IiByPSIyLjUiLz4KICA8Y2lyY2xlIGNsYXNzPSJub2RlIiBjeD0iMjkiIGN5PSIxMyIgcj0iMi41Ii8+CiAgPGNpcmNsZSBjbGFzcz0ibm9kZSIgY3g9IjI5IiBjeT0iMjUiIHI9IjIuNSIvPgogIDxjaXJjbGUgY2xhc3M9Im5vZGUiIGN4PSIxOSIgY3k9IjMxIiByPSIyLjUiLz4KICA8Y2lyY2xlIGNsYXNzPSJub2RlIiBjeD0iOSIgY3k9IjI1IiByPSIyLjUiLz4KICA8Y2lyY2xlIGNsYXNzPSJub2RlIiBjeD0iOSIgY3k9IjEzIiByPSIyLjUiLz4KICA8bGluZSB4MT0iMTkiIHkxPSIxNCIgeDI9IjE5IiB5Mj0iOSIgc3Ryb2tlPSIjMDA2NmNjIiBzdHJva2Utd2lkdGg9IjEuNSIvPgogIDxsaW5lIHgxPSIyMyIgeTE9IjE2IiB4Mj0iMjciIHkyPSIxNCIgc3Ryb2tlPSIjMDA2NmNjIiBzdHJva2Utd2lkdGg9IjEuNSIvPgogIDxsaW5lIHgxPSIyMyIgeTE9IjIyIiB4Mj0iMjciIHkyPSIyNCIgc3Ryb2tlPSIjMDA2NmNjIiBzdHJva2Utd2lkdGg9IjEuNSIvPgogIDxsaW5lIHgxPSIxOSIgeTE9IjI0IiB4Mj0iMTkiIHkyPSIyOSIgc3Ryb2tlPSIjMDA2NmNjIiBzdHJva2Utd2lkdGg9IjEuNSIvPgogIDxsaW5lIHgxPSIxNSIgeTE9IjIyIiB4Mj0iMTEiIHkyPSIyNCIgc3Ryb2tlPSIjMDA2NmNjIiBzdHJva2Utd2lkdGg9IjEuNSIvPgogIDxsaW5lIHgxPSIxNSIgeTE9IjE2IiB4Mj0iMTEiIHkyPSIxNCIgc3Ryb2tlPSIjMDA2NmNjIiBzdHJva2Utd2lkdGg9IjEuNSIvPgo8L3N2Zz4K
     repositoryUrl: https://github.com/slack/slack-mcp
     sourceCode: slack/slack-mcp
-    publishedDate: "2025-01-08"
+    publishedDate: "2025-01-08T00:00:00Z"
     tools:
       - name: send_message
         description: Send a message to a channel
@@ -318,7 +318,7 @@ mcp_servers:
     documentationUrl: https://developer.atlassian.com/mcp
     repositoryUrl: https://github.com/atlassian/jira-mcp
     sourceCode: atlassian/jira-mcp
-    publishedDate: "2025-01-11"
+    publishedDate: "2025-01-11T00:00:00Z"
     tools:
       - name: search_issues
         description: Search issues using JQL
@@ -418,7 +418,7 @@ mcp_servers:
     documentationUrl: https://docs.aws.amazon.com/mcp
     repositoryUrl: https://github.com/aws/aws-mcp
     sourceCode: aws/aws-mcp
-    publishedDate: "2025-01-09"
+    publishedDate: "2025-01-09T00:00:00Z"
     tools:
       - name: list_ec2_instances
         description: List EC2 instances
