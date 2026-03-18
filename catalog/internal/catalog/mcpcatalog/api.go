@@ -8,6 +8,7 @@ import (
 
 type ListMCPServersParams struct {
 	Name, Query, FilterQuery, NamedQuery string
+	SourceIDs                            []string
 	IncludeTools                         bool
 	ToolLimit                            int32
 	PageSize                             int32

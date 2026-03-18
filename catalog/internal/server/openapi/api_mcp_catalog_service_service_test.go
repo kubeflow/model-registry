@@ -9,7 +9,10 @@ import (
 	"time"
 
 	"github.com/kubeflow/model-registry/catalog/internal/catalog"
+	"github.com/kubeflow/model-registry/catalog/internal/catalog/basecatalog"
+	"github.com/kubeflow/model-registry/catalog/internal/catalog/mcpcatalog"
 	model "github.com/kubeflow/model-registry/catalog/pkg/openapi"
+	"github.com/kubeflow/model-registry/internal/apiutils"
 	"github.com/kubeflow/model-registry/pkg/api"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -30,6 +33,8 @@ type mockMCPProvider struct {
 	namedQueryErr map[string]error
 	// filterOptions is returned by GetFilterOptions.
 	filterOptions *model.FilterOptionsList
+	// capturedParams captures the last params passed to ListMCPServers.
+	capturedParams *catalog.ListMCPServersParams
 }
 
 func newMockMCPProvider() *mockMCPProvider {
@@ -56,6 +61,7 @@ func (m *mockMCPProvider) addTool(serverID string, toolName string, tool *model.
 }
 
 func (m *mockMCPProvider) ListMCPServers(ctx context.Context, params catalog.ListMCPServersParams) (model.MCPServerList, error) {
+	m.capturedParams = &params
 	if m.shouldErrorOnListServers {
 		return model.MCPServerList{}, fmt.Errorf("mock error in ListMCPServers")
 	}
@@ -396,7 +402,7 @@ func TestFindMCPServers(t *testing.T) {
 			mockProvider := newMockMCPProvider()
 			tc.mockSetup(mockProvider)
 
-			service := NewMCPCatalogServiceAPIService(mockProvider)
+			service := NewMCPCatalogServiceAPIService(mockProvider, nil)
 			ctx := context.Background()
 
 			result, err := service.FindMCPServers(
@@ -509,7 +515,7 @@ func TestGetMCPServer(t *testing.T) {
 			mockProvider := newMockMCPProvider()
 			tc.mockSetup(mockProvider)
 
-			service := NewMCPCatalogServiceAPIService(mockProvider)
+			service := NewMCPCatalogServiceAPIService(mockProvider, nil)
 			ctx := context.Background()
 
 			result, err := service.GetMCPServer(ctx, tc.serverID, tc.includeTools)
@@ -632,7 +638,7 @@ func TestFindMCPServerTools(t *testing.T) {
 			mockProvider := newMockMCPProvider()
 			tc.mockSetup(mockProvider)
 
-			service := NewMCPCatalogServiceAPIService(mockProvider)
+			service := NewMCPCatalogServiceAPIService(mockProvider, nil)
 			ctx := context.Background()
 
 			result, err := service.FindMCPServerTools(
@@ -726,7 +732,7 @@ func TestGetMCPServerTool(t *testing.T) {
 			mockProvider := newMockMCPProvider()
 			tc.mockSetup(mockProvider)
 
-			service := NewMCPCatalogServiceAPIService(mockProvider)
+			service := NewMCPCatalogServiceAPIService(mockProvider, nil)
 			ctx := context.Background()
 
 			result, err := service.GetMCPServerTool(ctx, tc.serverID, tc.toolName)
@@ -754,7 +760,7 @@ func TestFindMCPServersFilterOptions(t *testing.T) {
 
 	t.Run("provider returns empty FilterOptionsList", func(t *testing.T) {
 		provider := newMockMCPProvider()
-		service := NewMCPCatalogServiceAPIService(provider)
+		service := NewMCPCatalogServiceAPIService(provider, nil)
 		result, err := service.FindMCPServersFilterOptions(ctx)
 
 		assert.NoError(t, err)
@@ -780,7 +786,7 @@ func TestFindMCPServersFilterOptions(t *testing.T) {
 			Filters:      &filters,
 		}
 
-		service := NewMCPCatalogServiceAPIService(provider)
+		service := NewMCPCatalogServiceAPIService(provider, nil)
 		result, err := service.FindMCPServersFilterOptions(ctx)
 
 		assert.NoError(t, err)
@@ -799,10 +805,89 @@ func TestFindMCPServersFilterOptions(t *testing.T) {
 		provider := newMockMCPProvider()
 		provider.shouldErrorOnGetFilterOptions = true
 
-		service := NewMCPCatalogServiceAPIService(provider)
+		service := NewMCPCatalogServiceAPIService(provider, nil)
 		result, err := service.FindMCPServersFilterOptions(ctx)
 
 		assert.Error(t, err)
 		assert.Equal(t, http.StatusInternalServerError, result.Code)
+	})
+}
+
+func makeMCPSources(sources map[string]basecatalog.MCPSource) *catalog.MCPSourceCollection {
+	coll := mcpcatalog.NewMCPSourceCollection()
+	_ = coll.Merge("test", sources)
+	return coll
+}
+
+func TestFindMCPServers_SourceLabel(t *testing.T) {
+	openAIServer := &model.MCPServer{
+		Name:     "openai-assistant",
+		Provider: stringPointer("OpenAI"),
+	}
+
+	t.Run("matching label passes source ID to provider", func(t *testing.T) {
+		mcpSources := makeMCPSources(map[string]basecatalog.MCPSource{
+			"src-openai": {ID: "src-openai", Labels: []string{"openai"}, Enabled: apiutils.Of(true)},
+		})
+
+		mockProvider := newMockMCPProvider()
+		mockProvider.addServer("src-openai", openAIServer)
+
+		service := NewMCPCatalogServiceAPIService(mockProvider, mcpSources)
+		result, err := service.FindMCPServers(context.Background(), "", "", []string{"openai"}, "", "", false, 0, "10", model.ORDERBYFIELD_NAME, model.SORTORDER_ASC, "")
+
+		require.NoError(t, err)
+		assert.Equal(t, http.StatusOK, result.Code)
+		require.NotNil(t, mockProvider.capturedParams)
+		assert.Equal(t, []string{"src-openai"}, mockProvider.capturedParams.SourceIDs)
+	})
+
+	t.Run("non-matching label returns empty list without calling provider", func(t *testing.T) {
+		mcpSources := makeMCPSources(map[string]basecatalog.MCPSource{
+			"src-openai": {ID: "src-openai", Labels: []string{"openai"}, Enabled: apiutils.Of(true)},
+		})
+
+		mockProvider := newMockMCPProvider()
+		mockProvider.addServer("src-openai", openAIServer)
+
+		service := NewMCPCatalogServiceAPIService(mockProvider, mcpSources)
+		result, err := service.FindMCPServers(context.Background(), "", "", []string{"no-match"}, "", "", false, 0, "10", model.ORDERBYFIELD_NAME, model.SORTORDER_ASC, "")
+
+		require.NoError(t, err)
+		assert.Equal(t, http.StatusOK, result.Code)
+		serverList, ok := result.Body.(model.MCPServerList)
+		require.True(t, ok)
+		assert.Empty(t, serverList.Items)
+		assert.Nil(t, mockProvider.capturedParams)
+	})
+
+	t.Run("empty sourceLabel string is treated as no filter", func(t *testing.T) {
+		mcpSources := makeMCPSources(map[string]basecatalog.MCPSource{
+			"src-openai": {ID: "src-openai", Labels: []string{"openai"}, Enabled: apiutils.Of(true)},
+		})
+
+		mockProvider := newMockMCPProvider()
+		mockProvider.addServer("1", openAIServer)
+
+		service := NewMCPCatalogServiceAPIService(mockProvider, mcpSources)
+		result, err := service.FindMCPServers(context.Background(), "", "", []string{""}, "", "", false, 0, "10", model.ORDERBYFIELD_NAME, model.SORTORDER_ASC, "")
+
+		require.NoError(t, err)
+		assert.Equal(t, http.StatusOK, result.Code)
+		serverList, ok := result.Body.(model.MCPServerList)
+		require.True(t, ok)
+		// No filter applied, provider returns all servers
+		assert.Equal(t, int32(1), serverList.Size)
+	})
+
+	t.Run("nil mcpSources ignores sourceLabel", func(t *testing.T) {
+		mockProvider := newMockMCPProvider()
+		mockProvider.addServer("1", openAIServer)
+
+		service := NewMCPCatalogServiceAPIService(mockProvider, nil)
+		result, err := service.FindMCPServers(context.Background(), "", "", []string{"openai"}, "", "", false, 0, "10", model.ORDERBYFIELD_NAME, model.SORTORDER_ASC, "")
+
+		require.NoError(t, err)
+		assert.Equal(t, http.StatusOK, result.Code)
 	})
 }
