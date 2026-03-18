@@ -2,7 +2,7 @@ import type { McpFilterCategoryKey } from '~/app/pages/mcpCatalog/types/mcpCatal
 
 export const MCP_CATALOG_TITLE = 'MCP Catalog';
 export const MCP_CATALOG_DESCRIPTION =
-  'Discover and manage MCP servers and tools available for your organization.';
+  'Browse and deploy MCP servers provided by Red Hat partners and other providers.';
 
 export const MCP_CATALOG_GALLERY = {
   CARDS_PER_ROW: 4,
