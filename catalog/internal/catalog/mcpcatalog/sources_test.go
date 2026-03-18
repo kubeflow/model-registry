@@ -862,6 +862,84 @@ func TestMCPSourceCollection_GetNamedQuery_SliceDeepCopy(t *testing.T) {
 	assert.Equal(t, "active", filters2["status"].Value.([]any)[0])
 }
 
+func TestMCPSourceCollection_ByLabel(t *testing.T) {
+	makeCollection := func(sources map[string]basecatalog.MCPSource) *MCPSourceCollection {
+		coll := NewMCPSourceCollection()
+		_ = coll.Merge("test", sources)
+		return coll
+	}
+
+	t.Run("returns source with matching label", func(t *testing.T) {
+		coll := makeCollection(map[string]basecatalog.MCPSource{
+			"src1": {ID: "src1", Labels: []string{"openai"}, Enabled: apiutils.Of(true)},
+			"src2": {ID: "src2", Labels: []string{"github"}, Enabled: apiutils.Of(true)},
+		})
+
+		result := coll.ByLabel([]string{"openai"})
+		require.Len(t, result, 1)
+		assert.Equal(t, "src1", result[0].ID)
+	})
+
+	t.Run("returns multiple sources matching any label (OR semantics)", func(t *testing.T) {
+		coll := makeCollection(map[string]basecatalog.MCPSource{
+			"src1": {ID: "src1", Labels: []string{"openai"}, Enabled: apiutils.Of(true)},
+			"src2": {ID: "src2", Labels: []string{"github"}, Enabled: apiutils.Of(true)},
+			"src3": {ID: "src3", Labels: []string{"other"}, Enabled: apiutils.Of(true)},
+		})
+
+		result := coll.ByLabel([]string{"openai", "github"})
+		assert.Len(t, result, 2)
+	})
+
+	t.Run("matching is case insensitive", func(t *testing.T) {
+		coll := makeCollection(map[string]basecatalog.MCPSource{
+			"src1": {ID: "src1", Labels: []string{"OpenAI"}, Enabled: apiutils.Of(true)},
+		})
+
+		result := coll.ByLabel([]string{"openai"})
+		require.Len(t, result, 1)
+		assert.Equal(t, "src1", result[0].ID)
+	})
+
+	t.Run("skips disabled sources", func(t *testing.T) {
+		coll := makeCollection(map[string]basecatalog.MCPSource{
+			"src1": {ID: "src1", Labels: []string{"openai"}, Enabled: apiutils.Of(false)},
+		})
+
+		result := coll.ByLabel([]string{"openai"})
+		assert.Empty(t, result)
+	})
+
+	t.Run("null label matches sources with no labels", func(t *testing.T) {
+		coll := makeCollection(map[string]basecatalog.MCPSource{
+			"src1": {ID: "src1", Labels: []string{}, Enabled: apiutils.Of(true)},
+			"src2": {ID: "src2", Labels: []string{"openai"}, Enabled: apiutils.Of(true)},
+		})
+
+		result := coll.ByLabel([]string{"null"})
+		require.Len(t, result, 1)
+		assert.Equal(t, "src1", result[0].ID)
+	})
+
+	t.Run("non-matching label returns empty slice", func(t *testing.T) {
+		coll := makeCollection(map[string]basecatalog.MCPSource{
+			"src1": {ID: "src1", Labels: []string{"openai"}, Enabled: apiutils.Of(true)},
+		})
+
+		result := coll.ByLabel([]string{"no-match"})
+		assert.Empty(t, result)
+	})
+
+	t.Run("deduplicates by source ID", func(t *testing.T) {
+		coll := makeCollection(map[string]basecatalog.MCPSource{
+			"src1": {ID: "src1", Labels: []string{"openai", "ai"}, Enabled: apiutils.Of(true)},
+		})
+
+		result := coll.ByLabel([]string{"openai", "ai"})
+		assert.Len(t, result, 1)
+	})
+}
+
 func TestMCPSourceCollection_Merge_WithoutNamedQueries(t *testing.T) {
 	// Verify the regular Merge path still works after refactoring.
 	coll := NewMCPSourceCollection()

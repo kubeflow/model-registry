@@ -2,6 +2,8 @@ package mcpcatalog
 
 import (
 	"maps"
+	"slices"
+	"strings"
 	"sync"
 
 	"github.com/kubeflow/model-registry/catalog/internal/catalog/basecatalog"
@@ -215,4 +217,47 @@ func (msc *MCPSourceCollection) AllSources() map[string]basecatalog.MCPSource {
 	defer msc.mu.RUnlock()
 
 	return msc.merged()
+}
+
+// ByLabel returns enabled sources that have any of the labels provided. The matching
+// is case insensitive.
+//
+// If a label is "null", every source without a label is returned.
+func (msc *MCPSourceCollection) ByLabel(labels []string) []basecatalog.MCPSource {
+	msc.mu.RLock()
+	defer msc.mu.RUnlock()
+
+	labelMap := make(map[string]struct{}, len(labels))
+	for _, label := range labels {
+		labelMap[strings.ToLower(label)] = struct{}{}
+	}
+
+	matches := map[string]basecatalog.MCPSource{}
+	sources := msc.merged()
+
+	if _, hasNull := labelMap["null"]; hasNull {
+		for _, source := range sources {
+			if source.Enabled == nil || !*source.Enabled {
+				continue
+			}
+			if len(source.Labels) == 0 {
+				matches[source.ID] = source
+			}
+		}
+	}
+
+OUTER:
+	for _, source := range sources {
+		if source.Enabled == nil || !*source.Enabled {
+			continue
+		}
+		for _, label := range source.Labels {
+			if _, match := labelMap[strings.ToLower(label)]; match {
+				matches[source.ID] = source
+				continue OUTER
+			}
+		}
+	}
+
+	return slices.Collect(maps.Values(matches))
 }

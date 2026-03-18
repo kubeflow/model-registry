@@ -192,7 +192,7 @@ func runCatalogServer(cmd *cobra.Command, args []string) error {
 	mcpProvider := catalog.NewDBMCPCatalog(services, mcpSources, func(name string) (map[string]catalog.FieldFilter, bool) {
 		return mcpSources.GetNamedQuery(name)
 	})
-	mcpSvc := openapi.NewMCPCatalogServiceAPIService(mcpProvider)
+	mcpSvc := openapi.NewMCPCatalogServiceAPIService(mcpProvider, mcpSources)
 	mcpCtrl := openapi.NewMCPCatalogServiceAPIController(mcpSvc)
 
 	server := &http.Server{

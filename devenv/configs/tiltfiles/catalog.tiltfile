@@ -52,7 +52,6 @@ k8s_resource(
 k8s_resource(
     new_name="catalog-config",
     objects=[
-        "model-catalog-demo-perf-data:configmap",
         "model-catalog-sources:configmap",
         "model-catalog-hf-api-key:secret",
         "model-catalog-postgres:secret",

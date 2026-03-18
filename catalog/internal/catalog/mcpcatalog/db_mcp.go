@@ -99,6 +99,10 @@ func (d *dbMCPCatalogImpl) ListMCPServers(ctx context.Context, params ListMCPSer
 		listOptions.Name = &params.Name
 	}
 
+	if len(params.SourceIDs) > 0 {
+		listOptions.SourceIDs = &params.SourceIDs
+	}
+
 	// Set pagination
 	orderBy := strings.ToUpper(string(params.OrderBy))
 	sortOrder := strings.ToUpper(string(params.SortOrder))

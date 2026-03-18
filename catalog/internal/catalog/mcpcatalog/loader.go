@@ -2,6 +2,7 @@ package mcpcatalog
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"path/filepath"
@@ -429,11 +430,19 @@ func buildMCPServerTool(server models.MCPServer, toolRecord MCPToolRecord) model
 	}
 
 	var properties []mrmodels.Properties
+	if toolRecord.AccessType != nil {
+		properties = append(properties, mrmodels.NewStringProperty("accessType", *toolRecord.AccessType, false))
+	}
 	if toolRecord.Description != nil {
 		properties = append(properties, mrmodels.NewStringProperty("description", *toolRecord.Description, false))
 	}
 	if toolRecord.Schema != nil {
 		properties = append(properties, mrmodels.NewStringProperty("schema", *toolRecord.Schema, false))
+	}
+	if len(toolRecord.Parameters) > 0 {
+		if jsonBytes, err := json.Marshal(toolRecord.Parameters); err == nil {
+			properties = append(properties, mrmodels.NewStringProperty("parameters", string(jsonBytes), false))
+		}
 	}
 	impl.Properties = &properties
 
