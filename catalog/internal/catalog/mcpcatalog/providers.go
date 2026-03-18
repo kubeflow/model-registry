@@ -23,11 +23,21 @@ const (
 	yamlMCPCatalogPathKey = "yamlCatalogPath"
 )
 
+// yamlMCPParameter represents a single input parameter for an MCP tool.
+type yamlMCPParameter struct {
+	Name        string  `yaml:"name" json:"name"`
+	Type        string  `yaml:"type" json:"type"`
+	Description *string `yaml:"description,omitempty" json:"description,omitempty"`
+	Required    bool    `yaml:"required" json:"required"`
+}
+
 // MCPToolRecord carries the data for a single MCP tool from a provider.
 type MCPToolRecord struct {
 	Name        string
 	Description *string
 	Schema      *string
+	AccessType  *string
+	Parameters  []yamlMCPParameter
 }
 
 // MCPServerProviderRecord represents a single MCP server from a provider along with its tools
@@ -111,9 +121,11 @@ type yamlMCPServer struct {
 
 // yamlMCPTool represents an MCP tool definition
 type yamlMCPTool struct {
-	Name        string  `yaml:"name"`
-	Description *string `yaml:"description,omitempty"`
-	Schema      *string `yaml:"schema,omitempty"`
+	Name        string             `yaml:"name"`
+	Description *string            `yaml:"description,omitempty"`
+	Schema      *string            `yaml:"schema,omitempty"`
+	AccessType  *string            `yaml:"accessType,omitempty"`
+	Parameters  []yamlMCPParameter `yaml:"parameters,omitempty"`
 }
 
 // yamlMCPArtifact represents an MCP artifact (e.g., container image)
@@ -330,6 +342,8 @@ func (ys *yamlMCPServer) ToMCPServerProviderRecord() MCPServerProviderRecord {
 			Name:        tool.Name,
 			Description: tool.Description,
 			Schema:      tool.Schema,
+			AccessType:  tool.AccessType,
+			Parameters:  tool.Parameters,
 		})
 	}
 

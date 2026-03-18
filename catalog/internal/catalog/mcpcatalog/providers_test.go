@@ -609,6 +609,48 @@ func TestYamlMCPServerLicenseConsistencyWithModels(t *testing.T) {
 	}
 }
 
+func TestYamlMCPToolAccessTypePreserved(t *testing.T) {
+	accessType := "read_write"
+	paramDesc := "Project key"
+	yamlServer := &yamlMCPServer{
+		Name: "test-server",
+		Tools: []*yamlMCPTool{
+			{
+				Name:       "create_issue",
+				AccessType: &accessType,
+				Parameters: []yamlMCPParameter{
+					{Name: "project", Type: "string", Description: &paramDesc, Required: true},
+					{Name: "summary", Type: "string", Required: true},
+				},
+			},
+			{
+				Name: "search_issues",
+				// no AccessType set - should be nil in the record
+			},
+		},
+	}
+
+	record := yamlServer.ToMCPServerProviderRecord()
+
+	require.Len(t, record.Tools, 2)
+
+	createTool := record.Tools[0]
+	require.NotNil(t, createTool.AccessType, "accessType should be preserved")
+	assert.Equal(t, "read_write", *createTool.AccessType)
+	require.Len(t, createTool.Parameters, 2)
+	assert.Equal(t, "project", createTool.Parameters[0].Name)
+	assert.Equal(t, "string", createTool.Parameters[0].Type)
+	assert.True(t, createTool.Parameters[0].Required)
+	require.NotNil(t, createTool.Parameters[0].Description)
+	assert.Equal(t, "Project key", *createTool.Parameters[0].Description)
+	assert.Equal(t, "summary", createTool.Parameters[1].Name)
+	assert.True(t, createTool.Parameters[1].Required)
+
+	searchTool := record.Tools[1]
+	assert.Nil(t, searchTool.AccessType, "nil accessType should stay nil")
+	assert.Empty(t, searchTool.Parameters)
+}
+
 // Helper function
 func strPtr(s string) *string {
 	return &s
