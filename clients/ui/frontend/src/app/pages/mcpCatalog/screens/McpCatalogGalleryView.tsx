@@ -14,7 +14,7 @@ import { SearchIcon } from '@patternfly/react-icons';
 import { McpCatalogContext } from '~/app/context/mcpCatalog/McpCatalogContext';
 import { useMcpServersBySourceLabelWithAPI } from '~/app/hooks/mcpServerCatalog/useMcpServersBySourceLabel';
 import { MCP_CATALOG_GRID_SPAN } from '~/app/pages/mcpCatalog/const';
-import { filterMcpServersByFilters } from '~/app/pages/mcpCatalog/utils/mcpCatalogUtils';
+import { mcpFiltersToFilterQuery } from '~/app/pages/mcpCatalog/utils/mcpCatalogUtils';
 import EmptyModelCatalogState from '~/app/pages/modelCatalog/EmptyModelCatalogState';
 import ScrollViewOnMount from '~/app/shared/components/ScrollViewOnMount';
 import McpCatalogCard from '~/app/pages/mcpCatalog/components/McpCatalogCard';
@@ -29,19 +29,19 @@ const McpCatalogGalleryView: React.FC<McpCatalogGalleryViewProps> = ({ handleFil
   const { mcpApiState, selectedSourceLabel, searchQuery, filters, catalogLabelsLoaded } =
     React.useContext(McpCatalogContext);
 
+  const filterQuery = React.useMemo(() => mcpFiltersToFilterQuery(filters), [filters]);
+
   const { mcpServers, mcpServersLoaded, mcpServersLoadError } = useMcpServersBySourceLabelWithAPI(
     mcpApiState,
     {
       sourceLabel: selectedSourceLabel,
       pageSize: PAGE_SIZE,
       searchQuery,
+      filterQuery: filterQuery || undefined,
     },
   );
 
-  const items = React.useMemo(
-    () => filterMcpServersByFilters(mcpServers.items, filters),
-    [mcpServers.items, filters],
-  );
+  const { items } = mcpServers;
 
   const loaded = mcpServersLoaded && catalogLabelsLoaded;
 

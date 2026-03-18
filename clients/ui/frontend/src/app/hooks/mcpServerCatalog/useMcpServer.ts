@@ -1,7 +1,7 @@
 import { FetchState, FetchStateCallbackPromise, NotReadyError, useFetchState } from 'mod-arch-core';
 import React from 'react';
 import { McpServer } from '~/app/mcpServerCatalogTypes';
-import { useModelCatalogAPI } from '~/app/hooks/modelCatalog/useModelCatalogAPI';
+import { McpCatalogContext } from '~/app/context/mcpCatalog/McpCatalogContext';
 import type { ModelCatalogAPIState } from '~/app/hooks/modelCatalog/useModelCatalogAPIState';
 
 type State = McpServer | null;
@@ -30,6 +30,6 @@ export const useMcpServerWithAPI = (
 };
 
 export const useMcpServer = (serverId: string): FetchState<State> => {
-  const { api, apiAvailable } = useModelCatalogAPI();
-  return useMcpServerWithAPI({ api, apiAvailable }, serverId);
+  const { mcpApiState } = React.useContext(McpCatalogContext);
+  return useMcpServerWithAPI(mcpApiState, serverId);
 };

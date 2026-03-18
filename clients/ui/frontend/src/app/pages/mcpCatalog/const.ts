@@ -1,5 +1,9 @@
 import type { McpFilterCategoryKey } from '~/app/pages/mcpCatalog/types/mcpCatalogFilterOptions';
 
+export const MCP_CATALOG_TITLE = 'MCP Catalog';
+export const MCP_CATALOG_DESCRIPTION =
+  'Discover and manage MCP servers and tools available for your organization.';
+
 export const MCP_CATALOG_GALLERY = {
   CARDS_PER_ROW: 4,
   PAGE_SIZE: 10,

@@ -13,10 +13,7 @@ import { Outlet } from 'react-router-dom';
 import { McpCatalogContext } from '~/app/context/mcpCatalog/McpCatalogContext';
 import EmptyModelCatalogState from '~/app/pages/modelCatalog/EmptyModelCatalogState';
 import { hasSourcesWithModels } from '~/app/pages/modelCatalog/utils/modelCatalogUtils';
-
-const MCP_CATALOG_TITLE = 'MCP Catalog';
-const MCP_CATALOG_DESCRIPTION =
-  'Browse and deploy MCP servers provided by Red Hat partners and other providers.';
+import { MCP_CATALOG_TITLE, MCP_CATALOG_DESCRIPTION } from '~/app/pages/mcpCatalog/const';
 
 const McpCatalogCoreLoader: React.FC = () => {
   const { catalogSources, catalogSourcesLoaded, catalogSourcesLoadError } =

@@ -1,7 +1,7 @@
 import { FetchState, FetchStateCallbackPromise, useFetchState } from 'mod-arch-core';
 import React from 'react';
 import { CatalogFilterOptionsList } from '~/app/modelCatalogTypes';
-import { useModelCatalogAPI } from '~/app/hooks/modelCatalog/useModelCatalogAPI';
+import { McpCatalogContext } from '~/app/context/mcpCatalog/McpCatalogContext';
 import type { ModelCatalogAPIState } from '~/app/hooks/modelCatalog/useModelCatalogAPIState';
 import { BACKEND_TO_FRONTEND_FILTER_KEY, MCP_FILTER_KEYS } from '~/app/pages/mcpCatalog/const';
 import type {
@@ -58,6 +58,6 @@ export const useMcpServerFilterOptionListWithAPI = (
 };
 
 export const useMcpServerFilterOptionList = (): FetchState<State> => {
-  const { api, apiAvailable } = useModelCatalogAPI();
-  return useMcpServerFilterOptionListWithAPI({ api, apiAvailable });
+  const { mcpApiState } = React.useContext(McpCatalogContext);
+  return useMcpServerFilterOptionListWithAPI(mcpApiState);
 };

@@ -16,7 +16,7 @@ type McpServerCatalogInterface interface {
 	GetAllMcpServers(client httpclient.HTTPClientInterface, pageValues url.Values) (*models.McpServerList, error)
 	GetMcpServersFilter(client httpclient.HTTPClientInterface) (*models.FilterOptionsList, error)
 	GetMcpServer(client httpclient.HTTPClientInterface, serverId string, pageValues url.Values) (*models.McpServer, error)
-	GetMcpServersTools(client httpclient.HTTPClientInterface, serverId string) (*models.McpToolList, error)
+	GetMcpServersTools(client httpclient.HTTPClientInterface, serverId string, serverName string) (*models.McpToolList, error)
 }
 
 type McpServerCatalog struct {
@@ -77,7 +77,7 @@ func (a *McpServerCatalog) GetMcpServer(client httpclient.HTTPClientInterface, s
 	return &mcpServer, nil
 }
 
-func (a *McpServerCatalog) GetMcpServersTools(client httpclient.HTTPClientInterface, serverId string) (*models.McpToolList, error) {
+func (a *McpServerCatalog) GetMcpServersTools(client httpclient.HTTPClientInterface, serverId string, serverName string) (*models.McpToolList, error) {
 	path, err := url.JoinPath(mcpServerPath, serverId, "tools")
 
 	if err != nil {
@@ -90,11 +90,30 @@ func (a *McpServerCatalog) GetMcpServersTools(client httpclient.HTTPClientInterf
 		return nil, fmt.Errorf("error fetching mcp server tools: %w", err)
 	}
 
-	var mcpServerTools models.McpToolList
+	var mcpServerTools struct {
+		NextPageToken string           `json:"nextPageToken"`
+		PageSize      int32            `json:"pageSize"`
+		Size          int32            `json:"size"`
+		Items         []models.McpTool `json:"items"`
+	}
 
 	if err := json.Unmarshal(responseData, &mcpServerTools); err != nil {
 		return nil, fmt.Errorf("error decoding response data: %w", err)
 	}
 
-	return &mcpServerTools, nil
+	wrappedItems := make([]models.McpToolWithServer, 0, len(mcpServerTools.Items))
+	for _, tool := range mcpServerTools.Items {
+		wrappedItems = append(wrappedItems, models.McpToolWithServer{
+			ServerID:   serverId,
+			ServerName: serverName,
+			Tool:       tool,
+		})
+	}
+
+	return &models.McpToolList{
+		NextPageToken: mcpServerTools.NextPageToken,
+		PageSize:      mcpServerTools.PageSize,
+		Size:          mcpServerTools.Size,
+		Items:         wrappedItems,
+	}, nil
 }

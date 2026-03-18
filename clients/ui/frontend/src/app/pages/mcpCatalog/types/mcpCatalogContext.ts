@@ -12,7 +12,6 @@ export type McpCatalogPaginationState = {
 };
 
 export type McpCatalogContextType = {
-  apiState: ModelCatalogAPIState;
   filters: McpCatalogFiltersState;
   setFilters: (
     filters: McpCatalogFiltersState | ((prev: McpCatalogFiltersState) => McpCatalogFiltersState),

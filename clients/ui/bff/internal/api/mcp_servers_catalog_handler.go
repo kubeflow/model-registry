@@ -27,7 +27,12 @@ func (app *App) GetAllMcpServersHandler(w http.ResponseWriter, r *http.Request, 
 	mcpServers, err := app.repositories.ModelCatalogClient.GetAllMcpServers(client, r.URL.Query())
 
 	if err != nil {
-		app.serverErrorResponse(w, r, err)
+		var httpErr *httpclient.HTTPError
+		if errors.As(err, &httpErr) {
+			app.errorResponse(w, r, httpErr)
+		} else {
+			app.serverErrorResponse(w, r, err)
+		}
 		return
 	}
 
@@ -52,7 +57,12 @@ func (app *App) GetMcpServersFiltersHandler(w http.ResponseWriter, r *http.Reque
 	mcpServerFilterOptions, err := app.repositories.ModelCatalogClient.GetMcpServersFilter(client)
 
 	if err != nil {
-		app.serverErrorResponse(w, r, err)
+		var httpErr *httpclient.HTTPError
+		if errors.As(err, &httpErr) {
+			app.errorResponse(w, r, httpErr)
+		} else {
+			app.serverErrorResponse(w, r, err)
+		}
 		return
 	}
 
@@ -84,7 +94,12 @@ func (app *App) GetMcpServerHandler(w http.ResponseWriter, r *http.Request, ps h
 	server, err := app.repositories.ModelCatalogClient.GetMcpServer(client, serverId, r.URL.Query())
 
 	if err != nil {
-		app.serverErrorResponse(w, r, err)
+		var httpErr *httpclient.HTTPError
+		if errors.As(err, &httpErr) {
+			app.errorResponse(w, r, httpErr)
+		} else {
+			app.serverErrorResponse(w, r, err)
+		}
 		return
 	}
 
@@ -114,10 +129,17 @@ func (app *App) GetMcpServersToolsHandler(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	mcpServerTools, err := app.repositories.ModelCatalogClient.GetMcpServersTools(client, serverId)
+	serverName := r.URL.Query().Get("serverName")
+
+	mcpServerTools, err := app.repositories.ModelCatalogClient.GetMcpServersTools(client, serverId, serverName)
 
 	if err != nil {
-		app.serverErrorResponse(w, r, err)
+		var httpErr *httpclient.HTTPError
+		if errors.As(err, &httpErr) {
+			app.errorResponse(w, r, httpErr)
+		} else {
+			app.serverErrorResponse(w, r, err)
+		}
 		return
 	}
 

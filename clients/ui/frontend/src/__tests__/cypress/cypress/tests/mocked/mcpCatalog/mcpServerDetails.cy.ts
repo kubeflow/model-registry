@@ -126,11 +126,14 @@ describe('MCP Server Details Page', () => {
 
   describe('Error handling', () => {
     it('should show not-found state for invalid server ID', () => {
-      initServerDetailIntercept(
-        mockMcpServer({
-          id: '999',
-          name: 'nonexistent',
-        }),
+      cy.intercept(
+        { method: 'GET', url: '**/mcp_servers/invalid-id-that-does-not-exist*' },
+        {
+          statusCode: 404,
+          body: {
+            error: { code: '404', message: 'the requested resource could not be found' },
+          },
+        },
       );
       cy.visit('/mcp-catalog/invalid-id-that-does-not-exist');
       cy.findByTestId('mcp-server-not-found', { timeout: 15000 }).should('be.visible');

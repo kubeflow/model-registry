@@ -65,12 +65,17 @@ export const getMcpServer =
 
 export const getMcpServerToolList =
   (hostPath: string, queryParams: Record<string, unknown> = {}) =>
-  (opts: APIOptions, serverId: string): Promise<McpToolList> =>
-    handleRestFailures(restGET(hostPath, `/mcp_servers/${serverId}/tools`, queryParams, opts)).then(
-      (response) => {
-        if (isModArchResponse<McpToolList>(response)) {
-          return response.data;
-        }
-        throw new Error('Invalid response format');
-      },
-    );
+  (opts: APIOptions, serverId: string, serverName?: string): Promise<McpToolList> =>
+    handleRestFailures(
+      restGET(
+        hostPath,
+        `/mcp_servers/${serverId}/tools`,
+        { ...queryParams, ...(serverName && { serverName }) },
+        opts,
+      ),
+    ).then((response) => {
+      if (isModArchResponse<McpToolList>(response)) {
+        return response.data;
+      }
+      throw new Error('Invalid response format');
+    });

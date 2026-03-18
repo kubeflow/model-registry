@@ -3,9 +3,12 @@ import React from 'react';
 import { McpToolList } from '~/app/mcpServerCatalogTypes';
 import { McpCatalogContext } from '~/app/context/mcpCatalog/McpCatalogContext';
 
-export const useMcpServerToolList = (serverId: string): FetchState<McpToolList> => {
-  const { apiState } = React.useContext(McpCatalogContext);
-  const { api, apiAvailable } = apiState;
+export const useMcpServerToolList = (
+  serverId: string,
+  serverName?: string,
+): FetchState<McpToolList> => {
+  const { mcpApiState } = React.useContext(McpCatalogContext);
+  const { api, apiAvailable } = mcpApiState;
   const call = React.useCallback<FetchStateCallbackPromise<McpToolList>>(
     (opts) => {
       if (!apiAvailable) {
@@ -14,12 +17,12 @@ export const useMcpServerToolList = (serverId: string): FetchState<McpToolList> 
       if (!serverId) {
         return Promise.reject(new NotReadyError('No server id'));
       }
-      return api.getMcpServerToolList(opts, serverId).then((data) => ({
+      return api.getMcpServerToolList(opts, serverId, serverName).then((data) => ({
         ...data,
         items: data.items ?? [],
       }));
     },
-    [api, apiAvailable, serverId],
+    [api, apiAvailable, serverId, serverName],
   );
   return useFetchState(
     call,

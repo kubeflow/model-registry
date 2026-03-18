@@ -31,8 +31,6 @@ const defaultPagination: McpCatalogPaginationState = {
 };
 
 export const McpCatalogContext = React.createContext<McpCatalogContextType>({
-  // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
-  apiState: { apiAvailable: false, api: null as unknown as ModelCatalogAPIState['api'] },
   filters: {},
   setFilters: () => undefined,
   searchQuery: '',
@@ -116,7 +114,6 @@ export const McpCatalogContextProvider: React.FC<McpCatalogContextProviderProps>
 
   const value = React.useMemo<McpCatalogContextType>(
     () => ({
-      apiState: apiStateMcpCatalog,
       filters,
       setFilters,
       searchQuery,

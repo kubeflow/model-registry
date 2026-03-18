@@ -28,6 +28,8 @@ const McpServerDetailsPage: React.FC = () => {
   const { mcpApiState } = React.useContext(McpCatalogContext);
   const [server, serverLoaded, serverLoadError] = useMcpServerWithAPI(mcpApiState, serverId);
 
+  const isNotFound = !server && (serverLoaded || !!serverLoadError);
+
   return (
     <>
       <ScrollViewOnMount shouldScroll scrollToTop />
@@ -73,9 +75,9 @@ const McpServerDetailsPage: React.FC = () => {
             </Flex>
           ) : null
         }
-        empty={!server}
+        empty={isNotFound}
         emptyStatePage={
-          !server ? (
+          isNotFound ? (
             <EmptyState
               icon={SearchIcon}
               titleText="MCP server not found"
@@ -93,8 +95,8 @@ const McpServerDetailsPage: React.FC = () => {
             </EmptyState>
           ) : undefined
         }
-        loadError={serverLoadError}
-        loaded={serverLoaded}
+        loadError={isNotFound ? undefined : serverLoadError}
+        loaded={isNotFound || serverLoaded}
         errorMessage="Unable to load MCP server details"
         provideChildrenPadding
       >
