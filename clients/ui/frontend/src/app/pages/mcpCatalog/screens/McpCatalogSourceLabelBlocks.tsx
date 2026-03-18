@@ -9,7 +9,7 @@ import {
   orderLabelsByPriority,
 } from '~/app/pages/modelCatalog/utils/modelCatalogUtils';
 import { McpCatalogContext } from '~/app/context/mcpCatalog/McpCatalogContext';
-import { OTHER_MCP_SERVERS_DISPLAY_NAME } from '../const';
+import { OTHER_MCP_SERVERS_DISPLAY_NAME } from '~/app/pages/mcpCatalog/const';
 
 const ALL_SERVERS_LABEL = 'All MCP servers';
 

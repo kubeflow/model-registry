@@ -126,7 +126,7 @@ describe('Label Utilities', () => {
         emptyLabels,
         OTHER_MCP_SERVERS_DISPLAY_NAME,
       );
-      expect(result).toBe('Other servers');
+      expect(result).toBe('Other MCP servers');
     });
 
     it('should return empty string for undefined sourceLabel', () => {
