@@ -43,11 +43,10 @@ const getAccessTypeConfig = (
 
 type McpServerToolsSectionProps = {
   serverId: string;
-  serverName?: string;
 };
 
-const McpServerToolsSection: React.FC<McpServerToolsSectionProps> = ({ serverId, serverName }) => {
-  const [toolList, toolsLoaded, toolsLoadError] = useMcpServerToolList(serverId, serverName);
+const McpServerToolsSection: React.FC<McpServerToolsSectionProps> = ({ serverId }) => {
+  const [toolList, toolsLoaded, toolsLoadError] = useMcpServerToolList(serverId);
 
   const tools: McpTool[] = React.useMemo(
     () => (toolList.items ?? []).map((t) => t.tool),

@@ -136,7 +136,7 @@ describe('MCP Server Details Page', () => {
         },
       );
       cy.visit('/mcp-catalog/invalid-id-that-does-not-exist');
-      cy.findByTestId('mcp-server-not-found', { timeout: 15000 }).should('be.visible');
+      mcpServerDetails.findMcpNotFound().should('be.visible');
       cy.contains('MCP server not found').should('be.visible');
     });
   });

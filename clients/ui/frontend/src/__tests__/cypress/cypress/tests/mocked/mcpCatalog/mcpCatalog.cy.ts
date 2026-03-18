@@ -57,7 +57,7 @@ describe('MCP Catalog Page', () => {
     cy.findByTestId('mcp-category-title-community_mcp_servers', { timeout: 15000 }).should(
       'be.visible',
     );
-    cy.findByTestId('mcp-category-title-organization_mcp_servers').should('be.visible');
+    mcpCatalog.findMcpCategorySection().should('be.visible');
     mcpCatalog.findMcpCatalogCards().should('have.length.at.least', 4);
   });
 
@@ -94,7 +94,7 @@ describe('MCP Catalog Empty State', () => {
       mockModArchResponse(mockMcpCatalogFilterOptions()),
     );
     mcpCatalog.visit();
-    cy.findByTestId('empty-mcp-catalog-state').should('be.visible', { timeout: 15000 });
+    mcpCatalog.findEmptyState().should('be.visible');
   });
 });
 

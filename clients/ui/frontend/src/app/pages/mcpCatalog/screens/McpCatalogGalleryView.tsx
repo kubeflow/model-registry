@@ -86,7 +86,7 @@ const McpCatalogGalleryView: React.FC<McpCatalogGalleryViewProps> = ({ handleFil
       <Grid hasGutter>
         {items.map((server) => (
           <GridItem
-            key={String(server.id)}
+            key={server.id}
             sm={MCP_CATALOG_GRID_SPAN.sm}
             md={MCP_CATALOG_GRID_SPAN.md}
             lg={MCP_CATALOG_GRID_SPAN.lg}

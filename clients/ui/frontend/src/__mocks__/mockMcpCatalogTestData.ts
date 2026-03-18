@@ -71,7 +71,6 @@ export const mockMcpToolWithServer = (
   partial?: Partial<McpToolWithServer['tool']>,
 ): McpToolWithServer => ({
   serverId,
-  serverName: 'Test Server',
   tool: {
     name: 'test_tool',
     description: 'A test tool',

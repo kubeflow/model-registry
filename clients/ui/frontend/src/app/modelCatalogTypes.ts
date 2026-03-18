@@ -256,11 +256,7 @@ export type GetMcpServerFilterOptionList = (opts: APIOptions) => Promise<Catalog
 
 export type GetMcpServer = (opts: APIOptions, serverId: string) => Promise<McpServer>;
 
-export type GetMcpServerToolList = (
-  opts: APIOptions,
-  serverId: string,
-  serverName?: string,
-) => Promise<McpToolList>;
+export type GetMcpServerToolList = (opts: APIOptions, serverId: string) => Promise<McpToolList>;
 
 export type ModelCatalogAPIs = {
   getCatalogModelsBySource: GetCatalogModelsBySource;

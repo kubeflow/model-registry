@@ -2760,12 +2760,9 @@ components:
       type: object
       required:
         - serverId
-        - serverName
         - tool
       properties:
         serverId:
-          type: string
-        serverName:
           type: string
         tool:
           $ref: "#/components/schemas/McpTool"

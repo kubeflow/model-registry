@@ -2642,8 +2642,7 @@ func GetMcpToolWithServerMocks() []models.McpToolWithServer {
 	falseVal := false
 
 	queryTool := models.McpToolWithServer{
-		ServerID:   "prometheus-mcp",
-		ServerName: "Prometheus MCP Server",
+		ServerID: "prometheus-mcp",
 		Tool: models.McpTool{
 			Name:        "query",
 			Description: stringToPointer("Execute PromQL queries against the Prometheus time-series database"),
@@ -2673,8 +2672,7 @@ func GetMcpToolWithServerMocks() []models.McpToolWithServer {
 	}
 
 	getAlertsTool := models.McpToolWithServer{
-		ServerID:   "prometheus-mcp",
-		ServerName: "Prometheus MCP Server",
+		ServerID: "prometheus-mcp",
 		Tool: models.McpTool{
 			Name:        "get_alerts",
 			Description: stringToPointer("Retrieve current problems and incidents"),
@@ -2685,8 +2683,7 @@ func GetMcpToolWithServerMocks() []models.McpToolWithServer {
 	}
 
 	getPodsTool := models.McpToolWithServer{
-		ServerID:   "kubernetes-mcp",
-		ServerName: "Kubernetes MCP Server",
+		ServerID: "kubernetes-mcp",
 		Tool: models.McpTool{
 			Name:        "get_pods",
 			Description: stringToPointer("List pods in a namespace"),
@@ -2710,8 +2707,7 @@ func GetMcpToolWithServerMocks() []models.McpToolWithServer {
 	}
 
 	createMaintenanceWindow := models.McpToolWithServer{
-		ServerID:   "prometheus-mcp",
-		ServerName: "Prometheus MCP Server",
+		ServerID: "prometheus-mcp",
 		Tool: models.McpTool{
 			Name:        "create_maintenance_window",
 			Description: stringToPointer("Create a maintenance window to suppress alerts"),
@@ -2753,8 +2749,7 @@ func GetMcpToolWithServerMocks() []models.McpToolWithServer {
 	}
 
 	executeDql := models.McpToolWithServer{
-		ServerID:   "prometheus-mcp",
-		ServerName: "Prometheus MCP Server",
+		ServerID: "prometheus-mcp",
 		Tool: models.McpTool{
 			Name:        "execute_dql",
 			Description: stringToPointer("Execute Dynatrace Query Language (DQL) queries"),
@@ -2778,8 +2773,7 @@ func GetMcpToolWithServerMocks() []models.McpToolWithServer {
 	}
 
 	getServiceHealth := models.McpToolWithServer{
-		ServerID:   "prometheus-mcp",
-		ServerName: "Prometheus MCP Server",
+		ServerID: "prometheus-mcp",
 		Tool: models.McpTool{
 			Name:        "get_service_health",
 			Description: stringToPointer("Get health status of services"),
@@ -2797,8 +2791,7 @@ func GetMcpToolWithServerMocks() []models.McpToolWithServer {
 	}
 
 	getVulnerabilities := models.McpToolWithServer{
-		ServerID:   "prometheus-mcp",
-		ServerName: "Prometheus MCP Server",
+		ServerID: "prometheus-mcp",
 		Tool: models.McpTool{
 			Name:        "get_vulnerabilities",
 			Description: stringToPointer("Retrieve security vulnerability data"),
@@ -2822,8 +2815,7 @@ func GetMcpToolWithServerMocks() []models.McpToolWithServer {
 	}
 
 	deployModel := models.McpToolWithServer{
-		ServerID:   "kubernetes-mcp",
-		ServerName: "Kubernetes MCP Server",
+		ServerID: "kubernetes-mcp",
 		Tool: models.McpTool{
 			Name:        "deploy_model",
 			Description: stringToPointer("Deploy a machine learning model to a Kubernetes cluster"),
@@ -2859,8 +2851,7 @@ func GetMcpToolWithServerMocks() []models.McpToolWithServer {
 	}
 
 	queryRange := models.McpToolWithServer{
-		ServerID:   "prometheus-mcp",
-		ServerName: "Prometheus MCP Server",
+		ServerID: "prometheus-mcp",
 		Tool: models.McpTool{
 			Name:        "query_range",
 			Description: stringToPointer("Execute a PromQL range query over a time window"),
@@ -2896,8 +2887,7 @@ func GetMcpToolWithServerMocks() []models.McpToolWithServer {
 	}
 
 	getMetricMetadata := models.McpToolWithServer{
-		ServerID:   "prometheus-mcp",
-		ServerName: "Prometheus MCP Server",
+		ServerID: "prometheus-mcp",
 		Tool: models.McpTool{
 			Name:        "get_metric_metadata",
 			Description: stringToPointer("Retrieve metadata about a specific Prometheus metric"),
@@ -2915,8 +2905,7 @@ func GetMcpToolWithServerMocks() []models.McpToolWithServer {
 	}
 
 	listTargets := models.McpToolWithServer{
-		ServerID:   "prometheus-mcp",
-		ServerName: "Prometheus MCP Server",
+		ServerID: "prometheus-mcp",
 		Tool: models.McpTool{
 			Name:        "list_targets",
 			Description: stringToPointer("List all active and dropped scrape targets"),
@@ -2934,8 +2923,7 @@ func GetMcpToolWithServerMocks() []models.McpToolWithServer {
 	}
 
 	deleteAlertSilence := models.McpToolWithServer{
-		ServerID:   "prometheus-mcp",
-		ServerName: "Prometheus MCP Server",
+		ServerID: "prometheus-mcp",
 		Tool: models.McpTool{
 			Name:        "delete_alert_silence",
 			Description: stringToPointer("Delete an alert silence by ID"),
@@ -2953,8 +2941,7 @@ func GetMcpToolWithServerMocks() []models.McpToolWithServer {
 	}
 
 	legacyExport := models.McpToolWithServer{
-		ServerID:   "prometheus-mcp",
-		ServerName: "Prometheus MCP Server",
+		ServerID: "prometheus-mcp",
 		Tool: models.McpTool{
 			Name:          "legacy_export",
 			Description:   stringToPointer("Export metrics in legacy format (deprecated)"),

@@ -16,7 +16,7 @@ type McpServerCatalogInterface interface {
 	GetAllMcpServers(client httpclient.HTTPClientInterface, pageValues url.Values) (*models.McpServerList, error)
 	GetMcpServersFilter(client httpclient.HTTPClientInterface) (*models.FilterOptionsList, error)
 	GetMcpServer(client httpclient.HTTPClientInterface, serverId string, pageValues url.Values) (*models.McpServer, error)
-	GetMcpServersTools(client httpclient.HTTPClientInterface, serverId string, serverName string) (*models.McpToolList, error)
+	GetMcpServersTools(client httpclient.HTTPClientInterface, serverId string) (*models.McpToolList, error)
 }
 
 type McpServerCatalog struct {
@@ -77,7 +77,7 @@ func (a *McpServerCatalog) GetMcpServer(client httpclient.HTTPClientInterface, s
 	return &mcpServer, nil
 }
 
-func (a *McpServerCatalog) GetMcpServersTools(client httpclient.HTTPClientInterface, serverId string, serverName string) (*models.McpToolList, error) {
+func (a *McpServerCatalog) GetMcpServersTools(client httpclient.HTTPClientInterface, serverId string) (*models.McpToolList, error) {
 	path, err := url.JoinPath(mcpServerPath, serverId, "tools")
 
 	if err != nil {
@@ -104,9 +104,8 @@ func (a *McpServerCatalog) GetMcpServersTools(client httpclient.HTTPClientInterf
 	wrappedItems := make([]models.McpToolWithServer, 0, len(mcpServerTools.Items))
 	for _, tool := range mcpServerTools.Items {
 		wrappedItems = append(wrappedItems, models.McpToolWithServer{
-			ServerID:   serverId,
-			ServerName: serverName,
-			Tool:       tool,
+			ServerID: serverId,
+			Tool:     tool,
 		})
 	}
 

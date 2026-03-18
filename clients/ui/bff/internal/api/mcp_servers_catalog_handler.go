@@ -129,9 +129,7 @@ func (app *App) GetMcpServersToolsHandler(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	serverName := r.URL.Query().Get("serverName")
-
-	mcpServerTools, err := app.repositories.ModelCatalogClient.GetMcpServersTools(client, serverId, serverName)
+	mcpServerTools, err := app.repositories.ModelCatalogClient.GetMcpServersTools(client, serverId)
 
 	if err != nil {
 		var httpErr *httpclient.HTTPError

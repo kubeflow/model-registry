@@ -162,14 +162,13 @@ func TestGetMcpServersTools_Success(t *testing.T) {
 	mockClient.On("GET", "/mcp_servers/server-1/tools").Return([]byte(toolsJSON), nil)
 
 	repo := McpServerCatalog{}
-	result, err := repo.GetMcpServersTools(mockClient, "server-1", "Prometheus MCP")
+	result, err := repo.GetMcpServersTools(mockClient, "server-1")
 
 	assert.NoError(t, err)
 	assert.NotNil(t, result)
 	assert.Equal(t, int32(2), result.Size)
 	assert.Len(t, result.Items, 2)
 	assert.Equal(t, "server-1", result.Items[0].ServerID)
-	assert.Equal(t, "Prometheus MCP", result.Items[0].ServerName)
 	assert.Equal(t, "query", result.Items[0].Tool.Name)
 	assert.Equal(t, "get_alerts", result.Items[1].Tool.Name)
 	mockClient.AssertExpectations(t)
@@ -181,7 +180,7 @@ func TestGetMcpServersTools_ClientError(t *testing.T) {
 	mockClient.On("GET", "/mcp_servers/bad/tools").Return([]byte(nil), expectedErr)
 
 	repo := McpServerCatalog{}
-	result, err := repo.GetMcpServersTools(mockClient, "bad", "")
+	result, err := repo.GetMcpServersTools(mockClient, "bad")
 
 	assert.Nil(t, result)
 	assert.Error(t, err)

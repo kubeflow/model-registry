@@ -86,7 +86,7 @@ const McpServerDetailsView: React.FC<McpServerDetailsViewProps> = ({ server }) =
               </Card>
             </StackItem>
             <StackItem>
-              <McpServerToolsSection serverId={server.id} serverName={server.name} />
+              <McpServerToolsSection serverId={server.id} />
             </StackItem>
             <StackItem>
               <Card>

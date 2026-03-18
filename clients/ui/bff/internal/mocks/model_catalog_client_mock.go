@@ -400,7 +400,7 @@ func (m *ModelCatalogClientMock) GetMcpServer(client httpclient.HTTPClientInterf
 	return nil, fmt.Errorf("server id doesn't exist: %s", serverId)
 }
 
-func (m *ModelCatalogClientMock) GetMcpServersTools(client httpclient.HTTPClientInterface, serverId string, serverName string) (*models.McpToolList, error) {
+func (m *ModelCatalogClientMock) GetMcpServersTools(client httpclient.HTTPClientInterface, serverId string) (*models.McpToolList, error) {
 	mcpServerTools := GetMcpToolListMock()
 
 	return &mcpServerTools, nil
