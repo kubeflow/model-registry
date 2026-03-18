@@ -5,7 +5,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/kubeflow/model-registry/pkg/api"
+	platformerrors "github.com/kubeflow/model-registry/internal/platform/errors"
 )
 
 func TestIsDatabaseTypeConversionError(t *testing.T) {
@@ -182,10 +182,10 @@ func TestSanitizeDatabaseError(t *testing.T) {
 					t.Errorf("SanitizeDatabaseError() error message = %q, want to contain %q", result.Error(), tt.expectMessage)
 				}
 
-				// Check if it wraps api.ErrBadRequest
+				// Check if it wraps platformerrors.ErrBadRequest
 				if tt.expectBadReq {
-					if !errors.Is(result, api.ErrBadRequest) {
-						t.Errorf("SanitizeDatabaseError() should wrap api.ErrBadRequest but does not")
+					if !errors.Is(result, platformerrors.ErrBadRequest) {
+						t.Errorf("SanitizeDatabaseError() should wrap platformerrors.ErrBadRequest but does not")
 					}
 				}
 			} else {
@@ -199,13 +199,13 @@ func TestSanitizeDatabaseError(t *testing.T) {
 }
 
 func TestSanitizeDatabaseError_WrapsCorrectly(t *testing.T) {
-	// Test that the sanitized error properly wraps api.ErrBadRequest
+	// Test that the sanitized error properly wraps platformerrors.ErrBadRequest
 	inputErr := errors.New(`ERROR: invalid input syntax for type integer: "abc"`)
 	result := SanitizeDatabaseError(inputErr)
 
-	// Should wrap api.ErrBadRequest
-	if !errors.Is(result, api.ErrBadRequest) {
-		t.Error("SanitizeDatabaseError() should wrap api.ErrBadRequest")
+	// Should wrap platformerrors.ErrBadRequest
+	if !errors.Is(result, platformerrors.ErrBadRequest) {
+		t.Error("SanitizeDatabaseError() should wrap platformerrors.ErrBadRequest")
 	}
 
 	// Original database error should NOT be in the chain (we don't want to expose it)
@@ -241,7 +241,7 @@ func TestSanitizeDatabaseError_CaseInsensitive(t *testing.T) {
 			inputErr := errors.New(errMsg)
 			result := SanitizeDatabaseError(inputErr)
 
-			if !errors.Is(result, api.ErrBadRequest) {
+			if !errors.Is(result, platformerrors.ErrBadRequest) {
 				t.Errorf("Case-insensitive matching failed for: %s", errMsg)
 			}
 		})
