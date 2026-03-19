@@ -1,9 +1,6 @@
 import * as React from 'react';
+import { useManageColumns, UseManageColumnsResult } from 'mod-arch-shared';
 import { CatalogPerformanceMetricsArtifact } from '~/app/modelCatalogTypes';
-import {
-  useManageColumns,
-  UseManageColumnsResult,
-} from '~/app/shared/components/manageColumns/useManageColumns';
 import {
   LatencyMetric,
   LatencyMetricFieldName,
