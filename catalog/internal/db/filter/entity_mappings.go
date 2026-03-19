@@ -86,18 +86,32 @@ func (c *catalogEntityMappings) IsChildEntity(entityType filter.RestEntityType) 
 	return false
 }
 
-// GetEqualityExpansion implements filter.EqualityExpander so externalId = "x" matches both
-// exact and namespaced (sourceId:x) stored values, returning all models regardless of source.
+// GetEqualityExpansion implements filter.EqualityExpander so that:
+// - externalId = "x" matches both exact and namespaced (sourceId:x) stored values.
+// - name = "modelName" matches both exact and namespaced (sourceId:modelName) stored values,
+//   so callers can filter by model name without requiring the source prefix.
 func (c *catalogEntityMappings) GetEqualityExpansion(restEntityType filter.RestEntityType, propertyName string, value any) (likeArg any, useExpansion bool) {
-	if restEntityType != filter.RestEntityType(catalogmodels.RestEntityCatalogModel) || propertyName != "externalId" {
+	if restEntityType != filter.RestEntityType(catalogmodels.RestEntityCatalogModel) {
 		return nil, false
 	}
 	strVal, ok := value.(string)
 	if !ok || strVal == "" {
 		return nil, false
 	}
-	// Match any source prefix: sourceId:externalId
-	return "%:" + escapeLike(strVal), true
+	switch propertyName {
+	case "externalId":
+		// Match any source prefix: sourceId:externalId
+		return "%:" + escapeLike(strVal), true
+	case "name":
+		// If value already contains ":", treat as full namespaced name — exact match only.
+		if strings.Contains(strVal, ":") {
+			return nil, false
+		}
+		// Match namespaced form so model name without source prefix still finds the row.
+		return "%:" + escapeLike(strVal), true
+	default:
+		return nil, false
+	}
 }
 
 // escapeLike escapes SQL LIKE metacharacters (%, _, \) for safe use as a literal in a LIKE pattern.

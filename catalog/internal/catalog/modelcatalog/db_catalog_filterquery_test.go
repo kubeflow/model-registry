@@ -701,7 +701,8 @@ func TestArtifactFilteringCapability(t *testing.T) {
 				".name = $",
 				".double_value > $",
 			},
-			expectedArgs: []any{"llm-model", "performance_score", 0.95},
+			// name = "llm-model" is expanded to (name = ? OR name LIKE ?) for catalog models, so 2 args; artifact adds 2 more
+			expectedArgs: []any{"llm-model", "%:llm-model", "performance_score", 0.95},
 			description:  "Should combine model properties and artifact properties in a single query",
 		},
 		{
