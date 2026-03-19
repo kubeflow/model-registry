@@ -4,12 +4,18 @@ import "reflect"
 
 // Spec is the specification for the datastore.
 type Spec struct {
+	// Maps artifact type names to an initializer.
 	ArtifactTypes  map[string]*SpecType
+	// Maps context type names to an initializer.
 	ContextTypes   map[string]*SpecType
+	// Maps execution type names to an initializer.
 	ExecutionTypes map[string]*SpecType
+	// Any repo initialization functions that don't map to a type can be
+	// added here.
 	Others         []any
 }
 
+// NewSpec returns an empty Spec instance.
 func NewSpec() *Spec {
 	return &Spec{
 		ArtifactTypes:  map[string]*SpecType{},

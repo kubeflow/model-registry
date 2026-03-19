@@ -90,6 +90,8 @@ func (c *TLSConfig) BuildTLSConfig() (*tls.Config, error) {
 	return tlsConfig, nil
 }
 
+// parseCipherSuites parses a colon-separated list of cipher suite names
+// and returns the corresponding cipher suite IDs.
 func parseCipherSuites(cipherStr string) ([]uint16, error) {
 	if cipherStr == "" {
 		return nil, nil

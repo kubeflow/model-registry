@@ -33,6 +33,8 @@ func ValidationMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		queryParams, err := url.ParseQuery(r.URL.RawQuery)
 		if err != nil {
+			// If we can't parse query parameters, let the request continue.
+			// The parsing error will be handled elsewhere.
 			next.ServeHTTP(w, r)
 			return
 		}

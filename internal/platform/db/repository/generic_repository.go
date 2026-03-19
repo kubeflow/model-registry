@@ -221,20 +221,11 @@ func (r *GenericRepository[TEntity, TSchema, TProp, TListOpts]) Save(e TEntity, 
 	existingUpdateTime := r.getLastUpdateTime(schemaEntity)
 
 	if r.config.PreserveHistoricalTimes {
-		if isNewEntity {
-			if existingUpdateTime == 0 {
-				r.setLastUpdateTime(&schemaEntity, now)
-			}
-			if existingCreateTime == 0 {
-				r.setCreateTime(&schemaEntity, now)
-			}
-		} else {
-			if existingUpdateTime == 0 {
-				r.setLastUpdateTime(&schemaEntity, now)
-			}
-			if existingCreateTime == 0 {
-				r.setCreateTime(&schemaEntity, now)
-			}
+		if existingUpdateTime == 0 {
+			r.setLastUpdateTime(&schemaEntity, now)
+		}
+		if existingCreateTime == 0 {
+			r.setCreateTime(&schemaEntity, now)
 		}
 	} else {
 		if isNewEntity {
