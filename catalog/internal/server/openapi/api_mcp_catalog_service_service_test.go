@@ -12,7 +12,7 @@ import (
 	"github.com/kubeflow/model-registry/catalog/internal/catalog/basecatalog"
 	"github.com/kubeflow/model-registry/catalog/internal/catalog/mcpcatalog"
 	model "github.com/kubeflow/model-registry/catalog/pkg/openapi"
-	"github.com/kubeflow/model-registry/internal/apiutils"
+	"github.com/kubeflow/model-registry/internal/platform/apiutils"
 	"github.com/kubeflow/model-registry/pkg/api"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
