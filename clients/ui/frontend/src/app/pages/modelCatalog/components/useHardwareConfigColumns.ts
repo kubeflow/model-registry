@@ -131,23 +131,6 @@ export const useHardwareConfigColumns = (
     setSortDirection('asc');
   }, [activeLatencyField, manageColumnsResult, stickyColumns, manageableColumns]);
 
-  // Ensure sort is set correctly when columns are ready (handles initial mount case)
-  React.useEffect(() => {
-    if (!activeLatencyField || columns.length === 0) {
-      return;
-    }
-
-    const parsed = parseLatencyFilterKey(activeLatencyField);
-    const activePropertyKey = parsed.propertyKey;
-
-    // Only update if the column exists and sort isn't already set correctly
-    const columnExists = columns.some((col) => col.field === activePropertyKey);
-    if (columnExists && (sortColumnField !== activePropertyKey || sortDirection !== 'asc')) {
-      setSortColumnField(activePropertyKey);
-      setSortDirection('asc');
-    }
-  }, [activeLatencyField, columns, sortColumnField, sortDirection]);
-
   const sortState = React.useMemo(() => {
     const sortIndex =
       sortColumnField !== null ? columns.findIndex((col) => col.field === sortColumnField) : -1;
