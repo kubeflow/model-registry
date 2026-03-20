@@ -472,7 +472,7 @@ func (r *MCPServerRepositoryImpl) applyCustomOrdering(query *gorm.DB, listOption
 
 	// Handle NAME ordering
 	if orderBy == "NAME" {
-		return pagination.ApplyNameOrdering(query, contextTable, listOptions.GetSortOrder(), listOptions.GetNextPageToken(), listOptions.GetPageSize())
+		return pagination.ApplyNameOrdering(query, contextTable, listOptions.GetSortOrder(), listOptions.GetNextPageToken(), listOptions.GetPageSize(), false)
 	}
 
 	// Fall back to standard pagination
