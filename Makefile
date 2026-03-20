@@ -118,14 +118,14 @@ stop/postgres:
 .PHONY: gen/gorm/mysql
 gen/gorm/mysql: bin/golang-migrate start/mysql
 	@(trap 'cd $(CURDIR) && $(MAKE) stop/mysql' EXIT; \
-	$(GOLANG_MIGRATE) -path './internal/datastore/embedmd/mysql/migrations' -database 'mysql://root:root@tcp(localhost:3306)/model-registry' up && \
+	$(GOLANG_MIGRATE) -path './internal/platform/db/mysql/migrations' -database 'mysql://root:root@tcp(localhost:3306)/model-registry' up && \
 	cd gorm-gen && GOWORK=off go run main.go --db-type mysql --dsn 'root:root@tcp(localhost:3306)/model-registry?charset=utf8mb4&parseTime=True&loc=Local')
 
 # generate the gorm structs for PostgreSQL
 .PHONY: gen/gorm/postgres
 gen/gorm/postgres: bin/golang-migrate start/postgres
 	@(trap 'cd $(CURDIR) && $(MAKE) stop/postgres' EXIT; \
-	$(GOLANG_MIGRATE) -path './internal/datastore/embedmd/postgres/migrations' -database 'postgres://postgres:postgres@localhost:5432/model-registry?sslmode=disable' up && \
+	$(GOLANG_MIGRATE) -path './internal/platform/db/postgres/migrations' -database 'postgres://postgres:postgres@localhost:5432/model-registry?sslmode=disable' up && \
 	cd gorm-gen && GOWORK=off go run main.go --db-type postgres --dsn 'postgres://postgres:postgres@localhost:5432/model-registry?sslmode=disable' && \
 	cd $(CURDIR) && ./scripts/remove_gorm_defaults.sh)
 
@@ -142,9 +142,10 @@ endif
 .PHONY: vet
 vet:
 	@echo "Running go vet on all packages..."
-	@${GO} vet $$(${GO} list ./... | grep -vF github.com/kubeflow/model-registry/internal/db/filter) && \
-	echo "Checking filter package (parser.go excluded due to participle struct tags)..." && \
-	cd internal/db/filter && ${GO} build -o /dev/null . 2>&1 | grep -E "vet:|error:" || echo "✓ Filter package builds successfully"
+	@${GO} vet $$(${GO} list ./... | grep -vE 'github.com/kubeflow/model-registry/internal/(db|platform/db)/filter') && \
+	echo "Checking filter packages (parser.go excluded due to participle struct tags)..." && \
+	cd internal/db/filter && ${GO} build -o /dev/null . 2>&1 | grep -E "vet:|error:" || echo "✓ Filter package builds successfully" && \
+	cd $(CURDIR)/internal/platform/db/filter && ${GO} build -o /dev/null . 2>&1 | grep -E "vet:|error:" || echo "✓ Platform filter package builds successfully"
 
 .PHONY: clean/csi
 clean/csi:

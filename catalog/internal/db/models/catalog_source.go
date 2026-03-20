@@ -1,7 +1,7 @@
 package models
 
 import (
-	"github.com/kubeflow/model-registry/internal/db/models"
+	models "github.com/kubeflow/model-registry/internal/platform/db/entity"
 )
 
 // CatalogSourceAttributes holds the attributes for a catalog source record.

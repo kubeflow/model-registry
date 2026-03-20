@@ -4,7 +4,7 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/kubeflow/model-registry/internal/db/filter"
+	"github.com/kubeflow/model-registry/internal/platform/db/filter"
 )
 
 // EntityTypeDefinition describes a single catalog entity type's filtering behavior.

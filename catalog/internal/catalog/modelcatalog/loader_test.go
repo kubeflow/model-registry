@@ -11,7 +11,7 @@ import (
 	sharedmodels "github.com/kubeflow/model-registry/catalog/internal/db/models"
 	"github.com/kubeflow/model-registry/catalog/internal/db/service"
 	apimodels "github.com/kubeflow/model-registry/catalog/pkg/openapi"
-	"github.com/kubeflow/model-registry/internal/apiutils"
+	"github.com/kubeflow/model-registry/internal/platform/apiutils"
 	"github.com/stretchr/testify/assert"
 	"k8s.io/apimachinery/pkg/util/yaml"
 )

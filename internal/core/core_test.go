@@ -5,7 +5,7 @@ import (
 	"testing"
 
 	"github.com/kubeflow/model-registry/internal/core"
-	"github.com/kubeflow/model-registry/internal/db/schema"
+	"github.com/kubeflow/model-registry/internal/platform/db/schema"
 	"github.com/kubeflow/model-registry/internal/db/service"
 	"github.com/kubeflow/model-registry/internal/defaults"
 	"github.com/kubeflow/model-registry/internal/testutils"

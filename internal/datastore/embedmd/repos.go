@@ -6,7 +6,7 @@ import (
 	"reflect"
 
 	"github.com/golang/glog"
-	"github.com/kubeflow/model-registry/internal/datastore"
+	"github.com/kubeflow/model-registry/internal/platform/datastore"
 	"github.com/kubeflow/model-registry/internal/db/service"
 	"gorm.io/gorm"
 )

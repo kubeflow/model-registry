@@ -5,7 +5,7 @@ set -e
 # The gorm/gen tool incorrectly adds this tag for nullable columns in PostgreSQL.
 
 # The directory containing the generated GORM models
-SCHEMA_DIR="internal/db/schema"
+SCHEMA_DIR="internal/platform/db/schema"
 
 # Check if the directory exists
 if [ ! -d "$SCHEMA_DIR" ]; then
