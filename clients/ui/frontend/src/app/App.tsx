@@ -24,7 +24,6 @@ import AppNavSidebar from '~/app/standalone/AppNavSidebar';
 import AppRoutes from '~/app/AppRoutes';
 import { AppContext } from '~/app/context/AppContext';
 import { ModelRegistrySelectorContextProvider } from '~/app/context/ModelRegistrySelectorContext';
-import { PRIMARY_APP_CONTAINER_ID } from '~/app/pages/modelCatalogSettings/constants';
 
 const App: React.FC = () => {
   const {
@@ -97,7 +96,7 @@ const App: React.FC = () => {
   ) : (
     <AppContext.Provider value={contextValue}>
       <Page
-        mainContainerId={PRIMARY_APP_CONTAINER_ID}
+        mainContainerId="primary-app-container"
         masthead={
           isStandalone ? (
             <NavBar
