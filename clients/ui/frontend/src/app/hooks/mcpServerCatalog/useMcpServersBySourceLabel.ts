@@ -1,7 +1,7 @@
 import React from 'react';
 import { FetchStateCallbackPromise, useFetchState } from 'mod-arch-core';
 import { McpServer, McpServerList, McpServerListParams } from '~/app/mcpServerCatalogTypes';
-import { useModelCatalogAPI } from '~/app/hooks/modelCatalog/useModelCatalogAPI';
+import { McpCatalogContext } from '~/app/context/mcpCatalog/McpCatalogContext';
 import type { ModelCatalogAPIState } from '~/app/hooks/modelCatalog/useModelCatalogAPIState';
 
 type PaginatedMcpServerList = {
@@ -193,19 +193,16 @@ export const useMcpServersBySourceLabel = (
   sortBy?: string | null,
   sortOrder?: string,
 ): McpServersResult => {
-  const { api, apiAvailable } = useModelCatalogAPI();
-  return useMcpServersBySourceLabelWithAPI(
-    { api, apiAvailable },
-    {
-      sourceLabel,
-      pageSize,
-      searchQuery,
-      filterQuery,
-      namedQuery,
-      includeTools,
-      toolLimit,
-      sortBy,
-      sortOrder,
-    },
-  );
+  const { mcpApiState } = React.useContext(McpCatalogContext);
+  return useMcpServersBySourceLabelWithAPI(mcpApiState, {
+    sourceLabel,
+    pageSize,
+    searchQuery,
+    filterQuery,
+    namedQuery,
+    includeTools,
+    toolLimit,
+    sortBy,
+    sortOrder,
+  });
 };

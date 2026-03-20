@@ -158,8 +158,8 @@ func TestGetMcpServer_ClientError(t *testing.T) {
 
 func TestGetMcpServersTools_Success(t *testing.T) {
 	mockClient := &mocks.MockHTTPClient{}
-	responseJSON := `{"size": 2, "pageSize": 10, "nextPageToken": "", "items": []}`
-	mockClient.On("GET", "/mcp_servers/server-1/tools").Return([]byte(responseJSON), nil)
+	toolsJSON := `{"size": 2, "pageSize": 10, "nextPageToken": "", "items": [{"name": "query", "accessType": "read_only", "description": "Execute queries"}, {"name": "get_alerts", "accessType": "read_only"}]}`
+	mockClient.On("GET", "/mcp_servers/server-1/tools").Return([]byte(toolsJSON), nil)
 
 	repo := McpServerCatalog{}
 	result, err := repo.GetMcpServersTools(mockClient, "server-1")
@@ -167,7 +167,10 @@ func TestGetMcpServersTools_Success(t *testing.T) {
 	assert.NoError(t, err)
 	assert.NotNil(t, result)
 	assert.Equal(t, int32(2), result.Size)
-	assert.Len(t, result.Items, 0)
+	assert.Len(t, result.Items, 2)
+	assert.Equal(t, "server-1", result.Items[0].ServerID)
+	assert.Equal(t, "query", result.Items[0].Tool.Name)
+	assert.Equal(t, "get_alerts", result.Items[1].Tool.Name)
 	mockClient.AssertExpectations(t)
 }
 

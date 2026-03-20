@@ -50,16 +50,12 @@ class McpCatalog {
     return cy.findByTestId(`mcp-catalog-card-${serverId}`);
   }
 
-  findCardDetailLink(serverId: string) {
-    return cy.findByTestId(`mcp-catalog-card-detail-link-${serverId}`);
+  findCardDetailsLink() {
+    return cy.findByTestId('mcp-catalog-card-detail-link-');
   }
 
   findCardDescription(serverId: string) {
     return cy.findByTestId(`mcp-catalog-card-description-${serverId}`);
-  }
-
-  findEmptyState() {
-    return cy.findByTestId('mcp-catalog-empty-search');
   }
 
   findResetFilters() {
@@ -72,6 +68,14 @@ class McpCatalog {
 
   findRetry() {
     return cy.findByTestId('mcp-catalog-retry');
+  }
+
+  findMcpCategorySection() {
+    return cy.findByTestId('mcp-category-title-organization_mcp_servers');
+  }
+
+  findEmptyState() {
+    return cy.findByTestId('empty-mcp-catalog-state');
   }
 }
 
@@ -188,6 +192,10 @@ class McpServerDetails {
 
   findToolRevokedReason(toolName: string) {
     return cy.findByTestId(`mcp-tool-revoked-reason-${toolName}`);
+  }
+
+  findMcpNotFound() {
+    return cy.findByTestId('mcp-server-not-found', { timeout: 15000 });
   }
 }
 

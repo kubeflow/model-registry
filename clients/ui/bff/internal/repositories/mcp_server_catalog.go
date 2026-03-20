@@ -90,11 +90,29 @@ func (a *McpServerCatalog) GetMcpServersTools(client httpclient.HTTPClientInterf
 		return nil, fmt.Errorf("error fetching mcp server tools: %w", err)
 	}
 
-	var mcpServerTools models.McpToolList
+	var mcpServerTools struct {
+		NextPageToken string           `json:"nextPageToken"`
+		PageSize      int32            `json:"pageSize"`
+		Size          int32            `json:"size"`
+		Items         []models.McpTool `json:"items"`
+	}
 
 	if err := json.Unmarshal(responseData, &mcpServerTools); err != nil {
 		return nil, fmt.Errorf("error decoding response data: %w", err)
 	}
 
-	return &mcpServerTools, nil
+	wrappedItems := make([]models.McpToolWithServer, 0, len(mcpServerTools.Items))
+	for _, tool := range mcpServerTools.Items {
+		wrappedItems = append(wrappedItems, models.McpToolWithServer{
+			ServerID: serverId,
+			Tool:     tool,
+		})
+	}
+
+	return &models.McpToolList{
+		NextPageToken: mcpServerTools.NextPageToken,
+		PageSize:      mcpServerTools.PageSize,
+		Size:          mcpServerTools.Size,
+		Items:         wrappedItems,
+	}, nil
 }
