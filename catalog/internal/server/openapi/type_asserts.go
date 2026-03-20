@@ -455,6 +455,56 @@ func AssertMCPArtifactRequired(obj model.MCPArtifact) error {
 	return nil
 }
 
+// AssertMCPConfigMapKeyConstraints checks if the values respects the defined constraints
+func AssertMCPConfigMapKeyConstraints(obj model.MCPConfigMapKey) error {
+	return nil
+}
+
+// AssertMCPConfigMapKeyRequired checks if the required fields are not zero-ed
+func AssertMCPConfigMapKeyRequired(obj model.MCPConfigMapKey) error {
+	elements := map[string]interface{}{
+		"key":         obj.Key,
+		"description": obj.Description,
+	}
+	for name, el := range elements {
+		if isZero := IsZeroValue(el); isZero {
+			return &RequiredError{Field: name}
+		}
+	}
+
+	return nil
+}
+
+// AssertMCPConfigMapRequirementConstraints checks if the values respects the defined constraints
+func AssertMCPConfigMapRequirementConstraints(obj model.MCPConfigMapRequirement) error {
+	for _, el := range obj.Keys {
+		if err := AssertMCPConfigMapKeyConstraints(el); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// AssertMCPConfigMapRequirementRequired checks if the required fields are not zero-ed
+func AssertMCPConfigMapRequirementRequired(obj model.MCPConfigMapRequirement) error {
+	elements := map[string]interface{}{
+		"name":        obj.Name,
+		"description": obj.Description,
+	}
+	for name, el := range elements {
+		if isZero := IsZeroValue(el); isZero {
+			return &RequiredError{Field: name}
+		}
+	}
+
+	for _, el := range obj.Keys {
+		if err := AssertMCPConfigMapKeyRequired(el); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
 // AssertMCPEndpointsConstraints checks if the values respects the defined constraints
 func AssertMCPEndpointsConstraints(obj model.MCPEndpoints) error {
 	return nil
@@ -482,6 +532,56 @@ func AssertMCPEnvVarMetadataRequired(obj model.MCPEnvVarMetadata) error {
 		}
 	}
 
+	return nil
+}
+
+// AssertMCPPrerequisitesConstraints checks if the values respects the defined constraints
+func AssertMCPPrerequisitesConstraints(obj model.MCPPrerequisites) error {
+	if obj.ServiceAccount != nil {
+		if err := AssertMCPServiceAccountRequirementConstraints(*obj.ServiceAccount); err != nil {
+			return err
+		}
+	}
+	for _, el := range obj.Secrets {
+		if err := AssertMCPSecretRequirementConstraints(el); err != nil {
+			return err
+		}
+	}
+	for _, el := range obj.ConfigMaps {
+		if err := AssertMCPConfigMapRequirementConstraints(el); err != nil {
+			return err
+		}
+	}
+	for _, el := range obj.EnvironmentVariables {
+		if err := AssertMCPEnvVarMetadataConstraints(el); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// AssertMCPPrerequisitesRequired checks if the required fields are not zero-ed
+func AssertMCPPrerequisitesRequired(obj model.MCPPrerequisites) error {
+	if obj.ServiceAccount != nil {
+		if err := AssertMCPServiceAccountRequirementRequired(*obj.ServiceAccount); err != nil {
+			return err
+		}
+	}
+	for _, el := range obj.Secrets {
+		if err := AssertMCPSecretRequirementRequired(el); err != nil {
+			return err
+		}
+	}
+	for _, el := range obj.ConfigMaps {
+		if err := AssertMCPConfigMapRequirementRequired(el); err != nil {
+			return err
+		}
+	}
+	for _, el := range obj.EnvironmentVariables {
+		if err := AssertMCPEnvVarMetadataRequired(el); err != nil {
+			return err
+		}
+	}
 	return nil
 }
 
@@ -598,6 +698,11 @@ func AssertMCPRuntimeMetadataConstraints(obj model.MCPRuntimeMetadata) error {
 			return err
 		}
 	}
+	if obj.Prerequisites != nil {
+		if err := AssertMCPPrerequisitesConstraints(*obj.Prerequisites); err != nil {
+			return err
+		}
+	}
 	return nil
 }
 
@@ -635,6 +740,61 @@ func AssertMCPRuntimeMetadataRequired(obj model.MCPRuntimeMetadata) error {
 	}
 	if obj.Capabilities != nil {
 		if err := AssertMCPRuntimeMetadataCapabilitiesRequired(*obj.Capabilities); err != nil {
+			return err
+		}
+	}
+	if obj.Prerequisites != nil {
+		if err := AssertMCPPrerequisitesRequired(*obj.Prerequisites); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// AssertMCPSecretKeyConstraints checks if the values respects the defined constraints
+func AssertMCPSecretKeyConstraints(obj model.MCPSecretKey) error {
+	return nil
+}
+
+// AssertMCPSecretKeyRequired checks if the required fields are not zero-ed
+func AssertMCPSecretKeyRequired(obj model.MCPSecretKey) error {
+	elements := map[string]interface{}{
+		"key":         obj.Key,
+		"description": obj.Description,
+	}
+	for name, el := range elements {
+		if isZero := IsZeroValue(el); isZero {
+			return &RequiredError{Field: name}
+		}
+	}
+
+	return nil
+}
+
+// AssertMCPSecretRequirementConstraints checks if the values respects the defined constraints
+func AssertMCPSecretRequirementConstraints(obj model.MCPSecretRequirement) error {
+	for _, el := range obj.Keys {
+		if err := AssertMCPSecretKeyConstraints(el); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// AssertMCPSecretRequirementRequired checks if the required fields are not zero-ed
+func AssertMCPSecretRequirementRequired(obj model.MCPSecretRequirement) error {
+	elements := map[string]interface{}{
+		"name":        obj.Name,
+		"description": obj.Description,
+	}
+	for name, el := range elements {
+		if isZero := IsZeroValue(el); isZero {
+			return &RequiredError{Field: name}
+		}
+	}
+
+	for _, el := range obj.Keys {
+		if err := AssertMCPSecretKeyRequired(el); err != nil {
 			return err
 		}
 	}
@@ -750,6 +910,16 @@ func AssertMCPServerRequired(obj model.MCPServer) error {
 			return err
 		}
 	}
+	return nil
+}
+
+// AssertMCPServiceAccountRequirementConstraints checks if the values respects the defined constraints
+func AssertMCPServiceAccountRequirementConstraints(obj model.MCPServiceAccountRequirement) error {
+	return nil
+}
+
+// AssertMCPServiceAccountRequirementRequired checks if the required fields are not zero-ed
+func AssertMCPServiceAccountRequirementRequired(obj model.MCPServiceAccountRequirement) error {
 	return nil
 }
 

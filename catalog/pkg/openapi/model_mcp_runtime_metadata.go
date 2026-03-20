@@ -30,6 +30,9 @@ type MCPRuntimeMetadata struct {
 	RecommendedResources         *MCPResourceRecommendation         `json:"recommendedResources,omitempty"`
 	HealthEndpoints              *MCPRuntimeMetadataHealthEndpoints `json:"healthEndpoints,omitempty"`
 	Capabilities                 *MCPRuntimeMetadataCapabilities    `json:"capabilities,omitempty"`
+	// HTTP path where MCP server accepts requests. Used for HTTP and SSE transports. Aligns with MCP Lifecycle operator conventions.
+	McpPath       *string           `json:"mcpPath,omitempty"`
+	Prerequisites *MCPPrerequisites `json:"prerequisites,omitempty"`
 }
 
 // NewMCPRuntimeMetadata instantiates a new MCPRuntimeMetadata object
@@ -38,6 +41,8 @@ type MCPRuntimeMetadata struct {
 // will change when the set of required properties is changed
 func NewMCPRuntimeMetadata() *MCPRuntimeMetadata {
 	this := MCPRuntimeMetadata{}
+	var mcpPath string = "/mcp"
+	this.McpPath = &mcpPath
 	return &this
 }
 
@@ -46,6 +51,8 @@ func NewMCPRuntimeMetadata() *MCPRuntimeMetadata {
 // but it doesn't guarantee that properties required by API are set
 func NewMCPRuntimeMetadataWithDefaults() *MCPRuntimeMetadata {
 	this := MCPRuntimeMetadata{}
+	var mcpPath string = "/mcp"
+	this.McpPath = &mcpPath
 	return &this
 }
 
@@ -273,6 +280,70 @@ func (o *MCPRuntimeMetadata) SetCapabilities(v MCPRuntimeMetadataCapabilities) {
 	o.Capabilities = &v
 }
 
+// GetMcpPath returns the McpPath field value if set, zero value otherwise.
+func (o *MCPRuntimeMetadata) GetMcpPath() string {
+	if o == nil || IsNil(o.McpPath) {
+		var ret string
+		return ret
+	}
+	return *o.McpPath
+}
+
+// GetMcpPathOk returns a tuple with the McpPath field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+func (o *MCPRuntimeMetadata) GetMcpPathOk() (*string, bool) {
+	if o == nil || IsNil(o.McpPath) {
+		return nil, false
+	}
+	return o.McpPath, true
+}
+
+// HasMcpPath returns a boolean if a field has been set.
+func (o *MCPRuntimeMetadata) HasMcpPath() bool {
+	if o != nil && !IsNil(o.McpPath) {
+		return true
+	}
+
+	return false
+}
+
+// SetMcpPath gets a reference to the given string and assigns it to the McpPath field.
+func (o *MCPRuntimeMetadata) SetMcpPath(v string) {
+	o.McpPath = &v
+}
+
+// GetPrerequisites returns the Prerequisites field value if set, zero value otherwise.
+func (o *MCPRuntimeMetadata) GetPrerequisites() MCPPrerequisites {
+	if o == nil || IsNil(o.Prerequisites) {
+		var ret MCPPrerequisites
+		return ret
+	}
+	return *o.Prerequisites
+}
+
+// GetPrerequisitesOk returns a tuple with the Prerequisites field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+func (o *MCPRuntimeMetadata) GetPrerequisitesOk() (*MCPPrerequisites, bool) {
+	if o == nil || IsNil(o.Prerequisites) {
+		return nil, false
+	}
+	return o.Prerequisites, true
+}
+
+// HasPrerequisites returns a boolean if a field has been set.
+func (o *MCPRuntimeMetadata) HasPrerequisites() bool {
+	if o != nil && !IsNil(o.Prerequisites) {
+		return true
+	}
+
+	return false
+}
+
+// SetPrerequisites gets a reference to the given MCPPrerequisites and assigns it to the Prerequisites field.
+func (o *MCPRuntimeMetadata) SetPrerequisites(v MCPPrerequisites) {
+	o.Prerequisites = &v
+}
+
 func (o MCPRuntimeMetadata) MarshalJSON() ([]byte, error) {
 	toSerialize, err := o.ToMap()
 	if err != nil {
@@ -303,6 +374,12 @@ func (o MCPRuntimeMetadata) ToMap() (map[string]interface{}, error) {
 	}
 	if !IsNil(o.Capabilities) {
 		toSerialize["capabilities"] = o.Capabilities
+	}
+	if !IsNil(o.McpPath) {
+		toSerialize["mcpPath"] = o.McpPath
+	}
+	if !IsNil(o.Prerequisites) {
+		toSerialize["prerequisites"] = o.Prerequisites
 	}
 	return toSerialize, nil
 }
